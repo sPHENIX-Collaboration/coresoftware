@@ -1,0 +1,37 @@
+#ifndef PHG4BlockGeomContainer_H__
+#define PHG4BlockGeomContainer_H__
+
+#include <phool/PHObject.h>
+
+#include <map>
+
+class PHG4BlockGeom;
+
+class PHG4BlockGeomContainer: public PHObject
+{
+ public:
+  typedef std::map<int,PHG4BlockGeom *> Map;
+  typedef Map::iterator Iterator;
+  typedef Map::const_iterator ConstIterator;
+  typedef std::pair<Iterator, Iterator> Range;
+  typedef std::pair<ConstIterator, ConstIterator> ConstRange;
+
+  PHG4BlockGeomContainer();
+  virtual ~PHG4BlockGeomContainer();
+
+  void identify(std::ostream& os = std::cout) const;
+
+  int AddLayerGeom(const int i, PHG4BlockGeom *mygeom);
+  int AddLayerGeom(PHG4BlockGeom *mygeom);
+  PHG4BlockGeom *GetLayerGeom(const int i);
+  int get_NLayers() const {return _layergeoms.size();}
+  std::pair<std::map<int,PHG4BlockGeom *>::const_iterator, std::map<int,PHG4BlockGeom *>::const_iterator> get_begin_end() const {return std::make_pair(_layergeoms.begin(), _layergeoms.end());}
+
+ protected:
+  std::map<int,PHG4BlockGeom *> _layergeoms;
+  float _magfield;
+
+  ClassDef(PHG4BlockGeomContainer,1)
+};
+
+#endif

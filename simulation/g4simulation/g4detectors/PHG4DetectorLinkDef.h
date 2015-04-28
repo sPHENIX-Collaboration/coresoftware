@@ -1,0 +1,47 @@
+#ifdef __CINT__
+#pragma link C++ class ePHENIXRICH::RICH_Geometry-!;
+#pragma link C++ class PHG4AccSubsystem-!;
+#pragma link C++ class PHG4BlockCellReco-!;
+#pragma link C++ class PHG4BlockCellGeom+;
+#pragma link C++ class PHG4BlockCellGeomContainer+;
+#pragma link C++ class PHG4BlockGeom+;
+#pragma link C++ class PHG4BlockGeomv1+;
+#pragma link C++ class PHG4BlockGeomContainer+;
+#pragma link C++ class PHG4BlockSubsystem-!;
+#pragma link C++ class PHG4CEmcTestBeamSubsystem-!;
+#pragma link C++ class PHG4ConeSubsystem-!;
+#pragma link C++ class PHG4CylinderCell+;
+#pragma link C++ class PHG4CylinderCellv1+;
+#pragma link C++ class PHG4CylinderCellv2+;
+#pragma link C++ class PHG4CylinderCellGeom+;
+#pragma link C++ class PHG4CylinderCellContainer+;
+#pragma link C++ class PHG4CylinderCellGeomContainer+;
+#pragma link C++ class PHG4CylinderCellReco-!;
+#pragma link C++ class PHG4CylinderGeom+;
+#pragma link C++ class PHG4CylinderGeomv1+;
+#pragma link C++ class PHG4CylinderGeomv2+;
+#pragma link C++ class PHG4CylinderGeomv3+;
+#pragma link C++ class PHG4CylinderGeomv4+;
+#pragma link C++ class PHG4CylinderGeom_Spacalv1+;
+#pragma link C++ class PHG4CylinderGeom_Spacalv2+;
+#pragma link C++ class PHG4CylinderGeomContainer+;
+#pragma link C++ class PHG4CylinderSubsystem-!;
+#pragma link C++ class PHG4FCalSubsystem-!;
+#pragma link C++ class PHG4FPbScSubsystem-!;
+#pragma link C++ class PHG4GenHit-!;
+#pragma link C++ class PHG4HcalCellReco-!;
+#pragma link C++ class PHG4HcalSubsystem-!;
+#pragma link C++ class PHG4HcalTestBeamSubsystem-!;
+#pragma link C++ class PHG4HcalPrototypeSubsystem-!;
+#pragma link C++ class PHG4InnerHcalSubsystem-!;
+#pragma link C++ class PHG4OuterHcalSubsystem-!;
+#pragma link C++ class PHG4SiliconTrackerSubsystem-!;
+#pragma link C++ class PHG4RICHSubsystem-!;
+#pragma link C++ class PHG4Sector::Layer-!;
+#pragma link C++ class PHG4Sector::Sector_Geometry-!;
+#pragma link C++ class PHG4SectorSubsystem-!;
+#pragma link C++ class PHG4SiliconTrackerCellReco-!;
+#pragma link C++ class PHG4SlatCellReco-!;
+#pragma link C++ class PHG4SpacalSubsystem-!;
+
+#endif /* __CINT__ */

@@ -1,0 +1,149 @@
+#ifndef PHG4Reco_h
+#define PHG4Reco_h
+
+#include <g4decayer/EDecayType.hh>
+
+#include <fun4all/SubsysReco.h>
+
+#include <phool/PHTimeServer.h>
+
+#include <list>
+
+// Forward declerations
+class PHCompositeNode;
+class G4RunManager;
+class PHG4PrimaryGeneratorAction;
+class PHG4PhenixDetector;
+class PHG4PhenixEventAction;
+class PHG4PhenixSteppingAction;
+class PHG4PhenixTrackingAction;
+class PHG4Subsystem;
+class PHG4EventGenerator;
+class G4TBMagneticFieldSetup;
+
+// for the G4 cmd interface and the graphics
+class G4UImanager;
+class G4VisManager;
+
+/*!
+  \class   PHG4Reco
+  \ingroup supermodules
+  \brief   mutoo reconstruction event loop, twicked to cope with Run4 Au-Au data
+*/
+class PHG4Reco: public SubsysReco
+{
+ public:
+
+  //! constructor
+  PHG4Reco( const std::string & name = "PHG4RECO" );
+
+  //! destructor
+  virtual ~PHG4Reco();
+
+  //! full initialization
+  int Init(PHCompositeNode *);
+
+  //! event processing method
+  int process_event(PHCompositeNode *);
+
+  //! Clean up after each event.
+  int ResetEvent(PHCompositeNode *);
+
+  //! end of run method
+  int End(PHCompositeNode *);
+
+  //! register subsystem
+  void registerSubsystem( PHG4Subsystem* subsystem )
+  { subsystems_.push_back( subsystem ); }
+
+  //! interface to G4 cmd interpreter
+  int ApplyCommand(const std::string &cmd);
+
+  //! start the gui
+  int StartGui();
+
+  //! set magnetic field
+  void set_field(const float tesla)
+  { magfield = tesla;}
+
+  void set_field_map(const std::string &fmap, const int dim)
+  { fieldmapfile = fmap; mapdim = dim;}
+
+  void set_decayer_active(bool b) {active_decayer_ = b;}
+  void set_force_decay(EDecayType force_decay_type) {
+    active_decayer_ = true;
+    active_force_decay_ = true;
+    force_decay_type_ = force_decay_type;
+  }
+  
+  void SetWorldSizeX(const double sx) {WorldSize[0] = sx;}
+  void SetWorldSizeY(const double sy) {WorldSize[1] = sy;}
+  void SetWorldSizeZ(const double sz) {WorldSize[2] = sz;}
+
+  double GetWorldSizeX() const {return WorldSize[0];}
+  double GetWorldSizeY() const {return WorldSize[1];}
+  double GetWorldSizeZ() const {return WorldSize[2];}
+
+  void SetWorldShape(const std::string &s) {worldshape = s;}
+  void SetWorldMaterial(const std::string &s) {worldmaterial = s;}
+  void SetPhysicsList(const std::string &s) {physicslist = s;}
+
+  void set_rapidity_coverage(const double eta);
+
+  int setupInputEventNodeReader(PHCompositeNode *);
+
+  static void G4Seed(const int i);
+
+  private:
+  
+  int InitUImanager();
+  void DefineMaterials();
+  float magfield;
+  double WorldSize[3];
+
+  //! magnetic field
+  G4TBMagneticFieldSetup* field_;
+
+  //! pointer to geant run manager
+  G4RunManager* runManager_;
+
+  //! pointer to detector
+  PHG4PhenixDetector* detector_;
+
+  //! pointer to main event action
+  PHG4PhenixEventAction* eventAction_;
+
+  //! pointer to main stepping action
+  PHG4PhenixSteppingAction* steppingAction_;
+
+  //! pointer to main tracking action
+  PHG4PhenixTrackingAction* trackingAction_;
+
+  //! event generator (read from PHG4INEVENT node)
+  PHG4PrimaryGeneratorAction* generatorAction_;
+
+  //! list of subsystems
+  typedef std::list<PHG4Subsystem*> SubsystemList;
+  SubsystemList subsystems_;
+
+  // visualization
+  G4VisManager* visManager;
+
+  double _eta_coverage;
+  int mapdim;
+  std::string fieldmapfile;
+  std::string worldshape;
+  std::string worldmaterial;
+  std::string physicslist;
+
+  // settings for the external Pythia6 decayer
+  bool active_decayer_;     //< turn on/off decayer
+  bool active_force_decay_; //< turn on/off force decay channels
+  EDecayType force_decay_type_;  //< forced decay channel setting
+  
+  //! module timer.
+  PHTimeServer::timer _timer;
+
+};
+
+#endif
