@@ -1,0 +1,9 @@
+AC_INIT(configure.ac)
+
+AM_INIT_AUTOMAKE(flowAfterburner, 1.00)
+
+AC_PROG_CXX
+AC_ENABLE_STATIC(no)
+AC_PROG_LIBTOOL
+
+AC_OUTPUT(Makefile)
