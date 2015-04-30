@@ -551,19 +551,21 @@ PHG4Reco::DefineMaterials()
      }
   // home made compounds
   //Elements needed
-  G4Element * Fe  = nist->FindOrBuildElement("Fe");
-  G4Element * Mn  = nist->FindOrBuildElement("Mn");
-  G4Element * P  = nist->FindOrBuildElement("P");
-  G4Element * S  = nist->FindOrBuildElement("S");
-  G4Element * C  = nist->FindOrBuildElement("C");
-  G4Element * H  = nist->FindOrBuildElement("H");
-  G4Element*  Cs  = nist->FindOrBuildElement("Cs");
-  G4Element*  O  = nist->FindOrBuildElement("O");
-  G4Element*  I  = nist->FindOrBuildElement("I");
-  G4Element*  Si  = nist->FindOrBuildElement("Si");
-  G4Element* F  = nist->FindOrBuildElement("F");
-  G4Element* Li  = nist->FindOrBuildElement("Li");
   G4Element *Ar  = nist->FindOrBuildElement("Ar");
+  G4Element *C  = nist->FindOrBuildElement("C");
+  G4Element *Cr  = nist->FindOrBuildElement("Cr");
+  G4Element *Cs  = nist->FindOrBuildElement("Cs");
+  G4Element *F  = nist->FindOrBuildElement("F");
+  G4Element *Fe  = nist->FindOrBuildElement("Fe");
+  G4Element *H  = nist->FindOrBuildElement("H");
+  G4Element *I  = nist->FindOrBuildElement("I");
+  G4Element *Li  = nist->FindOrBuildElement("Li");
+  G4Element *Mn  = nist->FindOrBuildElement("Mn");
+  G4Element *Ni  = nist->FindOrBuildElement("Ni");
+  G4Element *O  = nist->FindOrBuildElement("O");
+  G4Element *P  = nist->FindOrBuildElement("P");
+  G4Element *S  = nist->FindOrBuildElement("S");
+  G4Element *Si  = nist->FindOrBuildElement("Si");
  // making quartz
   G4Material* quartz = new G4Material
     ("Quartz", density=2.200*g/cm3, ncomponents=2);
@@ -589,6 +591,18 @@ PHG4Reco::DefineMaterials()
     new G4Material("Scintillator", density = 1.032 * g / cm3, ncomponents = 2);
   Sci->AddElement(C, natoms = 9);
   Sci->AddElement(H, natoms = 10);
+
+  // that seems to be the composition of 304 Stainless steel
+  G4Material * StainlessSteel =
+    new G4Material("SS304", density = 7.9 * g / cm3, ncomponents = 8);
+  StainlessSteel->AddElement(Fe, 0.70105);
+  StainlessSteel->AddElement(Cr, 0.18);
+  StainlessSteel->AddElement(Ni, 0.09);
+  StainlessSteel->AddElement(Mn, 0.02);
+  StainlessSteel->AddElement(C, 0.0007);
+  StainlessSteel->AddElement(S, 0.0003);
+  StainlessSteel->AddElement(Si, 0.0075);
+  StainlessSteel->AddElement(P, 0.00045);
 
   G4Material * Steel =
     new G4Material("Steel", density = 7.86 * g / cm3, ncomponents = 5);
