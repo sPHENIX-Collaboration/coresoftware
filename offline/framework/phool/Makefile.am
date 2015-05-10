@@ -53,6 +53,7 @@ pkginclude_HEADERS =  \
   PHPointerList.h \
   PHPointerListIterator.h \
   PHRawOManager.h \
+  PHString.h \
   PHTimer.h \
   PHTimeServer.h \
   PHTimeStamp.h \
