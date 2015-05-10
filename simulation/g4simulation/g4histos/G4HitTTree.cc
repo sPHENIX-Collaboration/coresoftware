@@ -78,20 +78,22 @@ G4HitTTree::process_event(PHCompositeNode *topNode)
   eion_etot_hist->Fill(etot, eion);
 
   g4hits = findNode::getClass<PHG4HitContainer>(topNode, _absorbernodename.c_str());
-  hit_range = g4hits->getHits();
-  //shower_z->Reset();
-  //  cout << "Number of Hits: " << g4hits->size() << endl;
-  for ( PHG4HitContainer::ConstIterator hit_iter = hit_range.first ; hit_iter !=  hit_range.second; hit_iter++ )
+  if (g4hits)
     {
-      PHG4Hit *inhit = hit_iter->second;
-      if (savehits)
+      hit_range = g4hits->getHits();
+      //shower_z->Reset();
+      //  cout << "Number of Hits: " << g4hits->size() << endl;
+      for ( PHG4HitContainer::ConstIterator hit_iter = hit_range.first ; hit_iter !=  hit_range.second; hit_iter++ )
 	{
-	  //PHG4Hit *g4h = hits->AddHit( *inhit);
-	  hits->AddHit( *inhit);
-	  //	  g4h->identify();
+	  PHG4Hit *inhit = hit_iter->second;
+	  if (savehits)
+	    {
+	      //PHG4Hit *g4h = hits->AddHit( *inhit);
+	      hits->AddHit( *inhit);
+	      //	  g4h->identify();
+	    }
 	}
     }
-
   double eleak = 0;
   g4hits = findNode::getClass<PHG4HitContainer>(topNode, _blackholenodename.c_str());
   if (g4hits)
