@@ -8,6 +8,7 @@
 //-----------------------------------------------------------------------------
 #include "PHCompositeNode.h" 
 #include "PHPointerListIterator.h"
+#include "phooldefs.h"
 
 #include <iostream>
 
@@ -109,13 +110,12 @@ PHCompositeNode::write(PHIOManager * IOManager, const PHString& path)
    PHString newPath;
    if (path != "")
      {
-       newPath = path + "/" + name;
+       newPath = path + phooldefs::branchpathdelim.c_str() + name;
      }
    else
      {
        newPath = name;
      }
-
    PHPointerListIterator<PHNode> nodeIter(subNodes);
    PHNode* thisNode;
    PHBoolean success = True;

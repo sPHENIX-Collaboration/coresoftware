@@ -7,6 +7,7 @@
 #include "PHIODataNode.h"
 #include "PHObject.h"
 #include "phool.h"
+#include "phooldefs.h"
 
 #include <TFile.h>
 #include <TTree.h>
@@ -21,6 +22,9 @@
 #if ROOT_VERSION_CODE >= ROOT_VERSION(3,01,5)
 #include <TBranchElement.h>
 #endif
+
+#include <boost/algorithm/string.hpp>
+#include <boost/foreach.hpp>
 
 #include <cassert>
 #include <cstdlib>
@@ -438,37 +442,32 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
 
   // We need these in the loops down below...
   size_t i, j;
-  PHString branchName;
-  PHPointerList<PHString> nodeNames;
 
   // If a topNode was provided, we can feed the iterator with it.
   if (!topNode)
     {
-      topNode = new PHCompositeNode(*(nodeNames[0]));
+      topNode = new PHCompositeNode("TOP"); // create topNode if we got a null pointer
     }
   PHNodeIterator nodeIter(topNode);
 
   // Loop over all branches in the tree. Each branch-name contains the
   // full 'path' of composite-nodes in the original node tree. We
   // split the name and reconstruct the tree.
+  string delimeters = phooldefs::branchpathdelim + "/"; // add old backslash for backward compat
   for (i = 0; i < (size_t)(branchArray->GetEntriesFast()); i++)
     {
-
-      branchName = (*branchArray)[i]->GetName();
-      branchName.split(nodeNames, "/");
-
-      // Subsequently try to 'cd' down the node tree as given in the
-      // split branch name. If the 'cd' was not successful we have to
-      // create a new node.
-      for (j = 1; j < nodeNames.length() - 1; j++)
-        {
-          if (!nodeIter.cd(*(nodeNames[j])))
-            {
-              nodeIter.addNode(new PHCompositeNode(*(nodeNames[j])));
-              nodeIter.cd(*(nodeNames[j]));
-            }
-        }
-
+      string branchname = (*branchArray)[i]->GetName();
+      vector<string> splitvec;
+      boost::split(splitvec, branchname, boost::is_any_of(delimeters));
+      for (size_t ia = 1; ia< splitvec.size()-1; ia++) // -1 so we skip the node name
+       	{
+	  PHString phs = splitvec[ia].c_str();
+	  if (!nodeIter.cd(phs))
+	    {
+	      nodeIter.addNode(new PHCompositeNode(phs));
+	      nodeIter.cd(phs);
+	    }
+       	}
       TBranch *thisBranch = (TBranch*)((*branchArray)[i]);
 
       // Skip non-selected branches
@@ -496,11 +495,11 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
       assert(thisClass != 0);
 
       PHIODataNode<TObject> *newIODataNode =
-	dynamic_cast<PHIODataNode<TObject> *> (nodeIter.findFirst("PHIODataNode", *(nodeNames[nodeNames.length() - 1])));
+	dynamic_cast<PHIODataNode<TObject> *> (nodeIter.findFirst("PHIODataNode", (*splitvec.rbegin()).c_str()));
       if (! newIODataNode)
 	{
 	  TObject *newTObject = static_cast<TObject*>(thisClass->New());
-	  newIODataNode = new PHIODataNode<TObject>(newTObject, *(nodeNames[nodeNames.length() - 1]));
+	  newIODataNode = new PHIODataNode<TObject>(newTObject, (*splitvec.rbegin()).c_str());
 	  nodeIter.addNode(newIODataNode);
 	}
       else
@@ -521,22 +520,13 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
 		   << "instead of searching the node tree you are in trouble now" << endl;
 	      delete newIODataNode;
 	      TObject *newTObject = static_cast<TObject*>(thisClass->New());
-	      newIODataNode = new PHIODataNode<TObject>(newTObject, *(nodeNames[nodeNames.length() - 1]));
+	      newIODataNode = new PHIODataNode<TObject>(newTObject, (*splitvec.rbegin()).c_str());
 	      nodeIter.addNode(newIODataNode);
 	    }
 
 	}
 
-      // PHTable is still PHNode default, but for new classes
-      // PHNode objecttype has to be PHObject. Some of the
-      // earlier PHObjects did not have their base class in the LinkDef file
-      // so root does not know if it inherits from PHObject (the compiler does)
-      // so this here defaults to PHObject but gives a warning to fix this object up
-      if (thisClass->InheritsFrom("PHTable"))
-	{
-	  newIODataNode->setObjectType("PHTable");
-	}
-      else if (thisClass->InheritsFrom("PHObject"))
+      if (thisClass->InheritsFrom("PHObject"))
 	{
 	  newIODataNode->setObjectType("PHObject");
 	}
@@ -548,13 +538,12 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
 	  newIODataNode->setObjectType("PHObject");
 	}
       thisBranch->SetAddress(&(newIODataNode->data));
-      for (j = 1; j < nodeNames.length() - 1; j++)
+	      for (j = 1; j < splitvec.size() - 1; j++)
 	{
 	  nodeIter.cd("..");
 	}
 
     }
-  nodeNames.clearAndDestroy();
   return topNode;
 }
 

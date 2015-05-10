@@ -48,10 +48,10 @@ pkginclude_HEADERS =  \
   PHNodeIterator.h \
   PHObject.h \
   phool.h \
+  phooldefs.h \
   PHOperation.h \
   PHPointerList.h \
   PHPointerListIterator.h \
-  PHString.h \
   PHRawOManager.h \
   PHTimer.h \
   PHTimeServer.h \

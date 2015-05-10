@@ -11,6 +11,11 @@
 #include "PHNodeIterator.h"
 #include "PHPointerListIterator.h"
 #include "PHNodeOperation.h"
+#include "phooldefs.h"
+
+#include <iostream>
+
+using namespace std;
 
 PHNodeIterator::PHNodeIterator(PHCompositeNode* node):
   currentNode(node)
@@ -104,7 +109,7 @@ PHNodeIterator::cd(const PHString pathString)
   else
     {
       PHPointerList<PHString> newPaths;
-      pathString.split(newPaths, "/");
+      pathString.split(newPaths, phooldefs::nodetreepathdelim.c_str());
       PHPointerListIterator<PHString> pathIter(newPaths);
       PHString  *newPath;
       PHBoolean pathFound;

@@ -8,6 +8,7 @@
 #include "PHIOManager.h"
 #include "PHNodeIOManager.h"
 #include "PHTypedNodeIterator.h"
+#include "phooldefs.h"
 
 #include <TObject.h>
 
@@ -54,7 +55,7 @@ PHIODataNode<T>::write(PHIOManager* IOManager, const PHString& path)
       PHNodeIOManager *np = dynamic_cast<PHNodeIOManager*>(IOManager);
       if (np)
         {
-          PHString newPath = path + "/" + this->name;
+          PHString newPath = path + phooldefs::branchpathdelim.c_str() + this->name;
 	  PHBoolean bret = False;
 	  if (dynamic_cast<TObject *> (this->data.data))
 	    {
