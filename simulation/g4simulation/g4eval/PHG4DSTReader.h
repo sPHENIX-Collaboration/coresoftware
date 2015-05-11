@@ -8,8 +8,8 @@
  * \date $Date: 2015/02/27 23:42:23 $
  */
 
-#ifndef G4DSTREADER_H_
-#define G4DSTREADER_H_
+#ifndef PHG4DSTREADER_H_
+#define PHG4DSTREADER_H_
 
 #include <HepMC/GenEvent.h>
 #include <HepMC/SimpleVector.h>
@@ -202,4 +202,4 @@ protected:
   build_tree();
 };
 
-#endif /* G4DSTREADER_H_ */
+#endif /* PHG4DSTREADER_H_ */
