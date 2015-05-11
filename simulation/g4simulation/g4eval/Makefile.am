@@ -34,18 +34,21 @@ libg4eval_la_LDFLAGS = \
 
 pkginclude_HEADERS = \
   PHG4Evaluator.h \
-  PHG4CalEvaluator.h
+  PHG4CalEvaluator.h \
+  PHG4DSTReader.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
 libg4eval_la_SOURCES = \
   EvalDict.C \
   PHG4Evaluator.C \
-  PHG4CalEvaluator.C
+  PHG4CalEvaluator.C \
+  PHG4DSTReader.cc
 
 EvalDict.C : \
   PHG4Evaluator.h \
   PHG4CalEvaluator.h \
+  PHG4DSTReader.h \
   EvalLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
 

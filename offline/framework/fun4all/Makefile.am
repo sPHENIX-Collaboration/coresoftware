@@ -22,6 +22,7 @@ pkginclude_HEADERS = \
   Fun4AllReturnCodes.h \
   Fun4AllServer.h \
   Fun4AllUtils.h \
+  PHTFileServer.h \
   getClass.h \
   recoConsts.h \
   SubsysReco.h \
@@ -64,6 +65,7 @@ libfun4all_la_SOURCES = \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllServer.cc \
   Fun4AllUtils.cc \
+  PHTFileServer.cxx \
   recoConsts.cc
 
 nodist_libfun4all_la_SOURCES = Fun4All_Dict.cc
