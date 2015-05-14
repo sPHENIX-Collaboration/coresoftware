@@ -13,8 +13,7 @@ INCLUDES = \
     -I$(OFFLINE_MAIN)/include \
     -I$(ROOTSYS)/include \
     -I${G4_MAIN}/include \
-    -I${G4_MAIN}/include/Geant4 \
-    -I/direct/phenix+u/nfeege/sphenixsw/devel/install/g4main/include
+    -I${G4_MAIN}/include/Geant4
 
 libg4detectors_la_LIBADD = \
   -lphool \
