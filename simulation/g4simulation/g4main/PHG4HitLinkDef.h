@@ -9,6 +9,7 @@
 #pragma link C++ class PHG4Hitv5+;
 #pragma link C++ class PHG4Hitv6+;
 #pragma link C++ class PHG4Hitv7+;
+#pragma link C++ class PHG4Hitv8+;
 #pragma link C++ class PHG4HitContainer+;
 #pragma link C++ class PHG4Particle+;
 #pragma link C++ class PHG4Particlev1+;
