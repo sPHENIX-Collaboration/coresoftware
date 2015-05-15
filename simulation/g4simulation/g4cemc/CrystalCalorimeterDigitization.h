@@ -20,12 +20,12 @@ class RawTowerContainer;
  * \author Nils Feege <nils.feege@stonybrook.edu>
  *
  */
-class TowerDigitization : public SubsysReco {
+class CrystalCalorimeterDigitization : public SubsysReco {
 
 public:
-  TowerDigitization(const std::string& name="TowerDigitization", const std::string& nameRaw="DEFAULT_RAW", const std::string& nameDigi="DEFAULT_DIGI", int randSeed=1234);
+  CrystalCalorimeterDigitization(const std::string& name="CrystalCalorimeterDigitization", const std::string& nameRaw="DEFAULT_RAW", const std::string& nameDigi="DEFAULT_DIGI", int randSeed=1234);
 
-  virtual ~TowerDigitization(){}
+  virtual ~CrystalCalorimeterDigitization(){}
 
   int InitRun(PHCompositeNode *topNode);
 

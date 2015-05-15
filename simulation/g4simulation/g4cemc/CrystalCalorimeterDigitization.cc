@@ -1,4 +1,4 @@
-#include "TowerDigitization.h"
+#include "CrystalCalorimeterDigitization.h"
 
 
 #include <phool/PHCompositeNode.h>
@@ -16,7 +16,7 @@
 
 using namespace std;
 
-TowerDigitization::TowerDigitization( const std::string& name , const std::string& nameRaw , const std::string& nameDigi ,  int randSeed):
+CrystalCalorimeterDigitization::CrystalCalorimeterDigitization( const std::string& name , const std::string& nameRaw , const std::string& nameDigi ,  int randSeed):
   SubsysReco(name),
   _towersDigi(NULL),
   _nodeNameTowerRaw(nameRaw),
@@ -28,7 +28,7 @@ TowerDigitization::TowerDigitization( const std::string& name , const std::strin
 {}
 
 int
-TowerDigitization::InitRun(PHCompositeNode *topNode)
+CrystalCalorimeterDigitization::InitRun(PHCompositeNode *topNode)
 {
   /* Access DST node */
   PHNodeIterator iter(topNode);
@@ -57,17 +57,17 @@ TowerDigitization::InitRun(PHCompositeNode *topNode)
 }
 
 int
-TowerDigitization::process_event(PHCompositeNode *topNode)
+CrystalCalorimeterDigitization::process_event(PHCompositeNode *topNode)
 {
   if (verbosity)
     {
-      std::cout << PHWHERE << "TowerDigitization : Process event entered" << std::endl;
+      std::cout << PHWHERE << "CrystalCalorimeterDigitization : Process event entered" << std::endl;
     }
 
   RawTowerContainer* towersRaw = findNode::getClass<RawTowerContainer>(topNode, _nodeNameTowerRaw.c_str());
   if (!towersRaw)
     {
-      std::cerr << PHWHERE << "TowerDigitization : Could not locate input tower node " << _nodeNameTowerRaw << endl;
+      std::cerr << PHWHERE << "CrystalCalorimeterDigitization : Could not locate input tower node " << _nodeNameTowerRaw << endl;
       exit(1);
     }
 
@@ -92,27 +92,27 @@ TowerDigitization::process_event(PHCompositeNode *topNode)
 }
 
 int
-TowerDigitization::End(PHCompositeNode *topNode)
+CrystalCalorimeterDigitization::End(PHCompositeNode *topNode)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void
-TowerDigitization::CreateNodes(PHCompositeNode *topNode)
+CrystalCalorimeterDigitization::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *runNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
     {
       std::cerr << PHWHERE << "Run Node missing, doing nothing." << std::endl;
-      throw std::runtime_error("Failed to find Run node in TowerDigitization::CreateNodes");
+      throw std::runtime_error("Failed to find Run node in CrystalCalorimeterDigitization::CreateNodes");
     }
 
   PHCompositeNode *dstNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
     {
       std::cerr << PHWHERE << "DST Node missing, doing nothing." << std::endl;
-      throw std::runtime_error("Failed to find DST node in TowerDigitization::CreateNodes");
+      throw std::runtime_error("Failed to find DST node in CrystalCalorimeterDigitization::CreateNodes");
     }
 
   // Create the output tower node on the tree
@@ -126,7 +126,7 @@ TowerDigitization::CreateNodes(PHCompositeNode *topNode)
 
 
 void
-TowerDigitization::ApplyPoissonSmearing( RawTowerv2& tower )
+CrystalCalorimeterDigitization::ApplyPoissonSmearing( RawTowerv2& tower )
 {
   /* get energy deposited in tower */
   double energy = tower.get_edep();

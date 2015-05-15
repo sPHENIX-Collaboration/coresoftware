@@ -58,6 +58,9 @@ libg4detectors_la_SOURCES = \
   PHG4ConeRegionSteppingAction.cc \
   PHG4ConeSteppingAction.cc \
   PHG4ConeSubsystem.cc \
+  PHG4CrystalCalorimeterDetector.cc \
+  PHG4CrystalCalorimeterSteppingAction.cc \
+  PHG4CrystalCalorimeterSubsystem.cc \
   PHG4CylinderDetector.cc \
   PHG4CylinderEventAction.cc \
   PHG4CylinderGeom.cc \
@@ -158,6 +161,7 @@ PHG4Detector_Dict.cc : \
   PHG4BlockGeomContainer.h \
   PHG4CEmcTestBeamSubsystem.h \
   PHG4ConeSubsystem.h \
+  PHG4CrystalCalorimeterSubsystem.h \
   PHG4CylinderCell.h \
   PHG4CylinderCellv1.h \
   PHG4CylinderCellv2.h \
