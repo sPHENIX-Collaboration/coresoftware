@@ -53,10 +53,17 @@ public:
   void SetMaterial( G4String material ) { _materialCrystal = material; }
 
   void SetActive(const int i = 1) {_active = i;}
+  void SetAbsorberActive(const int i = 1) {_absorberactive = i;}
+
   int IsActive() const {return _active;}
 
-  int get_Layer() const {return 0;}
+  void SuperDetector(const std::string &name) {_superdetector = name;}
+  const std::string SuperDetector() const {return _superdetector;}
 
+  int get_Layer() const {return _layer;}
+
+  void BlackHole(const int i=1) {_blackhole = i;}
+  int IsBlackHole() const {return _blackhole;}
 
 private:
 
@@ -88,8 +95,12 @@ private:
   G4String _materialCrystal;
 
   int _active;
+  int _absorberactive;
+  int _layer;
+  int _blackhole;
 
   std::string _crystallogicnameprefix;
+  std::string _superdetector;
 
 };
 

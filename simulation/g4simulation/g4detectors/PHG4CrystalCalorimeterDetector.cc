@@ -67,10 +67,19 @@ PHG4CrystalCalorimeterDetector::~PHG4CrystalCalorimeterDetector()
 int
 PHG4CrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume * volume) const
 {
+
+  // if hit is in absorber material
+  bool isinabsorber = false;
+
   if (volume->GetName().find(_crystallogicnameprefix) != string::npos)
     {
       return 1;
     }
+  else if ( isinabsorber )
+    {
+      return -1;
+    }
+
   return 0;
 }
 

@@ -36,6 +36,7 @@ PHG4CrystalCalorimeterSteppingAction::PHG4CrystalCalorimeterSteppingAction( PHG4
   PHG4SteppingAction(NULL),
   detector_( detector ),
   hits_(NULL),
+  absorberhits_(NULL),
   hit(NULL)
 {
 
@@ -48,32 +49,50 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4VPhysicalVolume* volume = touch->GetVolume();
 
-  if (! detector_->IsInCrystalCalorimeter(volume) )
+  // detector_->IsInCrystalCalorimeter(volume)
+  // returns
+  //  0 is outside of Crystal Calorimeter
+  //  1 is inside scintillator scrystal
+  // -1 is absorber (dead material)
+
+  int whichactive = detector_->IsInCrystalCalorimeter(volume);
+
+  if ( !whichactive  )
     {
       return false;
     }
 
-  /* Find indizes of crystal containing this step */
   int layer_id = detector_->get_Layer();
+  int tower_id = -1;
   int idx_j = -1;
   int idx_k = -1;
   int idx_l = -1;
 
-  boost::char_separator<char> sep("_");
-  boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
-  boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
-  for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+  if (whichactive > 0) // in crystal
     {
-      if (*tokeniter == "j")
+      /* Find indizes of crystal containing this step */
+      boost::char_separator<char> sep("_");
+      boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
+      boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
+      for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
 	{
-	  ++tokeniter;
-	  idx_j = boost::lexical_cast<int>(*tokeniter);
+	  if (*tokeniter == "j")
+	    {
+	      ++tokeniter;
+	      idx_j = boost::lexical_cast<int>(*tokeniter);
+	    }
+	  else if (*tokeniter == "k")
+	    {
+	      ++tokeniter;
+	      idx_k = boost::lexical_cast<int>(*tokeniter);
+	    }
 	}
-      else if (*tokeniter == "k")
-	{
-	  ++tokeniter;
-	  idx_k = boost::lexical_cast<int>(*tokeniter);
-	}
+
+      tower_id = touch->GetCopyNumber();
+    }
+  else
+    {
+      tower_id = touch->GetCopyNumber();
     }
 
   /* Get energy deposited by this step */
@@ -83,10 +102,17 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
   /* Get pointer to associated Geant4 track */
   const G4Track* aTrack = aStep->GetTrack();
 
+  // if this block stops everything, just put all kinetic energy into edep
+  if (detector_->IsBlackHole())
+    {
+      edep = aTrack->GetKineticEnergy() / GeV;
+      G4Track* killtrack = const_cast<G4Track *> (aTrack);
+      killtrack->SetTrackStatus(fStopAndKill);
+    }
+
   /* Make sure we are in a volume */
   if ( detector_->IsActive() )
     {
-
       /* Check if particle is 'geantino' */
       bool geantino = false;
       if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
@@ -105,7 +131,7 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 	case fUndefined:
 	  hit = new PHG4Hitv8();
 	  hit->set_layer(0);
-	  hit->set_scint_id(0);
+	  hit->set_scint_id(tower_id);
 
 	  /* Set hit location (tower index) */
 	  hit->set_index_j(idx_j);
@@ -136,20 +162,22 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 		  }
 	      }
 	    hit->set_trkid(aTrack->GetTrackID() + trkoffset);
-
-	    /* set intial energy deposit */
-	    hit->set_edep( 0 );
-	    hit->set_eion( 0 );
-
-	    /* Now add the hit to the hit collection */
-	    bool inCrystal = true;
-	    if ( inCrystal )
-	      hits_->AddHit(layer_id, hit);
-	    else
-	      {
-		// add separate absorber hit collection here if needed
-	      }
 	  }
+
+	  /* set intial energy deposit */
+	  hit->set_edep( 0 );
+	  hit->set_eion( 0 );
+
+	  /* Now add the hit to the hit collection */
+	  if (whichactive > 0) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
+	    {
+	      // Now add the hit
+	      hits_->AddHit(layer_id, hit);
+	    }
+	  else
+	    {
+	      absorberhits_->AddHit(layer_id, hit);
+	    }
 	  break;
 	default:
 	  break;
@@ -200,14 +228,35 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 //____________________________________________________________________________..
 void PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers( PHCompositeNode* topNode )
 {
+
   string hitnodename;
-  hitnodename = "G4HIT_" + detector_->GetName();
+  string absorbernodename;
 
+  if (detector_->SuperDetector() != "NONE")
+    {
+      hitnodename = "G4HIT_" + detector_->SuperDetector();
+      absorbernodename =  "G4HIT_ABSORBER_" + detector_->SuperDetector();
+    }
+  else
+    {
+      hitnodename = "G4HIT_" + detector_->GetName();
+      absorbernodename =  "G4HIT_ABSORBER_" + detector_->GetName();
+    }
+
+  //now look for the map and grab a pointer to it.
   hits_ =  findNode::getClass<PHG4HitContainer>( topNode , hitnodename.c_str() );
+  absorberhits_ =  findNode::getClass<PHG4HitContainer>( topNode , absorbernodename.c_str() );
 
-  /* Check if we found a node */
+  // if we do not find the node it's messed up.
   if ( ! hits_ )
     {
       std::cout << "PHG4CrystalCalorimeterSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+    }
+  if ( ! absorberhits_)
+    {
+      if (verbosity > 0)
+	{
+	  cout << "PHG4CrystalCalorimeterSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+	}
     }
 }
