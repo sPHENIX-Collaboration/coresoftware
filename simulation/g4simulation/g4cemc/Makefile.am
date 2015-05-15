@@ -9,12 +9,16 @@ lib_LTLIBRARIES = \
 INCLUDES = \
   -I$(includedir) \
   -isystem $(OFFLINE_MAIN)/include \
-  -isystem $(ROOTSYS)/include
+  -isystem $(ROOTSYS)/include \
+  -isystem ${G4_MAIN}/include \
+  -isystem ${G4_MAIN}/include/Geant4
 
 RINCLUDES = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -I$(ROOTSYS)/include \
+  -I${G4_MAIN}/include \
+  -I${G4_MAIN}/include/Geant4
 
 libcemc_la_SOURCES = \
   Cal_Dict.C \
