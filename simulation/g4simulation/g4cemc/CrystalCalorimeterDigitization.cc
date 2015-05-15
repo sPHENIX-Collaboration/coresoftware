@@ -1,6 +1,5 @@
 #include "CrystalCalorimeterDigitization.h"
 
-
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHIODataNode.h>
@@ -21,9 +20,9 @@ CrystalCalorimeterDigitization::CrystalCalorimeterDigitization( const std::strin
   _towersDigi(NULL),
   _nodeNameTowerRaw(nameRaw),
   _nodeNameTowerDigi(nameDigi),
+  _meanLY(1),
+  _applyPhotonStatistic(false),
   _randSeed(randSeed),
-  _applyPoissonSmearing(false),
-  _poissonMean(1),
   _timer( PHTimeServer::get()->insert_new(name) )
 {}
 
@@ -82,8 +81,14 @@ CrystalCalorimeterDigitization::process_event(PHCompositeNode *topNode)
 
       RawTowerv2* tower_digi_i = (RawTowerv2*)tower_raw_i->clone();
 
-      if ( _applyPoissonSmearing )
-	ApplyPoissonSmearing( *tower_digi_i );
+      /* Convert energy to number of photons via mean light yield*/
+      double edep = tower_digi_i->get_edep();
+      double nPhotons = edep * _meanLY * 1000.0; // [edep] = GeV, [_meanLY] = 1 / MeV
+      tower_digi_i->set_edep( nPhotons );
+
+      /* Apply photon statistic? */
+      if ( _applyPhotonStatistic )
+	ApplyPhotonStatistic( *tower_digi_i );
 
       _towersDigi->AddTower(  0, 0, tower_digi_i );
     }
@@ -126,35 +131,26 @@ CrystalCalorimeterDigitization::CreateNodes(PHCompositeNode *topNode)
 
 
 void
-CrystalCalorimeterDigitization::ApplyPoissonSmearing( RawTowerv2& tower )
+CrystalCalorimeterDigitization::ApplyPhotonStatistic( RawTowerv2& tower )
 {
-  /* get energy deposited in tower */
-  double energy = tower.get_edep();
+  /* Use Poisson statistics for photon statistic smearing */
 
-  /* convert energy in tower to number of photons, use Poisson statistics for smearing */
-
-  //***************************************
-  //******* Light Yield Calculation *******
-  //***************************************
-
+  /* create a generator chosen by the environment variable GSL_RNG_TYPE */
   const gsl_rng_type * T;
   gsl_rng * r;
-	
-  /* create a generator chosen by the environment variable GSL_RNG_TYPE */
 
   gsl_rng_env_setup();
 
   T = gsl_rng_default;
   r = gsl_rng_alloc (T);
-	
-  gsl_rng_set(r, _randSeed);
-	
-  unsigned int smearedYield = gsl_ran_poisson (r, _poissonMean);
 
-  double nPhotons = energy * 1000.0 * smearedYield; //multiply by 1000 to convert GeV to Mev
+  gsl_rng_set(r, _randSeed);
+
+  unsigned int nPhotonsMean = (unsigned int)tower.get_edep();
+  unsigned int nPhotonsRand = gsl_ran_poisson (r, nPhotonsMean );
 
   /* set tower energy to number of photons */
-  tower.set_edep( nPhotons ); //Set the smeared photon light yield to the edep of the smeared tower
+  tower.set_edep( nPhotonsRand );
 
   return;
 }

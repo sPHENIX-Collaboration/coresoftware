@@ -33,9 +33,16 @@ public:
 
   int End(PHCompositeNode *topNode);
 
-  void SetApplyPoissonSmearing( bool switchOn=true , int poissonMean=200 )
-  { _applyPoissonSmearing = switchOn;
-    _poissonMean = poissonMean; }
+  void SetMeanLightYield( double meanLY )
+  {
+    _meanLY = meanLY;
+  }
+
+  void SetApplyPhotonStatistic( bool switchOn=true )
+  {
+    _applyPhotonStatistic = switchOn;
+  }
+
 
 protected:
   /** Create nodes for output.
@@ -44,18 +51,17 @@ protected:
    */
   void CreateNodes(PHCompositeNode *topNode);
 
-  void ApplyPoissonSmearing( RawTowerv2& tower );
+  void ApplyPhotonStatistic( RawTowerv2& tower );
 
   RawTowerContainer* _towersDigi;
 
   std::string _nodeNameTowerRaw;
   std::string _nodeNameTowerDigi;
 
+  double _meanLY;
+
+  bool _applyPhotonStatistic;
   int _randSeed;
-
-  bool _applyPoissonSmearing;
-
-  double _poissonMean;
 
   PHTimeServer::timer _timer;
 
