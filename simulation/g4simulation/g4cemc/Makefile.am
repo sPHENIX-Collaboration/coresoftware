@@ -18,6 +18,7 @@ RINCLUDES = \
 
 libcemc_la_SOURCES = \
   Cal_Dict.C \
+  CrystalCalorimeterDigitization.cc \
   RawClusterBuilder.cc \
   RawClusterBuilderv1.cc \
   RawClusterv1.cc \
@@ -32,7 +33,6 @@ libcemc_la_SOURCES = \
   RawTowerGeom.cc \
   RawTowerGeomv1.cc \
   RawTowerGeomv2.cc \
-  TowerDigitization.cc \
   BEmcRec.cc \
   BEmcCluster.cc
 
@@ -49,6 +49,7 @@ libcemc_la_LIBADD = \
   -lgslcblas
 
 Cal_Dict.C: \
+  CrystalCalorimeterDigitization.h \
   RawClusterBuilder.h \
   RawClusterBuilderv1.h \
   RawCluster.h \
@@ -64,7 +65,6 @@ Cal_Dict.C: \
   RawTowerGeom.h \
   RawTowerGeomv1.h \
   RawTowerGeomv2.h \
-  TowerDigitization.h \
   BEmcRec.h \
   BEmcCluster.h \
   CalLinkDef.h
