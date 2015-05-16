@@ -5,11 +5,12 @@
 #include <phool/PHIODataNode.h>
 
 #include <stdio.h>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/getClass.h>
+
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 #include <stdexcept>
 
@@ -24,7 +25,9 @@ CrystalCalorimeterDigitization::CrystalCalorimeterDigitization( const std::strin
   _applyPhotonStatistic(false),
   _randSeed(randSeed),
   _timer( PHTimeServer::get()->insert_new(name) )
-{}
+{
+
+}
 
 int
 CrystalCalorimeterDigitization::InitRun(PHCompositeNode *topNode)
@@ -84,17 +87,24 @@ CrystalCalorimeterDigitization::process_event(PHCompositeNode *topNode)
       int etabin = tower_raw_i->get_bineta();
       int phibin = tower_raw_i->get_binphi();
 
+      /* If this digi tower exists already in output collection- throw error */
+      if( _towersDigi->getTower( etabin, phibin ) )
+	{
+	  std::cerr << PHWHERE << "CrystalCalorimeterDigitization : Cannot create two towers with same ID j = " << etabin << " , k = " << phibin  << endl;
+	  exit(1);
+	}
+
       /* Create Digi tower for this Raw tower */
       RawTowerv1* tower_digi_i = new RawTowerv1( etabin , phibin );
-      _towersDigi->AddTower(  0, 0, tower_digi_i );
+      _towersDigi->AddTower(  etabin, phibin, tower_digi_i );
 
       /* Convert energy to number of photons via mean light yield*/
-      int nPhotons = static_cast<int>( energy_raw * _meanLY * 1000.0 ); // [edep] = GeV, [_meanLY] = 1 / MeV
-      tower_digi_i->add_ecell( 0, static_cast<float>( nPhotons ) );
+      unsigned int nPhotons = static_cast<int>( energy_raw * _meanLY * 1000.0 ); // [edep] = GeV, [_meanLY] = 1 / MeV
+      tower_digi_i->add_ecell( 1, nPhotons );
 
       /* Apply photon statistic? */
       if ( _applyPhotonStatistic )
-	ApplyPhotonStatistic( *tower_digi_i );
+      	ApplyPhotonStatistic( *tower_digi_i );
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -137,25 +147,20 @@ CrystalCalorimeterDigitization::CreateNodes(PHCompositeNode *topNode)
 void
 CrystalCalorimeterDigitization::ApplyPhotonStatistic( RawTowerv1& tower )
 {
+  /* create a generator */
+  const gsl_rng_type * generatorType = gsl_rng_taus;
+  gsl_rng * _dice = gsl_rng_alloc ( generatorType );
+
+  /* Set seed for random number generator */
+  gsl_rng_set( _dice, _randSeed );
+
   /* Use Poisson statistics for photon statistic smearing */
-
-  /* create a generator chosen by the environment variable GSL_RNG_TYPE */
-  const gsl_rng_type * T;
-  gsl_rng * r;
-
-  gsl_rng_env_setup();
-
-  T = gsl_rng_default;
-  r = gsl_rng_alloc (T);
-
-  gsl_rng_set(r, _randSeed);
-
-  unsigned int nPhotonsMean = static_cast<unsigned int>( tower.get_energy() );
-  unsigned int nPhotonsRand = gsl_ran_poisson (r, nPhotonsMean );
+  float nPhotonsMean = tower.get_energy();
+  float nPhotonsRand = gsl_ran_poisson( _dice, nPhotonsMean );
 
   /* set tower energy to number of photons */
   tower.Reset();
-  tower.add_ecell( 0 , static_cast<float>( nPhotonsRand ) );
+  tower.add_ecell( 1 , nPhotonsRand );
 
   return;
 }
