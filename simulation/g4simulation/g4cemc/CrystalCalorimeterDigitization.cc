@@ -183,8 +183,6 @@ CrystalCalorimeterDigitization::ApplyPhotonStatistic( RawTowerv1& tower )
   float nPhotonsMean = tower.get_energy();
   float nPhotonsRand = _dice->RollPoisson( nPhotonsMean );
 
-  cout << nPhotonsMean << " -> " << nPhotonsRand << endl;
-
   /* set tower energy to number of photons */
   tower.Reset();
   tower.add_ecell( 1 , nPhotonsRand );
