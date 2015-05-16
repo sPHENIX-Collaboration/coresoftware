@@ -52,7 +52,8 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode 
   _crystal_dz(180*mm),
   _materialCrystal( "G4_PbWO4" ),
   _active(1),
-  _crystallogicnameprefix("eEcalCrystal")
+  _crystallogicnameprefix("eEcalCrystal"),
+  _superdetector("NONE")
 {
 
 }

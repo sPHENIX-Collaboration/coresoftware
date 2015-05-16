@@ -51,6 +51,17 @@ int PHG4CrystalCalorimeterSubsystem::Init( PHCompositeNode* topNode )
           dstNode->addNode(hitNode);
         }
 
+      ostringstream absnodename;
+      absnodename << "G4HIT_ABSORBER_" << detector_type;
+
+      PHG4HitContainer* absorber_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+      if (!absorber_hits)
+        {
+          absorber_hits = new PHG4HitContainer();
+          PHIODataNode<PHObject> *abshitNode = new PHIODataNode<PHObject>(absorber_hits, nodename.str().c_str(), "PHObject");
+          dstNode->addNode(abshitNode);
+        }
+
       // create stepping action
       steppingAction_ = new PHG4CrystalCalorimeterSteppingAction(detector_);
     }
