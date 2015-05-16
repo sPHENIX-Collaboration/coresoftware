@@ -1,7 +1,7 @@
-#ifndef TOWERDIGITIZATION_H__
-#define TOWERDIGITIZATION_H__
+#ifndef _CRYSTAL_CALORIMETER_DIGITIZATION_H__
+#define _CRYSTAL_CALORIMETER_DIGITIZATION_H__
 
-#include "RawTowerv2.h"
+#include "RawTowerv1.h"
 #include "RawTowerContainer.h"
 
 #include <fun4all/SubsysReco.h>
@@ -11,8 +11,6 @@
 #include <string>
 
 class PHCompositeNode;
-class RawTowerv2;
-class RawTowerContainer;
 
 /**
  * \brief SubsysReco module adding post-Geant4 detector effects to calorimeter tower objects.
@@ -51,7 +49,7 @@ protected:
    */
   void CreateNodes(PHCompositeNode *topNode);
 
-  void ApplyPhotonStatistic( RawTowerv2& tower );
+  void ApplyPhotonStatistic( RawTowerv1& tower );
 
   RawTowerContainer* _towersDigi;
 
@@ -67,4 +65,4 @@ protected:
 
 };
 
-#endif /* RAWTOWERBUILDER_H__ */
+#endif

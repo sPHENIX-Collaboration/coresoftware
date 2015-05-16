@@ -74,23 +74,27 @@ CrystalCalorimeterDigitization::process_event(PHCompositeNode *topNode)
   RawTowerContainer::ConstIterator towerit;
   RawTowerContainer::ConstRange towers_begin_end = towersRaw->getTowers();
 
-  RawTowerv2* tower_raw_i = NULL;
+  RawTowerv1* tower_raw_i = NULL;
   for (towerit = towers_begin_end.first; towerit != towers_begin_end.second; towerit++)
     {
-      tower_raw_i= dynamic_cast<RawTowerv2*>( (*towerit).second );
+      /* Get raw tower and energy */
+      tower_raw_i= dynamic_cast<RawTowerv1*>( (*towerit).second );
+      double energy_raw = tower_raw_i->get_energy();
 
-      RawTowerv2* tower_digi_i = (RawTowerv2*)tower_raw_i->clone();
+      int etabin = tower_raw_i->get_bineta();
+      int phibin = tower_raw_i->get_binphi();
+
+      /* Create Digi tower for this Raw tower */
+      RawTowerv1* tower_digi_i = new RawTowerv1( etabin , phibin );
+      _towersDigi->AddTower(  0, 0, tower_digi_i );
 
       /* Convert energy to number of photons via mean light yield*/
-      double edep = tower_digi_i->get_edep();
-      double nPhotons = edep * _meanLY * 1000.0; // [edep] = GeV, [_meanLY] = 1 / MeV
-      tower_digi_i->set_edep( nPhotons );
+      int nPhotons = static_cast<int>( energy_raw * _meanLY * 1000.0 ); // [edep] = GeV, [_meanLY] = 1 / MeV
+      tower_digi_i->add_ecell( 0, static_cast<float>( nPhotons ) );
 
       /* Apply photon statistic? */
       if ( _applyPhotonStatistic )
 	ApplyPhotonStatistic( *tower_digi_i );
-
-      _towersDigi->AddTower(  0, 0, tower_digi_i );
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -131,7 +135,7 @@ CrystalCalorimeterDigitization::CreateNodes(PHCompositeNode *topNode)
 
 
 void
-CrystalCalorimeterDigitization::ApplyPhotonStatistic( RawTowerv2& tower )
+CrystalCalorimeterDigitization::ApplyPhotonStatistic( RawTowerv1& tower )
 {
   /* Use Poisson statistics for photon statistic smearing */
 
@@ -146,11 +150,12 @@ CrystalCalorimeterDigitization::ApplyPhotonStatistic( RawTowerv2& tower )
 
   gsl_rng_set(r, _randSeed);
 
-  unsigned int nPhotonsMean = (unsigned int)tower.get_edep();
+  unsigned int nPhotonsMean = static_cast<unsigned int>( tower.get_energy() );
   unsigned int nPhotonsRand = gsl_ran_poisson (r, nPhotonsMean );
 
   /* set tower energy to number of photons */
-  tower.set_edep( nPhotonsRand );
+  tower.Reset();
+  tower.add_ecell( 0 , static_cast<float>( nPhotonsRand ) );
 
   return;
 }
