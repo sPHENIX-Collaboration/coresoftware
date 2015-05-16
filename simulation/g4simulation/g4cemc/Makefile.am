@@ -23,6 +23,7 @@ RINCLUDES = \
 libcemc_la_SOURCES = \
   Cal_Dict.C \
   CrystalCalorimeterDigitization.cc \
+  CrystalCalorimeterTowerBuilder.cc \
   RawClusterBuilder.cc \
   RawClusterBuilderv1.cc \
   RawClusterv1.cc \
@@ -54,6 +55,7 @@ libcemc_la_LIBADD = \
 
 Cal_Dict.C: \
   CrystalCalorimeterDigitization.h \
+  CrystalCalorimeterTowerBuilder.h \
   RawClusterBuilder.h \
   RawClusterBuilderv1.h \
   RawCluster.h \
