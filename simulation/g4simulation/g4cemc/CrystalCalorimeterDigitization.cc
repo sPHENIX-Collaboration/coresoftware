@@ -16,6 +16,38 @@
 
 using namespace std;
 
+/*
+ * Utility class for random number genreation using GSL
+ */
+class CrystalCalorimeterDigitizationRNG {
+
+public:
+  CrystalCalorimeterDigitizationRNG( int randomSeed )
+  {
+    rng_randSeed = randomSeed;
+
+    /* create a generator */
+    rng_generatorType = gsl_rng_mt19937;
+    rng_dice = gsl_rng_alloc ( rng_generatorType );
+
+    /* Set seed for random number generator */
+    gsl_rng_set( rng_dice, rng_randSeed );
+  }
+
+  ~CrystalCalorimeterDigitizationRNG(){}
+
+  float RollPoisson( float mean )
+  {
+    return gsl_ran_poisson( rng_dice, mean );
+  }
+
+  int rng_randSeed;
+  const gsl_rng_type * rng_generatorType;
+  gsl_rng * rng_dice;
+
+};
+
+
 CrystalCalorimeterDigitization::CrystalCalorimeterDigitization( const std::string& name , const std::string& nameRaw , const std::string& nameDigi ,  int randSeed):
   SubsysReco(name),
   _towersDigi(NULL),
@@ -26,7 +58,7 @@ CrystalCalorimeterDigitization::CrystalCalorimeterDigitization( const std::strin
   _randSeed(randSeed),
   _timer( PHTimeServer::get()->insert_new(name) )
 {
-
+  _dice = new CrystalCalorimeterDigitizationRNG( _randSeed );
 }
 
 int
@@ -99,7 +131,7 @@ CrystalCalorimeterDigitization::process_event(PHCompositeNode *topNode)
       _towersDigi->AddTower(  etabin, phibin, tower_digi_i );
 
       /* Convert energy to number of photons via mean light yield*/
-      unsigned int nPhotons = static_cast<int>( energy_raw * _meanLY * 1000.0 ); // [edep] = GeV, [_meanLY] = 1 / MeV
+      int nPhotons = static_cast<int>( energy_raw * _meanLY * 1000.0 ); // [edep] = GeV, [_meanLY] = 1 / MeV
       tower_digi_i->add_ecell( 1, nPhotons );
 
       /* Apply photon statistic? */
@@ -147,16 +179,11 @@ CrystalCalorimeterDigitization::CreateNodes(PHCompositeNode *topNode)
 void
 CrystalCalorimeterDigitization::ApplyPhotonStatistic( RawTowerv1& tower )
 {
-  /* create a generator */
-  const gsl_rng_type * generatorType = gsl_rng_taus;
-  gsl_rng * _dice = gsl_rng_alloc ( generatorType );
-
-  /* Set seed for random number generator */
-  gsl_rng_set( _dice, _randSeed );
-
   /* Use Poisson statistics for photon statistic smearing */
   float nPhotonsMean = tower.get_energy();
-  float nPhotonsRand = gsl_ran_poisson( _dice, nPhotonsMean );
+  float nPhotonsRand = _dice->RollPoisson( nPhotonsMean );
+
+  cout << nPhotonsMean << " -> " << nPhotonsRand << endl;
 
   /* set tower energy to number of photons */
   tower.Reset();

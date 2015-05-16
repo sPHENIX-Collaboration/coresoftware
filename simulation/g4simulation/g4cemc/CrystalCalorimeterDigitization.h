@@ -12,6 +12,8 @@
 
 class PHCompositeNode;
 
+class CrystalCalorimeterDigitizationRNG;
+
 /**
  * \brief SubsysReco module adding post-Geant4 detector effects to calorimeter tower objects.
  *
@@ -60,6 +62,8 @@ protected:
 
   bool _applyPhotonStatistic;
   int _randSeed;
+
+  CrystalCalorimeterDigitizationRNG* _dice;
 
   PHTimeServer::timer _timer;
 
