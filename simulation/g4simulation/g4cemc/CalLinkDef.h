@@ -1,5 +1,7 @@
 #ifdef __CINT__
 
+#pragma link C++ class CrystalCalorimeterDigitization-!;
+#pragma link C++ class CrystalCalorimeterTowerBuilder-!;
 #pragma link C++ class RawCluster+;
 #pragma link C++ class RawClusterv1+;
 #pragma link C++ class RawClusterBuilder-!;
@@ -15,6 +17,5 @@
 #pragma link C++ class RawTowerGeom+;
 #pragma link C++ class RawTowerGeomv1+;
 #pragma link C++ class RawTowerGeomv2+;
-#pragma link C++ class TowerDigitization-!;
 
 #endif /* __CINT__ */

@@ -9,15 +9,21 @@ lib_LTLIBRARIES = \
 INCLUDES = \
   -I$(includedir) \
   -isystem $(OFFLINE_MAIN)/include \
-  -isystem $(ROOTSYS)/include
+  -isystem $(ROOTSYS)/include \
+  -isystem ${G4_MAIN}/include \
+  -isystem ${G4_MAIN}/include/Geant4
 
 RINCLUDES = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -I$(ROOTSYS)/include \
+  -I${G4_MAIN}/include \
+  -I${G4_MAIN}/include/Geant4
 
 libcemc_la_SOURCES = \
   Cal_Dict.C \
+  CrystalCalorimeterDigitization.cc \
+  CrystalCalorimeterTowerBuilder.cc \
   RawClusterBuilder.cc \
   RawClusterBuilderv1.cc \
   RawClusterv1.cc \
@@ -32,7 +38,6 @@ libcemc_la_SOURCES = \
   RawTowerGeom.cc \
   RawTowerGeomv1.cc \
   RawTowerGeomv2.cc \
-  TowerDigitization.cc \
   BEmcRec.cc \
   BEmcCluster.cc
 
@@ -49,6 +54,8 @@ libcemc_la_LIBADD = \
   -lgslcblas
 
 Cal_Dict.C: \
+  CrystalCalorimeterDigitization.h \
+  CrystalCalorimeterTowerBuilder.h \
   RawClusterBuilder.h \
   RawClusterBuilderv1.h \
   RawCluster.h \
@@ -64,7 +71,6 @@ Cal_Dict.C: \
   RawTowerGeom.h \
   RawTowerGeomv1.h \
   RawTowerGeomv2.h \
-  TowerDigitization.h \
   BEmcRec.h \
   BEmcCluster.h \
   CalLinkDef.h
