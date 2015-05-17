@@ -5,81 +5,215 @@
 #include <map>
 #include <iostream>
 
-class Jet : public PHObject {
+class Jet : public PHObject
+{
 
 public:
 
-  enum ALGO {NONE,ANTIKT,KT,CONE};
-  
-  enum SRC {TRACKS,
-	    EM_TOWERS,EM_CLUSTERS,
-	    HCALIN_TOWERS,HCALIN_CLUSTERS,
-	    HCALOUT_TOWERS,HCALOUT_CLUSTERS};
-  
-  typedef std::multimap< SRC, unsigned int >::const_iterator ConstIter;
-  typedef std::multimap< SRC, unsigned int >::iterator       Iter; 
-  
-  Jet(); 
-  virtual ~Jet() {}
+  /*! \addtogroup Generic Features
+   *  @{
+   */
+
+  Jet();
+  virtual
+  ~Jet()
+  {
+  }
 
   // PHObject virtual overloads
-  
-  void         identify(std::ostream& os = std::cout) const;
-  void         Reset();
-  int          IsValid() const;
+
+  virtual void
+  identify(std::ostream& os = std::cout) const;
+  virtual void
+  Reset();
+  virtual int
+  isValid() const;
+
+  /*! @} */
 
   // jet info
-  
-  unsigned int get_id() const            {return _id;}
-  void         set_id(unsigned int id)   {_id = id;}
-  
-  float        get_px() const            {return _mom[0];}
-  void         set_px(float px)          {_mom[0] = px;}
-  
-  float        get_py() const            {return _mom[1];}
-  void         set_py(float py)          {_mom[1] = py;}
+  virtual unsigned int
+  get_id() const;
+  virtual void
+  set_id(unsigned int id);
 
-  float        get_pz() const            {return _mom[2];}
-  void         set_pz(float pz)          {_mom[2] = pz;}
-  
-  float        get_e() const             {return _e;}
-  void         set_e(float e)            {_e = e;}
+  virtual float
+  get_px() const;
+  virtual void
+  set_px(float px);
 
-  //
-  // clustered component methods (multimap interface based)
-  // source type id --> unique id within that storage
-  //
-  bool      empty_comp() const           {return _comp_ids.empty();}
-  size_t    size_comp() const            {return _comp_ids.size();}
-  size_t    count_comp(SRC source) const {return _comp_ids.count(source);}
+  virtual float
+  get_py() const;
+  virtual void
+  set_py(float py);
 
-  void      clear_comp()                                {_comp_ids.clear();}
-  void      insert_comp(SRC source,unsigned int compid) {_comp_ids.insert(std::make_pair(source,compid));}
-  size_t    erase_comp(SRC source)                      {return _comp_ids.erase(source);}
-  void      erase_comp(Iter iter)                       {return _comp_ids.erase(iter);}
-  void      erase_comp(Iter first, Iter last)           {return _comp_ids.erase(first,last);}
+  virtual float
+  get_pz() const;
+  virtual void
+  set_pz(float pz);
 
-  ConstIter begin_comp() const                 {return _comp_ids.begin();}
-  ConstIter lower_bound_comp(SRC source) const {return _comp_ids.lower_bound(source);}
-  ConstIter upper_bound_comp(SRC source) const {return _comp_ids.upper_bound(source);}
-  ConstIter find(SRC source) const             {return _comp_ids.find(source);}
-  ConstIter end_comp() const                   {return _comp_ids.end();}
+  virtual float
+  get_e() const;
+  virtual void
+  set_e(float e);
 
-  Iter begin_comp()                 {return _comp_ids.begin();}
-  Iter lower_bound_comp(SRC source) {return _comp_ids.lower_bound(source);}
-  Iter upper_bound_comp(SRC source) {return _comp_ids.upper_bound(source);}
-  Iter find(SRC source)             {return _comp_ids.find(source);}
-  Iter end_comp()                   {return _comp_ids.end();}
-   
+  /*! @} */
+
+  /*! \addtogroup clustered component
+   * clustered component methods (multimap interface based)
+   * source type id --> unique id within that storage
+   *  @{
+   */
+  enum ALGO
+  {
+    NONE, ANTIKT, KT, CONE
+  };
+
+  enum SRC
+  {
+    TRACKS,
+    EM_TOWERS,
+    EM_CLUSTERS,
+    HCALIN_TOWERS,
+    HCALIN_CLUSTERS,
+    HCALOUT_TOWERS,
+    HCALOUT_CLUSTERS
+  };
+
+  typedef std::multimap<SRC, unsigned int> typ_comp_ids;
+  typedef typ_comp_ids::const_iterator ConstIter;
+  typedef typ_comp_ids::iterator Iter;
+
+  virtual bool
+  empty_comp() const
+  {
+    return true;
+  }
+  virtual size_t
+  size_comp() const
+  {
+    return 0;
+  }
+  virtual size_t
+  count_comp(SRC source) const
+  {
+    return 0;
+  }
+
+  virtual void
+  clear_comp()
+  {
+    return;
+  }
+  virtual void
+  insert_comp(SRC source, unsigned int compid)
+  {
+    return;
+  }
+  virtual size_t
+  erase_comp(SRC source)
+  {
+    return 0;
+  }
+  virtual void
+  erase_comp(Iter iter)
+  {
+    return;
+  }
+  virtual void
+  erase_comp(Iter first, Iter last)
+  {
+    return;
+  }
+
+  virtual ConstIter
+  begin_comp() const;
+
+  virtual ConstIter
+  lower_bound_comp(SRC source) const;
+
+  virtual ConstIter
+  upper_bound_comp(SRC source) const;
+
+  virtual ConstIter
+  find(SRC source) const;
+
+  virtual ConstIter
+  end_comp() const;
+
+  virtual Iter
+  begin_comp();
+
+  virtual Iter
+  lower_bound_comp(SRC source);
+
+  virtual Iter
+  upper_bound_comp(SRC source);
+
+  virtual Iter
+  find(SRC source);
+
+  virtual Iter
+  end_comp();
+
+  /*! @} */
+
+  /*! \addtogroup Property Tags
+   *  Tag the jet object with various tages
+   *  @{
+   */
+  //! Property ID List
+  //! You are welcome to add to this list, but please do not remove or change previous entries
+  //! Please add description to JetV1::print_property() for new property tags
+  enum PROPERTY
+  {
+
+    //! Jet radius
+    prop_R = 1,
+
+    //! Jet Mass
+    prop_JetMass = 11,
+
+    //! Jet Charge
+    prop_JetCharge = 12,
+
+    //! B-jet fraction
+    prop_BFrac = 101,
+
+    //! Last property tag
+    prop_MaxValue
+  };
+  /*! @} */
+
+  typedef std::map<PROPERTY, float> typ_property_map;
+
+  //! print out all existing properties
+  virtual void print_property(ostream& os) const {}
+
+  //! whether a property exists
+  virtual
+  bool
+  has_property(PROPERTY prop_id) const
+  {
+    return false;
+  }
+
+  //! get property value
+  virtual
+  float
+  get_property(PROPERTY prop_id) const;
+
+  //! set property value
+  virtual
+  void
+  set_property(PROPERTY prop_id, float value);
+
 private:
-  
-  unsigned int _id;                //< unique identifier within container
-  float _mom[3];                   //< jet momentum vector (px,py,pz)
-  float _e;                        //< jet energy
+  //! a dummpy comp container to make returns for base-class interface functions
+  static typ_comp_ids _dummy_ids;
 
-  std::multimap< SRC, unsigned int > _comp_ids; //< source id -> component id 
-  
-  ClassDef(Jet, 1);
+ClassDef(Jet, 1)
+  ;
 };
 
 #endif

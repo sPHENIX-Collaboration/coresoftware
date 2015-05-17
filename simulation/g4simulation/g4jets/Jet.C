@@ -1,46 +1,167 @@
 #include "Jet.h"
 
 #include <cmath>
+#include <cstdlib>
 
 using namespace std;
 
 ClassImp(Jet);
 
+Jet::typ_comp_ids Jet::_dummy_ids;
+
 Jet::Jet()
-  : _id(0xFFFFFFFF),
-    _mom(),
-    _e(NAN),
-    _comp_ids()
 {
-  for (int i = 0; i < 3; ++i) _mom[i] = NAN;
 }
 
-void Jet::identify(ostream& os) const {
+void
+Jet::identify(ostream& os) const
+{
   os << "---Jet-----------------------" << endl;
-  os << "jetid: " << get_id() << endl;
-  os << " (px,py,pz,e) =  (" << get_px() << ", " << get_py() << ", ";
-  os << get_pz() << ", " << get_e() << ") GeV" << endl;
-  for (ConstIter citer = begin_comp(); citer != end_comp(); ++citer) {
-    cout << citer->first << " -> " << citer->second << endl;
-  }
-  os << "-----------------------------------------------" << endl;
-  
-  return;  
+  return;
 }
 
-void Jet::Reset() {
-  _id = 0xFFFFFFFF;
-  for (int i = 0; i < 3; ++i) _mom[i] = NAN;
-  _e = NAN;
-  _comp_ids.clear();  
+void
+Jet::Reset()
+{
 }
 
-int Jet::IsValid() const {
-  if (_id == 0xFFFFFFFF) return 0;
-  for (int i = 0; i < 3; ++i) {
-    if (isnan(_mom[i])) return 0;
-  }
-  if (isnan(_e)) return 0;
-  if (_comp_ids.empty()) return 0;
-  return 1;
+int
+Jet::isValid() const
+{
+  return 0;
+}
+
+unsigned int
+Jet::get_id() const
+{
+  return 0xFFFFFFFF;
+}
+void
+Jet::set_id(unsigned int id)
+{
+}
+
+float
+Jet::get_px() const
+{
+  return NAN;
+}
+void
+Jet::set_px(float px)
+{
+}
+
+float
+Jet::get_py() const
+{
+  return NAN;
+}
+void
+Jet::set_py(float py)
+{
+}
+
+float
+Jet::get_pz() const
+{
+  return NAN;
+}
+void
+Jet::set_pz(float pz)
+{
+}
+
+float
+Jet::get_e() const
+{
+  return NAN;
+}
+void
+Jet::set_e(float e)
+{
+}
+
+Jet::ConstIter
+Jet::begin_comp() const
+{
+
+  return _dummy_ids.begin();
+}
+
+Jet::ConstIter
+Jet::lower_bound_comp(SRC source) const
+{
+  return _dummy_ids.lower_bound(source);
+}
+Jet::ConstIter
+Jet::upper_bound_comp(SRC source) const
+{
+  return _dummy_ids.upper_bound(source);
+}
+
+Jet::ConstIter
+Jet::find(SRC source) const
+{
+  return _dummy_ids.find(source);
+}
+
+Jet::ConstIter
+Jet::end_comp() const
+{
+  return _dummy_ids.end();
+}
+
+Jet::Iter
+Jet::begin_comp()
+{
+  cout << __PRETTY_FUNCTION__ << " is not implemented!" << endl;
+  exit(7391);
+  return _dummy_ids.begin();
+}
+
+Jet::Iter
+Jet::lower_bound_comp(SRC source)
+{
+  cout << __PRETTY_FUNCTION__ << " is not implemented!" << endl;
+  exit(7391);
+  return _dummy_ids.lower_bound(source);
+}
+
+Jet::Iter
+Jet::upper_bound_comp(SRC source)
+{
+  cout << __PRETTY_FUNCTION__ << " is not implemented!" << endl;
+  exit(7391);
+  return _dummy_ids.upper_bound(source);
+}
+
+Jet::Iter
+Jet::find(SRC source)
+{
+  cout << __PRETTY_FUNCTION__ << " is not implemented!" << endl;
+  exit(7391);
+  return _dummy_ids.find(source);
+}
+
+Jet::Iter
+Jet::end_comp()
+{
+  cout << __PRETTY_FUNCTION__ << " is not implemented!" << endl;
+  exit(7391);
+  return _dummy_ids.end();
+}
+
+
+float
+Jet::
+get_property(PROPERTY prop_id) const
+{
+  return NAN;
+}
+
+void
+Jet::
+set_property(PROPERTY prop_id, float value)
+{
+  return;
 }

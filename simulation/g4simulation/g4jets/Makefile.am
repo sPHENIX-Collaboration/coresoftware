@@ -21,6 +21,7 @@ libg4jets_la_LDFLAGS = \
 
 pkginclude_HEADERS = \
   Jet.h \
+  JetV1.h \
   JetMap.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
@@ -28,6 +29,8 @@ pkginclude_HEADERS = \
 libg4jets_la_SOURCES = \
   Jet.C \
   Jet_Dict.C \
+  JetV1.C \
+  JetV1_Dict.C \
   JetMap.C \
   JetMap_Dict.C
 
