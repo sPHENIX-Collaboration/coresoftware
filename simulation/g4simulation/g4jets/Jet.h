@@ -160,8 +160,40 @@ public:
 
   /*! \addtogroup Property Tags
    *  Tag the jet object with various tages
+   *
+   *  Example to try it out in command lines
+   *
+   *
+<code>
+[jinhuang@rcas2067 macros]$ root
+root [0] gSystem->Load("libg4jets");
+root [1] JetV1 j
+
+root [2] j.identify()
+---Jet V1-----------------------
+jetid: 4294967295
+ (px,py,pz,e) =  (nan, nan, nan, nan) GeV
+-----------------------------------------------
+
+root [3] j.set_property(Jet::prop_R , 0.2)
+root [5] j.set_property(Jet::prop_BFrac  , 0.5)
+root [6] j.identify()
+---Jet V1-----------------------
+jetid: 4294967295
+ (px,py,pz,e) =  (nan, nan, nan, nan) GeV
+ Jet Radius = 0.2
+ Jet B-quark fraction = 0.5
+
+root [7] j.get_property(Jet::prop_BFrac)
+(const float)5.00000000000000000e-01
+
+-----------------------------------------------
+</code>
+   *
+   *
    *  @{
    */
+
   //! Property ID List
   //! You are welcome to add to this list, but please do not remove or change previous entries
   //! Please add description to JetV1::print_property() for new property tags
@@ -185,7 +217,6 @@ public:
   };
   /*! @} */
 
-  typedef std::map<PROPERTY, float> typ_property_map;
 
   //! print out all existing properties
   virtual void print_property(ostream& os) const {}
