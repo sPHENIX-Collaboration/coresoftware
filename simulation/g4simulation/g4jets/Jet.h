@@ -72,8 +72,8 @@ public:
   enum SRC
   {
     TRACKS,
-    EM_TOWERS,
-    EM_CLUSTERS,
+    CEMC_TOWERS,
+    CEMC_CLUSTERS,
     HCALIN_TOWERS,
     HCALIN_CLUSTERS,
     HCALOUT_TOWERS,
