@@ -13,8 +13,9 @@ class JetMap : public PHObject {
 public:
 
   // jet object iterators
-  typedef std::map<unsigned int, Jet>::const_iterator ConstIter;
-  typedef std::map<unsigned int, Jet>::iterator            Iter;
+  typedef std::map<unsigned int, Jet*>  typ_JetMap;
+  typedef typ_JetMap::const_iterator    ConstIter;
+  typedef typ_JetMap::iterator          Iter;
 
   // source identifier iterators
   typedef std::set<Jet::SRC>::const_iterator ConstSrcIter;
@@ -25,7 +26,7 @@ public:
 
   void identify(std::ostream &os = std::cout) const;
   void Reset();
-  int  IsValid() const {return 1;}
+  int  isValid() const {return 1;}
 
   // map content info
   
@@ -57,7 +58,9 @@ public:
   
   const Jet*   get(unsigned int idkey) const;
         Jet*   get(unsigned int idkey); 
-        Jet*   insert(const Jet &jet);
+
+        //! insert Jet to the map. Once inserted, the JetMap own the Jet object
+        Jet*   insert(Jet* jet);
         size_t erase(unsigned int idkey) {return _map.erase(idkey);}
 
   ConstIter begin()                  const {return _map.begin();}
@@ -72,7 +75,7 @@ private:
   Jet::ALGO  _algo;                 //< algorithm used to reconstruct jets         
   float _par;                       //< algorithm parameter setting
   std::set<Jet::SRC> _src;      //< list of sources (clusters, towers, etc)
-  std::map<unsigned int, Jet> _map; //< jet algorithm output storage
+  typ_JetMap _map; //< jet algorithm output storage
     
   ClassDef(JetMap, 1);
 };

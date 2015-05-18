@@ -16,14 +16,20 @@ JetMap::JetMap()
 }
 
 JetMap::~JetMap() {
-  _map.clear();
+  JetMap::Reset();
 }
 
 void JetMap::Reset() {
   _algo = Jet::NONE;  
   _par = NAN;
   _src.clear();
-  _map.clear();
+//  _map.clear();
+
+  while(_map.begin() != _map.end())
+    {
+      delete _map.begin()->second;
+      _map.erase(_map.begin());
+    }
 }
 
 void JetMap::identify(ostream& os) const {
@@ -34,19 +40,19 @@ void JetMap::identify(ostream& os) const {
 const Jet* JetMap::get(unsigned int id) const {
   ConstIter iter = _map.find(id);
   if (iter == _map.end()) return NULL;  
-  return &iter->second;
+  return iter->second;
 }
 
 Jet* JetMap::get(unsigned int id) {
   Iter iter = _map.find(id);
   if (iter == _map.end()) return NULL;
-  return &iter->second;
+  return iter->second;
 }
 
-Jet* JetMap::insert(const Jet &track) {
+Jet* JetMap::insert(Jet* jet) {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair( index , Jet(track) ));
-  _map[index].set_id(index);
-  return (&_map[index]);
+  _map.insert(make_pair( index , jet ));
+  _map[index]->set_id(index);
+  return (_map[index]);
 }
