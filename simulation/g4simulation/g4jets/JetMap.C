@@ -32,9 +32,17 @@ void JetMap::Reset() {
     }
 }
 
-void JetMap::identify(ostream& os) const {
+void
+JetMap::identify(ostream& os) const
+{
   os << "JetMap: size = " << _map.size() << endl;
-  return;  
+  os << "        par = " << _par << endl;
+  os << "        source = ";
+  for (SrcIter i = begin_src(); i != end_src(); ++i)
+    os << (*i) << ",";
+  os << endl;
+
+  return;
 }
 
 const Jet* JetMap::get(unsigned int id) const {
