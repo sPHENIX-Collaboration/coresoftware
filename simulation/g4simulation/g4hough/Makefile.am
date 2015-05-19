@@ -42,7 +42,8 @@ pkginclude_HEADERS = \
   PHG4HoughTransform.h \
   PHG4TrackGhostRejection.h \
   PHG4SvtxTrackProjection.h \
-  PHG4SvtxBeamSpotReco.h
+  PHG4SvtxBeamSpotReco.h \
+  PHG4TPCClusterizer.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
@@ -74,6 +75,8 @@ libg4hough_la_SOURCES = \
   SvtxVertex.C \
   SvtxVertex_Dict.C \
   SvtxVertexMap.C \
+  PHG4TPCClusterizer.C \
+  PHG4TPCClusterizer_Dict.C \
   SvtxVertexMap_Dict.C \
   PHG4HoughTransform.C \
   PHG4HoughTransform_Dict.C \
