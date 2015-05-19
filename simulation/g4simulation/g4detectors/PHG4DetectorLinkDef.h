@@ -10,7 +10,6 @@
 #pragma link C++ class PHG4BlockSubsystem-!;
 #pragma link C++ class PHG4CEmcTestBeamSubsystem-!;
 #pragma link C++ class PHG4ConeSubsystem-!;
-#pragma link C++ class PHG4CrystalCalorimeterSubsystem-!;
 #pragma link C++ class PHG4CylinderCell+;
 #pragma link C++ class PHG4CylinderCellv1+;
 #pragma link C++ class PHG4CylinderCellv2+;
@@ -44,5 +43,6 @@
 #pragma link C++ class PHG4SiliconTrackerCellReco-!;
 #pragma link C++ class PHG4SlatCellReco-!;
 #pragma link C++ class PHG4SpacalSubsystem-!;
+#pragma link C++ class PHG4CylinderCellTPCReco-!;
 
 #endif /* __CINT__ */

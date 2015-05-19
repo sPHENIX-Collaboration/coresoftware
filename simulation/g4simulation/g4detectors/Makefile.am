@@ -32,7 +32,8 @@ pkginclude_HEADERS = \
   PHG4CylinderGeomContainer.h \
   PHG4CylinderCellDefs.h \
   PHG4CylinderCellGeom.h \
-  PHG4CylinderCellGeomContainer.h
+  PHG4CylinderCellGeomContainer.h \
+  PHG4CylinderCellTPCReco.h
 
 libg4detectors_la_SOURCES = \
   PHG4AccDetector.cc \
@@ -58,9 +59,6 @@ libg4detectors_la_SOURCES = \
   PHG4ConeRegionSteppingAction.cc \
   PHG4ConeSteppingAction.cc \
   PHG4ConeSubsystem.cc \
-  PHG4CrystalCalorimeterDetector.cc \
-  PHG4CrystalCalorimeterSteppingAction.cc \
-  PHG4CrystalCalorimeterSubsystem.cc \
   PHG4CylinderDetector.cc \
   PHG4CylinderEventAction.cc \
   PHG4CylinderGeom.cc \
@@ -125,7 +123,8 @@ libg4detectors_la_SOURCES = \
   PHG4SpacalDetector.cc \
   PHG4ProjSpacalDetector.cc \
   PHG4SpacalSteppingAction.cc \
-  PHG4SpacalSubsystem.cc
+  PHG4SpacalSubsystem.cc \
+  PHG4CylinderCellTPCReco.cc
 
 ################################################
 # linking tests
@@ -161,7 +160,6 @@ PHG4Detector_Dict.cc : \
   PHG4BlockGeomContainer.h \
   PHG4CEmcTestBeamSubsystem.h \
   PHG4ConeSubsystem.h \
-  PHG4CrystalCalorimeterSubsystem.h \
   PHG4CylinderCell.h \
   PHG4CylinderCellv1.h \
   PHG4CylinderCellv2.h \
@@ -194,6 +192,7 @@ PHG4Detector_Dict.cc : \
   PHG4SiliconTrackerCellReco.h \
   PHG4SlatCellReco.h \
   PHG4SpacalSubsystem.h \
+  PHG4CylinderCellTPCReco.h \
   PHG4DetectorLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
