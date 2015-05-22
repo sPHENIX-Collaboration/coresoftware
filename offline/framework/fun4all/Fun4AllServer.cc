@@ -11,7 +11,6 @@
 
 #include <phool/phool.h>
 #include <phool/PHObject.h>
-//#include <Event.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHNodeIOManager.h>
@@ -553,7 +552,7 @@ Fun4AllServer::process_event()
       if (!gROOT->cd(newdirname.str().c_str()))
         {
           cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
-               << (*iter).second->getName().getString()
+               << (*iter).second->getName()
                << " - send e-mail to off-l with your macro" << endl;
           exit(1);
         }
@@ -795,7 +794,7 @@ int Fun4AllServer::BeginRun(const int runno)
       if (!gROOT->cd(newdirname.str().c_str()))
         {
           cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
-               << (*iter).second->getName().getString()
+               << (*iter).second->getName()
                << " - send e-mail to off-l with your macro" << endl;
           exit(1);
         }
@@ -942,7 +941,7 @@ int Fun4AllServer::EndRun(const int runno)
       if (!gROOT->cd(newdirname.str().c_str()))
         {
           cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
-               << (*iter).second->getName().getString()
+               << (*iter).second->getName()
                << " - send e-mail to off-l with your macro" << endl;
           exit(1);
         }
@@ -996,7 +995,7 @@ Fun4AllServer::End()
       if (!gROOT->cd(newdirname.str().c_str()))
         {
           cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
-               << (*iter).second->getName().getString()
+               << (*iter).second->getName()
                << " - send e-mail to off-l with your macro" << endl;
           exit(1);
         }

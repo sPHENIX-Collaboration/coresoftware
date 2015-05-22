@@ -13,8 +13,8 @@ template <class T>
 class PHDataNode : public PHNode 
 {
 public: 
-  PHDataNode(T*, const PHString&); 
-  PHDataNode(T*, const PHString&, const PHString&); 
+  PHDataNode(T*, const std::string&); 
+  PHDataNode(T*, const std::string&, const std::string &); 
   virtual ~PHDataNode(); 
 
 public:
@@ -22,8 +22,8 @@ public:
   void setData(T* d) {data.data = d;}
   virtual void prune() {}
   virtual void forgetMe(PHNode*) {}
-  void print(const PHString&);
-  virtual PHBoolean write(PHIOManager *, const PHString& = "") 
+  void print(const std::string&);
+  virtual PHBoolean write(PHIOManager *, const std::string& = "") 
     { 
       return True; 
     }
@@ -46,7 +46,7 @@ PHDataNode<T>::PHDataNode()
 
 template <class T> 
 PHDataNode<T>::PHDataNode(T* d, 
-			  const PHString& name) 
+			  const std::string & name) 
   : PHNode(name)
 {
   type = "PHDataNode";
@@ -55,8 +55,8 @@ PHDataNode<T>::PHDataNode(T* d,
 
 template <class T> 
 PHDataNode<T>::PHDataNode(T* d, 
-			  const PHString& name,
-			  const PHString& objtype)
+			  const std::string &name,
+			  const std::string &objtype)
   : PHNode(name,objtype)
 {
   type = "PHDataNode";
@@ -77,7 +77,7 @@ PHDataNode<T>::~PHDataNode()
 }
 
 template <class T> 
-void PHDataNode<T>::print(const PHString& path)
+void PHDataNode<T>::print(const std::string& path)
 {
   std::cout << path << name << " (" << type << ")" << std::endl;
 }

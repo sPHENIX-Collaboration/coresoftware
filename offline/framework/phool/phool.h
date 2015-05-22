@@ -9,27 +9,15 @@
 static const int False = 0;
 static const int True = 1;
 
-// PHENIX
-static const unsigned int EAST = 0;  // negative x
-static const unsigned int WEST = 1;  // positive x
-static const unsigned int SOUTH = 0;  // negative z
-static const unsigned int NORTH = 1;  // positive z
-
 //  Global type definitions
 typedef int PHBoolean;
 enum PHMessageType {PHError, PHWarning, PHHullo};
 enum PHAccessType {PHReadOnly, PHWrite, PHUpdate};
 enum PHTreeType {PHEventTree, PHRunTree};
 
-//  Constants
-const double Pi           = 3.14159265358979323846264338328;
-const double TwoPi        = 2.0 * Pi;
-const double ToRadian     = Pi / 180.0;
-const double ToDegree     = 180.0 / Pi;
 
 // General purpose functions
-class PHString;
-void PHMessage(const PHString&, int, const PHString&);
+void PHMessage(const std::string&, int, const std::string&);
 
 #ifndef __CINT__
 #define PHWHERE __FILE__ << ":" << __LINE__ << ": "

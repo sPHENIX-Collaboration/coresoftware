@@ -12,7 +12,7 @@
 
 #include <TObject.h>
 
-class TObject;
+#include <string>
 
 template <typename T>
 class PHIODataNode : public PHDataNode <T>
@@ -21,8 +21,8 @@ class PHIODataNode : public PHDataNode <T>
 
  public:
   T* operator*() {return this->getData();}
-  PHIODataNode(T*, const PHString&);
-  PHIODataNode(T*, const PHString&, const PHString&);
+  PHIODataNode(T*, const std::string &);
+  PHIODataNode(T*, const std::string &, const std::string &);
   virtual ~PHIODataNode() {}
   typedef PHTypedNodeIterator<T> iterator;
 
@@ -32,15 +32,15 @@ class PHIODataNode : public PHDataNode <T>
 };
 
 template <class T>
-PHIODataNode<T>::PHIODataNode(T* d, const PHString& name)
+PHIODataNode<T>::PHIODataNode(T* d, const std::string& name)
   : PHDataNode<T>(d, name)
 {
   this->type = "PHIODataNode";
 }
 
 template <class T>
-PHIODataNode<T>::PHIODataNode(T* d, const PHString& name,
-                              const PHString& objtype)
+PHIODataNode<T>::PHIODataNode(T* d, const std::string& name,
+                              const std::string& objtype)
   : PHDataNode<T>(d, name, objtype)
 {
   this->type = "PHIODataNode";
@@ -55,7 +55,8 @@ PHIODataNode<T>::write(PHIOManager* IOManager, const PHString& path)
       PHNodeIOManager *np = dynamic_cast<PHNodeIOManager*>(IOManager);
       if (np)
         {
-          PHString newPath = path + phooldefs::branchpathdelim.c_str() + this->name;
+	  std::string tmpstr = path.getString() + phooldefs::branchpathdelim + this->name;
+          PHString newPath = tmpstr.c_str();
 	  PHBoolean bret = False;
 	  if (dynamic_cast<TObject *> (this->data.data))
 	    {
@@ -68,5 +69,3 @@ PHIODataNode<T>::write(PHIOManager* IOManager, const PHString& path)
 }
 
 #endif /* __PHIODATANODE_H__ */
-
-

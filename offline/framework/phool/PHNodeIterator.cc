@@ -45,8 +45,10 @@ PHNodeIterator::print()
 }
 
 PHNode*
-PHNodeIterator::findFirst(const PHString& requiredType, const PHString& requiredName)
+PHNodeIterator::findFirst(const PHString& reqType, const PHString& reqName)
 {
+  string requiredType = reqType.getString();
+  string requiredName = reqName.getString();
   PHPointerListIterator<PHNode> iter(currentNode->subNodes);
   PHNode *thisNode;
   while ((thisNode = iter()))
@@ -60,7 +62,7 @@ PHNodeIterator::findFirst(const PHString& requiredType, const PHString& required
           if (thisNode->getType() == "PHCompositeNode")
             {
               PHNodeIterator nodeIter(static_cast<PHCompositeNode*>(thisNode));
-              PHNode *nodeFoundInSubTree = nodeIter.findFirst(requiredType, requiredName);
+              PHNode *nodeFoundInSubTree = nodeIter.findFirst(requiredType.c_str(), requiredName.c_str());
               if (nodeFoundInSubTree) return nodeFoundInSubTree;
             }
         }
@@ -69,8 +71,9 @@ PHNodeIterator::findFirst(const PHString& requiredType, const PHString& required
 }
 
 PHNode*
-PHNodeIterator::findFirst(const PHString& requiredName)
+PHNodeIterator::findFirst(const PHString& reqName)
 {
+  string requiredName = reqName.getString();
   PHPointerListIterator<PHNode> iter(currentNode->subNodes);
   PHNode *thisNode;
   while ((thisNode = iter()))
@@ -84,7 +87,7 @@ PHNodeIterator::findFirst(const PHString& requiredName)
           if (thisNode->getType() == "PHCompositeNode")
             {
               PHNodeIterator nodeIter(static_cast<PHCompositeNode*>(thisNode));
-              PHNode *nodeFoundInSubTree = nodeIter.findFirst(requiredName);
+              PHNode *nodeFoundInSubTree = nodeIter.findFirst(requiredName.c_str());
               if (nodeFoundInSubTree)
                 {
                   return nodeFoundInSubTree;
@@ -133,7 +136,7 @@ PHNodeIterator::cd(const PHString pathString)
               pathFound = False;
               while ((subNode = subNodeIter()))
                 {
-                  if (subNode->getType() == "PHCompositeNode" && subNode->getName() == *newPath)
+                  if (subNode->getType() == "PHCompositeNode" && subNode->getName() == newPath->getString())
                     {
                       currentNode = static_cast<PHCompositeNode*>(subNode);
                       pathFound = True;

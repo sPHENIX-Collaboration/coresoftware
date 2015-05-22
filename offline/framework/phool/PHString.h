@@ -12,7 +12,6 @@
 #include <iosfwd>
 #include <cstring>
 
-PHString operator+ (const PHString&, const PHString&);
 
 template <class T> class PHPointerList;
 
@@ -47,6 +46,7 @@ private:
 std::ostream & operator << (std::ostream &, const PHString &);
 
 PHString join(PHPointerList<PHString>&, const PHString&);
+PHString operator+ (const PHString&, const PHString&);
 
 #endif /* PHSTRING_H */ 
 

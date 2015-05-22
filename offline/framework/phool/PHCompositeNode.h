@@ -16,7 +16,7 @@ class PHCompositeNode : public PHNode {
    friend class PHNodeIterator;
    
 public: 
-   PHCompositeNode(const PHString &); 
+   PHCompositeNode(const std::string &); 
    virtual ~PHCompositeNode(); 
 
    //
@@ -34,8 +34,8 @@ public:
    //
    // I/O functions
    //
-   void print(const PHString& = "");
-   virtual PHBoolean write(PHIOManager *, const PHString& = "");
+   void print(const std::string & = "");
+   virtual PHBoolean write(PHIOManager *, const std::string & = "");
 
 protected:
    virtual void forgetMe(PHNode*);
