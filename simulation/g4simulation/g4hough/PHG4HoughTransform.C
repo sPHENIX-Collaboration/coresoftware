@@ -697,7 +697,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
     track.setQuality(chi_squareds[itrack]/((float)ndf));
     track.setChisq(chi_squareds[itrack]);
     track.setNDF(ndf);
-    track.set3Momentum( pT*cos(phi-helicity*Pi/2), pT*sin(phi-helicity*Pi/2), pZ);
+    track.set3Momentum( pT*cos(phi-helicity*M_PI/2), pT*sin(phi-helicity*M_PI/2), pZ);
 
     track.setDCA2D( d );
     track.setDCA2Dsigma(sqrt(_tracker->getKalmanStates()[itrack].C(1,1)));  
