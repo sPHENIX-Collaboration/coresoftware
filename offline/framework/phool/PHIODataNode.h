@@ -27,7 +27,7 @@ class PHIODataNode : public PHDataNode <T>
   typedef PHTypedNodeIterator<T> iterator;
 
  protected:
-  virtual PHBoolean write(PHIOManager *, const PHString& = "");
+  virtual PHBoolean write(PHIOManager *, const std::string& = "");
   PHIODataNode() {}
 };
 
@@ -48,14 +48,14 @@ PHIODataNode<T>::PHIODataNode(T* d, const std::string& name,
 
 template <class T>
 PHBoolean
-PHIODataNode<T>::write(PHIOManager* IOManager, const PHString& path)
+PHIODataNode<T>::write(PHIOManager* IOManager, const std::string& path)
 {
   if (this->persistent)
     {
       PHNodeIOManager *np = dynamic_cast<PHNodeIOManager*>(IOManager);
       if (np)
         {
-	  std::string tmpstr = path.getString() + phooldefs::branchpathdelim + this->name;
+	  std::string tmpstr = path + phooldefs::branchpathdelim + this->name;
           PHString newPath = tmpstr.c_str();
 	  PHBoolean bret = False;
 	  if (dynamic_cast<TObject *> (this->data.data))
