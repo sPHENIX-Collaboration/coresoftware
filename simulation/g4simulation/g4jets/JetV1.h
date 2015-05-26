@@ -1,5 +1,3 @@
-// $Id: $                                                                                             
-
 /*!
  * \file JetV1.h
  * \brief Versionize the Jet object that make by Mike McCumber
@@ -8,20 +6,20 @@
  * \date $Date: $
  */
 
-#ifndef JETV1_H_
-#define JETV1_H_
+#ifndef __JETV1_H__
+#define __JETV1_H__
 
 #include "Jet.h"
 
 /*!
  * \brief JetV1
  */
-class JetV1 : public Jet
-{
+class JetV1 : public Jet {
+  
 public:
+  
   JetV1();
-  virtual
-  ~JetV1();
+  virtual ~JetV1() {}
 
   // PHObject virtual overloads
 
@@ -46,6 +44,20 @@ public:
   float        get_e() const             {return _e;}
   void         set_e(float e)            {_e = e;}
 
+  float        get_p() const;
+  float        get_pt() const;
+  float        get_et() const;
+  float        get_eta() const;
+  float        get_phi() const;
+  float        get_mass() const;
+  
+  // extended jet info
+  
+  bool  has_property(Jet::PROPERTY prop_id) const;
+  float get_property(Jet::PROPERTY prop_id) const;
+  void  set_property(Jet::PROPERTY prop_id, float value);
+  void  print_property(ostream& os) const;
+  
   //
   // clustered component methods (multimap interface based)
   // source type id --> unique id within that storage
@@ -72,35 +84,25 @@ public:
   Iter find(SRC source)             {return _comp_ids.find(source);}
   Iter end_comp()                   {return _comp_ids.end();}
 
-  //! whether a property exists
-  bool  has_property(PROPERTY prop_id) const;
-  //! get property value
-  float   get_property(PROPERTY prop_id) const;
-  //! set property value
-  void    set_property(PROPERTY prop_id, float value);
-  void print_property(ostream& os) const;
-
 private:
 
-  //! unique identifier within container
+  /// unique identifier within container
   unsigned int _id;
 
-  //! jet momentum vector (px,py,pz)
+  /// jet momentum vector (px,py,pz)
   float _mom[3];
 
-  //! jet energy
+  /// jet energy
   float _e;
 
-  //! source id -> component id
+  /// source id -> component id
   typ_comp_ids _comp_ids;
 
-  typedef std::map<PROPERTY, float> typ_property_map;
-
-  //! map that contains extra properties
+  typedef std::map<Jet::PROPERTY, float> typ_property_map;
+  /// map that contains extra properties
   typ_property_map _property_map;
 
   ClassDef(JetV1, 1);
-
 };
 
-#endif /* JETV1_H_ */
+#endif // __JETV1_H__
