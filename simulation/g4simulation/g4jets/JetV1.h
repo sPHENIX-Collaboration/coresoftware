@@ -26,6 +26,7 @@ public:
   void         identify(std::ostream& os = std::cout) const;
   void         Reset();
   int          isValid() const;
+  Jet*         Clone() const;
 
   // jet info
 

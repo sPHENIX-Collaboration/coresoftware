@@ -28,6 +28,7 @@ public:
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Reset() {return;}
   virtual int  isValid() const {return 0;}
+  virtual Jet* Clone() const {return NULL;}
 
   // jet info ------------------------------------------------------------------
   
@@ -97,7 +98,7 @@ public:
   /*! @} */
   
 protected:
-  Jet();
+  Jet();  
   
   ClassDef(Jet, 1);
 };

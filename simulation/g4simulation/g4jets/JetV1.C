@@ -55,6 +55,11 @@ int JetV1::isValid() const {
   return 1;
 }
 
+Jet* JetV1::Clone() const {
+  Jet *jet = new JetV1(*this);
+  return jet;
+}
+
 float JetV1::get_p() const {
   return sqrt(get_px()*get_px()+get_py()*get_py()+get_pz()*get_pz());
 }
