@@ -12,8 +12,10 @@ class EvalLinks : public PHObject {
 
 public:
   virtual ~EvalLinks() {}
-
+  virtual void Reset() {return;}
+  
   // container modifiers
+  virtual void set_names(std::string left_name, std::string right_name) {return;}
   virtual void link(unsigned int left_id, unsigned int right_id, float purity) {return;}
   virtual void unlink(unsigned int left_id, unsigned int right_id) {return;}
   virtual void clear() {return;}

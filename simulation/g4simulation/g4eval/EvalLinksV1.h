@@ -15,7 +15,10 @@ public:
   EvalLinksV1(std::string left_name, std::string right_name);
   virtual ~EvalLinksV1() {clear();}
 
+  void Reset() {clear();}
+  
   // modifiers
+  void set_names(std::string left_name, std::string right_name);
   void link(unsigned int left_id, unsigned int right_id, float purity);
   void unlink(unsigned int left_id, unsigned int right_id);
   void clear();
