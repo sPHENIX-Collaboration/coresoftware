@@ -32,7 +32,7 @@ public:
   }
 
   // access maximum purity association
-  virtual unsigned int max_left(unsigned int right_id) const {return 0xFFFFFFF;}
+  virtual unsigned int max_left(unsigned int right_id) const {return 0xFFFFFFFF;}
   virtual unsigned int max_right(unsigned int left_id) const {return 0xFFFFFFFF;}
 
 protected:
