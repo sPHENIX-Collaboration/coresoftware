@@ -23,9 +23,10 @@ public:
    
   virtual ~JetMap() {}
 
-  virtual void identify(std::ostream &os = std::cout) const;
-  virtual void Reset() {}
-  virtual int  isValid() const {return 0;}
+  virtual void    identify(std::ostream &os = std::cout) const;
+  virtual void    Reset() {}
+  virtual int     isValid() const {return 0;}
+  virtual JetMap* Clone() const {return NULL;}
 
   // map content info ----------------------------------------------------------
   

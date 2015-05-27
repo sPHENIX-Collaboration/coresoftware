@@ -14,11 +14,14 @@ class JetMapV1 : public JetMap {
 public:
 
   JetMapV1();
+  JetMapV1(const JetMapV1 &jets);
+  JetMapV1& operator=(const JetMapV1 &jets); 
   virtual ~JetMapV1();
 
-  void identify(std::ostream &os = std::cout) const;
-  void Reset();
-  int  isValid() const {return 1;}
+  void    identify(std::ostream &os = std::cout) const;
+  void    Reset();
+  int     isValid() const {return 1;}
+  JetMap* Clone() const;
 
   // map content info ----------------------------------------------------------
   
@@ -51,7 +54,7 @@ public:
   const Jet* get(unsigned int idkey) const;
         Jet* get(unsigned int idkey); 
 
-  //! insert Jet to the map. Once inserted, the JetMap owns the Jet memory
+  /// insert Jet to the map. Once inserted, the JetMap owns the Jet memory
   Jet*   insert(Jet* jet);
   size_t erase(unsigned int idkey) {return _map.erase(idkey);}
 
