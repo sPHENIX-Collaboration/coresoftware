@@ -1,5 +1,5 @@
-#ifndef __PHRAWOMANAGER_H__
-#define __PHRAWOMANAGER_H__
+#ifndef PHRAWOMANAGER_H__
+#define PHRAWOMANAGER_H__
 
 //-----------------------------------------------------------------------------
 //
@@ -15,7 +15,7 @@
 //       have to be called in addition.
 //     - The second constructor calls the setFile method to which it passes
 //       on its arguments. In order of appearance:
-//        1. The filename, type PHString, no default
+//        1. The filename, type std::string, no default
 //        2. The runnumber, int, defaults to 0
 //        3. The buffersize, int, defaults to 100000
 //        4. The eventlength, int, defaults to -1, in which case a quarter
@@ -28,7 +28,10 @@
 //-----------------------------------------------------------------------------
 
 #include "PHIOManager.h"
+
 #include <Event/phenixTypes.h>
+
+#include <string>
 
 class PHCompositeNode;
 class PHRawDataNode;
@@ -38,10 +41,10 @@ class PHRawOManager : public PHIOManager {
 
 public: 
    PHRawOManager(); 
-   PHRawOManager(const PHString &, const int run = 0, const int bufl = 100000, const int evtl = -1, const int complvl = 3); 
+   PHRawOManager(const std::string &, const int run = 0, const int bufl = 100000, const int evtl = -1, const int complvl = 3); 
    virtual ~PHRawOManager(); 
 
-   PHBoolean setFile(const PHString &, const int setRun, const int setBufl, const int setEvtl, const int complvl);
+   PHBoolean setFile(const std::string &, const int setRun, const int setBufl, const int setEvtl, const int complvl);
    virtual void closeFile();
    virtual PHBoolean write(PHCompositeNode *);
    PHBoolean write(PHRawDataNode*);
@@ -58,4 +61,4 @@ private:
    int     compressionLevel;
 }; 
 
-#endif /* __PHRAWOMANAGER_H__ */
+#endif /* PHRAWOMANAGER_H__ */

@@ -53,7 +53,6 @@ pkginclude_HEADERS =  \
   PHPointerList.h \
   PHPointerListIterator.h \
   PHRawOManager.h \
-  PHString.h \
   PHTimer.h \
   PHTimeServer.h \
   PHTimeStamp.h \
@@ -79,7 +78,6 @@ testexternals.cc:
 
 
 PHBase_dict.cc : \
-  PHString.h \
   PHFlag.h \
   phool.h \
   PHObject.h \
