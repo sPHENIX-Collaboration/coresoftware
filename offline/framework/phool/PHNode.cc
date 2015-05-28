@@ -10,33 +10,33 @@ using namespace std;
 /* to keep backward compatibility, default type of stored object is PHTable */
 PHNode::PHNode() : 
   parent(NULL),
-  persistent(True),
+  persistent(true),
   type("PHNode"),
   objecttype("PHTable"),
   name(""),
-  reset_able(True)
+  reset_able(true)
 {
   return;
 }
 
-PHNode::PHNode(const PHString& n) : 
+PHNode::PHNode(const string& n) : 
   parent(NULL),
-  persistent(True),
+  persistent(true),
   type("PHNode"),
   objecttype("PHTable"),
   name(n),
-  reset_able(True)
+  reset_able(true)
 {
   return;
 }
 
-PHNode::PHNode(const PHString& n, const PHString& objtype ) : 
+PHNode::PHNode(const string &n, const string &objtype ) : 
   parent(NULL),
-  persistent(True),
+  persistent(true),
   type("PHNode"),
   objecttype(objtype),
   name(n),
-  reset_able(True)
+  reset_able(true)
 {
   return;
 }
@@ -73,7 +73,7 @@ PHNode::operator=(const PHNode&)
 void
 PHNode::setResetFlag(const int val)
 {
-  reset_able = (val) ? True : False;
+  reset_able = (val) ? true : false;
 }
 
 PHBoolean  
@@ -91,8 +91,3 @@ operator << (std::ostream & stream, const PHNode & node)
    return stream;
 }
 
-void
-PHNode::setName(const PHString& n)
-{
-  name = n;
-}

@@ -464,7 +464,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
 	  PHString phs = splitvec[ia].c_str();
 	  if (!nodeIter.cd(phs))
 	    {
-	      nodeIter.addNode(new PHCompositeNode(phs));
+	      nodeIter.addNode(new PHCompositeNode(phs.getString()));
 	      nodeIter.cd(phs);
 	    }
        	}

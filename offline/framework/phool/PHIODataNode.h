@@ -12,7 +12,7 @@
 
 #include <TObject.h>
 
-class TObject;
+#include <string>
 
 template <typename T>
 class PHIODataNode : public PHDataNode <T>
@@ -21,26 +21,26 @@ class PHIODataNode : public PHDataNode <T>
 
  public:
   T* operator*() {return this->getData();}
-  PHIODataNode(T*, const PHString&);
-  PHIODataNode(T*, const PHString&, const PHString&);
+  PHIODataNode(T*, const std::string &);
+  PHIODataNode(T*, const std::string &, const std::string &);
   virtual ~PHIODataNode() {}
   typedef PHTypedNodeIterator<T> iterator;
 
  protected:
-  virtual PHBoolean write(PHIOManager *, const PHString& = "");
+  virtual PHBoolean write(PHIOManager *, const std::string& = "");
   PHIODataNode() {}
 };
 
 template <class T>
-PHIODataNode<T>::PHIODataNode(T* d, const PHString& name)
+PHIODataNode<T>::PHIODataNode(T* d, const std::string& name)
   : PHDataNode<T>(d, name)
 {
   this->type = "PHIODataNode";
 }
 
 template <class T>
-PHIODataNode<T>::PHIODataNode(T* d, const PHString& name,
-                              const PHString& objtype)
+PHIODataNode<T>::PHIODataNode(T* d, const std::string& name,
+                              const std::string& objtype)
   : PHDataNode<T>(d, name, objtype)
 {
   this->type = "PHIODataNode";
@@ -48,14 +48,15 @@ PHIODataNode<T>::PHIODataNode(T* d, const PHString& name,
 
 template <class T>
 PHBoolean
-PHIODataNode<T>::write(PHIOManager* IOManager, const PHString& path)
+PHIODataNode<T>::write(PHIOManager* IOManager, const std::string& path)
 {
   if (this->persistent)
     {
       PHNodeIOManager *np = dynamic_cast<PHNodeIOManager*>(IOManager);
       if (np)
         {
-          PHString newPath = path + phooldefs::branchpathdelim.c_str() + this->name;
+	  std::string tmpstr = path + phooldefs::branchpathdelim + this->name;
+          PHString newPath = tmpstr.c_str();
 	  PHBoolean bret = False;
 	  if (dynamic_cast<TObject *> (this->data.data))
 	    {
@@ -68,5 +69,3 @@ PHIODataNode<T>::write(PHIOManager* IOManager, const PHString& path)
 }
 
 #endif /* __PHIODATANODE_H__ */
-
-

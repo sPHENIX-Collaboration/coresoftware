@@ -22,7 +22,8 @@ libg4jets_la_LDFLAGS = \
 pkginclude_HEADERS = \
   Jet.h \
   JetV1.h \
-  JetMap.h
+  JetMap.h \
+  JetMapV1.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
@@ -32,7 +33,9 @@ libg4jets_la_SOURCES = \
   JetV1.C \
   JetV1_Dict.C \
   JetMap.C \
-  JetMap_Dict.C
+  JetMap_Dict.C \
+  JetMapV1.C \
+  JetMapV1_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h

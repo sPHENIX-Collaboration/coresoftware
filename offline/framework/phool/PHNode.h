@@ -5,9 +5,9 @@
 //  Purpose: abstract base class for all node classes
 
 #include "phool.h"
-#include "PHString.h"
 
 #include <iosfwd>
+#include <string>
 
 class PHIOManager;
 
@@ -16,8 +16,8 @@ class PHNode
 public: 
 
   // Note that the constructor makes a node transient by default.
-  PHNode(const PHString&); 
-  PHNode(const PHString&, const PHString&);
+  PHNode(const std::string &); 
+  PHNode(const std::string &, const std::string &);
   virtual ~PHNode(); 
 
 public:
@@ -27,17 +27,17 @@ public:
   PHBoolean isPersistent() const { return persistent; }
   void makePersistent() { persistent = True;}
   
-  const PHString& getObjectType() const { return objecttype; }
-  const PHString& getType() const { return type; }
-  const PHString& getName() const { return name; }
-  void setName(const PHString& n);
- 
+  const std::string getObjectType() const { return objecttype; }
+  const std::string getType() const { return type; }
+  const std::string getName() const { return name; }
+
   void setParent(PHNode *p) { parent = p; }
-  void setObjectType(const PHString& type) {objecttype = type;} 
+  void setName(const std::string &n) {name = n;}
+  void setObjectType(const std::string &type) {objecttype = type;} 
   virtual void prune() = 0;
-  virtual void print(const PHString&) = 0;
+  virtual void print(const std::string &) = 0;
   virtual void forgetMe(PHNode*) = 0;
-  virtual PHBoolean write(PHIOManager *, const PHString& = "") = 0;
+  virtual PHBoolean write(PHIOManager *, const std::string& = "") = 0;
 
   virtual void setResetFlag(const int val);
   virtual PHBoolean getResetFlag() const;
@@ -49,14 +49,12 @@ protected:
   PHNode(const PHNode&); // implement invalid copy ctor
   PHNode & operator=(const PHNode&);
   
-protected:
-
   PHNode*   parent;
-  PHBoolean persistent;
-  PHString  type;
-  PHString  objecttype;
-  PHString  name;
-  PHBoolean reset_able;
+  bool persistent;
+  std::string  type;
+  std::string  objecttype;
+  std::string  name;
+  bool reset_able;
 };
 
 std::ostream & operator << (std::ostream &, const PHNode &);

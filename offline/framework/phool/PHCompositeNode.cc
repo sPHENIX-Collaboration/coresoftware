@@ -18,7 +18,7 @@ PHCompositeNode::PHCompositeNode() : PHNode("NULL")
 {
 }
 
-PHCompositeNode::PHCompositeNode(const PHString& name) : PHNode(name)
+PHCompositeNode::PHCompositeNode(const string& name) : PHNode(name)
 {
   type = "PHCompositeNode";
   objecttype = "PHCompositeNode";
@@ -105,23 +105,24 @@ PHCompositeNode::forgetMe(PHNode* child)
 }
 
 PHBoolean
-PHCompositeNode::write(PHIOManager * IOManager, const PHString& path)
+PHCompositeNode::write(PHIOManager * IOManager, const std::string &path)
 {
    PHString newPath;
    if (path != "")
      {
-       newPath = path + phooldefs::branchpathdelim.c_str() + name;
+       string tmpstr = path + phooldefs::branchpathdelim + name;
+       newPath = tmpstr.c_str();
      }
    else
      {
-       newPath = name;
+       newPath = name.c_str();
      }
    PHPointerListIterator<PHNode> nodeIter(subNodes);
    PHNode* thisNode;
    PHBoolean success = True;
    while ((thisNode = nodeIter())) 
      {
-       if (!(thisNode->write(IOManager, newPath)))
+       if (!(thisNode->write(IOManager, newPath.getString())))
 	 {
 	   success = False;
 	 }
@@ -130,9 +131,9 @@ PHCompositeNode::write(PHIOManager * IOManager, const PHString& path)
 }
 
 void
-PHCompositeNode::print(const PHString& path)
+PHCompositeNode::print(const string &path)
 {
-  PHString newPath = "   " + path;
+  string newPath = "   " + path;
   cout << path << name << " (" << type << ")/" << endl;
   PHPointerListIterator<PHNode> nodeIter(subNodes);
   PHNode* thisNode;

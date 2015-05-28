@@ -1,11 +1,11 @@
-#include "PHString.h"
 #include "phool.h"
 
 #include <iostream>
+#include <string>
 
 using namespace std;
 
-void PHMessage(const PHString& functionName, int messageType, const PHString& message)
+void PHMessage(const std::string& functionName, int messageType, const std::string& message)
 {
    switch (messageType) {
    case (PHError):
