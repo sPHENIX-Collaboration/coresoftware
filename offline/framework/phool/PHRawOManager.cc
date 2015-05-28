@@ -1,5 +1,4 @@
 //-----------------------------------------------------------------------------
-//  $Header: /afs/rhic.bnl.gov/phenix/PHENIX_CVS/offline/framework/phool/PHRawOManager.C,v 1.17 2014/01/12 04:26:15 pinkenbu Exp $
 //
 //  The PHOOL's Software
 //  Copyright (C) PHENIX collaboration, 1999
@@ -23,7 +22,7 @@
 
 using namespace std;
 
-PHRawOManager::PHRawOManager(const PHString & newFile, const int run, const int bufl, const int evtl, const int complvl):
+PHRawOManager::PHRawOManager(const string &newFile, const int run, const int bufl, const int evtl, const int complvl):
   filedesc(-1),
   runNumber(0),
   bufferSize(0),
@@ -75,7 +74,7 @@ PHRawOManager::closeFile()
 }
 
 PHBoolean
-PHRawOManager::setFile(const PHString & setFile, const int setRun, const int setBufl, const int setEvtl, const int complvl)
+PHRawOManager::setFile(const string &setFile, const int setRun, const int setBufl, const int setEvtl, const int complvl)
 {
   filename         = setFile;
   runNumber        = setRun;
@@ -97,10 +96,9 @@ PHRawOManager::setFile(const PHString & setFile, const int setRun, const int set
     }
 
   // open file
-  filedesc =  open(
-    filename.getString(), 
-    O_WRONLY | O_CREAT | O_TRUNC | O_LARGEFILE ,
-    S_IRWXU | S_IROTH | S_IRGRP );
+  filedesc =  open(filename.c_str(), 
+		   O_WRONLY | O_CREAT | O_TRUNC | O_LARGEFILE ,
+		   S_IRWXU | S_IROTH | S_IRGRP );
 
   if (filedesc < 0)
     {

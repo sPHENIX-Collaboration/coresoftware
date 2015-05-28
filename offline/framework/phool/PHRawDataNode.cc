@@ -4,41 +4,39 @@
 #include "PHRawDataNode.h"
 #include "PHRawOManager.h"
 
-PHRawDataNode::PHRawDataNode() 
-{
-   length     = 0;
-   ID         = 0;
-   wordLength = 0;
-   hitFormat  = 0;
-}
+PHRawDataNode::PHRawDataNode():
+  length(0),
+  ID(0),
+  wordLength(0),
+  hitFormat(0)
+{}
 
 PHRawDataNode::~PHRawDataNode()
 {
   // set the data poitner to 0 so
   // the dtor of the PHDataNode parent class doesn't try
   // to delete it
-  setData(0);
+  setData(NULL);
 }
 
-PHRawDataNode::PHRawDataNode(PHDWORD * d, const PHString& n, 
-			     const int l, const int i, const int w, const int h) 
-  : PHDataNode<PHDWORD>(d, n)
-{
-   length     = l;
-   ID         = i;
-   wordLength = w;
-   hitFormat  = h;
-}
+PHRawDataNode::PHRawDataNode(PHDWORD * d, const string& n, 
+			     const int l, const int i, const int w, const int h) : 
+  PHDataNode<PHDWORD>(d, n),
+  length(l),
+  ID(i),
+  wordLength(w),
+  hitFormat(h)
+{}
 
-PHBoolean 
-PHRawDataNode::write(PHIOManager * IOManager, const PHString&)
+bool 
+PHRawDataNode::write(PHIOManager * IOManager, const string&)
 {
   PHRawOManager* rawOManager = dynamic_cast<PHRawOManager*>(IOManager);
-
+  bool bret = false;
   if (rawOManager) 
     {
-      rawOManager->write(this);
+      bret = rawOManager->write(this);
     }
   
-  return True;
+  return bret;
 }

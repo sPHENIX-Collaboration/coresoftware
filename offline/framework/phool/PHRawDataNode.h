@@ -1,5 +1,5 @@
-#ifndef __PHRAWDATANODE_H__
-#define __PHRAWDATANODE_H__
+#ifndef PHRAWDATANODE_H__
+#define PHRAWDATANODE_H__
 
 //  Declaration of class PHRawDataNode
 //  Purpose: Node digested by the PHRawOManager
@@ -9,26 +9,28 @@
 
 #include <Event/phenixTypes.h>
 
+#include <string>
+
 class PHRawDataNode : public PHDataNode<PHDWORD> 
 { 
 
 public: 
    PHRawDataNode();
-   PHRawDataNode(PHDWORD *, const PHString&, const int, const int, const int, const int);
+   PHRawDataNode(PHDWORD *, const std::string&, const int, const int, const int, const int);
    virtual ~PHRawDataNode();
 
 public:
-   virtual PHBoolean write(PHIOManager *, const PHString& = "");
+   virtual bool write(PHIOManager *, const std::string& = "");
 
    int getLength()     const { return length; }
    int getID()         const { return ID; }
    int getWordLength() const { return wordLength; }
    int getHitFormat()  const { return hitFormat; }
 
-   void setLength(int val)     { length = val; }
-   void setID(int val)         { ID = val; }
-   void setWordLength(int val) { wordLength = val; }
-   void setHitFormat(int val)  { hitFormat = val; }
+   void setLength(const int val)     { length = val; }
+   void setID(const int val)         { ID = val; }
+   void setWordLength(const int val) { wordLength = val; }
+   void setHitFormat(const int val)  { hitFormat = val; }
 
 private: 
    int length;
@@ -37,4 +39,4 @@ private:
    int hitFormat;
 }; 
 
-#endif /* __PHRAWDATANODE_H__ */
+#endif /* PHRAWDATANODE_H__ */

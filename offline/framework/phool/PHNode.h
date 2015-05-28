@@ -1,5 +1,5 @@
-#ifndef __PHNODE_H__
-#define __PHNODE_H__
+#ifndef PHNODE_H__
+#define PHNODE_H__
 
 //  Declaration of class PHNode
 //  Purpose: abstract base class for all node classes
@@ -37,7 +37,7 @@ public:
   virtual void prune() = 0;
   virtual void print(const std::string &) = 0;
   virtual void forgetMe(PHNode*) = 0;
-  virtual PHBoolean write(PHIOManager *, const std::string& = "") = 0;
+  virtual bool write(PHIOManager *, const std::string& = "") = 0;
 
   virtual void setResetFlag(const int val);
   virtual PHBoolean getResetFlag() const;

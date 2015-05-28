@@ -1,5 +1,5 @@
-#ifndef __PHNODEITERATOR_H__
-#define __PHNODEITERATOR_H__
+#ifndef PHNODEITERATOR_H__
+#define PHNODEITERATOR_H__
 
 //  Declaration of class PHNodeIterator
 //  Purpose: iterator to navigate a node tree
@@ -8,7 +8,6 @@
 #include "phool.h"
 #include "PHCompositeNode.h"
 #include "PHPointerList.h"
-#include "PHString.h"
 
 class PHNodeOperation;
 
@@ -22,9 +21,9 @@ public:
 public:
    void                   print();
    PHPointerList<PHNode>& ls();
-   PHNode*                findFirst(const PHString&, const PHString&);
-   PHNode*                findFirst(const PHString&);
-   PHBoolean              cd(const PHString = "");
+   PHNode*                findFirst(const std::string&, const std::string&);
+   PHNode*                findFirst(const std::string&);
+   PHBoolean              cd(const std::string &pathString = "");
    PHBoolean              addNode(PHNode*);
    void                   forEach(PHNodeOperation&);
    void                   for_each(PHNodeOperation&);
