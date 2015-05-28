@@ -2,25 +2,15 @@ AUTOMAKE_OPTIONS = foreign
 
 INCLUDES = \
   -I$(includedir) \
-  -isystem $(OFFLINE_MAIN)/include/eigen3 \
-  -isystem $(OFFLINE_MAIN)/include \
-  -isystem $(G4_MAIN)/include \
-  -isystem $(ROOTSYS)/include
-
-RINCLUDES = \
-  -I$(includedir) \
   -I$(OFFLINE_MAIN)/include/eigen3 \
   -I$(OFFLINE_MAIN)/include \
   -I$(G4_MAIN)/include \
-  -I$(ROOTSYS)/include
-
-AM_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
-
-AM_CXXFLAGS =  -msse2
+  -I$(G4_MAIN)/include/Geant4 \
+  -I`root-config --incdir`
 
 lib_LTLIBRARIES = libg4eval.la
+
+AM_CXXFLAGS = -Wall -Werror -msse2
 
 libg4eval_la_LDFLAGS = \
   -L$(libdir) \
@@ -35,22 +25,30 @@ libg4eval_la_LDFLAGS = \
 pkginclude_HEADERS = \
   PHG4Evaluator.h \
   PHG4CalEvaluator.h \
-  PHG4DSTReader.h
+  PHG4DSTReader.h \
+  EvalLinks.h \
+  EvalLinksV1.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
 libg4eval_la_SOURCES = \
-  EvalDict.C \
   PHG4Evaluator.C \
+  PHG4Evaluator_Dict.C \
   PHG4CalEvaluator.C \
-  PHG4DSTReader.cc
+  PHG4CalEvaluator_Dict.C \
+  PHG4DSTReader.cc \
+  PHG4DSTReader_Dict.C \
+  EvalLinks.C \
+  EvalLinks_Dict.C \
+  EvalLinksV1.C \
+  EvalLinksV1_Dict.C
 
-EvalDict.C : \
-  PHG4Evaluator.h \
-  PHG4CalEvaluator.h \
-  PHG4DSTReader.h \
-  EvalLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
+# Rule for generating table CINT dictionaries.
+%_Dict.C: %.h %LinkDef.h
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+
+%_Dict.cpp: %.h %LinkDef.h
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
 ################################################
 # linking tests
