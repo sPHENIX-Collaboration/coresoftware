@@ -16,11 +16,18 @@ EvalLinksV1::EvalLinksV1(std::string left_name,
 			 std::string right_name) :
   EvalLinks(left_name,right_name) {
   _stale = true;
+  _left_name = left_name;
+  _right_name = right_name;
   _links.clear();
   _left_right_mmap.clear();
   _right_left_mmap.clear();
   _left_right_map.clear();
   _right_left_map.clear();
+}
+
+void EvalLinksV1::set_names(std::string left_name, std::string right_name) {
+  _left_name = left_name;
+  _right_name = right_name;
 }
 
 void EvalLinksV1::link(unsigned int left_id, 
@@ -55,6 +62,8 @@ void EvalLinksV1::unlink(unsigned int left_id, unsigned int right_id) {
 
 void EvalLinksV1::clear() {
   _stale = true;
+  _left_name.clear();
+  _right_name.clear();
   _links.clear();
   _left_right_mmap.clear();
   _right_left_mmap.clear();
