@@ -1,5 +1,4 @@
 //-----------------------------------------------------------------------------
-//  $Header: /afs/rhic.bnl.gov/phenix/PHENIX_CVS/offline/framework/phool/PHNodeIterator.C,v 1.15 2014/01/12 04:38:28 pinkenbu Exp $
 //
 //  The PHOOL's Software
 //  Copyright (C) PHENIX collaboration, 1999
@@ -12,6 +11,8 @@
 #include "PHPointerListIterator.h"
 #include "PHNodeOperation.h"
 #include "phooldefs.h"
+
+#include "PHString.h"
 
 #include <iostream>
 
@@ -45,10 +46,8 @@ PHNodeIterator::print()
 }
 
 PHNode*
-PHNodeIterator::findFirst(const PHString& reqType, const PHString& reqName)
+PHNodeIterator::findFirst(const string& requiredType, const string& requiredName)
 {
-  string requiredType = reqType.getString();
-  string requiredName = reqName.getString();
   PHPointerListIterator<PHNode> iter(currentNode->subNodes);
   PHNode *thisNode;
   while ((thisNode = iter()))
@@ -71,9 +70,8 @@ PHNodeIterator::findFirst(const PHString& reqType, const PHString& reqName)
 }
 
 PHNode*
-PHNodeIterator::findFirst(const PHString& reqName)
+PHNodeIterator::findFirst(const string& requiredName)
 {
-  string requiredName = reqName.getString();
   PHPointerListIterator<PHNode> iter(currentNode->subNodes);
   PHNode *thisNode;
   while ((thisNode = iter()))
@@ -99,10 +97,10 @@ PHNodeIterator::findFirst(const PHString& reqName)
 }
 
 PHBoolean
-PHNodeIterator::cd(const PHString pathString)
+PHNodeIterator::cd(const string &pathString)
 {
   PHBoolean success = True;
-  if (pathString == "")
+  if (pathString.empty())
     {
       while (currentNode->getParent())
         {
@@ -112,7 +110,8 @@ PHNodeIterator::cd(const PHString pathString)
   else
     {
       PHPointerList<PHString> newPaths;
-      pathString.split(newPaths, phooldefs::nodetreepathdelim.c_str());
+      PHString tmpphs = pathString.c_str();
+      tmpphs.split(newPaths, phooldefs::nodetreepathdelim.c_str());
       PHPointerListIterator<PHString> pathIter(newPaths);
       PHString  *newPath;
       PHBoolean pathFound;
