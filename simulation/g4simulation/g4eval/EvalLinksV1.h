@@ -4,6 +4,7 @@
 
 #include "EvalLinks.h"
 
+#include <iostream>
 #include <string>
 #include <set>
 #include <map>
@@ -15,7 +16,9 @@ public:
   EvalLinksV1(std::string left_name, std::string right_name);
   virtual ~EvalLinksV1() {clear();}
 
+  void identify(std::ostream& os = std::cout) const;
   void Reset() {clear();}
+  int isValid() {return 1;}
   
   // modifiers
   void set_names(std::string left_name, std::string right_name);
@@ -24,7 +27,6 @@ public:
   void clear();
 
   // status
-  void   print() const;
   size_t size() const;
   bool   has_link(unsigned int left_id, unsigned int right_id) const;
   float  get_purity(unsigned int left_id, unsigned int right_id) const;
@@ -34,8 +36,8 @@ public:
   std::set<unsigned int> right(unsigned int left_id) const;
 
   // access best purity association
-  unsigned int max_left(unsigned int right_id) const {return _right_left_map[right_id];}
-  unsigned int max_right(unsigned int left_id) const {return _left_right_map[left_id];}
+  unsigned int max_left(unsigned int right_id) const;
+  unsigned int max_right(unsigned int left_id) const;
 
 private:
 

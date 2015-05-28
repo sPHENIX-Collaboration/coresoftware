@@ -4,6 +4,7 @@
 
 #include <phool/PHObject.h>
 
+#include <iostream>
 #include <string>
 #include <set>
 #include <cmath>
@@ -12,7 +13,10 @@ class EvalLinks : public PHObject {
 
 public:
   virtual ~EvalLinks() {}
+  
+  virtual void identify(std::ostream& os = std::cout) const;
   virtual void Reset() {return;}
+  virtual int  isValid() {return 0;}
   
   // container modifiers
   virtual void set_names(std::string left_name, std::string right_name) {return;}
@@ -21,7 +25,6 @@ public:
   virtual void clear() {return;}
 
   // container status
-  virtual void   print() const {return;}
   virtual size_t size() const {return 0;}
   virtual bool   has_link(unsigned int left_id, unsigned int right_id) const {return false;}
   virtual float  get_purity(unsigned int left_id, unsigned int right_id) const {return NAN;}
@@ -38,7 +41,7 @@ public:
   virtual unsigned int max_right(unsigned int left_id) const {return 0xFFFFFFFF;}
 
 protected:
-  EvalLinks(const std::string left_name, std::string right_name) {}
+  EvalLinks(const std::string left_name, std::string right_name);
   
 private:
   ClassDef(EvalLinks,1)

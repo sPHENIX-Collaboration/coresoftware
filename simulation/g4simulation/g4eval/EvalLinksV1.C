@@ -25,6 +25,33 @@ EvalLinksV1::EvalLinksV1(std::string left_name,
   _right_left_map.clear();
 }
 
+void EvalLinksV1::identify(std::ostream& os) const {
+  if (stale()) refresh();
+
+  os << "---EvalLinksV1--------------------------" << endl;
+  os << " left:  " << _left_name << endl;
+  os << " right: " << _right_name << endl;
+
+  os << " size = " << size() << endl;
+
+  os << " links: " << endl;
+  os << "   " << _left_name << " id <==> " << _right_name << " id : purity" << endl;
+  os << "   " << "-------------------------------" << endl;
+  for (std::map< std::pair<unsigned int,unsigned int>, float>::const_iterator citer = _links.begin();
+       citer != _links.end();
+       ++citer) {
+    unsigned int left_id = citer->first.first;
+    unsigned int right_id = citer->first.second;
+    float purity = citer->second;
+    
+    os << "   " << left_id << " <==> " << right_id << " : " << purity;
+    if (right_id == max_right(left_id)) os << " *";
+    os << endl;
+  }
+  
+  return;
+}
+
 void EvalLinksV1::set_names(std::string left_name, std::string right_name) {
   _left_name = left_name;
   _right_name = right_name;
@@ -71,28 +98,6 @@ void EvalLinksV1::clear() {
   _right_left_map.clear();
 }
 
-void EvalLinksV1::print() const {
-  if (stale()) refresh();
-
-  cout << "---EvalLinksV1--------------------------" << endl;
-  cout << " left:  " << _left_name << endl;
-  cout << " right: " << _right_name << endl;
-
-  cout << " size = " << size() << endl;
-
-  cout << " links: " << endl;
-  for (std::map< std::pair<unsigned int,unsigned int>, float>::const_iterator citer = _links.begin();
-       citer != _links.end();
-       ++citer) {
-    unsigned int left_id = citer->first.first;
-    unsigned int right_id = citer->first.second;
-    float purity = citer->second;
-    
-    cout << "   " << left_id << " <==> " << right_id << " purity = " << purity << endl;
-  }
-
-  cout << endl;
-}
 
 size_t EvalLinksV1::size() const {
   if (stale()) refresh();
@@ -145,6 +150,16 @@ std::set<unsigned int> EvalLinksV1::right(unsigned int left_id) const {
   }
   
   return right_links;
+}
+
+unsigned int EvalLinksV1::max_left(unsigned int right_id) const {
+  if (stale()) refresh();
+  return _right_left_map[right_id];
+}
+
+unsigned int EvalLinksV1::max_right(unsigned int left_id) const {
+  if (stale()) refresh();
+  return _left_right_map[left_id];
 }
 
 void EvalLinksV1::refresh() const {
