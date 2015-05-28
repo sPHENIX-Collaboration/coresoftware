@@ -48,12 +48,13 @@ static bool is_local_maximum( std::vector<float> const& amps, unsigned int index
 }
 
 
-static void fit_cluster( std::vector<float>& amps, unsigned int& nhits, unsigned int index, PHG4CylinderCellGeom* geo, float& phi, float& e )
+static void fit_cluster( std::vector<float>& amps, int& nhits, unsigned int index, PHG4CylinderCellGeom* geo, float& phi, float& e )
 {
 	nhits -= 1;
 	e = amps[index];
 	phi = (geo->get_phicenter(index))*amps[index];
 
+	// TODO make this a parameter to be set from the outside
 	int span = 3;
 
 	for(int i=-span;i<0;++i)
@@ -141,24 +142,21 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 		cout << PHWHERE << " ERROR: Can't find SvtxClusterMap." << endl;
 		return Fun4AllReturnCodes::ABORTRUN;}
 		else {clusterlist = (SvtxClusterMap*)SvtxClusterMapNode->getData();}
-
+	clusterlist->Reset();
 
 	std::vector<std::vector<std::vector<float> > > amps;
 	std::vector<std::vector<std::vector<int> > > cellids;
-	std::vector<std::vector<unsigned int> > nhits;
-	// cout<<"assigning cluster scratch memory"<<endl;
+	std::vector<std::vector<int> > nhits;
 	PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
 	for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;layeriter != layerrange.second;++layeriter)
 	{
-		// int layer = layeriter->second->get_layer();
-		// cout<<"assign layer "<<layer<<endl;
     	int nphibins = layeriter->second->get_phibins();
     	int nzbins =  layeriter->second->get_zbins();
     	amps.push_back( std::vector<std::vector<float> >() );
     	amps.back().assign( nzbins, std::vector<float>() );
     	cellids.push_back( std::vector<std::vector<int> >() );
     	cellids.back().assign( nzbins, std::vector<int>() );
-    	nhits.push_back( std::vector<unsigned int>() );
+    	nhits.push_back( std::vector<int>() );
     	nhits.back().assign( nzbins, 0 );
     	for (int i = 0; i < nzbins; ++i){
     		amps.back()[i].assign( nphibins, 0. );
@@ -166,7 +164,6 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
     	}
 	}
 	
-	// cout<<"fill scratch memory"<<endl;
 	for(SvtxHitMap::Iter iter = hits->begin();iter != hits->end();++iter)
 	{
 		SvtxHit* hit = &iter->second;
@@ -179,19 +176,14 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 		amps[layer][zbin][phibin] += hit->get_e();
 		cellids[layer][zbin][phibin] = hit->get_cellid();
 	}
-	// cout<<"performing clustering"<<endl;
 	for(unsigned int layer=0;layer<amps.size();++layer)
 	{
-		// cout<<"layer "<<layer<<endl;
 		PHG4CylinderCellGeom* geo = geom_container->GetLayerCellGeom(layer);
 		for(unsigned int zbin=0;zbin<amps[layer].size();++zbin)
 		{
-			// cout<<"zbin "<<zbin<<endl;
-			// cout<<"nhits = "<<nhits[layer][zbin]<<endl;
 			int phibin = 0;
 			while( nhits[layer][zbin] > 0 )
 			{
-				// cout<<"nhits = "<<nhits[layer][zbin]<<endl;
 				if( is_local_maximum( amps[layer][zbin], phibin ) == true )
 				{
 					float phi,e;
