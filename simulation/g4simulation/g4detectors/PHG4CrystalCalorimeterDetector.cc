@@ -218,7 +218,7 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 		
 	//Construct and place each crystal
 
-	G4RotationMatrix *Rot = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
+	//G4RotationMatrix *Rot = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
 	
 	//Second Quadrant
 	j = 0;
@@ -228,15 +228,19 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 		x_cent = Crystals[j][2];
 		y_cent = Crystals[j][3];
 		z_cent = Crystals[j][4];
-		r_theta = Crystals[j][5];
-		r_phi = Crystals[j][6];
+		r_theta = Crystals[j][5];	//Rotation in Horizontal
+		r_phi = Crystals[j][6];	//Rotation in Vertical
 
 		G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
-		Rot->rotateX(r_theta*rad);
-		Rot->rotateY(0*rad);
+		//std::cout << "Center Point of Crystal in z is: " << z_cent << endl;
+		//std::cout << " | " << j_idx << " | " << k_idx << " | " << x_cent << " | " << y_cent << " | " << z_cent << " | " << r_theta << " | " << r_phi << " | " << endl;
+
+		G4RotationMatrix *Rot = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
+		Rot->rotateX(r_phi*rad);
+		Rot->rotateY(r_theta*rad);
 		Rot->rotateZ(0*rad);
-	
+
 		name.str("");
 		name << _crystallogicnameprefix << "_j_" << j_idx << "_k_" << k_idx;
 		
@@ -246,8 +250,12 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 			ecalenvelope,
 			0, 0, overlapcheck);
 
+		j_idx = k_idx = 0;
+		x_cent = y_cent = z_cent = r_theta = r_phi = 0.0;
+
 		j++;
 	}
+
 
 	//First Quadrant
         j = 0;
@@ -260,10 +268,13 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
                 r_theta = -1.0*Crystals[j][5];
                 r_phi = Crystals[j][6];
 
+                std::cout << " | " << j_idx << " | " << k_idx << " | " << x_cent << " | " << y_cent << " | " << z_cent << " | " << r_theta << " | " << r_phi << " | " << endl;
+
                 G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
-                Rot->rotateX(r_theta*rad);
-                Rot->rotateY(0*rad);
+                G4RotationMatrix *Rot = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
+	        Rot->rotateX(r_phi*rad);
+                Rot->rotateY(r_theta*rad);
                 Rot->rotateZ(0*rad);
 
                 name.str("");
@@ -274,6 +285,9 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
                         name.str().c_str(),
                         ecalenvelope,
                         0, 0, overlapcheck);
+
+                j_idx = k_idx = 0;
+                x_cent = y_cent = z_cent = r_theta = r_phi = 0.0;
 
                 j++;
         }
@@ -286,13 +300,14 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
                 x_cent = -1.0 * Crystals[j][2];
                 y_cent = -1.0 * Crystals[j][3];
                 z_cent = Crystals[j][4];
-                r_theta = Crystals[j][5];
-                r_phi = Crystals[j][6];
+                r_theta = -1.0*Crystals[j][5];
+                r_phi = -1.0*Crystals[j][6];
 
                 G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
-                Rot->rotateX(0*rad);
-                Rot->rotateY(0*rad);
+		G4RotationMatrix *Rot = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
+                Rot->rotateX(r_phi*rad);
+                Rot->rotateY(r_theta*rad);
                 Rot->rotateZ(0*rad);
 
                 name.str("");
@@ -316,12 +331,13 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
                 y_cent = -1.0 * Crystals[j][3];
                 z_cent = Crystals[j][4];
                 r_theta = Crystals[j][5];
-                r_phi = Crystals[j][6];
+                r_phi = -1.0*Crystals[j][6];
 
                 G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
-                Rot->rotateX(0*rad);
-                Rot->rotateY(0*rad);
+		G4RotationMatrix *Rot = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
+                Rot->rotateX(r_phi*rad);
+                Rot->rotateY(r_theta*rad);
                 Rot->rotateZ(0*rad);
 
                 name.str("");
@@ -335,7 +351,6 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 
                 j++;
         }
-
 
 
 	
