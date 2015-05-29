@@ -4,6 +4,7 @@
 
 #include "EvalLinks.h"
 
+#include <iostream>
 #include <string>
 #include <set>
 #include <map>
@@ -12,30 +13,38 @@ class EvalLinksV1 : public EvalLinks {
 
 public:
 
-  EvalLinksV1(std::string left_name, std::string right_name);
+  EvalLinksV1(const std::string& left_name,
+	      const std::string& right_name,
+	      const std::string& weight_name);
   virtual ~EvalLinksV1() {clear();}
 
+  void identify(std::ostream& os = std::cout) const;
   void Reset() {clear();}
+  int isValid() const {return 1;}
   
   // modifiers
-  void set_names(std::string left_name, std::string right_name);
-  void link(unsigned int left_id, unsigned int right_id, float purity);
+  void set_names(const std::string &left_name,
+		 const std::string &right_name,
+		 const std::string &weight_name);
+  void link(unsigned int left_id, unsigned int right_id, float weight);
   void unlink(unsigned int left_id, unsigned int right_id);
   void clear();
 
   // status
-  void   print() const;
   size_t size() const;
+  std::string get_name_left() const {return _left_name;}
+  std::string get_name_right() const {return _right_name;}
+  std::string get_name_weight() const {return _weight_name;} 
   bool   has_link(unsigned int left_id, unsigned int right_id) const;
-  float  get_purity(unsigned int left_id, unsigned int right_id) const;
+  float  get_weight(unsigned int left_id, unsigned int right_id) const;
   
   // access all associations
   std::set<unsigned int> left(unsigned int right_id) const;
   std::set<unsigned int> right(unsigned int left_id) const;
 
-  // access best purity association
-  unsigned int max_left(unsigned int right_id) const {return _right_left_map[right_id];}
-  unsigned int max_right(unsigned int left_id) const {return _left_right_map[left_id];}
+  // access best weight association
+  unsigned int max_left(unsigned int right_id) const;
+  unsigned int max_right(unsigned int left_id) const;
 
 private:
 
@@ -46,9 +55,10 @@ private:
   void calc_max_right(unsigned int left_id) const;
 
   std::string _left_name;  //< left object container names (e.g. SvtxTrackMap)
-  std::string _right_name; //< right object containter names (e.g. PHG4ParticleMap)
+  std::string _right_name; //< right object containter names (e.g. G4TrughtInfo)
+  std::string _weight_name; //< connection weight meaning (e.g. nhits)
   
-  /// storage for (left id,right id) => purity value
+  /// storage for (left id,right id) => weight value
   std::map<std::pair<unsigned int,unsigned int>, float> _links;
 
 #ifndef __CINT____ // hide from dictionary generation

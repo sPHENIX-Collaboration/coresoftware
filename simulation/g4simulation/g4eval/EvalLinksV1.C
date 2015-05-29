@@ -12,10 +12,14 @@ ClassImp(EvalLinksV1)
 
 using namespace std;
 
-EvalLinksV1::EvalLinksV1(std::string left_name,
-			 std::string right_name) :
-  EvalLinks(left_name,right_name) {
+EvalLinksV1::EvalLinksV1(const std::string& left_name,
+			 const std::string& right_name,
+			 const std::string& weight_name) :
+  EvalLinks(left_name,right_name,weight_name) {
   _stale = true;
+  _left_name = left_name;
+  _right_name = right_name;
+  _weight_name = weight_name;
   _links.clear();
   _left_right_mmap.clear();
   _right_left_mmap.clear();
@@ -23,13 +27,49 @@ EvalLinksV1::EvalLinksV1(std::string left_name,
   _right_left_map.clear();
 }
 
+void EvalLinksV1::identify(std::ostream& os) const {
+  if (stale()) refresh();
+
+  os << "---EvalLinksV1--------------------------" << endl;
+  os << " left:  " << _left_name << endl;
+  os << " right: " << _right_name << endl;
+  os << " weight: " << _weight_name << endl;
+
+  os << " size = " << size() << endl;
+
+  os << " links: " << endl;
+  os << "   " << _left_name << " id <==> " << _right_name << " id : " << _weight_name << endl;
+  os << "   " << "-------------------------------" << endl;
+  for (std::map< std::pair<unsigned int,unsigned int>, float>::const_iterator citer = _links.begin();
+       citer != _links.end();
+       ++citer) {
+    unsigned int left_id = citer->first.first;
+    unsigned int right_id = citer->first.second;
+    float weight = citer->second;
+    
+    os << "   " << left_id << " <==> " << right_id << " : " << weight;
+    if (right_id == max_right(left_id)) os << " *";
+    os << endl;
+  }
+  
+  return;
+}
+
+void EvalLinksV1::set_names(const std::string& left_name,
+			    const std::string& right_name,
+			    const std::string& weight_name) {
+  _left_name = left_name;
+  _right_name = right_name;
+  _weight_name = weight_name;
+}
+
 void EvalLinksV1::link(unsigned int left_id, 
 		       unsigned int right_id,
-		       float purity) {
+		       float weight) {
   if (stale()) refresh();
 
   // insert into storage
-  _links.insert(make_pair(make_pair(left_id,right_id),purity));
+  _links.insert(make_pair(make_pair(left_id,right_id),weight));
 
   // add link to multimaps
   _left_right_mmap.insert(make_pair(left_id,right_id));
@@ -55,6 +95,9 @@ void EvalLinksV1::unlink(unsigned int left_id, unsigned int right_id) {
 
 void EvalLinksV1::clear() {
   _stale = true;
+  _left_name.clear();
+  _right_name.clear();
+  _weight_name.clear();
   _links.clear();
   _left_right_mmap.clear();
   _right_left_mmap.clear();
@@ -62,28 +105,6 @@ void EvalLinksV1::clear() {
   _right_left_map.clear();
 }
 
-void EvalLinksV1::print() const {
-  if (stale()) refresh();
-
-  cout << "---EvalLinksV1--------------------------" << endl;
-  cout << " left:  " << _left_name << endl;
-  cout << " right: " << _right_name << endl;
-
-  cout << " size = " << size() << endl;
-
-  cout << " links: " << endl;
-  for (std::map< std::pair<unsigned int,unsigned int>, float>::const_iterator citer = _links.begin();
-       citer != _links.end();
-       ++citer) {
-    unsigned int left_id = citer->first.first;
-    unsigned int right_id = citer->first.second;
-    float purity = citer->second;
-    
-    cout << "   " << left_id << " <==> " << right_id << " purity = " << purity << endl;
-  }
-
-  cout << endl;
-}
 
 size_t EvalLinksV1::size() const {
   if (stale()) refresh();
@@ -100,7 +121,7 @@ bool EvalLinksV1::has_link(unsigned int left_id, unsigned int right_id) const {
   return false;
 }
 
-float EvalLinksV1::get_purity(unsigned int left_id, unsigned int right_id) const {
+float EvalLinksV1::get_weight(unsigned int left_id, unsigned int right_id) const {
   if (stale()) refresh();
 
   std::pair<unsigned int,unsigned int> pair = make_pair(left_id,right_id);
@@ -136,6 +157,16 @@ std::set<unsigned int> EvalLinksV1::right(unsigned int left_id) const {
   }
   
   return right_links;
+}
+
+unsigned int EvalLinksV1::max_left(unsigned int right_id) const {
+  if (stale()) refresh();
+  return _right_left_map[right_id];
+}
+
+unsigned int EvalLinksV1::max_right(unsigned int left_id) const {
+  if (stale()) refresh();
+  return _left_right_map[left_id];
 }
 
 void EvalLinksV1::refresh() const {
@@ -179,17 +210,17 @@ void EvalLinksV1::calc_max_left(unsigned int right_id) const {
   std::set<unsigned int> candidates = left(right_id);
 
   unsigned int max_left = 0xFFFFFFF;
-  float max_purity = FLT_MIN;
+  float max_weight = FLT_MIN;
 
   for (std::set<unsigned int>::const_iterator iter = candidates.begin();
        iter != candidates.end();
        ++iter) {
     unsigned int candidate = *iter;
-    float candidate_purity = get_purity(candidate,right_id);
+    float candidate_weight = get_weight(candidate,right_id);
     
-    if (candidate_purity > max_purity) {
+    if (candidate_weight > max_weight) {
       max_left = candidate;
-      max_purity = candidate_purity;
+      max_weight = candidate_weight;
     }
   }
 
@@ -204,17 +235,17 @@ void EvalLinksV1::calc_max_right(unsigned int left_id) const {
   std::set<unsigned int> candidates = right(left_id);
 
   unsigned int max_right = 0xFFFFFFF;
-  float max_purity = FLT_MIN;
+  float max_weight = FLT_MIN;
 
   for (std::set<unsigned int>::const_iterator iter = candidates.begin();
        iter != candidates.end();
        ++iter) {
     unsigned int candidate = *iter;
-    float candidate_purity = get_purity(left_id,candidate);
+    float candidate_weight = get_weight(left_id,candidate);
     
-    if (candidate_purity > max_purity) {
+    if (candidate_weight > max_weight) {
       max_right = candidate;
-      max_purity = candidate_purity;
+      max_weight = candidate_weight;
     }
   }
 
