@@ -184,31 +184,31 @@ int PHG4Evaluator::InitRun(PHCompositeNode *topNode) {
   }
 
   if (findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX")) {
-    EvalLinks *links = findNode::getClass<EvalLinks>(topNode,"SvtxClusterMap_G4HIT_SVTX_Eval");
+    EvalLinks *links = findNode::getClass<EvalLinks>(topNode,"SvtxClusterMap_G4HIT_SVTX_Links");
     if (!links) {
       links = new EvalLinksV1("SvtxClusterMap","G4HIT_SVTX","edep");
       PHIODataNode<PHObject> *linksNode =
-	new PHIODataNode<PHObject>(links, "SvtxClusterMap_G4HIT_SVTX_Eval", "PHObject");
+	new PHIODataNode<PHObject>(links, "SvtxClusterMap_G4HIT_SVTX_Links", "PHObject");
       svxNode->addNode(linksNode);
     }
   }
 
   if (findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER")) {
-    EvalLinks *links = findNode::getClass<EvalLinks>(topNode,"SvtxClusterMap_G4HIT_SILICON_TRACKER_Eval");
+    EvalLinks *links = findNode::getClass<EvalLinks>(topNode,"SvtxClusterMap_G4HIT_SILICON_TRACKER_Links");
     if (!links) {
       links = new EvalLinksV1("SvtxClusterMap","G4HIT_SILICON_TRACKER","edep");
       PHIODataNode<PHObject> *linksNode =
-	new PHIODataNode<PHObject>(links, "SvtxClusterMap_G4HIT_SILICON_TRACKER_Eval", "PHObject");
+	new PHIODataNode<PHObject>(links, "SvtxClusterMap_G4HIT_SILICON_TRACKER_Links", "PHObject");
       svxNode->addNode(linksNode);
     }
   }
 
   if (findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap")) {
-    EvalLinks *links = findNode::getClass<EvalLinks>(topNode,"SvtxTrackMap_G4TruthInfo_Eval");
+    EvalLinks *links = findNode::getClass<EvalLinks>(topNode,"SvtxTrackMap_G4TruthInfo_Links");
     if (!links) {
       links = new EvalLinksV1("SvtxTrackMap","G4TruthInfo","ng4hits");
       PHIODataNode<PHObject> *linksNode =
-  	new PHIODataNode<PHObject>(links, "SvtxTrackMap_G4TruthInfo_Eval", "PHObject");
+  	new PHIODataNode<PHObject>(links, "SvtxTrackMap_G4TruthInfo_Links", "PHObject");
       svxNode->addNode(linksNode);
     }
   }
@@ -838,9 +838,9 @@ int PHG4Evaluator::fillClusterToG4HitLinks(PHCompositeNode *topNode) {
   EvalLinks *evalcyllinks = NULL;
   if (_cellList) {
     PHTypedNodeIterator<EvalLinks> evaliter(topNode);
-    PHIODataNode<EvalLinks> *EvalLinksNode = evaliter.find("SvtxClusterMap_G4HIT_SVTX_Eval");
+    PHIODataNode<EvalLinks> *EvalLinksNode = evaliter.find("SvtxClusterMap_G4HIT_SVTX_Links");
     if (!EvalLinksNode) {
-      cout << PHWHERE << " ERROR: Can't find SvtxClusterMap_G4HIT_SVTX_Eval" << endl;
+      cout << PHWHERE << " ERROR: Can't find SvtxClusterMap_G4HIT_SVTX_Links" << endl;
       return Fun4AllReturnCodes::ABORTRUN;
     } else {
       evalcyllinks = (EvalLinks*)EvalLinksNode->getData();
@@ -852,9 +852,9 @@ int PHG4Evaluator::fillClusterToG4HitLinks(PHCompositeNode *topNode) {
   EvalLinks *evalladderlinks = NULL;
   if (_ladderCellList) {
     PHTypedNodeIterator<EvalLinks> evaliter(topNode);
-    PHIODataNode<EvalLinks> *EvalLinksNode = evaliter.find("SvtxClusterMap_G4HIT_SILICON_TRACKER_Eval");
+    PHIODataNode<EvalLinks> *EvalLinksNode = evaliter.find("SvtxClusterMap_G4HIT_SILICON_TRACKER_Links");
     if (!EvalLinksNode) {
-      cout << PHWHERE << " ERROR: Can't find SvtxClusterMap_G4HIT_SILICON_TRACKER_Eval" << endl;
+      cout << PHWHERE << " ERROR: Can't find SvtxClusterMap_G4HIT_SILICON_TRACKER_Links" << endl;
       return Fun4AllReturnCodes::ABORTRUN;
     } else {
       evalladderlinks = (EvalLinks*)EvalLinksNode->getData();
@@ -920,7 +920,7 @@ int PHG4Evaluator::fillClusterToG4HitLinks(PHCompositeNode *topNode) {
     } // hit loop      
   } // cluster loop
 
-  evalcyllinks->identify();
+  //evalcyllinks->identify();
   
   _cluster_g4hit_svtx_links = evalcyllinks;
   _cluster_g4hit_silicon_tracker_links = evalladderlinks;
@@ -1006,9 +1006,9 @@ int PHG4Evaluator::fillTrackToG4TruthInfoLinks(PHCompositeNode *topNode) {
 
   EvalLinks* evallinks = NULL;
   PHTypedNodeIterator<EvalLinks> evaliter(topNode);
-  PHIODataNode<EvalLinks> *EvalLinksNode = evaliter.find("SvtxTrackMap_G4TruthInfo_Eval");
+  PHIODataNode<EvalLinks> *EvalLinksNode = evaliter.find("SvtxTrackMap_G4TruthInfo_Links");
   if (!EvalLinksNode) {
-    cout << PHWHERE << " ERROR: Can't find SvtxTrackMap_G4TruthInfo_Eval" << endl;
+    cout << PHWHERE << " ERROR: Can't find SvtxTrackMap_G4TruthInfo_Links" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   } else {
     evallinks = (EvalLinks*)EvalLinksNode->getData();
@@ -1098,7 +1098,7 @@ int PHG4Evaluator::fillTrackToG4TruthInfoLinks(PHCompositeNode *topNode) {
     
   } // track loop
 
-  evallinks->identify();
+  //evallinks->identify();
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
