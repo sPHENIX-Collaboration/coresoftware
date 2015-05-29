@@ -203,15 +203,15 @@ int PHG4Evaluator::InitRun(PHCompositeNode *topNode) {
     }
   }
 
-  // if (findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap")) {
-  //   EvalLinks *links = findNode::getClass<EvalLinks>(topNode,"SvtxTrackMap_G4TruthInfo_Eval");
-  //   if (!links) {
-  //     links = new EvalLinksV1("SvtxTrackMap","G4TruthInfo","nhits");
-  //     PHIODataNode<PHObject> *linksNode =
-  // 	new PHIODataNode<PHObject>(links, "SvtxTrackMap_G4TruthInfo_Eval", "PHObject");
-  //     svxNode->addNode(linksNode);
-  //   }
-  // }
+  if (findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap")) {
+    EvalLinks *links = findNode::getClass<EvalLinks>(topNode,"SvtxTrackMap_G4TruthInfo_Eval");
+    if (!links) {
+      links = new EvalLinksV1("SvtxTrackMap","G4TruthInfo","ng4hits");
+      PHIODataNode<PHObject> *linksNode =
+  	new PHIODataNode<PHObject>(links, "SvtxTrackMap_G4TruthInfo_Eval", "PHObject");
+      svxNode->addNode(linksNode);
+    }
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -387,7 +387,7 @@ int PHG4Evaluator::process_event(PHCompositeNode *topNode)
   
   _internal_timer[4].get()->restart();
   if (_trackingWasRun) fillTrackToGtrackMap();
-  //if (_trackingWasRun) fillTrackToG4TruthInfoLinks(topNode);
+  if (_trackingWasRun) fillTrackToG4TruthInfoLinks(topNode);
   _internal_timer[4].get()->stop();
   
   //------------------------
@@ -920,6 +920,8 @@ int PHG4Evaluator::fillClusterToG4HitLinks(PHCompositeNode *topNode) {
     } // hit loop      
   } // cluster loop
 
+  evalcyllinks->identify();
+  
   _cluster_g4hit_svtx_links = evalcyllinks;
   _cluster_g4hit_silicon_tracker_links = evalladderlinks;
 
@@ -1012,7 +1014,7 @@ int PHG4Evaluator::fillTrackToG4TruthInfoLinks(PHCompositeNode *topNode) {
     evallinks = (EvalLinks*)EvalLinksNode->getData();
   }
   evallinks->Reset();
-  evallinks->set_names("SvtxTrackMap","G4TruthInfo","nhits");
+  evallinks->set_names("SvtxTrackMap","G4TruthInfo","ng4hits");
   
   // loop over all tracks
   for (SvtxTrackMap::Iter iter = _trackList->begin();
@@ -1026,9 +1028,13 @@ int PHG4Evaluator::fillTrackToG4TruthInfoLinks(PHCompositeNode *topNode) {
     short found_hits = 0;
     for (unsigned int ilayer = 0; ilayer < 100; ++ilayer) {
 
+      // particles can get at most one vote per layer
+      std::set<unsigned int> layer_votes;
+      
       // get the associated clusters for the layer
       if (track->hasCluster(ilayer)) {
 	++found_hits;
+	
 	unsigned int cluster_id = track->getClusterID(ilayer);
 
 	// loop over all g4hits associated to cluster
@@ -1045,11 +1051,7 @@ int PHG4Evaluator::fillTrackToG4TruthInfoLinks(PHCompositeNode *topNode) {
 
 	  unsigned int particle_id = g4hit->get_trkid();
 
-	  if (track_votes.find(particle_id) == track_votes.end()) {
-	    track_votes[particle_id] = 1;
-	  } else {
-	    ++track_votes[particle_id];
-	  }
+	  layer_votes.insert(particle_id);
 	}
 
 	// loop over all g4hits associated to cluster
@@ -1066,14 +1068,22 @@ int PHG4Evaluator::fillTrackToG4TruthInfoLinks(PHCompositeNode *topNode) {
 
 	  unsigned int particle_id = g4hit->get_trkid();
 
-	  if (track_votes.find(particle_id) == track_votes.end()) {
-	    track_votes[particle_id] = 1;
-	  } else {
-	    ++track_votes[particle_id];
-	  }
+	  layer_votes.insert(particle_id);
 	} // associated g4hit loop
       } // layer has cluster
 
+      // loop over all layer votes and insert into vote counter
+      for (std::set<unsigned int>::iterator viter = layer_votes.begin();
+	   viter != layer_votes.end();
+	   ++viter) {
+	unsigned int particle_id = *viter;
+	if (track_votes.find(particle_id) == track_votes.end()) {
+	  track_votes[particle_id] = 1;
+	} else {
+	  ++track_votes[particle_id];
+	}
+      } // end layer vote counting
+      
       if (found_hits >= track->getNhits()) break; // all clusters visited
     } // layer loop
 
