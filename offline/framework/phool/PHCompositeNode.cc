@@ -15,14 +15,13 @@
 using namespace std;
 
 PHCompositeNode::PHCompositeNode() : PHNode("NULL")
-{
-}
+{}
 
-PHCompositeNode::PHCompositeNode(const string& name) : PHNode(name)
+PHCompositeNode::PHCompositeNode(const string& name) : 
+  PHNode(name,"PHCompositeNode"),
+  deleteMe(0)
 {
   type = "PHCompositeNode";
-  objecttype = "PHCompositeNode";
-  deleteMe = 0;
 }
 
 PHCompositeNode::~PHCompositeNode() 
@@ -107,8 +106,8 @@ PHCompositeNode::forgetMe(PHNode* child)
 bool
 PHCompositeNode::write(PHIOManager * IOManager, const std::string &path)
 {
-   string newPath = "";
-   if (path != "")
+   string newPath = name;
+   if (!path.empty())
      {
        newPath = path + phooldefs::branchpathdelim + name;
      }
