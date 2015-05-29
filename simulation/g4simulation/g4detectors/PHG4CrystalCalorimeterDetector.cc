@@ -60,7 +60,7 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode 
   _materialCrystal( "G4_PbWO4" ),
   _active(1),
   _crystallogicnameprefix("eEcalCrystal"),
-  _inputFile( "/direct/phenix+u/jlab/github/sPHENIX-Fork/coresoftware/simulation/g4simulation/g4detectors/mapping/CrystalCalorimeter_Mapping_TEST.txt" )
+  _inputFile( "/direct/phenix+u/jlab/github/sPHENIX-Fork/coresoftware/simulation/g4simulation/g4detectors/mapping/CrystalCalorimeter_Mapping_v001.txt" )
 {
 
 }
@@ -101,6 +101,7 @@ PHG4CrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
   /* Define visualization attributes for envelope cone */
   G4VisAttributes* ecalVisAtt = new G4VisAttributes();
   ecalVisAtt->SetVisibility(true);
+ // ecalVisAtt->SetVisibility(false);
   ecalVisAtt->SetForceSolid(false);
   ecalVisAtt->SetColour(G4Colour::Magenta());
   ecal_envelope_log->SetVisAttributes(ecalVisAtt);
@@ -218,8 +219,6 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 		
 	//Construct and place each crystal
 
-	//G4RotationMatrix *Rot = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
-	
 	//Second Quadrant
 	j = 0;
 	while (j_cry > j) {
@@ -227,9 +226,9 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 		k_idx = Crystals[j][1];
 		x_cent = Crystals[j][2];
 		y_cent = Crystals[j][3];
-		z_cent = Crystals[j][4];
+		z_cent = Crystals[j][4] - _place_in_z;
 		r_theta = Crystals[j][5];	//Rotation in Horizontal
-		r_phi = Crystals[j][6];	//Rotation in Vertical
+		r_phi = Crystals[j][6];		//Rotation in Vertical
 
 		G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
@@ -264,7 +263,7 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
                 k_idx = Crystals[j][1];
                 x_cent = -1.0 * Crystals[j][2];
                 y_cent = Crystals[j][3];
-                z_cent = Crystals[j][4];
+                z_cent = Crystals[j][4] - _place_in_z;
                 r_theta = -1.0*Crystals[j][5];
                 r_phi = Crystals[j][6];
 
@@ -299,7 +298,7 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
                 k_idx = -1 * Crystals[j][1];
                 x_cent = -1.0 * Crystals[j][2];
                 y_cent = -1.0 * Crystals[j][3];
-                z_cent = Crystals[j][4];
+                z_cent = Crystals[j][4] - _place_in_z;
                 r_theta = -1.0*Crystals[j][5];
                 r_phi = -1.0*Crystals[j][6];
 
@@ -329,7 +328,7 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
                 k_idx = -1 * Crystals[j][1];
                 x_cent = Crystals[j][2];
                 y_cent = -1.0 * Crystals[j][3];
-                z_cent = Crystals[j][4];
+                z_cent = Crystals[j][4] - _place_in_z;
                 r_theta = Crystals[j][5];
                 r_phi = -1.0*Crystals[j][6];
 
