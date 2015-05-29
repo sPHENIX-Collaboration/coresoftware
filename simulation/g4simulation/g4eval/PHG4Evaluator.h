@@ -8,6 +8,8 @@
 /// \author Matt Wysocki (translated to sPHENIX simulations)
 //===============================================
 
+#include "EvalLinks.h"
+
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -272,6 +274,9 @@ class PHG4Evaluator : public SubsysReco
   PHG4CylinderCellGeomContainer *_cellGeos;
   HitMap _g4hitList;
   PHG4TruthInfoContainer* _truth_info_container;
+  EvalLinks* _cluster_g4hit_svtx_links;
+  EvalLinks* _cluster_g4hit_silicon_tracker_links;
+  
 
   std::map <unsigned int, LayerType> _layer_type_map; // layer # => ladder or cylinder layer type
   PHG4CylinderGeomContainer *_ladderGeos;             // tilted ladder layer geos
@@ -311,6 +316,7 @@ class PHG4Evaluator : public SubsysReco
 
   // fill DST output
   int fillClusterToG4HitLinks(PHCompositeNode *topNode);
+  int fillTrackToG4TruthInfoLinks(PHCompositeNode *topNode);
   
   // output subroutines
   void fillOutputNtuples();         ///< dump the evaluator information into ntuple for external analysis
