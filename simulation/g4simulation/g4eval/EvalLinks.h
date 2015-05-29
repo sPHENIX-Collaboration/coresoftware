@@ -24,6 +24,7 @@ public:
 			 const std::string& weight_name) {return;}
   virtual void link(unsigned int left_id, unsigned int right_id, float weight) {return;}
   virtual void unlink(unsigned int left_id, unsigned int right_id) {return;}
+  virtual void unlink_subleading() {return;}
   virtual void clear() {return;}
 
   // container status

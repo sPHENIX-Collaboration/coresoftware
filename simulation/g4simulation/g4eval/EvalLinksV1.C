@@ -93,6 +93,24 @@ void EvalLinksV1::unlink(unsigned int left_id, unsigned int right_id) {
   return;
 }
 
+void EvalLinksV1::unlink_subleading() {
+  if (stale()) refresh();
+
+  for (std::map< std::pair<unsigned int,unsigned int>, float>::const_iterator citer = _links.begin();
+       citer != _links.end();
+       ++citer) {
+    unsigned int left_id = citer->first.first;
+    unsigned int right_id = citer->first.second;
+    unsigned int max_right_id = max_right(left_id);
+
+    if (right_id != max_right_id) {
+      unlink(left_id,right_id);
+    }    
+  }
+  
+  return;
+}
+
 void EvalLinksV1::clear() {
   _stale = true;
   _left_name.clear();

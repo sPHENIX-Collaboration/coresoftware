@@ -28,6 +28,7 @@ public:
 		 const std::string &weight_name);
   void link(unsigned int left_id, unsigned int right_id, float weight);
   void unlink(unsigned int left_id, unsigned int right_id);
+  void unlink_subleading();
   void clear();
 
   // status
