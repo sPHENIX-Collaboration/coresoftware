@@ -60,7 +60,7 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode 
   _materialCrystal( "G4_PbWO4" ),
   _active(1),
   _crystallogicnameprefix("eEcalCrystal"),
-  _inputFile( "/direct/phenix+u/jlab/github_fork/coresoftware/simulation/g4simulation/g4detectors/mapping/CrystalCalorimeter_Mapping_v001.txt" )
+  _inputFile( "/direct/phenix+u/jlab/github/sPHENIX-Fork/coresoftware/simulation/g4simulation/g4detectors/mapping/CrystalCalorimeter_Mapping_TEST.txt" )
 {
 
 }
@@ -219,7 +219,8 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	//Construct and place each crystal
 
 	G4RotationMatrix *Rot = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
-
+	
+	//Second Quadrant
 	j = 0;
 	while (j_cry > j) {
 		j_idx = Crystals[j][0];
@@ -232,9 +233,9 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 
 		G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
-		Rot->rotateX(r_theta * rad);
-		Rot->rotateY(r_phi * rad);
-		Rot->rotateZ(0 * rad);
+		Rot->rotateX(r_theta*rad);
+		Rot->rotateY(0*rad);
+		Rot->rotateZ(0*rad);
 	
 		name.str("");
 		name << _crystallogicnameprefix << "_j_" << j_idx << "_k_" << k_idx;
@@ -247,8 +248,98 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 
 		j++;
 	}
+
+	//First Quadrant
+        j = 0;
+        while (j_cry > j) {
+                j_idx = -1 * Crystals[j][0];
+                k_idx = Crystals[j][1];
+                x_cent = -1.0 * Crystals[j][2];
+                y_cent = Crystals[j][3];
+                z_cent = Crystals[j][4];
+                r_theta = -1.0*Crystals[j][5];
+                r_phi = Crystals[j][6];
+
+                G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
+
+                Rot->rotateX(r_theta*rad);
+                Rot->rotateY(0*rad);
+                Rot->rotateZ(0*rad);
+
+                name.str("");
+                name << _crystallogicnameprefix << "_j_" << j_idx << "_k_" << k_idx;
+
+                new G4PVPlacement( Rot, Crystal_Center,
+                        crystal_logic,
+                        name.str().c_str(),
+                        ecalenvelope,
+                        0, 0, overlapcheck);
+
+                j++;
+        }
+
+	//Fourth Quadrant
+        j = 0;
+        while (j_cry > j) {
+                j_idx = -1 * Crystals[j][0];
+                k_idx = -1 * Crystals[j][1];
+                x_cent = -1.0 * Crystals[j][2];
+                y_cent = -1.0 * Crystals[j][3];
+                z_cent = Crystals[j][4];
+                r_theta = Crystals[j][5];
+                r_phi = Crystals[j][6];
+
+                G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
+
+                Rot->rotateX(0*rad);
+                Rot->rotateY(0*rad);
+                Rot->rotateZ(0*rad);
+
+                name.str("");
+                name << _crystallogicnameprefix << "_j_" << j_idx << "_k_" << k_idx;
+
+                new G4PVPlacement( Rot, Crystal_Center,
+                        crystal_logic,
+                        name.str().c_str(),
+                        ecalenvelope,
+                        0, 0, overlapcheck);
+
+                j++;
+        }
+
+	//Third Quadrant
+        j = 0;
+        while (j_cry > j) {
+                j_idx = Crystals[j][0];
+                k_idx = -1 * Crystals[j][1];
+                x_cent = Crystals[j][2];
+                y_cent = -1.0 * Crystals[j][3];
+                z_cent = Crystals[j][4];
+                r_theta = Crystals[j][5];
+                r_phi = Crystals[j][6];
+
+                G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
+
+                Rot->rotateX(0*rad);
+                Rot->rotateY(0*rad);
+                Rot->rotateZ(0*rad);
+
+                name.str("");
+                name << _crystallogicnameprefix << "_j_" << j_idx << "_k_" << k_idx;
+
+                new G4PVPlacement( Rot, Crystal_Center,
+                        crystal_logic,
+                        name.str().c_str(),
+                        ecalenvelope,
+                        0, 0, overlapcheck);
+
+                j++;
+        }
+
+
+
 	
-	cout << endl << "All done..." << endl;
+	cout << endl << "Construction Complete..." << endl;
 	datafile.close();
 		
 	return 0;
