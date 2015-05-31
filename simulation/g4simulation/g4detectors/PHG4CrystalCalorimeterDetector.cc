@@ -60,7 +60,8 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode 
   _materialCrystal( "G4_PbWO4" ),
   _active(1),
   _crystallogicnameprefix("eEcalCrystal"),
-  _inputFile( "/direct/phenix+u/jlab/github/sPHENIX-Fork/coresoftware/simulation/g4simulation/g4detectors/mapping/CrystalCalorimeter_Mapping_v001.txt" )
+  _superdetector("NONE"),
+  _inputFile( "/direct/phenix+u/jlab/github/sPHENIX-Fork/coresoftware/simulation/g4simulation/g4detectors/mapping/CrystalCalorimeter_Mapping_v002.txt" )
 {
 
 }
@@ -75,11 +76,20 @@ PHG4CrystalCalorimeterDetector::~PHG4CrystalCalorimeterDetector()
 int
 PHG4CrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume * volume) const
 {
+  // if hit is in absorber material
+  bool isinabsorber = false;
+
   if (volume->GetName().find(_crystallogicnameprefix) != string::npos)
     {
       return 1;
     }
+  else if ( isinabsorber )
+    {
+      return -1;
+    }
+
   return 0;
+
 }
 
 
@@ -100,8 +110,8 @@ PHG4CrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
 
   /* Define visualization attributes for envelope cone */
   G4VisAttributes* ecalVisAtt = new G4VisAttributes();
-  ecalVisAtt->SetVisibility(true);
- // ecalVisAtt->SetVisibility(false);
+ // ecalVisAtt->SetVisibility(true);
+  ecalVisAtt->SetVisibility(false);
   ecalVisAtt->SetForceSolid(false);
   ecalVisAtt->SetColour(G4Colour::Magenta());
   ecal_envelope_log->SetVisAttributes(ecalVisAtt);
@@ -179,7 +189,7 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 		}
 	}
 
-	//Determine the Number of Crystals to be Created
+	//Determine the number of crystals to be created
 	NumberOfLines = 0;
 	ifstream in(_inputFile.c_str());
 	std::string unused;
@@ -190,11 +200,11 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	j_cry = NumberOfLines; 		// = Number of Crystals
 	k_cry = NumberOfIndices; 	// = j, k, x, y, z, alpha, beta.
 	
-	cout << "We will now create a " << NumberOfLines << " by " << k_cry << " matrix." << endl;
+	//cout << "We will now create a " << NumberOfLines << " by " << k_cry << " matrix." << endl;
 	
 	double Crystals[j_cry][k_cry];
 
-	cout << "Done! Now filling the matrix" << endl;
+	//cout << "Done! Now filling the matrix" << endl;
 	
 	G4int j = 0;
 	G4int k = 0;
@@ -208,14 +218,14 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 		k = 0;
 	}
 	
-	cout << "Array Filled. Now Constructing Crystals." << endl;
+	//cout << "Array Filled. Now Constructing Crystals." << endl;
 	
 	//Write out matrix to confirm correct input file
-	for(j = 0; j < j_cry; ++j) {
+	/* for(j = 0; j < j_cry; ++j) {
 		for(k = 0; k < k_cry; ++k) 
 			cout << Crystals[j][k] << "|";	
 		cout << endl;
-	}
+	} */
 		
 	//Construct and place each crystal
 
@@ -226,14 +236,11 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 		k_idx = Crystals[j][1];
 		x_cent = Crystals[j][2];
 		y_cent = Crystals[j][3];
-		z_cent = Crystals[j][4] - _place_in_z;
-		r_theta = Crystals[j][5];	//Rotation in Horizontal
-		r_phi = Crystals[j][6];		//Rotation in Vertical
+		z_cent = Crystals[j][4] - _place_in_z; 	//Coordinate system refers to mother volume, have to subtract out its position in the actual xyz-space
+		r_theta = Crystals[j][5];		//Rotation in Horizontal
+		r_phi = Crystals[j][6];			//Rotation in Vertical
 
 		G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
-
-		//std::cout << "Center Point of Crystal in z is: " << z_cent << endl;
-		//std::cout << " | " << j_idx << " | " << k_idx << " | " << x_cent << " | " << y_cent << " | " << z_cent << " | " << r_theta << " | " << r_phi << " | " << endl;
 
 		G4RotationMatrix *Rot = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
 		Rot->rotateX(r_phi*rad);
@@ -259,8 +266,8 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	//First Quadrant
         j = 0;
         while (j_cry > j) {
-                j_idx = -1 * Crystals[j][0];
-                k_idx = Crystals[j][1];
+                j_idx = NumberOfLines + Crystals[j][0];
+                k_idx = NumberOfLines + Crystals[j][1];
                 x_cent = -1.0 * Crystals[j][2];
                 y_cent = Crystals[j][3];
                 z_cent = Crystals[j][4] - _place_in_z;
@@ -294,8 +301,8 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	//Fourth Quadrant
         j = 0;
         while (j_cry > j) {
-                j_idx = -1 * Crystals[j][0];
-                k_idx = -1 * Crystals[j][1];
+                j_idx = (2 * NumberOfLines) + Crystals[j][0];
+                k_idx = (2 * NumberOfLines) + Crystals[j][1];
                 x_cent = -1.0 * Crystals[j][2];
                 y_cent = -1.0 * Crystals[j][3];
                 z_cent = Crystals[j][4] - _place_in_z;
@@ -324,8 +331,8 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	//Third Quadrant
         j = 0;
         while (j_cry > j) {
-                j_idx = Crystals[j][0];
-                k_idx = -1 * Crystals[j][1];
+                j_idx = (3 * NumberOfLines) + Crystals[j][0];
+                k_idx = (3 * NumberOfLines) + Crystals[j][1];
                 x_cent = Crystals[j][2];
                 y_cent = -1.0 * Crystals[j][3];
                 z_cent = Crystals[j][4] - _place_in_z;
@@ -350,11 +357,9 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 
                 j++;
         }
-
-
 	
 	cout << endl << "Construction Complete..." << endl;
-	datafile.close();
+//	datafile.close();
 		
 	return 0;
 }
