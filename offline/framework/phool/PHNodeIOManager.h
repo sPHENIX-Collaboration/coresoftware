@@ -10,7 +10,6 @@
 #include <map>
 
 
-class PHString;
 class TObject;
 class TFile;
 class TTree;
@@ -19,8 +18,8 @@ class TBranch;
 class PHNodeIOManager : public PHIOManager { 
 public: 
    PHNodeIOManager();
-   PHNodeIOManager(const PHString&, const PHAccessType = PHReadOnly);
-   PHNodeIOManager(const PHString&, const PHString&, const PHAccessType = PHReadOnly);
+   PHNodeIOManager(const std::string&, const PHAccessType = PHReadOnly);
+   PHNodeIOManager(const std::string&, const std::string&, const PHAccessType = PHReadOnly);
    PHNodeIOManager(const std::string&, const PHAccessType , const PHTreeType);
    virtual ~PHNodeIOManager(); 
 
@@ -29,7 +28,7 @@ public:
    virtual PHBoolean write(PHCompositeNode *) ;   
    virtual void print() const ;
 
-   PHBoolean setFile(const PHString&, const PHString&, const PHAccessType = PHReadOnly) ;
+   PHBoolean setFile(const std::string&, const std::string&, const PHAccessType = PHReadOnly) ;
    PHCompositeNode * read(PHCompositeNode * = 0, size_t = 0); 
    PHBoolean read(size_t requestedEvent) ;
    int readSpecific(size_t requestedEvent, const char* objectName) ;
@@ -41,7 +40,7 @@ public:
    std::map<std::string,TBranch*> *GetBranchMap();
 
 public:
-   PHBoolean write(TObject**, const PHString&);
+   PHBoolean write(TObject**, const std::string&);
 private:
    int FillBranchMap();
    PHCompositeNode * reconstructNodeTree(PHCompositeNode *);

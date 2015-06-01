@@ -1,5 +1,5 @@
-#ifndef __PHDATANODE_H__
-#define __PHDATANODE_H__
+#ifndef PHDATANODE_H__
+#define PHDATANODE_H__
 
 //  Declaration of class PHDataNode
 //  Purpose: a node which can hold a data object (template)
@@ -23,9 +23,9 @@ public:
   virtual void prune() {}
   virtual void forgetMe(PHNode*) {}
   void print(const std::string&);
-  virtual PHBoolean write(PHIOManager *, const std::string& = "") 
+  virtual bool write(PHIOManager *, const std::string& = "") 
     { 
-      return True; 
+      return true; 
     }
    
 protected: 

@@ -6,17 +6,17 @@
 //  Author: Matthias Messer
 
 #include "phool.h"
-#include "PHString.h"
+
+#include <string>
 
 class PHCompositeNode;
 
 class PHIOManager { 
 public: 
-   PHIOManager();
    virtual ~PHIOManager(){} 
 
 public:
-   PHString getFilename() const;
+   std::string getFilename() const {return filename;}
    size_t getEventNumber() const { return eventNumber; }
    void setEventNumber(const size_t evno) { eventNumber = evno; return;}
    virtual void closeFile() = 0;
@@ -24,7 +24,8 @@ public:
    virtual void print() const = 0;
    
 protected: 
-   PHString        filename;
+   PHIOManager();
+   std::string        filename;
    size_t          eventNumber;
 }; 
 

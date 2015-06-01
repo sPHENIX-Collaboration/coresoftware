@@ -8,6 +8,8 @@
 /// \author Matt Wysocki (translated to sPHENIX simulations)
 //===============================================
 
+#include "EvalLinks.h"
+
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -19,6 +21,7 @@
 #include <g4hough/SvtxTrack.h>
 #include <g4hough/SvtxClusterMap.h>
 #include <g4hough/SvtxCluster.h>
+#include <g4hough/SvtxHitMap.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -213,6 +216,7 @@ class PHG4Evaluator : public SubsysReco
   virtual ~PHG4Evaluator() {};
 		
   int Init(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
@@ -265,10 +269,14 @@ class PHG4Evaluator : public SubsysReco
   SvtxTrackMap *_trackList;
   SvtxVertexMap *_vertexList;
   SvtxClusterMap *_clusterList;
+  SvtxHitMap *_hitList;
   PHG4CylinderCellContainer *_cellList;
   PHG4CylinderCellGeomContainer *_cellGeos;
   HitMap _g4hitList;
   PHG4TruthInfoContainer* _truth_info_container;
+  EvalLinks* _cluster_g4hit_svtx_links;
+  EvalLinks* _cluster_g4hit_silicon_tracker_links;
+  
 
   std::map <unsigned int, LayerType> _layer_type_map; // layer # => ladder or cylinder layer type
   PHG4CylinderGeomContainer *_ladderGeos;             // tilted ladder layer geos
@@ -306,7 +314,11 @@ class PHG4Evaluator : public SubsysReco
   void fillTrackToGtrackMap();      ///< creates the map between tracks and gtracks pointers
   void fillTrackPurityMap();
 
-  // fill output subroutines
+  // fill DST output
+  int fillClusterToG4HitLinks(PHCompositeNode *topNode);
+  int fillTrackToG4TruthInfoLinks(PHCompositeNode *topNode);
+  
+  // output subroutines
   void fillOutputNtuples();         ///< dump the evaluator information into ntuple for external analysis
   void printInputInfo();            ///< print out the input object information (debugging upstream components)
   void printOutputInfo();           ///< print out the ancestry information for detailed diagnosis

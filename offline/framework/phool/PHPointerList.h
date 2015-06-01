@@ -1,5 +1,5 @@
-#ifndef __PHPOINTERLIST_H__
-#define __PHPOINTERLIST_H__
+#ifndef PHPOINTERLIST_H__
+#define PHPOINTERLIST_H__
 
 //  Purpose: a template list of pointers
 //
@@ -26,7 +26,6 @@
 
 #include "phool.h"
 #include "PHNode.h"
-#include "PHString.h"
 
 #include <iostream>
 

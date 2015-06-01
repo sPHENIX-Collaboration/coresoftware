@@ -463,7 +463,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
         PHG4CylinderCell* cell = mapiter->second;
 	SvtxHit* hit = cell_hit_map[cell];
 	
-	clus.insert_hit(cell->get_cell_id());
+	clus.insert_hit(hit->get_id());
 	
         clus_energy += hit->get_e();
 	clus_adc    += hit->get_adc();
@@ -752,7 +752,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
         PHG4CylinderCell* cell = mapiter->second;
 	SvtxHit* hit = cell_hit_map[cell];
 	
-	clus.insert_hit(cell->get_cell_id());
+	clus.insert_hit(hit->get_id());
 	
         clus_energy += hit->get_e();
 	clus_adc    += hit->get_adc();

@@ -44,7 +44,7 @@ PHNodeIOManager::PHNodeIOManager ():
   isFunctionalFlag(0)
 {}
 
-PHNodeIOManager::PHNodeIOManager (const PHString& f,
+PHNodeIOManager::PHNodeIOManager (const string& f,
                                   const PHAccessType a):
   file(NULL),
   tree(NULL),
@@ -54,7 +54,7 @@ PHNodeIOManager::PHNodeIOManager (const PHString& f,
   isFunctionalFlag = setFile(f, "titled by PHOOL", a) ? 1 : 0;
 }
 
-PHNodeIOManager::PHNodeIOManager (const PHString& f, const PHString& title,
+PHNodeIOManager::PHNodeIOManager (const string& f, const string& title,
                                   const PHAccessType a):
   file(NULL),
   tree(NULL),
@@ -77,7 +77,7 @@ PHNodeIOManager::PHNodeIOManager (const string& f, const PHAccessType a,
       temp << TreeName << treeindex; // create e.g. T1
       TreeName = temp.str();
     }
-  isFunctionalFlag = setFile(f.c_str(), "titled by PHOOL" , a) ? 1 : 0;
+  isFunctionalFlag = setFile(f, "titled by PHOOL" , a) ? 1 : 0;
 }
 
 PHNodeIOManager::~PHNodeIOManager ()
@@ -104,7 +104,7 @@ PHNodeIOManager::closeFile ()
 }
 
 PHBoolean
-PHNodeIOManager::setFile (const PHString& f, const PHString& title,
+PHNodeIOManager::setFile (const string& f, const string& title,
                           const PHAccessType a)
 {
   filename = f;
@@ -125,19 +125,19 @@ PHNodeIOManager::setFile (const PHString& f, const PHString& title,
   switch (accessMode)
     {
     case PHWrite:
-      file = TFile::Open(filename.getString(), "RECREATE", title.getString());
+      file = TFile::Open(filename.c_str(), "RECREATE", title.c_str());
       if (!file)
         {
           return False;
         }
       file ->SetCompressionLevel(CompressionLevel);
-      tree = new TTree(TreeName.c_str(), title.getString());
+      tree = new TTree(TreeName.c_str(), title.c_str());
       tree->SetMaxTreeSize(900000000000LL); // set max size to ~900 GB
       gROOT->cd(currdir.c_str());
       return True;
       break;
     case PHReadOnly:
-      file = TFile::Open(filename.getString());
+      file = TFile::Open(filename.c_str());
       tree = 0;
       if (!file)
         {
@@ -148,13 +148,13 @@ PHNodeIOManager::setFile (const PHString& f, const PHString& title,
       return True;
       break;
     case PHUpdate:
-      file = TFile::Open(filename.getString(), "UPDATE", title.getString());
+      file = TFile::Open(filename.c_str(), "UPDATE", title.c_str());
       if (!file)
         {
           return False;
         }
       file ->SetCompressionLevel(CompressionLevel);
-      tree = new TTree(TreeName.c_str(), title.getString());
+      tree = new TTree(TreeName.c_str(), title.c_str());
       gROOT->cd(currdir.c_str());
       return True;
       break;
@@ -187,11 +187,11 @@ PHNodeIOManager::write(PHCompositeNode* topNode)
 }
 
 PHBoolean
-PHNodeIOManager::write(TObject** data, const PHString& path)
+PHNodeIOManager::write(TObject** data, const string& path)
 {
   if (file && tree)
     {
-      TBranch *thisBranch = tree->GetBranch(path.getString());
+      TBranch *thisBranch = tree->GetBranch(path.c_str());
       if (!thisBranch)
         {
           // Here is were we decide how to save the data in the root
@@ -203,22 +203,13 @@ PHNodeIOManager::write(TObject** data, const PHString& path)
           // can be saved either way, but split = 1 makes interactive
           // display possible.
           split = 99;
-          if ((*data)->InheritsFrom("PHTable"))
-            {
-#if ROOT_VERSION_CODE >= ROOT_VERSION(3,01,5)
-              split = -1;
-#else
-              split = 0;
-#endif
-
-            }
-          else if ((*data)->InheritsFrom("PHObject"))
+          if ((*data)->InheritsFrom("PHObject"))
             {
 	      PHObject *phob = dynamic_cast<PHObject *> (*data);
 	      split = phob->SplitLevel();
 	      bufSize = phob->BufferSize();
 	    }
-          tree->Branch(path.getString(), (*data)->ClassName(),
+          tree->Branch(path.c_str(), (*data)->ClassName(),
                                     data, bufSize, split);
         }
       else
@@ -461,11 +452,10 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
       boost::split(splitvec, branchname, boost::is_any_of(delimeters));
       for (size_t ia = 1; ia< splitvec.size()-1; ia++) // -1 so we skip the node name
        	{
-	  PHString phs = splitvec[ia].c_str();
-	  if (!nodeIter.cd(phs))
+	  if (!nodeIter.cd(splitvec[ia]))
 	    {
-	      nodeIter.addNode(new PHCompositeNode(phs.getString()));
-	      nodeIter.cd(phs);
+	      nodeIter.addNode(new PHCompositeNode(splitvec[ia]));
+	      nodeIter.cd(splitvec[ia]);
 	    }
        	}
       TBranch *thisBranch = (TBranch*)((*branchArray)[i]);

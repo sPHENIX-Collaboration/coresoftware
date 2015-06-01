@@ -15,14 +15,13 @@
 using namespace std;
 
 PHCompositeNode::PHCompositeNode() : PHNode("NULL")
-{
-}
+{}
 
-PHCompositeNode::PHCompositeNode(const string& name) : PHNode(name)
+PHCompositeNode::PHCompositeNode(const string& name) : 
+  PHNode(name,"PHCompositeNode"),
+  deleteMe(0)
 {
   type = "PHCompositeNode";
-  objecttype = "PHCompositeNode";
-  deleteMe = 0;
 }
 
 PHCompositeNode::~PHCompositeNode() 
@@ -104,27 +103,22 @@ PHCompositeNode::forgetMe(PHNode* child)
     }   
 }
 
-PHBoolean
+bool
 PHCompositeNode::write(PHIOManager * IOManager, const std::string &path)
 {
-   PHString newPath;
-   if (path != "")
+   string newPath = name;
+   if (!path.empty())
      {
-       string tmpstr = path + phooldefs::branchpathdelim + name;
-       newPath = tmpstr.c_str();
-     }
-   else
-     {
-       newPath = name.c_str();
+       newPath = path + phooldefs::branchpathdelim + name;
      }
    PHPointerListIterator<PHNode> nodeIter(subNodes);
    PHNode* thisNode;
-   PHBoolean success = True;
+   bool success = true;
    while ((thisNode = nodeIter())) 
      {
-       if (!(thisNode->write(IOManager, newPath.getString())))
+       if (!(thisNode->write(IOManager, newPath)))
 	 {
-	   success = False;
+	   success = false;
 	 }
      }
    return success;

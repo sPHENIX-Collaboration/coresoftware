@@ -1,5 +1,5 @@
-#ifndef __PHCOMPOSITENODE_H__
-#define __PHCOMPOSITENODE_H__
+#ifndef PHCOMPOSITENODE_H__
+#define PHCOMPOSITENODE_H__
 
 //  Declaration of class PHCompositeNode
 //  Purpose: a node which can hold other nodes
@@ -35,7 +35,7 @@ public:
    // I/O functions
    //
    void print(const std::string & = "");
-   virtual PHBoolean write(PHIOManager *, const std::string & = "");
+   virtual bool write(PHIOManager *, const std::string & = "");
 
 protected:
    virtual void forgetMe(PHNode*);
@@ -46,4 +46,4 @@ private:
    PHCompositeNode();
 }; 
 
-#endif /* __PHCOMPOSITENODE_H__ */
+#endif /* PHCOMPOSITENODE_H__ */
