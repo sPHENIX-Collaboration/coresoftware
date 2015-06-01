@@ -54,14 +54,16 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode 
   _dZ(180*mm),
   _sPhi(0),
   _dPhi(2*M_PI),
-  _crystal_front_dx(22*mm),
-  _crystal_front_dy(22*mm),
-  _crystal_dz(180*mm),
+  _dx_front(50.19*mm),
+  _dy_front(50.19*mm),
+  _dx_back(59.3154545455*mm),
+  _dy_back(59.3154545455*mm),
+  _dz_crystal(90.000*mm),
   _materialCrystal( "G4_PbWO4" ),
   _active(1),
   _crystallogicnameprefix("eEcalCrystal"),
   _superdetector("NONE"),
-  _inputFile( "/direct/phenix+u/jlab/github/sPHENIX-Fork/coresoftware/simulation/g4simulation/g4detectors/mapping/CrystalCalorimeter_Mapping_v002.txt" )
+  _inputFile( "/direct/phenix+u/jlab/github/sPHENIX-Fork/coresoftware/simulation/g4simulation/g4detectors/mapping/CrystalCalorimeter_Mapping_v003.txt" )
 {
 
 }
@@ -132,6 +134,16 @@ PHG4CrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
   return;
 }
 
+void
+PHG4CrystalCalorimeterDetector::CrystalDimensions(G4double& dx_front, G4double& dy_front, G4double& dx_back, G4double& dy_back, G4double& dz)
+{
+	dx_front = _dx_front;
+	dy_front = _dy_front;
+	dx_back = _dx_back;
+	dy_back = _dy_back;
+	dz = _dz_crystal;
+	
+} 
 
 //_______________________________________________________________________
 int
@@ -145,11 +157,14 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	G4int j_cry, k_cry;					//Indices for matrix
 	G4int j_idx, k_idx;					//Indices of each crstals
 	G4double x_cent, y_cent, z_cent, r_theta, r_phi;	//Coordinates of crystal in [x,y,z,theta,phi]
-	G4double dx1 = 50.19*mm; //12.188*mm;			//Half of the extent of the front face of the trapezoid in x
-	G4double dx2 = 59.3154545455*mm; //13.702*mm;		//Half of the extent of the back face of the trapezoid in x
-	G4double dy1 = dx1;					//Half of the extent of the front face of the trapezoid in y
-	G4double dy2 = dx2;					//Half of the extent of the back face of the trapezoid in y
-	G4double dz =  90.000*mm;				//Half of the extent of the crystal in z
+
+	G4double dx1 = 0.0;					//Half of the extent of the front face of the trapezoid in x
+	G4double dx2 = 0.0; 					//Half of the extent of the back face of the trapezoid in x
+	G4double dy1 = 0.0;					//Half of the extent of the front face of the trapezoid in y
+	G4double dy2 = 0.0;					//Half of the extent of the back face of the trapezoid in y
+	G4double dz =  0.0;					//Half of the extent of the crystal in z
+
+	CrystalDimensions(dx1, dy1, dx2, dy2, dz); 		//File crystal dimensions with function PHG4CrystalCalorimeterDetector::CrystalDimensions
 
 	//Create single crystal
 
@@ -195,17 +210,12 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	std::string unused;
 	while ( std::getline(in, unused) )
 	   ++NumberOfLines;
-	cout << "Number of Crystals: " << NumberOfLines << endl;			
 
 	j_cry = NumberOfLines; 		// = Number of Crystals
 	k_cry = NumberOfIndices; 	// = j, k, x, y, z, alpha, beta.
 	
-	//cout << "We will now create a " << NumberOfLines << " by " << k_cry << " matrix." << endl;
-	
 	double Crystals[j_cry][k_cry];
 
-	//cout << "Done! Now filling the matrix" << endl;
-	
 	G4int j = 0;
 	G4int k = 0;
 
@@ -218,17 +228,6 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 		k = 0;
 	}
 	
-	//cout << "Array Filled. Now Constructing Crystals." << endl;
-	
-	//Write out matrix to confirm correct input file
-	/* for(j = 0; j < j_cry; ++j) {
-		for(k = 0; k < k_cry; ++k) 
-			cout << Crystals[j][k] << "|";	
-		cout << endl;
-	} */
-		
-	//Construct and place each crystal
-
 	//Second Quadrant
 	j = 0;
 	while (j_cry > j) {
@@ -266,15 +265,13 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	//First Quadrant
         j = 0;
         while (j_cry > j) {
-                j_idx = NumberOfLines + Crystals[j][0];
-                k_idx = NumberOfLines + Crystals[j][1];
+                j_idx = 11 - Crystals[j][0];
+                k_idx = Crystals[j][1];
                 x_cent = -1.0 * Crystals[j][2];
                 y_cent = Crystals[j][3];
                 z_cent = Crystals[j][4] - _place_in_z;
                 r_theta = -1.0*Crystals[j][5];
                 r_phi = Crystals[j][6];
-
-                std::cout << " | " << j_idx << " | " << k_idx << " | " << x_cent << " | " << y_cent << " | " << z_cent << " | " << r_theta << " | " << r_phi << " | " << endl;
 
                 G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
@@ -301,8 +298,8 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	//Fourth Quadrant
         j = 0;
         while (j_cry > j) {
-                j_idx = (2 * NumberOfLines) + Crystals[j][0];
-                k_idx = (2 * NumberOfLines) + Crystals[j][1];
+                j_idx = Crystals[j][0];
+                k_idx = 11 - Crystals[j][1];
                 x_cent = -1.0 * Crystals[j][2];
                 y_cent = -1.0 * Crystals[j][3];
                 z_cent = Crystals[j][4] - _place_in_z;
@@ -331,8 +328,8 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	//Third Quadrant
         j = 0;
         while (j_cry > j) {
-                j_idx = (3 * NumberOfLines) + Crystals[j][0];
-                k_idx = (3 * NumberOfLines) + Crystals[j][1];
+                j_idx = 11 - Crystals[j][0];
+                k_idx = 11 - Crystals[j][1];
                 x_cent = Crystals[j][2];
                 y_cent = -1.0 * Crystals[j][3];
                 z_cent = Crystals[j][4] - _place_in_z;
@@ -358,8 +355,5 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
                 j++;
         }
 	
-	cout << endl << "Construction Complete..." << endl;
-//	datafile.close();
-		
 	return 0;
 }
