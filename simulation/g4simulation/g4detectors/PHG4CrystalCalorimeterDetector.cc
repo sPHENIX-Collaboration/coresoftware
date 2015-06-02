@@ -63,7 +63,7 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode 
   _active(1),
   _crystallogicnameprefix("eEcalCrystal"),
   _superdetector("NONE"),
-  _inputFile( "/direct/phenix+u/jlab/github/sPHENIX-Fork/coresoftware/simulation/g4simulation/g4detectors/mapping/CrystalCalorimeter_Mapping_v003.txt" )
+  _inputFile( "/direct/phenix+u/jlab/github/sPHENIX-Fork/calibrations/CrystalCalorimeter/mapping/crystals_v002.txt" )
 {
 
 }
