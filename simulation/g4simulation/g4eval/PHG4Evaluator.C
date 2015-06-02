@@ -1098,8 +1098,6 @@ int PHG4Evaluator::fillTrackToG4TruthInfoLinks(PHCompositeNode *topNode) {
     
   } // track loop
 
-  //evallinks->identify();
-  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
