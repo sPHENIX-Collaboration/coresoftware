@@ -13,11 +13,11 @@ class PHGenEvent : public PHObject {
 
   virtual const HepMC::GenEvent* get_event() const {return NULL;}
   virtual HepMC::GenEvent* get_event() {return NULL;}
-  virtual void set_event(const HepMC::GenEvent& event) {}
-  virtual void set_event(const HepMC::GenEvent* event) {}
+  virtual void set_event(HepMC::GenEvent& event) {}
+  virtual void set_event(HepMC::GenEvent* event) {}
 
   virtual unsigned int get_id() const {return 0;}
-  virtual void set_id(unsigned int id) {}
+  virtual void set_id(const unsigned int id) {}
   
   // the number of entries in the array of particles
   virtual size_t particles_size() const {return 0;}
