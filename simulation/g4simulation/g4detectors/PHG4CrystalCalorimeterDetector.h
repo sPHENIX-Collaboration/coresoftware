@@ -41,6 +41,16 @@ public:
   //!@name volume accessors
   int IsInCrystalCalorimeter(G4VPhysicalVolume*) const;
 
+  void CrystalDimensions(G4double& dx_front, G4double& dy_front, G4double& dx_back, G4double& dy_back, G4double& dz);
+ 
+  void SetDimensions(G4double dx_front, G4double dy_front, G4double dx_back, G4double dy_back, G4double dz) {
+  _dx_front = dx_front;
+  _dy_front = dy_front;
+  _dx_back = dx_back;
+  _dy_back = dy_back;
+  _dz_crystal = dz;
+  }
+ 
   void SetPlace( G4double place_in_x, G4double place_in_y, G4double place_in_z) {
     _place_in_x = place_in_x;
     _place_in_y = place_in_y;
@@ -88,9 +98,12 @@ private:
   G4double _dPhi;
 
   /* crystal geometry */
-  G4double _crystal_front_dx;
-  G4double _crystal_front_dy;
-  G4double _crystal_dz;
+
+  G4double _dx_front;
+  G4double _dy_front;
+  G4double _dx_back;
+  G4double _dy_back;
+  G4double _dz_crystal;
 
   G4String _materialCrystal;
 
@@ -101,7 +114,7 @@ private:
 
   std::string _crystallogicnameprefix;
   std::string _superdetector;
-
+  std::string _inputFile;
 };
 
 #endif
