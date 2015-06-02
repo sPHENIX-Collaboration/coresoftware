@@ -16,7 +16,7 @@ class PHGenEventv1 : public PHGenEvent {
  public:
 
   PHGenEventv1();
-  PHGenEventv1(unsigned int id, HepMC::GenEvent &event);
+  PHGenEventv1(const unsigned int id, HepMC::GenEvent &event);
   PHGenEventv1(const PHGenEventv1& phevent);
   PHGenEventv1(const PHGenEventv1* phevent);  
   virtual ~PHGenEventv1();
@@ -28,7 +28,7 @@ class PHGenEventv1 : public PHGenEvent {
   void set_event(HepMC::GenEvent* event);
 
   unsigned int get_id() const {return _id;}
-  void set_id(unsigned int id) {_id = id;}
+  void set_id(const unsigned int id) {_id = id;}
 
   // the number of entries in the array of particles
   size_t particles_size() const;

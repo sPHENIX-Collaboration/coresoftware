@@ -15,7 +15,7 @@ PHGenEventv1::PHGenEventv1()
     _event(NULL)
 {}
 
-PHGenEventv1::PHGenEventv1(unsigned int id, HepMC::GenEvent& event)
+PHGenEventv1::PHGenEventv1(const unsigned int id, HepMC::GenEvent& event)
    : _id(id),
      _event_record(),
      _stale(true),
