@@ -38,6 +38,10 @@ public:
   std::string get_name_weight() const {return _weight_name;} 
   bool   has_link(unsigned int left_id, unsigned int right_id) const;
   float  get_weight(unsigned int left_id, unsigned int right_id) const;
+
+  // status for missing links
+  bool         is_null_id(unsigned int id) const {return (id == NULLID);}
+  unsigned int get_null_id() const {return NULLID;}
   
   // access all associations
   std::set<unsigned int> left(unsigned int right_id) const;
@@ -49,6 +53,8 @@ public:
 
 private:
 
+  static const unsigned int NULLID;
+  
   bool stale() const {return _stale;}
   void refresh() const;
 
