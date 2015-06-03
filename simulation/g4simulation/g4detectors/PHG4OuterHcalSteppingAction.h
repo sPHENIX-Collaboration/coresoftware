@@ -34,6 +34,11 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
     light_balance_outer_radius_ = outer_radius;
     light_balance_outer_corr_ = outer_corr;
   }
+
+  void SetLightScintModel(const bool b = true)
+  {
+    light_scint_model_ = b;
+  }
   
   private:
 
@@ -45,6 +50,7 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer * absorberhits_;
   PHG4Hit *hit;
 
+  bool  light_scint_model_;
   bool  light_balance_;
   float light_balance_inner_radius_;
   float light_balance_inner_corr_;
