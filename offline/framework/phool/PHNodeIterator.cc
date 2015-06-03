@@ -12,9 +12,10 @@
 #include "PHNodeOperation.h"
 #include "phooldefs.h"
 
-#include "PHString.h"
+#include <boost/algorithm/string.hpp>
 
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -109,16 +110,15 @@ PHNodeIterator::cd(const string &pathString)
     }
   else
     {
-      PHPointerList<PHString> newPaths;
-      PHString tmpphs = pathString.c_str();
-      tmpphs.split(newPaths, phooldefs::nodetreepathdelim.c_str());
-      PHPointerListIterator<PHString> pathIter(newPaths);
-      PHString  *newPath;
+      vector<string> splitpath;
+      boost::split(splitpath, pathString, boost::is_any_of(phooldefs::nodetreepathdelim));
       PHBoolean pathFound;
       PHNode    *subNode;
-      while ((newPath = pathIter()))
+      int i=0;
+      for (vector<string>::const_iterator iter = splitpath.begin(); iter != splitpath.end(); ++iter)
         {
-          if (*newPath == "..")
+	  i++;
+          if (*iter == "..")
             {
               if (currentNode->getParent())
                 {
@@ -135,7 +135,7 @@ PHNodeIterator::cd(const string &pathString)
               pathFound = False;
               while ((subNode = subNodeIter()))
                 {
-                  if (subNode->getType() == "PHCompositeNode" && subNode->getName() == newPath->getString())
+                  if (subNode->getType() == "PHCompositeNode" && subNode->getName() == *iter)
                     {
                       currentNode = static_cast<PHCompositeNode*>(subNode);
                       pathFound = True;
@@ -147,7 +147,6 @@ PHNodeIterator::cd(const string &pathString)
                 }
             }
         }
-      newPaths.clearAndDestroy();
     }
   return success;
 }
