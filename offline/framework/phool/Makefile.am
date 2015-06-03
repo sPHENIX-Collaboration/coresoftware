@@ -29,7 +29,6 @@ libphool_la_SOURCES = \
   PHObject.cc \
   PHOperation.cc \
   PHRawOManager.cc \
-  PHString.cc \
   PHTimer.cc \
   PHTimeServer.cc \
   PHTimeStamp.cc
