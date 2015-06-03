@@ -8,6 +8,7 @@
 #include <string>
 #include <set>
 #include <cmath>
+#include <limits.h>
 
 class EvalLinks : public PHObject {
 
@@ -35,6 +36,9 @@ public:
   virtual bool   has_link(unsigned int left_id, unsigned int right_id) const {return false;}
   virtual float  get_weight(unsigned int left_id, unsigned int right_id) const {return NAN;}
 
+  virtual bool         is_null_id(unsigned int id) const {return true;}
+  virtual unsigned int get_null_id() const {return UINT_MAX;}
+  
   virtual std::set<unsigned int> left(unsigned int right_id) const {
     return std::set<unsigned int>();
   }
@@ -43,8 +47,8 @@ public:
   }
 
   // access maximum weight association
-  virtual unsigned int max_left(unsigned int right_id) const {return 0xFFFFFFFF;}
-  virtual unsigned int max_right(unsigned int left_id) const {return 0xFFFFFFFF;}
+  virtual unsigned int max_left(unsigned int right_id) const {return UINT_MAX;}
+  virtual unsigned int max_right(unsigned int left_id) const {return UINT_MAX;}
 
 protected:
   EvalLinks(const std::string& left_name,
