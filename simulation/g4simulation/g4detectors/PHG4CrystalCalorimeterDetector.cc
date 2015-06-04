@@ -219,6 +219,7 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	G4int j = 0;
 	G4int k = 0;
 
+	//Fill matrix with the data from the mapping file
 	while (j_cry > j) {
 		while (k_cry > k) {
 			datafile >> Crystals[j][k];
@@ -227,14 +228,22 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 		j++;
 		k = 0;
 	}
-	
-	//Second Quadrant
+
+	// Find the maximum k index
+	G4int k_max = 0;
+	j = 0;
+	while (j_cry > j){
+		if(Crystals[j][1] > k_max) k_max = Crystals[j][1];
+		j++;
+	}
+
+	//Build Second Quadrant
 	j = 0;
 	while (j_cry > j) {
 		j_idx = Crystals[j][0];
 		k_idx = Crystals[j][1];
-		x_cent = Crystals[j][2];
-		y_cent = Crystals[j][3];
+		x_cent = Crystals[j][2] - _place_in_x;
+		y_cent = Crystals[j][3] - _place_in_y;
 		z_cent = Crystals[j][4] - _place_in_z; 	//Coordinate system refers to mother volume, have to subtract out its position in the actual xyz-space
 		r_theta = Crystals[j][5];		//Rotation in Horizontal
 		r_phi = Crystals[j][6];			//Rotation in Vertical
@@ -265,10 +274,10 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	//First Quadrant
         j = 0;
         while (j_cry > j) {
-                j_idx = 11 - Crystals[j][0];
+                j_idx = k_max - Crystals[j][0];
                 k_idx = Crystals[j][1];
-                x_cent = -1.0 * Crystals[j][2];
-                y_cent = Crystals[j][3];
+                x_cent = -1.0 * (Crystals[j][2] - _place_in_x);
+                y_cent = Crystals[j][3] - _place_in_y;
                 z_cent = Crystals[j][4] - _place_in_z;
                 r_theta = -1.0*Crystals[j][5];
                 r_phi = Crystals[j][6];
@@ -299,9 +308,9 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
         j = 0;
         while (j_cry > j) {
                 j_idx = Crystals[j][0];
-                k_idx = 11 - Crystals[j][1];
-                x_cent = -1.0 * Crystals[j][2];
-                y_cent = -1.0 * Crystals[j][3];
+                k_idx = k_max - Crystals[j][1];
+                x_cent = -1.0 * (Crystals[j][2] -  - _place_in_x);
+                y_cent = -1.0 * (Crystals[j][3] - _place_in_y);
                 z_cent = Crystals[j][4] - _place_in_z;
                 r_theta = -1.0*Crystals[j][5];
                 r_phi = -1.0*Crystals[j][6];
@@ -328,10 +337,10 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	//Third Quadrant
         j = 0;
         while (j_cry > j) {
-                j_idx = 11 - Crystals[j][0];
-                k_idx = 11 - Crystals[j][1];
-                x_cent = Crystals[j][2];
-                y_cent = -1.0 * Crystals[j][3];
+                j_idx = k_max - Crystals[j][0];
+                k_idx = k_max - Crystals[j][1];
+                x_cent = Crystals[j][2] - _place_in_x;
+                y_cent = -1.0 * (Crystals[j][3] - _place_in_y);
                 z_cent = Crystals[j][4] - _place_in_z;
                 r_theta = Crystals[j][5];
                 r_phi = -1.0*Crystals[j][6];
