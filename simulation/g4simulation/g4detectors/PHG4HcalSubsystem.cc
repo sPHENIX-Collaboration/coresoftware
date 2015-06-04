@@ -39,6 +39,7 @@ PHG4HcalSubsystem::PHG4HcalSubsystem( const std::string &na, const int lyr):
   layer(lyr),
   detector_type(na),
   superdetector("NONE"),
+  light_scint_model_(true),
   light_balance_(false),
   light_balance_inner_radius_(0.0),
   light_balance_inner_corr_(1.0),
@@ -124,6 +125,7 @@ int PHG4HcalSubsystem::InitRun( PHCompositeNode* topNode )
 					    light_balance_inner_corr_,
 					    light_balance_outer_radius_,
 					    light_balance_outer_corr_);
+	steppingAction_->SetLightScintModel(light_scint_model_);
       }
     }
 

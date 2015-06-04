@@ -22,6 +22,7 @@
 #include <fun4all/getClass.h>
 
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4MaterialCutsCouple.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 
 #include <iostream>
@@ -154,8 +155,32 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       hit->set_edep(hit->get_edep() + edep);
       hit->set_eion(hit->get_eion() + eion);
 
-      double light_yield = GetVisibleEnergyDeposition(aStep);
+      double light_yield = 0;
+      if (isactive == PHG4SpacalDetector::FIBER_CORE) // the slat ids start with zero
+        {
+          light_yield = GetVisibleEnergyDeposition(aStep);
+
+          static bool once = true;
+          if (once and edep>0)
+            {
+              once = false;
+
+              cout << "PHG4SpacalSteppingAction::UserSteppingAction::"
+                  //
+                  << detector_->GetName() << " - "
+                  << " use scintillating light model at each Geant4 steps. "
+                  <<"First step: "
+                  <<"Material = "<<aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()<<", "
+                  <<"Birk Constant = "<<aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()<<","
+                  <<"edep = " <<edep<<", "
+                  <<"eion = " <<eion<<", "
+                  <<"light_yield = " <<light_yield
+                  << endl;
+            }
+
+        }
       hit->set_light_yield(hit->get_light_yield() + light_yield);
+
       if (hit->get_z(1) > get_zmax() || hit->get_z(1) < get_zmin())
         {
           cout << "PHG4SpacalSteppingAction: hit outside acceptance get_zmin() "

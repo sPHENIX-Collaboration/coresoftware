@@ -38,6 +38,11 @@ class PHG4HcalSteppingAction : public PHG4SteppingAction
     light_balance_outer_radius_ = outer_radius;
     light_balance_outer_corr_ = outer_corr;
   }
+
+  void SetLightScintModel(const bool b = true)
+  {
+    light_scint_model_ = b;
+  }
   
   private:
 
@@ -51,6 +56,7 @@ class PHG4HcalSteppingAction : public PHG4SteppingAction
   float zmin;
   float zmax;
 
+  bool  light_scint_model_;
   bool  light_balance_;
   float light_balance_inner_radius_;
   float light_balance_inner_corr_;

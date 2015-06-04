@@ -4,7 +4,8 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
-#include <g4main/PHG4Hitv5.h>
+//#include <g4main/PHG4Hitv5.h>
+#include <g4main/PHG4Hitv6.h>
 #include <g4main/PHG4HitDefs.h>
 
 #include <g4main/PHG4TrackUserInfoV1.h>
@@ -13,6 +14,7 @@
 #include <fun4all/getClass.h>
 
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4MaterialCutsCouple.hh>
 
 #include <iostream>
 
@@ -26,6 +28,7 @@ PHG4HcalSteppingAction::PHG4HcalSteppingAction( PHG4HcalDetector* detector ):
   hit(NULL),
   zmin(NAN),
   zmax(NAN),
+  light_scint_model_(true),
   light_balance_(false),
   light_balance_inner_radius_(0.0),
   light_balance_inner_corr_(1.0),
@@ -43,6 +46,7 @@ bool PHG4HcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit()-aStep->GetNonIonizingEnergyDeposit()) / GeV;
+  G4double light_yield = 0;
 
   const G4Track* aTrack = aStep->GetTrack();
 
@@ -72,7 +76,7 @@ bool PHG4HcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
         case fGeomBoundary:
         case fUndefined:
 
-	  hit = new PHG4Hitv5();
+	  hit = new PHG4Hitv6();
 
 	  hit->set_layer((unsigned int)layer_id);
 	  hit->set_scint_id(isactive); // isactive contains the scintillator slat id
@@ -102,6 +106,7 @@ bool PHG4HcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
           //set the initial energy deposit
           hit->set_edep(0);
 	  hit->set_eion(0); // only implemented for v5 otherwise empty
+    hit->set_light_yield(0);
 	  //	  hit->print();
           // Now add the hit
 	  if (isactive >= 0) // the slat ids start with zero
@@ -136,17 +141,70 @@ bool PHG4HcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 
       hit->set_t( 1, postPoint->GetGlobalTime() / nanosecond );
 
-      if ( isactive > PHG4HcalDetector::INACTIVE ) {
-	if (light_balance_) {
-	  float r = sqrt(pow(postPoint->GetPosition().x()/cm, 2) +
-			 pow(postPoint->GetPosition().y()/cm, 2));
-	  edep = edep*GetLightCorrection(r);
-	}
-      }
+      if (isactive >= 0) // the slat ids start with zero
+        {
+
+          if (light_scint_model_)
+            {
+              light_yield = GetVisibleEnergyDeposition(aStep);
+
+              static bool once = true;
+              if (once && edep>0)
+                {
+                  once = false;
+
+                  cout << "PHG4HcalSteppingAction::UserSteppingAction::"
+                      //
+                      << detector_->GetName() << " - "
+                      << " use scintillating light model at each Geant4 steps. "
+                      <<"First step: "
+                      <<"Material = "<<aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()<<", "
+                      <<"Birk Constant = "<<aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()<<","
+                      <<"edep = " <<edep<<", "
+                      <<"eion = " <<eion<<", "
+                      <<"light_yield = " <<light_yield
+                      << endl;
+                }
+
+            }
+          else
+            {
+              light_yield = eion;
+            }
+
+          if (light_balance_)
+            {
+              float r = sqrt(
+                  pow(postPoint->GetPosition().x() / cm, 2)
+                      + pow(postPoint->GetPosition().y() / cm, 2));
+              const float cor = GetLightCorrection(r);
+              light_yield = light_yield * cor;
+
+              static bool once = true;
+              if (once && light_yield>0)
+                {
+                  once = false;
+
+                  cout << "PHG4HcalSteppingAction::UserSteppingAction::"
+                      //
+                      << detector_->GetName() << " - "
+                      << " use a simple light collection model with linear radial dependence. "
+                      <<"First step: "
+                      <<"r = " <<r<<", "
+                      <<"correction ratio = " <<cor<<", "
+                      <<"light_yield after cor. = " <<light_yield
+                      << endl;
+                }
+
+            }
+        }
       
       //sum up the energy to get total deposited
       hit->set_edep(hit->get_edep() + edep);
       hit->set_eion(hit->get_eion() + eion);
+      hit->set_light_yield(hit->get_light_yield() + light_yield);
+      hit->set_path_length(aTrack->GetTrackLength() / cm);
+
       if (hit->get_z(1) > zmax || hit->get_z(1) < zmin)
 	{
 	  cout << "PHG4HcalSteppingAction: hit outside acceptance zmin " << zmin << ", zmax " << zmax << " at exit" << endl;
