@@ -491,7 +491,7 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
                 j_idx = k_max - Crystals[j][0];
                 k_idx = Crystals[j][1];
                 x_cent = -1.0 * ( Crystals[j][2] - _place_in_x );
-                y_cent = Crystals[j][3] - _place__in_y;
+                y_cent = Crystals[j][3] - _place_in_y;
                 z_cent = Crystals[j][4] - _place_in_z;
                 r_theta = -1.0*Crystals[j][5];
                 r_phi = Crystals[j][6];
