@@ -50,7 +50,7 @@ public:
   _dy_back = dy_back;
   _dz_crystal = dz;
   }
- 
+
   void SetPlace( G4double place_in_x, G4double place_in_y, G4double place_in_z) {
     _place_in_x = place_in_x;
     _place_in_y = place_in_y;
@@ -78,6 +78,8 @@ public:
 private:
 
   int ConstructCrystals(G4LogicalVolume* envelope);
+
+  int FillCrystalUnit(G4LogicalVolume *crystal_logic);
 
   /* Calorimeter envelope geometry */
   G4double _place_in_x;
