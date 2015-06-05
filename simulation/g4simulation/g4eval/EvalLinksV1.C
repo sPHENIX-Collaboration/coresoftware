@@ -7,10 +7,19 @@
 #include <set>
 #include <map>
 #include <float.h>
+#include <limits.h>
 
 ClassImp(EvalLinksV1)
 
 using namespace std;
+
+// constant used to record dangling links
+// needed for forward evaluation to record
+// missing reconstruction evals
+// e.g. (g4particle,nothing) => nclusters
+// or noise generated evals
+// e.g. (cluster, noise) => nhits
+const unsigned int EvalLinksV1::NULLID = UINT_MAX;
 
 EvalLinksV1::EvalLinksV1(const std::string& left_name,
 			 const std::string& right_name,

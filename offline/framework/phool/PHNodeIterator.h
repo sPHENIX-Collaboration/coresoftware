@@ -27,7 +27,8 @@ public:
    PHBoolean              addNode(PHNode*);
    void                   forEach(PHNodeOperation&);
    void                   for_each(PHNodeOperation&);
-   
+   PHCompositeNode *get_currentNode() const {return  currentNode;}
+
 protected: 
    PHCompositeNode *currentNode;
    PHPointerList<PHNode> subNodeList;

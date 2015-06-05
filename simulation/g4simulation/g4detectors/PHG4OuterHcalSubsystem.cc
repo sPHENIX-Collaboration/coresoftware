@@ -31,6 +31,7 @@ PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const i
   blackhole(0),
   detector_type(name),
   superdetector("NONE"),
+  light_scint_model_(true),
   light_balance_(false),
   light_balance_inner_radius_(0.0),
   light_balance_inner_corr_(1.0),
@@ -115,6 +116,7 @@ int PHG4OuterHcalSubsystem::Init( PHCompositeNode* topNode )
 					    light_balance_outer_radius_,
 					    light_balance_outer_corr_);
       }
+      steppingAction_->SetLightScintModel(light_scint_model_);
     }
   if (blackhole && !active)
     {

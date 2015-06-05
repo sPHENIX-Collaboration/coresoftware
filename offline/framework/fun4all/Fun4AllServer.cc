@@ -20,9 +20,6 @@
 #include <phool/PHTypedNodeIterator.h>
 #include <phool/PHTimeStamp.h>
 
-//#include <PdbApplication.hh>
-//#include <RunToTime.hh>
-
 #include <TDirectory.h>
 #include <TFile.h>
 #include <TH1D.h>
@@ -71,10 +68,7 @@ Fun4AllServer::Fun4AllServer(const std::string &name):
 Fun4AllServer::~Fun4AllServer()
 {
   Reset();
-  if (beginruntimestamp)
-    {
-      delete beginruntimestamp;
-    }
+  delete beginruntimestamp;
   while (Subsystems.begin() != Subsystems.end())
     {
       if (verbosity)
@@ -125,12 +119,11 @@ Fun4AllServer::~Fun4AllServer()
     }
   recoConsts *rc = recoConsts::instance();
   delete rc;
-  __instance = 0;
+  __instance = NULL;
   return ;
 }
 
 void Fun4AllServer::InitAll()
-
 {
   // first remove stupid root signal handler to get
   // decent crashes with debuggable core file
@@ -349,7 +342,7 @@ Fun4AllServer::getSubsysReco(const char *name)
 }
 
 int
-Fun4AllServer::AddComplaint(string &complaint, string &remedy)
+Fun4AllServer::AddComplaint(const string &complaint, const string &remedy)
 {
   ScreamEveryEvent++;
   string separatorstring = "------------------------------";
@@ -699,7 +692,7 @@ Fun4AllServer::process_event()
 int
 Fun4AllServer::ResetNodeTree()
 {
-  static const char *ResetNodeList[] = {"DCM", "DST"};
+  static const char *ResetNodeList[] = {"DST"};
   PHNodeReset reset;
   map<string, PHCompositeNode *>::const_iterator iter;
   for (iter = topnodemap.begin(); iter != topnodemap.end(); ++iter)
@@ -1187,9 +1180,7 @@ int Fun4AllServer::outfileclose()
 
 int Fun4AllServer::InitNodeTree(PHCompositeNode *topNode)
 {
-  PHCompositeNode *dcmNode, *dstNode, *runNode, *parNode;
-  dcmNode = new PHCompositeNode("DCM");
-  topNode->addNode(dcmNode);
+  PHCompositeNode *dstNode, *runNode, *parNode;
   dstNode = new PHCompositeNode("DST");
   topNode->addNode(dstNode);
   runNode = new PHCompositeNode("RUN");

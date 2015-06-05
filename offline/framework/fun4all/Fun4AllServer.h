@@ -61,7 +61,7 @@ class Fun4AllServer: public Fun4AllBase
   int MakeNodesTransient(PHCompositeNode *startNode);
   int MakeNodesPersistent(PHCompositeNode *startNode);
 
-  int AddComplaint(std::string &complaint, std::string &remedy);
+  int AddComplaint(const std::string &complaint, const std::string &remedy);
 
   // Interface to the default Input Master
   int registerInputManager(Fun4AllInputManager *InManager);
