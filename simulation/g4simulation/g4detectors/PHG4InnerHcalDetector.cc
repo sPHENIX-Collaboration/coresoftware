@@ -30,6 +30,8 @@
 #include <CGAL/Circular_kernel_intersections.h>
 #include <CGAL/Boolean_set_operations_2.h>
 
+#include <boost/math/special_functions/sign.hpp>
+
 #include <cmath>
 #include <sstream>
 
@@ -116,6 +118,50 @@ PHG4InnerHcalDetector::IsInInnerHcal(G4VPhysicalVolume * volume) const
   //     return 1;
   //   }
   return 0;
+}
+
+G4VSolid*
+PHG4InnerHcalDetector::ConstructScintilatorBox(G4LogicalVolume* hcalenvelope)
+{
+  // procedure:
+  // we need to calculate the dimension of the box which is tilted inside the cylinder
+  // we start with the inner envelope at x=0, create a line with
+  // the tilt angle, create a line perpendicular to it at the intersection, get the point
+  // on that line at the thickness of the scintillator (upper left cornet), then create a line 
+  // with the tilt angle at it and find the intersection with the outer envelope, that gives us the
+  // length of the scintillator
+  Point_2 p_in_1(inner_radius,0);
+  Point_2 py(inner_radius+1,tan(tilt_angle*rad));
+  Line_2 s2(p_in_1,py);
+  Line_2 perp =  s2.perpendicular(p_in_1);
+  Point_2 sc1(inner_radius+scinti_tile_y,0), sc2(inner_radius-scinti_tile_y,0),sc3(inner_radius,scinti_tile_y);
+  Circle_2 scithk(sc1,sc2,sc3);
+  vector< CGAL::Object > res;
+  CGAL::intersection(scithk, perp, std::back_inserter(res));
+  Point_2 upperleft;
+  vector< CGAL::Object >::const_iterator iter;
+  for (iter = res.begin(); iter != res.end(); iter++)
+    {
+      CGAL::Object obj = *iter;
+      if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
+	{
+	  if (CGAL::to_double(point->first.y()) > 0)
+	    {
+	      cout << "std::pair<Circular_arc_point_2<Circular_k>, unsigned>" << endl;
+	      cout << "intersect: " << point->first << ", n: " << point->second << endl;
+	      cout << "tangente x: " << CGAL::to_double(point->first.x()) << ", tangente y: " << CGAL::to_double(point->first.y()) << endl;
+	    }
+	  Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
+	  upperleft = pntmp;
+	}
+      else
+	{
+	  cout << "CGAL::Object type not pair..." << endl;
+	}
+    }
+ 
+
+  return NULL;
 }
 
 G4VSolid*
@@ -212,8 +258,9 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
   // now for the right corners, construct line from left corners with
   // slope of tilt angle and intersect with circle with outer radius
   // upper left cornet first
+			    //			    CGAL::to_double(upperleftcorner.y()) - (abs(tilt_angle) / tilt_angle)*tan(tilt_angle));
   Point_2 upperleftcorner_1(CGAL::to_double(upperleftcorner.x()) + 1,
-			    CGAL::to_double(upperleftcorner.y()) - (abs(tilt_angle) / tilt_angle)*tan(tilt_angle));
+			    CGAL::to_double(upperleftcorner.y()) - (boost::math::sign(tilt_angle)*tan(tilt_angle)));
   Line_2 upperborder(upperleftcorner, upperleftcorner_1);
   res.clear(); // just clear the content from the last intersection search
   CGAL::intersection(c_outer, upperborder, std::back_inserter(res));
@@ -234,7 +281,7 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
     }
   // lower right corner
   Point_2 lowerleftcorner_1(CGAL::to_double(lowerleftcorner.x()) + 1,
-			    CGAL::to_double(lowerleftcorner.y()) - (abs(tilt_angle) / tilt_angle)*tan(tilt_angle));
+			    CGAL::to_double(lowerleftcorner.y()) - (boost::math::sign(tilt_angle)*tan(tilt_angle+boost::math::sign(tilt_angle)*2*M_PI/n_scinti_plates)));
   Line_2 lowerborder(lowerleftcorner, lowerleftcorner_1 );
   Point_2 lowerrightcorner;
   res.clear();
@@ -269,7 +316,7 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
 					       zero, 1.0,
 					       zero, 1.0);
 
-  DisplayVolume(steel_plate, hcalenvelope);
+  //  DisplayVolume(steel_plate, hcalenvelope);
   return steel_plate;
 }
 
@@ -283,7 +330,7 @@ PHG4InnerHcalDetector::ConstructScintillator(G4LogicalVolume *hcalenvelope)
 }
 
 
-
+// 
 void
 PHG4InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
 {
@@ -311,8 +358,31 @@ PHG4InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
 int
 PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
 {
-  ConstructSteelPlate(hcalenvelope);
-  ConstructScintillator(hcalenvelope);
+   G4VSolid *steel_plate  = ConstructSteelPlate(hcalenvelope);
+G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial("G4_Fe"), "HcalOuterSteelPlate", 0, 0, 0);
+  G4VisAttributes *visattchk = new G4VisAttributes();
+  visattchk->SetVisibility(true);
+  visattchk->SetForceSolid(false);
+  visattchk->SetColour(G4Colour::Cyan());
+  steel_logical->SetVisAttributes(visattchk);
+  double thickness = single_steel_angular_coverage;
+  thickness += scinti_gap;
+  double phi = 0;
+  //double deltaphi = acos((2 * envelope_inner_radius * envelope_inner_radius - thickness * thickness) / (2 * envelope_inner_radius * envelope_inner_radius));
+  double deltaphi = 2*M_PI/n_scinti_plates;
+  double xpos = 0;
+  double ypos = 0;
+  ostringstream name;
+  for (int i = 0; i < 10; i++)
+    {
+      G4RotationMatrix *Rot = new G4RotationMatrix();
+      Rot->rotateZ(-phi * rad);
+      name.str("");
+      name << "HcalSteel_" << i;
+       new G4PVPlacement(Rot, G4ThreeVector(xpos, ypos, 0), steel_logical, name.str().c_str(), hcalenvelope, 0, i, overlapcheck);
+       phi += deltaphi;
+    }
+  //  ConstructScintillator(hcalenvelope);
   return 0;
 }
 
