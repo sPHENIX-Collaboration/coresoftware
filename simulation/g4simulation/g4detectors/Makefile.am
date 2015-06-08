@@ -4,6 +4,8 @@ AUTOMAKE_OPTIONS = foreign
 lib_LTLIBRARIES = \
     libg4detectors.la
 
+AM_CPPFLAGS = -DCGAL_DISABLE_ROUNDING_MATH_CHECK
+
 AM_LDFLAGS = \
     -L$(libdir) \
     -L$(OFFLINE_MAIN)/lib
