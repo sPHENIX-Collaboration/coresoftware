@@ -79,7 +79,7 @@ private:
 
   int ConstructCrystals(G4LogicalVolume* envelope);
 
-  int FillCrystalUnit(G4LogicalVolume *crystal_logic);
+  int Fill4x4Unit(G4LogicalVolume *crystal_logic);
 
   /* Calorimeter envelope geometry */
   G4double _place_in_x;
@@ -117,7 +117,7 @@ private:
   std::string _crystallogicnameprefix;
   std::string _superdetector;
   std::string _inputFile;
-  std::string _inputFile_4by4;
+  std::string _inputFile_4x4_construct;
 };
 
 #endif

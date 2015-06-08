@@ -64,8 +64,8 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode 
   _active(1),
   _crystallogicnameprefix("eEcalCrystal"),
   _superdetector("NONE"),
-  _inputFile( "/direct/phenix+u/jlab/github/sPHENIX-Fork/calibrations/CrystalCalorimeter/mapping/crystals_v002.txt" ),
-  _inputFile_4by4( "/direct/phenix+u/jlab/github/sPHENIX-Fork/calibrations/CrystalCalorimeter/mapping/2_by_2_crystals_v001.txt" )
+  _inputFile( "/direct/phenix+u/jlab/github/sPHENIX-Fork/calibrations/CrystalCalorimeter/mapping/crystals_v004.txt" ),
+  _inputFile_4x4_construct( "/direct/phenix+u/jlab/github/sPHENIX-Fork/calibrations/CrystalCalorimeter/mapping/4_by_4_construction_v004.txt" )
 {
 
 }
@@ -114,7 +114,6 @@ PHG4CrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
 
   /* Define visualization attributes for envelope cone */
   G4VisAttributes* ecalVisAtt = new G4VisAttributes();
- // ecalVisAtt->SetVisibility(true);
   ecalVisAtt->SetVisibility(false);
   ecalVisAtt->SetForceSolid(false);
   ecalVisAtt->SetColour(G4Colour::Magenta());
@@ -148,7 +147,7 @@ PHG4CrystalCalorimeterDetector::CrystalDimensions(G4double& dx_front, G4double& 
 } 
 
 int
-PHG4CrystalCalorimeterDetector::FillCrystalUnit(G4LogicalVolume *crystal_logic)
+PHG4CrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 {
 
 	//*************************************
@@ -211,7 +210,6 @@ PHG4CrystalCalorimeterDetector::FillCrystalUnit(G4LogicalVolume *crystal_logic)
 	
 	G4VisAttributes *visattchk_2 = new G4VisAttributes();
 	visattchk_2->SetVisibility(true);
-//	visattchk_2->SetVisibility(false);
 	visattchk_2->SetForceSolid(true);
 	visattchk_2->SetColour(G4Colour::Cyan());
 	crystal_logic_small->SetVisAttributes(visattchk_2);
@@ -239,7 +237,6 @@ PHG4CrystalCalorimeterDetector::FillCrystalUnit(G4LogicalVolume *crystal_logic)
                 0, 0, 0);
 	
 	G4VisAttributes *visattchk_4 = new G4VisAttributes();
-//	visattchk_4->SetVisibility(true);
 	visattchk_4->SetVisibility(false);
 	visattchk_4->SetForceSolid(true);
 	visattchk_4->SetColour(G4Colour::Grey());
@@ -252,8 +249,8 @@ PHG4CrystalCalorimeterDetector::FillCrystalUnit(G4LogicalVolume *crystal_logic)
 	
 	//The first four lines of the data file refer to the 2x2 block, and the last four lines refer to the mapping of the 4x4 block
 
-	const string Crystal_Mapping_Small = _inputFile_4by4;	//Get the mapping file for the 4 x 4 block
-	const int NumberOfIndices = 8; 				//Number of indices in mapping file for 4x4 block
+	const string Crystal_Mapping_Small = _inputFile_4x4_construct;		//Get the mapping file for the 4 x 4 block
+	const int NumberOfIndices = 9; 						//Number of indices in mapping file for 4x4 block
 
         ifstream datafile_2;
 
@@ -301,37 +298,41 @@ PHG4CrystalCalorimeterDetector::FillCrystalUnit(G4LogicalVolume *crystal_logic)
 	
 	G4int j_idx, k_idx;
 	G4double x_cent, y_cent, z_cent, rot_x, rot_y, rot_z;
+	G4int MappingIndex;
 
 	j = 0;
-	while (4 > j) {
-		j_idx = TwoByTwo[j][0];
-		k_idx = TwoByTwo[j][1];
-		x_cent = TwoByTwo[j][2];
-		y_cent = TwoByTwo[j][3];
-		z_cent = TwoByTwo[j][4];
-		rot_x = TwoByTwo[j][5];
-		rot_y = TwoByTwo[j][6];
-		rot_z = TwoByTwo[j][7];
+	while (j_cry > j) {
+		MappingIndex = TwoByTwo[j][8];		
+		if (MappingIndex == 1) {
+			j_idx = TwoByTwo[j][0];
+			k_idx = TwoByTwo[j][1];
+			x_cent = TwoByTwo[j][2];
+			y_cent = TwoByTwo[j][3];
+			z_cent = TwoByTwo[j][4];
+			rot_x = TwoByTwo[j][5];
+			rot_y = TwoByTwo[j][6];
+			rot_z = TwoByTwo[j][7];
 
-	        G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
+			G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
-	        G4RotationMatrix *Rot = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
-		        Rot->rotateX(0*rad);
-		        Rot->rotateY(0*rad);
-		        Rot->rotateZ(rot_z*rad);
+			G4RotationMatrix *Rot = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
+				Rot->rotateX(0*rad);
+				Rot->rotateY(0*rad);
+				Rot->rotateZ(rot_z*rad);
 
-		ostringstream crystal_name;
-		crystal_name.str("");
-	        crystal_name << "eEcal_crystal" << "_j_"<< j_idx << "_k_" << k_idx;
-		
-		new G4PVPlacement( Rot, Crystal_Center,
-        	        crystal_logic_small,
-			crystal_name.str().c_str(),
-        	        Two_by_Two_logic,
-        	        0, 0, overlapcheck);
-		
-		j_idx = k_idx = 0;
-		x_cent = y_cent = z_cent = rot_x = rot_y = rot_z = 0.0;
+			ostringstream crystal_name;
+			crystal_name.str("");
+			crystal_name << "eEcal_crystal" << "_j_"<< j_idx << "_k_" << k_idx;
+			
+			new G4PVPlacement( Rot, Crystal_Center,
+				crystal_logic_small,
+				crystal_name.str().c_str(),
+				Two_by_Two_logic,
+				0, 0, overlapcheck);
+			
+			j_idx = k_idx = 0;
+			x_cent = y_cent = z_cent = rot_x = rot_y = rot_z = 0.0;
+		}
 		j++;
 	}
 	
@@ -339,36 +340,41 @@ PHG4CrystalCalorimeterDetector::FillCrystalUnit(G4LogicalVolume *crystal_logic)
 	//*************************************************************	
 	//Place the 2x2 volume in the 4x4 volume 4 times, with rotation
 	//*************************************************************	
-	
+
+	j = 0;
 	while (j_cry > j) {
-		j_idx = TwoByTwo[j][0];
-		k_idx = TwoByTwo[j][1];
-		x_cent = TwoByTwo[j][2];
-		y_cent = TwoByTwo[j][3];
-		z_cent = TwoByTwo[j][4];
-		rot_x = TwoByTwo[j][5];
-		rot_y = TwoByTwo[j][6];
-		rot_z = TwoByTwo[j][7];
+		MappingIndex = TwoByTwo[j][8];		
+		if (MappingIndex == 4) {
+			j_idx = TwoByTwo[j][0];
+			k_idx = TwoByTwo[j][1];
+			x_cent = TwoByTwo[j][2];
+			y_cent = TwoByTwo[j][3];
+			z_cent = TwoByTwo[j][4];
+			rot_x = TwoByTwo[j][5];
+			rot_y = TwoByTwo[j][6];
+			rot_z = TwoByTwo[j][7];
 
-	        G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
+			G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
-	        G4RotationMatrix *Rot = new G4RotationMatrix();
-		        Rot->rotateX(rot_x*rad);
-		        Rot->rotateY(rot_y*rad);
-		        Rot->rotateZ(0*rad);
+			G4RotationMatrix *Rot = new G4RotationMatrix();
+				Rot->rotateX(rot_x*rad);
+				Rot->rotateY(rot_y*rad);
+				Rot->rotateZ(0*rad);
 
-		ostringstream Two_by_Two_name;
-		Two_by_Two_name.str("");
-	        Two_by_Two_name << "2_by_2" << "_j_"<< j_idx << "_k_" << k_idx;
-	
-		new G4PVPlacement( Rot, Crystal_Center,
-        	        Two_by_Two_logic,
-        	        Two_by_Two_name.str().c_str(),
-        	        crystal_logic,
-        	        0, 0, overlapcheck);
+			ostringstream Two_by_Two_name;
+			Two_by_Two_name.str("");
+			Two_by_Two_name << "2_by_2" << "_j_"<< j_idx << "_k_" << k_idx;
+		
+			new G4PVPlacement( Rot, Crystal_Center,
+				Two_by_Two_logic,
+				Two_by_Two_name.str().c_str(),
+				crystal_logic,
+				0, 0, overlapcheck);
 
-		j_idx = k_idx = 0;
-		x_cent = y_cent = z_cent = rot_x = rot_y = rot_z = 0.0;
+			j_idx = k_idx = 0;
+			x_cent = y_cent = z_cent = rot_x = rot_y = rot_z = 0.0;
+		}
+
 		j++;
 	}
 
@@ -404,8 +410,14 @@ PHG4CrystalCalorimeterDetector::FillCrystalUnit(G4LogicalVolume *crystal_logic)
 	//----------------------------------------------------------------------------------------------------
 	//First 2x2 crystal: j = 4
 
-	j = 4;
-	
+	j = 0;
+	G4int counter = 0;
+	while (j_cry > counter) {
+		MappingIndex = TwoByTwo[j][8];		
+		if (MappingIndex != 4) j++;
+		counter++;
+	}
+
 	x_cent = TwoByTwo[j][2];
 	y_cent = TwoByTwo[j][3];
 	z_cent = TwoByTwo[j][4];
@@ -428,7 +440,7 @@ PHG4CrystalCalorimeterDetector::FillCrystalUnit(G4LogicalVolume *crystal_logic)
 	j++;
 
 	//----------------------------------------------------------------------------------------------------
-	//Second 2x2 crystal: j = 5
+	//Second 2x2 crystal
 
 	x_cent = TwoByTwo[j][2];
 	y_cent = TwoByTwo[j][3];
@@ -452,7 +464,7 @@ PHG4CrystalCalorimeterDetector::FillCrystalUnit(G4LogicalVolume *crystal_logic)
 	j++;
 
 	//----------------------------------------------------------------------------------------------------
-	//Third 2x2 crystal: j = 6
+	//Third 2x2 crystal
 	
 	x_cent = TwoByTwo[j][2];
 	y_cent = TwoByTwo[j][3];
@@ -476,7 +488,7 @@ PHG4CrystalCalorimeterDetector::FillCrystalUnit(G4LogicalVolume *crystal_logic)
 	j++;
 
 	//----------------------------------------------------------------------------------------------------
-	//Final 2x2 crystal: j = 7
+	//Final 2x2 crystal
 	
 	x_cent = TwoByTwo[j][2];
 	y_cent = TwoByTwo[j][3];
@@ -546,7 +558,7 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 {
 
 	G4int NumberOfLines;		 			//Number of crystals to be created.
-	const G4int NumberOfIndices = 7; 			//Different dimensions needed for crystal placement
+	const G4int NumberOfIndices = 9; 			//Different dimensions needed for crystal placement
 	const string FileName = _inputFile.c_str();		//File in which crystal positions are stored
 	
 	G4int j_cry, k_cry;					//Indices for matrix
@@ -582,8 +594,8 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	visattchk->SetForceSolid(true);
 	visattchk->SetColour(G4Colour::Yellow());
 	crystal_logic->SetVisAttributes(visattchk);
-	
-	FillCrystalUnit(crystal_logic);
+
+	Fill4x4Unit(crystal_logic);
 
 	ostringstream name;
 
@@ -628,8 +640,11 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 
 	// Find the maximum k index
 	G4int k_max = 0;
+	G4int MappingIndex; 
 	j = 0;
 	while (j_cry > j){
+		MappingIndex = Crystals[j][8];
+		if( MappingIndex != 16 ) break;
 		if(Crystals[j][1] > k_max) k_max = Crystals[j][1];
 		j++;
 	}
@@ -637,6 +652,10 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	//Second Quadrant
 	j = 0;
 	while (j_cry > j) {
+
+		MappingIndex = Crystals[j][8];
+		if( MappingIndex != 16 ) break;
+
 		j_idx = Crystals[j][0];
 		k_idx = Crystals[j][1];
 		x_cent = Crystals[j][2] - _place_in_x;
@@ -671,6 +690,10 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	//First Quadrant
         j = 0;
         while (j_cry > j) {
+
+		MappingIndex = Crystals[j][8];
+		if( MappingIndex != 16 ) break;
+
                 j_idx = k_max - Crystals[j][0];
                 k_idx = Crystals[j][1];
                 x_cent = -1.0 * ( Crystals[j][2] - _place_in_x );
@@ -704,6 +727,10 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	//Fourth Quadrant
         j = 0;
         while (j_cry > j) {
+
+		MappingIndex = Crystals[j][8];
+		if( MappingIndex != 16 ) break;
+
                 j_idx = Crystals[j][0];
                 k_idx = k_max - Crystals[j][1];
                 x_cent = -1.0 * ( Crystals[j][2] - _place_in_x );
@@ -734,6 +761,10 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	//Third Quadrant
         j = 0;
         while (j_cry > j) {
+
+		MappingIndex = Crystals[j][8];
+		if( MappingIndex != 16 ) break;
+
                 j_idx = k_max - Crystals[j][0];
                 k_idx = k_max - Crystals[j][1];
                 x_cent = Crystals[j][2] - _place_in_x;
