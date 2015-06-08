@@ -64,7 +64,8 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode 
   _active(1),
   _crystallogicnameprefix("eEcalCrystal"),
   _superdetector("NONE"),
-  _inputFile( "/direct/phenix+u/jlab/github/sPHENIX-Fork/calibrations/CrystalCalorimeter/mapping/crystals_v002.txt" )
+  _inputFile( "/direct/phenix+u/jlab/github/sPHENIX-Fork/calibrations/CrystalCalorimeter/mapping/crystals_v002.txt" ),
+  _inputFile_4by4( "/direct/phenix+u/jlab/github/sPHENIX-Fork/calibrations/CrystalCalorimeter/mapping/2_by_2_crystals_v001.txt" )
 {
 
 }
@@ -166,33 +167,28 @@ PHG4CrystalCalorimeterDetector::FillCrystalUnit(G4LogicalVolume *crystal_logic)
 		CarbonFiber->AddElement(elC, 1);
 	
 	//Air
-	//G4Material* Air = G4Material::GetMaterial("G4_AIR");
+	G4Material* Air = G4Material::GetMaterial("G4_AIR");
 
 	
 	//*************************************
 	//**********Build First Crystal********
 	//*************************************
 	
-	//Crystal Dimensions determined by the _dx_front, with 0.18 subtracted out from all sides for carbon fiber
-	G4double carbon_fiber_width = 0.18*mm;						//Width of the carbon fiber which surrounds the crystal
-	G4double air_gap_carbon_fiber = 0.24*mm; 					//Air gap between crystal and the carbon fiber
-	G4double air_gap_crystals = 0.60*mm;						//Air gap between crystal and crystal
-	//Crystal Dimensions
-	G4double dx_front_small = ( _dx_front - (2.0 * carbon_fiber_width ) - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;	
-	G4double dy_front_small = ( _dy_front - (2.0 * carbon_fiber_width )  - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;	
-	G4double dx_back_small = ( _dx_back - (2.0 * carbon_fiber_width )  - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;	
-	G4double dy_back_small = (_dy_back - (2.0 * carbon_fiber_width )  - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;
-	G4double dz = _dz_crystal;
-	
-	//cout << " | " << dx_front_small << " | " << dy_front_small << " | " << dx_back_small << " | " << dy_back_small << " | " << endl;
+	//Crystal Dimensions determined by the _dx_front, with various gaps and carbon fiber widths subtracted out
 
-	//Carbon fiber dimensions
-	G4double dx_front_large = dx_front_small + carbon_fiber_width;
-	G4double dy_front_large = dy_front_small + carbon_fiber_width;
-	G4double dx_back_large = dx_back_small + carbon_fiber_width;
-	G4double dy_back_large = dy_back_small + carbon_fiber_width;
-	
-	//Vertices of the primary crystal
+	//Parameters of the spacing given by PANDA document arXiv:0810.1216v1 Fig. 7.25
+	G4double carbon_fiber_width = 0.18*mm;													//Width of the carbon fiber which surrounds the crystal
+	G4double air_gap_carbon_fiber = 0.24*mm; 												//Air gap between crystal and the carbon fiber
+	G4double air_gap_crystals = 0.60*mm;													//Air gap between crystal and crystal
+
+	//Crystal Dimensions
+	G4double dx_front_small = ( _dx_front - (2.0 * carbon_fiber_width ) - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;		//Full width of the front crystal face	
+	G4double dy_front_small = ( _dy_front - (2.0 * carbon_fiber_width )  - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;		//Full height of the front crystal face
+	G4double dx_back_small = ( _dx_back - (2.0 * carbon_fiber_width )  - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;		//Full width of the back crystal face
+	G4double dy_back_small = (_dy_back - (2.0 * carbon_fiber_width )  - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;		//Full height of the back crystal face
+	G4double dz = _dz_crystal;
+
+	//Vertices of the primary, irregularly shaped crystal put into a vector
 	std::vector<G4TwoVector> vertices;
 	vertices.push_back(G4TwoVector( 0, 0));
 	vertices.push_back(G4TwoVector( 0,  dy_front_small));
@@ -220,66 +216,62 @@ PHG4CrystalCalorimeterDetector::FillCrystalUnit(G4LogicalVolume *crystal_logic)
 	visattchk_2->SetColour(G4Colour::Cyan());
 	crystal_logic_small->SetVisAttributes(visattchk_2);
 	
-	//Create the carbon fiber backbone to surround the primary, irregularly shaped crystal on the sloping sides
+	//****************************************************
+	//Build the solid/logical volume for the 2 x 2 crystal
+	//****************************************************
 
-	//Carbon fiber with same vertices as the primary crystal -> use same vertices
-	G4VSolid* carbon_solid_small = new G4GenericTrap( G4String("carbon_solid_small"), 
-							dz,
-							vertices );	
+	G4double TwoByTwo_dx1 = ( (2.0 * dx_front_small) + (2.0 * air_gap_carbon_fiber) + air_gap_crystals ) / 2.0;
+	G4double TwoByTwo_dx2 = ( (2.0 * dx_back_small) + (2.0 * air_gap_carbon_fiber) + air_gap_crystals ) / 2.0;
+	G4double TwoByTwo_dy1 = TwoByTwo_dx1;
+	G4double TwoByTwo_dy2 = TwoByTwo_dx2;
+	G4double TwoByTwo_dz = _dz_crystal; 
 
-	//Carbon fiber with larger dimensions (vertices + carbon fiber)
-	std::vector<G4TwoVector> vertices_carbon_large;
-	vertices_carbon_large.push_back(G4TwoVector( 0, 0));
-	vertices_carbon_large.push_back(G4TwoVector( 0,  dy_front_large));
-	vertices_carbon_large.push_back(G4TwoVector(  dx_front_large,  dy_front_large));
-	vertices_carbon_large.push_back(G4TwoVector(  dx_front_large, 0));
- 	vertices_carbon_large.push_back(G4TwoVector( 0, 0));
-	vertices_carbon_large.push_back(G4TwoVector( 0,  dy_back_large));
-	vertices_carbon_large.push_back(G4TwoVector(  dx_back_large,  dy_back_large));
-	vertices_carbon_large.push_back(G4TwoVector(  dx_back_large, 0));
+	G4VSolid* Two_by_Two_solid = new G4Trd(G4String("Two_by_Two_solid"),
+		TwoByTwo_dx1,						//Half length on the small face in x
+		TwoByTwo_dx2,						//Half length on the large face in x
+		TwoByTwo_dy1,						//Half length on the small face in y
+		TwoByTwo_dy2,						//Half length on the large face in y
+		TwoByTwo_dz);						//Half length in z
+
+        G4LogicalVolume *Two_by_Two_logic = new G4LogicalVolume( Two_by_Two_solid,
+                Air,
+                "2_by_2_unit",
+                0, 0, 0);
 	
-	G4VSolid* carbon_solid_large = new G4GenericTrap( G4String("carbon_solid_large"), 
-							dz,
-							vertices_carbon_large );
+	G4VisAttributes *visattchk_4 = new G4VisAttributes();
+//	visattchk_4->SetVisibility(true);
+	visattchk_4->SetVisibility(false);
+	visattchk_4->SetForceSolid(true);
+	visattchk_4->SetColour(G4Colour::Grey());
+	Two_by_Two_logic->SetVisAttributes(visattchk_4);
 	
-	//Use G4SubtractionSolid to subtract 1 from 2
-	G4SubtractionSolid* Carbon_Shell_Solid = new G4SubtractionSolid(G4String("Carbon_Shell_Solid"), 
-								  carbon_solid_large,
-								  carbon_solid_small);
 	
-	G4LogicalVolume *Carbon_Shell = new G4LogicalVolume( Carbon_Shell_Solid,
-							CarbonFiber,
-							"Carbon_Shell",
-							0, 0, 0);
-
-        G4VisAttributes *visattchk_3 = new G4VisAttributes();
-//        visattchk_3->SetVisibility(true);
-	visattchk_3->SetVisibility(false);
-        visattchk_3->SetForceSolid(true);
-        visattchk_3->SetColour(G4Colour::Black());
-        Carbon_Shell->SetVisAttributes(visattchk_3);
-
+	//*************************************************************
+	//Read in mapping file for a single 2 x 2 block and 4 x 4 block
+	//*************************************************************
 	
-	//Read in mapping file for a single 4 x 4 block
+	//The first four lines of the data file refer to the 2x2 block, and the last four lines refer to the mapping of the 4x4 block
 
-	const string Crystal_Mapping_Small = "/direct/phenix+u/jlab/github/wip/Crystal_Subunit_Mapping.txt";
-	const int NumberOfIndices = 6; // Number of indices in mapping file for 4x4 block
+	const string Crystal_Mapping_Small = _inputFile_4by4;	//Get the mapping file for the 4 x 4 block
+	const int NumberOfIndices = 8; 				//Number of indices in mapping file for 4x4 block
 
         ifstream datafile_2;
 
+	//Open the datafile, if it won't open return an error
         if (!datafile_2.is_open())
         {
                 datafile_2.open(Crystal_Mapping_Small.c_str());
                 if(!datafile_2)
                 {
                         cerr << endl << "*******************************************************************" << endl;
-                        cerr << "ERROR in 4 by 4 crystal mapping"; 
+                        cerr << "ERROR in 2 by 2 crystal mapping"; 
 			cerr << "Failed to open " << Crystal_Mapping_Small <<" --- Exiting program." << endl;
                         cerr << "*******************************************************************" << endl << endl;
                         exit(1);
                 }
         }
 
+	//Find the number of lines in the file, make and fill a NumberOfLines by NumberOfIndices matrix with contents of data file
 	int NumberOfLines = 0;
         ifstream in(Crystal_Mapping_Small.c_str());
         std::string unused;
@@ -289,33 +281,37 @@ PHG4CrystalCalorimeterDetector::FillCrystalUnit(G4LogicalVolume *crystal_logic)
 	G4int j_cry = NumberOfLines;
 	G4int k_cry = NumberOfIndices;
 
-	double FourByFour[j_cry][k_cry];
+	double TwoByTwo[j_cry][k_cry];
 
 	G4int j = 0;
         G4int k = 0;
 
         while (j_cry > j) {
                 while (k_cry > k) {
-                        datafile_2 >> FourByFour[j][k];
+                        datafile_2 >> TwoByTwo[j][k];
                         k++;
                 }
                 j++;
                 k = 0;
         }
-	
-	//Place this new mother volume 16 times in the mother volume (called in function)
+
+	//**************************************************	
+	//Place the single crystal in the 2x2 volume 4 times
+	//**************************************************	
 	
 	G4int j_idx, k_idx;
-	G4double x_cent, y_cent, z_cent, rot_z;
+	G4double x_cent, y_cent, z_cent, rot_x, rot_y, rot_z;
 
 	j = 0;
-	while (j_cry > j) {
-		j_idx = FourByFour[j][0];
-		k_idx = FourByFour[j][1];
-		x_cent = FourByFour[j][2];
-		y_cent = FourByFour[j][3];
-		z_cent = FourByFour[j][4];
-		rot_z = FourByFour[j][5];
+	while (4 > j) {
+		j_idx = TwoByTwo[j][0];
+		k_idx = TwoByTwo[j][1];
+		x_cent = TwoByTwo[j][2];
+		y_cent = TwoByTwo[j][3];
+		z_cent = TwoByTwo[j][4];
+		rot_x = TwoByTwo[j][5];
+		rot_y = TwoByTwo[j][6];
+		rot_z = TwoByTwo[j][7];
 
 	        G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
@@ -327,32 +323,221 @@ PHG4CrystalCalorimeterDetector::FillCrystalUnit(G4LogicalVolume *crystal_logic)
 		ostringstream crystal_name;
 		crystal_name.str("");
 	        crystal_name << "eEcal_crystal" << "_j_"<< j_idx << "_k_" << k_idx;
-
-		ostringstream carbon_fiber_name;
-		carbon_fiber_name.str("");
-		carbon_fiber_name << "Carbon_Fiber_" << j;
-
+		
 		new G4PVPlacement( Rot, Crystal_Center,
         	        crystal_logic_small,
-        	        crystal_name.str().c_str(),
-        	        crystal_logic,
+			crystal_name.str().c_str(),
+        	        Two_by_Two_logic,
         	        0, 0, overlapcheck);
-
-                G4ThreeVector Carbon_Center = G4ThreeVector((x_cent + carbon_fiber_width / 2.0 )*mm, (y_cent + carbon_fiber_width / 2.0 )*mm, z_cent*mm); //not sure about this placement.. have to check visualization.
-		new G4PVPlacement(Rot, Carbon_Center,
-			Carbon_Shell,
-			carbon_fiber_name.str().c_str(),
-			crystal_logic,
-			0, 0, overlapcheck);
-
+		
 		j_idx = k_idx = 0;
-		x_cent = y_cent = z_cent = rot_z = 0.0;
+		x_cent = y_cent = z_cent = rot_x = rot_y = rot_z = 0.0;
 		j++;
 	}
 	
-	return 0;
+
+	//*************************************************************	
+	//Place the 2x2 volume in the 4x4 volume 4 times, with rotation
+	//*************************************************************	
+	
+	while (j_cry > j) {
+		j_idx = TwoByTwo[j][0];
+		k_idx = TwoByTwo[j][1];
+		x_cent = TwoByTwo[j][2];
+		y_cent = TwoByTwo[j][3];
+		z_cent = TwoByTwo[j][4];
+		rot_x = TwoByTwo[j][5];
+		rot_y = TwoByTwo[j][6];
+		rot_z = TwoByTwo[j][7];
+
+	        G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
+
+	        G4RotationMatrix *Rot = new G4RotationMatrix();
+		        Rot->rotateX(rot_x*rad);
+		        Rot->rotateY(rot_y*rad);
+		        Rot->rotateZ(0*rad);
+
+		ostringstream Two_by_Two_name;
+		Two_by_Two_name.str("");
+	        Two_by_Two_name << "2_by_2" << "_j_"<< j_idx << "_k_" << k_idx;
+	
+		new G4PVPlacement( Rot, Crystal_Center,
+        	        Two_by_Two_logic,
+        	        Two_by_Two_name.str().c_str(),
+        	        crystal_logic,
+        	        0, 0, overlapcheck);
+
+		j_idx = k_idx = 0;
+		x_cent = y_cent = z_cent = rot_x = rot_y = rot_z = 0.0;
+		j++;
+	}
+
+	//*****************************
+	//Create the carbon fiber shell
+	//*****************************
+
+	//Create a hunk of carbon fiber the same size as the mother volume
+
+	G4double dx1, dy1, dx2, dy2, dz_whole;
+
+	G4double carbon_fiber_adjust_width = 1.0*0.1520909091*mm;	//Because the crystals are slightly angled, the carbon fiber needs to be shortened 
+	G4double carbon_fiber_adjust_length = 3.0000*mm;		//	from the mother volume (to prevent clipping) by this amount.
+
+	dx1 = _dx_front + carbon_fiber_adjust_width;
+	dy1 = dx1;
+	dx2 = _dx_back - carbon_fiber_adjust_width;
+	dy2 = dx2;
+	dz_whole = _dz_crystal -  carbon_fiber_adjust_length;	//Carbon fiber shell should be slightly shorter than whole volume
+
+	
+	G4VSolid* Carbon_hunk_solid = new G4Trd(G4String("Carbon_hunk_solid"),
+		dx1,						//Half length on the small face in x
+		dx2,						//Half length on the large face in x
+		dy1,						//Half length on the small face in y
+		dy2,						//Half length on the large face in y
+		dz_whole);					//Half length in z
+
 	
 
+	//Use subtraction solid to remove the crystal volumes from the carbon fiber hunk
+	
+	//----------------------------------------------------------------------------------------------------
+	//First 2x2 crystal: j = 4
+
+	j = 4;
+	
+	x_cent = TwoByTwo[j][2];
+	y_cent = TwoByTwo[j][3];
+	z_cent = TwoByTwo[j][4];
+	rot_x = TwoByTwo[j][5];
+	rot_y = TwoByTwo[j][6];
+	rot_z = TwoByTwo[j][7];
+
+	G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
+
+	G4RotationMatrix *Rot_1 = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
+		Rot_1->rotateX(rot_x*rad);
+		Rot_1->rotateY(rot_y*rad);
+		Rot_1->rotateZ(0*rad);
+
+        G4SubtractionSolid* Carbon_Shell_1 = new G4SubtractionSolid(G4String("Carbon_Shell_1"),
+								Carbon_hunk_solid,
+								Two_by_Two_solid,
+								Rot_1,
+								Crystal_Center);
+	j++;
+
+	//----------------------------------------------------------------------------------------------------
+	//Second 2x2 crystal: j = 5
+
+	x_cent = TwoByTwo[j][2];
+	y_cent = TwoByTwo[j][3];
+	z_cent = TwoByTwo[j][4];
+	rot_x = TwoByTwo[j][5];
+	rot_y = TwoByTwo[j][6];
+	rot_z = TwoByTwo[j][7];
+
+	Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
+
+	G4RotationMatrix *Rot_2 = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
+		Rot_2->rotateX(rot_x*rad);
+		Rot_2->rotateY(rot_y*rad);
+		Rot_2->rotateZ(0*rad);
+
+        G4SubtractionSolid* Carbon_Shell_2 = new G4SubtractionSolid(G4String("Carbon_Shell_2"),
+								Carbon_Shell_1,
+								Two_by_Two_solid,
+								Rot_2,
+								Crystal_Center);
+	j++;
+
+	//----------------------------------------------------------------------------------------------------
+	//Third 2x2 crystal: j = 6
+	
+	x_cent = TwoByTwo[j][2];
+	y_cent = TwoByTwo[j][3];
+	z_cent = TwoByTwo[j][4];
+	rot_x = TwoByTwo[j][5];
+	rot_y = TwoByTwo[j][6];
+	rot_z = TwoByTwo[j][7];
+
+	Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
+
+	G4RotationMatrix *Rot_3 = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
+		Rot_3->rotateX(rot_x*rad);
+		Rot_3->rotateY(rot_y*rad);
+		Rot_3->rotateZ(0*rad);
+
+        G4SubtractionSolid* Carbon_Shell_3 = new G4SubtractionSolid(G4String("Carbon_Shell_3"),
+								Carbon_Shell_2,
+								Two_by_Two_solid,
+								Rot_3,
+								Crystal_Center);
+	j++;
+
+	//----------------------------------------------------------------------------------------------------
+	//Final 2x2 crystal: j = 7
+	
+	x_cent = TwoByTwo[j][2];
+	y_cent = TwoByTwo[j][3];
+	z_cent = TwoByTwo[j][4];
+	rot_x = TwoByTwo[j][5];
+	rot_y = TwoByTwo[j][6];
+	rot_z = TwoByTwo[j][7];
+
+	Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
+
+	G4RotationMatrix *Rot_4 = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
+		Rot_4->rotateX(rot_x*rad);
+		Rot_4->rotateY(rot_y*rad);
+		Rot_4->rotateZ(0*rad);
+
+        G4SubtractionSolid* Carbon_Shell_solid = new G4SubtractionSolid(G4String("Carbon_Shell_solid"),
+								Carbon_Shell_3,
+								Two_by_Two_solid,
+								Rot_4,
+								Crystal_Center);
+	j++;
+
+	//----------------------------------------------------------------------------------------------------
+	
+	//Create logical volume with the subtracted solid, made from carbon fiber material defined earlier
+
+        G4LogicalVolume *Carbon_Shell_logic = new G4LogicalVolume( Carbon_Shell_solid,
+                CarbonFiber,
+                "Carbon_Fiber_logic",
+                0, 0, 0);
+	
+	G4VisAttributes *visattchk_5 = new G4VisAttributes();
+	visattchk_5->SetVisibility(true);
+	visattchk_5->SetForceSolid(true);
+	visattchk_5->SetColour(G4Colour::Black());
+	Carbon_Shell_logic->SetVisAttributes(visattchk_5);
+
+
+
+	//*************************************
+	//Place the carbon fiber shell at (0,0)
+	//*************************************
+
+	G4ThreeVector Carbon_Center = G4ThreeVector(0*mm, 0*mm, 0*mm);
+
+	G4RotationMatrix *Rot_5 = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
+		Rot_5->rotateX(0*rad);
+		Rot_5->rotateY(0*rad);
+		Rot_5->rotateZ(0*rad);
+
+	new G4PVPlacement(Rot_5, Carbon_Center,
+		Carbon_Shell_logic,
+		"Carbon_Fiber_Shell",
+		crystal_logic,
+		0, 0, overlapcheck);
+
+	//***********************************
+	//All done! Return to parent function
+	//***********************************
+
+	return 0;
 }
 
 //_______________________________________________________________________
@@ -374,7 +559,7 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	G4double dy2 = 0.0;					//Half of the extent of the back face of the trapezoid in y
 	G4double dz =  0.0;					//Half of the extent of the crystal in z
 
-	CrystalDimensions(dx1, dy1, dx2, dy2, dz); 		//File crystal dimensions with function PHG4CrystalCalorimeterDetector::CrystalDimensions
+	CrystalDimensions(dx1, dy1, dx2, dy2, dz); 		//Fill crystal dimensions with function PHG4CrystalCalorimeterDetector::CrystalDimensions
 
 	//Create single crystal
 
@@ -385,7 +570,6 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 		dy2,						//Half length on the large face in y
 		dz);						//Half length in z
 
-//	G4Material* material_crystal = G4Material::GetMaterial(_materialCrystal.c_str());
 	G4Material* Air = G4Material::GetMaterial("G4_AIR");
 
 	G4LogicalVolume *crystal_logic = new G4LogicalVolume( crystal_solid,
@@ -394,7 +578,6 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 		0, 0, 0);
 
 	G4VisAttributes *visattchk = new G4VisAttributes();
-//	visattchk->SetVisibility(true);
 	visattchk->SetVisibility(false);
 	visattchk->SetForceSolid(true);
 	visattchk->SetColour(G4Colour::Yellow());

@@ -117,6 +117,7 @@ private:
   std::string _crystallogicnameprefix;
   std::string _superdetector;
   std::string _inputFile;
+  std::string _inputFile_4by4;
 };
 
 #endif
