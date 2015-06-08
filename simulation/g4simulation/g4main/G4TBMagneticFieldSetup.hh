@@ -54,13 +54,12 @@ class G4TBMagneticFieldSetup
 {
 public:
 
-  G4TBMagneticFieldSetup(G4ThreeVector) ;  //  The value of the field
   G4TBMagneticFieldSetup(const float magfield) ;
   G4TBMagneticFieldSetup(const std::string &fieldmapfile, const int mapdim) ;
 
   virtual ~G4TBMagneticFieldSetup() ;  
 
-  void Verbosity(int verb) {verbosity = verb;}
+  void Verbosity(const int verb) {verbosity = verb;}
   
   void SetStepperType( const G4int i) { fStepperType = i ; }
 
@@ -102,7 +101,7 @@ private:
  
   G4TBFieldMessenger*      fFieldMessenger;
 
-  double magfield_at_000[4];
+  double magfield_at_000[3];
 
 };
 

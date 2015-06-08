@@ -92,7 +92,7 @@ G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const float magfield)
 
   double point[4] = {0,0,0,0};
   fEMfield->GetFieldValue(&point[0],&magfield_at_000[0]);
-  for (int i=0; i<4;i++)
+  for (int i=0; i<sizeof(magfield_at_000)/sizeof(double);i++)
     {
       magfield_at_000[i] = magfield_at_000[i]/tesla;
     }
@@ -131,43 +131,16 @@ G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const string &fieldmapname, const
   UpdateField();
   double point[4] = {0,0,0,0};
   fEMfield->GetFieldValue(&point[0],&magfield_at_000[0]);
-  for (int i=0; i<4;i++)
+  for (int i=0; i<sizeof(magfield_at_000)/sizeof(double);i++)
     {
       magfield_at_000[i] = magfield_at_000[i]/tesla;
     }
-//   cout << "field: x" << magfield_at_000[0]
-//        << ", y: " << magfield_at_000[1]
-//        << ", z: " << magfield_at_000[2]
-//        << endl;
+   cout << "field: x" << magfield_at_000[0]
+        << ", y: " << magfield_at_000[1]
+        << ", z: " << magfield_at_000[2]
+        << endl;
 }
 
-G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(G4ThreeVector pFV)
-  : verbosity(0),
-    fChordFinder(NULL), 
-    fStepper(NULL),
-    fIntgrDriver(NULL)
-{    
-
-  fEMfield = new PHG4Field3D("Sim3D++.root");
-  fEMfield = new G4UniformMagField(pFV);
-  // GetGlobalFieldManager()->CreateChordFinder(this);
-
-  fFieldMessenger = new G4TBFieldMessenger(this) ;  
-  fEquation = new  G4Mag_UsualEqRhs(fEMfield); 
-  fMinStep     = 0.005*mm ; // minimal step of 10 microns
-  fStepperType = 4 ;        // ClassicalRK4 -- the default stepper
-
-  fill_n(magfield_at_000,sizeof(magfield_at_000)/sizeof(double),NAN);
-
-  fFieldManager = GetGlobalFieldManager();
-  UpdateField();
-  double point[4] = {0,0,0,0};
-  fEMfield->GetFieldValue(&point[0],&magfield_at_000[0]);
-  for (int i=0; i<4;i++)
-    {
-      magfield_at_000[i] = magfield_at_000[i]/tesla;
-    }
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 
