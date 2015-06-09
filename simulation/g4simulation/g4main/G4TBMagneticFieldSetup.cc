@@ -92,7 +92,7 @@ G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const float magfield)
 
   double point[4] = {0,0,0,0};
   fEMfield->GetFieldValue(&point[0],&magfield_at_000[0]);
-  for (int i=0; i<sizeof(magfield_at_000)/sizeof(double);i++)
+  for (size_t i=0; i<sizeof(magfield_at_000)/sizeof(double);i++)
     {
       magfield_at_000[i] = magfield_at_000[i]/tesla;
     }
@@ -131,7 +131,7 @@ G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const string &fieldmapname, const
   UpdateField();
   double point[4] = {0,0,0,0};
   fEMfield->GetFieldValue(&point[0],&magfield_at_000[0]);
-  for (int i=0; i<sizeof(magfield_at_000)/sizeof(double);i++)
+  for (size_t i=0; i<sizeof(magfield_at_000)/sizeof(double);i++)
     {
       magfield_at_000[i] = magfield_at_000[i]/tesla;
     }
