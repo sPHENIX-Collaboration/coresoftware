@@ -135,10 +135,13 @@ G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const string &fieldmapname, const
     {
       magfield_at_000[i] = magfield_at_000[i]/tesla;
     }
-   cout << "field: x" << magfield_at_000[0]
-        << ", y: " << magfield_at_000[1]
-        << ", z: " << magfield_at_000[2]
-        << endl;
+  if (verbosity > 0)
+    {
+      cout << "field: x" << magfield_at_000[0]
+	   << ", y: " << magfield_at_000[1]
+	   << ", z: " << magfield_at_000[2]
+	   << endl;
+    }
 }
 
 
