@@ -322,7 +322,7 @@ PHG4CrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 
 			ostringstream crystal_name;
 			crystal_name.str("");
-			crystal_name << "eEcal_crystal" << "_j_"<< j_idx << "_k_" << k_idx;
+			crystal_name << _crystallogicnameprefix << "_j_"<< j_idx << "_k_" << k_idx;
 			
 			new G4PVPlacement( Rot, Crystal_Center,
 				crystal_logic_small,
@@ -363,7 +363,7 @@ PHG4CrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 
 			ostringstream Two_by_Two_name;
 			Two_by_Two_name.str("");
-			Two_by_Two_name << "2_by_2" << "_j_"<< j_idx << "_k_" << k_idx;
+			Two_by_Two_name << "TwoByTwo" << "_j_"<< j_idx << "_k_" << k_idx;
 		
 			new G4PVPlacement( Rot, Crystal_Center,
 				Two_by_Two_logic,
@@ -408,7 +408,7 @@ PHG4CrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 	//Use subtraction solid to remove the crystal volumes from the carbon fiber hunk
 	
 	//----------------------------------------------------------------------------------------------------
-	//First 2x2 crystal: j = 4
+	//First 2x2 crystal
 
 	j = 0;
 	G4int counter = 0;
@@ -672,7 +672,7 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 		Rot->rotateZ(0*rad);
 
 		name.str("");
-		name << _crystallogicnameprefix << "_j_" << j_idx << "_k_" << k_idx;
+		name << "FourByFour" << "_j_" << j_idx << "_k_" << k_idx;
 		
 		new G4PVPlacement( Rot, Crystal_Center,
 			crystal_logic,
@@ -710,7 +710,7 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
                 Rot->rotateZ(0*rad);
 
                 name.str("");
-                name << _crystallogicnameprefix << "_j_" << j_idx << "_k_" << k_idx;
+                name << "FourByFour" << "_j_" << j_idx << "_k_" << k_idx;
 
                 new G4PVPlacement( Rot, Crystal_Center,
                         crystal_logic,
@@ -747,7 +747,7 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
                 Rot->rotateZ(0*rad);
 
                 name.str("");
-                name << _crystallogicnameprefix << "_j_" << j_idx << "_k_" << k_idx;
+                name << "FourByFour" << "_j_" << j_idx << "_k_" << k_idx;
 
                 new G4PVPlacement( Rot, Crystal_Center,
                         crystal_logic,
@@ -781,7 +781,7 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
                 Rot->rotateZ(0*rad);
 
                 name.str("");
-                name << _crystallogicnameprefix << "_j_" << j_idx << "_k_" << k_idx;
+                name << "FourByFour" << "_j_" << j_idx << "_k_" << k_idx;
 
                 new G4PVPlacement( Rot, Crystal_Center,
                         crystal_logic,
