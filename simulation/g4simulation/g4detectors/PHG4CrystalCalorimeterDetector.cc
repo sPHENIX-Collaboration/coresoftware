@@ -55,17 +55,22 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode 
   _dZ(180*mm),
   _sPhi(0),
   _dPhi(2*M_PI),
-  _dx_front(50.19*mm),
-  _dy_front(50.19*mm),
-  _dx_back(59.3154545455*mm),
-  _dy_back(59.3154545455*mm),
+//  _dx_front(50.19*mm),
+//  _dy_front(50.19*mm),
+//  _dx_back(59.3154545455*mm),
+//  _dy_back(59.3154545455*mm),
+//  _dz_crystal(90.000*mm),
+  _dx_front(41.44*mm),
+  _dy_front(41.44*mm),
+  _dx_back(48.97454545455*mm),
+  _dy_back(48.97454545455*mm),
   _dz_crystal(90.000*mm),
   _materialCrystal( "G4_PbWO4" ),
   _active(1),
   _crystallogicnameprefix("eEcalCrystal"),
   _superdetector("NONE"),
-  _inputFile( "/direct/phenix+u/jlab/github/sPHENIX-Fork/calibrations/CrystalCalorimeter/mapping/crystals_v004.txt" ),
-  _inputFile_4x4_construct( "/direct/phenix+u/jlab/github/sPHENIX-Fork/calibrations/CrystalCalorimeter/mapping/4_by_4_construction_v004.txt" )
+  _inputFile( "/direct/phenix+u/jlab/github/sPHENIX-Fork/calibrations/CrystalCalorimeter/mapping/crystals_v005.txt" ),
+  _inputFile_4x4_construct( "/direct/phenix+u/jlab/github/sPHENIX-Fork/calibrations/CrystalCalorimeter/mapping/4_by_4_construction_v005.txt" )
 {
 
 }
@@ -386,8 +391,8 @@ PHG4CrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 
 	G4double dx1, dy1, dx2, dy2, dz_whole;
 
-	G4double carbon_fiber_adjust_width = 1.0*0.1520909091*mm;	//Because the crystals are slightly angled, the carbon fiber needs to be shortened 
-	G4double carbon_fiber_adjust_length = 3.0000*mm;		//	from the mother volume (to prevent clipping) by this amount.
+	G4double carbon_fiber_adjust_width = 0.1258525627*mm;	//Because the crystals are slightly angled, the carbon fiber needs to be shortened 
+	G4double carbon_fiber_adjust_length = 2.4824474402*mm;		//	from the mother volume (to prevent clipping) by this amount.
 
 	dx1 = _dx_front + carbon_fiber_adjust_width;
 	dy1 = dx1;
