@@ -25,28 +25,23 @@ typedef unsigned long long phtime_t;
    
     PHTimeStamp();
 
-    PHTimeStamp(int, int, int, int, int, int, int = 0);
-    PHTimeStamp(time_t);
-#ifndef __CINT__
-    //   PHTimeStamp(phtime_t);
+    PHTimeStamp(const int, const int, const int, const int, const int, const int, const int = 0);
+    PHTimeStamp(const time_t);
     void setBinTics(const phtime_t t);
    
-#endif
     virtual ~PHTimeStamp() {}
 
   public: 
-    void set(int, int, int, int, int, int, int = 0);
+    void set(const int, const int, const int, const int, const int, const int, const int = 0);
 
     void set(const char *);
 
     void setToSystemTime();
     void setToFarFuture() { setTics(PHFarFuture); }
    
-#ifndef __CINT__
     phtime_t getBinaryTime() const { return binaryTime; }
-#endif   
     time_t getTics() const;
-    void   setTics(time_t);
+    void   setTics(const time_t);
 
     int isInRange(const PHTimeStamp &, const PHTimeStamp &);
     void print();
@@ -67,15 +62,11 @@ typedef unsigned long long phtime_t;
     void print() const;
   
   private:
-#ifndef __CINT__
     phtime_t ticsToBinaryTime(time_t) const;
     time_t   binaryTimeToTics(phtime_t) const;
-#endif
   
   protected: 
-    //#ifndef __CINT__
     phtime_t binaryTime;
-    //#endif
     ClassDef(PHTimeStamp,1)
   }; 
 
