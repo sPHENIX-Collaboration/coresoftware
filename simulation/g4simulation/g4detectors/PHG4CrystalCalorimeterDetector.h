@@ -81,6 +81,8 @@ private:
 
   int Fill4x4Unit(G4LogicalVolume *crystal_logic);
 
+  int FillSpecialUnit(G4LogicalVolume *crystal_logic, G4int ident);
+
   /* Calorimeter envelope geometry */
   G4double _place_in_x;
   G4double _place_in_y;
