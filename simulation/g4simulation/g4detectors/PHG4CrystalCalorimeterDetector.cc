@@ -793,7 +793,7 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 
 				G4RotationMatrix *Rot = new G4RotationMatrix();
 					Rot->rotateX(rot_x*rad);
-					Rot->rotateY(rot_y*rad);
+					Rot->rotateY(0*rad);
 					Rot->rotateZ(0*rad);
 
 				ostringstream Two_by_Two_name;
@@ -845,10 +845,20 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 	//Create Carbon Fiber
 	//*******************
 
-	G4VSolid *Carbon_hunk_solid = crystal_logic->GetSolid();
+	G4double dx1, dx2, dy1, dy2;
+	CrystalDimensions(dx1, dy1, dx2, dy2, dz);
+
 
 	if (ident == 12) 
 	{
+
+		G4VSolid* Carbon_hunk_solid = new G4Trd(G4String("Carbon_hunk_solid"),
+			(dx1/2.00 + 0.0209292929),					//Half length on the small face in x
+			(dx2/2.00 - 0.0209292929),					//Half length on the large face in x
+			(dy1/2.00 + 0.0209292929),					//Half length on the small face in y
+			(dy2/2.0 - 0.0209292929),					//Half length on the large face in y
+			(dz - 2*mm));
+
 		x_cent = 0*mm;
 		y_cent = 0*mm;
 		z_cent = 0*mm;
@@ -903,6 +913,16 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 	else if (ident == 22)
 	{
 
+		G4double carbon_fiber_adjust_width = 0.1258525627*mm;	//Because the crystals are slightly angled, the carbon fiber needs to be shortened 
+		G4double carbon_fiber_adjust_length = 2.4824474402*mm;		//	from the mother volume (to prevent clipping) by this amount.
+
+		G4VSolid* Carbon_hunk_solid = new G4Trd(G4String("Carbon_hunk_solid"),
+			(dx1/2.0 + (0.0519558696*mm)),					//Half length on the small face in x
+			(dx2/2.0 - (0.0519558696*mm)),					//Half length on the large face in x
+			(dy1 + carbon_fiber_adjust_width),						//Half length on the small face in y
+			(dy2 - carbon_fiber_adjust_width),						//Half length on the large face in y
+			(dz - carbon_fiber_adjust_length));						//Half length in z
+
 		j = 0;
 		G4int counter = 0;
 		while (j_cry > counter) 
@@ -925,7 +945,7 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 
 		G4RotationMatrix *Rot_1 = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
 			Rot_1->rotateX(rot_x*rad);
-			Rot_1->rotateY(rot_y*rad);
+			Rot_1->rotateY(0*rad);
 			Rot_1->rotateZ(0*rad);
 
 		G4SubtractionSolid* Carbon_Shell_1 = new G4SubtractionSolid(G4String("Carbon_Shell_1"),
@@ -949,7 +969,7 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 
 		G4RotationMatrix *Rot_2 = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
 			Rot_2->rotateX(rot_x*rad);
-			Rot_2->rotateY(rot_y*rad);
+			Rot_2->rotateY(0*rad);
 			Rot_2->rotateZ(0*rad);
 
 		G4SubtractionSolid* Carbon_Shell_solid = new G4SubtractionSolid(G4String("Carbon_Shell_solid"),
@@ -990,6 +1010,56 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 	else if (ident == 32)
 	{
 
+		x_cent = 22.6036363636 + 0.18000*2.0;
+		y_cent = x_cent;
+		z_cent = 0.00;
+		G4double rot_x = 0.020928529;
+		G4double rot_y = -1.0*rot_x;
+		G4double rot_z = 0.00;
+
+		G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
+
+		G4RotationMatrix *Rot_1 = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
+			Rot_1->rotateX(rot_x*rad);
+			Rot_1->rotateY(rot_y*rad);
+			Rot_1->rotateZ(0*rad);
+
+		G4VSolid* FourByFour_hunk_solid = new G4Trd(G4String("4x4_hunk_solid"),
+			dx1,						//Half length on the small face in x
+			dx2,						//Half length on the large face in x
+			dy1,						//Half length on the small face in y
+			dy2,						//Half length on the large face in y
+			dz);						//Half length in z
+
+		//Parameters of the spacing given by PANDA document arXiv:0810.1216v1 Fig. 7.25
+		G4double carbon_fiber_width = 0.18*mm;													//Width of the carbon fiber which surrounds the crystal
+		G4double air_gap_carbon_fiber = 0.24*mm; 												//Air gap between crystal and the carbon fiber
+		G4double air_gap_crystals = 0.60*mm;													//Air gap between crystal and crystal
+
+		//Crystal Dimensions
+		G4double dx_front_small = ( _dx_front - (2.0 * carbon_fiber_width ) - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;		//Full width of the front crystal face	
+		//G4double dy_front_small = ( _dy_front - (2.0 * carbon_fiber_width )  - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;		//Full height of the front crystal face
+		G4double dx_back_small = ( _dx_back - (2.0 * carbon_fiber_width )  - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;		//Full width of the back crystal face
+		//G4double dy_back_small = (_dy_back - (2.0 * carbon_fiber_width )  - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;		//Full height of the back crystal face
+		
+		G4double TwoByTwo_dx1 = ( (2.0 * dx_front_small) + (2.0 * air_gap_carbon_fiber) + air_gap_crystals ) / 2.0;
+		G4double TwoByTwo_dx2 = ( (2.0 * dx_back_small) + (2.0 * air_gap_carbon_fiber) + air_gap_crystals ) / 2.0;
+		G4double TwoByTwo_dy1 = TwoByTwo_dx1;
+		G4double TwoByTwo_dy2 = TwoByTwo_dx2;
+		G4double TwoByTwo_dz = _dz_crystal; 
+
+		G4VSolid* Two_by_Two_solid = new G4Trd(G4String("Two_by_Two_solid"),
+			TwoByTwo_dx1,						//Half length on the small face in x
+			TwoByTwo_dx2,						//Half length on the large face in x
+			TwoByTwo_dy1,						//Half length on the small face in y
+			TwoByTwo_dy2,						//Half length on the large face in y
+			TwoByTwo_dz+5*mm);						//Half length in z
+
+		G4SubtractionSolid* Carbon_hunk_solid = new G4SubtractionSolid(G4String("Carbon_hunk_solid"),
+									FourByFour_hunk_solid,
+									Two_by_Two_solid,
+									Rot_1,
+									Crystal_Center);
 
 		//First 2x2 crystal
 
@@ -1008,17 +1078,17 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 		rot_y = TwoByTwo[j][6];
 		rot_z = TwoByTwo[j][7];
 
-		G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
+		Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
-		G4RotationMatrix *Rot_1 = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
-			Rot_1->rotateX(rot_x*rad);
-			Rot_1->rotateY(rot_y*rad);
-			Rot_1->rotateZ(0*rad);
+		G4RotationMatrix *Rot_6 = new G4RotationMatrix(); //rotation matrix for the placement of each crystal
+			Rot_6->rotateX(rot_x*rad);
+			Rot_6->rotateY(rot_y*rad);
+			Rot_6->rotateZ(0*rad);
 
 		G4SubtractionSolid* Carbon_Shell_1 = new G4SubtractionSolid(G4String("Carbon_Shell_1"),
 									Carbon_hunk_solid,
 									Two_by_Two_solid,
-									Rot_1,
+									Rot_6,
 									Crystal_Center);
 		j++;
 
@@ -1701,7 +1771,6 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 
                 j++;
         }
-	
-	
+
 	return 0;
 }
