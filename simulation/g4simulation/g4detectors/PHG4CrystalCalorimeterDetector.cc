@@ -151,6 +151,25 @@ PHG4CrystalCalorimeterDetector::CrystalDimensions(G4double& dx_front, G4double& 
 	
 } 
 
+
+void
+PHG4CrystalCalorimeterDetector::CarbonFiberAdjustments(G4double& adjust_width, G4double& adjust_length)
+{
+        adjust_width = 0.1258525627*mm;   //Because the crystals are slightly angled, the carbon fiber needs to be shortened 
+        adjust_length = 2.4824474402*mm;  //      from the mother volume (to prevent clipping) by this amount.
+}
+
+
+void
+PHG4CrystalCalorimeterDetector::CarbonFiberSpacing(G4double& CF_width, G4double& Air_CF, G4double& Air_Cry)
+{
+        //Parameters of the spacing given by PANDA document arXiv:0810.1216v1 Fig. 7.25
+        CF_width = 0.18*mm;		//Width of the carbon fiber which surrounds the crystal
+        Air_CF = 0.24*mm;		//Air gap between crystal and the carbon fiber
+        Air_Cry = 0.60*mm;		//Air gap between crystal and crystal
+}
+
+
 int
 PHG4CrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 {
@@ -169,7 +188,7 @@ PHG4CrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 	G4double density_carbon_fiber = 0.144*g/cm3;
 	G4Material* CarbonFiber = new G4Material("CarbonFiber", density_carbon_fiber, 1);
 		CarbonFiber->AddElement(elC, 1);
-	
+
 	//Air
 	G4Material* Air = G4Material::GetMaterial("G4_AIR");
 
@@ -181,9 +200,8 @@ PHG4CrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 	//Crystal Dimensions determined by the _dx_front, with various gaps and carbon fiber widths subtracted out
 
 	//Parameters of the spacing given by PANDA document arXiv:0810.1216v1 Fig. 7.25
-	G4double carbon_fiber_width = 0.18*mm;													//Width of the carbon fiber which surrounds the crystal
-	G4double air_gap_carbon_fiber = 0.24*mm; 												//Air gap between crystal and the carbon fiber
-	G4double air_gap_crystals = 0.60*mm;													//Air gap between crystal and crystal
+	G4double carbon_fiber_width, air_gap_carbon_fiber, air_gap_crystals;
+	CarbonFiberSpacing(carbon_fiber_width, air_gap_carbon_fiber, air_gap_crystals);
 
 	//Crystal Dimensions
 	G4double dx_front_small = ( _dx_front - (2.0 * carbon_fiber_width ) - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;		//Full width of the front crystal face	
@@ -205,13 +223,13 @@ PHG4CrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
  	
 	//Create the primary, irregularly shaped crystal
 	G4VSolid* crystal_solid_small = new G4GenericTrap( G4String("eEcal_crystal"), 
-							dz,
-							vertices );
+		dz,
+		vertices );
 	
 	G4LogicalVolume *crystal_logic_small = new G4LogicalVolume( crystal_solid_small,
-								material_crystal,
-								"eEcal_crystal",
-								0, 0, 0);
+		material_crystal,
+		"eEcal_crystal",
+		0, 0, 0);
 	
 	G4VisAttributes *visattchk_2 = new G4VisAttributes();
 	visattchk_2->SetVisibility(true);
@@ -288,8 +306,10 @@ PHG4CrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 	G4int j = 0;
         G4int k = 0;
 
-        while (j_cry > j) {
-                while (k_cry > k) {
+        while (j_cry > j) 
+	{
+                while (k_cry > k) 
+		{
                         datafile_2 >> TwoByTwo[j][k];
                         k++;
                 }
@@ -389,10 +409,9 @@ PHG4CrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 
 	//Create a hunk of carbon fiber the same size as the mother volume
 
-	G4double dx1, dy1, dx2, dy2, dz_whole;
+	G4double dx1, dy1, dx2, dy2, dz_whole, carbon_fiber_adjust_width, carbon_fiber_adjust_length;
 
-	G4double carbon_fiber_adjust_width = 0.1258525627*mm;	//Because the crystals are slightly angled, the carbon fiber needs to be shortened 
-	G4double carbon_fiber_adjust_length = 2.4824474402*mm;		//	from the mother volume (to prevent clipping) by this amount.
+	CarbonFiberAdjustments(carbon_fiber_adjust_width, carbon_fiber_adjust_length);
 
 	dx1 = _dx_front + carbon_fiber_adjust_width;
 	dy1 = dx1;
@@ -588,9 +607,8 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 	//Crystal Dimensions determined by the _dx_front, with various gaps and carbon fiber widths subtracted out
 
 	//Parameters of the spacing given by PANDA document arXiv:0810.1216v1 Fig. 7.25
-	G4double carbon_fiber_width = 0.18*mm;													//Width of the carbon fiber which surrounds the crystal
-	G4double air_gap_carbon_fiber = 0.24*mm; 												//Air gap between crystal and the carbon fiber
-	G4double air_gap_crystals = 0.60*mm;													//Air gap between crystal and crystal
+	G4double carbon_fiber_width, air_gap_carbon_fiber, air_gap_crystals;
+	CarbonFiberSpacing(carbon_fiber_width, air_gap_carbon_fiber, air_gap_crystals);
 
 	//Crystal Dimensions
 	G4double dx_front_small = ( _dx_front - (2.0 * carbon_fiber_width ) - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;		//Full width of the front crystal face	
@@ -913,12 +931,14 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 	else if (ident == 22)
 	{
 
-		G4double carbon_fiber_adjust_width = 0.1258525627*mm;	//Because the crystals are slightly angled, the carbon fiber needs to be shortened 
-		G4double carbon_fiber_adjust_length = 2.4824474402*mm;		//	from the mother volume (to prevent clipping) by this amount.
+		G4double carbon_fiber_adjust_width;	//Because the crystals are slightly angled, the carbon fiber needs to be shortened 
+		G4double carbon_fiber_adjust_length;	//	from the mother volume (to prevent clipping) by this amount.
+		CarbonFiberAdjustments(carbon_fiber_adjust_width, carbon_fiber_adjust_length);
+		G4double x_adjust = 0.0519558696*mm;
 
 		G4VSolid* Carbon_hunk_solid = new G4Trd(G4String("Carbon_hunk_solid"),
-			(dx1/2.0 + (0.0519558696*mm)),					//Half length on the small face in x
-			(dx2/2.0 - (0.0519558696*mm)),					//Half length on the large face in x
+			(dx1/2.0 + (x_adjust)),								//Half length on the small face in x
+			(dx2/2.0 - (x_adjust)),								//Half length on the large face in x
 			(dy1 + carbon_fiber_adjust_width),						//Half length on the small face in y
 			(dy2 - carbon_fiber_adjust_width),						//Half length on the large face in y
 			(dz - carbon_fiber_adjust_length));						//Half length in z
@@ -1032,9 +1052,8 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 			dz);						//Half length in z
 
 		//Parameters of the spacing given by PANDA document arXiv:0810.1216v1 Fig. 7.25
-		G4double carbon_fiber_width = 0.18*mm;													//Width of the carbon fiber which surrounds the crystal
-		G4double air_gap_carbon_fiber = 0.24*mm; 												//Air gap between crystal and the carbon fiber
-		G4double air_gap_crystals = 0.60*mm;													//Air gap between crystal and crystal
+		G4double carbon_fiber_width, air_gap_carbon_fiber, air_gap_crystals;
+		CarbonFiberSpacing(carbon_fiber_width, air_gap_carbon_fiber, air_gap_crystals);
 
 		//Crystal Dimensions
 		G4double dx_front_small = ( _dx_front - (2.0 * carbon_fiber_width ) - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;		//Full width of the front crystal face	
@@ -1053,7 +1072,7 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 			TwoByTwo_dx2,						//Half length on the large face in x
 			TwoByTwo_dy1,						//Half length on the small face in y
 			TwoByTwo_dy2,						//Half length on the large face in y
-			TwoByTwo_dz+5*mm);						//Half length in z
+			TwoByTwo_dz+2*mm);						//Half length in z
 
 		G4SubtractionSolid* Carbon_hunk_solid = new G4SubtractionSolid(G4String("Carbon_hunk_solid"),
 									FourByFour_hunk_solid,
@@ -1061,7 +1080,8 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 									Rot_1,
 									Crystal_Center);
 
-		//First 2x2 crystal
+		//----------------------------------------------------------------------------------------------------
+		//First 2x2 crystal hole
 
 		j = 0;
 		G4int counter = 0;
@@ -1093,7 +1113,7 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 		j++;
 
 		//----------------------------------------------------------------------------------------------------
-		//Second 2x2 crystal
+		//Second 2x2 crystal hole
 
 		x_cent = TwoByTwo[j][2];
 		y_cent = TwoByTwo[j][3];
@@ -1117,7 +1137,7 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 		j++;
 
 		//----------------------------------------------------------------------------------------------------
-		//Third 2x2 crystal
+		//Third 2x2 crystal hole
 		
 		x_cent = TwoByTwo[j][2];
 		y_cent = TwoByTwo[j][3];
@@ -1169,7 +1189,8 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 	}
 	else
 	{
-		cout << endl << "Something is terribly, terribly wrong... Sorry :)" << endl;
+		cerr << endl << "This is an error message which should never be shown. You may have disabled an important portion of this code upsream. Sorry :)" << endl;
+		return -1;
 	}
 
 	return 0;
@@ -1190,11 +1211,11 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 	G4int j_idx, k_idx;					//Indices of each crstals
 	G4double x_cent, y_cent, z_cent, r_theta, r_phi;	//Coordinates of crystal in [x,y,z,theta,phi]
 
-	G4double dx1 = 0.0;					//Half of the extent of the front face of the trapezoid in x
-	G4double dx2 = 0.0; 					//Half of the extent of the back face of the trapezoid in x
-	G4double dy1 = 0.0;					//Half of the extent of the front face of the trapezoid in y
-	G4double dy2 = 0.0;					//Half of the extent of the back face of the trapezoid in y
-	G4double dz =  0.0;					//Half of the extent of the crystal in z
+	G4double dx1;					//Half of the extent of the front face of the trapezoid in x
+	G4double dx2; 					//Half of the extent of the back face of the trapezoid in x
+	G4double dy1;					//Half of the extent of the front face of the trapezoid in y
+	G4double dy2;					//Half of the extent of the back face of the trapezoid in y
+	G4double dz;					//Half of the extent of the crystal in z
 
 	CrystalDimensions(dx1, dy1, dx2, dy2, dz); 		//Fill crystal dimensions with function PHG4CrystalCalorimeterDetector::CrystalDimensions
 
