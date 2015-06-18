@@ -44,7 +44,7 @@ typedef CGAL::Segment_2<Circular_k>                Segment_2;
 
 using namespace std;
 
-static double no_overlap = 0.00015 * cm; // added safety margin against overlaps by using same boundary between volumes
+static double no_overlap = 0.000;//15 * cm; // added safety margin against overlaps by using same boundary between volumes
 PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, const std::string &dnam, const int lyr  ):
   PHG4Detector(Node, dnam),
   inner_radius(1160 * mm),
@@ -128,15 +128,11 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
 {
   double mid_radius = inner_radius + (outer_radius-inner_radius)/2.;
   Point_2 p_in_1(mid_radius,0); // center of scintillator
-  double angle_mid_scinti = M_PI/2. - tilt_angle;
-  if ( tilt_angle < 0) // dumb - but I don't use boost sign here
-    {
-      angle_mid_scinti = M_PI/2. + tilt_angle;
-    }
+  double angle_mid_scinti = M_PI/2. - fabs(tilt_angle);
   cout << "scinti center: x " << CGAL::to_double(p_in_1.x()) << ", y: " <<  CGAL::to_double(p_in_1.y()) << endl;
   // x coordinate of end of center vertical
-  double xcoord = scinti_tile_y * cos(angle_mid_scinti*rad) + mid_radius;
-  double ycoord =   scinti_tile_y * sin(angle_mid_scinti*rad) + 0;
+  double xcoord = scinti_tile_y/2. * cos(angle_mid_scinti*rad) + mid_radius;
+  double ycoord =   scinti_tile_y/2. * sin(angle_mid_scinti*rad) + 0;
   Point_2 p_upperedge(xcoord,ycoord);
   Line_2 s2(p_in_1,p_upperedge); // center vertical
 
@@ -153,31 +149,31 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
       if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
 	{
 	  if (CGAL::to_double(point->first.x()) >  CGAL::to_double(p_upperedge.x()))
+	    {
+	      cout << "std::pair<Circular_arc_point_2<Circular_k>, unsigned>" << endl;
+	      //	      cout << "intersect: " << point->first << ", n: " << point->second << endl;
+	      cout << "upper right x: " << CGAL::to_double(point->first.x()) << ", y: " << CGAL::to_double(point->first.y()) << endl;
+	      double deltax = CGAL::to_double(point->first.x())-CGAL::to_double(p_upperedge.x());
+	      double deltay = CGAL::to_double(point->first.y())-CGAL::to_double(p_upperedge.y());
+	      cout << "dist: " << sqrt(deltax*deltax+deltay*deltay) << endl;
+	      // sqrt(deltax*deltax+deltay*deltay) is distance from scintilator center to outer edge
+	      // the scintillator is twice as long
+	      scinti_tile_x = 2*sqrt(deltax*deltax+deltay*deltay); // 
+	      Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
+	      upperright = pntmp;
+	    }
+	}
+      else
 	{
-	  cout << "std::pair<Circular_arc_point_2<Circular_k>, unsigned>" << endl;
-	  //	      cout << "intersect: " << point->first << ", n: " << point->second << endl;
-	  cout << "upper right x: " << CGAL::to_double(point->first.x()) << ", y: " << CGAL::to_double(point->first.y()) << endl;
-	  double deltax = CGAL::to_double(point->first.x())-CGAL::to_double(p_upperedge.x());
-	  double deltay = CGAL::to_double(point->first.y())-CGAL::to_double(p_upperedge.y());
-	  cout << "dist: " << sqrt(deltax*deltax+deltay*deltay) << endl;
-	  // sqrt(deltax*deltax+deltay*deltay) is distance from scintilator center to outer edge
-	  // the scintillator is twice as long
-          scinti_tile_x = 2*sqrt(deltax*deltax+deltay*deltay); // 
-	  Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
-	  upperright = pntmp;
+	  cout << "CGAL::Object type not pair..." << endl;
 	}
-	}
-  else
-    {
-      cout << "CGAL::Object type not pair..." << endl;
-    }
     }
   cout << "scinti_tile_x : " << scinti_tile_x << ", scinti_tile_y: " << scinti_tile_y
        << ", scinti_tile_z: " << scinti_tile_z << endl;
   G4VSolid* scintibox =  new G4Box("ScintiTile", scinti_tile_x / 2., scinti_tile_y / 2., scinti_tile_z / 2.);
  
   return scintibox;
- }
+}
 
 G4VSolid*
 PHG4InnerHcalDetector::ConstructScintillatorBoxA(G4LogicalVolume* hcalenvelope)
