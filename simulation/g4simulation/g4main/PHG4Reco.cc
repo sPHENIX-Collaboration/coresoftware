@@ -606,14 +606,14 @@ PHG4Reco::DefineMaterials()
 
   G4Material * SS310 =
     new G4Material("SS310", density = 8.0 * g / cm3, ncomponents = 8);
-  StainlessSteel->AddElement(Fe, 0.50455);
-  StainlessSteel->AddElement(Cr, 0.25);
-  StainlessSteel->AddElement(Ni, 0.20);
-  StainlessSteel->AddElement(Mn, 0.02);
-  StainlessSteel->AddElement(C, 0.0025);
-  StainlessSteel->AddElement(S, 0.015);
-  StainlessSteel->AddElement(Si, 0.0075);
-  StainlessSteel->AddElement(P, 0.00045);
+  SS310->AddElement(Fe, 0.50455);
+  SS310->AddElement(Cr, 0.25);
+  SS310->AddElement(Ni, 0.20);
+  SS310->AddElement(Mn, 0.02);
+  SS310->AddElement(C, 0.0025);
+  SS310->AddElement(S, 0.015);
+  SS310->AddElement(Si, 0.0075);
+  SS310->AddElement(P, 0.00045);
 
   G4Material * Steel =
     new G4Material("Steel", density = 7.86 * g / cm3, ncomponents = 5);
