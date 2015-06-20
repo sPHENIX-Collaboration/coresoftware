@@ -387,7 +387,7 @@ int PHG4Evaluator::process_event(PHCompositeNode *topNode)
   fillCellToG4HitMap();
   fillClusterToG4HitMap();
 
-  fillClusterToG4HitLinks(topNode);
+  //fillClusterToG4HitLinks(topNode);
 
   _internal_timer[3].get()->stop();
   
@@ -397,8 +397,8 @@ int PHG4Evaluator::process_event(PHCompositeNode *topNode)
   
   _internal_timer[4].get()->restart();
   if (_trackingWasRun) fillTrackToGtrackMap();
-  if (_trackingWasRun) fillTrackToG4TruthInfoLinks(topNode);
-  if (_trackingWasRun) fillG4TruthInfoToTrackLinks(topNode);
+  //if (_trackingWasRun) fillTrackToG4TruthInfoLinks(topNode);
+  //if (_trackingWasRun) fillG4TruthInfoToTrackLinks(topNode);
   _internal_timer[4].get()->stop();
   
   //------------------------
