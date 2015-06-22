@@ -3,6 +3,7 @@
 
 #include <phool/PHObject.h>
 #include <cmath>
+#include <climits>
 
 class PHG4Hit: public PHObject
 {
@@ -25,15 +26,15 @@ class PHG4Hit: public PHObject
   virtual float get_edep() const {return NAN;}
   virtual float get_eion() const {return NAN;}
   virtual float get_light_yield() const {return NAN;}
-  virtual float    get_path_length() const {return NAN;}
-  virtual unsigned int get_layer() const {return 0xffffffff;}
-  virtual unsigned int get_hit_id() const {return 0xffffffff;}
-  virtual int get_scint_id() const {return -9999;}
-  virtual int get_trkid() const {return -9999;}
-  virtual int get_strip_z_index() const {return -9999;}
-  virtual int get_strip_y_index() const {return -9999;}
-  virtual int get_ladder_z_index() const {return -9999;}
-  virtual int get_ladder_phi_index() const {return -9999;}
+  virtual float get_path_length() const {return NAN;}
+  virtual unsigned int get_layer() const {return UINT_MAX;}
+  virtual unsigned int get_hit_id() const {return UINT_MAX;}
+  virtual int get_scint_id() const {return INT_MIN;}
+  virtual int get_trkid() const {return INT_MIN;}
+  virtual int get_strip_z_index() const {return INT_MIN;}
+  virtual int get_strip_y_index() const {return INT_MIN;}
+  virtual int get_ladder_z_index() const {return INT_MIN;}
+  virtual int get_ladder_phi_index() const {return INT_MIN;}
 
   virtual void set_x(const int i, const float f) {return;}
   virtual void set_y(const int i, const float f) {return;}
@@ -44,8 +45,8 @@ class PHG4Hit: public PHObject
   virtual void set_t(const int i, const float f) {return;}
   virtual void set_edep(const float f) {return;}
   virtual void set_eion(const float f) {return;}
-  virtual void    set_light_yield(float lightYield){return;}
-  virtual void  set_path_length(float pathLength){return;}
+  virtual void set_light_yield(float lightYield){return;}
+  virtual void set_path_length(float pathLength){return;}
   virtual void set_layer(const unsigned int i) {return;}
   virtual void set_hit_id(const unsigned int i) {return;}
   virtual void set_scint_id(const int i) {return;}
@@ -62,13 +63,96 @@ class PHG4Hit: public PHObject
 
   virtual void print() const {std::cout<<"PHG4Hit base class - print() not implemented"<<std::endl;}
 
+
+  //! add a short name to PHG4Hit::get_property_name
+  enum PROPERTY {//
+
+    //-- hit properties: 1 - 10  --
+    //! ionizing energy loss
+    prop_eion = 1,
+
+    //! for scintillation detectors, the amount of light produced
+    prop_light_yield = 2,
+
+    //-- event properties: 10 - 20  --
+
+    //! momentum
+    prop_px = 10,
+    prop_py ,
+    prop_pz ,
+
+    //! pathlength
+    prop_path_length = 15,
+
+    //-- detector specific IDs: 100+ --
+
+    //! layer ID
+    prop_layer = 101,
+    //! scintillator ID
+    prop_scint_id = 102,
+
+    //! SVX stuff
+    prop_strip_z_index = 110,
+    prop_strip_y_index,
+    prop_ladder_z_index,
+    prop_ladder_phi_index,
+
+    //! max limit in order to fit into 8 bit unsigned number
+    prop_MAX_NUMBER = UCHAR_MAX
+  };
+
+  virtual bool  has_property(PROPERTY prop_id) const {return false;}
+  virtual float get_property_float(PROPERTY prop_id) const {return NAN;}
+  virtual int   get_property_int(PROPERTY prop_id) const {return INT_MIN;}
+  virtual unsigned int   get_property_uint(PROPERTY prop_id) const {return UINT_MAX;}
+  virtual void  set_property(PROPERTY prop_id, float value) {return;}
+  virtual void  set_property(PROPERTY prop_id, int value) {return;}
+  virtual void  set_property(PROPERTY prop_id, unsigned int value) {return;}
+  static const char * get_property_name(PROPERTY prop_id);
+
  protected:
   ClassDef(PHG4Hit,1)
 };
 
+inline const char * PHG4Hit::get_property_name(const PROPERTY prop_id)
+{
+  switch (prop_id)
+  {
+  case  prop_eion:
+    return "ioning energy loss";
+  case   prop_light_yield:
+    return "light yield";
+
+  case   prop_px:
+    return "px";
+  case   prop_py:
+    return "py";
+  case   prop_pz:
+    return "pz";
+  case   prop_path_length:
+    return "pathlength";
+
+  case   prop_layer:
+    return "layer ID";
+  case   prop_scint_id:
+    return "scintillator ID";
+  case   prop_strip_z_index:
+    return "strip z index";
+  case   prop_strip_y_index:
+    return "strip y index";
+  case   prop_ladder_z_index:
+    return "ladder z index";
+  case   prop_ladder_phi_index:
+    return "ladder phi index";
+
+  default:
+    return "invalid property";
+  }
+}
 inline float PHG4Hit::get_avg_x() const { return 0.5*(get_x(0)+get_x(1)); }
 inline float PHG4Hit::get_avg_y() const { return 0.5*(get_y(0)+get_y(1)); }
 inline float PHG4Hit::get_avg_z() const { return 0.5*(get_z(0)+get_z(1)); }
 inline float PHG4Hit::get_avg_t() const { return 0.5*(get_t(0)+get_t(1)); }
+
 
 #endif
