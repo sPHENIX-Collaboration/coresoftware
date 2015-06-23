@@ -36,6 +36,7 @@ libphg4hit_la_SOURCES = \
     PHG4HitReadBack.cc \
     PHG4Hit.cc \
     PHG4Hitv1.cc \
+    PHG4HitEval.cc \
     PHG4HitContainer.cc \
     PHG4Particle.cc \
     PHG4Particlev1.cc \
@@ -107,6 +108,7 @@ pkginclude_HEADERS = \
   PHG4HitDefs.h \
   PHG4Hit.h \
   PHG4Hitv1.h \
+  PHG4HitEval.h \
   PHG4HitContainer.h \
   PHG4InEvent.h \
   PHG4NullSteppingAction.h \
@@ -176,6 +178,7 @@ PHG4Hit_Dict.cc: \
   PHG4HitReadBack.h \
   PHG4Hit.h \
   PHG4Hitv1.h \
+  PHG4HitEval.h \
   PHG4HitContainer.h \
   PHG4Particle.h \
   PHG4Particlev1.h \

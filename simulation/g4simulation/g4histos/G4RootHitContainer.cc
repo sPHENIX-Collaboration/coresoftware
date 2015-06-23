@@ -1,6 +1,6 @@
 #include "G4RootHitContainer.h"
 
-#include <g4main/PHG4Hitv1.h>
+#include <g4main/PHG4HitEval.h>
 #include <TClonesArray.h>
 
 using namespace std;
@@ -15,7 +15,7 @@ G4RootHitContainer::G4RootHitContainer():
   leakage(NAN),
   event(0)
 {
- SnglHits = new TClonesArray("PHG4Hitv1",NMAX);
+ SnglHits = new TClonesArray("PHG4HitEval",NMAX);
 }
 
 G4RootHitContainer::~G4RootHitContainer()
@@ -49,7 +49,7 @@ G4RootHitContainer::AddHit(const PHG4Hit &g4hit)
     {
       SnglHits->Expand(SnglHits->GetSize() + 10000);
     }
-  new(cl[nextindex]) PHG4Hitv1(g4hit);
+  new(cl[nextindex]) PHG4HitEval(g4hit);
   return (static_cast<PHG4Hit *> (cl[nextindex]));
 }
 

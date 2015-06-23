@@ -113,8 +113,11 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           }
         //set the initial energy deposit
         hit->set_edep(0);
-        hit->set_eion(0); // only implemented for v5 otherwise empty
-        hit->set_light_yield(0);
+        if (isactive == PHG4SpacalDetector::FIBER_CORE) // only for active areas
+          {
+            hit->set_eion(0); // only implemented for v5 otherwise empty
+            hit->set_light_yield(0);
+          }
         //	  hit->print();
         // Now add the hit
         if (isactive == PHG4SpacalDetector::FIBER_CORE) // the slat ids start with zero
@@ -151,15 +154,15 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
       //sum up the energy to get total deposited
       hit->set_edep(hit->get_edep() + edep);
-      hit->set_eion(hit->get_eion() + eion);
 
-      double light_yield = 0;
-      if (isactive == PHG4SpacalDetector::FIBER_CORE) // the slat ids start with zero
+      if (isactive == PHG4SpacalDetector::FIBER_CORE) // only for active areas
         {
-          light_yield = GetVisibleEnergyDeposition(aStep);
+          hit->set_eion(hit->get_eion() + eion);
+
+          double light_yield = GetVisibleEnergyDeposition(aStep);
 
           static bool once = true;
-          if (once and edep>0)
+          if (once and edep > 0)
             {
               once = false;
 
@@ -167,17 +170,16 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
                   //
                   << detector_->GetName() << " - "
                   << " use scintillating light model at each Geant4 steps. "
-                  <<"First step: "
-                  <<"Material = "<<aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()<<", "
-                  <<"Birk Constant = "<<aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()<<","
-                  <<"edep = " <<edep<<", "
-                  <<"eion = " <<eion<<", "
-                  <<"light_yield = " <<light_yield
-                  << endl;
+                  << "First step: " << "Material = "
+                  << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
+                  << ", " << "Birk Constant = "
+                  << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
+                  << "," << "edep = " << edep << ", " << "eion = " << eion
+                  << ", " << "light_yield = " << light_yield << endl;
             }
 
+          hit->set_light_yield(hit->get_light_yield() + light_yield);
         }
-      hit->set_light_yield(hit->get_light_yield() + light_yield);
 
       if (hit->get_z(1) > get_zmax() || hit->get_z(1) < get_zmin())
         {
@@ -189,7 +191,7 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       if (geantino)
         {
           hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-          hit->set_eion(-1);
+//          hit->set_eion(-1);
         }
       if (edep > 0)
         {

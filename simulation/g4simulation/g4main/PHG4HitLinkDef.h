@@ -3,6 +3,7 @@
 // first classes with streamers
 #pragma link C++ class PHG4Hit+;
 #pragma link C++ class PHG4Hitv1+;
+#pragma link C++ class PHG4HitEval+;
 #pragma link C++ class PHG4HitContainer+;
 #pragma link C++ class PHG4Particle+;
 #pragma link C++ class PHG4Particlev1+;

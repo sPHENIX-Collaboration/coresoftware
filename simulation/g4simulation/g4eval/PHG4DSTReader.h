@@ -18,7 +18,7 @@
 #include <iostream>
 #include <vector>
 #include <TClonesArray.h>
-#include <g4main/PHG4Hitv1.h>
+#include <g4main/PHG4HitEval.h>
 #include <g4main/PHG4Particlev2.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4VtxPointv1.h>
@@ -154,7 +154,7 @@ protected:
   records_t _records;
 
   typedef PHG4Particlev2 part_type;
-  typedef PHG4Hitv1 hit_type;
+  typedef PHG4HitEval hit_type;
   typedef PHG4VtxPointv1 vertex_type;
   typedef RawTowerv1 RawTower_type;
 //  typedef PHPyJetV2 PHPyJet_type;
