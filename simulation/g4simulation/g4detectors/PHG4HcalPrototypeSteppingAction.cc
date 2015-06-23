@@ -6,7 +6,7 @@
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Hitv5.h>
+#include <g4main/PHG4Hitv1.h>
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
@@ -140,7 +140,7 @@ bool PHG4HcalPrototypeSteppingAction::UserSteppingAction( const G4Step* aStep, b
 	{
 	case fGeomBoundary:
 	case fUndefined:
-	  hit = new PHG4Hitv5();
+	  hit = new PHG4Hitv1();
 	  hit->set_layer((unsigned int)sectionID);
 	  hit->set_scint_id(scintID); 
 	  //here we set the entrance values in cm

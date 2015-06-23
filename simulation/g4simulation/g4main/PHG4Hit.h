@@ -35,6 +35,10 @@ class PHG4Hit: public PHObject
   virtual int get_strip_y_index() const {return INT_MIN;}
   virtual int get_ladder_z_index() const {return INT_MIN;}
   virtual int get_ladder_phi_index() const {return INT_MIN;}
+  virtual int get_index_i() const {return INT_MIN;}
+  virtual int get_index_j() const {return INT_MIN;}
+  virtual int get_index_k() const {return INT_MIN;}
+  virtual int get_index_l() const {return INT_MIN;}
 
   virtual void set_x(const int i, const float f) {return;}
   virtual void set_y(const int i, const float f) {return;}
@@ -55,6 +59,10 @@ class PHG4Hit: public PHObject
   virtual void set_strip_y_index(const int i) {return;}
   virtual void set_ladder_z_index(const int i) {return;}
   virtual void set_ladder_phi_index(const int i) {return;}
+  virtual void set_index_i(const int i) {return;}
+  virtual void set_index_j(const int i) {return;}
+  virtual void set_index_k(const int i) {return;}
+  virtual void set_index_l(const int i) {return;}
 
   virtual float get_avg_x() const;
   virtual float get_avg_y() const;
@@ -96,6 +104,14 @@ class PHG4Hit: public PHObject
     prop_strip_y_index,
     prop_ladder_z_index,
     prop_ladder_phi_index,
+
+    //! generic indexes
+    prop_index_i = 121,
+    prop_index_j ,
+    prop_index_k ,
+    prop_index_l ,
+
+
 
     //! max limit in order to fit into 8 bit unsigned number
     prop_MAX_NUMBER = UCHAR_MAX
@@ -144,6 +160,12 @@ inline const char * PHG4Hit::get_property_name(const PROPERTY prop_id)
     return "ladder z index";
   case   prop_ladder_phi_index:
     return "ladder phi index";
+  case   prop_index_i:
+    return "generic index i";
+  case   prop_index_j:
+    return "generic index j";
+  case   prop_index_k:
+    return "generic index k";
 
   default:
     return "invalid property";

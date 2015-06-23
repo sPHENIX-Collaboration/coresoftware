@@ -55,6 +55,10 @@ class PHG4Hitv1 : public PHG4Hit
   virtual int get_strip_y_index() const   {return  get_property_int(prop_strip_y_index);}
   virtual int get_ladder_z_index() const  {return  get_property_int(prop_ladder_phi_index);}
   virtual int get_ladder_phi_index() const{return  get_property_int(prop_ladder_phi_index);}
+  virtual int get_index_i() const{return  get_property_int(prop_index_i);}
+  virtual int get_index_j() const{return  get_property_int(prop_index_j);}
+  virtual int get_index_k() const{return  get_property_int(prop_index_k);}
+  virtual int get_index_l() const{return  get_property_int(prop_index_l);}
 
   virtual void set_px(const int i, const float f) {set_property(prop_px,f);}
   virtual void set_py(const int i, const float f) {set_property(prop_py,f);}
@@ -68,6 +72,10 @@ class PHG4Hitv1 : public PHG4Hit
   virtual void set_strip_y_index(const int i)     {set_property(prop_strip_y_index,i);}
   virtual void set_ladder_z_index(const int i)    {set_property(prop_ladder_phi_index,i);}
   virtual void set_ladder_phi_index(const int i)  {set_property(prop_ladder_phi_index,i);}
+  virtual void set_index_i(const int i)  {set_property(prop_index_i,i);}
+  virtual void set_index_j(const int i)  {set_property(prop_index_j,i);}
+  virtual void set_index_k(const int i)  {set_property(prop_index_k,i);}
+  virtual void set_index_l(const int i)  {set_property(prop_index_l,i);}
 
  protected:
   // Store both the entry and exit points of the particle

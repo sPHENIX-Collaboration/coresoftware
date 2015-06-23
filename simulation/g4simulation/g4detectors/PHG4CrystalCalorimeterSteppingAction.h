@@ -6,7 +6,7 @@
 
 
 class PHG4CrystalCalorimeterDetector;
-class PHG4Hitv8;
+class PHG4Hit;
 class PHG4HitContainer;
 
 class PHG4CrystalCalorimeterSteppingAction : public PHG4SteppingAction
@@ -39,7 +39,7 @@ private:
   //! pointer to hit container
   PHG4HitContainer * hits_;
   PHG4HitContainer * absorberhits_;
-  PHG4Hitv8 *hit;
+  PHG4Hit *hit;
 
 };
 

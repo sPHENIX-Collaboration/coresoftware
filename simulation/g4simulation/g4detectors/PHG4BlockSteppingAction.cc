@@ -4,7 +4,6 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
-#include <g4main/PHG4Hitv4.h>
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
@@ -72,7 +71,7 @@ bool PHG4BlockSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	{
 	  if (use_ionisation_energy)
 	    {
-	      hit = new PHG4Hitv4();
+	      hit = new PHG4Hitv1();
 	    }
 	  else
 	    {
@@ -110,14 +109,7 @@ bool PHG4BlockSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
             {
             case fGeomBoundary:
             case fUndefined:
-	      if (use_ionisation_energy)
-		{
-		  hit = new PHG4Hitv4();
-		}
-	      else
-		{
 		  hit = new PHG4Hitv1();
-		}
 	      //here we set the entrance values in cm
 	      hit->set_x( 0, prePoint->GetPosition().x() / cm);
 	      hit->set_y( 0, prePoint->GetPosition().y() / cm );
@@ -139,7 +131,8 @@ bool PHG4BlockSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 
 	      //set the initial energy deposit
 	      hit->set_edep(0);
-	      hit->set_eion(0);
+        if (use_ionisation_energy)
+          hit->set_eion(0);
 
 	      // Now add the hit
 	      hits_->AddHit(layer_id, hit);
@@ -160,7 +153,8 @@ bool PHG4BlockSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       hit->set_t( 1, postPoint->GetGlobalTime() / nanosecond );
       //sum up the energy to get total deposited
       hit->set_edep(hit->get_edep() + edep);
-      hit->set_eion(hit->get_eion() + eion);
+      if (use_ionisation_energy)
+        hit->set_eion(hit->get_eion() + eion);
       if (geantino)
 	{
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression

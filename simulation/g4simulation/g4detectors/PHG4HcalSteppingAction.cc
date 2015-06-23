@@ -4,8 +4,6 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
-//#include <g4main/PHG4Hitv5.h>
-#include <g4main/PHG4Hitv6.h>
 #include <g4main/PHG4HitDefs.h>
 
 #include <g4main/PHG4TrackUserInfoV1.h>
@@ -76,7 +74,7 @@ bool PHG4HcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
         case fGeomBoundary:
         case fUndefined:
 
-	  hit = new PHG4Hitv6();
+	  hit = new PHG4Hitv1();
 
 	  hit->set_layer((unsigned int)layer_id);
 	  hit->set_scint_id(isactive); // isactive contains the scintillator slat id
