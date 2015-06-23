@@ -204,7 +204,7 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
                 }
             }
         }
-      hit->set_path_length(aTrack->GetTrackLength() / cm);
+//      hit->set_path_length(aTrack->GetTrackLength() / cm);
 
       //       hit->identify();
       // return true to indicate the hit was used
