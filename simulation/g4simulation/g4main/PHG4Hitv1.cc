@@ -34,7 +34,7 @@ PHG4Hitv1::print() const {
 
   for (prop_map_t::const_iterator i = prop_map.begin(); i!= prop_map.end(); ++i)
     {
-      std::cout <<"\t" << i->first<<": " <<get_property_name(static_cast<PROPERTY>(i->first))<<" = "
+      std::cout <<"\t" << static_cast<const int>(i->first) <<":\t" <<get_property_name(static_cast<PROPERTY>(i->first))<<" = "
           <<"\t"<<i->second.fdata<<" (float)"
           <<"\t"<<i->second.idata<<" (int)"
           <<"\t"<<i->second.uidata<<" (uint)"
