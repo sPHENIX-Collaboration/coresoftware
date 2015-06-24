@@ -2,6 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
+    libg4detectors_io.la \
     libg4detectors.la
 
 AM_CPPFLAGS = -DCGAL_DISABLE_ROUNDING_MATH_CHECK
@@ -17,11 +18,16 @@ INCLUDES = \
     -I${G4_MAIN}/include \
     -I${G4_MAIN}/include/Geant4
 
+libg4detectors_io_la_LIBADD = \
+  -lphool \
+  -lg4testbench
+
 libg4detectors_la_LIBADD = \
   -lphool \
   -lSubsysReco \
   -lg4testbench \
-  -lCGAL
+  -lCGAL \
+  -lg4detectors_io
 
 pkginclude_HEADERS = \
   PHG4BlockGeom.h \
@@ -36,18 +42,34 @@ pkginclude_HEADERS = \
   PHG4CylinderCellGeom.h \
   PHG4CylinderCellGeomContainer.h
 
+libg4detectors_io_la_SOURCES = \
+  PHG4BlockCellGeom.cc \
+  PHG4BlockCellGeomContainer.cc \
+  PHG4BlockGeom.cc \
+  PHG4BlockGeomv1.cc \
+  PHG4BlockGeomContainer.cc \
+  PHG4CylinderGeom.cc \
+  PHG4CylinderGeomv1.cc \
+  PHG4CylinderGeomv2.cc \
+  PHG4CylinderGeomv3.cc \
+  PHG4CylinderGeomv4.cc \
+  PHG4CylinderGeom_Spacalv1.cc \
+  PHG4CylinderGeom_Spacalv2.cc \
+  PHG4CylinderGeomContainer.cc \
+  PHG4CylinderCell.cc \
+  PHG4CylinderCellv1.cc \
+  PHG4CylinderCellv2.cc \
+  PHG4CylinderCellContainer.cc \
+  PHG4CylinderCellGeom.cc \
+  PHG4CylinderCellGeomContainer.cc
+
 libg4detectors_la_SOURCES = \
   PHG4AccDetector.cc \
   PHG4AccSteppingAction.cc \
   PHG4AccSubsystem.cc \
-  PHG4BlockCellGeom.cc \
-  PHG4BlockCellGeomContainer.cc \
   PHG4BlockCellReco.cc \
   PHG4BlockDetector.cc \
   PHG4BlockEventAction.cc \
-  PHG4BlockGeom.cc \
-  PHG4BlockGeomv1.cc \
-  PHG4BlockGeomContainer.cc \
   PHG4BlockRegionSteppingAction.cc \
   PHG4BlockSteppingAction.cc \
   PHG4BlockSubsystem.cc \
@@ -65,22 +87,8 @@ libg4detectors_la_SOURCES = \
   PHG4CrystalCalorimeterSubsystem.cc \
   PHG4CylinderDetector.cc \
   PHG4CylinderEventAction.cc \
-  PHG4CylinderGeom.cc \
-  PHG4CylinderGeomv1.cc \
-  PHG4CylinderGeomv2.cc \
-  PHG4CylinderGeomv3.cc \
-  PHG4CylinderGeomv4.cc \
-  PHG4CylinderGeom_Spacalv1.cc \
-  PHG4CylinderGeom_Spacalv2.cc \
-  PHG4CylinderGeomContainer.cc \
   PHG4CylinderRegionSteppingAction.cc \
   PHG4CylinderSubsystem.cc \
-  PHG4CylinderCell.cc \
-  PHG4CylinderCellv1.cc \
-  PHG4CylinderCellv2.cc \
-  PHG4CylinderCellContainer.cc \
-  PHG4CylinderCellGeom.cc \
-  PHG4CylinderCellGeomContainer.cc \
   PHG4CylinderCellReco.cc \
   PHG4CylinderSteppingAction.cc \
   PHG4Detector_Dict.cc \
@@ -136,7 +144,7 @@ noinst_PROGRAMS = \
   testexternals_g4detectors
 
 testexternals_g4detectors_SOURCES = testexternals.cc
-testexternals_g4detectors_LDADD = libg4detectors.la
+testexternals_g4detectors_LDADD = libg4detectors_io.la libg4detectors.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
