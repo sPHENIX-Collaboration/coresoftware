@@ -71,23 +71,7 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
   if (whichactive > 0) // in crystal
     {
       /* Find indizes of crystal containing this step */
-      boost::char_separator<char> sep("_");
-      boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
-      boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
-      for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
-	{
-	  if (*tokeniter == "j")
-	    {
-	      ++tokeniter;
-	      idx_j = boost::lexical_cast<int>(*tokeniter);
-	    }
-	  else if (*tokeniter == "k")
-	    {
-	      ++tokeniter;
-	      idx_k = boost::lexical_cast<int>(*tokeniter);
-	    }
-	}
-
+      WhatAreYou(touch, idx_j, idx_k);
       tower_id = touch->GetCopyNumber();
     }
   else
@@ -259,4 +243,62 @@ void PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers( PHCompositeNode
 	  cout << "PHG4CrystalCalorimeterSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
 	}
     }
+}
+
+int
+PHG4CrystalCalorimeterSteppingAction::WhatAreYou(G4TouchableHandle touch, int& j, int& k)
+{
+        int j_0, k_0;           //The k and k indices for the crystal within the 2x2 matrix
+        int j_1, k_1;           //The k and k indices for the 2x2 within the 4x4 
+        int j_2, k_2;           //The k and k indices for the 4x4 within the mother volume
+        //int j, k;             //The final indices of the crystal
+
+        G4VPhysicalVolume* crystal = touch->GetVolume(0);		//Get the crystal solid
+        G4VPhysicalVolume* TwoByTwo = touch->GetVolume(1);		//Get the crystal solid
+        G4VPhysicalVolume* FourByFour = touch->GetVolume(2);		//Get the crystal solid
+
+	ParseName(crystal, j_0, k_0);
+	ParseName(TwoByTwo, j_1, k_1);
+	ParseName(FourByFour, j_2, k_2);
+	
+	/*
+	cout << endl;
+	cout << " | " << j_0 << " | " << k_0 << " | " << endl;
+	cout << " | " << j_1 << " | " << k_1 << " | " << endl;
+	cout << " | " << j_2 << " | " << k_2 << " | " << endl;
+	*/
+
+        j = (j_0*1) + (j_1*2) + (j_2*4);
+        k = (k_0*1) + (k_1*2) + (k_2*4);
+
+        //ostringstream NameString;
+        //NameString.str("");
+        //NameString << _crystallogicnameprefix << "_j_" << j << "_k_" << k;
+        //name = NameString;
+
+        //return NameString;
+        return 0;
+}
+
+int 
+PHG4CrystalCalorimeterSteppingAction::ParseName( G4VPhysicalVolume* volume, int& j, int& k ) 
+{
+	boost::char_separator<char> sep("_");
+	boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
+	boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
+	for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+	{
+		if (*tokeniter == "j")
+		{
+			++tokeniter;
+			j = boost::lexical_cast<int>(*tokeniter);
+		}
+		else if (*tokeniter == "k")
+		{
+			++tokeniter;
+			k = boost::lexical_cast<int>(*tokeniter);
+		}
+	}
+	
+	return 0;
 }

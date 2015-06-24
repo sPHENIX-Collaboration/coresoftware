@@ -2,6 +2,8 @@
 #define PHG4VCrystalCalorimeterSteppingAction_h
 
 #include <g4main/PHG4SteppingAction.h>
+#include <Geant4/G4Step.hh>
+
 
 class PHG4CrystalCalorimeterDetector;
 class PHG4Hitv8;
@@ -25,6 +27,9 @@ public:
   //! reimplemented from base class
   virtual void SetInterfacePointers( PHCompositeNode* );
 
+  int WhatAreYou(G4TouchableHandle touch, int& j, int& k);
+
+  int ParseName(G4VPhysicalVolume* volume, int& j, int& k);
 
 private:
 

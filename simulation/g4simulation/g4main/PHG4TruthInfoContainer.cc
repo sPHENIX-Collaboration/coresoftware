@@ -177,7 +177,7 @@ PHG4TruthInfoContainer::AddVertex(const int id)
       exit(2);
     }
   bool tmp = false;
-  boost::tie(it,tmp) = vtxmap.insert( std::make_pair(key,new PHG4VtxPointv1()) );
+  boost::tie(it,tmp) = vtxmap.insert( std::make_pair(key,new PHG4VtxPointv1(NAN,NAN,NAN,NAN,key)) );
   return it;
 }
 
@@ -196,7 +196,10 @@ PHG4TruthInfoContainer::AddVertex(const int id, PHG4VtxPoint *newvtx)
  identify();
     }
   boost::tie(it,added) = vtxmap.insert(std::make_pair(key,newvtx));
-  if ( added ) return it;
+  if ( added ) {
+      newvtx->set_id(key);
+      return it;
+  }
   cerr << "PHG4TruthInfoContainer::AddVertex - Attempt to add vertex with existing id " << id << std::endl;
   return vtxmap.end();
 }
@@ -210,6 +213,7 @@ PHG4TruthInfoContainer::AddPrimaryVertex(PHG4VtxPoint *newvtx)
   if (key == 1)
     {
       primary_vtxmap.insert(make_pair(key,newvtx));
+      newvtx->set_id(key);
     }
   else
     {
@@ -227,6 +231,7 @@ PHG4TruthInfoContainer::AddPrimaryVertex(PHG4VtxPoint *newvtx)
 	}
       // if not found among existing vertices, add it
        primary_vtxmap.insert(make_pair(key,newvtx));
+       newvtx->set_id(key);
     }
   return key;
 }

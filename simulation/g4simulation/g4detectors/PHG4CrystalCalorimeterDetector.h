@@ -7,6 +7,7 @@
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4RotationMatrix.hh>
+#include <Geant4/G4Material.hh>
 
 #include <string>
 #include <map>
@@ -50,7 +51,11 @@ public:
   _dy_back = dy_back;
   _dz_crystal = dz;
   }
- 
+
+  void CarbonFiberAdjustments(G4double& adjust_width, G4double& adjust_length);
+
+  void CarbonFiberSpacing(G4double& CF_width, G4double& Air_CF, G4double& Air_Cry);
+
   void SetPlace( G4double place_in_x, G4double place_in_y, G4double place_in_z) {
     _place_in_x = place_in_x;
     _place_in_y = place_in_y;
@@ -78,6 +83,10 @@ public:
 private:
 
   int ConstructCrystals(G4LogicalVolume* envelope);
+
+  int Fill4x4Unit(G4LogicalVolume *crystal_logic);
+
+  int FillSpecialUnit(G4LogicalVolume *crystal_logic, G4int ident);
 
   /* Calorimeter envelope geometry */
   G4double _place_in_x;
@@ -115,6 +124,7 @@ private:
   std::string _crystallogicnameprefix;
   std::string _superdetector;
   std::string _inputFile;
+  std::string _inputFile_4x4_construct;
 };
 
 #endif
