@@ -8,10 +8,17 @@ INCLUDES = \
   -I`root-config --incdir` \
   -I$(OFFLINE_MAIN)/include/eigen3
 
-lib_LTLIBRARIES = libg4hough.la
+lib_LTLIBRARIES = \
+   libg4hough_io.la \
+   libg4hough.la
 
 AM_CXXFLAGS = \
  -Wall -Werror -msse2
+
+libg4hough_io_la_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  -lphool
 
 libg4hough_la_LDFLAGS = \
   -L$(libdir) \
@@ -22,7 +29,8 @@ libg4hough_la_LDFLAGS = \
   -lHelixHough \
   -lFitNewton \
   -lSeamstress \
-  -lcemc
+  -lcemc \
+  -lg4hough_io
 
 pkginclude_HEADERS = \
   SvtxVertex.h \
@@ -46,17 +54,7 @@ pkginclude_HEADERS = \
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
-libg4hough_la_SOURCES = \
-  PHG4SvtxDeadArea.C \
-  PHG4SvtxDeadArea_Dict.C \
-  PHG4SvtxThresholds.C \
-  PHG4SvtxThresholds_Dict.C \
-  PHG4SvtxAddConnectedCells.C \
-  PHG4SvtxAddConnectedCells_Dict.C \
-  PHG4SvtxDigitizer.C \
-  PHG4SvtxDigitizer_Dict.C \
-  PHG4SvtxClusterizer.C \
-  PHG4SvtxClusterizer_Dict.C \
+libg4hough_io_la_SOURCES = \
   SvtxHit.C \
   SvtxHit_Dict.C \
   SvtxHitMap.C \
@@ -74,7 +72,19 @@ libg4hough_la_SOURCES = \
   SvtxVertex.C \
   SvtxVertex_Dict.C \
   SvtxVertexMap.C \
-  SvtxVertexMap_Dict.C \
+  SvtxVertexMap_Dict.C
+
+libg4hough_la_SOURCES = \
+  PHG4SvtxDeadArea.C \
+  PHG4SvtxDeadArea_Dict.C \
+  PHG4SvtxThresholds.C \
+  PHG4SvtxThresholds_Dict.C \
+  PHG4SvtxAddConnectedCells.C \
+  PHG4SvtxAddConnectedCells_Dict.C \
+  PHG4SvtxDigitizer.C \
+  PHG4SvtxDigitizer_Dict.C \
+  PHG4SvtxClusterizer.C \
+  PHG4SvtxClusterizer_Dict.C \
   PHG4HoughTransform.C \
   PHG4HoughTransform_Dict.C \
   PHG4TrackGhostRejection.C \
@@ -100,6 +110,7 @@ BUILT_SOURCES = \
   testexternals.C
 
 testexternals_LDADD = \
+  libg4hough_io.la \
   libg4hough.la
 
 testexternals.C:
