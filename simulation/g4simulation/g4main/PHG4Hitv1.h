@@ -89,20 +89,23 @@ class PHG4Hitv1 : public PHG4Hit
   float edep;
 
   //! storage types for additional property
+  typedef uint8_t prop_id_t;
+  typedef uint32_t prop_storage_t;
+  typedef std::map<prop_id_t, prop_storage_t> prop_map_t;
+
+  //! convert between 32bit inputs and storage type prop_storage_t
   union u_property{
     float fdata;
     int32_t idata;
     uint32_t uidata;
-    double ddata;
-    int64_t i64data;
-    uint64_t ui64data;
 
-    //! initialize all bits to zero
-    u_property(): ui64data(0) {}
-    u_property(uint64_t i): ui64data(i) {}
+    u_property(int32_t in): idata(in) {}
+    u_property(uint32_t in): uidata(in) {}
+    u_property(float in): fdata(in) {}
+    u_property(): uidata(0) {}
+
+    prop_storage_t get_storage() const {return uidata;}
   };
-  typedef uint8_t prop_t;
-  typedef std::map<prop_t, uint64_t> prop_map_t;
 
   //! container for additional property
   prop_map_t prop_map;

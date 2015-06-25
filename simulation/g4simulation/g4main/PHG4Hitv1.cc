@@ -35,16 +35,12 @@ PHG4Hitv1::print() const {
 
   for (prop_map_t::const_iterator i = prop_map.begin(); i!= prop_map.end(); ++i)
     {
-      u_property p;
-      p.ui64data = i->second;
+      u_property p( i->second);
 
       std::cout <<"\t" << static_cast<const int>(i->first) <<":\t" <<get_property_name(static_cast<PROPERTY>(i->first))<<" = "
           <<"\t"<<p.fdata<<" (float)"
           <<"\t"<<p.idata<<" (int)"
           <<"\t"<<p.uidata<<" (uint)"
-          <<"\t"<<p.ddata<<" (double)"
-          <<"\t"<<p.i64data<<" (int64)"
-          <<"\t"<<p.ui64data<<" (uint64)"
           <<"\t"<<sizeof(u_property)<<" (memory size)"
           <<endl;
     }
@@ -81,23 +77,17 @@ PHG4Hitv1::get_property_uint(PHG4Hitv1::PROPERTY prop_id) const
 void
 PHG4Hitv1::set_property(PHG4Hitv1::PROPERTY prop_id, float value)
 {
-  u_property p;
-  p.fdata = value;
-  prop_map[prop_id] = p.ui64data;
+  prop_map[prop_id] = u_property(value).get_storage();
 }
 
 void
 PHG4Hitv1::set_property(PHG4Hitv1::PROPERTY prop_id, int value)
 {
-  u_property p;
-  p.idata = value;
-  prop_map[prop_id] = p.ui64data;
+  prop_map[prop_id] = u_property(value).get_storage();
 }
 
 void
 PHG4Hitv1::set_property(PHG4Hitv1::PROPERTY prop_id, unsigned int value)
 {
-  u_property p;
-  p.uidata = value;
-  prop_map[prop_id] = p.ui64data;
+  prop_map[prop_id] = u_property(value).get_storage();
 }
