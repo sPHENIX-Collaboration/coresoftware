@@ -14,13 +14,13 @@ SvtxCluster::SvtxCluster()
     _pos(),
     _e(NAN),
     _adc(0xFFFFFFFF),
-    _size(),
-    _err(),
+    _size(3),
+    _err(3),
     _hit_ids()
 {
   for (int i = 0; i < 3; ++i) _pos[i] = NAN;
-  for (int i = 0; i < 3; ++i) _size[i] = new float[i+1];
-  for (int i = 0; i < 3; ++i) _err[i] = new float[i+1];
+  for (int i = 0; i < 3; ++i) _size[i] = std::vector<float>(i+1);
+  for (int i = 0; i < 3; ++i) _err[i] = std::vector<float>(i+1);
 
   for (int j = 0; j < 3; ++j) {
     for (int i = j; i < 3; ++i) {
@@ -36,13 +36,13 @@ SvtxCluster::SvtxCluster(const SvtxCluster &clus) :
   _pos(),
   _e(clus.get_e()),
   _adc(clus.get_adc()),
-  _size(),
-  _err(),
+  _size(3),
+  _err(3),
   _hit_ids()
 {
   for (int i=0; i<3; ++i) _pos[i] = clus.get_position(i);    
-  for (int i=0; i<3; ++i) _size[i] = new float[i+1];
-  for (int i=0; i<3; ++i) _err[i] = new float[i+1];
+  for (int i = 0; i < 3; ++i) _size[i] = std::vector<float>(i+1);
+  for (int i = 0; i < 3; ++i) _err[i] = std::vector<float>(i+1);
   for (int j=0; j<3; ++j) {
     for (int i=j; i<3; ++i) {
       set_size(i,j,clus.get_size(i,j));
@@ -79,10 +79,7 @@ SvtxCluster& SvtxCluster::operator=(const SvtxCluster& clus) {
   return *this;
 }
   
-SvtxCluster::~SvtxCluster(){
-  for (int i=0; i<3; ++i) delete[] _size[i];
-  for (int i=0; i<3; ++i) delete[] _err[i];
-}
+SvtxCluster::~SvtxCluster(){}
 
 void SvtxCluster::identify(ostream& os) const {
   os << "---SvtxCluster-----------------------" << endl;

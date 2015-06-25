@@ -13,9 +13,9 @@ class EvalLinksV1 : public EvalLinks {
 
 public:
 
-  EvalLinksV1(const std::string& left_name,
-	      const std::string& right_name,
-	      const std::string& weight_name);
+  EvalLinksV1(const std::string& left_name = "left",
+	      const std::string& right_name = "right",
+	      const std::string& weight_name = "weight");
   virtual ~EvalLinksV1() {clear();}
 
   void identify(std::ostream& os = std::cout) const;

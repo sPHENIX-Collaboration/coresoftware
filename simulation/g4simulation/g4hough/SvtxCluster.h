@@ -78,14 +78,14 @@ public:
   
 private:
   
-  unsigned int _id;                //< unique identifier within container
-  unsigned int _layer;             //< detector layer id
-  float _pos[3];                   //< mean position x,y,z
-  float _e;                        //< cluster energy
-  unsigned int _adc;               //< cluster sum adc
-  float* _size[3];                 //< size covariance matrix (+/- cm^2)
-  float* _err[3];                  //< error covariance matrix (+/- cm^2)
-  std::set<unsigned int> _hit_ids; //< list of cell hit ids 
+  unsigned int _id;                       //< unique identifier within container
+  unsigned int _layer;                    //< detector layer id
+  float _pos[3];                          //< mean position x,y,z
+  float _e;                               //< cluster energy
+  unsigned int _adc;                      //< cluster sum adc
+  std::vector<std::vector<float> > _size; //< size covariance matrix (+/- cm^2)
+  std::vector<std::vector<float> > _err;  //< error covariance matrix (+/- cm^2)
+  std::set<unsigned int> _hit_ids;        //< list of cell hit ids 
   
   ClassDef(SvtxCluster, 1);
 };
