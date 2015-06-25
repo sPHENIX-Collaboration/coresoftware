@@ -3,7 +3,7 @@
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Hitv6.h>
+#include <g4main/PHG4Hitv1.h>
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
@@ -58,7 +58,7 @@ PHG4SectorSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         {
       case fGeomBoundary:
       case fUndefined:
-        hit = new PHG4Hitv6();
+        hit = new PHG4Hitv1();
         //here we set the entrance values in cm
         hit->set_x(0, prePoint->GetPosition().x() / cm);
         hit->set_y(0, prePoint->GetPosition().y() / cm);

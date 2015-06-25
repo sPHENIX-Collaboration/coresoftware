@@ -8,7 +8,7 @@
 //#include "PHG4CylinderCellDefs.h"
 
 #include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Hitv7.h>
+#include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4HitContainer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>

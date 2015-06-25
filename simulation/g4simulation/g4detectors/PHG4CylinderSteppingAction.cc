@@ -4,7 +4,6 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
-#include <g4main/PHG4Hitv2.h>
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
@@ -75,14 +74,7 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
         case fGeomBoundary:
         case fUndefined:
 
-	  if(detector_->GetReducedTruthInfo())
-	    {
-	      hit = new PHG4Hitv1();
-	    }
-	  else
-	    {
-	      hit = new PHG4Hitv2();
-	    }
+          hit = new PHG4Hitv1();
 
 	  hit->set_layer((unsigned int)layer_id);
 
