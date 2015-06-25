@@ -4,14 +4,15 @@ AM_CXXFLAGS=-std=c++0x
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
+  libcemc_io.la \
   libcemc.la
 
 INCLUDES = \
   -I$(includedir) \
-  -isystem $(OFFLINE_MAIN)/include \
-  -isystem $(ROOTSYS)/include \
-  -isystem ${G4_MAIN}/include \
-  -isystem ${G4_MAIN}/include/Geant4
+  -I$(OFFLINE_MAIN)/include \
+  -I$(ROOTSYS)/include \
+  -I${G4_MAIN}/include \
+  -I${G4_MAIN}/include/Geant4
 
 RINCLUDES = \
   -I$(includedir) \
@@ -20,27 +21,51 @@ RINCLUDES = \
   -I${G4_MAIN}/include \
   -I${G4_MAIN}/include/Geant4
 
-libcemc_la_SOURCES = \
-  Cal_Dict.C \
-  CrystalCalorimeterDigitization.cc \
-  CrystalCalorimeterTowerBuilder.cc \
-  RawClusterBuilder.cc \
-  RawClusterBuilderv1.cc \
+libcemc_io_la_SOURCES = \
+  RawCluster_Dict.cc \
   RawClusterv1.cc \
+  RawClusterv1_Dict.cc \
   RawClusterContainer.cc \
+  RawClusterContainer_Dict.cc \
   RawTower.cc \
+  RawTower_Dict.cc \
   RawTowerv1.cc \
+  RawTowerv1_Dict.cc \
   RawTowerv2.cc \
-  RawTowerBuilder.cc \
-  RawTowerBuilderCone.cc \
-  RawTowerCombiner.cc \
+  RawTowerv2_Dict.cc \
   RawTowerContainer.cc \
+  RawTowerContainer_Dict.cc \
   RawTowerGeom.cc \
+  RawTowerGeom_Dict.cc \
   RawTowerGeomv1.cc \
+  RawTowerGeomv1_Dict.cc \
   RawTowerGeomv2.cc \
-  BEmcRec.cc \
-  BEmcCluster.cc
+  RawTowerGeomv2_Dict.cc
 
+libcemc_la_SOURCES = \
+  CrystalCalorimeterDigitization.cc \
+  CrystalCalorimeterDigitization_Dict.cc \
+  CrystalCalorimeterTowerBuilder.cc \
+  CrystalCalorimeterTowerBuilder_Dict.cc \
+  RawClusterBuilder.cc \
+  RawClusterBuilder_Dict.cc \
+  RawClusterBuilderv1.cc \
+  RawClusterBuilderv1_Dict.cc \
+  RawTowerBuilder.cc \
+  RawTowerBuilder_Dict.cc \
+  RawTowerBuilderCone.cc \
+  RawTowerBuilderCone_Dict.cc \
+  RawTowerCombiner.cc \
+  RawTowerCombiner_Dict.cc \
+  BEmcCluster.cc \
+  BEmcRec.cc
+
+libcemc_io_la_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib
+
+libcemc_io_la_LIBADD = \
+  -lphool
 
 libcemc_la_LDFLAGS = \
   -L$(libdir) \
@@ -51,30 +76,12 @@ libcemc_la_LIBADD = \
   -lSubsysReco \
   -lg4detectors \
   -lgsl \
-  -lgslcblas
+  -lgslcblas \
+  -lcemc_io
 
-Cal_Dict.C: \
-  CrystalCalorimeterDigitization.h \
-  CrystalCalorimeterTowerBuilder.h \
-  RawClusterBuilder.h \
-  RawClusterBuilderv1.h \
-  RawCluster.h \
-  RawClusterv1.h \
-  RawClusterContainer.h \
-  RawTower.h \
-  RawTowerv1.h \
-  RawTowerv2.h \
-  RawTowerBuilder.h \
-  RawTowerBuilderCone.h \
-  RawTowerCombiner.h \
-  RawTowerContainer.h \
-  RawTowerGeom.h \
-  RawTowerGeomv1.h \
-  RawTowerGeomv2.h \
-  BEmcRec.h \
-  BEmcCluster.h \
-  CalLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
 ##############################################
 # please add new classes in alphabetical order
@@ -88,7 +95,6 @@ pkginclude_HEADERS = \
   RawTowerContainer.h \
   RawTowerGeom.h
 
-
 ################################################
 # linking tests
 
@@ -96,7 +102,7 @@ noinst_PROGRAMS = \
   testexternals_cemc 
 
 testexternals_cemc_SOURCES = testexternals.C
-testexternals_cemc_LDADD = libcemc.la
+testexternals_cemc_LDADD = libcemc_io.la libcemc.la
 
 
 testexternals.C:
