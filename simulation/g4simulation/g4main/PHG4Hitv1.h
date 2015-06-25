@@ -93,13 +93,22 @@ class PHG4Hitv1 : public PHG4Hit
     float fdata;
     int32_t idata;
     uint32_t uidata;
+    double ddata;
+    int64_t i64data;
+    uint64_t ui64data;
+
+    //! initialize all bits to zero
+    u_property(): ui64data(0) {}
+    u_property(uint64_t i): ui64data(i) {}
   };
   typedef uint8_t prop_t;
-  typedef std::map<prop_t, u_property> prop_map_t;
+  typedef std::map<prop_t, uint64_t> prop_map_t;
 
   //! container for additional property
   prop_map_t prop_map;
 
+//  u_property t1;
+//  u_property t2;
 
   ClassDef(PHG4Hitv1,2)
 };

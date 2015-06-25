@@ -19,6 +19,7 @@ PHG4Hitv1::PHG4Hitv1():
       set_z(i,NAN);
       set_t(i,NAN);
     }
+
 }
 
 PHG4Hitv1::PHG4Hitv1(PHG4Hit const &g4hit)
@@ -34,10 +35,17 @@ PHG4Hitv1::print() const {
 
   for (prop_map_t::const_iterator i = prop_map.begin(); i!= prop_map.end(); ++i)
     {
+      u_property p;
+      p.ui64data = i->second;
+
       std::cout <<"\t" << static_cast<const int>(i->first) <<":\t" <<get_property_name(static_cast<PROPERTY>(i->first))<<" = "
-          <<"\t"<<i->second.fdata<<" (float)"
-          <<"\t"<<i->second.idata<<" (int)"
-          <<"\t"<<i->second.uidata<<" (uint)"
+          <<"\t"<<p.fdata<<" (float)"
+          <<"\t"<<p.idata<<" (int)"
+          <<"\t"<<p.uidata<<" (uint)"
+          <<"\t"<<p.ddata<<" (double)"
+          <<"\t"<<p.i64data<<" (int64)"
+          <<"\t"<<p.ui64data<<" (uint64)"
+          <<"\t"<<sizeof(u_property)<<" (memory size)"
           <<endl;
     }
 }
@@ -53,37 +61,43 @@ float
 PHG4Hitv1::get_property_float(PHG4Hitv1::PROPERTY prop_id) const
 {
   prop_map_t::const_iterator i = prop_map.find(prop_id);
-  return (i==prop_map.end())? NAN : i->second.fdata ;
+  return (i==prop_map.end())? NAN : u_property(i->second).fdata ;
 }
 
 int
 PHG4Hitv1::get_property_int(PHG4Hitv1::PROPERTY prop_id) const
 {
   prop_map_t::const_iterator i = prop_map.find(prop_id);
-  return (i==prop_map.end())? NAN : i->second.idata ;
+  return (i==prop_map.end())? NAN : u_property(i->second).idata ;
 }
 
 unsigned int
 PHG4Hitv1::get_property_uint(PHG4Hitv1::PROPERTY prop_id) const
 {
   prop_map_t::const_iterator i = prop_map.find(prop_id);
-  return (i==prop_map.end())? NAN : i->second.uidata ;
+  return (i==prop_map.end())? NAN : u_property(i->second).uidata ;
 }
 
 void
 PHG4Hitv1::set_property(PHG4Hitv1::PROPERTY prop_id, float value)
 {
-  prop_map[prop_id].fdata = value;
+  u_property p;
+  p.fdata = value;
+  prop_map[prop_id] = p.ui64data;
 }
 
 void
 PHG4Hitv1::set_property(PHG4Hitv1::PROPERTY prop_id, int value)
 {
-  prop_map[prop_id].idata = value;
+  u_property p;
+  p.idata = value;
+  prop_map[prop_id] = p.ui64data;
 }
 
 void
 PHG4Hitv1::set_property(PHG4Hitv1::PROPERTY prop_id, unsigned int value)
 {
-  prop_map[prop_id].uidata = value;
+  u_property p;
+  p.uidata = value;
+  prop_map[prop_id] = p.ui64data;
 }
