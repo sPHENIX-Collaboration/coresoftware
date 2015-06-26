@@ -52,8 +52,6 @@ libg4detectors_io_la_SOURCES = \
   PHG4BlockGeomv1_Dict.cc \
   PHG4BlockGeomContainer.cc \
   PHG4BlockGeomContainer_Dict.cc \
-  PHG4CylinderDetector.cc \
-  PHG4CylinderEventAction.cc \
   PHG4CylinderGeom.cc \
   PHG4CylinderGeom_Dict.cc \
   PHG4CylinderGeomv1.cc \
