@@ -40,94 +40,141 @@ libg4detectors_la_SOURCES = \
   PHG4AccDetector.cc \
   PHG4AccSteppingAction.cc \
   PHG4AccSubsystem.cc \
+  PHG4AccSubsystem_Dict.cc \
   PHG4BlockCellGeom.cc \
+  PHG4BlockCellGeom_Dict.cc \
   PHG4BlockCellGeomContainer.cc \
+  PHG4BlockCellGeomContainer_Dict.cc \
   PHG4BlockCellReco.cc \
+  PHG4BlockCellReco_Dict.cc \
   PHG4BlockDetector.cc \
   PHG4BlockEventAction.cc \
   PHG4BlockGeom.cc \
+  PHG4BlockGeom_Dict.cc \
   PHG4BlockGeomv1.cc \
+  PHG4BlockGeomv1_Dict.cc \
   PHG4BlockGeomContainer.cc \
+  PHG4BlockGeomContainer_Dict.cc \
   PHG4BlockRegionSteppingAction.cc \
   PHG4BlockSteppingAction.cc \
   PHG4BlockSubsystem.cc \
+  PHG4BlockSubsystem_Dict.cc \
   PHG4CEmcTestBeamDetector.cc \
   PHG4CEmcTestBeamSteppingAction.cc \
   PHG4CEmcTestBeamSubsystem.cc \
+  PHG4CEmcTestBeamSubsystem_Dict.cc \
   PHG4EventActionClearZeroEdep.cc \
   PHG4ConeDetector.cc \
   PHG4ConeEventAction.cc \
   PHG4ConeRegionSteppingAction.cc \
   PHG4ConeSteppingAction.cc \
   PHG4ConeSubsystem.cc \
+  PHG4ConeSubsystem_Dict.cc \
   PHG4CrystalCalorimeterDetector.cc \
   PHG4CrystalCalorimeterSteppingAction.cc \
   PHG4CrystalCalorimeterSubsystem.cc \
+  PHG4CrystalCalorimeterSubsystem_Dict.cc \
   PHG4CylinderDetector.cc \
   PHG4CylinderEventAction.cc \
   PHG4CylinderGeom.cc \
+  PHG4CylinderGeom_Dict.cc \
   PHG4CylinderGeomv1.cc \
+  PHG4CylinderGeomv1_Dict.cc \
   PHG4CylinderGeomv2.cc \
+  PHG4CylinderGeomv2_Dict.cc \
   PHG4CylinderGeomv3.cc \
+  PHG4CylinderGeomv3_Dict.cc \
   PHG4CylinderGeomv4.cc \
+  PHG4CylinderGeomv4_Dict.cc \
   PHG4CylinderGeom_Spacalv1.cc \
+  PHG4CylinderGeom_Spacalv1_Dict.cc \
   PHG4CylinderGeom_Spacalv2.cc \
+  PHG4CylinderGeom_Spacalv2_Dict.cc \
   PHG4CylinderGeomContainer.cc \
+  PHG4CylinderGeomContainer_Dict.cc \
   PHG4CylinderRegionSteppingAction.cc \
   PHG4CylinderSubsystem.cc \
+  PHG4CylinderSubsystem_Dict.cc \
   PHG4CylinderCell.cc \
+  PHG4CylinderCell_Dict.cc \
   PHG4CylinderCellv1.cc \
+  PHG4CylinderCellv1_Dict.cc \
   PHG4CylinderCellv2.cc \
+  PHG4CylinderCellv2_Dict.cc \
   PHG4CylinderCellContainer.cc \
+  PHG4CylinderCellContainer_Dict.cc \
   PHG4CylinderCellGeom.cc \
+  PHG4CylinderCellGeom_Dict.cc \
   PHG4CylinderCellGeomContainer.cc \
+  PHG4CylinderCellGeomContainer_Dict.cc \
   PHG4CylinderCellReco.cc \
+  PHG4CylinderCellReco_Dict.cc \
   PHG4CylinderSteppingAction.cc \
-  PHG4Detector_Dict.cc \
   PHG4FCalDetector.cc \
   PHG4FCalSteppingAction.cc \
   PHG4FCalSubsystem.cc \
+  PHG4FCalSubsystem_Dict.cc \
   PHG4FPbScDetector.cc \
   PHG4FPbScEventAction.cc \
   PHG4FPbScSteppingAction.cc \
   PHG4FPbScRegionSteppingAction.cc \
   PHG4FPbScSubsystem.cc \
+  PHG4FPbScSubsystem_Dict.cc \
   PHG4GenHit.cc \
+  PHG4GenHit_Dict.cc \
   PHG4HcalCellReco.cc \
+  PHG4HcalCellReco_Dict.cc \
   PHG4HcalDetector.cc \
   PHG4HcalSteppingAction.cc \
   PHG4HcalSubsystem.cc \
+  PHG4HcalSubsystem_Dict.cc \
   PHG4HcalTestBeamDetector.cc \
   PHG4HcalTestBeamSteppingAction.cc \
   PHG4HcalTestBeamSubsystem.cc \
+  PHG4HcalTestBeamSubsystem_Dict.cc \
   PHG4HcalPrototypeDetector.cc \
   PHG4HcalPrototypeDetectorMessenger.cc \
   PHG4HcalPrototypeSteppingAction.cc \
   PHG4HcalPrototypeSubsystem.cc \
+  PHG4HcalPrototypeSubsystem_Dict.cc \
   PHG4InnerHcalDetector.cc \
   PHG4InnerHcalSteppingAction.cc \
   PHG4InnerHcalSubsystem.cc \
+  PHG4InnerHcalSubsystem_Dict.cc \
   PHG4SlatCellReco.cc \
+  PHG4SlatCellReco_Dict.cc \
   PHG4OuterHcalDetector.cc \
   PHG4OuterHcalSteppingAction.cc \
   PHG4OuterHcalSubsystem.cc \
+  PHG4OuterHcalSubsystem_Dict.cc \
   PHG4RICHDetector.cc \
   PHG4RICHSteppingAction.cc \
   PHG4RICHSubsystem.cc \
+  PHG4RICHSubsystem_Dict.cc \
   ePHENIXRICHConstruction.cc \
+  ePHENIXRICHConstruction_Dict.cc \
   PHG4SectorConstructor.cc \
+  PHG4SectorConstructor_Dict.cc \
   PHG4SectorDetector.cc \
   PHG4SectorEventAction.cc \
   PHG4SectorSteppingAction.cc \
   PHG4SectorSubsystem.cc \
+  PHG4SectorSubsystem_Dict.cc \
   PHG4SiliconTrackerCellReco.cc \
+  PHG4SiliconTrackerCellReco_Dict.cc \
   PHG4SiliconTrackerDetector.cc \
   PHG4SiliconTrackerSteppingAction.cc \
   PHG4SiliconTrackerSubsystem.cc \
+  PHG4SiliconTrackerSubsystem_Dict.cc \
   PHG4SpacalDetector.cc \
   PHG4ProjSpacalDetector.cc \
   PHG4SpacalSteppingAction.cc \
-  PHG4SpacalSubsystem.cc
+  PHG4SpacalSubsystem.cc \
+  PHG4SpacalSubsystem_Dict.cc
+
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
 ################################################
 # linking tests
@@ -150,52 +197,4 @@ testexternals.cc:
 
 clean-local:
 	rm -f *Dict* $(BUILT_SOURCES)
-
-PHG4Detector_Dict.cc : \
-  ePHENIXRICHConstruction.h \
-  PHG4AccSubsystem.h \
-  PHG4BlockCellGeom.h \
-  PHG4BlockCellGeomContainer.h \
-  PHG4BlockCellReco.h \
-  PHG4BlockSubsystem.h \
-  PHG4BlockGeom.h \
-  PHG4BlockGeomv1.h \
-  PHG4BlockGeomContainer.h \
-  PHG4CEmcTestBeamSubsystem.h \
-  PHG4ConeSubsystem.h \
-  PHG4CrystalCalorimeterSubsystem.h \
-  PHG4CylinderCell.h \
-  PHG4CylinderCellv1.h \
-  PHG4CylinderCellv2.h \
-  PHG4CylinderCellContainer.h \
-  PHG4CylinderCellGeom.h \
-  PHG4CylinderCellGeomContainer.h \
-  PHG4CylinderCellReco.h \
-  PHG4CylinderGeom.h \
-  PHG4CylinderGeomv1.h \
-  PHG4CylinderGeomv2.h \
-  PHG4CylinderGeomv3.h \
-  PHG4CylinderGeomv4.h \
-  PHG4CylinderGeomContainer.h \
-  PHG4CylinderGeom_Spacalv1.h \
-  PHG4CylinderGeom_Spacalv2.h \
-  PHG4CylinderSubsystem.h \
-  PHG4FCalSubsystem.h \
-  PHG4FPbScSubsystem.h \
-  PHG4GenHit.h \
-  PHG4HcalCellReco.h \
-  PHG4HcalSubsystem.h \
-  PHG4HcalTestBeamSubsystem.h \
-  PHG4HcalPrototypeSubsystem.h \
-  PHG4InnerHcalSubsystem.h \
-  PHG4OuterHcalSubsystem.h \
-  PHG4RICHSubsystem.h \
-  PHG4SectorConstructor.h \
-  PHG4SectorSubsystem.h \
-  PHG4SiliconTrackerSubsystem.h \
-  PHG4SiliconTrackerCellReco.h \
-  PHG4SlatCellReco.h \
-  PHG4SpacalSubsystem.h \
-  PHG4DetectorLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
