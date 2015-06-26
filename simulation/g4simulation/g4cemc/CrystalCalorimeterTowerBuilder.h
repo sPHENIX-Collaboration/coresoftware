@@ -8,12 +8,11 @@
 
 class PHCompositeNode;
 class RawTowerContainer;
-class PHG4Hitv8;
 class PHG4HitContainer;
 
 /**
  * \brief SubsysReco module creating calorimeter tower objects (RawTowerv2) from hits
- * (PHG4Hitv8) using j,k indeces of these hits
+ * (PHG4Hit) using j,k indeces of these hits
  *
  * \author Nils Feege <nils.feege@stonybrook.edu>
  *

@@ -3,7 +3,7 @@
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Hitv8.h>
+#include <g4main/PHG4Hitv1.h>
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
@@ -113,8 +113,8 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 	{
 	case fGeomBoundary:
 	case fUndefined:
-	  hit = new PHG4Hitv8();
-	  hit->set_layer(0);
+	  hit = new PHG4Hitv1();
+//	  hit->set_layer(0);
 	  hit->set_scint_id(tower_id);
 
 	  /* Set hit location (tower index) */
