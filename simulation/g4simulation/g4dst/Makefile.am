@@ -12,6 +12,7 @@ AM_CXXFLAGS = -Wall -Werror -msse2
 libg4dst_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  -lphg4hit \
   -lg4detectors \
   -lg4hough_io \
   -lcemc_io \
