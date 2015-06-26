@@ -13,7 +13,7 @@ libg4dst_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -lphg4hit \
-  -lg4detectors \
+  -lg4detectors_io \
   -lg4hough_io \
   -lcemc_io \
   -lg4jets \
