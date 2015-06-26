@@ -16,8 +16,8 @@ libg4jets_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -lfun4all \
-  -lg4hough \
-  -lcemc
+  -lg4hough_io \
+  -lcemc_io
 
 pkginclude_HEADERS = \
   Jet.h \
