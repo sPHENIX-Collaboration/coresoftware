@@ -493,6 +493,17 @@ PHG4Reco::setupInputEventNodeReader(PHCompositeNode *topNode)
 }
 
 void
+PHG4Reco::setGeneratorAction(G4VUserPrimaryGeneratorAction *action)
+{
+  if (runManager_)
+    {
+      runManager_->SetUserAction(action);
+    }
+  return;
+}
+
+
+void
 PHG4Reco::set_rapidity_coverage(const double eta)
 {
   _eta_coverage = eta;
