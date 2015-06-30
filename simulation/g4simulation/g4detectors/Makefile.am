@@ -26,7 +26,7 @@ libg4detectors_la_LIBADD = \
   -lSubsysReco \
   -lg4testbench \
   -lCGAL \
-  -lg4detectors_io
+  libg4detectors_io.la
 
 pkginclude_HEADERS = \
   PHG4BlockGeom.h \
