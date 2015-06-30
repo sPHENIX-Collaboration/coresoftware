@@ -61,8 +61,8 @@ class PHG4InnerHcalDetector: public PHG4Detector
 
   double CalculateSteelAngularCoverage();
 
+  G4VSolid* ConstructSteelPlateA(G4LogicalVolume* hcalenvelope);
   G4VSolid* ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
-  G4VSolid* ConstructScintillatorBoxA(G4LogicalVolume* hcalenvelope);
   G4VSolid* ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
   void ConstructScintillator(G4LogicalVolume *hcalenvelope);
 
