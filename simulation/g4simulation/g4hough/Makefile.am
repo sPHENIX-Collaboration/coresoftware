@@ -30,7 +30,7 @@ libg4hough_la_LDFLAGS = \
   -lFitNewton \
   -lSeamstress \
   -lcemc \
-  -lg4hough_io
+  libg4hough_io.la
 
 pkginclude_HEADERS = \
   SvtxVertex.h \
