@@ -32,6 +32,8 @@ libg4hough_la_LDFLAGS = \
   -lcemc \
   libg4hough_io.la
 
+libg4hough_la_DEPENDENCIES = libg4hough_io.la
+
 pkginclude_HEADERS = \
   SvtxVertex.h \
   SvtxVertexMap.h \
@@ -51,8 +53,6 @@ pkginclude_HEADERS = \
   PHG4TrackGhostRejection.h \
   PHG4SvtxTrackProjection.h \
   PHG4SvtxBeamSpotReco.h
-
-#pkginclude_HEADERS = $(include_HEADERS)
 
 libg4hough_io_la_SOURCES = \
   SvtxHit.C \
