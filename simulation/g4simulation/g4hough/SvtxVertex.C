@@ -12,11 +12,11 @@ SvtxVertex::SvtxVertex()
     _pos(),
     _chisq(NAN),
     _ndof(0xFFFFFFFF),
-    _err(),
+    _err(3),
     _track_ids() {
   
-  for (int i = 0; i < 3; ++i) _pos[i] = NAN;
-  for (int i = 0; i < 3; ++i) _err[i] = new float[i+1];
+  for (int i = 0; i < 3; ++i) _pos[i] = NAN;  
+  for (int i = 0; i < 3; ++i) _err[i] = std::vector<float>(i+1);
 
   for (int j = 0; j < 3; ++j) {
     for (int i = j; i < 3; ++i) {
@@ -31,11 +31,11 @@ SvtxVertex::SvtxVertex(const SvtxVertex &vertex) :
   _pos(),
   _chisq(vertex.get_chisq()),
   _ndof(vertex.get_ndof()),
-  _err(),
+  _err(3),
   _track_ids() {
   
   for (int i=0; i<3; ++i) _pos[i] = vertex.get_position(i);    
-  for (int i=0; i<3; ++i) _err[i] = new float[i+1];
+  for (int i=0; i<3; ++i) _err[i] = std::vector<float>(i+1);
   for (int j=0; j<3; ++j) {
     for (int i=j; i<3; ++i) {
       set_error(i,j,vertex.get_error(i,j));
@@ -68,9 +68,7 @@ SvtxVertex& SvtxVertex::operator=(const SvtxVertex &vertex) {
   return *this;
 }
 
-SvtxVertex::~SvtxVertex(){
-  for (int i=0; i<3; ++i) delete[] _err[i];
-}
+SvtxVertex::~SvtxVertex(){}
 
 void SvtxVertex::identify(ostream& os) const {
   os << "---SvtxVertex-----------------------" << endl;

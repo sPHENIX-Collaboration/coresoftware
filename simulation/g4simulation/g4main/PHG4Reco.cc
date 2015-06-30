@@ -493,6 +493,17 @@ PHG4Reco::setupInputEventNodeReader(PHCompositeNode *topNode)
 }
 
 void
+PHG4Reco::setGeneratorAction(G4VUserPrimaryGeneratorAction *action)
+{
+  if (runManager_)
+    {
+      runManager_->SetUserAction(action);
+    }
+  return;
+}
+
+
+void
 PHG4Reco::set_rapidity_coverage(const double eta)
 {
   _eta_coverage = eta;
@@ -603,6 +614,17 @@ PHG4Reco::DefineMaterials()
   StainlessSteel->AddElement(S, 0.0003);
   StainlessSteel->AddElement(Si, 0.0075);
   StainlessSteel->AddElement(P, 0.00045);
+
+  G4Material * SS310 =
+    new G4Material("SS310", density = 8.0 * g / cm3, ncomponents = 8);
+  SS310->AddElement(Fe, 0.50455);
+  SS310->AddElement(Cr, 0.25);
+  SS310->AddElement(Ni, 0.20);
+  SS310->AddElement(Mn, 0.02);
+  SS310->AddElement(C, 0.0025);
+  SS310->AddElement(S, 0.015);
+  SS310->AddElement(Si, 0.0075);
+  SS310->AddElement(P, 0.00045);
 
   G4Material * Steel =
     new G4Material("Steel", density = 7.86 * g / cm3, ncomponents = 5);

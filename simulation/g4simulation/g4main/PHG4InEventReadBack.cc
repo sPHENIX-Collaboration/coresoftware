@@ -46,7 +46,6 @@ int
 PHG4InEventReadBack::process_event(PHCompositeNode *topNode)
 {
   PHG4InEvent *inEvent = findNode::getClass<PHG4InEvent>(topNode,"PHG4INEVENT");
-  inEvent->Reset();
   if (!inEvent)
     {
       cout << "no PHG4INEVENT node found" << endl;
@@ -65,6 +64,7 @@ PHG4InEventReadBack::process_event(PHCompositeNode *topNode)
       cout << "no PHG4Particle_VarArray node found" << endl;
       return Fun4AllReturnCodes::EVENT_OK;
     }
+  inEvent->Reset();
   unsigned int size = vtxarray->get_array_size();
   const short int *sval = vtxarray->get_array();
   PHG4VtxPointv1 vtx;

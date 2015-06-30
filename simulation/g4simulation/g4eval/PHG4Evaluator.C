@@ -213,6 +213,16 @@ int PHG4Evaluator::InitRun(PHCompositeNode *topNode) {
     }
   }
 
+  if (findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap")) {
+    EvalLinks *links = findNode::getClass<EvalLinks>(topNode,"G4TruthInfo_SvtxTrackMap_Links");
+    if (!links) {
+      links = new EvalLinksV1("G4TruthInfo","SvtxTrackMap","nclusters");
+      PHIODataNode<PHObject> *linksNode =
+  	new PHIODataNode<PHObject>(links, "G4TruthInfo_SvtxTrackMap_Links", "PHObject");
+      svxNode->addNode(linksNode);
+    }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
   
@@ -377,7 +387,7 @@ int PHG4Evaluator::process_event(PHCompositeNode *topNode)
   fillCellToG4HitMap();
   fillClusterToG4HitMap();
 
-  fillClusterToG4HitLinks(topNode);
+  //fillClusterToG4HitLinks(topNode);
 
   _internal_timer[3].get()->stop();
   
@@ -387,7 +397,8 @@ int PHG4Evaluator::process_event(PHCompositeNode *topNode)
   
   _internal_timer[4].get()->restart();
   if (_trackingWasRun) fillTrackToGtrackMap();
-  if (_trackingWasRun) fillTrackToG4TruthInfoLinks(topNode);
+  //if (_trackingWasRun) fillTrackToG4TruthInfoLinks(topNode);
+  //if (_trackingWasRun) fillG4TruthInfoToTrackLinks(topNode);
   _internal_timer[4].get()->stop();
   
   //------------------------
@@ -573,6 +584,7 @@ void PHG4Evaluator::fillGtrackObjects()
   // reset the vector
   _gtrack_list.clear();
   _g4hit_gtrack_map.clear();
+  _particleid_g4hitid_mmap.clear();
   
   map<int, unsigned int> id_gtrack_map;
   
@@ -582,9 +594,12 @@ void PHG4Evaluator::fillGtrackObjects()
       g4hit_iter++)
     {
       PHG4Hit *g4hit = g4hit_iter->second;
+      unsigned int g4hit_id = g4hit->get_hit_id();
 
       int track_id = g4hit->get_trkid();
-
+      
+      _particleid_g4hitid_mmap.insert(make_pair(track_id,g4hit_id));
+      
       bool isNewGtrack = true;
       bool isNewG4hit = true;
     
@@ -1015,6 +1030,8 @@ int PHG4Evaluator::fillTrackToG4TruthInfoLinks(PHCompositeNode *topNode) {
   }
   evallinks->Reset();
   evallinks->set_names("SvtxTrackMap","G4TruthInfo","ng4hits");
+
+  _track_particle_links = evallinks;
   
   // loop over all tracks
   for (SvtxTrackMap::Iter iter = _trackList->begin();
@@ -1097,6 +1114,59 @@ int PHG4Evaluator::fillTrackToG4TruthInfoLinks(PHCompositeNode *topNode) {
     } // end vote recording
     
   } // track loop
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+// forward look up based on number of clusters left by truth
+// particles (pattern reco testing).
+int PHG4Evaluator::fillG4TruthInfoToTrackLinks(PHCompositeNode *topNode) {
+
+  EvalLinks* evallinks = NULL;
+  PHTypedNodeIterator<EvalLinks> evaliter(topNode);
+  PHIODataNode<EvalLinks> *EvalLinksNode = evaliter.find("G4TruthInfo_SvtxTrackMap_Links");
+  if (!EvalLinksNode) {
+    cout << PHWHERE << " ERROR: Can't find G4TruthInfo_SvtxTrackMap_Links" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  } else {
+    evallinks = (EvalLinks*)EvalLinksNode->getData();
+  }
+  evallinks->Reset();
+  evallinks->set_names("G4TruthInfo","SvtxTrackMap","nclusters left by particle");
+
+  // loop over all truth particles
+  PHG4TruthInfoContainer::Map map = _truth_info_container->GetMap();
+  for (PHG4TruthInfoContainer::ConstIterator citer = map.begin();
+       citer != map.end();
+       ++citer) {
+    PHG4Particle* particle = citer->second;
+    int particle_id = particle->get_track_id();
+    unsigned int nclusters = 0;
+      
+    // loop over this particle's g4hits
+    for (std::multimap<int,unsigned int>::iterator iter = _particleid_g4hitid_mmap.lower_bound(particle_id);
+	 iter != _particleid_g4hitid_mmap.upper_bound(particle_id);
+	 ++iter) {
+
+      unsigned int g4hitid = iter->second;
+      
+      // grab the number of clusters from the g4hit
+      if (_cluster_g4hit_svtx_links) {
+	std::set<unsigned int> cluster_ids = _cluster_g4hit_svtx_links->left(g4hitid);
+	nclusters += cluster_ids.size();
+      }
+
+      if (_cluster_g4hit_silicon_tracker_links) {
+	std::set<unsigned int> cluster_ids = _cluster_g4hit_silicon_tracker_links->left(g4hitid);
+	nclusters += cluster_ids.size();
+      }      
+    }    
+
+    // the number of clusters has been established
+    unsigned int leading_track_id = _track_particle_links->max_left(particle_id);
+    evallinks->link(particle_id,leading_track_id,nclusters);    
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

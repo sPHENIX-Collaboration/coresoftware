@@ -8,7 +8,7 @@
 //
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
-#include <PHTimeStamp.h>
+#include "PHTimeStamp.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -37,56 +37,27 @@ PHTimeStamp::PHTimeStamp()
 {
    setTics(time(0));
   
-#ifndef WIN32
-
-   #if defined(HAVE_SETENV) && !defined(OSF1)
    setenv("TZ","EST5EDT",1);
-   #else
-   char envvar[] = "TZ=EST5EDT";
-   putenv(envvar);
-   #endif
-#endif
 }
 
-PHTimeStamp::PHTimeStamp(int year, int month, int day, int hour, int minute, int second, int fraction) 
+PHTimeStamp::PHTimeStamp(const int year, const int month, const int day, const int hour, const int minute, const int second, const int fraction) 
 {
    set(year, month, day, hour, minute, second, fraction);
-#ifndef WIN32
-   #if defined(HAVE_SETENV) && !defined(OSF1)
    setenv("TZ","EST5EDT",1);
-   #else
-   char envvar[] = "TZ=EST5EDT";
-   putenv(envvar);
-   #endif
-
-#endif
 
 }
 
-PHTimeStamp::PHTimeStamp(time_t t) 
+PHTimeStamp::PHTimeStamp(const time_t t) 
 {
    setTics(t);
-#ifndef WIN32
-   #if defined(HAVE_SETENV) && !defined(OSF1)
    setenv("TZ","EST5EDT",1);
-   #else
-   char envvar[] = "TZ=EST5EDT";
-   putenv(envvar);
-   #endif
-
-#endif
 }
-
-//PHTimeStamp::PHTimeStamp(phtime_t t) 
-//{
-//  binaryTime = t;
-//}
 
 
 void 
-PHTimeStamp::set(int year, int month, int day, 
-		 int hour, int minute, 
-		 int second, int fraction)
+PHTimeStamp::set(const int year, const int month, const int day, 
+		 const int hour, const int minute, 
+		 const int second, const int fraction)
 {
    if (year < 1900)
      {
@@ -128,7 +99,7 @@ time_t PHTimeStamp::getTics() const
    return binaryTimeToTics(binaryTime);
 }
 
-void PHTimeStamp::setTics(time_t tics)
+void PHTimeStamp::setTics(const time_t tics)
 {
    binaryTime = ticsToBinaryTime(tics);
 }

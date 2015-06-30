@@ -3,8 +3,7 @@
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Hitv2.h>
-#include <g4main/PHG4Hitv7.h>
+#include <g4main/PHG4Hitv1.h>
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
@@ -166,7 +165,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction( const G4Step* aStep, 
 	case fGeomBoundary:
 	case fUndefined:
 	  
-	  hit = new PHG4Hitv7();
+	  hit = new PHG4Hitv1();
 	  
 	  hit->set_layer((unsigned int)layer_id);
 	  

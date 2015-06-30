@@ -188,11 +188,17 @@ std::set<unsigned int> EvalLinksV1::right(unsigned int left_id) const {
 
 unsigned int EvalLinksV1::max_left(unsigned int right_id) const {
   if (stale()) refresh();
+  if (_right_left_map.find(right_id) == _right_left_map.end()) {
+    return NULLID;
+  }
   return _right_left_map[right_id];
 }
 
 unsigned int EvalLinksV1::max_right(unsigned int left_id) const {
   if (stale()) refresh();
+  if (_left_right_map.find(left_id) == _left_right_map.end()) {
+    return NULLID;
+  }
   return _left_right_map[left_id];
 }
 
@@ -236,7 +242,7 @@ void EvalLinksV1::calc_max_left(unsigned int right_id) const {
   
   std::set<unsigned int> candidates = left(right_id);
 
-  unsigned int max_left = 0xFFFFFFF;
+  unsigned int max_left = NULLID;
   float max_weight = FLT_MIN;
 
   for (std::set<unsigned int>::const_iterator iter = candidates.begin();
@@ -261,7 +267,7 @@ void EvalLinksV1::calc_max_right(unsigned int left_id) const {
   // recalculate max link going right
   std::set<unsigned int> candidates = right(left_id);
 
-  unsigned int max_right = 0xFFFFFFF;
+  unsigned int max_right = NULLID;
   float max_weight = FLT_MIN;
 
   for (std::set<unsigned int>::const_iterator iter = candidates.begin();

@@ -8,9 +8,16 @@ INCLUDES = \
   -I$(G4_MAIN)/include/Geant4 \
   -I`root-config --incdir`
 
-lib_LTLIBRARIES = libg4eval.la
+lib_LTLIBRARIES = \
+   libg4eval_io.la \
+   libg4eval.la
 
 AM_CXXFLAGS = -Wall -Werror -msse2
+
+libg4eval_io_la_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  -lphool
 
 libg4eval_la_LDFLAGS = \
   -L$(libdir) \
@@ -20,7 +27,8 @@ libg4eval_la_LDFLAGS = \
   -lg4hough \
   -lHelixHough \
   -lFitNewton \
-  -lcemc
+  -lcemc \
+  libg4eval_io.la
 
 pkginclude_HEADERS = \
   PHG4Evaluator.h \
@@ -31,17 +39,19 @@ pkginclude_HEADERS = \
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
+libg4eval_io_la_SOURCES = \
+  EvalLinks.C \
+  EvalLinks_Dict.C \
+  EvalLinksV1.C \
+  EvalLinksV1_Dict.C
+
 libg4eval_la_SOURCES = \
   PHG4Evaluator.C \
   PHG4Evaluator_Dict.C \
   PHG4CalEvaluator.C \
   PHG4CalEvaluator_Dict.C \
   PHG4DSTReader.cc \
-  PHG4DSTReader_Dict.C \
-  EvalLinks.C \
-  EvalLinks_Dict.C \
-  EvalLinksV1.C \
-  EvalLinksV1_Dict.C
+  PHG4DSTReader_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
@@ -59,6 +69,7 @@ BUILT_SOURCES = \
   testexternals.C
 
 testexternals_LDADD = \
+  libg4eval_io.la \
   libg4eval.la
 
 testexternals.C:

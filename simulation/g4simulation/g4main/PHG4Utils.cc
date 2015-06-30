@@ -103,6 +103,10 @@ PHG4Utils::SetColour(G4VisAttributes* att, const string &material)
     {
       att->SetColour(G4Colour::Blue());
     }
+  else if (material == "G4_Au")
+    {
+      att->SetColour(G4Colour::Yellow());
+    }
   else if (material == "G4_CARBON_DIOXIDE")
     {
       att->SetColour(G4Colour::Green());

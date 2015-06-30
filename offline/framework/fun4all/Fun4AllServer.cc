@@ -692,15 +692,17 @@ Fun4AllServer::process_event()
 int
 Fun4AllServer::ResetNodeTree()
 {
-  static const char *ResetNodeList[] = {"DST"};
+  vector<string> ResetNodeList;
+  ResetNodeList.push_back("DST");
   PHNodeReset reset;
   map<string, PHCompositeNode *>::const_iterator iter;
   for (iter = topnodemap.begin(); iter != topnodemap.end(); ++iter)
     {
       PHNodeIterator mainIter((*iter).second);
-      for (short int icnt = 0; icnt < 2;icnt++)
+      for (vector<string>::const_iterator nodename=ResetNodeList.begin() ; 
+           nodename != ResetNodeList.end();++nodename)
         {
-          if (mainIter.cd(ResetNodeList[icnt]))
+          if (mainIter.cd(*nodename))
             {
               mainIter.forEach(reset);
               mainIter.cd();

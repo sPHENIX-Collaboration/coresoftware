@@ -398,13 +398,26 @@ PHNodeIOManager::readSpecific(size_t requestedEvent, const char* objectName)
 PHCompositeNode*
 PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
 {
+  if (! file)
+    {
+      if (filename.empty())
+	{
+	  cout << PHWHERE << "filename was never set" << endl;
+	}
+      else
+	{
+	  cout << PHWHERE << "TFile " << filename << " NULL pointer" << endl;
+	}
+      return NULL;
+    }
+
   tree = static_cast<TTree*>(file->Get(TreeName.c_str()));
 
-  if (!file || !tree)
+  if (!tree)
     {
       cout << PHWHERE << "PHNodeIOManager::reconstructNodeTree : Root Tree "
 	   << TreeName << " not found in file " << file->GetName() << endl;
-      return 0;
+      return NULL;
     }
 
   // ROOT sucks, we need a unique name for the tree so we can open multiple

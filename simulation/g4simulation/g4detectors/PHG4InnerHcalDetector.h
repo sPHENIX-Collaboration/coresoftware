@@ -59,9 +59,11 @@ class PHG4InnerHcalDetector: public PHG4Detector
 
   void SetTilt(const double tilt) {tilt_angle = tilt;}
 
-  double CalculateSteelAgularCoverage();
+  double CalculateSteelAngularCoverage();
 
   G4VSolid* ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
+  G4VSolid* ConstructScintillatorBoxA(G4LogicalVolume* hcalenvelope);
+  G4VSolid* ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
   void ConstructScintillator(G4LogicalVolume *hcalenvelope);
 
   protected:
