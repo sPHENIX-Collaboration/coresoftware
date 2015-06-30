@@ -77,7 +77,7 @@ libcemc_la_LIBADD = \
   -lg4detectors \
   -lgsl \
   -lgslcblas \
-  -lcemc_io
+  libcemc_io.la
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
