@@ -32,7 +32,7 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   PHG4InnerHcalDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK", const int lyr = 0 );
 
   //! destructor
-  virtual ~PHG4InnerHcalDetector();
+  virtual ~PHG4InnerHcalDetector(){}
 
   //! construct
   virtual void Construct( G4LogicalVolume* world );
@@ -64,12 +64,10 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
 
   void SetTilt(const double tilt) {tilt_angle = tilt;}
 
-  double CalculateSteelAngularCoverage();
-
   G4VSolid* ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
   G4VSolid* ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
   void ConstructScintillator(G4LogicalVolume *hcalenvelope);
-  void ShiftSekantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright);
+  void ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright);
 
   protected:
   void AddGeometryNode();
@@ -87,13 +85,12 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   G4double envelope_inner_radius;
   G4double envelope_outer_radius;
   G4double envelope_z;
-  G4double single_steel_angular_coverage; 
-   G4double place_in_x;
-   G4double place_in_y;
-   G4double place_in_z;
-   G4double x_rot;
-   G4double y_rot;
-   G4double z_rot;
+  G4double place_in_x;
+  G4double place_in_y;
+  G4double place_in_z;
+  G4double x_rot;
+  G4double y_rot;
+  G4double z_rot;
   int active;
   int absorberactive;
   int layer;

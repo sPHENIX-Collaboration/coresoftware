@@ -72,25 +72,6 @@ PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, const std::
 {
 }
 
-PHG4InnerHcalDetector::~PHG4InnerHcalDetector()
-{}
-
-double
-PHG4InnerHcalDetector::CalculateSteelAngularCoverage()
-{
-  //  double scinti_gap_projection = scinti_gap * cos(tilt_angle / rad);
-  double scinti_gap_projection = (scinti_gap+2*mm)/cos(tilt_angle / rad);
-   double cosphi = (2 * envelope_inner_radius * envelope_inner_radius - scinti_gap_projection * scinti_gap_projection) / (2 * envelope_inner_radius * envelope_inner_radius);
-   double single_scinti_angcov = acos(cosphi);
-  // double tanphi = scinti_gap_projection/envelope_inner_radius;
-  // double single_scinti_angcov = atan(tanphi);
-
-  double total_scinti_coverage = single_scinti_angcov * n_scinti_plates;
-  double total_steel_coverage = 2 * M_PI - total_scinti_coverage;
-  double single_steel_coverage = total_steel_coverage / n_scinti_plates;
-  return single_steel_coverage;
-}
-
 //_______________________________________________________________
 //_______________________________________________________________
 int
@@ -315,7 +296,9 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
 	}
     }
   }
-  ShiftSekantToTangent(lowerleft,upperleft,upperright,lowerright);
+  // the left corners are on a secant with the inner boundary, they need to be shifted
+  // to be a tangent at the center
+  ShiftSecantToTangent(lowerleft,upperleft,upperright,lowerright);
   G4TwoVector v1(CGAL::to_double(upperleft.x()), CGAL::to_double(upperleft.y()));
   G4TwoVector v2(CGAL::to_double(upperright.x()), CGAL::to_double(upperright.y()));
   G4TwoVector v3(CGAL::to_double(lowerright.x()), CGAL::to_double(lowerright.y()));
@@ -341,15 +324,15 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
 }
 
 void
-PHG4InnerHcalDetector::ShiftSekantToTangent(Point_2 &lowleft, Point_2 &upleft,Point_2 &upright, Point_2 &lowright)
+PHG4InnerHcalDetector::ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft,Point_2 &upright, Point_2 &lowright)
 {
-  Line_2 sekante(lowleft,upleft);
+  Line_2 secant(lowleft,upleft);
   Segment_2 upedge(upleft,upright);
   Segment_2 lowedge(lowleft,lowright);
   double xmid = (CGAL::to_double(lowleft.x()) + CGAL::to_double(upleft.x()))/2.;
   double ymid = (CGAL::to_double(lowleft.y()) + CGAL::to_double(upleft.y()))/2.;
     Point_2 midpoint(xmid,ymid);
-    Line_2 sekperp = sekante.perpendicular(midpoint);
+    Line_2 sekperp = secant.perpendicular(midpoint);
   Point_2 sc1(inner_radius,0), sc2(0,inner_radius),sc3(-inner_radius,0);
   Circle_2 inner_circle(sc1,sc2,sc3);
   vector< CGAL::Object > res;
@@ -409,7 +392,7 @@ PHG4InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
 {
   // first calculate some parameters which depend on
   // macro-changeable configurations
-  single_steel_angular_coverage = CalculateSteelAngularCoverage();
+  //  single_steel_angular_coverage = CalculateSteelAngularCoverage();
   G4Material* Air = G4Material::GetMaterial("G4_AIR");
   G4VSolid* hcal_envelope_cylinder = new G4Tubs("InnerHcal_envelope_solid",  envelope_inner_radius, envelope_outer_radius, envelope_z / 2., 0, 2 * M_PI);
   G4LogicalVolume* hcal_envelope_log =  new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("Hcal_envelope"), 0, 0, 0);
@@ -424,7 +407,6 @@ PHG4InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
   hcal_rotm.rotateZ(z_rot);
   new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(place_in_x, place_in_y, place_in_z)), hcal_envelope_log, "InnerHcalEnvelope", logicWorld, 0, false, overlapcheck);
   ConstructInnerHcal(hcal_envelope_log);
-  //  AddGeometryNode();
   return;
 }
 
@@ -445,11 +427,7 @@ PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
   visattchk->SetForceSolid(false);
   visattchk->SetColour(G4Colour::Red());
   scintibox_logical->SetVisAttributes(visattchk);
-  double thickness = single_steel_angular_coverage;
-  thickness += scinti_gap;
   double phi = 0;
-  //  double phioff = (2*M_PI/n_scinti_plates)*2+0.005;
-  //double deltaphi = acos((2 * envelope_inner_radius * envelope_inner_radius - thickness * thickness) / (2 * envelope_inner_radius * envelope_inner_radius));
   double deltaphi = 2*M_PI/n_scinti_plates;
   double xpos = 0;
   double ypos = 0;
