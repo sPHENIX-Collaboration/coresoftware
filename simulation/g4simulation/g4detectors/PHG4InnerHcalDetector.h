@@ -8,6 +8,9 @@
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4RotationMatrix.hh>
 
+#include <CGAL/Exact_circular_kernel_2.h>
+#include <CGAL/point_generators_2.h>
+
 #include <map>
 #include <vector>
 #include <set>
@@ -20,6 +23,8 @@ class G4VSolid;
 
 class PHG4InnerHcalDetector: public PHG4Detector
 {
+typedef CGAL::Exact_circular_kernel_2             Circular_k;
+typedef CGAL::Point_2<Circular_k>                 Point_2;
 
   public:
 
@@ -61,10 +66,10 @@ class PHG4InnerHcalDetector: public PHG4Detector
 
   double CalculateSteelAngularCoverage();
 
-  G4VSolid* ConstructSteelPlateA(G4LogicalVolume* hcalenvelope);
   G4VSolid* ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
   G4VSolid* ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
   void ConstructScintillator(G4LogicalVolume *hcalenvelope);
+  void ShiftSekantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright);
 
   protected:
   void AddGeometryNode();

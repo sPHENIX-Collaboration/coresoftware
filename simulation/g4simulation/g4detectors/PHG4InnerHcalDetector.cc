@@ -315,10 +315,9 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
 	}
     }
   }
+  ShiftSekantToTangent(lowerleft,upperleft,upperright,lowerright);
   G4TwoVector v1(CGAL::to_double(upperleft.x()), CGAL::to_double(upperleft.y()));
   G4TwoVector v2(CGAL::to_double(upperright.x()), CGAL::to_double(upperright.y()));
-   // G4TwoVector v1(CGAL::to_double(lowerleft.x()), CGAL::to_double(lowerleft.y())+15.);
-   // G4TwoVector v2(CGAL::to_double(lowerright.x()), CGAL::to_double(lowerright.y())+15.);
   G4TwoVector v3(CGAL::to_double(lowerright.x()), CGAL::to_double(lowerright.y()));
   G4TwoVector v4(CGAL::to_double(lowerleft.x()), CGAL::to_double(lowerleft.y()));
   cout << "v1: x " << v1.x() << ". y: " << v1.y() << endl;
@@ -341,160 +340,57 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
   return steel_plate;
 }
 
-G4VSolid*
-PHG4InnerHcalDetector::ConstructSteelPlateA(G4LogicalVolume* hcalenvelope)
+void
+PHG4InnerHcalDetector::ShiftSekantToTangent(Point_2 &lowleft, Point_2 &upleft,Point_2 &upright, Point_2 &lowright)
 {
-  //   A                  C
-  //   *------------------*
-  //    \                 |
-  //     *M               |
-  //      \               |
-  //       *--------------*
-  //       B              D
-  // procedure:
-  // find the intersection of the inner radius circle with the radius at 1/2 the
-  // coverage angle (M: where the steel plate will touch the inner envelope)
-  // construct the tangent at that point (line perpendicular to radius)
-  // and get intersections with radii at 0 (A) and coverage angle (B) which are
-  // the left corners of steel plate
-  // construct lines from corners with tilt angle and get intersections of those
-  // with outer radius circle to find right corners of steel plate (C,D)
-  Point_2 pnull(0, 0);
-  Point_2 p_in_1(0, inner_radius), p_in_2(inner_radius, 0), p_in_3(-inner_radius, 0);
-  Circle_2 c_inner(p_in_1, p_in_2, p_in_3);
-  Point_2 p_out_1(0, outer_radius), p_out_2(outer_radius, 0), p_out_3(-outer_radius, 0);
-  Circle_2 c_outer(p_out_1, p_out_2, p_out_3);
-  // find M
-  Point_2 py(-1, tan(single_steel_angular_coverage / 2.));
-  Line_2 s2(pnull, py);
+  Line_2 sekante(lowleft,upleft);
+  Segment_2 upedge(upleft,upright);
+  Segment_2 lowedge(lowleft,lowright);
+  double xmid = (CGAL::to_double(lowleft.x()) + CGAL::to_double(upleft.x()))/2.;
+  double ymid = (CGAL::to_double(lowleft.y()) + CGAL::to_double(upleft.y()))/2.;
+    Point_2 midpoint(xmid,ymid);
+    Line_2 sekperp = sekante.perpendicular(midpoint);
+  Point_2 sc1(inner_radius,0), sc2(0,inner_radius),sc3(-inner_radius,0);
+  Circle_2 inner_circle(sc1,sc2,sc3);
   vector< CGAL::Object > res;
-  CGAL::intersection(c_inner, s2, std::back_inserter(res));
-  Point_2 intersection_center_front;
+  CGAL::intersection(inner_circle, sekperp, std::back_inserter(res));
   vector< CGAL::Object >::const_iterator iter;
+  double pxmax = 0.;
+  Point_2 tangtouch;
   for (iter = res.begin(); iter != res.end(); iter++)
     {
       CGAL::Object obj = *iter;
       if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
 	{
-	  if (CGAL::to_double(point->first.x()) > 0)
+	  if (CGAL::to_double(point->first.x()) > pxmax)
 	    {
+              pxmax = CGAL::to_double(point->first.x());
 	      cout << "std::pair<Circular_arc_point_2<Circular_k>, unsigned>" << endl;
-	      cout << "intersect: " << point->first << ", n: " << point->second << endl;
-	      cout << "tangente x: " << CGAL::to_double(point->first.x()) << ", tangente y: " << CGAL::to_double(point->first.y()) << endl;
+	      //	      cout << "intersect: " << point->first << ", n: " << point->second << endl;
+	      cout << "tangente  x: " << CGAL::to_double(point->first.x()) << ", y: " << CGAL::to_double(point->first.y()) << endl;
+	      Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
+	      tangtouch = pntmp;
 	    }
-	  Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
-	  intersection_center_front = pntmp;
 	}
       else
 	{
 	  cout << "CGAL::Object type not pair..." << endl;
 	}
     }
-  CGAL::Object result;
-  Line_2 tangent = s2.perpendicular(intersection_center_front); // tangent at intersection
-  // CGAL only knows intersections of lines (infinite) with segments (lines with begin/end point)
-  // so construct a segment long enough to intersect with our tangent, starting at 0/0
-  Point_2 pnullfar(2 * inner_radius, 0);
-  Segment_2 segnull(pnull, pnullfar);
-  Point_2 upperleftcorner;
-  result = CGAL::intersection(segnull, tangent);
-  if (CGAL::assign(upperleftcorner, result))
-    {
-      cout << "upper left x: " << CGAL::to_double(upperleftcorner.x())
-	   << ", upper left y: " << CGAL::to_double(upperleftcorner.y())
-	   << endl;
-    }
-  else
-    {
-      cout << "no usable intersection for upper left corner" << endl;
-      cout << "pnull: x " <<  CGAL::to_double(pnull.x())
-	   << ", y " << CGAL::to_double(pnull.y())
-	   << endl;
-      cout << "pnullfar: x " <<  CGAL::to_double(pnullfar.x())
-	   << ", y " << CGAL::to_double(pnullfar.y())
-	   << endl;
-      exit(1);
-    }
-  Point_2 plowcornerfar(2 * inner_radius, -(2 * inner_radius * tan(single_steel_angular_coverage)));
-  Segment_2 seglowcorner(pnull, plowcornerfar);
-  Point_2 lowerleftcorner;
-  result = CGAL::intersection(seglowcorner, tangent);
-  if (CGAL::assign(lowerleftcorner, result))
-    {
-      cout << "lower left x : " << CGAL::to_double(lowerleftcorner.x())
-	   << ", lower left y: " << CGAL::to_double(lowerleftcorner.y())
-	   << endl;
-      // handle the point intersection case.
-
-    }
-  else
-    {
-      cout << "no usable intersection for lower left cornet" << endl;
-      exit(1);
-    }
-  // now for the right corners, construct line from left corners with
-  // slope of tilt angle and intersect with circle with outer radius
-  // upper left cornet first
-  //			    CGAL::to_double(upperleftcorner.y()) - (abs(tilt_angle) / tilt_angle)*tan(tilt_angle));
-  Point_2 upperleftcorner_1(CGAL::to_double(upperleftcorner.x()) + 1,
-			    CGAL::to_double(upperleftcorner.y()) - (boost::math::sign(tilt_angle)*tan(tilt_angle)));
-  Line_2 upperborder(upperleftcorner, upperleftcorner_1);
-  res.clear(); // just clear the content from the last intersection search
-  CGAL::intersection(c_outer, upperborder, std::back_inserter(res));
-  Point_2 upperrightcorner;
-  for (iter = res.begin(); iter != res.end(); iter++)
-    {
-      CGAL::Object obj = *iter;
-
-      if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
-	{
-	  if (CGAL::to_double(point->first.x()) > 0)
-	    {
-	      cout << "upperright x: " << CGAL::to_double(point->first.x()) << ", upperright y: " << CGAL::to_double(point->first.y()) << endl;
-	      Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
-	      upperrightcorner = pntmp;
-	    }
-	}
-    }
-  // lower right corner
-  Point_2 lowerleftcorner_1(CGAL::to_double(lowerleftcorner.x()) + 1,
-			    CGAL::to_double(lowerleftcorner.y()) - (boost::math::sign(tilt_angle)*tan(tilt_angle+boost::math::sign(tilt_angle)*2*M_PI/n_scinti_plates)));
-  Line_2 lowerborder(lowerleftcorner, lowerleftcorner_1 );
-  Point_2 lowerrightcorner;
-  res.clear();
-  CGAL::intersection(c_outer, lowerborder, std::back_inserter(res));
-  for (iter = res.begin(); iter != res.end(); iter++)
-    {
-      CGAL::Object obj = *iter;
-
-      if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
-	{
-	  if (CGAL::to_double(point->first.x()) > 0)
-	    {
-	      cout << "lowerright x: " << CGAL::to_double(point->first.x()) << ", lowerright y: " << CGAL::to_double(point->first.y()) << endl;
-	      Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
-	      lowerrightcorner = pntmp;
-	    }
-	}
-    }
-  G4TwoVector v1(CGAL::to_double(upperleftcorner.x()), CGAL::to_double(upperleftcorner.y()));
-  G4TwoVector v2(CGAL::to_double(upperrightcorner.x()), CGAL::to_double(upperrightcorner.y()));
-  G4TwoVector v3(CGAL::to_double(lowerrightcorner.x()), CGAL::to_double(lowerrightcorner.y()));
-  G4TwoVector v4(CGAL::to_double(lowerleftcorner.x()), CGAL::to_double(lowerleftcorner.y()));
-  std::vector<G4TwoVector> vertexes;
-  vertexes.push_back(v1);
-  vertexes.push_back(v2);
-  vertexes.push_back(v3);
-  vertexes.push_back(v4);
-  G4TwoVector zero(0, 0);
-  G4VSolid* steel_plate =  new G4ExtrudedSolid("SteelPlate",
-					       vertexes,
-					       size_z  / 2.0,
-					       zero, 1.0,
-					       zero, 1.0);
-
-  //  DisplayVolume(steel_plate, hcalenvelope);
-  return steel_plate;
+  Line_2 leftside = sekperp.perpendicular(tangtouch);
+  CGAL::Object result = CGAL::intersection(upedge,leftside);
+if (const Point_2 *ipoint = CGAL::object_cast<Point_2>(&result)) 
+{
+  upleft = *ipoint;
+  cout << "xup: " << CGAL::to_double(ipoint->x()) << ", yup: " << CGAL::to_double(ipoint->y()) << endl;
+ }
+  result = CGAL::intersection(lowedge,leftside);
+if (const Point_2 *ipoint = CGAL::object_cast<Point_2>(&result)) 
+{
+  lowleft = *ipoint;
+  cout << "xlow: " << CGAL::to_double(ipoint->x()) << ", ylow: " << CGAL::to_double(ipoint->y()) << endl;
+ }
+  return;
 }
 
 void
@@ -559,8 +455,8 @@ PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
   double ypos = 0;
   ostringstream name;
   double middlerad = outer_radius - (outer_radius-inner_radius)/2.;
-  //  for (int i = 0; i < n_scinti_plates; i++)
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < n_scinti_plates; i++)
+    //  for (int i = 0; i < 3; i++)
     {
       G4RotationMatrix *Rot = new G4RotationMatrix();
       Rot->rotateZ(-tilt_angle * rad-phi * rad);
