@@ -166,7 +166,7 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
   // first the lower edge, just like the scinti box, just add the air gap
   // and calculate intersection of edge with inner and outer radius.
   Point_2 p_in_1(mid_radius,0); // center of lower scintillator
-  double angle_mid_scinti = M_PI/2. - fabs(tilt_angle);
+  double angle_mid_scinti = M_PI/2. + tilt_angle;
   cout << "angle low: " << (angle_mid_scinti/deg) << endl;
   double xcoord = scinti_gap/2. * cos(angle_mid_scinti*rad) + mid_radius;
   double ycoord =   scinti_gap/2. * sin(angle_mid_scinti*rad) + 0;
@@ -230,7 +230,7 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
   double xmidpoint = cos(phi_midpoint)*mid_radius;
   double ymidpoint = sin(phi_midpoint)*mid_radius;
   // angle of perp line at center of scintillator
-  angle_mid_scinti = (M_PI/2.- phi_midpoint) - (M_PI/2. - fabs(tilt_angle)); 
+  angle_mid_scinti = (M_PI/2.- phi_midpoint) - (M_PI/2. + tilt_angle); 
   cout << "angle up: " << (angle_mid_scinti/deg) << ", tilt: " << (tilt_angle/deg) << endl;
   double xcoordup = xmidpoint - scinti_gap/2. * sin(angle_mid_scinti*rad);
   double ycoordup = ymidpoint - scinti_gap/2. * cos(angle_mid_scinti*rad);
