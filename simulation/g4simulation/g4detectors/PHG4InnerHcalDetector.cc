@@ -14,6 +14,7 @@
 #include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4Box.hh>
+#include <Geant4/G4Cons.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4PVPlacement.hh>
@@ -53,8 +54,12 @@ PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, const std::
   scinti_gap(8.5 * mm),
   tilt_angle(32.5 * deg),
   n_scinti_plates(5 * 64),
+  scinti_tile_x(NAN),
   scinti_tile_y(7 * mm),
   scinti_tile_z(size_z),
+  n_scinti_tiles(11),
+  scinti_gap_neighbor(2*mm),
+  scinti_eta_coverage(1.1),
   envelope_inner_radius(1160 * mm - no_overlap),
   envelope_outer_radius(1360 * mm + no_overlap),
   envelope_z(size_z + no_overlap),
@@ -70,6 +75,8 @@ PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, const std::
   blackhole(0),
   scintilogicnameprefix("HcalInnerScinti")
 {
+  // allocate memory for scintillator plates
+  scinti_tiles_vec.assign(2*n_scinti_tiles,static_cast<G4VSolid *>(NULL)); 
 }
 
 //_______________________________________________________________
@@ -109,7 +116,7 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
 {
   double mid_radius = inner_radius + (outer_radius-inner_radius)/2.;
   Point_2 p_in_1(mid_radius,0); // center of scintillator
-  double angle_mid_scinti = M_PI/2. - fabs(tilt_angle);
+  double angle_mid_scinti = M_PI/2. - fabs(tilt_angle/rad);
   cout << "scinti center: x " << CGAL::to_double(p_in_1.x()) << ", y: " <<  CGAL::to_double(p_in_1.y()) << endl;
   // x/y coordinate of end of center vertical
   double xcoord = scinti_tile_y/2. * cos(angle_mid_scinti*rad) + mid_radius;
@@ -166,10 +173,10 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
   // first the lower edge, just like the scinti box, just add the air gap
   // and calculate intersection of edge with inner and outer radius.
   Point_2 p_in_1(mid_radius,0); // center of lower scintillator
-  double angle_mid_scinti = M_PI/2. + tilt_angle;
+  double angle_mid_scinti = M_PI/2. + tilt_angle/rad;
   cout << "angle low: " << (angle_mid_scinti/deg) << endl;
-  double xcoord = scinti_gap/2. * cos(angle_mid_scinti*rad) + mid_radius;
-  double ycoord =   scinti_gap/2. * sin(angle_mid_scinti*rad) + 0;
+  double xcoord = scinti_gap/2. * cos(angle_mid_scinti/rad) + mid_radius;
+  double ycoord =   scinti_gap/2. * sin(angle_mid_scinti/rad) + 0;
   Point_2 p_loweredge(xcoord,ycoord);
   Line_2 s2(p_in_1,p_loweredge); // center vertical
   Line_2 perp =  s2.perpendicular(p_loweredge); // that is the lower edge of the steel plate
@@ -230,10 +237,10 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
   double xmidpoint = cos(phi_midpoint)*mid_radius;
   double ymidpoint = sin(phi_midpoint)*mid_radius;
   // angle of perp line at center of scintillator
-  angle_mid_scinti = (M_PI/2.- phi_midpoint) - (M_PI/2. + tilt_angle); 
+  angle_mid_scinti = (M_PI/2.- phi_midpoint) - (M_PI/2. + tilt_angle/rad); 
   cout << "angle up: " << (angle_mid_scinti/deg) << ", tilt: " << (tilt_angle/deg) << endl;
-  double xcoordup = xmidpoint - scinti_gap/2. * sin(angle_mid_scinti*rad);
-  double ycoordup = ymidpoint - scinti_gap/2. * cos(angle_mid_scinti*rad);
+  double xcoordup = xmidpoint - scinti_gap/2. * sin(angle_mid_scinti/rad);
+  double ycoordup = ymidpoint - scinti_gap/2. * cos(angle_mid_scinti/rad);
   cout << "xbegup: " << xmidpoint << ", ybegup: " << ymidpoint << endl;
   cout << "xendup: " << xcoordup << ", yendup: " << ycoordup << endl;
   Point_2 upperleft;
@@ -406,6 +413,7 @@ PHG4InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
   hcal_rotm.rotateY(y_rot);
   hcal_rotm.rotateZ(z_rot);
   new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(place_in_x, place_in_y, place_in_z)), hcal_envelope_log, "InnerHcalEnvelope", logicWorld, 0, false, overlapcheck);
+  //ConstructHcalSingleScintillators(hcal_envelope_log);
   ConstructInnerHcal(hcal_envelope_log);
   return;
 }
@@ -414,35 +422,45 @@ int
 PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
 {
   G4VSolid *steel_plate  = ConstructSteelPlate(hcalenvelope);
-  G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial("G4_Fe"), "HcalOuterSteelPlate", 0, 0, 0);
+  G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial("SS310"), "HcalInnerSteelPlate", 0, 0, 0);
   G4VisAttributes *visattchk = new G4VisAttributes();
   visattchk->SetVisibility(true);
   visattchk->SetForceSolid(false);
   visattchk->SetColour(G4Colour::Cyan());
   steel_logical->SetVisAttributes(visattchk);
-  G4VSolid *scintibox  = ConstructScintillatorBox(hcalenvelope);
+  //#define OLD
+#ifndef OLD
+  G4AssemblyVolume *scinti_mother_logical = ConstructHcalScintillatorAssembly(hcalenvelope);
+  //#else OLD
+    G4VSolid *scintibox  = ConstructScintillatorBox(hcalenvelope);
   G4LogicalVolume *scintibox_logical = new G4LogicalVolume(scintibox, G4Material::GetMaterial("G4_POLYSTYRENE"), "HcalScintiBox", 0, 0, 0);
-  visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(false);
-  visattchk->SetColour(G4Colour::Red());
-  scintibox_logical->SetVisAttributes(visattchk);
+   visattchk = new G4VisAttributes();
+   visattchk->SetVisibility(true);
+   visattchk->SetForceSolid(false);
+   visattchk->SetColour(G4Colour::Red());
+   scintibox_logical->SetVisAttributes(visattchk);
+#endif
   double phi = 0;
   double deltaphi = 2*M_PI/n_scinti_plates;
   double xpos = 0;
   double ypos = 0;
   ostringstream name;
   double middlerad = outer_radius - (outer_radius-inner_radius)/2.;
-  for (int i = 0; i < n_scinti_plates; i++)
-    //  for (int i = 0; i < 3; i++)
+   for (int i = 0; i < n_scinti_plates; i++)
+     //     for (int i = 0; i < 3; i++)
     {
       G4RotationMatrix *Rot = new G4RotationMatrix();
-      Rot->rotateZ(-tilt_angle * rad-phi * rad);
+      Rot->rotateZ(-tilt_angle - phi * rad);
       ypos = sin(phi)*middlerad;
       xpos = cos(phi)*middlerad;
       name.str("");
       name << "ScintiBox_" << i;
-      new G4PVPlacement(Rot, G4ThreeVector(xpos, ypos, 0), scintibox_logical, name.str().c_str(), hcalenvelope, 0, i, overlapcheck);
+      //      new G4PVPlacement(Rot, G4ThreeVector(xpos, ypos, 0), scintibox_logical, name.str().c_str(), hcalenvelope, 0, i, overlapcheck);
+
+      Rot = new G4RotationMatrix();
+      Rot->rotateZ(phi * rad + tilt_angle);
+ G4ThreeVector g4vec(xpos, ypos, 0);
+ scinti_mother_logical->MakeImprint(hcalenvelope,g4vec,Rot,i,overlapcheck);
       Rot = new G4RotationMatrix();
       Rot->rotateZ(-phi * rad);
       name.str("");
@@ -452,6 +470,133 @@ PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
     }
   //  ConstructScintillator(hcalenvelope);
   return 0;
+}
+
+void
+PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenvelope)
+{
+   G4VSolid *bigtile = ConstructScintillatorBox(hcalenvelope);
+   //   DisplayVolume(bigtile,hcalenvelope);
+  // eta->theta
+  G4double delta_eta = scinti_eta_coverage/n_scinti_tiles;
+  G4double eta = 0;
+  G4double theta;
+  G4double x[4];
+  G4double z[4];
+  ostringstream name;
+  double offset = 1*cm;
+  for (int i=0; i<n_scinti_tiles;i++)
+    {
+      theta = M_PI/2 - PHG4Utils::get_theta(eta); // theta = 90 for eta=0
+      x[0] = inner_radius;
+      z[0] = tan(theta)*inner_radius;
+      x[1] = inner_radius+scinti_tile_x; // since the tile is tilted, x is not at the outer radius but beyond
+      z[1] = tan(theta)*outer_radius;
+      eta+=delta_eta;
+      theta = M_PI/2 - PHG4Utils::get_theta(eta); // theta = 90 for eta=0
+      x[2] = inner_radius;
+      z[2] =  tan(theta)*inner_radius;
+      x[3] = inner_radius+scinti_tile_x; // since the tile is tilted, x is not at the outer radius but beyond
+      cout << "inner radius: " << inner_radius << ", outder radius: " << outer_radius
+	   << ", tile len: " << x[3] << endl;
+      z[3] = tan(theta)*outer_radius;
+      // apply gap between scintillators
+      z[0] += scinti_gap_neighbor/2.;
+      z[1] += scinti_gap_neighbor/2.;
+      z[2] -= scinti_gap_neighbor/2.;
+      z[3] -= scinti_gap_neighbor/2.;
+      Point_2 leftsidelow(z[0],x[0]);
+      Point_2 leftsidehigh(z[1],x[1]);
+      x[0] = inner_radius-offset;
+      z[0] = x_at_y(leftsidelow,leftsidehigh,x[0]);
+      x[1] = outer_radius+offset;
+      z[1] = x_at_y(leftsidelow,leftsidehigh,x[1]);
+     Point_2 rightsidelow(z[2],x[2]);
+     Point_2 rightsidehigh(z[3],x[3]);
+      x[2] = outer_radius+offset;
+      z[2] = x_at_y(rightsidelow,rightsidehigh,x[2]);
+      x[3] = inner_radius-offset;
+      z[3] = x_at_y(rightsidelow,rightsidehigh,x[3]);
+ 
+
+       vector<G4TwoVector> vertexes;
+      for (int j=0; j<4; j++)
+	{
+	  cout << "x[" << j << "]: " << x[j] << " z[" << j << "]: " << z[j] << endl;
+	  G4TwoVector v(x[j],z[j]);
+	  vertexes.push_back(v);
+	}
+      G4TwoVector zero(0, 0);
+ 
+     G4VSolid *scinti =  new G4ExtrudedSolid("ScintillatorTile",
+					      vertexes,
+					      scinti_tile_y+0.2*mm,
+					      zero, 1.0,
+					      zero, 1.0);
+      G4RotationMatrix *rotm = new G4RotationMatrix();
+      rotm->rotateX(-90*deg);
+      G4VSolid *scinti_tile =  new G4IntersectionSolid("scintillator",bigtile,scinti,rotm,G4ThreeVector(-(inner_radius+outer_radius)/2., 0, 0));
+      scinti_tiles_vec[i+n_scinti_tiles] = scinti_tile;
+      rotm = new G4RotationMatrix();
+      rotm->rotateX(90*deg);
+      scinti_tile =  new G4IntersectionSolid("scintillator",bigtile,scinti,rotm,G4ThreeVector(-(inner_radius+outer_radius)/2., 0, 0));
+      scinti_tiles_vec[n_scinti_tiles-i-1] =  scinti_tile;
+    }
+    // for (unsigned int i=0; i<scinti_tiles_vec.size(); i++)
+    //   {
+    //     if (scinti_tiles_vec[i])
+    // 	 {
+    // 	   DisplayVolume(scinti_tiles_vec[i],hcalenvelope );
+    // 	 }
+    //   }
+
+  return;
+}
+G4double
+PHG4InnerHcalDetector::x_at_y(Point_2 &p0, Point_2 &p1, G4double yin)
+{
+  double xret = NAN;
+  double x[2];
+  double y[2];
+  x[0] = CGAL::to_double(p0.x());
+  y[0] = CGAL::to_double(p0.y());
+  x[1] = CGAL::to_double(p1.x());
+  y[1] = CGAL::to_double(p1.y());
+  Line_2 l(p0,p1);
+  double newx = fabs(x[0]) + fabs(x[1]);
+  Point_2 p0new(-newx,yin);
+  Point_2 p1new(newx,yin);
+  Segment_2 s(p0new,p1new);
+  CGAL::Object result = CGAL::intersection(l,s);
+  if ( const Point_2 *ipoint = CGAL::object_cast<Point_2>(&result))
+    {
+      xret = CGAL::to_double(ipoint->x());
+    }
+  else
+    {
+      cout << PHWHERE << " failed for y = " << y << endl;
+      cout << "p0(x): " << CGAL::to_double(p0.x()) << ", p0(y): " <<  CGAL::to_double(p0.y()) << endl;
+      cout << "p1(x): " << CGAL::to_double(p1.x()) << ", p1(y): " <<  CGAL::to_double(p1.y()) << endl;
+      exit(1);
+    }
+  return xret;
+}
+
+G4AssemblyVolume *
+PHG4InnerHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope)
+{
+  ConstructHcalSingleScintillators(hcalenvelope);
+  G4AssemblyVolume *assmeblyvol = new G4AssemblyVolume();
+  ostringstream name;
+  G4ThreeVector g4vec;
+  for (unsigned int i=0; i<scinti_tiles_vec.size(); i++)
+    {
+      name.str("");
+      name << scintilogicnameprefix << i;
+      G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i],G4Material::GetMaterial("G4_POLYSTYRENE"),name.str().c_str(), 0, 0, 0);
+      assmeblyvol->AddPlacedVolume(scinti_tile_logic,g4vec, NULL);
+    }
+  return assmeblyvol;
 }
 
 

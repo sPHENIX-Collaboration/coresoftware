@@ -69,10 +69,14 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   void ConstructScintillator(G4LogicalVolume *hcalenvelope);
   void ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright);
 
+  G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
+  void ConstructHcalSingleScintillators(G4LogicalVolume* hcalenvelope);
+
   protected:
   void AddGeometryNode();
   int ConstructInnerHcal(G4LogicalVolume* sandwich);
   int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
+  G4double x_at_y(Point_2 &p0, Point_2 &p1, G4double yin);
   G4double inner_radius;
   G4double outer_radius;
   G4double size_z;
@@ -82,6 +86,9 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   G4double scinti_tile_x;
   G4double scinti_tile_y;
   G4double scinti_tile_z;
+  int n_scinti_tiles;
+  G4double scinti_gap_neighbor;
+  G4double scinti_eta_coverage;
   G4double envelope_inner_radius;
   G4double envelope_outer_radius;
   G4double envelope_z;
