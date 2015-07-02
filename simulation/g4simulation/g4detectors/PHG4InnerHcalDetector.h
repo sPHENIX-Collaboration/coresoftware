@@ -66,7 +66,6 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
 
   G4VSolid* ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
   G4VSolid* ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
-  void ConstructScintillator(G4LogicalVolume *hcalenvelope);
   void ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright);
 
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
