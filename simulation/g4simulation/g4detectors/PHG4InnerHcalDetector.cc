@@ -97,17 +97,17 @@ PHG4InnerHcalDetector::IsInInnerHcal(G4VPhysicalVolume * volume) const
   // 82 the number of the scintillator mother volume
   // HcalInnerScinti_11: name of scintillator slat
   // 11: number of scintillator slat logical volume
-  // if (absorberactive)
-  //   {
-  //     if (steel_absorber_vec.find(volume) != steel_absorber_vec.end())
-  // 	{
-  // 	  return -1;
-  // 	}
-  //   }
-  // if (volume->GetName().find(scintilogicnameprefix) != string::npos)
-  //   {
-  //     return 1;
-  //   }
+   if (absorberactive)
+     {
+       if (steel_absorber_vec.find(volume) != steel_absorber_vec.end())
+   	{
+   	  return -1;
+   	}
+     }
+  if (volume->GetName().find(scintilogicnameprefix) != string::npos)
+     {
+       return 1;
+     }
   return 0;
 }
 
@@ -166,7 +166,6 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
 G4VSolid*
 PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
 {
-  cout << "STEEL" << endl;
   // calculate steel plate on top of the scinti box. Lower edge is the upper edge of
   // the scintibox + 1/2 the airgap
   double mid_radius = inner_radius + (outer_radius-inner_radius)/2.; 
@@ -390,6 +389,7 @@ PHG4InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
 int
 PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
 {
+  CheckTiltAngle(); // die if the tilt angle is out of range
   G4VSolid *steel_plate  = ConstructSteelPlate(hcalenvelope);
   G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial("SS310"), "HcalInnerSteelPlate", 0, 0, 0);
   G4VisAttributes *visattchk = new G4VisAttributes();
@@ -416,7 +416,7 @@ PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
       Rot->rotateZ(-phi * rad);
       name.str("");
       name << "InnerHcalSteel_" << i;
-      new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str().c_str(), hcalenvelope, 0, i, overlapcheck);
+      steel_absorber_vec.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str().c_str(), hcalenvelope, 0, i, overlapcheck));
       phi += deltaphi;
     }
   return 0;
@@ -588,6 +588,35 @@ PHG4InnerHcalDetector::DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol,
 
   checksolid->SetVisAttributes(visattchk);
   new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, 0, false, overlapcheck);
+  return 0;
+}
+// check if tilt angle is reasonable - too large, no intersections with inner radius
+int
+PHG4InnerHcalDetector::CheckTiltAngle() const
+{
+  if (fabs(tilt_angle) >= M_PI)
+    {
+      cout << PHWHERE << "invalid tilt angle, abs(tilt) >= 90 deg: " << (tilt_angle/deg)
+	   << endl;
+      exit(1);
+    }
+
+  double mid_radius = inner_radius + (outer_radius-inner_radius)/2.;
+  Point_2 pmid(mid_radius,0); // center of scintillator
+  double xcoord = 0;
+  double ycoord = mid_radius*tan(tilt_angle/rad) ;
+  Point_2 pxnull(xcoord,ycoord);
+  Line_2 s2(pmid,pxnull);
+  Point_2 sc1(inner_radius,0), sc2(0,inner_radius),sc3(-inner_radius,0);
+  Circle_2 inner_circle(sc1,sc2,sc3);
+  vector< CGAL::Object > res;
+  CGAL::intersection(inner_circle, s2, std::back_inserter(res));
+  if (res.size() == 0)
+    {
+      cout << PHWHERE << " Tilt angle " << (tilt_angle/deg) 
+	   << " too large, no intersection with inner radius" << endl;
+      exit(1);
+    }
   return 0;
 }
 

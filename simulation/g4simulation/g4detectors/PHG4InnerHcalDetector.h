@@ -70,6 +70,7 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
 
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
   void ConstructHcalSingleScintillators(G4LogicalVolume* hcalenvelope);
+  int CheckTiltAngle() const;
 
   protected:
   void AddGeometryNode();
@@ -103,6 +104,7 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   int blackhole;
   std::string detector_type;
   std::string superdetector;
+  std::set<G4VPhysicalVolume *>steel_absorber_vec;
   std::vector<G4VSolid *> scinti_tiles_vec; 
   std::string scintilogicnameprefix;
 };
