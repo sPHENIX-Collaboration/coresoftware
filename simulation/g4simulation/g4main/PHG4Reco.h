@@ -20,6 +20,7 @@ class PHG4PhenixTrackingAction;
 class PHG4Subsystem;
 class PHG4EventGenerator;
 class G4TBMagneticFieldSetup;
+class G4VUserPrimaryGeneratorAction;
 
 // for the G4 cmd interface and the graphics
 class G4UImanager;
@@ -93,6 +94,13 @@ class PHG4Reco: public SubsysReco
   int setupInputEventNodeReader(PHCompositeNode *);
 
   static void G4Seed(const int i);
+
+  // this is an ugly hack to get Au ions working for CAD
+  // our particle generators have pdg build in which doesn't work
+  // with ions, so the generator action has to be replaced
+  // which is hardcoded in PHG4Reco (it has to be created after
+  // the physics lists are instantiated
+  void setGeneratorAction(G4VUserPrimaryGeneratorAction *action);
 
   private:
   

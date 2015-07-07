@@ -14,6 +14,7 @@
 #include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4Box.hh>
+#include <Geant4/G4Cons.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4PVPlacement.hh>
@@ -53,8 +54,12 @@ PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, const std::
   scinti_gap(8.5 * mm),
   tilt_angle(32.5 * deg),
   n_scinti_plates(5 * 64),
+  scinti_tile_x(NAN),
   scinti_tile_y(7 * mm),
   scinti_tile_z(size_z),
+  n_scinti_tiles(11),
+  scinti_gap_neighbor(2*mm),
+  scinti_eta_coverage(1.1),
   envelope_inner_radius(1160 * mm - no_overlap),
   envelope_outer_radius(1360 * mm + no_overlap),
   envelope_z(size_z + no_overlap),
@@ -70,25 +75,8 @@ PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, const std::
   blackhole(0),
   scintilogicnameprefix("HcalInnerScinti")
 {
-}
-
-PHG4InnerHcalDetector::~PHG4InnerHcalDetector()
-{}
-
-double
-PHG4InnerHcalDetector::CalculateSteelAngularCoverage()
-{
-  //  double scinti_gap_projection = scinti_gap * cos(tilt_angle / rad);
-  double scinti_gap_projection = (scinti_gap+2*mm)/cos(tilt_angle / rad);
-   double cosphi = (2 * envelope_inner_radius * envelope_inner_radius - scinti_gap_projection * scinti_gap_projection) / (2 * envelope_inner_radius * envelope_inner_radius);
-   double single_scinti_angcov = acos(cosphi);
-  // double tanphi = scinti_gap_projection/envelope_inner_radius;
-  // double single_scinti_angcov = atan(tanphi);
-
-  double total_scinti_coverage = single_scinti_angcov * n_scinti_plates;
-  double total_steel_coverage = 2 * M_PI - total_scinti_coverage;
-  double single_steel_coverage = total_steel_coverage / n_scinti_plates;
-  return single_steel_coverage;
+  // allocate memory for scintillator plates
+  scinti_tiles_vec.assign(2*n_scinti_tiles,static_cast<G4VSolid *>(NULL)); 
 }
 
 //_______________________________________________________________
@@ -128,9 +116,9 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
 {
   double mid_radius = inner_radius + (outer_radius-inner_radius)/2.;
   Point_2 p_in_1(mid_radius,0); // center of scintillator
-  double angle_mid_scinti = M_PI/2. - fabs(tilt_angle);
+  double angle_mid_scinti = M_PI/2. - fabs(tilt_angle/rad);
   cout << "scinti center: x " << CGAL::to_double(p_in_1.x()) << ", y: " <<  CGAL::to_double(p_in_1.y()) << endl;
-  // x coordinate of end of center vertical
+  // x/y coordinate of end of center vertical
   double xcoord = scinti_tile_y/2. * cos(angle_mid_scinti*rad) + mid_radius;
   double ycoord =   scinti_tile_y/2. * sin(angle_mid_scinti*rad) + 0;
   Point_2 p_upperedge(xcoord,ycoord);
@@ -176,113 +164,26 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
 }
 
 G4VSolid*
-PHG4InnerHcalDetector::ConstructScintillatorBoxA(G4LogicalVolume* hcalenvelope)
-{
-  // procedure:
-  // we need to calculate the dimension of the box which is tilted inside the cylinder
-  // we start with the inner envelope at x=0, create a line with
-  // the tilt angle, create a line perpendicular to it at the intersection, get the point
-  // on that line at the thickness of the scintillator (upper left cornet), then create a line 
-  // with the tilt angle at it and find the intersection with the outer envelope, that gives us the
-  // length of the scintillator
-  Point_2 p_in_1(inner_radius,0); // point where the left scintilator corner touches the envelope
-  Point_2 py(inner_radius+1,tan(tilt_angle*rad)); // random point on scintilator edge to get the line
-  Line_2 s2(p_in_1,py); // edge of the scintillator
-  Line_2 perp =  s2.perpendicular(p_in_1); // perpendicular line the left scintilator edge
-  Point_2 sc1(inner_radius+scinti_tile_y,0), sc2(inner_radius-scinti_tile_y,0),sc3(inner_radius,scinti_tile_y);
-  Circle_2 scithk(sc1,sc2,sc3);
-  vector< CGAL::Object > res;
-  CGAL::intersection(scithk, perp, std::back_inserter(res));
-  Point_2 upperleft;
-  vector< CGAL::Object >::const_iterator iter;
-  for (iter = res.begin(); iter != res.end(); ++iter)
-    {
-      CGAL::Object obj = *iter;
-      if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
-   	{
-  	  if (CGAL::to_double(point->first.x()) > CGAL::to_double(p_in_1.x()))
-	    {
-	      cout << "std::pair<Circular_arc_point_2<Circular_k>, unsigned>" << endl;
-	      cout << "upper left x: " << CGAL::to_double(point->first.x()) << ", y: " << CGAL::to_double(point->first.y()) << endl;
-	      double deltax = CGAL::to_double(point->first.x())-CGAL::to_double(p_in_1.x());
-	      double deltay = CGAL::to_double(point->first.y())-CGAL::to_double(p_in_1.y());
-	      cout << "dist: " << sqrt(deltax*deltax+deltay*deltay) << endl;
-	      Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
-	      upperleft = pntmp;
-	    }
-	}
-      else
-	{
-	  cout << "CGAL::Object type not pair..." << endl;
-	}
-    }
-  Line_2 upperline  = perp.perpendicular(upperleft);
-  Point_2 outrad1(outer_radius,0), outrad2(0,outer_radius), outrad3(-outer_radius,0);
-  Circle_2 outerradius(outrad1,outrad2,outrad3);
-  res.clear();
-  CGAL::intersection(outerradius, upperline, std::back_inserter(res));
-  Point_2 upperright;
-  for (iter = res.begin(); iter != res.end(); iter++)
-    {
-      CGAL::Object obj = *iter;
-      if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
-  	{
-  	  if (CGAL::to_double(point->first.x()) > CGAL::to_double(upperleft.x()))
-  	    {
-  	      cout << "std::pair<Circular_arc_point_2<Circular_k>, unsigned>" << endl;
-  	      //	      cout << "intersect: " << point->first << ", n: " << point->second << endl;
-  	      cout << "upper right x: " << CGAL::to_double(point->first.x()) << ", y: " << CGAL::to_double(point->first.y()) << endl;
-  	      Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
-  	      upperright = pntmp;
-  	      double deltax = CGAL::to_double(point->first.x())-CGAL::to_double(upperleft.x());
-  	      double deltay = CGAL::to_double(point->first.y())-CGAL::to_double(upperleft.y());
-  	      cout << "scintilen: " << sqrt(deltax*deltax+deltay*deltay) << endl;
-  	      scinti_tile_x = sqrt(deltax*deltax+deltay*deltay);
-  	    }
-  	}
-      else
-  	{
-  	  cout << "CGAL::Object type not pair..." << endl;
-  	}
-    }
-
-  cout << "scinti_tile_x : " << scinti_tile_x << ", scinti_tile_y: " << scinti_tile_y
-       << ", scinti_tile_z: " << scinti_tile_z << endl;
-  G4VSolid* scintibox =  new G4Box("ScintiTile", scinti_tile_x / 2., scinti_tile_y / 2., scinti_tile_z / 2.);
- 
-  return scintibox;
-     }
-
-
-G4VSolid*
 PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
 {
-  //   A                  C
-  //   *------------------*
-  //    \                 |
-  //     *M               |
-  //      \               |
-  //       *--------------*
-  //       B              D
-  // procedure:
-  // find the intersection of the inner radius circle with the radius at 1/2 the
-  // coverage angle (M: where the steel plate will touch the inner envelope)
-  // construct the tangent at that point (line perpendicular to radius)
-  // and get intersections with radii at 0 (A) and coverage angle (B) which are
-  // the left corners of steel plate
-  // construct lines from corners with tilt angle and get intersections of those
-  // with outer radius circle to find right corners of steel plate (C,D)
-  Point_2 pnull(0, 0);
-  Point_2 p_in_1(0, inner_radius), p_in_2(inner_radius, 0), p_in_3(-inner_radius, 0);
-  Circle_2 c_inner(p_in_1, p_in_2, p_in_3);
-  Point_2 p_out_1(0, outer_radius), p_out_2(outer_radius, 0), p_out_3(-outer_radius, 0);
-  Circle_2 c_outer(p_out_1, p_out_2, p_out_3);
-  // find M
-  Point_2 py(-1, tan(single_steel_angular_coverage / 2.));
-  Line_2 s2(pnull, py);
+  cout << "STEEL" << endl;
+  // calculate steel plate on top of the scinti box. Lower edge is the upper edge of
+  // the scintibox + 1/2 the airgap
+  double mid_radius = inner_radius + (outer_radius-inner_radius)/2.; 
+  // first the lower edge, just like the scinti box, just add the air gap
+  // and calculate intersection of edge with inner and outer radius.
+  Point_2 p_in_1(mid_radius,0); // center of lower scintillator
+  double angle_mid_scinti = M_PI/2. + tilt_angle/rad;
+  double xcoord = scinti_gap/2. * cos(angle_mid_scinti/rad) + mid_radius;
+  double ycoord =   scinti_gap/2. * sin(angle_mid_scinti/rad) + 0;
+  Point_2 p_loweredge(xcoord,ycoord);
+  Line_2 s2(p_in_1,p_loweredge); // center vertical
+  Line_2 perp =  s2.perpendicular(p_loweredge); // that is the lower edge of the steel plate
+  Point_2 sc1(inner_radius,0), sc2(0,inner_radius),sc3(-inner_radius,0);
+  Circle_2 inner_circle(sc1,sc2,sc3);
   vector< CGAL::Object > res;
-  CGAL::intersection(c_inner, s2, std::back_inserter(res));
-  Point_2 intersection_center_front;
+  CGAL::intersection(inner_circle, perp, std::back_inserter(res));
+  Point_2 lowerleft;
   vector< CGAL::Object >::const_iterator iter;
   for (iter = res.begin(); iter != res.end(); iter++)
     {
@@ -291,109 +192,112 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
 	{
 	  if (CGAL::to_double(point->first.x()) > 0)
 	    {
-	      cout << "std::pair<Circular_arc_point_2<Circular_k>, unsigned>" << endl;
-	      cout << "intersect: " << point->first << ", n: " << point->second << endl;
-	      cout << "tangente x: " << CGAL::to_double(point->first.x()) << ", tangente y: " << CGAL::to_double(point->first.y()) << endl;
+	      cout << "steel lower left x: " << CGAL::to_double(point->first.x()) << ", y: " << CGAL::to_double(point->first.y()) << endl;
+	      Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
+	      lowerleft = pntmp;
 	    }
-	  Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
-	  intersection_center_front = pntmp;
 	}
       else
 	{
 	  cout << "CGAL::Object type not pair..." << endl;
 	}
     }
-  CGAL::Object result;
-  Line_2 tangent = s2.perpendicular(intersection_center_front); // tangent at intersection
-  // CGAL only knows intersections of lines (infinite) with segments (lines with begin/end point)
-  // so construct a segment long enough to intersect with our tangent, starting at 0/0
-  Point_2 pnullfar(2 * inner_radius, 0);
-  Segment_2 segnull(pnull, pnullfar);
-  Point_2 upperleftcorner;
-  result = CGAL::intersection(segnull, tangent);
-  if (CGAL::assign(upperleftcorner, result))
-    {
-      cout << "upper left x: " << CGAL::to_double(upperleftcorner.x())
-	   << ", upper left y: " << CGAL::to_double(upperleftcorner.y())
-	   << endl;
-    }
-  else
-    {
-      cout << "no usable intersection for upper left corner" << endl;
-      cout << "pnull: x " <<  CGAL::to_double(pnull.x())
-	   << ", y " << CGAL::to_double(pnull.y())
-	   << endl;
-      cout << "pnullfar: x " <<  CGAL::to_double(pnullfar.x())
-	   << ", y " << CGAL::to_double(pnullfar.y())
-	   << endl;
-      exit(1);
-    }
-  Point_2 plowcornerfar(2 * inner_radius, -(2 * inner_radius * tan(single_steel_angular_coverage)));
-  Segment_2 seglowcorner(pnull, plowcornerfar);
-  Point_2 lowerleftcorner;
-  result = CGAL::intersection(seglowcorner, tangent);
-  if (CGAL::assign(lowerleftcorner, result))
-    {
-      cout << "lower left x : " << CGAL::to_double(lowerleftcorner.x())
-	   << ", lower left y: " << CGAL::to_double(lowerleftcorner.y())
-	   << endl;
-      // handle the point intersection case.
-
-    }
-  else
-    {
-      cout << "no usable intersection for lower left cornet" << endl;
-      exit(1);
-    }
-  // now for the right corners, construct line from left corners with
-  // slope of tilt angle and intersect with circle with outer radius
-  // upper left cornet first
-  //			    CGAL::to_double(upperleftcorner.y()) - (abs(tilt_angle) / tilt_angle)*tan(tilt_angle));
-  Point_2 upperleftcorner_1(CGAL::to_double(upperleftcorner.x()) + 1,
-			    CGAL::to_double(upperleftcorner.y()) - (boost::math::sign(tilt_angle)*tan(tilt_angle)));
-  Line_2 upperborder(upperleftcorner, upperleftcorner_1);
+  Point_2 so1(outer_radius,0), so2(0,outer_radius),so3(-outer_radius,0);
+  Circle_2 outer_circle(so1,so2,so3);
   res.clear(); // just clear the content from the last intersection search
-  CGAL::intersection(c_outer, upperborder, std::back_inserter(res));
-  Point_2 upperrightcorner;
+  CGAL::intersection(outer_circle, perp, std::back_inserter(res));
+  Point_2 lowerright;
   for (iter = res.begin(); iter != res.end(); iter++)
     {
       CGAL::Object obj = *iter;
-
       if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
 	{
-	  if (CGAL::to_double(point->first.x()) > 0)
+	  if (CGAL::to_double(point->first.x()) >  CGAL::to_double(p_loweredge.x()))
 	    {
-	      cout << "upperright x: " << CGAL::to_double(point->first.x()) << ", upperright y: " << CGAL::to_double(point->first.y()) << endl;
+	      cout << "steel lower right x: " << CGAL::to_double(point->first.x()) << ", y: " << CGAL::to_double(point->first.y()) << endl;
 	      Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
-	      upperrightcorner = pntmp;
+	      lowerright = pntmp;
 	    }
 	}
-    }
-  // lower right corner
-  Point_2 lowerleftcorner_1(CGAL::to_double(lowerleftcorner.x()) + 1,
-			    CGAL::to_double(lowerleftcorner.y()) - (boost::math::sign(tilt_angle)*tan(tilt_angle+boost::math::sign(tilt_angle)*2*M_PI/n_scinti_plates)));
-  Line_2 lowerborder(lowerleftcorner, lowerleftcorner_1 );
-  Point_2 lowerrightcorner;
-  res.clear();
-  CGAL::intersection(c_outer, lowerborder, std::back_inserter(res));
-  for (iter = res.begin(); iter != res.end(); iter++)
-    {
-      CGAL::Object obj = *iter;
-
-      if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
+      else
 	{
-	  if (CGAL::to_double(point->first.x()) > 0)
-	    {
-	      cout << "lowerright x: " << CGAL::to_double(point->first.x()) << ", lowerright y: " << CGAL::to_double(point->first.y()) << endl;
-	      Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
-	      lowerrightcorner = pntmp;
-	    }
+	  cout << "CGAL::Object type not pair..." << endl;
 	}
     }
-  G4TwoVector v1(CGAL::to_double(upperleftcorner.x()), CGAL::to_double(upperleftcorner.y()));
-  G4TwoVector v2(CGAL::to_double(upperrightcorner.x()), CGAL::to_double(upperrightcorner.y()));
-  G4TwoVector v3(CGAL::to_double(lowerrightcorner.x()), CGAL::to_double(lowerrightcorner.y()));
-  G4TwoVector v4(CGAL::to_double(lowerleftcorner.x()), CGAL::to_double(lowerleftcorner.y()));
+  // now we have the lower left and rigth corner, now find the upper edge
+  // find the center of the upper scintilator
+
+
+  double phi_midpoint = 2*M_PI/n_scinti_plates;
+  double xmidpoint = cos(phi_midpoint)*mid_radius;
+  double ymidpoint = sin(phi_midpoint)*mid_radius;
+  // angle of perp line at center of scintillator
+  angle_mid_scinti = (M_PI/2.- phi_midpoint) - (M_PI/2. + tilt_angle/rad); 
+  double xcoordup = xmidpoint - scinti_gap/2. * sin(angle_mid_scinti/rad);
+  double ycoordup = ymidpoint - scinti_gap/2. * cos(angle_mid_scinti/rad);
+  Point_2 upperleft;
+  Point_2 upperright;
+  Point_2 mid_upperscint(xmidpoint,ymidpoint);
+  Point_2 p_upperedge(xcoordup,ycoordup);
+  {
+    Line_2 sup(mid_upperscint,p_upperedge); // center vertical
+    Line_2 perp =  sup.perpendicular(p_upperedge); // that is the upper edge of the steel plate
+    Point_2 sc1(inner_radius,0), sc2(0,inner_radius),sc3(-inner_radius,0);
+    Circle_2 inner_circle(sc1,sc2,sc3);
+    vector< CGAL::Object > res;
+    CGAL::intersection(inner_circle, perp, std::back_inserter(res));
+    vector< CGAL::Object >::const_iterator iter;
+    double pxmax = 0.;
+    cout << "found " << res.size() << " intersections" << endl;
+    for (iter = res.begin(); iter != res.end(); iter++)
+      {
+	CGAL::Object obj = *iter;
+	if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
+	  {
+	    cout << "xintersect: " << CGAL::to_double(point->first.x())
+		 << ", y intersect: " << CGAL::to_double(point->first.y()) << endl;
+	    if (CGAL::to_double(point->first.x()) > pxmax)
+	      {
+		pxmax = CGAL::to_double(point->first.x());
+		cout << "steel upper left x: " << CGAL::to_double(point->first.x()) << ", y: " << CGAL::to_double(point->first.y()) << endl;
+		Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
+		upperleft = pntmp;
+	      }
+	  }
+	else
+	  {
+	    cout << "CGAL::Object type not pair..." << endl;
+	  }
+      }
+    Point_2 so1(outer_radius,0), so2(0,outer_radius),so3(-outer_radius,0);
+    Circle_2 outer_circle(so1,so2,so3);
+    res.clear(); // just clear the content from the last intersection search
+    CGAL::intersection(outer_circle, perp, std::back_inserter(res));
+    for (iter = res.begin(); iter != res.end(); iter++)
+      {
+	CGAL::Object obj = *iter;
+	if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
+	  {
+	    if (CGAL::to_double(point->first.x()) >  CGAL::to_double(p_loweredge.x()))
+	      {
+		cout << "steel upper right x: " << CGAL::to_double(point->first.x()) << ", y: " << CGAL::to_double(point->first.y()) << endl;
+		Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
+		upperright = pntmp;
+	      }
+	  }
+	else
+	  {
+	    cout << "CGAL::Object type not pair..." << endl;
+	  }
+      }
+  }
+  // the left corners are on a secant with the inner boundary, they need to be shifted
+  // to be a tangent at the center
+  ShiftSecantToTangent(lowerleft,upperleft,upperright,lowerright);
+  G4TwoVector v1(CGAL::to_double(upperleft.x()), CGAL::to_double(upperleft.y()));
+  G4TwoVector v2(CGAL::to_double(upperright.x()), CGAL::to_double(upperright.y()));
+  G4TwoVector v3(CGAL::to_double(lowerright.x()), CGAL::to_double(lowerright.y()));
+  G4TwoVector v4(CGAL::to_double(lowerleft.x()), CGAL::to_double(lowerleft.y()));
   std::vector<G4TwoVector> vertexes;
   vertexes.push_back(v1);
   vertexes.push_back(v2);
@@ -411,22 +315,61 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
 }
 
 void
-PHG4InnerHcalDetector::ConstructScintillator(G4LogicalVolume *hcalenvelope)
+PHG4InnerHcalDetector::ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft,Point_2 &upright, Point_2 &lowright)
 {
-  scinti_tile_x = outer_radius - inner_radius;
-  G4VSolid* scinti_tile =  new G4Box("ScintiTile", scinti_tile_x / 2., scinti_tile_y / 2., scinti_tile_z / 2.);
-  DisplayVolume(scinti_tile, hcalenvelope);
+  Line_2 secant(lowleft,upleft);
+  Segment_2 upedge(upleft,upright);
+  Segment_2 lowedge(lowleft,lowright);
+  double xmid = (CGAL::to_double(lowleft.x()) + CGAL::to_double(upleft.x()))/2.;
+  double ymid = (CGAL::to_double(lowleft.y()) + CGAL::to_double(upleft.y()))/2.;
+  Point_2 midpoint(xmid,ymid);
+  Line_2 sekperp = secant.perpendicular(midpoint);
+  Point_2 sc1(inner_radius,0), sc2(0,inner_radius),sc3(-inner_radius,0);
+  Circle_2 inner_circle(sc1,sc2,sc3);
+  vector< CGAL::Object > res;
+  CGAL::intersection(inner_circle, sekperp, std::back_inserter(res));
+  vector< CGAL::Object >::const_iterator iter;
+  double pxmax = 0.;
+  Point_2 tangtouch;
+  for (iter = res.begin(); iter != res.end(); iter++)
+    {
+      CGAL::Object obj = *iter;
+      if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
+	{
+	  if (CGAL::to_double(point->first.x()) > pxmax)
+	    {
+              pxmax = CGAL::to_double(point->first.x());
+	      cout << "std::pair<Circular_arc_point_2<Circular_k>, unsigned>" << endl;
+	      //	      cout << "intersect: " << point->first << ", n: " << point->second << endl;
+	      cout << "tangente  x: " << CGAL::to_double(point->first.x()) << ", y: " << CGAL::to_double(point->first.y()) << endl;
+	      Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
+	      tangtouch = pntmp;
+	    }
+	}
+      else
+	{
+	  cout << "CGAL::Object type not pair..." << endl;
+	}
+    }
+  Line_2 leftside = sekperp.perpendicular(tangtouch);
+  CGAL::Object result = CGAL::intersection(upedge,leftside);
+  if (const Point_2 *ipoint = CGAL::object_cast<Point_2>(&result)) 
+    {
+      upleft = *ipoint;
+    }
+  result = CGAL::intersection(lowedge,leftside);
+  if (const Point_2 *ipoint = CGAL::object_cast<Point_2>(&result)) 
+    {
+      lowleft = *ipoint;
+    }
   return;
 }
 
-
-// 
+// Construct the envelope and the call the
+// actual inner hcal construction
 void
 PHG4InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
 {
-  // first calculate some parameters which depend on
-  // macro-changeable configurations
-  single_steel_angular_coverage = CalculateSteelAngularCoverage();
   G4Material* Air = G4Material::GetMaterial("G4_AIR");
   G4VSolid* hcal_envelope_cylinder = new G4Tubs("InnerHcal_envelope_solid",  envelope_inner_radius, envelope_outer_radius, envelope_z / 2., 0, 2 * M_PI);
   G4LogicalVolume* hcal_envelope_log =  new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("Hcal_envelope"), 0, 0, 0);
@@ -441,7 +384,6 @@ PHG4InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
   hcal_rotm.rotateZ(z_rot);
   new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(place_in_x, place_in_y, place_in_z)), hcal_envelope_log, "InnerHcalEnvelope", logicWorld, 0, false, overlapcheck);
   ConstructInnerHcal(hcal_envelope_log);
-  //  AddGeometryNode();
   return;
 }
 
@@ -449,24 +391,14 @@ int
 PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
 {
   G4VSolid *steel_plate  = ConstructSteelPlate(hcalenvelope);
-  G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial("G4_Fe"), "HcalOuterSteelPlate", 0, 0, 0);
+  G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial("SS310"), "HcalInnerSteelPlate", 0, 0, 0);
   G4VisAttributes *visattchk = new G4VisAttributes();
   visattchk->SetVisibility(true);
   visattchk->SetForceSolid(false);
   visattchk->SetColour(G4Colour::Cyan());
   steel_logical->SetVisAttributes(visattchk);
-  G4VSolid *scintibox  = ConstructScintillatorBox(hcalenvelope);
-  G4LogicalVolume *scintibox_logical = new G4LogicalVolume(scintibox, G4Material::GetMaterial("G4_POLYSTYRENE"), "HcalScintiBox", 0, 0, 0);
-  visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(false);
-  visattchk->SetColour(G4Colour::Red());
-  scintibox_logical->SetVisAttributes(visattchk);
-  double thickness = single_steel_angular_coverage;
-  thickness += scinti_gap;
+  G4AssemblyVolume *scinti_mother_logical = ConstructHcalScintillatorAssembly(hcalenvelope);
   double phi = 0;
-  //  double phioff = (2*M_PI/n_scinti_plates)*2+0.005;
-  //double deltaphi = acos((2 * envelope_inner_radius * envelope_inner_radius - thickness * thickness) / (2 * envelope_inner_radius * envelope_inner_radius));
   double deltaphi = 2*M_PI/n_scinti_plates;
   double xpos = 0;
   double ypos = 0;
@@ -475,21 +407,146 @@ PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
   for (int i = 0; i < n_scinti_plates; i++)
     {
       G4RotationMatrix *Rot = new G4RotationMatrix();
-      Rot->rotateZ(-tilt_angle * rad-phi * rad);
       ypos = sin(phi)*middlerad;
       xpos = cos(phi)*middlerad;
+      Rot->rotateZ(phi * rad + tilt_angle);
+      G4ThreeVector g4vec(xpos, ypos, 0);
+      scinti_mother_logical->MakeImprint(hcalenvelope,g4vec,Rot,i,overlapcheck);
+      Rot = new G4RotationMatrix();
+      Rot->rotateZ(-phi * rad);
       name.str("");
-      name << "ScintiBox_" << i;
-      new G4PVPlacement(Rot, G4ThreeVector(xpos, ypos, 0), scintibox_logical, name.str().c_str(), hcalenvelope, 0, i, overlapcheck);
-      // Rot = new G4RotationMatrix();
-      // Rot->rotateZ(-phi * rad);
-      // name.str("");
-      // name << "HcalSteel_" << i;
-      //      new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str().c_str(), hcalenvelope, 0, i, overlapcheck);
+      name << "InnerHcalSteel_" << i;
+      new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str().c_str(), hcalenvelope, 0, i, overlapcheck);
       phi += deltaphi;
     }
-  //  ConstructScintillator(hcalenvelope);
   return 0;
+}
+
+
+// split the big scintillator into tiles covering eta ranges
+// since they are tilted it is not a straightforward theta cut
+// it starts at a given eta at the inner radius but the outer radius needs adjusting
+void
+PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenvelope)
+{
+  G4VSolid *bigtile = ConstructScintillatorBox(hcalenvelope);
+  // eta->theta
+  G4double delta_eta = scinti_eta_coverage/n_scinti_tiles;
+  G4double eta = 0;
+  G4double theta;
+  G4double x[4];
+  G4double z[4];
+  ostringstream name;
+  double offset = 1*cm;
+  for (int i=0; i<n_scinti_tiles;i++)
+    {
+      theta = M_PI/2 - PHG4Utils::get_theta(eta); // theta = 90 for eta=0
+      x[0] = inner_radius;
+      z[0] = tan(theta)*inner_radius;
+      x[1] = inner_radius+scinti_tile_x; // since the tile is tilted, x is not at the outer radius but beyond
+      z[1] = tan(theta)*outer_radius;
+      eta+=delta_eta;
+      theta = M_PI/2 - PHG4Utils::get_theta(eta); // theta = 90 for eta=0
+      x[2] = inner_radius;
+      z[2] =  tan(theta)*inner_radius;
+      x[3] = inner_radius+scinti_tile_x; // since the tile is tilted, x is not at the outer radius but beyond
+      z[3] = tan(theta)*outer_radius;
+      // apply gap between scintillators
+      z[0] += scinti_gap_neighbor/2.;
+      z[1] += scinti_gap_neighbor/2.;
+      z[2] -= scinti_gap_neighbor/2.;
+      z[3] -= scinti_gap_neighbor/2.;
+      Point_2 leftsidelow(z[0],x[0]);
+      Point_2 leftsidehigh(z[1],x[1]);
+      x[0] = inner_radius-offset;
+      z[0] = x_at_y(leftsidelow,leftsidehigh,x[0]);
+      x[1] = outer_radius+offset;
+      z[1] = x_at_y(leftsidelow,leftsidehigh,x[1]);
+      Point_2 rightsidelow(z[2],x[2]);
+      Point_2 rightsidehigh(z[3],x[3]);
+      x[2] = outer_radius+offset;
+      z[2] = x_at_y(rightsidelow,rightsidehigh,x[2]);
+      x[3] = inner_radius-offset;
+      z[3] = x_at_y(rightsidelow,rightsidehigh,x[3]);
+ 
+
+      vector<G4TwoVector> vertexes;
+      for (int j=0; j<4; j++)
+	{
+	  G4TwoVector v(x[j],z[j]);
+	  vertexes.push_back(v);
+	}
+      G4TwoVector zero(0, 0);
+ 
+      G4VSolid *scinti =  new G4ExtrudedSolid("ScintillatorTile",
+					      vertexes,
+					      scinti_tile_y+0.2*mm,
+					      zero, 1.0,
+					      zero, 1.0);
+      G4RotationMatrix *rotm = new G4RotationMatrix();
+      rotm->rotateX(-90*deg);
+      G4VSolid *scinti_tile =  new G4IntersectionSolid("scintillator",bigtile,scinti,rotm,G4ThreeVector(-(inner_radius+outer_radius)/2., 0, 0));
+      scinti_tiles_vec[i+n_scinti_tiles] = scinti_tile;
+      rotm = new G4RotationMatrix();
+      rotm->rotateX(90*deg);
+      scinti_tile =  new G4IntersectionSolid("scintillator",bigtile,scinti,rotm,G4ThreeVector(-(inner_radius+outer_radius)/2., 0, 0));
+      scinti_tiles_vec[n_scinti_tiles-i-1] =  scinti_tile;
+    }
+  // for (unsigned int i=0; i<scinti_tiles_vec.size(); i++)
+  //   {
+  //     if (scinti_tiles_vec[i])
+  // 	 {
+  // 	   DisplayVolume(scinti_tiles_vec[i],hcalenvelope );
+  // 	 }
+  //   }
+
+  return;
+}
+G4double
+PHG4InnerHcalDetector::x_at_y(Point_2 &p0, Point_2 &p1, G4double yin)
+{
+  double xret = NAN;
+  double x[2];
+  double y[2];
+  x[0] = CGAL::to_double(p0.x());
+  y[0] = CGAL::to_double(p0.y());
+  x[1] = CGAL::to_double(p1.x());
+  y[1] = CGAL::to_double(p1.y());
+  Line_2 l(p0,p1);
+  double newx = fabs(x[0]) + fabs(x[1]);
+  Point_2 p0new(-newx,yin);
+  Point_2 p1new(newx,yin);
+  Segment_2 s(p0new,p1new);
+  CGAL::Object result = CGAL::intersection(l,s);
+  if ( const Point_2 *ipoint = CGAL::object_cast<Point_2>(&result))
+    {
+      xret = CGAL::to_double(ipoint->x());
+    }
+  else
+    {
+      cout << PHWHERE << " failed for y = " << y << endl;
+      cout << "p0(x): " << CGAL::to_double(p0.x()) << ", p0(y): " <<  CGAL::to_double(p0.y()) << endl;
+      cout << "p1(x): " << CGAL::to_double(p1.x()) << ", p1(y): " <<  CGAL::to_double(p1.y()) << endl;
+      exit(1);
+    }
+  return xret;
+}
+
+G4AssemblyVolume *
+PHG4InnerHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope)
+{
+  ConstructHcalSingleScintillators(hcalenvelope);
+  G4AssemblyVolume *assmeblyvol = new G4AssemblyVolume();
+  ostringstream name;
+  G4ThreeVector g4vec;
+  for (unsigned int i=0; i<scinti_tiles_vec.size(); i++)
+    {
+      name.str("");
+      name << scintilogicnameprefix << i;
+      G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i],G4Material::GetMaterial("G4_POLYSTYRENE"),name.str().c_str(), 0, 0, 0);
+      assmeblyvol->AddPlacedVolume(scinti_tile_logic,g4vec, NULL);
+    }
+  return assmeblyvol;
 }
 
 

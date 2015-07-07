@@ -3,8 +3,7 @@
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
-//#include <g4main/PHG4Hitv5.h>
-#include <g4main/PHG4Hitv6.h>
+#include <g4main/PHG4Hitv1.h>
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
@@ -144,7 +143,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	{
 	case fGeomBoundary:
 	case fUndefined:
-    hit = new PHG4Hitv6();
+    hit = new PHG4Hitv1();
 	  hit->set_layer(motherid);
 	  hit->set_scint_id(tower_id); // the slat id (or steel plate id)
 	  //here we set the entrance values in cm

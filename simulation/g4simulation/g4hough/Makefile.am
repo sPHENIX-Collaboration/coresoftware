@@ -15,22 +15,24 @@ lib_LTLIBRARIES = \
 AM_CXXFLAGS = \
  -Wall -Werror -msse2
 
-libg4hough_io_la_LDFLAGS = \
+AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib
+
+libg4hough_io_la_LIBADD = \
   -lphool
 
 libg4hough_la_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  `geant4-config --libs` \
+  `geant4-config --libs`
+
+libg4hough_la_LIBADD = \
   -lg4detectors \
   -lfun4all \
   -lHelixHough \
   -lFitNewton \
   -lSeamstress \
   -lcemc \
-  -lg4hough_io
+  libg4hough_io.la
 
 pkginclude_HEADERS = \
   SvtxVertex.h \
@@ -51,8 +53,6 @@ pkginclude_HEADERS = \
   PHG4TrackGhostRejection.h \
   PHG4SvtxTrackProjection.h \
   PHG4SvtxBeamSpotReco.h
-
-#pkginclude_HEADERS = $(include_HEADERS)
 
 libg4hough_io_la_SOURCES = \
   SvtxHit.C \

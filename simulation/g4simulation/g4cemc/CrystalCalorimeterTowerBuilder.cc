@@ -4,7 +4,7 @@
 #include "RawTowerGeomv1.h"
 #include "RawTowerv1.h"
 
-#include <g4main/PHG4Hitv8.h>
+#include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
 #include <phool/PHCompositeNode.h>
@@ -73,7 +73,7 @@ CrystalCalorimeterTowerBuilder::process_event(PHCompositeNode *topNode)
 
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
     {
-      PHG4Hitv8* g4hit_i = static_cast<PHG4Hitv8*>( hiter->second );
+      PHG4Hit* g4hit_i =  hiter->second ;
 
       /* workaround: use eta, phi bins of towers to resemble j, k corrdinates of tower */
       int etabin = g4hit_i->get_index_j();

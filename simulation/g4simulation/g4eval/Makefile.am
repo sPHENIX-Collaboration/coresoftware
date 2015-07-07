@@ -28,7 +28,7 @@ libg4eval_la_LDFLAGS = \
   -lHelixHough \
   -lFitNewton \
   -lcemc \
-  -lg4eval_io
+  libg4eval_io.la
 
 pkginclude_HEADERS = \
   PHG4Evaluator.h \
