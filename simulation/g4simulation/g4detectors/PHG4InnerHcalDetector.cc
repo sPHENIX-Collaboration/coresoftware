@@ -138,7 +138,6 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
 	{
 	  if (CGAL::to_double(point->first.x()) >  CGAL::to_double(p_upperedge.x()))
 	    {
-	      cout << "std::pair<Circular_arc_point_2<Circular_k>, unsigned>" << endl;
 	      //	      cout << "intersect: " << point->first << ", n: " << point->second << endl;
 	      cout << "upper right x: " << CGAL::to_double(point->first.x()) << ", y: " << CGAL::to_double(point->first.y()) << endl;
 	      double deltax = CGAL::to_double(point->first.x())-CGAL::to_double(p_upperedge.x());
@@ -338,7 +337,6 @@ PHG4InnerHcalDetector::ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft,Po
 	  if (CGAL::to_double(point->first.x()) > pxmax)
 	    {
               pxmax = CGAL::to_double(point->first.x());
-	      cout << "std::pair<Circular_arc_point_2<Circular_k>, unsigned>" << endl;
 	      //	      cout << "intersect: " << point->first << ", n: " << point->second << endl;
 	      cout << "tangente  x: " << CGAL::to_double(point->first.x()) << ", y: " << CGAL::to_double(point->first.y()) << endl;
 	      Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
@@ -404,7 +402,8 @@ PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
   double ypos = 0;
   ostringstream name;
   double middlerad = outer_radius - (outer_radius-inner_radius)/2.;
-  for (int i = 0; i < n_scinti_plates; i++)
+  //  for (int i = 0; i < n_scinti_plates; i++)
+  for (int i = 0; i < 1; i++)
     {
       G4RotationMatrix *Rot = new G4RotationMatrix();
       ypos = sin(phi)*middlerad;
@@ -432,24 +431,38 @@ PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
   G4VSolid *bigtile = ConstructScintillatorBox(hcalenvelope);
   // eta->theta
   G4double delta_eta = scinti_eta_coverage/n_scinti_tiles;
+  cout << "scinti_eta_coverage: " << scinti_eta_coverage
+       << ", tiles: " << n_scinti_tiles
+       << ", delta_eta: " << delta_eta
+       << endl;
   G4double eta = 0;
   G4double theta;
   G4double x[4];
   G4double z[4];
   ostringstream name;
-  double offset = 1*cm;
+  double overhang = (scinti_tile_x - (outer_radius - inner_radius))/2.;
+  double offset = 1*cm + overhang; // add 1cm to make sure the G4ExtrudedSolid
+                                   // is larger than the tile so we do not have
+                                   // funny edge effects when overlapping vols
+  cout << "overhang: " << overhang << ", sci_x: " << scinti_tile_x << endl;
   for (int i=0; i<n_scinti_tiles;i++)
     {
       theta = M_PI/2 - PHG4Utils::get_theta(eta); // theta = 90 for eta=0
-      x[0] = inner_radius;
+      cout << "theta: " << theta/M_PI*180 << ", eta: " <<  PHG4Utils::get_eta(theta) << endl;
+      x[0] = inner_radius-overhang;
       z[0] = tan(theta)*inner_radius;
-      x[1] = inner_radius+scinti_tile_x; // since the tile is tilted, x is not at the outer radius but beyond
+      x[1] = outer_radius+overhang; // since the tile is tilted, x is not at the outer radius but beyond
       z[1] = tan(theta)*outer_radius;
+      cout << "eta " <<  eta << ", theta: " << theta/M_PI*180;
       eta+=delta_eta;
       theta = M_PI/2 - PHG4Utils::get_theta(eta); // theta = 90 for eta=0
-      x[2] = inner_radius;
+      cout << " eta " <<  eta << ", theta: " << theta/M_PI*180 << endl;
+      cout  << " xLlow: " << x[0] << ", zLlow: " << z[0]
+       << " xLhi: " << x[1] << ", zLhi: " << z[1]
+	   << endl;
+      x[2] = inner_radius-overhang;
       z[2] =  tan(theta)*inner_radius;
-      x[3] = inner_radius+scinti_tile_x; // since the tile is tilted, x is not at the outer radius but beyond
+      x[3] =  outer_radius+overhang; // since the tile is tilted, x is not at the outer radius but beyond
       z[3] = tan(theta)*outer_radius;
       // apply gap between scintillators
       z[0] += scinti_gap_neighbor/2.;
