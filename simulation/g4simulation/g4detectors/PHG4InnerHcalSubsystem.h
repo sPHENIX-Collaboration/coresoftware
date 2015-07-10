@@ -59,7 +59,9 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
 
   void SetTiltAngle(const double tilt);
   void SetInnerRadius(const double inner);
+  double GetInnerRadius() const;
   void SetOuterRadius(const double outer);
+  double GetOuterRadius() const;
   void SetLength(const double len);
   void SetGapWidth(const double gap);
   void SetNumScintiPlates(const int nplates);

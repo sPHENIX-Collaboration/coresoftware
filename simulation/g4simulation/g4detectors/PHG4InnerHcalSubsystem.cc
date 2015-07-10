@@ -180,16 +180,29 @@ PHG4InnerHcalSubsystem::BlackHole(const int i)
 {
   params->blackhole = i;
 }
+
 void
 PHG4InnerHcalSubsystem::SetInnerRadius(const double inner)
 {
   params->inner_radius = inner *cm;
 }
 
+double
+PHG4InnerHcalSubsystem::GetInnerRadius() const
+{
+  return params->inner_radius/cm;
+}
+
 void
 PHG4InnerHcalSubsystem::SetOuterRadius(const double outer)
 {
   params->outer_radius = outer * cm;
+}
+
+double
+PHG4InnerHcalSubsystem::GetOuterRadius() const
+{
+  return params->outer_radius/cm;
 }
 
 void
