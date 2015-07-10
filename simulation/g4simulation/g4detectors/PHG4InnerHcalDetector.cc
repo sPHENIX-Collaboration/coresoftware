@@ -73,6 +73,7 @@ PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, const std::
   absorberactive(0),
   layer(lyr),
   blackhole(0),
+  material("SS310"),
   scintilogicnameprefix("HcalInnerScinti")
 {
   // allocate memory for scintillator plates
@@ -130,7 +131,7 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
   CGAL::intersection(outer_circle, perp, std::back_inserter(res));
   Point_2 upperright;
   vector< CGAL::Object >::const_iterator iter;
-  for (iter = res.begin(); iter != res.end(); iter++)
+  for (iter = res.begin(); iter != res.end(); ++iter)
     {
       CGAL::Object obj = *iter;
       if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
@@ -176,7 +177,7 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
   CGAL::intersection(inner_circle, perp, std::back_inserter(res));
   Point_2 lowerleft;
   vector< CGAL::Object >::const_iterator iter;
-  for (iter = res.begin(); iter != res.end(); iter++)
+  for (iter = res.begin(); iter != res.end(); ++iter)
     {
       CGAL::Object obj = *iter;
       if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
@@ -197,7 +198,7 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
   res.clear(); // just clear the content from the last intersection search
   CGAL::intersection(outer_circle, perp, std::back_inserter(res));
   Point_2 lowerright;
-  for (iter = res.begin(); iter != res.end(); iter++)
+  for (iter = res.begin(); iter != res.end(); ++iter)
     {
       CGAL::Object obj = *iter;
       if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
@@ -237,7 +238,7 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
     CGAL::intersection(inner_circle, perp, std::back_inserter(res));
     vector< CGAL::Object >::const_iterator iter;
     double pxmax = 0.;
-    for (iter = res.begin(); iter != res.end(); iter++)
+    for (iter = res.begin(); iter != res.end(); ++iter)
       {
 	CGAL::Object obj = *iter;
 	if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
@@ -258,7 +259,7 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
     Circle_2 outer_circle(so1,so2,so3);
     res.clear(); // just clear the content from the last intersection search
     CGAL::intersection(outer_circle, perp, std::back_inserter(res));
-    for (iter = res.begin(); iter != res.end(); iter++)
+    for (iter = res.begin(); iter != res.end(); ++iter)
       {
 	CGAL::Object obj = *iter;
 	if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
@@ -315,7 +316,7 @@ PHG4InnerHcalDetector::ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft,Po
   vector< CGAL::Object >::const_iterator iter;
   double pxmax = 0.;
   Point_2 tangtouch;
-  for (iter = res.begin(); iter != res.end(); iter++)
+  for (iter = res.begin(); iter != res.end(); ++iter)
     {
       CGAL::Object obj = *iter;
       if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
@@ -373,7 +374,7 @@ PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
 {
   CheckTiltAngle(); // die if the tilt angle is out of range
   G4VSolid *steel_plate  = ConstructSteelPlate(hcalenvelope);
-  G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial("SS310"), "HcalInnerSteelPlate", 0, 0, 0);
+  G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(material), "HcalInnerSteelPlate", 0, 0, 0);
   G4VisAttributes *visattchk = new G4VisAttributes();
   visattchk->SetVisibility(true);
   visattchk->SetForceSolid(false);
@@ -382,16 +383,13 @@ PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
   G4AssemblyVolume *scinti_mother_logical = ConstructHcalScintillatorAssembly(hcalenvelope);
   double phi = 0;
   double deltaphi = 2*M_PI/n_scinti_plates;
-  double xpos = 0;
-  double ypos = 0;
   ostringstream name;
   double middlerad = outer_radius - (outer_radius-inner_radius)/2.;
-  //for (int i = 0; i < n_scinti_plates; i++)
-  for (int i = 0; i < 1; i++)
+  for (int i = 0; i < n_scinti_plates; i++)
     {
       G4RotationMatrix *Rot = new G4RotationMatrix();
-      ypos = sin(phi)*middlerad;
-      xpos = cos(phi)*middlerad;
+      double ypos = sin(phi)*middlerad;
+      double xpos = cos(phi)*middlerad;
       Rot->rotateZ(phi * rad + tilt_angle);
       G4ThreeVector g4vec(xpos, ypos, 0);
       scinti_mother_logical->MakeImprint(hcalenvelope,g4vec,Rot,i,overlapcheck);
@@ -471,11 +469,15 @@ PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
 					      zero, 1.0);
       G4RotationMatrix *rotm = new G4RotationMatrix();
       rotm->rotateX(-90*deg);
-      G4VSolid *scinti_tile =  new G4IntersectionSolid("scintillator",bigtile,scinti,rotm,G4ThreeVector(-(inner_radius+outer_radius)/2., 0, 0));
+      name.str("");
+      name << "scintillator_" << i << "_left";  
+      G4VSolid *scinti_tile =  new G4IntersectionSolid(name.str(),bigtile,scinti,rotm,G4ThreeVector(-(inner_radius+outer_radius)/2., 0, 0));
       scinti_tiles_vec[i+n_scinti_tiles] = scinti_tile;
       rotm = new G4RotationMatrix();
       rotm->rotateX(90*deg);
-      scinti_tile =  new G4IntersectionSolid("scintillator",bigtile,scinti,rotm,G4ThreeVector(-(inner_radius+outer_radius)/2., 0, 0));
+      name.str("");
+      name << "scintillator_" << i << "_right";  
+      scinti_tile =  new G4IntersectionSolid(name.str(),bigtile,scinti,rotm,G4ThreeVector(-(inner_radius+outer_radius)/2., 0, 0));
       scinti_tiles_vec[n_scinti_tiles-i-1] =  scinti_tile;
     }
   // for (unsigned int i=0; i<scinti_tiles_vec.size(); i++)

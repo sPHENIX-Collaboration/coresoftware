@@ -41,8 +41,6 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   virtual PHG4Detector* GetDetector( void ) const;
   virtual PHG4SteppingAction* GetSteppingAction( void ) const;
 
-  void SetSize(const G4double sizex, const G4double sizey, const G4double sizez)
-     {dimension[0] = sizex; dimension[1] = sizey; dimension[2] = sizez;}
   void SetPlaceZ(const G4double dbl) {place_in_z = dbl;}
   void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
   {
@@ -74,7 +72,6 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   /*! derives from PHG4SteppingActions */
   PHG4InnerHcalSteppingAction* steppingAction_;
   PHG4EventAction *eventAction_;
-  G4double dimension[3];
   G4double place_in_x;
   G4double place_in_y;
   G4double place_in_z;

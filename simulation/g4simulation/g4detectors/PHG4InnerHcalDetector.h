@@ -71,6 +71,7 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
   void ConstructHcalSingleScintillators(G4LogicalVolume* hcalenvelope);
   int CheckTiltAngle() const;
+  void SetMaterial(const std::string &mat) {material = mat;}
 
   protected:
   void AddGeometryNode();
@@ -102,6 +103,7 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   int absorberactive;
   int layer;
   int blackhole;
+  G4String material;
   std::string detector_type;
   std::string superdetector;
   std::set<G4VPhysicalVolume *>steel_absorber_vec;

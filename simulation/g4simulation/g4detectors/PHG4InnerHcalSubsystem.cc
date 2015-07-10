@@ -24,7 +24,7 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const i
   rot_in_x(0),
   rot_in_y(0),
   rot_in_z(0),
-  material("G4_AIR"),  // default - almost nothing
+  material("SS310"),  // default - stainless steel ss310
   active(0),
   absorberactive(0),
   layer(lyr),
@@ -39,10 +39,6 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const i
   ostringstream nam;
   nam << name << "_" << lyr;
   Name(nam.str().c_str());
-  for (int i = 0; i < 3; i++)
-    {
-      dimension[i] = 100.0 * cm;
-    }
 }
 
 //_______________________________________________________________________
@@ -60,6 +56,7 @@ int PHG4InnerHcalSubsystem::Init( PHCompositeNode* topNode )
   detector_->SetActive(active);
   detector_->SetAbsorberActive(absorberactive);
   detector_->BlackHole(blackhole);
+  detector_->SetMaterial(material);
   detector_->SuperDetector(superdetector);
   detector_->OverlapCheck(overlapcheck);
   if (isfinite(tilt_angle)) detector_->SetTilt(tilt_angle);
@@ -98,7 +95,7 @@ int PHG4InnerHcalSubsystem::Init( PHCompositeNode* topNode )
       if ( !block_hits )
 	{
 
-	  dstNode->addNode( new PHIODataNode<PHObject>( block_hits = new PHG4HitContainer(), nodename.str().c_str(), "PHObject" ));
+	  dstNode->addNode( new PHIODataNode<PHObject>( new PHG4HitContainer(), nodename.str().c_str(), "PHObject" ));
 
 	}
       // create stepping action
