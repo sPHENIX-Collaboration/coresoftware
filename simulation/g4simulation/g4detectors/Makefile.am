@@ -145,6 +145,7 @@ libg4detectors_la_SOURCES = \
   PHG4HcalPrototypeSubsystem.cc \
   PHG4HcalPrototypeSubsystem_Dict.cc \
   PHG4InnerHcalDetector.cc \
+  PHG4InnerHcalParameters.cc \
   PHG4InnerHcalSteppingAction.cc \
   PHG4InnerHcalSubsystem.cc \
   PHG4InnerHcalSubsystem_Dict.cc \
