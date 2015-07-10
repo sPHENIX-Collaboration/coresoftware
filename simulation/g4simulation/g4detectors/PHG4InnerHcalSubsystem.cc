@@ -2,6 +2,7 @@
 #include "PHG4InnerHcalDetector.h"
 #include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4InnerHcalSteppingAction.h"
+#include "PHG4InnerHcalParameters.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <fun4all/getClass.h>
@@ -15,21 +16,10 @@ using namespace std;
 //_______________________________________________________________________
 PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const int lyr ):
   PHG4Subsystem( name ),
-  detector_( 0 ),
+  detector_(NULL),
   steppingAction_( NULL ),
   eventAction_(NULL),
-  place_in_x(0),
-  place_in_y(0),
-  place_in_z(0),
-  rot_in_x(0),
-  rot_in_y(0),
-  rot_in_z(0),
-  material("SS310"),  // default - stainless steel ss310
-  active(0),
-  absorberactive(0),
   layer(lyr),
-  blackhole(0),
-  tilt_angle(NAN),
   detector_type(name),
   superdetector("NONE")
 {
@@ -39,6 +29,7 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const i
   ostringstream nam;
   nam << name << "_" << lyr;
   Name(nam.str().c_str());
+  params = new PHG4InnerHcalParameters();
 }
 
 //_______________________________________________________________________
@@ -48,19 +39,10 @@ int PHG4InnerHcalSubsystem::Init( PHCompositeNode* topNode )
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
   // create detector
-  detector_ = new PHG4InnerHcalDetector(topNode, Name(), layer);
-  detector_->SetPlace(place_in_x, place_in_y, place_in_z);
-  detector_->SetXRot(rot_in_x);
-  detector_->SetYRot(rot_in_y);
-  detector_->SetZRot(rot_in_z);
-  detector_->SetActive(active);
-  detector_->SetAbsorberActive(absorberactive);
-  detector_->BlackHole(blackhole);
-  detector_->SetMaterial(material);
+  detector_ = new PHG4InnerHcalDetector(topNode, params, Name());
   detector_->SuperDetector(superdetector);
   detector_->OverlapCheck(overlapcheck);
-  if (isfinite(tilt_angle)) detector_->SetTilt(tilt_angle);
-  if (active)
+  if (params->active)
     {
       ostringstream nodename;
       if (superdetector != "NONE")
@@ -79,7 +61,7 @@ int PHG4InnerHcalSubsystem::Init( PHCompositeNode* topNode )
 	  dstNode->addNode( new PHIODataNode<PHObject>( block_hits = new PHG4HitContainer(), nodename.str().c_str(), "PHObject" ));
 
 	}
-      if (absorberactive)
+      if (params->absorberactive)
 	{
 	  nodename.str("");
 	  if (superdetector != "NONE")
@@ -103,7 +85,7 @@ int PHG4InnerHcalSubsystem::Init( PHCompositeNode* topNode )
 
       eventAction_ = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
     }
-  if (blackhole && !active)
+  if (params->blackhole && !params->active)
     {
       steppingAction_ = new PHG4InnerHcalSteppingAction(detector_);
     }
@@ -117,28 +99,130 @@ PHG4InnerHcalSubsystem::process_event( PHCompositeNode * topNode )
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
-    if (steppingAction_)
-        {
-            steppingAction_->SetInterfacePointers( topNode );
-        }
-    return 0;
+  if (steppingAction_)
+    {
+      steppingAction_->SetInterfacePointers( topNode );
+    }
+  return 0;
 }
 
 
 //_______________________________________________________________________
 PHG4Detector* PHG4InnerHcalSubsystem::GetDetector( void ) const
 {
-    return detector_;
+  return detector_;
 }
 
 //_______________________________________________________________________
 PHG4SteppingAction* PHG4InnerHcalSubsystem::GetSteppingAction( void ) const
 {
-    return steppingAction_;
+  return steppingAction_;
 }
 
 void
 PHG4InnerHcalSubsystem::SetTiltAngle(const double tilt)
 {
-  tilt_angle = tilt*deg;
+  params->tilt_angle = tilt * deg;
+}
+
+void
+PHG4InnerHcalSubsystem::SetPlaceZ(const G4double dbl)
+{
+  params->place_in_z = dbl;
+}
+
+void
+PHG4InnerHcalSubsystem::SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
+{
+  params->place_in_x = place_x * cm;
+  params->place_in_y = place_y * cm;
+  params->place_in_z = place_z * cm;
+}
+
+void
+PHG4InnerHcalSubsystem::SetXRot(const G4double dbl)
+{
+  params->x_rot = dbl * deg;
+}
+
+void
+PHG4InnerHcalSubsystem::SetYRot(const G4double dbl)
+{
+  params->y_rot = dbl * deg;
+}
+
+void
+PHG4InnerHcalSubsystem::SetZRot(const G4double dbl)
+{
+  params->z_rot = dbl * deg;
+}
+
+void
+PHG4InnerHcalSubsystem::SetMaterial(const std::string &mat)
+{
+  params->material = mat;
+}
+
+void
+PHG4InnerHcalSubsystem::SetActive(const int i)
+{
+  params->active = i;
+}
+
+void
+PHG4InnerHcalSubsystem::SetAbsorberActive(const int i)
+{
+  params->absorberactive = i;
+}
+
+void
+PHG4InnerHcalSubsystem::BlackHole(const int i)
+{
+  params->blackhole = i;
+}
+void
+PHG4InnerHcalSubsystem::SetInnerRadius(const double inner)
+{
+  params->inner_radius = inner *cm;
+}
+
+void
+PHG4InnerHcalSubsystem::SetOuterRadius(const double outer)
+{
+  params->outer_radius = outer * cm;
+}
+
+void
+PHG4InnerHcalSubsystem::SetLength(const double len)
+{
+  params->size_z = len * cm;
+}
+void
+PHG4InnerHcalSubsystem::SetGapWidth(const double gap)
+{
+  params->scinti_gap = gap *cm;
+}
+
+void
+PHG4InnerHcalSubsystem::SetNumScintiPlates(const int nplates)
+{
+  params->n_scinti_plates = nplates;
+}
+
+void
+PHG4InnerHcalSubsystem::SetNumScintiTiles(const int ntiles)
+{
+  params->n_scinti_tiles = ntiles;
+}
+
+void
+PHG4InnerHcalSubsystem::SetScintiThickness(const double thick)
+{
+  params->scinti_tile_thickness = thick * cm;
+}
+
+void
+PHG4InnerHcalSubsystem::SetScintiGap(const double scgap)
+{
+  params->scinti_gap_neighbor = scgap * cm;
 }
