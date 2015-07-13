@@ -131,10 +131,6 @@ libg4detectors_la_SOURCES = \
   PHG4HcalSteppingAction.cc \
   PHG4HcalSubsystem.cc \
   PHG4HcalSubsystem_Dict.cc \
-  PHG4HcalTestBeamDetector.cc \
-  PHG4HcalTestBeamSteppingAction.cc \
-  PHG4HcalTestBeamSubsystem.cc \
-  PHG4HcalTestBeamSubsystem_Dict.cc \
   PHG4HcalPrototypeDetector.cc \
   PHG4HcalPrototypeDetectorMessenger.cc \
   PHG4HcalPrototypeSteppingAction.cc \
