@@ -358,6 +358,7 @@ PHG4InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
 int
 PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
 {
+  ConsistencyCheck();
   CheckTiltAngle(); // die if the tilt angle is out of range
   G4VSolid *steel_plate  = ConstructSteelPlate(hcalenvelope);
   G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(params->material), "HcalInnerSteelPlate", 0, 0, 0);
@@ -624,4 +625,25 @@ PHG4InnerHcalDetector::AddGeometryNode()
       geo->AddLayerGeom(layer, mygeom);
       geo->identify();
     }
+}
+
+int
+PHG4InnerHcalDetector::ConsistencyCheck() const
+{
+  // just make sure the parameters make a bit of sense
+  if (params->inner_radius >= params->outer_radius)
+    {
+      cout << PHWHERE << ": Inner Radius " << params->inner_radius/cm
+	   << " cm larger than Outer Radius " << params->outer_radius/cm
+	   << " cm" << endl;
+      exit(1);
+    }
+  if (params->scinti_tile_thickness > params->scinti_gap)
+    {
+      cout << PHWHERE << "Scintillator thickness " << params->scinti_tile_thickness/cm
+	   << " cm larger than scintillator gap " << params->scinti_gap/cm
+	   << " cm" << endl;
+      exit(1);
+    }
+  return 0;
 }

@@ -57,6 +57,7 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
   void ConstructHcalSingleScintillators(G4LogicalVolume* hcalenvelope);
   int CheckTiltAngle() const;
+  int ConsistencyCheck() const;
 
   protected:
   void AddGeometryNode();
