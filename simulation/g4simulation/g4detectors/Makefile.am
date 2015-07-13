@@ -82,10 +82,6 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCellGeomContainer_Dict.cc
 
 libg4detectors_la_SOURCES = \
-  PHG4AccDetector.cc \
-  PHG4AccSteppingAction.cc \
-  PHG4AccSubsystem.cc \
-  PHG4AccSubsystem_Dict.cc \
   PHG4BlockCellReco.cc \
   PHG4BlockCellReco_Dict.cc \
   PHG4BlockDetector.cc \
