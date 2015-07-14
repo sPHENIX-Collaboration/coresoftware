@@ -56,6 +56,7 @@ class PHG4OuterHcalDetector: public PHG4Detector
 
   void BlackHole(const int i=1) {blackhole = i;}
   int IsBlackHole() const {return blackhole;}
+  void SetStepLimits(const double slim) {steplimits = slim;}
 
   private:
   void AddGeometryNode();
@@ -117,6 +118,7 @@ class PHG4OuterHcalDetector: public PHG4Detector
   int absorberactive;
   int layer;
   int blackhole;
+  G4double steplimits;
   std::string detector_type;
   std::string superdetector;
   std::vector<G4VSolid *> scinti_tiles_vec; 
