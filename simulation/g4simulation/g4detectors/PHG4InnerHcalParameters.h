@@ -30,6 +30,7 @@ class PHG4InnerHcalParameters
   G4int absorberactive;
   G4int blackhole;
   G4String material;
+  G4double steplimits;
 };
 
 #endif

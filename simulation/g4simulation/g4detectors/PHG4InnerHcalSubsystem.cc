@@ -125,6 +125,12 @@ PHG4InnerHcalSubsystem::SetTiltAngle(const double tilt)
   params->tilt_angle = tilt * deg;
 }
 
+double
+PHG4InnerHcalSubsystem::GetTiltAngle() const
+{
+  return params->tilt_angle/deg;
+}
+
 void
 PHG4InnerHcalSubsystem::SetPlaceZ(const G4double dbl)
 {
@@ -238,4 +244,10 @@ void
 PHG4InnerHcalSubsystem::SetScintiGap(const double scgap)
 {
   params->scinti_gap_neighbor = scgap * cm;
+}
+
+void
+PHG4InnerHcalSubsystem::SetStepLimits(const double slim)
+{
+  params->steplimits = slim*cm;
 }

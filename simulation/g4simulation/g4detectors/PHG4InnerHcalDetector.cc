@@ -22,6 +22,7 @@
 #include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4Trap.hh>
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4UserLimits.hh>
 
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Colour.hh>
@@ -514,11 +515,17 @@ PHG4InnerHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalen
   G4AssemblyVolume *assmeblyvol = new G4AssemblyVolume();
   ostringstream name;
   G4ThreeVector g4vec;
+
   for (unsigned int i = 0; i < scinti_tiles_vec.size(); i++)
     {
       name.str("");
       name << scintilogicnameprefix << i;
-      G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i], G4Material::GetMaterial("G4_POLYSTYRENE"), name.str().c_str(), 0, 0, 0);
+      G4UserLimits *g4userlimits = NULL;
+      if (isfinite(params->steplimits))
+	{
+	  g4userlimits = new G4UserLimits(params->steplimits);
+	}
+      G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i], G4Material::GetMaterial("G4_POLYSTYRENE"), name.str().c_str(), NULL, NULL, g4userlimits);
       assmeblyvol->AddPlacedVolume(scinti_tile_logic, g4vec, NULL);
     }
   return assmeblyvol;
