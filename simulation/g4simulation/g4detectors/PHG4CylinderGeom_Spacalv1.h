@@ -233,7 +233,10 @@ public:
 
     //! Block constructed with taper in polar direction, non-taper in azimuthal direction.
     //! The final layout is approximately projective in both azimuthal and polar directions.
-    kProjective_PolarTaper
+    kProjective_PolarTaper,
+
+
+    kProjective_2DTaper
   };
 
   config_t
