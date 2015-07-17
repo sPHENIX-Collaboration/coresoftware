@@ -684,7 +684,7 @@ PHG4InnerHcalDetector::SetTiltViaNcross()
   CGAL::intersection(outer_circle, l_up, std::back_inserter(res));
   Point_2 upperright;
   vector< CGAL::Object >::const_iterator iter;
-  for (iter = res.begin(); iter != res.end(); iter++)
+  for (iter = res.begin(); iter != res.end(); ++iter)
     {
       CGAL::Object obj = *iter;
       if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
@@ -705,7 +705,7 @@ PHG4InnerHcalDetector::SetTiltViaNcross()
   res.clear();
   Point_2 midpoint;
   CGAL::intersection(mid_circle, l_right, std::back_inserter(res));
-  for (iter = res.begin(); iter != res.end(); iter++)
+  for (iter = res.begin(); iter != res.end(); ++iter)
     {
       CGAL::Object obj = *iter;
       if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
