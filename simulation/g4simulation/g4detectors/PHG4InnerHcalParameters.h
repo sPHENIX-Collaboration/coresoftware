@@ -28,6 +28,7 @@ class PHG4InnerHcalParameters
   G4double z_rot;
   G4int active;
   G4int absorberactive;
+  G4int ncross;
   G4int blackhole;
   G4String material;
   G4double steplimits;

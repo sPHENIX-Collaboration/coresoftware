@@ -57,6 +57,7 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
 
   void BlackHole(const int i=1);
 
+  void SetTiltViaNcross(const int ncross);
   void SetTiltAngle(const double tilt);
   double GetTiltAngle() const;
   void SetInnerRadius(const double inner);

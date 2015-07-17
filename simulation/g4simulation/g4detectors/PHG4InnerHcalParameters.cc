@@ -21,6 +21,7 @@ PHG4InnerHcalParameters::PHG4InnerHcalParameters():
   z_rot(0*deg),
   active(0),
   absorberactive(0),
+  ncross(0),
   blackhole(0),
   material("SS310"),
   steplimits(NAN)
