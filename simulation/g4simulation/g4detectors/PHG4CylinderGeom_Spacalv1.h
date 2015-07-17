@@ -235,8 +235,8 @@ public:
     //! The final layout is approximately projective in both azimuthal and polar directions.
     kProjective_PolarTaper,
 
-
-    kProjective_2DTaper
+    //! Fully projective spacal with 2D tapered modules
+    kFullProjective_2DTaper
   };
 
   config_t

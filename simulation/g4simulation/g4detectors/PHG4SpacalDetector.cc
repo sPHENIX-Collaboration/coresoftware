@@ -21,7 +21,6 @@
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4Cons.hh>
-#include <Geant4/G4Trap.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4UserLimits.hh>
@@ -121,576 +120,135 @@ PHG4SpacalDetector::Construct(G4LogicalVolume* logicWorld)
       exit(-1);
     }
 
-//  G4Tubs* _cylinder_solid = new G4Tubs(G4String(GetName().c_str()),
-//      _geom->get_radius() * cm, _geom->get_max_radius() * cm,
-//      _geom->get_length() * cm / 2.0, 0, twopi);
-  G4Trap* _cylinder_solid;
-  G4Transform3D block_trans ;
+  G4Tubs* _cylinder_solid = new G4Tubs(G4String(GetName().c_str()),
+      _geom->get_radius() * cm, _geom->get_max_radius() * cm,
+      _geom->get_length() * cm / 2.0, 0, twopi);
 
-  {
-    //Processed PostionSeeds 1 from 1 1
-    _cylinder_solid = new G4Trap( /*const G4String& pName*/G4String(GetName().c_str()),
-     6.751951 * cm,// G4double pDz,
-      0,0,// G4double pTheta, G4double pPhi,
-      2.247390*cm, 9.653108*cm , 9.642601*cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-       0,// G4double pAlp1,
-      2.567902*cm, 10.983502*cm , 10.971494*cm,// G4double pDy2, G4double pDx3, G4double pDx4,
-      0// G4double pAlp2 //
-        );
-     block_trans = G4Translate3D(0.000000*cm, 105.088944*cm , 2.483168*cm) * G4RotateX3D(-1.547066*rad);
+  cylinder_solid = _cylinder_solid;
 
-//  cylinder_solid = _cylinder_solid;
+  G4Material * cylinder_mat = G4Material::GetMaterial("G4_AIR");
+  assert(cylinder_mat);
 
-      G4Material * cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
-      assert(cylinder_mat);
+  cylinder_logic = new G4LogicalVolume(cylinder_solid, cylinder_mat,
+      G4String(GetName().c_str()), 0, 0, 0);
+  G4VisAttributes* VisAtt = new G4VisAttributes();
+  PHG4Utils::SetColour(VisAtt, "W_Epoxy");
+  VisAtt->SetVisibility(true);
+  VisAtt->SetForceSolid((not _geom->is_virualize_fiber()) and (not _geom->is_azimuthal_seg_visible()));
+  cylinder_logic->SetVisAttributes(VisAtt);
 
-      cylinder_logic = new G4LogicalVolume(_cylinder_solid, cylinder_mat,
-          G4String(GetName().c_str()), 0, 0, 0);
-      G4VisAttributes* VisAtt = new G4VisAttributes();
-      PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-      VisAtt->SetVisibility(true);
-      VisAtt->SetForceSolid(
-          (not _geom->is_virualize_fiber())
-              and (not _geom->is_azimuthal_seg_visible()));
-      cylinder_logic->SetVisAttributes(VisAtt);
+  cylinder_physi = new G4PVPlacement(0,
+      G4ThreeVector(_geom->get_xpos() * cm, _geom->get_ypos() * cm,
+          _geom->get_zpos() * cm), cylinder_logic, G4String(GetName().c_str()),
+      logicWorld, false, 0, overlapcheck);
 
-      cylinder_physi = new G4PVPlacement(block_trans, cylinder_logic,
-          G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
+
+  std::pair<G4LogicalVolume *,G4Transform3D> psec = Construct_AzimuthalSeg();
+  G4LogicalVolume *sec_logic = psec.first;
+  const G4Transform3D & sec_trans = psec.second;
+
+  int n_sec_construct =
+      (_geom->is_virualize_fiber()) ? 1 : (_geom->is_azimuthal_seg_visible()?10:_geom->get_azimuthal_n_sec());
+
+  if (_geom->is_virualize_fiber() or _geom->is_azimuthal_seg_visible())
+    {
+
+      cout
+          << "PHG4SpacalDetector::Construct - WARNING - "
+          <<"only construct "<<n_sec_construct<<" sectors for visualization purpose!!!"
+          << endl;
+
+    }
+  else
+    {
+      cout
+          << "PHG4SpacalDetector::Construct - INFO - "
+          <<"start construction of "<<n_sec_construct<<" sectors."
+          << endl;
 
     }
 
+  for (int sec = 0; sec < n_sec_construct; ++sec)
+    {
 
-  {
-    //Processed PostionSeeds 3 from 3 1
-    _cylinder_solid = new G4Trap( /*const G4String& pName*/G4String(GetName().c_str()),
-     6.751976 * cm,// G4double pDz,
-      0,0,// G4double pTheta, G4double pPhi,
-      2.248520*cm, 9.607852*cm , 9.658661*cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-       0,// G4double pAlp1,
-      2.566732*cm, 10.925488*cm , 10.983502*cm,// G4double pDy2, G4double pDx3, G4double pDx4,
-      0// G4double pAlp2 //
-        );
-     block_trans = G4Translate3D(0.000000*cm, 104.898063*cm , 12.114086*cm) * G4RotateX3D(-1.455797*rad);
+      const double rot = twopi / (double) (_geom->get_azimuthal_n_sec())
+          * ((double) (sec) - n_sec_construct/2);
 
-      G4Material * cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
-      assert(cylinder_mat);
+      G4Transform3D sec_place = G4RotateZ3D(rot) * sec_trans;
 
-      cylinder_logic = new G4LogicalVolume(_cylinder_solid, cylinder_mat,
-          G4String(GetName().c_str()), 0, 0, 0);
-      G4VisAttributes* VisAtt = new G4VisAttributes();
-      PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-      VisAtt->SetVisibility(true);
-      VisAtt->SetForceSolid(
-          (not _geom->is_virualize_fiber())
-              and (not _geom->is_azimuthal_seg_visible()));
-      cylinder_logic->SetVisAttributes(VisAtt);
+      stringstream name;
+      name << GetName() << "_sec" << sec;
 
-      cylinder_physi = new G4PVPlacement(block_trans, cylinder_logic,
-          G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
+      G4PVPlacement * calo_phys = new G4PVPlacement(sec_place, sec_logic,
+          G4String(name.str().c_str()), cylinder_logic, false, sec,
+          overlapcheck);
+      calo_vol[calo_phys] = sec;
 
     }
-
-  {
-
-    //Processed PostionSeeds 5 from 5 1
-    _cylinder_solid = new G4Trap( /*const G4String& pName*/G4String(GetName().c_str()),
-     6.751971 * cm,// G4double pDz,
-      0,0,// G4double pTheta, G4double pPhi,
-      2.249652*cm, 9.584687*cm , 9.675123*cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-       0,// G4double pAlp1,
-      2.565431*cm, 10.880358*cm , 10.983502*cm,// G4double pDy2, G4double pDx3, G4double pDx4,
-      0// G4double pAlp2 //
-        );
-     block_trans = G4Translate3D(0.000000*cm, 104.766491*cm , 21.838412*cm) * G4RotateX3D(-1.365252*rad);
-
-    G4Material * cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
-    assert(cylinder_mat);
-
-    cylinder_logic = new G4LogicalVolume(_cylinder_solid, cylinder_mat,
-        G4String(GetName().c_str()), 0, 0, 0);
-    G4VisAttributes* VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-    VisAtt->SetVisibility(true);
-    VisAtt->SetForceSolid(
-        (not _geom->is_virualize_fiber())
-            and (not _geom->is_azimuthal_seg_visible()));
-    cylinder_logic->SetVisAttributes(VisAtt);
-
-    cylinder_physi = new G4PVPlacement(block_trans, cylinder_logic,
-        G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
-
-  }
-  {
-
-    //Processed PostionSeeds 7 from 7 1
-    _cylinder_solid = new G4Trap( /*const G4String& pName*/G4String(GetName().c_str()),
-     6.751918 * cm,// G4double pDz,
-      0,0,// G4double pTheta, G4double pPhi,
-      2.251626*cm, 9.573204*cm , 9.701866*cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-       0,// G4double pAlp1,
-      2.560214*cm, 10.837179*cm , 10.983502*cm,// G4double pDy2, G4double pDx3, G4double pDx4,
-      0// G4double pAlp2 //
-        );
-     block_trans = G4Translate3D(0.000000*cm, 104.695625*cm , 31.745365*cm) * G4RotateX3D(-1.276437*rad);
-
-    G4Material * cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
-    assert(cylinder_mat);
-
-    cylinder_logic = new G4LogicalVolume(_cylinder_solid, cylinder_mat,
-        G4String(GetName().c_str()), 0, 0, 0);
-    G4VisAttributes* VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-    VisAtt->SetVisibility(true);
-    VisAtt->SetForceSolid(
-        (not _geom->is_virualize_fiber())
-            and (not _geom->is_azimuthal_seg_visible()));
-    cylinder_logic->SetVisAttributes(VisAtt);
-
-    cylinder_physi = new G4PVPlacement(block_trans, cylinder_logic,
-        G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
-
-  }
-  {
-
-    //Processed PostionSeeds 9 from 9 1
-    _cylinder_solid = new G4Trap( /*const G4String& pName*/G4String(GetName().c_str()),
-     6.751878 * cm,// G4double pDz,
-      0,0,// G4double pTheta, G4double pPhi,
-      2.253432*cm, 9.572854*cm , 9.737865*cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-       0,// G4double pAlp1,
-      2.552634*cm, 10.796576*cm , 10.983502*cm,// G4double pDy2, G4double pDx3, G4double pDx4,
-      0// G4double pAlp2 //
-        );
-     block_trans = G4Translate3D(0.000000*cm, 104.683052*cm , 41.925557*cm) * G4RotateX3D(-1.189890*rad);
-
-    G4Material * cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
-    assert(cylinder_mat);
-
-    cylinder_logic = new G4LogicalVolume(_cylinder_solid, cylinder_mat,
-        G4String(GetName().c_str()), 0, 0, 0);
-    G4VisAttributes* VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-    VisAtt->SetVisibility(true);
-    VisAtt->SetForceSolid(
-        (not _geom->is_virualize_fiber())
-            and (not _geom->is_azimuthal_seg_visible()));
-    cylinder_logic->SetVisAttributes(VisAtt);
-
-    cylinder_physi = new G4PVPlacement(block_trans, cylinder_logic,
-        G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
-
-  }
-  {
-
-    //Processed PostionSeeds 11 from 11 1
-    _cylinder_solid = new G4Trap( /*const G4String& pName*/G4String(GetName().c_str()),
-     6.751840 * cm,// G4double pDz,
-      0,0,// G4double pTheta, G4double pPhi,
-      2.256511*cm, 9.582510*cm , 9.781544*cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-       0,// G4double pAlp1,
-      2.546341*cm, 10.758926*cm , 10.983502*cm,// G4double pDy2, G4double pDx3, G4double pDx4,
-      0// G4double pAlp2 //
-        );
-     block_trans = G4Translate3D(0.000000*cm, 104.722867*cm , 52.466304*cm) * G4RotateX3D(-1.106480*rad);
-
-    G4Material * cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
-    assert(cylinder_mat);
-
-    cylinder_logic = new G4LogicalVolume(_cylinder_solid, cylinder_mat,
-        G4String(GetName().c_str()), 0, 0, 0);
-    G4VisAttributes* VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-    VisAtt->SetVisibility(true);
-    VisAtt->SetForceSolid(
-        (not _geom->is_virualize_fiber())
-            and (not _geom->is_azimuthal_seg_visible()));
-    cylinder_logic->SetVisAttributes(VisAtt);
-
-    cylinder_physi = new G4PVPlacement(block_trans, cylinder_logic,
-        G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
-
-  }
-  {
-
-
-    //Processed PostionSeeds 13 from 13 1
-    _cylinder_solid = new G4Trap( /*const G4String& pName*/G4String(GetName().c_str()),
-     6.751779 * cm,// G4double pDz,
-      0,0,// G4double pTheta, G4double pPhi,
-      2.259203*cm, 9.601148*cm , 9.831603*cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-       0,// G4double pAlp1,
-      2.537383*cm, 10.724678*cm , 10.983502*cm,// G4double pDy2, G4double pDx3, G4double pDx4,
-      0// G4double pAlp2 //
-        );
-     block_trans = G4Translate3D(0.000000*cm, 104.810306*cm , 63.468504*cm) * G4RotateX3D(-1.026390*rad);
-    G4Material * cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
-    assert(cylinder_mat);
-
-    cylinder_logic = new G4LogicalVolume(_cylinder_solid, cylinder_mat,
-        G4String(GetName().c_str()), 0, 0, 0);
-    G4VisAttributes* VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-    VisAtt->SetVisibility(true);
-    VisAtt->SetForceSolid(
-        (not _geom->is_virualize_fiber())
-            and (not _geom->is_azimuthal_seg_visible()));
-    cylinder_logic->SetVisAttributes(VisAtt);
-
-    cylinder_physi = new G4PVPlacement(block_trans, cylinder_logic,
-        G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
-
-  }
-  {
-
-    //Processed PostionSeeds 15 from 15 1
-    _cylinder_solid = new G4Trap( /*const G4String& pName*/G4String(GetName().c_str()),
-     6.827956 * cm,// G4double pDz,
-      0,0,// G4double pTheta, G4double pPhi,
-      2.260314*cm, 9.615107*cm , 9.873956*cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-       0,// G4double pAlp1,
-      2.527163*cm, 10.694108*cm , 10.983502*cm,// G4double pDy2, G4double pDx3, G4double pDx4,
-      0// G4double pAlp2 //
-        );
-     block_trans = G4Translate3D(0.000000*cm, 104.875648*cm , 74.978133*cm) * G4RotateX3D(-0.950304*rad);
-
-    G4Material * cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
-    assert(cylinder_mat);
-
-    cylinder_logic = new G4LogicalVolume(_cylinder_solid, cylinder_mat,
-        G4String(GetName().c_str()), 0, 0, 0);
-    G4VisAttributes* VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-    VisAtt->SetVisibility(true);
-    VisAtt->SetForceSolid(
-        (not _geom->is_virualize_fiber())
-            and (not _geom->is_azimuthal_seg_visible()));
-    cylinder_logic->SetVisAttributes(VisAtt);
-
-    cylinder_physi = new G4PVPlacement(block_trans, cylinder_logic,
-        G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
-
-  }
-  {
-
-    //Processed PostionSeeds 17 from 17 1
-    _cylinder_solid = new G4Trap( /*const G4String& pName*/G4String(GetName().c_str()),
-     7.050129 * cm,// G4double pDz,
-      0,0,// G4double pTheta, G4double pPhi,
-      2.256143*cm, 9.614732*cm , 9.898473*cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-       0,// G4double pAlp1,
-      2.514461*cm, 10.667289*cm , 10.983502*cm,// G4double pDy2, G4double pDx3, G4double pDx4,
-      0// G4double pAlp2 //
-        );
-     block_trans = G4Translate3D(0.000000*cm, 104.868853*cm , 87.029925*cm) * G4RotateX3D(-0.878224*rad);
-
-    G4Material * cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
-    assert(cylinder_mat);
-
-    cylinder_logic = new G4LogicalVolume(_cylinder_solid, cylinder_mat,
-        G4String(GetName().c_str()), 0, 0, 0);
-    G4VisAttributes* VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-    VisAtt->SetVisibility(true);
-    VisAtt->SetForceSolid(
-        (not _geom->is_virualize_fiber())
-            and (not _geom->is_azimuthal_seg_visible()));
-    cylinder_logic->SetVisAttributes(VisAtt);
-
-    cylinder_physi = new G4PVPlacement(block_trans, cylinder_logic,
-        G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
-
-  }
-  {
-
-
-    //Processed PostionSeeds 19 from 19 1
-    _cylinder_solid = new G4Trap( /*const G4String& pName*/G4String(GetName().c_str()),
-     7.329495 * cm,// G4double pDz,
-      0,0,// G4double pTheta, G4double pPhi,
-      2.251071*cm, 9.614857*cm , 9.920437*cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-       0,// G4double pAlp1,
-      2.501607*cm, 10.643899*cm , 10.983502*cm,// G4double pDy2, G4double pDx3, G4double pDx4,
-      0// G4double pAlp2 //
-        );
-     block_trans = G4Translate3D(0.000000*cm, 104.865551*cm , 99.766946*cm) * G4RotateX3D(-0.810340*rad);
-    G4Material * cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
-    assert(cylinder_mat);
-
-    cylinder_logic = new G4LogicalVolume(_cylinder_solid, cylinder_mat,
-        G4String(GetName().c_str()), 0, 0, 0);
-    G4VisAttributes* VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-    VisAtt->SetVisibility(true);
-    VisAtt->SetForceSolid(
-        (not _geom->is_virualize_fiber())
-            and (not _geom->is_azimuthal_seg_visible()));
-    cylinder_logic->SetVisAttributes(VisAtt);
-
-    cylinder_physi = new G4PVPlacement(block_trans, cylinder_logic,
-        G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
-
-  }
-  {
-
-    //Processed PostionSeeds 21 from 21 1
-    _cylinder_solid = new G4Trap( /*const G4String& pName*/G4String(GetName().c_str()),
-     7.685134 * cm,// G4double pDz,
-      0,0,// G4double pTheta, G4double pPhi,
-      2.247516*cm, 9.612530*cm , 9.937324*cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-       0,// G4double pAlp1,
-      2.491419*cm, 10.623460*cm , 10.983502*cm,// G4double pDy2, G4double pDx3, G4double pDx4,
-      0// G4double pAlp2 //
-        );
-     block_trans = G4Translate3D(0.000000*cm, 104.850629*cm , 113.268570*cm) * G4RotateX3D(-0.746991*rad);
-
-    G4Material * cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
-    assert(cylinder_mat);
-
-    cylinder_logic = new G4LogicalVolume(_cylinder_solid, cylinder_mat,
-        G4String(GetName().c_str()), 0, 0, 0);
-    G4VisAttributes* VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-    VisAtt->SetVisibility(true);
-    VisAtt->SetForceSolid(
-        (not _geom->is_virualize_fiber())
-            and (not _geom->is_azimuthal_seg_visible()));
-    cylinder_logic->SetVisAttributes(VisAtt);
-
-    cylinder_physi = new G4PVPlacement(block_trans, cylinder_logic,
-        G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
-
-  }
-  {
-
-    //Processed PostionSeeds 23 from 23 1
-    _cylinder_solid = new G4Trap( /*const G4String& pName*/G4String(GetName().c_str()),
-     8.104392 * cm,// G4double pDz,
-      0,0,// G4double pTheta, G4double pPhi,
-      2.238046*cm, 9.611255*cm , 9.951909*cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-       0,// G4double pAlp1,
-      2.481231*cm, 10.605823*cm , 10.983502*cm,// G4double pDy2, G4double pDx3, G4double pDx4,
-      0// G4double pAlp2 //
-        );
-    block_trans = G4Translate3D(0.000000*cm, 104.839643*cm , 127.643953*cm) * G4RotateX3D(-0.687482*rad);
-
-    G4Material * cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
-    assert(cylinder_mat);
-
-    cylinder_logic = new G4LogicalVolume(_cylinder_solid, cylinder_mat,
-        G4String(GetName().c_str()), 0, 0, 0);
-    G4VisAttributes* VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-    VisAtt->SetVisibility(true);
-    VisAtt->SetForceSolid(
-        (not _geom->is_virualize_fiber())
-            and (not _geom->is_azimuthal_seg_visible()));
-    cylinder_logic->SetVisAttributes(VisAtt);
-
-    cylinder_physi = new G4PVPlacement(block_trans, cylinder_logic,
-        G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
-
-  }
-
-
-  {
-
-    //Processed PostionSeeds 24 from 24 1
-    _cylinder_solid = new G4Trap( /*const G4String& pName*/G4String(GetName().c_str()),
-     8.326711 * cm,// G4double pDz,
-      0,0,// G4double pTheta, G4double pPhi,
-      2.238994*cm, 9.612956*cm , 9.961690*cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-       0,// G4double pAlp1,
-      2.468562*cm, 10.599019*cm , 10.983502*cm,// G4double pDy2, G4double pDx3, G4double pDx4,
-      0// G4double pAlp2 //
-        );
-     block_trans = G4Translate3D(0.000000*cm, 104.851518*cm , 135.224711*cm) * G4RotateX3D(-0.658682*rad);
-
-    G4Material * cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
-    assert(cylinder_mat);
-
-    cylinder_logic = new G4LogicalVolume(_cylinder_solid, cylinder_mat,
-        G4String(GetName().c_str()), 0, 0, 0);
-    G4VisAttributes* VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-    VisAtt->SetVisibility(true);
-    VisAtt->SetForceSolid(
-        (not _geom->is_virualize_fiber())
-            and (not _geom->is_azimuthal_seg_visible()));
-    cylinder_logic->SetVisAttributes(VisAtt);
-
-    cylinder_physi = new G4PVPlacement(block_trans, cylinder_logic,
-        G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
-
-  }
-
-  {
-
-    //Processed PostionSeeds 22 from 22 1
-    _cylinder_solid = new G4Trap( /*const G4String& pName*/G4String(GetName().c_str()),
-     7.875754 * cm,// G4double pDz,
-      0,0,// G4double pTheta, G4double pPhi,
-      2.248351*cm, 9.613706*cm , 9.947556*cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-       0,// G4double pAlp1,
-      2.473651*cm, 10.616205*cm , 10.983502*cm,// G4double pDy2, G4double pDx3, G4double pDx4,
-      0// G4double pAlp2 //
-        );
-     block_trans = G4Translate3D(0.000000*cm, 104.861169*cm , 120.364250*cm) * G4RotateX3D(-0.716799*rad);
-
-    G4Material * cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
-    assert(cylinder_mat);
-
-    cylinder_logic = new G4LogicalVolume(_cylinder_solid, cylinder_mat,
-        G4String(GetName().c_str()), 0, 0, 0);
-    G4VisAttributes* VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-    VisAtt->SetVisibility(true);
-    VisAtt->SetForceSolid(
-        (not _geom->is_virualize_fiber())
-            and (not _geom->is_azimuthal_seg_visible()));
-    cylinder_logic->SetVisAttributes(VisAtt);
-
-    cylinder_physi = new G4PVPlacement(block_trans, cylinder_logic,
-        G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
-
-  }
-
-  {
-
-    //Processed PostionSeeds 20 from 20 1
-    _cylinder_solid = new G4Trap( /*const G4String& pName*/G4String(GetName().c_str()),
-     7.507337 * cm,// G4double pDz,
-      0,0,// G4double pTheta, G4double pPhi,
-      2.255989*cm, 9.613056*cm , 9.929544*cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-       0,// G4double pAlp1,
-      2.483913*cm, 10.635043*cm , 10.983502*cm,// G4double pDy2, G4double pDx3, G4double pDx4,
-      0// G4double pAlp2 //
-        );
-     block_trans = G4Translate3D(0.000000*cm, 104.861614*cm , 106.422317*cm) * G4RotateX3D(-0.778053*rad);
-
-    G4Material * cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
-    assert(cylinder_mat);
-
-    cylinder_logic = new G4LogicalVolume(_cylinder_solid, cylinder_mat,
-        G4String(GetName().c_str()), 0, 0, 0);
-    G4VisAttributes* VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-    VisAtt->SetVisibility(true);
-    VisAtt->SetForceSolid(
-        (not _geom->is_virualize_fiber())
-            and (not _geom->is_azimuthal_seg_visible()));
-    cylinder_logic->SetVisAttributes(VisAtt);
-
-    cylinder_physi = new G4PVPlacement(block_trans, cylinder_logic,
-        G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
-
-  }
-
-//  std::pair<G4LogicalVolume *,G4Transform3D> psec = Construct_AzimuthalSeg();
-//  G4LogicalVolume *sec_logic = psec.first;
-//  const G4Transform3D & sec_trans = psec.second;
-//
-//  int n_sec_construct =
-//      (_geom->is_virualize_fiber()) ? 1 : (_geom->is_azimuthal_seg_visible()?10:_geom->get_azimuthal_n_sec());
-//
-//  if (_geom->is_virualize_fiber() or _geom->is_azimuthal_seg_visible())
-//    {
-//
-//      cout
-//          << "PHG4SpacalDetector::Construct - WARNING - "
-//          <<"only construct "<<n_sec_construct<<" sectors for visualization purpose!!!"
-//          << endl;
-//
-//    }
-//  else
-//    {
-//      cout
-//          << "PHG4SpacalDetector::Construct - INFO - "
-//          <<"start construction of "<<n_sec_construct<<" sectors."
-//          << endl;
-//
-//    }
-//
-//  for (int sec = 0; sec < n_sec_construct; ++sec)
-//    {
-//
-//      const double rot = twopi / (double) (_geom->get_azimuthal_n_sec())
-//          * ((double) (sec) - n_sec_construct/2);
-//
-//      G4Transform3D sec_place = G4RotateZ3D(rot) * sec_trans;
-//
-//      stringstream name;
-//      name << GetName() << "_sec" << sec;
-//
-//      G4PVPlacement * calo_phys = new G4PVPlacement(sec_place, sec_logic,
-//          G4String(name.str().c_str()), cylinder_logic, false, sec,
-//          overlapcheck);
-//      calo_vol[calo_phys] = sec;
-//
-//    }
-//  _geom->set_nscint(_geom->get_nscint() * n_sec_construct);
-//
-//  if (active)
-//    {
-//      ostringstream geonode;
-//      if (superdetector != "NONE")
-//        {
-//          geonode << "CYLINDERGEOM_" << superdetector;
-//        }
-//      else
-//        {
-//          geonode << "CYLINDERGEOM_" << detector_type << "_" << layer;
-//        }
-//      PHG4CylinderGeomContainer *geo = findNode::getClass<
-//          PHG4CylinderGeomContainer>(topNode, geonode.str().c_str());
-//      if (!geo)
-//        {
-//          geo = new PHG4CylinderGeomContainer();
-//          PHNodeIterator iter(topNode);
-//          PHCompositeNode *runNode =
-//              dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",
-//                  "RUN"));
-//          PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo,
-//              geonode.str().c_str(), "PHObject");
-//          runNode->addNode(newNode);
-//        }
-//      // here in the detector class we have internal units, convert to cm
-//      // before putting into the geom object
-//      PHG4CylinderGeom *mygeom = clone_geom();
-//      geo->AddLayerGeom(layer, mygeom);
-//      //    geo->identify();
-//    }
-//
-//
-//  if (absorberactive)
-//    {
-//      ostringstream geonode;
-//      if (superdetector != "NONE")
-//        {
-//          geonode << "CYLINDERGEOM_ABSORBER_" << superdetector;
-//        }
-//      else
-//        {
-//          geonode << "CYLINDERGEOM_ABSORBER_" << detector_type << "_" << layer;
-//        }
-//      PHG4CylinderGeomContainer *geo = findNode::getClass<
-//          PHG4CylinderGeomContainer>(topNode, geonode.str().c_str());
-//      if (!geo)
-//        {
-//          geo = new PHG4CylinderGeomContainer();
-//          PHNodeIterator iter(topNode);
-//          PHCompositeNode *runNode =
-//              dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",
-//                  "RUN"));
-//          PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo,
-//              geonode.str().c_str(), "PHObject");
-//          runNode->addNode(newNode);
-//        }
-//      // here in the detector class we have internal units, convert to cm
-//      // before putting into the geom object
-//      PHG4CylinderGeom *mygeom =  clone_geom();
-//      geo->AddLayerGeom(layer, mygeom);
-//      //    geo->identify();
-//    }
+  _geom->set_nscint(_geom->get_nscint() * n_sec_construct);
+
+  if (active)
+    {
+      ostringstream geonode;
+      if (superdetector != "NONE")
+        {
+          geonode << "CYLINDERGEOM_" << superdetector;
+        }
+      else
+        {
+          geonode << "CYLINDERGEOM_" << detector_type << "_" << layer;
+        }
+      PHG4CylinderGeomContainer *geo = findNode::getClass<
+          PHG4CylinderGeomContainer>(topNode, geonode.str().c_str());
+      if (!geo)
+        {
+          geo = new PHG4CylinderGeomContainer();
+          PHNodeIterator iter(topNode);
+          PHCompositeNode *runNode =
+              dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",
+                  "RUN"));
+          PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo,
+              geonode.str().c_str(), "PHObject");
+          runNode->addNode(newNode);
+        }
+      // here in the detector class we have internal units, convert to cm
+      // before putting into the geom object
+      PHG4CylinderGeom *mygeom = clone_geom();
+      geo->AddLayerGeom(layer, mygeom);
+      //    geo->identify();
+    }
+
+
+  if (absorberactive)
+    {
+      ostringstream geonode;
+      if (superdetector != "NONE")
+        {
+          geonode << "CYLINDERGEOM_ABSORBER_" << superdetector;
+        }
+      else
+        {
+          geonode << "CYLINDERGEOM_ABSORBER_" << detector_type << "_" << layer;
+        }
+      PHG4CylinderGeomContainer *geo = findNode::getClass<
+          PHG4CylinderGeomContainer>(topNode, geonode.str().c_str());
+      if (!geo)
+        {
+          geo = new PHG4CylinderGeomContainer();
+          PHNodeIterator iter(topNode);
+          PHCompositeNode *runNode =
+              dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",
+                  "RUN"));
+          PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo,
+              geonode.str().c_str(), "PHObject");
+          runNode->addNode(newNode);
+        }
+      // here in the detector class we have internal units, convert to cm
+      // before putting into the geom object
+      PHG4CylinderGeom *mygeom =  clone_geom();
+      geo->AddLayerGeom(layer, mygeom);
+      //    geo->identify();
+    }
 
   if (_geom->get_construction_verbose() >= 1)
     {
