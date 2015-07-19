@@ -56,26 +56,41 @@ public:
     sidewall_thickness = sidewallThickness;
   }
 
-  class geom_super_tower
+  class geom_tower
   {
   public:
     int id;
     double pDz;
+
     double pDy1;
     double pDx1;
     double pDx2;
     double pDy2;
     double pDx3;
     double pDx4;
+
+    double pTheta;
+    double pPhi;
+    double pAlp1;
+    double pAlp2;
+
     double pRotationAngleX;
     double centralY;
     double centralZ;
-    geom_super_tower();
 
-  ClassDef(PHG4CylinderGeom_Spacalv3::geom_super_tower,1)
+    double ModuleSkinThickness;
+    int NFiberX;
+    int NFiberY;
+
+    geom_tower();
+
+    virtual void
+    identify(std::ostream& os = std::cout) const;
+
+  ClassDef(PHG4CylinderGeom_Spacalv3::geom_tower,1)
 
   };
-  typedef std::map<int, geom_super_tower> geom_super_tower_map_t;
+  typedef std::map<int, geom_tower> tower_map_t;
 
   void
   load_demo_geom_super_tower_map();
@@ -94,7 +109,7 @@ public:
 protected:
   double sidewall_thickness;
   double sidewall_outer_torr;
-  geom_super_tower_map_t geom_super_tower_map;
+  tower_map_t sector_tower_map;
 
 ClassDef(PHG4CylinderGeom_Spacalv3,2)
 
