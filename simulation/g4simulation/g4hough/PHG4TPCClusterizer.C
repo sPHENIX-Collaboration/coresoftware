@@ -29,66 +29,57 @@
 using namespace std;
 
 
-static bool is_local_maximum( std::vector<float> const& amps, unsigned int index )
+static inline int wrap_bin( int bin, int nbins )
 {
-	if( amps[index] == 0. ){return false;}
-	if( (index != 0) && (index != (amps.size() - 1) ) )
+	if(bin<0){bin+=nbins;}
+	if(bin>=nbins){bin-=nbins;}
+	return bin;
+}
+
+static bool is_local_maximum( std::vector<std::vector<float> > const& amps, int phi, int z )
+{
+	if( amps[z][phi] <= 0. ){return false;}
+	float cent_val = amps[z][phi];
+	bool is_max = true;
+	for( int iz=-1;iz<=1;++iz )
 	{
-		if( (amps[index] >= amps[index-1]) && (amps[index] >= amps[index+1]) ){return true;}
+		int cz = z+iz;if(cz<0){continue;}if(cz>=(int)(amps.size())){continue;}
+		for( int ip=-1;ip<=1;++ip )
+		{
+			if( (iz==0) && (ip==0) ){continue;}
+			int cp = wrap_bin( phi+ip, amps[cz].size() );
+			if( amps[cz][cp] > cent_val ){is_max=false;break;}
+		}
+		if(is_max==false){break;}
 	}
-	else if( index == 0 )
-	{
-		if( (amps[index] >= amps[index+1]) && (amps[index] >= amps.back() ) ){return true;}
-	}
-	else if( index == (amps.size() - 1) )
-	{
-		if( (amps[index] >= amps[0]) && (amps[index] >= amps[index-1] ) ){return true;}
-	}
-	return false;
+	return is_max;
 }
 
 
-static void fit_cluster( std::vector<float>& amps, int& nhits, unsigned int index, PHG4CylinderCellGeom* geo, float& phi, float& e )
+static void fit_cluster( std::vector<std::vector<float> >& amps, int& nhits_tot, std::vector<int>& nhits, int phibin, int zbin, PHG4CylinderCellGeom* geo, float& phi, float& z, float& e )
 {
-	nhits -= 1;
-	e = amps[index];
-	phi = (geo->get_phicenter(index))*amps[index];
-
-	// TODO make this a parameter to be set from the outside
-	int span = 3;
-
-	for(int i=-span;i<0;++i)
+	int phi_span = 3;
+	int z_span = 3;
+	e = 0.;
+	phi = 0.;
+	z = 0.;
+	for( int iz=-z_span;iz<=z_span;++iz )
 	{
-
-		int cur_index = (int(index))+i;
-		int left_index = cur_index;
-		bool left_wrap = false;
-		if(cur_index<0){
-			left_index += amps.size();
-			left_wrap = true;}
-		if(amps[left_index]<=0.){continue;}
-		nhits -= 1;
-		e += amps[left_index];
-		if(left_wrap==false){phi += (geo->get_phicenter(left_index))*amps[left_index];}
-		else{phi += (geo->get_phicenter(left_index)-2.*TMath::Pi())*amps[left_index];}
-		amps[left_index] = 0.;
-	}
-	for(int i=1;i<=span;++i)
-	{
-		int cur_index = (int(index))+i;
-		int right_index = cur_index;
-		bool right_wrap = false;
-		if(((unsigned int)cur_index)>=amps.size()){
-			right_index -= amps.size();
-			right_wrap = true;}
-		if(amps[right_index]<=0.){continue;}
-		nhits -= 1;
-		e += amps[right_index];
-		if(right_wrap==false){phi += (geo->get_phicenter(right_index))*amps[right_index];}
-		else{phi += (geo->get_phicenter(right_index)+2.*TMath::Pi())*amps[right_index];}
-		amps[right_index] = 0.;
+		int cz = zbin+iz;if(cz<0){continue;}if(cz>=(int)(amps.size())){continue;}
+		for( int ip=-phi_span;ip<=phi_span;++ip )
+		{
+			int cp = wrap_bin( phibin+ip, amps[cz].size() );
+			if(amps[cz][cp] <= 0.){continue;}
+			e += amps[cz][cp];
+			phi += amps[cz][cp]*geo->get_phicenter(cp);
+			z += amps[cz][cp]*geo->get_zcenter(cz);
+			nhits_tot -= 1;
+			nhits[cz] -= 1;
+			amps[cz][cp] = 0.;
+		}
 	}
 	phi /= e;
+	z /= e;
 }
 
 
@@ -179,31 +170,31 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 	for(unsigned int layer=0;layer<amps.size();++layer)
 	{
 		PHG4CylinderCellGeom* geo = geom_container->GetLayerCellGeom(layer);
-		for(unsigned int zbin=0;zbin<amps[layer].size();++zbin)
+		int nhits_tot = 0;
+		for(int zbin=0;zbin<(int)(nhits[layer].size());++zbin)
 		{
-			int phibin = 0;
-			while( nhits[layer][zbin] > 0 )
+			nhits_tot += nhits[layer][zbin];
+		}
+		while( nhits_tot > 0 )
+		{
+			for(int zbin=0;zbin<(int)(amps[layer].size());++zbin)
 			{
-				if( is_local_maximum( amps[layer][zbin], phibin ) == true )
+				if(nhits[layer][zbin] <= 0){continue;}
+				for( int phibin=0;phibin<(int)(amps[layer][zbin].size());++phibin )
 				{
-					float phi,e;
-					fit_cluster( amps[layer][zbin], nhits[layer][zbin], phibin, geo, phi, e );
+					if( is_local_maximum( amps[layer], phibin, zbin ) == false ){continue;}
+					float phi=0.;float z=0.;float e=0.;
+					fit_cluster( amps[layer], nhits_tot, nhits[layer], phibin, zbin, geo, phi, z, e );
 					SvtxCluster clus;
 					clus.set_layer( layer );
 					clus.set_e(e);
 					double radius = geo->get_radius();
 					clus.set_position( 0, radius*cos(phi) );
 					clus.set_position( 1, radius*sin(phi) );
-					clus.set_position( 2, geo->get_zcenter(zbin) );
+					clus.set_position( 2, z );
 					clus.insert_hit( cellids[layer][zbin][phibin] );
 					clusterlist->insert(clus);
 				}
-				phibin += 1;
-				if(phibin == (int)(amps[layer][zbin].size()))
-				{
-					phibin = 0;
-				}
-
 			}
 		}
 	}
