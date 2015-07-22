@@ -39,6 +39,8 @@ class SvtxTrack;
 class SvtxVertexMap;
 class PHG4InEvent;
 class PHG4HitContainer;
+class SimpleRecoEvent;
+class TTree;
 
 /// \class PHG4HoughTransform
 ///
@@ -248,6 +250,9 @@ public:
 
   /// recorded layer indexes to internal sequential indexes
   std::map<int,unsigned int> _layer_ilayer_map; 
+
+  TTree* _reco_tree;
+  SimpleRecoEvent* _recoevent;
 
 #endif // __CINT__
 };

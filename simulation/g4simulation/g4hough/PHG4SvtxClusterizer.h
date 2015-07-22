@@ -13,7 +13,7 @@ class PHG4SvtxClusterizer : public SubsysReco {
 
 public:
 
-  PHG4SvtxClusterizer(const char * name = "PHG4SvtxClusterizer");
+  PHG4SvtxClusterizer(const char* name);
   ~PHG4SvtxClusterizer(){}
   
   //! module initialization
