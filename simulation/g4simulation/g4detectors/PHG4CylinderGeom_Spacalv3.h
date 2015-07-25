@@ -93,13 +93,17 @@ public:
   typedef std::map<int, geom_tower> tower_map_t;
 
   void
-  load_demo_geom_super_tower_map();
+  load_demo_sector_tower_map1();
+  void
+  load_demo_sector_tower_map2();
+  void
+  load_demo_sector_tower_map3();
 
-//  geom_super_tower_map_t
-//  get_geom_super_tower_map() const
-//  {
-//    return geom_super_tower_map;
-//  }
+  const tower_map_t &
+  get_sector_tower_map() const
+  {
+    return sector_tower_map;
+  }
 //
 //  void
 //  set_geom_super_tower_map(geom_super_tower_map_t geomSuperTowerMap)

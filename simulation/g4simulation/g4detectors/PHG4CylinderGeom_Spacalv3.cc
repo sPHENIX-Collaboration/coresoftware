@@ -103,8 +103,330 @@ PHG4CylinderGeom_Spacalv3::geom_tower::identify(std::ostream& os) const
 }
 
 void
-PHG4CylinderGeom_Spacalv3::load_demo_geom_super_tower_map()
+PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map1()
 {
+  cout << "PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map1 - "
+      << "load four example central towers" << endl;
+
+  // Chris Cullen 2D spacal design July 2015
+  radius = 90.000000;
+  thickness = 26.130000;
+  zmin = 149.470000;
+  zmax = -zmin;
+  azimuthal_n_sec = 32;
+  azimuthal_tilt = 0;
+  azimuthal_seg_visible = false;
+  polar_taper_ratio = 1.;
+  assembly_spacing = 0.002500;
+  sidewall_thickness = 0.075000;
+  sidewall_outer_torr = 0.030000;
+  sector_tower_map.clear();
+
+    {
+      // tower 1022 based Row/Col = 102/2
+      geom_tower geom;
+      geom.id = 1022;
+      geom.pDz = 6.751948;
+      geom.pTheta = 1.508332;
+      geom.pPhi = -2.950840;
+      geom.pAlp1 = -0.001456;
+      geom.pAlp2 = -0.001456;
+      geom.pDy1 = 1.121195;
+      geom.pDx1 = 1.194747;
+      geom.pDx2 = 1.195405;
+      geom.pDy2 = 1.281451;
+      geom.pDx3 = 1.360958;
+      geom.pDx4 = 1.361710;
+      geom.centralY = 105.060369;
+      geom.centralZ = 3.686651;
+      geom.pRotationAngleX = -1.547057;
+      geom.ModuleSkinThickness = 0.010000;
+      geom.NFiberX = 30;
+      geom.NFiberY = 46;
+      sector_tower_map[geom.id] = geom;
+    }
+    {
+      // tower 1024 based Row/Col = 102/4
+      geom_tower geom;
+      geom.id = 1024;
+      geom.pDz = 6.751948;
+      geom.pTheta = 1.553736;
+      geom.pPhi = -2.373142;
+      geom.pAlp1 = -0.000290;
+      geom.pAlp2 = -0.000290;
+      geom.pDy1 = 1.121195;
+      geom.pDx1 = 1.190432;
+      geom.pDx2 = 1.191082;
+      geom.pDy2 = 1.281451;
+      geom.pDx3 = 1.356043;
+      geom.pDx4 = 1.356787;
+      geom.centralY = 105.060369;
+      geom.centralZ = 3.686651;
+      geom.pRotationAngleX = -1.547057;
+      geom.ModuleSkinThickness = 0.010000;
+      geom.NFiberX = 30;
+      geom.NFiberY = 46;
+      sector_tower_map[geom.id] = geom;
+    }
+    {
+      // tower 1026 based Row/Col = 102/6
+      geom_tower geom;
+      geom.id = 1026;
+      geom.pDz = 6.751948;
+      geom.pTheta = 1.532136;
+      geom.pPhi = -0.311600;
+      geom.pAlp1 = 0.000872;
+      geom.pAlp2 = 0.000872;
+      geom.pDy1 = 1.121195;
+      geom.pDx1 = 1.191868;
+      geom.pDx2 = 1.192521;
+      geom.pDy2 = 1.281451;
+      geom.pDx3 = 1.357679;
+      geom.pDx4 = 1.358425;
+      geom.centralY = 105.060369;
+      geom.centralZ = 3.686651;
+      geom.pRotationAngleX = -1.547057;
+      geom.ModuleSkinThickness = 0.010000;
+      geom.NFiberX = 30;
+      geom.NFiberY = 46;
+      sector_tower_map[geom.id] = geom;
+    }
+    {
+      // tower 1028 based Row/Col = 102/8
+      geom_tower geom;
+      geom.id = 1028;
+      geom.pDz = 6.751948;
+      geom.pTheta = 1.484122;
+      geom.pPhi = -0.136901;
+      geom.pAlp1 = 0.002046;
+      geom.pAlp2 = 0.002046;
+      geom.pDy1 = 1.121195;
+      geom.pDx1 = 1.199084;
+      geom.pDx2 = 1.199749;
+      geom.pDy2 = 1.281451;
+      geom.pDx3 = 1.365897;
+      geom.pDx4 = 1.366657;
+      geom.centralY = 105.060369;
+      geom.centralZ = 3.686651;
+      geom.pRotationAngleX = -1.547057;
+      geom.ModuleSkinThickness = 0.010000;
+      geom.NFiberX = 30;
+      geom.NFiberY = 46;
+      sector_tower_map[geom.id] = geom;
+    }
+}
+
+void
+PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2()
+{
+  cout << "PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2 - "
+      << "load one row of example forward towers" << endl;
+
+  // Chris Cullen 2D spacal design July 2015
+  radius = 90.000000;
+  thickness = 26.130000;
+  zmin = 149.470000;
+  zmax = -zmin;
+  azimuthal_n_sec = 32;
+  azimuthal_tilt = 0;
+  azimuthal_seg_visible = false;
+  polar_taper_ratio = 1.;
+  assembly_spacing = 0.002500;
+  sidewall_thickness = 0.075000;
+  sidewall_outer_torr = 0.030000;
+  sector_tower_map.clear();
+
+    {
+      // tower 541 based Row/Col = 54/1
+      geom_tower geom;
+      geom.id = 541;
+      geom.pDz = 8.326697;
+      geom.pTheta = 1.517219;
+      geom.pPhi = -3.015910;
+      geom.pAlp1 = 0.068143;
+      geom.pAlp2 = 0.068127;
+      geom.pDy1 = 1.116997;
+      geom.pDx1 = 1.235953;
+      geom.pDx2 = 1.214052;
+      geom.pDy2 = 1.231781;
+      geom.pDx3 = 1.363889;
+      geom.pDx4 = 1.339743;
+      geom.centralY = 105.782078;
+      geom.centralZ = -134.504208;
+      geom.pRotationAngleX = -2.482741;
+      geom.ModuleSkinThickness = 0.010000;
+      geom.NFiberX = 30;
+      geom.NFiberY = 46;
+      sector_tower_map[geom.id] = geom;
+    }
+    {
+      // tower 542 based Row/Col = 54/2
+      geom_tower geom;
+      geom.id = 542;
+      geom.pDz = 8.326697;
+      geom.pTheta = 1.532238;
+      geom.pPhi = -2.966436;
+      geom.pAlp1 = 0.048643;
+      geom.pAlp2 = 0.048632;
+      geom.pDy1 = 1.116997;
+      geom.pDx1 = 1.234208;
+      geom.pDx2 = 1.212398;
+      geom.pDy2 = 1.231781;
+      geom.pDx3 = 1.361965;
+      geom.pDx4 = 1.337918;
+      geom.centralY = 105.782078;
+      geom.centralZ = -134.504208;
+      geom.pRotationAngleX = -2.482741;
+      geom.ModuleSkinThickness = 0.010000;
+      geom.NFiberX = 30;
+      geom.NFiberY = 46;
+      sector_tower_map[geom.id] = geom;
+    }
+    {
+      // tower 543 based Row/Col = 54/3
+      geom_tower geom;
+      geom.id = 543;
+      geom.pDz = 8.326697;
+      geom.pTheta = 1.547045;
+      geom.pPhi = -2.854692;
+      geom.pAlp1 = 0.029174;
+      geom.pAlp2 = 0.029167;
+      geom.pDy1 = 1.116997;
+      geom.pDx1 = 1.233047;
+      geom.pDx2 = 1.211297;
+      geom.pDy2 = 1.231781;
+      geom.pDx3 = 1.360684;
+      geom.pDx4 = 1.336703;
+      geom.centralY = 105.782078;
+      geom.centralZ = -134.504208;
+      geom.pRotationAngleX = -2.482741;
+      geom.ModuleSkinThickness = 0.010000;
+      geom.NFiberX = 30;
+      geom.NFiberY = 46;
+      sector_tower_map[geom.id] = geom;
+    }
+    {
+      // tower 544 based Row/Col = 54/4
+      geom_tower geom;
+      geom.id = 544;
+      geom.pDz = 8.326697;
+      geom.pTheta = 1.560655;
+      geom.pPhi = -2.416982;
+      geom.pAlp1 = 0.009723;
+      geom.pAlp2 = 0.009720;
+      geom.pDy1 = 1.116997;
+      geom.pDx1 = 1.232467;
+      geom.pDx2 = 1.210746;
+      geom.pDy2 = 1.231781;
+      geom.pDx3 = 1.360044;
+      geom.pDx4 = 1.336096;
+      geom.centralY = 105.782078;
+      geom.centralZ = -134.504208;
+      geom.pRotationAngleX = -2.482741;
+      geom.ModuleSkinThickness = 0.010000;
+      geom.NFiberX = 30;
+      geom.NFiberY = 46;
+      sector_tower_map[geom.id] = geom;
+    }
+    {
+      // tower 545 based Row/Col = 54/5
+      geom_tower geom;
+      geom.id = 545;
+      geom.pDz = 8.326697;
+      geom.pTheta = 1.560655;
+      geom.pPhi = -0.724610;
+      geom.pAlp1 = -0.009723;
+      geom.pAlp2 = -0.009720;
+      geom.pDy1 = 1.116997;
+      geom.pDx1 = 1.232467;
+      geom.pDx2 = 1.210746;
+      geom.pDy2 = 1.231781;
+      geom.pDx3 = 1.360044;
+      geom.pDx4 = 1.336096;
+      geom.centralY = 105.782078;
+      geom.centralZ = -134.504208;
+      geom.pRotationAngleX = -2.482741;
+      geom.ModuleSkinThickness = 0.010000;
+      geom.NFiberX = 30;
+      geom.NFiberY = 46;
+      sector_tower_map[geom.id] = geom;
+    }
+    {
+      // tower 546 based Row/Col = 54/6
+      geom_tower geom;
+      geom.id = 546;
+      geom.pDz = 8.326697;
+      geom.pTheta = 1.547045;
+      geom.pPhi = -0.286901;
+      geom.pAlp1 = -0.029174;
+      geom.pAlp2 = -0.029167;
+      geom.pDy1 = 1.116997;
+      geom.pDx1 = 1.233047;
+      geom.pDx2 = 1.211297;
+      geom.pDy2 = 1.231781;
+      geom.pDx3 = 1.360684;
+      geom.pDx4 = 1.336703;
+      geom.centralY = 105.782078;
+      geom.centralZ = -134.504208;
+      geom.pRotationAngleX = -2.482741;
+      geom.ModuleSkinThickness = 0.010000;
+      geom.NFiberX = 30;
+      geom.NFiberY = 46;
+      sector_tower_map[geom.id] = geom;
+    }
+    {
+      // tower 547 based Row/Col = 54/7
+      geom_tower geom;
+      geom.id = 547;
+      geom.pDz = 8.326697;
+      geom.pTheta = 1.532238;
+      geom.pPhi = -0.175156;
+      geom.pAlp1 = -0.048643;
+      geom.pAlp2 = -0.048632;
+      geom.pDy1 = 1.116997;
+      geom.pDx1 = 1.234208;
+      geom.pDx2 = 1.212398;
+      geom.pDy2 = 1.231781;
+      geom.pDx3 = 1.361965;
+      geom.pDx4 = 1.337918;
+      geom.centralY = 105.782078;
+      geom.centralZ = -134.504208;
+      geom.pRotationAngleX = -2.482741;
+      geom.ModuleSkinThickness = 0.010000;
+      geom.NFiberX = 30;
+      geom.NFiberY = 46;
+      sector_tower_map[geom.id] = geom;
+    }
+    {
+      // tower 548 based Row/Col = 54/8
+      geom_tower geom;
+      geom.id = 548;
+      geom.pDz = 8.326697;
+      geom.pTheta = 1.517219;
+      geom.pPhi = -0.125683;
+      geom.pAlp1 = -0.068143;
+      geom.pAlp2 = -0.068127;
+      geom.pDy1 = 1.116997;
+      geom.pDx1 = 1.235953;
+      geom.pDx2 = 1.214052;
+      geom.pDy2 = 1.231781;
+      geom.pDx3 = 1.363889;
+      geom.pDx4 = 1.339743;
+      geom.centralY = 105.782078;
+      geom.centralZ = -134.504208;
+      geom.pRotationAngleX = -2.482741;
+      geom.ModuleSkinThickness = 0.010000;
+      geom.NFiberX = 30;
+      geom.NFiberY = 46;
+      sector_tower_map[geom.id] = geom;
+    }
+}
+void
+PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
+{
+  cout << "PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2 - "
+      << "load Chris Cullen 2D spacal design July 2015" << endl;
+
   // Chris Cullen 2D spacal design July 2015
   radius = 90.000000;
   thickness = 26.130000;

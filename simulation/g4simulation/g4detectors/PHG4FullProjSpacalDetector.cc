@@ -19,6 +19,7 @@
 #include <fun4all/getClass.h>
 
 #include <Geant4/G4Trd.hh>
+#include <Geant4/G4Trap.hh>
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4Cons.hh>
@@ -37,8 +38,10 @@
 
 #include <cassert>
 #include <cmath>
+#include <string>     // std::string, std::to_string
 #include <sstream>
 #include <boost/math/special_functions/sign.hpp>
+#include <boost/foreach.hpp>
 
 using namespace std;
 
@@ -88,62 +91,19 @@ PHG4FullProjSpacalDetector::Construct(G4LogicalVolume* logicWorld)
           << " - Completed." << endl;
     }
 
-//
-//  {
-//    //Processed PostionSeeds 1 from 1 1
-//    _cylinder_solid = new G4Trap( /*const G4String& pName*/G4String(GetName().c_str()),
-//     6.751951 * cm,// G4double pDz,
-//      0,0,// G4double pTheta, G4double pPhi,
-//      2.247390*cm, 9.653108*cm , 9.642601*cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-//       0,// G4double pAlp1,
-//      2.567902*cm, 10.983502*cm , 10.971494*cm,// G4double pDy2, G4double pDx3, G4double pDx4,
-//      0// G4double pAlp2 //
-//        );
-//     block_trans = G4Translate3D(0.000000*cm, 105.088944*cm , 2.483168*cm) * G4RotateX3D(-1.547066*rad);
-//
-////  cylinder_solid = _cylinder_solid;
-//
-//      G4Material * cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
-//      assert(cylinder_mat);
-//
-//      cylinder_logic = new G4LogicalVolume(_cylinder_solid, cylinder_mat,
-//          G4String(GetName().c_str()), 0, 0, 0);
-//      G4VisAttributes* VisAtt = new G4VisAttributes();
-//      PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-//      VisAtt->SetVisibility(true);
-//      VisAtt->SetForceSolid(
-//          (not _geom->is_virualize_fiber())
-//              and (not _geom->is_azimuthal_seg_visible()));
-//      cylinder_logic->SetVisAttributes(VisAtt);
-//
-//      cylinder_physi = new G4PVPlacement(block_trans, cylinder_logic,
-//          G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
-//
-//    }
 }
 
 std::pair<G4LogicalVolume *, G4Transform3D>
 PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
 {
-
   assert(_geom);
   assert(_geom->get_azimuthal_n_sec()>4);
 
-  const double sec_azimuthal_width = _geom->get_sec_azimuthal_width() * cm;
-
-  const double sec_depth = _geom->get_sec_depth() * cm;
-
-  G4Box* sec_solid = new G4Box(G4String(GetName() + string("_sec")),
-      sec_depth * .5, sec_azimuthal_width * .5, _geom->get_length() * cm * .5);
-
-  const int sign_tilt = boost::math::sign(_geom->get_azimuthal_tilt());
-
-  G4Transform3D sec_trans = //
-      G4TranslateY3D(sign_tilt * sec_azimuthal_width * .5) //
-      * G4TranslateX3D(_geom->get_radius() * cm) //
-          * G4RotateZ3D(_geom->get_azimuthal_tilt()) //
-          * G4TranslateY3D(-sign_tilt * sec_azimuthal_width * .5) //
-          * G4TranslateX3D(sec_depth * .5);
+  G4Tubs* sec_solid = new G4Tubs(G4String(GetName() + string("_sec")),
+      _geom->get_radius() * cm, _geom->get_max_radius() * cm,
+      _geom->get_length() * cm / 2.0,
+      halfpi - pi / _geom->get_azimuthal_n_sec(),
+      twopi / _geom->get_azimuthal_n_sec());
 
   G4Material * cylinder_mat = G4Material::GetMaterial("G4_AIR");
   assert(cylinder_mat);
@@ -152,124 +112,55 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
       G4String(G4String(GetName() + string("_sec"))), 0, 0, step_limits);
 
   G4VisAttributes* VisAtt = new G4VisAttributes();
-  PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-  VisAtt->SetVisibility(true);
-  VisAtt->SetForceSolid(_geom->is_azimuthal_seg_visible());
+  VisAtt->SetColor(.1, .1, .1, .5);
+  VisAtt->SetVisibility(_geom->is_virualize_fiber());
+  VisAtt->SetForceSolid(false);
   sec_logic->SetVisAttributes(VisAtt);
 
-  // fill internal of sec_logic with calorimeter blocks
-
-  G4LogicalVolume * block_logic = Construct_Block();
-  assert(block_logic);
-
-  G4Transform3D block_trans_base = G4RotateY3D(halfpi);
-
-  double average_error = 0;
-  double max_error = 0;
-  double min_error = 0;
-  int copy_id = 0;
-  for (int sign = +1; sign >= -1; sign -= 2)
+  BOOST_FOREACH(const SpacalGeom_t::tower_map_t::value_type val, _geom->get_sector_tower_map())
     {
+      const SpacalGeom_t::geom_tower & g_tower = val.second;
+      G4LogicalVolume* LV_tower = Construct_Tower(g_tower);
 
-      const double z_lim =
-          sign > 0 ? _geom->get_zmax() * cm : _geom->get_zmin() * cm;
+      G4Transform3D block_trans = G4TranslateY3D(g_tower.centralY * cm)
+          * G4TranslateZ3D(g_tower.centralZ * cm)
+          * G4RotateX3D(g_tower.pRotationAngleX * rad);
 
-      double pivot_angle = sign * _geom->get_half_polar_taper_angle();
-      double z_pivot_point = sign
-          * (_geom->get_block_width() * cm / cos(pivot_angle)
-              + _geom->get_assembly_spacing() * cm);
-      while (1)
-        {
-          const double dz_edge = abs(
-              _geom->get_block_depth() * cm * sin(pivot_angle))
-              + _geom->get_block_width() * cm * 0.5
-                  * (_geom->get_polar_taper_ratio() - 1);
-
-          if (abs(z_pivot_point) + dz_edge >= abs(z_lim))
-            {
-
-              cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::"
-                  << GetName() << ": - "
-                  << "Finished construction of blocks towards " << sign
-                  << " directions. Current ID = " << copy_id << endl;
-
-              break;
-            }
-
-          const double angle_error = halfpi
-              - atan2(_geom->get_radius() * cm,
-                  z_pivot_point
-                      - sign * _geom->get_block_width() * cm * 0.5
-                          / cos(pivot_angle)) - pivot_angle;
-          average_error += sign * angle_error;
-          if (sign * angle_error > max_error)
-            max_error = sign * angle_error;
-          if (sign * angle_error < min_error)
-            min_error = sign * angle_error;
-
-          if (_geom->get_construction_verbose() >= 2)
-            {
-              cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::"
-                  << GetName() << ": - " << "Construction of blocks " << copy_id
-                  << " at " << " z_pivot_point = " << z_pivot_point
-                  << " pivot_angle = " << pivot_angle << " angle_error = "
-                  << angle_error << " z_lim = " << z_lim << endl;
-            }
-
-          G4Transform3D block_trans = G4TranslateZ3D(z_pivot_point) //
-          * G4TranslateX3D(-_geom->get_sec_depth() * cm * 0.5) //
-              * G4RotateY3D(-pivot_angle) //
-              * G4TranslateZ3D(-sign * _geom->get_block_width() * cm * 0.5) //
-              * G4TranslateX3D(_geom->get_block_depth() * cm * 0.5) //
-              * block_trans_base;
-
-          stringstream name;
-          name << GetName() << "_block_" << copy_id;
-
-          G4PVPlacement * block_phys = new G4PVPlacement(block_trans,
-              block_logic, G4String(name.str().c_str()), sec_logic, false,
-              copy_id, overlapcheck);
-          block_vol[block_phys] = copy_id;
-
-          // move to the next one
-          pivot_angle += sign * _geom->get_half_polar_taper_angle() * 2;
-          z_pivot_point += sign
-              * (_geom->get_block_width() * cm / cos(pivot_angle)
-                  + _geom->get_assembly_spacing() * cm);
-          copy_id++;
-
-          if (_geom->is_virualize_fiber())
-            {
-              cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::"
-                  << GetName() << ": - "
-                  << "Only construct one block on one side for fiber illustration"
-                  << endl;
-              break;
-            }
-        }
+      G4PVPlacement * block_phys = new G4PVPlacement(block_trans, LV_tower,
+          G4String(GetName().c_str()) + G4String("_Tower"), sec_logic, false,
+          g_tower.id, overlapcheck);
+      block_vol[block_phys] = g_tower.id;
 
     }
 
   cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::" << GetName()
-      << ": Averge angle error = " << average_error / copy_id << "("
-      << min_error << "< Error< " << max_error << ")" << endl;
-  cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::" << GetName()
-      << ": Done." << endl;
+      << " - constructed " << _geom->get_sector_tower_map().size()
+      << " unique towers" << endl;
+  cout << "\t" << "_geom->is_virualize_fiber() = "
+      << _geom->is_virualize_fiber() << endl;
 
-  return make_pair(sec_logic, sec_trans);
+  return make_pair(sec_logic, G4Transform3D::Identity);
 }
 
 //! a block along z axis built with G4Trd that is slightly tapered in x dimension
 G4LogicalVolume*
-PHG4FullProjSpacalDetector::Construct_Block()
+PHG4FullProjSpacalDetector::Construct_Tower(
+    const PHG4FullProjSpacalDetector::SpacalGeom_t::geom_tower & g_tower)
 {
+  std::stringstream sout;
+  sout << "_" << g_tower.id;
+  const G4String sTowerID(sout.str());
 
-  G4Trd* block_solid = new G4Trd(G4String(GetName() + string("_block")),
-      _geom->get_block_width() * cm * 0.5, //      G4double pdx1,
-      _geom->get_block_width() * cm * _geom->get_polar_taper_ratio() * 0.5, //      G4double pdx2,
-      _geom->get_block_width() * cm * 0.5, //      G4double pdy1,
-      _geom->get_block_width() * cm * 0.5, //      G4double pdy2,
-      _geom->get_block_depth() * cm * 0.5 //      G4double pdz
+  //Processed PostionSeeds 1 from 1 1
+
+  G4Trap* block_solid = new G4Trap(
+      /*const G4String& pName*/G4String(GetName().c_str()) + sTowerID,
+      g_tower.pDz * cm, // G4double pDz,
+      g_tower.pTheta * rad, g_tower.pPhi * rad, // G4double pTheta, G4double pPhi,
+      g_tower.pDy1 * cm, g_tower.pDx1 * cm, g_tower.pDx2 * cm, // G4double pDy1, G4double pDx1, G4double pDx2,
+      g_tower.pAlp1 * rad, // G4double pAlp1,
+      g_tower.pDy2 * cm, g_tower.pDx3 * cm, g_tower.pDx4 * cm, // G4double pDy2, G4double pDx3, G4double pDx4,
+      g_tower.pAlp2 * rad // G4double pAlp2 //
           );
 
   G4Material * cylinder_mat = G4Material::GetMaterial(
@@ -277,82 +168,80 @@ PHG4FullProjSpacalDetector::Construct_Block()
   assert(cylinder_mat);
 
   G4LogicalVolume * block_logic = new G4LogicalVolume(block_solid, cylinder_mat,
-      G4String(G4String(GetName() + string("_sec"))), 0, 0, step_limits);
+      G4String(G4String(GetName()) + string("_Tower") + sTowerID), 0, 0,
+      step_limits);
 
   G4VisAttributes* VisAtt = new G4VisAttributes();
 //  PHG4Utils::SetColour(VisAtt, "W_Epoxy");
   VisAtt->SetColor(.3, .3, .3, .5);
-
   VisAtt->SetVisibility((!_geom->is_azimuthal_seg_visible()));
-//  VisAtt->SetForceSolid((!_geom->is_azimuthal_seg_visible()) and (!_geom->is_virualize_fiber()));
-//  VisAtt->SetForceSolid((!_geom->is_azimuthal_seg_visible()));
-  VisAtt->SetForceWireframe(true);
+  VisAtt->SetForceWireframe((!_geom->is_azimuthal_seg_visible()));
   block_logic->SetVisAttributes(VisAtt);
 
-  bool row_config = true;
   int fiber_count = 0;
-  int x_id = 0;
-  const double mid_plane_dx = _geom->get_block_width() * cm
-      * ((_geom->get_polar_taper_ratio() - 1) * 0.5 + 1) * 0.5;
+//  int x_id = 0;
+//  const double mid_plane_dx = _geom->get_block_width() * cm
+//      * ((_geom->get_polar_taper_ratio() - 1) * 0.5 + 1) * 0.5;
+//
+//  const double reg_fiber_grid_distance_taper =
+//      _geom->get_reg_fiber_grid_distance_taper() * cm;
+//  const double reg_fiber_grid_distance_nontaper =
+//      _geom->get_reg_fiber_grid_distance_nontaper() * cm;
+//
+//  for (double x = -mid_plane_dx + reg_fiber_grid_distance_taper / 4.;
+//      x <= +mid_plane_dx; x += reg_fiber_grid_distance_taper / 2.)
+//    {
+//      // fiber implant
+//
+//      const double rotation_angle = x / mid_plane_dx
+//          * atan2(
+//              _geom->get_block_width() * cm
+//                  * (_geom->get_polar_taper_ratio() - 1) * 0.5,
+//              _geom->get_block_depth() * cm);
+//
+//      const double fiber_length = (_geom->get_block_depth() * cm
+//          / cos(rotation_angle)) - 2 * _geom->get_fiber_outer_r() * cm;
+//
+//      stringstream ss;
+//      ss << "_x_" << x_id;
+//      G4LogicalVolume *fiber_logic = Construct_Fiber(fiber_length, ss.str());
+//
+//      const double dy = row_config ? reg_fiber_grid_distance_nontaper * 0.5 : 0;
+//      row_config = not row_config;
+//
+//      for (double y = -_geom->get_block_width() * cm * 0.5
+//          + reg_fiber_grid_distance_nontaper / 4.
+//          + _geom->get_assembly_spacing() * cm + dy;
+//          y < _geom->get_block_width() * cm * 0.5; y +=
+//              reg_fiber_grid_distance_nontaper)
+//        {
+//          assert(
+//              y -_geom->get_fiber_outer_r() * cm >-_geom->get_block_width() * cm * 0.5);
+//          assert(
+//              y + _geom->get_fiber_outer_r() * cm<_geom->get_block_width() * cm * 0.5);
+//
+//          G4Transform3D fiber_place(
+//              G4TranslateY3D(y) * G4TranslateX3D(x)
+//                  * G4RotateY3D(rotation_angle));
+//
+//          stringstream name;
+//          name << GetName() << "_fiber_" << fiber_count;
+//
+//          G4PVPlacement * fiber_physi = new G4PVPlacement(fiber_place,
+//              fiber_logic, G4String(name.str().c_str()), block_logic, false,
+//              fiber_count, overlapcheck);
+//          fiber_vol[fiber_physi] = fiber_count;
+//
+//          fiber_count++;
+//        }
+//
+//      x_id++;
+//    }
 
-  const double reg_fiber_grid_distance_taper =
-      _geom->get_reg_fiber_grid_distance_taper() * cm;
-  const double reg_fiber_grid_distance_nontaper =
-      _geom->get_reg_fiber_grid_distance_nontaper() * cm;
-
-  for (double x = -mid_plane_dx + reg_fiber_grid_distance_taper / 4.;
-      x <= +mid_plane_dx; x += reg_fiber_grid_distance_taper / 2.)
-    {
-      // fiber implant
-
-      const double rotation_angle = x / mid_plane_dx
-          * atan2(
-              _geom->get_block_width() * cm
-                  * (_geom->get_polar_taper_ratio() - 1) * 0.5,
-              _geom->get_block_depth() * cm);
-
-      const double fiber_length = (_geom->get_block_depth() * cm
-          / cos(rotation_angle)) - 2 * _geom->get_fiber_outer_r() * cm;
-
-      stringstream ss;
-      ss << "_x_" << x_id;
-      G4LogicalVolume *fiber_logic = Construct_Fiber(fiber_length, ss.str());
-
-      const double dy = row_config ? reg_fiber_grid_distance_nontaper * 0.5 : 0;
-      row_config = not row_config;
-
-      for (double y = -_geom->get_block_width() * cm * 0.5
-          + reg_fiber_grid_distance_nontaper / 4.
-          + _geom->get_assembly_spacing() * cm + dy;
-          y < _geom->get_block_width() * cm * 0.5; y +=
-              reg_fiber_grid_distance_nontaper)
-        {
-          assert(
-              y -_geom->get_fiber_outer_r() * cm >-_geom->get_block_width() * cm * 0.5);
-          assert(
-              y + _geom->get_fiber_outer_r() * cm<_geom->get_block_width() * cm * 0.5);
-
-          G4Transform3D fiber_place(
-              G4TranslateY3D(y) * G4TranslateX3D(x)
-                  * G4RotateY3D(rotation_angle));
-
-          stringstream name;
-          name << GetName() << "_fiber_" << fiber_count;
-
-          G4PVPlacement * fiber_physi = new G4PVPlacement(fiber_place,
-              fiber_logic, G4String(name.str().c_str()), block_logic, false,
-              fiber_count, overlapcheck);
-          fiber_vol[fiber_physi] = fiber_count;
-
-          fiber_count++;
-        }
-
-      x_id++;
-    }
-
-  cout << "PHG4FullProjSpacalDetector::Construct_Block::" << GetName()
-      << " - constructed " << fiber_count << " fibers in " << x_id << "rows"
-      << endl;
+  if (_geom->get_construction_verbose())
+    cout << "PHG4FullProjSpacalDetector::Construct_Block::" << GetName()
+        << " - constructed tower ID " << g_tower.id << " with " << fiber_count
+        << " fibers" << endl;
 
   return block_logic;
 }

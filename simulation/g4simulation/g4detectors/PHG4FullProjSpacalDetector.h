@@ -27,6 +27,7 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4UserLimits;
 
+//! Fully projective SPACAL built from 2D tapered modules
 class PHG4FullProjSpacalDetector : public PHG4SpacalDetector
 {
 
@@ -49,7 +50,7 @@ public:
 
   //! a block along z axis built with G4Trd that is slightly tapered in x dimension
  virtual G4LogicalVolume*
-  Construct_Block();
+ Construct_Tower(const SpacalGeom_t::geom_tower & tower);
 
 
   virtual

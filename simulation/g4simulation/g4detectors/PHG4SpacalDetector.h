@@ -143,8 +143,14 @@ protected:
   G4LogicalVolume* cylinder_logic;
   G4VPhysicalVolume* cylinder_physi;
   std::map<const G4VPhysicalVolume*, int> fiber_core_vol;
+
+  //! map for G4VPhysicalVolume -> fiber ID
   std::map<const G4VPhysicalVolume*, int> fiber_vol;
+
+  //! map for G4VPhysicalVolume -> Sector ID
   std::map<const G4VPhysicalVolume*, int> calo_vol;
+
+  //! map for G4VPhysicalVolume -> towers ID
   std::map<const G4VPhysicalVolume*, int> block_vol;
 
   int active;
