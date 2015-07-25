@@ -360,6 +360,7 @@ int
 PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
 {
   ConsistencyCheck();
+  SetTiltViaNcross(); // if number of crossings is set, use it to determine tilt
   CheckTiltAngle(); // die if the tilt angle is out of range
   G4VSolid *steel_plate  = ConstructSteelPlate(hcalenvelope);
   G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(params->material), "HcalInnerSteelPlate", 0, 0, 0);
@@ -653,4 +654,80 @@ PHG4InnerHcalDetector::ConsistencyCheck() const
       exit(1);
     }
   return 0;
+}
+
+void
+PHG4InnerHcalDetector::SetTiltViaNcross()
+{
+  if (! params->ncross)
+    {
+      return;
+    }
+  if (isfinite(params->tilt_angle))
+    {
+      cout << "both number of crossings and tilt angle are set" << endl;
+      cout << "using number of crossings to determine tilt angle" << endl;
+    }
+  double mid_radius = params->inner_radius + (params->outer_radius-params->inner_radius)/2.;
+  double deltaphi = (2*M_PI/params->n_scinti_plates)*params->ncross;
+  Point_2 pnull(0,0);
+  Point_2 plow(params->inner_radius,0);
+  Point_2 phightmp(1,tan(deltaphi));
+  Point_2 pin1(params->inner_radius,0), pin2(0,params->inner_radius),pin3(-params->inner_radius,0);
+  Circle_2 inner_circle(pin1,pin2,pin3);
+  Point_2 pmid1(mid_radius,0), pmid2(0,mid_radius),pmid3(-mid_radius,0);
+  Circle_2 mid_circle(pmid1,pmid2,pmid3);
+  Point_2 pout1(params->outer_radius,0), pout2(0,params->outer_radius),pout3(-params->outer_radius,0);
+  Circle_2 outer_circle(pout1,pout2,pout3);
+  Line_2 l_up(pnull,phightmp);
+  vector< CGAL::Object > res;
+  CGAL::intersection(outer_circle, l_up, std::back_inserter(res));
+  Point_2 upperright;
+  vector< CGAL::Object >::const_iterator iter;
+  for (iter = res.begin(); iter != res.end(); ++iter)
+    {
+      CGAL::Object obj = *iter;
+      if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
+	{
+	  if (CGAL::to_double(point->first.x()) >  0)
+	    {
+	      Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
+	      upperright = pntmp;
+	    }
+	}
+      else
+	{
+	  cout << "CGAL::Object type not pair..." << endl;
+	  exit(1);
+	}
+    }
+  Line_2 l_right(plow,upperright);
+  res.clear();
+  Point_2 midpoint;
+  CGAL::intersection(mid_circle, l_right, std::back_inserter(res));
+  for (iter = res.begin(); iter != res.end(); ++iter)
+    {
+      CGAL::Object obj = *iter;
+      if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
+	{
+	  if (CGAL::to_double(point->first.x()) >  0)
+	    {
+	      Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
+	      midpoint = pntmp;
+	    }
+	}
+      else
+	{
+	  cout << "CGAL::Object type not pair..." << endl;
+	  exit(1);
+	}
+    }
+  // length left side
+  double ll = sqrt((CGAL::to_double(midpoint.x()) - params->inner_radius)*(CGAL::to_double(midpoint.x()) - params->inner_radius) + CGAL::to_double(midpoint.y())*CGAL::to_double(midpoint.y()));
+  double upside = sqrt(CGAL::to_double(midpoint.x())*CGAL::to_double(midpoint.x()) + CGAL::to_double(midpoint.y())*CGAL::to_double(midpoint.y()));
+  //  c^2 = a^2+b^2 - 2ab*cos(gamma)
+  // gamma = acos((a^2+b^2=c^2)/2ab
+  double tiltangle = acos((ll*ll + upside*upside-params->inner_radius*params->inner_radius)/(2*ll*upside));
+  params->tilt_angle = copysign(tiltangle,params->ncross);
+  return;
 }

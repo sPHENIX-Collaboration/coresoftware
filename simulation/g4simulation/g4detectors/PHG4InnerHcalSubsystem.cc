@@ -216,6 +216,7 @@ PHG4InnerHcalSubsystem::SetLength(const double len)
 {
   params->size_z = len * cm;
 }
+
 void
 PHG4InnerHcalSubsystem::SetGapWidth(const double gap)
 {
@@ -250,4 +251,10 @@ void
 PHG4InnerHcalSubsystem::SetStepLimits(const double slim)
 {
   params->steplimits = slim*cm;
+}
+
+void
+PHG4InnerHcalSubsystem::SetTiltViaNcross(const int ncross)
+{
+  params->ncross = ncross;
 }
