@@ -79,6 +79,7 @@ int PHG4SpacalSubsystem::InitRun( PHCompositeNode* topNode )
 
 
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper:
+  case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_SameLengthFiberPerTower:
     cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjSpacalDetector" << endl;
     detector_ = new PHG4FullProjSpacalDetector(topNode, Name(),
         dynamic_cast<PHG4FullProjSpacalDetector::SpacalGeom_t *>(&_geom), layer);

@@ -37,8 +37,11 @@
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Vector3D.hh>
 
+#include <numeric>      // std::accumulate
 #include <cassert>
 #include <cmath>
+#include <functional>
+#include <algorithm>
 #include <string>     // std::string, std::to_string
 #include <sstream>
 #include <boost/math/special_functions/sign.hpp>
@@ -262,6 +265,283 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
   return make_pair(sec_logic, G4Transform3D::Identity);
 }
 
+//! Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower
+int
+PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
+    const PHG4FullProjSpacalDetector::SpacalGeom_t::geom_tower & g_tower,
+    G4LogicalVolume* LV_tower)
+{
+  assert(_geom);
+
+  // construct fibers
+
+  // first check out the fibers geometry
+
+  typedef map<int, pair<G4Vector3D, G4Vector3D> > fiber_par_map;
+  fiber_par_map fiber_par;
+  G4double min_fiber_length = g_tower.pDz * cm * 4;
+
+  G4Vector3D v_zshift = G4Vector3D(tan(g_tower.pTheta) * cos(g_tower.pPhi),
+      tan(g_tower.pTheta) * sin(g_tower.pPhi), 1) * g_tower.pDz;
+  for (int ix = 0; ix < g_tower.NFiberX; ix++)
+//  int ix = 0;
+    {
+      const double weighted_ix = static_cast<double>(ix)
+          / (g_tower.NFiberX - 1.);
+
+      const double weighted_pDx1 = (g_tower.pDx1 - g_tower.ModuleSkinThickness
+          - _geom->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
+      const double weighted_pDx2 = (g_tower.pDx2 - g_tower.ModuleSkinThickness
+          - _geom->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
+
+      const double weighted_pDx3 = (g_tower.pDx3 - g_tower.ModuleSkinThickness
+          - _geom->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
+      const double weighted_pDx4 = (g_tower.pDx4 - g_tower.ModuleSkinThickness
+          - _geom->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
+
+      for (int iy = 0; iy < g_tower.NFiberY; iy++)
+//        int iy = 0;
+        {
+          if ((ix + iy) % 2 == 1)
+            continue; // make a triangle pattern
+
+          const int fiber_ID = ix * 1000 + iy;
+
+          const double weighted_iy = static_cast<double>(iy)
+              / (g_tower.NFiberY - 1.);
+
+          const double weighted_pDy1 = (g_tower.pDy1
+              - g_tower.ModuleSkinThickness - _geom->get_fiber_outer_r())
+              * (weighted_iy * 2 - 1);
+          const double weighted_pDy2 = (g_tower.pDy2
+              - g_tower.ModuleSkinThickness - _geom->get_fiber_outer_r())
+              * (weighted_iy * 2 - 1);
+
+          const double weighted_pDx12 = weighted_pDx1 * (1-weighted_iy)
+              + weighted_pDx2 * ( weighted_iy)
+              + weighted_pDy1 * tan(g_tower.pAlp1);
+          const double weighted_pDx34 = weighted_pDx3 * (1-weighted_iy)
+              + weighted_pDx4 * (weighted_iy)
+              + weighted_pDy1 * tan(g_tower.pAlp2);
+
+          G4Vector3D v1 = G4Vector3D(weighted_pDx12, weighted_pDy1, 0)
+              - v_zshift;
+          G4Vector3D v2 = G4Vector3D(weighted_pDx34, weighted_pDy2, 0)
+              + v_zshift;
+
+          G4Vector3D vector_fiber = (v2 - v1);
+          vector_fiber *= (vector_fiber.mag() - _geom->get_fiber_outer_r())
+              / vector_fiber.mag(); // shrink by fiber boundary protection
+          G4Vector3D center_fiber = (v2 + v1) / 2;
+
+          // convert to Geant4 units
+          vector_fiber *= cm;
+          center_fiber *= cm;
+
+          fiber_par[fiber_ID] = make_pair<G4Vector3D, G4Vector3D>(vector_fiber,
+              center_fiber);
+
+          const G4double fiber_length = vector_fiber.mag();
+
+          min_fiber_length = min(fiber_length, min_fiber_length);
+        }
+    }
+
+  int fiber_count = 0;
+
+  const G4double fiber_length = min_fiber_length;
+  vector<G4double> fiber_cut;
+
+  stringstream ss;
+  ss << string("_Tower") << g_tower.id;
+  G4LogicalVolume *fiber_logic = Construct_Fiber(fiber_length, ss.str());
+
+  BOOST_FOREACH(const fiber_par_map::value_type& val, fiber_par)
+    {
+      const int fiber_ID = val.first;
+      G4Vector3D vector_fiber = val.second.first;
+      G4Vector3D center_fiber = val.second.second;
+      const G4double optimal_fiber_length = vector_fiber.mag();
+
+      const G4Vector3D v1 = center_fiber - 0.5 *vector_fiber;
+
+      // keep a statistics
+      assert(optimal_fiber_length-fiber_length>=0);
+      fiber_cut.push_back(optimal_fiber_length - fiber_length);
+
+      center_fiber += (fiber_length / optimal_fiber_length - 1) * 0.5
+          * vector_fiber;
+      vector_fiber *= fiber_length / optimal_fiber_length;
+
+//      const G4Vector3D v1_new = center_fiber - 0.5 *vector_fiber;
+
+      if (_geom->get_construction_verbose() >= 3)
+        cout << "PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower::" << GetName()
+            << " - constructed fiber " << fiber_ID << ss.str()            //
+            << ", Length = " << optimal_fiber_length << "-"
+            << (optimal_fiber_length - fiber_length) << "mm, " //
+            << "x = " << center_fiber.x() << "mm, " //
+            << "y = " << center_fiber.y() << "mm, " //
+            << "z = " << center_fiber.z() << "mm, " //
+            << "vx = " << vector_fiber.x() << "mm, " //
+            << "vy = " << vector_fiber.y() << "mm, " //
+            << "vz = " << vector_fiber.z() << "mm, " //
+            << endl;
+
+      const G4double rotation_angle = G4Vector3D(0, 0, 1).angle(vector_fiber);
+      const G4Vector3D rotation_axis =
+          rotation_angle == 0 ?
+              G4Vector3D(1, 0, 0) : G4Vector3D(0, 0, 1).cross(vector_fiber);
+
+      G4Transform3D fiber_place(
+          G4Translate3D(center_fiber.x(), center_fiber.y(), center_fiber.z())
+              * G4Rotate3D(rotation_angle, rotation_axis));
+
+      stringstream name;
+      name << GetName() + string("_Tower") << g_tower.id << "_fiber"
+          << ss.str();
+
+      const bool overlapcheck_fiber = overlapcheck
+          and (_geom->get_construction_verbose() >= 3);
+      G4PVPlacement * fiber_physi = new G4PVPlacement(fiber_place, fiber_logic,
+          G4String(name.str().c_str()), LV_tower, false, fiber_ID,
+          overlapcheck_fiber);
+      fiber_vol[fiber_physi] = fiber_ID;
+
+      fiber_count++;
+
+    }
+
+  if (_geom->get_construction_verbose() >= 2)
+    cout
+        << "PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower::"
+        << GetName() << " - constructed tower ID " << g_tower.id << " with "
+        << fiber_count << " fibers. Average fiber length cut = "
+        << accumulate(fiber_cut.begin(), fiber_cut.end(), 0.0)
+            / fiber_cut.size() << " mm" << endl;
+
+  return fiber_count;
+}
+
+//! a block along z axis built with G4Trd that is slightly tapered in x dimension
+int
+PHG4FullProjSpacalDetector::Construct_Fibers(
+    const PHG4FullProjSpacalDetector::SpacalGeom_t::geom_tower & g_tower,
+    G4LogicalVolume* LV_tower)
+{
+  assert(_geom);
+
+  int fiber_count = 0;
+  G4Vector3D v_zshift = G4Vector3D(tan(g_tower.pTheta) * cos(g_tower.pPhi),
+      tan(g_tower.pTheta) * sin(g_tower.pPhi), 1) * g_tower.pDz;
+  for (int ix = 0; ix < g_tower.NFiberX; ix++)
+    {
+      const double weighted_ix = static_cast<double>(ix)
+          / (g_tower.NFiberX - 1.);
+
+      const double weighted_pDx1 = (g_tower.pDx1 - g_tower.ModuleSkinThickness
+          - _geom->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
+      const double weighted_pDx2 = (g_tower.pDx2 - g_tower.ModuleSkinThickness
+          - _geom->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
+
+      const double weighted_pDx3 = (g_tower.pDx3 - g_tower.ModuleSkinThickness
+          - _geom->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
+      const double weighted_pDx4 = (g_tower.pDx4 - g_tower.ModuleSkinThickness
+          - _geom->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
+
+      for (int iy = 0; iy < g_tower.NFiberY; iy++)
+        {
+          if ((ix + iy) % 2 == 1)
+            continue; // make a triangle pattern
+
+          const int fiber_ID = ix * 1000 + iy;
+
+          const double weighted_iy = static_cast<double>(iy)
+              / (g_tower.NFiberY - 1.);
+
+          const double weighted_pDy1 = (g_tower.pDy1
+              - g_tower.ModuleSkinThickness - _geom->get_fiber_outer_r())
+              * (weighted_iy * 2 - 1);
+          const double weighted_pDy2 = (g_tower.pDy2
+              - g_tower.ModuleSkinThickness - _geom->get_fiber_outer_r())
+              * (weighted_iy * 2 - 1);
+
+          const double weighted_pDx12 = weighted_pDx1 * (1-weighted_iy)
+              + weighted_pDx2 * ( weighted_iy)
+              + weighted_pDy1 * tan(g_tower.pAlp1);
+          const double weighted_pDx34 = weighted_pDx3 * (1-weighted_iy)
+              + weighted_pDx4 * (weighted_iy)
+              + weighted_pDy1 * tan(g_tower.pAlp2);
+
+          G4Vector3D v1 = G4Vector3D(weighted_pDx12, weighted_pDy1, 0)
+              - v_zshift;
+          G4Vector3D v2 = G4Vector3D(weighted_pDx34, weighted_pDy2, 0)
+              + v_zshift;
+
+          G4Vector3D vector_fiber = (v2 - v1);
+          vector_fiber *= (vector_fiber.mag() - _geom->get_fiber_outer_r())
+              / vector_fiber.mag(); // shrink by fiber boundary protection
+          G4Vector3D center_fiber = (v2 + v1) / 2;
+
+          // convert to Geant4 units
+          vector_fiber *= cm;
+          center_fiber *= cm;
+
+          const G4double fiber_length = vector_fiber.mag();
+
+          stringstream ss;
+          ss << string("_Tower") << g_tower.id;
+          ss << "_x" << ix;
+          ss << "_y" << iy;
+          G4LogicalVolume *fiber_logic = Construct_Fiber(fiber_length,
+              ss.str());
+
+          if (_geom->get_construction_verbose() >= 3)
+            cout << "PHG4FullProjSpacalDetector::Construct_Fibers::" << GetName()
+            << " - constructed fiber " << fiber_ID << ss.str()            //
+                << ", Length = " << fiber_length << "mm, " //
+                << "x = " << center_fiber.x() << "mm, " //
+                << "y = " << center_fiber.y() << "mm, " //
+                << "z = " << center_fiber.z() << "mm, " //
+                << "vx = " << vector_fiber.x() << "mm, " //
+                << "vy = " << vector_fiber.y() << "mm, " //
+                << "vz = " << vector_fiber.z() << "mm, " //
+                << endl;
+
+          const G4double rotation_angle = G4Vector3D(0, 0, 1).angle(
+              vector_fiber);
+          const G4Vector3D rotation_axis =
+              rotation_angle == 0 ?
+                  G4Vector3D(1, 0, 0) : G4Vector3D(0, 0, 1).cross(vector_fiber);
+
+          G4Transform3D fiber_place(
+              G4Translate3D(center_fiber.x(), center_fiber.y(),
+                  center_fiber.z())
+                  * G4Rotate3D(rotation_angle, rotation_axis));
+
+          stringstream name;
+          name << GetName() + string("_Tower") << g_tower.id << "_fiber"
+              << ss.str();
+
+          const bool overlapcheck_fiber = overlapcheck
+              and (_geom->get_construction_verbose() >= 3);
+          G4PVPlacement * fiber_physi = new G4PVPlacement(fiber_place,
+              fiber_logic, G4String(name.str().c_str()), LV_tower, false,
+              fiber_ID, overlapcheck_fiber);
+          fiber_vol[fiber_physi] = fiber_ID;
+
+          fiber_count++;
+        }
+    }
+
+  if (_geom->get_construction_verbose() >= 3)
+    cout << "PHG4FullProjSpacalDetector::Construct_Fibers::" << GetName()
+        << " - constructed tower ID " << g_tower.id << " with " << fiber_count
+        << " fibers" << endl;
+
+  return fiber_count;
+}
+
 //! a block along z axis built with G4Trd that is slightly tapered in x dimension
 G4LogicalVolume*
 PHG4FullProjSpacalDetector::Construct_Tower(
@@ -302,119 +582,39 @@ PHG4FullProjSpacalDetector::Construct_Tower(
   block_logic->SetVisAttributes(VisAtt);
 
   // construct fibers
+
   int fiber_count = 0;
 
-  G4Vector3D v_zshift = G4Vector3D(tan(g_tower.pTheta) * cos(g_tower.pPhi),
-      tan(g_tower.pTheta) * sin(g_tower.pPhi), 1) * g_tower.pDz;
-  for (int ix = 0; ix < g_tower.NFiberX; ix++)
-//  int ix = 0;
+  if (_geom->get_config() == SpacalGeom_t::kFullProjective_2DTaper)
     {
-      const double weighted_ix = static_cast<double>(ix)
-          / (g_tower.NFiberX - 1.);
+      fiber_count = Construct_Fibers(g_tower, block_logic);
 
-      const double weighted_pDx1 = (g_tower.pDx1 - g_tower.ModuleSkinThickness
-          - _geom->get_fiber_outer_r()) * (weighted_ix*2 - 1);
-      const double weighted_pDx2 = (g_tower.pDx2 - g_tower.ModuleSkinThickness
-          - _geom->get_fiber_outer_r()) * (weighted_ix*2 - 1);
-
-      const double weighted_pDx3 = (g_tower.pDx3 - g_tower.ModuleSkinThickness
-          - _geom->get_fiber_outer_r()) * (weighted_ix*2 - 1);
-      const double weighted_pDx4 = (g_tower.pDx4 - g_tower.ModuleSkinThickness
-          - _geom->get_fiber_outer_r()) * (weighted_ix*2 - 1);
-
-      for (int iy = 0; iy < g_tower.NFiberY; iy++)
-//        int iy = 0;
-        {
-          if ((ix + iy) % 2 == 1)
-            continue; // make a triangle pattern
-
-          const int fiber_ID = ix * 1000 + iy;
-
-          const double weighted_iy = static_cast<double>(iy)
-              / (g_tower.NFiberY - 1.);
-
-          const double weighted_pDy1 = (g_tower.pDy1
-              - g_tower.ModuleSkinThickness - _geom->get_fiber_outer_r())
-              * (weighted_iy*2 - 1);
-          const double weighted_pDy2 = (g_tower.pDy2
-              - g_tower.ModuleSkinThickness - _geom->get_fiber_outer_r())
-              * (weighted_iy*2 - 1);
-
-          const double weighted_pDx12 = weighted_pDx1 * weighted_iy
-              + weighted_pDx2 * (1 - weighted_iy)
-              + weighted_pDy1 * tan(g_tower.pAlp1);
-          const double weighted_pDx34 = weighted_pDx3 * weighted_iy
-              + weighted_pDx4 * (1 - weighted_iy)
-              + weighted_pDy1 * tan(g_tower.pAlp2);
-
-          G4Vector3D v1 = G4Vector3D(weighted_pDx12, weighted_pDy1, 0)
-              - v_zshift;
-          G4Vector3D v2 = G4Vector3D(weighted_pDx34, weighted_pDy2, 0)
-              + v_zshift;
-
-          G4Vector3D vector_fiber = (v2 - v1);
-          vector_fiber *= (vector_fiber.mag() - _geom->get_fiber_outer_r())
-              / vector_fiber.mag(); // shrink by fiber boundary protection
-          G4Vector3D center_fiber = (v2 + v1) / 2;
-
-          // convert to Geant4 units
-          vector_fiber *= cm;
-          center_fiber *= cm;
-
-
-          const G4double fiber_length = vector_fiber.mag();
-//          const G4double fiber_length = 2*g_tower.pDz;
-
-          stringstream ss;
-          ss << string("_Tower") + sTowerID;
-          ss << "_x" << ix;
-          ss << "_y" << iy;
-          G4LogicalVolume *fiber_logic = Construct_Fiber(fiber_length,
-              ss.str());
-
-          if (_geom->get_construction_verbose() >= 3)
-            cout << "PHG4FullProjSpacalDetector::Construct_Tower::" << GetName()
-                << " - constructed fiber "<<ss.str()//
-                <<", Length = "<<fiber_length<<"mm, "//
-                << "x = "<<center_fiber.x()<<"mm, "//
-                << "y = "<<center_fiber.y()<<"mm, "//
-                << "z = "<<center_fiber.z()<<"mm, "//
-                << "vx = "<<vector_fiber.x()<<"mm, "//
-                << "vy = "<<vector_fiber.y()<<"mm, "//
-                << "vz = "<<vector_fiber.z()<<"mm, "//
-                << endl;
-
-          const G4double rotation_angle = G4Vector3D(0, 0, 1).angle(
-              vector_fiber);
-          const G4Vector3D rotation_axis =
-              rotation_angle == 0 ?
-                  G4Vector3D(1, 0, 0) : G4Vector3D(0, 0, 1).cross(vector_fiber);
-
-          G4Transform3D fiber_place(
-              G4Translate3D(center_fiber.x(), center_fiber.y(),
-                  center_fiber.z())
-                  * G4Rotate3D(rotation_angle, rotation_axis));
-
-          stringstream name;
-          name << GetName() + string("_Tower") + sTowerID << "_fiber"
-              << ss.str();
-
-          const bool overlapcheck_fiber = overlapcheck
-              and (_geom->get_construction_verbose() >= 3);
-          G4PVPlacement * fiber_physi = new G4PVPlacement(fiber_place,
-              fiber_logic, G4String(name.str().c_str()), block_logic, false,
-              fiber_ID, overlapcheck_fiber);
-          fiber_vol[fiber_physi] = fiber_ID;
-
-          fiber_count++;
-        }
+      if (_geom->get_construction_verbose() >= 2)
+        cout << "PHG4FullProjSpacalDetector::Construct_Tower::" << GetName()
+            << " - constructed tower ID " << g_tower.id << " with "
+            << fiber_count << " fibers using Construct_Fibers" << endl;
     }
+  else if (_geom->get_config()
+      == SpacalGeom_t::kFullProjective_2DTaper_SameLengthFiberPerTower)
+    {
+      fiber_count = Construct_Fibers_SameLengthFiberPerTower(g_tower,
+          block_logic);
 
+      if (_geom->get_construction_verbose() >= 2)
+        cout << "PHG4FullProjSpacalDetector::Construct_Tower::" << GetName()
+            << " - constructed tower ID " << g_tower.id << " with "
+            << fiber_count
+            << " fibers using Construct_Fibers_SameLengthFiberPerTower" << endl;
+    }
+  else
+    {
 
-  if (_geom->get_construction_verbose() >= 2)
-    cout << "PHG4FullProjSpacalDetector::Construct_Tower::" << GetName()
-        << " - constructed tower ID " << g_tower.id << " with " << fiber_count
-        << " fibers" << endl;
+      G4ExceptionDescription message;
+      message << "can not recognize configuration type " << _geom->get_config();
+
+      G4Exception("PHG4FullProjSpacalDetector::Construct_Tower", "Wrong",
+          FatalException, message, "");
+    }
 
   return block_logic;
 }

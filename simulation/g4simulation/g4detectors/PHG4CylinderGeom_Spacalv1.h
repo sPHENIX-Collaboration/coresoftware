@@ -236,7 +236,10 @@ public:
     kProjective_PolarTaper,
 
     //! Fully projective spacal with 2D tapered modules
-    kFullProjective_2DTaper
+    kFullProjective_2DTaper,
+
+    //! Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower
+    kFullProjective_2DTaper_SameLengthFiberPerTower
   };
 
   config_t

@@ -54,7 +54,10 @@ PHG4CylinderGeom_Spacalv1::Print(Option_t *) const
     <<"The final layout is approximately projective in both azimuthal and polar directions."<<endl;
     break;
   case kFullProjective_2DTaper:
-    cout <<"Block constructed with 2D tapered SPACAL modules"<<endl;
+    cout <<"Fully projective spacal with 2D tapered modules"<<endl;
+    break;
+  case kFullProjective_2DTaper_SameLengthFiberPerTower:
+    cout <<"Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower"<<endl;
     break;
   default:
     cout <<"PHG4CylinderGeom_Spacalv1::Print - ERROR - unknown configuration #"<<get_config()<<endl;

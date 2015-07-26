@@ -52,6 +52,14 @@ public:
  virtual G4LogicalVolume*
  Construct_Tower(const SpacalGeom_t::geom_tower & tower);
 
+   //! a block along z axis built with G4Trd that is slightly tapered in x dimension
+ virtual int
+  Construct_Fibers(const SpacalGeom_t::geom_tower & tower, G4LogicalVolume* LV_tower);
+
+  //! Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower
+ virtual int
+  Construct_Fibers_SameLengthFiberPerTower(const SpacalGeom_t::geom_tower & tower, G4LogicalVolume* LV_tower);
+
   virtual
   void
   Print(const std::string& what = "ALL") const;

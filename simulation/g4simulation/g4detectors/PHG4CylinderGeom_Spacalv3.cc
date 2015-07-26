@@ -68,13 +68,13 @@ PHG4CylinderGeom_Spacalv3::SetDefault()
 {
   PHG4CylinderGeom_Spacalv2::SetDefault();
 
-  radius = 90.000000;
-  thickness = 26.130000;
-  zmin = 149.470000;
-  zmax = -zmin;
-  azimuthal_n_sec = 32;
-  polar_taper_ratio = 1.;
-  assembly_spacing = 0.002500;
+//  radius = 90.000000;
+//  thickness = 26.130000;
+//  zmin = 149.470000;
+//  zmax = -zmin;
+//  azimuthal_n_sec = 32;
+//  polar_taper_ratio = 1.;
+//  assembly_spacing = 0.002500;
   sidewall_thickness = 0.075000;
   sidewall_outer_torr = 0.030000;
   sidewall_mat = "SS310";
