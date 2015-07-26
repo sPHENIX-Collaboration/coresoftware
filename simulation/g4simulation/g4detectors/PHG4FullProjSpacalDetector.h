@@ -52,7 +52,6 @@ public:
  virtual G4LogicalVolume*
  Construct_Tower(const SpacalGeom_t::geom_tower & tower);
 
-
   virtual
   void
   Print(const std::string& what = "ALL") const;

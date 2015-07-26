@@ -53,6 +53,9 @@ PHG4CylinderGeom_Spacalv1::Print(Option_t *) const
     cout <<"Block constructed with taper in polar direction, non-taper in azimuthal direction. "
     <<"The final layout is approximately projective in both azimuthal and polar directions."<<endl;
     break;
+  case kFullProjective_2DTaper:
+    cout <<"Block constructed with 2D tapered SPACAL modules"<<endl;
+    break;
   default:
     cout <<"PHG4CylinderGeom_Spacalv1::Print - ERROR - unknown configuration #"<<get_config()<<endl;
     break;

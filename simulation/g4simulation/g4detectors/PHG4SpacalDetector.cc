@@ -149,6 +149,8 @@ PHG4SpacalDetector::Construct(G4LogicalVolume* logicWorld)
 
   int n_sec_construct =
       (_geom->is_virualize_fiber()) ? 1 : (_geom->is_azimuthal_seg_visible()?2:_geom->get_azimuthal_n_sec());
+//  int n_sec_construct =
+//      (_geom->is_virualize_fiber()) ? 1 : (_geom->get_azimuthal_n_sec());
 
   if (_geom->is_virualize_fiber() or _geom->is_azimuthal_seg_visible())
     {

@@ -56,6 +56,19 @@ public:
     sidewall_thickness = sidewallThickness;
   }
 
+  std::string
+  get_sidewall_mat() const
+  {
+    return sidewall_mat;
+  }
+
+  void
+  set_sidewall_mat(std::string absorberMat)
+  {
+    sidewall_mat = absorberMat;
+  }
+
+
   class geom_tower
   {
   public:
@@ -75,6 +88,7 @@ public:
     double pAlp2;
 
     double pRotationAngleX;
+    double centralX;
     double centralY;
     double centralZ;
 
@@ -113,6 +127,9 @@ public:
 protected:
   double sidewall_thickness;
   double sidewall_outer_torr;
+  std::string sidewall_mat;
+
+
   tower_map_t sector_tower_map;
 
 ClassDef(PHG4CylinderGeom_Spacalv3,2)
