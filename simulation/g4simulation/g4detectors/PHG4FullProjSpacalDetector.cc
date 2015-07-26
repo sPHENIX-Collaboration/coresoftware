@@ -363,6 +363,7 @@ PHG4FullProjSpacalDetector::Construct_Tower(
 
 
           const G4double fiber_length = vector_fiber.mag();
+//          const G4double fiber_length = 2*g_tower.pDz;
 
           stringstream ss;
           ss << string("_Tower") + sTowerID;
