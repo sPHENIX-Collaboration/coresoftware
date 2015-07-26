@@ -55,7 +55,7 @@ PHG4CylinderGeom_Spacalv3::Print(Option_t *opt) const
       << endl;
   cout << "\t" << "get_sidewall_mat() = " << get_sidewall_mat() << endl;
   cout << "Containing " << sector_tower_map.size()
-      << " super towers per sector." << endl;
+      << " unique towers per sector." << endl;
 
   if (get_construction_verbose() >= 2)
     for (tower_map_t::const_iterator it = sector_tower_map.begin();
