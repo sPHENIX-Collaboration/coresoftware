@@ -163,7 +163,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
 
       BOOST_FOREACH(z_locations_t::value_type& val, z_locations)
         {
-          if (_geom->get_construction_verbose())
+          if (_geom->get_construction_verbose() >= 2)
             cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::"
                 << GetName() << " - constructed End Wall ID " << val.first
                 << " @ Z = " << val.second << endl;
@@ -206,7 +206,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
           const int sign_z = val.second.first;
           const int sign_azimuth = val.second.second;
 
-          if (_geom->get_construction_verbose())
+          if (_geom->get_construction_verbose() >= 2)
             cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::"
                 << GetName() << " - constructed Side Wall ID " << val.first
                 << " with" << " Shift X = "
