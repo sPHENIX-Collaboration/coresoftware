@@ -22,6 +22,7 @@
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Trd.hh>
+#include <Geant4/G4Tubs.hh>
 
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Colour.hh>
@@ -86,13 +87,13 @@ int
 PHG4CrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume * volume) const
 {
   // if hit is in absorber material
-  bool isinabsorber = false;
+  //  bool isinabsorber = false;
 
   if (volume->GetName().find(_crystallogicnameprefix) != string::npos)
     {
       return 1;
     }
-  else if ( isinabsorber )
+  else if ( volume->GetName().find("arbon") != string::npos )
     {
       return -1;
     }
@@ -107,7 +108,8 @@ void
 PHG4CrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
 {
   /* Create the cone envelope = 'world volume' for the crystal calorimeter */
-  G4Material* Air = G4Material::GetMaterial("G4_AIR");
+  //G4Material* Air = G4Material::GetMaterial("G4_AIR");
+  G4Material* Air = G4Material::GetMaterial("G4_Galactic");
 
   G4VSolid* ecal_envelope_cone = new G4Cons("eEcal_envelope_solid",
 					    _rMin1, _rMax1,
@@ -136,9 +138,10 @@ PHG4CrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
 
   /* Construct crystal calorimeter within envelope */
   ConstructCrystals(ecal_envelope_log);
-
+  
   return;
 }
+
 
 void
 PHG4CrystalCalorimeterDetector::CrystalDimensions(G4double& dx_front, G4double& dy_front, G4double& dx_back, G4double& dy_back, G4double& dz)
@@ -185,12 +188,13 @@ PHG4CrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 	G4double a = 12.01*g/mole;
 	G4Element* elC = new G4Element("Carbon", "C", 6., a);
 	
-	G4double density_carbon_fiber = 0.144*g/cm3;
+	G4double density_carbon_fiber = 10*0.144*g/cm3;
 	G4Material* CarbonFiber = new G4Material("CarbonFiber", density_carbon_fiber, 1);
 		CarbonFiber->AddElement(elC, 1);
 
 	//Air
-	G4Material* Air = G4Material::GetMaterial("G4_AIR");
+	//G4Material* Air = G4Material::GetMaterial("G4_AIR");
+	G4Material* Air = G4Material::GetMaterial("G4_Galactic");
 
 	
 	//*************************************
@@ -592,12 +596,13 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 	G4double a = 12.01*g/mole;
 	G4Element* elC = new G4Element("Carbon", "C", 6., a);
 	
-	G4double density_carbon_fiber = 0.144*g/cm3;
+	G4double density_carbon_fiber = 10*0.144*g/cm3;
 	G4Material* CarbonFiber = new G4Material("CarbonFiber", density_carbon_fiber, 1);
 		CarbonFiber->AddElement(elC, 1);
 	
 	//Air
-	G4Material* Air = G4Material::GetMaterial("G4_AIR");
+	//G4Material* Air = G4Material::GetMaterial("G4_AIR");
+	G4Material* Air = G4Material::GetMaterial("G4_Galactic");
 
 	
 	//*************************************
@@ -1228,7 +1233,8 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 		dy2,						//Half length on the large face in y
 		dz);						//Half length in z
 
-	G4Material* Air = G4Material::GetMaterial("G4_AIR");
+	//G4Material* Air = G4Material::GetMaterial("G4_AIR");
+	G4Material* Air = G4Material::GetMaterial("G4_Galactic");
 
 	G4LogicalVolume *crystal_logic = new G4LogicalVolume( crystal_solid,
 		Air,
