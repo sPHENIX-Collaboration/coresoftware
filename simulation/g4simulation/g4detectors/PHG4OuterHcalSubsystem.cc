@@ -36,7 +36,8 @@ PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const i
   light_balance_inner_radius_(0.0),
   light_balance_inner_corr_(1.0),
   light_balance_outer_radius_(10.0),
-  light_balance_outer_corr_(1.0)  
+  light_balance_outer_corr_(1.0),
+  steplimits(NAN)
 {
 
   // put the layer into the name so we get unique names
@@ -67,6 +68,7 @@ int PHG4OuterHcalSubsystem::Init( PHCompositeNode* topNode )
   detector_->BlackHole(blackhole);
   detector_->SuperDetector(superdetector);
   detector_->OverlapCheck(overlapcheck);
+  detector_->SetStepLimits(steplimits);
   if (active)
     {
       ostringstream nodename;

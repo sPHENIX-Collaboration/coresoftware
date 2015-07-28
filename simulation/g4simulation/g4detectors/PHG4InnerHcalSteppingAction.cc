@@ -35,7 +35,12 @@ PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector*
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),
-  hit(NULL)
+  hit(NULL),
+  light_balance_(false),
+  light_balance_inner_radius_(NAN),
+  light_balance_inner_corr_(NAN),
+  light_balance_outer_radius_(NAN),
+  light_balance_outer_corr_(NAN)
 {}
 
 //____________________________________________________________________________..
@@ -85,14 +90,32 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	  if (*tokeniter == "impr")
 	    {
 	      ++tokeniter;
-	      motherid = boost::lexical_cast<int>(*tokeniter);
+	      if (tokeniter != tok.end())
+		{
+		  motherid = boost::lexical_cast<int>(*tokeniter);
+		}
+	      else
+		{
+		  cout << PHWHERE << " Error parsing " << volume->GetName()
+		       << " for mother volume number " << endl;
+		}
 	    }
 	  else if (*tokeniter == "pv")
 	    {
 	      ++tokeniter;
-	      tower_id = boost::lexical_cast<int>(*tokeniter);
+	      if (tokeniter != tok.end())
+		{
+		  tower_id = boost::lexical_cast<int>(*tokeniter);
+		}
+	      else
+		{
+		  cout << PHWHERE << " Error parsing " << volume->GetName()
+		       << " for mother scinti slat id " << endl;
+		}
 	    }
 	}
+      // cout << "name " << volume->GetName() << ", mid: " << motherid
+      //  	   << ", twr: " << tower_id << endl;
     }
   else
     {

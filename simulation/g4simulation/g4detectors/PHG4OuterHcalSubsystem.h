@@ -73,6 +73,7 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
    }
 
   void BlackHole(const int i=1) {blackhole = i;}
+  void SetStepLimits(const double slim) {steplimits = slim;}
 
   private:
 
@@ -106,6 +107,7 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
   float light_balance_inner_corr_;
   float light_balance_outer_radius_;
   float light_balance_outer_corr_;
+  G4double steplimits;
 };
 
 #endif

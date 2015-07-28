@@ -20,6 +20,7 @@
 #include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4Trap.hh>
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4UserLimits.hh>
 
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Colour.hh>
@@ -63,6 +64,7 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, const std::
   absorberactive(0),
   layer(lyr),
   blackhole(0),
+  steplimits(NAN),
   scintilogicnameprefix("HcalOuterScinti")
 {
   double thetacutline = M_PI/2. - PHG4Utils::get_theta(etacutline);
@@ -534,7 +536,12 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalen
     {
       name.str("");
       name << scintilogicnameprefix << i;
-      G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i],G4Material::GetMaterial("G4_POLYSTYRENE"),name.str().c_str(), 0, 0, 0);
+      G4UserLimits *g4userlimits = NULL;
+      if (isfinite(steplimits))
+	{
+	  g4userlimits = new G4UserLimits(steplimits);
+	}
+      G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i],G4Material::GetMaterial("G4_POLYSTYRENE"),name.str().c_str(), NULL, NULL, g4userlimits);
       assmeblyvol->AddPlacedVolume(scinti_tile_logic,g4vec, NULL);
     }
   return assmeblyvol;
