@@ -166,7 +166,7 @@ float PHG4HoughTransform::ptToKappa(float pt) {
 PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers, unsigned int req_seed, const string &name) :
   SubsysReco(name),
   _timer(PHTimeServer::get()->insert_new("PHG4HoughTransform")),
-  _timer_initial_hough(PHTimeServer::get()->insert_new("PHG4HoughTransform::track finding"))
+  _timer_initial_hough(PHTimeServer::get()->insert_new("PHG4HoughTransform::track finding")),
   _min_pT(0.2), 
   _min_pT_init(0.2), 
   _seed_layers(seed_layers), 
