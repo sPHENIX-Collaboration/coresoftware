@@ -161,7 +161,7 @@ public:
     else{std::cout<<"PHG4HoughTransform::setFitErrorScale : scale must be greater than zero ... doing nothing"<<std::endl;}
   }
 
-  void setWriteRecoTree(bool flag){write_reco_tree=flag;}
+  void setWriteRecoTree(bool flag){_write_reco_tree=flag;}
 
 #ifndef __CINT__
  private:
@@ -253,7 +253,7 @@ public:
   /// recorded layer indexes to internal sequential indexes
   std::map<int,unsigned int> _layer_ilayer_map; 
 
-  bool write_reco_tree;
+  bool _write_reco_tree;
   TTree* _reco_tree;
   SimpleRecoEvent* _recoevent;
 

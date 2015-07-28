@@ -166,7 +166,7 @@ float PHG4HoughTransform::ptToKappa(float pt) {
 PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers, unsigned int req_seed, const string &name) :
   SubsysReco(name),
   _timer(PHTimeServer::get()->insert_new("PHG4HoughTransform")),
-  _timer_initial_hough(PHTimeServer::get()->insert_new("PHG4HoughTransform::track finding")), 
+  _timer_initial_hough(PHTimeServer::get()->insert_new("PHG4HoughTransform::track finding"))
   _min_pT(0.2), 
   _min_pT_init(0.2), 
   _seed_layers(seed_layers), 
@@ -179,7 +179,8 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers, unsigned int re
   _z_bin_scale(0.8), 
   _cut_on_dca(false), 
   _dca_cut(0.1),
-  _dcaz_cut(0.2)write_reco_tree(false)
+  _dcaz_cut(0.2),
+  _write_reco_tree(false)
 {
   verbosity = 0;
   _magField = 1.5; // Tesla
@@ -205,9 +206,12 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers, unsigned int re
 
 int PHG4HoughTransform::Init(PHCompositeNode *topNode)
 {
-  _reco_tree = new TTree("reco_events", "a tree of SimpleRecoEvent");
-  _recoevent = new SimpleRecoEvent();
-  _reco_tree->Branch("tracks", "SimpleRecoEvent", &_recoevent);
+  if(_write_reco_tree = =true)
+  {
+    _reco_tree = new TTree("reco_events", "a tree of SimpleRecoEvent");
+    _recoevent = new SimpleRecoEvent();
+    _reco_tree->Branch("tracks", "SimpleRecoEvent", &_recoevent);
+  }
 
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -267,7 +271,7 @@ int PHG4HoughTransform::InitRun(PHCompositeNode *topNode)
 int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
 {
   _timer.get()->restart();
-  _recoevent->tracks.clear();
+  if(_write_reco_tree==true){ _recoevent->tracks.clear();}
 
   if(verbosity > 0) cout << "PHG4HoughTransform::process_event -- entered" << endl;
 
@@ -673,14 +677,18 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
     track.setDCA2D( d );
     track.setDCA2Dsigma(sqrt(_tracker->getKalmanStates()[itrack].C(1,1)));  
 
-    _recoevent->tracks.push_back( SimpleRecoTrack() );
-    _recoevent->tracks.back().px = pT*cos(phi-helicity*M_PI/2);
-    _recoevent->tracks.back().py = pT*sin(phi-helicity*M_PI/2);
-    _recoevent->tracks.back().pz = pZ;
-    _recoevent->tracks.back().d = d;
-    _recoevent->tracks.back().z0 = z0;
-    _recoevent->tracks.back().quality = chi_squareds[itrack]/((float)ndf);
-    _recoevent->tracks.back().charge = (-1*helicity);
+    if(_write_reco_tree==true)
+    {
+      _recoevent->tracks.push_back( SimpleRecoTrack() );
+      _recoevent->tracks.back().px = pT*cos(phi-helicity*M_PI/2);
+      _recoevent->tracks.back().py = pT*sin(phi-helicity*M_PI/2);
+      _recoevent->tracks.back().pz = pZ;
+      _recoevent->tracks.back().d = d;
+      _recoevent->tracks.back().z0 = z0;
+      _recoevent->tracks.back().quality = chi_squareds[itrack]/((float)ndf);
+      _recoevent->tracks.back().charge = (-1*helicity);
+    }
+    
 
     if(_magField > 0)
     {
@@ -719,7 +727,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
     cout << "PHG4HoughTransform::process_event -- leaving process_event" << endl;
   }
 
-  _reco_tree->Fill();
+  if(_write_reco_tree==true){ _reco_tree->Fill(); }
 
   _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
@@ -731,10 +739,14 @@ int PHG4HoughTransform::End(PHCompositeNode *topNode) {
   }
   delete _tracker;
 
-  TFile recofile( "recotracks.root", "recreate" );
-  recofile.cd();
-  _reco_tree->Write();
-  recofile.Close();
+  if(_write_reco_tree==true)
+  {
+    TFile recofile( "recotracks.root", "recreate" );
+    recofile.cd();
+    _reco_tree->Write();
+    recofile.Close();
+  }
+  
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
