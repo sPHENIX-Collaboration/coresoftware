@@ -23,8 +23,8 @@ const double PHTimer::_twopower32 = pow(2,32);
 //______________________________________________________________________
 void PHTimer::Frequency::set_cpu_freq(const char * path)
 {
-    // Set the default to 500 MHz
-    _frequency = 5e8;
+    // Set the default to 2 GHz
+    _frequency = 2e9;
 
     // Open the cpuinfo file
     std::ifstream cpuProcFile(path);
@@ -42,7 +42,7 @@ void PHTimer::Frequency::set_cpu_freq(const char * path)
             if (readLineString.find(searchString) != std::string::npos) {
 
                 // Now look for the :, the clock frequency will follow it
-                unsigned int semicolonPosition = readLineString.find(':', 0);
+                size_t semicolonPosition = readLineString.find(':', 0);
                 if( semicolonPosition == std::string::npos ) throw std::runtime_error(std::string("wrong format for cpu info file"));
                 std::string frequencyString(readLineString.substr(semicolonPosition + 1));
 

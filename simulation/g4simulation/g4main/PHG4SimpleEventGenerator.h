@@ -41,6 +41,9 @@ public:
   //! range of randomized pt values
   void set_pt_range(double pt_min, double mom_max);
 
+  //! set fixed momentum for particle
+  void set_p_fixed(double momentum);
+
   //! toss a new vertex according to a Uniform or Gaus distribution
   void set_vertex_distribution_function(FUNCTION x, FUNCTION y, FUNCTION z);
 
@@ -103,6 +106,7 @@ private:
   double _phi_max;
   double _pt_min;
   double _pt_max;
+  double _p_fixed; 
   int _embedflag;
 
   PHG4InEvent* _ineve;

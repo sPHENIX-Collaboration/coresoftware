@@ -82,10 +82,6 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCellGeomContainer_Dict.cc
 
 libg4detectors_la_SOURCES = \
-  PHG4AccDetector.cc \
-  PHG4AccSteppingAction.cc \
-  PHG4AccSubsystem.cc \
-  PHG4AccSubsystem_Dict.cc \
   PHG4BlockCellReco.cc \
   PHG4BlockCellReco_Dict.cc \
   PHG4BlockDetector.cc \
@@ -135,16 +131,13 @@ libg4detectors_la_SOURCES = \
   PHG4HcalSteppingAction.cc \
   PHG4HcalSubsystem.cc \
   PHG4HcalSubsystem_Dict.cc \
-  PHG4HcalTestBeamDetector.cc \
-  PHG4HcalTestBeamSteppingAction.cc \
-  PHG4HcalTestBeamSubsystem.cc \
-  PHG4HcalTestBeamSubsystem_Dict.cc \
   PHG4HcalPrototypeDetector.cc \
   PHG4HcalPrototypeDetectorMessenger.cc \
   PHG4HcalPrototypeSteppingAction.cc \
   PHG4HcalPrototypeSubsystem.cc \
   PHG4HcalPrototypeSubsystem_Dict.cc \
   PHG4InnerHcalDetector.cc \
+  PHG4InnerHcalParameters.cc \
   PHG4InnerHcalSteppingAction.cc \
   PHG4InnerHcalSubsystem.cc \
   PHG4InnerHcalSubsystem_Dict.cc \

@@ -48,6 +48,7 @@ PHG4SimpleEventGenerator::PHG4SimpleEventGenerator(const string &name):
   _phi_max(M_PI),
   _pt_min(0.0),
   _pt_max(10.0),
+  _p_fixed(-1.0),
   _embedflag(0),
   _ineve(NULL) {
   return;
@@ -89,6 +90,11 @@ void PHG4SimpleEventGenerator::set_phi_range(double min, double max) {
 void PHG4SimpleEventGenerator::set_pt_range(double min, double max) {
   _pt_min = min;
   _pt_max = max;
+  return;
+}
+
+void PHG4SimpleEventGenerator::set_p_fixed(double momentum) {
+  _p_fixed = momentum; 
   return;
 }
 
@@ -292,7 +298,13 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
    
       double eta = _rand->Uniform(_eta_min,_eta_max);
       double phi = _rand->Uniform(_phi_min,_phi_max);
-      double pt  = _rand->Uniform(_pt_min,_pt_max);   
+
+      double pt;   
+      if(_p_fixed > 0.0)
+	pt = _p_fixed/cosh(eta);    
+      else
+	pt = _rand->Uniform(_pt_min,_pt_max);   
+
       double px = pt*cos(phi);
       double py = pt*sin(phi);
       double pz = pt*sinh(eta);

@@ -7,6 +7,7 @@
 #include <Geant4/G4String.hh>
 
 class PHG4InnerHcalDetector;
+class PHG4InnerHcalParameters;
 class PHG4InnerHcalSteppingAction;
 class PHG4EventAction;
 
@@ -41,53 +42,53 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   virtual PHG4Detector* GetDetector( void ) const;
   virtual PHG4SteppingAction* GetSteppingAction( void ) const;
 
-  void SetSize(const G4double sizex, const G4double sizey, const G4double sizez)
-     {dimension[0] = sizex; dimension[1] = sizey; dimension[2] = sizez;}
-  void SetPlaceZ(const G4double dbl) {place_in_z = dbl;}
-  void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
-  {
-    place_in_x = place_x;
-    place_in_y = place_y;
-    place_in_z = place_z;
-  }
-  void SetXRot(const G4double dbl) {rot_in_x = dbl;}
-  void SetYRot(const G4double dbl) {rot_in_y = dbl;}
-  void SetZRot(const G4double dbl) {rot_in_z = dbl;}
-  void SetMaterial(const std::string &mat) {material = mat;}
+  void SetPlaceZ(const G4double dbl);
+  void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z);
+
+  void SetXRot(const G4double dbl);
+  void SetYRot(const G4double dbl);
+  void SetZRot(const G4double dbl);
+  void SetMaterial(const std::string &mat);
   PHG4EventAction* GetEventAction() const {return eventAction_;}
-  void SetActive(const int i = 1) {active = i;}
-  void SetAbsorberActive(const int i = 1) {absorberactive = i;}
+  void SetActive(const int i = 1);
+  void SetAbsorberActive(const int i = 1);
   void SuperDetector(const std::string &name) {superdetector = name;}
   const std::string SuperDetector() {return superdetector;}
 
-  void BlackHole(const int i=1) {blackhole = i;}
+  void BlackHole(const int i=1);
 
+  void SetTiltViaNcross(const int ncross);
   void SetTiltAngle(const double tilt);
+  double GetTiltAngle() const;
+  void SetInnerRadius(const double inner);
+  double GetInnerRadius() const;
+  void SetOuterRadius(const double outer);
+  double GetOuterRadius() const;
+  void SetLength(const double len);
+  void SetGapWidth(const double gap);
+  void SetNumScintiPlates(const int nplates);
+  void SetNumScintiTiles(const int ntiles);
+  void SetScintiThickness(const double thick);
+  void SetScintiGap(const double scgap);
+  void SetStepLimits(const double slim);
 
-  private:
+  protected:
 
   //! detector geometry
-  /*! defives from PHG4Detector */
+  /*! derives from PHG4Detector */
   PHG4InnerHcalDetector* detector_;
 
   //! particle tracking "stepping" action
-  /*! derives from PHG4SteppingActions */
+  /*! derives from PHG4SteppingAction */
   PHG4InnerHcalSteppingAction* steppingAction_;
-  PHG4EventAction *eventAction_;
-  G4double dimension[3];
-  G4double place_in_x;
-  G4double place_in_y;
-  G4double place_in_z;
-  G4double rot_in_x;
-  G4double rot_in_y;
-  G4double rot_in_z;
 
-  G4String material;
-  int active;
-  int absorberactive;
+  //! particle tracking "stepping" action
+  /*! derives from PHG4EventAction */
+  PHG4EventAction *eventAction_;
+
+  PHG4InnerHcalParameters *params;
+
   int layer;
-  int blackhole;
-  G4double tilt_angle;
   std::string detector_type;
   std::string superdetector;
 };
