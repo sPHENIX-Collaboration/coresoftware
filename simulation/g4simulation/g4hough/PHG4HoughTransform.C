@@ -179,7 +179,7 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers, unsigned int re
   _z_bin_scale(0.8), 
   _cut_on_dca(false), 
   _dca_cut(0.1),
-  _dcaz_cut(0.2)
+  _dcaz_cut(0.2)write_reco_tree(false)
 {
   verbosity = 0;
   _magField = 1.5; // Tesla
