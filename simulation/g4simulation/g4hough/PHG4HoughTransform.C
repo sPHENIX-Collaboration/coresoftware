@@ -206,7 +206,7 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers, unsigned int re
 
 int PHG4HoughTransform::Init(PHCompositeNode *topNode)
 {
-  if(_write_reco_tree = =true)
+  if(_write_reco_tree == true)
   {
     _reco_tree = new TTree("reco_events", "a tree of SimpleRecoEvent");
     _recoevent = new SimpleRecoEvent();
