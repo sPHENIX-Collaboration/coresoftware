@@ -353,6 +353,7 @@ PHG4InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
   hcal_rotm.rotateZ(params->z_rot);
   new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(params->place_in_x, params->place_in_y, params->place_in_z)), hcal_envelope_log, "InnerHcalEnvelope", logicWorld, 0, false, overlapcheck);
   ConstructInnerHcal(hcal_envelope_log);
+  AddGeometryNode();
   return;
 }
 
