@@ -5,7 +5,7 @@ ClassImp(SvtxTrack)
 
 using namespace std;
 
-SvtxTrack::SvtxTrack() : phi(0.),d(0.),kappa(0.),z0(0.),dzdl(0.),covariance(5,5)
+SvtxTrack::SvtxTrack() : phi(0.),d(0.),kappa(0.),z0(0.),dzdl(0.),covariance(6,6)
 {
   Reset();
 }
