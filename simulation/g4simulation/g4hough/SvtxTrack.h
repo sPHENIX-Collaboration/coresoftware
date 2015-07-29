@@ -99,11 +99,11 @@ class SvtxTrack : public PHObject
   float get_cal_cluster_e(int layer) const {return cal_cluster_e[layer];}
 
   float get_x(){return x;}
-  float set_x(float val){x = val;}
+  void set_x(float val){x = val;}
   float get_y(){return y;}
-  float set_y(float val){y = val;}
+  void set_y(float val){y = val;}
   float get_z(){return z;}
-  float set_z(float val){z = val;}
+  void set_z(float val){z = val;}
 
  protected:
 
