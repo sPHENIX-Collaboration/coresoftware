@@ -5,7 +5,7 @@ ClassImp(SvtxTrack)
 
 using namespace std;
 
-SvtxTrack::SvtxTrack() : phi(0.),d(0.),kappa(0.),z0(0.),dzdl(0.),covariance(6,6)
+SvtxTrack::SvtxTrack() : phi(0.),d(0.),kappa(0.),z0(0.),dzdl(0.), x(0.), y(0.), z(0.), covariance(6,6)
 {
   Reset();
 }
@@ -104,6 +104,10 @@ SvtxTrack::SvtxTrack(const SvtxTrack& track) : covariance( *(track.getCovariance
     cal_cluster_id[i] = track.get_cal_cluster_id(i);
     cal_cluster_e[i] = track.get_cal_cluster_e(i);
   }
+
+  x = track.get_x();
+  y = track.get_y();
+  z = track.get_z();
 }
 
 void SvtxTrack::identify(ostream& os) const
