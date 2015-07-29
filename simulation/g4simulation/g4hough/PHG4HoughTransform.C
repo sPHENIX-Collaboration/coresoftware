@@ -751,8 +751,6 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
 
     Matrix<float,6,6> euclidean_cov = Matrix<float,6,6>::Zero(6,6);
     convertHelixCovarianceToEuclideanCovariance( _magField, phi, d, kappa, z0, dzdl, _tracker->getKalmanStates()[itrack].C, euclidean_cov );
-
-
     
     for(unsigned int row=0;row<6;++row)
     {
@@ -761,6 +759,12 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
         (*(track.getCovariance()))[row][col] = euclidean_cov(row,col);
       }
     }
+
+    track.set_x( _vertex[0] * d*cos(phi) );
+    track.set_y( _vertex[1] * d*sin(phi) );
+    track.set_z( _vertex[2] + z0 );
+
+
     
     _g4tracks->insert(track);
     vertex.insert_track(track.getTrackID());
