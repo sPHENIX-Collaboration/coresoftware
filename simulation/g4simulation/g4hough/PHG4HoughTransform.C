@@ -56,7 +56,7 @@ using namespace Eigen;
 
 static void convertHelixCovarianceToEuclideanCovariance( float B, float phi, float d, float kappa, float z0, float dzdl, Eigen::Matrix<float,5,5> const& input, Eigen::Matrix<float,6,6>& output )
 {
-  Matrix<float,6,5> Jacobian = Matrix<float,6,5>::Zero(6,5);
+  Matrix<float,6,5> J = Matrix<float,6,5>::Zero(6,5);
   // phi,d,nu,z0,dzdl
   // -->
   // x,y,z,px,py,pz
