@@ -2,7 +2,7 @@
 #define __JETALGO_H__
 
 #include <phool/PHCompositeNode.h>
-#include <TLorentzVector.h>
+#include <fastjet/PseudoJet.hh>
 
 class JetAlgo {
   
@@ -10,8 +10,8 @@ public:
 
   virtual ~JetAlgo() {}
 
-  virtual std::vector<TLorentzVector> get_jets(const std::vector<TLorentzVector>& particles) {
-    return std::vector<TLorentzVector>();
+  virtual std::vector<fastjet::PseudoJet> get_jets(const std::vector<fastjet::PseudoJet>& particles) {
+    return std::vector<fastjet::PseudoJet>();
   }
 
 protected:
@@ -19,7 +19,6 @@ protected:
   
 private:
     
-  ClassDef(JetAlgo, 1);
 };
 
 #endif

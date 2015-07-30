@@ -1,3 +1,4 @@
+
 #include "JetReco.h"
 
 #include "JetInput.h"
@@ -41,7 +42,7 @@ int JetReco::Init(PHCompositeNode *topNode) {
 int JetReco::InitRun(PHCompositeNode *topNode) {
   
   if (verbosity >= 0) {
-    cout << "===================== JetReco::InitRun() =========================" << endl;
+    cout << "========================== JetReco::InitRun() =============================" << endl;
     cout << "===========================================================================" << endl;
   }
 
@@ -56,6 +57,21 @@ int JetReco::process_event(PHCompositeNode *topNode) {
   // Get Objects off of the Node Tree
   //---------------------------------
 
+  std::vector<fastjet::PseudoJet> inputs;
+  for (unsigned int iselect = 0; iselect < _inputs.size(); ++iselect) {
+    std::vector<fastjet::PseudoJet> parts = _inputs[iselect]->get_input(topNode);
+    for (unsigned int ipart = 0; ipart < parts.size(); ++ipart) {
+      inputs.push_back(parts[ipart]);
+    }
+  }
+
+  //---------------------------
+  // Run the jet reconstruction
+  //---------------------------
+  for (unsigned int ialgo=0; ialgo < _algos.size(); ++ialgo) {
+    std::vector<fastjet::PseudoJet> jets = _algos[ialgo]->get_jets(inputs);
+  }
+  /*  
   // Pull the reconstructed track information off the node tree...
   PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
   if (!truthinfo) {
@@ -89,7 +105,7 @@ int JetReco::process_event(PHCompositeNode *topNode) {
 	 << fastjets[ijet].eta()  << ", "
 	 << fastjets[ijet].phi()  << endl;
   }
-  
+  */
   if (verbosity > 0) cout << "JetReco::process_event -- exited" << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
