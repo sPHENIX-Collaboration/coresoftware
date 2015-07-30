@@ -562,6 +562,7 @@ PHG4Reco::DefineMaterials()
      }
   // home made compounds
   //Elements needed
+  G4Element *Al  = nist->FindOrBuildElement("Al");
   G4Element *Ar  = nist->FindOrBuildElement("Ar");
   G4Element *C  = nist->FindOrBuildElement("C");
   G4Element *Cr  = nist->FindOrBuildElement("Cr");
@@ -571,6 +572,7 @@ PHG4Reco::DefineMaterials()
   G4Element *H  = nist->FindOrBuildElement("H");
   G4Element *I  = nist->FindOrBuildElement("I");
   G4Element *Li  = nist->FindOrBuildElement("Li");
+  G4Element *Mg  = nist->FindOrBuildElement("Mg");
   G4Element *Mn  = nist->FindOrBuildElement("Mn");
   G4Element *Ni  = nist->FindOrBuildElement("Ni");
   G4Element *O  = nist->FindOrBuildElement("O");
@@ -634,6 +636,11 @@ PHG4Reco::DefineMaterials()
   Steel->AddElement(S, 0.00045);
   Steel->AddElement(P, 0.00045);
 
+  // from www.aalco.co.uk
+  G4Material *Al5083 = new G4Material("Al5083", density = 2.65*g/cm3, ncomponents = 3);
+    Al5083->AddElement(Mn,0.004);
+    Al5083->AddElement(Mg,0.04);
+    Al5083->AddElement(Al,0.956);
   // This is an approximation for the W saturated epoxy of the EMCal.
   G4Material *W = nist->FindOrBuildMaterial("G4_W");
   G4Material *Epoxy = nist->FindOrBuildMaterial("G4_POLYSTYRENE");
