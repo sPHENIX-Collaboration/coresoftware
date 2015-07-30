@@ -1,5 +1,10 @@
 #include "JetReco.h"
 
+#include "JetInput.h"
+#include "JetAlgo.h"
+#include "JetMap.h"
+#include "Jet.h"
+
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHNodeIterator.h>
@@ -11,11 +16,10 @@
 // PHENIX Geant4 includes
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
-#include <JetMap.h>
-#include <Jet.h>
 
 // standard includes
 #include <iostream>
+#include <vector>
 
 // fastjet includes
 #include <fastjet/JetDefinition.hh>

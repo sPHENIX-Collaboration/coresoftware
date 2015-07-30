@@ -27,6 +27,8 @@ pkginclude_HEADERS = \
   JetV1.h \
   JetMap.h \
   JetMapV1.h \
+  JetInput.h \
+  JetAlgo.h \
   JetReco.h
 
 #pkginclude_HEADERS = $(include_HEADERS)

@@ -7,12 +7,16 @@
 /// \author Mike McCumber
 //===========================================================
 
+#include "JetInput.h"
+#include "JetAlgo.h"
+
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHTimeServer.h>
 
 // standard includes
+#include <vector>
 
 // forward declarations
 class PHCompositeNode;
@@ -40,6 +44,9 @@ class JetReco : public SubsysReco
 
  private:
 
+  std::vector<JetInput*>  _inputs;
+  std::vector<JetAlgo*>   _algos;
+  
 };
 
 #endif // __JETRECO_H__
