@@ -760,9 +760,9 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
       }
     }
 
-    track.set_x( _vertex[0] + d*cos(phi) );
-    track.set_y( _vertex[1] + d*sin(phi) );
-    track.set_z( _vertex[2] + z0 );
+    track.set_x( d*cos(phi) );
+    track.set_y( d*sin(phi) );
+    track.set_z( z0 );
 
 
     
