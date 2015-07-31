@@ -8,25 +8,11 @@
 
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
 
-// PHENIX Geant4 includes
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4Particle.h>
 
 // standard includes
 #include <iostream>
 #include <vector>
-
-// fastjet includes
-// #include <fastjet/JetDefinition.hh>
-// #include <fastjet/PseudoJet.hh>
-// #include <fastjet/ClusterSequence.hh>
-// #include <fastjet/SISConePlugin.hh>
 
 using namespace std;
 
@@ -57,9 +43,9 @@ int JetReco::process_event(PHCompositeNode *topNode) {
   // Get Objects off of the Node Tree
   //---------------------------------
 
-  std::vector<Jet> inputs;
+  std::vector<Jet*> inputs;
   for (unsigned int iselect = 0; iselect < _inputs.size(); ++iselect) {
-    std::vector<Jet> parts = _inputs[iselect]->get_input(topNode);
+    std::vector<Jet*> parts = _inputs[iselect]->get_input(topNode);
     for (unsigned int ipart = 0; ipart < parts.size(); ++ipart) {
       inputs.push_back(parts[ipart]);
     }
@@ -69,43 +55,9 @@ int JetReco::process_event(PHCompositeNode *topNode) {
   // Run the jet reconstruction
   //---------------------------
   for (unsigned int ialgo=0; ialgo < _algos.size(); ++ialgo) {
-    std::vector<Jet> jets = _algos[ialgo]->get_jets(inputs);
-  }
-  /*  
-  // Pull the reconstructed track information off the node tree...
-  PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
-  if (!truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    std::vector<Jet*> jets = _algos[ialgo]->get_jets(inputs);
   }
 
-  // run fast jet
-  
-  std::vector<fastjet::PseudoJet> particles;
-  PHG4TruthInfoContainer::Map primary_map = truthinfo->GetPrimaryMap();
-  for (PHG4TruthInfoContainer::ConstIterator iter = primary_map.begin(); 
-       iter != primary_map.end(); 
-       ++iter) {
-    PHG4Particle *part = iter->second;
-    fastjet::PseudoJet pseudojet (part->get_px(),
-				  part->get_py(),
-				  part->get_pz(),
-				  part->get_e());
-    pseudojet.set_user_index(part->get_track_id());
-    particles.push_back(pseudojet);
-  }
-
-  fastjet::JetDefinition jetdef(fastjet::antikt_algorithm,0.4,fastjet::Best);
-  fastjet::ClusterSequence jetFinder(particles,jetdef);
-  std::vector<fastjet::PseudoJet> fastjets = jetFinder.inclusive_jets();
-
-  for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet) {
-    cout << "  "
-	 << fastjets[ijet].perp() << ", "
-	 << fastjets[ijet].eta()  << ", "
-	 << fastjets[ijet].phi()  << endl;
-  }
-  */
   if (verbosity > 0) cout << "JetReco::process_event -- exited" << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;

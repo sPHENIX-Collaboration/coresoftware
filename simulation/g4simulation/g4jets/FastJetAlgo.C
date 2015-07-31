@@ -20,46 +20,37 @@ FastJetAlgo::FastJetAlgo()
   : verbosity(0) {
 }
 
-std::vector<Jet> FastJetAlgo::get_jets(const std::vector<Jet>& particles) {
+std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles) {
   
   if (verbosity > 0) cout << "FastJetAlgo::process_event -- entered" << endl;
 
-  /*  
-  // Pull the reconstructed track information off the node tree...
-  PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
-  if (!truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+  // translate to fastjet
+  std::vector<fastjet::PseudoJet> pseudojets;
+  for (unsigned int ipart = 0; ipart < particles.size(); ++ipart) {    
+    fastjet::PseudoJet pseudojet (particles[ipart]->get_px(),
+				  particles[ipart]->get_py(),
+				  particles[ipart]->get_pz(),
+				  particles[ipart]->get_e());
+    pseudojet.set_user_index(particles[ipart]->get_id());
+    pseudojets.push_back(pseudojet);
   }
 
-  // run fast jet
-  
-  std::vector<fastjet::PseudoJet> particles;
-  PHG4TruthInfoContainer::Map primary_map = truthinfo->GetPrimaryMap();
-  for (PHG4TruthInfoContainer::ConstIterator iter = primary_map.begin(); 
-       iter != primary_map.end(); 
-       ++iter) {
-    PHG4Particle *part = iter->second;
-    fastjet::PseudoJet pseudojet (part->get_px(),
-				  part->get_py(),
-				  part->get_pz(),
-				  part->get_e());
-    pseudojet.set_user_index(part->get_track_id());
-    particles.push_back(pseudojet);
-  }
-
+  // run fast jet  
   fastjet::JetDefinition jetdef(fastjet::antikt_algorithm,0.4,fastjet::Best);
-  fastjet::ClusterSequence jetFinder(particles,jetdef);
+  fastjet::ClusterSequence jetFinder(pseudojets,jetdef);
   std::vector<fastjet::PseudoJet> fastjets = jetFinder.inclusive_jets();
 
+  // print out
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet) {
     cout << "  "
 	 << fastjets[ijet].perp() << ", "
 	 << fastjets[ijet].eta()  << ", "
 	 << fastjets[ijet].phi()  << endl;
   }
-  */
-  if (verbosity > 0) cout << "FastJetAlgo::process_event -- exited" << endl;
 
-  return std::vector<Jet>();
+  // translate into jet output...
+
+  if (verbosity > 0) cout << "FastJetAlgo::process_event -- exited" << endl;
+  
+  return std::vector<Jet*>();
 }

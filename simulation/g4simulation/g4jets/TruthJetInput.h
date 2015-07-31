@@ -15,7 +15,7 @@ public:
   TruthJetInput();
   virtual ~TruthJetInput() {}
 
-  virtual std::vector<Jet> get_input(PHCompositeNode *topNode);
+  virtual std::vector<Jet*> get_input(PHCompositeNode *topNode);
 
 protected:
 
