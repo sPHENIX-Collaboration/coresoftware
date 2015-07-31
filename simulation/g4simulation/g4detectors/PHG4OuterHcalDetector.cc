@@ -1,6 +1,7 @@
 #include "PHG4OuterHcalDetector.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeomv3.h"
+#include "PHG4OuterHcalField.h"
 
 #include <g4main/PHG4Utils.h>
 
@@ -247,6 +248,14 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
       steel_absorber_vec.insert(new G4PVPlacement(Rot, G4ThreeVector(xpos, ypos, 0), steel_logical, name.str().c_str(), hcalenvelope, 0, i, overlapcheck));
       phi += deltaphi;
     }
+
+//  //field after burner
+//  steel_logical->SetFieldManager(
+//      new PHG4OuterHcalField(/*bool isInIron*/true, /*G4int steelPlates*/
+//          n_steel_plates,
+//          /*G4double scintiGap*/scinti_gap, /*G4double tiltAngle*/tilt_angle),
+//      true);
+
   return 0;
 }
 

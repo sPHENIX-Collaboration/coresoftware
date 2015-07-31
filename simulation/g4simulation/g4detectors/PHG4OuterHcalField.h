@@ -16,16 +16,38 @@
 #include <Geant4/G4ios.hh>
 /*!
  * \brief PHG4OuterHcalField
+ *
+ * After burner to produce magnetic field in inner HCal on top of sPHENIX field map
+ * In leading order, for the field within the plane of absorber plate,
+ *  iron absorb almost all the flux, with field in the air-scintillator region
+ * reduced to 1/relative_permeability_absorber of that in the iron.
+ * The field strength perpendicular to the plate remain unchanged.
+ *
+ * relative_permeability_absorber = 1514, relative permeability for Steel 1006 @ B = 1.06T
+ * http://www.fieldp.com/magneticproperties.html
  */
 class PHG4OuterHcalField : public G4MagneticField
 {
 public:
-  PHG4OuterHcalField();
+  PHG4OuterHcalField( bool isInIron, G4int steelPlates,
+      G4double scintiGap, G4double tiltAngle );
   virtual
   ~PHG4OuterHcalField();
 
   void
   GetFieldValue(const double Point[4], double *Bfield) const;
+
+  bool
+  is_is_in_iron() const
+  {
+    return is_in_iron;
+  }
+
+  void
+  set_is_in_iron(bool isInIron)
+  {
+    is_in_iron = isInIron;
+  }
 
   G4int
   get_steel_plates() const
@@ -92,6 +114,7 @@ private:
   double relative_permeability_absorber;
   double relative_permeability_gap;
 
+  bool is_in_iron;
   G4int n_steel_plates;
   G4double scinti_gap;
   G4double tilt_angle;
