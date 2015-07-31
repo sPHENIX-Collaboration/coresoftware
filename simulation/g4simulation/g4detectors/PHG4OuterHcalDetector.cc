@@ -1,7 +1,6 @@
 #include "PHG4OuterHcalDetector.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeomv3.h"
-#include "PHG4OuterHcalField.h"
 
 #include <g4main/PHG4Utils.h>
 
@@ -66,7 +65,8 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, const std::
   layer(lyr),
   blackhole(0),
   steplimits(NAN),
-  scintilogicnameprefix("HcalOuterScinti")
+  scintilogicnameprefix("HcalOuterScinti"),
+  field_setup(NULL)
 {
   double thetacutline = M_PI/2. - PHG4Utils::get_theta(etacutline);
   // okay another complication. The cut is along eta=etacutline but the box and trapezoids are calculated from the other side 
@@ -138,7 +138,10 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, const std::
 }
 
 PHG4OuterHcalDetector::~PHG4OuterHcalDetector()
-{}
+{
+  if(field_setup)
+    delete field_setup;
+}
 
 //_______________________________________________________________
 //_______________________________________________________________
@@ -175,6 +178,11 @@ PHG4OuterHcalDetector::IsInOuterHcal(G4VPhysicalVolume * volume) const
 void
 PHG4OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
 {
+  field_setup = new PHG4OuterHcalFieldSetup(/*G4int steelPlates*/
+  n_steel_plates,
+  /*G4double scintiGap*/scinti_gap, /*G4double tiltAngle*/tilt_angle);
+
+
   G4Material* Air = G4Material::GetMaterial("G4_AIR");
   G4VSolid* hcal_envelope_cylinder = new G4Tubs("Hcal_envelope_solid",  envelope_inner_radius, envelope_outer_radius, envelope_z/2.,0,2*M_PI);
   G4LogicalVolume* hcal_envelope_log =  new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("Hcal_envelope"), 0, 0, 0);
@@ -249,12 +257,10 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
       phi += deltaphi;
     }
 
-//  //field after burner
-//  steel_logical->SetFieldManager(
-//      new PHG4OuterHcalField(/*bool isInIron*/true, /*G4int steelPlates*/
-//          n_steel_plates,
-//          /*G4double scintiGap*/scinti_gap, /*G4double tiltAngle*/tilt_angle),
-//      true);
+  //field after burner
+  steel_logical->SetFieldManager(
+      field_setup -> get_Field_Manager_Iron(),
+      true);
 
   return 0;
 }
