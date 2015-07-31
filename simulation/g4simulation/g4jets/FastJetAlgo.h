@@ -13,7 +13,7 @@ public:
   FastJetAlgo();
   virtual ~FastJetAlgo() {}
 
-  std::vector<Jet*> get_jets(std::vector<Jet*> particles);
+  std::vector<Jet> get_jets(const std::vector<Jet>& particles);
   
 protected:
 

@@ -9,10 +9,10 @@
 #include <vector>
 
 // fastjet includes
-// #include <fastjet/JetDefinition.hh>
-// #include <fastjet/PseudoJet.hh>
-// #include <fastjet/ClusterSequence.hh>
-// #include <fastjet/SISConePlugin.hh>
+#include <fastjet/JetDefinition.hh>
+#include <fastjet/PseudoJet.hh>
+#include <fastjet/ClusterSequence.hh>
+#include <fastjet/SISConePlugin.hh>
 
 using namespace std;
 
@@ -20,7 +20,7 @@ FastJetAlgo::FastJetAlgo()
   : verbosity(0) {
 }
 
-std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles) {
+std::vector<Jet> FastJetAlgo::get_jets(const std::vector<Jet>& particles) {
   
   if (verbosity > 0) cout << "FastJetAlgo::process_event -- entered" << endl;
 
@@ -61,5 +61,5 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles) {
   */
   if (verbosity > 0) cout << "FastJetAlgo::process_event -- exited" << endl;
 
-  return std::vector<Jet*>();
+  return std::vector<Jet>();
 }

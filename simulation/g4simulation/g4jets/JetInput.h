@@ -11,8 +11,8 @@ public:
 
   virtual ~JetInput() {}
 
-  virtual std::vector<Jet*> get_input(PHCompositeNode *topNode) {
-    return std::vector<Jet*>();
+  virtual std::vector<Jet> get_input(PHCompositeNode *topNode) {
+    return std::vector<Jet>();
   }
 
 

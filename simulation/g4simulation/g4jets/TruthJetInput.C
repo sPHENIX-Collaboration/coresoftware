@@ -20,7 +20,7 @@ TruthJetInput::TruthJetInput()
   : verbosity(0) {
 }
 
-std::vector<Jet*> TruthJetInput::get_input(PHCompositeNode *topNode) {
+std::vector<Jet> TruthJetInput::get_input(PHCompositeNode *topNode) {
   
   if (verbosity > 0) cout << "TruthJetInput::process_event -- entered" << endl;
 
@@ -61,5 +61,5 @@ std::vector<Jet*> TruthJetInput::get_input(PHCompositeNode *topNode) {
   */
   if (verbosity > 0) cout << "TruthJetInput::process_event -- exited" << endl;
 
-  return std::vector<Jet*>();
+  return std::vector<Jet>();
 }
