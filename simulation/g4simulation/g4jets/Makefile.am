@@ -30,7 +30,8 @@ pkginclude_HEADERS = \
   JetInput.h \
   JetAlgo.h \
   JetReco.h \
-  TruthJetInput.h
+  TruthJetInput.h \
+  FastJetAlgo.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
@@ -46,7 +47,9 @@ libg4jets_la_SOURCES = \
   JetReco.C \
   JetReco_Dict.C \
   TruthJetInput.C \
-  TruthJetInput_Dict.C
+  TruthJetInput_Dict.C \
+  FastJetAlgo.C \
+  FastJetAlgo_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h

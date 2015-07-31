@@ -10,12 +10,12 @@ public:
 
   virtual ~JetAlgo() {}
 
-  virtual std::vector<Jet*> get_jets(const std::vector<Jet*>& particles) {
+  virtual std::vector<Jet*> get_jets(std::vector<Jet*> particles) {
     return std::vector<Jet*>();
   }
 
 protected:
-  JetAlgo();
+  JetAlgo() {}
   
 private:
     
