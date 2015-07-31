@@ -113,6 +113,10 @@ libg4detectors_la_SOURCES = \
   PHG4CylinderCellReco.cc \
   PHG4CylinderCellReco_Dict.cc \
   PHG4CylinderSteppingAction.cc \
+  PHG4EnvelopeDetector.cc \
+  PHG4EnvelopeSteppingAction.cc \
+  PHG4EnvelopeSubsystem.cc \
+  PHG4EnvelopeSubsystem_Dict.cc \
   PHG4FCalDetector.cc \
   PHG4FCalSteppingAction.cc \
   PHG4FCalSubsystem.cc \

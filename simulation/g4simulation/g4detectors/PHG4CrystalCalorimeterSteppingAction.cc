@@ -57,6 +57,7 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 
   int whichactive = detector_->IsInCrystalCalorimeter(volume);
 
+
   if ( !whichactive  )
     {
       return false;
@@ -71,6 +72,12 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
   if (whichactive > 0) // in crystal
     {
       /* Find indizes of crystal containing this step */
+      WhatAreYou(touch, idx_j, idx_k);
+      tower_id = touch->GetCopyNumber();
+    }
+  else if (whichactive < 0)
+    {
+      //Get the absorber indices 
       WhatAreYou(touch, idx_j, idx_k);
       tower_id = touch->GetCopyNumber();
     }
@@ -153,7 +160,7 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 	  hit->set_eion( 0 );
 
 	  /* Now add the hit to the hit collection */
-	  if (whichactive > 0) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
+	  if (whichactive == 1) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
 	    {
 	      // Now add the hit
 	      hits_->AddHit(layer_id, hit);
@@ -243,6 +250,7 @@ void PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers( PHCompositeNode
 	  cout << "PHG4CrystalCalorimeterSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
 	}
     }
+
 }
 
 int
@@ -253,30 +261,38 @@ PHG4CrystalCalorimeterSteppingAction::WhatAreYou(G4TouchableHandle touch, int& j
         int j_2, k_2;           //The k and k indices for the 4x4 within the mother volume
         //int j, k;             //The final indices of the crystal
 
-        G4VPhysicalVolume* crystal = touch->GetVolume(0);		//Get the crystal solid
-        G4VPhysicalVolume* TwoByTwo = touch->GetVolume(1);		//Get the crystal solid
-        G4VPhysicalVolume* FourByFour = touch->GetVolume(2);		//Get the crystal solid
+	string name = touch->GetVolume(0)->GetName();
+	string name_2 = touch->GetVolume(1)->GetName();
 
-	ParseName(crystal, j_0, k_0);
-	ParseName(TwoByTwo, j_1, k_1);
-	ParseName(FourByFour, j_2, k_2);
-	
-	/*
-	cout << endl;
-	cout << " | " << j_0 << " | " << k_0 << " | " << endl;
-	cout << " | " << j_1 << " | " << k_1 << " | " << endl;
-	cout << " | " << j_2 << " | " << k_2 << " | " << endl;
-	*/
+	if (name.find("rystal") != string::npos)
+	{
+		G4VPhysicalVolume* crystal = touch->GetVolume(0);		//Get the crystal solid
+		G4VPhysicalVolume* TwoByTwo = touch->GetVolume(1);		//Get the crystal solid
+		G4VPhysicalVolume* FourByFour = touch->GetVolume(2);		//Get the crystal solid
 
-        j = (j_0*1) + (j_1*2) + (j_2*4);
-        k = (k_0*1) + (k_1*2) + (k_2*4);
+		ParseName(crystal, j_0, k_0);
+		ParseName(TwoByTwo, j_1, k_1);
+		ParseName(FourByFour, j_2, k_2);
+		
+		j = (j_0*1) + (j_1*2) + (j_2*4);
+		k = (k_0*1) + (k_1*2) + (k_2*4);
 
-        //ostringstream NameString;
-        //NameString.str("");
-        //NameString << _crystallogicnameprefix << "_j_" << j << "_k_" << k;
-        //name = NameString;
+	}
+	else if ( (name.find("arbon") != string::npos) )
+	{
+		G4VPhysicalVolume* carbon = touch->GetVolume(1);		//Get the carbon fiber solid
+		ParseName(carbon, j_0, k_0);
+		j = j_0;
+		k = k_0;
+		//cout << "Carbon_" << j << "_" << k << endl;
+	}
+	else
+	{
+		cout << "ERROR!!! RUN FOR YOUR LIVES!!!" << endl;
+		j = -1;
+		k = -1;
+	}
 
-        //return NameString;
         return 0;
 }
 

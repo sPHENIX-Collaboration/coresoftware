@@ -19,7 +19,7 @@ class PHHepMCGenEvent : public PHObject
 {
  public:
   
-  PHHepMCGenEvent(const int theMomentum = HepMC::Units::GEV,const int theDistance = HepMC::Units::MM);
+  PHHepMCGenEvent(const int theMomentum = HepMC::Units::GEV,const int theDistance = HepMC::Units::CM);
   virtual ~PHHepMCGenEvent();
   
   virtual HepMC::GenEvent* getEvent();

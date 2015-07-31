@@ -10,6 +10,7 @@
 #include <fun4all/getClass.h>
 
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4MaterialCutsCouple.hh>
 
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
@@ -188,6 +189,8 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	  hit->set_eion(0); // only implemented for v5 otherwise empty
 	  if (whichactive > 0) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
 	    {
+        hit->set_light_yield(0); // for scintillator only, initialize light yields
+
 	      // Now add the hit
 	      hits_->AddHit(layer_id, hit);
 	    }
@@ -214,6 +217,31 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
       //sum up the energy to get total deposited
       hit->set_edep(hit->get_edep() + edep);
       hit->set_eion(hit->get_eion() + eion);
+
+
+      if (whichactive > 0) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
+        {
+          double light_yield = GetVisibleEnergyDeposition(aStep); // for scintillator only, calculate light yields
+          hit->set_light_yield(hit->get_light_yield() + light_yield);
+
+          static bool once = true;
+          if (once and edep > 0)
+            {
+              once = false;
+
+              cout << "PHG4InnerHcalSteppingAction::UserSteppingAction::"
+                  //
+                  << detector_->GetName() << " - "
+                  << " use scintillating light model at each Geant4 steps. "
+                  << "First step: " << "Material = "
+                  << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
+                  << ", " << "Birk Constant = "
+                  << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
+                  << "," << "edep = " << edep << ", " << "eion = " << eion
+                  << ", " << "light_yield = " << light_yield << endl;
+            }
+        }
+
       if (geantino)
 	{
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression

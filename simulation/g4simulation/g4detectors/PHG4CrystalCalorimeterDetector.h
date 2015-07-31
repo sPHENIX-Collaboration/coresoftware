@@ -70,6 +70,8 @@ public:
   void SetActive(const int i = 1) {_active = i;}
   void SetAbsorberActive(const int i = 1) {_absorberactive = i;}
 
+  void SetInput( G4String inFile ) { _inputFile = inFile; }
+
   int IsActive() const {return _active;}
 
   void SuperDetector(const std::string &name) {_superdetector = name;}
@@ -83,10 +85,11 @@ public:
 private:
 
   int ConstructCrystals(G4LogicalVolume* envelope);
-
   int Fill4x4Unit(G4LogicalVolume *crystal_logic);
-
   int FillSpecialUnit(G4LogicalVolume *crystal_logic, G4int ident);
+
+  int FillDefaultCrystal(G4LogicalVolume *crystal_logic);
+  int DefaultConstruct(G4LogicalVolume* ecalenvelope);
 
   /* Calorimeter envelope geometry */
   G4double _place_in_x;
