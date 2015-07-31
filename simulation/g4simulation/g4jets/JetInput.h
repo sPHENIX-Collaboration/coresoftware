@@ -17,7 +17,7 @@ public:
 
 
 protected:
-  JetInput();
+  JetInput() {}
   
 private:
     

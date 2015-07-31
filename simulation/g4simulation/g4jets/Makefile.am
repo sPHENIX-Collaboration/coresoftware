@@ -29,7 +29,8 @@ pkginclude_HEADERS = \
   JetMapV1.h \
   JetInput.h \
   JetAlgo.h \
-  JetReco.h
+  JetReco.h \
+  TruthJetInput.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
@@ -43,7 +44,9 @@ libg4jets_la_SOURCES = \
   JetMapV1.C \
   JetMapV1_Dict.C \
   JetReco.C \
-  JetReco_Dict.C
+  JetReco_Dict.C \
+  TruthJetInput.C \
+  TruthJetInput_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
