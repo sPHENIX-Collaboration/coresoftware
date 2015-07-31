@@ -45,18 +45,31 @@
 #include <Geant4/G4CashKarpRKF45.hh>
 #include <Geant4/G4RKG3_Stepper.hh>
 
-PHG4OuterHcalFieldSetup::PHG4OuterHcalFieldSetup( G4int steelPlates,
-    G4double scintiGap, G4double tiltAngle):
+PHG4OuterHcalFieldSetup::PHG4OuterHcalFieldSetup(G4int steelPlates,
+    G4double scintiGap, G4double tiltAngle) :
     /*G4int*/n_steel_plates(steelPlates),
     /*G4double*/scinti_gap(scintiGap),
     /*G4double*/tilt_angle(tiltAngle)
 {
   fMinStep = 0.005 * mm; // minimal step of 10 microns
+  G4int nvar = 8;
 
-  fFieldManagerIron = new G4FieldManager();
+    {
+      fFieldManagerIron = new G4FieldManager();
+
+      fEMfieldIron = new PHG4OuterHcalField(true, n_steel_plates, scintiGap,
+          tiltAngle);
+
+      fEquationIron = new G4Mag_UsualEqRhs(fEMfieldIron);
+
+      fStepperIron = new G4ClassicalRK4(fEquationIron, nvar);
+
+      fChordFinderIron = new G4ChordFinder(
+          new G4MagInt_Driver(fMinStep, fStepperIron,
+              fStepperIron->GetNumberOfVariables()));
+    }
+
   fFieldManagerGap = new G4FieldManager();
-
-
 }
 
 PHG4OuterHcalFieldSetup::~PHG4OuterHcalFieldSetup()

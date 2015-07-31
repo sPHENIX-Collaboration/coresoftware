@@ -118,8 +118,8 @@ private:
   G4ChordFinder* fChordFinderGap;
   G4MagneticField* fEMfieldIron;
   G4MagneticField* fEMfieldGap;
-  G4MagneticField* fStepperIron;
-  G4MagneticField* fStepperGap;
+  G4MagIntegratorStepper* fStepperIron;
+  G4MagIntegratorStepper* fStepperGap;
 
   G4double fMinStep;
 
