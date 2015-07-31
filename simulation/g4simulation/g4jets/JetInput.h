@@ -2,7 +2,7 @@
 #define __JETINPUT_H__
 
 #include <phool/PHCompositeNode.h>
-#include <fastjet/PseudoJet.hh>
+#include "Jet.h"
 #include <vector>
 
 class JetInput {
@@ -11,8 +11,8 @@ public:
 
   virtual ~JetInput() {}
 
-  virtual std::vector<fastjet::PseudoJet> get_input(PHCompositeNode *topNode) {
-    return std::vector<fastjet::PseudoJet>();
+  virtual std::vector<Jet*> get_input(PHCompositeNode *topNode) {
+    return std::vector<Jet*>();
   }
 
 

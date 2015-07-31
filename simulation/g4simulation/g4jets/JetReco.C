@@ -23,10 +23,10 @@
 #include <vector>
 
 // fastjet includes
-#include <fastjet/JetDefinition.hh>
-#include <fastjet/PseudoJet.hh>
-#include <fastjet/ClusterSequence.hh>
-#include <fastjet/SISConePlugin.hh>
+// #include <fastjet/JetDefinition.hh>
+// #include <fastjet/PseudoJet.hh>
+// #include <fastjet/ClusterSequence.hh>
+// #include <fastjet/SISConePlugin.hh>
 
 using namespace std;
 
@@ -57,9 +57,9 @@ int JetReco::process_event(PHCompositeNode *topNode) {
   // Get Objects off of the Node Tree
   //---------------------------------
 
-  std::vector<fastjet::PseudoJet> inputs;
+  std::vector<Jet*> inputs;
   for (unsigned int iselect = 0; iselect < _inputs.size(); ++iselect) {
-    std::vector<fastjet::PseudoJet> parts = _inputs[iselect]->get_input(topNode);
+    std::vector<Jet*> parts = _inputs[iselect]->get_input(topNode);
     for (unsigned int ipart = 0; ipart < parts.size(); ++ipart) {
       inputs.push_back(parts[ipart]);
     }
@@ -69,7 +69,7 @@ int JetReco::process_event(PHCompositeNode *topNode) {
   // Run the jet reconstruction
   //---------------------------
   for (unsigned int ialgo=0; ialgo < _algos.size(); ++ialgo) {
-    std::vector<fastjet::PseudoJet> jets = _algos[ialgo]->get_jets(inputs);
+    std::vector<Jet*> jets = _algos[ialgo]->get_jets(inputs);
   }
   /*  
   // Pull the reconstructed track information off the node tree...
