@@ -55,10 +55,9 @@ PHG4OuterHcalFieldSetup::PHG4OuterHcalFieldSetup(G4int steelPlates,
   G4int nvar = 8;
 
     {
-      fFieldManagerIron = new G4FieldManager();
 
-      fEMfieldIron = new PHG4OuterHcalField(true, n_steel_plates, scintiGap,
-          tiltAngle);
+      fEMfieldIron = new PHG4OuterHcalField(true, n_steel_plates, scinti_gap,
+          tilt_angle);
 
       fEquationIron = new G4Mag_UsualEqRhs(fEMfieldIron);
 
@@ -67,9 +66,29 @@ PHG4OuterHcalFieldSetup::PHG4OuterHcalFieldSetup(G4int steelPlates,
       fChordFinderIron = new G4ChordFinder(
           new G4MagInt_Driver(fMinStep, fStepperIron,
               fStepperIron->GetNumberOfVariables()));
+
+      fFieldManagerIron = new G4FieldManager();
+      fFieldManagerIron->SetDetectorField(fEMfieldIron);
+      fFieldManagerIron->SetChordFinder(fChordFinderIron);
     }
 
-  fFieldManagerGap = new G4FieldManager();
+    {
+
+      fEMfieldGap = new PHG4OuterHcalField(false, n_steel_plates, scinti_gap,
+          tilt_angle);
+
+      fEquationGap = new G4Mag_UsualEqRhs(fEMfieldGap);
+
+      fStepperGap = new G4ClassicalRK4(fEquationGap, nvar);
+
+      fChordFinderGap = new G4ChordFinder(
+          new G4MagInt_Driver(fMinStep, fStepperGap,
+              fStepperGap->GetNumberOfVariables()));
+
+      fFieldManagerGap = new G4FieldManager();
+      fFieldManagerGap->SetDetectorField(fEMfieldGap);
+      fFieldManagerGap->SetChordFinder(fChordFinderGap);
+    }
 }
 
 PHG4OuterHcalFieldSetup::~PHG4OuterHcalFieldSetup()

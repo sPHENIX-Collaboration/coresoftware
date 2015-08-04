@@ -39,6 +39,7 @@ PHG4OuterHcalField::~PHG4OuterHcalField()
 void
 PHG4OuterHcalField::GetFieldValue(const double Point[4], double *Bfield) const
 {
+
   G4FieldManager* field_manager =
       G4TransportationManager::GetTransportationManager()->GetFieldManager();
 
@@ -69,31 +70,48 @@ PHG4OuterHcalField::GetFieldValue(const double Point[4], double *Bfield) const
       assert(cos(tilt_angle)>0);
       assert(n_steel_plates>0);
 
+      // input 2D magnetic field vector
+      const G4Vector3D B0(Bfield[0], Bfield[1], Bfield[2]);
+      const G4Vector3D B0XY(Bfield[0], Bfield[1], 0);
+      const G4Vector3D B0Z(0, 0, Bfield[2]);
+
       const double R = sqrt(x * x + y * y);
-      const double layer_width = R * twopi / n_steel_plates * cos(tilt_angle);
+      const double layer_RdPhi = R * twopi / n_steel_plates;
+      const double layer_width = layer_RdPhi * cos(tilt_angle);
       const double gap_width = scinti_gap;
 
       assert(gap_width<layer_width);
 
-      double scale_factor = layer_width
+      // sign definition of tilt_angle is rotation around the -z axis
+      const G4Vector3D absorber_dir(cos(atan2(y, x) - tilt_angle),
+          sin(atan2(y, x) - tilt_angle), 0);
+      const G4Vector3D radial_dir(cos(atan2(y, x)), sin(atan2(y, x)), 0);
+
+      const double radial_flux_per_layer = layer_RdPhi
+          * (B0XY.dot(radial_dir));
+      double B_XY_mag = radial_flux_per_layer
           / (relative_permeability_absorber * (layer_width - gap_width)
               + relative_permeability_gap * gap_width);
-      scale_factor *=
+      B_XY_mag *=
           is_in_iron ?
               relative_permeability_absorber : relative_permeability_gap;
 
-      // input 2D magnetic field vector
-      const G4Vector3D B0(Bfield[0], Bfield[1], Bfield[2]);
+      const G4Vector3D B_New_XY = B_XY_mag * absorber_dir;
 
-      // decompose to B_perp and B_T (along the plate surface)
-      const G4Vector3D absorber_perb(
-          cos(atan2(y, x) + tilt_angle + halfpi),
-          sin(atan2(y, x) + tilt_angle + halfpi), 0);
-      const G4Vector3D B_perp = B0 .cross( absorber_perb);
-      const G4Vector3D B_T = B0 - B_perp;
+      const double z_flux_per_layer = layer_width * B0Z.z();
+      double B_Z_mag = z_flux_per_layer
+          / (relative_permeability_absorber * (layer_width - gap_width)
+              + relative_permeability_gap * gap_width);
+      B_Z_mag *=
+          is_in_iron ?
+              relative_permeability_absorber : relative_permeability_gap;
+      const G4Vector3D B_New_Z(0, 0, B_Z_mag);
 
       // scale B_T component
-      G4Vector3D BScaled = B_perp + B_T * scale_factor;
+      G4Vector3D B_New = B_New_Z + B_New_XY;
+      Bfield[0] = B_New.x();
+      Bfield[1] = B_New.y();
+      Bfield[2] = B_New.z();
 
       static bool once = true;
       if (once)
@@ -102,12 +120,11 @@ PHG4OuterHcalField::GetFieldValue(const double Point[4], double *Bfield) const
           cout << "PHG4OuterHcalField::GetFieldValue"
               << " - After burner to produce magnetic field in inner HCal. "
               << (is_in_iron ? "Inside iron, " : "Inside gap, ") << "and R = "
-              << R / cm
-              << " cm, fiend change from " //
+              << R / cm << " cm, fiend change from "
+              //
               << "(" << B0.x() / tesla << "," << B0.y() / tesla << ","
-              << B0.z() / tesla << ") T" << " T to " << "("
-              << BScaled.x() / tesla << "," << BScaled.y() / tesla << ","
-              << BScaled.z() / tesla << ") T" << " or x" << scale_factor
+              << B0.z() / tesla << ") T" << " to " << "(" << B_New.x() / tesla
+              << "," << B_New.y() / tesla << "," << B_New.z() / tesla << ") T"
               << endl;
         }
     }

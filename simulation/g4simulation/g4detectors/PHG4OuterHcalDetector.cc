@@ -258,9 +258,17 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
     }
 
   //field after burner
+  //assign the gap field strength to the air volume around HCal. Not so right for the forward corner pieces
+  hcalenvelope->SetFieldManager(
+      field_setup -> get_Field_Manager_Gap(),
+      false);
+
   steel_logical->SetFieldManager(
       field_setup -> get_Field_Manager_Iron(),
       true);
+//  cout <<"PHG4OuterHcalDetector::ConstructOuterHcal - register field after burner"<<endl;
+
+
 
   return 0;
 }
@@ -558,6 +566,12 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalen
 	}
       G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i],G4Material::GetMaterial("G4_POLYSTYRENE"),name.str().c_str(), NULL, NULL, g4userlimits);
       assmeblyvol->AddPlacedVolume(scinti_tile_logic,g4vec, NULL);
+
+      //field after burner
+      scinti_tile_logic->SetFieldManager(
+          field_setup -> get_Field_Manager_Gap(),
+          true);
+
     }
   return assmeblyvol;
 }
