@@ -40,6 +40,8 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
     light_scint_model_ = b;
   }
   
+  void FieldChecker (const G4Step*);
+
   private:
 
   //! pointer to the detector
