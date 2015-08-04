@@ -47,6 +47,7 @@ PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector*
   hits_(NULL),
   absorberhits_(NULL),
   hit(NULL),
+  enable_field_checker_(false),
   light_scint_model_(true),
   light_balance_(false),
   light_balance_inner_radius_(0.0),
@@ -79,8 +80,8 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
       return false;
     }
 
-  FieldChecker(aStep);
-
+  if (enable_field_checker_)
+    FieldChecker(aStep);
 
   unsigned int motherid = ~0x0; // initialize to 0xFFFFFF using the correct bitness
   int tower_id = -1;
@@ -362,10 +363,13 @@ PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
 
   if (not se->isHistoRegistered(h_field_name))
     {
-      TH2F * h = new TH2F(h_field_name.c_str(), "Magnetic field in HCal", 600,
-          -300, 300, 600, -300, 300);
+      TH2F * h = new TH2F(h_field_name.c_str(), "Magnetic field (Tesla) in HCal;X (cm);Y (cm)", 2400,
+          -300, 300, 2400, -300, 300);
 
       se->registerHisto(h, 1);
+
+      cout <<"PHG4OuterHcalSteppingAction::FieldChecker - make a histograme to check outer Hcal field map."<<
+          " Saved to Fun4AllServer Histo with name "<<h_field_name<<endl;
     }
 
   TH2F * h = dynamic_cast<TH2F *>(se->getHisto(h_field_name));
@@ -389,9 +393,10 @@ PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
   globPosVec[2] = globPosition.z();
   globPosVec[3] = aStep->GetPreStepPoint()->GetGlobalTime();
 
-  const Int_t bin = h->FindBin(globPosVec[0], globPosVec[1]);
+  const Int_t binx = h->GetXaxis()->FindBin(globPosVec[0]/cm);
+  const Int_t biny = h->GetYaxis()->FindBin(globPosVec[1]/cm);
 
-  if (h->GetBinContent(bin) == 0)
+  if (h->GetBinContent(binx, binx) == 0)
     { // only fille unfilled bins
 
       G4TransportationManager* transportMgr =
@@ -414,9 +419,13 @@ PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
       G4ThreeVector FieldValue = G4ThreeVector(FieldValueVec[0],
           FieldValueVec[1], FieldValueVec[2]);
 
-      const G4double B = FieldValue.mag();
+      const double B = FieldValue.mag() / tesla;
 
-      h->SetBinContent(bin, B);
+      h->SetBinContent(binx, biny, B);
+
+      cout << "PHG4OuterHcalSteppingAction::FieldChecker - " << "bin " << binx
+          << ", " << biny << " := " << B << " Tesla @ x,y = " << globPosVec[0] / cm
+          << "," << globPosVec[1] / cm << " cm"<<endl;
     }
 
 }
