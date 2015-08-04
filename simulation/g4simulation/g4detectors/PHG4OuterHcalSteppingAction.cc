@@ -1,6 +1,15 @@
 #include "PHG4OuterHcalSteppingAction.h"
 #include "PHG4OuterHcalDetector.h"
 
+
+#include <TH2F.h>
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllServer.h>
+#include <Geant4/G4TransportationManager.hh>
+#include <Geant4/G4FieldManager.hh>
+#include <Geant4/G4Field.hh>
+#include <Geant4/G4PropagatorInField.hh>
+
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
@@ -28,6 +37,7 @@
 #endif
 
 #include <iostream>
+#include <cassert>
 
 using namespace std;
 //____________________________________________________________________________..
@@ -37,13 +47,17 @@ PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector*
   hits_(NULL),
   absorberhits_(NULL),
   hit(NULL),
+  enable_field_checker_(false),
   light_scint_model_(true),
   light_balance_(false),
   light_balance_inner_radius_(0.0),
   light_balance_inner_corr_(1.0),
   light_balance_outer_radius_(10.0),
   light_balance_outer_corr_(1.0)  
-{}
+{
+
+
+}
 
 //____________________________________________________________________________..
 bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
@@ -65,6 +79,10 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
     {
       return false;
     }
+
+  if (enable_field_checker_)
+    FieldChecker(aStep);
+
   unsigned int motherid = ~0x0; // initialize to 0xFFFFFF using the correct bitness
   int tower_id = -1;
   if (whichactive > 0) // scintillator
@@ -334,3 +352,82 @@ float PHG4OuterHcalSteppingAction::GetLightCorrection(float r) {
 
   return value;
 }
+
+void
+PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
+{
+  Fun4AllServer* se = Fun4AllServer::instance();
+  assert(se);
+
+  static const string h_field_name = "hOuterHcalField";
+
+  if (not se->isHistoRegistered(h_field_name))
+    {
+      TH2F * h = new TH2F(h_field_name.c_str(), "Magnetic field (Tesla) in HCal;X (cm);Y (cm)", 2400,
+          -300, 300, 2400, -300, 300);
+
+      se->registerHisto(h, 1);
+
+      cout <<"PHG4OuterHcalSteppingAction::FieldChecker - make a histograme to check outer Hcal field map."<<
+          " Saved to Fun4AllServer Histo with name "<<h_field_name<<endl;
+    }
+
+  TH2F * h = dynamic_cast<TH2F *>(se->getHisto(h_field_name));
+  assert(h);
+
+  assert(aStep);
+  G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
+  assert(touch);
+  // get volume of the current step
+  G4VPhysicalVolume* volume = touch->GetVolume();
+  assert(volume);
+
+  G4ThreeVector globPosition = aStep->GetPreStepPoint()->GetPosition();
+
+  G4double globPosVec[4] =
+    { 0 }, FieldValueVec[6] =
+    { 0 };
+
+  globPosVec[0] = globPosition.x();
+  globPosVec[1] = globPosition.y();
+  globPosVec[2] = globPosition.z();
+  globPosVec[3] = aStep->GetPreStepPoint()->GetGlobalTime();
+
+  const Int_t binx = h->GetXaxis()->FindBin(globPosVec[0]/cm);
+  const Int_t biny = h->GetYaxis()->FindBin(globPosVec[1]/cm);
+
+  if (h->GetBinContent(binx, binx) == 0)
+    { // only fille unfilled bins
+
+      G4TransportationManager* transportMgr =
+          G4TransportationManager::GetTransportationManager();
+      assert(transportMgr);
+
+      G4PropagatorInField* fFieldPropagator =
+          transportMgr->GetPropagatorInField();
+      assert(fFieldPropagator);
+
+      G4FieldManager* fieldMgr = fFieldPropagator->FindAndSetFieldManager(
+          volume);
+      assert(fieldMgr);
+
+      const G4Field* pField = fieldMgr->GetDetectorField();
+      assert(pField);
+
+      pField->GetFieldValue(globPosVec, FieldValueVec);
+
+      G4ThreeVector FieldValue = G4ThreeVector(FieldValueVec[0],
+          FieldValueVec[1], FieldValueVec[2]);
+
+      const double B = FieldValue.mag() / tesla;
+
+      h->SetBinContent(binx, biny, B);
+
+      cout << "PHG4OuterHcalSteppingAction::FieldChecker - " << "bin " << binx
+          << ", " << biny << " := " << B << " Tesla @ x,y = " << globPosVec[0] / cm
+          << "," << globPosVec[1] / cm << " cm"<<endl;
+    }
+
+}
+
+

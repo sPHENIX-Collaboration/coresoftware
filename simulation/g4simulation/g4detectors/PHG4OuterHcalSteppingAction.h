@@ -40,6 +40,8 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
     light_scint_model_ = b;
   }
   
+  void FieldChecker (const G4Step*);
+
   private:
 
   //! pointer to the detector
@@ -50,6 +52,7 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer * absorberhits_;
   PHG4Hit *hit;
 
+  bool  enable_field_checker_;
   bool  light_scint_model_;
   bool  light_balance_;
   float light_balance_inner_radius_;

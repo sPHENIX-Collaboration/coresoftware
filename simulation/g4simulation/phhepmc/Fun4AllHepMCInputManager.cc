@@ -43,7 +43,7 @@ Fun4AllHepMCInputManager::Fun4AllHepMCInputManager(const string &name, const str
   events_thisfile(0),
   readoscar(0),
   momentumunit(HepMC::Units::GEV),
-  lengthunit(HepMC::Units::MM),
+  lengthunit(HepMC::Units::CM),
   topNodeName(topnodename),
   ascii_in(NULL),
   evt(NULL),
