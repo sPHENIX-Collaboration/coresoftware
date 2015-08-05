@@ -4,11 +4,16 @@
 #include "JetInput.h"
 #include "JetAlgo.h"
 #include "JetMap.h"
+#include "JetMapV1.h"
 #include "Jet.h"
 
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
-
+#include <phool/PHNodeIterator.h>
+#include <phool/PHTypedNodeIterator.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <fun4all/getClass.h>
 
 // standard includes
 #include <iostream>
@@ -20,6 +25,8 @@ JetReco::JetReco(const string &name)
   : SubsysReco(name),
     _inputs(),
     _algos(),
+    _algonode(),
+    _inputnode(),
     _outputs() {
   verbosity = 0;
 }
@@ -72,11 +79,11 @@ int JetReco::process_event(PHCompositeNode *topNode) {
     std::vector<Jet*> jets = _algos[ialgo]->get_jets(inputs); // owns memory
 
     // send the output somewhere on the DST
-    //WriteJetOuptut(topNode,_outputs[ialgo],jets);
+    //FillJetNode(topNode,_outputs[ialgo],jets);
 
     // clean up --- maybe?
-    for (unsigned int i=0;i<jets.size();++i) delete jets[i];
-    jets.clear();
+    //for (unsigned int i=0;i<jets.size();++i) delete jets[i];
+    //jets.clear();
   }
 
   // clean up input vector
@@ -94,9 +101,42 @@ int JetReco::End(PHCompositeNode *topNode) {
 
 int JetReco::CreateNodes(PHCompositeNode *topNode) {
 
-  for (unsigned int i=0; i<_outputs.size(); ++i) {
-    // format DST/substring/substring/substring/object
+  PHNodeIterator iter(topNode);
+
+  // Looking for the DST node
+  PHCompositeNode *dstNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
+  if (!dstNode) {
+    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+    
+  // Create the AntiKt node if required
+  PHCompositeNode* AlgoNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",_algonode.c_str()));
+  if (!AlgoNode) {
+    AlgoNode = new PHCompositeNode(_algonode.c_str());
+    dstNode->addNode(AlgoNode);
+  }
+    
+  // Create the Input node if required
+  PHCompositeNode* InputNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",_inputnode.c_str()));
+  if (!InputNode) {
+    InputNode = new PHCompositeNode(_inputnode.c_str());
+    AlgoNode->addNode(InputNode);
+  }
+
+  for (unsigned i=0; i<_outputs.size(); ++i) {
+    JetMap *jets = findNode::getClass<JetMap>(topNode,_outputs[i]);
+    if (!jets) {
+      jets = new JetMapV1();
+      PHIODataNode<PHObject> *JetMapNode = new PHIODataNode<PHObject>(jets,_outputs[i].c_str(),"PHObject");
+      InputNode->addNode(JetMapNode);
+    }
   }
   
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void JetReco::FillJetNode(PHCompositeNode *topNode, std::string nodename, std::vector<Jet*> jets) {
+
+  return;
 }

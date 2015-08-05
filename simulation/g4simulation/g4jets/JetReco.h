@@ -39,7 +39,6 @@ class JetReco : public SubsysReco
 		
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
-  int CreateNodes(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
@@ -48,13 +47,20 @@ class JetReco : public SubsysReco
     _algos.push_back(algo);
     _outputs.push_back(output);
   }
+
+  void set_algo_node(std::string algonode) {_algonode = algonode;}
+  void set_input_node(std::string inputnode) {_inputnode = inputnode;}
   
  private:
 
-  std::vector<JetInput*>  _inputs;
-  std::vector<JetAlgo*>   _algos;
-  std::vector<std::string> _outputs;
+  int CreateNodes(PHCompositeNode *topNode);
+  void FillJetNode(PHCompositeNode *topNode,std::string nodename,std::vector<Jet*> jets);
   
+  std::vector<JetInput*>   _inputs;
+  std::vector<JetAlgo*>    _algos;
+  std::string _algonode;
+  std::string _inputnode;
+  std::vector<std::string> _outputs; 
 };
 
 #endif // __JETRECO_H__
