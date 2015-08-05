@@ -3,6 +3,7 @@
 
 #include "JetInput.h"
 #include "Jet.h"
+#include "JetV1.h"
 
 // standard includes
 #include <iostream>
@@ -16,13 +17,15 @@
 
 using namespace std;
 
-FastJetAlgo::FastJetAlgo()
-  : verbosity(0) {
+FastJetAlgo::FastJetAlgo(int algo, float par)
+  : _verbosity(0),
+    _algo(algo),
+    _par(par) {
 }
 
 std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles) {
   
-  if (verbosity > 0) cout << "FastJetAlgo::process_event -- entered" << endl;
+  if (_verbosity > 0) cout << "FastJetAlgo::process_event -- entered" << endl;
 
   // translate to fastjet
   std::vector<fastjet::PseudoJet> pseudojets;
@@ -31,26 +34,49 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles) {
 				  particles[ipart]->get_py(),
 				  particles[ipart]->get_pz(),
 				  particles[ipart]->get_e());
-    pseudojet.set_user_index(particles[ipart]->get_id());
+    pseudojet.set_user_index(ipart);
     pseudojets.push_back(pseudojet);
   }
 
-  // run fast jet  
-  fastjet::JetDefinition jetdef(fastjet::antikt_algorithm,0.4,fastjet::Best);
-  fastjet::ClusterSequence jetFinder(pseudojets,jetdef);
+  // run fast jet
+  fastjet::JetDefinition *jetdef = NULL;
+  if (_algo == ANTIKT)  jetdef = new fastjet::JetDefinition(fastjet::antikt_algorithm,_par,fastjet::Best);
+  else if (_algo == KT) jetdef = new fastjet::JetDefinition(fastjet::kt_algorithm,_par,fastjet::Best);
+  else if (_algo == CA) jetdef = new fastjet::JetDefinition(fastjet::cambridge_algorithm,_par,fastjet::Best);
+  else return std::vector<Jet*>();
+  fastjet::ClusterSequence jetFinder(pseudojets,*jetdef);
   std::vector<fastjet::PseudoJet> fastjets = jetFinder.inclusive_jets();
-
-  // print out
+  delete jetdef;
+  
+  // translate into jet output...
+  std::vector<Jet*> jets;
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet) {
-    cout << "  "
-	 << fastjets[ijet].perp() << ", "
-	 << fastjets[ijet].eta()  << ", "
-	 << fastjets[ijet].phi()  << endl;
+
+    Jet *jet = new JetV1();
+    jet->set_px(fastjets[ijet].px());
+    jet->set_py(fastjets[ijet].py());
+    jet->set_pz(fastjets[ijet].pz());
+    jet->set_e(fastjets[ijet].e());
+    jet->set_id(ijet);
+
+    // copy components into output jet
+    std::vector<fastjet::PseudoJet> comps = fastjets[ijet].constituents();
+    for (unsigned int icomp = 0; icomp < comps.size(); ++icomp) {
+      Jet* particle = particles[comps[icomp].user_index()];
+
+      for (Jet::Iter iter = particle->begin_comp();
+	   iter != particle->end_comp();
+	   ++iter) {
+      	jet->insert_comp(iter->first,iter->second);
+      }
+    }
+    
+    jets.push_back(jet);
+
+    jet->identify();
   }
 
-  // translate into jet output...
-
-  if (verbosity > 0) cout << "FastJetAlgo::process_event -- exited" << endl;
+  if (_verbosity > 0) cout << "FastJetAlgo::process_event -- exited" << endl;
   
-  return std::vector<Jet*>();
+  return jets;
 }

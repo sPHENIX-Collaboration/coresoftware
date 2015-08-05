@@ -18,16 +18,19 @@
 // standard includes
 #include <iostream>
 #include <vector>
+#include <cstdlib>
 
 using namespace std;
 
 TruthJetInput::TruthJetInput()
-  : verbosity(0) {
+  : _verbosity(0),
+    _eta_min(-4.0),
+    _eta_max(+4.0) {
 }
 
 std::vector<Jet*> TruthJetInput::get_input(PHCompositeNode *topNode) {
   
-  if (verbosity > 0) cout << "TruthJetInput::process_event -- entered" << endl;
+  if (_verbosity > 0) cout << "TruthJetInput::process_event -- entered" << endl;
 
   // Pull the reconstructed track information off the node tree...
   PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
@@ -43,19 +46,30 @@ std::vector<Jet*> TruthJetInput::get_input(PHCompositeNode *topNode) {
        ++iter) {
     PHG4Particle *part = iter->second;
 
-    // remove some particles... stable only, muons, neutrinos, tau
+    // remove some particles (muons, taus, neutrinos)...
+    // 12 == nu_e
+    // 13 == muons
+    // 14 == nu_mu
+    // 15 == taus
+    // 16 == nu_tau
+    if ((abs(part->get_pid()) >= 12) && (abs(part->get_pid()) <= 16)) continue;
+    
     // remove acceptance... _etamin,_etamax
+    if ((part->get_px() == 0.0) && (part->get_py() == 0.0)) continue; // avoid pt=0
+    float eta = asinh(part->get_pz()/sqrt(pow(part->get_px(),2)+pow(part->get_py(),2)));
+    if (eta < _eta_min) continue;
+    if (eta > _eta_max) continue;
     
     Jet *jet = new JetV1();
     jet->set_px(part->get_px());
     jet->set_py(part->get_py());
     jet->set_pz(part->get_pz());
     jet->set_e(part->get_e());
-    jet->set_id(part->get_track_id());
+    jet->insert_comp(Jet::PARTICLE,part->get_track_id());
     pseudojets.push_back(jet);
   }
 
-  if (verbosity > 0) cout << "TruthJetInput::process_event -- exited" << endl;
+  if (_verbosity > 0) cout << "TruthJetInput::process_event -- exited" << endl;
 
   return pseudojets;
 }

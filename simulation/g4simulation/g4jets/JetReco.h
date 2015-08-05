@@ -35,17 +35,25 @@ class JetReco : public SubsysReco
  public:
  
   JetReco(const std::string &name = "JetReco");
-  virtual ~JetReco() {}
+  virtual ~JetReco();
 		
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
+  int CreateNodes(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  void add_input(JetInput* input) {_inputs.push_back(input);}
+  void add_algo(JetAlgo* algo, std::string output) {
+    _algos.push_back(algo);
+    _outputs.push_back(output);
+  }
+  
  private:
 
   std::vector<JetInput*>  _inputs;
   std::vector<JetAlgo*>   _algos;
+  std::vector<std::string> _outputs;
   
 };
 

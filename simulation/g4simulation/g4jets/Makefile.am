@@ -20,7 +20,8 @@ libg4jets_la_LDFLAGS = \
   -lg4hough_io \
   -lcemc_io \
   -lCGAL \
-  -lfastjet 
+  -lfastjet \
+  `geant4-config --libs`
 
 pkginclude_HEADERS = \
   Jet.h \
