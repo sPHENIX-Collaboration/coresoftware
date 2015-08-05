@@ -22,8 +22,9 @@
 
 using namespace std;
 
-TruthJetInput::TruthJetInput()
+TruthJetInput::TruthJetInput(Jet::SRC input)
   : _verbosity(0),
+    _input(input),
     _eta_min(-4.0),
     _eta_max(+4.0) {
 }

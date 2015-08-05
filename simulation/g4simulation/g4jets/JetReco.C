@@ -79,11 +79,7 @@ int JetReco::process_event(PHCompositeNode *topNode) {
     std::vector<Jet*> jets = _algos[ialgo]->get_jets(inputs); // owns memory
 
     // send the output somewhere on the DST
-    //FillJetNode(topNode,_outputs[ialgo],jets);
-
-    // clean up --- maybe?
-    //for (unsigned int i=0;i<jets.size();++i) delete jets[i];
-    //jets.clear();
+    FillJetNode(topNode,ialgo,jets);
   }
 
   // clean up input vector
@@ -136,7 +132,29 @@ int JetReco::CreateNodes(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void JetReco::FillJetNode(PHCompositeNode *topNode, std::string nodename, std::vector<Jet*> jets) {
+void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, std::vector<Jet*> jets) {
 
+  JetMap *jetmap = NULL;
+  PHTypedNodeIterator<JetMap> jetmapiter(topNode);
+  PHIODataNode<JetMap> *JetMapNode = jetmapiter.find(_outputs[ipos].c_str());
+  if (!JetMapNode) {
+    cout << PHWHERE << " ERROR: Can't find JetMap: " << _outputs[ipos] << endl;
+    exit(-1);
+  } else {
+    jetmap = (JetMap*)JetMapNode->getData();
+  }
+
+  jetmap->set_algo(_algos[ipos]->get_algo());
+  jetmap->set_par(_algos[ipos]->get_par());
+  for (unsigned int i=0; i<_inputs.size(); ++i) {
+    jetmap->insert_src(_inputs[i]->get_src());
+  }
+  
+  for (unsigned int i=0; i<jets.size(); ++i) {
+    jetmap->insert(jets[i]); // map takes ownership, sets unique id
+  }
+
+  jetmap->identify();
+  
   return;
 }

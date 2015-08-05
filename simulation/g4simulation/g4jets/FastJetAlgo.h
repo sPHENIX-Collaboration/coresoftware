@@ -10,16 +10,17 @@ class FastJetAlgo : public JetAlgo {
   
 public:
 
-  enum {ANTIKT=0,KT=1,CA=2};
-  
-  FastJetAlgo(int algo, float par);
+  FastJetAlgo(Jet::ALGO algo, float par);
   virtual ~FastJetAlgo() {}
 
+  Jet::ALGO get_algo() {return _algo;}
+  float     get_par() {return _par;}
+  
   std::vector<Jet*> get_jets(std::vector<Jet*> particles);
   
 private:
   int _verbosity;
-  int _algo;
+  Jet::ALGO _algo;
   float _par;
   
 };

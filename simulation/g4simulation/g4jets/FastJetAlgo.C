@@ -17,7 +17,7 @@
 
 using namespace std;
 
-FastJetAlgo::FastJetAlgo(int algo, float par)
+FastJetAlgo::FastJetAlgo(Jet::ALGO algo, float par)
   : _verbosity(0),
     _algo(algo),
     _par(par) {
@@ -40,9 +40,9 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles) {
 
   // run fast jet
   fastjet::JetDefinition *jetdef = NULL;
-  if (_algo == ANTIKT)  jetdef = new fastjet::JetDefinition(fastjet::antikt_algorithm,_par,fastjet::Best);
-  else if (_algo == KT) jetdef = new fastjet::JetDefinition(fastjet::kt_algorithm,_par,fastjet::Best);
-  else if (_algo == CA) jetdef = new fastjet::JetDefinition(fastjet::cambridge_algorithm,_par,fastjet::Best);
+  if (_algo == Jet::ANTIKT)  jetdef = new fastjet::JetDefinition(fastjet::antikt_algorithm,_par,fastjet::Best);
+  else if (_algo == Jet::KT) jetdef = new fastjet::JetDefinition(fastjet::kt_algorithm,_par,fastjet::Best);
+  else if (_algo == Jet::CAMBRIDGE) jetdef = new fastjet::JetDefinition(fastjet::cambridge_algorithm,_par,fastjet::Best);
   else return std::vector<Jet*>();
   fastjet::ClusterSequence jetFinder(pseudojets,*jetdef);
   std::vector<fastjet::PseudoJet> fastjets = jetFinder.inclusive_jets();
@@ -72,8 +72,6 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles) {
     }
     
     jets.push_back(jet);
-
-    jet->identify();
   }
 
   if (_verbosity > 0) cout << "FastJetAlgo::process_event -- exited" << endl;

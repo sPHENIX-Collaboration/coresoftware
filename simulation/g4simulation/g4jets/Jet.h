@@ -12,17 +12,18 @@ public:
 
   // enums can be extended with new values, but values not altered
   
-  enum ALGO {NONE=0, ANTIKT=1, KT=2, CONE=3};
+  enum ALGO {NONE=0, ANTIKT=1, KT=2, CAMBRIDGE=3};
 
   enum SRC {
-    TRACK=0,
-    CEMC_TOWER=1, CEMC_CLUSTER=2,
-    HCALIN_TOWER=3, HCALIN_CLUSTER=4,
-    HCALOUT_TOWER=5, HCALOUT_CLUSTER=6,
-    PARTICLE=7
+    VOID=0,
+    PARTICLE=1,
+    TRACK=2,
+    CEMC_TOWER=3, CEMC_CLUSTER=4,
+    HCALIN_TOWER=5, HCALIN_CLUSTER=6,
+    HCALOUT_TOWER=7, HCALOUT_CLUSTER=8,
   };
 
-  enum PROPERTY {prop_JetCharge = 12, prop_BFrac = 101};
+  enum PROPERTY {prop_JetCharge = 1, prop_BFrac = 2};
   
   virtual ~Jet() {}
 

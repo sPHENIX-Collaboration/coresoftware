@@ -12,9 +12,11 @@ class TruthJetInput : public JetInput {
   
 public:
 
-  TruthJetInput();
+  TruthJetInput(Jet::SRC input);
   virtual ~TruthJetInput() {}
 
+  Jet::SRC get_src() {return _input;}
+  
   std::vector<Jet*> get_input(PHCompositeNode *topNode);
   
   void set_eta_range(float eta_min, float eta_max) {
@@ -24,6 +26,7 @@ public:
     
 private:
   int _verbosity;
+  Jet::SRC _input;
   float _eta_min;
   float _eta_max;
 };
