@@ -2,6 +2,7 @@
 #define PHG4OuterHcalDetector_h
 
 #include "g4main/PHG4Detector.h"
+#include "PHG4OuterHcalFieldSetup.h"
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4Types.hh>
@@ -16,7 +17,6 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
-
 
 class PHG4OuterHcalDetector: public PHG4Detector
 {
@@ -123,6 +123,7 @@ class PHG4OuterHcalDetector: public PHG4Detector
   std::string superdetector;
   std::vector<G4VSolid *> scinti_tiles_vec; 
   std::string scintilogicnameprefix;
+  PHG4OuterHcalFieldSetup * field_setup;
 };
 
 #endif

@@ -82,7 +82,7 @@ static void convertHelixCovarianceToEuclideanCovariance( float B, float phi, flo
 
   float alpha = 1./(1. - dzdl*dzdl);
   float alpha_half = pow( alpha, 0.5 );
-  float alpha_3_half = alpha_half*alpha_half;
+  float alpha_3_half = alpha*alpha_half;
 
   J( 5, 2 ) = dpt_dk*dzdl*alpha_half*dk_dnu;
   J( 5, 4 ) = pt*( alpha_half + dzdl*dzdl*alpha_3_half )*dk_dnu;
@@ -760,9 +760,9 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
       }
     }
 
-    track.set_x( _vertex[0] + d*cos(phi) );
-    track.set_y( _vertex[1] + d*sin(phi) );
-    track.set_z( _vertex[2] + z0 );
+    track.set_x( d*cos(phi) );
+    track.set_y( d*sin(phi) );
+    track.set_z( z0 );
 
 
     

@@ -142,7 +142,7 @@ void Fun4AllServer::InitAll()
   SyncManagers.push_back(defaultSyncManager);
   TopNode = new PHCompositeNode("TOP");
   topnodemap["TOP"] = TopNode;
-  default_Tdirectory = "Rint:/";
+  default_Tdirectory = gDirectory->GetPath();
   InitNodeTree(TopNode);
   return ;
 }
