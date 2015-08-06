@@ -1,5 +1,7 @@
 #include "PHG4Hit.h"
 
+#include <cstdlib>
+
 using namespace std;
 
 ClassImp(PHG4Hit)
@@ -57,3 +59,71 @@ ostream& operator<<(ostream& stream, const PHG4Hit * hit){
   return stream;
 }
 
+std::pair<const std::string,PHG4Hit::PROPERTY_TYPE> 
+PHG4Hit::get_property_info(const PROPERTY prop_id) 
+{
+  switch (prop_id)
+  {
+  case  prop_eion:
+    return make_pair("ionizing energy loss",PHG4Hit::type_float);
+  case   prop_light_yield:
+    return make_pair("light yield",PHG4Hit::type_float);
+  case   prop_px:
+    return make_pair("px",PHG4Hit::type_float);
+  case   prop_py:
+    return make_pair("py",PHG4Hit::type_float);
+  case   prop_pz:
+    return make_pair("pz",PHG4Hit::type_float);
+  case   prop_path_length:
+    return make_pair("pathlength",PHG4Hit::type_float);
+  case   prop_layer:
+    return make_pair("layer ID",PHG4Hit::type_uint);
+  case   prop_scint_id:
+    return make_pair("scintillator ID",PHG4Hit::type_int);
+  case   prop_strip_z_index:
+    return make_pair("strip z index",PHG4Hit::type_int);
+  case   prop_strip_y_index:
+    return make_pair("strip y index",PHG4Hit::type_int);
+  case   prop_ladder_z_index:
+    return make_pair("ladder z index",PHG4Hit::type_int);
+  case   prop_ladder_phi_index:
+    return make_pair("ladder phi index",PHG4Hit::type_int);
+  case   prop_index_i:
+    return make_pair("generic index i",PHG4Hit::type_int);
+  case   prop_index_j:
+    return make_pair("generic index j",PHG4Hit::type_int);
+  case   prop_index_k:
+    return make_pair("generic index k",PHG4Hit::type_int);
+  default:
+    cout << "unknown index " << prop_id << endl;
+    exit(1);
+  }
+}
+
+
+bool
+PHG4Hit::check_property(const PROPERTY prop_id, const PROPERTY_TYPE prop_type)
+{
+  pair<const string,PROPERTY_TYPE> property_info = get_property_info(prop_id);
+  if (property_info.second != prop_type)
+    {
+      return false;
+    }
+  return true;
+}
+
+string
+PHG4Hit::get_property_type(const PROPERTY_TYPE prop_type)
+{
+  switch(prop_type)
+    {
+    case type_int:
+      return "int";
+    case type_uint:
+      return "unsigned int";
+    case type_float:
+      return "float";
+    default:
+      return "unkown";
+    }
+}
