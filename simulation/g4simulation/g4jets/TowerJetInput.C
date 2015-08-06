@@ -12,7 +12,9 @@
 #include <fun4all/getClass.h>
 
 // PHENIX Geant4 includes
-//#include <g4cemc/SvtxTrackMap.h>
+#include <g4cemc/RawTowerGeom.h>
+#include <g4cemc/RawTowerContainer.h>
+#include <g4cemc/RawTower.h>
 
 // standard includes
 #include <iostream>
@@ -30,27 +32,57 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
   
   if (_verbosity > 0) cout << "TowerJetInput::process_event -- entered" << endl;
 
-  // // Pull the reconstructed tower information off the node tree...
-  // SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
-  // if (!trackmap) {
-  //   cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << endl;
-  //   return std::vector<Jet*>();
-  // }
-
+  RawTowerContainer *towers = NULL;
+  RawTowerGeom *geom = NULL;
+  if (_input == Jet::CEMC_TOWER) {
+    towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CEMC");
+    geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_CEMC");
+    if (!towers||!geom) {
+      cerr << PHWHERE << " ERROR: Can't find TOWER_CEMC" << endl;
+      return std::vector<Jet*>();
+    }
+  } else if (_input == Jet::HCALIN_TOWER) {
+    towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_HCALIN");
+    geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_HCALIN");
+    if (!towers||!geom) {
+      cerr << PHWHERE << " ERROR: Can't find TOWER_HCALIN" << endl;
+      return std::vector<Jet*>();
+    }
+  } else if (_input == Jet::HCALOUT_TOWER) {
+    towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_HCALOUT");
+    geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_HCALOUT");
+    if (!towers||!geom) {
+      cerr << PHWHERE << " ERROR: Can't find TOWER_HCALOUT" << endl;
+      return std::vector<Jet*>();
+    }
+  } else {
+    return std::vector<Jet*>();
+  }
+  
   std::vector<Jet*> pseudojets;
-  // for (SvtxTrackMap::ConstIter iter = trackmap->begin(); 
-  //      iter != trackmap->end(); 
-  //      ++iter) {
-  //   const SvtxTrack *track = &iter->second;
+  RawTowerContainer::ConstRange begin_end = towers->getTowers();
+  RawTowerContainer::ConstIterator rtiter;
+  for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
+    RawTower *tower = rtiter->second;
 
-  //   Jet *jet = new JetV1();
-  //   jet->set_px(track->get3Momentum(0));
-  //   jet->set_py(track->get3Momentum(1));
-  //   jet->set_pz(track->get3Momentum(2));
-  //   jet->set_e(track->getMomentum());
-  //   jet->insert_comp(Jet::TRACK,track->getTrackID());
-  //   pseudojets.push_back(jet);
-  // }
+    int bineta = tower->get_bineta();
+    int binphi = tower->get_binphi();
+    double eta = geom->get_etacenter(bineta);
+    double phi = geom->get_phicenter(binphi);
+
+    double pt = tower->get_energy() / cosh(eta);
+    double px = pt * cos(phi);
+    double py = pt * sin(phi);
+    double pz = pt * sinh(eta);
+
+    Jet *jet = new JetV1();
+    jet->set_px(px);
+    jet->set_py(py);
+    jet->set_pz(pz);
+    jet->set_e(tower->get_energy());
+    jet->insert_comp(_input,(bineta << 16) | binphi);
+    pseudojets.push_back(jet);
+  }
 
   if (_verbosity > 0) cout << "TowerJetInput::process_event -- exited" << endl;
 
