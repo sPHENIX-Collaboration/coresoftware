@@ -11,6 +11,10 @@ public:
 
   virtual ~JetAlgo() {}
 
+  virtual void identify(std::ostream& os = std::cout) {
+    os << "JetAlgo base class" << std::endl;
+  }
+    
   virtual Jet::ALGO get_algo() {return Jet::NONE;}
   virtual float get_par() {return NAN;}
   

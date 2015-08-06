@@ -13,6 +13,7 @@ public:
   FastJetAlgo(Jet::ALGO algo, float par);
   virtual ~FastJetAlgo() {}
 
+  void      identify(std::ostream& os = std::cout);
   Jet::ALGO get_algo() {return _algo;}
   float     get_par() {return _par;}
   

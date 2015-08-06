@@ -23,8 +23,9 @@ public:
     HCALOUT_TOWER=7, HCALOUT_CLUSTER=8,
   };
 
-  enum PROPERTY {prop_JetCharge = 1, prop_BFrac = 2};
-  
+  enum PROPERTY {prop_JetCharge = 1,prop_BFrac = 2};
+
+  Jet();
   virtual ~Jet() {}
 
   virtual void identify(std::ostream& os = std::cout) const;
@@ -98,9 +99,6 @@ public:
   virtual Iter end_comp() {return typ_comp_ids().end();}
 
   /*! @} */
-  
-protected:
-  Jet();  
   
   ClassDef(Jet, 1);
 };

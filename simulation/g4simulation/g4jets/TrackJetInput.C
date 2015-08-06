@@ -27,6 +27,10 @@ TrackJetInput::TrackJetInput(Jet::SRC input)
     _input(input) {
 }
 
+void TrackJetInput::identify(std::ostream& os) {
+  os << "   TrackJetInput: SvtxTrackMap to Jet::TRACK" << endl;
+}
+
 std::vector<Jet*> TrackJetInput::get_input(PHCompositeNode *topNode) {
   
   if (_verbosity > 0) cout << "TrackJetInput::process_event -- entered" << endl;

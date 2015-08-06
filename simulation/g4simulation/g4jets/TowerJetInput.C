@@ -28,6 +28,14 @@ TowerJetInput::TowerJetInput(Jet::SRC input)
     _input(input) {
 }
 
+void TowerJetInput::identify(std::ostream& os) {
+  os << "   TowerJetInput: ";
+  if      (_input == Jet::CEMC_TOWER)    os << "TOWER_CEMC to Jet::CEMC_TOWER";
+  else if (_input == Jet::HCALIN_TOWER)  os << "TOWER_HCALIN to Jet::HCALIN_TOWER";
+  else if (_input == Jet::HCALOUT_TOWER) os << "TOWER_HCALOUT to Jet::HCALOUT_TOWER";
+  os << endl;
+}
+
 std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
   
   if (_verbosity > 0) cout << "TowerJetInput::process_event -- entered" << endl;

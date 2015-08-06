@@ -21,12 +21,22 @@ FastJetAlgo::FastJetAlgo(Jet::ALGO algo, float par)
   : _verbosity(0),
     _algo(algo),
     _par(par) {
+  fastjet::ClusterSequence clusseq;
+  clusseq.print_banner(); // move text to beginning
 }
 
+void FastJetAlgo::identify(std::ostream& os) {
+  os << "   FastJetAlgo: ";
+  if (_algo == Jet::ANTIKT)      os << "ANTIKT r=" << _par;
+  else if (_algo == Jet::ANTIKT) os << "KT r=" << _par;
+  else if (_algo == Jet::ANTIKT) os << "CAMBRIDGE r=" << _par;
+  os << endl;
+}
+  
 std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles) {
   
   if (_verbosity > 0) cout << "FastJetAlgo::process_event -- entered" << endl;
-
+    
   // translate to fastjet
   std::vector<fastjet::PseudoJet> pseudojets;
   for (unsigned int ipart = 0; ipart < particles.size(); ++ipart) {    

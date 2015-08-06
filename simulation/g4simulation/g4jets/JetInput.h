@@ -4,6 +4,7 @@
 #include <phool/PHCompositeNode.h>
 #include "Jet.h"
 #include <vector>
+#include <iostream>
 
 class JetInput {
   
@@ -11,6 +12,10 @@ public:
 
   virtual ~JetInput() {}
 
+  virtual void identify(std::ostream& os = std::cout) {
+    os << "JetInput base class" << std::endl;
+  }
+  
   virtual Jet::SRC get_src() {return Jet::VOID;}
   
   virtual std::vector<Jet*> get_input(PHCompositeNode *topNode) {

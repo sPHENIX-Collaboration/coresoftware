@@ -15,6 +15,8 @@ public:
   TowerJetInput(Jet::SRC input);
   virtual ~TowerJetInput() {}
 
+  void identify(std::ostream& os = std::cout);
+  
   Jet::SRC get_src() {return _input;}
   
   std::vector<Jet*> get_input(PHCompositeNode *topNode);

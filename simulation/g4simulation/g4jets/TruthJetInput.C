@@ -29,6 +29,10 @@ TruthJetInput::TruthJetInput(Jet::SRC input)
     _eta_max(+4.0) {
 }
 
+void TruthJetInput::identify(std::ostream& os) {
+  os << "   TruthJetInput: G4TruthInfo to Jet::PARTICLE" << endl;
+}
+
 std::vector<Jet*> TruthJetInput::get_input(PHCompositeNode *topNode) {
   
   if (_verbosity > 0) cout << "TruthJetInput::process_event -- entered" << endl;
@@ -61,7 +65,7 @@ std::vector<Jet*> TruthJetInput::get_input(PHCompositeNode *topNode) {
     if (eta < _eta_min) continue;
     if (eta > _eta_max) continue;
     
-    Jet *jet = new JetV1();
+    Jet *jet = (Jet*)(new JetV1());
     jet->set_px(part->get_px());
     jet->set_py(part->get_py());
     jet->set_pz(part->get_pz());

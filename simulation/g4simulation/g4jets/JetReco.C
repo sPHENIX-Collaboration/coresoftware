@@ -47,8 +47,10 @@ int JetReco::InitRun(PHCompositeNode *topNode) {
   
   if (verbosity >= 0) {
     cout << "========================== JetReco::InitRun() =============================" << endl;
-    cout << "Input Selections:" << endl;
-    cout << "Algorithms and Outputs:" << endl;    
+    cout << " Input Selections:" << endl;
+    for (unsigned int i=0; i<_inputs.size(); ++i) _inputs[i]->identify();
+    cout << " Algorithms:" << endl;
+    for (unsigned int i=0; i<_algos.size(); ++i) _algos[i]->identify();
     cout << "===========================================================================" << endl;
   }
 
