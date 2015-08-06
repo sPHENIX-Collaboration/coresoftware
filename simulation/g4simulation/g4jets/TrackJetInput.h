@@ -1,5 +1,5 @@
-#ifndef __TRUTHJETINPUT_H__
-#define __TRUTHJETINPUT_H__
+#ifndef __TRACKJETINPUT_H__
+#define __TRACKJETINPUT_H__
 
 #include <phool/PHCompositeNode.h>
 
@@ -8,27 +8,20 @@
 
 #include <vector>
 
-class TruthJetInput : public JetInput {
+class TrackJetInput : public JetInput {
   
 public:
 
-  TruthJetInput(Jet::SRC input);
-  virtual ~TruthJetInput() {}
+  TrackJetInput(Jet::SRC input);
+  virtual ~TrackJetInput() {}
 
   Jet::SRC get_src() {return _input;}
   
   std::vector<Jet*> get_input(PHCompositeNode *topNode);
   
-  void set_eta_range(float eta_min, float eta_max) {
-    _eta_min = eta_min;
-    _eta_max = eta_max;
-  }
-    
 private:
   int _verbosity;
   Jet::SRC _input;
-  float _eta_min;
-  float _eta_max;
 };
 
 #endif

@@ -32,6 +32,7 @@ pkginclude_HEADERS = \
   JetAlgo.h \
   JetReco.h \
   TruthJetInput.h \
+  TrackJetInput.h \
   FastJetAlgo.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
@@ -49,6 +50,8 @@ libg4jets_la_SOURCES = \
   JetReco_Dict.C \
   TruthJetInput.C \
   TruthJetInput_Dict.C \
+  TrackJetInput.C \
+  TrackJetInput_Dict.C \
   FastJetAlgo.C \
   FastJetAlgo_Dict.C
 
