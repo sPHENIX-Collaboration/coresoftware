@@ -38,21 +38,18 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
     towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CEMC");
     geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_CEMC");
     if (!towers||!geom) {
-      cerr << PHWHERE << " ERROR: Can't find TOWER_CEMC" << endl;
       return std::vector<Jet*>();
     }
   } else if (_input == Jet::HCALIN_TOWER) {
     towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_HCALIN");
     geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_HCALIN");
     if (!towers||!geom) {
-      cerr << PHWHERE << " ERROR: Can't find TOWER_HCALIN" << endl;
       return std::vector<Jet*>();
     }
   } else if (_input == Jet::HCALOUT_TOWER) {
     towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_HCALOUT");
     geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_HCALOUT");
     if (!towers||!geom) {
-      cerr << PHWHERE << " ERROR: Can't find TOWER_HCALOUT" << endl;
       return std::vector<Jet*>();
     }
   } else {

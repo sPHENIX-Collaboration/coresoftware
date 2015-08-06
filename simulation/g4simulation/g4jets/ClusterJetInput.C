@@ -12,7 +12,8 @@
 #include <fun4all/getClass.h>
 
 // PHENIX Geant4 includes
-//#include <g4cemc/SvtxTrackMap.h>
+#include <g4cemc/RawClusterContainer.h>
+#include <g4cemc/RawCluster.h>
 
 // standard includes
 #include <iostream>
@@ -30,27 +31,48 @@ std::vector<Jet*> ClusterJetInput::get_input(PHCompositeNode *topNode) {
   
   if (_verbosity > 0) cout << "ClusterJetInput::process_event -- entered" << endl;
 
-  // // Pull the reconstructed cluster information off the node tree...
-  // SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
-  // if (!trackmap) {
-  //   cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << endl;
-  //   return std::vector<Jet*>();
-  // }
-
+  RawClusterContainer *clusters = NULL;
+  if (_input == Jet::CEMC_CLUSTER) {
+    clusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_CEMC");
+    if (!clusters) {
+      return std::vector<Jet*>();
+    }
+  } else if (_input == Jet::HCALIN_CLUSTER) {
+    clusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_HCALIN");
+    if (!clusters) {
+      return std::vector<Jet*>();
+    }
+  } else if (_input == Jet::HCALOUT_CLUSTER) {
+    clusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_HCALOUT");
+    if (!clusters) {
+      return std::vector<Jet*>();
+    }
+  } else {
+    return std::vector<Jet*>();
+  }
+  
   std::vector<Jet*> pseudojets;
-  // for (SvtxTrackMap::ConstIter iter = trackmap->begin(); 
-  //      iter != trackmap->end(); 
-  //      ++iter) {
-  //   const SvtxTrack *track = &iter->second;
+  RawClusterContainer::ConstRange begin_end = clusters->getClusters();
+  RawClusterContainer::ConstIterator rtiter;
+  for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
+    RawCluster *cluster = rtiter->second;
 
-  //   Jet *jet = new JetV1();
-  //   jet->set_px(track->get3Momentum(0));
-  //   jet->set_py(track->get3Momentum(1));
-  //   jet->set_pz(track->get3Momentum(2));
-  //   jet->set_e(track->getMomentum());
-  //   jet->insert_comp(Jet::TRACK,track->getTrackID());
-  //   pseudojets.push_back(jet);
-  // }
+    double eta = cluster->get_eta();
+    double phi = cluster->get_phi();
+
+    double pt = cluster->get_energy() / cosh(eta);
+    double px = pt * cos(phi);
+    double py = pt * sin(phi);
+    double pz = pt * sinh(eta);
+
+    Jet *jet = new JetV1();
+    jet->set_px(px);
+    jet->set_py(py);
+    jet->set_pz(pz);
+    jet->set_e(cluster->get_energy());
+    jet->insert_comp(_input,0x0);
+    pseudojets.push_back(jet);
+  }
 
   if (_verbosity > 0) cout << "ClusterJetInput::process_event -- exited" << endl;
 

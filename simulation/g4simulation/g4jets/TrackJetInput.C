@@ -34,7 +34,6 @@ std::vector<Jet*> TrackJetInput::get_input(PHCompositeNode *topNode) {
   // Pull the reconstructed track information off the node tree...
   SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
   if (!trackmap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << endl;
     return std::vector<Jet*>();
   }
 
