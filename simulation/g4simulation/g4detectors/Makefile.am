@@ -113,10 +113,18 @@ libg4detectors_la_SOURCES = \
   PHG4CylinderCellReco.cc \
   PHG4CylinderCellReco_Dict.cc \
   PHG4CylinderSteppingAction.cc \
+  PHG4EnvelopeDetector.cc \
+  PHG4EnvelopeSteppingAction.cc \
+  PHG4EnvelopeSubsystem.cc \
+  PHG4EnvelopeSubsystem_Dict.cc \
   PHG4FCalDetector.cc \
   PHG4FCalSteppingAction.cc \
   PHG4FCalSubsystem.cc \
   PHG4FCalSubsystem_Dict.cc \
+  PHG4ForwardHcalDetector.cc \
+  PHG4ForwardHcalSteppingAction.cc \
+  PHG4ForwardHcalSubsystem.cc \
+  PHG4ForwardHcalSubsystem_Dict.cc \
   PHG4FPbScDetector.cc \
   PHG4FPbScEventAction.cc \
   PHG4FPbScSteppingAction.cc \
@@ -146,6 +154,8 @@ libg4detectors_la_SOURCES = \
   PHG4OuterHcalDetector.cc \
   PHG4OuterHcalSteppingAction.cc \
   PHG4OuterHcalSubsystem.cc \
+  PHG4OuterHcalField.cc \
+  PHG4OuterHcalFieldSetup.cc \
   PHG4OuterHcalSubsystem_Dict.cc \
   PHG4RICHDetector.cc \
   PHG4RICHSteppingAction.cc \

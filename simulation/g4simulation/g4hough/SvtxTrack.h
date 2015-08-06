@@ -98,6 +98,13 @@ class SvtxTrack : public PHObject
   void set_cal_cluster_e(int layer, float e) {cal_cluster_e[layer] = e;}
   float get_cal_cluster_e(int layer) const {return cal_cluster_e[layer];}
 
+  float get_x() const{return x;}
+  void set_x(float val){x = val;}
+  float get_y() const{return y;}
+  void set_y(float val){y = val;}
+  float get_z() const{return z;}
+  void set_z(float val){z = val;}
+
  protected:
 
   int     clusterID[100];
@@ -116,6 +123,7 @@ class SvtxTrack : public PHObject
   float   DCA2D;
   float   DCA2Dsigma;
   float   scatter[100];
+  float   x,y,z;
   
   TMatrix covariance;
   

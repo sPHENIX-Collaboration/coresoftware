@@ -65,7 +65,8 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, const std::
   layer(lyr),
   blackhole(0),
   steplimits(NAN),
-  scintilogicnameprefix("HcalOuterScinti")
+  scintilogicnameprefix("HcalOuterScinti"),
+  field_setup(NULL)
 {
   double thetacutline = M_PI/2. - PHG4Utils::get_theta(etacutline);
   // okay another complication. The cut is along eta=etacutline but the box and trapezoids are calculated from the other side 
@@ -137,7 +138,10 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, const std::
 }
 
 PHG4OuterHcalDetector::~PHG4OuterHcalDetector()
-{}
+{
+  if(field_setup)
+    delete field_setup;
+}
 
 //_______________________________________________________________
 //_______________________________________________________________
@@ -174,6 +178,11 @@ PHG4OuterHcalDetector::IsInOuterHcal(G4VPhysicalVolume * volume) const
 void
 PHG4OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
 {
+  field_setup = new PHG4OuterHcalFieldSetup(/*G4int steelPlates*/
+  n_steel_plates,
+  /*G4double scintiGap*/scinti_gap, /*G4double tiltAngle*/tilt_angle);
+
+
   G4Material* Air = G4Material::GetMaterial("G4_AIR");
   G4VSolid* hcal_envelope_cylinder = new G4Tubs("Hcal_envelope_solid",  envelope_inner_radius, envelope_outer_radius, envelope_z/2.,0,2*M_PI);
   G4LogicalVolume* hcal_envelope_log =  new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("Hcal_envelope"), 0, 0, 0);
@@ -247,6 +256,20 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
       steel_absorber_vec.insert(new G4PVPlacement(Rot, G4ThreeVector(xpos, ypos, 0), steel_logical, name.str().c_str(), hcalenvelope, 0, i, overlapcheck));
       phi += deltaphi;
     }
+
+  //field after burner
+  //assign the gap field strength to the air volume around HCal. Not so right for the forward corner pieces
+  hcalenvelope->SetFieldManager(
+      field_setup -> get_Field_Manager_Gap(),
+      false);
+
+  steel_logical->SetFieldManager(
+      field_setup -> get_Field_Manager_Iron(),
+      true);
+//  cout <<"PHG4OuterHcalDetector::ConstructOuterHcal - register field after burner"<<endl;
+
+
+
   return 0;
 }
 
@@ -543,6 +566,12 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalen
 	}
       G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i],G4Material::GetMaterial("G4_POLYSTYRENE"),name.str().c_str(), NULL, NULL, g4userlimits);
       assmeblyvol->AddPlacedVolume(scinti_tile_logic,g4vec, NULL);
+
+      //field after burner
+      scinti_tile_logic->SetFieldManager(
+          field_setup -> get_Field_Manager_Gap(),
+          true);
+
     }
   return assmeblyvol;
 }

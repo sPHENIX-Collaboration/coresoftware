@@ -1,5 +1,5 @@
-#ifndef PHG4CrystalCalorimeterDetector_h
-#define PHG4CrystalCalorimeterDetector_h
+#ifndef PHG4ForwardHcalDetector_h
+#define PHG4ForwardHcalDetector_h
 
 #include <g4main/PHG4Detector.h>
 
@@ -21,56 +21,48 @@ class G4VSolid;
 
 /**
  * \file ${file_name}
- * \brief Module to build crystal calorimeter (endcap) in Geant4
+ * \brief Module to build forward sampling Hadron calorimeterr (endcap) in Geant4
  * \author Nils Feege <nils.feege@stonybrook.edu>
  */
 
-class PHG4CrystalCalorimeterDetector: public PHG4Detector
+class PHG4ForwardHcalDetector: public PHG4Detector
 {
 
 public:
 
   //! constructor
-  PHG4CrystalCalorimeterDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK" );
+  PHG4ForwardHcalDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK" );
 
   //! destructor
-  virtual ~PHG4CrystalCalorimeterDetector();
+  virtual ~PHG4ForwardHcalDetector();
 
   //! construct
   virtual void Construct( G4LogicalVolume* world );
 
   //!@name volume accessors
-  int IsInCrystalCalorimeter(G4VPhysicalVolume*) const;
+  int IsInForwardHcal(G4VPhysicalVolume*) const;
 
-  void CrystalDimensions(G4double& dx_front, G4double& dy_front, G4double& dx_back, G4double& dy_back, G4double& dz);
- 
-  void SetDimensions(G4double dx_front, G4double dy_front, G4double dx_back, G4double dy_back, G4double dz) {
-  _dx_front = dx_front;
-  _dy_front = dy_front;
-  _dx_back = dx_back;
-  _dy_back = dy_back;
-  _dz_crystal = dz;
+  void SetTowerDimensions(G4double dx, G4double dy, G4double dz) {
+  _tower_dx = dx;
+  _tower_dy = dy;
+  _tower_dz = dz;
   }
-
-  void CarbonFiberAdjustments(G4double& adjust_width, G4double& adjust_length);
-
-  void CarbonFiberSpacing(G4double& CF_width, G4double& Air_CF, G4double& Air_Cry);
 
   void SetPlace( G4double place_in_x, G4double place_in_y, G4double place_in_z) {
     _place_in_x = place_in_x;
     _place_in_y = place_in_y;
     _place_in_z = place_in_z;
   }
+
   void SetXRot( G4double rot_in_x ) { _rot_in_x = rot_in_x; }
   void SetYRot( G4double rot_in_y ) { _rot_in_y = rot_in_y; }
   void SetZRot( G4double rot_in_z ) { _rot_in_z = rot_in_z; }
 
-  void SetMaterial( G4String material ) { _materialCrystal = material; }
+  void SetMaterialScintillator( G4String material ) { _materialScintillator = material; }
+  void SetMaterialAbsorber( G4String material ) { _materialAbsorber = material; }
 
   void SetActive(const int i = 1) {_active = i;}
   void SetAbsorberActive(const int i = 1) {_absorberactive = i;}
-
-  void SetInput( G4String inFile ) { _inputFile = inFile; }
 
   int IsActive() const {return _active;}
 
@@ -84,12 +76,8 @@ public:
 
 private:
 
-  int ConstructCrystals(G4LogicalVolume* envelope);
-  int Fill4x4Unit(G4LogicalVolume *crystal_logic);
-  int FillSpecialUnit(G4LogicalVolume *crystal_logic, G4int ident);
-
-  int FillDefaultCrystal(G4LogicalVolume *crystal_logic);
-  int DefaultConstruct(G4LogicalVolume* ecalenvelope);
+  G4LogicalVolume* ConstructTower();
+  int PlaceTower(G4LogicalVolume* envelope , G4LogicalVolume* tower);
 
   /* Calorimeter envelope geometry */
   G4double _place_in_x;
@@ -109,25 +97,22 @@ private:
   G4double _sPhi;
   G4double _dPhi;
 
-  /* crystal geometry */
+  /* HCAL tower geometry */
+  G4double _tower_dx;
+  G4double _tower_dy;
+  G4double _tower_dz;
 
-  G4double _dx_front;
-  G4double _dy_front;
-  G4double _dx_back;
-  G4double _dy_back;
-  G4double _dz_crystal;
-
-  G4String _materialCrystal;
+  G4String _materialScintillator;
+  G4String _materialAbsorber;
 
   int _active;
   int _absorberactive;
   int _layer;
   int _blackhole;
 
-  std::string _crystallogicnameprefix;
+  std::string _towerlogicnameprefix;
   std::string _superdetector;
-  std::string _inputFile;
-  std::string _inputFile_4x4_construct;
+  std::string _mapping_tower_file;
 };
 
 #endif

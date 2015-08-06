@@ -1,6 +1,6 @@
-#include "PHG4CrystalCalorimeterSubsystem.h"
-#include "PHG4CrystalCalorimeterDetector.h"
-#include "PHG4CrystalCalorimeterSteppingAction.h"
+#include "PHG4ForwardHcalSubsystem.h"
+#include "PHG4ForwardHcalDetector.h"
+#include "PHG4ForwardHcalSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <fun4all/getClass.h>
@@ -13,12 +13,11 @@ using namespace std;
 
 
 //_______________________________________________________________________
-PHG4CrystalCalorimeterSubsystem::PHG4CrystalCalorimeterSubsystem( const std::string &name, const int lyr ):
+PHG4ForwardHcalSubsystem::PHG4ForwardHcalSubsystem( const std::string &name, const int lyr ):
   PHG4Subsystem( name ),
   detector_( 0 ),
   steppingAction_( NULL ),
   eventAction_(NULL),
-  material("G4_PbWO4"),  // default - lead tungstate crystal
   active(1),
   detector_type(name)
 {
@@ -27,15 +26,14 @@ PHG4CrystalCalorimeterSubsystem::PHG4CrystalCalorimeterSubsystem( const std::str
 
 
 //_______________________________________________________________________
-int PHG4CrystalCalorimeterSubsystem::Init( PHCompositeNode* topNode )
+int PHG4ForwardHcalSubsystem::Init( PHCompositeNode* topNode )
 {
   PHNodeIterator iter( topNode );
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
   // create detector
-  detector_ = new PHG4CrystalCalorimeterDetector(topNode, Name());
+  detector_ = new PHG4ForwardHcalDetector(topNode, Name());
   detector_->SetActive(active);
-  detector_->SetAbsorberActive(active);
   detector_->OverlapCheck(overlapcheck);
 
   if (active)
@@ -44,11 +42,11 @@ int PHG4CrystalCalorimeterSubsystem::Init( PHCompositeNode* topNode )
       ostringstream nodename;
       nodename <<  "G4HIT_" << detector_type;
 
-      PHG4HitContainer* crystal_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
-      if (!crystal_hits)
+      PHG4HitContainer* scintillator_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+      if (!scintillator_hits)
         {
-          crystal_hits = new PHG4HitContainer();
-          PHIODataNode<PHObject> *hitNode = new PHIODataNode<PHObject>(crystal_hits, nodename.str().c_str(), "PHObject");
+          scintillator_hits = new PHG4HitContainer();
+          PHIODataNode<PHObject> *hitNode = new PHIODataNode<PHObject>(scintillator_hits, nodename.str().c_str(), "PHObject");
           dstNode->addNode(hitNode);
         }
 
@@ -64,15 +62,16 @@ int PHG4CrystalCalorimeterSubsystem::Init( PHCompositeNode* topNode )
         }
 
       // create stepping action
-      steppingAction_ = new PHG4CrystalCalorimeterSteppingAction(detector_);
+      steppingAction_ = new PHG4ForwardHcalSteppingAction(detector_);
     }
+
   return 0;
 }
 
 
 //_______________________________________________________________________
 int
-PHG4CrystalCalorimeterSubsystem::process_event( PHCompositeNode * topNode )
+PHG4ForwardHcalSubsystem::process_event( PHCompositeNode * topNode )
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
@@ -85,14 +84,14 @@ PHG4CrystalCalorimeterSubsystem::process_event( PHCompositeNode * topNode )
 
 
 //_______________________________________________________________________
-PHG4Detector* PHG4CrystalCalorimeterSubsystem::GetDetector( void ) const
+PHG4Detector* PHG4ForwardHcalSubsystem::GetDetector( void ) const
 {
   return detector_;
 }
 
 
 //_______________________________________________________________________
-PHG4SteppingAction* PHG4CrystalCalorimeterSubsystem::GetSteppingAction( void ) const
+PHG4SteppingAction* PHG4ForwardHcalSubsystem::GetSteppingAction( void ) const
 {
   return steppingAction_;
 }

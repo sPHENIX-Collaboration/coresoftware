@@ -53,7 +53,7 @@ CrystalCalorimeterDigitization::CrystalCalorimeterDigitization( const std::strin
   _towersDigi(NULL),
   _nodeNameTowerRaw(nameRaw),
   _nodeNameTowerDigi(nameDigi),
-  _meanLY(1),
+  _meanLY(200),
   _applyPhotonStatistic(false),
   _randSeed(randSeed),
   _timer( PHTimeServer::get()->insert_new(name) )
@@ -131,7 +131,7 @@ CrystalCalorimeterDigitization::process_event(PHCompositeNode *topNode)
       _towersDigi->AddTower(  etabin, phibin, tower_digi_i );
 
       /* Convert energy to number of photons via mean light yield*/
-      int nPhotons = static_cast<int>( energy_raw * _meanLY * 1000.0 ); // [edep] = GeV, [_meanLY] = 1 / MeV
+      int nPhotons = static_cast<int>( energy_raw * _meanLY * 1000.0 ); // [edep] = GeV, [_meanLY] = 200 / MeV
       tower_digi_i->add_ecell( 1, nPhotons );
 
       /* Apply photon statistic? */
