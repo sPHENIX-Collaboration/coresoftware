@@ -154,7 +154,7 @@ void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, std::vector<Jet*> 
     jetmap->insert(jets[i]); // map takes ownership, sets unique id
   }
 
-  jetmap->identify();
+  jetmap->identify(); // report contents, debug statement
   
   return;
 }
