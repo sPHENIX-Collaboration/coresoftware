@@ -43,7 +43,7 @@ class PHG4Hitv1 : public PHG4Hit
   virtual float get_pz(const int i) const {return  get_property_float(prop_pz);}
   virtual float get_eion() const          {return  get_property_float(prop_eion);}
   virtual float get_light_yield() const   {return  get_property_float(prop_light_yield);}
-  virtual float    get_path_length() const {return  get_property_float(prop_path_length);}
+  virtual float get_path_length() const {return  get_property_float(prop_path_length);}
   virtual unsigned int get_layer() const  {return  get_property_uint(prop_layer);}
   virtual int get_scint_id() const        {return  get_property_int(prop_scint_id);}
   virtual int get_strip_z_index() const   {return  get_property_int(prop_strip_z_index);}
@@ -104,9 +104,6 @@ class PHG4Hitv1 : public PHG4Hit
 
   //! container for additional property
   prop_map_t prop_map;
-
-//  u_property t1;
-//  u_property t2;
 
   ClassDef(PHG4Hitv1,2)
 };
