@@ -10,9 +10,9 @@ using namespace std;
 ClassImp(PHG4Hitv1)
 
 PHG4Hitv1::PHG4Hitv1():
-hitid(ULONG_LONG_MAX),
-  trackid(INT_MIN),
-  edep(NAN)
+ hitid(ULONG_LONG_MAX),
+ trackid(INT_MIN),
+ edep(NAN)
 {
   for (int i = 0; i<2;i++)
     {
@@ -37,14 +37,24 @@ PHG4Hitv1::print() const {
 
   for (prop_map_t::const_iterator i = prop_map.begin(); i!= prop_map.end(); ++i)
     {
-      u_property p( i->second);
-
-      std::cout <<"\t" << static_cast<const int>(i->first) <<":\t" <<get_property_info(static_cast<PROPERTY>(i->first)).first<<" = "
-		<<"\t"<<p.fdata<<" (float)"
-		<<"\t"<<p.idata<<" (int)"
-		<<"\t"<<p.uidata<<" (uint)"
-		<<"\t"<<sizeof(u_property)<<" (memory size)"
-		<<endl;
+      PROPERTY prop_id = static_cast<PROPERTY>(i->first);
+      pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+      cout << "\t" << i->first << ":\t" << property_info.first << " = \t";
+      switch(property_info.second)
+	{
+	case type_int:
+	  cout << get_property_int(prop_id);
+	  break;
+	case type_uint:
+	  cout << get_property_uint(prop_id);
+	  break;
+	case type_float:
+	  cout << get_property_float(prop_id);
+	  break;
+	default:
+	  cout << " unknown type ";
+	}
+      cout <<endl;
     }
 }
 
