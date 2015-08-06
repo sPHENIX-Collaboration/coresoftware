@@ -16,14 +16,26 @@ libg4jets_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -lfun4all \
+  -lphg4hit \
   -lg4hough_io \
-  -lcemc_io
+  -lcemc_io \
+  -lCGAL \
+  -lfastjet \
+  `geant4-config --libs`
 
 pkginclude_HEADERS = \
   Jet.h \
   JetV1.h \
   JetMap.h \
-  JetMapV1.h
+  JetMapV1.h \
+  JetInput.h \
+  JetAlgo.h \
+  JetReco.h \
+  TruthJetInput.h \
+  TrackJetInput.h \
+  TowerJetInput.h \
+  ClusterJetInput.h \
+  FastJetAlgo.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
@@ -35,7 +47,19 @@ libg4jets_la_SOURCES = \
   JetMap.C \
   JetMap_Dict.C \
   JetMapV1.C \
-  JetMapV1_Dict.C
+  JetMapV1_Dict.C \
+  JetReco.C \
+  JetReco_Dict.C \
+  TruthJetInput.C \
+  TruthJetInput_Dict.C \
+  TrackJetInput.C \
+  TrackJetInput_Dict.C \
+  TowerJetInput.C \
+  TowerJetInput_Dict.C \
+  ClusterJetInput.C \
+  ClusterJetInput_Dict.C \
+  FastJetAlgo.C \
+  FastJetAlgo_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
