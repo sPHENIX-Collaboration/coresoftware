@@ -1,28 +1,23 @@
-#ifndef __PHG4Hitv1_H__
-#define __PHG4Hitv1_H__
+#ifndef PHG4Hitv1_H__
+#define PHG4Hitv1_H__
 
 #include "PHG4Hit.h"
-//#include <Geant4/G4Allocator.hh>
+
 #include <map>
 #include <stdint.h>
-
-//#ifndef __CINT__
-//class PHG4Hitv1;
-//extern G4Allocator<PHG4Hitv1> PHG4Hitv1Allocator;
-//#endif
 
 class PHG4Hitv1 : public PHG4Hit
 {
  public:
   PHG4Hitv1();
-  PHG4Hitv1(PHG4Hit const &g4hit);
+  explicit PHG4Hitv1(const PHG4Hit &g4hit);
   // The indices here represent the entry and exit points of the particle
   float get_x(const int i) const {return x[i];}
   float get_y(const int i) const {return y[i];}
   float get_z(const int i) const {return z[i];}
   float get_t(const int i) const {return t[i];}
   float get_edep() const {return edep;}
-  unsigned int get_hit_id() const {return hitid;}
+  unsigned long long get_hit_id() const {return hitid;}
   int get_trkid() const {return trackid;}
   
   void set_x(const int i, const float f) {x[i]=f;}
@@ -30,7 +25,7 @@ class PHG4Hitv1 : public PHG4Hit
   void set_z(const int i, const float f) {z[i]=f;}
   void set_t(const int i, const float f) {t[i]=f;}
   void set_edep(const float f) {edep = f;}
-  void set_hit_id(const unsigned int i) {hitid=i;}
+  void set_hit_id(const unsigned long long i) {hitid=i;}
   void set_trkid(const int i) {trackid=i;}
 
   virtual void print() const;
@@ -53,7 +48,7 @@ class PHG4Hitv1 : public PHG4Hit
   virtual int get_scint_id() const        {return  get_property_int(prop_scint_id);}
   virtual int get_strip_z_index() const   {return  get_property_int(prop_strip_z_index);}
   virtual int get_strip_y_index() const   {return  get_property_int(prop_strip_y_index);}
-  virtual int get_ladder_z_index() const  {return  get_property_int(prop_ladder_z_index);}
+  virtual int get_ladder_z_index() const  {return  get_property_int(prop_ladder_phi_index);}
   virtual int get_ladder_phi_index() const{return  get_property_int(prop_ladder_phi_index);}
   virtual int get_index_i() const{return  get_property_int(prop_index_i);}
   virtual int get_index_j() const{return  get_property_int(prop_index_j);}
@@ -70,7 +65,7 @@ class PHG4Hitv1 : public PHG4Hit
   virtual void set_scint_id(const int i)          {set_property(prop_scint_id,i);}
   virtual void set_strip_z_index(const int i)     {set_property(prop_strip_z_index,i);}
   virtual void set_strip_y_index(const int i)     {set_property(prop_strip_y_index,i);}
-  virtual void set_ladder_z_index(const int i)    {set_property(prop_ladder_z_index,i);}
+  virtual void set_ladder_z_index(const int i)    {set_property(prop_ladder_phi_index,i);}
   virtual void set_ladder_phi_index(const int i)  {set_property(prop_ladder_phi_index,i);}
   virtual void set_index_i(const int i)  {set_property(prop_index_i,i);}
   virtual void set_index_j(const int i)  {set_property(prop_index_j,i);}
@@ -84,7 +79,7 @@ class PHG4Hitv1 : public PHG4Hit
   float y[2];
   float z[2];
   float t[2];
-  unsigned int hitid;
+  unsigned long long hitid;
   int trackid;
   float edep;
 

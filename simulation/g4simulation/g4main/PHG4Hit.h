@@ -28,7 +28,7 @@ class PHG4Hit: public PHObject
   virtual float get_light_yield() const {return NAN;}
   virtual float get_path_length() const {return NAN;}
   virtual unsigned int get_layer() const {return UINT_MAX;}
-  virtual unsigned int get_hit_id() const {return UINT_MAX;}
+  virtual unsigned long long get_hit_id() const {return ULONG_LONG_MAX;}
   virtual int get_scint_id() const {return INT_MIN;}
   virtual int get_trkid() const {return INT_MIN;}
   virtual int get_strip_z_index() const {return INT_MIN;}
@@ -52,7 +52,7 @@ class PHG4Hit: public PHObject
   virtual void set_light_yield(float lightYield){return;}
   virtual void set_path_length(float pathLength){return;}
   virtual void set_layer(const unsigned int i) {return;}
-  virtual void set_hit_id(const unsigned int i) {return;}
+  virtual void set_hit_id(const unsigned long long i) {return;}
   virtual void set_scint_id(const int i) {return;}
   virtual void set_trkid(const int i) {return;}
   virtual void set_strip_z_index(const int i) {return;}
@@ -116,6 +116,11 @@ class PHG4Hit: public PHObject
     //! max limit in order to fit into 8 bit unsigned number
     prop_MAX_NUMBER = UCHAR_MAX
   };
+  enum PROPERTY_TYPE {//
+    type_int = 1,
+    type_uint = 2,
+    type_float = 3,
+    type_unknown = -1};
 
   virtual bool  has_property(PROPERTY prop_id) const {return false;}
   virtual float get_property_float(PROPERTY prop_id) const {return NAN;}
@@ -124,18 +129,20 @@ class PHG4Hit: public PHObject
   virtual void  set_property(PROPERTY prop_id, float value) {return;}
   virtual void  set_property(PROPERTY prop_id, int value) {return;}
   virtual void  set_property(PROPERTY prop_id, unsigned int value) {return;}
-  static const char * get_property_name(PROPERTY prop_id);
-
+  static std::pair<const std::string,PROPERTY_TYPE> get_property_name(PROPERTY prop_id);
+  //  static const std::string get_property_type(PROPERTY prop_id);
  protected:
   ClassDef(PHG4Hit,1)
 };
 
-inline const char * PHG4Hit::get_property_name(const PROPERTY prop_id)
+
+inline std::pair<const std::string,PHG4Hit::PROPERTY_TYPE> PHG4Hit::get_property_name(const PROPERTY prop_id) 
 {
   switch (prop_id)
   {
   case  prop_eion:
-    return "ioning energy loss";
+    return std::make_pair("ionizing energy loss",PHG4Hit::type_float);
+    /*
   case   prop_light_yield:
     return "light yield";
 
@@ -166,9 +173,9 @@ inline const char * PHG4Hit::get_property_name(const PROPERTY prop_id)
     return "generic index j";
   case   prop_index_k:
     return "generic index k";
-
+    */
   default:
-    return "invalid property";
+    return std::make_pair("invalid property",PHG4Hit::type_unknown);
   }
 }
 inline float PHG4Hit::get_avg_x() const { return 0.5*(get_x(0)+get_x(1)); }

@@ -3,12 +3,10 @@
 
 using namespace std;
 
-//G4Allocator<PHG4Hitv1> PHG4Hitv1Allocator;
-
 ClassImp(PHG4Hitv1)
 
 PHG4Hitv1::PHG4Hitv1():
- hitid(UINT_MAX),
+ hitid(ULONG_LONG_MAX),
  trackid(INT_MIN),
  edep(NAN)
 {
@@ -37,7 +35,7 @@ PHG4Hitv1::print() const {
     {
       u_property p( i->second);
 
-      std::cout <<"\t" << static_cast<const int>(i->first) <<":\t" <<get_property_name(static_cast<PROPERTY>(i->first))<<" = "
+      std::cout <<"\t" << static_cast<const int>(i->first) <<":\t" <<get_property_name(static_cast<PROPERTY>(i->first)).first<<" = "
           <<"\t"<<p.fdata<<" (float)"
           <<"\t"<<p.idata<<" (int)"
           <<"\t"<<p.uidata<<" (uint)"
