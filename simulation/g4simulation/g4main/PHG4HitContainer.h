@@ -26,6 +26,8 @@ class PHG4HitContainer: public PHObject
 
   void identify(std::ostream& os = std::cout) const;
 
+  ConstIterator AddHit(PHG4Hit *newhit);
+
   ConstIterator AddHit(const unsigned int detid, PHG4Hit *newhit);
   
   Iterator findOrAddHit(unsigned long long key);

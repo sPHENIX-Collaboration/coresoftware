@@ -97,6 +97,22 @@ PHG4HitContainer::genkey(const unsigned int detid)
 }
 
 PHG4HitContainer::ConstIterator
+PHG4HitContainer::AddHit(PHG4Hit *newhit)
+{
+  unsigned long long key = newhit->get_hit_id();
+  if (hitmap.find(key) != hitmap.end())
+    {
+      cout << "hit with id  0x" << hex << key << " exists already" << endl;
+      return hitmap.find(key);
+    }
+  unsigned long long detidlong = key >>  phg4hitdefs::hit_idbits;
+  unsigned int detid = detidlong;
+  layers.insert(detid);
+  hitmap[key] = newhit;
+  return hitmap.find(key);
+}
+
+PHG4HitContainer::ConstIterator
 PHG4HitContainer::AddHit(const unsigned int detid, PHG4Hit *newhit)
 {
   unsigned long long key = genkey(detid);
