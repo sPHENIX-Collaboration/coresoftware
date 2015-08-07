@@ -3,8 +3,8 @@
 
 namespace phg4hitdefs
 {
-static int keybits = 8;
-static int hit_idbits = 32-keybits;
+  static int keybits = 8;
+  static int hit_idbits = 64-keybits;
 }
 
 #endif
