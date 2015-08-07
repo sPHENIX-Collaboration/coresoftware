@@ -73,6 +73,8 @@ class PHG4Hitv1 : public PHG4Hit
   virtual void set_index_l(const int i)  {set_property(prop_index_l,i);}
 
  protected:
+  unsigned int get_property_nocheck(const PROPERTY prop_id) const;
+  void set_property_nocheck(const PROPERTY prop_id,const unsigned int ui) {prop_map[prop_id]=ui;}
   // Store both the entry and exit points of the particle
   // Remember, particles do not always enter on the inner edge!
   float x[2];

@@ -151,3 +151,14 @@ PHG4Hitv1::set_property(const PROPERTY prop_id, const unsigned int value)
     }
   prop_map[prop_id] = u_property(value).get_storage();
 }
+
+unsigned int
+PHG4Hitv1::get_property_nocheck(const PROPERTY prop_id) const
+{
+  prop_map_t::const_iterator iter = prop_map.find(prop_id);
+  if (iter != prop_map.end())
+    {
+      return iter->second;
+    }
+  return UINT_MAX;
+}
