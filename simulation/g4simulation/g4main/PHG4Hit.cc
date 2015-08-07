@@ -16,6 +16,9 @@ PHG4Hit::Copy(PHG4Hit const &g4hit)
       set_z(i,g4hit.get_z(i));
       set_t(i,g4hit.get_t(i));
     }
+  set_hit_id(g4hit.get_hit_id());
+  set_trkid(g4hit.get_trkid());
+  set_edep(g4hit.get_edep());
   for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
     {
       PROPERTY prop_id = static_cast<PHG4Hit::PROPERTY> (ic);
