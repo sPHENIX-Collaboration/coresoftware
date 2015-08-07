@@ -17,10 +17,12 @@ class RawClusterv1 : public RawCluster {
     os << "This is the RawClusterv1 object" << std::endl;
   }
 
+  unsigned int get_id() const { return _id; }
   float get_eta() const { return _eta; }
   float get_phi() const { return _phi; }
   float get_energy() const { return _energy; }
 
+  void set_id(const unsigned int id) {_id = id;}
   void set_eta(const float eta) { _eta = eta; }
   void set_phi(const float phi) { _phi = phi; }
   void set_energy(const float energy) { _energy = energy; }
@@ -33,6 +35,7 @@ class RawClusterv1 : public RawCluster {
   std::pair<int,int> getTowerBin(const unsigned int itower) const;
 
  private:
+  unsigned int _id;
   float _eta;
   float _phi;
   float _energy;

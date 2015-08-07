@@ -25,6 +25,7 @@ RawClusterContainer::AddCluster(RawCluster *rawcluster)
     {
       key++;
     }
+  rawcluster->set_id(key);
   _clusters[key] = rawcluster;
   return _clusters.find(key);
 }

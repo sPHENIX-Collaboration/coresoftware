@@ -78,7 +78,7 @@ std::vector<Jet*> ClusterJetInput::get_input(PHCompositeNode *topNode) {
     jet->set_py(py);
     jet->set_pz(pz);
     jet->set_e(cluster->get_energy());
-    jet->insert_comp(_input,0x0);
+    jet->insert_comp(_input,cluster->get_id());
     pseudojets.push_back(jet);
   }
 

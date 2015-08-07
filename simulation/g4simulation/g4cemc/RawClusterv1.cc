@@ -4,12 +4,18 @@ using namespace std;
 
 ClassImp(RawClusterv1)
 
-RawClusterv1::RawClusterv1() : RawCluster(), _eta(0.0), _phi(0.0), _energy(0.0)
+RawClusterv1::RawClusterv1()
+: RawCluster(),
+  _id(0),
+  _eta(0.0),
+  _phi(0.0),
+  _energy(0.0)
 {}
 
 void
 RawClusterv1::Reset()
 {
+  _id = 0;
   _eta = 0.0;
   _phi = 0.0;
   _energy = 0.0;
