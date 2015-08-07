@@ -162,3 +162,99 @@ PHG4Hitv1::get_property_nocheck(const PROPERTY prop_id) const
     }
   return UINT_MAX;
 }
+
+float
+PHG4Hitv1::get_px(const int i) const
+{
+  switch(i)
+    {
+    case 0:
+      return  get_property_float(prop_px_0);
+    case 1:
+      return  get_property_float(prop_px_1);
+    default:
+      cout << "Invalid index in get_px: " << i << endl;
+      exit(1);
+    }
+}
+
+float
+PHG4Hitv1::get_py(const int i) const
+{
+  switch(i)
+    {
+    case 0:
+      return  get_property_float(prop_py_0);
+    case 1:
+      return  get_property_float(prop_py_1);
+    default:
+      cout << "Invalid index in get_py: " << i << endl;
+      exit(1);
+    }
+}
+
+float
+PHG4Hitv1::get_pz(const int i) const
+{
+  switch(i)
+    {
+    case 0:
+      return  get_property_float(prop_pz_0);
+    case 1:
+      return  get_property_float(prop_pz_1);
+    default:
+      cout << "Invalid index in get_pz: " << i << endl;
+      exit(1);
+    }
+}
+
+void
+PHG4Hitv1::set_px(const int i, const float f)
+{
+  switch(i)
+    {
+    case 0:
+      set_property(prop_px_0,f);
+      return;
+    case 1:
+      set_property(prop_px_1,f);
+      return;
+    default:
+      cout << "Invalid index in set_px: " << i << endl;
+      exit(1);
+    }
+}
+
+void
+PHG4Hitv1::set_py(const int i, const float f)
+{
+  switch(i)
+    {
+    case 0:
+      set_property(prop_py_0,f);
+      return;
+    case 1:
+      set_property(prop_py_1,f);
+      return;
+    default:
+      cout << "Invalid index in set_py: " << i << endl;
+      exit(1);
+    }
+}
+
+void
+PHG4Hitv1::set_pz(const int i, const float f)
+{
+  switch(i)
+    {
+    case 0:
+      set_property(prop_pz_0,f);
+      return;
+    case 1:
+      set_property(prop_pz_1,f);
+      return;
+    default:
+      cout << "Invalid index in set_pz: " << i << endl;
+      exit(1);
+    }
+}

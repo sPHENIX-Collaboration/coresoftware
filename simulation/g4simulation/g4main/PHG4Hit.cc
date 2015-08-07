@@ -64,12 +64,18 @@ PHG4Hit::get_property_info(const PROPERTY prop_id)
     return make_pair("ionizing energy loss",PHG4Hit::type_float);
   case   prop_light_yield:
     return make_pair("light yield",PHG4Hit::type_float);
-  case   prop_px:
-    return make_pair("px",PHG4Hit::type_float);
-  case   prop_py:
-    return make_pair("py",PHG4Hit::type_float);
-  case   prop_pz:
-    return make_pair("pz",PHG4Hit::type_float);
+  case   prop_px_0:
+    return make_pair("px in",PHG4Hit::type_float);
+  case   prop_px_1:
+    return make_pair("px out",PHG4Hit::type_float);
+  case   prop_py_0:
+    return make_pair("py in",PHG4Hit::type_float);
+  case   prop_py_1:
+    return make_pair("py out",PHG4Hit::type_float);
+  case   prop_pz_0:
+    return make_pair("pz in",PHG4Hit::type_float);
+  case   prop_pz_1:
+    return make_pair("pz out",PHG4Hit::type_float);
   case   prop_path_length:
     return make_pair("pathlength",PHG4Hit::type_float);
   case   prop_layer:

@@ -73,7 +73,8 @@ class PHG4Hit: public PHObject
 
 
   //! add a short name to PHG4Hit::get_property_name
-  enum PROPERTY {//
+  enum PROPERTY 
+  {//
 
     //-- hit properties: 1 - 10  --
     //! ionizing energy loss
@@ -82,15 +83,18 @@ class PHG4Hit: public PHObject
     //! for scintillation detectors, the amount of light produced
     prop_light_yield = 2,
 
-    //-- event properties: 10 - 20  --
+    //-- track properties: 10 - 20  --
 
     //! momentum
-    prop_px = 10,
-    prop_py ,
-    prop_pz ,
+    prop_px_0 = 10,
+    prop_px_1 = 11,
+    prop_py_0 = 12,
+    prop_py_1 = 13,
+    prop_pz_0 = 14,
+    prop_pz_1 = 15,
 
     //! pathlength
-    prop_path_length = 15,
+    prop_path_length = 16,
 
     //-- detector specific IDs: 100+ --
 
@@ -101,15 +105,15 @@ class PHG4Hit: public PHObject
 
     //! SVX stuff
     prop_strip_z_index = 110,
-    prop_strip_y_index,
-    prop_ladder_z_index,
-    prop_ladder_phi_index,
+    prop_strip_y_index = 111,
+    prop_ladder_z_index = 112,
+    prop_ladder_phi_index = 113,
 
     //! generic indexes
     prop_index_i = 121,
-    prop_index_j ,
-    prop_index_k ,
-    prop_index_l ,
+    prop_index_j = 122,
+    prop_index_k = 123,
+    prop_index_l = 124,
 
 
 
@@ -118,12 +122,12 @@ class PHG4Hit: public PHObject
   };
 
   enum PROPERTY_TYPE 
-{//
+  {//
     type_int = 1,
     type_uint = 2,
     type_float = 3,
     type_unknown = -1
-};
+  };
 
   virtual bool  has_property(const PROPERTY prop_id) const {return false;}
   virtual float get_property_float(const PROPERTY prop_id) const {return NAN;}
