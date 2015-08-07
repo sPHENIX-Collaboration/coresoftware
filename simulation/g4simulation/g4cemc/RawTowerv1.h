@@ -16,6 +16,7 @@ class RawTowerv1 : public RawTower {
   int isValid() const;
   void identify(std::ostream& os=std::cout) const;
 
+  unsigned int get_id() const { return bineta << 12 | binphi;}
   int get_bineta() const { return bineta; }
   int get_binphi() const { return binphi; }
   float get_energy() const;
