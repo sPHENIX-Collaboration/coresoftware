@@ -14,23 +14,16 @@ PHG4Hit::Copy(PHG4Hit const &g4hit)
       set_x(i,g4hit.get_x(i));
       set_y(i,g4hit.get_y(i));
       set_z(i,g4hit.get_z(i));
-      set_px(i,g4hit.get_px(i));
-      set_py(i,g4hit.get_py(i));
-      set_pz(i,g4hit.get_pz(i));
       set_t(i,g4hit.get_t(i));
     }
-  set_edep(g4hit.get_edep());
-  set_eion(g4hit.get_eion());
-  set_path_length(g4hit.get_path_length());
-  set_light_yield(g4hit.get_light_yield());
-  set_layer(g4hit.get_layer());
-  set_hit_id(g4hit.get_hit_id());
-  set_scint_id(g4hit.get_scint_id());
-  set_trkid(g4hit.get_trkid());
-  set_strip_z_index(g4hit.get_strip_z_index());
-  set_strip_y_index(g4hit.get_strip_y_index());
-  set_ladder_z_index(g4hit.get_ladder_z_index());
-  set_ladder_phi_index(g4hit.get_ladder_phi_index());
+  for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
+    {
+      PROPERTY prop_id = static_cast<PHG4Hit::PROPERTY> (ic);
+      if (g4hit.has_property(prop_id))
+        {
+	  set_property_nocheck(prop_id,g4hit.get_property_nocheck(prop_id));
+	}
+    }
 }
 
 
