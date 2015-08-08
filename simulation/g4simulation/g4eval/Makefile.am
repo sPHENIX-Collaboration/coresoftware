@@ -24,6 +24,7 @@ libg4eval_la_LDFLAGS = \
   -lcemc 
 
 pkginclude_HEADERS = \
+  CaloTruthEval.h \
   PHG4Evaluator.h \
   PHG4CalEvaluator.h \
   PHG4DSTReader.h \
@@ -37,6 +38,8 @@ pkginclude_HEADERS = \
 #pkginclude_HEADERS = $(include_HEADERS)
 
 libg4eval_la_SOURCES = \
+  CaloTruthEval.C \
+  CaloTruthEval_Dict.C \
   PHG4Evaluator.C \
   PHG4Evaluator_Dict.C \
   PHG4CalEvaluator.C \
