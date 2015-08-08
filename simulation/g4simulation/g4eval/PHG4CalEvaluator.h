@@ -8,6 +8,8 @@
 /// \author Richard Hollis (translated to sPHENIX CAL simulations)
 //===============================================
 
+// this module is next in line for revision
+
 #include <g4main/PHG4HitDefs.h>
 
 // PHENIX includes
