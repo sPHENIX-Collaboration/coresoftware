@@ -562,12 +562,21 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float vy         = vertex->get_y();
 	float vz         = vertex->get_z();
 	float ntracks    = vertex->size_tracks();
-	float gvx        = point->get_x();
-	float gvy        = point->get_y();
-	float gvz        = point->get_z();
+
+	float gvx        = NAN;
+	float gvy        = NAN;
+	float gvz        = NAN;
 	float gntracks   = truthinfo->GetNumPrimaryVertexParticles();
-	float nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
-      
+	float nfromtruth = NAN;
+	
+	if (point) {
+	  gvx        = point->get_x();
+	  gvy        = point->get_y();
+	  gvz        = point->get_z();
+	  gntracks   = truthinfo->GetNumPrimaryVertexParticles();
+	  nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
+	}
+	  
 	float vertex_data[10] = {_ievent,
 				 vx,
 				 vy,
