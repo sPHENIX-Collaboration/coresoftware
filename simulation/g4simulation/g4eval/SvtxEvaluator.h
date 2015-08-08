@@ -38,6 +38,14 @@ public:
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  void do_vertex_eval(bool b) {_do_vertex_eval = b;}
+  void do_gpoint_eval(bool b) {_do_gpoint_eval = b;}
+  void do_g4hit_eval(bool b) {_do_g4hit_eval = b;}
+  void do_hit_eval(bool b) {_do_hit_eval = b;}
+  void do_cluster_eval(bool b) {_do_cluster_eval = b;}
+  void do_gtrack_eval(bool b) {_do_gtrack_eval = b;}
+  void do_track_eval(bool b) {_do_track_eval = b;}
+  
  private:
 
   unsigned int _ievent;
@@ -67,8 +75,8 @@ public:
 
   // output subroutines
   void fillOutputNtuples(PHCompositeNode* topNode); ///< dump the evaluator information into ntuple for external analysis
-  void printInputInfo();                            ///< print out the input object information (debugging upstream components)
-  void printOutputInfo();                           ///< print out the ancestry information for detailed diagnosis
+  void printInputInfo(PHCompositeNode* topNode);    ///< print out the input object information (debugging upstream components)
+  void printOutputInfo(PHCompositeNode* topNode);   ///< print out the ancestry information for detailed diagnosis
 };
 
 #endif // __SVTXEVALUATOR_H__
