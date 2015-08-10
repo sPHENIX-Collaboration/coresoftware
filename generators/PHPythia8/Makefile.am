@@ -24,14 +24,12 @@ libPHPythia8_la_LDFLAGS = \
 
 libPHPythia8_la_LIBADD = \
   -lphool \
-  -lSubsysReco
+  -lSubsysReco \
   -lfun4all \
   -lboost_iostreams \
   -lpythia8 \
-  -lpythia8tohepmc \
-  -lHepMC \
-  -lLHAPDF \
-  -lPHHepMCNode 
+  -lphhepmc \
+  -lHepMC
 
 libPHPythia8_la_SOURCES = \
   PHPythia8.C \

@@ -14,8 +14,11 @@ class PHPy8ParticleTrigger : public PHPy8GenTrigger {
 
   PHPy8ParticleTrigger(const std::string &name = "PHPy8ParticleTrigger");
   virtual ~PHPy8ParticleTrigger();
-  
+
+  #ifndef __CINT__
   bool Apply(Pythia8::Pythia *pythia);
+  #endif
+
   void AddParticles(std::string particles);
   void AddParticles(int particle);
   void AddParticles(std::vector<int> particles);

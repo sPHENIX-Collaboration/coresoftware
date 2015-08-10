@@ -1,14 +1,19 @@
 #ifndef __PHPYTHIA8_H__
 #define __PHPYTHIA8_H__
 
+#include <fun4all/SubsysReco.h>
+#include <phhepmc/PHHepMCGenEvent.h>
+
+#ifndef __CINT__
+#include <Pythia8/Pythia.h>
+#endif
+
+#include <Rtypes.h>
+
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <cmath>
-#include <SubsysReco.h>
-#include <Rtypes.h>
-#include <Pythia8/Pythia.h>
-#include <PHHepMCEvent.h>
 
 class PHCompositeNode;
 class PHHepMCGenEvent;
@@ -120,22 +125,13 @@ private:
   std::string _configFile;
   
   //! pythia interface
+  #ifndef __CINT__
   Pythia8::Pythia *pythia;
+  #endif
   
   //! seed to random number generator
   long int fSeed;		
   
-  //! Tree for normalization
-  TFile *xsecfile;
-  TTree *Tp;
-  UInt_t   tp_isub;
-  Char_t  *tp_proc;
-  UInt_t   tp_nevt;
-  Double_t tp_sigma;
-  Double_t tp_sigma_err;
-  Double_t tp_nevt_sigma;
-  Double_t tp_integlumi;
-
   //HepMC
   HepMC::GenEvent *hepmcevt;
   HepMC::Pythia8ToHepMC *pythiaToHepMC;

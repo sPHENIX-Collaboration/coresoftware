@@ -46,75 +46,77 @@ PHPy8ParticleTrigger::~PHPy8ParticleTrigger() {
 
 bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia) {
 
-  if (_verbosity > 2) {
-    cout << "PHPy8ParticleTrigger::Apply - pythia event size: "
-	 << pythia->event.size() << endl;
-  }
+  return false;
   
-  //Event Loop
-  for (int i = 0; i < pythia->event.size(); ++i) {
+  // if (_verbosity > 2) {
+  //   cout << "PHPy8ParticleTrigger::Apply - pythia event size: "
+  // 	 << pythia->event.size() << endl;
+  // }
+  
+  // //Event Loop
+  // for (int i = 0; i < pythia->event.size(); ++i) {
 
-    //Trigger Particles Loop
-    for (int j = 0; j < int(_theParticles.size()); j++) {
+  //   //Trigger Particles Loop
+  //   for (int j = 0; j < int(_theParticles.size()); j++) {
 	
-      bool passedParents = false;
-      if (pythia->event[i].id() == _theParticles[j] &&
-	  pythia->event[i].status() > 0) { //only stable particles
+  //     bool passedParents = false;
+  //     if (pythia->event[i].id() == _theParticles[j] &&
+  // 	  pythia->event[i].status() > 0) { //only stable particles
 	
-	if (_doBothEtaCut && (pythia->event[i].eta() < _theEtaLow ||
-			      pythia->event[i].eta() > _theEtaHigh)) continue;
-	if (_doEtaLowCut && pythia->event[i].eta() < _theEtaLow) continue;
-	if (_doEtaHighCut && pythia->event[i].eta() > _theEtaHigh) continue;
+  // 	if (_doBothEtaCut && (pythia->event[i].eta() < _theEtaLow ||
+  // 			      pythia->event[i].eta() > _theEtaHigh)) continue;
+  // 	if (_doEtaLowCut && pythia->event[i].eta() < _theEtaLow) continue;
+  // 	if (_doEtaHighCut && pythia->event[i].eta() > _theEtaHigh) continue;
 
-	if (_doBothAbsEtaCut && (abs(pythia->event[i].eta()) < _theEtaLow ||
-				 abs(pythia->event[i].eta()) > _theEtaHigh)) continue;
-	if (_doAbsEtaLowCut && abs(pythia->event[i].eta()) < _theEtaLow) continue;
-	if (_doAbsEtaHighCut && abs(pythia->event[i].eta()) > _theEtaHigh) continue;
+  // 	if (_doBothAbsEtaCut && (abs(pythia->event[i].eta()) < _theEtaLow ||
+  // 				 abs(pythia->event[i].eta()) > _theEtaHigh)) continue;
+  // 	if (_doAbsEtaLowCut && abs(pythia->event[i].eta()) < _theEtaLow) continue;
+  // 	if (_doAbsEtaHighCut && abs(pythia->event[i].eta()) > _theEtaHigh) continue;
 
-	if (_doBothPtCut && (pythia->event[i].pT() < _thePtLow ||
-			     pythia->event[i].pT() > _thePtHigh)) continue;
-	if (_doPtHighCut && pythia->event[i].pT() > _thePtHigh ) continue;
-	if (_doPtLowCut && pythia->event[i].pT() < _thePtLow) continue;
+  // 	if (_doBothPtCut && (pythia->event[i].pT() < _thePtLow ||
+  // 			     pythia->event[i].pT() > _thePtHigh)) continue;
+  // 	if (_doPtHighCut && pythia->event[i].pT() > _thePtHigh ) continue;
+  // 	if (_doPtLowCut && pythia->event[i].pT() < _thePtLow) continue;
 
-	if (_doBothPCut && (pythia->event[i].pAbs() < _thePLow ||
-			    pythia->event[i].pAbs() > _thePHigh)) continue;
-	if (_doPHighCut && pythia->event[i].pAbs() > _thePHigh ) continue;
-	if (_doPLowCut && pythia->event[i].pAbs() < _thePLow) continue;
+  // 	if (_doBothPCut && (pythia->event[i].pAbs() < _thePLow ||
+  // 			    pythia->event[i].pAbs() > _thePHigh)) continue;
+  // 	if (_doPHighCut && pythia->event[i].pAbs() > _thePHigh ) continue;
+  // 	if (_doPLowCut && pythia->event[i].pAbs() < _thePLow) continue;
 
-	if (_doBothPzCut && (pythia->event[i].pz() < _thePzLow ||
-			     pythia->event[i].pz() > _thePzHigh)) continue;
-	if (_doPzHighCut && pythia->event[i].pz() > _thePzHigh ) continue;
-	if (_doPzLowCut && pythia->event[i].pz() < _thePzLow) continue;
+  // 	if (_doBothPzCut && (pythia->event[i].pz() < _thePzLow ||
+  // 			     pythia->event[i].pz() > _thePzHigh)) continue;
+  // 	if (_doPzHighCut && pythia->event[i].pz() > _thePzHigh ) continue;
+  // 	if (_doPzLowCut && pythia->event[i].pz() < _thePzLow) continue;
 
-	if (_verbosity > 5) {
-	  cout << "stable " << pythia->event[i].id()
-	       << "  pt: " << pythia->event[i].pT()
-	       << " pz: " << pythia->event[i].pz()
-	       << " p: " << pythia->event[i].pAbs()
-	       << " eta: " << pythia->event[i].eta() << endl; 
-	}
+  // 	if (_verbosity > 5) {
+  // 	  cout << "stable " << pythia->event[i].id()
+  // 	       << "  pt: " << pythia->event[i].pT()
+  // 	       << " pz: " << pythia->event[i].pz()
+  // 	       << " p: " << pythia->event[i].pAbs()
+  // 	       << " eta: " << pythia->event[i].eta() << endl; 
+  // 	}
 	
-	//Parents Loop
-	for (int k = 0; k < int(_theParents.size()); k++) {
-	  //Check Mothers
-	  std::vector<int> moms = pythia->event.motherList(i);
-	  for (int m = 0; m < int(moms.size()) ; m++) {
-	    if (abs(pythia->event[ moms[m] ].id()) == abs(_theParents[k])) {
-	      passedParents = true;
-	      if (_verbosity > 5) cout << "found parent!" << endl;
-	      break;
-	    }
-	  }//moms for loop
-	  if (passedParents) break;
-	}//parents for loop
+  // 	//Parents Loop
+  // 	for (int k = 0; k < int(_theParents.size()); k++) {
+  // 	  //Check Mothers
+  // 	  std::vector<int> moms = pythia->event.motherList(i);
+  // 	  for (int m = 0; m < int(moms.size()) ; m++) {
+  // 	    if (abs(pythia->event[ moms[m] ].id()) == abs(_theParents[k])) {
+  // 	      passedParents = true;
+  // 	      if (_verbosity > 5) cout << "found parent!" << endl;
+  // 	      break;
+  // 	    }
+  // 	  }//moms for loop
+  // 	  if (passedParents) break;
+  // 	}//parents for loop
 
-	//If we made it here and it passes parents, success!
-	if (_theParents.size() == 0 || passedParents) return true; 
+  // 	//If we made it here and it passes parents, success!
+  // 	if (_theParents.size() == 0 || passedParents) return true; 
 
-      }//if _theParticles
-    }//_theParticles for loop
+  //     }//if _theParticles
+  //   }//_theParticles for loop
     
-  }//pythia event for loop
+  // }//pythia event for loop
 
   return false;
 }

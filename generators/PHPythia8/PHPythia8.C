@@ -1,19 +1,18 @@
-#include <PHPythia8.h>
+#include "PHPythia8.h"
 
 #include "PHPy8GenTrigger.h"
 
-#include <PHHepMCGenEvent.h>
-#include <PHHepMCFilter.h>
+#include <phhepmc/PHHepMCGenEvent.h>
 
-#include <PHIODataNode.h>
-#include <PHDataNode.h>
-#include <PHObject.h>
-#include <PHCompositeNode.h>
-#include <PHNodeIterator.h>
-#include <PHNodeReset.h>
-#include <PHTimeStamp.h>
-#include <Fun4AllReturnCodes.h>
-#include <getClass.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/getClass.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHDataNode.h>
+#include <phool/PHObject.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/PHNodeReset.h>
+#include <phool/PHTimeStamp.h>
 
 #include <TMCParticle.h>
 #include <TClonesArray.h>
@@ -25,7 +24,7 @@
 #include <TRandom.h>
 
 #include <Pythia8/Pythia.h>
-#include <Pythia8/Pythia8ToHepMC.h>
+#include <Pythia8Plugins/HepMC2.h>
 #include <HepMC/GenEvent.h>
 
 #include <iostream>
@@ -49,8 +48,6 @@ PHPythia8::PHPythia8(const std::string &name):
   SubsysReco(name),
   eventcount( 0 ),
   _configFile( "" ),
-  phpythiaheader(0),
-  phpythia( 0 ),
   fSeed(-1),
   _node_name("PHHepMCGenEvent"),
   _useGaussianVtx(false),
@@ -137,7 +134,7 @@ int PHPythia8::Init(PHCompositeNode *topNode) {
 
   if (_useGaussianVtx || _useBeamVtx) rand = new TRandom(fSeed);
   
-  return EVENT_OK;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHPythia8::End(PHCompositeNode *topNode) {
@@ -151,7 +148,7 @@ int PHPythia8::End(PHCompositeNode *topNode) {
   cout << "                         Fraction passed: " << eventcount << "/" << pythia->info.nAccepted() <<" = " << eventcount/float(pythia->info.nAccepted()) << endl;
   cout << " *-------  End PYTHIA Trigger Statistics  -------------------------------------------------------------------------* " << endl;
 
-  return EVENT_OK;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //__________________________________________________________
@@ -168,7 +165,7 @@ int PHPythia8::ReadConfig(const char *cfg_file) {
 
   pythia->readFile(_configFile.c_str());
 
-  return EVENT_OK;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //-* print pythia config info
@@ -189,7 +186,7 @@ int PHPythia8::process_event(PHCompositeNode *topNode) {
     if (!QhepmcEvent) {
       cout << "PHHepMCFilter::process_event - unable to get PHHepMCGenEvent named "
 	   << _node_name << ", is Node missing?" << endl;
-      return ABORTRUN;
+      return Fun4AllReturnCodes::ABORTRUN;
     }
     HepMC::GenEvent *Qevent = QhepmcEvent->getEvent();
     _lastEventQ = Qevent->pdf_info()->scalePDF();
@@ -287,7 +284,7 @@ int PHPythia8::process_event(PHCompositeNode *topNode) {
   if (eventcount >= 2 && verbosity > 5) pythia->event.list();
 
   ++eventcount;
-  return EVENT_OK;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHPythia8::CreateNodeTree(PHCompositeNode *topNode) {
