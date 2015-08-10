@@ -96,6 +96,8 @@ PHG4Hit::get_property_info(const PROPERTY prop_id)
     return make_pair("generic index j",PHG4Hit::type_int);
   case   prop_index_k:
     return make_pair("generic index k",PHG4Hit::type_int);
+  case   prop_index_l:
+    return make_pair("generic index l",PHG4Hit::type_int);
   default:
     cout << "unknown index " << prop_id << endl;
     exit(1);
