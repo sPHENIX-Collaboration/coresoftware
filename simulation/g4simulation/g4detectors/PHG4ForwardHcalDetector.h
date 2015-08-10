@@ -42,6 +42,13 @@ public:
   //!@name volume accessors
   int IsInForwardHcal(G4VPhysicalVolume*) const;
 
+
+  //! Select mapping file for calorimeter tower
+  void SetTowerMappingFile( std::string filename ) {
+    _mapping_tower_file = filename;
+  }
+
+
   void SetTowerDimensions(G4double dx, G4double dy, G4double dz) {
   _tower_dx = dx;
   _tower_dy = dy;
