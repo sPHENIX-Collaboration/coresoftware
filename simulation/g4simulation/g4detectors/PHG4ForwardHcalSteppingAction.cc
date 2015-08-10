@@ -77,7 +77,6 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
   else
     {
       tower_id = touch->GetCopyNumber();
-      return 0;
     }
 
   /* Get energy deposited by this step */
@@ -126,11 +125,6 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm);
 	  hit->set_y( 0, prePoint->GetPosition().y() / cm );
 	  hit->set_z( 0, prePoint->GetPosition().z() / cm );
-
-	  /* Set momentum */
-	  hit->set_x( 0, prePoint->GetMomentum().x() / GeV );
-	  hit->set_y( 0, prePoint->GetMomentum().y() / GeV );
-	  hit->set_z( 0, prePoint->GetMomentum().z() / GeV );
 
 	  /* Set hit time */
 	  hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
