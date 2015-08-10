@@ -269,13 +269,24 @@ PHG4ForwardHcalDetector::PlaceTower(G4LogicalVolume* hcalenvelope, G4LogicalVolu
 
   while ( getline( istream_mapping, line_mapping ) )
     {
-      unsigned idx_j, idx_k;
-      double pos_x, pos_y;
+      unsigned idx_j, idx_k, idx_l;
+      double pos_x, pos_y, pos_z;
+      double dummy;
 
       istringstream iss(line_mapping);
 
+      /* Skip lines starting with / including a '#' */
+      if ( line_mapping.find("#") != string::npos )
+	{
+	  if ( verbosity > 0 )
+	    {
+	      cout << "PHG4ForwardHcalDetector: SKIPPING line in mapping file: " << line_mapping << endl;
+	    }
+	  continue;
+	}
+
       /* read string- break if error */
-      if ( !( iss >> idx_j >> idx_k >> pos_x >> pos_y ) )
+      if ( !( iss >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> dummy >> dummy >> dummy >> dummy ) )
 	{
 	  cerr << "ERROR in PHG4ForwardHcalDetector: Failed to read line in mapping file " << _mapping_tower_file << endl;
 	  exit(1);
@@ -293,7 +304,7 @@ PHG4ForwardHcalDetector::PlaceTower(G4LogicalVolume* hcalenvelope, G4LogicalVolu
 	  cout << "PHG4ForwardHcalDetector: Place tower " << towername.str() << endl;
 	}
 
-      new G4PVPlacement( 0, G4ThreeVector(pos_x*10.0 , pos_y*10.0, 0),
+      new G4PVPlacement( 0, G4ThreeVector(pos_x*cm , pos_y*cm, pos_z*cm),
 			 singletower,
 			 towername.str().c_str(),
 			 hcalenvelope,
