@@ -134,8 +134,12 @@ PHG4ForwardHcalDetector::Construct( G4LogicalVolume* logicWorld )
   hcal_rotm.rotateZ(_rot_in_z);
 
   /* Place envelope cone in simulation */
+  ostringstream name_envelope;
+  name_envelope.str("");
+  name_envelope << _towerlogicnameprefix << "_envelope" << endl;
+
   new G4PVPlacement( G4Transform3D(hcal_rotm, G4ThreeVector(_place_in_x, _place_in_y, _place_in_z) ),
-		     hcal_envelope_log, "ForwardHcal", logicWorld, 0, false, overlapcheck);
+		     hcal_envelope_log, name_envelope.str().c_str(), logicWorld, 0, false, overlapcheck);
 
   /* Construct single calorimeter tower */
   G4LogicalVolume* singletower = ConstructTower();
