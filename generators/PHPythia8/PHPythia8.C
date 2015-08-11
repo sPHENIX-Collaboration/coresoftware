@@ -89,12 +89,12 @@ PHPythia8::~PHPythia8() {
 
 int PHPythia8::Init(PHCompositeNode *topNode) {
   
-  if (!_configFile.empty()) ReadConfig();  
+  if (!_configFile.empty()) read_config();  
   for (unsigned int j = 0; j < _commands.size(); j++) {
     _pythia->readString(_commands[j]);
   }
   
-  CreateNodeTree(topNode);
+  create_node_tree(topNode);
 
   // event numbering will start from 1
   _eventcount = 0;
@@ -121,7 +121,7 @@ int PHPythia8::Init(PHCompositeNode *topNode) {
 
   _pythia->init();
 
-  PrintConfig();
+  print_config();
 
   if (_useBeamVtx) _rand = new TRandom(_seed);
   
@@ -149,14 +149,14 @@ int PHPythia8::End(PHCompositeNode *topNode) {
 }
 
 //__________________________________________________________
-int PHPythia8::ReadConfig(const char *cfg_file) {
+int PHPythia8::read_config(const char *cfg_file) {
 
   if ( cfg_file ) _configFile = cfg_file;
-  cout << "PHPythia8::ReadConfig - Reading " << _configFile << endl;
+  cout << "PHPythia8::read_config - Reading " << _configFile << endl;
   
   ifstream infile( _configFile.c_str() ); 
   if (infile.fail ()) {
-    cout << "PHPythia8::ReadConfig - Failed to open file " << _configFile << endl;    
+    cout << "PHPythia8::read_config - Failed to open file " << _configFile << endl;    
     exit(2);
   }
 
@@ -166,7 +166,7 @@ int PHPythia8::ReadConfig(const char *cfg_file) {
 }
 
 //-* print pythia config info
-void PHPythia8::PrintConfig() const {
+void PHPythia8::print_config() const {
   _pythia->info.list();
   cout << "Using seed " << _seed << endl;
 }
@@ -179,28 +179,42 @@ int PHPythia8::process_event(PHCompositeNode *topNode) {
   bool passedTrigger = false;
   std::vector<bool> theTriggerResults;
   int genCounter = 0;
+
   while (!passedTrigger) {
-    genCounter++;
+    ++genCounter;
+
+    // generate another pythia event
     while (!passedGen) {
       passedGen = _pythia->next();
     }
+
+    // test trigger logic
+    
     bool andScoreKeeper = true;
-    if (verbosity > 2) cout << "PHPythia8::process_event - triggersize: " << _registeredTriggers.size() << endl;
-    for (unsigned int tr = 0; tr < _registeredTriggers.size(); tr++)
-	{ 
-	  bool trigResult = _registeredTriggers[tr]->Apply(_pythia);
-	  if(verbosity > 2) cout << "PHPythia8::process_event trigger: " << _registeredTriggers[tr]->GetName() << "  " << trigResult << endl;
-	  if(_triggersOR && trigResult)
-	    {
-	      passedTrigger = true;
-	      break;
-	    }
-	  else if(_triggersAND)
-	    {
-	      andScoreKeeper &= trigResult;
-	    }
-	  if(verbosity > 2 && !passedTrigger) cout << "PHPythia8::process_event - failed trigger: " << _registeredTriggers[tr]->GetName() <<  endl;
-	}
+    if (verbosity > 2) {
+      cout << "PHPythia8::process_event - triggersize: " << _registeredTriggers.size() << endl;
+    }
+
+    for (unsigned int tr = 0; tr < _registeredTriggers.size(); tr++) { 
+      bool trigResult = _registeredTriggers[tr]->Apply(_pythia);
+
+      if (verbosity > 2) {
+	cout << "PHPythia8::process_event trigger: "
+	     << _registeredTriggers[tr]->GetName() << "  " << trigResult << endl;
+      }
+
+      if (_triggersOR && trigResult) {
+	passedTrigger = true;
+	break;
+      } else if (_triggersAND) {
+	andScoreKeeper &= trigResult;
+      }
+      
+      if (verbosity > 2 && !passedTrigger) {
+	cout << "PHPythia8::process_event - failed trigger: "
+	     << _registeredTriggers[tr]->GetName() <<  endl;
+      }
+    }
 
     if ((andScoreKeeper && _triggersAND) || (_registeredTriggers.size() == 0)) {
       passedTrigger = true;
@@ -212,7 +226,7 @@ int PHPythia8::process_event(PHCompositeNode *topNode) {
 
   // fill HepMC object with event & pass to 
   
-  HepMC::GenEvent *genevent = new HepMC::GenEvent(HepMC::Units::GEV, HepMC::Units::CM);
+  HepMC::GenEvent *genevent = new HepMC::GenEvent(HepMC::Units::GEV, HepMC::Units::MM);
   _pythiaToHepMC->fill_next_event(*_pythia, genevent, _eventcount);
 
   // pass HepMC to PHNode
@@ -241,7 +255,7 @@ int PHPythia8::process_event(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHPythia8::CreateNodeTree(PHCompositeNode *topNode) {
+int PHPythia8::create_node_tree(PHCompositeNode *topNode) {
 
   PHCompositeNode *dstNode;
   PHNodeIterator iter(topNode);
@@ -263,7 +277,7 @@ int PHPythia8::ResetEvent(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHPythia8::registerTrigger(PHPy8GenTrigger *theTrigger) {
+void PHPythia8::register_trigger(PHPy8GenTrigger *theTrigger) {
   if(verbosity > 1) cout << "PHPythia8::registerTrigger - trigger " << theTrigger->GetName() << " registered" << endl;
   _registeredTriggers.push_back(theTrigger);
 }

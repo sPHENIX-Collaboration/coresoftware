@@ -37,65 +37,52 @@ class PHPythia8: public SubsysReco {
   
 public:
   
-  //! constructor
   PHPythia8(const std::string &name = "PHPythia8");
-  
-  //! destructor
   virtual ~PHPythia8();
 
-  //! configuration file
-  void SetConfigFile( const char* cfg_file ) {
+  int Init(PHCompositeNode *topNode);  
+  int process_event(PHCompositeNode *topNode); 
+  int ResetEvent(PHCompositeNode *topNode); 
+  int End(PHCompositeNode *topNode);
+  
+  void set_config_file( const char* cfg_file ) {
     if ( cfg_file ) _configFile = cfg_file;
   }
 
-  //! Read Config File
-  /*! if argument is 0 current _configFile is used. It is overwritten otherwise */
-  int ReadConfig(const char *cfg_file = 0);
+  void print_config() const;
 
-  //! Print Config File
-  void PrintConfig() const;
+  void set_seed(const int s) { _seed = s; }
 
-  //! Set Seed of random number generator
-  void SetSeed(const int s) { _seed = s; }
+  /// set event selection criteria
+  void register_trigger(PHPy8GenTrigger *theTrigger);
+  void set_trigger_OR() { _triggersOR = true; } // default true
+  void set_trigger_AND() { _triggersAND = true; }
 
-  //! Methods Derived from SubsysReco
-  int Init(PHCompositeNode *topNode);
+  /// pass commands directly to PYTHIA8
+  void process_string(std::string s) {_commands.push_back(s);}
   
-  //int InitRun(PHCompositeNode *topNode);
-  
-  //! event method
-  int process_event(PHCompositeNode *topNode);
-  
-  //! event reset
-  int ResetEvent(PHCompositeNode *topNode);
-  
-  //! end of job
-  int End(PHCompositeNode *topNode);
+  void set_node_name(std::string s) {_node_name = s;}
 
-  //Triggers
-  void registerTrigger(PHPy8GenTrigger *theTrigger);
-  void setTriggerOR() { _triggersOR = true; } // default true
-  void setTriggerAND() { _triggersAND = true; }
-
-  void ProcessString(std::string s) {_commands.push_back(s);}
-  
-  void SetNodeName(std::string s) {_node_name = s;}
-
-  void BeamVertexDist(double beamX, double beamY, double beamZ,
-		      double beamXsigma, double beamYsigma, double beamZsigma) {
+  void beam_vertex_parameters(double beamX,
+			      double beamY,
+			      double beamZ,
+			      double beamXsigma,
+			      double beamYsigma,
+			      double beamZsigma) {
     _useBeamVtx = true;
     _beamX = beamX;
     _beamY = beamY;
     _beamZ = beamZ;    
-    _beamXsigma = beamX;
-    _beamYsigma = beamY;
-    _beamZsigma = beamZ;
+    _beamXsigma = beamXsigma;
+    _beamYsigma = beamYsigma;
+    _beamZsigma = beamZsigma;
   }
 
 private:
-  
-  int CreateNodeTree(PHCompositeNode *topNode);
-  double percentDiff(const double a, const double b){return abs((a-b)/a);}
+
+  int read_config(const char *cfg_file = 0);
+  int create_node_tree(PHCompositeNode *topNode);
+  double percent_diff(const double a, const double b){return abs((a-b)/a);}
   
   int _eventcount;
 
