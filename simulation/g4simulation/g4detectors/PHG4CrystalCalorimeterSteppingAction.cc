@@ -90,8 +90,6 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
       tower_id = touch->GetCopyNumber();
     }
 
-  cout << "HIT in " << whichactive << " at " << idx_j << " / " << idx_k << endl;
-
   /* Get energy deposited by this step */
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
