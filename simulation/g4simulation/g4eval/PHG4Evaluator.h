@@ -27,6 +27,7 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>
 
 // ROOT includes
@@ -207,7 +208,7 @@ class SvxGtrack : public PHObject
 ///
 class PHG4Evaluator : public SubsysReco
 {
-  typedef std::map<unsigned int, PHG4Hit*> HitMap;
+  typedef PHG4HitContainer::Map HitMap;
 
  public:
  
@@ -272,6 +273,7 @@ class PHG4Evaluator : public SubsysReco
   SvtxHitMap *_hitList;
   PHG4CylinderCellContainer *_cellList;
   PHG4CylinderCellGeomContainer *_cellGeos;
+  // typedefed from PHG4HitContainer::Map
   HitMap _g4hitList;
   PHG4TruthInfoContainer* _truth_info_container;
   
