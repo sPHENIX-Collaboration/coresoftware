@@ -57,7 +57,6 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 
   int whichactive = detector_->IsInCrystalCalorimeter(volume);
 
-
   if ( !whichactive  )
     {
       return false;
@@ -80,9 +79,7 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
     }
   else if (whichactive < 0)
     {
-      //Get the absorber indices
-      //WhatAreYou(touch, idx_j, idx_k);
-      ParseName(touch->GetVolume(1), idx_j, idx_k);
+      //no tower ID for absorber
       tower_id = touch->GetCopyNumber();
     }
   else
@@ -128,20 +125,18 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 //	  hit->set_layer(0);
 	  hit->set_scint_id(tower_id);
 
-	  /* Set hit location (tower index) */
-	  hit->set_index_j(idx_j);
-	  hit->set_index_k(idx_k);
-	  hit->set_index_l(idx_l);
+	  /* Set hit location (tower index) only for crystals*/
+	  if (whichactive > 0)
+	    {
+	      hit->set_index_j(idx_j);
+	      hit->set_index_k(idx_k);
+	      hit->set_index_l(idx_l);
+	    }
 
-	  /* Set hit location (space point) */
+	  /* Set hit location (space point) only for crystals*/
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm);
 	  hit->set_y( 0, prePoint->GetPosition().y() / cm );
 	  hit->set_z( 0, prePoint->GetPosition().z() / cm );
-
-	  /* Set momentum */
-	  hit->set_x( 0, prePoint->GetMomentum().x() / GeV );
-	  hit->set_y( 0, prePoint->GetMomentum().y() / GeV );
-	  hit->set_z( 0, prePoint->GetMomentum().z() / GeV );
 
 	  /* Set hit time */
 	  hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
