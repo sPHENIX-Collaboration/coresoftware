@@ -40,6 +40,13 @@ public:
   virtual PHG4Detector* GetDetector( void ) const;
   virtual PHG4SteppingAction* GetSteppingAction( void ) const;
 
+  /** Set mapping file for calorimeter towers
+   */
+  void SetTowerMappingFile( std::string filename )
+  {
+    mappingfile_ = filename;
+  }
+
 private:
 
   /** Pointer to the Geant4 implementation of the detector
@@ -54,6 +61,7 @@ private:
   int active;
 
   std::string detector_type;
+  std::string mappingfile_;
 
 };
 

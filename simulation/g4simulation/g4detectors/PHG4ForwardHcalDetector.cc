@@ -61,7 +61,7 @@ PHG4ForwardHcalDetector::PHG4ForwardHcalDetector( PHCompositeNode *Node, const s
   _active(1),
   _towerlogicnameprefix("hHcalTower"),
   _superdetector("NONE"),
-  _mapping_tower_file("calibrations/ForwardHcal/mapping/towerMap_hHcal_v0.txt")
+  _mapping_tower_file("")
 {
 
 }
@@ -96,6 +96,19 @@ PHG4ForwardHcalDetector::IsInForwardHcal(G4VPhysicalVolume * volume) const
 void
 PHG4ForwardHcalDetector::Construct( G4LogicalVolume* logicWorld )
 {
+  if ( verbosity > 0 )
+    {
+      cout << "PHG4ForwardHcalDetector: Begin Construction" << endl;
+    }
+
+
+  if ( _mapping_tower_file.empty() )
+    {
+      cout << "ERROR in PHG4ForwardHcalDetector: No tower mapping file specified. Abort detector construction." << endl;
+      cout << "Please run SetTowerMappingFile( std::string filename ) first." << endl;
+      exit(1);
+    }
+
   /* Create the cone envelope = 'world volume' for the crystal calorimeter */
   G4Material* Air = G4Material::GetMaterial("G4_AIR");
 
@@ -138,6 +151,11 @@ PHG4ForwardHcalDetector::Construct( G4LogicalVolume* logicWorld )
 G4LogicalVolume*
 PHG4ForwardHcalDetector::ConstructTower()
 {
+  if ( verbosity > 0 )
+    {
+      cout << "PHG4ForwardHcalDetector: Build logical volume for single tower..." << endl;
+    }
+
   /* create logical volume for single tower */
   G4Material* material_air = G4Material::GetMaterial( "G4_AIR" );
 
@@ -221,6 +239,11 @@ PHG4ForwardHcalDetector::ConstructTower()
   visattchk->SetColour(G4Colour::Cyan());
   single_tower_logic->SetVisAttributes(visattchk);
 
+  if ( verbosity > 0 )
+    {
+      cout << "PHG4ForwardHcalDetector: Building logical volume for single tower done." << endl;
+    }
+
   return single_tower_logic;
 }
 
@@ -246,13 +269,24 @@ PHG4ForwardHcalDetector::PlaceTower(G4LogicalVolume* hcalenvelope, G4LogicalVolu
 
   while ( getline( istream_mapping, line_mapping ) )
     {
-      unsigned idx_j, idx_k;
-      double pos_x, pos_y;
+      unsigned idx_j, idx_k, idx_l;
+      double pos_x, pos_y, pos_z;
+      double dummy;
 
       istringstream iss(line_mapping);
 
+      /* Skip lines starting with / including a '#' */
+      if ( line_mapping.find("#") != string::npos )
+	{
+	  if ( verbosity > 0 )
+	    {
+	      cout << "PHG4ForwardHcalDetector: SKIPPING line in mapping file: " << line_mapping << endl;
+	    }
+	  continue;
+	}
+
       /* read string- break if error */
-      if ( !( iss >> idx_j >> idx_k >> pos_x >> pos_y ) )
+      if ( !( iss >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> dummy >> dummy >> dummy >> dummy ) )
 	{
 	  cerr << "ERROR in PHG4ForwardHcalDetector: Failed to read line in mapping file " << _mapping_tower_file << endl;
 	  exit(1);
@@ -265,7 +299,12 @@ PHG4ForwardHcalDetector::PlaceTower(G4LogicalVolume* hcalenvelope, G4LogicalVolu
       towername << _towerlogicnameprefix << "_j_" << idx_j << "_k_" << idx_k;
 
       /* Place tower */
-      new G4PVPlacement( 0, G4ThreeVector(pos_x*10.0 , pos_y*10.0, 0),
+      if ( verbosity > 0 )
+	{
+	  cout << "PHG4ForwardHcalDetector: Place tower " << towername.str() << endl;
+	}
+
+      new G4PVPlacement( 0, G4ThreeVector(pos_x*cm , pos_y*cm, pos_z*cm),
 			 singletower,
 			 towername.str().c_str(),
 			 hcalenvelope,

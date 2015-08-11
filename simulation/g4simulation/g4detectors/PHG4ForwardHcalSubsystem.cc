@@ -19,7 +19,8 @@ PHG4ForwardHcalSubsystem::PHG4ForwardHcalSubsystem( const std::string &name, con
   steppingAction_( NULL ),
   eventAction_(NULL),
   active(1),
-  detector_type(name)
+  detector_type(name),
+  mappingfile_("")
 {
 
 }
@@ -35,6 +36,8 @@ int PHG4ForwardHcalSubsystem::Init( PHCompositeNode* topNode )
   detector_ = new PHG4ForwardHcalDetector(topNode, Name());
   detector_->SetActive(active);
   detector_->OverlapCheck(overlapcheck);
+  detector_->Verbosity(verbosity);
+  detector_->SetTowerMappingFile( mappingfile_ );
 
   if (active)
     {

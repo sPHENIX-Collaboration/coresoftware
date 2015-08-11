@@ -16,6 +16,7 @@ class RawTower : public PHObject {
   virtual int isValid() const { PHOOL_VIRTUAL_WARN("isValid()"); return 0; }
   virtual void identify(std::ostream& os=std::cout) const { PHOOL_VIRTUAL_WARN("identify()"); }
 
+  virtual unsigned int get_id() const { PHOOL_VIRTUAL_WARN("get_id()"); return 0; }
   virtual int get_bineta() const { PHOOL_VIRTUAL_WARN("get_ieta()"); return -1; }
   virtual int get_binphi() const { PHOOL_VIRTUAL_WARN("get_iphi()");; return -1; }
   virtual float get_energy() const { PHOOL_VIRTUAL_WARN("get_energy()"); return 0.0; }

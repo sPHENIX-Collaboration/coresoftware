@@ -72,13 +72,17 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
   if (whichactive > 0) // in crystal
     {
       /* Find indizes of crystal containing this step */
-      WhatAreYou(touch, idx_j, idx_k);
+      /** @TODO ParseName works for planar geometry, WhatAreYou works for projective geometry
+       * (because of the additional layer of logical volume). Need to clean this up. */
+      //WhatAreYou(touch, idx_j, idx_k);
+      ParseName(touch->GetVolume(1), idx_j, idx_k);
       tower_id = touch->GetCopyNumber();
     }
   else if (whichactive < 0)
     {
-      //Get the absorber indices 
-      WhatAreYou(touch, idx_j, idx_k);
+      //Get the absorber indices
+      //WhatAreYou(touch, idx_j, idx_k);
+      ParseName(touch->GetVolume(1), idx_j, idx_k);
       tower_id = touch->GetCopyNumber();
     }
   else
@@ -179,10 +183,6 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
       hit->set_x( 1, postPoint->GetPosition().x() / cm );
       hit->set_y( 1, postPoint->GetPosition().y() / cm );
       hit->set_z( 1, postPoint->GetPosition().z() / cm );
-
-      hit->set_px(1, postPoint->GetMomentum().x() / GeV );
-      hit->set_py(1, postPoint->GetMomentum().y() / GeV );
-      hit->set_pz(1, postPoint->GetMomentum().z() / GeV );
 
       hit->set_t( 1, postPoint->GetGlobalTime() / nanosecond );
 
