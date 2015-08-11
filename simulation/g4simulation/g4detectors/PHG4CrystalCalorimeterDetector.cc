@@ -61,6 +61,7 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode 
 //  _dx_back(59.3154545455*mm),		// PANDA eEMCAL Numbers: Crystals are 2.4cm * 2.4cm on front face //
 //  _dy_back(59.3154545455*mm),		//****************************************************************//
 //  _dz_crystal(90.000*mm),		//****************************************************************//
+  _projective(false),
   _dx_front(41.44*mm),
   _dy_front(41.44*mm),
   _dx_back(48.97454545455*mm),
@@ -108,6 +109,19 @@ PHG4CrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume * volum
 void
 PHG4CrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
 {
+  if ( verbosity > 0 )
+    {
+      cout << "PHG4CrystalCalorimeterDetector: Begin Construction" << endl;
+    }
+
+
+  if ( _inputFile.empty() )
+    {
+      cout << "ERROR in PHG4CrystalCalorimeterDetector: No tower mapping file specified. Abort detector construction." << endl;
+      cout << "Please run SetTowerMappingFile( std::string filename ) first." << endl;
+      exit(1);
+    }
+
   /* Create the cone envelope = 'world volume' for the crystal calorimeter */
   //G4Material* Air = G4Material::GetMaterial("G4_AIR");
   G4Material* Air = G4Material::GetMaterial("G4_Galactic");
@@ -138,16 +152,13 @@ PHG4CrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
 		     ecal_envelope_log, "CrystalCalorimeter", logicWorld, 0, false, overlapcheck_local);
 
   /* Construct crystal calorimeter within envelope */
-  if (_inputFile != "NULL")
+  if ( _projective )
   {
-    ConstructCrystals(ecal_envelope_log);
-  }  
+    ConstructProjectiveCrystals(ecal_envelope_log);
+  }
   else
   {
-    cout << endl << "*************************************************************************************" << endl;
-    cout << "PHG4CrystalCalorimeterDetector.cc: NO INPUT FILE GIVEN: INITIALIZING DEFAULT GEOMETRY" << endl;
-    cout << "*************************************************************************************" << endl << endl;
-    DefaultConstruct(ecal_envelope_log);
+    ConstructCrystals(ecal_envelope_log);
   }
 
   return;
@@ -1215,7 +1226,7 @@ PHG4CrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_logic, 
 
 //_______________________________________________________________________
 int
-PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
+PHG4CrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume* ecalenvelope)
 {
 
 	G4int NumberOfLines;		 			//Number of crystals to be created.
@@ -1815,98 +1826,106 @@ PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 
 
 int
-PHG4CrystalCalorimeterDetector::DefaultConstruct(G4LogicalVolume* ecalenvelope)
+PHG4CrystalCalorimeterDetector::ConstructCrystals(G4LogicalVolume* ecalenvelope)
 {
+  /* Simple model: Fill calorimeter envelope with rectangular crystals (front face = back face)
+     which are arranged in chessboard pattern in x-y and oriented parallel to z azis */
 
-	/* Simple model: Fill calorimeter envelope with rectangular crystals (front face = back face)
-		which are arranged in chessboard pattern in x-y and oriented parallel to z azis */
+  G4Material* Vacuum = G4Material::GetMaterial("G4_Galactic");
+  //G4Material* material_crystal = G4Material::GetMaterial(_materialCrystal.c_str());
 
-	G4Material* Vacuum = G4Material::GetMaterial("G4_Galactic");
-	//G4Material* material_crystal = G4Material::GetMaterial(_materialCrystal.c_str());
-	
-	int n_crystals_j = 58;
-	int n_crystals_k = 58;
+  G4double carbonThickness, airGap, airGap_Crystal;
+  CarbonFiberSpacing( carbonThickness, airGap, airGap_Crystal);
 
-	G4double carbonThickness, airGap, airGap_Crystal;
-	CarbonFiberSpacing( carbonThickness, airGap, airGap_Crystal);
+  G4double crystal_dx = 20*mm + carbonThickness;
+  G4double crystal_dy = 20*mm + carbonThickness;
+  G4double crystal_dz = _dz_crystal;
 
-	G4double crystal_dx = 20*mm + carbonThickness; 
-	G4double crystal_dy = 20*mm + carbonThickness; 
-	G4double crystal_dz = _dz_crystal;
+  G4VSolid* crystal_solid = new G4Box( G4String("crystal_unit_solid"),
+				       crystal_dx / 2.0,
+				       crystal_dy / 2.0,
+				       crystal_dz );
 
-	G4double r_min = _rMin2;
-	G4double r_max = _rMax1;
-	G4double crystal_r = sqrt(  crystal_dx * crystal_dx +crystal_dy * crystal_dy );
+  G4LogicalVolume *crystal_logic = new G4LogicalVolume( crystal_solid,
+							Vacuum,
+							"crystal_unit_logical",
+							0, 0, 0);
 
-	/* define center of crystal with index j=0, k=0 */
-	G4double xpos_j0_k0 = 0.0*mm - ( 0.5 * n_crystals_j - 0.5 ) * crystal_dx;
-	G4double ypos_j0_k0 = 0.0*mm - ( 0.5 * n_crystals_k - 0.5 ) * crystal_dy;
+  FillTower(crystal_logic);
 
-	G4VSolid* crystal_solid = new G4Box( G4String("crystal_unit_solid"),
-		crystal_dx / 2.0,
-		crystal_dy / 2.0,
-		crystal_dz );
+  G4VisAttributes *visattchk = new G4VisAttributes();
+  visattchk->SetVisibility(false);
+  visattchk->SetForceSolid(true);
+  visattchk->SetColour(G4Colour::Yellow());
+  crystal_logic->SetVisAttributes(visattchk);
 
-	G4LogicalVolume *crystal_logic = new G4LogicalVolume( crystal_solid,
-		Vacuum,
-		"crystal_unit_logical",
-		0, 0, 0);
+  /* Place crystal units / tower */
+  ifstream istream_mapping;
 
-	FillDefaultCrystal(crystal_logic);
-	
-	G4VisAttributes *visattchk = new G4VisAttributes();
-		visattchk->SetVisibility(false);
-		visattchk->SetForceSolid(true);
-		visattchk->SetColour(G4Colour::Yellow());
-	crystal_logic->SetVisAttributes(visattchk);
-
-	ostringstream name;
-
-	/* Place crystal units */
-	G4RotationMatrix *Rot = new G4RotationMatrix();
-		Rot->rotateX(0 * rad);
-		Rot->rotateY(0 * rad);
-		Rot->rotateZ(0 * rad);
-
-	for (int idx_j = 0; idx_j < n_crystals_j; idx_j++)
+  /* Open the datafile, if it won't open return an error */
+  if (!istream_mapping.is_open())
+    {
+      istream_mapping.open( _inputFile.c_str() );
+      if(!istream_mapping)
 	{
-		for (int idx_k = 0; idx_k < n_crystals_k; idx_k++)
-		{
-			/* Construct unique name for crystal */
-			name.str("");
-			name << "CrystalUnit" << "_j_" << idx_j << "_k_" << idx_k;
+	  cerr << "ERROR in PHG4CrystalCalorimeterDetector: Failed to open mapping file " << _inputFile << endl;
+	  exit(1);
+	}
+    }
 
-			/* Calculate center position for crystal */
-			G4double xpos_crystal_jk = xpos_j0_k0 + idx_j * crystal_dx;
-			G4double ypos_crystal_jk = ypos_j0_k0 + idx_k * crystal_dx;
-			G4ThreeVector g4vec(xpos_crystal_jk, ypos_crystal_jk, 0);
+  string line_mapping;
 
-			/* check if crystal extends beyond calorimeter envelope volume */
-			G4double crystal_rpos = sqrt( xpos_crystal_jk * xpos_crystal_jk + ypos_crystal_jk * ypos_crystal_jk );
+  while ( getline( istream_mapping, line_mapping ) )
+    {
+      unsigned idx_j, idx_k, idx_l;
+      double pos_x, pos_y, pos_z;
+      double dummy;
 
-			G4double crystal_r_clear_max = crystal_rpos + crystal_r;
-			G4double crystal_r_clear_min = crystal_rpos - crystal_r;
+      istringstream iss(line_mapping);
 
-			if ( crystal_r_clear_min < r_min || crystal_r_clear_max > r_max )
-				continue;
-
-			/* If crystal wihtin envelope: place it */
-			new G4PVPlacement( Rot, 
-				G4ThreeVector(xpos_crystal_jk , ypos_crystal_jk, 0),
-				crystal_logic,
-				name.str().c_str(),
-				ecalenvelope,
-				0, 0, overlapcheck);
-		}
+      /* Skip lines starting with / including a '#' */
+      if ( line_mapping.find("#") != string::npos )
+	{
+	  if ( verbosity > 0 )
+	    {
+	      cout << "PHG4CrystalCalorimeterDetector: SKIPPING line in mapping file: " << line_mapping << endl;
+	    }
+	  continue;
 	}
 
-	return 0;
+      /* read string- break if error */
+      if ( !( iss >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> dummy >> dummy >> dummy >> dummy ) )
+	{
+	  cerr << "ERROR in PHG4CrystalCalorimeterDetector: Failed to read line in mapping file " << _inputFile << endl;
+	  exit(1);
+	}
+
+      /* Construct unique name for tower */
+      /* Mapping file uses cm, this class uses mm for length */
+      ostringstream towername;
+      towername.str("");
+      towername << _crystallogicnameprefix << "_j_" << idx_j << "_k_" << idx_k;
+
+      /* Place tower */
+      if ( verbosity > 0 )
+	{
+	  cout << "PHG4CrystalCalorimeterDetector: Place tower " << towername.str() << endl;
+	}
+
+      new G4PVPlacement( 0, G4ThreeVector(pos_x*cm , pos_y*cm, pos_z*cm),
+			 crystal_logic,
+			 towername.str().c_str(),
+			 ecalenvelope,
+			 0, 0, overlapcheck);
+    }
+
+  return 0;
 
 }
 
 
 int
-PHG4CrystalCalorimeterDetector::FillDefaultCrystal(G4LogicalVolume *crystal_logic)
+PHG4CrystalCalorimeterDetector::FillTower(G4LogicalVolume *crystal_logic)
 {
 
 	//*************************************

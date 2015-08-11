@@ -42,6 +42,18 @@ public:
   //!@name volume accessors
   int IsInCrystalCalorimeter(G4VPhysicalVolume*) const;
 
+  //! Select mapping file for calorimeter tower
+  void SetTowerMappingFile( std::string filename ) {
+    _inputFile = filename;
+  }
+
+  //! Select mapping file for calorimeter tower
+  void SetProjectiveGeometry( std::string filename1 , std::string filename2 ) {
+    _inputFile = filename1;
+    _inputFile_4x4_construct = filename2;
+    _projective = true;
+  }
+
   void CrystalDimensions(G4double& dx_front, G4double& dy_front, G4double& dx_back, G4double& dy_back, G4double& dz);
  
   void SetDimensions(G4double dx_front, G4double dy_front, G4double dx_back, G4double dy_back, G4double dz) {
@@ -84,12 +96,12 @@ public:
 
 private:
 
-  int ConstructCrystals(G4LogicalVolume* envelope);
+  int FillTower(G4LogicalVolume *crystal_logic);
+  int ConstructCrystals(G4LogicalVolume* ecalenvelope);
+
+  int ConstructProjectiveCrystals(G4LogicalVolume* envelope);
   int Fill4x4Unit(G4LogicalVolume *crystal_logic);
   int FillSpecialUnit(G4LogicalVolume *crystal_logic, G4int ident);
-
-  int FillDefaultCrystal(G4LogicalVolume *crystal_logic);
-  int DefaultConstruct(G4LogicalVolume* ecalenvelope);
 
   /* Calorimeter envelope geometry */
   G4double _place_in_x;
@@ -110,6 +122,7 @@ private:
   G4double _dPhi;
 
   /* crystal geometry */
+  G4bool _projective;
 
   G4double _dx_front;
   G4double _dy_front;

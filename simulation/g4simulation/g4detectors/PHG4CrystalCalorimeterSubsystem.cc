@@ -20,7 +20,10 @@ PHG4CrystalCalorimeterSubsystem::PHG4CrystalCalorimeterSubsystem( const std::str
   eventAction_(NULL),
   material("G4_PbWO4"),  // default - lead tungstate crystal
   active(1),
-  detector_type(name)
+  detector_type(name),
+  mappingfile_(""),
+  mappingfile_4x4_construct_(""),
+  projective_(false)
 {
 
 }
@@ -34,6 +37,11 @@ int PHG4CrystalCalorimeterSubsystem::Init( PHCompositeNode* topNode )
 
   // create detector
   detector_ = new PHG4CrystalCalorimeterDetector(topNode, Name());
+
+  detector_->SetTowerMappingFile(mappingfile_);
+  if ( projective_ )
+    detector_->SetProjectiveGeometry( mappingfile_ , mappingfile_4x4_construct_ );
+
   detector_->SetActive(active);
   detector_->SetAbsorberActive(active);
   detector_->OverlapCheck(overlapcheck);
