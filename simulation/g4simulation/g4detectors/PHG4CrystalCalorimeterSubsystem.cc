@@ -1,5 +1,6 @@
 #include "PHG4CrystalCalorimeterSubsystem.h"
 #include "PHG4CrystalCalorimeterDetector.h"
+//#include "PHG4ProjCrystalCalorimeterDetector.h"
 #include "PHG4CrystalCalorimeterSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -36,11 +37,18 @@ int PHG4CrystalCalorimeterSubsystem::Init( PHCompositeNode* topNode )
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
   // create detector
-  detector_ = new PHG4CrystalCalorimeterDetector(topNode, Name());
-
-  detector_->SetTowerMappingFile(mappingfile_);
-  if ( projective_ )
-    detector_->SetProjectiveGeometry( mappingfile_ , mappingfile_4x4_construct_ );
+//  if ( projective_ )
+//    {
+//      cout << "PHG4CrystalCalorimeterSubsystem::InitRun - use PHG4ProjCrystalCalorimeterDetector" << endl;
+//      detector_ = new PHG4ProjCrystalCalorimeterDetector(topNode, Name());
+//      detector_->SetProjectiveGeometry( mappingfile_ , mappingfile_4x4_construct_ );
+//    }
+//  else
+//    {
+      cout << "PHG4CrystalCalorimeterSubsystem::InitRun - use PHG4CrystalCalorimeterDetector" << endl;
+      detector_ = new PHG4CrystalCalorimeterDetector(topNode, Name());
+      detector_->SetTowerMappingFile(mappingfile_);
+      //    }
 
   detector_->SetActive(active);
   detector_->SetAbsorberActive(active);

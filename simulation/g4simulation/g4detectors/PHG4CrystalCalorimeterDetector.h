@@ -47,15 +47,8 @@ public:
     _inputFile = filename;
   }
 
-  //! Select mapping file for calorimeter tower
-  void SetProjectiveGeometry( std::string filename1 , std::string filename2 ) {
-    _inputFile = filename1;
-    _inputFile_4x4_construct = filename2;
-    _projective = true;
-  }
-
   void CrystalDimensions(G4double& dx_front, G4double& dy_front, G4double& dx_back, G4double& dy_back, G4double& dz);
- 
+
   void SetDimensions(G4double dx_front, G4double dy_front, G4double dx_back, G4double dy_back, G4double dz) {
   _dx_front = dx_front;
   _dy_front = dy_front;
@@ -99,10 +92,6 @@ private:
   int FillTower(G4LogicalVolume *crystal_logic);
   int ConstructCrystals(G4LogicalVolume* ecalenvelope);
 
-  int ConstructProjectiveCrystals(G4LogicalVolume* envelope);
-  int Fill4x4Unit(G4LogicalVolume *crystal_logic);
-  int FillSpecialUnit(G4LogicalVolume *crystal_logic, G4int ident);
-
   /* Calorimeter envelope geometry */
   G4double _place_in_x;
   G4double _place_in_y;
@@ -122,8 +111,6 @@ private:
   G4double _dPhi;
 
   /* crystal geometry */
-  G4bool _projective;
-
   G4double _dx_front;
   G4double _dy_front;
   G4double _dx_back;
@@ -140,7 +127,6 @@ private:
   std::string _crystallogicnameprefix;
   std::string _superdetector;
   std::string _inputFile;
-  std::string _inputFile_4x4_construct;
 };
 
 #endif
