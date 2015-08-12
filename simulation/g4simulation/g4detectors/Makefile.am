@@ -102,6 +102,7 @@ libg4detectors_la_SOURCES = \
   PHG4ConeSubsystem.cc \
   PHG4ConeSubsystem_Dict.cc \
   PHG4CrystalCalorimeterDetector.cc \
+  PHG4ProjCrystalCalorimeterDetector.cc \
   PHG4CrystalCalorimeterSteppingAction.cc \
   PHG4CrystalCalorimeterSubsystem.cc \
   PHG4CrystalCalorimeterSubsystem_Dict.cc \
