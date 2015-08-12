@@ -71,10 +71,11 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
   if (whichactive > 0) // in crystal
     {
       /* Find indizes of crystal containing this step */
-      /** @TODO ParseName works for planar geometry, WhatAreYou works for projective geometry
-       * (because of the additional layer of logical volume). Need to clean this up. */
-      //WhatAreYou(touch, idx_j, idx_k);
-      ParseName(touch->GetVolume(1), idx_j, idx_k);
+      if ( touch->GetVolume(2)->GetName().find("_j_") != string::npos )
+	FindTowerIndex2LevelUp(touch, idx_j, idx_k);
+      else
+	FindTowerIndex(touch, idx_j, idx_k);
+
       tower_id = touch->GetCopyNumber();
     }
   else if (whichactive < 0)
@@ -249,10 +250,24 @@ void PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers( PHCompositeNode
 }
 
 int
-PHG4CrystalCalorimeterSteppingAction::WhatAreYou(G4TouchableHandle touch, int& j, int& k)
+PHG4CrystalCalorimeterSteppingAction::FindTowerIndex(G4TouchableHandle touch, int& j, int& k)
+{
+        int j_0, k_0;           //The k and k indices for the scintillator / tower
+
+        G4VPhysicalVolume* tower = touch->GetVolume(1);		//Get the tower solid
+	ParseG4VolumeName(tower, j_0, k_0);
+
+        j = (j_0*1);
+        k = (k_0*1);
+
+        return 0;
+}
+
+int
+PHG4CrystalCalorimeterSteppingAction::FindTowerIndex2LevelUp(G4TouchableHandle touch, int& j, int& k)
 {
         int j_0, k_0;           //The k and k indices for the crystal within the 2x2 matrix
-        int j_1, k_1;           //The k and k indices for the 2x2 within the 4x4 
+        int j_1, k_1;           //The k and k indices for the 2x2 within the 4x4
         int j_2, k_2;           //The k and k indices for the 4x4 within the mother volume
         //int j, k;             //The final indices of the crystal
 
@@ -265,10 +280,10 @@ PHG4CrystalCalorimeterSteppingAction::WhatAreYou(G4TouchableHandle touch, int& j
 		G4VPhysicalVolume* TwoByTwo = touch->GetVolume(1);		//Get the crystal solid
 		G4VPhysicalVolume* FourByFour = touch->GetVolume(2);		//Get the crystal solid
 
-		ParseName(crystal, j_0, k_0);
-		ParseName(TwoByTwo, j_1, k_1);
-		ParseName(FourByFour, j_2, k_2);
-		
+		ParseG4VolumeName(crystal, j_0, k_0);
+		ParseG4VolumeName(TwoByTwo, j_1, k_1);
+		ParseG4VolumeName(FourByFour, j_2, k_2);
+
 		j = (j_0*1) + (j_1*2) + (j_2*4);
 		k = (k_0*1) + (k_1*2) + (k_2*4);
 
@@ -276,7 +291,7 @@ PHG4CrystalCalorimeterSteppingAction::WhatAreYou(G4TouchableHandle touch, int& j
 	else if ( (name.find("arbon") != string::npos) )
 	{
 		G4VPhysicalVolume* carbon = touch->GetVolume(1);		//Get the carbon fiber solid
-		ParseName(carbon, j_0, k_0);
+		ParseG4VolumeName(carbon, j_0, k_0);
 		j = j_0;
 		k = k_0;
 		//cout << "Carbon_" << j << "_" << k << endl;
@@ -291,8 +306,8 @@ PHG4CrystalCalorimeterSteppingAction::WhatAreYou(G4TouchableHandle touch, int& j
         return 0;
 }
 
-int 
-PHG4CrystalCalorimeterSteppingAction::ParseName( G4VPhysicalVolume* volume, int& j, int& k ) 
+int
+PHG4CrystalCalorimeterSteppingAction::ParseG4VolumeName( G4VPhysicalVolume* volume, int& j, int& k )
 {
 	boost::char_separator<char> sep("_");
 	boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
@@ -310,6 +325,6 @@ PHG4CrystalCalorimeterSteppingAction::ParseName( G4VPhysicalVolume* volume, int&
 			k = boost::lexical_cast<int>(*tokeniter);
 		}
 	}
-	
+
 	return 0;
 }
