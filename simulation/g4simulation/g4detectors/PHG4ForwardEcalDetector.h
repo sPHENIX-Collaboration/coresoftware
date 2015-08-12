@@ -1,5 +1,5 @@
-#ifndef PHG4CrystalCalorimeterDetector_h
-#define PHG4CrystalCalorimeterDetector_h
+#ifndef PHG4ForwardEcalDetector_h
+#define PHG4ForwardEcalDetector_h
 
 #include <g4main/PHG4Detector.h>
 
@@ -25,22 +25,22 @@ class G4VSolid;
  * \author Nils Feege <nils.feege@stonybrook.edu>
  */
 
-class PHG4CrystalCalorimeterDetector: public PHG4Detector
+class PHG4ForwardEcalDetector: public PHG4Detector
 {
 
 public:
 
   //! constructor
-  PHG4CrystalCalorimeterDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK" );
+  PHG4ForwardEcalDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK" );
 
   //! destructor
-  virtual ~PHG4CrystalCalorimeterDetector();
+  virtual ~PHG4ForwardEcalDetector();
 
   //! construct
   virtual void Construct( G4LogicalVolume* world );
 
   //!@name volume accessors
-  int IsInCrystalCalorimeter(G4VPhysicalVolume*) const;
+  int IsInForwardEcal(G4VPhysicalVolume*) const;
 
 
   //! Select mapping file for calorimeter tower
@@ -49,10 +49,10 @@ public:
   }
 
 
-  void SetCrystalSize(G4double dx, G4double dy, G4double dz) {
-    _crystal_dx = dx;
-    _crystal_dy = dy;
-    _crystal_dz = dz;
+  void SetTowerDimensions(G4double dx, G4double dy, G4double dz) {
+  _tower_dx = dx;
+  _tower_dy = dy;
+  _tower_dz = dz;
   }
 
   void SetPlace( G4double place_in_x, G4double place_in_y, G4double place_in_z) {
@@ -65,7 +65,8 @@ public:
   void SetYRot( G4double rot_in_y ) { _rot_in_y = rot_in_y; }
   void SetZRot( G4double rot_in_z ) { _rot_in_z = rot_in_z; }
 
-  void SetMaterialCrystal( G4String material ) { _materialCrystal = material; }
+  void SetMaterialScintillator( G4String material ) { _materialScintillator = material; }
+  void SetMaterialAbsorber( G4String material ) { _materialAbsorber = material; }
 
   void SetActive(const int i = 1) {_active = i;}
   void SetAbsorberActive(const int i = 1) {_absorberactive = i;}
@@ -103,12 +104,13 @@ private:
   G4double _sPhi;
   G4double _dPhi;
 
-  /* HCAL tower geometry */
-  G4double _crystal_dx;
-  G4double _crystal_dy;
-  G4double _crystal_dz;
+  /* ECAL tower geometry */
+  G4double _tower_dx;
+  G4double _tower_dy;
+  G4double _tower_dz;
 
-  G4String _materialCrystal;
+  G4String _materialScintillator;
+  G4String _materialAbsorber;
 
   int _active;
   int _absorberactive;
