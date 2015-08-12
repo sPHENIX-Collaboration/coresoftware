@@ -82,7 +82,7 @@ static void fit_cluster( std::vector<std::vector<float> >& amps, int& nhits_tot,
 	z /= e;
 }
 
-int PHG4TPCClusterizer::Init(PHCompositeNode *topNode)
+int PHG4TPCClusterizer::InitRun(PHCompositeNode *topNode)
 {
 	PHG4CylinderCellGeomContainer* geom_container = 0;
 	PHTypedNodeIterator<PHG4CylinderCellGeomContainer> geomiter(topNode);
@@ -93,6 +93,9 @@ int PHG4TPCClusterizer::Init(PHCompositeNode *topNode)
 			cout<<"can't find CYLINDERCELLGEOM_SVTX"<<endl;
 			return Fun4AllReturnCodes::ABORTRUN;
 		}
+	amps.clear();
+	cellids.clear();
+	nhits.clear();
 	PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
 	for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;layeriter != layerrange.second;++layeriter)
 	{

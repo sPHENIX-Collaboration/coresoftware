@@ -11,10 +11,10 @@ class PHG4TPCClusterizer : public SubsysReco
 		~PHG4TPCClusterizer(){}
 
 		//! module initialization
-		int Init(PHCompositeNode *topNode);
+		int Init(PHCompositeNode *topNode){return 0;}
 
 		//! run initialization
-		int InitRun(PHCompositeNode *topNode){return 0;};
+		int InitRun(PHCompositeNode *topNode);
 
 		//! event processing
 		int process_event(PHCompositeNode *topNode);
