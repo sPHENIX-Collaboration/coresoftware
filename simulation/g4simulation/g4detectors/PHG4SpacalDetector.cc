@@ -147,8 +147,10 @@ PHG4SpacalDetector::Construct(G4LogicalVolume* logicWorld)
   G4LogicalVolume *sec_logic = psec.first;
   const G4Transform3D & sec_trans = psec.second;
 
+//  int n_sec_construct =
+//      (_geom->is_virualize_fiber()) ? 1 : (_geom->is_azimuthal_seg_visible()?2:_geom->get_azimuthal_n_sec());
   int n_sec_construct =
-      (_geom->is_virualize_fiber()) ? 1 : (_geom->is_azimuthal_seg_visible()?10:_geom->get_azimuthal_n_sec());
+      (_geom->is_virualize_fiber()) ? 1 : (_geom->get_azimuthal_n_sec());
 
   if (_geom->is_virualize_fiber() or _geom->is_azimuthal_seg_visible())
     {
@@ -368,9 +370,11 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const string & id)
       core_logic->SetVisAttributes(VisAtt);
     }
 
+    const bool overlapcheck_fiber = overlapcheck
+        and (_geom->get_construction_verbose() >= 3);
   G4PVPlacement * core_physi = new G4PVPlacement(0, G4ThreeVector(), core_logic,
       G4String(G4String(GetName() + string("_fiber_core") + id)), fiber_logic,
-      false, 0, overlapcheck);
+      false, 0, overlapcheck_fiber);
   fiber_core_vol[core_physi] = 0;
 
   return fiber_logic;
