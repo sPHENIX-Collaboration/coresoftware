@@ -26,8 +26,7 @@ pkginclude_HEADERS = \
   PHG4Evaluator.h \
   PHG4CalEvaluator.h \
   PHG4DSTReader.h \
-  EvalLinks.h \
-  EvalLinksV1.h
+  EvalLinks.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
@@ -39,9 +38,7 @@ libg4eval_la_SOURCES = \
   PHG4DSTReader.cc \
   PHG4DSTReader_Dict.C \
   EvalLinks.C \
-  EvalLinks_Dict.C \
-  EvalLinksV1.C \
-  EvalLinksV1_Dict.C
+  EvalLinks_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
