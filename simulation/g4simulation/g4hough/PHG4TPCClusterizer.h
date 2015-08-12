@@ -21,6 +21,11 @@ class PHG4TPCClusterizer : public SubsysReco
 		//! end of process
 		int End(PHCompositeNode *topNode){return 0;}
 
+
+	private:
+		std::vector<std::vector<std::vector<float> > > amps;
+		std::vector<std::vector<std::vector<int> > > cellids;
+		std::vector<std::vector<int> > nhits;
 };
 
 
