@@ -84,6 +84,11 @@ static void fit_cluster( std::vector<std::vector<float> >& amps, int& nhits_tot,
 
 int PHG4TPCClusterizer::Init(PHCompositeNode *topNode)
 {
+	PHG4CylinderCellGeomContainer* geom_container = 0;
+	PHTypedNodeIterator<PHG4CylinderCellGeomContainer> geomiter(topNode);
+	PHIODataNode<PHG4CylinderCellGeomContainer>* PHG4CylinderCellGeomContainerNode = geomiter.find("CYLINDERCELLGEOM_SVTX");
+	if(PHG4CylinderCellGeomContainerNode){geom_container = (PHG4CylinderCellGeomContainer*) PHG4CylinderCellGeomContainerNode->getData();}
+	if (!geom_container) return Fun4AllReturnCodes::ABORTRUN;
 	PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
 	for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;layeriter != layerrange.second;++layeriter)
 	{
@@ -132,7 +137,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 	PHTypedNodeIterator<PHG4CylinderCellGeomContainer> geomiter(topNode);
 	PHIODataNode<PHG4CylinderCellGeomContainer>* PHG4CylinderCellGeomContainerNode = geomiter.find("CYLINDERCELLGEOM_SVTX");
 	if(PHG4CylinderCellGeomContainerNode){geom_container = (PHG4CylinderCellGeomContainer*) PHG4CylinderCellGeomContainerNode->getData();}
-	if (!geom_container) return Fun4AllReturnCodes::ABORTRUN;;
+	if (!geom_container) return Fun4AllReturnCodes::ABORTRUN;
 
 	PHG4HitContainer* g4hits = 0;
 	PHTypedNodeIterator<PHG4HitContainer> g4hititer(topNode);
