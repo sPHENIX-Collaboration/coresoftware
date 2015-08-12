@@ -924,14 +924,14 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
   zoomprofile[1][0] = 16;
   zoomprofile[1][1] = 1;
   zoomprofile[1][2] = 4;
-  zoomprofile[1][3] = 4;
-  zoomprofile[1][4] = 2;
+  zoomprofile[1][3] = 1;
+  zoomprofile[1][4] = 1;
   
   zoomprofile[2][0] = 4;
   zoomprofile[2][1] = 3;
   zoomprofile[2][2] = 2;
   zoomprofile[2][3] = 1;
-  zoomprofile[2][4] = 3;
+  zoomprofile[2][4] = 1;
   
   for (unsigned int i = 3; i <= 6; ++i) {
     zoomprofile[i][0] = 4;
@@ -941,7 +941,7 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
     zoomprofile[i][4] = 2;
   }
     
-  _tracker = new sPHENIXTracker(zoomprofile, 3, top_range, _material, _radii, _magField);
+  _tracker = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
   _tracker->setNLayers(_seed_layers);
   _tracker->requireLayers(_req_seed);
   _max_hits_init = _seed_layers*4;
