@@ -587,14 +587,19 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
     
     if( seed.ndummies > (n_layers - half_layers) )
     {
-      cout<<"too many dummies"<<endl;
-      for(unsigned int h=0;h<hits.size();++h)
-      {
-        (*hit_used)[hits[h].index] = true;
-      }
+      // cout<<"too many dummies"<<endl;
+      // for(unsigned int h=0;h<hits.size();++h)
+      // {
+      //   (*hit_used)[hits[h].index] = true;
+      // }
+      return;
+    }
+    if( seed.ndummies > (n_layers - req_layers) )
+    {
       return;
     }
   }
+
   
   tracks.push_back( SimpleTrack3D() );
   for(unsigned int i=0;i<n_layers;++i)
