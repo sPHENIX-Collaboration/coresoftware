@@ -26,6 +26,8 @@ public:
   virtual
   ~PHG4HitEval();
 
+  virtual void Copy(PHG4Hit const &g4hit);
+
   float
   get_eion() const
   {
