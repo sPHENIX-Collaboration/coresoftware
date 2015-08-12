@@ -2,6 +2,7 @@
 #define PHG4Hitv1_H__
 
 #include "PHG4Hit.h"
+#include "PHG4HitDefs.h"
 
 #include <map>
 #include <stdint.h>
@@ -17,7 +18,7 @@ class PHG4Hitv1 : public PHG4Hit
   float get_z(const int i) const {return z[i];}
   float get_t(const int i) const {return t[i];}
   float get_edep() const {return edep;}
-  unsigned long long get_hit_id() const {return hitid;}
+  PHG4HitDefs::keytype get_hit_id() const {return hitid;}
   int get_trkid() const {return trackid;}
   
   void set_x(const int i, const float f) {x[i]=f;}
@@ -25,7 +26,7 @@ class PHG4Hitv1 : public PHG4Hit
   void set_z(const int i, const float f) {z[i]=f;}
   void set_t(const int i, const float f) {t[i]=f;}
   void set_edep(const float f) {edep = f;}
-  void set_hit_id(const unsigned long long i) {hitid=i;}
+  void set_hit_id(const PHG4HitDefs::keytype i) {hitid=i;}
   void set_trkid(const int i) {trackid=i;}
 
   virtual void print() const;
@@ -81,7 +82,7 @@ class PHG4Hitv1 : public PHG4Hit
   float y[2];
   float z[2];
   float t[2];
-  unsigned long long hitid;
+  PHG4HitDefs::keytype hitid;
   int trackid;
   float edep;
 
