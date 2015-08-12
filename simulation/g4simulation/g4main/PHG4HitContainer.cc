@@ -43,7 +43,7 @@ PHG4HitContainer::identify(ostream& os) const
   return;
 }
 
-unsigned long long 
+PHG4HitDefs::keytype
 PHG4HitContainer::getmaxkey(const unsigned int detid)
 {
   ConstRange miter = getHits(detid);
@@ -58,32 +58,32 @@ PHG4HitContainer::getmaxkey(const unsigned int detid)
     {
       return  0;
     }
-  unsigned long long detidlong = detid;
-  unsigned long long shiftval = detidlong << phg4hitdefs::hit_idbits;
+  PHG4HitDefs::keytype detidlong = detid;
+  PHG4HitDefs::keytype shiftval = detidlong << PHG4HitDefs::hit_idbits;
   ConstIterator lastlayerentry = miter.second;
   --lastlayerentry;
-  unsigned long long iret = lastlayerentry->first - shiftval; // subtract layer mask
+  PHG4HitDefs::keytype iret = lastlayerentry->first - shiftval; // subtract layer mask
   return iret;
 }
 
 
-unsigned long long
+PHG4HitDefs::keytype
 PHG4HitContainer::genkey(const unsigned int detid)
 {
-  if ((detid >> phg4hitdefs::keybits) > 0)
+  if ((detid >> PHG4HitDefs::keybits) > 0)
     {
       cout << " detector id too large: " << detid << endl;
       exit(1);
     }
-  unsigned long long detidlong = detid;
-  unsigned long long shiftval = detidlong << phg4hitdefs::hit_idbits;
+  PHG4HitDefs::keytype detidlong = detid;
+  PHG4HitDefs::keytype shiftval = detidlong << PHG4HitDefs::hit_idbits;
   //  cout << "max index: " << (detminmax->second)->first << endl;
   // after removing hits with no energy deposition, we have holes
   // in our hit ranges. This construct will get us the last hit in
   // a layer and return it's hit id. Adding 1 will put us at the end of this layer
-  unsigned long long hitid = getmaxkey(detid);
+  PHG4HitDefs::keytype hitid = getmaxkey(detid);
   hitid++;
-  unsigned long long newkey = hitid | shiftval;
+  PHG4HitDefs::keytype newkey = hitid | shiftval;
   if (hitmap.find(newkey) != hitmap.end())
     {
       cout << PHWHERE << " duplicate key: 0x" 
@@ -99,13 +99,13 @@ PHG4HitContainer::genkey(const unsigned int detid)
 PHG4HitContainer::ConstIterator
 PHG4HitContainer::AddHit(PHG4Hit *newhit)
 {
-  unsigned long long key = newhit->get_hit_id();
+  PHG4HitDefs::keytype key = newhit->get_hit_id();
   if (hitmap.find(key) != hitmap.end())
     {
       cout << "hit with id  0x" << hex << key << " exists already" << endl;
       return hitmap.find(key);
     }
-  unsigned long long detidlong = key >>  phg4hitdefs::hit_idbits;
+  PHG4HitDefs::keytype detidlong = key >>  PHG4HitDefs::hit_idbits;
   unsigned int detid = detidlong;
   layers.insert(detid);
   hitmap[key] = newhit;
@@ -115,7 +115,7 @@ PHG4HitContainer::AddHit(PHG4Hit *newhit)
 PHG4HitContainer::ConstIterator
 PHG4HitContainer::AddHit(const unsigned int detid, PHG4Hit *newhit)
 {
-  unsigned long long key = genkey(detid);
+  PHG4HitDefs::keytype key = genkey(detid);
   layers.insert(detid);
   newhit->set_hit_id(key);
   hitmap[key] = newhit;
@@ -124,14 +124,14 @@ PHG4HitContainer::AddHit(const unsigned int detid, PHG4Hit *newhit)
 
 PHG4HitContainer::ConstRange PHG4HitContainer::getHits(const unsigned int detid) const
 {
-  if ((detid >> phg4hitdefs::keybits) > 0)
+  if ((detid >> PHG4HitDefs::keybits) > 0)
     {
       cout << " detector id too large: " << detid << endl;
       exit(1);
     }
-  unsigned long long detidlong = detid;
-  unsigned long long  keylow = detidlong << phg4hitdefs::hit_idbits;
-  unsigned long long  keyup = ((detidlong + 1) << phg4hitdefs::hit_idbits) -1 ;
+  PHG4HitDefs::keytype detidlong = detid;
+  PHG4HitDefs::keytype keylow = detidlong << PHG4HitDefs::hit_idbits;
+  PHG4HitDefs::keytype keyup = ((detidlong + 1) << PHG4HitDefs::hit_idbits) -1 ;
   ConstRange retpair;
   retpair.first = hitmap.lower_bound(keylow);
   retpair.second = hitmap.upper_bound(keyup);
@@ -142,7 +142,7 @@ PHG4HitContainer::ConstRange PHG4HitContainer::getHits( void ) const
 { return std::make_pair( hitmap.begin(), hitmap.end() ); }
 
 
-PHG4HitContainer::Iterator PHG4HitContainer::findOrAddHit(unsigned long long key)
+PHG4HitContainer::Iterator PHG4HitContainer::findOrAddHit(PHG4HitDefs::keytype key)
 {
   PHG4HitContainer::Iterator it = hitmap.find(key);
   if(it == hitmap.end())
@@ -157,7 +157,7 @@ PHG4HitContainer::Iterator PHG4HitContainer::findOrAddHit(unsigned long long key
   return it;
 }
 
-PHG4Hit* PHG4HitContainer::findHit(unsigned long long key)
+PHG4Hit* PHG4HitContainer::findHit(PHG4HitDefs::keytype key)
 {
   PHG4HitContainer::ConstIterator it = hitmap.find(key);
   if(it != hitmap.end())
