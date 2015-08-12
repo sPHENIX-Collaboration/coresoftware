@@ -115,8 +115,8 @@ PHG4CylinderGeom_Spacalv1::SetDefault()
   ypos = 0;
   zpos = 0;
 
-  fiber_core_diameter = 0.047;
   fiber_clading_thickness = 0.003 / 2;
+  fiber_core_diameter = 0.047 - fiber_clading_thickness*2;
   fiber_distance = 0.1;
 
   virualize_fiber = false;
