@@ -88,7 +88,11 @@ int PHG4TPCClusterizer::Init(PHCompositeNode *topNode)
 	PHTypedNodeIterator<PHG4CylinderCellGeomContainer> geomiter(topNode);
 	PHIODataNode<PHG4CylinderCellGeomContainer>* PHG4CylinderCellGeomContainerNode = geomiter.find("CYLINDERCELLGEOM_SVTX");
 	if(PHG4CylinderCellGeomContainerNode){geom_container = (PHG4CylinderCellGeomContainer*) PHG4CylinderCellGeomContainerNode->getData();}
-	if (!geom_container) return Fun4AllReturnCodes::ABORTRUN;
+	if (!geom_container)
+		{
+			cout<<"can't find CYLINDERCELLGEOM_SVTX"<<endl;
+			return Fun4AllReturnCodes::ABORTRUN;
+		}
 	PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
 	for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;layeriter != layerrange.second;++layeriter)
 	{
@@ -105,7 +109,7 @@ int PHG4TPCClusterizer::Init(PHCompositeNode *topNode)
     		cellids.back()[i].assign( nphibins, 0 );
     	}
 	}
-	return 0;
+	return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
