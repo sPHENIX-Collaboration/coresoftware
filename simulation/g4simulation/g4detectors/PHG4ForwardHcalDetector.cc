@@ -82,9 +82,14 @@ PHG4ForwardHcalDetector::IsInForwardHcal(G4VPhysicalVolume * volume) const
 	{
 	  return 1;
 	}
-      else
+      /* only record energy in actual absorber- drop energy lost in air gaps inside hcal envelope */
+      else if (volume->GetName().find("absorber") != string::npos)
 	{
 	  return -1;
+	}
+      else if (volume->GetName().find("envelope") != string::npos)
+	{
+	  return 0;
 	}
     }
 
