@@ -229,17 +229,24 @@ public:
   {
 
     //! fiber always placed radially
-    kNonProjective,
+    kNonProjective = 0,
+    //! alias of above, more explicit
+    k1DProjectiveSpacal = kNonProjective,
 
     //! Block constructed with taper in polar direction, non-taper in azimuthal direction.
     //! The final layout is approximately projective in both azimuthal and polar directions.
-    kProjective_PolarTaper,
+    kProjective_PolarTaper = 1,
 
     //! Fully projective spacal with 2D tapered modules
-    kFullProjective_2DTaper,
+    kFullProjective_2DTaper = 2,
 
     //! Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower
-    kFullProjective_2DTaper_SameLengthFiberPerTower
+    kFullProjective_2DTaper_SameLengthFiberPerTower = 3,
+    //! alias of above, more explicit
+    k2DProjectiveSpacal = kFullProjective_2DTaper_SameLengthFiberPerTower,
+
+    //! max allowed value, for boundary cross check
+    kInvalidSpacalConfig
   };
 
   config_t
