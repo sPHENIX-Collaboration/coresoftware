@@ -84,10 +84,34 @@ static void fit_cluster( std::vector<std::vector<float> >& amps, int& nhits_tot,
 
 int PHG4TPCClusterizer::Init(PHCompositeNode *topNode)
 {
+	PHNodeIterator iter(topNode);
+
+	PHCompositeNode *dstNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
+	if (!dstNode) {
+		cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+		return Fun4AllReturnCodes::ABORTRUN;}
+
+	SvtxHitMap* hits = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
+	if (!hits) {
+    	cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
+    	return Fun4AllReturnCodes::ABORTRUN;}
+
+	PHCompositeNode* svxNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","SVTX"));
+	if (!svxNode){
+		svxNode = new PHCompositeNode("SVTX");
+		dstNode->addNode(svxNode);}
+
+	SvtxClusterMap *svxclusters = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
+	if (!svxclusters){
+		svxclusters = new SvtxClusterMap();
+		PHIODataNode<PHObject> *SvtxClusterMapNode = new PHIODataNode<PHObject>(svxclusters, "SvtxClusterMap", "PHObject");
+		svxNode->addNode(SvtxClusterMapNode);}
+
 	PHG4CylinderCellGeomContainer* geom_container = 0;
 	PHTypedNodeIterator<PHG4CylinderCellGeomContainer> geomiter(topNode);
 	PHIODataNode<PHG4CylinderCellGeomContainer>* PHG4CylinderCellGeomContainerNode = geomiter.find("CYLINDERCELLGEOM_SVTX");
 	if(PHG4CylinderCellGeomContainerNode){geom_container = (PHG4CylinderCellGeomContainer*) PHG4CylinderCellGeomContainerNode->getData();}
+	if (!geom_container){cout<<"can't find CYLINDERCELLGEOM_SVTX"<<endl;exit(1);}
 	if (!geom_container) return Fun4AllReturnCodes::ABORTRUN;
 	PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
 	for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;layeriter != layerrange.second;++layeriter)
