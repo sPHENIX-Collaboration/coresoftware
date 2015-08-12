@@ -961,7 +961,7 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
   _tracker->setVerbosity(verbosity);
   _tracker->setCutOnDca(_cut_on_dca);
   _tracker->setDcaCut(_dca_cut);
-  _tracker->setSmoothBack(false);
+  _tracker->setSmoothBack(true);
   _tracker->setBinScale(_bin_scale);
   _tracker->setZBinScale(_z_bin_scale);
   _tracker->setRemoveHits(_remove_hits);
