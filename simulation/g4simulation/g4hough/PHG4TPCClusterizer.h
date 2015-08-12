@@ -2,6 +2,7 @@
 #define __PHG4TPCCLUSTERIZER__
 
 #include <fun4all/SubsysReco.h>
+#include <vector>
 
 class PHG4TPCClusterizer : public SubsysReco
 {
