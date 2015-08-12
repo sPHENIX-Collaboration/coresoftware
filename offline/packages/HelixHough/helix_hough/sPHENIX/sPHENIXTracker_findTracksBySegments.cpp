@@ -406,7 +406,7 @@ static SimpleHit3D& get_hit( vector<SimpleHit3D>& hits, vector<SimpleHit3D>& dum
 
 void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, vector<SimpleTrack3D>& tracks, const HelixRange& range)
 {
-  cout<<"findTracksByCombinatorialKalman start "<<hits.size()<<endl;
+  // cout<<"findTracksByCombinatorialKalman start "<<hits.size()<<endl;
 
   unsigned int half_layers = n_layers/2;
 
@@ -483,12 +483,12 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
   }
   if(cur->size() == 0)
   {
-    cout<<"no good tracks"<<endl;
+    // cout<<"no good tracks"<<endl;
     for(unsigned int h=0;h<hits.size();++h)
     {
       (*hit_used)[hits[h].index] = true;
     }
-    cout<<"hits removed"<<endl;
+    // cout<<"hits removed"<<endl;
     return;
   }
   
@@ -609,7 +609,7 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
       tracks.back().hits.push_back( get_hit( hits, dummies, seed.hit_indexes[i] ) );
     }
   }
-  cout<<"added track "<<tracks.back().hits.size()<<" "<<tracks.size()<<endl;
+  // cout<<"added track "<<tracks.back().hits.size()<<" "<<tracks.size()<<endl;
   
   if(seed.state.phi < 0.){seed.state.phi += 2.*M_PI;}
   tracks.back().phi = seed.state.phi;
