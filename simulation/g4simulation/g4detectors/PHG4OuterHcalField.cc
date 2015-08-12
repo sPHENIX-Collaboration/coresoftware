@@ -118,9 +118,9 @@ PHG4OuterHcalField::GetFieldValue(const double Point[4], double *Bfield) const
         {
           once = false;
           cout << "PHG4OuterHcalField::GetFieldValue"
-              << " - After-burner activated to produce magnetic field in outer HCal. First call to the after-burner: "
+              << " - After-burner activated to produce 3D magnetic field in the outer HCal. First call to the after-burner: "
               << (is_in_iron ? "inside iron, " : "inside gap, ") << "and R = "
-              << R / cm << " cm, fiend change from "
+              << R / cm << " cm, field change from "
               //
               << "(" << B0.x() / tesla << "," << B0.y() / tesla << ","
               << B0.z() / tesla << ") T" << " to " << "(" << B_New.x() / tesla
