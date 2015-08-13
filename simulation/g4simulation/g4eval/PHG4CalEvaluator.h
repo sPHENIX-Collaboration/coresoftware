@@ -8,6 +8,8 @@
 /// \author Richard Hollis (translated to sPHENIX CAL simulations)
 //===============================================
 
+#include <g4main/PHG4HitDefs.h>
+
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -149,8 +151,6 @@ class PHG4CalEvaluator : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  void Verbosity(int verb){verbosity = verb;}
-
   void set_trace_truth(bool b) {_trace_truth = false;}
 
   void Detector(const std::string &name) {detector = name;}
@@ -191,7 +191,7 @@ class PHG4CalEvaluator : public SubsysReco
   std::string detector;
   std::vector<CalGshower> _gshower_list;              ///< holds a list of truth particles (convenience storage)
   std::map <PHG4Hit*,CalGshower*> _g4hit_gshower_map; ///< reverse g4hit->gshower lookup
-  std::map <int,CalGshower*> _g4hitid_gshower_map;    ///< reverse g4hit->gshower lookup (uses id)
+  std::map <PHG4HitDefs::keytype,CalGshower*> _g4hitid_gshower_map;    ///< reverse g4hit->gshower lookup (uses id)
   
   std::map <RawTower*, CalGshower*> _tower_gshower_map;     ///< holds the greatest truth contributor map to a particular tower
   std::map <RawTower*, float> _tower_epurity_map;            ///< holds the greatest truth contributor map to a particular tower
