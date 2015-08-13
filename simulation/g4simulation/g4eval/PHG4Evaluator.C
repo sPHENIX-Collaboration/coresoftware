@@ -238,7 +238,7 @@ int PHG4Evaluator::process_event(PHCompositeNode *topNode)
   _timer.get()->restart();
   _internal_timer[0].get()->restart();
 
-  if ((verbosity >= 0)&&(_ievent%100==0)) {
+  if ((verbosity > 0)&&(_ievent%100==0)) {
     cout << "PHG4Evaluator::process_event - Event = " << _ievent << endl;
   }
 
