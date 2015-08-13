@@ -24,7 +24,7 @@ RawTowerBuilder::RawTowerBuilder(const std::string& name):
   _towers(NULL),
   rawtowergeom(NULL),
   detector("NONE"),
-  _cell_binning(phg4cylindercelldefs::undefined),
+  _cell_binning(PHG4CylinderCellDefs::undefined),
   emin(1e-6),
   chkenergyconservation(0),
   _nlayers(-1),
@@ -213,14 +213,14 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 	  _nphibins = cellgeo->get_phibins();
 	  _phimin = cellgeo->get_phimin();
 	  _phistep = cellgeo->get_phistep();
-          if (_cell_binning == phg4cylindercelldefs::etaphibinning
-              or _cell_binning == phg4cylindercelldefs::etaslatbinning)
+          if (_cell_binning == PHG4CylinderCellDefs::etaphibinning
+              or _cell_binning == PHG4CylinderCellDefs::etaslatbinning)
             {
               _netabins = cellgeo->get_etabins();
               _etamin = cellgeo->get_etamin();
               _etastep = cellgeo->get_etastep();
             }
-          else if (_cell_binning == phg4cylindercelldefs::sizebinning)
+          else if (_cell_binning == PHG4CylinderCellDefs::sizebinning)
             {
               _netabins = cellgeo->get_zbins();// bin eta in the same number of z bins
             }
@@ -267,8 +267,8 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 		   << endl;
 	      exit(1);
 	    }
-          if (_cell_binning == phg4cylindercelldefs::etaphibinning
-              or _cell_binning == phg4cylindercelldefs::etaslatbinning)
+          if (_cell_binning == PHG4CylinderCellDefs::etaphibinning
+              or _cell_binning == PHG4CylinderCellDefs::etaslatbinning)
             {
               if (_netabins != cellgeo->get_etabins())
                 {
@@ -294,7 +294,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
                 }
             }
 
-          else if (_cell_binning == phg4cylindercelldefs::sizebinning)
+          else if (_cell_binning == PHG4CylinderCellDefs::sizebinning)
             {
 
               if (_netabins != cellgeo->get_zbins())
@@ -321,8 +321,8 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
       exit(1);
     }
 
-  if (_cell_binning == phg4cylindercelldefs::etaphibinning
-      or _cell_binning == phg4cylindercelldefs::etaslatbinning)
+  if (_cell_binning == PHG4CylinderCellDefs::etaphibinning
+      or _cell_binning == PHG4CylinderCellDefs::etaslatbinning)
     {
 //  rawtowergeom->set_etamin(_etamin);
 //  rawtowergeom->set_etastep(_etastep);
@@ -335,7 +335,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
         }
 
     }
-  else if (_cell_binning == phg4cylindercelldefs::sizebinning)
+  else if (_cell_binning == PHG4CylinderCellDefs::sizebinning)
     {
       for (int ibin = 0; ibin<first_cellgeo->get_zbins(); ibin++)
         {
