@@ -111,7 +111,7 @@ int PHG4SlatCellReco::InitRun(PHCompositeNode *topNode)
       layerseggeo->set_layer(layergeom->get_layer());
       layerseggeo->set_radius(layergeom->get_radius());
       layerseggeo->set_thickness(layergeom->get_thickness());
-      if (binning[layer] == phg4cylindercelldefs::etaslatbinning)
+      if (binning[layer] == PHG4CylinderCellDefs::etaslatbinning)
         {
           // calculate eta at radius+ thickness (outer radius)
           // length via eta coverage is calculated using the outer radius
@@ -157,7 +157,7 @@ int PHG4SlatCellReco::InitRun(PHCompositeNode *topNode)
 	    {
 	      layergeom->identify();
 	    }
-          layerseggeo->set_binning(phg4cylindercelldefs::etaslatbinning);
+          layerseggeo->set_binning(PHG4CylinderCellDefs::etaslatbinning);
           layerseggeo->set_etabins(etabins);
           layerseggeo->set_etamin(etamin);
           layerseggeo->set_etastep(etastepsize);
@@ -229,7 +229,7 @@ PHG4SlatCellReco::process_event(PHCompositeNode *topNode)
 
 
       // ------- eta/phi binning ------------------------------------------------------------------------
-      if (binning[*layer] == phg4cylindercelldefs::etaslatbinning)
+      if (binning[*layer] == PHG4CylinderCellDefs::etaslatbinning)
         {
           for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
             {
@@ -384,13 +384,13 @@ PHG4SlatCellReco::End(PHCompositeNode *topNode)
 void
 PHG4SlatCellReco::cellsize(const int i, const double sr, const double sz)
 {
-  set_size(i, sr, sz, phg4cylindercelldefs::sizebinning);
+  set_size(i, sr, sz, PHG4CylinderCellDefs::sizebinning);
 }
 
 void
 PHG4SlatCellReco::etaphisize(const int i, const double deltaeta, const double deltaphi)
 {
-  set_size(i, deltaeta, deltaphi, phg4cylindercelldefs::etaphibinning);
+  set_size(i, deltaeta, deltaphi, PHG4CylinderCellDefs::etaphibinning);
   return;
 }
 
@@ -400,7 +400,7 @@ PHG4SlatCellReco::etasize_nslat(const int i, const double deltaeta, const int ns
   if (nslat >= 1)
     {
       nslatscombined = nslat;
-      set_size(i, deltaeta, nslat, phg4cylindercelldefs::etaslatbinning);
+      set_size(i, deltaeta, nslat, PHG4CylinderCellDefs::etaslatbinning);
     }
   else
     {

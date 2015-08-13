@@ -55,7 +55,7 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode 
   _dPhi(2*M_PI),
   _crystal_dx(20*mm),
   _crystal_dy(20*mm),
-  _crystal_dz(18.0*mm),
+  _crystal_dz(180.0*mm),
   _materialCrystal( "G4_PbWO4" ),
   _active(1),
   _towerlogicnameprefix("CrystalCalorimeterTower"),
@@ -82,9 +82,14 @@ PHG4CrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume * volum
 	{
 	  return 1;
 	}
-      else
+      /* only record energy in actual absorber- drop energy lost in air gaps inside envelope */
+      else if (volume->GetName().find("absorber") != string::npos)
 	{
 	  return -1;
+	}
+      else if (volume->GetName().find("envelope") != string::npos)
+	{
+	  return 0;
 	}
     }
 
@@ -256,16 +261,16 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
 		     0, 0, overlapcheck);
 
 
-//  /* Place crystal in logical tower volume */
-//  ostringstream name_crystal;
-//  name_crystal.str("");
-//  name_crystal << _towerlogicnameprefix << "_single_crystal" << endl;
-//
-//  new G4PVPlacement( 0, G4ThreeVector(0 , 0, 0),
-//		     logic_crystal,
-//		     name_crystal.str().c_str(),
-//		     single_tower_logic,
-//		     0, 0, overlapcheck);
+  /* Place crystal in logical tower volume */
+  ostringstream name_crystal;
+  name_crystal.str("");
+  name_crystal << _towerlogicnameprefix << "_single_crystal" << endl;
+
+  new G4PVPlacement( 0, G4ThreeVector(0 , 0, 0),
+		     logic_crystal,
+		     name_crystal.str().c_str(),
+		     single_tower_logic,
+		     0, 0, overlapcheck);
 
 
 

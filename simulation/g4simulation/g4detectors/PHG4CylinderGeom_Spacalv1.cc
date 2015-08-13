@@ -53,6 +53,12 @@ PHG4CylinderGeom_Spacalv1::Print(Option_t *) const
     cout <<"Block constructed with taper in polar direction, non-taper in azimuthal direction. "
     <<"The final layout is approximately projective in both azimuthal and polar directions."<<endl;
     break;
+  case kFullProjective_2DTaper:
+    cout <<"Fully projective spacal with 2D tapered modules"<<endl;
+    break;
+  case kFullProjective_2DTaper_SameLengthFiberPerTower:
+    cout <<"Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower"<<endl;
+    break;
   default:
     cout <<"PHG4CylinderGeom_Spacalv1::Print - ERROR - unknown configuration #"<<get_config()<<endl;
     break;
@@ -109,8 +115,8 @@ PHG4CylinderGeom_Spacalv1::SetDefault()
   ypos = 0;
   zpos = 0;
 
-  fiber_core_diameter = 0.047;
   fiber_clading_thickness = 0.003 / 2;
+  fiber_core_diameter = 0.047 - fiber_clading_thickness*2;
   fiber_distance = 0.1;
 
   virualize_fiber = false;

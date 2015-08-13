@@ -8,8 +8,10 @@
  * \date $$Date: 2014/08/12 03:49:12 $$
  */
 #include "PHG4SpacalSubsystem.h"
+
 #include "PHG4SpacalDetector.h"
 #include "PHG4ProjSpacalDetector.h"
+#include "PHG4FullProjSpacalDetector.h"
 #include "PHG4CylinderGeom.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4SpacalSteppingAction.h"
@@ -73,6 +75,14 @@ int PHG4SpacalSubsystem::InitRun( PHCompositeNode* topNode )
     cout << "PHG4SpacalSubsystem::InitRun - use PHG4ProjSpacalDetector" << endl;
     detector_ = new PHG4ProjSpacalDetector(topNode, Name(),
         dynamic_cast<PHG4ProjSpacalDetector::SpacalGeom_t *>(&_geom), layer);
+    break;
+
+
+  case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper:
+  case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_SameLengthFiberPerTower:
+    cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjSpacalDetector" << endl;
+    detector_ = new PHG4FullProjSpacalDetector(topNode, Name(),
+        dynamic_cast<PHG4FullProjSpacalDetector::SpacalGeom_t *>(&_geom), layer);
     break;
 
   default:

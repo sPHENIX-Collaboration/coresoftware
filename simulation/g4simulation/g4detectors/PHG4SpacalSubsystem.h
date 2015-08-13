@@ -12,7 +12,7 @@
 #define PHG4SpacalSubsystem_h
 
 #include "g4main/PHG4Subsystem.h"
-#include "PHG4CylinderGeom_Spacalv2.h"
+#include "PHG4CylinderGeom_Spacalv3.h"
 
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
@@ -27,7 +27,7 @@ class PHG4SpacalSubsystem : public PHG4Subsystem
 public:
 
   //! constructor
-  PHG4SpacalSubsystem(const std::string &name = "HCALCYLINDER",
+  PHG4SpacalSubsystem(const std::string &name = "PHG4SpacalSubsystem",
       const int layer = 0);
 
   //! destructor
@@ -93,7 +93,7 @@ public:
   void
   Print(const std::string &what = "ALL") const;
 
-  typedef PHG4CylinderGeom_Spacalv2 SpacalGeom_t;
+  typedef PHG4CylinderGeom_Spacalv3 SpacalGeom_t;
 
   const SpacalGeom_t &
   get_geom() const
