@@ -7,6 +7,7 @@
 #include <fun4all/getClass.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4CylinderCell.h>
 #include <g4detectors/PHG4CylinderCellv1.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
@@ -147,17 +148,18 @@ int PHG4SvtxAddConnectedCells::process_event(PHCompositeNode *topNode) {
 	int ibinz = cell_list[i]->get_binz();
 	int ibinphi = cell_list[i]->get_binphi();
 
-	int g4hitid = -1;
-	typedef map<unsigned int,float>::const_iterator hitmapiterator;
-	pair<hitmapiterator,hitmapiterator> maprange = cell_list[i]->get_g4hits();
-	for (hitmapiterator hititer = maprange.first;
+	PHG4HitDefs::keytype g4hitid = ~0;
+	int foundit = 0;
+	PHG4CylinderCell::EdepConstRange maprange = cell_list[i]->get_g4hits();
+	for (PHG4CylinderCell::EdepConstIterator hititer = maprange.first;
 	     hititer != maprange.second;
 	     hititer++) {
 	  g4hitid = hititer->first;
+	  foundit = 1;
 	}
 
 	// Should be impossible
-	if(g4hitid == -1)
+	if(!foundit)
 	  {
 	    cout << "Oops! G4 hitid not found" << endl;
 	    continue;
@@ -212,10 +214,9 @@ int PHG4SvtxAddConnectedCells::process_event(PHCompositeNode *topNode) {
 	  PHG4CylinderCell* cell = celliter->second;
 	  
 	  // Get the G4 hitid
-	  int g4hitid = -1;
-	  typedef map<unsigned int,float>::const_iterator hitmapiterator;
-	  pair<hitmapiterator,hitmapiterator> maprange = cell->get_g4hits();
-	  for (hitmapiterator hititer = maprange.first;
+	  PHG4HitDefs::keytype g4hitid = ~0;
+	  PHG4CylinderCell::EdepConstRange maprange = cell->get_g4hits();
+	  for (PHG4CylinderCell::EdepConstIterator hititer = maprange.first;
 	       hititer != maprange.second;
 	       hititer++) {
 	    g4hitid = hititer->first;

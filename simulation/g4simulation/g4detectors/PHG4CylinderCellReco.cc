@@ -103,7 +103,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       layerseggeo->set_layer(layergeom->get_layer());
       layerseggeo->set_radius(layergeom->get_radius());
       layerseggeo->set_thickness(layergeom->get_thickness());
-      if (binning[layer] == phg4cylindercelldefs::etaphibinning)
+      if (binning[layer] == PHG4CylinderCellDefs::etaphibinning)
         {
           // calculate eta at radius+ thickness (outer radius)
           // length via eta coverage is calculated using the outer radius
@@ -155,7 +155,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
             }
           pair<int, int> phi_z_bin = make_pair(phibins, etabins);
           n_phi_z_bins[layer] = phi_z_bin;
-          layerseggeo->set_binning(phg4cylindercelldefs::etaphibinning);
+          layerseggeo->set_binning(PHG4CylinderCellDefs::etaphibinning);
           layerseggeo->set_etabins(etabins);
           layerseggeo->set_etamin(etamin);
           layerseggeo->set_etastep(etastepsize);
@@ -165,7 +165,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
           phistep[layer] = phistepsize;
           etastep[layer] = etastepsize;
         }
-      else if (binning[layer] == phg4cylindercelldefs::sizebinning)
+      else if (binning[layer] == PHG4CylinderCellDefs::sizebinning)
         {
           zmin_max[layer] = make_pair(layergeom->get_zmin(), layergeom->get_zmax());
           double size_z = (sizeiter->second).second;
@@ -222,7 +222,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
                 }
               zhigh += size_z;
             }
-          layerseggeo->set_binning(phg4cylindercelldefs::sizebinning);
+          layerseggeo->set_binning(PHG4CylinderCellDefs::sizebinning);
           layerseggeo->set_zbins(nbins[1]);
           layerseggeo->set_zmin(layergeom->get_zmin());
           layerseggeo->set_zstep(size_z);
@@ -245,14 +245,14 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
 	 iter != binning.end(); ++iter) {
       int layer = iter->first;
 
-      if (binning[layer] == phg4cylindercelldefs::etaphibinning) {
+      if (binning[layer] == PHG4CylinderCellDefs::etaphibinning) {
 	// phi & eta bin is usually used to make projective towers
 	// so just print the first layer
 	cout << " Layer #" << binning.begin()->first << "-" << binning.rbegin()->first << endl;
 	cout << "   Nbins (phi,eta): (" << n_phi_z_bins[layer].first << ", " << n_phi_z_bins[layer].second << ")" << endl;
 	cout << "   Cell Size (phi,eta): (" << cell_size[layer].first << " rad, " << cell_size[layer].second << " units)" << endl;
 	break;
-      } else if (binning[layer] == phg4cylindercelldefs::sizebinning) {	
+      } else if (binning[layer] == PHG4CylinderCellDefs::sizebinning) {	
 	cout << " Layer #" << layer << endl;
 	cout << "   Nbins (phi,z): (" << n_phi_z_bins[layer].first << ", " << n_phi_z_bins[layer].second << ")" << endl;
 	cout << "   Cell Size (phi,z): (" << cell_size[layer].first << " cm, " << cell_size[layer].second << " cm)" << endl;
@@ -308,7 +308,7 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
       int nzbins = n_phi_z_bins[*layer].second;
 
       // ------- eta/phi binning ------------------------------------------------------------------------
-      if (binning[*layer] == phg4cylindercelldefs::etaphibinning)
+      if (binning[*layer] == PHG4CylinderCellDefs::etaphibinning)
         {
           for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
             {
@@ -722,13 +722,13 @@ PHG4CylinderCellReco::End(PHCompositeNode *topNode)
 void
 PHG4CylinderCellReco::cellsize(const int i, const double sr, const double sz)
 {
-  set_size(i, sr, sz, phg4cylindercelldefs::sizebinning);
+  set_size(i, sr, sz, PHG4CylinderCellDefs::sizebinning);
 }
 
 void
 PHG4CylinderCellReco::etaphisize(const int i, const double deltaeta, const double deltaphi)
 {
-  set_size(i, deltaeta, deltaphi, phg4cylindercelldefs::etaphibinning);
+  set_size(i, deltaeta, deltaphi, PHG4CylinderCellDefs::etaphibinning);
   return;
 }
 

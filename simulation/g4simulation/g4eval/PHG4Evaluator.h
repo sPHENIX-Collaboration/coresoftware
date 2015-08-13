@@ -27,6 +27,7 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitDefs.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>
 
@@ -235,7 +236,7 @@ class PHG4Evaluator : public SubsysReco
 
   enum LayerType {CylinderLayer, LadderLayer};
   
-  unsigned long _ievent;
+  unsigned int _ievent;
   PHTimeServer::timer _timer;   ///< Timer
   std::vector<PHTimeServer::timer> _internal_timer;
 
@@ -304,7 +305,7 @@ class PHG4Evaluator : public SubsysReco
   std::map <SvtxTrack*, unsigned int> _track_purity_map;
 
 
-  std::multimap <int, unsigned int> _particleid_g4hitid_mmap; ///< forward look up between a truth particle id and a g4hit id
+  std::multimap <int, PHG4HitDefs::keytype> _particleid_g4hitid_mmap; ///< forward look up between a truth particle id and a g4hit id
   EvalLinks* _cluster_g4hit_svtx_links;
   EvalLinks* _cluster_g4hit_silicon_tracker_links;
   EvalLinks* _track_particle_links;

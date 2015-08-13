@@ -18,10 +18,10 @@ class PHG4CylinderCellv2 : public PHG4CylinderCellv1
   void set_sensor_index(const std::string &si) {sensor_index = si;}
   std::string get_sensor_index() const  {return sensor_index;}
 
-  void set_ladder_phi_index(int i) {ladder_phi_index = i;}
+  void set_ladder_phi_index(const int i) {ladder_phi_index = i;}
   int get_ladder_phi_index() const {return ladder_phi_index;}
 
-  void set_ladder_z_index(int i) {ladder_z_index = i;}
+  void set_ladder_z_index(const int i) {ladder_z_index = i;}
   int get_ladder_z_index() const {return ladder_z_index;}
   
  protected:
