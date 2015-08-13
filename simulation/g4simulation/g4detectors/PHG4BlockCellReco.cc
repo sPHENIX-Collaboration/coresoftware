@@ -118,7 +118,7 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
     // layerseggeo->set_radius(layergeom->get_radius());
     // layerseggeo->set_thickness(layergeom->get_thickness());
 
-    if (binning[layer] == phg4cylindercelldefs::etaphibinning)
+    if (binning[layer] == PHG4CylinderCellDefs::etaphibinning)
     {
       // calculate eta at radius+ thickness (outer radius)
       // length via eta coverage is calculated using the outer radius
@@ -173,7 +173,7 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
 
       pair<int, int> x_z_bin = make_pair(xbins, etabins);
       n_x_z_bins[layer] = x_z_bin;
-      layerseggeo->set_binning(phg4cylindercelldefs::etaphibinning);
+      layerseggeo->set_binning(PHG4CylinderCellDefs::etaphibinning);
       layerseggeo->set_etabins(etabins);
       layerseggeo->set_etamin(etamin);
       layerseggeo->set_etastep(etastepsize);
@@ -257,7 +257,7 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
 
 
     // ------- eta/x binning ------------------------------------------------------------------------
-    if (binning[*layer] == phg4cylindercelldefs::etaphibinning)
+    if (binning[*layer] == PHG4CylinderCellDefs::etaphibinning)
     {
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
       {
@@ -452,13 +452,13 @@ PHG4BlockCellReco::End(PHCompositeNode *topNode)
 void
 PHG4BlockCellReco::cellsize(const int i, const double sr, const double sz)
 {
-  set_size(i, sr, sz, phg4cylindercelldefs::sizebinning);
+  set_size(i, sr, sz, PHG4CylinderCellDefs::sizebinning);
 }
 
 void
 PHG4BlockCellReco::etaxsize(const int i, const double deltaeta, const double deltax)
 {
-  set_size(i, deltaeta, deltax, phg4cylindercelldefs::etaphibinning);
+  set_size(i, deltaeta, deltax, PHG4CylinderCellDefs::etaphibinning);
   return;
 }
 
