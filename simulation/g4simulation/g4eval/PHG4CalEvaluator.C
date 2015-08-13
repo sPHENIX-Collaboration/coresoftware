@@ -674,7 +674,7 @@ void PHG4CalEvaluator::fillClusterToGshowerMap()
 	    {
 	      PHG4Hit *ghit = ghit_iter->second;
 
-	      int g4hit_id = ghit->get_hit_id();
+	      PHG4HitDefs::keytype g4hit_id = ghit->get_hit_id();
 	      float g4hit_energy = ghit->get_edep();
 
 	      CalGshower *gshower = _g4hitid_gshower_map[g4hit_id];
