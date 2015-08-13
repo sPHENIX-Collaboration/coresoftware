@@ -394,7 +394,7 @@ int PHG4Evaluator::process_event(PHCompositeNode *topNode)
   fillCellToG4HitMap();
   fillClusterToG4HitMap();
 
-  //fillClusterToG4HitLinks(topNode);
+  fillClusterToG4HitLinks(topNode); //---new-method-----------------------------
 
   _internal_timer[3].get()->stop();
   
@@ -984,7 +984,7 @@ void PHG4Evaluator::fillClusterToG4HitMap()
       
       PHG4CylinderCell *cell = _cellList->findCylinderCell(cell_id);
       if (!cell) {
-	cell = _ladderCellList->findCylinderCell(hit_id);
+	cell = _ladderCellList->findCylinderCell(cell_id);
       }
       if (!cell) continue;
 
@@ -1057,12 +1057,12 @@ int PHG4Evaluator::fillTrackToG4TruthInfoLinks(PHCompositeNode *topNode) {
 
 	// loop over all g4hits associated to cluster
 	// using the previously established eval links
-	std::set<unsigned int> g4hit_ids;
+	std::set<unsigned long long> g4hit_ids;
 	if (_cluster_g4hit_svtx_links) g4hit_ids = _cluster_g4hit_svtx_links->right(cluster_id);
-	for (std::set<unsigned int>::iterator iiter = g4hit_ids.begin();
+	for (std::set<unsigned long long>::iterator iiter = g4hit_ids.begin();
 	     iiter != g4hit_ids.end();
 	     ++iiter) {
-	  unsigned int g4hit_id = *iiter;
+	  unsigned long long g4hit_id = *iiter;
 
 	  HitMap::const_iterator tmpiter = _g4hitList.find(g4hit_id);
 	  PHG4Hit* g4hit = tmpiter->second;
@@ -1076,10 +1076,10 @@ int PHG4Evaluator::fillTrackToG4TruthInfoLinks(PHCompositeNode *topNode) {
 	// using the previously established eval links
 	g4hit_ids.clear();
 	if (_cluster_g4hit_silicon_tracker_links) g4hit_ids = _cluster_g4hit_silicon_tracker_links->right(cluster_id);
-	for (std::set<unsigned int>::iterator iiter = g4hit_ids.begin();
+	for (std::set<unsigned long long>::iterator iiter = g4hit_ids.begin();
 	     iiter != g4hit_ids.end();
 	     ++iiter) {
-	  unsigned int g4hit_id = *iiter;
+	  unsigned long long g4hit_id = *iiter;
 
 	  HitMap::const_iterator tmpiter = _g4hitList.find(g4hit_id);
 	  PHG4Hit* g4hit = tmpiter->second;
@@ -1154,12 +1154,12 @@ int PHG4Evaluator::fillG4TruthInfoToTrackLinks(PHCompositeNode *topNode) {
       
       // grab the number of clusters from the g4hit
       if (_cluster_g4hit_svtx_links) {
-	std::set<unsigned int> cluster_ids = _cluster_g4hit_svtx_links->left(g4hitid);
+	std::set<unsigned long long> cluster_ids = _cluster_g4hit_svtx_links->left(g4hitid);
 	nclusters += cluster_ids.size();
       }
 
       if (_cluster_g4hit_silicon_tracker_links) {
-	std::set<unsigned int> cluster_ids = _cluster_g4hit_silicon_tracker_links->left(g4hitid);
+	std::set<unsigned long long> cluster_ids = _cluster_g4hit_silicon_tracker_links->left(g4hitid);
 	nclusters += cluster_ids.size();
       }      
     }    
