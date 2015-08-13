@@ -1,5 +1,5 @@
-#include "PHG4CrystalCalorimeterSteppingAction.h"
-#include "PHG4CrystalCalorimeterDetector.h"
+#include "PHG4ForwardEcalSteppingAction.h"
+#include "PHG4ForwardEcalDetector.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
@@ -32,7 +32,7 @@ using namespace std;
 
 
 //____________________________________________________________________________..
-PHG4CrystalCalorimeterSteppingAction::PHG4CrystalCalorimeterSteppingAction( PHG4CrystalCalorimeterDetector* detector ):
+PHG4ForwardEcalSteppingAction::PHG4ForwardEcalSteppingAction( PHG4ForwardEcalDetector* detector ):
   PHG4SteppingAction(NULL),
   detector_( detector ),
   hits_(NULL),
@@ -44,18 +44,18 @@ PHG4CrystalCalorimeterSteppingAction::PHG4CrystalCalorimeterSteppingAction( PHG4
 
 
 //____________________________________________________________________________..
-bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
+bool PHG4ForwardEcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4VPhysicalVolume* volume = touch->GetVolume();
 
-  // detector_->IsInCrystalCalorimeter(volume)
+  // detector_->IsInForwardEcal(volume)
   // returns
-  //  0 is outside of Crystal Calorimeter
-  //  1 is inside scintillator scrystal
-  // -1 is absorber (dead material)
+  //  0 is outside of Forward ECAL
+  //  1 is inside scintillator
+  // -1 is inside absorber (dead material)
 
-  int whichactive = detector_->IsInCrystalCalorimeter(volume);
+  int whichactive = detector_->IsInForwardEcal(volume);
 
   if ( !whichactive  )
     {
@@ -68,19 +68,10 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
   int idx_k = -1;
   int idx_l = -1;
 
-  if (whichactive > 0) // in crystal
+  if (whichactive > 0) // in sctintillator
     {
-      /* Find indizes of crystal containing this step */
-      if ( touch->GetVolume(2)->GetName().find("_j_") != string::npos )
-	FindTowerIndex2LevelUp(touch, idx_j, idx_k);
-      else
-	FindTowerIndex(touch, idx_j, idx_k);
-
-      tower_id = touch->GetCopyNumber();
-    }
-  else if (whichactive < 0)
-    {
-      //no tower ID for absorber
+      /* Find indizes of sctintillator / tower containing this step */
+      FindTowerIndex(touch, idx_j, idx_k);
       tower_id = touch->GetCopyNumber();
     }
   else
@@ -123,18 +114,14 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 	case fGeomBoundary:
 	case fUndefined:
 	  hit = new PHG4Hitv1();
-//	  hit->set_layer(0);
 	  hit->set_scint_id(tower_id);
 
-	  /* Set hit location (tower index) only for crystals*/
-	  if (whichactive > 0)
-	    {
-	      hit->set_index_j(idx_j);
-	      hit->set_index_k(idx_k);
-	      hit->set_index_l(idx_l);
-	    }
+	  /* Set hit location (tower index) */
+	  hit->set_index_j(idx_j);
+	  hit->set_index_k(idx_k);
+	  hit->set_index_l(idx_l);
 
-	  /* Set hit location (space point) only for crystals*/
+	  /* Set hit location (space point) */
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm);
 	  hit->set_y( 0, prePoint->GetPosition().y() / cm );
 	  hit->set_z( 0, prePoint->GetPosition().z() / cm );
@@ -160,7 +147,7 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 	  hit->set_eion( 0 );
 
 	  /* Now add the hit to the hit collection */
-	  if (whichactive == 1) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
+	  if (whichactive > 0)
 	    {
 	      // Now add the hit
 	      hits_->AddHit(layer_id, hit);
@@ -213,7 +200,7 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 
 
 //____________________________________________________________________________..
-void PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers( PHCompositeNode* topNode )
+void PHG4ForwardEcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNode )
 {
 
   string hitnodename;
@@ -237,20 +224,19 @@ void PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers( PHCompositeNode
   // if we do not find the node it's messed up.
   if ( ! hits_ )
     {
-      std::cout << "PHG4CrystalCalorimeterSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+      std::cout << "PHG4ForwardEcalSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
     }
   if ( ! absorberhits_)
     {
       if (verbosity > 0)
 	{
-	  cout << "PHG4CrystalCalorimeterSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+	  cout << "PHG4ForwardEcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
 	}
     }
-
 }
 
 int
-PHG4CrystalCalorimeterSteppingAction::FindTowerIndex(G4TouchableHandle touch, int& j, int& k)
+PHG4ForwardEcalSteppingAction::FindTowerIndex(G4TouchableHandle touch, int& j, int& k)
 {
         int j_0, k_0;           //The k and k indices for the scintillator / tower
 
@@ -264,50 +250,7 @@ PHG4CrystalCalorimeterSteppingAction::FindTowerIndex(G4TouchableHandle touch, in
 }
 
 int
-PHG4CrystalCalorimeterSteppingAction::FindTowerIndex2LevelUp(G4TouchableHandle touch, int& j, int& k)
-{
-        int j_0, k_0;           //The k and k indices for the crystal within the 2x2 matrix
-        int j_1, k_1;           //The k and k indices for the 2x2 within the 4x4
-        int j_2, k_2;           //The k and k indices for the 4x4 within the mother volume
-        //int j, k;             //The final indices of the crystal
-
-	string name = touch->GetVolume(0)->GetName();
-	string name_2 = touch->GetVolume(1)->GetName();
-
-	if (name.find("rystal") != string::npos)
-	{
-		G4VPhysicalVolume* crystal = touch->GetVolume(0);		//Get the crystal solid
-		G4VPhysicalVolume* TwoByTwo = touch->GetVolume(1);		//Get the crystal solid
-		G4VPhysicalVolume* FourByFour = touch->GetVolume(2);		//Get the crystal solid
-
-		ParseG4VolumeName(crystal, j_0, k_0);
-		ParseG4VolumeName(TwoByTwo, j_1, k_1);
-		ParseG4VolumeName(FourByFour, j_2, k_2);
-
-		j = (j_0*1) + (j_1*2) + (j_2*4);
-		k = (k_0*1) + (k_1*2) + (k_2*4);
-
-	}
-	else if ( (name.find("arbon") != string::npos) )
-	{
-		G4VPhysicalVolume* carbon = touch->GetVolume(1);		//Get the carbon fiber solid
-		ParseG4VolumeName(carbon, j_0, k_0);
-		j = j_0;
-		k = k_0;
-		//cout << "Carbon_" << j << "_" << k << endl;
-	}
-	else
-	{
-		cout << "ERROR!!! RUN FOR YOUR LIVES!!!" << endl;
-		j = -1;
-		k = -1;
-	}
-
-        return 0;
-}
-
-int
-PHG4CrystalCalorimeterSteppingAction::ParseG4VolumeName( G4VPhysicalVolume* volume, int& j, int& k )
+PHG4ForwardEcalSteppingAction::ParseG4VolumeName( G4VPhysicalVolume* volume, int& j, int& k ) 
 {
 	boost::char_separator<char> sep("_");
 	boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);

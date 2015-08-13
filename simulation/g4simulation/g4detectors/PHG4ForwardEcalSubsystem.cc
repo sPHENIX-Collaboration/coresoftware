@@ -1,7 +1,6 @@
-#include "PHG4CrystalCalorimeterSubsystem.h"
-#include "PHG4CrystalCalorimeterDetector.h"
-#include "PHG4ProjCrystalCalorimeterDetector.h"
-#include "PHG4CrystalCalorimeterSteppingAction.h"
+#include "PHG4ForwardEcalSubsystem.h"
+#include "PHG4ForwardEcalDetector.h"
+#include "PHG4ForwardEcalSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <fun4all/getClass.h>
@@ -14,46 +13,31 @@ using namespace std;
 
 
 //_______________________________________________________________________
-PHG4CrystalCalorimeterSubsystem::PHG4CrystalCalorimeterSubsystem( const std::string &name, const int lyr ):
+PHG4ForwardEcalSubsystem::PHG4ForwardEcalSubsystem( const std::string &name, const int lyr ):
   PHG4Subsystem( name ),
   detector_( 0 ),
   steppingAction_( NULL ),
   eventAction_(NULL),
-  material("G4_PbWO4"),  // default - lead tungstate crystal
   active(1),
   detector_type(name),
-  mappingfile_(""),
-  mappingfile_4x4_construct_(""),
-  projective_(false)
+  mappingfile_("")
 {
 
 }
 
 
 //_______________________________________________________________________
-int PHG4CrystalCalorimeterSubsystem::Init( PHCompositeNode* topNode )
+int PHG4ForwardEcalSubsystem::Init( PHCompositeNode* topNode )
 {
   PHNodeIterator iter( topNode );
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
   // create detector
-  if ( projective_ )
-    {
-      cout << "PHG4CrystalCalorimeterSubsystem::InitRun - use PHG4ProjCrystalCalorimeterDetector" << endl;
-      detector_ = new PHG4ProjCrystalCalorimeterDetector(topNode, Name());
-      detector_->SetTowerMappingFile(mappingfile_);
-      detector_->SetSupermoduleGeometry(mappingfile_4x4_construct_);
-    }
-  else
-    {
-      cout << "PHG4CrystalCalorimeterSubsystem::InitRun - use PHG4CrystalCalorimeterDetector" << endl;
-      detector_ = new PHG4CrystalCalorimeterDetector(topNode, Name());
-      detector_->SetTowerMappingFile(mappingfile_);
-    }
-
+  detector_ = new PHG4ForwardEcalDetector(topNode, Name());
   detector_->SetActive(active);
-  detector_->SetAbsorberActive(active);
   detector_->OverlapCheck(overlapcheck);
+  detector_->Verbosity(verbosity);
+  detector_->SetTowerMappingFile( mappingfile_ );
 
   if (active)
     {
@@ -61,11 +45,11 @@ int PHG4CrystalCalorimeterSubsystem::Init( PHCompositeNode* topNode )
       ostringstream nodename;
       nodename <<  "G4HIT_" << detector_type;
 
-      PHG4HitContainer* crystal_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
-      if (!crystal_hits)
+      PHG4HitContainer* scintillator_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+      if (!scintillator_hits)
         {
-          crystal_hits = new PHG4HitContainer();
-          PHIODataNode<PHObject> *hitNode = new PHIODataNode<PHObject>(crystal_hits, nodename.str().c_str(), "PHObject");
+          scintillator_hits = new PHG4HitContainer();
+          PHIODataNode<PHObject> *hitNode = new PHIODataNode<PHObject>(scintillator_hits, nodename.str().c_str(), "PHObject");
           dstNode->addNode(hitNode);
         }
 
@@ -81,15 +65,16 @@ int PHG4CrystalCalorimeterSubsystem::Init( PHCompositeNode* topNode )
         }
 
       // create stepping action
-      steppingAction_ = new PHG4CrystalCalorimeterSteppingAction(detector_);
+      steppingAction_ = new PHG4ForwardEcalSteppingAction(detector_);
     }
+
   return 0;
 }
 
 
 //_______________________________________________________________________
 int
-PHG4CrystalCalorimeterSubsystem::process_event( PHCompositeNode * topNode )
+PHG4ForwardEcalSubsystem::process_event( PHCompositeNode * topNode )
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
@@ -102,14 +87,14 @@ PHG4CrystalCalorimeterSubsystem::process_event( PHCompositeNode * topNode )
 
 
 //_______________________________________________________________________
-PHG4Detector* PHG4CrystalCalorimeterSubsystem::GetDetector( void ) const
+PHG4Detector* PHG4ForwardEcalSubsystem::GetDetector( void ) const
 {
   return detector_;
 }
 
 
 //_______________________________________________________________________
-PHG4SteppingAction* PHG4CrystalCalorimeterSubsystem::GetSteppingAction( void ) const
+PHG4SteppingAction* PHG4ForwardEcalSubsystem::GetSteppingAction( void ) const
 {
   return steppingAction_;
 }

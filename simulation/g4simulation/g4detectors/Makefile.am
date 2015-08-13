@@ -36,6 +36,9 @@ pkginclude_HEADERS = \
   PHG4CylinderCellv2.h \
   PHG4CylinderCellContainer.h \
   PHG4CylinderGeom.h \
+  PHG4CylinderGeom_Spacalv1.h \
+  PHG4CylinderGeom_Spacalv2.h \
+  PHG4CylinderGeom_Spacalv3.h \
   PHG4CylinderGeomContainer.h \
   PHG4CylinderCellDefs.h \
   PHG4CylinderCellGeom.h \
@@ -66,6 +69,8 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderGeom_Spacalv1_Dict.cc \
   PHG4CylinderGeom_Spacalv2.cc \
   PHG4CylinderGeom_Spacalv2_Dict.cc \
+  PHG4CylinderGeom_Spacalv3.cc \
+  PHG4CylinderGeom_Spacalv3_Dict.cc \
   PHG4CylinderGeomContainer.cc \
   PHG4CylinderGeomContainer_Dict.cc \
   PHG4CylinderCell.cc \
@@ -102,6 +107,7 @@ libg4detectors_la_SOURCES = \
   PHG4ConeSubsystem.cc \
   PHG4ConeSubsystem_Dict.cc \
   PHG4CrystalCalorimeterDetector.cc \
+  PHG4ProjCrystalCalorimeterDetector.cc \
   PHG4CrystalCalorimeterSteppingAction.cc \
   PHG4CrystalCalorimeterSubsystem.cc \
   PHG4CrystalCalorimeterSubsystem_Dict.cc \
@@ -121,6 +127,10 @@ libg4detectors_la_SOURCES = \
   PHG4FCalSteppingAction.cc \
   PHG4FCalSubsystem.cc \
   PHG4FCalSubsystem_Dict.cc \
+  PHG4ForwardEcalDetector.cc \
+  PHG4ForwardEcalSteppingAction.cc \
+  PHG4ForwardEcalSubsystem.cc \
+  PHG4ForwardEcalSubsystem_Dict.cc \
   PHG4ForwardHcalDetector.cc \
   PHG4ForwardHcalSteppingAction.cc \
   PHG4ForwardHcalSubsystem.cc \
@@ -178,6 +188,7 @@ libg4detectors_la_SOURCES = \
   PHG4SiliconTrackerSubsystem_Dict.cc \
   PHG4SpacalDetector.cc \
   PHG4ProjSpacalDetector.cc \
+  PHG4FullProjSpacalDetector.cc \
   PHG4SpacalSteppingAction.cc \
   PHG4SpacalSubsystem.cc \
   PHG4SpacalSubsystem_Dict.cc
