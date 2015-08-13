@@ -13,7 +13,7 @@ PHG4CylinderCellv1::PHG4CylinderCellv1():
 {}
 
 void
-PHG4CylinderCellv1::add_edep(const unsigned int g4hitid, const float edep)
+PHG4CylinderCellv1::add_edep(const unsigned long long g4hitid, const float edep)
 {
   if (edeps.find(g4hitid) == edeps.end())
     {
@@ -28,7 +28,7 @@ PHG4CylinderCellv1::add_edep(const unsigned int g4hitid, const float edep)
 double PHG4CylinderCellv1::get_edep() const {
   
   double esum = 0.0;
-  map<unsigned int,float>::const_iterator iter;
+  map<unsigned long long,float>::const_iterator iter;
   for (iter = edeps.begin(); iter != edeps.end(); ++iter) {
     esum += iter->second;
   }
