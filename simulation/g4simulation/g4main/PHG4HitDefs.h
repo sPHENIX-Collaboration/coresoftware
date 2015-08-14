@@ -1,5 +1,5 @@
-#ifndef PHG4HITGEFS_H
-#define PHG4HITGEFS_H
+#ifndef PHG4HITDEFS_H
+#define PHG4HITDEFS_H
 
 namespace PHG4HitDefs
 {
