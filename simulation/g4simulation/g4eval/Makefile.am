@@ -38,7 +38,8 @@ pkginclude_HEADERS = \
   EvalLinksV1.h \
   SvtxHitEval.h \
   SvtxClusterEval.h \
-  SvtxTrackEval.h
+  SvtxTrackEval.h \
+  SvtxEvaluator.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
@@ -60,7 +61,9 @@ libg4eval_la_SOURCES = \
   SvtxClusterEval.C \
   SvtxClusterEval_Dict.C \
   SvtxTrackEval.C \
-  SvtxTrackEval_Dict.C
+  SvtxTrackEval_Dict.C \
+  SvtxEvaluator.C \
+  SvtxEvaluator_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
