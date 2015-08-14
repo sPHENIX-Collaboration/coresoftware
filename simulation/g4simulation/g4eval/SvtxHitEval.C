@@ -39,7 +39,7 @@ void SvtxHitEval::next_event(PHCompositeNode* topNode) {
   _cache_all_hits_from_particle.clear();
   _cache_all_hits_from_g4hit.clear();
   _cache_get_energy_contribution.clear();
-  
+
   _topNode = topNode;  
 }
 

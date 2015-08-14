@@ -4,6 +4,7 @@
 #include "SvtxTrackEval.h"
 #include "SvtxClusterEval.h"
 #include "SvtxHitEval.h"
+#include "SvtxTruthEval.h"
 
 // PHENIX includes
 #include <phool/PHCompositeNode.h>
@@ -1532,10 +1533,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
   if (verbosity > 1) cout << "SvtxEvaluator::fillOutputNtuples() entered" << endl;
 
+  SvtxTruthEval otrutheval(topNode);
+  SvtxTruthEval* trutheval = &otrutheval;
+  
   SvtxTrackEval otrackeval(topNode);
   SvtxTrackEval* trackeval = &otrackeval;
-  SvtxClusterEval* clustereval = trackeval.get_cluster_eval();
-  SvtxHitEval* hiteval = trackeval.get_hit_eval();
+  SvtxClusterEval* clustereval = trackeval->get_cluster_eval();
+  //SvtxHitEval* hiteval = trackeval->get_hit_eval();
   
   //----------------------
   // fill the Event NTuple
@@ -1945,12 +1949,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
        ++iter) {
     SvtxCluster* cluster = &iter->second;   
     PHG4Hit *g4hit = clustereval->max_truth_hit_by_energy(cluster);    
+    PHG4Particle *g4particle = trutheval->get_particle(g4hit);
     
-    map<PHG4Hit*,SvxGtrack*>::iterator finditer = _g4hit_gtrack_map.find(g4hit);
-    if( finditer == _g4hit_gtrack_map.end() ) continue;
-    SvxGtrack *gtrack = finditer->second;
-    //cout << "G4Hit: " << g4hit << " Gtrack: " << gtrack << endl;
-
     float hitID    = cluster->get_id();
     float x        = cluster->get_x();
     float y        = cluster->get_y();
@@ -1994,61 +1994,43 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     float nhits    = -9999.9;
     float purity   = -9999.9;
       
-    if(g4hit)
-      {
-	g4hitID   = g4hit->get_hit_id();
+    if (g4hit) {
+
+        g4hitID   = g4hit->get_hit_id();
 
 	gx = g4hit->get_x(0);
 	gy = g4hit->get_y(0);
 	gz = g4hit->get_z(0);
 
-	gtrackID = gtrack->get_track_id();
-	gflavor  = gtrack->get_flavor();
+	gtrackID = g4particle->get_track_id();
+	gflavor  = g4particle->get_pid();
+	
+	gpx      = g4particle->get_px();
+	gpy      = g4particle->get_py();
+	gpz      = g4particle->get_pz();
 
-	gpx      = gtrack->get_px();
-	gpy      = gtrack->get_py();
-	gpz      = gtrack->get_pz();
+	PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
+	
+	gvx      = vtx->get_x();
+	gvy      = vtx->get_y();
+	gvz      = vtx->get_z();
 
-	gvx      = gtrack->get_vx();
-	gvy      = gtrack->get_vy();
-	gvz      = gtrack->get_vz();
+	PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
+	
+	gfpx     = outerhit->get_px(1);
+	gfpy     = outerhit->get_py(1);
+	gfpz     = outerhit->get_pz(1);
 
-	gfpx      = gtrack->get_fpx();
-	gfpy      = gtrack->get_fpy();
-	gfpz      = gtrack->get_fpz();
+	gfx      = outerhit->get_x(1);
+	gfy      = outerhit->get_y(1);
+	gfz      = outerhit->get_z(1);
 
-	gfx      = gtrack->get_fx();
-	gfy      = gtrack->get_fy();
-	gfz      = gtrack->get_fz();
-
-	glast      = gtrack->get_is_last();
-	gembed     = gtrack->get_embed();
-	gprimary   = gtrack->get_primary();
+	glast    = NAN;
+	gembed   = trutheval->get_embed(g4particle);
+	gprimary = trutheval->is_primary(g4particle);
       }      
 
-    // loop over the cluster => rawhits => g4hits to calculate the purity
-    nhits  = 0.0;
-    purity = 0.0;
-
-    {
-      typedef multimap<SvtxCluster*,PHG4Hit*>::const_iterator mmapiter;
-      pair<mmapiter,mmapiter> hitrange = _cluster_allg4hits_mmap.equal_range(cluster);
-      for(mmapiter hititer = hitrange.first;
-	  hititer!=hitrange.second;
-	  hititer++) {
-	PHG4Hit *ig4hit = hititer->second;
-
-	++nhits;
-
-	if(ig4hit) // skip noise hits
-	  {
-	    if(ig4hit->get_trkid() == gtrackID) // if this g4hit came from the principle contributor truth particle increase the purity
-	      {
-		purity += 1.0;
-	      }
-	  }
-      }
-    }
+    purity = clustereval->get_energy_contribution(cluster,g4particle);
 
     float cluster_data[34] = {_ievent,
 			      hitID,
