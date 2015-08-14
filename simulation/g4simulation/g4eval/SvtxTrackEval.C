@@ -22,7 +22,9 @@ using namespace std;
 SvtxTrackEval::SvtxTrackEval(PHCompositeNode* topNode)
   : _topNode(topNode),
     _clustereval(topNode),
-    _cache_all_truth_hits() {
+    _cache_all_truth_hits(),
+    _cache_all_truth_particles(),
+    _cache_max_truth_particle_by_nclusters() {
 }
 
 std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
@@ -64,6 +66,10 @@ std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
   
 std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track) {
 
+  if (_cache_all_truth_particles.find(track) != _cache_all_truth_particles.end()) {
+    return _cache_all_truth_particles[track];
+  }
+  
   // need things off of the DST...
   SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(_topNode,"SvtxClusterMap");
   if (!clustermap) {
@@ -90,11 +96,18 @@ std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track) {
     std::swap(truth_particles,union_particles); // swap union into truth_particles
   }
 
+  _cache_all_truth_particles.insert(make_pair(track,truth_particles));
+
   return truth_particles;
 }
 
 PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track) {
 
+  if (_cache_max_truth_particle_by_nclusters.find(track) !=
+      _cache_max_truth_particle_by_nclusters.end()) {
+    return _cache_max_truth_particle_by_nclusters[track];
+  }
+  
   std::set<PHG4Particle*> particles = all_truth_particles(track);
 
   PHG4Particle* max_particle = NULL;
@@ -110,6 +123,8 @@ PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track) {
       max_particle = candidate;
     }
   }
+
+  _cache_max_truth_particle_by_nclusters.insert(make_pair(track,max_particle));
   
   return max_particle;
 }
