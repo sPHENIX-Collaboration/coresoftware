@@ -36,7 +36,8 @@ pkginclude_HEADERS = \
   PHG4DSTReader.h \
   EvalLinks.h \
   EvalLinksV1.h \
-  SvtxClusterEval.h
+  SvtxClusterEval.h \
+  SvtxTrackEval.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
@@ -54,7 +55,9 @@ libg4eval_la_SOURCES = \
   PHG4DSTReader.cc \
   PHG4DSTReader_Dict.C \
   SvtxClusterEval.C \
-  SvtxClusterEval_Dict.C
+  SvtxClusterEval_Dict.C \
+  SvtxTrackEval.C \
+  SvtxTrackEval_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
