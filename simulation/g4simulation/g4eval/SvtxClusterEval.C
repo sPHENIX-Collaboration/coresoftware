@@ -134,7 +134,7 @@ PHG4Particle* SvtxClusterEval::max_truth_particle_by_energy(SvtxCluster* cluster
 
     PHG4Particle* particle = *iter;
     float e = get_energy_contribution(cluster,particle);
-    if (max_e > e) {
+    if (e > max_e) {
       max_e = e;
       max_particle = particle;      
     }
