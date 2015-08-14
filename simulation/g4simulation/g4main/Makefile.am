@@ -177,6 +177,7 @@ PHG4_Dict.cc: \
 PHG4Hit_Dict.cc: \
   PHG4HitReadBack.h \
   PHG4Hit.h \
+  PHG4HitDefs.h \
   PHG4Hitv1.h \
   PHG4HitEval.h \
   PHG4HitContainer.h \

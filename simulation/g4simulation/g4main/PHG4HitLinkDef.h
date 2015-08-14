@@ -14,5 +14,6 @@
 
 // now classes we want to see on the cmd line
 #pragma link C++ class PHG4HitReadBack-!;
+#pragma link C++ namespace PHG4HitDefs-!;
 
 #endif /* __CINT__ */
