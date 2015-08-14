@@ -8,6 +8,7 @@
 #include <g4main/PHG4Particle.h>
 
 #include <set>
+#include <map>
 
 class SvtxClusterEval {
 
@@ -33,6 +34,9 @@ public:
   
 private:
   PHCompositeNode* _topNode;
+
+  std::map<SvtxCluster*,std::set<PHG4Hit*> > _cache_all_truth_hits;
+  std::map<std::pair<SvtxCluster*,PHG4Particle*>,float> _cache_get_energy_contribution;
 };
 
 #endif // __SVTXCLUSTEREVAL_H__

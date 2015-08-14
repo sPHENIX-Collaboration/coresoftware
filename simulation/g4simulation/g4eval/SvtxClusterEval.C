@@ -16,16 +16,23 @@
 
 #include <cstdlib>
 #include <set>
+#include <map>
 #include <float.h>
 
 using namespace std;
 
 SvtxClusterEval::SvtxClusterEval(PHCompositeNode* topNode)
-  : _topNode(topNode) {
+  : _topNode(topNode),
+    _cache_all_truth_hits(),
+    _cache_get_energy_contribution() {
 }
 
 std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(SvtxCluster* cluster) {
 
+  if (_cache_all_truth_hits.find(cluster) != _cache_all_truth_hits.end()) {
+    return _cache_all_truth_hits[cluster];
+  }
+  
   std::set<PHG4Hit*> truth_hits;
   
   // need things off of the DST...
@@ -68,7 +75,9 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(SvtxCluster* cluster) {
       truth_hits.insert(g4hit);
     }
   }
-    
+
+  _cache_all_truth_hits.insert(make_pair(cluster,truth_hits));
+  
   return truth_hits;
 }
 
@@ -212,6 +221,11 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit) {
 // overlap calculations
 float SvtxClusterEval::get_energy_contribution(SvtxCluster* cluster, PHG4Particle* particle) {
 
+  if (_cache_get_energy_contribution.find(make_pair(cluster,particle)) !=
+      _cache_get_energy_contribution.end()) {
+    return _cache_get_energy_contribution[make_pair(cluster,particle)];
+  }
+  
   float energy = 0.0;
   std::set<PHG4Hit*> hits = all_truth_hits(cluster);
   for (std::set<PHG4Hit*>::iterator iter = hits.begin();
@@ -222,6 +236,8 @@ float SvtxClusterEval::get_energy_contribution(SvtxCluster* cluster, PHG4Particl
       energy += hit->get_edep();
     }
   }
+
+  _cache_get_energy_contribution.insert(make_pair(make_pair(cluster,particle),energy));
   
   return energy;
 }
