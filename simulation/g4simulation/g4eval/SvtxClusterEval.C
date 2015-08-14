@@ -1,6 +1,8 @@
 
 #include "SvtxClusterEval.h"
 
+#include "SvtxHitEval.h"
+
 #include <fun4all/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <g4hough/SvtxHitMap.h>
@@ -23,6 +25,7 @@ using namespace std;
 
 SvtxClusterEval::SvtxClusterEval(PHCompositeNode* topNode)
   : _topNode(topNode),
+    _hiteval(topNode),
     _cache_all_truth_hits(),
     _cache_max_truth_hit_by_energy(),
     _cache_all_truth_particles(),
@@ -30,6 +33,21 @@ SvtxClusterEval::SvtxClusterEval(PHCompositeNode* topNode)
     _cache_all_clusters_from_particle(),
     _cache_all_clusters_from_g4hit(),
     _cache_get_energy_contribution() {
+}
+
+void SvtxClusterEval::next_event(PHCompositeNode* topNode) {
+
+  _cache_all_truth_hits.clear();
+  _cache_max_truth_hit_by_energy.clear();
+  _cache_all_truth_particles.clear();
+  _cache_max_truth_particle_by_energy.clear();
+  _cache_all_clusters_from_particle.clear();
+  _cache_all_clusters_from_g4hit.clear();
+  _cache_get_energy_contribution.clear();
+
+  _hiteval.next_event(topNode);
+  
+  _topNode = topNode;  
 }
 
 std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(SvtxCluster* cluster) {

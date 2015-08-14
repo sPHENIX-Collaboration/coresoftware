@@ -18,7 +18,7 @@ public:
   virtual ~SvtxHitEval() {}
 
   void next_event(PHCompositeNode *topNode);
-  
+
   // backtrace through to PHG4Hits
   std::set<PHG4Hit*> all_truth_hits          (SvtxHit* hit);
   PHG4Hit*           max_truth_hit_by_energy (SvtxHit* hit);

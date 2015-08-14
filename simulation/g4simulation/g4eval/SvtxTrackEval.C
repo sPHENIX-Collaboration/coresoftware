@@ -24,7 +24,25 @@ SvtxTrackEval::SvtxTrackEval(PHCompositeNode* topNode)
     _clustereval(topNode),
     _cache_all_truth_hits(),
     _cache_all_truth_particles(),
-    _cache_max_truth_particle_by_nclusters() {
+    _cache_max_truth_particle_by_nclusters(),
+    _cache_all_tracks_from_particle(),
+    _cache_all_tracks_from_g4hit(),
+    _cache_get_nclusters_contribution() {
+}
+
+
+void SvtxTrackEval::next_event(PHCompositeNode* topNode) {
+
+  _cache_all_truth_hits.clear();
+  _cache_all_truth_particles.clear();
+  _cache_max_truth_particle_by_nclusters.clear();
+  _cache_all_tracks_from_particle.clear();
+  _cache_all_tracks_from_g4hit.clear();
+  _cache_get_nclusters_contribution.clear();
+  
+  _clustereval.next_event(topNode);
+  
+  _topNode = topNode;  
 }
 
 std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
@@ -131,6 +149,11 @@ PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track) {
 
 std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle) { 
 
+  if (_cache_all_tracks_from_particle.find(truthparticle) !=
+      _cache_all_tracks_from_particle.end()) {
+    return _cache_all_tracks_from_particle[truthparticle];
+  }
+  
   // need things off of the DST...
   SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(_topNode,"SvtxTrackMap");
   if (!trackmap) {
@@ -172,11 +195,18 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
     }
   }
 
+  _cache_all_tracks_from_particle.insert(make_pair(truthparticle,tracks));
+  
   return tracks;
 }
 
 std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit) {
 
+  if (_cache_all_tracks_from_g4hit.find(truthhit) !=
+      _cache_all_tracks_from_g4hit.end()) {
+    return _cache_all_tracks_from_g4hit[truthhit];
+  }
+  
   // need things off of the DST...
   SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(_topNode,"SvtxTrackMap");
   if (!trackmap) {
@@ -218,6 +248,8 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit) {
     }
   }
 
+  _cache_all_tracks_from_g4hit.insert(make_pair(truthhit,tracks));
+
   return tracks;
 }
   
@@ -250,6 +282,8 @@ unsigned int SvtxTrackEval::get_nclusters_contribution(SvtxTrack* track, PHG4Par
       }
     }
   }
+  
+  _cache_get_nclusters_contribution.insert(make_pair(make_pair(track,particle),nclusters));
   
   return nclusters;
 }

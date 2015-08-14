@@ -2,6 +2,8 @@
 #ifndef __SVTXCLUSTEREVAL_H__
 #define __SVTXCLUSTEREVAL_H__
 
+#include "SvtxHitEval.h"
+
 #include <phool/PHCompositeNode.h>
 #include <g4hough/SvtxCluster.h>
 #include <g4main/PHG4Hit.h>
@@ -17,6 +19,11 @@ public:
   SvtxClusterEval(PHCompositeNode *topNode);
   virtual ~SvtxClusterEval() {}
 
+  void next_event(PHCompositeNode *topNode);
+
+  // access the clustereval (and its cached values)
+  SvtxHitEval* get_hit_eval() {return &_hiteval;}
+  
   // backtrace through to PHG4Hits
   std::set<PHG4Hit*> all_truth_hits          (SvtxCluster* cluster);
   PHG4Hit*           max_truth_hit_by_energy (SvtxCluster* cluster);
@@ -34,7 +41,8 @@ public:
   
 private:
   PHCompositeNode* _topNode;
-
+  SvtxHitEval _hiteval;
+  
   std::map<SvtxCluster*,std::set<PHG4Hit*> >            _cache_all_truth_hits;
   std::map<SvtxCluster*,PHG4Hit*>                       _cache_max_truth_hit_by_energy;
   std::map<SvtxCluster*,std::set<PHG4Particle*> >       _cache_all_truth_particles;

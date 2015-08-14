@@ -49,23 +49,27 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
     return _cache_all_truth_hits[hit];
   }
   
-  std::set<PHG4Hit*> truth_hits;
-  
   // need things off of the DST...
-  PHG4CylinderCellContainer* g4cells = findNode::getClass<PHG4CylinderCellContainer>(_topNode,"G4CELL_SVTX");
-  if (!g4cells) {
-    cerr << PHWHERE << " ERROR: Can't find G4CELL_SVTX" << endl;
+  PHG4CylinderCellContainer* g4cells_svtx    = findNode::getClass<PHG4CylinderCellContainer>(_topNode,"G4CELL_SVTX");
+  PHG4CylinderCellContainer* g4cells_tracker = findNode::getClass<PHG4CylinderCellContainer>(_topNode,"G4CELL_SILICON_TRACKER");
+  if (!g4cells_svtx && !g4cells_tracker) {
+    cerr << PHWHERE << " ERROR: Can't find G4CELL_SVTX or G4CELL_SILICON_TRACKER" << endl;
     exit(-1);
   }
     
-  PHG4HitContainer* g4hits = findNode::getClass<PHG4HitContainer>(_topNode,"G4HIT_SVTX");
-  if (!g4hits) {
-    cerr << PHWHERE << " ERROR: Can't find G4HIT_SVTX" << endl;
+  PHG4HitContainer* g4hits_svtx    = findNode::getClass<PHG4HitContainer>(_topNode,"G4HIT_SVTX");
+  PHG4HitContainer* g4hits_tracker = findNode::getClass<PHG4HitContainer>(_topNode,"G4HIT_SILICON_TRACKER");
+  if (!g4hits_svtx && !g4hits_tracker) {
+    cerr << PHWHERE << " ERROR: Can't find G4HIT_SVTX or G4HIT_SILICON_TRACKER" << endl;
     exit(-1);
   }
+
+  std::set<PHG4Hit*> truth_hits;
   
   // hop from reco hit to g4cell
-  PHG4CylinderCell *cell = g4cells->findCylinderCell(hit->get_cellid());
+  PHG4CylinderCell *cell = NULL;
+  if (!cell&&g4cells_svtx)    cell = g4cells_svtx->findCylinderCell(hit->get_cellid());
+  if (!cell&&g4cells_tracker) cell = g4cells_tracker->findCylinderCell(hit->get_cellid());
   if (!cell) return truth_hits;
 
   // loop over all the g4hits in this cell
@@ -73,8 +77,11 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
        g4iter != cell->get_g4hits().second;
        ++g4iter) {
       
-    PHG4Hit* g4hit = g4hits->findHit(g4iter->first);
-
+    PHG4Hit* g4hit = NULL;
+    if (!g4hit&&g4hits_svtx)    g4hit = g4hits_svtx->findHit(g4iter->first);
+    if (!g4hit&&g4hits_tracker) g4hit = g4hits_tracker->findHit(g4iter->first);
+    if (!g4hit) continue;
+    
     // fill output set
     truth_hits.insert(g4hit);
   }
