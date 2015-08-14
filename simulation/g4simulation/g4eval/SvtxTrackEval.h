@@ -34,7 +34,7 @@ public:
   std::set<SvtxTrack*> all_tracks_from(PHG4Hit* truthhit);
   
   // overlap calculations
-  unsigned int get_nclusters_contribution(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);
+  unsigned int get_nclusters_contribution(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);  
   
 private:
   PHCompositeNode* _topNode;
