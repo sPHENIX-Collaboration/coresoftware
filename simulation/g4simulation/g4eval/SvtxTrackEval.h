@@ -2,6 +2,8 @@
 #ifndef __SVTXTRACKEVAL_H__
 #define __SVTXTRACKEVAL_H__
 
+#include "SvtxClusterEval.h"
+
 #include <phool/PHCompositeNode.h>
 #include <g4hough/SvtxTrack.h>
 #include <g4main/PHG4Hit.h>
@@ -16,8 +18,11 @@ public:
   SvtxTrackEval(PHCompositeNode *topNode);
   virtual ~SvtxTrackEval() {}
 
+  // access the clustereval
+  SvtxClusterEval* get_cluster_eval() {return &_clustereval;}
+  
   // backtrace through to PHG4Hits
-  std::set<PHG4Hit*> all_truth_hits          (SvtxTrack* track);
+  std::set<PHG4Hit*>  all_truth_hits (SvtxTrack* track);
   
   // backtrace through to PHG4Particles
   std::set<PHG4Particle*> all_truth_particles             (SvtxTrack* track);
@@ -32,6 +37,7 @@ public:
   
 private:
   PHCompositeNode* _topNode;
+  SvtxClusterEval _clustereval;
 };
 
 #endif // __SVTXTRACKEVAL_H__
