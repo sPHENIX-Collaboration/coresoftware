@@ -21,11 +21,16 @@ using namespace std;
 
 SvtxTrackEval::SvtxTrackEval(PHCompositeNode* topNode)
   : _topNode(topNode),
-    _clustereval(topNode) {
+    _clustereval(topNode),
+    _cache_all_truth_hits() {
 }
 
 std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
 
+  if (_cache_all_truth_hits.find(track) != _cache_all_truth_hits.end()) {
+    return _cache_all_truth_hits[track];
+  }
+  
   // need things off of the DST...
   SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(_topNode,"SvtxClusterMap");
   if (!clustermap) {
@@ -52,6 +57,8 @@ std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
     std::swap(truth_hits,union_hits); // swap union into truth_hits
   }
 
+  _cache_all_truth_hits.insert(make_pair(track,truth_hits));
+  
   return truth_hits;
 }
   

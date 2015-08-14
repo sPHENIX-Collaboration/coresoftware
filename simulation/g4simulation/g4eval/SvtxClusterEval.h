@@ -35,7 +35,12 @@ public:
 private:
   PHCompositeNode* _topNode;
 
-  std::map<SvtxCluster*,std::set<PHG4Hit*> > _cache_all_truth_hits;
+  std::map<SvtxCluster*,std::set<PHG4Hit*> >            _cache_all_truth_hits;
+  std::map<SvtxCluster*,PHG4Hit*>                       _cache_max_truth_hit_by_energy;
+  std::map<SvtxCluster*,std::set<PHG4Particle*> >       _cache_all_truth_particles;
+  std::map<SvtxCluster*,PHG4Particle* >                 _cache_max_truth_particle_by_energy;
+  std::map<PHG4Particle*,std::set<SvtxCluster*> >       _cache_all_clusters_from_particle;
+  std::map<PHG4Hit*,std::set<SvtxCluster*> >            _cache_all_clusters_from_g4hit;
   std::map<std::pair<SvtxCluster*,PHG4Particle*>,float> _cache_get_energy_contribution;
 };
 

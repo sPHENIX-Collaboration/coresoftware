@@ -10,6 +10,7 @@
 #include <g4main/PHG4Particle.h>
 
 #include <set>
+#include <map>
 
 class SvtxTrackEval {
 
@@ -38,6 +39,8 @@ public:
 private:
   PHCompositeNode* _topNode;
   SvtxClusterEval _clustereval;
+
+  std::map<SvtxTrack*,std::set<PHG4Hit*> > _cache_all_truth_hits;
 };
 
 #endif // __SVTXTRACKEVAL_H__
