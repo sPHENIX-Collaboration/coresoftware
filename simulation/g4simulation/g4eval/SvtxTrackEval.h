@@ -35,6 +35,7 @@ public:
 
   // forwardtrace through to SvtxTracks
   std::set<SvtxTrack*> all_tracks_from(PHG4Particle* truthparticle);
+  SvtxTrack*           best_track_from(PHG4Particle* truthparticle);
   std::set<SvtxTrack*> all_tracks_from(PHG4Hit* truthhit);
   
   // overlap calculations
@@ -48,6 +49,7 @@ private:
   std::map<SvtxTrack*,std::set<PHG4Particle*> >               _cache_all_truth_particles;
   std::map<SvtxTrack*,PHG4Particle*>                          _cache_max_truth_particle_by_nclusters;
   std::map<PHG4Particle*,std::set<SvtxTrack*> >               _cache_all_tracks_from_particle;
+  std::map<PHG4Particle*,SvtxTrack* >                         _cache_best_track_from_particle;
   std::map<PHG4Hit*,std::set<SvtxTrack*> >                    _cache_all_tracks_from_g4hit;
   std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int> _cache_get_nclusters_contribution;
 };

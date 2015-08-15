@@ -26,6 +26,7 @@ SvtxTrackEval::SvtxTrackEval(PHCompositeNode* topNode)
     _cache_all_truth_particles(),
     _cache_max_truth_particle_by_nclusters(),
     _cache_all_tracks_from_particle(),
+    _cache_best_track_from_particle(),
     _cache_all_tracks_from_g4hit(),
     _cache_get_nclusters_contribution() {
 }
@@ -37,6 +38,7 @@ void SvtxTrackEval::next_event(PHCompositeNode* topNode) {
   _cache_all_truth_particles.clear();
   _cache_max_truth_particle_by_nclusters.clear();
   _cache_all_tracks_from_particle.clear();
+  _cache_best_track_from_particle.clear();
   _cache_all_tracks_from_g4hit.clear();
   _cache_get_nclusters_contribution.clear();
   
@@ -252,7 +254,33 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit) {
 
   return tracks;
 }
+
+SvtxTrack* SvtxTrackEval::best_track_from(PHG4Particle* truthparticle) { 
+
+  if (_cache_best_track_from_particle.find(truthparticle) !=
+      _cache_best_track_from_particle.end()) {
+    return _cache_best_track_from_particle[truthparticle];
+  }
+
+  SvtxTrack* best_track = NULL;
+  unsigned int best_purity = 0;
+  std::set<SvtxTrack*> tracks = all_tracks_from(truthparticle);
+  for (std::set<SvtxTrack*>::iterator iter = tracks.begin();
+       iter != tracks.end();
+       ++iter) {
+    SvtxTrack* track = *iter;
+    unsigned int purity = get_nclusters_contribution(track,truthparticle);
+    if (purity > best_purity) {
+      best_track = track;
+      best_purity = purity;
+    }
+  }
   
+  _cache_best_track_from_particle.insert(make_pair(truthparticle,best_track));
+  
+  return best_track;
+}
+
 // overlap calculations
 unsigned int SvtxTrackEval::get_nclusters_contribution(SvtxTrack* track, PHG4Particle* particle) {
 
