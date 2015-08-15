@@ -1,8 +1,8 @@
 
 #include "PHG4Evaluator.h"
 
-#include "EvalLinks.h"
-#include "EvalLinksV1.h"
+// #include "EvalLinks.h"
+// #include "EvalLinksV1.h"
 
 // PHENIX includes
 #include <phool/PHCompositeNode.h>
@@ -168,68 +168,6 @@ int PHG4Evaluator::Init(PHCompositeNode *topNode)
 
 int PHG4Evaluator::InitRun(PHCompositeNode *topNode) {
 
-  //--------------------------
-  // Add Cluster to G4Hit Node
-  //--------------------------
-
-  PHNodeIterator iter(topNode);
-
-  // Looking for the DST node
-  PHCompositeNode *dstNode 
-    = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
-  if (!dstNode) {
-    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-    
-  // Create the SVTX_EVAL node if required
-  PHCompositeNode* svxNode 
-    = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","SVTX_EVAL"));
-  if (!svxNode) {
-    svxNode = new PHCompositeNode("SVTX_EVAL");
-    dstNode->addNode(svxNode);
-  }
-
-  if (findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX")) {
-    EvalLinks *links = findNode::getClass<EvalLinks>(topNode,"SvtxClusterMap_G4HIT_SVTX_Links");
-    if (!links) {
-      links = new EvalLinksV1("SvtxClusterMap","G4HIT_SVTX","edep");
-      PHIODataNode<PHObject> *linksNode =
-	new PHIODataNode<PHObject>(links, "SvtxClusterMap_G4HIT_SVTX_Links", "PHObject");
-      svxNode->addNode(linksNode);
-    }
-  }
-
-  if (findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER")) {
-    EvalLinks *links = findNode::getClass<EvalLinks>(topNode,"SvtxClusterMap_G4HIT_SILICON_TRACKER_Links");
-    if (!links) {
-      links = new EvalLinksV1("SvtxClusterMap","G4HIT_SILICON_TRACKER","edep");
-      PHIODataNode<PHObject> *linksNode =
-	new PHIODataNode<PHObject>(links, "SvtxClusterMap_G4HIT_SILICON_TRACKER_Links", "PHObject");
-      svxNode->addNode(linksNode);
-    }
-  }
-
-  if (findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap")) {
-    EvalLinks *links = findNode::getClass<EvalLinks>(topNode,"SvtxTrackMap_G4TruthInfo_Links");
-    if (!links) {
-      links = new EvalLinksV1("SvtxTrackMap","G4TruthInfo","ng4hits");
-      PHIODataNode<PHObject> *linksNode =
-  	new PHIODataNode<PHObject>(links, "SvtxTrackMap_G4TruthInfo_Links", "PHObject");
-      svxNode->addNode(linksNode);
-    }
-  }
-
-  if (findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap")) {
-    EvalLinks *links = findNode::getClass<EvalLinks>(topNode,"G4TruthInfo_SvtxTrackMap_Links");
-    if (!links) {
-      links = new EvalLinksV1("G4TruthInfo","SvtxTrackMap","nclusters");
-      PHIODataNode<PHObject> *linksNode =
-  	new PHIODataNode<PHObject>(links, "G4TruthInfo_SvtxTrackMap_Links", "PHObject");
-      svxNode->addNode(linksNode);
-    }
-  }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
   
@@ -267,9 +205,6 @@ int PHG4Evaluator::process_event(PHCompositeNode *topNode)
   _track_purity_map.clear();
   
   _g4hitList.clear();
-
-  _cluster_g4hit_svtx_links = NULL;
-  _cluster_g4hit_silicon_tracker_links = NULL;
 
   //------------------------
   // fill the Layer Type Map
@@ -393,9 +328,6 @@ int PHG4Evaluator::process_event(PHCompositeNode *topNode)
   _internal_timer[3].get()->restart();
   fillCellToG4HitMap();
   fillClusterToG4HitMap();
-
-  fillClusterToG4HitLinks(topNode); //---new-method-----------------------------
-
   _internal_timer[3].get()->stop();
   
   //---------------------------------------
@@ -404,8 +336,6 @@ int PHG4Evaluator::process_event(PHCompositeNode *topNode)
   
   _internal_timer[4].get()->restart();
   if (_trackingWasRun) fillTrackToGtrackMap();
-  //if (_trackingWasRun) fillTrackToG4TruthInfoLinks(topNode);
-  //if (_trackingWasRun) fillG4TruthInfoToTrackLinks(topNode);
   _internal_timer[4].get()->stop();
   
   //------------------------
@@ -849,100 +779,6 @@ void PHG4Evaluator::fillCellToG4HitMap()
   return;
 }
 
-/// loop over all the reco'd SvtxClusters and create the ancestry links to
-/// the G4Hits from the cylinder cell layers or ladder layers.
-int PHG4Evaluator::fillClusterToG4HitLinks(PHCompositeNode *topNode) {
-
-  if (verbosity > 1) cout << "PHG4Evaluator::fillClusterToG4HitLinks() entered" << endl;
-
-  EvalLinks *evalcyllinks = NULL;
-  if (_cellList) {
-    PHTypedNodeIterator<EvalLinks> evaliter(topNode);
-    PHIODataNode<EvalLinks> *EvalLinksNode = evaliter.find("SvtxClusterMap_G4HIT_SVTX_Links");
-    if (!EvalLinksNode) {
-      cout << PHWHERE << " ERROR: Can't find SvtxClusterMap_G4HIT_SVTX_Links" << endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    } else {
-      evalcyllinks = (EvalLinks*)EvalLinksNode->getData();
-    }
-    evalcyllinks->Reset();
-    evalcyllinks->set_names("SvtxClusterMap","G4HIT_SVTX","edep");
-  }
-  
-  EvalLinks *evalladderlinks = NULL;
-  if (_ladderCellList) {
-    PHTypedNodeIterator<EvalLinks> evaliter(topNode);
-    PHIODataNode<EvalLinks> *EvalLinksNode = evaliter.find("SvtxClusterMap_G4HIT_SILICON_TRACKER_Links");
-    if (!EvalLinksNode) {
-      cout << PHWHERE << " ERROR: Can't find SvtxClusterMap_G4HIT_SILICON_TRACKER_Links" << endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    } else {
-      evalladderlinks = (EvalLinks*)EvalLinksNode->getData();
-    }
-    evalladderlinks->Reset();
-    evalladderlinks->set_names("SvtxClusterMap","G4HIT_SILICON_TRACKER","edep");
-  }
-  
-  // loop over all the clusters
-  for (SvtxClusterMap::Iter iter = _clusterList->begin();
-       iter != _clusterList->end();
-       ++iter) {
-  
-    SvtxCluster* cluster = &iter->second;
-    unsigned int cluster_id = cluster->get_id();
-
-    // loop over all SvtxHits
-    for (SvtxCluster::HitIter hiter = cluster->begin_hits();
-	 hiter != cluster->end_hits();
-	 ++hiter) {
-      unsigned int hit_id = *hiter;
-
-      SvtxHit* hit = _hitList->get(hit_id);   
-      PHG4CylinderCellDefs::keytype cell_id = hit->get_cellid();
-      
-      // get this cell...
-      if ((_cellList)&&(_cellList->findCylinderCell(cell_id))) {    
-	PHG4CylinderCell *cell = _cellList->findCylinderCell(cell_id);     
-
-	// loop over all g4hits within the cell
-	PHG4CylinderCell::EdepConstRange range = cell->get_g4hits();
-	for (PHG4CylinderCell::EdepConstIterator iter = range.first;
-	     iter != range.second;
-	     ++iter) {
-	  PHG4HitDefs::keytype ghit_id = iter->first;
-	  float edep = iter->second;
-
-	  // create new link
-	  evalcyllinks->link(cluster_id,ghit_id,edep);
-	}
-      } else if ((_ladderCellList)&&(_ladderCellList->findCylinderCell(cell_id))) {
-	PHG4CylinderCell *cell = _ladderCellList->findCylinderCell(cell_id);
-	
-	// loop over all g4hits within the cell
-	PHG4CylinderCell::EdepConstRange range = cell->get_g4hits();
-	for (PHG4CylinderCell::EdepConstIterator iter = range.first;
-	     iter != range.second;
-	     ++iter) {
-	  PHG4HitDefs::keytype ghit_id = iter->first;
-	  float edep = iter->second;
-	  
-	  // create new link
-	  evalladderlinks->link(cluster_id,ghit_id,edep);
-	}   
-      } else {
-	cout << "SVTX evalution traces to missing cell_id, corrupt ancestry error" << endl;
-	exit(-1);
-      } 	
-    } // hit loop      
-  } // cluster loop
-
-  //evalcyllinks->identify();
-  
-  _cluster_g4hit_svtx_links = evalcyllinks;
-  _cluster_g4hit_silicon_tracker_links = evalladderlinks;
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
 void PHG4Evaluator::fillClusterToG4HitMap()
 {
@@ -1018,159 +854,6 @@ void PHG4Evaluator::fillClusterToG4HitMap()
   return;
 }
 
-int PHG4Evaluator::fillTrackToG4TruthInfoLinks(PHCompositeNode *topNode) {
-
-  EvalLinks* evallinks = NULL;
-  PHTypedNodeIterator<EvalLinks> evaliter(topNode);
-  PHIODataNode<EvalLinks> *EvalLinksNode = evaliter.find("SvtxTrackMap_G4TruthInfo_Links");
-  if (!EvalLinksNode) {
-    cout << PHWHERE << " ERROR: Can't find SvtxTrackMap_G4TruthInfo_Links" << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  } else {
-    evallinks = (EvalLinks*)EvalLinksNode->getData();
-  }
-  evallinks->Reset();
-  evallinks->set_names("SvtxTrackMap","G4TruthInfo","ng4hits");
-
-  _track_particle_links = evallinks;
-  
-  // loop over all tracks
-  for (SvtxTrackMap::Iter iter = _trackList->begin();
-       iter != _trackList->end();
-       ++iter) {
-    SvtxTrack *track = &iter->second;
-    unsigned int track_id = track->getTrackID();
-    std::map<unsigned int,unsigned int> track_votes; // particle id => votes
-
-    // loop over all the layers
-    short found_hits = 0;
-    for (unsigned int ilayer = 0; ilayer < 100; ++ilayer) {
-
-      // particles can get at most one vote per layer
-      std::set<unsigned int> layer_votes;
-      
-      // get the associated clusters for the layer
-      if (track->hasCluster(ilayer)) {
-	++found_hits;
-	
-	unsigned int cluster_id = track->getClusterID(ilayer);
-
-	// loop over all g4hits associated to cluster
-	// using the previously established eval links
-	std::set<unsigned long long> g4hit_ids;
-	if (_cluster_g4hit_svtx_links) g4hit_ids = _cluster_g4hit_svtx_links->right(cluster_id);
-	for (std::set<unsigned long long>::iterator iiter = g4hit_ids.begin();
-	     iiter != g4hit_ids.end();
-	     ++iiter) {
-	  unsigned long long g4hit_id = *iiter;
-
-	  HitMap::const_iterator tmpiter = _g4hitList.find(g4hit_id);
-	  PHG4Hit* g4hit = tmpiter->second;
-
-	  unsigned int particle_id = g4hit->get_trkid();
-
-	  layer_votes.insert(particle_id);
-	}
-
-	// loop over all g4hits associated to cluster
-	// using the previously established eval links
-	g4hit_ids.clear();
-	if (_cluster_g4hit_silicon_tracker_links) g4hit_ids = _cluster_g4hit_silicon_tracker_links->right(cluster_id);
-	for (std::set<unsigned long long>::iterator iiter = g4hit_ids.begin();
-	     iiter != g4hit_ids.end();
-	     ++iiter) {
-	  unsigned long long g4hit_id = *iiter;
-
-	  HitMap::const_iterator tmpiter = _g4hitList.find(g4hit_id);
-	  PHG4Hit* g4hit = tmpiter->second;
-
-	  unsigned int particle_id = g4hit->get_trkid();
-
-	  layer_votes.insert(particle_id);
-	} // associated g4hit loop
-      } // layer has cluster
-
-      // loop over all layer votes and insert into vote counter
-      for (std::set<unsigned int>::iterator viter = layer_votes.begin();
-	   viter != layer_votes.end();
-	   ++viter) {
-	unsigned int particle_id = *viter;
-	if (track_votes.find(particle_id) == track_votes.end()) {
-	  track_votes[particle_id] = 1;
-	} else {
-	  ++track_votes[particle_id];
-	}
-      } // end layer vote counting
-      
-      if (found_hits >= track->getNhits()) break; // all clusters visited
-    } // layer loop
-
-    // loop over vote map
-    for (std::map<unsigned int,unsigned int>::iterator iiter = track_votes.begin();
-	 iiter != track_votes.end();
-	 ++iiter) {
-      unsigned int particle_id = iiter->first;
-      unsigned int votes       = iiter->second;     
-      evallinks->link(track_id,particle_id,(float)votes);
-    } // end vote recording
-    
-  } // track loop
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-
-// forward look up based on number of clusters left by truth
-// particles (pattern reco testing).
-int PHG4Evaluator::fillG4TruthInfoToTrackLinks(PHCompositeNode *topNode) {
-
-  EvalLinks* evallinks = NULL;
-  PHTypedNodeIterator<EvalLinks> evaliter(topNode);
-  PHIODataNode<EvalLinks> *EvalLinksNode = evaliter.find("G4TruthInfo_SvtxTrackMap_Links");
-  if (!EvalLinksNode) {
-    cout << PHWHERE << " ERROR: Can't find G4TruthInfo_SvtxTrackMap_Links" << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  } else {
-    evallinks = (EvalLinks*)EvalLinksNode->getData();
-  }
-  evallinks->Reset();
-  evallinks->set_names("G4TruthInfo","SvtxTrackMap","nclusters left by particle");
-
-  // loop over all truth particles
-  PHG4TruthInfoContainer::Map map = _truth_info_container->GetMap();
-  for (PHG4TruthInfoContainer::ConstIterator citer = map.begin();
-       citer != map.end();
-       ++citer) {
-    PHG4Particle* particle = citer->second;
-    int particle_id = particle->get_track_id();
-    unsigned int nclusters = 0;
-      
-    // loop over this particle's g4hits
-    for (std::multimap<int,PHG4HitDefs::keytype>::iterator iter = _particleid_g4hitid_mmap.lower_bound(particle_id);
-	 iter != _particleid_g4hitid_mmap.upper_bound(particle_id);
-	 ++iter) {
-
-      PHG4HitDefs::keytype g4hitid = iter->second;
-      
-      // grab the number of clusters from the g4hit
-      if (_cluster_g4hit_svtx_links) {
-	std::set<unsigned long long> cluster_ids = _cluster_g4hit_svtx_links->left(g4hitid);
-	nclusters += cluster_ids.size();
-      }
-
-      if (_cluster_g4hit_silicon_tracker_links) {
-	std::set<unsigned long long> cluster_ids = _cluster_g4hit_silicon_tracker_links->left(g4hitid);
-	nclusters += cluster_ids.size();
-      }      
-    }    
-
-    // the number of clusters has been established
-    unsigned int leading_track_id = _track_particle_links->max_left(particle_id);
-    evallinks->link(particle_id,leading_track_id,nclusters);    
-  }
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
 void PHG4Evaluator::fillTrackToGtrackMap()
 {

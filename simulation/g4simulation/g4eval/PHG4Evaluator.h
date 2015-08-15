@@ -8,8 +8,6 @@
 /// \author Matt Wysocki (translated to sPHENIX simulations)
 //===============================================
 
-#include "EvalLinks.h"
-
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -306,9 +304,6 @@ class PHG4Evaluator : public SubsysReco
 
 
   std::multimap <int, PHG4HitDefs::keytype> _particleid_g4hitid_mmap; ///< forward look up between a truth particle id and a g4hit id
-  EvalLinks* _cluster_g4hit_svtx_links;
-  EvalLinks* _cluster_g4hit_silicon_tracker_links;
-  EvalLinks* _track_particle_links;
   
   //-----------------------
   // evaluator subroutines
@@ -322,11 +317,6 @@ class PHG4Evaluator : public SubsysReco
   void fillTrackToGtrackMap();      ///< creates the map between tracks and gtracks pointers
   void fillTrackPurityMap();
 
-  // fill DST output
-  int fillClusterToG4HitLinks(PHCompositeNode *topNode);     // cluster ancestry eval
-  int fillTrackToG4TruthInfoLinks(PHCompositeNode *topNode); // tracking ancestry eval
-  int fillG4TruthInfoToTrackLinks(PHCompositeNode *topNode); // particle decendent eval
-  
   // output subroutines
   void fillOutputNtuples();         ///< dump the evaluator information into ntuple for external analysis
   void printInputInfo();            ///< print out the input object information (debugging upstream components)
