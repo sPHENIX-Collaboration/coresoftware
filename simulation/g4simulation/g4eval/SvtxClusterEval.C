@@ -32,7 +32,9 @@ SvtxClusterEval::SvtxClusterEval(PHCompositeNode* topNode)
     _cache_max_truth_particle_by_energy(),
     _cache_all_clusters_from_particle(),
     _cache_all_clusters_from_g4hit(),
-    _cache_get_energy_contribution() {
+    _cache_best_cluster_from_g4hit(),
+    _cache_get_energy_contribution_g4particle(),
+    _cache_get_energy_contribution_g4hit() {
 }
 
 void SvtxClusterEval::next_event(PHCompositeNode* topNode) {
@@ -43,7 +45,9 @@ void SvtxClusterEval::next_event(PHCompositeNode* topNode) {
   _cache_max_truth_particle_by_energy.clear();
   _cache_all_clusters_from_particle.clear();
   _cache_all_clusters_from_g4hit.clear();
-  _cache_get_energy_contribution.clear();
+  _cache_best_cluster_from_g4hit.clear();
+  _cache_get_energy_contribution_g4particle.clear();
+  _cache_get_energy_contribution_g4hit.clear();
 
   _hiteval.next_event(topNode);
   
@@ -275,13 +279,39 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit) {
   
   return clusters;
 }
+
+SvtxCluster* SvtxClusterEval::best_cluster_from(PHG4Hit* truthhit) {
+
+  if (_cache_best_cluster_from_g4hit.find(truthhit) !=
+      _cache_best_cluster_from_g4hit.end()) {
+    return _cache_best_cluster_from_g4hit[truthhit];
+  }
+
+  SvtxCluster* best_cluster = NULL;
+  float best_purity = 0.0;  
+  std::set<SvtxCluster*> clusters = all_clusters_from(truthhit);
+  for (std::set<SvtxCluster*>::iterator iter = clusters.begin();
+       iter != clusters.end();
+       ++iter) {
+    SvtxCluster* cluster = *iter;
+    float purity = get_energy_contribution(cluster,truthhit);
+    if (purity > best_purity) {
+      best_cluster = cluster;
+      best_purity = purity;
+    }
+  }
+ 
+  _cache_best_cluster_from_g4hit.insert(make_pair(truthhit,best_cluster));
+  
+  return best_cluster;
+}
   
 // overlap calculations
 float SvtxClusterEval::get_energy_contribution(SvtxCluster* cluster, PHG4Particle* particle) {
 
-  if (_cache_get_energy_contribution.find(make_pair(cluster,particle)) !=
-      _cache_get_energy_contribution.end()) {
-    return _cache_get_energy_contribution[make_pair(cluster,particle)];
+  if (_cache_get_energy_contribution_g4particle.find(make_pair(cluster,particle)) !=
+      _cache_get_energy_contribution_g4particle.end()) {
+    return _cache_get_energy_contribution_g4particle[make_pair(cluster,particle)];
   }
   
   float energy = 0.0;
@@ -295,7 +325,30 @@ float SvtxClusterEval::get_energy_contribution(SvtxCluster* cluster, PHG4Particl
     }
   }
 
-  _cache_get_energy_contribution.insert(make_pair(make_pair(cluster,particle),energy));
+  _cache_get_energy_contribution_g4particle.insert(make_pair(make_pair(cluster,particle),energy));
+  
+  return energy;
+}
+
+float SvtxClusterEval::get_energy_contribution(SvtxCluster* cluster, PHG4Hit* g4hit) {
+
+  if (_cache_get_energy_contribution_g4hit.find(make_pair(cluster,g4hit)) !=
+      _cache_get_energy_contribution_g4hit.end()) {
+    return _cache_get_energy_contribution_g4hit[make_pair(cluster,g4hit)];
+  }
+  
+  float energy = 0.0;
+  std::set<PHG4Hit*> g4hits = all_truth_hits(cluster);
+  for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
+       iter != g4hits.end();
+       ++iter) {
+    PHG4Hit* candidate = *iter;
+    if (candidate->get_trkid() == g4hit->get_trkid()) {
+      energy += candidate->get_edep();
+    }
+  }
+
+  _cache_get_energy_contribution_g4hit.insert(make_pair(make_pair(cluster,g4hit),energy));
   
   return energy;
 }
