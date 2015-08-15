@@ -30,9 +30,11 @@ public:
   // forwardtrace through to SvtxHits
   std::set<SvtxHit*> all_hits_from(PHG4Particle* truthparticle);
   std::set<SvtxHit*> all_hits_from(PHG4Hit* truthhit);
+  SvtxHit*           best_hit_from(PHG4Hit* truthhit);
   
   // overlap calculations
   float get_energy_contribution (SvtxHit* svtxhit, PHG4Particle* truthparticle);
+  float get_energy_contribution (SvtxHit* svtxhit, PHG4Hit* truthhit);
   
 private:
   PHCompositeNode* _topNode;
@@ -43,7 +45,9 @@ private:
   std::map<SvtxHit*,PHG4Particle* >                 _cache_max_truth_particle_by_energy;
   std::map<PHG4Particle*,std::set<SvtxHit*> >       _cache_all_hits_from_particle;
   std::map<PHG4Hit*,std::set<SvtxHit*> >            _cache_all_hits_from_g4hit;
-  std::map<std::pair<SvtxHit*,PHG4Particle*>,float> _cache_get_energy_contribution;
+  std::map<PHG4Hit*,SvtxHit*>                       _cache_best_hit_from_g4hit;
+  std::map<std::pair<SvtxHit*,PHG4Particle*>,float> _cache_get_energy_contribution_g4particle;
+  std::map<std::pair<SvtxHit*,PHG4Hit*>,float>      _cache_get_energy_contribution_g4hit;
 };
 
 #endif // __SVTXHITEVAL_H__
