@@ -9,15 +9,9 @@ INCLUDES = \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
-   libg4eval_io.la \
    libg4eval.la
 
 AM_CXXFLAGS = -Wall -Werror -msse2
-
-libg4eval_io_la_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  -lphool
 
 libg4eval_la_LDFLAGS = \
   -L$(libdir) \
@@ -27,15 +21,12 @@ libg4eval_la_LDFLAGS = \
   -lg4hough \
   -lHelixHough \
   -lFitNewton \
-  -lcemc \
-  libg4eval_io.la
+  -lcemc 
 
 pkginclude_HEADERS = \
   PHG4Evaluator.h \
   PHG4CalEvaluator.h \
   PHG4DSTReader.h \
-  EvalLinks.h \
-  EvalLinksV1.h \
   SvtxTruthEval.h \
   SvtxHitEval.h \
   SvtxClusterEval.h \
@@ -43,12 +34,6 @@ pkginclude_HEADERS = \
   SvtxEvaluator.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
-
-libg4eval_io_la_SOURCES = \
-  EvalLinks.C \
-  EvalLinks_Dict.C \
-  EvalLinksV1.C \
-  EvalLinksV1_Dict.C
 
 libg4eval_la_SOURCES = \
   PHG4Evaluator.C \
@@ -84,7 +69,6 @@ BUILT_SOURCES = \
   testexternals.C
 
 testexternals_LDADD = \
-  libg4eval_io.la \
   libg4eval.la
 
 testexternals.C:

@@ -16,8 +16,7 @@ libg4dst_la_LDFLAGS = \
   -lg4detectors_io \
   -lg4hough_io \
   -lcemc_io \
-  -lg4jets \
-  -lg4eval_io 
+  -lg4jets
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
