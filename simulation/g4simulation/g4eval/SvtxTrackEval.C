@@ -263,16 +263,16 @@ SvtxTrack* SvtxTrackEval::best_track_from(PHG4Particle* truthparticle) {
   }
 
   SvtxTrack* best_track = NULL;
-  unsigned int best_purity = 0;
+  unsigned int best_count = 0;
   std::set<SvtxTrack*> tracks = all_tracks_from(truthparticle);
   for (std::set<SvtxTrack*>::iterator iter = tracks.begin();
        iter != tracks.end();
        ++iter) {
     SvtxTrack* track = *iter;
-    unsigned int purity = get_nclusters_contribution(track,truthparticle);
-    if (purity > best_purity) {
+    unsigned int count = get_nclusters_contribution(track,truthparticle);
+    if (count > best_count) {
       best_track = track;
-      best_purity = purity;
+      best_count = count;
     }
   }
   

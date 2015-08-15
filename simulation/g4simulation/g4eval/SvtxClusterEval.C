@@ -288,16 +288,16 @@ SvtxCluster* SvtxClusterEval::best_cluster_from(PHG4Hit* truthhit) {
   }
 
   SvtxCluster* best_cluster = NULL;
-  float best_purity = 0.0;  
+  float best_energy = 0.0;  
   std::set<SvtxCluster*> clusters = all_clusters_from(truthhit);
   for (std::set<SvtxCluster*>::iterator iter = clusters.begin();
        iter != clusters.end();
        ++iter) {
     SvtxCluster* cluster = *iter;
-    float purity = get_energy_contribution(cluster,truthhit);
-    if (purity > best_purity) {
+    float energy = get_energy_contribution(cluster,truthhit);
+    if (energy > best_energy) {
       best_cluster = cluster;
-      best_purity = purity;
+      best_energy = energy;
     }
   }
  
