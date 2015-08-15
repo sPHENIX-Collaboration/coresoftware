@@ -1701,6 +1701,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       {
 	PHG4CylinderCell* cell = celliter->second;
 	PHG4Hit *g4hit = _cell_g4hit_mmap.find(cell)->second;
+	//----
+
+	//PHG4Particle *g4particle = trutheval->get_particle(g4hit);
+
+	//----
 	map<PHG4Hit*,SvxGtrack*>::iterator finditer = _g4hit_gtrack_map.find(g4hit);
 	if( finditer == _g4hit_gtrack_map.end() ) continue;
 	SvxGtrack *gtrack = finditer->second;
@@ -1939,7 +1944,21 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       }
   }
 
-  
+  //--------------------
+  // fill the Hit NTuple
+  //--------------------
+  /*
+  for (SvtxHitMap::Iter iter = _hitList->begin();
+       iter != _hitList->end();
+       ++iter) {
+    SvtxHit* hit             = &iter->second;
+    PHG4Hit* g4hit           = hiteval->max_truth_hit_by_energy(hit);
+    PHG4Particle* g4particle = trutheval->get_particle(g4hit);
+
+
+    //start here next session***
+  }
+  */
   //------------------------
   // fill the Cluster NTuple
   //------------------------
@@ -1947,8 +1966,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   for (SvtxClusterMap::Iter iter = _clusterList->begin();
        iter != _clusterList->end();
        ++iter) {
-    SvtxCluster* cluster = &iter->second;   
-    PHG4Hit *g4hit = clustereval->max_truth_hit_by_energy(cluster);    
+    SvtxCluster* cluster     = &iter->second;   
+    PHG4Hit *g4hit           = clustereval->max_truth_hit_by_energy(cluster);    
     PHG4Particle *g4particle = trutheval->get_particle(g4hit);
     
     float hitID    = cluster->get_id();
@@ -1962,73 +1981,60 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     float phisize  = cluster->get_phi_size();
     float zsize    = cluster->get_z_size();
 
-    float g4hitID   = -9999.9;
-
+    float g4hitID  = -9999.9;
     float gx       = -9999.9;
     float gy       = -9999.9;
     float gz       = -9999.9;
-
     float gtrackID = -9999.9;
     float gflavor  = -9999.9;
-
     float gpx      = -9999.9;
     float gpy      = -9999.9;
     float gpz      = -9999.9;
-
     float gvx      = -9999.9;
     float gvy      = -9999.9;
     float gvz      = -9999.9;
-
-    float gfpx      = -9999.9;
-    float gfpy      = -9999.9;
-    float gfpz      = -9999.9;
-
+    float gfpx     = -9999.9;
+    float gfpy     = -9999.9;
+    float gfpz     = -9999.9;
     float gfx      = -9999.9;
     float gfy      = -9999.9;
     float gfz      = -9999.9;
-
     float glast    = -9999.9;
     float gembed   = -9999.9;
     float gprimary = -9999.9;
-
+    
     float nhits    = -9999.9;
     float purity   = -9999.9;
       
     if (g4hit) {
+      g4hitID  = g4hit->get_hit_id();
+      gx       = g4hit->get_x(0);
+      gy       = g4hit->get_y(0);
+      gz       = g4hit->get_z(0);
+      gtrackID = g4particle->get_track_id();
+      gflavor  = g4particle->get_pid();
+      gpx      = g4particle->get_px();
+      gpy      = g4particle->get_py();
+      gpz      = g4particle->get_pz();
 
-        g4hitID   = g4hit->get_hit_id();
-
-	gx = g4hit->get_x(0);
-	gy = g4hit->get_y(0);
-	gz = g4hit->get_z(0);
-
-	gtrackID = g4particle->get_track_id();
-	gflavor  = g4particle->get_pid();
+      PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
 	
-	gpx      = g4particle->get_px();
-	gpy      = g4particle->get_py();
-	gpz      = g4particle->get_pz();
+      gvx      = vtx->get_x();
+      gvy      = vtx->get_y();
+      gvz      = vtx->get_z();
 
-	PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
-	
-	gvx      = vtx->get_x();
-	gvy      = vtx->get_y();
-	gvz      = vtx->get_z();
-
-	PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
-	
-	gfpx     = outerhit->get_px(1);
-	gfpy     = outerhit->get_py(1);
-	gfpz     = outerhit->get_pz(1);
-
-	gfx      = outerhit->get_x(1);
-	gfy      = outerhit->get_y(1);
-	gfz      = outerhit->get_z(1);
-
-	glast    = NAN;
-	gembed   = trutheval->get_embed(g4particle);
-	gprimary = trutheval->is_primary(g4particle);
-      }      
+      PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
+      
+      gfpx     = outerhit->get_px(1);
+      gfpy     = outerhit->get_py(1);
+      gfpz     = outerhit->get_pz(1);
+      gfx      = outerhit->get_x(1);
+      gfy      = outerhit->get_y(1);
+      gfz      = outerhit->get_z(1);
+      glast    = NAN;
+      gembed   = trutheval->get_embed(g4particle);
+      gprimary = trutheval->is_primary(g4particle);
+    }      
 
     purity = clustereval->get_energy_contribution(cluster,g4particle);
 
