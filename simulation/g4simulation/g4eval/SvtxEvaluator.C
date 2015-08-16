@@ -162,13 +162,13 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode)
 			   "presdphi:presdeta:prese3x3:prese:"   
 			   "cemcdphi:cemcdeta:cemce3x3:cemce:"
 			   "hcalindphi:hcalindeta:hcaline3x3:hcaline:"
-			   "hcaloutdphi:hcaloutdeta:hcaloute3x3:hcaloute");
-			   //"gtrackID:gflavor:gpx:gpy:"
-                           //"gpz:gvx:gvy:gvz:"
-                           //"gfpx:gfpy:gfpz:gfx:gfy:gfz:glast:"
-                           //"gembed:gprimary:purity:pcax:pcay:pcaz:"
-                           //"phi:d:kappa:z0:dzdl");
-
+			   "hcaloutdphi:hcaloutdeta:hcaloute3x3:hcaloute:"
+			   "gtrackID:gflavor:ng4hits:"
+			   "gpx:gpy:gpz:"
+			   "gvx:gvy:gvz:"
+			   "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
+			   "gembed:gprimary:nfromtruth");
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -2160,91 +2160,58 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float hcaloutdeta = track->get_cal_deta(SvtxTrack::HCALOUT);
       float hcaloute3x3 = track->get_cal_energy_3x3(SvtxTrack::HCALOUT);
       float hcaloute    = track->get_cal_cluster_e(SvtxTrack::HCALOUT);
+
+      float gtrackID = NAN;
+      float gflavor  = NAN;     
+      float ng4hits  = NAN;
+      float gpx      = NAN;
+      float gpy      = NAN;
+      float gpz      = NAN;
+      float gvx      = NAN;
+      float gvy      = NAN;
+      float gvz      = NAN;
+      float gfpx     = NAN;
+      float gfpy     = NAN;
+      float gfpz     = NAN;
+      float gfx      = NAN;
+      float gfy      = NAN;
+      float gfz      = NAN;
+      float gembed   = NAN;
+      float gprimary = NAN;
+
+      float nfromtruth = NAN;
       
-      // if (false) {
-      // 	//PHG4Particle* g4particle = trackeval->max_truth_particle_by_nclusters(track);
-      // 	SvxGtrack  *gtrack  = _track_gtrack_map[track];
-
-      // 	float trackID   = track->getTrackID();
-
-
+      PHG4Particle* g4particle = trackeval->max_truth_particle_by_nclusters(track);
       
+      if (g4particle) {
+	gtrackID = g4particle->get_track_id();
+	gflavor  = g4particle->get_pid();
       
-      // 	float charge    = track->getCharge();
-      // 	float quality   = track->getQuality();
-      // 	float chisq     = track->getChisq();
-      // 	float chisqv    = track->getChisqv();
-      // 	float ndf       = track->getNDF();
-      // 	float primary   = track->getPrimary();
-      // 	float nhits     = track->getNhits();
+	std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits(g4particle);     
+	ng4hits = g4hits.size();  
+	gpx      = g4particle->get_px();
+	gpy      = g4particle->get_py();
+	gpz      = g4particle->get_pz();
+	
+	PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);	
+	gvx      = vtx->get_x();
+	gvy      = vtx->get_y();
+	gvz      = vtx->get_z();
 
-      // 	unsigned int layers = 0x0;
-      // 	for (unsigned int i = 0; i < 10; i++){	
-      // 	  if(track->hasCluster(i)) {
-      // 	    layers |= (0x1 << i);
-      // 	  }
-      // 	}
+	PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	      
+	gfpx     = outerhit->get_px(1);
+	gfpy     = outerhit->get_py(1);
+	gfpz     = outerhit->get_pz(1);
+	gfx      = outerhit->get_x(1);
+	gfy      = outerhit->get_y(1);
+	gfz      = outerhit->get_z(1);
+	gembed   = trutheval->get_embed(g4particle);
+	gprimary = trutheval->is_primary(g4particle);
 
-      // 	float dedx1     = NAN;//track->get_dEdX1();
-      // 	float dedx2     = NAN;//track->get_dEdX2();
-      // 	float dca       = track->getDCA();
-      // 	float dca2d     = track->getDCA2D();
-      // 	float dca2dsigma = track->getDCA2Dsigma();
-      // 	float px        = track->get3Momentum(0);
-      // 	float py        = track->get3Momentum(1);
-      // 	float pz        = track->get3Momentum(2);
-      // 	float pcax      = track->d * sin(track->phi);
-      // 	float pcay      = track->d * cos(track->phi);
-      // 	float pcaz      = track->z0;
-      // 	float phi	  = track->phi;
-      // 	float d         = track->d;
-      // 	float kappa     = track->kappa;
-      // 	float z0        = track->z0;
-      // 	float dzdl      = track->dzdl;
-
-      // 	float gtrackID  = NAN;
-      // 	float gflavor   = NAN;
-      // 	float gpx       = NAN;
-      // 	float gpy       = NAN;
-      // 	float gpz       = NAN;
-      // 	float gvx       = NAN;
-      // 	float gvy       = NAN;
-      // 	float gvz       = NAN;
-      // 	float gfpx      = NAN;
-      // 	float gfpy      = NAN;
-      // 	float gfpz      = NAN;
-      // 	float gfx       = NAN;
-      // 	float gfy       = NAN;
-      // 	float gfz       = NAN;
-      // 	float glast     = NAN;
-      // 	float gembed    = NAN;
-      // 	float gprimary  = NAN;
-      // 	float purity    = 0.0;
-
-      // 	if(gtrack)
-      // 	  {
-      // 	    gtrackID  = gtrack->get_track_id();
-      // 	    gflavor   = gtrack->get_flavor();
-      // 	    gpx       = gtrack->get_px();
-      // 	    gpy       = gtrack->get_py();
-      // 	    gpz       = gtrack->get_pz();
-      // 	    gvx       = gtrack->get_vx();
-      // 	    gvy       = gtrack->get_vy();
-      // 	    gvz       = gtrack->get_vz();
-      // 	    gfpx       = gtrack->get_fpx();
-      // 	    gfpy       = gtrack->get_fpy();
-      // 	    gfpz       = gtrack->get_fpz();
-      // 	    gfx       = gtrack->get_fx();
-      // 	    gfy       = gtrack->get_fy();
-      // 	    gfz       = gtrack->get_fz();
-      // 	    glast      = gtrack->get_is_last();
-      // 	    gembed     = gtrack->get_embed();
-      // 	    gprimary   = gtrack->get_primary();
-      // 	    purity = _track_purity_map[track];
-      // 	  }
-      // }
+	nfromtruth = trackeval->get_nclusters_contribution(track,g4particle);
+      }
       
-      float track_data[32] = {_ievent,
+      float track_data[50] = {_ievent,
 			      trackID, 
 			      px,        
 			      py,        
@@ -2275,72 +2242,26 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 			      hcaloutdphi,
 			      hcaloutdeta,
 			      hcaloute3x3,
-			      hcaloute  
+			      hcaloute,
+			      gtrackID,
+			      gflavor,
+			      ng4hits,
+			      gpx,
+			      gpy,
+			      gpz,
+			      gvx,
+			      gvy,
+			      gvz,
+			      gfpx,
+			      gfpy,
+			      gfpz,
+			      gfx,
+			      gfy,
+			      gfz,
+			      gembed,
+			      gprimary,
+			      nfromtruth
       };
-			      // trackID,
-			      // charge,
-			      // quality,
-			      // chisq,
-			      // chisqv,
-			      // ndf,
-			      // primary,
-			      // nhits,
-			      // (float)layers,
-			      // dedx1,
-			      // dedx2,
-			      // dca,
-			      // dca2d,
-			      // dca2dsigma,
-			      // px,
-			      // py,
-			      // pz,
-
-			      // presdphi,
-			      // presdeta,
-			      // prese3x3,
-			      // prese,
-				  
-			      // cemcdphi,
-			      // cemcdeta,
-			      // cemce3x3,
-			      // cemce,
-				  
-			      // hcalindphi,
-			      // hcalindeta,
-			      // hcaline3x3,
-			      // hcaline,
-				  
-			      // hcaloutdphi, 
-			      // hcaloutdeta, 
-			      // hcaloute3x3,
-			      // hcaloute,    
-				  
-			      // gtrackID,
-			      // gflavor,
-			      // gpx,
-			      // gpy,
-			      // gpz,
-			      // gvx,
-			      // gvy,
-			      // gvz,
-			      // gfpx,
-			      // gfpy,
-			      // gfpz,
-			      // gfx,
-			      // gfy,
-			      // gfz,
-			      // glast,
-			      // gembed,
-			      // gprimary,
-			      // purity,
-			      // pcax,
-			      // pcay,
-			      // pcaz,
-			      // phi,
-			      // d,
-			      // kappa,
-			      // z0,
-			      // dzdl };
       
       _ntp_track->Fill(track_data);
     }
