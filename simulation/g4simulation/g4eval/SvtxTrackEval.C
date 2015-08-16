@@ -284,6 +284,11 @@ SvtxTrack* SvtxTrackEval::best_track_from(PHG4Particle* truthparticle) {
 // overlap calculations
 unsigned int SvtxTrackEval::get_nclusters_contribution(SvtxTrack* track, PHG4Particle* particle) {
 
+  if (_cache_get_nclusters_contribution.find(make_pair(track,particle)) !=
+      _cache_get_nclusters_contribution.end()) {
+    return _cache_get_nclusters_contribution[make_pair(track,particle)];
+  }
+  
   SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(_topNode,"SvtxClusterMap");
   if (!clustermap) {
     cerr << PHWHERE << " ERROR: Can't find SvtxClusterMap" << endl;
