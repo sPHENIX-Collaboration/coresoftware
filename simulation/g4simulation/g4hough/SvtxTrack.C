@@ -19,7 +19,7 @@ SvtxTrack::SvtxTrack(SvtxTrack *track) : covariance( *(track->getCovariance()) )
   dzdl  = track->dzdl  ;
   setDCA2Dsigma(track->getDCA2Dsigma());
   
-  for(int i=0;i<10;i++)
+  for(int i=0;i<100;i++)
   {
     clusterID[i] = track->getClusterID(i);
     for(int j=0;j<3;j++){
@@ -67,7 +67,7 @@ SvtxTrack::SvtxTrack(const SvtxTrack& track) : covariance( *(track.getCovariance
   dzdl  = track.dzdl  ;
   setDCA2Dsigma(track.getDCA2Dsigma());
   
-  for(int i=0;i<10;i++)
+  for(int i=0;i<100;i++)
   {
     clusterID[i] = track.getClusterID(i);
     for(int j=0;j<3;j++){
@@ -118,7 +118,7 @@ void SvtxTrack::identify(ostream& os) const
   if(getNhits() > 0)
     {
       os << "clusters: ";
-      for(unsigned int i = 0; i < 10; i++)
+      for(unsigned int i = 0; i < 100; i++)
 	{
 	  if(hasCluster(i))
 	    {
@@ -137,7 +137,7 @@ void SvtxTrack::identify(ostream& os) const
 
 void SvtxTrack::Reset()
 {
-  for(int i=0;i<10;i++)
+  for(int i=0;i<100;i++)
   {
     clusterID[i]=-9999;
     for(int j=0;j<3;j++){
@@ -187,7 +187,7 @@ int SvtxTrack::isValid() const
 float SvtxTrack::getInnerMostHitPosition(int coor) const
 {
   int layer=-1;
-  for(int i=0;i<10;i++)
+  for(int i=0;i<100;i++)
   {
     if(clusterID[i]>=0){layer=i;break;}
   }
@@ -198,8 +198,8 @@ float SvtxTrack::getInnerMostHitPosition(int coor) const
 
 short SvtxTrack::getNhits() const
 {
-  int count = 10;
-  for(unsigned int i = 0; i < 10; i++){	
+  int count = 100;
+  for(unsigned int i = 0; i < 100; i++){	
     if(clusterID[i] == -9999)
       count--;
   }
