@@ -17,6 +17,7 @@ using namespace std;
 
 SvtxTruthEval::SvtxTruthEval(PHCompositeNode* topNode)
   : _topNode(topNode),
+    _do_cache(true),
     _cache_all_truth_hits(),
     _cache_all_truth_hits_g4particle(),
     _cache_get_innermost_truth_hit(),
@@ -36,7 +37,7 @@ void SvtxTruthEval::next_event(PHCompositeNode* topNode) {
 /// \todo this copy may be too expensive to call a lot...
 std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits() {
 
-  if (!_cache_all_truth_hits.empty()) return _cache_all_truth_hits;
+  if ((_do_cache)&&(!_cache_all_truth_hits.empty())) return _cache_all_truth_hits;
   
   // since the SVTX can be composed of two different trackers this is a
   // handy function to spill out all the g4hits from both "detectors"
@@ -79,14 +80,15 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits() {
     }
   }
 
-  _cache_all_truth_hits = truth_hits;
+  if (_do_cache) _cache_all_truth_hits = truth_hits;
 
   return truth_hits;
 }
 
 std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle) {
 
-  if (_cache_all_truth_hits_g4particle.find(particle) != _cache_all_truth_hits_g4particle.end()) {
+  if ((_do_cache) &&
+      (_cache_all_truth_hits_g4particle.find(particle) != _cache_all_truth_hits_g4particle.end())) {
     return _cache_all_truth_hits_g4particle[particle];
   }
 
@@ -130,7 +132,7 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle) {
     }
   }
   
-  _cache_all_truth_hits_g4particle.insert(make_pair(particle,truth_hits));
+  if (_do_cache) _cache_all_truth_hits_g4particle.insert(make_pair(particle,truth_hits));
   
   return truth_hits;
 }

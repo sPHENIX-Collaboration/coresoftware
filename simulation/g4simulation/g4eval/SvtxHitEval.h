@@ -19,6 +19,7 @@ public:
   virtual ~SvtxHitEval() {}
 
   void next_event(PHCompositeNode *topNode);
+  void do_caching(bool do_cache) {_do_cache = do_cache;}
 
   PHG4CylinderCell* get_cell(SvtxHit* hit);
   
@@ -42,6 +43,7 @@ public:
 private:
   PHCompositeNode* _topNode;
 
+  bool                                              _do_cache;
   std::map<SvtxHit*,std::set<PHG4Hit*> >            _cache_all_truth_hits;
   std::map<SvtxHit*,PHG4Hit*>                       _cache_max_truth_hit_by_energy;
   std::map<SvtxHit*,std::set<PHG4Particle*> >       _cache_all_truth_particles;

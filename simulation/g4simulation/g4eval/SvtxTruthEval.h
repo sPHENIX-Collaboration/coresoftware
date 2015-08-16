@@ -18,7 +18,8 @@ public:
   virtual ~SvtxTruthEval() {}
 
   void next_event(PHCompositeNode *topNode);
-
+  void do_caching(bool do_cache) {_do_cache = do_cache;}
+  
   std::set<PHG4Hit*> all_truth_hits();
   std::set<PHG4Hit*> all_truth_hits(PHG4Particle* particle);
   PHG4Particle*      get_particle(PHG4Hit* g4hit);  
@@ -32,6 +33,7 @@ public:
 private:
   PHCompositeNode* _topNode;
 
+  bool                                        _do_cache;
   std::set<PHG4Hit*>                          _cache_all_truth_hits;
   std::map<PHG4Particle*,std::set<PHG4Hit*> > _cache_all_truth_hits_g4particle;
   std::map<PHG4Particle*,PHG4Hit*>            _cache_get_innermost_truth_hit;
