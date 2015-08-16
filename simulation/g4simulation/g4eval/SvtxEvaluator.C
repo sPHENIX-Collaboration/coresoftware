@@ -135,13 +135,14 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode)
 			   "clusID:x:y:z:e:adc:layer:size:"
 			   "phisize:zsize:efromtruth");
 
-  _ntp_cell = new TNtuple("ntp_cell","cell-wise ntuple",
-			  "event:cellID:e:layer:"
-			  "g4hitID:gedep:gx:gy:gz:"
-			  "gtrackID:gflavor:"
-			  "gpx:gpy:gpz:gvx:gvy:gvz:"
-			  "gfpx:gfpy:gfpz:gfx:gfy:gfz:glast:"
-			  "gembed:gprimary");
+  _ntp_hit = new TNtuple("ntp_hit","svtxhit => max truth",
+			 "event:hitID:e:adc:layer:"
+			 "cellID:ecell:"
+			 "g4hitID:gedep:gx:gy:gz:"
+			 "gtrackID:gflavor:"
+			 "gpx:gpy:gpz:gvx:gvy:gvz:"
+			 "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
+			 "gembed:gprimary:efromtruth");
 
   _ntp_cluster = new TNtuple("ntp_cluster","svtxcluster => max truth",
                              "event:hitID:x:y:z:"
@@ -380,7 +381,7 @@ int SvtxEvaluator::End(PHCompositeNode *topNode)
 
   _ntp_event->Write();
   _ntp_g4hit->Write();
-  _ntp_cell->Write();
+  _ntp_hit->Write();
   _ntp_cluster->Write();
   _ntp_gtrack->Write();
   _ntp_track->Write();
@@ -1541,7 +1542,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   SvtxTrackEval otrackeval(topNode);
   SvtxTrackEval* trackeval = &otrackeval;
   SvtxClusterEval* clustereval = trackeval->get_cluster_eval();
-  //SvtxHitEval* hiteval = trackeval->get_hit_eval();
+  SvtxHitEval* hiteval = trackeval->get_hit_eval();
   
   //----------------------
   // fill the Event NTuple
@@ -1611,428 +1612,246 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   // fill the G4hit NTuple
   //---------------------
 
-  if (true) {
+  unsigned int i = 0;
+  std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits();
+  for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
+       iter != g4hits.end();
+       ++iter) {
 
-    unsigned int i = 0;
-    std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits();
-    for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
-	 iter != g4hits.end();
-	 ++iter) {
-
-      if (i==0) cout << "g4hit eval limited to 100 entries" << endl;
-      if (i > 100) break;
-      ++i;
+    if ((_ievent==0)&&(i==0)) cout << "SvtxEvaluator:: WARNING - g4hit eval limited to 100 entries" << endl;
+    if (i > 100) break;
+    ++i;
     
-      PHG4Hit *g4hit = *iter;
-      PHG4Particle *g4particle = trutheval->get_particle(g4hit);
+    PHG4Hit *g4hit = *iter;
+    PHG4Particle *g4particle = trutheval->get_particle(g4hit);
     
-      float g4hitID   = g4hit->get_hit_id();
-      float gx        = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
-      float gy        = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
-      float gz        = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
-      float gedep     = g4hit->get_edep();
-      float glayer    = g4hit->get_layer();
+    float g4hitID   = g4hit->get_hit_id();
+    float gx        = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
+    float gy        = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
+    float gz        = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
+    float gedep     = g4hit->get_edep();
+    float glayer    = g4hit->get_layer();
   
-      float gtrackID  = g4hit->get_trkid();
-      float gflavor   = g4particle->get_pid();
-      float gpx       = g4particle->get_px();
-      float gpy       = g4particle->get_py();
-      float gpz       = g4particle->get_pz();
+    float gtrackID  = g4hit->get_trkid();
+    float gflavor   = g4particle->get_pid();
+    float gpx       = g4particle->get_px();
+    float gpy       = g4particle->get_py();
+    float gpz       = g4particle->get_pz();
 
-      PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);	
-      float gvx       = vtx->get_x();
-      float gvy       = vtx->get_y();
-      float gvz       = vtx->get_z();
+    PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);	
+    float gvx       = vtx->get_x();
+    float gvy       = vtx->get_y();
+    float gvz       = vtx->get_z();
 
-      PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
-      float gfpx      = outerhit->get_px(1);
-      float gfpy      = outerhit->get_py(1);
-      float gfpz      = outerhit->get_pz(1);
-      float gfx       = outerhit->get_x(1);
-      float gfy       = outerhit->get_y(1);
-      float gfz       = outerhit->get_z(1);
-      float gembed    = trutheval->get_embed(g4particle);
-      float gprimary  = trutheval->is_primary(g4particle);
+    PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
+    float gfpx      = outerhit->get_px(1);
+    float gfpy      = outerhit->get_py(1);
+    float gfpz      = outerhit->get_pz(1);
+    float gfx       = outerhit->get_x(1);
+    float gfy       = outerhit->get_y(1);
+    float gfz       = outerhit->get_z(1);
+    float gembed    = trutheval->get_embed(g4particle);
+    float gprimary  = trutheval->is_primary(g4particle);
 
-      std::set<SvtxCluster*> clusters = clustereval->all_clusters_from(g4hit);  
-      float nclusters = clusters.size();
+    std::set<SvtxCluster*> clusters = clustereval->all_clusters_from(g4hit);  
+    float nclusters = clusters.size();
 
-      // best cluster reco'd
-      SvtxCluster* cluster = clustereval->best_cluster_from(g4hit);
+    // best cluster reco'd
+    SvtxCluster* cluster = clustereval->best_cluster_from(g4hit);
 
-      float clusID     = NAN;
-      float x          = NAN;
-      float y          = NAN;
-      float z          = NAN;
-      float e          = NAN;
-      float adc        = NAN;
-      float layer      = NAN;
-      float size       = NAN;
-      float phisize    = NAN;
-      float zsize      = NAN;
-      float efromtruth = NAN;
+    float clusID     = NAN;
+    float x          = NAN;
+    float y          = NAN;
+    float z          = NAN;
+    float e          = NAN;
+    float adc        = NAN;
+    float layer      = NAN;
+    float size       = NAN;
+    float phisize    = NAN;
+    float zsize      = NAN;
+    float efromtruth = NAN;
 
-      if (cluster) {
-	clusID     = cluster->get_id();
-	x          = cluster->get_x();
-	y          = cluster->get_y();
-	z          = cluster->get_z();
-	e          = cluster->get_e();
-	adc        = cluster->get_adc();
-	layer      = cluster->get_layer();
-	size       = cluster->size_hits();
-	phisize    = cluster->get_phi_size();
-	zsize      = cluster->get_z_size();
-	efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
-      }
-
-      float g4hit_data[35] = {_ievent,
-			      g4hitID,
-			      gx,
-			      gy,
-			      gz,
-			      gedep,
-			      glayer,
-			      gtrackID,
-			      gflavor,
-			      gpx,
-			      gpy,
-			      gpz,
-			      gvx,
-			      gvy,
-			      gvz,
-			      gfpx,
-			      gfpy,
-			      gfpz,
-			      gfx,
-			      gfy,
-			      gfz,
-			      gembed,
-			      gprimary,
-			      nclusters,
-			      clusID,  
-			      x,      
-			      y,      
-			      z,      
-			      e,      
-			      adc,    
-			      layer,  
-			      size,   
-			      phisize,
-			      zsize,  
-			      efromtruth
-      };
-
-      _ntp_g4hit->Fill(g4hit_data);
+    if (cluster) {
+      clusID     = cluster->get_id();
+      x          = cluster->get_x();
+      y          = cluster->get_y();
+      z          = cluster->get_z();
+      e          = cluster->get_e();
+      adc        = cluster->get_adc();
+      layer      = cluster->get_layer();
+      size       = cluster->size_hits();
+      phisize    = cluster->get_phi_size();
+      zsize      = cluster->get_z_size();
+      efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
     }
+
+    float g4hit_data[35] = {_ievent,
+			    g4hitID,
+			    gx,
+			    gy,
+			    gz,
+			    gedep,
+			    glayer,
+			    gtrackID,
+			    gflavor,
+			    gpx,
+			    gpy,
+			    gpz,
+			    gvx,
+			    gvy,
+			    gvz,
+			    gfpx,
+			    gfpy,
+			    gfpz,
+			    gfx,
+			    gfy,
+			    gfz,
+			    gembed,
+			    gprimary,
+			    nclusters,
+			    clusID,  
+			    x,      
+			    y,      
+			    z,      
+			    e,      
+			    adc,    
+			    layer,  
+			    size,   
+			    phisize,
+			    zsize,  
+			    efromtruth
+    };
+
+    _ntp_g4hit->Fill(g4hit_data);
   }
-  //------------------------
-  // fill the Cell NTuple
-  //------------------------
-
-  if (_cellList) {
-    PHG4CylinderCellContainer::ConstRange cellrange = _cellList->getCylinderCells();
-    for(PHG4CylinderCellContainer::ConstIterator celliter = cellrange.first;
-	celliter != cellrange.second;
-	++celliter)
-      {
-	PHG4CylinderCell* cell = celliter->second;
-	PHG4Hit *g4hit = _cell_g4hit_mmap.find(cell)->second;
-	//----
-
-	//PHG4Particle *g4particle = trutheval->get_particle(g4hit);
-
-	//----
-	map<PHG4Hit*,SvxGtrack*>::iterator finditer = _g4hit_gtrack_map.find(g4hit);
-	if( finditer == _g4hit_gtrack_map.end() ) continue;
-	SvxGtrack *gtrack = finditer->second;
-
-	// _ntp_cell = new TNtuple("ntp_cell","cell-wise ntuple",
-	// 			  "event:cellID:e:layer:"
-	// 			  "g4hitID:gx:gy:gz:"
-	// 			  "gtrackID:gflavor:"
-	// 			  "gpx:gpy:gpz:gvx:gvy:gvz:"
-	// 			  "gfpx:gfpy:gfpz:gfx:gfy:gfz:glast:"
-	// 			  "ng4hits:purity");
-
-	float event = _ievent;
-	float cellID = cell->get_cell_id();
-	float e = cell->get_edep();
-	float layer = cell->get_layer();
-	  
-	float g4hitID   = -9999.9;
-      
-	float gedep    = -9999.9;
-
-	float gx       = -9999.9;
-	float gy       = -9999.9;
-	float gz       = -9999.9;
-	  
-	float gtrackID = -9999.9;
-	float gflavor  = -9999.9;
-	  
-	float gpx      = -9999.9;
-	float gpy      = -9999.9;
-	float gpz      = -9999.9;
-
-	float gvx      = -9999.9;
-	float gvy      = -9999.9;
-	float gvz      = -9999.9;
-	  
-	float gfpx      = -9999.9;
-	float gfpy      = -9999.9;
-	float gfpz      = -9999.9;
-	  
-	float gfx      = -9999.9;
-	float gfy      = -9999.9;
-	float gfz      = -9999.9;
-
-	float glast    = -9999.9;
-	float gembed   = -9999.9;
-	float gprimary = -9999.9;
-
-	if(g4hit)
-	  {
-	    g4hitID   = g4hit->get_hit_id();
-	      
-	    gedep = g4hit->get_edep();
-
-	    gx = g4hit->get_x(0);
-	    gy = g4hit->get_y(0);
-	    gz = g4hit->get_z(0);
-
-	    gtrackID = gtrack->get_track_id();
-	    gflavor  = gtrack->get_flavor();
-	      
-	    gpx      = gtrack->get_px();
-	    gpy      = gtrack->get_py();
-	    gpz      = gtrack->get_pz();
-	      
-	    gvx      = gtrack->get_vx();
-	    gvy      = gtrack->get_vy();
-	    gvz      = gtrack->get_vz();
-	      
-	    gfpx      = gtrack->get_fpx();
-	    gfpy      = gtrack->get_fpy();
-	    gfpz      = gtrack->get_fpz();
-	      
-	    gfx      = gtrack->get_fx();
-	    gfy      = gtrack->get_fy();
-	    gfz      = gtrack->get_fz();
-	      
-	    glast      = gtrack->get_is_last();
-	    gembed     = gtrack->get_embed();
-	    gprimary   = gtrack->get_primary();	  
-	  }      
-
-	float cell_data[26] = {
-	  event,
-	  cellID,
-	  e,
-	  layer,
-	  g4hitID,
-	  gedep,
-	  gx,
-	  gy,
-	  gz,	  
-	  gtrackID,
-	  gflavor,	  
-	  gpx,
-	  gpy,
-	  gpz,	    
-	  gvx,
-	  gvy,
-	  gvz,	    
-	  gfpx,
-	  gfpy,
-	  gfpz,	    
-	  gfx,
-	  gfy,
-	  gfz,	    
-	  glast,
-	  gembed,
-	  gprimary
-	};
-	  
-	_ntp_cell->Fill(cell_data);     
-      }
-  }
-
-  if (_ladderCellList) {
-    PHG4CylinderCellContainer::ConstRange cellrange = _ladderCellList->getCylinderCells();
-    for(PHG4CylinderCellContainer::ConstIterator celliter = cellrange.first;
-	celliter != cellrange.second;
-	++celliter)
-      {
-	PHG4CylinderCell* cell = celliter->second;
-	PHG4Hit *g4hit = _cell_g4hit_mmap.find(cell)->second;
-	map<PHG4Hit*,SvxGtrack*>::iterator finditer = _g4hit_gtrack_map.find(g4hit);
-	if( finditer == _g4hit_gtrack_map.end() ) continue;
-	SvxGtrack *gtrack = finditer->second;
-
-	// _ntp_cell = new TNtuple("ntp_cell","cell-wise ntuple",
-	// 			  "event:cellID:e:layer:"
-	// 			  "g4hitID:gx:gy:gz:"
-	// 			  "gtrackID:gflavor:"
-	// 			  "gpx:gpy:gpz:gvx:gvy:gvz:"
-	// 			  "gfpx:gfpy:gfpz:gfx:gfy:gfz:glast:"
-	// 			  "ng4hits:purity");
-
-	float event = _ievent;
-	float cellID = cell->get_cell_id();
-	float e = cell->get_edep();
-	float layer = cell->get_layer();
-	  
-	float g4hitID   = -9999.9;
-      
-	float gedep    = -9999.9;
-
-	float gx       = -9999.9;
-	float gy       = -9999.9;
-	float gz       = -9999.9;
-	  
-	float gtrackID = -9999.9;
-	float gflavor  = -9999.9;
-	  
-	float gpx      = -9999.9;
-	float gpy      = -9999.9;
-	float gpz      = -9999.9;
-
-	float gvx      = -9999.9;
-	float gvy      = -9999.9;
-	float gvz      = -9999.9;
-	  
-	float gfpx      = -9999.9;
-	float gfpy      = -9999.9;
-	float gfpz      = -9999.9;
-	  
-	float gfx      = -9999.9;
-	float gfy      = -9999.9;
-	float gfz      = -9999.9;
-
-	float glast    = -9999.9;
-	float gembed   = -9999.9;
-	float gprimary = -9999.9;
-
-	if(g4hit)
-	  {
-	    g4hitID   = g4hit->get_hit_id();
-	      
-	    gedep = g4hit->get_edep();
-
-	    gx = g4hit->get_x(0);
-	    gy = g4hit->get_y(0);
-	    gz = g4hit->get_z(0);
-
-	    gtrackID = gtrack->get_track_id();
-	    gflavor  = gtrack->get_flavor();
-	      
-	    gpx      = gtrack->get_px();
-	    gpy      = gtrack->get_py();
-	    gpz      = gtrack->get_pz();
-	      
-	    gvx      = gtrack->get_vx();
-	    gvy      = gtrack->get_vy();
-	    gvz      = gtrack->get_vz();
-	      
-	    gfpx      = gtrack->get_fpx();
-	    gfpy      = gtrack->get_fpy();
-	    gfpz      = gtrack->get_fpz();
-	      
-	    gfx      = gtrack->get_fx();
-	    gfy      = gtrack->get_fy();
-	    gfz      = gtrack->get_fz();
-	      
-	    glast      = gtrack->get_is_last();
-	    gembed     = gtrack->get_embed();
-	    gprimary   = gtrack->get_primary();	  
-	  }      
-
-	float cell_data[26] = {
-	  event,
-	  cellID,
-	  e,
-	  layer,
-	  g4hitID,
-	  gedep,
-	  gx,
-	  gy,
-	  gz,	  
-	  gtrackID,
-	  gflavor,	  
-	  gpx,
-	  gpy,
-	  gpz,	    
-	  gvx,
-	  gvy,
-	  gvz,	    
-	  gfpx,
-	  gfpy,
-	  gfpz,	    
-	  gfx,
-	  gfy,
-	  gfz,	    
-	  glast,
-	  gembed,
-	  gprimary
-	};
-	  
-	_ntp_cell->Fill(cell_data);     
-      }
-  }
-
+  
   //--------------------
   // fill the Hit NTuple
   //--------------------
-  /*
+
   // need things off of the DST...
   SvtxHitMap* hitmap = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
-  if (!hitmap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxHitMap" << endl;
-    exit(-1);
-  }
-  
-  for (SvtxHitMap::Iter iter = hitmap->begin();
-    iter != hitmap->end();
-    ++iter) {
-    SvtxHit* hit             = &iter->second;
-    PHG4Hit* g4hit           = hiteval->max_truth_hit_by_energy(hit);
-    PHG4Particle* g4particle = trutheval->get_particle(g4hit);
+  if (hitmap) {
 
-    float hit_data[26] = {
-      event,
-      hitID,
-      cellID,
-      ehit,
-      ecell,
-      layer,
-      g4hitID,
-      gx,
-      gy,
-      gz,
-      gtrackID,
-      gflavor,
-      gpx,
-      gpy,
-      gpz,
-      gvx,
-      gvy,
-      gvz,
-      gfpx,
-      gfpy,
-      gfpz,
-      gfx,
-      gfy,
-      gfz,
-      gembed,
-      gprimary,
-      nhits,
-      purity};
-    };
+    unsigned int i = 0;
+    for (SvtxHitMap::Iter iter = hitmap->begin();
+  	 iter != hitmap->end();
+  	 ++iter) {
+
+      if ((_ievent==0)&&(i==0)) cout << "SvtxEvaluator:: WARNING - hit eval limited to 100 entries" << endl;
+      if (i > 100) break;
+      ++i;
+      
+      SvtxHit* hit             = &iter->second;
+      PHG4Hit* g4hit           = hiteval->max_truth_hit_by_energy(hit);
+      PHG4CylinderCell* g4cell = hiteval->get_cell(hit);
+      PHG4Particle* g4particle = trutheval->get_particle(g4hit);
+
+      float event  = _ievent;
+      float hitID  = hit->get_id();
+      float e      = hit->get_e();
+      float adc    = hit->get_adc();
+      float layer  = hit->get_layer();
+      float cellID = hit->get_cellid();
+      float ecell  = g4cell->get_edep();
+
+      float g4hitID  = NAN;
+      float gedep    = NAN;
+      float gx       = NAN;
+      float gy       = NAN;
+      float gz       = NAN;
+      float gtrackID = NAN;
+      float gflavor  = NAN;
+      float gpx      = NAN;
+      float gpy      = NAN;
+      float gpz      = NAN;
+      float gvx      = NAN;
+      float gvy      = NAN;
+      float gvz      = NAN;
+      float gfpx     = NAN;
+      float gfpy     = NAN;
+      float gfpz     = NAN;
+      float gfx      = NAN;
+      float gfy      = NAN;
+      float gfz      = NAN;
+      float glast    = NAN;
+      float gembed   = NAN;
+      float gprimary = NAN;
+      
+      float efromtruth = NAN;
+      
+      if (g4hit) {
+	g4hitID  = g4hit->get_hit_id();
+	gedep    = g4hit->get_edep();
+	gx       = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
+	gy       = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
+	gz       = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
+	gx       = g4hit->get_x(0);
+	gy       = g4hit->get_y(0);
+	gz       = g4hit->get_z(0);
+	gtrackID = g4particle->get_track_id();
+	gflavor  = g4particle->get_pid();
+	gpx      = g4particle->get_px();
+	gpy      = g4particle->get_py();
+	gpz      = g4particle->get_pz();
+
+	PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
+	
+	gvx      = vtx->get_x();
+	gvy      = vtx->get_y();
+	gvz      = vtx->get_z();
+
+	PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
+      
+	gfpx     = outerhit->get_px(1);
+	gfpy     = outerhit->get_py(1);
+	gfpz     = outerhit->get_pz(1);
+	gfx      = outerhit->get_x(1);
+	gfy      = outerhit->get_y(1);
+	gfz      = outerhit->get_z(1);
+	glast    = NAN;
+	gembed   = trutheval->get_embed(g4particle);
+	gprimary = trutheval->is_primary(g4particle);
+      }      
+
+      efromtruth = hiteval->get_energy_contribution(hit,g4particle);
+      
+      float hit_data[32] = {
+  	event,
+  	hitID,
+  	e,
+	adc,
+  	layer,
+  	cellID,
+	ecell,
+  	g4hitID,
+	gedep,
+  	gx,
+  	gy,
+  	gz,
+  	gtrackID,
+  	gflavor,
+  	gpx,
+  	gpy,
+  	gpz,
+  	gvx,
+  	gvy,
+  	gvz,
+  	gfpx,
+  	gfpy,
+  	gfpz,
+  	gfx,
+  	gfy,
+  	gfz,
+  	gembed,
+  	gprimary,
+  	efromtruth
+      };
 	  
-    _ntp_hit->Fill(hit_data);     
+      _ntp_hit->Fill(hit_data);     
+    }
   }
-  */
+
   //------------------------
   // fill the Cluster NTuple
   //------------------------
@@ -2063,30 +1882,30 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     float phisize  = cluster->get_phi_size();
     float zsize    = cluster->get_z_size();
 
-    float g4hitID  = -9999.9;
-    float gx       = -9999.9;
-    float gy       = -9999.9;
-    float gz       = -9999.9;
-    float gtrackID = -9999.9;
-    float gflavor  = -9999.9;
-    float gpx      = -9999.9;
-    float gpy      = -9999.9;
-    float gpz      = -9999.9;
-    float gvx      = -9999.9;
-    float gvy      = -9999.9;
-    float gvz      = -9999.9;
-    float gfpx     = -9999.9;
-    float gfpy     = -9999.9;
-    float gfpz     = -9999.9;
-    float gfx      = -9999.9;
-    float gfy      = -9999.9;
-    float gfz      = -9999.9;
-    float glast    = -9999.9;
-    float gembed   = -9999.9;
-    float gprimary = -9999.9;
+    float g4hitID  = NAN;
+    float gx       = NAN;
+    float gy       = NAN;
+    float gz       = NAN;
+    float gtrackID = NAN;
+    float gflavor  = NAN;
+    float gpx      = NAN;
+    float gpy      = NAN;
+    float gpz      = NAN;
+    float gvx      = NAN;
+    float gvy      = NAN;
+    float gvz      = NAN;
+    float gfpx     = NAN;
+    float gfpy     = NAN;
+    float gfpz     = NAN;
+    float gfx      = NAN;
+    float gfy      = NAN;
+    float gfz      = NAN;
+    float glast    = NAN;
+    float gembed   = NAN;
+    float gprimary = NAN;
     
-    float nhits    = -9999.9;
-    float purity   = -9999.9;
+    float nhits    = NAN;
+    float purity   = NAN;
       
     if (g4hit) {
       g4hitID  = g4hit->get_hit_id();

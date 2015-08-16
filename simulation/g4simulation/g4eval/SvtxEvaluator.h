@@ -243,7 +243,7 @@ class SvtxEvaluator : public SubsysReco
 
   TNtuple *_ntp_event;
   TNtuple *_ntp_g4hit;
-  TNtuple *_ntp_cell;
+  TNtuple *_ntp_hit;
   TNtuple *_ntp_cluster;
   TNtuple *_ntp_gtrack;
   TNtuple *_ntp_track;

@@ -4,6 +4,7 @@
 
 #include <phool/PHCompositeNode.h>
 #include <g4hough/SvtxHit.h>
+#include <g4detectors/PHG4CylinderCell.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
 
@@ -19,6 +20,8 @@ public:
 
   void next_event(PHCompositeNode *topNode);
 
+  PHG4CylinderCell* get_cell(SvtxHit* hit);
+  
   // backtrace through to PHG4Hits
   std::set<PHG4Hit*> all_truth_hits          (SvtxHit* hit);
   PHG4Hit*           max_truth_hit_by_energy (SvtxHit* hit);

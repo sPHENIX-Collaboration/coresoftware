@@ -47,6 +47,23 @@ void SvtxHitEval::next_event(PHCompositeNode* topNode) {
   _topNode = topNode;  
 }
 
+PHG4CylinderCell* SvtxHitEval::get_cell(SvtxHit* hit) {
+
+  // need things off of the DST...
+  PHG4CylinderCellContainer* g4cells_svtx    = findNode::getClass<PHG4CylinderCellContainer>(_topNode,"G4CELL_SVTX");
+  PHG4CylinderCellContainer* g4cells_tracker = findNode::getClass<PHG4CylinderCellContainer>(_topNode,"G4CELL_SILICON_TRACKER");
+  if (!g4cells_svtx && !g4cells_tracker) {
+    cerr << PHWHERE << " ERROR: Can't find G4CELL_SVTX or G4CELL_SILICON_TRACKER" << endl;
+    exit(-1);
+  }
+ 
+  // hop from reco hit to g4cell
+  PHG4CylinderCell* cell = NULL;
+  if (!cell&&g4cells_svtx)    cell = g4cells_svtx->findCylinderCell(hit->get_cellid());
+  if (!cell&&g4cells_tracker) cell = g4cells_tracker->findCylinderCell(hit->get_cellid()); 
+  return cell;
+}
+
 std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
 
   if (_cache_all_truth_hits.find(hit) != _cache_all_truth_hits.end()) {
