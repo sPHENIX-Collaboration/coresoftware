@@ -118,13 +118,22 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode)
 			   "hit_occupancy_layer3:"
 			   "hit_occupancy_layer4:"
 			   "hit_occupancy_layer5");
-  
-  _ntp_g4hit = new TNtuple("ntp_g4hit","g4hit-wise ntuple",
-                           "event:g4hitID:x:y:z:edep:"
-                           "layer:nclusters:gtrackID:gflavor:"
-                           "px:py:pz:vx:vy:vz:"
-                           "fpx:fpy:fpz:fx:fy:fz:last:"
-			   "embed:primary:match");
+
+  _ntp_gtrack  = new TNtuple("ntp_gtrack","gtrack-wise ntuple",
+                             "event:gtrackID:flavor:ng4hit0:ng4hit1:"
+                             "ng4hit2:ng4hit3:px:py:pz:"
+                             "ntracks:vx:vy:vz:"
+                             "fpx:fpy:fpz:fx:fy:fz:last:"
+                             "embed:primary:chisq:chisqv:match:bestpurity:bestdpp");
+ 
+  _ntp_g4hit = new TNtuple("ntp_g4hit","g4hit => best svtxcluster",
+                           "event:g4hitID:gx:gy:gz:gedep:"
+                           "glayer:gtrackID:gflavor:"
+                           "gpx:gpy:gpz:gvx:gvy:gvz:"
+                           "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
+			   "gembed:gprimary:nclusters:"
+			   "clusID:x:y:z:e:adc:layer:size:"
+			   "phisize:zsize:efromtruth");
 
   _ntp_cell = new TNtuple("ntp_cell","cell-wise ntuple",
 			  "event:cellID:e:layer:"
@@ -134,21 +143,14 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode)
 			  "gfpx:gfpy:gfpz:gfx:gfy:gfz:glast:"
 			  "gembed:gprimary");
 
-  _ntp_cluster = new TNtuple("ntp_cluster","cluster-wise ntuple",
+  _ntp_cluster = new TNtuple("ntp_cluster","svtxcluster => max truth",
                              "event:hitID:x:y:z:"
                              "e:adc:layer:size:phisize:"
                              "zsize:g4hitID:gx:"
                              "gy:gz:gtrackID:gflavor:"
                              "gpx:gpy:gpz:gvx:gvy:gvz:"
-                             "gfpx:gfpy:gfpz:gfx:gfy:gfz:glast:"
+                             "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
                              "gembed:gprimary:nhits:purity");
-
-  _ntp_gtrack  = new TNtuple("ntp_gtrack","gtrack-wise ntuple",
-                             "event:gtrackID:flavor:ng4hit0:ng4hit1:"
-                             "ng4hit2:ng4hit3:px:py:pz:"
-                             "ntracks:vx:vy:vz:"
-                             "fpx:fpy:fpz:fx:fy:fz:last:"
-                             "embed:primary:chisq:chisqv:match:bestpurity:bestdpp");
 
   _ntp_track = new TNtuple("ntp_track","track-wise ntuple",
                            "event:trackID:charge:quality:chisq:"
@@ -1608,87 +1610,122 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //---------------------
   // fill the G4hit NTuple
   //---------------------
-  
-  for(HitMap::const_iterator g4hit_iter = _g4hitList.begin();
-      g4hit_iter != _g4hitList.end();
-      g4hit_iter++)
-    {
-      PHG4Hit *g4hit = g4hit_iter->second;
-      map<PHG4Hit*,SvxGtrack*>::iterator finditer = _g4hit_gtrack_map.find(g4hit);
-      if( finditer == _g4hit_gtrack_map.end() ) continue;
-      SvxGtrack *gtrack = finditer->second;
-  
+
+  if (true) {
+
+    unsigned int i = 0;
+    std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits();
+    for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
+	 iter != g4hits.end();
+	 ++iter) {
+
+      if (i==0) cout << "g4hit eval limited to 100 entries" << endl;
+      if (i > 100) break;
+      ++i;
+    
+      PHG4Hit *g4hit = *iter;
+      PHG4Particle *g4particle = trutheval->get_particle(g4hit);
+    
       float g4hitID   = g4hit->get_hit_id();
-      float x         = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
-      float y         = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
-      float z         = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
-      float edep      = g4hit->get_edep();
-      float layer     = g4hit->get_layer();
-      float nclusters = _g4hit_cluster_mmap.count(g4hit);
+      float gx        = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
+      float gy        = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
+      float gz        = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
+      float gedep     = g4hit->get_edep();
+      float glayer    = g4hit->get_layer();
+  
       float gtrackID  = g4hit->get_trkid();
-      float flavor    = gtrack->get_flavor();
-      float px        = gtrack->get_px();
-      float py        = gtrack->get_py();
-      float pz        = gtrack->get_pz();
-      float vx        = gtrack->get_vx();
-      float vy        = gtrack->get_vy();
-      float vz        = gtrack->get_vz();
-      float fpx       = gtrack->get_fpx();
-      float fpy       = gtrack->get_fpy();
-      float fpz       = gtrack->get_fpz();
-      float fx        = gtrack->get_fx();
-      float fy        = gtrack->get_fy();
-      float fz        = gtrack->get_fz();
-      float last      = gtrack->get_is_last();
-      float embed     = gtrack->get_embed();
-      float primary   = gtrack->get_primary();
+      float gflavor   = g4particle->get_pid();
+      float gpx       = g4particle->get_px();
+      float gpy       = g4particle->get_py();
+      float gpz       = g4particle->get_pz();
 
-      float match     = 0.0;
+      PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);	
+      float gvx       = vtx->get_x();
+      float gvy       = vtx->get_y();
+      float gvz       = vtx->get_z();
 
-      // if the g4hit produced N hits and all N hits were in the same cluster
-      bool foundMatch = false;
-      unsigned int ng4hitrawhits = _g4hit_cluster_mmap.count( g4hit );
-   
-      if(foundMatch)
-	{
-	  match = (float)ng4hitrawhits;
-	}
-      else
-	{
-	  match = -1.0*(float)ng4hitrawhits;
-	} 
+      PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
+      float gfpx      = outerhit->get_px(1);
+      float gfpy      = outerhit->get_py(1);
+      float gfpz      = outerhit->get_pz(1);
+      float gfx       = outerhit->get_x(1);
+      float gfy       = outerhit->get_y(1);
+      float gfz       = outerhit->get_z(1);
+      float gembed    = trutheval->get_embed(g4particle);
+      float gprimary  = trutheval->is_primary(g4particle);
 
-      float g4hit_data[26] = {_ievent,
+      std::set<SvtxCluster*> clusters = clustereval->all_clusters_from(g4hit);  
+      float nclusters = clusters.size();
+
+      // best cluster reco'd
+      SvtxCluster* cluster = clustereval->best_cluster_from(g4hit);
+
+      float clusID     = NAN;
+      float x          = NAN;
+      float y          = NAN;
+      float z          = NAN;
+      float e          = NAN;
+      float adc        = NAN;
+      float layer      = NAN;
+      float size       = NAN;
+      float phisize    = NAN;
+      float zsize      = NAN;
+      float efromtruth = NAN;
+
+      if (cluster) {
+	clusID     = cluster->get_id();
+	x          = cluster->get_x();
+	y          = cluster->get_y();
+	z          = cluster->get_z();
+	e          = cluster->get_e();
+	adc        = cluster->get_adc();
+	layer      = cluster->get_layer();
+	size       = cluster->size_hits();
+	phisize    = cluster->get_phi_size();
+	zsize      = cluster->get_z_size();
+	efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
+      }
+
+      float g4hit_data[35] = {_ievent,
 			      g4hitID,
-			      x,
-			      y,
-			      z,
-			      edep,
-			      layer,
-			      nclusters,
+			      gx,
+			      gy,
+			      gz,
+			      gedep,
+			      glayer,
 			      gtrackID,
-			      flavor,
-			      px,
-			      py,
-			      pz,
-			      vx,
-			      vy,
-			      vz,
-			      fpx,
-			      fpy,
-			      fpz,
-			      fx,
-			      fy,
-			      fz,
-			      last,
-			      embed,
-			      primary,
-			      match
+			      gflavor,
+			      gpx,
+			      gpy,
+			      gpz,
+			      gvx,
+			      gvy,
+			      gvz,
+			      gfpx,
+			      gfpy,
+			      gfpz,
+			      gfx,
+			      gfy,
+			      gfz,
+			      gembed,
+			      gprimary,
+			      nclusters,
+			      clusID,  
+			      x,      
+			      y,      
+			      z,      
+			      e,      
+			      adc,    
+			      layer,  
+			      size,   
+			      phisize,
+			      zsize,  
+			      efromtruth
       };
 
       _ntp_g4hit->Fill(g4hit_data);
     }
-
+  }
   //------------------------
   // fill the Cell NTuple
   //------------------------
@@ -1948,26 +1985,71 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   // fill the Hit NTuple
   //--------------------
   /*
-  for (SvtxHitMap::Iter iter = _hitList->begin();
-       iter != _hitList->end();
-       ++iter) {
+  // need things off of the DST...
+  SvtxHitMap* hitmap = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
+  if (!hitmap) {
+    cerr << PHWHERE << " ERROR: Can't find SvtxHitMap" << endl;
+    exit(-1);
+  }
+  
+  for (SvtxHitMap::Iter iter = hitmap->begin();
+    iter != hitmap->end();
+    ++iter) {
     SvtxHit* hit             = &iter->second;
     PHG4Hit* g4hit           = hiteval->max_truth_hit_by_energy(hit);
     PHG4Particle* g4particle = trutheval->get_particle(g4hit);
 
-
-    //start here next session***
+    float hit_data[26] = {
+      event,
+      hitID,
+      cellID,
+      ehit,
+      ecell,
+      layer,
+      g4hitID,
+      gx,
+      gy,
+      gz,
+      gtrackID,
+      gflavor,
+      gpx,
+      gpy,
+      gpz,
+      gvx,
+      gvy,
+      gvz,
+      gfpx,
+      gfpy,
+      gfpz,
+      gfx,
+      gfy,
+      gfz,
+      gembed,
+      gprimary,
+      nhits,
+      purity};
+    };
+	  
+    _ntp_hit->Fill(hit_data);     
   }
   */
   //------------------------
   // fill the Cluster NTuple
   //------------------------
-  
-  for (SvtxClusterMap::Iter iter = _clusterList->begin();
-       iter != _clusterList->end();
+
+  // need things off of the DST...
+  SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
+  if (!clustermap) {
+    cerr << PHWHERE << " ERROR: Can't find SvtxClusterMap" << endl;
+    exit(-1);
+  }
+
+  for (SvtxClusterMap::Iter iter = clustermap->begin();
+       iter != clustermap->end();
        ++iter) {
+    
     SvtxCluster* cluster     = &iter->second;   
-    PHG4Hit *g4hit           = clustereval->max_truth_hit_by_energy(cluster);    
+    PHG4Hit *g4hit           = clustereval->max_truth_hit_by_energy(cluster); 
     PHG4Particle *g4particle = trutheval->get_particle(g4hit);
     
     float hitID    = cluster->get_id();
@@ -2008,6 +2090,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       
     if (g4hit) {
       g4hitID  = g4hit->get_hit_id();
+      gx       = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
+      gy       = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
+      gz       = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
       gx       = g4hit->get_x(0);
       gy       = g4hit->get_y(0);
       gz       = g4hit->get_z(0);
@@ -2038,7 +2123,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
     purity = clustereval->get_energy_contribution(cluster,g4particle);
 
-    float cluster_data[34] = {_ievent,
+    float cluster_data[33] = {_ievent,
 			      hitID,
 			      x,
 			      y,
@@ -2067,7 +2152,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 			      gfx,
 			      gfy,
 			      gfz,
-			      glast,
 			      gembed,
 			      gprimary,
 			      nhits,
@@ -2167,178 +2251,193 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //------------------------
   // fill the Track NTuple
   //------------------------
-  
-  if(_trackingWasRun)
-    {
-      for (SvtxTrackMap::Iter iter = _trackList->begin();
-	   iter != _trackList->end();
-	   ++iter) {
-	SvtxTrack *track = &iter->second;
-	SvxGtrack  *gtrack  = _track_gtrack_map[track];
 
-	float trackID   = track->getTrackID();
-	float charge    = track->getCharge();
-	float quality   = track->getQuality();
-	float chisq     = track->getChisq();
-	float chisqv    = track->getChisqv();
-	float ndf       = track->getNDF();
-	float primary   = track->getPrimary();
-	float nhits     = track->getNhits();
+  // need things off of the DST...
+  SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+  if (trackmap) {
 
-	unsigned int layers = 0x0;
-	for (unsigned int i = 0; i < 10; i++){	
-	  if(track->hasCluster(i)) {
-	    layers |= (0x1 << i);
-	  }
+    for (SvtxTrackMap::Iter iter = trackmap->begin();
+	 iter != trackmap->end();
+	 ++iter) {
+    
+      SvtxTrack* track         = &iter->second;
+      //PHG4Particle* g4particle = trackeval->max_truth_particle_by_nclusters(track);
+      SvxGtrack  *gtrack  = _track_gtrack_map[track];
+
+      float trackID   = track->getTrackID();
+
+      // if (track->getTrackID() != g4particle->get_track_id()) {
+      // 	cout << endl;
+      // 	cout << "orig id " << track->getTrackID() << endl;
+      // 	cout << "new id " << g4particle->get_track_id() << endl;
+
+      // } else {
+      // 	cout << "matching lookup" << endl;
+      // }
+      
+      
+      float charge    = track->getCharge();
+      float quality   = track->getQuality();
+      float chisq     = track->getChisq();
+      float chisqv    = track->getChisqv();
+      float ndf       = track->getNDF();
+      float primary   = track->getPrimary();
+      float nhits     = track->getNhits();
+
+      unsigned int layers = 0x0;
+      for (unsigned int i = 0; i < 10; i++){	
+	if(track->hasCluster(i)) {
+	  layers |= (0x1 << i);
+	}
+      }
+
+      float dedx1     = NAN;//track->get_dEdX1();
+      float dedx2     = NAN;//track->get_dEdX2();
+      float dca       = track->getDCA();
+      float dca2d     = track->getDCA2D();
+      float dca2dsigma = track->getDCA2Dsigma();
+      float px        = track->get3Momentum(0);
+      float py        = track->get3Momentum(1);
+      float pz        = track->get3Momentum(2);
+      float pcax      = track->d * sin(track->phi);
+      float pcay      = track->d * cos(track->phi);
+      float pcaz      = track->z0;
+      float phi	  = track->phi;
+      float d         = track->d;
+      float kappa     = track->kappa;
+      float z0        = track->z0;
+      float dzdl      = track->dzdl;
+
+      float presdphi = track->get_cal_dphi(SvtxTrack::PRES);
+      float presdeta = track->get_cal_deta(SvtxTrack::PRES);
+      float prese3x3 = track->get_cal_energy_3x3(SvtxTrack::PRES);
+      float prese    = track->get_cal_cluster_e(SvtxTrack::PRES);
+
+      float cemcdphi = track->get_cal_dphi(SvtxTrack::CEMC);
+      float cemcdeta = track->get_cal_deta(SvtxTrack::CEMC);
+      float cemce3x3 = track->get_cal_energy_3x3(SvtxTrack::CEMC);
+      float cemce    = track->get_cal_cluster_e(SvtxTrack::CEMC);
+
+      float hcalindphi = track->get_cal_dphi(SvtxTrack::HCALIN);
+      float hcalindeta = track->get_cal_deta(SvtxTrack::HCALIN);
+      float hcaline3x3 = track->get_cal_energy_3x3(SvtxTrack::HCALIN);
+      float hcaline    = track->get_cal_cluster_e(SvtxTrack::HCALIN);
+
+      float hcaloutdphi = track->get_cal_dphi(SvtxTrack::HCALOUT);
+      float hcaloutdeta = track->get_cal_deta(SvtxTrack::HCALOUT);
+      float hcaloute3x3 = track->get_cal_energy_3x3(SvtxTrack::HCALOUT);
+      float hcaloute    = track->get_cal_cluster_e(SvtxTrack::HCALOUT);
+
+      float gtrackID  = NAN;
+      float gflavor   = NAN;
+      float gpx       = NAN;
+      float gpy       = NAN;
+      float gpz       = NAN;
+      float gvx       = NAN;
+      float gvy       = NAN;
+      float gvz       = NAN;
+      float gfpx      = NAN;
+      float gfpy      = NAN;
+      float gfpz      = NAN;
+      float gfx       = NAN;
+      float gfy       = NAN;
+      float gfz       = NAN;
+      float glast     = NAN;
+      float gembed    = NAN;
+      float gprimary  = NAN;
+      float purity    = 0.0;
+
+      if(gtrack)
+	{
+	  gtrackID  = gtrack->get_track_id();
+	  gflavor   = gtrack->get_flavor();
+	  gpx       = gtrack->get_px();
+	  gpy       = gtrack->get_py();
+	  gpz       = gtrack->get_pz();
+	  gvx       = gtrack->get_vx();
+	  gvy       = gtrack->get_vy();
+	  gvz       = gtrack->get_vz();
+	  gfpx       = gtrack->get_fpx();
+	  gfpy       = gtrack->get_fpy();
+	  gfpz       = gtrack->get_fpz();
+	  gfx       = gtrack->get_fx();
+	  gfy       = gtrack->get_fy();
+	  gfz       = gtrack->get_fz();
+	  glast      = gtrack->get_is_last();
+	  gembed     = gtrack->get_embed();
+	  gprimary   = gtrack->get_primary();
+	  purity = _track_purity_map[track];
 	}
 
-	float dedx1     = NAN;//track->get_dEdX1();
-	float dedx2     = NAN;//track->get_dEdX2();
-	float dca       = track->getDCA();
-	float dca2d     = track->getDCA2D();
-	float dca2dsigma = track->getDCA2Dsigma();
-	float px        = track->get3Momentum(0);
-	float py        = track->get3Momentum(1);
-	float pz        = track->get3Momentum(2);
-	float pcax      = track->d * sin(track->phi);
-	float pcay      = track->d * cos(track->phi);
-	float pcaz      = track->z0;
-	float phi	  = track->phi;
-	float d         = track->d;
-	float kappa     = track->kappa;
-	float z0        = track->z0;
-	float dzdl      = track->dzdl;
+      float track_data[65] = {_ievent,
+			      trackID,
+			      charge,
+			      quality,
+			      chisq,
+			      chisqv,
+			      ndf,
+			      primary,
+			      nhits,
+			      (float)layers,
+			      dedx1,
+			      dedx2,
+			      dca,
+			      dca2d,
+			      dca2dsigma,
+			      px,
+			      py,
+			      pz,
 
-	float presdphi = track->get_cal_dphi(SvtxTrack::PRES);
-	float presdeta = track->get_cal_deta(SvtxTrack::PRES);
-	float prese3x3 = track->get_cal_energy_3x3(SvtxTrack::PRES);
-	float prese    = track->get_cal_cluster_e(SvtxTrack::PRES);
-
-	float cemcdphi = track->get_cal_dphi(SvtxTrack::CEMC);
-	float cemcdeta = track->get_cal_deta(SvtxTrack::CEMC);
-	float cemce3x3 = track->get_cal_energy_3x3(SvtxTrack::CEMC);
-	float cemce    = track->get_cal_cluster_e(SvtxTrack::CEMC);
-
-	float hcalindphi = track->get_cal_dphi(SvtxTrack::HCALIN);
-	float hcalindeta = track->get_cal_deta(SvtxTrack::HCALIN);
-	float hcaline3x3 = track->get_cal_energy_3x3(SvtxTrack::HCALIN);
-	float hcaline    = track->get_cal_cluster_e(SvtxTrack::HCALIN);
-
-	float hcaloutdphi = track->get_cal_dphi(SvtxTrack::HCALOUT);
-	float hcaloutdeta = track->get_cal_deta(SvtxTrack::HCALOUT);
-	float hcaloute3x3 = track->get_cal_energy_3x3(SvtxTrack::HCALOUT);
-	float hcaloute    = track->get_cal_cluster_e(SvtxTrack::HCALOUT);
-
-	float gtrackID  = NAN;
-	float gflavor   = NAN;
-	float gpx       = NAN;
-	float gpy       = NAN;
-	float gpz       = NAN;
-	float gvx       = NAN;
-	float gvy       = NAN;
-	float gvz       = NAN;
-	float gfpx      = NAN;
-	float gfpy      = NAN;
-	float gfpz      = NAN;
-	float gfx       = NAN;
-	float gfy       = NAN;
-	float gfz       = NAN;
-	float glast     = NAN;
-	float gembed    = NAN;
-	float gprimary  = NAN;
-	float purity    = 0.0;
-
-	if(gtrack)
-	  {
-	    gtrackID  = gtrack->get_track_id();
-	    gflavor   = gtrack->get_flavor();
-	    gpx       = gtrack->get_px();
-	    gpy       = gtrack->get_py();
-	    gpz       = gtrack->get_pz();
-	    gvx       = gtrack->get_vx();
-	    gvy       = gtrack->get_vy();
-	    gvz       = gtrack->get_vz();
-	    gfpx       = gtrack->get_fpx();
-	    gfpy       = gtrack->get_fpy();
-	    gfpz       = gtrack->get_fpz();
-	    gfx       = gtrack->get_fx();
-	    gfy       = gtrack->get_fy();
-	    gfz       = gtrack->get_fz();
-	    glast      = gtrack->get_is_last();
-	    gembed     = gtrack->get_embed();
-	    gprimary   = gtrack->get_primary();
-	    purity = _track_purity_map[track];
-	  }
-
-	float track_data[65] = {_ievent,
-				trackID,
-				charge,
-				quality,
-				chisq,
-				chisqv,
-				ndf,
-				primary,
-				nhits,
-				(float)layers,
-				dedx1,
-				dedx2,
-				dca,
-				dca2d,
-				dca2dsigma,
-				px,
-				py,
-				pz,
-
-				presdphi,
-				presdeta,
-				prese3x3,
-				prese,
+			      presdphi,
+			      presdeta,
+			      prese3x3,
+			      prese,
 				  
-				cemcdphi,
-				cemcdeta,
-				cemce3x3,
-				cemce,
+			      cemcdphi,
+			      cemcdeta,
+			      cemce3x3,
+			      cemce,
 				  
-				hcalindphi,
-				hcalindeta,
-				hcaline3x3,
-				hcaline,
+			      hcalindphi,
+			      hcalindeta,
+			      hcaline3x3,
+			      hcaline,
 				  
-				hcaloutdphi, 
-				hcaloutdeta, 
-				hcaloute3x3,
-				hcaloute,    
+			      hcaloutdphi, 
+			      hcaloutdeta, 
+			      hcaloute3x3,
+			      hcaloute,    
 				  
-				gtrackID,
-				gflavor,
-				gpx,
-				gpy,
-				gpz,
-				gvx,
-				gvy,
-				gvz,
-				gfpx,
-				gfpy,
-				gfpz,
-				gfx,
-				gfy,
-				gfz,
-				glast,
-				gembed,
-				gprimary,
-				purity,
-				pcax,
-				pcay,
-				pcaz,
-				phi,
-				d,
-				kappa,
-				z0,
-				dzdl };
+			      gtrackID,
+			      gflavor,
+			      gpx,
+			      gpy,
+			      gpz,
+			      gvx,
+			      gvy,
+			      gvz,
+			      gfpx,
+			      gfpy,
+			      gfpz,
+			      gfx,
+			      gfy,
+			      gfz,
+			      glast,
+			      gembed,
+			      gprimary,
+			      purity,
+			      pcax,
+			      pcay,
+			      pcaz,
+			      phi,
+			      d,
+			      kappa,
+			      z0,
+			      dzdl };
       
-	_ntp_track->Fill(track_data);
-      }
+      _ntp_track->Fill(track_data);
     }
+  }
 
   return;
 }
