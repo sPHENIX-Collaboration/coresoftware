@@ -279,8 +279,10 @@ PHG4ForwardHcalDetector::PlaceTower(G4LogicalVolume* hcalenvelope, G4LogicalVolu
   while ( getline( istream_mapping, line_mapping ) )
     {
       unsigned idx_j, idx_k, idx_l;
-      double pos_x, pos_y, pos_z;
-      double dummy;
+      G4double pos_x, pos_y, pos_z;
+      G4double size_x, size_y, size_z;
+      G4double alpha, beta, gamma;
+      G4double dummy;
 
       istringstream iss(line_mapping);
 
@@ -295,7 +297,7 @@ PHG4ForwardHcalDetector::PlaceTower(G4LogicalVolume* hcalenvelope, G4LogicalVolu
 	}
 
       /* read string- break if error */
-      if ( !( iss >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> dummy >> dummy >> dummy >> dummy ) )
+      if ( !( iss >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> alpha >> beta >> gamma >> dummy ) )
 	{
 	  cerr << "ERROR in PHG4ForwardHcalDetector: Failed to read line in mapping file " << _mapping_tower_file << endl;
 	  exit(1);
@@ -307,13 +309,24 @@ PHG4ForwardHcalDetector::PlaceTower(G4LogicalVolume* hcalenvelope, G4LogicalVolu
       towername.str("");
       towername << _towerlogicnameprefix << "_j_" << idx_j << "_k_" << idx_k;
 
+      /* Add Geant4 units */
+      pos_x = pos_x * cm;
+      pos_y = pos_y * cm;
+      pos_z = pos_z * cm;
+
+      /* adjust tower position (absolute position given in mapping file) to be relative
+       * to mother volume / envelope */
+      pos_x -= _place_in_x;
+      pos_y -= _place_in_y;
+      pos_z -= _place_in_z;
+
       /* Place tower */
       if ( verbosity > 0 )
 	{
 	  cout << "PHG4ForwardHcalDetector: Place tower " << towername.str() << endl;
 	}
 
-      new G4PVPlacement( 0, G4ThreeVector(pos_x*cm , pos_y*cm, pos_z*cm),
+      new G4PVPlacement( 0, G4ThreeVector(pos_x , pos_y, pos_z),
 			 singletower,
 			 towername.str().c_str(),
 			 hcalenvelope,
