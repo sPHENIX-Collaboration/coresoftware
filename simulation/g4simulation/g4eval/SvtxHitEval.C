@@ -256,7 +256,7 @@ std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Hit* g4hit) {
 	 jter != g4hits.end();
 	 ++jter) {
       PHG4Hit* candidate = *jter;
-      if (candidate->get_trkid() == g4hit->get_trkid()) {
+      if (candidate->get_hit_id() == g4hit->get_hit_id()) {
 	hits.insert(hit);
       }    
     }
@@ -331,15 +331,17 @@ float SvtxHitEval::get_energy_contribution(SvtxHit* hit, PHG4Hit* g4hit) {
     return _cache_get_energy_contribution_g4hit[make_pair(hit,g4hit)];
   }
   
+  // this is a fairly simple existance check right now, but might be more
+  // complex in the future, so this is here mostly as future-proofing.
+  
   float energy = 0.0;
   std::set<PHG4Hit*> g4hits = all_truth_hits(hit);
   for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
        iter != g4hits.end();
        ++iter) {
     PHG4Hit* candidate = *iter;
-    if (candidate->get_trkid() == g4hit->get_trkid()) {
-      energy += candidate->get_edep();
-    }
+    if (candidate->get_hit_id() != g4hit->get_hit_id()) continue;  
+    energy += candidate->get_edep();
   }
 
   _cache_get_energy_contribution_g4hit.insert(make_pair(make_pair(hit,g4hit),energy));
