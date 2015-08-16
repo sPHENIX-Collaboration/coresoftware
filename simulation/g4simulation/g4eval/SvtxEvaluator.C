@@ -51,13 +51,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
   _ntp_event = new TNtuple("ntp_event","event-wise ntuple",
                            "event:vx:vy:vz:"
                            "gvx:gvy:gvz:ntracks:ngtracks:"
-                           "nclusters:ng4hits:"
-			   "hit_occupancy_layer0:"
-			   "hit_occupancy_layer1:"
-			   "hit_occupancy_layer2:"
-			   "hit_occupancy_layer3:"
-			   "hit_occupancy_layer4:"
-			   "hit_occupancy_layer5");
+                           "nclusters:ng4hits");
 
   _ntp_gtrack  = new TNtuple("ntp_gtrack","g4particle => best svtxtrack",
                              "event:gtrackID:gflavor:ng4hits:"
@@ -513,72 +507,67 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   // fill the Event NTuple
   //----------------------
 
-  // float vx = NAN;
-  // float vy = NAN;
-  // float vz = NAN;
-  // if (_vertexList) {
-  //   if (!_vertexList->empty()) {
-  //     SvtxVertex* vertex = &(_vertexList->begin()->second);
-      
-  //     vx = vertex->get_x();
-  //     vy = vertex->get_y();
-  //     vz = vertex->get_z();
-  //   }
-  // }
+  float vx = NAN;
+  float vy = NAN;
+  float vz = NAN;
 
+  SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
   
-  // PHG4VtxPoint *gvertex = _truth_info_container->GetPrimaryVtx( _truth_info_container->GetPrimaryVertexIndex() );
-  // float gvx = gvertex->get_x();
-  // float gvy = gvertex->get_y();
-  // float gvz = gvertex->get_z();
+  if (vertexmap) {
+    if (!vertexmap->empty()) {
+      SvtxVertex* vertex = &(vertexmap->begin()->second);      
+      vx = vertex->get_x();
+      vy = vertex->get_y();
+      vz = vertex->get_z();
+    }
+  }
 
-  // float ngtracks = _gtrack_list.size(); 
-  // float ng4hits = _g4hitList.size();
+  float gvx = NAN;
+  float gvy = NAN;
+  float gvz = NAN;
+  float ngtracks = NAN;
+  
+  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+  if (truthinfo) {
+    PHG4VtxPoint *gvertex = truthinfo->GetPrimaryVtx( truthinfo->GetPrimaryVertexIndex() );
+    gvx = gvertex->get_x();
+    gvy = gvertex->get_y();
+    gvz = gvertex->get_z();
+    ngtracks = truthinfo->GetPrimaryMap().size();
+  }
 
-  // float hit_occupancy_layer0 = NAN;
-  // float hit_occupancy_layer1 = NAN;
-  // float hit_occupancy_layer2 = NAN;
-  // float hit_occupancy_layer3 = NAN;
-  // float hit_occupancy_layer4 = NAN;
-  // float hit_occupancy_layer5 = NAN;
-  // if ((_nlayers > 0)&&(_nchannels_per_layer[0] > 0)) hit_occupancy_layer0 = _nhits_per_layer[0]*1.0 / _nchannels_per_layer[0];
-  // if ((_nlayers > 1)&&(_nchannels_per_layer[1] > 0)) hit_occupancy_layer1 = _nhits_per_layer[1]*1.0 / _nchannels_per_layer[1];
-  // if ((_nlayers > 2)&&(_nchannels_per_layer[2] > 0)) hit_occupancy_layer2 = _nhits_per_layer[2]*1.0 / _nchannels_per_layer[2];
-  // if ((_nlayers > 3)&&(_nchannels_per_layer[3] > 0)) hit_occupancy_layer3 = _nhits_per_layer[3]*1.0 / _nchannels_per_layer[3];
-  // if ((_nlayers > 4)&&(_nchannels_per_layer[4] > 0)) hit_occupancy_layer4 = _nhits_per_layer[4]*1.0 / _nchannels_per_layer[4];
-  // if ((_nlayers > 5)&&(_nchannels_per_layer[5] > 0)) hit_occupancy_layer5 = _nhits_per_layer[5]*1.0 / _nchannels_per_layer[5];
+  std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits();
+  float ng4hits  = g4hits.size();
+  
+  float nclusters = NAN;
+  SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
+  if (clustermap) nclusters = clustermap->size();
 
-  // float nclusters = _clusterList->size();
-  // float ntracks = 0.0;
-  // if(_trackingWasRun) ntracks = _trackList->size();
+  float ntracks = NAN;
+  SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+  if (trackmap) ntracks = trackmap->size();
 
-  // float event_data[17] = {_ievent,
-  //                         vx,
-  //                         vy,
-  //                         vz,
-  //                         gvx,
-  //                         gvy,
-  //                         gvz,
-  //                         ntracks,
-  //                         ngtracks,
-  //                         nclusters,
-  //                         ng4hits,
-  // 			  hit_occupancy_layer0,
-  // 			  hit_occupancy_layer1,
-  // 			  hit_occupancy_layer2,
-  // 			  hit_occupancy_layer3,
-  // 			  hit_occupancy_layer4,
-  // 			  hit_occupancy_layer5
-  // };
+  float event_data[11] = {_ievent,
+                          vx,
+                          vy,
+                          vz,
+                          gvx,
+                          gvy,
+                          gvz,
+                          ntracks,
+                          ngtracks,
+                          nclusters,
+                          ng4hits
+  };
 
-  // _ntp_event->Fill(event_data);
+  _ntp_event->Fill(event_data);
 
   //---------------------
   // fill the G4hit NTuple
   //---------------------
 
   unsigned int i = 0;
-  std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits();
+  //std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits();
   for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
        iter != g4hits.end();
        ++iter) {
@@ -822,7 +811,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //------------------------
 
   // need things off of the DST...
-  SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
+  //SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
   if (clustermap) {
 
     for (SvtxClusterMap::Iter iter = clustermap->begin();
@@ -947,7 +936,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //------------------------
 
   // need things off of the DST...
-  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+
   if (truthinfo) {
     
     PHG4TruthInfoContainer::Map map = truthinfo->GetPrimaryMap();
@@ -1073,7 +1062,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //------------------------
 
   // need things off of the DST...
-  SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+
   if (trackmap) {
 
     for (SvtxTrackMap::Iter iter = trackmap->begin();
