@@ -24,7 +24,7 @@ public:
 
   void next_event(PHCompositeNode *topNode);
   
-  // access the clustereval (and its cached values)
+  // access the sub evals (and the cached values)
   SvtxTrackEval*   get_track_eval() {return &_trackeval;}
   SvtxClusterEval* get_cluster_eval() {return _trackeval.get_cluster_eval();}
   SvtxHitEval*     get_hit_eval() {return _trackeval.get_hit_eval();}
@@ -47,6 +47,7 @@ private:
   PHCompositeNode* _topNode;
   SvtxTrackEval _trackeval;
 
+  bool _do_cache;
   std::map<SvtxVertex*,std::set<PHG4Particle*> >               _cache_all_truth_particles;
   std::map<SvtxVertex*,std::set<PHG4VtxPoint*> >               _cache_all_truth_points;
   std::map<SvtxVertex*,PHG4VtxPoint*>                          _cache_max_truth_point_by_ntracks;
