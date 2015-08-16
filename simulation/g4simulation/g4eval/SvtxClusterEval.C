@@ -20,6 +20,7 @@
 #include <set>
 #include <map>
 #include <float.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -59,27 +60,14 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(SvtxCluster* cluster) {
   if (_cache_all_truth_hits.find(cluster) != _cache_all_truth_hits.end()) {
     return _cache_all_truth_hits[cluster];
   }
-  
-  std::set<PHG4Hit*> truth_hits;
-  
-  // need things off of the DST...
+
   SvtxHitMap* hitmap = findNode::getClass<SvtxHitMap>(_topNode,"SvtxHitMap");
   if (!hitmap) {
     cerr << PHWHERE << " ERROR: Can't find SvtxHitMap" << endl;
     exit(-1);
   }
-
-  PHG4CylinderCellContainer* g4cells = findNode::getClass<PHG4CylinderCellContainer>(_topNode,"G4CELL_SVTX");
-  if (!g4cells) {
-    cerr << PHWHERE << " ERROR: Can't find G4CELL_SVTX" << endl;
-    exit(-1);
-  }
-    
-  PHG4HitContainer* g4hits = findNode::getClass<PHG4HitContainer>(_topNode,"G4HIT_SVTX");
-  if (!g4hits) {
-    cerr << PHWHERE << " ERROR: Can't find G4HIT_SVTX" << endl;
-    exit(-1);
-  }
+ 
+  std::set<PHG4Hit*> truth_hits;
   
   // loop over all hit cells
   for (SvtxCluster::ConstHitIter hiter = cluster->begin_hits();
@@ -87,20 +75,15 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(SvtxCluster* cluster) {
        ++hiter) {
     SvtxHit* hit = hitmap->get(*hiter);
 
-    // hop from reco hit to g4cell
-    PHG4CylinderCell *cell = g4cells->findCylinderCell(hit->get_cellid());
-    if (!cell) continue;
+    std::set<PHG4Hit*> new_g4hits = _hiteval.all_truth_hits(hit);
 
-    // loop over all the g4hits in this cell
-    for (PHG4CylinderCell::EdepConstIterator g4iter = cell->get_g4hits().first;
-	 g4iter != cell->get_g4hits().second;
-	 ++g4iter) {
-      
-      PHG4Hit* g4hit = g4hits->findHit(g4iter->first);
+    std::set<PHG4Hit*> union_g4hits;
 
-      // fill output set
-      truth_hits.insert(g4hit);
-    }
+    std::set_union(truth_hits.begin(),truth_hits.end(),
+		   new_g4hits.begin(),new_g4hits.end(),
+		   std::inserter(union_g4hits,union_g4hits.begin()));
+    
+    std::swap(truth_hits,union_g4hits); // swap union into truth_hits
   }
 
   _cache_all_truth_hits.insert(make_pair(cluster,truth_hits));
@@ -269,7 +252,7 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit) {
 	 jter != hits.end();
 	 ++jter) {
       PHG4Hit* candidate = *jter;
-      if (candidate->get_trkid() == truthhit->get_trkid()) {
+      if (candidate->get_hit_id() == truthhit->get_hit_id()) {
 	clusters.insert(cluster);
       }    
     }
@@ -336,6 +319,9 @@ float SvtxClusterEval::get_energy_contribution(SvtxCluster* cluster, PHG4Hit* g4
       _cache_get_energy_contribution_g4hit.end()) {
     return _cache_get_energy_contribution_g4hit[make_pair(cluster,g4hit)];
   }
+
+  // this is a fairly simple existance check right now, but might be more
+  // complex in the future, so this is here mostly as future-proofing.
   
   float energy = 0.0;
   std::set<PHG4Hit*> g4hits = all_truth_hits(cluster);
@@ -343,9 +329,8 @@ float SvtxClusterEval::get_energy_contribution(SvtxCluster* cluster, PHG4Hit* g4
        iter != g4hits.end();
        ++iter) {
     PHG4Hit* candidate = *iter;
-    if (candidate->get_trkid() == g4hit->get_trkid()) {
-      energy += candidate->get_edep();
-    }
+    if (candidate->get_hit_id() != g4hit->get_hit_id()) continue;    
+    energy += candidate->get_edep();
   }
 
   _cache_get_energy_contribution_g4hit.insert(make_pair(make_pair(cluster,g4hit),energy));
