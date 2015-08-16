@@ -7,7 +7,7 @@
 #include <Geant4/G4String.hh>
 
 class PHG4CrystalCalorimeterDetector;
-//class PHG4ProjCrystalCalorimeterDetector;
+class PHG4ProjCrystalCalorimeterDetector;
 class PHG4CrystalCalorimeterSteppingAction;
 class PHG4EventAction;
 
@@ -50,11 +50,11 @@ public:
 
   /** Select projective geometry for calorimeter
    */
-//  void SetProjectiveGeometry( std::string filename1 , std::string filename2 ) {
-//    mappingfile_ = filename1;
-//    mappingfile_4x4_construct_ = filename2;
-//    projective_ = true;
-//  }
+  void SetProjectiveGeometry( std::string filename1 , std::string filename2 ) {
+    mappingfile_ = filename1;
+    mappingfile_4x4_construct_ = filename2;
+    projective_ = true;
+  }
 //  void SetGeometryConfiguration
 
   /** Enum for different geometry configurations

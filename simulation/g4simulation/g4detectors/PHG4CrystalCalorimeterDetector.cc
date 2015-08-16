@@ -55,7 +55,7 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode 
   _dPhi(2*M_PI),
   _crystal_dx(20*mm),
   _crystal_dy(20*mm),
-  _crystal_dz(18.0*mm),
+  _crystal_dz(180.0*mm),
   _materialCrystal( "G4_PbWO4" ),
   _active(1),
   _towerlogicnameprefix("CrystalCalorimeterTower"),
@@ -82,9 +82,14 @@ PHG4CrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume * volum
 	{
 	  return 1;
 	}
-      else
+      /* only record energy in actual absorber- drop energy lost in air gaps inside envelope */
+      else if (volume->GetName().find("absorber") != string::npos)
 	{
 	  return -1;
+	}
+      else if (volume->GetName().find("envelope") != string::npos)
+	{
+	  return 0;
 	}
     }
 
@@ -256,16 +261,16 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
 		     0, 0, overlapcheck);
 
 
-//  /* Place crystal in logical tower volume */
-//  ostringstream name_crystal;
-//  name_crystal.str("");
-//  name_crystal << _towerlogicnameprefix << "_single_crystal" << endl;
-//
-//  new G4PVPlacement( 0, G4ThreeVector(0 , 0, 0),
-//		     logic_crystal,
-//		     name_crystal.str().c_str(),
-//		     single_tower_logic,
-//		     0, 0, overlapcheck);
+  /* Place crystal in logical tower volume */
+  ostringstream name_crystal;
+  name_crystal.str("");
+  name_crystal << _towerlogicnameprefix << "_single_crystal" << endl;
+
+  new G4PVPlacement( 0, G4ThreeVector(0 , 0, 0),
+		     logic_crystal,
+		     name_crystal.str().c_str(),
+		     single_tower_logic,
+		     0, 0, overlapcheck);
 
 
 
@@ -300,8 +305,10 @@ PHG4CrystalCalorimeterDetector::PlaceTower(G4LogicalVolume* eemcenvelope, G4Logi
   while ( getline( istream_mapping, line_mapping ) )
     {
       unsigned idx_j, idx_k, idx_l;
-      double pos_x, pos_y, pos_z;
-      double dummy;
+      G4double pos_x, pos_y, pos_z;
+      G4double size_x, size_y, size_z;
+      G4double alpha, beta, gamma;
+      G4double dummy;
 
       istringstream iss(line_mapping);
 
@@ -316,7 +323,7 @@ PHG4CrystalCalorimeterDetector::PlaceTower(G4LogicalVolume* eemcenvelope, G4Logi
 	}
 
       /* read string- break if error */
-      if ( !( iss >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> dummy >> dummy >> dummy >> dummy ) )
+      if ( !( iss >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> alpha >> beta >> gamma >> dummy ) )
 	{
 	  cerr << "ERROR in PHG4CrystalCalorimeterDetector: Failed to read line in mapping file " << _mapping_tower_file << endl;
 	  exit(1);
@@ -328,13 +335,24 @@ PHG4CrystalCalorimeterDetector::PlaceTower(G4LogicalVolume* eemcenvelope, G4Logi
       towername.str("");
       towername << _towerlogicnameprefix << "_j_" << idx_j << "_k_" << idx_k;
 
+      /* Add Geant4 units */
+      pos_x = pos_x * cm;
+      pos_y = pos_y * cm;
+      pos_z = pos_z * cm;
+
+      /* adjust tower position (absolute position given in mapping file) to be relative
+       * to mother volume / envelope */
+      pos_x -= _place_in_x;
+      pos_y -= _place_in_y;
+      pos_z -= _place_in_z;
+
       /* Place tower */
       if ( verbosity > 0 )
 	{
 	  cout << "PHG4CrystalCalorimeterDetector: Place tower " << towername.str() << endl;
 	}
 
-      new G4PVPlacement( 0, G4ThreeVector(pos_x*cm , pos_y*cm, pos_z*cm),
+      new G4PVPlacement( 0, G4ThreeVector(pos_x, pos_y, pos_z),
 			 singletower,
 			 towername.str().c_str(),
 			 eemcenvelope,

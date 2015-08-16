@@ -32,7 +32,7 @@ int DumpPHG4CylinderCellContainer::process_Node(PHNode *myNode)
       *fout << "num layers: " << phg4cellcontainer->num_layers() << endl;
       for (hiter = cell_begin_end.first; hiter != cell_begin_end.second; hiter++)
         {
-          *fout << "id: " << hiter->second->get_cell_id() << endl;
+          *fout << "id: 0x" << hex << hiter->second->get_cell_id() << dec << endl;
           *fout << "layer: " << hiter->second->get_layer() << endl;
           *fout << "edep: " << hiter->second->get_edep() << endl;
           *fout << "binz: " << hiter->second->get_binz() << endl;

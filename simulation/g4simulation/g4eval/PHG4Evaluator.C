@@ -31,6 +31,7 @@
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderCell.h>
+#include <g4detectors/PHG4CylinderCellDefs.h>
 
 // HelixHough includes (just for helix fitting algorithms)
 #include <SimpleTrack3D.h>
@@ -48,7 +49,13 @@
 
 using namespace std;
 
-double sqr(const double &x) {return x*x;}
+template <class T>
+inline T sqr(T x)
+{
+  T result;
+  result = x*x;
+  return result;
+}
 
 PHG4Evaluator::PHG4Evaluator(const string &name, const string &filename) :
   SubsysReco("PHG4Evaluator"),
@@ -169,7 +176,7 @@ int PHG4Evaluator::InitRun(PHCompositeNode *topNode) {
 
   // Looking for the DST node
   PHCompositeNode *dstNode 
-    = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
+    = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
   if (!dstNode) {
     cout << PHWHERE << "DST Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
@@ -594,7 +601,7 @@ void PHG4Evaluator::fillGtrackObjects()
       g4hit_iter++)
     {
       PHG4Hit *g4hit = g4hit_iter->second;
-      unsigned int g4hit_id = g4hit->get_hit_id();
+      PHG4HitDefs::keytype g4hit_id = g4hit->get_hit_id();
 
       int track_id = g4hit->get_trkid();
       
@@ -757,13 +764,12 @@ void PHG4Evaluator::fillCellToG4HitMap()
 	float max_edep = 0.0;
 
 	// loop over all ghits within those cells
-	std::pair< std::map<unsigned int, float>::const_iterator, 
-		   std::map<unsigned int, float>::const_iterator > g4hits = cell->get_g4hits();
-	std::map<unsigned int, float>::const_iterator g4iter = g4hits.first;
+	PHG4CylinderCell::EdepConstRange g4hits = cell->get_g4hits();
+	PHG4CylinderCell::EdepConstIterator g4iter = g4hits.first;
 	for (g4iter = g4hits.first; g4iter != g4hits.second; g4iter++)
 	  {
 	    // ask each ghit how much energy it deposited and where that energy came from
-	    int g4hit_id = g4iter->first;
+	    PHG4HitDefs::keytype g4hit_id = g4iter->first;
 	      
 	    HitMap::const_iterator tmpiter = _g4hitList.find(g4hit_id);
 	    if(tmpiter==_g4hitList.end()) {
@@ -806,13 +812,12 @@ void PHG4Evaluator::fillCellToG4HitMap()
 	float max_edep = 0.0;
 
 	// loop over all ghits within those cells
-	std::pair< std::map<unsigned int, float>::const_iterator, 
-		   std::map<unsigned int, float>::const_iterator > g4hits = cell->get_g4hits();
-	std::map<unsigned int, float>::const_iterator g4iter = g4hits.first;
+	PHG4CylinderCell::EdepConstRange g4hits = cell->get_g4hits();
+	PHG4CylinderCell::EdepConstIterator g4iter = g4hits.first;
 	for (g4iter = g4hits.first; g4iter != g4hits.second; g4iter++)
 	  {
 	    // ask each ghit how much energy it deposited and where that energy came from
-	    int g4hit_id = g4iter->first;
+	    PHG4HitDefs::keytype g4hit_id = g4iter->first;
 	      
 	    HitMap::const_iterator tmpiter = _g4hitList.find(g4hit_id);
 	    if(tmpiter==_g4hitList.end()) {
@@ -893,20 +898,18 @@ int PHG4Evaluator::fillClusterToG4HitLinks(PHCompositeNode *topNode) {
       unsigned int hit_id = *hiter;
 
       SvtxHit* hit = _hitList->get(hit_id);   
-      unsigned int cell_id = hit->get_cellid();
+      PHG4CylinderCellDefs::keytype cell_id = hit->get_cellid();
       
       // get this cell...
       if ((_cellList)&&(_cellList->findCylinderCell(cell_id))) {    
 	PHG4CylinderCell *cell = _cellList->findCylinderCell(cell_id);     
 
 	// loop over all g4hits within the cell
-	std::pair<
-	  std::map<unsigned int,float>::const_iterator,
-	  std::map<unsigned int,float>::const_iterator > range = cell->get_g4hits();
-	for (std::map<unsigned int, float>::const_iterator iter = range.first;
+	PHG4CylinderCell::EdepConstRange range = cell->get_g4hits();
+	for (PHG4CylinderCell::EdepConstIterator iter = range.first;
 	     iter != range.second;
 	     ++iter) {
-	  unsigned int ghit_id = iter->first;
+	  PHG4HitDefs::keytype ghit_id = iter->first;
 	  float edep = iter->second;
 
 	  // create new link
@@ -916,13 +919,11 @@ int PHG4Evaluator::fillClusterToG4HitLinks(PHCompositeNode *topNode) {
 	PHG4CylinderCell *cell = _ladderCellList->findCylinderCell(cell_id);
 	
 	// loop over all g4hits within the cell
-	std::pair<
-	  std::map<unsigned int,float>::const_iterator,
-	  std::map<unsigned int,float>::const_iterator > range = cell->get_g4hits();
-	for (std::map<unsigned int, float>::const_iterator iter = range.first;
+	PHG4CylinderCell::EdepConstRange range = cell->get_g4hits();
+	for (PHG4CylinderCell::EdepConstIterator iter = range.first;
 	     iter != range.second;
 	     ++iter) {
-	  unsigned int ghit_id = iter->first;
+	  PHG4HitDefs::keytype ghit_id = iter->first;
 	  float edep = iter->second;
 	  
 	  // create new link
@@ -1145,11 +1146,11 @@ int PHG4Evaluator::fillG4TruthInfoToTrackLinks(PHCompositeNode *topNode) {
     unsigned int nclusters = 0;
       
     // loop over this particle's g4hits
-    for (std::multimap<int,unsigned int>::iterator iter = _particleid_g4hitid_mmap.lower_bound(particle_id);
+    for (std::multimap<int,PHG4HitDefs::keytype>::iterator iter = _particleid_g4hitid_mmap.lower_bound(particle_id);
 	 iter != _particleid_g4hitid_mmap.upper_bound(particle_id);
 	 ++iter) {
 
-      unsigned int g4hitid = iter->second;
+      PHG4HitDefs::keytype g4hitid = iter->second;
       
       // grab the number of clusters from the g4hit
       if (_cluster_g4hit_svtx_links) {

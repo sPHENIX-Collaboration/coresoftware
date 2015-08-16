@@ -114,7 +114,7 @@ int PHG4HcalCellReco::InitRun(PHCompositeNode *topNode)
 	    {
 	      layergeom->identify();
 	    }
-          layerseggeo->set_binning(phg4cylindercelldefs::etaslatbinning);
+          layerseggeo->set_binning(PHG4CylinderCellDefs::etaslatbinning);
           layerseggeo->set_etabins(22);
           layerseggeo->set_etamin(-1.1);
           layerseggeo->set_etastep((1.1+1.1)/22.);
@@ -241,7 +241,7 @@ PHG4HcalCellReco::etasize_nslat(const int i, const double deltaeta, const int ns
   if (nslat >= 1)
     {
       nslatscombined = nslat;
-      set_size(i, deltaeta, nslat, phg4cylindercelldefs::etaslatbinning);
+      set_size(i, deltaeta, nslat, PHG4CylinderCellDefs::etaslatbinning);
     }
   else
     {

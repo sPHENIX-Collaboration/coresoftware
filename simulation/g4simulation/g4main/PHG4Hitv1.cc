@@ -31,7 +31,8 @@ PHG4Hitv1::PHG4Hitv1(PHG4Hit const &g4hit)
 
 void
 PHG4Hitv1::print() const {
-  std::cout<<"New Hitv1   "<<hitid<<"  on track "<<trackid<<" EDep "<<edep<<std::endl;
+  std::cout<<"New Hitv1  0x"<< hex << hitid 
+	   << dec << "  on track "<<trackid<<" EDep "<<edep<<std::endl;
   std::cout<<"Location: X "<<x[0]<<"/"<<x[1]<<"  Y "<<y[0]<<"/"<<y[1]<<"  Z "<<z[0]<<"/"<<z[1]<<std::endl;
   std::cout<<"Time        "<<t[0]<<"/"<<t[1]<<std::endl;
 

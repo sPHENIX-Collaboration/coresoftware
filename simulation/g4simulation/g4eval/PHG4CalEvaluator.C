@@ -12,11 +12,13 @@
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitDefs.h>
 #include <g4main/PHG4VtxPoint.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 #include <g4detectors/PHG4CylinderCell.h>
+#include <g4detectors/PHG4CylinderCellDefs.h>
 #include <g4cemc/RawTower.h>
 #include <g4cemc/RawTowerContainer.h>
 #include <g4cemc/RawTowerGeom.h>
@@ -580,13 +582,12 @@ void PHG4CalEvaluator::fillTowerToGshowerMap()
 		}
 
 	      // loop over all ghits within those cells
-	      std::pair< std::map<unsigned int, float>::const_iterator, 
-			 std::map<unsigned int, float>::const_iterator > g4hits = cell->get_g4hits();
-	      std::map<unsigned int, float>::const_iterator g4iter = g4hits.first;
+	      PHG4CylinderCell::EdepConstRange g4hits = cell->get_g4hits();
+	      PHG4CylinderCell::EdepConstIterator g4iter = g4hits.first;
 	      for (g4iter = g4hits.first; g4iter != g4hits.second; g4iter++)
 		{
 		  // ask each ghit how much energy it deposited and where that energy came from
-		  int g4hit_id = g4iter->first;
+		  PHG4HitDefs::keytype g4hit_id = g4iter->first;
 		  float g4hit_energy = g4iter->second;
 		  CalGshower *gshower = _g4hitid_gshower_map[g4hit_id];
 		  PHG4Hit *ghit = _g4hitList->findHit( g4hit_id );
@@ -673,7 +674,7 @@ void PHG4CalEvaluator::fillClusterToGshowerMap()
 	    {
 	      PHG4Hit *ghit = ghit_iter->second;
 
-	      int g4hit_id = ghit->get_hit_id();
+	      PHG4HitDefs::keytype g4hit_id = ghit->get_hit_id();
 	      float g4hit_energy = ghit->get_edep();
 
 	      CalGshower *gshower = _g4hitid_gshower_map[g4hit_id];

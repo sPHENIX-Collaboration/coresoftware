@@ -1,6 +1,7 @@
 #ifndef PHG4Hit_H__
 #define PHG4Hit_H__
 
+#include "PHG4HitDefs.h"
 #include <phool/PHObject.h>
 #include <cmath>
 #include <climits>
@@ -28,7 +29,7 @@ class PHG4Hit: public PHObject
   virtual float get_light_yield() const {return NAN;}
   virtual float get_path_length() const {return NAN;}
   virtual unsigned int get_layer() const {return UINT_MAX;}
-  virtual unsigned long long get_hit_id() const {return ULONG_LONG_MAX;}
+  virtual PHG4HitDefs::keytype get_hit_id() const {return ULONG_LONG_MAX;}
   virtual int get_scint_id() const {return INT_MIN;}
   virtual int get_trkid() const {return INT_MIN;}
   virtual int get_strip_z_index() const {return INT_MIN;}
@@ -52,7 +53,7 @@ class PHG4Hit: public PHObject
   virtual void set_light_yield(const float lightYield){return;}
   virtual void set_path_length(const float pathLength){return;}
   virtual void set_layer(const unsigned int i) {return;}
-  virtual void set_hit_id(const unsigned long long i) {return;}
+  virtual void set_hit_id(const PHG4HitDefs::keytype i) {return;}
   virtual void set_scint_id(const int i) {return;}
   virtual void set_trkid(const int i) {return;}
   virtual void set_strip_z_index(const int i) {return;}

@@ -1,6 +1,7 @@
 #ifndef PHG4HITCONTAINER_H__
 #define PHG4HITCONTAINER_H__
 
+#include "PHG4HitDefs.h"
 
 #include <phool/PHObject.h>
 #include <map>
@@ -11,7 +12,7 @@ class PHG4HitContainer: public PHObject
 {
 
   public:
-  typedef std::map<unsigned long long,PHG4Hit *> Map;
+  typedef std::map<PHG4HitDefs::keytype, PHG4Hit *> Map;
   typedef Map::iterator Iterator;
   typedef Map::const_iterator ConstIterator;
   typedef std::pair<Iterator, Iterator> Range;
@@ -30,11 +31,11 @@ class PHG4HitContainer: public PHObject
 
   ConstIterator AddHit(const unsigned int detid, PHG4Hit *newhit);
   
-  Iterator findOrAddHit(unsigned long long key);
+  Iterator findOrAddHit(PHG4HitDefs::keytype key);
 
-  PHG4Hit* findHit( unsigned long long key );
+  PHG4Hit* findHit(PHG4HitDefs::keytype key );
 
-  unsigned long long genkey(const unsigned int detid);
+  PHG4HitDefs::keytype genkey(const unsigned int detid);
 
   //! return all hits matching a given detid
   ConstRange getHits(const unsigned int detid) const;
@@ -50,7 +51,7 @@ class PHG4HitContainer: public PHObject
      { return make_pair(layers.begin(), layers.end());} 
   void AddLayer(const unsigned int ilayer) {layers.insert(ilayer);}
   void RemoveZeroEDep();
-  unsigned long long getmaxkey(const unsigned int detid);
+  PHG4HitDefs::keytype getmaxkey(const unsigned int detid);
 
  protected:
   Map hitmap;
