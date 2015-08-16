@@ -138,7 +138,7 @@ PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track) {
       ++iter) {
     PHG4Particle* candidate = *iter;
     unsigned int nclusters = get_nclusters_contribution(track,candidate);
-    if (max_nclusters > nclusters) {
+    if (nclusters > max_nclusters) {
       max_nclusters = nclusters;
       max_particle = candidate;
     }
