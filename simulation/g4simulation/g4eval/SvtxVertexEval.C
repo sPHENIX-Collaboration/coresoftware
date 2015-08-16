@@ -49,18 +49,59 @@ void SvtxVertexEval::next_event(PHCompositeNode* topNode) {
 
 std::set<PHG4Particle*> SvtxVertexEval::all_truth_particles(SvtxVertex* vertex) {
 
-  // loop over all tracks on vertex
-  // get the max truth particle of each track
+ if ((_do_cache) && (_cache_all_truth_particles.find(vertex) !=
+		     _cache_all_truth_particles.end())) {
+    return _cache_all_truth_particles[vertex];
+  }
   
-  return std::set<PHG4Particle*>();
+  SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(_topNode,"SvtxTrackMap");
+  if (!trackmap) {
+    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << endl;
+    exit(-1);
+  }
+
+  std::set<PHG4Particle*> all_particles;
+  
+  // loop over all tracks on vertex
+  for (SvtxVertex::TrackIter iter = vertex->begin_tracks();
+       iter != vertex->end_tracks();
+       ++iter) {
+    
+    SvtxTrack* track = trackmap->get(*iter);
+    all_particles.insert(_trackeval.max_truth_particle_by_nclusters(track));
+  }
+
+  if (_do_cache) _cache_all_truth_particles.insert(make_pair(vertex,all_particles));
+  
+  return all_particles;
 }
 
 std::set<PHG4VtxPoint*> SvtxVertexEval::all_truth_points(SvtxVertex* vertex) {
 
-  // get all_truth_particles
-  // track back to truth point objects
+ if ((_do_cache) && (_cache_all_truth_points.find(vertex) !=
+		     _cache_all_truth_points.end())) {
+    return _cache_all_truth_points[vertex];
+  }
   
-  return std::set<PHG4VtxPoint*>();
+  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(_topNode,"G4TruthInfo");
+  if (!truthinfo) {
+    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
+    exit(-1);
+  }
+
+  std::set<PHG4VtxPoint*> points;
+  
+  std::set<PHG4Particle*> particles = all_truth_particles(vertex);
+  for (std::set<PHG4Particle*>::iterator iter = particles.begin();
+       iter != particles.end();
+       ++iter) {
+    PHG4Particle* particle = *iter;
+    points.insert(truthinfo->GetPrimaryVtx(particle->get_vtx_id()));
+  }
+
+  if (_do_cache) _cache_all_truth_points.insert(make_pair(vertex,points));
+  
+  return points;
 }
 
 PHG4VtxPoint* SvtxVertexEval::max_truth_point_by_ntracks(SvtxVertex* vertex) {
