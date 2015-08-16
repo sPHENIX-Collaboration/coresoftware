@@ -31,6 +31,7 @@ pkginclude_HEADERS = \
   SvtxHitEval.h \
   SvtxClusterEval.h \
   SvtxTrackEval.h \
+  SvtxVertexEval.h \
   SvtxEvaluator.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
@@ -50,6 +51,8 @@ libg4eval_la_SOURCES = \
   SvtxClusterEval_Dict.C \
   SvtxTrackEval.C \
   SvtxTrackEval_Dict.C \
+  SvtxVertexEval.C \
+  SvtxVertexEval_Dict.C \
   SvtxEvaluator.C \
   SvtxEvaluator_Dict.C
 
