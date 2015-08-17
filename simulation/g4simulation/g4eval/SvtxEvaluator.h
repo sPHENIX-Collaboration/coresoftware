@@ -45,6 +45,14 @@ public:
   //----------------------------------
   // evaluator output ntuples
 
+  bool _do_vertex_eval;
+  bool _do_gpoint_eval;
+  bool _do_g4hit_eval;
+  bool _do_hit_eval;
+  bool _do_cluster_eval;
+  bool _do_gtrack_eval;
+  bool _do_track_eval;
+  
   TNtuple *_ntp_vertex;
   TNtuple *_ntp_gpoint;
   TNtuple *_ntp_g4hit;
