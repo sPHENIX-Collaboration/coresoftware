@@ -142,7 +142,7 @@ int SvtxEvaluator::process_event(PHCompositeNode *topNode) {
   // print what is coming into the code
   //-----------------------------------
   
-  printInputInfo();
+  printInputInfo(topNode);
   
   //---------------------------
   // fill the Evaluator NTuples
@@ -154,7 +154,7 @@ int SvtxEvaluator::process_event(PHCompositeNode *topNode) {
   // Print out the ancestry information for this event
   //--------------------------------------------------
   
-  printOutputInfo();
+  printOutputInfo(topNode);
   
   ++_ievent;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -185,59 +185,81 @@ int SvtxEvaluator::End(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void SvtxEvaluator::printInputInfo() {
+void SvtxEvaluator::printInputInfo(PHCompositeNode *topNode) {
   
-  // if(verbosity > 1) cout << "SvtxEvaluator::fillClusterToG4hitMap() entered" << endl;
+  if (verbosity > 1) cout << "SvtxEvaluator::printInputInfo() entered" << endl;
 
-  // if(verbosity > 3)
-  //   {
-  //     // event information
-  //     cout << endl;
-  //     cout << PHWHERE << "   INPUT FOR EVENT " << _ievent << endl;
+  if (verbosity > 3) {
+    
+    // event information
+    cout << endl;
+    cout << PHWHERE << "   INPUT FOR EVENT " << _ievent << endl;
 
-  //     cout << endl;
-  //     cout << "---PHG4HITCONTAINER-------------" << endl;
-  //     unsigned int ig4hit=0;
-  //     for(HitMap::const_iterator g4hit_iter = _g4hitList.begin();
-  // 	  g4hit_iter != _g4hitList.end();
-  // 	  g4hit_iter++)
-  // 	{
-  // 	  PHG4Hit *g4hit = g4hit_iter->second;
-  // 	  cout << ig4hit << " of " << _g4hitList.size();
-  // 	  cout << ": PHG4Hit: " << g4hit << endl;
-  // 	  ++ig4hit;
-  // 	}
+    cout << endl;
+    cout << "---PHG4HITS-------------" << endl;
+    SvtxTruthEval trutheval(topNode);
+    std::set<PHG4Hit*> g4hits = trutheval.all_truth_hits();
+    unsigned int ig4hit = 0;
+    for(std::set<PHG4Hit*>::iterator iter = g4hits.begin();
+	iter != g4hits.end();
+	++iter) {
+      PHG4Hit *g4hit = *iter;
+      cout << ig4hit << " of " << g4hits.size();
+      cout << ": PHG4Hit: " << endl;
+      g4hit->identify();
+      ++ig4hit;
+    }
 
-  //     cout << "---PHG4SVTXSIMPLECLUSTERLIST-------------" << endl;
-  //     unsigned int icluster = 0;
-  //     for (SvtxClusterMap::Iter iter = _clusterList->begin();
-  // 	   iter != _clusterList->end();
-  // 	   ++iter) {
-  // 	SvtxCluster* cluster = &iter->second;
-  // 	cout << icluster << " of " << _clusterList->size();	  
-  // 	cout << ": SvtxCluster: " << cluster << endl;
-  // 	++icluster;
-  //     }
+    cout << "---SVTXCLUSTERS-------------" << endl;
+    SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
+    if (clustermap) {
+      unsigned int icluster = 0;
+      for (SvtxClusterMap::Iter iter = clustermap->begin();
+	   iter != clustermap->end();
+	   ++iter) {
+	SvtxCluster* cluster = &iter->second;
+	cout << icluster << " of " << clustermap->size();	  
+	cout << ": SvtxCluster: " << endl;
+	cluster->identify();
+	++icluster;
+      }
+    }
 
-  //     if(_trackingWasRun)
-  // 	{
-  // 	  cout << "---SVXTRACKLIST-------------" << endl;
-  // 	  for (SvtxTrackMap::Iter iter = _trackList->begin();
-  // 	       iter != _trackList->end();
-  // 	       ++iter) {
-  // 	    SvtxTrack *track = &iter->second;
-  // 	    cout << "SvtxTrack:" << endl;
-  // 	    track->identify(cout);
-  // 	    cout << endl;
-  // 	  }
-  // 	}
-
-  //   }
+    cout << "---SVXTRACKS-------------" << endl;
+    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+    if (trackmap) {
+      unsigned int itrack = 0;
+      for (SvtxTrackMap::Iter iter = trackmap->begin();
+	   iter != trackmap->end();
+	   ++iter) {
+	cout << itrack << " of " << trackmap->size();
+	SvtxTrack *track = &iter->second;
+	cout << " : SvtxTrack:" << endl;
+	track->identify();
+	cout << endl;
+      }
+    }
+    
+    cout << "---SVXVERTEXES-------------" << endl;
+    SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
+    if (vertexmap) {
+      unsigned int ivertex = 0;
+      for (SvtxVertexMap::Iter iter = vertexmap->begin();
+	   iter != vertexmap->end();
+	   ++iter) {
+	cout << ivertex << " of " << vertexmap->size();
+	SvtxVertex *vertex = &iter->second;
+	cout << " : SvtxVertex:" << endl;
+	vertex->identify();
+	cout << endl;
+      }
+    }
+  }
 
   return;
 }
 
-void SvtxEvaluator::printOutputInfo() {
+void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
   
   // if(verbosity > 1) cout << "SvtxEvaluator::printLogInfo() entered" << endl;
 

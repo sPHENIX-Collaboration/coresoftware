@@ -75,8 +75,8 @@ public:
 
   // output subroutines
   void fillOutputNtuples(PHCompositeNode* topNode); ///< dump the evaluator information into ntuple for external analysis
-  void printInputInfo();                            ///< print out the input object information (debugging upstream components)
-  void printOutputInfo();                           ///< print out the ancestry information for detailed diagnosis
+  void printInputInfo(PHCompositeNode* topNode);    ///< print out the input object information (debugging upstream components)
+  void printOutputInfo(PHCompositeNode* topNode);   ///< print out the ancestry information for detailed diagnosis
 };
 
 #endif // __SVTXEVALUATOR_H__
