@@ -131,9 +131,41 @@ PHG4VtxPoint* SvtxVertexEval::max_truth_point_by_ntracks(SvtxVertex* vertex) {
   
   return max_point;
 }
-  
+   
 std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint) {
-  return std::set<SvtxVertex*>();
+
+ if ((_do_cache) && (_cache_all_vertexes_from_point.find(truthpoint) !=
+		     _cache_all_vertexes_from_point.end())) {
+    return _cache_all_vertexes_from_point[truthpoint];
+  }
+  
+  SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(_topNode,"SvtxVertexMap");
+  if (!vertexmap) {
+    cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap" << endl;
+    exit(-1);
+  }
+
+  std::set<SvtxVertex*> all_vertexes;
+
+  // loop over all vertexes on node
+  for (SvtxVertexMap::Iter iter = vertexmap->begin();
+       iter != vertexmap->end();
+       ++iter) {
+    SvtxVertex* vertex = &iter->second;
+    std::set<PHG4VtxPoint*> points = all_truth_points(vertex);
+    for (std::set<PHG4VtxPoint*>::iterator jter = points.begin();
+	 jter != points.end();
+	 ++jter) {
+      PHG4VtxPoint* point = *jter;
+      if (point->get_id() == truthpoint->get_id()) {
+	all_vertexes.insert(vertex);
+      }
+    }
+  }
+  
+  if (_do_cache) _cache_all_vertexes_from_point.insert(make_pair(truthpoint,all_vertexes));
+  
+  return all_vertexes;
 }
 
 SvtxVertex* SvtxVertexEval::best_vertex_from(PHG4VtxPoint* truthpoint) {
