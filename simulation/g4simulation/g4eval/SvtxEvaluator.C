@@ -39,8 +39,24 @@
 using namespace std;
 
 SvtxEvaluator::SvtxEvaluator(const string &name, const string &filename) :
-  SubsysReco("SvtxEvaluator") {
-  _filename = filename;
+  SubsysReco("SvtxEvaluator"),
+  _ievent(0),
+  _do_vertex_eval(true),
+  _do_gpoint_eval(true),
+  _do_g4hit_eval(true),
+  _do_hit_eval(true),
+  _do_cluster_eval(true),
+  _do_gtrack_eval(true),
+  _do_track_eval(true),
+  _ntp_vertex(NULL),
+  _ntp_gpoint(NULL),
+  _ntp_g4hit(NULL),
+  _ntp_hit(NULL),
+  _ntp_cluster(NULL),
+  _ntp_gtrack(NULL),
+  _ntp_track(NULL),
+  _filename(filename),
+  _tfile(NULL) {
 }
 
 int SvtxEvaluator::Init(PHCompositeNode *topNode) {
@@ -49,65 +65,65 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
   
   _tfile = new TFile(_filename.c_str(), "RECREATE");
 
-  _ntp_vertex = new TNtuple("ntp_vertex","vertex => max truth",
-                           "event:vx:vy:vz:ntracks:"
-                           "gvx:gvy:gvz:gntracks:"
-                           "nfromtruth");
+  if (_do_vertex_eval) _ntp_vertex = new TNtuple("ntp_vertex","vertex => max truth",
+						 "event:vx:vy:vz:ntracks:"
+						 "gvx:gvy:gvz:gntracks:"
+						 "nfromtruth");
 
-  _ntp_gpoint = new TNtuple("ntp_gpoint","g4point => best vertex",
-			    "event:gvx:gvy:gvz:gntracks:"
-			    "vx:vy:vz:ntracks:"
-			    "nfromtruth");
+  if (_do_gpoint_eval) _ntp_gpoint = new TNtuple("ntp_gpoint","g4point => best vertex",
+						 "event:gvx:gvy:gvz:gntracks:"
+						 "vx:vy:vz:ntracks:"
+						 "nfromtruth");
   
-  _ntp_gtrack  = new TNtuple("ntp_gtrack","g4particle => best svtxtrack",
-                             "event:gtrackID:gflavor:gnhits:"
-                             "gpx:gpy:gpz:"
-                             "gvx:gvy:gvz:"
-                             "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
-                             "gembed:gprimary:"
-			     "trackID:px:py:pz:charge:quality:chisq:ndf:nhits:layers:"
-			     "dca2d:dca2dsigma:pcax:pcay:pcaz:nfromtruth");
- 
-  _ntp_g4hit = new TNtuple("ntp_g4hit","g4hit => best svtxcluster",
-                           "event:g4hitID:gx:gy:gz:gedep:"
-                           "glayer:gtrackID:gflavor:"
-                           "gpx:gpy:gpz:gvx:gvy:gvz:"
-                           "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
-			   "gembed:gprimary:nclusters:"
-			   "clusID:x:y:z:e:adc:layer:size:"
-			   "phisize:zsize:efromtruth");
+  if (_do_g4hit_eval) _ntp_g4hit = new TNtuple("ntp_g4hit","g4hit => best svtxcluster",
+					       "event:g4hitID:gx:gy:gz:gedep:"
+					       "glayer:gtrackID:gflavor:"
+					       "gpx:gpy:gpz:gvx:gvy:gvz:"
+					       "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
+					       "gembed:gprimary:nclusters:"
+					       "clusID:x:y:z:e:adc:layer:size:"
+					       "phisize:zsize:efromtruth");
 
-  _ntp_hit = new TNtuple("ntp_hit","svtxhit => max truth",
-			 "event:hitID:e:adc:layer:"
-			 "cellID:ecell:"
-			 "g4hitID:gedep:gx:gy:gz:"
-			 "gtrackID:gflavor:"
-			 "gpx:gpy:gpz:gvx:gvy:gvz:"
-			 "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
-			 "gembed:gprimary:efromtruth");
+  if (_do_hit_eval) _ntp_hit = new TNtuple("ntp_hit","svtxhit => max truth",
+					   "event:hitID:e:adc:layer:"
+					   "cellID:ecell:"
+					   "g4hitID:gedep:gx:gy:gz:"
+					   "gtrackID:gflavor:"
+					   "gpx:gpy:gpz:gvx:gvy:gvz:"
+					   "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
+					   "gembed:gprimary:efromtruth");
 
-  _ntp_cluster = new TNtuple("ntp_cluster","svtxcluster => max truth",
-                             "event:hitID:x:y:z:"
-                             "e:adc:layer:size:phisize:"
-                             "zsize:g4hitID:gx:"
-                             "gy:gz:gtrackID:gflavor:"
-                             "gpx:gpy:gpz:gvx:gvy:gvz:"
-                             "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
-                             "gembed:gprimary:nhits:efromtruth");
+  if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster","svtxcluster => max truth",
+						   "event:hitID:x:y:z:"
+						   "e:adc:layer:size:phisize:"
+						   "zsize:g4hitID:gx:"
+						   "gy:gz:gtrackID:gflavor:"
+						   "gpx:gpy:gpz:gvx:gvy:gvz:"
+						   "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
+						   "gembed:gprimary:nhits:efromtruth");
 
-  _ntp_track = new TNtuple("ntp_track","svtxtrack => max truth",
-			   "event:trackID:px:py:pz:charge:"
-			   "quality:chisq:ndf:nhits:layers:"
-			   "dca2d:dca2dsigma:pcax:pcay:pcaz:"
-			   "presdphi:presdeta:prese3x3:prese:"   
-			   "cemcdphi:cemcdeta:cemce3x3:cemce:"
-			   "hcalindphi:hcalindeta:hcaline3x3:hcaline:"
-			   "hcaloutdphi:hcaloutdeta:hcaloute3x3:hcaloute:"
-			   "gtrackID:gflavor:gnhits:"
-			   "gpx:gpy:gpz:"
-			   "gvx:gvy:gvz:"
-			   "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
-			   "gembed:gprimary:nfromtruth");
+  if (_do_gtrack_eval) _ntp_gtrack  = new TNtuple("ntp_gtrack","g4particle => best svtxtrack",
+						  "event:gtrackID:gflavor:gnhits:"
+						  "gpx:gpy:gpz:"
+						  "gvx:gvy:gvz:"
+						  "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
+						  "gembed:gprimary:"
+						  "trackID:px:py:pz:charge:quality:chisq:ndf:nhits:layers:"
+						  "dca2d:dca2dsigma:pcax:pcay:pcaz:nfromtruth");
+  
+  if (_do_track_eval) _ntp_track = new TNtuple("ntp_track","svtxtrack => max truth",
+					       "event:trackID:px:py:pz:charge:"
+					       "quality:chisq:ndf:nhits:layers:"
+					       "dca2d:dca2dsigma:pcax:pcay:pcaz:"
+					       "presdphi:presdeta:prese3x3:prese:"   
+					       "cemcdphi:cemcdeta:cemce3x3:cemce:"
+					       "hcalindphi:hcalindeta:hcaline3x3:hcaline:"
+					       "hcaloutdphi:hcaloutdeta:hcaloute3x3:hcaloute:"
+					       "gtrackID:gflavor:gnhits:"
+					       "gpx:gpy:gpz:"
+					       "gvx:gvy:gvz:"
+					       "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
+					       "gembed:gprimary:nfromtruth");
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -148,13 +164,13 @@ int SvtxEvaluator::End(PHCompositeNode *topNode) {
   
   _tfile->cd();
 
-  _ntp_vertex->Write();
-  _ntp_gpoint->Write();
-  _ntp_g4hit->Write();
-  _ntp_hit->Write();
-  _ntp_cluster->Write();
-  _ntp_gtrack->Write();
-  _ntp_track->Write();
+  if (_ntp_vertex)  _ntp_vertex->Write();
+  if (_ntp_gpoint)  _ntp_gpoint->Write();
+  if (_ntp_g4hit)   _ntp_g4hit->Write();
+  if (_ntp_hit)     _ntp_hit->Write();
+  if (_ntp_cluster) _ntp_cluster->Write();
+  if (_ntp_gtrack)  _ntp_gtrack->Write();
+  if (_ntp_track)   _ntp_track->Write();
 
   _tfile->Close();
 
@@ -626,13 +642,22 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     float gvy       = vtx->get_y();
     float gvz       = vtx->get_z();
 
+    float gfpx      = NULL;
+    float gfpy      = NULL;
+    float gfpz      = NULL;
+    float gfx       = NULL;
+    float gfy       = NULL;
+    float gfz       = NULL;
+    
     PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
-    float gfpx      = outerhit->get_px(1);
-    float gfpy      = outerhit->get_py(1);
-    float gfpz      = outerhit->get_pz(1);
-    float gfx       = outerhit->get_x(1);
-    float gfy       = outerhit->get_y(1);
-    float gfz       = outerhit->get_z(1);
+    if (outerhit) {
+      gfpx      = outerhit->get_px(1);
+      gfpy      = outerhit->get_py(1);
+      gfpz      = outerhit->get_pz(1);
+      gfx       = outerhit->get_x(1);
+      gfy       = outerhit->get_y(1);
+      gfz       = outerhit->get_z(1);
+    }
     float gembed    = trutheval->get_embed(g4particle);
     float gprimary  = trutheval->is_primary(g4particle);
 
@@ -785,13 +810,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	gvz      = vtx->get_z();
 
 	PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
-      
-	gfpx     = outerhit->get_px(1);
-	gfpy     = outerhit->get_py(1);
-	gfpz     = outerhit->get_pz(1);
-	gfx      = outerhit->get_x(1);
-	gfy      = outerhit->get_y(1);
-	gfz      = outerhit->get_z(1);
+	if (outerhit) {
+	  gfpx     = outerhit->get_px(1);
+	  gfpy     = outerhit->get_py(1);
+	  gfpz     = outerhit->get_pz(1);
+	  gfx      = outerhit->get_x(1);
+	  gfy      = outerhit->get_y(1);
+	  gfz      = outerhit->get_z(1);
+	}
 	glast    = NAN;
 	gembed   = trutheval->get_embed(g4particle);
 	gprimary = trutheval->is_primary(g4particle);
@@ -908,13 +934,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	gvz      = vtx->get_z();
 
 	PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
-      
-	gfpx     = outerhit->get_px(1);
-	gfpy     = outerhit->get_py(1);
-	gfpz     = outerhit->get_pz(1);
-	gfx      = outerhit->get_x(1);
-	gfy      = outerhit->get_y(1);
-	gfz      = outerhit->get_z(1);
+	if (outerhit) {
+	  gfpx     = outerhit->get_px(1);
+	  gfpy     = outerhit->get_py(1);
+	  gfpz     = outerhit->get_pz(1);
+	  gfx      = outerhit->get_x(1);
+	  gfy      = outerhit->get_y(1);
+	  gfz      = outerhit->get_z(1);
+	}
 	glast    = NAN;
 	gembed   = trutheval->get_embed(g4particle);
 	gprimary = trutheval->is_primary(g4particle);
@@ -988,13 +1015,23 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float gvy      = vtx->get_y();
       float gvz      = vtx->get_z();
 
-      PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	      
-      float gfpx     = outerhit->get_px(1);
-      float gfpy     = outerhit->get_py(1);
-      float gfpz     = outerhit->get_pz(1);
-      float gfx      = outerhit->get_x(1);
-      float gfy      = outerhit->get_y(1);
-      float gfz      = outerhit->get_z(1);
+      float gfpx      = NULL;
+      float gfpy      = NULL;
+      float gfpz      = NULL;
+      float gfx       = NULL;
+      float gfy       = NULL;
+      float gfz       = NULL;
+    
+      PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
+      if (outerhit) {
+	gfpx      = outerhit->get_px(1);
+	gfpy      = outerhit->get_py(1);
+	gfpz      = outerhit->get_pz(1);
+	gfx       = outerhit->get_x(1);
+	gfy       = outerhit->get_y(1);
+	gfz       = outerhit->get_z(1);
+      }
+      
       float gembed   = trutheval->get_embed(g4particle);
       float gprimary = trutheval->is_primary(g4particle);
 
@@ -1181,12 +1218,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	gvz      = vtx->get_z();
 
 	PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	      
-	gfpx     = outerhit->get_px(1);
-	gfpy     = outerhit->get_py(1);
-	gfpz     = outerhit->get_pz(1);
-	gfx      = outerhit->get_x(1);
-	gfy      = outerhit->get_y(1);
-	gfz      = outerhit->get_z(1);
+	if (outerhit) {
+	  gfpx     = outerhit->get_px(1);
+	  gfpy     = outerhit->get_py(1);
+	  gfpz     = outerhit->get_pz(1);
+	  gfx      = outerhit->get_x(1);
+	  gfy      = outerhit->get_y(1);
+	  gfz      = outerhit->get_z(1);
+	}
 	gembed   = trutheval->get_embed(g4particle);
 	gprimary = trutheval->is_primary(g4particle);
 

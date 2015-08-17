@@ -1,6 +1,10 @@
 #include "PHG4TrackGhostRejection.h"
 
-// PHENIX includes
+#include "SvtxVertexMap.h"
+#include "SvtxVertex.h"
+#include "SvtxTrackMap.h"
+#include "SvtxTrack.h"
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHTypedNodeIterator.h>
@@ -8,11 +12,6 @@
 #include <phool/PHIODataNode.h>
 #include <fun4all/getClass.h>
 
-// PHENIX Geant4 includes
-#include <SvtxTrackMap.h>
-#include <SvtxTrack.h>
-
-// standard includes
 #include <iostream>
 #include <algorithm>
 
@@ -178,6 +177,8 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
   // Remove the ghost tracks
   //------------------------
 
+  SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  
   int initial_size = _g4tracks->size();
 
   // loop over container and delete!
@@ -186,6 +187,15 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
       // look for the track to delete
       if (_g4tracks->find(_candidates[i].trackid) != _g4tracks->end()) {
 	_g4tracks->erase(_candidates[i].trackid);
+
+	// also remove the track id from any vertex that contains this track
+	if (!vertexmap) continue;
+	for (SvtxVertexMap::Iter iter = vertexmap->begin();
+	     iter != vertexmap->end();
+	     ++iter) {
+	  SvtxVertex* vertex = &iter->second;
+	  vertex->erase_track(_candidates[i].trackid);
+	}
       }
     }
   }
