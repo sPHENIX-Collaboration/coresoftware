@@ -45,7 +45,8 @@ public:
   //----------------------------------
   // evaluator output ntuples
 
-  TNtuple *_ntp_event;
+  TNtuple *_ntp_vertex;
+  TNtuple *_ntp_gpoint;
   TNtuple *_ntp_g4hit;
   TNtuple *_ntp_hit;
   TNtuple *_ntp_cluster;

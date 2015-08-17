@@ -1,6 +1,7 @@
 
 #include "SvtxEvaluator.h"
 
+#include "SvtxVertexEval.h"
 #include "SvtxTrackEval.h"
 #include "SvtxClusterEval.h"
 #include "SvtxHitEval.h"
@@ -48,13 +49,18 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
   
   _tfile = new TFile(_filename.c_str(), "RECREATE");
 
-  _ntp_event = new TNtuple("ntp_event","event-wise ntuple",
-                           "event:vx:vy:vz:"
-                           "gvx:gvy:gvz:ntracks:ngtracks:"
-                           "nclusters:ng4hits");
+  _ntp_vertex = new TNtuple("ntp_vertex","vertex => max truth",
+                           "event:vx:vy:vz:ntracks:"
+                           "gvx:gvy:gvz:gntracks:"
+                           "nfromtruth");
 
+  _ntp_gpoint = new TNtuple("ntp_gpoint","g4point => best vertex",
+			    "event:gvx:gvy:gvz:gntracks:"
+			    "vx:vy:vz:ntracks:"
+			    "nfromtruth");
+  
   _ntp_gtrack  = new TNtuple("ntp_gtrack","g4particle => best svtxtrack",
-                             "event:gtrackID:gflavor:ng4hits:"
+                             "event:gtrackID:gflavor:gnhits:"
                              "gpx:gpy:gpz:"
                              "gvx:gvy:gvz:"
                              "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
@@ -97,7 +103,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 			   "cemcdphi:cemcdeta:cemce3x3:cemce:"
 			   "hcalindphi:hcalindeta:hcaline3x3:hcaline:"
 			   "hcaloutdphi:hcaloutdeta:hcaloute3x3:hcaloute:"
-			   "gtrackID:gflavor:ng4hits:"
+			   "gtrackID:gflavor:gnhits:"
 			   "gpx:gpy:gpz:"
 			   "gvx:gvy:gvz:"
 			   "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
@@ -142,7 +148,8 @@ int SvtxEvaluator::End(PHCompositeNode *topNode) {
   
   _tfile->cd();
 
-  _ntp_event->Write();
+  _ntp_vertex->Write();
+  _ntp_gpoint->Write();
   _ntp_g4hit->Write();
   _ntp_hit->Write();
   _ntp_cluster->Write();
@@ -497,77 +504,99 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
   SvtxTruthEval otrutheval(topNode);
   SvtxTruthEval* trutheval = &otrutheval;
-  
-  SvtxTrackEval otrackeval(topNode);
-  SvtxTrackEval* trackeval = &otrackeval;
-  SvtxClusterEval* clustereval = trackeval->get_cluster_eval();
-  SvtxHitEval* hiteval = trackeval->get_hit_eval();
-  
-  //----------------------
-  // fill the Event NTuple
-  //----------------------
 
-  float vx = NAN;
-  float vy = NAN;
-  float vz = NAN;
+  SvtxVertexEval overtexeval(topNode);
+  SvtxVertexEval* vertexeval = &overtexeval;
+  SvtxTrackEval* trackeval = vertexeval->get_track_eval();
+  SvtxClusterEval* clustereval = vertexeval->get_cluster_eval();
+  SvtxHitEval* hiteval = vertexeval->get_hit_eval();
+  
+  //-----------------------
+  // fill the Vertex NTuple
+  //-----------------------
 
   SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
-  
-  if (vertexmap) {
-    if (!vertexmap->empty()) {
-      SvtxVertex* vertex = &(vertexmap->begin()->second);      
-      vx = vertex->get_x();
-      vy = vertex->get_y();
-      vz = vertex->get_z();
+  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+  if (vertexmap && truthinfo) {
+    for (SvtxVertexMap::Iter iter = vertexmap->begin();
+	 iter != vertexmap->end();
+	 ++iter) {
+      SvtxVertex* vertex = &iter->second;
+      PHG4VtxPoint* point = vertexeval->max_truth_point_by_ntracks(vertex);
+
+      float vx         = vertex->get_x();
+      float vy         = vertex->get_y();
+      float vz         = vertex->get_z();
+      float ntracks    = vertex->size_tracks();
+      float gvx        = point->get_x();
+      float gvy        = point->get_y();
+      float gvz        = point->get_z();
+      float gntracks   = truthinfo->GetNumPrimaryVertexParticles();
+      float nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
+      
+      float event_data[10] = {_ievent,
+			      vx,
+			      vy,
+			      vz,
+			      ntracks,
+			      gvx,
+			      gvy,
+			      gvz,
+			      gntracks,
+			      nfromtruth
+      };
+
+      _ntp_vertex->Fill(event_data);      
     }
   }
 
-  float gvx = NAN;
-  float gvy = NAN;
-  float gvz = NAN;
-  float ngtracks = NAN;
-  
-  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
-  if (truthinfo) {
-    PHG4VtxPoint *gvertex = truthinfo->GetPrimaryVtx( truthinfo->GetPrimaryVertexIndex() );
-    gvx = gvertex->get_x();
-    gvy = gvertex->get_y();
-    gvz = gvertex->get_z();
-    ngtracks = truthinfo->GetPrimaryMap().size();
+  //-----------------------
+  // fill the gpoint NTuple
+  //-----------------------
+
+  if (vertexmap && truthinfo) {
+    PHG4VtxPoint* point = truthinfo->GetPrimaryVtx(truthinfo->GetVtxRange().first->second->get_id());
+    SvtxVertex* vertex = vertexeval->best_vertex_from(point);
+    
+    float gvx        = point->get_x();
+    float gvy        = point->get_y();
+    float gvz        = point->get_z();
+    float gntracks   = truthinfo->GetNumPrimaryVertexParticles();
+    float vx         = NAN;
+    float vy         = NAN;
+    float vz         = NAN;
+    float ntracks    = NAN;
+    float nfromtruth = NAN;
+
+    if (vertex) {
+      vx         = vertex->get_x();
+      vy         = vertex->get_y();
+      vz         = vertex->get_z();
+      ntracks    = vertex->size_tracks();
+      nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
+    }
+	
+    float gpoint_data[10] = {_ievent,
+			     gvx,
+			     gvy,
+			     gvz,
+			     gntracks,
+			     vx,
+			     vy,
+			     vz,
+			     ntracks,
+			     nfromtruth
+    };
+
+    _ntp_gpoint->Fill(gpoint_data);      
   }
-
-  std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits();
-  float ng4hits  = g4hits.size();
-  
-  float nclusters = NAN;
-  SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
-  if (clustermap) nclusters = clustermap->size();
-
-  float ntracks = NAN;
-  SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
-  if (trackmap) ntracks = trackmap->size();
-
-  float event_data[11] = {_ievent,
-                          vx,
-                          vy,
-                          vz,
-                          gvx,
-                          gvy,
-                          gvz,
-                          ntracks,
-                          ngtracks,
-                          nclusters,
-                          ng4hits
-  };
-
-  _ntp_event->Fill(event_data);
 
   //---------------------
   // fill the G4hit NTuple
   //---------------------
 
   unsigned int i = 0;
-  //std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits();
+  std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits();
   for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
        iter != g4hits.end();
        ++iter) {
@@ -811,7 +840,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //------------------------
 
   // need things off of the DST...
-  //SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
+  SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
   if (clustermap) {
 
     for (SvtxClusterMap::Iter iter = clustermap->begin();
@@ -1062,7 +1091,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //------------------------
 
   // need things off of the DST...
-
+  SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
   if (trackmap) {
 
     for (SvtxTrackMap::Iter iter = trackmap->begin();
