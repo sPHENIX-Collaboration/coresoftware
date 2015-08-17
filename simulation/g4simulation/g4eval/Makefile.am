@@ -9,15 +9,9 @@ INCLUDES = \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
-   libg4eval_io.la \
    libg4eval.la
 
 AM_CXXFLAGS = -Wall -Werror -msse2
-
-libg4eval_io_la_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  -lphool
 
 libg4eval_la_LDFLAGS = \
   -L$(libdir) \
@@ -27,23 +21,20 @@ libg4eval_la_LDFLAGS = \
   -lg4hough \
   -lHelixHough \
   -lFitNewton \
-  -lcemc \
-  libg4eval_io.la
+  -lcemc 
 
 pkginclude_HEADERS = \
   PHG4Evaluator.h \
   PHG4CalEvaluator.h \
   PHG4DSTReader.h \
-  EvalLinks.h \
-  EvalLinksV1.h
+  SvtxTruthEval.h \
+  SvtxHitEval.h \
+  SvtxClusterEval.h \
+  SvtxTrackEval.h \
+  SvtxVertexEval.h \
+  SvtxEvaluator.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
-
-libg4eval_io_la_SOURCES = \
-  EvalLinks.C \
-  EvalLinks_Dict.C \
-  EvalLinksV1.C \
-  EvalLinksV1_Dict.C
 
 libg4eval_la_SOURCES = \
   PHG4Evaluator.C \
@@ -51,7 +42,19 @@ libg4eval_la_SOURCES = \
   PHG4CalEvaluator.C \
   PHG4CalEvaluator_Dict.C \
   PHG4DSTReader.cc \
-  PHG4DSTReader_Dict.C
+  PHG4DSTReader_Dict.C \
+  SvtxTruthEval.C \
+  SvtxTruthEval_Dict.C \
+  SvtxHitEval.C \
+  SvtxHitEval_Dict.C \
+  SvtxClusterEval.C \
+  SvtxClusterEval_Dict.C \
+  SvtxTrackEval.C \
+  SvtxTrackEval_Dict.C \
+  SvtxVertexEval.C \
+  SvtxVertexEval_Dict.C \
+  SvtxEvaluator.C \
+  SvtxEvaluator_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
@@ -69,7 +72,6 @@ BUILT_SOURCES = \
   testexternals.C
 
 testexternals_LDADD = \
-  libg4eval_io.la \
   libg4eval.la
 
 testexternals.C:
