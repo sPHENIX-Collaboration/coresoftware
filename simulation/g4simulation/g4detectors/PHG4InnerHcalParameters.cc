@@ -11,7 +11,7 @@ PHG4InnerHcalParameters::PHG4InnerHcalParameters():
   n_scinti_plates(5 * 64),
   n_scinti_tiles(11),
   scinti_tile_thickness(0.7*cm),
-  scinti_gap_neighbor(0.2*cm),
+  scinti_gap_neighbor(0.1*cm),
   scinti_eta_coverage(1.1),
   place_in_x(0 * cm),
   place_in_y(0 * cm),
