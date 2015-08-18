@@ -261,277 +261,272 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode *topNode) {
 
 void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
   
-  // if(verbosity > 1) cout << "SvtxEvaluator::printLogInfo() entered" << endl;
+  if (verbosity > 1) cout << "SvtxEvaluator::printLogInfo() entered" << endl;
 
-  // //==========================================
-  // // print out some useful stuff for debugging
-  // //==========================================
+  //==========================================
+  // print out some useful stuff for debugging
+  //==========================================
 
-  // if(verbosity > 0)
-  //   {
-  //     // event information
-  //     cout << endl;
-  //     cout << PHWHERE << "   NEW OUTPUT FOR EVENT " << _ievent << endl;
-  //     cout << endl;
+  SvtxTruthEval otrutheval(topNode);
+  SvtxTruthEval* trutheval = &otrutheval;
 
-  //     PHG4VtxPoint *gvertex = _truth_info_container->GetPrimaryVtx( _truth_info_container->GetPrimaryVertexIndex() );
-  //     float gvx = gvertex->get_x();
-  //     float gvy = gvertex->get_y();
-  //     float gvz = gvertex->get_z();
-
-  //     float vx = NAN;
-  //     float vy = NAN;
-  //     float vz = NAN;
-  //     if (_vertexList) {
-  // 	if (!_vertexList->empty()) {
-  // 	  SvtxVertex* vertex = &(_vertexList->begin()->second);
-	
-  // 	  vx = vertex->get_x();
-  // 	  vy = vertex->get_y();
-  // 	  vz = vertex->get_z();
-  // 	}
-  //     }
-
-  //     cout << "===Vertex Reconstruction=======================" << endl;
-  //     cout << "vtrue = (" << gvx << "," << gvy << "," << gvz << ") => vreco = (" << vx << "," << vy << "," << vz << ")" << endl;
-  //     cout << endl;
-
-  //     cout << "===Tracking Summary============================" << endl;
-  //     unsigned int ng4hits[10] = {0};
-  //     for(unsigned int ilayer=0; ilayer<_nlayers; ++ilayer)
-  // 	{
-  // 	  for(HitMap::const_iterator g4hit_iter = _g4hitList.begin();
-  // 	      g4hit_iter != _g4hitList.end();
-  // 	      g4hit_iter++)
-  // 	    {
-  // 	      PHG4Hit *g4hit = g4hit_iter->second;
-  // 	      if (g4hit->get_layer() == ilayer) ++ng4hits[ilayer];
-  // 	    }
-  // 	}
-
-  //     unsigned int nclusters[10] = {0};
-  //     for (SvtxClusterMap::Iter iter = _clusterList->begin();
-  // 	   iter != _clusterList->end();
-  // 	   ++iter) {
-
-  // 	SvtxCluster* cluster = &iter->second;
-  // 	++nclusters[cluster->get_layer()];
-  //     }
-
-  //     for(unsigned int ilayer=0; ilayer<_nlayers; ++ilayer) {
-  // 	cout << "layer " << ilayer << ": nG4hits = " << ng4hits[ilayer]
-  // 	     << " => nCells = " << _nhits_per_layer[ilayer]
-  // 	     << " => nClusters = " << nclusters[ilayer] << endl;
-  //     }
-    
-  //     cout << "nGtracks = " << _gtrack_list.size();
-  //     cout << " => nTracks = ";
-  //     if(_trackingWasRun) 
-  // 	{
-  // 	  cout << _trackList->size() << endl;
-  // 	}
-  //     else
-  // 	{
-  // 	  cout << 0 << endl;
-  // 	}
-
-  //     // cluster wise information
-  //     if(verbosity > 1)
-  // 	{
- 
-  // 	  unsigned int ig4hit=0;
-  // 	  for(HitMap::const_iterator g4hit_iter = _g4hitList.begin();
-  // 	      g4hit_iter != _g4hitList.end();
-  // 	      g4hit_iter++)
-  // 	    {
-  // 	      PHG4Hit *g4hit = g4hit_iter->second;
-
-  // 	      cout << endl;
-  // 	      cout << "===PHG4Hit===================================" << endl;
-  // 	      cout << " PHG4Hit: " << g4hit;
+  SvtxVertexEval overtexeval(topNode);
+  SvtxVertexEval* vertexeval = &overtexeval;
+  SvtxTrackEval* trackeval = vertexeval->get_track_eval();
+  SvtxClusterEval* clustereval = vertexeval->get_cluster_eval();
+  //SvtxHitEval* hiteval = vertexeval->get_hit_eval();
   
-  // 	      typedef multimap<PHG4Hit*,SvtxCluster*>::iterator mapiter2;
-  // 	      typedef pair<mapiter2,mapiter2> maprange2;
-  // 	      maprange2 therange2 = _allg4hits_cluster_mmap.equal_range( g4hit );
-  // 	      for(mapiter2 theiter2=therange2.first; theiter2!=therange2.second; theiter2++) 
-  // 		{
-  // 		  SvtxCluster *cluster = theiter2->second;	  
-  // 		  cout << "===Created-SvtxCluster================" << endl;      
-  // 		  cout << "SvtxCluster: "; cluster->identify();
-  // 		}
+  if (verbosity > 0) {
+    // event information
+    cout << endl;
+    cout << PHWHERE << "   NEW OUTPUT FOR EVENT " << _ievent << endl;
+    cout << endl;
 
-  // 	      ++ig4hit;
-  // 	    } 
-  // 	}
+    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+    
+    PHG4VtxPoint *gvertex = truthinfo->GetPrimaryVtx( truthinfo->GetPrimaryVertexIndex() );
+    float gvx = gvertex->get_x();
+    float gvy = gvertex->get_y();
+    float gvz = gvertex->get_z();
+
+    float vx = NAN;
+    float vy = NAN;
+    float vz = NAN;
+
+    SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");    
+    if (vertexmap) {
+      if (!vertexmap->empty()) {
+	SvtxVertex* vertex = &(vertexmap->begin()->second);
+	
+	vx = vertex->get_x();
+	vy = vertex->get_y();
+	vz = vertex->get_z();
+      }
+    }
+
+    cout << "===Vertex Reconstruction=======================" << endl;
+    cout << "vtrue = (" << gvx << "," << gvy << "," << gvz << ") => vreco = (" << vx << "," << vy << "," << vz << ")" << endl;
+    cout << endl;
+
+    cout << "===Tracking Summary============================" << endl;
+    unsigned int ng4hits[100] = {0};
+    std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits();
+    for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
+	 iter != g4hits.end();
+	 ++iter) {
+      PHG4Hit *g4hit = *iter;
+      ++ng4hits[g4hit->get_layer()];
+    }
+
+    SvtxHitMap* hitmap = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
+    unsigned int nhits[100] = {0};
+    if (hitmap) {
+      for (SvtxHitMap::Iter iter = hitmap->begin();
+	   iter != hitmap->end();
+	   ++iter) {
+	SvtxHit* hit = &iter->second;
+	++nhits[hit->get_layer()];
+      }
+    }
+    
+    SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
+    unsigned int nclusters[100] = {0};
+    if (clustermap) {
+      for (SvtxClusterMap::Iter iter = clustermap->begin();
+	   iter != clustermap->end();
+	   ++iter) {
+	SvtxCluster* cluster = &iter->second;
+	++nclusters[cluster->get_layer()];
+      }
+    }
+
+    for (unsigned int ilayer = 0; ilayer < 100; ++ilayer) {
+      cout << "layer " << ilayer << ": nG4hits = " << ng4hits[ilayer]
+	   << " => nHits = " << nhits[ilayer]
+	   << " => nClusters = " << nclusters[ilayer] << endl;
+    }
+
+    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+    
+    cout << "nGtracks = " << truthinfo->GetPrimaryMap().size();
+    cout << " => nTracks = ";
+    if (trackmap) cout << trackmap->size() << endl;
+    else cout << 0 << endl;
+
+    // cluster wise information
+    if (verbosity > 1) {
+ 
+      for(std::set<PHG4Hit*>::iterator iter = g4hits.begin();
+	  iter != g4hits.end();
+	  ++iter) {
+	PHG4Hit *g4hit = *iter;
+
+	cout << endl;
+        cout << "===PHG4Hit===================================" << endl;
+	cout << " PHG4Hit: "; g4hit->identify();
+
+	std::set<SvtxCluster*> clusters = clustereval->all_clusters_from(g4hit);
+
+	for (std::set<SvtxCluster*>::iterator jter = clusters.begin();
+	     jter != clusters.end();
+	     ++jter) {
+	  SvtxCluster *cluster = *jter;
+	  cout << "===Created-SvtxCluster================" << endl;      
+	  cout << "SvtxCluster: "; cluster->identify();
+	}
+      }
+
+      PHG4TruthInfoContainer::Map primarymap = truthinfo->GetPrimaryMap();
+      for (PHG4TruthInfoContainer::Iterator iter = primarymap.begin();
+	   iter != primarymap.end();
+	   ++iter) {
       
-  //     for(unsigned igtrack = 0; igtrack < _gtrack_list.size(); igtrack++)
-  // 	{
-  // 	  SvxGtrack *gtrack = &_gtrack_list[igtrack];
+	PHG4Particle *particle = iter->second;
 
-  // 	  // don't print out the non-primary tracks
-  // 	  if (!gtrack->get_primary()) continue;
-	  
-  // 	  // track-wise information
-  // 	  cout << endl;
+	// track-wise information
+	cout << endl;
 
-  // 	  cout << "=== Gtrack ===================================================" << endl;
-  // 	  cout << " Gtrack id = " << gtrack->get_track_id() << endl;
-  // 	  cout << " match = " << gtrack->get_standalone_match() << endl;
-  // 	  cout << " best purity = " << gtrack->get_best_purity() << endl;
-  // 	  cout << " best dp/p = " << gtrack->get_best_dpp() << endl;
+	cout << "=== Gtrack ===================================================" << endl;
+	cout << " PHG4Particle id = " << particle->get_track_id() << endl;
+	particle->identify();
+	cout << " ptrue = (";
+	cout.width(5); cout << particle->get_px();
+	cout << ",";
+	cout.width(5); cout << particle->get_py();
+	cout << ",";
+	cout.width(5); cout << particle->get_pz();
+	cout << ")" << endl;
 
-  // 	  cout << " PHG4Particle: ";
-  // 	  gtrack->get_particle()->identify(cout);
-  // 	  cout << " ptrue = (";
-  // 	  cout.width(5); cout << gtrack->get_px();
-  // 	  cout << ",";
-  // 	  cout.width(5); cout << gtrack->get_py();
-  // 	  cout << ",";
-  // 	  cout.width(5); cout << gtrack->get_pz();
-  // 	  cout << ")" << endl;
+	cout << " vtrue = (";
+	cout.width(5); cout << truthinfo->GetVtx(particle->get_vtx_id())->get_x();
+	cout << ",";
+	cout.width(5); cout << truthinfo->GetVtx(particle->get_vtx_id())->get_y();
+	cout << ",";
+	cout.width(5); cout << truthinfo->GetVtx(particle->get_vtx_id())->get_z();
+	cout << ")" << endl;
+	  
+	cout << " pt = " << sqrt(pow(particle->get_px(),2)+pow(particle->get_py(),2)) << endl;
+	cout << " phi = " << atan2(particle->get_py(),particle->get_px()) << endl;
+	cout << " eta = " << asinh(particle->get_pz()/sqrt(pow(particle->get_px(),2)+pow(particle->get_py(),2))) << endl;
+	  
+	cout << " embed flag = " << truthinfo->isEmbeded(particle->get_track_id()) << endl;
 
-  // 	  cout << " vtrue = (";
-  // 	  cout.width(5); cout << gtrack->get_vx();
-  // 	  cout << ",";
-  // 	  cout.width(5); cout << gtrack->get_vy();
-  // 	  cout << ",";
-  // 	  cout.width(5); cout << gtrack->get_vz();
-  // 	  cout << ")" << endl;
-	  
-  // 	  cout << " pt = " << sqrt(pow(gtrack->get_px(),2)+pow(gtrack->get_py(),2)) << endl;
-  // 	  cout << " phi = " << atan2(gtrack->get_py(),gtrack->get_px()) << endl;
-  // 	  cout << " eta = " << asinh(gtrack->get_pz()/sqrt(pow(gtrack->get_px(),2)+pow(gtrack->get_py(),2))) << endl;
-	  
-  // 	  cout << " chi^2 = " << gtrack->get_chisq() << endl;
-  // 	  cout << " chi^2 w/ vertex = " << gtrack->get_chisqv() << endl;
-  // 	  cout << " embed flag = " << gtrack->get_embed() << endl;
-  // 	  cout << " primary flag = " << gtrack->get_primary() << endl;
-  // 	  cout << " ---Associated-PHG4Hits-----------------------------------------" << endl;
-	  
-  // 	  for(unsigned int ig4hit = 0; ig4hit < gtrack->get_ng4hits(); ig4hit++)
-  // 	    {
-  // 	      PHG4Hit *g4hit = gtrack->get_g4hit(ig4hit);
+	cout << " ---Associated-PHG4Hits-----------------------------------------" << endl;
+	std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits(particle);
+	for(std::set<PHG4Hit*>::iterator jter = g4hits.begin();
+	    jter != g4hits.end();
+	    ++jter) {
+	  PHG4Hit *g4hit = *jter;
+
+	  float x = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
+	  float y = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
+	  float z = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
 	      
-  // 	      float x = g4hit->get_x(0);
-  // 	      float y = g4hit->get_y(0);
-  // 	      float z = g4hit->get_z(0);
-	      
-  // 	      cout << " #" << g4hit->get_hit_id() << " xtrue = (";
-  // 	      cout.width(5); cout << x;
-  // 	      cout << ",";
-  // 	      cout.width(5); cout << y;
-  // 	      cout << ",";
-  // 	      cout.width(5); cout << z;
-  // 	      cout << ")";
+	  cout << " #" << g4hit->get_hit_id() << " xtrue = (";
+	  cout.width(5); cout << x;
+	  cout << ",";
+	  cout.width(5); cout << y;
+	  cout << ",";
+	  cout.width(5); cout << z;
+	  cout << ")";
 
-  // 	      typedef multimap<PHG4Hit*,SvtxCluster*>::iterator mapiter2;
-  // 	      typedef pair<mapiter2,mapiter2> maprange2;
-  // 	      maprange2 therange2 = _allg4hits_cluster_mmap.equal_range( g4hit );
-  // 	      for(mapiter2 theiter2=therange2.first; theiter2!=therange2.second; theiter2++) 
-  // 		{
-  // 		  SvtxCluster *cluster = theiter2->second;
+	  std::set<SvtxCluster*> clusters = clustereval->all_clusters_from(g4hit);
+	  for (std::set<SvtxCluster*>::iterator kter = clusters.begin();
+	       kter != clusters.end();
+	       ++kter) {
+	  
+	    SvtxCluster *cluster = *kter;
 
-  // 		  float x = cluster->get_x();
-  // 		  float y = cluster->get_y();
-  // 		  float z = cluster->get_z();
+	    float x = cluster->get_x();
+	    float y = cluster->get_y();
+	    float z = cluster->get_z();
 		 
-  // 		  cout << " => #" << cluster->get_id(); 
-  // 		  cout << " xreco = (";
-  // 		  cout.width(5); cout << x;
-  // 		  cout << ",";
-  // 		  cout.width(5); cout << y;
-  // 		  cout << ",";
-  // 		  cout.width(5); cout << z;
-  // 		  cout << ")";
-  // 		}
+	    cout << " => #" << cluster->get_id(); 
+	    cout << " xreco = (";
+	    cout.width(5); cout << x;
+	    cout << ",";
+	    cout.width(5); cout << y;
+	    cout << ",";
+	    cout.width(5); cout << z;
+	    cout << ")";
+	  }
 
-  // 	      cout << endl;
-  // 	    }
+	  cout << endl;
+	}
 
-  // 	  if(_trackingWasRun)
-  // 	    {
-  // 	      typedef multimap<SvxGtrack*,SvtxTrack*>::iterator mapiter;
-  // 	      typedef pair<mapiter,mapiter> maprange;
-  // 	      maprange therange = _gtrack_track_mmap.equal_range( gtrack );
-  // 	      for(mapiter theiter=therange.first; theiter!=therange.second; theiter++) 
-  // 		{
-  // 		  SvtxTrack *track = theiter->second;
+	if (trackmap&&clustermap) {
 
-  // 		  float px = track->get3Momentum(0);
-  // 		  float py = track->get3Momentum(1);
-  // 		  float pz = track->get3Momentum(2);
-
-  // 		  cout << "===Created-SvtxTrack==========================================" << endl;
-  // 		  cout << " SvtxTrack id = " << track->getTrackID() << endl;
-  // 		  cout << " preco = (";
-  // 		  cout.width(5); cout << px;
-  // 		  cout << ",";
-  // 		  cout.width(5); cout << py;
-  // 		  cout << ",";
-  // 		  cout.width(5); cout << pz;
-  // 		  cout << ")" << endl;
-  // 		  cout << " quality = " << track->getQuality() << endl;
-  // 		  cout << " purity = " << _track_purity_map[track] << endl;
-
-  // 		  cout << " ---Associated-SvtxClusters-to-PHG4Hits-------------------------" << endl;
+	  std::set<SvtxTrack*> tracks = trackeval->all_tracks_from(particle);
+	  for (std::set<SvtxTrack*>::iterator jter = tracks.begin();
+	       jter != tracks.end();
+	       ++jter) {
 	  
-  // 		  // loop over the associated track clusters
-  // 		  typedef multimap<SvtxTrack*,SvtxCluster*>::iterator mapiterS2C;
-  // 		  typedef pair<mapiterS2C,mapiterS2C> maprangeS2C;
-  // 		  maprangeS2C rangeS2C = _track_cluster_mmap.equal_range( track );
-  // 		  for(mapiterS2C iterS2C = rangeS2C.first; iterS2C != rangeS2C.second; iterS2C++) 
-  // 		    {
-  // 		      SvtxCluster *cluster = iterS2C->second;
-		  
-  // 		      float x = cluster->get_x();
-  // 		      float y = cluster->get_y();
-  // 		      float z = cluster->get_z();
-			  
-  // 		      cout << " #" << cluster->get_id() << " xreco = (";
-  // 		      cout.width(5); cout << x;
-  // 		      cout << ",";
-  // 		      cout.width(5); cout << y;
-  // 		      cout << ",";
-  // 		      cout.width(5); cout << z;
-  // 		      cout << ") =>";
-			  
-  // 		      typedef multimap<SvtxCluster*,PHG4Hit*>::const_iterator mmapiter;
-  // 		      pair<mmapiter,mmapiter> hitrange = _cluster_allg4hits_mmap.equal_range(cluster);
-  // 		      for(mmapiter hititer = hitrange.first;
-  // 			  hititer!=hitrange.second;
-  // 			  hititer++) {
-  // 			PHG4Hit *g4hit = hititer->second;
-			
-  // 			if (g4hit->get_trkid() == gtrack->get_track_id()) {
-			  
-  // 			  if (g4hit) {
-  // 			    x = g4hit->get_x(0);
-  // 			    y = g4hit->get_y(0);
-  // 			    z = g4hit->get_z(0);
-			    
-  // 			    cout << " #" << g4hit->get_hit_id()
-  // 				 << " xtrue = (";
-  // 			    cout.width(5); cout << x;
-  // 			    cout << ",";
-  // 			    cout.width(5); cout << y;
-  // 			    cout << ",";
-  // 			    cout.width(5); cout << z;
-  // 			    cout << ") => Gtrack id = " << g4hit->get_trkid();
-  // 			    break; // print only the first match
-  // 			  } else {
-  // 			    cout << " noise hit";
-  // 			  }
-  // 			} 
-  // 		      }
-  // 		      cout << endl;
-  // 		    }
-  // 		}
-  // 	    }
-  // 	}
-      
-  //     cout << endl;
+	    SvtxTrack *track = *jter;
 
-  //   } // if verbosity
+	    float px = track->get3Momentum(0);
+	    float py = track->get3Momentum(1);
+	    float pz = track->get3Momentum(2);
+
+	    cout << "===Created-SvtxTrack==========================================" << endl;
+	    cout << " SvtxTrack id = " << track->getTrackID() << endl;
+	    cout << " preco = (";
+	    cout.width(5); cout << px;
+	    cout << ",";
+	    cout.width(5); cout << py;
+	    cout << ",";
+	    cout.width(5); cout << pz;
+	    cout << ")" << endl;
+	    cout << " quality = " << track->getQuality() << endl;
+	    cout << " nfromtruth = " << trackeval->get_nclusters_contribution(track,particle) << endl;
+
+	    cout << " ---Associated-SvtxClusters-to-PHG4Hits-------------------------" << endl;    
+
+	    for (unsigned int ilayer = 0; ilayer < 100; ++ilayer) {
+	      if (!track->hasCluster(ilayer)) continue;
+
+	      SvtxCluster* cluster = clustermap->get(track->getClusterID(ilayer));
+	      		  
+	      float x = cluster->get_x();
+	      float y = cluster->get_y();
+	      float z = cluster->get_z();
+			  
+	      cout << " #" << cluster->get_id() << " xreco = (";
+	      cout.width(5); cout << x;
+	      cout << ",";
+	      cout.width(5); cout << y;
+	      cout << ",";
+	      cout.width(5); cout << z;
+	      cout << ") =>";
+
+	      PHG4Hit* g4hit = clustereval->max_truth_hit_by_energy(cluster);
+	      if ((g4hit) && (g4hit->get_trkid() == particle->get_track_id())) {
+			  
+		x = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
+		y = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
+		z = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
+			    
+		cout << " #" << g4hit->get_hit_id()
+		     << " xtrue = (";
+		cout.width(5); cout << x;
+		cout << ",";
+		cout.width(5); cout << y;
+		cout << ",";
+		cout.width(5); cout << z;
+		cout << ") => Gtrack id = " << g4hit->get_trkid();
+	      } else {
+		cout << " noise hit";
+	      }
+	    }
+  
+	    cout << endl;
+	  }
+	}
+      }
+    }
+      
+    cout << endl;
+
+  } // if verbosity
 
   return;
 }
