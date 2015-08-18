@@ -43,7 +43,7 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, const std::
   scinti_tile_z(steel_plate_z),
   scinti_gap(8.5*mm),
   scinti_eta_coverage(1.1),
-  scinti_gap_neighbor(2*mm),
+  scinti_gap_neighbor(1*mm),
   n_scinti_tiles(11),
   gap_between_tiles(2*mm),
   envelope_inner_radius(1780*mm),
