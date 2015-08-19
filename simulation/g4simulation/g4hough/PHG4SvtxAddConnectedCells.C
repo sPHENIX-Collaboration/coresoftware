@@ -39,21 +39,16 @@ bool PHG4SvtxAddConnectedCells::lessthan(const PHG4CylinderCell* lhs,
   return false;
 }
 
-PHG4SvtxAddConnectedCells::PHG4SvtxAddConnectedCells(const char* name) :
+PHG4SvtxAddConnectedCells::PHG4SvtxAddConnectedCells(const string &name) :
   SubsysReco(name),
+  connected_phi_offset(128), // offset in phi bins for connected cells
   _cells(NULL),
   _geom_container(NULL),
   _timer(PHTimeServer::get()->insert_new(name)) {
 
-  for(int i=0;i<20;i++)
-    ncells_connected[i] = 0;
+  memset(ncells_connected,0,sizeof(ncells_connected));
 
   // Default values. Override using the setters if desired
-  connected_phi_offset = 128; // offset in phi bins for connected cells
-  ncells_connected[0] = 0;
-  ncells_connected[1] = 0;
-  ncells_connected[2] = 0;
-  ncells_connected[3] = 0;
   ncells_connected[4] = 2;
   ncells_connected[5] = 2;
   ncells_connected[6] = 5;
@@ -67,29 +62,15 @@ PHG4SvtxAddConnectedCells::PHG4SvtxAddConnectedCells(const char* name) :
 
 int PHG4SvtxAddConnectedCells::InitRun(PHCompositeNode* topNode) {
 
-  PHNodeIterator iter(topNode);
-
-  // Looking for the DST node
-  PHCompositeNode *dstNode 
-    = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
-  if (!dstNode) {
-    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-  
   // get the SVX geometry object
-  _geom_container = 0;
-  PHTypedNodeIterator<PHG4CylinderCellGeomContainer> geomiter(topNode);
-  PHIODataNode<PHG4CylinderCellGeomContainer>* PHG4CylinderCellGeomContainerNode = geomiter.find("CYLINDERCELLGEOM_SVTX");
-  if(!PHG4CylinderCellGeomContainerNode) {
-    cout << PHWHERE
-	 << " ERROR: Can't find PHG4CylinderCellGeomContainerNode."
-	 << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  } else {
-    _geom_container = (PHG4CylinderCellGeomContainer*) PHG4CylinderCellGeomContainerNode->getData();
-  }
-  
+  _geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
+  if (!_geom_container)
+    {
+      cout << PHWHERE
+	   << " ERROR: Can't find PHG4CylinderCellGeomContainerNode."
+	   << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -102,14 +83,10 @@ int PHG4SvtxAddConnectedCells::process_event(PHCompositeNode *topNode) {
   // Get Nodes
   //----------
 
-  _cells = 0;
-  PHTypedNodeIterator<PHG4CylinderCellContainer> celliter(topNode);
-  PHIODataNode<PHG4CylinderCellContainer>* cell_container_node = celliter.find("G4CELL_SVTX");
-  if (!cell_container_node) {
+  _cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
+  if (!_cells) {
     cout << PHWHERE << " ERROR: Can't find G4CELL_SVTX." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
-  } else {
-    _cells = (PHG4CylinderCellContainer*) cell_container_node->getData();
   }
 
   // Since the G4 layers don't necessarily correspond to the silicon
