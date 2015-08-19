@@ -48,7 +48,7 @@ class PHG4TrackGhostRejection : public SubsysReco
 
  public:
  
-  PHG4TrackGhostRejection(int nlayers, const std::string &name = "PHG4TrackGhostRejection");
+  PHG4TrackGhostRejection(const int nlayers, const std::string &name = "PHG4TrackGhostRejection");
   virtual ~PHG4TrackGhostRejection() {}
 		
   int Init(PHCompositeNode *topNode);
@@ -56,11 +56,11 @@ class PHG4TrackGhostRejection : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
   
-  void set_max_shared_hits(unsigned int nhits) { _max_shared_hits = nhits; }
+  void set_max_shared_hits(const unsigned int nhits) { _max_shared_hits = nhits; }
   unsigned int get_max_shared_hits() { return _max_shared_hits; }
 
-  void set_layer_enabled(int layer, bool enabled) {_layer_enabled[layer] = enabled;}
-  bool get_layer_enabled(int layer) {return _layer_enabled[layer];}
+  void set_layer_enabled(const int layer, const bool enabled) {_layer_enabled[layer] = enabled;}
+  bool get_layer_enabled(const int layer) const {return _layer_enabled[layer];}
 
  private:
 
