@@ -1,13 +1,12 @@
 #include "PHG4SvtxBeamSpotReco.h"
-
+#include "SvtxBeamSpot.h"
 #include "SvtxVertexMap.h"
 #include "SvtxVertex.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>
 #include <fun4all/getClass.h>
 #include <fun4all/recoConsts.h>
 
@@ -17,13 +16,12 @@
 
 using namespace std;
 
-PHG4SvtxBeamSpotReco::PHG4SvtxBeamSpotReco(const char* name) :
+PHG4SvtxBeamSpotReco::PHG4SvtxBeamSpotReco(const string &name) :
   SubsysReco(name),
   _pca(2),
   _vertexes(NULL),
   _beamspot(NULL),
   _timer(PHTimeServer::get()->insert_new(name)) {
-  verbosity = 0;
 }
 
 int PHG4SvtxBeamSpotReco::InitRun(PHCompositeNode* topNode) {
@@ -35,7 +33,7 @@ int PHG4SvtxBeamSpotReco::InitRun(PHCompositeNode* topNode) {
   PHNodeIterator iter(topNode);
   
   PHCompositeNode *parNode 
-    = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","PAR"));
+    = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","PAR"));
   if (!parNode) {
     cout << PHWHERE << "PAR Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTRUN;

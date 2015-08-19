@@ -23,6 +23,7 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>
 #include <fun4all/getClass.h>
 
 // Geant4 includes
