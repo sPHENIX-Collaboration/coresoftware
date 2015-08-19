@@ -12,9 +12,9 @@ class PHG4SvtxThresholds : public SubsysReco
 {
  public:
 
-  PHG4SvtxThresholds(const char * name = "PHG4SvtxThresholds");
+  PHG4SvtxThresholds(const std::string &name = "PHG4SvtxThresholds");
 
-  ~PHG4SvtxThresholds(){}
+  virtual ~PHG4SvtxThresholds(){}
   
   //! module initialization
   int Init(PHCompositeNode *topNode){return 0;}

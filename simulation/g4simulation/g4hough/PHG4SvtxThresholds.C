@@ -4,8 +4,6 @@
 #include "SvtxHit.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <fun4all/getClass.h>
@@ -21,11 +19,9 @@
 
 using namespace std;
 
-PHG4SvtxThresholds::PHG4SvtxThresholds(const char* name) :
+PHG4SvtxThresholds::PHG4SvtxThresholds(const string &name) :
   SubsysReco(name),
   _fraction_of_mip(0.5),
-  _thresholds_by_layer(),
-  _use_thickness_mip(),
   _hits(NULL),
   _timer(PHTimeServer::get()->insert_new(name)) {
 }
@@ -96,21 +92,9 @@ int PHG4SvtxThresholds::End(PHCompositeNode* topNode) {
 
 void PHG4SvtxThresholds::CalculateCylinderThresholds(PHCompositeNode* topNode) {
 
-  PHG4CylinderCellContainer *cells = NULL;
-  PHG4CylinderCellGeomContainer *geom_container = NULL;
+  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
+  PHG4CylinderCellGeomContainer *geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
     
-  PHTypedNodeIterator<PHG4CylinderCellContainer> celliter(topNode);
-  PHIODataNode<PHG4CylinderCellContainer>* cell_container_node = celliter.find("G4CELL_SVTX");
-  if (cell_container_node) {
-    cells = (PHG4CylinderCellContainer*) cell_container_node->getData();
-  }
-
-  PHTypedNodeIterator<PHG4CylinderCellGeomContainer> geomiter(topNode);
-  PHIODataNode<PHG4CylinderCellGeomContainer>* PHG4CylinderCellGeomContainerNode = geomiter.find("CYLINDERCELLGEOM_SVTX");
-  if (PHG4CylinderCellGeomContainerNode) {
-    geom_container = (PHG4CylinderCellGeomContainer*) PHG4CylinderCellGeomContainerNode->getData();
-  }
-
   if (!geom_container || !cells) return;
   
   PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
@@ -143,20 +127,8 @@ void PHG4SvtxThresholds::CalculateCylinderThresholds(PHCompositeNode* topNode) {
 
 void PHG4SvtxThresholds::CalculateLadderThresholds(PHCompositeNode* topNode) {
 
-  PHG4CylinderCellContainer *cells = NULL;
-  PHG4CylinderGeomContainer *geom_container = NULL;
-    
-  PHTypedNodeIterator<PHG4CylinderCellContainer> celliter(topNode);
-  PHIODataNode<PHG4CylinderCellContainer>* cell_container_node = celliter.find("G4CELL_SILICON_TRACKER");
-  if (cell_container_node) {
-    cells = (PHG4CylinderCellContainer*) cell_container_node->getData();
-  }
-
-  PHTypedNodeIterator<PHG4CylinderGeomContainer> geomiter(topNode);
-  PHIODataNode<PHG4CylinderGeomContainer>* PHG4CylinderGeomContainerNode = geomiter.find("CYLINDERGEOM_SILICON_TRACKER");
-  if (PHG4CylinderGeomContainerNode) {
-    geom_container = (PHG4CylinderGeomContainer*) PHG4CylinderGeomContainerNode->getData();
-  }
+  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
 
   if (!geom_container || !cells) return;
   
