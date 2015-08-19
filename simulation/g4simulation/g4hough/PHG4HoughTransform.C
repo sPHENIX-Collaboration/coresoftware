@@ -21,10 +21,9 @@
 
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>
 #include <fun4all/getClass.h>
 
 // Geant4 includes
@@ -41,13 +40,11 @@
 #include <VertexFinder.h>
 
 // ROOT includes
-#include <TVector3.h>
 #include <TH1D.h>
 
 // standard includes
 #include <cmath>
 #include <iostream>
-#include <float.h>
 
 using findNode::getClass;
 using namespace std;

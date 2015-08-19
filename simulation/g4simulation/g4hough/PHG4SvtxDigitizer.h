@@ -1,19 +1,19 @@
 #ifndef __PHG4SVTXDIGITIZER__
 #define __PHG4SVTXDIGITIZER__
 
-#include "SvtxHitMap.h"
+#include <fun4all/SubsysReco.h>
+#include <phool/PHTimeServer.h>
 
 #include <vector>
 
-#include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
+class SvtxHitMap;
 
 class PHG4SvtxDigitizer : public SubsysReco
 {
  public:
 
-  PHG4SvtxDigitizer(const char * name = "PHG4SvtxDigitizer");
-  ~PHG4SvtxDigitizer(){}
+  PHG4SvtxDigitizer(const std::string &name = "PHG4SvtxDigitizer");
+  virtual ~PHG4SvtxDigitizer(){}
   
   //! module initialization
   int Init(PHCompositeNode *topNode){return 0;}
@@ -27,7 +27,7 @@ class PHG4SvtxDigitizer : public SubsysReco
   //! end of process
   int End(PHCompositeNode *topNode) {return 0;}
   
-  void set_adc_scale(int layer, unsigned int max_adc, float energy_per_adc) {
+  void set_adc_scale(const int layer, const unsigned int max_adc, const float energy_per_adc) {
     _max_adc.insert(std::make_pair(layer,max_adc));
     _energy_scale.insert(std::make_pair(layer,energy_per_adc));
   }

@@ -6,8 +6,6 @@
 #include "SvtxTrack.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <fun4all/getClass.h>
@@ -17,14 +15,14 @@
 
 using namespace std;
 
-bool hit_sort(unsigned int i, unsigned int j) { return (i < j);}
+bool hit_sort(const unsigned int i, const unsigned int j) { return (i < j);}
 
-PHG4TrackGhostRejection::PHG4TrackGhostRejection(int nlayers, const string &name) :
-SubsysReco(name)
+PHG4TrackGhostRejection::PHG4TrackGhostRejection(const int nlayers, const string &name) :
+  SubsysReco(name),
+  _g4tracks(NULL),
+  _nlayers(nlayers),
+  _max_shared_hits(_nlayers)
 {
-  verbosity = 0;
-  _nlayers = nlayers;
-  _max_shared_hits = _nlayers;
   _layer_enabled.assign(_nlayers,true);
   _overlapping.clear();
   _candidates.clear();
