@@ -4,8 +4,6 @@
 #include "SvtxHit.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <fun4all/getClass.h>
@@ -18,16 +16,22 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
+#include <TRandom3.h>
+
 #include <iostream>
 
 using namespace std;
 
-PHG4SvtxDeadArea::PHG4SvtxDeadArea(const char* name) :
+PHG4SvtxDeadArea::PHG4SvtxDeadArea(const string &name) :
   SubsysReco(name),
-  _eff_by_layer(),
   _hits(NULL),
   _rand(NULL),
   _timer(PHTimeServer::get()->insert_new(name)) {
+}
+
+PHG4SvtxDeadArea::~PHG4SvtxDeadArea()
+{
+  delete _rand;
 }
 
 int PHG4SvtxDeadArea::InitRun(PHCompositeNode* topNode) {
@@ -92,20 +96,9 @@ int PHG4SvtxDeadArea::End(PHCompositeNode* topNode) {
 
 void PHG4SvtxDeadArea::FillCylinderDeadAreaMap(PHCompositeNode* topNode) {
 
-  PHG4CylinderCellContainer *cells = NULL;
-  PHG4CylinderCellGeomContainer *geom_container = NULL;
+  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
+  PHG4CylinderCellGeomContainer *geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
     
-  PHTypedNodeIterator<PHG4CylinderCellContainer> celliter(topNode);
-  PHIODataNode<PHG4CylinderCellContainer>* cell_container_node = celliter.find("G4CELL_SVTX");
-  if (cell_container_node) {
-    cells = (PHG4CylinderCellContainer*) cell_container_node->getData();
-  }
-
-  PHTypedNodeIterator<PHG4CylinderCellGeomContainer> geomiter(topNode);
-  PHIODataNode<PHG4CylinderCellGeomContainer>* PHG4CylinderCellGeomContainerNode = geomiter.find("CYLINDERCELLGEOM_SVTX");
-  if (PHG4CylinderCellGeomContainerNode) {
-    geom_container = (PHG4CylinderCellGeomContainer*) PHG4CylinderCellGeomContainerNode->getData();
-  }
 
   if (!geom_container || !cells) return;
   
@@ -125,21 +118,9 @@ void PHG4SvtxDeadArea::FillCylinderDeadAreaMap(PHCompositeNode* topNode) {
 
 void PHG4SvtxDeadArea::FillLadderDeadAreaMap(PHCompositeNode* topNode) {
 
-  PHG4CylinderCellContainer *cells = NULL;
-  PHG4CylinderGeomContainer *geom_container = NULL;
+  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
     
-  PHTypedNodeIterator<PHG4CylinderCellContainer> celliter(topNode);
-  PHIODataNode<PHG4CylinderCellContainer>* cell_container_node = celliter.find("G4CELL_SILICON_TRACKER");
-  if (cell_container_node) {
-    cells = (PHG4CylinderCellContainer*) cell_container_node->getData();
-  }
-
-  PHTypedNodeIterator<PHG4CylinderGeomContainer> geomiter(topNode);
-  PHIODataNode<PHG4CylinderGeomContainer>* PHG4CylinderGeomContainerNode = geomiter.find("CYLINDERGEOM_SILICON_TRACKER");
-  if (PHG4CylinderGeomContainerNode) {
-    geom_container = (PHG4CylinderGeomContainer*) PHG4CylinderGeomContainerNode->getData();
-  }
-  
   if (!geom_container || !cells) return;
 
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
