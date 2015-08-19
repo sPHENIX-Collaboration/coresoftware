@@ -7,11 +7,10 @@
 /// \author Mike McCumber
 //===========================================================
 
+#include "PHG4HoughTransform.h"
+
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
-
-// PHG4 includes
-#include <PHG4HoughTransform.h>
 
 // std includes
 #include <vector>

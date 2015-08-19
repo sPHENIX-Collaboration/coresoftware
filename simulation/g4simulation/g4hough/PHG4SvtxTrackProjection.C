@@ -1,4 +1,7 @@
-#include <PHG4SvtxTrackProjection.h>
+#include "PHG4SvtxTrackProjection.h"
+#include "SvtxTrackMap.h"
+#include "SvtxTrack.h"
+#include "PHG4HoughTransform.h"
 
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -9,36 +12,28 @@
 #include <fun4all/getClass.h>
 
 // PHENIX Geant4 includes
-#include <SvtxTrackMap.h>
-#include <SvtxTrack.h>
-#include <PHG4HoughTransform.h>
 #include <g4cemc/RawTowerGeom.h>
 #include <g4cemc/RawTowerContainer.h>
 #include <g4cemc/RawTower.h>
 #include <g4cemc/RawClusterContainer.h>
 #include <g4cemc/RawCluster.h>
 
-// ROOT includes
-#include <TMath.h>
-
 // standard includes
 #include <iostream>
 #include <vector>
-#include <float.h>
 
 using namespace std;
 
 PHG4SvtxTrackProjection::PHG4SvtxTrackProjection(const string &name) :
-SubsysReco(name)
+  SubsysReco(name),
+  _num_cal_layers(4),
+  _mag_extent(156.5) // middle of Babar magent
 {
-  verbosity = 0;
-  _num_cal_layers = 4;
   _cal_radii.assign(_num_cal_layers,NAN);
   _cal_names.push_back("PRES"); // PRES not yet in G4
   _cal_names.push_back("CEMC");
   _cal_names.push_back("HCALIN");
   _cal_names.push_back("HCALOUT");
-  _mag_extent = 156.5; // middle of Babar magent
 }
 
 int PHG4SvtxTrackProjection::Init(PHCompositeNode *topNode) 
