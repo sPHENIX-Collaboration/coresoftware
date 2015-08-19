@@ -5,8 +5,6 @@
 
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <fun4all/getClass.h>
