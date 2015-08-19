@@ -1,19 +1,20 @@
 #ifndef __PHG4SVTXBEAMSPOTRECO__
 #define __PHG4SVTXBEAMSPOTRECO__
 
-#include "SvtxVertexMap.h"
-#include "SvtxBeamSpot.h"
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
 
 #include <TPrincipal.h>
 
+class SvtxBeamSpot;
+class SvtxVertexMap;
+
 class PHG4SvtxBeamSpotReco : public SubsysReco {
   
 public:
 
-  PHG4SvtxBeamSpotReco(const char * name = "PHG4SvtxBeamSpotReco");
+  PHG4SvtxBeamSpotReco(const std::string &name = "PHG4SvtxBeamSpotReco");
   virtual ~PHG4SvtxBeamSpotReco(){}
   
   //! module initialization
