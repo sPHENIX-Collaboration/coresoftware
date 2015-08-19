@@ -10,6 +10,7 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>
 #include <fun4all/getClass.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -146,7 +147,7 @@ int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
 
   // Looking for the DST node
   PHCompositeNode *dstNode 
-    = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
+    = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
   if (!dstNode) {
     cout << PHWHERE << "DST Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
