@@ -19,7 +19,7 @@
 ///
 /// \brief Compares reconstructed showers to truth particles
 ///
-/// Plan: This module will trace the reconstructed tracks back to
+/// Plan: This module will trace the reconstructed clusters back to
 /// the greatest contributor Monte Carlo particle and then
 /// test one against the other.
 ///

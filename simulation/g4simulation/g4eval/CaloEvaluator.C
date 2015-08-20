@@ -5,6 +5,7 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/getClass.h>
+#include <fun4all/SubsysReco.h>
 #include <phool/PHCompositeNode.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
@@ -19,14 +20,14 @@
 #include <TFile.h>
 
 #include <iostream>
-#include <vector>
-#include <algorithm>
+//#include <vector>
+//#include <algorithm>
 #include <cmath>
 
 using namespace std;
 
 CaloEvaluator::CaloEvaluator(const string &name, const string &caloname, const string &filename) 
-  : SubSystemReco(name),
+  : SubsysReco(name),
     _caloname(caloname),
     _filename(filename) {
   verbosity = 0;
@@ -80,7 +81,7 @@ int CaloEvaluator::process_event(PHCompositeNode *topNode) {
   
   printOutputInfo(topNode);
   
-  _++ievent;
+  ++_ievent;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -107,20 +108,31 @@ void CaloEvaluator::printInputInfo(PHCompositeNode *topNode) {
 
   // print out the truth container
 
-  // if(verbosity > 0)
-  //   {
-  //     cout << "PHG4TruthInfoContainer contents: " << endl; 
+  if (verbosity > 0) { 
 
-  //     PHG4TruthInfoContainer::Range truthrange = _truth_info_container->GetHitRange();
-  //     for(PHG4TruthInfoContainer::Iterator truthiter = truthrange.first;
-  // 	  truthiter != truthrange.second;
-  // 	  truthiter++)
-  // 	{
-  // 	  PHG4Particle *particle = truthiter->second;
+    cout << endl;
+    cout << PHWHERE << "   NEW INPUT FOR EVENT " << _ievent << endl;
+    cout << endl;
 
-  // 	  cout << truthiter->first << " => pid: " << particle->get_pid() << " pt: " << sqrt(pow(particle->get_px(),2)+pow(particle->get_py(),2)) << endl;
-  // 	}
-  //   }
+    // need things off of the DST...
+    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+    if (!truthinfo) {
+      cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
+      exit(-1);
+    }
+    
+    cout << "PHG4TruthInfoContainer contents: " << endl; 
+
+    PHG4TruthInfoContainer::Range truthrange = truthinfo->GetHitRange();
+    for(PHG4TruthInfoContainer::Iterator truthiter = truthrange.first;
+	truthiter != truthrange.second;
+	++truthiter) {
+      PHG4Particle *particle = truthiter->second;
+
+      cout << truthiter->first << " => pid: " << particle->get_pid()
+	   << " pt: " << sqrt(pow(particle->get_px(),2)+pow(particle->get_py(),2)) << endl;
+    }
+  }
 
   return;
 }
@@ -140,7 +152,7 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode *topNode) {
   //     cout << PHWHERE << "   NEW OUTPUT FOR EVENT " << _ievent << endl;
   //     cout << endl;
 
-  //     PHG4VtxPoint *gvertex = _truth_info_container->GetPrimaryVtx( _truth_info_container->GetPrimaryVertexIndex() );
+  //     PHG4VtxPoint *gvertex = truthinfo->GetPrimaryVtx( truthinfo->GetPrimaryVertexIndex() );
   //     float gvx = gvertex->get_x();
   //     float gvy = gvertex->get_y();
   //     float gvz = gvertex->get_z();
@@ -261,7 +273,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   // // fill the Event NTuple
   // //----------------------
 
-  // PHG4VtxPoint *gvertex = _truth_info_container->GetPrimaryVtx( _truth_info_container->GetPrimaryVertexIndex() );
+  // PHG4VtxPoint *gvertex = truthinfo->GetPrimaryVtx( truthinfo->GetPrimaryVertexIndex() );
   // float gvx = gvertex->get_x();
   // float gvy = gvertex->get_y();
   // float gvz = gvertex->get_z();

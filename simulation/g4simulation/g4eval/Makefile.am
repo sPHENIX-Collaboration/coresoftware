@@ -28,6 +28,7 @@ pkginclude_HEADERS = \
   CaloTruthEval.h \
   CaloRawTowerEval.h \
   CaloRawClusterEval.h \
+  CaloEvaluator.h \
   PHG4Evaluator.h \
   PHG4CalEvaluator.h \
   PHG4DSTReader.h \
@@ -50,6 +51,8 @@ libg4eval_la_SOURCES = \
   CaloRawTowerEval_Dict.C \
   CaloRawClusterEval.C \
   CaloRawClusterEval_Dict.C \
+  CaloEvaluator.C \
+  CaloEvaluator_Dict.C \
   PHG4Evaluator.C \
   PHG4Evaluator_Dict.C \
   PHG4CalEvaluator.C \
