@@ -27,7 +27,6 @@ using namespace std;
 CaloRawClusterEval::CaloRawClusterEval(PHCompositeNode* topNode, std::string caloname)
   : _topNode(topNode),
     _caloname(caloname),
-    _trutheval(topNode,caloname),
     _towereval(topNode,caloname),
     _do_cache(true),
     _cache_all_truth_hits(),
@@ -47,7 +46,6 @@ void CaloRawClusterEval::next_event(PHCompositeNode* topNode) {
   _cache_best_cluster_from_primary.clear();
   _cache_get_energy_contribution_primary.clear();
 
-  _trutheval.next_event(topNode);
   _towereval.next_event(topNode);
   
   _topNode = topNode;  
@@ -164,7 +162,8 @@ PHG4Particle* CaloRawClusterEval::max_truth_primary_by_energy(RawCluster* cluste
 
 std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primary) { 
 
-  if (!_trutheval.is_primary(primary)) return std::set<RawCluster*>();
+  CaloTruthEval* trutheval = _towereval->get_truth_eval();
+  if (!trutheval.is_primary(primary)) return std::set<RawCluster*>();
   
   if ((_do_cache) &&
       (_cache_all_clusters_from_primary.find(primary) != _cache_all_clusters_from_primary.end())) {
@@ -206,7 +205,8 @@ std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primar
 
 RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Particle* primary) {
 
-  if (!_trutheval.is_primary(primary)) return NULL;
+  CaloTruthEval* trutheval = _towereval->get_truth_eval();
+  if (!trutheval.is_primary(primary)) return NULL;
       
   if ((_do_cache) &&
       (_cache_best_cluster_from_primary.find(primary) != _cache_best_cluster_from_primary.end())) {
@@ -235,7 +235,8 @@ RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Particle* primary) {
 // overlap calculations
 float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Particle* primary) {
 
-  if (!_trutheval.is_primary(primary)) return NAN;
+  CaloTruthEval* trutheval = _towereval->get_truth_eval();
+  if (!trutheval.is_primary(primary)) return NAN;
   
   if ((_do_cache) &&
       (_cache_get_energy_contribution_primary.find(make_pair(cluster,primary)) !=

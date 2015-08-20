@@ -24,7 +24,7 @@ public:
 
   void next_event(PHCompositeNode *topNode);
   void do_caching(bool do_cache) {_do_cache = do_cache;}
-  CaloTruthEval* get_truth_eval() {return &_trutheval;}
+  CaloTruthEval* get_truth_eval() {return _towereval->get_truth_eval();}
   CaloRawTowerEval* get_rawtower_eval() {return &_towereval;}
 
   // backtrace through to PHG4Hits
@@ -44,7 +44,6 @@ public:
 private:
   PHCompositeNode* _topNode;
   std::string _caloname;  
-  CaloTruthEval _trutheval;
   CaloRawTowerEval _towereval;
   
   bool                                                 _do_cache;
