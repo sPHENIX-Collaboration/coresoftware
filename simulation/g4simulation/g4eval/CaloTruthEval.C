@@ -193,6 +193,7 @@ float CaloTruthEval::get_shower_moliere_radius(PHG4Particle* primary) {
     PHG4Hit *g4hit = (*iter);
 	      
     // momentum vector
+    /// \todo for charged particles remove magnetic field bend
     float p_x = primary->get_px();
     float p_y = primary->get_py();
     float p_z = primary->get_pz();
