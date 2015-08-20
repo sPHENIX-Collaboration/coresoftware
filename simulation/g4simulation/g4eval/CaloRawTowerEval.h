@@ -37,7 +37,7 @@ public:
   RawTower*           best_tower_from(PHG4Particle* primary);
   
   // overlap calculations
-  float get_energy_contribution (RawTower* svtxhit, PHG4Particle* primary);
+  float get_energy_contribution (RawTower* tower, PHG4Particle* primary);
   
 private:
   PHCompositeNode* _topNode;
