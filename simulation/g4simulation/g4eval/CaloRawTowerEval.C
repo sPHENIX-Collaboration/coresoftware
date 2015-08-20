@@ -29,24 +29,19 @@ CaloRawTowerEval::CaloRawTowerEval(PHCompositeNode* topNode, std::string calonam
     _cache_all_truth_hits(),
     _cache_all_truth_primaries(),
     _cache_max_truth_primary_by_energy(),
-    _cache_all_hits_from_particle(),
-    _cache_all_hits_from_g4hit(),
-    _cache_best_hit_from_g4hit(),
-    _cache_get_energy_contribution_g4particle(),
-    _cache_get_energy_contribution_g4hit() {
+    _cache_all_towers_from_primary(),
+    _cache_best_tower_from_primary(),
+    _cache_get_energy_contribution_primary() {
 }
 
 void CaloRawTowerEval::next_event(PHCompositeNode* topNode) {
 
   _cache_all_truth_hits.clear();
-  _cache_max_truth_hit_by_energy.clear();
   _cache_all_truth_primaries.clear();
   _cache_max_truth_primary_by_energy.clear();
-  _cache_all_hits_from_particle.clear();
-  _cache_all_hits_from_g4hit.clear();
-  _cache_best_hit_from_g4hit.clear();
-  _cache_get_energy_contribution_g4particle.clear();
-  _cache_get_energy_contribution_g4hit.clear();
+  _cache_all_towers_from_primary.clear();
+  _cache_best_tower_from_primary.clear();
+  _cache_get_energy_contribution_primary.clear();
 
   _trutheval.next_event(topNode);
   
@@ -64,14 +59,14 @@ std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(RawTower* tower) {
   std::string cellname = "G4CELL_" + _caloname;
   PHG4CylinderCellContainer* g4cells = findNode::getClass<PHG4CylinderCellContainer>(_topNode,cellname.c_str());
   if (!g4cells) {
-    cerr << PHWHERE << " ERROR: Can't find " << _cellname << endl;
+    cerr << PHWHERE << " ERROR: Can't find " << cellname << endl;
     exit(-1);
   }
 
   std::string hitname = "G4HIT_" + _caloname;  
   PHG4HitContainer* g4hits = findNode::getClass<PHG4HitContainer>(_topNode,hitname.c_str());
   if (!g4hits){ 
-    cerr << PHWHERE << " ERROR: Can't find " << _hitname << endl;
+    cerr << PHWHERE << " ERROR: Can't find " << hitname << endl;
     exit(-1);
   }
 
@@ -83,7 +78,7 @@ std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(RawTower* tower) {
   for (std::map<unsigned int, float>::const_iterator cell_iter = cell_range.first;
        cell_iter != cell_range.second; ++cell_iter) {
     unsigned int cell_id = cell_iter->first;
-    PHG4CylinderCell *cell = g4cells->findCylinderCell(hit->get_cellid());
+    PHG4CylinderCell *cell = g4cells->findCylinderCell(cell_id);
 
     // loop over all the g4hits in this cell
     for (PHG4CylinderCell::EdepConstIterator hit_iter = cell->get_g4hits().first;
@@ -123,7 +118,7 @@ std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primaries(RawTower* tower) {
        ++iter) {
     PHG4Hit* g4hit = *iter;
     PHG4Particle* particle = truthinfo->GetHit( g4hit->get_trkid() );
-    PHG4Particle* primary = _trutheval.get_primary(   
+    PHG4Particle* primary = _trutheval.get_primary_particle( particle );
     if (!primary) continue;
     truth_primaries.insert(primary);
   }
@@ -144,7 +139,7 @@ PHG4Particle* CaloRawTowerEval::max_truth_primary_by_energy(RawTower* tower) {
   // get the energy contribution for each one, record the max
   PHG4Particle* max_primary = NULL;
   float max_e = FLT_MIN;
-  std::set<PHG4Particle*> primaries = all_truth_primaryies(tower);
+  std::set<PHG4Particle*> primaries = all_truth_primaries(tower);
   for (std::set<PHG4Particle*>::iterator iter = primaries.begin();
        iter != primaries.end();
        ++iter) {
@@ -162,166 +157,99 @@ PHG4Particle* CaloRawTowerEval::max_truth_primary_by_energy(RawTower* tower) {
   return max_primary;
 }
 
-std::set<RawTower*> CaloRawTowerEval::all_hits_from(PHG4Particle* g4particle) { 
+std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Particle* primary) { 
 
+  if (!_trutheval.is_primary(primary)) return std::set<RawTower*>();
+  
   if ((_do_cache) &&
-      (_cache_all_hits_from_particle.find(g4particle) != _cache_all_hits_from_particle.end())) {
-    return _cache_all_hits_from_particle[g4particle];
+      (_cache_all_towers_from_primary.find(primary) != _cache_all_towers_from_primary.end())) {
+    return _cache_all_towers_from_primary[primary];
   }
   
   // need things off of the DST...
-  RawTowerMap* hitmap = findNode::getClass<RawTowerMap>(_topNode,"RawTowerMap");
-  if (!hitmap) {
-    cerr << PHWHERE << " ERROR: Can't find RawTowerMap" << endl;
+  RawTowerContainer* towercontainer = findNode::getClass<RawTowerContainer>(_topNode,"RawTowerContainer");
+  if (!towercontainer) {
+    cerr << PHWHERE << " ERROR: Can't find RawTowerContainer" << endl;
     exit(-1);
   }
 
-  std::set<RawTower*> hits;
+  std::set<RawTower*> towers;
   
-  // loop over all the hits
-  for (RawTowerMap::Iter iter = hitmap->begin();
-       iter != hitmap->end();
+  // loop over all the towers
+  for (RawTowerContainer::Iterator iter = towercontainer->getTowers().first;
+       iter != towercontainer->getTowers().second;
        ++iter) {
 
-    RawTower* hit = &iter->second;
+    RawTower* tower = iter->second;
 
-    // loop over all truth particles connected to this hit
-    std::set<PHG4Particle*> g4particles = all_truth_particles(hit);
-    for (std::set<PHG4Particle*>::iterator jter = g4particles.begin();
-	 jter != g4particles.end();
+    // loop over all truth particles connected to this tower
+    std::set<PHG4Particle*> primaries = all_truth_primaries(tower);
+    for (std::set<PHG4Particle*>::iterator jter = primaries.begin();
+	 jter != primaries.end();
 	 ++jter) {
       PHG4Particle* candidate = *jter;
-      if (candidate->get_track_id() == g4particle->get_track_id()) {
-	hits.insert(hit);
+      if (candidate->get_track_id() == primary->get_track_id()) {
+	towers.insert(tower);
       }    
     }
   }
 
-  if (_do_cache) _cache_all_hits_from_particle.insert(make_pair(g4particle,hits));
+  if (_do_cache) _cache_all_towers_from_primary.insert(make_pair(primary,towers));
   
-  return hits;
+  return towers;
 }
 
-std::set<RawTower*> CaloRawTowerEval::all_hits_from(PHG4Hit* g4hit) {
+RawTower* CaloRawTowerEval::best_tower_from(PHG4Particle* primary) {
 
+  if (!_trutheval.is_primary(primary)) return NULL;
+      
   if ((_do_cache) &&
-      (_cache_all_hits_from_g4hit.find(g4hit) != _cache_all_hits_from_g4hit.end())) {
-    return _cache_all_hits_from_g4hit[g4hit];
+      (_cache_best_tower_from_primary.find(primary) != _cache_best_tower_from_primary.end())) {
+    return _cache_best_tower_from_primary[primary];
   }
   
-  // need things off of the DST...
-  RawTowerMap* hitmap = findNode::getClass<RawTowerMap>(_topNode,"RawTowerMap");
-  if (!hitmap) {
-    cerr << PHWHERE << " ERROR: Can't find RawTowerMap" << endl;
-    exit(-1);
-  }
-
-  std::set<RawTower*> hits;
-  
-  // loop over all the hits
-  for (RawTowerMap::Iter iter = hitmap->begin();
-       iter != hitmap->end();
-       ++iter) {
-
-    RawTower* hit = &iter->second;
-
-    // loop over all truth hits connected to this hit
-    std::set<PHG4Hit*> g4hits = all_truth_hits(hit);
-    for (std::set<PHG4Hit*>::iterator jter = g4hits.begin();
-	 jter != g4hits.end();
-	 ++jter) {
-      PHG4Hit* candidate = *jter;
-      if (candidate->get_hit_id() == g4hit->get_hit_id()) {
-	hits.insert(hit);
-      }    
-    }
-  }
-
-  if (_do_cache) _cache_all_hits_from_g4hit.insert(make_pair(g4hit,hits));
-  
-  return hits;
-}
-
-RawTower* CaloRawTowerEval::best_hit_from(PHG4Hit* g4hit) {
-
-  if ((_do_cache) &&
-      (_cache_best_hit_from_g4hit.find(g4hit) != _cache_best_hit_from_g4hit.end())) {
-    return _cache_best_hit_from_g4hit[g4hit];
-  }
-  
-  // need things off of the DST...
-  RawTowerMap* hitmap = findNode::getClass<RawTowerMap>(_topNode,"RawTowerMap");
-  if (!hitmap) {
-    cerr << PHWHERE << " ERROR: Can't find RawTowerMap" << endl;
-    exit(-1);
-  }
-
-  RawTower* best_hit = NULL;
+  RawTower* best_tower = NULL;
   float best_energy = 0.0;  
-  std::set<RawTower*> hits = all_hits_from(g4hit);
-  for (std::set<RawTower*>::iterator iter = hits.begin();
-       iter != hits.end();
+  std::set<RawTower*> towers = all_towers_from(primary);
+  for (std::set<RawTower*>::iterator iter = towers.begin();
+       iter != towers.end();
        ++iter) {
-    RawTower* hit = *iter;
-    float energy = get_energy_contribution(hit,g4hit);
+    RawTower* tower = *iter;
+    float energy = get_energy_contribution(tower,primary);
     if (energy > best_energy) {
-      best_hit = hit;
+      best_tower = tower;
       best_energy = energy;
     }
   }
  
-  if (_do_cache) _cache_best_hit_from_g4hit.insert(make_pair(g4hit,best_hit));
+  if (_do_cache) _cache_best_tower_from_primary.insert(make_pair(primary,best_tower));
   
-  return best_hit;
+  return best_tower;
 }
 
 // overlap calculations
-float CaloRawTowerEval::get_energy_contribution(RawTower* hit, PHG4Particle* particle) {
+float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* primary) {
 
+  if (!_trutheval.is_primary(primary)) return NAN;
+  
   if ((_do_cache) &&
-      (_cache_get_energy_contribution_g4particle.find(make_pair(hit,particle)) !=
-       _cache_get_energy_contribution_g4particle.end())) {
-    return _cache_get_energy_contribution_g4particle[make_pair(hit,particle)];
+      (_cache_get_energy_contribution_primary.find(make_pair(tower,primary)) !=
+       _cache_get_energy_contribution_primary.end())) {
+    return _cache_get_energy_contribution_primary[make_pair(tower,primary)];
   }
   
   float energy = 0.0;
-  std::set<PHG4Hit*> g4hits = all_truth_hits(hit);
+  std::set<PHG4Hit*> g4hits = all_truth_hits(tower);
   for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
        iter != g4hits.end();
        ++iter) {
     PHG4Hit* g4hit = *iter;
-    if (g4hit->get_trkid() == particle->get_track_id()) {
+    if (g4hit->get_trkid() == primary->get_track_id()) {
       energy += g4hit->get_edep();
     }
   }
 
-  if (_do_cache) _cache_get_energy_contribution_g4particle.insert(make_pair(make_pair(hit,particle),energy));
-  
-  return energy;
-}
-
-float CaloRawTowerEval::get_energy_contribution(RawTower* hit, PHG4Hit* g4hit) {
-
-  if ((_do_cache) &&
-      (_cache_get_energy_contribution_g4hit.find(make_pair(hit,g4hit)) !=
-       _cache_get_energy_contribution_g4hit.end())) {
-    return _cache_get_energy_contribution_g4hit[make_pair(hit,g4hit)];
-  }
-  
-  // this is a fairly simple existance check right now, but might be more
-  // complex in the future, so this is here mostly as future-proofing.
-  
-  float energy = 0.0;
-  std::set<PHG4Hit*> g4hits = all_truth_hits(hit);
-  for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
-       iter != g4hits.end();
-       ++iter) {
-    PHG4Hit* candidate = *iter;
-    if (candidate->get_hit_id() != g4hit->get_hit_id()) continue;  
-    energy += candidate->get_edep();
-  }
-
-  if (_do_cache) _cache_get_energy_contribution_g4hit.insert(make_pair(make_pair(hit,g4hit),energy));
+  if (_do_cache) _cache_get_energy_contribution_primary.insert(make_pair(make_pair(tower,primary),energy));
   
   return energy;
 }

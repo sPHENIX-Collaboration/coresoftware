@@ -23,6 +23,7 @@ public:
 
   std::set<PHG4Hit*> all_truth_hits(PHG4Particle* particle);  
   PHG4Particle*      get_parent_particle(PHG4Hit* g4hit);
+  PHG4Particle*      get_primary_particle(PHG4Particle* particle);
   PHG4Particle*      get_primary_particle(PHG4Hit* g4hit);  
   int                get_embed(PHG4Particle* particle);
   PHG4VtxPoint*      get_vertex(PHG4Particle* particle);

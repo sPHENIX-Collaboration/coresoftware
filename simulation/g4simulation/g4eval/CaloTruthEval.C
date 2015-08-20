@@ -81,6 +81,23 @@ PHG4Particle* CaloTruthEval::get_parent_particle(PHG4Hit* g4hit) {
   return particle;
 }
 
+PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Particle* particle) {
+
+  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(_topNode,"G4TruthInfo");
+  if (!truthinfo) {
+    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
+    exit(-1);
+  }
+
+  PHG4Particle* returnval = particle;
+  if (returnval->get_primary_id() != (int)(0xFFFFFFFF)) {
+    returnval = truthinfo->GetHit( particle->get_primary_id() );
+  }
+  
+  return returnval;
+}
+
+
 PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Hit* g4hit) {
 
   PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(_topNode,"G4TruthInfo");
