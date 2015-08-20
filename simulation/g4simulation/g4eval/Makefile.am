@@ -30,6 +30,7 @@ pkginclude_HEADERS = \
   PHG4Evaluator.h \
   PHG4CalEvaluator.h \
   PHG4DSTReader.h \
+  SvtxEvalStack.h \
   SvtxTruthEval.h \
   SvtxHitEval.h \
   SvtxClusterEval.h \
@@ -52,6 +53,8 @@ libg4eval_la_SOURCES = \
   PHG4CalEvaluator_Dict.C \
   PHG4DSTReader.cc \
   PHG4DSTReader_Dict.C \
+  SvtxEvalStack.C \
+  SvtxEvalStack_Dict.C \
   SvtxTruthEval.C \
   SvtxTruthEval_Dict.C \
   SvtxHitEval.C \

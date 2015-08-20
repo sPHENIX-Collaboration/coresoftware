@@ -1,7 +1,7 @@
 
 #include "SvtxEvaluator.h"
 
-#inlcude "SvtxEvalStack.h"
+#include "SvtxEvalStack.h"
 
 #include <phool/PHCompositeNode.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -265,7 +265,6 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 
   SvtxEvalStack svtxevalstack(topNode);
 
-  SvtxVertexEval*   vertexeval = svtxevalstack.get_vertex_eval();
   SvtxTrackEval*     trackeval = svtxevalstack.get_track_eval();
   SvtxClusterEval* clustereval = svtxevalstack.get_cluster_eval();
   SvtxTruthEval*     trutheval = svtxevalstack.get_truth_eval();

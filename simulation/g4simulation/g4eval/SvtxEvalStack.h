@@ -2,6 +2,7 @@
 #ifndef __SVTXEVALSTACK_H__
 #define __SVTXEVALSTACK_H__
 
+#include "SvtxVertexEval.h"
 #include "SvtxTrackEval.h"
 #include "SvtxClusterEval.h"
 #include "SvtxHitEval.h"
@@ -24,11 +25,11 @@ public:
 
   void next_event(PHCompositeNode *topNode);
 
-  SvtxVertexEval*  get_vertex_eval() {return &_clustereval;}
-  SvtxTrackEval*   get_track_eval() {return &_clustereval;}
-  SvtxClusterEval* get_cluster_eval() {return &_clustereval;}
-  SvtxHitEval*     get_hit_eval() {return _clustereval->get_rawtower_eval();}
-  SvtxTruthEval*   get_truth_eval() {return _clustereval->get_truth_eval();}
+  SvtxVertexEval*  get_vertex_eval() {return &_vertexeval;}
+  SvtxTrackEval*   get_track_eval() {return _vertexeval.get_track_eval();}
+  SvtxClusterEval* get_cluster_eval() {return _vertexeval.get_cluster_eval();}
+  SvtxHitEval*     get_hit_eval() {return _vertexeval.get_hit_eval();}
+  SvtxTruthEval*   get_truth_eval() {return &_trutheval;}
   
 private:
   SvtxVertexEval _vertexeval; // right now this is the top-level eval, other evals nest underneath

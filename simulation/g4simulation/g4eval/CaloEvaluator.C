@@ -1,9 +1,7 @@
 
 #include "CaloEvaluator.h"
 
-#include "CaloTruthEval.h"
-#include "CaloRawTowerEval.h"
-#include "CaloRawClusterEval.h"
+#include "CaloEvalStack.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/getClass.h>
@@ -135,117 +133,117 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode *topNode) {
   // print out some useful stuff for debugging
   //==========================================
 
-  if(verbosity)
-    {
-      // event information
-      cout << endl;
-      cout << PHWHERE << "   NEW OUTPUT FOR EVENT " << _ievent << endl;
-      cout << endl;
+  // if(verbosity)
+  //   {
+  //     // event information
+  //     cout << endl;
+  //     cout << PHWHERE << "   NEW OUTPUT FOR EVENT " << _ievent << endl;
+  //     cout << endl;
 
-      PHG4VtxPoint *gvertex = _truth_info_container->GetPrimaryVtx( _truth_info_container->GetPrimaryVertexIndex() );
-      float gvx = gvertex->get_x();
-      float gvy = gvertex->get_y();
-      float gvz = gvertex->get_z();
+  //     PHG4VtxPoint *gvertex = _truth_info_container->GetPrimaryVtx( _truth_info_container->GetPrimaryVertexIndex() );
+  //     float gvx = gvertex->get_x();
+  //     float gvy = gvertex->get_y();
+  //     float gvz = gvertex->get_z();
 
-      float vx = NAN;
-      float vy = NAN;
-      float vz = NAN;
-      if (_vertexList) {
-	if (!_vertexList->empty()) {
-	  SvtxVertex* vertex = &(_vertexList->begin()->second);
+  //     float vx = NAN;
+  //     float vy = NAN;
+  //     float vz = NAN;
+  //     if (_vertexList) {
+  // 	if (!_vertexList->empty()) {
+  // 	  SvtxVertex* vertex = &(_vertexList->begin()->second);
 	
-	  vx = vertex->get_x();
-	  vy = vertex->get_y();
-	  vz = vertex->get_z();
-	}
-      }
+  // 	  vx = vertex->get_x();
+  // 	  vy = vertex->get_y();
+  // 	  vz = vertex->get_z();
+  // 	}
+  //     }
 
-      cout << "vtrue = (" << gvx << "," << gvy << "," << gvz << ") => vreco = (" << vx << "," << vy << "," << vz << ")" << endl;
+  //     cout << "vtrue = (" << gvx << "," << gvy << "," << gvz << ") => vreco = (" << vx << "," << vy << "," << vz << ")" << endl;
     
-      float ngshowers = _gshower_list.size();
-      float ng4hits  = _g4hitList->size();
-      float ntowers  = _towerList->size();
-      float nclusters = _clusterList->size();
+  //     float ngshowers = _gshower_list.size();
+  //     float ng4hits  = _g4hitList->size();
+  //     float ntowers  = _towerList->size();
+  //     float nclusters = _clusterList->size();
 
-      cout << "nGshowers = " << ngshowers << endl;
-      cout << " => nGhits = " << ng4hits << endl;
-      cout << " => nTowers = " << ntowers << endl;
-      cout << " => nClusters = " << nclusters << endl;
+  //     cout << "nGshowers = " << ngshowers << endl;
+  //     cout << " => nGhits = " << ng4hits << endl;
+  //     cout << " => nTowers = " << ntowers << endl;
+  //     cout << " => nClusters = " << nclusters << endl;
 
-      if(verbosity > 1)
-	{
-	  for(unsigned igshower = 0; igshower < _gshower_list.size(); igshower++)
-	    {
-	      CalGshower *gshower = &_gshower_list[igshower];
+  //     if(verbosity > 1)
+  // 	{
+  // 	  for(unsigned igshower = 0; igshower < _gshower_list.size(); igshower++)
+  // 	    {
+  // 	      CalGshower *gshower = &_gshower_list[igshower];
 	      
-	      // track-wise information
-	      cout << endl;
+  // 	      // track-wise information
+  // 	      cout << endl;
       
-	      cout << "===CalGshower===================================================" << endl;
-	      cout << " CalGshower id = " << gshower->get_particle_id() << endl;
-	      cout << " flavor = " << gshower->get_flavor() << endl;
-	      cout << " ptrue = (";
-	      cout.width(5); cout << gshower->get_px();
-	      cout << ",";
-	      cout.width(5); cout << gshower->get_py();
-	      cout << ",";
-	      cout.width(5); cout << gshower->get_pz();
-	      cout << ")" << endl;
-	      cout << " vtrue = (";
-	      cout.width(5); cout << gshower->get_vx();
-	      cout << ",";
-	      cout.width(5); cout << gshower->get_vy();
-	      cout << ",";
-	      cout.width(5); cout << gshower->get_vz();
-	      cout << ")" << endl;
-	      cout << " ---Associated-PHG4Hits-----------------------------------------" << endl;
+  // 	      cout << "===CalGshower===================================================" << endl;
+  // 	      cout << " CalGshower id = " << gshower->get_particle_id() << endl;
+  // 	      cout << " flavor = " << gshower->get_flavor() << endl;
+  // 	      cout << " ptrue = (";
+  // 	      cout.width(5); cout << gshower->get_px();
+  // 	      cout << ",";
+  // 	      cout.width(5); cout << gshower->get_py();
+  // 	      cout << ",";
+  // 	      cout.width(5); cout << gshower->get_pz();
+  // 	      cout << ")" << endl;
+  // 	      cout << " vtrue = (";
+  // 	      cout.width(5); cout << gshower->get_vx();
+  // 	      cout << ",";
+  // 	      cout.width(5); cout << gshower->get_vy();
+  // 	      cout << ",";
+  // 	      cout.width(5); cout << gshower->get_vz();
+  // 	      cout << ")" << endl;
+  // 	      cout << " ---Associated-PHG4Hits-----------------------------------------" << endl;
 	      
-	      for(unsigned int ig4hit = 0; ig4hit < gshower->get_ng4hits(); ig4hit++)
-		{
-		  if((ig4hit > 5)&&(ig4hit < gshower->get_ng4hits() - 5)) continue;
+  // 	      for(unsigned int ig4hit = 0; ig4hit < gshower->get_ng4hits(); ig4hit++)
+  // 		{
+  // 		  if((ig4hit > 5)&&(ig4hit < gshower->get_ng4hits() - 5)) continue;
 
-		  PHG4Hit *g4hit = gshower->get_g4hit(ig4hit);
+  // 		  PHG4Hit *g4hit = gshower->get_g4hit(ig4hit);
 		  
-		  float x = 0.5*(g4hit->get_x(1)+g4hit->get_x(0));
-		  float y = 0.5*(g4hit->get_y(1)+g4hit->get_y(0));
-		  float z = 0.5*(g4hit->get_z(1)+g4hit->get_z(0));
+  // 		  float x = 0.5*(g4hit->get_x(1)+g4hit->get_x(0));
+  // 		  float y = 0.5*(g4hit->get_y(1)+g4hit->get_y(0));
+  // 		  float z = 0.5*(g4hit->get_z(1)+g4hit->get_z(0));
 		  
-		  cout << " #" << ig4hit << " xtrue = (";
-		  cout.width(5); cout << x;
-		  cout << ",";
-		  cout.width(5); cout << y;
-		  cout << ",";
-		  cout.width(5); cout << z;
-		  cout << ")";
-		  cout << " e = " << g4hit->get_edep();
+  // 		  cout << " #" << ig4hit << " xtrue = (";
+  // 		  cout.width(5); cout << x;
+  // 		  cout << ",";
+  // 		  cout.width(5); cout << y;
+  // 		  cout << ",";
+  // 		  cout.width(5); cout << z;
+  // 		  cout << ")";
+  // 		  cout << " e = " << g4hit->get_edep();
 		  
-		  /*
-		    typedef multimap<PHG4Hit*,SvtxCluster*>::iterator mapiter2;
-		    typedef pair<mapiter2,mapiter2> maprange2;
-		    maprange2 therange2 = _g4hit_cluster_mmap.equal_range( g4hit );
-		    for(mapiter2 theiter2=therange2.first; theiter2!=therange2.second; theiter2++) 
-		    {
-		    SvtxCluster *cluster = theiter2->second;
+  // 		  /*
+  // 		    typedef multimap<PHG4Hit*,SvtxCluster*>::iterator mapiter2;
+  // 		    typedef pair<mapiter2,mapiter2> maprange2;
+  // 		    maprange2 therange2 = _g4hit_cluster_mmap.equal_range( g4hit );
+  // 		    for(mapiter2 theiter2=therange2.first; theiter2!=therange2.second; theiter2++) 
+  // 		    {
+  // 		    SvtxCluster *cluster = theiter2->second;
 		    
-		    float x = cluster->getHitPosition(0);
-		    float y = cluster->getHitPosition(1);
-		    float z = cluster->getHitPosition(2);
+  // 		    float x = cluster->getHitPosition(0);
+  // 		    float y = cluster->getHitPosition(1);
+  // 		    float z = cluster->getHitPosition(2);
 	    
-		    cout << " => #" << cluster->getClusterID() << " xreco = (";
-		    cout.width(5); cout << x;
-		    cout << ",";
-		    cout.width(5); cout << y;
-		    cout << ",";
-		    cout.width(5); cout << z;
-		    cout << ")";
-		    }
-		  */
+  // 		    cout << " => #" << cluster->getClusterID() << " xreco = (";
+  // 		    cout.width(5); cout << x;
+  // 		    cout << ",";
+  // 		    cout.width(5); cout << y;
+  // 		    cout << ",";
+  // 		    cout.width(5); cout << z;
+  // 		    cout << ")";
+  // 		    }
+  // 		  */
 
-		  cout << endl;
-		}
-	    }      
-	}
-    }
+  // 		  cout << endl;
+  // 		}
+  // 	    }      
+  // 	}
+  //   }
 
   return;
 }
@@ -254,237 +252,237 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   
   if (verbosity > 1) cout << "CaloEvaluator::fillOutputNtuples() entered" << endl;
 
-  CaloMasterEval CaloMasterEval(topNode); 
-  CaloRawClusterEval* clustereval = caloeval->get_cluster_eval()
-  CaloRawTowerEval* towereval = caloeval->get_tower_eval();
-  CaloTruthEval* trutheval = caloeval->get_truth_eval();
+  // CaloEvalStack caloevalstack(topNode); 
+  // CaloRawClusterEval* clustereval = caloevalstack->get_cluster_eval()
+  // CaloRawTowerEval*     towereval = caloevalstack->get_tower_eval();
+  // CaloTruthEval*        trutheval = caloevalstack->get_truth_eval();
   
-  //----------------------
-  // fill the Event NTuple
-  //----------------------
+  // //----------------------
+  // // fill the Event NTuple
+  // //----------------------
 
-  PHG4VtxPoint *gvertex = _truth_info_container->GetPrimaryVtx( _truth_info_container->GetPrimaryVertexIndex() );
-  float gvx = gvertex->get_x();
-  float gvy = gvertex->get_y();
-  float gvz = gvertex->get_z();
+  // PHG4VtxPoint *gvertex = _truth_info_container->GetPrimaryVtx( _truth_info_container->GetPrimaryVertexIndex() );
+  // float gvx = gvertex->get_x();
+  // float gvy = gvertex->get_y();
+  // float gvz = gvertex->get_z();
 
-  float vx = NAN;
-  float vy = NAN;
-  float vz = NAN;
-  if (_vertexList) {
-    if (!_vertexList->empty()) {
-      SvtxVertex* vertex = &(_vertexList->begin()->second);
+  // float vx = NAN;
+  // float vy = NAN;
+  // float vz = NAN;
+  // if (_vertexList) {
+  //   if (!_vertexList->empty()) {
+  //     SvtxVertex* vertex = &(_vertexList->begin()->second);
       
-      vx = vertex->get_x();
-      vy = vertex->get_y();
-      vz = vertex->get_z();
-    }
-  }
+  //     vx = vertex->get_x();
+  //     vy = vertex->get_y();
+  //     vz = vertex->get_z();
+  //   }
+  // }
 
-  float ngshowers = _gshower_list.size();
-  float ng4hits  = _g4hitList->size();
-  float ntowers  = _towerList->size();
-  float nclusters = _clusterList->size();
+  // float ngshowers = _gshower_list.size();
+  // float ng4hits  = _g4hitList->size();
+  // float ntowers  = _towerList->size();
+  // float nclusters = _clusterList->size();
 
-  float event_data[12] = {_ievent,
-			  vx,
-			  vy,
-			  vz,
-			  gvx,
-			  gvy,
-			  gvz,
-			  ngshowers,
-			  ng4hits,
-			  ntowers,
-			  nclusters};
+  // float event_data[12] = {_ievent,
+  // 			  vx,
+  // 			  vy,
+  // 			  vz,
+  // 			  gvx,
+  // 			  gvy,
+  // 			  gvz,
+  // 			  ngshowers,
+  // 			  ng4hits,
+  // 			  ntowers,
+  // 			  nclusters};
 
-  _ntp_event->Fill(event_data);
+  // _ntp_event->Fill(event_data);
   
-  //------------------------
-  // fill the Gshower NTuple
-  //------------------------
+  // //------------------------
+  // // fill the Gshower NTuple
+  // //------------------------
   
-  if(verbosity > 1) cout << "CaloEvaluator::filling gshower ntuple..." << endl;
+  // if(verbosity > 1) cout << "CaloEvaluator::filling gshower ntuple..." << endl;
 
-  for(unsigned int ishower = 0; ishower < _gshower_list.size(); ishower++)
-    {
-      float particleID = _gshower_list[ishower].get_particle_id();
-      float flavor     = _gshower_list[ishower].get_flavor();
+  // for(unsigned int ishower = 0; ishower < _gshower_list.size(); ishower++)
+  //   {
+  //     float particleID = _gshower_list[ishower].get_particle_id();
+  //     float flavor     = _gshower_list[ishower].get_flavor();
 
-      float px         = _gshower_list[ishower].get_px();
-      float py         = _gshower_list[ishower].get_py();
-      float pz         = _gshower_list[ishower].get_pz();
-      float e          = _gshower_list[ishower].get_e();
+  //     float px         = _gshower_list[ishower].get_px();
+  //     float py         = _gshower_list[ishower].get_py();
+  //     float pz         = _gshower_list[ishower].get_pz();
+  //     float e          = _gshower_list[ishower].get_e();
 
-      float vx         = _gshower_list[ishower].get_vx();
-      float vy         = _gshower_list[ishower].get_vy();
-      float vz         = _gshower_list[ishower].get_vz();
+  //     float vx         = _gshower_list[ishower].get_vx();
+  //     float vy         = _gshower_list[ishower].get_vy();
+  //     float vz         = _gshower_list[ishower].get_vz();
 
-      float nhits      = (float)_gshower_list[ishower].get_ng4hits(); 
+  //     float nhits      = (float)_gshower_list[ishower].get_ng4hits(); 
 
-      float mrad       = _gshower_list[ishower].get_moliere_radius();
+  //     float mrad       = _gshower_list[ishower].get_moliere_radius();
 
-      float edep       = _gshower_list[ishower].get_edep();
-      float eabs       = _gshower_list[ishower].get_eabs();
+  //     float edep       = _gshower_list[ishower].get_edep();
+  //     float eabs       = _gshower_list[ishower].get_eabs();
 
-      float embed       = _gshower_list[ishower].get_embed();
+  //     float embed       = _gshower_list[ishower].get_embed();
 
-      float shower_data[15] = {_ievent,
-			       particleID,
-			       flavor,
-			       px,
-			       py,
-			       pz,
-			       e,
-			       vx,
-			       vy,
-			       vz,
-			       nhits,
-			       mrad,
-			       edep,
-			       eabs,
-			       embed
-      };
+  //     float shower_data[15] = {_ievent,
+  // 			       particleID,
+  // 			       flavor,
+  // 			       px,
+  // 			       py,
+  // 			       pz,
+  // 			       e,
+  // 			       vx,
+  // 			       vy,
+  // 			       vz,
+  // 			       nhits,
+  // 			       mrad,
+  // 			       edep,
+  // 			       eabs,
+  // 			       embed
+  //     };
 
-      _ntp_gshower->Fill(shower_data);
-    }
+  //     _ntp_gshower->Fill(shower_data);
+  //   }
 
 
-  //----------------------
-  // fill the Tower NTuple
-  //----------------------
+  // //----------------------
+  // // fill the Tower NTuple
+  // //----------------------
   
-  if(verbosity > 1) cout << "CaloEvaluator::filling tower ntuple..." << endl;
+  // if(verbosity > 1) cout << "CaloEvaluator::filling tower ntuple..." << endl;
 
-  // for every tower
-  RawTowerContainer::ConstRange begin_end = _towerList->getTowers();
-  RawTowerContainer::ConstIterator rtiter;
-  for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter)
-    {
-	  RawTower *tower = rtiter->second;
-	  if(!tower) continue;
+  // // for every tower
+  // RawTowerContainer::ConstRange begin_end = _towerList->getTowers();
+  // RawTowerContainer::ConstIterator rtiter;
+  // for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter)
+  //   {
+  // 	  RawTower *tower = rtiter->second;
+  // 	  if(!tower) continue;
 
-	  CalGshower *gshower = _tower_gshower_map[ tower ];
+  // 	  CalGshower *gshower = _tower_gshower_map[ tower ];
 	  
-	  float ieta    = tower->get_bineta();
-	  float iphi    = tower->get_binphi();
-	  float eta     = towergeom->get_etacenter(tower->get_bineta());
-	  float phi     = towergeom->get_phicenter(tower->get_binphi());
-	  float e       = tower->get_energy();
+  // 	  float ieta    = tower->get_bineta();
+  // 	  float iphi    = tower->get_binphi();
+  // 	  float eta     = towergeom->get_etacenter(tower->get_bineta());
+  // 	  float phi     = towergeom->get_phicenter(tower->get_binphi());
+  // 	  float e       = tower->get_energy();
 
-	  float gparticleID = -9999.0;
-	  float gflavor     = -9999.0;
-	  float gphi        = -9999.0;
-	  float ge          = -9999.0;
-	  float gpt         = -9999.0;
-	  float geta        = -9999.0;
-	  float gmrad       = -9999.0;
-	  float gedep       = -9999.0;
-	  float gembed      = -9999.0;
-	  float epurity     = -9999.0;
+  // 	  float gparticleID = -9999.0;
+  // 	  float gflavor     = -9999.0;
+  // 	  float gphi        = -9999.0;
+  // 	  float ge          = -9999.0;
+  // 	  float gpt         = -9999.0;
+  // 	  float geta        = -9999.0;
+  // 	  float gmrad       = -9999.0;
+  // 	  float gedep       = -9999.0;
+  // 	  float gembed      = -9999.0;
+  // 	  float epurity     = -9999.0;
 
-	  if(gshower)
-	    {
-	      gparticleID = gshower->get_particle_id();
-	      gflavor     = gshower->get_flavor();
-	      gphi        = atan2(gshower->get_py(),gshower->get_px());
-	      ge          = gshower->get_e();
-	      gpt         = sqrt(pow(gshower->get_px(),2)+pow(gshower->get_py(),2));
-	      geta        = asinh(gshower->get_pz()/gpt);
-	      gmrad       = gshower->get_moliere_radius();
-	      gedep       = gshower->get_edep();
-	      gembed      = gshower->get_embed();
+  // 	  if(gshower)
+  // 	    {
+  // 	      gparticleID = gshower->get_particle_id();
+  // 	      gflavor     = gshower->get_flavor();
+  // 	      gphi        = atan2(gshower->get_py(),gshower->get_px());
+  // 	      ge          = gshower->get_e();
+  // 	      gpt         = sqrt(pow(gshower->get_px(),2)+pow(gshower->get_py(),2));
+  // 	      geta        = asinh(gshower->get_pz()/gpt);
+  // 	      gmrad       = gshower->get_moliere_radius();
+  // 	      gedep       = gshower->get_edep();
+  // 	      gembed      = gshower->get_embed();
 
-	      epurity     = _tower_epurity_map[ tower ];
-	    }
+  // 	      epurity     = _tower_epurity_map[ tower ];
+  // 	    }
 
-	  float tower_data[16] = {_ievent,
-				  ieta,
-				  iphi,
-				  eta,
-				  phi,
-				  e,
-				  gparticleID,
-				  gflavor,
-				  geta,
-				  gphi,
-				  ge,
-				  gpt,
-				  gmrad,
-				  gedep,
-				  gembed,
-				  epurity};
+  // 	  float tower_data[16] = {_ievent,
+  // 				  ieta,
+  // 				  iphi,
+  // 				  eta,
+  // 				  phi,
+  // 				  e,
+  // 				  gparticleID,
+  // 				  gflavor,
+  // 				  geta,
+  // 				  gphi,
+  // 				  ge,
+  // 				  gpt,
+  // 				  gmrad,
+  // 				  gedep,
+  // 				  gembed,
+  // 				  epurity};
 
-	  _ntp_tower->Fill(tower_data);
+  // 	  _ntp_tower->Fill(tower_data);
 	
-    }
+  //   }
 
-  //------------------------
-  // fill the Cluster NTuple
-  //------------------------
+  // //------------------------
+  // // fill the Cluster NTuple
+  // //------------------------
 
-  if(verbosity > 1) cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
+  // if(verbosity > 1) cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
   
-  // for every cluster
-  for(unsigned int icluster = 0; icluster < _clusterList->size(); icluster++) 
-    {
-      RawCluster *cluster = _clusterList->getCluster(icluster);
+  // // for every cluster
+  // for(unsigned int icluster = 0; icluster < _clusterList->size(); icluster++) 
+  //   {
+  //     RawCluster *cluster = _clusterList->getCluster(icluster);
 
-      CalGshower *gshower = _cluster_gshower_map[ cluster ];
+  //     CalGshower *gshower = _cluster_gshower_map[ cluster ];
 
-      float clusterID = icluster;
-      float ntowers   = cluster->getNTowers();
-      float eta       = cluster->get_eta();
-      float phi       = cluster->get_phi();
-      float e         = cluster->get_energy();
+  //     float clusterID = icluster;
+  //     float ntowers   = cluster->getNTowers();
+  //     float eta       = cluster->get_eta();
+  //     float phi       = cluster->get_phi();
+  //     float e         = cluster->get_energy();
 
-      float gparticleID = -9999.0;
-      float gflavor     = -9999.0;
-      float gphi        = -9999.0;
-      float ge          = -9999.0;
-      float gpt         = -9999.0;
-      float geta        = -9999.0;
-      float gmrad       = -9999.0;
-      float gedep       = -9999.0;
-      float gembed      = -9999.0;
+  //     float gparticleID = -9999.0;
+  //     float gflavor     = -9999.0;
+  //     float gphi        = -9999.0;
+  //     float ge          = -9999.0;
+  //     float gpt         = -9999.0;
+  //     float geta        = -9999.0;
+  //     float gmrad       = -9999.0;
+  //     float gedep       = -9999.0;
+  //     float gembed      = -9999.0;
       
-      float epurity     = -9999.0;
+  //     float epurity     = -9999.0;
 
-      if(gshower)
-	{
-	  gparticleID = gshower->get_particle_id();
-	  gflavor     = gshower->get_flavor();
-	  gphi        = atan2(gshower->get_py(),gshower->get_px());
-	  ge          = gshower->get_e();
-	  gpt         = sqrt(pow(gshower->get_px(),2)+pow(gshower->get_py(),2));
-	  geta        = asinh(gshower->get_pz()/gpt);
-	  gmrad       = gshower->get_moliere_radius();
-	  gedep       = gshower->get_edep();
-	  gembed      = gshower->get_embed();
+  //     if(gshower)
+  // 	{
+  // 	  gparticleID = gshower->get_particle_id();
+  // 	  gflavor     = gshower->get_flavor();
+  // 	  gphi        = atan2(gshower->get_py(),gshower->get_px());
+  // 	  ge          = gshower->get_e();
+  // 	  gpt         = sqrt(pow(gshower->get_px(),2)+pow(gshower->get_py(),2));
+  // 	  geta        = asinh(gshower->get_pz()/gpt);
+  // 	  gmrad       = gshower->get_moliere_radius();
+  // 	  gedep       = gshower->get_edep();
+  // 	  gembed      = gshower->get_embed();
 
-	  epurity     = _cluster_epurity_map[ cluster ];
-	}
+  // 	  epurity     = _cluster_epurity_map[ cluster ];
+  // 	}
 
-      float cluster_data[16] = {_ievent,
-				clusterID,
-				ntowers,
-				eta,
-				phi,
-				e,
-				gparticleID,
-				gflavor,
-				geta,
-				gphi,
-				ge,
-				gpt,
-				gmrad,
-				gedep,
-				gembed,
-				epurity
-      };
+  //     float cluster_data[16] = {_ievent,
+  // 				clusterID,
+  // 				ntowers,
+  // 				eta,
+  // 				phi,
+  // 				e,
+  // 				gparticleID,
+  // 				gflavor,
+  // 				geta,
+  // 				gphi,
+  // 				ge,
+  // 				gpt,
+  // 				gmrad,
+  // 				gedep,
+  // 				gembed,
+  // 				epurity
+  //     };
 
-      _ntp_cluster->Fill(cluster_data);
-    }
+  //     _ntp_cluster->Fill(cluster_data);
+  //   }
 
   return;
 }
