@@ -15,7 +15,7 @@ class CaloTruthEval {
 
 public:
 
-  CaloTruthEval(PHCompositeNode *topNode, std::string caloname = "CEMC"); // CEMC, HCALIN, HCALOUT
+  CaloTruthEval(PHCompositeNode *topNode, std::string caloname); // CEMC, HCALIN, HCALOUT
   virtual ~CaloTruthEval() {}
 
   void next_event(PHCompositeNode *topNode);
