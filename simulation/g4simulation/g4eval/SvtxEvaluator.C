@@ -1,11 +1,7 @@
 
 #include "SvtxEvaluator.h"
 
-#include "SvtxVertexEval.h"
-#include "SvtxTrackEval.h"
-#include "SvtxClusterEval.h"
-#include "SvtxHitEval.h"
-#include "SvtxTruthEval.h"
+#inlcude "SvtxEvalStack.h"
 
 #include <phool/PHCompositeNode.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -261,20 +257,18 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode *topNode) {
 
 void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
   
-  if (verbosity > 1) cout << "SvtxEvaluator::printLogInfo() entered" << endl;
+  if (verbosity > 1) cout << "SvtxEvaluator::printOutputInfo() entered" << endl;
 
   //==========================================
   // print out some useful stuff for debugging
   //==========================================
 
-  SvtxTruthEval otrutheval(topNode);
-  SvtxTruthEval* trutheval = &otrutheval;
+  SvtxEvalStack svtxevalstack(topNode);
 
-  SvtxVertexEval overtexeval(topNode);
-  SvtxVertexEval* vertexeval = &overtexeval;
-  SvtxTrackEval* trackeval = vertexeval->get_track_eval();
-  SvtxClusterEval* clustereval = vertexeval->get_cluster_eval();
-  //SvtxHitEval* hiteval = vertexeval->get_hit_eval();
+  SvtxVertexEval*   vertexeval = svtxevalstack.get_vertex_eval();
+  SvtxTrackEval*     trackeval = svtxevalstack.get_track_eval();
+  SvtxClusterEval* clustereval = svtxevalstack.get_cluster_eval();
+  SvtxTruthEval*     trutheval = svtxevalstack.get_truth_eval();
   
   if (verbosity > 0) {
     // event information
@@ -535,14 +529,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
   if (verbosity > 1) cout << "SvtxEvaluator::fillOutputNtuples() entered" << endl;
 
-  SvtxTruthEval otrutheval(topNode);
-  SvtxTruthEval* trutheval = &otrutheval;
+  SvtxEvalStack svtxevalstack(topNode);
 
-  SvtxVertexEval overtexeval(topNode);
-  SvtxVertexEval* vertexeval = &overtexeval;
-  SvtxTrackEval* trackeval = vertexeval->get_track_eval();
-  SvtxClusterEval* clustereval = vertexeval->get_cluster_eval();
-  SvtxHitEval* hiteval = vertexeval->get_hit_eval();
+  SvtxVertexEval*   vertexeval = svtxevalstack.get_vertex_eval();
+  SvtxTrackEval*     trackeval = svtxevalstack.get_track_eval();
+  SvtxClusterEval* clustereval = svtxevalstack.get_cluster_eval();
+  SvtxHitEval*         hiteval = svtxevalstack.get_hit_eval();
+  SvtxTruthEval*     trutheval = svtxevalstack.get_truth_eval();
   
   //-----------------------
   // fill the Vertex NTuple
