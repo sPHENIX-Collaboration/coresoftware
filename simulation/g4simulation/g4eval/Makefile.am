@@ -24,6 +24,7 @@ libg4eval_la_LDFLAGS = \
   -lcemc 
 
 pkginclude_HEADERS = \
+  CaloEvalStack.h \
   CaloTruthEval.h \
   CaloRawTowerEval.h \
   CaloRawClusterEval.h \
@@ -41,6 +42,8 @@ pkginclude_HEADERS = \
 #pkginclude_HEADERS = $(include_HEADERS)
 
 libg4eval_la_SOURCES = \
+  CaloEvalStack.C \
+  CaloEvalStack_Dict.C \
   CaloTruthEval.C \
   CaloTruthEval_Dict.C \
   CaloRawTowerEval.C \
