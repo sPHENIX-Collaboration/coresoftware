@@ -18,7 +18,7 @@ SvtxTrack::SvtxTrack(SvtxTrack *track) : covariance( *(track->getCovariance()) )
   kappa = track->kappa ;
   z0    = track->z0    ;
   dzdl  = track->dzdl  ;
-  setDCA2Dsigma(track->getDCA2Dsigma());
+  //setDCA2Dsigma(track->getDCA2Dsigma());
   
   for(int i=0;i<100;i++)
   {
@@ -73,7 +73,7 @@ SvtxTrack::SvtxTrack(const SvtxTrack& track) : covariance( *(track.getCovariance
   kappa = track.kappa ;
   z0    = track.z0    ;
   dzdl  = track.dzdl  ;
-  setDCA2Dsigma(track.getDCA2Dsigma());
+ // setDCA2Dsigma(track.getDCA2Dsigma());
   
   for(int i=0;i<100;i++)
   {
