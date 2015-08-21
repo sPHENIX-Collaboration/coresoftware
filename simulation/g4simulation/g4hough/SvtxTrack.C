@@ -1,5 +1,6 @@
 #include "SvtxTrack.h"
 #include <math.h>
+#include <phool/phool.h>
 
 ClassImp(SvtxTrack)
 
@@ -56,6 +57,13 @@ SvtxTrack::SvtxTrack(SvtxTrack *track) : covariance( *(track->getCovariance()) )
     cal_cluster_id[i] = track->get_cal_cluster_id(i);
     cal_cluster_e[i] = track->get_cal_cluster_e(i);
   }
+
+  for (prop_map_t::const_iterator i = track->prop_map.begin();
+      i != track->prop_map.end(); ++i)
+    {
+      PROPERTY prop_id = static_cast<PROPERTY>(i->first);
+      set_property_nocheck(prop_id, track->get_property_nocheck(prop_id));
+    }
 }
 
 SvtxTrack::SvtxTrack(const SvtxTrack& track) : covariance( *(track.getCovariance()) )
@@ -108,6 +116,15 @@ SvtxTrack::SvtxTrack(const SvtxTrack& track) : covariance( *(track.getCovariance
   x = track.get_x();
   y = track.get_y();
   z = track.get_z();
+
+
+  for (prop_map_t::const_iterator i = track.prop_map.begin();
+      i != track.prop_map.end(); ++i)
+    {
+      PROPERTY prop_id = static_cast<PROPERTY>(i->first);
+      set_property_nocheck(prop_id, track.get_property_nocheck(prop_id));
+    }
+
 }
 
 void SvtxTrack::identify(ostream& os) const
@@ -132,6 +149,30 @@ void SvtxTrack::identify(ostream& os) const
       os << "chisq/dof: " << getChisq()/getNDF() << " ";
     }
   os << std::endl;
+
+
+  for (prop_map_t::const_iterator i = prop_map.begin(); i!= prop_map.end(); ++i)
+    {
+      PROPERTY prop_id = static_cast<PROPERTY>(i->first);
+      pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+      cout << "\t" << i->first << ":\t" << property_info.first << " = \t";
+      switch(property_info.second)
+  {
+  case type_int:
+    cout << get_property_int(prop_id);
+    break;
+  case type_uint:
+    cout << get_property_uint(prop_id);
+    break;
+  case type_float:
+    cout << get_property_float(prop_id);
+    break;
+  default:
+    cout << " unknown type ";
+  }
+      cout <<endl;
+    }
+
   return;
 }
 
@@ -175,6 +216,8 @@ void SvtxTrack::Reset()
     cal_cluster_e[i] = NAN;
   }
 
+  prop_map.clear();
+
   return;
 }
 
@@ -205,3 +248,155 @@ short SvtxTrack::getNhits() const
   }
   return count;
 }
+
+
+
+
+
+std::pair<const std::string,SvtxTrack::PROPERTY_TYPE>
+SvtxTrack::get_property_info(const PROPERTY prop_id)
+{
+  switch (prop_id)
+  {
+  case  prop_FastSim_TruthID:
+    return make_pair("Truth ID (available for fast sim track only)",SvtxTrack::type_int);
+  default:
+    cout << "unknown index " << prop_id << endl;
+    exit(1);
+  }
+}
+
+
+bool
+SvtxTrack::check_property(const PROPERTY prop_id, const PROPERTY_TYPE prop_type)
+{
+  pair<const string,PROPERTY_TYPE> property_info = get_property_info(prop_id);
+  if (property_info.second != prop_type)
+    {
+      return false;
+    }
+  return true;
+}
+
+string
+SvtxTrack::get_property_type(const PROPERTY_TYPE prop_type)
+{
+  switch(prop_type)
+    {
+    case type_int:
+      return "int";
+    case type_uint:
+      return "unsigned int";
+    case type_float:
+      return "float";
+    default:
+      return "unkown";
+    }
+}
+
+bool
+SvtxTrack::has_property(const PROPERTY prop_id) const
+{
+  prop_map_t::const_iterator i = prop_map.find(prop_id);
+  return i!=prop_map.end();
+}
+
+float
+SvtxTrack::get_property_float(const PROPERTY prop_id) const
+{
+  if (!check_property(prop_id,type_float))
+    {
+      pair<const string,PROPERTY_TYPE> property_info =get_property_info(prop_id);
+      cout << PHWHERE << " Property " << property_info.first << " with id "
+           << prop_id << " is of type " << get_property_type(property_info.second)
+     << " not " << get_property_type(type_float) << endl;
+      exit(1);
+    }
+  prop_map_t::const_iterator i = prop_map.find(prop_id);
+  return (i==prop_map.end())? NAN : u_property(i->second).fdata ;
+}
+
+int
+SvtxTrack::get_property_int(const PROPERTY prop_id) const
+{
+  if (!check_property(prop_id,type_int))
+    {
+      pair<const string,PROPERTY_TYPE> property_info =get_property_info(prop_id);
+      cout << PHWHERE << " Property " << property_info.first << " with id "
+           << prop_id << " is of type " << get_property_type(property_info.second)
+     << " not " << get_property_type(type_int) << endl;
+      exit(1);
+    }
+  prop_map_t::const_iterator i = prop_map.find(prop_id);
+  return (i==prop_map.end())? NAN : u_property(i->second).idata ;
+}
+
+unsigned int
+SvtxTrack::get_property_uint(const PROPERTY prop_id) const
+{
+  if (!check_property(prop_id,type_uint))
+    {
+      pair<const string,PROPERTY_TYPE> property_info =get_property_info(prop_id);
+      cout << PHWHERE << " Property " << property_info.first << " with id "
+           << prop_id << " is of type " << get_property_type(property_info.second)
+     << " not " << get_property_type(type_uint) << endl;
+      exit(1);
+    }
+  prop_map_t::const_iterator i = prop_map.find(prop_id);
+  return (i==prop_map.end())? NAN : u_property(i->second).uidata ;
+}
+
+void
+SvtxTrack::set_property(const PROPERTY prop_id, const float value)
+{
+  if (!check_property(prop_id,type_float))
+    {
+      pair<const string,PROPERTY_TYPE> property_info = get_property_info(prop_id);
+      cout << PHWHERE << " Property " << property_info.first << " with id "
+           << prop_id << " is of type " << get_property_type(property_info.second)
+     << " not " << get_property_type(type_float) << endl;
+      exit(1);
+    }
+  prop_map[prop_id] = u_property(value).get_storage();
+}
+
+void
+SvtxTrack::set_property(const PROPERTY prop_id, const int value)
+{
+  if (!check_property(prop_id,type_int))
+    {
+      pair<const string,PROPERTY_TYPE> property_info = get_property_info(prop_id);
+      cout << PHWHERE << " Property " << property_info.first << " with id "
+           << prop_id << " is of type " << get_property_type(property_info.second)
+     << " not " << get_property_type(type_int) << endl;
+      exit(1);
+    }
+  prop_map[prop_id] = u_property(value).get_storage();
+}
+
+void
+SvtxTrack::set_property(const PROPERTY prop_id, const unsigned int value)
+{
+  if (!check_property(prop_id,type_uint))
+    {
+      pair<const string,PROPERTY_TYPE> property_info = get_property_info(prop_id);
+      cout << PHWHERE << " Property " << property_info.first << " with id "
+           << prop_id << " is of type " << get_property_type(property_info.second)
+     << " not " << get_property_type(type_uint) << endl;
+      exit(1);
+    }
+  prop_map[prop_id] = u_property(value).get_storage();
+}
+
+unsigned int
+SvtxTrack::get_property_nocheck(const PROPERTY prop_id) const
+{
+  prop_map_t::const_iterator iter = prop_map.find(prop_id);
+  if (iter != prop_map.end())
+    {
+      return iter->second;
+    }
+  return prop_MAX_NUMBER;
+}
+
+

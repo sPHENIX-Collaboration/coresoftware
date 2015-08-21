@@ -5,6 +5,10 @@
 #include <TMatrix.h>
 #include <iostream>
 
+#include <map>
+#include <stdint.h>
+#include <climits>
+
 class SvtxTrack : public PHObject
 {
   
@@ -105,6 +109,86 @@ class SvtxTrack : public PHObject
   float get_z() const{return z;}
   void set_z(float val){z = val;}
 
+  
+
+ public:
+
+  //! In order to add a new property, please add a short desc. to SvtxTrack::get_property_info()
+  enum PROPERTY
+  {//
+    //! Truth ID
+    prop_FastSim_TruthID = 0,
+    prop_isprimary =1,
+
+    //!Track properties
+    prop_momentum = 10,
+    prop_charge,
+    prop_ispositive,
+    prop_quality,
+    prop_chisq,
+    prop_chisqv,
+    prop_ndf,
+
+    //! vertex properties
+    prop_DCA = 20,
+    prop_DCA2D,
+    prop_DCA2Dsigma,
+    prop_x,prop_y,prop_z,
+
+    //! max limit in order to fit into 8 bit unsigned number
+    prop_MAX_NUMBER = UCHAR_MAX
+  };
+
+  enum PROPERTY_TYPE
+  {//
+    type_int = 1,
+    type_uint = 2,
+    type_float = 3,
+    type_unknown = -1
+  };
+
+  virtual bool  has_property(const PROPERTY prop_id) const ;
+  virtual float get_property_float(const PROPERTY prop_id) const;
+  virtual int   get_property_int(const PROPERTY prop_id) const;
+  virtual unsigned int   get_property_uint(const PROPERTY prop_id) const;
+  virtual void  set_property(const PROPERTY prop_id, const float value) ;
+  virtual void  set_property(const PROPERTY prop_id, const int value) ;
+  virtual void  set_property(const PROPERTY prop_id, const unsigned int value) ;
+  static std::pair<const std::string,PROPERTY_TYPE> get_property_info(PROPERTY prop_id);
+  static bool check_property(const PROPERTY prop_id, const PROPERTY_TYPE prop_type);
+  static std::string get_property_type(const PROPERTY_TYPE prop_type);
+
+ protected:
+
+  virtual unsigned int get_property_nocheck(const PROPERTY prop_id) const ;
+  void set_property_nocheck(const PROPERTY prop_id,const unsigned int ui) {prop_map[prop_id]=ui;}
+
+  //! storage types for additional property
+  typedef uint8_t prop_id_t;
+  typedef uint32_t prop_storage_t;
+  typedef std::map<prop_id_t, prop_storage_t> prop_map_t;
+
+  //! convert between 32bit inputs and storage type prop_storage_t
+  union u_property{
+    float fdata;
+    int32_t idata;
+    uint32_t uidata;
+
+    u_property(int32_t in): idata(in) {}
+    u_property(uint32_t in): uidata(in) {}
+    u_property(float in): fdata(in) {}
+    u_property(): uidata(0) {}
+
+    prop_storage_t get_storage() const {return uidata;}
+  };
+
+  //! container for additional property
+  prop_map_t prop_map;
+
+  ///@}
+
+
+
  protected:
 
   int     clusterID[100];
@@ -124,15 +208,24 @@ class SvtxTrack : public PHObject
   float   DCA2Dsigma;
   float   scatter[100];
   float   x,y,z;
-  
+
   TMatrix covariance;
-  
+
   // calorimeter matches
   float   cal_dphi[4];
   float   cal_deta[4];
   float   cal_energy_3x3[4];
   int     cal_cluster_id[4];
   float   cal_cluster_e[4];
+
+
+  /** @name Property Tags
+   *  Support a variable size propery tags
+   */
+  ///@{
+
+
+
 
   ClassDef(SvtxTrack,1)
 };
