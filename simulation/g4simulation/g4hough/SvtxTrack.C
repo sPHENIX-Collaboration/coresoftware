@@ -6,7 +6,7 @@ ClassImp(SvtxTrack)
 
 using namespace std;
 
-SvtxTrack::SvtxTrack() : phi(0.),d(0.),kappa(0.),z0(0.),dzdl(0.), x(0.), y(0.), z(0.), covariance(6,6)
+SvtxTrack::SvtxTrack() : phi(0.),d(0.),kappa(0.),z0(0.),dzdl(0.), covariance(6,6)
 {
   Reset();
 }
@@ -29,22 +29,22 @@ SvtxTrack::SvtxTrack(SvtxTrack *track) : covariance( *(track->getCovariance()) )
   }
   
   trackID = track->getTrackID();
-  momentum = track->getMomentum();
+//  momentum = track->getMomentum();
   for(int j=0;j<3;j++){
     mom3[j] = track->get3Momentum(j);
   }
 
-  charge = track->getCharge();
+//  charge = track->getCharge();
   isprimary = track->getPrimary();
   ispositive = track->getPositive();
-  quality = track->getQuality();
+//  quality = track->getQuality();
   
-  DCA = track->getDCA();
-  DCA2D = track->getDCA2D();
-
-  chisq = track->getChisq();
-  chisqv = track->getChisqv();
-  ndf = track->getNDF();
+//  DCA = track->getDCA();
+//  DCA2D = track->getDCA2D();
+//
+//  chisq = track->getChisq();
+//  chisqv = track->getChisqv();
+//  ndf = track->getNDF();
   
   for(int i=0;i<9;i++){
     scatter[i] = track->getScatter(i);
@@ -84,22 +84,22 @@ SvtxTrack::SvtxTrack(const SvtxTrack& track) : covariance( *(track.getCovariance
   }
   
   trackID = track.getTrackID();
-  momentum = track.getMomentum();
+//  momentum = track.getMomentum();
   for(int j=0;j<3;j++){
     mom3[j] = track.get3Momentum(j);
   }
 
-  charge = track.getCharge();
+//  charge = track.getCharge();
   isprimary = track.getPrimary();
   ispositive = track.getPositive();
-  quality = track.getQuality();
+//  quality = track.getQuality();
   
-  DCA = track.getDCA();
-  DCA2D = track.getDCA2D();
+//  DCA = track.getDCA();
+//  DCA2D = track.getDCA2D();
 
-  chisq = track.getChisq();
-  chisqv = track.getChisqv();
-  ndf = track.getNDF();
+//  chisq = track.getChisq();
+//  chisqv = track.getChisqv();
+//  ndf = track.getNDF();
   
   for(int i=0;i<9;i++){
     scatter[i] = track.getScatter(i);
@@ -113,9 +113,10 @@ SvtxTrack::SvtxTrack(const SvtxTrack& track) : covariance( *(track.getCovariance
     cal_cluster_e[i] = track.get_cal_cluster_e(i);
   }
 
-  x = track.get_x();
-  y = track.get_y();
-  z = track.get_z();
+  //! TODO delete these lines. They are now part of property map
+//  x = track.get_x();
+//  y = track.get_y();
+//  z = track.get_z();
 
 
   for (prop_map_t::const_iterator i = track.prop_map.begin();
@@ -155,7 +156,7 @@ void SvtxTrack::identify(ostream& os) const
     {
       PROPERTY prop_id = static_cast<PROPERTY>(i->first);
       pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
-      cout << "\t" << i->first << ":\t" << property_info.first << " = \t";
+      cout << "\t" << property_info.first << " = \t";
       switch(property_info.second)
   {
   case type_int:
@@ -187,22 +188,24 @@ void SvtxTrack::Reset()
   }
 
   trackID = -1;
-  momentum=NAN;
+//  momentum=NAN;
   for(int j=0;j<3;j++){
     mom3[j]=NAN;
   }
 
-  charge=1;
+//  charge=1;
+  setCharge(1);
   isprimary=false;
   ispositive=false;
-  quality=NAN;
+//  quality=NAN;
   
-  DCA=NAN;
-  DCA2D=NAN;
-
-  chisq = NAN;
-  chisqv = NAN;
-  ndf = 0;
+//  DCA=NAN;
+//  DCA2D=NAN;
+//
+//  chisq = NAN;
+//  chisqv = NAN;
+//  ndf = 0;
+  setNDF(0);
   
   for(int i=0;i<9;i++){
     scatter[i]=NAN;
@@ -217,6 +220,13 @@ void SvtxTrack::Reset()
   }
 
   prop_map.clear();
+
+  //! TODO: these init are set so that they produce consistent result as before (init x/y/z to 0).
+  //! But it seems redundant.
+  //! I would suggest remove these three lines, which is equavlent to init them to NAN.
+  set_x(0);
+  set_y(0);
+  set_z(0);
 
   return;
 }
@@ -260,6 +270,35 @@ SvtxTrack::get_property_info(const PROPERTY prop_id)
   {
   case  prop_FastSim_TruthID:
     return make_pair("Truth ID (available for fast sim track only)",SvtxTrack::type_int);
+
+  case  prop_momentum:
+    return make_pair("Momentum",SvtxTrack::type_float);
+  case  prop_charge:
+    return make_pair("Charge",SvtxTrack::type_int);
+  case  prop_quality:
+    return make_pair("Quality",SvtxTrack::type_float);
+  case  prop_chisq:
+    return make_pair("Chi Square",SvtxTrack::type_float);
+  case  prop_chisqv:
+    return make_pair("Chi Square @ vertex",SvtxTrack::type_float);
+  case  prop_ndf:
+    return make_pair("NDF",SvtxTrack::type_int);
+
+  case  prop_DCA:
+    return make_pair("DCA",SvtxTrack::type_float);
+  case  prop_DCA2D:
+    return make_pair("DCA 2D",SvtxTrack::type_float);
+  case  prop_DCA2Dsigma:
+    return make_pair("DCA 2D Sigma",SvtxTrack::type_float);
+
+  case  prop_x:
+    return make_pair("Vertex x",SvtxTrack::type_float);
+  case  prop_y:
+    return make_pair("Vertex y",SvtxTrack::type_float);
+  case  prop_z:
+    return make_pair("Vertex z",SvtxTrack::type_float);
+
+
   default:
     cout << "unknown index " << prop_id << endl;
     exit(1);

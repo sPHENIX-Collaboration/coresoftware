@@ -8,6 +8,7 @@
 #include <map>
 #include <stdint.h>
 #include <climits>
+#include <string>
 
 class SvtxTrack : public PHObject
 {
@@ -102,12 +103,12 @@ class SvtxTrack : public PHObject
   void set_cal_cluster_e(int layer, float e) {cal_cluster_e[layer] = e;}
   float get_cal_cluster_e(int layer) const {return cal_cluster_e[layer];}
 
-  float get_x() const{return x;}
-  void set_x(float val){x = val;}
-  float get_y() const{return y;}
-  void set_y(float val){y = val;}
-  float get_z() const{return z;}
-  void set_z(float val){z = val;}
+  float get_x() const{return get_property_float(prop_x);}
+  void set_x(float val){set_property(prop_x, val);}
+  float get_y() const{return get_property_float(prop_y);}
+  void set_y(float val){set_property(prop_y, val);}
+  float get_z() const{return get_property_float(prop_z);}
+  void set_z(float val){set_property(prop_z, val);}
 
   
 
@@ -118,19 +119,17 @@ class SvtxTrack : public PHObject
   {//
     //! Truth ID
     prop_FastSim_TruthID = 0,
-    prop_isprimary =1,
 
     //!Track properties
     prop_momentum = 10,
     prop_charge,
-    prop_ispositive,
     prop_quality,
     prop_chisq,
     prop_chisqv,
     prop_ndf,
 
     //! vertex properties
-    prop_DCA = 20,
+    prop_DCA = 30,
     prop_DCA2D,
     prop_DCA2Dsigma,
     prop_x,prop_y,prop_z,
@@ -194,20 +193,20 @@ class SvtxTrack : public PHObject
   int     clusterID[100];
   int     trackID;
   float   position[100][3];
-  float   momentum;
+//  float   momentum;
   float   mom3[3];
-  int     charge;
+//  int     charge;
   bool    isprimary;
   bool    ispositive;
-  float   quality;
-  float   chisq;
-  float   chisqv;
-  int     ndf;
-  float   DCA;
-  float   DCA2D;
-  float   DCA2Dsigma;
+//  float   quality;
+//  float   chisq;
+//  float   chisqv;
+//  int     ndf;
+//  float   DCA;
+//  float   DCA2D;
+//  float   DCA2Dsigma;
   float   scatter[100];
-  float   x,y,z;
+//  float   x,y,z;
 
   TMatrix covariance;
 
@@ -227,7 +226,7 @@ class SvtxTrack : public PHObject
 
 
 
-  ClassDef(SvtxTrack,1)
+  ClassDef(SvtxTrack,2)
 };
 
 
@@ -238,27 +237,27 @@ inline bool SvtxTrack::hasCluster(int layer) const {return (clusterID[layer]>-99
 inline void SvtxTrack::setScatter(int layer, float sct){scatter[layer]=sct;}
 inline float SvtxTrack::getScatter(int layer) const {return scatter[layer];}
 
-inline void SvtxTrack::setDCA(float d){DCA=d;}
-inline float SvtxTrack::getDCA() const {return DCA;}
-inline void SvtxTrack::setDCA2D(float d){DCA2D=d;}
-inline float SvtxTrack::getDCA2D() const {return DCA2D;}
-inline void SvtxTrack::setDCA2Dsigma(float s){DCA2Dsigma=s;}
-inline float SvtxTrack::getDCA2Dsigma() const {return DCA2Dsigma;}
+inline void SvtxTrack::setDCA(float d){set_property(prop_DCA, d);}
+inline float SvtxTrack::getDCA() const {return get_property_float(prop_DCA);}
+inline void SvtxTrack::setDCA2D(float d){set_property(prop_DCA2D, d);}
+inline float SvtxTrack::getDCA2D() const{return get_property_float(prop_DCA2D);}
+inline void SvtxTrack::setDCA2Dsigma(float s){set_property(prop_DCA2Dsigma, s);}
+inline float SvtxTrack::getDCA2Dsigma() const {return get_property_float(prop_DCA2Dsigma);}
 
-inline void SvtxTrack::setMomentum(float p){momentum=p;}
-inline float SvtxTrack::getMomentum() const {return momentum;}
+inline void SvtxTrack::setMomentum(float p){set_property(prop_momentum, p);}
+inline float SvtxTrack::getMomentum() const {return get_property_float(prop_momentum);}
 
-inline void SvtxTrack::setQuality(float q){quality=q;}
-inline float SvtxTrack::getQuality() const {return quality;}
+inline void SvtxTrack::setQuality(float q){set_property(prop_quality, q);}
+inline float SvtxTrack::getQuality() const {return get_property_float(prop_quality);}
 
-inline void SvtxTrack::setChisq(float q){chisq=q;}
-inline float SvtxTrack::getChisq() const {return chisq;}
+inline void SvtxTrack::setChisq(float q){set_property(prop_chisq, q);}
+inline float SvtxTrack::getChisq() const{return get_property_float(prop_chisq);}
 
-inline void SvtxTrack::setChisqv(float q){chisqv=q;}
-inline float SvtxTrack::getChisqv() const {return chisqv;}
+inline void SvtxTrack::setChisqv(float q){set_property(prop_chisqv, q);}
+inline float SvtxTrack::getChisqv() const {return get_property_float(prop_chisqv);}
 
-inline void SvtxTrack::setNDF(int q){ndf=q;}
-inline int SvtxTrack::getNDF() const {return ndf;}
+inline void SvtxTrack::setNDF(int q){set_property(prop_ndf, q);}
+inline int SvtxTrack::getNDF() const{return get_property_int(prop_ndf);}
 
 
 inline void SvtxTrack::set3Momentum(float px, float py, float pz)
@@ -269,8 +268,8 @@ inline void SvtxTrack::set3Momentum(float px, float py, float pz)
 }
 inline float SvtxTrack::get3Momentum(int coor) const {return mom3[coor];}
 
-inline void SvtxTrack::setCharge(int c){charge=c;}
-inline int SvtxTrack::getCharge() const {return charge;}
+inline void SvtxTrack::setCharge(int c){set_property(prop_charge, c);}
+inline int SvtxTrack::getCharge() const {return get_property_int(prop_charge);}
 
 inline void SvtxTrack::setPrimary(bool prim){isprimary=prim;}
 inline bool SvtxTrack::getPrimary() const {return isprimary;}
