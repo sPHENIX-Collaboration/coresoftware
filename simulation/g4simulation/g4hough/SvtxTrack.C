@@ -179,6 +179,8 @@ void SvtxTrack::identify(ostream& os) const
 
 void SvtxTrack::Reset()
 {
+  prop_map.clear();
+
   for(int i=0;i<100;i++)
   {
     clusterID[i]=-9999;
@@ -218,8 +220,6 @@ void SvtxTrack::Reset()
     cal_cluster_id[i] = -9999;
     cal_cluster_e[i] = NAN;
   }
-
-  prop_map.clear();
 
   //! TODO: these init are set so that they produce consistent result as before (init x/y/z to 0).
   //! But it seems redundant.
