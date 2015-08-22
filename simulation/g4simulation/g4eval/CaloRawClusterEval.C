@@ -141,7 +141,7 @@ PHG4Particle* CaloRawClusterEval::max_truth_primary_by_energy(RawCluster* cluste
   // loop over all primaries associated with this cluster and
   // get the energy contribution for each one, record the max
   PHG4Particle* max_primary = NULL;
-  float max_e = FLT_MIN;
+  float max_e = FLT_MAX*-1.0;
   std::set<PHG4Particle*> primaries = all_truth_primaries(cluster);
   for (std::set<PHG4Particle*>::iterator iter = primaries.begin();
        iter != primaries.end();

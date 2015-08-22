@@ -122,7 +122,7 @@ PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(SvtxHit* hit) {
   
   std::set<PHG4Hit*> hits = all_truth_hits(hit);
   PHG4Hit* max_hit = NULL;
-  float max_e = FLT_MIN;
+  float max_e = FLT_MAX*-1.0;
   for (std::set<PHG4Hit*>::iterator iter = hits.begin();
        iter != hits.end();
        ++iter) {
@@ -180,7 +180,7 @@ PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(SvtxHit* hit) {
   // loop over all particles associated with this hit and
   // get the energy contribution for each one, record the max
   PHG4Particle* max_particle = NULL;
-  float max_e = FLT_MIN;
+  float max_e = FLT_MAX*-1.0;
   std::set<PHG4Particle*> particles = all_truth_particles(hit);
   for (std::set<PHG4Particle*>::iterator iter = particles.begin();
        iter != particles.end();
