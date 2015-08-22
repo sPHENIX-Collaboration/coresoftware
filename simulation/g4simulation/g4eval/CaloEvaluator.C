@@ -395,14 +395,24 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
       RawCluster* cluster = clustereval->best_cluster_from(primary);
 
-      float clusterID = cluster->get_id();
-      float ntowers   = cluster->getNTowers();
-      float eta       = cluster->get_eta();
-      float phi       = cluster->get_phi();
-      float e         = cluster->get_energy();
+      float clusterID = NAN;
+      float ntowers   = NAN;
+      float eta       = NAN;
+      float phi       = NAN;
+      float e         = NAN;
+      
+      float efromtruth     = NAN;
+
+      if (cluster) {      
+	clusterID = cluster->get_id();
+	ntowers   = cluster->getNTowers();
+	eta       = cluster->get_eta();
+	phi       = cluster->get_phi();
+	e         = cluster->get_energy();
 	
-      float efromtruth     = clustereval->get_energy_contribution(cluster, primary);
-	
+	efromtruth     = clustereval->get_energy_contribution(cluster, primary);
+      }
+      
       float shower_data[20] = {_ievent,
 			       gparticleID,
 			       gflavor,
