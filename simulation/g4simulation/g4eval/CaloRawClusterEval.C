@@ -171,9 +171,10 @@ std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primar
   }
   
   // need things off of the DST...
-  RawClusterContainer* clustercontainer = findNode::getClass<RawClusterContainer>(_topNode,"RawClusterContainer");
+  std::string nodename = "CLUSTER_" + _caloname;
+  RawClusterContainer* clustercontainer = findNode::getClass<RawClusterContainer>(_topNode,nodename.c_str());
   if (!clustercontainer) {
-    cerr << PHWHERE << " ERROR: Can't find RawClusterContainer" << endl;
+    cerr << PHWHERE << " ERROR: Can't find " << nodename << endl;
     exit(-1);
   }
 
