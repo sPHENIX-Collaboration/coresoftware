@@ -163,121 +163,134 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode *topNode) {
   
   if (verbosity > 2) cout << "CaloEvaluator::printOutputInfo() entered" << endl;
 
+  CaloEvalStack caloevalstack(topNode,_caloname); 
+  CaloRawClusterEval* clustereval = caloevalstack.get_rawcluster_eval();
+  CaloTruthEval*        trutheval = caloevalstack.get_truth_eval();
+  
   //==========================================
   // print out some useful stuff for debugging
   //==========================================
 
-  // if (verbosity > 1)
-  //   {
-  //     // event information
-  //     cout << endl;
-  //     cout << PHWHERE << "   NEW OUTPUT FOR EVENT " << _ievent << endl;
-  //     cout << endl;
-
-  //     PHG4VtxPoint *gvertex = truthinfo->GetPrimaryVtx( truthinfo->GetPrimaryVertexIndex() );
-  //     float gvx = gvertex->get_x();
-  //     float gvy = gvertex->get_y();
-  //     float gvz = gvertex->get_z();
-
-  //     float vx = NAN;
-  //     float vy = NAN;
-  //     float vz = NAN;
-  //     if (_vertexList) {
-  // 	if (!_vertexList->empty()) {
-  // 	  SvtxVertex* vertex = &(_vertexList->begin()->second);
-	
-  // 	  vx = vertex->get_x();
-  // 	  vy = vertex->get_y();
-  // 	  vz = vertex->get_z();
-  // 	}
-  //     }
-
-  //     cout << "vtrue = (" << gvx << "," << gvy << "," << gvz << ") => vreco = (" << vx << "," << vy << "," << vz << ")" << endl;
+  if (verbosity > 1) {
     
-  //     float ngshowers = _gshower_list.size();
-  //     float ng4hits  = _g4hitList->size();
-  //     float ntowers  = _towerList->size();
-  //     float nclusters = _clusterList->size();
+    // event information
+    cout << endl;
+    cout << PHWHERE << "   NEW OUTPUT FOR EVENT " << _ievent << endl;
+    cout << endl;
 
-  //     cout << "nGshowers = " << ngshowers << endl;
-  //     cout << " => nGhits = " << ng4hits << endl;
-  //     cout << " => nTowers = " << ntowers << endl;
-  //     cout << " => nClusters = " << nclusters << endl;
+    // need things off of the DST...
+    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+    if (!truthinfo) {
+      cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
+      exit(-1);
+    }
 
-  //     if(verbosity > 2)
-  // 	{
-  // 	  for(unsigned igshower = 0; igshower < _gshower_list.size(); igshower++)
-  // 	    {
-  // 	      CalGshower *gshower = &_gshower_list[igshower];
-	      
-  // 	      // track-wise information
-  // 	      cout << endl;
+    // need things off of the DST...
+    SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
       
-  // 	      cout << "===CalGshower===================================================" << endl;
-  // 	      cout << " CalGshower id = " << gshower->get_particle_id() << endl;
-  // 	      cout << " flavor = " << gshower->get_flavor() << endl;
-  // 	      cout << " ptrue = (";
-  // 	      cout.width(5); cout << gshower->get_px();
-  // 	      cout << ",";
-  // 	      cout.width(5); cout << gshower->get_py();
-  // 	      cout << ",";
-  // 	      cout.width(5); cout << gshower->get_pz();
-  // 	      cout << ")" << endl;
-  // 	      cout << " vtrue = (";
-  // 	      cout.width(5); cout << gshower->get_vx();
-  // 	      cout << ",";
-  // 	      cout.width(5); cout << gshower->get_vy();
-  // 	      cout << ",";
-  // 	      cout.width(5); cout << gshower->get_vz();
-  // 	      cout << ")" << endl;
-  // 	      cout << " ---Associated-PHG4Hits-----------------------------------------" << endl;
-	      
-  // 	      for(unsigned int ig4hit = 0; ig4hit < gshower->get_ng4hits(); ig4hit++)
-  // 		{
-  // 		  if((ig4hit > 5)&&(ig4hit < gshower->get_ng4hits() - 5)) continue;
+    PHG4VtxPoint *gvertex = truthinfo->GetPrimaryVtx( truthinfo->GetPrimaryVertexIndex() );
+    float gvx = gvertex->get_x();
+    float gvy = gvertex->get_y();
+    float gvz = gvertex->get_z();
 
-  // 		  PHG4Hit *g4hit = gshower->get_g4hit(ig4hit);
-		  
-  // 		  float x = 0.5*(g4hit->get_x(1)+g4hit->get_x(0));
-  // 		  float y = 0.5*(g4hit->get_y(1)+g4hit->get_y(0));
-  // 		  float z = 0.5*(g4hit->get_z(1)+g4hit->get_z(0));
-		  
-  // 		  cout << " #" << ig4hit << " xtrue = (";
-  // 		  cout.width(5); cout << x;
-  // 		  cout << ",";
-  // 		  cout.width(5); cout << y;
-  // 		  cout << ",";
-  // 		  cout.width(5); cout << z;
-  // 		  cout << ")";
-  // 		  cout << " e = " << g4hit->get_edep();
-		  
-  // 		  /*
-  // 		    typedef multimap<PHG4Hit*,SvtxCluster*>::iterator mapiter2;
-  // 		    typedef pair<mapiter2,mapiter2> maprange2;
-  // 		    maprange2 therange2 = _g4hit_cluster_mmap.equal_range( g4hit );
-  // 		    for(mapiter2 theiter2=therange2.first; theiter2!=therange2.second; theiter2++) 
-  // 		    {
-  // 		    SvtxCluster *cluster = theiter2->second;
-		    
-  // 		    float x = cluster->getHitPosition(0);
-  // 		    float y = cluster->getHitPosition(1);
-  // 		    float z = cluster->getHitPosition(2);
-	    
-  // 		    cout << " => #" << cluster->getClusterID() << " xreco = (";
-  // 		    cout.width(5); cout << x;
-  // 		    cout << ",";
-  // 		    cout.width(5); cout << y;
-  // 		    cout << ",";
-  // 		    cout.width(5); cout << z;
-  // 		    cout << ")";
-  // 		    }
-  // 		  */
+    float vx = NAN;
+    float vy = NAN;
+    float vz = NAN;
+    if (vertexmap) {
+      if (!vertexmap->empty()) {
+	SvtxVertex* vertex = &(vertexmap->begin()->second);
+	
+	vx = vertex->get_x();
+	vy = vertex->get_y();
+	vz = vertex->get_z();
+      }
+    }
 
-  // 		  cout << endl;
-  // 		}
-  // 	    }      
-  // 	}
-  //   }
+    cout << "vtrue = (" << gvx << "," << gvy << "," << gvz << ") => vreco = (" << vx << "," << vy << "," << vz << ")" << endl;
+
+    PHG4TruthInfoContainer::Map map = truthinfo->GetPrimaryMap();
+    for (PHG4TruthInfoContainer::ConstIterator iter = map.begin(); 
+	 iter != map.end(); 
+	 ++iter) {
+      PHG4Particle* primary = iter->second;
+      
+      cout << endl;
+      
+      cout << "===Primary PHG4Particle=========================================" << endl;
+      cout << " particle id = " << primary->get_track_id() << endl;
+      cout << " flavor = " << primary->get_pid() << endl;
+      cout << " (px,py,pz,e) = (";
+
+      float gpx = primary->get_px();
+      float gpy = primary->get_py();
+      float gpz = primary->get_pz();
+      float ge = primary->get_e();
+	
+      cout.width(5); cout << gpx;
+      cout << ",";
+      cout.width(5); cout << gpy;
+      cout << ",";
+      cout.width(5); cout << gpz;
+      cout << ",";
+      cout.width(5); cout << ge;
+      cout << ")" << endl;
+
+      float gpt = sqrt(gpx*gpx+gpy*gpy);
+      float geta = NAN;
+      if (gpt != 0.0) geta = asinh(gpz/gpt);
+      float gphi = atan2(gpy,gpx);
+      
+      cout << "(eta,phi,e,pt) = (";
+      cout.width(5); cout << geta;
+      cout << ",";
+      cout.width(5); cout << gphi;
+      cout << ",";
+      cout.width(5); cout << ge;
+      cout << ",";
+      cout.width(5); cout << gpt;
+      cout << ")" << endl;
+
+      PHG4VtxPoint* vtx = trutheval->get_vertex(primary);	
+      float gvx      = vtx->get_x();
+      float gvy      = vtx->get_y();
+      float gvz      = vtx->get_z();
+      
+      cout << " vtrue = (";
+      cout.width(5); cout << gvx;
+      cout << ",";
+      cout.width(5); cout << gvy;
+      cout << ",";
+      cout.width(5); cout << gvz;
+      cout << ")" << endl;
+
+      cout << " embed = " << trutheval->get_embed(primary) << endl;
+      cout << " edep = " << trutheval->get_shower_energy_deposit(primary) << endl;
+      cout << " mrad = " << trutheval->get_shower_moliere_radius(primary) << endl;
+
+      std::set<RawCluster*> clusters = clustereval->all_clusters_from(primary);
+      for (std::set<RawCluster*>::iterator clusiter = clusters.begin();
+	   clusiter != clusters.end();
+	   ++clusiter) {
+	RawCluster* cluster = (*clusiter);
+	   
+	float ntowers   = cluster->getNTowers();
+	float eta       = cluster->get_eta();
+	float phi       = cluster->get_phi();
+	float e         = cluster->get_energy();
+	
+	float efromtruth     = clustereval->get_energy_contribution(cluster, primary);
+	
+	cout << " => #" << cluster->get_id() << " (eta,phi,e) = (";
+	cout.width(5); cout << eta;
+	cout << ",";
+	cout.width(5); cout << phi;
+	cout << ",";
+	cout.width(5); cout << e;
+	cout << "), ntowers = "<< ntowers <<", efromtruth = " << efromtruth << endl;
+      }
+    }
+    cout << endl;
+  }
 
   return;
 }
@@ -577,7 +590,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				efromtruth
       };
 
-    _ntp_cluster->Fill(cluster_data);
+      _ntp_cluster->Fill(cluster_data);
     }
   }
 
