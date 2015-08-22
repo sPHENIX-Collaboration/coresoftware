@@ -169,9 +169,9 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary)
   }
 
   std::string name = "G4HIT_" + _caloname;
-  PHG4HitContainer* g4hits = findNode::getClass<PHG4HitContainer>(_topNode,_caloname.c_str());
+  PHG4HitContainer* g4hits = findNode::getClass<PHG4HitContainer>(_topNode,name.c_str());
   if (!g4hits) {
-    cerr << PHWHERE << " ERROR: Can't find " << _caloname << endl;
+    cerr << PHWHERE << " ERROR: Can't find " << name << endl;
     exit(-1);
   }
   
