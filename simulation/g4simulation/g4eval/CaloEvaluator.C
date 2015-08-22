@@ -57,20 +57,22 @@ int CaloEvaluator::Init(PHCompositeNode *topNode) {
   
   if (_do_gshower_eval) _ntp_gshower = new TNtuple("ntp_gshower","truth shower => best cluster",
 						   "event:gparticleID:gflavor:gnhits:"
-						   "gpx:gpy:gpz:ge:gvx:gvy:gvz:gembed:gedep:gmrad:"
+						   "geta:gphi:ge:gpt:gvx:gvy:gvz:gembed:gedep:gmrad:"
 						   "clusterID:ntowers:eta:phi:e:efromtruth");
   
-  if (_do_tower_eval) _ntp_tower = new TNtuple("ntp_tower","tower => max truth tower-wise ntuple",
-					       "event:clusterID:ntowers:eta:phi:e:"
+  if (_do_tower_eval) _ntp_tower = new TNtuple("ntp_tower","tower => max truth primary",
+					       "event:towerID::ieta:iphi:eta:phi:e:"
 					       "gparticleID:gflavor:gnhits:"
-					       "gpx:gpy:gpz:ge:gvx:gvy:gvz:"
+					       "geta:gphi:ge:gpt:gvx:gvy:gvz:"
 					       "gembed:gedep:gmrad:"
 					       "efromtruth");
 
-  if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster","cluster-wise ntuple",
+  if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster","cluster => max truth primary",
 						   "event:clusterID:ntowers:eta:phi:e:"
-						   "gparticleID:gflavor:geta:gphi:ge:gpt:gmrad:gedep:gembed:"
-						   "epurity");
+						   "gparticleID:gflavor:gnhits:"
+						   "geta:gphi:ge:gpt:gvx:gvy:gvz:"
+						   "gembed:gedep:gmrad:"
+						   "efromtruth");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -338,81 +340,90 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   // fill the Gshower NTuple
   //------------------------
   
-  if (verbosity > 1) cout << "CaloEvaluator::filling gshower ntuple..." << endl;
-
   if (_ntp_gshower) {
-    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");   
-    if (truthinfo) {
-      PHG4TruthInfoContainer::Map map = truthinfo->GetPrimaryMap();
-      for (PHG4TruthInfoContainer::ConstIterator iter = map.begin(); 
-	   iter != map.end(); 
-	   ++iter) {
-	PHG4Particle* primary = iter->second;
+
+    if (verbosity > 1) cout << "CaloEvaluator::filling gshower ntuple..." << endl;
     
-	float gparticleID = primary->get_track_id();
-	float gflavor     = primary->get_pid();
+    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");   
+    if (!truthinfo) {
+      cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
+      exit(-1);
+    }
+    
+    PHG4TruthInfoContainer::Map map = truthinfo->GetPrimaryMap();
+    for (PHG4TruthInfoContainer::ConstIterator iter = map.begin(); 
+	 iter != map.end(); 
+	 ++iter) {
+      PHG4Particle* primary = iter->second;
       
-	std::set<PHG4Hit*> g4hits = trutheval->get_shower_from_primary(primary);     
-	float gnhits   = g4hits.size();	
-	float gpx      = primary->get_px();
-	float gpy      = primary->get_py();
-	float gpz      = primary->get_pz();
-	float ge       = primary->get_e();
-
-	PHG4VtxPoint* vtx = trutheval->get_vertex(primary);	
-	float gvx      = vtx->get_x();
-	float gvy      = vtx->get_y();
-	float gvz      = vtx->get_z();
+      float gparticleID = primary->get_track_id();
+      float gflavor     = primary->get_pid();
       
-	float gembed   = trutheval->get_embed(primary);
-	float gedep    = trutheval->get_shower_energy_deposit(primary);
-	float gmrad    = trutheval->get_shower_moliere_radius(primary);
+      std::set<PHG4Hit*> g4hits = trutheval->get_shower_from_primary(primary);     
+      float gnhits   = g4hits.size();	
+      float gpx      = primary->get_px();
+      float gpy      = primary->get_py();
+      float gpz      = primary->get_pz();
+      float ge       = primary->get_e();
 
-	RawCluster* cluster = clustereval->best_cluster_from(primary);
+      float gpt = sqrt(gpx*gpx+gpy*gpy);
+      float geta = NAN;
+      if (gpt != 0.0) geta = asinh(gpz/gpt);
+      float gphi = atan2(gpy,gpx);
+      
+      PHG4VtxPoint* vtx = trutheval->get_vertex(primary);	
+      float gvx      = vtx->get_x();
+      float gvy      = vtx->get_y();
+      float gvz      = vtx->get_z();
+      
+      float gembed   = trutheval->get_embed(primary);
+      float gedep    = trutheval->get_shower_energy_deposit(primary);
+      float gmrad    = trutheval->get_shower_moliere_radius(primary);
 
-	float clusterID = cluster->get_id();
-	float ntowers   = cluster->getNTowers();
-	float eta       = cluster->get_eta();
-	float phi       = cluster->get_phi();
-	float e         = cluster->get_energy();
+      RawCluster* cluster = clustereval->best_cluster_from(primary);
+
+      float clusterID = cluster->get_id();
+      float ntowers   = cluster->getNTowers();
+      float eta       = cluster->get_eta();
+      float phi       = cluster->get_phi();
+      float e         = cluster->get_energy();
 	
-	float efromtruth     = clustereval->get_energy_contribution(cluster, primary);
+      float efromtruth     = clustereval->get_energy_contribution(cluster, primary);
 	
-	float shower_data[20] = {_ievent,
-				 gparticleID,
-				 gflavor,
-				 gnhits,
-				 gpx,
-				 gpy,
-				 gpz,
-				 ge,
-				 gvx,
-				 gvy,
-				 gvz,
-				 gembed,
-				 gedep,
-				 gmrad,
-				 clusterID,
-				 ntowers,
-				 eta,
-				 phi,
-				 e,
-				 efromtruth
-	};
+      float shower_data[20] = {_ievent,
+			       gparticleID,
+			       gflavor,
+			       gnhits,
+			       geta,
+			       gphi,
+			       ge,
+			       gpt,
+			       gvx,
+			       gvy,
+			       gvz,
+			       gembed,
+			       gedep,
+			       gmrad,
+			       clusterID,
+			       ntowers,
+			       eta,
+			       phi,
+			       e,
+			       efromtruth
+      };
 
       _ntp_gshower->Fill(shower_data);
-      }
     }
   }
 
   //----------------------
   // fill the Tower NTuple
   //----------------------
-  
-  if (verbosity > 1) cout << "CaloEvaluator::filling tower ntuple..." << endl;
-
+ 
   if (_do_tower_eval) {
 
+    if (verbosity > 1) cout << "CaloEvaluator::filling tower ntuple..." << endl;
+    
     string towernode = "TOWER_" + _caloname;
     RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode,towernode.c_str());
     if (!towers) {
@@ -450,6 +461,11 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float gpz      = primary->get_pz();
       float ge       = primary->get_e();
 
+      float gpt = sqrt(gpx*gpx+gpy*gpy);
+      float geta = NAN;
+      if (gpt != 0.0) geta = asinh(gpz/gpt);
+      float gphi = atan2(gpy,gpx);
+      
       PHG4VtxPoint* vtx = trutheval->get_vertex(primary);	
       float gvx      = vtx->get_x();
       float gvy      = vtx->get_y();
@@ -470,10 +486,10 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 			      gparticleID,
 			      gflavor,
 			      gnhits,
-			      gpx,
-			      gpy,
-			      gpz,
+			      geta,
+			      gphi,
 			      ge,
+			      gpt,
 			      gvx,
 			      gvy,
 			      gvz,
@@ -491,68 +507,79 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   // fill the Cluster NTuple
   //------------------------
 
-  // if(verbosity > 1) cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
+  if (_do_cluster_eval) {
+    if (verbosity > 1) cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
+
+    string clusternode = "CLUSTER_" + _caloname;
+    RawClusterContainer* clusters = findNode::getClass<RawClusterContainer>(topNode,clusternode.c_str());
+    if (!clusters) {
+      cerr << PHWHERE << " ERROR: Can't find " << clusternode << endl;
+      exit(-1);
+    }
   
-  // // for every cluster
-  // for(unsigned int icluster = 0; icluster < _clusterList->size(); icluster++) 
-  //   {
-  //     RawCluster *cluster = _clusterList->getCluster(icluster);
+    // for every cluster
+    for (unsigned int icluster = 0; icluster < clusters->size(); icluster++) {
+      RawCluster *cluster = clusters->getCluster(icluster);
 
-  //     CalGshower *gshower = _cluster_gshower_map[ cluster ];
-
-  //     float clusterID = icluster;
-  //     float ntowers   = cluster->getNTowers();
-  //     float eta       = cluster->get_eta();
-  //     float phi       = cluster->get_phi();
-  //     float e         = cluster->get_energy();
-
-  //     float gparticleID = -9999.0;
-  //     float gflavor     = -9999.0;
-  //     float gphi        = -9999.0;
-  //     float ge          = -9999.0;
-  //     float gpt         = -9999.0;
-  //     float geta        = -9999.0;
-  //     float gmrad       = -9999.0;
-  //     float gedep       = -9999.0;
-  //     float gembed      = -9999.0;
+      float clusterID = cluster->get_id();
+      float ntowers   = cluster->getNTowers();
+      float eta       = cluster->get_eta();
+      float phi       = cluster->get_phi();
+      float e         = cluster->get_energy();
       
-  //     float epurity     = -9999.0;
+      PHG4Particle* primary = clustereval->max_truth_primary_by_energy(cluster);
+    
+      float gparticleID = primary->get_track_id();
+      float gflavor     = primary->get_pid();
+      
+      std::set<PHG4Hit*> g4hits = trutheval->get_shower_from_primary(primary);     
+      float gnhits   = g4hits.size();	
+      float gpx      = primary->get_px();
+      float gpy      = primary->get_py();
+      float gpz      = primary->get_pz();
+      float ge       = primary->get_e();
 
-  //     if(gshower)
-  // 	{
-  // 	  gparticleID = gshower->get_particle_id();
-  // 	  gflavor     = gshower->get_flavor();
-  // 	  gphi        = atan2(gshower->get_py(),gshower->get_px());
-  // 	  ge          = gshower->get_e();
-  // 	  gpt         = sqrt(pow(gshower->get_px(),2)+pow(gshower->get_py(),2));
-  // 	  geta        = asinh(gshower->get_pz()/gpt);
-  // 	  gmrad       = gshower->get_moliere_radius();
-  // 	  gedep       = gshower->get_edep();
-  // 	  gembed      = gshower->get_embed();
+      float gpt = sqrt(gpx*gpx+gpy*gpy);
+      float geta = NAN;
+      if (gpt != 0.0) geta = asinh(gpz/gpt);
+      float gphi = atan2(gpy,gpx);
+      
+      PHG4VtxPoint* vtx = trutheval->get_vertex(primary);	
+      float gvx      = vtx->get_x();
+      float gvy      = vtx->get_y();
+      float gvz      = vtx->get_z();
+      
+      float gembed   = trutheval->get_embed(primary);
+      float gedep    = trutheval->get_shower_energy_deposit(primary);
+      float gmrad    = trutheval->get_shower_moliere_radius(primary);
 
-  // 	  epurity     = _cluster_epurity_map[ cluster ];
-  // 	}
+      float efromtruth = clustereval->get_energy_contribution(cluster,primary);
+      
+      float cluster_data[20] = {_ievent,
+				clusterID,
+				ntowers,
+				eta,
+				phi,
+				e,
+				gparticleID,
+				gflavor,
+				gnhits,
+				geta,
+				gphi,
+				ge,
+				gpt,
+				gvx,
+				gvy,
+				gvz,
+				gembed,
+				gedep,
+				gmrad,
+				efromtruth
+      };
 
-  //     float cluster_data[16] = {_ievent,
-  // 				clusterID,
-  // 				ntowers,
-  // 				eta,
-  // 				phi,
-  // 				e,
-  // 				gparticleID,
-  // 				gflavor,
-  // 				geta,
-  // 				gphi,
-  // 				ge,
-  // 				gpt,
-  // 				gmrad,
-  // 				gedep,
-  // 				gembed,
-  // 				epurity
-  //     };
-
-  //     _ntp_cluster->Fill(cluster_data);
-  //   }
+    _ntp_cluster->Fill(cluster_data);
+    }
+  }
 
   return;
 }
