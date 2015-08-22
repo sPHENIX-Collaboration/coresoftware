@@ -22,9 +22,12 @@
 using namespace std;
 
 CaloRawTowerEval::CaloRawTowerEval(PHCompositeNode* topNode, std::string caloname)
-  : _topNode(topNode),
-    _caloname(caloname),
+  : _caloname(caloname),
     _trutheval(topNode,caloname),
+    _towers(NULL),
+    _g4cells(NULL),
+    _g4hits(NULL),
+    _truthinfo(NULL),
     _do_cache(true),
     _cache_all_truth_hits(),
     _cache_all_truth_primaries(),
@@ -32,6 +35,7 @@ CaloRawTowerEval::CaloRawTowerEval(PHCompositeNode* topNode, std::string calonam
     _cache_all_towers_from_primary(),
     _cache_best_tower_from_primary(),
     _cache_get_energy_contribution_primary() {
+  get_node_pointers(topNode);
 }
 
 void CaloRawTowerEval::next_event(PHCompositeNode* topNode) {
@@ -45,7 +49,7 @@ void CaloRawTowerEval::next_event(PHCompositeNode* topNode) {
 
   _trutheval.next_event(topNode);
   
-  _topNode = topNode;  
+  get_node_pointers(topNode);
 }
 
 std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(RawTower* tower) {
@@ -53,21 +57,6 @@ std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(RawTower* tower) {
   if ((_do_cache) &&
       (_cache_all_truth_hits.find(tower) != _cache_all_truth_hits.end())) {
     return _cache_all_truth_hits[tower];
-  }
-  
-  // need things off of the DST...
-  std::string cellname = "G4CELL_" + _caloname;
-  PHG4CylinderCellContainer* g4cells = findNode::getClass<PHG4CylinderCellContainer>(_topNode,cellname.c_str());
-  if (!g4cells) {
-    cerr << PHWHERE << " ERROR: Can't find " << cellname << endl;
-    exit(-1);
-  }
-
-  std::string hitname = "G4HIT_" + _caloname;  
-  PHG4HitContainer* g4hits = findNode::getClass<PHG4HitContainer>(_topNode,hitname.c_str());
-  if (!g4hits){ 
-    cerr << PHWHERE << " ERROR: Can't find " << hitname << endl;
-    exit(-1);
   }
 
   std::set<PHG4Hit*> truth_hits;
@@ -78,13 +67,13 @@ std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(RawTower* tower) {
   for (std::map<unsigned int, float>::const_iterator cell_iter = cell_range.first;
        cell_iter != cell_range.second; ++cell_iter) {
     unsigned int cell_id = cell_iter->first;
-    PHG4CylinderCell *cell = g4cells->findCylinderCell(cell_id);
+    PHG4CylinderCell *cell = _g4cells->findCylinderCell(cell_id);
 
     // loop over all the g4hits in this cell
     for (PHG4CylinderCell::EdepConstIterator hit_iter = cell->get_g4hits().first;
 	 hit_iter != cell->get_g4hits().second;
 	 ++hit_iter) {      
-      PHG4Hit* g4hit = g4hits->findHit(hit_iter->first);   
+      PHG4Hit* g4hit = _g4hits->findHit(hit_iter->first);   
       // fill output set
       truth_hits.insert(g4hit);
     }
@@ -106,18 +95,12 @@ std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primaries(RawTower* tower) {
   
   std::set<PHG4Hit*> g4hits = all_truth_hits(tower);
   if (g4hits.empty()) return truth_primaries;
-  
-  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(_topNode,"G4TruthInfo");
-  if (!truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
-  }
 
   for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
        iter != g4hits.end();
        ++iter) {
     PHG4Hit* g4hit = *iter;
-    PHG4Particle* particle = truthinfo->GetHit( g4hit->get_trkid() );
+    PHG4Particle* particle = _truthinfo->GetHit( g4hit->get_trkid() );
     PHG4Particle* primary = _trutheval.get_primary_particle( particle );
     if (!primary) continue;
     truth_primaries.insert(primary);
@@ -164,20 +147,13 @@ std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Particle* primary) {
   if ((_do_cache) &&
       (_cache_all_towers_from_primary.find(primary) != _cache_all_towers_from_primary.end())) {
     return _cache_all_towers_from_primary[primary];
-  }
-  
-  // need things off of the DST...
-  RawTowerContainer* towercontainer = findNode::getClass<RawTowerContainer>(_topNode,"RawTowerContainer");
-  if (!towercontainer) {
-    cerr << PHWHERE << " ERROR: Can't find RawTowerContainer" << endl;
-    exit(-1);
-  }
+  }  
 
   std::set<RawTower*> towers;
   
   // loop over all the towers
-  for (RawTowerContainer::Iterator iter = towercontainer->getTowers().first;
-       iter != towercontainer->getTowers().second;
+  for (RawTowerContainer::Iterator iter = _towers->getTowers().first;
+       iter != _towers->getTowers().second;
        ++iter) {
 
     RawTower* tower = iter->second;
@@ -252,4 +228,36 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
   if (_do_cache) _cache_get_energy_contribution_primary.insert(make_pair(make_pair(tower,primary),energy));
   
   return energy;
+}
+
+void CaloRawTowerEval::get_node_pointers(PHCompositeNode *topNode) {
+
+  // need things off of the DST...
+  _towers = findNode::getClass<RawTowerContainer>(topNode,"RawTowerContainer");
+  if (!_towers) {
+    cerr << PHWHERE << " ERROR: Can't find RawTowerContainer" << endl;
+    exit(-1);
+  }
+  
+  std::string cellname = "G4CELL_" + _caloname;
+  _g4cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,cellname.c_str());
+  if (!_g4cells) {
+    cerr << PHWHERE << " ERROR: Can't find " << cellname << endl;
+    exit(-1);
+  }
+
+  std::string hitname = "G4HIT_" + _caloname;  
+  _g4hits = findNode::getClass<PHG4HitContainer>(topNode,hitname.c_str());
+  if (!_g4hits){ 
+    cerr << PHWHERE << " ERROR: Can't find " << hitname << endl;
+    exit(-1);
+  }
+
+  _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+  if (!_truthinfo) {
+    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
+    exit(-1);
+  }
+
+  return;
 }

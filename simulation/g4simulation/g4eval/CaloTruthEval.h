@@ -3,9 +3,12 @@
 #define __CALOTRUTHEVAL_H__
 
 #include <phool/PHCompositeNode.h>
-#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4VtxPoint.h>
+#include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Hit.h>
 
 #include <string>
 #include <set>
@@ -34,8 +37,12 @@ public:
   float              get_shower_energy_deposit(PHG4Particle* primary);
   
 private:
-  PHCompositeNode* _topNode;
+
+  void get_node_pointers(PHCompositeNode *topNode);
+  
   std::string _caloname;
+  PHG4TruthInfoContainer* _truthinfo;
+  PHG4HitContainer* _g4hits;
 
   bool                                        _do_cache;
   std::map<PHG4Particle*,std::set<PHG4Hit*> > _cache_all_truth_hits_g4particle;

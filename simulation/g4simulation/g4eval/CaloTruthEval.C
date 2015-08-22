@@ -16,17 +16,19 @@
 using namespace std;
 
 CaloTruthEval::CaloTruthEval(PHCompositeNode* topNode,std::string caloname)
-  : _topNode(topNode),
-    _caloname(caloname),
+  : _caloname(caloname),
+    _truthinfo(NULL),
+    _g4hits(NULL),
     _do_cache(true),
     _cache_all_truth_hits_g4particle() {
+  get_node_pointers(topNode);
 }
 
 void CaloTruthEval::next_event(PHCompositeNode* topNode) {
 
   _cache_all_truth_hits_g4particle.clear();
-  
-  _topNode = topNode;  
+
+  get_node_pointers(topNode);
 }
 
 std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Particle* particle) {
@@ -36,32 +38,16 @@ std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Particle* particle) {
     return _cache_all_truth_hits_g4particle[particle];
   }
 
-  // need things off of the DST...
-  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(_topNode,"G4TruthInfo");
-  if (!truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
-  }
-
-  std::string name = "G4HIT_" + _caloname;
-  PHG4HitContainer* g4hits = findNode::getClass<PHG4HitContainer>(_topNode,_caloname.c_str());
-  if (!g4hits) {
-    cerr << PHWHERE << " ERROR: Can't find " << _caloname << endl;
-    exit(-1);
-  }
-  
   std::set<PHG4Hit*> truth_hits;
 
   // loop over all the g4hits
-  if (g4hits) {
-    for (PHG4HitContainer::ConstIterator g4iter = g4hits->getHits().first;
-	 g4iter != g4hits->getHits().second;
-	 ++g4iter) {
+  for (PHG4HitContainer::ConstIterator g4iter = _g4hits->getHits().first;
+       g4iter != _g4hits->getHits().second;
+       ++g4iter) {
 
-      PHG4Hit* g4hit = g4iter->second;
-      if (g4hit->get_trkid() != particle->get_track_id()) continue;
-      truth_hits.insert(g4hit);
-    }
+    PHG4Hit* g4hit = g4iter->second;
+    if (g4hit->get_trkid() != particle->get_track_id()) continue;
+    truth_hits.insert(g4hit);
   }
   
   if (_do_cache) _cache_all_truth_hits_g4particle.insert(make_pair(particle,truth_hits));
@@ -71,27 +57,15 @@ std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Particle* particle) {
 
 PHG4Particle* CaloTruthEval::get_parent_particle(PHG4Hit* g4hit) {
 
-  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(_topNode,"G4TruthInfo");
-  if (!truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
-  }
-
-  PHG4Particle* particle = truthinfo->GetHit( g4hit->get_trkid() );
+  PHG4Particle* particle = _truthinfo->GetHit( g4hit->get_trkid() );
   return particle;
 }
 
 PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Particle* particle) {
 
-  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(_topNode,"G4TruthInfo");
-  if (!truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
-  }
-
   PHG4Particle* returnval = particle;
   if (returnval->get_primary_id() != (int)(0xFFFFFFFF)) {
-    returnval = truthinfo->GetHit( particle->get_primary_id() );
+    returnval = _truthinfo->GetHit( particle->get_primary_id() );
   }
   
   return returnval;
@@ -100,52 +74,28 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Particle* particle) {
 
 PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Hit* g4hit) {
 
-  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(_topNode,"G4TruthInfo");
-  if (!truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
-  }
-
-  PHG4Particle* particle = truthinfo->GetHit( g4hit->get_trkid() );
+  PHG4Particle* particle = _truthinfo->GetHit( g4hit->get_trkid() );
   if (particle->get_primary_id() != (int)(0xFFFFFFFF)) {
-    particle = truthinfo->GetHit( particle->get_primary_id() );
+    particle = _truthinfo->GetHit( particle->get_primary_id() );
   }
   
   return particle;
 }
 
 int CaloTruthEval::get_embed(PHG4Particle* particle) {
-
-  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(_topNode,"G4TruthInfo");
-  if (!truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
-  }
   
-  return truthinfo->isEmbeded(particle->get_track_id());
+  return _truthinfo->isEmbeded(particle->get_track_id());
 }
 
 PHG4VtxPoint* CaloTruthEval::get_vertex(PHG4Particle* particle) {
 
-  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(_topNode,"G4TruthInfo");
-  if (!truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
-  }
-
-  return truthinfo->GetVtx( particle->get_vtx_id() );
+  return _truthinfo->GetVtx( particle->get_vtx_id() );
 }
 
 bool CaloTruthEval::is_primary(PHG4Particle* particle) {
 
-  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(_topNode,"G4TruthInfo");
-  if (!truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
-  }
-
   bool is_primary = false;  
-  PHG4TruthInfoContainer::Map primary_map = truthinfo->GetPrimaryMap();
+  PHG4TruthInfoContainer::Map primary_map = _truthinfo->GetPrimaryMap();
   for (PHG4TruthInfoContainer::ConstIterator iter = primary_map.begin(); 
        iter != primary_map.end(); 
        ++iter) {
@@ -161,33 +111,17 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary)
 
   if (!is_primary(primary)) return std::set<PHG4Hit*>();
   
-  // need things off of the DST...
-  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(_topNode,"G4TruthInfo");
-  if (!truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
-  }
-
-  std::string name = "G4HIT_" + _caloname;
-  PHG4HitContainer* g4hits = findNode::getClass<PHG4HitContainer>(_topNode,name.c_str());
-  if (!g4hits) {
-    cerr << PHWHERE << " ERROR: Can't find " << name << endl;
-    exit(-1);
-  }
-  
   std::set<PHG4Hit*> truth_hits;
 
   // loop over all the g4hits
-  if (g4hits) {
-    for (PHG4HitContainer::ConstIterator g4iter = g4hits->getHits().first;
-	 g4iter != g4hits->getHits().second;
-	 ++g4iter) {
+  for (PHG4HitContainer::ConstIterator g4iter = _g4hits->getHits().first;
+       g4iter != _g4hits->getHits().second;
+       ++g4iter) {
 
-      PHG4Hit* g4hit = g4iter->second;
-      PHG4Particle* candidate = get_primary_particle(g4hit);
-      if (candidate->get_track_id() != primary->get_track_id()) continue;
-      truth_hits.insert(g4hit);
-    }
+    PHG4Hit* g4hit = g4iter->second;
+    PHG4Particle* candidate = get_primary_particle(g4hit);
+    if (candidate->get_track_id() != primary->get_track_id()) continue;
+    truth_hits.insert(g4hit);
   }
   
   return truth_hits;
@@ -272,4 +206,23 @@ float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary) {
   }
 
   return shower_e;
+}
+
+void CaloTruthEval::get_node_pointers(PHCompositeNode *topNode) {
+
+  // need things off of the DST...
+  _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+  if (!_truthinfo) {
+    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
+    exit(-1);
+  }
+  
+  std::string name = "G4HIT_" + _caloname;
+  _g4hits = findNode::getClass<PHG4HitContainer>(topNode,_caloname.c_str());
+  if (!_g4hits) {
+    cerr << PHWHERE << " ERROR: Can't find " << _caloname << endl;
+    exit(-1);
+  }
+  
+  return;
 }
