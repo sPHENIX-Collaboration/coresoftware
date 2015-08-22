@@ -172,7 +172,7 @@ int SvtxEvaluator::End(PHCompositeNode *topNode) {
 
   delete _tfile;
 
-  if (verbosity >= 0) {
+  if (verbosity >  0) {
     cout << "========================= SvtxEvaluator::End() ============================" << endl;
     cout << " " << _ievent << " events of output written to: " << _filename << endl;
     cout << "===========================================================================" << endl;

@@ -45,7 +45,12 @@ class CaloEvaluator : public SubsysReco {
   //----------------------------------
   // evaluator output ntuples
 
-  TNtuple *_ntp_event;
+  bool _do_gpoint_eval;
+  bool _do_gshower_eval;
+  bool _do_tower_eval;
+  bool _do_cluster_eval;
+  
+  TNtuple *_ntp_gpoint;
   TNtuple *_ntp_gshower;
   TNtuple *_ntp_tower;
   TNtuple *_ntp_cluster;
