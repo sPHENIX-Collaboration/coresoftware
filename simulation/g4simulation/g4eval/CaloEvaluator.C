@@ -12,6 +12,7 @@
 #include <g4main/PHG4Particle.h>
 #include <g4hough/SvtxVertexMap.h>
 #include <g4cemc/RawTowerContainer.h>
+#include <g4cemc/RawTowerGeom.h>
 #include <g4cemc/RawTower.h>
 #include <g4cemc/RawClusterContainer.h>
 #include <g4cemc/RawCluster.h>
@@ -59,10 +60,12 @@ int CaloEvaluator::Init(PHCompositeNode *topNode) {
 						   "gpx:gpy:gpz:ge:gvx:gvy:gvz:gembed:gedep:gmrad:"
 						   "clusterID:ntowers:eta:phi:e:efromtruth");
   
-  if (_do_tower_eval) _ntp_tower = new TNtuple("ntp_tower","tower-wise ntuple",
-					       "event:ieta:iphi:eta:phi:e:"
-					       "gparticleID:gflavor:geta:gphi:ge:gpt:gmrad:gedep:gembed:"
-					       "epurity");
+  if (_do_tower_eval) _ntp_tower = new TNtuple("ntp_tower","tower => max truth tower-wise ntuple",
+					       "event:clusterID:ntowers:eta:phi:e:"
+					       "gparticleID:gflavor:gnhits:"
+					       "gpx:gpy:gpz:ge:gvx:gvy:gvz:"
+					       "gembed:gedep:gmrad:"
+					       "efromtruth");
 
   if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster","cluster-wise ntuple",
 						   "event:clusterID:ntowers:eta:phi:e:"
@@ -283,7 +286,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
   CaloEvalStack caloevalstack(topNode,_caloname); 
   CaloRawClusterEval* clustereval = caloevalstack.get_rawcluster_eval();
-  //CaloRawTowerEval*     towereval = caloevalstack.get_rawtower_eval();
+  CaloRawTowerEval*     towereval = caloevalstack.get_rawtower_eval();
   CaloTruthEval*        trutheval = caloevalstack.get_truth_eval();
   
   //----------------------
@@ -402,78 +405,91 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     }
   }
 
-  // //----------------------
-  // // fill the Tower NTuple
-  // //----------------------
+  //----------------------
+  // fill the Tower NTuple
+  //----------------------
   
-  // if(verbosity > 1) cout << "CaloEvaluator::filling tower ntuple..." << endl;
+  if (verbosity > 1) cout << "CaloEvaluator::filling tower ntuple..." << endl;
 
-  // // for every tower
-  // RawTowerContainer::ConstRange begin_end = _towerList->getTowers();
-  // RawTowerContainer::ConstIterator rtiter;
-  // for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter)
-  //   {
-  // 	  RawTower *tower = rtiter->second;
-  // 	  if(!tower) continue;
+  if (_do_tower_eval) {
 
-  // 	  CalGshower *gshower = _tower_gshower_map[ tower ];
-	  
-  // 	  float ieta    = tower->get_bineta();
-  // 	  float iphi    = tower->get_binphi();
-  // 	  float eta     = towergeom->get_etacenter(tower->get_bineta());
-  // 	  float phi     = towergeom->get_phicenter(tower->get_binphi());
-  // 	  float e       = tower->get_energy();
+    string towernode = "TOWER_" + _caloname;
+    RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode,towernode.c_str());
+    if (!towers) {
+      cerr << PHWHERE << " ERROR: Can't find " << towernode << endl;
+      exit(-1);
+    }
+    
+    string towergeomnode = "TOWERGEOM_" + _caloname;
+    RawTowerGeom* towergeom = findNode::getClass<RawTowerGeom>(topNode,towergeomnode.c_str());
+    if (!towergeom) {
+      cerr << PHWHERE << " ERROR: Can't find " << towergeomnode << endl;
+      exit(-1);
+    }
+  
+    RawTowerContainer::ConstRange begin_end = towers->getTowers();
+    RawTowerContainer::ConstIterator rtiter;
+    for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
+      RawTower *tower = rtiter->second;
 
-  // 	  float gparticleID = -9999.0;
-  // 	  float gflavor     = -9999.0;
-  // 	  float gphi        = -9999.0;
-  // 	  float ge          = -9999.0;
-  // 	  float gpt         = -9999.0;
-  // 	  float geta        = -9999.0;
-  // 	  float gmrad       = -9999.0;
-  // 	  float gedep       = -9999.0;
-  // 	  float gembed      = -9999.0;
-  // 	  float epurity     = -9999.0;
+      float ieta    = tower->get_bineta();
+      float iphi    = tower->get_binphi();
+      float eta     = towergeom->get_etacenter(tower->get_bineta());
+      float phi     = towergeom->get_phicenter(tower->get_binphi());
+      float e       = tower->get_energy();
 
-  // 	  if(gshower)
-  // 	    {
-  // 	      gparticleID = gshower->get_particle_id();
-  // 	      gflavor     = gshower->get_flavor();
-  // 	      gphi        = atan2(gshower->get_py(),gshower->get_px());
-  // 	      ge          = gshower->get_e();
-  // 	      gpt         = sqrt(pow(gshower->get_px(),2)+pow(gshower->get_py(),2));
-  // 	      geta        = asinh(gshower->get_pz()/gpt);
-  // 	      gmrad       = gshower->get_moliere_radius();
-  // 	      gedep       = gshower->get_edep();
-  // 	      gembed      = gshower->get_embed();
+      PHG4Particle* primary = towereval->max_truth_primary_by_energy(tower);
+    
+      float gparticleID = primary->get_track_id();
+      float gflavor     = primary->get_pid();
+      
+      std::set<PHG4Hit*> g4hits = trutheval->get_shower_from_primary(primary);     
+      float gnhits   = g4hits.size();	
+      float gpx      = primary->get_px();
+      float gpy      = primary->get_py();
+      float gpz      = primary->get_pz();
+      float ge       = primary->get_e();
 
-  // 	      epurity     = _tower_epurity_map[ tower ];
-  // 	    }
+      PHG4VtxPoint* vtx = trutheval->get_vertex(primary);	
+      float gvx      = vtx->get_x();
+      float gvy      = vtx->get_y();
+      float gvz      = vtx->get_z();
+      
+      float gembed   = trutheval->get_embed(primary);
+      float gedep    = trutheval->get_shower_energy_deposit(primary);
+      float gmrad    = trutheval->get_shower_moliere_radius(primary);
 
-  // 	  float tower_data[16] = {_ievent,
-  // 				  ieta,
-  // 				  iphi,
-  // 				  eta,
-  // 				  phi,
-  // 				  e,
-  // 				  gparticleID,
-  // 				  gflavor,
-  // 				  geta,
-  // 				  gphi,
-  // 				  ge,
-  // 				  gpt,
-  // 				  gmrad,
-  // 				  gedep,
-  // 				  gembed,
-  // 				  epurity};
+      float efromtruth = towereval->get_energy_contribution(tower,primary);
 
-  // 	  _ntp_tower->Fill(tower_data);
-	
-  //   }
+      float tower_data[20] = {_ievent,
+			      ieta,
+			      iphi,
+			      eta,
+			      phi,
+			      e,
+			      gparticleID,
+			      gflavor,
+			      gnhits,
+			      gpx,
+			      gpy,
+			      gpz,
+			      ge,
+			      gvx,
+			      gvy,
+			      gvz,
+			      gembed,
+			      gedep,
+			      gmrad,
+			      efromtruth
+      };
+      
+      _ntp_tower->Fill(tower_data);
+    }
+  }
 
-  // //------------------------
-  // // fill the Cluster NTuple
-  // //------------------------
+  //------------------------
+  // fill the Cluster NTuple
+  //------------------------
 
   // if(verbosity > 1) cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
   
