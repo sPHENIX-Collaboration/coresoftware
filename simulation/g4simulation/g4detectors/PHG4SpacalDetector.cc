@@ -37,6 +37,7 @@
 #include <cassert>
 #include <cmath>
 #include <sstream>
+#include <boost/foreach.hpp>
 
 using namespace std;
 
@@ -143,38 +144,14 @@ PHG4SpacalDetector::Construct(G4LogicalVolume* logicWorld)
       logicWorld, false, 0, overlapcheck);
 
 
+  // install sectors
   std::pair<G4LogicalVolume *,G4Transform3D> psec = Construct_AzimuthalSeg();
   G4LogicalVolume *sec_logic = psec.first;
   const G4Transform3D & sec_trans = psec.second;
-
-//  int n_sec_construct =
-//      (_geom->is_virualize_fiber()) ? 1 : (_geom->is_azimuthal_seg_visible()?2:_geom->get_azimuthal_n_sec());
-  int n_sec_construct =
-      (_geom->is_virualize_fiber()) ? 1 : (_geom->get_azimuthal_n_sec());
-
-  if (_geom->is_virualize_fiber() or _geom->is_azimuthal_seg_visible())
+  BOOST_FOREACH(const SpacalGeom_t::sector_map_t::value_type& val, _geom->get_sector_map())
     {
-
-      cout
-          << "PHG4SpacalDetector::Construct - WARNING - "
-          <<"only construct "<<n_sec_construct<<" sectors for visualization purpose!!!"
-          << endl;
-
-    }
-  else
-    {
-      cout
-          << "PHG4SpacalDetector::Construct - INFO - "
-          <<"start construction of "<<n_sec_construct<<" sectors."
-          << endl;
-
-    }
-
-  for (int sec = 0; sec < n_sec_construct; ++sec)
-    {
-
-      const double rot = twopi / (double) (_geom->get_azimuthal_n_sec())
-          * ((double) (sec) - n_sec_construct/2);
+      const int sec = val.first;
+      const double rot = val.second;
 
       G4Transform3D sec_place = G4RotateZ3D(rot) * sec_trans;
 
@@ -187,7 +164,7 @@ PHG4SpacalDetector::Construct(G4LogicalVolume* logicWorld)
       calo_vol[calo_phys] = sec;
 
     }
-  _geom->set_nscint(_geom->get_nscint() * n_sec_construct);
+  _geom->set_nscint(_geom->get_nscint() *  _geom->get_sector_map().size());
 
   if (active)
     {

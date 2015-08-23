@@ -123,6 +123,9 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map1()
   zmin = 149.470000;
   zmax = -zmin;
   azimuthal_n_sec = 32;
+  sector_map.clear();
+  sector_map[0] = 0;// only install one sector
+
   azimuthal_tilt = 0;
   azimuthal_seg_visible = false;
   polar_taper_ratio = 1.;
@@ -195,6 +198,8 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2()
   zmin = 149.470000;
   zmax = -zmin;
   azimuthal_n_sec = 32;
+  sector_map.clear();
+  sector_map[0] = 0;// only install one sector
   azimuthal_tilt = 0;
   azimuthal_seg_visible = false;
   polar_taper_ratio = 1.;
@@ -409,6 +414,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
   zmin = 149.470000;
   zmax = -zmin;
   azimuthal_n_sec = 32;
+  init_default_sector_map();
   azimuthal_tilt = 0;
   azimuthal_seg_visible = false;
   polar_taper_ratio = 1.;
