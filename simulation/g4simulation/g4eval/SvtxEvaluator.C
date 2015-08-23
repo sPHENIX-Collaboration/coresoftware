@@ -636,16 +636,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //---------------------
 
   if (_ntp_g4hit) {
-    unsigned int i = 0;
     std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits();
     for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
 	 iter != g4hits.end();
 	 ++iter) {
-      
-      if ((_ievent==0)&&(i==0)) cout << "SvtxEvaluator:: WARNING - g4hit eval limited to 100 entries" << endl;
-      if (i > 100) break;
-      ++i;
-      
+            
       PHG4Hit *g4hit = *iter;
       PHG4Particle *g4particle = trutheval->get_particle(g4hit);
       
@@ -768,15 +763,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     SvtxHitMap* hitmap = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
     if (hitmap) {
 
-      unsigned int i = 0;
       for (SvtxHitMap::Iter iter = hitmap->begin();
 	   iter != hitmap->end();
 	   ++iter) {
 
-	if ((_ievent==0)&&(i==0)) cout << "SvtxEvaluator:: WARNING - hit eval limited to 100 entries" << endl;
-	if (i > 100) break;
-	++i;
-      
 	SvtxHit* hit             = &iter->second;
 	PHG4Hit* g4hit           = hiteval->max_truth_hit_by_energy(hit);
 	PHG4CylinderCell* g4cell = hiteval->get_cell(hit);

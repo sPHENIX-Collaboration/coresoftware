@@ -20,14 +20,22 @@ CaloTruthEval::CaloTruthEval(PHCompositeNode* topNode,std::string caloname)
     _truthinfo(NULL),
     _g4hits(NULL),
     _do_cache(true),
-    _cache_all_truth_hits_g4particle() {
+    _cache_all_truth_hits_g4particle(),
+    _cache_is_primary(),
+    _cache_get_shower_from_primary(),
+    _cache_get_shower_moliere_radius(),
+    _cache_get_shower_energy_deposit() {
   get_node_pointers(topNode);
 }
 
 void CaloTruthEval::next_event(PHCompositeNode* topNode) {
 
   _cache_all_truth_hits_g4particle.clear();
-
+  _cache_is_primary.clear();
+  _cache_get_shower_from_primary.clear();
+  _cache_get_shower_moliere_radius.clear();
+  _cache_get_shower_energy_deposit.clear();
+  
   get_node_pointers(topNode);
 }
 
@@ -94,6 +102,11 @@ PHG4VtxPoint* CaloTruthEval::get_vertex(PHG4Particle* particle) {
 
 bool CaloTruthEval::is_primary(PHG4Particle* particle) {
 
+  if ((_do_cache) &&
+      (_cache_is_primary.find(particle) != _cache_is_primary.end())) {
+    return _cache_is_primary[particle];
+  }
+  
   bool is_primary = false;  
   PHG4TruthInfoContainer::Map primary_map = _truthinfo->GetPrimaryMap();
   for (PHG4TruthInfoContainer::ConstIterator iter = primary_map.begin(); 
@@ -103,6 +116,8 @@ bool CaloTruthEval::is_primary(PHG4Particle* particle) {
       is_primary = true;
     }
   }
+
+  if (_do_cache) _cache_is_primary.insert(make_pair(particle,is_primary));
   
   return is_primary;
 }
@@ -110,6 +125,11 @@ bool CaloTruthEval::is_primary(PHG4Particle* particle) {
 std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary) {
 
   if (!is_primary(primary)) return std::set<PHG4Hit*>();
+
+  if ((_do_cache) &&
+      (_cache_get_shower_from_primary.find(primary) != _cache_get_shower_from_primary.end())) {
+    return _cache_get_shower_from_primary[primary];
+  }
   
   std::set<PHG4Hit*> truth_hits;
 
@@ -123,6 +143,8 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary)
     if (candidate->get_track_id() != primary->get_track_id()) continue;
     truth_hits.insert(g4hit);
   }
+
+  if (_do_cache) _cache_get_shower_from_primary.insert(make_pair(primary,truth_hits));
   
   return truth_hits;
 }
@@ -132,6 +154,11 @@ float CaloTruthEval::get_shower_moliere_radius(PHG4Particle* primary) {
 
   if (!is_primary(primary)) return NAN;
 
+  if ((_do_cache) &&
+      (_cache_get_shower_moliere_radius.find(primary) != _cache_get_shower_moliere_radius.end())) {
+    return _cache_get_shower_moliere_radius[primary];
+  }
+  
   std::set<PHG4Hit*> g4hits = get_shower_from_primary(primary);
 
   std::multimap<float,float> radii_energy_mmap;
@@ -188,13 +215,22 @@ float CaloTruthEval::get_shower_moliere_radius(PHG4Particle* primary) {
     r_in = r_out;
   }
 
-  return 0.5*(r_in+r_out);
+  float radius = 0.5*(r_in+r_out);
+
+  if (_do_cache) _cache_get_shower_moliere_radius.insert(make_pair(primary,radius));
+  
+  return radius;
 }
 
 float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary) {
 
   if (!is_primary(primary)) return NAN;
 
+  if ((_do_cache) &&
+      (_cache_get_shower_energy_deposit.find(primary) != _cache_get_shower_energy_deposit.end())) {
+    return _cache_get_shower_energy_deposit[primary];
+  }
+  
   std::set<PHG4Hit*> g4hits = get_shower_from_primary(primary);
 
   float shower_e = 0.0;  
@@ -205,6 +241,8 @@ float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary) {
     shower_e += g4hit->get_edep();
   }
 
+  if (_do_cache) _cache_get_shower_energy_deposit.insert(make_pair(primary,shower_e));
+  
   return shower_e;
 }
 
