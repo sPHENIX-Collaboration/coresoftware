@@ -7,8 +7,11 @@
 #include "SvtxHitEval.h"
 
 #include <phool/PHCompositeNode.h>
+#include <g4hough/SvtxVertexMap.h>
 #include <g4hough/SvtxVertex.h>
+#include <g4hough/SvtxTrackMap.h>
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4VtxPoint.h>
 
@@ -44,8 +47,13 @@ public:
   unsigned int get_ntracks_contribution(SvtxVertex* svtxvertex, PHG4VtxPoint* truthpoint);  
   
 private:
-  PHCompositeNode* _topNode;
+
+  void get_node_pointers(PHCompositeNode* topNode);
+  
   SvtxTrackEval _trackeval;
+  SvtxVertexMap* _vertexmap;
+  SvtxTrackMap* _trackmap;
+  PHG4TruthInfoContainer* _truthinfo;
 
   bool _do_cache;
   std::map<SvtxVertex*,std::set<PHG4Particle*> >               _cache_all_truth_particles;
