@@ -89,11 +89,11 @@ PHG4SpacalDetector::IsInCylinderActive(const G4VPhysicalVolume * volume)
       if (fiber_vol.find(volume) != fiber_vol.end())
         return FIBER_CLADING;
 
-      if (calo_vol.find(volume) != calo_vol.end())
-        return ABSORBER;
-
       if (block_vol.find(volume) != block_vol.end())
         return ABSORBER;
+
+      if (calo_vol.find(volume) != calo_vol.end())
+        return SUPPORT;
 
     }
   return INACTIVE;
