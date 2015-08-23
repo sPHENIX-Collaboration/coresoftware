@@ -20,8 +20,9 @@
 using namespace std;
 
 SvtxTrackEval::SvtxTrackEval(PHCompositeNode* topNode)
-  : _topNode(topNode),
-    _clustereval(topNode),
+  : _clustereval(topNode),
+    _trackmap(NULL),
+    _clustermap(NULL),
     _do_cache(true),
     _cache_all_truth_hits(),
     _cache_all_truth_particles(),
@@ -30,6 +31,7 @@ SvtxTrackEval::SvtxTrackEval(PHCompositeNode* topNode)
     _cache_best_track_from_particle(),
     _cache_all_tracks_from_g4hit(),
     _cache_get_nclusters_contribution() {
+  get_node_pointers(topNode);
 }
 
 
@@ -45,7 +47,7 @@ void SvtxTrackEval::next_event(PHCompositeNode* topNode) {
   
   _clustereval.next_event(topNode);
   
-  _topNode = topNode;  
+  get_node_pointers(topNode);
 }
 
 std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
@@ -54,20 +56,13 @@ std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
     return _cache_all_truth_hits[track];
   }
   
-  // need things off of the DST...
-  SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(_topNode,"SvtxClusterMap");
-  if (!clustermap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxClusterMap" << endl;
-    exit(-1);
-  }
-  
   std::set<PHG4Hit*> truth_hits;
 
   // loop over all clusters...
   for (unsigned int ilayer = 0; ilayer < 100; ++ilayer) {
     if (!track->hasCluster(ilayer)) continue;
 
-    SvtxCluster* cluster = clustermap->get(track->getClusterID(ilayer));
+    SvtxCluster* cluster = _clustermap->get(track->getClusterID(ilayer));
 
     std::set<PHG4Hit*> new_hits = _clustereval.all_truth_hits(cluster);
 
@@ -91,20 +86,13 @@ std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track) {
     return _cache_all_truth_particles[track];
   }
   
-  // need things off of the DST...
-  SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(_topNode,"SvtxClusterMap");
-  if (!clustermap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxClusterMap" << endl;
-    exit(-1);
-  }
-  
   std::set<PHG4Particle*> truth_particles;
 
   // loop over all clusters...
   for (unsigned int ilayer = 0; ilayer < 100; ++ilayer) {
     if (!track->hasCluster(ilayer)) continue;
 
-    SvtxCluster* cluster = clustermap->get(track->getClusterID(ilayer));
+    SvtxCluster* cluster = _clustermap->get(track->getClusterID(ilayer));
 
     std::set<PHG4Particle*> new_particles = _clustereval.all_truth_particles(cluster);
 
@@ -157,24 +145,11 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
     return _cache_all_tracks_from_particle[truthparticle];
   }
   
-  // need things off of the DST...
-  SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(_topNode,"SvtxTrackMap");
-  if (!trackmap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << endl;
-    exit(-1);
-  }
-
-  SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(_topNode,"SvtxClusterMap");
-  if (!clustermap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxClusterMap" << endl;
-    exit(-1);
-  }
-
   std::set<SvtxTrack*> tracks;
   
   // loop over all SvtxTracks
-  for (SvtxTrackMap::Iter iter = trackmap->begin();
-       iter != trackmap->end();
+  for (SvtxTrackMap::Iter iter = _trackmap->begin();
+       iter != _trackmap->end();
        ++iter) {
     SvtxTrack* track = &iter->second;
     
@@ -182,7 +157,7 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
     for (unsigned int ilayer = 0; ilayer < 100; ++ilayer) {
       if (!track->hasCluster(ilayer)) continue;
 
-      SvtxCluster* cluster = clustermap->get(track->getClusterID(ilayer));
+      SvtxCluster* cluster = _clustermap->get(track->getClusterID(ilayer));
 
       // loop over all particles
       std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster);
@@ -210,24 +185,11 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit) {
     return _cache_all_tracks_from_g4hit[truthhit];
   }
   
-  // need things off of the DST...
-  SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(_topNode,"SvtxTrackMap");
-  if (!trackmap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << endl;
-    exit(-1);
-  }
-
-  SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(_topNode,"SvtxClusterMap");
-  if (!clustermap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxClusterMap" << endl;
-    exit(-1);
-  }
-
   std::set<SvtxTrack*> tracks;
   
   // loop over all SvtxTracks
-  for (SvtxTrackMap::Iter iter = trackmap->begin();
-       iter != trackmap->end();
+  for (SvtxTrackMap::Iter iter = _trackmap->begin();
+       iter != _trackmap->end();
        ++iter) {
     SvtxTrack* track = &iter->second;
     
@@ -235,7 +197,7 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit) {
     for (unsigned int ilayer = 0; ilayer < 100; ++ilayer) {
       if (!track->hasCluster(ilayer)) continue;
 
-      SvtxCluster* cluster = clustermap->get(track->getClusterID(ilayer));
+      SvtxCluster* cluster = _clustermap->get(track->getClusterID(ilayer));
 
       // loop over all hits
       std::set<PHG4Hit*> hits = _clustereval.all_truth_hits(cluster);
@@ -290,19 +252,13 @@ unsigned int SvtxTrackEval::get_nclusters_contribution(SvtxTrack* track, PHG4Par
     return _cache_get_nclusters_contribution[make_pair(track,particle)];
   }
   
-  SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(_topNode,"SvtxClusterMap");
-  if (!clustermap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxClusterMap" << endl;
-    exit(-1);
-  }
-  
   unsigned int nclusters = 0;
 
   // loop over all clusters    
   for (unsigned int ilayer = 0; ilayer < 100; ++ilayer) {
     if (!track->hasCluster(ilayer)) continue;
 
-    SvtxCluster* cluster = clustermap->get(track->getClusterID(ilayer));
+    SvtxCluster* cluster = _clustermap->get(track->getClusterID(ilayer));
 
     // loop over all particles
     std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster);
@@ -320,4 +276,22 @@ unsigned int SvtxTrackEval::get_nclusters_contribution(SvtxTrack* track, PHG4Par
   if (_do_cache) _cache_get_nclusters_contribution.insert(make_pair(make_pair(track,particle),nclusters));
   
   return nclusters;
+}
+
+void SvtxTrackEval::get_node_pointers(PHCompositeNode *topNode) {
+
+  // need things off of the DST...
+  _trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+  if (!_trackmap) {
+    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << endl;
+    exit(-1);
+  }
+  
+  _clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
+  if (!_clustermap) {
+    cerr << PHWHERE << " ERROR: Can't find SvtxClusterMap" << endl;
+    exit(-1);
+  }
+
+  return;
 }
