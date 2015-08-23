@@ -233,9 +233,10 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
 void CaloRawTowerEval::get_node_pointers(PHCompositeNode *topNode) {
 
   // need things off of the DST...
-  _towers = findNode::getClass<RawTowerContainer>(topNode,"RawTowerContainer");
+  std::string towername = "TOWER_" + _caloname;
+  _towers = findNode::getClass<RawTowerContainer>(topNode,towername.c_str());
   if (!_towers) {
-    cerr << PHWHERE << " ERROR: Can't find RawTowerContainer" << endl;
+    cerr << PHWHERE << " ERROR: Can't find " << towername << endl;
     exit(-1);
   }
   

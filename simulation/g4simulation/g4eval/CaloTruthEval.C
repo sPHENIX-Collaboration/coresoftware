@@ -218,9 +218,9 @@ void CaloTruthEval::get_node_pointers(PHCompositeNode *topNode) {
   }
   
   std::string name = "G4HIT_" + _caloname;
-  _g4hits = findNode::getClass<PHG4HitContainer>(topNode,_caloname.c_str());
+  _g4hits = findNode::getClass<PHG4HitContainer>(topNode,name.c_str());
   if (!_g4hits) {
-    cerr << PHWHERE << " ERROR: Can't find " << _caloname << endl;
+    cerr << PHWHERE << " ERROR: Can't find " << name << endl;
     exit(-1);
   }
   
