@@ -3,7 +3,9 @@
 #define __SVTXTRUTHEVAL_H__
 
 #include <phool/PHCompositeNode.h>
+#include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4VtxPoint.h>
 
@@ -31,7 +33,12 @@ public:
   PHG4Hit*           get_outermost_truth_hit(PHG4Particle* particle);
   
 private:
-  PHCompositeNode* _topNode;
+
+  void get_node_pointers(PHCompositeNode* topNode);
+  
+  PHG4TruthInfoContainer* _truthinfo;
+  PHG4HitContainer* _g4hits_svtx;
+  PHG4HitContainer* _g4hits_tracker;
 
   bool                                        _do_cache;
   std::set<PHG4Hit*>                          _cache_all_truth_hits;
