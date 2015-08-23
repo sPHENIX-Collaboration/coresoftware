@@ -134,8 +134,14 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
       _geom->is_azimuthal_seg_visible() and (not _geom->is_virualize_fiber()));
   wall_VisAtt->SetForceSolid(true);
 
+  if (_geom->get_sidewall_thickness()>0)
     {
       // end walls
+      if (_geom->get_construction_verbose() >= 1)
+        {
+          cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::" << GetName()
+              << " - construct end walls." << endl;
+        }
       G4Tubs* wall_solid = new G4Tubs(G4String(GetName() + string("_EndWall")),
           _geom->get_radius() * cm + _geom->get_sidewall_outer_torr() * cm,
           _geom->get_max_radius() * cm - _geom->get_sidewall_outer_torr() * cm,
@@ -178,8 +184,14 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
         }
     }
 
+  if (_geom->get_sidewall_thickness()>0)
     {
       // side walls
+      if (_geom->get_construction_verbose() >= 1)
+        {
+          cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::" << GetName()
+              << " - construct side walls." << endl;
+        }
       G4Box* wall_solid = new G4Box(G4String(GetName() + string("_SideWall")),
           _geom->get_sidewall_thickness() * cm / 2.0,
           _geom->get_thickness() * cm / 2.
