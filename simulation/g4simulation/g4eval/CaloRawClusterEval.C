@@ -25,9 +25,10 @@
 using namespace std;
 
 CaloRawClusterEval::CaloRawClusterEval(PHCompositeNode* topNode, std::string caloname)
-  : _topNode(topNode),
-    _caloname(caloname),
+  : _caloname(caloname),
     _towereval(topNode,caloname),
+    _clusters(NULL),
+    _towers(NULL),
     _do_cache(true),
     _cache_all_truth_hits(),
     _cache_all_truth_primaries(),
@@ -35,6 +36,7 @@ CaloRawClusterEval::CaloRawClusterEval(PHCompositeNode* topNode, std::string cal
     _cache_all_clusters_from_primary(),
     _cache_best_cluster_from_primary(),
     _cache_get_energy_contribution_primary() {
+  get_node_pointers(topNode);
 }
 
 void CaloRawClusterEval::next_event(PHCompositeNode* topNode) {
@@ -48,7 +50,7 @@ void CaloRawClusterEval::next_event(PHCompositeNode* topNode) {
 
   _towereval.next_event(topNode);
   
-  _topNode = topNode;  
+  get_node_pointers(topNode);
 }
 
 std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster) {
@@ -58,14 +60,6 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster) {
     return _cache_all_truth_hits[cluster];
   }
   
-  // need things off of the DST...
-  std::string towername = "TOWER_" + _caloname;
-  RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(_topNode,towername.c_str());
-  if (!towers) {
-    cerr << PHWHERE << " ERROR: Can't find " << towers << endl;
-    exit(-1);
-  }
-
   std::set<PHG4Hit*> truth_hits;
 
   // loop over all the clustered towers
@@ -74,7 +68,7 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster) {
     int ieta = cluster->getTowerBin(itower).first;
     int iphi = cluster->getTowerBin(itower).second;
     
-    RawTower* tower = towers->getTower(ieta,iphi);
+    RawTower* tower = _towers->getTower(ieta,iphi);
     
     std::set<PHG4Hit*> new_hits = _towereval.all_truth_hits(tower);
     std::set<PHG4Hit*> union_hits;
@@ -98,13 +92,7 @@ std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primaries(RawCluster* clus
     return _cache_all_truth_primaries[cluster];
   }
 
-  // need things off of the DST...
-  std::string towername = "TOWER_" + _caloname;
-  RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(_topNode,towername.c_str());
-  if (!towers) {
-    cerr << PHWHERE << " ERROR: Can't find " << towers << endl;
-    exit(-1);
-  }
+
   
   std::set<PHG4Particle*> truth_primaries;
   
@@ -114,7 +102,7 @@ std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primaries(RawCluster* clus
     int ieta = cluster->getTowerBin(itower).first;
     int iphi = cluster->getTowerBin(itower).second;
     
-    RawTower* tower = towers->getTower(ieta,iphi);
+    RawTower* tower = _towers->getTower(ieta,iphi);
     
     std::set<PHG4Particle*> new_primaries = _towereval.all_truth_primaries(tower);
     std::set<PHG4Particle*> union_primaries;
@@ -170,19 +158,12 @@ std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primar
     return _cache_all_clusters_from_primary[primary];
   }
   
-  // need things off of the DST...
-  std::string nodename = "CLUSTER_" + _caloname;
-  RawClusterContainer* clustercontainer = findNode::getClass<RawClusterContainer>(_topNode,nodename.c_str());
-  if (!clustercontainer) {
-    cerr << PHWHERE << " ERROR: Can't find " << nodename << endl;
-    exit(-1);
-  }
 
   std::set<RawCluster*> clusters;
   
   // loop over all the clusters
-  for (RawClusterContainer::Iterator iter = clustercontainer->getClusters().first;
-       iter != clustercontainer->getClusters().second;
+  for (RawClusterContainer::Iterator iter = _clusters->getClusters().first;
+       iter != _clusters->getClusters().second;
        ++iter) {
 
     RawCluster* cluster = iter->second;
@@ -259,4 +240,24 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Parti
   if (_do_cache) _cache_get_energy_contribution_primary.insert(make_pair(make_pair(cluster,primary),energy));
   
   return energy;
+}
+
+void CaloRawClusterEval::get_node_pointers(PHCompositeNode* topNode) {
+
+  // need things off of the DST...
+  std::string nodename = "CLUSTER_" + _caloname;
+  _clusters = findNode::getClass<RawClusterContainer>(topNode,nodename.c_str());
+  if (!_clusters) {
+    cerr << PHWHERE << " ERROR: Can't find " << nodename << endl;
+    exit(-1);
+  }
+
+  std::string towername = "TOWER_" + _caloname;
+  _towers = findNode::getClass<RawTowerContainer>(topNode,towername.c_str());
+  if (!_towers) {
+    cerr << PHWHERE << " ERROR: Can't find " << towername << endl;
+    exit(-1);
+  }
+  
+  return;
 }

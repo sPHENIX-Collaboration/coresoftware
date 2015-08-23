@@ -6,7 +6,9 @@
 #include "CaloRawTowerEval.h"
 
 #include <phool/PHCompositeNode.h>
+#include <g4cemc/RawClusterContainer.h>
 #include <g4cemc/RawCluster.h>
+#include <g4cemc/RawTowerContainer.h>
 #include <g4detectors/PHG4CylinderCell.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
@@ -42,9 +44,13 @@ public:
   float get_energy_contribution (RawCluster* cluster, PHG4Particle* primary);
   
 private:
-  PHCompositeNode* _topNode;
+
+  void get_node_pointers(PHCompositeNode *topNode);
+  
   std::string _caloname;  
   CaloRawTowerEval _towereval;
+  RawClusterContainer* _clusters;
+  RawTowerContainer* _towers;
   
   bool                                                 _do_cache;
   std::map<RawCluster*,std::set<PHG4Hit*> >            _cache_all_truth_hits;
