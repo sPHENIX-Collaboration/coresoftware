@@ -1,9 +1,12 @@
+
+
 #include "PHG4CylinderSubsystem.h"
 #include "PHG4CylinderDetector.h"
 #include "PHG4CylinderGeomv1.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderSteppingAction.h"
-#include "PHG4CylinderEventAction.h"
+#include "PHG4EventActionClearZeroEdep.h"
+//#include "PHG4CylinderEventAction.h"
 #include "PHG4CylinderRegionSteppingAction.h"
 #include <g4main/PHG4Utils.h>
 
@@ -98,7 +101,7 @@ int PHG4CylinderSubsystem::InitRun( PHCompositeNode* topNode )
         }
       PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv1(radius, zpos-detlength/2., zpos + detlength/2.,TrackerThickness);
       geo->AddLayerGeom(layer, mygeom);
-      eventAction_ = new PHG4CylinderEventAction(topNode, nodename.str());
+      eventAction_ = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
       steppingAction_ = new PHG4CylinderSteppingAction(detector_);
       steppingAction_->set_zmin(zpos-detlength/2.);
       steppingAction_->set_zmax(zpos + detlength/2.);

@@ -2,9 +2,9 @@
 #include "PHG4FPbScDetector.h"
 #include "PHG4FPbScSteppingAction.h"
 #include "PHG4FPbScRegionSteppingAction.h"
-#include "g4main/PHG4NullSteppingAction.h"
-#include "PHG4FPbScEventAction.h"
+#include "PHG4EventActionClearZeroEdep.h"
 
+#include <g4main/PHG4NullSteppingAction.h>
 #include <g4main/PHG4HitContainer.h>
 #include <fun4all/getClass.h>
 
@@ -12,10 +12,12 @@
 
 #include <sstream>
 
+using namespace std;
+
 //_______________________________________________________________________
-PHG4FPbScSubsystem::PHG4FPbScSubsystem( const char* name ):
+PHG4FPbScSubsystem::PHG4FPbScSubsystem( const string &name ):
 PHG4Subsystem( name ),
-detector_( 0 )
+detector_( NULL )
 {
 }
 
@@ -44,7 +46,7 @@ int PHG4FPbScSubsystem::Init( PHCompositeNode* topNode )
   // create stepping action
   steppingAction_ = new PHG4FPbScSteppingAction(detector_);
 
-  eventAction_ = new PHG4FPbScEventAction(topNode, hitnodename.str());
+  eventAction_ = new PHG4EventActionClearZeroEdep(topNode, hitnodename.str());
 
   return 0;
   
