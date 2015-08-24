@@ -1,6 +1,7 @@
 #ifndef RAWTOWERCONTAINER_H__
 #define RAWTOWERCONTAINER_H__
 
+#include "RawTowerDefs.h"
 #include <phool/PHObject.h>
 #include <phool/phool.h>
 #include <iostream>
@@ -13,7 +14,7 @@ class RawTowerContainer : public PHObject
 
  public:
 
-  typedef std::map<unsigned int,RawTower *> Map;
+  typedef std::map<RawTowerDefs::keytype ,RawTower *> Map;
   typedef Map::iterator Iterator;
   typedef Map::const_iterator ConstIterator;
   typedef std::pair<Iterator, Iterator> Range;
@@ -34,7 +35,7 @@ class RawTowerContainer : public PHObject
   unsigned int size() const {return _towers.size();}
   void compress(const double emin);
   double getTotalEdep() const;
-  unsigned int genkey(const unsigned int ieta, const unsigned int iphi) const;
+  RawTowerDefs::keytype genkey(const unsigned int ieta, const unsigned int iphi) const;
 
  protected:
   Map _towers;
