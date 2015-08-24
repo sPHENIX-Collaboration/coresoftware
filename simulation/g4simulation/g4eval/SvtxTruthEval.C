@@ -40,7 +40,11 @@ void SvtxTruthEval::next_event(PHCompositeNode* topNode) {
 /// \todo this copy may be too expensive to call a lot...
 std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits() {
 
-  if ((_do_cache)&&(!_cache_all_truth_hits.empty())) return _cache_all_truth_hits;
+  if (_do_cache) {
+    if (!_cache_all_truth_hits.empty()) {
+      return _cache_all_truth_hits;
+    }
+  }
   
   // since the SVTX can be composed of two different trackers this is a
   // handy function to spill out all the g4hits from both "detectors"
@@ -76,9 +80,12 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits() {
 
 std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle) {
 
-  if ((_do_cache) &&
-      (_cache_all_truth_hits_g4particle.find(particle) != _cache_all_truth_hits_g4particle.end())) {
-    return _cache_all_truth_hits_g4particle[particle];
+  if (_do_cache) {
+    std::map<PHG4Particle*,std::set<PHG4Hit*> >::iterator iter =
+      _cache_all_truth_hits_g4particle.find(particle);
+    if (iter != _cache_all_truth_hits_g4particle.end()) {
+      return iter->second;
+    }
   }
   
   std::set<PHG4Hit*> truth_hits;
@@ -171,12 +178,8 @@ bool SvtxTruthEval::is_primary(PHG4Particle* particle) {
 
   bool is_primary = false;  
   PHG4TruthInfoContainer::Map primary_map = _truthinfo->GetPrimaryMap();
-  for (PHG4TruthInfoContainer::ConstIterator iter = primary_map.begin(); 
-       iter != primary_map.end(); 
-       ++iter) {
-    if (iter->second->get_track_id() == particle->get_track_id() ) {
-      is_primary = true;
-    }
+  if (primary_map.find(particle->get_track_id()) != primary_map.end()) {
+    is_primary = true;
   }
   
   return is_primary;
