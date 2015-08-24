@@ -65,10 +65,14 @@ PHG4CylinderCell* SvtxHitEval::get_cell(SvtxHit* hit) {
 
 std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
 
-  if ((_do_cache)&&(_cache_all_truth_hits.find(hit) != _cache_all_truth_hits.end())) {
-    return _cache_all_truth_hits[hit];
+  if (_do_cache) {
+    std::map<SvtxHit*,std::set<PHG4Hit*> >::iterator iter =
+      _cache_all_truth_hits.find(hit);
+    if (iter != _cache_all_truth_hits.end()) {
+      return iter->second;
+    }
   }
-  
+    
   std::set<PHG4Hit*> truth_hits;
   
   // hop from reco hit to g4cell
@@ -98,9 +102,12 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
 
 PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(SvtxHit* hit) {
   
-  if ((_do_cache) &&
-      (_cache_max_truth_hit_by_energy.find(hit) != _cache_max_truth_hit_by_energy.end())) {
-    return _cache_max_truth_hit_by_energy[hit];
+  if (_do_cache) {
+    std::map<SvtxHit*,PHG4Hit*>::iterator iter =
+      _cache_max_truth_hit_by_energy.find(hit);
+    if (iter != _cache_max_truth_hit_by_energy.end()) {
+      return iter->second;
+    }
   }
   
   std::set<PHG4Hit*> hits = all_truth_hits(hit);
@@ -123,9 +130,12 @@ PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(SvtxHit* hit) {
   
 std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(SvtxHit* hit) {
 
-  if ((_do_cache) &&
-      (_cache_all_truth_particles.find(hit) != _cache_all_truth_particles.end())) {
-    return _cache_all_truth_particles[hit];
+  if (_do_cache) {
+    std::map<SvtxHit*,std::set<PHG4Particle*> >::iterator iter =
+      _cache_all_truth_particles.find(hit);
+    if (iter != _cache_all_truth_particles.end()) {
+      return iter->second;
+    }
   }
   
   std::set<PHG4Particle*> truth_particles;
@@ -149,9 +159,12 @@ std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(SvtxHit* hit) {
 
 PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(SvtxHit* hit) {
 
-  if ((_do_cache) &&
-      (_cache_max_truth_particle_by_energy.find(hit) != _cache_max_truth_particle_by_energy.end())) {
-    return _cache_max_truth_particle_by_energy[hit];
+  if (_do_cache) {
+    std::map<SvtxHit*,PHG4Particle*>::iterator iter =
+      _cache_max_truth_particle_by_energy.find(hit);
+    if (iter != _cache_max_truth_particle_by_energy.end()) {
+      return iter->second;
+    }
   }
   
   // loop over all particles associated with this hit and
@@ -178,9 +191,12 @@ PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(SvtxHit* hit) {
 
 std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Particle* g4particle) { 
 
-  if ((_do_cache) &&
-      (_cache_all_hits_from_particle.find(g4particle) != _cache_all_hits_from_particle.end())) {
-    return _cache_all_hits_from_particle[g4particle];
+  if (_do_cache) {
+    std::map<PHG4Particle*,std::set<SvtxHit*> >::iterator iter =
+      _cache_all_hits_from_particle.find(g4particle);
+    if (iter != _cache_all_hits_from_particle.end()) {
+      return iter->second;
+    }
   }
  
   std::set<SvtxHit*> hits;
@@ -211,9 +227,12 @@ std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Particle* g4particle) {
 
 std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Hit* g4hit) {
 
-  if ((_do_cache) &&
-      (_cache_all_hits_from_g4hit.find(g4hit) != _cache_all_hits_from_g4hit.end())) {
-    return _cache_all_hits_from_g4hit[g4hit];
+  if (_do_cache) {
+    std::map<PHG4Hit*,std::set<SvtxHit*> >::iterator iter =
+      _cache_all_hits_from_g4hit.find(g4hit);
+    if (iter != _cache_all_hits_from_g4hit.end()) {
+      return iter->second;
+    }
   }
   
   std::set<SvtxHit*> hits;
@@ -244,9 +263,12 @@ std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Hit* g4hit) {
 
 SvtxHit* SvtxHitEval::best_hit_from(PHG4Hit* g4hit) {
 
-  if ((_do_cache) &&
-      (_cache_best_hit_from_g4hit.find(g4hit) != _cache_best_hit_from_g4hit.end())) {
-    return _cache_best_hit_from_g4hit[g4hit];
+  if (_do_cache) {
+    std::map<PHG4Hit*,SvtxHit*>::iterator iter =
+      _cache_best_hit_from_g4hit.find(g4hit);
+    if (iter != _cache_best_hit_from_g4hit.end()) {
+      return iter->second;
+    }
   }
 
   SvtxHit* best_hit = NULL;
@@ -271,10 +293,12 @@ SvtxHit* SvtxHitEval::best_hit_from(PHG4Hit* g4hit) {
 // overlap calculations
 float SvtxHitEval::get_energy_contribution(SvtxHit* hit, PHG4Particle* particle) {
 
-  if ((_do_cache) &&
-      (_cache_get_energy_contribution_g4particle.find(make_pair(hit,particle)) !=
-       _cache_get_energy_contribution_g4particle.end())) {
-    return _cache_get_energy_contribution_g4particle[make_pair(hit,particle)];
+  if (_do_cache) {
+    std::map<std::pair<SvtxHit*,PHG4Particle*>,float>::iterator iter =
+      _cache_get_energy_contribution_g4particle.find(make_pair(hit,particle));
+    if (iter != _cache_get_energy_contribution_g4particle.end()) {
+      return iter->second;
+    }
   }
   
   float energy = 0.0;
@@ -295,12 +319,14 @@ float SvtxHitEval::get_energy_contribution(SvtxHit* hit, PHG4Particle* particle)
 
 float SvtxHitEval::get_energy_contribution(SvtxHit* hit, PHG4Hit* g4hit) {
 
-  if ((_do_cache) &&
-      (_cache_get_energy_contribution_g4hit.find(make_pair(hit,g4hit)) !=
-       _cache_get_energy_contribution_g4hit.end())) {
-    return _cache_get_energy_contribution_g4hit[make_pair(hit,g4hit)];
+  if (_do_cache) {
+    std::map<std::pair<SvtxHit*,PHG4Hit*>,float>::iterator iter =
+      _cache_get_energy_contribution_g4hit.find(make_pair(hit,g4hit));
+    if (iter != _cache_get_energy_contribution_g4hit.end()) {
+      return iter->second;
+    }
   }
-  
+    
   // this is a fairly simple existance check right now, but might be more
   // complex in the future, so this is here mostly as future-proofing.
   
