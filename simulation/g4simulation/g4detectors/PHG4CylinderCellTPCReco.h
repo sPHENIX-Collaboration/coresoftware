@@ -35,6 +35,9 @@ public:
 //   void etaphisize(const int i, const double deltaeta, const double deltaphi);
   void checkenergy(const int i=1) {chkenergyconservation = i;}
   void OutputDetector(const std::string &d) {outdetector = d;}
+
+  void setDiffusion( double diff ){diffusion = diff;}
+  void setElectronsPerKeV( double epk ){elec_per_kev = epk;}
   
 protected:
 //   void set_size(const int i, const double sizeA, const double sizeB, const int what);
@@ -61,6 +64,9 @@ protected:
   int chkenergyconservation;
   
   TRandom3 rand;
+
+  double diffusion;
+  double elec_per_kev;
   
 };
 

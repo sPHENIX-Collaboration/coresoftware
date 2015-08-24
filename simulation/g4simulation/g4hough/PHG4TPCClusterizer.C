@@ -166,37 +166,6 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 		return Fun4AllReturnCodes::ABORTRUN;}
 		else {clusterlist = (SvtxClusterMap*)SvtxClusterMapNode->getData();}
 	clusterlist->Reset();
-
-	// std::vector<std::vector<std::vector<float> > > amps;
-	// std::vector<std::vector<std::vector<int> > > cellids;
-	// std::vector<std::vector<int> > nhits;
-	// PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
-	// for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;layeriter != layerrange.second;++layeriter)
-	// {
- //    	int nphibins = layeriter->second->get_phibins();
- //    	int nzbins =  layeriter->second->get_zbins();
- //    	amps.push_back( std::vector<std::vector<float> >() );
- //    	amps.back().assign( nzbins, std::vector<float>() );
- //    	cellids.push_back( std::vector<std::vector<int> >() );
- //    	cellids.back().assign( nzbins, std::vector<int>() );
- //    	nhits.push_back( std::vector<int>() );
- //    	nhits.back().assign( nzbins, 0 );
- //    	for (int i = 0; i < nzbins; ++i){
- //    		amps.back()[i].assign( nphibins, 0. );
- //    		cellids.back()[i].assign( nphibins, 0 );
- //    	}
-	// }
-
-	// for(unsigned int i=0,isize=amps.size();i<isize;++i)
-	// {
-	// 	for(unsigned int j=0,jsize=amps[i].size();j<jsize;++j)
-	// 	{
-	// 		for(unsigned int k=0,ksize=amps[i][j].size();k<ksize;++k)
-	// 		{
-	// 			amps[i][j][k] = 0.;
-	// 		}
-	// 	}
-	// }
 	
 	for(SvtxHitMap::Iter iter = hits->begin();iter != hits->end();++iter)
 	{
