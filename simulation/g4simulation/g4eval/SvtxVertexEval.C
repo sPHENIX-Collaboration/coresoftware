@@ -52,9 +52,12 @@ void SvtxVertexEval::next_event(PHCompositeNode* topNode) {
 
 std::set<PHG4Particle*> SvtxVertexEval::all_truth_particles(SvtxVertex* vertex) {
 
- if ((_do_cache) && (_cache_all_truth_particles.find(vertex) !=
-		     _cache_all_truth_particles.end())) {
-    return _cache_all_truth_particles[vertex];
+  if (_do_cache) {
+    std::map<SvtxVertex*,std::set<PHG4Particle*> >::iterator iter =
+      _cache_all_truth_particles.find(vertex);
+    if (iter != _cache_all_truth_particles.end()) {
+      return iter->second;
+    }
   }
  
   std::set<PHG4Particle*> all_particles;
@@ -75,9 +78,12 @@ std::set<PHG4Particle*> SvtxVertexEval::all_truth_particles(SvtxVertex* vertex) 
 
 std::set<PHG4VtxPoint*> SvtxVertexEval::all_truth_points(SvtxVertex* vertex) {
 
- if ((_do_cache) && (_cache_all_truth_points.find(vertex) !=
-		     _cache_all_truth_points.end())) {
-    return _cache_all_truth_points[vertex];
+  if (_do_cache) {
+    std::map<SvtxVertex*,std::set<PHG4VtxPoint*> >::iterator iter =
+      _cache_all_truth_points.find(vertex);
+    if (iter != _cache_all_truth_points.end()) {
+      return iter->second;
+    }
   }
 
   std::set<PHG4VtxPoint*> points;
@@ -102,9 +108,12 @@ std::set<PHG4VtxPoint*> SvtxVertexEval::all_truth_points(SvtxVertex* vertex) {
 
 PHG4VtxPoint* SvtxVertexEval::max_truth_point_by_ntracks(SvtxVertex* vertex) {
 
-  if ((_do_cache) && (_cache_max_truth_point_by_ntracks.find(vertex) !=
-		      _cache_max_truth_point_by_ntracks.end())) {
-    return _cache_max_truth_point_by_ntracks[vertex];
+  if (_do_cache) {
+    std::map<SvtxVertex*,PHG4VtxPoint*>::iterator iter =
+      _cache_max_truth_point_by_ntracks.find(vertex);
+    if (iter != _cache_max_truth_point_by_ntracks.end()) {
+      return iter->second;
+    }
   }
   
   std::set<PHG4VtxPoint*> points = all_truth_points(vertex);
@@ -130,9 +139,12 @@ PHG4VtxPoint* SvtxVertexEval::max_truth_point_by_ntracks(SvtxVertex* vertex) {
    
 std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint) {
 
- if ((_do_cache) && (_cache_all_vertexes_from_point.find(truthpoint) !=
-		     _cache_all_vertexes_from_point.end())) {
-    return _cache_all_vertexes_from_point[truthpoint];
+  if (_do_cache) {
+    std::map<PHG4VtxPoint*,std::set<SvtxVertex*> >::iterator iter =
+      _cache_all_vertexes_from_point.find(truthpoint);
+    if (iter != _cache_all_vertexes_from_point.end()) {
+      return iter->second;
+    }
   }
 
   std::set<SvtxVertex*> all_vertexes;
@@ -160,9 +172,12 @@ std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint
 
 SvtxVertex* SvtxVertexEval::best_vertex_from(PHG4VtxPoint* truthpoint) {
  
-  if ((_do_cache) && (_cache_best_vertex_from_point.find(truthpoint) !=
-		      _cache_best_vertex_from_point.end())) {
-    return _cache_best_vertex_from_point[truthpoint];
+  if (_do_cache) {
+    std::map<PHG4VtxPoint*,SvtxVertex*>::iterator iter =
+      _cache_best_vertex_from_point.find(truthpoint);
+    if (iter != _cache_best_vertex_from_point.end()) {
+      return iter->second;
+    }
   }
 
   SvtxVertex* best_vertex = NULL;
@@ -187,9 +202,12 @@ SvtxVertex* SvtxVertexEval::best_vertex_from(PHG4VtxPoint* truthpoint) {
 // overlap calculations
 unsigned int SvtxVertexEval::get_ntracks_contribution(SvtxVertex* vertex, PHG4VtxPoint* truthpoint) {
 
-  if ((_do_cache) && (_cache_get_ntracks_contribution.find(make_pair(vertex,truthpoint)) !=
-		      _cache_get_ntracks_contribution.end())) {
-    return _cache_get_ntracks_contribution[make_pair(vertex,truthpoint)];
+  if (_do_cache) {
+    std::map<std::pair<SvtxVertex*,PHG4VtxPoint*>, unsigned int>::iterator iter =
+      _cache_get_ntracks_contribution.find(make_pair(vertex,truthpoint));
+    if (iter != _cache_get_ntracks_contribution.end()) {
+      return iter->second;
+    }
   }
   
   unsigned int ntracks = 0;
