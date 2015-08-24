@@ -16,7 +16,7 @@ class RawTowerv1 : public RawTower {
   int isValid() const;
   void identify(std::ostream& os=std::cout) const;
 
-  unsigned int get_id() const { return bineta << 12 | binphi;}
+  RawTowerDefs::keytype get_id() const { return bineta << 12 | binphi;}
   int get_bineta() const { return bineta; }
   int get_binphi() const { return binphi; }
   float get_energy() const;
@@ -26,16 +26,16 @@ class RawTowerv1 : public RawTower {
 
   bool is_adjacent(RawTower& tower);
 
-  std::pair< std::map<unsigned int,float>::const_iterator, std::map<unsigned int,float>::const_iterator > get_g4cells()
+  CellConstRange get_g4cells()
   {return make_pair(ecells.begin(), ecells.end());}
-  void add_ecell(const unsigned int g4cellid, const float ecell);
+  void add_ecell(const PHG4CylinderCellDefs::keytype g4cellid, const float ecell);
 
  protected:
   int bineta;
   int binphi;
   float light_yield;
 
-  std::map<unsigned int, float> ecells;
+  CellMap ecells;
 
   ClassDef(RawTowerv1,2)
 };
