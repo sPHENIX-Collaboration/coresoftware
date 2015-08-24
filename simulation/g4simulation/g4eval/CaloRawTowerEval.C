@@ -54,9 +54,12 @@ void CaloRawTowerEval::next_event(PHCompositeNode* topNode) {
 
 std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(RawTower* tower) {
 
-  if ((_do_cache) &&
-      (_cache_all_truth_hits.find(tower) != _cache_all_truth_hits.end())) {
-    return _cache_all_truth_hits[tower];
+  if (_do_cache) {
+    std::map<RawTower*,std::set<PHG4Hit*> >::iterator iter =
+      _cache_all_truth_hits.find(tower);
+    if (iter != _cache_all_truth_hits.end()) {
+      return iter->second;
+    }
   }
 
   std::set<PHG4Hit*> truth_hits;
@@ -86,9 +89,12 @@ std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(RawTower* tower) {
   
 std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primaries(RawTower* tower) {
 
-  if ((_do_cache) &&
-      (_cache_all_truth_primaries.find(tower) != _cache_all_truth_primaries.end())) {
-    return _cache_all_truth_primaries[tower];
+  if (_do_cache) {
+    std::map<RawTower*,std::set<PHG4Particle*> >::iterator iter =
+      _cache_all_truth_primaries.find(tower);
+    if (iter != _cache_all_truth_primaries.end()) {
+      return iter->second;
+    }
   }
   
   std::set<PHG4Particle*> truth_primaries;
@@ -113,9 +119,12 @@ std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primaries(RawTower* tower) {
 
 PHG4Particle* CaloRawTowerEval::max_truth_primary_by_energy(RawTower* tower) {
 
-  if ((_do_cache) &&
-      (_cache_max_truth_primary_by_energy.find(tower) != _cache_max_truth_primary_by_energy.end())) {
-    return _cache_max_truth_primary_by_energy[tower];
+  if (_do_cache) {
+    std::map<RawTower*,PHG4Particle*>::iterator iter =
+      _cache_max_truth_primary_by_energy.find(tower);
+    if (iter != _cache_max_truth_primary_by_energy.end()) {
+      return iter->second;
+    }
   }
   
   // loop over all primaries associated with this tower and
@@ -144,11 +153,14 @@ std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Particle* primary) {
 
   if (!_trutheval.is_primary(primary)) return std::set<RawTower*>();
   
-  if ((_do_cache) &&
-      (_cache_all_towers_from_primary.find(primary) != _cache_all_towers_from_primary.end())) {
-    return _cache_all_towers_from_primary[primary];
-  }  
-
+  if (_do_cache) {
+    std::map<PHG4Particle*,std::set<RawTower*> >::iterator iter =
+      _cache_all_towers_from_primary.find(primary);
+    if (iter != _cache_all_towers_from_primary.end()) {
+      return iter->second;
+    }  
+  }
+  
   std::set<RawTower*> towers;
   
   // loop over all the towers
@@ -179,9 +191,12 @@ RawTower* CaloRawTowerEval::best_tower_from(PHG4Particle* primary) {
 
   if (!_trutheval.is_primary(primary)) return NULL;
       
-  if ((_do_cache) &&
-      (_cache_best_tower_from_primary.find(primary) != _cache_best_tower_from_primary.end())) {
-    return _cache_best_tower_from_primary[primary];
+  if (_do_cache) {
+    std::map<PHG4Particle*,RawTower*>::iterator iter =
+      _cache_best_tower_from_primary.find(primary);
+    if (iter != _cache_best_tower_from_primary.end()) {
+      return iter->second;
+    }
   }
   
   RawTower* best_tower = NULL;
@@ -208,10 +223,12 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
 
   if (!_trutheval.is_primary(primary)) return NAN;
   
-  if ((_do_cache) &&
-      (_cache_get_energy_contribution_primary.find(make_pair(tower,primary)) !=
-       _cache_get_energy_contribution_primary.end())) {
-    return _cache_get_energy_contribution_primary[make_pair(tower,primary)];
+  if (_do_cache) {
+    std::map<std::pair<RawTower*,PHG4Particle*>, float>::iterator iter =
+      _cache_get_energy_contribution_primary.find(make_pair(tower,primary));
+    if (iter != _cache_get_energy_contribution_primary.end()) {
+      return iter->second;
+    }
   }
   
   float energy = 0.0;
