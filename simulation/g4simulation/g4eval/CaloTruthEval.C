@@ -235,8 +235,6 @@ float CaloTruthEval::get_shower_moliere_radius(PHG4Particle* primary) {
     radii_energy_mmap.insert(make_pair(r,edep));
   }
 
-  if (shower_e == 0.0) return NAN; // no energy deposit!
-  
   float sum_e = 0.0;
   float frac_e = 0.0;
 
