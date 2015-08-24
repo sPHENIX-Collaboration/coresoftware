@@ -46,6 +46,8 @@ private:
 
   bool                                        _do_cache;
   std::map<PHG4Particle*,std::set<PHG4Hit*> > _cache_all_truth_hits_g4particle;
+  std::map<PHG4Particle*,PHG4Particle*>       _cache_get_primary_particle_g4particle;
+  std::map<PHG4Hit*,PHG4Particle*>            _cache_get_primary_particle_g4hit;
   std::map<PHG4Particle*,bool>                _cache_is_primary;
   std::map<PHG4Particle*,std::set<PHG4Hit*> > _cache_get_shower_from_primary;
   std::map<PHG4Particle*,float>               _cache_get_shower_moliere_radius;
