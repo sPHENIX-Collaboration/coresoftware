@@ -8,7 +8,7 @@ ClassImp(RawTowerContainer)
 
 using namespace std;
 
-unsigned int
+RawTowerDefs::keytype
 RawTowerContainer::genkey(const unsigned int ieta, const unsigned int iphi) const
 {
   if (ieta > 0xFFFF || iphi > 0xFFFF)
@@ -65,7 +65,7 @@ RawTowerContainer::getTowers( void )
 RawTowerContainer::ConstIterator
 RawTowerContainer::AddTower(const int ieta, const int iphi, RawTower *rawtower)
 {
-  unsigned int key = genkey(ieta,iphi);
+  RawTowerDefs::keytype key = genkey(ieta,iphi);
   _towers[key] = rawtower;
   return _towers.find(key);
 }
@@ -73,7 +73,7 @@ RawTowerContainer::AddTower(const int ieta, const int iphi, RawTower *rawtower)
 RawTower *
 RawTowerContainer::getTower(const int ieta, const int iphi)
 {
-  unsigned int key = genkey(ieta,iphi);
+  RawTowerDefs::keytype key = genkey(ieta,iphi);
   Iterator it = _towers.find(key);
   if (it != _towers.end())
     {
