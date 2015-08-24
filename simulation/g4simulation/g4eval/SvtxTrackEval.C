@@ -52,8 +52,12 @@ void SvtxTrackEval::next_event(PHCompositeNode* topNode) {
 
 std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
 
-  if ((_do_cache) && (_cache_all_truth_hits.find(track) != _cache_all_truth_hits.end())) {
-    return _cache_all_truth_hits[track];
+  if (_do_cache) {
+    std::map<SvtxTrack*,std::set<PHG4Hit*> >::iterator iter =
+      _cache_all_truth_hits.find(track);
+    if (iter != _cache_all_truth_hits.end()) {
+      return iter->second;
+    }
   }
   
   std::set<PHG4Hit*> truth_hits;
@@ -82,8 +86,12 @@ std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
   
 std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track) {
 
-  if ((_do_cache) && (_cache_all_truth_particles.find(track) != _cache_all_truth_particles.end())) {
-    return _cache_all_truth_particles[track];
+  if (_do_cache) {
+    std::map<SvtxTrack*,std::set<PHG4Particle*> >::iterator iter =
+      _cache_all_truth_particles.find(track);
+    if (iter != _cache_all_truth_particles.end()) {
+      return iter->second;
+    }
   }
   
   std::set<PHG4Particle*> truth_particles;
@@ -112,9 +120,12 @@ std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track) {
 
 PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track) {
 
-  if ((_do_cache) && (_cache_max_truth_particle_by_nclusters.find(track) !=
-		      _cache_max_truth_particle_by_nclusters.end())) {
-    return _cache_max_truth_particle_by_nclusters[track];
+  if (_do_cache) {
+    std::map<SvtxTrack*,PHG4Particle*>::iterator iter =
+      _cache_max_truth_particle_by_nclusters.find(track);
+    if (iter != _cache_max_truth_particle_by_nclusters.end()) {
+      return iter->second;
+    }
   }
   
   std::set<PHG4Particle*> particles = all_truth_particles(track);
@@ -140,9 +151,12 @@ PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track) {
 
 std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle) { 
 
-  if ((_do_cache) && (_cache_all_tracks_from_particle.find(truthparticle) !=
-		      _cache_all_tracks_from_particle.end())) {
-    return _cache_all_tracks_from_particle[truthparticle];
+  if (_do_cache) {
+    std::map<PHG4Particle*,std::set<SvtxTrack*> >::iterator iter =
+      _cache_all_tracks_from_particle.find(truthparticle);
+    if (iter !=	_cache_all_tracks_from_particle.end()) {
+      return iter->second;
+    }
   }
   
   std::set<SvtxTrack*> tracks;
@@ -180,9 +194,12 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
 
 std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit) {
 
-  if ((_do_cache) && (_cache_all_tracks_from_g4hit.find(truthhit) !=
-		      _cache_all_tracks_from_g4hit.end())) {
-    return _cache_all_tracks_from_g4hit[truthhit];
+  if (_do_cache) {
+    std::map<PHG4Hit*,std::set<SvtxTrack*> >::iterator iter =
+      _cache_all_tracks_from_g4hit.find(truthhit);
+    if (iter != _cache_all_tracks_from_g4hit.end()) {
+      return iter->second;
+    }
   }
   
   std::set<SvtxTrack*> tracks;
@@ -220,9 +237,12 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit) {
 
 SvtxTrack* SvtxTrackEval::best_track_from(PHG4Particle* truthparticle) { 
 
-  if ((_do_cache) && (_cache_best_track_from_particle.find(truthparticle) !=
-		      _cache_best_track_from_particle.end())) {
-    return _cache_best_track_from_particle[truthparticle];
+  if (_do_cache) {
+    std::map<PHG4Particle*,SvtxTrack*>::iterator iter =
+      _cache_best_track_from_particle.find(truthparticle);
+    if (iter != _cache_best_track_from_particle.end()) {
+      return iter->second;
+    }
   }
 
   SvtxTrack* best_track = NULL;
@@ -247,9 +267,12 @@ SvtxTrack* SvtxTrackEval::best_track_from(PHG4Particle* truthparticle) {
 // overlap calculations
 unsigned int SvtxTrackEval::get_nclusters_contribution(SvtxTrack* track, PHG4Particle* particle) {
 
-  if ((_do_cache) && (_cache_get_nclusters_contribution.find(make_pair(track,particle)) !=
-		      _cache_get_nclusters_contribution.end())) {
-    return _cache_get_nclusters_contribution[make_pair(track,particle)];
+  if (_do_cache) {
+    std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int>::iterator iter =
+      _cache_get_nclusters_contribution.find(make_pair(track,particle));
+    if (iter !=	_cache_get_nclusters_contribution.end()) {
+      return iter->second;
+    }
   }
   
   unsigned int nclusters = 0;
