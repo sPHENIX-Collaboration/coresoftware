@@ -168,7 +168,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
       // projection is outside the detector extent
       // \todo towergeo doesn't make this easy to extract, but this should be
       // fetched from the node tree instead of hardcoded
-      if (fabs(eta) >= 1.1) continue;
+      if (fabs(eta) >= 1.0) continue;
 
       // calculate 3x3 tower energy
       int binphi = towergeo->get_phibin(phi);

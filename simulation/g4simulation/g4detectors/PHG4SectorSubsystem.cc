@@ -1,6 +1,6 @@
 #include "PHG4SectorSubsystem.h"
 #include "PHG4SectorDetector.h"
-#include "PHG4SectorEventAction.h"
+#include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4SectorSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -58,7 +58,7 @@ PHG4SectorSubsystem::Init(PHCompositeNode* topNode)
       // create stepping action
       steppingAction_ = new PHG4SectorSteppingAction(detector_);
 
-      eventAction_ = new PHG4SectorEventAction(topNode, nodename.str());
+      eventAction_ = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
     }
   return 0;
 

@@ -90,7 +90,6 @@ libg4detectors_la_SOURCES = \
   PHG4BlockCellReco.cc \
   PHG4BlockCellReco_Dict.cc \
   PHG4BlockDetector.cc \
-  PHG4BlockEventAction.cc \
   PHG4BlockRegionSteppingAction.cc \
   PHG4BlockSteppingAction.cc \
   PHG4BlockSubsystem.cc \
@@ -101,7 +100,6 @@ libg4detectors_la_SOURCES = \
   PHG4CEmcTestBeamSubsystem_Dict.cc \
   PHG4EventActionClearZeroEdep.cc \
   PHG4ConeDetector.cc \
-  PHG4ConeEventAction.cc \
   PHG4ConeRegionSteppingAction.cc \
   PHG4ConeSteppingAction.cc \
   PHG4ConeSubsystem.cc \
@@ -112,7 +110,6 @@ libg4detectors_la_SOURCES = \
   PHG4CrystalCalorimeterSubsystem.cc \
   PHG4CrystalCalorimeterSubsystem_Dict.cc \
   PHG4CylinderDetector.cc \
-  PHG4CylinderEventAction.cc \
   PHG4CylinderRegionSteppingAction.cc \
   PHG4CylinderSubsystem.cc \
   PHG4CylinderSubsystem_Dict.cc \
@@ -136,7 +133,6 @@ libg4detectors_la_SOURCES = \
   PHG4ForwardHcalSubsystem.cc \
   PHG4ForwardHcalSubsystem_Dict.cc \
   PHG4FPbScDetector.cc \
-  PHG4FPbScEventAction.cc \
   PHG4FPbScSteppingAction.cc \
   PHG4FPbScRegionSteppingAction.cc \
   PHG4FPbScSubsystem.cc \
@@ -176,7 +172,6 @@ libg4detectors_la_SOURCES = \
   PHG4SectorConstructor.cc \
   PHG4SectorConstructor_Dict.cc \
   PHG4SectorDetector.cc \
-  PHG4SectorEventAction.cc \
   PHG4SectorSteppingAction.cc \
   PHG4SectorSubsystem.cc \
   PHG4SectorSubsystem_Dict.cc \
