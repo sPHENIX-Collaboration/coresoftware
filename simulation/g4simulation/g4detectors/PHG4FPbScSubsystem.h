@@ -1,7 +1,7 @@
 #ifndef PHG4FPbScSubsystem_h
 #define PHG4FPbScSubsystem_h
 
-#include "g4main/PHG4Subsystem.h"
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
@@ -16,7 +16,7 @@ class PHG4FPbScSubsystem: public PHG4Subsystem
   public:
     
     //! constructor
-    PHG4FPbScSubsystem( const char* name = "FPBSC" );
+  PHG4FPbScSubsystem( const std::string &name = "FPBSC" );
     
     //! destructor
     virtual ~PHG4FPbScSubsystem( void )

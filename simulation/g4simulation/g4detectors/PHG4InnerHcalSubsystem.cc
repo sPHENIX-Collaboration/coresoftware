@@ -9,6 +9,8 @@
 
 #include <Geant4/globals.hh>
 
+#include <boost/foreach.hpp>
+
 #include <sstream>
 
 using namespace std;
@@ -42,6 +44,7 @@ int PHG4InnerHcalSubsystem::Init( PHCompositeNode* topNode )
   detector_ = new PHG4InnerHcalDetector(topNode, params, Name());
   detector_->SuperDetector(superdetector);
   detector_->OverlapCheck(overlapcheck);
+  set<string> nodes;
   if (params->active)
     {
       ostringstream nodename;
@@ -53,14 +56,7 @@ int PHG4InnerHcalSubsystem::Init( PHCompositeNode* topNode )
 	{
 	  nodename <<  "G4HIT_" << detector_type << "_" << layer;
 	}
-      // create hit list
-      PHG4HitContainer* block_hits =  findNode::getClass<PHG4HitContainer>( topNode , nodename.str().c_str());
-      if ( !block_hits )
-	{
-
-	  dstNode->addNode( new PHIODataNode<PHObject>( block_hits = new PHG4HitContainer(), nodename.str().c_str(), "PHObject" ));
-
-	}
+      nodes.insert(nodename.str());
       if (params->absorberactive)
 	{
 	  nodename.str("");
@@ -72,22 +68,40 @@ int PHG4InnerHcalSubsystem::Init( PHCompositeNode* topNode )
 	    {
 	      nodename <<  "G4HIT_ABSORBER_" << detector_type << "_" << layer;
 	    }
+          nodes.insert(nodename.str());
 	}
-      block_hits =  findNode::getClass<PHG4HitContainer>( topNode , nodename.str().c_str());
-      if ( !block_hits )
+      BOOST_FOREACH(string node, nodes)
 	{
+	  PHG4HitContainer* g4_hits =  findNode::getClass<PHG4HitContainer>( topNode , node.c_str());
+	  if ( !g4_hits )
+	    {
 
-	  dstNode->addNode( new PHIODataNode<PHObject>( new PHG4HitContainer(), nodename.str().c_str(), "PHObject" ));
+	      dstNode->addNode( new PHIODataNode<PHObject>( g4_hits = new PHG4HitContainer(), node.c_str(), "PHObject" ));
 
+	    }
+	  if (! eventAction_)
+	    {
+	      eventAction_ = new PHG4EventActionClearZeroEdep(topNode, node);
+	    }
+	  else
+	    {
+	      PHG4EventActionClearZeroEdep *evtact = dynamic_cast<PHG4EventActionClearZeroEdep *>(eventAction_);
+
+	      evtact->AddNode(node);
+	    }
 	}
+
       // create stepping action
       steppingAction_ = new PHG4InnerHcalSteppingAction(detector_);
 
-      eventAction_ = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
     }
-  if (params->blackhole && !params->active)
+  else
     {
-      steppingAction_ = new PHG4InnerHcalSteppingAction(detector_);
+      // if this is a black hole it does not have to be active
+      if (params->blackhole)
+	{
+	  steppingAction_ = new PHG4InnerHcalSteppingAction(detector_);
+	}
     }
   return 0;
 

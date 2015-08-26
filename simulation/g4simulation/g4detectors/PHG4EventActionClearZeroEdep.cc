@@ -13,7 +13,7 @@ using namespace std;
 PHG4EventActionClearZeroEdep::PHG4EventActionClearZeroEdep( PHCompositeNode *node, const string &name ):
   topNode(node)
 {
-  nodename_set.insert(name);
+  AddNode(name);
 }
 
 

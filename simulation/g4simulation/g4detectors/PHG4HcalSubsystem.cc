@@ -1,7 +1,7 @@
 #include "PHG4HcalSubsystem.h"
 #include "PHG4HcalDetector.h"
 #include "PHG4HcalSteppingAction.h"
-#include "PHG4CylinderEventAction.h"
+#include "PHG4EventActionClearZeroEdep.h"
 #include <g4main/PHG4Utils.h>
 
 #include <g4main/PHG4PhenixDetector.h>
@@ -96,7 +96,7 @@ int PHG4HcalSubsystem::InitRun( PHCompositeNode* topNode )
           dstNode->addNode( new PHIODataNode<PHObject>( cylinder_hits = new PHG4HitContainer(), nodename.str().c_str(), "PHObject" ));
         }
       cylinder_hits->AddLayer(layer);
-      PHG4CylinderEventAction *evtac = new PHG4CylinderEventAction(topNode, nodename.str());
+      PHG4EventActionClearZeroEdep *evtac = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
       if (absorberactive)
         {
           nodename.str("");
