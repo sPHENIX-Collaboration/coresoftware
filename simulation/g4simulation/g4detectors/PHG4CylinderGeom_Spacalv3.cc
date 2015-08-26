@@ -14,11 +14,13 @@
 #include <Geant4/G4PhysicalConstants.hh>
 
 #include <cmath>
+#include <cassert>
 #include <limits>       // std::numeric_limits
 #include <iostream>
 
 ClassImp(PHG4CylinderGeom_Spacalv3)
 ClassImp(PHG4CylinderGeom_Spacalv3::geom_tower)
+ClassImp(PHG4CylinderGeom_Spacalv3::scint_id_coder)
 
 using namespace std;
 
@@ -110,6 +112,26 @@ PHG4CylinderGeom_Spacalv3::geom_tower::identify(std::ostream& os) const
       << " @ <Azimuthal, R, z> = " << centralX << ", " << centralY << ", "
       << centralZ << " cm" << endl;
 }
+
+PHG4CylinderGeom_Spacalv3::scint_id_coder::scint_id_coder(int scint_id) :
+    scint_ID(scint_id)
+{
+  sector_ID = (scint_ID>> (kfiber_bit + ktower_bit)) & ((1 << ksector_bit) - 1);
+  tower_ID = (scint_ID >> kfiber_bit) & ((1 << ktower_bit) - 1);
+  fiber_ID = (scint_ID) & ((1 << kfiber_bit) - 1);
+}
+
+PHG4CylinderGeom_Spacalv3::scint_id_coder::scint_id_coder(int sector_id,
+    int tower_id, int fiber_id) :
+    sector_ID(sector_id), tower_ID(tower_id), fiber_ID(fiber_id)
+{
+  assert(fiber_ID<(1<<kfiber_bit) and fiber_ID>=0);
+  assert(tower_ID<(1<<ktower_bit) and tower_ID>=0);
+  assert(sector_ID<(1<<ksector_bit) and sector_ID>=0);
+
+  scint_ID = (((sector_ID << ktower_bit) | tower_ID) << kfiber_bit) | fiber_ID;
+}
+
 
 void
 PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map1()

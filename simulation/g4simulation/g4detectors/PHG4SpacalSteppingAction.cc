@@ -8,6 +8,7 @@
 
 #include "PHG4SpacalSteppingAction.h"
 #include "PHG4SpacalDetector.h"
+#include "PHG4CylinderGeom_Spacalv3.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
@@ -101,12 +102,8 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
               sector_ID  = prePoint->GetTouchable()->GetReplicaNumber(1);
             }
 
-          assert(fiber_ID<(1<<12) and fiber_ID>=0);
-          assert(tower_ID<(1<<12) and tower_ID>=0);
-          assert(sector_ID<(1<<8) and sector_ID>=0);
-
           // compact the tower/sector/fiber ID into 32 bit scint_id, so we could save some space for SPACAL hits
-          scint_id = (((sector_ID <<12) | tower_ID)<<12) | fiber_ID ;
+          scint_id = PHG4CylinderGeom_Spacalv3::scint_id_coder(sector_ID, sector_ID, fiber_ID).scint_ID;
 
         }
       else

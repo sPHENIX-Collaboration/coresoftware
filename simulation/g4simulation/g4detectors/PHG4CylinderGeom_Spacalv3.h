@@ -124,6 +124,43 @@ public:
 //  {
 //    geom_super_tower_map = geomSuperTowerMap;
 //  }
+
+//! compact ID of each fiber in 32bit PHG4Hit::set_scint_id(). Buffer the result for repeated use.
+  class scint_id_coder
+  {
+
+  public:
+
+    scint_id_coder(int scint_id);
+    scint_id_coder(int sector_id, int tower_id, int fiber_id);
+    virtual
+    ~scint_id_coder()
+    {
+    }
+
+    virtual void
+      identify(std::ostream& os = std::cout) const
+    {
+      os <<"scint_id_coder with "
+          <<"scint_ID("<<scint_ID<<") = "
+          <<"sector_ID("<<sector_ID<<"), "
+          <<"tower_ID("<<tower_ID<<"), "
+          <<"fiber_ID("<<fiber_ID<<")"<<std::endl;
+    }
+
+    int scint_ID;
+    int sector_ID;
+    int tower_ID;
+    int fiber_ID;
+
+    static const int kfiber_bit = 12;
+    static const int ktower_bit = 12;
+    static const int ksector_bit = 8;
+
+    ClassDef(PHG4CylinderGeom_Spacalv3::scint_id_coder,1)
+  };
+
+
 protected:
   double sidewall_thickness;
   double sidewall_outer_torr;
