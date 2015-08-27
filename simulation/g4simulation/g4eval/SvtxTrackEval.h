@@ -6,7 +6,9 @@
 #include "SvtxHitEval.h"
 
 #include <phool/PHCompositeNode.h>
+#include <g4hough/SvtxTrackMap.h>
 #include <g4hough/SvtxTrack.h>
+#include <g4hough/SvtxClusterMap.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
 
@@ -43,8 +45,12 @@ public:
   unsigned int get_nclusters_contribution(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);  
   
 private:
-  PHCompositeNode* _topNode;
+
+  void get_node_pointers(PHCompositeNode* topNode);
+  
   SvtxClusterEval _clustereval;
+  SvtxTrackMap* _trackmap;
+  SvtxClusterMap* _clustermap;
 
   bool                                                        _do_cache;
   std::map<SvtxTrack*,std::set<PHG4Hit*> >                    _cache_all_truth_hits;
