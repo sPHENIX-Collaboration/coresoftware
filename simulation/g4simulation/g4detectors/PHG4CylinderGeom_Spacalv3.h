@@ -13,6 +13,8 @@
 #include "PHG4CylinderGeom_Spacalv2.h"
 #include <string>
 #include <map>
+#include <utility>      // std::pair, std::make_pair
+
 
 class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
 {
@@ -68,6 +70,17 @@ public:
     sidewall_mat = absorberMat;
   }
 
+  int get_max_phi_bin_in_sec() const
+    {
+      return max_phi_bin_in_sec;
+    }
+
+  void set_max_phi_bin_in_sec(int maxPhiBinInSec)
+    {
+      max_phi_bin_in_sec = maxPhiBinInSec;
+    }
+
+  
 
   class geom_tower
   {
@@ -160,16 +173,19 @@ public:
     ClassDef(PHG4CylinderGeom_Spacalv3::scint_id_coder,1)
   };
 
+  //! convert tower_ID + sector ID to eta and z bins as in other cylindrical calorimeters
+  //! @return: a std::pair of zbin and phibin number
+  virtual std::pair<int,int> get_z_phi_bin(const int tower_ID, const int sector_ID);
 
 protected:
   double sidewall_thickness;
   double sidewall_outer_torr;
   std::string sidewall_mat;
-
+  int max_phi_bin_in_sec;
 
   tower_map_t sector_tower_map;
 
-ClassDef(PHG4CylinderGeom_Spacalv3,2)
+ClassDef(PHG4CylinderGeom_Spacalv3,3)
 
 };
 

@@ -56,6 +56,7 @@ PHG4CylinderGeom_Spacalv3::Print(Option_t *opt) const
   cout << "\t" << "get_sidewall_thickness() = " << get_sidewall_thickness()
       << endl;
   cout << "\t" << "get_sidewall_mat() = " << get_sidewall_mat() << endl;
+  cout << "\t" << "get_max_phi_bin_in_sec() = " << get_max_phi_bin_in_sec() << endl;
   cout << "Containing " << sector_tower_map.size()
       << " unique towers per sector." << endl;
 
@@ -80,7 +81,7 @@ PHG4CylinderGeom_Spacalv3::SetDefault()
   sidewall_thickness = 0.075000;
   sidewall_outer_torr = 0.030000;
   sidewall_mat = "SS310";
-
+  max_phi_bin_in_sec = 8;
 }
 
 PHG4CylinderGeom_Spacalv3::geom_tower::geom_tower() :
@@ -132,6 +133,23 @@ PHG4CylinderGeom_Spacalv3::scint_id_coder::scint_id_coder(int sector_id,
   scint_ID = (((sector_ID << ktower_bit) | tower_ID) << kfiber_bit) | fiber_ID;
 }
 
+std::pair<int, int>
+PHG4CylinderGeom_Spacalv3::get_z_phi_bin(const int tower_ID,
+    const int sector_ID)
+{
+  // tower_ID to eta/z within a sector
+  const int z_bin = floor( tower_ID/10 );
+
+  // colume ID is from -x to +x at the top of the detector, which is reverse of the phi bin direction.
+  const int phi_bin_in_sec = max_phi_bin_in_sec - (tower_ID % 10);
+
+  assert (phi_bin_in_sec < max_phi_bin_in_sec and phi_bin_in_sec>0);
+
+  const int phi_bin = sector_ID*max_phi_bin_in_sec + phi_bin_in_sec;
+
+  return make_pair<int, int>(z_bin, phi_bin);
+}
+
 
 void
 PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map1()
@@ -145,6 +163,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map1()
   zmin = 149.470000;
   zmax = -zmin;
   azimuthal_n_sec = 32;
+  max_phi_bin_in_sec = 8;
   sector_map.clear();
   sector_map[0] = 0;// only install one sector
 
@@ -220,6 +239,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2()
   zmin = 149.470000;
   zmax = -zmin;
   azimuthal_n_sec = 32;
+  max_phi_bin_in_sec = 8;
   sector_map.clear();
   sector_map[0] = 0;// only install one sector
   azimuthal_tilt = 0;
@@ -436,6 +456,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
   zmin = 149.470000;
   zmax = -zmin;
   azimuthal_n_sec = 32;
+  max_phi_bin_in_sec = 8;
   init_default_sector_map();
   azimuthal_tilt = 0;
   azimuthal_seg_visible = false;
