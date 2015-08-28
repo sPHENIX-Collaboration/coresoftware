@@ -118,13 +118,14 @@ public:
   //! sector map sector_ID -> azimuthal rotation.
   typedef std::map<int,double> sector_map_t;
 
-
+  //! sector map sector_ID -> azimuthal rotation.
   const sector_map_t &
   get_sector_map() const
   {
     return sector_map;
   }
 
+  //! sector map sector_ID -> azimuthal rotation.
   sector_map_t &
   get_sector_map()
   {

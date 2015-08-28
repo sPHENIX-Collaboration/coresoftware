@@ -64,12 +64,31 @@ public:
     z_bound_map = boundMap;
   }
 
+  //! map tower_z_ID -> eta_bin number
+  typedef std::map<int, int> tower_z_ID_eta_bin_map_t;
+
+  //! map tower_z_ID -> eta_bin number
+  const tower_z_ID_eta_bin_map_t &
+  get_tower_z_ID_eta_bin_map() const
+  {
+    return tower_z_ID_eta_bin_map;
+  }
+
+  //! map tower_z_ID -> eta_bin number
+  void
+  set_tower_z_ID_eta_bin_map(const tower_z_ID_eta_bin_map_t &  m)
+  {
+    tower_z_ID_eta_bin_map = m;
+  }
+
 protected:
 
   void map_consistency_check();
 
   bound_map_t z_bound_map;
   bound_map_t eta_bound_map;
+
+  tower_z_ID_eta_bin_map_t  tower_z_ID_eta_bin_map;
 
   ClassDef(PHG4CylinderCellGeom_Spacalv1,1)
 

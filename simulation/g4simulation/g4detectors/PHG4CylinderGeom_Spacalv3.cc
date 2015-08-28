@@ -134,7 +134,7 @@ PHG4CylinderGeom_Spacalv3::scint_id_coder::scint_id_coder(int sector_id,
 }
 
 std::pair<int, int>
-PHG4CylinderGeom_Spacalv3::get_z_phi_bin(const int tower_ID,
+PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
     const int sector_ID)
 {
   // tower_ID to eta/z within a sector
