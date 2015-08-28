@@ -18,11 +18,12 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
+libg4vertex_io_la_LDFLAGS = \
+  `geant4-config --libs` \
+  -L$(OFFLINE_MAIN)/lib
+
 libg4vertex_io_la_LIBADD = \
   -lphool
-
-libg4vertex_la_LDFLAGS = \
-  `geant4-config --libs`
 
 #libg4vertex_la_LIBADD = \
 #  -lg4detectors \
@@ -31,11 +32,14 @@ libg4vertex_la_LDFLAGS = \
 
 pkginclude_HEADERS = \
   BbcVertex.h \
+  BbcVertex_v1.h \
   BbcVertexMap.h
 
 libg4vertex_io_la_SOURCES = \
   BbcVertex.C \
   BbcVertex_Dict.C \
+  BbcVertex_v1.C \
+  BbcVertex_v1_Dict.C \
   BbcVertexMap.C \
   BbcVertexMap_Dict.C
 
