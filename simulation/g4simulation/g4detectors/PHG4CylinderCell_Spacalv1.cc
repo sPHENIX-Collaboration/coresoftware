@@ -13,7 +13,8 @@
 
 ClassImp(PHG4CylinderCell_Spacalv1);
 
-PHG4CylinderCell_Spacalv1::PHG4CylinderCell_Spacalv1()
+PHG4CylinderCell_Spacalv1::PHG4CylinderCell_Spacalv1():
+    fiber_ID(-1)
 {
   // TODO Auto-generated constructor stub
 

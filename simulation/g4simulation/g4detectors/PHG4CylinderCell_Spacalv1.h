@@ -23,8 +23,25 @@ public:
   virtual
   ~PHG4CylinderCell_Spacalv1();
 
+  int
+  get_fiber_ID() const
+  {
+    return fiber_ID;
+  }
 
-  ClassDef(PHG4CylinderCell_Spacalv1,1)
+  void
+  set_fiber_ID(int fiberId)
+  {
+    fiber_ID = fiberId;
+  }
+
+
+protected:
+
+  int fiber_ID;
+
+ClassDef(PHG4CylinderCell_Spacalv1,1)
+
 };
 
 #endif /* PHG4CYLINDERCELLSPACALV1_H_ */
