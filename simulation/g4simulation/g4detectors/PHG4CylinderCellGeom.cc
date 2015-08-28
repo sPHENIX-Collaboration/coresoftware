@@ -168,8 +168,13 @@ PHG4CylinderCellGeom::identify(std::ostream& os) const
       break;
     case PHG4CylinderCellDefs::etaslatbinning:
       os << ", etabins: " << nzbins
-	 << ", etamin: " << zmin
-	 << ", etastepsize: " << zstep;
+   << ", etamin: " << zmin
+   << ", etastepsize: " << zstep;
+      break;
+    case PHG4CylinderCellDefs::spacalbinning:
+      os << ", etabins: " << nzbins
+   << ", etamin: " << zmin
+   << ", etastepsize: " << zstep;
       break;
     default:
       os << "no valid binning method: " << binning << endl;
@@ -316,6 +321,9 @@ PHG4CylinderCellGeom::methodname(const int i) const
       break;
     case PHG4CylinderCellDefs::etaslatbinning:
       return "Eta/numslat bins";
+      break;
+    case PHG4CylinderCellDefs::spacalbinning:
+      return "SPACAL Tower bins";
       break;
     default:
       break;
