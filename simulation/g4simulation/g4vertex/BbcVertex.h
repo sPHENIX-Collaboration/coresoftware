@@ -13,7 +13,7 @@ public:
 
   // PHObject virtual overloads
   
-  virtual void         identify(std::ostream& os = std::cout) const {os << "BbcVertex base" << std::endl;}
+  virtual void         identify(std::ostream& os = std::cout) const {os << "BbcVertex base class" << std::endl;}
   virtual BbcVertex*   Clone()                                      {return NULL;}
   virtual void         Reset()                                      {}
   virtual int          IsValid() const                              {return 0;}

@@ -14,38 +14,36 @@ public:
   typedef std::map<unsigned int, BbcVertex*>::const_iterator ConstIter;
   typedef std::map<unsigned int, BbcVertex*>::iterator            Iter;
   
-  BbcVertexMap();
-  virtual ~BbcVertexMap();
+  virtual ~BbcVertexMap() {}
 
-  void identify(std::ostream &os = std::cout) const;
-  void Reset() {clear();}
-  int  IsValid() const {return 1;}
+  virtual void identify(std::ostream &os = std::cout) const {os << "BbcVertexMap base class" << std::endl;}
+  virtual void Reset()                                      {}
+  virtual int  IsValid() const                              {return 0;}
   
-  bool   empty()                   const {return _map.empty();}
-  size_t size()                    const {return _map.size();}
-  size_t count(unsigned int idkey) const {return _map.count(idkey);}
-  void   clear();
+  virtual bool   empty()                   const            {return true;}
+  virtual size_t size()                    const            {return 0;}
+  virtual size_t count(unsigned int idkey) const            {return 0;}
+  virtual void   clear()                                    {}
   
-  const BbcVertex* get(unsigned int idkey) const;
-        BbcVertex* get(unsigned int idkey); 
-        BbcVertex* insert(BbcVertex* vertex);
-  size_t           erase(unsigned int idkey) {
-    delete _map[idkey];
-    return _map.erase(idkey);
-  }
+  virtual const BbcVertex* get(unsigned int idkey) const    {return NULL;}
+  virtual       BbcVertex* get(unsigned int idkey)          {return NULL;}
+  virtual       BbcVertex* insert(BbcVertex* vertex)        {return NULL;}
+  virtual       size_t     erase(unsigned int idkey)        {return 0;}
 
-  ConstIter begin()                   const {return _map.begin();}
-  ConstIter  find(unsigned int idkey) const {return _map.find(idkey);}
-  ConstIter   end()                   const {return _map.end();}
+  virtual ConstIter begin()                   const {return std::map<unsigned int,BbcVertex*>().end();}
+  virtual ConstIter  find(unsigned int idkey) const {return std::map<unsigned int,BbcVertex*>().end();}
+  virtual ConstIter   end()                   const {return std::map<unsigned int,BbcVertex*>().end();}
 
-  Iter begin()                   {return _map.begin();}
-  Iter  find(unsigned int idkey) {return _map.find(idkey);}
-  Iter   end()                   {return _map.end();}
-  
+  virtual Iter begin()                   {return std::map<unsigned int,BbcVertex*>().end();}
+  virtual Iter  find(unsigned int idkey) {return std::map<unsigned int,BbcVertex*>().end();}
+  virtual Iter   end()                   {return std::map<unsigned int,BbcVertex*>().end();}
+
+protected:
+  BbcVertexMap() {}
+
 private:
-  std::map<unsigned int, BbcVertex*> _map;
-    
+
   ClassDef(BbcVertexMap, 1);
 };
 
-#endif // __BBCVERTEXLIST_H__
+#endif // __BBCVERTEXMAP_H__
