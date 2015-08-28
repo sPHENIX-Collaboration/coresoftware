@@ -23,12 +23,14 @@ public:
   virtual
   ~PHG4CylinderCell_Spacalv1();
 
+  //! Group hit into each fiber, so we allow fiber-fiber variation studies off-Geant production.
   int
   get_fiber_ID() const
   {
     return fiber_ID;
   }
 
+  //! Group hit into each fiber, so we allow fiber-fiber variation studies off-Geant production.
   void
   set_fiber_ID(int fiberId)
   {
@@ -38,6 +40,7 @@ public:
 
 protected:
 
+  //! Group hit into each fiber, so we allow fiber-fiber variation studies off-Geant production.
   int fiber_ID;
 
 ClassDef(PHG4CylinderCell_Spacalv1,1)
