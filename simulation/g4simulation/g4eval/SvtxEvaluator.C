@@ -1,11 +1,7 @@
 
 #include "SvtxEvaluator.h"
 
-#include "SvtxVertexEval.h"
-#include "SvtxTrackEval.h"
-#include "SvtxClusterEval.h"
-#include "SvtxHitEval.h"
-#include "SvtxTruthEval.h"
+#include "SvtxEvalStack.h"
 
 #include <phool/PHCompositeNode.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -176,7 +172,7 @@ int SvtxEvaluator::End(PHCompositeNode *topNode) {
 
   delete _tfile;
 
-  if (verbosity >= 0) {
+  if (verbosity >  0) {
     cout << "========================= SvtxEvaluator::End() ============================" << endl;
     cout << " " << _ievent << " events of output written to: " << _filename << endl;
     cout << "===========================================================================" << endl;
@@ -261,20 +257,17 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode *topNode) {
 
 void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
   
-  if (verbosity > 1) cout << "SvtxEvaluator::printLogInfo() entered" << endl;
+  if (verbosity > 1) cout << "SvtxEvaluator::printOutputInfo() entered" << endl;
 
   //==========================================
   // print out some useful stuff for debugging
   //==========================================
 
-  SvtxTruthEval otrutheval(topNode);
-  SvtxTruthEval* trutheval = &otrutheval;
+  SvtxEvalStack svtxevalstack(topNode);
 
-  SvtxVertexEval overtexeval(topNode);
-  SvtxVertexEval* vertexeval = &overtexeval;
-  SvtxTrackEval* trackeval = vertexeval->get_track_eval();
-  SvtxClusterEval* clustereval = vertexeval->get_cluster_eval();
-  //SvtxHitEval* hiteval = vertexeval->get_hit_eval();
+  SvtxTrackEval*     trackeval = svtxevalstack.get_track_eval();
+  SvtxClusterEval* clustereval = svtxevalstack.get_cluster_eval();
+  SvtxTruthEval*     trutheval = svtxevalstack.get_truth_eval();
   
   if (verbosity > 0) {
     // event information
@@ -535,14 +528,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
   if (verbosity > 1) cout << "SvtxEvaluator::fillOutputNtuples() entered" << endl;
 
-  SvtxTruthEval otrutheval(topNode);
-  SvtxTruthEval* trutheval = &otrutheval;
+  SvtxEvalStack svtxevalstack(topNode);
 
-  SvtxVertexEval overtexeval(topNode);
-  SvtxVertexEval* vertexeval = &overtexeval;
-  SvtxTrackEval* trackeval = vertexeval->get_track_eval();
-  SvtxClusterEval* clustereval = vertexeval->get_cluster_eval();
-  SvtxHitEval* hiteval = vertexeval->get_hit_eval();
+  SvtxVertexEval*   vertexeval = svtxevalstack.get_vertex_eval();
+  SvtxTrackEval*     trackeval = svtxevalstack.get_track_eval();
+  SvtxClusterEval* clustereval = svtxevalstack.get_cluster_eval();
+  SvtxHitEval*         hiteval = svtxevalstack.get_hit_eval();
+  SvtxTruthEval*     trutheval = svtxevalstack.get_truth_eval();
   
   //-----------------------
   // fill the Vertex NTuple
@@ -644,16 +636,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //---------------------
 
   if (_ntp_g4hit) {
-    unsigned int i = 0;
     std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits();
     for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
 	 iter != g4hits.end();
 	 ++iter) {
-      
-      if ((_ievent==0)&&(i==0)) cout << "SvtxEvaluator:: WARNING - g4hit eval limited to 100 entries" << endl;
-      if (i > 100) break;
-      ++i;
-      
+            
       PHG4Hit *g4hit = *iter;
       PHG4Particle *g4particle = trutheval->get_particle(g4hit);
       
@@ -776,15 +763,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     SvtxHitMap* hitmap = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
     if (hitmap) {
 
-      unsigned int i = 0;
       for (SvtxHitMap::Iter iter = hitmap->begin();
 	   iter != hitmap->end();
 	   ++iter) {
 
-	if ((_ievent==0)&&(i==0)) cout << "SvtxEvaluator:: WARNING - hit eval limited to 100 entries" << endl;
-	if (i > 100) break;
-	++i;
-      
 	SvtxHit* hit             = &iter->second;
 	PHG4Hit* g4hit           = hiteval->max_truth_hit_by_energy(hit);
 	PHG4CylinderCell* g4cell = hiteval->get_cell(hit);

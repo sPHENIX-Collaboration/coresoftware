@@ -3,9 +3,13 @@
 #define __SVTXHITEVAL_H__
 
 #include <phool/PHCompositeNode.h>
+#include <g4hough/SvtxHitMap.h>
 #include <g4hough/SvtxHit.h>
+#include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderCell.h>
+#include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 
 #include <set>
@@ -41,7 +45,15 @@ public:
   float get_energy_contribution (SvtxHit* svtxhit, PHG4Hit* truthhit);
   
 private:
-  PHCompositeNode* _topNode;
+
+  void get_node_pointers(PHCompositeNode *topNode);
+  
+  SvtxHitMap* _hitmap;
+  PHG4CylinderCellContainer* _g4cells_svtx;
+  PHG4CylinderCellContainer* _g4cells_tracker;
+  PHG4HitContainer* _g4hits_svtx;
+  PHG4HitContainer* _g4hits_tracker;
+  PHG4TruthInfoContainer* _truthinfo;
 
   bool                                              _do_cache;
   std::map<SvtxHit*,std::set<PHG4Hit*> >            _cache_all_truth_hits;

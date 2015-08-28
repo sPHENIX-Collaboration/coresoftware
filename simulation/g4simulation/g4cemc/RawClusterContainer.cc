@@ -14,6 +14,12 @@ RawClusterContainer::getClusters( void ) const
   return make_pair(_clusters.begin(), _clusters.end());
 }
 
+RawClusterContainer::Range
+RawClusterContainer::getClusters( void )
+{
+  return make_pair(_clusters.begin(), _clusters.end());
+}
+
 RawClusterContainer::ConstIterator
 RawClusterContainer::AddCluster(RawCluster *rawcluster)
 {

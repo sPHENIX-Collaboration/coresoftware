@@ -21,8 +21,10 @@
 using namespace std;
 
 SvtxVertexEval::SvtxVertexEval(PHCompositeNode* topNode)
-  : _topNode(topNode),
-    _trackeval(topNode),
+  : _trackeval(topNode),
+    _vertexmap(NULL),
+    _trackmap(NULL),
+    _truthinfo(NULL),
     _do_cache(true),
     _cache_all_truth_particles(),
     _cache_all_truth_points(),
@@ -30,6 +32,7 @@ SvtxVertexEval::SvtxVertexEval(PHCompositeNode* topNode)
     _cache_all_vertexes_from_point(),
     _cache_best_vertex_from_point(),
     _cache_get_ntracks_contribution() {
+  get_node_pointers(topNode);
 }
 
 
@@ -44,22 +47,19 @@ void SvtxVertexEval::next_event(PHCompositeNode* topNode) {
   
   _trackeval.next_event(topNode);
   
-  _topNode = topNode;  
+  get_node_pointers(topNode);
 }
 
 std::set<PHG4Particle*> SvtxVertexEval::all_truth_particles(SvtxVertex* vertex) {
 
- if ((_do_cache) && (_cache_all_truth_particles.find(vertex) !=
-		     _cache_all_truth_particles.end())) {
-    return _cache_all_truth_particles[vertex];
+  if (_do_cache) {
+    std::map<SvtxVertex*,std::set<PHG4Particle*> >::iterator iter =
+      _cache_all_truth_particles.find(vertex);
+    if (iter != _cache_all_truth_particles.end()) {
+      return iter->second;
+    }
   }
-  
-  SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(_topNode,"SvtxTrackMap");
-  if (!trackmap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << endl;
-    exit(-1);
-  }
-
+ 
   std::set<PHG4Particle*> all_particles;
   
   // loop over all tracks on vertex
@@ -67,7 +67,7 @@ std::set<PHG4Particle*> SvtxVertexEval::all_truth_particles(SvtxVertex* vertex) 
        iter != vertex->end_tracks();
        ++iter) {
     
-    SvtxTrack* track = trackmap->get(*iter);    
+    SvtxTrack* track = _trackmap->get(*iter);    
     all_particles.insert(_trackeval.max_truth_particle_by_nclusters(track));
   }
 
@@ -78,15 +78,12 @@ std::set<PHG4Particle*> SvtxVertexEval::all_truth_particles(SvtxVertex* vertex) 
 
 std::set<PHG4VtxPoint*> SvtxVertexEval::all_truth_points(SvtxVertex* vertex) {
 
- if ((_do_cache) && (_cache_all_truth_points.find(vertex) !=
-		     _cache_all_truth_points.end())) {
-    return _cache_all_truth_points[vertex];
-  }
-  
-  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(_topNode,"G4TruthInfo");
-  if (!truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
+  if (_do_cache) {
+    std::map<SvtxVertex*,std::set<PHG4VtxPoint*> >::iterator iter =
+      _cache_all_truth_points.find(vertex);
+    if (iter != _cache_all_truth_points.end()) {
+      return iter->second;
+    }
   }
 
   std::set<PHG4VtxPoint*> points;
@@ -98,10 +95,10 @@ std::set<PHG4VtxPoint*> SvtxVertexEval::all_truth_points(SvtxVertex* vertex) {
     PHG4Particle* particle = *iter;
 
     // only consider primary particles
-    PHG4TruthInfoContainer::Map primarymap = truthinfo->GetPrimaryMap();
+    PHG4TruthInfoContainer::Map primarymap = _truthinfo->GetPrimaryMap();
     if (primarymap.find(particle->get_track_id()) == primarymap.end()) continue;
         
-    points.insert(truthinfo->GetPrimaryVtx(particle->get_vtx_id()));
+    points.insert(_truthinfo->GetPrimaryVtx(particle->get_vtx_id()));
   }
 
   if (_do_cache) _cache_all_truth_points.insert(make_pair(vertex,points));
@@ -111,9 +108,12 @@ std::set<PHG4VtxPoint*> SvtxVertexEval::all_truth_points(SvtxVertex* vertex) {
 
 PHG4VtxPoint* SvtxVertexEval::max_truth_point_by_ntracks(SvtxVertex* vertex) {
 
-  if ((_do_cache) && (_cache_max_truth_point_by_ntracks.find(vertex) !=
-		      _cache_max_truth_point_by_ntracks.end())) {
-    return _cache_max_truth_point_by_ntracks[vertex];
+  if (_do_cache) {
+    std::map<SvtxVertex*,PHG4VtxPoint*>::iterator iter =
+      _cache_max_truth_point_by_ntracks.find(vertex);
+    if (iter != _cache_max_truth_point_by_ntracks.end()) {
+      return iter->second;
+    }
   }
   
   std::set<PHG4VtxPoint*> points = all_truth_points(vertex);
@@ -139,22 +139,19 @@ PHG4VtxPoint* SvtxVertexEval::max_truth_point_by_ntracks(SvtxVertex* vertex) {
    
 std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint) {
 
- if ((_do_cache) && (_cache_all_vertexes_from_point.find(truthpoint) !=
-		     _cache_all_vertexes_from_point.end())) {
-    return _cache_all_vertexes_from_point[truthpoint];
-  }
-  
-  SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(_topNode,"SvtxVertexMap");
-  if (!vertexmap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap" << endl;
-    exit(-1);
+  if (_do_cache) {
+    std::map<PHG4VtxPoint*,std::set<SvtxVertex*> >::iterator iter =
+      _cache_all_vertexes_from_point.find(truthpoint);
+    if (iter != _cache_all_vertexes_from_point.end()) {
+      return iter->second;
+    }
   }
 
   std::set<SvtxVertex*> all_vertexes;
 
   // loop over all vertexes on node
-  for (SvtxVertexMap::Iter iter = vertexmap->begin();
-       iter != vertexmap->end();
+  for (SvtxVertexMap::Iter iter = _vertexmap->begin();
+       iter != _vertexmap->end();
        ++iter) {
     SvtxVertex* vertex = &iter->second;
     std::set<PHG4VtxPoint*> points = all_truth_points(vertex);
@@ -175,9 +172,12 @@ std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint
 
 SvtxVertex* SvtxVertexEval::best_vertex_from(PHG4VtxPoint* truthpoint) {
  
-  if ((_do_cache) && (_cache_best_vertex_from_point.find(truthpoint) !=
-		      _cache_best_vertex_from_point.end())) {
-    return _cache_best_vertex_from_point[truthpoint];
+  if (_do_cache) {
+    std::map<PHG4VtxPoint*,SvtxVertex*>::iterator iter =
+      _cache_best_vertex_from_point.find(truthpoint);
+    if (iter != _cache_best_vertex_from_point.end()) {
+      return iter->second;
+    }
   }
 
   SvtxVertex* best_vertex = NULL;
@@ -202,21 +202,12 @@ SvtxVertex* SvtxVertexEval::best_vertex_from(PHG4VtxPoint* truthpoint) {
 // overlap calculations
 unsigned int SvtxVertexEval::get_ntracks_contribution(SvtxVertex* vertex, PHG4VtxPoint* truthpoint) {
 
-  if ((_do_cache) && (_cache_get_ntracks_contribution.find(make_pair(vertex,truthpoint)) !=
-		      _cache_get_ntracks_contribution.end())) {
-    return _cache_get_ntracks_contribution[make_pair(vertex,truthpoint)];
-  }
-  
-  SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(_topNode,"SvtxTrackMap");
-  if (!trackmap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << endl;
-    exit(-1);
-  }
-
-  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(_topNode,"G4TruthInfo");
-  if (!truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
+  if (_do_cache) {
+    std::map<std::pair<SvtxVertex*,PHG4VtxPoint*>, unsigned int>::iterator iter =
+      _cache_get_ntracks_contribution.find(make_pair(vertex,truthpoint));
+    if (iter != _cache_get_ntracks_contribution.end()) {
+      return iter->second;
+    }
   }
   
   unsigned int ntracks = 0;
@@ -225,18 +216,42 @@ unsigned int SvtxVertexEval::get_ntracks_contribution(SvtxVertex* vertex, PHG4Vt
        iter != vertex->end_tracks();
        ++iter) {
     
-    SvtxTrack* track = trackmap->get(*iter);
+    SvtxTrack* track = _trackmap->get(*iter);
     PHG4Particle* particle = _trackeval.max_truth_particle_by_nclusters(track);
 
     // only consider primary particles
-    PHG4TruthInfoContainer::Map primarymap = truthinfo->GetPrimaryMap();
+    PHG4TruthInfoContainer::Map primarymap = _truthinfo->GetPrimaryMap();
     if (primarymap.find(particle->get_track_id()) == primarymap.end()) continue;
 
-    PHG4VtxPoint* candidate = truthinfo->GetPrimaryVtx(particle->get_vtx_id());
+    PHG4VtxPoint* candidate = _truthinfo->GetPrimaryVtx(particle->get_vtx_id());
     if (candidate->get_id() == truthpoint->get_id()) ++ntracks;
   }
   
   if (_do_cache) _cache_get_ntracks_contribution.insert(make_pair(make_pair(vertex,truthpoint),ntracks));
   
   return ntracks;
+}
+
+void SvtxVertexEval::get_node_pointers(PHCompositeNode* topNode) {
+
+  // need things off the DST...
+  _vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
+  if (!_vertexmap) {
+    cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap" << endl;
+    exit(-1);
+  }
+  
+  _trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+  if (!_trackmap) {
+    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << endl;
+    exit(-1);
+  }
+
+  _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+  if (!_truthinfo) {
+    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
+    exit(-1);
+  }
+  
+  return;
 }

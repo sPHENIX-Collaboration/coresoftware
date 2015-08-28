@@ -5,8 +5,11 @@
 #include "SvtxHitEval.h"
 
 #include <phool/PHCompositeNode.h>
+#include <g4hough/SvtxClusterMap.h>
 #include <g4hough/SvtxCluster.h>
+#include <g4hough/SvtxHitMap.h>
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 
 #include <set>
@@ -43,9 +46,14 @@ public:
   float get_energy_contribution (SvtxCluster* svtxcluster, PHG4Hit* truthhit);
   
 private:
-  PHCompositeNode* _topNode;
-  SvtxHitEval _hiteval;
 
+  void get_node_pointers(PHCompositeNode* topNode);
+  
+  SvtxHitEval _hiteval;
+  SvtxClusterMap* _clustermap;
+  SvtxHitMap* _hitmap;
+  PHG4TruthInfoContainer* _truthinfo;
+  
   bool                                                  _do_cache;
   std::map<SvtxCluster*,std::set<PHG4Hit*> >            _cache_all_truth_hits;
   std::map<SvtxCluster*,PHG4Hit*>                       _cache_max_truth_hit_by_energy;
