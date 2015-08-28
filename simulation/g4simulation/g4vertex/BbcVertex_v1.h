@@ -27,11 +27,11 @@ public:
   unsigned int get_id() const                        {return _id;}
   void         set_id(unsigned int id)               {_id = id;}
   
-  float        get_t0() const                        {return _t0;}
-  void         set_t0(float t0)                      {_t0 = t0;}
+  float        get_t() const                         {return _t;}
+  void         set_t(float t)                        {_t = t;}
 
-  float        get_t0_err() const                    {return _t0_err;}
-  void         set_t0_err(float t0_err)              {_t0_err = t0_err;}
+  float        get_t_err() const                     {return _t_err;}
+  void         set_t_err(float t_err)                {_t_err = t_err;}
   
   float        get_z() const                         {return _z;}
   void         set_z(float z)                        {_z = z;}
@@ -42,8 +42,8 @@ public:
 private:
   
   unsigned int                     _id;        //< unique identifier within container
-  float                            _t0;        //< collision time
-  float                            _t0_err;    //< collision time uncertainty
+  float                            _t;         //< collision time
+  float                            _t_err;     //< collision time uncertainty
   float                            _z;         //< collision position z
   float                            _z_err;     //< collision position z uncertainty
   

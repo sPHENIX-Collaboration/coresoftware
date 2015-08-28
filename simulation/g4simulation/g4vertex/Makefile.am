@@ -6,8 +6,8 @@ INCLUDES = \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
-   libg4vertex_io.la 
-#   libg4vertex.la
+   libg4vertex_io.la \
+   libg4vertex.la
 
 AM_CXXFLAGS = \
  -Wall -Werror -msse2
@@ -22,16 +22,17 @@ libg4vertex_io_la_LDFLAGS = \
 libg4vertex_io_la_LIBADD = \
   -lphool
 
-#libg4vertex_la_LIBADD = \
-#  -lg4detectors \
-#  -lfun4all \
-#  libg4vertex_io.la
+libg4vertex_la_LIBADD = \
+  -lg4detectors \
+  -lfun4all \
+  libg4vertex_io.la
 
 pkginclude_HEADERS = \
   BbcVertex.h \
   BbcVertex_v1.h \
   BbcVertexMap.h \
-  BbcVertexMap_v1.h
+  BbcVertexMap_v1.h \
+  BbcVertexFastSimReco.h
 
 libg4vertex_io_la_SOURCES = \
   BbcVertex.C \
@@ -43,7 +44,9 @@ libg4vertex_io_la_SOURCES = \
   BbcVertexMap_v1.C \
   BbcVertexMap_v1_Dict.C
 
-#libg4vertex_la_SOURCES =
+libg4vertex_la_SOURCES = \
+  BbcVertexFastSimReco.C \
+  BbcVertexFastSimReco_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
@@ -61,8 +64,8 @@ BUILT_SOURCES = \
   testexternals.C
 
 testexternals_LDADD = \
-  libg4vertex_io.la 
-#  libg4vertex.la
+  libg4vertex_io.la \
+  libg4vertex.la
 
 testexternals.C:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

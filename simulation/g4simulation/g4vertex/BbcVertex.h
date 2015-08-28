@@ -23,11 +23,11 @@ public:
   virtual unsigned int get_id() const           {return 0xFFFFFFFF;}
   virtual void         set_id(unsigned int id)  {}
   
-  virtual float        get_t0() const           {return NAN;}
-  virtual void         set_t0(float t0)         {}
+  virtual float        get_t() const            {return NAN;}
+  virtual void         set_t(float t)           {}
 
-  virtual float        get_t0_err() const       {return NAN;}
-  virtual void         set_t0_err(float t0_err) {}
+  virtual float        get_t_err() const        {return NAN;}
+  virtual void         set_t_err(float t_err)   {}
   
   virtual float        get_z() const            {return NAN;}
   virtual void         set_z(float z)           {}
