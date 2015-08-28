@@ -12,7 +12,6 @@
 #define PHG4CYLINDERCELLSPACALV1_H_
 
 #include <PHG4CylinderCellv1.h>
-
 /*!
  * \brief PHG4CylinderCell_Spacalv1
  */
@@ -42,6 +41,7 @@ protected:
 
   //! Group hit into each fiber, so we allow fiber-fiber variation studies off-Geant production.
   int fiber_ID;
+
 
 ClassDef(PHG4CylinderCell_Spacalv1,1)
 
