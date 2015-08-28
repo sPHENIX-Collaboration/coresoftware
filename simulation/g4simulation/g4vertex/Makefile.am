@@ -32,7 +32,11 @@ pkginclude_HEADERS = \
   BbcVertex_v1.h \
   BbcVertexMap.h \
   BbcVertexMap_v1.h \
-  BbcVertexFastSimReco.h
+  BbcVertexFastSimReco.h \
+  GlobalVertex.h \
+  GlobalVertex_v1.h \
+  GlobalVertexMap.h \
+  GlobalVertexMap_v1.h
 
 libg4vertex_io_la_SOURCES = \
   BbcVertex.C \
@@ -42,7 +46,15 @@ libg4vertex_io_la_SOURCES = \
   BbcVertexMap.C \
   BbcVertexMap_Dict.C \
   BbcVertexMap_v1.C \
-  BbcVertexMap_v1_Dict.C
+  BbcVertexMap_v1_Dict.C \
+  GlobalVertex.C \
+  GlobalVertex_Dict.C \
+  GlobalVertex_v1.C \
+  GlobalVertex_v1_Dict.C \
+  GlobalVertexMap.C \
+  GlobalVertexMap_Dict.C \
+  GlobalVertexMap_v1.C \
+  GlobalVertexMap_v1_Dict.C
 
 libg4vertex_la_SOURCES = \
   BbcVertexFastSimReco.C \

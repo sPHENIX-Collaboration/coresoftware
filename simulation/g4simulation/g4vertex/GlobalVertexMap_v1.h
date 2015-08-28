@@ -12,9 +12,6 @@ class GlobalVertexMap_v1 : public GlobalVertexMap {
   
 public:
 
-  typedef std::map<unsigned int, GlobalVertex*>::const_iterator ConstIter;
-  typedef std::map<unsigned int, GlobalVertex*>::iterator            Iter;
-  
   GlobalVertexMap_v1();
   virtual ~GlobalVertexMap_v1();
 
