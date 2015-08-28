@@ -1,40 +1,50 @@
-#include "SvtxVertexMap.h"
+#include "BbcVertexMap.h"
 
-#include "SvtxVertex.h"
+#include "BbcVertex.h"
 
 using namespace std;
 
-ClassImp(SvtxVertexMap)
+ClassImp(BbcVertexMap)
 
-SvtxVertexMap::SvtxVertexMap()
+BbcVertexMap::BbcVertexMap()
 : _map() {
 }
 
-SvtxVertexMap::~SvtxVertexMap() {
-  _map.clear();
+BbcVertexMap::~BbcVertexMap() {
+  clear();
 }
 
-void SvtxVertexMap::identify(ostream& os) const {
-  os << "SvtxVertexMap: size = " << _map.size() << endl;
+void BbcVertexMap::identify(ostream& os) const {
+  os << "BbcVertexMap: size = " << _map.size() << endl;
   return;  
 }
 
-const SvtxVertex* SvtxVertexMap::get(unsigned int id) const {
+void BbcVertexMap::clear() {
+  for (Iter iter = _map.begin();
+       iter != _map.end();
+       ++iter) {
+    delete iter->second;
+  }
+  _map.clear();
+  return;
+}
+
+const BbcVertex* BbcVertexMap::get(unsigned int id) const {
   ConstIter iter = _map.find(id);
   if (iter == _map.end()) return NULL;  
-  return &iter->second;
+  return iter->second;
 }
 
-SvtxVertex* SvtxVertexMap::get(unsigned int id) {
+BbcVertex* BbcVertexMap::get(unsigned int id) {
   Iter iter = _map.find(id);
   if (iter == _map.end()) return NULL;
-  return &iter->second;
+  return iter->second;
 }
 
-SvtxVertex* SvtxVertexMap::insert(const SvtxVertex &clus) {
+BbcVertex* BbcVertexMap::insert(BbcVertex* clus) {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair( index , SvtxVertex(clus) ));
-  _map[index].set_id(index);
-  return (&_map[index]);
+  _map.insert(make_pair( index , clus ));
+  _map[index]->set_id(index);
+  return _map[index];
 }
