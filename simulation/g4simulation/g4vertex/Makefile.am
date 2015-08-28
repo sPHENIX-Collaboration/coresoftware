@@ -25,6 +25,7 @@ libg4vertex_io_la_LIBADD = \
 libg4vertex_la_LIBADD = \
   -lg4detectors \
   -lfun4all \
+  -lg4hough_io \
   libg4vertex_io.la
 
 pkginclude_HEADERS = \
@@ -36,7 +37,8 @@ pkginclude_HEADERS = \
   GlobalVertex.h \
   GlobalVertex_v1.h \
   GlobalVertexMap.h \
-  GlobalVertexMap_v1.h
+  GlobalVertexMap_v1.h \
+  GlobalVertexReco.h
 
 libg4vertex_io_la_SOURCES = \
   BbcVertex.C \
@@ -58,7 +60,9 @@ libg4vertex_io_la_SOURCES = \
 
 libg4vertex_la_SOURCES = \
   BbcVertexFastSimReco.C \
-  BbcVertexFastSimReco_Dict.C
+  BbcVertexFastSimReco_Dict.C \
+  GlobalVertexReco.C \
+  GlobalVertexReco_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h

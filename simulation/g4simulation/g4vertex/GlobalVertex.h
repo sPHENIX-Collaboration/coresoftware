@@ -62,7 +62,7 @@ public:
   virtual size_t size_vtxids()                            const {return 0;}
   virtual size_t count_vtxids(VTXTYPE type) const {return 0;}
 
-  virtual void   clear_vtxids()                                                {}
+  virtual void   clear_vtxids()                                  {}
   virtual void   insert_vtxids(VTXTYPE type, unsigned int vtxid) {}
   virtual size_t erase_vtxids(VTXTYPE type)                      {return 0;}
   virtual void   erase_vtxids(VtxIter iter)                                    {}
