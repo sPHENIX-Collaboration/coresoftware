@@ -29,6 +29,7 @@ class RawTowerContainer : public PHObject
   RawTower *getTower(const int ieta, const int iphi);
   //! return all towers
   ConstRange getTowers( void ) const;
+  Range getTowers( void );
 
   unsigned int size() const {return _towers.size();}
   void compress(const double emin);

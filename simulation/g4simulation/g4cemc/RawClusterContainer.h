@@ -29,6 +29,7 @@ class RawClusterContainer : public PHObject
   RawCluster *getCluster(const unsigned int id);
   //! return all clusters
   ConstRange getClusters( void ) const;
+  Range getClusters( void );
 
   unsigned int size() const {return _clusters.size();}
   double getTotalEdep() const;

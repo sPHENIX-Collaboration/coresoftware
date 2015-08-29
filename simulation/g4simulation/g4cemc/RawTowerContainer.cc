@@ -54,6 +54,14 @@ RawTowerContainer::getTowers( void ) const
   return make_pair(_towers.begin(), _towers.end());
 }
 
+
+RawTowerContainer::Range
+RawTowerContainer::getTowers( void )
+{
+  return make_pair(_towers.begin(), _towers.end());
+}
+
+
 RawTowerContainer::ConstIterator
 RawTowerContainer::AddTower(const int ieta, const int iphi, RawTower *rawtower)
 {

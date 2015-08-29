@@ -24,9 +24,15 @@ libg4eval_la_LDFLAGS = \
   -lcemc 
 
 pkginclude_HEADERS = \
+  CaloEvalStack.h \
+  CaloTruthEval.h \
+  CaloRawTowerEval.h \
+  CaloRawClusterEval.h \
+  CaloEvaluator.h \
   PHG4Evaluator.h \
   PHG4CalEvaluator.h \
   PHG4DSTReader.h \
+  SvtxEvalStack.h \
   SvtxTruthEval.h \
   SvtxHitEval.h \
   SvtxClusterEval.h \
@@ -37,12 +43,24 @@ pkginclude_HEADERS = \
 #pkginclude_HEADERS = $(include_HEADERS)
 
 libg4eval_la_SOURCES = \
+  CaloEvalStack.C \
+  CaloEvalStack_Dict.C \
+  CaloTruthEval.C \
+  CaloTruthEval_Dict.C \
+  CaloRawTowerEval.C \
+  CaloRawTowerEval_Dict.C \
+  CaloRawClusterEval.C \
+  CaloRawClusterEval_Dict.C \
+  CaloEvaluator.C \
+  CaloEvaluator_Dict.C \
   PHG4Evaluator.C \
   PHG4Evaluator_Dict.C \
   PHG4CalEvaluator.C \
   PHG4CalEvaluator_Dict.C \
   PHG4DSTReader.cc \
   PHG4DSTReader_Dict.C \
+  SvtxEvalStack.C \
+  SvtxEvalStack_Dict.C \
   SvtxTruthEval.C \
   SvtxTruthEval_Dict.C \
   SvtxHitEval.C \

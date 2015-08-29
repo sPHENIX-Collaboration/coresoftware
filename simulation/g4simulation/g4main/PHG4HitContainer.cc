@@ -102,7 +102,7 @@ PHG4HitContainer::AddHit(PHG4Hit *newhit)
   PHG4HitDefs::keytype key = newhit->get_hit_id();
   if (hitmap.find(key) != hitmap.end())
     {
-      cout << "hit with id  0x" << hex << key << " exists already" << endl;
+      cout << "hit with id  0x" << hex << key << dec << " exists already" << endl;
       return hitmap.find(key);
     }
   PHG4HitDefs::keytype detidlong = key >>  PHG4HitDefs::hit_idbits;
