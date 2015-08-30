@@ -23,6 +23,7 @@ public:
   PHG4CylinderCellGeom_Spacalv1();
   virtual
   ~PHG4CylinderCellGeom_Spacalv1();
+  void identify(std::ostream& os = std::cout) const;
 
   virtual std::pair<double, double> get_zbounds(const int ibin) const;
   virtual std::pair<double, double> get_etabounds(const int ibin) const;
@@ -83,7 +84,7 @@ public:
 
 protected:
 
-  void map_consistency_check();
+  void map_consistency_check() const;
 
   bound_map_t z_bound_map;
   bound_map_t eta_bound_map;

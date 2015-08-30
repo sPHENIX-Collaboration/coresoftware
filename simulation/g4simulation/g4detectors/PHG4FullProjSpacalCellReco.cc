@@ -135,72 +135,99 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       const PHG4CylinderGeom_Spacalv3::tower_map_t & tower_map =
           layergeom->get_sector_tower_map();
       const PHG4CylinderGeom_Spacalv3::sector_map_t & sector_map =
-          layergeom-> get_sector_map();
-      const int nphibin = layergeom->get_azimuthal_n_sec() * layergeom->get_max_phi_bin_in_sec();
+          layergeom->get_sector_map();
+      const int nphibin = layergeom->get_azimuthal_n_sec()
+          * layergeom->get_max_phi_bin_in_sec();
       const double deltaphi = 2. * M_PI / nphibin;
 
-      map<double, int> map_z_tower_z_ID;
+      typedef map<double, int> map_z_tower_z_ID_t;
+      map_z_tower_z_ID_t map_z_tower_z_ID;
       double phi_min = NAN;
 
       BOOST_FOREACH(const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type& tower_pair, tower_map)
         {
 
-        const int & tower_ID = tower_pair.first;
-        const PHG4CylinderGeom_Spacalv3::geom_tower & tower = tower_pair.second;
+          const int & tower_ID = tower_pair.first;
+          const PHG4CylinderGeom_Spacalv3::geom_tower & tower =
+              tower_pair.second;
 
-        // inspect index in sector 0
-        std::pair<int,int> tower_z_phi_ID = layergeom->get_tower_z_phi_ID(tower_ID, 0);
+          // inspect index in sector 0
+          std::pair<int, int> tower_z_phi_ID = layergeom->get_tower_z_phi_ID(
+              tower_ID, 0);
 
-        const int & tower_ID_z = tower_z_phi_ID.first;
-        const int & tower_ID_phi = tower_z_phi_ID.second;
+          const int & tower_ID_z = tower_z_phi_ID.first;
+          const int & tower_ID_phi = tower_z_phi_ID.second;
 
-        if (tower_ID_phi == 0)
-          {
-            //assign phi min according phi bin 0
-            const double phi_min = atan2( tower.centralY, tower.centralX ) + sector_map[0];
-          }
+          if (tower_ID_phi == 0)
+            {
+              //assign phi min according phi bin 0
+              const double phi_min = atan2(tower.centralY, tower.centralX)
+                  + sector_map[0];
+            }
 
-        if (tower_ID_phi == layergeom->get_max_phi_bin_in_sec()/2)
-          {
-            //assign eta min according phi bin 0
-            map_z_tower_z_ID[tower.centralZ] = tower_ID_z;
-
-            //TODO: assign eta ranges.
-
-          }
+          if (tower_ID_phi == layergeom->get_max_phi_bin_in_sec() / 2)
+            {
+              //assign eta min according phi bin 0
+              map_z_tower_z_ID[tower.centralZ] = tower_ID_z;
+            }
           // ...
-        }//       BOOST_FOREACH(const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type& tower_pair, tower_map)
-
+        } //       BOOST_FOREACH(const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type& tower_pair, tower_map)
 
       assert(not isnan(phi_min));
-
-      PHG4CylinderCellGeom_Spacalv1::tower_z_ID_eta_bin_map_t tower_z_ID_eta_bin_map;
-      int eta_bin=0;
-      BOOST_FOREACH( map<double, int>::value_type& z_tower_z_ID, map_z_tower_z_ID)
-      {
-        tower_z_ID_eta_bin_map[z_tower_z_ID.second] = eta_bin;
-        eta_bin++;
-      }
-      layerseggeo->set_tower_z_ID_eta_bin_map(tower_z_ID_eta_bin_map);
-
-      if (verbosity > 1)
-        {
-          cout << "PHG4FullProjSpacalCellReco::InitRun - Tower mapping:"<<endl;
-
-          BOOST_FOREACH(const PHG4CylinderCellGeom_Spacalv1::tower_z_ID_eta_bin_map_t::value_type&  tower_z_ID_eta_bin,
-              layerseggeo->get_tower_z_ID_eta_bin_map())
-          {
-            cout <<"\t"<<"Tower Z ID["<<tower_z_ID_eta_bin.first<<"] \t-> Eta Bin "<<tower_z_ID_eta_bin.second<<endl;
-          }
-        }
-
-      layerseggeo->set_etabins(22);
-      layerseggeo->set_etamin(NAN);
-      layerseggeo->set_etastep(NAN);
-
       layerseggeo->set_phimin(phi_min);
       layerseggeo->set_phistep(deltaphi);
       layerseggeo->set_phibins(nphibin);
+
+      PHG4CylinderCellGeom_Spacalv1::tower_z_ID_eta_bin_map_t tower_z_ID_eta_bin_map;
+      int eta_bin = 0;
+      BOOST_FOREACH( map_z_tower_z_ID_t::value_type& z_tower_z_ID, map_z_tower_z_ID)
+        {
+          tower_z_ID_eta_bin_map[z_tower_z_ID.second] = eta_bin;
+          eta_bin++;
+        }
+      layerseggeo->set_tower_z_ID_eta_bin_map(tower_z_ID_eta_bin_map);
+      layerseggeo->set_etabins(eta_bin);
+      layerseggeo->set_etamin(NAN);
+      layerseggeo->set_etastep(NAN);
+
+      //build eta bin maps
+      BOOST_FOREACH(const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type& tower_pair, tower_map)
+        {
+
+          const int & tower_ID = tower_pair.first;
+          const PHG4CylinderGeom_Spacalv3::geom_tower & tower =
+              tower_pair.second;
+
+          // inspect index in sector 0
+          std::pair<int, int> tower_z_phi_ID = layergeom->get_tower_z_phi_ID(
+              tower_ID, 0);
+          const int & tower_ID_z = tower_z_phi_ID.first;
+          const int & tower_ID_phi = tower_z_phi_ID.second;
+          const int & etabin = tower_z_ID_eta_bin_map[tower_ID_z];
+
+          if (tower_ID_phi == layergeom->get_max_phi_bin_in_sec() / 2)
+            {
+              // half z-range
+              const double dz = fabs(
+                  0.5 * (tower.pDy1 + tower.pDy2) * sin(tower.pRotationAngleX));
+
+              const double eta_central = -log(
+                  tan(0.5 * atan2(tower.centralY, tower.centralZ)));
+              // half eta-range
+              const double deta =
+                  fabs(
+                      eta_central
+                          - (-log(
+                              tan(
+                                  0.5
+                                      * atan2(tower.centralY,
+                                          tower.centralZ + dz)))));
+
+              layerseggeo->set_etabounds(etabin, make_pair<double, double>(eta_central - deta, eta_central + deta));
+              layerseggeo->set_zbounds(etabin, make_pair<double, double>(tower.centralZ - dz, tower.centralZ + dz));
+            }
+          // ...
+        } //       BOOST_FOREACH(const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type& tower_pair, tower_map)
 
       // add geo object filled by different binning methods
       seggeo->AddLayerCellGeom(layerseggeo);

@@ -9,14 +9,20 @@
  */
 
 #include "PHG4CylinderCellGeom_Spacalv1.h"
+#include "PHG4CylinderCellDefs.h"
 
+#include <cassert>
+#include <boost/foreach.hpp>
+#include <cmath>
+#include <cstdlib>
+#include <iostream>
+#include <sstream>
 ClassImp(PHG4CylinderCellGeom_Spacalv1);
 
 using namespace std;
 
 PHG4CylinderCellGeom_Spacalv1::PHG4CylinderCellGeom_Spacalv1()
 {
-  // TODO Auto-generated constructor stub
 
 }
 
@@ -26,16 +32,45 @@ PHG4CylinderCellGeom_Spacalv1::~PHG4CylinderCellGeom_Spacalv1()
 }
 
 void
-PHG4CylinderCellGeom_Spacalv1::map_consistency_check()
+PHG4CylinderCellGeom_Spacalv1::identify(std::ostream& os) const
 {
-  if (nzbins != z_bound_map.size())
+  PHG4CylinderCellGeom::identify(os);
+
+  cout << "PHG4CylinderCellGeom_Spacalv1::identify - Tower mapping:" << endl;
+  BOOST_FOREACH(const tower_z_ID_eta_bin_map_t::value_type& tower_z_ID_eta_bin,
+      get_tower_z_ID_eta_bin_map())
+    {
+      cout << "\t" << "Tower Z ID[" << tower_z_ID_eta_bin.first
+          << "] \t-> Eta Bin " << tower_z_ID_eta_bin.second << endl;
+    }
+
+  cout << "PHG4CylinderCellGeom_Spacalv1::identify - Bin -> z range:" << endl;
+  for (size_t i = 0; i < z_bound_map.size(); ++i)
+    {
+      cout << "\t" << "bin[" << i << "] \t-> z = " << z_bound_map[i].first
+          << " - " << z_bound_map[i].second << endl;
+    }
+
+  cout << "PHG4CylinderCellGeom_Spacalv1::identify - Bin -> eta range:" << endl;
+  for (size_t i = 0; i < eta_bound_map.size(); ++i)
+    {
+      cout << "\t" << "bin[" << i << "] \t-> z = " << eta_bound_map[i].first
+          << " - " << eta_bound_map[i].second << endl;
+    }
+  return;
+}
+
+void
+PHG4CylinderCellGeom_Spacalv1::map_consistency_check() const
+{
+  if ((size_t) nzbins != z_bound_map.size())
     {
       cout << "PHG4CylinderCellGeom_Spacalv1::map_consistency_check - "
           << "z_bound_map.size() of " << z_bound_map.size()
           << " in inconsistent with nzbins of " << nzbins << endl;
       exit(1);
     }
-  if (nzbins != eta_bound_map.size())
+  if ((size_t) nzbins != eta_bound_map.size())
     {
       cout << "PHG4CylinderCellGeom_Spacalv1::map_consistency_check - "
           << "eta_bound_map.size() of " << eta_bound_map.size()
