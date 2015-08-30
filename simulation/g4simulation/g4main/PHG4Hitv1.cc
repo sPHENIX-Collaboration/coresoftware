@@ -40,7 +40,7 @@ PHG4Hitv1::print() const {
     {
       PROPERTY prop_id = static_cast<PROPERTY>(i->first);
       pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
-      cout << "\t" << i->first << ":\t" << property_info.first << " = \t";
+      cout << "\t" << prop_id << ":\t" << property_info.first << " = \t";
       switch(property_info.second)
 	{
 	case type_int:
