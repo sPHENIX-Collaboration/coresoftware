@@ -103,7 +103,7 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
             }
 
           // compact the tower/sector/fiber ID into 32 bit scint_id, so we could save some space for SPACAL hits
-          scint_id = PHG4CylinderGeom_Spacalv3::scint_id_coder(sector_ID, sector_ID, fiber_ID).scint_ID;
+          scint_id = PHG4CylinderGeom_Spacalv3::scint_id_coder(sector_ID, tower_ID, fiber_ID).scint_ID;
 
         }
       else
