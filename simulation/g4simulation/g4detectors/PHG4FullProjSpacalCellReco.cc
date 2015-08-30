@@ -2,6 +2,7 @@
 
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeom_Spacalv3.h"
+#include "PHG4CylinderCell_Spacalv1.h"
 #include "PHG4CylinderCellGeomContainer.h"
 #include "PHG4CylinderCellGeom.h"
 #include "PHG4CylinderCellGeom_Spacalv1.h"
@@ -23,6 +24,7 @@
 #include <sstream>
 #include <cassert>
 #include <boost/foreach.hpp>
+#include <exception>
 
 using namespace std;
 
@@ -116,7 +118,7 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
 
 //      int layer = layergeom->get_layer();
 
-      // create geo object and fill with variables common to all binning methods
+// create geo object and fill with variables common to all binning methods
       PHG4CylinderCellGeom_Spacalv1 *layerseggeo =
           new PHG4CylinderCellGeom_Spacalv1();
       layerseggeo->set_layer(layergeom->get_layer());
@@ -186,9 +188,9 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
           eta_bin++;
         }
       layerseggeo->set_tower_z_ID_eta_bin_map(tower_z_ID_eta_bin_map);
-      layerseggeo->set_etabins(eta_bin);
-      layerseggeo->set_etamin(NAN);
-      layerseggeo->set_etastep(NAN);
+//      layerseggeo->set_etabins(eta_bin);
+//      layerseggeo->set_etamin(NAN);
+//      layerseggeo->set_etastep(NAN);
 
       //build eta bin maps
       BOOST_FOREACH(const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type& tower_pair, tower_map)
@@ -223,8 +225,12 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
                                       * atan2(tower.centralY,
                                           tower.centralZ + dz)))));
 
-              layerseggeo->set_etabounds(etabin, make_pair<double, double>(eta_central - deta, eta_central + deta));
-              layerseggeo->set_zbounds(etabin, make_pair<double, double>(tower.centralZ - dz, tower.centralZ + dz));
+              layerseggeo->set_etabounds(etabin,
+                  make_pair<double, double>(eta_central - deta,
+                      eta_central + deta));
+              layerseggeo->set_zbounds(etabin,
+                  make_pair<double, double>(tower.centralZ - dz,
+                      tower.centralZ + dz));
             }
           // ...
         } //       BOOST_FOREACH(const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type& tower_pair, tower_map)
@@ -247,14 +253,18 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
       hitnodename.c_str());
   if (!g4hit)
     {
-      cout << "Could not locate g4 hit node " << hitnodename << endl;
+      cout
+          << "PHG4FullProjSpacalCellReco::process_event - Fatal Error - Could not locate g4 hit node "
+          << hitnodename << endl;
       exit(1);
     }
   PHG4CylinderCellContainer *cells = findNode::getClass<
       PHG4CylinderCellContainer>(topNode, cellnodename);
   if (!cells)
     {
-      cout << "could not locate cell node " << cellnodename << endl;
+      cout
+          << "PHG4FullProjSpacalCellReco::process_event - Fatal Error - could not locate cell node "
+          << cellnodename << endl;
       exit(1);
     }
 
@@ -262,7 +272,19 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
       PHG4CylinderCellGeomContainer>(topNode, seggeonodename.c_str());
   if (!seggeo)
     {
-      cout << "could not locate geo node " << seggeonodename << endl;
+      cout
+          << "PHG4FullProjSpacalCellReco::process_event - Fatal Error - could not locate cell geometry node "
+          << seggeonodename << endl;
+      exit(1);
+    }
+
+  PHG4CylinderGeomContainer *layergeo = findNode::getClass<
+      PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
+  if (!layergeo)
+    {
+      cout
+          << "PHG4FullProjSpacalCellReco::process_event - Fatal Error - Could not locate sim geometry node "
+          << geonodename << endl;
       exit(1);
     }
 
@@ -271,67 +293,95 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
       g4hit->getLayers();
   for (layer = layer_begin_end.first; layer != layer_begin_end.second; ++layer)
     {
+      // layer loop
       PHG4HitContainer::ConstIterator hiter;
       PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(*layer);
+
       PHG4CylinderCellGeom *geo_raw = seggeo->GetLayerCellGeom(*layer);
-      PHG4CylinderCellGeom_Spacalv1 * geo = dynamic_cast< PHG4CylinderCellGeom_Spacalv1 * >(geo_raw);
+      PHG4CylinderCellGeom_Spacalv1 * geo =
+          dynamic_cast<PHG4CylinderCellGeom_Spacalv1 *>(geo_raw);
       assert(geo);
 
-//      for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
-//        {
-//          int slatno = hiter->second->get_scint_id();
-//          int slatbin;
-//          slatbin = hiter->second->get_layer() / nslatscombined;
-//          if (slatbin < 0 || slatbin > nslatbins)
-//            {
-//              if (slatbin + 1 > nslatbins)
-//                {
-//                  if (verbosity > 0)
-//                    {
-//                      cout
-//                          << "dealing with non fitting slat binning, this one will be dropped"
-//                          << endl;
-//                    }
-//                  continue;
-//                }
-//              cout << "slatbin out of range: " << slatbin << ", slatbins 0 - "
-//                  << nslatbins << ", slat no: " << hiter->second->get_scint_id()
-//                  << endl;
-//            }
-//
-//          unsigned int key = (slatbin << 16) + slatno;
-//          if (celllist.find(key) == celllist.end())
-//            {
-//              celllist[key] = new PHG4CylinderCellv1();
-//              celllist[key]->set_layer(*layer);
-//              celllist[key]->set_phibin(slatbin);
-//              celllist[key]->set_etabin(slatno);
-//            }
-//
-//          celllist[key]->add_edep(hiter->first, hiter->second->get_edep());
-//        } // end loop over g4hits
-//      int numcells = 0;
-//      for (map<unsigned int, PHG4CylinderCell *>::const_iterator mapiter =
-//          celllist.begin(); mapiter != celllist.end(); ++mapiter)
-//        {
-//          cells->AddCylinderCell(*layer, mapiter->second);
-//          numcells++;
-//          if (verbosity > 1)
-//            {
-//              cout << "Adding cell in bin slat: " << (mapiter->first >> 16)
-//                  << ", eta: " << (mapiter->first & 0xFFFF) << ", energy dep: "
-//                  << mapiter->second->get_edep() << endl;
-//            }
-//        }
-//      celllist.clear();
-//      if (verbosity > 0)
-//        {
-//          cout << Name() << ": found " << numcells
-//              << " eta/slat cells with energy deposition" << endl;
-//        }
+      const PHG4CylinderGeom *layergeom_raw = layergeo->GetLayerGeom(*layer);
+      assert(layergeom_raw);
+      // a special implimentation of PHG4CylinderGeom is required here.
+      const PHG4CylinderGeom_Spacalv3 *layergeom =
+          dynamic_cast<const PHG4CylinderGeom_Spacalv3 *>(layergeom_raw);
+      assert(layergeom);
+
+      for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
+        {
+          // hit loop
+          int scint_id = hiter->second->get_scint_id();
+
+          unsigned int key = static_cast<unsigned int>(scint_id);
+          if (celllist.find(key) == celllist.end())
+            {
+              // decode scint_id
+              PHG4CylinderGeom_Spacalv3::scint_id_coder decoder(scint_id);
+
+              // convert to z_ID, phi_ID
+              std::pair<int, int> tower_z_phi_ID =
+                  layergeom->get_tower_z_phi_ID(decoder.tower_ID,
+                      decoder.sector_ID);
+              const int & tower_ID_z = tower_z_phi_ID.first;
+              const int & tower_ID_phi = tower_z_phi_ID.second;
+
+              // convert tower_ID_z to to eta bin number
+              int etabin = -1;
+              try
+                {
+                  etabin = geo->get_etabin(tower_ID_z);
+                }
+              catch (exception & e)
+                {
+                  cout << "Print cell geometry:" << endl;
+                  geo->identify();
+                  cout << "Print scint_id_coder:" << endl;
+                  decoder.identify();
+                  cout << "Print the hit:" << endl;
+                  hiter->second->print();
+                  cout << "PHG4FullProjSpacalCellReco::process_event::" << Name()
+                      << " - Fatal Error - " << e.what() << endl;
+                  exit(1);
+                }
+
+              celllist[key] = new PHG4CylinderCell_Spacalv1();
+              celllist[key]->set_layer(*layer);
+              celllist[key]->set_phibin(tower_ID_phi);
+              celllist[key]->set_etabin(etabin);
+              celllist[key]->set_fiber_ID(decoder.fiber_ID);
+            }
+
+          celllist[key]->add_edep(hiter->first, hiter->second->get_edep(),
+              hiter->second->get_light_yield());
+
+        } // end loop over g4hits
+      int numcells = 0;
+      for (map<unsigned int, PHG4CylinderCell *>::const_iterator mapiter =
+          celllist.begin(); mapiter != celllist.end(); ++mapiter)
+        {
+          cells->AddCylinderCell(*layer, mapiter->second);
+          numcells++;
+          if (verbosity > 1)
+            {
+              cout << "PHG4FullProjSpacalCellReco::process_event::" << Name()
+                  << " - " << "Adding cell in bin slat: "
+                  << (mapiter->first >> 16) << ", eta: "
+                  << (mapiter->first & 0xFFFF) << ", energy dep: "
+                  << mapiter->second->get_edep() << endl;
+            }
+        }
+      celllist.clear();
+      if (verbosity > 0)
+        {
+          cout << "PHG4FullProjSpacalCellReco::process_event::" << Name() << " - "
+              << " found " << numcells << " fibers with energy deposition"
+              << endl;
+        }
     }
 
-  if (chkenergyconservation)
+  if (chkenergyconservation or verbosity > 4)
     {
       CheckEnergy(topNode);
     }
@@ -344,8 +394,6 @@ PHG4FullProjSpacalCellReco::End(PHCompositeNode *topNode)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-
 
 int
 PHG4FullProjSpacalCellReco::CheckEnergy(PHCompositeNode *topNode)
@@ -389,5 +437,4 @@ PHG4FullProjSpacalCellReco::CheckEnergy(PHCompositeNode *topNode)
     }
   return 0;
 }
-
 

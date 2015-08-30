@@ -11,6 +11,8 @@
 #include "PHG4CylinderCellGeom_Spacalv1.h"
 #include "PHG4CylinderCellDefs.h"
 
+#include <stdexcept>
+#include <sstream>
 #include <cassert>
 #include <boost/foreach.hpp>
 #include <cmath>
@@ -45,17 +47,17 @@ PHG4CylinderCellGeom_Spacalv1::identify(std::ostream& os) const
     }
 
   cout << "PHG4CylinderCellGeom_Spacalv1::identify - Bin -> z range:" << endl;
-  for (size_t i = 0; i < z_bound_map.size(); ++i)
+  BOOST_FOREACH(const bound_map_t::value_type& b, z_bound_map)
     {
-      cout << "\t" << "bin[" << i << "] \t-> z = " << z_bound_map[i].first
-          << " - " << z_bound_map[i].second << endl;
+      cout << "\t" << "bin[" << b.first << "] \t-> z = " << b.second.first
+          << " - " << b.second.second << endl;
     }
 
   cout << "PHG4CylinderCellGeom_Spacalv1::identify - Bin -> eta range:" << endl;
-  for (size_t i = 0; i < eta_bound_map.size(); ++i)
+  BOOST_FOREACH(const bound_map_t::value_type& b, eta_bound_map)
     {
-      cout << "\t" << "bin[" << i << "] \t-> z = " << eta_bound_map[i].first
-          << " - " << eta_bound_map[i].second << endl;
+      cout << "\t" << "bin[" << b.first << "] \t-> z = " << b.second.first
+          << " - " << b.second.second << endl;
     }
   return;
 }
@@ -83,6 +85,7 @@ void
 PHG4CylinderCellGeom_Spacalv1::set_zbounds(const int ibin,
     const std::pair<double, double> & bounds)
 {
+  assert(ibin>=0);
   z_bound_map[ibin] = bounds;
 }
 
@@ -90,37 +93,47 @@ void
 PHG4CylinderCellGeom_Spacalv1::set_etabounds(const int ibin,
     const std::pair<double, double> & bounds)
 {
+  assert(ibin>=0);
   eta_bound_map[ibin] = bounds;
 }
 
 pair<double, double>
 PHG4CylinderCellGeom_Spacalv1::get_zbounds(const int ibin) const
 {
-  if (ibin < 0 || ibin > nzbins)
-    {
-      cout
-          << "PHG4CylinderCellGeom_Spacalv1::get_zbounds - Asking for invalid bin in z: "
-          << ibin << endl;
-      exit(1);
-    }
   map_consistency_check();
   check_binning_method(PHG4CylinderCellDefs::spacalbinning);
-  return z_bound_map[ibin];
+  bound_map_t ::const_iterator iter =
+  z_bound_map.find(ibin);
+
+  if (iter == z_bound_map.end())
+    {
+      cout
+          << "PHG4CylinderCellGeom_Spacalv1::get_zbounds - Fatal Error - Asking for invalid bin in z: "
+          << ibin<<". Print of content:" << endl;
+      identify();
+      exit(1);
+    }
+  return iter->second;
 }
 
 pair<double, double>
 PHG4CylinderCellGeom_Spacalv1::get_etabounds(const int ibin) const
 {
-  if (ibin < 0 || ibin > nzbins)
-    {
-      cout
-          << "PHG4CylinderCellGeom_Spacalv1::get_etabounds - Asking for invalid bin in z: "
-          << ibin << endl;
-      exit(1);
-    }
   map_consistency_check();
   check_binning_method(PHG4CylinderCellDefs::spacalbinning);
-  return eta_bound_map[ibin];
+
+  bound_map_t ::const_iterator iter =
+  eta_bound_map.find(ibin);
+
+  if (iter == eta_bound_map.end())
+    {
+      cout
+          << "PHG4CylinderCellGeom_Spacalv1::get_etabounds - Fatal Error - Asking for invalid bin in z: "
+          << ibin<<". Print of content:" << endl;
+      identify();
+      exit(1);
+    }
+  return iter->second;
 }
 
 int
@@ -142,26 +155,29 @@ PHG4CylinderCellGeom_Spacalv1::get_etabin(const double eta) const
 double
 PHG4CylinderCellGeom_Spacalv1::get_zcenter(const int ibin) const
 {
-  if (ibin < 0 || ibin > nzbins)
-    {
-      cout
-          << "PHG4CylinderCellGeom_Spacalv1::get_zcenter - Asking for invalid bin in z: "
-          << ibin << endl;
-      exit(1);
-    }
-  map_consistency_check();
-  check_binning_method(PHG4CylinderCellDefs::spacalbinning);
-  return 0.5 * (z_bound_map[ibin].first + z_bound_map[ibin].second);
+  pair<double, double> bound = get_zbounds(ibin);
+  return 0.5 * (bound.first + bound.second);
 }
 
 double
 PHG4CylinderCellGeom_Spacalv1::get_etacenter(const int ibin) const
 {
-  if (ibin < 0 || ibin > nzbins)
+  pair<double, double> bound = get_etabounds(ibin);
+  return 0.5 * (bound.first + bound.second);
+}
+
+int PHG4CylinderCellGeom_Spacalv1::get_etabin(const int tower_z_ID) const
+{
+  tower_z_ID_eta_bin_map_t::const_iterator iter = tower_z_ID_eta_bin_map.find(tower_z_ID);
+
+  if (iter == tower_z_ID_eta_bin_map.end())
     {
-      cout << "Asking for invalid bin in eta: " << ibin << endl;
-      cout << "minbin: 0, maxbin " << nzbins << endl;
-      exit(1);
+      ostringstream o;
+
+      o <<"PHG4CylinderCellGeom_Spacalv1::get_etabin - Fatal Error - can not find tower_z_ID of "<<tower_z_ID<<".";
+
+      throw range_error(o.str());
     }
-  return 0.5 * (eta_bound_map[ibin].first + eta_bound_map[ibin].second);
+
+  return iter->second;
 }

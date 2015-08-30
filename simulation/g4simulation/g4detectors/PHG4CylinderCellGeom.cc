@@ -367,14 +367,17 @@ PHG4CylinderCellGeom::check_binning_method_phi(const std::string & src) const
 {
   if (binning != PHG4CylinderCellDefs::etaphibinning && 
       binning != PHG4CylinderCellDefs::sizebinning &&
-      binning != PHG4CylinderCellDefs::etaslatbinning)
+      binning != PHG4CylinderCellDefs::etaslatbinning &&
+      binning != PHG4CylinderCellDefs::spacalbinning)
     {
       if (src.size())
         cout << src<<" : ";
 
       cout << "different binning method used " << methodname(binning)
            << ", not : " << methodname(PHG4CylinderCellDefs::etaphibinning)
-	   << " or " << methodname(PHG4CylinderCellDefs::sizebinning)
+           << " or " << methodname(PHG4CylinderCellDefs::sizebinning)
+           << " or " << methodname(PHG4CylinderCellDefs::etaslatbinning)
+           << " or " << methodname(PHG4CylinderCellDefs::spacalbinning)
            << endl;
       exit(1);
     }

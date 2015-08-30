@@ -12,7 +12,7 @@
 #define PHG4CYLINDERCELLGEOMSPACALV1_H_
 
 #include <PHG4CylinderCellGeom.h>
-#include <vector>
+#include <map>
 
 /*!
  * \brief PHG4CylinderCellGeom_Spacalv1
@@ -40,7 +40,7 @@ public:
   set_etabounds(const int ibin, const std::pair<double, double> & bounds);
 
   typedef std::pair<double, double> bound_t;
-  typedef std::vector<bound_t> bound_map_t;
+  typedef std::map<int, bound_t> bound_map_t;
 
   const bound_map_t & get_eta_bound_map() const
     {
@@ -74,6 +74,8 @@ public:
   {
     return tower_z_ID_eta_bin_map;
   }
+
+  virtual int get_etabin(const int tower_z_ID) const;
 
   //! map tower_z_ID -> eta_bin number
   void
