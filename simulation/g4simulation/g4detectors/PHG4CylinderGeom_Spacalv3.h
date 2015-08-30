@@ -175,7 +175,7 @@ public:
 
   //! convert tower_ID + sector ID to eta and z bins as in other cylindrical calorimeters
   //! @return: a std::pair of zbin and phibin number
-  virtual std::pair<int,int> get_tower_z_phi_ID(const int tower_ID, const int sector_ID);
+  virtual std::pair<int,int> get_tower_z_phi_ID(const int tower_ID, const int sector_ID) const;
 
 protected:
   double sidewall_thickness;

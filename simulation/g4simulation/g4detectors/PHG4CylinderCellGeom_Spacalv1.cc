@@ -79,6 +79,20 @@ PHG4CylinderCellGeom_Spacalv1::map_consistency_check() const
     }
 }
 
+void
+PHG4CylinderCellGeom_Spacalv1::set_zbounds(const int ibin,
+    const std::pair<double, double> & bounds)
+{
+  z_bound_map[ibin] = bounds;
+}
+
+void
+PHG4CylinderCellGeom_Spacalv1::set_etabounds(const int ibin,
+    const std::pair<double, double> & bounds)
+{
+  eta_bound_map[ibin] = bounds;
+}
+
 pair<double, double>
 PHG4CylinderCellGeom_Spacalv1::get_zbounds(const int ibin) const
 {
