@@ -54,9 +54,9 @@ void GlobalVertex_v1::identify(ostream& os) const {
   os << get_error(2,1) << " , ";
   os << get_error(2,2) << " )" << endl;
 
-  os << " list of vtx ids: ";
+  os << " list of vtx ids: " << endl;
   for (ConstVtxIter iter = begin_vtxids(); iter != end_vtxids(); ++iter) {
-    os << iter->first << " => " << iter->second << endl;
+    os << "  " << iter->first << " => " << iter->second << endl;
   }
   os << "-----------------------------------------------" << endl;
   
