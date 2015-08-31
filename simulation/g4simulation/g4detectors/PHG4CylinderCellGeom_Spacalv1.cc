@@ -56,7 +56,7 @@ PHG4CylinderCellGeom_Spacalv1::identify(std::ostream& os) const
   cout << "PHG4CylinderCellGeom_Spacalv1::identify - Bin -> eta range:" << endl;
   BOOST_FOREACH(const bound_map_t::value_type& b, eta_bound_map)
     {
-      cout << "\t" << "bin[" << b.first << "] \t-> z = " << b.second.first
+      cout << "\t" << "bin[" << b.first << "] \t-> eta = " << b.second.first
           << " - " << b.second.second << endl;
     }
   return;
@@ -76,6 +76,13 @@ PHG4CylinderCellGeom_Spacalv1::map_consistency_check() const
     {
       cout << "PHG4CylinderCellGeom_Spacalv1::map_consistency_check - "
           << "eta_bound_map.size() of " << eta_bound_map.size()
+          << " in inconsistent with nzbins of " << nzbins << endl;
+      exit(1);
+    }
+  if ((size_t) nzbins != tower_z_ID_eta_bin_map.size())
+    {
+      cout << "PHG4CylinderCellGeom_Spacalv1::map_consistency_check - "
+          << "tower_z_ID_eta_bin_map.size() of " << tower_z_ID_eta_bin_map.size()
           << " in inconsistent with nzbins of " << nzbins << endl;
       exit(1);
     }
@@ -168,6 +175,8 @@ PHG4CylinderCellGeom_Spacalv1::get_etacenter(const int ibin) const
 
 int PHG4CylinderCellGeom_Spacalv1::get_etabin(const int tower_z_ID) const
 {
+  map_consistency_check();
+
   tower_z_ID_eta_bin_map_t::const_iterator iter = tower_z_ID_eta_bin_map.find(tower_z_ID);
 
   if (iter == tower_z_ID_eta_bin_map.end())
