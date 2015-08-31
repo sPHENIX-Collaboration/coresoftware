@@ -151,7 +151,7 @@ PHG4CylinderCellGeom::set_etabins(const int i)
 void
 PHG4CylinderCellGeom::identify(std::ostream& os) const
 {
-  os << "layer: " << layer
+  os << "PHG4CylinderCellGeom::identify - layer: " << layer
      << ", radius: " << radius
      << ", thickness: " << thickness;
   switch (binning)
@@ -172,9 +172,7 @@ PHG4CylinderCellGeom::identify(std::ostream& os) const
    << ", etastepsize: " << zstep;
       break;
     case PHG4CylinderCellDefs::spacalbinning:
-      os << ", etabins: " << nzbins
-   << ", etamin: " << zmin
-   << ", etastepsize: " << zstep;
+      os << ", etabins: " << nzbins<<" for Spacal";
       break;
     default:
       os << "no valid binning method: " << binning << endl;
