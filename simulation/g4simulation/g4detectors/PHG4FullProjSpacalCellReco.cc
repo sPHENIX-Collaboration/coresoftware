@@ -188,9 +188,9 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
           eta_bin++;
         }
       layerseggeo->set_tower_z_ID_eta_bin_map(tower_z_ID_eta_bin_map);
-//      layerseggeo->set_etabins(eta_bin);
-//      layerseggeo->set_etamin(NAN);
-//      layerseggeo->set_etastep(NAN);
+      layerseggeo->set_etabins(eta_bin);
+      layerseggeo->set_etamin(NAN);
+      layerseggeo->set_etastep(NAN);
 
       //build eta bin maps
       BOOST_FOREACH(const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type& tower_pair, tower_map)
