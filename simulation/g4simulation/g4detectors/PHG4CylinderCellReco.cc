@@ -454,7 +454,7 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
                       it->second->set_layer(*layer);
                       it->second->set_phibin(iphibin);
                       it->second->set_etabin(ietabin);		      
-		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1]);
+		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield());
 		    }
 
 		  // just a sanity check - we don't want to mess up by having Nan's or Infs in our energy deposition
