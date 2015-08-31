@@ -366,10 +366,13 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
           if (verbosity > 1)
             {
               cout << "PHG4FullProjSpacalCellReco::process_event::" << Name()
-                  << " - " << "Adding cell in bin slat: "
-                  << (mapiter->first >> 16) << ", eta: "
-                  << (mapiter->first & 0xFFFF) << ", energy dep: "
-                  << mapiter->second->get_edep() << endl;
+                  << " - " << "Adding cell in bin eta "
+                  << (mapiter->second->get_bineta())
+                  <<" phi "<< (mapiter->second->get_binphi())
+                  <<" fiber "<< (mapiter->second->get_fiber_ID())
+                  << ", energy dep: "
+                                    << mapiter->second->get_edep()<< ", light yield: "
+                                    << mapiter->second->get_light_yield() << endl;
             }
         }
       celllist.clear();
@@ -421,7 +424,7 @@ PHG4FullProjSpacalCellReco::CheckEnergy(PHCompositeNode *topNode)
   // the fractional eloss for particles traversing eta bins leads to minute rounding errors
   if (fabs(sum_energy_cells - sum_energy_g4hit) / sum_energy_g4hit > 1e-6)
     {
-      cout << "energy mismatch between cells: " << sum_energy_cells
+      cout << "PHG4FullProjSpacalCellReco::CheckEnergy - energy mismatch between cells: " << sum_energy_cells
           << " and hits: " << sum_energy_g4hit
           << " diff sum(cells) - sum(hits): "
           << sum_energy_cells - sum_energy_g4hit << endl;
@@ -431,8 +434,8 @@ PHG4FullProjSpacalCellReco::CheckEnergy(PHCompositeNode *topNode)
     {
       if (verbosity > 0)
         {
-          cout << Name() << ": total energy for this event: "
-              << sum_energy_g4hit << " GeV" << endl;
+          cout <<"PHG4FullProjSpacalCellReco::CheckEnergy::"<< Name() << " - total energy for this event: "
+              << sum_energy_g4hit << " GeV. Passed CheckEnergy" << endl;
         }
     }
   return 0;
