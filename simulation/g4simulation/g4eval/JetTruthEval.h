@@ -1,6 +1,6 @@
 
-#ifndef __SVTXTRUTHEVAL_H__
-#define __SVTXTRUTHEVAL_H__
+#ifndef __JETTRUTHEVAL_H__
+#define __JETTRUTHEVAL_H__
 
 #include <phool/PHCompositeNode.h>
 #include <g4main/PHG4HitContainer.h>
@@ -12,33 +12,24 @@
 #include <set>
 #include <map>
 
-class SvtxTruthEval {
+class JetTruthEval {
 
 public:
 
-  SvtxTruthEval(PHCompositeNode *topNode);
-  virtual ~SvtxTruthEval() {}
+  JetTruthEval(PHCompositeNode *topNode);
+  virtual ~JetTruthEval() {}
 
   void next_event(PHCompositeNode *topNode);
   void do_caching(bool do_cache) {_do_cache = do_cache;}
-  
-  std::set<PHG4Hit*> all_truth_hits();
-  std::set<PHG4Hit*> all_truth_hits(PHG4Particle* particle);
-  PHG4Particle*      get_particle(PHG4Hit* g4hit);  
-  int                get_embed(PHG4Particle* particle);
-  bool               is_primary(PHG4Particle* particle);
-  PHG4VtxPoint*      get_vertex(PHG4Particle* particle);
 
-  PHG4Hit*           get_innermost_truth_hit(PHG4Particle* particle);
-  PHG4Hit*           get_outermost_truth_hit(PHG4Particle* particle);
+  std::set<PHG4Particle*> all_truth_particles(Jet* truthjet);
+  std::set<PHG4Hit*>      all_truth_hits(Jet* truthjet);
   
 private:
 
   void get_node_pointers(PHCompositeNode* topNode);
   
   PHG4TruthInfoContainer* _truthinfo;
-  PHG4HitContainer* _g4hits_svtx;
-  PHG4HitContainer* _g4hits_tracker;
 
   bool                                        _do_cache;
   std::set<PHG4Hit*>                          _cache_all_truth_hits;
@@ -47,4 +38,4 @@ private:
   std::map<PHG4Particle*,PHG4Hit*>            _cache_get_outermost_truth_hit;
 };
 
-#endif // __SVTXTRUTHEVAL_H__
+#endif // __JETTRUTHEVAL_H__
