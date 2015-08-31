@@ -163,7 +163,7 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
           if (tower_ID_phi == 0)
             {
               //assign phi min according phi bin 0
-              phi_min = atan2(tower.centralY, tower.centralX)
+              phi_min = atan2(tower.centralY, tower.centralX + 0.25*(tower.pDx1+tower.pDx2+tower.pDx3+tower.pDx4))
                   + sector_map.begin()->second;
             }
 
