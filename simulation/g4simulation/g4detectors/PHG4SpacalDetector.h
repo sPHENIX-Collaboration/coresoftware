@@ -133,6 +133,7 @@ public:
     FIBER_CORE = 1,
     FIBER_CLADING = 0,
     ABSORBER = -1,
+    SUPPORT = -2,
     INACTIVE = -100
   };
 

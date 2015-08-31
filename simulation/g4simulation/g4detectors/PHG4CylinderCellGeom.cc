@@ -151,7 +151,7 @@ PHG4CylinderCellGeom::set_etabins(const int i)
 void
 PHG4CylinderCellGeom::identify(std::ostream& os) const
 {
-  os << "layer: " << layer
+  os << "PHG4CylinderCellGeom::identify - layer: " << layer
      << ", radius: " << radius
      << ", thickness: " << thickness;
   switch (binning)
@@ -168,8 +168,11 @@ PHG4CylinderCellGeom::identify(std::ostream& os) const
       break;
     case PHG4CylinderCellDefs::etaslatbinning:
       os << ", etabins: " << nzbins
-	 << ", etamin: " << zmin
-	 << ", etastepsize: " << zstep;
+   << ", etamin: " << zmin
+   << ", etastepsize: " << zstep;
+      break;
+    case PHG4CylinderCellDefs::spacalbinning:
+      os << ", etabins: " << nzbins<<" for Spacal";
       break;
     default:
       os << "no valid binning method: " << binning << endl;
@@ -317,6 +320,9 @@ PHG4CylinderCellGeom::methodname(const int i) const
     case PHG4CylinderCellDefs::etaslatbinning:
       return "Eta/numslat bins";
       break;
+    case PHG4CylinderCellDefs::spacalbinning:
+      return "SPACAL Tower bins";
+      break;
     default:
       break;
     }
@@ -340,7 +346,8 @@ void
 PHG4CylinderCellGeom::check_binning_method_eta(const std::string & src) const
 {
   if (binning != PHG4CylinderCellDefs::etaphibinning && 
-      binning != PHG4CylinderCellDefs::etaslatbinning)
+      binning != PHG4CylinderCellDefs::etaslatbinning&&
+      binning != PHG4CylinderCellDefs::spacalbinning)
     {
       if (src.size())
         cout << src<<" : ";
@@ -348,6 +355,7 @@ PHG4CylinderCellGeom::check_binning_method_eta(const std::string & src) const
       cout << "different binning method used " << methodname(binning)
            << ", not : " << methodname(PHG4CylinderCellDefs::etaphibinning)
 	   << " or " << methodname(PHG4CylinderCellDefs::etaslatbinning)
+     << " or " << methodname(PHG4CylinderCellDefs::spacalbinning)
            << endl;
       exit(1);
     }
@@ -359,14 +367,17 @@ PHG4CylinderCellGeom::check_binning_method_phi(const std::string & src) const
 {
   if (binning != PHG4CylinderCellDefs::etaphibinning && 
       binning != PHG4CylinderCellDefs::sizebinning &&
-      binning != PHG4CylinderCellDefs::etaslatbinning)
+      binning != PHG4CylinderCellDefs::etaslatbinning &&
+      binning != PHG4CylinderCellDefs::spacalbinning)
     {
       if (src.size())
         cout << src<<" : ";
 
       cout << "different binning method used " << methodname(binning)
            << ", not : " << methodname(PHG4CylinderCellDefs::etaphibinning)
-	   << " or " << methodname(PHG4CylinderCellDefs::sizebinning)
+           << " or " << methodname(PHG4CylinderCellDefs::sizebinning)
+           << " or " << methodname(PHG4CylinderCellDefs::etaslatbinning)
+           << " or " << methodname(PHG4CylinderCellDefs::spacalbinning)
            << endl;
       exit(1);
     }

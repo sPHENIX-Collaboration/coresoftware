@@ -43,26 +43,31 @@ PHG4CylinderGeom_Spacalv1::Print(Option_t *) const
 {
   identify(cout);
 
-  cout <<"Configuration is #"<<get_config()<<":"<<endl;
-  switch(get_config())
-  {
+  cout << "Configuration is #" << get_config() << ":" << endl;
+  switch (get_config())
+    {
   case kNonProjective:
-    cout <<"fiber always placed radially"<<endl;
+    cout << "fiber always placed radially" << endl;
     break;
   case kProjective_PolarTaper:
-    cout <<"Block constructed with taper in polar direction, non-taper in azimuthal direction. "
-    <<"The final layout is approximately projective in both azimuthal and polar directions."<<endl;
+    cout
+        << "Block constructed with taper in polar direction, non-taper in azimuthal direction. "
+        << "The final layout is approximately projective in both azimuthal and polar directions."
+        << endl;
     break;
   case kFullProjective_2DTaper:
-    cout <<"Fully projective spacal with 2D tapered modules"<<endl;
+    cout << "Fully projective spacal with 2D tapered modules" << endl;
     break;
   case kFullProjective_2DTaper_SameLengthFiberPerTower:
-    cout <<"Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower"<<endl;
+    cout
+        << "Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower"
+        << endl;
     break;
   default:
-    cout <<"PHG4CylinderGeom_Spacalv1::Print - ERROR - unknown configuration #"<<get_config()<<endl;
+    cout << "PHG4CylinderGeom_Spacalv1::Print - ERROR - unknown configuration #"
+        << get_config() << endl;
     break;
-  }
+    }
 
   cout << "\t" << "get_max_radius() = " << get_max_radius() << endl;
   cout << "\t" << "get_half_radius() = " << get_half_radius() << endl;
@@ -70,11 +75,11 @@ PHG4CylinderGeom_Spacalv1::Print(Option_t *) const
   cout << "\t" << "get_*pos() = " << get_xpos() << ", " << get_ypos() << ", "
       << get_zpos() << endl;
 
-  cout << "\t" << "get_azimuthal_n_sec() = " << get_azimuthal_n_sec() << endl;
+  cout << "\t" << "get_azimuthal_n_sec() = " << get_azimuthal_n_sec()
+      <<", "<<sector_map.size()<<"/"<< get_azimuthal_n_sec()<<" azimuthal sectors would be filled with SPACAL."<< endl;
   cout << "\t" << "get_azimuthal_distance() = " << get_azimuthal_distance()
       << endl;
-  cout << "\t" << "get_z_distance() = " << get_z_distance()
-      << endl;
+  cout << "\t" << "get_z_distance() = " << get_z_distance() << endl;
   cout << "\t" << "get_fiber_outer_r() = " << get_fiber_outer_r() << endl;
   cout << "\t" << "get_fiber_clading_thickness() = "
       << get_fiber_clading_thickness() << endl;
@@ -116,17 +121,20 @@ PHG4CylinderGeom_Spacalv1::SetDefault()
   zpos = 0;
 
   fiber_clading_thickness = 0.003 / 2;
-  fiber_core_diameter = 0.047 - fiber_clading_thickness*2;
+  fiber_core_diameter = 0.047 - fiber_clading_thickness * 2;
   fiber_distance = 0.1;
 
   virualize_fiber = false;
   construction_verbose = 0;
+
+  init_default_sector_map();
 }
 
 int
 PHG4CylinderGeom_Spacalv1::get_azimuthal_n_sec() const
 {
-  return std::floor(get_half_radius() * twopi / (get_fiber_distance() * sqrt(3.)));
+  return std::floor(
+      get_half_radius() * twopi / (get_fiber_distance() * sqrt(3.)));
 }
 
 double
@@ -138,5 +146,22 @@ PHG4CylinderGeom_Spacalv1::get_azimuthal_distance() const
 double
 PHG4CylinderGeom_Spacalv1::get_z_distance() const
 {
-  return get_fiber_distance()/2.;
+  return get_fiber_distance() / 2.;
 }
+
+//! load a default map that populate all the sectors
+void
+PHG4CylinderGeom_Spacalv1::init_default_sector_map()
+{
+  sector_map.clear();
+
+  for (int sec = 0; sec < get_azimuthal_n_sec(); ++sec)
+    {
+      const double rot = twopi / (double) (get_azimuthal_n_sec())
+          * ((double) (sec));
+
+      sector_map[sec] = rot;
+    }
+}
+
+
