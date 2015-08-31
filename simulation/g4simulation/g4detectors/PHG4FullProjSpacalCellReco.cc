@@ -239,6 +239,7 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       seggeo->AddLayerCellGeom(layerseggeo);
       if (verbosity > 1)
         {
+          cout <<"PHG4FullProjSpacalCellReco::InitRun::"<<Name()<<" - Done layer"<< (layergeom->get_layer()) <<". Print out the cell geometry:"<<endl;
           layerseggeo->identify();
         }
     }
