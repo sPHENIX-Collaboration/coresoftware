@@ -78,7 +78,10 @@ PHG4Hitv1::get_property_float(const PROPERTY prop_id) const
       exit(1);
     }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
-  return (i==prop_map.end())? NAN : u_property(i->second).fdata ;
+
+  if (i!=prop_map.end()) return u_property(i->second).fdata;
+
+  return   NAN ;
 }
 
 int
@@ -93,7 +96,10 @@ PHG4Hitv1::get_property_int(const PROPERTY prop_id) const
       exit(1);
     }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
-  return (i==prop_map.end())? NAN : u_property(i->second).idata ;
+
+  if (i!=prop_map.end()) return u_property(i->second).idata;
+
+  return INT_MIN;
 }
 
 unsigned int
@@ -108,7 +114,10 @@ PHG4Hitv1::get_property_uint(const PROPERTY prop_id) const
       exit(1);
     }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
-  return (i==prop_map.end())? NAN : u_property(i->second).uidata ;
+
+  if (i!=prop_map.end()) return u_property(i->second).uidata;
+
+  return UINT_MAX ;
 }
 
 void
