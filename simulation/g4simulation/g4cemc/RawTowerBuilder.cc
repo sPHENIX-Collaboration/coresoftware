@@ -102,6 +102,7 @@ RawTowerBuilder::process_event(PHCompositeNode *topNode)
 
       if (verbosity > 2)
         {
+          std::cout << PHWHERE << " print out the cell:" << std::endl;
           cell->identify();
         }
 
@@ -113,6 +114,7 @@ RawTowerBuilder::process_event(PHCompositeNode *topNode)
 	   _towers->AddTower(cell->get_binz(), cell->get_binphi(), tower);
 	 }
        tower->add_ecell(cell->get_cell_id(), cell->get_edep());
+       tower->set_light_yield( tower->get_light_yield() +  cell->get_light_yield()  );
        rawtowergeom =  findNode::getClass<RawTowerGeom>(topNode, TowerGeomNodeName.c_str());
        if (verbosity > 2)
 	 {
