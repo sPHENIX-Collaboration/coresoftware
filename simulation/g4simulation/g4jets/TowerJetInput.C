@@ -11,12 +11,12 @@
 #include <phool/PHIODataNode.h>
 #include <fun4all/getClass.h>
 
-// PHENIX Geant4 includes
 #include <g4cemc/RawTowerGeom.h>
 #include <g4cemc/RawTowerContainer.h>
 #include <g4cemc/RawTower.h>
+#include <g4vertex/GlobalVertexMap.h>
+#include <g4vertex/GlobalVertex.h>
 
-// standard includes
 #include <iostream>
 #include <vector>
 #include <cstdlib>
@@ -39,6 +39,11 @@ void TowerJetInput::identify(std::ostream& os) {
 std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
   
   if (_verbosity > 0) cout << "TowerJetInput::process_event -- entered" << endl;
+
+  GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode,"GlobalVertexMap");
+  if (!vertexmap) {
+    return std::vector<Jet*>();
+  }
 
   RawTowerContainer *towers = NULL;
   RawTowerGeom *geom = NULL;
@@ -63,18 +68,31 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
   } else {
     return std::vector<Jet*>();
   }
-  
+
+  // first grab the event vertex or bail
+  GlobalVertex* vtx = vertexmap->begin()->second;
+  float vtxz = NAN;
+  if (vtx) vtxz = vtx->get_z();
+  else return std::vector<Jet*>();
+
   std::vector<Jet*> pseudojets;
   RawTowerContainer::ConstRange begin_end = towers->getTowers();
   RawTowerContainer::ConstIterator rtiter;
   for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
     RawTower *tower = rtiter->second;
 
+    double r = geom->get_radius();
+    
     int bineta = tower->get_bineta();
     int binphi = tower->get_binphi();
-    double eta = geom->get_etacenter(bineta);
+    double eta0 = geom->get_etacenter(bineta);
     double phi = geom->get_phicenter(binphi);
 
+    double z0 = r * sinh(eta0);
+    double z = z0 - vtxz;
+    
+    double eta = asinh(z/r); // eta after shift from vertex
+    
     double pt = tower->get_energy() / cosh(eta);
     double px = pt * cos(phi);
     double py = pt * sin(phi);
