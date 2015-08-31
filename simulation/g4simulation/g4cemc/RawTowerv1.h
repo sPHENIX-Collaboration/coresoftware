@@ -21,6 +21,9 @@ class RawTowerv1 : public RawTower {
   int get_binphi() const { return binphi; }
   float get_energy() const;
 
+  void set_light_yield(float l)  { light_yield = l; }
+  float get_light_yield() const { return light_yield; };
+
   bool is_adjacent(RawTower& tower);
 
   std::pair< std::map<unsigned int,float>::const_iterator, std::map<unsigned int,float>::const_iterator > get_g4cells()
@@ -30,10 +33,11 @@ class RawTowerv1 : public RawTower {
  protected:
   int bineta;
   int binphi;
+  float light_yield;
 
   std::map<unsigned int, float> ecells;
 
-  ClassDef(RawTowerv1,1)
+  ClassDef(RawTowerv1,2)
 };
 
 #endif /* RAWTOWERV1_H_ */

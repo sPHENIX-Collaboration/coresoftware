@@ -20,6 +20,8 @@ class RawTower : public PHObject {
   virtual int get_bineta() const { PHOOL_VIRTUAL_WARN("get_ieta()"); return -1; }
   virtual int get_binphi() const { PHOOL_VIRTUAL_WARN("get_iphi()");; return -1; }
   virtual float get_energy() const { PHOOL_VIRTUAL_WARN("get_energy()"); return 0.0; }
+  virtual void set_light_yield(float l)  { PHOOL_VIRTUAL_WARN("set_light_yield()"); return ; }
+  virtual float get_light_yield() const { PHOOL_VIRTUAL_WARN("get_light_yield()"); return 0.0; }
 
   virtual bool is_adjacent(RawTower& tower) { PHOOL_VIRTUAL_WARNING; return false; }
 
