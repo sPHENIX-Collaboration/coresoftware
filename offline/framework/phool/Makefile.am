@@ -50,6 +50,7 @@ pkginclude_HEADERS =  \
   phool.h \
   phooldefs.h \
   PHOperation.h \
+  PHRandomSeed.h \
   PHPointerList.h \
   PHPointerListIterator.h \
   PHRawOManager.h \
