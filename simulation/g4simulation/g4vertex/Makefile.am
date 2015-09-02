@@ -61,6 +61,8 @@ libg4vertex_io_la_SOURCES = \
 libg4vertex_la_SOURCES = \
   BbcVertexFastSimReco.C \
   BbcVertexFastSimReco_Dict.C \
+  GlobalVertexFastSimReco.C \
+  GlobalVertexFastSimReco_Dict.C \
   GlobalVertexReco.C \
   GlobalVertexReco_Dict.C
 
