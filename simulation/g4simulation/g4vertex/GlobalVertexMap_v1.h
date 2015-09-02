@@ -17,7 +17,7 @@ public:
 
   void identify(std::ostream &os = std::cout) const;
   void Reset() {clear();}
-  int  IsValid() const {return 1;}
+  int  isValid() const {return 1;}
   
   bool   empty()                   const {return _map.empty();}
   size_t size()                    const {return _map.size();}

@@ -21,7 +21,7 @@ public:
   
   virtual void         identify(std::ostream& os = std::cout) const {os << "GlobalVertex base class" << std::endl;}
   virtual void         Reset()                                      {}
-  virtual int          IsValid() const                              {return 0;}
+  virtual int          isValid() const                              {return 0;}
 
   // vertex info
   

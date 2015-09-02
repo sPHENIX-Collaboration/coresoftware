@@ -16,7 +16,7 @@ public:
   virtual void         identify(std::ostream& os = std::cout) const {os << "BbcVertex base class" << std::endl;}
   virtual BbcVertex*   Clone()                                      {return NULL;}
   virtual void         Reset()                                      {}
-  virtual int          IsValid() const                              {return 0;}
+  virtual int          isValid() const                              {return 0;}
 
   // vertex info
   

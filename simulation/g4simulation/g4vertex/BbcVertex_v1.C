@@ -39,7 +39,7 @@ void BbcVertex_v1::Reset() {
   _z_err = NAN;
 }
 
-int BbcVertex_v1::IsValid() const {
+int BbcVertex_v1::isValid() const {
   if (_id == 0xFFFFFFFF) return 0;
   if (isnan(_t)) return 0;
   if (isnan(_t_err)) return 0;
