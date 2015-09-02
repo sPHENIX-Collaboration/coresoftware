@@ -19,6 +19,7 @@ libg4jets_la_LDFLAGS = \
   -lphg4hit \
   -lg4hough_io \
   -lcemc_io \
+  -lg4vertex_io \
   -lCGAL \
   -lfastjet \
   `geant4-config --libs`
