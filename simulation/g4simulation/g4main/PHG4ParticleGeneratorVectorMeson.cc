@@ -4,19 +4,20 @@
 #include "PHG4InEvent.h"
 
 #include <fun4all/getClass.h>
+#include <fun4all/recoConsts.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHRandomSeed.h>
 
 #include <Geant4/G4ParticleTable.hh>
 #include <Geant4/G4ParticleDefinition.hh>
 
-#include <ctime>
-#include <cstdlib>
-
-#include <TRandom3.h>
 #include <TLorentzVector.h>
 #include <TF1.h>
+#include <TRandom3.h>
+
+#include <gsl/gsl_randist.h>
 
 using namespace std;
 
@@ -30,9 +31,10 @@ PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string 
   width(54.02e-6),
   m1(0.511e-3),
   m2(0.511e-3),
+  _embedflag(0),
+  _histrand_init(0),
   decay1("e+"),
   decay2("e-"),
-  trand(NULL),
   fsin(NULL),
   frap(NULL),
   fpt(NULL)
@@ -42,13 +44,6 @@ PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string 
   // Upsilon 1S has mass 9.4603, width 54.02 keV
   // Upsilon 2S has mass 10.0233, width 31.98 keV
   // Upsilon 3S has mass 10.3552, width 20.32 keV
-
-  _embedflag = 0;
-  return;
-}
-
-PHG4ParticleGeneratorVectorMeson::~PHG4ParticleGeneratorVectorMeson()
-{
   return;
 }
 
@@ -94,12 +89,6 @@ PHG4ParticleGeneratorVectorMeson::set_vtx_zrange(const double zmin, const double
   vtx_zmax = zmax;
 
   return;
-}
-
-void 
-PHG4ParticleGeneratorVectorMeson::set_seed(const int seed) 
-{
-srand(seed);
 }
 
 void
@@ -152,22 +141,28 @@ PHG4ParticleGeneratorVectorMeson::set_decay_types(const std::string &name1, cons
 }
 
 int
-PHG4ParticleGeneratorVectorMeson::Init(PHCompositeNode *topNode)
-{
-  cout << "PHG4ParticleGeneratorVectorMeson::Init started." << endl;
-  cout << "PHG4ParticleGeneratorVectorMeson::Init endeded." << endl;
-  return 0;
-}
-
-int
 PHG4ParticleGeneratorVectorMeson::InitRun(PHCompositeNode *topNode)
 {
   cout << "PHG4ParticleGeneratorVectorMeson::InitRun started." << endl;
-  trand = new TRandom3();
-  trand->SetSeed(0);
-  cout << "TRandom3 seed " << trand->GetSeed() << endl;
 
-  if(_histrand_init) gRandom->SetSeed(0);
+  recoConsts *rc = recoConsts::instance();
+  trand = new TRandom3();
+  if (rc->FlagExist("RANDOMSEED"))
+    {
+      trand->SetSeed(rc->get_IntFlag("RANDOMSEED"));
+      if (_histrand_init)
+	{
+	  gRandom->SetSeed(rc->get_IntFlag("RANDOMSEED"));
+	}
+    }
+  else
+    {
+      trand->SetSeed(PHRandomSeed());
+      if (_histrand_init)
+	{
+	  gRandom->SetSeed(PHRandomSeed());
+	}
+    }
 
   fsin = new TF1("fsin","sin(x)",0,M_PI);
 
@@ -198,7 +193,7 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 
   if (vtx_zmax != vtx_zmin)
     {
-      vtx_z = (vtx_zmax - vtx_zmin) * trand->Rndm() + vtx_zmin;
+      vtx_z = (vtx_zmax - vtx_zmin) * gsl_rng_uniform_pos(RandomGenerator) + vtx_zmin;
     }
   else
     {
@@ -213,19 +208,26 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 
   double pt = 0.0;
   if(pt_max !=pt_min)
-    pt = fpt->GetRandom();
+    {
+      pt = fpt->GetRandom();
+    }
   else
-    pt = pt_min;
-
+    {
+      pt = pt_min;
+    }
   // taken randomly from a fitted rapidity distribution to Pythia Upsilons
 
   double y = 0.0;
   if(y_max != y_min)
-    y  = frap->GetRandom();
+    {
+      y  = frap->GetRandom();
+    }
   else
-    y = y_min;
-
-  double phi  = (2.0*M_PI)*trand->Rndm();
+    {
+      y = y_min;
+    }
+  // 0 and 2*M_PI identical, so use gsl_rng_uniform which excludes 1.0
+  double phi  = (2.0*M_PI)*gsl_rng_uniform(RandomGenerator);
 
   // The mass of the meson is taken from a Breit-Wigner lineshape
 
@@ -252,7 +254,8 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
   // particle 2 has particle 1 momentum reflected through the origin
 
   double th1 = fsin->GetRandom();
-  double phi1 = 2.0*M_PI*trand->Rndm();
+  // 0 and 2*M_PI identical, so use gsl_rng_uniform which excludes 1.0
+  double phi1 = 2.0*M_PI*gsl_rng_uniform(RandomGenerator);
 
   // Put particle 1 into a TLorentzVector
 
@@ -292,10 +295,10 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 
   // List what has been put into ineve for this event
 
-  ineve->identify();
-
-  if(1)
+  if(verbosity > 0)
     {  
+      ineve->identify();
+
       // Print some check output 
       cout << endl << "Output some sanity check info from PHG4ParticleGeneratorVectorMeson:" << endl;
 
