@@ -89,17 +89,48 @@ RawTowerGeomv2::get_etabin(const double eta) const
 
   int ibin = -1;
   int i = 0;
+//  for (bound_map_t::const_iterator iter = eta_bound_map.begin();
+//      iter != eta_bound_map.end(); ++iter)
+//    {
+//      if (eta >= iter->first && eta < iter->second)
+//        {
+//          ibin = i;
+//          break;
+//        }
+//
+//      i++;
+//    }
+
+  // switch to search for the closest bin
+  // since in a realistic calorimeter, there could be gaps
+  double min_deta = 10;
+
   for (bound_map_t::const_iterator iter = eta_bound_map.begin();
       iter != eta_bound_map.end(); ++iter)
     {
+      const double mean_eta = 0.5*(iter->first + iter->second);
+
       if (eta >= iter->first && eta < iter->second)
         {
+          // found the bin that the hit belong
+          min_deta = 0;
           ibin = i;
           break;
+        }
+      else
+        {
+          const double deta = fabs(mean_eta - eta);
+          if (deta < min_deta)
+            {
+              min_deta = deta;
+              ibin = i;
+            }// keep searching
         }
 
       i++;
     }
+
+
   if (ibin < 0 || ibin >= nphibins)
     {
       cout

@@ -28,6 +28,7 @@ libphool_la_SOURCES = \
   PHNodeReset.cc \
   PHObject.cc \
   PHOperation.cc \
+  PHRandomSeed.cc \
   PHRawOManager.cc \
   PHTimer.cc \
   PHTimeServer.cc \
@@ -49,6 +50,7 @@ pkginclude_HEADERS =  \
   phool.h \
   phooldefs.h \
   PHOperation.h \
+  PHRandomSeed.h \
   PHPointerList.h \
   PHPointerListIterator.h \
   PHRawOManager.h \
@@ -80,6 +82,7 @@ PHBase_dict.cc : \
   PHFlag.h \
   phool.h \
   PHObject.h \
+  PHRandomSeed.h \
   PHTimeServer.h \
   PHTimeStamp.h \
   PHBase_LinkDef.h

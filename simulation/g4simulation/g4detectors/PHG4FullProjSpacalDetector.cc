@@ -134,8 +134,14 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
       _geom->is_azimuthal_seg_visible() and (not _geom->is_virualize_fiber()));
   wall_VisAtt->SetForceSolid(true);
 
+  if (_geom->get_sidewall_thickness()>0)
     {
       // end walls
+      if (_geom->get_construction_verbose() >= 1)
+        {
+          cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::" << GetName()
+              << " - construct end walls." << endl;
+        }
       G4Tubs* wall_solid = new G4Tubs(G4String(GetName() + string("_EndWall")),
           _geom->get_radius() * cm + _geom->get_sidewall_outer_torr() * cm,
           _geom->get_max_radius() * cm - _geom->get_sidewall_outer_torr() * cm,
@@ -178,8 +184,14 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
         }
     }
 
+  if (_geom->get_sidewall_thickness()>0)
     {
       // side walls
+      if (_geom->get_construction_verbose() >= 1)
+        {
+          cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::" << GetName()
+              << " - construct side walls." << endl;
+        }
       G4Box* wall_solid = new G4Box(G4String(GetName() + string("_SideWall")),
           _geom->get_sidewall_thickness() * cm / 2.0,
           _geom->get_thickness() * cm / 2.
@@ -283,6 +295,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
 
   G4Vector3D v_zshift = G4Vector3D(tan(g_tower.pTheta) * cos(g_tower.pPhi),
       tan(g_tower.pTheta) * sin(g_tower.pPhi), 1) * g_tower.pDz;
+  int fiber_ID = 0;
   for (int ix = 0; ix < g_tower.NFiberX; ix++)
 //  int ix = 0;
     {
@@ -305,7 +318,6 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
           if ((ix + iy) % 2 == 1)
             continue; // make a triangle pattern
 
-          const int fiber_ID = ix * 1000 + iy;
 
           const double weighted_iy = static_cast<double>(iy)
               / (g_tower.NFiberY - 1.);
@@ -344,6 +356,8 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
           const G4double fiber_length = vector_fiber.mag();
 
           min_fiber_length = min(fiber_length, min_fiber_length);
+
+          ++fiber_ID;
         }
     }
 
@@ -431,9 +445,9 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
 {
   assert(_geom);
 
-  int fiber_count = 0;
   G4Vector3D v_zshift = G4Vector3D(tan(g_tower.pTheta) * cos(g_tower.pPhi),
       tan(g_tower.pTheta) * sin(g_tower.pPhi), 1) * g_tower.pDz;
+  int fiber_ID = 0;
   for (int ix = 0; ix < g_tower.NFiberX; ix++)
     {
       const double weighted_ix = static_cast<double>(ix)
@@ -454,7 +468,6 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
           if ((ix + iy) % 2 == 1)
             continue; // make a triangle pattern
 
-          const int fiber_ID = ix * 1000 + iy;
 
           const double weighted_iy = static_cast<double>(iy)
               / (g_tower.NFiberY - 1.);
@@ -530,16 +543,16 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
               fiber_ID, overlapcheck_fiber);
           fiber_vol[fiber_physi] = fiber_ID;
 
-          fiber_count++;
+          ++fiber_ID;
         }
     }
 
   if (_geom->get_construction_verbose() >= 3)
     cout << "PHG4FullProjSpacalDetector::Construct_Fibers::" << GetName()
-        << " - constructed tower ID " << g_tower.id << " with " << fiber_count
+        << " - constructed tower ID " << g_tower.id << " with " << fiber_ID
         << " fibers" << endl;
 
-  return fiber_count;
+  return fiber_ID;
 }
 
 //! a block along z axis built with G4Trd that is slightly tapered in x dimension

@@ -15,7 +15,8 @@ RawTowerv1::RawTowerv1() :
 
 RawTowerv1::RawTowerv1(const int ieta, const int iphi) :
   bineta(ieta),
-  binphi(iphi)
+  binphi(iphi),
+  light_yield(0)
 {}
 
 RawTowerv1::~RawTowerv1()

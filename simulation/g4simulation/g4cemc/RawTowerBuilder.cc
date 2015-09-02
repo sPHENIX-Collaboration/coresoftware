@@ -102,6 +102,7 @@ RawTowerBuilder::process_event(PHCompositeNode *topNode)
 
       if (verbosity > 2)
         {
+          std::cout << PHWHERE << " print out the cell:" << std::endl;
           cell->identify();
         }
 
@@ -113,6 +114,7 @@ RawTowerBuilder::process_event(PHCompositeNode *topNode)
 	   _towers->AddTower(cell->get_binz(), cell->get_binphi(), tower);
 	 }
        tower->add_ecell(cell->get_cell_id(), cell->get_edep());
+       tower->set_light_yield( tower->get_light_yield() +  cell->get_light_yield()  );
        rawtowergeom =  findNode::getClass<RawTowerGeom>(topNode, TowerGeomNodeName.c_str());
        if (verbosity > 2)
 	 {
@@ -224,6 +226,16 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
             {
               _netabins = cellgeo->get_zbins();// bin eta in the same number of z bins
             }
+          else if (_cell_binning == PHG4CylinderCellDefs::spacalbinning)
+            {
+              // use eta definiton for each row of towers
+              _netabins = cellgeo->get_etabins();
+            }
+          else
+            {
+              cout <<"RawTowerBuilder::CreateNodes::"<<Name()
+                  <<" - Fatal Error - unsupported cell binning method "<<_cell_binning<<endl;
+            }
 	  inner_radius = cellgeo->get_radius();
 	  first_layer = cellgeo->get_layer();
 	  ifirst = 0;
@@ -322,7 +334,9 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
     }
 
   if (_cell_binning == PHG4CylinderCellDefs::etaphibinning
-      or _cell_binning == PHG4CylinderCellDefs::etaslatbinning)
+      or _cell_binning == PHG4CylinderCellDefs::etaslatbinning
+      or _cell_binning == PHG4CylinderCellDefs::spacalbinning
+      )
     {
 //  rawtowergeom->set_etamin(_etamin);
 //  rawtowergeom->set_etastep(_etastep);
