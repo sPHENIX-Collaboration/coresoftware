@@ -4,12 +4,16 @@
 #include "PHG4InEvent.h"
 
 #include <fun4all/getClass.h>
+#include <fun4all/recoConsts.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHRandomSeed.h>
 
 #include <Geant4/G4ParticleTable.hh>
 #include <Geant4/G4ParticleDefinition.hh>
+
+#include <gsl/gsl_rng.h>
 
 using namespace std;
 
@@ -21,6 +25,17 @@ PHG4ParticleGeneratorBase::PHG4ParticleGeneratorBase(const string &name):
   vtx_z(0),
   t0(0)
 {
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  recoConsts *rc = recoConsts::instance();
+  if (rc->FlagExist("RANDOMSEED"))
+    {
+      seed = rc->get_IntFlag("RANDOMSEED");
+    }
+  else
+    {
+      seed = PHRandomSeed();
+    }
+  gsl_rng_set(RandomGenerator,seed);
   return;
 }
 
@@ -31,6 +46,7 @@ PHG4ParticleGeneratorBase::~PHG4ParticleGeneratorBase()
       delete particlelist.back();
       particlelist.pop_back();
     }
+  gsl_rng_free (RandomGenerator);
   return;
 }
 
@@ -180,3 +196,9 @@ PHG4ParticleGeneratorBase::SetParticleId(PHG4Particle * particle, PHG4InEvent *i
   return;
 }
 
+void
+PHG4ParticleGeneratorBase::set_seed(const unsigned int iseed)
+{
+  seed = iseed;
+  gsl_rng_set(RandomGenerator,seed);
+}
