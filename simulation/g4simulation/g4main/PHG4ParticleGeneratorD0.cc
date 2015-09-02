@@ -3,19 +3,22 @@
 
 #include "PHG4InEvent.h"
 
+#include <fun4all/getClass.h>
+#include <fun4all/recoConsts.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/PHRandomSeed.h>
 
 #include <Geant4/G4ParticleTable.hh>
 #include <Geant4/G4ParticleDefinition.hh>
 
-#include <time.h>
-#include <cstdlib>
-
-#include <TRandom3.h>
 #include <TLorentzVector.h>
 #include <TF1.h>
+#include <TRandom3.h>
+
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_const.h>
 
 using namespace std;
 
@@ -28,21 +31,13 @@ PHG4ParticleGeneratorD0::PHG4ParticleGeneratorD0(const string &name):
   mass(1.86486),
   m1(0.493677),
   m2(0.13957018),
-  trand(NULL),
+  _embedflag(0),
   fsin(NULL),
   frap(NULL),
-  fpt(NULL),
-  flifetime(NULL)
-{
-  _embedflag = 0;
-  return;
-}
-
-PHG4ParticleGeneratorD0::~PHG4ParticleGeneratorD0()
+  fpt(NULL)
 {
   return;
 }
-
 
 void
 PHG4ParticleGeneratorD0::set_eta_range(const double min, const double max)
@@ -87,12 +82,6 @@ PHG4ParticleGeneratorD0::set_vtx_zrange(const double zmin, const double zmax)
   return;
 }
 
-void 
-PHG4ParticleGeneratorD0::set_seed(const int seed) 
-{
-srand(seed);
-}
-
 void
 PHG4ParticleGeneratorD0::set_mass(const double mass_in)
 {
@@ -101,19 +90,18 @@ PHG4ParticleGeneratorD0::set_mass(const double mass_in)
 }
 
 int
-PHG4ParticleGeneratorD0::Init(PHCompositeNode *topNode)
-{
-  cout << "PHG4ParticleGeneratorD0::Init started." << endl;
-  return 0;
-}
-
-int
 PHG4ParticleGeneratorD0::InitRun(PHCompositeNode *topNode)
 {
-  cout << "PHG4ParticleGeneratorD0::InitRun started." << endl;
-  trand = new TRandom3();
-  trand->SetSeed(0);
-  cout << "TRandom3 seed " << trand->GetSeed() << endl;
+  recoConsts *rc = recoConsts::instance();
+  // set seed for this awful gRandom...
+  if (rc->FlagExist("RANDOMSEED"))
+    {
+      gRandom->SetSeed(rc->get_IntFlag("RANDOMSEED"));
+    }
+  else
+    {
+      gRandom->SetSeed(PHRandomSeed());
+    }
 
   fsin = new TF1("fsin","sin(x)",0,M_PI);
 
@@ -123,22 +111,13 @@ PHG4ParticleGeneratorD0::InitRun(PHCompositeNode *topNode)
   frap->SetParameter(1,0.0);
   frap->SetParameter(2,0.8749);
 
-/*
-  // The dN/dPT  distribution is described by:
-  fpt = new TF1("fpt","2.0*3.14159*x*[0]*pow((1 + x*x/(4*[1]) ),-[2])",pt_min,pt_max);
-  fpt->SetParameter(0,72.1);
-  fpt->SetParameter(1,26.516);
-  fpt->SetParameter(2,10.6834);
-*/
 
+  // The dN/dPT  distribution is described by:
   fpt = new TF1("fpt","[0]*x*pow((1.0 + x*x/[1]/[1]),[2])",pt_min,pt_max);
   fpt->SetParameter(0,1.16930e+04);
   fpt->SetParameter(1,3.03486e+00);
   fpt->SetParameter(2,-5.42819e+00);
 
-
-  //flifetime = new TF1("flifetime","exp(x/410.1e-15)",0.,1.0e-12);
-  flifetime = new TF1("flifetime","exp(-x/410.1e-03)",0.,10.0);
 
   return 0;
 }
@@ -147,17 +126,16 @@ int
 PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
 {
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode,"PHG4INEVENT");
-  cout << "------------------------------------------------------" << endl;
 
   double tau = 410.1e-15; // D0 life time in seconds
-  double cc = 2.9979245800e+10; // speed of light cm/sec
+  double cc = GSL_CONST_CGSM_SPEED_OF_LIGHT; // speed of light cm/sec
   double ctau = tau*cc*1.0e+04;  // ctau in micrometers
 
   // Randomly generate vertex position in z 
 
   if (vtx_zmax != vtx_zmin)
     {
-      vtx_z = (vtx_zmax - vtx_zmin) * trand->Rndm() + vtx_zmin;
+      vtx_z = (vtx_zmax - vtx_zmin) * gsl_rng_uniform_pos(RandomGenerator) + vtx_zmin;
     }
   else
     {
@@ -168,19 +146,27 @@ PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
 
   double pt = 0.0;
   if(pt_max !=pt_min)
-    pt = fpt->GetRandom();
+    {
+      pt = fpt->GetRandom();
+    }
   else
-    pt = pt_min;
+    {
+      pt = pt_min;
+    }
 
   // taken randomly from a fitted rapidity distribution to Pythia Upsilons
 
   double y = 0.0;
   if(y_max != y_min)
-    y  = frap->GetRandom();
+    {
+      y  = frap->GetRandom();
+    }
   else
-    y = y_min;
-
-  double phi  = (2.0*M_PI)*trand->Rndm();
+    {
+      y = y_min;
+    }
+  // 0 and 2*M_PI identical, so use gsl_rng_uniform which excludes 1.0
+  double phi  = (2.0*M_PI)*gsl_rng_uniform(RandomGenerator);
 
   double mnow = mass;
 
@@ -196,18 +182,23 @@ PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
 
   double beta = vd0.Beta();
   double gamma = vd0.Gamma();
-  //double lifetime = flifetime->GetRandom() * 1.0e-12;  // life time in seconds
-  double lifetime = trand->Exp(410.1e-03) * 1.0e-12;  // life time in seconds
+  double lifetime = gsl_ran_exponential(RandomGenerator,410.1e-03)* 1.0e-12; // life time in seconds
   double lifepath = lifetime*gamma*beta*cc;  // path in cm
-  cout << "D0 px,py,pz: " << vd0.Px() << " " << vd0.Py() << " " << vd0.Pz() << " " << beta << " " << gamma << endl;
-  cout << "   ctau = " << ctau << " " << lifetime << " " << lifepath << " " << lifepath*1.0e+04 << endl;
-  
+  if (verbosity > 0)
+    {
+      cout << "D0 px,py,pz: " << vd0.Px() << " " << vd0.Py() << " " << vd0.Pz() << " " << beta << " " << gamma << endl;
+      cout << "   ctau = " << ctau << " " << lifetime << " " << lifepath << " " << lifepath*1.0e+04 << endl;
+    }  
+
   vtx_x = vd0.Px()/vd0.P()*lifepath;
   vtx_y = vd0.Py()/vd0.P()*lifepath;
   vtx_z = vtx_z + vd0.Pz()/vd0.P()*lifepath;
   t0 = lifetime;
   int vtxindex = ineve->AddVtx(vtx_x,vtx_y,vtx_z,t0);
-  cout << "  XY vertex: " << sqrt(vtx_x*vtx_x+vtx_y*vtx_y) << " " << sqrt(vtx_x*vtx_x+vtx_y*vtx_y)*1.0e+04 << endl;
+  if (verbosity > 0)
+    {
+      cout << "  XY vertex: " << sqrt(vtx_x*vtx_x+vtx_y*vtx_y) << " " << sqrt(vtx_x*vtx_x+vtx_y*vtx_y)*1.0e+04 << endl;
+    }
 
   // Now decay it 
   // Get the decay energy and momentum in the frame of the D0 - this correctly handles decay particles of any mass.
@@ -220,7 +211,7 @@ PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   // particle 2 has particle 1 momentum reflected through the origin
 
   double th1 = fsin->GetRandom();
-  double phi1 = 2.0*M_PI*trand->Rndm();
+  double phi1 = 2.0*M_PI*gsl_rng_uniform_pos(RandomGenerator);
 
   // Put particle 1 into a TLorentzVector
 
@@ -260,10 +251,10 @@ PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
 
   // List what has been put into ineve for this event
 
-  ineve->identify();
-
-  if(1)
+  if(verbosity > 0)
     {  
+      ineve->identify();
+
       // Print some check output 
       cout << endl << "Output some sanity check info from PHG4ParticleGeneratorD0:" << endl;
 
