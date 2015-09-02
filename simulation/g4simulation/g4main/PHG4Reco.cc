@@ -18,6 +18,7 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHRandomSeed.h>
 
 #include <TThread.h>
 
@@ -137,8 +138,15 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
   if (verbosity >= 0) {
     cout << "========================= PHG4Reco::Init() ================================" << endl;
   }
-  
-  if (verbosity > 0) cout << "PHG4Reco::Init" << endl;
+  recoConsts *rc = recoConsts::instance();
+  if (rc->FlagExist("RANDOMSEED"))
+    {
+      G4Seed(rc->get_IntFlag("RANDOMSEED"));
+    }
+  else
+    {
+      G4Seed(PHRandomSeed());
+    }
   // create GEANT run manager
   if (verbosity > 0) cout << "PHG4Reco::Init - create run manager" << endl;
   runManager_ = new G4RunManager();
@@ -218,7 +226,6 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
     {
       reco->Init( topNode );
     }
-  recoConsts *rc = recoConsts::instance();
 
   // initialize registered subsystems
   BOOST_FOREACH(SubsysReco * reco, subsystems_)
