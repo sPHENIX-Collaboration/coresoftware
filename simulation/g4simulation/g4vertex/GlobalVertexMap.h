@@ -18,7 +18,7 @@ public:
 
   virtual void identify(std::ostream &os = std::cout) const {os << "GlobalVertexMap base class" << std::endl;}
   virtual void Reset()                                      {}
-  virtual int  IsValid() const                              {return 0;}
+  virtual int  isValid() const                              {return 0;}
   
   virtual bool   empty()                   const            {return true;}
   virtual size_t size()                    const            {return 0;}

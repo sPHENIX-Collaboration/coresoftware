@@ -79,7 +79,7 @@ void GlobalVertex_v1::Reset() {
   _vtx_ids.clear();
 }
 
-int GlobalVertex_v1::IsValid() const {
+int GlobalVertex_v1::isValid() const {
   if (_id == 0xFFFFFFFF) return 0;
   if (isnan(_t)) return 0;
   if (isnan(_t_err)) return 0;

@@ -20,7 +20,7 @@ public:
   void         identify(std::ostream& os = std::cout) const;
   BbcVertex*   Clone();
   void         Reset();
-  int          IsValid() const;
+  int          isValid() const;
 
   // vertex info
   
