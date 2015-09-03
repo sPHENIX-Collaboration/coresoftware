@@ -8,10 +8,10 @@
 //===========================================================
 
 #include <fun4all/SubsysReco.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHTimeServer.h>
-
-#include <TRandom3.h>
+// rootcint barfs with this header so we need to hide it
+#ifndef __CINT__
+#include <gsl/gsl_rng.h>
+#endif
 
 class PHCompositeNode;
 
@@ -31,10 +31,10 @@ class GlobalVertexFastSimReco : public SubsysReco {
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  void set_x_smearing(float x_smear) {_x_smear = x_smear;}
-  void set_y_smearing(float y_smear) {_y_smear = y_smear;}
-  void set_z_smearing(float z_smear) {_z_smear = z_smear;}
-  void set_t_smearing(float t_smear) {_t_smear = t_smear;}
+  void set_x_smearing(const float x_smear) {_x_smear = x_smear;}
+  void set_y_smearing(const float y_smear) {_y_smear = y_smear;}
+  void set_z_smearing(const float z_smear) {_z_smear = z_smear;}
+  void set_t_smearing(const float t_smear) {_t_smear = t_smear;}
   
  private:
 
@@ -44,8 +44,10 @@ class GlobalVertexFastSimReco : public SubsysReco {
   float _y_smear;
   float _z_smear;
   float _t_smear;
+#ifndef __CINT__
+  gsl_rng *RandomGenerator;
+#endif
 
-  TRandom3* _rand;
 };
 
 #endif // __GLOBALVERTEXFASTSIMRECO_H__

@@ -1,4 +1,3 @@
-
 #include "GlobalVertexFastSimReco.h"
 
 #include "GlobalVertexMap_v1.h"
@@ -8,11 +7,15 @@
 #include <g4main/PHG4VtxPoint.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/getClass.h>
 #include <fun4all/recoConsts.h>
+
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/PHRandomSeed.h>
+
+#include <gsl/gsl_randist.h>
 
 #include <iostream>
 #include <cmath>
@@ -24,13 +27,13 @@ GlobalVertexFastSimReco::GlobalVertexFastSimReco(const string &name)
     _x_smear(NAN),
     _y_smear(NAN),
     _z_smear(NAN),
-    _t_smear(NAN),
-    _rand(NULL) {
-  verbosity = 0;
+    _t_smear(NAN)
+{
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
 }
 
 GlobalVertexFastSimReco::~GlobalVertexFastSimReco() {
-  if (_rand) delete _rand;
+  gsl_rng_free (RandomGenerator);
 }
 
 int GlobalVertexFastSimReco::Init(PHCompositeNode *topNode) {
@@ -48,9 +51,16 @@ int GlobalVertexFastSimReco::InitRun(PHCompositeNode *topNode) {
   }
   
   recoConsts *rc = recoConsts::instance();
-  int seed = rc->get_IntFlag("RANDOMSEED");
-
-  _rand = new TRandom3(seed);
+  unsigned int seed;
+  if (rc->FlagExist("RANDOMSEED"))
+    {
+      seed = rc->get_IntFlag("RANDOMSEED");
+    }
+  else
+    {
+      seed = PHRandomSeed();
+    }
+  gsl_rng_set(RandomGenerator,seed);
   
   if (verbosity > 0) {
     cout << "=================== GlobalVertexFastSimReco::InitRun() ====================" << endl;
@@ -92,9 +102,9 @@ int GlobalVertexFastSimReco::process_event(PHCompositeNode *topNode) {
 
   GlobalVertex* vertex = new GlobalVertex_v1();
   
-  vertex->set_x(  _rand->Gaus(point->get_x() , _x_smear) );
-  vertex->set_y(  _rand->Gaus(point->get_y() , _y_smear) );
-  vertex->set_z(  _rand->Gaus(point->get_z() , _z_smear) );
+  vertex->set_x(point->get_x() +  gsl_ran_gaussian(RandomGenerator,_x_smear) );
+  vertex->set_y(point->get_y() +  gsl_ran_gaussian(RandomGenerator,_y_smear) );
+  vertex->set_z(point->get_z() +  gsl_ran_gaussian(RandomGenerator,_z_smear) );
 
   vertex->set_error(0,0,_x_smear*_x_smear);
   vertex->set_error(0,1,0.0);
@@ -108,7 +118,7 @@ int GlobalVertexFastSimReco::process_event(PHCompositeNode *topNode) {
   vertex->set_error(2,1,0.0);  
   vertex->set_error(2,2,_z_smear*_z_smear);
 
-  vertex->set_t( _rand->Gaus(point->get_t(), _t_smear) );
+  vertex->set_t(point->get_t() + gsl_ran_gaussian(RandomGenerator,_t_smear) );
   vertex->set_t_err( _t_smear );
 
   vertexes->insert(vertex);
@@ -125,7 +135,7 @@ int GlobalVertexFastSimReco::CreateNodes(PHCompositeNode *topNode) {
   PHNodeIterator iter(topNode);
 
   // Looking for the DST node
-  PHCompositeNode *dstNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
   if (!dstNode) {
     cout << PHWHERE << "DST Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
