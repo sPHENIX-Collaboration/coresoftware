@@ -82,6 +82,17 @@ RawTowerContainer::getTower(const int ieta, const int iphi)
   return NULL;
 }
 
+RawTower *
+RawTowerContainer::getTower(const unsigned int id)
+{
+  Iterator it = _towers.find(id);
+  if (it != _towers.end())
+    {
+      return it->second;
+    }
+  return NULL;
+}
+
 int 
 RawTowerContainer::isValid() const
 {

@@ -12,6 +12,9 @@
 #include <g4jets/Jet.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
+#include <g4hough/SvtxTrackMap.h>
+#include <g4cemc/RawTowerContainer.h>
+#include <g4cemc/RawClusterContainer.h>
 
 #include <string>
 #include <set>
@@ -30,21 +33,21 @@ public:
   void do_caching(bool do_cache) {_do_cache = do_cache;}
 
   JetTruthEval*     get_truth_eval()         {return &_jettrutheval;}
-  SvtxEvalStack*    get_svtx_eval_stack()    {return _jetrutheval.get_svtx_eval_stack();}
-  CaloEvalStack*    get_cemc_eval_stack()    {return _jetrutheval.get_cemc_eval_stack();}
-  CaloEvalStack*    get_hcalin_eval_stack()  {return _jetrutheval.get_hcalin_eval_stack();}
-  CaloEvalStack*    get_hcalout_eval_stack() {return _jetrutheval.get_hcalout_eval_stack();}
+  SvtxEvalStack*    get_svtx_eval_stack()    {return _jettrutheval.get_svtx_eval_stack();}
+  CaloEvalStack*    get_cemc_eval_stack()    {return _jettrutheval.get_cemc_eval_stack();}
+  CaloEvalStack*    get_hcalin_eval_stack()  {return _jettrutheval.get_hcalin_eval_stack();}
+  CaloEvalStack*    get_hcalout_eval_stack() {return _jettrutheval.get_hcalout_eval_stack();}
 
   // backtrace through to PHG4Hits
   std::set<PHG4Hit*> all_truth_hits (Jet* recojet);
 
+  // backtrace through to truth particles
+  std::set<PHG4Particle*> all_truth_particles (Jet* recojet);
+  
   // backtrace through to truth jets
   std::set<Jet*> all_truth_jets          (Jet* recojet);
   Jet*           max_truth_jet_by_energy (Jet* recojet);
   
-  // backtrace through to truth particles
-  std::set<PHG4Particle*> all_truth_particles (Jet* recojet);
-
   // forwardtrace through to Reco Jets
   std::set<Jet*> all_jets_from(Jet* truthjet);
   Jet*           best_jet_from(Jet* truthjet);
@@ -62,6 +65,14 @@ private:
     
   JetMap* _recojets;
   JetMap* _truthjets;
+
+  SvtxTrackMap*        _trackmap;
+  RawTowerContainer*   _cemctowers;
+  RawClusterContainer* _cemcclusters;
+  RawTowerContainer*   _hcalintowers;
+  RawClusterContainer* _hcalinclusters;
+  RawTowerContainer*   _hcalouttowers;
+  RawClusterContainer* _hcaloutclusters;
   
   bool                                    _do_cache;
   std::map<Jet*,std::set<PHG4Hit*> >      _cache_all_truth_hits;

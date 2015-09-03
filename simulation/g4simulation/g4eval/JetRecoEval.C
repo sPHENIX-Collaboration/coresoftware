@@ -14,6 +14,15 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 
+#include <g4jets/JetMap.h>
+#include <g4jets/Jet.h>
+#include <g4hough/SvtxTrackMap.h>
+#include <g4hough/SvtxTrack.h>
+#include <g4cemc/RawTowerContainer.h>
+#include <g4cemc/RawTower.h>
+#include <g4cemc/RawClusterContainer.h>
+#include <g4cemc/RawCluster.h>
+
 #include <string>
 #include <cstdlib>
 #include <set>
@@ -26,11 +35,18 @@ using namespace std;
 JetRecoEval::JetRecoEval(PHCompositeNode* topNode,
 			 std::string recojetname,
 			 std::string truthjetname)
-  : _jettrutheval(topNode,recojetname,truthjetname),
+  : _jettrutheval(topNode),
     _recojetname(recojetname),
     _truthjetname(truthjetname),
     _recojets(NULL),
     _truthjets(NULL),
+    _trackmap(NULL),
+    _cemctowers(NULL),
+    _cemcclusters(NULL),
+    _hcalintowers(NULL),
+    _hcalinclusters(NULL),
+    _hcalouttowers(NULL),
+    _hcaloutclusters(NULL),
     _do_cache(true),
     _cache_all_truth_hits(),
     _cache_all_truth_jets(),
@@ -69,15 +85,40 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {
   
   std::set<PHG4Hit*> truth_hits;
 
-  // loop over all the clustered towers
-  for (unsigned int itower = 0; itower < cluster->getNTowers(); ++itower) {
+  // loop over all the jet constituents, backtrack each reco object to the
+  // truth hits and combine with other consituents
 
-    int ieta = cluster->getTowerBin(itower).first;
-    int iphi = cluster->getTowerBin(itower).second;
+  for (Jet::ConstIter iter = recojet->begin_comp();
+       iter != recojet->end_comp();
+       ++iter) {
+    Jet::SRC source = iter->first;
+    unsigned int index = iter->second;
+
+    std::set<PHG4Hit*> new_hits;
     
-    RawTower* tower = _towers->getTower(ieta,iphi);
+    if (source == Jet::TRACK) {
+      SvtxTrack* track = _trackmap->get(index);     
+      new_hits = get_svtx_eval_stack()->get_track_eval()->all_truth_hits(track);      
+    } else if (source == Jet::CEMC_TOWER) {
+      RawTower* tower = _cemctowers->getTower(index);
+      new_hits = get_cemc_eval_stack()->get_rawtower_eval()->all_truth_hits(tower);      
+    } else if (source == Jet::CEMC_CLUSTER) {
+      RawCluster* cluster = _cemcclusters->getCluster(index);
+      new_hits = get_cemc_eval_stack()->get_rawcluster_eval()->all_truth_hits(cluster);      
+    } else if (source == Jet::HCALIN_TOWER) {
+      RawTower* tower = _hcalintowers->getTower(index);
+      new_hits = get_hcalin_eval_stack()->get_rawtower_eval()->all_truth_hits(tower); 
+    } else if (source == Jet::HCALIN_CLUSTER) {
+      RawCluster* cluster = _hcalinclusters->getCluster(index);
+      new_hits = get_hcalin_eval_stack()->get_rawcluster_eval()->all_truth_hits(cluster); 
+    } else if (source == Jet::HCALOUT_TOWER) {
+      RawTower* tower = _hcalouttowers->getTower(index);
+      new_hits = get_hcalout_eval_stack()->get_rawtower_eval()->all_truth_hits(tower); 
+    } else if (source == Jet::HCALOUT_CLUSTER) {
+      RawCluster* cluster = _hcaloutclusters->getCluster(index);
+      new_hits = get_hcalout_eval_stack()->get_rawcluster_eval()->all_truth_hits(cluster); 
+    }
     
-    std::set<PHG4Hit*> new_hits = _towereval.all_truth_hits(tower);
     std::set<PHG4Hit*> union_hits;
 
     std::set_union(truth_hits.begin(),truth_hits.end(),
@@ -87,191 +128,58 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {
     std::swap(truth_hits,union_hits); // swap union into truth_particles    
   }
 
-  if (_do_cache) _cache_all_truth_hits.insert(make_pair(cluster,truth_hits));
+  if (_do_cache) _cache_all_truth_hits.insert(make_pair(recojet,truth_hits));
   
   return truth_hits;
 }
-  
-std::set<PHG4Particle*> JetRecoEval::all_truth_primaries(RawCluster* cluster) {
 
-  if (_do_cache) {
-    std::map<RawCluster*,std::set<PHG4Particle*> >::iterator iter =
-      _cache_all_truth_primaries.find(cluster);
-    if (iter != _cache_all_truth_primaries.end()) {
-      return iter->second;
-    }
-  }
-  
-  std::set<PHG4Particle*> truth_primaries;
-  
-  // loop over all the clustered towers
-  for (unsigned int itower = 0; itower < cluster->getNTowers(); ++itower) {
-
-    int ieta = cluster->getTowerBin(itower).first;
-    int iphi = cluster->getTowerBin(itower).second;
-    
-    RawTower* tower = _towers->getTower(ieta,iphi);
-    
-    std::set<PHG4Particle*> new_primaries = _towereval.all_truth_primaries(tower);
-    std::set<PHG4Particle*> union_primaries;
-
-    std::set_union(truth_primaries.begin(),truth_primaries.end(),
-		   new_primaries.begin(),new_primaries.end(),
-		   std::inserter(union_primaries,union_primaries.begin()));
-
-    std::swap(truth_primaries,union_primaries); // swap union into truth_particles    
-  }
-
-  if (_do_cache) _cache_all_truth_primaries.insert(make_pair(cluster,truth_primaries));
-  
-  return truth_primaries;
+std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
+  return std::set<PHG4Particle*>();
 }
 
-PHG4Particle* JetRecoEval::max_truth_primary_by_energy(RawCluster* cluster) {
-
-  if (_do_cache) {
-    std::map<RawCluster*,PHG4Particle*>::iterator iter =
-      _cache_max_truth_primary_by_energy.find(cluster);
-    if (iter != _cache_max_truth_primary_by_energy.end()) {
-      return iter->second;
-    }
-  }
-  
-  // loop over all primaries associated with this cluster and
-  // get the energy contribution for each one, record the max
-  PHG4Particle* max_primary = NULL;
-  float max_e = FLT_MAX*-1.0;
-  std::set<PHG4Particle*> primaries = all_truth_primaries(cluster);
-  for (std::set<PHG4Particle*>::iterator iter = primaries.begin();
-       iter != primaries.end();
-       ++iter) {
-
-    PHG4Particle* primary = *iter;
-    float e = get_energy_contribution(cluster,primary);
-    if (e > max_e) {
-      max_e = e;
-      max_primary = primary;      
-    }
-  }
-
-  if (_do_cache) _cache_max_truth_primary_by_energy.insert(make_pair(cluster,max_primary));
-  
-  return max_primary;
+std::set<Jet*> JetRecoEval::all_truth_jets(Jet* recojet) {
+  return std::set<Jet*>();
 }
 
-std::set<RawCluster*> JetRecoEval::all_clusters_from(PHG4Particle* primary) { 
-
-  CaloTruthEval* trutheval = _towereval.get_truth_eval();
-  if (!trutheval->is_primary(primary)) return std::set<RawCluster*>();
-  
-  if ((_do_cache) &&
-      (_cache_all_clusters_from_primary.find(primary) != _cache_all_clusters_from_primary.end())) {
-    return _cache_all_clusters_from_primary[primary];
-  }
-  
-
-  std::set<RawCluster*> clusters;
-  
-  // loop over all the clusters
-  for (RawClusterContainer::Iterator iter = _clusters->getClusters().first;
-       iter != _clusters->getClusters().second;
-       ++iter) {
-
-    RawCluster* cluster = iter->second;
-
-    // loop over all truth particles connected to this cluster
-    std::set<PHG4Particle*> primaries = all_truth_primaries(cluster);
-    for (std::set<PHG4Particle*>::iterator jter = primaries.begin();
-	 jter != primaries.end();
-	 ++jter) {
-      PHG4Particle* candidate = *jter;
-      if (candidate->get_track_id() == primary->get_track_id()) {
-	clusters.insert(cluster);
-      }    
-    }
-  }
-
-  if (_do_cache) _cache_all_clusters_from_primary.insert(make_pair(primary,clusters));
-  
-  return clusters;
+Jet* JetRecoEval::max_truth_jet_by_energy(Jet* recojet) {
+  return NULL;
 }
 
-RawCluster* JetRecoEval::best_cluster_from(PHG4Particle* primary) {
+std::set<Jet*> JetRecoEval::all_jets_from(Jet* truthjet) {
+  return std::set<Jet*>();
+}
 
-  CaloTruthEval* trutheval = _towereval.get_truth_eval();
-  if (!trutheval->is_primary(primary)) return NULL;
-      
-  if (_do_cache) {
-    std::map<PHG4Particle*,RawCluster*>::iterator iter =
-      _cache_best_cluster_from_primary.find(primary);
-    if (iter != _cache_best_cluster_from_primary.end()) {
-      return iter->second;
-    }
-  }
-  
-  RawCluster* best_cluster = NULL;
-  float best_energy = 0.0;  
-  std::set<RawCluster*> clusters = all_clusters_from(primary);
-  for (std::set<RawCluster*>::iterator iter = clusters.begin();
-       iter != clusters.end();
-       ++iter) {
-    RawCluster* cluster = *iter;
-    float energy = get_energy_contribution(cluster,primary);
-    if (energy > best_energy) {
-      best_cluster = cluster;
-      best_energy = energy;
-    }
-  }
- 
-  if (_do_cache) _cache_best_cluster_from_primary.insert(make_pair(primary,best_cluster));
-  
-  return best_cluster;
+Jet* JetRecoEval::best_jet_from(Jet* truthjet) {
+  return NULL;
 }
 
 // overlap calculations
-float JetRecoEval::get_energy_contribution(RawCluster* cluster, PHG4Particle* primary) {
-
-  CaloTruthEval* trutheval = _towereval.get_truth_eval();
-  if (!trutheval->is_primary(primary)) return NAN;
-  
-  if (_do_cache) {
-    std::map<std::pair<RawCluster*,PHG4Particle*>,float>::iterator iter =
-      _cache_get_energy_contribution_primary.find(make_pair(cluster,primary));
-    if (iter != _cache_get_energy_contribution_primary.end()) {
-      return iter->second;
-    }
-  }
-  
-  float energy = 0.0;
-  std::set<PHG4Hit*> g4hits = all_truth_hits(cluster);
-  for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
-       iter != g4hits.end();
-       ++iter) {
-    PHG4Hit* g4hit = *iter;
-    if (g4hit->get_trkid() == primary->get_track_id()) {
-      energy += g4hit->get_edep();
-    }
-  }
-
-  if (_do_cache) _cache_get_energy_contribution_primary.insert(make_pair(make_pair(cluster,primary),energy));
-  
-  return energy;
+float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet) {
+  return 0.0;
 }
 
 void JetRecoEval::get_node_pointers(PHCompositeNode* topNode) {
 
   // need things off of the DST...
-  _recojets = findNode::getClass<JetMap>(topNode,_reconamejet.c_str());
+  _recojets = findNode::getClass<JetMap>(topNode,_recojetname.c_str());
   if (!_recojets) {
     cerr << PHWHERE << " ERROR: Can't find " << _recojetname << endl;
     exit(-1);
   }
 
-  _truthjets = findNode::getClass<JetMap>(topNode,_truthnamejet.c_str());
+  _truthjets = findNode::getClass<JetMap>(topNode,_truthjetname.c_str());
   if (!_truthjets) {
     cerr << PHWHERE << " ERROR: Can't find " << _truthjetname << endl;
     exit(-1);
   }
+
+  _trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+  _cemctowers = findNode::getClass<RawTowerContainer>(topNode,"TOWERS_CEMC");
+  _hcalintowers = findNode::getClass<RawTowerContainer>(topNode,"TOWERS_HCALIN");
+  _hcalouttowers = findNode::getClass<RawTowerContainer>(topNode,"TOWERS_HCALOUT");
+  _cemcclusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTERS_CEMC");
+  _hcalinclusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTERS_HCALIN");
+  _hcaloutclusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTERS_HCALOUT");
 
   return;
 }
