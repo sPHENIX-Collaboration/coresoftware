@@ -31,6 +31,7 @@ pkginclude_HEADERS = \
   CaloRawTowerEval.h \
   CaloRawClusterEval.h \
   CaloEvaluator.h \
+  JetTruthEval.h \
   SvtxEvalStack.h \
   SvtxTruthEval.h \
   SvtxHitEval.h \
@@ -52,6 +53,8 @@ libg4eval_la_SOURCES = \
   CaloRawClusterEval_Dict.C \
   CaloEvaluator.C \
   CaloEvaluator_Dict.C \
+  JetTruthEval.C \
+  JetTruthEval_Dict.C \
   PHG4DSTReader.cc \
   PHG4DSTReader_Dict.C \
   SvtxEvalStack.C \

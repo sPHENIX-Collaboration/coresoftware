@@ -53,8 +53,6 @@ private:
   std::string _jetname;  
 
   JetTruthEval _jettrutheval;
-  SvtxEvalStack _svtxevalstack;
-  std::map<std::string,CaloEvalStack> _caloevalstacks;
   
   bool                                                 _do_cache;
   std::map<RawCluster*,std::set<PHG4Hit*> >            _cache_all_truth_hits;
