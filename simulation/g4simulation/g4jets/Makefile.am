@@ -7,14 +7,22 @@ INCLUDES = \
   -I${G4_MAIN}/include/Geant4 \
   -I`root-config --incdir`
 
-lib_LTLIBRARIES = libg4jets.la
+lib_LTLIBRARIES = \
+   libg4jets_io.la \
+   libg4jets.la
 
 AM_CXXFLAGS = \
  -Wall -Werror -msse2
 
-libg4jets_la_LDFLAGS = \
+AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  `geant4-config --libs`
+
+libg4jets_io_la_LIBADD = \
+  -lphool
+
+libg4jets_la_LIBADD = \
   -lfun4all \
   -lphg4hit \
   -lg4hough_io \
@@ -22,7 +30,7 @@ libg4jets_la_LDFLAGS = \
   -lg4vertex_io \
   -lCGAL \
   -lfastjet \
-  `geant4-config --libs`
+  libg4jets_io.la
 
 pkginclude_HEADERS = \
   Jet.h \
@@ -40,7 +48,7 @@ pkginclude_HEADERS = \
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
-libg4jets_la_SOURCES = \
+libg4jets_io_la_SOURCES = \
   Jet.C \
   Jet_Dict.C \
   JetV1.C \
@@ -48,7 +56,9 @@ libg4jets_la_SOURCES = \
   JetMap.C \
   JetMap_Dict.C \
   JetMapV1.C \
-  JetMapV1_Dict.C \
+  JetMapV1_Dict.C
+
+libg4jets_la_SOURCES = \
   JetReco.C \
   JetReco_Dict.C \
   TruthJetInput.C \
@@ -78,6 +88,7 @@ BUILT_SOURCES = \
   testexternals.C
 
 testexternals_LDADD = \
+  libg4jets_io.la \
   libg4jets.la
 
 testexternals.C:
@@ -88,4 +99,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict*
+	rm -f *Dict* testexternals.C
