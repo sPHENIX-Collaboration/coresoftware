@@ -151,7 +151,7 @@ PHG4ParticleGeneratorBase::Print(const std::string &what) const
 {
   vector<PHG4Particle *>::const_iterator iter;
   int i = 0;
-  for (iter = particlelist.begin(); iter != particlelist.end(); iter++)
+  for (iter = particlelist.begin(); iter != particlelist.end(); ++iter)
     {
       cout << "particle " << i << endl;
       (*iter)->identify();
