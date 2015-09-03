@@ -51,12 +51,11 @@ PHG4ParticleGeneratorBase::~PHG4ParticleGeneratorBase()
 }
 
 int
-PHG4ParticleGeneratorBase::get_pdgcode(const std::string &name)
+PHG4ParticleGeneratorBase::get_pdgcode(const std::string &name) const
 {
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
   G4String particleName = name;
-  G4ParticleDefinition* particledef
-    = particleTable->FindParticle(particleName);
+  G4ParticleDefinition* particledef = particleTable->FindParticle(particleName);
   if (particledef)
     {
       return particledef->GetPDGEncoding();
@@ -65,14 +64,25 @@ PHG4ParticleGeneratorBase::get_pdgcode(const std::string &name)
 }
 
 string
-PHG4ParticleGeneratorBase::get_pdgname(const int pdgcode)
+PHG4ParticleGeneratorBase::get_pdgname(const int pdgcode) const
 {
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* particledef
-    = particleTable->FindParticle(pdgcode);
+  G4ParticleDefinition* particledef = particleTable->FindParticle(pdgcode);
   if (particledef)
     {
       return particledef->GetParticleName();
+    }
+  return 0;
+}
+
+double
+PHG4ParticleGeneratorBase::get_mass(const int pdgcode) const
+{
+  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+  G4ParticleDefinition* particledef = particleTable->FindParticle(get_pdgname(pdgcode));
+  if (particledef)
+    {
+      return particledef->GetPDGMass();
     }
   return 0;
 }

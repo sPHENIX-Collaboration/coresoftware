@@ -36,8 +36,9 @@ class PHG4ParticleGeneratorBase: public SubsysReco
 
  protected:
   PHG4ParticleGeneratorBase(const std::string &name="GENERATORBASE");
-  int get_pdgcode(const std::string &name);
-  std::string get_pdgname(const int pdgcode);
+  int get_pdgcode(const std::string &name) const;
+  std::string get_pdgname(const int pdgcode) const;
+  double get_mass(const int pdgcode) const;
   void CheckAndCreateParticleVector();
   void SetParticleId(PHG4Particle *particle, PHG4InEvent *ineve);
   int embedflag;
