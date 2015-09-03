@@ -14,6 +14,9 @@
 // PHENIX Geant4 includes
 #include <g4cemc/RawClusterContainer.h>
 #include <g4cemc/RawCluster.h>
+#include <g4cemc/RawTowerGeom.h>
+#include <g4vertex/GlobalVertexMap.h>
+#include <g4vertex/GlobalVertex.h>
 
 // standard includes
 #include <iostream>
@@ -39,35 +42,57 @@ std::vector<Jet*> ClusterJetInput::get_input(PHCompositeNode *topNode) {
   
   if (_verbosity > 0) cout << "ClusterJetInput::process_event -- entered" << endl;
 
+  GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode,"GlobalVertexMap");
+  if (!vertexmap) {
+    return std::vector<Jet*>();
+  }
+  
   RawClusterContainer *clusters = NULL;
+  RawTowerGeom *geom = NULL;
   if (_input == Jet::CEMC_CLUSTER) {
     clusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_CEMC");
-    if (!clusters) {
+    geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_CEMC");
+    if (!clusters||!geom) {
       return std::vector<Jet*>();
     }
   } else if (_input == Jet::HCALIN_CLUSTER) {
     clusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_HCALIN");
-    if (!clusters) {
+    geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_HCALIN");
+    if (!clusters||!geom) {
       return std::vector<Jet*>();
     }
   } else if (_input == Jet::HCALOUT_CLUSTER) {
     clusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_HCALOUT");
-    if (!clusters) {
+    geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_HCALOUT");
+    if (!clusters||!geom) {
       return std::vector<Jet*>();
     }
   } else {
     return std::vector<Jet*>();
   }
-  
+
+  // first grab the event vertex or bail
+  GlobalVertex* vtx = vertexmap->begin()->second;
+  float vtxz = NAN;
+  if (vtx) vtxz = vtx->get_z();
+  else return std::vector<Jet*>();
+
   std::vector<Jet*> pseudojets;
   RawClusterContainer::ConstRange begin_end = clusters->getClusters();
   RawClusterContainer::ConstIterator rtiter;
   for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
     RawCluster *cluster = rtiter->second;
 
-    double eta = cluster->get_eta();
+    double r = geom->get_radius();
+    
+    double eta0 = cluster->get_eta();
     double phi = cluster->get_phi();
 
+    double z0 = r * sinh(eta0);
+    double z = z0 - vtxz;
+    
+    double eta = asinh(z/r); // eta after shift from vertex
+    
     double pt = cluster->get_energy() / cosh(eta);
     double px = pt * cos(phi);
     double py = pt * sin(phi);
