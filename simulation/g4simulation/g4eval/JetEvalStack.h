@@ -20,16 +20,20 @@ class JetEvalStack {
 
 public:
 
-  JetEvalStack(PHCompositeNode *topNode, std::string jetnode);
+  JetEvalStack(PHCompositeNode *topNode,
+	       std::string recojetname,
+	       std::string truthjetname);
   virtual ~JetEvalStack() {}
 
   void next_event(PHCompositeNode *topNode);
 
   JetRecoEval*   get_reco_eval() {return &_recoeval;}
-  JetTruthEval*  get_truth_eval() {return _recoeval->get_truth_eval;}
+  JetTruthEval*  get_truth_eval() {return _recoeval.get_truth_eval();}
 
-  SvtxEvalStack* get_stvx_eval_stack()                     {return _recoeval->get_svtx_eval_stack();}
-  CaloEvalStack* get_calo_eval_stack(std::string caloname) {return _recoeval->get_calo_eval_stack(caloname);}
+  SvtxEvalStack* get_stvx_eval_stack()    {return _recoeval.get_svtx_eval_stack();}
+  CaloEvalStack* get_cemc_eval_stack()    {return _recoeval.get_cemc_eval_stack();}
+  CaloEvalStack* get_hcalin_eval_stack()  {return _recoeval.get_hcalin_eval_stack();}
+  CaloEvalStack* get_hcalout_eval_stack() {return _recoeval.get_hcalout_eval_stack();}
   
 private:
   JetRecoEval _recoeval; 

@@ -1,15 +1,14 @@
 
-#include "CaloRawClusterEval.h"
-#include "CaloTruthEval.h"
+#include "JetRecoEval.h"
+
+#include "JetTruthEval.h"
+
+#include "SvtxEvalStack.h"
+#include "CaloEvalStack.h"
 
 #include <fun4all/getClass.h>
 #include <phool/PHCompositeNode.h>
-#include <g4cemc/RawClusterContainer.h>
-#include <g4cemc/RawCluster.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTower.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
+
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -24,40 +23,45 @@
 
 using namespace std;
 
-CaloRawClusterEval::CaloRawClusterEval(PHCompositeNode* topNode, std::string caloname)
-  : _caloname(caloname),
-    _towereval(topNode,caloname),
-    _clusters(NULL),
-    _towers(NULL),
+JetRecoEval::JetRecoEval(PHCompositeNode* topNode,
+			 std::string recojetname,
+			 std::string truthjetname)
+  : _jettrutheval(topNode,recojetname,truthjetname),
+    _recojetname(recojetname),
+    _truthjetname(truthjetname),
+    _recojets(NULL),
+    _truthjets(NULL),
     _do_cache(true),
     _cache_all_truth_hits(),
-    _cache_all_truth_primaries(),
-    _cache_max_truth_primary_by_energy(),
-    _cache_all_clusters_from_primary(),
-    _cache_best_cluster_from_primary(),
-    _cache_get_energy_contribution_primary() {
+    _cache_all_truth_jets(),
+    _cache_max_truth_jet_by_energy(),
+    _cache_all_truth_particles(),
+    _cache_all_jets_from(),
+    _cache_best_jet_from(),
+    _cache_get_energy_contribution() {
   get_node_pointers(topNode);
 }
 
-void CaloRawClusterEval::next_event(PHCompositeNode* topNode) {
+void JetRecoEval::next_event(PHCompositeNode* topNode) {
 
   _cache_all_truth_hits.clear();
-  _cache_all_truth_primaries.clear();
-  _cache_max_truth_primary_by_energy.clear();
-  _cache_all_clusters_from_primary.clear();
-  _cache_best_cluster_from_primary.clear();
-  _cache_get_energy_contribution_primary.clear();
+  _cache_all_truth_jets.clear();
+  _cache_max_truth_jet_by_energy.clear();
+  _cache_all_truth_particles.clear();
+  _cache_all_jets_from.clear();
+  _cache_best_jet_from.clear();
+  _cache_get_energy_contribution.clear();
 
-  _towereval.next_event(topNode);
+  _jettrutheval.next_event(topNode);
   
   get_node_pointers(topNode);
 }
 
-std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster) {
+std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {
 
   if (_do_cache) {
-    std::map<RawCluster*,std::set<PHG4Hit*> >::iterator iter =
-      _cache_all_truth_hits.find(cluster);
+    std::map<Jet*,std::set<PHG4Hit*> >::iterator iter =
+      _cache_all_truth_hits.find(recojet);
     if (iter != _cache_all_truth_hits.end()) {
       return iter->second;
     }
@@ -88,7 +92,7 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster) {
   return truth_hits;
 }
   
-std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primaries(RawCluster* cluster) {
+std::set<PHG4Particle*> JetRecoEval::all_truth_primaries(RawCluster* cluster) {
 
   if (_do_cache) {
     std::map<RawCluster*,std::set<PHG4Particle*> >::iterator iter =
@@ -123,7 +127,7 @@ std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primaries(RawCluster* clus
   return truth_primaries;
 }
 
-PHG4Particle* CaloRawClusterEval::max_truth_primary_by_energy(RawCluster* cluster) {
+PHG4Particle* JetRecoEval::max_truth_primary_by_energy(RawCluster* cluster) {
 
   if (_do_cache) {
     std::map<RawCluster*,PHG4Particle*>::iterator iter =
@@ -155,7 +159,7 @@ PHG4Particle* CaloRawClusterEval::max_truth_primary_by_energy(RawCluster* cluste
   return max_primary;
 }
 
-std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primary) { 
+std::set<RawCluster*> JetRecoEval::all_clusters_from(PHG4Particle* primary) { 
 
   CaloTruthEval* trutheval = _towereval.get_truth_eval();
   if (!trutheval->is_primary(primary)) return std::set<RawCluster*>();
@@ -192,7 +196,7 @@ std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primar
   return clusters;
 }
 
-RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Particle* primary) {
+RawCluster* JetRecoEval::best_cluster_from(PHG4Particle* primary) {
 
   CaloTruthEval* trutheval = _towereval.get_truth_eval();
   if (!trutheval->is_primary(primary)) return NULL;
@@ -225,7 +229,7 @@ RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Particle* primary) {
 }
 
 // overlap calculations
-float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Particle* primary) {
+float JetRecoEval::get_energy_contribution(RawCluster* cluster, PHG4Particle* primary) {
 
   CaloTruthEval* trutheval = _towereval.get_truth_eval();
   if (!trutheval->is_primary(primary)) return NAN;
@@ -254,22 +258,20 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Parti
   return energy;
 }
 
-void CaloRawClusterEval::get_node_pointers(PHCompositeNode* topNode) {
+void JetRecoEval::get_node_pointers(PHCompositeNode* topNode) {
 
   // need things off of the DST...
-  std::string nodename = "CLUSTER_" + _caloname;
-  _clusters = findNode::getClass<RawClusterContainer>(topNode,nodename.c_str());
-  if (!_clusters) {
-    cerr << PHWHERE << " ERROR: Can't find " << nodename << endl;
+  _recojets = findNode::getClass<JetMap>(topNode,_reconamejet.c_str());
+  if (!_recojets) {
+    cerr << PHWHERE << " ERROR: Can't find " << _recojetname << endl;
     exit(-1);
   }
 
-  std::string towername = "TOWER_" + _caloname;
-  _towers = findNode::getClass<RawTowerContainer>(topNode,towername.c_str());
-  if (!_towers) {
-    cerr << PHWHERE << " ERROR: Can't find " << towername << endl;
+  _truthjets = findNode::getClass<JetMap>(topNode,_truthnamejet.c_str());
+  if (!_truthjets) {
+    cerr << PHWHERE << " ERROR: Can't find " << _truthjetname << endl;
     exit(-1);
   }
-  
+
   return;
 }

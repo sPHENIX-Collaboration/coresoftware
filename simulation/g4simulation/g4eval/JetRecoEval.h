@@ -2,6 +2,8 @@
 #ifndef __JETRECOEVAL_H__
 #define __JETRECOEVAL_H__
 
+#include "JetTruthEval.h"
+
 #include "CaloTruthEval.h"
 #include "CaloRawTowerEval.h"
 
@@ -15,19 +17,23 @@
 #include <set>
 #include <map>
 
-class JetrecoEval {
+class JetRecoEval {
 
 public:
 
-  JetRecoEval(PHCompositeNode *topNode, std::string jetname);
+  JetRecoEval(PHCompositeNode *topNode,
+	      std::string recojetname,
+	      std::string truthjetname);
   virtual ~JetRecoEval() {}
 
   void next_event(PHCompositeNode *topNode);
   void do_caching(bool do_cache) {_do_cache = do_cache;}
 
-  JetTruthEval*     get_truth_eval() {return &_jettrutheval;}
-  SvtxEvalStack*    get_svtx_eval_stack();
-  CaloEvalStack*    get_calo_eval_stack(std::string caloname) {return &_caloevalstacks[caloname];}
+  JetTruthEval*     get_truth_eval()         {return &_jettrutheval;}
+  SvtxEvalStack*    get_svtx_eval_stack()    {return _jetrutheval.get_svtx_eval_stack();}
+  CaloEvalStack*    get_cemc_eval_stack()    {return _jetrutheval.get_cemc_eval_stack();}
+  CaloEvalStack*    get_hcalin_eval_stack()  {return _jetrutheval.get_hcalin_eval_stack();}
+  CaloEvalStack*    get_hcalout_eval_stack() {return _jetrutheval.get_hcalout_eval_stack();}
 
   // backtrace through to PHG4Hits
   std::set<PHG4Hit*> all_truth_hits (Jet* recojet);
@@ -49,18 +55,22 @@ public:
 private:
 
   void get_node_pointers(PHCompositeNode *topNode);
-  
-  std::string _jetname;  
 
   JetTruthEval _jettrutheval;
+  std::string _recojetname;
+  std::string _truthjetname;
+    
+  JetMap* _recojets;
+  JetMap* _truthjets;
   
-  bool                                                 _do_cache;
-  std::map<RawCluster*,std::set<PHG4Hit*> >            _cache_all_truth_hits;
-  std::map<RawCluster*,std::set<PHG4Particle*> >       _cache_all_truth_primaries;
-  std::map<RawCluster*,PHG4Particle* >                 _cache_max_truth_primary_by_energy;
-  std::map<PHG4Particle*,std::set<RawCluster*> >       _cache_all_clusters_from_primary;
-  std::map<PHG4Particle*,RawCluster*>                  _cache_best_cluster_from_primary;
-  std::map<std::pair<RawCluster*,PHG4Particle*>,float> _cache_get_energy_contribution_primary;
+  bool                                    _do_cache;
+  std::map<Jet*,std::set<PHG4Hit*> >      _cache_all_truth_hits;
+  std::map<Jet*,std::set<Jet*> >          _cache_all_truth_jets;
+  std::map<Jet*,Jet* >                    _cache_max_truth_jet_by_energy;
+  std::map<Jet*,std::set<PHG4Particle*> > _cache_all_truth_particles;
+  std::map<Jet*,std::set<Jet*> >          _cache_all_jets_from;
+  std::map<Jet*,Jet* >                    _cache_best_jet_from;
+  std::map<std::pair<Jet*,Jet*>,float>    _cache_get_energy_contribution;
 };
 
 #endif // __SVTXHITEVAL_H__
