@@ -274,7 +274,6 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
       } else if ((i==0)&&(j==0)) {
 	vtxindex = _ineve->AddVtx(vertex_x,vertex_y,vertex_z,0.0);
       }
-      ntvtx->Fill(vertex_x,vertex_y,vertex_z);
 
       ++trackid;
    
@@ -308,7 +307,6 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
       particle->set_pz(pz);
       particle->set_e(e);
 
-      ntp->Fill(px,py,pz,eta,phi,e,pt);
       _ineve->AddParticle(vtxindex, particle);
       if (embedflag != 0) _ineve->AddEmbeddedParticle(particle);
     }
