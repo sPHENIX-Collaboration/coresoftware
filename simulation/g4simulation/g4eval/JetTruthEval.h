@@ -16,12 +16,19 @@ class JetTruthEval {
 
 public:
 
-  JetTruthEval(PHCompositeNode *topNode);
+  JetTruthEval(PHCompositeNode* topNode,
+	       std::string jetnode,  // example: AntiKt_Tower_r0.4
+	       SvtxEvalStack* svtxevalstack,
+	       CaloEvalStack* caloevalstack);
   virtual ~JetTruthEval() {}
 
-  void next_event(PHCompositeNode *topNode);
+  void next_event(PHCompositeNode* topNode,
+		  SvtxEvalStack* svtxevalstack,);
   void do_caching(bool do_cache) {_do_cache = do_cache;}
 
+  void get_svtx_truth_eval() {return &_svtxtrutheval;}
+  
+  
   std::set<PHG4Particle*> all_truth_particles(Jet* truthjet);
   std::set<PHG4Hit*>      all_truth_hits(Jet* truthjet);
   

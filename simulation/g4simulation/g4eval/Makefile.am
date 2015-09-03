@@ -15,13 +15,15 @@ AM_CXXFLAGS = -Wall -Werror -msse2
 
 libg4eval_la_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  `geant4-config --libs` \
+  -L$(OFFLINE_MAIN)/lib
+
+libg4eval_la_LIBADD = \
   -lfun4all \
-  -lg4hough \
-  -lHelixHough \
-  -lFitNewton \
-  -lcemc 
+  -lphg4hit \
+  -lg4detectors_io \
+  -lg4hough_io \
+  -lcemc_io \
+  -lg4jets_io
 
 pkginclude_HEADERS = \
   CaloEvalStack.h \
@@ -29,9 +31,6 @@ pkginclude_HEADERS = \
   CaloRawTowerEval.h \
   CaloRawClusterEval.h \
   CaloEvaluator.h \
-  PHG4Evaluator.h \
-  PHG4CalEvaluator.h \
-  PHG4DSTReader.h \
   SvtxEvalStack.h \
   SvtxTruthEval.h \
   SvtxHitEval.h \
@@ -53,10 +52,6 @@ libg4eval_la_SOURCES = \
   CaloRawClusterEval_Dict.C \
   CaloEvaluator.C \
   CaloEvaluator_Dict.C \
-  PHG4Evaluator.C \
-  PHG4Evaluator_Dict.C \
-  PHG4CalEvaluator.C \
-  PHG4CalEvaluator_Dict.C \
   PHG4DSTReader.cc \
   PHG4DSTReader_Dict.C \
   SvtxEvalStack.C \
@@ -100,4 +95,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict*
+	rm -f *Dict* testexternals.C

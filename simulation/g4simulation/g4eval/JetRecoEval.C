@@ -1,60 +1,63 @@
 
-#include "SvtxTrackEval.h"
-
-#include "SvtxClusterEval.h"
+#include "CaloRawClusterEval.h"
+#include "CaloTruthEval.h"
 
 #include <fun4all/getClass.h>
 #include <phool/PHCompositeNode.h>
-#include <g4hough/SvtxCluster.h>
-#include <g4hough/SvtxClusterMap.h>
-#include <g4hough/SvtxTrack.h>
-#include <g4hough/SvtxTrackMap.h>
+#include <g4cemc/RawClusterContainer.h>
+#include <g4cemc/RawCluster.h>
+#include <g4cemc/RawTowerContainer.h>
+#include <g4cemc/RawTower.h>
+#include <g4detectors/PHG4CylinderCellContainer.h>
+#include <g4detectors/PHG4CylinderCell.h>
+#include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 
+#include <string>
 #include <cstdlib>
 #include <set>
+#include <map>
 #include <float.h>
 #include <algorithm>
 
 using namespace std;
 
-SvtxTrackEval::SvtxTrackEval(PHCompositeNode* topNode)
-  : _clustereval(topNode),
-    _trackmap(NULL),
-    _clustermap(NULL),
+CaloRawClusterEval::CaloRawClusterEval(PHCompositeNode* topNode, std::string caloname)
+  : _caloname(caloname),
+    _towereval(topNode,caloname),
+    _clusters(NULL),
+    _towers(NULL),
     _do_cache(true),
     _cache_all_truth_hits(),
-    _cache_all_truth_particles(),
-    _cache_max_truth_particle_by_nclusters(),
-    _cache_all_tracks_from_particle(),
-    _cache_best_track_from_particle(),
-    _cache_all_tracks_from_g4hit(),
-    _cache_get_nclusters_contribution() {
+    _cache_all_truth_primaries(),
+    _cache_max_truth_primary_by_energy(),
+    _cache_all_clusters_from_primary(),
+    _cache_best_cluster_from_primary(),
+    _cache_get_energy_contribution_primary() {
   get_node_pointers(topNode);
 }
 
-
-void SvtxTrackEval::next_event(PHCompositeNode* topNode) {
+void CaloRawClusterEval::next_event(PHCompositeNode* topNode) {
 
   _cache_all_truth_hits.clear();
-  _cache_all_truth_particles.clear();
-  _cache_max_truth_particle_by_nclusters.clear();
-  _cache_all_tracks_from_particle.clear();
-  _cache_best_track_from_particle.clear();
-  _cache_all_tracks_from_g4hit.clear();
-  _cache_get_nclusters_contribution.clear();
-  
-  _clustereval.next_event(topNode);
+  _cache_all_truth_primaries.clear();
+  _cache_max_truth_primary_by_energy.clear();
+  _cache_all_clusters_from_primary.clear();
+  _cache_best_cluster_from_primary.clear();
+  _cache_get_energy_contribution_primary.clear();
+
+  _towereval.next_event(topNode);
   
   get_node_pointers(topNode);
 }
 
-std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
+std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster) {
 
   if (_do_cache) {
-    std::map<SvtxTrack*,std::set<PHG4Hit*> >::iterator iter =
-      _cache_all_truth_hits.find(track);
+    std::map<RawCluster*,std::set<PHG4Hit*> >::iterator iter =
+      _cache_all_truth_hits.find(cluster);
     if (iter != _cache_all_truth_hits.end()) {
       return iter->second;
     }
@@ -62,259 +65,211 @@ std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
   
   std::set<PHG4Hit*> truth_hits;
 
-  // loop over all clusters...
-  for (unsigned int ilayer = 0; ilayer < 100; ++ilayer) {
-    if (!track->hasCluster(ilayer)) continue;
+  // loop over all the clustered towers
+  for (unsigned int itower = 0; itower < cluster->getNTowers(); ++itower) {
 
-    SvtxCluster* cluster = _clustermap->get(track->getClusterID(ilayer));
-
-    std::set<PHG4Hit*> new_hits = _clustereval.all_truth_hits(cluster);
-
-    std::set<PHG4Hit*> union_hits; // placeholder for union of new hits and truth hits
+    int ieta = cluster->getTowerBin(itower).first;
+    int iphi = cluster->getTowerBin(itower).second;
+    
+    RawTower* tower = _towers->getTower(ieta,iphi);
+    
+    std::set<PHG4Hit*> new_hits = _towereval.all_truth_hits(tower);
+    std::set<PHG4Hit*> union_hits;
 
     std::set_union(truth_hits.begin(),truth_hits.end(),
 		   new_hits.begin(),new_hits.end(),
 		   std::inserter(union_hits,union_hits.begin()));
 
-    std::swap(truth_hits,union_hits); // swap union into truth_hits
+    std::swap(truth_hits,union_hits); // swap union into truth_particles    
   }
 
-  if (_do_cache) _cache_all_truth_hits.insert(make_pair(track,truth_hits));
+  if (_do_cache) _cache_all_truth_hits.insert(make_pair(cluster,truth_hits));
   
   return truth_hits;
 }
   
-std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track) {
+std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primaries(RawCluster* cluster) {
 
   if (_do_cache) {
-    std::map<SvtxTrack*,std::set<PHG4Particle*> >::iterator iter =
-      _cache_all_truth_particles.find(track);
-    if (iter != _cache_all_truth_particles.end()) {
+    std::map<RawCluster*,std::set<PHG4Particle*> >::iterator iter =
+      _cache_all_truth_primaries.find(cluster);
+    if (iter != _cache_all_truth_primaries.end()) {
       return iter->second;
     }
   }
   
-  std::set<PHG4Particle*> truth_particles;
-
-  // loop over all clusters...
-  for (unsigned int ilayer = 0; ilayer < 100; ++ilayer) {
-    if (!track->hasCluster(ilayer)) continue;
-
-    SvtxCluster* cluster = _clustermap->get(track->getClusterID(ilayer));
-
-    std::set<PHG4Particle*> new_particles = _clustereval.all_truth_particles(cluster);
-
-    std::set<PHG4Particle*> union_particles; // placeholder for union of new particles and truth particles
-
-    std::set_union(truth_particles.begin(),truth_particles.end(),
-		   new_particles.begin(),new_particles.end(),
-		   std::inserter(union_particles,union_particles.begin()));
-
-    std::swap(truth_particles,union_particles); // swap union into truth_particles
-  }
-
-  if (_do_cache) _cache_all_truth_particles.insert(make_pair(track,truth_particles));
-
-  return truth_particles;
-}
-
-PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track) {
-
-  if (_do_cache) {
-    std::map<SvtxTrack*,PHG4Particle*>::iterator iter =
-      _cache_max_truth_particle_by_nclusters.find(track);
-    if (iter != _cache_max_truth_particle_by_nclusters.end()) {
-      return iter->second;
-    }
-  }
+  std::set<PHG4Particle*> truth_primaries;
   
-  std::set<PHG4Particle*> particles = all_truth_particles(track);
+  // loop over all the clustered towers
+  for (unsigned int itower = 0; itower < cluster->getNTowers(); ++itower) {
 
-  PHG4Particle* max_particle = NULL;
-  unsigned int max_nclusters = 0;
-  
-  for(std::set<PHG4Particle*>::iterator iter = particles.begin();
-      iter != particles.end();
-      ++iter) {
-    PHG4Particle* candidate = *iter;
-    unsigned int nclusters = get_nclusters_contribution(track,candidate);
-    if (nclusters > max_nclusters) {
-      max_nclusters = nclusters;
-      max_particle = candidate;
-    }
-  }
-
-  if (_do_cache) _cache_max_truth_particle_by_nclusters.insert(make_pair(track,max_particle));
-  
-  return max_particle;
-}
-
-std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle) { 
-
-  if (_do_cache) {
-    std::map<PHG4Particle*,std::set<SvtxTrack*> >::iterator iter =
-      _cache_all_tracks_from_particle.find(truthparticle);
-    if (iter !=	_cache_all_tracks_from_particle.end()) {
-      return iter->second;
-    }
-  }
-  
-  std::set<SvtxTrack*> tracks;
-  
-  // loop over all SvtxTracks
-  for (SvtxTrackMap::Iter iter = _trackmap->begin();
-       iter != _trackmap->end();
-       ++iter) {
-    SvtxTrack* track = &iter->second;
+    int ieta = cluster->getTowerBin(itower).first;
+    int iphi = cluster->getTowerBin(itower).second;
     
-    // loop over all clusters    
-    for (unsigned int ilayer = 0; ilayer < 100; ++ilayer) {
-      if (!track->hasCluster(ilayer)) continue;
-
-      SvtxCluster* cluster = _clustermap->get(track->getClusterID(ilayer));
-
-      // loop over all particles
-      std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster);
-      for (std::set<PHG4Particle*>::iterator jter = particles.begin();
-	   jter != particles.end();
-	   ++jter) {
-	PHG4Particle* candidate = *jter;
-	// if track id matches argument add to output
-	if (candidate->get_track_id() == truthparticle->get_track_id()) {
-	  tracks.insert(track);
-	}
-      }
-    }
-  }
-
-  if (_do_cache) _cache_all_tracks_from_particle.insert(make_pair(truthparticle,tracks));
-  
-  return tracks;
-}
-
-std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit) {
-
-  if (_do_cache) {
-    std::map<PHG4Hit*,std::set<SvtxTrack*> >::iterator iter =
-      _cache_all_tracks_from_g4hit.find(truthhit);
-    if (iter != _cache_all_tracks_from_g4hit.end()) {
-      return iter->second;
-    }
-  }
-  
-  std::set<SvtxTrack*> tracks;
-  
-  // loop over all SvtxTracks
-  for (SvtxTrackMap::Iter iter = _trackmap->begin();
-       iter != _trackmap->end();
-       ++iter) {
-    SvtxTrack* track = &iter->second;
+    RawTower* tower = _towers->getTower(ieta,iphi);
     
-    // loop over all clusters    
-    for (unsigned int ilayer = 0; ilayer < 100; ++ilayer) {
-      if (!track->hasCluster(ilayer)) continue;
+    std::set<PHG4Particle*> new_primaries = _towereval.all_truth_primaries(tower);
+    std::set<PHG4Particle*> union_primaries;
 
-      SvtxCluster* cluster = _clustermap->get(track->getClusterID(ilayer));
+    std::set_union(truth_primaries.begin(),truth_primaries.end(),
+		   new_primaries.begin(),new_primaries.end(),
+		   std::inserter(union_primaries,union_primaries.begin()));
 
-      // loop over all hits
-      std::set<PHG4Hit*> hits = _clustereval.all_truth_hits(cluster);
-      for (std::set<PHG4Hit*>::iterator jter = hits.begin();
-	   jter != hits.end();
-	   ++jter) {
-	PHG4Hit* candidate = *jter;
-	// if track id matches argument add to output
-	if (candidate->get_trkid() == truthhit->get_trkid()) {
-	  tracks.insert(track);
-	}
-      }
-    }
+    std::swap(truth_primaries,union_primaries); // swap union into truth_particles    
   }
 
-  if (_do_cache) _cache_all_tracks_from_g4hit.insert(make_pair(truthhit,tracks));
-
-  return tracks;
+  if (_do_cache) _cache_all_truth_primaries.insert(make_pair(cluster,truth_primaries));
+  
+  return truth_primaries;
 }
 
-SvtxTrack* SvtxTrackEval::best_track_from(PHG4Particle* truthparticle) { 
+PHG4Particle* CaloRawClusterEval::max_truth_primary_by_energy(RawCluster* cluster) {
 
   if (_do_cache) {
-    std::map<PHG4Particle*,SvtxTrack*>::iterator iter =
-      _cache_best_track_from_particle.find(truthparticle);
-    if (iter != _cache_best_track_from_particle.end()) {
+    std::map<RawCluster*,PHG4Particle*>::iterator iter =
+      _cache_max_truth_primary_by_energy.find(cluster);
+    if (iter != _cache_max_truth_primary_by_energy.end()) {
       return iter->second;
     }
   }
-
-  SvtxTrack* best_track = NULL;
-  unsigned int best_count = 0;
-  std::set<SvtxTrack*> tracks = all_tracks_from(truthparticle);
-  for (std::set<SvtxTrack*>::iterator iter = tracks.begin();
-       iter != tracks.end();
+  
+  // loop over all primaries associated with this cluster and
+  // get the energy contribution for each one, record the max
+  PHG4Particle* max_primary = NULL;
+  float max_e = FLT_MAX*-1.0;
+  std::set<PHG4Particle*> primaries = all_truth_primaries(cluster);
+  for (std::set<PHG4Particle*>::iterator iter = primaries.begin();
+       iter != primaries.end();
        ++iter) {
-    SvtxTrack* track = *iter;
-    unsigned int count = get_nclusters_contribution(track,truthparticle);
-    if (count > best_count) {
-      best_track = track;
-      best_count = count;
+
+    PHG4Particle* primary = *iter;
+    float e = get_energy_contribution(cluster,primary);
+    if (e > max_e) {
+      max_e = e;
+      max_primary = primary;      
+    }
+  }
+
+  if (_do_cache) _cache_max_truth_primary_by_energy.insert(make_pair(cluster,max_primary));
+  
+  return max_primary;
+}
+
+std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primary) { 
+
+  CaloTruthEval* trutheval = _towereval.get_truth_eval();
+  if (!trutheval->is_primary(primary)) return std::set<RawCluster*>();
+  
+  if ((_do_cache) &&
+      (_cache_all_clusters_from_primary.find(primary) != _cache_all_clusters_from_primary.end())) {
+    return _cache_all_clusters_from_primary[primary];
+  }
+  
+
+  std::set<RawCluster*> clusters;
+  
+  // loop over all the clusters
+  for (RawClusterContainer::Iterator iter = _clusters->getClusters().first;
+       iter != _clusters->getClusters().second;
+       ++iter) {
+
+    RawCluster* cluster = iter->second;
+
+    // loop over all truth particles connected to this cluster
+    std::set<PHG4Particle*> primaries = all_truth_primaries(cluster);
+    for (std::set<PHG4Particle*>::iterator jter = primaries.begin();
+	 jter != primaries.end();
+	 ++jter) {
+      PHG4Particle* candidate = *jter;
+      if (candidate->get_track_id() == primary->get_track_id()) {
+	clusters.insert(cluster);
+      }    
+    }
+  }
+
+  if (_do_cache) _cache_all_clusters_from_primary.insert(make_pair(primary,clusters));
+  
+  return clusters;
+}
+
+RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Particle* primary) {
+
+  CaloTruthEval* trutheval = _towereval.get_truth_eval();
+  if (!trutheval->is_primary(primary)) return NULL;
+      
+  if (_do_cache) {
+    std::map<PHG4Particle*,RawCluster*>::iterator iter =
+      _cache_best_cluster_from_primary.find(primary);
+    if (iter != _cache_best_cluster_from_primary.end()) {
+      return iter->second;
     }
   }
   
-  if (_do_cache) _cache_best_track_from_particle.insert(make_pair(truthparticle,best_track));
+  RawCluster* best_cluster = NULL;
+  float best_energy = 0.0;  
+  std::set<RawCluster*> clusters = all_clusters_from(primary);
+  for (std::set<RawCluster*>::iterator iter = clusters.begin();
+       iter != clusters.end();
+       ++iter) {
+    RawCluster* cluster = *iter;
+    float energy = get_energy_contribution(cluster,primary);
+    if (energy > best_energy) {
+      best_cluster = cluster;
+      best_energy = energy;
+    }
+  }
+ 
+  if (_do_cache) _cache_best_cluster_from_primary.insert(make_pair(primary,best_cluster));
   
-  return best_track;
+  return best_cluster;
 }
 
 // overlap calculations
-unsigned int SvtxTrackEval::get_nclusters_contribution(SvtxTrack* track, PHG4Particle* particle) {
+float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Particle* primary) {
 
+  CaloTruthEval* trutheval = _towereval.get_truth_eval();
+  if (!trutheval->is_primary(primary)) return NAN;
+  
   if (_do_cache) {
-    std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int>::iterator iter =
-      _cache_get_nclusters_contribution.find(make_pair(track,particle));
-    if (iter !=	_cache_get_nclusters_contribution.end()) {
+    std::map<std::pair<RawCluster*,PHG4Particle*>,float>::iterator iter =
+      _cache_get_energy_contribution_primary.find(make_pair(cluster,primary));
+    if (iter != _cache_get_energy_contribution_primary.end()) {
       return iter->second;
     }
   }
   
-  unsigned int nclusters = 0;
-
-  // loop over all clusters    
-  for (unsigned int ilayer = 0; ilayer < 100; ++ilayer) {
-    if (!track->hasCluster(ilayer)) continue;
-
-    SvtxCluster* cluster = _clustermap->get(track->getClusterID(ilayer));
-
-    // loop over all particles
-    std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster);
-    for (std::set<PHG4Particle*>::iterator jter = particles.begin();
-	 jter != particles.end();
-	 ++jter) {
-      PHG4Particle* candidate = *jter;
-      // if track id matches argument add to output
-      if (candidate->get_track_id() == particle->get_track_id()) {
-	++nclusters;
-      }
+  float energy = 0.0;
+  std::set<PHG4Hit*> g4hits = all_truth_hits(cluster);
+  for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
+       iter != g4hits.end();
+       ++iter) {
+    PHG4Hit* g4hit = *iter;
+    if (g4hit->get_trkid() == primary->get_track_id()) {
+      energy += g4hit->get_edep();
     }
   }
+
+  if (_do_cache) _cache_get_energy_contribution_primary.insert(make_pair(make_pair(cluster,primary),energy));
   
-  if (_do_cache) _cache_get_nclusters_contribution.insert(make_pair(make_pair(track,particle),nclusters));
-  
-  return nclusters;
+  return energy;
 }
 
-void SvtxTrackEval::get_node_pointers(PHCompositeNode *topNode) {
+void CaloRawClusterEval::get_node_pointers(PHCompositeNode* topNode) {
 
   // need things off of the DST...
-  _trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
-  if (!_trackmap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << endl;
+  std::string nodename = "CLUSTER_" + _caloname;
+  _clusters = findNode::getClass<RawClusterContainer>(topNode,nodename.c_str());
+  if (!_clusters) {
+    cerr << PHWHERE << " ERROR: Can't find " << nodename << endl;
+    exit(-1);
+  }
+
+  std::string towername = "TOWER_" + _caloname;
+  _towers = findNode::getClass<RawTowerContainer>(topNode,towername.c_str());
+  if (!_towers) {
+    cerr << PHWHERE << " ERROR: Can't find " << towername << endl;
     exit(-1);
   }
   
-  _clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
-  if (!_clustermap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxClusterMap" << endl;
-    exit(-1);
-  }
-
   return;
 }

@@ -1,5 +1,5 @@
 
-#include "SvtxTruthEval.h"
+#include "JetTruthEval.h"
 
 #include <fun4all/getClass.h>
 #include <phool/PHCompositeNode.h>
@@ -15,7 +15,7 @@
 
 using namespace std;
 
-SvtxTruthEval::SvtxTruthEval(PHCompositeNode* topNode)
+JetTruthEval::JetTruthEval(PHCompositeNode* topNode)
   : _truthinfo(NULL),
     _g4hits_svtx(NULL),
     _g4hits_tracker(NULL),
@@ -27,7 +27,7 @@ SvtxTruthEval::SvtxTruthEval(PHCompositeNode* topNode)
   get_node_pointers(topNode);
 }
 
-void SvtxTruthEval::next_event(PHCompositeNode* topNode) {
+void JetTruthEval::next_event(PHCompositeNode* topNode) {
 
   _cache_all_truth_hits.clear();
   _cache_all_truth_hits_g4particle.clear();
@@ -38,7 +38,7 @@ void SvtxTruthEval::next_event(PHCompositeNode* topNode) {
 }
 
 /// \todo this copy may be too expensive to call a lot...
-std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits() {
+std::set<PHG4Hit*> JetTruthEval::all_truth_hits() {
 
   if (_do_cache) {
     if (!_cache_all_truth_hits.empty()) {
@@ -141,7 +141,7 @@ PHG4Hit* SvtxTruthEval::get_innermost_truth_hit(PHG4Particle* particle) {
   return innermost_hit;
 }
 
-PHG4Hit* SvtxTruthEval::get_outermost_truth_hit(PHG4Particle* particle) {
+PHG4Hit* JetTruthEval::get_outermost_truth_hit(PHG4Particle* particle) {
 
   PHG4Hit* outermost_hit = NULL;
   float outermost_radius = FLT_MAX-1.0;
@@ -163,18 +163,18 @@ PHG4Hit* SvtxTruthEval::get_outermost_truth_hit(PHG4Particle* particle) {
   return outermost_hit;
 }
 
-PHG4Particle* SvtxTruthEval::get_particle(PHG4Hit* g4hit) {
+PHG4Particle* JetTruthEval::get_particle(PHG4Hit* g4hit) {
 
   PHG4Particle* particle = _truthinfo->GetHit( g4hit->get_trkid() );
   return particle;
 }
 
-int SvtxTruthEval::get_embed(PHG4Particle* particle) {
+int JetTruthEval::get_embed(PHG4Particle* particle) {
 
   return _truthinfo->isEmbeded(particle->get_track_id());
 }
 
-bool SvtxTruthEval::is_primary(PHG4Particle* particle) {
+bool JetTruthEval::is_primary(PHG4Particle* particle) {
 
   bool is_primary = false;  
   PHG4TruthInfoContainer::Map primary_map = _truthinfo->GetPrimaryMap();
@@ -185,12 +185,12 @@ bool SvtxTruthEval::is_primary(PHG4Particle* particle) {
   return is_primary;
 }
 
-PHG4VtxPoint* SvtxTruthEval::get_vertex(PHG4Particle* particle) {
+PHG4VtxPoint* JetTruthEval::get_vertex(PHG4Particle* particle) {
 
   return _truthinfo->GetVtx( particle->get_vtx_id() );
 }
 
-void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode) {
+void JetTruthEval::get_node_pointers(PHCompositeNode* topNode) {
 
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
   if (!_truthinfo) {
@@ -198,10 +198,10 @@ void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode) {
     exit(-1);
   }
 
-  _g4hits_svtx    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SVTX");
+  _g4hits_jet    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_JET");
   _g4hits_tracker = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SILICON_TRACKER");
-  if (!_g4hits_svtx && !_g4hits_tracker) {
-    cerr << PHWHERE << " ERROR: Can't find G4HIT_SVTX or G4HIT_SILICON_TRACKER" << endl;
+  if (!_g4hits_jet && !_g4hits_tracker) {
+    cerr << PHWHERE << " ERROR: Can't find G4HIT_JET or G4HIT_SILICON_TRACKER" << endl;
     exit(-1);
   }
   
