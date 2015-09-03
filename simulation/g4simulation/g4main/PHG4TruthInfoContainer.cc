@@ -60,13 +60,13 @@ void
 PHG4TruthInfoContainer::identify(ostream& os) const
 {
    ConstIterator iter;
-   for (iter = hitmap.begin(); iter != hitmap.end(); iter++)
+   for (iter = hitmap.begin(); iter != hitmap.end(); ++iter)
      {
        cout << "hit key " <<  iter->first << endl;
        (iter->second)->identify();
      }
    ConstVtxIterator vter;
-   for (vter = vtxmap.begin(); vter != vtxmap.end(); vter++)
+   for (vter = vtxmap.begin(); vter != vtxmap.end(); ++vter)
      {
        cout << "vtx id: " << vter ->first << endl;
        (vter ->second)->identify();
@@ -219,7 +219,7 @@ PHG4TruthInfoContainer::AddPrimaryVertex(PHG4VtxPoint *newvtx)
     {
       // we already have a vertex, check if the newly added vertex is identical to existing vertex
       ConstVtxIterator vtxiter;
-      for (vtxiter = primary_vtxmap.begin(); vtxiter != primary_vtxmap.end(); vtxiter++)
+      for (vtxiter = primary_vtxmap.begin(); vtxiter != primary_vtxmap.end(); ++vtxiter)
 	{
 	  PHG4VtxPoint *savedvtx = vtxiter->second;
 	  if (*savedvtx == *newvtx)
@@ -240,7 +240,7 @@ int
 PHG4TruthInfoContainer::maxtrkindex() const
 {
   int key = 0;
-  if (hitmap.size())
+  if (!hitmap.empty())
     {
       key = hitmap.rbegin()->first;
     }
@@ -255,7 +255,7 @@ int
 PHG4TruthInfoContainer::mintrkindex() const
 {
   int key = 0;
-  if (hitmap.size())
+  if (!hitmap.empty())
     {
        key = hitmap.begin()->first;
     }
@@ -270,7 +270,7 @@ int
 PHG4TruthInfoContainer::maxvtxindex() const
 {
   int key = 0;
-  if (vtxmap.size())
+  if (!vtxmap.empty())
     {
       key = vtxmap.rbegin()->first;
     }
@@ -285,7 +285,7 @@ int
 PHG4TruthInfoContainer::minvtxindex() const
 {
   int key = 0;
-  if (vtxmap.size())
+  if (!vtxmap.empty())
     {
        key = vtxmap.begin()->first;
     }
@@ -300,8 +300,8 @@ void
 PHG4TruthInfoContainer::delete_hit(Iterator hiter)
 {
   delete hiter->second;
-hitmap.erase(hiter);
- return;
+  hitmap.erase(hiter);
+  return;
 }
 
 void

@@ -103,7 +103,7 @@ HepMCNodeReader::process_event(PHCompositeNode *topNode)
 	      finalstateparticles.push_back(*p);
 	    }
 	}
-      if (finalstateparticles.size())
+      if (!finalstateparticles.empty())
 	{
 	  double xpos = (*v)->position().x()*length_factor;
 	  double ypos = (*v)->position().y()*length_factor;
@@ -149,7 +149,7 @@ HepMCNodeReader::process_event(PHCompositeNode *topNode)
         }
 
 	  ineve->AddVtxHepMC((*v)->barcode(), xpos, ypos, zpos, (*v)->position().t()*mm_over_c_to_sec);
-	  for (fiter = finalstateparticles.begin(); fiter != finalstateparticles.end(); fiter++)
+	  for (fiter = finalstateparticles.begin(); fiter != finalstateparticles.end(); ++fiter)
 	    {
 	      if (verbosity > 1)
 		{

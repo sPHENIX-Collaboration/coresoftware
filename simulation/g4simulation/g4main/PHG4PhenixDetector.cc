@@ -84,7 +84,7 @@ G4VPhysicalVolume* PHG4PhenixDetector::Construct()
   }
   
   // construct all detectors
-  for( DetectorList::iterator iter = detectors_.begin(); iter != detectors_.end(); iter++ )
+  for( DetectorList::iterator iter = detectors_.begin(); iter != detectors_.end(); ++iter )
   {
     if( *iter )
     {

@@ -89,6 +89,7 @@ libg4testbench_la_LDFLAGS = \
     -L$(OFFLINE_MAIN)/lib \
     -lboost_filesystem \
     -lg4field -lg4decayer \
+    -lgsl -lgslcblas \
     -lvararray \
     -lHepMC \
     -lphhepmc \

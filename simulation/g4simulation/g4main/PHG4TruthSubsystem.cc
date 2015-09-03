@@ -39,7 +39,8 @@ int PHG4TruthSubsystem::InitRun( PHCompositeNode* topNode )
   PHG4TruthInfoContainer* truthInfoList =  findNode::getClass<PHG4TruthInfoContainer>( topNode , "G4TruthInfo" );
   if ( !truthInfoList )
     {
-      dstNode->addNode( new PHIODataNode<PHObject>( truthInfoList = new PHG4TruthInfoContainer(), "G4TruthInfo", "PHObject" ));
+      truthInfoList = new PHG4TruthInfoContainer();
+      dstNode->addNode( new PHIODataNode<PHObject>( truthInfoList, "G4TruthInfo", "PHObject" ));
     }
 
   // event action
@@ -101,13 +102,13 @@ PHG4TruthSubsystem::process_event( PHCompositeNode* topNode )
   map<int, PHG4VtxPoint *>::const_iterator vtxiter;
   multimap<int, PHG4Particle *>::const_iterator particle_iter;
   std::pair< std::map<int, PHG4VtxPoint *>::const_iterator, std::map<int, PHG4VtxPoint *>::const_iterator > vtxbegin_end = inEvent->GetVertices();
-  for (vtxiter = vtxbegin_end.first; vtxiter != vtxbegin_end.second; vtxiter++)
+  for (vtxiter = vtxbegin_end.first; vtxiter != vtxbegin_end.second; ++vtxiter)
     {
       PHG4VtxPoint *vtx = new PHG4VtxPointv1(vtxiter->second);
       int my_vtx_id = truthInfoList->AddPrimaryVertex(vtx);
 	   
       pair<multimap<int, PHG4Particle *>::const_iterator, multimap<int, PHG4Particle *>::const_iterator > particlebegin_end = inEvent->GetParticles(vtxiter->first);
-      for (particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; particle_iter++)
+      for (particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; ++particle_iter)
 	{
 	  PHG4Particle *particle = new PHG4Particlev2(particle_iter->second);
 	  particle->set_vtx_id(my_vtx_id);

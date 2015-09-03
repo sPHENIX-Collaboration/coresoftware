@@ -10,10 +10,10 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 
-#include <TRandom3.h>
-
 #include <Geant4/G4ParticleTable.hh>
 #include <Geant4/G4ParticleDefinition.hh>
+
+#include <gsl/gsl_randist.h>
 
 #include <cstdlib>
 #include <cmath>
@@ -21,9 +21,7 @@
 using namespace std;
 
 PHG4SimpleEventGenerator::PHG4SimpleEventGenerator(const string &name): 
-  SubsysReco(name),
-  _seed(0),
-  _rand(NULL),
+  PHG4ParticleGeneratorBase(name),
   _particle_codes(),
   _particle_names(),
   _reuse_existing_vertex(false),
@@ -49,52 +47,51 @@ PHG4SimpleEventGenerator::PHG4SimpleEventGenerator(const string &name):
   _pt_min(0.0),
   _pt_max(10.0),
   _p_fixed(-1.0),
-  _embedflag(0),
-  _ineve(NULL) {
+  _ineve(NULL) 
+{
   return;
 }
 
-PHG4SimpleEventGenerator::~PHG4SimpleEventGenerator() {
-  delete _rand;
-  return;
-}
-
-void PHG4SimpleEventGenerator::set_seed(int seed) {
-  _seed = seed;
-  _rand = new TRandom3(seed);
-  return;
-}
-
-void PHG4SimpleEventGenerator::add_particles(std::string name, unsigned int num) {
+void PHG4SimpleEventGenerator::add_particles(const std::string &name, const unsigned int num) {
   _particle_names.push_back(std::make_pair(name,num));
   return;
 }
 
-void PHG4SimpleEventGenerator::add_particles(int pid, unsigned int num) {
+void PHG4SimpleEventGenerator::add_particles(const int pid, const unsigned int num) {
   _particle_codes.push_back(std::make_pair(pid,num));
   return;
 }
 
-void PHG4SimpleEventGenerator::set_eta_range(double min, double max) {
+void PHG4SimpleEventGenerator::set_eta_range(const double min, const double max) {
+  if (min > max)
+    {
+      cout << "not setting eta bc etamin " << min << " > etamax: " << max << endl;
+      return;
+    }
   _eta_min = min;
   _eta_max = max;
   return;
 }
 
-void PHG4SimpleEventGenerator::set_phi_range(double min, double max) {
+void PHG4SimpleEventGenerator::set_phi_range(const double min, const double max) {
+  if (min > max)
+    {
+      cout << "not setting phi bc phimin " << min << " > phimax: " << max << endl;
+      return;
+    }
   _phi_min = min;
   _phi_max = max;
   return;
 }
 
-void PHG4SimpleEventGenerator::set_pt_range(double min, double max) {
+void PHG4SimpleEventGenerator::set_pt_range(const double min, const double max) {
+  if (min > max)
+    {
+      cout << "not setting pt bc ptmin " << min << " > ptmax: " << max << endl;
+      return;
+    }
   _pt_min = min;
   _pt_max = max;
-  return;
-}
-
-void PHG4SimpleEventGenerator::set_p_fixed(double momentum) {
-  _p_fixed = momentum; 
   return;
 }
 
@@ -105,21 +102,21 @@ void PHG4SimpleEventGenerator::set_vertex_distribution_function(FUNCTION x, FUNC
   return;
 }
 
-void PHG4SimpleEventGenerator::set_vertex_distribution_mean(double x, double y, double z) {
+void PHG4SimpleEventGenerator::set_vertex_distribution_mean(const double x, const double y, const double z) {
   _vertex_x = x;
   _vertex_y = y;
   _vertex_z = z;
   return;
 }
 
-void PHG4SimpleEventGenerator::set_vertex_distribution_width(double x, double y, double z) {
+void PHG4SimpleEventGenerator::set_vertex_distribution_width(const double x, const double y, const double z) {
   _vertex_width_x = x;
   _vertex_width_y = y;
   _vertex_width_z = z;
   return;
 }
 
-void PHG4SimpleEventGenerator::set_existing_vertex_offset_vector(double x, double y, double z) {
+void PHG4SimpleEventGenerator::set_existing_vertex_offset_vector(const double x, const double y, const double z) {
   _vertex_offset_x = x;
   _vertex_offset_y = y;
   _vertex_offset_z = z;
@@ -131,7 +128,7 @@ void PHG4SimpleEventGenerator::set_vertex_size_function(FUNCTION r) {
   return;
 }
 
-void PHG4SimpleEventGenerator::set_vertex_size_parameters(double mean, double width) {
+void PHG4SimpleEventGenerator::set_vertex_size_parameters(const double mean, const double width) {
   _vertex_size_mean = mean;
   _vertex_size_width = width;
   return;
@@ -163,9 +160,9 @@ int PHG4SimpleEventGenerator::InitRun(PHCompositeNode *topNode) {
     dstNode->addNode(newNode);
   }
 
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "================ PHG4SimpleEventGenerator::InitRun() ======================" << endl;
-    cout << " Random seed = " << _seed << endl;
+    cout << " Random seed = " << get_seed() << endl;
     cout << " Particles:" << endl;
     for (unsigned int i=0; i<_particle_codes.size(); ++i) {
       cout << "    " << _particle_codes[i].first << ", count = " << _particle_codes[i].second << endl;
@@ -220,23 +217,9 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
   if (!_reuse_existing_vertex) {
     // generate a new vertex point
 
-    if (_vertex_func_x == Uniform) {
-      vertex_x = _rand->Uniform(_vertex_x-_vertex_width_x,_vertex_x+_vertex_width_x);
-    } else if (_vertex_func_x == Gaus) {
-      vertex_x = _rand->Gaus(_vertex_x,_vertex_width_x);
-    }
-
-    if (_vertex_func_y == Uniform) {
-      vertex_y = _rand->Uniform(_vertex_y-_vertex_width_y,_vertex_y+_vertex_width_y);
-    } else if (_vertex_func_y == Gaus) {
-      vertex_y = _rand->Gaus(_vertex_y,_vertex_width_y);
-    }
-
-    if (_vertex_func_z == Uniform) {
-      vertex_z = _rand->Uniform(_vertex_z-_vertex_width_z,_vertex_z+_vertex_width_z);
-    } else if (_vertex_func_z == Gaus) {
-      vertex_z = _rand->Gaus(_vertex_z,_vertex_width_z);
-    }
+    vertex_x = smearvtx(_vertex_x,_vertex_width_x,_vertex_func_x);
+    vertex_y = smearvtx(_vertex_y,_vertex_width_y,_vertex_func_y);
+    vertex_z = smearvtx(_vertex_z,_vertex_width_z,_vertex_func_z);
   } else {
     
     if (_ineve->GetNVtx() == 0) {
@@ -277,17 +260,15 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
 
       if ((_vertex_size_width > 0.0)||(_vertex_size_mean != 0.0)) {
 
-	double r = 0.0;
-	if (_vertex_size_func_r == Uniform) {
-	  r = _rand->Uniform(_vertex_size_mean-_vertex_size_width,_vertex_size_mean+_vertex_size_width);
-	} else if (_vertex_size_func_r == Gaus) {
-	  r = fabs(_rand->Gaus(_vertex_size_mean,_vertex_size_width));
-	}
+	double r = smearvtx(_vertex_size_mean,_vertex_size_width,_vertex_size_func_r);
 
 	double x = 0.0;
 	double y = 0.0;
 	double z = 0.0;
-	_rand->Sphere(x,y,z,r);
+	gsl_ran_dir_3d(RandomGenerator,&x,&y,&z);
+        x *= r;
+        y *= r;
+        z *= r;
 
 	vtxindex = _ineve->AddVtx(vertex_x+x,vertex_y+y,vertex_z+z,0.0);
       } else if ((i==0)&&(j==0)) {
@@ -296,14 +277,18 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
 
       ++trackid;
    
-      double eta = _rand->Uniform(_eta_min,_eta_max);
-      double phi = _rand->Uniform(_phi_min,_phi_max);
+      double eta = (_eta_max-_eta_min) * gsl_rng_uniform_pos(RandomGenerator) + _eta_min;
+      double phi = (_phi_max-_phi_min) * gsl_rng_uniform_pos(RandomGenerator) + _phi_min;
 
       double pt;   
       if(_p_fixed > 0.0)
-	pt = _p_fixed/cosh(eta);    
+	{
+	  pt = _p_fixed/cosh(eta);    
+	}
       else
-	pt = _rand->Uniform(_pt_min,_pt_max);   
+	{
+	  pt = (_pt_max-_pt_min) * gsl_rng_uniform_pos(RandomGenerator) + _pt_min;
+	}
 
       double px = pt*cos(phi);
       double py = pt*sin(phi);
@@ -323,7 +308,7 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
       particle->set_e(e);
 
       _ineve->AddParticle(vtxindex, particle);
-      if (_embedflag != 0) _ineve->AddEmbeddedParticle(particle);
+      if (embedflag != 0) _ineve->AddEmbeddedParticle(particle);
     }
   }
 
@@ -336,28 +321,17 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-// call only during execution!
-int PHG4SimpleEventGenerator::get_pdgcode(std::string name) {
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4String particleName = name;
-  G4ParticleDefinition* particledef = particleTable->FindParticle(particleName);
-  if (!particledef) return 0;
-  return particledef->GetPDGEncoding();
-}
-
-// call only during execution!
-std::string PHG4SimpleEventGenerator::get_pdgname(int pdgcode) {
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* particledef = particleTable->FindParticle(pdgcode);
-  if (!particledef) return 0;
-  return particledef->GetParticleName();
-}
-
-// call only during execution!
-double PHG4SimpleEventGenerator::get_mass(int pdgcode) {
-  if (pdgcode == 0) return 0.0;
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* particle_definition = particleTable->FindParticle(get_pdgname(pdgcode));
-  if (!particle_definition) return 0.0;
-  return particle_definition->GetPDGMass();
+double
+PHG4SimpleEventGenerator::smearvtx(const double position, const double width, FUNCTION dist) const
+{
+  double res = position;
+  if (dist == Uniform)
+    {
+      res = (position-width) + 2*gsl_rng_uniform_pos(RandomGenerator)*width;
+    }
+  else if (dist == Gaus)
+    {
+      res = position + gsl_ran_gaussian(RandomGenerator,width);
+    }
+  return res;
 }

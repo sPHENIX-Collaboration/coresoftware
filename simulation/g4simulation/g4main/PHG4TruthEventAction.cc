@@ -24,7 +24,8 @@ using namespace std;
 //___________________________________________________
 PHG4TruthEventAction::PHG4TruthEventAction( void ):
   truthInfoList_( 0 ),
-  trackidoffset(0)
+  trackidoffset(0),
+  vertexid_(0)
 {}
 
 //___________________________________________________
@@ -47,7 +48,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
   set<G4int>::const_iterator write_iter;
   vector<G4int> wrttracks;
   vector<int> wrtvtx;
-  for (write_iter = writeList_.begin(); write_iter != writeList_.end(); write_iter++)
+  for (write_iter = writeList_.begin(); write_iter != writeList_.end(); ++write_iter)
     {
       G4int mytrkid = *write_iter;
       PHG4Particle *particle = truthInfoList_->GetHit(mytrkid);
@@ -111,12 +112,12 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
               // save vertex id for primary particle which leaves no hit
               // in active area
               savevtxlist.insert((truthiter->second)->get_vtx_id());
-              truthiter++;
+              ++truthiter;
             }
         }
       else
         {
-          truthiter++;
+          ++truthiter;
         }
     }
   PHG4TruthInfoContainer::VtxRange vtxrange = truthInfoList_->GetVtxRange();
@@ -131,7 +132,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
         }
       else
         {
-          vtxiter++;
+          ++vtxiter;
         }
     }
 //   cout << "truth particles: " << removed[0]
@@ -143,7 +144,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
 
   // loop over all truth entries now that those entries are full
   truth_range = truthInfoList_->GetHitRange();
-  for (truthiter = truth_range.first; truthiter != truth_range.second; truthiter++)
+  for (truthiter = truth_range.first; truthiter != truth_range.second; ++truthiter)
     {
       // do not handle primary particle which are stored with negative track ids
       if (truthiter->first < 0)
@@ -179,7 +180,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
       primaryid = abs(primaryid);
 
       // loop over the track and tell every particle what it's primary truth was
-      for (unsigned int iparticle = 0; iparticle < trace.size(); iparticle++)
+      for (unsigned int iparticle = 0; iparticle < trace.size(); ++iparticle)
         {
           trace[iparticle]->set_primary_id(primaryid);
         }

@@ -18,6 +18,7 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHRandomSeed.h>
 
 #include <TThread.h>
 
@@ -96,14 +97,16 @@ void g4guithread(void *ptr);
 PHG4Reco::PHG4Reco( const string &name ) :
   SubsysReco( name ),
   magfield(2),
-  field_(0),
-  runManager_(0),
-  detector_(0),
-  steppingAction_(0),
+  field_(NULL),
+  runManager_(NULL),
+  detector_(NULL),
+  eventAction_(NULL),
+  steppingAction_(NULL),
   trackingAction_(NULL),
   generatorAction_(NULL),
-  visManager(0),
+  visManager(NULL),
   _eta_coverage(1.0),
+  mapdim(0),
   fieldmapfile("NONE"),
   worldshape("G4Tubs"),
   worldmaterial("G4_AIR"),
@@ -137,8 +140,15 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
   if (verbosity >= 0) {
     cout << "========================= PHG4Reco::Init() ================================" << endl;
   }
-  
-  if (verbosity > 0) cout << "PHG4Reco::Init" << endl;
+  recoConsts *rc = recoConsts::instance();
+  if (rc->FlagExist("RANDOMSEED"))
+    {
+      G4Seed(rc->get_IntFlag("RANDOMSEED"));
+    }
+  else
+    {
+      G4Seed(PHRandomSeed());
+    }
   // create GEANT run manager
   if (verbosity > 0) cout << "PHG4Reco::Init - create run manager" << endl;
   runManager_ = new G4RunManager();
@@ -218,7 +228,6 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
     {
       reco->Init( topNode );
     }
-  recoConsts *rc = recoConsts::instance();
 
   // initialize registered subsystems
   BOOST_FOREACH(SubsysReco * reco, subsystems_)
