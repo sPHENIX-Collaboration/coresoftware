@@ -35,11 +35,13 @@
 using namespace std;
 
 PHG4PhPyReader::PHG4PhPyReader(const std::string &name) :
-    SubsysReco(name), phpythia(NULL), _event_vx(0), _event_vy(0), _event_vz(0)
+    SubsysReco(name), 
+    _input_node("PHPythia"),
+    phpythia(NULL), 
+    _event_vx(0), 
+    _event_vy(0), 
+    _event_vz(0)
 {
-  _input_node = "PHPythia";
-  phpythia = 0; // array of pythia particles
-
   _vtx_offset.resize(3, 0);
   _vtx_sigma.resize(3, 0);
 }
