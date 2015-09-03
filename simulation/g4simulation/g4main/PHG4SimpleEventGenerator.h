@@ -61,17 +61,8 @@ public:
   //! set the dimensions of the distribution of particles about the vertex
   void set_vertex_size_parameters(const double mean, const double width);
 
-  //! raise the embed flag on the generated particles
-  void set_embedflag(const int embedflag) {_embedflag = embedflag;}
-
-  //! print verbosity
-  void set_verbosity(const int verb) {Verbosity(verb);}
-
 private:
 
-  int get_pdgcode(const std::string &name) const;
-  std::string get_pdgname(const int pdgcode) const;
-  double get_mass(const int pid) const;
   double smearvtx(const double position, const double width, FUNCTION dist) const;
   // these need to be stored separately until run time when the names
   // can be translated using the GEANT4 lookup
@@ -100,7 +91,6 @@ private:
   double _pt_min;
   double _pt_max;
   double _p_fixed; 
-  int _embedflag;
 
   PHG4InEvent* _ineve;
 };

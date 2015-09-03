@@ -47,8 +47,8 @@ PHG4SimpleEventGenerator::PHG4SimpleEventGenerator(const string &name):
   _pt_min(0.0),
   _pt_max(10.0),
   _p_fixed(-1.0),
-  _embedflag(0),
-  _ineve(NULL) {
+  _ineve(NULL) 
+{
   return;
 }
 
@@ -274,6 +274,7 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
       } else if ((i==0)&&(j==0)) {
 	vtxindex = _ineve->AddVtx(vertex_x,vertex_y,vertex_z,0.0);
       }
+      ntvtx->Fill(vertex_x,vertex_y,vertex_z);
 
       ++trackid;
    
@@ -307,8 +308,9 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
       particle->set_pz(pz);
       particle->set_e(e);
 
+      ntp->Fill(px,py,pz,eta,phi,e,pt);
       _ineve->AddParticle(vtxindex, particle);
-      if (_embedflag != 0) _ineve->AddEmbeddedParticle(particle);
+      if (embedflag != 0) _ineve->AddEmbeddedParticle(particle);
     }
   }
 
@@ -319,32 +321,6 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
   } 
 
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-// call only during execution!
-int PHG4SimpleEventGenerator::get_pdgcode(const std::string &name) const {
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4String particleName = name;
-  G4ParticleDefinition* particledef = particleTable->FindParticle(particleName);
-  if (!particledef) return 0;
-  return particledef->GetPDGEncoding();
-}
-
-// call only during execution!
-std::string PHG4SimpleEventGenerator::get_pdgname(const int pdgcode) const {
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* particledef = particleTable->FindParticle(pdgcode);
-  if (!particledef) return 0;
-  return particledef->GetParticleName();
-}
-
-// call only during execution!
-double PHG4SimpleEventGenerator::get_mass(const int pdgcode) const {
-  if (pdgcode == 0) return 0.0;
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* particle_definition = particleTable->FindParticle(get_pdgname(pdgcode));
-  if (!particle_definition) return 0.0;
-  return particle_definition->GetPDGMass();
 }
 
 double
