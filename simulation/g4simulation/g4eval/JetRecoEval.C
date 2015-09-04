@@ -254,7 +254,38 @@ Jet* JetRecoEval::max_truth_jet_by_energy(Jet* recojet) {
 }
 
 std::set<Jet*> JetRecoEval::all_jets_from(Jet* truthjet) {
-  return std::set<Jet*>();
+
+  if (_do_cache) {
+    std::map<Jet*,std::set<Jet*> >::iterator iter =
+      _cache_all_jets_from.find(truthjet);
+    if (iter != _cache_all_jets_from.end()) {
+      return iter->second;
+    }
+  }
+  
+  std::set<Jet*> recojets;
+
+  // loop over all reco jets
+  for (JetMap::Iter iter = _recojets->begin();
+       iter != _recojets->end();
+       ++iter) {
+    Jet* recojet = iter->second;
+    
+    // if this jet back tracks to the truth jet
+    std::set<Jet*> truthcandidates = all_truth_jets(recojet);
+    for (std::set<Jet*>::iterator jter = truthcandidates.begin();
+	 jter != truthcandidates.end();
+	 ++jter) {
+      Jet* truthcandidate = *jter;     
+      if (truthcandidate->get_id() == truthjet->get_id()) {
+	recojets.insert(recojet);
+      }
+    }
+  }
+    
+  if (_do_cache) _cache_all_jets_from.insert(make_pair(truthjet,recojets));
+
+  return recojets;
 }
 
 Jet* JetRecoEval::best_jet_from(Jet* truthjet) {
