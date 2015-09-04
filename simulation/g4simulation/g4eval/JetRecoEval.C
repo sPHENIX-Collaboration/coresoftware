@@ -164,7 +164,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
       new_particles = get_cemc_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower);      
     } else if (source == Jet::CEMC_CLUSTER) {
       RawCluster* cluster = _cemcclusters->getCluster(index);
-      new_particles = get_cemc_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster);      
+      new_particles = get_cemc_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
     } else if (source == Jet::HCALIN_TOWER) {
       RawTower* tower = _hcalintowers->getTower(index);
       new_particles = get_hcalin_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower); 
@@ -224,7 +224,33 @@ std::set<Jet*> JetRecoEval::all_truth_jets(Jet* recojet) {
 }
 
 Jet* JetRecoEval::max_truth_jet_by_energy(Jet* recojet) {
-  return NULL;
+  
+  if (_do_cache) {
+    std::map<Jet*,Jet*>::iterator iter =
+      _cache_max_truth_jet_by_energy.find(recojet);
+    if (iter != _cache_max_truth_jet_by_energy.end()) {
+      return iter->second;
+    }
+  }
+
+  Jet* truthjet = NULL;
+  float max_energy = FLT_MAX*-1.0;
+
+  std::set<Jet*> truthjets = all_truth_jets(recojet);  
+  for (std::set<Jet*>::iterator iter = truthjets.begin();
+       iter != truthjets.end();
+       ++iter) {
+    Jet* candidate = *iter;
+    float energy = get_energy_contribution(recojet,candidate);
+    if (energy > max_energy) {
+      truthjet = candidate;
+      max_energy = energy;
+    }
+  } 
+  
+  if (_do_cache) _cache_max_truth_jet_by_energy.insert(make_pair(recojet,truthjet));
+  
+  return truthjet;
 }
 
 std::set<Jet*> JetRecoEval::all_jets_from(Jet* truthjet) {
