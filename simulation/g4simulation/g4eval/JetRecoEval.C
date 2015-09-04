@@ -134,7 +134,63 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {
 }
 
 std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
-  return std::set<PHG4Particle*>();
+ 
+  if (_do_cache) {
+    std::map<Jet*,std::set<PHG4Particle*> >::iterator iter =
+      _cache_all_truth_particles.find(recojet);
+    if (iter != _cache_all_truth_particles.end()) {
+      return iter->second;
+    }
+  }
+  
+  std::set<PHG4Particle*> truth_particles;
+
+  // loop over all the jet constituents, backtrack each reco object to the
+  // truth hits and combine with other consituents
+
+  for (Jet::ConstIter iter = recojet->begin_comp();
+       iter != recojet->end_comp();
+       ++iter) {
+    Jet::SRC source = iter->first;
+    unsigned int index = iter->second;
+
+    std::set<PHG4Particle*> new_particles;
+    
+    if (source == Jet::TRACK) {
+      SvtxTrack* track = _trackmap->get(index);     
+      new_particles = get_svtx_eval_stack()->get_track_eval()->all_truth_particles(track);      
+    } else if (source == Jet::CEMC_TOWER) {
+      RawTower* tower = _cemctowers->getTower(index);
+      new_particles = get_cemc_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower);      
+    } else if (source == Jet::CEMC_CLUSTER) {
+      RawCluster* cluster = _cemcclusters->getCluster(index);
+      new_particles = get_cemc_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster);      
+    } else if (source == Jet::HCALIN_TOWER) {
+      RawTower* tower = _hcalintowers->getTower(index);
+      new_particles = get_hcalin_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower); 
+    } else if (source == Jet::HCALIN_CLUSTER) {
+      RawCluster* cluster = _hcalinclusters->getCluster(index);
+      new_particles = get_hcalin_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
+    } else if (source == Jet::HCALOUT_TOWER) {
+      RawTower* tower = _hcalouttowers->getTower(index);
+      new_particles = get_hcalout_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower); 
+    } else if (source == Jet::HCALOUT_CLUSTER) {
+      RawCluster* cluster = _hcaloutclusters->getCluster(index);
+      new_particles = get_hcalout_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
+    }
+    
+    std::set<PHG4Particle*> union_hits;
+
+    std::set_union(truth_particles.begin(),truth_particles.end(),
+		   new_particles.begin(),new_particles.end(),
+		   std::inserter(union_hits,union_hits.begin()));
+
+    std::swap(truth_particles,union_hits); // swap union into truth_particles    
+  }
+
+  if (_do_cache) _cache_all_truth_particles.insert(make_pair(recojet,truth_particles));
+  
+  return truth_particles;
 }
 
 std::set<Jet*> JetRecoEval::all_truth_jets(Jet* recojet) {
