@@ -34,6 +34,7 @@ pkginclude_HEADERS = \
   JetEvalStack.h \
   JetTruthEval.h \
   JetRecoEval.h \
+  JetEvaluator.h \
   SvtxEvalStack.h \
   SvtxTruthEval.h \
   SvtxHitEval.h \
@@ -61,6 +62,8 @@ libg4eval_la_SOURCES = \
   JetTruthEval_Dict.C \
   JetRecoEval.C \
   JetRecoEval_Dict.C \
+  JetEvaluator.C \
+  JetEvaluator_Dict.C \
   PHG4DSTReader.cc \
   PHG4DSTReader_Dict.C \
   SvtxEvalStack.C \
