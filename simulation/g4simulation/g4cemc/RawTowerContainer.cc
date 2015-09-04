@@ -11,15 +11,15 @@ using namespace std;
 RawTowerDefs::keytype
 RawTowerContainer::genkey(const unsigned int ieta, const unsigned int iphi) const
 {
-  if (ieta > 0xFFFF || iphi > 0xFFFF)
+  if (ieta > 0xFFF || iphi > 0xFFF)
     {
       cout << "ieta " << ieta << " or iphi " << iphi 
-	   << " exceed max length of " << 0xFFFF << endl;
+	   << " exceed max length of " << 0xFFF << endl;
       cout << "reconsider the generation of unique keys" << endl;
       exit(1);
     }
-  unsigned int key = 0;
-  key |= (ieta << 16);
+  RawTowerDefs::keytype key = 0;
+  key |= (ieta << RawTowerDefs::tower_idbits);
   key |= iphi;
   return key;
 }
@@ -31,8 +31,8 @@ RawTowerContainer::compress(const double emin)
     {
       return;
     }
-  std::map<unsigned int, RawTower*>::iterator itr = _towers.begin();
-  std::map<unsigned int, RawTower*>::iterator last = _towers.end();
+  Iterator itr = _towers.begin();
+  Iterator last = _towers.end();
   for (; itr != last; )
     {
       RawTower *tower = (itr->second);
@@ -63,7 +63,7 @@ RawTowerContainer::getTowers( void )
 
 
 RawTowerContainer::ConstIterator
-RawTowerContainer::AddTower(const int ieta, const int iphi, RawTower *rawtower)
+RawTowerContainer::AddTower(const unsigned int ieta, const int unsigned iphi, RawTower *rawtower)
 {
   RawTowerDefs::keytype key = genkey(ieta,iphi);
   _towers[key] = rawtower;
@@ -71,15 +71,21 @@ RawTowerContainer::AddTower(const int ieta, const int iphi, RawTower *rawtower)
 }
 
 RawTower *
-RawTowerContainer::getTower(const int ieta, const int iphi)
+RawTowerContainer::getTower(RawTowerDefs::keytype key)
 {
-  RawTowerDefs::keytype key = genkey(ieta,iphi);
   Iterator it = _towers.find(key);
   if (it != _towers.end())
     {
       return it->second;
     }
   return NULL;
+}
+
+RawTower *
+RawTowerContainer::getTower(const unsigned int ieta, const unsigned int iphi)
+{
+  RawTowerDefs::keytype key = genkey(ieta,iphi);
+  return getTower(key);
 }
 
 int 

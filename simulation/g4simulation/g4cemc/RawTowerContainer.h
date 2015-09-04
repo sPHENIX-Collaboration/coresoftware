@@ -26,8 +26,9 @@ class RawTowerContainer : public PHObject
   void Reset();
   int isValid() const;
   void identify(std::ostream& os=std::cout) const;
-  ConstIterator AddTower(const int ieta, const int iphi, RawTower *twr);
-  RawTower *getTower(const int ieta, const int iphi);
+  ConstIterator AddTower(const unsigned int ieta, const unsigned int iphi, RawTower *twr);
+  RawTower *getTower(RawTowerDefs::keytype key);
+  RawTower *getTower(const unsigned int ieta, const unsigned int iphi);
   //! return all towers
   ConstRange getTowers( void ) const;
   Range getTowers( void );
