@@ -58,9 +58,8 @@ int PHG4SvtxDeadArea::InitRun(PHCompositeNode* topNode) {
   FillCylinderDeadAreaMap(topNode);
   FillLadderDeadAreaMap(topNode);
   
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "====================== PHG4SvtxDeadArea::InitRun() ========================" << endl;
-    cout << " CVS Version: $Id: PHG4SvtxDeadArea.C,v 1.6 2015/04/21 23:47:09 pinkenbu Exp $" << endl;
     cout << " Random number seed = " << seed << endl;    
     for (std::map<int,float>::iterator iter = _eff_by_layer.begin();
 	 iter != _eff_by_layer.end();

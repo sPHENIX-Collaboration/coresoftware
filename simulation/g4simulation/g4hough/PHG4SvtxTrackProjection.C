@@ -47,9 +47,8 @@ int PHG4SvtxTrackProjection::InitRun(PHCompositeNode *topNode)
     if (geo) _cal_radii[i] = geo->get_radius();
   }
   
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "================== PHG4SvtxTrackProjection::InitRun() =====================" << endl;
-    cout << " CVS Version: $Id: PHG4SvtxTrackProjection.C,v 1.10 2015/04/21 23:47:10 pinkenbu Exp $" << endl;
     for (int i=0;i<_num_cal_layers;++i) {
       if (!isnan(_cal_radii[i])) {
 	cout << " " << _cal_names[i] << " projection radius: " << _cal_radii[i] << " cm" << endl;

@@ -212,7 +212,6 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers, unsigned int re
   _dca_cut(0.1),
   _dcaz_cut(0.2)
 {
-  verbosity = 0;
   _magField = 1.5; // Tesla
   _use_vertex = true;
   _chi2_cut_init = 4.0;
@@ -244,7 +243,7 @@ int PHG4HoughTransform::InitRun(PHCompositeNode *topNode)
 {
   int code = CreateNodes(topNode);
 
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "====================== PHG4HoughTransform::InitRun() ======================" << endl;
     cout << " CVS Version: $Id: PHG4HoughTransform.C,v 1.101 2015/04/21 23:47:09 pinkenbu Exp $" << endl;
     cout << " Magnetic field set to: " << _magField << " Tesla" << endl;

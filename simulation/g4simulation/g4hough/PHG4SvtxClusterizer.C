@@ -182,9 +182,8 @@ int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
   // Report Settings
   //----------------
 
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "====================== PHG4SvtxClusterizer::InitRun() =====================" << endl;
-    cout << " CVS Version: $Id: PHG4SvtxClusterizer.C,v 1.15 2015/04/21 23:47:09 pinkenbu Exp $" << endl;
     cout << " Fraction of expected thickness MIP energy = " << _fraction_of_mip << endl;
     for (std::map<int,float>::iterator iter = _thresholds_by_layer.begin();
 	 iter != _thresholds_by_layer.end();
