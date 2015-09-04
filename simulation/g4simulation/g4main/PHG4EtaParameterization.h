@@ -1,9 +1,10 @@
 #ifndef __PHG4ETAPARAMETERIZATION_H__
 #define __PHG4ETAPARAMETERIZATION_H__
 
-#include <vector>
 #include <Geant4/globals.hh>
 #include <Geant4/G4VPVParameterisation.hh>
+
+#include <vector>
 
 class G4VPhysicalVolume;
 class G4Box;
@@ -57,7 +58,6 @@ private:
   unsigned int _neta;   
   double _minEta;
   double _maxEta;
-  unsigned int _nphi;
   double _startPhi;
   double _deltaPhi;
   double _radiusIn;

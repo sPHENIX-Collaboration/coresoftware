@@ -9,10 +9,14 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/recoConsts.h>
+#include <fun4all/getClass.h>
+
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/PHRandomSeed.h>
+
+#include <gsl/gsl_randist.h>
 
 #include <iostream>
 #include <cmath>
@@ -22,13 +26,13 @@ using namespace std;
 BbcVertexFastSimReco::BbcVertexFastSimReco(const string &name)
   : SubsysReco(name),
     _t_smear(NAN),
-    _z_smear(NAN),
-    _rand(NULL) {
-  verbosity = 0;
+    _z_smear(NAN)
+{
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
 }
 
 BbcVertexFastSimReco::~BbcVertexFastSimReco() {
-  if (_rand) delete _rand;
+  gsl_rng_free (RandomGenerator);
 }
 
 int BbcVertexFastSimReco::Init(PHCompositeNode *topNode) {
@@ -43,9 +47,16 @@ int BbcVertexFastSimReco::InitRun(PHCompositeNode *topNode) {
   }
   
   recoConsts *rc = recoConsts::instance();
-  int seed = rc->get_IntFlag("RANDOMSEED");
-
-  _rand = new TRandom3(seed);
+  unsigned int seed;
+  if (rc->FlagExist("RANDOMSEED"))
+    {
+      seed = rc->get_IntFlag("RANDOMSEED");
+    }
+  else
+    {
+      seed = PHRandomSeed();
+    }
+  gsl_rng_set(RandomGenerator,seed);
   
   if (verbosity > 0) {
     cout << "===================== BbcVertexFastSimReco::InitRun() =====================" << endl;
@@ -83,9 +94,9 @@ int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode) {
 
   PHG4VtxPoint* point = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
   BbcVertex* vertex = new BbcVertex_v1();
-  vertex->set_t( _rand->Gaus(point->get_t(), _t_smear) );
+  vertex->set_t(point->get_t() + gsl_ran_gaussian(RandomGenerator,_t_smear) );
   vertex->set_t_err( _t_smear );
-  vertex->set_z(  _rand->Gaus(point->get_z() , _z_smear) );
+  vertex->set_z(point->get_z() +  gsl_ran_gaussian(RandomGenerator,_z_smear) );
   vertex->set_z_err( _z_smear );
 
   vertexes->insert(vertex);
@@ -102,7 +113,7 @@ int BbcVertexFastSimReco::CreateNodes(PHCompositeNode *topNode) {
   PHNodeIterator iter(topNode);
 
   // Looking for the DST node
-  PHCompositeNode *dstNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
   if (!dstNode) {
     cout << PHWHERE << "DST Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTRUN;

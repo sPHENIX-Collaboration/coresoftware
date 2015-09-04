@@ -8,10 +8,12 @@
 //===========================================================
 
 #include <fun4all/SubsysReco.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHTimeServer.h>
 
-#include <TRandom3.h>
+// rootcint barfs with this header so we need to hide it
+#ifndef __CINT__
+#include <gsl/gsl_rng.h>
+#endif
+
 
 class PHCompositeNode;
 
@@ -31,8 +33,8 @@ class BbcVertexFastSimReco : public SubsysReco {
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  void set_t_smearing(float t_smear) {_t_smear = t_smear;}
-  void set_z_smearing(float z_smear) {_z_smear = z_smear;}
+  void set_t_smearing(const float t_smear) {_t_smear = t_smear;}
+  void set_z_smearing(const float z_smear) {_z_smear = z_smear;}
 
  private:
 
@@ -41,7 +43,10 @@ class BbcVertexFastSimReco : public SubsysReco {
   float _t_smear;
   float _z_smear;
 
-  TRandom3* _rand;
+#ifndef __CINT__
+  gsl_rng *RandomGenerator;
+#endif
+
 };
 
 #endif // __BBCVERTEXFASTSIMRECO_H__
