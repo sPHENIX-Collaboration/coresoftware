@@ -2,27 +2,19 @@
 #include "JetEvaluator.h"
 
 #include "JetEvalStack.h"
+#include "JetRecoEval.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/getClass.h>
 #include <fun4all/SubsysReco.h>
 #include <phool/PHCompositeNode.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
-#include <g4main/PHG4Particle.h>
-#include <g4hough/SvtxVertexMap.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTowerGeom.h>
-#include <g4cemc/RawTower.h>
-#include <g4cemc/RawClusterContainer.h>
-#include <g4cemc/RawCluster.h>
+#include <g4jets/JetMap.h>
+#include <g4jets/Jet.h>
 
 #include <TNtuple.h>
 #include <TFile.h>
 
 #include <iostream>
-//#include <vector>
-//#include <algorithm>
 #include <cmath>
 
 using namespace std;
