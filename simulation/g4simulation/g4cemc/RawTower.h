@@ -42,6 +42,7 @@ class RawTower : public PHObject {
 
  protected:
   RawTower() {}
+  virtual CellConstRange get_g4cells();
 
   ClassDef(RawTower,1)
 
