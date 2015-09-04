@@ -3,11 +3,13 @@
 #include "SvtxHitMap.h"
 #include "SvtxHit.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
 #include <fun4all/getClass.h>
 #include <fun4all/recoConsts.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHRandomSeed.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
@@ -16,7 +18,7 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
-#include <TRandom3.h>
+#include <gsl/gsl_rng.h>
 
 #include <iostream>
 
@@ -25,13 +27,10 @@ using namespace std;
 PHG4SvtxDeadArea::PHG4SvtxDeadArea(const string &name) :
   SubsysReco(name),
   _hits(NULL),
-  _rand(NULL),
-  _timer(PHTimeServer::get()->insert_new(name)) {
-}
-
-PHG4SvtxDeadArea::~PHG4SvtxDeadArea()
+  _timer(PHTimeServer::get()->insert_new(name)) 
 {
-  delete _rand;
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  return;
 }
 
 int PHG4SvtxDeadArea::InitRun(PHCompositeNode* topNode) {
@@ -45,8 +44,16 @@ int PHG4SvtxDeadArea::InitRun(PHCompositeNode* topNode) {
   
   // setup our random number generator
   recoConsts *rc = recoConsts::instance();
-  int seed = rc->get_IntFlag("RANDOMSEED");
-  _rand = new TRandom3(seed);
+  unsigned int seed;
+  if (rc->FlagExist("RANDOMSEED"))
+    {
+      seed = rc->get_IntFlag("RANDOMSEED");
+    }
+  else
+    {
+      seed = PHRandomSeed();
+    }
+  gsl_rng_set(RandomGenerator,seed);
 
   FillCylinderDeadAreaMap(topNode);
   FillLadderDeadAreaMap(topNode);
@@ -77,7 +84,7 @@ int PHG4SvtxDeadArea::process_event(PHCompositeNode *topNode) {
        ++iter) {
     SvtxHit* hit = &iter->second;
 
-    if (_rand->Rndm() > get_hit_efficiency(hit->get_layer())) {
+    if (gsl_rng_uniform_pos(RandomGenerator) > get_hit_efficiency(hit->get_layer())) {
       remove_hits.push_back(hit->get_id());
     }
   }
