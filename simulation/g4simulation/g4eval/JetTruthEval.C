@@ -7,6 +7,7 @@
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
+#include <g4jets/JetMap.h>
 #include <g4jets/Jet.h>
 
 #include <cstdlib>
@@ -16,16 +17,19 @@
 
 using namespace std;
 
-JetTruthEval::JetTruthEval(PHCompositeNode* topNode)
-  : _svtxevalstack(topNode),
+JetTruthEval::JetTruthEval(PHCompositeNode* topNode,
+			   std::string truthjetname)
+  : _truthjetname(truthjetname),
+    _svtxevalstack(topNode),   
     _cemcevalstack(topNode,"CEMC"),
     _hcalinevalstack(topNode,"HCALIN"),
     _hcaloutevalstack(topNode,"HCALOUT"),
     _truthinfo(NULL),
+    _truthjets(NULL),
     _do_cache(true),
     _cache_all_truth_particles(),
-    _cache_all_truth_hits() {
-
+    _cache_all_truth_hits(),
+    _cache_get_truth_jet() {
   get_node_pointers(topNode);
 }
 
@@ -38,6 +42,7 @@ void JetTruthEval::next_event(PHCompositeNode* topNode) {
   
   _cache_all_truth_particles.clear();
   _cache_all_truth_hits.clear();
+  _cache_get_truth_jet.clear();
 
   get_node_pointers(topNode);
 }
@@ -146,11 +151,54 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
   return truth_hits;
 }
 
+Jet* JetTruthEval::get_truth_jet(PHG4Particle* particle) {
+
+  if (_do_cache) {
+    std::map<PHG4Particle*,Jet*>::iterator iter =
+      _cache_get_truth_jet.find(particle);
+    if (iter != _cache_get_truth_jet.end()) {
+      return iter->second;
+    }
+  }
+
+  Jet* truth_jet = NULL;
+  
+  // loop over all jets and look for this particle...
+  for (JetMap::Iter iter = _truthjets->begin();
+       iter != _truthjets->end();
+       ++iter) {
+    Jet* candidate = iter->second;
+
+    // loop over all consituents and look for this particle    
+    for (Jet::ConstIter jter = candidate->begin_comp();
+	 jter != candidate->end_comp();
+	 ++jter) {
+      unsigned int index = jter->second;
+      if (index == (unsigned int)particle->get_track_id()) {
+	truth_jet = candidate;
+	break;
+      }
+    }
+    
+    if (truth_jet) break;
+  }  
+  
+  if (_do_cache) _cache_get_truth_jet.insert(make_pair(particle,truth_jet));
+  
+  return truth_jet;
+}
+
 void JetTruthEval::get_node_pointers(PHCompositeNode* topNode) {
 
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
   if (!_truthinfo) {
     cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
+    exit(-1);
+  }
+
+  _truthjets = findNode::getClass<JetMap>(topNode,_truthjetname.c_str());
+  if (!_truthjets) {
+    cerr << PHWHERE << " ERROR: Can't find " << _truthjetname << endl;
     exit(-1);
   }
 

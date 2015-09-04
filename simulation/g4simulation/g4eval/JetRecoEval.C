@@ -35,7 +35,7 @@ using namespace std;
 JetRecoEval::JetRecoEval(PHCompositeNode* topNode,
 			 std::string recojetname,
 			 std::string truthjetname)
-  : _jettrutheval(topNode),
+  : _jettrutheval(topNode,truthjetname),
     _recojetname(recojetname),
     _truthjetname(truthjetname),
     _recojets(NULL),
@@ -194,7 +194,33 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
 }
 
 std::set<Jet*> JetRecoEval::all_truth_jets(Jet* recojet) {
-  return std::set<Jet*>();
+
+  if (_do_cache) {
+    std::map<Jet*,std::set<Jet*> >::iterator iter =
+      _cache_all_truth_jets.find(recojet);
+    if (iter != _cache_all_truth_jets.end()) {
+      return iter->second;
+    }
+  }
+  
+  std::set<Jet*> truth_jets;
+  
+  // get all truth particles...
+  std::set<PHG4Particle*> particles = all_truth_particles(recojet);
+  
+  // backtrack from the truth particles to the truth jets...
+  for (std::set<PHG4Particle*>::iterator iter = particles.begin();
+       iter != particles.end();
+       ++iter) {
+    PHG4Particle* particle = *iter;
+
+    Jet* truth_jet = _jettrutheval.get_truth_jet(particle);
+    truth_jets.insert(truth_jet);
+  }
+
+  if (_do_cache) _cache_all_truth_jets.insert(make_pair(recojet,truth_jets));
+  
+  return truth_jets;
 }
 
 Jet* JetRecoEval::max_truth_jet_by_energy(Jet* recojet) {
