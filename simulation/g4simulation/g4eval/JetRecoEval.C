@@ -320,7 +320,67 @@ Jet* JetRecoEval::best_jet_from(Jet* truthjet) {
 
 // overlap calculations
 float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet) {
-  return 0.0;
+
+  if (_do_cache) {
+    std::map<std::pair<Jet*,Jet*>,float>::iterator iter =
+      _cache_get_energy_contribution.find(make_pair(recojet,truthjet));
+    if (iter != _cache_get_energy_contribution.end()) {
+      return iter->second;
+    }
+  }
+  
+  float energy_contribution = 0.0;
+
+  std::set<PHG4Particle*> truthjetcomp = get_truth_eval()->all_truth_particles(truthjet);
+
+  // loop over all truthjet constituents
+  for (std::set<PHG4Particle*>::iterator iter = truthjetcomp.begin();
+       iter != truthjetcomp.end();
+       ++iter) {
+    PHG4Particle* truthparticle = *iter;
+    
+    // loop over all recojet constituents
+    for (Jet::ConstIter jter = recojet->begin_comp();
+	 jter != recojet->end_comp();
+	 ++jter) {
+      Jet::SRC source = jter->first;
+      unsigned int index = jter->second;
+
+      float energy = 0.0;
+    
+      if (source == Jet::TRACK) {
+	SvtxTrack* track = _trackmap->get(index);
+	PHG4Particle* maxtruthparticle = get_svtx_eval_stack()->get_track_eval()->max_truth_particle_by_nclusters(track);
+	if (maxtruthparticle->get_track_id() == truthparticle->get_track_id()) { 
+	  energy = track->getMomentum();
+	}
+      } else if (source == Jet::CEMC_TOWER) {
+	RawTower* tower = _cemctowers->getTower(index);
+	energy = get_cemc_eval_stack()->get_rawtower_eval()->get_energy_contribution(tower,truthparticle);
+      } else if (source == Jet::CEMC_CLUSTER) {
+	RawCluster* cluster = _cemcclusters->getCluster(index);
+	energy = get_cemc_eval_stack()->get_rawcluster_eval()->get_energy_contribution(cluster,truthparticle);
+      } else if (source == Jet::HCALIN_TOWER) {
+	RawTower* tower = _hcalintowers->getTower(index);
+	energy = get_hcalin_eval_stack()->get_rawtower_eval()->get_energy_contribution(tower,truthparticle);
+      } else if (source == Jet::HCALIN_CLUSTER) {
+	RawCluster* cluster = _hcalinclusters->getCluster(index);
+	energy = get_hcalin_eval_stack()->get_rawcluster_eval()->get_energy_contribution(cluster,truthparticle);
+      } else if (source == Jet::HCALOUT_TOWER) {
+	RawTower* tower = _hcalouttowers->getTower(index);
+	energy = get_hcalout_eval_stack()->get_rawtower_eval()->get_energy_contribution(tower,truthparticle);
+      } else if (source == Jet::HCALOUT_CLUSTER) {
+	RawCluster* cluster = _hcaloutclusters->getCluster(index);
+	energy = get_hcalout_eval_stack()->get_rawcluster_eval()->get_energy_contribution(cluster,truthparticle);
+      }
+
+      energy_contribution += energy;
+    }
+  }
+
+  if (_do_cache) _cache_get_energy_contribution.insert(make_pair(make_pair(recojet,truthjet),energy_contribution));
+  
+  return energy_contribution;
 }
 
 void JetRecoEval::get_node_pointers(PHCompositeNode* topNode) {
