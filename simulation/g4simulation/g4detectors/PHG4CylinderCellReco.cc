@@ -238,7 +238,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
     }
 
   // print out settings
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "===================== PHG4CylinderCellReco::InitRun() =====================" << endl;
     cout << " " << outdetector << " Segmentation Description: " << endl;
     for (std::map<int,int>::iterator iter = binning.begin(); 
