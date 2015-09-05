@@ -1,4 +1,7 @@
 #include "RawTowerv1.h"
+
+#include "RawTowerDefs.h"
+
 #include <iostream>
 #include <algorithm>
 
@@ -25,7 +28,7 @@ RawTowerv1::RawTowerv1(const unsigned int ieta, const unsigned int iphi) :
 {
   if (ieta < 0xFFF && iphi < 0xFFF)
     {
-  towerid = (ieta << 12) + iphi;
+  towerid = (ieta << RawTowerDefs::eta_idbits) + iphi;
     }
   else
     {
