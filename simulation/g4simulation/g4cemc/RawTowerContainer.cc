@@ -73,7 +73,6 @@ RawTowerContainer::AddTower(const unsigned int ieta, const int unsigned iphi, Ra
 RawTower *
 RawTowerContainer::getTower(RawTowerDefs::keytype key)
 {
-  RawTowerDefs::keytype key = genkey(ieta,iphi);
   Iterator it = _towers.find(key);
   if (it != _towers.end())
     {
