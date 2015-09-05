@@ -19,7 +19,7 @@ RawTowerContainer::genkey(const unsigned int ieta, const unsigned int iphi) cons
       exit(1);
     }
   RawTowerDefs::keytype key = 0;
-  key |= (ieta << RawTowerDefs::tower_idbits);
+  key |= (ieta << RawTowerDefs::eta_idbits);
   key |= iphi;
   return key;
 }
