@@ -25,7 +25,7 @@ class RawTowerv1 : public RawTower {
   void set_light_yield(const float l)  { light_yield = l; }
   float get_light_yield() const { return light_yield; };
 
-  CellConstRange get_g4cells()
+  RawTower::CellConstRange get_g4cells()
   {return make_pair(ecells.begin(), ecells.end());}
   void add_ecell(const PHG4CylinderCellDefs::keytype g4cellid, const float ecell);
 
