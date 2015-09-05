@@ -38,9 +38,8 @@ int PHG4SvtxThresholds::InitRun(PHCompositeNode* topNode) {
   CalculateCylinderThresholds(topNode);
   CalculateLadderThresholds(topNode);
   
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "====================== PHG4SvtxThresholds::InitRun() ======================" << endl;
-    cout << " CVS Version: $Id: PHG4SvtxThresholds.C,v 1.7 2015/04/21 23:47:10 pinkenbu Exp $" << endl;
     cout << " Fraction of expected MIP energy = " << _fraction_of_mip << endl;
     for (std::map<int,float>::iterator iter = _thresholds_by_layer.begin();
 	 iter != _thresholds_by_layer.end();

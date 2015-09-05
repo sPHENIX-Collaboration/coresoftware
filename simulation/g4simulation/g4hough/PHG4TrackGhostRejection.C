@@ -35,9 +35,8 @@ int PHG4TrackGhostRejection::Init(PHCompositeNode *topNode)
 
 int PHG4TrackGhostRejection::InitRun(PHCompositeNode *topNode)
 {
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "================== PHG4TrackGhostRejection::InitRun() =====================" << endl;
-    cout << " CVS Version: $Id: PHG4TrackGhostRejection.C,v 1.12 2015/04/21 23:47:10 pinkenbu Exp $" << endl;
     cout << " Maximum allowed shared hits: " << _max_shared_hits << endl;
     for (unsigned int i=0;i<_layer_enabled.size();++i) {
       cout << " Enabled for hits in layer #" << i << ": " << boolalpha << _layer_enabled[i] << noboolalpha << endl;

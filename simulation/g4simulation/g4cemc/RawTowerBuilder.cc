@@ -6,11 +6,11 @@
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderCell.h>
+#include <g4detectors/PHG4CylinderCellDefs.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHIODataNode.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <g4detectors/PHG4CylinderCellDefs.h>
 #include <fun4all/getClass.h>
 
 #include <iostream>
@@ -211,7 +211,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
       thickness += cellgeo->get_thickness();
       if (ifirst)
 	{
-    _cell_binning = cellgeo->get_binning();
+	  _cell_binning = cellgeo->get_binning();
 	  _nphibins = cellgeo->get_phibins();
 	  _phimin = cellgeo->get_phimin();
 	  _phistep = cellgeo->get_phistep();
@@ -234,7 +234,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
           else
             {
               cout <<"RawTowerBuilder::CreateNodes::"<<Name()
-                  <<" - Fatal Error - unsupported cell binning method "<<_cell_binning<<endl;
+		   <<" - Fatal Error - unsupported cell binning method "<<_cell_binning<<endl;
             }
 	  inner_radius = cellgeo->get_radius();
 	  first_layer = cellgeo->get_layer();
@@ -373,7 +373,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
       rawtowergeom->identify();
     }
 
-  PHCompositeNode *dstNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
     {
       std::cerr << PHWHERE << "DST Node missing, doing nothing." << std::endl;

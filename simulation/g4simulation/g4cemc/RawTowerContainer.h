@@ -1,6 +1,7 @@
 #ifndef RAWTOWERCONTAINER_H__
 #define RAWTOWERCONTAINER_H__
 
+#include "RawTowerDefs.h"
 #include <phool/PHObject.h>
 #include <phool/phool.h>
 #include <iostream>
@@ -13,7 +14,7 @@ class RawTowerContainer : public PHObject
 
  public:
 
-  typedef std::map<unsigned int,RawTower *> Map;
+  typedef std::map<RawTowerDefs::keytype ,RawTower *> Map;
   typedef Map::iterator Iterator;
   typedef Map::const_iterator ConstIterator;
   typedef std::pair<Iterator, Iterator> Range;
@@ -25,9 +26,9 @@ class RawTowerContainer : public PHObject
   void Reset();
   int isValid() const;
   void identify(std::ostream& os=std::cout) const;
-  ConstIterator AddTower(const int ieta, const int iphi, RawTower *twr);
-  RawTower *getTower(const int ieta, const int iphi);
-  RawTower *getTower(const unsigned int id);
+  ConstIterator AddTower(const unsigned int ieta, const unsigned int iphi, RawTower *twr);
+  RawTower *getTower(RawTowerDefs::keytype key);
+  RawTower *getTower(const unsigned int ieta, const unsigned int iphi);
   //! return all towers
   ConstRange getTowers( void ) const;
   Range getTowers( void );
@@ -35,7 +36,7 @@ class RawTowerContainer : public PHObject
   unsigned int size() const {return _towers.size();}
   void compress(const double emin);
   double getTotalEdep() const;
-  unsigned int genkey(const unsigned int ieta, const unsigned int iphi) const;
+  RawTowerDefs::keytype genkey(const unsigned int ieta, const unsigned int iphi) const;
 
  protected:
   Map _towers;

@@ -65,9 +65,8 @@ int PHG4SvtxDigitizer::InitRun(PHCompositeNode* topNode) {
   // Report Settings
   //----------------
   
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "====================== PHG4SvtxDigitizer::InitRun() =====================" << endl;
-    cout << " CVS Version: $Id: PHG4SvtxDigitizer.C,v 1.5 2015/04/21 23:47:10 pinkenbu Exp $" << endl;
     for (std::map<int,unsigned int>::iterator iter = _max_adc.begin();
 	 iter != _max_adc.end();
 	 ++iter) {
