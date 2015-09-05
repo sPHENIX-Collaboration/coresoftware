@@ -97,24 +97,52 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {
     std::set<PHG4Hit*> new_hits;
     
     if (source == Jet::TRACK) {
+      if (!_trackmap) {
+	cout << PHWHERE << "ERROR: can't find SvtxTrackMap" << endl;
+	exit(-1);
+      }
       SvtxTrack* track = _trackmap->get(index);     
       new_hits = get_svtx_eval_stack()->get_track_eval()->all_truth_hits(track);      
     } else if (source == Jet::CEMC_TOWER) {
+      if (!_cemctowers) {
+	cout << PHWHERE << "ERROR: can't find TOWER_CEMC" << endl;
+	exit(-1);
+      }
       RawTower* tower = _cemctowers->getTower(index);
       new_hits = get_cemc_eval_stack()->get_rawtower_eval()->all_truth_hits(tower);      
     } else if (source == Jet::CEMC_CLUSTER) {
+      if (!_cemcclusters) {
+	cout << PHWHERE << "ERROR: can't find CLUSTER_CEMC" << endl;
+	exit(-1);
+      }
       RawCluster* cluster = _cemcclusters->getCluster(index);
       new_hits = get_cemc_eval_stack()->get_rawcluster_eval()->all_truth_hits(cluster);      
     } else if (source == Jet::HCALIN_TOWER) {
+      if (!_hcalintowers) {
+	cout << PHWHERE << "ERROR: can't find TOWER_HCALIN" << endl;
+	exit(-1);
+      }
       RawTower* tower = _hcalintowers->getTower(index);
       new_hits = get_hcalin_eval_stack()->get_rawtower_eval()->all_truth_hits(tower); 
     } else if (source == Jet::HCALIN_CLUSTER) {
+      if (!_hcalinclusters) {
+	cout << PHWHERE << "ERROR: can't find CLUSTER_HCALIN" << endl;
+	exit(-1);
+      }
       RawCluster* cluster = _hcalinclusters->getCluster(index);
       new_hits = get_hcalin_eval_stack()->get_rawcluster_eval()->all_truth_hits(cluster); 
     } else if (source == Jet::HCALOUT_TOWER) {
+      if (!_hcalouttowers) {
+	cout << PHWHERE << "ERROR: can't find TOWER_HCALOUT" << endl;
+	exit(-1);
+      }
       RawTower* tower = _hcalouttowers->getTower(index);
       new_hits = get_hcalout_eval_stack()->get_rawtower_eval()->all_truth_hits(tower); 
     } else if (source == Jet::HCALOUT_CLUSTER) {
+      if (!_hcaloutclusters) {
+	cout << PHWHERE << "ERROR: can't find CLUSTER_HCALOUT" << endl;
+	exit(-1);
+      }
       RawCluster* cluster = _hcaloutclusters->getCluster(index);
       new_hits = get_hcalout_eval_stack()->get_rawcluster_eval()->all_truth_hits(cluster); 
     }
@@ -142,7 +170,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
       return iter->second;
     }
   }
-  
+
   std::set<PHG4Particle*> truth_particles;
 
   // loop over all the jet constituents, backtrack each reco object to the
@@ -157,24 +185,52 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
     std::set<PHG4Particle*> new_particles;
     
     if (source == Jet::TRACK) {
+      if (!_trackmap) {
+	cout << PHWHERE << "ERROR: can't find SvtxTrackMap" << endl;
+	exit(-1);
+      }
       SvtxTrack* track = _trackmap->get(index);     
       new_particles = get_svtx_eval_stack()->get_track_eval()->all_truth_particles(track);      
     } else if (source == Jet::CEMC_TOWER) {
+      if (!_cemctowers) {
+	cout << PHWHERE << "ERROR: can't find TOWER_CEMC" << endl;
+	exit(-1);
+      }
       RawTower* tower = _cemctowers->getTower(index);
       new_particles = get_cemc_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower);      
     } else if (source == Jet::CEMC_CLUSTER) {
+      if (!_cemcclusters) {
+	cout << PHWHERE << "ERROR: can't find CLUSTER_CEMC" << endl;
+	exit(-1);
+      }
       RawCluster* cluster = _cemcclusters->getCluster(index);
       new_particles = get_cemc_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
     } else if (source == Jet::HCALIN_TOWER) {
+      if (!_hcalintowers) {
+	cout << PHWHERE << "ERROR: can't find TOWER_HCALIN" << endl;
+	exit(-1);
+      }
       RawTower* tower = _hcalintowers->getTower(index);
       new_particles = get_hcalin_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower); 
     } else if (source == Jet::HCALIN_CLUSTER) {
+      if (!_hcalinclusters) {
+	cout << PHWHERE << "ERROR: can't find CLUSTER_HCALIN" << endl;
+	exit(-1);
+      }
       RawCluster* cluster = _hcalinclusters->getCluster(index);
       new_particles = get_hcalin_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
     } else if (source == Jet::HCALOUT_TOWER) {
+      if (!_hcalouttowers) {
+	cout << PHWHERE << "ERROR: can't find TOWER_HCALOUT" << endl;
+	exit(-1);
+      }
       RawTower* tower = _hcalouttowers->getTower(index);
       new_particles = get_hcalout_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower); 
     } else if (source == Jet::HCALOUT_CLUSTER) {
+      if (!_hcaloutclusters) {
+	cout << PHWHERE << "ERROR: can't find CLUSTER_HCALOUT" << endl;
+	exit(-1);
+      }
       RawCluster* cluster = _hcaloutclusters->getCluster(index);
       new_particles = get_hcalout_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
     }
@@ -399,12 +455,12 @@ void JetRecoEval::get_node_pointers(PHCompositeNode* topNode) {
   }
 
   _trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
-  _cemctowers = findNode::getClass<RawTowerContainer>(topNode,"TOWERS_CEMC");
-  _hcalintowers = findNode::getClass<RawTowerContainer>(topNode,"TOWERS_HCALIN");
-  _hcalouttowers = findNode::getClass<RawTowerContainer>(topNode,"TOWERS_HCALOUT");
-  _cemcclusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTERS_CEMC");
-  _hcalinclusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTERS_HCALIN");
-  _hcaloutclusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTERS_HCALOUT");
+  _cemctowers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CEMC");
+  _hcalintowers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_HCALIN");
+  _hcalouttowers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_HCALOUT");
+  _cemcclusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_CEMC");
+  _hcalinclusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_HCALIN");
+  _hcaloutclusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_HCALOUT");
 
   return;
 }
