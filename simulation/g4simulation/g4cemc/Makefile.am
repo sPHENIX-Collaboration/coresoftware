@@ -27,7 +27,6 @@ libcemc_io_la_SOURCES = \
   RawClusterv1_Dict.cc \
   RawClusterContainer.cc \
   RawClusterContainer_Dict.cc \
-  RawTower.cc \
   RawTower_Dict.cc \
   RawTowerv1.cc \
   RawTowerv1_Dict.cc \
@@ -90,6 +89,7 @@ pkginclude_HEADERS = \
   RawCluster.h \
   RawClusterContainer.h \
   RawTower.h \
+  RawTowerDefs.h \
   RawTowerv1.h \
   RawTowerv2.h \
   RawTowerContainer.h \

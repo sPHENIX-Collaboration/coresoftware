@@ -9,33 +9,31 @@ class RawTowerv1 : public RawTower {
 
  public:
   RawTowerv1();
-  RawTowerv1(const int ieta, const int iphi);
+  RawTowerv1(RawTowerDefs::keytype id);
+  RawTowerv1(const unsigned int ieta, const unsigned int iphi);
   virtual ~RawTowerv1();
 
   void Reset();
   int isValid() const;
   void identify(std::ostream& os=std::cout) const;
 
-  unsigned int get_id() const { return bineta << 12 | binphi;}
-  int get_bineta() const { return bineta; }
-  int get_binphi() const { return binphi; }
-  float get_energy() const;
+  RawTowerDefs::keytype get_id() const { return towerid;}
+  int get_bineta() const { return (towerid >> 12)&0xFFF ; }
+  int get_binphi() const { return towerid&0xFFF; }
+  double get_energy() const;
 
-  void set_light_yield(float l)  { light_yield = l; }
+  void set_light_yield(const float l)  { light_yield = l; }
   float get_light_yield() const { return light_yield; };
 
-  bool is_adjacent(RawTower& tower);
-
-  std::pair< std::map<unsigned int,float>::const_iterator, std::map<unsigned int,float>::const_iterator > get_g4cells()
+  RawTower::CellConstRange get_g4cells()
   {return make_pair(ecells.begin(), ecells.end());}
-  void add_ecell(const unsigned int g4cellid, const float ecell);
+  void add_ecell(const PHG4CylinderCellDefs::keytype g4cellid, const float ecell);
 
  protected:
-  int bineta;
-  int binphi;
+  RawTowerDefs::keytype towerid;
   float light_yield;
 
-  std::map<unsigned int, float> ecells;
+  CellMap ecells;
 
   ClassDef(RawTowerv1,2)
 };

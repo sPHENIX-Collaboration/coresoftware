@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 
+#include <cmath>
 #include <map>
 
 using namespace std;
@@ -9,15 +10,30 @@ using namespace std;
 ClassImp(RawTowerv1)
 
 RawTowerv1::RawTowerv1() : 
-  bineta(-1), 
-  binphi(-1)
+  towerid(~0), // initialize all bits on
+  light_yield(NAN)
 {}
 
-RawTowerv1::RawTowerv1(const int ieta, const int iphi) :
-  bineta(ieta),
-  binphi(iphi),
-  light_yield(0)
+RawTowerv1::RawTowerv1(RawTowerDefs::keytype id) : 
+  towerid(id),
+  light_yield(NAN)
 {}
+
+RawTowerv1::RawTowerv1(const unsigned int ieta, const unsigned int iphi) :
+  towerid(0),
+  light_yield(NAN)
+{
+  if (ieta < 0xFFF && iphi < 0xFFF)
+    {
+  towerid = (ieta << 12) + iphi;
+    }
+  else
+    {
+      cout << "too large eta or phi bin, eta: " << ieta
+	   << ", phi: " << iphi << ", max val: " << 0xFFF << endl;
+      exit(1);
+    }
+}
 
 RawTowerv1::~RawTowerv1()
 {}
@@ -34,30 +50,12 @@ int RawTowerv1::isValid() const
 
 void RawTowerv1::identify(std::ostream& os) const
 {
-  os << "RawTowerv1: etabin: " << bineta << ", phibin: " << binphi 
+  os << "RawTowerv1: etabin: " << get_bineta() << ", phibin: " << get_binphi() 
      << " energy=" << get_energy() << std::endl;
 }
 
-bool RawTowerv1::is_adjacent(RawTower& tower)
-{
-  if (bineta - 1 <= tower.get_bineta() && tower.get_bineta() <= bineta + 1)
-    {
-      if (binphi - 1 <= tower.get_binphi() && tower.get_binphi() <= binphi + 1)
-        {
-          return true;
-        }
-      // cluster through the phi-wraparound
-      //       else if(((tower.get_binphi() == _nphi-1) && (binphi == 0)) ||
-      // 	      ((tower.get_binphi() == 0) && (binphi == _nphi-1)))
-      // 	{
-      // 	  return true;
-      // 	}
-    }
-
-  return false;
-}
-
-void RawTowerv1::add_ecell(const unsigned int g4cellid, const float ecell)
+void 
+RawTowerv1::add_ecell(const PHG4CylinderCellDefs::keytype g4cellid, const float ecell)
 {
   if (ecells.find(g4cellid) == ecells.end())
     {
@@ -69,10 +67,11 @@ void RawTowerv1::add_ecell(const unsigned int g4cellid, const float ecell)
     }
 }
 
-float RawTowerv1::get_energy() const
+double 
+RawTowerv1::get_energy() const
 {
-  map<unsigned int, float>::const_iterator iter;
-  float esum = 0;
+  RawTower::CellConstIterator iter;
+  double esum = 0;
   for (iter = ecells.begin(); iter != ecells.end(); ++iter)
     {
       esum += iter->second;
