@@ -28,7 +28,7 @@ RawTowerv1::RawTowerv1(const unsigned int ieta, const unsigned int iphi) :
 {
   if (ieta < 0xFFF && iphi < 0xFFF)
     {
-  towerid = (ieta << RawTowerDefs::eta_idbits) + iphi;
+      towerid = (ieta << RawTowerDefs::eta_idbits) + iphi;
     }
   else
     {
