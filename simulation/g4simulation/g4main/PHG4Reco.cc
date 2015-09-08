@@ -143,15 +143,17 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
   if (verbosity > 0) {
     cout << "========================= PHG4Reco::Init() ================================" << endl;
   }
+
   recoConsts *rc = recoConsts::instance();
   if (rc->FlagExist("RANDOMSEED"))
     {
-      G4Seed(rc->get_IntFlag("RANDOMSEED"));
+      G4Seed(std::abs(rc->get_IntFlag("RANDOMSEED")));
     }
   else
     {
       G4Seed(PHRandomSeed());
     }
+  
   // create GEANT run manager
   if (verbosity > 1) cout << "PHG4Reco::Init - create run manager" << endl;
 
