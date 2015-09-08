@@ -21,10 +21,10 @@ class PHG4Subsystem;
 class PHG4EventGenerator;
 class G4TBMagneticFieldSetup;
 class G4VUserPrimaryGeneratorAction;
+class PHG4UIsession;
 
 // for the G4 cmd interface and the graphics
 class G4UImanager;
-class G4UIsession;
 class G4VisManager;
 
 /*!
@@ -117,7 +117,7 @@ class PHG4Reco: public SubsysReco
   G4RunManager* runManager_;
 
   //! pointer to geant ui session
-  G4UIsession* uisession_;
+  PHG4UIsession* uisession_;
 
   //! pointer to detector
   PHG4PhenixDetector* detector_;

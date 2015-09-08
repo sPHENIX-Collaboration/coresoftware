@@ -157,10 +157,10 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
 
   // redirect GEANT verbosity to nowhere
   if (verbosity < 1) {
-    G4UImanager* uimanager = G4UImanager::GetUIpointer();
-    uisession_ = new PHG4UIsession();  
-    uimanager->SetSession(uisession_);
-    uimanager->SetCoutDestination(uisession_);
+     G4UImanager* uimanager = G4UImanager::GetUIpointer();
+     uisession_ = new PHG4UIsession();  
+     uimanager->SetSession(uisession_);
+     uimanager->SetCoutDestination(uisession_);
   }
   
   runManager_ = new G4RunManager();
@@ -374,6 +374,10 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
   G4HadronicProcessStore::Instance()->SetVerbose(0);
   G4LossTableManager::Instance()->SetVerbose(0);
 
+  if ((verbosity < 1) && (uisession_)) {
+    uisession_->Verbosity(1); // let messages after setup come through
+  }
+  
   if (verbosity > 0) {
     cout << "===========================================================================" << endl;
   }
