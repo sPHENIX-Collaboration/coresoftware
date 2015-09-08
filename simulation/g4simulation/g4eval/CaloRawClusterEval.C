@@ -66,12 +66,11 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster) {
   std::set<PHG4Hit*> truth_hits;
 
   // loop over all the clustered towers
-  for (unsigned int itower = 0; itower < cluster->getNTowers(); ++itower) {
-
-    int ieta = cluster->getTowerBin(itower).first;
-    int iphi = cluster->getTowerBin(itower).second;
-    
-    RawTower* tower = _towers->getTower(ieta,iphi);
+  RawCluster::TowerConstRange begin_end = cluster->get_towers();
+  RawCluster::TowerConstIterator iter;
+  for (iter = begin_end.first; iter != begin_end.second; ++iter)
+    { 
+    RawTower* tower = _towers->getTower(iter->first);
     
     std::set<PHG4Hit*> new_hits = _towereval.all_truth_hits(tower);
     std::set<PHG4Hit*> union_hits;
@@ -101,13 +100,11 @@ std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primaries(RawCluster* clus
   std::set<PHG4Particle*> truth_primaries;
   
   // loop over all the clustered towers
-  for (unsigned int itower = 0; itower < cluster->getNTowers(); ++itower) {
-
-    int ieta = cluster->getTowerBin(itower).first;
-    int iphi = cluster->getTowerBin(itower).second;
-    
-    RawTower* tower = _towers->getTower(ieta,iphi);
-    
+  RawCluster::TowerConstRange begin_end = cluster->get_towers();
+  RawCluster::TowerConstIterator iter;
+  for (iter = begin_end.first; iter != begin_end.second; ++iter)
+    { 
+    RawTower* tower = _towers->getTower(iter->first);
     std::set<PHG4Particle*> new_primaries = _towereval.all_truth_primaries(tower);
     std::set<PHG4Particle*> union_primaries;
 
