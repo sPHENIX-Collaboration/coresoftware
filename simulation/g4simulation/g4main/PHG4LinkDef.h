@@ -18,6 +18,7 @@
 #pragma link C++ class PHG4SimpleEventGenerator-!;
 #pragma link C++ class PHG4Subsystem-!;
 #pragma link C++ class PHG4TruthSubsystem-!;
+//#pragma link C++ class PHG4UIsession-!;
 #pragma link C++ class ReadEICFiles-!;
 
 #endif /* __CINT__ */

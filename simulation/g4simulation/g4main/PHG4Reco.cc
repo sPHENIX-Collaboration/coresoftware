@@ -9,6 +9,7 @@
 #include "PHG4Subsystem.h"
 #include "PHG4InEvent.h"
 #include "PHG4Utils.h"
+#include "PHG4UIsession.h"
 
 #include <g4decayer/P6DExtDecayerPhysics.hh>
 #include <g4decayer/EDecayType.hh>
@@ -99,6 +100,7 @@ PHG4Reco::PHG4Reco( const string &name ) :
   magfield(2),
   field_(NULL),
   runManager_(NULL),
+  uisession_(NULL),
   detector_(NULL),
   eventAction_(NULL),
   steppingAction_(NULL),
@@ -131,6 +133,7 @@ PHG4Reco::~PHG4Reco( void )
   delete gui_thread;
   delete field_;
   delete runManager_;
+  if (uisession_) delete uisession_;
   delete visManager;
 }
 
@@ -151,6 +154,15 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
     }
   // create GEANT run manager
   if (verbosity > 1) cout << "PHG4Reco::Init - create run manager" << endl;
+
+  // redirect GEANT verbosity to nowhere
+  if (verbosity < 1) {
+    G4UImanager* uimanager = G4UImanager::GetUIpointer();
+    uisession_ = new PHG4UIsession();  
+    uimanager->SetSession(uisession_);
+    uimanager->SetCoutDestination(uisession_);
+  }
+  
   runManager_ = new G4RunManager();
 
   DefineMaterials();
