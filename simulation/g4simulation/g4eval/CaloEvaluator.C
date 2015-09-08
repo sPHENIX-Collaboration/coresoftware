@@ -53,7 +53,7 @@ int CaloEvaluator::Init(PHCompositeNode *topNode) {
 
   if (_do_gpoint_eval) _ntp_gpoint = new TNtuple("ntp_gpoint","primary vertex => best (first) vertex",
 						 "event:gvx:gvy:gvz:"
-						 "vx:vy:vz:");
+						 "vx:vy:vz");
   
   if (_do_gshower_eval) _ntp_gshower = new TNtuple("ntp_gshower","truth shower => best cluster",
 						   "event:gparticleID:gflavor:gnhits:"
@@ -61,7 +61,7 @@ int CaloEvaluator::Init(PHCompositeNode *topNode) {
 						   "clusterID:ntowers:eta:phi:e:efromtruth");
   
   if (_do_tower_eval) _ntp_tower = new TNtuple("ntp_tower","tower => max truth primary",
-					       "event:towerID::ieta:iphi:eta:phi:e:"
+					       "event:towerID:ieta:iphi:eta:phi:e:"
 					       "gparticleID:gflavor:gnhits:"
 					       "geta:gphi:ge:gpt:gvx:gvy:gvz:"
 					       "gembed:gedep:gmrad:"
@@ -466,6 +466,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
       RawTower *tower = rtiter->second;
 
+      float towerid = tower->get_id();
       float ieta    = tower->get_bineta();
       float iphi    = tower->get_binphi();
       float eta     = towergeom->get_etacenter(tower->get_bineta());
@@ -500,7 +501,8 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
       float efromtruth = towereval->get_energy_contribution(tower,primary);
 
-      float tower_data[20] = {_ievent,
+      float tower_data[21] = {_ievent,
+			      towerid,
 			      ieta,
 			      iphi,
 			      eta,

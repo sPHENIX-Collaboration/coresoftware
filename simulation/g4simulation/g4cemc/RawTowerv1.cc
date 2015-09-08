@@ -1,4 +1,7 @@
 #include "RawTowerv1.h"
+
+#include "RawTowerDefs.h"
+
 #include <iostream>
 #include <algorithm>
 

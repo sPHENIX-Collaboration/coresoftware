@@ -45,7 +45,7 @@ int JetReco::Init(PHCompositeNode *topNode) {
 
 int JetReco::InitRun(PHCompositeNode *topNode) {
   
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "========================== JetReco::InitRun() =============================" << endl;
     cout << " Input Selections:" << endl;
     for (unsigned int i=0; i<_inputs.size(); ++i) _inputs[i]->identify();
@@ -59,7 +59,7 @@ int JetReco::InitRun(PHCompositeNode *topNode) {
 
 int JetReco::process_event(PHCompositeNode *topNode) {
   
-  if (verbosity > 0) cout << "JetReco::process_event -- entered" << endl;
+  if (verbosity > 1) cout << "JetReco::process_event -- entered" << endl;
 
   //---------------------------------
   // Get Objects off of the Node Tree
@@ -88,7 +88,7 @@ int JetReco::process_event(PHCompositeNode *topNode) {
   for (unsigned int i=0;i<inputs.size();++i) delete inputs[i];
   inputs.clear();
   
-  if (verbosity > 0) cout << "JetReco::process_event -- exited" << endl;
+  if (verbosity > 1) cout << "JetReco::process_event -- exited" << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
