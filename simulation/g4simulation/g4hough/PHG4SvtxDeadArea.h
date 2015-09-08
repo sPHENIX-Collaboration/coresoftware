@@ -18,7 +18,7 @@ class PHG4SvtxDeadArea : public SubsysReco {
 public:
 
   PHG4SvtxDeadArea(const std::string &name = "PHG4SvtxDeadArea");
-  virtual ~PHG4SvtxDeadArea(){}
+  virtual ~PHG4SvtxDeadArea();
   
   //! module initialization
   int Init(PHCompositeNode *topNode){return 0;}

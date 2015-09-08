@@ -33,6 +33,11 @@ PHG4SvtxDeadArea::PHG4SvtxDeadArea(const string &name) :
   return;
 }
 
+PHG4SvtxDeadArea::~PHG4SvtxDeadArea()
+{
+  gsl_rng_free (RandomGenerator);
+}
+
 int PHG4SvtxDeadArea::InitRun(PHCompositeNode* topNode) {
 
   // get node containing the digitized hits
