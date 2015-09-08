@@ -190,7 +190,12 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 	ich = (*ph).ich;
 	ieta = ich/NPHI;
 	iphi = ich%NPHI;
-	cluster->addTower(ieta,iphi);
+	// that code needs a closer look - here are the towers 
+	// with their energy added to the cluster object where 
+	// the id is the tower id
+	RawTowerDefs::keytype twrkey = (ieta << RawTowerDefs::eta_idbits);
+        twrkey |= iphi;
+	cluster->addTower(twrkey,(*ph).amp/fEnergyNorm);
 	ph++;
       }
 
@@ -231,18 +236,14 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 
 bool RawClusterBuilderv1::CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeom *towergeom)
 {
-
-  int nt = cluster->getNTowers();
   double sum = cluster->get_energy();
   double phimin = 999.;
   double phimax = -999.;
-
-  for (int j = 0; j < nt; j++)
-    {
-      std::pair<int, int> tmpc = cluster->getTowerBin(j);
-      int ieta = tmpc.first;
-      int iphi = tmpc.second;
-      RawTower* tmpt = towers->getTower(ieta, iphi);
+  RawCluster::TowerConstRange begin_end = cluster->get_towers();
+  RawCluster::TowerConstIterator iter;
+  for (iter =begin_end.first; iter != begin_end.second; ++iter)
+    { 
+      RawTower* tmpt = towers->getTower(iter->first);
       double phi = towergeom->get_phicenter(tmpt->get_binphi());
       if(phi > M_PI) phi = phi - 2.*M_PI; // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)
       if (phi < phimin)
@@ -258,12 +259,9 @@ bool RawClusterBuilderv1::CorrectPhi(RawCluster* cluster, RawTowerContainer* tow
   if ((phimax - phimin) < 3.) return false; // cluster is not at phi discontinuity
 
   float mean = 0.;
-  for (int j = 0; j < nt; j++)
-    {
-      std::pair<int, int> tmpc = cluster->getTowerBin(j);
-      int ieta = tmpc.first;
-      int iphi = tmpc.second;
-      RawTower* tmpt = towers->getTower(ieta, iphi);
+  for (iter =begin_end.first; iter != begin_end.second; ++iter)
+    { 
+      RawTower* tmpt = towers->getTower(iter->first);
       double e = tmpt->get_energy();
       double phi = towergeom->get_phicenter(tmpt->get_binphi());
       if(phi > M_PI) phi = phi - 2.*M_PI; // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)
