@@ -21,7 +21,12 @@ unsigned int PHRandomSeed()
       cout << "could not open /dev/urandom for seed" << endl;
       exit(1);
     }
-  fread(&random_seed, sizeof(random_seed), 1,fp);
+  size_t readbytes = fread(&random_seed, sizeof(random_seed), 1,fp);
   fclose(fp);
+  if (!readbytes)
+    {
+      cout << "PHRandomSeed: reading /dev/urandom failed" << endl;
+      exit(1);
+    }
   return random_seed;
 }
