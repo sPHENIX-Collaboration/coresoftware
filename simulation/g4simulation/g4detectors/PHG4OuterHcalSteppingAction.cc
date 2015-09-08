@@ -221,18 +221,20 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
                 {
                   once = false;
 
-                  cout << "PHG4OuterHcalSteppingAction::UserSteppingAction::"
+		  if (verbosity > 0) {
+		    cout << "PHG4OuterHcalSteppingAction::UserSteppingAction::"
                       //
-                      << detector_->GetName() << " - "
-                      << " use scintillating light model at each Geant4 steps. "
-                      <<"First step: "
-                      <<"Material = "<<aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()<<", "
-                      <<"Birk Constant = "<<aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()<<","
-                      <<"edep = " <<edep<<", "
-                      <<"eion = " <<eion<<", "
-                      <<"light_yield = " <<light_yield
-                      << endl;
-                }
+			 << detector_->GetName() << " - "
+			 << " use scintillating light model at each Geant4 steps. "
+			 <<"First step: "
+			 <<"Material = "<<aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()<<", "
+			 <<"Birk Constant = "<<aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()<<","
+			 <<"edep = " <<edep<<", "
+			 <<"eion = " <<eion<<", "
+			 <<"light_yield = " <<light_yield
+			 << endl;
+		  }
+		}
 
             }
           else
@@ -253,7 +255,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
                 {
                   once = false;
 
-		  if (verbosity > 0) {
+		  if (verbosity > 1) {
 		    cout << "PHG4OuterHcalSteppingAction::UserSteppingAction::"
                       //
 			 << detector_->GetName() << " - "
