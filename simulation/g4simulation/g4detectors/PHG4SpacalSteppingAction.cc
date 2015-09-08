@@ -200,17 +200,19 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
             {
               once = false;
 
-              cout << "PHG4SpacalSteppingAction::UserSteppingAction::"
+	      if (verbosity > 0) {
+		cout << "PHG4SpacalSteppingAction::UserSteppingAction::"
                   //
-                  << detector_->GetName() << " - "
-                  << " use scintillating light model at each Geant4 steps. "
-                  << "First step: " << "Material = "
-                  << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
-                  << ", " << "Birk Constant = "
-                  << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
-                  << "," << "edep = " << edep << ", " << "eion = " << eion
-                  << ", " << "light_yield = " << light_yield << endl;
-            }
+		     << detector_->GetName() << " - "
+		     << " use scintillating light model at each Geant4 steps. "
+		     << "First step: " << "Material = "
+		     << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
+		     << ", " << "Birk Constant = "
+		     << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
+		     << "," << "edep = " << edep << ", " << "eion = " << eion
+		     << ", " << "light_yield = " << light_yield << endl;
+	      }
+	    }
 
           hit->set_light_yield(hit->get_light_yield() + light_yield);
         }
@@ -281,7 +283,7 @@ PHG4SpacalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
     }
   if (!absorberhits_)
     {
-      if (verbosity > 0)
+      if (verbosity > 1)
         {
           std::cout << "PHG4SpacalSteppingAction::SetTopNode - unable to find "
               << absorbernodename << std::endl;

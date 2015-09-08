@@ -253,15 +253,17 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
                 {
                   once = false;
 
-                  cout << "PHG4OuterHcalSteppingAction::UserSteppingAction::"
+		  if (verbosity > 0) {
+		    cout << "PHG4OuterHcalSteppingAction::UserSteppingAction::"
                       //
-                      << detector_->GetName() << " - "
-                      << " use a simple light collection model with linear radial dependence. "
-                      <<"First step: "
-                      <<"r = " <<r<<", "
-                      <<"correction ratio = " <<cor<<", "
-                      <<"light_yield after cor. = " <<light_yield
-                      << endl;
+			 << detector_->GetName() << " - "
+			 << " use a simple light collection model with linear radial dependence. "
+			 <<"First step: "
+			 <<"r = " <<r<<", "
+			 <<"correction ratio = " <<cor<<", "
+			 <<"light_yield after cor. = " <<light_yield
+			 << endl;
+		  }
                 }
 
             }
@@ -329,7 +331,7 @@ void PHG4OuterHcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNode
     }
   if ( ! absorberhits_)
     {
-      if (verbosity > 0)
+      if (verbosity > 1)
 	{
 	  cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
 	}
