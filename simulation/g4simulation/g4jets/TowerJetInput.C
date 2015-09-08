@@ -104,6 +104,7 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
     jet->set_pz(pz);
     jet->set_e(tower->get_energy());
     jet->insert_comp(_input,tower->get_id());
+
     pseudojets.push_back(jet);
   }
 
