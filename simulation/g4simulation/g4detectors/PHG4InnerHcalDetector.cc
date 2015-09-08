@@ -632,7 +632,7 @@ PHG4InnerHcalDetector::AddGeometryNode()
       // before putting into the geom object
       PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv3(params->inner_radius / cm, (params->place_in_z - params->size_z / 2.) / cm, (params->place_in_z + params->size_z / 2.) / cm, (params->outer_radius - params->inner_radius) / cm, params->n_scinti_plates,  params->tilt_angle / rad, 0);
       geo->AddLayerGeom(layer, mygeom);
-      geo->identify();
+      if (verbosity > 0) geo->identify();
     }
 }
 
@@ -664,7 +664,7 @@ PHG4InnerHcalDetector::SetTiltViaNcross()
     {
       return;
     }
-  if (isfinite(params->tilt_angle))
+  if ((isfinite(params->tilt_angle))&&(verbosity > 0))
     {
       cout << "both number of crossings and tilt angle are set" << endl;
       cout << "using number of crossings to determine tilt angle" << endl;

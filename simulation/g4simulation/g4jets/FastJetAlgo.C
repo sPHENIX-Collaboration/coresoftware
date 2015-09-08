@@ -17,12 +17,19 @@
 
 using namespace std;
 
-FastJetAlgo::FastJetAlgo(Jet::ALGO algo, float par)
-  : _verbosity(0),
+FastJetAlgo::FastJetAlgo(Jet::ALGO algo, float par, float verbosity)
+  : _verbosity(verbosity),
     _algo(algo),
     _par(par) {
   fastjet::ClusterSequence clusseq;
-  clusseq.print_banner(); // move text to beginning
+  if (_verbosity > 0) {
+    clusseq.print_banner();
+  } else {
+    ostringstream nullstream;
+    clusseq.set_fastjet_banner_stream(&nullstream);
+    clusseq.print_banner();
+    clusseq.set_fastjet_banner_stream(&cout);
+  } 
 }
 
 void FastJetAlgo::identify(std::ostream& os) {
@@ -35,7 +42,7 @@ void FastJetAlgo::identify(std::ostream& os) {
   
 std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles) {
   
-  if (_verbosity > 0) cout << "FastJetAlgo::process_event -- entered" << endl;
+  if (_verbosity > 1) cout << "FastJetAlgo::process_event -- entered" << endl;
     
   // translate to fastjet
   std::vector<fastjet::PseudoJet> pseudojets;
@@ -84,7 +91,7 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles) {
     jets.push_back(jet);
   }
 
-  if (_verbosity > 0) cout << "FastJetAlgo::process_event -- exited" << endl;
+  if (_verbosity > 1) cout << "FastJetAlgo::process_event -- exited" << endl;
   
   return jets;
 }
