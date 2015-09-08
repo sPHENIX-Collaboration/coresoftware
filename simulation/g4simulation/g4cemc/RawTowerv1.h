@@ -3,6 +3,8 @@
 
 #include "RawTower.h"
 
+#include "RawTowerDefs.h"
+
 #include <map>
 
 class RawTowerv1 : public RawTower {
