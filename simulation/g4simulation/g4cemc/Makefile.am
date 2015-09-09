@@ -87,6 +87,7 @@ libcemc_la_LIBADD = \
 
 pkginclude_HEADERS = \
   RawCluster.h \
+  RawClusterDefs.h \
   RawClusterContainer.h \
   RawTower.h \
   RawTowerDefs.h \

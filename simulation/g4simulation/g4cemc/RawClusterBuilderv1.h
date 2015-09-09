@@ -15,7 +15,7 @@ class RawClusterBuilderv1 : public SubsysReco {
 
  public:
   RawClusterBuilderv1(const std::string& name = "RawClusterBuilder"); 
-  ~RawClusterBuilderv1();
+  virtual ~RawClusterBuilderv1();
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
