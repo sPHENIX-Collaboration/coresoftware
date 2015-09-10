@@ -385,6 +385,8 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
     
     cout << "-------------------------------------------------------------------" << endl;
   }
+
+  cout<<"_clusters_init.size() = "<<_clusters_init.size()<<endl;
   
   //------------------------------------
   // Perform the initial zvertex finding
@@ -404,7 +406,9 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
     
     // find maxtracks tracks
     unsigned int maxtracks = 100;
+    // _tracker->setRemoveHits(false);
     _tracker->findHelices(_clusters_init, _req_seed, _max_hits_init, _tracks, maxtracks);
+    // _tracker->setRemoveHits(_remove_hits);
 
     cout<<"found "<<_tracks.size()<<" tracks"<<endl;
     
@@ -517,6 +521,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
   _tracks.clear();
   _timer_initial_hough.get()->restart();
   _tracker->findHelices(_clusters_init, _min_hits_init, _max_hits_init, _tracks);
+
   _timer_initial_hough.get()->stop();
   
   
@@ -957,7 +962,7 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
   
   vector<unsigned int> onezoom(5,0);
   vector<vector<unsigned int> > zoomprofile;
-  zoomprofile.assign(7,onezoom);
+  zoomprofile.assign(3,onezoom);
   zoomprofile[0][0] = 16;
   zoomprofile[0][1] = 1;
   zoomprofile[0][2] = 4;
@@ -967,22 +972,22 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
   zoomprofile[1][0] = 16;
   zoomprofile[1][1] = 1;
   zoomprofile[1][2] = 4;
-  zoomprofile[1][3] = 1;
+  zoomprofile[1][3] = 4;
   zoomprofile[1][4] = 1;
   
   zoomprofile[2][0] = 4;
-  zoomprofile[2][1] = 3;
+  zoomprofile[2][1] = 2;
   zoomprofile[2][2] = 2;
-  zoomprofile[2][3] = 1;
-  zoomprofile[2][4] = 1;
+  zoomprofile[2][3] = 2;
+  zoomprofile[2][4] = 2;
   
-  for (unsigned int i = 3; i <= 6; ++i) {
-    zoomprofile[i][0] = 4;
-    zoomprofile[i][1] = 2;
-    zoomprofile[i][2] = 2;
-    zoomprofile[i][3] = 3;
-    zoomprofile[i][4] = 2;
-  }
+  // for (unsigned int i = 3; i <= 4; ++i) {
+  //   zoomprofile[i][0] = 4;
+  //   zoomprofile[i][1] = 2;
+  //   zoomprofile[i][2] = 2;
+  //   zoomprofile[i][3] = 3;
+  //   zoomprofile[i][4] = 2;
+  // }
     
   _tracker = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
   _tracker->setNLayers(_seed_layers);
@@ -1004,7 +1009,7 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
   _tracker->setVerbosity(verbosity);
   _tracker->setCutOnDca(_cut_on_dca);
   _tracker->setDcaCut(_dca_cut);
-  _tracker->setSmoothBack(true);
+  _tracker->setSmoothBack(false);
   _tracker->setBinScale(_bin_scale);
   _tracker->setZBinScale(_z_bin_scale);
   _tracker->setRemoveHits(_remove_hits);
@@ -1061,7 +1066,7 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
       (_tracker_vertex.back())->setSmoothBack(true);
       (_tracker_vertex.back())->setBinScale(_bin_scale);
       (_tracker_vertex.back())->setZBinScale(_z_bin_scale);
-      (_tracker_vertex.back())->setRemoveHits(true);
+      (_tracker_vertex.back())->setRemoveHits(false);
       (_tracker_vertex.back())->setSeparateByHelicity(true);
       (_tracker_vertex.back())->setMaxHitsPairs(0);
       (_tracker_vertex.back())->setCosAngleCut(_cos_angle_cut);
