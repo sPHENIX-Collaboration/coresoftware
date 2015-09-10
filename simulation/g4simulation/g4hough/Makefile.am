@@ -52,7 +52,9 @@ pkginclude_HEADERS = \
   PHG4HoughTransform.h \
   PHG4TrackGhostRejection.h \
   PHG4SvtxTrackProjection.h \
-  PHG4SvtxBeamSpotReco.h
+  PHG4SvtxBeamSpotReco.h \
+  PHG4TPCClusterizer.h \
+  SimpleTrack.h
 
 libg4hough_io_la_SOURCES = \
   SvtxHit.C \
@@ -85,6 +87,8 @@ libg4hough_la_SOURCES = \
   PHG4SvtxDigitizer_Dict.C \
   PHG4SvtxClusterizer.C \
   PHG4SvtxClusterizer_Dict.C \
+  PHG4TPCClusterizer.C \
+  PHG4TPCClusterizer_Dict.C \
   PHG4HoughTransform.C \
   PHG4HoughTransform_Dict.C \
   PHG4TrackGhostRejection.C \
@@ -92,7 +96,8 @@ libg4hough_la_SOURCES = \
   PHG4SvtxTrackProjection.C \
   PHG4SvtxTrackProjection_Dict.C \
   PHG4SvtxBeamSpotReco.C \
-  PHG4SvtxBeamSpotReco_Dict.C
+  PHG4SvtxBeamSpotReco_Dict.C \
+  SimpleTrack_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
@@ -100,6 +105,8 @@ libg4hough_la_SOURCES = \
 
 %_Dict.cpp: %.h %LinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+
+
 
 ################################################
 # linking tests

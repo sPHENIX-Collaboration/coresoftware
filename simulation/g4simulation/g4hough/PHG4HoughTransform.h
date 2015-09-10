@@ -39,6 +39,8 @@ class SvtxTrack;
 class SvtxVertexMap;
 class PHG4InEvent;
 class PHG4HitContainer;
+class SimpleRecoEvent;
+class TTree;
 
 /// \class PHG4HoughTransform
 ///
@@ -159,6 +161,8 @@ public:
     else{std::cout<<"PHG4HoughTransform::setFitErrorScale : scale must be greater than zero ... doing nothing"<<std::endl;}
   }
 
+  void setWriteRecoTree(bool flag){_write_reco_tree=flag;}
+
 #ifndef __CINT__
  private:
   bool new_dca_nbin, new_z_z0, new_circle_dca, new_circle_kappa;
@@ -248,6 +252,10 @@ public:
 
   /// recorded layer indexes to internal sequential indexes
   std::map<int,unsigned int> _layer_ilayer_map; 
+
+  bool _write_reco_tree;
+  TTree* _reco_tree;
+  SimpleRecoEvent* _recoevent;
 
 #endif // __CINT__
 };
