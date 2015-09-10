@@ -382,7 +382,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 
   // Create the tower nodes on the tree
   _towers = new RawTowerContainer();
-  TowerNodeName = "TOWER_" + detector;
+  TowerNodeName = "TOWER_SIM_" + detector;
   PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_towers, TowerNodeName.c_str(), "PHObject");
   dstNode->addNode(towerNode);
 
