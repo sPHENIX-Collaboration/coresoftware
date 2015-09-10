@@ -46,6 +46,10 @@
 #include <cmath>
 #include <iostream>
 
+#include "SimpleTrack.h"
+#include "TTree.h"
+#include "TFile.h"
+
 using findNode::getClass;
 using namespace std;
 using namespace Eigen;
@@ -197,7 +201,7 @@ float PHG4HoughTransform::ptToKappa(float pt) {
 PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers, unsigned int req_seed, const string &name) :
   SubsysReco(name),
   _timer(PHTimeServer::get()->insert_new("PHG4HoughTransform")),
-  _timer_initial_hough(PHTimeServer::get()->insert_new("PHG4HoughTransform::track finding")), 
+  _timer_initial_hough(PHTimeServer::get()->insert_new("PHG4HoughTransform::track finding")),
   _min_pT(0.2), 
   _min_pT_init(0.2), 
   _seed_layers(seed_layers), 
@@ -210,7 +214,8 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers, unsigned int re
   _z_bin_scale(0.8), 
   _cut_on_dca(false), 
   _dca_cut(0.1),
-  _dcaz_cut(0.2)
+  _dcaz_cut(0.2),
+  _write_reco_tree(false)
 {
   _magField = 1.5; // Tesla
   _use_vertex = true;
@@ -235,6 +240,14 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers, unsigned int re
 
 int PHG4HoughTransform::Init(PHCompositeNode *topNode)
 {
+  if(_write_reco_tree == true)
+  {
+    _reco_tree = new TTree("reco_events", "a tree of SimpleRecoEvent");
+    _recoevent = new SimpleRecoEvent();
+    _reco_tree->Branch("tracks", "SimpleRecoEvent", &_recoevent);
+  }
+
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -292,6 +305,7 @@ int PHG4HoughTransform::InitRun(PHCompositeNode *topNode)
 int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
 {
   _timer.get()->restart();
+  if(_write_reco_tree==true){ _recoevent->tracks.clear();}
 
   if(verbosity > 0) cout << "PHG4HoughTransform::process_event -- entered" << endl;
 
@@ -371,6 +385,8 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
     
     cout << "-------------------------------------------------------------------" << endl;
   }
+
+  cout<<"_clusters_init.size() = "<<_clusters_init.size()<<endl;
   
   //------------------------------------
   // Perform the initial zvertex finding
@@ -388,47 +404,13 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
 
   if(_use_vertex) {
     
-    unsigned int nz0 = _tracker_vertex.size();
-    double z0min = -10.;
-    double z0_step = 20./((double)nz0);
-    
-    TH1D npairs("npairs", "npairs", nz0, z0min, z0min + z0_step*((double)nz0));
-    
-    float extrap_scale = _radii[0]/(_radii[1] - _radii[0]);
-    for(unsigned int i=0;i<_clusters_init.size();++i)
-    {
-      if(_clusters_init[i].layer != 0){continue;}
-      float z1 = _clusters_init[i].z;
-      for(unsigned int j=0;j<_clusters_init.size();++j)
-      {
-        if(_clusters_init[j].layer != 1){continue;}
-        float z2 = _clusters_init[j].z;
-        float zint = z1 + (z1-z2)*extrap_scale;
-        npairs.Fill(zint);
-      }
-    }
-    
-    int which_vtx_bin = (npairs.GetMaximumBin() - 1);
-    if( (which_vtx_bin < 0) || (which_vtx_bin >= (int)nz0) ){which_vtx_bin = -1;}
-    
-    unsigned int maxtracks = 100 * _clusters_init.size() / ( 400*_seed_layers) ;
-    //if(maxtracks<100){maxtracks=0;}
-    maxtracks = 80;
-    
     // find maxtracks tracks
-    vector<SimpleTrack3D> temptracks;
-    vector<Matrix<float,5,5> > covariances;
-    for(unsigned int i=0;i<_tracker_vertex.size();++i)
-    {
-      if( (which_vtx_bin != -1) && (which_vtx_bin != ((int)i) ) ){continue;}
-      _tracker_vertex[i]->clear();
-      _tracker_vertex[i]->findHelices(_clusters_init, _req_seed, _max_hits_init, temptracks, maxtracks);
-      for(unsigned int t=0;t<temptracks.size();++t)
-      {
-        _tracks.push_back(temptracks[t]);
-        covariances.push_back( (_tracker_vertex[i]->getKalmanStates())[t].C );
-      }
-    }
+    unsigned int maxtracks = 100;
+    // _tracker->setRemoveHits(false);
+    _tracker->findHelices(_clusters_init, _req_seed, _max_hits_init, _tracks, maxtracks);
+    // _tracker->setRemoveHits(_remove_hits);
+
+    cout<<"found "<<_tracks.size()<<" tracks"<<endl;
     
     if(_tracks.size() == 0){return Fun4AllReturnCodes::EVENT_OK;}
     else if(_tracks.size() == 1)
@@ -450,19 +432,16 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
       }
       sort(pTmap.begin(), pTmap.end());
       vector<SimpleTrack3D> vtxtracks;
-      vector<Matrix<float,5,5> > vtxcovariances;
       unsigned int maxvtxtracks=100;
       if(_tracks.size() < maxvtxtracks)
       {
         vtxtracks = _tracks;
-        vtxcovariances = covariances;
       }
       else
       {
         for(unsigned int i=0;i<maxvtxtracks;++i)
         {
           vtxtracks.push_back(_tracks[ (int)(pTmap[pTmap.size()-1-i][1]) ]);
-          vtxcovariances.push_back(covariances[ (int)(pTmap[pTmap.size()-1-i][1]) ] );
         }
       }
       
@@ -481,9 +460,9 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
         }
         temp_vertex[2] = z0_hist.GetBinCenter( z0_hist.GetMaximumBin() );
         
-        _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 3., true);
-        _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.1, true);
-        _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.02, false);
+        _vertexFinder.findVertex(vtxtracks, temp_vertex, 3., true);
+        _vertexFinder.findVertex(vtxtracks, temp_vertex, 0.1, true);
+        _vertexFinder.findVertex(vtxtracks, temp_vertex, 0.02, false);
         
         
         vector<SimpleTrack3D> ttracks;
@@ -542,6 +521,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
   _tracks.clear();
   _timer_initial_hough.get()->restart();
   _tracker->findHelices(_clusters_init, _min_hits_init, _max_hits_init, _tracks);
+
   _timer_initial_hough.get()->stop();
   
   
@@ -565,7 +545,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
       _tracks[tt].hits[hh].x = _tracks[tt].hits[hh].x + _vertex[0];
       _tracks[tt].hits[hh].y = _tracks[tt].hits[hh].y + _vertex[1];
       _tracks[tt].hits[hh].z = _tracks[tt].hits[hh].z + _vertex[2];
-//       _tracks[tt].z0 += _vertex[2];
+      // _tracks[tt].z0 += _vertex[2];
     }
     chi_squareds.push_back(_tracker->getKalmanStates()[tt].chi2);}
 
@@ -736,6 +716,19 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
     track.setDCA2D( d );
     track.setDCA2Dsigma(sqrt(_tracker->getKalmanStates()[itrack].C(1,1)));  
 
+    if(_write_reco_tree==true)
+    {
+      _recoevent->tracks.push_back( SimpleRecoTrack() );
+      _recoevent->tracks.back().px = pT*cos(phi-helicity*M_PI/2);
+      _recoevent->tracks.back().py = pT*sin(phi-helicity*M_PI/2);
+      _recoevent->tracks.back().pz = pZ;
+      _recoevent->tracks.back().d = d;
+      _recoevent->tracks.back().z0 = z0;
+      _recoevent->tracks.back().quality = chi_squareds[itrack]/((float)ndf);
+      _recoevent->tracks.back().charge = (-1*helicity);
+    }
+    
+
     if(_magField > 0)
     {
       track.setCharge( -1.0*helicity );
@@ -782,6 +775,8 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
     cout << "PHG4HoughTransform::process_event -- leaving process_event" << endl;
   }
 
+  if(_write_reco_tree==true){ _reco_tree->Fill(); }
+
   _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -791,6 +786,15 @@ int PHG4HoughTransform::End(PHCompositeNode *topNode) {
     delete _tracker_vertex[i];
   }
   delete _tracker;
+
+  if(_write_reco_tree==true)
+  {
+    TFile recofile( "recotracks.root", "recreate" );
+    recofile.cd();
+    _reco_tree->Write();
+    recofile.Close();
+  }
+  
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -958,7 +962,7 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
   
   vector<unsigned int> onezoom(5,0);
   vector<vector<unsigned int> > zoomprofile;
-  zoomprofile.assign(5,onezoom);
+  zoomprofile.assign(3,onezoom);
   zoomprofile[0][0] = 16;
   zoomprofile[0][1] = 1;
   zoomprofile[0][2] = 4;
@@ -969,21 +973,21 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
   zoomprofile[1][1] = 1;
   zoomprofile[1][2] = 4;
   zoomprofile[1][3] = 4;
-  zoomprofile[1][4] = 2;
+  zoomprofile[1][4] = 1;
   
   zoomprofile[2][0] = 4;
-  zoomprofile[2][1] = 3;
+  zoomprofile[2][1] = 2;
   zoomprofile[2][2] = 2;
-  zoomprofile[2][3] = 1;
-  zoomprofile[2][4] = 3;
+  zoomprofile[2][3] = 2;
+  zoomprofile[2][4] = 2;
   
-  for (unsigned int i = 2; i <= 3; ++i) {
-    zoomprofile[i][0] = 3;
-    zoomprofile[i][1] = 3;
-    zoomprofile[i][2] = 3;
-    zoomprofile[i][3] = 3;
-    zoomprofile[i][4] = 3;
-  }
+  // for (unsigned int i = 3; i <= 4; ++i) {
+  //   zoomprofile[i][0] = 4;
+  //   zoomprofile[i][1] = 2;
+  //   zoomprofile[i][2] = 2;
+  //   zoomprofile[i][3] = 3;
+  //   zoomprofile[i][4] = 2;
+  // }
     
   _tracker = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
   _tracker->setNLayers(_seed_layers);
@@ -1005,7 +1009,7 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
   _tracker->setVerbosity(verbosity);
   _tracker->setCutOnDca(_cut_on_dca);
   _tracker->setDcaCut(_dca_cut);
-  _tracker->setSmoothBack(true);
+  _tracker->setSmoothBack(false);
   _tracker->setBinScale(_bin_scale);
   _tracker->setZBinScale(_z_bin_scale);
   _tracker->setRemoveHits(_remove_hits);
@@ -1062,7 +1066,7 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
       (_tracker_vertex.back())->setSmoothBack(true);
       (_tracker_vertex.back())->setBinScale(_bin_scale);
       (_tracker_vertex.back())->setZBinScale(_z_bin_scale);
-      (_tracker_vertex.back())->setRemoveHits(true);
+      (_tracker_vertex.back())->setRemoveHits(false);
       (_tracker_vertex.back())->setSeparateByHelicity(true);
       (_tracker_vertex.back())->setMaxHitsPairs(0);
       (_tracker_vertex.back())->setCosAngleCut(_cos_angle_cut);
