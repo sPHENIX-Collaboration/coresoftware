@@ -1,8 +1,8 @@
-#ifndef __PHG4HOUGHTRANSFORM_H__
-#define __PHG4HOUGHTRANSFORM_H__
+#ifndef __PHG4HOUGHTRANSFORMTPC_H__
+#define __PHG4HOUGHTRANSFORMTPC_H__
 
 //===========================================================
-/// \file PHG4HoughTransform.h
+/// \file PHG4HoughTransformTPC.h
 /// \brief A fun4all implementation of Alan's Hough Transform
 /// \author Matt Wysocki (copied from SvxHoughTransform)
 /// go to https://www.phenix.bnl.gov/WWW/offline/wikioffline/index.php/SvxHoughTransform
@@ -42,7 +42,7 @@ class PHG4HitContainer;
 class SimpleRecoEvent;
 class TTree;
 
-/// \class PHG4HoughTransform
+/// \class PHG4HoughTransformTPC
 ///
 /// \brief A fun4all implementation of Alan's Hough Transform
 ///
@@ -50,14 +50,14 @@ class TTree;
 /// on the SvxClusterList of the event. It will produce both
 /// SvxTrack and SvxSegments for the time being.
 ///
-class PHG4HoughTransform : public SubsysReco {
+class PHG4HoughTransformTPC : public SubsysReco {
 
 public:
  
-  PHG4HoughTransform(unsigned int seed_layers = 4,
+  PHG4HoughTransformTPC(unsigned int seed_layers = 4,
 		     unsigned int req_seed = 4,
-		     const std::string &name = "PHG4HoughTransform");
-  virtual ~PHG4HoughTransform() {}
+		     const std::string &name = "PHG4HoughTransformTPC");
+  virtual ~PHG4HoughTransformTPC() {}
 		
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
@@ -153,12 +153,12 @@ public:
   /// adjust the relative voting error scale w.r.t. the cluster size
   void setVoteErrorScale(unsigned int layer, float scale) {
     if(scale > 0.0){_vote_error_scale.at(layer) = scale;}
-    else{std::cout<<"PHG4HoughTransform::setVoteErrorScale : scale must be greater than zero ... doing nothing"<<std::endl;}
+    else{std::cout<<"PHG4HoughTransformTPC::setVoteErrorScale : scale must be greater than zero ... doing nothing"<<std::endl;}
   }
   /// adjust the relative fit error scale w.r.t. the cluster size
   void setFitErrorScale(unsigned int layer, float scale) {
     if(scale > 0.0){_fit_error_scale.at(layer) = scale;}
-    else{std::cout<<"PHG4HoughTransform::setFitErrorScale : scale must be greater than zero ... doing nothing"<<std::endl;}
+    else{std::cout<<"PHG4HoughTransformTPC::setFitErrorScale : scale must be greater than zero ... doing nothing"<<std::endl;}
   }
 
   void setWriteRecoTree(bool flag){_write_reco_tree=flag;}
@@ -260,4 +260,4 @@ public:
 #endif // __CINT__
 };
 
-#endif // __SVXHOUGHTRANSFORM_H__
+#endif // __SVXHOUGHTRANSFORMTPC_H__

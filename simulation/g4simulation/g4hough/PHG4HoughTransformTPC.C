@@ -1,4 +1,4 @@
-#include "PHG4HoughTransform.h"
+#include "PHG4HoughTransformTPC.h"
 
 // g4hough includes
 #include "SvtxVertexMap.h"
@@ -97,7 +97,7 @@ static inline double sign(double x)
   return ((double)(x > 0.)) - ((double)(x < 0.));
 }
 
-void PHG4HoughTransform::projectToRadius(const SvtxTrack& track, double radius, vector<double>& intersection)
+void PHG4HoughTransformTPC::projectToRadius(const SvtxTrack& track, double radius, vector<double>& intersection)
 {
   float phi = track.phi;
   float d = track.d;
@@ -190,18 +190,18 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrack& track, double radius, 
   }
 }
 
-float PHG4HoughTransform::kappaToPt(float kappa) {  
+float PHG4HoughTransformTPC::kappaToPt(float kappa) {  
   return _pt_rescale * _magField / 333.6 / kappa;
 }
 
-float PHG4HoughTransform::ptToKappa(float pt) {  
+float PHG4HoughTransformTPC::ptToKappa(float pt) {  
   return _pt_rescale * _magField / 333.6 / pt;
 }
 
-PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers, unsigned int req_seed, const string &name) :
+PHG4HoughTransformTPC::PHG4HoughTransformTPC(unsigned int seed_layers, unsigned int req_seed, const string &name) :
   SubsysReco(name),
-  _timer(PHTimeServer::get()->insert_new("PHG4HoughTransform")),
-  _timer_initial_hough(PHTimeServer::get()->insert_new("PHG4HoughTransform::track finding")),
+  _timer(PHTimeServer::get()->insert_new("PHG4HoughTransformTPC")),
+  _timer_initial_hough(PHTimeServer::get()->insert_new("PHG4HoughTransformTPC::track finding")),
   _min_pT(0.2), 
   _min_pT_init(0.2), 
   _seed_layers(seed_layers), 
@@ -238,7 +238,7 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers, unsigned int re
   _layer_ilayer_map.clear();
 }
 
-int PHG4HoughTransform::Init(PHCompositeNode *topNode)
+int PHG4HoughTransformTPC::Init(PHCompositeNode *topNode)
 {
   if(_write_reco_tree == true)
   {
@@ -252,13 +252,13 @@ int PHG4HoughTransform::Init(PHCompositeNode *topNode)
 }
 
 
-int PHG4HoughTransform::InitRun(PHCompositeNode *topNode)
+int PHG4HoughTransformTPC::InitRun(PHCompositeNode *topNode)
 {
   int code = CreateNodes(topNode);
 
   if (verbosity > 0) {
-    cout << "====================== PHG4HoughTransform::InitRun() ======================" << endl;
-    cout << " CVS Version: $Id: PHG4HoughTransform.C,v 1.101 2015/04/21 23:47:09 pinkenbu Exp $" << endl;
+    cout << "====================== PHG4HoughTransformTPC::InitRun() ======================" << endl;
+    cout << " CVS Version: $Id: PHG4HoughTransformTPC.C,v 1.101 2015/04/21 23:47:09 pinkenbu Exp $" << endl;
     cout << " Magnetic field set to: " << _magField << " Tesla" << endl;
     cout << " Number of tracking layers: " << _nlayers << endl;
     for (int i=0; i<_nlayers; ++i) {
@@ -302,12 +302,12 @@ int PHG4HoughTransform::InitRun(PHCompositeNode *topNode)
   return code;
 }
 
-int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
+int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
 {
   _timer.get()->restart();
   if(_write_reco_tree==true){ _recoevent->tracks.clear();}
 
-  if(verbosity > 0) cout << "PHG4HoughTransform::process_event -- entered" << endl;
+  if(verbosity > 0) cout << "PHG4HoughTransformTPC::process_event -- entered" << endl;
 
   // moving clearing to the beginning of event or we will have
   // return bugs from early exits!
@@ -369,7 +369,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
 
   if (verbosity > 20) {
     cout << "-------------------------------------------------------------------" << endl;
-    cout << "PHG4HoughTransform::process_event has the following input clusters:" << endl;
+    cout << "PHG4HoughTransformTPC::process_event has the following input clusters:" << endl;
 
     if (!_clusters_init.empty()) {
       for (unsigned int i = 0; i < _clusters_init.size(); ++i) {
@@ -392,7 +392,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
   // Perform the initial zvertex finding
   //------------------------------------
 
-  if(verbosity > 0) cout << "PHG4HoughTransform::process_event -- initial vertex finding..." << endl;
+  if(verbosity > 0) cout << "PHG4HoughTransformTPC::process_event -- initial vertex finding..." << endl;
 
   // Grab some initial tracks for initial z-vertex finding
   _tracks.clear();
@@ -491,7 +491,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
     
     
     
-    if(verbosity > 0) cout << "PHG4HoughTransform::process_event -- found initial vertex : " << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
+    if(verbosity > 0) cout << "PHG4HoughTransformTPC::process_event -- found initial vertex : " << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
     
     _tracks.clear();
     
@@ -528,14 +528,14 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
 
   if(verbosity > 0)
   {
-    cout << "PHG4HoughTransform::process_event -- full track finding pass found: " << _tracks.size() << " tracks" << endl;
+    cout << "PHG4HoughTransformTPC::process_event -- full track finding pass found: " << _tracks.size() << " tracks" << endl;
   }    
    
   //----------------------------
   // Re-center event on detector
   //----------------------------
 
-  if(verbosity > 0) cout << "PHG4HoughTransform::process_event -- recentering event on detector..." << endl;
+  if(verbosity > 0) cout << "PHG4HoughTransformTPC::process_event -- recentering event on detector..." << endl;
   vector<double> chi_squareds;
   for(unsigned int tt=0;tt<_tracks.size();tt++)
   {
@@ -551,7 +551,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
 
   if(verbosity > 0)
   {
-    cout << "PHG4HoughTransform::process_event -- final track count: " << _tracks.size() << endl;
+    cout << "PHG4HoughTransformTPC::process_event -- final track count: " << _tracks.size() << endl;
   }
 
   //---------------------------
@@ -561,7 +561,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
   // final best guess of the primary vertex position here...
   if(verbosity > 0)
   {
-    cout<< "PHG4HoughTransform::process_event -- calculating final vertex" << endl;
+    cout<< "PHG4HoughTransformTPC::process_event -- calculating final vertex" << endl;
   }
   
   // sort the tracks by pT
@@ -606,7 +606,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
   
   if(verbosity > 0)
   {
-    cout << "PHG4HoughTransform::process_event -- final vertex: " << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
+    cout << "PHG4HoughTransformTPC::process_event -- final vertex: " << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
   }
 
   //--------------------------------
@@ -615,7 +615,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
 
   if(verbosity > 0)
   {
-    cout << "PHG4HoughTransform::process_event -- producing PHG4Track objects..." << endl;
+    cout << "PHG4HoughTransformTPC::process_event -- producing PHG4Track objects..." << endl;
   }
 
   SvtxVertex vertex;
@@ -772,7 +772,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
   
   if(verbosity > 0)
   {
-    cout << "PHG4HoughTransform::process_event -- leaving process_event" << endl;
+    cout << "PHG4HoughTransformTPC::process_event -- leaving process_event" << endl;
   }
 
   if(_write_reco_tree==true){ _reco_tree->Fill(); }
@@ -781,7 +781,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4HoughTransform::End(PHCompositeNode *topNode) {
+int PHG4HoughTransformTPC::End(PHCompositeNode *topNode) {
   for (unsigned int i = 0; i < _tracker_vertex.size(); ++i) {
     delete _tracker_vertex[i];
   }
@@ -799,7 +799,7 @@ int PHG4HoughTransform::End(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
+int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
 
   //---------------------------------------------------------
   // Grab Run-Dependent Detector Geometry and Configure Hough
@@ -1088,12 +1088,12 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4HoughTransform::set_material(int layer, float value)
+void PHG4HoughTransformTPC::set_material(int layer, float value)
 {
   _user_material[layer] = value;
 }
 
-int PHG4HoughTransform::CreateNodes(PHCompositeNode *topNode)
+int PHG4HoughTransformTPC::CreateNodes(PHCompositeNode *topNode)
 {
   // create nodes...
   PHNodeIterator iter(topNode);
@@ -1134,7 +1134,7 @@ int PHG4HoughTransform::CreateNodes(PHCompositeNode *topNode)
   return InitializeGeometry(topNode);
 }
 
-int PHG4HoughTransform::GetNodes(PHCompositeNode *topNode)
+int PHG4HoughTransformTPC::GetNodes(PHCompositeNode *topNode)
 {
   //---------------------------------
   // Get Objects off of the Node Tree
