@@ -10,39 +10,49 @@ class PHCompositeNode;
 class RawTowerContainer;
 class RawTowerGeom;
 
-class RawTowerDigitizer : public SubsysReco {
+class RawTowerDigitizer : public SubsysReco
+{
 
- public:
-  RawTowerDigitizer(const std::string& name="RawTowerDigitizer");
-  virtual ~RawTowerDigitizer(){}
+public:
+  RawTowerDigitizer(const std::string& name = "RawTowerDigitizer");
+  virtual
+  ~RawTowerDigitizer()
+  {
+  }
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
-  void Detector(const std::string &d) {detector = d;}
-  void EminCut(const double e) {emin = e;}
-  void checkenergy(const int i = 1) {chkenergyconservation = i;}
+  int
+  InitRun(PHCompositeNode *topNode);
+  int
+  process_event(PHCompositeNode *topNode);
+  int
+  End(PHCompositeNode *topNode);
+  void
+  Detector(const std::string &d)
+  {
+    detector = d;
+  }
+  void
+  EminCut(const double e)
+  {
+    emin = e;
+  }
 
- protected:
-  void CreateNodes(PHCompositeNode *topNode);
+protected:
+  void
+  CreateNodes(PHCompositeNode *topNode);
 
-  RawTowerContainer* _towers;
+  RawTowerContainer* _sim_towers;
+  RawTowerContainer* _raw_towers;
   RawTowerGeom *rawtowergeom;
 
   std::string detector;
-  std::string TowerNodeName;
+  std::string SimTowerNodeName;
+  std::string RawTowerNodeName;
   std::string TowerGeomNodeName;
 
   int _cell_binning;
-  double emin;	
-  int chkenergyconservation;
-  int _nlayers;
-  int _nphibins;
-  int _netabins;
-  double _etamin;
-  double _phimin;
-  double _etastep;
-  double _phistep;
+  double emin;
+
 
   PHTimeServer::timer _timer;
 

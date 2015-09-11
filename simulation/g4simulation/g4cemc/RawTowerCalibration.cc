@@ -84,71 +84,7 @@ RawTowerCalibration::process_event(PHCompositeNode *topNode)
       std::cout << PHWHERE << "Process event entered" << std::endl;
     }
 
-  // get cells
-  std::string cellnodename = "G4CELL_" + detector;
-  PHG4CylinderCellContainer* cells = findNode::getClass<PHG4CylinderCellContainer>(topNode, cellnodename.c_str());
-  if (!cells)
-    {
-      std::cerr << PHWHERE << " " << cellnodename << " Node missing, doing nothing." << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
 
-  // loop over all cells in an event
-  PHG4CylinderCellContainer::ConstIterator cell_iter;
-  PHG4CylinderCellContainer::ConstRange cell_range = cells->getCylinderCells();
-  for (cell_iter = cell_range.first; cell_iter != cell_range.second; ++cell_iter)
-    {
-      PHG4CylinderCell *cell = cell_iter->second;
-
-      if (verbosity > 2)
-        {
-          std::cout << PHWHERE << " print out the cell:" << std::endl;
-          cell->identify();
-        }
-
-      // add the energy to the corresponding tower
-       RawTower *tower = _towers->getTower(cell->get_binz(),cell->get_binphi());
-       if (! tower)
-	 {
-	   tower = new RawTowerv1(cell->get_binz(), cell->get_binphi());
-	   _towers->AddTower(cell->get_binz(), cell->get_binphi(), tower);
-	 }
-       tower->add_ecell(cell->get_cell_id(), cell->get_edep());
-       tower->set_light_yield( tower->get_light_yield() +  cell->get_light_yield()  );
-       rawtowergeom =  findNode::getClass<RawTowerGeom>(topNode, TowerGeomNodeName.c_str());
-       if (verbosity > 2)
-	 {
-           tower->identify();
-	 }
-    }
-  double towerE = 0;
-  if (chkenergyconservation)
-    {
-      double cellE = cells->getTotalEdep();
-      towerE = _towers->getTotalEdep();
-      if (fabs(cellE - towerE) / cellE > 1e-5)
-	{
-	  cout << "towerE: " << towerE << ", cellE: " << cellE << ", delta: " << cellE - towerE << endl;
-	}
-    }
-  if (verbosity)
-    {
-      towerE = _towers->getTotalEdep();
-    }
-
-  _towers->compress(emin);
-  if (verbosity)
-    {
-      cout << "Energy lost by dropping towers with less than "
-	   << emin << " energy, lost energy: "  << towerE - _towers->getTotalEdep() << endl;
-      _towers->identify();
-      RawTowerContainer::ConstRange begin_end = _towers->getTowers();
-      RawTowerContainer::ConstIterator iter;
-      for (iter =  begin_end.first; iter != begin_end.second; ++iter)
-	{
-	  iter->second->identify();
-        }
-    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -382,8 +318,8 @@ RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
 
   // Create the tower nodes on the tree
   _towers = new RawTowerContainer();
-  TowerNodeName = "TOWER_SIM_" + detector;
-  PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_towers, TowerNodeName.c_str(), "PHObject");
+  CaliTowerNodeName = "TOWER_SIM_" + detector;
+  PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_towers, CaliTowerNodeName.c_str(), "PHObject");
   dstNode->addNode(towerNode);
 
   return;

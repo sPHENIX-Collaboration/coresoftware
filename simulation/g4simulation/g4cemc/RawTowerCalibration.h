@@ -30,7 +30,8 @@ class RawTowerCalibration : public SubsysReco {
   RawTowerGeom *rawtowergeom;
 
   std::string detector;
-  std::string TowerNodeName;
+  std::string RawTowerNodeName;
+  std::string CaliTowerNodeName;
   std::string TowerGeomNodeName;
 
   int _cell_binning;
