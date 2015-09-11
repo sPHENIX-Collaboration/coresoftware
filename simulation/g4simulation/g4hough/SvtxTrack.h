@@ -26,9 +26,11 @@ class SvtxTrack : public PHObject {
   void setTrackID(int index){_track_id = index;}
   int getTrackID() const {return _track_id;}  
   
-  void setClusterID(int layer, int index) {_clusterID[layer] = index;}
-  int getClusterID(int layer) const {return _clusterID[layer];}
-  bool hasCluster(int layer) const {return (_clusterID[layer] >- 9999);}
+  void setClusterID(int layer, int index) {_cluster_ids[layer] = index;}
+  int getClusterID(int layer) const {return _cluster_ids.find(layer)->second;}
+  bool hasCluster(int layer) const {
+    return (_cluster_ids.find(layer) != _cluster_ids.end());
+  }
   
   void setScatter(int layer, float sct) {_scatter[layer] = sct;}
   float getScatter(int layer) const {return _scatter[layer];}
@@ -129,7 +131,6 @@ class SvtxTrack : public PHObject {
 
   int     _track_id;
   float   _phi,_d,_kappa,_z0,_dzdl;
-  int     _clusterID[100];
   float   _position[100][3];
   float   _momentum;
   float   _mom3[3];
@@ -155,7 +156,8 @@ class SvtxTrack : public PHObject {
   float   _cal_cluster_e[4];
 
   // cluster ids
-  //std::multimap<unsigned int,unsigned int> _cluster_ids; //< layer index => cluster id
+  //int     _clusterID[100];
+  std::map<int,int> _cluster_ids; //< layer index => cluster id
   
   ClassDef(SvtxTrack,1)
 };

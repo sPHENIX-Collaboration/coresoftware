@@ -13,11 +13,11 @@ SvtxTrack::SvtxTrack()
     _kappa(0.0),
     _z0(0.0),
     _dzdl(0.0),
-    _clusterID(),
     _x(0.0),
     _y(0.0),
     _z(0.0),
-    _covariance(6,6) {
+    _covariance(6,6),
+    _cluster_ids() {
   Reset();
 }
 
@@ -31,10 +31,9 @@ void SvtxTrack::identify(ostream& os) const
       os << "clusters: ";
       for(unsigned int i = 0; i < 100; i++)
 	{
-	  if(hasCluster(i))
-	    {
-	      os << getClusterID(i) << " ";
-	    }
+	  if (hasCluster(i)) {
+	    os << getClusterID(i) << " ";
+	  }
 	}
     }
     
@@ -49,9 +48,9 @@ void SvtxTrack::identify(ostream& os) const
 void SvtxTrack::Reset() {
 
   _track_id = -1;
-  
+
+  _cluster_ids.clear();
   for (int i=0;i<100;i++) {
-    _clusterID[i]=-9999;
     for(int j=0;j<3;j++){
       _position[i][j]=NAN;
     }
@@ -94,24 +93,12 @@ int SvtxTrack::isValid() const
 }
 
 
-float SvtxTrack::getInnerMostHitPosition(int coor) const
-{
-  int layer=-1;
-  for(int i=0;i<100;i++)
-  {
-    if(_clusterID[i]>=0){layer=i;break;}
-  }
-  if(layer==-1){return NAN;}
+float SvtxTrack::getInnerMostHitPosition(int coor) const {
+  if (_cluster_ids.empty()) return NAN;  
+  int layer = _cluster_ids.begin()->first; 
   return _position[layer][coor];
 }
 
-
-short SvtxTrack::getNhits() const
-{
-  int count = 100;
-  for(unsigned int i = 0; i < 100; i++){	
-    if(_clusterID[i] == -9999)
-      count--;
-  }
-  return count;
+short SvtxTrack::getNhits() const {
+  return _cluster_ids.size();
 }
