@@ -10,15 +10,19 @@ class PHCompositeNode;
 class RawTowerContainer;
 class RawTowerGeom;
 
+// rootcint barfs with this header so we need to hide it
+#ifndef __CINT__
+#include <gsl/gsl_rng.h>
+#endif
+
+//! simple tower digitizer which sum all cell to produce photon yield and pedstal noises
 class RawTowerDigitizer : public SubsysReco
 {
 
 public:
   RawTowerDigitizer(const std::string& name = "RawTowerDigitizer");
   virtual
-  ~RawTowerDigitizer()
-  {
-  }
+  ~RawTowerDigitizer();
 
   int
   InitRun(PHCompositeNode *topNode);
@@ -37,6 +41,14 @@ public:
     emin = e;
   }
 
+  void
+  set_seed(const unsigned int iseed);
+  unsigned int
+  get_seed() const
+  {
+    return seed;
+  }
+
 protected:
   void
   CreateNodes(PHCompositeNode *topNode);
@@ -53,9 +65,12 @@ protected:
   int _cell_binning;
   double emin;
 
-
   PHTimeServer::timer _timer;
 
+  unsigned int seed;
+#ifndef __CINT__
+  gsl_rng *RandomGenerator;
+#endif
 };
 
 #endif /* RawTowerDigitizer_H__ */

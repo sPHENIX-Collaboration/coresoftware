@@ -10,12 +10,16 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHRandomSeed.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/getClass.h>
+#include <fun4all/recoConsts.h>
 
 #include <iostream>
 #include <stdexcept>
 #include <map>
+
+#include <gsl/gsl_rng.h>
 
 using namespace std;
 
@@ -23,6 +27,29 @@ RawTowerDigitizer::RawTowerDigitizer(const std::string& name) :
     SubsysReco(name), _sim_towers(NULL), _raw_towers(NULL), rawtowergeom(NULL), detector(
         "NONE"), emin(1e-6), _timer(PHTimeServer::get()->insert_new(name))
 {
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  recoConsts *rc = recoConsts::instance();
+  if (rc->FlagExist("RANDOMSEED"))
+    {
+      seed = rc->get_IntFlag("RANDOMSEED");
+    }
+  else
+    {
+      seed = PHRandomSeed();
+    }
+  gsl_rng_set(RandomGenerator, seed);
+}
+
+RawTowerDigitizer::~RawTowerDigitizer()
+{
+  gsl_rng_free(RandomGenerator);
+}
+
+void
+RawTowerDigitizer::set_seed(const unsigned int iseed)
+{
+  seed = iseed;
+  gsl_rng_set(RandomGenerator,seed);
 }
 
 int
