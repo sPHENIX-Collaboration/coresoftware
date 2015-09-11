@@ -32,6 +32,10 @@ PHG4SvtxTrackProjection::PHG4SvtxTrackProjection(const string &name) :
   _cal_names.push_back("CEMC");
   _cal_names.push_back("HCALIN");
   _cal_names.push_back("HCALOUT");
+  _cal_types.push_back(SvtxTrack::PRES); // PRES not yet in G4
+  _cal_types.push_back(SvtxTrack::CEMC);
+  _cal_types.push_back(SvtxTrack::HCALIN);
+  _cal_types.push_back(SvtxTrack::HCALOUT);
 }
 
 int PHG4SvtxTrackProjection::Init(PHCompositeNode *topNode) 
@@ -199,7 +203,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
       	}
       }
 
-      track->set_cal_energy_3x3(i,energy_3x3);
+      track->set_cal_energy_3x3(_cal_types[i],energy_3x3);
 
       // loop over all clusters and find nearest
       double min_r = DBL_MAX;
@@ -225,10 +229,10 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
       }
 
       if (min_index != -9999) {
-	track->set_cal_dphi(i,min_dphi);
-	track->set_cal_deta(i,min_deta);
-	track->set_cal_cluster_id(i,min_index);
-	track->set_cal_cluster_e(i,min_e);
+	track->set_cal_dphi(_cal_types[i],min_dphi);
+	track->set_cal_deta(_cal_types[i],min_deta);
+	track->set_cal_cluster_id(_cal_types[i],min_index);
+	track->set_cal_cluster_e(_cal_types[i],min_e);
 
 	if (verbosity > 1) {
 	  cout << " nearest cluster dphi = " << min_dphi << " deta = " << min_deta << " e = " << min_e << endl;

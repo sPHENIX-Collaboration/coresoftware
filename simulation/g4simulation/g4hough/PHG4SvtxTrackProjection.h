@@ -9,6 +9,8 @@
 
 #include "PHG4HoughTransform.h"
 
+#include "SvtxTrack.h"
+
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
 
@@ -40,6 +42,7 @@ class PHG4SvtxTrackProjection : public SubsysReco
 
   PHG4HoughTransform _hough;
   int _num_cal_layers;
+  std::vector<SvtxTrack::CAL_LAYER> _cal_types;
   std::vector<std::string> _cal_names;
   std::vector<float> _cal_radii;
   double _mag_extent;
