@@ -17,6 +17,20 @@ RawTowerv1::RawTowerv1() :
   energy(0)
 {}
 
+RawTowerv1::RawTowerv1(const RawTower & tower)
+{
+  towerid = (tower.get_id());
+  energy = (tower.get_energy());
+
+  CellConstRange cell_range = tower.get_g4cells();
+
+  for (CellConstIterator cell_iter = cell_range.first;
+      cell_iter != cell_range.second; ++cell_iter)
+    {
+      add_ecell(cell_iter->first, cell_iter->second);
+    }
+}
+
 RawTowerv1::RawTowerv1(RawTowerDefs::keytype id) : 
   towerid(id),
   energy(0)

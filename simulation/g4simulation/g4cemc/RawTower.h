@@ -33,7 +33,7 @@ class RawTower : public PHObject {
   //! energy assigned to the tower. Depending on stage of process and DST node name, it could be energy deposition, light yield or calibrated energies
   virtual void set_energy (const double ) { PHOOL_VIRTUAL_WARN("set_energy()"); return  ; }
 
-  virtual CellConstRange get_g4cells()
+  virtual CellConstRange get_g4cells() const
   {
     PHOOL_VIRTUAL_WARN("get_g4cells()");
     CellMap dummy;

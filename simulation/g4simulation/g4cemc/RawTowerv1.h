@@ -11,6 +11,7 @@ class RawTowerv1 : public RawTower {
 
  public:
   RawTowerv1();
+  RawTowerv1(const RawTower & tower);
   RawTowerv1(RawTowerDefs::keytype id);
   RawTowerv1(const unsigned int ieta, const unsigned int iphi);
   virtual ~RawTowerv1();
@@ -25,7 +26,7 @@ class RawTowerv1 : public RawTower {
   double get_energy() const {return energy;}
   void set_energy(const double e) {energy = e;}
 
-  RawTower::CellConstRange get_g4cells()
+  RawTower::CellConstRange get_g4cells() const
   {return make_pair(ecells.begin(), ecells.end());}
   void add_ecell(const PHG4CylinderCellDefs::keytype g4cellid, const float ecell);
 
