@@ -11,7 +11,6 @@ SvtxTrack::SvtxTrack()
     _is_positive_charge(false),
     _quality(NAN),
     _chisq(NAN),
-    _chisqv(NAN),
     _ndf(0),
     _DCA(NAN),
     _DCA2D(NAN),
@@ -76,7 +75,6 @@ void SvtxTrack::Reset() {
   _DCA2D=NAN;
 
   _chisq = NAN;
-  _chisqv = NAN;
   _ndf = 0;
   
   _cal_dphi.clear();

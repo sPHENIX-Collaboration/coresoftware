@@ -81,8 +81,13 @@ class SvtxTrack : public PHObject {
   void setChisq(float q) {_chisq = q;}
   float getChisq() const {return _chisq;}
 
-  void setChisqv(float q) {_chisqv = q;}
-  float getChisqv() const {return _chisqv;}
+  void setChisqv(float q) {
+    std::cout << "SvtxTrack:: ERROR - deprecated interface call" << std::endl;
+  }
+  float getChisqv() const {
+    std::cout << "SvtxTrack:: ERROR - deprecated interface call" << std::endl;
+    return NAN;
+  }
 
   void setNDF(int q) {_ndf = q;}
   int getNDF() const {return _ndf;}
@@ -131,12 +136,14 @@ class SvtxTrack : public PHObject {
   void  set_cal_cluster_e(CAL_LAYER layer, float e) {_cal_cluster_e[layer] = e;}
   float get_cal_cluster_e(CAL_LAYER layer) const;
 
-  float get_x() const{return _x;}
-  void set_x(float val){_x = val;}
-  float get_y() const{return _y;}
-  void set_y(float val){_y = val;}
-  float get_z() const{return _z;}
-  void set_z(float val){_z = val;}
+  float get_x() const  {return _x;}
+  void  set_x(float x) {_x = x;}
+  
+  float get_y() const  {return _y;}
+  void  set_y(float y) {_y = y;}
+
+  float get_z() const  {return _z;}
+  void  set_z(float z) {_z = z;}
 
  private: 
 
@@ -145,7 +152,6 @@ class SvtxTrack : public PHObject {
   bool    _is_positive_charge;
   float   _quality;
   float   _chisq;
-  float   _chisqv;
   int     _ndf;
 
   float   _DCA;
