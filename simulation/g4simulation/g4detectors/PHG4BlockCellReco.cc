@@ -62,10 +62,20 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
   cellnodename = "G4CELL_" + detector;
   PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode , cellnodename);
   if (!cells)
-  {
+    {
+      PHNodeIterator dstiter(dstNode);
+      PHCompositeNode *DetNode =
+          dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",
+              detector));
+      if (!DetNode)
+        {
+          DetNode = new PHCompositeNode(detector);
+          dstNode->addNode(DetNode);
+        }
+
     cells = new PHG4CylinderCellContainer();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str() , "PHObject");
-    dstNode->addNode(newNode);
+    DetNode->addNode(newNode);
   }
 
   geonodename = "BLOCKGEOM_" + detector;

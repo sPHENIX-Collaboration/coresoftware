@@ -396,11 +396,19 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
       throw std::runtime_error("Failed to find DST node in RawTowerBuilder::CreateNodes");
     }
 
+
+  PHNodeIterator dstiter(dstNode);
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",detector ));
+  if(!DetNode){
+      DetNode = new PHCompositeNode(detector);
+      dstNode->addNode(DetNode);
+   }
+
   // Create the tower nodes on the tree
   _towers = new RawTowerContainer();
   TowerNodeName = "TOWER_SIM_" + detector;
   PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_towers, TowerNodeName.c_str(), "PHObject");
-  dstNode->addNode(towerNode);
+  DetNode->addNode(towerNode);
 
   return;
 }

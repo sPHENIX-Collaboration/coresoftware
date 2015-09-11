@@ -265,11 +265,18 @@ RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
     }
 
   // Create the tower nodes on the tree
+  PHNodeIterator dstiter(dstNode);
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",detector ));
+  if(!DetNode){
+      DetNode = new PHCompositeNode(detector);
+      dstNode->addNode(DetNode);
+   }
+
   _raw_towers = new RawTowerContainer();
   RawTowerNodeName = "TOWER_RAW_" + detector;
   PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_raw_towers,
       RawTowerNodeName.c_str(), "PHObject");
-  dstNode->addNode(towerNode);
+  DetNode->addNode(towerNode);
 
   return;
 }

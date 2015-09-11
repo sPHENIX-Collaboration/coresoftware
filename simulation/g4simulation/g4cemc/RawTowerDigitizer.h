@@ -53,7 +53,6 @@ public:
 
     //! simple digitalization with photon statistics, ADC conversion and pedstal
     kSimple_photon_digitalization = 1
-
   };
 
   enu_digi_algorithm

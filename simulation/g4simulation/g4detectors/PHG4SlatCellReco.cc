@@ -63,9 +63,18 @@ int PHG4SlatCellReco::InitRun(PHCompositeNode *topNode)
   PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode , cellnodename);
   if (!cells)
     {
+      PHNodeIterator dstiter(dstNode);
+      PHCompositeNode *DetNode =
+          dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",
+              detector));
+      if (!DetNode)
+        {
+          DetNode = new PHCompositeNode(detector);
+          dstNode->addNode(DetNode);
+        }
       cells = new PHG4CylinderCellContainer();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str() , "PHObject");
-      dstNode->addNode(newNode);
+      DetNode->addNode(newNode);
     }
 
   geonodename = "CYLINDERGEOM_" + detector;
