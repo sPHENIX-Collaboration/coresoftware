@@ -122,9 +122,8 @@ class SvtxTrack : public PHObject {
   void  set_dzdl(float dzdl) {_dzdl = dzdl;}
   float get_dzdl() const {return _dzdl;}
   
-  const TMatrix* getCovariance() const {return &_covariance;}
-  //TMatrix* getCovariance() {return &_covariance;}
-  void setCovariance(int i,int j, float val) {_covariance[i][j] = val;}
+  float getCovariance(int i,int j) const {return _covariance[i][j];}
+  void  setCovariance(int i,int j, float val) {_covariance[i][j] = val;}
 
   void  set_cal_dphi(CAL_LAYER layer, float dphi) {_cal_dphi[layer] = dphi;}
   float get_cal_dphi(CAL_LAYER layer) const;
