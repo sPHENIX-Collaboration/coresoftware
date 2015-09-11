@@ -78,8 +78,11 @@ class SvtxTrack : public PHObject {
   //void setNhits(int layer, short n);
   short getNhits() const;
   
-  void setQuality(float q) {_quality = q;}
-  float getQuality() const {return _quality;}
+  void setQuality(float q) {}
+  float getQuality() const {
+    if (_ndf!=0) return _chisq/_ndf;
+    return NAN;
+  }
 
   void setChisq(float q) {_chisq = q;}
   float getChisq() const {return _chisq;}
@@ -148,6 +151,13 @@ class SvtxTrack : public PHObject {
   float get_z() const  {return _z;}
   void  set_z(float z) {_z = z;}
 
+  // add convience calculations
+  //float get_eta() const;
+  //float get_theta() const;
+  //float get_phi() const;
+  //float get_pt() const;
+  //float get_p() const;
+
  private: 
 
   // keep these private for now
@@ -158,7 +168,7 @@ class SvtxTrack : public PHObject {
   // track information
   unsigned int _track_id;
   bool         _is_positive_charge;
-  float        _quality;
+  //float        _quality;
   float        _chisq;
   unsigned int _ndf;
 
