@@ -1097,9 +1097,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  px        = track->get3Momentum(0);
 	  py        = track->get3Momentum(1);
 	  pz        = track->get3Momentum(2);
-	  pcax      = track->d * sin(track->phi);
-	  pcay      = track->d * cos(track->phi);
-	  pcaz      = track->z0;
+	  pcax      = track->get_d() * sin(track->get_phi());
+	  pcay      = track->get_d() * cos(track->get_phi());
+	  pcaz      = track->get_z0();
 
 	  nfromtruth = trackeval->get_nclusters_contribution(track,g4particle);
 	}
@@ -1179,9 +1179,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float px        = track->get3Momentum(0);
 	float py        = track->get3Momentum(1);
 	float pz        = track->get3Momentum(2);
-	float pcax      = track->d * sin(track->phi);
-	float pcay      = track->d * cos(track->phi);
-	float pcaz      = track->z0;
+	float pcax      = track->get_d() * sin(track->get_phi());
+	float pcay      = track->get_d() * cos(track->get_phi());
+	float pcaz      = track->get_z0();
 
 	float presdphi = track->get_cal_dphi(SvtxTrack::PRES);
 	float presdeta = track->get_cal_deta(SvtxTrack::PRES);
