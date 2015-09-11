@@ -46,24 +46,23 @@ void SvtxTrack::identify(ostream& os) const
   return;
 }
 
-void SvtxTrack::Reset()
-{
-  for(int i=0;i<100;i++)
-  {
+void SvtxTrack::Reset() {
+
+  _track_id = -1;
+  
+  for (int i=0;i<100;i++) {
     _clusterID[i]=-9999;
     for(int j=0;j<3;j++){
       _position[i][j]=NAN;
     }
   }
 
-  _track_id = -1;
   _momentum=NAN;
   for(int j=0;j<3;j++){
     _mom3[j]=NAN;
   }
 
   _charge=1;
-  _isprimary=false;
   _ispositive=false;
   _quality=NAN;
   

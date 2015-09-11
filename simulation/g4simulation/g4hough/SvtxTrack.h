@@ -53,8 +53,8 @@ class SvtxTrack : public PHObject {
   void setCharge(int c) {_charge = c;}
   int getCharge() const {return _charge;}
   
-  void setPrimary(bool prim) {_isprimary = prim;}
-  bool getPrimary() const {return _isprimary;}
+  void setPrimary(bool prim) {}
+  bool getPrimary() const {return false;}
   
   void setPositive(bool prim) {_ispositive = prim;}
   bool getPositive() const {return _ispositive;}
@@ -101,8 +101,7 @@ class SvtxTrack : public PHObject {
   float get_dzdl() const {return _dzdl;}
   
   const TMatrix* getCovariance() const {return &_covariance;}
-  TMatrix* getCovariance() {return &_covariance;}
-  
+  TMatrix* getCovariance() {return &_covariance;}  
 
   void set_cal_dphi(int layer, float dphi) {_cal_dphi[layer] = dphi;}
   float get_cal_dphi(int layer) const {return _cal_dphi[layer];}
@@ -135,7 +134,6 @@ class SvtxTrack : public PHObject {
   float   _momentum;
   float   _mom3[3];
   int     _charge;
-  bool    _isprimary;
   bool    _ispositive;
   float   _quality;
   float   _chisq;
