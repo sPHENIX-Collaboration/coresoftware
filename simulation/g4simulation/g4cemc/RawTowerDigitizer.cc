@@ -18,14 +18,16 @@
 #include <iostream>
 #include <stdexcept>
 #include <map>
+#include <cmath>
 
 #include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 using namespace std;
 
 RawTowerDigitizer::RawTowerDigitizer(const std::string& name) :
     SubsysReco(name), _digi_algorithm(ksimple_photon_digitalization), //
-    _sim_towers(NULL), _raw_towers(NULL), rawtowergeom(NULL),//
+    _sim_towers(NULL), _raw_towers(NULL), rawtowergeom(NULL), //
     detector("NONE"), //
     _photonelec_yield_visible_GeV(1.), //default to apply no digitalization
     _photonelec_ADC(1), //default to apply no digitalization
@@ -71,7 +73,8 @@ RawTowerDigitizer::InitRun(PHCompositeNode *topNode)
       "DST"));
   if (!dstNode)
     {
-      std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+      std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+          << "DST Node missing, doing nothing." << std::endl;
       exit(1);
     }
 
@@ -92,7 +95,8 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
 {
   if (verbosity)
     {
-      std::cout << PHWHERE << "Process event entered" << std::endl;
+      std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+          << "Process event entered" << std::endl;
     }
 
   const int phibins = rawtowergeom->get_phibins();
@@ -106,11 +110,12 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
         RawTower *digi_tower = NULL;
 
         if (_digi_algorithm == ksimple_photon_digitalization)
-          digi_tower = simple_photon_digitalization(sim_tower);
+          digi_tower = simple_photon_digitalization(ieta, iphi, sim_tower);
         else
           {
 
-            std::cout << PHWHERE << " invalid digitalization algorithm #"
+            std::cout << Name() << "::" << detector << "::"
+                << __PRETTY_FUNCTION__ << " invalid digitalization algorithm #"
                 << _digi_algorithm << std::endl;
 
             if (digi_tower)
@@ -125,8 +130,8 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
 
   if (verbosity)
     {
-      std::cout << PHWHERE
-      << "input sum energy = " << _raw_towers->getTotalEdep()
+      std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+          << "input sum energy = " << _raw_towers->getTotalEdep()
           << ", output sum digitalized value = " << _sim_towers->getTotalEdep()
           << std::endl;
     }
@@ -135,10 +140,51 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
 }
 
 RawTower *
-RawTowerDigitizer::simple_photon_digitalization(RawTower * sim_tower)
+RawTowerDigitizer::simple_photon_digitalization(int ieta, int iphi,
+    RawTower * sim_tower)
 {
+  RawTower *digi_tower = NULL;
 
-  return NULL;
+  double energy = 0;
+  if (sim_tower)
+    energy = sim_tower->get_energy();
+
+  const double photon_count_mean = energy * _photonelec_yield_visible_GeV;
+  const int photon_count = gsl_ran_poisson(RandomGenerator, photon_count_mean);
+  const int signal_ADC = floor( photon_count/_photonelec_ADC );
+
+  const double pedstal = _pedstal_central_ADC + ((_pedstal_width_ADC>0) ? gsl_ran_gaussian(RandomGenerator,_pedstal_width_ADC):0);
+  const int sum_ADC = signal_ADC + (int)pedstal;
+
+
+  if (sum_ADC > _zero_suppression_ADC)
+    {
+      // create new digitalizaed tower
+      if (sim_tower)
+        digi_tower = new RawTowerv1(*sim_tower);
+      else
+        digi_tower = new RawTowerv1(ieta, iphi);
+
+      digi_tower->set_energy((double)sum_ADC);
+    }
+
+  if (verbosity >= 2)
+    {
+      std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+          << " eta " << ieta << " phi " << iphi << std::endl;
+
+      cout << "input: " ;
+      if (sim_tower)
+        sim_tower->identify();
+      else cout <<"None"<<endl;
+      cout << "output based on "<<"sum_ADC = "<<sum_ADC<<", zero_sup = "<< _zero_suppression_ADC<<" : ";
+      if (digi_tower)
+        digi_tower->identify();
+      else cout <<"None"<<endl;
+
+    }
+
+  return digi_tower;
 }
 
 int
@@ -156,7 +202,8 @@ RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
       "PHCompositeNode", "RUN"));
   if (!runNode)
     {
-      std::cerr << PHWHERE << "Run Node missing, doing nothing." << std::endl;
+      std::cerr << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+          << "Run Node missing, doing nothing." << std::endl;
       throw std::runtime_error(
           "Failed to find Run node in RawTowerDigitizer::CreateNodes");
     }
@@ -166,8 +213,9 @@ RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
       TowerGeomNodeName.c_str());
   if (!rawtowergeom)
     {
-      std::cerr << PHWHERE << " " << TowerGeomNodeName
-          << " Node missing, doing bail out!" << std::endl;
+      std::cerr << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+          << " " << TowerGeomNodeName << " Node missing, doing bail out!"
+          << std::endl;
       throw std::runtime_error(
           "Failed to find " + TowerGeomNodeName
               + " node in RawTowerDigitizer::CreateNodes");
@@ -182,7 +230,8 @@ RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
       "PHCompositeNode", "DST"));
   if (!dstNode)
     {
-      std::cerr << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+      std::cerr << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+          << "DST Node missing, doing nothing." << std::endl;
       throw std::runtime_error(
           "Failed to find DST node in RawTowerDigitizer::CreateNodes");
     }
@@ -192,8 +241,9 @@ RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
       SimTowerNodeName.c_str());
   if (!_sim_towers)
     {
-      std::cerr << PHWHERE << " " << SimTowerNodeName
-          << " Node missing, doing bail out!" << std::endl;
+      std::cerr << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+          << " " << SimTowerNodeName << " Node missing, doing bail out!"
+          << std::endl;
       throw std::runtime_error(
           "Failed to find " + SimTowerNodeName
               + " node in RawTowerDigitizer::CreateNodes");

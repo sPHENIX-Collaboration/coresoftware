@@ -135,7 +135,7 @@ protected:
   //! \param  sim_tower simulation tower input
   //! \return a new RawTower object contain digitalized value of ADC output in RawTower::get_energy()
   RawTower *
-  simple_photon_digitalization(RawTower * sim_tower);
+  simple_photon_digitalization(int ieta, int iphi, RawTower * sim_tower);
 
   RawTowerContainer* _sim_towers;
   RawTowerContainer* _raw_towers;
