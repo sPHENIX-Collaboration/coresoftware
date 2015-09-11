@@ -1,22 +1,32 @@
 #include "SvtxTrack.h"
+
 #include <math.h>
 
 ClassImp(SvtxTrack)
 
 using namespace std;
 
-SvtxTrack::SvtxTrack() : phi(0.),d(0.),kappa(0.),z0(0.),dzdl(0.), x(0.), y(0.), z(0.), covariance(6,6)
-{
+SvtxTrack::SvtxTrack()
+  : trackID(-1),
+    _phi(0.0),
+    _d(0.0),
+    _kappa(0.0),
+    _z0(0.0),
+    _dzdl(0.0),
+    x(0.0),
+    y(0.0),
+    z(0.0),
+    covariance(6,6) {
   Reset();
 }
 
 SvtxTrack::SvtxTrack(SvtxTrack *track) : covariance( *(track->getCovariance()) )
 {
-  phi   = track->phi   ;
-  d     = track->d     ;
-  kappa = track->kappa ;
-  z0    = track->z0    ;
-  dzdl  = track->dzdl  ;
+  _phi   = track->get_phi();
+  _d     = track->get_d();
+  _kappa = track->get_kappa();
+  _z0    = track->get_z0();
+  _dzdl  = track->get_dzdl();
   setDCA2Dsigma(track->getDCA2Dsigma());
   
   for(int i=0;i<100;i++)
@@ -60,11 +70,11 @@ SvtxTrack::SvtxTrack(SvtxTrack *track) : covariance( *(track->getCovariance()) )
 
 SvtxTrack::SvtxTrack(const SvtxTrack& track) : covariance( *(track.getCovariance()) )
 {
-  phi   = track.phi   ;
-  d     = track.d     ;
-  kappa = track.kappa ;
-  z0    = track.z0    ;
-  dzdl  = track.dzdl  ;
+  _phi   = track.get_phi();
+  _d     = track.get_d();
+  _kappa = track.get_kappa();
+  _z0    = track.get_z0();
+  _dzdl  = track.get_dzdl();
   setDCA2Dsigma(track.getDCA2Dsigma());
   
   for(int i=0;i<100;i++)

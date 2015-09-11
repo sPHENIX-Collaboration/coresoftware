@@ -95,11 +95,11 @@ static inline double sign(double x)
 
 void PHG4HoughTransform::projectToRadius(const SvtxTrack& track, double radius, vector<double>& intersection)
 {
-  float phi = track.phi;
-  float d = track.d;
-  float k = track.kappa;
-  float z0 = track.z0;
-  float dzdl = track.dzdl;
+  float phi = track.get_phi();
+  float d = track.get_d();
+  float k = track.get_kappa();
+  float z0 = track.get_z0();
+  float dzdl = track.get_dzdl();
   
   intersection.clear();intersection.assign(3,0.);
   double& x = intersection[0];
@@ -696,15 +696,14 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
     float kappa = _tracks.at(itrack).kappa;
     float d = _tracks.at(itrack).d;
     float phi = _tracks.at(itrack).phi;
-
     float dzdl = _tracks.at(itrack).dzdl;
     float z0 = _tracks.at(itrack).z0;
     
-    track.phi = phi;
-    track.kappa = kappa;
-    track.d = d;
-    track.z0 = z0;
-    track.dzdl = dzdl;
+    track.set_phi(phi);
+    track.set_kappa(kappa);
+    track.set_d(d);
+    track.set_z0(z0);
+    track.set_dzdl(dzdl);
     
     float pT = kappaToPt(kappa);
 

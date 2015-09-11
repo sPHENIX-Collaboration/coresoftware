@@ -5,8 +5,7 @@
 #include <TMatrix.h>
 #include <iostream>
 
-class SvtxTrack : public PHObject
-{
+class SvtxTrack : public PHObject {
   
  public:
 
@@ -76,8 +75,21 @@ class SvtxTrack : public PHObject
   float getDCA2Dsigma() const;
 
   float getInnerMostHitPosition(int coor) const;
+
+  void  set_phi(float phi) {_phi = phi;}
+  float get_phi() const {return _phi;}
+
+  void  set_d(float d) {_d = d;}
+  float get_d() const {return _d;}
   
-  float phi,d,kappa,z0,dzdl;
+  void  set_kappa(float kappa) {_kappa = kappa;}
+  float get_kappa() const {return _kappa;}
+    
+  void set_z0(float z0) {_z0 = z0;}
+  float get_z0() const {return _z0;}
+
+  void  set_dzdl(float dzdl) {_dzdl = dzdl;}
+  float get_dzdl() const {return _dzdl;}
   
   const TMatrix* getCovariance() const {return &covariance;}
   TMatrix* getCovariance() {return &covariance;}
@@ -105,10 +117,11 @@ class SvtxTrack : public PHObject
   float get_z() const{return z;}
   void set_z(float val){z = val;}
 
- protected:
+ private: 
 
-  int     clusterID[100];
   int     trackID;
+  float   _phi,_d,_kappa,_z0,_dzdl;
+  int     clusterID[100];
   float   position[100][3];
   float   momentum;
   float   mom3[3];
