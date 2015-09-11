@@ -46,15 +46,15 @@ class SvtxTrack : public PHObject {
   }
   float getHitPosition(int layer, int coor) const;
 
-  void setMomentum(float p) {_momentum = p;}
-  float getMomentum() const {return _momentum;}
+  void setMomentum(float p) {}
+  float getMomentum() const {return sqrt(pow(_mom[0],2)+pow(_mom[1],2)+pow(_mom[2],2));}
   
   void set3Momentum(float px, float py, float pz) {
-    _mom3[0] = px;
-    _mom3[1] = py;
-    _mom3[2] = pz;
+    _mom[0] = px;
+    _mom[1] = py;
+    _mom[2] = pz;
   };
-  float get3Momentum(int coor) const {return _mom3[coor];}
+  float get3Momentum(int coor) const {return _mom[coor];}
   
   void setCharge(int c) {
     if (c > 0) setPositive(true);
@@ -172,9 +172,11 @@ class SvtxTrack : public PHObject {
   
   // projection information
   // replace with a set/map of track state vectors
+  // x,y,z,px,py,pz + covar
+  
   float   _phi,_d,_kappa,_z0,_dzdl;
-  float   _momentum;
-  float   _mom3[3];
+  //float   _momentum;
+  float   _mom[3];
   float   _x,_y,_z;
   std::vector<std::vector<float> > _covar; // 6x6 triangular matrix
   

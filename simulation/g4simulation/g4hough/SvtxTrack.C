@@ -20,8 +20,8 @@ SvtxTrack::SvtxTrack()
     _kappa(0.0),
     _z0(0.0),
     _dzdl(0.0),
-    _momentum(NAN),
-    _mom3(),
+    //_momentum(NAN),
+    _mom(),
     _x(0.0),
     _y(0.0),
     _z(0.0),
@@ -33,7 +33,7 @@ SvtxTrack::SvtxTrack()
     _cal_energy_3x3(),
     _cal_cluster_id(),
     _cal_cluster_e() {
-  for (int i=0;i<3;++i) _mom3[i] = NAN;
+  for (int i=0;i<3;++i) _mom[i] = NAN;
   for (int i = 0; i < 6; ++i) _covar[i] = std::vector<float>(i+1);
   for (int i = 0; i < 6; ++i) {
     for (int j = i; j < 6; ++j) {
@@ -82,8 +82,8 @@ void SvtxTrack::Reset() {
   _kappa = 0.0;
   _z0 = 0.0;
   _dzdl = 0.0;
-  _momentum = NAN;
-  for (int i=0;i<3;++i) _mom3[i] = NAN;
+  //_momentum = NAN;
+  for (int i=0;i<3;++i) _mom[i] = NAN;
   _x = 0.0;
   _y = 0.0;
   _z = 0.0;
