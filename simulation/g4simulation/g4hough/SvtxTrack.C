@@ -39,7 +39,15 @@ SvtxTrack::SvtxTrack()
 void SvtxTrack::identify(std::ostream& os) const {
   os << "SvtxTrack Object ";
   os << "id: " << getTrackID() << " ";
+  os << "charge: " << getCharge() << " ";
+  os << "chisq: " << getChisq() << " ndf:" << getNDF() << " ";
+  os << endl;
 
+  os << "(px,py,pz) = ("
+     << get3Momentum(0) << ","
+     << get3Momentum(1) << ","
+     << get3Momentum(2) << ")" << endl;
+  
   if (getNhits() > 0) {
     os << "clusters: ";
     for (unsigned int i = 0; i < 100; ++i) {
@@ -48,11 +56,8 @@ void SvtxTrack::identify(std::ostream& os) const {
       }
     }
   }
-    
-  if (getNDF() != 0) {
-    os << "chisq/dof: " << getChisq()/getNDF() << " ";
-  }
-  os << endl;
+  os << endl;    
+ 
   return;
 }
 
@@ -92,8 +97,7 @@ void SvtxTrack::Reset() {
   return;
 }
 
-int SvtxTrack::isValid() const
-{
+int SvtxTrack::isValid() const {
   return 1;
 }
 
