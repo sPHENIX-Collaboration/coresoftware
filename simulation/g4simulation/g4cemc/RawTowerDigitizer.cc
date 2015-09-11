@@ -26,7 +26,7 @@
 using namespace std;
 
 RawTowerDigitizer::RawTowerDigitizer(const std::string& name) :
-    SubsysReco(name), _digi_algorithm(ksimple_photon_digitalization), //
+    SubsysReco(name), _digi_algorithm(kNo_digitalization), //
     _sim_towers(NULL), _raw_towers(NULL), rawtowergeom(NULL), //
     detector("NONE"), //
     _photonelec_yield_visible_GeV(1.), //default to apply no digitalization
@@ -96,7 +96,15 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
   if (verbosity)
     {
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
-          << "Process event entered" << std::endl;
+          << "Process event entered. " << "Digitalization method: ";
+
+      if (kNo_digitalization)
+        cout << "directly pass the energy of sim tower to digitalized tower";
+      else if (kSimple_photon_digitalization)
+        cout
+            << "simple digitalization with photon statistics, ADC conversion and pedstal";
+
+      std::cout << std::endl;
     }
 
   const int phibins = rawtowergeom->get_phibins();
@@ -109,7 +117,10 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
 
         RawTower *digi_tower = NULL;
 
-        if (_digi_algorithm == ksimple_photon_digitalization)
+        if (_digi_algorithm == kNo_digitalization)
+          if (sim_tower)
+            digi_tower = new RawTowerv1(*sim_tower);
+        if (_digi_algorithm == kSimple_photon_digitalization)
           digi_tower = simple_photon_digitalization(ieta, iphi, sim_tower);
         else
           {
@@ -131,8 +142,8 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
   if (verbosity)
     {
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
-          << "input sum energy = " << _raw_towers->getTotalEdep()
-          << ", output sum digitalized value = " << _sim_towers->getTotalEdep()
+          << "input sum energy = " << _sim_towers->getTotalEdep()
+          << ", output sum digitalized value = " << _raw_towers->getTotalEdep()
           << std::endl;
     }
 
@@ -151,11 +162,12 @@ RawTowerDigitizer::simple_photon_digitalization(int ieta, int iphi,
 
   const double photon_count_mean = energy * _photonelec_yield_visible_GeV;
   const int photon_count = gsl_ran_poisson(RandomGenerator, photon_count_mean);
-  const int signal_ADC = floor( photon_count/_photonelec_ADC );
+  const int signal_ADC = floor(photon_count / _photonelec_ADC);
 
-  const double pedstal = _pedstal_central_ADC + ((_pedstal_width_ADC>0) ? gsl_ran_gaussian(RandomGenerator,_pedstal_width_ADC):0);
-  const int sum_ADC = signal_ADC + (int)pedstal;
-
+  const double pedstal = _pedstal_central_ADC
+      + ((_pedstal_width_ADC > 0) ?
+          gsl_ran_gaussian(RandomGenerator, _pedstal_width_ADC) : 0);
+  const int sum_ADC = signal_ADC + (int) pedstal;
 
   if (sum_ADC > _zero_suppression_ADC)
     {
@@ -165,7 +177,7 @@ RawTowerDigitizer::simple_photon_digitalization(int ieta, int iphi,
       else
         digi_tower = new RawTowerv1(ieta, iphi);
 
-      digi_tower->set_energy((double)sum_ADC);
+      digi_tower->set_energy((double) sum_ADC);
     }
 
   if (verbosity >= 2)
@@ -173,14 +185,17 @@ RawTowerDigitizer::simple_photon_digitalization(int ieta, int iphi,
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
           << " eta " << ieta << " phi " << iphi << std::endl;
 
-      cout << "input: " ;
+      cout << "input: ";
       if (sim_tower)
         sim_tower->identify();
-      else cout <<"None"<<endl;
-      cout << "output based on "<<"sum_ADC = "<<sum_ADC<<", zero_sup = "<< _zero_suppression_ADC<<" : ";
+      else
+        cout << "None" << endl;
+      cout << "output based on " << "sum_ADC = " << sum_ADC << ", zero_sup = "
+          << _zero_suppression_ADC << " : ";
       if (digi_tower)
         digi_tower->identify();
-      else cout <<"None"<<endl;
+      else
+        cout << "None" << endl;
 
     }
 

@@ -48,8 +48,11 @@ public:
 
   enum enu_digi_algorithm
   {
+    //! directly pass the energy of sim tower to digitalized tower
+    kNo_digitalization = 0,
+
     //! simple digitalization with photon statistics, ADC conversion and pedstal
-    ksimple_photon_digitalization
+    kSimple_photon_digitalization = 1
 
   };
 
@@ -102,13 +105,13 @@ public:
   }
 
   double
-  get_photonelec_yield_visible_Ge_V() const
+  get_photonelec_yield_visible_GeV() const
   {
     return _photonelec_yield_visible_GeV;
   }
 
   void
-  set_photonelec_yield_visible_Ge_V(double photonelecYieldVisibleGeV)
+  set_photonelec_yield_visible_GeV(double photonelecYieldVisibleGeV)
   {
     _photonelec_yield_visible_GeV = photonelecYieldVisibleGeV;
   }
