@@ -24,8 +24,15 @@
 using namespace std;
 
 RawTowerDigitizer::RawTowerDigitizer(const std::string& name) :
-    SubsysReco(name), _sim_towers(NULL), _raw_towers(NULL), rawtowergeom(NULL), detector(
-        "NONE"), emin(1e-6), _timer(PHTimeServer::get()->insert_new(name))
+    SubsysReco(name), _digi_algorithm(ksimple_photon_digitalization), //
+    _sim_towers(NULL), _raw_towers(NULL), rawtowergeom(NULL),//
+    detector("NONE"), //
+    _photonelec_yield_visible_GeV(1.), //default to apply no digitalization
+    _photonelec_ADC(1), //default to apply no digitalization
+    _pedstal_central_ADC(0), //default to apply no digitalization
+    _pedstal_width_ADC(0), //default to apply no digitalization
+    _zero_suppression_ADC(1e-6), //default to apply a moderate zero suppression
+    _timer(PHTimeServer::get()->insert_new(name))
 {
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   recoConsts *rc = recoConsts::instance();
@@ -49,7 +56,7 @@ void
 RawTowerDigitizer::set_seed(const unsigned int iseed)
 {
   seed = iseed;
-  gsl_rng_set(RandomGenerator,seed);
+  gsl_rng_set(RandomGenerator, seed);
 }
 
 int
@@ -88,15 +95,50 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
       std::cout << PHWHERE << "Process event entered" << std::endl;
     }
 
-  double towerE = 0;
+  const int phibins = rawtowergeom->get_phibins();
+  const int etabins = rawtowergeom->get_etabins();
+
+  for (int iphi = 0; iphi < phibins; ++iphi)
+    for (int ieta = 0; ieta < etabins; ++ieta)
+      {
+        RawTower *sim_tower = _sim_towers->getTower(ieta, iphi);
+
+        RawTower *digi_tower = NULL;
+
+        if (_digi_algorithm == ksimple_photon_digitalization)
+          digi_tower = simple_photon_digitalization(sim_tower);
+        else
+          {
+
+            std::cout << PHWHERE << " invalid digitalization algorithm #"
+                << _digi_algorithm << std::endl;
+
+            if (digi_tower)
+              delete digi_tower;
+
+            return Fun4AllReturnCodes::ABORTRUN;
+          }
+
+        if (digi_tower)
+          _raw_towers->AddTower(ieta, iphi, digi_tower);
+      }
+
   if (verbosity)
     {
-      towerE = _raw_towers->getTotalEdep();
+      std::cout << PHWHERE
+      << "input sum energy = " << _raw_towers->getTotalEdep()
+          << ", output sum digitalized value = " << _sim_towers->getTotalEdep()
+          << std::endl;
     }
 
-  _raw_towers->compress(emin);
-
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+RawTower *
+RawTowerDigitizer::simple_photon_digitalization(RawTower * sim_tower)
+{
+
+  return NULL;
 }
 
 int
@@ -146,9 +188,9 @@ RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
     }
 
   SimTowerNodeName = "TOWER_SIM_" + detector;
-  _raw_towers = findNode::getClass<RawTowerContainer>(dstNode,
+  _sim_towers = findNode::getClass<RawTowerContainer>(dstNode,
       SimTowerNodeName.c_str());
-  if (!_raw_towers)
+  if (!_sim_towers)
     {
       std::cerr << PHWHERE << " " << SimTowerNodeName
           << " Node missing, doing bail out!" << std::endl;
