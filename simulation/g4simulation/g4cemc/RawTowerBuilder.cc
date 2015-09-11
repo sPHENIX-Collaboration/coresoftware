@@ -34,6 +34,7 @@ RawTowerBuilder::RawTowerBuilder(const std::string& name):
   _phimin(NAN),
   _etastep(NAN),
   _phistep(NAN),
+  _tower_energy_src(kEnergyDeposition),
   _timer( PHTimeServer::get()->insert_new(name) )
 {}
 
@@ -73,6 +74,15 @@ RawTowerBuilder::InitRun(PHCompositeNode *topNode)
       std::cout << e.what() << std::endl;
       //exit(1);
     }
+
+
+  if (verbosity >= 1)
+    {
+      cout <<"RawTowerBuilder::InitRun :";
+      if (_tower_energy_src == kEnergyDeposition) cout <<"save Geant4 energy deposition as the weight of the cells"<<endl;
+      else if (_tower_energy_src == kLightYield) cout <<"save light yield as the weight of the cells"<<endl;
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -111,13 +121,19 @@ RawTowerBuilder::process_event(PHCompositeNode *topNode)
        if (! tower)
 	 {
 	   tower = new RawTowerv1(cell->get_binz(), cell->get_binphi());
+	   tower->set_energy(0);
 	   _towers->AddTower(cell->get_binz(), cell->get_binphi(), tower);
 	 }
-       tower->add_ecell(cell->get_cell_id(), cell->get_edep());
-       tower->set_light_yield( tower->get_light_yield() +  cell->get_light_yield()  );
-       rawtowergeom =  findNode::getClass<RawTowerGeom>(topNode, TowerGeomNodeName.c_str());
+       float cell_weight = 0;
+       if (_tower_energy_src == kEnergyDeposition) cell_weight = cell->get_edep();
+       else if (_tower_energy_src == kLightYield) cell_weight = cell->get_light_yield();
+
+       tower->add_ecell(cell->get_cell_id(), cell_weight);
+       tower->set_energy( tower->get_energy() + cell_weight );
+
        if (verbosity > 2)
 	 {
+           rawtowergeom =  findNode::getClass<RawTowerGeom>(topNode, TowerGeomNodeName.c_str());
            tower->identify();
 	 }
     }

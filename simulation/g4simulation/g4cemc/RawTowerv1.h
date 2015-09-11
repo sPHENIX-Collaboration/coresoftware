@@ -22,10 +22,8 @@ class RawTowerv1 : public RawTower {
   RawTowerDefs::keytype get_id() const { return towerid;}
   int get_bineta() const { return (towerid >> RawTowerDefs::eta_idbits)&0xFFF ; }
   int get_binphi() const { return towerid&0xFFF; }
-  double get_energy() const;
-
-  void set_light_yield(const float l)  { light_yield = l; }
-  float get_light_yield() const { return light_yield; };
+  double get_energy() const {return energy;}
+  void set_energy(const double e) {energy = e;}
 
   RawTower::CellConstRange get_g4cells()
   {return make_pair(ecells.begin(), ecells.end());}
@@ -33,11 +31,13 @@ class RawTowerv1 : public RawTower {
 
  protected:
   RawTowerDefs::keytype towerid;
-  float light_yield;
+
+  //! energy assigned to the tower. Depending on stage of process and DST node name, it could be energy deposition, light yield or calibrated energies
+  double energy;
 
   CellMap ecells;
 
-  ClassDef(RawTowerv1,2)
+  ClassDef(RawTowerv1,3)
 };
 
 #endif /* RAWTOWERV1_H_ */

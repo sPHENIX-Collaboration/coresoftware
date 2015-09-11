@@ -23,6 +23,17 @@ class RawTowerBuilder : public SubsysReco {
   void EminCut(const double e) {emin = e;}
   void checkenergy(const int i = 1) {chkenergyconservation = i;}
 
+  enum enu_tower_energy_src
+  {
+    //! save Geant4 energy deposition as the weight of the cells
+      kEnergyDeposition,
+
+      //! save light yield as the weight of the cells
+      kLightYield
+
+  };
+
+
  protected:
   void CreateNodes(PHCompositeNode *topNode);
 
@@ -43,6 +54,7 @@ class RawTowerBuilder : public SubsysReco {
   double _phimin;
   double _etastep;
   double _phistep;
+  enu_tower_energy_src _tower_energy_src;
 
   PHTimeServer::timer _timer;
 

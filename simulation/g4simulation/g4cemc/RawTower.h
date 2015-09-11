@@ -27,9 +27,11 @@ class RawTower : public PHObject {
   virtual RawTowerDefs::keytype get_id() const { PHOOL_VIRTUAL_WARN("get_id()"); return 0; }
   virtual int get_bineta() const { PHOOL_VIRTUAL_WARN("get_ieta()"); return -1; }
   virtual int get_binphi() const { PHOOL_VIRTUAL_WARN("get_iphi()"); return -1; }
+
+  //! energy assigned to the tower. Depending on stage of process and DST node name, it could be energy deposition, light yield or calibrated energies
   virtual double get_energy() const { PHOOL_VIRTUAL_WARN("get_energy()"); return 0.0; }
-  virtual void set_light_yield(const float l)  { PHOOL_VIRTUAL_WARN("set_light_yield()"); return ; }
-  virtual float get_light_yield() const { PHOOL_VIRTUAL_WARN("get_light_yield()"); return 0.0; }
+  //! energy assigned to the tower. Depending on stage of process and DST node name, it could be energy deposition, light yield or calibrated energies
+  virtual void set_energy (const double ) { PHOOL_VIRTUAL_WARN("set_energy()"); return  ; }
 
   virtual CellConstRange get_g4cells()
   {

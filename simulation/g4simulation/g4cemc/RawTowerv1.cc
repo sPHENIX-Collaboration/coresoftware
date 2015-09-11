@@ -14,17 +14,17 @@ ClassImp(RawTowerv1)
 
 RawTowerv1::RawTowerv1() : 
   towerid(~0), // initialize all bits on
-  light_yield(NAN)
+  energy(0)
 {}
 
 RawTowerv1::RawTowerv1(RawTowerDefs::keytype id) : 
   towerid(id),
-  light_yield(NAN)
+  energy(0)
 {}
 
 RawTowerv1::RawTowerv1(const unsigned int ieta, const unsigned int iphi) :
   towerid(0),
-  light_yield(NAN)
+  energy(0)
 {
   if (ieta < 0xFFF && iphi < 0xFFF)
     {
@@ -70,15 +70,4 @@ RawTowerv1::add_ecell(const PHG4CylinderCellDefs::keytype g4cellid, const float 
     }
 }
 
-double 
-RawTowerv1::get_energy() const
-{
-  RawTower::CellConstIterator iter;
-  double esum = 0;
-  for (iter = ecells.begin(); iter != ecells.end(); ++iter)
-    {
-      esum += iter->second;
-    }
-  return esum;
-}
 
