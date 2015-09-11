@@ -7,7 +7,7 @@ ClassImp(SvtxTrack)
 using namespace std;
 
 SvtxTrack::SvtxTrack()
-  : trackID(-1),
+  : _track_id(-1),
     _phi(0.0),
     _d(0.0),
     _kappa(0.0),
@@ -37,7 +37,7 @@ SvtxTrack::SvtxTrack(SvtxTrack *track) : covariance( *(track->getCovariance()) )
     }
   }
   
-  trackID = track->getTrackID();
+  _track_id = track->getTrackID();
   momentum = track->getMomentum();
   for(int j=0;j<3;j++){
     mom3[j] = track->get3Momentum(j);
@@ -85,7 +85,7 @@ SvtxTrack::SvtxTrack(const SvtxTrack& track) : covariance( *(track.getCovariance
     }
   }
   
-  trackID = track.getTrackID();
+  _track_id = track.getTrackID();
   momentum = track.getMomentum();
   for(int j=0;j<3;j++){
     mom3[j] = track.get3Momentum(j);
@@ -155,7 +155,7 @@ void SvtxTrack::Reset()
     }
   }
 
-  trackID = -1;
+  _track_id = -1;
   momentum=NAN;
   for(int j=0;j<3;j++){
     mom3[j]=NAN;
