@@ -127,8 +127,10 @@ PHG4SvtxClusterizer::PHG4SvtxClusterizer(const string &name) :
   _hits(NULL),
   _clusterlist(NULL),
   _fraction_of_mip(0.5),
-  _timer(PHTimeServer::get()->insert_new(name)) {
-}
+  _thresholds_by_layer(),
+  _make_z_clustering(),
+  _make_e_weights(),
+  _timer(PHTimeServer::get()->insert_new(name)) {}
 
 int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
 

@@ -44,7 +44,8 @@ pkginclude_HEADERS = \
   PHG4CylinderCellDefs.h \
   PHG4CylinderCellGeom.h \
   PHG4CylinderCellGeom_Spacalv1.h \
-  PHG4CylinderCellGeomContainer.h
+  PHG4CylinderCellGeomContainer.h \
+  PHG4CylinderCellTPCReco.h
 
 libg4detectors_io_la_SOURCES = \
   PHG4BlockCellGeom.cc \
@@ -194,7 +195,9 @@ libg4detectors_la_SOURCES = \
   PHG4FullProjSpacalCellReco_Dict.cc \
   PHG4SpacalSteppingAction.cc \
   PHG4SpacalSubsystem.cc \
-  PHG4SpacalSubsystem_Dict.cc
+  PHG4SpacalSubsystem_Dict.cc \
+  PHG4CylinderCellTPCReco.cc \
+  PHG4CylinderCellTPCReco_Dict.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
@@ -221,4 +224,3 @@ testexternals.cc:
 
 clean-local:
 	rm -f *Dict* $(BUILT_SOURCES)
-
