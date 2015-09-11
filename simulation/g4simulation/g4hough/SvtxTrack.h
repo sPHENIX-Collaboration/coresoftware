@@ -156,11 +156,11 @@ class SvtxTrack : public PHObject {
   void  set_error(int i, int j, float value);
   
   // track information
-  int     _track_id;
-  bool    _is_positive_charge;
-  float   _quality;
-  float   _chisq;
-  int     _ndf;
+  unsigned int _track_id;
+  bool         _is_positive_charge;
+  float        _quality;
+  float        _chisq;
+  unsigned int _ndf;
 
   // extended track information (non-primary tracks only)
   float   _DCA;
@@ -173,15 +173,16 @@ class SvtxTrack : public PHObject {
   // projection information
   // replace with a set/map of track state vectors
   // x,y,z,px,py,pz + covar
-  
+  // distance along track => state vector
+  // std::map<float,SvtxTrackState*> _states;
+  // float distance = 0.0 will be the default DCA or vertex point value
   float   _phi,_d,_kappa,_z0,_dzdl;
-  //float   _momentum;
   float   _mom[3];
   float   _x,_y,_z;
   std::vector<std::vector<float> > _covar; // 6x6 triangular matrix
   
   // cluster contents
-  std::map<int,int> _cluster_ids; //< layer index => cluster id
+  std::map<int,unsigned int> _cluster_ids; //< layer index => cluster id
 
   // the cluster positions aren't really useful on their own
   // without the cluster uncertainties... maybe we should eliminate

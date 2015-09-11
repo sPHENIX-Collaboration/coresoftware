@@ -1,13 +1,14 @@
 #include "SvtxTrack.h"
 
 #include <math.h>
+#include <limits.h>
 
 ClassImp(SvtxTrack)
 
 using namespace std;
 
 SvtxTrack::SvtxTrack()
-  : _track_id(-1),
+  : _track_id(UINT_MAX),
     _is_positive_charge(false),
     _quality(NAN),
     _chisq(NAN),
@@ -20,7 +21,6 @@ SvtxTrack::SvtxTrack()
     _kappa(0.0),
     _z0(0.0),
     _dzdl(0.0),
-    //_momentum(NAN),
     _mom(),
     _x(0.0),
     _y(0.0),
@@ -69,7 +69,7 @@ void SvtxTrack::identify(std::ostream& os) const {
 
 void SvtxTrack::Reset() {
 
-  _track_id = -1;
+  _track_id = UINT_MAX;
   _is_positive_charge = false;
   _quality = NAN;
   _chisq = NAN;
@@ -82,7 +82,6 @@ void SvtxTrack::Reset() {
   _kappa = 0.0;
   _z0 = 0.0;
   _dzdl = 0.0;
-  //_momentum = NAN;
   for (int i=0;i<3;++i) _mom[i] = NAN;
   _x = 0.0;
   _y = 0.0;
