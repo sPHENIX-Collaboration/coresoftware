@@ -28,12 +28,13 @@ class SvtxTrack : public PHObject {
   
   void setClusterID(int layer, int index) {_cluster_ids[layer] = index;}
   int getClusterID(int layer) const {return _cluster_ids.find(layer)->second;}
-  bool hasCluster(int layer) const {
-    return (_cluster_ids.find(layer) != _cluster_ids.end());
-  }
+  bool hasCluster(int layer) const {return (_cluster_ids.find(layer) != _cluster_ids.end());}
   
-  void setScatter(int layer, float sct) {_scatter[layer] = sct;}
-  float getScatter(int layer) const {return _scatter[layer];}
+  void setScatter(int layer, float sct) {
+    std::cout << "SvtxTrack:: ERROR - deprecated interface call" << std::endl;
+    exit(-1);
+  }
+  float getScatter(int layer) const {return NAN;}
   
   void setHitPosition(int layer, float x, float y, float z) {
     _position[layer][0]=x;
@@ -55,11 +56,11 @@ class SvtxTrack : public PHObject {
   void setCharge(int c) {_charge = c;}
   int getCharge() const {return _charge;}
   
-  void setPrimary(bool prim) {}
-  bool getPrimary() const {return false;}
-  
   void setPositive(bool prim) {_ispositive = prim;}
   bool getPositive() const {return _ispositive;}
+
+  void setPrimary(bool prim) {}
+  bool getPrimary() const {return false;}
   
   //void setNhits(int layer, short n);
   short getNhits() const;
@@ -143,7 +144,6 @@ class SvtxTrack : public PHObject {
   float   _DCA;
   float   _DCA2D;
   float   _DCA2Dsigma;
-  float   _scatter[100];
   float   _x,_y,_z;
   
   TMatrix _covariance;

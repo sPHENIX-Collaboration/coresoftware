@@ -72,10 +72,6 @@ void SvtxTrack::Reset() {
   _chisqv = NAN;
   _ndf = 0;
   
-  for(int i=0;i<9;i++){
-    _scatter[i]=NAN;
-  }
-
   for(int i=0;i<4;++i){
     _cal_dphi[i] = NAN;
     _cal_deta[i] = NAN;
