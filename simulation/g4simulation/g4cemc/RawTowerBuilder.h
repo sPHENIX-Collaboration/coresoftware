@@ -33,6 +33,18 @@ class RawTowerBuilder : public SubsysReco {
 
   };
 
+  enu_tower_energy_src
+  get_tower_energy_src() const
+  {
+    return _tower_energy_src;
+  }
+
+  void
+  set_tower_energy_src(enu_tower_energy_src towerEnergySrc)
+  {
+    _tower_energy_src = towerEnergySrc;
+  }
+
 
  protected:
   void CreateNodes(PHCompositeNode *topNode);
