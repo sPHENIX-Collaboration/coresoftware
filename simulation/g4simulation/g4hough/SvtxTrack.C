@@ -8,6 +8,8 @@ using namespace std;
 
 SvtxTrack::SvtxTrack()
   : _track_id(-1),
+    _charge(1),
+    _ispositive(false),
     _phi(0.0),
     _d(0.0),
     _kappa(0.0),
@@ -72,13 +74,11 @@ void SvtxTrack::Reset() {
   _chisqv = NAN;
   _ndf = 0;
   
-  for(int i=0;i<4;++i){
-    _cal_dphi[i] = NAN;
-    _cal_deta[i] = NAN;
-    _cal_energy_3x3[i] = NAN;
-    _cal_cluster_id[i] = -9999;
-    _cal_cluster_e[i] = NAN;
-  }
+  _cal_dphi.clear();
+  _cal_deta.clear();
+  _cal_energy_3x3.clear();
+  _cal_cluster_id.clear();
+  _cal_cluster_e.clear();
 
   return;
 }
@@ -97,4 +97,34 @@ float SvtxTrack::getInnerMostHitPosition(int coor) const {
 
 short SvtxTrack::getNhits() const {
   return _cluster_ids.size();
+}
+
+float SvtxTrack::get_cal_dphi(SvtxTrack::CAL_LAYER layer) const {
+  std::map<SvtxTrack::CAL_LAYER,float>::const_iterator citer = _cal_dphi.find(layer);
+  if (citer == _cal_dphi.end()) return NAN;
+  return citer->second;
+}
+
+float SvtxTrack::get_cal_deta(SvtxTrack::CAL_LAYER layer) const {
+  std::map<SvtxTrack::CAL_LAYER,float>::const_iterator citer = _cal_deta.find(layer);
+  if (citer == _cal_deta.end()) return NAN;
+  return citer->second;
+}
+
+float SvtxTrack::get_cal_energy_3x3(SvtxTrack::CAL_LAYER layer) const {
+  std::map<SvtxTrack::CAL_LAYER,float>::const_iterator citer = _cal_energy_3x3.find(layer);
+  if (citer == _cal_energy_3x3.end()) return NAN;
+  return citer->second;
+}
+
+int SvtxTrack::get_cal_cluster_id(SvtxTrack::CAL_LAYER layer) const {
+  std::map<SvtxTrack::CAL_LAYER,int>::const_iterator citer = _cal_cluster_id.find(layer);
+  if (citer == _cal_cluster_id.end()) return -9999;
+  return citer->second;
+}
+
+float SvtxTrack::get_cal_cluster_e(SvtxTrack::CAL_LAYER layer) const {
+  std::map<SvtxTrack::CAL_LAYER,float>::const_iterator citer = _cal_cluster_e.find(layer);
+  if (citer == _cal_cluster_e.end()) return NAN;
+  return citer->second;
 }

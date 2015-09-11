@@ -12,7 +12,7 @@ class SvtxTrack : public PHObject {
   
  public:
 
-  enum CAL_LAYER {PRES,CEMC,HCALIN,HCALOUT};
+  enum CAL_LAYER {PRES=0,CEMC=1,HCALIN=2,HCALOUT=3};
 
   SvtxTrack();
   virtual ~SvtxTrack() {}
@@ -32,9 +32,11 @@ class SvtxTrack : public PHObject {
   
   void setScatter(int layer, float sct) {
     std::cout << "SvtxTrack:: ERROR - deprecated interface call" << std::endl;
-    exit(-1);
   }
-  float getScatter(int layer) const {return NAN;}
+  float getScatter(int layer) const {
+    std::cout << "SvtxTrack:: ERROR - deprecated interface call" << std::endl;
+    return NAN;
+  }
   
   void setHitPosition(int layer, float x, float y, float z) {
     _position[layer][0]=x;
@@ -106,20 +108,20 @@ class SvtxTrack : public PHObject {
   const TMatrix* getCovariance() const {return &_covariance;}
   TMatrix* getCovariance() {return &_covariance;}  
 
-  void set_cal_dphi(int layer, float dphi) {_cal_dphi[layer] = dphi;}
-  float get_cal_dphi(int layer) const {return _cal_dphi[layer];}
+  void  set_cal_dphi(CAL_LAYER layer, float dphi) {_cal_dphi[layer] = dphi;}
+  float get_cal_dphi(CAL_LAYER layer) const;
 
-  void set_cal_deta(int layer, float deta) {_cal_deta[layer] = deta;}
-  float get_cal_deta(int layer) const {return _cal_deta[layer];}
+  void  set_cal_deta(CAL_LAYER layer, float deta) {_cal_deta[layer] = deta;}
+  float get_cal_deta(CAL_LAYER layer) const;
 
-  void set_cal_energy_3x3(int layer, float energy_3x3) {_cal_energy_3x3[layer] = energy_3x3;}
-  float get_cal_energy_3x3(int layer) const {return _cal_energy_3x3[layer];}
+  void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3) {_cal_energy_3x3[layer] = energy_3x3;}
+  float get_cal_energy_3x3(CAL_LAYER layer) const;
 
-  void set_cal_cluster_id(int layer, int id) {_cal_cluster_id[layer] = id;}
-  float get_cal_cluster_id(int layer) const {return _cal_cluster_id[layer];}
+  void  set_cal_cluster_id(CAL_LAYER layer, int id) {_cal_cluster_id[layer] = id;}
+  int   get_cal_cluster_id(CAL_LAYER layer) const;
 
-  void set_cal_cluster_e(int layer, float e) {_cal_cluster_e[layer] = e;}
-  float get_cal_cluster_e(int layer) const {return _cal_cluster_e[layer];}
+  void  set_cal_cluster_e(CAL_LAYER layer, float e) {_cal_cluster_e[layer] = e;}
+  float get_cal_cluster_e(CAL_LAYER layer) const;
 
   float get_x() const{return _x;}
   void set_x(float val){_x = val;}
@@ -131,33 +133,38 @@ class SvtxTrack : public PHObject {
  private: 
 
   int     _track_id;
-  float   _phi,_d,_kappa,_z0,_dzdl;
-  float   _position[100][3];
-  float   _momentum;
-  float   _mom3[3];
+
+  // track information
   int     _charge;
   bool    _ispositive;
   float   _quality;
   float   _chisq;
   float   _chisqv;
   int     _ndf;
+
   float   _DCA;
   float   _DCA2D;
   float   _DCA2Dsigma;
+
+  // projection information
+  float   _phi,_d,_kappa,_z0,_dzdl;
+  float   _position[100][3];
+  float   _momentum;
+  float   _mom3[3];
+
   float   _x,_y,_z;
   
   TMatrix _covariance;
   
-  // calorimeter matches
-  float   _cal_dphi[4];
-  float   _cal_deta[4];
-  float   _cal_energy_3x3[4];
-  int     _cal_cluster_id[4];
-  float   _cal_cluster_e[4];
-
   // cluster ids
-  //int     _clusterID[100];
   std::map<int,int> _cluster_ids; //< layer index => cluster id
+
+  // calorimeter matches
+  std::map<CAL_LAYER,float> _cal_dphi;
+  std::map<CAL_LAYER,float> _cal_deta;
+  std::map<CAL_LAYER,float> _cal_energy_3x3;
+  std::map<CAL_LAYER,int>   _cal_cluster_id;
+  std::map<CAL_LAYER,float> _cal_cluster_e;
   
   ClassDef(SvtxTrack,1)
 };
