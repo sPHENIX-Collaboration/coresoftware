@@ -69,8 +69,12 @@ class SvtxTrack : public PHObject {
   void setPositive(bool prim) {_is_positive_charge = prim;}
   bool getPositive() const {return _is_positive_charge;}
 
-  void setPrimary(bool prim) {}
-  bool getPrimary() const {return false;}
+  void setPrimary(bool prim) {
+    std::cout << "SvtxTrack:: ERROR - deprecated interface call" << std::endl;
+  }
+  bool getPrimary() const {
+    return false;
+  }
   
   //void setNhits(int layer, short n);
   short getNhits() const;
@@ -154,19 +158,33 @@ class SvtxTrack : public PHObject {
   float   _chisq;
   int     _ndf;
 
+  // extended track information (non-primary tracks only)
   float   _DCA;
   float   _DCA2D;
   float   _DCA2Dsigma;
 
+  // extended track information (primary tracks only)
+  // unsigned int _vertex_id;
+  
   // projection information
+  // replace with a set/map of track state vectors
   float   _phi,_d,_kappa,_z0,_dzdl;
   float   _momentum;
   float   _mom3[3];
-  float   _x,_y,_z; 
+  float   _x,_y,_z;
+
+  // ROOT adds a lot of overhead, and will get worse if we store multiple state
+  // vectors, we should replace this with a raw type like a triangular
+  // vector implementation std::vector<std::vector<float> > _covariance;
   TMatrix _covariance;
   
   // cluster contents
-  std::map<int,int> _cluster_ids;                       //< layer index => cluster id
+  std::map<int,int> _cluster_ids; //< layer index => cluster id
+
+  // the cluster positions aren't really useful on their own
+  // without the cluster uncertainties... maybe we should eliminate
+  // this member for further storage gains (and use the ids to fetch the clusters
+  // for remaking the fits)
   std::map<int,std::vector<float> > _cluster_positions; //< layer index => (x,y,z)
   
   // calorimeter matches

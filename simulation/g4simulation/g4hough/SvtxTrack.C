@@ -33,7 +33,7 @@ SvtxTrack::SvtxTrack()
     _cal_energy_3x3(),
     _cal_cluster_id(),
     _cal_cluster_e() {
-  Reset();
+  for (int i=0;i<3;++i) _mom3[i] = NAN;
 }
 
 void SvtxTrack::identify(std::ostream& os) const {
@@ -59,24 +59,30 @@ void SvtxTrack::identify(std::ostream& os) const {
 void SvtxTrack::Reset() {
 
   _track_id = -1;
-
-  _cluster_ids.clear();
-  _cluster_positions.clear();
-
-  _momentum=NAN;
-  for(int j=0;j<3;j++){
-    _mom3[j]=NAN;
-  }
-
   _is_positive_charge = false;
-  _quality=NAN;
-  
-  _DCA=NAN;
-  _DCA2D=NAN;
-
+  _quality = NAN;
   _chisq = NAN;
   _ndf = 0;
-  
+  _DCA = NAN;
+  _DCA2D = NAN;
+  _DCA2Dsigma = NAN;
+  _phi = 0.0;
+  _d = 0.0;
+  _kappa = 0.0;
+  _z0 = 0.0;
+  _dzdl = 0.0;
+  _momentum = NAN;
+  for (int i=0;i<3;++i) _mom3[i] = NAN;
+  _x = 0.0;
+  _y = 0.0;
+  _z = 0.0;
+  for (int i=0;i<6;++i) {
+    for (int j=0;j<6;++j) {
+      _covariance[i][j] = 0.0;
+    }
+  }
+  _cluster_ids.clear();
+  _cluster_positions.clear();
   _cal_dphi.clear();
   _cal_deta.clear();
   _cal_energy_3x3.clear();
