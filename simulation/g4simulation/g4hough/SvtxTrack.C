@@ -25,7 +25,6 @@ SvtxTrack::SvtxTrack()
     _x(0.0),
     _y(0.0),
     _z(0.0),
-    _covariance(6,6),
     _covar(6),
     _cluster_ids(),
     _cluster_positions(),
@@ -90,7 +89,6 @@ void SvtxTrack::Reset() {
   _z = 0.0;
   for (int i=0;i<6;++i) {
     for (int j=0;j<6;++j) {
-      _covariance[i][j] = 0.0;
       set_error(i,j,0.0);
     }
   }

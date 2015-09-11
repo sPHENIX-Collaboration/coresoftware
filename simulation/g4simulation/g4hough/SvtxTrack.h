@@ -3,10 +3,9 @@
 
 #include <phool/PHObject.h>
 
-#include <TMatrix.h>
-
 #include <iostream>
 #include <map>
+#include <cmath>
 
 class SvtxTrack : public PHObject {
   
@@ -94,15 +93,15 @@ class SvtxTrack : public PHObject {
   }
 
   void setNDF(int q) {_ndf = q;}
-  int getNDF() const {return _ndf;}
+  int  getNDF() const {return _ndf;}
 
-  void setDCA(float d) {_DCA = d;}
+  void  setDCA(float d) {_DCA = d;}
   float getDCA() const {return _DCA;}
 
-  void setDCA2D(float d) {_DCA2D = d;}
+  void  setDCA2D(float d) {_DCA2D = d;}
   float getDCA2D() const {return _DCA2D;}
   
-  void setDCA2Dsigma(float s) {_DCA2Dsigma = s;}
+  void  setDCA2Dsigma(float s) {_DCA2Dsigma = s;}
   float getDCA2Dsigma() const {return _DCA2Dsigma;}
 
   float getInnerMostHitPosition(int coor) const;
@@ -116,14 +115,14 @@ class SvtxTrack : public PHObject {
   void  set_kappa(float kappa) {_kappa = kappa;}
   float get_kappa() const {return _kappa;}
     
-  void set_z0(float z0) {_z0 = z0;}
+  void  set_z0(float z0) {_z0 = z0;}
   float get_z0() const {return _z0;}
 
   void  set_dzdl(float dzdl) {_dzdl = dzdl;}
   float get_dzdl() const {return _dzdl;}
   
-  float getCovariance(int i,int j) const {return _covariance[i][j];}
-  void  setCovariance(int i,int j, float val) {_covariance[i][j] = val;}
+  float getCovariance(int i,int j) const {return get_error(i,j);}
+  void  setCovariance(int i,int j, float val) {set_error(i,j,val);}
 
   void  set_cal_dphi(CAL_LAYER layer, float dphi) {_cal_dphi[layer] = dphi;}
   float get_cal_dphi(CAL_LAYER layer) const;
@@ -177,11 +176,6 @@ class SvtxTrack : public PHObject {
   float   _momentum;
   float   _mom3[3];
   float   _x,_y,_z;
-
-  // ROOT adds a lot of overhead, and will get worse if we store multiple state
-  // vectors, we should replace this with a raw type like a triangular
-  // vector implementation std::vector<std::vector<float> > _covariance;
-  TMatrix _covariance;
   std::vector<std::vector<float> > _covar; // 6x6 triangular matrix
   
   // cluster contents
