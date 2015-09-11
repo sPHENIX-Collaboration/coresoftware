@@ -57,11 +57,17 @@ class SvtxTrack : public PHObject {
   };
   float get3Momentum(int coor) const {return _mom3[coor];}
   
-  void setCharge(int c) {_charge = c;}
-  int getCharge() const {return _charge;}
+  void setCharge(int c) {
+    if (c > 0) setPositive(true);
+    else setPositive(false);
+  }
+  int getCharge() const {
+    if (getPositive()) return +1;
+    else return -1;
+  }
   
-  void setPositive(bool prim) {_ispositive = prim;}
-  bool getPositive() const {return _ispositive;}
+  void setPositive(bool prim) {_is_positive_charge = prim;}
+  bool getPositive() const {return _is_positive_charge;}
 
   void setPrimary(bool prim) {}
   bool getPrimary() const {return false;}
@@ -134,11 +140,9 @@ class SvtxTrack : public PHObject {
 
  private: 
 
-  int     _track_id;
-
   // track information
-  int     _charge;
-  bool    _ispositive;
+  int     _track_id;
+  bool    _is_positive_charge;
   float   _quality;
   float   _chisq;
   float   _chisqv;
