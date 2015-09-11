@@ -20,105 +20,105 @@ SvtxTrack::SvtxTrack()
   Reset();
 }
 
-SvtxTrack::SvtxTrack(SvtxTrack *track) : covariance( *(track->getCovariance()) )
-{
-  _phi   = track->get_phi();
-  _d     = track->get_d();
-  _kappa = track->get_kappa();
-  _z0    = track->get_z0();
-  _dzdl  = track->get_dzdl();
-  setDCA2Dsigma(track->getDCA2Dsigma());
+// SvtxTrack::SvtxTrack(SvtxTrack *track) : covariance( *(track->getCovariance()) )
+// {
+//   _phi   = track->get_phi();
+//   _d     = track->get_d();
+//   _kappa = track->get_kappa();
+//   _z0    = track->get_z0();
+//   _dzdl  = track->get_dzdl();
+//   setDCA2Dsigma(track->getDCA2Dsigma());
   
-  for(int i=0;i<100;i++)
-  {
-    clusterID[i] = track->getClusterID(i);
-    for(int j=0;j<3;j++){
-      position[i][j] = track->getHitPosition(i,j);
-    }
-  }
+//   for(int i=0;i<100;i++)
+//   {
+//     clusterID[i] = track->getClusterID(i);
+//     for(int j=0;j<3;j++){
+//       position[i][j] = track->getHitPosition(i,j);
+//     }
+//   }
   
-  _track_id = track->getTrackID();
-  momentum = track->getMomentum();
-  for(int j=0;j<3;j++){
-    mom3[j] = track->get3Momentum(j);
-  }
+//   _track_id = track->getTrackID();
+//   momentum = track->getMomentum();
+//   for(int j=0;j<3;j++){
+//     mom3[j] = track->get3Momentum(j);
+//   }
 
-  charge = track->getCharge();
-  isprimary = track->getPrimary();
-  ispositive = track->getPositive();
-  quality = track->getQuality();
+//   charge = track->getCharge();
+//   isprimary = track->getPrimary();
+//   ispositive = track->getPositive();
+//   quality = track->getQuality();
   
-  DCA = track->getDCA();
-  DCA2D = track->getDCA2D();
+//   DCA = track->getDCA();
+//   DCA2D = track->getDCA2D();
 
-  chisq = track->getChisq();
-  chisqv = track->getChisqv();
-  ndf = track->getNDF();
+//   chisq = track->getChisq();
+//   chisqv = track->getChisqv();
+//   ndf = track->getNDF();
   
-  for(int i=0;i<9;i++){
-    scatter[i] = track->getScatter(i);
-  }
+//   for(int i=0;i<9;i++){
+//     scatter[i] = track->getScatter(i);
+//   }
 
-  for(int i=0;i<4;++i) {
-    cal_dphi[i] = track->get_cal_dphi(i);
-    cal_deta[i] = track->get_cal_deta(i);
-    cal_energy_3x3[i] = track->get_cal_energy_3x3(i);
-    cal_cluster_id[i] = track->get_cal_cluster_id(i);
-    cal_cluster_e[i] = track->get_cal_cluster_e(i);
-  }
-}
+//   for(int i=0;i<4;++i) {
+//     cal_dphi[i] = track->get_cal_dphi(i);
+//     cal_deta[i] = track->get_cal_deta(i);
+//     cal_energy_3x3[i] = track->get_cal_energy_3x3(i);
+//     cal_cluster_id[i] = track->get_cal_cluster_id(i);
+//     cal_cluster_e[i] = track->get_cal_cluster_e(i);
+//   }
+// }
 
-SvtxTrack::SvtxTrack(const SvtxTrack& track) : covariance( *(track.getCovariance()) )
-{
-  _phi   = track.get_phi();
-  _d     = track.get_d();
-  _kappa = track.get_kappa();
-  _z0    = track.get_z0();
-  _dzdl  = track.get_dzdl();
-  setDCA2Dsigma(track.getDCA2Dsigma());
+// SvtxTrack::SvtxTrack(const SvtxTrack& track) : covariance( *(track.getCovariance()) )
+// {
+//   _phi   = track.get_phi();
+//   _d     = track.get_d();
+//   _kappa = track.get_kappa();
+//   _z0    = track.get_z0();
+//   _dzdl  = track.get_dzdl();
+//   setDCA2Dsigma(track.getDCA2Dsigma());
   
-  for(int i=0;i<100;i++)
-  {
-    clusterID[i] = track.getClusterID(i);
-    for(int j=0;j<3;j++){
-      position[i][j] = track.getHitPosition(i,j);
-    }
-  }
+//   for(int i=0;i<100;i++)
+//   {
+//     clusterID[i] = track.getClusterID(i);
+//     for(int j=0;j<3;j++){
+//       position[i][j] = track.getHitPosition(i,j);
+//     }
+//   }
   
-  _track_id = track.getTrackID();
-  momentum = track.getMomentum();
-  for(int j=0;j<3;j++){
-    mom3[j] = track.get3Momentum(j);
-  }
+//   _track_id = track.getTrackID();
+//   momentum = track.getMomentum();
+//   for(int j=0;j<3;j++){
+//     mom3[j] = track.get3Momentum(j);
+//   }
 
-  charge = track.getCharge();
-  isprimary = track.getPrimary();
-  ispositive = track.getPositive();
-  quality = track.getQuality();
+//   charge = track.getCharge();
+//   isprimary = track.getPrimary();
+//   ispositive = track.getPositive();
+//   quality = track.getQuality();
   
-  DCA = track.getDCA();
-  DCA2D = track.getDCA2D();
+//   DCA = track.getDCA();
+//   DCA2D = track.getDCA2D();
 
-  chisq = track.getChisq();
-  chisqv = track.getChisqv();
-  ndf = track.getNDF();
+//   chisq = track.getChisq();
+//   chisqv = track.getChisqv();
+//   ndf = track.getNDF();
   
-  for(int i=0;i<9;i++){
-    scatter[i] = track.getScatter(i);
-  }
+//   for(int i=0;i<9;i++){
+//     scatter[i] = track.getScatter(i);
+//   }
 
-  for(int i=0;i<4;++i) {
-    cal_dphi[i] = track.get_cal_dphi(i);
-    cal_deta[i] = track.get_cal_deta(i);
-    cal_energy_3x3[i] = track.get_cal_energy_3x3(i);
-    cal_cluster_id[i] = track.get_cal_cluster_id(i);
-    cal_cluster_e[i] = track.get_cal_cluster_e(i);
-  }
+//   for(int i=0;i<4;++i) {
+//     cal_dphi[i] = track.get_cal_dphi(i);
+//     cal_deta[i] = track.get_cal_deta(i);
+//     cal_energy_3x3[i] = track.get_cal_energy_3x3(i);
+//     cal_cluster_id[i] = track.get_cal_cluster_id(i);
+//     cal_cluster_e[i] = track.get_cal_cluster_e(i);
+//   }
 
-  x = track.get_x();
-  y = track.get_y();
-  z = track.get_z();
-}
+//   x = track.get_x();
+//   y = track.get_y();
+//   z = track.get_z();
+// }
 
 void SvtxTrack::identify(ostream& os) const
 {

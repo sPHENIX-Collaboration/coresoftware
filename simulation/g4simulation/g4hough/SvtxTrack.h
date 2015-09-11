@@ -15,8 +15,8 @@ class SvtxTrack : public PHObject {
   enum CAL_LAYER {PRES,CEMC,HCALIN,HCALOUT};
 
   SvtxTrack();
-  SvtxTrack(SvtxTrack *track);
-  SvtxTrack(const SvtxTrack& track);
+  //SvtxTrack(SvtxTrack *track);
+  //SvtxTrack(const SvtxTrack& track);
   virtual ~SvtxTrack() {};
   
   // The "standard PHObject response" functions...
