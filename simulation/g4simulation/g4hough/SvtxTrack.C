@@ -26,6 +26,7 @@ SvtxTrack::SvtxTrack()
     _y(0.0),
     _z(0.0),
     _covariance(6,6),
+    _covar(6),
     _cluster_ids(),
     _cluster_positions(),
     _cal_dphi(),
@@ -34,6 +35,12 @@ SvtxTrack::SvtxTrack()
     _cal_cluster_id(),
     _cal_cluster_e() {
   for (int i=0;i<3;++i) _mom3[i] = NAN;
+  for (int i = 0; i < 6; ++i) _covar[i] = std::vector<float>(i+1);
+  for (int i = 0; i < 6; ++i) {
+    for (int j = i; j < 6; ++j) {
+      set_error(i,j,0.0);
+    }
+  } 
 }
 
 void SvtxTrack::identify(std::ostream& os) const {
@@ -84,6 +91,7 @@ void SvtxTrack::Reset() {
   for (int i=0;i<6;++i) {
     for (int j=0;j<6;++j) {
       _covariance[i][j] = 0.0;
+      set_error(i,j,0.0);
     }
   }
   _cluster_ids.clear();
@@ -99,6 +107,17 @@ void SvtxTrack::Reset() {
 
 int SvtxTrack::isValid() const {
   return 1;
+}
+
+float SvtxTrack::get_error(int i, int j) const {
+  if (j > i) return get_error(j,i);
+  return _covar[i][j];
+}
+
+void SvtxTrack::set_error(int i, int j, float value) {
+  if (j > i) set_error(j,i,value);
+  else _covar[i][j] = value;
+  return;
 }
 
 float SvtxTrack::getHitPosition(int layer, int coor) const {

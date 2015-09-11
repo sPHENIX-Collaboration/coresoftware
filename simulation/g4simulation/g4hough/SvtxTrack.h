@@ -123,7 +123,8 @@ class SvtxTrack : public PHObject {
   float get_dzdl() const {return _dzdl;}
   
   const TMatrix* getCovariance() const {return &_covariance;}
-  TMatrix* getCovariance() {return &_covariance;}  
+  //TMatrix* getCovariance() {return &_covariance;}
+  void setCovariance(int i,int j, float val) {_covariance[i][j] = val;}
 
   void  set_cal_dphi(CAL_LAYER layer, float dphi) {_cal_dphi[layer] = dphi;}
   float get_cal_dphi(CAL_LAYER layer) const;
@@ -151,6 +152,11 @@ class SvtxTrack : public PHObject {
 
  private: 
 
+  // keep these private for now
+  // attempting ~zero interface changes during refactor
+  float get_error(int i, int j) const;
+  void  set_error(int i, int j, float value);
+  
   // track information
   int     _track_id;
   bool    _is_positive_charge;
@@ -177,6 +183,7 @@ class SvtxTrack : public PHObject {
   // vectors, we should replace this with a raw type like a triangular
   // vector implementation std::vector<std::vector<float> > _covariance;
   TMatrix _covariance;
+  std::vector<std::vector<float> > _covar; // 6x6 triangular matrix
   
   // cluster contents
   std::map<int,int> _cluster_ids; //< layer index => cluster id

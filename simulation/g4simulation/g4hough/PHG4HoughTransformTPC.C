@@ -745,7 +745,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     {
       for(unsigned int col=0;col<6;++col)
       {
-        (*(track.getCovariance()))[row][col] = euclidean_cov(row,col);
+	track.setCovariance(row,col,euclidean_cov(row,col));
       }
     }
 
