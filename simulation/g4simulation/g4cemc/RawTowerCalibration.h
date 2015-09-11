@@ -10,6 +10,7 @@ class PHCompositeNode;
 class RawTowerContainer;
 class RawTowerGeom;
 
+//! simple calibration for a linear scale and pedstal calibration cross all channels
 class RawTowerCalibration : public SubsysReco {
 
  public:
