@@ -52,11 +52,7 @@ void SvtxTrack::Reset() {
   _track_id = -1;
 
   _cluster_ids.clear();
-  for (int i=0;i<100;i++) {
-    for(int j=0;j<3;j++){
-      _position[i][j]=NAN;
-    }
-  }
+  _cluster_positions.clear();
 
   _momentum=NAN;
   for(int j=0;j<3;j++){
@@ -88,11 +84,15 @@ int SvtxTrack::isValid() const
   return 1;
 }
 
+float SvtxTrack::getHitPosition(int layer, int coor) const {
+  std::map<int,std::vector<float> >::const_iterator citer = _cluster_positions.find(layer);
+  if (citer == _cluster_positions.end()) return NAN;
+  return citer->second[coor];
+}
 
 float SvtxTrack::getInnerMostHitPosition(int coor) const {
-  if (_cluster_ids.empty()) return NAN;  
-  int layer = _cluster_ids.begin()->first; 
-  return _position[layer][coor];
+  if (_cluster_positions.empty()) return NAN;  
+  return _cluster_positions.begin()->second[coor];
 }
 
 short SvtxTrack::getNhits() const {

@@ -39,11 +39,13 @@ class SvtxTrack : public PHObject {
   }
   
   void setHitPosition(int layer, float x, float y, float z) {
-    _position[layer][0]=x;
-    _position[layer][1]=y;
-    _position[layer][2]=z;
+    std::vector<float> position(3);
+    position[0] = x;
+    position[1] = y;
+    position[2] = z;
+    _cluster_positions[layer] = position;
   }
-  float getHitPosition(int layer, int coor) const {return _position[layer][coor];}
+  float getHitPosition(int layer, int coor) const;
 
   void setMomentum(float p) {_momentum = p;}
   float getMomentum() const {return _momentum;}
@@ -148,17 +150,15 @@ class SvtxTrack : public PHObject {
 
   // projection information
   float   _phi,_d,_kappa,_z0,_dzdl;
-  float   _position[100][3];
   float   _momentum;
   float   _mom3[3];
-
-  float   _x,_y,_z;
-  
+  float   _x,_y,_z; 
   TMatrix _covariance;
   
-  // cluster ids
-  std::map<int,int> _cluster_ids; //< layer index => cluster id
-
+  // cluster contents
+  std::map<int,int> _cluster_ids;                       //< layer index => cluster id
+  std::map<int,std::vector<float> > _cluster_positions; //< layer index => (x,y,z)
+  
   // calorimeter matches
   std::map<CAL_LAYER,float> _cal_dphi;
   std::map<CAL_LAYER,float> _cal_deta;
