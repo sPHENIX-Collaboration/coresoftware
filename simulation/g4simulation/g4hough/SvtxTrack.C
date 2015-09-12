@@ -10,7 +10,6 @@ using namespace std;
 SvtxTrack::SvtxTrack()
   : _track_id(UINT_MAX),
     _is_positive_charge(false),
-    //_quality(NAN),
     _chisq(NAN),
     _ndf(0),
     _DCA(NAN),
@@ -53,6 +52,8 @@ void SvtxTrack::identify(std::ostream& os) const {
      << get3Momentum(0) << ","
      << get3Momentum(1) << ","
      << get3Momentum(2) << ")" << endl;
+
+  os << "(x,y,z) = (" << _x << "," << _y << "," << _z << ")" << endl;
   
   if (getNhits() > 0) {
     os << "clusters: ";
@@ -71,7 +72,6 @@ void SvtxTrack::Reset() {
 
   _track_id = UINT_MAX;
   _is_positive_charge = false;
-  //_quality = NAN;
   _chisq = NAN;
   _ndf = 0;
   _DCA = NAN;

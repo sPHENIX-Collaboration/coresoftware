@@ -168,7 +168,6 @@ class SvtxTrack : public PHObject {
   // track information
   unsigned int _track_id;
   bool         _is_positive_charge;
-  //float        _quality;
   float        _chisq;
   unsigned int _ndf;
 
@@ -186,7 +185,7 @@ class SvtxTrack : public PHObject {
   // distance along track => state vector
   // std::map<float,SvtxTrackState*> _states;
   // float distance = 0.0 will be the default DCA or vertex point value
-  float   _phi,_d,_kappa,_z0,_dzdl;
+  float   _phi,_d,_kappa,_z0,_dzdl; // redundant to x,y,z,px,py,pz & field strength
   float   _mom[3];
   float   _x,_y,_z;
   std::vector<std::vector<float> > _covar; // 6x6 triangular matrix
