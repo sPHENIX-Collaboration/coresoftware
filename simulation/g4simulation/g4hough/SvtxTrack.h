@@ -47,14 +47,21 @@ class SvtxTrack : public PHObject {
   float getHitPosition(int layer, int coor) const;
 
   void setMomentum(float p) {}
-  float getMomentum() const {return sqrt(pow(_mom[0],2)+pow(_mom[1],2)+pow(_mom[2],2));}
+  float getMomentum() const {
+    float px = _states.find(0.0)->second.get_px();
+    float py = _states.find(0.0)->second.get_py();
+    float pz = _states.find(0.0)->second.get_pz();
+    return sqrt(pow(px,2)+pow(py,2)+pow(pz,2));
+  }
   
   void set3Momentum(float px, float py, float pz) {
-    _mom[0] = px;
-    _mom[1] = py;
-    _mom[2] = pz;
+    _states[0.0].set_px(px);
+    _states[0.0].set_py(py);
+    _states[0.0].set_pz(pz);
   };
-  float get3Momentum(int coor) const {return _mom[coor];}
+  float get3Momentum(int coor) const {
+    return _states.find(0.0)->second.get_mom(coor);
+  }
   
   void setCharge(int c) {
     if (c > 0) setPositive(true);
@@ -109,20 +116,20 @@ class SvtxTrack : public PHObject {
 
   float getInnerMostHitPosition(int coor) const;
 
-  void  set_phi(float phi) {_phi = phi;}
-  float get_phi() const {return _phi;}
-
-  void  set_d(float d) {_d = d;}
-  float get_d() const {return _d;}
-  
-  void  set_kappa(float kappa) {_kappa = kappa;}
-  float get_kappa() const {return _kappa;}
+  void  set_phi(float phi) {_states[0.0].set_phi(phi);}
+  float get_phi() const {return _states.find(0.0)->second.get_phi();}
     
-  void  set_z0(float z0) {_z0 = z0;}
-  float get_z0() const {return _z0;}
-
-  void  set_dzdl(float dzdl) {_dzdl = dzdl;}
-  float get_dzdl() const {return _dzdl;}
+  void  set_d(float d) {_states[0.0].set_d(d);}
+  float get_d() const {return _states.find(0.0)->second.get_d();}
+  
+  void  set_kappa(float kappa) {_states[0.0].set_kappa(kappa);}
+  float get_kappa() const {return _states.find(0.0)->second.get_kappa();}
+    
+  void  set_z0(float z0) {_states[0.0].set_z0(z0);}
+  float get_z0() const {return _states.find(0.0)->second.get_z0();}
+    
+  void  set_dzdl(float dzdl) {_states[0.0].set_dzdl(dzdl);}
+  float get_dzdl() const {return _states.find(0.0)->second.get_dzdl();}
   
   float getCovariance(int i,int j) const {return get_error(i,j);}
   void  setCovariance(int i,int j, float val) {set_error(i,j,val);}
@@ -142,14 +149,14 @@ class SvtxTrack : public PHObject {
   void  set_cal_cluster_e(CAL_LAYER layer, float e) {_cal_cluster_e[layer] = e;}
   float get_cal_cluster_e(CAL_LAYER layer) const;
 
-  float get_x() const  {return _x;}
-  void  set_x(float x) {_x = x;}
+  float get_x() const  {return _states.find(0.0)->second.get_x();}
+  void  set_x(float x) {_states[0.0].set_x(x);}
   
-  float get_y() const  {return _y;}
-  void  set_y(float y) {_y = y;}
+  float get_y() const  {return _states.find(0.0)->second.get_y();}
+  void  set_y(float y) {_states[0.0].set_y(y);}
 
-  float get_z() const  {return _z;}
-  void  set_z(float z) {_z = z;}
+  float get_z() const  {return _states.find(0.0)->second.get_z();}
+  void  set_z(float z) {_states[0.0].set_z(z);}
 
   // add convience calculations
   //float get_eta() const;
@@ -160,10 +167,69 @@ class SvtxTrack : public PHObject {
 
  private: 
 
+  // keep it private for now to minimize interface changes
+  // --- inner State class ---------------------------------------------------//
+  class State {                                                               //
+  public:                                                                     //
+    State();                                                                  //
+    virtual ~State() {}                                                       //
+                                                                              //
+    float get_x() const {return _x;}                                          //
+    void  set_x(float x) {_x = x;}                                            //
+                                                                              //
+    float get_y() const {return _y;}                                          //
+    void  set_y(float y) {_y = y;}                                            //
+                                                                              //
+    float get_z() const {return _z;}                                          //
+    void  set_z(float z) {_z = z;}                                            //
+                                                                              //
+    float get_px() const {return _mom[0];}                                    //
+    void  set_px(float px) {_mom[0] = px;}                                    //
+                                                                              //
+    float get_py() const {return _mom[1];}                                    //
+    void  set_py(float py) {_mom[1] = py;}                                    //
+                                                                              //
+    float get_pz() const {return _mom[2];}                                    //
+    void  set_pz(float pz) {_mom[2] = pz;}                                    //
+                                                                              //
+    float get_mom(unsigned int i) const {return _mom[i];}                     //
+                                                                              //
+    float get_error(int i, int j) const;                                      //
+    void  set_error(int i, int j, float value);                               //
+                                                                              //
+    void  set_phi(float phi) {_phi = phi;}                                    //
+    float get_phi() const {return _phi;}                                      //
+                                                                              //
+    void  set_d(float d) {_d = d;}                                            //
+    float get_d() const {return _d;}                                          //
+                                                                              //
+    void  set_kappa(float kappa) {_kappa = kappa;}                            //
+    float get_kappa() const {return _kappa;}                                  //
+                                                                              //
+    void  set_z0(float z0) {_z0 = z0;}                                        //
+    float get_z0() const {return _z0;}                                        //
+                                                                              //
+    void  set_dzdl(float dzdl) {_dzdl = dzdl;}                                //
+    float get_dzdl() const {return _dzdl;}                                    //
+                                                                              //
+  private:                                                                    //
+    float _x;                                                                 //
+    float _y;                                                                 //
+    float _z;                                                                 //
+    float _mom[3];                                                            //
+    std::vector<std::vector<float> > _covar;                                  //
+    float _phi;                                                               //
+    float _d;                                                                 //
+    float _kappa;                                                             //
+    float _z0;                                                                //
+    float _dzdl;                                                              //
+  };                                                                          //
+  // --- inner State class ---------------------------------------------------//
+  
   // keep these private for now
   // attempting ~zero interface changes during refactor
-  float get_error(int i, int j) const;
-  void  set_error(int i, int j, float value);
+  float get_error(int i, int j) const {return _states.find(0.0)->second.get_error(i,j);}
+  void  set_error(int i, int j, float value) {return _states[0.0].set_error(i,j,value);}
   
   // track information
   unsigned int _track_id;
@@ -183,12 +249,12 @@ class SvtxTrack : public PHObject {
   // replace with a set/map of track state vectors
   // x,y,z,px,py,pz + covar
   // distance along track => state vector
-  // std::map<float,SvtxTrackState*> _states;
+  std::map<float,SvtxTrack::State> _states;
   // float distance = 0.0 will be the default DCA or vertex point value
-  float   _phi,_d,_kappa,_z0,_dzdl; // redundant to x,y,z,px,py,pz & field strength
-  float   _mom[3];
-  float   _x,_y,_z;
-  std::vector<std::vector<float> > _covar; // 6x6 triangular matrix
+  //float   _phi,_d,_kappa,_z0,_dzdl; // redundant to x,y,z,px,py,pz & field strength
+  //float   _mom[3];
+  //float   _x,_y,_z; // point of closest approach assuming vertex is at 0,0,0
+  //std::vector<std::vector<float> > _covar; // 6x6 triangular matrix
   
   // cluster contents
   std::map<int,unsigned int> _cluster_ids; //< layer index => cluster id

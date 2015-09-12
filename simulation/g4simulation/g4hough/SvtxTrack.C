@@ -2,6 +2,7 @@
 
 #include <math.h>
 #include <limits.h>
+#include <map>
 
 ClassImp(SvtxTrack)
 
@@ -15,16 +16,17 @@ SvtxTrack::SvtxTrack()
     _DCA(NAN),
     _DCA2D(NAN),
     _DCA2Dsigma(NAN),
-    _phi(0.0),
-    _d(0.0),
-    _kappa(0.0),
-    _z0(0.0),
-    _dzdl(0.0),
-    _mom(),
-    _x(0.0),
-    _y(0.0),
-    _z(0.0),
-    _covar(6),
+    _states(),
+    // _phi(0.0),
+    // _d(0.0),
+    // _kappa(0.0),
+    // _z0(0.0),
+    // _dzdl(0.0),
+    // _mom(),
+    // _x(0.0),
+    // _y(0.0),
+    // _z(0.0),
+    // _covar(6),
     _cluster_ids(),
     _cluster_positions(),
     _cal_dphi(),
@@ -32,13 +34,16 @@ SvtxTrack::SvtxTrack()
     _cal_energy_3x3(),
     _cal_cluster_id(),
     _cal_cluster_e() {
-  for (int i=0;i<3;++i) _mom[i] = NAN;
-  for (int i = 0; i < 6; ++i) _covar[i] = std::vector<float>(i+1);
-  for (int i = 0; i < 6; ++i) {
-    for (int j = i; j < 6; ++j) {
-      set_error(i,j,0.0);
-    }
-  } 
+
+  _states.insert(make_pair(0.0,State()));
+  
+  //  for (int i=0;i<3;++i) _mom[i] = NAN;
+  //  for (int i = 0; i < 6; ++i) _covar[i] = std::vector<float>(i+1);
+  //  for (int i = 0; i < 6; ++i) {
+  //    for (int j = i; j < 6; ++j) {
+  //      set_error(i,j,0.0);
+  //    }
+  //  } 
 }
 
 void SvtxTrack::identify(std::ostream& os) const {
@@ -53,7 +58,7 @@ void SvtxTrack::identify(std::ostream& os) const {
      << get3Momentum(1) << ","
      << get3Momentum(2) << ")" << endl;
 
-  os << "(x,y,z) = (" << _x << "," << _y << "," << _z << ")" << endl;
+  os << "(x,y,z) = (" << get_x() << "," << get_y() << "," << get_z() << ")" << endl;
   
   if (getNhits() > 0) {
     os << "clusters: ";
@@ -77,20 +82,8 @@ void SvtxTrack::Reset() {
   _DCA = NAN;
   _DCA2D = NAN;
   _DCA2Dsigma = NAN;
-  _phi = 0.0;
-  _d = 0.0;
-  _kappa = 0.0;
-  _z0 = 0.0;
-  _dzdl = 0.0;
-  for (int i=0;i<3;++i) _mom[i] = NAN;
-  _x = 0.0;
-  _y = 0.0;
-  _z = 0.0;
-  for (int i=0;i<6;++i) {
-    for (int j=0;j<6;++j) {
-      set_error(i,j,0.0);
-    }
-  }
+  _states.clear();
+  _states.insert(make_pair(0.0,State()));
   _cluster_ids.clear();
   _cluster_positions.clear();
   _cal_dphi.clear();
@@ -106,16 +99,16 @@ int SvtxTrack::isValid() const {
   return 1;
 }
 
-float SvtxTrack::get_error(int i, int j) const {
-  if (j > i) return get_error(j,i);
-  return _covar[i][j];
-}
+// float SvtxTrack::get_error(int i, int j) const {
+//   if (j > i) return get_error(j,i);
+//   return _covar[i][j];
+// }
 
-void SvtxTrack::set_error(int i, int j, float value) {
-  if (j > i) set_error(j,i,value);
-  else _covar[i][j] = value;
-  return;
-}
+// void SvtxTrack::set_error(int i, int j, float value) {
+//   if (j > i) set_error(j,i,value);
+//   else _covar[i][j] = value;
+//   return;
+// }
 
 float SvtxTrack::getHitPosition(int layer, int coor) const {
   std::map<int,std::vector<float> >::const_iterator citer = _cluster_positions.find(layer);
@@ -160,4 +153,35 @@ float SvtxTrack::get_cal_cluster_e(SvtxTrack::CAL_LAYER layer) const {
   std::map<SvtxTrack::CAL_LAYER,float>::const_iterator citer = _cal_cluster_e.find(layer);
   if (citer == _cal_cluster_e.end()) return NAN;
   return citer->second;
+}
+
+SvtxTrack::State::State()
+  : _x(0.0),
+    _y(0.0),
+    _z(0.0),
+    _mom(),
+    _covar(6),
+    _phi(0.0),
+    _d(0.0),
+    _kappa(0.0),
+    _z0(0.0),
+    _dzdl(0.0) {  
+  for (int i=0;i<3;++i) _mom[i] = NAN;
+  for (int i = 0; i < 6; ++i) _covar[i] = std::vector<float>(i+1);
+  for (int i = 0; i < 6; ++i) {
+    for (int j = i; j < 6; ++j) {
+      set_error(i,j,0.0);
+    }
+  } 
+}
+
+float SvtxTrack::State::get_error(int i, int j) const {
+  if (j > i) return get_error(j,i);
+  return _covar[i][j];
+}
+
+void SvtxTrack::State::set_error(int i, int j, float value) {
+  if (j > i) set_error(j,i,value);
+  else _covar[i][j] = value;
+  return;
 }
