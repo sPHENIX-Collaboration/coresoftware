@@ -119,9 +119,11 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
         RawTower *digi_tower = NULL;
 
         if (_digi_algorithm == kNo_digitalization)
-          if (sim_tower)
-            digi_tower = new RawTowerv1(*sim_tower);
-        if (_digi_algorithm == kSimple_photon_digitalization)
+          {
+            if (sim_tower)
+              digi_tower = new RawTowerv1(*sim_tower);
+          }
+        else if (_digi_algorithm == kSimple_photon_digitalization)
           digi_tower = simple_photon_digitalization(ieta, iphi, sim_tower);
         else
           {
