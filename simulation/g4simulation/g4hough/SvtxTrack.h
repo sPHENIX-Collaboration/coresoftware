@@ -134,19 +134,19 @@ class SvtxTrack : public PHObject {
   float getCovariance(int i,int j) const {return get_error(i,j);}
   void  setCovariance(int i,int j, float val) {set_error(i,j,val);}
 
-  void  set_cal_dphi(CAL_LAYER layer, float dphi) {_cal_dphi[layer] = dphi;}
-  float get_cal_dphi(CAL_LAYER layer) const;
-
-  void  set_cal_deta(CAL_LAYER layer, float deta) {_cal_deta[layer] = deta;}
-  float get_cal_deta(CAL_LAYER layer) const;
-
-  void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3) {_cal_energy_3x3[layer] = energy_3x3;}
+  void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3);
   float get_cal_energy_3x3(CAL_LAYER layer) const;
 
-  void  set_cal_cluster_id(CAL_LAYER layer, int id) {_cal_cluster_id[layer] = id;}
-  int   get_cal_cluster_id(CAL_LAYER layer) const;
+  void         set_cal_cluster_id(CAL_LAYER layer, unsigned int id);
+  unsigned int get_cal_cluster_id(CAL_LAYER layer) const;
+  
+  void  set_cal_dphi(CAL_LAYER layer, float dphi);
+  float get_cal_dphi(CAL_LAYER layer) const;
 
-  void  set_cal_cluster_e(CAL_LAYER layer, float e) {_cal_cluster_e[layer] = e;}
+  void  set_cal_deta(CAL_LAYER layer, float deta);
+  float get_cal_deta(CAL_LAYER layer) const;
+
+  void  set_cal_cluster_e(CAL_LAYER layer, float e);
   float get_cal_cluster_e(CAL_LAYER layer) const;
 
   float get_x() const  {return _states.find(0.0)->second.get_x();}
@@ -226,7 +226,35 @@ class SvtxTrack : public PHObject {
   };                                                                          //
   // --- inner State class ---------------------------------------------------//
 
-  // class CaloMatch
+  // --- inner CaloMatch class -----------------------------------------------//
+  class CaloMatch {                                                           //
+  public:                                                                     //
+    CaloMatch();                                                              //
+    virtual ~CaloMatch() {}                                                   //
+                                                                              //
+    float get_energy_3x3() const {return _e3x3;}                              //
+    void  set_energy_3x3(float e3x3) {_e3x3 = e3x3;}                          //
+                                                                              //
+    unsigned int get_cluster_id() const {return _clus_id;}                    //
+    void         set_cluster_id(unsigned int clus_id) {_clus_id = clus_id;}   //
+                                                                              //
+    float get_deta() const {return _deta;}                                    //
+    void  set_deta(float deta) {_deta = deta;}                                //
+                                                                              //
+    float get_dphi() const {return _dphi;}                                    //
+    void  set_dphi(float dphi) {_dphi = dphi;}                                //
+                                                                              //
+    float get_cluster_energy() const {return _clus_e;}                        //
+    void  set_cluster_energy(float clus_e) {_clus_e = clus_e;}                //
+                                                                              //
+  private:                                                                    //
+    float _e3x3;                                                              //
+    unsigned int _clus_id;                                                    //
+    float _deta;                                                              //
+    float _dphi;                                                              //
+    float _clus_e;                                                            //
+  };                                                                          //
+  // --- inner CaloMatch class -----------------------------------------------//
   
   // keep these private for now
   // attempting ~zero interface changes during refactor
@@ -262,11 +290,7 @@ class SvtxTrack : public PHObject {
   std::map<int,std::vector<float> > _cluster_positions; //< layer index => (x,y,z)
   
   // calorimeter matches
-  std::map<CAL_LAYER,float> _cal_dphi;
-  std::map<CAL_LAYER,float> _cal_deta;
-  std::map<CAL_LAYER,float> _cal_energy_3x3;
-  std::map<CAL_LAYER,int>   _cal_cluster_id;
-  std::map<CAL_LAYER,float> _cal_cluster_e;
+  std::map<CAL_LAYER,SvtxTrack::CaloMatch> _calo_matches;
   
   ClassDef(SvtxTrack,1)
 };

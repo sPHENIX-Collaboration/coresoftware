@@ -19,11 +19,7 @@ SvtxTrack::SvtxTrack()
     _states(),
     _cluster_ids(),
     _cluster_positions(),
-    _cal_dphi(),
-    _cal_deta(),
-    _cal_energy_3x3(),
-    _cal_cluster_id(),
-    _cal_cluster_e() {
+    _calo_matches() {
   // always include the pca point
   _states.insert(make_pair(0.0,State()));
 }
@@ -56,24 +52,7 @@ void SvtxTrack::identify(std::ostream& os) const {
 }
 
 void SvtxTrack::Reset() {
-
-  _track_id = UINT_MAX;
-  _is_positive_charge = false;
-  _chisq = NAN;
-  _ndf = 0;
-  _DCA = NAN;
-  _DCA2D = NAN;
-  _DCA2Dsigma = NAN;
-  _states.clear();
-  _states.insert(make_pair(0.0,State()));
-  _cluster_ids.clear();
-  _cluster_positions.clear();
-  _cal_dphi.clear();
-  _cal_deta.clear();
-  _cal_energy_3x3.clear();
-  _cal_cluster_id.clear();
-  _cal_cluster_e.clear();
-
+  *this = SvtxTrack();
   return;
 }
 
@@ -96,34 +75,89 @@ short SvtxTrack::getNhits() const {
   return _cluster_ids.size();
 }
 
-float SvtxTrack::get_cal_dphi(SvtxTrack::CAL_LAYER layer) const {
-  std::map<SvtxTrack::CAL_LAYER,float>::const_iterator citer = _cal_dphi.find(layer);
-  if (citer == _cal_dphi.end()) return NAN;
-  return citer->second;
+float SvtxTrack::get_cal_energy_3x3(SvtxTrack::CAL_LAYER layer) const {
+  std::map<SvtxTrack::CAL_LAYER,
+	   SvtxTrack::CaloMatch>::const_iterator citer = _calo_matches.find(layer);
+  if (citer == _calo_matches.end()) return NAN;
+  return citer->second.get_energy_3x3();
+}
+
+void SvtxTrack::set_cal_energy_3x3(SvtxTrack::CAL_LAYER layer, float energy_3x3) {
+  std::map<SvtxTrack::CAL_LAYER,
+	   SvtxTrack::CaloMatch>::const_iterator citer = _calo_matches.find(layer);
+  if (citer == _calo_matches.end()) {
+    _calo_matches[layer] = SvtxTrack::CaloMatch();
+  }
+  _calo_matches[layer].set_energy_3x3(energy_3x3);
+  return;
+}
+
+unsigned int SvtxTrack::get_cal_cluster_id(SvtxTrack::CAL_LAYER layer) const {
+  std::map<SvtxTrack::CAL_LAYER,
+	   SvtxTrack::CaloMatch>::const_iterator citer = _calo_matches.find(layer);
+  if (citer == _calo_matches.end()) return UINT_MAX;
+  return citer->second.get_cluster_id();
+}
+
+void SvtxTrack::set_cal_cluster_id(SvtxTrack::CAL_LAYER layer, unsigned int clus_id) {
+  std::map<SvtxTrack::CAL_LAYER,
+	   SvtxTrack::CaloMatch>::const_iterator citer = _calo_matches.find(layer);
+  if (citer == _calo_matches.end()) {
+    _calo_matches[layer] = SvtxTrack::CaloMatch();
+  }
+  _calo_matches[layer].set_cluster_id(clus_id);
+  return;
+}
+
+float SvtxTrack::get_cal_dphi(SvtxTrack::CAL_LAYER layer) const {  
+  std::map<SvtxTrack::CAL_LAYER,
+	   SvtxTrack::CaloMatch>::const_iterator citer = _calo_matches.find(layer);
+  if (citer == _calo_matches.end()) return NAN;
+  return citer->second.get_dphi();
+}
+
+void SvtxTrack::set_cal_dphi(SvtxTrack::CAL_LAYER layer, float dphi) {
+  std::map<SvtxTrack::CAL_LAYER,
+	   SvtxTrack::CaloMatch>::const_iterator citer = _calo_matches.find(layer);
+  if (citer == _calo_matches.end()) {
+    _calo_matches[layer] = SvtxTrack::CaloMatch();
+  }
+  _calo_matches[layer].set_dphi(dphi);
+  return;
 }
 
 float SvtxTrack::get_cal_deta(SvtxTrack::CAL_LAYER layer) const {
-  std::map<SvtxTrack::CAL_LAYER,float>::const_iterator citer = _cal_deta.find(layer);
-  if (citer == _cal_deta.end()) return NAN;
-  return citer->second;
+  std::map<SvtxTrack::CAL_LAYER,
+	   SvtxTrack::CaloMatch>::const_iterator citer = _calo_matches.find(layer);
+  if (citer == _calo_matches.end()) return NAN;
+  return citer->second.get_deta();
 }
 
-float SvtxTrack::get_cal_energy_3x3(SvtxTrack::CAL_LAYER layer) const {
-  std::map<SvtxTrack::CAL_LAYER,float>::const_iterator citer = _cal_energy_3x3.find(layer);
-  if (citer == _cal_energy_3x3.end()) return NAN;
-  return citer->second;
-}
-
-int SvtxTrack::get_cal_cluster_id(SvtxTrack::CAL_LAYER layer) const {
-  std::map<SvtxTrack::CAL_LAYER,int>::const_iterator citer = _cal_cluster_id.find(layer);
-  if (citer == _cal_cluster_id.end()) return -9999;
-  return citer->second;
+void SvtxTrack::set_cal_deta(SvtxTrack::CAL_LAYER layer, float deta) {
+  std::map<SvtxTrack::CAL_LAYER,
+	   SvtxTrack::CaloMatch>::const_iterator citer = _calo_matches.find(layer);
+  if (citer == _calo_matches.end()) {
+    _calo_matches[layer] = SvtxTrack::CaloMatch();
+  }
+  _calo_matches[layer].set_deta(deta);
+  return;
 }
 
 float SvtxTrack::get_cal_cluster_e(SvtxTrack::CAL_LAYER layer) const {
-  std::map<SvtxTrack::CAL_LAYER,float>::const_iterator citer = _cal_cluster_e.find(layer);
-  if (citer == _cal_cluster_e.end()) return NAN;
-  return citer->second;
+  std::map<SvtxTrack::CAL_LAYER,
+	   SvtxTrack::CaloMatch>::const_iterator citer = _calo_matches.find(layer);
+  if (citer == _calo_matches.end()) return NAN;
+  return citer->second.get_cluster_energy();
+}
+
+void SvtxTrack::set_cal_cluster_e(SvtxTrack::CAL_LAYER layer, float clus_e) {
+  std::map<SvtxTrack::CAL_LAYER,
+	   SvtxTrack::CaloMatch>::const_iterator citer = _calo_matches.find(layer);
+  if (citer == _calo_matches.end()) {
+    _calo_matches[layer] = SvtxTrack::CaloMatch();
+  }
+  _calo_matches[layer].set_cluster_energy(clus_e);
+  return;
 }
 
 // --- innner State class ----------------------------------------------------//
@@ -157,4 +191,14 @@ void SvtxTrack::State::set_error(int i, int j, float value) {
   if (j > i) set_error(j,i,value);
   else _covar[i][j] = value;
   return;
+}
+
+// --- innner CaloMatch class ------------------------------------------------//
+
+SvtxTrack::CaloMatch::CaloMatch()
+  : _e3x3(NAN),
+    _clus_id(UINT_MAX),
+    _deta(NAN),
+    _dphi(NAN),
+    _clus_e(NAN) {
 }
