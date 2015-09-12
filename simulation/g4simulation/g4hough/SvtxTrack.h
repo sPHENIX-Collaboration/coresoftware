@@ -285,7 +285,7 @@ class SvtxTrack : public PHObject {
   // without the cluster uncertainties... maybe we should eliminate
   // this member for further storage gains (and use the ids to fetch the clusters
   // for remaking the fits)
-  // we will first need to replace the public projection method to use and outer
+  // we will first need to replace the public projection method to use an outer
   // state vector instead of the hit postion
   std::map<int,std::vector<float> > _cluster_positions; //< layer index => (x,y,z)
   
