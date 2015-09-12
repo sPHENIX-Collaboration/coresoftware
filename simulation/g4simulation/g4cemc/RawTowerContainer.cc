@@ -70,6 +70,13 @@ RawTowerContainer::AddTower(const unsigned int ieta, const int unsigned iphi, Ra
   return _towers.find(key);
 }
 
+RawTowerContainer::ConstIterator
+RawTowerContainer::AddTower(RawTowerDefs::keytype key, RawTower *twr)
+{
+  _towers[key] = twr;
+  return _towers.find(key);
+}
+
 RawTower *
 RawTowerContainer::getTower(RawTowerDefs::keytype key)
 {
