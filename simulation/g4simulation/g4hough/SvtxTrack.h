@@ -225,6 +225,8 @@ class SvtxTrack : public PHObject {
     float _dzdl;                                                              //
   };                                                                          //
   // --- inner State class ---------------------------------------------------//
+
+  // class CaloMatch
   
   // keep these private for now
   // attempting ~zero interface changes during refactor
@@ -238,23 +240,15 @@ class SvtxTrack : public PHObject {
   unsigned int _ndf;
 
   // extended track information (non-primary tracks only)
-  float   _DCA;
-  float   _DCA2D;
-  float   _DCA2Dsigma;
+  float _DCA;
+  float _DCA2D;
+  float _DCA2Dsigma;
 
   // extended track information (primary tracks only)
   // unsigned int _vertex_id;
   
-  // projection information
-  // replace with a set/map of track state vectors
-  // x,y,z,px,py,pz + covar
-  // distance along track => state vector
-  std::map<float,SvtxTrack::State> _states;
-  // float distance = 0.0 will be the default DCA or vertex point value
-  //float   _phi,_d,_kappa,_z0,_dzdl; // redundant to x,y,z,px,py,pz & field strength
-  //float   _mom[3];
-  //float   _x,_y,_z; // point of closest approach assuming vertex is at 0,0,0
-  //std::vector<std::vector<float> > _covar; // 6x6 triangular matrix
+  // track state information
+  std::map<float,SvtxTrack::State> _states; //< path length => state object
   
   // cluster contents
   std::map<int,unsigned int> _cluster_ids; //< layer index => cluster id
