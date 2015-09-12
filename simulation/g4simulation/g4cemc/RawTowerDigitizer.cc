@@ -29,11 +29,12 @@ RawTowerDigitizer::RawTowerDigitizer(const std::string& name) :
     SubsysReco(name), _digi_algorithm(kNo_digitalization), //
     _sim_towers(NULL), _raw_towers(NULL), rawtowergeom(NULL), //
     detector("NONE"), //
-    _photonelec_yield_visible_GeV(1.), //default to apply no digitalization
-    _photonelec_ADC(1), //default to apply no digitalization
-    _pedstal_central_ADC(0), //default to apply no digitalization
-    _pedstal_width_ADC(0), //default to apply no digitalization
-    _zero_suppression_ADC(1e-6), //default to apply a moderate zero suppression
+    _sim_tower_node_prefix("SIM"), _raw_tower_node_prefix("RAW"), //
+    _photonelec_yield_visible_GeV(NAN), //default to invalid
+    _photonelec_ADC(NAN), //default to invalid
+    _pedstal_central_ADC(NAN), //default to invalid
+    _pedstal_width_ADC(NAN), //default to invalid
+    _zero_suppression_ADC(0), //default to apply no zero suppression
     _timer(PHTimeServer::get()->insert_new(name))
 {
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
@@ -251,7 +252,7 @@ RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
           "Failed to find DST node in RawTowerDigitizer::CreateNodes");
     }
 
-  SimTowerNodeName = "TOWER_SIM_" + detector;
+  SimTowerNodeName = "TOWER_" + _sim_tower_node_prefix + "_" + detector;
   _sim_towers = findNode::getClass<RawTowerContainer>(dstNode,
       SimTowerNodeName.c_str());
   if (!_sim_towers)
@@ -266,14 +267,16 @@ RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
 
   // Create the tower nodes on the tree
   PHNodeIterator dstiter(dstNode);
-  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",detector ));
-  if(!DetNode){
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst(
+      "PHCompositeNode", detector));
+  if (!DetNode)
+    {
       DetNode = new PHCompositeNode(detector);
       dstNode->addNode(DetNode);
-   }
+    }
 
   _raw_towers = new RawTowerContainer();
-  RawTowerNodeName = "TOWER_RAW_" + detector;
+  RawTowerNodeName = "TOWER_" + _raw_tower_node_prefix + "_" + detector;
   PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_raw_towers,
       RawTowerNodeName.c_str(), "PHObject");
   DetNode->addNode(towerNode);

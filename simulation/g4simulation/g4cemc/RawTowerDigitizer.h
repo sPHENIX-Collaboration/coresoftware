@@ -18,6 +18,8 @@ class RawTower;
 #endif
 
 //! simple tower digitizer which sum all cell to produce photon yield and pedstal noises
+//! default input DST node is TOWER_SIM_DETECTOR
+//! default output DST node is TOWER_RAW_DETECTOR
 class RawTowerDigitizer : public SubsysReco
 {
 
@@ -127,6 +129,29 @@ public:
     _zero_suppression_ADC = zeroSuppressionAdc;
   }
 
+  std::string
+  get_raw_tower_node_prefix() const
+  {
+    return _raw_tower_node_prefix;
+  }
+
+  void
+  set_raw_tower_node_prefix(std::string rawTowerNodePrefix)
+  {
+    _raw_tower_node_prefix = rawTowerNodePrefix;
+  }
+
+  std::string
+  get_sim_tower_node_prefix() const
+  {
+    return _sim_tower_node_prefix;
+  }
+
+  void
+  set_sim_tower_node_prefix(std::string simTowerNodePrefix)
+  {
+    _sim_tower_node_prefix = simTowerNodePrefix;
+  }
 protected:
   void
   CreateNodes(PHCompositeNode *topNode);
@@ -147,6 +172,9 @@ protected:
   std::string SimTowerNodeName;
   std::string RawTowerNodeName;
   std::string TowerGeomNodeName;
+
+  std::string _sim_tower_node_prefix;
+  std::string _raw_tower_node_prefix;
 
   //! photon electron yield per GeV of visible energy
   double _photonelec_yield_visible_GeV;
