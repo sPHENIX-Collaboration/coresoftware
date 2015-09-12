@@ -61,7 +61,7 @@ G4TowerNtuple::process_event( PHCompositeNode* topNode )
     {
       int detid = (_detid.find(*iter))->second;
       nodename.str("");
-      nodename << "TOWER_" << *iter;
+      nodename << "TOWER_CALIB_" << *iter;
       geonodename.str("");
       geonodename << "TOWERGEOM_" << *iter;
       RawTowerGeom* towergeom = findNode::getClass<RawTowerGeom>(topNode, geonodename.str().c_str());

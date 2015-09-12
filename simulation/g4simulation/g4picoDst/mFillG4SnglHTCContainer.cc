@@ -122,7 +122,7 @@ mFillG4SnglHTCContainer::process_event( PHCompositeNode* top_node )
 	   string tmpstr(*iter);
 	   if( !(tmpstr.compare(0,8,"ABSORBER")==0) ){ 
 	   towernode.str("");
-	   towernode << "TOWER_" << *iter;
+	   towernode << "TOWER_CALIB_" << *iter;
 	   RawTowerContainer *twrs = findNode::getClass<RawTowerContainer>(top_node, towernode.str().c_str());
 	   towergeomnode.str("");
 	   towergeomnode << "TOWERGEOM_" << *iter;

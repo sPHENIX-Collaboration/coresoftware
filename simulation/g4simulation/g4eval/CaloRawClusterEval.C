@@ -261,7 +261,7 @@ void CaloRawClusterEval::get_node_pointers(PHCompositeNode* topNode) {
     exit(-1);
   }
 
-  std::string towername = "TOWER_" + _caloname;
+  std::string towername = "TOWER_CALIB_" + _caloname;
   _towers = findNode::getClass<RawTowerContainer>(topNode,towername.c_str());
   if (!_towers) {
     cerr << PHWHERE << " ERROR: Can't find " << towername << endl;
