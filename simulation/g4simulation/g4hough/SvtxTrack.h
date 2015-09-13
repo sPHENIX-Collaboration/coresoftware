@@ -79,8 +79,8 @@ class SvtxTrack : public PHObject {
   typedef std::map<float,SvtxTrack::State>::const_iterator ConstStateIter;
   typedef std::map<float,SvtxTrack::State>::iterator       StateIter; 
   
-  typedef std::set<unsigned int>::const_iterator ConstClusterIter;
-  typedef std::set<unsigned int>::iterator       ClusterIter; 
+  typedef std::set<unsigned int>::const_iterator         ConstClusterIter;
+  typedef std::set<unsigned int>::iterator               ClusterIter;
   
   enum CAL_LAYER {PRES=0,CEMC=1,HCALIN=2,HCALOUT=3};
 
@@ -91,22 +91,6 @@ class SvtxTrack : public PHObject {
   void identify(std::ostream &os=std::cout) const;
   void Reset();
   int  isValid() const;
-
-  //---old interface------- 
-
-  void setHitPosition(int layer, float x, float y, float z) {
-    std::vector<float> position(3);
-    position[0] = x;
-    position[1] = y;
-    position[2] = z;
-    _cluster_positions[layer] = position;
-  }
-  float getHitPosition(int layer, int coor) const;
-
-  float getInnerMostHitPosition(int coor) const;
-  float getOuterMostHitPosition(int coor) const;
-  
-  //---revised interface------
 
   unsigned int get_id() const          {return _track_id;}
   void         set_id(unsigned int id) {_track_id = id;}
@@ -192,33 +176,32 @@ class SvtxTrack : public PHObject {
         State* insert_state(const State &state);
         size_t erase_state(float pathlength) {return _states.erase(pathlength);}
 
-  ConstStateIter begin()                 const {return _states.begin();}
-  ConstStateIter  find(float pathlength) const {return _states.find(pathlength);}
-  ConstStateIter   end()                 const {return _states.end();}
+  ConstStateIter begin_states()                const {return _states.begin();}
+  ConstStateIter  find_state(float pathlength) const {return _states.find(pathlength);}
+  ConstStateIter   end_states()                const {return _states.end();}
 
-  StateIter begin()                 {return _states.begin();}
-  StateIter  find(float pathlength) {return _states.find(pathlength);}
-  StateIter   end()                 {return _states.end();}
+  StateIter begin_states()                {return _states.begin();}
+  StateIter  find_state(float pathlength) {return _states.find(pathlength);}
+  StateIter   end_states()                {return _states.end();}
     
   //
   // associated cluster ids methods
   //
-  void             clear_clusters()                           {_cluster_ids.clear();}
-  bool             empty_clusters() const                     {return _cluster_ids.empty();}
-  size_t           size_clusters() const                      {return _cluster_ids.size();}
-  void             insert_cluster(unsigned int clusterid)     {_cluster_ids.insert(clusterid);}
-  size_t           erase_cluster(unsigned int clusterid)      {return _cluster_ids.erase(clusterid);}
-  ConstClusterIter begin_clusters() const                     {return _cluster_ids.begin();}
-  ConstClusterIter find_cluster(unsigned int clusterid) const {return _cluster_ids.find(clusterid);}
-  ConstClusterIter end_clusters() const                       {return _cluster_ids.end();}
-  ClusterIter      begin_clusters()                           {return _cluster_ids.begin();}
-  ClusterIter      find_cluster(unsigned int clusterid)       {return _cluster_ids.find(clusterid);}
-  ClusterIter      end_clusters()                             {return _cluster_ids.end();}
+  void                clear_clusters()                           {_cluster_ids.clear();}
+  bool                empty_clusters() const                     {return _cluster_ids.empty();}
+  size_t              size_clusters() const                      {return _cluster_ids.size();}
+  void                insert_cluster(unsigned int clusterid)     {_cluster_ids.insert(clusterid);}
+  size_t              erase_cluster(unsigned int clusterid)      {return _cluster_ids.erase(clusterid);}
+  ConstClusterIter    begin_clusters() const                     {return _cluster_ids.begin();}
+  ConstClusterIter    find_cluster(unsigned int clusterid) const {return _cluster_ids.find(clusterid);}
+  ConstClusterIter    end_clusters() const                       {return _cluster_ids.end();}
+  ClusterIter         begin_clusters()                           {return _cluster_ids.begin();}
+  ClusterIter         find_cluster(unsigned int clusterid)       {return _cluster_ids.find(clusterid);}
+  ClusterIter         end_clusters()                             {return _cluster_ids.end();}
 
   //
   // calo projection methods
   //
-  
   void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3);
   float get_cal_energy_3x3(CAL_LAYER layer) const;
 
@@ -286,14 +269,6 @@ class SvtxTrack : public PHObject {
   
   // cluster contents
   std::set<unsigned int> _cluster_ids;
-  
-  // the cluster positions aren't really useful on their own
-  // without the cluster uncertainties... maybe we should eliminate
-  // this member for further storage gains (and use the ids to fetch the clusters
-  // for remaking the fits)
-  // we will first need to replace the public projection method to use an outer
-  // state vector instead of the hit postion
-  std::map<int,std::vector<float> > _cluster_positions; //< layer index => (x,y,z)
   
   // calorimeter matches
   std::map<CAL_LAYER,SvtxTrack::CaloProjection> _calo_matches;

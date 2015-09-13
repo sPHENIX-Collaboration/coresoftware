@@ -19,7 +19,6 @@ SvtxTrack::SvtxTrack()
     _dca2d_error(NAN),
     _states(),
     _cluster_ids(),
-    _cluster_positions(),
     _calo_matches() {
   // always include the pca point
   _states.insert(make_pair(0.0,State(0.0)));
@@ -60,22 +59,6 @@ void SvtxTrack::Reset() {
 
 int SvtxTrack::isValid() const {
   return 1;
-}
-
-float SvtxTrack::getHitPosition(int layer, int coor) const {
-  std::map<int,std::vector<float> >::const_iterator citer = _cluster_positions.find(layer);
-  if (citer == _cluster_positions.end()) return NAN;
-  return citer->second[coor];
-}
-
-float SvtxTrack::getInnerMostHitPosition(int coor) const {
-  if (_cluster_positions.empty()) return NAN;  
-  return _cluster_positions.begin()->second[coor];
-}
-
-float SvtxTrack::getOuterMostHitPosition(int coor) const {
-  if (_cluster_positions.empty()) return NAN;  
-  return _cluster_positions.rbegin()->second[coor];
 }
 
 const SvtxTrack::State* SvtxTrack::get_state(float pathlength) const {
