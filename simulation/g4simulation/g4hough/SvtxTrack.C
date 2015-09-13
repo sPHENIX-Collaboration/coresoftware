@@ -22,7 +22,7 @@ SvtxTrack::SvtxTrack()
     _cluster_positions(),
     _calo_matches() {
   // always include the pca point
-  _states.insert(make_pair(0.0,State()));
+  _states.insert(make_pair(0.0,State(0.0)));
 }
 
 void SvtxTrack::identify(std::ostream& os) const {
