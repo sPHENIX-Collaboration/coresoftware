@@ -39,12 +39,13 @@ void SvtxTrack::identify(std::ostream& os) const {
 
   os << "(x,y,z) = (" << get_x() << "," << get_y() << "," << get_z() << ")" << endl;
   
-  if (getNhits() > 0) {
+  if (!empty_clusters()) {
     os << "clusters: ";
-    for (unsigned int i = 0; i < 100; ++i) {
-      if (hasCluster(i)) {
-	os << getClusterID(i) << " ";
-      }
+    for (SvtxTrack::ConstClusterIter iter = begin_clusters();
+	 iter != end_clusters();
+	 ++iter) {
+      unsigned int cluster_id = *iter;
+      os << cluster_id << " ";
     }
   }
   os << endl;    
@@ -72,8 +73,9 @@ float SvtxTrack::getInnerMostHitPosition(int coor) const {
   return _cluster_positions.begin()->second[coor];
 }
 
-short SvtxTrack::getNhits() const {
-  return _cluster_ids.size();
+float SvtxTrack::getOuterMostHitPosition(int coor) const {
+  if (_cluster_positions.empty()) return NAN;  
+  return _cluster_positions.rbegin()->second[coor];
 }
 
 float SvtxTrack::get_cal_energy_3x3(SvtxTrack::CAL_LAYER layer) const {

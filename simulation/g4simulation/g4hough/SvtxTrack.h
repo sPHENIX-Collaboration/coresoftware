@@ -4,6 +4,7 @@
 #include <phool/PHObject.h>
 
 #include <iostream>
+#include <set>
 #include <map>
 #include <cmath>
 
@@ -11,6 +12,9 @@ class SvtxTrack : public PHObject {
   
  public:
 
+  typedef std::set<unsigned int>::const_iterator ConstClusterIter;
+  typedef std::set<unsigned int>::iterator       ClusterIter; 
+  
   enum CAL_LAYER {PRES=0,CEMC=1,HCALIN=2,HCALOUT=3};
 
   SvtxTrack();
@@ -23,11 +27,12 @@ class SvtxTrack : public PHObject {
 
   //---old interface------- 
 
-  bool hasCluster(int layer) const {return (_cluster_ids.find(layer) != _cluster_ids.end());}
-  void setClusterID(int layer, int index) {_cluster_ids[layer] = index;}
-  int getClusterID(int layer) const {return _cluster_ids.find(layer)->second;}
+  //bool hasCluster(int layer) const {return (_cluster_ids.find(layer) != _cluster_ids.end());}
+  //void setClusterID(int layer, int index) {_cluster_ids[layer] = index;}
+  //int getClusterID(int layer) const {return _cluster_ids.find(layer)->second;}
 
-  short getNhits() const;
+  //unsigned int getNhits() const {return _cluster_ids.size();}
+
   void setHitPosition(int layer, float x, float y, float z) {
     std::vector<float> position(3);
     position[0] = x;
@@ -38,23 +43,9 @@ class SvtxTrack : public PHObject {
   float getHitPosition(int layer, int coor) const;
 
   float getInnerMostHitPosition(int coor) const;
+  float getOuterMostHitPosition(int coor) const;
   
-  void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3);
-  float get_cal_energy_3x3(CAL_LAYER layer) const;
-
-  void         set_cal_cluster_id(CAL_LAYER layer, unsigned int id);
-  unsigned int get_cal_cluster_id(CAL_LAYER layer) const;
-  
-  void  set_cal_dphi(CAL_LAYER layer, float dphi);
-  float get_cal_dphi(CAL_LAYER layer) const;
-
-  void  set_cal_deta(CAL_LAYER layer, float deta);
-  float get_cal_deta(CAL_LAYER layer) const;
-
-  void  set_cal_cluster_e(CAL_LAYER layer, float e);
-  float get_cal_cluster_e(CAL_LAYER layer) const;
-
-  //---new interface------
+  //---revised interface------
 
   unsigned int get_id() const          {return _track_id;}
   void         set_id(unsigned int id) {_track_id = id;}
@@ -126,6 +117,44 @@ class SvtxTrack : public PHObject {
 
   float get_helix_dzdl() const {return _states.find(0.0)->second.get_helix_dzdl();}    
   void  set_helix_dzdl(float dzdl) {_states[0.0].set_helix_dzdl(dzdl);}
+
+  //
+  // state methods
+  //
+  
+  //
+  // associated cluster ids methods
+  //
+  void             clear_clusters()                           {_cluster_ids.clear();}
+  bool             empty_clusters() const                     {return _cluster_ids.empty();}
+  size_t           size_clusters() const                      {return _cluster_ids.size();}
+  void             insert_cluster(unsigned int clusterid)     {_cluster_ids.insert(clusterid);}
+  size_t           erase_cluster(unsigned int clusterid)      {return _cluster_ids.erase(clusterid);}
+  ConstClusterIter begin_clusters() const                     {return _cluster_ids.begin();}
+  ConstClusterIter find_cluster(unsigned int clusterid) const {return _cluster_ids.find(clusterid);}
+  ConstClusterIter end_clusters() const                       {return _cluster_ids.end();}
+  ClusterIter      begin_clusters()                           {return _cluster_ids.begin();}
+  ClusterIter      find_cluster(unsigned int clusterid)       {return _cluster_ids.find(clusterid);}
+  ClusterIter      end_clusters()                             {return _cluster_ids.end();}
+
+  //
+  // calo projection methods
+  //
+  
+  void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3);
+  float get_cal_energy_3x3(CAL_LAYER layer) const;
+
+  void         set_cal_cluster_id(CAL_LAYER layer, unsigned int id);
+  unsigned int get_cal_cluster_id(CAL_LAYER layer) const;
+  
+  void  set_cal_dphi(CAL_LAYER layer, float dphi);
+  float get_cal_dphi(CAL_LAYER layer) const;
+
+  void  set_cal_deta(CAL_LAYER layer, float deta);
+  float get_cal_deta(CAL_LAYER layer) const;
+
+  void  set_cal_cluster_e(CAL_LAYER layer, float e);
+  float get_cal_cluster_e(CAL_LAYER layer) const;
   
  private: 
 
@@ -239,8 +268,8 @@ class SvtxTrack : public PHObject {
   std::map<float,SvtxTrack::State> _states; //< path length => state object
   
   // cluster contents
-  std::map<int,unsigned int> _cluster_ids; //< layer index => cluster id
-
+  std::set<unsigned int> _cluster_ids;
+  
   // the cluster positions aren't really useful on their own
   // without the cluster uncertainties... maybe we should eliminate
   // this member for further storage gains (and use the ids to fetch the clusters

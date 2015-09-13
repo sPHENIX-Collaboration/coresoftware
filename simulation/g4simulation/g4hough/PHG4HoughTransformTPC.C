@@ -118,18 +118,10 @@ void PHG4HoughTransformTPC::projectToRadius(const SvtxTrack& track, double radiu
   // get outer hit
   float hitx = d*cosphi;
   float hity = d*sinphi;
-  int nhits = track.getNhits();
-  for(int l=(nhits-1);l>=0;l-=1)
-  {
-    if(track.getClusterID(l) >= 0)
-    {
-      hitx = track.getHitPosition(l, 0);
-      hity = track.getHitPosition(l, 1);
-      break;
-    }
+  if (!track.empty_clusters()) {
+    hitx = track.getOuterMostHitPosition(0);
+    hity = track.getOuterMostHitPosition(1);
   }
-  
-  
   
   k = fabs(k);
   
@@ -669,7 +661,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
       cluster_z = cluster->get_z();
       if( (clusterLayer < (int)_seed_layers) && (clusterLayer >= 0) )
       {
-        track.setClusterID(clusterLayer, clusterID);
+        track.insert_cluster(clusterID);
         track.setHitPosition(clusterLayer,cluster_x,cluster_y,cluster_z);
       }
     }

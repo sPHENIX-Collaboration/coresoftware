@@ -474,10 +474,11 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 
 	    cout << " ---Associated-SvtxClusters-to-PHG4Hits-------------------------" << endl;    
 
-	    for (unsigned int ilayer = 0; ilayer < 100; ++ilayer) {
-	      if (!track->hasCluster(ilayer)) continue;
-
-	      SvtxCluster* cluster = clustermap->get(track->getClusterID(ilayer));
+	    for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
+		 iter != track->end_clusters();
+		 ++iter) {
+	      unsigned int cluster_id = *iter;
+	      SvtxCluster* cluster = clustermap->get(cluster_id);
 	      		  
 	      float x = cluster->get_x();
 	      float y = cluster->get_y();
@@ -1015,6 +1016,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
   if (_ntp_gtrack) {
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");   
+    SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
     if (truthinfo) {
       PHG4TruthInfoContainer::Map map = truthinfo->GetPrimaryMap();
       for (PHG4TruthInfoContainer::ConstIterator iter = map.begin(); 
@@ -1083,12 +1085,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  quality   = track->get_quality();
 	  chisq     = track->get_chisq();
 	  ndf       = track->get_ndf();
-	  nhits     = track->getNhits();
-
-	  for (unsigned int i = 0; i < 32; ++i){ // only 32 bits available	
-	    if (track->hasCluster(i)) {
-	      layers |= (0x1 << i);
-	    }
+	  nhits     = track->size_clusters();
+	  
+	  for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
+	       iter != track->end_clusters();
+	       ++iter) {
+	    unsigned int cluster_id = *iter;
+	    SvtxCluster* cluster = clustermap->get(cluster_id);
+	    unsigned int layer = cluster->get_layer();
+	    if (layer < 32) layers |= (0x1 << layer);
 	  }
 
 	  dca       = track->get_dca();
@@ -1152,6 +1157,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   if (_ntp_track) {
     // need things off of the DST...
     SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+    SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
     if (trackmap) {
 
       for (SvtxTrackMap::Iter iter = trackmap->begin();
@@ -1165,13 +1171,16 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float quality   = track->get_quality();
 	float chisq     = track->get_chisq();
 	float ndf       = track->get_ndf();
-	float nhits     = track->getNhits();
+	float nhits     = track->size_clusters();
 
 	unsigned int layers = 0x0;
-	for (unsigned int i = 0; i < 32; ++i){ // only 32 bits available	
-	  if (track->hasCluster(i)) {
-	    layers |= (0x1 << i);
-	  }
+	for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
+	     iter != track->end_clusters();
+	     ++iter) {
+	  unsigned int cluster_id = *iter;
+	  SvtxCluster* cluster = clustermap->get(cluster_id);
+	  unsigned int layer = cluster->get_layer();
+	  if (layer < 32) layers |= (0x1 << layer);
 	}
       
 	float dca2d     = track->get_dca2d();
