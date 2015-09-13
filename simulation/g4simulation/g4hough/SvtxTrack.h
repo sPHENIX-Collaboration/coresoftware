@@ -21,15 +21,13 @@ class SvtxTrack : public PHObject {
   void Reset();
   int  isValid() const;
 
-  //---old interface-------
-  
-  void setTrackID(int index){_track_id = index;}
-  int getTrackID() const {return _track_id;}  
+  //---old interface------- 
 
   bool hasCluster(int layer) const {return (_cluster_ids.find(layer) != _cluster_ids.end());}
   void setClusterID(int layer, int index) {_cluster_ids[layer] = index;}
   int getClusterID(int layer) const {return _cluster_ids.find(layer)->second;}
-  
+
+  short getNhits() const;
   void setHitPosition(int layer, float x, float y, float z) {
     std::vector<float> position(3);
     position[0] = x;
@@ -39,64 +37,8 @@ class SvtxTrack : public PHObject {
   }
   float getHitPosition(int layer, int coor) const;
 
-  void setMomentum(float p) {}
-  float getMomentum() const {
-    float px = _states.find(0.0)->second.get_px();
-    float py = _states.find(0.0)->second.get_py();
-    float pz = _states.find(0.0)->second.get_pz();
-    return sqrt(pow(px,2)+pow(py,2)+pow(pz,2));
-  }
-  
-  void set3Momentum(float px, float py, float pz) {
-    _states[0.0].set_px(px);
-    _states[0.0].set_py(py);
-    _states[0.0].set_pz(pz);
-  };
-  float get3Momentum(int coor) const {
-    return _states.find(0.0)->second.get_mom(coor);
-  }
-  
-  void setCharge(int c) {
-    if (c > 0) setPositive(true);
-    else setPositive(false);
-  }
-  int getCharge() const {
-    if (getPositive()) return +1;
-    else return -1;
-  }
-  
-  void setPositive(bool prim) {_is_positive_charge = prim;}
-  bool getPositive() const {return _is_positive_charge;}
-  
-  //void setNhits(int layer, short n);
-  short getNhits() const;
-  
-  void setQuality(float q) {}
-  float getQuality() const {
-    if (_ndf!=0) return _chisq/_ndf;
-    return NAN;
-  }
-
-  void setChisq(float q) {_chisq = q;}
-  float getChisq() const {return _chisq;}
-
-  void setNDF(int q) {_ndf = q;}
-  int  getNDF() const {return _ndf;}
-
-  void  setDCA(float d) {_DCA = d;}
-  float getDCA() const {return _DCA;}
-
-  void  setDCA2D(float d) {_DCA2D = d;}
-  float getDCA2D() const {return _DCA2D;}
-  
-  void  setDCA2Dsigma(float s) {_DCA2Dsigma = s;}
-  float getDCA2Dsigma() const {return _DCA2Dsigma;}
-
   float getInnerMostHitPosition(int coor) const;
-
-  float getCovariance(int i,int j) const {return get_error(i,j);}
-  void  setCovariance(int i,int j, float val) {set_error(i,j,val);}
-
+  
   void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3);
   float get_cal_energy_3x3(CAL_LAYER layer) const;
 
@@ -116,7 +58,30 @@ class SvtxTrack : public PHObject {
 
   unsigned int get_id() const          {return _track_id;}
   void         set_id(unsigned int id) {_track_id = id;}
-  
+
+  bool get_positive_charge() const {return _is_positive_charge;}
+  void set_positive_charge(bool ispos) {_is_positive_charge = ispos;}
+
+  int  get_charge() const {return (get_positive_charge()) ? 1 : -1;}
+  void set_charge(int charge) {(charge > 0) ? set_positive_charge(true) : set_positive_charge(false);}
+
+  float get_chisq() const {return _chisq;}  
+  void  set_chisq(float chisq) {_chisq = chisq;}
+
+  unsigned int get_ndf() const {return _ndf;}
+  void         set_ndf(int ndf) {_ndf = ndf;}
+
+  float get_quality() const {return (_ndf != 0) ? _chisq/_ndf : NAN;}
+
+  float get_dca() const {return _dca;}
+  void  set_dca(float dca) {_dca = dca;}
+
+  float get_dca2d() const {return _dca2d;}  
+  void  set_dca2d(float dca2d) {_dca2d = dca2d;}
+
+  float get_dca2d_error() const {return _dca2d_error;}  
+  void  set_dca2d_error(float error) {_dca2d_error = error;}
+
   float get_x() const  {return _states.find(0.0)->second.get_x();}
   void  set_x(float x) {_states[0.0].set_x(x);}
   
@@ -144,20 +109,23 @@ class SvtxTrack : public PHObject {
   float get_eta() const {return asinh(get_pz()/get_pt());}
   float get_phi() const {return atan2(get_py(),get_px());}
 
+  float get_error(int i, int j) const {return _states.find(0.0)->second.get_error(i,j);}
+  void  set_error(int i, int j, float value) {return _states[0.0].set_error(i,j,value);}
+
+  float get_helix_phi() const {return _states.find(0.0)->second.get_helix_phi();}  
   void  set_helix_phi(float phi) {_states[0.0].set_helix_phi(phi);}
-  float get_helix_phi() const {return _states.find(0.0)->second.get_helix_phi();}
-    
-  void  set_helix_d(float d) {_states[0.0].set_helix_d(d);}
+
   float get_helix_d() const {return _states.find(0.0)->second.get_helix_d();}
-  
+  void  set_helix_d(float d) {_states[0.0].set_helix_d(d);}
+
+  float get_helix_kappa() const {return _states.find(0.0)->second.get_helix_kappa();}  
   void  set_helix_kappa(float kappa) {_states[0.0].set_helix_kappa(kappa);}
-  float get_helix_kappa() const {return _states.find(0.0)->second.get_helix_kappa();}
-    
+
+  float get_helix_z0() const {return _states.find(0.0)->second.get_helix_z0();}    
   void  set_helix_z0(float z0) {_states[0.0].set_helix_z0(z0);}
-  float get_helix_z0() const {return _states.find(0.0)->second.get_helix_z0();}
-    
+
+  float get_helix_dzdl() const {return _states.find(0.0)->second.get_helix_dzdl();}    
   void  set_helix_dzdl(float dzdl) {_states[0.0].set_helix_dzdl(dzdl);}
-  float get_helix_dzdl() const {return _states.find(0.0)->second.get_helix_dzdl();}
   
  private: 
 
@@ -193,20 +161,20 @@ class SvtxTrack : public PHObject {
     float get_error(unsigned int i, unsigned int j) const;                    //
     void  set_error(unsigned int i, unsigned int j, float value);             //
                                                                               //
-    void  set_helix_phi(float helix_phi) {_helix_phi = helix_phi;}            //
     float get_helix_phi() const {return _helix_phi;}                          //
+    void  set_helix_phi(float helix_phi) {_helix_phi = helix_phi;}            //
                                                                               //
-    void  set_helix_d(float d) {_helix_d = d;}                                //
     float get_helix_d() const {return _helix_d;}                              //
+    void  set_helix_d(float d) {_helix_d = d;}                                //
                                                                               //
-    void  set_helix_kappa(float kappa) {_helix_kappa = kappa;}                //
     float get_helix_kappa() const {return _helix_kappa;}                      //
+    void  set_helix_kappa(float kappa) {_helix_kappa = kappa;}                //
                                                                               //
-    void  set_helix_z0(float z0) {_helix_z0 = z0;}                            //
     float get_helix_z0() const {return _helix_z0;}                            //
+    void  set_helix_z0(float z0) {_helix_z0 = z0;}                            //
                                                                               //
-    void  set_helix_dzdl(float dzdl) {_helix_dzdl = dzdl;}                    //
     float get_helix_dzdl() const {return _helix_dzdl;}                        //
+    void  set_helix_dzdl(float dzdl) {_helix_dzdl = dzdl;}                    //
                                                                               //
   private:                                                                    //
                                                                               //
@@ -223,11 +191,11 @@ class SvtxTrack : public PHObject {
   };                                                                          //
   // --- inner State class ---------------------------------------------------//
 
-  // --- inner CaloMatch class -----------------------------------------------//
-  class CaloMatch {                                                           //
+  // --- inner CaloProjection class ------------------------------------------//
+  class CaloProjection {                                                      //
   public:                                                                     //
-    CaloMatch();                                                              //
-    virtual ~CaloMatch() {}                                                   //
+    CaloProjection();                                                         //
+    virtual ~CaloProjection() {}                                              //
                                                                               //
     float get_energy_3x3() const {return _e3x3;}                              //
     void  set_energy_3x3(float e3x3) {_e3x3 = e3x3;}                          //
@@ -251,12 +219,7 @@ class SvtxTrack : public PHObject {
     float _dphi;                                                              //
     float _clus_e;                                                            //
   };                                                                          //
-  // --- inner CaloMatch class -----------------------------------------------//
-  
-  // keep these private for now
-  // attempting ~zero interface changes during refactor
-  float get_error(int i, int j) const {return _states.find(0.0)->second.get_error(i,j);}
-  void  set_error(int i, int j, float value) {return _states[0.0].set_error(i,j,value);}
+  // --- inner CaloProjection class ------------------------------------------//
   
   // track information
   unsigned int _track_id;
@@ -265,9 +228,9 @@ class SvtxTrack : public PHObject {
   unsigned int _ndf;
 
   // extended track information (non-primary tracks only)
-  float _DCA;
-  float _DCA2D;
-  float _DCA2Dsigma;
+  float _dca;
+  float _dca2d;
+  float _dca2d_error;
 
   // extended track information (primary tracks only)
   // unsigned int _vertex_id;
@@ -287,7 +250,7 @@ class SvtxTrack : public PHObject {
   std::map<int,std::vector<float> > _cluster_positions; //< layer index => (x,y,z)
   
   // calorimeter matches
-  std::map<CAL_LAYER,SvtxTrack::CaloMatch> _calo_matches;
+  std::map<CAL_LAYER,SvtxTrack::CaloProjection> _calo_matches;
   
   ClassDef(SvtxTrack,1)
 };

@@ -98,8 +98,8 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
       }
     }
 
-    if (track->getNDF() != 0) {
-      combo.chisq = track->getChisq()/track->getNDF();
+    if (track->get_ndf() != 0) {
+      combo.chisq = track->get_chisq()/track->get_ndf();
     }
 
     combo.keep = true;

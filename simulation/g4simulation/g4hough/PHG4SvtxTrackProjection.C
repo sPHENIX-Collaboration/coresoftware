@@ -121,8 +121,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
       if (verbosity > 1) cout << "projecting track id " << track->get_id() << endl;
 
       if (verbosity > 1) {
-	cout << " track pt = " << sqrt(pow(track->get3Momentum(0),2) +
-				       pow(track->get3Momentum(1),2)) << endl;
+	cout << " track pt = " << track->get_pt() << endl;
       }
 
       // curved tracks inside mag field
@@ -163,8 +162,8 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
       double eta = asinh(z/sqrt(x*x+y*y));
 
       if (verbosity > 1) {
-	cout << " initial track phi = " << atan2(track->get3Momentum(1),track->get3Momentum(0));
-	cout << ", eta = " << asinh(track->get3Momentum(2)/sqrt(pow(track->get3Momentum(0),2)+pow(track->get3Momentum(1),2))) << endl;
+	cout << " initial track phi = " << track->get_phi();
+	cout << ", eta = " << track->get_eta() << endl;
 	cout << " calorimeter phi = " << phi << ", eta = " << eta << endl;
       }
 

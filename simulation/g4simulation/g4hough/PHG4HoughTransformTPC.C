@@ -708,13 +708,14 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
       pZ = pT * dzdl / sqrt(1.0 - dzdl*dzdl);
     }
     int ndf = 2*_tracks.at(itrack).hits.size() - 5;
-    track.setQuality(chi_squareds[itrack]/((float)ndf));
-    track.setChisq(chi_squareds[itrack]);
-    track.setNDF(ndf);
-    track.set3Momentum( pT*cos(phi-helicity*M_PI/2), pT*sin(phi-helicity*M_PI/2), pZ);
+    track.set_chisq(chi_squareds[itrack]);
+    track.set_ndf(ndf);
+    track.set_px( pT*cos(phi-helicity*M_PI/2) );
+    track.set_py( pT*sin(phi-helicity*M_PI/2) );
+    track.set_pz( pZ );
 
-    track.setDCA2D( d );
-    track.setDCA2Dsigma(sqrt(_tracker->getKalmanStates()[itrack].C(1,1)));  
+    track.set_dca2d( d );
+    track.set_dca2d_error(sqrt(_tracker->getKalmanStates()[itrack].C(1,1)));  
 
     if(_write_reco_tree==true)
     {
@@ -731,11 +732,11 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
 
     if(_magField > 0)
     {
-      track.setCharge( -1.0*helicity );
+      track.set_charge( -1.0*helicity );
     }
     else
     {
-      track.setCharge( helicity );
+      track.set_charge( helicity );
     }
 
     Matrix<float,6,6> euclidean_cov = Matrix<float,6,6>::Zero(6,6);
@@ -745,7 +746,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     {
       for(unsigned int col=0;col<6;++col)
       {
-	track.setCovariance(row,col,euclidean_cov(row,col));
+	track.set_error(row,col,euclidean_cov(row,col));
       }
     }
 
@@ -760,10 +761,10 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
 
     if (verbosity > 5) {
       cout << "track " << itrack << " quality = "
-           << track.getQuality() << endl;
-      cout << "px = " << track.get3Momentum(0)
-           << " py = " << track.get3Momentum(1)
-           << " pz = " << track.get3Momentum(2) << endl;
+           << track.get_quality() << endl;
+      cout << "px = " << track.get_px()
+           << " py = " << track.get_py()
+           << " pz = " << track.get_pz() << endl;
     }
   } // track loop
 

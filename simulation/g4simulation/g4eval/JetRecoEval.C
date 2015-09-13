@@ -408,7 +408,7 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet) {
 	SvtxTrack* track = _trackmap->get(index);
 	PHG4Particle* maxtruthparticle = get_svtx_eval_stack()->get_track_eval()->max_truth_particle_by_nclusters(track);
 	if (maxtruthparticle->get_track_id() == truthparticle->get_track_id()) { 
-	  energy = track->getMomentum();
+	  energy = track->get_p();
 	}
       } else if (source == Jet::CEMC_TOWER) {
 	RawTower* tower = _cemctowers->getTower(index);

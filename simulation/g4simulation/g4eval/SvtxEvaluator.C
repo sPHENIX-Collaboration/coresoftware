@@ -456,9 +456,9 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 	  
 	    SvtxTrack *track = *jter;
 
-	    float px = track->get3Momentum(0);
-	    float py = track->get3Momentum(1);
-	    float pz = track->get3Momentum(2);
+	    float px = track->get_px();
+	    float py = track->get_py();
+	    float pz = track->get_pz();
 
 	    cout << "===Created-SvtxTrack==========================================" << endl;
 	    cout << " SvtxTrack id = " << track->get_id() << endl;
@@ -469,7 +469,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 	    cout << ",";
 	    cout.width(5); cout << pz;
 	    cout << ")" << endl;
-	    cout << " quality = " << track->getQuality() << endl;
+	    cout << " quality = " << track->get_quality() << endl;
 	    cout << " nfromtruth = " << trackeval->get_nclusters_contribution(track,particle) << endl;
 
 	    cout << " ---Associated-SvtxClusters-to-PHG4Hits-------------------------" << endl;    
@@ -1079,10 +1079,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	if (track) {
 	  trackID   = track->get_id();     
-	  charge    = track->getCharge();
-	  quality   = track->getQuality();
-	  chisq     = track->getChisq();
-	  ndf       = track->getNDF();
+	  charge    = track->get_charge();
+	  quality   = track->get_quality();
+	  chisq     = track->get_chisq();
+	  ndf       = track->get_ndf();
 	  nhits     = track->getNhits();
 
 	  for (unsigned int i = 0; i < 32; ++i){ // only 32 bits available	
@@ -1091,12 +1091,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	    }
 	  }
 
-	  dca       = track->getDCA();
-	  dca2d     = track->getDCA2D();
-	  dca2dsigma = track->getDCA2Dsigma();
-	  px        = track->get3Momentum(0);
-	  py        = track->get3Momentum(1);
-	  pz        = track->get3Momentum(2);
+	  dca       = track->get_dca();
+	  dca2d     = track->get_dca2d();
+	  dca2dsigma = track->get_dca2d_error();
+	  px        = track->get_px();
+	  py        = track->get_py();
+	  pz        = track->get_pz();
 	  pcax      = track->get_x();
 	  pcay      = track->get_y();
 	  pcaz      = track->get_z();
@@ -1161,10 +1161,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	SvtxTrack* track         = &iter->second;
 
 	float trackID   = track->get_id();     
-	float charge    = track->getCharge();
-	float quality   = track->getQuality();
-	float chisq     = track->getChisq();
-	float ndf       = track->getNDF();
+	float charge    = track->get_charge();
+	float quality   = track->get_quality();
+	float chisq     = track->get_chisq();
+	float ndf       = track->get_ndf();
 	float nhits     = track->getNhits();
 
 	unsigned int layers = 0x0;
@@ -1174,11 +1174,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  }
 	}
       
-	float dca2d     = track->getDCA2D();
-	float dca2dsigma = track->getDCA2Dsigma();
-	float px        = track->get3Momentum(0);
-	float py        = track->get3Momentum(1);
-	float pz        = track->get3Momentum(2);
+	float dca2d     = track->get_dca2d();
+	float dca2dsigma = track->get_dca2d_error();
+	float px        = track->get_px();
+	float py        = track->get_py();
+	float pz        = track->get_pz();
 	float pcax      = track->get_x();
 	float pcay      = track->get_y();
 	float pcaz      = track->get_z();
