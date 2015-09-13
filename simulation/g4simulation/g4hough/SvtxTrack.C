@@ -78,6 +78,24 @@ float SvtxTrack::getOuterMostHitPosition(int coor) const {
   return _cluster_positions.rbegin()->second[coor];
 }
 
+const SvtxTrack::State* SvtxTrack::get_state(float pathlength) const {
+  ConstStateIter iter = _states.find(pathlength);
+  if (iter == _states.end()) return NULL;  
+  return &iter->second;
+}
+
+SvtxTrack::State* SvtxTrack::get_state(float pathlength) {
+  StateIter iter = _states.find(pathlength);
+  if (iter == _states.end()) return NULL;
+  return &iter->second;
+}
+
+SvtxTrack::State* SvtxTrack::insert_state(const State &state) {
+  float pathlength = state.get_pathlength();
+  _states.insert(make_pair( pathlength , SvtxTrack::State(state) ));
+  return (&_states[pathlength]);
+}
+
 float SvtxTrack::get_cal_energy_3x3(SvtxTrack::CAL_LAYER layer) const {
   std::map<SvtxTrack::CAL_LAYER,
 	   SvtxTrack::CaloProjection>::const_iterator citer = _calo_matches.find(layer);
@@ -165,8 +183,9 @@ void SvtxTrack::set_cal_cluster_e(SvtxTrack::CAL_LAYER layer, float clus_e) {
 
 // --- innner State class ----------------------------------------------------//
 
-SvtxTrack::State::State()
-  : _pos(),
+SvtxTrack::State::State(float pathlength)
+  : _pathlength(pathlength),
+    _pos(),
     _mom(),
     _covar(),
     _helix_phi(0.0),

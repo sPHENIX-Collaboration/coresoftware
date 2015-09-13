@@ -12,6 +12,73 @@ class SvtxTrack : public PHObject {
   
  public:
 
+  // --- inner State class ---------------------------------------------------//
+  class State {                                                               //
+  public:                                                                     //
+    State(float pathlength = 0.0);                                            //
+    virtual ~State() {}                                                       //
+                                                                              //
+    float get_pathlength() const {return _pathlength;}                        //
+                                                                              //
+    float get_x() const {return _pos[0];}                                     //
+    void  set_x(float x) {_pos[0] = x;}                                       //
+                                                                              //
+    float get_y() const {return _pos[1];}                                     //
+    void  set_y(float y) {_pos[1] = y;}                                       //
+                                                                              //
+    float get_z() const {return _pos[2];}                                     //
+    void  set_z(float z) {_pos[2] = z;}                                       //
+                                                                              //
+    float get_pos(unsigned int i) const {return _pos[i];}                     //
+                                                                              //
+    float get_px() const {return _mom[0];}                                    //
+    void  set_px(float px) {_mom[0] = px;}                                    //
+                                                                              //
+    float get_py() const {return _mom[1];}                                    //
+    void  set_py(float py) {_mom[1] = py;}                                    //
+                                                                              //
+    float get_pz() const {return _mom[2];}                                    //
+    void  set_pz(float pz) {_mom[2] = pz;}                                    //
+                                                                              //
+    float get_mom(unsigned int i) const {return _mom[i];}                     //
+                                                                              //
+    float get_error(unsigned int i, unsigned int j) const;                    //
+    void  set_error(unsigned int i, unsigned int j, float value);             //
+                                                                              //
+    float get_helix_phi() const {return _helix_phi;}                          //
+    void  set_helix_phi(float helix_phi) {_helix_phi = helix_phi;}            //
+                                                                              //
+    float get_helix_d() const {return _helix_d;}                              //
+    void  set_helix_d(float d) {_helix_d = d;}                                //
+                                                                              //
+    float get_helix_kappa() const {return _helix_kappa;}                      //
+    void  set_helix_kappa(float kappa) {_helix_kappa = kappa;}                //
+                                                                              //
+    float get_helix_z0() const {return _helix_z0;}                            //
+    void  set_helix_z0(float z0) {_helix_z0 = z0;}                            //
+                                                                              //
+    float get_helix_dzdl() const {return _helix_dzdl;}                        //
+    void  set_helix_dzdl(float dzdl) {_helix_dzdl = dzdl;}                    //
+                                                                              //
+  private:                                                                    //
+                                                                              //
+    unsigned int covar_index(unsigned int i, unsigned int j) const;           //
+                                                                              //
+    float _pathlength;                                                        //
+    float _pos[3];                                                            //
+    float _mom[3];                                                            //
+    float _covar[21]; // 6x6 triangular packed storage                        //
+    float _helix_phi;                                                         //
+    float _helix_d;                                                           //
+    float _helix_kappa;                                                       //
+    float _helix_z0;                                                          //
+    float _helix_dzdl;                                                        //
+  };                                                                          //
+  // --- inner State class ---------------------------------------------------//
+ 
+  typedef std::map<float,SvtxTrack::State>::const_iterator ConstStateIter;
+  typedef std::map<float,SvtxTrack::State>::iterator       StateIter; 
+  
   typedef std::set<unsigned int>::const_iterator ConstClusterIter;
   typedef std::set<unsigned int>::iterator       ClusterIter; 
   
@@ -26,12 +93,6 @@ class SvtxTrack : public PHObject {
   int  isValid() const;
 
   //---old interface------- 
-
-  //bool hasCluster(int layer) const {return (_cluster_ids.find(layer) != _cluster_ids.end());}
-  //void setClusterID(int layer, int index) {_cluster_ids[layer] = index;}
-  //int getClusterID(int layer) const {return _cluster_ids.find(layer)->second;}
-
-  //unsigned int getNhits() const {return _cluster_ids.size();}
 
   void setHitPosition(int layer, float x, float y, float z) {
     std::vector<float> position(3);
@@ -121,7 +182,24 @@ class SvtxTrack : public PHObject {
   //
   // state methods
   //
+  bool   empty_states()                 const {return _states.empty();}
+  size_t size_states()                  const {return _states.size();}
+  size_t count_states(float pathlength) const {return _states.count(pathlength);}
+  void   clear_states()                       {return _states.clear();}
   
+  const State* get_state(float pathlength) const;
+        State* get_state(float pathlength); 
+        State* insert_state(const State &state);
+        size_t erase_state(float pathlength) {return _states.erase(pathlength);}
+
+  ConstStateIter begin()                 const {return _states.begin();}
+  ConstStateIter  find(float pathlength) const {return _states.find(pathlength);}
+  ConstStateIter   end()                 const {return _states.end();}
+
+  StateIter begin()                 {return _states.begin();}
+  StateIter  find(float pathlength) {return _states.find(pathlength);}
+  StateIter   end()                 {return _states.end();}
+    
   //
   // associated cluster ids methods
   //
@@ -159,67 +237,6 @@ class SvtxTrack : public PHObject {
  private: 
 
   // keep it private for now to minimize interface changes
-  // --- inner State class ---------------------------------------------------//
-  class State {                                                               //
-  public:                                                                     //
-    State();                                                                  //
-    virtual ~State() {}                                                       //
-                                                                              //
-    float get_x() const {return _pos[0];}                                     //
-    void  set_x(float x) {_pos[0] = x;}                                       //
-                                                                              //
-    float get_y() const {return _pos[1];}                                     //
-    void  set_y(float y) {_pos[1] = y;}                                       //
-                                                                              //
-    float get_z() const {return _pos[2];}                                     //
-    void  set_z(float z) {_pos[2] = z;}                                       //
-                                                                              //
-    float get_pos(unsigned int i) const {return _pos[i];}                     //
-                                                                              //
-    float get_px() const {return _mom[0];}                                    //
-    void  set_px(float px) {_mom[0] = px;}                                    //
-                                                                              //
-    float get_py() const {return _mom[1];}                                    //
-    void  set_py(float py) {_mom[1] = py;}                                    //
-                                                                              //
-    float get_pz() const {return _mom[2];}                                    //
-    void  set_pz(float pz) {_mom[2] = pz;}                                    //
-                                                                              //
-    float get_mom(unsigned int i) const {return _mom[i];}                     //
-                                                                              //
-    float get_error(unsigned int i, unsigned int j) const;                    //
-    void  set_error(unsigned int i, unsigned int j, float value);             //
-                                                                              //
-    float get_helix_phi() const {return _helix_phi;}                          //
-    void  set_helix_phi(float helix_phi) {_helix_phi = helix_phi;}            //
-                                                                              //
-    float get_helix_d() const {return _helix_d;}                              //
-    void  set_helix_d(float d) {_helix_d = d;}                                //
-                                                                              //
-    float get_helix_kappa() const {return _helix_kappa;}                      //
-    void  set_helix_kappa(float kappa) {_helix_kappa = kappa;}                //
-                                                                              //
-    float get_helix_z0() const {return _helix_z0;}                            //
-    void  set_helix_z0(float z0) {_helix_z0 = z0;}                            //
-                                                                              //
-    float get_helix_dzdl() const {return _helix_dzdl;}                        //
-    void  set_helix_dzdl(float dzdl) {_helix_dzdl = dzdl;}                    //
-                                                                              //
-  private:                                                                    //
-                                                                              //
-    unsigned int covar_index(unsigned int i, unsigned int j) const;           //
-                                                                              //
-    float _pos[3];                                                            //
-    float _mom[3];                                                            //
-    float _covar[21]; // 6x6 triangular packed storage                        //
-    float _helix_phi;                                                         //
-    float _helix_d;                                                           //
-    float _helix_kappa;                                                       //
-    float _helix_z0;                                                          //
-    float _helix_dzdl;                                                        //
-  };                                                                          //
-  // --- inner State class ---------------------------------------------------//
-
   // --- inner CaloProjection class ------------------------------------------//
   class CaloProjection {                                                      //
   public:                                                                     //
