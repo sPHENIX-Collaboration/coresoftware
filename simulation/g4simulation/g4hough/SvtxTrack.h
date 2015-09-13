@@ -29,14 +29,6 @@ class SvtxTrack : public PHObject {
   bool hasCluster(int layer) const {return (_cluster_ids.find(layer) != _cluster_ids.end());}
   void setClusterID(int layer, int index) {_cluster_ids[layer] = index;}
   int getClusterID(int layer) const {return _cluster_ids.find(layer)->second;}
-    
-  void setScatter(int layer, float sct) {
-    std::cout << "SvtxTrack:: ERROR - deprecated interface call" << std::endl;
-  }
-  float getScatter(int layer) const {
-    std::cout << "SvtxTrack:: ERROR - deprecated interface call" << std::endl;
-    return NAN;
-  }
   
   void setHitPosition(int layer, float x, float y, float z) {
     std::vector<float> position(3);
@@ -75,13 +67,6 @@ class SvtxTrack : public PHObject {
   
   void setPositive(bool prim) {_is_positive_charge = prim;}
   bool getPositive() const {return _is_positive_charge;}
-
-  void setPrimary(bool prim) {
-    std::cout << "SvtxTrack:: ERROR - deprecated interface call" << std::endl;
-  }
-  bool getPrimary() const {
-    return false;
-  }
   
   //void setNhits(int layer, short n);
   short getNhits() const;
@@ -94,14 +79,6 @@ class SvtxTrack : public PHObject {
 
   void setChisq(float q) {_chisq = q;}
   float getChisq() const {return _chisq;}
-
-  void setChisqv(float q) {
-    std::cout << "SvtxTrack:: ERROR - deprecated interface call" << std::endl;
-  }
-  float getChisqv() const {
-    std::cout << "SvtxTrack:: ERROR - deprecated interface call" << std::endl;
-    return NAN;
-  }
 
   void setNDF(int q) {_ndf = q;}
   int  getNDF() const {return _ndf;}
@@ -117,21 +94,6 @@ class SvtxTrack : public PHObject {
 
   float getInnerMostHitPosition(int coor) const;
 
-  void  set_helix_phi(float phi) {_states[0.0].set_helix_phi(phi);}
-  float get_helix_phi() const {return _states.find(0.0)->second.get_helix_phi();}
-    
-  void  set_helix_d(float d) {_states[0.0].set_helix_d(d);}
-  float get_helix_d() const {return _states.find(0.0)->second.get_helix_d();}
-  
-  void  set_helix_kappa(float kappa) {_states[0.0].set_helix_kappa(kappa);}
-  float get_helix_kappa() const {return _states.find(0.0)->second.get_helix_kappa();}
-    
-  void  set_helix_z0(float z0) {_states[0.0].set_helix_z0(z0);}
-  float get_helix_z0() const {return _states.find(0.0)->second.get_helix_z0();}
-    
-  void  set_helix_dzdl(float dzdl) {_states[0.0].set_helix_dzdl(dzdl);}
-  float get_helix_dzdl() const {return _states.find(0.0)->second.get_helix_dzdl();}
-  
   float getCovariance(int i,int j) const {return get_error(i,j);}
   void  setCovariance(int i,int j, float val) {set_error(i,j,val);}
 
@@ -180,7 +142,22 @@ class SvtxTrack : public PHObject {
   float get_p() const   {return sqrt(pow(get_px(),2) + pow(get_py(),2) + pow(get_pz(),2));}
   float get_pt() const  {return sqrt(pow(get_px(),2) + pow(get_py(),2));}
   float get_eta() const {return asinh(get_pz()/get_pt());}
-  //float get_phi() const {return atan2(get_py(),get_px());}
+  float get_phi() const {return atan2(get_py(),get_px());}
+
+  void  set_helix_phi(float phi) {_states[0.0].set_helix_phi(phi);}
+  float get_helix_phi() const {return _states.find(0.0)->second.get_helix_phi();}
+    
+  void  set_helix_d(float d) {_states[0.0].set_helix_d(d);}
+  float get_helix_d() const {return _states.find(0.0)->second.get_helix_d();}
+  
+  void  set_helix_kappa(float kappa) {_states[0.0].set_helix_kappa(kappa);}
+  float get_helix_kappa() const {return _states.find(0.0)->second.get_helix_kappa();}
+    
+  void  set_helix_z0(float z0) {_states[0.0].set_helix_z0(z0);}
+  float get_helix_z0() const {return _states.find(0.0)->second.get_helix_z0();}
+    
+  void  set_helix_dzdl(float dzdl) {_states[0.0].set_helix_dzdl(dzdl);}
+  float get_helix_dzdl() const {return _states.find(0.0)->second.get_helix_dzdl();}
   
  private: 
 
