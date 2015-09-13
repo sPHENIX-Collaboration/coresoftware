@@ -169,12 +169,19 @@ class SvtxTrack : public PHObject {
   bool   empty_states()                 const {return _states.empty();}
   size_t size_states()                  const {return _states.size();}
   size_t count_states(float pathlength) const {return _states.count(pathlength);}
-  void   clear_states()                       {return _states.clear();}
+  void   clear_states() {
+    _states.clear();
+    insert_state(State(0.0));
+  }
   
   const State* get_state(float pathlength) const;
         State* get_state(float pathlength); 
         State* insert_state(const State &state);
-        size_t erase_state(float pathlength) {return _states.erase(pathlength);}
+        size_t erase_state(float pathlength) {
+	  _states.erase(pathlength);
+	  if (pathlength == 0) insert_state(State(0.0));
+	  return _states.size();
+	}
 
   ConstStateIter begin_states()                const {return _states.begin();}
   ConstStateIter  find_state(float pathlength) const {return _states.find(pathlength);}
