@@ -118,7 +118,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
 	 ++iter) {
       SvtxTrack *track = &iter->second;
 
-      if (verbosity > 1) cout << "projecting track id " << track->getTrackID() << endl;
+      if (verbosity > 1) cout << "projecting track id " << track->get_id() << endl;
 
       if (verbosity > 1) {
 	cout << " track pt = " << sqrt(pow(track->get3Momentum(0),2) +

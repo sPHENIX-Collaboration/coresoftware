@@ -21,14 +21,15 @@ class SvtxTrack : public PHObject {
   void Reset();
   int  isValid() const;
 
-  void set_id(int id) {_track_id = id;}
+  //---old interface-------
+  
   void setTrackID(int index){_track_id = index;}
   int getTrackID() const {return _track_id;}  
-  
+
+  bool hasCluster(int layer) const {return (_cluster_ids.find(layer) != _cluster_ids.end());}
   void setClusterID(int layer, int index) {_cluster_ids[layer] = index;}
   int getClusterID(int layer) const {return _cluster_ids.find(layer)->second;}
-  bool hasCluster(int layer) const {return (_cluster_ids.find(layer) != _cluster_ids.end());}
-  
+    
   void setScatter(int layer, float sct) {
     std::cout << "SvtxTrack:: ERROR - deprecated interface call" << std::endl;
   }
@@ -116,20 +117,20 @@ class SvtxTrack : public PHObject {
 
   float getInnerMostHitPosition(int coor) const;
 
-  void  set_phi(float phi) {_states[0.0].set_phi(phi);}
-  float get_phi() const {return _states.find(0.0)->second.get_phi();}
+  void  set_helix_phi(float phi) {_states[0.0].set_helix_phi(phi);}
+  float get_helix_phi() const {return _states.find(0.0)->second.get_helix_phi();}
     
-  void  set_d(float d) {_states[0.0].set_d(d);}
-  float get_d() const {return _states.find(0.0)->second.get_d();}
+  void  set_helix_d(float d) {_states[0.0].set_helix_d(d);}
+  float get_helix_d() const {return _states.find(0.0)->second.get_helix_d();}
   
-  void  set_kappa(float kappa) {_states[0.0].set_kappa(kappa);}
-  float get_kappa() const {return _states.find(0.0)->second.get_kappa();}
+  void  set_helix_kappa(float kappa) {_states[0.0].set_helix_kappa(kappa);}
+  float get_helix_kappa() const {return _states.find(0.0)->second.get_helix_kappa();}
     
-  void  set_z0(float z0) {_states[0.0].set_z0(z0);}
-  float get_z0() const {return _states.find(0.0)->second.get_z0();}
+  void  set_helix_z0(float z0) {_states[0.0].set_helix_z0(z0);}
+  float get_helix_z0() const {return _states.find(0.0)->second.get_helix_z0();}
     
-  void  set_dzdl(float dzdl) {_states[0.0].set_dzdl(dzdl);}
-  float get_dzdl() const {return _states.find(0.0)->second.get_dzdl();}
+  void  set_helix_dzdl(float dzdl) {_states[0.0].set_helix_dzdl(dzdl);}
+  float get_helix_dzdl() const {return _states.find(0.0)->second.get_helix_dzdl();}
   
   float getCovariance(int i,int j) const {return get_error(i,j);}
   void  setCovariance(int i,int j, float val) {set_error(i,j,val);}
@@ -149,6 +150,11 @@ class SvtxTrack : public PHObject {
   void  set_cal_cluster_e(CAL_LAYER layer, float e);
   float get_cal_cluster_e(CAL_LAYER layer) const;
 
+  //---new interface------
+
+  unsigned int get_id() const          {return _track_id;}
+  void         set_id(unsigned int id) {_track_id = id;}
+  
   float get_x() const  {return _states.find(0.0)->second.get_x();}
   void  set_x(float x) {_states[0.0].set_x(x);}
   
@@ -158,13 +164,24 @@ class SvtxTrack : public PHObject {
   float get_z() const  {return _states.find(0.0)->second.get_z();}
   void  set_z(float z) {_states[0.0].set_z(z);}
 
-  // add convience calculations
-  //float get_eta() const;
-  //float get_theta() const;
-  //float get_phi() const;
-  //float get_pt() const;
-  //float get_p() const;
+  float get_pos(unsigned int i) const {return _states.find(0.0)->second.get_pos(i);}
 
+  float get_px() const   {return _states.find(0.0)->second.get_px();}
+  void  set_px(float px) {_states[0.0].set_px(px);}
+  
+  float get_py() const   {return _states.find(0.0)->second.get_py();}
+  void  set_py(float py) {_states[0.0].set_py(py);}
+
+  float get_pz() const   {return _states.find(0.0)->second.get_pz();}
+  void  set_pz(float pz) {_states[0.0].set_pz(pz);}
+
+  float get_mom(unsigned int i) const {return _states.find(0.0)->second.get_mom(i);}
+
+  float get_p() const   {return sqrt(pow(get_px(),2) + pow(get_py(),2) + pow(get_pz(),2));}
+  float get_pt() const  {return sqrt(pow(get_px(),2) + pow(get_py(),2));}
+  float get_eta() const {return asinh(get_pz()/get_pt());}
+  //float get_phi() const {return atan2(get_py(),get_px());}
+  
  private: 
 
   // keep it private for now to minimize interface changes
@@ -174,14 +191,16 @@ class SvtxTrack : public PHObject {
     State();                                                                  //
     virtual ~State() {}                                                       //
                                                                               //
-    float get_x() const {return _x;}                                          //
-    void  set_x(float x) {_x = x;}                                            //
+    float get_x() const {return _pos[0];}                                     //
+    void  set_x(float x) {_pos[0] = x;}                                       //
                                                                               //
-    float get_y() const {return _y;}                                          //
-    void  set_y(float y) {_y = y;}                                            //
+    float get_y() const {return _pos[1];}                                     //
+    void  set_y(float y) {_pos[1] = y;}                                       //
                                                                               //
-    float get_z() const {return _z;}                                          //
-    void  set_z(float z) {_z = z;}                                            //
+    float get_z() const {return _pos[2];}                                     //
+    void  set_z(float z) {_pos[2] = z;}                                       //
+                                                                              //
+    float get_pos(unsigned int i) const {return _pos[i];}                     //
                                                                               //
     float get_px() const {return _mom[0];}                                    //
     void  set_px(float px) {_mom[0] = px;}                                    //
@@ -194,35 +213,36 @@ class SvtxTrack : public PHObject {
                                                                               //
     float get_mom(unsigned int i) const {return _mom[i];}                     //
                                                                               //
-    float get_error(int i, int j) const;                                      //
-    void  set_error(int i, int j, float value);                               //
+    float get_error(unsigned int i, unsigned int j) const;                    //
+    void  set_error(unsigned int i, unsigned int j, float value);             //
                                                                               //
-    void  set_phi(float phi) {_phi = phi;}                                    //
-    float get_phi() const {return _phi;}                                      //
+    void  set_helix_phi(float helix_phi) {_helix_phi = helix_phi;}            //
+    float get_helix_phi() const {return _helix_phi;}                          //
                                                                               //
-    void  set_d(float d) {_d = d;}                                            //
-    float get_d() const {return _d;}                                          //
+    void  set_helix_d(float d) {_helix_d = d;}                                //
+    float get_helix_d() const {return _helix_d;}                              //
                                                                               //
-    void  set_kappa(float kappa) {_kappa = kappa;}                            //
-    float get_kappa() const {return _kappa;}                                  //
+    void  set_helix_kappa(float kappa) {_helix_kappa = kappa;}                //
+    float get_helix_kappa() const {return _helix_kappa;}                      //
                                                                               //
-    void  set_z0(float z0) {_z0 = z0;}                                        //
-    float get_z0() const {return _z0;}                                        //
+    void  set_helix_z0(float z0) {_helix_z0 = z0;}                            //
+    float get_helix_z0() const {return _helix_z0;}                            //
                                                                               //
-    void  set_dzdl(float dzdl) {_dzdl = dzdl;}                                //
-    float get_dzdl() const {return _dzdl;}                                    //
+    void  set_helix_dzdl(float dzdl) {_helix_dzdl = dzdl;}                    //
+    float get_helix_dzdl() const {return _helix_dzdl;}                        //
                                                                               //
   private:                                                                    //
-    float _x;                                                                 //
-    float _y;                                                                 //
-    float _z;                                                                 //
+                                                                              //
+    unsigned int covar_index(unsigned int i, unsigned int j) const;           //
+                                                                              //
+    float _pos[3];                                                            //
     float _mom[3];                                                            //
-    std::vector<std::vector<float> > _covar;                                  //
-    float _phi;                                                               //
-    float _d;                                                                 //
-    float _kappa;                                                             //
-    float _z0;                                                                //
-    float _dzdl;                                                              //
+    float _covar[21]; // 6x6 triangular packed storage                        //
+    float _helix_phi;                                                         //
+    float _helix_d;                                                           //
+    float _helix_kappa;                                                       //
+    float _helix_z0;                                                          //
+    float _helix_dzdl;                                                        //
   };                                                                          //
   // --- inner State class ---------------------------------------------------//
 

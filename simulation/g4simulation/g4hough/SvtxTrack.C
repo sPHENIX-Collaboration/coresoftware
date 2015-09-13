@@ -2,6 +2,7 @@
 
 #include <math.h>
 #include <limits.h>
+#include <algorithm>
 #include <map>
 
 ClassImp(SvtxTrack)
@@ -26,7 +27,7 @@ SvtxTrack::SvtxTrack()
 
 void SvtxTrack::identify(std::ostream& os) const {
   os << "SvtxTrack Object ";
-  os << "id: " << getTrackID() << " ";
+  os << "id: " << get_id() << " ";
   os << "charge: " << getCharge() << " ";
   os << "chisq: " << getChisq() << " ndf:" << getNDF() << " ";
   os << endl;
@@ -163,18 +164,16 @@ void SvtxTrack::set_cal_cluster_e(SvtxTrack::CAL_LAYER layer, float clus_e) {
 // --- innner State class ----------------------------------------------------//
 
 SvtxTrack::State::State()
-  : _x(0.0),
-    _y(0.0),
-    _z(0.0),
+  : _pos(),
     _mom(),
-    _covar(6),
-    _phi(0.0),
-    _d(0.0),
-    _kappa(0.0),
-    _z0(0.0),
-    _dzdl(0.0) {  
+    _covar(),
+    _helix_phi(0.0),
+    _helix_d(0.0),
+    _helix_kappa(0.0),
+    _helix_z0(0.0),
+    _helix_dzdl(0.0) {
+  for (int i=0;i<3;++i) _pos[i] = 0.0;
   for (int i=0;i<3;++i) _mom[i] = NAN;
-  for (int i = 0; i < 6; ++i) _covar[i] = std::vector<float>(i+1);
   for (int i = 0; i < 6; ++i) {
     for (int j = i; j < 6; ++j) {
       set_error(i,j,0.0);
@@ -182,15 +181,18 @@ SvtxTrack::State::State()
   } 
 }
 
-float SvtxTrack::State::get_error(int i, int j) const {
-  if (j > i) return get_error(j,i);
-  return _covar[i][j];
+float SvtxTrack::State::get_error(unsigned int i, unsigned int j) const {
+  return _covar[covar_index(i,j)];
 }
 
-void SvtxTrack::State::set_error(int i, int j, float value) {
-  if (j > i) set_error(j,i,value);
-  else _covar[i][j] = value;
+void SvtxTrack::State::set_error(unsigned int i, unsigned int j, float value) {
+  _covar[covar_index(i,j)] = value;
   return;
+}
+
+unsigned int SvtxTrack::State::covar_index(unsigned int i, unsigned int j) const {
+  if (i>j) std::swap(i,j);
+  return i+1+(j+1)*(j)/2-1;
 }
 
 // --- innner CaloMatch class ------------------------------------------------//

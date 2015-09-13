@@ -461,7 +461,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 	    float pz = track->get3Momentum(2);
 
 	    cout << "===Created-SvtxTrack==========================================" << endl;
-	    cout << " SvtxTrack id = " << track->getTrackID() << endl;
+	    cout << " SvtxTrack id = " << track->get_id() << endl;
 	    cout << " preco = (";
 	    cout.width(5); cout << px;
 	    cout << ",";
@@ -1078,7 +1078,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float nfromtruth    = NAN;
 
 	if (track) {
-	  trackID   = track->getTrackID();     
+	  trackID   = track->get_id();     
 	  charge    = track->getCharge();
 	  quality   = track->getQuality();
 	  chisq     = track->getChisq();
@@ -1160,7 +1160,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     
 	SvtxTrack* track         = &iter->second;
 
-	float trackID   = track->getTrackID();     
+	float trackID   = track->get_id();     
 	float charge    = track->getCharge();
 	float quality   = track->getQuality();
 	float chisq     = track->getChisq();

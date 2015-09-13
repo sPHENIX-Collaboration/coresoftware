@@ -52,7 +52,7 @@ std::vector<Jet*> TrackJetInput::get_input(PHCompositeNode *topNode) {
     jet->set_py(track->get3Momentum(1));
     jet->set_pz(track->get3Momentum(2));
     jet->set_e(track->getMomentum());
-    jet->insert_comp(Jet::TRACK,track->getTrackID());
+    jet->insert_comp(Jet::TRACK,track->get_id());
     pseudojets.push_back(jet);
   }
 

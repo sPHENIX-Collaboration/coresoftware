@@ -87,7 +87,7 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
   
     PHG4TrackCandidate combo;
 
-    combo.trackid = track->getTrackID();
+    combo.trackid = track->get_id();
     combo.nhits = track->getNhits();
 
     for (unsigned int j = 0; j < _nlayers; ++j) {

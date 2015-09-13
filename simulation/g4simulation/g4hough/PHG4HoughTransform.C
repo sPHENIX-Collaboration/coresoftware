@@ -95,11 +95,11 @@ static inline double sign(double x)
 
 void PHG4HoughTransform::projectToRadius(const SvtxTrack& track, double radius, vector<double>& intersection)
 {
-  float phi = track.get_phi();
-  float d = track.get_d();
-  float k = track.get_kappa();
-  float z0 = track.get_z0();
-  float dzdl = track.get_dzdl();
+  float phi = track.get_helix_phi();
+  float d = track.get_helix_d();
+  float k = track.get_helix_kappa();
+  float z0 = track.get_helix_z0();
+  float dzdl = track.get_helix_dzdl();
   
   intersection.clear();intersection.assign(3,0.);
   double& x = intersection[0];
@@ -672,7 +672,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
   for(unsigned int itrack=0; itrack<_tracks.size();itrack++)
   {
     SvtxTrack track;
-    track.setTrackID(itrack);
+    track.set_id(itrack);
     track_hits.clear();
     track_hits = _tracks.at(itrack).hits;
     
@@ -699,11 +699,11 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
     float dzdl = _tracks.at(itrack).dzdl;
     float z0 = _tracks.at(itrack).z0;
     
-    track.set_phi(phi);
-    track.set_kappa(kappa);
-    track.set_d(d);
-    track.set_z0(z0);
-    track.set_dzdl(dzdl);
+    track.set_helix_phi(phi);
+    track.set_helix_kappa(kappa);
+    track.set_helix_d(d);
+    track.set_helix_z0(z0);
+    track.set_helix_dzdl(dzdl);
     
     float pT = kappaToPt(kappa);
 
@@ -762,7 +762,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
 
     
     _g4tracks->insert(track);
-    vertex.insert_track(track.getTrackID());
+    vertex.insert_track(track.get_id());
 
     if (verbosity > 5) {
       cout << "track " << itrack << " quality = "
