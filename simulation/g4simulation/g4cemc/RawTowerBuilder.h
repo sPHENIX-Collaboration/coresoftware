@@ -46,6 +46,18 @@ class RawTowerBuilder : public SubsysReco {
   }
 
 
+  std::string
+  get_sim_tower_node_prefix() const
+  {
+    return _sim_tower_node_prefix;
+  }
+
+  void
+  set_sim_tower_node_prefix(std::string simTowerNodePrefix)
+  {
+    _sim_tower_node_prefix = simTowerNodePrefix;
+  }
+
  protected:
   void CreateNodes(PHCompositeNode *topNode);
 
@@ -55,6 +67,7 @@ class RawTowerBuilder : public SubsysReco {
   std::string detector;
   std::string TowerNodeName;
   std::string TowerGeomNodeName;
+  std::string _sim_tower_node_prefix;
 
   int _cell_binning;
   double emin;	

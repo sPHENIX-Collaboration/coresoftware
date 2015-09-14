@@ -34,7 +34,7 @@ RawTowerBuilder::RawTowerBuilder(const std::string& name):
   _phimin(NAN),
   _etastep(NAN),
   _phistep(NAN),
-  _tower_energy_src(kEnergyDeposition),
+  _tower_energy_src(kLightYield),
   _timer( PHTimeServer::get()->insert_new(name) )
 {}
 
@@ -406,7 +406,15 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 
   // Create the tower nodes on the tree
   _towers = new RawTowerContainer();
-  TowerNodeName = "TOWER_SIM_" + detector;
+  if (_sim_tower_node_prefix.length() == 0)
+    {
+      // no prefix, consistent with older convension
+      TowerNodeName = "TOWER_" + detector;
+    }
+  else
+    {
+      TowerNodeName = "TOWER_" + _sim_tower_node_prefix + "_" + detector;
+    }
   PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_towers, TowerNodeName.c_str(), "PHObject");
   DetNode->addNode(towerNode);
 
