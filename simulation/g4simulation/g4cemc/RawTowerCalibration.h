@@ -40,7 +40,7 @@ public:
     //! directly pass the energy of raw tower to calibrated tower. Zero suppression is applied
     kNo_calibration = 0,
 
-    //! simple digitalization with photon statistics, ADC conversion and pedstal
+    //! simple calibration with pedstal subtraction and a global energy scale (sampling fraction) correction
     kSimple_linear_calibration = 1
   };
 
