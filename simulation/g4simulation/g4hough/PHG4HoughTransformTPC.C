@@ -727,11 +727,11 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
 
     if(_magField > 0)
     {
-      track.set_charge( -1.0*helicity );
+      track.set_charge( helicity );
     }
     else
     {
-      track.set_charge( helicity );
+      track.set_charge( -1.0*helicity );
     }
 
     Matrix<float,6,6> euclidean_cov = Matrix<float,6,6>::Zero(6,6);
