@@ -10,7 +10,7 @@ class FastJetAlgo : public JetAlgo {
   
 public:
 
-  FastJetAlgo(Jet::ALGO algo, float par);
+  FastJetAlgo(Jet::ALGO algo, float par, float verbosity = 0);
   virtual ~FastJetAlgo() {}
 
   void      identify(std::ostream& os = std::cout);

@@ -229,7 +229,7 @@ PHG4SpacalDetector::Construct(G4LogicalVolume* logicWorld)
       //    geo->identify();
     }
 
-  if (_geom->get_construction_verbose() >= 1)
+  if ((verbosity > 0) && (_geom->get_construction_verbose() >= 1))
     {
       cout << "PHG4SpacalDetector::Construct::" << GetName()
           << " - Completed. Print Geometry:" << endl;
@@ -289,18 +289,20 @@ PHG4SpacalDetector::Construct_AzimuthalSeg()
     }
   _geom->set_nscint(fiber_count);
 
-  cout << "PHG4SpacalDetector::Construct_AzimuthalSeg::" << GetName()
-      << " - constructed " << fiber_count << " fibers" << endl;
-  cout << "\t" << "_geom->get_fiber_distance() = " << _geom->get_fiber_distance()
-      << endl;
-  cout << "\t" << "fiber_length = " << fiber_length / cm << endl;
-  cout << "\t" << "z_step = " << z_step << endl;
-  cout << "\t" << "_geom->get_azimuthal_bin() = " << _geom->get_azimuthal_n_sec()
-      << endl;
-  cout << "\t" << "_geom->get_azimuthal_distance() = "
-      << _geom->get_azimuthal_distance() << endl;
-  cout << "\t" << "_geom->is_virualize_fiber() = " << _geom->is_virualize_fiber()
-      << endl;
+  if (verbosity > 0) {
+    cout << "PHG4SpacalDetector::Construct_AzimuthalSeg::" << GetName()
+	 << " - constructed " << fiber_count << " fibers" << endl;
+    cout << "\t" << "_geom->get_fiber_distance() = " << _geom->get_fiber_distance()
+	 << endl;
+    cout << "\t" << "fiber_length = " << fiber_length / cm << endl;
+    cout << "\t" << "z_step = " << z_step << endl;
+    cout << "\t" << "_geom->get_azimuthal_bin() = " << _geom->get_azimuthal_n_sec()
+	 << endl;
+    cout << "\t" << "_geom->get_azimuthal_distance() = "
+	 << _geom->get_azimuthal_distance() << endl;
+    cout << "\t" << "_geom->is_virualize_fiber() = " << _geom->is_virualize_fiber()
+	 << endl;
+  }
 
   return make_pair(sec_logic,G4Transform3D::Identity);
 }
@@ -360,6 +362,7 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const string & id)
 void
 PHG4SpacalDetector::Print(const std::string &what) const
 {
+
   cout << "PHG4SpacalDetector::Print::" << GetName() << " - Print Geometry:"
       << endl;
   _geom->Print();

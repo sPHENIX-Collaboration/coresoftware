@@ -603,6 +603,6 @@ PHG4OuterHcalDetector::AddGeometryNode()
       // before putting into the geom object
       PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv3(envelope_inner_radius / cm, (place_in_z - steel_plate_z / 2.) / cm, (place_in_z + steel_plate_z / 2.) / cm, (envelope_outer_radius-envelope_inner_radius) / cm, n_steel_plates,  tilt_angle/rad, 0);
       geo->AddLayerGeom(layer, mygeom);
-      geo->identify();
+      if (verbosity > 0) geo->identify();
     }
 }

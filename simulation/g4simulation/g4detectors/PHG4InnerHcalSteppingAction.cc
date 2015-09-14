@@ -222,16 +222,18 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
             {
               once = false;
 
-              cout << "PHG4InnerHcalSteppingAction::UserSteppingAction::"
+	      if (verbosity > 0) {
+		cout << "PHG4InnerHcalSteppingAction::UserSteppingAction::"
                   //
-                  << detector_->GetName() << " - "
-                  << " use scintillating light model at each Geant4 steps. "
-                  << "First step: " << "Material = "
-                  << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
-                  << ", " << "Birk Constant = "
-                  << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
-                  << "," << "edep = " << edep << ", " << "eion = " << eion
-                  << ", " << "light_yield = " << light_yield << endl;
+		     << detector_->GetName() << " - "
+		     << " use scintillating light model at each Geant4 steps. "
+		     << "First step: " << "Material = "
+		     << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
+		     << ", " << "Birk Constant = "
+		     << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
+		     << "," << "edep = " << edep << ", " << "eion = " << eion
+		     << ", " << "light_yield = " << light_yield << endl;
+	      }
             }
         }
 
@@ -292,7 +294,7 @@ void PHG4InnerHcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNode
     }
   if ( ! absorberhits_)
     {
-      if (verbosity > 0)
+      if (verbosity > 1)
 	{
 	  cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
 	}

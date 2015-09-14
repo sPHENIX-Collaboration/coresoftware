@@ -66,13 +66,13 @@ int PHG4SpacalSubsystem::InitRun( PHCompositeNode* topNode )
   switch (_geom.get_config())
     {
   case PHG4CylinderGeom_Spacalv1::kNonProjective:
-    cout << "PHG4SpacalSubsystem::InitRun - use PHG4SpacalDetector" << endl;
+    if (verbosity > 0) cout << "PHG4SpacalSubsystem::InitRun - use PHG4SpacalDetector" << endl;
     detector_ = new PHG4SpacalDetector(topNode, Name(),
         dynamic_cast<PHG4SpacalDetector::SpacalGeom_t *>(&_geom), layer);
     break;
 
   case PHG4CylinderGeom_Spacalv1::kProjective_PolarTaper:
-    cout << "PHG4SpacalSubsystem::InitRun - use PHG4ProjSpacalDetector" << endl;
+    if (verbosity > 0) cout << "PHG4SpacalSubsystem::InitRun - use PHG4ProjSpacalDetector" << endl;
     detector_ = new PHG4ProjSpacalDetector(topNode, Name(),
         dynamic_cast<PHG4ProjSpacalDetector::SpacalGeom_t *>(&_geom), layer);
     break;
@@ -80,16 +80,15 @@ int PHG4SpacalSubsystem::InitRun( PHCompositeNode* topNode )
 
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper:
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_SameLengthFiberPerTower:
-    cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjSpacalDetector" << endl;
+    if (verbosity > 0) cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjSpacalDetector" << endl;
     detector_ = new PHG4FullProjSpacalDetector(topNode, Name(),
         dynamic_cast<PHG4FullProjSpacalDetector::SpacalGeom_t *>(&_geom), layer);
     break;
 
   default:
-    cout << "PHG4SpacalSubsystem::InitRun - use PHG4SpacalDetector" << endl;
+    cout << "PHG4SpacalSubsystem::InitRun - unknown option exiting" << endl;
     exit(1);
     break;
-
     }
 
   detector_->SetActive(active);

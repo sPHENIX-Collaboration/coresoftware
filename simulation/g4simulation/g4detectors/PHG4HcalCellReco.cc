@@ -30,7 +30,7 @@ PHG4HcalCellReco::PHG4HcalCellReco(const string &name) :
   nslatscombined(1),
   chkenergyconservation(0)
 {
-  memset(nbins, 0, sizeof(nbins));
+  memset(nbins, 0, sizeof(nbins));  
 }
 
 int PHG4HcalCellReco::InitRun(PHCompositeNode *topNode)

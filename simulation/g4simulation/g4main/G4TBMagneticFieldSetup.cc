@@ -237,7 +237,7 @@ void G4TBMagneticFieldSetup::SetStepper()
     default: fStepper = NULL;
   }
     
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     G4cout << " ---------- G4TBMagneticFieldSetup::SetStepper() -----------" << G4endl;
     G4cout << "  " << message.str() << endl;
     G4cout << "  Minimum step size: " << fMinStep/mm << " mm" << G4endl;

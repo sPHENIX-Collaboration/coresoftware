@@ -81,6 +81,7 @@ libg4testbench_la_SOURCES = \
     PHG4TruthSubsystem.cc \
     PHG4TruthTrackingAction.cc \
     PHG4SteppingAction.cc \
+    PHG4UIsession.cc \
     PHG4Utils.cc \
     ReadEICFiles.cc
 

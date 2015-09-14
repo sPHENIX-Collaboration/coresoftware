@@ -32,6 +32,7 @@ PHG4CylinderGeomContainer::identify(std::ostream& os) const
     {
       (iter->second)->identify(os);
     }
+
   return;
 }
 

@@ -9,6 +9,7 @@
 #include "PHG4Subsystem.h"
 #include "PHG4InEvent.h"
 #include "PHG4Utils.h"
+#include "PHG4UIsession.h"
 
 #include <g4decayer/P6DExtDecayerPhysics.hh>
 #include <g4decayer/EDecayType.hh>
@@ -99,6 +100,7 @@ PHG4Reco::PHG4Reco( const string &name ) :
   magfield(2),
   field_(NULL),
   runManager_(NULL),
+  uisession_(NULL),
   detector_(NULL),
   eventAction_(NULL),
   steppingAction_(NULL),
@@ -131,37 +133,49 @@ PHG4Reco::~PHG4Reco( void )
   delete gui_thread;
   delete field_;
   delete runManager_;
+  if (uisession_) delete uisession_;
   delete visManager;
 }
 
 //_________________________________________________________________
 int PHG4Reco::Init( PHCompositeNode* topNode )
 {
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "========================= PHG4Reco::Init() ================================" << endl;
   }
+
   recoConsts *rc = recoConsts::instance();
   if (rc->FlagExist("RANDOMSEED"))
     {
-      G4Seed(rc->get_IntFlag("RANDOMSEED"));
+      G4Seed(std::abs(rc->get_IntFlag("RANDOMSEED")));
     }
   else
     {
       G4Seed(PHRandomSeed());
     }
+  
   // create GEANT run manager
-  if (verbosity > 0) cout << "PHG4Reco::Init - create run manager" << endl;
+  if (verbosity > 1) cout << "PHG4Reco::Init - create run manager" << endl;
+
+  // redirect GEANT verbosity to nowhere
+  if (verbosity < 1) {
+     G4UImanager* uimanager = G4UImanager::GetUIpointer();
+     uisession_ = new PHG4UIsession();  
+     uimanager->SetSession(uisession_);
+     uimanager->SetCoutDestination(uisession_);
+  }
+  
   runManager_ = new G4RunManager();
 
   DefineMaterials();
 
   //setup the constant field
-  if (verbosity > 0) cout << "PHG4Reco::Init - create magnetic field setup" << endl;
+  if (verbosity > 1) cout << "PHG4Reco::Init - create magnetic field setup" << endl;
   if (fieldmapfile != "NONE")
     {
       field_ = new G4TBMagneticFieldSetup(fieldmapfile, mapdim) ;
       magfield = field_->get_magfield_at_000(2); // get the z coordinate at 0/0/0
-      if (verbosity > 0)
+      if (verbosity > 1)
 	{
 	  cout << "magfield in PHG4Reco: " << magfield << endl;
 	}
@@ -236,7 +250,7 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
     }
 
   // create phenix detector, add subsystems, and register to GEANT
-  if (verbosity > 0) cout << "PHG4Reco::Init - create detector" << endl;
+  if (verbosity > 1) cout << "PHG4Reco::Init - create detector" << endl;
   detector_ = new PHG4PhenixDetector();
   detector_->Verbosity(verbosity);
   detector_->SetWorldSizeX(WorldSize[0]*cm);
@@ -276,7 +290,7 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
       PHG4SteppingAction *action = g4sub->GetSteppingAction();
       if (action)
 	{
-	  if (verbosity > 0)
+	  if (verbosity > 1)
 	    {
 	      cout << "Adding steppingaction for " << g4sub->Name() << endl;
 	    }
@@ -362,7 +376,11 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
   G4HadronicProcessStore::Instance()->SetVerbose(0);
   G4LossTableManager::Instance()->SetVerbose(0);
 
-  if (verbosity >= 0) {
+  if ((verbosity < 1) && (uisession_)) {
+    uisession_->Verbosity(1); // let messages after setup come through
+  }
+  
+  if (verbosity > 0) {
     cout << "===========================================================================" << endl;
   }
   
@@ -801,7 +819,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
       LiF->AddElement(Li, natoms = 1);
       LiF->AddElement(F, natoms = 1);
 
-      if (verbosity > 0)
+      if (verbosity > 1)
 	{
 	  cout << "g4_lif: " << g4_lif << endl;
 	  cout << "LiF: " << LiF << endl;
