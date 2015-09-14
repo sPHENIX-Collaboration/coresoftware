@@ -45,21 +45,6 @@ class SvtxTrack : public PHObject {
     float get_error(unsigned int i, unsigned int j) const;                    //
     void  set_error(unsigned int i, unsigned int j, float value);             //
                                                                               //
-    float get_helix_phi() const {return _helix_phi;}                          //
-    void  set_helix_phi(float helix_phi) {_helix_phi = helix_phi;}            //
-                                                                              //
-    float get_helix_d() const {return _helix_d;}                              //
-    void  set_helix_d(float d) {_helix_d = d;}                                //
-                                                                              //
-    float get_helix_kappa() const {return _helix_kappa;}                      //
-    void  set_helix_kappa(float kappa) {_helix_kappa = kappa;}                //
-                                                                              //
-    float get_helix_z0() const {return _helix_z0;}                            //
-    void  set_helix_z0(float z0) {_helix_z0 = z0;}                            //
-                                                                              //
-    float get_helix_dzdl() const {return _helix_dzdl;}                        //
-    void  set_helix_dzdl(float dzdl) {_helix_dzdl = dzdl;}                    //
-                                                                              //
   private:                                                                    //
                                                                               //
     unsigned int covar_index(unsigned int i, unsigned int j) const;           //
@@ -68,11 +53,6 @@ class SvtxTrack : public PHObject {
     float _pos[3];                                                            //
     float _mom[3];                                                            //
     float _covar[21]; // 6x6 triangular packed storage                        //
-    float _helix_phi;                                                         //
-    float _helix_d;                                                           //
-    float _helix_kappa;                                                       //
-    float _helix_z0;                                                          //
-    float _helix_dzdl;                                                        //
   };                                                                          //
   // --- inner State class ---------------------------------------------------//
  
@@ -92,6 +72,10 @@ class SvtxTrack : public PHObject {
   void Reset();
   int  isValid() const;
 
+  //
+  // basic track information ---------------------------------------------------
+  //
+  
   unsigned int get_id() const          {return _track_id;}
   void         set_id(unsigned int id) {_track_id = id;}
 
@@ -148,23 +132,8 @@ class SvtxTrack : public PHObject {
   float get_error(int i, int j) const {return _states.find(0.0)->second.get_error(i,j);}
   void  set_error(int i, int j, float value) {return _states[0.0].set_error(i,j,value);}
 
-  float get_helix_phi() const {return _states.find(0.0)->second.get_helix_phi();}  
-  void  set_helix_phi(float phi) {_states[0.0].set_helix_phi(phi);}
-
-  float get_helix_d() const {return _states.find(0.0)->second.get_helix_d();}
-  void  set_helix_d(float d) {_states[0.0].set_helix_d(d);}
-
-  float get_helix_kappa() const {return _states.find(0.0)->second.get_helix_kappa();}  
-  void  set_helix_kappa(float kappa) {_states[0.0].set_helix_kappa(kappa);}
-
-  float get_helix_z0() const {return _states.find(0.0)->second.get_helix_z0();}    
-  void  set_helix_z0(float z0) {_states[0.0].set_helix_z0(z0);}
-
-  float get_helix_dzdl() const {return _states.find(0.0)->second.get_helix_dzdl();}    
-  void  set_helix_dzdl(float dzdl) {_states[0.0].set_helix_dzdl(dzdl);}
-
   //
-  // state methods
+  // state methods -------------------------------------------------------------
   //
   bool   empty_states()                 const {return _states.empty();}
   size_t size_states()                  const {return _states.size();}
@@ -192,7 +161,7 @@ class SvtxTrack : public PHObject {
   StateIter   end_states()                {return _states.end();}
     
   //
-  // associated cluster ids methods
+  // associated cluster ids methods --------------------------------------------
   //
   void                clear_clusters()                           {_cluster_ids.clear();}
   bool                empty_clusters() const                     {return _cluster_ids.empty();}
@@ -207,7 +176,7 @@ class SvtxTrack : public PHObject {
   ClusterIter         end_clusters()                             {return _cluster_ids.end();}
 
   //
-  // calo projection methods
+  // calo projection methods ---------------------------------------------------
   //
   void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3);
   float get_cal_energy_3x3(CAL_LAYER layer) const;
@@ -226,7 +195,6 @@ class SvtxTrack : public PHObject {
   
  private: 
 
-  // keep it private for now to minimize interface changes
   // --- inner CaloProjection class ------------------------------------------//
   class CaloProjection {                                                      //
   public:                                                                     //

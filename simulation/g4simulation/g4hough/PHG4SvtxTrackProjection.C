@@ -25,6 +25,7 @@ using namespace std;
 PHG4SvtxTrackProjection::PHG4SvtxTrackProjection(const string &name) :
   SubsysReco(name),
   _num_cal_layers(4),
+  _magfield(1.5),
   _mag_extent(156.5) // middle of Babar magent
 {
   _cal_radii.assign(_num_cal_layers,NAN);
@@ -130,7 +131,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
       point.assign(3,-9999.);
       //if (_cal_radii[i] < _mag_extent) {
       // curved projections inside field
-      _hough.projectToRadius(*track,_cal_radii[i],point);
+      _hough.projectToRadius(*track,_magfield,_cal_radii[i],point);
 
       if (isnan(point[0])) continue;
       if (isnan(point[1])) continue;

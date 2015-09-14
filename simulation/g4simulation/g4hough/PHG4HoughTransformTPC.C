@@ -97,13 +97,13 @@ static inline double sign(double x)
   return ((double)(x > 0.)) - ((double)(x < 0.));
 }
 
-void PHG4HoughTransformTPC::projectToRadius(const SvtxTrack& track, double radius, vector<double>& intersection)
+void PHG4HoughTransformTPC::projectToRadius(const SvtxTrack& track, double B, double radius, vector<double>& intersection)
 {
-  float phi = track.get_helix_phi();
-  float d = track.get_helix_d();
-  float k = track.get_helix_kappa();
-  float z0 = track.get_helix_z0();
-  float dzdl = track.get_helix_dzdl();
+  float phi  = atan2(track.get_y(),track.get_x());
+  float d    = track.get_dca2d();
+  float k    = B / 333.6 / track.get_pt();
+  float z0   = track.get_z();
+  float dzdl = track.get_pz()/track.get_p();
   
   intersection.clear();intersection.assign(3,0.);
   double& x = intersection[0];
@@ -675,11 +675,11 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     float dzdl = _tracks.at(itrack).dzdl;
     float z0 = _tracks.at(itrack).z0;
     
-    track.set_helix_phi(phi);
-    track.set_helix_kappa(kappa);
-    track.set_helix_d(d);
-    track.set_helix_z0(z0);
-    track.set_helix_dzdl(dzdl);
+    // track.set_helix_phi(phi);
+    // track.set_helix_kappa(kappa);
+    // track.set_helix_d(d);
+    // track.set_helix_z0(z0);
+    // track.set_helix_dzdl(dzdl);
     
     float pT = kappaToPt(kappa);
 

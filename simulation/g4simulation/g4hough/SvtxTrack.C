@@ -170,12 +170,7 @@ SvtxTrack::State::State(float pathlength)
   : _pathlength(pathlength),
     _pos(),
     _mom(),
-    _covar(),
-    _helix_phi(0.0),
-    _helix_d(0.0),
-    _helix_kappa(0.0),
-    _helix_z0(0.0),
-    _helix_dzdl(0.0) {
+    _covar() {
   for (int i=0;i<3;++i) _pos[i] = 0.0;
   for (int i=0;i<3;++i) _mom[i] = NAN;
   for (int i = 0; i < 6; ++i) {
