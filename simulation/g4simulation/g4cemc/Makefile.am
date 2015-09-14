@@ -52,6 +52,10 @@ libcemc_la_SOURCES = \
   RawClusterBuilderv1_Dict.cc \
   RawTowerBuilder.cc \
   RawTowerBuilder_Dict.cc \
+  RawTowerCalibration.cc \
+  RawTowerCalibration_Dict.cc \
+  RawTowerDigitizer.cc \
+  RawTowerDigitizer_Dict.cc \
   RawTowerBuilderCone.cc \
   RawTowerBuilderCone_Dict.cc \
   RawTowerCombiner.cc \

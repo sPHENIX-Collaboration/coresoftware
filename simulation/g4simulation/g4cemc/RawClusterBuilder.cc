@@ -126,7 +126,7 @@ int RawClusterBuilder::InitRun(PHCompositeNode *topNode)
 int RawClusterBuilder::process_event(PHCompositeNode *topNode)
 {
 
-  string towernodename = "TOWER_" + detector;
+  string towernodename = "TOWER_CALIB_" + detector;
   // Grab the towers
   RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, towernodename.c_str());
   if (!towers)
@@ -346,8 +346,15 @@ void RawClusterBuilder::CreateNodes(PHCompositeNode *topNode)
       throw std::runtime_error("Failed to find DST node in EmcRawTowerBuilder::CreateNodes");
     }
 
+  PHNodeIterator dstiter(dstNode);
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",detector ));
+  if(!DetNode){
+      DetNode = new PHCompositeNode(detector);
+      dstNode->addNode(DetNode);
+   }
+
   _clusters = new RawClusterContainer();
   ClusterNodeName = "CLUSTER_" + detector;
   PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName.c_str(), "PHObject");
-  dstNode->addNode(clusterNode);
+  DetNode->addNode(clusterNode);
 }

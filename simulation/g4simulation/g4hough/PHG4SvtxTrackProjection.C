@@ -93,7 +93,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
     }
 
     // pull the towers
-    string towernodename = "TOWER_" + _cal_names[i];
+    string towernodename = "TOWER_CALIB_" + _cal_names[i];
     RawTowerContainer *towerList = findNode::getClass<RawTowerContainer>(topNode,towernodename.c_str());
     if (!towerList) {
       cerr << PHWHERE << " ERROR: Can't find node " << towernodename << endl;

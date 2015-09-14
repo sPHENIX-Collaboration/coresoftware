@@ -34,6 +34,7 @@ RawTowerBuilder::RawTowerBuilder(const std::string& name):
   _phimin(NAN),
   _etastep(NAN),
   _phistep(NAN),
+  _tower_energy_src(kLightYield),
   _timer( PHTimeServer::get()->insert_new(name) )
 {}
 
@@ -73,6 +74,15 @@ RawTowerBuilder::InitRun(PHCompositeNode *topNode)
       std::cout << e.what() << std::endl;
       //exit(1);
     }
+
+
+  if (verbosity >= 1)
+    {
+      cout <<"RawTowerBuilder::InitRun :";
+      if (_tower_energy_src == kEnergyDeposition) cout <<"save Geant4 energy deposition as the weight of the cells"<<endl;
+      else if (_tower_energy_src == kLightYield) cout <<"save light yield as the weight of the cells"<<endl;
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -111,13 +121,19 @@ RawTowerBuilder::process_event(PHCompositeNode *topNode)
        if (! tower)
 	 {
 	   tower = new RawTowerv1(cell->get_binz(), cell->get_binphi());
+	   tower->set_energy(0);
 	   _towers->AddTower(cell->get_binz(), cell->get_binphi(), tower);
 	 }
-       tower->add_ecell(cell->get_cell_id(), cell->get_edep());
-       tower->set_light_yield( tower->get_light_yield() +  cell->get_light_yield()  );
-       rawtowergeom =  findNode::getClass<RawTowerGeom>(topNode, TowerGeomNodeName.c_str());
+       float cell_weight = 0;
+       if (_tower_energy_src == kEnergyDeposition) cell_weight = cell->get_edep();
+       else if (_tower_energy_src == kLightYield) cell_weight = cell->get_light_yield();
+
+       tower->add_ecell(cell->get_cell_id(), cell_weight);
+       tower->set_energy( tower->get_energy() + cell_weight );
+
        if (verbosity > 2)
 	 {
+           rawtowergeom =  findNode::getClass<RawTowerGeom>(topNode, TowerGeomNodeName.c_str());
            tower->identify();
 	 }
     }
@@ -380,11 +396,27 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
       throw std::runtime_error("Failed to find DST node in RawTowerBuilder::CreateNodes");
     }
 
+
+  PHNodeIterator dstiter(dstNode);
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",detector ));
+  if(!DetNode){
+      DetNode = new PHCompositeNode(detector);
+      dstNode->addNode(DetNode);
+   }
+
   // Create the tower nodes on the tree
   _towers = new RawTowerContainer();
-  TowerNodeName = "TOWER_" + detector;
+  if (_sim_tower_node_prefix.length() == 0)
+    {
+      // no prefix, consistent with older convension
+      TowerNodeName = "TOWER_" + detector;
+    }
+  else
+    {
+      TowerNodeName = "TOWER_" + _sim_tower_node_prefix + "_" + detector;
+    }
   PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_towers, TowerNodeName.c_str(), "PHObject");
-  dstNode->addNode(towerNode);
+  DetNode->addNode(towerNode);
 
   return;
 }

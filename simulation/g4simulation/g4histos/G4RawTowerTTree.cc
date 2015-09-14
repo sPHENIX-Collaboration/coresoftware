@@ -94,7 +94,7 @@ G4RawTowerTTree::Detector(const std::string &det)
 {
   _detector = det;
   _outnodename = "G4RootRawTower_" + det;
-  _towernodename = "TOWER_" + det;
+  _towernodename = "TOWER_CALIB_" + det;
   _towergeomnodename = "TOWERGEOM_" + det;
   if (!_histofilename.size())
     {

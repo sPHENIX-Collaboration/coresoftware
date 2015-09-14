@@ -67,7 +67,7 @@ int RawClusterBuilderv1::InitRun(PHCompositeNode *topNode)
 int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 {
 
-  string towernodename = "TOWER_" + detector;
+  string towernodename = "TOWER_CALIB_" + detector;
   // Grab the towers
   RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, towernodename.c_str());
   if (!towers)
