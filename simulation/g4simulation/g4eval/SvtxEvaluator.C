@@ -213,7 +213,7 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode *topNode) {
       for (SvtxClusterMap::Iter iter = clustermap->begin();
 	   iter != clustermap->end();
 	   ++iter) {
-	SvtxCluster* cluster = &iter->second;
+	SvtxCluster* cluster = iter->second;
 	cout << icluster << " of " << clustermap->size();	  
 	cout << ": SvtxCluster: " << endl;
 	cluster->identify();
@@ -328,7 +328,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
       for (SvtxClusterMap::Iter iter = clustermap->begin();
 	   iter != clustermap->end();
 	   ++iter) {
-	SvtxCluster* cluster = &iter->second;
+	SvtxCluster* cluster = iter->second;
 	++nclusters[cluster->get_layer()];
       }
     }
@@ -893,7 +893,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	   iter != clustermap->end();
 	   ++iter) {
     
-	SvtxCluster* cluster     = &iter->second;   
+	SvtxCluster* cluster     = iter->second;   
 	PHG4Hit *g4hit           = clustereval->max_truth_hit_by_energy(cluster); 
 	PHG4Particle *g4particle = trutheval->get_particle(g4hit);
     

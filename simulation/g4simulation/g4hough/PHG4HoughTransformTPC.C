@@ -324,7 +324,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
   for (SvtxClusterMap::Iter iter = _g4clusters->begin();
        iter != _g4clusters->end();
        ++iter) {
-    SvtxCluster* cluster = &iter->second;
+    SvtxCluster* cluster = iter->second;
 
     //cluster->identify();
     

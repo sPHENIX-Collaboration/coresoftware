@@ -11,10 +11,11 @@ class SvtxClusterMap : public PHObject {
   
 public:
 
-  typedef std::map<unsigned int, SvtxCluster>::const_iterator ConstIter;
-  typedef std::map<unsigned int, SvtxCluster>::iterator            Iter;
+  typedef std::map<unsigned int, SvtxCluster*>::const_iterator ConstIter;
+  typedef std::map<unsigned int, SvtxCluster*>::iterator            Iter;
   
   SvtxClusterMap();
+  // rule of three needed
   virtual ~SvtxClusterMap();
 
   void identify(std::ostream& os = std::cout) const;
@@ -40,7 +41,7 @@ public:
   Iter   end()                   {return _map.end();}
   
 private:
-  std::map<unsigned int, SvtxCluster> _map;
+  std::map<unsigned int, SvtxCluster*> _map;
     
   ClassDef(SvtxClusterMap, 1);
 };

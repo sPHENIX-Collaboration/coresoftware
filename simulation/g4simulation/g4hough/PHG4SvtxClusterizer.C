@@ -881,7 +881,7 @@ void PHG4SvtxClusterizer::PrintClusters(PHCompositeNode *topNode) {
 	 iter != clusterlist->end();
 	 ++iter) {
 
-      SvtxCluster* cluster = &iter->second;
+      SvtxCluster* cluster = iter->second;
       cout << icluster << " of " << clusterlist->size() << endl;
       cluster->identify();
       ++icluster;

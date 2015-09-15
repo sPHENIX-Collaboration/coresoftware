@@ -11,6 +11,12 @@ SvtxClusterMap::SvtxClusterMap()
 }
 
 SvtxClusterMap::~SvtxClusterMap() {
+  for (Iter iter = _map.begin();
+       iter != _map.end();
+       ++iter) {
+    SvtxCluster *cluster = iter->second;
+    delete cluster;
+  }  
   _map.clear();
 }
 
@@ -22,19 +28,19 @@ void SvtxClusterMap::identify(ostream& os) const {
 const SvtxCluster* SvtxClusterMap::get(unsigned int id) const {
   ConstIter iter = _map.find(id);
   if (iter == _map.end()) return NULL;  
-  return &iter->second;
+  return iter->second;
 }
 
 SvtxCluster* SvtxClusterMap::get(unsigned int id) {
   Iter iter = _map.find(id);
   if (iter == _map.end()) return NULL;
-  return &iter->second;
+  return iter->second;
 }
 
 SvtxCluster* SvtxClusterMap::insert(const SvtxCluster &clus) {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair( index , SvtxCluster(clus) ));
-  _map[index].set_id(index);
-  return (&_map[index]);
+  _map.insert(make_pair( index , new SvtxCluster(clus) ));
+  _map[index]->set_id(index);
+  return _map[index];
 }
