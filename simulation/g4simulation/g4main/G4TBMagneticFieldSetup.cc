@@ -100,7 +100,7 @@ G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const float magfield)
 
 /////////////////////////////////////////////////////////////////////////////////
 
-G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const string &fieldmapname, const int dim)
+G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const string &fieldmapname, const int dim, const float magfield_rescale)
   : verbosity(0),
     fChordFinder(0), 
     fStepper(0),
@@ -110,13 +110,13 @@ G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const string &fieldmapname, const
   switch(dim)
     {
     case 1: 
-      fEMfield = new PHG4FieldsPHENIX(fieldmapname);
+      fEMfield = new PHG4FieldsPHENIX(fieldmapname,magfield_rescale);
       break;
     case 2: 
-      fEMfield = new PHG4Field2D(fieldmapname);
+      fEMfield = new PHG4Field2D(fieldmapname,0,magfield_rescale);
       break;
     case 3:
-      fEMfield = new PHG4Field3D(fieldmapname);
+      fEMfield = new PHG4Field3D(fieldmapname,0,magfield_rescale);
       break;
     default:
       cout << "Invalid dimension, valid is 2 for 2D, 3 for 3D" << endl;

@@ -98,6 +98,7 @@ void g4guithread(void *ptr);
 PHG4Reco::PHG4Reco( const string &name ) :
   SubsysReco( name ),
   magfield(2),
+  magfield_rescale(1.0),
   field_(NULL),
   runManager_(NULL),
   uisession_(NULL),
@@ -173,7 +174,7 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
   if (verbosity > 1) cout << "PHG4Reco::Init - create magnetic field setup" << endl;
   if (fieldmapfile != "NONE")
     {
-      field_ = new G4TBMagneticFieldSetup(fieldmapfile, mapdim) ;
+      field_ = new G4TBMagneticFieldSetup(fieldmapfile, mapdim, magfield_rescale) ;
       magfield = field_->get_magfield_at_000(2); // get the z coordinate at 0/0/0
       if (verbosity > 1)
 	{
@@ -182,7 +183,7 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
     }
   else
     {
-      field_ = new G4TBMagneticFieldSetup(magfield) ;
+      field_ = new G4TBMagneticFieldSetup(magfield*magfield_rescale);
     }
 
   // create physics processes

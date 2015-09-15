@@ -14,11 +14,12 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 #include <set>
+#include <iostream>
 
 using namespace std;
 
-PHG4Field2D::PHG4Field2D( const string &filename, const int verb ) :
-  verb_(verb)
+PHG4Field2D::PHG4Field2D( const string &filename, const int verb, const float magfield_rescale) :
+  verb_(verb)  
 {
   r_index0_cache = 0;
   r_index1_cache = 0;
@@ -181,8 +182,8 @@ PHG4Field2D::PHG4Field2D( const string &filename, const int verb ) :
           G4cout << "!!!!!!!!! Your map isn't ordered.... z: " << z << " zprev: " << z_map_[iz-1] << endl;
         }
 
-      BFieldR_[iz][ir] = Br;
-      BFieldZ_[iz][ir] = Bz;
+      BFieldR_[iz][ir] = Br * magfield_rescale;
+      BFieldZ_[iz][ir] = Bz * magfield_rescale;
 
       // you can change this to check table values for correctness
       // print_map prints the values in the root table, and the
@@ -202,7 +203,7 @@ PHG4Field2D::PHG4Field2D( const string &filename, const int verb ) :
 
   if (verb_ > 0) G4cout << "  Mag field z boundaries (min,max): (" << minz_ / cm << ", " << maxz_ / cm << ") cm" << endl;
   if (verb_ > 0) G4cout << "  Mag field r max boundary: " << r_map_.back()/ cm << " cm" << endl;
-    
+
   if (verb_ > 0)
     cout << " -----------------------------------------------------------" << endl;
 }

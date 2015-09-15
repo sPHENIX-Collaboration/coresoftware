@@ -12,7 +12,7 @@ class PHG4FieldsPHENIX : public G4MagneticField
   
  public:
   
-  PHG4FieldsPHENIX(const std::string  &fname);
+  PHG4FieldsPHENIX(const std::string  &fname, const float magfield_rescale = 1.0);
   virtual ~PHG4FieldsPHENIX();
   
   void GetFieldValue( const double Point[4], double *Bfield ) const;
