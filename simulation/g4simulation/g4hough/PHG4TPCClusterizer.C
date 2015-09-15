@@ -169,7 +169,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 	
 	for(SvtxHitMap::Iter iter = hits->begin();iter != hits->end();++iter)
 	{
-		SvtxHit* hit = &iter->second;
+		SvtxHit* hit = iter->second;
 		if(hit->get_e() <= 0.){continue;}
 		int layer = hit->get_layer();
 		PHG4CylinderCell* cell = cells->findCylinderCell(hit->get_cellid());

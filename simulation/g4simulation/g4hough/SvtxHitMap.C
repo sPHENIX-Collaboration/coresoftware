@@ -13,6 +13,12 @@ SvtxHitMap::SvtxHitMap()
 }
 
 SvtxHitMap::~SvtxHitMap() {
+  for (Iter iter = _map.begin();
+       iter != _map.end();
+       ++iter) {
+    SvtxHit *hit = iter->second;
+    delete hit;
+  }  
   _map.clear();
 }
 
@@ -24,19 +30,19 @@ void SvtxHitMap::identify(ostream& os) const {
 const SvtxHit* SvtxHitMap::get(unsigned int id) const {
   ConstIter iter = _map.find(id);
   if (iter == _map.end()) return NULL;  
-  return &iter->second;
+  return iter->second;
 }
 
 SvtxHit* SvtxHitMap::get(unsigned int id) {
   Iter iter = _map.find(id);
   if (iter == _map.end()) return NULL;
-  return &iter->second;
+  return iter->second;
 }
 
 SvtxHit* SvtxHitMap::insert(const SvtxHit &clus) {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair( index , SvtxHit(clus) ));
-  _map[index].set_id(index);
-  return (&_map[index]);
+  _map.insert(make_pair( index , new SvtxHit(clus) ));
+  _map[index]->set_id(index);
+  return _map[index];
 }

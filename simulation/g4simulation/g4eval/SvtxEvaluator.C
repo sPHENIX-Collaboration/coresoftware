@@ -317,7 +317,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
       for (SvtxHitMap::Iter iter = hitmap->begin();
 	   iter != hitmap->end();
 	   ++iter) {
-	SvtxHit* hit = &iter->second;
+	SvtxHit* hit = iter->second;
 	++nhits[hit->get_layer()];
       }
     }
@@ -768,7 +768,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	   iter != hitmap->end();
 	   ++iter) {
 
-	SvtxHit* hit             = &iter->second;
+	SvtxHit* hit             = iter->second;
 	PHG4Hit* g4hit           = hiteval->max_truth_hit_by_energy(hit);
 	PHG4CylinderCell* g4cell = hiteval->get_cell(hit);
 	PHG4Particle* g4particle = trutheval->get_particle(g4hit);

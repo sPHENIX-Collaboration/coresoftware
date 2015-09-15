@@ -282,7 +282,7 @@ void PHG4SvtxDigitizer::PrintHits(PHCompositeNode *topNode) {
 	 iter != hitlist->end();
 	 ++iter) {
 
-      SvtxHit* hit = &iter->second;
+      SvtxHit* hit = iter->second;
       cout << ihit << " of " << hitlist->size() << endl;
       hit->identify();
       ++ihit;

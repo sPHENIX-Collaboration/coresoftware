@@ -11,10 +11,11 @@ class SvtxHitMap : public PHObject {
   
 public:
 
-  typedef std::map<unsigned int, SvtxHit>::const_iterator ConstIter;
-  typedef std::map<unsigned int, SvtxHit>::iterator            Iter;
+  typedef std::map<unsigned int, SvtxHit*>::const_iterator ConstIter;
+  typedef std::map<unsigned int, SvtxHit*>::iterator            Iter;
   
   SvtxHitMap();
+  // rule of three needed!
   virtual ~SvtxHitMap();
   void identify(std::ostream& os = std::cout) const;
   void Reset() {clear();}
@@ -39,7 +40,7 @@ public:
   Iter   end()                   {return _map.end();}
   
 private:
-  std::map<unsigned int, SvtxHit> _map;
+  std::map<unsigned int, SvtxHit*> _map;
     
   ClassDef(SvtxHitMap, 1);
 };

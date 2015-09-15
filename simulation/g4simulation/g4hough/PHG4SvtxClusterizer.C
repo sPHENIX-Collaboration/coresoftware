@@ -321,7 +321,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
   for (SvtxHitMap::Iter iter = _hits->begin();
        iter != _hits->end();
        ++iter) {
-    SvtxHit* hit = &iter->second;
+    SvtxHit* hit = iter->second;
     layer_hits_mmap.insert(make_pair(hit->get_layer(),hit));
   }
   
@@ -592,7 +592,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
   for (SvtxHitMap::Iter iter = _hits->begin();
        iter != _hits->end();
        ++iter) {
-    SvtxHit* hit = &iter->second;
+    SvtxHit* hit = iter->second;
     layer_hits_mmap.insert(make_pair(hit->get_layer(),hit));
   }
   
