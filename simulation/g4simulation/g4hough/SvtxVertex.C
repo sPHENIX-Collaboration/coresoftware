@@ -1,6 +1,7 @@
 #include "SvtxVertex.h"
 
 #include <cmath>
+#include <algorithm>
 
 using namespace std;
 
@@ -12,12 +13,10 @@ SvtxVertex::SvtxVertex()
     _pos(),
     _chisq(NAN),
     _ndof(0xFFFFFFFF),
-    _err(3),
+    _err(),
     _track_ids() {
   
   for (int i = 0; i < 3; ++i) _pos[i] = NAN;  
-  for (int i = 0; i < 3; ++i) _err[i] = std::vector<float>(i+1);
-
   for (int j = 0; j < 3; ++j) {
     for (int i = j; i < 3; ++i) {
       set_error(i,j,NAN);
@@ -80,12 +79,15 @@ int SvtxVertex::IsValid() const {
 }
 
 void SvtxVertex::set_error(int i, int j, float value) {
-  if (j > i) set_error(j,i,value);
-  else _err[i][j] = value;
+  _err[covar_index(i,j)] = value;
   return;
 }
 
 float SvtxVertex::get_error(int i, int j) const {
-  if (j > i) return get_error(j,i);
-  return _err[i][j];
+  return _err[covar_index(i,j)];
+}
+
+unsigned int SvtxVertex::covar_index(unsigned int i, unsigned int j) const {
+  if (i>j) std::swap(i,j);
+  return i+1+(j+1)*(j)/2-1;
 }

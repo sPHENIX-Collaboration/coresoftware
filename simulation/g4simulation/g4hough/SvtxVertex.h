@@ -68,14 +68,16 @@ public:
   TrackIter      end_tracks()                           {return _track_ids.end();}
   
 private:
+
+  unsigned int covar_index(unsigned int i, unsigned int j) const;
   
-  unsigned int                     _id;        //< unique identifier within container
-  float                            _t0;        //< collision time
-  float                            _pos[3];    //< collision position x,y,z
-  float                            _chisq;     //< vertex fit chisq 
-  unsigned int                     _ndof;      //< degrees of freedom
-  std::vector<std::vector<float> > _err;    //< error covariance matrix (+/- cm^2)
-  std::set<unsigned int>           _track_ids; //< list of track ids
+  unsigned int           _id;        //< unique identifier within container
+  float                  _t0;        //< collision time
+  float                  _pos[3];    //< collision position x,y,z
+  float                  _chisq;     //< vertex fit chisq 
+  unsigned int           _ndof;      //< degrees of freedom
+  float                  _err[3];    //< error covariance matrix (packed storage) (+/- cm^2)
+  std::set<unsigned int> _track_ids; //< list of track ids
   
   ClassDef(SvtxVertex, 1);
 };
