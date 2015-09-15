@@ -37,10 +37,10 @@ SvtxTrack* SvtxTrackMap::get(unsigned int id) {
   return iter->second;
 }
 
-SvtxTrack* SvtxTrackMap::insert(const SvtxTrack &track) {
+SvtxTrack* SvtxTrackMap::insert(const SvtxTrack* track) {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair( index , new SvtxTrack(track) ));
+  _map.insert(make_pair( index , track->Clone() ));
   _map[index]->set_id(index);
   return _map[index];
 }

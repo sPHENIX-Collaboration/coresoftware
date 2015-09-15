@@ -756,7 +756,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
     track.set_y( d*sin(phi) );
     track.set_z( z0 );
     
-    _g4tracks->insert(track);
+    _g4tracks->insert(&track);
     vertex.insert_track(track.get_id());
 
     if (verbosity > 5) {
@@ -768,7 +768,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
     }
   } // track loop
 
-  SvtxVertex *vtxptr = _g4vertexes->insert(vertex);
+  SvtxVertex *vtxptr = _g4vertexes->insert(&vertex);
   if (verbosity > 5) vtxptr->identify();
   
   if(verbosity > 0)

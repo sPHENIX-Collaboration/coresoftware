@@ -14,15 +14,14 @@ public:
   typedef std::set<unsigned int>::iterator       TrackIter; 
   
   SvtxVertex();
-  SvtxVertex(const SvtxVertex& vertex);
-  SvtxVertex& operator=(const SvtxVertex& vertex);
-  virtual ~SvtxVertex();
+  virtual ~SvtxVertex() {}
 
   // PHObject virtual overloads
   
   void         identify(std::ostream& os = std::cout) const;
-  void         Reset();
+  void         Reset() {*this = SvtxVertex();}
   int          IsValid() const;
+  SvtxVertex*  Clone() const {return new SvtxVertex(*this);}
 
   // vertex info
   

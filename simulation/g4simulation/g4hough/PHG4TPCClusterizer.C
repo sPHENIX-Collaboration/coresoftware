@@ -205,7 +205,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 					clus.set_position( 1, radius*sin(phi) );
 					clus.set_position( 2, z );
 					clus.insert_hit( cellids[layer][zbin][phibin] );
-					clusterlist->insert(clus);
+					clusterlist->insert(&clus);
 				}
 			}
 		}

@@ -52,11 +52,6 @@ void SvtxTrack::identify(std::ostream& os) const {
   return;
 }
 
-void SvtxTrack::Reset() {
-  *this = SvtxTrack();
-  return;
-}
-
 int SvtxTrack::isValid() const {
   return 1;
 }

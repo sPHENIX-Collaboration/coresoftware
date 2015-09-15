@@ -28,7 +28,7 @@ public:
   
   const SvtxVertex* get(unsigned int idkey) const;
         SvtxVertex* get(unsigned int idkey); 
-        SvtxVertex* insert(const SvtxVertex &vertex);
+        SvtxVertex* insert(const SvtxVertex* vertex);
         size_t      erase(unsigned int idkey) {return _map.erase(idkey);}
 
   ConstIter begin()                   const {return _map.begin();}

@@ -37,10 +37,10 @@ SvtxCluster* SvtxClusterMap::get(unsigned int id) {
   return iter->second;
 }
 
-SvtxCluster* SvtxClusterMap::insert(const SvtxCluster &clus) {
+SvtxCluster* SvtxClusterMap::insert(const SvtxCluster* clus) {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair( index , new SvtxCluster(clus) ));
+  _map.insert(make_pair( index , clus->Clone() ));
   _map[index]->set_id(index);
   return _map[index];
 }

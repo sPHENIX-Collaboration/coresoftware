@@ -539,7 +539,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       clus.set_error( 2 , 2 , COVAR_ERR[2][2] );
       
       if (clus_energy > get_threshold_by_layer(layer)) {
-	SvtxCluster* ptr = _clusterlist->insert(clus);
+	SvtxCluster* ptr = _clusterlist->insert(&clus);
 	if (!ptr->IsValid()) {
 	  static bool first = true;
 	  if (first) {
@@ -832,7 +832,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       clus.set_error( 2 , 2 , COVAR_ERR[2][2] );
       
       if (clus_energy > get_threshold_by_layer(layer)) {
-	SvtxCluster* ptr = _clusterlist->insert(clus);
+	SvtxCluster* ptr = _clusterlist->insert(&clus);
 	if (!ptr->IsValid()) {
 	  static bool first = true;
 	  if (first) {

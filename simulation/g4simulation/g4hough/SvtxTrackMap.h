@@ -27,7 +27,7 @@ public:
   
   const SvtxTrack* get(unsigned int idkey) const;
         SvtxTrack* get(unsigned int idkey); 
-        SvtxTrack* insert(const SvtxTrack &track);
+        SvtxTrack* insert(const SvtxTrack* track);
         size_t     erase(unsigned int idkey) {return _map.erase(idkey);}
 
   ConstIter begin()                   const {return _map.begin();}

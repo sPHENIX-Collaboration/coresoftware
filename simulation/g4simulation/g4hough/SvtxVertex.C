@@ -25,51 +25,6 @@ SvtxVertex::SvtxVertex()
   } 
 }
 
-SvtxVertex::SvtxVertex(const SvtxVertex &vertex) :
-  _id(vertex.get_id()),
-  _t0(vertex.get_t0()),
-  _pos(),
-  _chisq(vertex.get_chisq()),
-  _ndof(vertex.get_ndof()),
-  _err(3),
-  _track_ids() {
-  
-  for (int i=0; i<3; ++i) _pos[i] = vertex.get_position(i);    
-  for (int i=0; i<3; ++i) _err[i] = std::vector<float>(i+1);
-  for (int j=0; j<3; ++j) {
-    for (int i=j; i<3; ++i) {
-      set_error(i,j,vertex.get_error(i,j));
-    }
-  } 
-
-  for (ConstTrackIter iter = vertex.begin_tracks(); iter != vertex.end_tracks(); ++iter) {
-    insert_track(*iter);
-  }
-}
-
-SvtxVertex& SvtxVertex::operator=(const SvtxVertex &vertex) {
-  Reset();
-  
-  _id = vertex.get_id();
-  _t0 = vertex.get_t0();
-  for (int i=0; i<3; ++i) _pos[i] = vertex.get_position(i);    
-  _chisq = vertex.get_chisq();
-  _ndof = vertex.get_ndof();
-  for (int j=0; j<3; ++j) {
-    for (int i=j; i<3; ++i) {
-      set_error(i,j,vertex.get_error(i,j));
-    }
-  } 
-
-  for (ConstTrackIter iter = vertex.begin_tracks(); iter != vertex.end_tracks(); ++iter) {
-    insert_track(*iter);
-  }
-
-  return *this;
-}
-
-SvtxVertex::~SvtxVertex(){}
-
 void SvtxVertex::identify(ostream& os) const {
   os << "---SvtxVertex-----------------------" << endl;
   os << "vertexid: " << get_id() << endl;
@@ -104,21 +59,6 @@ void SvtxVertex::identify(ostream& os) const {
   os << "-----------------------------------------------" << endl;
   
   return;  
-}
-
-void SvtxVertex::Reset() {
-  _id    = 0xFFFFFFFF;
-  _t0 = NAN;
-  _chisq = NAN;
-  _ndof = 0xFFFFFFFF;
-  
-  for (int i = 0; i < 3; ++i) _pos[i] = NAN;
-  for (int j = 0; j < 3; ++j) {
-    for (int i = j; i < 3; ++i) {
-      set_error(i,j,NAN);
-    }
-  } 
-  _track_ids.clear();
 }
 
 int SvtxVertex::IsValid() const {

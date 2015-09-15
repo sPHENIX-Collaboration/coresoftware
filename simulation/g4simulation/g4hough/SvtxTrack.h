@@ -69,9 +69,10 @@ class SvtxTrack : public PHObject {
   
   // The "standard PHObject response" functions...
   void identify(std::ostream &os=std::cout) const;
-  void Reset();
+  void Reset() {*this = SvtxTrack();}
   int  isValid() const;
-
+  SvtxTrack* Clone() const {return new SvtxTrack(*this);}
+  
   //
   // basic track information ---------------------------------------------------
   //
