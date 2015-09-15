@@ -167,7 +167,7 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
   for (SvtxTrackMap::Iter iter = _trackmap->begin();
        iter != _trackmap->end();
        ++iter) {
-    SvtxTrack* track = &iter->second;
+    SvtxTrack* track = iter->second;
     
     for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
 	 iter != track->end_clusters();
@@ -210,7 +210,7 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit) {
   for (SvtxTrackMap::Iter iter = _trackmap->begin();
        iter != _trackmap->end();
        ++iter) {
-    SvtxTrack* track = &iter->second;
+    SvtxTrack* track = iter->second;
     
     // loop over all clusters
     for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();

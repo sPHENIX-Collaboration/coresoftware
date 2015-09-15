@@ -117,7 +117,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
     for (SvtxTrackMap::Iter iter = _g4tracks->begin();
 	 iter != _g4tracks->end();
 	 ++iter) {
-      SvtxTrack *track = &iter->second;
+      SvtxTrack *track = iter->second;
 
       if (verbosity > 1) cout << "projecting track id " << track->get_id() << endl;
 

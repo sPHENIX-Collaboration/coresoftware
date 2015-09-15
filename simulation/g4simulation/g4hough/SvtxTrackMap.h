@@ -10,8 +10,8 @@ class SvtxTrackMap : public PHObject {
   
 public:
 
-  typedef std::map<unsigned int, SvtxTrack>::const_iterator ConstIter;
-  typedef std::map<unsigned int, SvtxTrack>::iterator            Iter;
+  typedef std::map<unsigned int, SvtxTrack*>::const_iterator ConstIter;
+  typedef std::map<unsigned int, SvtxTrack*>::iterator            Iter;
   
   SvtxTrackMap();
   virtual ~SvtxTrackMap();
@@ -39,7 +39,7 @@ public:
   Iter   end()                   {return _map.end();}
   
 private:
-  std::map<unsigned int, SvtxTrack> _map;
+  std::map<unsigned int, SvtxTrack*> _map;
     
   ClassDef(SvtxTrackMap, 1);
 };

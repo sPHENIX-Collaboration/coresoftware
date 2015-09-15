@@ -229,7 +229,7 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode *topNode) {
 	   iter != trackmap->end();
 	   ++iter) {
 	cout << itrack << " of " << trackmap->size();
-	SvtxTrack *track = &iter->second;
+	SvtxTrack *track = iter->second;
 	cout << " : SvtxTrack:" << endl;
 	track->identify();
 	cout << endl;
@@ -1164,7 +1164,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	   iter != trackmap->end();
 	   ++iter) {
     
-	SvtxTrack* track         = &iter->second;
+	SvtxTrack* track = iter->second;
 
 	float trackID   = track->get_id();     
 	float charge    = track->get_charge();
