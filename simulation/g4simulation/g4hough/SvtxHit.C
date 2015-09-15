@@ -26,10 +26,6 @@ void SvtxHit::identify(ostream& os) const {
   return;  
 }
 
-void SvtxHit::Reset() {
-  *this = SvtxHit();
-}
-
 int SvtxHit::IsValid() const {
   if (_id == 0xFFFFFFFF) return 0;
   if (_layer == 0xFFFFFFFF) return 0;

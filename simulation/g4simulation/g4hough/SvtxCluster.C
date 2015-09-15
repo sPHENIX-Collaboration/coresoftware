@@ -1,6 +1,7 @@
 #include "SvtxCluster.h"
 
 #include <cmath>
+#include <algorithm>
 
 #include <TMatrixF.h>
 
@@ -14,13 +15,13 @@ SvtxCluster::SvtxCluster()
     _pos(),
     _e(NAN),
     _adc(0xFFFFFFFF),
-    _size(3),
-    _err(3),
-    _hit_ids()
-{
+    _size(),
+    _err(),
+    _hit_ids() {
+  
   for (int i = 0; i < 3; ++i) _pos[i] = NAN;
-  for (int i = 0; i < 3; ++i) _size[i] = std::vector<float>(i+1);
-  for (int i = 0; i < 3; ++i) _err[i] = std::vector<float>(i+1);
+  //for (int i = 0; i < 3; ++i) _size[i] = std::vector<float>(i+1);
+  //for (int i = 0; i < 3; ++i) _err[i] = std::vector<float>(i+1);
 
   for (int j = 0; j < 3; ++j) {
     for (int i = j; i < 3; ++i) {
@@ -29,57 +30,6 @@ SvtxCluster::SvtxCluster()
     }
   } 
 }
-
-SvtxCluster::SvtxCluster(const SvtxCluster &clus) :
-  _id(clus.get_id()),
-  _layer(clus.get_layer()),
-  _pos(),
-  _e(clus.get_e()),
-  _adc(clus.get_adc()),
-  _size(3),
-  _err(3),
-  _hit_ids()
-{
-  for (int i=0; i<3; ++i) _pos[i] = clus.get_position(i);    
-  for (int i = 0; i < 3; ++i) _size[i] = std::vector<float>(i+1);
-  for (int i = 0; i < 3; ++i) _err[i] = std::vector<float>(i+1);
-  for (int j=0; j<3; ++j) {
-    for (int i=j; i<3; ++i) {
-      set_size(i,j,clus.get_size(i,j));
-      set_error(i,j,clus.get_error(i,j));
-    }
-  } 
-
-  for (ConstHitIter iter = clus.begin_hits(); iter != clus.end_hits(); ++iter) {
-    insert_hit(*iter);
-  }
-}
-
-SvtxCluster& SvtxCluster::operator=(const SvtxCluster& clus) {
-  Reset();
-
-  _id = clus.get_id();
-  _layer = clus.get_layer();
-  for (int i=0; i<3; ++i) _pos[i] = clus.get_position(i);
-
-  _e = clus.get_e();
-  _adc = clus.get_adc();
-  
-  for (int j=0; j<3; ++j) {
-    for (int i=j; i<3; ++i) {
-      set_size(i,j,clus.get_size(i,j));
-      set_error(i,j,clus.get_error(i,j));
-    }
-  } 
-
-  for (ConstHitIter iter = clus.begin_hits(); iter != clus.end_hits(); ++iter) {
-    insert_hit(*iter);
-  }
-  
-  return *this;
-}
-  
-SvtxCluster::~SvtxCluster(){}
 
 void SvtxCluster::identify(ostream& os) const {
   os << "---SvtxCluster-----------------------" << endl;
@@ -130,21 +80,6 @@ void SvtxCluster::identify(ostream& os) const {
   return;  
 }
 
-void SvtxCluster::Reset() {
-  _id    = 0xFFFFFFFF;
-  _layer = 0xFFFFFFFF;
-  for (int i = 0; i < 3; ++i) _pos[i] = NAN;
-  _e = NAN;
-  _adc = 0xFFFFFFFF;
-  for (int j = 0; j < 3; ++j) {
-    for (int i = j; i < 3; ++i) {
-      set_size(i,j,NAN);
-      set_error(i,j,NAN);
-    }
-  } 
-  _hit_ids.clear();  
-}
-
 int SvtxCluster::IsValid() const {
   if (_id == 0xFFFFFFFF) return 0;
   if (_layer == 0xFFFFFFFF) return 0;
@@ -164,33 +99,29 @@ int SvtxCluster::IsValid() const {
   return 1;
 }
 
-void SvtxCluster::set_size(int i, int j, float value) {
-  if (j > i) set_size(j,i,value);
-  else _size[i][j] = value;
+void SvtxCluster::set_size(unsigned int i, unsigned int j, float value) {
+  _size[covar_index(i,j)] = value;
   return;
 }
 
-float SvtxCluster::get_size(int i, int j) const {
-  if (j > i) return get_size(j,i);
-  return _size[i][j];
+float SvtxCluster::get_size(unsigned int i, unsigned int j) const {
+  return _size[covar_index(i,j)];
 }
 
-void SvtxCluster::set_error(int i, int j, float value) {
-  if (j > i) set_error(j,i,value);
-  else _err[i][j] = value;
+void SvtxCluster::set_error(unsigned int i, unsigned int j, float value) {
+  _err[covar_index(i,j)] = value;
   return;
 }
 
-float SvtxCluster::get_error(int i, int j) const {
-  if (j > i) return get_error(j,i);
-  return _err[i][j];
+float SvtxCluster::get_error(unsigned int i, unsigned int j) const {
+  return _size[covar_index(i,j)];
 }
 
 float SvtxCluster::get_phi_size() const {
 
   TMatrixF COVAR(3,3);
-  for (int i=0; i<3; ++i) {
-    for (int j=0; j<3; ++j) {
+  for (unsigned int i=0; i<3; ++i) {
+    for (unsigned int j=0; j<3; ++j) {
       COVAR[i][j] = get_size(i,j);
     }
   }
@@ -219,4 +150,9 @@ float SvtxCluster::get_phi_size() const {
 
 float SvtxCluster::get_z_size() const {
   return 2.0*sqrt(get_size(2,2));
+}
+
+unsigned int SvtxCluster::covar_index(unsigned int i, unsigned int j) const {
+  if (i>j) std::swap(i,j);
+  return i+1+(j+1)*(j)/2-1;
 }

@@ -14,7 +14,7 @@ public:
   // PHObject virtual overloads
   
   void         identify(std::ostream& os = std::cout) const;
-  void         Reset();
+  void         Reset() {*this = SvtxHit();}
   int          IsValid() const;
 
   // digitized hit info

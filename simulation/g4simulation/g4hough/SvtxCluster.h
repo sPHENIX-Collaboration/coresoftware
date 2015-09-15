@@ -14,14 +14,12 @@ public:
   typedef std::set<unsigned int>::iterator       HitIter; 
   
   SvtxCluster();
-  SvtxCluster(const SvtxCluster &clus);
-  SvtxCluster& operator=(const SvtxCluster &clus);
-  virtual ~SvtxCluster();
+  virtual ~SvtxCluster() {}
 
   // PHObject virtual overloads
   
   void         identify(std::ostream& os = std::cout) const;
-  void         Reset();
+  void         Reset() {*this = SvtxCluster();}
   int          IsValid() const;
 
   // cluster info
@@ -50,11 +48,11 @@ public:
   unsigned int get_adc() const                       {return _adc;}
   void         set_adc(unsigned int adc)             {_adc = adc;}
   
-  float        get_size(int i, int j) const;         //< get cluster dimension covar
-  void         set_size(int i, int j, float value);  //< set cluster dimension covar
+  float        get_size(unsigned int i, unsigned int j) const;         //< get cluster dimension covar
+  void         set_size(unsigned int i, unsigned int j, float value);  //< set cluster dimension covar
 
-  float        get_error(int i, int j) const;        //< get cluster error covar
-  void         set_error(int i, int j, float value); //< set cluster error covar
+  float        get_error(unsigned int i, unsigned int j) const;        //< get cluster error covar
+  void         set_error(unsigned int i, unsigned int j, float value); //< set cluster error covar
 
   //
   // clustered hit ids methods
@@ -77,15 +75,19 @@ public:
   float        get_z_size() const;
   
 private:
+
+  unsigned int covar_index(unsigned int i, unsigned int j) const;
   
-  unsigned int _id;                       //< unique identifier within container
-  unsigned int _layer;                    //< detector layer id
-  float _pos[3];                          //< mean position x,y,z
-  float _e;                               //< cluster energy
-  unsigned int _adc;                      //< cluster sum adc
-  std::vector<std::vector<float> > _size; //< size covariance matrix (+/- cm^2)
-  std::vector<std::vector<float> > _err;  //< error covariance matrix (+/- cm^2)
-  std::set<unsigned int> _hit_ids;        //< list of cell hit ids 
+  unsigned int _id;                //< unique identifier within container
+  unsigned int _layer;             //< detector layer id
+  float _pos[3];                   //< mean position x,y,z
+  float _e;                        //< cluster energy
+  unsigned int _adc;               //< cluster sum adc
+  float _size[6];                  //< size covariance matrix (packed storage) (+/- cm^2)
+  float _err[6];                   //< size covariance matrix (packed storage) (+/- cm^2)
+  //  std::vector<std::vector<float> > _size; //< size covariance matrix (+/- cm^2)
+  //  std::vector<std::vector<float> > _err;  //< error covariance matrix (+/- cm^2)
+  std::set<unsigned int> _hit_ids; //< list of cell hit ids 
   
   ClassDef(SvtxCluster, 1);
 };
