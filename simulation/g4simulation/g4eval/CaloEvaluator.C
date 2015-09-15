@@ -198,7 +198,7 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode *topNode) {
     float vz = NAN;
     if (vertexmap) {
       if (!vertexmap->empty()) {
-	SvtxVertex* vertex = &(vertexmap->begin()->second);
+	SvtxVertex* vertex = (vertexmap->begin()->second);
 	
 	vx = vertex->get_x();
 	vy = vertex->get_y();
@@ -329,7 +329,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     float vz = NAN;
     if (vertexmap) {
       if (!vertexmap->empty()) {
-	SvtxVertex* vertex = &(vertexmap->begin()->second);
+	SvtxVertex* vertex = (vertexmap->begin()->second);
 	
 	vx = vertex->get_x();
 	vy = vertex->get_y();

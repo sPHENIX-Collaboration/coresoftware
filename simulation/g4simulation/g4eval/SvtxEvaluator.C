@@ -244,7 +244,7 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode *topNode) {
 	   iter != vertexmap->end();
 	   ++iter) {
 	cout << ivertex << " of " << vertexmap->size();
-	SvtxVertex *vertex = &iter->second;
+	SvtxVertex *vertex = iter->second;
 	cout << " : SvtxVertex:" << endl;
 	vertex->identify();
 	cout << endl;
@@ -289,7 +289,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
     SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");    
     if (vertexmap) {
       if (!vertexmap->empty()) {
-	SvtxVertex* vertex = &(vertexmap->begin()->second);
+	SvtxVertex* vertex = (vertexmap->begin()->second);
 	
 	vx = vertex->get_x();
 	vy = vertex->get_y();
@@ -548,7 +548,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       for (SvtxVertexMap::Iter iter = vertexmap->begin();
 	   iter != vertexmap->end();
 	   ++iter) {
-	SvtxVertex* vertex = &iter->second;
+	SvtxVertex* vertex = iter->second;
 	PHG4VtxPoint* point = vertexeval->max_truth_point_by_ntracks(vertex);
 
 	float vx         = vertex->get_x();

@@ -90,7 +90,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
     for (SvtxVertexMap::ConstIter svtxiter = svtxmap->begin();
 	 svtxiter != svtxmap->end();
 	 ++svtxiter) {
-      const SvtxVertex* svtx = &svtxiter->second;
+      const SvtxVertex* svtx = svtxiter->second;
 
       const BbcVertex *bbc_best = NULL;
       float min_sigma = FLT_MAX;
@@ -140,7 +140,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
     for (SvtxVertexMap::ConstIter svtxiter = svtxmap->begin();
 	 svtxiter != svtxmap->end();
 	 ++svtxiter) {
-      const SvtxVertex* svtx = &svtxiter->second;
+      const SvtxVertex* svtx = svtxiter->second;
       if (used_svtx_vtxids.find(svtx->get_id()) != used_svtx_vtxids.end()) continue;
 
       // we have a standalone SVTX vertex

@@ -83,7 +83,7 @@ int PHG4SvtxBeamSpotReco::process_event(PHCompositeNode *topNode)
   for (SvtxVertexMap::ConstIter iter = _vertexes->begin();
        iter != _vertexes->end();
        ++iter) {
-    const SvtxVertex* vertex = &iter->second;
+    const SvtxVertex* vertex = iter->second;
     double data[2] = {vertex->get_x(),vertex->get_y()};
     _pca.AddRow(data);
   }

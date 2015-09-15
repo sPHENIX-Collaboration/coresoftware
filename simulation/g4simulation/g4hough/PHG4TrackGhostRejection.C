@@ -189,7 +189,7 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
 	for (SvtxVertexMap::Iter iter = vertexmap->begin();
 	     iter != vertexmap->end();
 	     ++iter) {
-	  SvtxVertex* vertex = &iter->second;
+	  SvtxVertex* vertex = iter->second;
 	  vertex->erase_track(_candidates[i].trackid);
 	}
       }

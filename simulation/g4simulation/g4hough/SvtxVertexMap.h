@@ -11,8 +11,8 @@ class SvtxVertexMap : public PHObject {
   
 public:
 
-  typedef std::map<unsigned int, SvtxVertex>::const_iterator ConstIter;
-  typedef std::map<unsigned int, SvtxVertex>::iterator            Iter;
+  typedef std::map<unsigned int, SvtxVertex*>::const_iterator ConstIter;
+  typedef std::map<unsigned int, SvtxVertex*>::iterator            Iter;
   
   SvtxVertexMap();
   virtual ~SvtxVertexMap();
@@ -40,7 +40,7 @@ public:
   Iter   end()                   {return _map.end();}
   
 private:
-  std::map<unsigned int, SvtxVertex> _map;
+  std::map<unsigned int, SvtxVertex*> _map;
     
   ClassDef(SvtxVertexMap, 1);
 };
