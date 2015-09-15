@@ -12,13 +12,38 @@ SvtxHitMap::SvtxHitMap()
 : _map() {
 }
 
+SvtxHitMap::SvtxHitMap(const SvtxHitMap& hitmap)
+  : _map() {  
+  for (ConstIter iter = hitmap.begin();
+       iter != hitmap.end();
+       ++iter) {
+    const SvtxHit *hit = iter->second;
+    _map.insert(make_pair(hit->get_id(),hit->Clone()));
+  }  
+}
+
+SvtxHitMap& SvtxHitMap::operator=(const SvtxHitMap& hitmap) {
+  Reset();
+  for (ConstIter iter = hitmap.begin();
+       iter != hitmap.end();
+       ++iter) {
+    const SvtxHit *hit = iter->second;
+    _map.insert(make_pair(hit->get_id(),hit->Clone()));
+  }  
+  return *this;
+}
+
 SvtxHitMap::~SvtxHitMap() {
+  Reset();
+}
+
+void SvtxHitMap::Reset() {
   for (Iter iter = _map.begin();
        iter != _map.end();
        ++iter) {
     SvtxHit *hit = iter->second;
     delete hit;
-  }  
+  }
   _map.clear();
 }
 

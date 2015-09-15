@@ -10,13 +10,38 @@ SvtxClusterMap::SvtxClusterMap()
 : _map() {
 }
 
+SvtxClusterMap::SvtxClusterMap(const SvtxClusterMap& clustermap)
+  : _map() {  
+  for (ConstIter iter = clustermap.begin();
+       iter != clustermap.end();
+       ++iter) {
+    const SvtxCluster *cluster = iter->second;
+    _map.insert(make_pair(cluster->get_id(),cluster->Clone()));
+  }  
+}
+
+SvtxClusterMap& SvtxClusterMap::operator=(const SvtxClusterMap& clustermap) {
+  Reset();
+  for (ConstIter iter = clustermap.begin();
+       iter != clustermap.end();
+       ++iter) {
+    const SvtxCluster *cluster = iter->second;
+    _map.insert(make_pair(cluster->get_id(),cluster->Clone()));
+  }  
+  return *this;
+}
+
 SvtxClusterMap::~SvtxClusterMap() {
+  Reset();
+}
+
+void SvtxClusterMap::Reset() {
   for (Iter iter = _map.begin();
        iter != _map.end();
        ++iter) {
     SvtxCluster *cluster = iter->second;
     delete cluster;
-  }  
+  }
   _map.clear();
 }
 

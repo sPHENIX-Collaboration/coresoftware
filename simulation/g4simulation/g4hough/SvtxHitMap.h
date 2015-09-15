@@ -15,16 +15,18 @@ public:
   typedef std::map<unsigned int, SvtxHit*>::iterator            Iter;
   
   SvtxHitMap();
-  // rule of three needed!
+  SvtxHitMap(const SvtxHitMap& hitmap);
+  SvtxHitMap& operator=(const SvtxHitMap& hitmap);
   virtual ~SvtxHitMap();
+  
   void identify(std::ostream& os = std::cout) const;
-  void Reset() {clear();}
+  void Reset();
   int  IsValid() const {return 1;}
   
   bool   empty()                   const {return _map.empty();}
   size_t  size()                   const {return _map.size();}
   size_t count(unsigned int idkey) const {return _map.count(idkey);}
-  void   clear()                         {return _map.clear();}
+  void   clear()                         {Reset();}
   
   const SvtxHit* get(unsigned int idkey) const;
         SvtxHit* get(unsigned int idkey); 

@@ -10,13 +10,38 @@ SvtxVertexMap::SvtxVertexMap()
 : _map() {
 }
 
+SvtxVertexMap::SvtxVertexMap(const SvtxVertexMap& vertexmap)
+  : _map() {  
+  for (ConstIter iter = vertexmap.begin();
+       iter != vertexmap.end();
+       ++iter) {
+    const SvtxVertex *vertex = iter->second;
+    _map.insert(make_pair(vertex->get_id(),vertex->Clone()));
+  }  
+}
+
+SvtxVertexMap& SvtxVertexMap::operator=(const SvtxVertexMap& vertexmap) {
+  Reset();
+  for (ConstIter iter = vertexmap.begin();
+       iter != vertexmap.end();
+       ++iter) {
+    const SvtxVertex *vertex = iter->second;
+    _map.insert(make_pair(vertex->get_id(),vertex->Clone()));
+  }  
+  return *this;
+}
+
 SvtxVertexMap::~SvtxVertexMap() {
+  Reset();
+}
+
+void SvtxVertexMap::Reset() {
   for (Iter iter = _map.begin();
        iter != _map.end();
        ++iter) {
     SvtxVertex *vertex = iter->second;
     delete vertex;
-  }  
+  }
   _map.clear();
 }
 

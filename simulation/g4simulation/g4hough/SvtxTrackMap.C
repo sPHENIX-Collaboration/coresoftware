@@ -10,13 +10,38 @@ SvtxTrackMap::SvtxTrackMap()
 : _map() {
 }
 
+SvtxTrackMap::SvtxTrackMap(const SvtxTrackMap& trackmap)
+  : _map() {  
+  for (ConstIter iter = trackmap.begin();
+       iter != trackmap.end();
+       ++iter) {
+    const SvtxTrack *track = iter->second;
+    _map.insert(make_pair(track->get_id(),track->Clone()));
+  }  
+}
+
+SvtxTrackMap& SvtxTrackMap::operator=(const SvtxTrackMap& trackmap) {
+  Reset();
+  for (ConstIter iter = trackmap.begin();
+       iter != trackmap.end();
+       ++iter) {
+    const SvtxTrack *track = iter->second;
+    _map.insert(make_pair(track->get_id(),track->Clone()));
+  }  
+  return *this;
+}
+
 SvtxTrackMap::~SvtxTrackMap() {
+  Reset();
+}
+
+void SvtxTrackMap::Reset() {
   for (Iter iter = _map.begin();
        iter != _map.end();
        ++iter) {
     SvtxTrack *track = iter->second;
     delete track;
-  }  
+  }
   _map.clear();
 }
 

@@ -14,16 +14,18 @@ public:
   typedef std::map<unsigned int, SvtxTrack*>::iterator            Iter;
   
   SvtxTrackMap();
+  SvtxTrackMap(const SvtxTrackMap& trackmap);
+  SvtxTrackMap& operator=(const SvtxTrackMap& trackmap);
   virtual ~SvtxTrackMap();
 
   void identify(std::ostream &os = std::cout) const;
-  void Reset() {clear();}
+  void Reset();
   int  IsValid() const {return 1;}
   
   bool   empty()                   const {return _map.empty();}
   size_t  size()                   const {return _map.size();}
   size_t count(unsigned int idkey) const {return _map.count(idkey);}
-  void   clear()                         {return _map.clear();}
+  void   clear()                         {Reset();}
   
   const SvtxTrack* get(unsigned int idkey) const;
         SvtxTrack* get(unsigned int idkey); 

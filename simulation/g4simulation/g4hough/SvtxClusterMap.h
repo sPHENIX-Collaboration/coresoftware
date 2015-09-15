@@ -15,17 +15,18 @@ public:
   typedef std::map<unsigned int, SvtxCluster*>::iterator            Iter;
   
   SvtxClusterMap();
-  // rule of three needed
+  SvtxClusterMap(const SvtxClusterMap& clustermap);
+  SvtxClusterMap& operator=(const SvtxClusterMap& clustermap);
   virtual ~SvtxClusterMap();
 
   void identify(std::ostream& os = std::cout) const;
-  void Reset() {clear();}
+  void Reset();
   int  IsValid() const {return 1;}
   
   bool   empty()                   const {return _map.empty();}
   size_t  size()                   const {return _map.size();}
   size_t count(unsigned int idkey) const {return _map.count(idkey);}
-  void   clear()                         {return _map.clear();}
+  void   clear()                         {return Reset();}
   
   const SvtxCluster* get(unsigned int idkey) const;
         SvtxCluster* get(unsigned int idkey); 
