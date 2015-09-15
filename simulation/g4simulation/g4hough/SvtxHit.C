@@ -16,27 +16,6 @@ SvtxHit::SvtxHit()
     _cellid(0xFFFFFFFF)
 {}
 
-SvtxHit::SvtxHit(const SvtxHit &hit) :
-  _id(hit.get_id()),
-  _layer(hit.get_layer()),
-  _adc(hit.get_adc()),
-  _e(hit.get_e()),
-  _cellid(hit.get_cellid())
-{}
-
-SvtxHit& SvtxHit::operator=(const SvtxHit &hit) {
-  Reset();
-  _id = hit.get_id();
-  _layer = hit.get_layer();
-  _adc = hit.get_adc();
-  _e = hit.get_e();
-  _cellid = hit.get_cellid();
-
-  return *this;
-}
-
-SvtxHit::~SvtxHit(){}
-
 void SvtxHit::identify(ostream& os) const {
   os << "---SvtxHit-----------------------" << endl;
   os << "hitid: " << get_id() << " layer: "<< get_layer() << endl;
@@ -48,11 +27,7 @@ void SvtxHit::identify(ostream& os) const {
 }
 
 void SvtxHit::Reset() {
-  _id     = 0xFFFFFFFF;
-  _layer  = 0xFFFFFFFF;
-  _adc    = 0xFFFFFFFF;
-  _e      = NAN;
-  _cellid = 0xFFFFFFFF;
+  *this = SvtxHit();
 }
 
 int SvtxHit::IsValid() const {

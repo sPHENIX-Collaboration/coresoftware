@@ -9,9 +9,7 @@ class SvtxHit : public PHObject {
 public:
   
   SvtxHit();
-  SvtxHit(const SvtxHit &hit);
-  SvtxHit& operator=(const SvtxHit &hit);
-  virtual ~SvtxHit();
+  virtual ~SvtxHit() {}
 
   // PHObject virtual overloads
   
