@@ -96,7 +96,7 @@ class PHG4Reco: public SubsysReco
 
   int setupInputEventNodeReader(PHCompositeNode *);
 
-  static void G4Seed(const int i);
+  static void G4Seed(const unsigned int i);
 
   // this is an ugly hack to get Au ions working for CAD
   // our particle generators have pdg build in which doesn't work

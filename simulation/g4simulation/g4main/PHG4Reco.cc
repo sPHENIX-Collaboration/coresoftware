@@ -539,7 +539,7 @@ PHG4Reco::set_rapidity_coverage(const double eta)
 }
 
 void
-PHG4Reco::G4Seed(const int i)
+PHG4Reco::G4Seed(const unsigned int i)
 {
   CLHEP::HepRandom::setTheSeed(i);
   return;
