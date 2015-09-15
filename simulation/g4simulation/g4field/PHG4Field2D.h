@@ -47,7 +47,7 @@ class PHG4Field2D : public G4MagneticField
   typedef boost::tuple<float,float> trio;
   
  public:
-  PHG4Field2D(const std::string &filename, const int verb=0);
+  PHG4Field2D(const std::string &filename, const int verb=0, const float magfield_rescale = 1.0);
   virtual ~PHG4Field2D() {}
   
   void GetFieldValue( const double Point[4],    double *Bfield ) const;

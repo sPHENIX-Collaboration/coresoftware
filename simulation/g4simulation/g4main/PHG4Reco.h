@@ -71,6 +71,8 @@ class PHG4Reco: public SubsysReco
   void set_field_map(const std::string &fmap, const int dim)
   { fieldmapfile = fmap; mapdim = dim;}
 
+  void set_field_rescale(const float rescale) {magfield_rescale = rescale;}
+  
   void set_decayer_active(bool b) {active_decayer_ = b;}
   void set_force_decay(EDecayType force_decay_type) {
     active_decayer_ = true;
@@ -108,6 +110,7 @@ class PHG4Reco: public SubsysReco
   int InitUImanager();
   void DefineMaterials();
   float magfield;
+  float magfield_rescale;
   double WorldSize[3];
 
   //! magnetic field

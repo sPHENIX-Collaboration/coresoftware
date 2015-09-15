@@ -17,7 +17,7 @@
 
 using namespace std;
 
-PHG4Field3D::PHG4Field3D( const string &filename, const int verb ) :
+PHG4Field3D::PHG4Field3D( const string &filename, const int verb , const float magfield_rescale) :
   verb_(verb)
 {    
     cout << "\n================ Begin Construct Mag Field =====================" << endl;
@@ -162,9 +162,9 @@ PHG4Field3D::PHG4Field3D( const string &filename, const int verb ) :
       G4cout << "!!!!!!!!! Your map isn't ordered.... z: " << z << " zprev: " << z_map_[iz-1]<< endl;
     }
 
-    BFieldR_  [iz][ir][iphi] = Br;
-    BFieldPHI_[iz][ir][iphi] = Bphi;
-    BFieldZ_  [iz][ir][iphi] = Bz;
+    BFieldR_  [iz][ir][iphi] = Br * magfield_rescale;
+    BFieldPHI_[iz][ir][iphi] = Bphi * magfield_rescale;
+    BFieldZ_  [iz][ir][iphi] = Bz * magfield_rescale;
 
     // you can change this to check table values for correctness
     // print_map prints the values in the root table, and the
