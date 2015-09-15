@@ -31,7 +31,9 @@ public:
   const SvtxHit* get(unsigned int idkey) const;
         SvtxHit* get(unsigned int idkey); 
         SvtxHit* insert(const SvtxHit *hit);
-        size_t   erase(unsigned int idkey) {return _map.erase(idkey);}
+        size_t   erase(unsigned int idkey) {
+	  delete _map[idkey]; return _map.erase(idkey);
+	}
 
   ConstIter begin()                   const {return _map.begin();}
   ConstIter  find(unsigned int idkey) const {return _map.find(idkey);}
