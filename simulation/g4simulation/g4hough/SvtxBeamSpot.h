@@ -11,14 +11,12 @@ class SvtxBeamSpot : public PHObject {
 public:
   
   SvtxBeamSpot();
-  SvtxBeamSpot(const SvtxBeamSpot &beamspot);
-  SvtxBeamSpot& operator=(const SvtxBeamSpot &beamspot);
-  virtual ~SvtxBeamSpot();
+  virtual ~SvtxBeamSpot() {}
 
   // PHObject virtual overloads
   
   void         identify(std::ostream& os = std::cout) const;
-  void         Reset();
+  void         Reset() {*this = SvtxBeamSpot();}
   int          IsValid() const;
 
   // beamspot info
@@ -37,8 +35,10 @@ public:
   
 private:
 
+  unsigned int covar_index(unsigned int i, unsigned int j) const;
+  
   float  _pos[2]; //< position x,y
-  float* _err[2]; //< variance covariance matrix (+/- cm^2)
+  float  _err[3]; //< variance covariance matrix (packed storage) (+/- cm^2)
   
   ClassDef(SvtxBeamSpot, 1);
 };
