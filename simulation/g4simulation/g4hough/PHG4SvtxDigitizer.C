@@ -204,7 +204,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
     hit.set_adc(adc);
     hit.set_e(e);
 
-    SvtxHit* ptr = _hitmap->insert(hit);      
+    SvtxHit* ptr = _hitmap->insert(&hit);      
     if (!ptr->IsValid()) {
       static bool first = true;
       if (first) {
@@ -251,7 +251,7 @@ void PHG4SvtxDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) {
     hit.set_adc(adc);
     hit.set_e(e);
         
-    SvtxHit* ptr = _hitmap->insert(hit);      
+    SvtxHit* ptr = _hitmap->insert(&hit);      
     if (!ptr->IsValid()) {
       static bool first = true;
       if (first) {

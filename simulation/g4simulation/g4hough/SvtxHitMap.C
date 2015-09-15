@@ -39,10 +39,10 @@ SvtxHit* SvtxHitMap::get(unsigned int id) {
   return iter->second;
 }
 
-SvtxHit* SvtxHitMap::insert(const SvtxHit &clus) {
+SvtxHit* SvtxHitMap::insert(const SvtxHit *hit) {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair( index , new SvtxHit(clus) ));
+  _map.insert(make_pair( index , hit->Clone() ));
   _map[index]->set_id(index);
   return _map[index];
 }

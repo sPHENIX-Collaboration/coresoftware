@@ -16,6 +16,7 @@ public:
   void         identify(std::ostream& os = std::cout) const;
   void         Reset() {*this = SvtxHit();}
   int          IsValid() const;
+  SvtxHit*     Clone() const {return new SvtxHit(*this);}
 
   // digitized hit info
   
