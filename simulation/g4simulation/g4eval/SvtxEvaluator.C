@@ -456,12 +456,12 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 	  
 	    SvtxTrack *track = *jter;
 
-	    float px = track->get3Momentum(0);
-	    float py = track->get3Momentum(1);
-	    float pz = track->get3Momentum(2);
+	    float px = track->get_px();
+	    float py = track->get_py();
+	    float pz = track->get_pz();
 
 	    cout << "===Created-SvtxTrack==========================================" << endl;
-	    cout << " SvtxTrack id = " << track->getTrackID() << endl;
+	    cout << " SvtxTrack id = " << track->get_id() << endl;
 	    cout << " preco = (";
 	    cout.width(5); cout << px;
 	    cout << ",";
@@ -469,15 +469,16 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 	    cout << ",";
 	    cout.width(5); cout << pz;
 	    cout << ")" << endl;
-	    cout << " quality = " << track->getQuality() << endl;
+	    cout << " quality = " << track->get_quality() << endl;
 	    cout << " nfromtruth = " << trackeval->get_nclusters_contribution(track,particle) << endl;
 
 	    cout << " ---Associated-SvtxClusters-to-PHG4Hits-------------------------" << endl;    
 
-	    for (unsigned int ilayer = 0; ilayer < 100; ++ilayer) {
-	      if (!track->hasCluster(ilayer)) continue;
-
-	      SvtxCluster* cluster = clustermap->get(track->getClusterID(ilayer));
+	    for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
+		 iter != track->end_clusters();
+		 ++iter) {
+	      unsigned int cluster_id = *iter;
+	      SvtxCluster* cluster = clustermap->get(cluster_id);
 	      		  
 	      float x = cluster->get_x();
 	      float y = cluster->get_y();
@@ -1015,6 +1016,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
   if (_ntp_gtrack) {
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");   
+    SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
     if (truthinfo) {
       PHG4TruthInfoContainer::Map map = truthinfo->GetPrimaryMap();
       for (PHG4TruthInfoContainer::ConstIterator iter = map.begin(); 
@@ -1078,28 +1080,31 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float nfromtruth    = NAN;
 
 	if (track) {
-	  trackID   = track->getTrackID();     
-	  charge    = track->getCharge();
-	  quality   = track->getQuality();
-	  chisq     = track->getChisq();
-	  ndf       = track->getNDF();
-	  nhits     = track->getNhits();
-
-	  for (unsigned int i = 0; i < 32; ++i){ // only 32 bits available	
-	    if (track->hasCluster(i)) {
-	      layers |= (0x1 << i);
-	    }
+	  trackID   = track->get_id();     
+	  charge    = track->get_charge();
+	  quality   = track->get_quality();
+	  chisq     = track->get_chisq();
+	  ndf       = track->get_ndf();
+	  nhits     = track->size_clusters();
+	  
+	  for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
+	       iter != track->end_clusters();
+	       ++iter) {
+	    unsigned int cluster_id = *iter;
+	    SvtxCluster* cluster = clustermap->get(cluster_id);
+	    unsigned int layer = cluster->get_layer();
+	    if (layer < 32) layers |= (0x1 << layer);
 	  }
 
-	  dca       = track->getDCA();
-	  dca2d     = track->getDCA2D();
-	  dca2dsigma = track->getDCA2Dsigma();
-	  px        = track->get3Momentum(0);
-	  py        = track->get3Momentum(1);
-	  pz        = track->get3Momentum(2);
-	  pcax      = track->d * sin(track->phi);
-	  pcay      = track->d * cos(track->phi);
-	  pcaz      = track->z0;
+	  dca       = track->get_dca();
+	  dca2d     = track->get_dca2d();
+	  dca2dsigma = track->get_dca2d_error();
+	  px        = track->get_px();
+	  py        = track->get_py();
+	  pz        = track->get_pz();
+	  pcax      = track->get_x();
+	  pcay      = track->get_y();
+	  pcaz      = track->get_z();
 
 	  nfromtruth = trackeval->get_nclusters_contribution(track,g4particle);
 	}
@@ -1152,6 +1157,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   if (_ntp_track) {
     // need things off of the DST...
     SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+    SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
     if (trackmap) {
 
       for (SvtxTrackMap::Iter iter = trackmap->begin();
@@ -1160,28 +1166,31 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     
 	SvtxTrack* track         = &iter->second;
 
-	float trackID   = track->getTrackID();     
-	float charge    = track->getCharge();
-	float quality   = track->getQuality();
-	float chisq     = track->getChisq();
-	float ndf       = track->getNDF();
-	float nhits     = track->getNhits();
+	float trackID   = track->get_id();     
+	float charge    = track->get_charge();
+	float quality   = track->get_quality();
+	float chisq     = track->get_chisq();
+	float ndf       = track->get_ndf();
+	float nhits     = track->size_clusters();
 
 	unsigned int layers = 0x0;
-	for (unsigned int i = 0; i < 32; ++i){ // only 32 bits available	
-	  if (track->hasCluster(i)) {
-	    layers |= (0x1 << i);
-	  }
+	for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
+	     iter != track->end_clusters();
+	     ++iter) {
+	  unsigned int cluster_id = *iter;
+	  SvtxCluster* cluster = clustermap->get(cluster_id);
+	  unsigned int layer = cluster->get_layer();
+	  if (layer < 32) layers |= (0x1 << layer);
 	}
       
-	float dca2d     = track->getDCA2D();
-	float dca2dsigma = track->getDCA2Dsigma();
-	float px        = track->get3Momentum(0);
-	float py        = track->get3Momentum(1);
-	float pz        = track->get3Momentum(2);
-	float pcax      = track->d * sin(track->phi);
-	float pcay      = track->d * cos(track->phi);
-	float pcaz      = track->z0;
+	float dca2d     = track->get_dca2d();
+	float dca2dsigma = track->get_dca2d_error();
+	float px        = track->get_px();
+	float py        = track->get_py();
+	float pz        = track->get_pz();
+	float pcax      = track->get_x();
+	float pcay      = track->get_y();
+	float pcaz      = track->get_z();
 
 	float presdphi = track->get_cal_dphi(SvtxTrack::PRES);
 	float presdeta = track->get_cal_deta(SvtxTrack::PRES);

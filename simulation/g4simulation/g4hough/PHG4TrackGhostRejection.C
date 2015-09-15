@@ -87,19 +87,18 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
   
     PHG4TrackCandidate combo;
 
-    combo.trackid = track->getTrackID();
-    combo.nhits = track->getNhits();
+    combo.trackid = track->get_id();
+    combo.nhits = track->size_clusters();
 
-    for (unsigned int j = 0; j < _nlayers; ++j) {
-      if (!_layer_enabled[j]) continue;
-      
-      if (track->hasCluster(j)) {
-	combo.hitids.push_back(track->getClusterID(j));
-      }
+    for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
+	 iter != track->end_clusters();
+	 ++iter) {
+      unsigned int cluster_id = *iter;
+      combo.hitids.push_back(cluster_id);
     }
-
-    if (track->getNDF() != 0) {
-      combo.chisq = track->getChisq()/track->getNDF();
+      
+    if (track->get_ndf() != 0) {
+      combo.chisq = track->get_chisq()/track->get_ndf();
     }
 
     combo.keep = true;

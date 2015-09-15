@@ -97,13 +97,13 @@ static inline double sign(double x)
   return ((double)(x > 0.)) - ((double)(x < 0.));
 }
 
-void PHG4HoughTransformTPC::projectToRadius(const SvtxTrack& track, double radius, vector<double>& intersection)
+void PHG4HoughTransformTPC::projectToRadius(const SvtxTrack& track, double B, double radius, vector<double>& intersection)
 {
-  float phi = track.phi;
-  float d = track.d;
-  float k = track.kappa;
-  float z0 = track.z0;
-  float dzdl = track.dzdl;
+  float phi  = atan2(track.get_y(),track.get_x());
+  float d    = track.get_dca2d();
+  float k    = B / 333.6 / track.get_pt();
+  float z0   = track.get_z();
+  float dzdl = track.get_pz()/track.get_p();
   
   intersection.clear();intersection.assign(3,0.);
   double& x = intersection[0];
@@ -118,18 +118,14 @@ void PHG4HoughTransformTPC::projectToRadius(const SvtxTrack& track, double radiu
   // get outer hit
   float hitx = d*cosphi;
   float hity = d*sinphi;
-  int nhits = track.getNhits();
-  for(int l=(nhits-1);l>=0;l-=1)
-  {
-    if(track.getClusterID(l) >= 0)
-    {
-      hitx = track.getHitPosition(l, 0);
-      hity = track.getHitPosition(l, 1);
-      break;
-    }
+
+  for (SvtxTrack::ConstStateIter iter = track.begin_states();
+       iter != track.end_states();
+       ++iter) {
+    const SvtxTrack::State* state = &iter->second;
+    hitx = state->get_x();
+    hity = state->get_y();
   }
-  
-  
   
   k = fabs(k);
   
@@ -652,7 +648,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
   for(unsigned int itrack=0; itrack<_tracks.size();itrack++)
   {
     SvtxTrack track;
-    track.setTrackID(itrack);
+    track.set_id(itrack);
     track_hits.clear();
     track_hits = _tracks.at(itrack).hits;
     
@@ -669,8 +665,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
       cluster_z = cluster->get_z();
       if( (clusterLayer < (int)_seed_layers) && (clusterLayer >= 0) )
       {
-        track.setClusterID(clusterLayer, clusterID);
-        track.setHitPosition(clusterLayer,cluster_x,cluster_y,cluster_z);
+        track.insert_cluster(clusterID);
       }
     }
     float kappa = _tracks.at(itrack).kappa;
@@ -680,11 +675,11 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     float dzdl = _tracks.at(itrack).dzdl;
     float z0 = _tracks.at(itrack).z0;
     
-    track.phi = phi;
-    track.kappa = kappa;
-    track.d = d;
-    track.z0 = z0;
-    track.dzdl = dzdl;
+    // track.set_helix_phi(phi);
+    // track.set_helix_kappa(kappa);
+    // track.set_helix_d(d);
+    // track.set_helix_z0(z0);
+    // track.set_helix_dzdl(dzdl);
     
     float pT = kappaToPt(kappa);
 
@@ -708,13 +703,14 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
       pZ = pT * dzdl / sqrt(1.0 - dzdl*dzdl);
     }
     int ndf = 2*_tracks.at(itrack).hits.size() - 5;
-    track.setQuality(chi_squareds[itrack]/((float)ndf));
-    track.setChisq(chi_squareds[itrack]);
-    track.setNDF(ndf);
-    track.set3Momentum( pT*cos(phi-helicity*M_PI/2), pT*sin(phi-helicity*M_PI/2), pZ);
+    track.set_chisq(chi_squareds[itrack]);
+    track.set_ndf(ndf);
+    track.set_px( pT*cos(phi-helicity*M_PI/2) );
+    track.set_py( pT*sin(phi-helicity*M_PI/2) );
+    track.set_pz( pZ );
 
-    track.setDCA2D( d );
-    track.setDCA2Dsigma(sqrt(_tracker->getKalmanStates()[itrack].C(1,1)));  
+    track.set_dca2d( d );
+    track.set_dca2d_error(sqrt(_tracker->getKalmanStates()[itrack].C(1,1)));  
 
     if(_write_reco_tree==true)
     {
@@ -731,11 +727,11 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
 
     if(_magField > 0)
     {
-      track.setCharge( -1.0*helicity );
+      track.set_charge( helicity );
     }
     else
     {
-      track.setCharge( helicity );
+      track.set_charge( -1.0*helicity );
     }
 
     Matrix<float,6,6> euclidean_cov = Matrix<float,6,6>::Zero(6,6);
@@ -745,7 +741,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     {
       for(unsigned int col=0;col<6;++col)
       {
-        (*(track.getCovariance()))[row][col] = euclidean_cov(row,col);
+	track.set_error(row,col,euclidean_cov(row,col));
       }
     }
 
@@ -756,14 +752,14 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
 
     
     _g4tracks->insert(track);
-    vertex.insert_track(track.getTrackID());
+    vertex.insert_track(track.get_id());
 
     if (verbosity > 5) {
       cout << "track " << itrack << " quality = "
-           << track.getQuality() << endl;
-      cout << "px = " << track.get3Momentum(0)
-           << " py = " << track.get3Momentum(1)
-           << " pz = " << track.get3Momentum(2) << endl;
+           << track.get_quality() << endl;
+      cout << "px = " << track.get_px()
+           << " py = " << track.get_py()
+           << " pz = " << track.get_pz() << endl;
     }
   } // track loop
 

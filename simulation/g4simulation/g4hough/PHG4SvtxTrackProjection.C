@@ -25,6 +25,7 @@ using namespace std;
 PHG4SvtxTrackProjection::PHG4SvtxTrackProjection(const string &name) :
   SubsysReco(name),
   _num_cal_layers(4),
+  _magfield(1.5),
   _mag_extent(156.5) // middle of Babar magent
 {
   _cal_radii.assign(_num_cal_layers,NAN);
@@ -32,6 +33,10 @@ PHG4SvtxTrackProjection::PHG4SvtxTrackProjection(const string &name) :
   _cal_names.push_back("CEMC");
   _cal_names.push_back("HCALIN");
   _cal_names.push_back("HCALOUT");
+  _cal_types.push_back(SvtxTrack::PRES); // PRES not yet in G4
+  _cal_types.push_back(SvtxTrack::CEMC);
+  _cal_types.push_back(SvtxTrack::HCALIN);
+  _cal_types.push_back(SvtxTrack::HCALOUT);
 }
 
 int PHG4SvtxTrackProjection::Init(PHCompositeNode *topNode) 
@@ -114,11 +119,10 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
 	 ++iter) {
       SvtxTrack *track = &iter->second;
 
-      if (verbosity > 1) cout << "projecting track id " << track->getTrackID() << endl;
+      if (verbosity > 1) cout << "projecting track id " << track->get_id() << endl;
 
       if (verbosity > 1) {
-	cout << " track pt = " << sqrt(pow(track->get3Momentum(0),2) +
-				       pow(track->get3Momentum(1),2)) << endl;
+	cout << " track pt = " << track->get_pt() << endl;
       }
 
       // curved tracks inside mag field
@@ -127,7 +131,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
       point.assign(3,-9999.);
       //if (_cal_radii[i] < _mag_extent) {
       // curved projections inside field
-      _hough.projectToRadius(*track,_cal_radii[i],point);
+      _hough.projectToRadius(*track,_magfield,_cal_radii[i],point);
 
       if (isnan(point[0])) continue;
       if (isnan(point[1])) continue;
@@ -159,8 +163,8 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
       double eta = asinh(z/sqrt(x*x+y*y));
 
       if (verbosity > 1) {
-	cout << " initial track phi = " << atan2(track->get3Momentum(1),track->get3Momentum(0));
-	cout << ", eta = " << asinh(track->get3Momentum(2)/sqrt(pow(track->get3Momentum(0),2)+pow(track->get3Momentum(1),2))) << endl;
+	cout << " initial track phi = " << track->get_phi();
+	cout << ", eta = " << track->get_eta() << endl;
 	cout << " calorimeter phi = " << phi << ", eta = " << eta << endl;
       }
 
@@ -199,7 +203,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
       	}
       }
 
-      track->set_cal_energy_3x3(i,energy_3x3);
+      track->set_cal_energy_3x3(_cal_types[i],energy_3x3);
 
       // loop over all clusters and find nearest
       double min_r = DBL_MAX;
@@ -225,10 +229,10 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
       }
 
       if (min_index != -9999) {
-	track->set_cal_dphi(i,min_dphi);
-	track->set_cal_deta(i,min_deta);
-	track->set_cal_cluster_id(i,min_index);
-	track->set_cal_cluster_e(i,min_e);
+	track->set_cal_dphi(_cal_types[i],min_dphi);
+	track->set_cal_deta(_cal_types[i],min_deta);
+	track->set_cal_cluster_id(_cal_types[i],min_index);
+	track->set_cal_cluster_e(_cal_types[i],min_e);
 
 	if (verbosity > 1) {
 	  cout << " nearest cluster dphi = " << min_dphi << " deta = " << min_deta << " e = " << min_e << endl;
