@@ -123,7 +123,11 @@ int CaloTruthEval::get_embed(PHG4Particle* particle) {
 
 PHG4VtxPoint* CaloTruthEval::get_vertex(PHG4Particle* particle) {
 
-  return _truthinfo->GetVtx( particle->get_vtx_id() );
+  if (is_primary(particle)) {
+    return _truthinfo->GetPrimaryVtx( particle->get_vtx_id() );
+  }
+
+  return _truthinfo->GetVtx( particle->get_vtx_id() ); 
 }
 
 bool CaloTruthEval::is_primary(PHG4Particle* particle) {
@@ -135,22 +139,12 @@ bool CaloTruthEval::is_primary(PHG4Particle* particle) {
       return iter->second;
     }
   }
-  
-  bool is_primary = false;  
-  PHG4TruthInfoContainer::Map primary_map = _truthinfo->GetPrimaryMap();
-  if (primary_map.find(particle->get_track_id()) != primary_map.end()) {
+
+  bool is_primary = false;
+  if (particle->get_primary_id() == -1) {
     is_primary = true;
   }
-
-  // old lookup used values instead of key which is equivalent to track_id
-  // for (PHG4TruthInfoContainer::ConstIterator iter = primary_map.begin(); 
-  //      iter != primary_map.end(); 
-  //      ++iter) {
-  //   if (iter->second->get_track_id() == particle->get_track_id() ) {
-  //     is_primary = true;
-  //   }
-  // }
-
+  
   if (_do_cache) _cache_is_primary.insert(make_pair(particle,is_primary));
   
   return is_primary;
