@@ -22,23 +22,23 @@ public:
 
   int get_bintheta() const { return bineta; }
 
-  double get_edep() { return edep; }
-  double get_thetaMin() { return thetaMin; }
-  double get_thetaSize() { return thetaSize; }
-  double get_phiMin() { return phiMin; }
-  double get_phiSize() { return phiSize; }
-  double get_zMin() { return zMin; }
-  double get_zSize() { return zSize; }
+  double get_edep() const { return edep; }
+  double get_thetaMin() const { return thetaMin; }
+  double get_thetaSize() const { return thetaSize; }
+  double get_phiMin() const { return phiMin; }
+  double get_phiSize() const { return phiSize; }
+  double get_zMin() const { return zMin; }
+  double get_zSize() const { return zSize; }
 
-  void set_edep( double set ) { edep = set; }
-  void set_thetaMin( double set ) { thetaMin = set; }
-  void set_thetaSize( double set ) { thetaSize = set; }
-  void set_phiMin( double set ) { phiMin = set; }
-  void set_phiSize( double set ) { phiSize = set; }
-  void set_zMin( double set ) { zMin = set; }
-  void set_zSize( double set ) { zSize = set; }
+  void set_edep( const double set ) { edep = set; }
+  void set_thetaMin( const double set ) { thetaMin = set; }
+  void set_thetaSize( const double set ) { thetaSize = set; }
+  void set_phiMin( const double set ) { phiMin = set; }
+  void set_phiSize( const double set ) { phiSize = set; }
+  void set_zMin( const double set ) { zMin = set; }
+  void set_zSize( const double set ) { zSize = set; }
 
-  RawTowerv2* clone();
+  RawTowerv2* clone() const;
 
 protected:
 
