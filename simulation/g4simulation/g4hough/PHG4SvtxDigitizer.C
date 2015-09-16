@@ -1,6 +1,8 @@
 #include "PHG4SvtxDigitizer.h"
 
 #include "SvtxHitMap.h"
+#include "SvtxHit.h"
+#include "SvtxHit_v1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -192,7 +194,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
     
     PHG4CylinderCell* cell = celliter->second;
     
-    SvtxHit hit;
+    SvtxHit_v1 hit;
 
     hit.set_layer(cell->get_layer());
     hit.set_cellid(cell->get_cell_id());
@@ -239,7 +241,7 @@ void PHG4SvtxDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) {
     
     PHG4CylinderCell* cell = celliter->second;
     
-    SvtxHit hit;
+    SvtxHit_v1 hit;
 
     hit.set_layer(cell->get_layer());
     hit.set_cellid(cell->get_cell_id());
