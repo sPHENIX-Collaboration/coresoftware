@@ -14,7 +14,7 @@ public:
   
   typedef std::map<GlobalVertex::VTXTYPE,unsigned int>::const_iterator ConstVtxIter;
   typedef std::map<GlobalVertex::VTXTYPE,unsigned int>::iterator       VtxIter; 
-  
+
   virtual ~GlobalVertex() {}
 
   // PHObject virtual overloads
@@ -77,7 +77,6 @@ public:
   virtual VtxIter end_vtxids()              {return std::map<VTXTYPE,unsigned int>().end();}
 
 protected:
-
   GlobalVertex() {}
   
 private:
