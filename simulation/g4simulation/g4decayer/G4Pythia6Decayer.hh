@@ -32,10 +32,11 @@
 #ifndef G4_PYTHIA6_DECAYER_H
 #define G4_PYTHIA6_DECAYER_H
 
+#include "G4Pythia6DecayerMessenger.hh"
+#include "Pythia6.hh"
+#include "EDecayType.hh"
+
 #include <Geant4/G4VExtDecayer.hh>
-#include <G4Pythia6DecayerMessenger.hh>
-#include <Pythia6.hh>
-#include <EDecayType.hh>
 
 #include <Geant4/globals.hh>
 
