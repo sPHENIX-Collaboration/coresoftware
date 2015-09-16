@@ -30,14 +30,17 @@
 ///
 /// \author I. Hrivnacova; IPN, Orsay
 
-#include <P6DExtDecayerPhysics.hh>
-#include <G4Pythia6Decayer.hh>
+#include "P6DExtDecayerPhysics.hh"
+#include "G4Pythia6Decayer.hh"
 
 #include <Geant4/G4VPhysicsConstructor.hh>
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ProcessManager.hh>
 #include <Geant4/G4Decay.hh>
 
+#include <iostream>
+
+using namespace std;
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 P6DExtDecayerPhysics::P6DExtDecayerPhysics(const G4String& name)
@@ -76,9 +79,9 @@ void P6DExtDecayerPhysics::ConstructProcess()
   // Create Geant4 external decayer
   G4Pythia6Decayer* extDecayer = new G4Pythia6Decayer();
   extDecayer->SetVerboseLevel(0); 
-     // The extDecayer will be deleted in G4Decay destructor
  
   aParticleIterator->reset();
+  int decayer_used = 0;
   while ((*aParticleIterator)())
   {    
     G4ParticleDefinition* particle = aParticleIterator->value();
@@ -94,14 +97,29 @@ void P6DExtDecayerPhysics::ConstructProcess()
     for (G4int i=0; i<processVector->length(); i++) {
     
       G4Decay* decay = dynamic_cast<G4Decay*>((*processVector)[i]);
-      if ( decay ) decay->SetExtDecayer(extDecayer);
+      if ( decay )
+	{
+          // The extDecayer will be deleted in G4Decay destructor
+	  // increment counter in case we want to print out stats
+	  // for whatever reason (non null means it is used and
+	  // must not be deleted)
+          decay->SetExtDecayer(extDecayer);
+          decayer_used++;
+	}
     }              
   }
 
   if (_active_force_decay) {
     extDecayer->ForceDecayType(_force_decay_type);
   }
-  
+
+  // If the extDecayer isn't used for this particle we need to delete it here
+  cout << "decayer used: " << decayer_used << endl;
+  if (! decayer_used)
+    {
+      cout << "deleting decayer" << endl;
+      delete  extDecayer;
+    }
   if ( verboseLevel > 0 ) {
     G4cout << "External decayer physics constructed." << G4endl;
   }  

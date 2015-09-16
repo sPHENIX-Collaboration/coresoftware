@@ -88,7 +88,7 @@
 // **                                                                          **
 // ******************************************************************************
 
-#include <Pythia6.hh>
+#include "Pythia6.hh"
 
 #include <iostream>
 #include <cstdlib>
