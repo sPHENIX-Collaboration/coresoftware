@@ -6,3 +6,6 @@ add to .cshrc
 
 login in a new window
 cp the phpythia8.cfg to working area
+
+you will need to add the HepMC node reader after the PHPythia8
+to feed the hepmc node into GEANT4
