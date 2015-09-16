@@ -187,7 +187,11 @@ bool SvtxTruthEval::is_primary(PHG4Particle* particle) {
 
 PHG4VtxPoint* SvtxTruthEval::get_vertex(PHG4Particle* particle) {
 
-  return _truthinfo->GetVtx( particle->get_vtx_id() );
+  if (is_primary(particle)) {
+    return _truthinfo->GetPrimaryVtx( particle->get_vtx_id() );
+  }
+
+  return _truthinfo->GetVtx( particle->get_vtx_id() );  
 }
 
 void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode) {
