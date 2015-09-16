@@ -630,157 +630,148 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     }
 
     SvtxVertex vertex;
-    vertex.set_t0(0.0);
-    for (int i=0;i<3;++i) vertex.set_position(i,_vertex[i]);
-    vertex.set_chisq(0.0);
-    vertex.set_ndof(0); 
-    vertex.set_error(0,0,0.0);
-    vertex.set_error(0,1,0.0);
-    vertex.set_error(0,2,0.0);
-    vertex.set_error(1,0,0.0);
-    vertex.set_error(1,1,0.0);
-    vertex.set_error(1,2,0.0);
-    vertex.set_error(2,0,0.0);
-    vertex.set_error(2,1,0.0);
-    vertex.set_error(2,2,0.0);
-    
-    // copy out the reconstructed vertex position
-    //_g4tracks->setVertex(_vertex[0],_vertex[1],_vertex[2]);
-    //_g4tracks->setVertexError(0.0,0.0,0.0);
-   
-    // at this point we should already have an initial pt and pz guess...
-    // need to translate this into the PHG4Track object...
-
-    vector<SimpleHit3D> track_hits;
-    int clusterID;
-    int clusterLayer;
-    float cluster_x;
-    float cluster_y;
-    float cluster_z;
-    //  float dEdx1;
-    //  float dEdx2;
-
-    for(unsigned int itrack=0; itrack<_tracks.size();itrack++)
-    {
-      SvtxTrack track;
-      track.setTrackID(itrack);
-      track_hits.clear();
-      track_hits = _tracks.at(itrack).hits;
+      vertex.set_t0(0.0);
+      for (int i=0;i<3;++i) vertex.set_position(i,_vertex[i]);
+      vertex.set_chisq(0.0);
+      vertex.set_ndof(0); 
+      vertex.set_error(0,0,0.0);
+      vertex.set_error(0,1,0.0);
+      vertex.set_error(0,2,0.0);
+      vertex.set_error(1,0,0.0);
+      vertex.set_error(1,1,0.0);
+      vertex.set_error(1,2,0.0);
+      vertex.set_error(2,0,0.0);
+      vertex.set_error(2,1,0.0);
+      vertex.set_error(2,2,0.0);
       
-      for(unsigned int ihit = 0; ihit<track_hits.size();ihit++)
+      // copy out the reconstructed vertex position
+      //_g4tracks->setVertex(_vertex[0],_vertex[1],_vertex[2]);
+      //_g4tracks->setVertexError(0.0,0.0,0.0);
+     
+      // at this point we should already have an initial pt and pz guess...
+      // need to translate this into the PHG4Track object...
+
+      vector<SimpleHit3D> track_hits;
+      int clusterID;
+      int clusterLayer;
+      float cluster_x;
+      float cluster_y;
+      float cluster_z;
+      //  float dEdx1;
+      //  float dEdx2;
+
+      for(unsigned int itrack=0; itrack<_tracks.size();itrack++)
       {
-        //      dEdx1=0;
-        //      dEdx2=0;
-        if( (track_hits.at(ihit).index) >= _g4clusters->size()){continue;}
-        SvtxCluster *cluster = _g4clusters->get(track_hits.at(ihit).index);
-        clusterID = cluster->get_id();
-        clusterLayer = cluster->get_layer();
-        cluster_x = cluster->get_x();
-        cluster_y = cluster->get_y();
-        cluster_z = cluster->get_z();
-        if( (clusterLayer < (int)_seed_layers) && (clusterLayer >= 0) )
+        SvtxTrack track;
+        track.set_id(itrack);
+        track_hits.clear();
+        track_hits = _tracks.at(itrack).hits;
+        
+        for(unsigned int ihit = 0; ihit<track_hits.size();ihit++)
         {
-          track.setClusterID(clusterLayer, clusterID);
-          track.setHitPosition(clusterLayer,cluster_x,cluster_y,cluster_z);
+          //      dEdx1=0;
+          //      dEdx2=0;
+          if( (track_hits.at(ihit).index) >= _g4clusters->size()){continue;}
+          SvtxCluster *cluster = _g4clusters->get(track_hits.at(ihit).index);
+          clusterID = cluster->get_id();
+          clusterLayer = cluster->get_layer();
+          cluster_x = cluster->get_x();
+          cluster_y = cluster->get_y();
+          cluster_z = cluster->get_z();
+          if( (clusterLayer < (int)_seed_layers) && (clusterLayer >= 0) )
+          {
+            track.insert_cluster(clusterID);
+          }
         }
-      }
-      float kappa = _tracks.at(itrack).kappa;
-      float d = _tracks.at(itrack).d;
-      float phi = _tracks.at(itrack).phi;
+        float kappa = _tracks.at(itrack).kappa;
+        float d = _tracks.at(itrack).d;
+        float phi = _tracks.at(itrack).phi;
+        float dzdl = _tracks.at(itrack).dzdl;
+        float z0 = _tracks.at(itrack).z0;
+        
+        //    track.set_helix_phi(phi);
+        //    track.set_helix_kappa(kappa);
+        //    track.set_helix_d(d);
+        //    track.set_helix_z0(z0);
+        //    track.set_helix_dzdl(dzdl);
+        
+        float pT = kappaToPt(kappa);
 
-      float dzdl = _tracks.at(itrack).dzdl;
-      float z0 = _tracks.at(itrack).z0;
-      
-      track.phi = phi;
-      track.kappa = kappa;
-      track.d = d;
-      track.z0 = z0;
-      track.dzdl = dzdl;
-      
-      float pT = kappaToPt(kappa);
+        float x_center = cos(phi)*(d+1/kappa); // x coordinate of circle center
+        float y_center = sin(phi)*(d+1/kappa); // y    "      "     "      "
 
-      float x_center = cos(phi)*(d+1/kappa); // x coordinate of circle center
-      float y_center = sin(phi)*(d+1/kappa); // y    "      "     "      "
-
-      // find helicity from cross product sign
-      short int helicity;
-      if((track_hits[0].x-x_center)*(track_hits[track_hits.size()-1].y-y_center) -
-         (track_hits[0].y-y_center)*(track_hits[track_hits.size()-1].x-x_center) > 0)
-      {
-        helicity = 1;
-      }
-      else
-      { 
-        helicity = -1;
-      }
-      float pZ = 0;
-      if(dzdl != 1)
-      {
-        pZ = pT * dzdl / sqrt(1.0 - dzdl*dzdl);
-      }
-      int ndf = 2*_tracks.at(itrack).hits.size() - 5;
-      track.setQuality(chi_squareds[itrack]/((float)ndf));
-      track.setChisq(chi_squareds[itrack]);
-      track.setNDF(ndf);
-      track.set3Momentum( pT*cos(phi-helicity*M_PI/2), pT*sin(phi-helicity*M_PI/2), pZ);
-
-      track.setDCA2D( d );
-      track.setDCA2Dsigma(sqrt(_tracker->getKalmanStates()[itrack].C(1,1)));  
-
-      if(_write_reco_tree==true)
-      {
-        _recoevent->tracks.push_back( SimpleRecoTrack() );
-        _recoevent->tracks.back().px = pT*cos(phi-helicity*M_PI/2);
-        _recoevent->tracks.back().py = pT*sin(phi-helicity*M_PI/2);
-        _recoevent->tracks.back().pz = pZ;
-        _recoevent->tracks.back().d = d;
-        _recoevent->tracks.back().z0 = z0;
-        _recoevent->tracks.back().quality = chi_squareds[itrack]/((float)ndf);
-        _recoevent->tracks.back().charge = (-1*helicity);
-      }
-      
-
-      if(_magField > 0)
-      {
-        track.setCharge( -1.0*helicity );
-      }
-      else
-      {
-        track.setCharge( helicity );
-      }
-      
-      for(unsigned int row=0;row<5;++row)
-      {
-        for(unsigned int col=0;col<5;++col)
+        // find helicity from cross product sign
+        short int helicity;
+        if((track_hits[0].x-x_center)*(track_hits[track_hits.size()-1].y-y_center) -
+           (track_hits[0].y-y_center)*(track_hits[track_hits.size()-1].x-x_center) > 0)
         {
-          (*(track.getCovariance()))[row][col] = _tracker->getKalmanStates()[itrack].C(row,col);
+          helicity = 1;
         }
-      }
+        else
+        { 
+          helicity = -1;
+        }
+        float pZ = 0;
+        if(dzdl != 1)
+        {
+          pZ = pT * dzdl / sqrt(1.0 - dzdl*dzdl);
+        }
+        int ndf = 2*_tracks.at(itrack).hits.size() - 5;
+        track.set_chisq(chi_squareds[itrack]);
+        track.set_ndf(ndf);
+        track.set_px( pT*cos(phi-helicity*M_PI/2) );
+        track.set_py( pT*sin(phi-helicity*M_PI/2) );
+        track.set_pz( pZ );
+
+        track.set_dca2d( d );
+        track.set_dca2d_error(sqrt(_tracker->getKalmanStates()[itrack].C(1,1)));  
+
+        if(_magField > 0)
+        {
+          track.set_charge( helicity );
+        }
+        else
+        {
+          track.set_charge( -1.0*helicity );
+        }
+
+        Matrix<float,6,6> euclidean_cov = Matrix<float,6,6>::Zero(6,6);
+        convertHelixCovarianceToEuclideanCovariance( _magField, phi, d, kappa, z0, dzdl, _tracker->getKalmanStates()[itrack].C, euclidean_cov );
+        
+        for(unsigned int row=0;row<6;++row)
+        {
+          for(unsigned int col=0;col<6;++col)
+          {
+      track.set_error(row,col,euclidean_cov(row,col));
+          }
+        }
+
+        track.set_x( d*cos(phi) );
+        track.set_y( d*sin(phi) );
+        track.set_z( z0 );
+        
+        _g4tracks->insert(track);
+        vertex.insert_track(track.get_id());
+
+        if (verbosity > 5) {
+          cout << "track " << itrack << " quality = "
+               << track.get_quality() << endl;
+          cout << "px = " << track.get_px()
+               << " py = " << track.get_py()
+               << " pz = " << track.get_pz() << endl;
+        }
+      } // track loop
+
+      SvtxVertex *vtxptr = _g4vertexes->insert(vertex);
+      if (verbosity > 5) vtxptr->identify();
       
-      _g4tracks->insert(track);
-      vertex.insert_track(track.getTrackID());
-
-      if (verbosity > 5) {
-        cout << "track " << itrack << " quality = "
-             << track.getQuality() << endl;
-        cout << "px = " << track.get3Momentum(0)
-             << " py = " << track.get3Momentum(1)
-             << " pz = " << track.get3Momentum(2) << endl;
+      if(verbosity > 0)
+      {
+        cout << "PHG4HoughTransform::process_event -- leaving process_event" << endl;
       }
-    } // track loop
 
-    SvtxVertex *vtxptr = _g4vertexes->insert(vertex);
-    if (verbosity > 5) vtxptr->identify();
-    
-    if(verbosity > 0)
-    {
-      cout << "PHG4HoughTransform::process_event -- leaving process_event" << endl;
-    }
-
-    if(_write_reco_tree==true){ _reco_tree->Fill(); }
-
-    _timer.get()->stop();
-    return Fun4AllReturnCodes::EVENT_OK;
+      _timer.get()->stop();
+      return Fun4AllReturnCodes::EVENT_OK;
 
 }
 
@@ -802,7 +793,8 @@ int PHG4HoughTransformTPC::End(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
+int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode)
+{
     //---------------------------------------------------------
     // Grab Run-Dependent Detector Geometry and Configure Hough
     //---------------------------------------------------------
