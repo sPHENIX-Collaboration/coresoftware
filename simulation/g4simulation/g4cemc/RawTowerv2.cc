@@ -44,7 +44,7 @@ void RawTowerv2::identify(std::ostream& os) const
 }
 
 
-RawTowerv2* RawTowerv2::clone()
+RawTowerv2* RawTowerv2::clone() const
 {
   int eta_i = this->get_bineta();
   int phi_i = this->get_binphi();

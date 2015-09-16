@@ -22,7 +22,7 @@ std::set<double> zvals;
 
 
 
-PHG4FieldsPHENIX::PHG4FieldsPHENIX( const string &fname ) :
+PHG4FieldsPHENIX::PHG4FieldsPHENIX( const string &fname , const float magfield_rescale) :
   filename(fname),
   xmin(1000000),
   xmax(-1000000),
@@ -103,6 +103,11 @@ PHG4FieldsPHENIX::PHG4FieldsPHENIX( const string &fname ) :
       exit(1);
     }
 
+  if (magfield_rescale != 1.0)
+    {
+      cout << "PHG4FieldsPHENIX: Rescale not implemented" << endl;
+      exit(1);
+    }
 
   zmin = *(zvals.begin());
   zmax = *(zvals.rbegin());

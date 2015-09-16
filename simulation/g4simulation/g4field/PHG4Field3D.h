@@ -48,7 +48,7 @@ class PHG4Field3D : public G4MagneticField
   
  public:
   
-  PHG4Field3D(const std::string  &filename, int verb=0);
+  PHG4Field3D(const std::string  &filename, int verb=0, const float magfield_rescale = 1.0);
   virtual ~PHG4Field3D() {}
   
   void GetFieldValue( const double Point[4],    double *Bfield ) const;
