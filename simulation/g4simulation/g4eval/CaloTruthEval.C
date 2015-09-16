@@ -88,7 +88,8 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Particle* particle) {
   }
   
   PHG4Particle* returnval = particle;
-  if (returnval->get_primary_id() != (int)(0xFFFFFFFF)) {
+  if ((returnval->get_primary_id() != returnval->get_track_id()) ||
+      (returnval->get_primary_id() != -1)) {
     returnval = _truthinfo->GetHit( particle->get_primary_id() );
   }
 
@@ -110,7 +111,7 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Hit* g4hit) {
   
   PHG4Particle* particle = _truthinfo->GetHit( g4hit->get_trkid() );
   PHG4Particle* primary = get_primary_particle(particle);
-
+  
   if (_do_cache) _cache_get_primary_particle_g4hit.insert(make_pair(g4hit,primary));
   
   return primary;
@@ -141,7 +142,9 @@ bool CaloTruthEval::is_primary(PHG4Particle* particle) {
   }
 
   bool is_primary = false;
-  if (particle->get_primary_id() == -1) {
+  if (particle->get_primary_id() == particle->get_track_id()) {
+    is_primary = true;
+  } else if (particle->get_primary_id() == -1) {
     is_primary = true;
   }
   

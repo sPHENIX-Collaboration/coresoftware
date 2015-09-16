@@ -176,7 +176,9 @@ int SvtxTruthEval::get_embed(PHG4Particle* particle) {
 
 bool SvtxTruthEval::is_primary(PHG4Particle* particle) {
 
-  if (particle->get_primary_id() == -1) {
+  if (particle->get_primary_id() == particle->get_track_id()) {
+    return true;
+  } else if (particle->get_primary_id() == -1) {
     return true;
   }
   
