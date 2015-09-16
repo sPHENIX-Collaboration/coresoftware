@@ -93,12 +93,8 @@ std::set<PHG4VtxPoint*> SvtxVertexEval::all_truth_points(SvtxVertex* vertex) {
        iter != particles.end();
        ++iter) {
     PHG4Particle* particle = *iter;
-
-    // only consider primary particles
-    PHG4TruthInfoContainer::Map primarymap = _truthinfo->GetPrimaryMap();
-    if (primarymap.find(particle->get_track_id()) == primarymap.end()) continue;
-        
-    points.insert(_truthinfo->GetPrimaryVtx(particle->get_vtx_id()));
+    PHG4VtxPoint* point = get_truth_eval()->get_vertex(particle);
+    points.insert(point);
   }
 
   if (_do_cache) _cache_all_truth_points.insert(make_pair(vertex,points));
@@ -219,11 +215,7 @@ unsigned int SvtxVertexEval::get_ntracks_contribution(SvtxVertex* vertex, PHG4Vt
     SvtxTrack* track = _trackmap->get(*iter);
     PHG4Particle* particle = _trackeval.max_truth_particle_by_nclusters(track);
 
-    // only consider primary particles
-    PHG4TruthInfoContainer::Map primarymap = _truthinfo->GetPrimaryMap();
-    if (primarymap.find(particle->get_track_id()) == primarymap.end()) continue;
-
-    PHG4VtxPoint* candidate = _truthinfo->GetPrimaryVtx(particle->get_vtx_id());
+    PHG4VtxPoint* candidate = get_truth_eval()->get_vertex(particle);
     if (candidate->get_id() == truthpoint->get_id()) ++ntracks;
   }
   

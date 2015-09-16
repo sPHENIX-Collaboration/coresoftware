@@ -3,6 +3,7 @@
 #define __SVTXCLUSTEREVAL_H__
 
 #include "SvtxHitEval.h"
+#include "SvtxTruthEval.h"
 
 #include <phool/PHCompositeNode.h>
 #include <g4hough/SvtxClusterMap.h>
@@ -27,6 +28,7 @@ public:
   
   // access the clustereval (and its cached values)
   SvtxHitEval* get_hit_eval() {return &_hiteval;}
+  SvtxTruthEval* get_truth_eval() {return _hiteval.get_truth_eval();}
   
   // backtrace through to PHG4Hits
   std::set<PHG4Hit*> all_truth_hits          (SvtxCluster* cluster);

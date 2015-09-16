@@ -497,63 +497,58 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
       float efromtruth = NAN;
 
-          if (primary)
-            {
+      if (primary) {
 
-              gparticleID = primary->get_track_id();
-              gflavor = primary->get_pid();
+	gparticleID = primary->get_track_id();
+	gflavor = primary->get_pid();
 
-              std::set<PHG4Hit*> g4hits = trutheval->get_shower_from_primary(
-                  primary);
-              gnhits = g4hits.size();
-              gpx = primary->get_px();
-              gpy = primary->get_py();
-              gpz = primary->get_pz();
-              ge = primary->get_e();
+	std::set<PHG4Hit*> g4hits = trutheval->get_shower_from_primary(primary);
+	gnhits = g4hits.size();
+	gpx = primary->get_px();
+	gpy = primary->get_py();
+	gpz = primary->get_pz();
+	ge = primary->get_e();
 
-              gpt = sqrt(gpx * gpx + gpy * gpy);
-              if (gpt != 0.0)
-                geta = asinh(gpz / gpt);
-              gphi = atan2(gpy, gpx);
+	gpt = sqrt(gpx * gpx + gpy * gpy);
+	if (gpt != 0.0) geta = asinh(gpz / gpt);
+	gphi = atan2(gpy, gpx);
 
-              PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
+	PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
 
-              if (vtx)
-                {
-                  gvx = vtx->get_x();
-                  gvy = vtx->get_y();
-                  gvz = vtx->get_z();
-                }
+	if (vtx) {
+	  gvx = vtx->get_x();
+	  gvy = vtx->get_y();
+	  gvz = vtx->get_z();
+	}
 
-              gembed = trutheval->get_embed(primary);
-              gedep = trutheval->get_shower_energy_deposit(primary);
-              gmrad = trutheval->get_shower_moliere_radius(primary);
+	gembed = trutheval->get_embed(primary);
+	gedep = trutheval->get_shower_energy_deposit(primary);
+	gmrad = trutheval->get_shower_moliere_radius(primary);
 
-              efromtruth = towereval->get_energy_contribution(tower, primary);
-
-            }
+	efromtruth = towereval->get_energy_contribution(tower, primary);
+      }
 
       float tower_data[21] = {_ievent,
-            towerid,
-            ieta,
-            iphi,
-            eta,
-            phi,
-            e,
-            gparticleID,
-            gflavor,
-            gnhits,
-            geta,
-            gphi,
-            ge,
-            gpt,
-            gvx,
-            gvy,
-            gvz,
-            gembed,
-            gedep,
-            gmrad,
-            efromtruth
+			      towerid,
+			      ieta,
+			      iphi,
+			      eta,
+			      phi,
+			      e,
+			      gparticleID,
+			      gflavor,
+			      gnhits,
+			      geta,
+			      gphi,
+			      ge,
+			      gpt,
+			      gvx,
+			      gvy,
+			      gvz,
+			      gembed,
+			      gedep,
+			      gmrad,
+			      efromtruth
       };
       
       _ntp_tower->Fill(tower_data);
@@ -609,41 +604,36 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
       float efromtruth = NAN;
 
-          if (primary)
-            {
-              gparticleID = primary->get_track_id();
-              gflavor = primary->get_pid();
+      if (primary) {
+	gparticleID = primary->get_track_id();
+	gflavor = primary->get_pid();
+	
+	std::set<PHG4Hit*> g4hits = trutheval->get_shower_from_primary(primary);
+	gnhits = g4hits.size();
+	gpx = primary->get_px();
+	gpy = primary->get_py();
+	gpz = primary->get_pz();
+	ge = primary->get_e();
 
-              std::set<PHG4Hit*> g4hits = trutheval->get_shower_from_primary(
-                  primary);
-              gnhits = g4hits.size();
-              gpx = primary->get_px();
-              gpy = primary->get_py();
-              gpz = primary->get_pz();
-              ge = primary->get_e();
+	gpt = sqrt(gpx * gpx + gpy * gpy);
+	if (gpt != 0.0) geta = asinh(gpz / gpt);
+	gphi = atan2(gpy, gpx);
 
-              gpt = sqrt(gpx * gpx + gpy * gpy);
-              if (gpt != 0.0)
-                geta = asinh(gpz / gpt);
-              gphi = atan2(gpy, gpx);
+	PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
 
-              PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
+	if (vtx) {
+	  gvx = vtx->get_x();
+	  gvy = vtx->get_y();
+	  gvz = vtx->get_z();
+	}
+	
+	gembed = trutheval->get_embed(primary);
+	gedep = trutheval->get_shower_energy_deposit(primary);
+	gmrad = trutheval->get_shower_moliere_radius(primary);
 
-              if (vtx)
-                {
-                  ;
-                  gvx = vtx->get_x();
-                  gvy = vtx->get_y();
-                  gvz = vtx->get_z();
-                }
-
-              gembed = trutheval->get_embed(primary);
-              gedep = trutheval->get_shower_energy_deposit(primary);
-              gmrad = trutheval->get_shower_moliere_radius(primary);
-
-              efromtruth = clustereval->get_energy_contribution(cluster,
-                  primary);
-            }
+	efromtruth = clustereval->get_energy_contribution(cluster,
+							  primary);
+      }
       
       float cluster_data[20] = {_ievent,
 				clusterID,

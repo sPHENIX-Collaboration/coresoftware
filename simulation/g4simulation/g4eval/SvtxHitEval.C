@@ -20,7 +20,8 @@
 using namespace std;
 
 SvtxHitEval::SvtxHitEval(PHCompositeNode* topNode)
-  : _hitmap(NULL),
+  : _trutheval(topNode),
+    _hitmap(NULL),
     _g4cells_svtx(NULL),
     _g4cells_tracker(NULL),
     _g4hits_svtx(NULL),
@@ -51,6 +52,8 @@ void SvtxHitEval::next_event(PHCompositeNode* topNode) {
   _cache_get_energy_contribution_g4particle.clear();
   _cache_get_energy_contribution_g4hit.clear();
 
+  _trutheval.next_event(topNode);
+  
   get_node_pointers(topNode);
 }
 
