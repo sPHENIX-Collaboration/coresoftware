@@ -124,11 +124,11 @@ int CaloTruthEval::get_embed(PHG4Particle* particle) {
 
 PHG4VtxPoint* CaloTruthEval::get_vertex(PHG4Particle* particle) {
 
-  if (is_primary(particle)) {
-    return _truthinfo->GetPrimaryVtx( particle->get_vtx_id() );
+  if (particle->get_primary_id() == -1) {
+    return _truthinfo->GetPrimaryVtx( particle->get_vtx_id() );  
   }
 
-  return _truthinfo->GetVtx( particle->get_vtx_id() ); 
+  return _truthinfo->GetVtx( particle->get_vtx_id() );  
 }
 
 bool CaloTruthEval::is_primary(PHG4Particle* particle) {
