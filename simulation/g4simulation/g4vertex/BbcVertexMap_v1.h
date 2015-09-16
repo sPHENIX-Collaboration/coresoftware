@@ -12,9 +12,6 @@ class BbcVertexMap_v1 : public BbcVertexMap {
   
 public:
 
-  typedef std::map<unsigned int, BbcVertex*>::const_iterator ConstIter;
-  typedef std::map<unsigned int, BbcVertex*>::iterator            Iter;
-  
   BbcVertexMap_v1();
   virtual ~BbcVertexMap_v1();
 
