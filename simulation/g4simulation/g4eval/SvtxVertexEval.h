@@ -5,6 +5,7 @@
 #include "SvtxTrackEval.h"
 #include "SvtxClusterEval.h"
 #include "SvtxHitEval.h"
+#include "SvtxTruthEval.h"
 
 #include <phool/PHCompositeNode.h>
 #include <g4hough/SvtxVertexMap.h>
@@ -31,6 +32,7 @@ public:
   SvtxTrackEval*   get_track_eval() {return &_trackeval;}
   SvtxClusterEval* get_cluster_eval() {return _trackeval.get_cluster_eval();}
   SvtxHitEval*     get_hit_eval() {return _trackeval.get_hit_eval();}
+  SvtxTruthEval* get_truth_eval() {return _trackeval.get_truth_eval();}
   
   // backtrace through to PHG4Hits
   std::set<PHG4Particle*>  all_truth_particles (SvtxVertex* vertex);
