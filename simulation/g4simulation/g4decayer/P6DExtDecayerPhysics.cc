@@ -38,9 +38,6 @@
 #include <Geant4/G4ProcessManager.hh>
 #include <Geant4/G4Decay.hh>
 
-#include <iostream>
-
-using namespace std;
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 P6DExtDecayerPhysics::P6DExtDecayerPhysics(const G4String& name)
@@ -114,10 +111,9 @@ void P6DExtDecayerPhysics::ConstructProcess()
   }
 
   // If the extDecayer isn't used for this particle we need to delete it here
-  cout << "decayer used: " << decayer_used << endl;
+  // as far as I see this never happens but this makes coverity happy
   if (! decayer_used)
     {
-      cout << "deleting decayer" << endl;
       delete  extDecayer;
     }
   if ( verboseLevel > 0 ) {
