@@ -9,7 +9,6 @@ class BbcVertex : public PHObject {
 
 public:
 
-  BbcVertex() {}
   virtual ~BbcVertex() {}
 
   // PHObject virtual overloads
@@ -35,6 +34,9 @@ public:
 
   virtual float        get_z_err() const        {return NAN;}
   virtual void         set_z_err(float z_err)   {}
+
+protected:
+  BbcVertex() {}
   
 private:
   
