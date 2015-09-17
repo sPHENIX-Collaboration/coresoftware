@@ -1,5 +1,7 @@
-#ifndef __SVTXTRACK_H__
-#define __SVTXTRACK_H__
+#ifndef __SVTXTRACK_V1_H__
+#define __SVTXTRACK_V1_H__
+
+#include "SvtxTrack.h"
 
 #include <phool/PHObject.h>
 
@@ -8,64 +10,62 @@
 #include <map>
 #include <cmath>
 
-class SvtxTrack : public PHObject {
+class SvtxTrack_v1 : public SvtxTrack {
   
  public:
 
   // --- inner State class ---------------------------------------------------//
-  class State {
-  public:
-
-    virtual ~State() {}
-
-    virtual float get_pathlength() const {return NAN;}
-
-    virtual float get_x() const {return NAN;}
-    virtual void  set_x(float x) {}
-
-    virtual float get_y() const {return NAN;}
-    virtual void  set_y(float y) {}
-
-    virtual float get_z() const {return NAN;}
-    virtual void  set_z(float z) {}
-
-    virtual float get_pos(unsigned int i) const {return NAN;}
-
-    virtual float get_px() const {return NAN;}
-    virtual void  set_px(float px) {}
-
-    virtual float get_py() const {return NAN;}
-    virtual void  set_py(float py) {}
-
-    virtual float get_pz() const {return NAN;}
-    virtual void  set_pz(float pz) {}
-
-    virtual float get_mom(unsigned int i) const {return NAN;}
-
-    virtual float get_error(unsigned int i, unsigned int j) const {return NAN;}
-    virtual void  set_error(unsigned int i, unsigned int j, float value) {}
-
-  protected:
-    virtual State(float pathlength = 0.0) {}
-  };
+  class State_v1 : public State {                                             //
+  public:                                                                     //
+    State_v1(float pathlength = 0.0);                                         //
+    virtual ~State_v1() {}                                                    //
+                                                                              //
+    float get_pathlength() const {return _pathlength;}                        //
+                                                                              //
+    float get_x() const {return _pos[0];}                                     //
+    void  set_x(float x) {_pos[0] = x;}                                       //
+                                                                              //
+    float get_y() const {return _pos[1];}                                     //
+    void  set_y(float y) {_pos[1] = y;}                                       //
+                                                                              //
+    float get_z() const {return _pos[2];}                                     //
+    void  set_z(float z) {_pos[2] = z;}                                       //
+                                                                              //
+    float get_pos(unsigned int i) const {return _pos[i];}                     //
+                                                                              //
+    float get_px() const {return _mom[0];}                                    //
+    void  set_px(float px) {_mom[0] = px;}                                    //
+                                                                              //
+    float get_py() const {return _mom[1];}                                    //
+    void  set_py(float py) {_mom[1] = py;}                                    //
+                                                                              //
+    float get_pz() const {return _mom[2];}                                    //
+    void  set_pz(float pz) {_mom[2] = pz;}                                    //
+                                                                              //
+    float get_mom(unsigned int i) const {return _mom[i];}                     //
+                                                                              //
+    float get_error(unsigned int i, unsigned int j) const;                    //
+    void  set_error(unsigned int i, unsigned int j, float value);             //
+                                                                              //
+  private:                                                                    //
+                                                                              //
+    unsigned int covar_index(unsigned int i, unsigned int j) const;           //
+                                                                              //
+    float _pathlength;                                                        //
+    float _pos[3];                                                            //
+    float _mom[3];                                                            //
+    float _covar[21]; // 6x6 triangular packed storage                        //
+  };                                                                          //
   // --- inner State class ---------------------------------------------------//
  
-  typedef std::map<float,SvtxTrack::State>::const_iterator ConstStateIter;
-  typedef std::map<float,SvtxTrack::State>::iterator       StateIter; 
-  
-  typedef std::set<unsigned int>::const_iterator         ConstClusterIter;
-  typedef std::set<unsigned int>::iterator               ClusterIter;
-  
-  enum CAL_LAYER {PRES=0,CEMC=1,HCALIN=2,HCALOUT=3};
-
-  SvtxTrack();
-  virtual ~SvtxTrack() {}
+  SvtxTrack_v1();
+  virtual ~SvtxTrack_v1() {}
   
   // The "standard PHObject response" functions...
   void identify(std::ostream &os=std::cout) const;
-  void Reset() {*this = SvtxTrack();}
+  void Reset() {*this = SvtxTrack_v1();}
   int  isValid() const;
-  SvtxTrack* Clone() const {return new SvtxTrack(*this);}
+  SvtxTrack* Clone() const {return new SvtxTrack_v1(*this);}
   
   //
   // basic track information ---------------------------------------------------
@@ -191,10 +191,10 @@ class SvtxTrack : public PHObject {
  private: 
 
   // --- inner CaloProjection class ------------------------------------------//
-  class CaloProjection {                                                      //
+  class CaloProjection_v1 : public CaloProjection {                           //
   public:                                                                     //
-    CaloProjection();                                                         //
-    virtual ~CaloProjection() {}                                              //
+    CaloProjection_v1();                                                      //
+    virtual ~CaloProjection_v1() {}                                           //
                                                                               //
     float get_energy_3x3() const {return _e3x3;}                              //
     void  set_energy_3x3(float e3x3) {_e3x3 = e3x3;}                          //
@@ -235,15 +235,15 @@ class SvtxTrack : public PHObject {
   // unsigned int _vertex_id;
   
   // track state information
-  std::map<float,SvtxTrack::State> _states; //< path length => state object
+  std::map<float,SvtxTrack_v1::State> _states; //< path length => state object
   
   // cluster contents
   std::set<unsigned int> _cluster_ids;
   
   // calorimeter matches
-  std::map<CAL_LAYER,SvtxTrack::CaloProjection> _calo_matches;
+  std::map<CAL_LAYER,SvtxTrack_v1::CaloProjection> _calo_matches;
   
-  ClassDef(SvtxTrack,1)
+  ClassDef(SvtxTrack_v1,1)
 };
 
 #endif
