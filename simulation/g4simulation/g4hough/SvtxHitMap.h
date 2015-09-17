@@ -11,41 +11,41 @@ class SvtxHitMap : public PHObject {
   
 public:
 
+  typedef std::map<unsigned int, SvtxHit*> HitMap;
   typedef std::map<unsigned int, SvtxHit*>::const_iterator ConstIter;
   typedef std::map<unsigned int, SvtxHit*>::iterator            Iter;
   
-  SvtxHitMap();
-  SvtxHitMap(const SvtxHitMap& hitmap);
-  SvtxHitMap& operator=(const SvtxHitMap& hitmap);
-  virtual ~SvtxHitMap();
+  virtual ~SvtxHitMap() {}
   
-  void identify(std::ostream& os = std::cout) const;
-  void Reset();
-  int  IsValid() const {return 1;}
-  SvtxHitMap* Clone() const {return new SvtxHitMap(*this);}
+  virtual void identify(std::ostream& os = std::cout) const {
+    os << "SvtxHitMap base class" << std::endl;
+  }
+  virtual void Reset() {}
+  virtual int  IsValid() const {return 0;}
+  virtual SvtxHitMap* Clone() const {return NULL;}
   
-  bool   empty()                   const {return _map.empty();}
-  size_t  size()                   const {return _map.size();}
-  size_t count(unsigned int idkey) const {return _map.count(idkey);}
-  void   clear()                         {Reset();}
+  virtual bool   empty()                   const {return true;}
+  virtual size_t  size()                   const {return 0;}
+  virtual size_t count(unsigned int idkey) const {return 0;}
+  virtual void   clear()                         {}
   
-  const SvtxHit* get(unsigned int idkey) const;
-        SvtxHit* get(unsigned int idkey); 
-        SvtxHit* insert(const SvtxHit *hit);
-        size_t   erase(unsigned int idkey) {
-	  delete _map[idkey]; return _map.erase(idkey);
-	}
+  virtual const SvtxHit* get(unsigned int idkey) const {return NULL;}
+  virtual       SvtxHit* get(unsigned int idkey) {return NULL;}
+  virtual       SvtxHit* insert(const SvtxHit *hit) {return NULL;}
+  virtual       size_t   erase(unsigned int idkey) {return 0;}
 
-  ConstIter begin()                   const {return _map.begin();}
-  ConstIter  find(unsigned int idkey) const {return _map.find(idkey);}
-  ConstIter   end()                   const {return _map.end();}
+  virtual ConstIter begin()                   const {return HitMap().end();}
+  virtual ConstIter  find(unsigned int idkey) const {return HitMap().end();}
+  virtual ConstIter   end()                   const {return HitMap().end();}
 
-  Iter begin()                   {return _map.begin();}
-  Iter  find(unsigned int idkey) {return _map.find(idkey);}
-  Iter   end()                   {return _map.end();}
+  virtual Iter begin()                   {return HitMap().end();}
+  virtual Iter  find(unsigned int idkey) {return HitMap().end();}
+  virtual Iter   end()                   {return HitMap().end();}
+
+protected:
+  SvtxHitMap() {}
   
 private:
-  std::map<unsigned int, SvtxHit*> _map;
     
   ClassDef(SvtxHitMap, 1);
 };

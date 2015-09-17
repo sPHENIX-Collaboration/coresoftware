@@ -1,6 +1,7 @@
 #include "PHG4SvtxDigitizer.h"
 
 #include "SvtxHitMap.h"
+#include "SvtxHitMap_v1.h"
 #include "SvtxHit.h"
 #include "SvtxHit_v1.h"
 
@@ -54,7 +55,7 @@ int PHG4SvtxDigitizer::InitRun(PHCompositeNode* topNode) {
   // Create the Hit node if required
   SvtxHitMap *svxhits = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
   if (!svxhits) {
-    svxhits = new SvtxHitMap();
+    svxhits = new SvtxHitMap_v1();
     PHIODataNode<PHObject> *SvtxHitMapNode =
       new PHIODataNode<PHObject>(svxhits, "SvtxHitMap", "PHObject");
     svxNode->addNode(SvtxHitMapNode);

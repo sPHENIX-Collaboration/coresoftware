@@ -45,6 +45,7 @@ pkginclude_HEADERS = \
   SvtxHit.h \
   SvtxHit_v1.h \
   SvtxHitMap.h \
+  SvtxHitMap_v1.h \
   SvtxCluster.h \
   SvtxClusterMap.h \
   SvtxTrack.h \
@@ -65,6 +66,8 @@ libg4hough_io_la_SOURCES = \
   SvtxHit_v1_Dict.C \
   SvtxHitMap.C \
   SvtxHitMap_Dict.C \
+  SvtxHitMap_v1.C \
+  SvtxHitMap_v1_Dict.C \
   SvtxCluster.C \
   SvtxCluster_Dict.C \
   SvtxClusterMap.C \
