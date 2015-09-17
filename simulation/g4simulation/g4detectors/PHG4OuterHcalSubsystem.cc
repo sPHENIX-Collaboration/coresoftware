@@ -2,11 +2,14 @@
 #include "PHG4OuterHcalDetector.h"
 #include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4OuterHcalSteppingAction.h"
+#include "PHG4OuterHcalParameters.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <fun4all/getClass.h>
 
 #include <Geant4/globals.hh>
+
+#include <boost/foreach.hpp>
 
 #include <sstream>
 
@@ -15,20 +18,9 @@ using namespace std;
 //_______________________________________________________________________
 PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const int lyr ):
   PHG4Subsystem( name ),
-  detector_( 0 ),
+  detector_( NULL ),
   steppingAction_( NULL ),
   eventAction_(NULL),
-  place_in_x(0),
-  place_in_y(0),
-  place_in_z(0),
-  rot_in_x(0),
-  rot_in_y(0),
-  rot_in_z(0),
-  material("G4_AIR"),  // default - almost nothing
-  active(0),
-  absorberactive(0),
-  layer(lyr),
-  blackhole(0),
   detector_type(name),
   superdetector("NONE"),
   light_scint_model_(true),
@@ -36,19 +28,14 @@ PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const i
   light_balance_inner_radius_(0.0),
   light_balance_inner_corr_(1.0),
   light_balance_outer_radius_(10.0),
-  light_balance_outer_corr_(1.0),
-  steplimits(NAN)
+  light_balance_outer_corr_(1.0)
 {
-
   // put the layer into the name so we get unique names
   // for multiple layers
   ostringstream nam;
   nam << name << "_" << lyr;
   Name(nam.str().c_str());
-  for (int i = 0; i < 3; i++)
-    {
-      dimension[i] = 100.0 * cm;
-    }
+  params = new PHG4OuterHcalParameters();
 }
 
 //_______________________________________________________________________
@@ -58,18 +45,11 @@ int PHG4OuterHcalSubsystem::Init( PHCompositeNode* topNode )
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
   // create detector
-  detector_ = new PHG4OuterHcalDetector(topNode, Name(), layer);
-  detector_->SetPlace(place_in_x, place_in_y, place_in_z);
-  detector_->SetXRot(rot_in_x);
-  detector_->SetYRot(rot_in_y);
-  detector_->SetZRot(rot_in_z);
-  detector_->SetActive(active);
-  detector_->SetAbsorberActive(absorberactive);
-  detector_->BlackHole(blackhole);
+  detector_ = new PHG4OuterHcalDetector(topNode, params, Name());
   detector_->SuperDetector(superdetector);
   detector_->OverlapCheck(overlapcheck);
-  detector_->SetStepLimits(steplimits);
-  if (active)
+  set<string> nodes;
+  if (params->active)
     {
       ostringstream nodename;
       if (superdetector != "NONE")
@@ -80,16 +60,8 @@ int PHG4OuterHcalSubsystem::Init( PHCompositeNode* topNode )
 	{
 	  nodename <<  "G4HIT_" << detector_type << "_" << layer;
 	}
-      // create hit list
-      PHG4HitContainer* block_hits =  findNode::getClass<PHG4HitContainer>( topNode , nodename.str().c_str());
-      if ( !block_hits )
-	{
-
-	  dstNode->addNode( new PHIODataNode<PHObject>( block_hits = new PHG4HitContainer(), nodename.str().c_str(), "PHObject" ));
-
-	}
-      PHG4EventActionClearZeroEdep *eventaction = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
-      if (absorberactive)
+      nodes.insert(nodename.str());
+      if (params->absorberactive)
 	{
 	  nodename.str("");
 	  if (superdetector != "NONE")
@@ -100,27 +72,36 @@ int PHG4OuterHcalSubsystem::Init( PHCompositeNode* topNode )
 	    {
 	      nodename <<  "G4HIT_ABSORBER_" << detector_type << "_" << layer;
 	    }
-	  block_hits =  findNode::getClass<PHG4HitContainer>( topNode , nodename.str().c_str());
-	  if ( !block_hits )
-	    {
-
-	      dstNode->addNode( new PHIODataNode<PHObject>( block_hits = new PHG4HitContainer(), nodename.str().c_str(), "PHObject" ));
-
-	    }
-	  eventaction->AddNode(nodename.str());
+          nodes.insert(nodename.str());
 	}
-      eventAction_ = dynamic_cast<PHG4EventAction *> (eventaction);
+      BOOST_FOREACH(string node, nodes)
+	{
+	  PHG4HitContainer* g4_hits =  findNode::getClass<PHG4HitContainer>( topNode , node.c_str());
+	  if ( !g4_hits )
+	    {
+	      dstNode->addNode( new PHIODataNode<PHObject>( g4_hits = new PHG4HitContainer(), node.c_str(), "PHObject" ));
+	    }
+	  if (! eventAction_)
+	    {
+	      eventAction_ = new PHG4EventActionClearZeroEdep(topNode, node);
+	    }
+	  else
+	    {
+	      PHG4EventActionClearZeroEdep *evtact = dynamic_cast<PHG4EventActionClearZeroEdep *>(eventAction_);
+	      evtact->AddNode(node);
+	    }
+	}
       // create stepping action
       steppingAction_ = new PHG4OuterHcalSteppingAction(detector_);
-      if (light_balance_) {
-	steppingAction_->SetLightCorrection(light_balance_inner_radius_,
-					    light_balance_inner_corr_,
-					    light_balance_outer_radius_,
-					    light_balance_outer_corr_);
+      if (params->light_balance) {
+	steppingAction_->SetLightCorrection(params->light_balance_inner_radius,
+					    params->light_balance_inner_corr,
+					    params->light_balance_outer_radius,
+					    params->light_balance_outer_corr);
       }
-      steppingAction_->SetLightScintModel(light_scint_model_);
+      steppingAction_->SetLightScintModel(params->light_scint_mode);
     }
-  if (blackhole && !active)
+  if (params->blackhole && !params->active)
     {
       steppingAction_ = new PHG4OuterHcalSteppingAction(detector_);
     }
@@ -154,3 +135,159 @@ PHG4SteppingAction* PHG4OuterHcalSubsystem::GetSteppingAction( void ) const
     return steppingAction_;
 }
 
+void
+PHG4OuterHcalSubsystem::SetTiltAngle(const double tilt)
+{
+  params->tilt_angle = tilt * deg;
+}
+
+double
+PHG4OuterHcalSubsystem::GetTiltAngle() const
+{
+  return params->tilt_angle/deg;
+}
+
+void
+PHG4OuterHcalSubsystem::SetPlaceZ(const G4double dbl)
+{
+  params->place_in_z = dbl;
+}
+
+void
+PHG4OuterHcalSubsystem::SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
+{
+  params->place_in_x = place_x * cm;
+  params->place_in_y = place_y * cm;
+  params->place_in_z = place_z * cm;
+}
+
+void
+PHG4OuterHcalSubsystem::SetXRot(const G4double dbl)
+{
+  params->x_rot = dbl * deg;
+}
+
+void
+PHG4OuterHcalSubsystem::SetYRot(const G4double dbl)
+{
+  params->y_rot = dbl * deg;
+}
+
+void
+PHG4OuterHcalSubsystem::SetZRot(const G4double dbl)
+{
+  params->z_rot = dbl * deg;
+}
+
+void
+PHG4OuterHcalSubsystem::SetMaterial(const std::string &mat)
+{
+  params->material = mat;
+}
+
+void
+PHG4OuterHcalSubsystem::SetActive(const int i)
+{
+  params->active = i;
+}
+
+void
+PHG4OuterHcalSubsystem::SetAbsorberActive(const int i)
+{
+  params->absorberactive = i;
+}
+
+void
+PHG4OuterHcalSubsystem::BlackHole(const int i)
+{
+  params->blackhole = i;
+}
+
+void
+PHG4OuterHcalSubsystem::SetInnerRadius(const double inner)
+{
+  params->inner_radius = inner * cm;
+}
+
+double
+PHG4OuterHcalSubsystem::GetInnerRadius() const
+{
+  return params->inner_radius/cm;
+}
+
+void
+PHG4OuterHcalSubsystem::SetOuterRadius(const double outer)
+{
+  params->outer_radius = outer * cm;
+}
+
+double
+PHG4OuterHcalSubsystem::GetOuterRadius() const
+{
+  return params->outer_radius/cm;
+}
+
+void
+PHG4OuterHcalSubsystem::SetLength(const double len)
+{
+  params->size_z = len * cm;
+}
+
+void
+PHG4OuterHcalSubsystem::SetGapWidth(const double gap)
+{
+  params->scinti_gap = gap *cm;
+}
+
+void
+PHG4OuterHcalSubsystem::SetNumScintiPlates(const int nplates)
+{
+  params->n_scinti_plates = nplates;
+}
+
+void
+PHG4OuterHcalSubsystem::SetNumScintiTiles(const int ntiles)
+{
+  params->n_scinti_tiles = ntiles;
+}
+
+void
+PHG4OuterHcalSubsystem::SetScintiThickness(const double thick)
+{
+  params->scinti_tile_thickness = thick * cm;
+}
+
+void
+PHG4OuterHcalSubsystem::SetScintiGap(const double scgap)
+{
+  params->scinti_gap_neighbor = scgap * cm;
+}
+
+void
+PHG4OuterHcalSubsystem::SetTiltViaNcross(const int ncross)
+{
+  params->ncross = ncross;
+}
+
+void
+PHG4OuterHcalSubsystem::SetStepLimits(const double slim) 
+{
+  params->steplimits = slim*cm;
+}
+
+void
+PHG4OuterHcalSubsystem::SetLightCorrection(const float inner_radius, const float inner_corr,
+			  const float outer_radius, const float outer_corr) 
+{
+  params->light_balance = true;
+  params->light_balance_inner_radius = inner_radius;
+  params->light_balance_inner_corr = inner_corr;
+  params->light_balance_outer_radius = outer_radius;
+  params->light_balance_outer_corr = outer_corr;
+}
+
+void
+PHG4OuterHcalSubsystem:: SetLightScintModel(const bool b)
+{
+  params->light_scint_mode = b;
+}

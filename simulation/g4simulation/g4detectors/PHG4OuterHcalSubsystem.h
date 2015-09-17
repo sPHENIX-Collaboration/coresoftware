@@ -7,6 +7,7 @@
 #include <Geant4/G4String.hh>
 
 class PHG4OuterHcalDetector;
+class PHG4OuterHcalParameters;
 class PHG4OuterHcalSteppingAction;
 class PHG4EventAction;
 
@@ -38,42 +39,42 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
   int process_event(PHCompositeNode *);
 
   //! accessors (reimplemented)
-  virtual PHG4Detector* GetDetector( void ) const;
-  virtual PHG4SteppingAction* GetSteppingAction( void ) const;
-
-  void SetSize(const G4double sizex, const G4double sizey, const G4double sizez)
-     {dimension[0] = sizex; dimension[1] = sizey; dimension[2] = sizez;}
-  void SetPlaceZ(const G4double dbl) {place_in_z = dbl;}
-  void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
-  {
-    place_in_x = place_x;
-    place_in_y = place_y;
-    place_in_z = place_z;
-  }
-  void SetXRot(const G4double dbl) {rot_in_x = dbl;}
-  void SetYRot(const G4double dbl) {rot_in_y = dbl;}
-  void SetZRot(const G4double dbl) {rot_in_z = dbl;}
-  void SetMaterial(const std::string &mat) {material = mat;}
+  PHG4Detector* GetDetector( void ) const;
+  PHG4SteppingAction* GetSteppingAction( void ) const;
   PHG4EventAction* GetEventAction() const {return eventAction_;}
-  void SetActive(const int i = 1) {active = i;}
-  void SetAbsorberActive(const int i = 1) {absorberactive = i;}
+
+  void SetPlaceZ(const G4double dbl);
+  void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z);
+  void SetXRot(const G4double dbl);
+  void SetYRot(const G4double dbl);
+  void SetZRot(const G4double dbl);
+  void SetMaterial(const std::string &mat);
+  void SetActive(const int i = 1);
+  void SetAbsorberActive(const int i = 1);
   void SuperDetector(const std::string &name) {superdetector = name;}
   const std::string SuperDetector() {return superdetector;}
-  void SetLightCorrection(float inner_radius, float inner_corr,
-			  float outer_radius, float outer_corr) {
-    light_balance_ = true;
-    light_balance_inner_radius_ = inner_radius;
-    light_balance_inner_corr_ = inner_corr;
-    light_balance_outer_radius_ = outer_radius;
-    light_balance_outer_corr_ = outer_corr;
-  }
-  void SetLightScintModel(const bool b = true)
-   {
-     light_scint_model_ = b;
-   }
 
-  void BlackHole(const int i=1) {blackhole = i;}
-  void SetStepLimits(const double slim) {steplimits = slim;}
+  void BlackHole(const int i=1);
+
+  void SetTiltViaNcross(const int ncross);
+  void SetTiltAngle(const double tilt);
+  double GetTiltAngle() const;
+  void SetInnerRadius(const double inner);
+  double GetInnerRadius() const;
+  void SetOuterRadius(const double outer);
+  double GetOuterRadius() const;
+  void SetLength(const double len);
+  void SetGapWidth(const double gap);
+  void SetNumScintiPlates(const int nplates);
+  void SetNumScintiTiles(const int ntiles);
+  void SetScintiThickness(const double thick);
+  void SetScintiGap(const double scgap);
+  void SetStepLimits(const double slim);
+
+
+  void SetLightCorrection(const float inner_radius, const float inner_corr,
+			  const float outer_radius, const float outer_corr);
+  void SetLightScintModel(const bool b = true);
 
   private:
 
@@ -84,20 +85,13 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4OuterHcalSteppingAction* steppingAction_;
-  PHG4EventAction *eventAction_;
-  G4double dimension[3];
-  G4double place_in_x;
-  G4double place_in_y;
-  G4double place_in_z;
-  G4double rot_in_x;
-  G4double rot_in_y;
-  G4double rot_in_z;
 
-  G4String material;
-  int active;
-  int absorberactive;
+  //! begin/end of event action
+  /*! derives from PHG4EventAction */
+  PHG4EventAction *eventAction_;
+
+  PHG4OuterHcalParameters *params;
   int layer;
-  int blackhole;
   std::string detector_type;
   std::string superdetector;
 
@@ -107,7 +101,6 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
   float light_balance_inner_corr_;
   float light_balance_outer_radius_;
   float light_balance_outer_corr_;
-  G4double steplimits;
 };
 
 #endif
