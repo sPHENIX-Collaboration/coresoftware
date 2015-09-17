@@ -32,8 +32,9 @@ using namespace std;
 
 static double no_overlap = 0.00015 * cm; // added safety margin against overlaps by using same boundary between volumes
 
-PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, const std::string &dnam, const int lyr  ):
+PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4OuterHcalParameters *parameters,const std::string &dnam):
   PHG4Detector(Node, dnam),
+  params(parameters),
   steel_rectangle_plate_x(657.2*mm),
   steel_plate_x(828.7*mm),
   steel_plate_z(3049.1*2*mm),
@@ -62,9 +63,8 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, const std::
   z_rot(0),
   active(0),
   absorberactive(0),
-  layer(lyr),
+  layer(0),
   blackhole(0),
-  steplimits(NAN),
   scintilogicnameprefix("HcalOuterScinti"),
   field_setup(NULL)
 {
@@ -560,9 +560,9 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalen
       name.str("");
       name << scintilogicnameprefix << i;
       G4UserLimits *g4userlimits = NULL;
-      if (isfinite(steplimits))
+      if (isfinite(params->steplimits))
 	{
-	  g4userlimits = new G4UserLimits(steplimits);
+	  g4userlimits = new G4UserLimits(params->steplimits);
 	}
       G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i],G4Material::GetMaterial("G4_POLYSTYRENE"),name.str().c_str(), NULL, NULL, g4userlimits);
       assmeblyvol->AddPlacedVolume(scinti_tile_logic,g4vec, NULL);

@@ -1,13 +1,17 @@
 #ifndef PHG4OuterHcalDetector_h
 #define PHG4OuterHcalDetector_h
 
-#include "g4main/PHG4Detector.h"
 #include "PHG4OuterHcalFieldSetup.h"
+#include "PHG4OuterHcalParameters.h"
+#include <g4main/PHG4Detector.h>
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4RotationMatrix.hh>
+
+#include <CGAL/Exact_circular_kernel_2.h>
+#include <CGAL/point_generators_2.h>
 
 #include <map>
 #include <vector>
@@ -20,11 +24,13 @@ class G4VSolid;
 
 class PHG4OuterHcalDetector: public PHG4Detector
 {
+  typedef CGAL::Exact_circular_kernel_2             Circular_k;
+  typedef CGAL::Point_2<Circular_k>                 Point_2;
 
   public:
 
   //! constructor
-  PHG4OuterHcalDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK", const int lyr = 0 );
+  PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4OuterHcalParameters *parameters, const std::string &dnam="BLOCK");
 
   //! destructor
   virtual ~PHG4OuterHcalDetector();
@@ -56,9 +62,8 @@ class PHG4OuterHcalDetector: public PHG4Detector
 
   void BlackHole(const int i=1) {blackhole = i;}
   int IsBlackHole() const {return blackhole;}
-  void SetStepLimits(const double slim) {steplimits = slim;}
 
-  private:
+  protected:
   void AddGeometryNode();
   int ConstructOuterHcal(G4LogicalVolume* sandwich);
   G4VSolid *ConstructHcalSteel(G4LogicalVolume* hcalenvelope);
@@ -66,6 +71,7 @@ class PHG4OuterHcalDetector: public PHG4Detector
   int ConstructHcalSingleScintillator(G4LogicalVolume* hcalenvelope);
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
   int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
+  PHG4OuterHcalParameters *params;
 
   // for the initial trapezoid
   G4double steel_rectangle_plate_x; // the rectangle after eta cutout
@@ -118,7 +124,6 @@ class PHG4OuterHcalDetector: public PHG4Detector
   int absorberactive;
   int layer;
   int blackhole;
-  G4double steplimits;
   std::string detector_type;
   std::string superdetector;
   std::vector<G4VSolid *> scinti_tiles_vec; 
