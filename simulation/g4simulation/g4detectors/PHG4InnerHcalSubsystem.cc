@@ -75,8 +75,8 @@ int PHG4InnerHcalSubsystem::Init( PHCompositeNode* topNode )
 	  PHG4HitContainer* g4_hits =  findNode::getClass<PHG4HitContainer>( topNode , node.c_str());
 	  if ( !g4_hits )
 	    {
-
-	      dstNode->addNode( new PHIODataNode<PHObject>( g4_hits = new PHG4HitContainer(), node.c_str(), "PHObject" ));
+	      g4_hits = new PHG4HitContainer();
+	      dstNode->addNode( new PHIODataNode<PHObject>( g4_hits, node.c_str(), "PHObject" ));
 
 	    }
 	  if (! eventAction_)
