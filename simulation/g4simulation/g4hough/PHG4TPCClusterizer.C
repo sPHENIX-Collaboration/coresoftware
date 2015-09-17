@@ -4,6 +4,7 @@
 #include "SvtxHit.h"
 #include "SvtxClusterMap.h"
 #include "SvtxCluster.h"
+#include "SvtxCluster_v1.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -197,7 +198,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 					if( is_local_maximum( amps[layer], phibin, zbin ) == false ){continue;}
 					float phi=0.;float z=0.;float e=0.;
 					fit_cluster( amps[layer], nhits_tot, nhits[layer], phibin, zbin, geo, phi, z, e );
-					SvtxCluster clus;
+					SvtxCluster_v1 clus;
 					clus.set_layer( layer );
 					clus.set_e(e);
 					double radius = geo->get_radius();

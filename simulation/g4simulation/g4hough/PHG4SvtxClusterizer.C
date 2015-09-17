@@ -4,6 +4,7 @@
 #include "SvtxHit.h"
 #include "SvtxClusterMap.h"
 #include "SvtxCluster.h"
+#include "SvtxCluster_v1.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -393,7 +394,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       int layer = mapiter->second->get_layer();
       PHG4CylinderCellGeom* geom = geom_container->GetLayerCellGeom(layer);
       
-      SvtxCluster clus;
+      SvtxCluster_v1 clus;
       clus.set_layer( layer );
       float clus_energy = 0.0;
       unsigned int clus_adc = 0;
@@ -662,7 +663,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       int layer = mapiter->second->get_layer();
       PHG4CylinderGeom* geom = geom_container->GetLayerGeom(layer);
       
-      SvtxCluster clus;
+      SvtxCluster_v1 clus;
       clus.set_layer( layer );
       float clus_energy = 0.0;
       unsigned int clus_adc = 0;
