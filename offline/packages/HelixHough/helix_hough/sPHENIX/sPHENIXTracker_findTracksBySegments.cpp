@@ -496,12 +496,12 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
   }
   if(cur->size() == 0)
   {
-    cout<<"no seeds found out of "<<hits.size()<<" hits"<<endl;
-    for(unsigned int i=0;i<hits.size();++i)
-    {
-      cout<<hits[i].index<<" ";
-    }
-    cout<<endl<<endl;
+    // cout<<"no seeds found out of "<<hits.size()<<" hits"<<endl;
+    // for(unsigned int i=0;i<hits.size();++i)
+    // {
+    //   cout<<hits[i].index<<" ";
+    // }
+    // cout<<endl<<endl;
     
     return;
   }
@@ -650,7 +650,7 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
       }
     }
 
-    cout<<"added track candidate with "<<store_tracks.back().hits.size()<<" hits and chi^2 "<<seed.state.chi2/ (2.*store_tracks.back().hits.size() - 5.) <<endl;
+    // cout<<"added track candidate with "<<store_tracks.back().hits.size()<<" hits and chi^2 "<<seed.state.chi2/ (2.*store_tracks.back().hits.size() - 5.) <<endl;
     
     if(seed.state.phi < 0.){seed.state.phi += 2.*M_PI;}
     store_tracks.back().phi = seed.state.phi;
@@ -682,8 +682,8 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
       
       tracks.push_back(store_tracks[i]);
 
-      cout<<"added TRACK with "<<tracks.back().hits.size()<<" hits"<<endl;
-      cout<<"ntracks = "<<tracks.size()<<endl;
+      // cout<<"added TRACK with "<<tracks.back().hits.size()<<" hits"<<endl;
+      // cout<<"ntracks = "<<tracks.size()<<endl;
 
       track_states.push_back(store_states[i]);
       if(remove_hits == true)
