@@ -2,6 +2,8 @@
 #ifndef __SVTXHITEVAL_H__
 #define __SVTXHITEVAL_H__
 
+#include "SvtxTruthEval.h"
+
 #include <phool/PHCompositeNode.h>
 #include <g4hough/SvtxHitMap.h>
 #include <g4hough/SvtxHit.h>
@@ -25,6 +27,9 @@ public:
   void next_event(PHCompositeNode *topNode);
   void do_caching(bool do_cache) {_do_cache = do_cache;}
 
+  // access the clustereval (and its cached values)
+  SvtxTruthEval* get_truth_eval() {return &_trutheval;}
+  
   PHG4CylinderCell* get_cell(SvtxHit* hit);
   
   // backtrace through to PHG4Hits
@@ -47,7 +52,8 @@ public:
 private:
 
   void get_node_pointers(PHCompositeNode *topNode);
-  
+
+  SvtxTruthEval _trutheval;
   SvtxHitMap* _hitmap;
   PHG4CylinderCellContainer* _g4cells_svtx;
   PHG4CylinderCellContainer* _g4cells_tracker;

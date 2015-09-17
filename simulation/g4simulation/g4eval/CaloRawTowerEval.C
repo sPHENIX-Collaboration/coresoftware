@@ -100,7 +100,6 @@ std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primaries(RawTower* tower) {
   std::set<PHG4Particle*> truth_primaries;
   
   std::set<PHG4Hit*> g4hits = all_truth_hits(tower);
-  if (g4hits.empty()) return truth_primaries;
 
   for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
        iter != g4hits.end();

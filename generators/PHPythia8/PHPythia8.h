@@ -10,6 +10,10 @@
 
 #include <Rtypes.h>
 
+#ifndef __CINT__
+#include <gsl/gsl_rng.h>
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -51,8 +55,6 @@ public:
 
   void print_config() const;
 
-  void set_seed(const int s) { _seed = s; }
-
   /// set event selection criteria
   void register_trigger(PHPy8GenTrigger *theTrigger);
   void set_trigger_OR() { _triggersOR = true; } // default true
@@ -90,7 +92,6 @@ private:
   std::string _node_name;
 
   // vertex placement
-  TRandom *_rand;
   bool _useBeamVtx;
   double _beamX, _beamXsigma;
   double _beamY, _beamYsigma;
@@ -108,11 +109,14 @@ private:
 
   std::string _configFile;
   std::vector<std::string> _commands;
-  long int _seed;		
   
   // HepMC
   HepMC::Pythia8ToHepMC *_pythiaToHepMC;
   PHHepMCGenEvent *_phhepmcevt;
+
+#ifndef __CINT__
+  gsl_rng *RandomGenerator;
+#endif
 };
 
 #endif	/* __PHPYTHIA8_H__ */
