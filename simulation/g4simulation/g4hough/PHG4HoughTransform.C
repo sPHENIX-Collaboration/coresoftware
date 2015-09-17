@@ -2,6 +2,7 @@
 
 // g4hough includes
 #include "SvtxVertexMap.h"
+#include "SvtxVertexMap_v1.h"
 #include "SvtxVertex.h"
 #include "SvtxTrackMap.h"
 #include "SvtxTrackMap_v1.h"
@@ -1110,7 +1111,7 @@ int PHG4HoughTransform::CreateNodes(PHCompositeNode *topNode)
   tb_node->addNode(tracks_node);
   if (verbosity>0) cout << "Svtx/SvtxTrackMap node added" << endl;
 
-  _g4vertexes = new SvtxVertexMap;
+  _g4vertexes = new SvtxVertexMap_v1;
   PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(_g4vertexes,"SvtxVertexMap","PHObject");
   tb_node->addNode(vertexes_node);
   if (verbosity>0) cout << "Svtx/SvtxVertexMap node added" << endl;

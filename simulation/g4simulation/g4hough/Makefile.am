@@ -37,6 +37,7 @@ libg4hough_la_LIBADD = \
 pkginclude_HEADERS = \
   SvtxVertex.h \
   SvtxVertexMap.h \
+  SvtxVertexMap_v1.h \
   PHG4SvtxDeadArea.h \
   PHG4SvtxThresholds.h \
   PHG4SvtxAddConnectedCells.h \
@@ -90,7 +91,9 @@ libg4hough_io_la_SOURCES = \
   SvtxVertex.C \
   SvtxVertex_Dict.C \
   SvtxVertexMap.C \
-  SvtxVertexMap_Dict.C
+  SvtxVertexMap_Dict.C \
+  SvtxVertexMap_v1.C \
+  SvtxVertexMap_v1_Dict.C
 
 libg4hough_la_SOURCES = \
   PHG4SvtxDeadArea.C \
