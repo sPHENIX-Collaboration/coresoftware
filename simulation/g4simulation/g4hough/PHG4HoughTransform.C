@@ -4,6 +4,7 @@
 #include "SvtxVertexMap.h"
 #include "SvtxVertexMap_v1.h"
 #include "SvtxVertex.h"
+#include "SvtxVertex_v1.h"
 #include "SvtxTrackMap.h"
 #include "SvtxTrackMap_v1.h"
 #include "SvtxTrack.h"
@@ -637,7 +638,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
     cout << "PHG4HoughTransform::process_event -- producing PHG4Track objects..." << endl;
   }
 
-  SvtxVertex vertex;
+  SvtxVertex_v1 vertex;
   vertex.set_t0(0.0);
   for (int i=0;i<3;++i) vertex.set_position(i,_vertex[i]);
   vertex.set_chisq(0.0);

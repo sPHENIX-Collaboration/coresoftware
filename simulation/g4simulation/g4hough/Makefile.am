@@ -36,6 +36,7 @@ libg4hough_la_LIBADD = \
 
 pkginclude_HEADERS = \
   SvtxVertex.h \
+  SvtxVertex_v1.h \
   SvtxVertexMap.h \
   SvtxVertexMap_v1.h \
   PHG4SvtxDeadArea.h \
@@ -90,6 +91,8 @@ libg4hough_io_la_SOURCES = \
   SvtxTrackMap_v1_Dict.C \
   SvtxVertex.C \
   SvtxVertex_Dict.C \
+  SvtxVertex_v1.C \
+  SvtxVertex_v1_Dict.C \
   SvtxVertexMap.C \
   SvtxVertexMap_Dict.C \
   SvtxVertexMap_v1.C \
