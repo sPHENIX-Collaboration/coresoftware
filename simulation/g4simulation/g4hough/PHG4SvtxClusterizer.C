@@ -3,6 +3,7 @@
 #include "SvtxHitMap.h"
 #include "SvtxHit.h"
 #include "SvtxClusterMap.h"
+#include "SvtxClusterMap_v1.h"
 #include "SvtxCluster.h"
 #include "SvtxCluster_v1.h"
 
@@ -168,7 +169,7 @@ int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
   SvtxClusterMap *svxclusters 
     = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
   if (!svxclusters) {
-    svxclusters = new SvtxClusterMap();
+    svxclusters = new SvtxClusterMap_v1();
     PHIODataNode<PHObject> *SvtxClusterMapNode =
       new PHIODataNode<PHObject>(svxclusters, "SvtxClusterMap", "PHObject");
     svxNode->addNode(SvtxClusterMapNode);
