@@ -176,18 +176,22 @@ int SvtxTruthEval::get_embed(PHG4Particle* particle) {
 
 bool SvtxTruthEval::is_primary(PHG4Particle* particle) {
 
-  bool is_primary = false;  
-  PHG4TruthInfoContainer::Map primary_map = _truthinfo->GetPrimaryMap();
-  if (primary_map.find(particle->get_track_id()) != primary_map.end()) {
-    is_primary = true;
+  if (particle->get_primary_id() == particle->get_track_id()) {
+    return true;
+  } else if (particle->get_primary_id() == -1) {
+    return true;
   }
   
-  return is_primary;
+  return false;
 }
 
 PHG4VtxPoint* SvtxTruthEval::get_vertex(PHG4Particle* particle) {
 
-  return _truthinfo->GetVtx( particle->get_vtx_id() );
+  if (particle->get_primary_id() == -1) {
+    return _truthinfo->GetPrimaryVtx( particle->get_vtx_id() );  
+  }
+
+  return _truthinfo->GetVtx( particle->get_vtx_id() );  
 }
 
 void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode) {

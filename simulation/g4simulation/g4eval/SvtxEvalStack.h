@@ -29,11 +29,10 @@ public:
   SvtxTrackEval*   get_track_eval() {return _vertexeval.get_track_eval();}
   SvtxClusterEval* get_cluster_eval() {return _vertexeval.get_cluster_eval();}
   SvtxHitEval*     get_hit_eval() {return _vertexeval.get_hit_eval();}
-  SvtxTruthEval*   get_truth_eval() {return &_trutheval;}
+  SvtxTruthEval*   get_truth_eval() {return _vertexeval.get_truth_eval();}
   
 private:
-  SvtxVertexEval _vertexeval; // right now this is the top-level eval, other evals nest underneath
-  SvtxTruthEval  _trutheval;  // except this one
+  SvtxVertexEval _vertexeval; // right now this is the top-level eval
 };
 
 #endif // __SVTXEVALSTACK_H__

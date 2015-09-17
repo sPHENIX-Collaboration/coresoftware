@@ -23,6 +23,8 @@ libPHPythia8_la_LDFLAGS = \
   `root-config --libs`
 
 libPHPythia8_la_LIBADD = \
+  -lgsl \
+  -lgslcblas \
   -lphool \
   -lSubsysReco \
   -lfun4all \

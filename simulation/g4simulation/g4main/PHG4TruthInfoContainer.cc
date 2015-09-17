@@ -60,17 +60,32 @@ void
 PHG4TruthInfoContainer::identify(ostream& os) const
 {
    ConstIterator iter;
+   cout << "---particlemap--------------------------" << endl;
    for (iter = hitmap.begin(); iter != hitmap.end(); ++iter)
      {
        cout << "hit key " <<  iter->first << endl;
        (iter->second)->identify();
      }
    ConstVtxIterator vter;
+   cout << "---vtxmap-------------------------------" << endl;
    for (vter = vtxmap.begin(); vter != vtxmap.end(); ++vter)
      {
        cout << "vtx id: " << vter ->first << endl;
        (vter ->second)->identify();
      }
+   cout << "---primaryparticlemap-------------------" << endl;
+   for (iter = primary_particle_map.begin(); iter != primary_particle_map.end(); ++iter)
+     {
+       cout << "primary_particle_ key " <<  iter->first << endl;
+       (iter->second)->identify();
+     }
+   cout << "---primaryparticlemap-------------------" << endl;
+   for (vter = primary_vtxmap.begin(); vter != primary_vtxmap.end(); ++vter)
+     {
+       cout << "vtx id: " << vter ->first << endl;
+       (vter ->second)->identify();
+     }
+   
   return;
 }
 
