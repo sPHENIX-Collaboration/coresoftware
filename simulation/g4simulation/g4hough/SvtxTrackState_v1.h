@@ -14,13 +14,13 @@ class SvtxTrackState_v1 : public SvtxTrackState {
   
 public: 
   
-  SvtxTrackState_v1();
+  SvtxTrackState_v1(float pathlength = 0.0);
   virtual ~SvtxTrackState_v1() {}
   
   // The "standard PHObject response" functions...
   void identify(std::ostream &os=std::cout) const;
-  void Reset() {*this = SvtxTrackState_v1();}
-  int  isValid() const;
+  void Reset() {*this = SvtxTrackState_v1(0.0);}
+  int  isValid() {return 1;}
   SvtxTrackState* Clone() const {return new SvtxTrackState_v1(*this);}
 
   float get_pathlength() const {return _pathlength;}
@@ -58,7 +58,6 @@ private:
   float _pos[3];
   float _mom[3];
   float _covar[21]; //  6x6 triangular packed storage
-};
 
   ClassDef(SvtxTrackState_v1,1)
 };

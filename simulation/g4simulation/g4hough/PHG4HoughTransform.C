@@ -8,6 +8,7 @@
 #include "SvtxTrackMap.h"
 #include "SvtxTrackMap_v1.h"
 #include "SvtxTrack.h"
+#include "SvtxTrack_v1.h"
 #include "SvtxClusterMap.h"
 #include "SvtxCluster.h"
 
@@ -96,14 +97,14 @@ static inline double sign(double x)
   return ((double)(x > 0.)) - ((double)(x < 0.));
 }
 
-void PHG4HoughTransform::projectToRadius(const SvtxTrack& track, double B, double radius, vector<double>& intersection)
+void PHG4HoughTransform::projectToRadius(const SvtxTrack* track, double B, double radius, vector<double>& intersection)
 {
 
-  float phi  = atan2(track.get_y(),track.get_x());
-  float d    = track.get_dca2d();
-  float k    = B / 333.6 / track.get_pt();
-  float z0   = track.get_z();
-  float dzdl = track.get_pz()/track.get_p();
+  float phi  = atan2(track->get_y(),track->get_x());
+  float d    = track->get_dca2d();
+  float k    = B / 333.6 / track->get_pt();
+  float z0   = track->get_z();
+  float dzdl = track->get_pz()/track->get_p();
 
   intersection.clear();intersection.assign(3,0.);
   double& x = intersection[0];
@@ -119,10 +120,10 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrack& track, double B, doubl
   float hitx = d*cosphi;
   float hity = d*sinphi;
 
-  for (SvtxTrack::ConstStateIter iter = track.begin_states();
-       iter != track.end_states();
+  for (SvtxTrack::ConstStateIter iter = track->begin_states();
+       iter != track->end_states();
        ++iter) {
-    const SvtxTrack::State* state = &iter->second;
+    const SvtxTrackState* state = iter->second;
     hitx = state->get_x();
     hity = state->get_y();
   }
@@ -671,7 +672,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
 
   for(unsigned int itrack=0; itrack<_tracks.size();itrack++)
   {
-    SvtxTrack track;
+    SvtxTrack_v1 track;
     track.set_id(itrack);
     track_hits.clear();
     track_hits = _tracks.at(itrack).hits;

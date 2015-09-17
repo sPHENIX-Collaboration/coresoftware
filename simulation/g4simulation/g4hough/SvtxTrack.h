@@ -102,10 +102,10 @@ public:
   virtual size_t count_states(float pathlength) const {return 0;}
   virtual void   clear_states()                       {}
   
-  virtual const SvtxTrackState* get_state(float pathlength) const {return NULL;}
-  virtual       SvtxTrackState* get_state(float pathlength)       {return NULL;}
-  virtual       SvtxTrackState* insert_state(const State &state)  {return NULL;}
-  virtual                size_t erase_state(float pathlength)     {return 0;}
+  virtual const SvtxTrackState* get_state(float pathlength) const          {return NULL;}
+  virtual       SvtxTrackState* get_state(float pathlength)                {return NULL;}
+  virtual       SvtxTrackState* insert_state(const SvtxTrackState* state)  {return NULL;}
+  virtual                size_t erase_state(float pathlength)              {return 0;}
 
   virtual ConstStateIter begin_states()                const {return StateMap().end();}
   virtual ConstStateIter  find_state(float pathlength) const {return StateMap().end();}
@@ -122,7 +122,7 @@ public:
   virtual bool                empty_clusters() const                     {return false;}
   virtual size_t              size_clusters() const                      {return 0;}
   virtual void                insert_cluster(unsigned int clusterid)     {}
-  virtual size_t              erase_cluster(unsigned int clusterid)      {return 0:}
+  virtual size_t              erase_cluster(unsigned int clusterid)      {return 0;}
   virtual ConstClusterIter    begin_clusters() const                     {return ClusterSet().end();}
   virtual ConstClusterIter    find_cluster(unsigned int clusterid) const {return ClusterSet().end();}
   virtual ConstClusterIter    end_clusters() const                       {return ClusterSet().end();}
@@ -142,17 +142,16 @@ public:
   virtual float get_cal_energy_3x3(CAL_LAYER layer) const             {return NULL;}
   virtual void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3) {}
 
-  virtual float get_cal_cluster_id(CAL_LAYER layer) const         {return NULL;}
-  virtual void  set_cal_cluster_id(CAL_LAYER layer, CAL_LAYER id) {}
+  virtual unsigned int get_cal_cluster_id(CAL_LAYER layer) const            {return NULL;}
+  virtual void         set_cal_cluster_id(CAL_LAYER layer, unsigned int id) {}
 
   virtual float get_cal_cluster_e(CAL_LAYER layer) const    {return NULL;}
   virtual void  set_cal_cluster_e(CAL_LAYER layer, float e) {}
 
 protected:
-  SvtxTrack();
-  
-  ClassDef(SvtxTrack,1)
+  SvtxTrack() {}
+
+  ClassDef(SvtxTrack,1);
 };
 
 #endif
-

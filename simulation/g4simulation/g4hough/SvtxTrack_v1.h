@@ -1,6 +1,7 @@
 #ifndef __SVTXTRACK_V1_H__
 #define __SVTXTRACK_V1_H__
 
+#include "SvtxTrack.h"
 #include "SvtxTrackState.h"
 
 #include <phool/PHObject.h>
@@ -95,7 +96,7 @@ public:
   
   const SvtxTrackState* get_state(float pathlength) const;
         SvtxTrackState* get_state(float pathlength); 
-        SvtxTrackState* insert_state(const State* state);
+        SvtxTrackState* insert_state(const SvtxTrackState* state);
         size_t erase_state(float pathlength);
 
   ConstStateIter begin_states()                const {return _states.begin();}
@@ -124,20 +125,20 @@ public:
   //
   // calo projection methods ---------------------------------------------------
   //
-  void set_cal_dphi(CAL_LAYER layer, float dphi) {cal_dphi[layer] = dphi;}
-  float get_cal_dphi(CAL_LAYER layer) const {return cal_dphi[layer];}
+  float get_cal_dphi(CAL_LAYER layer) const;
+  void  set_cal_dphi(CAL_LAYER layer, float dphi) {_cal_dphi[layer] = dphi;}
 
-  void set_cal_deta(CAL_LAYER layer, float deta) {cal_deta[layer] = deta;}
-  float get_cal_deta(CAL_LAYER layer) const {return cal_deta[layer];}
+  float get_cal_deta(CAL_LAYER layer) const;
+  void  set_cal_deta(CAL_LAYER layer, float deta) {_cal_deta[layer] = deta;}
 
-  void set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3) {cal_energy_3x3[layer] = energy_3x3;}
-  float get_cal_energy_3x3(CAL_LAYER layer) const {return cal_energy_3x3[layer];}
+  float get_cal_energy_3x3(CAL_LAYER layer) const;
+  void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3) {_cal_energy_3x3[layer] = energy_3x3;}
 
-  void set_cal_cluster_id(CAL_LAYER layer, CAL_LAYER id) {cal_cluster_id[layer] = id;}
-  float get_cal_cluster_id(CAL_LAYER layer) const {return cal_cluster_id[layer];}
+  unsigned int get_cal_cluster_id(CAL_LAYER layer) const;
+  void         set_cal_cluster_id(CAL_LAYER layer, unsigned int id) {_cal_cluster_id[layer] = id;}
 
-  void set_cal_cluster_e(CAL_LAYER layer, float e) {cal_cluster_e[layer] = e;}
-  float get_cal_cluster_e(CAL_LAYER layer) const {return cal_cluster_e[layer];}
+  float get_cal_cluster_e(CAL_LAYER layer) const;
+  void  set_cal_cluster_e(CAL_LAYER layer, float e) {_cal_cluster_e[layer] = e;}
   
  private: 
   
@@ -156,7 +157,7 @@ public:
   // unsigned int _vertex_id;
   
   // track state information
-  TrackStateMap _states; //< path length => state object
+  StateMap _states; //< path length => state object
   
   // cluster contents
   ClusterSet _cluster_ids;

@@ -72,7 +72,7 @@ public:
   }
 
   /// external handle for projecting tracks into the calorimetry
-  static void projectToRadius(const SvtxTrack& track,
+  static void projectToRadius(const SvtxTrack* track,
 			      double magfield, // in Tesla
 			      double radius,   // in cm
 			      std::vector<double>& intersection);
