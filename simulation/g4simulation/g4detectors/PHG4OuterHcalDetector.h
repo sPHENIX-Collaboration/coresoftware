@@ -30,7 +30,7 @@ class PHG4OuterHcalDetector: public PHG4Detector
   public:
 
   //! constructor
-  PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4OuterHcalParameters *parameters, const std::string &dnam="BLOCK");
+  PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4OuterHcalParameters *parameters, const std::string &dnam="HCALOUT");
 
   //! destructor
   virtual ~PHG4OuterHcalDetector();
@@ -43,25 +43,10 @@ class PHG4OuterHcalDetector: public PHG4Detector
   int IsInOuterHcal(G4VPhysicalVolume*) const;
   //@}
 
-  void SetPlaceZ(const G4double place_z) {place_in_z = place_z*cm;}
-  void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
-  {
-    place_in_x = place_x*cm;
-    place_in_y = place_y*cm;
-    place_in_z = place_z*cm;
-  }
-  void SetXRot(const G4double angle) {x_rot = angle*rad;}
-  void SetYRot(const G4double angle) {y_rot = angle*rad;}
-  void SetZRot(const G4double angle) {z_rot = angle*rad;}
-  void SetActive(const int i = 1) {active = i;}
-  void SetAbsorberActive(const int i = 1) {absorberactive = i;}
-  int IsActive() const {return active;}
+  int IsActive() const {return params->active;}
   void SuperDetector(const std::string &name) {superdetector = name;}
   const std::string SuperDetector() const {return superdetector;}
   int get_Layer() const {return layer;}
-
-  void BlackHole(const int i=1) {blackhole = i;}
-  int IsBlackHole() const {return blackhole;}
 
   protected:
   void AddGeometryNode();
@@ -114,16 +99,7 @@ class PHG4OuterHcalDetector: public PHG4Detector
   /* G4VPhysicalVolume *outer_scinti; */
   /* G4VPhysicalVolume *outer_absorber; */
 
-   G4double place_in_x;
-   G4double place_in_y;
-   G4double place_in_z;
-   G4double x_rot;
-   G4double y_rot;
-   G4double z_rot;
-  int active;
-  int absorberactive;
   int layer;
-  int blackhole;
   std::string detector_type;
   std::string superdetector;
   std::vector<G4VSolid *> scinti_tiles_vec; 

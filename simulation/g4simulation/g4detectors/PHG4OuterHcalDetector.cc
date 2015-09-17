@@ -55,16 +55,7 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4OuterHc
   cutbox_x((steel_plate_x - steel_rectangle_plate_x*mm)*2),// twice the size we need to cut to make geo easier
   // trapezoid twice the size of what we need
   cuttrapezoid_x(cutbox_x),
-  place_in_x(0 * cm),
-  place_in_y(0 * cm),
-  place_in_z(0 * cm),
-  x_rot(0),
-  y_rot(0),
-  z_rot(0),
-  active(0),
-  absorberactive(0),
   layer(0),
-  blackhole(0),
   scintilogicnameprefix("HcalOuterScinti"),
   field_setup(NULL)
 {
@@ -161,7 +152,7 @@ PHG4OuterHcalDetector::IsInOuterHcal(G4VPhysicalVolume * volume) const
 // 82 the number of the scintillator mother volume
 // HcalOuterScinti_11: name of scintillator slat
 // 11: number of scintillator slat logical volume
-  if (absorberactive)
+  if (params->absorberactive)
     {
       if (steel_absorber_vec.find(volume) != steel_absorber_vec.end())
 	{
@@ -192,10 +183,10 @@ PHG4OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
   hcalVisAtt->SetColour(G4Colour::Magenta());
   hcal_envelope_log->SetVisAttributes(hcalVisAtt);
   G4RotationMatrix hcal_rotm;
-  hcal_rotm.rotateX(x_rot);
-  hcal_rotm.rotateY(y_rot);
-  hcal_rotm.rotateZ(z_rot);
-  new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(place_in_x, place_in_y, place_in_z)), hcal_envelope_log, "OuterHcal", logicWorld, 0, false, overlapcheck);
+  hcal_rotm.rotateX(params->x_rot);
+  hcal_rotm.rotateY(params->y_rot);
+  hcal_rotm.rotateZ(params->z_rot);
+  new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(params->place_in_x, params->place_in_y, params->place_in_z)), hcal_envelope_log, "OuterHcal", logicWorld, 0, false, overlapcheck);
   ConstructOuterHcal(hcal_envelope_log);
   AddGeometryNode();
   return;
@@ -579,7 +570,7 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalen
 void
 PHG4OuterHcalDetector::AddGeometryNode()
 {
-  if (active)
+  if (params->active)
     {
       ostringstream geonode;
       if (superdetector != "NONE")
@@ -601,7 +592,7 @@ PHG4OuterHcalDetector::AddGeometryNode()
         }
       // here in the detector class we have internal units, convert to cm
       // before putting into the geom object
-      PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv3(envelope_inner_radius / cm, (place_in_z - steel_plate_z / 2.) / cm, (place_in_z + steel_plate_z / 2.) / cm, (envelope_outer_radius-envelope_inner_radius) / cm, n_steel_plates,  tilt_angle/rad, 0);
+      PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv3(envelope_inner_radius / cm, (params->place_in_z - steel_plate_z / 2.) / cm, (params->place_in_z + steel_plate_z / 2.) / cm, (envelope_outer_radius-envelope_inner_radius) / cm, n_steel_plates,  tilt_angle/rad, 0);
       geo->AddLayerGeom(layer, mygeom);
       if (verbosity > 0) geo->identify();
     }
