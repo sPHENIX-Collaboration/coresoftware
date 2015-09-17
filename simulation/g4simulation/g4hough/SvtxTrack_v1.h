@@ -1,7 +1,7 @@
 #ifndef __SVTXTRACK_V1_H__
 #define __SVTXTRACK_V1_H__
 
-#include "SvtxTrack.h"
+#include "SvtxTrackState.h"
 
 #include <phool/PHObject.h>
 
@@ -12,54 +12,12 @@
 
 class SvtxTrack_v1 : public SvtxTrack {
   
- public:
-
-  // --- inner State class ---------------------------------------------------//
-  class State_v1 : public State {                                             //
-  public:                                                                     //
-    State_v1(float pathlength = 0.0);                                         //
-    virtual ~State_v1() {}                                                    //
-                                                                              //
-    float get_pathlength() const {return _pathlength;}                        //
-                                                                              //
-    float get_x() const {return _pos[0];}                                     //
-    void  set_x(float x) {_pos[0] = x;}                                       //
-                                                                              //
-    float get_y() const {return _pos[1];}                                     //
-    void  set_y(float y) {_pos[1] = y;}                                       //
-                                                                              //
-    float get_z() const {return _pos[2];}                                     //
-    void  set_z(float z) {_pos[2] = z;}                                       //
-                                                                              //
-    float get_pos(unsigned int i) const {return _pos[i];}                     //
-                                                                              //
-    float get_px() const {return _mom[0];}                                    //
-    void  set_px(float px) {_mom[0] = px;}                                    //
-                                                                              //
-    float get_py() const {return _mom[1];}                                    //
-    void  set_py(float py) {_mom[1] = py;}                                    //
-                                                                              //
-    float get_pz() const {return _mom[2];}                                    //
-    void  set_pz(float pz) {_mom[2] = pz;}                                    //
-                                                                              //
-    float get_mom(unsigned int i) const {return _mom[i];}                     //
-                                                                              //
-    float get_error(unsigned int i, unsigned int j) const;                    //
-    void  set_error(unsigned int i, unsigned int j, float value);             //
-                                                                              //
-  private:                                                                    //
-                                                                              //
-    unsigned int covar_index(unsigned int i, unsigned int j) const;           //
-                                                                              //
-    float _pathlength;                                                        //
-    float _pos[3];                                                            //
-    float _mom[3];                                                            //
-    float _covar[21]; // 6x6 triangular packed storage                        //
-  };                                                                          //
-  // --- inner State class ---------------------------------------------------//
- 
+public: 
+  
   SvtxTrack_v1();
-  virtual ~SvtxTrack_v1() {}
+  SvtxTrack_v1(const SvtxTrack_v1& track);
+  SvtxTrack_v1& operator=(const SvtxTrack_v1& track);
+  virtual ~SvtxTrack_v1();
   
   // The "standard PHObject response" functions...
   void identify(std::ostream &os=std::cout) const;
@@ -97,35 +55,35 @@ class SvtxTrack_v1 : public SvtxTrack {
   float get_dca2d_error() const {return _dca2d_error;}  
   void  set_dca2d_error(float error) {_dca2d_error = error;}
 
-  float get_x() const  {return _states.find(0.0)->second.get_x();}
-  void  set_x(float x) {_states[0.0].set_x(x);}
+  float get_x() const  {return _states.find(0.0)->second->get_x();}
+  void  set_x(float x) {_states[0.0]->set_x(x);}
   
-  float get_y() const  {return _states.find(0.0)->second.get_y();}
-  void  set_y(float y) {_states[0.0].set_y(y);}
+  float get_y() const  {return _states.find(0.0)->second->get_y();}
+  void  set_y(float y) {_states[0.0]->set_y(y);}
 
-  float get_z() const  {return _states.find(0.0)->second.get_z();}
-  void  set_z(float z) {_states[0.0].set_z(z);}
+  float get_z() const  {return _states.find(0.0)->second->get_z();}
+  void  set_z(float z) {_states[0.0]->set_z(z);}
 
-  float get_pos(unsigned int i) const {return _states.find(0.0)->second.get_pos(i);}
+  float get_pos(unsigned int i) const {return _states.find(0.0)->second->get_pos(i);}
 
-  float get_px() const   {return _states.find(0.0)->second.get_px();}
-  void  set_px(float px) {_states[0.0].set_px(px);}
+  float get_px() const   {return _states.find(0.0)->second->get_px();}
+  void  set_px(float px) {_states[0.0]->set_px(px);}
   
-  float get_py() const   {return _states.find(0.0)->second.get_py();}
-  void  set_py(float py) {_states[0.0].set_py(py);}
+  float get_py() const   {return _states.find(0.0)->second->get_py();}
+  void  set_py(float py) {_states[0.0]->set_py(py);}
 
-  float get_pz() const   {return _states.find(0.0)->second.get_pz();}
-  void  set_pz(float pz) {_states[0.0].set_pz(pz);}
+  float get_pz() const   {return _states.find(0.0)->second->get_pz();}
+  void  set_pz(float pz) {_states[0.0]->set_pz(pz);}
 
-  float get_mom(unsigned int i) const {return _states.find(0.0)->second.get_mom(i);}
+  float get_mom(unsigned int i) const {return _states.find(0.0)->second->get_mom(i);}
 
   float get_p() const   {return sqrt(pow(get_px(),2) + pow(get_py(),2) + pow(get_pz(),2));}
   float get_pt() const  {return sqrt(pow(get_px(),2) + pow(get_py(),2));}
   float get_eta() const {return asinh(get_pz()/get_pt());}
   float get_phi() const {return atan2(get_py(),get_px());}
 
-  float get_error(int i, int j) const {return _states.find(0.0)->second.get_error(i,j);}
-  void  set_error(int i, int j, float value) {return _states[0.0].set_error(i,j,value);}
+  float get_error(int i, int j) const {return _states.find(0.0)->second->get_error(i,j);}
+  void  set_error(int i, int j, float value) {return _states[0.0]->set_error(i,j,value);}
 
   //
   // state methods -------------------------------------------------------------
@@ -133,19 +91,12 @@ class SvtxTrack_v1 : public SvtxTrack {
   bool   empty_states()                 const {return _states.empty();}
   size_t size_states()                  const {return _states.size();}
   size_t count_states(float pathlength) const {return _states.count(pathlength);}
-  void   clear_states() {
-    _states.clear();
-    insert_state(State(0.0));
-  }
+  void   clear_states();
   
-  const State* get_state(float pathlength) const;
-        State* get_state(float pathlength); 
-        State* insert_state(const State &state);
-        size_t erase_state(float pathlength) {
-	  _states.erase(pathlength);
-	  if (pathlength == 0) insert_state(State(0.0));
-	  return _states.size();
-	}
+  const SvtxTrackState* get_state(float pathlength) const;
+        SvtxTrackState* get_state(float pathlength); 
+        SvtxTrackState* insert_state(const State* state);
+        size_t erase_state(float pathlength);
 
   ConstStateIter begin_states()                const {return _states.begin();}
   ConstStateIter  find_state(float pathlength) const {return _states.find(pathlength);}
@@ -173,52 +124,22 @@ class SvtxTrack_v1 : public SvtxTrack {
   //
   // calo projection methods ---------------------------------------------------
   //
-  void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3);
-  float get_cal_energy_3x3(CAL_LAYER layer) const;
+  void set_cal_dphi(CAL_LAYER layer, float dphi) {cal_dphi[layer] = dphi;}
+  float get_cal_dphi(CAL_LAYER layer) const {return cal_dphi[layer];}
 
-  void         set_cal_cluster_id(CAL_LAYER layer, unsigned int id);
-  unsigned int get_cal_cluster_id(CAL_LAYER layer) const;
-  
-  void  set_cal_dphi(CAL_LAYER layer, float dphi);
-  float get_cal_dphi(CAL_LAYER layer) const;
+  void set_cal_deta(CAL_LAYER layer, float deta) {cal_deta[layer] = deta;}
+  float get_cal_deta(CAL_LAYER layer) const {return cal_deta[layer];}
 
-  void  set_cal_deta(CAL_LAYER layer, float deta);
-  float get_cal_deta(CAL_LAYER layer) const;
+  void set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3) {cal_energy_3x3[layer] = energy_3x3;}
+  float get_cal_energy_3x3(CAL_LAYER layer) const {return cal_energy_3x3[layer];}
 
-  void  set_cal_cluster_e(CAL_LAYER layer, float e);
-  float get_cal_cluster_e(CAL_LAYER layer) const;
+  void set_cal_cluster_id(CAL_LAYER layer, CAL_LAYER id) {cal_cluster_id[layer] = id;}
+  float get_cal_cluster_id(CAL_LAYER layer) const {return cal_cluster_id[layer];}
+
+  void set_cal_cluster_e(CAL_LAYER layer, float e) {cal_cluster_e[layer] = e;}
+  float get_cal_cluster_e(CAL_LAYER layer) const {return cal_cluster_e[layer];}
   
  private: 
-
-  // --- inner CaloProjection class ------------------------------------------//
-  class CaloProjection_v1 : public CaloProjection {                           //
-  public:                                                                     //
-    CaloProjection_v1();                                                      //
-    virtual ~CaloProjection_v1() {}                                           //
-                                                                              //
-    float get_energy_3x3() const {return _e3x3;}                              //
-    void  set_energy_3x3(float e3x3) {_e3x3 = e3x3;}                          //
-                                                                              //
-    unsigned int get_cluster_id() const {return _clus_id;}                    //
-    void         set_cluster_id(unsigned int clus_id) {_clus_id = clus_id;}   //
-                                                                              //
-    float get_deta() const {return _deta;}                                    //
-    void  set_deta(float deta) {_deta = deta;}                                //
-                                                                              //
-    float get_dphi() const {return _dphi;}                                    //
-    void  set_dphi(float dphi) {_dphi = dphi;}                                //
-                                                                              //
-    float get_cluster_energy() const {return _clus_e;}                        //
-    void  set_cluster_energy(float clus_e) {_clus_e = clus_e;}                //
-                                                                              //
-  private:                                                                    //
-    float _e3x3;                                                              //
-    unsigned int _clus_id;                                                    //
-    float _deta;                                                              //
-    float _dphi;                                                              //
-    float _clus_e;                                                            //
-  };                                                                          //
-  // --- inner CaloProjection class ------------------------------------------//
   
   // track information
   unsigned int _track_id;
@@ -235,13 +156,17 @@ class SvtxTrack_v1 : public SvtxTrack {
   // unsigned int _vertex_id;
   
   // track state information
-  std::map<float,SvtxTrack_v1::State> _states; //< path length => state object
+  TrackStateMap _states; //< path length => state object
   
   // cluster contents
-  std::set<unsigned int> _cluster_ids;
+  ClusterSet _cluster_ids;
   
   // calorimeter matches
-  std::map<CAL_LAYER,SvtxTrack_v1::CaloProjection> _calo_matches;
+  std::map<CAL_LAYER,float> _cal_dphi;
+  std::map<CAL_LAYER,float> _cal_deta;
+  std::map<CAL_LAYER,float> _cal_energy_3x3;
+  std::map<CAL_LAYER,int>   _cal_cluster_id;
+  std::map<CAL_LAYER,float> _cal_cluster_e;
   
   ClassDef(SvtxTrack_v1,1)
 };

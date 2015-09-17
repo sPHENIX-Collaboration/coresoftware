@@ -1,247 +1,155 @@
 #ifndef __SVTXTRACK_H__
 #define __SVTXTRACK_H__
 
+#include "SvtxTrackState.h"
+
 #include <phool/PHObject.h>
 
 #include <iostream>
 #include <set>
 #include <map>
 #include <cmath>
+#include <limits.h>
 
 class SvtxTrack : public PHObject {
   
- public:
+public:
+  typedef std::map<float,SvtxTrackState*> StateMap;
+  typedef StateMap::const_iterator        ConstStateIter;
+  typedef StateMap::iterator              StateIter; 
 
-  // --- inner State class ---------------------------------------------------//
-  class State {
-  public:
-
-    virtual ~State() {}
-
-    virtual float get_pathlength() const {return NAN;}
-
-    virtual float get_x() const {return NAN;}
-    virtual void  set_x(float x) {}
-
-    virtual float get_y() const {return NAN;}
-    virtual void  set_y(float y) {}
-
-    virtual float get_z() const {return NAN;}
-    virtual void  set_z(float z) {}
-
-    virtual float get_pos(unsigned int i) const {return NAN;}
-
-    virtual float get_px() const {return NAN;}
-    virtual void  set_px(float px) {}
-
-    virtual float get_py() const {return NAN;}
-    virtual void  set_py(float py) {}
-
-    virtual float get_pz() const {return NAN;}
-    virtual void  set_pz(float pz) {}
-
-    virtual float get_mom(unsigned int i) const {return NAN;}
-
-    virtual float get_error(unsigned int i, unsigned int j) const {return NAN;}
-    virtual void  set_error(unsigned int i, unsigned int j, float value) {}
-
-  protected:
-    virtual State(float pathlength = 0.0) {}
-  };
-  // --- inner State class ---------------------------------------------------//
- 
-  typedef std::map<float,SvtxTrack::State>::const_iterator ConstStateIter;
-  typedef std::map<float,SvtxTrack::State>::iterator       StateIter; 
-  
-  typedef std::set<unsigned int>::const_iterator         ConstClusterIter;
-  typedef std::set<unsigned int>::iterator               ClusterIter;
+  typedef std::set<unsigned int>     ClusterSet;
+  typedef ClusterSet::const_iterator ConstClusterIter;
+  typedef ClusterSet::iterator       ClusterIter;
   
   enum CAL_LAYER {PRES=0,CEMC=1,HCALIN=2,HCALOUT=3};
 
-  SvtxTrack();
   virtual ~SvtxTrack() {}
   
   // The "standard PHObject response" functions...
-  void identify(std::ostream &os=std::cout) const;
-  void Reset() {*this = SvtxTrack();}
-  int  isValid() const;
-  SvtxTrack* Clone() const {return new SvtxTrack(*this);}
+  virtual void identify(std::ostream &os=std::cout) const {
+    os << "SvtxTrack base class" << std::endl;
+  }
+  virtual void Reset() {}
+  virtual int  isValid() const {return 0;}
+  virtual SvtxTrack* Clone() const {return NULL;}
   
   //
   // basic track information ---------------------------------------------------
   //
   
-  unsigned int get_id() const          {return _track_id;}
-  void         set_id(unsigned int id) {_track_id = id;}
+  virtual unsigned int get_id() const          {return UINT_MAX;}
+  virtual void         set_id(unsigned int id) {}
 
-  bool get_positive_charge() const {return _is_positive_charge;}
-  void set_positive_charge(bool ispos) {_is_positive_charge = ispos;}
+  virtual bool get_positive_charge() const     {return false;}
+  virtual void set_positive_charge(bool ispos) {}
 
-  int  get_charge() const {return (get_positive_charge()) ? 1 : -1;}
-  void set_charge(int charge) {(charge > 0) ? set_positive_charge(true) : set_positive_charge(false);}
+  virtual int  get_charge() const              {return -1;}
+  virtual void set_charge(int charge)          {}
 
-  float get_chisq() const {return _chisq;}  
-  void  set_chisq(float chisq) {_chisq = chisq;}
+  virtual float get_chisq() const              {return NAN;}
+  virtual void  set_chisq(float chisq)         {}
 
-  unsigned int get_ndf() const {return _ndf;}
-  void         set_ndf(int ndf) {_ndf = ndf;}
+  virtual unsigned int get_ndf() const         {return UINT_MAX;}
+  virtual void         set_ndf(int ndf)        {}
 
-  float get_quality() const {return (_ndf != 0) ? _chisq/_ndf : NAN;}
+  virtual float get_quality() const            {return NAN;}
 
-  float get_dca() const {return _dca;}
-  void  set_dca(float dca) {_dca = dca;}
+  virtual float get_dca() const                {return NAN;}
+  virtual void  set_dca(float dca)             {}
 
-  float get_dca2d() const {return _dca2d;}  
-  void  set_dca2d(float dca2d) {_dca2d = dca2d;}
+  virtual float get_dca2d() const              {return NAN;}  
+  virtual void  set_dca2d(float dca2d)         {}
 
-  float get_dca2d_error() const {return _dca2d_error;}  
-  void  set_dca2d_error(float error) {_dca2d_error = error;}
+  virtual float get_dca2d_error() const        {return NAN;}
+  virtual void  set_dca2d_error(float error)   {}
 
-  float get_x() const  {return _states.find(0.0)->second.get_x();}
-  void  set_x(float x) {_states[0.0].set_x(x);}
+  virtual float get_x() const                  {return NAN;}
+  virtual void  set_x(float x)                 {}
   
-  float get_y() const  {return _states.find(0.0)->second.get_y();}
-  void  set_y(float y) {_states[0.0].set_y(y);}
+  virtual float get_y() const                  {return NAN;}
+  virtual void  set_y(float y)                 {}
 
-  float get_z() const  {return _states.find(0.0)->second.get_z();}
-  void  set_z(float z) {_states[0.0].set_z(z);}
+  virtual float get_z() const                  {return NAN;}
+  virtual void  set_z(float z)                 {}
 
-  float get_pos(unsigned int i) const {return _states.find(0.0)->second.get_pos(i);}
+  virtual float get_pos(unsigned int i) const  {return NAN;}
 
-  float get_px() const   {return _states.find(0.0)->second.get_px();}
-  void  set_px(float px) {_states[0.0].set_px(px);}
+  virtual float get_px() const                 {return NAN;}
+  virtual void  set_px(float px)               {}
   
-  float get_py() const   {return _states.find(0.0)->second.get_py();}
-  void  set_py(float py) {_states[0.0].set_py(py);}
+  virtual float get_py() const                 {return NAN;}
+  virtual void  set_py(float py)               {}
 
-  float get_pz() const   {return _states.find(0.0)->second.get_pz();}
-  void  set_pz(float pz) {_states[0.0].set_pz(pz);}
+  virtual float get_pz() const                 {return NAN;}
+  virtual void  set_pz(float pz)               {}
 
-  float get_mom(unsigned int i) const {return _states.find(0.0)->second.get_mom(i);}
+  virtual float get_mom(unsigned int i) const  {return NAN;}
 
-  float get_p() const   {return sqrt(pow(get_px(),2) + pow(get_py(),2) + pow(get_pz(),2));}
-  float get_pt() const  {return sqrt(pow(get_px(),2) + pow(get_py(),2));}
-  float get_eta() const {return asinh(get_pz()/get_pt());}
-  float get_phi() const {return atan2(get_py(),get_px());}
+  virtual float get_p() const                  {return NAN;}
+  virtual float get_pt() const                 {return NAN;}
+  virtual float get_eta() const                {return NAN;}
+  virtual float get_phi() const                {return NAN;}
 
-  float get_error(int i, int j) const {return _states.find(0.0)->second.get_error(i,j);}
-  void  set_error(int i, int j, float value) {return _states[0.0].set_error(i,j,value);}
+  virtual float get_error(int i, int j) const        {return NAN;}
+  virtual void  set_error(int i, int j, float value) {}
 
   //
   // state methods -------------------------------------------------------------
   //
-  bool   empty_states()                 const {return _states.empty();}
-  size_t size_states()                  const {return _states.size();}
-  size_t count_states(float pathlength) const {return _states.count(pathlength);}
-  void   clear_states() {
-    _states.clear();
-    insert_state(State(0.0));
-  }
+  virtual bool   empty_states()                 const {return false;}
+  virtual size_t size_states()                  const {return 0;}
+  virtual size_t count_states(float pathlength) const {return 0;}
+  virtual void   clear_states()                       {}
   
-  const State* get_state(float pathlength) const;
-        State* get_state(float pathlength); 
-        State* insert_state(const State &state);
-        size_t erase_state(float pathlength) {
-	  _states.erase(pathlength);
-	  if (pathlength == 0) insert_state(State(0.0));
-	  return _states.size();
-	}
+  virtual const SvtxTrackState* get_state(float pathlength) const {return NULL;}
+  virtual       SvtxTrackState* get_state(float pathlength)       {return NULL;}
+  virtual       SvtxTrackState* insert_state(const State &state)  {return NULL;}
+  virtual                size_t erase_state(float pathlength)     {return 0;}
 
-  ConstStateIter begin_states()                const {return _states.begin();}
-  ConstStateIter  find_state(float pathlength) const {return _states.find(pathlength);}
-  ConstStateIter   end_states()                const {return _states.end();}
+  virtual ConstStateIter begin_states()                const {return StateMap().end();}
+  virtual ConstStateIter  find_state(float pathlength) const {return StateMap().end();}
+  virtual ConstStateIter   end_states()                const {return StateMap().end();}
 
-  StateIter begin_states()                {return _states.begin();}
-  StateIter  find_state(float pathlength) {return _states.find(pathlength);}
-  StateIter   end_states()                {return _states.end();}
+  virtual StateIter begin_states()                {return StateMap().end();}
+  virtual StateIter  find_state(float pathlength) {return StateMap().end();}
+  virtual StateIter   end_states()                {return StateMap().end();}
     
   //
   // associated cluster ids methods --------------------------------------------
   //
-  void                clear_clusters()                           {_cluster_ids.clear();}
-  bool                empty_clusters() const                     {return _cluster_ids.empty();}
-  size_t              size_clusters() const                      {return _cluster_ids.size();}
-  void                insert_cluster(unsigned int clusterid)     {_cluster_ids.insert(clusterid);}
-  size_t              erase_cluster(unsigned int clusterid)      {return _cluster_ids.erase(clusterid);}
-  ConstClusterIter    begin_clusters() const                     {return _cluster_ids.begin();}
-  ConstClusterIter    find_cluster(unsigned int clusterid) const {return _cluster_ids.find(clusterid);}
-  ConstClusterIter    end_clusters() const                       {return _cluster_ids.end();}
-  ClusterIter         begin_clusters()                           {return _cluster_ids.begin();}
-  ClusterIter         find_cluster(unsigned int clusterid)       {return _cluster_ids.find(clusterid);}
-  ClusterIter         end_clusters()                             {return _cluster_ids.end();}
+  virtual void                clear_clusters()                           {}
+  virtual bool                empty_clusters() const                     {return false;}
+  virtual size_t              size_clusters() const                      {return 0;}
+  virtual void                insert_cluster(unsigned int clusterid)     {}
+  virtual size_t              erase_cluster(unsigned int clusterid)      {return 0:}
+  virtual ConstClusterIter    begin_clusters() const                     {return ClusterSet().end();}
+  virtual ConstClusterIter    find_cluster(unsigned int clusterid) const {return ClusterSet().end();}
+  virtual ConstClusterIter    end_clusters() const                       {return ClusterSet().end();}
+  virtual ClusterIter         begin_clusters()                           {return ClusterSet().end();}
+  virtual ClusterIter         find_cluster(unsigned int clusterid)       {return ClusterSet().end();}
+  virtual ClusterIter         end_clusters()                             {return ClusterSet().end();}
 
   //
   // calo projection methods ---------------------------------------------------
   //
-  void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3);
-  float get_cal_energy_3x3(CAL_LAYER layer) const;
+  virtual float get_cal_dphi(CAL_LAYER layer) const       {return NULL;}
+  virtual void  set_cal_dphi(CAL_LAYER layer, float dphi) {}
 
-  void         set_cal_cluster_id(CAL_LAYER layer, unsigned int id);
-  unsigned int get_cal_cluster_id(CAL_LAYER layer) const;
-  
-  void  set_cal_dphi(CAL_LAYER layer, float dphi);
-  float get_cal_dphi(CAL_LAYER layer) const;
+  virtual float get_cal_deta(CAL_LAYER layer) const       {return NULL;}
+  virtual void  set_cal_deta(CAL_LAYER layer, float deta) {}
 
-  void  set_cal_deta(CAL_LAYER layer, float deta);
-  float get_cal_deta(CAL_LAYER layer) const;
+  virtual float get_cal_energy_3x3(CAL_LAYER layer) const             {return NULL;}
+  virtual void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3) {}
 
-  void  set_cal_cluster_e(CAL_LAYER layer, float e);
-  float get_cal_cluster_e(CAL_LAYER layer) const;
-  
- private: 
+  virtual float get_cal_cluster_id(CAL_LAYER layer) const         {return NULL;}
+  virtual void  set_cal_cluster_id(CAL_LAYER layer, CAL_LAYER id) {}
 
-  // --- inner CaloProjection class ------------------------------------------//
-  class CaloProjection {                                                      //
-  public:                                                                     //
-    CaloProjection();                                                         //
-    virtual ~CaloProjection() {}                                              //
-                                                                              //
-    float get_energy_3x3() const {return _e3x3;}                              //
-    void  set_energy_3x3(float e3x3) {_e3x3 = e3x3;}                          //
-                                                                              //
-    unsigned int get_cluster_id() const {return _clus_id;}                    //
-    void         set_cluster_id(unsigned int clus_id) {_clus_id = clus_id;}   //
-                                                                              //
-    float get_deta() const {return _deta;}                                    //
-    void  set_deta(float deta) {_deta = deta;}                                //
-                                                                              //
-    float get_dphi() const {return _dphi;}                                    //
-    void  set_dphi(float dphi) {_dphi = dphi;}                                //
-                                                                              //
-    float get_cluster_energy() const {return _clus_e;}                        //
-    void  set_cluster_energy(float clus_e) {_clus_e = clus_e;}                //
-                                                                              //
-  private:                                                                    //
-    float _e3x3;                                                              //
-    unsigned int _clus_id;                                                    //
-    float _deta;                                                              //
-    float _dphi;                                                              //
-    float _clus_e;                                                            //
-  };                                                                          //
-  // --- inner CaloProjection class ------------------------------------------//
-  
-  // track information
-  unsigned int _track_id;
-  bool         _is_positive_charge;
-  float        _chisq;
-  unsigned int _ndf;
+  virtual float get_cal_cluster_e(CAL_LAYER layer) const    {return NULL;}
+  virtual void  set_cal_cluster_e(CAL_LAYER layer, float e) {}
 
-  // extended track information (non-primary tracks only)
-  float _dca;
-  float _dca2d;
-  float _dca2d_error;
-
-  // extended track information (primary tracks only)
-  // unsigned int _vertex_id;
-  
-  // track state information
-  std::map<float,SvtxTrack::State> _states; //< path length => state object
-  
-  // cluster contents
-  std::set<unsigned int> _cluster_ids;
-  
-  // calorimeter matches
-  std::map<CAL_LAYER,SvtxTrack::CaloProjection> _calo_matches;
+protected:
+  SvtxTrack();
   
   ClassDef(SvtxTrack,1)
 };
