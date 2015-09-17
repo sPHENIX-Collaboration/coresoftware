@@ -32,7 +32,8 @@ class PHG4OuterHcalParameters
   G4int blackhole;
   G4String material;
   G4double steplimits;
-  bool  light_scint_mode;
+  bool enable_field_checker;
+  bool  light_scint_model;
   bool light_balance;
   G4double light_balance_inner_radius;
   G4double light_balance_inner_corr;
