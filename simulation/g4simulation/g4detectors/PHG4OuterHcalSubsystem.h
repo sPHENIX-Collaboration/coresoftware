@@ -94,13 +94,6 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
   int layer;
   std::string detector_type;
   std::string superdetector;
-
-  bool  light_scint_model_;
-  bool  light_balance_;
-  float light_balance_inner_radius_;
-  float light_balance_inner_corr_;
-  float light_balance_outer_radius_;
-  float light_balance_outer_corr_;
 };
 
 #endif

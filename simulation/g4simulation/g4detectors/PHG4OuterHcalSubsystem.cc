@@ -22,13 +22,7 @@ PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const i
   steppingAction_( NULL ),
   eventAction_(NULL),
   detector_type(name),
-  superdetector("NONE"),
-  light_scint_model_(true),
-  light_balance_(false),
-  light_balance_inner_radius_(0.0),
-  light_balance_inner_corr_(1.0),
-  light_balance_outer_radius_(10.0),
-  light_balance_outer_corr_(1.0)
+  superdetector("NONE")
 {
   // put the layer into the name so we get unique names
   // for multiple layers
@@ -92,18 +86,11 @@ int PHG4OuterHcalSubsystem::Init( PHCompositeNode* topNode )
 	    }
 	}
       // create stepping action
-      steppingAction_ = new PHG4OuterHcalSteppingAction(detector_);
-      if (params->light_balance) {
-	steppingAction_->SetLightCorrection(params->light_balance_inner_radius,
-					    params->light_balance_inner_corr,
-					    params->light_balance_outer_radius,
-					    params->light_balance_outer_corr);
-      }
-      steppingAction_->SetLightScintModel(params->light_scint_mode);
+      steppingAction_ = new PHG4OuterHcalSteppingAction(detector_, params);
     }
   if (params->blackhole && !params->active)
     {
-      steppingAction_ = new PHG4OuterHcalSteppingAction(detector_);
+      steppingAction_ = new PHG4OuterHcalSteppingAction(detector_, params);
     }
   return 0;
 
@@ -289,5 +276,5 @@ PHG4OuterHcalSubsystem::SetLightCorrection(const float inner_radius, const float
 void
 PHG4OuterHcalSubsystem:: SetLightScintModel(const bool b)
 {
-  params->light_scint_mode = b;
+  params->light_scint_model = b;
 }
