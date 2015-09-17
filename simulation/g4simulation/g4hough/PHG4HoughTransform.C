@@ -4,6 +4,7 @@
 #include "SvtxVertexMap.h"
 #include "SvtxVertex.h"
 #include "SvtxTrackMap.h"
+#include "SvtxTrackMap_v1.h"
 #include "SvtxTrack.h"
 #include "SvtxClusterMap.h"
 #include "SvtxCluster.h"
@@ -1104,7 +1105,7 @@ int PHG4HoughTransform::CreateNodes(PHCompositeNode *topNode)
     if (verbosity>0) cout << "SVTX node added" << endl;
   }
  	
-  _g4tracks = new SvtxTrackMap;
+  _g4tracks = new SvtxTrackMap_v1;
   PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(_g4tracks,"SvtxTrackMap","PHObject");
   tb_node->addNode(tracks_node);
   if (verbosity>0) cout << "Svtx/SvtxTrackMap node added" << endl;

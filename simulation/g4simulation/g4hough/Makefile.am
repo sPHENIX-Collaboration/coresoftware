@@ -52,6 +52,7 @@ pkginclude_HEADERS = \
   SvtxClusterMap_v1.h \
   SvtxTrack.h \
   SvtxTrackMap.h \
+  SvtxTrackMap_v1.h \
   SvtxBeamSpot.h \
   PHG4HoughTransform.h \
   PHG4HoughTransformTPC.h \
@@ -84,6 +85,8 @@ libg4hough_io_la_SOURCES = \
   SvtxBeamSpot_Dict.C \
   SvtxTrackMap.C \
   SvtxTrackMap_Dict.C \
+  SvtxTrackMap_v1.C \
+  SvtxTrackMap_v1_Dict.C \
   SvtxVertex.C \
   SvtxVertex_Dict.C \
   SvtxVertexMap.C \
