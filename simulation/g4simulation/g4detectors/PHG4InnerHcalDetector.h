@@ -67,6 +67,8 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   G4double x_at_y(Point_2 &p0, Point_2 &p1, G4double yin);
   PHG4InnerHcalParameters *params;
   G4double scinti_tile_x;
+  G4double scinti_tile_x_lower;
+  G4double scinti_tile_x_upper;
   G4double scinti_tile_z;
   G4double envelope_inner_radius;
   G4double envelope_outer_radius;

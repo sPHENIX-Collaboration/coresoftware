@@ -261,7 +261,7 @@ std::set<Jet*> JetRecoEval::all_truth_jets(Jet* recojet) {
   
   std::set<Jet*> truth_jets;
   
-  // get all truth particles...
+  // get all truth particles (this can include muons and other truth excludes)...
   std::set<PHG4Particle*> particles = all_truth_particles(recojet);
   
   // backtrack from the truth particles to the truth jets...
@@ -269,8 +269,10 @@ std::set<Jet*> JetRecoEval::all_truth_jets(Jet* recojet) {
        iter != particles.end();
        ++iter) {
     PHG4Particle* particle = *iter;
-
+    
     Jet* truth_jet = _jettrutheval.get_truth_jet(particle);
+    if (!truth_jet) continue;
+
     truth_jets.insert(truth_jet);
   }
 

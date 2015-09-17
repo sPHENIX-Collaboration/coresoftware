@@ -8,7 +8,7 @@
 class BbcVertex : public PHObject {
 
 public:
-  
+
   virtual ~BbcVertex() {}
 
   // PHObject virtual overloads
