@@ -47,6 +47,11 @@ class CaloEvaluator : public SubsysReco {
     _reco_e_threshold = thresh;
   }
 
+  void set_do_gpoint_eval(bool b) {_do_gpoint_eval = b;}
+  void set_do_gshower_eval(bool b) {_do_gshower_eval = b;}
+  void set_do_tower_eval(bool b) {_do_tower_eval = b;}
+  void set_do_cluster_eval(bool b) {_do_cluster_eval = b;}
+  
  private:
 
   std::string _caloname;
