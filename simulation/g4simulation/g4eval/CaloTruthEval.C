@@ -72,7 +72,6 @@ std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Particle* particle) {
 
 PHG4Particle* CaloTruthEval::get_parent_particle(PHG4Hit* g4hit) {
 
-  // expensive call, but only because it gets called a ton (i think)
   PHG4Particle* particle = _truthinfo->GetHit( g4hit->get_trkid() );
   return particle;
 }
@@ -86,11 +85,10 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Particle* particle) {
       return iter->second;
     }
   }
-  
+
   PHG4Particle* returnval = particle;
-  if ((returnval->get_primary_id() != returnval->get_track_id()) ||
-      (returnval->get_primary_id() != -1)) {
-    returnval = _truthinfo->GetHit( particle->get_primary_id() );
+  if (!is_primary(particle)) {
+    returnval = _truthinfo->GetPrimaryHit( particle->get_primary_id() );
   }
 
   if (_do_cache) _cache_get_primary_particle_g4particle.insert(make_pair(particle,returnval));
@@ -142,9 +140,8 @@ bool CaloTruthEval::is_primary(PHG4Particle* particle) {
   }
 
   bool is_primary = false;
-  if (particle->get_primary_id() == particle->get_track_id()) {
-    is_primary = true;
-  } else if (particle->get_primary_id() == -1) {
+  // all particles from the Primary Map have primary id set to -1
+  if (particle->get_primary_id() == -1) {
     is_primary = true;
   }
   
