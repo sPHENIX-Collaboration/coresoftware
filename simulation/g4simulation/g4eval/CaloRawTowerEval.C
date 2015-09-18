@@ -106,7 +106,14 @@ std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primaries(RawTower* tower) {
        ++iter) {
     PHG4Hit* g4hit = *iter;
     PHG4Particle* primary = get_truth_eval()->get_primary_particle( g4hit );
-    if (!primary) continue; // why is this here?
+
+    static bool first0 = true;
+    if (first0) {
+      cout << PHWHERE << "mike: come back and check why this primary if-statement is here" << endl;
+      first0=false;
+    }
+    
+    if (!primary) continue; // why is this here? -- noise towers should have zero g4hits and not enter the loop
     truth_primaries.insert(primary);
   }
 
