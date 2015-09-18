@@ -21,7 +21,7 @@
 #include <TFile.h>
 
 #include <iostream>
-//#include <vector>
+#include <set>
 //#include <algorithm>
 #include <cmath>
 
@@ -33,7 +33,7 @@ CaloEvaluator::CaloEvaluator(const string &name, const string &caloname, const s
   : SubsysReco(name),
     _caloname(caloname),
     _ievent(0),
-    _truth_trace_embed_flag(0), // truth => reco trace all primaries
+    _truth_trace_embed_flags(),
     _reco_e_threshold(0.0), // 0 GeV before reco is traced
     _do_gpoint_eval(true),
     _do_gshower_eval(true),
@@ -378,8 +378,9 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	 ++iter) {
       PHG4Particle* primary = iter->second;
 
-      if (_truth_trace_embed_flag) {
-	if (trutheval->get_embed(primary) != _truth_trace_embed_flag) continue;
+      if (!_truth_trace_embed_flags.empty()) {
+	if (_truth_trace_embed_flags.find(trutheval->get_embed(primary)) ==
+	    _truth_trace_embed_flags.end()) continue;
       }
       
       float gparticleID = primary->get_track_id();
