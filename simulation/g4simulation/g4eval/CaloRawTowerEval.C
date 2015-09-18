@@ -105,9 +105,8 @@ std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primaries(RawTower* tower) {
        iter != g4hits.end();
        ++iter) {
     PHG4Hit* g4hit = *iter;
-    PHG4Particle* particle = _truthinfo->GetHit( g4hit->get_trkid() );
-    PHG4Particle* primary = _trutheval.get_primary_particle( particle );
-    if (!primary) continue;
+    PHG4Particle* primary = get_truth_eval()->get_primary_particle( g4hit );
+    if (!primary) continue; // why is this here?
     truth_primaries.insert(primary);
   }
 
@@ -137,6 +136,7 @@ PHG4Particle* CaloRawTowerEval::max_truth_primary_by_energy(RawTower* tower) {
 
     PHG4Particle* primary = *iter;
     float e = get_energy_contribution(tower,primary);
+    if (isnan(e)) continue;
     if (e > max_e) {
       max_e = e;
       max_primary = primary;      
@@ -151,6 +151,9 @@ PHG4Particle* CaloRawTowerEval::max_truth_primary_by_energy(RawTower* tower) {
 std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Particle* primary) { 
 
   if (!_trutheval.is_primary(primary)) return std::set<RawTower*>();
+
+  // use primary map pointer
+  primary = get_truth_eval()->get_primary_particle(primary);
   
   if (_do_cache) {
     std::map<PHG4Particle*,std::set<RawTower*> >::iterator iter =
@@ -189,7 +192,9 @@ std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Particle* primary) {
 RawTower* CaloRawTowerEval::best_tower_from(PHG4Particle* primary) {
 
   if (!_trutheval.is_primary(primary)) return NULL;
-      
+
+  primary = get_truth_eval()->get_primary_particle(primary);
+  
   if (_do_cache) {
     std::map<PHG4Particle*,RawTower*>::iterator iter =
       _cache_best_tower_from_primary.find(primary);
@@ -199,13 +204,14 @@ RawTower* CaloRawTowerEval::best_tower_from(PHG4Particle* primary) {
   }
   
   RawTower* best_tower = NULL;
-  float best_energy = 0.0;  
+  float best_energy = FLT_MAX*-1.0;  
   std::set<RawTower*> towers = all_towers_from(primary);
   for (std::set<RawTower*>::iterator iter = towers.begin();
        iter != towers.end();
        ++iter) {
     RawTower* tower = *iter;
     float energy = get_energy_contribution(tower,primary);
+    if (isnan(energy)) continue;
     if (energy > best_energy) {
       best_tower = tower;
       best_energy = energy;
