@@ -109,7 +109,8 @@ std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primaries(RawTower* tower) {
     
     static bool first0 = true;
     if (first0) {
-      cout << PHWHERE << "mike: come back and check why this primary if-statement is here" << endl;
+      cout << PHWHERE << endl;
+      cout << "\033[31;1m mike: come back and check why this primary if-statement is here \033[0m" << endl;
       first0=false;
     }
     
@@ -138,15 +139,11 @@ PHG4Particle* CaloRawTowerEval::max_truth_primary_by_energy(RawTower* tower) {
   float max_e = FLT_MAX*-1.0;
   std::set<PHG4Particle*> primaries = all_truth_primaries(tower);
 
-  cout << "size: " << primaries.size() << endl;
-  
   for (std::set<PHG4Particle*>::iterator iter = primaries.begin();
        iter != primaries.end();
        ++iter) {
 
     PHG4Particle* primary = *iter;
-    cout << "primary: " << primary << endl;
-
     float e = get_energy_contribution(tower,primary);
     if (isnan(e)) continue;
     if (e > max_e) {
@@ -155,8 +152,6 @@ PHG4Particle* CaloRawTowerEval::max_truth_primary_by_energy(RawTower* tower) {
     }
   }
 
-  cout << "max primary: " << max_primary << endl;
-  
   if (_do_cache) _cache_max_truth_primary_by_energy.insert(make_pair(tower,max_primary));
   
   return max_primary;
@@ -243,11 +238,7 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
   if (!_trutheval.is_primary(primary)) return NAN;
 
   // reduce cache misses by using only pointer from PrimaryMap
-  cout << "old primary pointer: " << primary << endl;
-  primary->identify();
   primary = get_truth_eval()->get_primary_particle(primary);
-  cout << "updated primary pointer: " << primary << endl;
-  primary->identify();
   
   if (_do_cache) {
     std::map<std::pair<RawTower*,PHG4Particle*>, float>::iterator iter =
