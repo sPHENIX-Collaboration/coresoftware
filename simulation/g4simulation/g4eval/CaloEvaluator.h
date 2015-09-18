@@ -36,11 +36,24 @@ class CaloEvaluator : public SubsysReco {
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  // forward trace only off of primaries with embed flags set
+  void set_truth_tracing_embed_flag(int flag) {
+    _truth_trace_embed_flag = flag;
+  }
+
+  // backward trace only if reco meets an energy threshold requirement
+  void set_reco_tracing_energy_threshold(float thresh) {
+    _reco_e_threshold = thresh;
+  }
+
  private:
 
   std::string _caloname;
   
   unsigned long _ievent;
+
+  int _truth_trace_embed_flag;
+  float _reco_e_threshold;
 
   //----------------------------------
   // evaluator output ntuples
