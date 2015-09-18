@@ -86,10 +86,9 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Particle* particle) {
     }
   }
 
-  PHG4Particle* returnval = particle;
-  if (!is_primary(particle)) {
-    returnval = _truthinfo->GetPrimaryHit( particle->get_primary_id() );
-  }
+  // always report the primary from the Primary Map regardless if a
+  // primary from the full Map was the argument
+  PHG4Particle* returnval = _truthinfo->GetPrimaryHit( particle->get_primary_id() );
 
   if (_do_cache) _cache_get_primary_particle_g4particle.insert(make_pair(particle,returnval));
   
@@ -139,10 +138,11 @@ bool CaloTruthEval::is_primary(PHG4Particle* particle) {
     }
   }
 
-  bool is_primary = false;
-  // all particles from the Primary Map have primary id set to -1
-  if (particle->get_primary_id() == -1) {
-    is_primary = true;
+  bool is_primary = true;
+  if (!_truthinfo->GetPrimaryHit(particle->get_track_id())) {
+    // does the particle id appear in the primary map?
+    // this way either copy (in Map or Primary Map) will report correctly
+    is_primary = false;
   }
   
   if (_do_cache) _cache_is_primary.insert(make_pair(particle,is_primary));
