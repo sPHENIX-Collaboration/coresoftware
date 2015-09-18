@@ -221,6 +221,11 @@ RawTower* CaloRawTowerEval::best_tower_from(PHG4Particle* primary) {
 float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* primary) {
 
   if (!_trutheval.is_primary(primary)) return NAN;
+
+  // ensure that the primary is from the primary map and not the full map
+  // important for caching the pointer, but since the track ids are the same
+  // the functional logic below remains the same
+  primary = get_truth_eval()->get_primary_particle(primary);
   
   if (_do_cache) {
     std::map<std::pair<RawTower*,PHG4Particle*>, float>::iterator iter =
@@ -236,7 +241,8 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
        iter != g4hits.end();
        ++iter) {
     PHG4Hit* g4hit = *iter;
-    if (g4hit->get_trkid() == primary->get_track_id()) {
+    PHG4Particle* candidate = get_truth_eval()->get_primary_particle(g4hit);
+    if (candidate->get_track_id() == primary->get_track_id()) {
       energy += g4hit->get_edep();
     }
   }
