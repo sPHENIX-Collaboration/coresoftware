@@ -88,7 +88,12 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Particle* particle) {
 
   // always report the primary from the Primary Map regardless if a
   // primary from the full Map was the argument
-  PHG4Particle* returnval = _truthinfo->GetPrimaryHit( particle->get_primary_id() );
+  PHG4Particle* returnval = NULL;
+  if (particle->get_primary_id() != -1) {
+    returnval = _truthinfo->GetPrimaryHit( particle->get_primary_id() );
+  } else {
+    returnval = _truthinfo->GetPrimaryHit( particle->get_track_id() );
+  }
 
   if (_do_cache) _cache_get_primary_particle_g4particle.insert(make_pair(particle,returnval));
   
