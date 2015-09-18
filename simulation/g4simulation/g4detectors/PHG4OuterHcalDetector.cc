@@ -53,6 +53,7 @@ static double subtract_from_scinti_x = 0.1*mm;
 PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4OuterHcalParameters *parameters,const std::string &dnam):
   PHG4Detector(Node, dnam),
   params(parameters),
+  steel_cutout_for_magnet(NULL),
   envelope_inner_radius(params->inner_radius),
   envelope_outer_radius(params->outer_radius),
   envelope_z(params->size_z),
@@ -147,8 +148,7 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4OuterHc
 
 PHG4OuterHcalDetector::~PHG4OuterHcalDetector()
 {
-  if(field_setup)
-    delete field_setup;
+  delete field_setup;
 }
 
 //_______________________________________________________________
@@ -393,15 +393,27 @@ PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
   vertexes.push_back(v3);
   vertexes.push_back(v4);
   G4TwoVector zero(0, 0);
-  G4VSolid* steel_plate =  new G4ExtrudedSolid("SteelPlate",
+  G4VSolid* steel_plate_uncut =  new G4ExtrudedSolid("SteelPlateUnCut",
 					       vertexes,
 					       params->size_z  / 2.0,
 					       zero, 1.0,
 					       zero, 1.0);
+      
+      G4RotationMatrix *rotm = new G4RotationMatrix();
+                rotm->rotateX(-90 * deg);
 
-  //  DisplayVolume(steel_plate, hcalenvelope);
+  // now cut out space for magnet at the ends
+       G4VSolid* steel_firstcut_solid = new G4SubtractionSolid("SteelPlateFirstCut",steel_plate_uncut,steel_cutout_for_magnet,rotm,G4ThreeVector(0,0,0));
+       //   DisplayVolume(steel_plate_uncut, hcalenvelope);
+    //    DisplayVolume(steel_cutout_for_magnet, hcalenvelope);
+    //    DisplayVolume(steel_cutout_for_magnet, hcalenvelope,rotm);
+       //    DisplayVolume(steel_firstcut_solid, hcalenvelope);
+      rotm = new G4RotationMatrix();
+                rotm->rotateX(90 * deg);
+       G4VSolid* steel_cut_solid = new G4SubtractionSolid("SteelPlateCut",steel_firstcut_solid,steel_cutout_for_magnet,rotm,G4ThreeVector(0,0,0));
+       //           DisplayVolume(steel_cut_solid, hcalenvelope);
  
- return steel_plate;
+ return steel_cut_solid;
 }
 
 void
@@ -465,7 +477,7 @@ PHG4OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
   G4VSolid* hcal_envelope_cylinder = new G4Tubs("OuterHcal_envelope_solid",  envelope_inner_radius, envelope_outer_radius, envelope_z/2.,0,2*M_PI);
   G4LogicalVolume* hcal_envelope_log =  new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("OuterHcal_envelope"), 0, 0, 0);
   G4VisAttributes* hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(true);
+  hcalVisAtt->SetVisibility(false);
   hcalVisAtt->SetForceSolid(false);
   hcalVisAtt->SetColour(G4Colour::Magenta());
   hcal_envelope_log->SetVisAttributes(hcalVisAtt);
@@ -485,6 +497,9 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
   ConsistencyCheck();
   SetTiltViaNcross(); // if number of crossings is set, use it to determine tilt
   CheckTiltAngle(); // die if the tilt angle is out of range
+  // the needed steel cutout volume for the magnet is constructed with
+  // the scintillators since we have the theta anlge at that point
+  G4AssemblyVolume *scinti_mother_logical = ConstructHcalScintillatorAssembly(hcalenvelope);
   G4VSolid *steel_plate =  ConstructSteelPlate(hcalenvelope);
   //   DisplayVolume(steel_plate_4 ,hcalenvelope);
   G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(params->material), "HcalOuterSteelPlate", 0, 0, 0);
@@ -493,7 +508,6 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
   visattchk->SetForceSolid(false);
   visattchk->SetColour(G4Colour::Cyan());
   steel_logical->SetVisAttributes(visattchk);
-  G4AssemblyVolume *scinti_mother_logical = ConstructHcalScintillatorAssembly(hcalenvelope);
   double phi = 0;
   double deltaphi = 2 * M_PI / params->n_scinti_plates;
   ostringstream name;
@@ -836,6 +850,17 @@ PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
   double magnet_cutout_x = params->magnet_cutout/cos(params->tilt_angle/rad);
   double x_inner = params->inner_radius - overhang;
   double inner_offset = offset;
+  // coordinates like the steel plates:
+  // 0/0 upper left
+  // 1/1 upper right
+  // 2/2 lower right
+  // 3/3 lower left
+  double xsteelcut[4];
+  double zsteelcut[4];
+  xsteelcut[0] = x_inner + magnet_cutout_x;
+  xsteelcut[1] = xsteelcut[0];
+  xsteelcut[2] = params->inner_radius - offset;
+  xsteelcut[3] = xsteelcut[2];
   for (int i = 0; i < params->n_scinti_tiles; i++)
     {
       if (i >= params->magnet_cutout_first_scinti)
@@ -843,18 +868,26 @@ PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
           x_inner = params->inner_radius - overhang + magnet_cutout_x;
 	  inner_offset = offset - magnet_cutout_x; 
 	}
-      cout << "tile " << i << " starting at " << x_inner/cm << endl;
       theta = M_PI / 2 - PHG4Utils::get_theta(eta); // theta = 90 for eta=0
       x[0] = x_inner;
       z[0] = tan(theta) * params->inner_radius;
       x[1] = params->outer_radius + overhang; // since the tile is tilted, x is not at the outer radius but beyond
       z[1] = tan(theta) * params->outer_radius;
+      if (i >= params->magnet_cutout_first_scinti)
+	{
+	  z[0] =  tan(theta) * (params->inner_radius + params->magnet_cutout);
+	}
       eta += delta_eta;
       theta = M_PI / 2 - PHG4Utils::get_theta(eta); // theta = 90 for eta=0
       x[2] = x_inner;
       z[2] =  tan(theta) * params->inner_radius;
+      if (i >= params->magnet_cutout_first_scinti)
+	{
+	  z[2] =  tan(theta) * (params->inner_radius + params->magnet_cutout);
+	}
       x[3] =  params->outer_radius + overhang; // since the tile is tilted, x is not at the outer radius but beyond
       z[3] = tan(theta) * params->outer_radius;
+      cout << "z: " << z[0] << ", " << z[1] << ", " << z[2] << ", " << z[3] << endl;
       // apply gap between scintillators
       z[0] += params->scinti_gap_neighbor / 2.;
       z[1] += params->scinti_gap_neighbor / 2.;
@@ -872,14 +905,25 @@ PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
       z[2] = x_at_y(rightsidelow, rightsidehigh, x[2]);
       x[3] = params->inner_radius - inner_offset;
       z[3] = x_at_y(rightsidelow, rightsidehigh, x[3]);
-
-
+      // store corner points of extruded solid we need to subtract from steel
+      if ( i == params->magnet_cutout_first_scinti)
+	{
+	  zsteelcut[0] = z[0];
+	  double xpos = params->inner_radius - offset; 
+	  zsteelcut[3] =  x_at_y(leftsidelow, leftsidehigh, xpos);
+	}
+      zsteelcut[1] = z[2]+1*cm;
+      zsteelcut[2] = z[2]+1*cm;
       vector<G4TwoVector> vertexes;
+      cout << "tile " << i;
       for (int j = 0; j < 4; j++)
 	{
+	  cout << " x: " << x[j]
+	       << ", z: " << z[j];
 	  G4TwoVector v(x[j], z[j]);
 	  vertexes.push_back(v);
 	}
+      cout << endl;
       G4TwoVector zero(0, 0);
 
       G4VSolid *scinti =  new G4ExtrudedSolid("ScintillatorTile",
@@ -907,7 +951,22 @@ PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
   // 	   DisplayVolume(scinti_tiles_vec[i],hcalenvelope );
   // 	 }
   //   }
-
+  vector<G4TwoVector> vertexes;
+  for (int j = 0; j < 4; j++)
+    {
+      cout << "j: " << j
+	   << ", x: " << xsteelcut[j]
+	   << ", z: " << zsteelcut[j]
+	   << endl;
+      G4TwoVector v(xsteelcut[j], zsteelcut[j]);
+      vertexes.push_back(v);
+    }
+  G4TwoVector zero(0, 0);
+  steel_cutout_for_magnet =  new G4ExtrudedSolid("ScintillatorTile",
+						 vertexes,
+						 params->scinti_tile_thickness + 20 * cm,
+						 zero, 1.0,
+						 zero, 1.0);
   return;
 }
 

@@ -66,6 +66,7 @@ class PHG4OuterHcalDetector: public PHG4Detector
   int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
   G4double x_at_y(Point_2 &p0, Point_2 &p1, G4double yin);
   PHG4OuterHcalParameters *params;
+  G4VSolid *steel_cutout_for_magnet;
   G4double envelope_inner_radius;
   G4double envelope_outer_radius;
   G4double envelope_z;
