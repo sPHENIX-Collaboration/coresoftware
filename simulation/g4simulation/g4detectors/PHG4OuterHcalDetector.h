@@ -57,7 +57,6 @@ class PHG4OuterHcalDetector: public PHG4Detector
   protected:
   void AddGeometryNode();
   int ConstructOuterHcal(G4LogicalVolume* hcalenvelope);
-  int ConstructOuterHcal_A(G4LogicalVolume*hcalenvelope );
   G4VSolid *ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
   G4VSolid *ConstructHcalSteel(G4LogicalVolume* hcalenvelope);
   G4VSolid *ConstructHcalScintillator(G4LogicalVolume* hcalenvelope);
@@ -102,9 +101,6 @@ class PHG4OuterHcalDetector: public PHG4Detector
   G4double testbox_z[2];
   std::set<G4VPhysicalVolume *>steel_absorber_vec;
   std::set<G4VPhysicalVolume *>scinti_slats_vec;
-  /* G4VPhysicalVolume *inner_absorber; */
-  /* G4VPhysicalVolume *outer_scinti; */
-  /* G4VPhysicalVolume *outer_absorber; */
 
   int layer;
   std::string detector_type;
