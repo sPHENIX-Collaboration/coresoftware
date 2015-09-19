@@ -451,7 +451,7 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 		      if(verbosity > 1)
 			cout << "  add energy to existing cell " << endl;
 
-		      cellptmap.find(key)->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1]);
+		      cellptmap.find(key)->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
 		    }
 		  else
 		    {
@@ -463,7 +463,7 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
                       it->second->set_layer(*layer);
                       it->second->set_phibin(iphibin);
                       it->second->set_etabin(ietabin);		      
-		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield());
+		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
 		    }
 
 		  // just a sanity check - we don't want to mess up by having Nan's or Infs in our energy deposition
@@ -659,7 +659,7 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 		      if(verbosity > 1)
 			cout << "  add energy to existing cell for key = " << cellptmap.find(key)->first << endl;
 
-		      cellptmap.find(key)->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1]);
+		      cellptmap.find(key)->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
 		    }
 		  else
 		    {
@@ -671,7 +671,7 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 		      it->second->set_layer(*layer);
                       it->second->set_phibin(iphibin);
                       it->second->set_zbin(izbin);
-		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1]);
+		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
 		    }
 		}
               vphi.clear();
