@@ -59,7 +59,6 @@ class PHG4OuterHcalDetector: public PHG4Detector
   int ConstructOuterHcal(G4LogicalVolume* hcalenvelope);
   G4VSolid *ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
   G4VSolid *ConstructHcalScintillator(G4LogicalVolume* hcalenvelope);
-  int ConstructHcalSingleScintillator_A(G4LogicalVolume* hcalenvelope);
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
   int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
   G4double x_at_y(Point_2 &p0, Point_2 &p1, G4double yin);

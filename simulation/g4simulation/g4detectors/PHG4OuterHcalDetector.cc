@@ -807,68 +807,6 @@ PHG4OuterHcalDetector::x_at_y(Point_2 &p0, Point_2 &p1, G4double yin)
   return xret;
 }
 
-int
-PHG4OuterHcalDetector::ConstructHcalSingleScintillator_A(G4LogicalVolume* hcalenvelope)
-{
-  G4VSolid *bigtile = ConstructHcalScintillator(hcalenvelope);
-  G4double delta_eta = scinti_eta_coverage/params->n_scinti_tiles;
-  G4double offset = 10*cm;
-  G4double inner_reference = envelope_inner_radius-offset;
-  G4double outer_reference = envelope_outer_radius+offset;
-  G4double x[4];
-  G4double z[4];
-  G4double eta = 0;
-  G4double theta;
-
-  for (int j=0; j<params->n_scinti_tiles;j++)
-    {
-      theta = M_PI/2 - PHG4Utils::get_theta(eta); // theta = 90 for eta=0
-      x[0] = inner_reference;
-      z[0] = tan(theta)*inner_reference;
-      x[1] = outer_reference;
-      z[1] = tan(theta)*outer_reference;
-      x[2] = outer_reference;
-      eta+=delta_eta;
-      theta = M_PI/2 - PHG4Utils::get_theta(eta);
-      z[2] = tan(theta)*outer_reference;
-      x[3] = inner_reference;
-      z[3] =  tan(theta)*inner_reference;
-      // apply gap between scintillators
-      z[0] += params->scinti_gap_neighbor/2.;
-      z[1] += params->scinti_gap_neighbor/2.;
-      z[2] -= params->scinti_gap_neighbor/2.;
-      z[3] -= params->scinti_gap_neighbor/2.;
-      vector<G4TwoVector> vertexes;
-      for (int i=0; i<4; i++)
-	{
-	  G4TwoVector v(x[i],z[i]);
-	  vertexes.push_back(v);
-	}
-      G4TwoVector zero(0, 0);
-      G4VSolid *scinti =  new G4ExtrudedSolid("ScintillatorTile",
-					      vertexes,
-					      params->scinti_tile_thickness,
-					      zero, 1.0,
-					      zero, 1.0);
-      G4RotationMatrix *rotm = new G4RotationMatrix();
-      rotm->rotateX(-90*deg);
-      G4VSolid *scinti_tile =  new G4IntersectionSolid("scintillator",bigtile,scinti,rotm,G4ThreeVector(-(inner_reference+outer_reference)/2., 0, 0));
-      scinti_tiles_vec[j+params->n_scinti_tiles] = scinti_tile;
-      rotm = new G4RotationMatrix();
-      rotm->rotateX(90*deg);
-      scinti_tile =  new G4IntersectionSolid("scintillator",bigtile,scinti,rotm,G4ThreeVector(-(inner_reference+outer_reference)/2., 0, 0));
-      scinti_tiles_vec[params->n_scinti_tiles-j-1] =  scinti_tile;
-    }
-   // for (unsigned int i=0; i<scinti_tiles_vec.size(); i++)
-   //   {
-   //     if (scinti_tiles_vec[i])
-   // 	 {
-   // 	   DisplayVolume(scinti_tiles_vec[i],hcalenvelope );
-   // 	 }
-   //   }
-  return 0;
-}
-
 G4AssemblyVolume *
 PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope)
 {
