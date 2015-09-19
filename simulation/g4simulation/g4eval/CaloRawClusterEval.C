@@ -64,7 +64,7 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster) {
   }
   
   std::set<PHG4Hit*> truth_hits;
-
+  
   // loop over all the clustered towers
   RawCluster::TowerConstRange begin_end = cluster->get_towers();
   RawCluster::TowerConstIterator iter;
@@ -73,13 +73,12 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster) {
     RawTower* tower = _towers->getTower(iter->first);
     
     std::set<PHG4Hit*> new_hits = get_rawtower_eval()->all_truth_hits(tower);
-    std::set<PHG4Hit*> union_hits;
 
-    std::set_union(truth_hits.begin(),truth_hits.end(),
-		   new_hits.begin(),new_hits.end(),
-		   std::inserter(union_hits,union_hits.begin()));
-
-    std::swap(truth_hits,union_hits); // swap union into truth_particles    
+    for (std::set<PHG4Hit*>::iterator iter = new_hits.begin();
+	 iter != new_hits.end();
+	 ++iter) {
+      truth_hits.insert(*iter);
+    }
   }
 
   if (_do_cache) _cache_all_truth_hits.insert(make_pair(cluster,truth_hits));
@@ -106,13 +105,12 @@ std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primaries(RawCluster* clus
     { 
     RawTower* tower = _towers->getTower(iter->first);
     std::set<PHG4Particle*> new_primaries = _towereval.all_truth_primaries(tower);
-    std::set<PHG4Particle*> union_primaries;
 
-    std::set_union(truth_primaries.begin(),truth_primaries.end(),
-		   new_primaries.begin(),new_primaries.end(),
-		   std::inserter(union_primaries,union_primaries.begin()));
-
-    std::swap(truth_primaries,union_primaries); // swap union into truth_particles    
+    for (std::set<PHG4Particle*>::iterator iter = new_primaries.begin();
+	 iter != new_primaries.end();
+	 ++iter) {
+      truth_primaries.insert(*iter);
+    }
   }
 
   if (_do_cache) _cache_all_truth_primaries.insert(make_pair(cluster,truth_primaries));
