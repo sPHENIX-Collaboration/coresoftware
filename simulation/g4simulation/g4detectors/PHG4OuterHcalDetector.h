@@ -58,7 +58,6 @@ class PHG4OuterHcalDetector: public PHG4Detector
   void AddGeometryNode();
   int ConstructOuterHcal(G4LogicalVolume* hcalenvelope);
   G4VSolid *ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
-  G4VSolid *ConstructHcalSteel(G4LogicalVolume* hcalenvelope);
   G4VSolid *ConstructHcalScintillator(G4LogicalVolume* hcalenvelope);
   int ConstructHcalSingleScintillator_A(G4LogicalVolume* hcalenvelope);
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
