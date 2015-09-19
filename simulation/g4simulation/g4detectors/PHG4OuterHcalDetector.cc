@@ -477,7 +477,7 @@ PHG4OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
   G4VSolid* hcal_envelope_cylinder = new G4Tubs("OuterHcal_envelope_solid",  envelope_inner_radius, envelope_outer_radius, envelope_z/2.,0,2*M_PI);
   G4LogicalVolume* hcal_envelope_log =  new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("OuterHcal_envelope"), 0, 0, 0);
   G4VisAttributes* hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(false);
+  hcalVisAtt->SetVisibility(true);
   hcalVisAtt->SetForceSolid(false);
   hcalVisAtt->SetColour(G4Colour::Magenta());
   hcal_envelope_log->SetVisAttributes(hcalVisAtt);
@@ -513,8 +513,8 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
   ostringstream name;
   double middlerad = params->outer_radius - (params->outer_radius - params->inner_radius) / 2.;
   double shiftslat = fabs(scinti_tile_x_lower - scinti_tile_x_upper)/2.;
-  //  for (int i = 0; i < params->n_scinti_plates; i++)
-  for (int i = 0; i < 1; i++)
+  for (int i = 0; i < params->n_scinti_plates; i++)
+    //  for (int i = 0; i < 1; i++)
     {
       G4RotationMatrix *Rot = new G4RotationMatrix();
       double ypos = sin(phi) * middlerad;
@@ -855,6 +855,8 @@ PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
   // 1/1 upper right
   // 2/2 lower right
   // 3/3 lower left
+  // sorry they are different than the coordinates used for the scintilators
+  // here, this is why the indices are seemingly mixed up
   double xsteelcut[4];
   double zsteelcut[4];
   xsteelcut[0] = x_inner + magnet_cutout_x;
@@ -887,7 +889,6 @@ PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
 	}
       x[3] =  params->outer_radius + overhang; // since the tile is tilted, x is not at the outer radius but beyond
       z[3] = tan(theta) * params->outer_radius;
-      cout << "z: " << z[0] << ", " << z[1] << ", " << z[2] << ", " << z[3] << endl;
       // apply gap between scintillators
       z[0] += params->scinti_gap_neighbor / 2.;
       z[1] += params->scinti_gap_neighbor / 2.;
@@ -909,21 +910,19 @@ PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
       if ( i == params->magnet_cutout_first_scinti)
 	{
 	  zsteelcut[0] = z[0];
+	  // we have to use the inner reference, not the already
+	  // adjusted one for the scintillator from above
 	  double xpos = params->inner_radius - offset; 
 	  zsteelcut[3] =  x_at_y(leftsidelow, leftsidehigh, xpos);
 	}
       zsteelcut[1] = z[2]+1*cm;
       zsteelcut[2] = z[2]+1*cm;
       vector<G4TwoVector> vertexes;
-      cout << "tile " << i;
       for (int j = 0; j < 4; j++)
 	{
-	  cout << " x: " << x[j]
-	       << ", z: " << z[j];
 	  G4TwoVector v(x[j], z[j]);
 	  vertexes.push_back(v);
 	}
-      cout << endl;
       G4TwoVector zero(0, 0);
 
       G4VSolid *scinti =  new G4ExtrudedSolid("ScintillatorTile",
@@ -954,10 +953,6 @@ PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
   vector<G4TwoVector> vertexes;
   for (int j = 0; j < 4; j++)
     {
-      cout << "j: " << j
-	   << ", x: " << xsteelcut[j]
-	   << ", z: " << zsteelcut[j]
-	   << endl;
       G4TwoVector v(xsteelcut[j], zsteelcut[j]);
       vertexes.push_back(v);
     }
