@@ -4,6 +4,7 @@
 #include "g4main/PHG4SteppingAction.h"
 
 class PHG4OuterHcalDetector;
+class PHG4OuterHcalParameters;
 class PHG4Hit;
 class PHG4HitContainer;
 
@@ -13,9 +14,9 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   public:
 
   //! constructor
-  PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* );
+  PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* , PHG4OuterHcalParameters *parameters);
 
-  //! destroctor
+  //! destructor
   virtual ~PHG4OuterHcalSteppingAction()
   {}
 
@@ -26,20 +27,7 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   virtual void SetInterfacePointers( PHCompositeNode* );
 
   float GetLightCorrection(float r);
-  void SetLightCorrection(float inner_radius, float inner_corr,
-			  float outer_radius, float outer_corr) {
-    light_balance_ = true;
-    light_balance_inner_radius_ = inner_radius;
-    light_balance_inner_corr_ = inner_corr;
-    light_balance_outer_radius_ = outer_radius;
-    light_balance_outer_corr_ = outer_corr;
-  }
 
-  void SetLightScintModel(const bool b = true)
-  {
-    light_scint_model_ = b;
-  }
-  
   void FieldChecker (const G4Step*);
 
   private:
@@ -52,13 +40,7 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer * absorberhits_;
   PHG4Hit *hit;
 
-  bool  enable_field_checker_;
-  bool  light_scint_model_;
-  bool  light_balance_;
-  float light_balance_inner_radius_;
-  float light_balance_inner_corr_;
-  float light_balance_outer_radius_;
-  float light_balance_outer_corr_;
+  PHG4OuterHcalParameters *params;
 };
 
 

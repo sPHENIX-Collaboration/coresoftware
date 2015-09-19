@@ -165,10 +165,11 @@ libg4detectors_la_SOURCES = \
   PHG4SlatCellReco.cc \
   PHG4SlatCellReco_Dict.cc \
   PHG4OuterHcalDetector.cc \
-  PHG4OuterHcalSteppingAction.cc \
-  PHG4OuterHcalSubsystem.cc \
   PHG4OuterHcalField.cc \
   PHG4OuterHcalFieldSetup.cc \
+  PHG4OuterHcalParameters.cc \
+  PHG4OuterHcalSteppingAction.cc \
+  PHG4OuterHcalSubsystem.cc \
   PHG4OuterHcalSubsystem_Dict.cc \
   PHG4RICHDetector.cc \
   PHG4RICHSteppingAction.cc \
