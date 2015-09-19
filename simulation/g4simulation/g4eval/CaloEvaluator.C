@@ -25,8 +25,6 @@
 //#include <algorithm>
 #include <cmath>
 
-#include </opt/sphenix/utils/include/valgrind/callgrind.h>
-
 using namespace std;
 
 CaloEvaluator::CaloEvaluator(const string &name, const string &caloname, const string &filename) 
@@ -93,12 +91,7 @@ int CaloEvaluator::process_event(PHCompositeNode *topNode) {
   // fill the Evaluator NTuples
   //---------------------------
 
-  CALLGRIND_START_INSTRUMENTATION;
-  
   fillOutputNtuples(topNode);
-
-  CALLGRIND_STOP_INSTRUMENTATION;
-  CALLGRIND_DUMP_STATS;
   
   //--------------------------------------------------
   // Print out the ancestry information for this event
