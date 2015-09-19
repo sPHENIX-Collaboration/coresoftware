@@ -451,7 +451,7 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 		      if(verbosity > 1)
 			cout << "  add energy to existing cell " << endl;
 
-		      cellptmap.find(key)->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1]);
+		      cellptmap.find(key)->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
 		    }
 		  else
 		    {
@@ -463,7 +463,7 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
                       it->second->set_layer(*layer);
                       it->second->set_phibin(iphibin);
                       it->second->set_etabin(ietabin);		      
-		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield());
+		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
 		    }
 
 		  // just a sanity check - we don't want to mess up by having Nan's or Infs in our energy deposition
@@ -595,6 +595,16 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
                 }
 
               double trklen = sqrt((ax - bx) * (ax - bx) + (ay - by) * (ay - by));
+              // if entry and exit hit are the same (seems to happen rarely), trklen = 0
+              // which leads to a 0/0 and an NaN in edep later on
+              // this code does for particles in the same cell a trklen/trklen (vdedx[ii]/trklen)
+              // so setting this to any non zero number will do just fine
+              // I just pick -1 here to flag those strange hits in case I want t oanalyze them
+              // later on
+              if (trklen == 0)
+          {
+            trklen = -1.;
+          }
               vector<int> vphi;
               vector<int> vz;
               vector<double> vdedx;
@@ -659,7 +669,15 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 		      if(verbosity > 1)
 			cout << "  add energy to existing cell for key = " << cellptmap.find(key)->first << endl;
 
-		      cellptmap.find(key)->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1]);
+		      cellptmap.find(key)->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
+
+          if(verbosity > 1 and isnan(hiter->second->get_light_yield()*vdedx[i1]))
+            {
+
+              cout << "    NAN lighy yield with vdedx[i1] = "<<vdedx[i1]
+              <<" and hiter->second->get_light_yield() = "<<hiter->second->get_light_yield() << endl;
+
+            }
 		    }
 		  else
 		    {
@@ -671,7 +689,16 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 		      it->second->set_layer(*layer);
                       it->second->set_phibin(iphibin);
                       it->second->set_zbin(izbin);
-		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1]);
+		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
+
+          if(verbosity > 1 and isnan(hiter->second->get_light_yield()*vdedx[i1]))
+            {
+
+              cout << "    NAN lighy yield with vdedx[i1] = "<<vdedx[i1]
+              <<" and hiter->second->get_light_yield() = "<<hiter->second->get_light_yield() << endl;
+
+            }
+
 		    }
 		}
               vphi.clear();

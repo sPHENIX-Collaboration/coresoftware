@@ -133,6 +133,15 @@ PHG4TruthInfoContainer::GetHit(const int trackid)
   return 0;
 }
 
+PHG4Particle*
+PHG4TruthInfoContainer::GetPrimaryHit(const int trackid)
+{
+  int key = get_key(trackid);
+  Iterator it = primary_particle_map.find(key);
+  if ( it != primary_particle_map.end() ) return it->second;
+  return 0;
+}
+
 PHG4TruthInfoContainer::Range
 PHG4TruthInfoContainer::GetHitRange()
 {

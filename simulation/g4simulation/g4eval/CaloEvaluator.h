@@ -13,6 +13,7 @@
 #include <TNtuple.h>
 #include <TFile.h>
 
+#include <set>
 #include <string>
 
 /// \class CaloEvaluator
@@ -36,11 +37,29 @@ class CaloEvaluator : public SubsysReco {
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  // forward trace only off of primaries with embed flags set
+  void add_truth_tracing_embed_flag(int flag) {
+    _truth_trace_embed_flags.insert(flag);
+  }
+
+  // backward trace only if reco meets an energy threshold requirement
+  void set_reco_tracing_energy_threshold(float thresh) {
+    _reco_e_threshold = thresh;
+  }
+
+  void set_do_gpoint_eval(bool b) {_do_gpoint_eval = b;}
+  void set_do_gshower_eval(bool b) {_do_gshower_eval = b;}
+  void set_do_tower_eval(bool b) {_do_tower_eval = b;}
+  void set_do_cluster_eval(bool b) {_do_cluster_eval = b;}
+  
  private:
 
   std::string _caloname;
   
   unsigned long _ievent;
+
+  std::set<int> _truth_trace_embed_flags;
+  float _reco_e_threshold;
 
   //----------------------------------
   // evaluator output ntuples

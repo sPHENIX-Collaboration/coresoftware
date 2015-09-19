@@ -206,7 +206,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map1()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
 
@@ -231,7 +231,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map1()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
 
@@ -281,7 +281,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -305,7 +305,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -329,7 +329,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -353,7 +353,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -377,7 +377,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -401,7 +401,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -425,7 +425,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -449,7 +449,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
 
@@ -496,7 +496,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -520,7 +520,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -544,7 +544,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -568,7 +568,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -592,7 +592,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -616,7 +616,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -640,7 +640,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -664,7 +664,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -688,7 +688,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -712,7 +712,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -736,7 +736,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -760,7 +760,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -784,7 +784,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -808,7 +808,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -832,7 +832,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -856,7 +856,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.547057;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -880,7 +880,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.594535;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -904,7 +904,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.594535;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -928,7 +928,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.594535;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -952,7 +952,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.594535;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -976,7 +976,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.594535;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1000,7 +1000,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.594535;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1024,7 +1024,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.594535;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1048,7 +1048,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.594535;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1072,7 +1072,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.594535;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1096,7 +1096,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.594535;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1120,7 +1120,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.594535;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1144,7 +1144,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.594535;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1168,7 +1168,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.594535;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1192,7 +1192,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.594535;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1216,7 +1216,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.594535;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1240,7 +1240,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.594535;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1264,7 +1264,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.455814;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1288,7 +1288,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.455814;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1312,7 +1312,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.455814;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1336,7 +1336,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.455814;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1360,7 +1360,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.455814;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1384,7 +1384,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.455814;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1408,7 +1408,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.455814;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1432,7 +1432,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.455814;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1456,7 +1456,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.455814;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1480,7 +1480,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.455814;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1504,7 +1504,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.455814;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1528,7 +1528,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.455814;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1552,7 +1552,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.455814;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1576,7 +1576,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.455814;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1600,7 +1600,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.455814;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1624,7 +1624,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.455814;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1648,7 +1648,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.685779;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1672,7 +1672,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.685779;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1696,7 +1696,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.685779;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1720,7 +1720,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.685779;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1744,7 +1744,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.685779;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1768,7 +1768,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.685779;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1792,7 +1792,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.685779;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1816,7 +1816,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.685779;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1840,7 +1840,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.685779;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1864,7 +1864,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.685779;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1888,7 +1888,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.685779;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1912,7 +1912,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.685779;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1936,7 +1936,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.685779;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1960,7 +1960,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.685779;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -1984,7 +1984,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.685779;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2008,7 +2008,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.685779;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2032,7 +2032,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.365259;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2056,7 +2056,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.365259;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2080,7 +2080,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.365259;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2104,7 +2104,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.365259;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2128,7 +2128,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.365259;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2152,7 +2152,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.365259;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2176,7 +2176,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.365259;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2200,7 +2200,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.365259;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2224,7 +2224,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.365259;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2248,7 +2248,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.365259;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2272,7 +2272,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.365259;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2296,7 +2296,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.365259;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2320,7 +2320,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.365259;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2344,7 +2344,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.365259;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2368,7 +2368,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.365259;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2392,7 +2392,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.365259;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2416,7 +2416,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.776334;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2440,7 +2440,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.776334;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2464,7 +2464,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.776334;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2488,7 +2488,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.776334;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2512,7 +2512,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.776334;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2536,7 +2536,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.776334;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2560,7 +2560,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.776334;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2584,7 +2584,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.776334;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2608,7 +2608,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.776334;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2632,7 +2632,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.776334;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2656,7 +2656,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.776334;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2680,7 +2680,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.776334;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2704,7 +2704,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.776334;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2728,7 +2728,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.776334;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2752,7 +2752,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.776334;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2776,7 +2776,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.776334;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2800,7 +2800,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.276450;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2824,7 +2824,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.276450;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2848,7 +2848,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.276450;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2872,7 +2872,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.276450;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2896,7 +2896,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.276450;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2920,7 +2920,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.276450;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2944,7 +2944,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.276450;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2968,7 +2968,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.276450;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -2992,7 +2992,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.276450;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3016,7 +3016,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.276450;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3040,7 +3040,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.276450;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3064,7 +3064,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.276450;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3088,7 +3088,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.276450;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3112,7 +3112,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.276450;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3136,7 +3136,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.276450;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3160,7 +3160,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.276450;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3184,7 +3184,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.865143;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3208,7 +3208,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.865143;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3232,7 +3232,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.865143;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3256,7 +3256,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.865143;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3280,7 +3280,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.865143;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3304,7 +3304,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.865143;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3328,7 +3328,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.865143;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3352,7 +3352,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.865143;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3376,7 +3376,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.865143;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3400,7 +3400,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.865143;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3424,7 +3424,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.865143;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3448,7 +3448,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.865143;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3472,7 +3472,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.865143;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3496,7 +3496,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.865143;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3520,7 +3520,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.865143;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3544,7 +3544,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.865143;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3568,7 +3568,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.189907;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3592,7 +3592,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.189907;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3616,7 +3616,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.189907;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3640,7 +3640,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.189907;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3664,7 +3664,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.189907;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3688,7 +3688,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.189907;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3712,7 +3712,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.189907;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3736,7 +3736,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.189907;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3760,7 +3760,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.189907;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3784,7 +3784,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.189907;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3808,7 +3808,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.189907;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3832,7 +3832,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.189907;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3856,7 +3856,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.189907;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3880,7 +3880,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.189907;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3904,7 +3904,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.189907;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3928,7 +3928,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.189907;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3952,7 +3952,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.951685;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -3976,7 +3976,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.951685;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4000,7 +4000,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.951685;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4024,7 +4024,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.951685;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4048,7 +4048,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.951685;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4072,7 +4072,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.951685;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4096,7 +4096,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.951685;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4120,7 +4120,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.951685;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4144,7 +4144,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.951685;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4168,7 +4168,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.951685;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4192,7 +4192,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.951685;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4216,7 +4216,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.951685;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4240,7 +4240,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.951685;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4264,7 +4264,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.951685;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4288,7 +4288,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.951685;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4312,7 +4312,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.951685;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4336,7 +4336,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.106546;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4360,7 +4360,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.106546;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4384,7 +4384,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.106546;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4408,7 +4408,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.106546;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4432,7 +4432,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.106546;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4456,7 +4456,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.106546;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4480,7 +4480,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.106546;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4504,7 +4504,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.106546;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4528,7 +4528,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.106546;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4552,7 +4552,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.106546;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4576,7 +4576,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.106546;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4600,7 +4600,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.106546;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4624,7 +4624,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.106546;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4648,7 +4648,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.106546;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4672,7 +4672,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.106546;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4696,7 +4696,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.106546;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4720,7 +4720,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.035047;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4744,7 +4744,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.035047;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4768,7 +4768,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.035047;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4792,7 +4792,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.035047;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4816,7 +4816,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.035047;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4840,7 +4840,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.035047;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4864,7 +4864,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.035047;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4888,7 +4888,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.035047;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4912,7 +4912,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.035047;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4936,7 +4936,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.035047;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4960,7 +4960,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.035047;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -4984,7 +4984,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.035047;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5008,7 +5008,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.035047;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5032,7 +5032,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.035047;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5056,7 +5056,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.035047;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5080,7 +5080,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.035047;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5104,7 +5104,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.026472;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5128,7 +5128,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.026472;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5152,7 +5152,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.026472;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5176,7 +5176,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.026472;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5200,7 +5200,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.026472;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5224,7 +5224,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.026472;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5248,7 +5248,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.026472;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5272,7 +5272,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.026472;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5296,7 +5296,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.026472;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5320,7 +5320,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.026472;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5344,7 +5344,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.026472;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5368,7 +5368,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.026472;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5392,7 +5392,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.026472;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5416,7 +5416,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.026472;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5440,7 +5440,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.026472;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5464,7 +5464,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.026472;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5488,7 +5488,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.115121;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5512,7 +5512,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.115121;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5536,7 +5536,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.115121;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5560,7 +5560,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.115121;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5584,7 +5584,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.115121;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5608,7 +5608,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.115121;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5632,7 +5632,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.115121;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5656,7 +5656,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.115121;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5680,7 +5680,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.115121;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5704,7 +5704,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.115121;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5728,7 +5728,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.115121;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5752,7 +5752,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.115121;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5776,7 +5776,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.115121;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5800,7 +5800,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.115121;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5824,7 +5824,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.115121;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5848,7 +5848,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.115121;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5872,7 +5872,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.950408;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5896,7 +5896,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.950408;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5920,7 +5920,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.950408;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5944,7 +5944,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.950408;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5968,7 +5968,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.950408;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -5992,7 +5992,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.950408;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6016,7 +6016,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.950408;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6040,7 +6040,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.950408;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6064,7 +6064,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.950408;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6088,7 +6088,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.950408;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6112,7 +6112,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.950408;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6136,7 +6136,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.950408;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6160,7 +6160,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.950408;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6184,7 +6184,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.950408;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6208,7 +6208,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.950408;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6232,7 +6232,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.950408;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6256,7 +6256,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.191185;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6280,7 +6280,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.191185;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6304,7 +6304,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.191185;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6328,7 +6328,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.191185;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6352,7 +6352,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.191185;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6376,7 +6376,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.191185;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6400,7 +6400,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.191185;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6424,7 +6424,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.191185;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6448,7 +6448,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.191185;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6472,7 +6472,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.191185;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6496,7 +6496,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.191185;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6520,7 +6520,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.191185;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6544,7 +6544,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.191185;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6568,7 +6568,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.191185;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6592,7 +6592,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.191185;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6616,7 +6616,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.191185;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6640,7 +6640,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.878335;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6664,7 +6664,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.878335;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6688,7 +6688,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.878335;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6712,7 +6712,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.878335;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6736,7 +6736,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.878335;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6760,7 +6760,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.878335;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6784,7 +6784,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.878335;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6808,7 +6808,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.878335;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6832,7 +6832,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.878335;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6856,7 +6856,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.878335;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6880,7 +6880,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.878335;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6904,7 +6904,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.878335;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6928,7 +6928,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.878335;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6952,7 +6952,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.878335;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -6976,7 +6976,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.878335;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7000,7 +7000,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.878335;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7024,7 +7024,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.263258;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7048,7 +7048,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.263258;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7072,7 +7072,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.263258;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7096,7 +7096,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.263258;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7120,7 +7120,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.263258;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7144,7 +7144,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.263258;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7168,7 +7168,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.263258;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7192,7 +7192,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.263258;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7216,7 +7216,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.263258;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7240,7 +7240,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.263258;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7264,7 +7264,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.263258;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7288,7 +7288,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.263258;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7312,7 +7312,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.263258;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7336,7 +7336,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.263258;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7360,7 +7360,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.263258;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7384,7 +7384,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.263258;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7408,7 +7408,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.810475;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7432,7 +7432,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.810475;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7456,7 +7456,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.810475;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7480,7 +7480,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.810475;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7504,7 +7504,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.810475;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7528,7 +7528,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.810475;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7552,7 +7552,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.810475;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7576,7 +7576,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.810475;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7600,7 +7600,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.810475;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7624,7 +7624,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.810475;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7648,7 +7648,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.810475;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7672,7 +7672,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.810475;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7696,7 +7696,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.810475;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7720,7 +7720,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.810475;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7744,7 +7744,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.810475;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7768,7 +7768,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.810475;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7792,7 +7792,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.331118;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7816,7 +7816,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.331118;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7840,7 +7840,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.331118;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7864,7 +7864,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.331118;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7888,7 +7888,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.331118;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7912,7 +7912,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.331118;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7936,7 +7936,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.331118;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7960,7 +7960,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.331118;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -7984,7 +7984,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.331118;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8008,7 +8008,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.331118;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8032,7 +8032,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.331118;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8056,7 +8056,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.331118;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8080,7 +8080,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.331118;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8104,7 +8104,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.331118;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8128,7 +8128,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.331118;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8152,7 +8152,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.331118;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8176,7 +8176,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.747148;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8200,7 +8200,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.747148;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8224,7 +8224,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.747148;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8248,7 +8248,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.747148;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8272,7 +8272,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.747148;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8296,7 +8296,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.747148;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8320,7 +8320,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.747148;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8344,7 +8344,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.747148;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8368,7 +8368,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.747148;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8392,7 +8392,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.747148;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8416,7 +8416,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.747148;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8440,7 +8440,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.747148;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8464,7 +8464,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.747148;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8488,7 +8488,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.747148;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8512,7 +8512,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.747148;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8536,7 +8536,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.747148;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8560,7 +8560,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.394445;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8584,7 +8584,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.394445;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8608,7 +8608,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.394445;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8632,7 +8632,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.394445;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8656,7 +8656,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.394445;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8680,7 +8680,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.394445;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8704,7 +8704,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.394445;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8728,7 +8728,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.394445;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8752,7 +8752,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.394445;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8776,7 +8776,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.394445;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8800,7 +8800,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.394445;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8824,7 +8824,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.394445;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8848,7 +8848,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.394445;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8872,7 +8872,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.394445;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8896,7 +8896,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.394445;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8920,7 +8920,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.394445;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8944,7 +8944,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.687682;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8968,7 +8968,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.687682;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -8992,7 +8992,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.687682;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9016,7 +9016,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.687682;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9040,7 +9040,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.687682;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9064,7 +9064,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.687682;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9088,7 +9088,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.687682;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9112,7 +9112,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.687682;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9136,7 +9136,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.687682;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9160,7 +9160,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.687682;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9184,7 +9184,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.687682;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9208,7 +9208,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.687682;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9232,7 +9232,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.687682;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9256,7 +9256,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.687682;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9280,7 +9280,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.687682;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9304,7 +9304,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.687682;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9328,7 +9328,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.453911;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9352,7 +9352,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.453911;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9376,7 +9376,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.453911;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9400,7 +9400,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.453911;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9424,7 +9424,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.453911;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9448,7 +9448,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.453911;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9472,7 +9472,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.453911;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9496,7 +9496,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.453911;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9520,7 +9520,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.453911;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9544,7 +9544,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.453911;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9568,7 +9568,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.453911;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9592,7 +9592,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.453911;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9616,7 +9616,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.453911;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9640,7 +9640,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.453911;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9664,7 +9664,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.453911;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9688,7 +9688,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.453911;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9712,7 +9712,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.501347;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9736,7 +9736,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.501347;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9760,7 +9760,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.501347;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9784,7 +9784,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.501347;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9808,7 +9808,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.501347;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9832,7 +9832,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.501347;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9856,7 +9856,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.501347;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9880,7 +9880,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.501347;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9904,7 +9904,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.501347;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9928,7 +9928,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.501347;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9952,7 +9952,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.501347;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -9976,7 +9976,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.501347;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10000,7 +10000,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.501347;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10024,7 +10024,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.501347;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10048,7 +10048,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.501347;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10072,7 +10072,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.501347;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10096,7 +10096,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.640246;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10120,7 +10120,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.640246;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10144,7 +10144,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.640246;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10168,7 +10168,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.640246;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10192,7 +10192,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.640246;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10216,7 +10216,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.640246;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10240,7 +10240,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.640246;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10264,7 +10264,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.640246;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10288,7 +10288,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.640246;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10312,7 +10312,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.640246;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10336,7 +10336,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.640246;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10360,7 +10360,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.640246;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10384,7 +10384,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.640246;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10408,7 +10408,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.640246;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10432,7 +10432,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.640246;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10456,7 +10456,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.640246;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10480,7 +10480,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.410444;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10504,7 +10504,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.410444;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10528,7 +10528,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.410444;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10552,7 +10552,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.410444;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10576,7 +10576,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.410444;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10600,7 +10600,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.410444;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10624,7 +10624,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.410444;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10648,7 +10648,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.410444;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10672,7 +10672,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.410444;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10696,7 +10696,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.410444;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10720,7 +10720,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.410444;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10744,7 +10744,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.410444;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10768,7 +10768,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.410444;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10792,7 +10792,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.410444;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10816,7 +10816,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.410444;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10840,7 +10840,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.410444;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10864,7 +10864,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.731149;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10888,7 +10888,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.731149;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10912,7 +10912,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.731149;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10936,7 +10936,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.731149;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10960,7 +10960,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.731149;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -10984,7 +10984,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.731149;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11008,7 +11008,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.731149;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11032,7 +11032,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.731149;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11056,7 +11056,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.731149;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11080,7 +11080,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.731149;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11104,7 +11104,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.731149;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11128,7 +11128,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.731149;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11152,7 +11152,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.731149;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11176,7 +11176,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.731149;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11200,7 +11200,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.731149;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11224,7 +11224,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.731149;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11248,7 +11248,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.320603;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11272,7 +11272,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.320603;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11296,7 +11296,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.320603;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11320,7 +11320,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.320603;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11344,7 +11344,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.320603;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11368,7 +11368,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.320603;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11392,7 +11392,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.320603;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11416,7 +11416,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.320603;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11440,7 +11440,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.320603;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11464,7 +11464,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.320603;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11488,7 +11488,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.320603;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11512,7 +11512,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.320603;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11536,7 +11536,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.320603;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11560,7 +11560,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.320603;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11584,7 +11584,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.320603;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11608,7 +11608,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.320603;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11632,7 +11632,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.820989;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11656,7 +11656,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.820989;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11680,7 +11680,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.820989;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11704,7 +11704,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.820989;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11728,7 +11728,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.820989;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11752,7 +11752,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.820989;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11776,7 +11776,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.820989;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11800,7 +11800,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.820989;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11824,7 +11824,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.820989;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11848,7 +11848,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.820989;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11872,7 +11872,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.820989;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11896,7 +11896,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.820989;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11920,7 +11920,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.820989;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11944,7 +11944,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.820989;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11968,7 +11968,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.820989;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -11992,7 +11992,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.820989;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12016,7 +12016,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.232836;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12040,7 +12040,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.232836;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12064,7 +12064,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.232836;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12088,7 +12088,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.232836;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12112,7 +12112,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.232836;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12136,7 +12136,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.232836;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12160,7 +12160,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.232836;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12184,7 +12184,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.232836;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12208,7 +12208,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.232836;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12232,7 +12232,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.232836;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12256,7 +12256,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.232836;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12280,7 +12280,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.232836;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12304,7 +12304,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.232836;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12328,7 +12328,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.232836;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12352,7 +12352,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.232836;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12376,7 +12376,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.232836;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12400,7 +12400,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.908756;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12424,7 +12424,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.908756;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12448,7 +12448,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.908756;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12472,7 +12472,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.908756;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12496,7 +12496,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.908756;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12520,7 +12520,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.908756;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12544,7 +12544,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.908756;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12568,7 +12568,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.908756;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12592,7 +12592,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.908756;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12616,7 +12616,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.908756;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12640,7 +12640,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.908756;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12664,7 +12664,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.908756;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12688,7 +12688,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.908756;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12712,7 +12712,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.908756;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12736,7 +12736,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.908756;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12760,7 +12760,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.908756;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12784,7 +12784,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.147870;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12808,7 +12808,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.147870;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12832,7 +12832,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.147870;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12856,7 +12856,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.147870;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12880,7 +12880,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.147870;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12904,7 +12904,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.147870;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12928,7 +12928,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.147870;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12952,7 +12952,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.147870;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -12976,7 +12976,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.147870;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13000,7 +13000,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.147870;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13024,7 +13024,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.147870;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13048,7 +13048,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.147870;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13072,7 +13072,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.147870;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13096,7 +13096,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.147870;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13120,7 +13120,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.147870;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13144,7 +13144,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.147870;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13168,7 +13168,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.993723;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13192,7 +13192,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.993723;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13216,7 +13216,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.993723;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13240,7 +13240,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.993723;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13264,7 +13264,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.993723;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13288,7 +13288,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.993723;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13312,7 +13312,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.993723;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13336,7 +13336,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.993723;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13360,7 +13360,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.993723;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13384,7 +13384,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.993723;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13408,7 +13408,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.993723;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13432,7 +13432,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.993723;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13456,7 +13456,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.993723;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13480,7 +13480,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.993723;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13504,7 +13504,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.993723;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13528,7 +13528,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.993723;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13552,7 +13552,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.066053;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13576,7 +13576,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.066053;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13600,7 +13600,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.066053;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13624,7 +13624,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.066053;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13648,7 +13648,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.066053;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13672,7 +13672,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.066053;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13696,7 +13696,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.066053;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13720,7 +13720,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.066053;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13744,7 +13744,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.066053;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13768,7 +13768,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.066053;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13792,7 +13792,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.066053;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13816,7 +13816,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.066053;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13840,7 +13840,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.066053;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13864,7 +13864,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.066053;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13888,7 +13888,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.066053;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13912,7 +13912,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -1.066053;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13936,7 +13936,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.075540;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13960,7 +13960,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.075540;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -13984,7 +13984,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.075540;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14008,7 +14008,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.075540;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14032,7 +14032,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.075540;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14056,7 +14056,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.075540;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14080,7 +14080,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.075540;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14104,7 +14104,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.075540;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14128,7 +14128,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.075540;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14152,7 +14152,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.075540;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14176,7 +14176,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.075540;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14200,7 +14200,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.075540;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14224,7 +14224,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.075540;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14248,7 +14248,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.075540;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14272,7 +14272,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.075540;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14296,7 +14296,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.075540;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14320,7 +14320,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.987936;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14344,7 +14344,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.987936;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14368,7 +14368,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.987936;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14392,7 +14392,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.987936;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14416,7 +14416,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.987936;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14440,7 +14440,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.987936;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14464,7 +14464,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.987936;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14488,7 +14488,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.987936;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14512,7 +14512,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.987936;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14536,7 +14536,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.987936;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14560,7 +14560,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.987936;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14584,7 +14584,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.987936;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14608,7 +14608,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.987936;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14632,7 +14632,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.987936;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14656,7 +14656,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.987936;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14680,7 +14680,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.987936;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14704,7 +14704,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.153657;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14728,7 +14728,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.153657;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14752,7 +14752,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.153657;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14776,7 +14776,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.153657;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14800,7 +14800,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.153657;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14824,7 +14824,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.153657;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14848,7 +14848,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.153657;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14872,7 +14872,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.153657;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14896,7 +14896,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.153657;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14920,7 +14920,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.153657;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14944,7 +14944,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.153657;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14968,7 +14968,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.153657;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -14992,7 +14992,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.153657;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15016,7 +15016,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.153657;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15040,7 +15040,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.153657;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15064,7 +15064,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.153657;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15088,7 +15088,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.913765;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15112,7 +15112,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.913765;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15136,7 +15136,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.913765;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15160,7 +15160,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.913765;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15184,7 +15184,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.913765;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15208,7 +15208,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.913765;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15232,7 +15232,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.913765;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15256,7 +15256,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.913765;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15280,7 +15280,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.913765;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15304,7 +15304,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.913765;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15328,7 +15328,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.913765;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15352,7 +15352,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.913765;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15376,7 +15376,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.913765;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15400,7 +15400,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.913765;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15424,7 +15424,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.913765;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15448,7 +15448,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.913765;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15472,7 +15472,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.227827;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15496,7 +15496,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.227827;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15520,7 +15520,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.227827;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15544,7 +15544,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.227827;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15568,7 +15568,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.227827;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15592,7 +15592,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.227827;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15616,7 +15616,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.227827;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15640,7 +15640,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.227827;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15664,7 +15664,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.227827;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15688,7 +15688,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.227827;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15712,7 +15712,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.227827;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15736,7 +15736,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.227827;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15760,7 +15760,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.227827;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15784,7 +15784,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.227827;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15808,7 +15808,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.227827;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15832,7 +15832,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.227827;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15856,7 +15856,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.843786;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15880,7 +15880,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.843786;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15904,7 +15904,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.843786;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15928,7 +15928,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.843786;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15952,7 +15952,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.843786;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -15976,7 +15976,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.843786;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16000,7 +16000,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.843786;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16024,7 +16024,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.843786;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16048,7 +16048,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.843786;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16072,7 +16072,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.843786;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16096,7 +16096,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.843786;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16120,7 +16120,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.843786;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16144,7 +16144,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.843786;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16168,7 +16168,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.843786;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16192,7 +16192,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.843786;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16216,7 +16216,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.843786;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16240,7 +16240,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.297807;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16264,7 +16264,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.297807;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16288,7 +16288,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.297807;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16312,7 +16312,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.297807;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16336,7 +16336,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.297807;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16360,7 +16360,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.297807;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16384,7 +16384,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.297807;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16408,7 +16408,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.297807;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16432,7 +16432,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.297807;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16456,7 +16456,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.297807;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16480,7 +16480,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.297807;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16504,7 +16504,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.297807;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16528,7 +16528,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.297807;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16552,7 +16552,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.297807;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16576,7 +16576,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.297807;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16600,7 +16600,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.297807;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16624,7 +16624,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.778199;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16648,7 +16648,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.778199;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16672,7 +16672,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.778199;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16696,7 +16696,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.778199;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16720,7 +16720,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.778199;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16744,7 +16744,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.778199;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16768,7 +16768,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.778199;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16792,7 +16792,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.778199;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16816,7 +16816,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.778199;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16840,7 +16840,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.778199;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16864,7 +16864,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.778199;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16888,7 +16888,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.778199;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16912,7 +16912,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.778199;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16936,7 +16936,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.778199;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16960,7 +16960,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.778199;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -16984,7 +16984,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.778199;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17008,7 +17008,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.363394;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17032,7 +17032,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.363394;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17056,7 +17056,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.363394;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17080,7 +17080,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.363394;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17104,7 +17104,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.363394;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17128,7 +17128,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.363394;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17152,7 +17152,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.363394;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17176,7 +17176,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.363394;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17200,7 +17200,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.363394;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17224,7 +17224,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.363394;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17248,7 +17248,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.363394;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17272,7 +17272,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.363394;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17296,7 +17296,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.363394;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17320,7 +17320,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.363394;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17344,7 +17344,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.363394;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17368,7 +17368,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.363394;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17392,7 +17392,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.716975;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17416,7 +17416,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.716975;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17440,7 +17440,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.716975;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17464,7 +17464,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.716975;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17488,7 +17488,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.716975;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17512,7 +17512,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.716975;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17536,7 +17536,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.716975;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17560,7 +17560,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.716975;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17584,7 +17584,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.716975;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17608,7 +17608,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.716975;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17632,7 +17632,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.716975;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17656,7 +17656,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.716975;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17680,7 +17680,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.716975;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17704,7 +17704,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.716975;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17728,7 +17728,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.716975;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17752,7 +17752,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.716975;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17776,7 +17776,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.424617;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17800,7 +17800,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.424617;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17824,7 +17824,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.424617;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17848,7 +17848,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.424617;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17872,7 +17872,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.424617;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17896,7 +17896,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.424617;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17920,7 +17920,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.424617;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17944,7 +17944,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.424617;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17968,7 +17968,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.424617;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -17992,7 +17992,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.424617;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18016,7 +18016,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.424617;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18040,7 +18040,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.424617;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18064,7 +18064,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.424617;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18088,7 +18088,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.424617;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18112,7 +18112,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.424617;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18136,7 +18136,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.424617;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18160,7 +18160,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.658852;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18184,7 +18184,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.658852;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18208,7 +18208,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.658852;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18232,7 +18232,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.658852;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18256,7 +18256,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.658852;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18280,7 +18280,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.658852;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18304,7 +18304,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.658852;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18328,7 +18328,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.658852;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18352,7 +18352,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.658852;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18376,7 +18376,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.658852;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18400,7 +18400,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.658852;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18424,7 +18424,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.658852;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18448,7 +18448,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.658852;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18472,7 +18472,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.658852;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18496,7 +18496,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.658852;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18520,7 +18520,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -0.658852;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18544,7 +18544,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18568,7 +18568,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18592,7 +18592,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18616,7 +18616,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18640,7 +18640,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18664,7 +18664,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18688,7 +18688,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18712,7 +18712,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18736,7 +18736,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18760,7 +18760,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18784,7 +18784,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18808,7 +18808,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18832,7 +18832,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18856,7 +18856,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18880,7 +18880,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
     {
@@ -18904,7 +18904,7 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
       geom.pRotationAngleX = -2.482741;
       geom.ModuleSkinThickness = 0.010000;
       geom.NFiberX = 30;
-      geom.NFiberY = 46;
+      geom.NFiberY = 48;
       sector_tower_map[geom.id] = geom;
     }
 

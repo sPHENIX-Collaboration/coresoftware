@@ -329,7 +329,7 @@ PHG4SlatCellReco::process_event(PHCompositeNode *topNode)
 			  cellptarray[slatbin][intetabin]->set_phibin(slatbin);
 			  cellptarray[slatbin][intetabin]->set_etabin(intetabin);
 			}
-		      cellptarray[slatbin][intetabin]->add_edep(hiter->first, hiter->second->get_edep()*bins_fraction.back().get<2>());
+		      cellptarray[slatbin][intetabin]->add_edep(hiter->first, hiter->second->get_edep()*bins_fraction.back().get<2>(), hiter->second->get_light_yield()*bins_fraction.back().get<2>());
 		      bins_fraction.pop_back();
 		    }
 		}
@@ -342,7 +342,7 @@ PHG4SlatCellReco::process_event(PHCompositeNode *topNode)
 		      cellptarray[slatbin][intetabin]->set_phibin(slatbin);
 		      cellptarray[slatbin][intetabin]->set_etabin(intetabin);
 		    }
-		  cellptarray[slatbin][intetabin]->add_edep(hiter->first, hiter->second->get_edep());
+		  cellptarray[slatbin][intetabin]->add_edep(hiter->first, hiter->second->get_edep(), hiter->second->get_light_yield());
 		}
 	    } // end loop over g4hits
           int numcells = 0;
