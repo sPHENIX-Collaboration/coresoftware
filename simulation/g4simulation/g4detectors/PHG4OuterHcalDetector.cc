@@ -61,89 +61,23 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4OuterHc
   scinti_tile_x_lower(NAN),
   scinti_tile_x_upper(NAN),
   scinti_tile_z(params->size_z),
-  steel_rectangle_plate_x(657.2*mm),
-  steel_plate_x(828.7*mm),
-  steel_plate_z(3049.1*2*mm),
-  n_steel_plates(320),
+  // steel_rectangle_plate_x(657.2*mm),
+  // steel_plate_x(828.7*mm),
+  // steel_plate_z(3049.1*2*mm),
+  // n_steel_plates(320),
   scinti_tile_x_old(821.1*mm),
-  scinti_tile_z_old(steel_plate_z),
+  //  scinti_tile_z_old(steel_plate_z),
   scinti_eta_coverage(1.1),
   etacutline(0.8),
-  cutbox_x((steel_plate_x - steel_rectangle_plate_x*mm)*2),// twice the size we need to cut to make geo easier
-  // trapezoid twice the size of what we need
-  cuttrapezoid_x(cutbox_x),
+  // cutbox_x((steel_plate_x - steel_rectangle_plate_x*mm)*2),// twice the size we need to cut to make geo easier
+  // // trapezoid twice the size of what we need
+  // cuttrapezoid_x(cutbox_x),
   layer(0),
   scintilogicnameprefix("HcalOuterScinti"),
   field_setup(NULL)
 {
   scinti_tiles_vec.assign(2*params->n_scinti_tiles,static_cast<G4VSolid *>(NULL));
 
-  double thetacutline = M_PI/2. - PHG4Utils::get_theta(etacutline);
-  // okay another complication. The cut is along eta=etacutline but the box and trapezoids are calculated from the other side 
-  double z_intersect = (envelope_inner_radius+(steel_plate_x-steel_rectangle_plate_x)) * tan(thetacutline);
-  double z_intersect_inner = (envelope_inner_radius-(steel_plate_x-steel_rectangle_plate_x)) * tan(thetacutline);
-  z_intersect = steel_plate_z/2. - z_intersect;
-  z_intersect_inner = steel_plate_z/2. - z_intersect_inner;
-  cutbox_z = z_intersect*2;  // twice the size we need to cut to make geo easier
-  cuttrapezoid_z_short = z_intersect;
-  cuttrapezoid_z_long = z_intersect+(z_intersect_inner-z_intersect);
-  // inner steel plate surface:
-  // scintilator gap is fixed, calculate size of the steel plate:
-  // get the angle covered by one tile (360/n_steel_plates)
-  // since the plate is straight we cannot just use the circumference
-  // but use a straight line (surface of plate) touching the circle in its middle
-  //                                  \  |
-  //                         circle    \ |
-  //                         (ahem)     \|
-  // ------------------------------------|
-  //                                    /|
-  //                                   / |
-  //                                  /  |
-  // the length of the surface is 2*(tan(delta_phi/2)*radius)
-  // then we subtract the scintilator gap from that and have the size of the steel plate
-  // surface we need. Then adjust for tilt angle to get the steel_plate_yin we use
-  // for creating the steel plate (it is a bit backwards, it started mistakenly with
-  // using the tilted steel surface)
-  G4double phi = 2*M_PI/n_steel_plates;
-  G4double total_surface = 2*tan(phi/2.)*envelope_inner_radius;
-  G4double steel_surface = total_surface - params->scinti_gap;
-  // 1*mm/320. is a fudge factor, if using the calculated numbers
-  // I get a 130um overlap when putting the last scintilator in
-  // We have an air gap of (8.5-7)/2mm = 0.75mm + 0.13mm = 0.88mm ~ 1mm too much
-  // We divide this by the number of panels to adjust the thickness of each steel plate
-  G4double fudge_subtract = 1.*mm/n_steel_plates;
-  steel_plate_yin = steel_surface/cos(params->tilt_angle/rad)-fudge_subtract;
-  cutbox_y = steel_plate_yin * 10; // 10 times this size to get complete overlap even when tilted
-  cuttrapezoid_y = steel_plate_yin*3; // just make it thick enough so it overlaps the steel plate in y
-  // outer steel plate surface
-  // scintilator gap is fixed, calculate size of the steel plate:
-  // get the angle covered by one tile (360/n_steel_plates)
-  // since the plate is straight we cannot just use the circumference
-  // but use a straight line (surface of plate) touching the circle in its middle
-  // the picture below generates a compilation error (multi line comment)
-  // so this is C style comment 
-  /* 
-     |\
-     | \  circle
-     |  \ (ahem)
-     ------------------------------------|
-     |  /
-     | /
-     |/
-  */
-  // the length of the surface is 2*(sin(delta_phi/2)*radius)
-  // then we subtract the scintilator gap from that and have the size of the steel plate
-  // surface we need. Then adjust for tilt angle to get the steel_plate_yout we use
-  // for creating the steel plate (it is a bit backwards, it started mistakenly with
-  // using the tilted steel surface)
-  total_surface = 2*sin(phi/2.)*(envelope_inner_radius+steel_plate_x);
-  steel_surface = total_surface - params->scinti_gap;
-  steel_plate_yout = steel_surface/cos(params->tilt_angle/rad)-fudge_subtract;
-
-  // allocate memory for scintillator plates
-  testbox_x[0] = steel_plate_x - steel_rectangle_plate_x*mm;
-  testbox_y[0] = steel_plate_yin;
-  testbox_z[0] = 1007.8*mm;
 }
 
 PHG4OuterHcalDetector::~PHG4OuterHcalDetector()
@@ -544,65 +478,6 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
   return 0;
 }
 
-G4VSolid *
-PHG4OuterHcalDetector::ConstructHcalScintillator(G4LogicalVolume* hcalenvelope)
-{
-  // ---------------------------------
-  // |                               |
-  // |                               |
-  // |                               |
-  // ---------               ---------
-  //          \             /
-  //           \___________/
-
-  // strategy - make a G4Box for the scintillator
-  // and cut out a trapezoid to fit to our magnet envelope
-  // ---------------------------------
-  // |                               |
-  // |                               |
-  // |                               |
-  // ---------               ---------
-  // |        \             /        |
-  // |_________\___________/_________|
-  G4VSolid* scinti_tile =  new G4Box("ScintiTile",scinti_tile_x_old/2.,params->scinti_tile_thickness/2.,scinti_tile_z_old/2.);
-
-  //    DisplayVolume(  scinti_tile,hcalenvelope);
-  // ---------               ---------|
-  //          \             /         |
-  //           \___________/          |
-  //                      /           |
-  //                     /____________|
-  //
-  // ---------------------------------
-  // |                               |
-  // |                               |
-  // |                               |
-  // ---------               ---------
-  //          \             /
-  //           \___________/
-
-  G4double z_offset = 10*cm; // to make sure its size exceeds the scintillator
-  G4double trap_y = params->scinti_tile_thickness*2;
-  G4VSolid *cuttrapezoid = new G4Trap("Cuttrapezoid",trap_y,cuttrapezoid_x,cuttrapezoid_z_long+z_offset,cuttrapezoid_z_short+z_offset);
-  G4RotationMatrix *rotm = new G4RotationMatrix();
-  rotm->rotateX(-90*deg);
-  rotm->rotateZ(90*deg);
-  // G4LogicalVolume* checksolid = new G4LogicalVolume(cuttrapezoid,G4Material::GetMaterial("G4_POLYSTYRENE"),"DISPLAYLOGICAL", 0, 0, 0);
-  // G4VisAttributes* visattchk = new G4VisAttributes();
-  // visattchk->SetVisibility(true);
-  // visattchk->SetForceSolid(false);
-  // checksolid->SetVisAttributes(visattchk);
-  // new G4PVPlacement(rotm,G4ThreeVector(-scinti_tile_x_old/2.,0,scinti_tile_z_old/2.-(cuttrapezoid_z_short+cuttrapezoid_z_long)/4.+z_offset/2.),checksolid,"DISPLAYVOL",hcalenvelope, 0, false, overlapcheck);
-  //    visattchk->SetColour(G4Colour::Yellow());
-
-  G4VSolid *scinti_tile_1 = new G4SubtractionSolid("scinti_tile_1",scinti_tile,cuttrapezoid,rotm,G4ThreeVector(-scinti_tile_x_old/2.,0,scinti_tile_z_old/2.-(cuttrapezoid_z_short+cuttrapezoid_z_long)/4.+z_offset/2.));
-  rotm = new G4RotationMatrix();
-  rotm->rotateX(90*deg);
-  rotm->rotateZ(90*deg);
-  G4VSolid *scinti_tile_2 = new G4SubtractionSolid("scinti_tile_2",scinti_tile_1,cuttrapezoid,rotm,G4ThreeVector(-scinti_tile_x_old/2.,0,-scinti_tile_z_old/2.+(cuttrapezoid_z_short+cuttrapezoid_z_long)/4.-z_offset/2.));
-  return scinti_tile_2;
-}
-
 int
 PHG4OuterHcalDetector::DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol,G4RotationMatrix *rotm )
 {
@@ -860,7 +735,7 @@ PHG4OuterHcalDetector::AddGeometryNode()
         }
       // here in the detector class we have internal units, convert to cm
       // before putting into the geom object
-      PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv3(envelope_inner_radius / cm, (params->place_in_z - steel_plate_z / 2.) / cm, (params->place_in_z + steel_plate_z / 2.) / cm, (envelope_outer_radius-envelope_inner_radius) / cm, n_steel_plates,  params->tilt_angle/rad, 0);
+      PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv3(envelope_inner_radius / cm, (params->place_in_z - envelope_z / 2.) / cm, (params->place_in_z + envelope_z / 2.) / cm, (envelope_outer_radius-envelope_inner_radius) / cm, params->n_scinti_plates,  params->tilt_angle/rad, 0);
       geo->AddLayerGeom(layer, mygeom);
       if (verbosity > 0) geo->identify();
     }

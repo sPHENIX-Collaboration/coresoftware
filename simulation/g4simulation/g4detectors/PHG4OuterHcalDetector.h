@@ -58,7 +58,6 @@ class PHG4OuterHcalDetector: public PHG4Detector
   void AddGeometryNode();
   int ConstructOuterHcal(G4LogicalVolume* hcalenvelope);
   G4VSolid *ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
-  G4VSolid *ConstructHcalScintillator(G4LogicalVolume* hcalenvelope);
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
   int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
   G4double x_at_y(Point_2 &p0, Point_2 &p1, G4double yin);
@@ -72,13 +71,6 @@ class PHG4OuterHcalDetector: public PHG4Detector
   G4double scinti_tile_x_upper;
   G4double scinti_tile_z;
 
-  // for the initial trapezoid
-  G4double steel_rectangle_plate_x; // the rectangle after eta cutout
-  G4double steel_plate_x;
-  G4double steel_plate_yin;
-  G4double steel_plate_yout;
-  G4double steel_plate_z;
-  G4int n_steel_plates;
   // the scintillator envelop
   G4double scinti_tile_x_old;
   G4double scinti_tile_z_old;
@@ -86,14 +78,10 @@ class PHG4OuterHcalDetector: public PHG4Detector
   //
   // eta at which we cut the steel/scintillator plates to accomodate for magnet related cutout
   G4double etacutline;
-  // the box we need to cut out
-  G4double cutbox_x;
-  G4double cutbox_y;
-  G4double cutbox_z;
-  G4double cuttrapezoid_x;
-  G4double cuttrapezoid_y;
-  G4double cuttrapezoid_z_short;
-  G4double cuttrapezoid_z_long;
+  /* G4double cuttrapezoid_x; */
+  /* G4double cuttrapezoid_y; */
+  /* G4double cuttrapezoid_z_short; */
+  /* G4double cuttrapezoid_z_long; */
   G4double testbox_x[2];
   G4double testbox_y[2];
   G4double testbox_z[2];
