@@ -61,6 +61,7 @@ class PHG4OuterHcalDetector: public PHG4Detector
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
   int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
   G4double x_at_y(Point_2 &p0, Point_2 &p1, G4double yin);
+  PHG4OuterHcalFieldSetup * field_setup;
   PHG4OuterHcalParameters *params;
   G4VSolid *steel_cutout_for_magnet;
   G4double envelope_inner_radius;
@@ -71,29 +72,13 @@ class PHG4OuterHcalDetector: public PHG4Detector
   G4double scinti_tile_x_upper;
   G4double scinti_tile_z;
 
-  // the scintillator envelop
-  G4double scinti_tile_x_old;
-  G4double scinti_tile_z_old;
-  G4double scinti_eta_coverage;
-  //
-  // eta at which we cut the steel/scintillator plates to accomodate for magnet related cutout
-  G4double etacutline;
-  /* G4double cuttrapezoid_x; */
-  /* G4double cuttrapezoid_y; */
-  /* G4double cuttrapezoid_z_short; */
-  /* G4double cuttrapezoid_z_long; */
-  G4double testbox_x[2];
-  G4double testbox_y[2];
-  G4double testbox_z[2];
-  std::set<G4VPhysicalVolume *>steel_absorber_vec;
-  std::set<G4VPhysicalVolume *>scinti_slats_vec;
 
   int layer;
   std::string detector_type;
   std::string superdetector;
-  std::vector<G4VSolid *> scinti_tiles_vec; 
   std::string scintilogicnameprefix;
-  PHG4OuterHcalFieldSetup * field_setup;
+  std::vector<G4VSolid *> scinti_tiles_vec; 
+  std::set<G4VPhysicalVolume *>steel_absorber_vec;
 };
 
 #endif

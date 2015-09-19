@@ -52,6 +52,7 @@ static double subtract_from_scinti_x = 0.1*mm;
 
 PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4OuterHcalParameters *parameters,const std::string &dnam):
   PHG4Detector(Node, dnam),
+  field_setup(NULL),
   params(parameters),
   steel_cutout_for_magnet(NULL),
   envelope_inner_radius(params->inner_radius),
@@ -61,20 +62,8 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4OuterHc
   scinti_tile_x_lower(NAN),
   scinti_tile_x_upper(NAN),
   scinti_tile_z(params->size_z),
-  // steel_rectangle_plate_x(657.2*mm),
-  // steel_plate_x(828.7*mm),
-  // steel_plate_z(3049.1*2*mm),
-  // n_steel_plates(320),
-  scinti_tile_x_old(821.1*mm),
-  //  scinti_tile_z_old(steel_plate_z),
-  scinti_eta_coverage(1.1),
-  etacutline(0.8),
-  // cutbox_x((steel_plate_x - steel_rectangle_plate_x*mm)*2),// twice the size we need to cut to make geo easier
-  // // trapezoid twice the size of what we need
-  // cuttrapezoid_x(cutbox_x),
   layer(0),
-  scintilogicnameprefix("HcalOuterScinti"),
-  field_setup(NULL)
+  scintilogicnameprefix("HcalOuterScinti")
 {
   scinti_tiles_vec.assign(2*params->n_scinti_tiles,static_cast<G4VSolid *>(NULL));
 
