@@ -39,6 +39,7 @@ class PHG4TruthInfoContainer: public PHObject
   //  Iterator AddHit(const int detid);
 
   PHG4Particle* GetHit(const int detid);
+  PHG4Particle* GetPrimaryHit(const int detid);
 
   //! Add a vertex and return an iterator to the user
   VtxIterator AddVertex(const int detid);

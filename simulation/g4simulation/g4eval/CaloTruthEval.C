@@ -23,7 +23,6 @@ CaloTruthEval::CaloTruthEval(PHCompositeNode* topNode,std::string caloname)
     _cache_all_truth_hits_g4particle(),
     _cache_get_primary_particle_g4particle(),
     _cache_get_primary_particle_g4hit(),
-    _cache_is_primary(),
     _cache_get_shower_from_primary(),
     _cache_get_shower_moliere_radius(),
     _cache_get_shower_energy_deposit() {
@@ -35,7 +34,6 @@ void CaloTruthEval::next_event(PHCompositeNode* topNode) {
   _cache_all_truth_hits_g4particle.clear();
   _cache_get_primary_particle_g4particle.clear();
   _cache_get_primary_particle_g4hit.clear();
-  _cache_is_primary.clear();
   _cache_get_shower_from_primary.clear();
   _cache_get_shower_moliere_radius.clear();
   _cache_get_shower_energy_deposit.clear();
@@ -72,7 +70,6 @@ std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Particle* particle) {
 
 PHG4Particle* CaloTruthEval::get_parent_particle(PHG4Hit* g4hit) {
 
-  // expensive call, but only because it gets called a ton (i think)
   PHG4Particle* particle = _truthinfo->GetHit( g4hit->get_trkid() );
   return particle;
 }
@@ -86,11 +83,14 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Particle* particle) {
       return iter->second;
     }
   }
-  
-  PHG4Particle* returnval = particle;
-  if ((returnval->get_primary_id() != returnval->get_track_id()) ||
-      (returnval->get_primary_id() != -1)) {
-    returnval = _truthinfo->GetHit( particle->get_primary_id() );
+
+  // always report the primary from the Primary Map regardless if a
+  // primary from the full Map was the argument
+  PHG4Particle* returnval = NULL;
+  if (particle->get_primary_id() != -1) {
+    returnval = _truthinfo->GetPrimaryHit( particle->get_primary_id() );
+  } else {
+    returnval = _truthinfo->GetPrimaryHit( particle->get_track_id() );
   }
 
   if (_do_cache) _cache_get_primary_particle_g4particle.insert(make_pair(particle,returnval));
@@ -133,22 +133,12 @@ PHG4VtxPoint* CaloTruthEval::get_vertex(PHG4Particle* particle) {
 
 bool CaloTruthEval::is_primary(PHG4Particle* particle) {
 
-  if (_do_cache) {
-    std::map<PHG4Particle*,bool>::iterator iter =
-      _cache_is_primary.find(particle);
-    if (iter != _cache_is_primary.end()) {
-      return iter->second;
-    }
+  bool is_primary = true;
+  if (!_truthinfo->GetPrimaryHit(particle->get_track_id())) {
+    // does the particle id appear in the primary map?
+    // this way either copy (in Map or Primary Map) will report correctly
+    is_primary = false;
   }
-
-  bool is_primary = false;
-  if (particle->get_primary_id() == particle->get_track_id()) {
-    is_primary = true;
-  } else if (particle->get_primary_id() == -1) {
-    is_primary = true;
-  }
-  
-  if (_do_cache) _cache_is_primary.insert(make_pair(particle,is_primary));
   
   return is_primary;
 }

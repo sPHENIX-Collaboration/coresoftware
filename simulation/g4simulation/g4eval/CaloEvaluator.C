@@ -21,7 +21,7 @@
 #include <TFile.h>
 
 #include <iostream>
-//#include <vector>
+#include <set>
 //#include <algorithm>
 #include <cmath>
 
@@ -31,6 +31,8 @@ CaloEvaluator::CaloEvaluator(const string &name, const string &caloname, const s
   : SubsysReco(name),
     _caloname(caloname),
     _ievent(0),
+    _truth_trace_embed_flags(),
+    _reco_e_threshold(0.0), // 0 GeV before reco is traced
     _do_gpoint_eval(true),
     _do_gshower_eval(true),
     _do_tower_eval(true),
@@ -90,7 +92,7 @@ int CaloEvaluator::process_event(PHCompositeNode *topNode) {
   //---------------------------
 
   fillOutputNtuples(topNode);
-
+  
   //--------------------------------------------------
   // Print out the ancestry information for this event
   //--------------------------------------------------
@@ -368,6 +370,11 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	 iter != map.end(); 
 	 ++iter) {
       PHG4Particle* primary = iter->second;
+
+      if (!_truth_trace_embed_flags.empty()) {
+	if (_truth_trace_embed_flags.find(trutheval->get_embed(primary)) ==
+	    _truth_trace_embed_flags.end()) continue;
+      }
       
       float gparticleID = primary->get_track_id();
       float gflavor     = primary->get_pid();
@@ -466,6 +473,8 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
       RawTower *tower = rtiter->second;
 
+      if (tower->get_energy() < _reco_e_threshold) continue;
+      
       float towerid = tower->get_id();
       float ieta    = tower->get_bineta();
       float iphi    = tower->get_binphi();
@@ -573,6 +582,8 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     for (unsigned int icluster = 0; icluster < clusters->size(); icluster++) {
       RawCluster *cluster = clusters->getCluster(icluster);
 
+      if (cluster->get_energy() < _reco_e_threshold) continue;
+      
       float clusterID = cluster->get_id();
       float ntowers   = cluster->getNTowers();
       float eta       = cluster->get_eta();

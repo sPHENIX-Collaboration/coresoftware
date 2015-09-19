@@ -64,7 +64,7 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster) {
   }
   
   std::set<PHG4Hit*> truth_hits;
-
+  
   // loop over all the clustered towers
   RawCluster::TowerConstRange begin_end = cluster->get_towers();
   RawCluster::TowerConstIterator iter;
@@ -72,14 +72,13 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster) {
     { 
     RawTower* tower = _towers->getTower(iter->first);
     
-    std::set<PHG4Hit*> new_hits = _towereval.all_truth_hits(tower);
-    std::set<PHG4Hit*> union_hits;
+    std::set<PHG4Hit*> new_hits = get_rawtower_eval()->all_truth_hits(tower);
 
-    std::set_union(truth_hits.begin(),truth_hits.end(),
-		   new_hits.begin(),new_hits.end(),
-		   std::inserter(union_hits,union_hits.begin()));
-
-    std::swap(truth_hits,union_hits); // swap union into truth_particles    
+    for (std::set<PHG4Hit*>::iterator iter = new_hits.begin();
+	 iter != new_hits.end();
+	 ++iter) {
+      truth_hits.insert(*iter);
+    }
   }
 
   if (_do_cache) _cache_all_truth_hits.insert(make_pair(cluster,truth_hits));
@@ -106,13 +105,12 @@ std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primaries(RawCluster* clus
     { 
     RawTower* tower = _towers->getTower(iter->first);
     std::set<PHG4Particle*> new_primaries = _towereval.all_truth_primaries(tower);
-    std::set<PHG4Particle*> union_primaries;
 
-    std::set_union(truth_primaries.begin(),truth_primaries.end(),
-		   new_primaries.begin(),new_primaries.end(),
-		   std::inserter(union_primaries,union_primaries.begin()));
-
-    std::swap(truth_primaries,union_primaries); // swap union into truth_particles    
+    for (std::set<PHG4Particle*>::iterator iter = new_primaries.begin();
+	 iter != new_primaries.end();
+	 ++iter) {
+      truth_primaries.insert(*iter);
+    }
   }
 
   if (_do_cache) _cache_all_truth_primaries.insert(make_pair(cluster,truth_primaries));
@@ -141,6 +139,7 @@ PHG4Particle* CaloRawClusterEval::max_truth_primary_by_energy(RawCluster* cluste
 
     PHG4Particle* primary = *iter;
     float e = get_energy_contribution(cluster,primary);
+    if (isnan(e)) continue;
     if (e > max_e) {
       max_e = e;
       max_primary = primary;      
@@ -154,15 +153,18 @@ PHG4Particle* CaloRawClusterEval::max_truth_primary_by_energy(RawCluster* cluste
 
 std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primary) { 
 
-  CaloTruthEval* trutheval = _towereval.get_truth_eval();
-  if (!trutheval->is_primary(primary)) return std::set<RawCluster*>();
-  
-  if ((_do_cache) &&
-      (_cache_all_clusters_from_primary.find(primary) != _cache_all_clusters_from_primary.end())) {
-    return _cache_all_clusters_from_primary[primary];
+  if (!get_truth_eval()->is_primary(primary)) return std::set<RawCluster*>();
+
+  primary = get_truth_eval()->get_primary_particle(primary);
+
+  if (_do_cache) {
+    std::map<PHG4Particle*,std::set<RawCluster*> >::iterator iter =
+      _cache_all_clusters_from_primary.find(primary);
+    if (iter != _cache_all_clusters_from_primary.end()) {
+      return iter->second;
+    }
   }
   
-
   std::set<RawCluster*> clusters;
   
   // loop over all the clusters
@@ -191,8 +193,9 @@ std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primar
 
 RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Particle* primary) {
 
-  CaloTruthEval* trutheval = _towereval.get_truth_eval();
-  if (!trutheval->is_primary(primary)) return NULL;
+  if (!get_truth_eval()->is_primary(primary)) return NULL;
+
+  primary = get_truth_eval()->get_primary_particle(primary);
       
   if (_do_cache) {
     std::map<PHG4Particle*,RawCluster*>::iterator iter =
@@ -203,13 +206,14 @@ RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Particle* primary) {
   }
   
   RawCluster* best_cluster = NULL;
-  float best_energy = 0.0;  
+  float best_energy = FLT_MAX*-1.0;  
   std::set<RawCluster*> clusters = all_clusters_from(primary);
   for (std::set<RawCluster*>::iterator iter = clusters.begin();
        iter != clusters.end();
        ++iter) {
     RawCluster* cluster = *iter;
     float energy = get_energy_contribution(cluster,primary);
+    if(isnan(energy)) continue;
     if (energy > best_energy) {
       best_cluster = cluster;
       best_energy = energy;
@@ -224,8 +228,10 @@ RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Particle* primary) {
 // overlap calculations
 float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Particle* primary) {
 
-  CaloTruthEval* trutheval = _towereval.get_truth_eval();
-  if (!trutheval->is_primary(primary)) return NAN;
+  if (!get_truth_eval()->is_primary(primary)) return NAN;
+
+  // reduce cache misses by using only pointer from PrimaryMap
+  primary = get_truth_eval()->get_primary_particle(primary);
   
   if (_do_cache) {
     std::map<std::pair<RawCluster*,PHG4Particle*>,float>::iterator iter =
@@ -241,7 +247,8 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Parti
        iter != g4hits.end();
        ++iter) {
     PHG4Hit* g4hit = *iter;
-    if (g4hit->get_trkid() == primary->get_track_id()) {
+    PHG4Particle* candidate = get_truth_eval()->get_primary_particle(g4hit);
+    if (candidate->get_track_id() == primary->get_track_id()) {
       energy += g4hit->get_edep();
     }
   }
