@@ -1,5 +1,6 @@
 #include "PHG4OuterHcalSteppingAction.h"
 #include "PHG4OuterHcalDetector.h"
+#include "PHG4OuterHcalParameters.h"
 
 
 #include <TH2F.h>
@@ -41,23 +42,14 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* detector ):
+PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* detector,  PHG4OuterHcalParameters *parameters):
   PHG4SteppingAction(NULL),
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),
   hit(NULL),
-  enable_field_checker_(false),
-  light_scint_model_(true),
-  light_balance_(false),
-  light_balance_inner_radius_(0.0),
-  light_balance_inner_corr_(1.0),
-  light_balance_outer_radius_(10.0),
-  light_balance_outer_corr_(1.0)  
-{
-
-
-}
+  params(parameters)
+{}
 
 //____________________________________________________________________________..
 bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
@@ -80,7 +72,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
       return false;
     }
 
-  if (enable_field_checker_)
+  if (params->enable_field_checker)
     FieldChecker(aStep);
 
   unsigned int motherid = ~0x0; // initialize to 0xFFFFFF using the correct bitness
@@ -131,7 +123,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this block stops everything, just put all kinetic energy into edep
-  if (detector_->IsBlackHole())
+  if (params->blackhole)
     {
       edep = aTrack->GetKineticEnergy() / GeV;
       G4Track* killtrack = const_cast<G4Track *> (aTrack);
@@ -212,7 +204,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
       if (whichactive > 0)
         {
 
-          if (light_scint_model_)
+          if (params->light_scint_model)
             {
               light_yield = GetVisibleEnergyDeposition(aStep);
 
@@ -242,7 +234,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
               light_yield = eion;
             }
 
-          if (light_balance_)
+          if (params->light_balance)
             {
               float r = sqrt(
                   pow(postPoint->GetPosition().x() / cm, 2)
@@ -341,8 +333,8 @@ void PHG4OuterHcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNode
 }
 
 float PHG4OuterHcalSteppingAction::GetLightCorrection(float r) {
-  float m = (light_balance_outer_corr_ - light_balance_inner_corr_)/(light_balance_outer_radius_ - light_balance_inner_radius_);
-  float b = light_balance_inner_corr_ - m*light_balance_inner_radius_;
+  float m = (params->light_balance_outer_corr - params->light_balance_inner_corr)/(params->light_balance_outer_radius - params->light_balance_inner_radius);
+  float b = params->light_balance_inner_corr - m*params->light_balance_inner_radius;
   float value = m*r+b;  
   if (value > 1.0) return 1.0;
   if (value < 0.0) return 0.0;
