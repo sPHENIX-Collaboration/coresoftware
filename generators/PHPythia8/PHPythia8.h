@@ -44,7 +44,7 @@ public:
   PHPythia8(const std::string &name = "PHPythia8");
   virtual ~PHPythia8();
 
-  int Init(PHCompositeNode *topNode);  
+  int Init(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode); 
   int ResetEvent(PHCompositeNode *topNode); 
   int End(PHCompositeNode *topNode);

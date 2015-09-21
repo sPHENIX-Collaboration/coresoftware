@@ -129,11 +129,9 @@ int PHPythia8::Init(PHCompositeNode *topNode) {
 
   _pythia->init();
 
-  print_config();
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
+  
 int PHPythia8::End(PHCompositeNode *topNode) {
   //-* dump out closing info (cross-sections, etc)
   _pythia->stat();
@@ -173,7 +171,7 @@ int PHPythia8::read_config(const char *cfg_file) {
 
 //-* print pythia config info
 void PHPythia8::print_config() const {
-  _pythia->info.list();
+  //_pythia->info.list();
 }
 
 int PHPythia8::process_event(PHCompositeNode *topNode) {
