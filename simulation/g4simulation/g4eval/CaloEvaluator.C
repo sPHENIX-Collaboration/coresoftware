@@ -25,9 +25,6 @@
 //#include <algorithm>
 #include <cmath>
 
-#include </opt/sphenix/utils/include/valgrind/callgrind.h>
-#include <sys/time.h>
-
 using namespace std;
 
 CaloEvaluator::CaloEvaluator(const string &name, const string &caloname, const string &filename) 
@@ -95,21 +92,7 @@ int CaloEvaluator::process_event(PHCompositeNode *topNode) {
   // fill the Evaluator NTuples
   //---------------------------
 
-  struct timeval start, end;
-  long mtime, seconds, useconds;    
-  gettimeofday(&start, NULL);
-  CALLGRIND_START_INSTRUMENTATION;
-  
   fillOutputNtuples(topNode);
-
-  CALLGRIND_STOP_INSTRUMENTATION;
-  gettimeofday(&end, NULL);
-
-  seconds  = end.tv_sec  - start.tv_sec;
-  useconds = end.tv_usec - start.tv_usec;
-  mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
-
-  cout << "mike timer (usec): " << mtime << endl; 
   
   //--------------------------------------------------
   // Print out the ancestry information for this event
