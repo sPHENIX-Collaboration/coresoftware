@@ -21,7 +21,7 @@ CaloTruthEval::CaloTruthEval(PHCompositeNode* topNode,std::string caloname)
     _g4hits(NULL),
     _do_cache(true),
     _cache_all_truth_hits_g4particle(),
-    _cache_get_primary_particle_g4particle(),
+    //_cache_get_primary_particle_g4particle(),
     _cache_get_primary_particle_g4hit(),
     _cache_get_shower_from_primary(),
     _cache_get_shower_moliere_radius(),
@@ -32,7 +32,7 @@ CaloTruthEval::CaloTruthEval(PHCompositeNode* topNode,std::string caloname)
 void CaloTruthEval::next_event(PHCompositeNode* topNode) {
 
   _cache_all_truth_hits_g4particle.clear();
-  _cache_get_primary_particle_g4particle.clear();
+  //_cache_get_primary_particle_g4particle.clear();
   _cache_get_primary_particle_g4hit.clear();
   _cache_get_shower_from_primary.clear();
   _cache_get_shower_moliere_radius.clear();
@@ -76,14 +76,6 @@ PHG4Particle* CaloTruthEval::get_parent_particle(PHG4Hit* g4hit) {
 
 PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Particle* particle) {
 
-  if (_do_cache) {
-    std::map<PHG4Particle*,PHG4Particle*>::iterator iter =
-      _cache_get_primary_particle_g4particle.find(particle);
-    if (iter != _cache_get_primary_particle_g4particle.end()) {
-      return iter->second;
-    }
-  }
-
   // always report the primary from the Primary Map regardless if a
   // primary from the full Map was the argument
   PHG4Particle* returnval = NULL;
@@ -93,8 +85,6 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Particle* particle) {
     returnval = _truthinfo->GetPrimaryHit( particle->get_track_id() );
   }
 
-  if (_do_cache) _cache_get_primary_particle_g4particle.insert(make_pair(particle,returnval));
-  
   return returnval;
 }
 
