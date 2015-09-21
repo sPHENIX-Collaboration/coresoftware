@@ -35,6 +35,7 @@ CaloEvaluator::CaloEvaluator(const string &name, const string &caloname, const s
     _caloname(caloname),
     _ievent(0),
     _truth_trace_embed_flags(),
+    _truth_e_threshold(0.0), // 0 GeV before reco is traced
     _reco_e_threshold(0.0), // 0 GeV before reco is traced
     _do_gpoint_eval(true),
     _do_gshower_eval(true),
@@ -388,6 +389,8 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	 ++iter) {
       PHG4Particle* primary = iter->second;
 
+      if (primary->get_e() < _truth_e_threshold) continue;
+      
       if (!_truth_trace_embed_flags.empty()) {
 	if (_truth_trace_embed_flags.find(trutheval->get_embed(primary)) ==
 	    _truth_trace_embed_flags.end()) continue;

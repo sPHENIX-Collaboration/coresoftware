@@ -41,6 +41,10 @@ class CaloEvaluator : public SubsysReco {
   void add_truth_tracing_embed_flag(int flag) {
     _truth_trace_embed_flags.insert(flag);
   }
+  
+  void set_truth_tracing_energy_threshold(float thresh) {
+    _truth_e_threshold = thresh;
+  }
 
   // backward trace only if reco meets an energy threshold requirement
   void set_reco_tracing_energy_threshold(float thresh) {
@@ -59,6 +63,7 @@ class CaloEvaluator : public SubsysReco {
   unsigned long _ievent;
 
   std::set<int> _truth_trace_embed_flags;
+  float _truth_e_threshold;
   float _reco_e_threshold;
 
   //----------------------------------

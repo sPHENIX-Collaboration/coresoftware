@@ -89,7 +89,7 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Particle* particle) {
 
 PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Hit* g4hit) {
 
-  if (_do_cache) { // 35% savings
+  if (_do_cache) {
     std::map<PHG4Hit*,PHG4Particle*>::iterator iter =
       _cache_get_primary_particle_g4hit.find(g4hit);
     if (iter != _cache_get_primary_particle_g4hit.end()) {
