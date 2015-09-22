@@ -37,20 +37,36 @@ class CaloEvaluator : public SubsysReco {
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  // forward trace only off of primaries with embed flags set
+  // funtions to limit the tracing to only part of the event ---------
+  // and speed up the evaluation
+
+  // when tracing truth showers limit the trace to showers
+  // that result from truth particles with a particular embed flag set
+  // useful if you only want to know about that electron you
+  // embedded into a central hijing event
+  // (evaluation for truth objects with matching embed flag set unaffected)
   void add_truth_tracing_embed_flag(int flag) {
     _truth_trace_embed_flags.insert(flag);
   }
   
+  // limit the tracing of truth particles to those above some
+  // theshold energy. useful for tracing only high energy particles
+  // and ignoring low energy truth particles from a hijing event
+  // (evaluation for objects above threshold unaffected)
   void set_truth_tracing_energy_threshold(float thresh) {
     _truth_e_threshold = thresh;
   }
 
-  // backward trace only if reco meets an energy threshold requirement
+  // limit the tracing of towers and clusters back to the truth particles
+  // to only those reconstructed objects above a particular energy
+  // threshold (evaluation for objects above threshold unaffected)
   void set_reco_tracing_energy_threshold(float thresh) {
     _reco_e_threshold = thresh;
   }
 
+  // functions to limit the output size ------------------
+  // will no evaluate or write out these particular ntuples
+  // mostly intended for size savings, but some time savings will result
   void set_do_gpoint_eval(bool b) {_do_gpoint_eval = b;}
   void set_do_gshower_eval(bool b) {_do_gshower_eval = b;}
   void set_do_tower_eval(bool b) {_do_tower_eval = b;}
