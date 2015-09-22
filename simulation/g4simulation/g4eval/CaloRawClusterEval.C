@@ -240,19 +240,25 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Parti
       return iter->second;
     }
   }
-  
-  float energy = 0.0;
-  std::set<PHG4Hit*> g4hits = all_truth_hits(cluster);
-  for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
-       iter != g4hits.end();
-       ++iter) {
-    PHG4Hit* g4hit = *iter;
-    PHG4Particle* candidate = get_truth_eval()->get_primary_particle(g4hit);
-    if (candidate->get_track_id() == primary->get_track_id()) {
-      energy += g4hit->get_edep();
-    }
-  }
 
+  float energy = 0.0;
+  
+  std::set<PHG4Particle*> g4particles = all_truth_primaries(cluster);
+  if (g4particles.find(primary) != g4particles.end()) {
+
+    std::set<PHG4Hit*> g4hits = all_truth_hits(cluster);
+    for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
+	 iter != g4hits.end();
+	 ++iter) {
+      PHG4Hit* g4hit = *iter;
+      PHG4Particle* candidate = get_truth_eval()->get_primary_particle(g4hit);
+      if (candidate->get_track_id() == primary->get_track_id()) {
+	energy += g4hit->get_edep();
+      }
+    }
+    
+  }
+  
   if (_do_cache) _cache_get_energy_contribution_primary.insert(make_pair(make_pair(cluster,primary),energy));
   
   return energy;
