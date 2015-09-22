@@ -58,26 +58,80 @@ static bool is_local_maximum( std::vector<std::vector<float> > const& amps, int 
 
 static void fit_cluster( std::vector<std::vector<float> >& amps, int& nhits_tot, std::vector<int>& nhits, int phibin, int zbin, PHG4CylinderCellGeom* geo, float& phi, float& z, float& e )
 {
-	int phi_span = 3;
-	int z_span = 3;
+	int phi_span = 10;
+	int z_span = 10;
 	e = 0.;
 	phi = 0.;
 	z = 0.;
-	for( int iz=-z_span;iz<=z_span;++iz )
+	float prop_cut = 0.05;
+	float peak = amps[zbin][phibin];
+
+	for( int iz=0;iz<=z_span;++iz )
 	{
 		int cz = zbin+iz;if(cz<0){continue;}if(cz>=(int)(amps.size())){continue;}
-		for( int ip=-phi_span;ip<=phi_span;++ip )
+		bool breakout = true;
+		for( int ip=1;ip<=phi_span;++ip )
 		{
-			int cp = wrap_bin( phibin+ip, amps[cz].size() );
-			if(amps[cz][cp] <= 0.){continue;}
+			int cp = wrap_bin( phibin-ip, amps[cz].size() );
+			if(amps[cz][cp] <= 0.){break;}
+			if( amps[cz][cp] < prop_cut*peak ){break;}
 			e += amps[cz][cp];
 			phi += amps[cz][cp]*geo->get_phicenter(cp);
 			z += amps[cz][cp]*geo->get_zcenter(cz);
 			nhits_tot -= 1;
 			nhits[cz] -= 1;
 			amps[cz][cp] = 0.;
+			breakout=false;
 		}
+		for( int ip=0;ip<=phi_span;++ip )
+		{
+			int cp = wrap_bin( phibin+ip, amps[cz].size() );
+			if(amps[cz][cp] <= 0.){break;}
+			if( amps[cz][cp] < prop_cut*peak ){break;}
+			e += amps[cz][cp];
+			phi += amps[cz][cp]*geo->get_phicenter(cp);
+			z += amps[cz][cp]*geo->get_zcenter(cz);
+			nhits_tot -= 1;
+			nhits[cz] -= 1;
+			amps[cz][cp] = 0.;
+			breakout=false;
+		}
+		if(breakout==true){break;}
 	}
+
+	for( int iz=1;iz<=z_span;++iz )
+	{
+		int cz = zbin-iz;if(cz<0){continue;}if(cz>=(int)(amps.size())){continue;}
+		bool breakout = true;
+		for( int ip=1;ip<=phi_span;++ip )
+		{
+			int cp = wrap_bin( phibin-ip, amps[cz].size() );
+			if(amps[cz][cp] <= 0.){break;}
+			if( amps[cz][cp] < prop_cut*peak ){break;}
+			e += amps[cz][cp];
+			phi += amps[cz][cp]*geo->get_phicenter(cp);
+			z += amps[cz][cp]*geo->get_zcenter(cz);
+			nhits_tot -= 1;
+			nhits[cz] -= 1;
+			amps[cz][cp] = 0.;
+			breakout=false;
+		}
+		for( int ip=0;ip<=phi_span;++ip )
+		{
+			int cp = wrap_bin( phibin+ip, amps[cz].size() );
+			if(amps[cz][cp] <= 0.){break;}
+			if( amps[cz][cp] < prop_cut*peak ){break;}
+			e += amps[cz][cp];
+			phi += amps[cz][cp]*geo->get_phicenter(cp);
+			z += amps[cz][cp]*geo->get_zcenter(cz);
+			nhits_tot -= 1;
+			nhits[cz] -= 1;
+			amps[cz][cp] = 0.;
+			breakout=false;
+		}
+		if(breakout==true){break;}
+	}
+
 	phi /= e;
 	z /= e;
 }
@@ -114,6 +168,38 @@ int PHG4TPCClusterizer::InitRun(PHCompositeNode *topNode)
 	}
 	return Fun4AllReturnCodes::EVENT_OK;
 }
+
+void PHG4TPCClusterizer::reset()
+{
+	for(unsigned int i=0,isize=amps.size();i<isize;i+=1)
+	{
+		for(unsigned int j=0,jsize=amps[i].size();j<jsize;j+=1)
+		{
+			for(unsigned int k=0,ksize=amps[i][j].size();k<ksize;k+=1)
+			{
+				amps[i][j][k] = 0.;
+			}
+		}
+	}
+	for(unsigned int i=0,isize=cellids.size();i<isize;i+=1)
+	{
+		for(unsigned int j=0,jsize=cellids[i].size();j<jsize;j+=1)
+		{
+			for(unsigned int k=0,ksize=cellids[i][j].size();k<ksize;k+=1)
+			{
+				cellids[i][j][k] = 0;
+			}
+		}
+	}
+	for(unsigned int i=0,isize=nhits.size();i<isize;i+=1)
+	{
+		for(unsigned int j=0,jsize=nhits[i].size();j<jsize;j+=1)
+		{
+			nhits[i][j] = 0;
+		}
+	}
+}
+
 
 int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 {
@@ -210,6 +296,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 			}
 		}
 	}
+	reset();
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
