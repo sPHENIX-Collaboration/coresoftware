@@ -3,7 +3,9 @@
 #include "SvtxHitMap.h"
 #include "SvtxHit.h"
 #include "SvtxClusterMap.h"
+#include "SvtxClusterMap_v1.h"
 #include "SvtxCluster.h"
+#include "SvtxCluster_v1.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -136,7 +138,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 
 	SvtxClusterMap *svxclusters = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
 	if (!svxclusters){
-		svxclusters = new SvtxClusterMap();
+		svxclusters = new SvtxClusterMap_v1();
 		PHIODataNode<PHObject> *SvtxClusterMapNode = new PHIODataNode<PHObject>(svxclusters, "SvtxClusterMap", "PHObject");
 		svxNode->addNode(SvtxClusterMapNode);}
 
@@ -169,7 +171,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 	
 	for(SvtxHitMap::Iter iter = hits->begin();iter != hits->end();++iter)
 	{
-		SvtxHit* hit = &iter->second;
+		SvtxHit* hit = iter->second;
 		if(hit->get_e() <= 0.){continue;}
 		int layer = hit->get_layer();
 		PHG4CylinderCell* cell = cells->findCylinderCell(hit->get_cellid());
@@ -197,7 +199,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 					if( is_local_maximum( amps[layer], phibin, zbin ) == false ){continue;}
 					float phi=0.;float z=0.;float e=0.;
 					fit_cluster( amps[layer], nhits_tot, nhits[layer], phibin, zbin, geo, phi, z, e );
-					SvtxCluster clus;
+					SvtxCluster_v1 clus;
 					clus.set_layer( layer );
 					clus.set_e(e);
 					double radius = geo->get_radius();
@@ -205,7 +207,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 					clus.set_position( 1, radius*sin(phi) );
 					clus.set_position( 2, z );
 					clus.insert_hit( cellids[layer][zbin][phibin] );
-					clusterlist->insert(clus);
+					clusterlist->insert(&clus);
 				}
 			}
 		}

@@ -2,9 +2,13 @@
 
 // g4hough includes
 #include "SvtxVertexMap.h"
+#include "SvtxVertexMap_v1.h"
 #include "SvtxVertex.h"
+#include "SvtxVertex_v1.h"
 #include "SvtxTrackMap.h"
+#include "SvtxTrackMap_v1.h"
 #include "SvtxTrack.h"
+#include "SvtxTrack_v1.h"
 #include "SvtxClusterMap.h"
 #include "SvtxCluster.h"
 
@@ -97,13 +101,13 @@ static inline double sign(double x)
   return ((double)(x > 0.)) - ((double)(x < 0.));
 }
 
-void PHG4HoughTransformTPC::projectToRadius(const SvtxTrack& track, double B, double radius, vector<double>& intersection)
+void PHG4HoughTransformTPC::projectToRadius(const SvtxTrack* track, double B, double radius, vector<double>& intersection)
 {
-  float phi  = atan2(track.get_y(),track.get_x());
-  float d    = track.get_dca2d();
-  float k    = B / 333.6 / track.get_pt();
-  float z0   = track.get_z();
-  float dzdl = track.get_pz()/track.get_p();
+  float phi  = atan2(track->get_y(),track->get_x());
+  float d    = track->get_dca2d();
+  float k    = B / 333.6 / track->get_pt();
+  float z0   = track->get_z();
+  float dzdl = track->get_pz()/track->get_p();
   
   intersection.clear();intersection.assign(3,0.);
   double& x = intersection[0];
@@ -119,10 +123,10 @@ void PHG4HoughTransformTPC::projectToRadius(const SvtxTrack& track, double B, do
   float hitx = d*cosphi;
   float hity = d*sinphi;
 
-  for (SvtxTrack::ConstStateIter iter = track.begin_states();
-       iter != track.end_states();
+  for (SvtxTrack::ConstStateIter iter = track->begin_states();
+       iter != track->end_states();
        ++iter) {
-    const SvtxTrack::State* state = &iter->second;
+    const SvtxTrackState* state = iter->second;
     hitx = state->get_x();
     hity = state->get_y();
   }
@@ -324,7 +328,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
   for (SvtxClusterMap::Iter iter = _g4clusters->begin();
        iter != _g4clusters->end();
        ++iter) {
-    SvtxCluster* cluster = &iter->second;
+    SvtxCluster* cluster = iter->second;
 
     //cluster->identify();
     
@@ -614,7 +618,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     cout << "PHG4HoughTransformTPC::process_event -- producing PHG4Track objects..." << endl;
   }
 
-  SvtxVertex vertex;
+  SvtxVertex_v1 vertex;
   vertex.set_t0(0.0);
   for (int i=0;i<3;++i) vertex.set_position(i,_vertex[i]);
   vertex.set_chisq(0.0);
@@ -647,7 +651,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
 
   for(unsigned int itrack=0; itrack<_tracks.size();itrack++)
   {
-    SvtxTrack track;
+    SvtxTrack_v1 track;
     track.set_id(itrack);
     track_hits.clear();
     track_hits = _tracks.at(itrack).hits;
@@ -751,7 +755,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
 
 
     
-    _g4tracks->insert(track);
+    _g4tracks->insert(&track);
     vertex.insert_track(track.get_id());
 
     if (verbosity > 5) {
@@ -763,7 +767,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     }
   } // track loop
 
-  SvtxVertex *vtxptr = _g4vertexes->insert(vertex);
+  SvtxVertex *vtxptr = _g4vertexes->insert(&vertex);
   if (verbosity > 5) vtxptr->identify();
   
   if(verbosity > 0)
@@ -1110,12 +1114,12 @@ int PHG4HoughTransformTPC::CreateNodes(PHCompositeNode *topNode)
     if (verbosity>0) cout << "SVTX node added" << endl;
   }
  	
-  _g4tracks = new SvtxTrackMap;
+  _g4tracks = new SvtxTrackMap_v1;
   PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(_g4tracks,"SvtxTrackMap","PHObject");
   tb_node->addNode(tracks_node);
   if (verbosity>0) cout << "Svtx/SvtxTrackMap node added" << endl;
 
-  _g4vertexes = new SvtxVertexMap;
+  _g4vertexes = new SvtxVertexMap_v1;
   PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(_g4vertexes,"SvtxVertexMap","PHObject");
   tb_node->addNode(vertexes_node);
   if (verbosity>0) cout << "Svtx/SvtxVertexMap node added" << endl;

@@ -149,7 +149,7 @@ std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint
   for (SvtxVertexMap::Iter iter = _vertexmap->begin();
        iter != _vertexmap->end();
        ++iter) {
-    SvtxVertex* vertex = &iter->second;
+    SvtxVertex* vertex = iter->second;
     std::set<PHG4VtxPoint*> points = all_truth_points(vertex);
     for (std::set<PHG4VtxPoint*>::iterator jter = points.begin();
 	 jter != points.end();

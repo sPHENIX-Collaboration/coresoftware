@@ -199,7 +199,7 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Particle* truthpar
        iter != _clustermap->end();
        ++iter) {
 
-    SvtxCluster* cluster = &iter->second;
+    SvtxCluster* cluster = iter->second;
 
     // loop over all truth particles connected to this cluster
     std::set<PHG4Particle*> particles = all_truth_particles(cluster);
@@ -235,7 +235,7 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit) {
        iter != _clustermap->end();
        ++iter) {
 
-    SvtxCluster* cluster = &iter->second;
+    SvtxCluster* cluster = iter->second;
 
     // loop over all truth hits connected to this cluster
     std::set<PHG4Hit*> hits = all_truth_hits(cluster);

@@ -3,7 +3,9 @@
 #include "SvtxHitMap.h"
 #include "SvtxHit.h"
 #include "SvtxClusterMap.h"
+#include "SvtxClusterMap_v1.h"
 #include "SvtxCluster.h"
+#include "SvtxCluster_v1.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -167,7 +169,7 @@ int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
   SvtxClusterMap *svxclusters 
     = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
   if (!svxclusters) {
-    svxclusters = new SvtxClusterMap();
+    svxclusters = new SvtxClusterMap_v1();
     PHIODataNode<PHObject> *SvtxClusterMapNode =
       new PHIODataNode<PHObject>(svxclusters, "SvtxClusterMap", "PHObject");
     svxNode->addNode(SvtxClusterMapNode);
@@ -321,7 +323,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
   for (SvtxHitMap::Iter iter = _hits->begin();
        iter != _hits->end();
        ++iter) {
-    SvtxHit* hit = &iter->second;
+    SvtxHit* hit = iter->second;
     layer_hits_mmap.insert(make_pair(hit->get_layer(),hit));
   }
   
@@ -393,7 +395,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       int layer = mapiter->second->get_layer();
       PHG4CylinderCellGeom* geom = geom_container->GetLayerCellGeom(layer);
       
-      SvtxCluster clus;
+      SvtxCluster_v1 clus;
       clus.set_layer( layer );
       float clus_energy = 0.0;
       unsigned int clus_adc = 0;
@@ -539,7 +541,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       clus.set_error( 2 , 2 , COVAR_ERR[2][2] );
       
       if (clus_energy > get_threshold_by_layer(layer)) {
-	SvtxCluster* ptr = _clusterlist->insert(clus);
+	SvtxCluster* ptr = _clusterlist->insert(&clus);
 	if (!ptr->IsValid()) {
 	  static bool first = true;
 	  if (first) {
@@ -592,7 +594,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
   for (SvtxHitMap::Iter iter = _hits->begin();
        iter != _hits->end();
        ++iter) {
-    SvtxHit* hit = &iter->second;
+    SvtxHit* hit = iter->second;
     layer_hits_mmap.insert(make_pair(hit->get_layer(),hit));
   }
   
@@ -662,7 +664,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       int layer = mapiter->second->get_layer();
       PHG4CylinderGeom* geom = geom_container->GetLayerGeom(layer);
       
-      SvtxCluster clus;
+      SvtxCluster_v1 clus;
       clus.set_layer( layer );
       float clus_energy = 0.0;
       unsigned int clus_adc = 0;
@@ -832,7 +834,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       clus.set_error( 2 , 2 , COVAR_ERR[2][2] );
       
       if (clus_energy > get_threshold_by_layer(layer)) {
-	SvtxCluster* ptr = _clusterlist->insert(clus);
+	SvtxCluster* ptr = _clusterlist->insert(&clus);
 	if (!ptr->IsValid()) {
 	  static bool first = true;
 	  if (first) {
@@ -881,7 +883,7 @@ void PHG4SvtxClusterizer::PrintClusters(PHCompositeNode *topNode) {
 	 iter != clusterlist->end();
 	 ++iter) {
 
-      SvtxCluster* cluster = &iter->second;
+      SvtxCluster* cluster = iter->second;
       cout << icluster << " of " << clusterlist->size() << endl;
       cluster->identify();
       ++icluster;

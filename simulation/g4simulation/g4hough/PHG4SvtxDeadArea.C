@@ -86,7 +86,7 @@ int PHG4SvtxDeadArea::process_event(PHCompositeNode *topNode) {
   for (SvtxHitMap::Iter iter = _hits->begin();
        iter != _hits->end();
        ++iter) {
-    SvtxHit* hit = &iter->second;
+    SvtxHit* hit = iter->second;
 
     if (gsl_rng_uniform_pos(RandomGenerator) > get_hit_efficiency(hit->get_layer())) {
       remove_hits.push_back(hit->get_id());

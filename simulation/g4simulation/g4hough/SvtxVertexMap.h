@@ -11,38 +11,43 @@ class SvtxVertexMap : public PHObject {
   
 public:
 
-  typedef std::map<unsigned int, SvtxVertex>::const_iterator ConstIter;
-  typedef std::map<unsigned int, SvtxVertex>::iterator            Iter;
+  typedef std::map<unsigned int, SvtxVertex*> VertexMap;
+  typedef std::map<unsigned int, SvtxVertex*>::const_iterator ConstIter;
+  typedef std::map<unsigned int, SvtxVertex*>::iterator            Iter;
   
-  SvtxVertexMap();
-  virtual ~SvtxVertexMap();
-
-  void identify(std::ostream &os = std::cout) const;
-  void Reset() {clear();}
-  int  IsValid() const {return 1;}
+  virtual ~SvtxVertexMap() {}
   
-  bool   empty()                   const {return _map.empty();}
-  size_t  size()                   const {return _map.size();}
-  size_t count(unsigned int idkey) const {return _map.count(idkey);}
-  void   clear()                         {return _map.clear();}
+  virtual void identify(std::ostream& os = std::cout) const {
+    os << "SvtxVertexMap base class" << std::endl;
+  }
+  virtual void Reset() {}
+  virtual int  IsValid() const {return 0;}
+  virtual SvtxVertexMap* Clone() const {return NULL;}
   
-  const SvtxVertex* get(unsigned int idkey) const;
-        SvtxVertex* get(unsigned int idkey); 
-        SvtxVertex* insert(const SvtxVertex &vertex);
-        size_t      erase(unsigned int idkey) {return _map.erase(idkey);}
+  virtual bool   empty()                   const {return true;}
+  virtual size_t  size()                   const {return 0;}
+  virtual size_t count(unsigned int idkey) const {return 0;}
+  virtual void   clear()                         {}
+  
+  virtual const SvtxVertex* get(unsigned int idkey) const {return NULL;}
+  virtual       SvtxVertex* get(unsigned int idkey) {return NULL;}
+  virtual       SvtxVertex* insert(const SvtxVertex *cluster) {return NULL;}
+  virtual       size_t     erase(unsigned int idkey) {return 0;}
 
-  ConstIter begin()                   const {return _map.begin();}
-  ConstIter  find(unsigned int idkey) const {return _map.find(idkey);}
-  ConstIter   end()                   const {return _map.end();}
+  virtual ConstIter begin()                   const {return VertexMap().end();}
+  virtual ConstIter  find(unsigned int idkey) const {return VertexMap().end();}
+  virtual ConstIter   end()                   const {return VertexMap().end();}
 
-  Iter begin()                   {return _map.begin();}
-  Iter  find(unsigned int idkey) {return _map.find(idkey);}
-  Iter   end()                   {return _map.end();}
+  virtual Iter begin()                   {return VertexMap().end();}
+  virtual Iter  find(unsigned int idkey) {return VertexMap().end();}
+  virtual Iter   end()                   {return VertexMap().end();}
+
+protected:
+  SvtxVertexMap() {}
   
 private:
-  std::map<unsigned int, SvtxVertex> _map;
     
   ClassDef(SvtxVertexMap, 1);
 };
 
-#endif // __SVTXVERTEXLIST_H__
+#endif

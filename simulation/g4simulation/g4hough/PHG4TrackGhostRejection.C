@@ -68,7 +68,7 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
     for (SvtxTrackMap::Iter iter = _g4tracks->begin();
 	 iter != _g4tracks->end();
 	 ++iter) {
-      SvtxTrack *track = &iter->second;
+      SvtxTrack *track = iter->second;
       track->identify();
     }
   }
@@ -83,7 +83,7 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
        iter != _g4tracks->end();
        ++iter) {
 
-    SvtxTrack* track = &iter->second;
+    SvtxTrack* track = iter->second;
   
     PHG4TrackCandidate combo;
 
@@ -189,7 +189,7 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
 	for (SvtxVertexMap::Iter iter = vertexmap->begin();
 	     iter != vertexmap->end();
 	     ++iter) {
-	  SvtxVertex* vertex = &iter->second;
+	  SvtxVertex* vertex = iter->second;
 	  vertex->erase_track(_candidates[i].trackid);
 	}
       }
@@ -201,7 +201,7 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
     for (SvtxTrackMap::Iter iter = _g4tracks->begin();
 	 iter != _g4tracks->end();
 	 ++iter) {
-      SvtxTrack *track = &iter->second;
+      SvtxTrack *track = iter->second;
       track->identify();
     }
   }

@@ -69,7 +69,7 @@ int PHG4SvtxThresholds::process_event(PHCompositeNode *topNode)
   for (SvtxHitMap::Iter iter = _hits->begin();
        iter != _hits->end();
        ++iter) {
-    SvtxHit* hit = &iter->second;
+    SvtxHit* hit = iter->second;
 
     if (hit->get_e() < get_threshold_by_layer(hit->get_layer())) {
       remove_hits.push_back(hit->get_id());

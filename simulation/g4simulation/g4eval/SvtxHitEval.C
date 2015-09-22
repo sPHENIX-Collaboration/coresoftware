@@ -209,7 +209,7 @@ std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Particle* g4particle) {
        iter != _hitmap->end();
        ++iter) {
 
-    SvtxHit* hit = &iter->second;
+    SvtxHit* hit = iter->second;
 
     // loop over all truth particles connected to this hit
     std::set<PHG4Particle*> g4particles = all_truth_particles(hit);
@@ -245,7 +245,7 @@ std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Hit* g4hit) {
        iter != _hitmap->end();
        ++iter) {
 
-    SvtxHit* hit = &iter->second;
+    SvtxHit* hit = iter->second;
 
     // loop over all truth hits connected to this hit
     std::set<PHG4Hit*> g4hits = all_truth_hits(hit);

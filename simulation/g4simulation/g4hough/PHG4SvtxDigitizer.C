@@ -1,6 +1,9 @@
 #include "PHG4SvtxDigitizer.h"
 
 #include "SvtxHitMap.h"
+#include "SvtxHitMap_v1.h"
+#include "SvtxHit.h"
+#include "SvtxHit_v1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -52,7 +55,7 @@ int PHG4SvtxDigitizer::InitRun(PHCompositeNode* topNode) {
   // Create the Hit node if required
   SvtxHitMap *svxhits = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
   if (!svxhits) {
-    svxhits = new SvtxHitMap();
+    svxhits = new SvtxHitMap_v1();
     PHIODataNode<PHObject> *SvtxHitMapNode =
       new PHIODataNode<PHObject>(svxhits, "SvtxHitMap", "PHObject");
     svxNode->addNode(SvtxHitMapNode);
@@ -192,7 +195,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
     
     PHG4CylinderCell* cell = celliter->second;
     
-    SvtxHit hit;
+    SvtxHit_v1 hit;
 
     hit.set_layer(cell->get_layer());
     hit.set_cellid(cell->get_cell_id());
@@ -204,7 +207,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
     hit.set_adc(adc);
     hit.set_e(e);
 
-    SvtxHit* ptr = _hitmap->insert(hit);      
+    SvtxHit* ptr = _hitmap->insert(&hit);      
     if (!ptr->IsValid()) {
       static bool first = true;
       if (first) {
@@ -239,7 +242,7 @@ void PHG4SvtxDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) {
     
     PHG4CylinderCell* cell = celliter->second;
     
-    SvtxHit hit;
+    SvtxHit_v1 hit;
 
     hit.set_layer(cell->get_layer());
     hit.set_cellid(cell->get_cell_id());
@@ -251,7 +254,7 @@ void PHG4SvtxDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) {
     hit.set_adc(adc);
     hit.set_e(e);
         
-    SvtxHit* ptr = _hitmap->insert(hit);      
+    SvtxHit* ptr = _hitmap->insert(&hit);      
     if (!ptr->IsValid()) {
       static bool first = true;
       if (first) {
@@ -282,7 +285,7 @@ void PHG4SvtxDigitizer::PrintHits(PHCompositeNode *topNode) {
 	 iter != hitlist->end();
 	 ++iter) {
 
-      SvtxHit* hit = &iter->second;
+      SvtxHit* hit = iter->second;
       cout << ihit << " of " << hitlist->size() << endl;
       hit->identify();
       ++ihit;

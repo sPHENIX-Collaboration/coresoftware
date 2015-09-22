@@ -213,7 +213,7 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode *topNode) {
       for (SvtxClusterMap::Iter iter = clustermap->begin();
 	   iter != clustermap->end();
 	   ++iter) {
-	SvtxCluster* cluster = &iter->second;
+	SvtxCluster* cluster = iter->second;
 	cout << icluster << " of " << clustermap->size();	  
 	cout << ": SvtxCluster: " << endl;
 	cluster->identify();
@@ -229,7 +229,7 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode *topNode) {
 	   iter != trackmap->end();
 	   ++iter) {
 	cout << itrack << " of " << trackmap->size();
-	SvtxTrack *track = &iter->second;
+	SvtxTrack *track = iter->second;
 	cout << " : SvtxTrack:" << endl;
 	track->identify();
 	cout << endl;
@@ -244,7 +244,7 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode *topNode) {
 	   iter != vertexmap->end();
 	   ++iter) {
 	cout << ivertex << " of " << vertexmap->size();
-	SvtxVertex *vertex = &iter->second;
+	SvtxVertex *vertex = iter->second;
 	cout << " : SvtxVertex:" << endl;
 	vertex->identify();
 	cout << endl;
@@ -289,7 +289,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
     SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");    
     if (vertexmap) {
       if (!vertexmap->empty()) {
-	SvtxVertex* vertex = &(vertexmap->begin()->second);
+	SvtxVertex* vertex = (vertexmap->begin()->second);
 	
 	vx = vertex->get_x();
 	vy = vertex->get_y();
@@ -317,7 +317,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
       for (SvtxHitMap::Iter iter = hitmap->begin();
 	   iter != hitmap->end();
 	   ++iter) {
-	SvtxHit* hit = &iter->second;
+	SvtxHit* hit = iter->second;
 	++nhits[hit->get_layer()];
       }
     }
@@ -328,7 +328,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
       for (SvtxClusterMap::Iter iter = clustermap->begin();
 	   iter != clustermap->end();
 	   ++iter) {
-	SvtxCluster* cluster = &iter->second;
+	SvtxCluster* cluster = iter->second;
 	++nclusters[cluster->get_layer()];
       }
     }
@@ -548,7 +548,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       for (SvtxVertexMap::Iter iter = vertexmap->begin();
 	   iter != vertexmap->end();
 	   ++iter) {
-	SvtxVertex* vertex = &iter->second;
+	SvtxVertex* vertex = iter->second;
 	PHG4VtxPoint* point = vertexeval->max_truth_point_by_ntracks(vertex);
 
 	float vx         = vertex->get_x();
@@ -768,7 +768,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	   iter != hitmap->end();
 	   ++iter) {
 
-	SvtxHit* hit             = &iter->second;
+	SvtxHit* hit             = iter->second;
 	PHG4Hit* g4hit           = hiteval->max_truth_hit_by_energy(hit);
 	PHG4CylinderCell* g4cell = hiteval->get_cell(hit);
 	PHG4Particle* g4particle = trutheval->get_particle(g4hit);
@@ -893,7 +893,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	   iter != clustermap->end();
 	   ++iter) {
     
-	SvtxCluster* cluster     = &iter->second;   
+	SvtxCluster* cluster     = iter->second;   
 	PHG4Hit *g4hit           = clustereval->max_truth_hit_by_energy(cluster); 
 	PHG4Particle *g4particle = trutheval->get_particle(g4hit);
     
@@ -1164,7 +1164,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	   iter != trackmap->end();
 	   ++iter) {
     
-	SvtxTrack* track         = &iter->second;
+	SvtxTrack* track = iter->second;
 
 	float trackID   = track->get_id();     
 	float charge    = track->get_charge();
