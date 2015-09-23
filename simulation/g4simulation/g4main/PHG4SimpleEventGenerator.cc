@@ -46,7 +46,8 @@ PHG4SimpleEventGenerator::PHG4SimpleEventGenerator(const string &name):
   _phi_max(M_PI),
   _pt_min(0.0),
   _pt_max(10.0),
-  _p_fixed(-1.0),
+  _p_min(NAN),
+  _p_max(NAN),
   _ineve(NULL) 
 {
   return;
@@ -92,6 +93,21 @@ void PHG4SimpleEventGenerator::set_pt_range(const double min, const double max) 
     }
   _pt_min = min;
   _pt_max = max;
+  _p_min = NAN;
+  _p_max = NAN;
+  return;
+}
+
+void PHG4SimpleEventGenerator::set_p_range(const double min, const double max) {
+  if (min > max)
+    {
+      cout << "not setting p bc ptmin " << min << " > ptmax: " << max << endl;
+      return;
+    }
+  _pt_min = NAN;
+  _pt_max = NAN;
+  _p_min = min;
+  _p_max = max;
   return;
 }
 
@@ -280,15 +296,15 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
       double eta = (_eta_max-_eta_min) * gsl_rng_uniform_pos(RandomGenerator) + _eta_min;
       double phi = (_phi_max-_phi_min) * gsl_rng_uniform_pos(RandomGenerator) + _phi_min;
 
-      double pt;   
-      if(_p_fixed > 0.0)
-	{
-	  pt = _p_fixed/cosh(eta);    
-	}
-      else
-	{
-	  pt = (_pt_max-_pt_min) * gsl_rng_uniform_pos(RandomGenerator) + _pt_min;
-	}
+      double pt;
+      if (!isnan(_p_min) && !isnan(_p_max)) {
+	pt = ((_p_max-_p_min) * gsl_rng_uniform_pos(RandomGenerator) + _p_min) / cosh(eta);
+      } else if (!isnan(_pt_min) && !isnan(_pt_max)) {
+	pt = (_pt_max-_pt_min) * gsl_rng_uniform_pos(RandomGenerator) + _pt_min;
+      } else {
+	cout << PHWHERE << "Error: neither a p range or pt range was specified" << endl;
+	exit(-1);
+      }
 
       double px = pt*cos(phi);
       double py = pt*sin(phi);

@@ -35,10 +35,13 @@ public:
   void set_phi_range(const double phi_min, const double phi_max);
 
   //! range of randomized pt values
-  void set_pt_range(const double pt_min, const double mom_max);
+  void set_pt_range(const double pt_min, const double pt_max);
+
+  //! range of randomized p values
+  void set_p_range(const double p_min, const double p_max);
 
   //! set fixed momentum for particle
-  void set_p_fixed(const double momentum) {_p_fixed = momentum;}
+  //void set_p_fixed(const double momentum) {_p_fixed = momentum;}
 
   //! toss a new vertex according to a Uniform or Gaus distribution
   void set_vertex_distribution_function(FUNCTION x, FUNCTION y, FUNCTION z);
@@ -90,7 +93,8 @@ private:
   double _phi_max;
   double _pt_min;
   double _pt_max;
-  double _p_fixed; 
+  double _p_min;
+  double _p_max; 
 
   PHG4InEvent* _ineve;
 };
