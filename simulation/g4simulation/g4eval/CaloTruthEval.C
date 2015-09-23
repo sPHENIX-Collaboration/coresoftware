@@ -123,8 +123,6 @@ bool CaloTruthEval::is_primary(PHG4Particle* particle) {
 
   bool is_primary = true;
   if (!_truthinfo->GetPrimaryHit(particle->get_track_id())) {
-    // does the particle id appear in the primary map?
-    // this way either copy (in Map or Primary Map) will report correctly
     is_primary = false;
   }
   
