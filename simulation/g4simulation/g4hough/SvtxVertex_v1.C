@@ -78,12 +78,12 @@ int SvtxVertex_v1::IsValid() const {
   return 1;
 }
 
-void SvtxVertex_v1::set_error(int i, int j, float value) {
+void SvtxVertex_v1::set_error(unsigned int i, unsigned int j, float value) {
   _err[covar_index(i,j)] = value;
   return;
 }
 
-float SvtxVertex_v1::get_error(int i, int j) const {
+float SvtxVertex_v1::get_error(unsigned int i, unsigned int j) const {
   return _err[covar_index(i,j)];
 }
 

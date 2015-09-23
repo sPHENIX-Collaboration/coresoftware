@@ -45,11 +45,11 @@ public:
   unsigned int get_ndof() const                      {return _ndof;}
   void         set_ndof(float ndof)                  {_ndof = ndof;}
   
-  float        get_position(int coor) const          {return _pos[coor];}
-  void         set_position(int coor, float xi)      {_pos[coor] = xi;}
+  float        get_position(unsigned int coor) const          {return _pos[coor];}
+  void         set_position(unsigned int coor, float xi)      {_pos[coor] = xi;}
 
-  float        get_error(int i, int j) const;        //< get vertex error covar
-  void         set_error(int i, int j, float value); //< set vertex error covar
+  float        get_error(unsigned int i, unsigned int j) const;        //< get vertex error covar
+  void         set_error(unsigned int i, unsigned int j, float value); //< set vertex error covar
 
   //
   // associated track ids methods
