@@ -40,9 +40,6 @@ public:
   //! range of randomized p values
   void set_p_range(const double p_min, const double p_max);
 
-  //! set fixed momentum for particle
-  //void set_p_fixed(const double momentum) {_p_fixed = momentum;}
-
   //! toss a new vertex according to a Uniform or Gaus distribution
   void set_vertex_distribution_function(FUNCTION x, FUNCTION y, FUNCTION z);
 
