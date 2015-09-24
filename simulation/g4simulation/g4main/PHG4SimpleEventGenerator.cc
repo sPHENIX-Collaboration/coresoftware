@@ -263,24 +263,22 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
         {
           // try the next option for getting primary vertex
 
-          bool vertex_valid = false;
-
           PHG4TruthInfoContainer* truthInfoList = //
               findNode::getClass<PHG4TruthInfoContainer>(topNode,
                   "G4TruthInfo");
           if (truthInfoList)
-            vertex_valid = truthInfoList->GetPrimaryVtx(0);
-
-          if (vertex_valid)
             {
               // embed to vertexes as set by primary vertex from the truth container, e.g. when embedding into DST
 
-              PHG4VtxPoint* vtx = truthInfoList->GetPrimaryVtx(0);
+              PHG4VtxPoint* vtx = truthInfoList->GetPrimaryVtx(1);
 
-              if (!vtx) {
-                cout << PHWHERE << "::Error - PHG4SimpleEventGenerator expects an existing truth vertex in PHG4TruthInfoContainer, but none exists" << endl;
-                return Fun4AllReturnCodes::ABORTRUN;
-              }
+              if (!vtx)
+                {
+                  truthInfoList->identify();
+                  cout << PHWHERE << "::Error - PHG4SimpleEventGenerator expects an existing truth vertex in PHG4TruthInfoContainer, but none exists"
+                      << endl;
+                  return Fun4AllReturnCodes::ABORTRUN;
+                }
 
               vertex_x = vtx->get_x();
               vertex_y = vtx->get_y();
