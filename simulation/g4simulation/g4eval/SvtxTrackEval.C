@@ -71,13 +71,11 @@ std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
 
     std::set<PHG4Hit*> new_hits = _clustereval.all_truth_hits(cluster);
 
-    std::set<PHG4Hit*> union_hits; // placeholder for union of new hits and truth hits
-
-    std::set_union(truth_hits.begin(),truth_hits.end(),
-		   new_hits.begin(),new_hits.end(),
-		   std::inserter(union_hits,union_hits.begin()));
-
-    std::swap(truth_hits,union_hits); // swap union into truth_hits
+    for (std::set<PHG4Hit*>::iterator jter = new_hits.begin();
+	 jter != new_hits.end();
+	 ++jter) {      
+      truth_hits.insert(*jter);
+    }
   }
 
   if (_do_cache) _cache_all_truth_hits.insert(make_pair(track,truth_hits));
@@ -106,13 +104,11 @@ std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track) {
 
     std::set<PHG4Particle*> new_particles = _clustereval.all_truth_particles(cluster);
 
-    std::set<PHG4Particle*> union_particles; // placeholder for union of new particles and truth particles
-
-    std::set_union(truth_particles.begin(),truth_particles.end(),
-		   new_particles.begin(),new_particles.end(),
-		   std::inserter(union_particles,union_particles.begin()));
-
-    std::swap(truth_particles,union_particles); // swap union into truth_particles
+    for (std::set<PHG4Particle*>::iterator jter = new_particles.begin();
+	 jter != new_particles.end();
+	 ++jter) {
+      truth_particles.insert(*jter);
+    }
   }
 
   if (_do_cache) _cache_all_truth_particles.insert(make_pair(track,truth_particles));
