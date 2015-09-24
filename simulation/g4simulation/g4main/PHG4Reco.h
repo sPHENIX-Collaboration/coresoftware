@@ -45,6 +45,8 @@ class PHG4Reco: public SubsysReco
   //! full initialization
   int Init(PHCompositeNode *);
 
+  int InitRun( PHCompositeNode* topNode );
+
   //! event processing method
   int process_event(PHCompositeNode *);
 
