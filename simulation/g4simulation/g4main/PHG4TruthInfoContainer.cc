@@ -79,7 +79,7 @@ PHG4TruthInfoContainer::identify(ostream& os) const
        cout << "primary_particle_ key " <<  iter->first << endl;
        (iter->second)->identify();
      }
-   cout << "---primaryparticlemap-------------------" << endl;
+   cout << "---primary vertex emap-------------------" << endl;
    for (vter = primary_vtxmap.begin(); vter != primary_vtxmap.end(); ++vter)
      {
        cout << "vtx id: " << vter ->first << endl;
