@@ -179,7 +179,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 		int zbin = cell->get_binz();
 		nhits[layer][zbin] += 1;
 		amps[layer][zbin][phibin] += hit->get_e();
-		cellids[layer][zbin][phibin] = hit->get_cellid();
+		cellids[layer][zbin][phibin] = hit->get_id();
 	}
 	for(unsigned int layer=0;layer<amps.size();++layer)
 	{
