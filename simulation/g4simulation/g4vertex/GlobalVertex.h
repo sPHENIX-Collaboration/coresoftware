@@ -49,11 +49,11 @@ public:
   virtual unsigned int get_ndof() const                      {return 0xFFFFFFFF;}
   virtual void         set_ndof(float ndof)                  {}
   
-  virtual float        get_position(int coor) const          {return NAN;}
-  virtual void         set_position(int coor, float xi)      {}
+  virtual float        get_position(unsigned int coor) const          {return NAN;}
+  virtual void         set_position(unsigned int coor, float xi)      {}
 
-  virtual float        get_error(int i, int j) const         {return NAN;}
-  virtual void         set_error(int i, int j, float value)  {}
+  virtual float        get_error(unsigned int i, unsigned int j) const         {return NAN;}
+  virtual void         set_error(unsigned int i, unsigned int j, float value)  {}
 
   //
   // associated vertex ids methods

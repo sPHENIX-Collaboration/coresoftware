@@ -13,11 +13,10 @@ GlobalVertex_v1::GlobalVertex_v1()
     _pos(),
     _chisq(NAN),
     _ndof(0xFFFFFFFF),
-    _err(3),
+    _err(),
     _vtx_ids() {
   
   for (int i = 0; i < 3; ++i) _pos[i] = NAN;  
-  for (int i = 0; i < 3; ++i) _err[i] = std::vector<float>(i+1);
 
   for (int j = 0; j < 3; ++j) {
     for (int i = j; i < 3; ++i) {
@@ -98,13 +97,16 @@ int GlobalVertex_v1::isValid() const {
   return 1;
 }
 
-void GlobalVertex_v1::set_error(int i, int j, float value) {
-  if (j > i) set_error(j,i,value);
-  else _err[i][j] = value;
+void GlobalVertex_v1::set_error(unsigned int i, unsigned int j, float value) {
+  _err[covar_index(i,j)] = value;
   return;
 }
 
-float GlobalVertex_v1::get_error(int i, int j) const {
-  if (j > i) return get_error(j,i);
-  return _err[i][j];
+float GlobalVertex_v1::get_error(unsigned int i, unsigned int j) const {
+  return _err[covar_index(i,j)];
+}
+
+unsigned int GlobalVertex_v1::covar_index(unsigned int i, unsigned int j) const {
+  if (i>j) std::swap(i,j);
+  return i+1+(j+1)*(j)/2-1;
 }
