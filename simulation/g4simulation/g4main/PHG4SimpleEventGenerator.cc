@@ -253,6 +253,10 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
           cout << PHWHERE << "::Error - PHG4SimpleEventGenerator expects an existing truth vertex in PHG4InEvent, but none exists" << endl;
           return Fun4AllReturnCodes::ABORTRUN;
         }
+        if (verbosity > 0) {
+          cout <<PHWHERE<<"::Info - use this primary vertex from PHG4InEvent:"<<endl;
+          vtx->identify();
+        }
 
         vertex_x = vtx->get_x();
         vertex_y = vtx->get_y();
@@ -279,6 +283,11 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
                       << endl;
                   return Fun4AllReturnCodes::ABORTRUN;
                 }
+
+              if (verbosity > 0) {
+                cout <<PHWHERE<<"::Info - use this primary vertex from PHG4TruthInfoContainer:"<<endl;
+                vtx->identify();
+              }
 
               vertex_x = vtx->get_x();
               vertex_y = vtx->get_y();
