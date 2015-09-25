@@ -261,6 +261,36 @@ PHG4TruthInfoContainer::AddPrimaryVertex(PHG4VtxPoint *newvtx)
 }
 
 int
+PHG4TruthInfoContainer::maxprimarytrkindex() const
+{
+  int key = 0;
+  if (!primary_vtxmap.empty())
+    {
+      key = primary_vtxmap.rbegin()->first;
+    }
+  if (key < 0)
+    {
+      key = 0;
+    }
+  return key;
+}
+
+int
+PHG4TruthInfoContainer::minprimarytrkindex() const
+{
+  int key = 0;
+  if (!primary_vtxmap.empty())
+    {
+       key = primary_vtxmap.begin()->first;
+    }
+  if (key > 0)
+    {
+      key = 0;
+    }
+  return key;
+}
+
+int
 PHG4TruthInfoContainer::maxtrkindex() const
 {
   int key = 0;

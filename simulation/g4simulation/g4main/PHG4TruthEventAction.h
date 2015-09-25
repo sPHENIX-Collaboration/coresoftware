@@ -40,6 +40,7 @@ public:
   void AddTrackidToWritelist( const G4int trackid);
 
   void TrackIdOffset(const int i) {trackidoffset = i;}
+  void PrimaryTrackIdOffset(const int i) {parimarytrackidoffset = i;}
 
 
   bimap_type::iterator AddVertex(G4ThreeVector& v);
@@ -55,6 +56,7 @@ public:
   PHG4TruthInfoContainer* truthInfoList_;
 
   int trackidoffset;
+  int parimarytrackidoffset;
   
   // TESTING
   // Bidirectional map of vertexid <-> vertex position
