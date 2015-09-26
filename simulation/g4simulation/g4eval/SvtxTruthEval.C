@@ -176,13 +176,12 @@ int SvtxTruthEval::get_embed(PHG4Particle* particle) {
 
 bool SvtxTruthEval::is_primary(PHG4Particle* particle) {
 
-  if (particle->get_primary_id() == particle->get_track_id()) {
-    return true;
-  } else if (particle->get_primary_id() == -1) {
-    return true;
+  bool is_primary = true;
+  if (!_truthinfo->GetPrimaryHit(particle->get_track_id())) {
+    is_primary = false;
   }
   
-  return false;
+  return is_primary;
 }
 
 PHG4VtxPoint* SvtxTruthEval::get_vertex(PHG4Particle* particle) {

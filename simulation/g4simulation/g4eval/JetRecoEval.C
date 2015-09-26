@@ -146,14 +146,12 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {
       RawCluster* cluster = _hcaloutclusters->getCluster(index);
       new_hits = get_hcalout_eval_stack()->get_rawcluster_eval()->all_truth_hits(cluster); 
     }
-    
-    std::set<PHG4Hit*> union_hits;
 
-    std::set_union(truth_hits.begin(),truth_hits.end(),
-		   new_hits.begin(),new_hits.end(),
-		   std::inserter(union_hits,union_hits.begin()));
-
-    std::swap(truth_hits,union_hits); // swap union into truth_particles    
+    for (std::set<PHG4Hit*>::iterator jter = new_hits.begin();
+	 jter != new_hits.end();
+	 ++jter) {
+      truth_hits.insert(*jter);
+    }
   }
 
   if (_do_cache) _cache_all_truth_hits.insert(make_pair(recojet,truth_hits));
@@ -234,14 +232,12 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
       RawCluster* cluster = _hcaloutclusters->getCluster(index);
       new_particles = get_hcalout_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
     }
-    
-    std::set<PHG4Particle*> union_hits;
 
-    std::set_union(truth_particles.begin(),truth_particles.end(),
-		   new_particles.begin(),new_particles.end(),
-		   std::inserter(union_hits,union_hits.begin()));
-
-    std::swap(truth_particles,union_hits); // swap union into truth_particles    
+    for (std::set<PHG4Particle*>::iterator jter = new_particles.begin();
+	 jter != new_particles.end();
+	 ++jter) {
+      truth_particles.insert(*jter);
+    }   
   }
 
   if (_do_cache) _cache_all_truth_particles.insert(make_pair(recojet,truth_particles));
