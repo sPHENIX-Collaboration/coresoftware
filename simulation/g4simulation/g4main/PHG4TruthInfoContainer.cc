@@ -85,6 +85,11 @@ PHG4TruthInfoContainer::identify(ostream& os) const
        cout << "vtx id: " << vter ->first << endl;
        (vter ->second)->identify();
      }
+   cout << "---list of embeded tracks-------------------" << endl;
+   for (std::set<int>::const_iterator eter = embedded_trkid.begin(); eter != embedded_trkid.end(); ++eter)
+     {
+       cout << "embeded track ID " << *eter << endl;
+     }
    
   return;
 }
