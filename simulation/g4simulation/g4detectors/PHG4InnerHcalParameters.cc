@@ -2,6 +2,10 @@
 
 #include <Geant4/G4SystemOfUnits.hh>
 
+#include <iostream>
+
+using namespace std;
+
 PHG4InnerHcalParameters::PHG4InnerHcalParameters():
   inner_radius(116 * cm),
   outer_radius(136 * cm),
@@ -26,3 +30,15 @@ PHG4InnerHcalParameters::PHG4InnerHcalParameters():
   material("SS310"),
   steplimits(NAN)
 {}
+
+void
+PHG4InnerHcalParameters::print() const
+{
+  cout << "Inner Radius: " << inner_radius/cm << endl;
+  cout << "Outer Radius: " << outer_radius/cm << endl;
+  cout << "Size Z: " << size_z/cm << endl;
+  cout << "Scintillator Gap: " << scinti_gap/cm << endl;
+  cout << "Tilt Angle: " << tilt_angle/deg << endl;
+  cout << "Crossings: " << ncross << endl;
+  return;
+}

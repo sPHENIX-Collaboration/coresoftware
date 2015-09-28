@@ -9,7 +9,7 @@ class PHG4OuterHcalParameters
  public:
   PHG4OuterHcalParameters();
   virtual ~PHG4OuterHcalParameters() {}
-
+  void print() const;
   G4double inner_radius;
   G4double outer_radius;
   G4double size_z;
