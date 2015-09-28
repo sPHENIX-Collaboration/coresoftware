@@ -207,7 +207,8 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
       {
 	if (userdata->get_embed())
 	  {
-            truthInfoList_->AddEmbededTrkId(part->GetTrackID()+ trackidoffset);
+//      truthInfoList_->AddEmbededTrkId(part->GetTrackID()+ trackidoffset); // use G4 particle list ID for the embedded list
+      truthInfoList_->AddEmbededTrkId(part->GetTrackID()+ parimarytrackidoffset); // use primary ID for the embedded list
 	  }
       }
       part = part->GetNext();
