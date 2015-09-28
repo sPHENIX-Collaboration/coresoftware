@@ -54,6 +54,9 @@ class PHG4Reco: public SubsysReco
   //! end of run method
   int End(PHCompositeNode *);
 
+  //! print info
+  void  Print(const std::string &what = "ALL") const;
+
   //! register subsystem
   void registerSubsystem( PHG4Subsystem* subsystem )
   { subsystems_.push_back( subsystem ); }

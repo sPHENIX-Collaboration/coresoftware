@@ -496,9 +496,20 @@ PHG4Reco::ResetEvent(PHCompositeNode *topNode)
 }
 
 //_________________________________________________________________
-int PHG4Reco::End( PHCompositeNode* )
+int
+PHG4Reco::End( PHCompositeNode* )
 {
   return 0;
+}
+
+void
+PHG4Reco::Print(const std::string &what) const
+{
+  BOOST_FOREACH(SubsysReco * reco, subsystems_)
+    {
+      reco->Print(what);
+    }
+  return;
 }
 
 int
