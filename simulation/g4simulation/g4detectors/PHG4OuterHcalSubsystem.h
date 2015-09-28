@@ -17,7 +17,7 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
   public:
 
   //! constructor
-  PHG4OuterHcalSubsystem( const std::string &name = "BLOCK", const int layer = 0 );
+  PHG4OuterHcalSubsystem( const std::string &name = "HCALOUT", const int layer = 0 );
 
   //! destructor
   virtual ~PHG4OuterHcalSubsystem( void )
@@ -37,6 +37,9 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
   and pass that to the stepping action
   */
   int process_event(PHCompositeNode *);
+
+  //! Print info (from SubsysReco)
+  void Print(const std::string &what = "ALL") const;
 
   //! accessors (reimplemented)
   PHG4Detector* GetDetector( void ) const;

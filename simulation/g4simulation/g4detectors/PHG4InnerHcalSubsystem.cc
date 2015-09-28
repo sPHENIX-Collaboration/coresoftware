@@ -121,6 +121,14 @@ PHG4InnerHcalSubsystem::process_event( PHCompositeNode * topNode )
 }
 
 
+void
+PHG4InnerHcalSubsystem::Print(const string &what) const
+{
+  cout << "Inner Hcal Parameters: " << endl;
+  params->print();
+  return;
+}
+
 //_______________________________________________________________________
 PHG4Detector* PHG4InnerHcalSubsystem::GetDetector( void ) const
 {
@@ -270,5 +278,15 @@ PHG4InnerHcalSubsystem::SetStepLimits(const double slim)
 void
 PHG4InnerHcalSubsystem::SetTiltViaNcross(const int ncross)
 {
+  if (ncross == 0)
+    {
+      cout << "Invalid number of crossings: " << ncross
+	   << " how do you expect me to calculate a tilt angle for this????"
+	   << endl
+	   << "If you want a 0 degree tilt angle, just use SetTiltAngle(0)"
+	   << endl
+	   << "I refuse to continue this!" << endl;
+      exit(1);
+    }
   params->ncross = ncross;
 }
