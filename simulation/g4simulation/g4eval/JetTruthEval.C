@@ -103,47 +103,41 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
     SvtxTruthEval* svtx_truth_eval = _svtxevalstack.get_truth_eval(); 
     std::set<PHG4Hit*> svtx_g4hits = svtx_truth_eval->all_truth_hits(particle);
 
-    std::set<PHG4Hit*> union_g4hits;
-    
-    std::set_union(truth_hits.begin(),truth_hits.end(),
-		   svtx_g4hits.begin(),svtx_g4hits.end(),
-		   std::inserter(union_g4hits,union_g4hits.begin()));
-    
-    std::swap(truth_hits,union_g4hits); // swap union into truth_hits
-    union_g4hits.clear();
+    for (std::set<PHG4Hit*>::iterator jter = svtx_g4hits.begin();
+	 jter != svtx_g4hits.end();
+	 ++jter) {
+      truth_hits.insert(*jter);
+    }
     
     // ask the cemc truth eval to backtrack the primary to g4hits
     CaloTruthEval* cemc_truth_eval = _cemcevalstack.get_truth_eval(); 
     std::set<PHG4Hit*> cemc_g4hits = cemc_truth_eval->get_shower_from_primary(particle);
 
-    std::set_union(truth_hits.begin(),truth_hits.end(),
-		   cemc_g4hits.begin(),cemc_g4hits.end(),
-		   std::inserter(union_g4hits,union_g4hits.begin()));
-    
-    std::swap(truth_hits,union_g4hits); // swap union into truth_hits
-    union_g4hits.clear();
+    for (std::set<PHG4Hit*>::iterator jter = cemc_g4hits.begin();
+	 jter != cemc_g4hits.end();
+	 ++jter) {
+      truth_hits.insert(*jter);
+    }
     
     // ask the hcalin truth eval to backtrack the primary to g4hits
     CaloTruthEval* hcalin_truth_eval = _hcalinevalstack.get_truth_eval(); 
     std::set<PHG4Hit*> hcalin_g4hits = hcalin_truth_eval->get_shower_from_primary(particle);
 
-    std::set_union(truth_hits.begin(),truth_hits.end(),
-		   hcalin_g4hits.begin(),hcalin_g4hits.end(),
-		   std::inserter(union_g4hits,union_g4hits.begin()));
-    
-    std::swap(truth_hits,union_g4hits); // swap union into truth_hits
-    union_g4hits.clear();
+    for (std::set<PHG4Hit*>::iterator jter = hcalin_g4hits.begin();
+	 jter != hcalin_g4hits.end();
+	 ++jter) {
+      truth_hits.insert(*jter);
+    }
     
     // ask the hcalout truth eval to backtrack the primary to g4hits
     CaloTruthEval* hcalout_truth_eval = _hcaloutevalstack.get_truth_eval(); 
     std::set<PHG4Hit*> hcalout_g4hits = hcalout_truth_eval->get_shower_from_primary(particle);
 
-    std::set_union(truth_hits.begin(),truth_hits.end(),
-		   hcalout_g4hits.begin(),hcalout_g4hits.end(),
-		   std::inserter(union_g4hits,union_g4hits.begin()));
-    
-    std::swap(truth_hits,union_g4hits); // swap union into truth_hits
-    union_g4hits.clear();    
+    for (std::set<PHG4Hit*>::iterator jter = hcalout_g4hits.begin();
+	 jter != hcalout_g4hits.end();
+	 ++jter) {
+      truth_hits.insert(*jter);
+    }    
   }
   
   if (_do_cache) _cache_all_truth_hits.insert(make_pair(truthjet,truth_hits));

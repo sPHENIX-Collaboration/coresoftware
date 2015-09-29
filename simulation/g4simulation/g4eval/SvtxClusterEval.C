@@ -79,13 +79,12 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(SvtxCluster* cluster) {
 
     std::set<PHG4Hit*> new_g4hits = _hiteval.all_truth_hits(hit);
 
-    std::set<PHG4Hit*> union_g4hits;
+    for (std::set<PHG4Hit*>::iterator iter = new_g4hits.begin();
+	 iter != new_g4hits.end();
+	 ++iter) {
 
-    std::set_union(truth_hits.begin(),truth_hits.end(),
-		   new_g4hits.begin(),new_g4hits.end(),
-		   std::inserter(union_g4hits,union_g4hits.begin()));
-    
-    std::swap(truth_hits,union_g4hits); // swap union into truth_hits
+      truth_hits.insert(*iter);
+    }
   }
 
   if (_do_cache) _cache_all_truth_hits.insert(make_pair(cluster,truth_hits));
