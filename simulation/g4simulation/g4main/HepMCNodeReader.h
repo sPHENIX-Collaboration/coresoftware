@@ -16,6 +16,11 @@ class HepMCNodeReader : public SubsysReco
   int Init(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
 
+  void Embed(const int i=1) {_embed_flag = i;}
+
+private:
+  int _embed_flag;
+  
 };
 
 #endif
