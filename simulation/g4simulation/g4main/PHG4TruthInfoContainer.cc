@@ -269,9 +269,9 @@ int
 PHG4TruthInfoContainer::maxprimarytrkindex() const
 {
   int key = 0;
-  if (!primary_vtxmap.empty())
+  if (!primary_particle_map.empty())
     {
-      key = primary_vtxmap.rbegin()->first;
+      key = primary_particle_map.rbegin()->first;
     }
   if (key < 0)
     {
@@ -284,9 +284,9 @@ int
 PHG4TruthInfoContainer::minprimarytrkindex() const
 {
   int key = 0;
-  if (!primary_vtxmap.empty())
+  if (!primary_particle_map.empty())
     {
-       key = primary_vtxmap.begin()->first;
+       key = primary_particle_map.begin()->first;
     }
   if (key > 0)
     {
