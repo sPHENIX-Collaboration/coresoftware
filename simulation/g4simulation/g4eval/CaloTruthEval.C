@@ -12,6 +12,7 @@
 #include <set>
 #include <map>
 #include <float.h>
+#include <iostream>
 
 using namespace std;
 
@@ -134,7 +135,11 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary)
   if (!is_primary(primary)) return std::set<PHG4Hit*>();
 
   primary = get_primary_particle(primary);
-  
+  if (!primary){
+      cout <<__PRETTY_FUNCTION__<<" - Error - encountered invalid primary as input. "<<endl;
+      return std::set<PHG4Hit*>();
+  }
+
   if (_do_cache) {
     std::map<PHG4Particle*,std::set<PHG4Hit*> >::iterator iter =
       _cache_get_shower_from_primary.find(primary);
@@ -152,6 +157,11 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary)
 
     PHG4Hit* g4hit = g4iter->second;
     PHG4Particle* candidate = get_primary_particle(g4hit);
+    if (!candidate) {
+        cout <<__PRETTY_FUNCTION__<<" - Error - can not find the primary particle for g4hit: "<<endl;
+        g4hit->identify();
+        continue;
+    }
     if (candidate->get_track_id() != primary->get_track_id()) continue;
     truth_hits.insert(g4hit);
   }

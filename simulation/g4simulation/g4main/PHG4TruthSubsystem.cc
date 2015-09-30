@@ -99,6 +99,7 @@ PHG4TruthSubsystem::process_event( PHCompositeNode* topNode )
 //     cout << "truthInfoList minkey: " << truthInfoList->minindex() << endl;
   trackingAction_->TrackIdOffset(truthInfoList->maxtrkindex());
   eventAction_->TrackIdOffset(truthInfoList->maxtrkindex());
+  eventAction_->PrimaryTrackIdOffset(truthInfoList->maxprimarytrkindex());
   map<int, PHG4VtxPoint *>::const_iterator vtxiter;
   multimap<int, PHG4Particle *>::const_iterator particle_iter;
   std::pair< std::map<int, PHG4VtxPoint *>::const_iterator, std::map<int, PHG4VtxPoint *>::const_iterator > vtxbegin_end = inEvent->GetVertices();
