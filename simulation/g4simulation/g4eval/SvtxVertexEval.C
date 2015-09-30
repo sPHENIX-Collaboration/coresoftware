@@ -17,6 +17,7 @@
 #include <set>
 #include <float.h>
 #include <algorithm>
+#include <cassert>
 
 using namespace std;
 
@@ -68,7 +69,10 @@ std::set<PHG4Particle*> SvtxVertexEval::all_truth_particles(SvtxVertex* vertex) 
        ++iter) {
     
     SvtxTrack* track = _trackmap->get(*iter);    
-    all_particles.insert(_trackeval.max_truth_particle_by_nclusters(track));
+    PHG4Particle* max_particle = _trackeval.max_truth_particle_by_nclusters(track);
+
+    if (max_particle)
+    all_particles.insert(max_particle);
   }
 
   if (_do_cache) _cache_all_truth_particles.insert(make_pair(vertex,all_particles));
@@ -93,7 +97,9 @@ std::set<PHG4VtxPoint*> SvtxVertexEval::all_truth_points(SvtxVertex* vertex) {
        iter != particles.end();
        ++iter) {
     PHG4Particle* particle = *iter;
+    assert(particle);
     PHG4VtxPoint* point = get_truth_eval()->get_vertex(particle);
+    assert (point);
     points.insert(point);
   }
 
@@ -135,6 +141,8 @@ PHG4VtxPoint* SvtxVertexEval::max_truth_point_by_ntracks(SvtxVertex* vertex) {
    
 std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint) {
 
+  assert(truthpoint);
+
   if (_do_cache) {
     std::map<PHG4VtxPoint*,std::set<SvtxVertex*> >::iterator iter =
       _cache_all_vertexes_from_point.find(truthpoint);
@@ -155,6 +163,7 @@ std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint
 	 jter != points.end();
 	 ++jter) {
       PHG4VtxPoint* point = *jter;
+      assert(point);
       if (point->get_id() == truthpoint->get_id()) {
 	all_vertexes.insert(vertex);
       }
@@ -168,6 +177,8 @@ std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint
 
 SvtxVertex* SvtxVertexEval::best_vertex_from(PHG4VtxPoint* truthpoint) {
  
+  assert(truthpoint);
+
   if (_do_cache) {
     std::map<PHG4VtxPoint*,SvtxVertex*>::iterator iter =
       _cache_best_vertex_from_point.find(truthpoint);
@@ -215,8 +226,13 @@ unsigned int SvtxVertexEval::get_ntracks_contribution(SvtxVertex* vertex, PHG4Vt
     SvtxTrack* track = _trackmap->get(*iter);
     PHG4Particle* particle = _trackeval.max_truth_particle_by_nclusters(track);
 
+    if (particle)
+      {
     PHG4VtxPoint* candidate = get_truth_eval()->get_vertex(particle);
+    assert(candidate);
+
     if (candidate->get_id() == truthpoint->get_id()) ++ntracks;
+      }
   }
   
   if (_do_cache) _cache_get_ntracks_contribution.insert(make_pair(make_pair(vertex,truthpoint),ntracks));

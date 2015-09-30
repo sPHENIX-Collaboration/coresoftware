@@ -106,7 +106,8 @@ std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primaries(RawTower* tower) {
        ++iter) {
     PHG4Hit* g4hit = *iter;
     PHG4Particle* primary = get_truth_eval()->get_primary_particle( g4hit );    
-    truth_primaries.insert(primary);
+    if (primary)
+      truth_primaries.insert(primary);
   }
 
   if (_do_cache) _cache_all_truth_primaries.insert(make_pair(tower,truth_primaries));
@@ -250,9 +251,10 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
 	 ++iter) {
       PHG4Hit* g4hit = *iter;
       PHG4Particle* candidate = get_truth_eval()->get_primary_particle(g4hit);
-      if (candidate->get_track_id() == primary->get_track_id()) {
-	energy += g4hit->get_edep();
-      }
+      if (candidate)
+        if (candidate->get_track_id() == primary->get_track_id()) {
+    energy += g4hit->get_edep();
+        }
     }
     
   }
