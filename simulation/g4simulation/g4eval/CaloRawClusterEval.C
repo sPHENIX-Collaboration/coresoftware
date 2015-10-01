@@ -252,9 +252,11 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Parti
 	 ++iter) {
       PHG4Hit* g4hit = *iter;
       PHG4Particle* candidate = get_truth_eval()->get_primary_particle(g4hit);
-      if (candidate->get_track_id() == primary->get_track_id()) {
-	energy += g4hit->get_edep();
-      }
+
+      if (candidate)
+        if (candidate->get_track_id() == primary->get_track_id()) {
+    energy += g4hit->get_edep();
+        }
     }
     
   }

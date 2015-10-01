@@ -71,7 +71,8 @@ std::set<PHG4Particle*> JetTruthEval::all_truth_particles(Jet* truthjet) {
     }
 
     PHG4Particle* truth_particle = _truthinfo->GetHit(index);
-    truth_particles.insert(truth_particle);
+    if (truth_particle)
+      truth_particles.insert(truth_particle);
   }
 
   if (_do_cache) _cache_all_truth_particles.insert(make_pair(truthjet,truth_particles));

@@ -26,6 +26,9 @@ class PHG4TruthSubsystem: public PHG4Subsystem
   //! event processing
   int process_event(PHCompositeNode *);
 
+  //! event processing
+  virtual int process_after_geant(PHCompositeNode *);
+
   //! Clean up after each event.
   int ResetEvent(PHCompositeNode *);
 
@@ -34,11 +37,17 @@ class PHG4TruthSubsystem: public PHG4Subsystem
   virtual PHG4SteppingAction* GetSteppingAction( void ) const;
   virtual PHG4TrackingAction* GetTrackingAction( void ) const;
 
+  //! only save the G4 truth information that is associated with the embedded particle
+  void SetSaveOnlyEmbeded(bool b = true){saveOnlyEmbeded_ = b;};
+
   private:
 
   PHG4TruthEventAction* eventAction_;
   PHG4TruthSteppingAction* steppingAction_;
   PHG4TruthTrackingAction* trackingAction_;
+
+  //! only save the G4 truth information that is associated with the embedded particle
+  bool saveOnlyEmbeded_;
 
 };
 

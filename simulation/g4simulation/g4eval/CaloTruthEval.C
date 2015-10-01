@@ -13,6 +13,7 @@
 #include <map>
 #include <float.h>
 #include <iostream>
+#include <cassert>
 
 using namespace std;
 
@@ -99,11 +100,17 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Hit* g4hit) {
   }
   
   PHG4Particle* particle = get_parent_particle(g4hit);
+
+  if (particle)
+    {
   PHG4Particle* primary = get_primary_particle(particle);
+  assert(primary);
   
   if (_do_cache) _cache_get_primary_particle_g4hit.insert(make_pair(g4hit,primary));
-  
   return primary;
+    }
+  else
+    return NULL;
 }
 
 int CaloTruthEval::get_embed(PHG4Particle* particle) {
@@ -158,8 +165,8 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary)
     PHG4Hit* g4hit = g4iter->second;
     PHG4Particle* candidate = get_primary_particle(g4hit);
     if (!candidate) {
-        cout <<__PRETTY_FUNCTION__<<" - Error - can not find the primary particle for g4hit: "<<endl;
-        g4hit->identify();
+//        cout <<__PRETTY_FUNCTION__<<" - Error - can not find the primary particle for g4hit: "<<endl;
+//        g4hit->identify();
         continue;
     }
     if (candidate->get_track_id() != primary->get_track_id()) continue;
