@@ -79,11 +79,16 @@ PHG4TruthInfoContainer::identify(ostream& os) const
        cout << "primary_particle_ key " <<  iter->first << endl;
        (iter->second)->identify();
      }
-   cout << "---primaryparticlemap-------------------" << endl;
+   cout << "---primary vertex emap-------------------" << endl;
    for (vter = primary_vtxmap.begin(); vter != primary_vtxmap.end(); ++vter)
      {
        cout << "vtx id: " << vter ->first << endl;
        (vter ->second)->identify();
+     }
+   cout << "---list of embeded tracks-------------------" << endl;
+   for (std::set<int>::const_iterator eter = embedded_trkid.begin(); eter != embedded_trkid.end(); ++eter)
+     {
+       cout << "embeded track ID " << *eter << endl;
      }
    
   return;
@@ -256,6 +261,36 @@ PHG4TruthInfoContainer::AddPrimaryVertex(PHG4VtxPoint *newvtx)
       // if not found among existing vertices, add it
        primary_vtxmap.insert(make_pair(key,newvtx));
        newvtx->set_id(key);
+    }
+  return key;
+}
+
+int
+PHG4TruthInfoContainer::maxprimarytrkindex() const
+{
+  int key = 0;
+  if (!primary_particle_map.empty())
+    {
+      key = primary_particle_map.rbegin()->first;
+    }
+  if (key < 0)
+    {
+      key = 0;
+    }
+  return key;
+}
+
+int
+PHG4TruthInfoContainer::minprimarytrkindex() const
+{
+  int key = 0;
+  if (!primary_particle_map.empty())
+    {
+       key = primary_particle_map.begin()->first;
+    }
+  if (key > 0)
+    {
+      key = 0;
     }
   return key;
 }

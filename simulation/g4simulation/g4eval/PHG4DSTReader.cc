@@ -531,12 +531,12 @@ PHG4DSTReader::process_event(PHCompositeNode* topNode)
 //                  add_particle(rec, part);
 //                }
 
-              for (particle_iter = truthInfoList->GetPrimaryMap().begin();
-                  particle_iter != truthInfoList->GetPrimaryMap().end();
+              for (particle_iter = truthInfoList->GetMap().begin();
+                  particle_iter != truthInfoList->GetMap().end();
                   particle_iter++)
                 {
-
-                  _particle_set.insert(particle_iter->first);
+                  if (particle_iter->second->get_parent_id()<=0)
+                    _particle_set.insert(particle_iter->first);
 
 //                  PHG4Particle * part = particle_iter->second;
 //

@@ -12,6 +12,8 @@
 #include <set>
 #include <map>
 #include <float.h>
+#include <cassert>
+#include <iostream>
 
 using namespace std;
 
@@ -186,11 +188,21 @@ bool SvtxTruthEval::is_primary(PHG4Particle* particle) {
 
 PHG4VtxPoint* SvtxTruthEval::get_vertex(PHG4Particle* particle) {
 
+  assert(particle);
+
   if (particle->get_primary_id() == -1) {
     return _truthinfo->GetPrimaryVtx( particle->get_vtx_id() );  
   }
 
-  return _truthinfo->GetVtx( particle->get_vtx_id() );  
+  PHG4VtxPoint* vtx = _truthinfo->GetVtx( particle->get_vtx_id() );
+
+  if (!vtx)
+    {
+      cout<<__PRETTY_FUNCTION__<<" - Error - missing vertex for G4 track:"<<endl;
+      particle->identify();
+    }
+
+  return vtx;
 }
 
 void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode) {

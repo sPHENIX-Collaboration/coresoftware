@@ -29,7 +29,7 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
   reates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int Init(PHCompositeNode *);
+  int InitRun(PHCompositeNode *);
 
   //! event processing
   /*!
