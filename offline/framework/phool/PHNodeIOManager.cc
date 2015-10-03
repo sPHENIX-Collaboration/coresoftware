@@ -498,7 +498,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
       assert(thisClass != 0);
 
       PHIODataNode<TObject> *newIODataNode =
-	dynamic_cast<PHIODataNode<TObject> *> (nodeIter.findFirst("PHIODataNode", (*splitvec.rbegin()).c_str()));
+	static_cast<PHIODataNode<TObject> *> (nodeIter.findFirst("PHIODataNode", (*splitvec.rbegin()).c_str()));
       if (! newIODataNode)
 	{
 	  TObject *newTObject = static_cast<TObject*>(thisClass->New());

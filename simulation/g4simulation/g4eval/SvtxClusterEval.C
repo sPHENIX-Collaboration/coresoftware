@@ -21,6 +21,7 @@
 #include <map>
 #include <float.h>
 #include <algorithm>
+#include <cassert>
 
 using namespace std;
 
@@ -284,6 +285,9 @@ SvtxCluster* SvtxClusterEval::best_cluster_from(PHG4Hit* truthhit) {
   
 // overlap calculations
 float SvtxClusterEval::get_energy_contribution(SvtxCluster* cluster, PHG4Particle* particle) {
+
+  assert(cluster);
+  assert(particle);
 
   if (_do_cache) {
     std::map<std::pair<SvtxCluster*,PHG4Particle*>, float>::iterator iter =

@@ -31,6 +31,7 @@
 #include <iostream>
 #include <set>
 #include <cmath>
+#include <cassert>
 
 using namespace std;
 
@@ -595,7 +596,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
     if (vertexmap && truthinfo) {
-      PHG4VtxPoint* point = truthinfo->GetPrimaryVtx(truthinfo->GetVtxRange().first->second->get_id());
+//        PHG4VtxPoint* point = truthinfo->GetPrimaryVtx(truthinfo->GetVtxRange().first->second->get_id());
+        // to get the primary vertex? Then we probably should use the interface function in the truth container
+        PHG4VtxPoint* point =  truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
+        assert(point);
       SvtxVertex* vertex = vertexeval->best_vertex_from(point);
     
       float gvx        = point->get_x();
@@ -653,15 +657,19 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float glayer    = g4hit->get_layer();
   
       float gtrackID  = g4hit->get_trkid();
-      float gflavor   = g4particle->get_pid();
-      float gpx       = g4particle->get_px();
-      float gpy       = g4particle->get_py();
-      float gpz       = g4particle->get_pz();
 
-      PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);	
-      float gvx       = vtx->get_x();
-      float gvy       = vtx->get_y();
-      float gvz       = vtx->get_z();
+
+      float gflavor   = NAN;
+      float gpx       = NAN;
+      float gpy       = NAN;
+      float gpz       = NAN;
+
+      float gvx       = NAN;
+      float gvy       = NAN;
+      float gvz       = NAN;
+
+      float gembed  = NAN;
+      float gprimary = NAN;
 
       float gfpx      = NULL;
       float gfpy      = NULL;
@@ -669,6 +677,24 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float gfx       = NULL;
       float gfy       = NULL;
       float gfz       = NULL;
+
+      if (g4particle)
+        {
+
+       gflavor   = g4particle->get_pid();
+       gpx       = g4particle->get_px();
+       gpy       = g4particle->get_py();
+       gpz       = g4particle->get_pz();
+
+      PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);	
+      assert(vtx); // vtx should always be available. Delete this is it is suppose not
+
+      if (vtx)
+        {
+       gvx       = vtx->get_x();
+       gvy       = vtx->get_y();
+       gvz       = vtx->get_z();
+        }
     
       PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
       if (outerhit) {
@@ -679,8 +705,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	gfy       = outerhit->get_y(1);
 	gfz       = outerhit->get_z(1);
       }
-      float gembed    = trutheval->get_embed(g4particle);
-      float gprimary  = trutheval->is_primary(g4particle);
+       gembed    = trutheval->get_embed(g4particle);
+       gprimary  = trutheval->is_primary(g4particle);
+        } //       if (g4particle)
 
       std::set<SvtxCluster*> clusters = clustereval->all_clusters_from(g4hit);  
       float nclusters = clusters.size();
@@ -711,7 +738,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	size       = cluster->size_hits();
 	phisize    = cluster->get_phi_size();
 	zsize      = cluster->get_z_size();
+  if (g4particle)
+    {
 	efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
+    }
       }
 
       float g4hit_data[35] = {_ievent,
@@ -815,6 +845,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  gx       = g4hit->get_x(0);
 	  gy       = g4hit->get_y(0);
 	  gz       = g4hit->get_z(0);
+
+	  if (g4particle){
+
 	  gtrackID = g4particle->get_track_id();
 	  gflavor  = g4particle->get_pid();
 	  gpx      = g4particle->get_px();
@@ -822,10 +855,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  gpz      = g4particle->get_pz();
 
 	  PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
-	
+    assert(vtx); // vtx should always be available. Delete this is it is suppose not
+
+	  if (vtx)
+	    {
 	  gvx      = vtx->get_x();
 	  gvy      = vtx->get_y();
 	  gvz      = vtx->get_z();
+	    }
 
 	  PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
 	  if (outerhit) {
@@ -839,10 +876,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  glast    = NAN;
 	  gembed   = trutheval->get_embed(g4particle);
 	  gprimary = trutheval->is_primary(g4particle);
+	  }//   if (g4particle){
 	}      
 
+  if (g4particle){
+
 	efromtruth = hiteval->get_energy_contribution(hit,g4particle);
-      
+  }
+
 	float hit_data[32] = {
 	  event,
 	  hitID,
@@ -941,6 +982,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  gx       = g4hit->get_x(0);
 	  gy       = g4hit->get_y(0);
 	  gz       = g4hit->get_z(0);
+
+	  if (g4particle){
+
 	  gtrackID = g4particle->get_track_id();
 	  gflavor  = g4particle->get_pid();
 	  gpx      = g4particle->get_px();
@@ -948,10 +992,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  gpz      = g4particle->get_pz();
 
 	  PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
-	
+    assert(vtx); // vtx should always be available. Delete this is it is suppose not
+
+    if (vtx)
+      {
 	  gvx      = vtx->get_x();
 	  gvy      = vtx->get_y();
 	  gvz      = vtx->get_z();
+      }
 
 	  PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
 	  if (outerhit) {
@@ -965,9 +1013,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  glast    = NAN;
 	  gembed   = trutheval->get_embed(g4particle);
 	  gprimary = trutheval->is_primary(g4particle);
-	}      
+	  }      //   if (g4particle){
+	} //  if (g4hit) {
 
-	efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
+  if (g4particle){
+      efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
+	}
 
 	float cluster_data[33] = {_ievent,
 				  hitID,

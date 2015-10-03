@@ -33,7 +33,7 @@ PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const i
 }
 
 //_______________________________________________________________________
-int PHG4OuterHcalSubsystem::Init( PHCompositeNode* topNode )
+int PHG4OuterHcalSubsystem::InitRun( PHCompositeNode* topNode )
 {
   PHNodeIterator iter( topNode );
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));

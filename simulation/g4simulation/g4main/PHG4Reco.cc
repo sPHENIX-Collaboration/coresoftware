@@ -244,150 +244,165 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
       reco->Init( topNode );
     }
 
-  // initialize registered subsystems
-  BOOST_FOREACH(SubsysReco * reco, subsystems_)
-    {
-      reco->InitRun( topNode );
-    }
-
-  // create phenix detector, add subsystems, and register to GEANT
-  if (verbosity > 1) cout << "PHG4Reco::Init - create detector" << endl;
-  detector_ = new PHG4PhenixDetector();
-  detector_->Verbosity(verbosity);
-  detector_->SetWorldSizeX(WorldSize[0]*cm);
-  detector_->SetWorldSizeY(WorldSize[1]*cm);
-  detector_->SetWorldSizeZ(WorldSize[2]*cm);
-  detector_->SetWorldShape(worldshape);
-  detector_->SetWorldMaterial(worldmaterial);
-
-  rc->set_FloatFlag("WorldSizex", WorldSize[0]);
-  rc->set_FloatFlag("WorldSizey", WorldSize[1]);
-  rc->set_FloatFlag("WorldSizez", WorldSize[2]);
-
-  BOOST_FOREACH( PHG4Subsystem * g4sub, subsystems_)
-    {
-      detector_->AddDetector( g4sub->GetDetector() );
-    }
-  runManager_->SetUserInitialization( detector_ );
-
-  setupInputEventNodeReader(topNode);
-  // create main event action, add subsystemts and register to GEANT
-  eventAction_ = new PHG4PhenixEventAction();
-
-  BOOST_FOREACH( PHG4Subsystem * g4sub, subsystems_)
-    {
-      PHG4EventAction *evtact = g4sub->GetEventAction();
-      if (evtact)
-	{
-	  eventAction_->AddAction(evtact);
-	}
-    }
-  runManager_->SetUserAction(eventAction_ );
-
-  // create main stepping action, add subsystems and register to GEANT
-  steppingAction_ = new PHG4PhenixSteppingAction();
-  BOOST_FOREACH( PHG4Subsystem * g4sub, subsystems_)
-    {
-      PHG4SteppingAction *action = g4sub->GetSteppingAction();
-      if (action)
-	{
-	  if (verbosity > 1)
-	    {
-	      cout << "Adding steppingaction for " << g4sub->Name() << endl;
-	    }
-	  steppingAction_->AddAction( g4sub->GetSteppingAction() );
-	}
-    }
-  runManager_->SetUserAction(steppingAction_ );
-
-  // create main tracking action, add subsystems and register to GEANT
-  trackingAction_ = new PHG4PhenixTrackingAction();
-  BOOST_FOREACH( PHG4Subsystem * g4sub, subsystems_)
-    {
-      trackingAction_->AddAction( g4sub->GetTrackingAction() );
-    }
-  runManager_->SetUserAction(trackingAction_ );
-
-  // initialize
-  runManager_->Initialize();
-
-  // add cerenkov and optical photon processes
-  // cout << endl << "Ignore the next message - we implemented this correctly" << endl;
-  G4Cerenkov* theCerenkovProcess = new G4Cerenkov("Cerenkov");
-  // cout << "End of bogus warning message" << endl << endl;
-  // G4Scintillation* theScintillationProcess      = new G4Scintillation("Scintillation");
-
-  /*
-  if (verbosity > 0)
-    {
-      // This segfaults  
-      theCerenkovProcess->DumpPhysicsTable();
-    }
-  */
-  theCerenkovProcess->SetMaxNumPhotonsPerStep(100);
-  theCerenkovProcess->SetMaxBetaChangePerStep(10.0);
-  theCerenkovProcess->SetTrackSecondariesFirst(true);
-
-  // theScintillationProcess->SetScintillationYieldFactor(1.);
-  // theScintillationProcess->SetTrackSecondariesFirst(true);
-
-  // Use Birks Correction in the Scintillation process
-  
-  // G4EmSaturation* emSaturation = G4LossTableManager::Instance()->EmSaturation();
-  // theScintillationProcess->AddSaturation(emSaturation);
-
-  G4ParticleTable* theParticleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleTable::G4PTblDicIterator* _theParticleIterator;
-  _theParticleIterator = theParticleTable->GetIterator();
-  _theParticleIterator->reset();
-  while( (*_theParticleIterator)() )
-    {
-      G4ParticleDefinition* particle = _theParticleIterator->value();
-      G4String particleName = particle->GetParticleName();
-      G4ProcessManager* pmanager = particle->GetProcessManager();
-      if (theCerenkovProcess->IsApplicable(*particle))
-	{
-	  pmanager->AddProcess(theCerenkovProcess);
-	  pmanager->SetProcessOrdering(theCerenkovProcess, idxPostStep);
-	}
-      // if (theScintillationProcess->IsApplicable(*particle))
-      // {
-      //   pmanager->AddProcess(theScintillationProcess);
-      //   pmanager->SetProcessOrderingToLast(theScintillationProcess, idxAtRest);
-      //   pmanager->SetProcessOrderingToLast(theScintillationProcess, idxPostStep);
-      // }
-    }
-  G4ProcessManager* pmanager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
-  // G4cout << " AddDiscreteProcess to OpticalPhoton " << G4endl;
-  pmanager->AddDiscreteProcess(new G4OpAbsorption());
-  pmanager->AddDiscreteProcess(new G4OpRayleigh());
-  pmanager->AddDiscreteProcess(new G4OpMieHG());
-  pmanager->AddDiscreteProcess(new G4OpBoundaryProcess());
-  pmanager->AddDiscreteProcess(new G4OpWLS());
-  pmanager->AddDiscreteProcess(new G4PhotoElectricEffect());
-  // pmanager->DumpInfo();
-  
-  // needs large amount of memory which kills central hijing events
-  // store generated trajectories
-  //   if( G4TrackingManager* trackingManager = G4EventManager::GetEventManager()->GetTrackingManager() ){
-  //     trackingManager->SetStoreTrajectory( true );
-  //   }
-
-  // quiet some G4 print-outs (EM and Hadronic settings during first event)
-  G4HadronicProcessStore::Instance()->SetVerbose(0);
-  G4LossTableManager::Instance()->SetVerbose(0);
-
-  if ((verbosity < 1) && (uisession_)) {
-    uisession_->Verbosity(1); // let messages after setup come through
-  }
-  
   if (verbosity > 0) {
     cout << "===========================================================================" << endl;
   }
-  
   return 0;
 }
 
+int
+PHG4Reco::InitRun( PHCompositeNode* topNode )
+{
+
+  if (verbosity > 0) {
+    cout << "========================= PHG4Reco::InitRun() ================================" << endl;
+  }
+
+   recoConsts *rc = recoConsts::instance();
+
+   // initialize registered subsystems
+   BOOST_FOREACH(SubsysReco * reco, subsystems_)
+     {
+       reco->InitRun( topNode );
+     }
+
+   // create phenix detector, add subsystems, and register to GEANT
+   if (verbosity > 1) cout << "PHG4Reco::Init - create detector" << endl;
+   detector_ = new PHG4PhenixDetector();
+   detector_->Verbosity(verbosity);
+   detector_->SetWorldSizeX(WorldSize[0]*cm);
+   detector_->SetWorldSizeY(WorldSize[1]*cm);
+   detector_->SetWorldSizeZ(WorldSize[2]*cm);
+   detector_->SetWorldShape(worldshape);
+   detector_->SetWorldMaterial(worldmaterial);
+
+   rc->set_FloatFlag("WorldSizex", WorldSize[0]);
+   rc->set_FloatFlag("WorldSizey", WorldSize[1]);
+   rc->set_FloatFlag("WorldSizez", WorldSize[2]);
+
+   BOOST_FOREACH( PHG4Subsystem * g4sub, subsystems_)
+     {
+       detector_->AddDetector( g4sub->GetDetector() );
+     }
+   runManager_->SetUserInitialization( detector_ );
+
+   setupInputEventNodeReader(topNode);
+   // create main event action, add subsystemts and register to GEANT
+   eventAction_ = new PHG4PhenixEventAction();
+
+   BOOST_FOREACH( PHG4Subsystem * g4sub, subsystems_)
+     {
+       PHG4EventAction *evtact = g4sub->GetEventAction();
+       if (evtact)
+   {
+     eventAction_->AddAction(evtact);
+   }
+     }
+   runManager_->SetUserAction(eventAction_ );
+
+   // create main stepping action, add subsystems and register to GEANT
+   steppingAction_ = new PHG4PhenixSteppingAction();
+   BOOST_FOREACH( PHG4Subsystem * g4sub, subsystems_)
+     {
+       PHG4SteppingAction *action = g4sub->GetSteppingAction();
+       if (action)
+   {
+     if (verbosity > 1)
+       {
+         cout << "Adding steppingaction for " << g4sub->Name() << endl;
+       }
+     steppingAction_->AddAction( g4sub->GetSteppingAction() );
+   }
+     }
+   runManager_->SetUserAction(steppingAction_ );
+
+   // create main tracking action, add subsystems and register to GEANT
+   trackingAction_ = new PHG4PhenixTrackingAction();
+   BOOST_FOREACH( PHG4Subsystem * g4sub, subsystems_)
+     {
+       trackingAction_->AddAction( g4sub->GetTrackingAction() );
+     }
+   runManager_->SetUserAction(trackingAction_ );
+
+   // initialize
+   runManager_->Initialize();
+
+   // add cerenkov and optical photon processes
+   // cout << endl << "Ignore the next message - we implemented this correctly" << endl;
+   G4Cerenkov* theCerenkovProcess = new G4Cerenkov("Cerenkov");
+   // cout << "End of bogus warning message" << endl << endl;
+   // G4Scintillation* theScintillationProcess      = new G4Scintillation("Scintillation");
+
+   /*
+   if (verbosity > 0)
+     {
+       // This segfaults
+       theCerenkovProcess->DumpPhysicsTable();
+     }
+   */
+   theCerenkovProcess->SetMaxNumPhotonsPerStep(100);
+   theCerenkovProcess->SetMaxBetaChangePerStep(10.0);
+   theCerenkovProcess->SetTrackSecondariesFirst(true);
+
+   // theScintillationProcess->SetScintillationYieldFactor(1.);
+   // theScintillationProcess->SetTrackSecondariesFirst(true);
+
+   // Use Birks Correction in the Scintillation process
+
+   // G4EmSaturation* emSaturation = G4LossTableManager::Instance()->EmSaturation();
+   // theScintillationProcess->AddSaturation(emSaturation);
+
+   G4ParticleTable* theParticleTable = G4ParticleTable::GetParticleTable();
+   G4ParticleTable::G4PTblDicIterator* _theParticleIterator;
+   _theParticleIterator = theParticleTable->GetIterator();
+   _theParticleIterator->reset();
+   while( (*_theParticleIterator)() )
+     {
+       G4ParticleDefinition* particle = _theParticleIterator->value();
+       G4String particleName = particle->GetParticleName();
+       G4ProcessManager* pmanager = particle->GetProcessManager();
+       if (theCerenkovProcess->IsApplicable(*particle))
+   {
+     pmanager->AddProcess(theCerenkovProcess);
+     pmanager->SetProcessOrdering(theCerenkovProcess, idxPostStep);
+   }
+       // if (theScintillationProcess->IsApplicable(*particle))
+       // {
+       //   pmanager->AddProcess(theScintillationProcess);
+       //   pmanager->SetProcessOrderingToLast(theScintillationProcess, idxAtRest);
+       //   pmanager->SetProcessOrderingToLast(theScintillationProcess, idxPostStep);
+       // }
+     }
+   G4ProcessManager* pmanager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
+   // G4cout << " AddDiscreteProcess to OpticalPhoton " << G4endl;
+   pmanager->AddDiscreteProcess(new G4OpAbsorption());
+   pmanager->AddDiscreteProcess(new G4OpRayleigh());
+   pmanager->AddDiscreteProcess(new G4OpMieHG());
+   pmanager->AddDiscreteProcess(new G4OpBoundaryProcess());
+   pmanager->AddDiscreteProcess(new G4OpWLS());
+   pmanager->AddDiscreteProcess(new G4PhotoElectricEffect());
+   // pmanager->DumpInfo();
+
+   // needs large amount of memory which kills central hijing events
+   // store generated trajectories
+   //   if( G4TrackingManager* trackingManager = G4EventManager::GetEventManager()->GetTrackingManager() ){
+   //     trackingManager->SetStoreTrajectory( true );
+   //   }
+
+   // quiet some G4 print-outs (EM and Hadronic settings during first event)
+   G4HadronicProcessStore::Instance()->SetVerbose(0);
+   G4LossTableManager::Instance()->SetVerbose(0);
+
+   if ((verbosity < 1) && (uisession_)) {
+     uisession_->Verbosity(1); // let messages after setup come through
+   }
+
+   if (verbosity > 0) {
+     cout << "===========================================================================" << endl;
+   }
+
+ return 0;
+}
 //_________________________________________________________________
 int PHG4Reco::ApplyCommand(const std::string &cmd)
 {
