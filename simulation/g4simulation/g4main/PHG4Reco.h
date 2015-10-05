@@ -30,7 +30,7 @@ class G4VisManager;
 /*!
   \class   PHG4Reco
   \ingroup supermodules
-  \brief   mutoo reconstruction event loop, twicked to cope with Run4 Au-Au data
+  \brief   Runs G4 as a subsystem
 */
 class PHG4Reco: public SubsysReco
 {
@@ -110,7 +110,7 @@ class PHG4Reco: public SubsysReco
   // the physics lists are instantiated
   void setGeneratorAction(G4VUserPrimaryGeneratorAction *action);
 
-  private:
+  protected:
   
   int InitUImanager();
   void DefineMaterials();
