@@ -45,10 +45,12 @@
 
 // ROOT includes
 #include <TH1D.h>
+#include <TVector3.h>
 
 // standard includes
 #include <cmath>
 #include <iostream>
+#include <cassert>
 
 using findNode::getClass;
 using namespace std;
@@ -99,12 +101,20 @@ static inline double sign(double x)
 
 void PHG4HoughTransform::projectToRadius(const SvtxTrack* track, double B, double radius, vector<double>& intersection)
 {
+  assert(radius>0);
 
-  float phi  = atan2(track->get_y(),track->get_x());
+  float phi  = atan2(track->get_py(),track->get_px());
   float d    = track->get_dca2d();
-  float k    = B / 333.6 / track->get_pt();
+  float k    = - B / 333.6 / track->get_pt() * track->get_charge();
   float z0   = track->get_z();
-  float dzdl = track->get_pz()/track->get_p();
+//  float dzdl = track->get_pz()/track->get_p();
+  float dzdS2D = track->get_pz()/track->get_pt();
+
+  if (k>2./radius) return; //no intersection
+  if (fabs(d)>2)
+    {
+      cout <<__PRETTY_FUNCTION__<<" - Error - "<<"DCA ("<<d<<" cm) too large for assumption of this algorithm "<<endl;
+    }
 
   intersection.clear();intersection.assign(3,0.);
   double& x = intersection[0];
@@ -112,79 +122,93 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrack* track, double B, doubl
   double& z = intersection[2];
   
   float rad_det = radius;
-  
+  float R2 = rad_det*rad_det;
+
   float cosphi = cos(phi);
   float sinphi = sin(phi);
   
-  // get outer hit
-  float hitx = d*cosphi;
-  float hity = d*sinphi;
+  const double dxp = R2 / 2. * k;
+  const double dyp = sqrt(R2 - dxp*dxp);
 
-  for (SvtxTrack::ConstStateIter iter = track->begin_states();
-       iter != track->end_states();
-       ++iter) {
-    const SvtxTrackState* state = iter->second;
-    hitx = state->get_x();
-    hity = state->get_y();
-  }
+  x = dyp*cosphi + dxp*sinphi;
+  y = dyp*sinphi - dxp*cosphi;
+
+  const double S2D = k==0 ? rad_det :(2*asin(k*rad_det/2.)/k);
+
+  z = z0 + dzdS2D*S2D;
+
+//  // get outer hit
+//  float hitx = d*cosphi;
+//  float hity = d*sinphi;
+
+//  for (SvtxTrack::ConstStateIter iter = track->begin_states();
+//       iter != track->end_states();
+//       ++iter) {
+//    const SvtxTrackState* state = iter->second;
+//    hitx = state->get_x();
+//    hity = state->get_y();
+//  }
   
-  k = fabs(k);
+//  if (rad_det/2)
   
-  float kd = (d*k + 1.);
-  float kcx = kd*cosphi;
-  float kcy = kd*sinphi;
-  float kd_inv = 1./kd;
-  float R2 = rad_det*rad_det;
-  float a = 0.5*(k*R2 + ( d*d*k + 2.*d ))*kd_inv;
-  float tmp1 = a*kd_inv;
-  float P2x = kcx*tmp1;
-  float P2y = kcy*tmp1;
   
-  float h = sqrt(R2 - a*a);
-  
-  float ux = -kcy*kd_inv;
-  float uy = kcx*kd_inv;
-  
-  float x1 = P2x + ux*h;
-  float y1 = P2y + uy*h;
-  float x2 = P2x - ux*h;
-  float y2 = P2y - uy*h;
-  float diff1 = (x1-hitx)*(x1-hitx) + (y1-hity)*(y1-hity);
-  float diff2 = (x2-hitx)*(x2-hitx) + (y2-hity)*(y2-hity);
-  float signk = 0.;
-  if(diff1 < diff2){signk = 1.;}
-  else{signk = -1.;}
-  x = P2x + signk*ux*h;
-  y = P2y + signk*uy*h;
-  
-  double sign_dzdl = sign(dzdl);
-  double startx = d*cosphi;
-  double starty = d*sinphi;
-  double D = sqrt((startx-x)*(startx-x) + (starty-y)*(starty-y));
-  double v = 0.5*k*D;
-  z = 0.;
-  if(v > 0.1)
-  {
-    if(v >= 0.999999){v=0.999999;}
-    double s = 2.*asin(v)/k;
-    double dz = sqrt(s*s*dzdl*dzdl/(1. - dzdl*dzdl));
-    z = z0 + sign_dzdl*dz;
-  }
-  else
-  {
-    double s = 0.;
-    double temp1 = k*D*0.5;temp1*=temp1;
-    double temp2 = D*0.5;
-    s += 2.*temp2;
-    temp2*=temp1;
-    s += temp2/3.;
-    temp2*=temp1;
-    s += (3./20.)*temp2;
-    temp2*=temp1;
-    s += (5./56.)*temp2;
-    double dz = sqrt(s*s*dzdl*dzdl/(1. - dzdl*dzdl));
-    z = z0 + sign_dzdl*dz;
-  }
+//  k = fabs(k);
+//
+//  float kd = (d*k + 1.);//1
+//  float kcx = kd*cosphi;
+//  float kcy = kd*sinphi;
+//  float kd_inv = 1./kd;//1
+//  float R2 = rad_det*rad_det;//1e4
+//  float a = 0.5*(k*R2 + ( d*d*k + 2.*d ))*kd_inv;
+//  float tmp1 = a*kd_inv;
+//  float P2x = kcx*tmp1;
+//  float P2y = kcy*tmp1;
+//
+//  float h = sqrt(R2 - a*a);
+//
+//  float ux = -kcy*kd_inv;
+//  float uy = kcx*kd_inv;
+//
+//  float x1 = P2x + ux*h;
+//  float y1 = P2y + uy*h;
+//  float x2 = P2x - ux*h;
+//  float y2 = P2y - uy*h;
+//  float diff1 = (x1-hitx)*(x1-hitx) + (y1-hity)*(y1-hity);
+//  float diff2 = (x2-hitx)*(x2-hitx) + (y2-hity)*(y2-hity);
+//  float signk = 0.;
+//  if(diff1 < diff2){signk = 1.;}
+//  else{signk = -1.;}
+//  x = P2x + signk*ux*h;
+//  y = P2y + signk*uy*h;
+//
+//  double sign_dzdl = sign(dzdl);
+//  double startx = d*cosphi;
+//  double starty = d*sinphi;
+//  double D = sqrt((startx-x)*(startx-x) + (starty-y)*(starty-y));
+//  double v = 0.5*k*D;
+//  z = 0.;
+//  if(v > 0.1)
+//  {
+//    if(v >= 0.999999){v=0.999999;}
+//    double s = 2.*asin(v)/k;
+//    double dz = sqrt(s*s*dzdl*dzdl/(1. - dzdl*dzdl));
+//    z = z0 + sign_dzdl*dz;
+//  }
+//  else
+//  {
+//    double s = 0.;
+//    double temp1 = k*D*0.5;temp1*=temp1;
+//    double temp2 = D*0.5;
+//    s += 2.*temp2;
+//    temp2*=temp1;
+//    s += temp2/3.;
+//    temp2*=temp1;
+//    s += (3./20.)*temp2;
+//    temp2*=temp1;
+//    s += (5./56.)*temp2;
+//    double dz = sqrt(s*s*dzdl*dzdl/(1. - dzdl*dzdl));
+//    z = z0 + sign_dzdl*dz;
+//  }
 }
 
 float PHG4HoughTransform::kappaToPt(float kappa) {  
