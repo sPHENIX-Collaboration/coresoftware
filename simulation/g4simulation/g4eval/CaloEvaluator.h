@@ -37,6 +37,8 @@ class CaloEvaluator : public SubsysReco {
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  void set_strict(bool b) {_strict = b;}
+  
   // funtions to limit the tracing to only part of the event ---------
   // and speed up the evaluation
 
@@ -85,6 +87,8 @@ class CaloEvaluator : public SubsysReco {
   //----------------------------------
   // evaluator output ntuples
 
+  bool _strict;
+  
   bool _do_gpoint_eval;
   bool _do_gshower_eval;
   bool _do_tower_eval;
