@@ -68,7 +68,9 @@ PHG4CylinderCell* SvtxHitEval::get_cell(SvtxHit* hit) {
   PHG4CylinderCell* cell = NULL;
   if (!cell&&_g4cells_svtx)    cell = _g4cells_svtx->findCylinderCell(hit->get_cellid());
   if (!cell&&_g4cells_tracker) cell = _g4cells_tracker->findCylinderCell(hit->get_cellid());
-  // no assert as some hits may be noise
+
+  // only noise hits (cellid left at default value) should not trace
+  if ((_strict) && (hit->get_cellid() != 0xFFFFFFFF)) assert(cell);
   
   return cell;
 }
@@ -92,7 +94,10 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
   PHG4CylinderCell *cell = NULL;
   if (!cell&&_g4cells_svtx)    cell = _g4cells_svtx->findCylinderCell(hit->get_cellid());
   if (!cell&&_g4cells_tracker) cell = _g4cells_tracker->findCylinderCell(hit->get_cellid());
-  if (!cell) return truth_hits;
+
+  // only noise hits (cellid left at default value) should not trace
+  if ((_strict) && (hit->get_cellid() != 0xFFFFFFFF)) assert(cell);
+  else if (!cell) return truth_hits;
 
   // loop over all the g4hits in this cell
   for (PHG4CylinderCell::EdepConstIterator g4iter = cell->get_g4hits().first;
