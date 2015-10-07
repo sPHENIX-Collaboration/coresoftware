@@ -38,6 +38,7 @@ using namespace std;
 SvtxEvaluator::SvtxEvaluator(const string &name, const string &filename) :
   SubsysReco("SvtxEvaluator"),
   _ievent(0),
+  _strict(true),
   _do_vertex_eval(true),
   _do_gpoint_eval(true),
   _do_g4hit_eval(true),
@@ -195,6 +196,7 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode *topNode) {
     cout << endl;
     cout << "---PHG4HITS-------------" << endl;
     SvtxTruthEval trutheval(topNode);
+    trutheval.set_strict(_strict);
     std::set<PHG4Hit*> g4hits = trutheval.all_truth_hits();
     unsigned int ig4hit = 0;
     for(std::set<PHG4Hit*>::iterator iter = g4hits.begin();
@@ -265,6 +267,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
   //==========================================
 
   SvtxEvalStack svtxevalstack(topNode);
+  svtxevalstack.set_strict(_strict);
 
   SvtxTrackEval*     trackeval = svtxevalstack.get_track_eval();
   SvtxClusterEval* clustereval = svtxevalstack.get_cluster_eval();
@@ -531,6 +534,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   if (verbosity > 1) cout << "SvtxEvaluator::fillOutputNtuples() entered" << endl;
 
   SvtxEvalStack svtxevalstack(topNode);
+  svtxevalstack.set_strict(_strict);
 
   SvtxVertexEval*   vertexeval = svtxevalstack.get_vertex_eval();
   SvtxTrackEval*     trackeval = svtxevalstack.get_track_eval();
