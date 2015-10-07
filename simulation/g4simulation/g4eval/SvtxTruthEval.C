@@ -21,6 +21,7 @@ SvtxTruthEval::SvtxTruthEval(PHCompositeNode* topNode)
   : _truthinfo(NULL),
     _g4hits_svtx(NULL),
     _g4hits_tracker(NULL),
+    _strict(true),
     _do_cache(true),
     _cache_all_truth_hits(),
     _cache_all_truth_hits_g4particle(),
@@ -82,6 +83,9 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits() {
 
 std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle) {
 
+  if (_strict) assert(particle);
+  else if (!particle) return std::set<PHG4Hit*>();
+  
   if (_do_cache) {
     std::map<PHG4Particle*,std::set<PHG4Hit*> >::iterator iter =
       _cache_all_truth_hits_g4particle.find(particle);
@@ -123,6 +127,9 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle) {
 
 PHG4Hit* SvtxTruthEval::get_innermost_truth_hit(PHG4Particle* particle) {
 
+  if (_strict) assert(particle);
+  else if (!particle) return NULL;
+  
   PHG4Hit* innermost_hit = NULL;
   float innermost_radius = FLT_MAX;
   
@@ -145,6 +152,9 @@ PHG4Hit* SvtxTruthEval::get_innermost_truth_hit(PHG4Particle* particle) {
 
 PHG4Hit* SvtxTruthEval::get_outermost_truth_hit(PHG4Particle* particle) {
 
+  if (_strict) assert(particle);
+  else if (!particle) return NULL;
+  
   PHG4Hit* outermost_hit = NULL;
   float outermost_radius = FLT_MAX*-1.0;
   
@@ -167,17 +177,28 @@ PHG4Hit* SvtxTruthEval::get_outermost_truth_hit(PHG4Particle* particle) {
 
 PHG4Particle* SvtxTruthEval::get_particle(PHG4Hit* g4hit) {
 
+  if (_strict) assert(g4hit);
+  else if (!g4hit) return NULL;
+  
   PHG4Particle* particle = _truthinfo->GetHit( g4hit->get_trkid() );
+  if (_strict) assert(particle); 
+
   return particle;
 }
 
 int SvtxTruthEval::get_embed(PHG4Particle* particle) {
+
+  if (_strict) assert(particle);
+  else if (!particle) return 0;
 
   return _truthinfo->isEmbeded(particle->get_track_id());
 }
 
 bool SvtxTruthEval::is_primary(PHG4Particle* particle) {
 
+  if (_strict) assert(particle);
+  else if (!particle) return false;
+  
   bool is_primary = true;
   if (!_truthinfo->GetPrimaryHit(particle->get_track_id())) {
     is_primary = false;
@@ -188,20 +209,16 @@ bool SvtxTruthEval::is_primary(PHG4Particle* particle) {
 
 PHG4VtxPoint* SvtxTruthEval::get_vertex(PHG4Particle* particle) {
 
-  assert(particle);
+  if (_strict) assert(particle);
+  else if (!particle) return NULL;
 
   if (particle->get_primary_id() == -1) {
     return _truthinfo->GetPrimaryVtx( particle->get_vtx_id() );  
   }
 
   PHG4VtxPoint* vtx = _truthinfo->GetVtx( particle->get_vtx_id() );
-
-  if (!vtx)
-    {
-      cout<<__PRETTY_FUNCTION__<<" - Error - missing vertex for G4 track:"<<endl;
-      particle->identify();
-    }
-
+  if (_strict) assert(vtx);
+ 
   return vtx;
 }
 
