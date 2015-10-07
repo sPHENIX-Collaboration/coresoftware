@@ -121,6 +121,8 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Hit* g4hit) {
 
   if (_do_cache) _cache_get_primary_particle_g4hit.insert(make_pair(g4hit,primary));
 
+  if (_strict) assert(primary);
+  
   return primary;
 }
 
@@ -169,6 +171,9 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary)
 
   primary = get_primary_particle(primary);
 
+  if (_strict) assert(primary);
+  else if (!primary) return std::set<PHG4Hit*>();
+  
   if (_do_cache) {
     std::map<PHG4Particle*,std::set<PHG4Hit*> >::iterator iter =
       _cache_get_shower_from_primary.find(primary);
@@ -208,6 +213,9 @@ float CaloTruthEval::get_shower_moliere_radius(PHG4Particle* primary) {
   if (!is_primary(primary)) return NAN;
 
   primary = get_primary_particle(primary);
+
+  if (_strict) assert(primary);
+  else if (!primary) return NAN;
   
   if (_do_cache) {
     std::map<PHG4Particle*,float>::iterator iter =
@@ -286,6 +294,9 @@ float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary) {
   if (!is_primary(primary)) return NAN;
 
   primary = get_primary_particle(primary);
+
+  if (_strict) assert(primary);
+  else if (!primary) return NAN;
   
   if (_do_cache) {
     std::map<PHG4Particle*,float>::iterator iter =
