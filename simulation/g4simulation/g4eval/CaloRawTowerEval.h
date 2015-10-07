@@ -26,7 +26,15 @@ public:
   virtual ~CaloRawTowerEval() {}
 
   void next_event(PHCompositeNode *topNode);
-  void do_caching(bool do_cache) {_do_cache = do_cache;}
+  void do_caching(bool do_cache) {
+    _do_cache = do_cache;
+    _trutheval.do_caching(do_cache);
+  }
+  void set_strict(bool strict) {
+    _strict = strict;
+    _trutheval.set_strict(strict);
+  }
+
   CaloTruthEval* get_truth_eval() {return &_trutheval;}
 
   // backtrace through to PHG4Hits
@@ -54,6 +62,8 @@ private:
   PHG4HitContainer* _g4hits;
   PHG4TruthInfoContainer* _truthinfo;
 
+  bool _strict;
+  
   bool                                               _do_cache;
   std::map<RawTower*,std::set<PHG4Hit*> >            _cache_all_truth_hits;
   std::map<RawTower*,std::set<PHG4Particle*> >       _cache_all_truth_primaries;
