@@ -157,6 +157,10 @@ PHG4Particle* CaloRawTowerEval::max_truth_primary_by_energy(RawTower* tower) {
        ++iter) {
 
     PHG4Particle* primary = *iter;
+
+    if (_strict) assert(primary);
+    else if (!primary) continue;
+    
     float e = get_energy_contribution(tower,primary);
     if (isnan(e)) continue;
     if (e > max_e) {
@@ -179,6 +183,9 @@ std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Particle* primary) {
 
   // use primary map pointer
   primary = get_truth_eval()->get_primary_particle(primary);
+
+  if (_strict) assert(primary);
+  else if (!primary) return std::set<RawTower*>();
   
   if (_do_cache) {
     std::map<PHG4Particle*,std::set<RawTower*> >::iterator iter =
@@ -226,6 +233,9 @@ RawTower* CaloRawTowerEval::best_tower_from(PHG4Particle* primary) {
   if (!_trutheval.is_primary(primary)) return NULL;
 
   primary = get_truth_eval()->get_primary_particle(primary);
+
+  if (_strict) assert(primary);
+  else if (!primary) return NULL;
   
   if (_do_cache) {
     std::map<PHG4Particle*,RawTower*>::iterator iter =
@@ -242,6 +252,10 @@ RawTower* CaloRawTowerEval::best_tower_from(PHG4Particle* primary) {
        iter != towers.end();
        ++iter) {
     RawTower* tower = *iter;
+
+    if (_strict) assert(tower);
+    else if (!tower) continue;
+    
     float energy = get_energy_contribution(tower,primary);
     if (isnan(energy)) continue;
     if (energy > best_energy) {
@@ -269,6 +283,9 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
 
   // reduce cache misses by using only pointer from PrimaryMap
   primary = get_truth_eval()->get_primary_particle(primary);
+
+  if (_strict) assert(primary);
+  else if (!primary) return NAN;
   
   if (_do_cache) {
     std::map<std::pair<RawTower*,PHG4Particle*>, float>::iterator iter =
