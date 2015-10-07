@@ -14,6 +14,7 @@
 #include <map>
 #include <float.h>
 #include <algorithm>
+#include <cassert>
 
 using namespace std;
 
@@ -26,6 +27,7 @@ JetTruthEval::JetTruthEval(PHCompositeNode* topNode,
     _hcaloutevalstack(topNode,"HCALOUT"),
     _truthinfo(NULL),
     _truthjets(NULL),
+    _strict(true),
     _do_cache(true),
     _cache_all_truth_particles(),
     _cache_all_truth_hits(),
@@ -49,6 +51,9 @@ void JetTruthEval::next_event(PHCompositeNode* topNode) {
 
 std::set<PHG4Particle*> JetTruthEval::all_truth_particles(Jet* truthjet) {
 
+  if (_strict) assert(truthjet);
+  else if (!truthjet) return std::set<PHG4Particle*>();
+  
   if (_do_cache) {
     std::map<Jet*,std::set<PHG4Particle*> >::iterator iter =
       _cache_all_truth_particles.find(truthjet);
@@ -71,8 +76,11 @@ std::set<PHG4Particle*> JetTruthEval::all_truth_particles(Jet* truthjet) {
     }
 
     PHG4Particle* truth_particle = _truthinfo->GetHit(index);
-    if (truth_particle)
-      truth_particles.insert(truth_particle);
+    
+    if (_strict) assert(truth_particle);
+    else if (!truth_particle) continue;
+    
+    truth_particles.insert(truth_particle);
   }
 
   if (_do_cache) _cache_all_truth_particles.insert(make_pair(truthjet,truth_particles));
@@ -82,6 +90,9 @@ std::set<PHG4Particle*> JetTruthEval::all_truth_particles(Jet* truthjet) {
 
 std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
 
+  if (_strict) assert(truthjet);
+  else if (!truthjet) return std::set<PHG4Hit*>();
+  
   if (_do_cache) {
     std::map<Jet*,std::set<PHG4Hit*> >::iterator iter =
       _cache_all_truth_hits.find(truthjet);
@@ -100,6 +111,9 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
        ++iter) {
     PHG4Particle* particle = *iter;
 
+    if (_strict) assert(particle);
+    else if (!particle) continue;
+    
     // ask the svtx truth eval to backtrack the particles to g4hits
     SvtxTruthEval* svtx_truth_eval = _svtxevalstack.get_truth_eval(); 
     std::set<PHG4Hit*> svtx_g4hits = svtx_truth_eval->all_truth_hits(particle);
@@ -107,7 +121,13 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
     for (std::set<PHG4Hit*>::iterator jter = svtx_g4hits.begin();
 	 jter != svtx_g4hits.end();
 	 ++jter) {
-      truth_hits.insert(*jter);
+
+      PHG4Hit* g4hit = *jter;
+
+      if (_strict) assert(g4hit);
+      else if (!g4hit) continue;
+      
+      truth_hits.insert(g4hit);
     }
     
     // ask the cemc truth eval to backtrack the primary to g4hits
@@ -117,7 +137,13 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
     for (std::set<PHG4Hit*>::iterator jter = cemc_g4hits.begin();
 	 jter != cemc_g4hits.end();
 	 ++jter) {
-      truth_hits.insert(*jter);
+      
+      PHG4Hit* g4hit = *jter;
+
+      if (_strict) assert(g4hit);
+      else if (!g4hit) continue;
+      
+      truth_hits.insert(g4hit);
     }
     
     // ask the hcalin truth eval to backtrack the primary to g4hits
@@ -127,7 +153,13 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
     for (std::set<PHG4Hit*>::iterator jter = hcalin_g4hits.begin();
 	 jter != hcalin_g4hits.end();
 	 ++jter) {
-      truth_hits.insert(*jter);
+
+      PHG4Hit* g4hit = *jter;
+
+      if (_strict) assert(g4hit);
+      else if (!g4hit) continue;
+      
+      truth_hits.insert(g4hit);
     }
     
     // ask the hcalout truth eval to backtrack the primary to g4hits
@@ -137,7 +169,13 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
     for (std::set<PHG4Hit*>::iterator jter = hcalout_g4hits.begin();
 	 jter != hcalout_g4hits.end();
 	 ++jter) {
-      truth_hits.insert(*jter);
+
+      PHG4Hit* g4hit = *jter;
+
+      if (_strict) assert(g4hit);
+      else if (!g4hit) continue;
+      
+      truth_hits.insert(g4hit);      
     }    
   }
   
@@ -148,6 +186,9 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
 
 Jet* JetTruthEval::get_truth_jet(PHG4Particle* particle) {
 
+  if (_strict) assert(particle);
+  else if (!particle) return NULL;
+  
   if (_do_cache) {
     std::map<PHG4Particle*,Jet*>::iterator iter =
       _cache_get_truth_jet.find(particle);
