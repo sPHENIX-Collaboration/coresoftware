@@ -1,5 +1,6 @@
 #include "PHG4InnerHcalSteppingAction.h"
 #include "PHG4InnerHcalDetector.h"
+#include "PHG4InnerHcalParameters.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
@@ -31,12 +32,13 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector* detector ):
+PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector* detector, PHG4InnerHcalParameters *parameters):
   PHG4SteppingAction(NULL),
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),
   hit(NULL),
+  params(parameters),
   light_balance_(false),
   light_balance_inner_radius_(NAN),
   light_balance_inner_corr_(NAN),
@@ -242,7 +244,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
           hit->set_eion(-1);
 	}
-      if (edep > 0)
+      if (edep > 0 && (whichactive > 0 || params->absorbertruth > 0))
 	{
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
