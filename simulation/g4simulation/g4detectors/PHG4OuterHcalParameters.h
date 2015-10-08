@@ -41,6 +41,7 @@ class PHG4OuterHcalParameters
   G4double light_balance_outer_corr;
   G4double magnet_cutout;
   G4int magnet_cutout_first_scinti;
+  G4int absorbertruth;
 };
 
 #endif
