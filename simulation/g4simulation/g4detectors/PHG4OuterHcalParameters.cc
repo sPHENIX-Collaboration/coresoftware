@@ -25,7 +25,7 @@ PHG4OuterHcalParameters::PHG4OuterHcalParameters():
   z_rot(0*deg),
   active(0),
   absorberactive(0),
-  ncross(0),
+  ncross(-4),
   blackhole(0),
   material("G4_Fe"),
   steplimits(NAN),
