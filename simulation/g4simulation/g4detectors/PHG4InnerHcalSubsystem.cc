@@ -92,7 +92,7 @@ int PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
 	}
 
       // create stepping action
-      steppingAction_ = new PHG4InnerHcalSteppingAction(detector_);
+      steppingAction_ = new PHG4InnerHcalSteppingAction(detector_, params);
 
     }
   else
@@ -100,7 +100,7 @@ int PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
       // if this is a black hole it does not have to be active
       if (params->blackhole)
 	{
-	  steppingAction_ = new PHG4InnerHcalSteppingAction(detector_);
+	  steppingAction_ = new PHG4InnerHcalSteppingAction(detector_, params);
 	}
     }
   return 0;
@@ -145,6 +145,7 @@ void
 PHG4InnerHcalSubsystem::SetTiltAngle(const double tilt)
 {
   params->tilt_angle = tilt * deg;
+  params->ncross = 0;
 }
 
 double
