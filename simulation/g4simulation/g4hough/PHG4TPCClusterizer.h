@@ -27,6 +27,8 @@ class PHG4TPCClusterizer : public SubsysReco
 		std::vector<std::vector<std::vector<float> > > amps;
 		std::vector<std::vector<std::vector<int> > > cellids;
 		std::vector<std::vector<int> > nhits;
+
+		void reset();
 };
 
 
