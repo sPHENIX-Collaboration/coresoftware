@@ -348,10 +348,23 @@ bool SvtxTruthEval::are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2) {
   bool are_same_vertex = false;
 
   // I will need to deal with copies of vertex points too, argh!
-  // I'll insert the interface for now, but this will be another headache to
-  // deal with in the near future
+  // Here I have very few options, we can either match the vertexes by
+  // id or by position there is no ancestry to utilize
+
+  // in the embedded dst it is 100% sure the first method will fail
+  // since I can't trace between vertexes and the vertex ids have changed
+  // I guess I will have to resort to the second method, which means there
+  // is some possiblity of having a position collision between two vertexes
+  // that are in fact different in terms of content
   
-  if (vtx1->get_id() == vtx2->get_id()) {
+  //  if (vtx1->get_id() == vtx2->get_id()) {
+  //    are_same_vertex = true;
+  //  }
+
+  if ((vtx1->get_x() == vtx2->get_x()) &&
+      (vtx1->get_y() == vtx2->get_y()) &&
+      (vtx1->get_z() == vtx2->get_z()) &&
+      (vtx1->get_t() == vtx2->get_t())) {
     are_same_vertex = true;
   }
  
