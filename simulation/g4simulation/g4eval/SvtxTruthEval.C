@@ -300,6 +300,10 @@ bool SvtxTruthEval::are_same_particle(PHG4Particle* p1, PHG4Particle* p2) {
 
   bool are_same_particle = false;
 
+  // get ready for some insanity... I have to deal with the case where
+  // the primary particles are copied between the two truth containers
+  // but have different track ids
+  
   if ((p1->get_primary_id() == -1) &&
       (p2->get_primary_id() == -1)) {
     // both particles are from the primary truth map, use track ids
@@ -311,18 +315,21 @@ bool SvtxTruthEval::are_same_particle(PHG4Particle* p1, PHG4Particle* p2) {
     // both particles are from the total truth map, use track ids
     if (p1->get_track_id() == p2->get_track_id()) {
       are_same_particle = true;
-    }   
-  } else if ((p1->get_primary_id() == -1) &&
-	     (p2->get_primary_id() != -1)) {
-    // only the first particle is from the primary truth map, use one track id and one primary id
-    if (p1->get_track_id() == p2->get_primary_id()) {
-      are_same_particle = true;
     }
-  } else if ((p1->get_primary_id() != -1) &&
-	     (p2->get_primary_id() == -1)) {
-    // only the second particle is from the primary truth map, use one track id and one primary id
-    if (p1->get_primary_id() == p2->get_track_id()) {
-      are_same_particle = true;
+  } else if (is_primary(p1) && is_primary(p2)) {
+    // both particles are primary
+    if ((p1->get_primary_id() == -1) &&
+	(p2->get_primary_id() != -1)) {
+      // only the first particle is from the primary truth map, use one track id and one primary id
+      if (p1->get_track_id() == p2->get_primary_id()) {
+	are_same_particle = true;
+      }
+    } else if ((p1->get_primary_id() != -1) &&
+	       (p2->get_primary_id() == -1)) {
+      // only the second particle is from the primary truth map, use one track id and one primary id
+      if (p1->get_primary_id() == p2->get_track_id()) {
+	are_same_particle = true;
+      }
     }
   }
  
