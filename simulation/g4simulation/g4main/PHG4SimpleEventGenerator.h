@@ -49,9 +49,6 @@ public:
   //! set the width of the vertex distribution function about the mean
   void set_vertex_distribution_width(const double x, const double y, const double z);
 
-  //! reuse the first existing vertex found
-  void set_reuse_existing_vertex(const bool b) {_reuse_existing_vertex = b;}
-
   //! set an offset vector from the existing vertex
   void set_existing_vertex_offset_vector(const double x, const double y, const double z);
   
@@ -68,7 +65,6 @@ private:
   // can be translated using the GEANT4 lookup
   std::vector<std::pair<int, unsigned int> > _particle_codes; // <pdgcode, count>
   std::vector<std::pair<std::string, unsigned int> > _particle_names; // <names, count>
-  bool _reuse_existing_vertex;
   FUNCTION _vertex_func_x;
   FUNCTION _vertex_func_y;
   FUNCTION _vertex_func_z;

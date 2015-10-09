@@ -25,7 +25,6 @@ PHG4SimpleEventGenerator::PHG4SimpleEventGenerator(const string &name):
   PHG4ParticleGeneratorBase(name),
   _particle_codes(),
   _particle_names(),
-  _reuse_existing_vertex(false),
   _vertex_func_x(Uniform),
   _vertex_func_y(Uniform),
   _vertex_func_z(Uniform),
@@ -187,7 +186,7 @@ int PHG4SimpleEventGenerator::InitRun(PHCompositeNode *topNode) {
     for (unsigned int i=0; i<_particle_names.size(); ++i) {
       cout << "    " << _particle_names[i].first << ", count = " << _particle_names[i].second << endl;
     }
-    if (_reuse_existing_vertex) {
+    if (get_reuse_existing_vertex()) {
       cout << " Vertex Distribution: Set to reuse a previously generated sim vertex" << endl;
       cout << " Vertex offset vector (x,y,z) = (" << _vertex_offset_x << ","<< _vertex_offset_y << ","<< _vertex_offset_z << ")" << endl;
     } else {
@@ -227,87 +226,20 @@ int PHG4SimpleEventGenerator::InitRun(PHCompositeNode *topNode) {
 
 int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
 
-  double vertex_x = 0.0;
-  double vertex_y = 0.0;
-  double vertex_z = 0.0;
+  // vtx_x, vtx_y and vtx_z are doubles from the base class
+  // common methods modify those, please no private copies
+  // at some point we might rely on them being up to date
+  if (!ReuseExistingVertex(topNode))
+    {
+      // generate a new vertex point
+      vtx_x = smearvtx(_vertex_x,_vertex_width_x,_vertex_func_x);
+      vtx_y = smearvtx(_vertex_y,_vertex_width_y,_vertex_func_y);
+      vtx_z = smearvtx(_vertex_z,_vertex_width_z,_vertex_func_z);
+    } 
 
-  if (!_reuse_existing_vertex) {
-    // generate a new vertex point
-
-    vertex_x = smearvtx(_vertex_x,_vertex_width_x,_vertex_func_x);
-    vertex_y = smearvtx(_vertex_y,_vertex_width_y,_vertex_func_y);
-    vertex_z = smearvtx(_vertex_z,_vertex_width_z,_vertex_func_z);
-  } else {
-    
-    if (_ineve->GetNVtx() > 0) {
-        // embed to vertexes as set by other Geatn4 inputs
-
-        // use the first vertex in the list
-        std::pair< std::map<int, PHG4VtxPoint *>::const_iterator,
-             std::map<int, PHG4VtxPoint *>::const_iterator >
-          range = _ineve->GetVertices();
-        std::map<int, PHG4VtxPoint* >::const_iterator iter = range.first;
-        PHG4VtxPoint* vtx = iter->second;
-
-        if (!vtx) {
-          cout << PHWHERE << "::Error - PHG4SimpleEventGenerator expects an existing truth vertex in PHG4InEvent, but none exists" << endl;
-          return Fun4AllReturnCodes::ABORTRUN;
-        }
-        if (verbosity > 0) {
-          cout <<PHWHERE<<"::Info - use this primary vertex from PHG4InEvent:"<<endl;
-          vtx->identify();
-        }
-
-        vertex_x = vtx->get_x();
-        vertex_y = vtx->get_y();
-        vertex_z = vtx->get_z();
-
-        } // if (_ineve->GetNVtx() > 0) {
-      else
-        {
-          // try the next option for getting primary vertex
-
-          PHG4TruthInfoContainer* truthInfoList = //
-              findNode::getClass<PHG4TruthInfoContainer>(topNode,
-                  "G4TruthInfo");
-          if (truthInfoList)
-            {
-              // embed to vertexes as set by primary vertex from the truth container, e.g. when embedding into DST
-
-              PHG4VtxPoint* vtx = truthInfoList->GetPrimaryVtx(1);
-
-              if (!vtx)
-                {
-                  truthInfoList->identify();
-                  cout << PHWHERE << "::Error - PHG4SimpleEventGenerator expects an existing truth vertex in PHG4TruthInfoContainer, but none exists"
-                      << endl;
-                  return Fun4AllReturnCodes::ABORTRUN;
-                }
-
-              if (verbosity > 0) {
-                cout <<PHWHERE<<"::Info - use this primary vertex from PHG4TruthInfoContainer:"<<endl;
-                vtx->identify();
-              }
-
-              vertex_x = vtx->get_x();
-              vertex_y = vtx->get_y();
-              vertex_z = vtx->get_z();
-
-            }
-          else
-            {
-              cout << PHWHERE << "::Error - PHG4SimpleEventGenerator expects an existing truth vertex, but none exists"
-                  << endl;
-              return Fun4AllReturnCodes::ABORTRUN;
-            }
-        }
-
-    vertex_x += _vertex_offset_x;
-    vertex_y += _vertex_offset_y;
-    vertex_z += _vertex_offset_z;
-
-
-    }
+  vtx_x += _vertex_offset_x;
+  vtx_y += _vertex_offset_y;
+  vtx_z += _vertex_offset_z;
 
   int vtxindex = -1;
   int trackid = -1;
@@ -331,9 +263,9 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
         y *= r;
         z *= r;
 
-	vtxindex = _ineve->AddVtx(vertex_x+x,vertex_y+y,vertex_z+z,0.0);
+	vtxindex = _ineve->AddVtx(vtx_x+x,vtx_y+y,vtx_z+z,0.0);
       } else if ((i==0)&&(j==0)) {
-	vtxindex = _ineve->AddVtx(vertex_x,vertex_y,vertex_z,0.0);
+	vtxindex = _ineve->AddVtx(vtx_x,vtx_y,vtx_z,0.0);
       }
 
       ++trackid;
