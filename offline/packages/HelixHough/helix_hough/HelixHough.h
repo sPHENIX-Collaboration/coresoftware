@@ -194,6 +194,7 @@ class HelixHough
     void setSmoothBack(bool sb){smooth_back=sb;}
 
     void setCullInputHits( bool cih ){ cull_input_hits = cih; }
+    void setIterateClustering( bool icl ){ iterate_clustering = icl; }
     
   protected:
     bool remove_hits;
@@ -292,6 +293,7 @@ class HelixHough
     unsigned int n_layers;
     bool smooth_back;
     bool cull_input_hits;
+    bool iterate_clustering;
 };
 
 #endif

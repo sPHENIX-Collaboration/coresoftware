@@ -206,8 +206,6 @@ bool HelixHough::attemptClusterMerge(unsigned int zoomlevel, unsigned int MAX, u
   {
     if(too_big[map_clus[newbin]] == 0)
     {
-      vector<unsigned int> old_indexes = clusters[map_clus[newbin]].hit_indexes;
-
       unsigned int tempsize = clusters[map_clus[newbin]].hit_indexes.size();
       for(unsigned int ind=bins_start[bin];ind<=bins_end[bin];++ind)
       {
@@ -232,7 +230,7 @@ bool HelixHough::attemptClusterMerge(unsigned int zoomlevel, unsigned int MAX, u
       }
       else
       {
-        clusters[map_clus[newbin]].hit_indexes = old_indexes;
+        clusters[map_clus[newbin]].hit_indexes.resize(tempsize); 
       }
     }
   }
@@ -336,6 +334,7 @@ void HelixHough::makeClusters(unsigned int zoomlevel, unsigned int MAX, unsigned
       }
     }
   }
+  if(iterate_clustering == false){ return; }
   if( num_clusters[zoomlevel] == 0 ){return;}
   vector<ParameterCluster> in_clusters;
   for(unsigned int i=0;i<num_clusters[zoomlevel];++i)
