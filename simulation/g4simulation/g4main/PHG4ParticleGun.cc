@@ -28,6 +28,7 @@ int
 PHG4ParticleGun::process_event(PHCompositeNode *topNode)
 {
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode,"PHG4INEVENT");
+  ReuseExistingVertex(topNode); // checks if we should reuse existing vertex
   int vtxindex = ineve->AddVtx(vtx_x,vtx_y,vtx_z,t0);
   vector<PHG4Particle *>::const_iterator iter;
   for (iter = particlelist.begin(); iter != particlelist.end(); ++iter)

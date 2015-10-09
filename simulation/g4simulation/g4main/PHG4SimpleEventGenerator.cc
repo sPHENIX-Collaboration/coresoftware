@@ -226,27 +226,20 @@ int PHG4SimpleEventGenerator::InitRun(PHCompositeNode *topNode) {
 
 int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
 
-  double vertex_x = 0.0;
-  double vertex_y = 0.0;
-  double vertex_z = 0.0;
-
-  if (ReuseExistingVertex(topNode))
-    {
-      vertex_x = get_vtx_x();
-      vertex_y = get_vtx_y();
-      vertex_z = get_vtx_z();
-    }
-  else
+  // vtx_x, vtx_y and vtx_z are doubles from the base class
+  // common methods modify those, please no private copies
+  // at some point we might rely on them being up to date
+  if (!ReuseExistingVertex(topNode))
     {
       // generate a new vertex point
-      vertex_x = smearvtx(_vertex_x,_vertex_width_x,_vertex_func_x);
-      vertex_y = smearvtx(_vertex_y,_vertex_width_y,_vertex_func_y);
-      vertex_z = smearvtx(_vertex_z,_vertex_width_z,_vertex_func_z);
+      vtx_x = smearvtx(_vertex_x,_vertex_width_x,_vertex_func_x);
+      vtx_y = smearvtx(_vertex_y,_vertex_width_y,_vertex_func_y);
+      vtx_z = smearvtx(_vertex_z,_vertex_width_z,_vertex_func_z);
     } 
 
-  vertex_x += _vertex_offset_x;
-  vertex_y += _vertex_offset_y;
-  vertex_z += _vertex_offset_z;
+  vtx_x += _vertex_offset_x;
+  vtx_y += _vertex_offset_y;
+  vtx_z += _vertex_offset_z;
 
   int vtxindex = -1;
   int trackid = -1;
@@ -270,9 +263,9 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
         y *= r;
         z *= r;
 
-	vtxindex = _ineve->AddVtx(vertex_x+x,vertex_y+y,vertex_z+z,0.0);
+	vtxindex = _ineve->AddVtx(vtx_x+x,vtx_y+y,vtx_z+z,0.0);
       } else if ((i==0)&&(j==0)) {
-	vtxindex = _ineve->AddVtx(vertex_x,vertex_y,vertex_z,0.0);
+	vtxindex = _ineve->AddVtx(vtx_x,vtx_y,vtx_z,0.0);
       }
 
       ++trackid;
