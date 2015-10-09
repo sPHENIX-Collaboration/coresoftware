@@ -105,7 +105,16 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle) {
 	 ++g4iter) {
 
       PHG4Hit* g4hit = g4iter->second;
+
+      // if particle is from the primary map it may have a different id
+      // than the copy of the particle that left the hit
+      // if (particle->get_primary_id() == -1) {
+      // 	if (g4hit->get
+      // }
       if (g4hit->get_trkid() != particle->get_track_id()) continue;
+
+      // ********
+
       truth_hits.insert(g4hit);
     }
   }
@@ -266,6 +275,53 @@ PHG4Particle* SvtxTruthEval::get_primary(PHG4Particle* particle) {
   return primary;
 }
 
+ bool SvtxTruthEval::is_g4hit_from_particle(PHG4Hit* g4hit, PHG4Particle* particle) {
+
+  if (_strict) {
+    assert(g4hit);
+    assert(particle);
+  } else if (!g4hit||!particle) {
+    return false;
+  }
+
+  // we have three cases to test:
+  // #1 - input particle is not primary and resides in the truthinfo map
+  //        in this case the track id on the hit must match directly for true return
+  // #2 - input particle is primary and resides in the truthinfo map
+  //        in this case the track id on the hit must match directly for true return
+  // #3 - input particle is primary and resides in the truthinfo primary map
+  //        in this case the track id on the hit will match to the copy id in the truthinfo map
+  //        the particle leaving the g4hit must be both a primary (parent id==0) and
+  //        must have a primary particle id that matches our input particle track id
+  
+  bool is_from_particle = false;
+  if (particle->get_primary_id() != -1) {
+    // particle came from the total truth map
+    // and so will leave a hit with a matching id
+    if (g4hit->get_trkid() == particle->get_track_id()) {
+      is_from_particle = true;
+    }
+  } else {
+    // particle came from the primary truth map
+    // if it left a hit that will trace directly to the copy with a possibly different id
+    // but the particle that left the g4hit will think it is a primary
+    // and will trace to the primary particle map entry
+    
+    PHG4Particle* candidate = get_particle(g4hit);
+    if (_strict) assert(candidate);
+
+    if (candidate) {
+      if (is_primary(candidate)) {
+	if (particle->get_track_id() == candidate->get_primary_id()) {
+	  is_from_particle = true;
+	}
+      }
+    }
+  }
+
+  return is_from_particle;
+}
+ 
 void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode) {
 
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");

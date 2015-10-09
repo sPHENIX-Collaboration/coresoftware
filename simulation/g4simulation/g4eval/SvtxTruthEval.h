@@ -31,6 +31,8 @@ public:
   bool               is_primary(PHG4Particle* particle);
   PHG4Particle*      get_primary(PHG4Hit* g4hit);
   PHG4Particle*      get_primary(PHG4Particle* particle);  
+
+  bool               is_g4hit_from_particle(PHG4Hit* g4hit, PHG4Particle* particle);
   
   PHG4Hit*           get_innermost_truth_hit(PHG4Particle* particle);
   PHG4Hit*           get_outermost_truth_hit(PHG4Particle* particle);
