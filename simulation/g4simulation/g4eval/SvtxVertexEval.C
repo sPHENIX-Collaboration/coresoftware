@@ -182,7 +182,7 @@ std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint
 	 jter != points.end();
 	 ++jter) {
       PHG4VtxPoint* point = *jter;
-      if (point->get_id() == truthpoint->get_id()) {
+      if (get_truth_eval()->are_same_vertex(point,truthpoint)) {
 	all_vertexes.insert(vertex);
       }
     }
@@ -256,8 +256,10 @@ unsigned int SvtxVertexEval::get_ntracks_contribution(SvtxVertex* vertex, PHG4Vt
 
     if (_strict) assert(candidate);
     else if (!candidate) continue;
-    
-    if (candidate->get_id() == truthpoint->get_id()) ++ntracks;
+
+    if (get_truth_eval()->are_same_vertex(candidate,truthpoint)) {
+      ++ntracks;
+    }
   }
   
   if (_do_cache) _cache_get_ntracks_contribution.insert(make_pair(make_pair(vertex,truthpoint),ntracks));
