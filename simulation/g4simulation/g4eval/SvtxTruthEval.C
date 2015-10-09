@@ -26,7 +26,8 @@ SvtxTruthEval::SvtxTruthEval(PHCompositeNode* topNode)
     _cache_all_truth_hits(),
     _cache_all_truth_hits_g4particle(),
     _cache_get_innermost_truth_hit(),
-    _cache_get_outermost_truth_hit() {
+    _cache_get_outermost_truth_hit(),
+    _cache_get_primary_g4hit() {
   get_node_pointers(topNode);
 }
 
@@ -36,6 +37,7 @@ void SvtxTruthEval::next_event(PHCompositeNode* topNode) {
   _cache_all_truth_hits_g4particle.clear();
   _cache_get_innermost_truth_hit.clear();
   _cache_get_outermost_truth_hit.clear();
+  _cache_get_primary_g4hit.clear();
   
   get_node_pointers(topNode);
 }
@@ -194,19 +196,6 @@ int SvtxTruthEval::get_embed(PHG4Particle* particle) {
   return _truthinfo->isEmbeded(particle->get_track_id());
 }
 
-bool SvtxTruthEval::is_primary(PHG4Particle* particle) {
-
-  if (_strict) assert(particle);
-  else if (!particle) return false;
-  
-  bool is_primary = true;
-  if (!_truthinfo->GetPrimaryHit(particle->get_track_id())) {
-    is_primary = false;
-  }
-  
-  return is_primary;
-}
-
 PHG4VtxPoint* SvtxTruthEval::get_vertex(PHG4Particle* particle) {
 
   if (_strict) assert(particle);
@@ -220,6 +209,61 @@ PHG4VtxPoint* SvtxTruthEval::get_vertex(PHG4Particle* particle) {
   if (_strict) assert(vtx);
  
   return vtx;
+}
+
+bool SvtxTruthEval::is_primary(PHG4Particle* particle) {
+
+  if (_strict) assert(particle);
+  else if (!particle) return false;
+  
+  bool is_primary = false;
+  if (particle->get_parent_id() == 0) {
+    is_primary = true;
+  }
+  
+  return is_primary;
+}
+
+PHG4Particle* SvtxTruthEval::get_primary(PHG4Hit* g4hit) {
+
+  if (_strict) assert(g4hit);
+  else if (!g4hit) return NULL;
+
+  if (_do_cache) {
+    std::map<PHG4Hit*,PHG4Particle*>::iterator iter =
+      _cache_get_primary_g4hit.find(g4hit);
+    if (iter != _cache_get_primary_g4hit.end()) {
+      return iter->second;
+    }
+  }
+  
+  PHG4Particle* particle = get_particle(g4hit);
+  PHG4Particle* primary = get_primary(particle);
+
+  if (_do_cache) _cache_get_primary_g4hit.insert(make_pair(g4hit,primary));
+  
+  if (_strict) assert(primary);
+  
+  return primary;
+}
+
+PHG4Particle* SvtxTruthEval::get_primary(PHG4Particle* particle) {
+
+  if (_strict) assert(particle);
+  else if (!particle) return NULL;
+
+  // always report the primary from the Primary Map regardless if a
+  // primary from the full Map was the argument
+  PHG4Particle* primary = NULL;
+  if (particle->get_primary_id() == -1) {
+    primary = _truthinfo->GetPrimaryHit( particle->get_track_id() );
+  } else {
+    primary = _truthinfo->GetPrimaryHit( particle->get_primary_id() );
+  }
+
+  if (_strict) assert(primary);
+  
+  return primary;
 }
 
 void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode) {

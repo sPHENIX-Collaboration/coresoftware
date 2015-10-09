@@ -153,10 +153,10 @@ bool CaloTruthEval::is_primary(PHG4Particle* particle) {
 
   if (_strict) assert(particle);
   else if (!particle) return false;
-  
-  bool is_primary = true;
-  if (!_truthinfo->GetPrimaryHit(particle->get_track_id())) {
-    is_primary = false;
+
+  bool is_primary = false;
+  if (particle->get_parent_id() == 0) {
+    is_primary = true;
   }
   
   return is_primary;
