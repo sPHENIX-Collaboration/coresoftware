@@ -25,7 +25,15 @@ public:
   virtual ~CaloRawClusterEval() {}
 
   void next_event(PHCompositeNode *topNode);
-  void do_caching(bool do_cache) {_do_cache = do_cache;}
+  void do_caching(bool do_cache) {
+    _do_cache = do_cache;
+    _towereval.do_caching(do_cache);
+  }
+  void set_strict(bool strict) {
+    _strict = strict;
+    _towereval.set_strict(strict);
+  }
+  
   CaloTruthEval* get_truth_eval() {return _towereval.get_truth_eval();}
   CaloRawTowerEval* get_rawtower_eval() {return &_towereval;}
 
@@ -51,6 +59,8 @@ private:
   CaloRawTowerEval _towereval;
   RawClusterContainer* _clusters;
   RawTowerContainer* _towers;
+
+  bool _strict;
   
   bool                                                 _do_cache;
   std::map<RawCluster*,std::set<PHG4Hit*> >            _cache_all_truth_hits;

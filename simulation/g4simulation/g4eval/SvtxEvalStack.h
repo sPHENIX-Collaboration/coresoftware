@@ -24,6 +24,8 @@ public:
   virtual ~SvtxEvalStack() {}
 
   void next_event(PHCompositeNode *topNode);
+  void do_caching(bool do_cache) {_vertexeval.do_caching(do_cache);}
+  void set_strict(bool strict) {_vertexeval.set_strict(strict);}
 
   SvtxVertexEval*  get_vertex_eval() {return &_vertexeval;}
   SvtxTrackEval*   get_track_eval() {return _vertexeval.get_track_eval();}

@@ -21,6 +21,7 @@ public:
 
   void next_event(PHCompositeNode *topNode);
   void do_caching(bool do_cache) {_do_cache = do_cache;}
+  void set_strict(bool strict) {_strict = strict;}
   
   std::set<PHG4Hit*> all_truth_hits();
   std::set<PHG4Hit*> all_truth_hits(PHG4Particle* particle);
@@ -40,6 +41,8 @@ private:
   PHG4HitContainer* _g4hits_svtx;
   PHG4HitContainer* _g4hits_tracker;
 
+  bool _strict;
+  
   bool                                        _do_cache;
   std::set<PHG4Hit*>                          _cache_all_truth_hits;
   std::map<PHG4Particle*,std::set<PHG4Hit*> > _cache_all_truth_hits_g4particle;

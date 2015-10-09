@@ -27,6 +27,14 @@ public:
   virtual ~SvtxVertexEval() {}
 
   void next_event(PHCompositeNode *topNode);
+  void do_caching(bool do_cache) {
+    _do_cache = do_cache;
+    _trackeval.do_caching(do_cache);
+  }
+  void set_strict(bool strict) {
+    _strict = strict;
+    _trackeval.set_strict(strict);
+  }
   
   // access the sub evals (and the cached values)
   SvtxTrackEval*   get_track_eval() {return &_trackeval;}
@@ -57,6 +65,8 @@ private:
   SvtxTrackMap* _trackmap;
   PHG4TruthInfoContainer* _truthinfo;
 
+  bool _strict;
+  
   bool _do_cache;
   std::map<SvtxVertex*,std::set<PHG4Particle*> >               _cache_all_truth_particles;
   std::map<SvtxVertex*,std::set<PHG4VtxPoint*> >               _cache_all_truth_points;

@@ -27,6 +27,7 @@ JetEvaluator::JetEvaluator(const string &name,
     _recojetname(recojetname),
     _truthjetname(truthjetname),
     _ievent(0),
+    _strict(true),
     _do_recojet_eval(true),
     _do_truthjet_eval(true),
     _ntp_recojet(NULL),
@@ -115,6 +116,8 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   if (verbosity > 2) cout << "JetEvaluator::fillOutputNtuples() entered" << endl;
 
   JetEvalStack jetevalstack(topNode,_recojetname,_truthjetname); 
+  jetevalstack.set_strict(_strict);
+
   JetRecoEval*   recoeval = jetevalstack.get_reco_eval();
   //JetTruthEval* trutheval = jetevalstack.get_truth_eval();
  

@@ -30,7 +30,14 @@ public:
   virtual ~JetRecoEval() {}
 
   void next_event(PHCompositeNode *topNode);
-  void do_caching(bool do_cache) {_do_cache = do_cache;}
+  void do_caching(bool do_cache) {
+    _do_cache = do_cache;
+    _jettrutheval.do_caching(do_cache);
+  }
+  void set_strict(bool strict) {
+    _strict = strict;
+    _jettrutheval.set_strict(strict);
+  }
 
   JetTruthEval*     get_truth_eval()         {return &_jettrutheval;}
   SvtxEvalStack*    get_svtx_eval_stack()    {return _jettrutheval.get_svtx_eval_stack();}
@@ -73,6 +80,8 @@ private:
   RawClusterContainer* _hcalinclusters;
   RawTowerContainer*   _hcalouttowers;
   RawClusterContainer* _hcaloutclusters;
+
+  bool _strict;
   
   bool                                    _do_cache;
   std::map<Jet*,std::set<PHG4Hit*> >      _cache_all_truth_hits;
