@@ -335,6 +335,28 @@ bool SvtxTruthEval::are_same_particle(PHG4Particle* p1, PHG4Particle* p2) {
  
   return are_same_particle;
 }
+
+bool SvtxTruthEval::are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2) {
+
+  if (_strict) {
+    assert(vtx1);
+    assert(vtx2);
+  } else if (!vtx1||!vtx2) {
+    return false;
+  }
+
+  bool are_same_vertex = false;
+
+  // I will need to deal with copies of vertex points too, argh!
+  // I'll insert the interface for now, but this will be another headache to
+  // deal with in the near future
+  
+  if (vtx1->get_id() == vtx2->get_id()) {
+    are_same_vertex = true;
+  }
+ 
+  return are_same_vertex;
+}
   
 void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode) {
 

@@ -34,6 +34,7 @@ public:
 
   bool               is_g4hit_from_particle(PHG4Hit* g4hit, PHG4Particle* particle);
   bool               are_same_particle(PHG4Particle* p1, PHG4Particle* p2);
+  bool               are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2);
   
   PHG4Hit*           get_innermost_truth_hit(PHG4Particle* particle);
   PHG4Hit*           get_outermost_truth_hit(PHG4Particle* particle);
