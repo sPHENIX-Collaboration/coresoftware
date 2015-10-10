@@ -260,16 +260,16 @@ PHG4Particle* SvtxTruthEval::get_primary(PHG4Particle* particle) {
 
   // always report the primary from the Primary Map regardless if a
   // primary from the full Map was the argument
-  PHG4Particle* primary = NULL;
-  if (particle->get_primary_id() == -1) {
-    primary = _truthinfo->GetPrimaryHit( particle->get_track_id() );
+  PHG4Particle* returnval = NULL;
+  if (particle->get_primary_id() != -1) {
+    returnval = _truthinfo->GetPrimaryHit( particle->get_primary_id() );
   } else {
-    primary = _truthinfo->GetPrimaryHit( particle->get_primary_id() );
+    returnval = _truthinfo->GetPrimaryHit( particle->get_track_id() );
   }
 
-  if (_strict) assert(primary);
+  if (_strict) assert(returnval);
   
-  return primary;
+  return returnval;
 }
 
  bool SvtxTruthEval::is_g4hit_from_particle(PHG4Hit* g4hit, PHG4Particle* particle) {

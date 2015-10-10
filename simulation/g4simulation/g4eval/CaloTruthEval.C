@@ -127,8 +127,17 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Hit* g4hit) {
 }
 
 int CaloTruthEval::get_embed(PHG4Particle* particle) {
+
+  if (_strict) assert(particle);
+  else if (!particle) return NULL; 
+
+  if (!is_primary(particle)) return 0;
+
+  PHG4Particle* primary = get_primary_particle(particle);
+  if (_strict) assert(primary);
+  else if (!primary) return 0;
   
-  return _truthinfo->isEmbeded(particle->get_track_id());
+  return _truthinfo->isEmbeded(primary->get_track_id());
 }
 
 PHG4VtxPoint* CaloTruthEval::get_vertex(PHG4Particle* particle) {
