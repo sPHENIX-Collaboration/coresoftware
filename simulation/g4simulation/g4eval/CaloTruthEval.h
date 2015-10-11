@@ -34,6 +34,10 @@ public:
   int                get_embed(PHG4Particle* particle);
   PHG4VtxPoint*      get_vertex(PHG4Particle* particle);
 
+  bool               is_g4hit_from_particle(PHG4Hit* g4hit, PHG4Particle* particle);
+  bool               are_same_particle(PHG4Particle* p1, PHG4Particle* p2);
+  bool               are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2);
+  
   bool               is_primary(PHG4Particle* particle);
   std::set<PHG4Hit*> get_shower_from_primary(PHG4Particle* primary);  
   float              get_shower_moliere_radius(PHG4Particle* primary);

@@ -1,6 +1,8 @@
 
 #include "CaloTruthEval.h"
 
+#include "BaseTruthEval.h"
+
 #include <fun4all/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -66,7 +68,7 @@ std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Particle* particle) {
        ++g4iter) {
 
     PHG4Hit* g4hit = g4iter->second;
-    if (g4hit->get_trkid() != particle->get_track_id()) continue;
+    if (is_g4hit_from_particle(g4hit,particle)) continue;
     truth_hits.insert(g4hit);
   }
   
@@ -150,7 +152,7 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary)
     if (_strict) assert(candidate);
     else if (!candidate) continue;
 
-    if (candidate->get_track_id() != primary->get_track_id()) continue;
+    if (are_same_particle(candidate,primary)) continue;
     truth_hits.insert(g4hit);
   }
 
@@ -274,6 +276,18 @@ float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary) {
   if (_do_cache) _cache_get_shower_energy_deposit.insert(make_pair(primary,shower_e));
   
   return shower_e;
+}
+
+bool CaloTruthEval::is_g4hit_from_particle(PHG4Hit* g4hit, PHG4Particle* particle) {
+  return _basetrutheval.is_g4hit_from_particle(g4hit,particle);
+}
+
+bool CaloTruthEval::are_same_particle(PHG4Particle* p1, PHG4Particle* p2) {
+  return _basetrutheval.are_same_particle(p1,p2);
+}
+
+bool CaloTruthEval::are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2) {
+  return _basetrutheval.are_same_vertex(vtx1,vtx2);
 }
 
 void CaloTruthEval::get_node_pointers(PHCompositeNode *topNode) {
