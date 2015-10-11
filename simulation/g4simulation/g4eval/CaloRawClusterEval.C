@@ -224,8 +224,8 @@ std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primar
 
       if (_strict) assert(candidate);
       else if (!candidate) continue;
-      
-      if (candidate->get_track_id() == primary->get_track_id()) {
+
+      if (get_truth_eval()->are_same_particle(candidate,primary)) {
 	clusters.insert(cluster);
       }    
     }
@@ -320,8 +320,8 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Parti
 
       if (_strict) assert(candidate);
       else if (!candidate) continue;
-      
-      if (candidate->get_track_id() == primary->get_track_id()) {
+
+      if (get_truth_eval()->are_same_particle(candidate,primary)) {
 	energy += g4hit->get_edep();
       }
     }    
