@@ -2,6 +2,8 @@
 #ifndef __CALOTRUTHEVAL_H__
 #define __CALOTRUTHEVAL_H__
 
+#include "BaseTruthEval.h"
+
 #include <phool/PHCompositeNode.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
@@ -40,6 +42,8 @@ public:
 private:
 
   void get_node_pointers(PHCompositeNode *topNode);
+
+  BaseTruthEval _basetrutheval;
   
   std::string _caloname;
   PHG4TruthInfoContainer* _truthinfo;

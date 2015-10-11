@@ -18,7 +18,8 @@
 using namespace std;
 
 CaloTruthEval::CaloTruthEval(PHCompositeNode* topNode,std::string caloname)
-  : _caloname(caloname),
+  : _basetrutheval(topNode),
+    _caloname(caloname),
     _truthinfo(NULL),
     _g4hits(NULL),
     _strict(true),
@@ -38,6 +39,8 @@ void CaloTruthEval::next_event(PHCompositeNode* topNode) {
   _cache_get_shower_from_primary.clear();
   _cache_get_shower_moliere_radius.clear();
   _cache_get_shower_energy_deposit.clear();
+
+  _basetrutheval.next_event(topNode);
   
   get_node_pointers(topNode);
 }
@@ -73,35 +76,12 @@ std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Particle* particle) {
 }
 
 PHG4Particle* CaloTruthEval::get_parent_particle(PHG4Hit* g4hit) {
-
-  if (_strict) assert(g4hit);
-  else if (!g4hit) return NULL;
-  
-  PHG4Particle* particle = _truthinfo->GetHit( g4hit->get_trkid() );
-  if (_strict) assert(particle);
-  
-  return particle;
+  return _basetrutheval.get_particle(g4hit);
 }
 
 PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Particle* particle) {
-
-  if (_strict) assert(particle);
-  else if (!particle) return NULL;
-  
-  // always report the primary from the Primary Map regardless if a
-  // primary from the full Map was the argument
-  PHG4Particle* returnval = NULL;
-  if (particle->get_primary_id() != -1) {
-    returnval = _truthinfo->GetPrimaryHit( particle->get_primary_id() );
-  } else {
-    returnval = _truthinfo->GetPrimaryHit( particle->get_track_id() );
-  }
-
-  if (_strict) assert(returnval);
-  
-  return returnval;
+  return _basetrutheval.get_primary(particle);
 }
-
 
 PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Hit* g4hit) {
 
@@ -116,8 +96,7 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Hit* g4hit) {
     }
   }
   
-  PHG4Particle* particle = get_parent_particle(g4hit);
-  PHG4Particle* primary = get_primary_particle(particle);
+  PHG4Particle* primary = _basetrutheval.get_primary(g4hit);
 
   if (_do_cache) _cache_get_primary_particle_g4hit.insert(make_pair(g4hit,primary));
 
@@ -127,48 +106,15 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Hit* g4hit) {
 }
 
 int CaloTruthEval::get_embed(PHG4Particle* particle) {
-
-  if (_strict) assert(particle);
-  else if (!particle) return NULL; 
-
-  if (!is_primary(particle)) return 0;
-
-  PHG4Particle* primary = get_primary_particle(particle);
-  if (_strict) assert(primary);
-  else if (!primary) return 0;
-  
-  return _truthinfo->isEmbeded(primary->get_track_id());
+  return _basetrutheval.get_embed(particle);
 }
 
 PHG4VtxPoint* CaloTruthEval::get_vertex(PHG4Particle* particle) {
-
-  if (_strict) assert(particle);
-  else if (!particle) return NULL;
-
-  PHG4VtxPoint* point = NULL;
-  
-  if (particle->get_primary_id() == -1) {
-    point = _truthinfo->GetPrimaryVtx( particle->get_vtx_id() );  
-  } else {
-    point = _truthinfo->GetVtx( particle->get_vtx_id() ); 
-  }
-
-  if (_strict) assert(point);
-  
-  return point;
+  return _basetrutheval.get_vertex(particle);
 }
 
 bool CaloTruthEval::is_primary(PHG4Particle* particle) {
-
-  if (_strict) assert(particle);
-  else if (!particle) return false;
-
-  bool is_primary = false;
-  if (particle->get_parent_id() == 0) {
-    is_primary = true;
-  }
-  
-  return is_primary;
+  return _basetrutheval.is_primary(particle);
 }
 
 std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary) {
