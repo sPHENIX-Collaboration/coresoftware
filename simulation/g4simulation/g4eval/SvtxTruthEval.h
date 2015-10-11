@@ -2,6 +2,8 @@
 #ifndef __SVTXTRUTHEVAL_H__
 #define __SVTXTRUTHEVAL_H__
 
+#include "BaseTruthEval.h"
+
 #include <phool/PHCompositeNode.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
@@ -42,6 +44,8 @@ public:
 private:
 
   void get_node_pointers(PHCompositeNode* topNode);
+
+  BaseTruthEval _basetrutheval;
   
   PHG4TruthInfoContainer* _truthinfo;
   PHG4HitContainer* _g4hits_svtx;
