@@ -231,9 +231,6 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrackState* state,
   } else {
     // no magnetic field project track as a line
 
-    cout << "straight projections not implemented yet" << endl;
-    return;
-    
     circle_line_intersections(0.0,0.0,radius,
      			      state->get_x(),state->get_y(),state->get_px(),state->get_py(),
      			      xy_points);
