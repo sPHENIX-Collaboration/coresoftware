@@ -24,8 +24,21 @@ public:
   virtual ~JetTruthEval() {}
 
   void next_event(PHCompositeNode* topNode);
-  void do_caching(bool do_cache) {_do_cache = do_cache;}
-
+  void do_caching(bool do_cache) {
+    _do_cache = do_cache;
+    _svtxevalstack.do_caching(do_cache);
+    _cemcevalstack.do_caching(do_cache);
+    _hcalinevalstack.do_caching(do_cache);
+    _hcaloutevalstack.do_caching(do_cache);
+  }
+  void set_strict(bool strict) {
+    _strict = strict;
+    _svtxevalstack.set_strict(strict);
+    _cemcevalstack.set_strict(strict);
+    _hcalinevalstack.set_strict(strict);
+    _hcaloutevalstack.set_strict(strict); 
+  }  
+  
   SvtxEvalStack* get_svtx_eval_stack() {return &_svtxevalstack;}
   CaloEvalStack* get_cemc_eval_stack() {return &_cemcevalstack;}
   CaloEvalStack* get_hcalin_eval_stack() {return &_hcalinevalstack;}
@@ -48,6 +61,8 @@ private:
 
   PHG4TruthInfoContainer* _truthinfo;
   JetMap* _truthjets;
+
+  bool _strict;
   
   bool                                    _do_cache;
   std::map<Jet*,std::set<PHG4Particle*> > _cache_all_truth_particles;

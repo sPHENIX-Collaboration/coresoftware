@@ -24,7 +24,14 @@ public:
   virtual ~SvtxTrackEval() {}
 
   void next_event(PHCompositeNode *topNode);
-  void do_caching(bool do_cache) {_do_cache = do_cache;}
+  void do_caching(bool do_cache) {
+    _do_cache = do_cache;
+    _clustereval.do_caching(do_cache);
+  }
+  void set_strict(bool strict) {
+    _strict = strict;
+    _clustereval.set_strict(strict);
+  }
   
   // access the clustereval (and its cached values)
   SvtxClusterEval* get_cluster_eval() {return &_clustereval;}
@@ -54,6 +61,8 @@ private:
   SvtxTrackMap* _trackmap;
   SvtxClusterMap* _clustermap;
 
+  bool _strict;
+  
   bool                                                        _do_cache;
   std::map<SvtxTrack*,std::set<PHG4Hit*> >                    _cache_all_truth_hits;
   std::map<SvtxTrack*,std::set<PHG4Particle*> >               _cache_all_truth_particles;

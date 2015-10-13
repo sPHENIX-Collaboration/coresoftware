@@ -25,8 +25,15 @@ public:
   virtual ~SvtxHitEval() {}
 
   void next_event(PHCompositeNode *topNode);
-  void do_caching(bool do_cache) {_do_cache = do_cache;}
-
+  void do_caching(bool do_cache) {
+    _do_cache = do_cache;
+    _trutheval.do_caching(do_cache);
+  }
+  void set_strict(bool strict) {
+    _strict = strict;
+    _trutheval.set_strict(strict);
+  }
+  
   // access the clustereval (and its cached values)
   SvtxTruthEval* get_truth_eval() {return &_trutheval;}
   
@@ -61,6 +68,8 @@ private:
   PHG4HitContainer* _g4hits_tracker;
   PHG4TruthInfoContainer* _truthinfo;
 
+  bool _strict;
+  
   bool                                              _do_cache;
   std::map<SvtxHit*,std::set<PHG4Hit*> >            _cache_all_truth_hits;
   std::map<SvtxHit*,PHG4Hit*>                       _cache_max_truth_hit_by_energy;

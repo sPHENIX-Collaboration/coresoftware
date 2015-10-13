@@ -134,6 +134,7 @@ void
 PHG4OuterHcalSubsystem::SetTiltAngle(const double tilt)
 {
   params->tilt_angle = tilt * deg;
+  params->ncross = 0;
 }
 
 double

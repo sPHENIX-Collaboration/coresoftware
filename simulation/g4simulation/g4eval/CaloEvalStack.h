@@ -24,7 +24,9 @@ public:
   virtual ~CaloEvalStack() {}
 
   void next_event(PHCompositeNode *topNode);
-
+  void do_caching(bool do_cache) {_clustereval.do_caching(do_cache);}
+  void set_strict(bool strict) {_clustereval.set_strict(strict);}
+  
   CaloRawClusterEval* get_rawcluster_eval() {return &_clustereval;}
   CaloRawTowerEval*   get_rawtower_eval() {return _clustereval.get_rawtower_eval();}
   CaloTruthEval*      get_truth_eval() {return _clustereval.get_truth_eval();}

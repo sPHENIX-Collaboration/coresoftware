@@ -34,6 +34,7 @@ CaloEvaluator::CaloEvaluator(const string &name, const string &caloname, const s
     _truth_trace_embed_flags(),
     _truth_e_threshold(0.0), // 0 GeV before reco is traced
     _reco_e_threshold(0.0), // 0 GeV before reco is traced
+    _strict(true),
     _do_gpoint_eval(true),
     _do_gshower_eval(true),
     _do_tower_eval(true),
@@ -167,6 +168,8 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode *topNode) {
   if (verbosity > 2) cout << "CaloEvaluator::printOutputInfo() entered" << endl;
 
   CaloEvalStack caloevalstack(topNode,_caloname); 
+  caloevalstack.set_strict(_strict);
+
   CaloRawClusterEval* clustereval = caloevalstack.get_rawcluster_eval();
   CaloTruthEval*        trutheval = caloevalstack.get_truth_eval();
   
@@ -303,6 +306,8 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   if (verbosity > 2) cout << "CaloEvaluator::fillOutputNtuples() entered" << endl;
 
   CaloEvalStack caloevalstack(topNode,_caloname); 
+  caloevalstack.set_strict(_strict);
+
   CaloRawClusterEval* clustereval = caloevalstack.get_rawcluster_eval();
   CaloRawTowerEval*     towereval = caloevalstack.get_rawtower_eval();
   CaloTruthEval*        trutheval = caloevalstack.get_truth_eval();

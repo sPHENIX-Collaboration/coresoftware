@@ -42,12 +42,12 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this cylinder stops everything, just put all kinetic energy into edep
-   if (detector_->IsBlackHole())
-     {
-        edep = aTrack->GetKineticEnergy()/GeV;
-        G4Track* killtrack = const_cast<G4Track *> (aTrack);
-        killtrack->SetTrackStatus(fStopAndKill);
-     }
+  if (detector_->IsBlackHole())
+    {
+      edep = aTrack->GetKineticEnergy()/GeV;
+      G4Track* killtrack = const_cast<G4Track *> (aTrack);
+      killtrack->SetTrackStatus(fStopAndKill);
+    }
 
   int layer_id = detector_->get_Layer();
   // test if we are active
@@ -64,11 +64,11 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	}
       G4StepPoint * prePoint = aStep->GetPreStepPoint();
       G4StepPoint * postPoint = aStep->GetPostStepPoint();
-//        cout << "time prepoint: " << prePoint->GetGlobalTime()/ns << endl;
-//        cout << "time postpoint: " << postPoint->GetGlobalTime()/ns << endl;
-//        cout << "kinetic energy: " <<  aTrack->GetKineticEnergy()/GeV << endl;
-//       G4ParticleDefinition* def = aTrack->GetDefinition();
-//       cout << "Particle: " << def->GetParticleName() << endl;
+      //        cout << "time prepoint: " << prePoint->GetGlobalTime()/ns << endl;
+      //        cout << "time postpoint: " << postPoint->GetGlobalTime()/ns << endl;
+      //        cout << "kinetic energy: " <<  aTrack->GetKineticEnergy()/GeV << endl;
+      //       G4ParticleDefinition* def = aTrack->GetDefinition();
+      //       cout << "Particle: " << def->GetParticleName() << endl;
       switch (prePoint->GetStepStatus())
         {
         case fGeomBoundary:
@@ -141,13 +141,13 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	}
       if (edep > 0)
 	{
-	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	      {
-		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		  {
-		    pp->SetKeep(1); // we want to keep the track
-		  }
-	      }
+	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	    {
+	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		{
+		  pp->SetKeep(1); // we want to keep the track
+		}
+	    }
 	}
       //    hit->identify();
       // return true to indicate the hit was used

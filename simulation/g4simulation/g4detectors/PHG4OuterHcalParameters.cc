@@ -25,7 +25,7 @@ PHG4OuterHcalParameters::PHG4OuterHcalParameters():
   z_rot(0*deg),
   active(0),
   absorberactive(0),
-  ncross(0),
+  ncross(-4),
   blackhole(0),
   material("G4_Fe"),
   steplimits(NAN),
@@ -37,7 +37,8 @@ PHG4OuterHcalParameters::PHG4OuterHcalParameters():
   light_balance_outer_radius(10.0),
   light_balance_outer_corr(1.0),
   magnet_cutout(12.*cm),
-  magnet_cutout_first_scinti(8) // tile start at 0, drawing tile starts at 1
+  magnet_cutout_first_scinti(8), // tile start at 0, drawing tile starts at 1
+  absorbertruth(0)
 {}
 
 void

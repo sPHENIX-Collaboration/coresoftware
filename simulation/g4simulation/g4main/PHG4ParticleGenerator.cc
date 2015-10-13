@@ -75,7 +75,10 @@ PHG4ParticleGenerator::process_event(PHCompositeNode *topNode)
 {
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode,"PHG4INEVENT");
 
-  vtx_z = (z_max-z_min)*gsl_rng_uniform_pos(RandomGenerator) + z_min;
+  if (! ReuseExistingVertex(topNode))
+    {
+      vtx_z = (z_max-z_min)*gsl_rng_uniform_pos(RandomGenerator) + z_min;
+    }
   int vtxindex = ineve->AddVtx(vtx_x,vtx_y,vtx_z,t0);
 
   vector<PHG4Particle *>::const_iterator iter;

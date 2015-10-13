@@ -27,10 +27,19 @@ class PHG4ParticleGeneratorBase: public SubsysReco
   virtual void set_vtx(const double x, const double y, const double z);
   virtual void set_t0(const double t) {t0 = t;}
 
+  virtual double get_vtx_x() const {return vtx_x;}
+  virtual double get_vtx_y() const {return vtx_y;}
+  virtual double get_vtx_z() const {return vtx_z;}
+  virtual double get_t0() const {return t0;}
+
   virtual void Print(const std::string &what = "ALL") const;
   virtual void AddParticle(const std::string &particle, const double x, const double y, const double z);
   virtual void AddParticle(const int pid, const double x, const double y, const double z);
   virtual void Embed(const int i=1) {embedflag = i;}
+  virtual int ReuseExistingVertex(PHCompositeNode *topNode);
+
+  int get_reuse_existing_vertex() const {return reuse_existing_vertex;}
+  void set_reuse_existing_vertex(const int i = 1) {reuse_existing_vertex = i;}
   void set_seed(const unsigned int iseed);
   unsigned int get_seed() const {return seed;}
 
@@ -42,6 +51,7 @@ class PHG4ParticleGeneratorBase: public SubsysReco
   void CheckAndCreateParticleVector();
   void SetParticleId(PHG4Particle *particle, PHG4InEvent *ineve);
   int embedflag;
+  int reuse_existing_vertex;
   double vtx_x;
   double vtx_y;
   double vtx_z;

@@ -749,11 +749,9 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
       }
     }
 
-    track.set_x( d*cos(phi) );
-    track.set_y( d*sin(phi) );
-    track.set_z( z0 );
-
-
+    track.set_x( vertex.get_x() + d*cos(phi) );
+    track.set_y( vertex.get_y() + d*sin(phi) );
+    track.set_z( vertex.get_z() + z0 );
     
     _g4tracks->insert(&track);
     vertex.insert_track(track.get_id());

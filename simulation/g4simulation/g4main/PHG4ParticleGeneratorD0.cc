@@ -131,17 +131,19 @@ PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   double cc = GSL_CONST_CGSM_SPEED_OF_LIGHT; // speed of light cm/sec
   double ctau = tau*cc*1.0e+04;  // ctau in micrometers
 
-  // Randomly generate vertex position in z 
-
-  if (vtx_zmax != vtx_zmin)
+  // If not reusing existing vertex Randomly generate vertex position in z 
+  if (! ReuseExistingVertex(topNode))
     {
-      vtx_z = (vtx_zmax - vtx_zmin) * gsl_rng_uniform_pos(RandomGenerator) + vtx_zmin;
-    }
-  else
-    {
-      vtx_z = vtx_zmin;
-    }
 
+      if (vtx_zmax != vtx_zmin)
+	{
+	  vtx_z = (vtx_zmax - vtx_zmin) * gsl_rng_uniform_pos(RandomGenerator) + vtx_zmin;
+	}
+      else
+	{
+	  vtx_z = vtx_zmin;
+	}
+    }
   // taken randomly from a fitted pT distribution to Pythia Upsilons
 
   double pt = 0.0;

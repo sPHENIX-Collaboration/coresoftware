@@ -43,7 +43,7 @@ public:
     max_z0 = (((z0 > max_z0)-1)&max_z0) ^ (((z0 <= max_z0)-1)&z0);
   }
   
-  void mergeRange(ParRange& other)
+  void mergeRange(ParRange const& other)
   {
     min_phi = (((other.min_phi < min_phi)-1)&min_phi) ^ (((other.min_phi >= min_phi)-1)&other.min_phi);
     max_phi = (((other.max_phi > max_phi)-1)&max_phi) ^ (((other.max_phi <= max_phi)-1)&other.max_phi);
@@ -192,6 +192,9 @@ class HelixHough
     void setLayersAtATime(unsigned int l){layers_at_a_time = l;}
     
     void setSmoothBack(bool sb){smooth_back=sb;}
+
+    void setCullInputHits( bool cih ){ cull_input_hits = cih; }
+    void setIterateClustering( bool icl ){ iterate_clustering = icl; }
     
   protected:
     bool remove_hits;
@@ -289,6 +292,8 @@ class HelixHough
     
     unsigned int n_layers;
     bool smooth_back;
+    bool cull_input_hits;
+    bool iterate_clustering;
 };
 
 #endif

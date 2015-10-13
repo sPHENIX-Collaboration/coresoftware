@@ -16,6 +16,7 @@
 #include <set>
 #include <float.h>
 #include <algorithm>
+#include <cassert>
 
 using namespace std;
 
@@ -23,6 +24,7 @@ SvtxTrackEval::SvtxTrackEval(PHCompositeNode* topNode)
   : _clustereval(topNode),
     _trackmap(NULL),
     _clustermap(NULL),
+    _strict(true),
     _do_cache(true),
     _cache_all_truth_hits(),
     _cache_all_truth_particles(),
@@ -52,6 +54,9 @@ void SvtxTrackEval::next_event(PHCompositeNode* topNode) {
 
 std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
 
+  if (_strict) assert(track);
+  else if (!track) return std::set<PHG4Hit*>();
+  
   if (_do_cache) {
     std::map<SvtxTrack*,std::set<PHG4Hit*> >::iterator iter =
       _cache_all_truth_hits.find(track);
@@ -69,6 +74,9 @@ std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
     unsigned int cluster_id = *iter;  
     SvtxCluster* cluster = _clustermap->get(cluster_id);
 
+    if (_strict) assert(cluster);
+    else if (!cluster) continue;
+    
     std::set<PHG4Hit*> new_hits = _clustereval.all_truth_hits(cluster);
 
     for (std::set<PHG4Hit*>::iterator jter = new_hits.begin();
@@ -85,6 +93,9 @@ std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
   
 std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track) {
 
+  if (_strict) assert(track);
+  else if (!track) return std::set<PHG4Particle*>();
+  
   if (_do_cache) {
     std::map<SvtxTrack*,std::set<PHG4Particle*> >::iterator iter =
       _cache_all_truth_particles.find(track);
@@ -102,6 +113,9 @@ std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track) {
     unsigned int cluster_id = *iter;
     SvtxCluster* cluster = _clustermap->get(cluster_id);
 
+    if (_strict) assert(cluster);
+    else if (!cluster) continue;
+    
     std::set<PHG4Particle*> new_particles = _clustereval.all_truth_particles(cluster);
 
     for (std::set<PHG4Particle*>::iterator jter = new_particles.begin();
@@ -118,6 +132,9 @@ std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track) {
 
 PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track) {
 
+  if (_strict) assert(track);
+  else if (!track) return NULL;
+  
   if (_do_cache) {
     std::map<SvtxTrack*,PHG4Particle*>::iterator iter =
       _cache_max_truth_particle_by_nclusters.find(track);
@@ -149,6 +166,9 @@ PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track) {
 
 std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle) { 
 
+  if (_strict) assert(truthparticle);
+  else if (!truthparticle) return std::set<SvtxTrack*>();
+  
   if (_do_cache) {
     std::map<PHG4Particle*,std::set<SvtxTrack*> >::iterator iter =
       _cache_all_tracks_from_particle.find(truthparticle);
@@ -171,6 +191,9 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
       unsigned int cluster_id = *iter;
       SvtxCluster* cluster = _clustermap->get(cluster_id);
 
+      if (_strict) assert(cluster);
+      else if (!cluster) continue;
+      
       // loop over all particles
       std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster);
       for (std::set<PHG4Particle*>::iterator jter = particles.begin();
@@ -192,6 +215,9 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
 
 std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit) {
 
+  if (_strict) assert(truthhit);
+  else if (!truthhit) return std::set<SvtxTrack*>();
+  
   if (_do_cache) {
     std::map<PHG4Hit*,std::set<SvtxTrack*> >::iterator iter =
       _cache_all_tracks_from_g4hit.find(truthhit);
@@ -215,6 +241,9 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit) {
       unsigned int cluster_id = *iter;
       SvtxCluster* cluster = _clustermap->get(cluster_id);
 
+      if (_strict) assert(cluster);
+      else if (!cluster) continue;
+      
       // loop over all hits
       std::set<PHG4Hit*> hits = _clustereval.all_truth_hits(cluster);
       for (std::set<PHG4Hit*>::iterator jter = hits.begin();
@@ -236,6 +265,9 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit) {
 
 SvtxTrack* SvtxTrackEval::best_track_from(PHG4Particle* truthparticle) { 
 
+  if (_strict) assert(truthparticle);
+  else if (!truthparticle) return NULL;
+  
   if (_do_cache) {
     std::map<PHG4Particle*,SvtxTrack*>::iterator iter =
       _cache_best_track_from_particle.find(truthparticle);
@@ -266,6 +298,13 @@ SvtxTrack* SvtxTrackEval::best_track_from(PHG4Particle* truthparticle) {
 // overlap calculations
 unsigned int SvtxTrackEval::get_nclusters_contribution(SvtxTrack* track, PHG4Particle* particle) {
 
+  if (_strict) {
+    assert(track);
+    assert(particle);
+  } else if (!track||!particle) {
+    return 0;
+  }
+  
   if (_do_cache) {
     std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int>::iterator iter =
       _cache_get_nclusters_contribution.find(make_pair(track,particle));
@@ -283,6 +322,9 @@ unsigned int SvtxTrackEval::get_nclusters_contribution(SvtxTrack* track, PHG4Par
     unsigned int cluster_id = *iter;
     SvtxCluster* cluster = _clustermap->get(cluster_id);
 
+    if (_strict) assert(cluster);
+    else if (!cluster) continue;     
+    
     // loop over all particles
     std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster);
     for (std::set<PHG4Particle*>::iterator jter = particles.begin();

@@ -103,6 +103,7 @@ class Fun4AllServer: public Fun4AllBase
   Fun4AllServer(const std::string &name = "Fun4AllServer");
   int InitNodeTree(PHCompositeNode *topNode);
   int CountOutNodes(PHCompositeNode *startNode);
+  int CountOutNodesRecursive(PHCompositeNode *startNode, const int icount);
   int UpdateEventSelector(Fun4AllOutputManager *manager);
   int unregisterSubsystemsNow();
   int setRun(const int runnumber);
