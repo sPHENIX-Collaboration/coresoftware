@@ -200,8 +200,7 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
 	   jter != particles.end();
 	   ++jter) {
 	PHG4Particle* candidate = *jter;
-	// if track id matches argument add to output
-	if (candidate->get_track_id() == truthparticle->get_track_id()) {
+	if (get_truth_eval()->are_same_particle(candidate,truthparticle)) {
 	  tracks.insert(track);
 	}
       }
@@ -331,8 +330,7 @@ unsigned int SvtxTrackEval::get_nclusters_contribution(SvtxTrack* track, PHG4Par
 	 jter != particles.end();
 	 ++jter) {
       PHG4Particle* candidate = *jter;
-      // if track id matches argument add to output
-      if (candidate->get_track_id() == particle->get_track_id()) {
+      if (get_truth_eval()->are_same_particle(candidate,particle)) {
 	++nclusters;
       }
     }

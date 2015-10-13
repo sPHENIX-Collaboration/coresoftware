@@ -26,6 +26,7 @@ libg4eval_la_LIBADD = \
   -lg4jets_io
 
 pkginclude_HEADERS = \
+  BaseTruthEval.h \
   CaloEvalStack.h \
   CaloTruthEval.h \
   CaloRawTowerEval.h \
@@ -46,6 +47,7 @@ pkginclude_HEADERS = \
 #pkginclude_HEADERS = $(include_HEADERS)
 
 libg4eval_la_SOURCES = \
+  BaseTruthEval.C \
   CaloEvalStack.C \
   CaloEvalStack_Dict.C \
   CaloTruthEval.C \

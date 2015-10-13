@@ -248,7 +248,7 @@ std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Particle* g4particle) {
 	 jter != g4particles.end();
 	 ++jter) {
       PHG4Particle* candidate = *jter;
-      if (candidate->get_track_id() == g4particle->get_track_id()) {
+      if (get_truth_eval()->are_same_particle(candidate,g4particle)) {
 	hits.insert(hit);
       }    
     }
@@ -354,7 +354,7 @@ float SvtxHitEval::get_energy_contribution(SvtxHit* hit, PHG4Particle* particle)
        iter != g4hits.end();
        ++iter) {
     PHG4Hit* g4hit = *iter;
-    if (g4hit->get_trkid() == particle->get_track_id()) {
+    if (get_truth_eval()->is_g4hit_from_particle(g4hit,particle)) {
       energy += g4hit->get_edep();
     }
   }
