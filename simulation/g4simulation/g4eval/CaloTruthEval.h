@@ -25,7 +25,10 @@ public:
 
   void next_event(PHCompositeNode *topNode);
   void do_caching(bool do_cache) {_do_cache = do_cache;}
-  void set_strict(bool strict) {_strict = strict;}
+  void set_strict(bool strict) {
+    _strict = strict;
+    _basetrutheval.set_strict(strict);
+  }
 
   std::set<PHG4Hit*> all_truth_hits(PHG4Particle* particle);  
   PHG4Particle*      get_parent_particle(PHG4Hit* g4hit);
