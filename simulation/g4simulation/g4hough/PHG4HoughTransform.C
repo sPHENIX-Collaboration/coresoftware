@@ -124,7 +124,7 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrack* track,
   projectToRadius(state,track->get_charge(),B,radius,intersection);
   
   cout << " x = " << intersection[0] << " y = " << intersection[1] << " z = " << intersection[2] << endl;
-  cout << " r = " << sqrt((intersection[0],2)+pow(intersection[1],2)) << " phi = " << atan2(intersection[1],intersection[0]) << endl;	
+  cout << " r = " << sqrt(pow(intersection[0],2)+pow(intersection[1],2)) << " phi = " << atan2(intersection[1],intersection[0]) << endl;	
   
   // iterate once to see if there is a state vector closer to the intersection
   if (track->size_states() == 1) return;
@@ -152,7 +152,7 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrack* track,
   projectToRadius(closest,track->get_charge(),B,radius,intersection);
 
   cout << "updated x = " << intersection[0] << " y = " << intersection[1] << " z = " << intersection[2] << endl;
-  cout << "updated r = " << sqrt((intersection[0],2)+pow(intersection[1],2)) << " phi = " << atan2(intersection[1],intersection[0]) << endl;	
+  cout << "updated r = " << sqrt(pow(intersection[0],2)+pow(intersection[1],2)) << " phi = " << atan2(intersection[1],intersection[0]) << endl;	
   
   return;
 }
@@ -171,11 +171,21 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrackState* state,
     // magentic field present, project track as a circle leaving the state position
     
     // compute the center of rotation and the helix parameters
-    double cr = state->get_pt() / 333.6 / B;
+    // x(u) = r*cos(q*u+cphi) + cx
+    // y(u) = r*sin(q*u+cphi) + cy
+    // z(u) = b*u + posz;
+    
+    double cr = state->get_pt() * 333.6 / B;
     double cx = state->get_x() - (state->get_py()*cr)/charge/state->get_pt();
     double cy = (state->get_px()*cr)/charge/state->get_pt() + state->get_y();
     double cphi = atan2(state->get_y()-cy,state->get_x()-cx); // phase of position
     double b = state->get_pz()/state->get_pt()*cr; // pitch
+
+    cout << "cr = " << cr << endl;
+    cout << "cx = " << cx << endl;
+    cout << "cy = " << cy << endl;
+    cout << "cphi = " << cphi << endl;
+    cout << "b = " << b << endl;
     
     circle_circle_intersections(0.0,0.0,radius,
 				cx,cy,cr,
@@ -225,7 +235,10 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrackState* state,
     intersection[0] = xy_points.begin()->at(0);
     intersection[1] = xy_points.begin()->at(1);
    
-    double u = (acos((state->get_x() - cx)/cr)-cphi)/charge;
+    double u = (acos((intersection[0] - cx)/cr)-cphi)/charge;
+    cout << "intersection u= " << u << endl;
+    cout << "recompute x= " << cr*cos(charge*u+cphi)+cx << endl;
+    cout << "recompute y= " << cr*sin(charge*u+cphi)+cy << endl;
     intersection[2] = b*u+state->get_z();
 
   } else {
@@ -1304,6 +1317,15 @@ bool PHG4HoughTransform::circle_circle_intersections(double x0, double y0, doubl
 						     double x1, double y1, double r1,
 						     std::set<std::vector<double> >& points) {
 
+  cout << "circle_circle_intersections" << endl;
+  cout << "x0 = " << x0 << endl;
+  cout << "y0 = " << y0 << endl;
+  cout << "r0 = " << r0 << endl;
+  cout << "x1 = " << x1 << endl;
+  cout << "y1 = " << y1 << endl;
+  cout << "r1 = " << r1 << endl;
+
+  
   // P0: center of rotation on first circle
   // P1: center of rotation of second circle
   // P2: point between P0 & P1 on radical line
@@ -1318,13 +1340,17 @@ bool PHG4HoughTransform::circle_circle_intersections(double x0, double y0, doubl
   // distance between two circle centers
   double d = sqrt(pow(x0-x1,2)+pow(y0-y1,2));
 
+  cout << "d = " << d << endl;
+  
   // handle error conditions
   if (fabs(r0+r1) < d) return false; // no solution
   if (fabs(r0-r1) > d) return false; // no solution
   if (d == 0 && r0 == r1) return false; // infinite solutions
-
+  
   // compute distances to intersection points
   double a = (pow(r0,2)-pow(r1,2)+pow(d,2)) / (2*d);
+  cout << "a = " << d << endl;
+
   double h = sqrt(pow(r0,2)-pow(a,2));
 
   // compute P2
