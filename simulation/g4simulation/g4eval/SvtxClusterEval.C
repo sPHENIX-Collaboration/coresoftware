@@ -228,7 +228,7 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Particle* truthpar
 	 jter != particles.end();
 	 ++jter) {
       PHG4Particle* candidate = *jter;
-      if (candidate->get_track_id() == truthparticle->get_track_id()) {
+      if (get_truth_eval()->are_same_particle(candidate,truthparticle)) {
 	clusters.insert(cluster);
       }    
     }
@@ -334,7 +334,7 @@ float SvtxClusterEval::get_energy_contribution(SvtxCluster* cluster, PHG4Particl
        iter != hits.end();
        ++iter) {
     PHG4Hit* hit = *iter;
-    if (hit->get_trkid() == particle->get_track_id()) {
+    if (get_truth_eval()->is_g4hit_from_particle(hit,particle)) {
       energy += hit->get_edep();
     }
   }

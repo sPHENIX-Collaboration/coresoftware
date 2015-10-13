@@ -213,8 +213,8 @@ std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Particle* primary) {
 
       if (_strict) assert(candidate);
       else if (!candidate) continue;
-      
-      if (candidate->get_track_id() == primary->get_track_id()) {
+
+      if (get_truth_eval()->are_same_particle(candidate,primary)) {
 	towers.insert(tower);
       }    
     }
@@ -310,7 +310,7 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
       if (_strict) assert(candidate);
       else if (!candidate) continue;
 
-      if (candidate->get_track_id() == primary->get_track_id()) {
+      if (get_truth_eval()->are_same_particle(candidate,primary)) {
 	energy += g4hit->get_edep();
       }
     }

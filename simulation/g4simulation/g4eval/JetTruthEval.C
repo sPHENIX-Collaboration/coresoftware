@@ -210,7 +210,12 @@ Jet* JetTruthEval::get_truth_jet(PHG4Particle* particle) {
 	 jter != candidate->end_comp();
 	 ++jter) {
       unsigned int index = jter->second;
-      if (index == (unsigned int)particle->get_track_id()) {
+      
+      PHG4Particle* constituent = _truthinfo->GetHit( index );
+      if (_strict) assert(constituent);
+      else if (!constituent) continue;
+
+      if (get_svtx_eval_stack()->get_truth_eval()->are_same_particle(constituent,particle)) {
 	truth_jet = candidate;
 	break;
       }
