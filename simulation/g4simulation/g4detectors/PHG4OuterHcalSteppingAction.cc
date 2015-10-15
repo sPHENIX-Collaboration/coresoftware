@@ -334,7 +334,9 @@ void PHG4OuterHcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNode
     }
 }
 
-float PHG4OuterHcalSteppingAction::GetLightCorrection(float r) {
+float 
+PHG4OuterHcalSteppingAction::GetLightCorrection(const float r) const
+{
   float m = (params->light_balance_outer_corr - params->light_balance_inner_corr)/(params->light_balance_outer_radius - params->light_balance_inner_radius);
   float b = params->light_balance_inner_corr - m*params->light_balance_inner_radius;
   float value = m*r+b;  

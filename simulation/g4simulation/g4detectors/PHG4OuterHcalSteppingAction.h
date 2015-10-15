@@ -26,7 +26,7 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   //! reimplemented from base class
   virtual void SetInterfacePointers( PHCompositeNode* );
 
-  float GetLightCorrection(float r);
+  float GetLightCorrection(const float r) const;
 
   void FieldChecker (const G4Step*);
 
