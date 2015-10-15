@@ -184,7 +184,6 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	  if (whichactive > 0) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
 	    {
 	      hit->set_light_yield(0); // for scintillator only, initialize light yields
-
 	      // Now add the hit
 	      hits_->AddHit(layer_id, hit);
 	    }
@@ -268,8 +267,10 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
       //sum up the energy to get total deposited
       hit->set_edep(hit->get_edep() + edep);
       hit->set_eion(hit->get_eion() + eion);
-      hit->set_light_yield(hit->get_light_yield() + light_yield);
-      hit->set_path_length(aTrack->GetTrackLength() / cm);
+       if (whichactive > 0)
+	{
+	  hit->set_light_yield(hit->get_light_yield() + light_yield);
+	}
       if (geantino)
 	{
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
