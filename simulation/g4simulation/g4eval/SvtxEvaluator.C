@@ -266,14 +266,15 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
   // print out some useful stuff for debugging
   //==========================================
 
-  SvtxEvalStack svtxevalstack(topNode);
-  svtxevalstack.set_strict(_strict);
-
-  SvtxTrackEval*     trackeval = svtxevalstack.get_track_eval();
-  SvtxClusterEval* clustereval = svtxevalstack.get_cluster_eval();
-  SvtxTruthEval*     trutheval = svtxevalstack.get_truth_eval();
-  
   if (verbosity > 0) {
+    
+    SvtxEvalStack svtxevalstack(topNode);
+    svtxevalstack.set_strict(_strict);
+
+    SvtxTrackEval*     trackeval = svtxevalstack.get_track_eval();
+    SvtxClusterEval* clustereval = svtxevalstack.get_cluster_eval();
+    SvtxTruthEval*     trutheval = svtxevalstack.get_truth_eval();
+  
     // event information
     cout << endl;
     cout << PHWHERE << "   NEW OUTPUT FOR EVENT " << _ievent << endl;

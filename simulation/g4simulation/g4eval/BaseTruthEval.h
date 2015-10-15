@@ -13,10 +13,11 @@ class BaseTruthEval {
 public:
 
   BaseTruthEval(PHCompositeNode *topNode);
-  virtual ~BaseTruthEval() {}
+  virtual ~BaseTruthEval();
 
   void next_event(PHCompositeNode *topNode);
   void set_strict(bool strict) {_strict = strict;}
+  void set_verbosity(int verbosity) {_verbosity = verbosity;}
   
   PHG4Particle*      get_particle(PHG4Hit* g4hit);  
   int                get_embed(PHG4Particle* particle);
@@ -29,7 +30,9 @@ public:
   bool               is_g4hit_from_particle(PHG4Hit* g4hit, PHG4Particle* particle);
   bool               are_same_particle(PHG4Particle* p1, PHG4Particle* p2);
   bool               are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2);
-    
+
+  unsigned int       get_errors() {return _errors;}
+  
 private:
 
   void get_node_pointers(PHCompositeNode* topNode);
@@ -37,6 +40,8 @@ private:
   PHG4TruthInfoContainer* _truthinfo;
 
   bool _strict;
+  int _verbosity;
+  unsigned int _errors;
 };
 
 #endif // __BASETRUTHEVAL_H__

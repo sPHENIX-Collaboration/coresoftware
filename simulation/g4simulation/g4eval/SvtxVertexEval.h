@@ -24,7 +24,7 @@ class SvtxVertexEval {
 public:
 
   SvtxVertexEval(PHCompositeNode *topNode);
-  virtual ~SvtxVertexEval() {}
+  virtual ~SvtxVertexEval();
 
   void next_event(PHCompositeNode *topNode);
   void do_caching(bool do_cache) {
@@ -34,6 +34,10 @@ public:
   void set_strict(bool strict) {
     _strict = strict;
     _trackeval.set_strict(strict);
+  }
+  void set_verbosity(int verbosity) {
+    _verbosity = verbosity;
+    _trackeval.set_verbosity(verbosity);
   }
   
   // access the sub evals (and the cached values)
@@ -55,6 +59,8 @@ public:
   
   // overlap calculations
   unsigned int get_ntracks_contribution(SvtxVertex* svtxvertex, PHG4VtxPoint* truthpoint);  
+
+  unsigned int get_errors() {return _errors + _trackeval.get_errors();}
   
 private:
 
@@ -66,7 +72,9 @@ private:
   PHG4TruthInfoContainer* _truthinfo;
 
   bool _strict;
-  
+  int _verbosity;
+  unsigned int _errors;
+
   bool _do_cache;
   std::map<SvtxVertex*,std::set<PHG4Particle*> >               _cache_all_truth_particles;
   std::map<SvtxVertex*,std::set<PHG4VtxPoint*> >               _cache_all_truth_points;

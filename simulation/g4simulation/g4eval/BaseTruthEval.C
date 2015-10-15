@@ -16,8 +16,18 @@ using namespace std;
 
 BaseTruthEval::BaseTruthEval(PHCompositeNode* topNode)
   : _truthinfo(NULL),
-    _strict(true) {
+    _strict(false),
+    _verbosity(1),
+    _errors(0) {
   get_node_pointers(topNode);
+}
+
+BaseTruthEval::~BaseTruthEval() {
+  if (_verbosity > 0) {
+    if ((_errors > 0)||(_verbosity > 1)) {
+      cout << "BaseTruthEval::~BaseTruthEval() - Error Count: " << _errors << endl;
+    }
+  }
 }
 
 void BaseTruthEval::next_event(PHCompositeNode* topNode) {
@@ -26,48 +36,50 @@ void BaseTruthEval::next_event(PHCompositeNode* topNode) {
       
 PHG4Particle* BaseTruthEval::get_particle(PHG4Hit* g4hit) {
 
-  if (_strict) assert(g4hit);
-  else if (!g4hit) return NULL;
+  if (_strict) {assert(g4hit);}
+  else if (!g4hit) {++_errors; return NULL;}
   
   PHG4Particle* particle = _truthinfo->GetHit( g4hit->get_trkid() );
-  if (_strict) assert(particle); 
-
+  if (_strict) {assert(particle);}
+  else if (!particle) {++_errors;}
+  
   return particle;
 }
 
 int BaseTruthEval::get_embed(PHG4Particle* particle) {
 
-  if (_strict) assert(particle);
-  else if (!particle) return 0;
+  if (_strict) {assert(particle);}
+  else if (!particle) {++_errors; return 0;}
 
   if (!is_primary(particle)) return 0;
 
   PHG4Particle* primary = get_primary(particle);
-  if (_strict) assert(primary);
-  else if (!primary) return 0;
+  if (_strict) {assert(primary);}
+  else if (!primary) {++_errors; return 0;}
   
   return _truthinfo->isEmbeded(primary->get_track_id());
 }
 
 PHG4VtxPoint* BaseTruthEval::get_vertex(PHG4Particle* particle) {
 
-  if (_strict) assert(particle);
-  else if (!particle) return NULL;
+  if (_strict) {assert(particle);}
+  else if (!particle) {++_errors; return NULL;}
 
   if (particle->get_primary_id() == -1) {
     return _truthinfo->GetPrimaryVtx( particle->get_vtx_id() );  
   }
 
   PHG4VtxPoint* vtx = _truthinfo->GetVtx( particle->get_vtx_id() );
-  if (_strict) assert(vtx);
+  if (_strict) {assert(vtx);}
+  else if (!vtx) {_errors++;}
  
   return vtx;
 }
 
 bool BaseTruthEval::is_primary(PHG4Particle* particle) {
 
-  if (_strict) assert(particle);
-  else if (!particle) return false;
+  if (_strict) {assert(particle);}
+  else if (!particle) {return false;}
   
   bool is_primary = false;
   if (particle->get_parent_id() == 0) {
@@ -79,21 +91,22 @@ bool BaseTruthEval::is_primary(PHG4Particle* particle) {
 
 PHG4Particle* BaseTruthEval::get_primary(PHG4Hit* g4hit) {
 
-  if (_strict) assert(g4hit);
-  else if (!g4hit) return NULL;
+  if (_strict) {assert(g4hit);}
+  else if (!g4hit) {++_errors; return NULL;}
 
   PHG4Particle* particle = get_particle(g4hit);
   PHG4Particle* primary = get_primary(particle);
 
-  if (_strict) assert(primary);
+  if (_strict) {assert(primary);}
+  else if (!primary) {++_errors;}
   
   return primary;
 }
 
 PHG4Particle* BaseTruthEval::get_primary(PHG4Particle* particle) {
 
-  if (_strict) assert(particle);
-  else if (!particle) return NULL;
+  if (_strict) {assert(particle);}
+  else if (!particle) {++_errors; return NULL;}
 
   // always report the primary from the Primary Map regardless if a
   // primary from the full Map was the argument
@@ -104,7 +117,8 @@ PHG4Particle* BaseTruthEval::get_primary(PHG4Particle* particle) {
     returnval = _truthinfo->GetPrimaryHit( particle->get_track_id() );
   }
 
-  if (_strict) assert(returnval);
+  if (_strict) {assert(returnval);}
+  else if (!returnval) {++_errors;}
   
   return returnval;
 }
@@ -115,13 +129,15 @@ PHG4Particle* BaseTruthEval::get_primary(PHG4Particle* particle) {
     assert(g4hit);
     assert(particle);
   } else if (!g4hit||!particle) {
+    ++_errors;
     return false;
   }
 
   bool is_from_particle = false;
 
   PHG4Particle* candidate = get_particle(g4hit);
-  if (_strict) assert(candidate);
+  if (_strict) {assert(candidate);}
+  else if (!candidate) {++_errors;}
 
   if (candidate) {
     if (are_same_particle(candidate,particle)) {
@@ -138,6 +154,7 @@ bool BaseTruthEval::are_same_particle(PHG4Particle* p1, PHG4Particle* p2) {
     assert(p1);
     assert(p2);
   } else if (!p1||!p2) {
+    ++_errors;
     return false;
   }
 
@@ -185,6 +202,7 @@ bool BaseTruthEval::are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2) {
     assert(vtx1);
     assert(vtx2);
   } else if (!vtx1||!vtx2) {
+    ++_errors;
     return false;
   }
 
