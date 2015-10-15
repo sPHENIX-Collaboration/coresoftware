@@ -147,7 +147,7 @@ bool PHG4FCalDetector::isInScintillator(G4VPhysicalVolume * volume)
 {
   //loop over the physical volumes and see if this is a match
   std::map<unsigned int, G4VPhysicalVolume*>::iterator vol_iter = scintillator_physi_.begin();
-  for ( ; vol_iter != scintillator_physi_.end(); vol_iter ++ )
+  for ( ; vol_iter != scintillator_physi_.end(); ++vol_iter )
   {
     if ( vol_iter->second == volume )
       return true;
@@ -161,7 +161,7 @@ int PHG4FCalDetector::getScintillatorLayer(G4VPhysicalVolume * volume)
 {
   //loop over the physical volumes and see if this is a match
   std::map<unsigned int, G4VPhysicalVolume*>::iterator vol_iter = scintillator_physi_.begin();
-  for ( ; vol_iter != scintillator_physi_.end(); vol_iter ++ )
+  for ( ; vol_iter != scintillator_physi_.end(); ++vol_iter )
   {
     if ( vol_iter->second == volume )
       return vol_iter->first;

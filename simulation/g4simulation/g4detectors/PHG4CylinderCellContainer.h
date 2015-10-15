@@ -48,7 +48,7 @@ class PHG4CylinderCellContainer: public PHObject
 	  }
 	else
 	  {
-	    its++;
+	    ++its;
 	  }
       }
   }

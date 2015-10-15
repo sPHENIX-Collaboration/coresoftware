@@ -95,7 +95,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
   map<int, PHG4CylinderGeom *>::const_iterator miter;
   pair <map<int, PHG4CylinderGeom *>::const_iterator, map<int, PHG4CylinderGeom *>::const_iterator> begin_end = geo->get_begin_end();
   map<int, std::pair <double, double> >::iterator sizeiter;
-  for (miter = begin_end.first; miter != begin_end.second; miter++)
+  for (miter = begin_end.first; miter != begin_end.second; ++miter)
     {
       PHG4CylinderGeom *layergeom = miter->second;
       int layer = layergeom->get_layer();
@@ -981,7 +981,7 @@ PHG4CylinderCellReco::CheckEnergy(PHCompositeNode *topNode)
     }
   PHG4CylinderCellContainer::ConstRange cell_begin_end = cells->getCylinderCells();
   PHG4CylinderCellContainer::ConstIterator citer;
-  for (citer = cell_begin_end.first; citer != cell_begin_end.second; citer++)
+  for (citer = cell_begin_end.first; citer != cell_begin_end.second; ++citer)
     {
       sum_energy_cells += citer->second->get_edep();
     }
