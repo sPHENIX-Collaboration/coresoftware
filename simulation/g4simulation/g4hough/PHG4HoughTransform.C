@@ -46,6 +46,7 @@
 
 // ROOT includes
 #include <TH1D.h>
+#include <TMath.h>
 
 // standard includes
 #include <cmath>
@@ -166,7 +167,7 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrackState* state,
   intersection.assign(3,NAN);
   
   // find 2d intersections in x,y plane
-  std::set<std::vector<double> > xy_points;
+  std::set<std::vector<double> > intersections;
   if (B != 0.0) {
     // magentic field present, project track as a circle leaving the state position
     
@@ -175,21 +176,19 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrackState* state,
     // y(u) = r*sin(q*u+cphi) + cy
     // z(u) = b*u + posz;
     
-    double cr = state->get_pt() * 333.6 / B;
-    double cx = state->get_x() - (state->get_py()*cr)/charge/state->get_pt();
-    double cy = (state->get_px()*cr)/charge/state->get_pt() + state->get_y();
-    double cphi = atan2(state->get_y()-cy,state->get_x()-cx); // phase of position
-    double b = state->get_pz()/state->get_pt()*cr; // pitch
+    double cr = state->get_pt() * 333.6 / B;                                  // radius of curvature
+    double cx = state->get_x() - (state->get_py()*cr)/charge/state->get_pt(); // center of rotation, x
+    double cy = (state->get_px()*cr)/charge/state->get_pt() + state->get_y(); // center of rotation, y
+    double cphi = atan2(state->get_y()-cy,state->get_x()-cx);                 // phase of state position
+    double b = state->get_pz()/state->get_pt()*cr;                            // pitch along z
 
-    cout << "cr = " << cr << endl;
-    cout << "cx = " << cx << endl;
-    cout << "cy = " << cy << endl;
-    cout << "cphi = " << cphi << endl;
-    cout << "b = " << b << endl;
-    
-    circle_circle_intersections(0.0,0.0,radius,
-				cx,cy,cr,
-				xy_points);
+    if (!circle_circle_intersections(0.0,0.0,radius,
+				    cx,cy,cr,
+				    &intersections)) {
+      return;
+    }
+
+    if (intersections.empty()) return;
     
     // downselect solutions based on track direction
     // we want the solution where the state vector would exit the cylinder
@@ -198,8 +197,10 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrackState* state,
     // rotate the px,py to the postion of the solution
     // then ask if the dot product of the displacement vector between the solution
     // and the cylinder center with the rotated momentum vector is positive
-    for (std::set<std::vector<double> >::iterator iter = xy_points.begin();
-	 iter != xy_points.end();
+    std::set<std::vector<double> >::iterator remove_iter = intersections.end();
+    double intersection_z = 0.0;
+    for (std::set<std::vector<double> >::iterator iter = intersections.begin();
+	 iter != intersections.end();
 	 ++iter) {
       double x = iter->at(0);
       double y = iter->at(1);
@@ -209,81 +210,109 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrackState* state,
       // displacement between center of rotation and solution
       double dx = x - cx;
       double dy = y - cy;
-      double dl = sqrt(pow(dx,2)+pow(dy,2));
-
+      double dphi = atan2(dy,dx);
+       
       // displacement between center of rotation and state position
       double state_dx = state->get_x() - cx;
       double state_dy = state->get_y() - cy;
-      double state_l = sqrt(pow(state_dx,2)+pow(state_dy,2));
+      double state_dphi = atan2(state_dy,state_dx);
 
-      // angle of rotation between the two
-      double phi = acos((state_dx*dx + state_dy*dy)*dl*state_l);
-
+      // relative rotation angle
+      double rotphi = (dphi-state_dphi);
+        
       // rotated momentum at the solution
-      double rotpx = cos(phi)*state->get_px() - sin(phi)*state->get_py();
-      double rotpy = sin(phi)*state->get_px() + cos(phi)*state->get_py();
-
+      double rotpx = cos(rotphi)*state->get_px() - sin(rotphi)*state->get_py();
+      double rotpy = sin(rotphi)*state->get_px() + cos(rotphi)*state->get_py();
+    
       // assumes cylinder is centered at 0,0
       double dot = rotpx*x + rotpy*y;
-      if (dot < 0.0) {
-	xy_points.erase(iter);
+
+      // our solution will have a momentum vector leaving the cylinder surface
+      if (dot >= 0.0) {
+	// find the solution for z
+	double u = (dphi - cphi)/charge;
+	
+	// look only along the projection (not backward)
+	if (u > 2.0*TMath::Pi()) {
+	  u = u - 2.0*TMath::Pi();
+	} else if (u < 0.0) {
+	  u = u + 2.0*TMath::Pi();
+	}
+
+	intersection_z = b*u+state->get_z();      
+      } else {
+	remove_iter = iter;
       }
     }
 
-    if (xy_points.empty()) return;
+    if (remove_iter != intersections.end()) {
+      intersections.erase(remove_iter);
+    }
 
-    intersection[0] = xy_points.begin()->at(0);
-    intersection[1] = xy_points.begin()->at(1);
-   
-    double u = (acos((intersection[0] - cx)/cr)-cphi)/charge;
-    cout << "intersection u= " << u << endl;
-    cout << "recompute x= " << cr*cos(charge*u+cphi)+cx << endl;
-    cout << "recompute y= " << cr*sin(charge*u+cphi)+cy << endl;
-    intersection[2] = b*u+state->get_z();
+    if (intersections.empty()) return;
+    
+    intersection[0] = intersections.begin()->at(0);
+    intersection[1] = intersections.begin()->at(1);
+    intersection[2] = intersection_z;
 
+    return;
+    
   } else {
     // no magnetic field project track as a line
-
+    
     circle_line_intersections(0.0,0.0,radius,
      			      state->get_x(),state->get_y(),state->get_px(),state->get_py(),
-     			      xy_points);
+     			      &intersections);
 
+    if (intersections.empty()) return;
+    
     // downselect solutions based on track direction
     // we want the solution where the state vector would point outward
     // since the track doesn't bend this will be the solution where
     // the dot product of the displacement between the solution and the cylinder center
     // and the momentum vector is positive
-    for (std::set<std::vector<double> >::iterator iter = xy_points.begin();
-      	 iter != xy_points.end();
+    std::set<std::vector<double> >::iterator remove_iter = intersections.end();
+    double intersection_z = 0.0;
+    for (std::set<std::vector<double> >::iterator iter = intersections.begin();
+      	 iter != intersections.end();
       	 ++iter) {
        double x = iter->at(0);
        double y = iter->at(1);
 
       // assumes cylinder is centered at 0,0
       double dot = state->get_px()*x + state->get_py()*y;
-      if (dot < 0.0) {
-     	xy_points.erase(iter);
+      if (dot >= 0.0) {
+
+	// x(u) = px*u + x1
+	// y(u) = py*u + y1
+	// z(u) = pz*u + z1
+	
+	double u = NAN;
+	if (state->get_px() != 0) {
+	  u = (intersection[0] - state->get_x()) / state->get_px();
+	} else if (state->get_py() != 0) {
+	  u = (intersection[1] - state->get_y()) / state->get_py();      
+	}
+
+	intersection_z = state->get_pz()*u+state->get_z();    
+      } else {
+	remove_iter = iter;
       }
     }
 
-    if (xy_points.empty()) return;
-
-    intersection[0] = xy_points.begin()->at(0);
-    intersection[1] = xy_points.begin()->at(1);
-
-    // x(u) = px*u + x1
-    // y(u) = py*u + y1
-    // z(u) = pz*u + z1
-
-    double u = NAN;
-    if (state->get_px() != 0) {
-      u = (intersection[0] - state->get_x()) / state->get_px();
-    } else if (state->get_py() != 0) {
-      u = (intersection[1] - state->get_y()) / state->get_py();      
+    if (remove_iter != intersections.end()) {
+      intersections.erase(remove_iter);
     }
-    intersection[2] = state->get_pz()*u+state->get_z();    
-  }
 
+    if (intersections.empty()) return;
+
+    intersection[0] = intersections.begin()->at(0);
+    intersection[1] = intersections.begin()->at(1);
+    intersection[2] = intersection_z;
+
+    return;
+  }
+  
   return;
 }
   
@@ -1271,8 +1300,7 @@ int PHG4HoughTransform::GetNodes(PHCompositeNode *topNode)
 
 bool PHG4HoughTransform::circle_line_intersections(double x0, double y0, double r0,
 						   double x1, double y1, double vx1, double vy1,
-						   std::set<std::vector<double> >& points) {
-
+						   std::set<std::vector<double> >* points) {
   // P0: center of rotation
   // P1: point on line
   // P2: second point on line
@@ -1281,7 +1309,7 @@ bool PHG4HoughTransform::circle_line_intersections(double x0, double y0, double 
   // dr: distance between P1 & P2
   // delta: discriminant on number of solutions
   
-  points.clear();
+  points->clear();
   
   double x2 = x1 + vx1;
   double y2 = y1 + vy1;
@@ -1301,31 +1329,21 @@ bool PHG4HoughTransform::circle_line_intersections(double x0, double y0, double 
   std::vector<double> p3;
   p3.push_back(x3);
   p3.push_back(y3);
-  points.insert(p3);
+  points->insert(p3);
 
   x3 = (det*vy1 - sgn_vy1*vx1*sqrt(pow(r0,2)*pow(dr,2)-pow(det,2))) / pow(dr,2);
   y3 = (-1.0*det*vx1 - fabs(vy1)*sqrt(pow(r0,2)*pow(dr,2)-pow(det,2))) / pow(dr,2);
 
   p3[0] = x3;
   p3[1] = y3;
-  points.insert(p3);
+  points->insert(p3);
 
   return true;
 }
   
 bool PHG4HoughTransform::circle_circle_intersections(double x0, double y0, double r0,
 						     double x1, double y1, double r1,
-						     std::set<std::vector<double> >& points) {
-
-  cout << "circle_circle_intersections" << endl;
-  cout << "x0 = " << x0 << endl;
-  cout << "y0 = " << y0 << endl;
-  cout << "r0 = " << r0 << endl;
-  cout << "x1 = " << x1 << endl;
-  cout << "y1 = " << y1 << endl;
-  cout << "r1 = " << r1 << endl;
-
-  
+						     std::set<std::vector<double> >* points) {
   // P0: center of rotation on first circle
   // P1: center of rotation of second circle
   // P2: point between P0 & P1 on radical line
@@ -1335,22 +1353,18 @@ bool PHG4HoughTransform::circle_circle_intersections(double x0, double y0, doubl
   // a: distance between P0 and P2
   // h: distance from P2 and P3s
 
-  points.clear();
+  points->clear();
   
   // distance between two circle centers
   double d = sqrt(pow(x0-x1,2)+pow(y0-y1,2));
 
-  cout << "d = " << d << endl;
-  
   // handle error conditions
   if (fabs(r0+r1) < d) return false; // no solution
   if (fabs(r0-r1) > d) return false; // no solution
   if (d == 0 && r0 == r1) return false; // infinite solutions
-  
+
   // compute distances to intersection points
   double a = (pow(r0,2)-pow(r1,2)+pow(d,2)) / (2*d);
-  cout << "a = " << d << endl;
-
   double h = sqrt(pow(r0,2)-pow(a,2));
 
   // compute P2
@@ -1364,7 +1378,7 @@ bool PHG4HoughTransform::circle_circle_intersections(double x0, double y0, doubl
   std::vector<double> p3;
   p3.push_back(x3);
   p3.push_back(y3);
-  points.insert(p3);
+  points->insert(p3);
   
   // second intersection (if different than first)
   x3 = x2 - h * (y1 - y0) / d;
@@ -1372,7 +1386,7 @@ bool PHG4HoughTransform::circle_circle_intersections(double x0, double y0, doubl
 
   p3[0] = x3;
   p3[1] = y3;
-  points.insert(p3);
+  points->insert(p3);
 
-  return true;  
+  return points;  
 }
