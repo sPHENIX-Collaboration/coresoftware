@@ -46,7 +46,6 @@
 
 // ROOT includes
 #include <TH1D.h>
-#include <TMath.h>
 
 // standard includes
 #include <cmath>
@@ -106,26 +105,12 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrack* track,
 					 double B,
 					 double radius,
 					 std::vector<double>& intersection) {
-  cout << endl;
-  cout << "track x = " << track->get_x() << endl;
-  cout << "track y = " << track->get_y() << endl;
-  cout << "track z = " << track->get_z() << endl;
-  cout << "track px = " << track->get_px() << endl;
-  cout << "track py = " << track->get_py() << endl;
-  cout << "track pz = " << track->get_pz() << endl;
-  cout << "track charge = " << track->get_charge() << endl;
-  cout << "track phi = " << track->get_phi() << endl;
-  cout << "track eta = " << track->get_eta() << endl;
-
   intersection.clear();
   intersection.assign(3,NAN);
 
   // start from the inner most state vector
   const SvtxTrackState* state = track->get_state(0.0);
   projectToRadius(state,track->get_charge(),B,radius,intersection);
-  
-  cout << " x = " << intersection[0] << " y = " << intersection[1] << " z = " << intersection[2] << endl;
-  cout << " r = " << sqrt(pow(intersection[0],2)+pow(intersection[1],2)) << " phi = " << atan2(intersection[1],intersection[0]) << endl;	
   
   // iterate once to see if there is a state vector closer to the intersection
   if (track->size_states() == 1) return;
@@ -152,9 +137,6 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrack* track,
   // recompute using the closer state vector
   projectToRadius(closest,track->get_charge(),B,radius,intersection);
 
-  cout << "updated x = " << intersection[0] << " y = " << intersection[1] << " z = " << intersection[2] << endl;
-  cout << "updated r = " << sqrt(pow(intersection[0],2)+pow(intersection[1],2)) << " phi = " << atan2(intersection[1],intersection[0]) << endl;	
-  
   return;
 }
 
@@ -233,10 +215,10 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrackState* state,
 	double u = (dphi - cphi)/charge;
 	
 	// look only along the projection (not backward)
-	if (u > 2.0*TMath::Pi()) {
-	  u = u - 2.0*TMath::Pi();
+	if (u > 2.0*M_PI) {
+	  u = u - 2.0*M_PI;
 	} else if (u < 0.0) {
-	  u = u + 2.0*TMath::Pi();
+	  u = u + 2.0*M_PI;
 	}
 
 	intersection_z = b*u+state->get_z();      
@@ -718,8 +700,6 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
   vector<vector<double> > pTmap;
   for(unsigned int i=0;i<_tracks.size();++i)
   {
-    cout << "kappa = " << _tracks[i].kappa << endl;
-    
     double pT = kappaToPt(_tracks[i].kappa);
     pTmap.push_back(vector<double>());
     pTmap.back().push_back(pT);
