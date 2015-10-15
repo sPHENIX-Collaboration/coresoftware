@@ -29,6 +29,12 @@ PHG4InnerHcalParameters::PHG4InnerHcalParameters():
   blackhole(0),
   material("SS310"),
   steplimits(NAN),
+  light_scint_model(true),
+  light_balance(false),
+  light_balance_inner_radius(0.0),
+  light_balance_inner_corr(1.0),
+  light_balance_outer_radius(10.0),
+  light_balance_outer_corr(1.0),
   absorbertruth(0)
 {}
 
