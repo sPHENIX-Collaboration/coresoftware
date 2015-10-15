@@ -61,6 +61,7 @@ public:
   // evaluator output ntuples
 
   bool _strict;
+  unsigned int _errors;
   
   bool _do_vertex_eval;
   bool _do_gpoint_eval;
