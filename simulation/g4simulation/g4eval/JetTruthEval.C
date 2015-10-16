@@ -27,12 +27,22 @@ JetTruthEval::JetTruthEval(PHCompositeNode* topNode,
     _hcaloutevalstack(topNode,"HCALOUT"),
     _truthinfo(NULL),
     _truthjets(NULL),
-    _strict(true),
+    _strict(false),
+    _verbosity(1),
+    _errors(0),
     _do_cache(true),
     _cache_all_truth_particles(),
     _cache_all_truth_hits(),
     _cache_get_truth_jet() {
   get_node_pointers(topNode);
+}
+
+JetTruthEval::~JetTruthEval() {
+  if (_verbosity > 0) {
+    if ((_errors > 0)||(_verbosity > 1)) {
+      cout << "JetTruthEval::~JetTruthEval() - Error Count: " << _errors << endl;
+    }
+  }
 }
 
 void JetTruthEval::next_event(PHCompositeNode* topNode) {
@@ -51,8 +61,8 @@ void JetTruthEval::next_event(PHCompositeNode* topNode) {
 
 std::set<PHG4Particle*> JetTruthEval::all_truth_particles(Jet* truthjet) {
 
-  if (_strict) assert(truthjet);
-  else if (!truthjet) return std::set<PHG4Particle*>();
+  if (_strict) {assert(truthjet);}
+  else if (!truthjet) {++_errors; return std::set<PHG4Particle*>();}
   
   if (_do_cache) {
     std::map<Jet*,std::set<PHG4Particle*> >::iterator iter =
@@ -77,8 +87,8 @@ std::set<PHG4Particle*> JetTruthEval::all_truth_particles(Jet* truthjet) {
 
     PHG4Particle* truth_particle = _truthinfo->GetHit(index);
     
-    if (_strict) assert(truth_particle);
-    else if (!truth_particle) continue;
+    if (_strict) {assert(truth_particle);}
+    else if (!truth_particle) {++_errors; continue;}
     
     truth_particles.insert(truth_particle);
   }
@@ -90,8 +100,8 @@ std::set<PHG4Particle*> JetTruthEval::all_truth_particles(Jet* truthjet) {
 
 std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
 
-  if (_strict) assert(truthjet);
-  else if (!truthjet) return std::set<PHG4Hit*>();
+  if (_strict) {assert(truthjet);}
+  else if (!truthjet) {++_errors; return std::set<PHG4Hit*>();}
   
   if (_do_cache) {
     std::map<Jet*,std::set<PHG4Hit*> >::iterator iter =
@@ -111,8 +121,8 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
        ++iter) {
     PHG4Particle* particle = *iter;
 
-    if (_strict) assert(particle);
-    else if (!particle) continue;
+    if (_strict) {assert(particle);}
+    else if (!particle) {++_errors; continue;}
     
     // ask the svtx truth eval to backtrack the particles to g4hits
     SvtxTruthEval* svtx_truth_eval = _svtxevalstack.get_truth_eval(); 
@@ -124,8 +134,8 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
 
       PHG4Hit* g4hit = *jter;
 
-      if (_strict) assert(g4hit);
-      else if (!g4hit) continue;
+      if (_strict) {assert(g4hit);}
+      else if (!g4hit) {++_errors; continue;}
       
       truth_hits.insert(g4hit);
     }
@@ -140,8 +150,8 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
       
       PHG4Hit* g4hit = *jter;
 
-      if (_strict) assert(g4hit);
-      else if (!g4hit) continue;
+      if (_strict) {assert(g4hit);}
+      else if (!g4hit) {++_errors; continue;}
       
       truth_hits.insert(g4hit);
     }
@@ -156,8 +166,8 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
 
       PHG4Hit* g4hit = *jter;
 
-      if (_strict) assert(g4hit);
-      else if (!g4hit) continue;
+      if (_strict) {assert(g4hit);}
+      else if (!g4hit) {++_errors; continue;}
       
       truth_hits.insert(g4hit);
     }
@@ -172,8 +182,8 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
 
       PHG4Hit* g4hit = *jter;
 
-      if (_strict) assert(g4hit);
-      else if (!g4hit) continue;
+      if (_strict) {assert(g4hit);}
+      else if (!g4hit) {++_errors; continue;}
       
       truth_hits.insert(g4hit);      
     }    
@@ -186,8 +196,8 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
 
 Jet* JetTruthEval::get_truth_jet(PHG4Particle* particle) {
 
-  if (_strict) assert(particle);
-  else if (!particle) return NULL;
+  if (_strict) {assert(particle);}
+  else if (!particle) {++_errors; return NULL;}
   
   if (_do_cache) {
     std::map<PHG4Particle*,Jet*>::iterator iter =
@@ -212,8 +222,8 @@ Jet* JetTruthEval::get_truth_jet(PHG4Particle* particle) {
       unsigned int index = jter->second;
       
       PHG4Particle* constituent = _truthinfo->GetHit( index );
-      if (_strict) assert(constituent);
-      else if (!constituent) continue;
+      if (_strict) {assert(constituent);}
+      else if (!constituent) {++_errors; continue;}
 
       if (get_svtx_eval_stack()->get_truth_eval()->are_same_particle(constituent,particle)) {
 	truth_jet = candidate;

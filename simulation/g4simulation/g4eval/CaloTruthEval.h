@@ -21,7 +21,7 @@ class CaloTruthEval {
 public:
 
   CaloTruthEval(PHCompositeNode *topNode, std::string caloname); // CEMC, HCALIN, HCALOUT
-  virtual ~CaloTruthEval() {}
+  virtual ~CaloTruthEval();
 
   void next_event(PHCompositeNode *topNode);
   void do_caching(bool do_cache) {_do_cache = do_cache;}
@@ -29,7 +29,11 @@ public:
     _strict = strict;
     _basetrutheval.set_strict(strict);
   }
-
+  void set_verbosity(int verbosity) {
+    _verbosity = verbosity;
+    _basetrutheval.set_verbosity(verbosity);
+  }
+  
   std::set<PHG4Hit*> all_truth_hits(PHG4Particle* particle);  
   PHG4Particle*      get_parent_particle(PHG4Hit* g4hit);
   PHG4Particle*      get_primary_particle(PHG4Particle* particle);
@@ -45,6 +49,8 @@ public:
   std::set<PHG4Hit*> get_shower_from_primary(PHG4Particle* primary);  
   float              get_shower_moliere_radius(PHG4Particle* primary);
   float              get_shower_energy_deposit(PHG4Particle* primary);
+
+  unsigned int       get_errors() {return _errors;}
   
 private:
 
@@ -57,6 +63,8 @@ private:
   PHG4HitContainer* _g4hits;
 
   bool _strict;
+  int _verbosity;
+  unsigned int _errors;
   
   bool                                        _do_cache;
   std::map<PHG4Particle*,std::set<PHG4Hit*> > _cache_all_truth_hits_g4particle;

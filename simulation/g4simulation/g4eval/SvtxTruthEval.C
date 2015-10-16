@@ -24,7 +24,9 @@ SvtxTruthEval::SvtxTruthEval(PHCompositeNode* topNode)
     _truthinfo(NULL),
     _g4hits_svtx(NULL),
     _g4hits_tracker(NULL),
-    _strict(true),
+    _strict(false),
+    _verbosity(1),
+    _errors(0), 
     _do_cache(true),
     _cache_all_truth_hits(),
     _cache_all_truth_hits_g4particle(),
@@ -32,6 +34,14 @@ SvtxTruthEval::SvtxTruthEval(PHCompositeNode* topNode)
     _cache_get_outermost_truth_hit(),
     _cache_get_primary_g4hit() {
   get_node_pointers(topNode);
+}
+
+SvtxTruthEval::~SvtxTruthEval() {
+  if (_verbosity > 0) {
+    if ((_errors > 0)||(_verbosity > 1)) {
+      cout << "SvtxTruthEval::~SvtxTruthEval() - Error Count: " << _errors << endl;
+    }
+  }
 }
 
 void SvtxTruthEval::next_event(PHCompositeNode* topNode) {
@@ -90,8 +100,8 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits() {
 
 std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle) {
 
-  if (_strict) assert(particle);
-  else if (!particle) return std::set<PHG4Hit*>();
+  if (_strict) {assert(particle);}
+  else if (!particle) {++_errors; return std::set<PHG4Hit*>();}
   
   if (_do_cache) {
     std::map<PHG4Particle*,std::set<PHG4Hit*> >::iterator iter =
@@ -134,8 +144,8 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle) {
 
 PHG4Hit* SvtxTruthEval::get_innermost_truth_hit(PHG4Particle* particle) {
 
-  if (_strict) assert(particle);
-  else if (!particle) return NULL;
+  if (_strict) {assert(particle);}
+  else if (!particle) {++_errors; return NULL;}
   
   PHG4Hit* innermost_hit = NULL;
   float innermost_radius = FLT_MAX;
@@ -159,8 +169,8 @@ PHG4Hit* SvtxTruthEval::get_innermost_truth_hit(PHG4Particle* particle) {
 
 PHG4Hit* SvtxTruthEval::get_outermost_truth_hit(PHG4Particle* particle) {
 
-  if (_strict) assert(particle);
-  else if (!particle) return NULL;
+  if (_strict) {assert(particle);}
+  else if (!particle) {++_errors; return NULL;}
   
   PHG4Hit* outermost_hit = NULL;
   float outermost_radius = FLT_MAX*-1.0;
@@ -200,8 +210,8 @@ bool SvtxTruthEval::is_primary(PHG4Particle* particle) {
 
 PHG4Particle* SvtxTruthEval::get_primary(PHG4Hit* g4hit) {
 
-  if (_strict) assert(g4hit);
-  else if (!g4hit) return NULL;
+  if (_strict) {assert(g4hit);}
+  else if (!g4hit) {++_errors; return NULL;}
 
   if (_do_cache) {
     std::map<PHG4Hit*,PHG4Particle*>::iterator iter =
@@ -215,7 +225,8 @@ PHG4Particle* SvtxTruthEval::get_primary(PHG4Hit* g4hit) {
 
   if (_do_cache) _cache_get_primary_g4hit.insert(make_pair(g4hit,primary));
   
-  if (_strict) assert(primary);
+  if (_strict) {assert(primary);}
+  else if (!primary) {++_errors;}
   
   return primary;
 }

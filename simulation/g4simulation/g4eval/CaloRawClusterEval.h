@@ -22,7 +22,7 @@ class CaloRawClusterEval {
 public:
 
   CaloRawClusterEval(PHCompositeNode *topNode, std::string caloname);
-  virtual ~CaloRawClusterEval() {}
+  virtual ~CaloRawClusterEval();
 
   void next_event(PHCompositeNode *topNode);
   void do_caching(bool do_cache) {
@@ -32,6 +32,10 @@ public:
   void set_strict(bool strict) {
     _strict = strict;
     _towereval.set_strict(strict);
+  }
+  void set_verbosity(int verbosity) {
+    _verbosity = verbosity;
+    _towereval.set_verbosity(verbosity);
   }
   
   CaloTruthEval* get_truth_eval() {return _towereval.get_truth_eval();}
@@ -50,6 +54,8 @@ public:
   
   // overlap calculations
   float get_energy_contribution (RawCluster* cluster, PHG4Particle* primary);
+
+  unsigned int get_errors() {return _errors + _towereval.get_errors();}
   
 private:
 
@@ -61,6 +67,8 @@ private:
   RawTowerContainer* _towers;
 
   bool _strict;
+  int _verbosity;
+  unsigned int _errors;
   
   bool                                                 _do_cache;
   std::map<RawCluster*,std::set<PHG4Hit*> >            _cache_all_truth_hits;

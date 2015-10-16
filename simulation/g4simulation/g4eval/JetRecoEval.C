@@ -48,7 +48,9 @@ JetRecoEval::JetRecoEval(PHCompositeNode* topNode,
     _hcalinclusters(NULL),
     _hcalouttowers(NULL),
     _hcaloutclusters(NULL),
-    _strict(true),
+    _strict(false),
+    _verbosity(1),
+    _errors(0),
     _do_cache(true),
     _cache_all_truth_hits(),
     _cache_all_truth_jets(),
@@ -58,6 +60,14 @@ JetRecoEval::JetRecoEval(PHCompositeNode* topNode,
     _cache_best_jet_from(),
     _cache_get_energy_contribution() {
   get_node_pointers(topNode);
+}
+
+JetRecoEval::~JetRecoEval() {
+  if (_verbosity > 0) {
+    if ((_errors > 0)||(_verbosity > 1)) {
+      cout << "JetRecoEval::~JetRecoEval() - Error Count: " << _errors << endl;
+    }
+  }
 }
 
 void JetRecoEval::next_event(PHCompositeNode* topNode) {
@@ -77,8 +87,8 @@ void JetRecoEval::next_event(PHCompositeNode* topNode) {
 
 std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {
 
-  if (_strict) assert(recojet);
-  else if (!recojet) return std::set<PHG4Hit*>();
+  if (_strict) {assert(recojet);}
+  else if (!recojet) {++_errors; return std::set<PHG4Hit*>();}
   
   if (_do_cache) {
     std::map<Jet*,std::set<PHG4Hit*> >::iterator iter =
@@ -110,8 +120,8 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {
 
       SvtxTrack* track = _trackmap->get(index);
 
-      if (_strict) assert(track);
-      else if (!track) continue;
+      if (_strict) {assert(track);}
+      else if (!track) {++_errors; continue;}
       
       new_hits = get_svtx_eval_stack()->get_track_eval()->all_truth_hits(track);      
 
@@ -124,8 +134,8 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {
       
       RawTower* tower = _cemctowers->getTower(index);
 
-      if (_strict) assert(tower);
-      else if (!tower) continue;
+      if (_strict) {assert(tower);}
+      else if (!tower) {++_errors; continue;}
       
       new_hits = get_cemc_eval_stack()->get_rawtower_eval()->all_truth_hits(tower);      
 
@@ -138,8 +148,8 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {
 
       RawCluster* cluster = _cemcclusters->getCluster(index);
 
-      if (_strict) assert(cluster);
-      else if (!cluster) continue;
+      if (_strict) {assert(cluster);}
+      else if (!cluster) {++_errors; continue;}
       
       new_hits = get_cemc_eval_stack()->get_rawcluster_eval()->all_truth_hits(cluster);      
 
@@ -152,8 +162,8 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {
 
       RawTower* tower = _hcalintowers->getTower(index);
 
-      if (_strict) assert(tower);
-      else if (!tower) continue;
+      if (_strict) {assert(tower);}
+      else if (!tower) {++_errors; continue;}
       
       new_hits = get_hcalin_eval_stack()->get_rawtower_eval()->all_truth_hits(tower); 
 
@@ -166,8 +176,8 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {
 
       RawCluster* cluster = _hcalinclusters->getCluster(index);
 
-      if (_strict) assert(cluster);
-      else if (!cluster) continue;
+      if (_strict) {assert(cluster);}
+      else if (!cluster) {++_errors; continue;}
       
       new_hits = get_hcalin_eval_stack()->get_rawcluster_eval()->all_truth_hits(cluster); 
 
@@ -180,8 +190,8 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {
 
       RawTower* tower = _hcalouttowers->getTower(index);
 
-      if (_strict) assert(tower);
-      else if (!tower) continue;
+      if (_strict) {assert(tower);}
+      else if (!tower) {++_errors; continue;}
       
       new_hits = get_hcalout_eval_stack()->get_rawtower_eval()->all_truth_hits(tower); 
 
@@ -194,8 +204,8 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {
 
       RawCluster* cluster = _hcaloutclusters->getCluster(index);
 
-      if (_strict) assert(cluster);
-      else if (!cluster) continue;
+      if (_strict) {assert(cluster);}
+      else if (!cluster) {++_errors; continue;}
       
       new_hits = get_hcalout_eval_stack()->get_rawcluster_eval()->all_truth_hits(cluster); 
     }
@@ -214,8 +224,8 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {
 
 std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
 
-  if (_strict) assert(recojet);
-  else if (!recojet) return std::set<PHG4Particle*>();
+  if (_strict) {assert(recojet);}
+  else if (!recojet) {++_errors; return std::set<PHG4Particle*>();}
   
   if (_do_cache) {
     std::map<Jet*,std::set<PHG4Particle*> >::iterator iter =
@@ -247,8 +257,8 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
 
       SvtxTrack* track = _trackmap->get(index);
 
-      if (_strict) assert(track);
-      else if (!track) continue;
+      if (_strict) {assert(track);}
+      else if (!track) {++_errors; continue;}
 
       new_particles = get_svtx_eval_stack()->get_track_eval()->all_truth_particles(track);      
 
@@ -261,8 +271,8 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
       
       RawTower* tower = _cemctowers->getTower(index);
 
-      if (_strict) assert(tower);
-      else if (!tower) continue;
+      if (_strict) {assert(tower);}
+      else if (!tower) {++_errors; continue;}
       
       new_particles = get_cemc_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower);      
 
@@ -275,8 +285,8 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
 
       RawCluster* cluster = _cemcclusters->getCluster(index);
 
-      if (_strict) assert(cluster);
-      else if (!cluster) continue;
+      if (_strict) {assert(cluster);}
+      else if (!cluster) {++_errors; continue;}
       
       new_particles = get_cemc_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
 
@@ -289,8 +299,8 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
 
       RawTower* tower = _hcalintowers->getTower(index);
 
-      if (_strict) assert(tower);
-      else if (!tower) continue;
+      if (_strict) {assert(tower);}
+      else if (!tower) {++_errors; continue;}
       
       new_particles = get_hcalin_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower); 
 
@@ -303,8 +313,8 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
 
       RawCluster* cluster = _hcalinclusters->getCluster(index);
 
-      if (_strict) assert(cluster);
-      else if (!cluster) continue;
+      if (_strict) {assert(cluster);}
+      else if (!cluster) {++_errors; continue;}
 
       new_particles = get_hcalin_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
 
@@ -317,8 +327,8 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
 
       RawTower* tower = _hcalouttowers->getTower(index);
 
-      if (_strict) assert(tower);
-      else if (!tower) continue;
+      if (_strict) {assert(tower);}
+      else if (!tower) {++_errors; continue;}
       
       new_particles = get_hcalout_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower); 
 
@@ -331,8 +341,8 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
 
       RawCluster* cluster = _hcaloutclusters->getCluster(index);
 
-      if (_strict) assert(cluster);
-      else if (!cluster) continue;
+      if (_strict) {assert(cluster);}
+      else if (!cluster) {++_errors; continue;}
 
       new_particles = get_hcalout_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
     }
@@ -351,8 +361,8 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
 
 std::set<Jet*> JetRecoEval::all_truth_jets(Jet* recojet) {
 
-  if (_strict) assert(recojet);
-  else if (!recojet) return std::set<Jet*>();
+  if (_strict) {assert(recojet);}
+  else if (!recojet) {++_errors; return std::set<Jet*>();}
   
   if (_do_cache) {
     std::map<Jet*,std::set<Jet*> >::iterator iter =
@@ -373,8 +383,8 @@ std::set<Jet*> JetRecoEval::all_truth_jets(Jet* recojet) {
        ++iter) {
     PHG4Particle* particle = *iter;
 
-    if (_strict) assert(particle);
-    else if (!particle) continue;
+    if (_strict) {assert(particle);}
+    else if (!particle) {++_errors; continue;}
     
     Jet* truth_jet = _jettrutheval.get_truth_jet(particle);
     if (!truth_jet) continue;
@@ -389,8 +399,8 @@ std::set<Jet*> JetRecoEval::all_truth_jets(Jet* recojet) {
 
 Jet* JetRecoEval::max_truth_jet_by_energy(Jet* recojet) {
 
-  if (_strict) assert(recojet);
-  else if (!recojet) return NULL;
+  if (_strict) {assert(recojet);}
+  else if (!recojet) {++_errors; return NULL;}
   
   if (_do_cache) {
     std::map<Jet*,Jet*>::iterator iter =
@@ -409,8 +419,8 @@ Jet* JetRecoEval::max_truth_jet_by_energy(Jet* recojet) {
        ++iter) {
     Jet* candidate = *iter;
 
-    if (_strict) assert(candidate);
-    else if (!candidate) continue;
+    if (_strict) {assert(candidate);}
+    else if (!candidate) {++_errors; continue;}
     
     float energy = get_energy_contribution(recojet,candidate);
     if (energy > max_energy) {
@@ -426,8 +436,8 @@ Jet* JetRecoEval::max_truth_jet_by_energy(Jet* recojet) {
 
 std::set<Jet*> JetRecoEval::all_jets_from(Jet* truthjet) {
 
-   if (_strict) assert(truthjet);
-   else if (!truthjet) return std::set<Jet*>();
+  if (_strict) {assert(truthjet);}
+  else if (!truthjet) {++_errors; return std::set<Jet*>();}
   
   if (_do_cache) {
     std::map<Jet*,std::set<Jet*> >::iterator iter =
@@ -452,8 +462,8 @@ std::set<Jet*> JetRecoEval::all_jets_from(Jet* truthjet) {
 	 ++jter) {
       Jet* truthcandidate = *jter;
 
-      if (_strict) assert(truthcandidate);
-      else if (!truthcandidate) continue;
+      if (_strict) {assert(truthcandidate);}
+      else if (!truthcandidate) {++_errors; continue;}
       
       if (truthcandidate->get_id() == truthjet->get_id()) {
 	recojets.insert(recojet);
@@ -468,8 +478,8 @@ std::set<Jet*> JetRecoEval::all_jets_from(Jet* truthjet) {
 
 Jet* JetRecoEval::best_jet_from(Jet* truthjet) {
 
-   if (_strict) assert(truthjet);
-   else if (!truthjet) return NULL;
+  if (_strict) {assert(truthjet);}
+  else if (!truthjet) {++_errors; return NULL;}
   
   if (_do_cache) {
     std::map<Jet*,Jet*>::iterator iter =
@@ -488,8 +498,8 @@ Jet* JetRecoEval::best_jet_from(Jet* truthjet) {
        ++iter) {
     Jet* recojet = *iter;
 
-   if (_strict) assert(recojet);
-   else if (!recojet) continue;
+    if (_strict) {assert(recojet);}
+    else if (!recojet) {++_errors; continue;}
     
     float energy = get_energy_contribution(recojet,truthjet);
     if (energy > max_energy) {
@@ -510,6 +520,7 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet) {
     assert(recojet);
     assert(truthjet);
   } else if (!recojet||!truthjet) {
+    ++_errors;
     return NAN;
   }
   
@@ -531,8 +542,8 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet) {
        ++iter) {
     PHG4Particle* truthparticle = *iter;
 
-    if (_strict) assert(truthparticle);
-    else if (!truthparticle) continue;
+    if (_strict) {assert(truthparticle);}
+    else if (!truthparticle) {++_errors; continue;}
     
     // loop over all recojet constituents
     for (Jet::ConstIter jter = recojet->begin_comp();
@@ -547,13 +558,13 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet) {
 	
 	SvtxTrack* track = _trackmap->get(index);
 
-	if (_strict) assert(track);
-	else if (!track) continue;
+	if (_strict) {assert(track);}
+	else if (!track) {++_errors; continue;}
 	
 	PHG4Particle* maxtruthparticle = get_svtx_eval_stack()->get_track_eval()->max_truth_particle_by_nclusters(track);
 
-	if (_strict) assert(maxtruthparticle);
-	else if (!maxtruthparticle) continue;
+	if (_strict) {assert(maxtruthparticle);}
+	else if (!maxtruthparticle) {++_errors; continue;}
 
 	if (maxtruthparticle->get_track_id() == truthparticle->get_track_id()) { 
 	  energy = track->get_p();
@@ -562,8 +573,8 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet) {
 	
 	RawTower* tower = _cemctowers->getTower(index);
 
-	if (_strict) assert(tower);
-	else if (!tower) continue;
+	if (_strict) {assert(tower);}
+	else if (!tower) {++_errors; continue;}
 
 	energy = get_cemc_eval_stack()->get_rawtower_eval()->get_energy_contribution(tower,truthparticle);
 
@@ -571,8 +582,8 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet) {
 	
 	RawCluster* cluster = _cemcclusters->getCluster(index);
 
-	if (_strict) assert(cluster);
-	else if (!cluster) continue;
+	if (_strict) {assert(cluster);}
+	else if (!cluster) {++_errors; continue;}
 	
 	energy = get_cemc_eval_stack()->get_rawcluster_eval()->get_energy_contribution(cluster,truthparticle);
 
@@ -580,8 +591,8 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet) {
 
 	RawTower* tower = _hcalintowers->getTower(index);
 
-	if (_strict) assert(tower);
-	else if (!tower) continue;
+	if (_strict) {assert(tower);}
+	else if (!tower) {++_errors; continue;}
 	
 	energy = get_hcalin_eval_stack()->get_rawtower_eval()->get_energy_contribution(tower,truthparticle);
 
@@ -589,24 +600,24 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet) {
 	
 	RawCluster* cluster = _hcalinclusters->getCluster(index);
 
-	if (_strict) assert(cluster);
-	else if (!cluster) continue;
+	if (_strict) {assert(cluster);}
+	else if (!cluster) {++_errors; continue;}
 	
 	energy = get_hcalin_eval_stack()->get_rawcluster_eval()->get_energy_contribution(cluster,truthparticle);
 
       } else if (source == Jet::HCALOUT_TOWER) {
 	RawTower* tower = _hcalouttowers->getTower(index);
 
-	if (_strict) assert(tower);
-	else if (!tower) continue;
+	if (_strict) {assert(tower);}
+	else if (!tower) {++_errors; continue;}
 	
 	energy = get_hcalout_eval_stack()->get_rawtower_eval()->get_energy_contribution(tower,truthparticle);
       } else if (source == Jet::HCALOUT_CLUSTER) {
 
 	RawCluster* cluster = _hcaloutclusters->getCluster(index);
 
-	if (_strict) assert(cluster);
-	else if (!cluster) continue;
+	if (_strict) {assert(cluster);}
+	else if (!cluster) {++_errors; continue;}
 	
 	energy = get_hcalout_eval_stack()->get_rawcluster_eval()->get_energy_contribution(cluster,truthparticle);
       }
