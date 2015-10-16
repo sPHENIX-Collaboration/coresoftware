@@ -271,12 +271,6 @@ PHG4InnerHcalSubsystem::SetScintiGap(const double scgap)
 }
 
 void
-PHG4InnerHcalSubsystem::SetStepLimits(const double slim)
-{
-  params->steplimits = slim*cm;
-}
-
-void
 PHG4InnerHcalSubsystem::SetTiltViaNcross(const int ncross)
 {
   if (ncross == 0)
@@ -290,4 +284,27 @@ PHG4InnerHcalSubsystem::SetTiltViaNcross(const int ncross)
       exit(1);
     }
   params->ncross = ncross;
+}
+
+void
+PHG4InnerHcalSubsystem::SetStepLimits(const double slim)
+{
+  params->steplimits = slim*cm;
+}
+
+void
+PHG4InnerHcalSubsystem::SetLightCorrection(const float inner_radius, const float inner_corr,
+			  const float outer_radius, const float outer_corr) 
+{
+  params->light_balance = true;
+  params->light_balance_inner_radius = inner_radius;
+  params->light_balance_inner_corr = inner_corr;
+  params->light_balance_outer_radius = outer_radius;
+  params->light_balance_outer_corr = outer_corr;
+}
+
+void
+PHG4InnerHcalSubsystem:: SetLightScintModel(const bool b)
+{
+  params->light_scint_model = b;
 }

@@ -29,14 +29,14 @@ PHG4CylinderCellContainer::identify(ostream& os) const
 {
    map<unsigned int,PHG4CylinderCell *>::const_iterator iter;
    os << "Number of cells: " << size() << endl;
-   for (iter = cellmap.begin(); iter != cellmap.end(); iter++)
+   for (iter = cellmap.begin(); iter != cellmap.end(); ++iter)
      {
        os << "cell key 0x" << hex << iter->first << dec << endl;
        (iter->second)->identify();
      }
    set<int>::const_iterator siter;
    os << "Number of layers: " << num_layers() << endl;
-   for (siter = layers.begin(); siter != layers.end(); siter++)
+   for (siter = layers.begin(); siter != layers.end(); ++siter)
      {
        os << "layer : " << *siter << endl;
      }
@@ -131,7 +131,7 @@ PHG4CylinderCellContainer::getTotalEdep() const
 {
   ConstIterator iter;
   double totalenergy = 0;
-  for (iter = cellmap.begin(); iter != cellmap.end(); iter++)
+  for (iter = cellmap.begin(); iter != cellmap.end(); ++iter)
     {
       totalenergy += iter->second->get_edep();
     }
