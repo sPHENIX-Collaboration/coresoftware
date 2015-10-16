@@ -7,6 +7,8 @@
 /// \author Michael P. McCumber (revised sPHENIX version)
 //===============================================
 
+#include "CaloEvalStack.h"
+
 #include <fun4all/SubsysReco.h>
 #include <phool/PHCompositeNode.h>
 
@@ -84,10 +86,13 @@ class CaloEvaluator : public SubsysReco {
   float _truth_e_threshold;
   float _reco_e_threshold;
 
+  CaloEvalStack* _caloevalstack;
+  
   //----------------------------------
   // evaluator output ntuples
 
   bool _strict;
+  unsigned int _errors;
   
   bool _do_gpoint_eval;
   bool _do_gshower_eval;
