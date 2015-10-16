@@ -21,7 +21,7 @@ public:
 
   JetTruthEval(PHCompositeNode* topNode,
 	       std::string truthjetname);
-  virtual ~JetTruthEval() {}
+  virtual ~JetTruthEval();
 
   void next_event(PHCompositeNode* topNode);
   void do_caching(bool do_cache) {
@@ -38,6 +38,13 @@ public:
     _hcalinevalstack.set_strict(strict);
     _hcaloutevalstack.set_strict(strict); 
   }  
+  void set_verbosity(int verbosity) {
+    _verbosity = verbosity;
+    _svtxevalstack.set_verbosity(verbosity);
+    _cemcevalstack.set_verbosity(verbosity);
+    _hcalinevalstack.set_verbosity(verbosity);
+    _hcaloutevalstack.set_verbosity(verbosity); 
+  }
   
   SvtxEvalStack* get_svtx_eval_stack() {return &_svtxevalstack;}
   CaloEvalStack* get_cemc_eval_stack() {return &_cemcevalstack;}
@@ -48,6 +55,14 @@ public:
   std::set<PHG4Hit*>      all_truth_hits(Jet* truthjet);
 
   Jet* get_truth_jet(PHG4Particle* truthparticle);
+
+  unsigned int get_errors() {
+    return _errors
+      + _svtxevalstack.get_errors()
+      + _cemcevalstack.get_errors()
+      + _hcalinevalstack.get_errors()
+      + _hcaloutevalstack.get_errors();
+  }
   
 private:
 
@@ -63,6 +78,8 @@ private:
   JetMap* _truthjets;
 
   bool _strict;
+  int _verbosity;
+  unsigned int _errors;
   
   bool                                    _do_cache;
   std::map<Jet*,std::set<PHG4Particle*> > _cache_all_truth_particles;
