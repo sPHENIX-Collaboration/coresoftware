@@ -60,7 +60,7 @@ int JetEvaluator::Init(PHCompositeNode *topNode) {
 
 int JetEvaluator::process_event(PHCompositeNode *topNode) {
 
-  if (_jetevalstack) {
+  if (!_jetevalstack) {
     _jetevalstack = new JetEvalStack(topNode,_recojetname,_truthjetname); 
     _jetevalstack->set_strict(_strict);
     _jetevalstack->set_verbosity(verbosity+1);
