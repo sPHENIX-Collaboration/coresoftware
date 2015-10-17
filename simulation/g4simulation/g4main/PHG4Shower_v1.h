@@ -44,14 +44,14 @@ public:
   float        get_covar(unsigned int i, unsigned int j) const;
   void         set_covar(unsigned int i, unsigned int j, float entry);
   
-  float        get_edep(PHG4Shower::VOLUME calotype) const;
-  void         set_edep(PHG4Shower::VOLUME calotype, float edep);
+  float        get_edep(PHG4Shower::VOLUME volume) const;
+  void         set_edep(PHG4Shower::VOLUME volume, float edep) {_edep[volume] = edep;}
 
-  float        get_eion(PHG4Shower::VOLUME calotype) const;
-  void         set_eion(PHG4Shower::VOLUME calotype, float eion);
+  float        get_eion(PHG4Shower::VOLUME volume) const;
+  void         set_eion(PHG4Shower::VOLUME volume, float eion) {_eion[volume] = eion;}
 
-  float        get_light_yield(PHG4Shower::VOLUME calotype);
-  void         set_light_yield(PHG4Shower::VOLUME calotype, float light_yield);
+  float        get_light_yield(PHG4Shower::VOLUME volume);
+  void         set_light_yield(PHG4Shower::VOLUME volume, float light_yield) {_light_yield[volume] = light_yield;}
   
 private:
   
