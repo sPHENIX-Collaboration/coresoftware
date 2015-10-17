@@ -1124,12 +1124,12 @@ int PHG4HoughTransformTPC::CreateNodes(PHCompositeNode *topNode)
   tb_node->addNode(vertexes_node);
   if (verbosity>0) cout << "Svtx/SvtxVertexMap node added" << endl;
   
-  PHG4CylinderGeomContainer* geoms = getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SVTX");
-  if(!geoms) 
-  {
-    cerr << PHWHERE << " ERROR: Can't find CYLINDERGEOM_SVTX Node." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
+  //PHG4CylinderGeomContainer* geoms = getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SVTX");
+  //if(!geoms) 
+  //{
+  //  cerr << PHWHERE << " ERROR: Can't find CYLINDERGEOM_SVTX Node." << endl;
+  //  return Fun4AllReturnCodes::ABORTEVENT;
+  //}
 
   return InitializeGeometry(topNode);
 }
