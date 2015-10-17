@@ -990,6 +990,7 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
   // }
     
   _tracker = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
+  _tracker->setIterateClustering(true);
   _tracker->setNLayers(_seed_layers);
   _tracker->requireLayers(_req_seed);
   _max_hits_init = _seed_layers*4;
