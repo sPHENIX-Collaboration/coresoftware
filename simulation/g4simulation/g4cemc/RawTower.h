@@ -17,6 +17,11 @@ class RawTower : public PHObject {
   typedef std::pair<CellIterator, CellIterator> CellRange;
   typedef std::pair<CellConstIterator, CellConstIterator> CellConstRange;
 
+  typedef std::map<unsigned int, float> ShowerMap;
+  typedef ShowerMap::iterator ShowerIterator;
+  typedef ShowerMap::const_iterator ShowerConstIterator;
+  typedef std::pair<ShowerIterator, ShowerIterator> ShowerRange;
+  typedef std::pair<ShowerConstIterator, ShowerConstIterator> ShowerConstRange;
 
   virtual ~RawTower() {}
 
@@ -33,15 +38,38 @@ class RawTower : public PHObject {
   //! energy assigned to the tower. Depending on stage of process and DST node name, it could be energy deposition, light yield or calibrated energies
   virtual void set_energy (const double ) { PHOOL_VIRTUAL_WARN("set_energy()"); return  ; }
 
+  
+  virtual bool empty_g4cells() const {return true;}
+
+  virtual size_t size_g4cells() const {return 0;}
+  
   virtual CellConstRange get_g4cells() const
   {
     PHOOL_VIRTUAL_WARN("get_g4cells()");
     CellMap dummy;
     return make_pair(dummy.begin(), dummy.end());
   }
-
+  
   virtual void add_ecell(const PHG4CylinderCellDefs::keytype  g4cellid, const float ecell) {PHOOL_VIRTUAL_WARN("add_ecell(const PHG4CylinderCellDefs::keytype g4cellid, const float ecell)"); return;}
 
+  virtual void clear_g4cells() {}
+
+
+  virtual bool empty_g4showers() const {return true;}
+  
+  virtual size_t size_g4showers() const {return 0;}
+  
+  virtual ShowerConstRange get_g4showers() const
+  {
+    PHOOL_VIRTUAL_WARN("get_g4showers()");
+    ShowerMap dummy;
+    return make_pair(dummy.begin(), dummy.end());
+  }
+  
+  virtual void add_eshower(const unsigned int g4showerid, const float eshower) {PHOOL_VIRTUAL_WARN("add_eshower(const unsigned int g4showerid, const float eshower)"); return;}
+
+  virtual void clear_g4showers() {}
+  
  protected:
   RawTower() {}
 

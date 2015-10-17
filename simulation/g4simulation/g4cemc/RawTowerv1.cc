@@ -84,4 +84,16 @@ RawTowerv1::add_ecell(const PHG4CylinderCellDefs::keytype g4cellid, const float 
     }
 }
 
+void 
+RawTowerv1::add_eshower(const unsigned int g4showerid, const float eshower)
+{
+  if (eshowers.find(g4showerid) == eshowers.end())
+    {
+      eshowers[g4showerid] = eshower;
+    }
+  else
+    {
+      eshowers[g4showerid] += eshower;
+    }
+}
 

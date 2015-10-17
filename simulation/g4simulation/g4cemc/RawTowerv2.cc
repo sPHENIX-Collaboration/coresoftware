@@ -46,18 +46,9 @@ void RawTowerv2::identify(std::ostream& os) const
 
 RawTowerv2* RawTowerv2::clone() const
 {
-  int eta_i = this->get_bineta();
-  int phi_i = this->get_binphi();
-
-  RawTowerv2* tower_clone = new RawTowerv2( eta_i , phi_i );
-
-  tower_clone->set_edep( this->get_edep() );
-  tower_clone->set_thetaMin( this->get_thetaMin() );
-  tower_clone->set_thetaSize( this->get_thetaSize() );
-  tower_clone->set_phiMin( this->get_phiMin() );
-  tower_clone->set_phiSize( this->get_phiSize() );
-  tower_clone->set_zMin( this->get_zMin() );
-  tower_clone->set_zSize( this->get_zSize() );
-
+  // no dynamic memory allocation, just use the compiler provided
+  // copy constructor to support this task
+  // will prevent the "I forgot to add the new thing here" bugs
+  RawTowerv2* tower_clone = new RawTowerv2(*this);
   return tower_clone;
 }

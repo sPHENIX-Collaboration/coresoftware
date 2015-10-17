@@ -26,17 +26,28 @@ class RawTowerv1 : public RawTower {
   double get_energy() const {return energy;}
   void set_energy(const double e) {energy = e;}
 
+  bool empty_g4cells() const {return ecells.empty();}
+  size_t size_g4cells() const {return ecells.size();}
   RawTower::CellConstRange get_g4cells() const
   {return make_pair(ecells.begin(), ecells.end());}
   void add_ecell(const PHG4CylinderCellDefs::keytype g4cellid, const float ecell);
+  void clear_g4cells() {ecells.clear();}
 
+  bool empty_g4showers() const {return eshowers.empty();}
+  size_t size_g4showers() const {return eshowers.size();}
+  RawTower::ShowerConstRange get_g4showers() const
+  {return make_pair(eshowers.begin(), eshowers.end());}
+  void add_eshower(const unsigned int g4showerid, const float eshower);
+  void clear_g4showers() {eshowers.clear();}
+  
  protected:
   RawTowerDefs::keytype towerid;
 
   //! energy assigned to the tower. Depending on stage of process and DST node name, it could be energy deposition, light yield or calibrated energies
   double energy;
 
-  CellMap ecells;
+  CellMap ecells;     //< default truth storage
+  ShowerMap eshowers; //< alternate truth storage for smaller filesizes
 
   ClassDef(RawTowerv1,3)
 };
