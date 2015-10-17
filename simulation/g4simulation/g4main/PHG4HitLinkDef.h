@@ -5,6 +5,9 @@
 #pragma link C++ class PHG4Hitv1+;
 #pragma link C++ class PHG4HitEval+;
 #pragma link C++ class PHG4HitContainer+;
+#pragma link C++ class PHG4Shower+;
+#pragma link C++ class PHG4Shower_v1+;
+#pragma link C++ class PHG4ShowerMap+;
 #pragma link C++ class PHG4Particle+;
 #pragma link C++ class PHG4Particlev1+;
 #pragma link C++ class PHG4Particlev2+;

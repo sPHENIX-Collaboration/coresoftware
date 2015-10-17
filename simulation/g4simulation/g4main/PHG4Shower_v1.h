@@ -50,7 +50,7 @@ public:
   float        get_eion(PHG4Shower::VOLUME volume) const;
   void         set_eion(PHG4Shower::VOLUME volume, float eion) {_eion[volume] = eion;}
 
-  float        get_light_yield(PHG4Shower::VOLUME volume);
+  float        get_light_yield(PHG4Shower::VOLUME volume) const;
   void         set_light_yield(PHG4Shower::VOLUME volume, float light_yield) {_light_yield[volume] = light_yield;}
   
 private:
@@ -58,6 +58,7 @@ private:
   unsigned int covar_index(unsigned int i, unsigned int j) const;
   
   unsigned int                        _id;          //< unique identifier within container
+  int                                 _primary_id;  //< association of shower to primary particle id
   float                               _pos[3];      //< mean position of the shower
   float                               _covar[6];    //< covariance of shower positions
   std::map<PHG4Shower::VOLUME, float> _edep;        //< energy deposit in different volumes
