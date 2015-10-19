@@ -41,10 +41,10 @@ PHG4Shower* PHG4ShowerMap::get(unsigned int id) {
   return iter->second;
 }
 
-PHG4Shower* PHG4ShowerMap::insert(PHG4Shower* shower) {
+PHG4Shower* PHG4ShowerMap::insert(const PHG4Shower* shower) {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair( index , shower ));
+  _map.insert(make_pair( index , shower->Clone() ));
   _map[index]->set_id(index);
   return _map[index];
 }

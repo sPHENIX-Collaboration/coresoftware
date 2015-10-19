@@ -1,6 +1,7 @@
 #include "PHG4Shower_v1.h"
 
 #include <cmath>
+#include <iostream>
 
 using namespace std;
 
@@ -29,7 +30,7 @@ PHG4Shower_v1::~PHG4Shower_v1(){}
 void PHG4Shower_v1::identify(ostream& os) const {
   os << "---PHG4Shower_v1-------------------------------" << endl;
   os << "id: " << get_id() << endl;
-  os << "primary_id: " << get_id() << endl;
+  os << "primary_id: " << get_primary_id() << endl;
   os << "x: " << get_x() << endl;
   os << "y: " << get_y() << endl;
   os << "z: " << get_z() << endl;
@@ -46,13 +47,24 @@ void PHG4Shower_v1::identify(ostream& os) const {
   os << get_covar(2,0) << " , ";
   os << get_covar(2,1) << " , ";
   os << get_covar(2,2) << " )" << endl;
+
+  os << "VOLUME ID : edep eion light_yield" << endl;
+  for (std::map<PHG4Shower::VOLUME,float>::const_iterator iter = _edep.begin();
+       iter != _edep.end();
+       ++iter) {
+    PHG4Shower::VOLUME volid = iter->first;
+    cout << volid << " : "
+	 << get_edep(volid) << " "
+      	 << get_eion(volid) << " "
+      	 << get_light_yield(volid) << endl;
+  }
   
   os << "-----------------------------------------------" << endl;
   
   return;  
 }
 
-PHG4Shower* PHG4Shower_v1::Clone() {
+PHG4Shower* PHG4Shower_v1::Clone() const {
   PHG4Shower_v1* shower = new PHG4Shower_v1(*this);
   return shower;
 }

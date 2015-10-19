@@ -22,7 +22,7 @@ public:
   // PHObject virtual overloads
   
   virtual void         identify(std::ostream& os = std::cout) const {os << "PHG4Shower base class" << std::endl;}
-  virtual PHG4Shower*  Clone()                                      {return NULL;}
+  virtual PHG4Shower*  Clone() const                                {return NULL;}
   virtual void         Reset()                                      {}
   virtual int          isValid() const                              {return 0;}
 

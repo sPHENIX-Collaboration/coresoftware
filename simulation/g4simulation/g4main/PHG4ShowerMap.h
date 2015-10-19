@@ -28,7 +28,7 @@ public:
   
   const PHG4Shower* get(unsigned int idkey) const;
         PHG4Shower* get(unsigned int idkey); 
-        PHG4Shower* insert(PHG4Shower* shower);
+        PHG4Shower* insert(const PHG4Shower* shower);
         size_t      erase(unsigned int idkey) {
     delete _map[idkey];
     return _map.erase(idkey);

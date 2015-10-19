@@ -17,7 +17,7 @@ public:
   // PHObject virtual overloads
    
   void         identify(std::ostream& os = std::cout) const;
-  PHG4Shower*  Clone();
+  PHG4Shower*  Clone() const;
   void         Reset();
   int          isValid() const;
 
