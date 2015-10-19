@@ -10,10 +10,12 @@ class PHG4Shower : public PHObject {
 public:
 
   enum VOLUME {NONE=0,
-	       CEMC=1,CEMC_ABS=2,
-	       MAGN=3,
-	       HCALIN=4,HCALIN_ABS=5,
-	       HCALOUT=6,HCALOUT_ABS=7};
+	       CEMC_ELECTRONICS=1,CEMC=2,ABSORBER_CEMC=3,CEMC_SPT=4,
+	       ABORBER_HCALIN=5,HCALIN=6,HCALIN_SPT=7,
+	       MAGNET=8,
+	       ABORBER_HCALOUT=9,HCALOUT=10,HCALOUT_SPT=11,
+	       BH_1=12
+  };
   
   virtual ~PHG4Shower() {}
 
