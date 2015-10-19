@@ -4,7 +4,7 @@
 #ifndef RECOCONSTS_H__
 #define RECOCONSTS_H__
 
-#include <phool/PHFlag.h>
+#include "PHFlag.h"
 
 class recoConsts : public PHFlag
 {

@@ -3,7 +3,7 @@
 
 #include "SvtxHitEval.h"
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <g4hough/SvtxHitMap.h>
 #include <g4hough/SvtxHit.h>

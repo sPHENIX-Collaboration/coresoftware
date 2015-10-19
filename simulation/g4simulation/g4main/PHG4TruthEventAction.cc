@@ -6,7 +6,7 @@
 #include "PHG4VtxPoint.h"
 #include "PHG4TruthInfoContainer.h"
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <Geant4/G4Event.hh>
 #include <Geant4/G4TrajectoryContainer.hh>

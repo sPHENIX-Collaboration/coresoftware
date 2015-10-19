@@ -23,8 +23,6 @@ pkginclude_HEADERS = \
   Fun4AllServer.h \
   Fun4AllUtils.h \
   PHTFileServer.h \
-  getClass.h \
-  recoConsts.h \
   SubsysReco.h \
   SubsysRecoStack.h \
   TDirectoryHelper.h
@@ -65,8 +63,7 @@ libfun4all_la_SOURCES = \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllServer.cc \
   Fun4AllUtils.cc \
-  PHTFileServer.cxx \
-  recoConsts.cc
+  PHTFileServer.cxx
 
 nodist_libfun4all_la_SOURCES = Fun4All_Dict.cc
 
@@ -116,7 +113,6 @@ Fun4All_Dict.cc: \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllServer.h \
-  recoConsts.h \
   Fun4AllLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 

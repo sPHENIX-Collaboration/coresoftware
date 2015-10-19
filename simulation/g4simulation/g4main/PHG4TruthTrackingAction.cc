@@ -5,7 +5,7 @@
 #include "PHG4Particlev2.h"
 #include "PHG4VtxPointv1.h"
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4SystemOfUnits.hh>

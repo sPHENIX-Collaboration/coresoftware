@@ -16,7 +16,7 @@
 #include <g4field/PHG4FieldsPHENIX.h>
 
 #include <fun4all/Fun4AllServer.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>

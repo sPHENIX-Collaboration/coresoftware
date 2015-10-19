@@ -12,8 +12,8 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHRandomSeed.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/getClass.h>
-#include <fun4all/recoConsts.h>
+#include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <iostream>
 #include <stdexcept>

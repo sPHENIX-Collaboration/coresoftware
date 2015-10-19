@@ -3,8 +3,6 @@
 #include "Fun4AllHistoBinDefs.h"
 #include "Fun4AllSyncManager.h"
 #include "Fun4AllReturnCodes.h"
-#include "recoConsts.h"
-#include "getClass.h"
 
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncObject.h>
@@ -12,9 +10,11 @@
 
 #include <frog/FROG.h>
 
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIOManager.h>
+#include <phool/recoConsts.h>
 
 #include <TH1.h>
 

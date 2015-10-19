@@ -28,7 +28,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 // Geant4 includes
 #include <Geant4/G4MagneticField.hh>

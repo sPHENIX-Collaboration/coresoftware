@@ -3,7 +3,7 @@
 
 #include "SvtxClusterEval.h"
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <g4hough/SvtxCluster.h>
 #include <g4hough/SvtxClusterMap.h>

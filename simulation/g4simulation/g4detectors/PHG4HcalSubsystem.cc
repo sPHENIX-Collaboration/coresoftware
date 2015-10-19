@@ -7,7 +7,7 @@
 #include <g4main/PHG4PhenixDetector.h>
 #include <g4main/PHG4HitContainer.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <Geant4/globals.hh>
 

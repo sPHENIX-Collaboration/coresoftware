@@ -15,7 +15,7 @@
 #include "DumpSyncObject.h"
 #include "DumpVariableArray.h"
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <ffaobjects/RunHeader.h>
 

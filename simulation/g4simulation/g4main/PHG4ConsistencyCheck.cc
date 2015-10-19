@@ -5,7 +5,7 @@
 #include "PHG4Hit.h"
 #include "PHG4Particle.h"
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 using namespace std;
 
