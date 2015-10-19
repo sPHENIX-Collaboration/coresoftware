@@ -23,7 +23,6 @@ pkginclude_HEADERS = \
   Fun4AllServer.h \
   Fun4AllUtils.h \
   PHTFileServer.h \
-  getClass.h \
   SubsysReco.h \
   SubsysRecoStack.h \
   TDirectoryHelper.h
