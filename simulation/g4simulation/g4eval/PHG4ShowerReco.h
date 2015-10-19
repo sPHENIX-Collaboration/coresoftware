@@ -13,7 +13,7 @@
 #include <g4main/PHG4Shower.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4TruthInfoContainer.h>
-#include <cemc/RawTowerContainer.h>
+#include <g4cemc/RawTowerContainer.h>
 
 // PHENIX includes
 #include <fun4all/SubsysReco.h>

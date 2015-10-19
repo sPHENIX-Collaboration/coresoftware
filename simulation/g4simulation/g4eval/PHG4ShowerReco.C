@@ -1,5 +1,5 @@
 
-#include "PHG4SHowerReco.h"
+#include "PHG4ShowerReco.h"
 
 #include "CaloTruthEval.h"
 
@@ -9,8 +9,8 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
-#include <cemc/RawTowerContainer.h>
-#include <cemc/RawTower.h>
+#include <g4cemc/RawTowerContainer.h>
+#include <g4cemc/RawTower.h>
 
 #include <phool/PHCompositeNode.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -19,14 +19,19 @@
 #include <iostream>
 #include <set>
 #include <cmath>
+#include <cstdlib>
 
 using namespace std;
 
-PHG4ShowerReco::PHG4ShowerReco(const string &name, const string &filename) :
+PHG4ShowerReco::PHG4ShowerReco(const string &name) :
   SubsysReco("PHG4ShowerReco"),
   _ievent(0),
+  _truth_info(),
   _volume_names(),
-  _volume_evals() {
+  _volume_evals(),
+  _volume_g4hits(),
+  _volume_towers(),
+  _shower_map() {
   verbosity = 0;
 
   _volume_names.insert(make_pair(PHG4Shower::CEMC_ELECTRONICS,"CEMC_ELECTRONICS"));
@@ -43,7 +48,9 @@ PHG4ShowerReco::PHG4ShowerReco(const string &name, const string &filename) :
   _volume_names.insert(make_pair(PHG4Shower::ABSORBER_HCALOUT,"ABSORBER_HCALOUT"));
   _volume_names.insert(make_pair(PHG4Shower::HCALOUT         ,"HCALOUT"));
 
-  _volume_names.insert(make_pair(PHG4Shower::BH_1            ,"BH_1")); 
+  _volume_names.insert(make_pair(PHG4Shower::BH_1            ,"BH_1"));
+
+  /// \todo expand this list to include forward detectors
 }
 
 int PHG4ShowerReco::Init(PHCompositeNode *topNode) {
@@ -70,13 +77,13 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
     cout << "PHG4ShowerReco::process_event - Event = " << _ievent << endl;
   }
 
-  // create or update the evaluators
+  // create or update the truth evaluators for each volume
   if (_volume_evals.empty()) {
-    for (std::map<PHG4Shower::VOLUME,std::string>::iterator iter = _volume_names.begin();
-	 iter != _volume_names.end();
+    for (std::map<PHG4Shower::VOLUME,PHG4HitContainer*>::iterator iter = _volume_g4hits.begin();
+	 iter != _volume_g4hits.end();
 	 ++iter) {
-      std::string caloname = iter->second;
-      _volume_evals.insert(make_pair(caloname,new CaloEvalStack(topNode,caloname)));
+      PHG4Shower::VOLUME volid = iter->first;      
+      _volume_evals.insert(make_pair(volid, new CaloTruthEval(topNode,_volume_names[volid])));
     }
   } else {
     for (std::map<PHG4Shower::VOLUME,CaloTruthEval*>::iterator iter = _volume_evals.begin();
@@ -107,16 +114,18 @@ int PHG4ShowerReco::End(PHCompositeNode *topNode) {
   for (std::map<PHG4Shower::VOLUME,CaloTruthEval*>::iterator iter = _volume_evals.begin();
        iter != _volume_evals.end();
        ++iter) {
-    CaloEvalStack* eval = iter->second;
+    CaloTruthEval* eval = iter->second;
     if (eval) delete eval;
   }
   _volume_evals.clear();
 
-  return;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4ShowerReco::CreateNodes(PHCompositeNode *topNode) {
 
+  PHNodeIterator iter(topNode);
+  
   // Looking for the DST node
   PHCompositeNode *dstNode 
     = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
@@ -158,8 +167,8 @@ int PHG4ShowerReco::GetNodes(PHCompositeNode *topNode) {
     }    
   }
 
-  _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
-  if (!_truthinfo) {
+  _truth_info = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+  if (!_truth_info) {
     cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
     exit(-1);
   }

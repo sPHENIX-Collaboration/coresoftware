@@ -68,6 +68,8 @@ libg4eval_la_SOURCES = \
   JetEvaluator_Dict.C \
   PHG4DSTReader.cc \
   PHG4DSTReader_Dict.C \
+  PHG4ShowerReco.C \
+  PHG4ShowerReco_Dict.C \
   SvtxEvalStack.C \
   SvtxEvalStack_Dict.C \
   SvtxTruthEval.C \
