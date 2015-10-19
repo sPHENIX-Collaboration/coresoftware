@@ -145,7 +145,6 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
     TPrincipal pca(3); // principal component analysis object
 
     // loop over all volumes with evals
-    cout << endl;
     for (std::map<PHG4Shower::VOLUME,CaloTruthEval*>::iterator iter = _volume_truthevals.begin();
 	 iter != _volume_truthevals.end();
 	 ++iter) {
@@ -241,7 +240,7 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 	 iter != towers->getTowers().second;
 	 ++iter) {
       RawTower* tower = iter->second;
-
+      
       // get all primaries that contribute to tower
       std::set<PHG4Particle*> primaries = _volume_towerevals[volid]->all_truth_primaries(tower);
            
@@ -251,7 +250,7 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 	   ++jter) {
 	PHG4Particle* primary = *jter;
 	unsigned int showerid = _primaryid_showerid_map[primary->get_track_id()];
-
+	
 	float edep = _volume_towerevals[volid]->get_energy_contribution(tower,primary);
 	
 	// insert this ancestry onto the tower
@@ -323,7 +322,7 @@ int PHG4ShowerReco::GetNodes(PHCompositeNode *topNode) {
       _volume_g4hits.insert(make_pair(volid,g4hits));
     }   
     
-    nodename = "TOWER_SIM_" + volname;
+    nodename = "TOWER_CALIB_" + volname;
     RawTowerContainer* calib_towers = findNode::getClass<RawTowerContainer>(topNode,nodename.c_str());
     if (calib_towers) {
       _volume_towers.insert(make_pair(volid,calib_towers));
