@@ -7,7 +7,7 @@
 #include <fun4all/Fun4AllHistoManager.h>
 
 #include <phool/PHCompositeNode.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <TH1.h>
 #include <TH2.h>
