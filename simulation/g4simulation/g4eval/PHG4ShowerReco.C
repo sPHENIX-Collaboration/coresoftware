@@ -2,6 +2,7 @@
 #include "PHG4ShowerReco.h"
 
 #include "CaloTruthEval.h"
+#include "CaloRawTowerEval.h"
 
 #include <g4main/PHG4ShowerMap.h>
 #include <g4main/PHG4Shower.h>
@@ -31,7 +32,7 @@ PHG4ShowerReco::PHG4ShowerReco(const string &name) :
   _ievent(0),
   _truth_info(),
   _volume_names(),
-  _volume_evals(),
+  _volume_truthevals(),
   _volume_g4hits(),
   _volume_towers(),
   _shower_map() {
@@ -80,23 +81,44 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
     cout << "PHG4ShowerReco::process_event - Event = " << _ievent << endl;
   }
 
+  // create or update the tower evaluators for each volume
+  if (_volume_towerevals.empty()) {
+   for (std::map<PHG4Shower::VOLUME,RawTowerContainer*>::iterator iter = _volume_towers.begin();
+	 iter != _volume_towers.end();
+	 ++iter) {
+     PHG4Shower::VOLUME volid = iter->first;
+     if (_volume_towerevals.find(volid) != _volume_towerevals.end()) continue;
+     _volume_towerevals.insert(make_pair(volid, new CaloRawTowerEval(topNode,_volume_names[volid])));     
+   }
+  } else {
+    for (std::map<PHG4Shower::VOLUME,CaloRawTowerEval*>::iterator iter = _volume_towerevals.begin();
+	 iter != _volume_towerevals.end();
+	 ++iter) {
+      CaloRawTowerEval* towereval = iter->second;
+      towereval->next_event(topNode);
+   }
+  }
+
   // create or update the truth evaluators for each volume
-  if (_volume_evals.empty()) {
+  if (_volume_truthevals.empty()) {     
     for (std::map<PHG4Shower::VOLUME,PHG4HitContainer*>::iterator iter = _volume_g4hits.begin();
 	 iter != _volume_g4hits.end();
 	 ++iter) {
-      PHG4Shower::VOLUME volid = iter->first;      
-      _volume_evals.insert(make_pair(volid, new CaloTruthEval(topNode,_volume_names[volid])));
+      PHG4Shower::VOLUME volid = iter->first;     
+      _volume_truthevals.insert(make_pair(volid, new CaloTruthEval(topNode,_volume_names[volid])));
     }
   } else {
-    for (std::map<PHG4Shower::VOLUME,CaloTruthEval*>::iterator iter = _volume_evals.begin();
-	 iter != _volume_evals.end();
+    for (std::map<PHG4Shower::VOLUME,CaloTruthEval*>::iterator iter = _volume_truthevals.begin();
+	 iter != _volume_truthevals.end();
 	 ++iter) {
       CaloTruthEval* eval = iter->second;
       eval->next_event(topNode);
     }
   }
 
+  // backtrack map between primary id and shower id
+  std::map<int, unsigned int> _primaryid_showerid_map;
+  
   // --- create the g4shower objects -------------------------------------------
   
   // loop over all truth primary particles
@@ -106,47 +128,78 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
        ++iter) {
     PHG4Particle* primary = iter->second;
 
+    cout << endl;
+    primary->identify();
+    
     PHG4Shower_v1 shower;
     shower.set_primary_id(primary->get_track_id());
 
-    TPrincipal pca(3);
+    TPrincipal pca(3); // principal component analysis object
+
+    float mean_x = 0.0;
+    float mean_y = 0.0;
+    float mean_z = 0.0;
+    float norm = 0;
     
     // loop over all volumes with evals
-    for (std::map<PHG4Shower::VOLUME,CaloTruthEval*>::iterator iter = _volume_evals.begin();
-	 iter != _volume_evals.end();
+    cout << endl;
+    for (std::map<PHG4Shower::VOLUME,CaloTruthEval*>::iterator iter = _volume_truthevals.begin();
+	 iter != _volume_truthevals.end();
 	 ++iter) {
       PHG4Shower::VOLUME volid = iter->first;
       CaloTruthEval* eval = iter->second;
 
+      //cout << endl;
+      //cout << volid << endl;
+      
       float edep = 0.0;
       float eion = 0.0;
       float light_yield = 0.0;
       
       // get the g4hits from this particle in this volume
+      
       std::set<PHG4Hit*> g4hits = eval->get_shower_from_primary(primary);     
       for (std::set<PHG4Hit*>::iterator jter = g4hits.begin();
 	   jter != g4hits.end();
 	   ++jter) {
 	PHG4Hit* g4hit = *jter;
 
-	double data0[3] = {g4hit->get_x(0),
-			   g4hit->get_y(0),
-			   g4hit->get_z(0)};
+	// cout << "r = " << sqrt(pow(g4hit->get_x(0),2)+pow(g4hit->get_y(0),2))
+	//      << " phi = " << atan2(g4hit->get_y(0),g4hit->get_x(0))
+	//      << " z = " << g4hit->get_z(0)
+	//      << " edep = " << g4hit->get_edep()
+	//      << endl;
+	
+	mean_x += g4hit->get_x(0)*g4hit->get_edep();
+	mean_y += g4hit->get_y(0)*g4hit->get_edep();
+	mean_z += g4hit->get_z(0)*g4hit->get_edep();
+	norm   += g4hit->get_edep();
 
+	mean_x += g4hit->get_x(1)*g4hit->get_edep();
+	mean_y += g4hit->get_y(1)*g4hit->get_edep();
+	mean_z += g4hit->get_z(1)*g4hit->get_edep();
+	norm   += g4hit->get_edep();
+	
+	Double_t data0[3] = {g4hit->get_x(0),
+			     g4hit->get_y(0),
+			     g4hit->get_z(0)};
+	Double_t* pdata0 = &data0[0];
+	
 	if (!isnan(data0[0]) && !isnan(data0[1]) && !isnan(data0[2])) {
-	  pca.AddRow(data0);
+	  pca.AddRow(pdata0);
 	}
 
-	double data1[3] = {g4hit->get_x(1),
-			   g4hit->get_y(1),
-			   g4hit->get_z(1)};
-
+	Double_t data1[3] = {g4hit->get_x(1),
+			     g4hit->get_y(1),
+			     g4hit->get_z(1)};
+	Double_t* pdata1 = &data1[0];
+	
 	if (!isnan(data1[0]) && !isnan(data1[1]) && !isnan(data1[2])) {
-	  pca.AddRow(data1);
+	  pca.AddRow(pdata1);
 	}
 	
-	if (!isnan(g4hit->get_edep())) edep += g4hit->get_edep();
-	if (!isnan(g4hit->get_eion())) edep += g4hit->get_eion();
+	if (!isnan(g4hit->get_edep()))               edep += g4hit->get_edep();
+	if (!isnan(g4hit->get_eion()))               eion += g4hit->get_eion();
 	if (!isnan(g4hit->get_light_yield())) light_yield += g4hit->get_light_yield();	
       } // g4hit loop
 
@@ -156,6 +209,8 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 
     } // volume loop
 
+    //pca.MakePrincipals();
+    
     // fill shower with position and covariance information
     const TVectorD* MEAN  = pca.GetMeanValues();
     const TMatrixD* COVAR = pca.GetCovarianceMatrix();
@@ -163,6 +218,10 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
     shower.set_x((*MEAN)[0]);
     shower.set_y((*MEAN)[1]);
     shower.set_z((*MEAN)[2]);
+
+    cout << mean_x / norm << endl;
+    cout << mean_y / norm << endl;
+    cout << mean_z / norm << endl;
     
     for (unsigned int i = 0; i < 3; ++i) {
       for (unsigned int j = 0; j <= i; ++j) {
@@ -170,7 +229,8 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
       }
     }
 
-    PHG4Shower* ptr = _shower_map->insert(&shower);
+    PHG4Shower* ptr = _shower_map->insert(&shower);    
+    _primaryid_showerid_map.insert(make_pair(primary->get_track_id(),ptr->get_id()));
     if (!ptr->isValid()) {
       static bool first = true;
       if (first) {
@@ -179,23 +239,78 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 	first = false;
       }
     }
-  }
+
+    ptr->identify();
+    
+  } // primary particle loop
   
   // --- update rawtower ancestry ----------------------------------------------
-  
+  for (std::map<PHG4Shower::VOLUME,RawTowerContainer*>::iterator iter = _volume_towers.begin();
+       iter != _volume_towers.end();
+       ++iter) {
+    PHG4Shower::VOLUME volid = iter->first;
+    RawTowerContainer* towers = iter->second;
+
+    // loop over all towers...
+    for (RawTowerContainer::Iterator iter = towers->getTowers().first;
+	 iter != towers->getTowers().second;
+	 ++iter) {
+      RawTower* tower = iter->second;
+
+      // get all primaries that contribute to tower
+      std::set<PHG4Particle*> primaries = _volume_towerevals[volid]->all_truth_primaries(tower);
+           
+      // loop over primaries
+      for (std::set<PHG4Particle*>::iterator jter = primaries.begin();
+	   jter != primaries.end();
+	   ++jter) {
+	PHG4Particle* primary = *jter;
+	unsigned int showerid = _primaryid_showerid_map[primary->get_track_id()];
+
+	float edep = _volume_towerevals[volid]->get_energy_contribution(tower,primary);
+	
+	// insert this ancestry onto the tower
+	tower->add_eshower(showerid, edep);	
+      }
+    }
+  }
+      
+  // tower g4cell removal
+  // for (std::map<PHG4Shower::VOLUME,RawTowerContainer*>::iterator iter = _volume_towers.begin();
+  //      iter != _volume_towers.end();
+  //      ++iter) {
+  //   RawTowerContainer* towers = iter->second;
+
+  //   // loop over all towers...
+  //   for (RawTowerContainer::Iterator iter = towers->getTowers().first;
+  // 	 iter != towers->getTowers().second;
+  // 	 ++iter) {
+  //     RawTower* tower = iter->second;     
+  //     tower->clear_g4cells();
+  //   }
+  // }
+ 
   ++_ievent;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4ShowerReco::End(PHCompositeNode *topNode) {
 
-  for (std::map<PHG4Shower::VOLUME,CaloTruthEval*>::iterator iter = _volume_evals.begin();
-       iter != _volume_evals.end();
+  for (std::map<PHG4Shower::VOLUME,CaloRawTowerEval*>::iterator iter = _volume_towerevals.begin();
+       iter != _volume_towerevals.end();
+       ++iter) {
+    CaloRawTowerEval* eval = iter->second;
+    if (eval) delete eval;
+  }
+  _volume_towerevals.clear();
+  
+  for (std::map<PHG4Shower::VOLUME,CaloTruthEval*>::iterator iter = _volume_truthevals.begin();
+       iter != _volume_truthevals.end();
        ++iter) {
     CaloTruthEval* eval = iter->second;
     if (eval) delete eval;
   }
-  _volume_evals.clear();
+  _volume_truthevals.clear();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -236,13 +351,13 @@ int PHG4ShowerReco::GetNodes(PHCompositeNode *topNode) {
     PHG4HitContainer* g4hits = findNode::getClass<PHG4HitContainer>(topNode,nodename.c_str());
     if (g4hits) {
       _volume_g4hits.insert(make_pair(volid,g4hits));
+    }   
+    
+    nodename = "TOWER_CALIB_" + volname;
+    RawTowerContainer* calib_towers = findNode::getClass<RawTowerContainer>(topNode,nodename.c_str());
+    if (calib_towers) {
+      _volume_towers.insert(make_pair(volid,calib_towers));
     }
-
-    nodename = "TOWER_SIM_" + volname;
-    RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode,nodename.c_str());
-    if (towers) {
-      _volume_towers.insert(make_pair(volid,towers));
-    }    
   }
 
   _truth_info = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
