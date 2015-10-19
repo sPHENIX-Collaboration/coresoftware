@@ -7,7 +7,7 @@
 #include "Fun4AllReturnCodes.h"
 #include "SubsysReco.h"
 #include "getClass.h"
-#include "recoConsts.h"
+#include <phool/recoConsts.h>
 
 #include <phool/phool.h>
 #include <phool/PHObject.h>
