@@ -25,8 +25,6 @@ PHG4Shower_v1::PHG4Shower_v1()
   }   
 }
 
-PHG4Shower_v1::~PHG4Shower_v1(){}
-
 void PHG4Shower_v1::identify(ostream& os) const {
   os << "---PHG4Shower_v1-------------------------------" << endl;
   os << "id: " << get_id() << endl;
@@ -62,25 +60,6 @@ void PHG4Shower_v1::identify(ostream& os) const {
   os << "-----------------------------------------------" << endl;
   
   return;  
-}
-
-PHG4Shower* PHG4Shower_v1::Clone() const {
-  PHG4Shower_v1* shower = new PHG4Shower_v1(*this);
-  return shower;
-}
-
-void PHG4Shower_v1::Reset() {
-  _id = 0xFFFFFFFF;
-  _primary_id = -1;
-  for (int i = 0; i < 3; ++i) _pos[i] = NAN;  
-  for (int j = 0; j < 3; ++j) {
-    for (int i = j; i < 3; ++i) {
-      set_covar(i,j,NAN);
-    }
-  }
-  _edep.clear();
-  _eion.clear();
-  _light_yield.clear();
 }
 
 int PHG4Shower_v1::isValid() const {

@@ -12,13 +12,13 @@ class PHG4Shower_v1 : public PHG4Shower {
 public:
   
   PHG4Shower_v1();
-  virtual ~PHG4Shower_v1();
+  virtual ~PHG4Shower_v1() {}
 
   // PHObject virtual overloads
    
   void         identify(std::ostream& os = std::cout) const;
-  PHG4Shower*  Clone() const;
-  void         Reset();
+  PHG4Shower*  Clone() const {return (new PHG4Shower_v1(*this));}
+  void         Reset() {*this = PHG4Shower_v1();}
   int          isValid() const;
 
   // shower info
