@@ -36,6 +36,7 @@ libphool_la_SOURCES = \
   recoConsts.cc
 
 pkginclude_HEADERS =  \
+  getClass.h \
   PHCompositeNode.h \
   PHDataNode.h \
   PHDataNodeIterator.h \
