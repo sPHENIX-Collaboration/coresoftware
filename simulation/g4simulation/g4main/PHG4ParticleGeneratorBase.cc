@@ -5,7 +5,7 @@
 #include "PHG4VtxPoint.h"
 #include "PHG4TruthInfoContainer.h"
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 #include <phool/recoConsts.h>
 
 #include <phool/PHCompositeNode.h>

@@ -14,7 +14,7 @@
 #include <g4decayer/P6DExtDecayerPhysics.hh>
 #include <g4decayer/EDecayType.hh>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 #include <phool/recoConsts.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 

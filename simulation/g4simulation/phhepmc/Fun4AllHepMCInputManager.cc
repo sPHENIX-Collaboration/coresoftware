@@ -4,7 +4,7 @@
 #include <fun4all/Fun4AllSyncManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/recoConsts.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <ffaobjects/RunHeader.h>
 #include <PHHepMCGenEvent.h>
