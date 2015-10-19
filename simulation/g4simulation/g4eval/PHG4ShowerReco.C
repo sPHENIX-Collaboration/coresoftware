@@ -116,9 +116,6 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
     }
   }
 
-  // backtrack map between primary id and shower id
-  std::map<int, unsigned int> _primaryid_showerid_map;
-  
   // --- create the g4shower objects -------------------------------------------
   
   // loop over all truth primary particles
@@ -128,8 +125,22 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
        ++iter) {
     PHG4Particle* primary = iter->second;
 
+    // does the output already contain a shower for this particle?
+    // if so we don't need to create a new one
+    bool exists = false;
+    for (PHG4ShowerMap::Iter jter = _shower_map->begin();
+	 jter != _shower_map->end();
+	 ++jter) {
+      PHG4Shower *shower = jter->second;
+      if (shower->get_primary_id() == primary->get_track_id()) {
+	exists = true;
+	break;
+      }
+    }
+    if (exists) continue;
+
     PHG4Shower_v1 shower;
-    shower.set_primary_id(primary->get_track_id());
+    shower.set_primary_id(primary->get_track_id());    
 
     TPrincipal pca(3); // principal component analysis object
 
@@ -197,7 +208,6 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
     }
 
     PHG4Shower* ptr = _shower_map->insert(&shower);    
-    _primaryid_showerid_map.insert(make_pair(primary->get_track_id(),ptr->get_id()));
     if (!ptr->isValid()) {
       static bool first = true;
       if (first) {
@@ -207,6 +217,17 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
       }
     }    
   } // primary particle loop
+
+  // loop over all showers and create a map to trace quickly between primary id and shower id
+  std::map<int, unsigned int> _primaryid_showerid_map;
+  for (PHG4ShowerMap::Iter iter = _shower_map->begin();
+       iter != _shower_map->end();
+       ++iter) {
+    PHG4Shower *shower = iter->second;
+    unsigned int showerid = shower->get_id();
+    int primaryid = shower->get_primary_id();
+    _primaryid_showerid_map.insert(make_pair(primaryid,showerid));
+  }
   
   // --- update rawtower ancestry ----------------------------------------------
   for (std::map<PHG4Shower::VOLUME,RawTowerContainer*>::iterator iter = _volume_towers.begin();
@@ -302,7 +323,7 @@ int PHG4ShowerReco::GetNodes(PHCompositeNode *topNode) {
       _volume_g4hits.insert(make_pair(volid,g4hits));
     }   
     
-    nodename = "TOWER_CALIB_" + volname;
+    nodename = "TOWER_SIM_" + volname;
     RawTowerContainer* calib_towers = findNode::getClass<RawTowerContainer>(topNode,nodename.c_str());
     if (calib_towers) {
       _volume_towers.insert(make_pair(volid,calib_towers));
