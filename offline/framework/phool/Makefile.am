@@ -32,7 +32,8 @@ libphool_la_SOURCES = \
   PHRawOManager.cc \
   PHTimer.cc \
   PHTimeServer.cc \
-  PHTimeStamp.cc
+  PHTimeStamp.cc \
+  recoConsts.cc
 
 pkginclude_HEADERS =  \
   PHCompositeNode.h \
@@ -57,7 +58,8 @@ pkginclude_HEADERS =  \
   PHTimer.h \
   PHTimeServer.h \
   PHTimeStamp.h \
-  PHTypedNodeIterator.h
+  PHTypedNodeIterator.h \
+  recoConsts.h
 
 noinst_HEADERS = \
   PHBase_LinkDef.h
@@ -85,6 +87,7 @@ PHBase_dict.cc : \
   PHRandomSeed.h \
   PHTimeServer.h \
   PHTimeStamp.h \
+  recoConsts.h \
   PHBase_LinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
