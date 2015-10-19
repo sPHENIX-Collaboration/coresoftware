@@ -65,7 +65,6 @@ private:
   std::map<PHG4Shower::VOLUME, float> _eion;        //< ionization energy in different volumes
   std::map<PHG4Shower::VOLUME, float> _light_yield; //< light yield in different volumes
 
-  
   ClassDef(PHG4Shower_v1, 1);
 };
 

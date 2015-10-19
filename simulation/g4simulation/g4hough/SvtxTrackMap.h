@@ -21,7 +21,7 @@ public:
     os << "SvtxTrackMap base class" << std::endl;
   }
   virtual void Reset() {}
-  virtual int  IsValid() const {return 0;}
+  virtual int  isValid() const {return 0;}
   virtual SvtxTrackMap* Clone() const {return NULL;}
   
   virtual bool   empty()                   const {return true;}

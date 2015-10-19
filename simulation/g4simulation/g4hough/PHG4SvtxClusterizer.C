@@ -542,7 +542,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       
       if (clus_energy > get_threshold_by_layer(layer)) {
 	SvtxCluster* ptr = _clusterlist->insert(&clus);
-	if (!ptr->IsValid()) {
+	if (!ptr->isValid()) {
 	  static bool first = true;
 	  if (first) {
 	    cout << PHWHERE << "ERROR: Invalid SvtxClusters are being produced" << endl;
@@ -835,7 +835,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       
       if (clus_energy > get_threshold_by_layer(layer)) {
 	SvtxCluster* ptr = _clusterlist->insert(&clus);
-	if (!ptr->IsValid()) {
+	if (!ptr->isValid()) {
 	  static bool first = true;
 	  if (first) {
 	    cout << PHWHERE << "ERROR: Invalid SvtxClusters are being produced" << endl;

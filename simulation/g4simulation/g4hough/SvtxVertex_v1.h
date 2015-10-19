@@ -19,7 +19,7 @@ public:
   
   void         identify(std::ostream& os = std::cout) const;
   void         Reset() {*this = SvtxVertex_v1();}
-  int          IsValid() const;
+  int          isValid() const;
   SvtxVertex*  Clone() const {return new SvtxVertex_v1(*this);}
 
   // vertex info

@@ -17,7 +17,7 @@ public:
   
   void         identify(std::ostream& os = std::cout) const;
   void         Reset() {*this = SvtxBeamSpot();}
-  int          IsValid() const;
+  int          isValid() const;
 
   // beamspot info
  

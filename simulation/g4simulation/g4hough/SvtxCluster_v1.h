@@ -19,7 +19,7 @@ public:
   
   void         identify(std::ostream& os = std::cout) const;
   void         Reset() {*this = SvtxCluster_v1();}
-  int          IsValid() const;
+  int          isValid() const;
   SvtxCluster* Clone() const {return new SvtxCluster_v1(*this);}
 
   // cluster info

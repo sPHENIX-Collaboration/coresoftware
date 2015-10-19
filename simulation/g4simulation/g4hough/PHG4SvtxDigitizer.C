@@ -208,7 +208,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
     hit.set_e(e);
 
     SvtxHit* ptr = _hitmap->insert(&hit);      
-    if (!ptr->IsValid()) {
+    if (!ptr->isValid()) {
       static bool first = true;
       if (first) {
 	cout << PHWHERE << "ERROR: Incomplete SvtxHits are being created" << endl;
@@ -255,7 +255,7 @@ void PHG4SvtxDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) {
     hit.set_e(e);
         
     SvtxHit* ptr = _hitmap->insert(&hit);      
-    if (!ptr->IsValid()) {
+    if (!ptr->isValid()) {
       static bool first = true;
       if (first) {
 	cout << PHWHERE << "ERROR: Incomplete SvtxHits are being created" << endl;
