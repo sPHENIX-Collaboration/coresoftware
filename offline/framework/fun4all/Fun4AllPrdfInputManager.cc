@@ -3,15 +3,15 @@
 #include "Fun4AllSyncManager.h"
 #include "Fun4AllReturnCodes.h"
 #include "Fun4AllUtils.h"
-#include "getClass.h"
 
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncObjectv2.h>
 #include <frog/FROG.h>
 
-#include <phool/recoConsts.h>
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
+#include <phool/recoConsts.h>
 
 #include <Event/Event.h>
 #include <Event/fileEventiterator.h>
