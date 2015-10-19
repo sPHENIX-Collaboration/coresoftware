@@ -128,19 +128,11 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
        ++iter) {
     PHG4Particle* primary = iter->second;
 
-    cout << endl;
-    primary->identify();
-    
     PHG4Shower_v1 shower;
     shower.set_primary_id(primary->get_track_id());
 
     TPrincipal pca(3); // principal component analysis object
 
-    float mean_x = 0.0;
-    float mean_y = 0.0;
-    float mean_z = 0.0;
-    float norm = 0;
-    
     // loop over all volumes with evals
     cout << endl;
     for (std::map<PHG4Shower::VOLUME,CaloTruthEval*>::iterator iter = _volume_truthevals.begin();
@@ -149,9 +141,6 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
       PHG4Shower::VOLUME volid = iter->first;
       CaloTruthEval* eval = iter->second;
 
-      //cout << endl;
-      //cout << volid << endl;
-      
       float edep = 0.0;
       float eion = 0.0;
       float light_yield = 0.0;
@@ -164,22 +153,6 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 	   ++jter) {
 	PHG4Hit* g4hit = *jter;
 
-	// cout << "r = " << sqrt(pow(g4hit->get_x(0),2)+pow(g4hit->get_y(0),2))
-	//      << " phi = " << atan2(g4hit->get_y(0),g4hit->get_x(0))
-	//      << " z = " << g4hit->get_z(0)
-	//      << " edep = " << g4hit->get_edep()
-	//      << endl;
-	
-	mean_x += g4hit->get_x(0)*g4hit->get_edep();
-	mean_y += g4hit->get_y(0)*g4hit->get_edep();
-	mean_z += g4hit->get_z(0)*g4hit->get_edep();
-	norm   += g4hit->get_edep();
-
-	mean_x += g4hit->get_x(1)*g4hit->get_edep();
-	mean_y += g4hit->get_y(1)*g4hit->get_edep();
-	mean_z += g4hit->get_z(1)*g4hit->get_edep();
-	norm   += g4hit->get_edep();
-	
 	Double_t data0[3] = {g4hit->get_x(0),
 			     g4hit->get_y(0),
 			     g4hit->get_z(0)};
@@ -209,8 +182,6 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 
     } // volume loop
 
-    //pca.MakePrincipals();
-    
     // fill shower with position and covariance information
     const TVectorD* MEAN  = pca.GetMeanValues();
     const TMatrixD* COVAR = pca.GetCovarianceMatrix();
@@ -219,10 +190,6 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
     shower.set_y((*MEAN)[1]);
     shower.set_z((*MEAN)[2]);
 
-    cout << mean_x / norm << endl;
-    cout << mean_y / norm << endl;
-    cout << mean_z / norm << endl;
-    
     for (unsigned int i = 0; i < 3; ++i) {
       for (unsigned int j = 0; j <= i; ++j) {
 	shower.set_covar(i,j,(*COVAR)[i][j]);
@@ -238,10 +205,7 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 	ptr->identify();
 	first = false;
       }
-    }
-
-    ptr->identify();
-    
+    }    
   } // primary particle loop
   
   // --- update rawtower ancestry ----------------------------------------------
@@ -275,21 +239,6 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
     }
   }
       
-  // tower g4cell removal
-  // for (std::map<PHG4Shower::VOLUME,RawTowerContainer*>::iterator iter = _volume_towers.begin();
-  //      iter != _volume_towers.end();
-  //      ++iter) {
-  //   RawTowerContainer* towers = iter->second;
-
-  //   // loop over all towers...
-  //   for (RawTowerContainer::Iterator iter = towers->getTowers().first;
-  // 	 iter != towers->getTowers().second;
-  // 	 ++iter) {
-  //     RawTower* tower = iter->second;     
-  //     tower->clear_g4cells();
-  //   }
-  // }
- 
   ++_ievent;
   return Fun4AllReturnCodes::EVENT_OK;
 }
