@@ -5,7 +5,7 @@
 #include <phhepmc/PHHepMCGenEvent.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 #include <phool/recoConsts.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHDataNode.h>
