@@ -1,8 +1,8 @@
 #include "Fun4AllHistoManager.h"
-#include "recoConsts.h"
 #include "TDirectoryHelper.h"
 
 #include <phool/phool.h>
+#include <phool/recoConsts.h>
 
 #include <TFile.h>
 #include <TH1.h>

@@ -1,5 +1,5 @@
 #include "Fun4AllPrdfOutputManager.h"
-#include "recoConsts.h"
+#include <phool/recoConsts.h>
 
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
