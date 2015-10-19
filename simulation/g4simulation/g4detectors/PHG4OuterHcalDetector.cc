@@ -402,7 +402,7 @@ PHG4OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
   G4VisAttributes* hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
   hcalVisAtt->SetForceSolid(false);
-  hcalVisAtt->SetColour(G4Colour::Magenta());
+  hcalVisAtt->SetColour(G4Colour::White());
   hcal_envelope_log->SetVisAttributes(hcalVisAtt);
   G4RotationMatrix hcal_rotm;
   hcal_rotm.rotateX(params->x_rot);
@@ -429,7 +429,7 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
   G4VisAttributes *visattchk = new G4VisAttributes();
   visattchk->SetVisibility(true);
   visattchk->SetForceSolid(false);
-  visattchk->SetColour(G4Colour::Cyan());
+  visattchk->SetColour(G4Colour::Magenta());
   steel_logical->SetVisAttributes(visattchk);
   double phi = 0;
   double deltaphi = 2 * M_PI / params->n_scinti_plates;
@@ -688,6 +688,11 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalen
 	  g4userlimits = new G4UserLimits(params->steplimits);
 	}
       G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i],G4Material::GetMaterial("G4_POLYSTYRENE"),name.str().c_str(), NULL, NULL, g4userlimits);
+      G4VisAttributes *visattchk = new G4VisAttributes();
+      visattchk->SetVisibility(true);
+      visattchk->SetForceSolid(false);
+      visattchk->SetColour(G4Colour::Cyan());
+      scinti_tile_logic->SetVisAttributes(visattchk);
       assmeblyvol->AddPlacedVolume(scinti_tile_logic,g4vec, NULL);
 
       //field after burner
