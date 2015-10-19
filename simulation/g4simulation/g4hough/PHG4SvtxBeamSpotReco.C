@@ -8,7 +8,7 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <fun4all/getClass.h>
-#include <fun4all/recoConsts.h>
+#include <phool/recoConsts.h>
 
 #include <TPrincipal.h>
 

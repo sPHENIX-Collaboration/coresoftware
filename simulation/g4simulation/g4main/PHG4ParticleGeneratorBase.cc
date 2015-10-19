@@ -6,7 +6,7 @@
 #include "PHG4TruthInfoContainer.h"
 
 #include <fun4all/getClass.h>
-#include <fun4all/recoConsts.h>
+#include <phool/recoConsts.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>

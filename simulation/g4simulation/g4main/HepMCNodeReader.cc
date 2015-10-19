@@ -6,7 +6,7 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/getClass.h>
-#include <fun4all/recoConsts.h>
+#include <phool/recoConsts.h>
 
 #include <HepMC/GenEvent.h>
 #include <gsl/gsl_const.h>
