@@ -5,6 +5,7 @@
 
 #include <g4main/PHG4ShowerMap.h>
 #include <g4main/PHG4Shower.h>
+#include <g4main/PHG4Shower_v1.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -15,6 +16,8 @@
 #include <phool/PHCompositeNode.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/getClass.h>
+
+#include <TPrincipal.h>
 
 #include <iostream>
 #include <set>
@@ -97,12 +100,87 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
   // --- create the g4shower objects -------------------------------------------
   
   // loop over all truth primary particles
-  // loop over all volumes
-  // get the g4hits from this particle in this volume
+  const PHG4TruthInfoContainer::Map &map = _truth_info->GetPrimaryMap();
+  for (PHG4TruthInfoContainer::ConstIterator iter = map.begin(); 
+       iter != map.end(); 
+       ++iter) {
+    PHG4Particle* primary = iter->second;
 
-  // create a new g4shower from the g4hits
-  // add the g4shower to the node tree
+    PHG4Shower_v1 shower;
+    shower.set_primary_id(primary->get_track_id());
 
+    TPrincipal pca(3);
+    
+    // loop over all volumes with evals
+    for (std::map<PHG4Shower::VOLUME,CaloTruthEval*>::iterator iter = _volume_evals.begin();
+	 iter != _volume_evals.end();
+	 ++iter) {
+      PHG4Shower::VOLUME volid = iter->first;
+      CaloTruthEval* eval = iter->second;
+
+      float edep = 0.0;
+      float eion = 0.0;
+      float light_yield = 0.0;
+      
+      // get the g4hits from this particle in this volume
+      std::set<PHG4Hit*> g4hits = eval->get_shower_from_primary(primary);     
+      for (std::set<PHG4Hit*>::iterator jter = g4hits.begin();
+	   jter != g4hits.end();
+	   ++jter) {
+	PHG4Hit* g4hit = *jter;
+
+	double data0[3] = {g4hit->get_x(0),
+			   g4hit->get_y(0),
+			   g4hit->get_z(0)};
+
+	if (!isnan(data0[0]) && !isnan(data0[1]) && !isnan(data0[2])) {
+	  pca.AddRow(data0);
+	}
+
+	double data1[3] = {g4hit->get_x(1),
+			   g4hit->get_y(1),
+			   g4hit->get_z(1)};
+
+	if (!isnan(data1[0]) && !isnan(data1[1]) && !isnan(data1[2])) {
+	  pca.AddRow(data1);
+	}
+	
+	if (!isnan(g4hit->get_edep())) edep += g4hit->get_edep();
+	if (!isnan(g4hit->get_eion())) edep += g4hit->get_eion();
+	if (!isnan(g4hit->get_light_yield())) light_yield += g4hit->get_light_yield();	
+      } // g4hit loop
+
+      shower.set_edep(volid,edep);
+      shower.set_eion(volid,eion);
+      shower.set_light_yield(volid,light_yield);     
+
+    } // volume loop
+
+    // fill shower with position and covariance information
+    const TVectorD* MEAN  = pca.GetMeanValues();
+    const TMatrixD* COVAR = pca.GetCovarianceMatrix();
+    
+    shower.set_x((*MEAN)[0]);
+    shower.set_y((*MEAN)[1]);
+    shower.set_z((*MEAN)[2]);
+    
+    for (unsigned int i = 0; i < 3; ++i) {
+      for (unsigned int j = 0; j <= i; ++j) {
+	shower.set_covar(i,j,(*COVAR)[i][j]);
+      }
+    }
+
+    PHG4Shower* ptr = _shower_map->insert(&shower);
+    if (!ptr->isValid()) {
+      static bool first = true;
+      if (first) {
+	cout << PHWHERE << "ERROR: Invalid PHG4Showers are being produced" << endl;
+	ptr->identify();
+	first = false;
+      }
+    }
+  }
+  
   // --- update rawtower ancestry ----------------------------------------------
   
   ++_ievent;
