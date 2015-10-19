@@ -2,7 +2,7 @@
 #include "CaloRawTowerEval.h"
 #include "CaloTruthEval.h"
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <g4cemc/RawTowerContainer.h>
 #include <g4cemc/RawTower.h>
