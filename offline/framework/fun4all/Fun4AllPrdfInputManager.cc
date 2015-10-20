@@ -173,7 +173,7 @@ int Fun4AllPrdfInputManager::fileclose()
   isopen = 0;
   // if we have a file list, move next entry to top of the list
   // or repeat the same entry again
-  if (!filelist.emtpy())
+  if (!filelist.empty())
     {
       if (repeat)
         {
