@@ -95,18 +95,18 @@ unsigned int PHG4Shower_v1::covar_index(unsigned int i, unsigned int j) const {
 
 float PHG4Shower_v1::get_edep(PHG4Shower::VOLUME volume) const {
   std::map<PHG4Shower::VOLUME,float>::const_iterator citer = _edep.find(volume);
-  if (citer == _edep.end()) return NAN;
+  if (citer == _edep.end()) return 0.0;
   return citer->second;
 }
 
 float PHG4Shower_v1::get_eion(PHG4Shower::VOLUME volume) const {
   std::map<PHG4Shower::VOLUME,float>::const_iterator citer = _eion.find(volume);
-  if (citer == _eion.end()) return NAN;
+  if (citer == _eion.end()) return 0.0;
   return citer->second;
 }
 
 float PHG4Shower_v1::get_light_yield(PHG4Shower::VOLUME volume) const {
   std::map<PHG4Shower::VOLUME,float>::const_iterator citer = _light_yield.find(volume);
-  if (citer == _light_yield.end()) return NAN;
+  if (citer == _light_yield.end()) return 0.0;
   return citer->second;
 }

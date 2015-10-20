@@ -225,9 +225,9 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 	if (!isnan(g4hit->get_light_yield())) light_yield += g4hit->get_light_yield();	
       } // g4hit loop
 
-      shower.set_edep(volid,edep);
-      shower.set_eion(volid,eion);
-      shower.set_light_yield(volid,light_yield);     
+      if (edep != 0.0)        shower.set_edep(volid,edep);
+      if (eion != 0.0)        shower.set_eion(volid,eion);
+      if (light_yield != 0.0) shower.set_light_yield(volid,light_yield);     
     } // volume loop
 
     // fill Eigen matrices to compute wPCA
@@ -275,8 +275,6 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 	first = false;
       }
     }
-
-    ptr->identify();
   } // primary particle loop
 
   // loop over all showers and create a map to trace quickly between primary id and shower id
