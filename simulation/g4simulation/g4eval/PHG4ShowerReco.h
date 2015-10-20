@@ -58,7 +58,9 @@ public:
   std::map<PHG4Shower::VOLUME,std::string>        _volume_names;
   std::map<PHG4Shower::VOLUME,CaloTruthEval*>     _volume_truthevals;
   std::map<PHG4Shower::VOLUME,PHG4HitContainer*>  _volume_g4hits;
-  std::map<PHG4Shower::VOLUME,RawTowerContainer*> _volume_towers;
+  std::map<PHG4Shower::VOLUME,RawTowerContainer*> _volume_simtowers;
+  std::map<PHG4Shower::VOLUME,RawTowerContainer*> _volume_rawtowers;
+  std::map<PHG4Shower::VOLUME,RawTowerContainer*> _volume_calibtowers;
   std::map<PHG4Shower::VOLUME,CaloRawTowerEval*>  _volume_towerevals;
   
   PHG4ShowerMap* _shower_map;

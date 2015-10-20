@@ -34,7 +34,9 @@ PHG4ShowerReco::PHG4ShowerReco(const string &name) :
   _volume_names(),
   _volume_truthevals(),
   _volume_g4hits(),
-  _volume_towers(),
+  _volume_simtowers(),
+  _volume_rawtowers(),
+  _volume_calibtowers(),
   _shower_map() {
   verbosity = 0;
 
@@ -83,8 +85,8 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 
   // create or update the tower evaluators for each volume
   if (_volume_towerevals.empty()) {
-   for (std::map<PHG4Shower::VOLUME,RawTowerContainer*>::iterator iter = _volume_towers.begin();
-	 iter != _volume_towers.end();
+   for (std::map<PHG4Shower::VOLUME,RawTowerContainer*>::iterator iter = _volume_calibtowers.begin();
+	 iter != _volume_calibtowers.end();
 	 ++iter) {
      PHG4Shower::VOLUME volid = iter->first;
      if (_volume_towerevals.find(volid) != _volume_towerevals.end()) continue;
@@ -229,32 +231,58 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
   }
   
   // --- update rawtower ancestry ----------------------------------------------
-  for (std::map<PHG4Shower::VOLUME,RawTowerContainer*>::iterator iter = _volume_towers.begin();
-       iter != _volume_towers.end();
-       ++iter) {
-    PHG4Shower::VOLUME volid = iter->first;
-    RawTowerContainer* towers = iter->second;
+  
+  
+  std::set<std::map<PHG4Shower::VOLUME,RawTowerContainer*>*> volume_towers;
+  volume_towers.insert(&_volume_simtowers);
+  volume_towers.insert(&_volume_rawtowers);
+  volume_towers.insert(&_volume_calibtowers);
 
-    // loop over all towers...
-    for (RawTowerContainer::Iterator iter = towers->getTowers().first;
-	 iter != towers->getTowers().second;
+  // loop over the different kinds of towers
+  for (std::set<std::map<PHG4Shower::VOLUME,RawTowerContainer*>*>::iterator oter = volume_towers.begin();
+       oter != volume_towers.end();
+       ++oter) {
+    std::map<PHG4Shower::VOLUME,RawTowerContainer*> *volume_tower = *oter;
+    
+    for (std::map<PHG4Shower::VOLUME,RawTowerContainer*>::iterator iter = volume_tower->begin();
+	 iter != volume_tower->end();
 	 ++iter) {
-      RawTower* tower = iter->second;
+      PHG4Shower::VOLUME volid = iter->first;
+      RawTowerContainer* towers = iter->second;
       
-      // get all primaries that contribute to tower
-      std::set<PHG4Particle*> primaries = _volume_towerevals[volid]->all_truth_primaries(tower);
-           
-      // loop over primaries
-      for (std::set<PHG4Particle*>::iterator jter = primaries.begin();
-	   jter != primaries.end();
-	   ++jter) {
-	PHG4Particle* primary = *jter;
-	unsigned int showerid = _primaryid_showerid_map[primary->get_track_id()];
+      // loop over all towers...
+      for (RawTowerContainer::Iterator iter = towers->getTowers().first;
+	   iter != towers->getTowers().second;
+	   ++iter) {
+	RawTower* tower = iter->second;
 	
-	float edep = _volume_towerevals[volid]->get_energy_contribution(tower,primary);
+	// get all primaries that contribute to tower
+	std::set<PHG4Particle*> primaries = _volume_towerevals[volid]->all_truth_primaries(tower);
+
+	// loop over primaries
+	for (std::set<PHG4Particle*>::iterator jter = primaries.begin();
+	     jter != primaries.end();
+	     ++jter) {
+	  PHG4Particle* primary = *jter;
+	  unsigned int showerid = _primaryid_showerid_map[primary->get_track_id()];
+
+	  bool exists = false;
+	  for (RawTower::ShowerConstIterator kter = tower->get_g4showers().first;
+	       kter != tower->get_g4showers().second;
+	       ++kter) {
+	    if (showerid == kter->first) {
+	      exists = true;
+	      break;
+	    }
+	  }
+
+	  if (exists) continue;
+	  
+	  float edep = _volume_towerevals[volid]->get_energy_contribution(tower,primary);
 	
-	// insert this ancestry onto the tower
-	tower->add_eshower(showerid, edep);	
+	  // insert this ancestry onto the tower
+	  tower->add_eshower(showerid, edep);	
+	}
       }
     }
   }
@@ -321,11 +349,23 @@ int PHG4ShowerReco::GetNodes(PHCompositeNode *topNode) {
     if (g4hits) {
       _volume_g4hits.insert(make_pair(volid,g4hits));
     }   
+
+    nodename = "TOWER_SIM_" + volname;
+    RawTowerContainer* sim_towers = findNode::getClass<RawTowerContainer>(topNode,nodename.c_str());
+    if (sim_towers) {
+      _volume_simtowers.insert(make_pair(volid,sim_towers));
+    }
+    
+    nodename = "TOWER_RAW_" + volname;
+    RawTowerContainer* raw_towers = findNode::getClass<RawTowerContainer>(topNode,nodename.c_str());
+    if (raw_towers) {
+      _volume_rawtowers.insert(make_pair(volid,raw_towers));
+    }
     
     nodename = "TOWER_CALIB_" + volname;
     RawTowerContainer* calib_towers = findNode::getClass<RawTowerContainer>(topNode,nodename.c_str());
     if (calib_towers) {
-      _volume_towers.insert(make_pair(volid,calib_towers));
+      _volume_calibtowers.insert(make_pair(volid,calib_towers));
     }
   }
 
