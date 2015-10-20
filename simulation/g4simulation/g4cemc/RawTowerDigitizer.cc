@@ -38,15 +38,7 @@ RawTowerDigitizer::RawTowerDigitizer(const std::string& name) :
     _timer(PHTimeServer::get()->insert_new(name))
 {
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
-  recoConsts *rc = recoConsts::instance();
-  if (rc->FlagExist("RANDOMSEED"))
-    {
-      seed = rc->get_IntFlag("RANDOMSEED");
-    }
-  else
-    {
-      seed = PHRandomSeed();
-    }
+  seed = PHRandomSeed(); // fixed seed handled in PHRandomSeed()
   gsl_rng_set(RandomGenerator, seed);
 }
 
