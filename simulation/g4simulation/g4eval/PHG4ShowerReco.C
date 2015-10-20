@@ -18,7 +18,7 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/getClass.h>
 
-#include <TPrincipal.h>
+#include <Eigen/Dense>
 
 #include <iostream>
 #include <set>
@@ -156,7 +156,11 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
     PHG4Shower_v1 shower;
     shower.set_primary_id(primary->get_track_id());    
 
-    TPrincipal pca(3); // principal component analysis object (need to replace with wPCA analysis)
+    // Data structures to hold weighted   
+    std::vector<std::vector<float> > points;
+    std::vector<float> weights;
+    float sumw = 0.0;
+    float sumw2 = 0.0;
 
     // loop over all volumes with evals
     for (std::map<PHG4Shower::VOLUME,CaloTruthEval*>::iterator iter = _volume_truthevals.begin();
@@ -176,23 +180,37 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 	   jter != g4hits.end();
 	   ++jter) {
 	PHG4Hit* g4hit = *jter;
-
-	Double_t data0[3] = {g4hit->get_x(0),
-			     g4hit->get_y(0),
-			     g4hit->get_z(0)};
-	Double_t* pdata0 = &data0[0];
 	
-	if (!isnan(data0[0]) && !isnan(data0[1]) && !isnan(data0[2])) {
-	  pca.AddRow(pdata0);
+	if (!isnan(g4hit->get_x(0)) &&
+	    !isnan(g4hit->get_y(0)) &&
+	    !isnan(g4hit->get_z(0))) {
+
+	  std::vector<float> entry(3);
+	  entry[0] = g4hit->get_x(0);
+	  entry[1] = g4hit->get_y(0);
+	  entry[2] = g4hit->get_z(0);
+
+	  points.push_back(entry);
+	  float w = g4hit->get_edep();
+	  weights.push_back(w);
+	  sumw += w;
+	  sumw2 += w*w;
 	}
 
-	Double_t data1[3] = {g4hit->get_x(1),
-			     g4hit->get_y(1),
-			     g4hit->get_z(1)};
-	Double_t* pdata1 = &data1[0];
-	
-	if (!isnan(data1[0]) && !isnan(data1[1]) && !isnan(data1[2])) {
-	  pca.AddRow(pdata1);
+	if (!isnan(g4hit->get_x(1)) &&
+	    !isnan(g4hit->get_y(1)) &&
+	    !isnan(g4hit->get_z(1))) {
+
+	  std::vector<float> entry(3);
+	  entry[0] = g4hit->get_x(1);
+	  entry[1] = g4hit->get_y(1);
+	  entry[2] = g4hit->get_z(1);
+	  
+	  points.push_back(entry);	  
+	  float w = g4hit->get_edep();
+	  weights.push_back(w);
+	  sumw += w;
+	  sumw2 += w*w;
 	}
 	
 	if (!isnan(g4hit->get_edep()))               edep += g4hit->get_edep();
@@ -203,20 +221,41 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
       shower.set_edep(volid,edep);
       shower.set_eion(volid,eion);
       shower.set_light_yield(volid,light_yield);     
-
     } // volume loop
 
-    // fill shower with position and covariance information
-    const TVectorD* MEAN  = pca.GetMeanValues();
-    const TMatrixD* COVAR = pca.GetCovarianceMatrix();
-    
-    shower.set_x((*MEAN)[0]);
-    shower.set_y((*MEAN)[1]);
-    shower.set_z((*MEAN)[2]);
+    // fill Eigen matrices to compute wPCA
+    // resizing these non-destructively is expensive
+    // so I fill vectors and then copy
+    Eigen::Matrix<double, Eigen::Dynamic, 3> X(points.size(),3);
+    Eigen::Matrix<double, Eigen::Dynamic, 1> W(weights.size(),1);
+
+    for (unsigned int i=0; i<points.size(); ++i) {
+      for (unsigned int j=0; j<3; ++j)  {
+	X(i,j) = points[i][j];
+      }
+      W(i,0) = weights[i];
+    }
+
+    // mean value of shower
+    double prefactor = 1.0 / sumw;
+    Eigen::Matrix<double, 1, 3> mean = prefactor * W.transpose() * X;
+
+    // compute residual relative to the mean
+    for (unsigned int i=0; i<points.size(); ++i) {
+      for (unsigned int j=0; j<3; ++j) X(i,j) = points[i][j] - mean(0,j);
+    }
+
+    // weighted covariance matrix
+    prefactor = sumw / (pow(sumw,2) - sumw2); // effectivelly 1/(N-1) when w_i = 1.0
+    Eigen::Matrix<double, 3, 3> covar = prefactor * (X.transpose() * W.asDiagonal() * X);
+       
+    shower.set_x(mean(0,0));
+    shower.set_y(mean(0,1));
+    shower.set_z(mean(0,2));
 
     for (unsigned int i = 0; i < 3; ++i) {
       for (unsigned int j = 0; j <= i; ++j) {
-	shower.set_covar(i,j,(*COVAR)[i][j]);
+	shower.set_covar(i,j,covar(i,j));
       }
     }
 
@@ -228,7 +267,10 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 	ptr->identify();
 	first = false;
       }
-    }    
+    }
+
+    ptr->identify();
+    
   } // primary particle loop
 
   // loop over all showers and create a map to trace quickly between primary id and shower id
