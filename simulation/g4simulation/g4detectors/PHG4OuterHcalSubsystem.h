@@ -54,6 +54,7 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
   void SetMaterial(const std::string &mat);
   void SetActive(const int i = 1);
   void SetAbsorberActive(const int i = 1);
+  void SetAbsorberTruth(const int i = 1);
   void SuperDetector(const std::string &name) {superdetector = name;}
   const std::string SuperDetector() {return superdetector;}
 

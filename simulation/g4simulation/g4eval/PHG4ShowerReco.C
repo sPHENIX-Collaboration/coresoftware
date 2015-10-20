@@ -53,6 +53,7 @@ PHG4ShowerReco::PHG4ShowerReco(const string &name) :
 
   _volume_names.insert(make_pair(PHG4Shower::ABSORBER_HCALOUT,"ABSORBER_HCALOUT"));
   _volume_names.insert(make_pair(PHG4Shower::HCALOUT         ,"HCALOUT"));
+  _volume_names.insert(make_pair(PHG4Shower::HCALOUT_SPT     ,"HCALOUT_SPT"));
 
   _volume_names.insert(make_pair(PHG4Shower::BH_1            ,"BH_1"));
 
@@ -90,7 +91,7 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 	 ++iter) {
      PHG4Shower::VOLUME volid = iter->first;
      if (_volume_towerevals.find(volid) != _volume_towerevals.end()) continue;
-     _volume_towerevals.insert(make_pair(volid, new CaloRawTowerEval(topNode,_volume_names[volid])));     
+     _volume_towerevals.insert(make_pair(volid, new CaloRawTowerEval(topNode,_volume_names[volid])));
    }
   } else {
     for (std::map<PHG4Shower::VOLUME,CaloRawTowerEval*>::iterator iter = _volume_towerevals.begin();
@@ -108,6 +109,12 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 	 ++iter) {
       PHG4Shower::VOLUME volid = iter->first;     
       _volume_truthevals.insert(make_pair(volid, new CaloTruthEval(topNode,_volume_names[volid])));
+      // if ((volid == PHG4Shower::ABSORBER_HCALIN) ||
+      // 	  (volid == PHG4Shower::ABSORBER_HCALOUT)) {
+      // 	// these subsystem absorbers like to drop particle records
+      // 	// so ignore the errors produced by this subsystem (these g4hits won't be assigned)
+      // 	_volume_truthevals.rbegin()->second->set_verbosity(-999);
+      // }
     }
   } else {
     for (std::map<PHG4Shower::VOLUME,CaloTruthEval*>::iterator iter = _volume_truthevals.begin();
@@ -142,13 +149,13 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
     // if so we don't need to create a new one
     bool exists = false;
     for (PHG4ShowerMap::Iter jter = _shower_map->begin();
-	 jter != _shower_map->end();
-	 ++jter) {
+     	 jter != _shower_map->end();
+     	 ++jter) {
       PHG4Shower *shower = jter->second;
       PHG4Particle *candidate = _truth_info->GetHit(shower->get_primary_id());
       if (_volume_truthevals.begin()->second->are_same_particle(primary,candidate)) {
-	exists = true;
-	break;
+    	exists = true;
+     	break;
       }
     }
     if (exists) continue;
@@ -270,7 +277,6 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
     }
 
     ptr->identify();
-    
   } // primary particle loop
 
   // loop over all showers and create a map to trace quickly between primary id and shower id
@@ -285,7 +291,6 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
   }
   
   // --- update rawtower ancestry ----------------------------------------------
-  
   
   std::set<std::map<PHG4Shower::VOLUME,RawTowerContainer*>*> volume_towers;
   volume_towers.insert(&_volume_simtowers);

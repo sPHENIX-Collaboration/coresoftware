@@ -194,6 +194,12 @@ PHG4OuterHcalSubsystem::SetAbsorberActive(const int i)
 }
 
 void
+PHG4OuterHcalSubsystem::SetAbsorberTruth(const int i)
+{
+  params->absorbertruth = i;
+}
+
+void
 PHG4OuterHcalSubsystem::BlackHole(const int i)
 {
   params->blackhole = i;

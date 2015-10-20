@@ -55,6 +55,7 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   PHG4EventAction* GetEventAction() const {return eventAction_;}
   void SetActive(const int i = 1);
   void SetAbsorberActive(const int i = 1);
+  void SetAbsorberTruth(const int i = 1);
   void SuperDetector(const std::string &name) {superdetector = name;}
   const std::string SuperDetector() {return superdetector;}
 
