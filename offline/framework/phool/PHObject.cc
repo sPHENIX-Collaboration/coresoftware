@@ -41,7 +41,6 @@ PHObject::Reset()
   std::cout << "load the libraries which contain these classes and try again"
 	    << std::endl; 
   exit(1);
-  return;
 }
 
 int 
