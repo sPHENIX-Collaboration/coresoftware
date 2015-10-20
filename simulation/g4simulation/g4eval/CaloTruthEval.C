@@ -173,6 +173,7 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary)
 }
 
 // moliere (90% containment) radius of scintilator hits
+// doesn't account for magnetic field bend (photons okay, low pt electrons not so much)
 float CaloTruthEval::get_shower_moliere_radius(PHG4Particle* primary) {
 
   if (_strict) {assert(primary);}

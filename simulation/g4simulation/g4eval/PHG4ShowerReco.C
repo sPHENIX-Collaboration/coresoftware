@@ -119,14 +119,25 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
   }
 
   // --- create the g4shower objects -------------------------------------------
+
+  // which primary id will be stored on the g4shower?
+  // the copy in the Map or the PrimaryMap?
+
+  // typically we have been using
+  // the id in the Map and confirming with the PrimaryMap since this is how
+  // the primary ids on the secondary particles is tracked.
+
+  // it is also faster to hop from the entry in the Map to the PrimaryMap
+  // than in the reverse direction, also supporting recording the Map index
   
   // loop over all truth primary particles
-  const PHG4TruthInfoContainer::Map &map = _truth_info->GetPrimaryMap();
+  const PHG4TruthInfoContainer::Map &map = _truth_info->GetMap();
   for (PHG4TruthInfoContainer::ConstIterator iter = map.begin(); 
        iter != map.end(); 
        ++iter) {
     PHG4Particle* primary = iter->second;
-
+    if (!_volume_truthevals.begin()->second->is_primary(primary)) continue;
+    
     // does the output already contain a shower for this particle?
     // if so we don't need to create a new one
     bool exists = false;
@@ -134,7 +145,8 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 	 jter != _shower_map->end();
 	 ++jter) {
       PHG4Shower *shower = jter->second;
-      if (shower->get_primary_id() == primary->get_track_id()) {
+      PHG4Particle *candidate = _truth_info->GetHit(shower->get_primary_id());
+      if (_volume_truthevals.begin()->second->are_same_particle(primary,candidate)) {
 	exists = true;
 	break;
       }
@@ -144,7 +156,7 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
     PHG4Shower_v1 shower;
     shower.set_primary_id(primary->get_track_id());    
 
-    TPrincipal pca(3); // principal component analysis object
+    TPrincipal pca(3); // principal component analysis object (need to replace with wPCA analysis)
 
     // loop over all volumes with evals
     for (std::map<PHG4Shower::VOLUME,CaloTruthEval*>::iterator iter = _volume_truthevals.begin();
