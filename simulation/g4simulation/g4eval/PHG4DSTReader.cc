@@ -21,7 +21,7 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 //#include <PHGeometry.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <TTree.h>
 #include <TMath.h>

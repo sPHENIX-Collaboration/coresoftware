@@ -8,7 +8,7 @@
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4MaterialCutsCouple.hh>
@@ -38,12 +38,7 @@ PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector*
   hits_(NULL),
   absorberhits_(NULL),
   hit(NULL),
-  params(parameters),
-  light_balance_(false),
-  light_balance_inner_radius_(NAN),
-  light_balance_inner_corr_(NAN),
-  light_balance_outer_radius_(NAN),
-  light_balance_outer_corr_(NAN)
+  params(parameters)
 {}
 
 //____________________________________________________________________________..
@@ -127,7 +122,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
-
+  G4double light_yield = 0;
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this block stops everything, just put all kinetic energy into edep
@@ -188,8 +183,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	  hit->set_eion(0); // only implemented for v5 otherwise empty
 	  if (whichactive > 0) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
 	    {
-        hit->set_light_yield(0); // for scintillator only, initialize light yields
-
+	      hit->set_light_yield(0); // for scintillator only, initialize light yields
 	      // Now add the hit
 	      hits_->AddHit(layer_id, hit);
 	    }
@@ -209,36 +203,74 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
       hit->set_z( 1, postPoint->GetPosition().z() / cm );
 
       hit->set_t( 1, postPoint->GetGlobalTime() / nanosecond );
-      //sum up the energy to get total deposited
-      hit->set_edep(hit->get_edep() + edep);
-      hit->set_eion(hit->get_eion() + eion);
-
 
       if (whichactive > 0) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
         {
-          double light_yield = GetVisibleEnergyDeposition(aStep); // for scintillator only, calculate light yields
-          hit->set_light_yield(hit->get_light_yield() + light_yield);
-
-          static bool once = true;
-          if (once and edep > 0)
+          if (params->light_scint_model)
             {
-              once = false;
+              light_yield = GetVisibleEnergyDeposition(aStep); // for scintillator only, calculate light yields
+	      static bool once = true;
+	      if (once && edep > 0)
+		{
+		  once = false;
 
-	      if (verbosity > 0) {
-		cout << "PHG4InnerHcalSteppingAction::UserSteppingAction::"
-                  //
-		     << detector_->GetName() << " - "
-		     << " use scintillating light model at each Geant4 steps. "
-		     << "First step: " << "Material = "
-		     << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
-		     << ", " << "Birk Constant = "
-		     << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
-		     << "," << "edep = " << edep << ", " << "eion = " << eion
-		     << ", " << "light_yield = " << light_yield << endl;
-	      }
+		  if (verbosity > 0) 
+		    {
+		      cout << "PHG4InnerHcalSteppingAction::UserSteppingAction::"
+			//
+			   << detector_->GetName() << " - "
+			   << " use scintillating light model at each Geant4 steps. "
+			   << "First step: " << "Material = "
+			   << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
+			   << ", " << "Birk Constant = "
+			   << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
+			   << "," << "edep = " << edep << ", " << "eion = " << eion
+			   << ", " << "light_yield = " << light_yield << endl;
+		      cout << "light_balance: " << params->light_balance << endl;
+		    }
+		}
+	    }
+	  else
+            {
+              light_yield = eion;
+            }
+          if (params->light_balance)
+            {
+              float r = sqrt(
+			     pow(postPoint->GetPosition().x() / cm, 2)
+			     + pow(postPoint->GetPosition().y() / cm, 2));
+              const float cor = GetLightCorrection(r);
+              light_yield = light_yield * cor;
+
+              static bool once = true;
+              if (once && light_yield>0)
+                {
+                  once = false;
+
+		  if (verbosity > 1) 
+		    {
+		      cout << "PHG4OuterHcalSteppingAction::UserSteppingAction::"
+			//
+			   << detector_->GetName() << " - "
+			   << " use a simple light collection model with linear radial dependence. "
+			   <<"First step: "
+			   <<"r = " <<r<<", "
+			   <<"correction ratio = " <<cor<<", "
+			   <<"light_yield after cor. = " <<light_yield
+			   << endl;
+		    }
+                }
+
             }
         }
 
+      //sum up the energy to get total deposited
+      hit->set_edep(hit->get_edep() + edep);
+      hit->set_eion(hit->get_eion() + eion);
+       if (whichactive > 0)
+	{
+	  hit->set_light_yield(hit->get_light_yield() + light_yield);
+	}
       if (geantino)
 	{
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
@@ -301,4 +333,16 @@ void PHG4InnerHcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNode
 	  cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
 	}
     }
+}
+
+float 
+PHG4InnerHcalSteppingAction::GetLightCorrection(const float r) const
+{
+  float m = (params->light_balance_outer_corr - params->light_balance_inner_corr)/(params->light_balance_outer_radius - params->light_balance_inner_radius);
+  float b = params->light_balance_inner_corr - m*params->light_balance_inner_radius;
+  float value = m*r+b;  
+  if (value > 1.0) return 1.0;
+  if (value < 0.0) return 0.0;
+
+  return value;
 }

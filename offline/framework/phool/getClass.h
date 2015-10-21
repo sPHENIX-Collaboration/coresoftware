@@ -1,10 +1,10 @@
 #ifndef GETCLASS_H__
 #define GETCLASS_H__
 
-#include <phool/PHNodeIterator.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHDataNode.h>
-#include <phool/PHNode.h>
+#include "PHNodeIterator.h"
+#include "PHIODataNode.h"
+#include "PHDataNode.h"
+#include "PHNode.h"
 
 #include <TObject.h>
 

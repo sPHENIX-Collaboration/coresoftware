@@ -10,6 +10,7 @@
 #pragma link C++ class PHObject+ ;
 #pragma link C++ class PHTimeServer-!;
 #pragma link C++ class PHTimeStamp+;
+#pragma link C++ class recoConsts-!;
 
 #pragma link C++ function operator +  (const PHTimeStamp &, time_t);
 #pragma link C++ function operator -  (const PHTimeStamp &, time_t);

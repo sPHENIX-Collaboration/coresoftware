@@ -28,7 +28,7 @@ PHG4BlockGeomContainer::identify(std::ostream& os) const
   os << "mag field: " << _magfield << endl;
   os << "number of layers: " << _layergeoms.size() << endl;
   map<int,PHG4BlockGeom *>::const_iterator iter;
-  for (iter=_layergeoms.begin(); iter != _layergeoms.end(); iter++)
+  for (iter=_layergeoms.begin(); iter != _layergeoms.end(); ++iter)
   {
     (iter->second)->identify(os);
   }

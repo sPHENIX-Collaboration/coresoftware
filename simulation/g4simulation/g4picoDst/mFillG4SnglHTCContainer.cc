@@ -18,7 +18,7 @@
 #include <fun4all/Fun4AllHistoManager.h>
 #include <phool/PHObject.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 #include <boost/foreach.hpp>
 #include<sstream>
 #include <cstdlib>

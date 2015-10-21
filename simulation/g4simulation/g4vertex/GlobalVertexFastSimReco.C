@@ -7,8 +7,8 @@
 #include <g4main/PHG4VtxPoint.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/getClass.h>
-#include <fun4all/recoConsts.h>
+#include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
@@ -51,15 +51,7 @@ int GlobalVertexFastSimReco::InitRun(PHCompositeNode *topNode) {
   }
   
   recoConsts *rc = recoConsts::instance();
-  unsigned int seed;
-  if (rc->FlagExist("RANDOMSEED"))
-    {
-      seed = rc->get_IntFlag("RANDOMSEED");
-    }
-  else
-    {
-      seed = PHRandomSeed();
-    }
+  unsigned int seed = PHRandomSeed(); // fixed seed handled in PHRandomSeed()
   gsl_rng_set(RandomGenerator,seed);
   
   if (verbosity > 0) {

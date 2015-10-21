@@ -75,6 +75,11 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   void SetScintiGap(const double scgap);
   void SetStepLimits(const double slim);
 
+  void SetLightCorrection(const float inner_radius, const float inner_corr,
+			  const float outer_radius, const float outer_corr);
+  void SetLightScintModel(const bool b = true);
+
+
   protected:
 
   //! detector geometry

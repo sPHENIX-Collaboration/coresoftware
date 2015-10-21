@@ -4,7 +4,7 @@
 #include "CaloEvalStack.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 #include <fun4all/SubsysReco.h>
 #include <phool/PHCompositeNode.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -34,7 +34,9 @@ CaloEvaluator::CaloEvaluator(const string &name, const string &caloname, const s
     _truth_trace_embed_flags(),
     _truth_e_threshold(0.0), // 0 GeV before reco is traced
     _reco_e_threshold(0.0), // 0 GeV before reco is traced
-    _strict(true),
+    _caloevalstack(NULL),
+    _strict(false),
+    _errors(0),
     _do_gpoint_eval(true),
     _do_gshower_eval(true),
     _do_tower_eval(true),
@@ -82,7 +84,15 @@ int CaloEvaluator::Init(PHCompositeNode *topNode) {
 }
 
 int CaloEvaluator::process_event(PHCompositeNode *topNode) {
-  
+
+ if (!_caloevalstack) {
+    _caloevalstack = new CaloEvalStack(topNode,_caloname);
+    _caloevalstack->set_strict(_strict);
+    _caloevalstack->set_verbosity(verbosity+1);
+  } else {
+    _caloevalstack->next_event(topNode);
+  }
+
   //-----------------------------------
   // print what is coming into the code
   //-----------------------------------
@@ -125,6 +135,8 @@ int CaloEvaluator::End(PHCompositeNode *topNode) {
     cout << "===========================================================================" << endl;
   }
 
+  if (_caloevalstack) delete _caloevalstack;
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -167,11 +179,8 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode *topNode) {
   
   if (verbosity > 2) cout << "CaloEvaluator::printOutputInfo() entered" << endl;
 
-  CaloEvalStack caloevalstack(topNode,_caloname); 
-  caloevalstack.set_strict(_strict);
-
-  CaloRawClusterEval* clustereval = caloevalstack.get_rawcluster_eval();
-  CaloTruthEval*        trutheval = caloevalstack.get_truth_eval();
+  CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
+  CaloTruthEval*        trutheval = _caloevalstack->get_truth_eval();
   
   //==========================================
   // print out some useful stuff for debugging
@@ -305,12 +314,9 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   
   if (verbosity > 2) cout << "CaloEvaluator::fillOutputNtuples() entered" << endl;
 
-  CaloEvalStack caloevalstack(topNode,_caloname); 
-  caloevalstack.set_strict(_strict);
-
-  CaloRawClusterEval* clustereval = caloevalstack.get_rawcluster_eval();
-  CaloRawTowerEval*     towereval = caloevalstack.get_rawtower_eval();
-  CaloTruthEval*        trutheval = caloevalstack.get_truth_eval();
+  CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
+  CaloRawTowerEval*     towereval = _caloevalstack->get_rawtower_eval();
+  CaloTruthEval*        trutheval = _caloevalstack->get_truth_eval();
   
   //----------------------
   // fill the Event NTuple

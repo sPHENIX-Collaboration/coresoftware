@@ -26,16 +26,8 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   //! reimplemented from base class
   virtual void SetInterfacePointers( PHCompositeNode* );
 
-  float GetLightCorrection(float r);
-  void SetLightCorrection(float inner_radius, float inner_corr,
-			  float outer_radius, float outer_corr) {
-    light_balance_ = true;
-    light_balance_inner_radius_ = inner_radius;
-    light_balance_inner_corr_ = inner_corr;
-    light_balance_outer_radius_ = outer_radius;
-    light_balance_outer_corr_ = outer_corr;
-  }
-  
+  float GetLightCorrection(const float r) const;
+
   private:
 
   //! pointer to the detector
@@ -46,12 +38,6 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer * absorberhits_;
   PHG4Hit *hit;
   PHG4InnerHcalParameters *params;
-
-  bool  light_balance_;
-  float light_balance_inner_radius_;
-  float light_balance_inner_corr_;
-  float light_balance_outer_radius_;
-  float light_balance_outer_corr_;
 };
 
 

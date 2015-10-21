@@ -5,8 +5,8 @@
 #include "PHG4VtxPoint.h"
 #include "PHG4TruthInfoContainer.h"
 
-#include <fun4all/getClass.h>
-#include <fun4all/recoConsts.h>
+#include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -29,15 +29,7 @@ PHG4ParticleGeneratorBase::PHG4ParticleGeneratorBase(const string &name):
   t0(0)
 {
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
-  recoConsts *rc = recoConsts::instance();
-  if (rc->FlagExist("RANDOMSEED"))
-    {
-      seed = rc->get_IntFlag("RANDOMSEED");
-    }
-  else
-    {
-      seed = PHRandomSeed();
-    }
+  seed = PHRandomSeed(); // fixed seed is handled in this funtcion
   gsl_rng_set(RandomGenerator,seed);
   return;
 }

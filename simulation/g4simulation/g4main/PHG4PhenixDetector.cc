@@ -2,7 +2,7 @@
 #include "PHG4Detector.h"
 #include "PHG4RegionInformation.h"
 
-#include <fun4all/recoConsts.h>
+#include <phool/recoConsts.h>
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Element.hh>

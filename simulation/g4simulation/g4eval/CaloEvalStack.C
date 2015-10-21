@@ -4,7 +4,7 @@
 #include "CaloRawClusterEval.h"
 #include "CaloTruthEval.h"
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 
 #include <string>

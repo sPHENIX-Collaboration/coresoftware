@@ -1,4 +1,5 @@
 #include "PHRandomSeed.h"
+#include "recoConsts.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -8,6 +9,11 @@ using namespace std;
 
 unsigned int PHRandomSeed()
 {
+  recoConsts *rc = recoConsts::instance();
+  if (rc->FlagExist("RANDOMSEED"))
+    {
+      return rc->get_IntFlag("RANDOMSEED");
+    }
   //  that's when we switch to c++11
   //  std::random_device rdev;
   //  uint32_t random_seed = rdev();

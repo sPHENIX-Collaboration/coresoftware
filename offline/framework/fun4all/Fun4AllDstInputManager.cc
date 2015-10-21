@@ -3,8 +3,6 @@
 #include "Fun4AllHistoBinDefs.h"
 #include "Fun4AllSyncManager.h"
 #include "Fun4AllReturnCodes.h"
-#include "recoConsts.h"
-#include "getClass.h"
 
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncObject.h>
@@ -12,9 +10,11 @@
 
 #include <frog/FROG.h>
 
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIOManager.h>
+#include <phool/recoConsts.h>
 
 #include <TH1.h>
 
@@ -122,7 +122,7 @@ int Fun4AllDstInputManager::run(const int nevents)
 {
   if (!isopen)
     {
-      if (!filelist.size())
+      if (filelist.empty())
 
 	{
 	  if (verbosity > 0)
@@ -187,7 +187,7 @@ int Fun4AllDstInputManager::fileclose()
   delete IManager;
   IManager = 0;
   isopen = 0;
-  if (filelist.size() > 0)
+  if (!filelist.empty())
     {
       if (repeat)
         {
@@ -584,7 +584,7 @@ Fun4AllDstInputManager::Print(const string &what) const
 int
 Fun4AllDstInputManager::OpenNextFile()
 {
-  while (filelist.size() > 0)
+  while (!filelist.empty())
     {
       list<string>::const_iterator iter = filelist.begin();
       if (verbosity)

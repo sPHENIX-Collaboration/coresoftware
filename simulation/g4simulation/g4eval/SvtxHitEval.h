@@ -22,7 +22,7 @@ class SvtxHitEval {
 public:
 
   SvtxHitEval(PHCompositeNode *topNode);
-  virtual ~SvtxHitEval() {}
+  virtual ~SvtxHitEval();
 
   void next_event(PHCompositeNode *topNode);
   void do_caching(bool do_cache) {
@@ -32,6 +32,10 @@ public:
   void set_strict(bool strict) {
     _strict = strict;
     _trutheval.set_strict(strict);
+  }
+  void set_verbosity(int verbosity) {
+    _verbosity = verbosity;
+    _trutheval.set_verbosity(verbosity);
   }
   
   // access the clustereval (and its cached values)
@@ -55,6 +59,8 @@ public:
   // overlap calculations
   float get_energy_contribution (SvtxHit* svtxhit, PHG4Particle* truthparticle);
   float get_energy_contribution (SvtxHit* svtxhit, PHG4Hit* truthhit);
+
+  unsigned int get_errors() {return _errors + _trutheval.get_errors();}
   
 private:
 
@@ -69,6 +75,8 @@ private:
   PHG4TruthInfoContainer* _truthinfo;
 
   bool _strict;
+  int _verbosity;
+  unsigned int _errors;
   
   bool                                              _do_cache;
   std::map<SvtxHit*,std::set<PHG4Hit*> >            _cache_all_truth_hits;

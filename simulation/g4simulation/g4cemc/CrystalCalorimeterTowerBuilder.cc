@@ -12,7 +12,7 @@
 #include <phool/PHIODataNode.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <cmath>
 #include <iostream>

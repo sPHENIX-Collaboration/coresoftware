@@ -19,13 +19,17 @@ class SvtxTruthEval {
 public:
 
   SvtxTruthEval(PHCompositeNode *topNode);
-  virtual ~SvtxTruthEval() {}
+  virtual ~SvtxTruthEval();
 
   void next_event(PHCompositeNode *topNode);
   void do_caching(bool do_cache) {_do_cache = do_cache;}
   void set_strict(bool strict) {
     _strict = strict;
     _basetrutheval.set_strict(strict);
+  }
+  void set_verbosity(int verbosity) {
+    _verbosity = verbosity;
+    _basetrutheval.set_verbosity(verbosity);
   }
   
   std::set<PHG4Hit*> all_truth_hits();
@@ -43,6 +47,8 @@ public:
   
   PHG4Hit*           get_innermost_truth_hit(PHG4Particle* particle);
   PHG4Hit*           get_outermost_truth_hit(PHG4Particle* particle);
+
+  unsigned int       get_errors() {return _errors + _basetrutheval.get_errors();}
   
 private:
 
@@ -55,6 +61,8 @@ private:
   PHG4HitContainer* _g4hits_tracker;
 
   bool _strict;
+  int _verbosity;
+  unsigned int _errors;
   
   bool                                        _do_cache;
   std::set<PHG4Hit*>                          _cache_all_truth_hits;

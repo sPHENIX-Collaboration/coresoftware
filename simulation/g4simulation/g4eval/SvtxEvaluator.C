@@ -5,7 +5,7 @@
 
 #include <phool/PHCompositeNode.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <g4hough/SvtxVertexMap.h>
 #include <g4hough/SvtxVertex.h>
@@ -38,7 +38,9 @@ using namespace std;
 SvtxEvaluator::SvtxEvaluator(const string &name, const string &filename) :
   SubsysReco("SvtxEvaluator"),
   _ievent(0),
-  _strict(true),
+  _svtxevalstack(NULL),
+  _strict(false),
+  _errors(0),
   _do_vertex_eval(true),
   _do_gpoint_eval(true),
   _do_g4hit_eval(true),
@@ -55,12 +57,13 @@ SvtxEvaluator::SvtxEvaluator(const string &name, const string &filename) :
   _ntp_track(NULL),
   _filename(filename),
   _tfile(NULL) {
+  verbosity = 0;
 }
 
 int SvtxEvaluator::Init(PHCompositeNode *topNode) {
   
   _ievent = 0;
-  
+
   _tfile = new TFile(_filename.c_str(), "RECREATE");
 
   if (_do_vertex_eval) _ntp_vertex = new TNtuple("ntp_vertex","vertex => max truth",
@@ -136,6 +139,14 @@ int SvtxEvaluator::process_event(PHCompositeNode *topNode) {
     cout << "SvtxEvaluator::process_event - Event = " << _ievent << endl;
   }
 
+  if (!_svtxevalstack) {
+    _svtxevalstack = new SvtxEvalStack(topNode);
+    _svtxevalstack->set_strict(_strict);
+    _svtxevalstack->set_verbosity(verbosity+1);
+  } else {
+    _svtxevalstack->next_event(topNode);
+  }
+  
   //-----------------------------------
   // print what is coming into the code
   //-----------------------------------
@@ -159,7 +170,7 @@ int SvtxEvaluator::process_event(PHCompositeNode *topNode) {
 }
 
 int SvtxEvaluator::End(PHCompositeNode *topNode) {
-  
+
   _tfile->cd();
 
   if (_ntp_vertex)  _ntp_vertex->Write();
@@ -180,6 +191,16 @@ int SvtxEvaluator::End(PHCompositeNode *topNode) {
     cout << "===========================================================================" << endl;
   }
 
+  _errors += _svtxevalstack->get_errors();
+  
+  if (verbosity > -1) {
+    if ((_errors > 0)||(verbosity > 0)) {
+      cout << "SvtxEvaluator::End() - Error Count: " << _errors << endl;
+    }
+  }
+  
+  if (_svtxevalstack) delete _svtxevalstack;
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -195,9 +216,8 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode *topNode) {
 
     cout << endl;
     cout << "---PHG4HITS-------------" << endl;
-    SvtxTruthEval trutheval(topNode);
-    trutheval.set_strict(_strict);
-    std::set<PHG4Hit*> g4hits = trutheval.all_truth_hits();
+    _svtxevalstack->get_truth_eval()->set_strict(_strict);
+    std::set<PHG4Hit*> g4hits = _svtxevalstack->get_truth_eval()->all_truth_hits();
     unsigned int ig4hit = 0;
     for(std::set<PHG4Hit*>::iterator iter = g4hits.begin();
 	iter != g4hits.end();
@@ -266,14 +286,12 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
   // print out some useful stuff for debugging
   //==========================================
 
-  SvtxEvalStack svtxevalstack(topNode);
-  svtxevalstack.set_strict(_strict);
-
-  SvtxTrackEval*     trackeval = svtxevalstack.get_track_eval();
-  SvtxClusterEval* clustereval = svtxevalstack.get_cluster_eval();
-  SvtxTruthEval*     trutheval = svtxevalstack.get_truth_eval();
-  
   if (verbosity > 0) {
+    
+    SvtxTrackEval*     trackeval = _svtxevalstack->get_track_eval();
+    SvtxClusterEval* clustereval = _svtxevalstack->get_cluster_eval();
+    SvtxTruthEval*     trutheval = _svtxevalstack->get_truth_eval();
+  
     // event information
     cout << endl;
     cout << PHWHERE << "   NEW OUTPUT FOR EVENT " << _ievent << endl;
@@ -533,14 +551,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
   if (verbosity > 1) cout << "SvtxEvaluator::fillOutputNtuples() entered" << endl;
 
-  SvtxEvalStack svtxevalstack(topNode);
-  svtxevalstack.set_strict(_strict);
-
-  SvtxVertexEval*   vertexeval = svtxevalstack.get_vertex_eval();
-  SvtxTrackEval*     trackeval = svtxevalstack.get_track_eval();
-  SvtxClusterEval* clustereval = svtxevalstack.get_cluster_eval();
-  SvtxHitEval*         hiteval = svtxevalstack.get_hit_eval();
-  SvtxTruthEval*     trutheval = svtxevalstack.get_truth_eval();
+  SvtxVertexEval*   vertexeval = _svtxevalstack->get_vertex_eval();
+  SvtxTrackEval*     trackeval = _svtxevalstack->get_track_eval();
+  SvtxClusterEval* clustereval = _svtxevalstack->get_cluster_eval();
+  SvtxHitEval*         hiteval = _svtxevalstack->get_hit_eval();
+  SvtxTruthEval*     trutheval = _svtxevalstack->get_truth_eval();
   
   //-----------------------
   // fill the Vertex NTuple
@@ -600,10 +615,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
     if (vertexmap && truthinfo) {
-//        PHG4VtxPoint* point = truthinfo->GetPrimaryVtx(truthinfo->GetVtxRange().first->second->get_id());
-        // to get the primary vertex? Then we probably should use the interface function in the truth container
-        PHG4VtxPoint* point =  truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
-        assert(point);
+
+      PHG4VtxPoint* point =  truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
       SvtxVertex* vertex = vertexeval->best_vertex_from(point);
     
       float gvx        = point->get_x();
@@ -682,37 +695,35 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float gfy       = NULL;
       float gfz       = NULL;
 
-      if (g4particle)
-        {
+      if (g4particle) {
 
-       gflavor   = g4particle->get_pid();
-       gpx       = g4particle->get_px();
-       gpy       = g4particle->get_py();
-       gpz       = g4particle->get_pz();
+	gflavor   = g4particle->get_pid();
+	gpx       = g4particle->get_px();
+	gpy       = g4particle->get_py();
+	gpz       = g4particle->get_pz();
 
-      PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);	
-      assert(vtx); // vtx should always be available. Delete this is it is suppose not
+	PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);	
 
-      if (vtx)
-        {
-       gvx       = vtx->get_x();
-       gvy       = vtx->get_y();
-       gvz       = vtx->get_z();
-        }
+	if (vtx) {
+	  gvx       = vtx->get_x();
+	  gvy       = vtx->get_y();
+	  gvz       = vtx->get_z();
+	}
     
-      PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
-      if (outerhit) {
-	gfpx      = outerhit->get_px(1);
-	gfpy      = outerhit->get_py(1);
-	gfpz      = outerhit->get_pz(1);
-	gfx       = outerhit->get_x(1);
-	gfy       = outerhit->get_y(1);
-	gfz       = outerhit->get_z(1);
-      }
-       gembed    = trutheval->get_embed(g4particle);
-       gprimary  = trutheval->is_primary(g4particle);
-        } //       if (g4particle)
-
+	PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
+	if (outerhit) {
+	  gfpx      = outerhit->get_px(1);
+	  gfpy      = outerhit->get_py(1);
+	  gfpz      = outerhit->get_pz(1);
+	  gfx       = outerhit->get_x(1);
+	  gfy       = outerhit->get_y(1);
+	  gfz       = outerhit->get_z(1);
+	}
+	
+	gembed    = trutheval->get_embed(g4particle);
+	gprimary  = trutheval->is_primary(g4particle);
+      } //       if (g4particle)
+      
       std::set<SvtxCluster*> clusters = clustereval->all_clusters_from(g4hit);  
       float nclusters = clusters.size();
 
@@ -742,10 +753,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	size       = cluster->size_hits();
 	phisize    = cluster->get_phi_size();
 	zsize      = cluster->get_z_size();
-  if (g4particle)
-    {
-	efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
-    }
+	if (g4particle) {
+	  efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
+	}
       }
 
       float g4hit_data[35] = {_ievent,
@@ -850,43 +860,40 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  gy       = g4hit->get_y(0);
 	  gz       = g4hit->get_z(0);
 
-	  if (g4particle){
+	  if (g4particle) {
 
-	  gtrackID = g4particle->get_track_id();
-	  gflavor  = g4particle->get_pid();
-	  gpx      = g4particle->get_px();
-	  gpy      = g4particle->get_py();
-	  gpz      = g4particle->get_pz();
+	    gtrackID = g4particle->get_track_id();
+	    gflavor  = g4particle->get_pid();
+	    gpx      = g4particle->get_px();
+	    gpy      = g4particle->get_py();
+	    gpz      = g4particle->get_pz();
 
-	  PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
-    assert(vtx); // vtx should always be available. Delete this is it is suppose not
+	    PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
 
-	  if (vtx)
-	    {
-	  gvx      = vtx->get_x();
-	  gvy      = vtx->get_y();
-	  gvz      = vtx->get_z();
+	    if (vtx) {
+	      gvx      = vtx->get_x();
+	      gvy      = vtx->get_y();
+	      gvz      = vtx->get_z();
 	    }
 
-	  PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
-	  if (outerhit) {
-	    gfpx     = outerhit->get_px(1);
-	    gfpy     = outerhit->get_py(1);
-	    gfpz     = outerhit->get_pz(1);
-	    gfx      = outerhit->get_x(1);
-	    gfy      = outerhit->get_y(1);
-	    gfz      = outerhit->get_z(1);
-	  }
-	  glast    = NAN;
-	  gembed   = trutheval->get_embed(g4particle);
-	  gprimary = trutheval->is_primary(g4particle);
-	  }//   if (g4particle){
+	    PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
+	    if (outerhit) {
+	      gfpx     = outerhit->get_px(1);
+	      gfpy     = outerhit->get_py(1);
+	      gfpz     = outerhit->get_pz(1);
+	      gfx      = outerhit->get_x(1);
+	      gfy      = outerhit->get_y(1);
+	      gfz      = outerhit->get_z(1);
+	    }
+	    glast    = NAN;
+	    gembed   = trutheval->get_embed(g4particle);
+	    gprimary = trutheval->is_primary(g4particle);
+	  } //   if (g4particle){
 	}      
 
-  if (g4particle){
-
-	efromtruth = hiteval->get_energy_contribution(hit,g4particle);
-  }
+	if (g4particle) {
+	  efromtruth = hiteval->get_energy_contribution(hit,g4particle);
+	}
 
 	float hit_data[32] = {
 	  event,
@@ -987,41 +994,39 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  gy       = g4hit->get_y(0);
 	  gz       = g4hit->get_z(0);
 
-	  if (g4particle){
+	  if (g4particle) {
 
-	  gtrackID = g4particle->get_track_id();
-	  gflavor  = g4particle->get_pid();
-	  gpx      = g4particle->get_px();
-	  gpy      = g4particle->get_py();
-	  gpz      = g4particle->get_pz();
+	    gtrackID = g4particle->get_track_id();
+	    gflavor  = g4particle->get_pid();
+	    gpx      = g4particle->get_px();
+	    gpy      = g4particle->get_py();
+	    gpz      = g4particle->get_pz();
 
-	  PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
-    assert(vtx); // vtx should always be available. Delete this is it is suppose not
+	    PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
+	    if (vtx) {
+	      gvx      = vtx->get_x();
+	      gvy      = vtx->get_y();
+	      gvz      = vtx->get_z();
+	    }
 
-    if (vtx)
-      {
-	  gvx      = vtx->get_x();
-	  gvy      = vtx->get_y();
-	  gvz      = vtx->get_z();
-      }
-
-	  PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
-	  if (outerhit) {
-	    gfpx     = outerhit->get_px(1);
-	    gfpy     = outerhit->get_py(1);
-	    gfpz     = outerhit->get_pz(1);
-	    gfx      = outerhit->get_x(1);
-	    gfy      = outerhit->get_y(1);
-	    gfz      = outerhit->get_z(1);
-	  }
-	  glast    = NAN;
-	  gembed   = trutheval->get_embed(g4particle);
-	  gprimary = trutheval->is_primary(g4particle);
+	    PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
+	    if (outerhit) {
+	      gfpx     = outerhit->get_px(1);
+	      gfpy     = outerhit->get_py(1);
+	      gfpz     = outerhit->get_pz(1);
+	      gfx      = outerhit->get_x(1);
+	      gfy      = outerhit->get_y(1);
+	      gfz      = outerhit->get_z(1);
+	    }
+	    
+	    glast    = NAN;
+	    gembed   = trutheval->get_embed(g4particle);
+	    gprimary = trutheval->is_primary(g4particle);
 	  }      //   if (g4particle){
 	} //  if (g4hit) {
 
-  if (g4particle){
-      efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
+	if (g4particle){
+	  efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
 	}
 
 	float cluster_data[33] = {_ievent,

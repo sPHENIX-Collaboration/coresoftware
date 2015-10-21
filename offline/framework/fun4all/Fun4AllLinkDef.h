@@ -9,6 +9,5 @@
 #pragma link C++ class Fun4AllOutputManager-!;
 #pragma link C++ class Fun4AllServer-!;
 #pragma link C++ class Fun4AllSyncManager-!;
-#pragma link C++ class recoConsts-!;
 
 #endif /* __CINT__ */
