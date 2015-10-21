@@ -73,9 +73,6 @@ int PHG4Shower_v1::isValid() const {
       if (isnan(get_covar(i,j))) return 0;
     }
   }
-  if (_edep.empty()) return 0;
-  if (_eion.empty()) return 0;
-  if (_light_yield.empty()) return 0;
   return 1;
 }
 

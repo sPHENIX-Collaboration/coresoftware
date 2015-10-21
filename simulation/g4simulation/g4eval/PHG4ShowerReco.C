@@ -225,6 +225,8 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
       if (light_yield != 0.0) shower.set_light_yield(volid,light_yield);     
     } // volume loop
 
+    if (points.empty()) continue;
+    
     // fill Eigen matrices to compute wPCA
     // resizing these non-destructively is expensive
     // so I fill vectors and then copy
@@ -250,7 +252,7 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
     // weighted covariance matrix
     prefactor = sumw / (pow(sumw,2) - sumw2); // effectivelly 1/(N-1) when w_i = 1.0
     Eigen::Matrix<double, 3, 3> covar = prefactor * (X.transpose() * W.asDiagonal() * X);
-       
+
     shower.set_x(mean(0,0));
     shower.set_y(mean(0,1));
     shower.set_z(mean(0,2));
@@ -270,8 +272,6 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 	first = false;
       }
     }
-
-    ptr->identify();
   } // primary particle loop
 
   // loop over all showers and create a map to trace quickly between primary id and shower id
