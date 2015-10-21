@@ -28,7 +28,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 // Geant4 includes
 #include <Geant4/G4MagneticField.hh>
@@ -990,6 +990,7 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
   // }
     
   _tracker = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
+  _tracker->setIterateClustering(true);
   _tracker->setNLayers(_seed_layers);
   _tracker->requireLayers(_req_seed);
   _max_hits_init = _seed_layers*4;
@@ -1124,12 +1125,12 @@ int PHG4HoughTransformTPC::CreateNodes(PHCompositeNode *topNode)
   tb_node->addNode(vertexes_node);
   if (verbosity>0) cout << "Svtx/SvtxVertexMap node added" << endl;
   
-  PHG4CylinderGeomContainer* geoms = getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SVTX");
-  if(!geoms) 
-  {
-    cerr << PHWHERE << " ERROR: Can't find CYLINDERGEOM_SVTX Node." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
+  //PHG4CylinderGeomContainer* geoms = getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SVTX");
+  //if(!geoms) 
+  //{
+  //  cerr << PHWHERE << " ERROR: Can't find CYLINDERGEOM_SVTX Node." << endl;
+  //  return Fun4AllReturnCodes::ABORTEVENT;
+  //}
 
   return InitializeGeometry(topNode);
 }

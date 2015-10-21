@@ -3,7 +3,7 @@
 
 #include "SvtxVertexEval.h"
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 
 #include <string>

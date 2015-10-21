@@ -11,14 +11,14 @@
 #include <g4hough/SvtxVertex.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/recoConsts.h>
-#include <phool/PHNodeIterator.h>
+
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/PHNodeIterator.h>
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
 #include <float.h>
 
 using namespace std;

@@ -14,8 +14,8 @@
 #include <g4decayer/P6DExtDecayerPhysics.hh>
 #include <g4decayer/EDecayType.hh>
 
-#include <fun4all/getClass.h>
-#include <fun4all/recoConsts.h>
+#include <phool/getClass.h>
+#include <phool/recoConsts.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
@@ -145,15 +145,7 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
     cout << "========================= PHG4Reco::Init() ================================" << endl;
   }
 
-  recoConsts *rc = recoConsts::instance();
-  if (rc->FlagExist("RANDOMSEED"))
-    {
-      G4Seed(std::abs(rc->get_IntFlag("RANDOMSEED")));
-    }
-  else
-    {
-      G4Seed(PHRandomSeed());
-    }
+  G4Seed(PHRandomSeed()); // fixed seed handled in PHRandomSeed()
   
   // create GEANT run manager
   if (verbosity > 1) cout << "PHG4Reco::Init - create run manager" << endl;

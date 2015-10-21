@@ -9,7 +9,7 @@
 #include <phool/PHTypedNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 // PHENIX Geant4 includes
 #include <g4cemc/RawClusterContainer.h>

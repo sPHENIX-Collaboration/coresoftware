@@ -6,9 +6,8 @@
 #include "Fun4AllOutputManager.h"
 #include "Fun4AllReturnCodes.h"
 #include "SubsysReco.h"
-#include "getClass.h"
-#include "recoConsts.h"
 
+#include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/PHObject.h>
 #include <phool/PHCompositeNode.h>
@@ -19,6 +18,7 @@
 #include <phool/PHPointerListIterator.h>
 #include <phool/PHTypedNodeIterator.h>
 #include <phool/PHTimeStamp.h>
+#include <phool/recoConsts.h>
 
 #include <TDirectory.h>
 #include <TFile.h>

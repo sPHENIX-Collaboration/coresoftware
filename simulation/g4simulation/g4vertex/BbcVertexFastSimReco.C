@@ -8,18 +8,17 @@
 #include <g4main/PHG4VtxPoint.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/recoConsts.h>
-#include <fun4all/getClass.h>
 
-#include <phool/PHNodeIterator.h>
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
 
 #include <gsl/gsl_randist.h>
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
 
 using namespace std;
 
@@ -46,16 +45,7 @@ int BbcVertexFastSimReco::InitRun(PHCompositeNode *topNode) {
     exit(-1);
   }
   
-  recoConsts *rc = recoConsts::instance();
-  unsigned int seed;
-  if (rc->FlagExist("RANDOMSEED"))
-    {
-      seed = rc->get_IntFlag("RANDOMSEED");
-    }
-  else
-    {
-      seed = PHRandomSeed();
-    }
+  unsigned int seed = PHRandomSeed(); // fixed random seed handled in PHRandomSeed()
   gsl_rng_set(RandomGenerator,seed);
   
   if (verbosity > 0) {

@@ -15,7 +15,7 @@
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <TH2F.h>
 

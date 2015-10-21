@@ -3,14 +3,15 @@
 #include "Fun4AllSyncManager.h"
 #include "Fun4AllReturnCodes.h"
 #include "Fun4AllUtils.h"
-#include "recoConsts.h"
-#include "getClass.h"
 
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncObjectv2.h>
 #include <frog/FROG.h>
+
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
+#include <phool/recoConsts.h>
 
 #include <Event/Event.h>
 #include <Event/fileEventiterator.h>
@@ -95,7 +96,7 @@ int Fun4AllPrdfInputManager::run(const int nevents)
   readagain:
   if (!isopen)
     {
-      if (!filelist.size())
+      if (filelist.empty())
 
 	{
 	  if (verbosity > 0)
@@ -172,7 +173,7 @@ int Fun4AllPrdfInputManager::fileclose()
   isopen = 0;
   // if we have a file list, move next entry to top of the list
   // or repeat the same entry again
-  if (filelist.size() > 0)
+  if (!filelist.empty())
     {
       if (repeat)
         {
@@ -199,7 +200,7 @@ Fun4AllPrdfInputManager::Print(const string &what) const
 int
 Fun4AllPrdfInputManager::OpenNextFile()
 {
-  while (filelist.size() > 0)
+  while (!filelist.empty())
     {
       list<string>::const_iterator iter = filelist.begin();
       if (verbosity)
