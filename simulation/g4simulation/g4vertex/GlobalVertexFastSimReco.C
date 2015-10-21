@@ -7,9 +7,8 @@
 #include <g4main/PHG4VtxPoint.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/getClass.h>
-#include <phool/recoConsts.h>
 
+#include <phool/getClass.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -17,8 +16,8 @@
 
 #include <gsl/gsl_randist.h>
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
 
 using namespace std;
 
@@ -50,7 +49,6 @@ int GlobalVertexFastSimReco::InitRun(PHCompositeNode *topNode) {
     exit(-1);
   }
   
-  recoConsts *rc = recoConsts::instance();
   unsigned int seed = PHRandomSeed(); // fixed seed handled in PHRandomSeed()
   gsl_rng_set(RandomGenerator,seed);
   
