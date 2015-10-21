@@ -163,7 +163,7 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary)
     if (_strict) {assert(candidate);}
     else if (!candidate) {++_errors; continue;}
 
-    if (are_same_particle(candidate,primary)) continue;
+    if (!are_same_particle(candidate,primary)) continue;
     truth_hits.insert(g4hit);
   }
 

@@ -130,13 +130,18 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 
   // it is also faster to hop from the entry in the Map to the PrimaryMap
   // than in the reverse direction, also supporting recording the Map index
+
+  CaloTruthEval calotrutheval(topNode,"CEMC");
+  
+  _truth_info->identify();
   
   // loop over all truth primary particles
-  const PHG4TruthInfoContainer::Map &map = _truth_info->GetPrimaryMap();
+  const PHG4TruthInfoContainer::Map &map = _truth_info->GetMap();
   for (PHG4TruthInfoContainer::ConstIterator primary_iter = map.begin(); 
        primary_iter != map.end(); 
        ++primary_iter) {
     PHG4Particle* primary = primary_iter->second;
+
     if (!_volume_truthevals.begin()->second->is_primary(primary)) continue;
     
     // does the output already contain a shower for this particle?
@@ -153,12 +158,19 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
     //   }
     // }
     // if (exists) continue;
-
+   
     PHG4Shower_v1 shower;
     shower.set_primary_id(primary->get_track_id());    
 
+    cout << endl;
+    cout << "new shower production..." << endl;
+    cout << "primary addr = " << primary << endl;
     cout << "primary id  = " << primary->get_track_id() << endl;
+    cout << "full trace primary id  = " << calotrutheval.get_primary_particle(primary)->get_track_id() << endl;
+    cout << "primary flavor = " << primary->get_pid() << endl;
     cout << "primary phi = " << atan2(primary->get_py(),primary->get_px()) << endl;
+    cout << "primary eta = " << asinh(primary->get_pz()/sqrt(pow(primary->get_px(),2)+pow(primary->get_py(),2))) << endl;
+    cout << "primary nghits = " << calotrutheval.get_shower_from_primary(primary).size() << endl;
     
     // Data structures to hold weighted   
     std::vector<std::vector<float> > points;
@@ -171,24 +183,26 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
 	 volume_iter != _volume_truthevals.end();
 	 ++volume_iter) {
       PHG4Shower::VOLUME volid = volume_iter->first;
-      CaloTruthEval* eval = volume_iter->second;
+      //CaloTruthEval* eval = volume_iter->second;
 
       float edep = 0.0;
       float eion = 0.0;
       float light_yield = 0.0;
       
       // get the g4hits from this particle in this volume
-      
-      std::set<PHG4Hit*> g4hits = eval->get_shower_from_primary(primary);
+
+      std::set<PHG4Hit*> g4hits = calotrutheval.get_shower_from_primary(primary);
 
       cout << volid << " " << g4hits.size() << " " << primary << endl;
-      
+
       for (std::set<PHG4Hit*>::iterator g4hit_iter = g4hits.begin();
 	   g4hit_iter != g4hits.end();
 	   ++g4hit_iter) {
 	PHG4Hit* g4hit = *g4hit_iter;
-
-	cout << "g4hit phi = " << atan2(g4hit->get_y(0),g4hit->get_x(0)) << endl;
+	
+	cout << " g4hit phi = " << atan2(g4hit->get_y(0),g4hit->get_x(0))
+	     << " eta = " << asinh(g4hit->get_z(0)/sqrt(pow(g4hit->get_x(0),2)+pow(g4hit->get_y(0),2)))
+	     << " primary id = " << calotrutheval.get_primary_particle(g4hit)->get_track_id() << endl;
 	
 	if (!isnan(g4hit->get_x(0)) &&
 	    !isnan(g4hit->get_y(0)) &&
@@ -262,7 +276,8 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
     shower.set_y(mean(0,1));
     shower.set_z(mean(0,2));
 
-    cout << "shower phi = " << atan2(shower.get_y(),shower.get_x()) << endl;
+    cout << "=> shower phi = " << atan2(shower.get_y(),shower.get_x())
+	 << " eta = " << asinh(shower.get_z()/sqrt(pow(shower.get_x(),2)+pow(shower.get_y(),2))) << endl;
     
     for (unsigned int i = 0; i < 3; ++i) {
       for (unsigned int j = 0; j <= i; ++j) {

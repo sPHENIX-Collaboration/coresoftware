@@ -394,7 +394,12 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float gflavor     = primary->get_pid();
       
       std::set<PHG4Hit*> g4hits = trutheval->get_shower_from_primary(primary);     
-      float gnhits   = g4hits.size();	
+      float gnhits   = g4hits.size();
+
+      PHG4Hit* g4hit = *g4hits.begin();
+      cout << " --- primary id = " << primary->get_track_id() << endl;
+      cout << " --- primary id of g4hit = " << trutheval->get_primary_particle(g4hit)->get_track_id() << endl;
+      
       float gpx      = primary->get_px();
       float gpy      = primary->get_py();
       float gpz      = primary->get_pz();
