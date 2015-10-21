@@ -132,11 +132,6 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
       //if (_cal_radii[i] < _mag_extent) {
       // curved projections inside field
 
-      // ***testing***
-      for (int ii=1;ii<11;++ii) {
-	_hough.projectToRadius(track,_magfield,5.0*ii,point);
-      }
-      
       _hough.projectToRadius(track,_magfield,_cal_radii[i],point);
 
       if (isnan(point[0])) continue;
