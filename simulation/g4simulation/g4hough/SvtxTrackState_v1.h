@@ -47,6 +47,11 @@ public:
 
   float get_mom(unsigned int i) const {return _mom[i];}
 
+  float get_p() const   {return sqrt(pow(get_px(),2) + pow(get_py(),2) + pow(get_pz(),2));}
+  float get_pt() const  {return sqrt(pow(get_px(),2) + pow(get_py(),2));}
+  float get_eta() const {return asinh(get_pz()/get_pt());}
+  float get_phi() const {return atan2(get_py(),get_px());}
+  
   float get_error(unsigned int i, unsigned int j) const;
   void  set_error(unsigned int i, unsigned int j, float value);
   

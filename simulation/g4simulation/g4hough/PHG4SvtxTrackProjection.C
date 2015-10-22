@@ -131,6 +131,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
       point.assign(3,-9999.);
       //if (_cal_radii[i] < _mag_extent) {
       // curved projections inside field
+
       _hough.projectToRadius(track,_magfield,_cal_radii[i],point);
 
       if (isnan(point[0])) continue;
