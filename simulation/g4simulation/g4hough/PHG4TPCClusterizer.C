@@ -30,6 +30,9 @@
 
 using namespace std;
 
+static int phi_span=10;
+static int z_span=10;
+
 
 static inline int wrap_bin( int bin, int nbins )
 {
@@ -60,8 +63,8 @@ static bool is_local_maximum( std::vector<std::vector<float> > const& amps, int 
 
 static void fit_cluster( std::vector<std::vector<float> >& amps, int& nhits_tot, std::vector<int>& nhits, int phibin, int zbin, PHG4CylinderCellGeom* geo, float& phi, float& z, float& e )
 {
-	int phi_span = 10;
-	int z_span = 10;
+	// int phi_span = 3;
+	// int z_span = 1;
 	e = 0.;
 	phi = 0.;
 	z = 0.;
@@ -140,6 +143,9 @@ static void fit_cluster( std::vector<std::vector<float> >& amps, int& nhits_tot,
 
 int PHG4TPCClusterizer::InitRun(PHCompositeNode *topNode)
 {
+	phi_span = _phi_span;
+	z_span = _z_span;
+
 	PHG4CylinderCellGeomContainer* geom_container = 0;
 	PHTypedNodeIterator<PHG4CylinderCellGeomContainer> geomiter(topNode);
 	PHIODataNode<PHG4CylinderCellGeomContainer>* PHG4CylinderCellGeomContainerNode = geomiter.find("CYLINDERCELLGEOM_SVTX");

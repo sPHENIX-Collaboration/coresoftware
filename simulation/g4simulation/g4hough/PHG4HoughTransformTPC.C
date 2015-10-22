@@ -9,6 +9,7 @@
 #include "SvtxTrackMap_v1.h"
 #include "SvtxTrack.h"
 #include "SvtxTrack_v1.h"
+#include "SvtxTrackState.h"
 #include "SvtxClusterMap.h"
 #include "SvtxCluster.h"
 
@@ -101,93 +102,202 @@ static inline double sign(double x)
   return ((double)(x > 0.)) - ((double)(x < 0.));
 }
 
-void PHG4HoughTransformTPC::projectToRadius(const SvtxTrack* track, double B, double radius, vector<double>& intersection)
-{
-  float phi  = atan2(track->get_y(),track->get_x());
-  float d    = track->get_dca2d();
-  float k    = B / 333.6 / track->get_pt();
-  float z0   = track->get_z();
-  float dzdl = track->get_pz()/track->get_p();
-  
-  intersection.clear();intersection.assign(3,0.);
-  double& x = intersection[0];
-  double& y = intersection[1];
-  double& z = intersection[2];
-  
-  float rad_det = radius;
-  
-  float cosphi = cos(phi);
-  float sinphi = sin(phi);
-  
-  // get outer hit
-  float hitx = d*cosphi;
-  float hity = d*sinphi;
 
+void PHG4HoughTransformTPC::projectToRadius(const SvtxTrack* track,
+					    double B,
+					    double radius,
+					    std::vector<double>& intersection) {
+  intersection.clear();
+  intersection.assign(3,NAN);
+
+  // start from the inner most state vector
+  const SvtxTrackState* state = track->get_state(0.0);
+  projectToRadius(state,track->get_charge(),B,radius,intersection);
+  
+  // iterate once to see if there is a state vector closer to the intersection
+  if (track->size_states() == 1) return;
+
+  const SvtxTrackState* closest = NULL;  
+  float min_dist = FLT_MAX;
   for (SvtxTrack::ConstStateIter iter = track->begin_states();
        iter != track->end_states();
        ++iter) {
-    const SvtxTrackState* state = iter->second;
-    hitx = state->get_x();
-    hity = state->get_y();
+    const SvtxTrackState* candidate = iter->second;
+    float dist = sqrt(pow(candidate->get_x()-intersection[0],2) +
+		      pow(candidate->get_y()-intersection[1],2) +
+		      pow(candidate->get_z()-intersection[2],2));
+
+    if (dist < min_dist) {
+      closest = candidate;
+      min_dist = dist;
+    }
+  }
+
+  // if we just got back the previous case, bail
+  if (closest->get_pathlength() == 0.0) return;
+
+  // recompute using the closer state vector
+  projectToRadius(closest,track->get_charge(),B,radius,intersection);
+
+  return;
+}
+
+void PHG4HoughTransformTPC::projectToRadius(const SvtxTrackState* state,
+					    int charge,
+					    double B,
+					    double radius,
+					    std::vector<double>& intersection) {
+  intersection.clear();
+  intersection.assign(3,NAN);
+  
+  // find 2d intersections in x,y plane
+  std::set<std::vector<double> > intersections;
+  if (B != 0.0) {
+    // magentic field present, project track as a circle leaving the state position
+    
+    // compute the center of rotation and the helix parameters
+    // x(u) = r*cos(q*u+cphi) + cx
+    // y(u) = r*sin(q*u+cphi) + cy
+    // z(u) = b*u + posz;
+    
+    double cr = state->get_pt() * 333.6 / B;                                  // radius of curvature
+    double cx = state->get_x() - (state->get_py()*cr)/charge/state->get_pt(); // center of rotation, x
+    double cy = (state->get_px()*cr)/charge/state->get_pt() + state->get_y(); // center of rotation, y
+    double cphi = atan2(state->get_y()-cy,state->get_x()-cx);                 // phase of state position
+    double b = state->get_pz()/state->get_pt()*cr;                            // pitch along z
+
+    if (!circle_circle_intersections(0.0,0.0,radius,
+				    cx,cy,cr,
+				    &intersections)) {
+      return;
+    }
+
+    if (intersections.empty()) return;
+    
+    // downselect solutions based on track direction
+    // we want the solution where the state vector would exit the cylinder
+    // this can be determined by the direction that the track circulates in
+
+    // rotate the px,py to the postion of the solution
+    // then ask if the dot product of the displacement vector between the solution
+    // and the cylinder center with the rotated momentum vector is positive
+    std::set<std::vector<double> >::iterator remove_iter = intersections.end();
+    double intersection_z = 0.0;
+    for (std::set<std::vector<double> >::iterator iter = intersections.begin();
+	 iter != intersections.end();
+	 ++iter) {
+      double x = iter->at(0);
+      double y = iter->at(1);
+
+      // find the azimuthal rotation about the center of rotation between the state vector and the solution
+
+      // displacement between center of rotation and solution
+      double dx = x - cx;
+      double dy = y - cy;
+      double dphi = atan2(dy,dx);
+       
+      // displacement between center of rotation and state position
+      double state_dx = state->get_x() - cx;
+      double state_dy = state->get_y() - cy;
+      double state_dphi = atan2(state_dy,state_dx);
+
+      // relative rotation angle
+      double rotphi = (dphi-state_dphi);
+        
+      // rotated momentum at the solution
+      double rotpx = cos(rotphi)*state->get_px() - sin(rotphi)*state->get_py();
+      double rotpy = sin(rotphi)*state->get_px() + cos(rotphi)*state->get_py();
+    
+      // assumes cylinder is centered at 0,0
+      double dot = rotpx*x + rotpy*y;
+
+      // our solution will have a momentum vector leaving the cylinder surface
+      if (dot >= 0.0) {
+	// find the solution for z
+	double u = (dphi - cphi)/charge;
+	
+	// look only along the projection (not backward)
+	if (u > 2.0*M_PI) {
+	  u = u - 2.0*M_PI;
+	} else if (u < 0.0) {
+	  u = u + 2.0*M_PI;
+	}
+
+	intersection_z = b*u+state->get_z();      
+      } else {
+	remove_iter = iter;
+      }
+    }
+
+    if (remove_iter != intersections.end()) {
+      intersections.erase(remove_iter);
+    }
+
+    if (intersections.empty()) return;
+    
+    intersection[0] = intersections.begin()->at(0);
+    intersection[1] = intersections.begin()->at(1);
+    intersection[2] = intersection_z;
+
+    return;
+    
+  } else {
+    // no magnetic field project track as a line
+    
+    circle_line_intersections(0.0,0.0,radius,
+     			      state->get_x(),state->get_y(),state->get_px(),state->get_py(),
+     			      &intersections);
+
+    if (intersections.empty()) return;
+    
+    // downselect solutions based on track direction
+    // we want the solution where the state vector would point outward
+    // since the track doesn't bend this will be the solution where
+    // the dot product of the displacement between the solution and the cylinder center
+    // and the momentum vector is positive
+    std::set<std::vector<double> >::iterator remove_iter = intersections.end();
+    double intersection_z = 0.0;
+    for (std::set<std::vector<double> >::iterator iter = intersections.begin();
+      	 iter != intersections.end();
+      	 ++iter) {
+       double x = iter->at(0);
+       double y = iter->at(1);
+
+      // assumes cylinder is centered at 0,0
+      double dot = state->get_px()*x + state->get_py()*y;
+      if (dot >= 0.0) {
+
+	// x(u) = px*u + x1
+	// y(u) = py*u + y1
+	// z(u) = pz*u + z1
+	
+	double u = NAN;
+	if (state->get_px() != 0) {
+	  u = (intersection[0] - state->get_x()) / state->get_px();
+	} else if (state->get_py() != 0) {
+	  u = (intersection[1] - state->get_y()) / state->get_py();      
+	}
+
+	intersection_z = state->get_pz()*u+state->get_z();    
+      } else {
+	remove_iter = iter;
+      }
+    }
+
+    if (remove_iter != intersections.end()) {
+      intersections.erase(remove_iter);
+    }
+
+    if (intersections.empty()) return;
+
+    intersection[0] = intersections.begin()->at(0);
+    intersection[1] = intersections.begin()->at(1);
+    intersection[2] = intersection_z;
+
+    return;
   }
   
-  k = fabs(k);
-  
-  float kd = (d*k + 1.);
-  float kcx = kd*cosphi;
-  float kcy = kd*sinphi;
-  float kd_inv = 1./kd;
-  float R2 = rad_det*rad_det;
-  float a = 0.5*(k*R2 + ( d*d*k + 2.*d ))*kd_inv;
-  float tmp1 = a*kd_inv;
-  float P2x = kcx*tmp1;
-  float P2y = kcy*tmp1;
-  
-  float h = sqrt(R2 - a*a);
-  
-  float ux = -kcy*kd_inv;
-  float uy = kcx*kd_inv;
-  
-  float x1 = P2x + ux*h;
-  float y1 = P2y + uy*h;
-  float x2 = P2x - ux*h;
-  float y2 = P2y - uy*h;
-  float diff1 = (x1-hitx)*(x1-hitx) + (y1-hity)*(y1-hity);
-  float diff2 = (x2-hitx)*(x2-hitx) + (y2-hity)*(y2-hity);
-  float signk = 0.;
-  if(diff1 < diff2){signk = 1.;}
-  else{signk = -1.;}
-  x = P2x + signk*ux*h;
-  y = P2y + signk*uy*h;
-  
-  double sign_dzdl = sign(dzdl);
-  double startx = d*cosphi;
-  double starty = d*sinphi;
-  double D = sqrt((startx-x)*(startx-x) + (starty-y)*(starty-y));
-  double v = 0.5*k*D;
-  z = 0.;
-  if(v > 0.1)
-  {
-    if(v >= 0.999999){v=0.999999;}
-    double s = 2.*asin(v)/k;
-    double dz = sqrt(s*s*dzdl*dzdl/(1. - dzdl*dzdl));
-    z = z0 + sign_dzdl*dz;
-  }
-  else
-  {
-    double s = 0.;
-    double temp1 = k*D*0.5;temp1*=temp1;
-    double temp2 = D*0.5;
-    s += 2.*temp2;
-    temp2*=temp1;
-    s += temp2/3.;
-    temp2*=temp1;
-    s += (3./20.)*temp2;
-    temp2*=temp1;
-    s += (5./56.)*temp2;
-    double dz = sqrt(s*s*dzdl*dzdl/(1. - dzdl*dzdl));
-    z = z0 + sign_dzdl*dz;
-  }
+  return;
 }
 
 float PHG4HoughTransformTPC::kappaToPt(float kappa) {  
@@ -749,11 +859,9 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
       }
     }
 
-    track.set_x( d*cos(phi) );
-    track.set_y( d*sin(phi) );
-    track.set_z( z0 );
-
-
+    track.set_x( vertex.get_x() + d*cos(phi) );
+    track.set_y( vertex.get_y() + d*sin(phi) );
+    track.set_z( vertex.get_z() + z0 );
     
     _g4tracks->insert(&track);
     vertex.insert_track(track.get_id());
@@ -1174,5 +1282,98 @@ int PHG4HoughTransformTPC::GetNodes(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+
+bool PHG4HoughTransformTPC::circle_line_intersections(double x0, double y0, double r0,
+						      double x1, double y1, double vx1, double vy1,
+						      std::set<std::vector<double> >* points) {
+  // P0: center of rotation
+  // P1: point on line
+  // P2: second point on line
+  // P3: intersections
+
+  // dr: distance between P1 & P2
+  // delta: discriminant on number of solutions
+  
+  points->clear();
+  
+  double x2 = x1 + vx1;
+  double y2 = y1 + vy1;
+
+  double dr = sqrt(pow(vx1,2)+pow(vy1,2));
+  double det = x1*y2-x2*y1;
+
+  double delta = pow(r0,2)*pow(dr,2) - pow(det,2);
+  if (delta < 0) return false;
+
+  double sgn_vy1 = 1.0;
+  if (vy1 < 0.0) sgn_vy1 = -1.0;
+  
+  double x3 = (det*vy1 + sgn_vy1*vx1*sqrt(pow(r0,2)*pow(dr,2)-pow(det,2))) / pow(dr,2);
+  double y3 = (-1.0*det*vx1 + fabs(vy1)*sqrt(pow(r0,2)*pow(dr,2)-pow(det,2))) / pow(dr,2);
+
+  std::vector<double> p3;
+  p3.push_back(x3);
+  p3.push_back(y3);
+  points->insert(p3);
+
+  x3 = (det*vy1 - sgn_vy1*vx1*sqrt(pow(r0,2)*pow(dr,2)-pow(det,2))) / pow(dr,2);
+  y3 = (-1.0*det*vx1 - fabs(vy1)*sqrt(pow(r0,2)*pow(dr,2)-pow(det,2))) / pow(dr,2);
+
+  p3[0] = x3;
+  p3[1] = y3;
+  points->insert(p3);
+
+  return true;
+}
+  
+bool PHG4HoughTransformTPC::circle_circle_intersections(double x0, double y0, double r0,
+							double x1, double y1, double r1,
+							std::set<std::vector<double> >* points) {
+  // P0: center of rotation on first circle
+  // P1: center of rotation of second circle
+  // P2: point between P0 & P1 on radical line
+  // P3: intersection points
+
+  // d: distance between P0 and P1
+  // a: distance between P0 and P2
+  // h: distance from P2 and P3s
+
+  points->clear();
+  
+  // distance between two circle centers
+  double d = sqrt(pow(x0-x1,2)+pow(y0-y1,2));
+
+  // handle error conditions
+  if (fabs(r0+r1) < d) return false; // no solution
+  if (fabs(r0-r1) > d) return false; // no solution
+  if (d == 0 && r0 == r1) return false; // infinite solutions
+
+  // compute distances to intersection points
+  double a = (pow(r0,2)-pow(r1,2)+pow(d,2)) / (2*d);
+  double h = sqrt(pow(r0,2)-pow(a,2));
+
+  // compute P2
+  double x2 = x0 + a * (x1 - x0) / d;
+  double y2 = y0 + a * (y1 - y0) / d;
+  
+  // compute intersection, p3
+  double x3 = x2 + h * (y1 - y0) / d;
+  double y3 = y2 - h * (x1 - x0) / d;
+
+  std::vector<double> p3;
+  p3.push_back(x3);
+  p3.push_back(y3);
+  points->insert(p3);
+  
+  // second intersection (if different than first)
+  x3 = x2 - h * (y1 - y0) / d;
+  y3 = y2 + h * (x1 - x0) / d;
+
+  p3[0] = x3;
+  p3[1] = y3;
+  points->insert(p3);
+
+  return points;  
+}
 
 

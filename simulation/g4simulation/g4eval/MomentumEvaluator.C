@@ -241,7 +241,7 @@ bool RecursiveMomentumContainer::insert( TrivialTrack& track )
 }
 
 
-MomentumEvaluator::MomentumEvaluator( std::string fname, float pt_s, float pz_s ) : ntp_true(NULL), ntp_reco(NULL), pt_search_scale(pt_s), pz_search_scale(pz_s), event_counter(0), file_name(fname) {}
+MomentumEvaluator::MomentumEvaluator( std::string fname, float pt_s, float pz_s, unsigned int n_l, unsigned int n_i, unsigned int n_r, float i_z, float o_z ) : ntp_true(NULL), ntp_reco(NULL), pt_search_scale(pt_s), pz_search_scale(pz_s), event_counter(0), file_name(fname), n_layers(n_l), n_inner_layers(n_i), n_required_layers(n_r), inner_z_length(i_z), outer_z_length(o_z) {}
 MomentumEvaluator::~MomentumEvaluator()
 {
 	if(ntp_true != NULL){delete ntp_true;}
@@ -267,12 +267,38 @@ int MomentumEvaluator::process_event( PHCompositeNode *topNode )
 	PHG4HitContainer* g4hits = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SVTX");
 	if(g4hits == NULL){cout<<"can't find PHG4HitContainer"<<endl;exit(1);}
 	PHG4HitContainer::ConstRange g4range = g4hits->getHits();
-	set<int> trkids;
+
+	// set<int> trkids;
+	map<int, pair<unsigned int,unsigned int> > trkids;
+
 	for( PHG4HitContainer::ConstIterator iter = g4range.first; iter != g4range.second; ++iter )
 	{
 		PHG4Hit* hit = iter->second;
+
+		int layer = hit->get_layer();
+		float length = outer_z_length;
+		if(((unsigned int)layer)<n_inner_layers){length=inner_z_length;}
+		if(fabs(hit->get_z(0))>length){continue;}
+
 		int trk_id = hit->get_trkid();
-		trkids.insert(trk_id);
+		if(trkids.find(trk_id) == trkids.end())
+		{
+			trkids[trk_id].first = 0;
+			trkids[trk_id].second = 0;
+		}
+		if( hit->get_layer() < 32 )
+		{
+			trkids[trk_id].first = (trkids[trk_id].first | (1<<(hit->get_layer())));
+		}
+		else
+		{
+			trkids[trk_id].second = (trkids[trk_id].second | (1<<(hit->get_layer()-32)));
+		}
+		
+		// cout<<"trk_id = "<<trk_id<<endl;
+		// cout<<"layer = "<<hit->get_layer()<<endl;
+		// cout<<"nlayer = "<<__builtin_popcount(trkids[trk_id].first)+__builtin_popcount(trkids[trk_id].second)<<endl<<endl;
+		// trkids.insert(trk_id);
 	}
 
 
@@ -304,9 +330,16 @@ int MomentumEvaluator::process_event( PHCompositeNode *topNode )
    		continue;
    	}
 
+   	// cout<<"trk, nhits = "<<particle->get_track_id()<<" "<<__builtin_popcount(trkids[particle->get_track_id()].first)+__builtin_popcount(trkids[particle->get_track_id()].second)<<endl;
+
+   	if( __builtin_popcount(trkids[particle->get_track_id()].first)+__builtin_popcount(trkids[particle->get_track_id()].second) < (int)n_required_layers )
+   	{
+   		continue;
+   	}
+
    	true_sorted.insert( track );
    }
-   
+
 
    RecursiveMomentumContainer reco_sorted( -20., 20., -20., 20., -20., 20., 10 );
    for(SvtxTrackMap::Iter iter = trackmap->begin();iter != trackmap->end();++iter)

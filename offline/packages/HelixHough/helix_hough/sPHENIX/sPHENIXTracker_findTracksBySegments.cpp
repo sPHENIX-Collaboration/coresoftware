@@ -514,7 +514,7 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
     seed.state.C = Matrix<float,5,5>::Zero(5,5);
     seed.state.C(0,0) = pow(0.01, 2.);
     seed.state.C(1,1) = pow(0.5, 2.);
-    seed.state.C(2,2) = pow(0.05*seed.state.nu, 2.);
+    seed.state.C(2,2) = pow(0.3*seed.state.nu, 2.);
     seed.state.C(3,3) = pow(0.5, 2.);
     seed.state.C(4,4) = pow(0.05, 2.);
     seed.state.chi2 = 0.;
@@ -566,11 +566,11 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
       for( unsigned int h=0;h<temp_indexes.size();++h )
       {
         if(temp_indexes[h] < 0){continue;}
-        if( (temp_states[h].chi2/(2.*( (float)((n_layers-l)+2 - seed.ndummies) ) ) < (chi2_cut)) && ( (temp_states[h].chi2-seed.state.chi2)<5. ) && (temp_states[h].chi2 < best_chi2) )
+        if( (temp_states[h].chi2/(2.*( (float)((n_layers-l)+2 - seed.ndummies) ) ) < (2.*chi2_cut)) && (temp_states[h].chi2 < best_chi2) )
         {
           if( (n_layers-l) - (int)(seed.ndummies) > 3 )
           {
-            if( temp_states[h].chi2/( 2.*((float)((n_layers-l)-(int)(seed.ndummies))) - 5. ) > chi2_cut )
+            if( temp_states[h].chi2/( 2.*((float)((n_layers-l)-(int)(seed.ndummies))) - 5. ) > 2.*chi2_cut )
             {
               continue;
             }
@@ -609,19 +609,46 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
     }
 
     {
+      if( ( store_tracks.back().hits[0].layer ) != 0 )
+      {
+        store_tracks.pop_back();continue;
+      }
+      if( ( store_tracks.back().hits[1].layer ) != 1 )
+      {
+        store_tracks.pop_back();continue;
+      }
+
+
       HelixKalmanState state = seed.state;
       
-      state.C *= 0.05;
-      for(int j=0;j<5;++j)
-      {
-        state.C(2,j) *= 0.03;
-        state.C(j,2) *= 0.03;
-      }
+      // state.C *= 50.;
+      // for(int j=0;j<5;++j)
+      // {
+      //   state.C(2,j) *= 0.03;
+      //   state.C(j,2) *= 0.03;
+      // }
       
       state.chi2 = 0.;
       state.x_int = 0.;
       state.y_int = 0.;
       state.z_int = 0.;
+
+      fitTrack(store_tracks.back());
+
+      state.phi = store_tracks.back().phi;
+      state.d = store_tracks.back().d;
+      state.kappa = store_tracks.back().kappa;
+      state.nu = sqrt(state.kappa);
+      state.z0 = store_tracks.back().z0;
+      state.dzdl = store_tracks.back().dzdl;
+
+      state.C = Matrix<float,5,5>::Zero(5,5);
+      state.C(0,0) = pow(0.01, 2.);
+      state.C(1,1) = pow(0.5, 2.);
+      state.C(2,2) = pow(0.3*state.nu, 2.);
+      state.C(3,3) = pow(0.5, 2.);
+      state.C(4,4) = pow(0.05, 2.);
+
       state.position = store_tracks.back().hits.size();
       for(int h=(store_tracks.back().hits.size() - 1);h>=0;--h)
       {

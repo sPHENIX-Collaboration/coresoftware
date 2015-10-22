@@ -44,6 +44,11 @@ public:
 
   virtual float get_mom(unsigned int i) const {return NAN;}
 
+  virtual float get_p() const                  {return NAN;}
+  virtual float get_pt() const                 {return NAN;}
+  virtual float get_eta() const                {return NAN;}
+  virtual float get_phi() const                {return NAN;}
+  
   virtual float get_error(unsigned int i, unsigned int j) const {return NAN;}
   virtual void  set_error(unsigned int i, unsigned int j, float value) {}
 
