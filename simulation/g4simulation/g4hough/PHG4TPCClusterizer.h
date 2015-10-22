@@ -7,7 +7,7 @@
 class PHG4TPCClusterizer : public SubsysReco
 {
 	public:
-		PHG4TPCClusterizer(const char * name = "PHG4SvtxClusterizer") : SubsysReco(name){}
+		PHG4TPCClusterizer(const char * name = "PHG4SvtxClusterizer", unsigned int phi_s=10,unsigned int z_s=5) : SubsysReco(name), _phi_span(phi_s), _z_span(z_s) {}
 		~PHG4TPCClusterizer(){}
 
 		//! module initialization
@@ -29,6 +29,9 @@ class PHG4TPCClusterizer : public SubsysReco
 		std::vector<std::vector<int> > nhits;
 
 		void reset();
+
+		unsigned int _phi_span;
+		unsigned int _z_span;
 };
 
 
