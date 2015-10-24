@@ -38,6 +38,8 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   //! construct
   virtual void Construct( G4LogicalVolume* world );
 
+  virtual void Print(const std::string &what = "ALL") const;
+
   //!@name volume accessors
   //@{
   int IsInInnerHcal(G4VPhysicalVolume*) const;
@@ -73,6 +75,10 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   G4double envelope_inner_radius;
   G4double envelope_outer_radius;
   G4double envelope_z;
+  double volume_envelope;
+  double volume_steel;
+  double volume_scintillator;
+
   int layer;
   std::string detector_type;
   std::string superdetector;

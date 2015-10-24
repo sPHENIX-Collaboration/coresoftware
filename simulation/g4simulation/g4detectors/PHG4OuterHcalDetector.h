@@ -38,6 +38,8 @@ class PHG4OuterHcalDetector: public PHG4Detector
   //! construct
   virtual void Construct( G4LogicalVolume* world );
 
+  virtual void Print(const std::string &what = "ALL") const;
+
   //!@name volume accessors
   //@{
   int IsInOuterHcal(G4VPhysicalVolume*) const;
@@ -71,7 +73,9 @@ class PHG4OuterHcalDetector: public PHG4Detector
   G4double scinti_tile_x_lower;
   G4double scinti_tile_x_upper;
   G4double scinti_tile_z;
-
+  double volume_envelope;
+  double volume_steel;
+  double volume_scintillator;
 
   int layer;
   std::string detector_type;

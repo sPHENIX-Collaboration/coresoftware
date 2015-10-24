@@ -62,6 +62,9 @@ PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, PHG4InnerHc
   envelope_inner_radius(params->inner_radius),
   envelope_outer_radius(params->outer_radius),
   envelope_z(params->size_z),
+  volume_envelope(NAN),
+  volume_steel(NAN),
+  volume_scintillator(NAN),
   layer(0),
   scintilogicnameprefix("HcalInnerScinti")
 {
@@ -178,6 +181,7 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
   scinti_tile_x  = scinti_tile_x_upper + scinti_tile_x_lower;
   scinti_tile_x  -= subtract_from_scinti_x;
   G4VSolid* scintibox =  new G4Box("ScintiTile", scinti_tile_x / 2., params->scinti_tile_thickness / 2., scinti_tile_z / 2.);
+  volume_scintillator = scintibox->GetCubicVolume() *params->n_scinti_plates;
 
   return scintibox;
 }
@@ -322,6 +326,7 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
 					       zero, 1.0);
 
   //  DisplayVolume(steel_plate, hcalenvelope);
+  volume_steel = steel_plate->GetCubicVolume()*params->n_scinti_plates;
   return steel_plate;
 }
 
@@ -380,6 +385,7 @@ PHG4InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
 {
   G4Material* Air = G4Material::GetMaterial("G4_AIR");
   G4VSolid* hcal_envelope_cylinder = new G4Tubs("InnerHcal_envelope_solid",  envelope_inner_radius, envelope_outer_radius, envelope_z / 2., 0, 2 * M_PI);
+  volume_envelope = hcal_envelope_cylinder->GetCubicVolume();
   G4LogicalVolume* hcal_envelope_log =  new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("Hcal_envelope"), 0, 0, 0);
   G4VisAttributes* hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
@@ -780,5 +786,19 @@ PHG4InnerHcalDetector::SetTiltViaNcross()
   // gamma = acos((a^2+b^2=c^2)/2ab
   double tiltangle = acos((ll*ll + upside*upside-params->inner_radius*params->inner_radius)/(2*ll*upside));
   params->tilt_angle = copysign(tiltangle,params->ncross);
+  return;
+}
+
+void
+PHG4InnerHcalDetector::Print(const string &what) const
+{
+  cout << "Inner Hcal Detector:" << endl;
+  if (what == "ALL" || what == "VOLUME")
+    {
+      cout << "Volume Envelope: " << volume_envelope/cm/cm/cm << " cm^3" << endl;
+      cout << "Volume Steel: " << volume_steel/cm/cm/cm << " cm^3" << endl;
+      cout << "Volume Scintillator: " << volume_scintillator/cm/cm/cm << " cm^3" << endl;
+      cout << "Volume Air: " << (volume_envelope - volume_steel - volume_scintillator)/cm/cm/cm << " cm^3" << endl;
+    }
   return;
 }
