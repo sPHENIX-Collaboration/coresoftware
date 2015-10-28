@@ -26,7 +26,7 @@
 using namespace std;
 
 RawTowerDigitizer::RawTowerDigitizer(const std::string& name) :
-    SubsysReco(name), _digi_algorithm(kNo_digitalization), //
+    SubsysReco(name), _digi_algorithm(kNo_digitization), //
     _sim_towers(NULL), _raw_towers(NULL), rawtowergeom(NULL), //
     detector("NONE"), //
     _sim_tower_node_prefix("SIM"), _raw_tower_node_prefix("RAW"), //
@@ -91,11 +91,11 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
           << "Process event entered. " << "Digitalization method: ";
 
-      if (kNo_digitalization)
+      if (kNo_digitization)
         cout << "directly pass the energy of sim tower to digitalized tower";
-      else if (kSimple_photon_digitalization)
+      else if (kSimple_photon_digitization)
         cout
-            << "simple digitalization with photon statistics, ADC conversion and pedstal";
+            << "simple digitization with photon statistics, ADC conversion and pedstal";
 
       std::cout << std::endl;
     }
@@ -110,18 +110,18 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
 
         RawTower *digi_tower = NULL;
 
-        if (_digi_algorithm == kNo_digitalization)
+        if (_digi_algorithm == kNo_digitization)
           {
             if (sim_tower)
               digi_tower = new RawTowerv1(*sim_tower);
           }
-        else if (_digi_algorithm == kSimple_photon_digitalization)
-          digi_tower = simple_photon_digitalization(ieta, iphi, sim_tower);
+        else if (_digi_algorithm == kSimple_photon_digitization)
+          digi_tower = simple_photon_digitization(ieta, iphi, sim_tower);
         else
           {
 
             std::cout << Name() << "::" << detector << "::"
-                << __PRETTY_FUNCTION__ << " invalid digitalization algorithm #"
+                << __PRETTY_FUNCTION__ << " invalid digitization algorithm #"
                 << _digi_algorithm << std::endl;
 
             if (digi_tower)
@@ -146,7 +146,7 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
 }
 
 RawTower *
-RawTowerDigitizer::simple_photon_digitalization(int ieta, int iphi,
+RawTowerDigitizer::simple_photon_digitization(int ieta, int iphi,
     RawTower * sim_tower)
 {
   RawTower *digi_tower = NULL;
