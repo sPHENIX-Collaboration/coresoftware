@@ -3,6 +3,7 @@
 
 #include <pdbcalbase/PdbCalBankIterator.hh>
 #include <pdbcalbase/PdbBankID.hh>
+
 #include <map>
 #include <string>
 
@@ -18,7 +19,7 @@ class PgPostCalBankIterator : public PdbCalBankIterator
   PgPostCalBankIterator(PgPostBankManager& bm);
   virtual ~PgPostCalBankIterator();
 
-  virtual bool init(const char* fulldbname, const PdbBankID& bankid);
+  virtual bool init(const std::string &fulldbname, const PdbBankID& bankid);
   
   virtual bool isValid() const;
 
