@@ -122,45 +122,6 @@ PdbCalBank* PgPostBankManager::createBank(const int beginRunNumber, const int en
   return 0;
 }
 
-PdbCalBank* PgPostBankManager::createBank(const int beginRunNumber, const int endRunNumber, const char *className, PdbBankID2 bankID2, const char *description, const char *bankName)
-{
-  RunToTime *runTime = RunToTime::instance();
-
-  PHTimeStamp *beginRunTime = runTime->getBeginTime(beginRunNumber);
-  if (beginRunTime != 0)
-    {
-      PHTimeStamp startTime = *(beginRunTime);
-
-      PHTimeStamp *endRunTime = runTime->getEndTime(endRunNumber);
-      if (endRunTime != 0)
-	{
-	  PHTimeStamp endTime = *(endRunTime);
-	  delete beginRunTime;
-	  delete endRunTime;
-	  if (startTime >= endTime)
-	    {
-	      cout << PHWHERE << "Bad Start/EndRun Time: Start Time: "
-		   << startTime << " >= End Time: "
-		   << endTime << endl;
-	      return 0;
-	    }
-	  return createBank(className, bankID2, description, startTime, endTime, bankName);
-	}
-      else
-	{
-          delete beginRunTime;
-	  cout << PHWHERE << "endTime = 0" << endl;
-	  return 0;
-	}
-      delete beginRunTime;
-    }
-  else
-    {
-      cout << PHWHERE << "beginTime = 0" << endl;
-    }
-  return 0;
-}
-
 
 PdbCalBank* PgPostBankManager::createBank(const int runNumber, const char *className, PdbBankID bankID, const char *description, const char *bankName, const time_t duration)
 {
@@ -187,37 +148,12 @@ PdbCalBank* PgPostBankManager::createBank(const int runNumber, const char *class
   return 0;
 }
 
-PdbCalBank* PgPostBankManager::createBank(const int runNumber, const char *className, PdbBankID2 bankID2, const char *description, const char *bankName, const time_t duration)
-{
-  RunToTime *runTime = RunToTime::instance();
-
-  PHTimeStamp *runBeginTime = runTime->getBeginTime(runNumber);
-  if (runBeginTime != 0)
-    {
-      PHTimeStamp startTime = *(runBeginTime);
-      PHTimeStamp endTime = startTime;
-
-      if (duration == 0)
-        {
-          // duration == 0 is "flag" for end of unix time!!
-          endTime = PHTimeStamp(2038, 1, 17, 0, 0, 0);
-        }
-      else
-        {
-          endTime += duration;
-        }
-      delete runBeginTime;
-      return createBank(className, bankID2, description, startTime, endTime, bankName);
-    }
-  return 0;
-}
-
 
 PdbCalBank* PgPostBankManager::createBank(const char *className, PdbBankID bankID, const char* descr, PHTimeStamp & tStart, PHTimeStamp & tStop, const char *tablename)
 {
 
-  PHString realName = getRealName(className);
-  const char *rName = realName.getString();
+  string realName = getRealName(className);
+  const char *rName = realName.c_str();
   PdbClassMap<PdbCalBank> *classMap = PdbClassMap<PdbCalBank>::instance();
   if (classMap->find(rName) != classMap->end())
     {
@@ -359,9 +295,9 @@ PdbCalBank* PgPostBankManager::fetchBank(const char *className, PdbBankID bankID
     bw->setInsertTime(rs->GetLong(2));
     bw->setStartValTime(rs->GetLong(3));
     bw->setEndValTime(rs->GetLong(4));
-    bw->setDescription((PHString)rs->GetString(5));
-    bw->setUserName((PHString)rs->GetString(6));
-    bw->setTableName((PHString)a.c_str());
+    bw->setDescription(string(rs->GetString(5)));
+    bw->setUserName(string(rs->GetString(6)));
+    bw->setTableName(a);
     #ifdef DEBUG
     bw->printHeader();
     #endif
@@ -504,23 +440,12 @@ PdbApplication* PgPostBankManager::getApplication(PHBoolean pJob)
   return PgPostApplication::instance();
 }
 
-PHString PgPostBankManager::getRealName(const PHString & searchName)
+string 
+PgPostBankManager::getRealName(const string &searchName)
 {
-  PHPointerList<PHString> subStrings;
-  searchName.split(subStrings, "Pdb");
-  PHString *strippedName;
-  PHString realName("noName");
-  if (!(strippedName = subStrings[1]))
-    {
-      std::cout << "PdbObjyBankManager::getRealName()" << std::endl;
-      std::cout << "\tError" << std::endl;
-      std::cout << "\tCould not parse name " << searchName << std::endl;
-    }
-  else
-    {
-      realName = "PgPost" + *strippedName;
-    }
-  subStrings.clearAndDestroy();
+  string realName = searchName;
+  string pdbsubstring = "Pdb";
+  realName.replace(realName.find(pdbsubstring),realName.find(pdbsubstring)+pdbsubstring.size(),"PgPost");
   return realName;
 }
 
