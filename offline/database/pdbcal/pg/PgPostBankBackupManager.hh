@@ -11,6 +11,10 @@
 #ifndef PGPOSTBANKBACKUPMANAGER_HH_
 #define PGPOSTBANKBACKUPMANAGER_HH_
 
+
+#include <pdbcalbase/PdbCalChan.hh>
+#include <phool/PHTimeStamp.h>
+
 #include <string>
 #include <vector>
 #include <iostream>
@@ -20,8 +24,6 @@ class TSQLStatement;
 class ODBCPreparedStatement;
 class TSQLPreparedStatement;
 class TSQLResultSet;
-#include <PdbCalChan.hh>
-#include <PHTimeStamp.h>
 
 /*!
  * \brief PgPostBankBackupManager

@@ -11,16 +11,19 @@
 #ifndef PgPostBankBackupLog_HH_
 #define PgPostBankBackupLog_HH_
 
+#include <pdbcalbase/PdbCalChan.hh>
+
+#include <phool/PHTimeStamp.h>
+
 #include <string>
 #include <vector>
 #include <iostream>
+
 class TSQLConnection;
 class TSQLStatement;
 class ODBCPreparedStatement;
 class TSQLPreparedStatement;
 class TSQLResultSet;
-#include <PdbCalChan.hh>
-#include <PHTimeStamp.h>
 
 /*!
  * \brief PgPostBankBackupLog

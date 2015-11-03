@@ -8,32 +8,32 @@
  * \date $Date: 2014/11/24 17:46:49 $
  */
 
+#include "PgPostBankBackupManager.hh"
+#include "PgPostBankBackupStorage.hh"
+#include "PgPostBankBackupLog.hh"
+
 #include "PgPostBankManager.hh"
-#include "PgPostHelper.hh"
 #include "PgPostCalBankIterator.hh"
 #include "PgPostBankWrapper.hh"
-#include "PgPostBankWrapper2.hh"
 #include "PgPostApplication.hh"
 #include "PgPostCalBank.hh"
+#include "RunToTimePg.hh"
 
-#include <PdbBankID.hh>
-#include <PdbBankID2.hh>
-#include <PHString.h>
-#include <PHPointerList.h>
+#include <pdbcalbase/PdbBankID.hh>
+#include <pdbcalbase/PdbBankList.hh>
+#include <pdbcalbase/PdbCalBank.hh>
+#include <pdbcalbase/PdbClassMap.hh>
+#include <pdbcalbase/PdbBankManagerFactory.hh>
+
+#include <phool/PHPointerList.h>
+#include <phool/PHTimeServer.h>
+
 #include <RDBC/TSQLDriverManager.h>
 #include <RDBC/TSQLConnection.h>
 #include <RDBC/TSQLResultSet.h>
 #include <RDBC/TSQLResultSetMetaData.h>
 #include <RDBC/TSQLPreparedStatement.h>
 #include <RDBC/TSQLDatabaseMetaData.h>
-#include <PdbBankList.hh>
-#include <PdbCalBank.hh>
-#include <PdbClassMap.hh>
-#include <PHString.h>
-#include <PHPointerList.h>
-#include <RunToTimePg.hh>
-#include <PHTimeServer.h>
-#include <PdbBankManagerFactory.hh>
 
 #include <TFile.h>
 #include <TKey.h>
@@ -51,9 +51,6 @@
 #include <sstream>
 #include <algorithm>
 
-#include "PgPostBankBackupManager.hh"
-#include "PgPostBankBackupStorage.hh"
-#include "PgPostBankBackupLog.hh"
 
 using namespace std;
 
@@ -206,15 +203,6 @@ PgPostBankBackupManager::SQLResultSet2BackupStorage(TSQLResultSet * rs,
       bank_orig = (static_cast<PgPostBankWrapper *>(bw.get()))->getBank();
       assert(bank_orig);
     }
-  else if (string(bw->ClassName()) == string("PgPostBankWrapper2"))
-    {
-      if (verbosity >= 2)
-        cout
-            << "PgPostBankBackupManager::SQLResultSet2BackupStorage - Processing PgPostBankWrapper2 "
-            << endl;
-      bank_orig = (static_cast<PgPostBankWrapper2 *>(bw.get()))->getBank();
-      assert(bank_orig);
-    }
   else if (string(bw->ClassName()) == string("PgPostCalBank"))
     {
       cout << "PgPostBankBackupManager::SQLResultSet2BackupStorage - WARNING - "
@@ -252,16 +240,6 @@ PgPostBankBackupManager::SQLResultSet2BackupStorage(TSQLResultSet * rs,
               << unwrap_cnt << ". Discard secondary wrapper: table "
               << table_name << " where rid = " << rid << endl;
           bank_orig = static_cast<PgPostBankWrapper *>(bank_orig)->getBank();
-          assert(bank_orig);
-        }
-      else if (string(bank_orig->ClassName()) == string("PgPostBankWrapper2"))
-        {
-          cout
-              << "PgPostBankBackupManager::SQLResultSet2BackupStorage - WARNING - "
-              << "PgPostBankWrapper object nested inside PgPostBankWrapper2 layer "
-              << unwrap_cnt << ". Discard secondary wrapper: table "
-              << table_name << " where rid = " << rid << endl;
-          bank_orig = static_cast<PgPostBankWrapper2 *>(bank_orig)->getBank();
           assert(bank_orig);
         }
       else
@@ -360,7 +338,7 @@ PgPostBankBackupManager::fetchBank(const std::string &bankName, int rid)
     cout << "PgPostBankBackupManager::fetchBank - start on fetching "
         << bankName << " ID " << rid << endl;
 
-  std::string table_name = getTableName(bankName.c_str());
+  std::string table_name = bankName.c_str();
   PgPostApplication* ap = PgPostApplication::instance();
   if (!ap)
     {
@@ -907,7 +885,7 @@ PgPostBankBackupManager::fetchAllBank2TFile(const std::string &bankName,
         << bankName << " for records criteria of [" << record_selection
         << "] to " << out_file_base << "*.root" << endl;
 
-  std::string table_name = getTableName(bankName.c_str());
+  std::string table_name = bankName;
   PgPostApplication* ap = PgPostApplication::instance();
   if (!ap)
     {
@@ -1122,7 +1100,7 @@ bool
 PgPostBankBackupManager::isRIdExist(const std::string &bankName, int rid)
 {
 
-  std::string table_name = getTableName(bankName.c_str());
+  std::string table_name = bankName.c_str();
 
   PgPostApplication *ap = PgPostApplication::instance();
   assert(ap);
@@ -1155,7 +1133,7 @@ int
 PgPostBankBackupManager::getTotalRowCount(const std::string &bankName)
 {
 
-  std::string table_name = getTableName(bankName.c_str());
+  std::string table_name = bankName.c_str();
 
   PgPostApplication *ap = PgPostApplication::instance();
   assert(ap);
@@ -1188,7 +1166,7 @@ PgPostBankBackupManager::getListOfRId(const string & bankName,
     const string & condition)
 {
 
-  std::string table_name = getTableName(bankName.c_str());
+  std::string table_name = bankName.c_str();
 
   rid_list_t l;
 
@@ -1230,7 +1208,7 @@ PgPostBankBackupManager::dumpTable(const std::string &bankName,
     std::ostream & out)
 {
 
-  std::string table_name = getTableName(bankName.c_str());
+  std::string table_name = bankName.c_str();
 
   if (verbosity >= 2)
     cout << "PgPostBankBackupManager::dumpTable - start on fetching "
@@ -1352,7 +1330,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
     const std::string & log_file_name)
 {
 
-  std::string table_name = getTableName(bankName.c_str());
+  std::string table_name = bankName.c_str();
 
   const bool do_log = log_file_name.size();
 

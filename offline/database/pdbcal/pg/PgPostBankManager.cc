@@ -1,5 +1,5 @@
 #include "PgPostBankManager.hh"
-#include "PgPostHelper.hh"
+
 #include "PgPostCalBankIterator.hh"
 #include "PgPostBankWrapper.hh"
 #include "PgPostApplication.hh"
@@ -157,7 +157,7 @@ PdbCalBank* PgPostBankManager::createBank(const char *className, PdbBankID bankI
   PdbClassMap<PdbCalBank> *classMap = PdbClassMap<PdbCalBank>::instance();
   if (classMap->find(rName) != classMap->end())
     {
-      std::string a = getTableName(tablename);
+      std::string a = tablename;
       PdbCalBank *b = (*classMap)[rName];
       PdbCalBank *b1 = b->clone();
       PgPostBankWrapper *bw = new PgPostBankWrapper(b1);
@@ -245,7 +245,7 @@ PdbCalBank* PgPostBankManager::fetchBank(const char *className, PdbBankID bankID
   cout << "Fetching " << className << " from " << bankName << endl;
 #endif
 
-  std::string a = getTableName(bankName);
+  std::string a = bankName;
   PgPostApplication* ap = PgPostApplication::instance();
   if (!ap)
     {
@@ -337,7 +337,7 @@ PdbCalBank* PgPostBankManager::fetchClosestBank(const char *className, PdbBankID
 //   cout << "Fetching " << className << " from " << bankName << endl;
 // #endif
 
-//   std::string tablename = getTableName(bankName);
+//   std::string tablename = bankName;
 
 //   TSQLResultSet *rs;
 //   PgPostBankWrapper *bw;
@@ -388,7 +388,7 @@ PdbCalBank* PgPostBankManager::fetchClosestBank(const char *className, PdbBankID
 //   cout << "Fetching " << className << " from " << bankName << endl;
 // #endif
 
-//   std::string tablename = getTableName(bankName);
+//   std::string tablename = bankName;
 
 //   TSQLResultSet *rs;
 //   PgPostBankWrapper *bw;

@@ -11,15 +11,17 @@
 #ifndef PGPOSTBANKBACKUPSTORAGE_HH_
 #define PGPOSTBANKBACKUPSTORAGE_HH_
 
-#include <string>
-#include <cassert>
+
+#include <pdbcalbase/PdbClassMap.hh>
+#include <pdbcalbase/PdbCalChan.hh>
+
+#include <phool/PHTimeStamp.h>
+
 #include <TNamed.h>
 #include <TClonesArray.h>
 
-#include <PdbClassMap.hh>
-#include <PdbCalChan.hh>
-#include <PHTimeStamp.h>
-#include <PHString.h>
+#include <string>
+#include <cassert>
 
 class PgPostCalBank;
 class PdbCalBank;

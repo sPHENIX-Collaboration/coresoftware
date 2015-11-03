@@ -1,4 +1,11 @@
-#include <cstring> // odbc++/types.h lacks it, hopefully newer versions have it
+#include "RunToTimePg.hh"
+
+#include <pdbcalbase/RunToTimeFactory.hh>
+
+#include <phool/phool.h>
+#include <phool/PHTimeStamp.h>
+
+//#include <cstring> // odbc++/types.h lacks it, hopefully newer versions have it
 #include <odbc++/connection.h>
 #include <odbc++/setup.h>
 #include <odbc++/types.h>
@@ -8,15 +15,10 @@
 #include <odbc++/resultset.h>
 #include <odbc++/resultsetmetadata.h>
 #include <odbc++/preparedstatement.h>
-#include <iostream>
 #include <odbc++/databasemetadata.h>
 
-#include <phool.h>
-#include <RunToTimePg.hh>
-#include <RunToTimeFactory.hh>
-#include <PHTimeStamp.h>
-
 #include <cstdlib>
+#include <iostream>
 #include <string>
 #include <sstream>
 

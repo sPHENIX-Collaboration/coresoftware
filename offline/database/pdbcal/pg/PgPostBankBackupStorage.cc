@@ -11,7 +11,6 @@
 #include "PgPostBankBackupStorage.hh"
 
 #include "PgPostBankManager.hh"
-#include "PgPostHelper.hh"
 #include "PgPostCalBankIterator.hh"
 #include "PgPostBankWrapper.hh"
 #include "PgPostApplication.hh"
@@ -187,12 +186,9 @@ PgPostBankBackupStorage::set_obj_info(const PgPostCalBank * bw)
   obj_header.setInsertTime(bw->getInsertTime());
   obj_header.setStartValTime(bw->getStartValTime());
   obj_header.setEndValTime(bw->getEndValTime());
-  if (bw->getDescription().getString())
-    obj_header.setDescription(bw->getDescription().getString());
-  if (bw->getUserName().getString())
-    obj_header.setUserName(bw->getUserName().getString());
-  if (bw->getTableName().getString())
-    obj_header.setTableName(bw->getTableName().getString());
+  obj_header.setDescription(bw->getDescription());
+  obj_header.setUserName(bw->getUserName());
+  obj_header.setTableName(bw->getTableName());
 }
 
 void
