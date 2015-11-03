@@ -1,7 +1,7 @@
 #ifndef __RUNTOTIMEPG_HH__
 #define __RUNTOTIMEPG_HH__
 
-#include <RunToTime.hh>
+#include <pdbcalbase/RunToTime.hh>
 #include <string>
 #include <map>
 
