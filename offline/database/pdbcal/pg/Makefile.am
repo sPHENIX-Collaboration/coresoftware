@@ -11,13 +11,13 @@ ROOTIFY =  perl $(srcdir)/PgRootify.pl
 INCLUDES = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(OPT_PHENIX)/include \
+  -I$(OPT_SPHENIX)/include \
   -I`root-config --incdir`
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OPT_PHENIX)/lib \
+  -L$(OPT_SPHENIX)/lib \
   `root-config --libs`
 
 libPgCal_la_LIBADD = \
@@ -51,7 +51,6 @@ libPgCal_la_SOURCES = \
   PgPostCalBank.cc \
   PgPostCalBank_dict.C \
   PgPostCalBankIterator.cc \
-  PgPostCalBankIterator2.cc \
   PgPostCalParametersBank.cc \
   PgPostCalParametersBank_dict.C \
   PgPostCoordinateBank.cc \
@@ -60,7 +59,6 @@ libPgCal_la_SOURCES = \
   PgPostDoubleBank_dict.C \
   PgPostFloatVectorBank.cc \
   PgPostFloatVectorBank_dict.C \
-  PgPostHelper.cc \
   PgPostIndexBank_dict.C \
   PgPostIndexBank.cc \
   PgPostIntBank.cc \
