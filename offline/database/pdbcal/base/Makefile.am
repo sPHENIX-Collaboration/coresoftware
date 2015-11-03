@@ -57,7 +57,6 @@ libpdbcalBase_la_SOURCES = \
   PdbParameter_dict.C \
   PdbParameterError.cc \
   PdbParameterError_dict.C \
-  PHGenericFactoryT.C \
   RunToTime.cc \
   RunToTime_dict.C \
   RunToTimeFactory.cc \
