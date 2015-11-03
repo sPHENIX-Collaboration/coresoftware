@@ -32,8 +32,6 @@ libPgCalInstance_la_LIBADD = \
   libPgCal.la
 
 libPgCal_la_SOURCES = \
-  PgPostADCChanBank.cc \
-  PgPostADCChanBank_dict.C \
   PgPostApplication.cc  \
   PgPostApplication_dict.C \
   PgPostBankManager.cc \
