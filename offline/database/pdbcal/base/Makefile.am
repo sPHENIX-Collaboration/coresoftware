@@ -17,8 +17,6 @@ libpdbcalBase_la_LIBADD = \
 
 #please add new classes sorted according to the roman alphabet
 libpdbcalBase_la_SOURCES = \
-  PdbADCChan.cc \
-  PdbADCChan_dict.C \
   PdbApplication.cc \
   PdbApplication_dict.C \
   PdbApplicationFactory.cc \
@@ -69,7 +67,6 @@ libpdbcalBase_la_SOURCES = \
 #please add new includes sorted according to the roman alphabet
 pkginclude_HEADERS = \
   Pdb.hh \
-  PdbADCChan.hh \
   PdbApplication.hh \
   PdbApplicationFactory.hh \
   PdbBankID.hh \
