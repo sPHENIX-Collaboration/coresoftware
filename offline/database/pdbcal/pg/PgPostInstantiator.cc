@@ -1,6 +1,6 @@
-#include "PgPostApplication.hh"
-#include "PgPostBankManager.hh"
-#include "RunToTimePg.hh"
+#include "PgPostApplication.h"
+#include "PgPostBankManager.h"
+#include "RunToTimePg.h"
 
 namespace {
 
