@@ -1,1 +1,1 @@
-#include "PdbBankManagerFactory.hh"
+#include "PdbBankManagerFactory.h"
