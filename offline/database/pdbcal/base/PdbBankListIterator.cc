@@ -8,7 +8,7 @@
 //
 //  Author: messer
 //-----------------------------------------------------------------------------
-#include "PdbBankListIterator.hh"
+#include "PdbBankListIterator.h"
 
 #include <iostream>
 
