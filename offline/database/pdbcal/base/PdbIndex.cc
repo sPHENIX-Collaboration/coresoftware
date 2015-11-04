@@ -1,7 +1,7 @@
 //  Implementation of class PdbIndex
 //  Author: Federica Messer
 
-#include "PdbIndex.hh"
+#include "PdbIndex.h"
 
 #include <cstdlib>
 #include <string>
