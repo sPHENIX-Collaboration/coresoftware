@@ -8,7 +8,7 @@
  * \date $Date: 2014/12/31 18:56:10 $
  */
 
-#include "PdbCalParameters.hh"
+#include "PdbCalParameters.h"
 
 using namespace std;
 
