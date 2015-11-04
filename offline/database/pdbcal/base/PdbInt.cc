@@ -1,4 +1,4 @@
-#include "PdbInt.hh"
+#include "PdbInt.h"
 #include <iostream>
 
 using namespace std;
