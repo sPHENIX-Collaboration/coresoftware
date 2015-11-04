@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//  $Header: /afs/rhic.bnl.gov/phenix/PHENIX_CVS/offline/database/pdbcal/base/PdbBankID.hh,v 1.6 2006/02/04 16:04:06 pinkenbu Exp $
+//  $Header: /afs/rhic.bnl.gov/phenix/PHENIX_CVS/offline/database/pdbcal/base/PdbBankID.h,v 1.6 2006/02/04 16:04:06 pinkenbu Exp $
 //
 //  The pdbcal package
 //  Copyright (C) PHENIX collaboration, 1999

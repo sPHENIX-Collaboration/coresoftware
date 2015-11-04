@@ -1,8 +1,8 @@
-#ifndef __RunToTimeFactory_hh__
-#define __RunToTimeFactory_hh__
+#ifndef RUNTOTIMEFACTORY__H
+#define RUNTOTIMEFACTORY__H
 
 #include "PHGenericFactoryT.h"
-#include "RunToTime.hh"
+#include "RunToTime.h"
 
 typedef PHGenericFactoryT<RunToTime> RunToTimeFactory;
 

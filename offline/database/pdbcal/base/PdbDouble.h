@@ -1,7 +1,7 @@
 #ifndef __PDBDOUBLE_HH__
 #define __PDBDOUBLE_HH__
 
-#include "PdbCalChan.hh"
+#include "PdbCalChan.h"
 
 class PdbDouble : public PdbCalChan 
 {

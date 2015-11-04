@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//  $Header: /afs/rhic.bnl.gov/phenix/PHENIX_CVS/offline/database/pdbcal/base/PdbCalHeader.hh,v 1.2 2008/05/31 21:40:23 pinkenbu Exp $
+//  $Header: /afs/rhic.bnl.gov/phenix/PHENIX_CVS/offline/database/pdbcal/base/PdbCalHeader.h,v 1.2 2008/05/31 21:40:23 pinkenbu Exp $
 //
 //  The pdbcal package
 //  Copyright (C) PHENIX collaboration, 1999
@@ -15,8 +15,8 @@
 #ifndef __PDBCALHEADER_HH__
 #define __PDBCALHEADER_HH__
 
-#include "Pdb.hh"
-#include "PdbBankID.hh"
+#include "Pdb.h"
+#include "PdbBankID.h"
 #include <phool/PHTimeStamp.h>
 
 #include <string>

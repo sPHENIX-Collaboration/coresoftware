@@ -5,7 +5,7 @@
 #ifndef __PDBBANKMANAGER_HH__
 #define __PDBBANKMANAGER_HH__
 
-#include "PdbBankID.hh"
+#include "PdbBankID.h"
 #include <phool/PHTimeStamp.h>
 #include <phool/phool.h>
 

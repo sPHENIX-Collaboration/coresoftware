@@ -5,7 +5,7 @@
 #ifndef __PDBINDEX_DDL__
 #define __PDBINDEX_DDL__
 
-#include "PdbCalChan.hh"
+#include "PdbCalChan.h"
 
 #include <phool/phool.h>
 

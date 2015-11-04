@@ -1,7 +1,7 @@
 #ifndef __PDBFLOATVECTOR_HH__
 #define __PDBFLOATVECTOR_HH__
 
-#include "PdbCalChan.hh"
+#include "PdbCalChan.h"
 #include <vector>
 
 class PdbFloatVector : public PdbCalChan

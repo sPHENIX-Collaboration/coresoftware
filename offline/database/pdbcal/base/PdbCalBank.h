@@ -5,7 +5,7 @@
 #ifndef __PDBCALBANK_HH__
 #define __PDBCALBANK_HH__
 
-#include "PdbBankID.hh"
+#include "PdbBankID.h"
 
 #include <phool/PHTimeStamp.h>
 

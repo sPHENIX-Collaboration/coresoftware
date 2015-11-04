@@ -1,4 +1,4 @@
-// $Id: PdbCalParameters.hh,v 1.1 2014/12/31 18:56:10 jinhuang Exp $                                                                                             
+// $Id: PdbCalParameters.h,v 1.1 2014/12/31 18:56:10 jinhuang Exp $                                                                                             
 
 /*!
  * \file PdbCalParameters.h
@@ -15,7 +15,7 @@
 #include <map>
 #include <string>
 #include <sstream>
-#include "PdbCalChan.hh"
+#include "PdbCalChan.h"
 
 /*!
  * \brief Generic purpose calibration parameter sets

@@ -1,7 +1,7 @@
 #ifndef __PDBAPPLICATION_H__
 #define __PDBAPPLICATION_H__
 
-#include "Pdb.hh"
+#include "Pdb.h"
 
 #include <cstddef> // for size_t
 #include <memory>  // for auto_ptr

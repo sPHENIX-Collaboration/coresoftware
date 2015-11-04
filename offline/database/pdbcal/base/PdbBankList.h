@@ -1,7 +1,7 @@
 #ifndef __PDBBANKLIST_HH__
 #define __PDBBANKLIST_HH__
 
-#include "PdbCalBank.hh"
+#include "PdbCalBank.h"
 
 #include <phool/PHPointerList.h>
 

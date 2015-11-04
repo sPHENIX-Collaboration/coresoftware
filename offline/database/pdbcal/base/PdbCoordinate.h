@@ -5,7 +5,7 @@
 #ifndef __PDBCOORDINATE_DDL__
 #define __PDBCOORDINATE_DDL__
 
-#include "PdbCalChan.hh"
+#include "PdbCalChan.h"
 #ifndef __CINT__
 #include <cstddef>
 #endif

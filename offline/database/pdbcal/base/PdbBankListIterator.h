@@ -14,8 +14,8 @@
 #ifndef __PDBBANKLISTITERATOR_HH__
 #define __PDBBANKLISTITERATOR_HH__
 
-#include "PdbBankList.hh"
-#include "PdbCalBank.hh"
+#include "PdbBankList.h"
+#include "PdbCalBank.h"
 #include <phool/PHPointerListIterator.h>
 
 class PdbBankListIterator : public PHPointerListIterator<PdbCalBank> {

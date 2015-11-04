@@ -1,7 +1,7 @@
 #ifndef __PDBINT_HH__
 #define __PDBINT_HH__
 
-#include "PdbCalChan.hh"
+#include "PdbCalChan.h"
 
 class PdbInt : public PdbCalChan 
 {

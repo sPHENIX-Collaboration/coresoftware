@@ -2,7 +2,7 @@
 #define __PdbApplicationFactory_h__
 
 #include "PHGenericFactoryT.h"
-#include "PdbApplication.hh"
+#include "PdbApplication.h"
 
 typedef PHGenericFactoryT<PdbApplication> PdbApplicationFactory;
 

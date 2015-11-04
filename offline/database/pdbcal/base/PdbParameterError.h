@@ -5,7 +5,7 @@
 #ifndef __PDBPARAMETERERROR_DDL__
 #define __PDBPARAMETERERROR_DDL__
 
-#include "PdbCalChan.hh"
+#include "PdbCalChan.h"
 
 class PdbParameterError : public PdbCalChan {
 public:

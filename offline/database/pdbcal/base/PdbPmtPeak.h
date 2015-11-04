@@ -14,7 +14,7 @@
 #ifndef __PDBPMTPEAK_HH__
 #define __PDBPMTPEAK_HH__
 
-#include "PdbCalChan.hh"
+#include "PdbCalChan.h"
 
 class PdbPmtPeak : public PdbCalChan {
  public:

@@ -2,29 +2,31 @@
 //  Purpose: single parameter storage class 
 //  Author: federica
 
-#ifndef __PDBPARAMETER_HH__
-#define __PDBPARAMETER_HH__
+#ifndef PDBPARAMETER_HH__
+#define PDBPARAMETER_HH__
 
-#include "PdbCalChan.hh"
+#include "PdbCalChan.h"
 
 #include <string>
 
 class PdbParameter : public PdbCalChan {
 public:
-  PdbParameter();
-  PdbParameter(const float);
-  PdbParameter(const float, const char* name); 
+  PdbParameter(); // this ctor should not be called but it cannot be 
+                  // made private since CINT needs a 
+                  // default ctor when reading from file
+
+  PdbParameter(const double, const std::string &name); 
   virtual ~PdbParameter() {}
 
-  float getParameter() const  { return thePar;  }
+  double getParameter() const  { return thePar;  }
   const std::string getName() const { return theName; }
 
-  void  setParameter(const float val) { thePar = val; }
+  void  setParameter(const double val) { thePar = val; }
   void  setName(const std::string &name) {theName = name;}
 
   virtual void print() const;
 
-private:
+protected:
 
   double thePar;
   std::string  theName;

@@ -14,7 +14,7 @@
 #ifndef __PDBPMTFITPAR_HH__
 #define __PDBPMTFITPAR_HH__
 
-#include "PdbCalChan.hh"
+#include "PdbCalChan.h"
 
 class PdbPmtFitPar : public PdbCalChan {
 public:

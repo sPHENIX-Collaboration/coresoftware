@@ -2,7 +2,7 @@
 #define __PdbBankManagerFactory_h__
 
 #include "PHGenericFactoryT.h"
-#include "PdbBankManager.hh"
+#include "PdbBankManager.h"
 
 typedef PHGenericFactoryT<PdbBankManager> PdbBankManagerFactory;
 

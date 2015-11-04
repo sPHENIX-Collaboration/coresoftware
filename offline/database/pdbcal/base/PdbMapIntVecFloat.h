@@ -1,7 +1,7 @@
 #ifndef __PDBMAPINTVECFLOAT_HH__
 #define __PDBMAPINTVECFLOAT_HH__
 
-#include "PdbCalChan.hh"
+#include "PdbCalChan.h"
 
 #include <map>
 #include <vector>
