@@ -1,4 +1,4 @@
-#include "PdbMapIntInt.hh"
+#include "PdbMapIntInt.h"
 #include <phool/phool.h>
 
 #include <iostream>
