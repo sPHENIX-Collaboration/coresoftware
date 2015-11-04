@@ -2,36 +2,29 @@
 //  Purpose: single parameter storage class 
 //  Author: Cesar & federica
 
-#ifndef __PDBPARAMETERERROR_DDL__
-#define __PDBPARAMETERERROR_DDL__
+#ifndef PDBPARAMETERERROR_HH__
+#define PDBPARAMETERERROR_HH__
 
-#include "PdbCalChan.h"
+#include "PdbParameter.h"
 
-class PdbParameterError : public PdbCalChan {
-public:
+class PdbParameterError : public PdbParameter 
+{
+ public:
   PdbParameterError();
-  PdbParameterError(const float);
-  PdbParameterError(const float, const float);
-  PdbParameterError(const float, const float, const char* name); 
+  PdbParameterError(const double, const double, const std::string &name); 
   virtual ~PdbParameterError() {}
 
-  float getParameter() const { return thePar; }
-  float getParameterError() const { return theParError; }
-  const char* getName() const { return theName; }
+  double getParameterError() const { return theParError; }
 
-  void  setParameter(const float val) { thePar = val; }
-  void  setParameterError(const float val) { theParError = val; }
-  void  setName(const char* name);
+  void  setParameterError(const double val) { theParError = val; }
 
   virtual void print() const;
 
-private:
+ protected:
 
-  float thePar;
-  float theParError;
-  char  theName[30];
+  double theParError;
 
   ClassDef(PdbParameterError,1);
 };
 
-#endif /* __PDBPARAMETERERROR_DDL__ */
+#endif /* PDBPARAMETERERROR_HH__ */
