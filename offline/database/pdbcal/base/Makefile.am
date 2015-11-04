@@ -5,15 +5,20 @@ lib_LTLIBRARIES = libpdbcalBase.la
 BUILT_SOURCES = \
   testexternals.C
 
-INCLUDES = -I$(includedir) -I$(OFFLINE_MAIN)/include \
+INCLUDES = \
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir`
 
 ROOTIFY  = perl $(srcdir)/PdbRootify.pl
 
 libpdbcalBase_la_LDFLAGS = \
   `root-config --evelibs`
+
 libpdbcalBase_la_LIBADD = \
-  -L$(libdir) -L$(OFFLINE_MAIN)/lib -lphool
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  -lphool
 
 #please add new classes sorted according to the roman alphabet
 libpdbcalBase_la_SOURCES = \
@@ -33,6 +38,8 @@ libpdbcalBase_la_SOURCES = \
   PdbBankManagerFactory_dict.C \
   PdbCalBank.cc \
   PdbCalBank_dict.C \
+  PdbCalBase.cc \
+  PdbCalBase_dict.C \
   PdbCalChan.cc \
   PdbCalChan_dict.C \
   PdbCalHeader.cc \
@@ -65,32 +72,33 @@ libpdbcalBase_la_SOURCES = \
 
 #please add new includes sorted according to the roman alphabet
 pkginclude_HEADERS = \
-  Pdb.hh \
-  PdbApplication.hh \
-  PdbApplicationFactory.hh \
-  PdbBankID.hh \
-  PdbBankList.hh \
-  PdbBankListIterator.hh \
-  PdbBankManager.hh \
-  PdbBankManagerFactory.hh \
-  PdbCalBank.hh \
-  PdbCalBankIterator.hh \
-  PdbCalChan.hh \
-  PdbCalHeader.hh \
-  PdbCalParameters.hh \
-  PdbClassMap.hh \
-  PdbCoordinate.hh \
-  PdbDouble.hh \
-  PdbFloatVector.hh \
-  PdbIndex.hh \
-  PdbInt.hh \
-  PdbMapIntVecFloat.hh \
-  PdbMapIntInt.hh \
-  PdbParameter.hh \
-  PdbParameterError.hh \
+  Pdb.h \
+  PdbApplication.h \
+  PdbApplicationFactory.h \
+  PdbBankID.h \
+  PdbBankList.h \
+  PdbBankListIterator.h \
+  PdbBankManager.h \
+  PdbBankManagerFactory.h \
+  PdbCalBank.h \
+  PdbCalBankIterator.h \
+  PdbCalBase.h \
+  PdbCalChan.h \
+  PdbCalHeader.h \
+  PdbCalParameters.h \
+  PdbClassMap.h \
+  PdbCoordinate.h \
+  PdbDouble.h \
+  PdbFloatVector.h \
+  PdbIndex.h \
+  PdbInt.h \
+  PdbMapIntVecFloat.h \
+  PdbMapIntInt.h \
+  PdbParameter.h \
+  PdbParameterError.h \
   PHGenericFactoryT.h \
-  RunToTime.hh \
-  RunToTimeFactory.hh
+  RunToTime.h \
+  RunToTimeFactory.h
 
 noinst_PROGRAMS = \
   testexternals
@@ -114,7 +122,7 @@ testexternals.C:
 .PRECIOUS : %_LinkDef.h
 
 # this generates the standard dictionary
-%_dict.C : %.hh %_LinkDef.h
+%_dict.C : %.h %_LinkDef.h
 	 rootcint -f $@ -c $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
 #
@@ -122,10 +130,10 @@ testexternals.C:
 # Do not remove or modify this comment. PdbNewClass depends on it.
 #
 
-PdbBankManagerFactory_dict.C : PHGenericFactoryT.h PdbBankManagerFactory.hh PdbBankManagerFactory_LinkDef.h
+PdbBankManagerFactory_dict.C : PHGenericFactoryT.h PdbBankManagerFactory.h PdbBankManagerFactory_LinkDef.h
 	rootcint -f $@ -c $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
-RunToTimeFactory_dict.C: PHGenericFactoryT.h RunToTimeFactory.hh RunToTimeFactory_LinkDef.h
+RunToTimeFactory_dict.C: PHGenericFactoryT.h RunToTimeFactory.h RunToTimeFactory_LinkDef.h
 	rootcint -f $@ -c $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
 clean-local:
