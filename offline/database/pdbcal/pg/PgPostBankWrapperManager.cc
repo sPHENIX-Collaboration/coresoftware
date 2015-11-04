@@ -1,5 +1,5 @@
-#include "PgPostBankWrapperManager.hh"
-#include "PgPostBankWrapper.hh"
+#include "PgPostBankWrapperManager.h"
+#include "PgPostBankWrapper.h"
 
 #include <phool/phool.h>
 
