@@ -8,15 +8,15 @@
  * \date $Date: 2014/01/31 16:50:40 $
  */
 
-#include "PgPostBankBackupStorage.hh"
+#include "PgPostBankBackupStorage.h"
 
-#include "PgPostBankManager.hh"
-#include "PgPostCalBankIterator.hh"
-#include "PgPostBankWrapper.hh"
-#include "PgPostApplication.hh"
-#include "PgPostCalBank.hh"
+#include "PgPostBankManager.h"
+#include "PgPostCalBankIterator.h"
+#include "PgPostBankWrapper.h"
+#include "PgPostApplication.h"
+#include "PgPostCalBank.h"
 
-#include <pdbcalbase/PdbCalBank.hh>
+#include <pdbcalbase/PdbCalBank.h>
 
 #include <cstdlib>
 #include <sstream>
