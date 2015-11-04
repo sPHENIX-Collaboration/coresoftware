@@ -8,7 +8,7 @@
 //
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
-#include "PdbBankManager.hh"
+#include "PdbBankManager.h"
 
 PdbBankManager *PdbBankManager::__instance = 0;
 
