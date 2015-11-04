@@ -1,5 +1,5 @@
 #include <iostream>
-#include "PdbDouble.hh"
+#include "PdbDouble.h"
 
 using namespace std;
 
