@@ -8,19 +8,19 @@
  * \date $Date: 2014/05/19 17:06:23 $
  */
 
-#include "PgPostBankBackupLog.hh"
-#include "PgPostBankManager.hh"
-#include "PgPostCalBankIterator.hh"
-#include "PgPostBankWrapper.hh"
-#include "PgPostApplication.hh"
-#include "PgPostCalBank.hh"
-#include "RunToTimePg.hh"
+#include "PgPostBankBackupLog.h"
+#include "PgPostBankManager.h"
+#include "PgPostCalBankIterator.h"
+#include "PgPostBankWrapper.h"
+#include "PgPostApplication.h"
+#include "PgPostCalBank.h"
+#include "RunToTimePg.h"
 
-#include <pdbcalbase/PdbBankID.hh>
-#include <pdbcalbase/PdbBankList.hh>
-#include <pdbcalbase/PdbCalBank.hh>
-#include <pdbcalbase/PdbClassMap.hh>
-#include <pdbcalbase/PdbBankManagerFactory.hh>
+#include <pdbcalbase/PdbBankID.h>
+#include <pdbcalbase/PdbBankList.h>
+#include <pdbcalbase/PdbCalBank.h>
+#include <pdbcalbase/PdbClassMap.h>
+#include <pdbcalbase/PdbBankManagerFactory.h>
 
 #include <phool/PHPointerList.h>
 #include <phool/PHTimeServer.h>
