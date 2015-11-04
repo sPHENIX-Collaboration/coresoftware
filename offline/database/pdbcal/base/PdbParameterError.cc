@@ -5,7 +5,7 @@
 //
 //  Author: Cesar
 
-#include <PdbParameterError.hh>
+#include <PdbParameterError.h>
 
 #include <cstdlib>
 #include <cstring>
