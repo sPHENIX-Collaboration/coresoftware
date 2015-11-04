@@ -9,7 +9,7 @@
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
 
-#include <PdbApplication.hh>
+#include <PdbApplication.h>
 
 #include <iostream>
 
