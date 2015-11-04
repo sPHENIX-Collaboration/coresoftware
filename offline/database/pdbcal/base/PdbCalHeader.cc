@@ -8,7 +8,7 @@
 //
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
-#include "PdbCalHeader.hh"
+#include "PdbCalHeader.h"
 
 #include <cstdlib>
 #include <iostream>
