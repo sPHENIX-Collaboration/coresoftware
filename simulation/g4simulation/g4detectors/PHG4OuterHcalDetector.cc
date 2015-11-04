@@ -432,8 +432,8 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
   G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(params->material), "HcalOuterSteelPlate", 0, 0, 0);
   G4VisAttributes *visattchk = new G4VisAttributes();
   visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(false);
-  visattchk->SetColour(G4Colour::Magenta());
+  visattchk->SetForceSolid(true);
+  visattchk->SetColour(G4Colour::Grey());
   steel_logical->SetVisAttributes(visattchk);
   double phi = 0;
   double deltaphi = 2 * M_PI / params->n_scinti_plates;
@@ -694,8 +694,8 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalen
       G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i],G4Material::GetMaterial("G4_POLYSTYRENE"),name.str().c_str(), NULL, NULL, g4userlimits);
       G4VisAttributes *visattchk = new G4VisAttributes();
       visattchk->SetVisibility(true);
-      visattchk->SetForceSolid(false);
-      visattchk->SetColour(G4Colour::Cyan());
+      visattchk->SetForceSolid(true);
+      visattchk->SetColour(G4Colour::Green());
       scinti_tile_logic->SetVisAttributes(visattchk);
       assmeblyvol->AddPlacedVolume(scinti_tile_logic,g4vec, NULL);
 
