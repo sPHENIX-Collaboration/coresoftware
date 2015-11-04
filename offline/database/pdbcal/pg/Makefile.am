@@ -73,10 +73,10 @@ libPgCal_la_SOURCES = \
   RunToTimePg_dict.C
 
 pkginclude_HEADERS = \
-  PgPostApplication.hh \
-  PgPostBankManager.hh \
-  PgPostCalBank.hh \
-  RunToTimePg.hh
+  PgPostApplication.h \
+  PgPostBankManager.h \
+  PgPostCalBank.h \
+  RunToTimePg.h
 
 noinst_PROGRAMS = \
   testexternals
@@ -101,11 +101,11 @@ testexternals.C:
 .PRECIOUS : %_LinkDef.h
 
 # this generates the classes stored in our postgres DB
-PgPost%Bank.hh PgPost%Bank.cc:
+PgPost%Bank.h PgPost%Bank.cc:
 	$(BANKOMAT) $@
 
 # this generates the standard dictionaries
-%_dict.C : %.hh %_LinkDef.h
+%_dict.C : %.h %_LinkDef.h
 	 rootcint -f $@ -c $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
 clean-local:
