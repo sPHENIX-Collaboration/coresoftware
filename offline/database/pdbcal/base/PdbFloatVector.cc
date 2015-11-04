@@ -1,4 +1,4 @@
-#include "PdbFloatVector.hh"
+#include "PdbFloatVector.h"
 #include <iostream>
 
 using namespace std;
