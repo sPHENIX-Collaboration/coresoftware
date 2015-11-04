@@ -8,7 +8,7 @@
 //
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
-#include "PdbBankID.hh"
+#include "PdbBankID.h"
 #include <iostream>
 
 PdbBankID::PdbBankID(const int val)
