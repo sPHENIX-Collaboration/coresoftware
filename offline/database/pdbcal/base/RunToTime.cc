@@ -1,4 +1,4 @@
-#include <RunToTime.hh>
+#include <RunToTime.h>
 
 #include <iostream>
 
