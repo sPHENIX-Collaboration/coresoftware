@@ -2,7 +2,7 @@
 //  Author: messer
 
 #include <iostream>
-#include "PdbCoordinate.hh"
+#include "PdbCoordinate.h"
 
 using namespace std;
 
