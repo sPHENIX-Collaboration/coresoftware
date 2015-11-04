@@ -1,4 +1,4 @@
-#include "PdbBankList.hh"
+#include "PdbBankList.h"
 
 PdbBankList::PdbBankList()
 {
