@@ -1,8 +1,8 @@
-#include "PgPostApplication.hh"
-#include "PgPostBankWrapperManager.hh"
-#include "PgPostBankWrapper.hh"
+#include "PgPostApplication.h"
+#include "PgPostBankWrapperManager.h"
+#include "PgPostBankWrapper.h"
 
-#include <pdbcalbase/PdbApplicationFactory.hh>
+#include <pdbcalbase/PdbApplicationFactory.h>
 
 #include <RDBC/TSQL.h>
 #include <RDBC/TSQLDriverManager.h>
