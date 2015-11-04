@@ -1,10 +1,10 @@
-#include "PgPostCalBankIterator.hh"
+#include "PgPostCalBankIterator.h"
 
-#include "PgPostBankWrapper.hh"
-#include "PgPostBankManager.hh"
-#include "PgPostApplication.hh"
+#include "PgPostBankWrapper.h"
+#include "PgPostBankManager.h"
+#include "PgPostApplication.h"
 
-#include <pdbcalbase/PdbBankID.hh>
+#include <pdbcalbase/PdbBankID.h>
 
 #include <RDBC/TSQLConnection.h>
 #include <RDBC/TSQLStatement.h>
