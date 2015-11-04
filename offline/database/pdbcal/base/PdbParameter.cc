@@ -1,29 +1,22 @@
-#include "PdbParameter.hh"
-#include <phool/phool.h>
+#include "PdbParameter.h"
 
+#include <cmath>
 #include <iostream>
 
 using namespace std;
 
-PdbParameter::PdbParameter()
-{
-  thePar = 0;
-  setName("UNKNOWN");
-}
+PdbParameter::PdbParameter():
+  thePar(NAN)
+{}
 
-PdbParameter::PdbParameter(const float value)
-{
-  thePar = value;
-  setName("UNKNOWN");
-}
 
-PdbParameter::PdbParameter(const float value, const char *name)
-{
-  thePar = value;
-  setName(name);
-}
+PdbParameter::PdbParameter(const double value, const string &name):
+  thePar(value),
+  theName(name)
+{}
 
-void PdbParameter::print() const
+void
+PdbParameter::print() const
 {
   cout << theName << ": " << thePar << endl;
 }
