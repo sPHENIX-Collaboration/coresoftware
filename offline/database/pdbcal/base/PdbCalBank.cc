@@ -1,7 +1,7 @@
 //  Implementaion of class PdbCalBank
 //  Author: Matthias Messer
 
-#include "PdbCalBank.hh"
+#include "PdbCalBank.h"
 
 PdbCalBank::PdbCalBank()
 {
