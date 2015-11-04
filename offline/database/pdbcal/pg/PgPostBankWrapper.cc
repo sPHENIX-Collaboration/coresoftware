@@ -1,6 +1,6 @@
-#include "PgPostBankWrapper.hh"
-#include "PgPostApplication.hh"
-#include "PgPostBankWrapperManager.hh"
+#include "PgPostBankWrapper.h"
+#include "PgPostApplication.h"
+#include "PgPostBankWrapperManager.h"
 
 #include <phool/phool.h>
 
