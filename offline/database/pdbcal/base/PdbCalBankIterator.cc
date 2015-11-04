@@ -1,3 +1,3 @@
-#include "PdbCalBankIterator.hh"
+#include "PdbCalBankIterator.h"
 
 PdbCalBankIterator::~PdbCalBankIterator() {}
