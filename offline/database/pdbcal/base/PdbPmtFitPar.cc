@@ -3,7 +3,7 @@
 //  Author: ohnishi
 
 #include <iostream>
-#include "PdbPmtFitPar.hh"
+#include "PdbPmtFitPar.h"
 
 using namespace std;
 
