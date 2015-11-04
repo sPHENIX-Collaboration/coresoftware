@@ -8,7 +8,7 @@
 //
 //  Author: ohnishi
 //-----------------------------------------------------------------------------
-#include "PdbPmtPeak.hh"
+#include "PdbPmtPeak.h"
 
 #include <iostream>
 
