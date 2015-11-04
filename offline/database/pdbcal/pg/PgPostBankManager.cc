@@ -1,16 +1,16 @@
-#include "PgPostBankManager.hh"
+#include "PgPostBankManager.h"
 
-#include "PgPostCalBankIterator.hh"
-#include "PgPostBankWrapper.hh"
-#include "PgPostApplication.hh"
-#include "PgPostCalBank.hh"
-#include "RunToTimePg.hh"
+#include "PgPostCalBankIterator.h"
+#include "PgPostBankWrapper.h"
+#include "PgPostApplication.h"
+#include "PgPostCalBank.h"
+#include "RunToTimePg.h"
 
-#include <pdbcalbase/PdbBankID.hh>
-#include <pdbcalbase/PdbBankList.hh>
-#include <pdbcalbase/PdbBankManagerFactory.hh>
-#include <pdbcalbase/PdbCalBank.hh>
-#include <pdbcalbase/PdbClassMap.hh>
+#include <pdbcalbase/PdbBankID.h>
+#include <pdbcalbase/PdbBankList.h>
+#include <pdbcalbase/PdbBankManagerFactory.h>
+#include <pdbcalbase/PdbCalBank.h>
+#include <pdbcalbase/PdbClassMap.h>
 
 #include <phool/PHPointerList.h>
 
