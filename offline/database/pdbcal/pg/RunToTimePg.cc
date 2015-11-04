@@ -1,6 +1,6 @@
-#include "RunToTimePg.hh"
+#include "RunToTimePg.h"
 
-#include <pdbcalbase/RunToTimeFactory.hh>
+#include <pdbcalbase/RunToTimeFactory.h>
 
 #include <phool/phool.h>
 #include <phool/PHTimeStamp.h>
