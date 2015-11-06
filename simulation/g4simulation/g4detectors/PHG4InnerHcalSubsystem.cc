@@ -145,6 +145,12 @@ PHG4SteppingAction* PHG4InnerHcalSubsystem::GetSteppingAction( void ) const
   return steppingAction_;
 }
 
+PHG4InnerHcalParameters *
+PHG4InnerHcalSubsystem::GetParameters()
+{
+  return params;
+}
+
 void
 PHG4InnerHcalSubsystem::SetTiltAngle(const double tilt)
 {
@@ -217,25 +223,25 @@ PHG4InnerHcalSubsystem::BlackHole(const int i)
 void
 PHG4InnerHcalSubsystem::SetInnerRadius(const double inner)
 {
-  params->inner_radius = inner *cm;
+  params->set_inner_radius(inner);
 }
 
 double
 PHG4InnerHcalSubsystem::GetInnerRadius() const
 {
-  return params->inner_radius/cm;
+  return params->get_inner_radius()/cm;
 }
 
 void
 PHG4InnerHcalSubsystem::SetOuterRadius(const double outer)
 {
-  params->outer_radius = outer * cm;
+  params->set_outer_radius(outer);
 }
 
 double
 PHG4InnerHcalSubsystem::GetOuterRadius() const
 {
-  return params->outer_radius/cm;
+  return params->get_outer_radius()/cm;
 }
 
 void

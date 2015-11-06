@@ -2,13 +2,14 @@
 
 #include <Geant4/G4SystemOfUnits.hh>
 
+#include <cmath>
 #include <iostream>
 
 using namespace std;
 
 PHG4InnerHcalParameters::PHG4InnerHcalParameters():
-  inner_radius(116 * cm),
-  outer_radius(136 * cm),
+  inner_radius(116),
+  outer_radius(136),
   size_z(175.94 * 2 * cm),
   scinti_gap(0.85 * cm),
   tilt_angle(32.5 * deg),
@@ -41,11 +42,22 @@ PHG4InnerHcalParameters::PHG4InnerHcalParameters():
 void
 PHG4InnerHcalParameters::print() const
 {
-  cout << "Inner Radius: " << inner_radius/cm << endl;
-  cout << "Outer Radius: " << outer_radius/cm << endl;
+  cout << "Inner Radius: " << inner_radius << endl;
+  cout << "Outer Radius: " << outer_radius << endl;
   cout << "Size Z: " << size_z/cm << endl;
   cout << "Scintillator Gap: " << scinti_gap/cm << endl;
   cout << "Tilt Angle: " << tilt_angle/deg << endl;
   cout << "Crossings: " << ncross << endl;
   return;
+}
+
+double
+PHG4InnerHcalParameters::get_inner_radius() const 
+{
+  return inner_radius*cm;
+}
+double
+PHG4InnerHcalParameters::get_outer_radius() const 
+{
+  return outer_radius*cm;
 }

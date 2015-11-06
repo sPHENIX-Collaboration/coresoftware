@@ -1,7 +1,7 @@
 #ifndef PHG4InnerHcalSubsystem_h
 #define PHG4InnerHcalSubsystem_h
 
-#include "g4main/PHG4Subsystem.h"
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
@@ -59,6 +59,7 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   const std::string SuperDetector() {return superdetector;}
 
   void BlackHole(const int i=1);
+  PHG4InnerHcalParameters *GetParameters();
 
   void SetTiltViaNcross(const int ncross);
   void SetTiltAngle(const double tilt);
