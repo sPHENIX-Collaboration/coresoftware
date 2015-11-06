@@ -152,19 +152,6 @@ PHG4InnerHcalSubsystem::GetParameters()
 }
 
 void
-PHG4InnerHcalSubsystem::SetTiltAngle(const double tilt)
-{
-  params->tilt_angle = tilt * deg;
-  params->ncross = 0;
-}
-
-double
-PHG4InnerHcalSubsystem::GetTiltAngle() const
-{
-  return params->tilt_angle/deg;
-}
-
-void
 PHG4InnerHcalSubsystem::SetPlaceZ(const G4double dbl)
 {
   params->place_in_z = dbl;
@@ -194,12 +181,6 @@ void
 PHG4InnerHcalSubsystem::SetZRot(const G4double dbl)
 {
   params->z_rot = dbl * deg;
-}
-
-void
-PHG4InnerHcalSubsystem::SetMaterial(const std::string &mat)
-{
-  params->material = mat;
 }
 
 void
@@ -244,41 +225,6 @@ PHG4InnerHcalSubsystem::GetOuterRadius() const
   return params->get_outer_radius()/cm;
 }
 
-void
-PHG4InnerHcalSubsystem::SetLength(const double len)
-{
-  params->size_z = len * cm;
-}
-
-void
-PHG4InnerHcalSubsystem::SetGapWidth(const double gap)
-{
-  params->scinti_gap = gap *cm;
-}
-
-void
-PHG4InnerHcalSubsystem::SetNumScintiPlates(const int nplates)
-{
-  params->n_scinti_plates = nplates;
-}
-
-void
-PHG4InnerHcalSubsystem::SetNumScintiTiles(const int ntiles)
-{
-  params->n_scinti_tiles = ntiles;
-}
-
-void
-PHG4InnerHcalSubsystem::SetScintiThickness(const double thick)
-{
-  params->scinti_tile_thickness = thick * cm;
-}
-
-void
-PHG4InnerHcalSubsystem::SetScintiGap(const double scgap)
-{
-  params->scinti_gap_neighbor = scgap * cm;
-}
 
 void
 PHG4InnerHcalSubsystem::SetTiltViaNcross(const int ncross)
@@ -293,7 +239,7 @@ PHG4InnerHcalSubsystem::SetTiltViaNcross(const int ncross)
 	   << "I refuse to continue this!" << endl;
       exit(1);
     }
-  params->ncross = ncross;
+  params->set_ncross(ncross);
 }
 
 void

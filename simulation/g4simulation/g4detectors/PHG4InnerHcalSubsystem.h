@@ -51,7 +51,6 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   void SetXRot(const G4double dbl);
   void SetYRot(const G4double dbl);
   void SetZRot(const G4double dbl);
-  void SetMaterial(const std::string &mat);
   PHG4EventAction* GetEventAction() const {return eventAction_;}
   void SetActive(const int i = 1);
   void SetAbsorberActive(const int i = 1);
@@ -62,18 +61,10 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   PHG4InnerHcalParameters *GetParameters();
 
   void SetTiltViaNcross(const int ncross);
-  void SetTiltAngle(const double tilt);
-  double GetTiltAngle() const;
   void SetInnerRadius(const double inner);
   double GetInnerRadius() const;
   void SetOuterRadius(const double outer);
   double GetOuterRadius() const;
-  void SetLength(const double len);
-  void SetGapWidth(const double gap);
-  void SetNumScintiPlates(const int nplates);
-  void SetNumScintiTiles(const int ntiles);
-  void SetScintiThickness(const double thick);
-  void SetScintiGap(const double scgap);
   void SetStepLimits(const double slim);
 
   void SetLightCorrection(const float inner_radius, const float inner_corr,
