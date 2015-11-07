@@ -2,8 +2,6 @@
 #include "PHG4OuterHcalDetector.h"
 #include "PHG4OuterHcalParameters.h"
 
-
-#include <TH2F.h>
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllServer.h>
 #include <Geant4/G4TransportationManager.hh>
@@ -17,7 +15,9 @@
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
+
+#include <TH2F.h>
 
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4MaterialCutsCouple.hh>
@@ -63,9 +63,9 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
   // returns 
   //  0 is outside of OuterHcal
   //  1 is inside scintillator
-  // -1 is steel absorber
+  // -1 is steel absorber (if absorber set to active)
 
-  int whichactive = detector_->IsInOuterHcal(volume);
+  int whichactive = detector_->IsInOuterHcal(volume); 
 
   if (!whichactive)
     {
@@ -73,27 +73,29 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
     }
 
   if (params->enable_field_checker)
-    FieldChecker(aStep);
+    {
+      FieldChecker(aStep);
+    }
 
   unsigned int motherid = ~0x0; // initialize to 0xFFFFFF using the correct bitness
   int tower_id = -1;
   if (whichactive > 0) // scintillator
     {
-// G4AssemblyVolumes naming convention:
-//     av_WWW_impr_XXX_YYY_ZZZ
-// where:
+      // G4AssemblyVolumes naming convention:
+      //     av_WWW_impr_XXX_YYY_ZZZ
+      // where:
 
-//     WWW - assembly volume instance number
-//     XXX - assembly volume imprint number
-//     YYY - the name of the placed logical volume
-//     ZZZ - the logical volume index inside the assembly volume
-// e.g. av_1_impr_82_HcalOuterScinti_11_pv_11
-// 82 the number of the scintillator mother volume
-// HcalOuterScinti_11: name of scintillator slat
-// 11: number of scintillator slat logical volume
-// use boost tokenizer to separate the _, then take value
-// after "impr" for mother volume and after "pv" for scintillator slat
-// use boost lexical cast for string -> int conversion
+      //     WWW - assembly volume instance number
+      //     XXX - assembly volume imprint number
+      //     YYY - the name of the placed logical volume
+      //     ZZZ - the logical volume index inside the assembly volume
+      // e.g. av_1_impr_82_HcalOuterScinti_11_pv_11
+      // 82 the number of the scintillator mother volume
+      // HcalOuterScinti_11: name of scintillator slat
+      // 11: number of scintillator slat logical volume
+      // use boost tokenizer to separate the _, then take value
+      // after "impr" for mother volume and after "pv" for scintillator slat
+      // use boost lexical cast for string -> int conversion
       boost::char_separator<char> sep("_");
       boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
       boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
@@ -153,7 +155,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	{
 	case fGeomBoundary:
 	case fUndefined:
-    hit = new PHG4Hitv1();
+	  hit = new PHG4Hitv1();
 	  hit->set_layer(motherid);
 	  hit->set_scint_id(tower_id); // the slat id (or steel plate id)
 	  //here we set the entrance values in cm
@@ -177,10 +179,10 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 
 	  //set the initial energy deposit
 	  hit->set_edep(0);
-	  hit->set_eion(0); // only implemented for v5 otherwise empty
-    hit->set_light_yield(0);
+	  hit->set_eion(0); 
 	  if (whichactive > 0) // return of IsInOuterHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
 	    {
+	      hit->set_light_yield(0); //  for scintillator only, initialize light yields
 	      // Now add the hit
 	      hits_->AddHit(layer_id, hit);
 	    }
@@ -237,8 +239,8 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
           if (params->light_balance)
             {
               float r = sqrt(
-                  pow(postPoint->GetPosition().x() / cm, 2)
-                      + pow(postPoint->GetPosition().y() / cm, 2));
+			     pow(postPoint->GetPosition().x() / cm, 2)
+			     + pow(postPoint->GetPosition().y() / cm, 2));
               const float cor = GetLightCorrection(r);
               light_yield = light_yield * cor;
 
@@ -266,14 +268,16 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
       //sum up the energy to get total deposited
       hit->set_edep(hit->get_edep() + edep);
       hit->set_eion(hit->get_eion() + eion);
-      hit->set_light_yield(hit->get_light_yield() + light_yield);
-      hit->set_path_length(aTrack->GetTrackLength() / cm);
+      if (whichactive > 0)
+	{
+	  hit->set_light_yield(hit->get_light_yield() + light_yield);
+	}
       if (geantino)
 	{
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
           hit->set_eion(-1);
 	}
-      if (edep > 0)
+      if (edep > 0 && (whichactive > 0 || params->absorbertruth > 0))
 	{
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
@@ -332,7 +336,9 @@ void PHG4OuterHcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNode
     }
 }
 
-float PHG4OuterHcalSteppingAction::GetLightCorrection(float r) {
+float 
+PHG4OuterHcalSteppingAction::GetLightCorrection(const float r) const
+{
   float m = (params->light_balance_outer_corr - params->light_balance_inner_corr)/(params->light_balance_outer_radius - params->light_balance_inner_radius);
   float b = params->light_balance_inner_corr - m*params->light_balance_inner_radius;
   float value = m*r+b;  

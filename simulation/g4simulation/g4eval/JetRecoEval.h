@@ -27,11 +27,22 @@ public:
   JetRecoEval(PHCompositeNode *topNode,
 	      std::string recojetname,
 	      std::string truthjetname);
-  virtual ~JetRecoEval() {}
+  virtual ~JetRecoEval();
 
   void next_event(PHCompositeNode *topNode);
-  void do_caching(bool do_cache) {_do_cache = do_cache;}
-
+  void do_caching(bool do_cache) {
+    _do_cache = do_cache;
+    _jettrutheval.do_caching(do_cache);
+  }
+  void set_strict(bool strict) {
+    _strict = strict;
+    _jettrutheval.set_strict(strict);
+  }
+  void set_verbosity(int verbosity) {
+    _verbosity = verbosity;
+    _jettrutheval.set_verbosity(verbosity);
+  }
+  
   JetTruthEval*     get_truth_eval()         {return &_jettrutheval;}
   SvtxEvalStack*    get_svtx_eval_stack()    {return _jettrutheval.get_svtx_eval_stack();}
   CaloEvalStack*    get_cemc_eval_stack()    {return _jettrutheval.get_cemc_eval_stack();}
@@ -54,6 +65,8 @@ public:
   
   // overlap calculations (to reco from truth)
   float get_energy_contribution (Jet* recojet, Jet* truthjet);
+
+  unsigned int get_errors() {return _errors + _jettrutheval.get_errors();}
   
 private:
 
@@ -73,6 +86,10 @@ private:
   RawClusterContainer* _hcalinclusters;
   RawTowerContainer*   _hcalouttowers;
   RawClusterContainer* _hcaloutclusters;
+
+  bool _strict;
+  int _verbosity;
+  unsigned int _errors;
   
   bool                                    _do_cache;
   std::map<Jet*,std::set<PHG4Hit*> >      _cache_all_truth_hits;

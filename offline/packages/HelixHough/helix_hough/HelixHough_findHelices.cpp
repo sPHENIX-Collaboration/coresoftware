@@ -129,6 +129,19 @@ void HelixHough::findHelices(vector<SimpleHit3D>& hits, unsigned int min_hits, u
   {
     findHelices(min_hits, max_hits, temp_tracks, maxtracks, start_zoom);
   }
+
+  vector<SimpleHit3D> tr_hits;
+  if(cull_input_hits == true)
+  {
+    for(unsigned int i=0;i<hits.size();i++)
+    {
+      if( (*hit_used)[hits[i].index] == false )
+      {
+        tr_hits.push_back(hits[i]);
+        tr_hits.back().index = index_mapping[i];
+      }
+    }
+  }
   
   for(unsigned int i=0;i<hits.size();i++)
   {
@@ -146,6 +159,11 @@ void HelixHough::findHelices(vector<SimpleHit3D>& hits, unsigned int min_hits, u
   }
   
   finalize(temp_tracks, tracks);
+
+  if(cull_input_hits == true)
+  {
+    hits = tr_hits;
+  }
   
   if(print_timings == true)
   {
@@ -156,6 +174,31 @@ void HelixHough::findHelices(vector<SimpleHit3D>& hits, unsigned int min_hits, u
   }
 }
 
+static bool mergeClusters( ParameterCluster& clus1, ParameterCluster const& clus2, unsigned int MAX, float overlap_cut )
+{
+  vector<unsigned int> old_indexes = clus1.hit_indexes;
+  for(unsigned int i=0;i<clus2.hit_indexes.size();++i)
+  {
+    clus1.hit_indexes.push_back( clus2.hit_indexes[i] );
+  }
+  vector<unsigned int> C;
+  C.assign(MAX+1, 0);
+  in_place_counting_unique(clus1.hit_indexes, C);
+
+  float size_diff_1 = ( (float)(clus1.hit_indexes.size() - old_indexes.size())/( (float)(old_indexes.size()) )  );
+  float size_diff_2 = ( (float)(clus1.hit_indexes.size() - clus2.hit_indexes.size())/( (float)(clus2.hit_indexes.size()) )  );
+
+  if( (size_diff_1<overlap_cut) || (size_diff_2<overlap_cut) )
+  {
+    clus1.range.mergeRange(clus2.range);
+    return true;
+  }
+  else
+  {
+    clus1.hit_indexes = old_indexes;
+    return false;
+  }
+}
 
 bool HelixHough::attemptClusterMerge(unsigned int zoomlevel, unsigned int MAX, unsigned int ca, unsigned int d, unsigned int r, unsigned int th, unsigned int zz0, unsigned int bin, unsigned int newbin, vector<unsigned char>& good_bins, unsigned int volume, float cluster_size_cut, float overlap_cut, vector<ParameterCluster>& clusters, unsigned int* bins_start, unsigned int* bins_end, vector<unsigned int>& map_clus, vector<unsigned char>& too_big, vector<unsigned int>& temp_merged, vector<unsigned int>& C)
 {
@@ -198,7 +241,7 @@ bool HelixHough::attemptClusterMerge(unsigned int zoomlevel, unsigned int MAX, u
 void HelixHough::makeClusters(unsigned int zoomlevel, unsigned int MAX, unsigned int n_phi, unsigned int n_d, unsigned int n_k, unsigned int n_dzdl, unsigned int n_z0, unsigned int min_hits, vector<ParameterCluster>& clusters, bool& use_clusters, bool& is_super_bin)
 {
   unsigned int volume = n_phi*n_d*n_k*n_dzdl*n_z0;
-  float cluster_size_cut = 0.25;
+  float cluster_size_cut = 1.0;
   float bin_size_cut = 0.75;
   float overlap_cut = 0.1;
   is_super_bin = false;
@@ -224,13 +267,16 @@ void HelixHough::makeClusters(unsigned int zoomlevel, unsigned int MAX, unsigned
             {
               if(check_layers == true)
               {
-                unsigned int layer_mask = 0;
+                unsigned int layer_mask[4] = { 0, 0, 0, 0 };
                 for(unsigned int i=bins_start[bin];i<=bins_end[bin];++i)
                 {
-                  layer_mask = layer_mask | (1<<((*(hits_vec[zoomlevel]))[ (*(bins_vec[zoomlevel]))[i].entry ].layer));
-                  unsigned int nlayers = __builtin_popcount(layer_mask);
-                  if(nlayers>=req_layers){good_bins[bin] = 1;}
+                  if(  (*(hits_vec[zoomlevel]))[ (*(bins_vec[zoomlevel]))[i].entry ].layer < 32  ) { layer_mask[0] = layer_mask[0] | (1<<(*(hits_vec[zoomlevel]))[ (*(bins_vec[zoomlevel]))[i].entry ].layer); }
+                  else if(  (*(hits_vec[zoomlevel]))[ (*(bins_vec[zoomlevel]))[i].entry ].layer < 64  ) { layer_mask[1] = layer_mask[1] | (1 << ((*(hits_vec[zoomlevel]))[ (*(bins_vec[zoomlevel]))[i].entry ].layer-32) ); }
+                  else if(  (*(hits_vec[zoomlevel]))[ (*(bins_vec[zoomlevel]))[i].entry ].layer < 96  ) { layer_mask[2] = layer_mask[2] | (1 << ((*(hits_vec[zoomlevel]))[ (*(bins_vec[zoomlevel]))[i].entry ].layer-64) ); }
+                  else if(  (*(hits_vec[zoomlevel]))[ (*(bins_vec[zoomlevel]))[i].entry ].layer < 128  ) { layer_mask[3] = layer_mask[3] | (1 << ((*(hits_vec[zoomlevel]))[ (*(bins_vec[zoomlevel]))[i].entry ].layer-96) ); }
                 }
+                unsigned int nlayers = __builtin_popcount( layer_mask[0] ) + __builtin_popcount( layer_mask[1] ) + __builtin_popcount( layer_mask[2] ) + __builtin_popcount( layer_mask[3] ) ;
+                if(nlayers>=req_layers){good_bins[bin] = 1;}
               }
               else
               {
@@ -288,6 +334,34 @@ void HelixHough::makeClusters(unsigned int zoomlevel, unsigned int MAX, unsigned
       }
     }
   }
+  if(iterate_clustering == false){ return; }
+  if( num_clusters[zoomlevel] == 0 ){return;}
+  vector<ParameterCluster> in_clusters;
+  for(unsigned int i=0;i<num_clusters[zoomlevel];++i)
+  {
+    in_clusters.push_back(clusters[i]);
+  }
+  vector<ParameterCluster> out_clusters;
+  out_clusters.push_back( in_clusters[0] );
+  for(unsigned int i=1;i<in_clusters.size();++i)
+  {
+    bool merged = false;
+    for(unsigned int j=0;j<out_clusters.size();++j)
+    {
+      merged = mergeClusters( out_clusters[j], in_clusters[i], MAX, overlap_cut );
+      if( merged == true )
+      {
+        merged = true;
+        break;
+      }
+    }
+    if(merged == false)
+    {
+      out_clusters.push_back(in_clusters[i]);
+    }
+  }
+  clusters = out_clusters;
+  num_clusters[zoomlevel] = out_clusters.size();
 }
 
 
@@ -331,7 +405,6 @@ void HelixHough::findHelices(unsigned int min_hits, unsigned int max_hits, vecto
     {
       gettimeofday(&t1, NULL);
     }
-    
     makeClusters(zoomlevel, hits_vec[zoomlevel]->size(), n_phi, n_d, n_k, n_dzdl, n_z0, min_hits, *(clusters_vec[zoomlevel]), use_clusters, is_super_bin);
     
     if(print_timings)
@@ -432,6 +505,7 @@ void HelixHough::findHelices(unsigned int min_hits, unsigned int max_hits, vecto
           hits_vec[zoomlevel+1]->push_back((*(hits_vec[zoomlevel]))[*index_iter]);
         }
       }
+
       setClusterRange(zoomranges[zoomlevel], zoomranges[zoomlevel+1], (*(clusters_vec[zoomlevel]))[i].range, n_phi, n_d, n_k, n_dzdl, n_z0);
       if((breakRecursion(*(hits_vec[zoomlevel+1]), zoomranges[zoomlevel+1]) == true)){}
       else if((zoomlevel+1)==max_zoom)
@@ -452,8 +526,6 @@ void HelixHough::findHelices(unsigned int min_hits, unsigned int max_hits, vecto
       }
     }
   }
-  
-  
 }
 
 

@@ -82,6 +82,9 @@ class PHG4TruthInfoContainer: public PHObject
   int maxvtxindex() const;
   int minvtxindex() const;
  
+  int maxprimarytrkindex() const;
+  int minprimarytrkindex() const;
+
   void delete_hit(Iterator hiter);
   void delete_vtx(VtxIterator viter);
 

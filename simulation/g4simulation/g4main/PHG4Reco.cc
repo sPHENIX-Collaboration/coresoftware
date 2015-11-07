@@ -14,8 +14,8 @@
 #include <g4decayer/P6DExtDecayerPhysics.hh>
 #include <g4decayer/EDecayType.hh>
 
-#include <fun4all/getClass.h>
-#include <fun4all/recoConsts.h>
+#include <phool/getClass.h>
+#include <phool/recoConsts.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
@@ -145,15 +145,7 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
     cout << "========================= PHG4Reco::Init() ================================" << endl;
   }
 
-  recoConsts *rc = recoConsts::instance();
-  if (rc->FlagExist("RANDOMSEED"))
-    {
-      G4Seed(std::abs(rc->get_IntFlag("RANDOMSEED")));
-    }
-  else
-    {
-      G4Seed(PHRandomSeed());
-    }
+  G4Seed(PHRandomSeed()); // fixed seed handled in PHRandomSeed()
   
   // create GEANT run manager
   if (verbosity > 1) cout << "PHG4Reco::Init - create run manager" << endl;
@@ -244,6 +236,36 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
       reco->Init( topNode );
     }
 
+  if (verbosity > 0) {
+    cout << "===========================================================================" << endl;
+  }
+  return 0;
+}
+
+int
+PHG4Reco::InitRun( PHCompositeNode* topNode )
+{
+  // this is a dumb protection against executing this twice.
+  // we have cases (currently detector display or material scan) where
+  // we need the detector bu have not run any events (who wants to wait
+  // for processing an event if you just want a detector display?).
+  // Then the InitRun is executed from a macro. But if you decide to run events
+  // afterwards, the InitRun is executed by the framework together with all
+  // other modules. This prevents the PHG4Reco::InitRun() to be executed
+  // again in this case
+  static int InitRunDone = 0;
+  if (InitRunDone)
+    {
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+  InitRunDone = 1;
+  if (verbosity > 0) 
+  {
+    cout << "========================= PHG4Reco::InitRun() ================================" << endl;
+  }
+
+  recoConsts *rc = recoConsts::instance();
+
   // initialize registered subsystems
   BOOST_FOREACH(SubsysReco * reco, subsystems_)
     {
@@ -318,10 +340,10 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
   // G4Scintillation* theScintillationProcess      = new G4Scintillation("Scintillation");
 
   /*
-  if (verbosity > 0)
+    if (verbosity > 0)
     {
-      // This segfaults  
-      theCerenkovProcess->DumpPhysicsTable();
+    // This segfaults
+    theCerenkovProcess->DumpPhysicsTable();
     }
   */
   theCerenkovProcess->SetMaxNumPhotonsPerStep(100);
@@ -332,7 +354,7 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
   // theScintillationProcess->SetTrackSecondariesFirst(true);
 
   // Use Birks Correction in the Scintillation process
-  
+
   // G4EmSaturation* emSaturation = G4LossTableManager::Instance()->EmSaturation();
   // theScintillationProcess->AddSaturation(emSaturation);
 
@@ -366,7 +388,7 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
   pmanager->AddDiscreteProcess(new G4OpWLS());
   pmanager->AddDiscreteProcess(new G4PhotoElectricEffect());
   // pmanager->DumpInfo();
-  
+
   // needs large amount of memory which kills central hijing events
   // store generated trajectories
   //   if( G4TrackingManager* trackingManager = G4EventManager::GetEventManager()->GetTrackingManager() ){
@@ -380,11 +402,11 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
   if ((verbosity < 1) && (uisession_)) {
     uisession_->Verbosity(1); // let messages after setup come through
   }
-  
+
   if (verbosity > 0) {
     cout << "===========================================================================" << endl;
   }
-  
+
   return 0;
 }
 
@@ -496,9 +518,25 @@ PHG4Reco::ResetEvent(PHCompositeNode *topNode)
 }
 
 //_________________________________________________________________
-int PHG4Reco::End( PHCompositeNode* )
+int
+PHG4Reco::End( PHCompositeNode* )
 {
   return 0;
+}
+
+void
+PHG4Reco::Print(const std::string &what) const
+{
+  BOOST_FOREACH(SubsysReco * reco, subsystems_)
+    {
+      if (what == "ALL" || reco->Name() == what)
+	{
+	  cout << "Printing " << reco->Name() << endl;
+	  reco->Print(what);
+	  cout << "---------------------------" << endl;
+	}
+    }
+  return;
 }
 
 int

@@ -11,14 +11,14 @@
 #include <g4hough/SvtxVertex.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/recoConsts.h>
-#include <phool/PHNodeIterator.h>
+
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/PHNodeIterator.h>
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
 #include <float.h>
 
 using namespace std;
@@ -90,7 +90,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
     for (SvtxVertexMap::ConstIter svtxiter = svtxmap->begin();
 	 svtxiter != svtxmap->end();
 	 ++svtxiter) {
-      const SvtxVertex* svtx = &svtxiter->second;
+      const SvtxVertex* svtx = svtxiter->second;
 
       const BbcVertex *bbc_best = NULL;
       float min_sigma = FLT_MAX;
@@ -140,7 +140,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
     for (SvtxVertexMap::ConstIter svtxiter = svtxmap->begin();
 	 svtxiter != svtxmap->end();
 	 ++svtxiter) {
-      const SvtxVertex* svtx = &svtxiter->second;
+      const SvtxVertex* svtx = svtxiter->second;
       if (used_svtx_vtxids.find(svtx->get_id()) != used_svtx_vtxids.end()) continue;
 
       // we have a standalone SVTX vertex

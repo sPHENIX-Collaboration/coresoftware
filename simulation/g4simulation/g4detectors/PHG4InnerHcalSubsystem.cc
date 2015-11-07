@@ -5,7 +5,7 @@
 #include "PHG4InnerHcalParameters.h"
 
 #include <g4main/PHG4HitContainer.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <Geant4/globals.hh>
 
@@ -35,7 +35,7 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const i
 }
 
 //_______________________________________________________________________
-int PHG4InnerHcalSubsystem::Init( PHCompositeNode* topNode )
+int PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
 {
   PHNodeIterator iter( topNode );
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
@@ -92,7 +92,7 @@ int PHG4InnerHcalSubsystem::Init( PHCompositeNode* topNode )
 	}
 
       // create stepping action
-      steppingAction_ = new PHG4InnerHcalSteppingAction(detector_);
+      steppingAction_ = new PHG4InnerHcalSteppingAction(detector_, params);
 
     }
   else
@@ -100,7 +100,7 @@ int PHG4InnerHcalSubsystem::Init( PHCompositeNode* topNode )
       // if this is a black hole it does not have to be active
       if (params->blackhole)
 	{
-	  steppingAction_ = new PHG4InnerHcalSteppingAction(detector_);
+	  steppingAction_ = new PHG4InnerHcalSteppingAction(detector_, params);
 	}
     }
   return 0;
@@ -121,6 +121,18 @@ PHG4InnerHcalSubsystem::process_event( PHCompositeNode * topNode )
 }
 
 
+void
+PHG4InnerHcalSubsystem::Print(const string &what) const
+{
+  cout << "Inner Hcal Parameters: " << endl;
+  params->print();
+  if (detector_)
+    {
+      detector_->Print(what);
+    }
+  return;
+}
+
 //_______________________________________________________________________
 PHG4Detector* PHG4InnerHcalSubsystem::GetDetector( void ) const
 {
@@ -137,6 +149,7 @@ void
 PHG4InnerHcalSubsystem::SetTiltAngle(const double tilt)
 {
   params->tilt_angle = tilt * deg;
+  params->ncross = 0;
 }
 
 double
@@ -262,13 +275,40 @@ PHG4InnerHcalSubsystem::SetScintiGap(const double scgap)
 }
 
 void
+PHG4InnerHcalSubsystem::SetTiltViaNcross(const int ncross)
+{
+  if (ncross == 0)
+    {
+      cout << "Invalid number of crossings: " << ncross
+	   << " how do you expect me to calculate a tilt angle for this????"
+	   << endl
+	   << "If you want a 0 degree tilt angle, just use SetTiltAngle(0)"
+	   << endl
+	   << "I refuse to continue this!" << endl;
+      exit(1);
+    }
+  params->ncross = ncross;
+}
+
+void
 PHG4InnerHcalSubsystem::SetStepLimits(const double slim)
 {
   params->steplimits = slim*cm;
 }
 
 void
-PHG4InnerHcalSubsystem::SetTiltViaNcross(const int ncross)
+PHG4InnerHcalSubsystem::SetLightCorrection(const float inner_radius, const float inner_corr,
+			  const float outer_radius, const float outer_corr) 
 {
-  params->ncross = ncross;
+  params->light_balance = true;
+  params->light_balance_inner_radius = inner_radius;
+  params->light_balance_inner_corr = inner_corr;
+  params->light_balance_outer_radius = outer_radius;
+  params->light_balance_outer_corr = outer_corr;
+}
+
+void
+PHG4InnerHcalSubsystem:: SetLightScintModel(const bool b)
+{
+  params->light_scint_model = b;
 }

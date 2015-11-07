@@ -3,7 +3,9 @@
 #include "SvtxHitMap.h"
 #include "SvtxHit.h"
 #include "SvtxClusterMap.h"
+#include "SvtxClusterMap_v1.h"
 #include "SvtxCluster.h"
+#include "SvtxCluster_v1.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -12,7 +14,7 @@
 #include <phool/PHTypedNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -27,6 +29,9 @@
 #include <cstdlib>
 
 using namespace std;
+
+static int phi_span=10;
+static int z_span=10;
 
 
 static inline int wrap_bin( int bin, int nbins )
@@ -58,32 +63,89 @@ static bool is_local_maximum( std::vector<std::vector<float> > const& amps, int 
 
 static void fit_cluster( std::vector<std::vector<float> >& amps, int& nhits_tot, std::vector<int>& nhits, int phibin, int zbin, PHG4CylinderCellGeom* geo, float& phi, float& z, float& e )
 {
-	int phi_span = 3;
-	int z_span = 3;
+	// int phi_span = 3;
+	// int z_span = 1;
 	e = 0.;
 	phi = 0.;
 	z = 0.;
-	for( int iz=-z_span;iz<=z_span;++iz )
+	float prop_cut = 0.05;
+	float peak = amps[zbin][phibin];
+
+	for( int iz=0;iz<=z_span;++iz )
 	{
 		int cz = zbin+iz;if(cz<0){continue;}if(cz>=(int)(amps.size())){continue;}
-		for( int ip=-phi_span;ip<=phi_span;++ip )
+		bool breakout = true;
+		for( int ip=1;ip<=phi_span;++ip )
 		{
-			int cp = wrap_bin( phibin+ip, amps[cz].size() );
-			if(amps[cz][cp] <= 0.){continue;}
+			int cp = wrap_bin( phibin-ip, amps[cz].size() );
+			if(amps[cz][cp] <= 0.){break;}
+			if( amps[cz][cp] < prop_cut*peak ){break;}
 			e += amps[cz][cp];
 			phi += amps[cz][cp]*geo->get_phicenter(cp);
 			z += amps[cz][cp]*geo->get_zcenter(cz);
 			nhits_tot -= 1;
 			nhits[cz] -= 1;
 			amps[cz][cp] = 0.;
+			breakout=false;
 		}
+		for( int ip=0;ip<=phi_span;++ip )
+		{
+			int cp = wrap_bin( phibin+ip, amps[cz].size() );
+			if(amps[cz][cp] <= 0.){break;}
+			if( amps[cz][cp] < prop_cut*peak ){break;}
+			e += amps[cz][cp];
+			phi += amps[cz][cp]*geo->get_phicenter(cp);
+			z += amps[cz][cp]*geo->get_zcenter(cz);
+			nhits_tot -= 1;
+			nhits[cz] -= 1;
+			amps[cz][cp] = 0.;
+			breakout=false;
+		}
+		if(breakout==true){break;}
 	}
+
+	for( int iz=1;iz<=z_span;++iz )
+	{
+		int cz = zbin-iz;if(cz<0){continue;}if(cz>=(int)(amps.size())){continue;}
+		bool breakout = true;
+		for( int ip=1;ip<=phi_span;++ip )
+		{
+			int cp = wrap_bin( phibin-ip, amps[cz].size() );
+			if(amps[cz][cp] <= 0.){break;}
+			if( amps[cz][cp] < prop_cut*peak ){break;}
+			e += amps[cz][cp];
+			phi += amps[cz][cp]*geo->get_phicenter(cp);
+			z += amps[cz][cp]*geo->get_zcenter(cz);
+			nhits_tot -= 1;
+			nhits[cz] -= 1;
+			amps[cz][cp] = 0.;
+			breakout=false;
+		}
+		for( int ip=0;ip<=phi_span;++ip )
+		{
+			int cp = wrap_bin( phibin+ip, amps[cz].size() );
+			if(amps[cz][cp] <= 0.){break;}
+			if( amps[cz][cp] < prop_cut*peak ){break;}
+			e += amps[cz][cp];
+			phi += amps[cz][cp]*geo->get_phicenter(cp);
+			z += amps[cz][cp]*geo->get_zcenter(cz);
+			nhits_tot -= 1;
+			nhits[cz] -= 1;
+			amps[cz][cp] = 0.;
+			breakout=false;
+		}
+		if(breakout==true){break;}
+	}
+
 	phi /= e;
 	z /= e;
 }
 
 int PHG4TPCClusterizer::InitRun(PHCompositeNode *topNode)
 {
+	phi_span = _phi_span;
+	z_span = _z_span;
+
 	PHG4CylinderCellGeomContainer* geom_container = 0;
 	PHTypedNodeIterator<PHG4CylinderCellGeomContainer> geomiter(topNode);
 	PHIODataNode<PHG4CylinderCellGeomContainer>* PHG4CylinderCellGeomContainerNode = geomiter.find("CYLINDERCELLGEOM_SVTX");
@@ -115,6 +177,38 @@ int PHG4TPCClusterizer::InitRun(PHCompositeNode *topNode)
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void PHG4TPCClusterizer::reset()
+{
+	for(unsigned int i=0,isize=amps.size();i<isize;i+=1)
+	{
+		for(unsigned int j=0,jsize=amps[i].size();j<jsize;j+=1)
+		{
+			for(unsigned int k=0,ksize=amps[i][j].size();k<ksize;k+=1)
+			{
+				amps[i][j][k] = 0.;
+			}
+		}
+	}
+	for(unsigned int i=0,isize=cellids.size();i<isize;i+=1)
+	{
+		for(unsigned int j=0,jsize=cellids[i].size();j<jsize;j+=1)
+		{
+			for(unsigned int k=0,ksize=cellids[i][j].size();k<ksize;k+=1)
+			{
+				cellids[i][j][k] = 0;
+			}
+		}
+	}
+	for(unsigned int i=0,isize=nhits.size();i<isize;i+=1)
+	{
+		for(unsigned int j=0,jsize=nhits[i].size();j<jsize;j+=1)
+		{
+			nhits[i][j] = 0;
+		}
+	}
+}
+
+
 int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 {
 	PHNodeIterator iter(topNode);
@@ -136,7 +230,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 
 	SvtxClusterMap *svxclusters = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
 	if (!svxclusters){
-		svxclusters = new SvtxClusterMap();
+		svxclusters = new SvtxClusterMap_v1();
 		PHIODataNode<PHObject> *SvtxClusterMapNode = new PHIODataNode<PHObject>(svxclusters, "SvtxClusterMap", "PHObject");
 		svxNode->addNode(SvtxClusterMapNode);}
 
@@ -169,7 +263,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 	
 	for(SvtxHitMap::Iter iter = hits->begin();iter != hits->end();++iter)
 	{
-		SvtxHit* hit = &iter->second;
+		SvtxHit* hit = iter->second;
 		if(hit->get_e() <= 0.){continue;}
 		int layer = hit->get_layer();
 		PHG4CylinderCell* cell = cells->findCylinderCell(hit->get_cellid());
@@ -177,7 +271,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 		int zbin = cell->get_binz();
 		nhits[layer][zbin] += 1;
 		amps[layer][zbin][phibin] += hit->get_e();
-		cellids[layer][zbin][phibin] = hit->get_cellid();
+		cellids[layer][zbin][phibin] = hit->get_id();
 	}
 	for(unsigned int layer=0;layer<amps.size();++layer)
 	{
@@ -197,7 +291,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 					if( is_local_maximum( amps[layer], phibin, zbin ) == false ){continue;}
 					float phi=0.;float z=0.;float e=0.;
 					fit_cluster( amps[layer], nhits_tot, nhits[layer], phibin, zbin, geo, phi, z, e );
-					SvtxCluster clus;
+					SvtxCluster_v1 clus;
 					clus.set_layer( layer );
 					clus.set_e(e);
 					double radius = geo->get_radius();
@@ -205,11 +299,12 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 					clus.set_position( 1, radius*sin(phi) );
 					clus.set_position( 2, z );
 					clus.insert_hit( cellids[layer][zbin][phibin] );
-					clusterlist->insert(clus);
+					clusterlist->insert(&clus);
 				}
 			}
 		}
 	}
+	reset();
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 

@@ -3,7 +3,7 @@
 #include "PHHepMCGenEvent.h"
 
 #include <fun4all/Fun4AllServer.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <HepMC/IO_GenEvent.h>
 #include <HepMC/GenEvent.h>

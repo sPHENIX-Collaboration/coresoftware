@@ -5,14 +5,14 @@
 using namespace std;
 
 
-HelixHough::HelixHough(unsigned int n_phi, unsigned int n_d, unsigned int n_k, unsigned int n_dzdl, unsigned int n_z0, HelixResolution& min_resolution, HelixResolution& max_resolution, HelixRange& range) : vote_time(0.), xy_vote_time(0.), z_vote_time(0.), print_timings(false), separate_by_helicity(true), helicity(false), check_layers(false), req_layers(0), bin_scale(1.), z_bin_scale(1.), remove_hits(false), only_one_helicity(false), start_zoom(0), max_hits_pairs(0), cluster_start_bin(2), layers_at_a_time(4), n_layers(6), smooth_back(false)
+HelixHough::HelixHough(unsigned int n_phi, unsigned int n_d, unsigned int n_k, unsigned int n_dzdl, unsigned int n_z0, HelixResolution& min_resolution, HelixResolution& max_resolution, HelixRange& range) : vote_time(0.), xy_vote_time(0.), z_vote_time(0.), print_timings(false), separate_by_helicity(true), helicity(false), check_layers(false), req_layers(0), bin_scale(1.), z_bin_scale(1.), remove_hits(false), only_one_helicity(false), start_zoom(0), max_hits_pairs(0), cluster_start_bin(2), layers_at_a_time(4), n_layers(6), smooth_back(false), cull_input_hits(false), iterate_clustering(false)
 {
   initHelixHough(n_phi, n_d, n_k, n_dzdl, n_z0, min_resolution, max_resolution, range);
   hit_used = new vector<unsigned int>;
 }
 
 
-HelixHough::HelixHough(vector<vector<unsigned int> >& zoom_profile, unsigned int minzoom, HelixRange& range) : vote_time(0.), xy_vote_time(0.), z_vote_time(0.), print_timings(false), separate_by_helicity(true), helicity(false), check_layers(false), req_layers(0), bin_scale(1.), z_bin_scale(1.), remove_hits(false), only_one_helicity(false), start_zoom(0), max_hits_pairs(0), cluster_start_bin(2), layers_at_a_time(4), n_layers(6), smooth_back(false)
+HelixHough::HelixHough(vector<vector<unsigned int> >& zoom_profile, unsigned int minzoom, HelixRange& range) : vote_time(0.), xy_vote_time(0.), z_vote_time(0.), print_timings(false), separate_by_helicity(true), helicity(false), check_layers(false), req_layers(0), bin_scale(1.), z_bin_scale(1.), remove_hits(false), only_one_helicity(false), start_zoom(0), max_hits_pairs(0), cluster_start_bin(2), layers_at_a_time(4), n_layers(6), smooth_back(false), cull_input_hits(false), iterate_clustering(false)
 {
   for(unsigned int i=0;i<hits_vec.size();i++){delete hits_vec[i];}
   hits_vec.clear();

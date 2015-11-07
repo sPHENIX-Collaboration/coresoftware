@@ -14,7 +14,7 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <TROOT.h>
 #include <TMath.h>
@@ -77,7 +77,7 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
   map<int, PHG4CylinderGeom *>::const_iterator miter;
   pair <map<int, PHG4CylinderGeom *>::const_iterator, map<int, PHG4CylinderGeom *>::const_iterator> begin_end = geo->get_begin_end();
   map<int, std::pair <double, double> >::iterator sizeiter;
-  for(miter = begin_end.first; miter != begin_end.second; miter++)
+  for(miter = begin_end.first; miter != begin_end.second; ++miter)
   {
     PHG4CylinderGeom *layergeom = miter->second;
     int layer = layergeom->get_layer();

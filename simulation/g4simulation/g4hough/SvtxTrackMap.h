@@ -5,41 +5,47 @@
 
 #include <phool/PHObject.h>
 #include <map>
+#include <iostream>
 
 class SvtxTrackMap : public PHObject {
   
 public:
 
-  typedef std::map<unsigned int, SvtxTrack>::const_iterator ConstIter;
-  typedef std::map<unsigned int, SvtxTrack>::iterator            Iter;
+  typedef std::map<unsigned int, SvtxTrack*> TrackMap;
+  typedef std::map<unsigned int, SvtxTrack*>::const_iterator ConstIter;
+  typedef std::map<unsigned int, SvtxTrack*>::iterator            Iter;
   
-  SvtxTrackMap();
-  virtual ~SvtxTrackMap();
-
-  void identify(std::ostream &os = std::cout) const;
-  void Reset() {clear();}
-  int  IsValid() const {return 1;}
+  virtual ~SvtxTrackMap() {}
   
-  bool   empty()                   const {return _map.empty();}
-  size_t  size()                   const {return _map.size();}
-  size_t count(unsigned int idkey) const {return _map.count(idkey);}
-  void   clear()                         {return _map.clear();}
+  virtual void identify(std::ostream& os = std::cout) const {
+    os << "SvtxTrackMap base class" << std::endl;
+  }
+  virtual void Reset() {}
+  virtual int  IsValid() const {return 0;}
+  virtual SvtxTrackMap* Clone() const {return NULL;}
   
-  const SvtxTrack* get(unsigned int idkey) const;
-        SvtxTrack* get(unsigned int idkey); 
-        SvtxTrack* insert(const SvtxTrack &track);
-        size_t     erase(unsigned int idkey) {return _map.erase(idkey);}
+  virtual bool   empty()                   const {return true;}
+  virtual size_t  size()                   const {return 0;}
+  virtual size_t count(unsigned int idkey) const {return 0;}
+  virtual void   clear()                         {}
+  
+  virtual const SvtxTrack* get(unsigned int idkey) const {return NULL;}
+  virtual       SvtxTrack* get(unsigned int idkey) {return NULL;}
+  virtual       SvtxTrack* insert(const SvtxTrack *cluster) {return NULL;}
+  virtual       size_t     erase(unsigned int idkey) {return 0;}
 
-  ConstIter begin()                   const {return _map.begin();}
-  ConstIter  find(unsigned int idkey) const {return _map.find(idkey);}
-  ConstIter   end()                   const {return _map.end();}
+  virtual ConstIter begin()                   const {return TrackMap().end();}
+  virtual ConstIter  find(unsigned int idkey) const {return TrackMap().end();}
+  virtual ConstIter   end()                   const {return TrackMap().end();}
 
-  Iter begin()                   {return _map.begin();}
-  Iter  find(unsigned int idkey) {return _map.find(idkey);}
-  Iter   end()                   {return _map.end();}
+  virtual Iter begin()                   {return TrackMap().end();}
+  virtual Iter  find(unsigned int idkey) {return TrackMap().end();}
+  virtual Iter   end()                   {return TrackMap().end();}
+
+protected:
+  SvtxTrackMap() {}
   
 private:
-  std::map<unsigned int, SvtxTrack> _map;
     
   ClassDef(SvtxTrackMap, 1);
 };

@@ -3,7 +3,7 @@
 
 #include "SvtxHitEval.h"
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <g4hough/SvtxHitMap.h>
 #include <g4hough/SvtxHit.h>
@@ -21,6 +21,7 @@
 #include <map>
 #include <float.h>
 #include <algorithm>
+#include <cassert>
 
 using namespace std;
 
@@ -29,6 +30,9 @@ SvtxClusterEval::SvtxClusterEval(PHCompositeNode* topNode)
     _clustermap(NULL),
     _hitmap(NULL),
     _truthinfo(NULL),
+    _strict(false),
+    _verbosity(1),
+    _errors(0), 
     _do_cache(true),
     _cache_all_truth_hits(),
     _cache_max_truth_hit_by_energy(),
@@ -40,6 +44,14 @@ SvtxClusterEval::SvtxClusterEval(PHCompositeNode* topNode)
     _cache_get_energy_contribution_g4particle(),
     _cache_get_energy_contribution_g4hit() {
   get_node_pointers(topNode);
+}
+
+SvtxClusterEval::~SvtxClusterEval() {
+  if (_verbosity > 0) {
+    if ((_errors > 0)||(_verbosity > 1)) {
+      cout << "SvtxClusterEval::~SvtxClusterEval() - Error Count: " << _errors << endl;
+    }
+  }
 }
 
 void SvtxClusterEval::next_event(PHCompositeNode* topNode) {
@@ -61,6 +73,9 @@ void SvtxClusterEval::next_event(PHCompositeNode* topNode) {
 
 std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(SvtxCluster* cluster) {
 
+  if (_strict) {assert(cluster);}
+  else if (!cluster) {++_errors; return std::set<PHG4Hit*>();}
+  
   if (_do_cache) {
     std::map<SvtxCluster*,std::set<PHG4Hit*> >::iterator iter =
       _cache_all_truth_hits.find(cluster);
@@ -77,15 +92,17 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(SvtxCluster* cluster) {
        ++hiter) {
     SvtxHit* hit = _hitmap->get(*hiter);
 
+    if (_strict) {assert(hit);}
+    else if (!hit) {++_errors; continue;}
+    
     std::set<PHG4Hit*> new_g4hits = _hiteval.all_truth_hits(hit);
 
-    std::set<PHG4Hit*> union_g4hits;
+    for (std::set<PHG4Hit*>::iterator iter = new_g4hits.begin();
+	 iter != new_g4hits.end();
+	 ++iter) {
 
-    std::set_union(truth_hits.begin(),truth_hits.end(),
-		   new_g4hits.begin(),new_g4hits.end(),
-		   std::inserter(union_g4hits,union_g4hits.begin()));
-    
-    std::swap(truth_hits,union_g4hits); // swap union into truth_hits
+      truth_hits.insert(*iter);
+    }
   }
 
   if (_do_cache) _cache_all_truth_hits.insert(make_pair(cluster,truth_hits));
@@ -94,6 +111,9 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(SvtxCluster* cluster) {
 }
 
 PHG4Hit* SvtxClusterEval::max_truth_hit_by_energy(SvtxCluster* cluster) {
+
+  if (_strict) {assert(cluster);}
+  else if (!cluster) {++_errors; return NULL;}
   
   if (_do_cache) {
     std::map<SvtxCluster*,PHG4Hit*>::iterator iter =
@@ -123,6 +143,9 @@ PHG4Hit* SvtxClusterEval::max_truth_hit_by_energy(SvtxCluster* cluster) {
   
 std::set<PHG4Particle*> SvtxClusterEval::all_truth_particles(SvtxCluster* cluster) {
 
+  if (_strict) {assert(cluster);}
+  else if (!cluster) {++_errors; return std::set<PHG4Particle*>();}
+  
   if (_do_cache) {
     std::map<SvtxCluster*,std::set<PHG4Particle*> >::iterator iter =
       _cache_all_truth_particles.find(cluster);
@@ -134,14 +157,16 @@ std::set<PHG4Particle*> SvtxClusterEval::all_truth_particles(SvtxCluster* cluste
   std::set<PHG4Particle*> truth_particles;
   
   std::set<PHG4Hit*> g4hits = all_truth_hits(cluster);
-  if (g4hits.empty()) return truth_particles;
 
   for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
        iter != g4hits.end();
        ++iter) {
     PHG4Hit* hit = *iter;
     PHG4Particle* particle = _truthinfo->GetHit( hit->get_trkid() );
-    if (!particle) continue;
+
+    if (_strict) {assert(particle);}
+    else if (!particle) {++_errors; continue;}
+    
     truth_particles.insert(particle);
   }
 
@@ -152,6 +177,9 @@ std::set<PHG4Particle*> SvtxClusterEval::all_truth_particles(SvtxCluster* cluste
 
 PHG4Particle* SvtxClusterEval::max_truth_particle_by_energy(SvtxCluster* cluster) {
 
+  if (_strict) {assert(cluster);}
+  else if (!cluster) {++_errors; return NULL;}
+  
   if (_do_cache) {
     std::map<SvtxCluster*,PHG4Particle*>::iterator iter =
       _cache_max_truth_particle_by_energy.find(cluster);
@@ -184,6 +212,9 @@ PHG4Particle* SvtxClusterEval::max_truth_particle_by_energy(SvtxCluster* cluster
 
 std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Particle* truthparticle) { 
 
+  if (_strict) {assert(truthparticle);}
+  else if (!truthparticle) {++_errors; return std::set<SvtxCluster*>();}
+  
   if (_do_cache) {
     std::map<PHG4Particle*,std::set<SvtxCluster*> >::iterator iter =
       _cache_all_clusters_from_particle.find(truthparticle);
@@ -199,7 +230,7 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Particle* truthpar
        iter != _clustermap->end();
        ++iter) {
 
-    SvtxCluster* cluster = &iter->second;
+    SvtxCluster* cluster = iter->second;
 
     // loop over all truth particles connected to this cluster
     std::set<PHG4Particle*> particles = all_truth_particles(cluster);
@@ -207,7 +238,7 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Particle* truthpar
 	 jter != particles.end();
 	 ++jter) {
       PHG4Particle* candidate = *jter;
-      if (candidate->get_track_id() == truthparticle->get_track_id()) {
+      if (get_truth_eval()->are_same_particle(candidate,truthparticle)) {
 	clusters.insert(cluster);
       }    
     }
@@ -220,6 +251,9 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Particle* truthpar
 
 std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit) {
 
+  if (_strict) {assert(truthhit);}
+  else if (!truthhit) {++_errors; return std::set<SvtxCluster*>();}
+  
   if (_do_cache) {
     std::map<PHG4Hit*,std::set<SvtxCluster*> >::iterator iter =
       _cache_all_clusters_from_g4hit.find(truthhit);
@@ -235,7 +269,7 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit) {
        iter != _clustermap->end();
        ++iter) {
 
-    SvtxCluster* cluster = &iter->second;
+    SvtxCluster* cluster = iter->second;
 
     // loop over all truth hits connected to this cluster
     std::set<PHG4Hit*> hits = all_truth_hits(cluster);
@@ -256,6 +290,9 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit) {
 
 SvtxCluster* SvtxClusterEval::best_cluster_from(PHG4Hit* truthhit) {
 
+  if (_strict) {assert(truthhit);}
+  else if (!truthhit) {++_errors; return NULL;}
+  
   if (_do_cache) {
     std::map<PHG4Hit*,SvtxCluster*>::iterator iter =
       _cache_best_cluster_from_g4hit.find(truthhit);
@@ -286,6 +323,14 @@ SvtxCluster* SvtxClusterEval::best_cluster_from(PHG4Hit* truthhit) {
 // overlap calculations
 float SvtxClusterEval::get_energy_contribution(SvtxCluster* cluster, PHG4Particle* particle) {
 
+  if (_strict) {
+    assert(cluster);
+    assert(particle);
+  } else if (!cluster||!particle) {
+    ++_errors;
+    return NAN;
+  }
+
   if (_do_cache) {
     std::map<std::pair<SvtxCluster*,PHG4Particle*>, float>::iterator iter =
       _cache_get_energy_contribution_g4particle.find(make_pair(cluster,particle));
@@ -300,7 +345,7 @@ float SvtxClusterEval::get_energy_contribution(SvtxCluster* cluster, PHG4Particl
        iter != hits.end();
        ++iter) {
     PHG4Hit* hit = *iter;
-    if (hit->get_trkid() == particle->get_track_id()) {
+    if (get_truth_eval()->is_g4hit_from_particle(hit,particle)) {
       energy += hit->get_edep();
     }
   }
@@ -312,6 +357,14 @@ float SvtxClusterEval::get_energy_contribution(SvtxCluster* cluster, PHG4Particl
 
 float SvtxClusterEval::get_energy_contribution(SvtxCluster* cluster, PHG4Hit* g4hit) {
 
+  if (_strict) {
+    assert(cluster);
+    assert(g4hit);
+  } else if (!cluster||!g4hit) {
+    ++_errors;
+    return NAN;
+  }
+  
   if ((_do_cache) &&
       (_cache_get_energy_contribution_g4hit.find(make_pair(cluster,g4hit)) !=
        _cache_get_energy_contribution_g4hit.end())) {

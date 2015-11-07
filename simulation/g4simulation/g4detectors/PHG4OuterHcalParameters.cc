@@ -2,6 +2,10 @@
 
 #include <Geant4/G4SystemOfUnits.hh>
 
+#include <iostream>
+
+using namespace std;
+
 PHG4OuterHcalParameters::PHG4OuterHcalParameters():
   inner_radius(178 * cm),
   outer_radius(260 * cm),
@@ -21,7 +25,7 @@ PHG4OuterHcalParameters::PHG4OuterHcalParameters():
   z_rot(0*deg),
   active(0),
   absorberactive(0),
-  ncross(0),
+  ncross(-4),
   blackhole(0),
   material("G4_Fe"),
   steplimits(NAN),
@@ -33,5 +37,18 @@ PHG4OuterHcalParameters::PHG4OuterHcalParameters():
   light_balance_outer_radius(10.0),
   light_balance_outer_corr(1.0),
   magnet_cutout(12.*cm),
-  magnet_cutout_first_scinti(8) // tile start at 0, drawing tile starts at 1
+  magnet_cutout_first_scinti(8), // tile start at 0, drawing tile starts at 1
+  absorbertruth(0)
 {}
+
+void
+PHG4OuterHcalParameters::print() const
+{
+  cout << "Inner Radius: " << inner_radius/cm << endl;
+  cout << "Outer Radius: " << outer_radius/cm << endl;
+  cout << "Size Z: " << size_z/cm << endl;
+  cout << "Scintillator Gap: " << scinti_gap/cm << endl;
+  cout << "Tilt Angle: " << tilt_angle/deg << endl;
+  cout << "Crossings: " << ncross << endl;
+  return;
+}

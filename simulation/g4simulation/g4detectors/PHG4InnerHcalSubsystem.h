@@ -17,7 +17,7 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   public:
 
   //! constructor
-  PHG4InnerHcalSubsystem( const std::string &name = "HCALINNER", const int layer = 0 );
+  PHG4InnerHcalSubsystem( const std::string &name = "HCALIN", const int layer = 0 );
 
   //! destructor
   virtual ~PHG4InnerHcalSubsystem( void )
@@ -29,7 +29,7 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   reates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int Init(PHCompositeNode *);
+  int InitRun(PHCompositeNode *);
 
   //! event processing
   /*!
@@ -37,6 +37,9 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   and pass that to the stepping action
   */
   int process_event(PHCompositeNode *);
+
+  //! Print info (from SubsysReco)
+  void Print(const std::string &what = "ALL") const;
 
   //! accessors (reimplemented)
   virtual PHG4Detector* GetDetector( void ) const;
@@ -71,6 +74,11 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   void SetScintiThickness(const double thick);
   void SetScintiGap(const double scgap);
   void SetStepLimits(const double slim);
+
+  void SetLightCorrection(const float inner_radius, const float inner_corr,
+			  const float outer_radius, const float outer_corr);
+  void SetLightScintModel(const bool b = true);
+
 
   protected:
 

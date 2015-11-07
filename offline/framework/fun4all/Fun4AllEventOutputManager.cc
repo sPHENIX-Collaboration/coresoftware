@@ -3,7 +3,7 @@
 #include "Fun4AllEventOutStream.h"
 #include "Fun4AllRolloverFileOutStream.h"
 
-#include "getClass.h"
+#include <phool/getClass.h>
 
 #include <Event/Event.h>
 

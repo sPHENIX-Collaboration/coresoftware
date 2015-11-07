@@ -77,14 +77,19 @@ RawTowerGeomv1::get_etabin(const double eta) const
 int
 RawTowerGeomv1::get_phibin(const double phi) const
 {
-  double norm_phi = phi;
-  if(phi < phimin || phi > (phimin+nphibins*phistep))
-  {
-    int nwraparound = -floor((phi-phimin) * 0.5 / M_PI);
-    norm_phi += 2*M_PI*nwraparound;
-  }
-  return floor( (norm_phi-phimin)/phistep );
+//  double norm_phi = phi;
+//  if (phi < phimin || phi > (phimin + nphibins * phistep))
+//    {
+//      int nwraparound = -floor((phi - phimin) * 0.5 / M_PI);
+//      norm_phi += 2 * M_PI * nwraparound;
+//    }
+
+  const int bin = floor((phi - phimin) / phistep);
+  const int bin_wrap = floor((double)bin/(double)nphibins)*nphibins;
+
+  return bin - bin_wrap;
 }
+
 
 double
 RawTowerGeomv1::get_etacenter(const int ibin) const

@@ -2,18 +2,27 @@
 #include "PHG4InEvent.h"
 #include "PHG4Particlev1.h"
 
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phhepmc/PHHepMCGenEvent.h>
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/getClass.h>
-#include <fun4all/recoConsts.h>
+#include <phool/getClass.h>
+#include <phool/PHRandomSeed.h>
+#include <phool/recoConsts.h>
 
 #include <HepMC/GenEvent.h>
+
 #include <gsl/gsl_const.h>
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>
 
 #include <list>
 
 using namespace std;
+
+// All length Units are in cm, no conversion to G4 internal units since
+// this is filled into our objects (PHG4VtxPoint and PHG4Particle)
+
 const double mm_over_c_to_sec = 0.1/GSL_CONST_CGS_SPEED_OF_LIGHT; // pythia vtx time seems to be in mm/c
 /// \class  IsStateFinal
 
@@ -30,8 +39,25 @@ public:
 static IsStateFinal isfinal;
 
 HepMCNodeReader::HepMCNodeReader(const std::string &name):
-  SubsysReco(name)
-{}
+  SubsysReco(name),
+  _embed_flag(0),
+  vertex_pos_x(0),
+  vertex_pos_y(0),
+  vertex_pos_z(0),
+  width_vx(0),
+  width_vy(0),
+  width_vz(0)
+{
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  unsigned int seed = PHRandomSeed(); // fixed seed is handled in this funtcion
+  gsl_rng_set(RandomGenerator,seed);
+  return;
+}
+
+HepMCNodeReader::~HepMCNodeReader()
+{
+  gsl_rng_free (RandomGenerator);
+}
 
 int
 HepMCNodeReader::Init(PHCompositeNode *topNode)
@@ -73,6 +99,10 @@ HepMCNodeReader::process_event(PHCompositeNode *topNode)
       cout << PHWHERE << " unknown world shape " << worldshape << endl;
       exit(1);
     }
+  double xshift = vertex_pos_x + smeargauss(width_vx);
+  double yshift = vertex_pos_y + smeargauss(width_vy);
+  double zshift = vertex_pos_z + smeargauss(width_vz);
+
   PHHepMCGenEvent *genevt = findNode::getClass<PHHepMCGenEvent>(topNode,"PHHepMCGenEvent");
   
   HepMC::GenEvent *evt = genevt->getEvent();
@@ -105,10 +135,10 @@ HepMCNodeReader::process_event(PHCompositeNode *topNode)
 	}
       if (!finalstateparticles.empty())
 	{
-	  double xpos = (*v)->position().x()*length_factor;
-	  double ypos = (*v)->position().y()*length_factor;
-	  double zpos = (*v)->position().z()*length_factor;
-	  if (verbosity > 1)
+	  double xpos = (*v)->position().x()*length_factor + xshift;
+	  double ypos = (*v)->position().y()*length_factor + yshift;
+	  double zpos = (*v)->position().z()*length_factor + zshift;
+ 	  if (verbosity > 1)
 	    {
 	      cout << "Vertex : " << endl;
 	      (*v)->print();
@@ -161,6 +191,7 @@ HepMCNodeReader::process_event(PHCompositeNode *topNode)
 	      particle->set_py((*fiter)->momentum().py()*mom_factor);
 	      particle->set_pz((*fiter)->momentum().pz()*mom_factor);
 	      ineve->AddParticle((*v)->barcode(), particle);
+	      if (_embed_flag != 0) ineve->AddEmbeddedParticle(particle);
 	    }
 	}
     }
@@ -171,3 +202,30 @@ HepMCNodeReader::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+double
+HepMCNodeReader::smeargauss(const double width)
+{
+  if (width == 0)
+    {
+      return 0;
+    }
+  return gsl_ran_gaussian(RandomGenerator,width);
+}
+
+void
+HepMCNodeReader::VertexPosition(const double v_x, const double v_y, const double v_z)
+{
+  vertex_pos_x = v_x;
+  vertex_pos_y = v_y;
+  vertex_pos_z = v_z;
+  return;
+}
+
+void
+HepMCNodeReader::SmearVertex(const double s_x, const double s_y, const double s_z)
+{
+  width_vx = s_x;
+  width_vy = s_y;
+  width_vz = s_z;
+  return;
+}

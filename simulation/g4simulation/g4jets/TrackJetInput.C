@@ -9,7 +9,7 @@
 #include <phool/PHTypedNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 // PHENIX Geant4 includes
 #include <g4hough/SvtxTrackMap.h>
@@ -45,7 +45,7 @@ std::vector<Jet*> TrackJetInput::get_input(PHCompositeNode *topNode) {
   for (SvtxTrackMap::ConstIter iter = trackmap->begin(); 
        iter != trackmap->end(); 
        ++iter) {
-    const SvtxTrack *track = &iter->second;
+    const SvtxTrack *track = iter->second;
 
     Jet *jet = new JetV1();
     jet->set_px(track->get_px());

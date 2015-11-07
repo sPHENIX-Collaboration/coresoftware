@@ -5,7 +5,7 @@
 #include "JetRecoEval.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 #include <fun4all/SubsysReco.h>
 #include <phool/PHCompositeNode.h>
 #include <g4jets/JetMap.h>
@@ -27,6 +27,9 @@ JetEvaluator::JetEvaluator(const string &name,
     _recojetname(recojetname),
     _truthjetname(truthjetname),
     _ievent(0),
+    _jetevalstack(NULL),
+    _strict(false),
+    _errors(0),
     _do_recojet_eval(true),
     _do_truthjet_eval(true),
     _ntp_recojet(NULL),
@@ -56,6 +59,14 @@ int JetEvaluator::Init(PHCompositeNode *topNode) {
 }
 
 int JetEvaluator::process_event(PHCompositeNode *topNode) {
+
+  if (!_jetevalstack) {
+    _jetevalstack = new JetEvalStack(topNode,_recojetname,_truthjetname); 
+    _jetevalstack->set_strict(_strict);
+    _jetevalstack->set_verbosity(verbosity+1);
+  } else {
+    _jetevalstack->next_event(topNode);
+  }
   
   //-----------------------------------
   // print what is coming into the code
@@ -97,6 +108,8 @@ int JetEvaluator::End(PHCompositeNode *topNode) {
     cout << "===========================================================================" << endl;
   }
 
+  delete _jetevalstack;
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -114,9 +127,8 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   
   if (verbosity > 2) cout << "JetEvaluator::fillOutputNtuples() entered" << endl;
 
-  JetEvalStack jetevalstack(topNode,_recojetname,_truthjetname); 
-  JetRecoEval*   recoeval = jetevalstack.get_reco_eval();
-  //JetTruthEval* trutheval = jetevalstack.get_truth_eval();
+  JetRecoEval*   recoeval = _jetevalstack->get_reco_eval();
+  //JetTruthEval* trutheval = _jetevalstack->get_truth_eval();
  
   //-------------------------
   // fill the reco jet ntuple

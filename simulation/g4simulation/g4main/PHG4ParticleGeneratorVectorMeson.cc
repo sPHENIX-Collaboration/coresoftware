@@ -3,8 +3,8 @@
 
 #include "PHG4InEvent.h"
 
-#include <fun4all/getClass.h>
-#include <fun4all/recoConsts.h>
+#include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -145,23 +145,11 @@ PHG4ParticleGeneratorVectorMeson::InitRun(PHCompositeNode *topNode)
 {
   cout << "PHG4ParticleGeneratorVectorMeson::InitRun started." << endl;
 
-  recoConsts *rc = recoConsts::instance();
   trand = new TRandom3();
-  if (rc->FlagExist("RANDOMSEED"))
+  trand->SetSeed(PHRandomSeed()); // fixed seed handles in PHRandomSeed()
+  if (_histrand_init)
     {
-      trand->SetSeed(rc->get_IntFlag("RANDOMSEED"));
-      if (_histrand_init)
-	{
-	  gRandom->SetSeed(rc->get_IntFlag("RANDOMSEED"));
-	}
-    }
-  else
-    {
-      trand->SetSeed(PHRandomSeed());
-      if (_histrand_init)
-	{
-	  gRandom->SetSeed(PHRandomSeed());
-	}
+      gRandom->SetSeed(PHRandomSeed());
     }
 
   fsin = new TF1("fsin","sin(x)",0,M_PI);
@@ -189,15 +177,17 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 {
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode,"PHG4INEVENT");
 
-  // Randomly generate vertex position in z 
-
-  if (vtx_zmax != vtx_zmin)
+  // If not reusing existing vertex Randomly generate vertex position in z 
+  if (! ReuseExistingVertex(topNode))
     {
-      vtx_z = (vtx_zmax - vtx_zmin) * gsl_rng_uniform_pos(RandomGenerator) + vtx_zmin;
-    }
-  else
-    {
-      vtx_z = vtx_zmin;
+      if (vtx_zmax != vtx_zmin)
+	{
+	  vtx_z = (vtx_zmax - vtx_zmin) * gsl_rng_uniform_pos(RandomGenerator) + vtx_zmin;
+	}
+      else
+	{
+	  vtx_z = vtx_zmin;
+	}
     }
   int vtxindex = ineve->AddVtx(vtx_x,vtx_y,vtx_z,t0);
 

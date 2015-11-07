@@ -5,7 +5,7 @@
 #include "PHG4OuterHcalParameters.h"
 
 #include <g4main/PHG4HitContainer.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <Geant4/globals.hh>
 
@@ -33,7 +33,7 @@ PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const i
 }
 
 //_______________________________________________________________________
-int PHG4OuterHcalSubsystem::Init( PHCompositeNode* topNode )
+int PHG4OuterHcalSubsystem::InitRun( PHCompositeNode* topNode )
 {
   PHNodeIterator iter( topNode );
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
@@ -109,6 +109,18 @@ PHG4OuterHcalSubsystem::process_event( PHCompositeNode * topNode )
     return 0;
 }
 
+void
+PHG4OuterHcalSubsystem::Print(const string &what) const
+{
+  cout << "Outer Hcal Parameters: " << endl;
+  params->print();
+  if (detector_)
+    {
+      detector_->Print(what);
+    }
+  return;
+}
+
 
 //_______________________________________________________________________
 PHG4Detector* PHG4OuterHcalSubsystem::GetDetector( void ) const
@@ -126,6 +138,7 @@ void
 PHG4OuterHcalSubsystem::SetTiltAngle(const double tilt)
 {
   params->tilt_angle = tilt * deg;
+  params->ncross = 0;
 }
 
 double
@@ -253,6 +266,16 @@ PHG4OuterHcalSubsystem::SetScintiGap(const double scgap)
 void
 PHG4OuterHcalSubsystem::SetTiltViaNcross(const int ncross)
 {
+  if (ncross == 0)
+    {
+      cout << "Invalid number of crossings: " << ncross
+	   << " how do you expect me to calculate a tilt angle for this????"
+	   << endl
+	   << "If you want a 0 degree tilt angle, just use SetTiltAngle(0)"
+	   << endl
+	   << "I refuse to continue this!" << endl;
+      exit(1);
+    }
   params->ncross = ncross;
 }
 

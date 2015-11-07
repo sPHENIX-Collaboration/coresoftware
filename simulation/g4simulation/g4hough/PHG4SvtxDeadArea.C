@@ -3,8 +3,8 @@
 #include "SvtxHitMap.h"
 #include "SvtxHit.h"
 
-#include <fun4all/getClass.h>
-#include <fun4all/recoConsts.h>
+#include <phool/getClass.h>
+#include <phool/recoConsts.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
@@ -48,16 +48,7 @@ int PHG4SvtxDeadArea::InitRun(PHCompositeNode* topNode) {
   }
   
   // setup our random number generator
-  recoConsts *rc = recoConsts::instance();
-  unsigned int seed;
-  if (rc->FlagExist("RANDOMSEED"))
-    {
-      seed = rc->get_IntFlag("RANDOMSEED");
-    }
-  else
-    {
-      seed = PHRandomSeed();
-    }
+  unsigned int seed = PHRandomSeed(); // fixed seed handled in PHRandomSeed()
   gsl_rng_set(RandomGenerator,seed);
 
   FillCylinderDeadAreaMap(topNode);
@@ -86,7 +77,7 @@ int PHG4SvtxDeadArea::process_event(PHCompositeNode *topNode) {
   for (SvtxHitMap::Iter iter = _hits->begin();
        iter != _hits->end();
        ++iter) {
-    SvtxHit* hit = &iter->second;
+    SvtxHit* hit = iter->second;
 
     if (gsl_rng_uniform_pos(RandomGenerator) > get_hit_efficiency(hit->get_layer())) {
       remove_hits.push_back(hit->get_id());

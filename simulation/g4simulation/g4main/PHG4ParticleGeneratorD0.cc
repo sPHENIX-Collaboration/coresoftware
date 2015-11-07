@@ -3,8 +3,8 @@
 
 #include "PHG4InEvent.h"
 
-#include <fun4all/getClass.h>
-#include <fun4all/recoConsts.h>
+#include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -92,16 +92,7 @@ PHG4ParticleGeneratorD0::set_mass(const double mass_in)
 int
 PHG4ParticleGeneratorD0::InitRun(PHCompositeNode *topNode)
 {
-  recoConsts *rc = recoConsts::instance();
-  // set seed for this awful gRandom...
-  if (rc->FlagExist("RANDOMSEED"))
-    {
-      gRandom->SetSeed(rc->get_IntFlag("RANDOMSEED"));
-    }
-  else
-    {
-      gRandom->SetSeed(PHRandomSeed());
-    }
+  gRandom->SetSeed(PHRandomSeed()); // fixed seed handled in PHRandomSeed()
 
   fsin = new TF1("fsin","sin(x)",0,M_PI);
 
@@ -131,17 +122,19 @@ PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   double cc = GSL_CONST_CGSM_SPEED_OF_LIGHT; // speed of light cm/sec
   double ctau = tau*cc*1.0e+04;  // ctau in micrometers
 
-  // Randomly generate vertex position in z 
-
-  if (vtx_zmax != vtx_zmin)
+  // If not reusing existing vertex Randomly generate vertex position in z 
+  if (! ReuseExistingVertex(topNode))
     {
-      vtx_z = (vtx_zmax - vtx_zmin) * gsl_rng_uniform_pos(RandomGenerator) + vtx_zmin;
-    }
-  else
-    {
-      vtx_z = vtx_zmin;
-    }
 
+      if (vtx_zmax != vtx_zmin)
+	{
+	  vtx_z = (vtx_zmax - vtx_zmin) * gsl_rng_uniform_pos(RandomGenerator) + vtx_zmin;
+	}
+      else
+	{
+	  vtx_z = vtx_zmin;
+	}
+    }
   // taken randomly from a fitted pT distribution to Pythia Upsilons
 
   double pt = 0.0;

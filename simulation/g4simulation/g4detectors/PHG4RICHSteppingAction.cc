@@ -18,7 +18,7 @@
 #include "Geant4/G4ProcessManager.hh"
 #include "Geant4/G4SDManager.hh"
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>
 

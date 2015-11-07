@@ -412,6 +412,9 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
   unsigned int half_layers = n_layers/2;
   float err_scale = 2.0;
 
+  vector<SimpleTrack3D> store_tracks;
+  vector<HelixKalmanState> store_states;
+
 
   vector<SimpleHit3D> dummies(n_layers, SimpleHit3D());
   HelixKalmanState init_state;
@@ -428,57 +431,57 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
   
   unsigned int n_side = 3;
   unsigned int n_req = 3;
+  if( ((float)(req_layers))/(float(n_layers)) < 0.8 )
+  {
+    n_side = 4;
+  }
   vector<int> lsizes;
-  for(int i=0;i<n_side;++i){ lsizes.push_back( layer_indexes[ i ].size() ); }
   for(int i=0;i<n_side;++i){ lsizes.push_back( layer_indexes[ n_layers - n_side + i ].size() ); }
-  vector<int> comb_n;comb_n.assign(2*n_side, 0);
+  vector<int> comb_n;comb_n.assign(n_side, 0);
+  
+  float x_c = range.min_d*cos(range.min_phi);
+  float y_c = range.min_d*sin(range.min_phi);
+  float z_c = range.min_z0;
+  float x_err = 0.2;
+  float y_err = 0.2;
+  float z_err = 0.2;
+  SimpleHit3D dummy_vertex( x_c,x_err, y_c,y_err, z_c,z_err );
+
   while(true)
   {
     unsigned int ndummies = 0;
-    unsigned int n_in = 0;
     unsigned int n_out = 0;
     SimpleTrack3D temp_track;
     TempComb tc;
     for(unsigned int h=0;h<n_side;++h)
     {
-      if(layer_indexes[ h ][ comb_n[ h ] ] < 0){ndummies += 1;}
-      if(layer_indexes[ h ][ comb_n[ h ] ] >= 0){n_in += 1;}
-      SimpleHit3D& hit = get_hit( hits, dummies, layer_indexes[ h ][ comb_n[ h ] ] );
-      temp_track.hits.push_back(hit);
-      temp_track.hits.back().dx *= 0.5*hit_error_scale[h];
-      temp_track.hits.back().dy *= 0.5*hit_error_scale[h];
-      temp_track.hits.back().dz *= 0.5*hit_error_scale[h];
-      tc.hit_indexes.push_back( layer_indexes[ h ][ comb_n[ h ] ] );
-    }
-    for(unsigned int h=0;h<n_side;++h)
-    {
-      if(layer_indexes[ n_layers - n_side + h ][ comb_n[ h+n_side ] ] < 0){ndummies += 1;}
-      if(layer_indexes[ n_layers - n_side + h ][ comb_n[ h+n_side ] ] >= 0){n_out += 1;}
-      SimpleHit3D& hit = get_hit( hits, dummies, layer_indexes[ n_layers - n_side + h ][ comb_n[ h+n_side ] ] );
+      if(layer_indexes[ n_layers - n_side + h ][ comb_n[ h ] ] < 0){ndummies += 1;}
+      if(layer_indexes[ n_layers - n_side + h ][ comb_n[ h ] ] >= 0){n_out += 1;}
+      SimpleHit3D& hit = get_hit( hits, dummies, layer_indexes[ n_layers - n_side + h ][ comb_n[ h ] ] );
       temp_track.hits.push_back(hit);
       temp_track.hits.back().dx *= 0.5*hit_error_scale[n_layers - n_side + h];
       temp_track.hits.back().dy *= 0.5*hit_error_scale[n_layers - n_side + h];
       temp_track.hits.back().dz *= 0.5*hit_error_scale[n_layers - n_side + h];
-      tc.hit_indexes.push_back( layer_indexes[ n_layers - n_side + h ][ comb_n[ h+n_side ] ] );
+      tc.hit_indexes.push_back( layer_indexes[ n_layers - n_side + h ][ comb_n[ h ] ] );
     }
-    
-    if(layer_indexes[ 0 ][ comb_n[ 0 ] ] < 0){ if( next_combo_n( lsizes, comb_n ) == false ){break;} continue;}
-    if(layer_indexes[ 1 ][ comb_n[ 1 ] ] < 0){ if( next_combo_n( lsizes, comb_n ) == false ){break;} continue;}
-    
+
+
+    temp_track.hits.push_back( dummy_vertex );
     float init_chi2 = 100.;
-    if( (n_in >= n_req) && (n_out >= n_req) ){init_chi2 = fitTrack(temp_track);}
+    if(  (n_out >= n_req) ){init_chi2 = fitTrack(temp_track);}
     else
     {
       if( next_combo_n( lsizes, comb_n ) == false ){break;}
       continue;
     }
-    if( ( (n_in >= n_req) && (n_out >= n_req) ) )
+    if( ( (n_out >= n_req) ) )
     {
+      temp_track.hits.pop_back();
       cur->push_back( TempComb() );
       TempComb& curcomb = cur->back();
       curcomb.ndummies = ndummies;
-      curcomb.state.chi2 = init_chi2/( 2.*( n_in + n_out ) - 5. );
-      if( curcomb.state.chi2 > 10. ){cur->pop_back();}
+      curcomb.state.chi2 = init_chi2/( 2.*( n_out ) - 5. );
+      if( curcomb.state.chi2 > 100. ){cur->pop_back();}
       else{
       curcomb.state.phi = temp_track.phi;
       if(curcomb.state.phi < 0.){curcomb.state.phi += 2.*M_PI;}
@@ -493,180 +496,232 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
   }
   if(cur->size() == 0)
   {
-    // cout<<"no seeds found"<<endl;
+    // cout<<"no seeds found out of "<<hits.size()<<" hits"<<endl;
+    // for(unsigned int i=0;i<hits.size();++i)
+    // {
+    //   cout<<hits[i].index<<" ";
+    // }
+    // cout<<endl<<endl;
+    
     return;
   }
   
-  // // find the best seed
-  // int best = 0;
-  // float chi2_best = cur->at(0).state.chi2;
-  // for( unsigned int i=1;i<cur->size();++i )
-  // {
-  //   if( cur->at(i).state.chi2 < chi2_best )
-  //   {
-  //     chi2_best = cur->at(i).state.chi2;
-  //     best = i;
-  //   }
-  // }
 
-  for(ulong sd=0;sd<cur->size();sd++){
-  TempComb seed = cur->at(sd);
-  
-  seed.state.C = Matrix<float,5,5>::Zero(5,5);
-  seed.state.C(0,0) = pow(0.01, 2.);
-  seed.state.C(1,1) = pow(0.5, 2.);
-  seed.state.C(2,2) = pow(0.05*seed.state.nu, 2.);
-  seed.state.C(3,3) = pow(0.5, 2.);
-  seed.state.C(4,4) = pow(0.05, 2.);
-  seed.state.chi2 = 0.;
-  seed.state.position = n_layers;
-  seed.state.x_int = 0.;
-  seed.state.y_int = 0.;
-  seed.state.z_int = 0.;
-  
-  seed.ndummies = 0;
-  
-  vector<int> in_seed( n_side, -1 );
-  for(unsigned int i=0;i<n_side;++i)
+  for(ulong sd=0;sd<cur->size();sd++)
   {
-    if( seed.hit_indexes[i+n_side] > 0 )
+    TempComb seed = cur->at(sd);
+    
+    seed.state.C = Matrix<float,5,5>::Zero(5,5);
+    seed.state.C(0,0) = pow(0.01, 2.);
+    seed.state.C(1,1) = pow(0.5, 2.);
+    seed.state.C(2,2) = pow(0.3*seed.state.nu, 2.);
+    seed.state.C(3,3) = pow(0.5, 2.);
+    seed.state.C(4,4) = pow(0.05, 2.);
+    seed.state.chi2 = 0.;
+    seed.state.position = n_layers;
+    seed.state.x_int = 0.;
+    seed.state.y_int = 0.;
+    seed.state.z_int = 0.;
+    
+    seed.ndummies = 0;
+    
+    vector<int> in_seed( n_side, -1 );
+    for(unsigned int i=0;i<n_side;++i)
     {
-      in_seed[i] = seed.hit_indexes[i+n_side];
-    }
-  }
-  
-  seed.hit_indexes.clear();
-  seed.hit_indexes.assign(n_layers, 0);
-  vector<HelixKalmanState> temp_states;
-  vector<int> temp_indexes;
-  for(int l=n_layers-1;l>=0;--l)
-  {
-    temp_states.clear();
-    temp_indexes.clear();
-    for( unsigned int h=0;h<layer_indexes[l].size();++h )
-    {
-      if( (n_layers - 1 - l) < n_side )
+      if( seed.hit_indexes[i] > 0 )
       {
-        if( in_seed[n_side - 1 - (n_layers - 1 - l)] >= 0 )
-        {
-          if( layer_indexes[l][h] != in_seed[n_side - 1 - (n_layers - 1 - l)] ){continue;}
-        }
+        in_seed[i] = seed.hit_indexes[i];
       }
-      
-      temp_indexes.push_back( layer_indexes[l][h] );
-      temp_states.push_back( seed.state );
-      SimpleHit3D hit = get_hit( hits, dummies, temp_indexes.back() );
-      hit.dx *= err_scale*hit_error_scale[l];
-      hit.dy *= err_scale*hit_error_scale[l];
-      hit.dz *= err_scale*hit_error_scale[l];
-      kalman->addHit( hit , temp_states.back() );
     }
-    // is there a good hit?
-    int best = -1;
-    float best_chi2 = 99999999.;
-    for( unsigned int h=0;h<temp_indexes.size();++h )
+    
+    seed.hit_indexes.clear();
+    seed.hit_indexes.assign(n_layers, 0);
+    vector<HelixKalmanState> temp_states;
+    vector<int> temp_indexes;
+    for(int l=n_layers-1;l>=0;--l)
     {
-      if(temp_indexes[h] < 0){continue;}
-      if( (temp_states[h].chi2/(2.*( (float)((n_layers-l)+2 - seed.ndummies) ) ) < (chi2_cut)) && ( (temp_states[h].chi2-seed.state.chi2)<5. ) && (temp_states[h].chi2 < best_chi2) )
+      temp_states.clear();
+      temp_indexes.clear();
+      for( unsigned int h=0;h<layer_indexes[l].size();++h )
       {
-        if( (n_layers-l) - (int)(seed.ndummies) > 3 )
+        if( (n_layers - 1 - l) < n_side )
         {
-          if( temp_states[h].chi2/( 2.*((float)((n_layers-l)-(int)(seed.ndummies))) - 5. ) > chi2_cut )
+          if( in_seed[n_side - 1 - (n_layers - 1 - l)] >= 0 )
           {
-            continue;
+            if( layer_indexes[l][h] != in_seed[n_side - 1 - (n_layers - 1 - l)] ){continue;}
           }
         }
-        best = h;
-        best_chi2 = temp_states[h].chi2;
+        
+        temp_indexes.push_back( layer_indexes[l][h] );
+        temp_states.push_back( seed.state );
+        SimpleHit3D hit = get_hit( hits, dummies, temp_indexes.back() );
+        hit.dx *= err_scale*hit_error_scale[l];
+        hit.dy *= err_scale*hit_error_scale[l];
+        hit.dz *= err_scale*hit_error_scale[l];
+        kalman->addHit( hit , temp_states.back() );
+      }
+      // is there a good hit?
+      int best = -1;
+      float best_chi2 = 99999999.;
+      for( unsigned int h=0;h<temp_indexes.size();++h )
+      {
+        if(temp_indexes[h] < 0){continue;}
+        if( (temp_states[h].chi2/(2.*( (float)((n_layers-l)+2 - seed.ndummies) ) ) < (2.*chi2_cut)) && (temp_states[h].chi2 < best_chi2) )
+        {
+          if( (n_layers-l) - (int)(seed.ndummies) > 3 )
+          {
+            if( temp_states[h].chi2/( 2.*((float)((n_layers-l)-(int)(seed.ndummies))) - 5. ) > 2.*chi2_cut )
+            {
+              continue;
+            }
+          }
+          best = h;
+          best_chi2 = temp_states[h].chi2;
+        }
+      }
+      
+      if( best >= 0 )
+      {
+        seed.hit_indexes[l] = ( temp_indexes[best] );
+        seed.state = temp_states[ best ];
+      }
+      else
+      {
+        seed.hit_indexes[l] = ( -(l+1) );
+        seed.ndummies += 1;
+      }
+      seed.state.position = l+1;
+      if( seed.ndummies > (n_layers - req_layers) )
+      {
+        break;
       }
     }
-    
-    if( best >= 0 )
-    {
-      seed.hit_indexes[l] = ( temp_indexes[best] );
-      seed.state = temp_states[ best ];
-    }
-    else
-    {
-      seed.hit_indexes[l] = ( -(l+1) );
-      seed.ndummies += 1;
-    }
-    seed.state.position = l+1;
-    if( seed.ndummies > (n_layers - req_layers) )
-    {
-      break;
-    }
-  }
-  if( seed.ndummies > (n_layers - req_layers) ){continue;}
+    if( seed.ndummies > (n_layers - req_layers) ){continue;}
 
-  
-  tracks.push_back( SimpleTrack3D() );
-  for(unsigned int i=0;i<n_layers;++i)
-  {
-    if( seed.hit_indexes[i] >= 0 )
+    
+    store_tracks.push_back( SimpleTrack3D() );
+    for(unsigned int i=0;i<n_layers;++i)
     {
-      tracks.back().hits.push_back( get_hit( hits, dummies, seed.hit_indexes[i] ) );
+      if( seed.hit_indexes[i] >= 0 )
+      {
+        store_tracks.back().hits.push_back( get_hit( hits, dummies, seed.hit_indexes[i] ) );
+      }
     }
-  }
 
-  {
-    HelixKalmanState state = seed.state;
-    
-    state.C *= 0.05;
-    for(int j=0;j<5;++j)
     {
-      state.C(2,j) *= 0.03;
-      state.C(j,2) *= 0.03;
-    }
-    
-    state.chi2 = 0.;
-    state.x_int = 0.;
-    state.y_int = 0.;
-    state.z_int = 0.;
-    state.position = tracks.back().hits.size();
-    for(int h=(tracks.back().hits.size() - 1);h>=0;--h)
-    {
-      SimpleHit3D hit = tracks.back().hits[h];
-      float err_scale = 1.;
-      int layer = hit.layer;
-      if( (layer >= 0) && (layer < (int)(hit_error_scale.size()) ) ){err_scale = hit_error_scale[layer];}
-      err_scale *= 0.4;
-      hit.dx *= err_scale;hit.dy *= err_scale;hit.dz *= err_scale;
+      if( ( store_tracks.back().hits[0].layer ) != 0 )
+      {
+        store_tracks.pop_back();continue;
+      }
+      if( ( store_tracks.back().hits[1].layer ) != 1 )
+      {
+        store_tracks.pop_back();continue;
+      }
+
+
+      HelixKalmanState state = seed.state;
       
-      kalman->addHit(hit, state);
-    }
-    
-    if(!(state.kappa == state.kappa)){ tracks.pop_back();continue; }
-    seed.state = state;
-    
-    tracks.back().phi = seed.state.phi;
-    tracks.back().d = seed.state.d;
-    tracks.back().kappa = seed.state.kappa;
-    tracks.back().z0 = seed.state.z0;
-    tracks.back().dzdl = seed.state.dzdl;
+      // state.C *= 50.;
+      // for(int j=0;j<5;++j)
+      // {
+      //   state.C(2,j) *= 0.03;
+      //   state.C(j,2) *= 0.03;
+      // }
+      
+      state.chi2 = 0.;
+      state.x_int = 0.;
+      state.y_int = 0.;
+      state.z_int = 0.;
 
-    if( seed.state.chi2 / (2.*tracks.back().hits.size() - 5.) > chi2_cut )
-    {
-      tracks.pop_back();continue;
+      fitTrack(store_tracks.back());
+
+      state.phi = store_tracks.back().phi;
+      state.d = store_tracks.back().d;
+      state.kappa = store_tracks.back().kappa;
+      state.nu = sqrt(state.kappa);
+      state.z0 = store_tracks.back().z0;
+      state.dzdl = store_tracks.back().dzdl;
+
+      state.C = Matrix<float,5,5>::Zero(5,5);
+      state.C(0,0) = pow(0.01, 2.);
+      state.C(1,1) = pow(0.5, 2.);
+      state.C(2,2) = pow(0.3*state.nu, 2.);
+      state.C(3,3) = pow(0.5, 2.);
+      state.C(4,4) = pow(0.05, 2.);
+
+      state.position = store_tracks.back().hits.size();
+      for(int h=(store_tracks.back().hits.size() - 1);h>=0;--h)
+      {
+        SimpleHit3D hit = store_tracks.back().hits[h];
+        float err_scale = 1.;
+        int layer = hit.layer;
+        if( (layer >= 0) && (layer < (int)(hit_error_scale.size()) ) ){err_scale = hit_error_scale[layer];}
+        err_scale *= 0.4;
+        hit.dx *= err_scale;hit.dy *= err_scale;hit.dz *= err_scale;
+        
+        kalman->addHit(hit, state);
+      }
+      
+      if(!(state.kappa == state.kappa)){ store_tracks.pop_back();continue; }
+      seed.state = state;
+      
+      store_tracks.back().phi = seed.state.phi;
+      store_tracks.back().d = seed.state.d;
+      store_tracks.back().kappa = seed.state.kappa;
+      store_tracks.back().z0 = seed.state.z0;
+      store_tracks.back().dzdl = seed.state.dzdl;
+
+      if( seed.state.chi2 / (2.*store_tracks.back().hits.size() - 5.) > chi2_cut )
+      {
+        store_tracks.pop_back();continue;
+      }
     }
+
+    // cout<<"added track candidate with "<<store_tracks.back().hits.size()<<" hits and chi^2 "<<seed.state.chi2/ (2.*store_tracks.back().hits.size() - 5.) <<endl;
+    
+    if(seed.state.phi < 0.){seed.state.phi += 2.*M_PI;}
+    store_tracks.back().phi = seed.state.phi;
+    store_tracks.back().d = seed.state.d;
+    store_tracks.back().kappa = seed.state.kappa;
+    store_tracks.back().z0 = seed.state.z0;
+    store_tracks.back().dzdl = seed.state.dzdl;
+    store_states.push_back(seed.state);
+  
   }
 
-  // cout<<"added track with "<<tracks.back().hits.size()<<" hits"<<endl;
+
+  unsigned int nt = store_tracks.size();
+  vector<bool> usetrack;
+  usetrack.assign(store_tracks.size(), true);
+  vector<float> next_best_chi2;
+  next_best_chi2.assign(store_tracks.size(), 99999.);
+
+  vector<SimpleTrack3D> final_tracks;
   
-  if(seed.state.phi < 0.){seed.state.phi += 2.*M_PI;}
-  tracks.back().phi = seed.state.phi;
-  tracks.back().d = seed.state.d;
-  tracks.back().kappa = seed.state.kappa;
-  tracks.back().z0 = seed.state.z0;
-  tracks.back().dzdl = seed.state.dzdl;
-  track_states.push_back(seed.state);
-  if(remove_hits == true)
+  swap( track_states, store_states );
+  tripletRejection(store_tracks, final_tracks, usetrack, next_best_chi2);
+  swap( track_states, store_states );
+  for(unsigned int i=0;i<nt;++i)
   {
-    for(unsigned int i=0;i<tracks.back().hits.size();++i)
+    if(usetrack[i] == true)
     {
-      (*hit_used)[tracks.back().hits[i].index] = true;
+      if( !(store_states[i].chi2 == store_states[i].chi2) ){continue;}
+      
+      tracks.push_back(store_tracks[i]);
+
+      // cout<<"added TRACK with "<<tracks.back().hits.size()<<" hits"<<endl;
+      // cout<<"ntracks = "<<tracks.size()<<endl;
+
+      track_states.push_back(store_states[i]);
+      if(remove_hits == true)
+      {
+        for(unsigned int i=0;i<tracks.back().hits.size();++i)
+        {
+          (*hit_used)[tracks.back().hits[i].index] = true;
+        }
+      }
     }
-  }}
+  }
 }
 
 

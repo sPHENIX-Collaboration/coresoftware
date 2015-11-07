@@ -7,6 +7,8 @@
 /// \author Michael P. McCumber (revised SVTX version)
 //===============================================
 
+#include "SvtxEvalStack.h"
+
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -31,13 +33,15 @@ public:
  
   SvtxEvaluator(const std::string &name = "SVTXEVALUATOR",
                 const std::string &filename = "g4eval.root");
-  virtual ~SvtxEvaluator() {};
+  virtual ~SvtxEvaluator() {}
 		
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  void set_strict(bool b) {_strict = b;}
+  
   void do_vertex_eval(bool b) {_do_vertex_eval = b;}
   void do_gpoint_eval(bool b) {_do_gpoint_eval = b;}
   void do_g4hit_eval(bool b) {_do_g4hit_eval = b;}
@@ -50,9 +54,15 @@ public:
 
   unsigned int _ievent;
 
+  // eval stack
+  SvtxEvalStack* _svtxevalstack;
+  
   //----------------------------------
   // evaluator output ntuples
 
+  bool _strict;
+  unsigned int _errors;
+  
   bool _do_vertex_eval;
   bool _do_gpoint_eval;
   bool _do_g4hit_eval;

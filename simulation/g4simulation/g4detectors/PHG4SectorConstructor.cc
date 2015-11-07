@@ -167,7 +167,7 @@ PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume* WorldLog)
 
         for (G4MaterialTable::const_iterator it =
             (G4Material::GetMaterialTable())->begin();
-            it != G4Material::GetMaterialTable()->end(); it++)
+            it != G4Material::GetMaterialTable()->end(); ++it)
           {
             cout << (*it) << endl;
           }
@@ -263,7 +263,7 @@ PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume* WorldLog)
 
 G4VSolid *
 PHG4SectorConstructor::Construct_Sectors_Plane( //
-    const std::string name, //
+    const std::string &name, //
     const double start_z, //
     const double thickness, //
     G4VSolid *SecConeBoundary_Det //

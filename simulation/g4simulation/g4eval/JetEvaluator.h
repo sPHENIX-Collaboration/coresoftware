@@ -7,6 +7,8 @@
 /// \author Michael P. McCumber
 //===============================================
 
+#include "JetEvalStack.h"
+
 #include <fun4all/SubsysReco.h>
 #include <phool/PHCompositeNode.h>
 
@@ -37,6 +39,8 @@ class JetEvaluator : public SubsysReco {
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  void set_strict(bool b) {_strict = b;}
+  
  private:
 
   std::string _recojetname;
@@ -44,9 +48,14 @@ class JetEvaluator : public SubsysReco {
   
   unsigned long _ievent;
 
+  JetEvalStack* _jetevalstack;
+  
   //----------------------------------
   // evaluator output ntuples
 
+  bool _strict;
+  unsigned int _errors;
+  
   bool _do_recojet_eval;
   bool _do_truthjet_eval;
   

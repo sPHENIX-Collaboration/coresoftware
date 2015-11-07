@@ -1,6 +1,7 @@
 #include "PHG4CylinderCellGeom.h"
 #include "PHG4CylinderCellDefs.h"
 
+#include <phool/phool.h>
 #include <cmath>
 #include <cstdlib>
 
@@ -191,7 +192,7 @@ PHG4CylinderCellGeom::get_zbounds(const int ibin) const
 {
   if (ibin < 0 || ibin > nzbins)
     {
-      cout << "Asking for invalid bin in z: " << ibin << endl;
+      cout << PHWHERE << " Asking for invalid bin in z: " << ibin << endl;
       exit(1);
     }
   check_binning_method(PHG4CylinderCellDefs::sizebinning);
@@ -205,7 +206,7 @@ PHG4CylinderCellGeom::get_etabounds(const int ibin) const
 {
   if (ibin < 0 || ibin > nzbins)
     {
-      cout << "Asking for invalid bin in z: " << ibin << endl;
+      cout << PHWHERE << " Asking for invalid bin in z: " << ibin << endl;
       exit(1);
     }
   check_binning_method_eta("PHG4CylinderCellGeom::get_etabounds");
@@ -221,7 +222,7 @@ PHG4CylinderCellGeom::get_phibounds(const int ibin) const
 {
   if (ibin < 0 || ibin > nphibins)
     {
-      cout << "Asking for invalid bin in phi: " << ibin << endl;
+      cout << PHWHERE << "Asking for invalid bin in phi: " << ibin << endl;
       exit(1);
     }
 
@@ -235,7 +236,7 @@ PHG4CylinderCellGeom::get_zbin(const double z) const
 {
   if (z < zmin || z > (zmin+nzbins*zstep))
   {
-    //    cout << "Asking for bin for z outside of z range: " << z << endl;
+    //    cout << PHWHERE << "Asking for bin for z outside of z range: " << z << endl;
     return -1;
   }
   
@@ -273,7 +274,7 @@ PHG4CylinderCellGeom::get_zcenter(const int ibin) const
 {
   if (ibin < 0 || ibin > nzbins)
     {
-      cout << "Asking for invalid bin in z: " << ibin << endl;
+      cout << PHWHERE << "Asking for invalid bin in z: " << ibin << endl;
       exit(1);
     }
   check_binning_method(PHG4CylinderCellDefs::sizebinning);
@@ -285,7 +286,7 @@ PHG4CylinderCellGeom::get_etacenter(const int ibin) const
 {
   if (ibin < 0 || ibin > nzbins)
     {
-      cout << "Asking for invalid bin in eta: " << ibin << endl;
+      cout << PHWHERE << "Asking for invalid bin in eta: " << ibin << endl;
       cout << "minbin: 0, maxbin " << nzbins << endl; 
       exit(1);
     }
@@ -298,7 +299,7 @@ PHG4CylinderCellGeom::get_phicenter(const int ibin) const
 {
   if (ibin < 0 || ibin > nphibins)
     {
-      cout << "Asking for invalid bin in phi: " << ibin << endl;
+      cout << PHWHERE << "Asking for invalid bin in phi: " << ibin << endl;
       exit(1);
     }
 

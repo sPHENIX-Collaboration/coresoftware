@@ -26,7 +26,10 @@ public:
   virtual ~JetEvalStack() {}
 
   void next_event(PHCompositeNode *topNode);
-
+  void do_caching(bool do_cache) {_recoeval.do_caching(do_cache);}
+  void set_strict(bool strict) {_recoeval.set_strict(strict);}
+  void set_verbosity(int verbosity) {_recoeval.set_verbosity(verbosity);}
+  
   JetRecoEval*   get_reco_eval() {return &_recoeval;}
   JetTruthEval*  get_truth_eval() {return _recoeval.get_truth_eval();}
 

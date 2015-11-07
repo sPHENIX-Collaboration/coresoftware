@@ -35,10 +35,10 @@ public:
   void set_phi_range(const double phi_min, const double phi_max);
 
   //! range of randomized pt values
-  void set_pt_range(const double pt_min, const double mom_max);
+  void set_pt_range(const double pt_min, const double pt_max);
 
-  //! set fixed momentum for particle
-  void set_p_fixed(const double momentum) {_p_fixed = momentum;}
+  //! range of randomized p values
+  void set_p_range(const double p_min, const double p_max);
 
   //! toss a new vertex according to a Uniform or Gaus distribution
   void set_vertex_distribution_function(FUNCTION x, FUNCTION y, FUNCTION z);
@@ -48,9 +48,6 @@ public:
 
   //! set the width of the vertex distribution function about the mean
   void set_vertex_distribution_width(const double x, const double y, const double z);
-
-  //! reuse the first existing vertex found
-  void set_reuse_existing_vertex(const bool b) {_reuse_existing_vertex = b;}
 
   //! set an offset vector from the existing vertex
   void set_existing_vertex_offset_vector(const double x, const double y, const double z);
@@ -68,7 +65,6 @@ private:
   // can be translated using the GEANT4 lookup
   std::vector<std::pair<int, unsigned int> > _particle_codes; // <pdgcode, count>
   std::vector<std::pair<std::string, unsigned int> > _particle_names; // <names, count>
-  bool _reuse_existing_vertex;
   FUNCTION _vertex_func_x;
   FUNCTION _vertex_func_y;
   FUNCTION _vertex_func_z;
@@ -90,7 +86,8 @@ private:
   double _phi_max;
   double _pt_min;
   double _pt_max;
-  double _p_fixed; 
+  double _p_min;
+  double _p_max; 
 
   PHG4InEvent* _ineve;
 };

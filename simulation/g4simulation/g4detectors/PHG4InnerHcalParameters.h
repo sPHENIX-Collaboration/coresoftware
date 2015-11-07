@@ -9,6 +9,7 @@ class PHG4InnerHcalParameters
  public:
   PHG4InnerHcalParameters();
   virtual ~PHG4InnerHcalParameters() {}
+  void print() const;
 
   G4double inner_radius;
   G4double outer_radius;
@@ -32,6 +33,13 @@ class PHG4InnerHcalParameters
   G4int blackhole;
   G4String material;
   G4double steplimits;
+  bool  light_scint_model;
+  bool light_balance;
+  G4double light_balance_inner_radius;
+  G4double light_balance_inner_corr;
+  G4double light_balance_outer_radius;
+  G4double light_balance_outer_corr;
+  G4int absorbertruth;
 };
 
 #endif

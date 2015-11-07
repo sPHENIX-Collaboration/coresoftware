@@ -21,10 +21,21 @@ class SvtxTrackEval {
 public:
 
   SvtxTrackEval(PHCompositeNode *topNode);
-  virtual ~SvtxTrackEval() {}
+  virtual ~SvtxTrackEval();
 
   void next_event(PHCompositeNode *topNode);
-  void do_caching(bool do_cache) {_do_cache = do_cache;}
+  void do_caching(bool do_cache) {
+    _do_cache = do_cache;
+    _clustereval.do_caching(do_cache);
+  }
+  void set_strict(bool strict) {
+    _strict = strict;
+    _clustereval.set_strict(strict);
+  }
+  void set_verbosity(int verbosity) {
+    _verbosity = verbosity;
+    _clustereval.set_verbosity(verbosity);
+  }
   
   // access the clustereval (and its cached values)
   SvtxClusterEval* get_cluster_eval() {return &_clustereval;}
@@ -45,6 +56,8 @@ public:
   
   // overlap calculations
   unsigned int get_nclusters_contribution(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);  
+
+  unsigned int get_errors() {return _errors + _clustereval.get_errors();}
   
 private:
 
@@ -54,6 +67,10 @@ private:
   SvtxTrackMap* _trackmap;
   SvtxClusterMap* _clustermap;
 
+  bool _strict;
+  int _verbosity;
+  unsigned int _errors;
+  
   bool                                                        _do_cache;
   std::map<SvtxTrack*,std::set<PHG4Hit*> >                    _cache_all_truth_hits;
   std::map<SvtxTrack*,std::set<PHG4Particle*> >               _cache_all_truth_particles;

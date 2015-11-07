@@ -3,9 +3,10 @@
 #include "PHG4Particlev2.h"
 #include "PHG4InEvent.h"
 #include "PHG4VtxPoint.h"
+#include "PHG4TruthInfoContainer.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -24,7 +25,6 @@ PHG4SimpleEventGenerator::PHG4SimpleEventGenerator(const string &name):
   PHG4ParticleGeneratorBase(name),
   _particle_codes(),
   _particle_names(),
-  _reuse_existing_vertex(false),
   _vertex_func_x(Uniform),
   _vertex_func_y(Uniform),
   _vertex_func_z(Uniform),
@@ -46,7 +46,8 @@ PHG4SimpleEventGenerator::PHG4SimpleEventGenerator(const string &name):
   _phi_max(M_PI),
   _pt_min(0.0),
   _pt_max(10.0),
-  _p_fixed(-1.0),
+  _p_min(NAN),
+  _p_max(NAN),
   _ineve(NULL) 
 {
   return;
@@ -92,6 +93,21 @@ void PHG4SimpleEventGenerator::set_pt_range(const double min, const double max) 
     }
   _pt_min = min;
   _pt_max = max;
+  _p_min = NAN;
+  _p_max = NAN;
+  return;
+}
+
+void PHG4SimpleEventGenerator::set_p_range(const double min, const double max) {
+  if (min > max)
+    {
+      cout << "not setting p bc ptmin " << min << " > ptmax: " << max << endl;
+      return;
+    }
+  _pt_min = NAN;
+  _pt_max = NAN;
+  _p_min = min;
+  _p_max = max;
   return;
 }
 
@@ -170,7 +186,7 @@ int PHG4SimpleEventGenerator::InitRun(PHCompositeNode *topNode) {
     for (unsigned int i=0; i<_particle_names.size(); ++i) {
       cout << "    " << _particle_names[i].first << ", count = " << _particle_names[i].second << endl;
     }
-    if (_reuse_existing_vertex) {
+    if (get_reuse_existing_vertex()) {
       cout << " Vertex Distribution: Set to reuse a previously generated sim vertex" << endl;
       cout << " Vertex offset vector (x,y,z) = (" << _vertex_offset_x << ","<< _vertex_offset_y << ","<< _vertex_offset_z << ")" << endl;
     } else {
@@ -210,43 +226,20 @@ int PHG4SimpleEventGenerator::InitRun(PHCompositeNode *topNode) {
 
 int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
 
-  double vertex_x = 0.0;
-  double vertex_y = 0.0;
-  double vertex_z = 0.0;
+  // vtx_x, vtx_y and vtx_z are doubles from the base class
+  // common methods modify those, please no private copies
+  // at some point we might rely on them being up to date
+  if (!ReuseExistingVertex(topNode))
+    {
+      // generate a new vertex point
+      vtx_x = smearvtx(_vertex_x,_vertex_width_x,_vertex_func_x);
+      vtx_y = smearvtx(_vertex_y,_vertex_width_y,_vertex_func_y);
+      vtx_z = smearvtx(_vertex_z,_vertex_width_z,_vertex_func_z);
+    } 
 
-  if (!_reuse_existing_vertex) {
-    // generate a new vertex point
-
-    vertex_x = smearvtx(_vertex_x,_vertex_width_x,_vertex_func_x);
-    vertex_y = smearvtx(_vertex_y,_vertex_width_y,_vertex_func_y);
-    vertex_z = smearvtx(_vertex_z,_vertex_width_z,_vertex_func_z);
-  } else {
-    
-    if (_ineve->GetNVtx() == 0) {
-      cout << PHWHERE << "::Error - PHG4SimpleEventGenerator expects an existing truth vertex, but none exists" << endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-
-    // use the first vertex in the list
-    std::pair< std::map<int, PHG4VtxPoint *>::const_iterator, 
-	       std::map<int, PHG4VtxPoint *>::const_iterator > 
-      range = _ineve->GetVertices();
-    std::map<int, PHG4VtxPoint* >::const_iterator iter = range.first;
-    PHG4VtxPoint* vtx = iter->second;
-
-    if (!vtx) {
-      cout << PHWHERE << "::Error - PHG4SimpleEventGenerator expects an existing truth vertex, but none exists" << endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-
-    vertex_x = vtx->get_x();
-    vertex_y = vtx->get_y();
-    vertex_z = vtx->get_z();
-
-    vertex_x += _vertex_offset_x;
-    vertex_y += _vertex_offset_y;
-    vertex_z += _vertex_offset_z;
-  }
+  vtx_x += _vertex_offset_x;
+  vtx_y += _vertex_offset_y;
+  vtx_z += _vertex_offset_z;
 
   int vtxindex = -1;
   int trackid = -1;
@@ -270,9 +263,9 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
         y *= r;
         z *= r;
 
-	vtxindex = _ineve->AddVtx(vertex_x+x,vertex_y+y,vertex_z+z,0.0);
+	vtxindex = _ineve->AddVtx(vtx_x+x,vtx_y+y,vtx_z+z,0.0);
       } else if ((i==0)&&(j==0)) {
-	vtxindex = _ineve->AddVtx(vertex_x,vertex_y,vertex_z,0.0);
+	vtxindex = _ineve->AddVtx(vtx_x,vtx_y,vtx_z,0.0);
       }
 
       ++trackid;
@@ -280,15 +273,15 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
       double eta = (_eta_max-_eta_min) * gsl_rng_uniform_pos(RandomGenerator) + _eta_min;
       double phi = (_phi_max-_phi_min) * gsl_rng_uniform_pos(RandomGenerator) + _phi_min;
 
-      double pt;   
-      if(_p_fixed > 0.0)
-	{
-	  pt = _p_fixed/cosh(eta);    
-	}
-      else
-	{
-	  pt = (_pt_max-_pt_min) * gsl_rng_uniform_pos(RandomGenerator) + _pt_min;
-	}
+      double pt;
+      if (!isnan(_p_min) && !isnan(_p_max)) {
+	pt = ((_p_max-_p_min) * gsl_rng_uniform_pos(RandomGenerator) + _p_min) / cosh(eta);
+      } else if (!isnan(_pt_min) && !isnan(_pt_max)) {
+	pt = (_pt_max-_pt_min) * gsl_rng_uniform_pos(RandomGenerator) + _pt_min;
+      } else {
+	cout << PHWHERE << "Error: neither a p range or pt range was specified" << endl;
+	exit(-1);
+      }
 
       double px = pt*cos(phi);
       double py = pt*sin(phi);

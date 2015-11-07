@@ -14,7 +14,7 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 
 #include <cmath>
@@ -28,6 +28,7 @@ PHG4HcalCellReco::PHG4HcalCellReco(const string &name) :
   SubsysReco(name),
   _timer(PHTimeServer::get()->insert_new(name.c_str())),
   nslatscombined(1),
+  netabins(24), // that is our default
   chkenergyconservation(0)
 {
   memset(nbins, 0, sizeof(nbins));  
@@ -124,14 +125,14 @@ int PHG4HcalCellReco::InitRun(PHCompositeNode *topNode)
 	      layergeom->identify();
 	    }
           layerseggeo->set_binning(PHG4CylinderCellDefs::etaslatbinning);
-          layerseggeo->set_etabins(22);
+          layerseggeo->set_etabins(netabins);
           layerseggeo->set_etamin(-1.1);
-          layerseggeo->set_etastep((1.1+1.1)/22.);
+          layerseggeo->set_etastep((1.1+1.1)/netabins);
           layerseggeo->set_phimin(layergeom->get_phi_slat_zero());
 	  double deltaphi = 2.*M_PI/layergeom->get_nscint();
 	  layerseggeo->set_phistep(deltaphi*nslatscombined);
 	  layerseggeo->set_phibins(nslatbins);
-          etastep[layer] = (1.1+1.1)/22.;
+          etastep[layer] = (1.1+1.1)/netabins;
       // add geo object filled by different binning methods
       seggeo->AddLayerCellGeom(layerseggeo);
       if (verbosity > 1)

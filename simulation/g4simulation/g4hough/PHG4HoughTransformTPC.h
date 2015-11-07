@@ -31,6 +31,8 @@
 #include <map>
 #include <float.h>
 
+#include "SvtxTrackState.h"
+
 // forward declarations
 class PHCompositeNode;
 class SvtxClusterMap;
@@ -72,7 +74,13 @@ public:
   }
 
   /// external handle for projecting tracks into the calorimetry
-  static void projectToRadius(const SvtxTrack& track,
+  static void projectToRadius(const SvtxTrack* track,
+			      double magfield, // in Tesla
+			      double radius,   // in cm
+			      std::vector<double>& intersection);
+
+  static void projectToRadius(const SvtxTrackState* state,
+			      int charge,
 			      double magfield, // in Tesla
 			      double radius,   // in cm
 			      std::vector<double>& intersection);
@@ -176,6 +184,15 @@ public:
   /// convert from momentum to inverse curvature
   float ptToKappa(float pt);
 
+  /// helper function for projection code
+  static bool circle_line_intersections(double x0, double y0, double r0,
+					double x1, double y1, double vx1, double vy1,
+					std::set<std::vector<double> >* points);
+  /// helper function for projection code
+  static bool circle_circle_intersections(double x0, double y0, double r0,
+					  double x1, double y1, double r1,
+					  std::set<std::vector<double> >* points);
+  
   bool _use_vertex;
   int _beta, _lambda; ///< resolution tuning parameters 
 

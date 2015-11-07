@@ -6,9 +6,8 @@
 #include "Fun4AllOutputManager.h"
 #include "Fun4AllReturnCodes.h"
 #include "SubsysReco.h"
-#include "getClass.h"
-#include "recoConsts.h"
 
+#include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/PHObject.h>
 #include <phool/PHCompositeNode.h>
@@ -19,6 +18,7 @@
 #include <phool/PHPointerListIterator.h>
 #include <phool/PHTypedNodeIterator.h>
 #include <phool/PHTimeStamp.h>
+#include <phool/recoConsts.h>
 
 #include <TDirectory.h>
 #include <TFile.h>
@@ -856,17 +856,26 @@ int Fun4AllServer::BeginRun(const int runno)
   return 0;
 }
 
-int Fun4AllServer::CountOutNodes(PHCompositeNode *startNode)
+int 
+Fun4AllServer::CountOutNodes(PHCompositeNode *startNode)
+{
+  int icount = 0;
+  icount = CountOutNodesRecursive(startNode, icount);
+  return icount;
+}
+
+int 
+Fun4AllServer::CountOutNodesRecursive(PHCompositeNode *startNode, const int icount)
 {
   PHNodeIterator nodeiter(startNode);
   PHPointerListIterator<PHNode> iterat(nodeiter.ls());
   PHNode *thisNode;
-  int icnt = 0;
+  int icnt = icount;
   while ((thisNode = iterat()))
     {
       if ((thisNode->getType() == "PHCompositeNode"))
         {
-          icnt += CountOutNodes(static_cast<PHCompositeNode*>(thisNode)); // if this is a CompositeNode do this trick again
+          icnt = CountOutNodesRecursive(static_cast<PHCompositeNode*>(thisNode), icnt); // if this is a CompositeNode do this trick again
         }
       else
         {
