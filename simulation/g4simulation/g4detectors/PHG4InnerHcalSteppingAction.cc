@@ -256,7 +256,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 			   << detector_->GetName() << " - "
 			   << " use a simple light collection model with linear radial dependence. "
 			   <<"First step: "
-			   <<"r = " <<r<<", "
+			   <<"r = " <<r/cm<<", "
 			   <<"correction ratio = " <<cor<<", "
 			   <<"light_yield after cor. = " <<light_yield
 			   << endl;
