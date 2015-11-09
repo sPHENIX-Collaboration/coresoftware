@@ -45,7 +45,7 @@ int PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
   detector_->SuperDetector(superdetector);
   detector_->OverlapCheck(overlapcheck);
   set<string> nodes;
-  if (params->active)
+  if (params->IsActive())
     {
       ostringstream nodename;
       if (superdetector != "NONE")
@@ -57,7 +57,7 @@ int PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
 	  nodename <<  "G4HIT_" << detector_type << "_" << layer;
 	}
       nodes.insert(nodename.str());
-      if (params->absorberactive)
+      if (params->IsAbsorberactive())
 	{
 	  nodename.str("");
 	  if (superdetector != "NONE")
@@ -98,7 +98,7 @@ int PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
   else
     {
       // if this is a black hole it does not have to be active
-      if (params->blackhole)
+      if (params->IsBlackHole())
 	{
 	  steppingAction_ = new PHG4InnerHcalSteppingAction(detector_, params);
 	}
@@ -152,79 +152,22 @@ PHG4InnerHcalSubsystem::GetParameters()
 }
 
 void
-PHG4InnerHcalSubsystem::SetPlaceZ(const G4double dbl)
-{
-  params->place_in_z = dbl;
-}
-
-void
-PHG4InnerHcalSubsystem::SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
-{
-  params->place_in_x = place_x * cm;
-  params->place_in_y = place_y * cm;
-  params->place_in_z = place_z * cm;
-}
-
-void
-PHG4InnerHcalSubsystem::SetXRot(const G4double dbl)
-{
-  params->x_rot = dbl * deg;
-}
-
-void
-PHG4InnerHcalSubsystem::SetYRot(const G4double dbl)
-{
-  params->y_rot = dbl * deg;
-}
-
-void
-PHG4InnerHcalSubsystem::SetZRot(const G4double dbl)
-{
-  params->z_rot = dbl * deg;
-}
-
-void
 PHG4InnerHcalSubsystem::SetActive(const int i)
 {
-  params->active = i;
+  params->SetActive(i);
 }
 
 void
 PHG4InnerHcalSubsystem::SetAbsorberActive(const int i)
 {
-  params->absorberactive = i;
+  params->SetAbsorberactive(i);
 }
 
 void
 PHG4InnerHcalSubsystem::BlackHole(const int i)
 {
-  params->blackhole = i;
+  params->BlackHole(i);
 }
-
-void
-PHG4InnerHcalSubsystem::SetInnerRadius(const double inner)
-{
-  params->set_inner_radius(inner);
-}
-
-double
-PHG4InnerHcalSubsystem::GetInnerRadius() const
-{
-  return params->get_inner_radius()/cm;
-}
-
-void
-PHG4InnerHcalSubsystem::SetOuterRadius(const double outer)
-{
-  params->set_outer_radius(outer);
-}
-
-double
-PHG4InnerHcalSubsystem::GetOuterRadius() const
-{
-  return params->get_outer_radius()/cm;
-}
-
 
 void
 PHG4InnerHcalSubsystem::SetTiltViaNcross(const int ncross)
@@ -242,25 +185,3 @@ PHG4InnerHcalSubsystem::SetTiltViaNcross(const int ncross)
   params->set_ncross(ncross);
 }
 
-void
-PHG4InnerHcalSubsystem::SetStepLimits(const double slim)
-{
-  params->steplimits = slim*cm;
-}
-
-void
-PHG4InnerHcalSubsystem::SetLightCorrection(const float inner_radius, const float inner_corr,
-			  const float outer_radius, const float outer_corr) 
-{
-  params->light_balance = true;
-  params->light_balance_inner_radius = inner_radius;
-  params->light_balance_inner_corr = inner_corr;
-  params->light_balance_outer_radius = outer_radius;
-  params->light_balance_outer_corr = outer_corr;
-}
-
-void
-PHG4InnerHcalSubsystem:: SetLightScintModel(const bool b)
-{
-  params->light_scint_model = b;
-}

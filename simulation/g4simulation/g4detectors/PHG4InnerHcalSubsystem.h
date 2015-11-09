@@ -45,12 +45,6 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   virtual PHG4Detector* GetDetector( void ) const;
   virtual PHG4SteppingAction* GetSteppingAction( void ) const;
 
-  void SetPlaceZ(const G4double dbl);
-  void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z);
-
-  void SetXRot(const G4double dbl);
-  void SetYRot(const G4double dbl);
-  void SetZRot(const G4double dbl);
   PHG4EventAction* GetEventAction() const {return eventAction_;}
   void SetActive(const int i = 1);
   void SetAbsorberActive(const int i = 1);
@@ -61,15 +55,6 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   PHG4InnerHcalParameters *GetParameters();
 
   void SetTiltViaNcross(const int ncross);
-  void SetInnerRadius(const double inner);
-  double GetInnerRadius() const;
-  void SetOuterRadius(const double outer);
-  double GetOuterRadius() const;
-  void SetStepLimits(const double slim);
-
-  void SetLightCorrection(const float inner_radius, const float inner_corr,
-			  const float outer_radius, const float outer_corr);
-  void SetLightScintModel(const bool b = true);
 
 
   protected:

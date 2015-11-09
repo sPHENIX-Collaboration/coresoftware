@@ -1,7 +1,7 @@
 #ifndef PHG4VInnerHcalSteppingAction_h
 #define PHG4VInnerHcalSteppingAction_h
 
-#include "g4main/PHG4SteppingAction.h"
+#include <g4main/PHG4SteppingAction.h>
 
 class PHG4InnerHcalDetector;
 class PHG4InnerHcalParameters;
@@ -26,7 +26,7 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   //! reimplemented from base class
   virtual void SetInterfacePointers( PHCompositeNode* );
 
-  float GetLightCorrection(const float r) const;
+  double GetLightCorrection(const double r) const;
 
   private:
 

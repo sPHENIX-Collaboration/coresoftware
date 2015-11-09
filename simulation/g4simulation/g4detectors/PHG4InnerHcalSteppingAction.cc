@@ -206,7 +206,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 
       if (whichactive > 0) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
         {
-          if (params->light_scint_model)
+          if (params->get_light_scint_model())
             {
               light_yield = GetVisibleEnergyDeposition(aStep); // for scintillator only, calculate light yields
 	      static bool once = true;
@@ -226,7 +226,6 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 			   << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
 			   << "," << "edep = " << edep << ", " << "eion = " << eion
 			   << ", " << "light_yield = " << light_yield << endl;
-		      cout << "light_balance: " << params->light_balance << endl;
 		    }
 		}
 	    }
@@ -234,12 +233,15 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
             {
               light_yield = eion;
             }
-          if (params->light_balance)
+          if (isfinite(params->get_light_balance_outer_radius()) && 
+              isfinite(params->get_light_balance_inner_radius()) && 
+	      isfinite(params->get_light_balance_outer_corr()) &&
+	      isfinite(params->get_light_balance_inner_corr()))
             {
-              float r = sqrt(
-			     pow(postPoint->GetPosition().x() / cm, 2)
-			     + pow(postPoint->GetPosition().y() / cm, 2));
-              const float cor = GetLightCorrection(r);
+              double r = sqrt(
+			     postPoint->GetPosition().x()*postPoint->GetPosition().x()
+			     + postPoint->GetPosition().y()*postPoint->GetPosition().y());
+              double cor =  GetLightCorrection(r);
               light_yield = light_yield * cor;
 
               static bool once = true;
@@ -276,7 +278,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
           hit->set_eion(-1);
 	}
-      if (edep > 0 && (whichactive > 0 || params->absorbertruth > 0))
+      if (edep > 0 && (whichactive > 0 || params->AddAbsorberHitsToTruth() > 0))
 	{
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
@@ -335,12 +337,12 @@ void PHG4InnerHcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNode
     }
 }
 
-float 
-PHG4InnerHcalSteppingAction::GetLightCorrection(const float r) const
+double
+PHG4InnerHcalSteppingAction::GetLightCorrection(const double r) const
 {
-  float m = (params->light_balance_outer_corr - params->light_balance_inner_corr)/(params->light_balance_outer_radius - params->light_balance_inner_radius);
-  float b = params->light_balance_inner_corr - m*params->light_balance_inner_radius;
-  float value = m*r+b;  
+  double m = (params->get_light_balance_outer_corr() - params->get_light_balance_inner_corr())/(params->get_light_balance_outer_radius() - params->get_light_balance_inner_radius());
+  double b = params->get_light_balance_inner_corr() - m*params->get_light_balance_inner_radius();
+  double value = m*r+b;  
   if (value > 1.0) return 1.0;
   if (value < 0.0) return 0.0;
 

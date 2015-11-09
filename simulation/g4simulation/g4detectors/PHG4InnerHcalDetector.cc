@@ -91,14 +91,14 @@ PHG4InnerHcalDetector::IsInInnerHcal(G4VPhysicalVolume * volume) const
   // 82 the number of the scintillator mother volume
   // HcalInnerScinti_11: name of scintillator slat
   // 11: number of scintillator slat logical volume
-  if (params->absorberactive)
+  if (params->IsAbsorberactive())
     {
       if (steel_absorber_vec.find(volume) != steel_absorber_vec.end())
 	{
 	  return -1;
 	}
     }
-  if (params->active)
+  if (params->IsActive())
     {
       if (volume->GetName().find(scintilogicnameprefix) != string::npos)
 	{
@@ -393,10 +393,10 @@ PHG4InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
   hcalVisAtt->SetColour(G4Colour::White());
   hcal_envelope_log->SetVisAttributes(hcalVisAtt);
   G4RotationMatrix hcal_rotm;
-  hcal_rotm.rotateX(params->x_rot);
-  hcal_rotm.rotateY(params->y_rot);
-  hcal_rotm.rotateZ(params->z_rot);
-  new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(params->place_in_x, params->place_in_y, params->place_in_z)), hcal_envelope_log, "InnerHcalEnvelope", logicWorld, 0, false, overlapcheck);
+  hcal_rotm.rotateX(params->get_rot_x());
+  hcal_rotm.rotateY(params->get_rot_y());
+  hcal_rotm.rotateZ(params->get_rot_z());
+  new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(params->get_place_x(), params->get_place_y(), params->get_place_z())), hcal_envelope_log, "InnerHcalEnvelope", logicWorld, 0, false, overlapcheck);
   ConstructInnerHcal(hcal_envelope_log);
   AddGeometryNode();
   return;
@@ -574,9 +574,9 @@ PHG4InnerHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalen
       name.str("");
       name << scintilogicnameprefix << i;
       G4UserLimits *g4userlimits = NULL;
-      if (isfinite(params->steplimits))
+      if (isfinite(params->get_steplimits()))
 	{
-	  g4userlimits = new G4UserLimits(params->steplimits);
+	  g4userlimits = new G4UserLimits(params->get_steplimits());
 	}
       G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i], G4Material::GetMaterial("G4_POLYSTYRENE"), name.str().c_str(), NULL, NULL, g4userlimits);
       G4VisAttributes *visattchk = new G4VisAttributes();
@@ -664,7 +664,7 @@ PHG4InnerHcalDetector::CheckTiltAngle() const
 void
 PHG4InnerHcalDetector::AddGeometryNode()
 {
-  if (params->active)
+  if (params->IsActive())
     {
       ostringstream geonode;
       if (superdetector != "NONE")
@@ -686,7 +686,7 @@ PHG4InnerHcalDetector::AddGeometryNode()
 	}
       // here in the detector class we have internal units, convert to cm
       // before putting into the geom object
-      PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv3(params->get_inner_radius() / cm, (params->place_in_z - params->get_size_z() / 2.) / cm, (params->place_in_z + params->get_size_z() / 2.) / cm, (params->get_outer_radius() - params->get_inner_radius()) / cm, params->get_n_scinti_plates(),  params->get_tilt_angle() / rad, 0);
+      PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv3(params->get_inner_radius() / cm, (params->get_place_z() - params->get_size_z() / 2.) / cm, (params->get_place_z() + params->get_size_z() / 2.) / cm, (params->get_outer_radius() - params->get_inner_radius()) / cm, params->get_n_scinti_plates(),  params->get_tilt_angle() / rad, 0);
       geo->AddLayerGeom(layer, mygeom);
       if (verbosity > 0) geo->identify();
     }
