@@ -54,9 +54,6 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   void BlackHole(const int i=1);
   PHG4InnerHcalParameters *GetParameters();
 
-  void SetTiltViaNcross(const int ncross);
-
-
   protected:
 
   //! detector geometry

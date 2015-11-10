@@ -28,7 +28,7 @@ class PHG4InnerHcalParameters
   void BlackHole(const int n) {blackhole = n;}
   int IsBlackHole() const {return blackhole;}
 
-  void set_ncross(const int n) {ncross = n;}
+  void set_ncross(const int n);
   int get_ncross() const {return ncross;}
 
   void set_n_scinti_plates(const int n) {n_scinti_plates = n;}

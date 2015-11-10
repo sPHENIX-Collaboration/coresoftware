@@ -3,6 +3,7 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 
 using namespace std;
@@ -65,6 +66,22 @@ PHG4InnerHcalParameters::print() const
   cout << "Rotation in Y: " << rot_y << endl;
   cout << "Rotation in Z: " << rot_z << endl;
   return;
+}
+
+void
+PHG4InnerHcalParameters::set_ncross(const int ncr)
+{
+  if (ncr == 0)
+    {
+      cout << "Invalid number of crossings: " << ncr
+	   << " how do you expect me to calculate a tilt angle for this????"
+	   << endl
+	   << "If you want a 0 degree tilt angle, just use SetTiltAngle(0)"
+	   << endl
+	   << "I refuse to continue this!" << endl;
+      exit(1);
+    }
+  ncross = ncr;
 }
 
 double
