@@ -1,7 +1,7 @@
 #ifndef PHG4InnerHcalSubsystem_h
 #define PHG4InnerHcalSubsystem_h
 
-#include "g4main/PHG4Subsystem.h"
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
@@ -45,13 +45,6 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   virtual PHG4Detector* GetDetector( void ) const;
   virtual PHG4SteppingAction* GetSteppingAction( void ) const;
 
-  void SetPlaceZ(const G4double dbl);
-  void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z);
-
-  void SetXRot(const G4double dbl);
-  void SetYRot(const G4double dbl);
-  void SetZRot(const G4double dbl);
-  void SetMaterial(const std::string &mat);
   PHG4EventAction* GetEventAction() const {return eventAction_;}
   void SetActive(const int i = 1);
   void SetAbsorberActive(const int i = 1);
@@ -59,26 +52,7 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   const std::string SuperDetector() {return superdetector;}
 
   void BlackHole(const int i=1);
-
-  void SetTiltViaNcross(const int ncross);
-  void SetTiltAngle(const double tilt);
-  double GetTiltAngle() const;
-  void SetInnerRadius(const double inner);
-  double GetInnerRadius() const;
-  void SetOuterRadius(const double outer);
-  double GetOuterRadius() const;
-  void SetLength(const double len);
-  void SetGapWidth(const double gap);
-  void SetNumScintiPlates(const int nplates);
-  void SetNumScintiTiles(const int ntiles);
-  void SetScintiThickness(const double thick);
-  void SetScintiGap(const double scgap);
-  void SetStepLimits(const double slim);
-
-  void SetLightCorrection(const float inner_radius, const float inner_corr,
-			  const float outer_radius, const float outer_corr);
-  void SetLightScintModel(const bool b = true);
-
+  PHG4InnerHcalParameters *GetParameters();
 
   protected:
 

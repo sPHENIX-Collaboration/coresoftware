@@ -40,7 +40,6 @@ libpdbcalBase_la_SOURCES = \
   PdbCalBank_dict.C \
   PdbCalBase.cc \
   PdbCalBase_dict.C \
-  PdbCalChan.cc \
   PdbCalChan_dict.C \
   PdbCalHeader.cc \
   PdbCalHeader_dict.C \
