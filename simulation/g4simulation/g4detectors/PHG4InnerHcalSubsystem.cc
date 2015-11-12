@@ -93,6 +93,8 @@ PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
       PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",superdetector));
       if (! DetNode)
 	{
+      if (! DetNode)
+	{
           DetNode = new PHCompositeNode(superdetector);
           dstNode->addNode(DetNode);
         }
