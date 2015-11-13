@@ -40,16 +40,7 @@ RawTowerv1::RawTowerv1(const unsigned int ieta, const unsigned int iphi) :
   towerid(0),
   energy(0)
 {
-  if (ieta < 0xFFF && iphi < 0xFFF)
-    {
-      towerid = (ieta << RawTowerDefs::eta_idbits) + iphi;
-    }
-  else
-    {
-      cout << "too large eta or phi bin, eta: " << ieta
-	   << ", phi: " << iphi << ", max val: " << 0xFFF << endl;
-      exit(1);
-    }
+  towerid = RawTowerDefs::encode_towerid( RawTowerDefs::NONE , ieta , iphi );
 }
 
 RawTowerv1::~RawTowerv1()

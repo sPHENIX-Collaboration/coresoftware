@@ -21,8 +21,8 @@ class RawTowerv1 : public RawTower {
   void identify(std::ostream& os=std::cout) const;
 
   RawTowerDefs::keytype get_id() const { return towerid;}
-  int get_bineta() const { return (towerid >> RawTowerDefs::eta_idbits)&0xFFF ; }
-  int get_binphi() const { return towerid&0xFFF; }
+  int get_bineta() const { return RawTowerDefs::decode_index1(towerid); }
+  int get_binphi() const { return RawTowerDefs::decode_index2(towerid); }
   double get_energy() const {return energy;}
   void set_energy(const double e) {energy = e;}
 

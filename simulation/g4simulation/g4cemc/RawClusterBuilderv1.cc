@@ -193,8 +193,7 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 	// that code needs a closer look - here are the towers 
 	// with their energy added to the cluster object where 
 	// the id is the tower id
-	RawTowerDefs::keytype twrkey = (ieta << RawTowerDefs::eta_idbits);
-        twrkey |= iphi;
+	RawTowerDefs::keytype twrkey = RawTowerDefs::encode_towerid( RawTowerDefs::NONE , ieta , iphi );
 	cluster->addTower(twrkey,(*ph).amp/fEnergyNorm);
 	ph++;
       }

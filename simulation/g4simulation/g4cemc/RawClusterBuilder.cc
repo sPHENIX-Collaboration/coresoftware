@@ -186,10 +186,10 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
       int iphi = tmptower.get_binphi();
       int ieta = tmptower.get_bineta();
       RawTower *rawtower = towers->getTower(ieta, iphi);
-      if (tmptower.get_id() != (int) towers->genkey(ieta, iphi))
+      if (tmptower.get_id() != (int) RawTowerDefs::encode_towerid( RawTowerDefs::NONE, ieta, iphi ))
 	{
 	  cout << "id mismatch. internal: " << tmptower.get_id()
-	       << ", towercontainer: " << towers->genkey(ieta, iphi)
+	       << ", towercontainer: " << RawTowerDefs::encode_towerid( RawTowerDefs::NONE, ieta, iphi )
 	       << endl;
 	  exit(1);
 	}

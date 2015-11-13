@@ -20,7 +20,10 @@ class RawTowerContainer : public PHObject
   typedef std::pair<Iterator, Iterator> Range;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
-  RawTowerContainer() {}
+  RawTowerContainer( RawTowerDefs::CalorimeterId caloid = RawTowerDefs::NONE )
+  {
+    _caloid = caloid;
+  }
   virtual ~RawTowerContainer() {}
 
   void Reset();
@@ -37,9 +40,9 @@ class RawTowerContainer : public PHObject
   unsigned int size() const {return _towers.size();}
   void compress(const double emin);
   double getTotalEdep() const;
-  RawTowerDefs::keytype genkey(const unsigned int ieta, const unsigned int iphi) const;
 
  protected:
+  RawTowerDefs::CalorimeterId _caloid;
   Map _towers;
 
   ClassDef(RawTowerContainer,1)

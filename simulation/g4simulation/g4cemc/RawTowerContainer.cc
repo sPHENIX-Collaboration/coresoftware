@@ -8,22 +8,6 @@ ClassImp(RawTowerContainer)
 
 using namespace std;
 
-RawTowerDefs::keytype
-RawTowerContainer::genkey(const unsigned int ieta, const unsigned int iphi) const
-{
-  if (ieta > 0xFFF || iphi > 0xFFF)
-    {
-      cout << "ieta " << ieta << " or iphi " << iphi 
-	   << " exceed max length of " << 0xFFF << endl;
-      cout << "reconsider the generation of unique keys" << endl;
-      exit(1);
-    }
-  RawTowerDefs::keytype key = 0;
-  key |= (ieta << RawTowerDefs::eta_idbits);
-  key |= iphi;
-  return key;
-}
-
 void 
 RawTowerContainer::compress(const double emin)
 {
@@ -65,7 +49,7 @@ RawTowerContainer::getTowers( void )
 RawTowerContainer::ConstIterator
 RawTowerContainer::AddTower(const unsigned int ieta, const int unsigned iphi, RawTower *rawtower)
 {
-  RawTowerDefs::keytype key = genkey(ieta,iphi);
+  RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(_caloid,ieta,iphi);
   _towers[key] = rawtower;
   return _towers.find(key);
 }
@@ -91,7 +75,7 @@ RawTowerContainer::getTower(RawTowerDefs::keytype key)
 RawTower *
 RawTowerContainer::getTower(const unsigned int ieta, const unsigned int iphi)
 {
-  RawTowerDefs::keytype key = genkey(ieta,iphi);
+  RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(_caloid,ieta,iphi);
   return getTower(key);
 }
 
