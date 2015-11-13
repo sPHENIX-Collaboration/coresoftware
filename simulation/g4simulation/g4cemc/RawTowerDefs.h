@@ -2,6 +2,7 @@
 #define RAWTOWERDEFS_H
 
 #include <iostream>
+#include <string>
 
 /*! Namespace with functions to encode / decode CaloTowerID. The highest 8 bits of the tower ID encode a unique ID
  * for the calorimeter the tower is in. The lower 24 bits uniquely identify the tower within a calorimeter.
@@ -75,6 +76,70 @@ namespace RawTowerDefs
     return calo_tower_id &0xFFF;
   }
 
-}
+  /*! Convert calorimeter ID to name string
+   */
+  inline std::string convert_caloid_to_name( const RawTowerDefs::CalorimeterId calo_id )
+  {
+    switch ( calo_id ){
+
+    case NONE:
+      return "NONE";
+      break;
+
+    case CEMC:
+      return "CEMC";
+      break;
+
+    case HCALIN:
+      return "HCALIN";
+      break;
+
+    case HCALOUT:
+      return "HCALOUT";
+      break;
+
+    case EEMC:
+      return "EEMC";
+      break;
+
+    case FEMC:
+      return "FEMC";
+      break;
+
+    case FHCAL:
+      return "FHCAL";
+      break;
+    }
+
+    return "unknown";
+  }
+
+  /*! Convert name string to calorimeter ID
+   */
+  inline RawTowerDefs::CalorimeterId convert_name_to_caloid( const std::string caloname )
+  {
+    if ( caloname == "CEMC" )
+      return CEMC;
+
+    else if ( caloname == "HCALIN" )
+      return HCALIN;
+
+    else if ( caloname == "HCALOUT" )
+      return HCALOUT;
+
+    else if ( caloname == "EEMC" )
+      return EEMC;
+
+    else if ( caloname == "FEMC" )
+      return FEMC;
+
+    else if ( caloname == "FHCAL" )
+      return FHCAL;
+
+    else
+      return NONE;
+  }
+
+} // end namespace RawTowerDefs
 
 #endif
