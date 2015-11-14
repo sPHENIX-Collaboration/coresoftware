@@ -25,6 +25,8 @@ libcemc_io_la_SOURCES = \
   NewGeom_Dict.cc \
   NewGeomv1.cc \
   NewGeomv1_Dict.cc \
+  NewGeomContainer.cc \
+  NewGeomContainer_Dict.cc \
   RawCluster_Dict.cc \
   RawClusterv1.cc \
   RawClusterv1_Dict.cc \
@@ -96,6 +98,7 @@ pkginclude_HEADERS = \
   RawClusterContainer.h \
   NewGeom.h \
   NewGeomv1.h \
+  NewGeomContainer.h \
   RawTower.h \
   RawTowerDefs.h \
   RawTowerv1.h \
