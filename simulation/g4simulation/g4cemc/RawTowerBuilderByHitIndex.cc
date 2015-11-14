@@ -3,6 +3,9 @@
 #include "RawTowerv1.h"
 #include "RawTowerContainer.h"
 
+#include "NewGeomv1.h"
+#include "NewGeomContainer.h"
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
@@ -15,6 +18,8 @@
 
 #include <cmath>
 #include <iostream>
+#include <sstream>
+#include <fstream>
 #include <stdexcept>
 #include <map>
 
@@ -23,7 +28,12 @@ using namespace std;
 RawTowerBuilderByHitIndex::RawTowerBuilderByHitIndex(const std::string& name):
   SubsysReco(name),
   towers_(NULL),
+  geoms_(NULL),
   detector_("NONE"),
+  node_name_hits_("DEFAULT"),
+  node_name_towers_("DEFAULT"),
+  node_name_tower_geometries_("DEFAULT"),
+  mapping_tower_file_("default.txt"),
   calo_id_( RawTowerDefs::NONE ),
   emin_(1e-6),
   timer_( PHTimeServer::get()->insert_new(name) )
@@ -52,6 +62,17 @@ RawTowerBuilderByHitIndex::InitRun(PHCompositeNode *topNode)
       std::cout << e.what() << std::endl;
       //exit(1);
     }
+
+  try
+    {
+      ReadGeometryFromTable();
+    }
+  catch (std::exception& e)
+    {
+      std::cout << e.what() << std::endl;
+      //exit(1);
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -156,5 +177,73 @@ RawTowerBuilderByHitIndex::CreateNodes(PHCompositeNode *topNode)
   PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(towers_, node_name_towers_.c_str(), "PHObject");
   dstNode->addNode(towerNode);
 
+  // Create the tower geometry node on the tree
+  geoms_ = new NewGeomContainer( RawTowerDefs::convert_name_to_caloid( detector_ ) );
+  node_name_tower_geometries_ = "TOWER_GEOM_" + detector_;
+
+  PHIODataNode<PHObject> *geomNode = new PHIODataNode<PHObject>(geoms_, node_name_tower_geometries_.c_str(), "PHObject");
+  dstNode->addNode(geomNode);
+
   return;
+}
+
+
+bool RawTowerBuilderByHitIndex::ReadGeometryFromTable() {
+
+  /* Stream to read table from file */
+  ifstream istream_mapping;
+
+  /* Open the datafile, if it won't open return an error */
+  if (!istream_mapping.is_open())
+    {
+      istream_mapping.open( mapping_tower_file_.c_str() );
+      if(!istream_mapping)
+	{
+	  cerr << "CaloTowerGeomManager::ReadGeometryFromTable - ERROR Failed to open mapping file " << mapping_tower_file_ << endl;
+	  exit(1);
+	}
+    }
+
+  string line_mapping;
+
+  while ( getline( istream_mapping, line_mapping ) )
+    {
+
+      unsigned idx_j, idx_k, idx_l;
+      float pos_x, pos_y, pos_z, size_x, size_y, size_z, alpha, beta, gamma;
+      float dummy;
+
+      istringstream iss(line_mapping);
+
+      /* Skip lines starting with / including a '#' */
+      if ( line_mapping.find("#") != string::npos )
+	{
+	  continue;
+	}
+
+      /* read string- break if error */
+      if ( !( iss >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> alpha >> beta >> gamma >> dummy ) )
+	{
+	  cerr << "RawTowerBuilderByHitIndex::ReadGeometryFromTable - ERROR Failed to read line in mapping file " << mapping_tower_file_ << endl;
+	  exit(1);
+	}
+
+      /* Construct unique Tower ID */
+      unsigned int temp_id = RawTowerDefs::encode_towerid( calo_id_ , idx_j , idx_k );
+
+      /* Create tower geometry object */
+      NewGeom* temp_geo = new NewGeomv1( temp_id );
+      temp_geo->set_center_x( pos_x );
+      temp_geo->set_center_y( pos_y );
+      temp_geo->set_center_z( pos_z );
+      temp_geo->set_size_x( size_x );
+      temp_geo->set_size_y( size_y );
+      temp_geo->set_size_z( size_z );
+
+      /* Insert this tower into position map */
+      geoms_->add_tower_geometry( temp_geo );
+    }
+
+  return true;
+
 }

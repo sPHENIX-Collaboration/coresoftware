@@ -10,6 +10,7 @@
 
 class PHCompositeNode;
 class RawTowerContainer;
+class NewGeomContainer;
 class PHG4HitContainer;
 
 /**
@@ -34,6 +35,11 @@ public:
    */
   void Detector( const std::string &d );
 
+  /** Specifiy text-file with table for tower mapping
+   */
+  void GeometryTableFile( const std::string d )
+  { mapping_tower_file_ = d; }
+
   /** Define minimum tower energy. After processing an event, towers with lower energy
    * are will be deleted.
    */
@@ -47,11 +53,19 @@ protected:
    */
   void CreateNodes(PHCompositeNode *topNode);
 
+  /** Read geometry information from table stored in text-file
+   */
+  bool ReadGeometryFromTable();
+
   RawTowerContainer* towers_;
+  NewGeomContainer* geoms_;
 
   std::string detector_;
   std::string node_name_hits_;
   std::string node_name_towers_;
+  std::string node_name_tower_geometries_;
+
+  std::string mapping_tower_file_;
 
   RawTowerDefs::CalorimeterId calo_id_;
 
