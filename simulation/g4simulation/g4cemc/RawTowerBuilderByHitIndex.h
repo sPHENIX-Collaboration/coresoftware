@@ -1,0 +1,64 @@
+#ifndef _RAW_TOWER_BUILDER_BY_HIT_INDEX__
+#define _RAW_TOWER_BUILDER_BY_HIT_INDEX__
+
+#include <fun4all/SubsysReco.h>
+#include <string>
+
+#include <phool/PHTimeServer.h>
+
+#include "RawTowerDefs.h"
+
+class PHCompositeNode;
+class RawTowerContainer;
+class PHG4HitContainer;
+
+/**
+ * \brief SubsysReco module creating calorimeter tower objects (RawTowerv1) from hits
+ * (PHG4Hit) using j,k indeces of these hits
+ *
+ */
+class RawTowerBuilderByHitIndex : public SubsysReco {
+
+public:
+
+  RawTowerBuilderByHitIndex( const std::string& name="RawTowerBuilderByHitIndex" );
+  virtual ~RawTowerBuilderByHitIndex(){}
+
+  int InitRun(PHCompositeNode *topNode);
+
+  int process_event(PHCompositeNode *topNode);
+
+  int End(PHCompositeNode *topNode);
+
+  /** Name of the detector node the G4Hits should be taken from.
+   */
+  void Detector( const std::string &d );
+
+  /** Define minimum tower energy. After processing an event, towers with lower energy
+   * are will be deleted.
+   */
+  void EminCut(const double e) {emin_ = e;}
+
+protected:
+
+  /** Create nodes for output.
+   *
+   * Name of output node for RawTowerContainer: "TOWER_" + detector;
+   */
+  void CreateNodes(PHCompositeNode *topNode);
+
+  RawTowerContainer* towers_;
+
+  std::string detector_;
+  std::string node_name_hits_;
+  std::string node_name_towers_;
+
+  RawTowerDefs::CalorimeterId calo_id_;
+
+  double emin_;
+
+  PHTimeServer::timer timer_;
+
+};
+
+#endif
