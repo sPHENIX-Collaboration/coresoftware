@@ -43,6 +43,13 @@ RawTowerv1::RawTowerv1(const unsigned int ieta, const unsigned int iphi) :
   towerid = RawTowerDefs::encode_towerid( RawTowerDefs::NONE , ieta , iphi );
 }
 
+RawTowerv1::RawTowerv1(const RawTowerDefs::CalorimeterId caloid, const unsigned int ieta, const unsigned int iphi) :
+  towerid(0),
+  energy(0)
+{
+  towerid = RawTowerDefs::encode_towerid( caloid , ieta , iphi );
+}
+
 RawTowerv1::~RawTowerv1()
 {}
 
