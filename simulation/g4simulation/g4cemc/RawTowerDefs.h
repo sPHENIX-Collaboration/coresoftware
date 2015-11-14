@@ -109,16 +109,23 @@ namespace RawTowerDefs
     case FHCAL:
       return "FHCAL";
       break;
+
+    default:
+      std::cout << "Invalid calorimeter ID passed to RawTowerDefs::convert_caloid_to_name" << std::endl;
+      exit(1);
+
     }
 
-    return "unknown";
   }
 
   /*! Convert name string to calorimeter ID
    */
   inline RawTowerDefs::CalorimeterId convert_name_to_caloid( const std::string caloname )
   {
-    if ( caloname == "CEMC" )
+    if ( caloname == "NONE" )
+      return NONE;
+
+    else if ( caloname == "CEMC" )
       return CEMC;
 
     else if ( caloname == "HCALIN" )
@@ -137,7 +144,10 @@ namespace RawTowerDefs
       return FHCAL;
 
     else
-      return NONE;
+      {
+	std::cout << "Invalid calorimeter name " << caloname << " passed to RawTowerDefs::convert_name_to_caloid" << std::endl;
+	exit(1);
+      }
   }
 
 } // end namespace RawTowerDefs
