@@ -211,7 +211,7 @@ RawTowerBuilderCone::CreateNodes(PHCompositeNode *topNode)
     }
 
   // Create the tower nodes on the tree
-  _towers = new RawTowerContainer();
+  _towers = new RawTowerContainer( RawTowerDefs::convert_name_to_caloid( detector ) );
   TowerNodeName = "TOWER_" + detector;
   if (GroupID.length())
     {

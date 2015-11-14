@@ -97,7 +97,7 @@ RawTowerCombiner::InitRun(PHCompositeNode *topNode)
       cout << "no input towers found" << endl;
       exit(1);
     }
-  RawTowerContainer *towers = new RawTowerContainer();
+  RawTowerContainer *towers = new RawTowerContainer( RawTowerDefs::convert_name_to_caloid( detector ) );
   PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(towers, TowerNodeName.c_str(), "PHObject");
   dstNode->addNode(towerNode);
   // stash the pointers to our input tower nodes

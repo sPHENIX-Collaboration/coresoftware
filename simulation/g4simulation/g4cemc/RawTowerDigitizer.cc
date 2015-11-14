@@ -269,7 +269,7 @@ RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-  _raw_towers = new RawTowerContainer();
+  _raw_towers = new RawTowerContainer( RawTowerDefs::convert_name_to_caloid( detector ) );
   RawTowerNodeName = "TOWER_" + _raw_tower_node_prefix + "_" + detector;
   PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_raw_towers,
       RawTowerNodeName.c_str(), "PHObject");

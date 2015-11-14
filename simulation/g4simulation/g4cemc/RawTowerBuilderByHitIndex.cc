@@ -150,7 +150,7 @@ RawTowerBuilderByHitIndex::CreateNodes(PHCompositeNode *topNode)
     }
 
   // Create the tower nodes on the tree
-  towers_ = new RawTowerContainer();
+  towers_ = new RawTowerContainer( RawTowerDefs::convert_name_to_caloid( detector_ ) );
   node_name_towers_ = "TOWER_" + detector_;
 
   PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(towers_, node_name_towers_.c_str(), "PHObject");

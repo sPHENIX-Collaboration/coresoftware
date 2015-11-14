@@ -405,7 +405,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
    }
 
   // Create the tower nodes on the tree
-  _towers = new RawTowerContainer();
+  _towers = new RawTowerContainer( RawTowerDefs::convert_name_to_caloid( detector ) );
   if (_sim_tower_node_prefix.length() == 0)
     {
       // no prefix, consistent with older convension

@@ -191,7 +191,7 @@ RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-  _calib_towers = new RawTowerContainer();
+  _calib_towers = new RawTowerContainer( RawTowerDefs::convert_name_to_caloid( detector ) );
   CaliTowerNodeName = "TOWER_" + _calib_tower_node_prefix + "_" + detector;
   PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_calib_towers,
       CaliTowerNodeName.c_str(), "PHObject");
