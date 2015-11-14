@@ -22,6 +22,9 @@ RINCLUDES = \
   -I${G4_MAIN}/include/Geant4
 
 libcemc_io_la_SOURCES = \
+  NewGeom_Dict.cc \
+  NewGeomv1.cc \
+  NewGeomv1_Dict.cc \
   RawCluster_Dict.cc \
   RawClusterv1.cc \
   RawClusterv1_Dict.cc \
@@ -91,6 +94,8 @@ pkginclude_HEADERS = \
   RawCluster.h \
   RawClusterDefs.h \
   RawClusterContainer.h \
+  NewGeom.h \
+  NewGeomv1.h \
   RawTower.h \
   RawTowerDefs.h \
   RawTowerv1.h \
