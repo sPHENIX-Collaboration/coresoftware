@@ -36,8 +36,12 @@ libcemc_io_la_SOURCES = \
   RawTowerGeom_Dict.cc \
   RawTowerGeomv1.cc \
   RawTowerGeomv1_Dict.cc \
-  RawTowerGeomv2.cc \
-  RawTowerGeomv2_Dict.cc
+  RawTowerGeomContainer.cc \
+  RawTowerGeomContainer_Dict.cc \
+  RawTowerGeomContainerv1.cc \
+  RawTowerGeomContainerv1_Dict.cc \
+  RawTowerGeomContainer_Cylinderv1.cc \
+  RawTowerGeomContainer_Cylinderv1_Dict.cc
 
 libcemc_la_SOURCES = \
   RawClusterBuilder.cc \
@@ -92,8 +96,12 @@ pkginclude_HEADERS = \
   RawTower.h \
   RawTowerDefs.h \
   RawTowerv1.h \
-  RawTowerContainer.h \
-  RawTowerGeom.h
+  RawTowerContainer.h  \
+  RawTowerGeom.h \
+  RawTowerGeomv1.h \
+  RawTowerGeomContainer.h \
+  RawTowerGeomContainerv1.h \
+  RawTowerGeomContainer_Cylinderv1.h
 
 ################################################
 # linking tests
