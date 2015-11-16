@@ -1,117 +1,57 @@
-#include "RawTowerGeomv1.h"
+#include "NewGeomv1.h"
+
+#include <g4main/PHG4Utils.h>
+
+#include <iostream>
+#include <algorithm>
 
 #include <cmath>
-#include <cstdlib>
-
-ClassImp(RawTowerGeomv1)
+#include <map>
 
 using namespace std;
 
-RawTowerGeomv1::RawTowerGeomv1():
-  radius(NAN),
-  thickness(NAN),
-  netabins(-1),
-  etamin(NAN),
-  etastep(NAN),
-  nphibins(-1),
-  phimin(-M_PI),
-  phistep(NAN)
+ClassImp(NewGeomv1)
+
+NewGeomv1::NewGeomv1(RawTowerDefs::keytype id) :
+  _towerid(id),
+  _center_x(0),
+  _center_y(0),
+  _center_z(0),
+  _size_x(0),
+  _size_y(0),
+  _size_z(0)
+{}
+
+NewGeomv1::~NewGeomv1()
+{}
+
+
+double NewGeomv1::get_center_radius() const
 {
-  return;
+  return sqrt( _center_x * _center_x +
+	       _center_y * _center_y +
+	       _center_z * _center_z );
 }
 
-void
-RawTowerGeomv1::identify(std::ostream& os) const
+double NewGeomv1::get_eta() const
 {
-  os << "RawTowerGeomv1: radius: " << radius
-     << ", thickness: " << thickness
-     << ", etabins: " << netabins
-     << ", etamin: " << etamin
-     << ", etastepsize: " << etastep
-     << ", phimin: " << phimin
-     << ", phibins: " << nphibins
-     << ", phistep: " << phistep
-     << endl;
-  return;
+  std::pair<double,double> etaphi;
+  etaphi = PHG4Utils::get_etaphi( _center_x , _center_y , _center_z );
+
+  return etaphi.first;
 }
 
-pair<double, double>
-RawTowerGeomv1::get_etabounds(const int ibin) const
+double NewGeomv1::get_phi() const
 {
-  if (ibin < 0 || ibin > netabins)
-    {
-      cout << "Asking for invalid bin in eta: " << ibin << endl;
-      exit(1);
-    }
-  double etalow = etamin + ibin * etastep;
-  double etahigh = etalow + etastep;
-  return make_pair(etalow, etahigh);
-}
+  std::pair<double,double> etaphi;
+  etaphi = PHG4Utils::get_etaphi( _center_x , _center_y , _center_z );
 
-
-pair<double, double>
-RawTowerGeomv1::get_phibounds(const int ibin) const
-{
-  if (ibin < 0 || ibin > nphibins)
-    {
-      cout << "Asking for invalid bin in phi: " << ibin << endl;
-      exit(1);
-    }
-
-  double philow = phimin + ibin * phistep;
-  double phihigh = philow + phistep;
-  return make_pair(philow, phihigh);
-}
-
-int
-RawTowerGeomv1::get_etabin(const double eta) const
-{
-  if (eta < etamin || eta > (etamin+netabins*etastep))
-  {
-    cout << "Asking for bin for eta outside of eta range: " << eta << endl;
-    return -1;
-  }
-  return floor( (eta-etamin)/etastep );
-}
-
-int
-RawTowerGeomv1::get_phibin(const double phi) const
-{
-//  double norm_phi = phi;
-//  if (phi < phimin || phi > (phimin + nphibins * phistep))
-//    {
-//      int nwraparound = -floor((phi - phimin) * 0.5 / M_PI);
-//      norm_phi += 2 * M_PI * nwraparound;
-//    }
-
-  const int bin = floor((phi - phimin) / phistep);
-  const int bin_wrap = floor((double)bin/(double)nphibins)*nphibins;
-
-  return bin - bin_wrap;
+  return etaphi.second;
 }
 
 
-double
-RawTowerGeomv1::get_etacenter(const int ibin) const
+void NewGeomv1::identify(std::ostream& os) const
 {
-  if (ibin < 0 || ibin > netabins)
-    {
-      cout << "Asking for invalid bin in eta: " << ibin << endl;
-      cout << "minbin: 0, maxbin " << netabins << endl; 
-      exit(1);
-    }
-  return etamin + (ibin + 0.5)*etastep;
+  std::cout << "NewGeomv1:  x: " << get_center_x() << "  y: " << get_center_y() << "  z: " << get_center_z()
+	    << "\n           dx: " << get_size_x() << " dy: " << get_size_y() << " dz: " << get_size_z() << std::endl;
 }
-
-double
-RawTowerGeomv1::get_phicenter(const int ibin) const
-{
-  if (ibin < 0 || ibin > nphibins)
-    {
-      cout << "Asking for invalid bin in phi: " << ibin << endl;
-      exit(1);
-    }
-
-  return (phimin + (ibin + 0.5)*phistep);
-}
-
