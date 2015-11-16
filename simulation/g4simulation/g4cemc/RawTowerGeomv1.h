@@ -1,15 +1,15 @@
 #ifndef NEWGEOMV1_H_
 #define NEWGEOMV1_H_
 
-#include "NewGeom.h"
+#include "RawTowerGeom.h"
 
 #include <map>
 
-class NewGeomv1 : public NewGeom {
+class RawTowerGeomv1 : public RawTowerGeom {
 
  public:
-  NewGeomv1(RawTowerDefs::keytype id);
-  virtual ~NewGeomv1();
+  RawTowerGeomv1(RawTowerDefs::keytype id);
+  virtual ~RawTowerGeomv1();
 
   void identify(std::ostream& os=std::cout) const;
 
@@ -47,7 +47,7 @@ class NewGeomv1 : public NewGeom {
   double _size_y;
   double _size_z;
 
-  ClassDef(NewGeomv1,3)
+  ClassDef(RawTowerGeomv1,3)
 };
 
 #endif /* NEWGEOMV1_H_ */

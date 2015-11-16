@@ -1,45 +1,45 @@
-#include "NewGeomContainer.h"
-#include "NewGeom.h"
+#include "RawTowerGeomContainerv1.h"
+#include "RawTowerGeom.h"
 
 #include <cstdlib>
 #include <iostream>
 
-ClassImp(NewGeomContainer)
+ClassImp(RawTowerGeomContainerv1)
 
 using namespace std;
 
 
-NewGeomContainer::NewGeomContainer( RawTowerDefs::CalorimeterId caloid )
+RawTowerGeomContainerv1::RawTowerGeomContainerv1( RawTowerDefs::CalorimeterId caloid )
   {
     _caloid = caloid;
   }
 
-NewGeomContainer::~NewGeomContainer()
+RawTowerGeomContainerv1::~RawTowerGeomContainerv1()
 {}
 
-NewGeomContainer::ConstRange
-NewGeomContainer::get_tower_geometries( void ) const
+RawTowerGeomContainerv1::ConstRange
+RawTowerGeomContainerv1::get_tower_geometries( void ) const
 {
   return make_pair(_geoms.begin(), _geoms.end());
 }
 
 
-NewGeomContainer::Range
-NewGeomContainer::get_tower_geometries( void )
+RawTowerGeomContainerv1::Range
+RawTowerGeomContainerv1::get_tower_geometries( void )
 {
   return make_pair(_geoms.begin(), _geoms.end());
 }
 
 
-NewGeomContainer::ConstIterator
-NewGeomContainer::add_tower_geometry(NewGeom *geo)
+RawTowerGeomContainerv1::ConstIterator
+RawTowerGeomContainerv1::add_tower_geometry(RawTowerGeom *geo)
 {
   _geoms[geo->get_id()] = geo;
   return _geoms.find(geo->get_id());
 }
 
-NewGeom *
-NewGeomContainer::get_tower_geometry(RawTowerDefs::keytype key)
+RawTowerGeom *
+RawTowerGeomContainerv1::get_tower_geometry(RawTowerDefs::keytype key)
 {
   Iterator it = _geoms.find(key);
   if (it != _geoms.end())
@@ -51,13 +51,13 @@ NewGeomContainer::get_tower_geometry(RawTowerDefs::keytype key)
 
 
 int
-NewGeomContainer::isValid() const
+RawTowerGeomContainerv1::isValid() const
 {
   return (!_geoms.empty());
 }
 
 void
-NewGeomContainer::Reset()
+RawTowerGeomContainerv1::Reset()
 {
   while (_geoms.begin() != _geoms.end())
     {
@@ -67,7 +67,7 @@ NewGeomContainer::Reset()
 }
 
 void
-NewGeomContainer::identify(std::ostream& os) const
+RawTowerGeomContainerv1::identify(std::ostream& os) const
 {
-  os << "NewGeomContainer, number of tower geometries: " << size() << std::endl;
+  os << "RawTowerGeomContainerv1, number of tower geometries: " << size() << std::endl;
 }

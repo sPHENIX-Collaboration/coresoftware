@@ -1,45 +1,45 @@
-#include "NewGeomContainer.h"
+#include "RawTowerGeomContainer_Cylinderv1.h"
 #include "NewGeom.h"
 
 #include <cstdlib>
 #include <iostream>
 
-ClassImp(NewGeomContainer)
+ClassImp(RawTowerGeomContainer_Cylinderv1)
 
 using namespace std;
 
 
-NewGeomContainer::NewGeomContainer( RawTowerDefs::CalorimeterId caloid )
+RawTowerGeomContainer_Cylinderv1::RawTowerGeomContainer_Cylinderv1( RawTowerDefs::CalorimeterId caloid )
   {
     _caloid = caloid;
   }
 
-NewGeomContainer::~NewGeomContainer()
+RawTowerGeomContainer_Cylinderv1::~RawTowerGeomContainer_Cylinderv1()
 {}
 
-NewGeomContainer::ConstRange
-NewGeomContainer::get_tower_geometries( void ) const
+RawTowerGeomContainer_Cylinderv1::ConstRange
+RawTowerGeomContainer_Cylinderv1::get_tower_geometries( void ) const
 {
   return make_pair(_geoms.begin(), _geoms.end());
 }
 
 
-NewGeomContainer::Range
-NewGeomContainer::get_tower_geometries( void )
+RawTowerGeomContainer_Cylinderv1::Range
+RawTowerGeomContainer_Cylinderv1::get_tower_geometries( void )
 {
   return make_pair(_geoms.begin(), _geoms.end());
 }
 
 
-NewGeomContainer::ConstIterator
-NewGeomContainer::add_tower_geometry(NewGeom *geo)
+RawTowerGeomContainer_Cylinderv1::ConstIterator
+RawTowerGeomContainer_Cylinderv1::add_tower_geometry(NewGeom *geo)
 {
   _geoms[geo->get_id()] = geo;
   return _geoms.find(geo->get_id());
 }
 
 NewGeom *
-NewGeomContainer::get_tower_geometry(RawTowerDefs::keytype key)
+RawTowerGeomContainer_Cylinderv1::get_tower_geometry(RawTowerDefs::keytype key)
 {
   Iterator it = _geoms.find(key);
   if (it != _geoms.end())
@@ -51,13 +51,13 @@ NewGeomContainer::get_tower_geometry(RawTowerDefs::keytype key)
 
 
 int
-NewGeomContainer::isValid() const
+RawTowerGeomContainer_Cylinderv1::isValid() const
 {
   return (!_geoms.empty());
 }
 
 void
-NewGeomContainer::Reset()
+RawTowerGeomContainer_Cylinderv1::Reset()
 {
   while (_geoms.begin() != _geoms.end())
     {
@@ -67,7 +67,7 @@ NewGeomContainer::Reset()
 }
 
 void
-NewGeomContainer::identify(std::ostream& os) const
+RawTowerGeomContainer_Cylinderv1::identify(std::ostream& os) const
 {
-  os << "NewGeomContainer, number of tower geometries: " << size() << std::endl;
+  os << "RawTowerGeomContainer_Cylinderv1, number of tower geometries: " << size() << std::endl;
 }

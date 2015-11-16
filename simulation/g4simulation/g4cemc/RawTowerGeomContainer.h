@@ -7,21 +7,21 @@
 #include <iostream>
 #include <map>
 
-class NewGeom;
+class RawTowerGeom;
 
-class NewGeomContainer : public PHObject
+class RawTowerGeomContainer : public PHObject
 {
 
  public:
 
-  typedef std::map<RawTowerDefs::keytype ,NewGeom *> Map;
+  typedef std::map<RawTowerDefs::keytype ,RawTowerGeom *> Map;
   typedef Map::iterator Iterator;
   typedef Map::const_iterator ConstIterator;
   typedef std::pair<Iterator, Iterator> Range;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
-  NewGeomContainer( RawTowerDefs::CalorimeterId caloid );
-  virtual ~NewGeomContainer();
+  RawTowerGeomContainer( RawTowerDefs::CalorimeterId caloid );
+  virtual ~RawTowerGeomContainer();
 
   void Reset();
   int isValid() const;
@@ -30,8 +30,8 @@ class NewGeomContainer : public PHObject
   void set_calorimeter_id( RawTowerDefs::CalorimeterId caloid ) { _caloid = caloid; }
   RawTowerDefs::CalorimeterId get_calorimeter_id( ) { return _caloid; }
 
-  ConstIterator add_tower_geometry(NewGeom *geo);
-  NewGeom *get_tower_geometry(RawTowerDefs::keytype key);
+  ConstIterator add_tower_geometry(RawTowerGeom *geo);
+  RawTowerGeom *get_tower_geometry(RawTowerDefs::keytype key);
 
   //! return all tower geometries
   ConstRange get_tower_geometries( void ) const;
@@ -43,7 +43,7 @@ class NewGeomContainer : public PHObject
   RawTowerDefs::CalorimeterId _caloid;
   Map _geoms;
 
-  ClassDef(NewGeomContainer,1)
+  ClassDef(RawTowerGeomContainer,1)
 };
 
 #endif /* NEWGEOMCONTAINER_H__ */

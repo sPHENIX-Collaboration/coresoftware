@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class NewGeomContainer+;
+#pragma link C++ class RawTowerGeomContainer+;
 
 #endif /* __CINT__ */

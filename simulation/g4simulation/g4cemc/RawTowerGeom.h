@@ -8,11 +8,11 @@
 #include <iostream>
 #include <map>
 
-class NewGeom : public PHObject {
+class RawTowerGeom : public PHObject {
 
  public:
 
-  virtual ~NewGeom() {}
+  virtual ~RawTowerGeom() {}
 
   virtual void identify(std::ostream& os=std::cout) const { PHOOL_VIRTUAL_WARN("identify()"); }
 
@@ -40,9 +40,9 @@ class NewGeom : public PHObject {
   virtual double get_phi() const { PHOOL_VIRTUAL_WARN("get_phi()"); return -1; }
 
  protected:
-  NewGeom() {}
+  RawTowerGeom() {}
 
-  ClassDef(NewGeom,1)
+  ClassDef(RawTowerGeom,1)
 
 };
 
