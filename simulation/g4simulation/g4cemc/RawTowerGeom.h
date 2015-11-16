@@ -14,7 +14,7 @@ class RawTowerGeom : public PHObject {
 
   virtual ~RawTowerGeom() {}
 
-  virtual void identify(std::ostream& os=std::cout) const { PHOOL_VIRTUAL_WARN("identify()"); }
+  virtual void identify(std::ostream& os=std::cout) const;
 
   virtual RawTowerDefs::keytype get_id() const { PHOOL_VIRTUAL_WARN("get_id()"); return 0; }
 
