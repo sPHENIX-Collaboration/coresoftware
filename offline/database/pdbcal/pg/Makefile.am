@@ -110,3 +110,6 @@ PgPost%Bank.h PgPost%Bank.cc:
 
 clean-local:
 	rm -rf *_dict*
+	rm -rf *_LinkDef.h
+	rm -rf PgPost*Bank.cc
+	rm -rf PgPost*Bank.h
