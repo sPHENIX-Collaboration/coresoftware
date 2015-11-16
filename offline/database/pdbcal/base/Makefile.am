@@ -36,7 +36,6 @@ libpdbcalBase_la_SOURCES = \
   PdbBankManager_dict.C \
   PdbBankManagerFactory.cc \
   PdbBankManagerFactory_dict.C \
-  PdbCalBank.cc \
   PdbCalBank_dict.C \
   PdbCalBase.cc \
   PdbCalBase_dict.C \
