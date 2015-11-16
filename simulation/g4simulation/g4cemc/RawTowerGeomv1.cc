@@ -29,8 +29,7 @@ RawTowerGeomv1::~RawTowerGeomv1()
 double RawTowerGeomv1::get_center_radius() const
 {
   return sqrt( _center_x * _center_x +
-	       _center_y * _center_y +
-	       _center_z * _center_z );
+	       _center_y * _center_y );
 }
 
 double RawTowerGeomv1::get_eta() const
