@@ -8,8 +8,8 @@ ClassImp(RawTowerGeomContainer_Cylinderv1)
 using namespace std;
 
 RawTowerGeomContainer_Cylinderv1::RawTowerGeomContainer_Cylinderv1(
-    RawTowerDefs::CalorimeterId caloid) : RawTowerGeomContainerv1(caloid),
-    radius(NAN), thickness(NAN)
+    RawTowerDefs::CalorimeterId caloid) :
+    RawTowerGeomContainerv1(caloid), radius(NAN), thickness(NAN)
 {
   return;
 }
@@ -63,7 +63,9 @@ RawTowerGeomContainer_Cylinderv1::get_etabounds(const int ibin) const
   if (ibin < 0 || ibin > get_etabins())
     {
       identify();
-      cout << "RawTowerGeomContainer_Cylinderv1::get_etabounds - Asking for invalid bin in eta: " << ibin << endl;
+      cout
+          << "RawTowerGeomContainer_Cylinderv1::get_etabounds - Asking for invalid bin in eta: "
+          << ibin << endl;
       exit(1);
     }
   return eta_bound_map[ibin];
@@ -75,7 +77,9 @@ RawTowerGeomContainer_Cylinderv1::get_phibounds(const int ibin) const
   if (ibin < 0 || ibin > get_phibins())
     {
       identify();
-      cout << "RawTowerGeomContainer_Cylinderv1::get_phibounds - Asking for invalid bin in phi: " << ibin << endl;
+      cout
+          << "RawTowerGeomContainer_Cylinderv1::get_phibounds - Asking for invalid bin in phi: "
+          << ibin << endl;
       exit(1);
     }
   return phi_bound_map[ibin];
@@ -87,7 +91,6 @@ RawTowerGeomContainer_Cylinderv1::get_etabin(const double eta) const
 
   int ibin = -1;
   int i = 0;
-
 
 // switch to search for the closest bin
 // since in a realistic calorimeter, there could be gaps
@@ -136,7 +139,6 @@ RawTowerGeomContainer_Cylinderv1::get_phibin(const double phi) const
   int ibin = -1;
   int i = 0;
 
-
 // switch to search for the closest bin
 // since in a realistic calorimeter, there could be gaps
   double min_dphi = 10;
@@ -146,8 +148,8 @@ RawTowerGeomContainer_Cylinderv1::get_phibin(const double phi) const
     {
       const double mean_phi = 0.5 * (iter->first + iter->second);
 
-      const double phi_fold = phi - round((phi - mean_phi)/2./M_PI) * 2 * M_PI;
-
+      const double phi_fold = phi
+          - round((phi - mean_phi) / 2. / M_PI) * 2 * M_PI;
 
       if (phi_fold >= iter->first && phi_fold < iter->second)
         {
@@ -194,9 +196,6 @@ RawTowerGeomContainer_Cylinderv1::get_etacenter(const int ibin) const
   return (eta_bound_map[ibin].first + eta_bound_map[ibin].second) / 2.;
 }
 
-
-
-
 void
 RawTowerGeomContainer_Cylinderv1::set_etabounds(const int ibin,
     const std::pair<double, double> & bounds)
@@ -221,7 +220,6 @@ RawTowerGeomContainer_Cylinderv1::set_etabounds(const int ibin,
   eta_bound_map[ibin] = b_reg;
 }
 
-
 double
 RawTowerGeomContainer_Cylinderv1::get_phicenter(const int ibin) const
 {
@@ -235,9 +233,6 @@ RawTowerGeomContainer_Cylinderv1::get_phicenter(const int ibin) const
     }
   return (phi_bound_map[ibin].first + phi_bound_map[ibin].second) / 2.;
 }
-
-
-
 
 void
 RawTowerGeomContainer_Cylinderv1::set_phibounds(const int ibin,
