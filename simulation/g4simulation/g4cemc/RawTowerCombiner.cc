@@ -1,6 +1,7 @@
 #include "RawTowerCombiner.h"
 #include "RawTowerContainer.h"
-#include "RawTowerGeomv2.h"
+#include "RawTowerGeomContainerv1.h"
+#include "RawTowerGeom.h"
 #include "RawTowerv1.h"
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
@@ -83,7 +84,7 @@ RawTowerCombiner::InitRun(PHCompositeNode *topNode)
     }
   if (reftowergeom)
     {
-      RawTowerGeomContainer *rawtowergeom = new RawTowerGeomv2(reftowergeom);
+      RawTowerGeomContainer *rawtowergeom = new RawTowerGeomContainerv1(reftowergeom);
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(rawtowergeom, TowerGeomNodeName.c_str(), "PHObject");
       runNode->addNode(newNode);
       // overwrite changed radius and thickness
@@ -178,16 +179,6 @@ RawTowerCombiner::CompareGeometries(RawTowerGeomContainer *geo1, RawTowerGeomCon
   if (geo1->get_phibins() != geo2->get_phibins())
     {
       cout << "diff in phibins " << geo1->get_phibins() << ", " << geo2->get_phibins() << endl;
-      return false;
-    }
-  if (geo1->get_phistep() != geo2->get_phistep())
-    {
-      cout << "diff in phistep " << geo1->get_phistep() << ", " << geo2->get_phistep() << endl;
-      return false;
-    }
-  if (geo1->get_phimin() != geo2->get_phimin())
-    {
-      cout << "diff in phimin " << geo1->get_phimin() << ", " << geo2->get_phimin() << endl;
       return false;
     }
   if (geo1->get_etabins() != geo2->get_etabins())
