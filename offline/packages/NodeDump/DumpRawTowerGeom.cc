@@ -25,6 +25,8 @@ int DumpRawTowerGeom::process_Node(PHNode *myNode)
     }
   if (rawtowergeom)
     {
+      //TODO: use RawTowerGeomContainer in this dump instead of RawTowerGeom
+
 //      *fout << "radius: " << rawtowergeom->get_radius() << endl;
 //      *fout << "thickness: " << rawtowergeom->get_thickness() << endl;
 //      *fout << "phibins: " << rawtowergeom->get_phibins() << endl;
