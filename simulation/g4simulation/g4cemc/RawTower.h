@@ -24,6 +24,7 @@ class RawTower : public PHObject {
   virtual int isValid() const { PHOOL_VIRTUAL_WARN("isValid()"); return 0; }
   virtual void identify(std::ostream& os=std::cout) const { PHOOL_VIRTUAL_WARN("identify()"); }
 
+  virtual RawTowerDefs::keytype set_id(RawTowerDefs::keytype id) {PHOOL_VIRTUAL_WARN("set_id()");}
   virtual RawTowerDefs::keytype get_id() const { PHOOL_VIRTUAL_WARN("get_id()"); return 0; }
   virtual int get_bineta() const { PHOOL_VIRTUAL_WARN("get_ieta()"); return -1; }
   virtual int get_binphi() const { PHOOL_VIRTUAL_WARN("get_iphi()"); return -1; }
