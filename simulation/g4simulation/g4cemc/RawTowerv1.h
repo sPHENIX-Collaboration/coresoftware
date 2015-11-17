@@ -21,6 +21,7 @@ class RawTowerv1 : public RawTower {
   int isValid() const;
   void identify(std::ostream& os=std::cout) const;
 
+  RawTowerDefs::keytype set_id(RawTowerDefs::keytype id)  { return towerid = id;}
   RawTowerDefs::keytype get_id() const { return towerid;}
   int get_bineta() const { return RawTowerDefs::decode_index1(towerid); }
   int get_binphi() const { return RawTowerDefs::decode_index2(towerid); }
