@@ -1,4 +1,5 @@
 #include "RawTowerBuilder.h"
+#include "RawTowerContainer.h"
 #include "RawTowerGeomContainer_Cylinderv1.h"
 #include "RawTowerGeomv1.h"
 #include "RawTowerv1.h"
@@ -427,7 +428,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
         for (int ibin = 0; ibin < first_cellgeo->get_zbins(); ibin++)
           {
             RawTowerGeomv1 * tg = new RawTowerGeomv1(
-                RawTowerDefs::encode_towerid(caloid, ieta, ibin));
+                RawTowerDefs::encode_towerid(caloid, ibin, iphi));
 
             tg->set_center_x(r * cos(rawtowergeom->get_phicenter(iphi)));
             tg->set_center_y(r * sin(rawtowergeom->get_phicenter(iphi)));

@@ -10,7 +10,7 @@ class RawTowerGeomContainer_Cylinderv1 : public RawTowerGeomContainerv1
 {
 
 public:
-  RawTowerGeomContainer_Cylinderv1::RawTowerGeomContainer_Cylinderv1(
+  RawTowerGeomContainer_Cylinderv1(
       RawTowerDefs::CalorimeterId caloid);
 
   void

@@ -24,10 +24,10 @@ class RawTower : public PHObject {
   virtual int isValid() const { PHOOL_VIRTUAL_WARN("isValid()"); return 0; }
   virtual void identify(std::ostream& os=std::cout) const { PHOOL_VIRTUAL_WARN("identify()"); }
 
-  virtual RawTowerDefs::keytype set_id(RawTowerDefs::keytype id) {PHOOL_VIRTUAL_WARN("set_id()");}
+  virtual void set_id(RawTowerDefs::keytype id) {PHOOL_VIRTUAL_WARN("set_id()");}
   virtual RawTowerDefs::keytype get_id() const { PHOOL_VIRTUAL_WARN("get_id()"); return 0; }
 
-  virtual RawTowerDefs::keytype set_key(RawTowerDefs::keytype id) {set_id(id);}
+  virtual void set_key(RawTowerDefs::keytype id) {set_id(id);}
   virtual RawTowerDefs::keytype get_key() const { return get_id(); }
 
   virtual int get_bineta() const { PHOOL_VIRTUAL_WARN("get_ieta()"); return -1; }

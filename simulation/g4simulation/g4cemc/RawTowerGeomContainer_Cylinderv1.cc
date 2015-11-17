@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <cassert>
 
 ClassImp(RawTowerGeomContainer_Cylinderv1)
 
@@ -121,7 +122,7 @@ RawTowerGeomContainer_Cylinderv1::get_etabin(const double eta) const
       i++;
     }
 
-  if (ibin < 0 || ibin >= nphibins)
+  if (ibin < 0 )
     {
       cout
           << "RawTowerGeomContainer_Cylinderv1::get_etabin - ERROR - Asking for invalid bin in eta "
@@ -171,7 +172,7 @@ RawTowerGeomContainer_Cylinderv1::get_phibin(const double phi) const
       i++;
     }
 
-  if (ibin < 0 || ibin >= nphibins)
+  if (ibin < 0 )
     {
       cout
           << "RawTowerGeomContainer_Cylinderv1::get_phibin - ERROR - Asking for invalid bin in phi "
