@@ -3,8 +3,8 @@
 #include "RawTowerv1.h"
 #include "RawTowerContainer.h"
 
-#include "NewGeomv1.h"
-#include "NewGeomContainer.h"
+#include "RawTowerGeomv2.h"
+#include "RawTowerGeomContainerv1.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -178,7 +178,7 @@ RawTowerBuilderByHitIndex::CreateNodes(PHCompositeNode *topNode)
   dstNode->addNode(towerNode);
 
   // Create the tower geometry node on the tree
-  geoms_ = new NewGeomContainer( RawTowerDefs::convert_name_to_caloid( detector_ ) );
+  geoms_ = new RawTowerGeomContainerv1( RawTowerDefs::convert_name_to_caloid( detector_ ) );
   node_name_tower_geometries_ = "TOWER_GEOM_" + detector_;
 
   PHIODataNode<PHObject> *geomNode = new PHIODataNode<PHObject>(geoms_, node_name_tower_geometries_.c_str(), "PHObject");
@@ -232,7 +232,7 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable() {
       unsigned int temp_id = RawTowerDefs::encode_towerid( calo_id_ , idx_j , idx_k );
 
       /* Create tower geometry object */
-      NewGeom* temp_geo = new NewGeomv1( temp_id );
+      NewGeom* temp_geo = new RawTowerGeomv2( temp_id );
       temp_geo->set_center_x( pos_x );
       temp_geo->set_center_y( pos_y );
       temp_geo->set_center_z( pos_z );

@@ -10,7 +10,7 @@
 
 class PHCompositeNode;
 class RawTowerContainer;
-class NewGeomContainer;
+class RawTowerGeomContainer;
 class PHG4HitContainer;
 
 /**
@@ -58,7 +58,7 @@ protected:
   bool ReadGeometryFromTable();
 
   RawTowerContainer* towers_;
-  NewGeomContainer* geoms_;
+  RawTowerGeomContainer* geoms_;
 
   std::string detector_;
   std::string node_name_hits_;
