@@ -41,15 +41,35 @@ namespace RawTowerDefs
 
     if ( calo_id < 0xFF && tower_index_1 < 0xFFF && tower_index_2 < 0xFFF )
       {
-	calo_tower_id = ( calo_id << RawTowerDefs::tower_idbits )
-	  + ( tower_index_1 << RawTowerDefs::index1_idbits ) + tower_index_2;
+  calo_tower_id = ( calo_id << RawTowerDefs::tower_idbits )
+    + ( tower_index_1 << RawTowerDefs::index1_idbits ) + tower_index_2;
       }
     else
       {
-	std::cout << "too large caloid, index1 and/or index2; caloid: " << calo_id << " (max val " << 0xFF << ")"
-		  << ", index1: " << tower_index_1 << " (max val " << 0xFFF << ")"
-		  << ", index2: " << tower_index_2 << " (max val " << 0xFFF << ")" << std::endl;
-	exit(1);
+  std::cout << "too large caloid, index1 and/or index2; caloid: " << calo_id << " (max val " << 0xFF << ")"
+      << ", index1: " << tower_index_1 << " (max val " << 0xFFF << ")"
+      << ", index2: " << tower_index_2 << " (max val " << 0xFFF << ")" << std::endl;
+  exit(1);
+      }
+
+    return calo_tower_id;
+  }
+
+  /*! Returns CaloTowerID for given calorimeter ID, tower index
+   */
+  inline RawTowerDefs::keytype encode_towerid( const CalorimeterId calo_id , const unsigned int tower_index = 0)
+  {
+    RawTowerDefs::keytype calo_tower_id = 0;
+
+    if ( calo_id < 0xFF && tower_index < 0xFFFFFF  )
+      {
+  calo_tower_id = ( calo_id << RawTowerDefs::tower_idbits ) + tower_index;
+      }
+    else
+      {
+  std::cout << "too large caloid, index; caloid: " << calo_id << " (max val " << 0xFF << ")"
+      << ", index: " << tower_index << " (max val " << 0xFFFFFF << ")" << std::endl;
+  exit(1);
       }
 
     return calo_tower_id;
@@ -60,6 +80,13 @@ namespace RawTowerDefs
   inline unsigned int decode_caloid( const unsigned int calo_tower_id )
   {
     return ( calo_tower_id >> RawTowerDefs::tower_idbits ) &0xFFF;
+  }
+
+  /*! Extract tower index of calorimeter tower from CaloTowerID
+   */
+  inline unsigned int decode_index( const unsigned int calo_tower_id )
+  {
+    return ( calo_tower_id  ) &0xFFFFFF;
   }
 
   /*! Extract tower index 1 of calorimeter tower from CaloTowerID
