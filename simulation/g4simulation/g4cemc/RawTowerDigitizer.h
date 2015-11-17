@@ -8,7 +8,7 @@
 
 class PHCompositeNode;
 class RawTowerContainer;
-class RawTowerGeom;
+class RawTowerGeomContainer;
 
 class RawTower;
 
@@ -170,7 +170,7 @@ protected:
 
   RawTowerContainer* _sim_towers;
   RawTowerContainer* _raw_towers;
-  RawTowerGeom *rawtowergeom;
+  RawTowerGeomContainer *rawtowergeom;
 
   std::string detector;
   std::string SimTowerNodeName;

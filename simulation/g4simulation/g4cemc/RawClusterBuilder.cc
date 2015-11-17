@@ -4,7 +4,7 @@
 #include "PHMakeGroups.h"
 
 #include "RawTower.h"
-#include "RawTowerGeom.h"
+#include "RawTowerGeomContainer.h"
 #include "RawTowerContainer.h"
 
 #include <phool/PHCompositeNode.h>
@@ -135,7 +135,7 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
   string towergeomnodename = "TOWERGEOM_" + detector;
-  RawTowerGeom *towergeom = findNode::getClass<RawTowerGeom>(topNode, towergeomnodename.c_str());
+  RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename.c_str());
  if (! towergeom)
    {
      cout << PHWHERE << ": Could not find node " << towergeomnodename.c_str() << endl;
@@ -280,7 +280,7 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
 }
 
 
-bool RawClusterBuilder::CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeom *towergeom)
+bool RawClusterBuilder::CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer *towergeom)
 {
   double sum = cluster->get_energy();
   double phimin = 999.;

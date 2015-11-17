@@ -9,7 +9,7 @@
 
 class RawTowerGeom;
 
-class RawTowerGeomContainerv1v1 : public PHObject
+class RawTowerGeomContainerv1 : public PHObject
 {
 
  public:
@@ -20,8 +20,8 @@ class RawTowerGeomContainerv1v1 : public PHObject
   typedef std::pair<Iterator, Iterator> Range;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
-  RawTowerGeomContainerv1v1( RawTowerDefs::CalorimeterId caloid );
-  virtual ~RawTowerGeomContainerv1v1();
+  RawTowerGeomContainerv1( RawTowerDefs::CalorimeterId caloid );
+  virtual ~RawTowerGeomContainerv1();
 
   void Reset();
   int isValid() const;
@@ -43,7 +43,7 @@ class RawTowerGeomContainerv1v1 : public PHObject
   RawTowerDefs::CalorimeterId _caloid;
   Map _geoms;
 
-  ClassDef(RawTowerGeomContainerv1v1,1)
+  ClassDef(RawTowerGeomContainerv1,1)
 };
 
 #endif /* NEWGEOMCONTAINER_H__ */

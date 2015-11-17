@@ -8,7 +8,7 @@
 
 class PHCompositeNode;
 class RawTowerContainer;
-class RawTowerGeom;
+class RawTowerGeomContainer;
 
 /**
  * \brief SubsysReco module creating calorimeter tower objects (RawTowerv2) from hits
@@ -111,7 +111,7 @@ protected:
   double get_phibin(const double);
 
   RawTowerContainer* _towers;
-  RawTowerGeom *rawtowergeom;
+  RawTowerGeomContainer *rawtowergeom;
 
   std::string detector;
   std::string hitnodename;

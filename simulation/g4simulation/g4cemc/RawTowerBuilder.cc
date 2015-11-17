@@ -133,7 +133,7 @@ RawTowerBuilder::process_event(PHCompositeNode *topNode)
 
        if (verbosity > 2)
 	 {
-           rawtowergeom =  findNode::getClass<RawTowerGeom>(topNode, TowerGeomNodeName.c_str());
+           rawtowergeom =  findNode::getClass<RawTowerGeomContainer>(topNode, TowerGeomNodeName.c_str());
            tower->identify();
 	 }
     }
@@ -196,7 +196,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
       throw std::runtime_error("Failed to find " + geonodename + " node in RawTowerBuilder::CreateNodes");
     }
   TowerGeomNodeName = "TOWERGEOM_" + detector;
-  rawtowergeom =  findNode::getClass<RawTowerGeom>(topNode, TowerGeomNodeName.c_str());
+  rawtowergeom =  findNode::getClass<RawTowerGeomContainer>(topNode, TowerGeomNodeName.c_str());
   if (! rawtowergeom)
     {
 

@@ -11,7 +11,7 @@
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 
-#include <g4cemc/RawTowerGeom.h>
+#include <g4cemc/RawTowerGeomContainer.h>
 #include <g4cemc/RawTowerContainer.h>
 #include <g4cemc/RawTower.h>
 #include <g4vertex/GlobalVertexMap.h>
@@ -46,22 +46,22 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
   }
 
   RawTowerContainer *towers = NULL;
-  RawTowerGeom *geom = NULL;
+  RawTowerGeomContainer *geom = NULL;
   if (_input == Jet::CEMC_TOWER) {
     towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_CEMC");
-    geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_CEMC");
+    geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_CEMC");
     if (!towers||!geom) {
       return std::vector<Jet*>();
     }
   } else if (_input == Jet::HCALIN_TOWER) {
     towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_HCALIN");
-    geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_HCALIN");
+    geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_HCALIN");
     if (!towers||!geom) {
       return std::vector<Jet*>();
     }
   } else if (_input == Jet::HCALOUT_TOWER) {
     towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_HCALOUT");
-    geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_HCALOUT");
+    geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_HCALOUT");
     if (!towers||!geom) {
       return std::vector<Jet*>();
     }

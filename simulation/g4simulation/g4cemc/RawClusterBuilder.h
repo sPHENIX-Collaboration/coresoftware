@@ -8,7 +8,7 @@ class PHCompositeNode;
 class RawCluster;
 class RawClusterContainer;
 class RawTowerContainer;
-class RawTowerGeom;
+class RawTowerGeomContainer;
 
 class RawClusterBuilder : public SubsysReco {
 
@@ -26,7 +26,7 @@ class RawClusterBuilder : public SubsysReco {
 
  private:
   void CreateNodes(PHCompositeNode *topNode);
-  bool CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeom *towergemom);
+  bool CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer *towergemom);
 
   RawClusterContainer* _clusters;
 

@@ -50,13 +50,13 @@ RawTowerCombiner::InitRun(PHCompositeNode *topNode)
   int ifirst = 1;
   double minradius = 1.e7;
   double thickness = 0.;
-  RawTowerGeom *reftowergeom = NULL;
+  RawTowerGeomContainer *reftowergeom = NULL;
   BOOST_FOREACH(auto &p, dettuple)
     {
       string det = p.first;
       cout << det << endl;
       std::string geonodename = "TOWERGEOM_" + det;
-      RawTowerGeom *towergeo = findNode::getClass<RawTowerGeom>(topNode, geonodename.c_str());
+      RawTowerGeomContainer *towergeo = findNode::getClass<RawTowerGeomContainer>(topNode, geonodename.c_str());
       if (!towergeo)
 	{
 	  std::cerr << PHWHERE << " " << geonodename << " Node missing, doing nothing." << std::endl;
@@ -83,7 +83,7 @@ RawTowerCombiner::InitRun(PHCompositeNode *topNode)
     }
   if (reftowergeom)
     {
-      RawTowerGeom *rawtowergeom = new RawTowerGeomv2(reftowergeom);
+      RawTowerGeomContainer *rawtowergeom = new RawTowerGeomv2(reftowergeom);
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(rawtowergeom, TowerGeomNodeName.c_str(), "PHObject");
       runNode->addNode(newNode);
       // overwrite changed radius and thickness
@@ -173,7 +173,7 @@ RawTowerCombiner::End(PHCompositeNode *topNode)
 }
 
 bool
-RawTowerCombiner::CompareGeometries(RawTowerGeom *geo1, RawTowerGeom *geo2)
+RawTowerCombiner::CompareGeometries(RawTowerGeomContainer *geo1, RawTowerGeomContainer *geo2)
 {
   if (geo1->get_phibins() != geo2->get_phibins())
     {

@@ -15,7 +15,7 @@
 
 class PHCompositeNode;
 class RawTowerContainer;
-class RawTowerGeom;
+class RawTowerGeomContainer;
 
 class RawTowerCombiner : public SubsysReco {
 
@@ -31,7 +31,7 @@ class RawTowerCombiner : public SubsysReco {
   void OutputDetector(const std::string &d) {detector = d;}
 
  protected:
-  bool CompareGeometries(RawTowerGeom *geo1, RawTowerGeom *geo2);
+  bool CompareGeometries(RawTowerGeomContainer *geo1, RawTowerGeomContainer *geo2);
 
   std::string detector;
   std::string TowerNodeName;

@@ -141,7 +141,7 @@ RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
     }
 
   TowerGeomNodeName = "TOWERGEOM_" + detector;
-  rawtowergeom = findNode::getClass<RawTowerGeom>(topNode,
+  rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode,
       TowerGeomNodeName.c_str());
   if (!rawtowergeom)
     {
