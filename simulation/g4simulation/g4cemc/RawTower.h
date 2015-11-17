@@ -6,6 +6,7 @@
 #include <phool/phool.h>
 #include <phool/PHObject.h>
 #include <iostream>
+#include <cmath>
 #include <map>
 
 class RawTower : public PHObject {
@@ -37,6 +38,11 @@ class RawTower : public PHObject {
   virtual double get_energy() const { PHOOL_VIRTUAL_WARN("get_energy()"); return 0.0; }
   //! energy assigned to the tower. Depending on stage of process and DST node name, it could be energy deposition, light yield or calibrated energies
   virtual void set_energy (const double ) { PHOOL_VIRTUAL_WARN("set_energy()"); return  ; }
+
+  //! Time stamp assigned to the tower. Depending on the tower maker, it could be rise time or peak time.
+  virtual float get_time() const { PHOOL_VIRTUAL_WARN("get_time()"); return NAN; }
+  //! Time stamp assigned to the tower. Depending on the tower maker, it could be rise time or peak time.
+  virtual void set_time (const float ) { PHOOL_VIRTUAL_WARN("set_time()"); return  ; }
 
   virtual CellConstRange get_g4cells() const
   {
