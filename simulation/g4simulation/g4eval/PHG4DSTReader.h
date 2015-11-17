@@ -23,7 +23,7 @@
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4VtxPointv1.h>
 #include <g4cemc/RawTowerv2.h>
-//#include <PHPythiaJet/PHPyJetV2.h>
+#include <g4jets/JetV1.h>
 
 class TTree;
 
@@ -76,10 +76,7 @@ public:
   void
   AddJet(const std::string &name)
   {
-    std::cout
-        << "PHG4DSTReader::AddJet - Error - temp. disabled until jet added back to sPHENIX software"
-        << std::endl;
-//    _jet_postfix.push_back(name);
+    _jet_postfix.push_back(name);
   }
 
   //! load all particle in truth info module?
@@ -129,7 +126,7 @@ protected:
 
   std::vector<std::string> _node_postfix;
   std::vector<std::string> _tower_postfix;
-//  std::vector<std::string> _jet_postfix;
+  std::vector<std::string> _jet_postfix;
 //  std::vector<std::string> _node_name;
   int nblocks;
 
@@ -157,7 +154,7 @@ protected:
   typedef PHG4HitEval hit_type;
   typedef PHG4VtxPointv1 vertex_type;
   typedef RawTowerv1 RawTower_type;
-//  typedef PHPyJetV2 PHPyJet_type;
+  typedef JetV1 PHPyJet_type;
 
 #endif
 
