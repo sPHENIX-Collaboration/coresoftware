@@ -188,7 +188,7 @@ RawTowerBuilderByHitIndex::CreateNodes(PHCompositeNode *topNode)
 
   // Create the tower geometry node on the tree
   geoms_ = new RawTowerGeomContainerv1( RawTowerDefs::convert_name_to_caloid( detector_ ) );
-  node_name_tower_geometries_ = "TOWER_GEOM_" + detector_;
+  node_name_tower_geometries_ = "TOWERGEOM_" + detector_;
 
   PHIODataNode<PHObject> *geomNode = new PHIODataNode<PHObject>(geoms_, node_name_tower_geometries_.c_str(), "PHObject");
   dstNode->addNode(geomNode);
