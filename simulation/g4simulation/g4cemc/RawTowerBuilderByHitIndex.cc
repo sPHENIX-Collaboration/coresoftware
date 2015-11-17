@@ -123,8 +123,8 @@ RawTowerBuilderByHitIndex::process_event(PHCompositeNode *topNode)
   towers_->compress(emin_);
   if (verbosity)
     {
-      cout << "Energy lost by dropping towers with less than "
-           << emin_ << " energy, lost energy: "  << towerE - towers_->getTotalEdep() << endl;
+      cout << "Energy lost by dropping towers with less than " << emin_
+	   << " energy, lost energy: "  << towerE - towers_->getTotalEdep() << endl;
       towers_->identify();
       RawTowerContainer::ConstRange begin_end = towers_->getTowers();
       RawTowerContainer::ConstIterator iter;
@@ -170,6 +170,23 @@ RawTowerBuilderByHitIndex::CreateNodes(PHCompositeNode *topNode)
       throw std::runtime_error("Failed to find DST node in RawTowerBuilderByHitIndex::CreateNodes");
     }
 
+  // Create the tower geometry node on the tree
+  geoms_ = new RawTowerGeomContainerv1( RawTowerDefs::convert_name_to_caloid( detector_ ) );
+  node_name_tower_geometries_ = "TOWERGEOM_" + detector_;
+
+  PHIODataNode<PHObject> *geomNode = new PHIODataNode<PHObject>(geoms_, node_name_tower_geometries_.c_str(), "PHObject");
+  runNode->addNode(geomNode);
+
+  // Find detector node (or create new one if not found)
+  PHNodeIterator dstiter(dstNode);
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst(
+      "PHCompositeNode", detector_));
+  if (!DetNode)
+    {
+      DetNode = new PHCompositeNode(detector_);
+      dstNode->addNode(DetNode);
+    }
+
   // Create the tower nodes on the tree
   towers_ = new RawTowerContainer( RawTowerDefs::convert_name_to_caloid( detector_ ) );
 
@@ -184,14 +201,7 @@ RawTowerBuilderByHitIndex::CreateNodes(PHCompositeNode *topNode)
     }
 
   PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(towers_, node_name_towers_.c_str(), "PHObject");
-  dstNode->addNode(towerNode);
-
-  // Create the tower geometry node on the tree
-  geoms_ = new RawTowerGeomContainerv1( RawTowerDefs::convert_name_to_caloid( detector_ ) );
-  node_name_tower_geometries_ = "TOWERGEOM_" + detector_;
-
-  PHIODataNode<PHObject> *geomNode = new PHIODataNode<PHObject>(geoms_, node_name_tower_geometries_.c_str(), "PHObject");
-  dstNode->addNode(geomNode);
+  DetNode->addNode(towerNode);
 
   return;
 }
