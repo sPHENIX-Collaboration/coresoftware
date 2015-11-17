@@ -31,6 +31,7 @@ class RawTowerGeomContainer : public PHObject
   virtual void set_calorimeter_id( RawTowerDefs::CalorimeterId  ) { PHOOL_VIRTUAL_WARN("set_calorimeter_id()");}
   virtual RawTowerDefs::CalorimeterId get_calorimeter_id( ) const { PHOOL_VIRTUAL_WARN("get_calorimeter_id()");return RawTowerDefs::NONE; }
 
+  //! go through all towers
   virtual ConstIterator add_tower_geometry(RawTowerGeom *geo) {PHOOL_VIRTUAL_WARN("add_tower_geometry()");}
   virtual RawTowerGeom *get_tower_geometry(RawTowerDefs::keytype key) {PHOOL_VIRTUAL_WARN("get_tower_geometry()");return NULL;}
 
@@ -43,17 +44,19 @@ class RawTowerGeomContainer : public PHObject
 
   /**
    * \defgroup cylindrical_calorimeter for cylindrical calorimeter only as implemented in RawTowerGeomContainer_Cylinderv1
+   *
+   *  Note these: concept do not apply to generic calorimeters, like forward calorimeters
    * @{
    */
 
   virtual double get_radius() const {PHOOL_VIRTUAL_WARN("get_radius()"); return NAN;}
   virtual double get_thickness() const  {PHOOL_VIRTUAL_WARN("get_thickness()"); return NAN;}
   virtual int get_phibins() const{PHOOL_VIRTUAL_WARN("get_phibins()"); return -1;}
-  virtual double get_phistep() const {PHOOL_VIRTUAL_WARN("get_phistep()"); return NAN;}
-  virtual double get_phimin() const {PHOOL_VIRTUAL_WARN("get_phimin()"); return NAN;}
+//  virtual double get_phistep() const {PHOOL_VIRTUAL_WARN("get_phistep()"); return NAN;}
+//  virtual double get_phimin() const {PHOOL_VIRTUAL_WARN("get_phimin()"); return NAN;}
   virtual int get_etabins() const {PHOOL_VIRTUAL_WARN("get_etabins()"); return -1;}
-  virtual double get_etastep() const {PHOOL_VIRTUAL_WARN("get_etastep()"); return NAN;}
-  virtual double get_etamin() const {PHOOL_VIRTUAL_WARN("get_etamin()"); return NAN;}
+//  virtual double get_etastep() const {PHOOL_VIRTUAL_WARN("get_etastep()"); return NAN;}
+//  virtual double get_etamin() const {PHOOL_VIRTUAL_WARN("get_etamin()"); return NAN;}
 
   virtual std::pair<double, double> get_phibounds(const int ibin) const {PHOOL_VIRTUAL_WARN("get_phibounds(const int)"); return std::make_pair(NAN,NAN);}
   virtual std::pair<double, double> get_etabounds(const int ibin) const {PHOOL_VIRTUAL_WARN("get_etabounds(const int)"); return std::make_pair(NAN,NAN);}
@@ -66,12 +69,13 @@ class RawTowerGeomContainer : public PHObject
   virtual void set_radius(const double r) {PHOOL_VIRTUAL_WARN("set_radius(const double)");}
   virtual void set_thickness(const double t) {PHOOL_VIRTUAL_WARN("set_thickness(const double)");}
   virtual void set_phibins(const int i) {PHOOL_VIRTUAL_WARN("set_phibins(const int)");}
-  virtual void set_phistep(const double phi) {PHOOL_VIRTUAL_WARN("set_phistep(const double)");}
-  virtual void set_phimin(const double phi) {PHOOL_VIRTUAL_WARN("set_phimin(const double)");}
+//  virtual void set_phistep(const double phi) {PHOOL_VIRTUAL_WARN("set_phistep(const double)");}
+//  virtual void set_phimin(const double phi) {PHOOL_VIRTUAL_WARN("set_phimin(const double)");}
   virtual void set_etabins(const int i) {PHOOL_VIRTUAL_WARN("set_etabins(const int)");}
-  virtual void set_etamin(const double z) {PHOOL_VIRTUAL_WARN("set_etamin(const double)");}
-  virtual void set_etastep(const double z) {PHOOL_VIRTUAL_WARN("set_etastep(const double)");}
+//  virtual void set_etamin(const double z) {PHOOL_VIRTUAL_WARN("set_etamin(const double)");}
+//  virtual void set_etastep(const double z) {PHOOL_VIRTUAL_WARN("set_etastep(const double)");}
   virtual void set_etabounds(const int ibin, const std::pair<double, double> & bounds) {PHOOL_VIRTUAL_WARN("set_etabounds(const int ibin, const std::pair<double, double> & bounds)");}
+  virtual void set_phibounds(const int ibin, const std::pair<double, double> & bounds) {PHOOL_VIRTUAL_WARN("set_etabounds(const int ibin, const std::pair<double, double> & bounds)");}
 
   /**@}*/
 
