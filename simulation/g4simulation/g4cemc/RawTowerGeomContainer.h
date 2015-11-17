@@ -6,6 +6,7 @@
 #include <phool/phool.h>
 #include <iostream>
 #include <map>
+#include <cmath>
 
 class RawTowerGeom;
 
@@ -28,16 +29,17 @@ class RawTowerGeomContainer : public PHObject
 
   void identify(std::ostream& os=std::cout) const;
 
+  //! 8-bit calorimeter ID
   virtual void set_calorimeter_id( RawTowerDefs::CalorimeterId  ) { PHOOL_VIRTUAL_WARN("set_calorimeter_id()");}
   virtual RawTowerDefs::CalorimeterId get_calorimeter_id( ) const { PHOOL_VIRTUAL_WARN("get_calorimeter_id()");return RawTowerDefs::NONE; }
 
   //! go through all towers
-  virtual ConstIterator add_tower_geometry(RawTowerGeom *geo) {PHOOL_VIRTUAL_WARN("add_tower_geometry()");}
+  virtual ConstIterator add_tower_geometry(RawTowerGeom *geo) {PHOOL_VIRTUAL_WARN("add_tower_geometry()"); return Map().begin();}
   virtual RawTowerGeom *get_tower_geometry(RawTowerDefs::keytype key) {PHOOL_VIRTUAL_WARN("get_tower_geometry()");return NULL;}
 
   //! return all tower geometries
   virtual ConstRange get_tower_geometries( void ) const {PHOOL_VIRTUAL_WARN("get_tower_geometries()");return ConstRange(Map().begin(), Map().end()); };
-  virtual Range get_tower_geometries( void ) {PHOOL_VIRTUAL_WARN("get_tower_geometries()");return Range(Map().begin(), Map().end()); };
+  virtual Range      get_tower_geometries( void ) {PHOOL_VIRTUAL_WARN("get_tower_geometries()");return Range(Map().begin(), Map().end()); };
 
   virtual unsigned int size() const {PHOOL_VIRTUAL_WARN("size()"); return 0;}
 

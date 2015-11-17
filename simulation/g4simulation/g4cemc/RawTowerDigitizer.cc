@@ -1,6 +1,7 @@
 #include "RawTowerDigitizer.h"
 #include "RawTowerContainer.h"
-#include "RawTowerGeomv2.h"
+#include "RawTowerGeomContainer.h"
+#include "RawTowerGeom.h"
 #include "RawTowerv1.h"
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -100,8 +101,7 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
       std::cout << std::endl;
     }
 
-  RawTowerGeomContainer::ConstRange all_towers =
-      rawtowergeom->get_tower_geometries();
+  RawTowerGeomContainer::ConstRange all_towers = rawtowergeom->get_tower_geometries();
 
   for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
       it != all_towers.second; ++it)

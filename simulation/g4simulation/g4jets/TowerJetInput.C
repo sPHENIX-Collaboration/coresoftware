@@ -83,13 +83,6 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
   for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
     RawTower *tower = rtiter->second;
 
-//    double r = geom->get_radius();
-//
-//    int bineta = tower->get_bineta();
-//    int binphi = tower->get_binphi();
-//    double eta0 = geom->get_etacenter(bineta);
-//    double phi = geom->get_phicenter(binphi);
-
     RawTowerGeom * tower_geom =
     geom->get_tower_geometry(tower -> get_key());
     assert(tower_geom);
