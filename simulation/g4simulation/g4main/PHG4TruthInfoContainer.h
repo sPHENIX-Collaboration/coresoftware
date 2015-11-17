@@ -28,11 +28,10 @@ public:
   virtual ~PHG4TruthInfoContainer();
 
   void Reset();
-
   void identify(std::ostream& os = std::cout) const;
 
   // --- particle storage ------------------------------------------------------
-  
+ 
   //! Add a particle that the user has created
   ConstIterator AddParticle(const int particleid, PHG4Particle* newparticle);
 
@@ -102,19 +101,16 @@ public:
   // do not call these functions in new code, i'm leaving these for now for
   // build compatibility outside of coresoftware
   
-  //ConstIterator AddHit(const int particleid, PHG4Particle *newparticle) {return AddParticle(particleid,newparticle);}
-  //PHG4Particle* GetHit(const int particleid) {return GetParticle(particleid);}
-  //PHG4Particle* GetPrimaryHit(const int particleid) {return GetPrimaryParticle(particleid);}
-  //Range GetHitRange() {return GetParticleRange();}
-  //ConstRange GetHitRange() const {return GetParticleRange();}
-  //void delete_hit(Iterator piter) {delete_particle(piter);}
+  ConstIterator AddHit(const int particleid, PHG4Particle *newparticle) {return AddParticle(particleid,newparticle);}
+  PHG4Particle* GetHit(const int particleid) {return GetParticle(particleid);}
+  PHG4Particle* GetPrimaryHit(const int particleid) {return GetPrimaryParticle(particleid);}
+  Range GetHitRange() {return GetParticleRange();}
+  ConstRange GetHitRange() const {return GetParticleRange();}
+  void delete_hit(Iterator piter) {delete_particle(piter);}
 
   // end deprecated interface, confusingly named -------------------------------
   
- protected:
-
-  //! generate a key
-  static int get_key(const int detid);
+ private:
 
   Map particlemap;
   VtxMap vtxmap;

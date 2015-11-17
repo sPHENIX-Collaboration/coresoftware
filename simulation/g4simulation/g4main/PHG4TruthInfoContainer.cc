@@ -13,21 +13,15 @@
 
 using namespace std;
 
-int 
-PHG4TruthInfoContainer::get_key(const int detid)
-{
-  return detid;
+PHG4TruthInfoContainer::PHG4TruthInfoContainer() :
+  particlemap(),
+  vtxmap(),
+  primary_particle_map(),
+  primary_vtxmap(),
+  embedded_trkid() {
 }
 
-PHG4TruthInfoContainer::PHG4TruthInfoContainer()
-{
-  //std::cout << __PRETTY_FUNCTION__ << std::endl;
-}
-
-PHG4TruthInfoContainer::~PHG4TruthInfoContainer()
-{
-  //std::cout << __PRETTY_FUNCTION__ << std::endl;
-}
+PHG4TruthInfoContainer::~PHG4TruthInfoContainer() {}
 
 // Deleter object to that takes a pair and deletes the second member
 template<class T>
@@ -97,7 +91,7 @@ PHG4TruthInfoContainer::identify(ostream& os) const
 PHG4TruthInfoContainer::ConstIterator
 PHG4TruthInfoContainer::AddParticle(const int trackid, PHG4Particle *newparticle)
 {
-  int key = get_key(trackid);
+  int key = trackid;
   ConstIterator it;
   bool added = false;
   boost::tie(it,added) = particlemap.insert(std::make_pair(key,newparticle));
@@ -132,7 +126,7 @@ PHG4TruthInfoContainer::AddPrimaryParticle(PHG4Particle *newparticle)
 PHG4Particle*
 PHG4TruthInfoContainer::GetParticle(const int trackid)
 {
-  int key = get_key(trackid);
+  int key = trackid;
   Iterator it = particlemap.find(key);
   if ( it != particlemap.end() ) return it->second;
   return 0;
@@ -141,7 +135,7 @@ PHG4TruthInfoContainer::GetParticle(const int trackid)
 PHG4Particle*
 PHG4TruthInfoContainer::GetPrimaryParticle(const int trackid)
 {
-  int key = get_key(trackid);
+  int key = trackid;
   Iterator it = primary_particle_map.find(key);
   if ( it != primary_particle_map.end() ) return it->second;
   return 0;
@@ -162,7 +156,7 @@ PHG4TruthInfoContainer::GetParticleRange() const
 PHG4VtxPoint*
 PHG4TruthInfoContainer::GetVtx(const int vtxid)
 {
-  int key = get_key(vtxid);
+  int key = vtxid;
   VtxIterator it = vtxmap.find(key);
   if ( it != vtxmap.end() )
     {
@@ -174,7 +168,7 @@ PHG4TruthInfoContainer::GetVtx(const int vtxid)
 PHG4VtxPoint*
 PHG4TruthInfoContainer::GetPrimaryVtx(const int vtxid)
 {
-  int key = get_key(vtxid);
+  int key = vtxid;
   VtxIterator it = primary_vtxmap.find(key);
   if ( it != primary_vtxmap.end() )
     {
@@ -198,7 +192,7 @@ PHG4TruthInfoContainer::GetVtxRange() const
 PHG4TruthInfoContainer::VtxIterator
 PHG4TruthInfoContainer::AddVertex(const int id)
 {
-  int key = get_key(id);
+  int key = id;
   VtxIterator it = vtxmap.find(key);
   if ( it != vtxmap.end() ) 
     {
@@ -213,7 +207,7 @@ PHG4TruthInfoContainer::AddVertex(const int id)
 PHG4TruthInfoContainer::ConstVtxIterator
 PHG4TruthInfoContainer::AddVertex(const int id, PHG4VtxPoint *newvtx)
 {
-  int key = get_key(id);
+  int key = id;
   ConstVtxIterator it;
   bool added = false;
   if (vtxmap.find(id) != vtxmap.end())
