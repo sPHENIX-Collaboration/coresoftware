@@ -39,8 +39,8 @@ struct SecondDeleter : std::unary_function<T,void>
 void
 PHG4TruthInfoContainer::Reset()
 {
-  std::for_each(hitmap.begin(),hitmap.end(),SecondDeleter<Map::value_type>());
-  hitmap.clear();
+  std::for_each(particlemap.begin(),particlemap.end(),SecondDeleter<Map::value_type>());
+  particlemap.clear();
 
   std::for_each(vtxmap.begin(),vtxmap.end(),SecondDeleter<VtxMap::value_type>());
   vtxmap.clear();
@@ -61,9 +61,9 @@ PHG4TruthInfoContainer::identify(ostream& os) const
 {
    ConstIterator iter;
    cout << "---particlemap--------------------------" << endl;
-   for (iter = hitmap.begin(); iter != hitmap.end(); ++iter)
+   for (iter = particlemap.begin(); iter != particlemap.end(); ++iter)
      {
-       cout << "hit key " <<  iter->first << endl;
+       cout << "particle key " <<  iter->first << endl;
        (iter->second)->identify();
      }
    ConstVtxIterator vter;
@@ -95,24 +95,24 @@ PHG4TruthInfoContainer::identify(ostream& os) const
 }
 
 PHG4TruthInfoContainer::ConstIterator
-PHG4TruthInfoContainer::AddHit(const int trackid, PHG4Particle *newhit)
+PHG4TruthInfoContainer::AddParticle(const int trackid, PHG4Particle *newparticle)
 {
   int key = get_key(trackid);
   ConstIterator it;
   bool added = false;
-  boost::tie(it,added) = hitmap.insert(std::make_pair(key,newhit));
+  boost::tie(it,added) = particlemap.insert(std::make_pair(key,newparticle));
   if ( added ) return it;
-  cerr << "PHG4TruthInfoContainer::AddHit - Attempt to add hit with existing trackid "
-      << trackid <<": "<<newhit ->get_name()<<" id "
-      << newhit->get_track_id()
-      <<", p = ["<<newhit->get_px()<<", "<<newhit->get_py()<<", "<<newhit->get_pz()<<"], "
-      <<" parent ID "<<newhit->get_parent_id()
+  cerr << "PHG4TruthInfoContainer::AddParticle - Attempt to add particle with existing trackid "
+      << trackid <<": "<<newparticle ->get_name()<<" id "
+      << newparticle->get_track_id()
+      <<", p = ["<<newparticle->get_px()<<", "<<newparticle->get_py()<<", "<<newparticle->get_pz()<<"], "
+      <<" parent ID "<<newparticle->get_parent_id()
       << std::endl;
-  return hitmap.end();
+  return particlemap.end();
 }
 
 PHG4TruthInfoContainer::ConstIterator
-PHG4TruthInfoContainer::AddPrimaryParticle(PHG4Particle *newhit)
+PHG4TruthInfoContainer::AddPrimaryParticle(PHG4Particle *newparticle)
 {
   int key = primary_particle_map.size()+1;
   if ( primary_particle_map.find(key) !=  primary_particle_map.end())
@@ -123,23 +123,23 @@ PHG4TruthInfoContainer::AddPrimaryParticle(PHG4Particle *newhit)
 
   ConstIterator it;
   bool added = false;
-  boost::tie(it,added) = primary_particle_map.insert(std::make_pair(key,newhit));
+  boost::tie(it,added) = primary_particle_map.insert(std::make_pair(key,newparticle));
   if ( added ) return it;
-  cerr << "PHG4TruthInfoContainer::AddHit - Attempt to add hit with existing trackid " << key << std::endl;
-  return hitmap.end();
+  cerr << "PHG4TruthInfoContainer::AddParticle - Attempt to add particle with existing trackid " << key << std::endl;
+  return particlemap.end();
 }
 
 PHG4Particle*
-PHG4TruthInfoContainer::GetHit(const int trackid)
+PHG4TruthInfoContainer::GetParticle(const int trackid)
 {
   int key = get_key(trackid);
-  Iterator it = hitmap.find(key);
-  if ( it != hitmap.end() ) return it->second;
+  Iterator it = particlemap.find(key);
+  if ( it != particlemap.end() ) return it->second;
   return 0;
 }
 
 PHG4Particle*
-PHG4TruthInfoContainer::GetPrimaryHit(const int trackid)
+PHG4TruthInfoContainer::GetPrimaryParticle(const int trackid)
 {
   int key = get_key(trackid);
   Iterator it = primary_particle_map.find(key);
@@ -148,15 +148,15 @@ PHG4TruthInfoContainer::GetPrimaryHit(const int trackid)
 }
 
 PHG4TruthInfoContainer::Range
-PHG4TruthInfoContainer::GetHitRange()
+PHG4TruthInfoContainer::GetParticleRange()
 {
-  return Range(hitmap.begin(),hitmap.end());
+  return Range(particlemap.begin(),particlemap.end());
 }
 
 PHG4TruthInfoContainer::ConstRange
-PHG4TruthInfoContainer::GetHitRange() const
+PHG4TruthInfoContainer::GetParticleRange() const
 {
-  return ConstRange(hitmap.begin(),hitmap.end());
+  return ConstRange(particlemap.begin(),particlemap.end());
 }
 
 PHG4VtxPoint*
@@ -299,9 +299,9 @@ int
 PHG4TruthInfoContainer::maxtrkindex() const
 {
   int key = 0;
-  if (!hitmap.empty())
+  if (!particlemap.empty())
     {
-      key = hitmap.rbegin()->first;
+      key = particlemap.rbegin()->first;
     }
   if (key < 0)
     {
@@ -314,9 +314,9 @@ int
 PHG4TruthInfoContainer::mintrkindex() const
 {
   int key = 0;
-  if (!hitmap.empty())
+  if (!particlemap.empty())
     {
-       key = hitmap.begin()->first;
+       key = particlemap.begin()->first;
     }
   if (key > 0)
     {
@@ -356,10 +356,10 @@ PHG4TruthInfoContainer::minvtxindex() const
 }
 
 void
-PHG4TruthInfoContainer::delete_hit(Iterator hiter)
+PHG4TruthInfoContainer::delete_particle(Iterator piter)
 {
-  delete hiter->second;
-  hitmap.erase(hiter);
+  delete piter->second;
+  particlemap.erase(piter);
   return;
 }
 

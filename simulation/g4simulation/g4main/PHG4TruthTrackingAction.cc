@@ -71,7 +71,7 @@ PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track)
   ti->set_vtx_id(vtxindex);
   //       cout << "Adding particle trkid: " << trackid << endl;
   //       ti->identify();
-  truthInfoList_->AddHit(trackid, ti);
+  truthInfoList_->AddParticle(trackid, ti);
   return;
 }
 

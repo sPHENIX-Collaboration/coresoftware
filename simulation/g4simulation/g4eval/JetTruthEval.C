@@ -85,7 +85,7 @@ std::set<PHG4Particle*> JetTruthEval::all_truth_particles(Jet* truthjet) {
       exit(-1);
     }
 
-    PHG4Particle* truth_particle = _truthinfo->GetHit(index);
+    PHG4Particle* truth_particle = _truthinfo->GetParticle(index);
     
     if (_strict) {assert(truth_particle);}
     else if (!truth_particle) {++_errors; continue;}
@@ -221,7 +221,7 @@ Jet* JetTruthEval::get_truth_jet(PHG4Particle* particle) {
 	 ++jter) {
       unsigned int index = jter->second;
       
-      PHG4Particle* constituent = _truthinfo->GetHit( index );
+      PHG4Particle* constituent = _truthinfo->GetParticle( index );
       if (_strict) {assert(constituent);}
       else if (!constituent) {++_errors; continue;}
 

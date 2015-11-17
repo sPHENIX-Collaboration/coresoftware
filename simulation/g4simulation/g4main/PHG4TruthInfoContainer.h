@@ -1,7 +1,6 @@
 #ifndef __PHG4TRUTHINFOCONTAINER_H__
 #define __PHG4TRUTHINFOCONTAINER_H__
 
-
 #include <phool/PHObject.h>
 #include <map>
 #include <set>
@@ -9,9 +8,10 @@
 class PHG4Particle;
 class PHG4VtxPoint;
 
-class PHG4TruthInfoContainer: public PHObject
-{
-  public:
+class PHG4TruthInfoContainer: public PHObject {
+  
+public:
+
   typedef std::map<int,PHG4Particle *> Map;
   typedef Map::iterator Iterator;
   typedef Map::const_iterator ConstIterator;
@@ -25,72 +25,42 @@ class PHG4TruthInfoContainer: public PHObject
   typedef std::pair<ConstVtxIterator, ConstVtxIterator> ConstVtxRange;
 
   PHG4TruthInfoContainer();
-
   virtual ~PHG4TruthInfoContainer();
 
   void Reset();
 
   void identify(std::ostream& os = std::cout) const;
 
-  //! Add a hit that the user has created (use with caution)
-  ConstIterator AddHit(const int detid, PHG4Particle *newhit);
+  // --- particle storage ------------------------------------------------------
+  
+  //! Add a particle that the user has created
+  ConstIterator AddParticle(const int particleid, PHG4Particle* newparticle);
 
-  //! Add a hit and return an iterator to the user
-  //  Iterator AddHit(const int detid);
-
-  PHG4Particle* GetHit(const int detid);
-  PHG4Particle* GetPrimaryHit(const int detid);
-
-  //! Add a vertex and return an iterator to the user
-  VtxIterator AddVertex(const int detid);
-
-  //! Add a vertex and return an iterator to the user
-  ConstVtxIterator AddVertex(const int detid, PHG4VtxPoint *);
-
-  //! Add a primary vertex and return index to the user
-  int AddPrimaryVertex(PHG4VtxPoint *);
+  PHG4Particle* GetParticle(const int particleid);
+  PHG4Particle* GetPrimaryParticle(const int particleid);
 
   ConstIterator AddPrimaryParticle(PHG4Particle *newparticle);
-
-  PHG4VtxPoint* GetVtx(const int detid);
-
-  PHG4VtxPoint* GetPrimaryVtx(const int vtxid);
-
-  //! Get a range of iterators covering the entire container
-  Range GetHitRange();
-  ConstRange GetHitRange() const;
   
-  //! Get a range of iterators covering the entire vertex container
-  VtxRange GetVtxRange();
-  ConstVtxRange GetVtxRange() const;
+  //! Get a range of iterators covering the entire container
+  Range GetParticleRange();
+  ConstRange GetParticleRange() const;
 
-  //! hit size
-  unsigned int size( void ) const
-  { return hitmap.size(); }
-
-  //! Get the number of vertices stored
-  unsigned int GetNumVertices() const { return vtxmap.size(); }
-
+  //! particle size
+  unsigned int size( void ) const {return particlemap.size();}
+  int GetNumPrimaryVertexParticles() {return primary_particle_map.size();}
+  
   //! Get the map itself
-  const Map& GetMap() const { return hitmap; }
-  const Map& GetPrimaryMap() const { return primary_particle_map; }
-  const VtxMap& GetVtxMap() const { return vtxmap; }
+  const Map& GetMap() const {return particlemap;}
+  const Map& GetPrimaryMap() const {return primary_particle_map;}
 
   int maxtrkindex() const;
   int mintrkindex() const;
 
-  int maxvtxindex() const;
-  int minvtxindex() const;
- 
   int maxprimarytrkindex() const;
   int minprimarytrkindex() const;
 
-  void delete_hit(Iterator hiter);
-  void delete_vtx(VtxIterator viter);
+  void delete_particle(Iterator piter);
 
-  int GetPrimaryVertexIndex() {return (primary_vtxmap.begin())->first;}
-  int GetNumPrimaryVertexParticles() {return primary_particle_map.size();}
-  
   int GetLastParticleIndex() {return (primary_particle_map.rbegin())->first;}
 
   std::pair< std::set<int>::const_iterator, std::set<int>::const_iterator > GetEmbeddedTrkIds() const
@@ -98,13 +68,55 @@ class PHG4TruthInfoContainer: public PHObject
   void AddEmbededTrkId(const int i) {embedded_trkid.insert(i);}
 
   int isEmbeded(const int trackid) const;
+  
+  // --- vertex storage --------------------------------------------------------
+  
+  //! Add a vertex and return an iterator to the user
+  VtxIterator AddVertex(const int vtxid);
+  //! Add a vertex and return an iterator to the user
+  ConstVtxIterator AddVertex(const int vtxid, PHG4VtxPoint* vertex);
 
+  //! Add a primary vertex and return index to the user
+  int AddPrimaryVertex(PHG4VtxPoint *);
+  
+  PHG4VtxPoint* GetVtx(const int vtxid);
+  PHG4VtxPoint* GetPrimaryVtx(const int vtxid);
+  
+  //! Get a range of iterators covering the entire vertex container
+  VtxRange GetVtxRange();
+  ConstVtxRange GetVtxRange() const;
+
+  //! Get the number of vertices stored
+  unsigned int GetNumVertices() const {return vtxmap.size();}
+
+  const VtxMap& GetVtxMap() const {return vtxmap;}
+
+  int maxvtxindex() const;
+  int minvtxindex() const;
+ 
+  void delete_vtx(VtxIterator viter);
+
+  int GetPrimaryVertexIndex() {return (primary_vtxmap.begin())->first;}
+
+  // deprecated interface, confusingly named as we store particles not hits ----
+  // do not call these functions in new code, i'm leaving these for now for
+  // build compatibility outside of coresoftware
+  
+  //ConstIterator AddHit(const int particleid, PHG4Particle *newparticle) {return AddParticle(particleid,newparticle);}
+  //PHG4Particle* GetHit(const int particleid) {return GetParticle(particleid);}
+  //PHG4Particle* GetPrimaryHit(const int particleid) {return GetPrimaryParticle(particleid);}
+  //Range GetHitRange() {return GetParticleRange();}
+  //ConstRange GetHitRange() const {return GetParticleRange();}
+  //void delete_hit(Iterator piter) {delete_particle(piter);}
+
+  // end deprecated interface, confusingly named -------------------------------
+  
  protected:
 
   //! generate a key
   static int get_key(const int detid);
 
-  Map hitmap;
+  Map particlemap;
   VtxMap vtxmap;
 
   Map primary_particle_map;

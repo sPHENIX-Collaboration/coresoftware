@@ -52,7 +52,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
   for (write_iter = writeList_.begin(); write_iter != writeList_.end(); ++write_iter)
     {
       G4int mytrkid = *write_iter;
-      PHG4Particle *particle = truthInfoList_->GetHit(mytrkid);
+      PHG4Particle *particle = truthInfoList_->GetParticle(mytrkid);
       // if track is already in save list, nothing needs to be done
       if (savelist.find(mytrkid) != savelist.end())
         {
@@ -68,7 +68,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
       G4int parentid = particle->get_parent_id();
       while (savelist.find(parentid) == savelist.end() && parentid > 0)
         {
-          particle = truthInfoList_->GetHit(parentid);
+          particle = truthInfoList_->GetParticle(parentid);
           wrttracks.push_back(parentid);
           wrtvtx.push_back(particle->get_vtx_id());
           parentid = particle->get_parent_id();
@@ -90,7 +90,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
   // loop over particles in truth list and remove them if they are not
   // in the save list andare not primary particles (parent_id == 0)
   int removed[4] = {0};
-  PHG4TruthInfoContainer::Range truth_range = truthInfoList_->GetHitRange();
+  PHG4TruthInfoContainer::Range truth_range = truthInfoList_->GetParticleRange();
   PHG4TruthInfoContainer::Iterator truthiter = truth_range.first;
   while (truthiter != truth_range.second)
     {
@@ -105,7 +105,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
 	  // for regular sims, trackidoffset is zero
           if ((truthiter->second)->get_parent_id() != 0 && truthiter->first > trackidoffset)
             {
-              truthInfoList_->delete_hit(truthiter++);
+              truthInfoList_->delete_particle(truthiter++);
               removed[1]++;
             }
           else
@@ -144,7 +144,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
   // --- fill primary truth fields --------------------------
 
   // loop over all truth entries now that those entries are full
-  truth_range = truthInfoList_->GetHitRange();
+  truth_range = truthInfoList_->GetParticleRange();
   for (truthiter = truth_range.first; truthiter != truth_range.second; ++truthiter)
     {
       // do not handle primary particle which are stored with negative track ids
@@ -176,7 +176,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
             }
 
           // otherwise advance to the next particle in the ancestry
-          particle = truthInfoList_->GetHit(particle->get_parent_id());
+          particle = truthInfoList_->GetParticle(particle->get_parent_id());
 
           // the last parent seen will know the primary truth particle
           primaryid = particle->get_primary_id();

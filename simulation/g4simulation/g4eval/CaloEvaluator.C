@@ -161,7 +161,7 @@ void CaloEvaluator::printInputInfo(PHCompositeNode *topNode) {
     
     cout << "PHG4TruthInfoContainer contents: " << endl; 
 
-    PHG4TruthInfoContainer::Range truthrange = truthinfo->GetHitRange();
+    PHG4TruthInfoContainer::Range truthrange = truthinfo->GetParticleRange();
     for(PHG4TruthInfoContainer::Iterator truthiter = truthrange.first;
 	truthiter != truthrange.second;
 	++truthiter) {

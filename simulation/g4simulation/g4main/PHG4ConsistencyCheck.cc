@@ -29,7 +29,7 @@ PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
     {
       return 0;
     }
-  PHG4TruthInfoContainer::ConstRange trange = truthcont->GetHitRange();
+  PHG4TruthInfoContainer::ConstRange trange = truthcont->GetParticleRange();
   PHG4TruthInfoContainer::ConstIterator titer;
   int imax = 1000000;
   for (titer = trange.first; titer != trange.second; titer++)
@@ -56,7 +56,7 @@ PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
         {
 
           int trkid = hit->second->get_trkid();
-          PHG4Particle* part = truthcont->GetHit(trkid);
+          PHG4Particle* part = truthcont->GetParticle(trkid);
           if (!part)
             {
               hit->second->identify();
@@ -72,7 +72,7 @@ PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
                     {
                       cout << "primary id " << primary_id << " is embedded" << endl;
                       printpart.insert(primary_id);
-                      PHG4Particle* parta = truthcont->GetHit(primary_id);
+                      PHG4Particle* parta = truthcont->GetParticle(primary_id);
                       parta->identify();
                     }
                 }
@@ -87,7 +87,7 @@ PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
       for (hit = hit_begin_end.first; hit != hit_begin_end.second; hit++)
         {
           int trkid = hit->second->get_trkid();
-          PHG4Particle* part = truthcont->GetHit(trkid);
+          PHG4Particle* part = truthcont->GetParticle(trkid);
           if (!part)
             {
               cout << "could not locate geant particle " << trkid << " in G4HIT_SVTX" << endl;

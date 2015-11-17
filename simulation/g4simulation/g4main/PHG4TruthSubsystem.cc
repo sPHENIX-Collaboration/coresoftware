@@ -156,7 +156,7 @@ int PHG4TruthSubsystem::process_after_geant(PHCompositeNode * topNode)
       set<int> savevtxlist;
 
       // remove particle that is not embedd associated
-      PHG4TruthInfoContainer::Range truth_range = truthInfoList->GetHitRange();
+      PHG4TruthInfoContainer::Range truth_range = truthInfoList->GetParticleRange();
       PHG4TruthInfoContainer::Iterator truthiter = truth_range.first;
       while (truthiter != truth_range.second)
         {
@@ -165,7 +165,7 @@ int PHG4TruthSubsystem::process_after_geant(PHCompositeNode * topNode)
             {
               // not a embed associated particle
 
-              truthInfoList->delete_hit(truthiter++);
+              truthInfoList->delete_particle(truthiter++);
             }
           else
             {
