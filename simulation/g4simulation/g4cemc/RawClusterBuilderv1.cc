@@ -168,7 +168,8 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
       iphi = xcg+0.5;
       dphi = xcg - float(iphi); // this is from -0.5 to +0.5
       phi = towergeom->get_phicenter(iphi);
-      phistep = towergeom->get_phistep();
+      std::pair<double, double> phibounds = towergeom->get_phibounds(iphi);
+      phistep = phibounds.second - phibounds.first;
       phi += dphi*phistep;
 
       ieta = ycg+0.5;

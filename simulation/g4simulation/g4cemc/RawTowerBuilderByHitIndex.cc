@@ -232,7 +232,7 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable() {
       unsigned int temp_id = RawTowerDefs::encode_towerid( calo_id_ , idx_j , idx_k );
 
       /* Create tower geometry object */
-      NewGeom* temp_geo = new RawTowerGeomv2( temp_id );
+      RawTowerGeom* temp_geo = new RawTowerGeomv2( temp_id );
       temp_geo->set_center_x( pos_x );
       temp_geo->set_center_y( pos_y );
       temp_geo->set_center_z( pos_z );

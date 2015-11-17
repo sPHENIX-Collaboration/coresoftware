@@ -1,6 +1,6 @@
 #include "RawTowerCalibration.h"
 #include "RawTowerContainer.h"
-#include "RawTowerGeomv2.h"
+#include "RawTowerGeomContainer.h"
 #include "RawTowerv1.h"
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
