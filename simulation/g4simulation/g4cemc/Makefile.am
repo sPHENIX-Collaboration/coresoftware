@@ -27,6 +27,7 @@ libcemc_io_la_SOURCES = \
   RawClusterv1_Dict.cc \
   RawClusterContainer.cc \
   RawClusterContainer_Dict.cc \
+  RawTowerDefs_Dict.cc \
   RawTower_Dict.cc \
   RawTowerv1.cc \
   RawTowerv1_Dict.cc \
@@ -58,10 +59,6 @@ libcemc_la_SOURCES = \
   RawTowerCalibration_Dict.cc \
   RawTowerDigitizer.cc \
   RawTowerDigitizer_Dict.cc \
-  RawTowerBuilderCone.cc \
-  RawTowerBuilderCone_Dict.cc \
-  RawTowerCombiner.cc \
-  RawTowerCombiner_Dict.cc \
   BEmcCluster.cc \
   BEmcRec.cc
 
