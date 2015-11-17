@@ -1,6 +1,5 @@
 #include "RawTowerGeomv1.h"
 
-#include <g4main/PHG4Utils.h>
 
 #include <iostream>
 #include <algorithm>
@@ -16,10 +15,7 @@ RawTowerGeomv1::RawTowerGeomv1(RawTowerDefs::keytype id) :
   _towerid(id),
   _center_x(0),
   _center_y(0),
-  _center_z(0),
-  _size_x(0),
-  _size_y(0),
-  _size_z(0)
+  _center_z(0)
 {}
 
 RawTowerGeomv1::~RawTowerGeomv1()
@@ -34,18 +30,21 @@ double RawTowerGeomv1::get_center_radius() const
 
 double RawTowerGeomv1::get_eta() const
 {
-  std::pair<double,double> etaphi;
-  etaphi = PHG4Utils::get_etaphi( _center_x , _center_y , _center_z );
 
-  return etaphi.first;
+
+  double eta;
+  double radius;
+  double theta;
+  radius = sqrt(_center_x * _center_x + _center_y * _center_y);
+  theta = atan2(radius, _center_y);
+  eta = -log(tan(theta / 2.));
+
+  return eta;
 }
 
 double RawTowerGeomv1::get_phi() const
 {
-  std::pair<double,double> etaphi;
-  etaphi = PHG4Utils::get_etaphi( _center_x , _center_y , _center_z );
-
-  return etaphi.second;
+  return atan2(_center_y, _center_x);
 }
 
 

@@ -34,19 +34,23 @@ double RawTowerGeomv2::get_center_radius() const
 
 double RawTowerGeomv2::get_eta() const
 {
-  std::pair<double,double> etaphi;
-  etaphi = PHG4Utils::get_etaphi( _center_x , _center_y , _center_z );
 
-  return etaphi.first;
+
+  double eta;
+  double radius;
+  double theta;
+  radius = sqrt(_center_x * _center_x + _center_y * _center_y);
+  theta = atan2(radius, _center_y);
+  eta = -log(tan(theta / 2.));
+
+  return eta;
 }
 
 double RawTowerGeomv2::get_phi() const
 {
-  std::pair<double,double> etaphi;
-  etaphi = PHG4Utils::get_etaphi( _center_x , _center_y , _center_z );
-
-  return etaphi.second;
+  return atan2(_center_y, _center_x);
 }
+
 
 
 void RawTowerGeomv2::identify(std::ostream& os) const
