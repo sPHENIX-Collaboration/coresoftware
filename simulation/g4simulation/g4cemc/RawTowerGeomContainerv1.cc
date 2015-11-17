@@ -3,37 +3,52 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <cassert>
 
 ClassImp(RawTowerGeomContainerv1)
 
 using namespace std;
 
-
-RawTowerGeomContainerv1::RawTowerGeomContainerv1( RawTowerDefs::CalorimeterId caloid )
-  {
-    _caloid = caloid;
-  }
+RawTowerGeomContainerv1::RawTowerGeomContainerv1(
+    RawTowerDefs::CalorimeterId caloid)
+{
+  _caloid = caloid;
+}
 
 RawTowerGeomContainerv1::~RawTowerGeomContainerv1()
-{}
+{
+  Reset(); //make sure everything is deleted
+}
 
 RawTowerGeomContainerv1::ConstRange
-RawTowerGeomContainerv1::get_tower_geometries( void ) const
+RawTowerGeomContainerv1::get_tower_geometries(void) const
 {
-  return make_pair(_geoms.begin(), _geoms.end());
+  return make_pair<ConstIterator, ConstIterator>(_geoms.begin(), _geoms.end());
 }
-
 
 RawTowerGeomContainerv1::Range
-RawTowerGeomContainerv1::get_tower_geometries( void )
+RawTowerGeomContainerv1::get_tower_geometries(void)
 {
-  return make_pair(_geoms.begin(), _geoms.end());
+  return make_pair<Iterator, Iterator>(_geoms.begin(), _geoms.end());
 }
-
 
 RawTowerGeomContainerv1::ConstIterator
 RawTowerGeomContainerv1::add_tower_geometry(RawTowerGeom *geo)
 {
+  assert(geo);
+
+  Iterator it = _geoms.find(geo->get_id());
+  if (it != _geoms.end())
+    {
+      cout
+          << "RawTowerGeomContainerv1::add_tower_geometry - WARNING - replace tower geometry for tower #"
+          << geo->get_id() << ". This Old tower will be deleted: ";
+      it->second->identify(cout);
+
+      delete it->second;
+      _geoms.erase(it);
+    }
+
   _geoms[geo->get_id()] = geo;
   return _geoms.find(geo->get_id());
 }
@@ -48,7 +63,6 @@ RawTowerGeomContainerv1::get_tower_geometry(RawTowerDefs::keytype key)
     }
   return NULL;
 }
-
 
 int
 RawTowerGeomContainerv1::isValid() const
@@ -69,5 +83,6 @@ RawTowerGeomContainerv1::Reset()
 void
 RawTowerGeomContainerv1::identify(std::ostream& os) const
 {
-  os << "RawTowerGeomContainerv1, number of tower geometries: " << size() << std::endl;
+  os << "RawTowerGeomContainerv1, number of tower geometries: " << size()
+      << std::endl;
 }

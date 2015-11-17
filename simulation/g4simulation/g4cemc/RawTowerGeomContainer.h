@@ -9,6 +9,9 @@
 
 class RawTowerGeom;
 
+/*! \class RawTowerGeomContainer
+    \brief base class to describe calorimeter geometries
+*/
 class RawTowerGeomContainer : public PHObject
 {
 
@@ -37,7 +40,12 @@ class RawTowerGeomContainer : public PHObject
 
   virtual unsigned int size() const {PHOOL_VIRTUAL_WARN("size()"); return 0;}
 
-  // for cylindrical calorimeter only as implemented in RawTowerGeomContainer_Cylinderv1
+
+  /**
+   * \defgroup cylindrical_calorimeter for cylindrical calorimeter only as implemented in RawTowerGeomContainer_Cylinderv1
+   * @{
+   */
+
   virtual double get_radius() const {PHOOL_VIRTUAL_WARN("get_radius()"); return NAN;}
   virtual double get_thickness() const  {PHOOL_VIRTUAL_WARN("get_thickness()"); return NAN;}
   virtual int get_phibins() const{PHOOL_VIRTUAL_WARN("get_phibins()"); return -1;}
@@ -65,6 +73,7 @@ class RawTowerGeomContainer : public PHObject
   virtual void set_etastep(const double z) {PHOOL_VIRTUAL_WARN("set_etastep(const double)");}
   virtual void set_etabounds(const int ibin, const std::pair<double, double> & bounds) {PHOOL_VIRTUAL_WARN("set_etabounds(const int ibin, const std::pair<double, double> & bounds)");}
 
+  /**@}*/
 
  protected:
   //! this class is not for use. Base class only
