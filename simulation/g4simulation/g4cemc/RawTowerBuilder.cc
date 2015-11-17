@@ -119,7 +119,7 @@ RawTowerBuilder::process_event(PHCompositeNode *topNode)
       RawTower *tower = _towers->getTower(cell->get_binz(), cell->get_binphi());
       if (!tower)
         {
-          tower = new RawTowerv1(cell->get_binz(), cell->get_binphi());
+          tower = new RawTowerv1();
           tower->set_energy(0);
           _towers->AddTower(cell->get_binz(), cell->get_binphi(), tower);
         }
