@@ -45,6 +45,26 @@ public:
    */
   void EminCut(const double e) {emin_ = e;}
 
+  /** Get prefix for tower collection to identify simulated towers
+   * before digitization.
+   */
+  std::string
+  get_sim_tower_node_prefix() const
+  {
+    return sim_tower_node_prefix_;
+  }
+
+  /** Set prefix for tower collection to identify simulated towers
+   * before digitization.
+   */
+  void
+  set_sim_tower_node_prefix(std::string simTowerNodePrefix)
+  {
+    sim_tower_node_prefix_ = simTowerNodePrefix;
+  }
+
+
+
 protected:
 
   /** Create nodes for output.
@@ -64,6 +84,7 @@ protected:
   std::string node_name_hits_;
   std::string node_name_towers_;
   std::string node_name_tower_geometries_;
+  std::string sim_tower_node_prefix_;
 
   std::string mapping_tower_file_;
 
