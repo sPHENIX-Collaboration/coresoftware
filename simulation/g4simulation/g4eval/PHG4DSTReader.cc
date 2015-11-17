@@ -416,11 +416,10 @@ PHG4DSTReader::process_event(PHCompositeNode* topNode)
               << std::endl;
 //
           if (Verbosity() >= 2)
-            cout << "PHG4DSTReader::process_event - processing jets " << rec._name
-                << endl;
+            cout << "PHG4DSTReader::process_event - processing jets "
+                << rec._name << endl;
 
-          JetMap *hits = findNode::getClass<JetMap>(topNode,
-              rec._name);
+          JetMap *hits = findNode::getClass<JetMap>(topNode, rec._name);
           if (!hits)
             {
               if (_event < 2)
@@ -433,26 +432,27 @@ PHG4DSTReader::process_event(PHCompositeNode* topNode)
             {
 
               if (Verbosity() >= 2)
-                cout << "PHG4DSTReader::process_event - processing " << rec._name
-                    << " and received " << hits->size() << " jets"
+                cout << "PHG4DSTReader::process_event - processing "
+                    << rec._name << " and received " << hits->size() << " jets"
                     << endl;
 
-              for (unsigned int i = 0; i < hits->size(); i++)
+              // for every recojet
+              for (JetMap::Iter iter = hits->begin();
+                  iter != hits->end(); ++iter)
                 {
-                  PHPyJet * hit_raw = hits->getJet(i);
+                  Jet* hit_raw = iter->second;
 
                   if (Verbosity() >= 2)
                     cout << "PHG4DSTReader::process_event - processing jet "
-                        << rec._name << " @ (" << hit_raw->Eta() << ", "
-                        << hit_raw->Phi() << "), pT = " << hit_raw->Pt() << " - with raw type "
-                        << hit_raw->ClassName() << endl;
+                        << rec._name << " @ (" << hit_raw->get_eta() << ", "
+                        << hit_raw->get_phi() << "), pT = " << hit_raw->get_pt()
+                        << " - with raw type " << hit_raw->ClassName() << endl;
 
                   PHPyJet_type * hit = dynamic_cast<PHPyJet_type *>(hit_raw);
 
                   assert(hit);
 
                   new ((*(rec._arr.get()))[rec._cnt]) PHPyJet_type();
-
 
                   PHPyJet_type * new_hit =
                       dynamic_cast<PHPyJet_type *>(rec._arr.get()->At(rec._cnt));
@@ -533,7 +533,7 @@ PHG4DSTReader::process_event(PHCompositeNode* topNode)
                   particle_iter != truthInfoList->GetMap().end();
                   particle_iter++)
                 {
-                  if (particle_iter->second->get_parent_id()<=0)
+                  if (particle_iter->second->get_parent_id() <= 0)
                     _particle_set.insert(particle_iter->first);
 
 //                  PHG4Particle * part = particle_iter->second;
