@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <stdlib.h>
 
 /*! Namespace with functions to encode / decode CaloTowerID. The highest 8 bits of the tower ID encode a unique ID
  * for the calorimeter the tower is in. The lower 24 bits uniquely identify the tower within a calorimeter.
@@ -17,39 +18,37 @@ namespace RawTowerDefs
   /*! Bit ranges for encoding calorimeter ID and tower indices in combined tower ID
    */
   static unsigned int calo_idbits = 8;
-  static unsigned int tower_idbits = sizeof(keytype)*8 - calo_idbits;
-  static unsigned int index1_idbits = tower_idbits/2;
+  static unsigned int tower_idbits = sizeof(keytype) * 8 - calo_idbits;
+  static unsigned int index1_idbits = tower_idbits / 2;
 
   /*! Enum with all available calorimeter IDs. This enum can be extended up to 254 entries.
    * If adding new CalorimeterIDs, please also add them to the decode_caloname function below.
    */
-  enum CalorimeterId {
-    NONE,
-    CEMC,
-    HCALOUT,
-    HCALIN,
-    EEMC,
-    FEMC,
-    FHCAL,
+  enum CalorimeterId
+  {
+    NONE, CEMC, HCALOUT, HCALIN, EEMC, FEMC, FHCAL,
   };
 
   /*! Returns CaloTowerID for given calorimeter ID, tower index 1, and tower index 2
    */
-  inline RawTowerDefs::keytype encode_towerid( const CalorimeterId calo_id , const unsigned int tower_index_1 = 0 , const unsigned int tower_index_2 = 0)
+  inline RawTowerDefs::keytype
+  encode_towerid(const CalorimeterId calo_id, const unsigned int tower_index_1,
+      const unsigned int tower_index_2)
   {
     RawTowerDefs::keytype calo_tower_id = 0;
 
-    if ( calo_id < 0xFF && tower_index_1 < 0xFFF && tower_index_2 < 0xFFF )
+    if (calo_id < 0xFF && tower_index_1 < 0xFFF && tower_index_2 < 0xFFF)
       {
-  calo_tower_id = ( calo_id << RawTowerDefs::tower_idbits )
-    + ( tower_index_1 << RawTowerDefs::index1_idbits ) + tower_index_2;
+        calo_tower_id = (calo_id << RawTowerDefs::tower_idbits)
+            + (tower_index_1 << RawTowerDefs::index1_idbits) + tower_index_2;
       }
     else
       {
-  std::cout << "too large caloid, index1 and/or index2; caloid: " << calo_id << " (max val " << 0xFF << ")"
-      << ", index1: " << tower_index_1 << " (max val " << 0xFFF << ")"
-      << ", index2: " << tower_index_2 << " (max val " << 0xFFF << ")" << std::endl;
-  exit(1);
+        std::cout << "too large caloid, index1 and/or index2; caloid: "
+            << calo_id << " (max val " << 0xFF << ")" << ", index1: "
+            << tower_index_1 << " (max val " << 0xFFF << ")" << ", index2: "
+            << tower_index_2 << " (max val " << 0xFFF << ")" << std::endl;
+        exit(1);
       }
 
     return calo_tower_id;
@@ -57,19 +56,21 @@ namespace RawTowerDefs
 
   /*! Returns CaloTowerID for given calorimeter ID, tower index
    */
-  inline RawTowerDefs::keytype encode_towerid( const CalorimeterId calo_id , const unsigned int tower_index = 0)
+  inline RawTowerDefs::keytype
+  encode_towerid(const CalorimeterId calo_id, const unsigned int tower_index)
   {
     RawTowerDefs::keytype calo_tower_id = 0;
 
-    if ( calo_id < 0xFF && tower_index < 0xFFFFFF  )
+    if (calo_id < 0xFF && tower_index < 0xFFFFFF)
       {
-  calo_tower_id = ( calo_id << RawTowerDefs::tower_idbits ) + tower_index;
+        calo_tower_id = (calo_id << RawTowerDefs::tower_idbits) + tower_index;
       }
     else
       {
-  std::cout << "too large caloid, index; caloid: " << calo_id << " (max val " << 0xFF << ")"
-      << ", index: " << tower_index << " (max val " << 0xFFFFFF << ")" << std::endl;
-  exit(1);
+        std::cout << "too large caloid, index; caloid: " << calo_id
+            << " (max val " << 0xFF << ")" << ", index: " << tower_index
+            << " (max val " << 0xFFFFFF << ")" << std::endl;
+        exit(1);
       }
 
     return calo_tower_id;
@@ -77,37 +78,44 @@ namespace RawTowerDefs
 
   /*! Extract calorimeter ID from CaloTowerID
    */
-  inline unsigned int decode_caloid( const unsigned int calo_tower_id )
+  inline CalorimeterId
+  decode_caloid(const unsigned int calo_tower_id)
   {
-    return ( calo_tower_id >> RawTowerDefs::tower_idbits ) &0xFFF;
+    return static_cast<CalorimeterId>((calo_tower_id
+        >> RawTowerDefs::tower_idbits) & 0xFFF);
   }
 
   /*! Extract tower index of calorimeter tower from CaloTowerID
    */
-  inline unsigned int decode_index( const unsigned int calo_tower_id )
+  inline unsigned int
+  decode_index(const unsigned int calo_tower_id)
   {
-    return ( calo_tower_id  ) &0xFFFFFF;
+    return (calo_tower_id) & 0xFFFFFF;
   }
 
   /*! Extract tower index 1 of calorimeter tower from CaloTowerID
    */
-  inline unsigned int decode_index1( const unsigned int calo_tower_id )
+  inline unsigned int
+  decode_index1(const unsigned int calo_tower_id)
   {
-    return ( calo_tower_id >> RawTowerDefs::index1_idbits ) &0xFFF;
+    return (calo_tower_id >> RawTowerDefs::index1_idbits) & 0xFFF;
   }
 
   /*! Extract tower index 2 of calorimeter tower from CaloTowerID
    */
-  inline unsigned int decode_index2( const unsigned int calo_tower_id )
+  inline unsigned int
+  decode_index2(const unsigned int calo_tower_id)
   {
-    return calo_tower_id &0xFFF;
+    return calo_tower_id & 0xFFF;
   }
 
   /*! Convert calorimeter ID to name string
    */
-  inline std::string convert_caloid_to_name( const RawTowerDefs::CalorimeterId calo_id )
+  inline std::string
+  convert_caloid_to_name(const RawTowerDefs::CalorimeterId calo_id)
   {
-    switch ( calo_id ){
+    switch (calo_id)
+      {
 
     case NONE:
       return "NONE";
@@ -138,42 +146,46 @@ namespace RawTowerDefs
       break;
 
     default:
-      std::cout << "Invalid calorimeter ID passed to RawTowerDefs::convert_caloid_to_name" << std::endl;
+      std::cout
+          << "Invalid calorimeter ID passed to RawTowerDefs::convert_caloid_to_name"
+          << std::endl;
       exit(1);
 
-    }
+      }
 
   }
 
   /*! Convert name string to calorimeter ID
    */
-  inline RawTowerDefs::CalorimeterId convert_name_to_caloid( const std::string caloname )
+  inline RawTowerDefs::CalorimeterId
+  convert_name_to_caloid(const std::string caloname)
   {
-    if ( caloname == "NONE" )
+    if (caloname == "NONE")
       return NONE;
 
-    else if ( caloname == "CEMC" )
+    else if (caloname == "CEMC")
       return CEMC;
 
-    else if ( caloname == "HCALIN" )
+    else if (caloname == "HCALIN")
       return HCALIN;
 
-    else if ( caloname == "HCALOUT" )
+    else if (caloname == "HCALOUT")
       return HCALOUT;
 
-    else if ( caloname == "EEMC" )
+    else if (caloname == "EEMC")
       return EEMC;
 
-    else if ( caloname == "FEMC" )
+    else if (caloname == "FEMC")
       return FEMC;
 
-    else if ( caloname == "FHCAL" )
+    else if (caloname == "FHCAL")
       return FHCAL;
 
     else
       {
-	std::cout << "Invalid calorimeter name " << caloname << " passed to RawTowerDefs::convert_name_to_caloid" << std::endl;
-	exit(1);
+        std::cout << "Invalid calorimeter name " << caloname
+            << " passed to RawTowerDefs::convert_name_to_caloid" << std::endl;
+        exit(1);
       }
   }
 
