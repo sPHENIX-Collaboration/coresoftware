@@ -100,39 +100,41 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
       std::cout << std::endl;
     }
 
-  const int phibins = rawtowergeom->get_phibins();
-  const int etabins = rawtowergeom->get_etabins();
+  RawTowerGeomContainer::ConstRange all_towers =
+      rawtowergeom->get_tower_geometries();
 
-  for (int iphi = 0; iphi < phibins; ++iphi)
-    for (int ieta = 0; ieta < etabins; ++ieta)
-      {
-        RawTower *sim_tower = _sim_towers->getTower(ieta, iphi);
+  for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
+      it != all_towers.second; ++it)
+    {
+      const RawTowerDefs::keytype key = it->second->get_id();
 
-        RawTower *digi_tower = NULL;
+      RawTower *sim_tower = _sim_towers->getTower(key);
 
-        if (_digi_algorithm == kNo_digitization)
-          {
-            if (sim_tower)
-              digi_tower = new RawTowerv1(*sim_tower);
-          }
-        else if (_digi_algorithm == kSimple_photon_digitization)
-          digi_tower = simple_photon_digitization(ieta, iphi, sim_tower);
-        else
-          {
+      RawTower *digi_tower = NULL;
 
-            std::cout << Name() << "::" << detector << "::"
-                << __PRETTY_FUNCTION__ << " invalid digitization algorithm #"
-                << _digi_algorithm << std::endl;
+      if (_digi_algorithm == kNo_digitization)
+        {
+          if (sim_tower)
+            digi_tower = new RawTowerv1(*sim_tower);
+        }
+      else if (_digi_algorithm == kSimple_photon_digitization)
+        digi_tower = simple_photon_digitization(sim_tower);
+      else
+        {
 
-            if (digi_tower)
-              delete digi_tower;
+          std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+              << " invalid digitization algorithm #" << _digi_algorithm
+              << std::endl;
 
-            return Fun4AllReturnCodes::ABORTRUN;
-          }
+          if (digi_tower)
+            delete digi_tower;
 
-        if (digi_tower)
-          _raw_towers->AddTower(ieta, iphi, digi_tower);
-      }
+          return Fun4AllReturnCodes::ABORTRUN;
+        }
+
+      if (digi_tower)
+        _raw_towers->AddTower(key, digi_tower);
+    }
 
   if (verbosity)
     {
@@ -146,8 +148,7 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
 }
 
 RawTower *
-RawTowerDigitizer::simple_photon_digitization(int ieta, int iphi,
-    RawTower * sim_tower)
+RawTowerDigitizer::simple_photon_digitization(RawTower * sim_tower)
 {
   RawTower *digi_tower = NULL;
 
@@ -170,7 +171,7 @@ RawTowerDigitizer::simple_photon_digitization(int ieta, int iphi,
       if (sim_tower)
         digi_tower = new RawTowerv1(*sim_tower);
       else
-        digi_tower = new RawTowerv1(ieta, iphi);
+        digi_tower = new RawTowerv1();
 
       digi_tower->set_energy((double) sum_ADC);
     }
@@ -178,7 +179,7 @@ RawTowerDigitizer::simple_photon_digitization(int ieta, int iphi,
   if (verbosity >= 2)
     {
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
-          << " eta " << ieta << " phi " << iphi << std::endl;
+          << std::endl;
 
       cout << "input: ";
       if (sim_tower)
@@ -269,7 +270,8 @@ RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-  _raw_towers = new RawTowerContainer( RawTowerDefs::convert_name_to_caloid( detector ) );
+  _raw_towers = new RawTowerContainer(
+      RawTowerDefs::convert_name_to_caloid(detector));
   RawTowerNodeName = "TOWER_" + _raw_tower_node_prefix + "_" + detector;
   PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_raw_towers,
       RawTowerNodeName.c_str(), "PHObject");
