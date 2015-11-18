@@ -31,7 +31,7 @@ class RawTowerContainer : public PHObject
   void identify(std::ostream& os=std::cout) const;
 
   void setCalorimeterID( RawTowerDefs::CalorimeterId caloid ) { _caloid = caloid; }
-  RawTowerDefs::CalorimeterId setCalorimeterID( ) { return _caloid; }
+  RawTowerDefs::CalorimeterId getCalorimeterID( ) { return _caloid; }
 
   ConstIterator AddTower(const unsigned int ieta, const unsigned int iphi, RawTower *twr);
   ConstIterator AddTower(RawTowerDefs::keytype key, RawTower *twr);
