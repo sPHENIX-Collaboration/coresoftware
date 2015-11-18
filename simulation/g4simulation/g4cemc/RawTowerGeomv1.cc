@@ -43,7 +43,7 @@ double RawTowerGeomv1::get_eta() const
   double radius;
   double theta;
   radius = sqrt(_center_x * _center_x + _center_y * _center_y);
-  theta = atan2(radius, _center_y);
+  theta = atan2(radius, _center_z);
   eta = -log(tan(theta / 2.));
 
   return eta;
