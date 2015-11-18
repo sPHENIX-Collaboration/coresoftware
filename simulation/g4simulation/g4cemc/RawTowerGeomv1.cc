@@ -11,6 +11,13 @@ using namespace std;
 
 ClassImp(RawTowerGeomv1)
 
+RawTowerGeomv1::RawTowerGeomv1() :
+  _towerid(~0),
+  _center_x(0),
+  _center_y(0),
+  _center_z(0)
+{}
+
 RawTowerGeomv1::RawTowerGeomv1(RawTowerDefs::keytype id) :
   _towerid(id),
   _center_x(0),

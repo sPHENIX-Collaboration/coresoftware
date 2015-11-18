@@ -8,11 +8,13 @@
 class RawTowerGeomv1 : public RawTowerGeom {
 
  public:
+  RawTowerGeomv1();
   RawTowerGeomv1(RawTowerDefs::keytype id);
   virtual ~RawTowerGeomv1();
 
   void identify(std::ostream& os=std::cout) const;
 
+  void set_id(RawTowerDefs::keytype key) {_towerid = key;}
   RawTowerDefs::keytype get_id() const { return _towerid;}
 
   void set_center_x( double x ) { _center_x = x; return ; }

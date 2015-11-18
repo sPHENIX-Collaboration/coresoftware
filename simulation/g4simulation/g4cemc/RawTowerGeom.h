@@ -16,6 +16,7 @@ class RawTowerGeom : public PHObject {
 
   virtual void identify(std::ostream& os=std::cout) const;
 
+  virtual void set_id(RawTowerDefs::keytype key)  { PHOOL_VIRTUAL_WARN("set_id()");  }
   virtual RawTowerDefs::keytype get_id() const { PHOOL_VIRTUAL_WARN("get_id()"); return 0; }
 
   virtual void set_center_x( double ) { PHOOL_VIRTUAL_WARN("set_center_x()"); return ; }
@@ -42,7 +43,7 @@ class RawTowerGeom : public PHObject {
  protected:
   RawTowerGeom() {}
 
-  ClassDef(RawTowerGeom,1)
+  ClassDef(RawTowerGeom,2)
 
 };
 

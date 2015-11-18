@@ -37,6 +37,17 @@ RawTowerGeomContainerv1::add_tower_geometry(RawTowerGeom *geo)
 {
   assert(geo);
 
+  if (RawTowerDefs::decode_caloid(geo->get_id()) != get_calorimeter_id())
+    {
+
+      cout << "RawTowerGeomContainerv1::add_tower_geometry - Fatal Error - "
+          "attempting to add tower geometry with id = " << geo->get_id()
+          << " with CaloID = " << RawTowerDefs::decode_caloid(geo->get_id())
+          << " to this container of CaloID = " << get_calorimeter_id() << ".";
+      geo->identify(cout);
+      exit(2);
+    }
+
   Iterator it = _geoms.find(geo->get_id());
   if (it != _geoms.end())
     {
