@@ -22,7 +22,7 @@
 #include <g4main/PHG4Particlev2.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4VtxPointv1.h>
-#include <g4cemc/RawTowerv2.h>
+#include <g4cemc/RawTowerv1.h>
 #include <g4jets/JetV1.h>
 
 class TTree;
