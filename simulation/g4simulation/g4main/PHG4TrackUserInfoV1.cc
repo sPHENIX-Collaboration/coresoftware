@@ -3,7 +3,7 @@
 #include <Geant4/G4Track.hh>
 #include <boost/lexical_cast.hpp>
 
-namespace PHG4TrackUserInfo {
+namespace PHG4TrackUserInfo { 
   
   void SetUserTrackId(G4Track* track, const int usertrackid) {
 
@@ -23,7 +23,7 @@ namespace PHG4TrackUserInfo {
       track->SetUserInformation(pp);
     }
   }
-
+  
   void SetUserParentId(G4Track* track, const int userparentid) {
 
     if ( G4VUserTrackInformation* p = track->GetUserInformation() ) {

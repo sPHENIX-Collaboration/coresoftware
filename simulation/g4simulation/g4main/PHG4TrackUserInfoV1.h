@@ -14,10 +14,11 @@ class PHG4TrackUserInfoV1 : public G4VUserTrackInformation
 {
 public:
   PHG4TrackUserInfoV1() : G4VUserTrackInformation("TrackUserInfoV1"),
-			  usertrackid(0), userparentid(0), userprimaryid(0), wanted(0), keep(0) {}
+			  usertrackid(0), userparentid(0), userprimaryid(0),
+			  wanted(0), keep(0) {}
   virtual ~PHG4TrackUserInfoV1() {}
-  void Print() const 
-  {
+
+  void Print() const {
     G4cout << "PHG4TrackUserInfoV1: " << std::endl;
     G4cout << "   UserTrackId = " << usertrackid << std::endl;
     G4cout << "   UserParentId = " << userparentid << std::endl;
@@ -25,14 +26,19 @@ public:
     G4cout << "   Wanted = " << wanted << std::endl;
     G4cout << "   Keep = " << keep << std::endl;
   }
+
   void SetUserTrackId(const int val) {usertrackid = val;}
   int GetUserTrackId() const {return usertrackid;}
+  
   void SetUserParentId(const int val) {userparentid = val;}
   int GetUserParentId() const {return userparentid;}
+
   void SetUserPrimaryId(const int val) {userprimaryid = val;}
   int GetUserPrimaryId() const {return userprimaryid;}
+
   void SetWanted(const int val) {wanted = val;}
   int GetWanted() const {return wanted;}
+
   void SetKeep(const int val) {keep = val;}
   int GetKeep() const {return keep;}
 
