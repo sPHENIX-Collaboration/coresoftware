@@ -136,19 +136,17 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
         // time in ns
         hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
-        //set the track ID
-          {
-            int trkoffset = 0;
-            if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
-              {
-                if (PHG4TrackUserInfoV1* pp =
-                    dynamic_cast<PHG4TrackUserInfoV1*>(p))
-                  {
-                    trkoffset = pp->GetTrackIdOffset();
-                  }
-              }
-            hit->set_trkid(aTrack->GetTrackID() + trkoffset);
-          }
+	//set the track ID
+	{
+	  hit->set_trkid(aTrack->GetTrackID());
+	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	    {
+	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		{
+		  hit->set_trkid(pp->GetUserTrackId());
+		}
+	    }
+	}
         //set the initial energy deposit
         hit->set_edep(0);
         if (isactive == PHG4SpacalDetector::FIBER_CORE) // only for active areas

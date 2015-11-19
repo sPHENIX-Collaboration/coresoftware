@@ -83,7 +83,7 @@ PHG4TruthTrackingAction::PostUserTrackingAction( const G4Track* track)
      {
        if ( p->GetKeep() )
  	{
-	  int trackid = p->GetTrackIdOffset() + track->GetTrackID();
+	  int trackid = p->GetUserTrackId();
  	  eventAction_->AddTrackidToWritelist( trackid );
  	}
      }

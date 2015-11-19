@@ -25,7 +25,7 @@ public:
     G4cout << "   Keep = " << keep << std::endl;
   }
   void SetTrackIdOffset (const int val) { trackidoffset = val; }
-  int GetTrackIdOffset() const {return trackidoffset;}
+  //int GetTrackIdOffset() const {return trackidoffset;}
   void SetUserTrackId(const int val) {usertrackid = val;}
   int GetUserTrackId() const {return usertrackid;}
   void SetWanted(const int val) {wanted = val;}
