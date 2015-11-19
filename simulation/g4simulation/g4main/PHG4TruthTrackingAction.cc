@@ -10,6 +10,8 @@
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Track.hh>
+#include <Geant4/G4TrackingManager.hh>
+#include <Geant4/G4TrackVector.hh>
 
 using namespace std;
 
@@ -28,7 +30,15 @@ PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track)
 {
   G4ThreeVector v = track->GetVertexPosition();
   G4ThreeVector pdir = track->GetVertexMomentumDirection();
-  int trackid = track->GetTrackID() + primarytrackidoffset;
+  int trackid = 0;
+  // if (track->GetParentID())
+  //   {
+  //     trackid = -track->GetTrackID() + secondarytrackidoffset;
+  //   }
+  // else
+  //   {
+       trackid = track->GetTrackID() + primarytrackidoffset;
+  //   }
   PHG4TrackUserInfo::SetUserTrackId(const_cast<G4Track *> (track), trackid);
   //  PHG4TrackUserInfo::SetTrackIdOffset(const_cast<G4Track *> (track), trackidoffset); // adding info to G4Track -> non const
   G4ParticleDefinition* def = track->GetDefinition();
@@ -77,17 +87,27 @@ PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track)
   return;
 }
 
-void
-PHG4TruthTrackingAction::PostUserTrackingAction( const G4Track* track)
-{
-   if ( PHG4TrackUserInfoV1* p = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation()) )
-     {
-       if ( p->GetKeep() )
- 	{
-	  int trackid = p->GetUserTrackId();
- 	  eventAction_->AddTrackidToWritelist( trackid );
- 	}
-     }
+void PHG4TruthTrackingAction::PostUserTrackingAction(const G4Track* track) {
+
+  int trackid = track->GetTrackID();
+  if ( PHG4TrackUserInfoV1* p = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation()) ) {
+    trackid = p->GetUserTrackId();
+  }
+
+  G4TrackVector* secondaries = fpTrackingManager->GimmeSecondaries();
+  if (secondaries) {
+    for (size_t i = 0; i < secondaries->size(); ++i) { 
+      G4Track* secondary = (*secondaries)[i];    
+      PHG4TrackUserInfo::SetUserParentId(const_cast<G4Track *> (secondary), trackid);
+    }
+  } 
+  
+  if ( PHG4TrackUserInfoV1* p = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation()) ) {
+    if ( p->GetKeep() ) {
+      int trackid = p->GetUserTrackId();
+      eventAction_->AddTrackidToWritelist( trackid );
+    }
+  }
 }
 
 void
