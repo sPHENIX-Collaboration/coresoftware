@@ -40,7 +40,8 @@ PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track)
        trackid = track->GetTrackID() + primarytrackidoffset;
   //   }
   PHG4TrackUserInfo::SetUserTrackId(const_cast<G4Track *> (track), trackid);
-  //  PHG4TrackUserInfo::SetTrackIdOffset(const_cast<G4Track *> (track), trackidoffset); // adding info to G4Track -> non const
+
+  
   G4ParticleDefinition* def = track->GetDefinition();
   int pdgid = def->GetPDGEncoding();
   //   double charge = def->GetPDGCharge();
@@ -48,19 +49,28 @@ PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track)
   double ke = track->GetVertexKineticEnergy();
   double ptot = sqrt(ke * ke + 2.0 * m * ke);
   pdir *= ptot;
+
   PHG4Particlev2* ti = new PHG4Particlev2;
   ti->set_px(pdir[0] / GeV);
   ti->set_py(pdir[1] / GeV);
   ti->set_pz(pdir[2] / GeV);
   ti->set_track_id( trackid );
-  if (track->GetParentID()) // primary particle -> parent ID = 0
-    {
-      ti->set_parent_id( track->GetParentID() + primarytrackidoffset );
+
+  ti->set_parent_id(track->GetParentID());
+  if ( PHG4TrackUserInfoV1* p = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation()) ) {
+    ti->set_parent_id( p->GetUserParentId() );
+  }
+
+  ti->set_primary_id(trackid);
+  if ( PHG4TrackUserInfoV1* p = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation()) ) {
+    if (track->GetParentID()) {
+      ti->set_primary_id( p->GetUserPrimaryId() );
+    } else {
+      PHG4TrackUserInfo::SetUserPrimaryId(const_cast<G4Track *> (track), trackid);
+      ti->set_primary_id(trackid);
     }
-  else
-    {
-      ti->set_parent_id(0);
-    }
+  }
+  
   ti->set_pid( pdgid );
   ti->set_name(def->GetParticleName());
   ti->set_e(track->GetTotalEnergy() / GeV);
@@ -89,18 +99,24 @@ PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track)
 
 void PHG4TruthTrackingAction::PostUserTrackingAction(const G4Track* track) {
 
-  int trackid = track->GetTrackID();
-  if ( PHG4TrackUserInfoV1* p = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation()) ) {
-    trackid = p->GetUserTrackId();
-  }
+  if (fpTrackingManager) {
 
-  G4TrackVector* secondaries = fpTrackingManager->GimmeSecondaries();
-  if (secondaries) {
-    for (size_t i = 0; i < secondaries->size(); ++i) { 
-      G4Track* secondary = (*secondaries)[i];    
-      PHG4TrackUserInfo::SetUserParentId(const_cast<G4Track *> (secondary), trackid);
+    int trackid = track->GetTrackID();
+    int primaryid = 0;
+    if ( PHG4TrackUserInfoV1* p = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation()) ) {
+      trackid = p->GetUserTrackId();
+      primaryid = p->GetUserPrimaryId();
     }
-  } 
+
+    G4TrackVector* secondaries = fpTrackingManager->GimmeSecondaries();
+    if (secondaries) {
+      for (size_t i = 0; i < secondaries->size(); ++i) { 
+	G4Track* secondary = (*secondaries)[i];    
+	PHG4TrackUserInfo::SetUserParentId(const_cast<G4Track *> (secondary), trackid);
+	PHG4TrackUserInfo::SetUserPrimaryId(const_cast<G4Track *> (secondary), primaryid);
+      }
+    }
+  }
   
   if ( PHG4TrackUserInfoV1* p = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation()) ) {
     if ( p->GetKeep() ) {
