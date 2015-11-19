@@ -57,7 +57,6 @@ int PHG4TruthSubsystem::InitRun( PHCompositeNode* topNode )
   trackingAction_ = new PHG4TruthTrackingAction( eventAction_ );
 
   return 0;
-
 }
 
 //_______________________________________________________________________
@@ -102,9 +101,10 @@ PHG4TruthSubsystem::process_event( PHCompositeNode* topNode )
 //     cout << "truthInfoList maxkey: " << truthInfoList->maxindex() << endl;
 //     cout << "truthInfoList minkey: " << truthInfoList->minindex() << endl;
   trackingAction_->PrimaryTrackIdOffset(truthInfoList->maxtrkindex());
-  trackingAction_->SecondaryTrackIdOffset(truthInfoList->maxtrkindex());
-  eventAction_->PrimaryTrackIdOffset(truthInfoList->maxprimarytrkindex());
-  eventAction_->SecondaryTrackIdOffset(truthInfoList->maxtrkindex());
+  trackingAction_->SecondaryTrackIdOffset(truthInfoList->mintrkindex());
+  eventAction_->PrimaryTrackIdOffset(truthInfoList->maxtrkindex());
+  eventAction_->SecondaryTrackIdOffset(truthInfoList->mintrkindex());
+  eventAction_->PrimaryMapTrackIdOffset(truthInfoList->maxprimarytrkindex());
   map<int, PHG4VtxPoint *>::const_iterator vtxiter;
   multimap<int, PHG4Particle *>::const_iterator particle_iter;
   std::pair< std::map<int, PHG4VtxPoint *>::const_iterator, std::map<int, PHG4VtxPoint *>::const_iterator > vtxbegin_end = inEvent->GetVertices();
