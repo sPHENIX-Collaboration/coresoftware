@@ -28,6 +28,7 @@ PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track)
   G4ThreeVector v = track->GetVertexPosition();
   G4ThreeVector pdir = track->GetVertexMomentumDirection();
   int trackid = track->GetTrackID() + trackidoffset;
+  PHG4TrackUserInfo::SetUserTrackId(const_cast<G4Track *> (track), trackid);
   PHG4TrackUserInfo::SetTrackIdOffset(const_cast<G4Track *> (track), trackidoffset); // adding info to G4Track -> non const
   G4ParticleDefinition* def = track->GetDefinition();
   int pdgid = def->GetPDGEncoding();
