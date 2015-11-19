@@ -23,15 +23,11 @@ using namespace std;
 
 //___________________________________________________
 PHG4TruthEventAction::PHG4TruthEventAction( void ):
-  truthInfoList_( 0 ),
-  vertexid_(0)
+  truthInfoList_( 0 )
 {}
 
 //___________________________________________________
-void PHG4TruthEventAction::BeginOfEventAction(const G4Event* evt)
-{
-  vertexid_ = 0;
-}
+void PHG4TruthEventAction::BeginOfEventAction(const G4Event* evt) {}
 
 //___________________________________________________
 void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
@@ -103,7 +99,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
 	  // for embedding: particles from initial sim do not have their keep flag set, we want to keep particles with trkid <= trackidoffset
 	  // trackidoffset is the geantid of the last particle
 	  // for regular sims, trackidoffset is zero
-          if ((truthiter->second)->get_parent_id() != 0 && truthiter->first > 0)
+          if ((truthiter->second)->get_parent_id() != 0 && truthiter->first > 0) // MPM I'll need to revise this section
             {
               truthInfoList_->delete_particle(truthiter++);
               removed[1]++;
@@ -160,39 +156,23 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
 }
 
 //___________________________________________________
-void PHG4TruthEventAction::AddTrackidToWritelist( const G4int trackid)
-{
-  writeList_.insert(trackid);
+void PHG4TruthEventAction::AddTrackidToWritelist(const G4int trackid) {
+   writeList_.insert(trackid);
 }
 
 //___________________________________________________
-void PHG4TruthEventAction::SetInterfacePointers( PHCompositeNode* topNode )
-{
+void PHG4TruthEventAction::SetInterfacePointers(PHCompositeNode* topNode) {
+  
   //now look for the map and grab a pointer to it.
   truthInfoList_ =  findNode::getClass<PHG4TruthInfoContainer>( topNode , "G4TruthInfo" );
 
   // if we do not find the node we need to make it.
-  if ( !truthInfoList_ )
-    {
-      std::cout << "PHG4TruthEventAction::SetInterfacePointers - unable to find G4TruthInfo" << std::endl;
-    }
-
+  if ( !truthInfoList_ ) {
+    std::cout << "PHG4TruthEventAction::SetInterfacePointers - unable to find G4TruthInfo" << std::endl;
+  }
 }
 
-PHG4TruthEventAction::bimap_type::iterator
-PHG4TruthEventAction::AddVertex(G4ThreeVector& v)
-{
-  bimap_type::iterator it;
-  bool inserted = false;
-  boost::tie(it, inserted) = vertexIdMap_.insert(bimap_type::value_type(vertexid_, v));
-  if ( inserted ) vertexid_++;
-  return it;
-}
-
-int
-PHG4TruthEventAction::ResetEvent(PHCompositeNode *)
-{
+int PHG4TruthEventAction::ResetEvent(PHCompositeNode *) {
   writeList_.clear();
-  vertexIdMap_.clear();
   return 0;
 }

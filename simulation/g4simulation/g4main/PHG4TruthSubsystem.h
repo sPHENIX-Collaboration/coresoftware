@@ -48,7 +48,6 @@ class PHG4TruthSubsystem: public PHG4Subsystem
 
   //! only save the G4 truth information that is associated with the embedded particle
   bool saveOnlyEmbeded_;
-
 };
 
 #endif
