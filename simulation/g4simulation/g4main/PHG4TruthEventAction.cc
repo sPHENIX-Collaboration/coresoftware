@@ -24,9 +24,6 @@ using namespace std;
 //___________________________________________________
 PHG4TruthEventAction::PHG4TruthEventAction( void ):
   truthInfoList_( 0 ),
-  primarytrackidoffset(0),
-  secondarytrackidoffset(0),
-  primarymaptrackidoffset(0),
   vertexid_(0)
 {}
 
@@ -45,6 +42,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
       std::cout << "PHG4TruthEventAction::EndOfEventAction - unable to find G4TruthInfo node" << std::endl;
       return;
     }
+  
   set<G4int> savelist;
   set<int> savevtxlist;
   set<G4int>::const_iterator write_iter;
@@ -86,6 +84,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
           wrtvtx.pop_back();
         }
     }
+  
   // the save lists are filled now, except primary track which never
   // made it into any active volume and their vertex
   // loop over particles in truth list and remove them if they are not
@@ -104,7 +103,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
 	  // for embedding: particles from initial sim do not have their keep flag set, we want to keep particles with trkid <= trackidoffset
 	  // trackidoffset is the geantid of the last particle
 	  // for regular sims, trackidoffset is zero
-          if ((truthiter->second)->get_parent_id() != 0 && truthiter->first > secondarytrackidoffset)
+          if ((truthiter->second)->get_parent_id() != 0 && truthiter->first > 0)
             {
               truthInfoList_->delete_particle(truthiter++);
               removed[1]++;
@@ -137,85 +136,26 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
           ++vtxiter;
         }
     }
-//   cout << "truth particles: " << removed[0]
-//        << ", removed: " << removed[1] << endl;
-//   cout << "truth vertices: " << removed[2]
-//        << ", removed: " << removed[3] << endl;
-
-  // --- fill primary truth fields --------------------------
-
-  // loop over all truth entries now that those entries are full
-  truth_range = truthInfoList_->GetParticleRange();
-  for (truthiter = truth_range.first; truthiter != truth_range.second; ++truthiter)
-    {
-      // do not handle primary particle which are stored with negative track ids
-      if (truthiter->first < 0)
-        {
-          continue;
-        }
-      PHG4Particle* particle = truthiter->second;
-
-      // from the random particle in the event record, trace the pointers back to the primary truth particle
-      std::vector<PHG4Particle*> trace;
-
-      // while the current particle does not know the primary truth
-      int primaryid = 0xFFFFFFFF;
-      while (particle->get_primary_id() == (int)(0xFFFFFFFF))
-        {
-          // add the particle to the list
-          trace.push_back(particle);
-
-          // stop the trace when encountering a particle with no parent
-          if (particle->get_parent_id() <= 0)
-            {
-              primaryid = particle->get_track_id(); // this particle is the primary truth
-              assert (primaryid > secondarytrackidoffset);
-              primaryid -= secondarytrackidoffset; // recovery the Geant4 track ID = inEvent track ID
-              primaryid += primarymaptrackidoffset; // ID for the primary track in truth container
-
-              break;
-            }
-
-          // otherwise advance to the next particle in the ancestry
-          particle = truthInfoList_->GetParticle(particle->get_parent_id());
-
-          // the last parent seen will know the primary truth particle
-          primaryid = particle->get_primary_id();
-        }
-
-      primaryid = abs(primaryid);
-
-      // loop over the track and tell every particle what it's primary truth was
-      for (unsigned int iparticle = 0; iparticle < trace.size(); ++iparticle)
-        {
-          trace[iparticle]->set_primary_id(primaryid);
-        }
-    }
-
 
   // loop over all input particles and fish out the ones which have the embed flag set
   // and store their geant track ids in truthinfo container
   G4PrimaryVertex *pvtx = evt->GetPrimaryVertex();
-  while (pvtx)
-  {
-    //std::cout << "vertex ptr: " << pvtx << std::endl;
+  while (pvtx) {
+
     G4PrimaryParticle *part = pvtx->GetPrimary();
-    while (part)
-    {
-      //std::cout << "particle: " << part << std::endl;
+    while (part) {
+
       PHG4UserPrimaryParticleInformation *userdata = dynamic_cast<PHG4UserPrimaryParticleInformation *> (part->GetUserInformation());
-      if (userdata)
-      {
-	if (userdata->get_embed())
-	  {
-//      truthInfoList_->AddEmbededTrkId(part->GetTrackID()+ trackidoffset); // use G4 particle list ID for the embedded list
-      truthInfoList_->AddEmbededTrkId(part->GetTrackID()+ primarymaptrackidoffset); // use primary ID for the embedded list
-	  }
+      if (userdata) {
+	if (userdata->get_embed()) {
+	  truthInfoList_->AddEmbededTrkId(userdata->get_user_track_id()); // use primary ID for the embedded list
+	}
       }
       part = part->GetNext();
     }
     pvtx = pvtx->GetNext();
   }
+  
   return;
 }
 

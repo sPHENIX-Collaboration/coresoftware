@@ -4,6 +4,7 @@
 #include "PHG4TrackUserInfoV1.h"
 #include "PHG4Particlev2.h"
 #include "PHG4VtxPointv1.h"
+#include "PHG4UserPrimaryParticleInformation.h"
 
 #include <phool/getClass.h>
 
@@ -12,6 +13,8 @@
 #include <Geant4/G4Track.hh>
 #include <Geant4/G4TrackingManager.hh>
 #include <Geant4/G4TrackVector.hh>
+#include <Geant4/G4PrimaryParticle.hh>
+#include <Geant4/G4VUserPrimaryParticleInformation.hh>
 
 using namespace std;
 
@@ -19,8 +22,6 @@ const int VERBOSE = 0;
 
 //________________________________________________________
 PHG4TruthTrackingAction::PHG4TruthTrackingAction( PHG4TruthEventAction* eventAction ) :
-  primarytrackidoffset(0),
-  secondarytrackidoffset(0),
   eventAction_( eventAction ), 
   truthInfoList_( NULL )
 {}
@@ -30,15 +31,21 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
   int trackid = 0;
   if (track->GetParentID()) {
     // secondaries get negative user ids and increment downward between geant subevents
-    trackid = -track->GetTrackID() + secondarytrackidoffset;
+    trackid = truthInfoList_->mintrkindex() - 1;
   } else {
     // primaries get positive user ids and increment upward between geant subevents
-    trackid = track->GetTrackID() + primarytrackidoffset;
+    trackid = truthInfoList_->maxtrkindex() + 1;
   }
 
   // add the user id to the geant4 user info
   PHG4TrackUserInfo::SetUserTrackId(const_cast<G4Track *> (track), trackid);
 
+  // tell the primary particle copy where this output will be stored
+  if (!track->GetParentID()) {
+    PHG4UserPrimaryParticleInformation* userdata = (PHG4UserPrimaryParticleInformation*)track->GetDynamicParticle()->GetPrimaryParticle()->GetUserInformation();
+    if (userdata) userdata->set_user_track_id(trackid);
+  }
+  
   // determine the momentum vector
   G4ParticleDefinition* def = track->GetDefinition();
   int pdgid = def->GetPDGEncoding();

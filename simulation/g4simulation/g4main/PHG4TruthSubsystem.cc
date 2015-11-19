@@ -95,16 +95,6 @@ PHG4TruthSubsystem::process_event( PHCompositeNode* topNode )
     }
   PHG4TruthInfoContainer* truthInfoList =  findNode::getClass<PHG4TruthInfoContainer>( topNode , "G4TruthInfo" );
 
-//     cout << "truthInfoList identify" << endl;
-//     truthInfoList->identify();
-//     cout << "truthInfoList identify done" << endl;
-//     cout << "truthInfoList maxkey: " << truthInfoList->maxindex() << endl;
-//     cout << "truthInfoList minkey: " << truthInfoList->minindex() << endl;
-  trackingAction_->PrimaryTrackIdOffset(truthInfoList->maxtrkindex());
-  trackingAction_->SecondaryTrackIdOffset(truthInfoList->mintrkindex());
-  eventAction_->PrimaryTrackIdOffset(truthInfoList->maxtrkindex());
-  eventAction_->SecondaryTrackIdOffset(truthInfoList->mintrkindex());
-  eventAction_->PrimaryMapTrackIdOffset(truthInfoList->maxprimarytrkindex());
   map<int, PHG4VtxPoint *>::const_iterator vtxiter;
   multimap<int, PHG4Particle *>::const_iterator particle_iter;
   std::pair< std::map<int, PHG4VtxPoint *>::const_iterator, std::map<int, PHG4VtxPoint *>::const_iterator > vtxbegin_end = inEvent->GetVertices();
