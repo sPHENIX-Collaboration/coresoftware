@@ -26,6 +26,7 @@ PHG4TruthEventAction::PHG4TruthEventAction( void ):
   truthInfoList_( 0 ),
   primarytrackidoffset(0),
   secondarytrackidoffset(0),
+  primarymaptrackidoffset(0),
   vertexid_(0)
 {}
 
@@ -170,7 +171,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
               primaryid = particle->get_track_id(); // this particle is the primary truth
               assert (primaryid > secondarytrackidoffset);
               primaryid -= secondarytrackidoffset; // recovery the Geant4 track ID = inEvent track ID
-              primaryid += primarytrackidoffset; // ID for the primary track in truth container
+              primaryid += primarymaptrackidoffset; // ID for the primary track in truth container
 
               break;
             }
@@ -208,7 +209,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
 	if (userdata->get_embed())
 	  {
 //      truthInfoList_->AddEmbededTrkId(part->GetTrackID()+ trackidoffset); // use G4 particle list ID for the embedded list
-      truthInfoList_->AddEmbededTrkId(part->GetTrackID()+ primarytrackidoffset); // use primary ID for the embedded list
+      truthInfoList_->AddEmbededTrkId(part->GetTrackID()+ primarymaptrackidoffset); // use primary ID for the embedded list
 	  }
       }
       part = part->GetNext();
