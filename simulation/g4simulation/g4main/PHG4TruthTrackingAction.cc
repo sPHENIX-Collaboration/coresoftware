@@ -25,31 +25,31 @@ PHG4TruthTrackingAction::PHG4TruthTrackingAction( PHG4TruthEventAction* eventAct
   truthInfoList_( NULL )
 {}
 
-void
-PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track)
-{
-  G4ThreeVector v = track->GetVertexPosition();
-  G4ThreeVector pdir = track->GetVertexMomentumDirection();
+void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
+   
   int trackid = 0;
-  // if (track->GetParentID())
-  //   {
-  //     trackid = -track->GetTrackID() + secondarytrackidoffset;
-  //   }
-  // else
-  //   {
-       trackid = track->GetTrackID() + primarytrackidoffset;
-  //   }
+  if (track->GetParentID()) {
+    // secondaries get negative user ids and increment downward between geant subevents
+    trackid = -track->GetTrackID() + secondarytrackidoffset;
+  } else {
+    // primaries get positive user ids and increment upward between geant subevents
+    trackid = track->GetTrackID() + primarytrackidoffset;
+  }
+
+  // add the user id to the geant4 user info
   PHG4TrackUserInfo::SetUserTrackId(const_cast<G4Track *> (track), trackid);
 
-  
+  // determine the momentum vector
   G4ParticleDefinition* def = track->GetDefinition();
   int pdgid = def->GetPDGEncoding();
-  //   double charge = def->GetPDGCharge();
   double m = def->GetPDGMass();
   double ke = track->GetVertexKineticEnergy();
   double ptot = sqrt(ke * ke + 2.0 * m * ke);
+
+  G4ThreeVector pdir = track->GetVertexMomentumDirection();
   pdir *= ptot;
 
+  // create a new particle for the output structure for each G4Track
   PHG4Particlev2* ti = new PHG4Particlev2;
   ti->set_px(pdir[0] / GeV);
   ti->set_py(pdir[1] / GeV);
@@ -74,26 +74,33 @@ PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track)
   ti->set_pid( pdgid );
   ti->set_name(def->GetParticleName());
   ti->set_e(track->GetTotalEnergy() / GeV);
+
+  G4ThreeVector v = track->GetVertexPosition();
   map<G4ThreeVector, int>::const_iterator viter = VertexMap.find(v);
-  int vtxindex;
-  if (viter == VertexMap.end())
-    {
-      vtxindex = truthInfoList_->maxvtxindex() + 1;
-      VertexMap[v] = vtxindex;
-      PHG4VtxPointv1 *vtxpt = new PHG4VtxPointv1(v[0] / cm, v[1] / cm, v[2] / cm, track->GetGlobalTime() / ns);
-      // 	  cout << "adding vertex " << vtxindex << endl;
-      //  	  vtxpt->identify();
-      truthInfoList_->AddVertex(vtxindex, vtxpt);
+  int vtxindex = 0;
+  if (viter != VertexMap.end()) {
+    vtxindex = viter->second;
+  } else {
+
+    vtxindex = truthInfoList_->maxvtxindex() + 1;
+    if (track->GetParentID()) {
+      vtxindex = truthInfoList_->minvtxindex() - 1;
     }
-  else
-    {
-      vtxindex = viter->second;
-      // 	  cout << "found vertex " << vtxindex << endl;
-    }
+
+    VertexMap[v] = vtxindex;
+    PHG4VtxPointv1 *vtxpt = new PHG4VtxPointv1(v[0] / cm,
+					       v[1] / cm,
+					       v[2] / cm,
+					       track->GetGlobalTime() / ns);
+    // insert new vertex into the output
+    truthInfoList_->AddVertex(vtxindex, vtxpt);
+  }
+
   ti->set_vtx_id(vtxindex);
-  //       cout << "Adding particle trkid: " << trackid << endl;
-  //       ti->identify();
+
+  // insert particle into the output
   truthInfoList_->AddParticle(trackid, ti);
+
   return;
 }
 
