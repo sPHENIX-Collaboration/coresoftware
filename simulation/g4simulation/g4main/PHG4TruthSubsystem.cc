@@ -192,6 +192,12 @@ int PHG4TruthSubsystem::process_after_geant(PHCompositeNode * topNode)
         }
     }
 
+
+ {
+  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+  truthinfo->identify();
+  } 
+  
   return 0;
 }
 

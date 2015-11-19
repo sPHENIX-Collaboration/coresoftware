@@ -13,17 +13,21 @@
 class PHG4TrackUserInfoV1 : public G4VUserTrackInformation
 {
 public:
-  PHG4TrackUserInfoV1() : G4VUserTrackInformation("TrackUserInfoV1"), trackidoffset(0), wanted(0), keep(0) {}
+  PHG4TrackUserInfoV1() : G4VUserTrackInformation("TrackUserInfoV1"),
+			  trackidoffset(0), usertrackid(0), wanted(0), keep(0) {}
   virtual ~PHG4TrackUserInfoV1() {}
   void Print() const 
   {
     G4cout << "PHG4TrackUserInfoV1: " << std::endl;
     G4cout << "   TrackIdOffset = " << trackidoffset << std::endl;
+    G4cout << "   UserTrackId = " << usertrackid << std::endl;
     G4cout << "   Wanted = " << wanted << std::endl;
     G4cout << "   Keep = " << keep << std::endl;
   }
   void SetTrackIdOffset (const int val) { trackidoffset = val; }
   int GetTrackIdOffset() const {return trackidoffset;}
+  void SetUserTrackId(const int val) {usertrackid = val;}
+  int GetUserTrackId() const {return usertrackid;}
   void SetWanted(const int val) {wanted = val;}
   int GetWanted() const {return wanted;}
   void SetKeep(const int val) {keep = val;}
@@ -31,6 +35,7 @@ public:
 
 private:
   int trackidoffset;
+  int usertrackid;
   int wanted;
   int keep;
 };
@@ -42,6 +47,7 @@ class G4Track;
 namespace PHG4TrackUserInfo 
 {
   void SetTrackIdOffset(G4Track* track, const int trkidoffset);
+  void SetUserTrackId(G4Track* track, const int usertrackid);
   void SetWanted(G4Track* track, const int wanted);
   void SetKeep(G4Track* track, const int keep);
 };

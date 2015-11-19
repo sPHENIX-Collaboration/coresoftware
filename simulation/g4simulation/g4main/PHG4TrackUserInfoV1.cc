@@ -29,6 +29,30 @@ namespace PHG4TrackUserInfo
 	track->SetUserInformation(pp);
       }
   }
+  void SetUserTrackId(G4Track* track, const int usertrackid)
+  {
+    if ( G4VUserTrackInformation* p = track->GetUserInformation() )
+      {
+	// User info exists, test it for something valid
+	if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+	  {
+	    pp->SetUserTrackId(usertrackid);
+	  }
+	else
+	  {
+	    std::cout << "Unknown UserTrackInformation stored in track number "
+		      << boost::lexical_cast<std::string>(track->GetTrackID())
+		      << std::endl;
+	  }
+      }
+    else
+      {
+	// User info does not exist, add it.
+	PHG4TrackUserInfoV1* pp = new PHG4TrackUserInfoV1();
+	pp->SetUserTrackId(usertrackid);
+	track->SetUserInformation(pp);
+      }
+  }
   void SetWanted(G4Track* track, const int trkid)
   {
     if ( G4VUserTrackInformation* p = track->GetUserInformation() )
