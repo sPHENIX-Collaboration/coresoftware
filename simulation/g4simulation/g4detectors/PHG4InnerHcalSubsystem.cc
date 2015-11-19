@@ -93,8 +93,6 @@ PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
       PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",superdetector));
       if (! DetNode)
 	{
-      if (! DetNode)
-	{
           DetNode = new PHCompositeNode(superdetector);
           dstNode->addNode(DetNode);
         }
@@ -285,7 +283,6 @@ PHG4InnerHcalSubsystem::SetDefaultParameters()
   default_double["size_z"] = 175.94 * 2;
   default_double["steplimits"] = NAN;
   default_double["tilt_angle"] = NAN; // default is 4 crossinge
-  default_double["timing_cut"] = 100.;
 
   default_int["absorberactive"] = 0;
   default_int["absorbertruth"] = 0;
@@ -346,6 +343,30 @@ PHG4InnerHcalSubsystem::SaveParamsToDB()
   if (params->WriteToDB())
     {
       cout << "problem committing to DB" << endl;
+    }
+  return;
+}
+
+void
+PHG4InnerHcalSubsystem::SaveParamsToFile(const PHG4InnerHcalSubsystem::FILE_TYPE ftyp)
+{
+  string extension;
+  switch(ftyp)
+    {
+    case xml:
+      extension = "xml";
+      break;
+    case root:
+      extension = "root";
+      break;
+    default:
+      cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
+      exit(1);
+    }
+
+  if (params->WriteToFile(extension))
+    {
+      cout << "problem saving to " << extension << " file " << endl;
     }
   return;
 }

@@ -92,7 +92,9 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCellGeom_Spacalv1.cc \
   PHG4CylinderCellGeom_Spacalv1_Dict.cc \
   PHG4CylinderCellGeomContainer.cc \
-  PHG4CylinderCellGeomContainer_Dict.cc
+  PHG4CylinderCellGeomContainer_Dict.cc \
+  PHG4InnerHcalParameters.cc \
+  PHG4InnerHcalParameters_Dict.cc
 
 libg4detectors_la_SOURCES = \
   PHG4BlockCellReco.cc \
