@@ -24,8 +24,8 @@ using namespace std;
 //___________________________________________________
 PHG4TruthEventAction::PHG4TruthEventAction( void ):
   truthInfoList_( 0 ),
-  trackidoffset(0),
-  parimarytrackidoffset(0),
+  primarytrackidoffset(0),
+  secondarytrackidoffset(0),
   vertexid_(0)
 {}
 
@@ -103,7 +103,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
 	  // for embedding: particles from initial sim do not have their keep flag set, we want to keep particles with trkid <= trackidoffset
 	  // trackidoffset is the geantid of the last particle
 	  // for regular sims, trackidoffset is zero
-          if ((truthiter->second)->get_parent_id() != 0 && truthiter->first > trackidoffset)
+          if ((truthiter->second)->get_parent_id() != 0 && truthiter->first > secondarytrackidoffset)
             {
               truthInfoList_->delete_particle(truthiter++);
               removed[1]++;
@@ -168,9 +168,9 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
           if (particle->get_parent_id() <= 0)
             {
               primaryid = particle->get_track_id(); // this particle is the primary truth
-              assert (primaryid > trackidoffset);
-              primaryid -= trackidoffset; // recovery the Geant4 track ID = inEvent track ID
-              primaryid += parimarytrackidoffset; // ID for the primary track in truth container
+              assert (primaryid > secondarytrackidoffset);
+              primaryid -= secondarytrackidoffset; // recovery the Geant4 track ID = inEvent track ID
+              primaryid += primarytrackidoffset; // ID for the primary track in truth container
 
               break;
             }
@@ -208,7 +208,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
 	if (userdata->get_embed())
 	  {
 //      truthInfoList_->AddEmbededTrkId(part->GetTrackID()+ trackidoffset); // use G4 particle list ID for the embedded list
-      truthInfoList_->AddEmbededTrkId(part->GetTrackID()+ parimarytrackidoffset); // use primary ID for the embedded list
+      truthInfoList_->AddEmbededTrkId(part->GetTrackID()+ primarytrackidoffset); // use primary ID for the embedded list
 	  }
       }
       part = part->GetNext();

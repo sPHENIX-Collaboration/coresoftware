@@ -17,7 +17,8 @@ const int VERBOSE = 0;
 
 //________________________________________________________
 PHG4TruthTrackingAction::PHG4TruthTrackingAction( PHG4TruthEventAction* eventAction ) :
-  trackidoffset(0),
+  primarytrackidoffset(0),
+  secondarytrackidoffset(0),
   eventAction_( eventAction ), 
   truthInfoList_( NULL )
 {}
@@ -27,7 +28,7 @@ PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track)
 {
   G4ThreeVector v = track->GetVertexPosition();
   G4ThreeVector pdir = track->GetVertexMomentumDirection();
-  int trackid = track->GetTrackID() + trackidoffset;
+  int trackid = track->GetTrackID() + primarytrackidoffset;
   PHG4TrackUserInfo::SetUserTrackId(const_cast<G4Track *> (track), trackid);
   //  PHG4TrackUserInfo::SetTrackIdOffset(const_cast<G4Track *> (track), trackidoffset); // adding info to G4Track -> non const
   G4ParticleDefinition* def = track->GetDefinition();
@@ -44,7 +45,7 @@ PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track)
   ti->set_track_id( trackid );
   if (track->GetParentID()) // primary particle -> parent ID = 0
     {
-      ti->set_parent_id( track->GetParentID() + trackidoffset );
+      ti->set_parent_id( track->GetParentID() + primarytrackidoffset );
     }
   else
     {
