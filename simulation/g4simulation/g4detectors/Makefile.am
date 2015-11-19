@@ -23,6 +23,7 @@ libg4detectors_io_la_LIBADD = \
 
 libg4detectors_la_LIBADD = \
   -lphool \
+  -lpdbcalBase \
   -lSubsysReco \
   -lg4testbench \
   -lCGAL \
@@ -91,7 +92,9 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCellGeom_Spacalv1.cc \
   PHG4CylinderCellGeom_Spacalv1_Dict.cc \
   PHG4CylinderCellGeomContainer.cc \
-  PHG4CylinderCellGeomContainer_Dict.cc
+  PHG4CylinderCellGeomContainer_Dict.cc \
+  PHG4InnerHcalParameters.cc \
+  PHG4InnerHcalParameters_Dict.cc
 
 libg4detectors_la_SOURCES = \
   PHG4BlockCellReco.cc \
@@ -112,7 +115,6 @@ libg4detectors_la_SOURCES = \
   PHG4ConeSubsystem.cc \
   PHG4ConeSubsystem_Dict.cc \
   PHG4CrystalCalorimeterDetector.cc \
-  PHG4ProjCrystalCalorimeterDetector.cc \
   PHG4CrystalCalorimeterSteppingAction.cc \
   PHG4CrystalCalorimeterSubsystem.cc \
   PHG4CrystalCalorimeterSubsystem_Dict.cc \
@@ -158,7 +160,6 @@ libg4detectors_la_SOURCES = \
   PHG4HcalPrototypeSubsystem.cc \
   PHG4HcalPrototypeSubsystem_Dict.cc \
   PHG4InnerHcalDetector.cc \
-  PHG4InnerHcalParameters.cc \
   PHG4InnerHcalSteppingAction.cc \
   PHG4InnerHcalSubsystem.cc \
   PHG4InnerHcal_Dict.C \
@@ -171,6 +172,8 @@ libg4detectors_la_SOURCES = \
   PHG4OuterHcalSteppingAction.cc \
   PHG4OuterHcalSubsystem.cc \
   PHG4OuterHcalSubsystem_Dict.cc \
+  PHG4Parameters.cc \
+  PHG4ProjCrystalCalorimeterDetector.cc \
   PHG4RICHDetector.cc \
   PHG4RICHSteppingAction.cc \
   PHG4RICHSubsystem.cc \
@@ -206,7 +209,6 @@ libg4detectors_la_SOURCES = \
 
 PHG4InnerHcal_Dict.C: \
   PHG4InnerHcalSubsystem.h \
-  PHG4InnerHcalParameters.h \
   PHG4InnerHcalLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 

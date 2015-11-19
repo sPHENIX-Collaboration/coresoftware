@@ -4,7 +4,7 @@
 #include <g4main/PHG4SteppingAction.h>
 
 class PHG4InnerHcalDetector;
-class PHG4InnerHcalParameters;
+class PHG4Parameters;
 class PHG4Hit;
 class PHG4HitContainer;
 
@@ -14,7 +14,7 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   public:
 
   //! constructor
-  PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector*, PHG4InnerHcalParameters *parameters );
+  PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector*, PHG4Parameters *parameters );
 
   //! destroctor
   virtual ~PHG4InnerHcalSteppingAction()
@@ -37,7 +37,11 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer * hits_;
   PHG4HitContainer * absorberhits_;
   PHG4Hit *hit;
-  PHG4InnerHcalParameters *params;
+  PHG4Parameters *params;
+  double light_balance_inner_corr;
+  double light_balance_inner_radius;
+  double light_balance_outer_corr;
+  double light_balance_outer_radius;
 };
 
 
