@@ -2,8 +2,8 @@
 //  Purpose: Abstract factory class to handle banks
 //  Author: Matthias Messer
 
-#ifndef __PDBBANKMANAGER_HH__
-#define __PDBBANKMANAGER_HH__
+#ifndef PDBBANKMANAGER_HH__
+#define PDBBANKMANAGER_HH__
 
 #include "PdbBankID.h"
 #include <phool/PHTimeStamp.h>
@@ -34,12 +34,12 @@ public:
   /// Get an iterator to loop over banks.
   virtual PdbCalBankIterator* getIterator() = 0;
 
-  virtual PdbCalBank* createBank(const char *,
+  virtual PdbCalBank* createBank(const std::string &,
 				 PdbBankID,
-				 const char *,
+				 const std::string &,
 				 PHTimeStamp &,
 				 PHTimeStamp &,
-				 const char *) = 0;
+				 const std::string &) = 0;
   // create bank with run number as key
   virtual PdbCalBank* createBank(const int,
 				 const char *,
