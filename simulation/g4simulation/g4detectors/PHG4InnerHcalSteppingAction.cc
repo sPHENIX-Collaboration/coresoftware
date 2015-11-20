@@ -259,7 +259,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 
 		  if (verbosity > 1) 
 		    {
-		      cout << "PHG4OuterHcalSteppingAction::UserSteppingAction::"
+		      cout << "PHG4InnerHcalSteppingAction::UserSteppingAction::"
 			//
 			   << detector_->GetName() << " - "
 			   << " use a simple light collection model with linear radial dependence. "
