@@ -821,14 +821,3 @@ PHG4InnerHcalDetector::Print(const string &what) const
   return;
 }
 
-int
-PHG4InnerHcalDetector::IsActive() const
-{
-  return params->get_int_param("active");
-}
-
-int
-PHG4InnerHcalDetector::IsBlackHole() const
-{
-  return params->get_int_param("blackhole");
-}
