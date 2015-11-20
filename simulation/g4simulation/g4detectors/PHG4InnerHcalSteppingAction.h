@@ -38,6 +38,14 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer * absorberhits_;
   PHG4Hit *hit;
   PHG4Parameters *params;
+  // since getting parameters is a map search we do not want to
+  // do this in every step, the parameters used are cached
+  // in the following variables
+  int absorbertruth;
+  int IsActive;
+  int IsBlackHole;
+  int light_scint_model;
+  
   double light_balance_inner_corr;
   double light_balance_inner_radius;
   double light_balance_outer_corr;
