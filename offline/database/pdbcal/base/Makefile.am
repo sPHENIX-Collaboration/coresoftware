@@ -60,6 +60,8 @@ libpdbcalBase_la_SOURCES = \
   PdbMapIntInt_dict.C \
   PdbParameter.cc \
   PdbParameter_dict.C \
+  PdbParameterMap.cc \
+  PdbParameterMap_dict.C \
   PdbParameterError.cc \
   PdbParameterError_dict.C \
   RunToTime.cc \
@@ -93,6 +95,7 @@ pkginclude_HEADERS = \
   PdbMapIntVecFloat.h \
   PdbMapIntInt.h \
   PdbParameter.h \
+  PdbParameterMap.h \
   PdbParameterError.h \
   PHGenericFactoryT.h \
   RunToTime.h \
