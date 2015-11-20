@@ -44,6 +44,14 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const i
   SetDefaultParameters();
 }
 
+void
+PHG4InnerHcalSubsystem::SuperDetector(const std::string &name)
+{
+  superdetector = name;
+  Name(name);
+  return;
+}
+
 int 
 PHG4InnerHcalSubsystem::Init(PHCompositeNode* topNode)
 {
@@ -327,5 +335,15 @@ PHG4InnerHcalSubsystem::SetLightCorrection(const double inner_radius, const doub
   dparams["light_balance_inner_radius"] = inner_radius;
   dparams["light_balance_outer_corr"] = outer_corr;
   dparams["light_balance_outer_radius"] = outer_radius;
+  return;
+}
+
+void
+PHG4InnerHcalSubsystem::SaveParamsToDB()
+{
+  if (params->WriteToDB())
+    {
+      cout << "problem committing to DB" << endl;
+    }
   return;
 }
