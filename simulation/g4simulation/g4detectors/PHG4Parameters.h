@@ -34,6 +34,8 @@ class PHG4Parameters: public PHObject
   void set_string_param(const std::string &name, const std::string &str);
   std::string get_string_param(const std::string &name) const;
 
+  void set_name(const std::string &name) {detname = name;}
+
   void FillFrom(const PdbParameterMap *saveparams);
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename);
   void WriteToDB();
