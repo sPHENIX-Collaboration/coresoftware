@@ -60,19 +60,21 @@ PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
 
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
   string g4geonodename = "G4GEO_" + superdetector;
-  string paramnodename = "G4GEOPARAM_" + superdetector;
+  parNode->addNode(new PHDataNode<PHG4Parameters>(params,g4geonodename));
 
+
+  string paramnodename = "G4GEOPARAM_" + superdetector;
   PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,paramnodename);
   if (nodeparams)
     {
       params->FillFrom(nodeparams);
     }
-  else
-    {
-      params->SaveToNodeTree(parNode,paramnodename);
-    }
   UpdateParametersWithMacro();
-  parNode->addNode(new PHDataNode<PHG4Parameters>(params,g4geonodename));
+  // save persistant copy on node tree
+  params->SaveToNodeTree(parNode,paramnodename);
+  // else
+  //   {
+  //   }
   // create detector
   detector_ = new PHG4InnerHcalDetector(topNode, params, Name());
   detector_->SuperDetector(superdetector);
