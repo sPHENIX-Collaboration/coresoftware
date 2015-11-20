@@ -4,6 +4,8 @@
 #include <phool/PHPointerListIterator.h>
 #include <phool/PHNodeIterator.h>
 
+#include <vector>
+
 using namespace std;
 
 Dumper::Dumper(const string &name) : SubsysReco (name)
@@ -26,37 +28,29 @@ Dumper::process_event(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (dstNode)
     {
-      DumpCompositeNode(dstNode);
+      iter.cd("DST");
+      iter.forEach(*nodedump);
+      iter.cd();
     }
   return 0;
 }
-
-int
-Dumper::DumpCompositeNode(PHCompositeNode *ThisTopNode)
-{
-  PHNodeIterator nodeiter(ThisTopNode);
-  PHPointerListIterator<PHNode> iterat(nodeiter.ls());
-  PHNode *thisNode;
-  while ((thisNode = iterat()))
-    {
-      if (thisNode->getType() == "PHCompositeNode")
-	{
-	  DumpCompositeNode((PHCompositeNode*)thisNode);
-	}
-    }
-  nodeiter.forEach(*nodedump);
-  return 0;
-}
-
 
 int 
 Dumper::End(PHCompositeNode *topNode)
 {
 
   PHNodeIterator nodeiter(topNode);
-  if (nodeiter.cd("RUN"))
+  vector<string>  DumpNodeList;
+  DumpNodeList.push_back("RUN");
+  DumpNodeList.push_back("PAR");
+  for (vector<string>::const_iterator iter=DumpNodeList.begin() ; 
+       iter != DumpNodeList.end();++iter)
     {
-      nodeiter.forEach(*nodedump);
+      if (nodeiter.cd(*iter))
+	{
+	  nodeiter.forEach(*nodedump);
+	  nodeiter.cd();
+	}
     }
   nodedump->CloseOutputFiles();
   return 0;
