@@ -149,7 +149,7 @@ PdbCalBank* PgPostBankManager::createBank(const int runNumber, const char *class
 }
 
 
-PdbCalBank* PgPostBankManager::createBank(const char *className, PdbBankID bankID, const char* descr, PHTimeStamp & tStart, PHTimeStamp & tStop, const char *tablename)
+PdbCalBank* PgPostBankManager::createBank(const string &className, PdbBankID bankID, const string &descr, PHTimeStamp & tStart, PHTimeStamp & tStop, const string &tablename)
 {
 
   string realName = getRealName(className);

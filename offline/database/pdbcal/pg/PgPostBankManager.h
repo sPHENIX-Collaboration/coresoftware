@@ -23,9 +23,9 @@ public:
  
 
   virtual PdbCalBankIterator* getIterator();
-  virtual PdbCalBank* createBank(const char *,
+  virtual PdbCalBank* createBank(const std::string &,
 				 PdbBankID,
-				 const char *, PHTimeStamp &,PHTimeStamp &,const char *);
+				 const std::string &, PHTimeStamp &,PHTimeStamp &,const std::string &);
 
 
   // create bank with run number as key
