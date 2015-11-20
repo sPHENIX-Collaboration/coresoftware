@@ -95,8 +95,16 @@ public:
  
   void delete_vtx(VtxIterator viter);
 
-  int GetPrimaryVertexIndex() {return (primary_vtxmap.begin())->first;}
+  // returns the first primary vertex that was processed by Geant4
+  int GetPrimaryVertexIndex() {return (vtxmap.lower_bound(1))->first;}
 
+  std::set<int> GetSubEventIds() const;
+  Range         GetSubEventPrimaryParticleRange(int subevent);
+  Range         GetSubEventSecondaryParticleRange(int subevent);
+  VtxRange      GetSubEventPrimaryVertexRange(int subevent);
+  VtxRange      GetSubEventSecondaryVertexRange(int subevent); 
+  void          MarkSubEventBoundary();
+  
   // deprecated interface, confusingly named as we store particles not hits ----
   // do not call these functions in new code, i'm leaving these for now for
   // build compatibility outside of coresoftware
@@ -112,9 +120,38 @@ public:
   
  private:
 
+  // map format description:
+  // primary particles are appended in the positive direction
+  // secondary particles are appended in the negative direction
+  // subevent boundaries between geant runs are stored in the subevent markers
+
+  // +N   primary particle id => particle*
+  // +N-1 
+  // ...
+  // +J+1 subevent #2
+  // +J   subevent #1 boundary (last particle flagged in particle_subevents)
+  // +J-1 subevent #1
+  // ..
+  // +1   primary particle id => particle*
+  // 0    no entry
+  // -1   secondary particle id => particle*
+  // ...
+  // -K+1 subevent #1
+  // -K   subevent #1 boundary (last particle flagged in particle_subevents)
+  // -K-1 subevent #2
+  // ..
+  // -M+1
+  // -M   secondary particle id => particle*
+  
   Map particlemap;
   VtxMap vtxmap;
 
+  std::map< int, std::pair<int,int> > particle_subevents; // subevent index => lower key and upper key
+  std::map< int, std::pair<int,int> > vertex_subevents;   // subevent index => lower key and upper key
+  std::map< int, int> particle_embed_flags;               // trackid => embed flag
+  std::map< int, int> vertex_embed_flags;                 // trackid => embed flag
+
+  // --- deprecated storage ----------
   Map primary_particle_map;
   VtxMap primary_vtxmap;
   // track ids of embedded particles

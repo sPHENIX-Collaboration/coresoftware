@@ -27,96 +27,101 @@ PHG4TruthEventAction::PHG4TruthEventAction( void ):
 {}
 
 //___________________________________________________
-void PHG4TruthEventAction::BeginOfEventAction(const G4Event* evt) {}
+void PHG4TruthEventAction::BeginOfEventAction(const G4Event* evt) {
+
+}
 
 //___________________________________________________
-void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
-{
-  // if we do not find the node we need to make it.
-  if ( !truthInfoList_ )
-    {
-      std::cout << "PHG4TruthEventAction::EndOfEventAction - unable to find G4TruthInfo node" << std::endl;
-      return;
-    }
+void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt) {
   
-  set<G4int> savelist;
-  set<int> savevtxlist;
-  set<G4int>::const_iterator write_iter;
-  vector<G4int> wrttracks;
-  vector<int> wrtvtx;
-  for (write_iter = writeList_.begin(); write_iter != writeList_.end(); ++write_iter)
-    {
-      G4int mytrkid = *write_iter;
-      PHG4Particle *particle = truthInfoList_->GetParticle(mytrkid);
-      // if track is already in save list, nothing needs to be done
-      if (savelist.find(mytrkid) != savelist.end())
-        {
-          continue;
-        }
-      else
-        {
-          wrttracks.push_back(mytrkid);
-          wrtvtx.push_back(particle->get_vtx_id());
-        }
-      // now crawl up the truth info and add parents until we hit
-      // a track which is already being saved
-      G4int parentid = particle->get_parent_id();
-      while (savelist.find(parentid) == savelist.end() && parentid > 0)
-        {
-          particle = truthInfoList_->GetParticle(parentid);
-          wrttracks.push_back(parentid);
-          wrtvtx.push_back(particle->get_vtx_id());
-          parentid = particle->get_parent_id();
-        }
-      // now fill the new tracks into the save list
-      while (wrttracks.begin() != wrttracks.end())
-        {
-          savelist.insert(wrttracks.back());
-          wrttracks.pop_back();
-        }
-      while (wrtvtx.begin() != wrtvtx.end())
-        {
-          savevtxlist.insert(wrtvtx.back());
-          wrtvtx.pop_back();
-        }
+  // if we do not find the node we need to make it.
+  if ( !truthInfoList_ ) {
+    std::cout << "PHG4TruthEventAction::EndOfEventAction - unable to find G4TruthInfo node" << std::endl;
+    return;
+  }
+  
+  std::set<G4int> savelist;
+  std::set<int> savevtxlist;
+   
+  for (std::set<G4int>::const_iterator write_iter = writeList_.begin();
+       write_iter != writeList_.end();
+       ++write_iter) {
+
+    std::vector<G4int> wrttracks;
+    std::vector<int> wrtvtx;
+    
+    // usertrackid
+    G4int mytrkid = *write_iter;
+    PHG4Particle *particle = truthInfoList_->GetParticle(mytrkid);
+
+    // if track is already in save list, nothing needs to be done
+    if (savelist.find(mytrkid) != savelist.end()) {
+      continue;
+    } else {
+      wrttracks.push_back(mytrkid);
+      wrtvtx.push_back(particle->get_vtx_id());
     }
+
+    // now crawl up the truth info and add parents until we hit
+    // a track which is already being saved
+    G4int parentid = particle->get_parent_id();
+    while (savelist.find(parentid) == savelist.end() && parentid > 0) {
+      particle = truthInfoList_->GetParticle(parentid);
+      wrttracks.push_back(parentid);
+      wrtvtx.push_back(particle->get_vtx_id());
+      parentid = particle->get_parent_id();
+    }
+    
+    // now fill the new tracks into the save list
+    // while emptying the write lists
+    while (wrttracks.begin() != wrttracks.end()) {
+      savelist.insert(wrttracks.back());
+      wrttracks.pop_back();
+    }
+
+    while (wrtvtx.begin() != wrtvtx.end()) {
+      savevtxlist.insert(wrtvtx.back());
+      wrtvtx.pop_back();
+    }
+  }
   
   // the save lists are filled now, except primary track which never
   // made it into any active volume and their vertex
   // loop over particles in truth list and remove them if they are not
-  // in the save list andare not primary particles (parent_id == 0)
+  // in the save list and are not primary particles (parent_id == 0)
+  
   int removed[4] = {0};
   PHG4TruthInfoContainer::Range truth_range = truthInfoList_->GetParticleRange();
   PHG4TruthInfoContainer::Iterator truthiter = truth_range.first;
-  while (truthiter != truth_range.second)
-    {
-      removed[0]++;
-      int trackid = truthiter->first;
-      if (savelist.find(trackid) == savelist.end()) // track not in save list
-        {
-          // check if particle below offset 
-	  // primary particles had parentid = 0
-	  // for embedding: particles from initial sim do not have their keep flag set, we want to keep particles with trkid <= trackidoffset
-	  // trackidoffset is the geantid of the last particle
-	  // for regular sims, trackidoffset is zero
-          if ((truthiter->second)->get_parent_id() != 0 && truthiter->first > 0) // MPM I'll need to revise this section
-            {
-              truthInfoList_->delete_particle(truthiter++);
-              removed[1]++;
-            }
-          else
-            {
-              // save vertex id for primary particle which leaves no hit
-              // in active area
-              savevtxlist.insert((truthiter->second)->get_vtx_id());
-              ++truthiter;
-            }
-        }
-      else
-        {
-          ++truthiter;
-        }
+  while (truthiter != truth_range.second) {
+    
+    removed[0]++;
+    int trackid = truthiter->first;
+    if (savelist.find(trackid) == savelist.end()) {
+      // track not in save list
+
+      // check if particle below offset 
+      // primary particles had parentid = 0
+      // for embedding: particles from initial sim do not have their keep flag set, we want to keep particles with trkid <= trackidoffset
+      // trackidoffset is the geantid of the last particle
+      // for regular sims, trackidoffset is zero
+      if ((truthiter->second)->get_parent_id() != 0 && trackid > 0) {
+	// MPM I'll need to revise this section with a new way to identify secondaries that left no hit only in the current subevent
+	truthInfoList_->delete_particle(truthiter++);
+	removed[1]++;
+      } else {
+	// save vertex id for primary particle which leaves no hit
+	// in active area
+	savevtxlist.insert((truthiter->second)->get_vtx_id());
+	++truthiter;
+      }
+      
+    } else {     
+      // track was in save list, move on
+      ++truthiter;
     }
+  }
+  
   PHG4TruthInfoContainer::VtxRange vtxrange = truthInfoList_->GetVtxRange();
   PHG4TruthInfoContainer::VtxIterator vtxiter = vtxrange.first;
   while (vtxiter != vtxrange.second)
@@ -151,6 +156,9 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
     }
     pvtx = pvtx->GetNext();
   }
+
+  // mark the container with the position of the last particle and vertex from this subevent before finishing
+  truthInfoList_->MarkSubEventBoundary();
   
   return;
 }

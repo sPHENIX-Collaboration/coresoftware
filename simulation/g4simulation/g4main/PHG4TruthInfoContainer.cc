@@ -18,7 +18,7 @@ PHG4TruthInfoContainer::PHG4TruthInfoContainer() :
   vtxmap(),
   primary_particle_map(),
   primary_vtxmap(),
-  embedded_trkid() {
+  embedded_trkid() {  
 }
 
 PHG4TruthInfoContainer::~PHG4TruthInfoContainer() {}
@@ -373,4 +373,105 @@ PHG4TruthInfoContainer::isEmbeded(const int trackid) const
       return true;
     }
   return false;
+}
+
+std::set<int> PHG4TruthInfoContainer::GetSubEventIds() const {
+
+  std::set<int> subevent_ids;
+
+  for (std::map< int, std::pair<int,int> >::const_iterator iter = particle_subevents.begin();
+       iter != particle_subevents.end();
+       ++iter) {
+    int subevent_id = iter->first;
+    subevent_ids.insert(subevent_id);
+  }
+  
+  return subevent_ids;
+}
+
+PHG4TruthInfoContainer::Range PHG4TruthInfoContainer::GetSubEventPrimaryParticleRange(int subevent) {
+
+  std::map<int, std::pair<int,int> >::iterator iter = particle_subevents.find(subevent);
+  if (iter == particle_subevents.end()) {
+    return make_pair(particlemap.end(),particlemap.end());
+  }
+
+  int lowerkey = 0;
+  if (subevent > 1) {
+    lowerkey = particle_subevents.find(subevent-1)->second.second;
+  }
+  int upperkey = iter->second.second;
+
+  Iterator loweriter = particlemap.upper_bound(lowerkey);
+  Iterator upperiter = particlemap.upper_bound(upperkey);
+    
+  return make_pair(loweriter,upperiter);
+}
+
+PHG4TruthInfoContainer::Range PHG4TruthInfoContainer::GetSubEventSecondaryParticleRange(int subevent) {
+
+  std::map<int, std::pair<int,int> >::iterator iter = particle_subevents.find(subevent);
+  if (iter == particle_subevents.end()) {
+    return make_pair(particlemap.end(),particlemap.end());
+  }
+
+  int lowerkey = iter->second.first;
+  int upperkey = 0;
+  if (subevent > 1) {
+    upperkey = particle_subevents.find(subevent-1)->second.first;
+  }
+
+  Iterator loweriter = particlemap.lower_bound(lowerkey);
+  Iterator upperiter = particlemap.lower_bound(upperkey);
+    
+  return make_pair(loweriter,upperiter);
+}
+
+PHG4TruthInfoContainer::VtxRange PHG4TruthInfoContainer::GetSubEventPrimaryVertexRange(int subevent) {
+
+  std::map<int, std::pair<int,int> >::iterator iter = vertex_subevents.find(subevent);
+  if (iter == vertex_subevents.end()) {
+    return make_pair(vtxmap.end(),vtxmap.end());
+  }
+
+  int lowerkey = 0;
+  if (subevent > 1) {
+    lowerkey = vertex_subevents.find(subevent-1)->second.second;
+  }
+  int upperkey = iter->second.second; 
+
+  VtxIterator loweriter = vtxmap.upper_bound(lowerkey);
+  VtxIterator upperiter = vtxmap.upper_bound(upperkey);
+    
+  return make_pair(loweriter,upperiter);
+}
+
+PHG4TruthInfoContainer::VtxRange PHG4TruthInfoContainer::GetSubEventSecondaryVertexRange(int subevent) {
+
+  std::map<int, std::pair<int,int> >::iterator iter = vertex_subevents.find(subevent);
+  if (iter == vertex_subevents.end()) {
+    return make_pair(vtxmap.end(),vtxmap.end());
+  }
+
+  int lowerkey = iter->second.first;
+  int upperkey = 0;
+  if (subevent > 1) {
+    upperkey = vertex_subevents.find(subevent-1)->second.first;
+  }
+
+  VtxIterator loweriter = vtxmap.lower_bound(lowerkey);
+  VtxIterator upperiter = vtxmap.lower_bound(upperkey);
+    
+  return make_pair(loweriter,upperiter);
+}
+
+void PHG4TruthInfoContainer::MarkSubEventBoundary() {
+
+  int subevent = 1;
+  if (!particle_subevents.empty()) {
+    subevent = particle_subevents.rbegin()->first + 1;
+  }
+  
+  particle_subevents.insert(make_pair(subevent,make_pair(mintrkindex(),maxtrkindex())));
+  vertex_subevents.insert(make_pair(subevent,make_pair(minvtxindex(),maxvtxindex())));  
 }

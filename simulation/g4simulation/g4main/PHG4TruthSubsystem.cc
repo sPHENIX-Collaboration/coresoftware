@@ -87,12 +87,17 @@ PHG4TruthSubsystem::process_event( PHCompositeNode* topNode )
 
   // this is called before G4 is kicked into gear. So we can fill in the information of the
   // G4 input particles from the InEvent Node.
+
+  //----------------------------------------------------------------------------
+  // to be removed when we deprecate the primary map storage
+  
   PHG4InEvent *inEvent = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   if (!inEvent) // if this node doesn't exist, they get the particles from somewhere else (not good)
     {
       cout << "Could not locate PHG4INEVENT node, where do you get your Geant 4 input from???" << endl;
       return Fun4AllReturnCodes::EVENT_OK;
     }
+  
   PHG4TruthInfoContainer* truthInfoList =  findNode::getClass<PHG4TruthInfoContainer>( topNode , "G4TruthInfo" );
 
   map<int, PHG4VtxPoint *>::const_iterator vtxiter;
@@ -129,6 +134,9 @@ PHG4TruthSubsystem::process_event( PHCompositeNode* topNode )
 	}
 
     }
+
+  //----------------------------------------------------------------------------
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -183,10 +191,10 @@ int PHG4TruthSubsystem::process_after_geant(PHCompositeNode * topNode)
         }
     }
 
-
- {
-  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
-  truthinfo->identify();
+  // MPM I'll need to remove this before merging
+  {
+    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+    truthinfo->identify();
   } 
   
   return 0;
