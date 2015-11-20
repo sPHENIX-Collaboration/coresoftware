@@ -54,7 +54,7 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   PHG4EventAction* GetEventAction() const {return eventAction_;}
   void SetActive(const int i = 1);
   void SetAbsorberActive(const int i = 1);
-  void SuperDetector(const std::string &name) {superdetector = name;}
+  void SuperDetector(const std::string &name);
   const std::string SuperDetector() {return superdetector;}
 
   void BlackHole(const int i=1);
@@ -64,6 +64,7 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   void set_string_param(const std::string &name, const std::string &sval);
   void SetDefaultParameters();
   void UpdateParametersWithMacro();
+  void SaveParamsToDB();
 
   protected:
 
