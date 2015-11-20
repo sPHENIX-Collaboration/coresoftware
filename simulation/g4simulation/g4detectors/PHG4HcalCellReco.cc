@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <limits>       // std::numeric_limits
 
 using namespace std;
 
@@ -29,7 +30,7 @@ PHG4HcalCellReco::PHG4HcalCellReco(const string &name) :
   _timer(PHTimeServer::get()->insert_new(name.c_str())),
   nslatscombined(1),
   netabins(24), // that is our default
-  chkenergyconservation(0)
+  chkenergyconservation(0), timing_window_size(numeric_limits<double>::max())
 {
   memset(nbins, 0, sizeof(nbins));  
 }
@@ -178,6 +179,10 @@ PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
       int nslatbins = geo->get_phibins();
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
 	{
+          // checking ADC timing integration window cut
+          if (hiter->second->get_t(0)>timing_window_size)
+            continue;
+
 	  int slatno = hiter->second->get_scint_id();
 	  int slatbin;
 	  slatbin = hiter->second->get_layer() / nslatscombined;
