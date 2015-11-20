@@ -22,13 +22,15 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <limits>       // std::numeric_limits
+
 
 using namespace std;
 
 PHG4CylinderCellReco::PHG4CylinderCellReco(const string &name) :
   SubsysReco(name),
   _timer(PHTimeServer::get()->insert_new("PHG4CylinderCellReco")),
-  chkenergyconservation(0)
+  chkenergyconservation(0), timing_window_size(numeric_limits<double>::max())
 {
   memset(nbins, 0, sizeof(nbins));
 }
@@ -321,6 +323,10 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
         {
           for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
             {
+              // checking ADC timing integration window cut
+              if (hiter->second->get_t(0)>timing_window_size)
+                continue;
+
               pair<double, double> etaphi[2];
               double phibin[2];
               double etabin[2];
@@ -516,6 +522,10 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 
           for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
             {
+              // checking ADC timing integration window cut
+              if (hiter->second->get_t(0)>timing_window_size)
+                continue;
+
               double xinout[2];
               double yinout[2];
               double px[2];

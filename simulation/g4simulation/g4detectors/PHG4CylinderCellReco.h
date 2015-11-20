@@ -35,6 +35,11 @@ class PHG4CylinderCellReco : public SubsysReco
   void checkenergy(const int i=1) {chkenergyconservation = i;}
   void OutputDetector(const std::string &d) {outdetector = d;}
 
+  //! get timing window size in ns.
+  double get_timing_window_size() const {return timing_window_size;}
+  //! set timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
+  void set_timing_window_size(const double s) {timing_window_size = s;}
+
  protected:
   void set_size(const int i, const double sizeA, const double sizeB, const int what);
   int CheckEnergy(PHCompositeNode *topNode);
@@ -62,6 +67,8 @@ class PHG4CylinderCellReco : public SubsysReco
   int nbins[2];
   int chkenergyconservation;
 
+  //! timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
+  double timing_window_size;
 };
 
 #endif
