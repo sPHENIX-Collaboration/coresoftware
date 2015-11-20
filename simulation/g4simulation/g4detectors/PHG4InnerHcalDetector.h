@@ -45,12 +45,9 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   int IsInInnerHcal(G4VPhysicalVolume*) const;
   //@}
 
-  int IsActive() const;
   void SuperDetector(const std::string &name) {superdetector = name;}
   const std::string SuperDetector() const {return superdetector;}
   int get_Layer() const {return layer;}
-
-  int IsBlackHole() const;
 
   G4VSolid* ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
   G4VSolid* ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
