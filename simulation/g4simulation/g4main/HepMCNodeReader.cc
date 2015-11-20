@@ -191,7 +191,7 @@ HepMCNodeReader::process_event(PHCompositeNode *topNode)
 	      particle->set_py((*fiter)->momentum().py()*mom_factor);
 	      particle->set_pz((*fiter)->momentum().pz()*mom_factor);
 	      ineve->AddParticle((*v)->barcode(), particle);
-	      if (_embed_flag != 0) ineve->AddEmbeddedParticle(particle);
+	      if (_embed_flag != 0) ineve->AddEmbeddedParticle(particle,_embed_flag);
 	    }
 	}
     }

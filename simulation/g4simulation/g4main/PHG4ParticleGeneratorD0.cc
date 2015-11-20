@@ -239,7 +239,7 @@ PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
       PHG4Particle *particle = new PHG4Particlev1(*iter);
       SetParticleId(particle,ineve);
       ineve->AddParticle(vtxindex, particle);
-      if(_embedflag!=0) { ineve->AddEmbeddedParticle(particle); }
+      if(_embedflag!=0) { ineve->AddEmbeddedParticle(particle,embedflag); }
     }
 
   // List what has been put into ineve for this event

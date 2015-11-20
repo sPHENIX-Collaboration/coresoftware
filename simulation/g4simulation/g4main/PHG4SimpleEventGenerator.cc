@@ -301,7 +301,7 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
       particle->set_e(e);
 
       _ineve->AddParticle(vtxindex, particle);
-      if (embedflag != 0) _ineve->AddEmbeddedParticle(particle);
+      if (embedflag != 0) _ineve->AddEmbeddedParticle(particle,embedflag);
     }
   }
 
