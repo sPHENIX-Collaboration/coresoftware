@@ -40,13 +40,14 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const i
   ostringstream nam;
   nam << name << "_" << lyr;
   Name(nam.str().c_str());
+  params = new PHG4Parameters(Name()); // temporary name till the init is called
+  SetDefaultParameters();
 }
 
 int 
 PHG4InnerHcalSubsystem::Init(PHCompositeNode* topNode)
 {
-  params = new PHG4Parameters(superdetector);
-  SetDefaultParameters();
+  params->set_name(superdetector);
   return 0;
 }
 

@@ -697,7 +697,7 @@ PHG4InnerHcalDetector::AddGeometryNode()
 	}
       // here in the detector class we have internal units, convert to cm
       // before putting into the geom object
-      PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv3(inner_radius / cm, (params->get_double_param("place_z") - size_z / 2.) / cm, (params->get_double_param("place_z") + size_z / 2.) / cm, (outer_radius - inner_radius) / cm, n_scinti_plates,  tilt_angle / rad, 0);
+      PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv3(inner_radius / cm, (params->get_double_param("place_z")*cm - size_z / 2.) / cm, (params->get_double_param("place_z")*cm + size_z / 2.) / cm, (outer_radius - inner_radius) / cm, n_scinti_plates,  tilt_angle / rad, 0);
       geo->AddLayerGeom(layer, mygeom);
       if (verbosity > 0) geo->identify();
     }
