@@ -19,10 +19,10 @@ class Fun4AllBase
   virtual ~Fun4AllBase();
 
   /// Returns the name of this module.
-  virtual const char *Name() const {return ThisName.c_str();}
+  virtual const std::string Name() const {return ThisName;}
 
   /// Sets the name of this module.
-  virtual void Name(const char *name) {ThisName = name;}
+  virtual void Name(const std::string &name) {ThisName = name;}
 
   /** Print out some info about this module. 
       @param what can be used to specify what to print exactly.
