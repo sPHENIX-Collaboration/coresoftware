@@ -11,6 +11,7 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHTimeStamp.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
@@ -164,26 +165,30 @@ PHG4Parameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
   return;
 }
 
-void
+int
 PHG4Parameters::WriteToDB()
 {
   PdbBankManager* bankManager = PdbBankManager::instance();
   PdbApplication *application = bankManager->getApplication();
   if (!application->startUpdate())
     {
-      PHMessage("BunchCrossCal::", PHError, "Aborting ... Database not writable");
+      cout << PHWHERE << " Aborting, Databse not writable" << endl;
       application->abort();
+      exit(1);
     }
 
   //  Make a bank ID...
   PdbBankID bankID(0); // lets start at zero
   PHTimeStamp TStart(0);
   PHTimeStamp TStop(0xffffffff);
+
+  string tablename = detname + "_geoparams";
+  std::transform(tablename.begin(), tablename.end(), tablename.begin(), ::tolower);
   PdbCalBank *NewBank = bankManager->createBank("PdbParameterMapBank",
 						bankID,
-						"hcaltest",
+						"Geometry Parameters",
 						TStart, TStop,
-						"geo");
+						tablename);
   if (NewBank)
     {
       NewBank->setLength(1);
@@ -206,5 +211,10 @@ PHG4Parameters::WriteToDB()
       application->commit(NewBank);
       delete NewBank;
     }
-  return;
+  else
+    {
+      cout << PHWHERE " Committing to DB failed" << endl;
+      return -1;
+    }
+  return 0;
 }
