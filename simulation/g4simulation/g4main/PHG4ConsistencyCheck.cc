@@ -40,11 +40,11 @@ PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
         }
     }
   cout << "min index: " << imax << endl;
-  std::pair< std::set<int>::const_iterator, std::set<int>::const_iterator > embtrk_b_e = truthcont->GetEmbeddedTrkIds();
-  std::set<int>::const_iterator embiter;
+  std::pair< std::map<int,int>::const_iterator, std::map<int,int>::const_iterator > embtrk_b_e = truthcont->GetEmbeddedTrkIds();
+  std::map<int,int>::const_iterator embiter;
   for (embiter = embtrk_b_e.first; embiter != embtrk_b_e.second; embiter++)
     {
-      cout << "embedded trkid: " << *embiter << endl;
+      cout << "embedded trkid: " << embiter->first << endl;
     }
   PHG4HitContainer *ghit = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_CEMC_E");
   if (ghit)

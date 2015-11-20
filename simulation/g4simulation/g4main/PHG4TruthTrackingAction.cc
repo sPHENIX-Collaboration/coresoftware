@@ -39,12 +39,6 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
 
   // add the user id to the geant4 user info
   PHG4TrackUserInfo::SetUserTrackId(const_cast<G4Track *> (track), trackid);
-
-  // tell the primary particle copy where this output will be stored
-  if (!track->GetParentID()) {
-    PHG4UserPrimaryParticleInformation* userdata = (PHG4UserPrimaryParticleInformation*)track->GetDynamicParticle()->GetPrimaryParticle()->GetUserInformation();
-    if (userdata) userdata->set_user_track_id(trackid);
-  }
   
   // determine the momentum vector
   G4ParticleDefinition* def = track->GetDefinition();
@@ -108,6 +102,15 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
   // insert particle into the output
   truthInfoList_->AddParticle(trackid, ti);
 
+  // tell the primary particle copy in G4 where this output will be stored
+  if (!track->GetParentID()) {
+    PHG4UserPrimaryParticleInformation* userdata = (PHG4UserPrimaryParticleInformation*)track->GetDynamicParticle()->GetPrimaryParticle()->GetUserInformation();
+    if (userdata) {
+      userdata->set_user_track_id(trackid);
+      userdata->set_user_vtx_id(vtxindex);
+    }
+  }
+  
   return;
 }
 

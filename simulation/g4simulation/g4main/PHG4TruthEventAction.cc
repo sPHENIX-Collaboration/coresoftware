@@ -149,7 +149,8 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt) {
       PHG4UserPrimaryParticleInformation *userdata = dynamic_cast<PHG4UserPrimaryParticleInformation *> (part->GetUserInformation());
       if (userdata) {
 	if (userdata->get_embed()) {
-	  truthInfoList_->AddEmbededTrkId(userdata->get_user_track_id()); // use primary ID for the embedded list
+	  truthInfoList_->AddEmbededTrkId(userdata->get_user_track_id(),userdata->get_embed());
+	  truthInfoList_->AddEmbededVtxId(userdata->get_user_vtx_id(),userdata->get_embed());
 	}
       }
       part = part->GetNext();

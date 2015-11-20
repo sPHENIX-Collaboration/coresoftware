@@ -17,8 +17,8 @@ PHG4TruthInfoContainer::PHG4TruthInfoContainer() :
   particlemap(),
   vtxmap(),
   primary_particle_map(),
-  primary_vtxmap(),
-  embedded_trkid() {  
+  primary_vtxmap() {
+  //embedded_trkid() {  
 }
 
 PHG4TruthInfoContainer::~PHG4TruthInfoContainer() {}
@@ -39,13 +39,19 @@ PHG4TruthInfoContainer::Reset()
   std::for_each(vtxmap.begin(),vtxmap.end(),SecondDeleter<VtxMap::value_type>());
   vtxmap.clear();
 
+  particle_subevents.clear();
+  vertex_subevents.clear();
+  particle_embed_flags.clear();
+  vertex_embed_flags.clear();
+
+
   std::for_each(primary_particle_map.begin(),primary_particle_map.end(),SecondDeleter<Map::value_type>());
   primary_particle_map.clear();
 
   std::for_each(primary_vtxmap.begin(),primary_vtxmap.end(),SecondDeleter<VtxMap::value_type>());
   primary_vtxmap.clear();
-
-  embedded_trkid.clear();
+  
+  //embedded_trkid.clear();
 
   return;
 }
@@ -67,6 +73,7 @@ PHG4TruthInfoContainer::identify(ostream& os) const
        cout << "vtx id: " << vter ->first << endl;
        (vter ->second)->identify();
      }
+   
    cout << "---primaryparticlemap-------------------" << endl;
    for (iter = primary_particle_map.begin(); iter != primary_particle_map.end(); ++iter)
      {
@@ -79,11 +86,19 @@ PHG4TruthInfoContainer::identify(ostream& os) const
        cout << "vtx id: " << vter ->first << endl;
        (vter ->second)->identify();
      }
-   cout << "---list of embeded tracks-------------------" << endl;
-   for (std::set<int>::const_iterator eter = embedded_trkid.begin(); eter != embedded_trkid.end(); ++eter)
-     {
-       cout << "embeded track ID " << *eter << endl;
-     }
+   
+   cout << "---list of embeded track flags-------------------" << endl;
+   for (std::map<int,int>::const_iterator eter = particle_embed_flags.begin();
+	eter != particle_embed_flags.end();
+	++eter) {
+     cout << "embeded track id: " << eter->first << " flag: " << eter->second << endl;
+   }
+   cout << "---list of embeded vtx flags-------------------" << endl;
+   for (std::map<int,int>::const_iterator eter = vertex_embed_flags.begin();
+	eter != vertex_embed_flags.end();
+	++eter) {
+     cout << "embeded vertex id: " << eter->first << " flag: " << eter->second << endl;
+   }
    
   return;
 }
@@ -365,14 +380,24 @@ PHG4TruthInfoContainer::delete_vtx(VtxIterator viter)
   return;
 }
 
-int
-PHG4TruthInfoContainer::isEmbeded(const int trackid) const
-{
-  if (embedded_trkid.find(trackid) != embedded_trkid.end())
-    {
-      return true;
-    }
-  return false;
+int PHG4TruthInfoContainer::isEmbeded(const int trackid) const {
+
+  std::map<int,int>::const_iterator iter = particle_embed_flags.find(trackid);
+  if (iter == particle_embed_flags.end()) {
+    return 0;
+  }
+  
+  return iter->second;
+}
+
+int PHG4TruthInfoContainer::isEmbededVtx(const int vtxid) const {
+
+  std::map<int,int>::const_iterator iter = vertex_embed_flags.find(vtxid);
+  if (iter == vertex_embed_flags.end()) {
+    return 0;
+  }
+  
+  return iter->second;
 }
 
 std::set<int> PHG4TruthInfoContainer::GetSubEventIds() const {

@@ -62,12 +62,11 @@ public:
 
   int GetLastParticleIndex() {return (primary_particle_map.rbegin())->first;}
 
-  std::pair< std::set<int>::const_iterator, std::set<int>::const_iterator > GetEmbeddedTrkIds() const
-    {return std::make_pair(embedded_trkid.begin(), embedded_trkid.end());}
-  void AddEmbededTrkId(const int i) {embedded_trkid.insert(i);}
+  std::pair< std::map<int,int>::const_iterator, std::map<int,int>::const_iterator > GetEmbeddedTrkIds() const {return std::make_pair(particle_embed_flags.begin(), particle_embed_flags.end());}
+  void AddEmbededTrkId(const int id, const int flag) {particle_embed_flags.insert(std::make_pair(id,flag));}
 
   int isEmbeded(const int trackid) const;
-  
+   
   // --- vertex storage --------------------------------------------------------
   
   //! Add a vertex and return an iterator to the user
@@ -98,6 +97,13 @@ public:
   // returns the first primary vertex that was processed by Geant4
   int GetPrimaryVertexIndex() {return (vtxmap.lower_bound(1))->first;}
 
+  std::pair< std::map<int,int>::const_iterator, std::map<int,int>::const_iterator > GetEmbeddedVtxIds() const {return std::make_pair(vertex_embed_flags.begin(), vertex_embed_flags.end());}
+  void AddEmbededVtxId(const int id, const int flag) {vertex_embed_flags.insert(std::make_pair(id,flag));}
+
+  int isEmbededVtx(const int vtxid) const;
+  
+  // --- subevent boundary storage ---------------------------------------------
+  
   std::set<int> GetSubEventIds() const;
   Range         GetSubEventPrimaryParticleRange(int subevent);
   Range         GetSubEventSecondaryParticleRange(int subevent);
@@ -116,11 +122,9 @@ public:
   ConstRange GetHitRange() const {return GetParticleRange();}
   void delete_hit(Iterator piter) {delete_particle(piter);}
 
-  // end deprecated interface, confusingly named -------------------------------
-  
  private:
 
-  // map format description:
+  // particle storage map format description:
   // primary particles are appended in the positive direction
   // secondary particles are appended in the negative direction
   // subevent boundaries between geant runs are stored in the subevent markers
@@ -144,8 +148,13 @@ public:
   // -M   secondary particle id => particle*
   
   Map particlemap;
+
+  // vertex storage map format is similar to the above particle map
   VtxMap vtxmap;
 
+  // these items will be set only rarely and so it doesn't make sense to put
+  // this information directly on the objects themselves so I will store them
+  // here individually by lookup id
   std::map< int, std::pair<int,int> > particle_subevents; // subevent index => lower key and upper key
   std::map< int, std::pair<int,int> > vertex_subevents;   // subevent index => lower key and upper key
   std::map< int, int> particle_embed_flags;               // trackid => embed flag
@@ -154,8 +163,6 @@ public:
   // --- deprecated storage ----------
   Map primary_particle_map;
   VtxMap primary_vtxmap;
-  // track ids of embedded particles
-  std::set<int> embedded_trkid;
 
   ClassDef(PHG4TruthInfoContainer,1)
 };
