@@ -351,7 +351,6 @@ PHG4InnerHcalSteppingAction::GetLightCorrection(const double r) const
   double m = (light_balance_outer_corr - light_balance_inner_corr)/(light_balance_outer_radius - light_balance_inner_radius);
   double b = light_balance_inner_corr - m*light_balance_inner_radius;
   double value = m*r+b;  
-  cout << "val: " << value << endl;
   if (value > 1.0) return 1.0;
   if (value < 0.0) return 0.0;
 
