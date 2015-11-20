@@ -58,6 +58,7 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   const std::string SuperDetector() {return superdetector;}
 
   void BlackHole(const int i=1);
+  void SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr);
   void set_double_param(const std::string &name, const double dval);
   void set_int_param(const std::string &name, const int ival);
   void set_string_param(const std::string &name, const std::string &sval);
