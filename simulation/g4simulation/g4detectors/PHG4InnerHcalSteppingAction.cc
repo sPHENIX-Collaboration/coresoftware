@@ -39,10 +39,14 @@ PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector*
   absorberhits_(NULL),
   hit(NULL),
   params(parameters),
-  light_balance_inner_corr(parameters->get_double_param("light_balance_inner_corr")),
-  light_balance_inner_radius(parameters->get_double_param("light_balance_inner_radius")*cm),
-  light_balance_outer_corr(parameters->get_double_param("light_balance_outer_corr")),
-  light_balance_outer_radius(parameters->get_double_param("light_balance_outer_radius"))
+  absorbertruth(params->get_int_param("absorbertruth")),
+  IsActive(params->get_int_param("active")),
+  IsBlackHole(params->get_int_param("blackhole")),
+  light_scint_model(params->get_int_param("light_scint_model")),
+  light_balance_inner_corr(params->get_double_param("light_balance_inner_corr")),
+  light_balance_inner_radius(params->get_double_param("light_balance_inner_radius")*cm),
+  light_balance_outer_corr(params->get_double_param("light_balance_outer_corr")),
+  light_balance_outer_radius(params->get_double_param("light_balance_outer_radius")*cm)
 {}
 
 //____________________________________________________________________________..
@@ -130,7 +134,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this block stops everything, just put all kinetic energy into edep
-  if (detector_->IsBlackHole())
+  if (IsBlackHole)
     {
       edep = aTrack->GetKineticEnergy() / GeV;
       G4Track* killtrack = const_cast<G4Track *> (aTrack);
@@ -139,7 +143,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
   int layer_id = detector_->get_Layer();
 
   // make sure we are in a volume
-  if ( detector_->IsActive() )
+  if ( IsActive )
     {
       bool geantino = false;
 
@@ -210,7 +214,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 
       if (whichactive > 0) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
         {
-          if (params->get_int_param("light_scint_model"))
+          if (light_scint_model)
             {
               light_yield = GetVisibleEnergyDeposition(aStep); // for scintillator only, calculate light yields
 	      static bool once = true;
@@ -282,7 +286,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
           hit->set_eion(-1);
 	}
-      if (edep > 0 && (whichactive > 0 || params->get_int_param("absorbertruth") > 0))
+      if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
 	{
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {

@@ -70,9 +70,10 @@ PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
     {
       params->SaveToNodeTree(parNode,paramnodename);
     }
+  UpdateParametersWithMacro();
   parNode->addNode(new PHDataNode<PHG4Parameters>(params,g4geonodename));
   // create detector
-  detector_ = new PHG4InnerHcalDetector(topNode, NULL, Name());
+  detector_ = new PHG4InnerHcalDetector(topNode, params, Name());
   detector_->SuperDetector(superdetector);
   detector_->OverlapCheck(overlapcheck);
   set<string> nodes;
@@ -114,7 +115,8 @@ PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
 	  if ( !g4_hits )
 	    {
 	      g4_hits = new PHG4HitContainer();
-	      DetNode->addNode( new PHIODataNode<PHObject>( g4_hits, node.c_str(), "PHObject" ));
+	      //	      DetNode->addNode( new PHIODataNode<PHObject>( g4_hits, node.c_str(), "PHObject" ));
+	      dstNode->addNode( new PHIODataNode<PHObject>( g4_hits, node.c_str(), "PHObject" ));
 
 	    }
 	  if (! eventAction_)
@@ -271,7 +273,7 @@ PHG4InnerHcalSubsystem::SetDefaultParameters()
   default_double["scinti_tile_thickness"] = 0.7;
   default_double["size_z"] = 175.94 * 2;
   default_double["steplimits"] = NAN;
-  default_double["tilt_angle"] = 32.5;
+  default_double["tilt_angle"] = NAN; // default is 4 crossinge
   default_double["timing_cut"] = 100.;
 
   default_int["absorberactive"] = 0;
@@ -284,4 +286,36 @@ PHG4InnerHcalSubsystem::SetDefaultParameters()
   default_int["n_scinti_tiles"] = 12;
 
   default_string["material"] = "SS310";
+  for (map<const string,double>::const_iterator iter = default_double.begin(); iter != default_double.end(); ++iter)
+    {
+      params->set_double_param(iter->first,iter->second);
+    }
+  for (map<const string,int>::const_iterator iter = default_int.begin(); iter != default_int.end(); ++iter)
+    {
+      params->set_int_param(iter->first,iter->second);
+    }
+  for (map<const string,string>::const_iterator iter = default_string.begin(); iter != default_string.end(); ++iter)
+    {
+      params->set_string_param(iter->first,iter->second);
+    }
+
 }
+
+void
+PHG4InnerHcalSubsystem::UpdateParametersWithMacro()
+{
+  for (map<const string,double>::const_iterator iter = dparams.begin(); iter != dparams.end(); ++iter)
+    {
+      params->set_double_param(iter->first,iter->second);
+    }
+  for (map<const string,int>::const_iterator iter = iparams.begin(); iter != iparams.end(); ++iter)
+    {
+      params->set_int_param(iter->first,iter->second);
+    }
+  for (map<const string,string>::const_iterator iter = cparams.begin(); iter != cparams.end(); ++iter)
+    {
+      params->set_string_param(iter->first,iter->second);
+    }
+  return;
+}
+

@@ -62,6 +62,7 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   void set_int_param(const std::string &name, const int ival);
   void set_string_param(const std::string &name, const std::string &sval);
   void SetDefaultParameters();
+  void UpdateParametersWithMacro();
 
   protected:
 
