@@ -48,9 +48,9 @@ PHG4Parameters::printint() const
 }
 
 void
-PHG4Parameters::set_double_param(const std::string &name, const double ival)
+PHG4Parameters::set_double_param(const std::string &name, const double dval)
 {
-  doubleparams[name] = ival;
+  doubleparams[name] = dval;
 }
 
 double

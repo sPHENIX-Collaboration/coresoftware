@@ -800,10 +800,10 @@ PHG4InnerHcalDetector::SetTiltViaNcross()
   //  c^2 = a^2+b^2 - 2ab*cos(gamma)
   // gamma = acos((a^2+b^2=c^2)/2ab
   double tiltangle = acos((ll*ll + upside*upside-inner_radius*inner_radius)/(2*ll*upside));
-  tiltangle = tiltangle*180./M_PI;
+  tiltangle = tiltangle*rad;
   // set second param to 0 so it does not reset the ncross
   tilt_angle = copysign(tiltangle,ncross);
-  params->set_double_param("tilt_angle",tilt_angle);
+  params->set_double_param("tilt_angle",tilt_angle/deg);
   return;
 }
 
