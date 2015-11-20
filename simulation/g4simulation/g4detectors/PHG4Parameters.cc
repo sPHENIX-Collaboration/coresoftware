@@ -1,16 +1,15 @@
 #include "PHG4Parameters.h"
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHTimeStamp.h>
-
 #include <pdbcalbase/PdbBankManager.h>
 #include <pdbcalbase/PdbApplication.h>
 #include <pdbcalbase/PdbBankList.h>
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbParameterMap.h>
 
-#include <Geant4/G4SystemOfUnits.hh>
+#include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHTimeStamp.h>
 
 #include <cmath>
 #include <cstdlib>
@@ -119,11 +118,22 @@ PHG4Parameters::printstring() const
 void
 PHG4Parameters::FillFrom(const PdbParameterMap *saveparams)
 {
-  pair<std::map<const std::string, double>::const_iterator, std::map<const std::string, double>::const_iterator> begin_end = saveparams->get_dparam_iters();
-  for (map<const std::string, double>::const_iterator iter = begin_end.first; iter != begin_end.second;++iter)
+  pair<std::map<const std::string, double>::const_iterator, std::map<const std::string, double>::const_iterator> begin_end_d = saveparams->get_dparam_iters();
+  for (map<const std::string, double>::const_iterator iter = begin_end_d.first; iter != begin_end_d.second;++iter)
     {
       doubleparams[iter->first] = iter->second;
     }
+  pair<std::map<const std::string, int>::const_iterator, std::map<const std::string, int>::const_iterator> begin_end_i = saveparams->get_iparam_iters();
+  for (map<const std::string, int>::const_iterator iter = begin_end_i.first; iter != begin_end_i.second;++iter)
+    {
+      intparams[iter->first] = iter->second;
+    }
+  pair<std::map<const std::string, string>::const_iterator, std::map<const std::string, string>::const_iterator> begin_end_s = saveparams->get_cparam_iters();
+  for (map<const std::string, string>::const_iterator iter = begin_end_s.first; iter != begin_end_s.second;++iter)
+    {
+      stringparams[iter->first] = iter->second;
+    }
+
   return;
 }
 
@@ -132,10 +142,26 @@ void
 PHG4Parameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
 {
   // write itself since this class is fine with saving by root
-  PdbParameterMap *newparams = new PdbParameterMap();
-  //  newparams->FillFrom(this);
-  PHIODataNode<PdbParameterMap> *newnode =  new PHIODataNode<PdbParameterMap>(newparams,nodename);
-  topNode->addNode(newnode);
+  PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,nodename);
+  if (!nodeparams)
+    {
+      nodeparams = new PdbParameterMap();
+      PHIODataNode<PdbParameterMap> *newnode =  new PHIODataNode<PdbParameterMap>(nodeparams,nodename);
+      topNode->addNode(newnode);
+    }
+  for (map<const string,double>::const_iterator iter = doubleparams.begin(); iter != doubleparams.end(); ++iter)
+    {
+      nodeparams->set_double_param(iter->first,iter->second);
+    }
+  for (map<const string,int>::const_iterator iter = intparams.begin(); iter != intparams.end(); ++iter)
+    {
+      nodeparams->set_int_param(iter->first,iter->second);
+    }
+  for (map<const string,string>::const_iterator iter = stringparams.begin(); iter != stringparams.end(); ++iter)
+    {
+      nodeparams->set_string_param(iter->first,iter->second);
+    }
+  return;
 }
 
 void
