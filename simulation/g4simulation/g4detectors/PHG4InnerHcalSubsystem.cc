@@ -318,3 +318,12 @@ PHG4InnerHcalSubsystem::UpdateParametersWithMacro()
   return;
 }
 
+void
+PHG4InnerHcalSubsystem::SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr)
+{
+  dparams["light_balance_inner_corr"] = inner_corr;
+  dparams["light_balance_inner_radius"] = inner_radius;
+  dparams["light_balance_outer_corr"] = outer_corr;
+  dparams["light_balance_outer_radius"] = outer_radius;
+  return;
+}
