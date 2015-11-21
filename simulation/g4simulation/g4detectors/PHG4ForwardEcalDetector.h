@@ -85,6 +85,13 @@ private:
 
   G4LogicalVolume* ConstructTower();
   int PlaceTower(G4LogicalVolume* envelope , G4LogicalVolume* tower);
+  int ParseParametersFromTable();
+
+  struct towerposition {
+    G4double x;
+    G4double y;
+    G4double z;
+  } ;
 
   /* Calorimeter envelope geometry */
   G4double _place_in_x;
@@ -120,6 +127,9 @@ private:
   std::string _towerlogicnameprefix;
   std::string _superdetector;
   std::string _mapping_tower_file;
+
+  std::map< std::string, G4double > _map_global_parameter;
+  std::map< std::string, towerposition > _map_tower;
 };
 
 #endif
