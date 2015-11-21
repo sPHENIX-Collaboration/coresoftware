@@ -223,9 +223,9 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 
     cout << "vtrue = (" << gvx << "," << gvy << "," << gvz << ") => vreco = (" << vx << "," << vy << "," << vz << ")" << endl;
 
-    PHG4TruthInfoContainer::Map map = truthinfo->GetPrimaryMap();
-    for (PHG4TruthInfoContainer::ConstIterator iter = map.begin(); 
-	 iter != map.end(); 
+    PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
+    for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
+	 iter != range.second; 
 	 ++iter) {
       PHG4Particle* primary = iter->second;
       
@@ -376,11 +376,12 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
       exit(-1);
     }
-    
-    PHG4TruthInfoContainer::Map map = truthinfo->GetPrimaryMap();
-    for (PHG4TruthInfoContainer::ConstIterator iter = map.begin(); 
-	 iter != map.end(); 
+
+    PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
+    for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
+	 iter != range.second; 
 	 ++iter) {
+    
       PHG4Particle* primary = iter->second;
 
       if (primary->get_e() < _truth_e_threshold) continue;

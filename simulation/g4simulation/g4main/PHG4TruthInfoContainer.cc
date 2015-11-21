@@ -16,9 +16,10 @@ using namespace std;
 PHG4TruthInfoContainer::PHG4TruthInfoContainer() :
   particlemap(),
   vtxmap(),
-  primary_particle_map(),
-  primary_vtxmap() {
-  //embedded_trkid() {  
+  particle_subevents(),
+  vertex_subevents(),
+  particle_embed_flags(),
+  vertex_embed_flags() {
 }
 
 PHG4TruthInfoContainer::~PHG4TruthInfoContainer() {}
@@ -33,26 +34,21 @@ struct SecondDeleter : std::unary_function<T,void>
 void
 PHG4TruthInfoContainer::Reset()
 {
-  std::for_each(particlemap.begin(),particlemap.end(),SecondDeleter<Map::value_type>());
+  for (Iterator iter = particlemap.begin(); iter != particlemap.end(); ++iter) {
+    delete iter->second;
+  }
   particlemap.clear();
 
-  std::for_each(vtxmap.begin(),vtxmap.end(),SecondDeleter<VtxMap::value_type>());
+  for (VtxIterator iter = vtxmap.begin(); iter != vtxmap.end(); ++iter) {
+    delete iter->second;
+  }
   vtxmap.clear();
 
   particle_subevents.clear();
   vertex_subevents.clear();
   particle_embed_flags.clear();
   vertex_embed_flags.clear();
-
-
-  std::for_each(primary_particle_map.begin(),primary_particle_map.end(),SecondDeleter<Map::value_type>());
-  primary_particle_map.clear();
-
-  std::for_each(primary_vtxmap.begin(),primary_vtxmap.end(),SecondDeleter<VtxMap::value_type>());
-  primary_vtxmap.clear();
   
-  //embedded_trkid.clear();
-
   return;
 }
 
@@ -69,19 +65,6 @@ PHG4TruthInfoContainer::identify(ostream& os) const
    ConstVtxIterator vter;
    cout << "---vtxmap-------------------------------" << endl;
    for (vter = vtxmap.begin(); vter != vtxmap.end(); ++vter)
-     {
-       cout << "vtx id: " << vter ->first << endl;
-       (vter ->second)->identify();
-     }
-   
-   cout << "---primaryparticlemap-------------------" << endl;
-   for (iter = primary_particle_map.begin(); iter != primary_particle_map.end(); ++iter)
-     {
-       cout << "primary_particle_ key " <<  iter->first << endl;
-       (iter->second)->identify();
-     }
-   cout << "---primary vertex emap-------------------" << endl;
-   for (vter = primary_vtxmap.begin(); vter != primary_vtxmap.end(); ++vter)
      {
        cout << "vtx id: " << vter ->first << endl;
        (vter ->second)->identify();
@@ -120,23 +103,23 @@ PHG4TruthInfoContainer::AddParticle(const int trackid, PHG4Particle *newparticle
   return particlemap.end();
 }
 
-PHG4TruthInfoContainer::ConstIterator
-PHG4TruthInfoContainer::AddPrimaryParticle(PHG4Particle *newparticle)
-{
-  int key = primary_particle_map.size()+1;
-  if ( primary_particle_map.find(key) !=  primary_particle_map.end())
-    {
-      cout << PHWHERE << "particle with id " << key << " already inserted, fix indexing" << endl;
-      exit(1);
-    }
+// PHG4TruthInfoContainer::ConstIterator
+// PHG4TruthInfoContainer::AddPrimaryParticle(PHG4Particle *newparticle)
+// {
+//   int key = primary_particle_map.size()+1;
+//   if ( primary_particle_map.find(key) !=  primary_particle_map.end())
+//     {
+//       cout << PHWHERE << "particle with id " << key << " already inserted, fix indexing" << endl;
+//       exit(1);
+//     }
 
-  ConstIterator it;
-  bool added = false;
-  boost::tie(it,added) = primary_particle_map.insert(std::make_pair(key,newparticle));
-  if ( added ) return it;
-  cerr << "PHG4TruthInfoContainer::AddParticle - Attempt to add particle with existing trackid " << key << std::endl;
-  return particlemap.end();
-}
+//   ConstIterator it;
+//   bool added = false;
+//   boost::tie(it,added) = primary_particle_map.insert(std::make_pair(key,newparticle));
+//   if ( added ) return it;
+//   cerr << "PHG4TruthInfoContainer::AddParticle - Attempt to add particle with existing trackid " << key << std::endl;
+//   return particlemap.end();
+// }
 
 PHG4Particle*
 PHG4TruthInfoContainer::GetParticle(const int trackid)
@@ -144,28 +127,16 @@ PHG4TruthInfoContainer::GetParticle(const int trackid)
   int key = trackid;
   Iterator it = particlemap.find(key);
   if ( it != particlemap.end() ) return it->second;
-  return 0;
+  return NULL;
 }
 
 PHG4Particle*
 PHG4TruthInfoContainer::GetPrimaryParticle(const int trackid)
 {
-  int key = trackid;
-  Iterator it = primary_particle_map.find(key);
-  if ( it != primary_particle_map.end() ) return it->second;
-  return 0;
-}
-
-PHG4TruthInfoContainer::Range
-PHG4TruthInfoContainer::GetParticleRange()
-{
-  return Range(particlemap.begin(),particlemap.end());
-}
-
-PHG4TruthInfoContainer::ConstRange
-PHG4TruthInfoContainer::GetParticleRange() const
-{
-  return ConstRange(particlemap.begin(),particlemap.end());
+  if (trackid <= 0) return NULL;
+  Iterator it = particlemap.find(trackid);
+  if ( it != particlemap.end() ) return it->second;
+  return NULL;
 }
 
 PHG4VtxPoint*
@@ -183,12 +154,9 @@ PHG4TruthInfoContainer::GetVtx(const int vtxid)
 PHG4VtxPoint*
 PHG4TruthInfoContainer::GetPrimaryVtx(const int vtxid)
 {
-  int key = vtxid;
-  VtxIterator it = primary_vtxmap.find(key);
-  if ( it != primary_vtxmap.end() )
-    {
-      return it->second;
-    }
+  if (vtxid <= 0) return NULL;
+  VtxIterator it = vtxmap.find(vtxid);
+  if ( it != vtxmap.end() ) return it->second;
   return NULL;
 }
 
@@ -242,67 +210,67 @@ PHG4TruthInfoContainer::AddVertex(const int id, PHG4VtxPoint *newvtx)
   return vtxmap.end();
 }
 
-int
-PHG4TruthInfoContainer::AddPrimaryVertex(PHG4VtxPoint *newvtx)
-{
-// initial guess of key, if we are the first index (map.size() == 0)
-//  no need to check anything just add the vertex
-  int key = primary_vtxmap.size()+1;  
-  if (key == 1)
-    {
-      primary_vtxmap.insert(make_pair(key,newvtx));
-      newvtx->set_id(key);
-    }
-  else
-    {
-      // we already have a vertex, check if the newly added vertex is identical to existing vertex
-      ConstVtxIterator vtxiter;
-      for (vtxiter = primary_vtxmap.begin(); vtxiter != primary_vtxmap.end(); ++vtxiter)
-	{
-	  PHG4VtxPoint *savedvtx = vtxiter->second;
-	  if (*savedvtx == *newvtx)
-	    {
-	      key = vtxiter->first;
-	      delete newvtx; // since we do not store it we have to delete it here
-	      return key;
-	    }
-	}
-      // if not found among existing vertices, add it
-       primary_vtxmap.insert(make_pair(key,newvtx));
-       newvtx->set_id(key);
-    }
-  return key;
-}
+// int
+// PHG4TruthInfoContainer::AddPrimaryVertex(PHG4VtxPoint *newvtx)
+// {
+// // initial guess of key, if we are the first index (map.size() == 0)
+// //  no need to check anything just add the vertex
+//   int key = primary_vtxmap.size()+1;  
+//   if (key == 1)
+//     {
+//       primary_vtxmap.insert(make_pair(key,newvtx));
+//       newvtx->set_id(key);
+//     }
+//   else
+//     {
+//       // we already have a vertex, check if the newly added vertex is identical to existing vertex
+//       ConstVtxIterator vtxiter;
+//       for (vtxiter = primary_vtxmap.begin(); vtxiter != primary_vtxmap.end(); ++vtxiter)
+// 	{
+// 	  PHG4VtxPoint *savedvtx = vtxiter->second;
+// 	  if (*savedvtx == *newvtx)
+// 	    {
+// 	      key = vtxiter->first;
+// 	      delete newvtx; // since we do not store it we have to delete it here
+// 	      return key;
+// 	    }
+// 	}
+//       // if not found among existing vertices, add it
+//        primary_vtxmap.insert(make_pair(key,newvtx));
+//        newvtx->set_id(key);
+//     }
+//   return key;
+// }
 
-int
-PHG4TruthInfoContainer::maxprimarytrkindex() const
-{
-  int key = 0;
-  if (!primary_particle_map.empty())
-    {
-      key = primary_particle_map.rbegin()->first;
-    }
-  if (key < 0)
-    {
-      key = 0;
-    }
-  return key;
-}
+// int
+// PHG4TruthInfoContainer::maxprimarytrkindex() const
+// {
+//   int key = 0;
+//   if (!primary_particle_map.empty())
+//     {
+//       key = primary_particle_map.rbegin()->first;
+//     }
+//   if (key < 0)
+//     {
+//       key = 0;
+//     }
+//   return key;
+// }
 
-int
-PHG4TruthInfoContainer::minprimarytrkindex() const
-{
-  int key = 0;
-  if (!primary_particle_map.empty())
-    {
-       key = primary_particle_map.begin()->first;
-    }
-  if (key > 0)
-    {
-      key = 0;
-    }
-  return key;
-}
+// int
+// PHG4TruthInfoContainer::minprimarytrkindex() const
+// {
+//   int key = 0;
+//   if (!primary_particle_map.empty())
+//     {
+//        key = primary_particle_map.begin()->first;
+//     }
+//   if (key > 0)
+//     {
+//       key = 0;
+//     }
+//   return key;
+// }
 
 int
 PHG4TruthInfoContainer::maxtrkindex() const

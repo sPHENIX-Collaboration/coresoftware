@@ -38,29 +38,34 @@ public:
   PHG4Particle* GetParticle(const int particleid);
   PHG4Particle* GetPrimaryParticle(const int particleid);
 
-  ConstIterator AddPrimaryParticle(PHG4Particle *newparticle);
+  //ConstIterator AddPrimaryParticle(PHG4Particle *newparticle);
   
   //! Get a range of iterators covering the entire container
-  Range GetParticleRange();
-  ConstRange GetParticleRange() const;
+  Range GetParticleRange() {return Range(particlemap.begin(),particlemap.end());}
+  ConstRange GetParticleRange() const {return ConstRange(particlemap.begin(),particlemap.end());}
 
+  Range GetPrimaryParticleRange() {return Range(particlemap.upper_bound(0),particlemap.end());}
+  ConstRange GetPrimaryParticleRange() const {return ConstRange(particlemap.upper_bound(0),particlemap.end());}
+
+  Range GetSecondaryParticleRange() {return Range(particlemap.begin(),particlemap.upper_bound(0));}
+  ConstRange GetSecondaryParticleRange() const {return ConstRange(particlemap.begin(),particlemap.upper_bound(0));}
+  
   //! particle size
   unsigned int size( void ) const {return particlemap.size();}
-  int GetNumPrimaryVertexParticles() {return primary_particle_map.size();}
+  int GetNumPrimaryVertexParticles() {
+    return std::distance(particlemap.upper_bound(0),particlemap.end());
+  }
   
   //! Get the map itself
   const Map& GetMap() const {return particlemap;}
-  const Map& GetPrimaryMap() const {return primary_particle_map;}
-
+  //const Map& GetPrimaryMap() const {return primary_particle_map;}
+  
   int maxtrkindex() const;
   int mintrkindex() const;
 
-  int maxprimarytrkindex() const;
-  int minprimarytrkindex() const;
-
   void delete_particle(Iterator piter);
 
-  int GetLastParticleIndex() {return (primary_particle_map.rbegin())->first;}
+  //int GetLastParticleIndex() {return (primary_particle_map.rbegin())->first;}
 
   std::pair< std::map<int,int>::const_iterator, std::map<int,int>::const_iterator > GetEmbeddedTrkIds() const {return std::make_pair(particle_embed_flags.begin(), particle_embed_flags.end());}
   void AddEmbededTrkId(const int id, const int flag) {particle_embed_flags.insert(std::make_pair(id,flag));}
@@ -75,7 +80,7 @@ public:
   ConstVtxIterator AddVertex(const int vtxid, PHG4VtxPoint* vertex);
 
   //! Add a primary vertex and return index to the user
-  int AddPrimaryVertex(PHG4VtxPoint *);
+  //int AddPrimaryVertex(PHG4VtxPoint *);
   
   PHG4VtxPoint* GetVtx(const int vtxid);
   PHG4VtxPoint* GetPrimaryVtx(const int vtxid);
@@ -159,10 +164,6 @@ public:
   std::map< int, std::pair<int,int> > vertex_subevents;   // subevent index => lower key and upper key
   std::map< int, int> particle_embed_flags;               // trackid => embed flag
   std::map< int, int> vertex_embed_flags;                 // trackid => embed flag
-
-  // --- deprecated storage ----------
-  Map primary_particle_map;
-  VtxMap primary_vtxmap;
 
   ClassDef(PHG4TruthInfoContainer,1)
 };
