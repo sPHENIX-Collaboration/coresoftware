@@ -90,7 +90,17 @@ protected:
 
   RawTowerDefs::CalorimeterId calo_id_;
 
+  double global_place_in_x_;
+  double global_place_in_y_;
+  double global_place_in_z_;
+
+  double rot_in_x_;
+  double rot_in_y_;
+  double rot_in_z_;
+
   double emin_;
+
+  std::map< std::string, double > map_global_parameter_;
 
   PHTimeServer::timer timer_;
 

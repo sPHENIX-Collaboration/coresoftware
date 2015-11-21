@@ -16,6 +16,9 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <TRotation.h>
+#include <TVector3.h>
+
 #include <cmath>
 #include <iostream>
 #include <sstream>
@@ -35,6 +38,12 @@ RawTowerBuilderByHitIndex::RawTowerBuilderByHitIndex(const std::string& name):
   node_name_tower_geometries_("DEFAULT"),
   mapping_tower_file_("default.txt"),
   calo_id_( RawTowerDefs::NONE ),
+  global_place_in_x_(0),
+  global_place_in_y_(0),
+  global_place_in_z_(0),
+  rot_in_x_(0),
+  rot_in_y_(0),
+  rot_in_z_(0),
   emin_(1e-6),
   timer_( PHTimeServer::get()->insert_new(name) )
 {}
@@ -227,40 +236,133 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable() {
 
   while ( getline( istream_mapping, line_mapping ) )
     {
-
-      unsigned idx_j, idx_k, idx_l;
-      float pos_x, pos_y, pos_z, size_x, size_y, size_z, alpha, beta, gamma;
-      float dummy;
-
-      istringstream iss(line_mapping);
-
       /* Skip lines starting with / including a '#' */
       if ( line_mapping.find("#") != string::npos )
 	{
+	  if ( verbosity > 0 )
+	    {
+	      cout << "RawTowerBuilderByHitIndex: SKIPPING line in mapping file: " << line_mapping << endl;
+	    }
 	  continue;
 	}
 
-      /* read string- break if error */
-      if ( !( iss >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> alpha >> beta >> gamma >> dummy ) )
+      istringstream iss(line_mapping);
+
+      /* If line starts with keyword Tower, add to tower positions */
+      if ( line_mapping.find("Tower ") != string::npos )
 	{
-	  cerr << "RawTowerBuilderByHitIndex::ReadGeometryFromTable - ERROR Failed to read line in mapping file " << mapping_tower_file_ << endl;
-	  exit(1);
+	  unsigned idx_j, idx_k, idx_l;
+	  double pos_x, pos_y, pos_z;
+	  double size_x, size_y, size_z;
+	  double rot_x, rot_y, rot_z;
+	  double dummy;
+	  string dummys;
+
+	  /* read string- break if error */
+	  if ( !( iss >> dummys >> dummy >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> rot_x >> rot_y >> rot_z ) )
+	    {
+	      cerr << "ERROR in PHG4CrystalCalorimeterDetector: Failed to read line in mapping file " << mapping_tower_file_ << endl;
+	      exit(1);
+	    }
+
+	  /* Construct unique Tower ID */
+	  unsigned int temp_id = RawTowerDefs::encode_towerid( calo_id_ , idx_j , idx_k );
+
+	  /* Create tower geometry object */
+	  RawTowerGeom* temp_geo = new RawTowerGeomv2( temp_id );
+	  temp_geo->set_center_x( pos_x );
+	  temp_geo->set_center_y( pos_y );
+	  temp_geo->set_center_z( pos_z );
+	  temp_geo->set_size_x( size_x );
+	  temp_geo->set_size_y( size_y );
+	  temp_geo->set_size_z( size_z );
+
+	  /* Insert this tower into position map */
+	  geoms_->add_tower_geometry( temp_geo );
 	}
 
-      /* Construct unique Tower ID */
-      unsigned int temp_id = RawTowerDefs::encode_towerid( calo_id_ , idx_j , idx_k );
+      /* If line does not start with keyword Tower, read as parameter */
+      else
+	{
+	  /* If this line is not a comment and not a tower, save parameter as string / value. */
+	  string parname;
+	  double parval;
 
-      /* Create tower geometry object */
-      RawTowerGeom* temp_geo = new RawTowerGeomv2( temp_id );
-      temp_geo->set_center_x( pos_x );
-      temp_geo->set_center_y( pos_y );
-      temp_geo->set_center_z( pos_z );
-      temp_geo->set_size_x( size_x );
-      temp_geo->set_size_y( size_y );
-      temp_geo->set_size_z( size_z );
+	  /* read string- break if error */
+	  if ( !( iss >> parname >> parval ) )
+	    {
+	      cerr << "ERROR in RawTowerBuilderByHitIndex: Failed to read line in mapping file " << mapping_tower_file_ << endl;
+	      exit(1);
+	    }
 
-      /* Insert this tower into position map */
-      geoms_->add_tower_geometry( temp_geo );
+	  map_global_parameter_.insert( make_pair( parname , parval ) );
+
+	}
+    }
+
+  /* Update member variables for global parameters based on parsed parameter file */
+  std::map<string,double>::iterator parit;
+
+  parit = map_global_parameter_.find("Gx0");
+  if (parit != map_global_parameter_.end())
+    global_place_in_x_ = parit->second;
+
+  parit = map_global_parameter_.find("Gy0");
+  if (parit != map_global_parameter_.end())
+    global_place_in_y_ = parit->second;
+
+  parit = map_global_parameter_.find("Gz0");
+  if (parit != map_global_parameter_.end())
+    global_place_in_z_ = parit->second;
+
+  parit = map_global_parameter_.find("Grot_x");
+  if (parit != map_global_parameter_.end())
+    rot_in_x_ = parit->second;
+
+  parit = map_global_parameter_.find("Grot_y");
+  if (parit != map_global_parameter_.end())
+    rot_in_y_ = parit->second;
+
+  parit = map_global_parameter_.find("Grot_z");
+  if (parit != map_global_parameter_.end())
+    rot_in_z_ = parit->second;
+
+
+  /* Correct tower geometries for global calorimter translation / rotation 
+   * after reading parameters from file */
+  RawTowerGeomContainer::ConstRange all_towers = geoms_->get_tower_geometries();
+
+  for ( RawTowerGeomContainer::ConstIterator it = all_towers.first;
+	it != all_towers.second; ++it)
+    {
+      double x_temp = it->second->get_center_x();
+      double y_temp = it->second->get_center_y();
+      double z_temp = it->second->get_center_z();
+
+      /* Rotation */
+      TRotation rot;
+      rot.RotateX( rot_in_x_ );
+      rot.RotateY( rot_in_y_ );
+      rot.RotateZ( rot_in_z_ );
+
+      TVector3 v_temp_r( x_temp , y_temp , z_temp );
+      v_temp_r.Transform( rot );
+
+      /* Translation */
+      double x_temp_rt = v_temp_r.X() + global_place_in_x_;
+      double y_temp_rt = v_temp_r.Y() + global_place_in_y_;
+      double z_temp_rt = v_temp_r.Z() + global_place_in_z_;
+
+      /* Update tower geometry object */
+      it->second->set_center_x( x_temp_rt );
+      it->second->set_center_y( y_temp_rt );
+      it->second->set_center_z( z_temp_rt );
+
+      if ( verbosity > 2 )
+	{
+	  cout << "* Local tower x y z : " << x_temp << " " << y_temp << " " << z_temp << endl;
+	  cout << "* Globl tower x y z : " << x_temp_rt << " " << y_temp_rt << " " << z_temp_rt << endl;
+	}
     }
 
   return true;
