@@ -74,9 +74,6 @@ public:
   //! Add a vertex and return an iterator to the user
   ConstVtxIterator AddVertex(const int vtxid, PHG4VtxPoint* vertex);
 
-  //! Add a primary vertex and return index to the user
-  //int AddPrimaryVertex(PHG4VtxPoint *);
-  
   PHG4VtxPoint* GetVtx(const int vtxid);
   PHG4VtxPoint* GetPrimaryVtx(const int vtxid);
   

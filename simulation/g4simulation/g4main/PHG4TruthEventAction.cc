@@ -52,6 +52,9 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt) {
     std::cout << "PHG4TruthEventAction::EndOfEventAction - unable to find G4TruthInfo node" << std::endl;
     return;
   }
+
+  // construct a list of track ids to preserve in the the output that includes any
+  // track designated in the writeList_ during processing or its ancestry chain
   
   std::set<G4int> savelist;
   std::set<int> savevtxlist;
@@ -78,7 +81,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt) {
     // now crawl up the truth info and add parents until we hit
     // a track which is already being saved
     G4int parentid = particle->get_parent_id();
-    while (savelist.find(parentid) == savelist.end() && parentid > 0) {
+    while (savelist.find(parentid) == savelist.end() && parentid != 0) {
       particle = truthInfoList_->GetParticle(parentid);
       wrttracks.push_back(parentid);
       wrtvtx.push_back(particle->get_vtx_id());
@@ -100,6 +103,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt) {
   
   // the save lists are filled now, except primary track which never
   // made it into any active volume and their vertex
+  
   // loop over particles in truth list and remove them if they are not
   // in the save list and are not primary particles (parent_id == 0)
   
