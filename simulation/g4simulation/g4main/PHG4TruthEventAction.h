@@ -42,6 +42,9 @@ public:
 
   //! pointer to truth information container
   PHG4TruthInfoContainer* truthInfoList_;
+
+  int prev_existing_lower_key;
+  int prev_existing_upper_key;
 };
 
 

@@ -23,12 +23,25 @@ using namespace std;
 
 //___________________________________________________
 PHG4TruthEventAction::PHG4TruthEventAction( void ):
-  truthInfoList_( 0 )
+  truthInfoList_( 0 ),
+  prev_existing_lower_key( 0 ),
+  prev_existing_upper_key( 0 )
 {}
 
 //___________________________________________________
 void PHG4TruthEventAction::BeginOfEventAction(const G4Event* evt) {
 
+  // if we do not find the node we need to make it.
+  if ( !truthInfoList_ ) {
+    std::cout << "PHG4TruthEventAction::EndOfEventAction - unable to find G4TruthInfo node" << std::endl;
+    return;
+  }
+
+  const PHG4TruthInfoContainer::Map& map = truthInfoList_->GetMap();
+  if (!map.empty()) {
+    prev_existing_lower_key = map.begin()->first;
+    prev_existing_upper_key = map.rbegin()->first;
+  }
 }
 
 //___________________________________________________
@@ -103,10 +116,10 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt) {
       // check if particle below offset 
       // primary particles had parentid = 0
       // for embedding: particles from initial sim do not have their keep flag set, we want to keep particles with trkid <= trackidoffset
-      // trackidoffset is the geantid of the last particle
-      // for regular sims, trackidoffset is zero
-      if ((truthiter->second)->get_parent_id() != 0 && trackid > 0) {
-	// MPM I'll need to revise this section with a new way to identify secondaries that left no hit only in the current subevent
+      // tracks from a previous geant pass will not be recorded as leaving
+      // hit in the sim, so we exclude this range from the removal
+      // for regular sims, that range is zero to zero
+      if (((trackid < prev_existing_lower_key)||(trackid > prev_existing_upper_key)) && ((truthiter->second)->get_parent_id() != 0)) {
 	truthInfoList_->delete_particle(truthiter++);
 	removed[1]++;
       } else {
@@ -158,9 +171,6 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt) {
     pvtx = pvtx->GetNext();
   }
 
-  // mark the container with the position of the last particle and vertex from this subevent before finishing
-  truthInfoList_->MarkSubEventBoundary();
-  
   return;
 }
 

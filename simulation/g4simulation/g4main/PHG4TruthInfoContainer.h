@@ -38,8 +38,6 @@ public:
   PHG4Particle* GetParticle(const int particleid);
   PHG4Particle* GetPrimaryParticle(const int particleid);
 
-  //ConstIterator AddPrimaryParticle(PHG4Particle *newparticle);
-  
   //! Get a range of iterators covering the entire container
   Range GetParticleRange() {return Range(particlemap.begin(),particlemap.end());}
   ConstRange GetParticleRange() const {return ConstRange(particlemap.begin(),particlemap.end());}
@@ -58,14 +56,11 @@ public:
   
   //! Get the map itself
   const Map& GetMap() const {return particlemap;}
-  //const Map& GetPrimaryMap() const {return primary_particle_map;}
   
   int maxtrkindex() const;
   int mintrkindex() const;
 
   void delete_particle(Iterator piter);
-
-  //int GetLastParticleIndex() {return (primary_particle_map.rbegin())->first;}
 
   std::pair< std::map<int,int>::const_iterator, std::map<int,int>::const_iterator > GetEmbeddedTrkIds() const {return std::make_pair(particle_embed_flags.begin(), particle_embed_flags.end());}
   void AddEmbededTrkId(const int id, const int flag) {particle_embed_flags.insert(std::make_pair(id,flag));}
@@ -106,15 +101,6 @@ public:
   void AddEmbededVtxId(const int id, const int flag) {vertex_embed_flags.insert(std::make_pair(id,flag));}
 
   int isEmbededVtx(const int vtxid) const;
-  
-  // --- subevent boundary storage ---------------------------------------------
-  
-  std::set<int> GetSubEventIds() const;
-  Range         GetSubEventPrimaryParticleRange(int subevent);
-  Range         GetSubEventSecondaryParticleRange(int subevent);
-  VtxRange      GetSubEventPrimaryVertexRange(int subevent);
-  VtxRange      GetSubEventSecondaryVertexRange(int subevent); 
-  void          MarkSubEventBoundary();
   
   // deprecated interface, confusingly named as we store particles not hits ----
   // do not call these functions in new code, i'm leaving these for now for
@@ -157,13 +143,9 @@ public:
   // vertex storage map format is similar to the above particle map
   VtxMap vtxmap;
 
-  // these items will be set only rarely and so it doesn't make sense to put
-  // this information directly on the objects themselves so I will store them
-  // here individually by lookup id
-  std::map< int, std::pair<int,int> > particle_subevents; // subevent index => lower key and upper key
-  std::map< int, std::pair<int,int> > vertex_subevents;   // subevent index => lower key and upper key
+  // embed flag storage, will typically be set for only a few entries or none at all
   std::map< int, int> particle_embed_flags;               // trackid => embed flag
-  std::map< int, int> vertex_embed_flags;                 // trackid => embed flag
+  std::map< int, int> vertex_embed_flags;                 // vtxid => embed flag
 
   ClassDef(PHG4TruthInfoContainer,1)
 };
