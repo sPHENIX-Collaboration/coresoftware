@@ -283,7 +283,6 @@ PHG4InnerHcalSubsystem::SetDefaultParameters()
   default_double["size_z"] = 175.94 * 2;
   default_double["steplimits"] = NAN;
   default_double["tilt_angle"] = NAN; // default is 4 crossinge
-  default_double["timing_cut"] = 100.;
 
   default_int["absorberactive"] = 0;
   default_int["absorbertruth"] = 0;
