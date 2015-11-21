@@ -120,18 +120,10 @@ public:
   // +N   primary particle id => particle*
   // +N-1 
   // ...
-  // +J+1 subevent #2
-  // +J   subevent #1 boundary (last particle flagged in particle_subevents)
-  // +J-1 subevent #1
-  // ..
   // +1   primary particle id => particle*
   // 0    no entry
   // -1   secondary particle id => particle*
   // ...
-  // -K+1 subevent #1
-  // -K   subevent #1 boundary (last particle flagged in particle_subevents)
-  // -K-1 subevent #2
-  // ..
   // -M+1
   // -M   secondary particle id => particle*
   
