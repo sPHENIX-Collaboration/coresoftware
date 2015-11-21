@@ -296,7 +296,7 @@ PHG4CrystalCalorimeterDetector::PlaceTower(G4LogicalVolume* eemcenvelope, G4Logi
       if ( verbosity > 0 )
 	{
 	  cout << "PHG4CrystalCalorimeterDetector: Place tower " << iterator->first
-	       << " at x = " << iterator->second.x << " , y = " << iterator->second.y << endl;
+	       << " at x = " << iterator->second.x << " , y = " << iterator->second.y << " , z = " << iterator->second.z << endl;
 	}
 
       new G4PVPlacement( 0, G4ThreeVector(iterator->second.x, iterator->second.y, iterator->second.z),
@@ -304,6 +304,7 @@ PHG4CrystalCalorimeterDetector::PlaceTower(G4LogicalVolume* eemcenvelope, G4Logi
 			 iterator->first.c_str(),
 			 eemcenvelope,
 			 0, 0, overlapcheck);
+
   }
 
   return 0;
@@ -422,13 +423,13 @@ PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
   if (parit != _map_global_parameter.end())
     _rMin2 = parit->second * cm;
 
-  parit = _map_global_parameter.find("Gdz");
-  if (parit != _map_global_parameter.end())
-    _dZ = parit->second;
-
   parit = _map_global_parameter.find("Gr2_outer");
   if (parit != _map_global_parameter.end())
     _rMax2 = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gdz");
+  if (parit != _map_global_parameter.end())
+    _dZ = parit->second * cm;
 
   parit = _map_global_parameter.find("Gx0");
   if (parit != _map_global_parameter.end())
