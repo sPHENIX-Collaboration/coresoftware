@@ -34,7 +34,8 @@ public:
  
   //! Add a particle that the user has created
   ConstIterator AddParticle(const int particleid, PHG4Particle* newparticle);
-
+  void delete_particle(Iterator piter);
+  
   PHG4Particle* GetParticle(const int particleid);
   PHG4Particle* GetPrimaryParticle(const int particleid);
 
@@ -54,48 +55,60 @@ public:
     return std::distance(particlemap.upper_bound(0),particlemap.end());
   }
   
-  //! Get the map itself
+  //! Get the Particle Map storage
   const Map& GetMap() const {return particlemap;}
   
   int maxtrkindex() const;
   int mintrkindex() const;
 
-  void delete_particle(Iterator piter);
-
-  std::pair< std::map<int,int>::const_iterator, std::map<int,int>::const_iterator > GetEmbeddedTrkIds() const {return std::make_pair(particle_embed_flags.begin(), particle_embed_flags.end());}
-  void AddEmbededTrkId(const int id, const int flag) {particle_embed_flags.insert(std::make_pair(id,flag));}
+  std::pair< std::map<int,int>::const_iterator,
+	     std::map<int,int>::const_iterator > GetEmbeddedTrkIds() const {
+    return std::make_pair(particle_embed_flags.begin(), particle_embed_flags.end());
+  }
+  void AddEmbededTrkId(const int id, const int flag) {
+    particle_embed_flags.insert(std::make_pair(id,flag));
+  }
 
   int isEmbeded(const int trackid) const;
    
   // --- vertex storage --------------------------------------------------------
   
   //! Add a vertex and return an iterator to the user
-  VtxIterator AddVertex(const int vtxid);
-  //! Add a vertex and return an iterator to the user
   ConstVtxIterator AddVertex(const int vtxid, PHG4VtxPoint* vertex);
-
+  void delete_vtx(VtxIterator viter);
+  
   PHG4VtxPoint* GetVtx(const int vtxid);
   PHG4VtxPoint* GetPrimaryVtx(const int vtxid);
   
   //! Get a range of iterators covering the entire vertex container
-  VtxRange GetVtxRange();
-  ConstVtxRange GetVtxRange() const;
+  VtxRange GetVtxRange() {return VtxRange(vtxmap.begin(),vtxmap.end());}
+  ConstVtxRange GetVtxRange() const {return ConstVtxRange(vtxmap.begin(),vtxmap.end());}
 
+  VtxRange GetPrimaryVtxRange() {return VtxRange(vtxmap.upper_bound(0),vtxmap.end());}
+  ConstVtxRange GetPrimaryVtxRange() const {return ConstVtxRange(vtxmap.upper_bound(0),vtxmap.end());}
+
+  VtxRange GetSecondaryVtxRange() {return VtxRange(vtxmap.begin(),vtxmap.upper_bound(0));}
+  ConstVtxRange GetSecondaryVtxRange() const {return ConstVtxRange(vtxmap.begin(),vtxmap.upper_bound(0));}
+  
   //! Get the number of vertices stored
   unsigned int GetNumVertices() const {return vtxmap.size();}
 
+  //! Get the Vertex Map storage
   const VtxMap& GetVtxMap() const {return vtxmap;}
 
   int maxvtxindex() const;
   int minvtxindex() const;
- 
-  void delete_vtx(VtxIterator viter);
 
   // returns the first primary vertex that was processed by Geant4
   int GetPrimaryVertexIndex() {return (vtxmap.lower_bound(1))->first;}
 
-  std::pair< std::map<int,int>::const_iterator, std::map<int,int>::const_iterator > GetEmbeddedVtxIds() const {return std::make_pair(vertex_embed_flags.begin(), vertex_embed_flags.end());}
-  void AddEmbededVtxId(const int id, const int flag) {vertex_embed_flags.insert(std::make_pair(id,flag));}
+  std::pair< std::map<int,int>::const_iterator,
+	     std::map<int,int>::const_iterator > GetEmbeddedVtxIds() const {
+    return std::make_pair(vertex_embed_flags.begin(), vertex_embed_flags.end());
+  }
+  void AddEmbededVtxId(const int id, const int flag) {
+    vertex_embed_flags.insert(std::make_pair(id,flag));
+  }
 
   int isEmbededVtx(const int vtxid) const;
   
@@ -127,14 +140,14 @@ public:
   // -M+1
   // -M   secondary particle id => particle*
   
-  Map particlemap;
+  Map particlemap; //< particle => particle*
 
   // vertex storage map format is similar to the above particle map
-  VtxMap vtxmap;
+  VtxMap vtxmap; //< vertex id => vertex*
 
   // embed flag storage, will typically be set for only a few entries or none at all
-  std::map< int, int> particle_embed_flags;               // trackid => embed flag
-  std::map< int, int> vertex_embed_flags;                 // vtxid => embed flag
+  std::map< int, int> particle_embed_flags; //< trackid => embed flag
+  std::map< int, int> vertex_embed_flags;   //< vtxid => embed flag
 
   ClassDef(PHG4TruthInfoContainer,1)
 };
