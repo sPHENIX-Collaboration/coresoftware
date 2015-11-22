@@ -111,17 +111,6 @@ public:
   }
 
   int isEmbededVtx(const int vtxid) const;
-  
-  // deprecated interface, confusingly named as we store particles not hits ----
-  // do not call these functions in new code, i'm leaving these for now for
-  // build compatibility outside of coresoftware
-  
-  ConstIterator AddHit(const int particleid, PHG4Particle *newparticle) {return AddParticle(particleid,newparticle);}
-  PHG4Particle* GetHit(const int particleid) {return GetParticle(particleid);}
-  PHG4Particle* GetPrimaryHit(const int particleid) {return GetPrimaryParticle(particleid);}
-  Range GetHitRange() {return GetParticleRange();}
-  ConstRange GetHitRange() const {return GetParticleRange();}
-  void delete_hit(Iterator piter) {delete_particle(piter);}
 
  private:
 
