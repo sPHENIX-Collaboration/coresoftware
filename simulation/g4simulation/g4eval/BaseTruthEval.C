@@ -65,10 +65,6 @@ PHG4VtxPoint* BaseTruthEval::get_vertex(PHG4Particle* particle) {
   if (_strict) {assert(particle);}
   else if (!particle) {++_errors; return NULL;}
 
-  if (particle->get_primary_id() == -1) {
-    return _truthinfo->GetPrimaryVtx( particle->get_vtx_id() );  
-  }
-
   PHG4VtxPoint* vtx = _truthinfo->GetVtx( particle->get_vtx_id() );
   if (_strict) {assert(vtx);}
   else if (!vtx) {_errors++;}
@@ -133,19 +129,11 @@ PHG4Particle* BaseTruthEval::get_primary(PHG4Particle* particle) {
     return false;
   }
 
-  bool is_from_particle = false;
-
-  PHG4Particle* candidate = get_particle(g4hit);
-  if (_strict) {assert(candidate);}
-  else if (!candidate) {++_errors;}
-
-  if (candidate) {
-    if (are_same_particle(candidate,particle)) {
-      is_from_particle = true;
-    }
+  if (g4hit->get_trkid() == particle->get_track_id()) {
+    return true;    
   }
 
-  return is_from_particle;
+  return false;
 }
 
 bool BaseTruthEval::are_same_particle(PHG4Particle* p1, PHG4Particle* p2) {
@@ -158,42 +146,8 @@ bool BaseTruthEval::are_same_particle(PHG4Particle* p1, PHG4Particle* p2) {
     return false;
   }
 
-  bool are_same_particle = false;
-
-  // get ready for some insanity... I have to deal with the case where
-  // the primary particles are copied between the two truth containers
-  // but have different track ids
-  
-  if ((p1->get_primary_id() == -1) &&
-      (p2->get_primary_id() == -1)) {
-    // both particles are from the primary truth map, use track ids
-    if (p1->get_track_id() == p2->get_track_id()) {
-      are_same_particle = true;
-    }
-  } else if ((p1->get_primary_id() != -1) &&
-	     (p2->get_primary_id() != -1)) {
-    // both particles are from the total truth map, use track ids
-    if (p1->get_track_id() == p2->get_track_id()) {
-      are_same_particle = true;
-    }
-  } else if (is_primary(p1) && is_primary(p2)) {
-    // both particles are primary
-    if ((p1->get_primary_id() == -1) &&
-	(p2->get_primary_id() != -1)) {
-      // only the first particle is from the primary truth map, use one track id and one primary id
-      if (p1->get_track_id() == p2->get_primary_id()) {
-	are_same_particle = true;
-      }
-    } else if ((p1->get_primary_id() != -1) &&
-	       (p2->get_primary_id() == -1)) {
-      // only the second particle is from the primary truth map, use one track id and one primary id
-      if (p1->get_primary_id() == p2->get_track_id()) {
-	are_same_particle = true;
-      }
-    }
-  }
- 
-  return are_same_particle;
+  if (p1->get_track_id() == p2->get_track_id()) return true;
+  return false;
 }
 
 bool BaseTruthEval::are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2) {
@@ -206,30 +160,8 @@ bool BaseTruthEval::are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2) {
     return false;
   }
 
-  bool are_same_vertex = false;
-
-  // I will need to deal with copies of vertex points too, argh!
-  // Here I have very few options, we can either match the vertexes by
-  // id or by position there is no ancestry to utilize
-
-  // in the embedded dst it is 100% sure the first method will fail
-  // since I can't trace between vertexes and the vertex ids have changed
-  // I guess I will have to resort to the second method, which means there
-  // is some possiblity of having a position collision between two vertexes
-  // that are in fact different in terms of content
-  
-  //  if (vtx1->get_id() == vtx2->get_id()) {
-  //    are_same_vertex = true;
-  //  }
-
-  if ((vtx1->get_x() == vtx2->get_x()) &&
-      (vtx1->get_y() == vtx2->get_y()) &&
-      (vtx1->get_z() == vtx2->get_z()) &&
-      (vtx1->get_t() == vtx2->get_t())) {
-    are_same_vertex = true;
-  }
- 
-  return are_same_vertex;
+  if (vtx1->get_id() == vtx2->get_id()) return true;
+  return false;
 }
   
 void BaseTruthEval::get_node_pointers(PHCompositeNode* topNode) {
