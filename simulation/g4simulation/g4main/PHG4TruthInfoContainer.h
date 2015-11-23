@@ -5,8 +5,8 @@
 #include <map>
 #include <set>
 
-class PHG4Particle;
-class PHG4VtxPoint;
+#include "PHG4Particle.h"
+#include "PHG4VtxPoint.h"
 
 class PHG4TruthInfoContainer: public PHObject {
   
@@ -34,11 +34,13 @@ public:
  
   //! Add a particle that the user has created
   ConstIterator AddParticle(const int particleid, PHG4Particle* newparticle);
-  void delete_particle(Iterator piter);
+  void delete_particle(Iterator piter); 
   
   PHG4Particle* GetParticle(const int particleid);
   PHG4Particle* GetPrimaryParticle(const int particleid);
 
+  bool is_primary(const PHG4Particle* p) const {return (p->get_track_id() > 0);}
+  
   //! Get a range of iterators covering the entire container
   Range GetParticleRange() {return Range(particlemap.begin(),particlemap.end());}
   ConstRange GetParticleRange() const {return ConstRange(particlemap.begin(),particlemap.end());}
@@ -48,7 +50,7 @@ public:
 
   Range GetSecondaryParticleRange() {return Range(particlemap.begin(),particlemap.upper_bound(0));}
   ConstRange GetSecondaryParticleRange() const {return ConstRange(particlemap.begin(),particlemap.upper_bound(0));}
-  
+
   //! particle size
   unsigned int size( void ) const {return particlemap.size();}
   int GetNumPrimaryVertexParticles() {
@@ -79,6 +81,8 @@ public:
   
   PHG4VtxPoint* GetVtx(const int vtxid);
   PHG4VtxPoint* GetPrimaryVtx(const int vtxid);
+
+  bool is_primary_vtx(const PHG4VtxPoint* v) const {return (v->get_id() > 0);}
   
   //! Get a range of iterators covering the entire vertex container
   VtxRange GetVtxRange() {return VtxRange(vtxmap.begin(),vtxmap.end());}
@@ -114,25 +118,35 @@ public:
 
  private:
 
-  // particle storage map format description:
-  // primary particles are appended in the positive direction
-  // secondary particles are appended in the negative direction
-  // subevent boundaries between geant runs are stored in the subevent markers
+  /// particle storage map format description:
+  /// primary particles are appended in the positive direction
+  /// secondary particles are appended in the negative direction
+  /// subevent boundaries between geant runs are stored in the subevent markers
+  /// +N   primary particle id => particle*
+  /// +N-1 
+  /// ...
+  /// +1   primary particle id => particle*
+  /// 0    no entry
+  /// -1   secondary particle id => particle*
+  /// ...
+  /// -M+1
+  /// -M   secondary particle id => particle*  
+  Map particlemap;
 
-  // +N   primary particle id => particle*
-  // +N-1 
-  // ...
-  // +1   primary particle id => particle*
-  // 0    no entry
-  // -1   secondary particle id => particle*
-  // ...
-  // -M+1
-  // -M   secondary particle id => particle*
-  
-  Map particlemap; //< particle => particle*
-
-  // vertex storage map format is similar to the above particle map
-  VtxMap vtxmap; //< vertex id => vertex*
+  /// vertex storage map format description:
+  /// primary vertexes are appended in the positive direction
+  /// secondary vertexes are appended in the negative direction
+  /// subevent boundaries between geant runs are stored in the subevent markers
+  /// +N   primary vertex id => vertex*
+  /// +N-1 
+  /// ...
+  /// +1   primary vertex id => vertex*
+  /// 0    no entry
+  /// -1   secondary vertex id => vertex*
+  /// ...
+  /// -M+1
+  /// -M   secondary vertex id => vertex*  
+  VtxMap vtxmap;
 
   // embed flag storage, will typically be set for only a few entries or none at all
   std::map< int, int> particle_embed_flags; //< trackid => embed flag
