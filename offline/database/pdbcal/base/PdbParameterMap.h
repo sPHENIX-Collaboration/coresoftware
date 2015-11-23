@@ -13,7 +13,7 @@ class PdbParameterMap: public PdbCalChan
   virtual ~PdbParameterMap() {}
 
   void print() const;
-
+  void Reset(); // from PHObject - clear content
   std::pair<std::map<const std::string, double>::const_iterator,
     std::map<const std::string, double>::const_iterator> get_dparam_iters() const
   {return make_pair(dparams.begin(),dparams.end());}
