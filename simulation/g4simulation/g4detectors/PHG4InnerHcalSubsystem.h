@@ -20,6 +20,8 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
 
   public:
 
+  enum FILE_TYPE {xml = 1, root = 2};
+
   //! constructor
   PHG4InnerHcalSubsystem( const std::string &name = "HCALIN", const int layer = 0 );
 
@@ -65,6 +67,7 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   void SetDefaultParameters();
   void UpdateParametersWithMacro();
   void SaveParamsToDB();
+  void SaveParamsToFile(const FILE_TYPE ftyp);
 
   protected:
 

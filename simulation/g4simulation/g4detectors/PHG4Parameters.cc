@@ -11,10 +11,13 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHTimeStamp.h>
 
+#include <TFile.h>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -150,6 +153,10 @@ PHG4Parameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
       PHIODataNode<PdbParameterMap> *newnode =  new PHIODataNode<PdbParameterMap>(nodeparams,nodename);
       topNode->addNode(newnode);
     }
+  else
+    {
+      nodeparams->Reset(); // just clear previous content in case variables were deleted
+    }
   for (map<const string,double>::const_iterator iter = doubleparams.begin(); iter != doubleparams.end(); ++iter)
     {
       nodeparams->set_double_param(iter->first,iter->second);
@@ -192,22 +199,8 @@ PHG4Parameters::WriteToDB()
   if (NewBank)
     {
       NewBank->setLength(1);
-	  PdbParameterMap *myparm = (PdbParameterMap*)&NewBank->getEntry(0);
-	  for (map<const string, double>::const_iterator iter = doubleparams.begin(); iter != doubleparams.end(); ++iter)
-	    {
-	      myparm->set_double_param(iter->first, iter->second);
-	    }
-	  for (map<const string, int>::const_iterator iter = intparams.begin(); iter != intparams.end(); ++iter)
-	    {
-	      myparm->set_int_param(iter->first, iter->second);
-	    }
-	  for (map<const string, string>::const_iterator iter = stringparams.begin(); iter != stringparams.end(); ++iter)
-	    {
-	      myparm->set_string_param(iter->first, iter->second);
-	    }
-	//   myparm->setName(iter->first);
-	//   myparm->setParameter(iter->second);
-	// }
+      PdbParameterMap *myparm = (PdbParameterMap*)&NewBank->getEntry(0);
+      CopyToPdbParameterMap(myparm);
       application->commit(NewBank);
       delete NewBank;
     }
@@ -217,4 +210,41 @@ PHG4Parameters::WriteToDB()
       return -1;
     }
   return 0;
+}
+
+int
+PHG4Parameters::WriteToFile(const string &extension)
+{
+  ostringstream fnamestream;
+  PdbBankID bankID(0); // lets start at zero
+  PHTimeStamp TStart(0);
+  PHTimeStamp TStop(0xffffffff);
+  fnamestream <<  detname << "_geoparams" << "-" << bankID.getInternalValue() << "-" << TStart.getTics() << "-" << TStop.getTics() << "-" << time(0) << "." << extension;
+  string fname = fnamestream.str();
+  std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
+  PdbParameterMap *myparm = new PdbParameterMap();
+  CopyToPdbParameterMap(myparm);
+  TFile *f = TFile::Open(fname.c_str(),"recreate");
+  myparm->Write();
+  delete f;
+  cout << "sleeping 1 second to prevent duplicate inserttimes" << endl;
+  sleep(1);
+  return 0;
+}
+
+void
+PHG4Parameters::CopyToPdbParameterMap(PdbParameterMap *myparm)
+{
+  for (map<const string, double>::const_iterator iter = doubleparams.begin(); iter != doubleparams.end(); ++iter)
+    {
+      myparm->set_double_param(iter->first, iter->second);
+    }
+  for (map<const string, int>::const_iterator iter = intparams.begin(); iter != intparams.end(); ++iter)
+    {
+      myparm->set_int_param(iter->first, iter->second);
+    }
+  for (map<const string, string>::const_iterator iter = stringparams.begin(); iter != stringparams.end(); ++iter)
+    {
+      myparm->set_string_param(iter->first, iter->second);
+    }
 }

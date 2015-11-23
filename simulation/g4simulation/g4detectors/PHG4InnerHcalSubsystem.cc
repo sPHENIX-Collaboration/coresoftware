@@ -346,3 +346,27 @@ PHG4InnerHcalSubsystem::SaveParamsToDB()
     }
   return;
 }
+
+void
+PHG4InnerHcalSubsystem::SaveParamsToFile(const PHG4InnerHcalSubsystem::FILE_TYPE ftyp)
+{
+  string extension;
+  switch(ftyp)
+    {
+    case xml:
+      extension = "xml";
+      break;
+    case root:
+      extension = "root";
+      break;
+    default:
+      cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
+      exit(1);
+    }
+
+  if (params->WriteToFile(extension))
+    {
+      cout << "problem saving to " << extension << " file " << endl;
+    }
+  return;
+}
