@@ -9,7 +9,7 @@
 //-----------------------------------------------------------------------------
 #include "PdbBankManager.h"
 
-PdbBankManager *PdbBankManager::__instance = 0;
+PdbBankManager *PdbBankManager::__instance = NULL;
 
 
 PdbBankManager::PdbBankManager()
@@ -18,7 +18,7 @@ PdbBankManager::PdbBankManager()
 
 PdbBankManager::~PdbBankManager()
 {
-  __instance = 0;
+  __instance = NULL;
 }
 
 PdbBankManager *PdbBankManager::instance()
