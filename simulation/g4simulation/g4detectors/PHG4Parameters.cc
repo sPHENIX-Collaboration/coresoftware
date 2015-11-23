@@ -157,18 +157,7 @@ PHG4Parameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
     {
       nodeparams->Reset(); // just clear previous content in case variables were deleted
     }
-  for (map<const string,double>::const_iterator iter = doubleparams.begin(); iter != doubleparams.end(); ++iter)
-    {
-      nodeparams->set_double_param(iter->first,iter->second);
-    }
-  for (map<const string,int>::const_iterator iter = intparams.begin(); iter != intparams.end(); ++iter)
-    {
-      nodeparams->set_int_param(iter->first,iter->second);
-    }
-  for (map<const string,string>::const_iterator iter = stringparams.begin(); iter != stringparams.end(); ++iter)
-    {
-      nodeparams->set_string_param(iter->first,iter->second);
-    }
+  CopyToPdbParameterMap(nodeparams);
   return;
 }
 
@@ -179,7 +168,7 @@ PHG4Parameters::WriteToDB()
   PdbApplication *application = bankManager->getApplication();
   if (!application->startUpdate())
     {
-      cout << PHWHERE << " Aborting, Databse not writable" << endl;
+      cout << PHWHERE << " Aborting, Database not writable" << endl;
       application->abort();
       exit(1);
     }
@@ -207,6 +196,42 @@ PHG4Parameters::WriteToDB()
   else
     {
       cout << PHWHERE " Committing to DB failed" << endl;
+      return -1;
+    }
+  return 0;
+}
+
+int
+PHG4Parameters::ReadFromDB()
+{
+  PdbBankManager* bankManager = PdbBankManager::instance();
+  PdbApplication *application = bankManager->getApplication();
+  if (!application->startRead())
+    {
+      cout << PHWHERE << " Aborting, Database not readable" << endl;
+      application->abort();
+      exit(1);
+    }
+
+  //  Make a bank ID...
+  PdbBankID bankID(0); // lets start at zero
+  PHTimeStamp TSearch(10);
+
+  string tablename = detname + "_geoparams";
+  std::transform(tablename.begin(), tablename.end(), tablename.begin(), ::tolower);
+  PdbCalBank *NewBank = bankManager->fetchBank("PdbParameterMapBank",
+						bankID,
+					       tablename,
+					       TSearch);
+  if (NewBank)
+    {
+      PdbParameterMap *myparm = (PdbParameterMap*)&NewBank->getEntry(0);
+      FillFrom(myparm);
+      delete NewBank;
+    }
+  else
+    {
+      cout << PHWHERE " Reading from DB failed" << endl;
       return -1;
     }
   return 0;

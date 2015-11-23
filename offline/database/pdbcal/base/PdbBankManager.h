@@ -42,65 +42,65 @@ public:
 				 const std::string &) = 0;
   // create bank with run number as key
   virtual PdbCalBank* createBank(const int,
-				 const char *,
+				 const std::string &,
 				 PdbBankID,
-				 const char *,
-				 const char *,
+				 const std::string &,
+				 const std::string &,
 				 const time_t duration=60) = 0;
 
   // create bank for a given range of run numbers rather than timestamps
   virtual PdbCalBank* createBank(const int,
 				 const int,
-				 const char *,
+				 const std::string &,
 				 PdbBankID,
-				 const char *,
-				 const char *) = 0;
+				 const std::string &,
+				 const std::string &) = 0;
   
-  virtual PdbCalBank* fetchBank(const char *,
+  virtual PdbCalBank* fetchBank(const std::string &,
 				PdbBankID,
-				const char *,
+				const std::string &,
 				const int) = 0;
 
-  virtual PdbCalBank* fetchClosestBank(const char *,
+  virtual PdbCalBank* fetchClosestBank(const std::string &,
 				       PdbBankID,
-				       const char *,
+				       const std::string &,
 				       const int) = 0; 
   // virtual void fetchAllBanks(PdbBankList &,
-  // 			     const char *,
+  // 			     const std::string &,
   // 			     PdbBankID,
-  // 			     const char *,
+  // 			     const std::string &,
   // 			     const int) = 0;
 
   // virtual void fetchAllBanks(PdbBankList &,
-  // 			     const char *,
-  // 			     const char *,
+  // 			     const std::string &,
+  // 			     const std::string &,
   // 			     const int) = 0;
 
-  virtual PdbCalBank* fetchBank(const char *,
+  virtual PdbCalBank* fetchBank(const std::string &,
 				PdbBankID,
-				const char *,
+				const std::string &,
 				const PHTimeStamp &) = 0;
 
-  virtual PdbCalBank* fetchClosestBank(const char *,
+  virtual PdbCalBank* fetchClosestBank(const std::string &,
 				       PdbBankID,
-				       const char *,
+				       const std::string &,
 				       PHTimeStamp &) = 0;  
 
   // virtual void fetchAllBanks(PdbBankList &,
-  // 			     const char *,
+  // 			     const std::string &,
   // 			     PdbBankID,
-  // 			     const char *,
+  // 			     const std::string &,
   // 			     PHTimeStamp &) = 0;
 
   // virtual void fetchAllBanks(PdbBankList &,
-  // 			     const char *,
-  // 			     const char *,
+  // 			     const std::string &,
+  // 			     const std::string &,
   // 			     PHTimeStamp &) = 0;
 
   virtual PdbApplication* getApplication(PHBoolean pJob = False) = 0;
 
   virtual void fillCalibObject(PdbCalBank*,
-			       const char *,
+			       const std::string &,
 			       PHTimeStamp &) = 0;
 
   virtual void GetUsedBankRids(std::map<std::string,std::set<int> > &usedbanks) const {}

@@ -39,6 +39,7 @@ class PHG4Parameters: public PHObject
   void FillFrom(const PdbParameterMap *saveparams);
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename);
   int WriteToDB();
+  int ReadFromDB();
   int WriteToFile(const std::string &extension);
 
  protected:
