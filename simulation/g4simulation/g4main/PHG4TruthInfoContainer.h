@@ -121,7 +121,6 @@ public:
   /// particle storage map format description:
   /// primary particles are appended in the positive direction
   /// secondary particles are appended in the negative direction
-  /// subevent boundaries between geant runs are stored in the subevent markers
   /// +N   primary particle id => particle*
   /// +N-1 
   /// ...
@@ -136,7 +135,6 @@ public:
   /// vertex storage map format description:
   /// primary vertexes are appended in the positive direction
   /// secondary vertexes are appended in the negative direction
-  /// subevent boundaries between geant runs are stored in the subevent markers
   /// +N   primary vertex id => vertex*
   /// +N-1 
   /// ...
