@@ -12,7 +12,7 @@
 #include <g4main/PHG4Particle.h>
 #include <g4hough/SvtxVertexMap.h>
 #include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTowerGeom.h>
+#include <g4cemc/RawTowerGeomContainer.h>
 #include <g4cemc/RawTower.h>
 #include <g4cemc/RawClusterContainer.h>
 #include <g4cemc/RawCluster.h>
@@ -476,7 +476,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     }
     
     string towergeomnode = "TOWERGEOM_" + _caloname;
-    RawTowerGeom* towergeom = findNode::getClass<RawTowerGeom>(topNode,towergeomnode.c_str());
+    RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode,towergeomnode.c_str());
     if (!towergeom) {
       cerr << PHWHERE << " ERROR: Can't find " << towergeomnode << endl;
       exit(-1);

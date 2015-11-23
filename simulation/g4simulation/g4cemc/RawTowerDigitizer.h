@@ -8,7 +8,7 @@
 
 class PHCompositeNode;
 class RawTowerContainer;
-class RawTowerGeom;
+class RawTowerGeomContainer;
 
 class RawTower;
 
@@ -166,11 +166,11 @@ protected:
   //! \param  sim_tower simulation tower input
   //! \return a new RawTower object contain digitalized value of ADC output in RawTower::get_energy()
   RawTower *
-  simple_photon_digitization(int ieta, int iphi, RawTower * sim_tower);
+  simple_photon_digitization(RawTower * sim_tower);
 
   RawTowerContainer* _sim_towers;
   RawTowerContainer* _raw_towers;
-  RawTowerGeom *rawtowergeom;
+  RawTowerGeomContainer *rawtowergeom;
 
   std::string detector;
   std::string SimTowerNodeName;

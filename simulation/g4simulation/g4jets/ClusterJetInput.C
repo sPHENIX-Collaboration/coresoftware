@@ -14,7 +14,7 @@
 // PHENIX Geant4 includes
 #include <g4cemc/RawClusterContainer.h>
 #include <g4cemc/RawCluster.h>
-#include <g4cemc/RawTowerGeom.h>
+#include <g4cemc/RawTowerGeomContainer.h>
 #include <g4vertex/GlobalVertexMap.h>
 #include <g4vertex/GlobalVertex.h>
 
@@ -48,22 +48,22 @@ std::vector<Jet*> ClusterJetInput::get_input(PHCompositeNode *topNode) {
   }
   
   RawClusterContainer *clusters = NULL;
-  RawTowerGeom *geom = NULL;
+  RawTowerGeomContainer *geom = NULL;
   if (_input == Jet::CEMC_CLUSTER) {
     clusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_CEMC");
-    geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_CEMC");
+    geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_CEMC");
     if (!clusters||!geom) {
       return std::vector<Jet*>();
     }
   } else if (_input == Jet::HCALIN_CLUSTER) {
     clusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_HCALIN");
-    geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_HCALIN");
+    geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_HCALIN");
     if (!clusters||!geom) {
       return std::vector<Jet*>();
     }
   } else if (_input == Jet::HCALOUT_CLUSTER) {
     clusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_HCALOUT");
-    geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_HCALOUT");
+    geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_HCALOUT");
     if (!clusters||!geom) {
       return std::vector<Jet*>();
     }

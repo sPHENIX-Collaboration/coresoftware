@@ -11,8 +11,9 @@
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 
-#include <g4cemc/RawTowerGeom.h>
+#include <g4cemc/RawTowerGeomContainer.h>
 #include <g4cemc/RawTowerContainer.h>
+#include <g4cemc/RawTowerGeom.h>
 #include <g4cemc/RawTower.h>
 #include <g4vertex/GlobalVertexMap.h>
 #include <g4vertex/GlobalVertex.h>
@@ -20,6 +21,7 @@
 #include <iostream>
 #include <vector>
 #include <cstdlib>
+#include <cassert>
 
 using namespace std;
 
@@ -46,22 +48,22 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
   }
 
   RawTowerContainer *towers = NULL;
-  RawTowerGeom *geom = NULL;
+  RawTowerGeomContainer *geom = NULL;
   if (_input == Jet::CEMC_TOWER) {
     towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_CEMC");
-    geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_CEMC");
+    geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_CEMC");
     if (!towers||!geom) {
       return std::vector<Jet*>();
     }
   } else if (_input == Jet::HCALIN_TOWER) {
     towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_HCALIN");
-    geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_HCALIN");
+    geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_HCALIN");
     if (!towers||!geom) {
       return std::vector<Jet*>();
     }
   } else if (_input == Jet::HCALOUT_TOWER) {
     towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_HCALOUT");
-    geom = findNode::getClass<RawTowerGeom>(topNode,"TOWERGEOM_HCALOUT");
+    geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_HCALOUT");
     if (!towers||!geom) {
       return std::vector<Jet*>();
     }
@@ -81,14 +83,14 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
   for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
     RawTower *tower = rtiter->second;
 
-    double r = geom->get_radius();
-    
-    int bineta = tower->get_bineta();
-    int binphi = tower->get_binphi();
-    double eta0 = geom->get_etacenter(bineta);
-    double phi = geom->get_phicenter(binphi);
+    RawTowerGeom * tower_geom =
+    geom->get_tower_geometry(tower -> get_key());
+    assert(tower_geom);
 
-    double z0 = r * sinh(eta0);
+    double r = tower_geom->get_center_radius();
+    double phi = atan2(tower_geom->get_center_y(), tower_geom->get_center_x());
+    double z0 = tower_geom->get_center_z();
+
     double z = z0 - vtxz;
     
     double eta = asinh(z/r); // eta after shift from vertex

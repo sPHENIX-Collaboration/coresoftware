@@ -4,7 +4,7 @@
 #include "PHMakeGroups.h"
 
 #include "RawTower.h"
-#include "RawTowerGeom.h"
+#include "RawTowerGeomContainer.h"
 #include "RawTowerContainer.h"
 
 #include "BEmcRec.h"
@@ -76,7 +76,7 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
   string towergeomnodename = "TOWERGEOM_" + detector;
-  RawTowerGeom *towergeom = findNode::getClass<RawTowerGeom>(topNode, towergeomnodename.c_str());
+  RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename.c_str());
  if (! towergeom)
    {
      cout << PHWHERE << ": Could not find node " << towergeomnodename.c_str() << endl;
@@ -168,7 +168,8 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
       iphi = xcg+0.5;
       dphi = xcg - float(iphi); // this is from -0.5 to +0.5
       phi = towergeom->get_phicenter(iphi);
-      phistep = towergeom->get_phistep();
+      std::pair<double, double> phibounds = towergeom->get_phibounds(iphi);
+      phistep = phibounds.second - phibounds.first;
       phi += dphi*phistep;
 
       ieta = ycg+0.5;
@@ -193,8 +194,7 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 	// that code needs a closer look - here are the towers 
 	// with their energy added to the cluster object where 
 	// the id is the tower id
-	RawTowerDefs::keytype twrkey = (ieta << RawTowerDefs::eta_idbits);
-        twrkey |= iphi;
+	RawTowerDefs::keytype twrkey = RawTowerDefs::encode_towerid( RawTowerDefs::NONE , ieta , iphi );
 	cluster->addTower(twrkey,(*ph).amp/fEnergyNorm);
 	ph++;
       }
@@ -234,7 +234,7 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 }
 
 
-bool RawClusterBuilderv1::CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeom *towergeom)
+bool RawClusterBuilderv1::CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer *towergeom)
 {
   double sum = cluster->get_energy();
   double phimin = 999.;
