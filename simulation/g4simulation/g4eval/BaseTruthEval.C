@@ -106,12 +106,7 @@ PHG4Particle* BaseTruthEval::get_primary(PHG4Particle* particle) {
 
   // always report the primary from the Primary Map regardless if a
   // primary from the full Map was the argument
-  PHG4Particle* returnval = NULL;
-  if (particle->get_primary_id() != -1) {
-    returnval = _truthinfo->GetPrimaryParticle( particle->get_primary_id() );
-  } else {
-    returnval = _truthinfo->GetPrimaryParticle( particle->get_track_id() );
-  }
+  PHG4Particle* returnval = _truthinfo->GetPrimaryParticle( particle->get_primary_id() );
 
   if (_strict) {assert(returnval);}
   else if (!returnval) {++_errors;}
