@@ -92,15 +92,15 @@ mFillG4SnglHTCContainer::process_event( PHCompositeNode* top_node )
    PHG4TruthInfoContainer* truthInfoList 
 	=  findNode::getClass<PHG4TruthInfoContainer>(top_node , "G4TruthInfo" );
 
-   const PHG4TruthInfoContainer::Map primMap = truthInfoList->GetPrimaryMap();
+   const PHG4TruthInfoContainer::Range primRange = truthInfoList->GetPrimaryParticleRange();
 
-   snglhtcs->set_PID( primMap.begin()->second->get_pid() );
-   snglhtcs->set_Energy( primMap.begin()->second->get_e() );
-   snglhtcs->set_Theta( atan2(sqrt(pow(primMap.begin()->second->get_px(),2) + pow(primMap.begin()->second->get_py(),2)), primMap.begin()->second->get_pz()) );
-   snglhtcs->set_Phi( atan2(primMap.begin()->second->get_py(), primMap.begin()->second->get_px()) );
-   snglhtcs->set_Px( primMap.begin()->second->get_px() );
-   snglhtcs->set_Py( primMap.begin()->second->get_py() );
-   snglhtcs->set_Pz( primMap.begin()->second->get_pz() );
+   snglhtcs->set_PID( primRange.first->second->get_pid() );
+   snglhtcs->set_Energy( primRange.first->second->get_e() );
+   snglhtcs->set_Theta( atan2(sqrt(pow(primRange.first->second->get_px(),2) + pow(primRange.first->second->get_py(),2)), primRange.first->second->get_pz()) );
+   snglhtcs->set_Phi( atan2(primRange.first->second->get_py(), primRange.first->second->get_px()) );
+   snglhtcs->set_Px( primRange.first->second->get_px() );
+   snglhtcs->set_Py( primRange.first->second->get_py() );
+   snglhtcs->set_Pz( primRange.first->second->get_pz() );
 
    ostringstream hitnode, towernode, towergeomnode, clusternode;
    set<string>::const_iterator iter;
