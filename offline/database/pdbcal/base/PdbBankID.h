@@ -12,8 +12,8 @@
 //
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
-#ifndef __PDBBANKID_HH__
-#define __PDBBANKID_HH__
+#ifndef PDBBANKID_HH__
+#define PDBBANKID_HH__
 
 #include <TObject.h>
 
