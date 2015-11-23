@@ -25,6 +25,15 @@ PdbParameterMap::print() const
 }
 
 void
+PdbParameterMap::Reset()
+{
+  dparams.clear();
+  iparams.clear();
+  cparams.clear();
+  return;
+}
+
+void
 PdbParameterMap::set_int_param(const std::string &name, const int ival)
 {
   iparams[name] = ival;
