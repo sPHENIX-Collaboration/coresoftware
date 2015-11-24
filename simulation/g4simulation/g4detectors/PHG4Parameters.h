@@ -40,8 +40,8 @@ class PHG4Parameters: public PHObject
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename);
   int WriteToDB();
   int ReadFromDB();
-  int WriteToFile(const std::string &extension);
-  int ReadFromFile(const std::string &extension, const std::string &dir = "./");
+  int WriteToFile(const std::string &extension, const std::string &dir = ".");
+  int ReadFromFile(const std::string &extension, const std::string &dir = ".");
 
  protected:
   void printint() const;

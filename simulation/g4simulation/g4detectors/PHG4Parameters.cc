@@ -256,13 +256,19 @@ PHG4Parameters::ReadFromDB()
 }
 
 int
-PHG4Parameters::WriteToFile(const string &extension)
+PHG4Parameters::WriteToFile(const string &extension, const string &dir)
 {
   ostringstream fnamestream;
   PdbBankID bankID(0); // lets start at zero
   PHTimeStamp TStart(0);
   PHTimeStamp TStop(0xffffffff);
-  fnamestream <<  detname << "_geoparams" << "-" << bankID.getInternalValue() << "-" << TStart.getTics() << "-" << TStop.getTics() << "-" << time(0) << "." << extension;
+  fnamestream << dir;
+  // add / if directory lacks ending /
+  if (*(dir.rbegin()) != '/')
+    { 
+      fnamestream << "/";
+    }
+  fnamestream << detname << "_geoparams" << "-" << bankID.getInternalValue() << "-" << TStart.getTics() << "-" << TStop.getTics() << "-" << time(0) << "." << extension;
   string fname = fnamestream.str();
   std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
   PdbParameterMap *myparm = new PdbParameterMap();
