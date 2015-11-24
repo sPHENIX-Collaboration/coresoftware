@@ -13,6 +13,24 @@
 
 #include <TFile.h>
 
+#include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
+#include <boost/tokenizer.hpp>
+
+// this is an ugly hack, the gcc optimizer has a bug which
+// triggers the uninitialized variable warning which
+// stops compilation because of our -Werror 
+#include <boost/version.hpp> // to get BOOST_VERSION
+#if (__GNUC__ == 4 && __GNUC_MINOR__ == 4 && BOOST_VERSION == 105700 )
+#pragma GCC diagnostic ignored "-Wuninitialized"
+#pragma message "ignoring bogus gcc warning in boost header lexical_cast.hpp"
+#include <boost/lexical_cast.hpp>
+#pragma GCC diagnostic warning "-Wuninitialized"
+#else
+#include <boost/lexical_cast.hpp>
+#endif
+
+
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -257,6 +275,76 @@ PHG4Parameters::WriteToFile(const string &extension)
   return 0;
 }
 
+int
+PHG4Parameters::ReadFromFile(const string &extension, const string &dir)
+{
+  PHTimeStamp TSearch(10);
+  PdbBankID bankID(0);
+  ostringstream fnamestream;
+  fnamestream <<  detname << "_geoparams" << "-" << bankID.getInternalValue();
+  string fileprefix = fnamestream.str();
+  std::transform(fileprefix.begin(), fileprefix.end(), fileprefix.begin(), ::tolower);
+  boost::filesystem::path targetDir(dir);
+
+  boost::filesystem::recursive_directory_iterator iter(targetDir), eod;
+  boost::char_separator<char> sep("-."); 
+  map<unsigned int, string> calibfiles;
+  BOOST_FOREACH(boost::filesystem::path const& i, make_pair(iter, eod))
+    {
+      if (is_regular_file(i))
+	{
+	  // boost leaf() gives the filename without path,
+	  // this checks if the filename starts with fileprefix 
+	  // (start pos of substring=0), if not coninue
+	  string basename = i.filename().string();
+	  if (basename.find(fileprefix))
+	    {
+	      continue;
+	    }
+	  // extension() contains the . - like .xml, so we
+	  // just compare the extensions instead of !=
+	  // and check that the size makes sense
+	  if (i.extension().string().find(extension) == string::npos
+	      || i.extension().string().size() != extension.size()+1)
+	    {
+	      continue;
+	    }
+	  boost::tokenizer<boost::char_separator<char> > tok(basename,sep);
+	  boost::tokenizer<boost::char_separator<char> >::iterator iter = tok.begin();
+	  ++iter; // that skips the file prefix excluding bank id
+	  ++iter; // that skips the bank id we checked already as part of the filename
+	  PHTimeStamp TStart(ConvertStringToUint(*iter));
+	  if (TSearch < TStart)
+	    {
+	      continue; 
+	    }
+	  ++iter;
+	  PHTimeStamp TStop(ConvertStringToUint(*iter));
+	  if (TSearch >= TStop)
+	    {
+	      continue; 
+	    }
+	  ++iter;
+	  calibfiles[ConvertStringToUint(*iter)] = i.string();
+
+	}
+    }
+  if (calibfiles.empty())
+    {
+      cout << "No calibration file found" << endl;
+      return -1;
+    }
+  cout << "Reading from File: " << (calibfiles.rbegin())->second << endl;
+  string fname = (calibfiles.rbegin())->second;
+  PdbParameterMap *myparm = new PdbParameterMap();
+  TFile *f = TFile::Open(fname.c_str());
+  myparm = (PdbParameterMap *) f->Get("PdbParameterMap");
+  FillFrom(myparm);
+  delete f;
+  delete myparm;
+  return 0;
+}
+
 void
 PHG4Parameters::CopyToPdbParameterMap(PdbParameterMap *myparm)
 {
@@ -272,4 +360,20 @@ PHG4Parameters::CopyToPdbParameterMap(PdbParameterMap *myparm)
     {
       myparm->set_string_param(iter->first, iter->second);
     }
+}
+
+unsigned int
+PHG4Parameters::ConvertStringToUint(const std::string &str) const
+{
+  unsigned int tics;
+try
+  {
+    tics = boost::lexical_cast<unsigned int>(str);
+  }
+catch ( boost::bad_lexical_cast const& )
+  {
+    cout << "Cannot extract timestamp from " << str << endl;
+    exit(1);
+  }
+ return tics;
 }

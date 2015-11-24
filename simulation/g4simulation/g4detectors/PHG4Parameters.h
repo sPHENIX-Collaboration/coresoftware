@@ -41,12 +41,14 @@ class PHG4Parameters: public PHObject
   int WriteToDB();
   int ReadFromDB();
   int WriteToFile(const std::string &extension);
+  int ReadFromFile(const std::string &extension, const std::string &dir = "./");
 
  protected:
   void printint() const;
   void printdouble() const;
   void printstring() const;
   void CopyToPdbParameterMap(PdbParameterMap *myparm);
+  unsigned int ConvertStringToUint(const std::string &str) const;
   PdbParameterMap *pdbparam;
   std::string detname;
   std::map<const std::string, double> doubleparams;
