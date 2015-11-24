@@ -66,8 +66,11 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   void set_string_param(const std::string &name, const std::string &sval);
   void SetDefaultParameters();
   void UpdateParametersWithMacro();
-  void SaveParamsToDB();
-  void SaveParamsToFile(const FILE_TYPE ftyp);
+  void UseDB(const int i = 1) {usedb = i;}
+  int SaveParamsToDB();
+  int ReadParamsFromDB();
+  int SaveParamsToFile(const FILE_TYPE ftyp);
+  int ReadParamsFromFile(const FILE_TYPE ftyp);
 
   protected:
 
@@ -86,6 +89,9 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   PHG4Parameters *params;
 
   int layer;
+
+  int usedb;
+
   std::string detector_type;
   std::string superdetector;
   std::map<const std::string, double> dparams;

@@ -31,6 +31,7 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const i
   steppingAction_( NULL ),
   eventAction_(NULL),
   layer(lyr),
+  usedb(0),
   detector_type(name),
   superdetector("NONE")
 {
@@ -72,10 +73,17 @@ PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
 
 
   string paramnodename = "G4GEOPARAM_" + superdetector;
-  PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,paramnodename);
-  if (nodeparams)
+  if (usedb)
     {
-      params->FillFrom(nodeparams);
+      ReadParamsFromDB();
+    }
+  else
+    {
+      PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,paramnodename);
+      if (nodeparams)
+	{
+	  params->FillFrom(nodeparams);
+	}
     }
   UpdateParametersWithMacro();
   // save persistant copy on node tree
@@ -337,17 +345,29 @@ PHG4InnerHcalSubsystem::SetLightCorrection(const double inner_radius, const doub
   return;
 }
 
-void
+int
 PHG4InnerHcalSubsystem::SaveParamsToDB()
 {
-  if (params->WriteToDB())
+  int iret = params->WriteToDB();
+  if (iret)
     {
       cout << "problem committing to DB" << endl;
     }
-  return;
+  return iret;
 }
 
-void
+int
+PHG4InnerHcalSubsystem::ReadParamsFromDB()
+{
+  int iret = params->ReadFromDB();
+  if (iret)
+    {
+      cout << "problem reading from DB" << endl;
+    }
+  return iret;
+}
+
+int
 PHG4InnerHcalSubsystem::SaveParamsToFile(const PHG4InnerHcalSubsystem::FILE_TYPE ftyp)
 {
   string extension;
@@ -364,9 +384,35 @@ PHG4InnerHcalSubsystem::SaveParamsToFile(const PHG4InnerHcalSubsystem::FILE_TYPE
       exit(1);
     }
 
-  if (params->WriteToFile(extension))
+  int iret = params->WriteToFile(extension);
+  if (iret)
     {
       cout << "problem saving to " << extension << " file " << endl;
     }
-  return;
+  return iret;
+}
+
+int
+PHG4InnerHcalSubsystem::ReadParamsFromFile(const PHG4InnerHcalSubsystem::FILE_TYPE ftyp)
+{
+  string extension;
+  switch(ftyp)
+    {
+    case xml:
+      extension = "xml";
+      break;
+    case root:
+      extension = "root";
+      break;
+    default:
+      cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
+      exit(1);
+    }
+
+  int iret = params->ReadFromFile(extension);
+  if (iret)
+    {
+      cout << "problem saving to " << extension << " file " << endl;
+    }
+  return iret;
 }
