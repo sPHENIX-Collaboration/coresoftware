@@ -983,3 +983,20 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
     P10->AddElement(H,  fractionmass=0.0155);
 }
 
+PHG4Subsystem *
+PHG4Reco::getSubsystem(const string &name)
+{
+  BOOST_FOREACH(PHG4Subsystem *subsys, subsystems_)
+    {
+      if (subsys->Name() == name)
+	{
+          if (verbosity > 0)
+            {
+              cout << "Found Subsystem " << name << endl;
+            }
+          return subsys;
+        }
+    }
+  cout << "Could not find Subsystem " << name << endl;
+  return NULL;
+}

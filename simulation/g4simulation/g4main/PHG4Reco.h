@@ -110,6 +110,8 @@ class PHG4Reco: public SubsysReco
   // the physics lists are instantiated
   void setGeneratorAction(G4VUserPrimaryGeneratorAction *action);
 
+  PHG4Subsystem *getSubsystem(const std::string &name);
+
   protected:
   
   int InitUImanager();

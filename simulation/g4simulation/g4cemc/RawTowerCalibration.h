@@ -8,7 +8,7 @@
 
 class PHCompositeNode;
 class RawTowerContainer;
-class RawTowerGeom;
+class RawTowerGeomContainer;
 
 //! calibrate ADC value to measured energy deposition in calorimeter towers
 //! default input DST node is TOWER_RAW_DETECTOR
@@ -124,7 +124,7 @@ protected:
 
   RawTowerContainer* _calib_towers;
   RawTowerContainer* _raw_towers;
-  RawTowerGeom *rawtowergeom;
+  RawTowerGeomContainer *rawtowergeom;
 
   std::string detector;
   std::string RawTowerNodeName;

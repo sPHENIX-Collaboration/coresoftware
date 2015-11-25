@@ -1,6 +1,6 @@
 #include "G4TowerNtuple.h"
 
-#include <g4cemc/RawTowerGeom.h>
+#include <g4cemc/RawTowerGeomContainer.h>
 #include <g4cemc/RawTowerContainer.h>
 #include <g4cemc/RawTower.h>
 
@@ -64,7 +64,7 @@ G4TowerNtuple::process_event( PHCompositeNode* topNode )
       nodename << "TOWER_CALIB_" << *iter;
       geonodename.str("");
       geonodename << "TOWERGEOM_" << *iter;
-      RawTowerGeom* towergeom = findNode::getClass<RawTowerGeom>(topNode, geonodename.str().c_str());
+      RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, geonodename.str().c_str());
       if (!towergeom)
 	{
 	  cout << "no geometry node " << geonodename.str() << " for " << *iter << endl;

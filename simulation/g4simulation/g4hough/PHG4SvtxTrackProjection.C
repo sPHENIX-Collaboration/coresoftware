@@ -10,7 +10,7 @@
 #include <phool/getClass.h>
 
 // PHENIX Geant4 includes
-#include <g4cemc/RawTowerGeom.h>
+#include <g4cemc/RawTowerGeomContainer.h>
 #include <g4cemc/RawTowerContainer.h>
 #include <g4cemc/RawTower.h>
 #include <g4cemc/RawClusterContainer.h>
@@ -48,7 +48,7 @@ int PHG4SvtxTrackProjection::InitRun(PHCompositeNode *topNode)
 {
   for (int i=0; i<_num_cal_layers; ++i) {
     string nodename = "TOWERGEOM_" + _cal_names[i];
-    RawTowerGeom *geo = findNode::getClass<RawTowerGeom>(topNode,nodename.c_str());
+    RawTowerGeomContainer *geo = findNode::getClass<RawTowerGeomContainer>(topNode,nodename.c_str());
     if (geo) _cal_radii[i] = geo->get_radius();
   }
   
@@ -91,7 +91,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
 
     // pull the tower geometry
     string towergeonodename = "TOWERGEOM_" + _cal_names[i];
-    RawTowerGeom *towergeo = findNode::getClass<RawTowerGeom>(topNode,towergeonodename.c_str());
+    RawTowerGeomContainer *towergeo = findNode::getClass<RawTowerGeomContainer>(topNode,towergeonodename.c_str());
     if (!towergeo) {
       cerr << PHWHERE << " ERROR: Can't find node " << towergeonodename << endl;
       return Fun4AllReturnCodes::ABORTRUN;

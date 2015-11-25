@@ -1,5 +1,5 @@
-#ifndef __PHOBJECT_H__
-#define __PHOBJECT_H__
+#ifndef PHOBJECT_H__
+#define PHOBJECT_H__
 
 //  Declaration of class PHObject
 //  Purpose: Tiny layer between TObject and output objects and
@@ -50,7 +50,7 @@ class PHObject : public TObject
   int split; //! not saved, it is set to change the split level for this object
   int bufSize; //! not saved, it is set to change the buffer size for this object
 
-  ClassDef(PHObject,0)
+  ClassDef(PHObject,0) // no I/O
 }; 
 
-#endif /* __PHOBJECT_H__ */
+#endif /* PHOBJECT_H__ */

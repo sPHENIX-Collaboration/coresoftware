@@ -9,7 +9,7 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4cemc/RawTower.h>
 #include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTowerGeom.h>
+#include <g4cemc/RawTowerGeomContainer.h>
 #include <g4cemc/RawCluster.h>
 #include <g4cemc/RawClusterContainer.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -126,7 +126,7 @@ mFillG4SnglHTCContainer::process_event( PHCompositeNode* top_node )
 	   RawTowerContainer *twrs = findNode::getClass<RawTowerContainer>(top_node, towernode.str().c_str());
 	   towergeomnode.str("");
 	   towergeomnode << "TOWERGEOM_" << *iter;
-	   RawTowerGeom *twrgeom = findNode::getClass<RawTowerGeom>(top_node,towergeomnode.str().c_str());
+	   RawTowerGeomContainer *twrgeom = findNode::getClass<RawTowerGeomContainer>(top_node,towergeomnode.str().c_str());
 	   G4SnglTower sngltwr;
 	   process_twr(detid, twrs, twrgeom, sngltwr, snglhtcs);
 	   }
@@ -186,7 +186,7 @@ return 0;
 
 
 int 
-mFillG4SnglHTCContainer::process_twr(int detid, RawTowerContainer *twrs, RawTowerGeom *twrgeom, G4SnglTower sngltwr, G4SnglHTCContainer *sngltwrs)
+mFillG4SnglHTCContainer::process_twr(int detid, RawTowerContainer *twrs, RawTowerGeomContainer *twrgeom, G4SnglTower sngltwr, G4SnglHTCContainer *sngltwrs)
 {
 
     sngltwr.Reset();
