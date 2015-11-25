@@ -32,8 +32,10 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const i
   eventAction_(NULL),
   layer(lyr),
   usedb(0),
+  filetype(PHG4InnerHcalSubsystem::none),
   detector_type(name),
-  superdetector("NONE")
+  superdetector("NONE"),
+  calibfiledir("./")
 {
 
   // put the layer into the name so we get unique names
@@ -73,9 +75,21 @@ PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
 
 
   string paramnodename = "G4GEOPARAM_" + superdetector;
-  if (usedb)
+  // ASSUMPTION: if we read from DB and/or file we don't want the stuff from
+  // the node tree
+  // We leave the defaults intact in case there is no entry for
+  // those in the object read from the DB or file
+  // Order: read first DB, then calib file if both are enabled
+  if (usedb || filetype != PHG4InnerHcalSubsystem::none)
     {
-      ReadParamsFromDB();
+      if (usedb)
+	{
+          ReadParamsFromDB();
+	}
+      if (filetype != PHG4InnerHcalSubsystem::none)
+	{
+	  ReadParamsFromFile(filetype);
+	}
     }
   else
     {
@@ -85,12 +99,11 @@ PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
 	  params->FillFrom(nodeparams);
 	}
     }
+  // parameters set in the macro always override whatever is read from
+  // the node tree, DB or file
   UpdateParametersWithMacro();
-  // save persistant copy on node tree
+  // save updated persistant copy on node tree
   params->SaveToNodeTree(parNode,paramnodename);
-  // else
-  //   {
-  //   }
   // create detector
   detector_ = new PHG4InnerHcalDetector(topNode, params, Name());
   detector_->SuperDetector(superdetector);
@@ -384,7 +397,7 @@ PHG4InnerHcalSubsystem::SaveParamsToFile(const PHG4InnerHcalSubsystem::FILE_TYPE
       exit(1);
     }
 
-  int iret = params->WriteToFile(extension);
+  int iret = params->WriteToFile(extension,calibfiledir);
   if (iret)
     {
       cout << "problem saving to " << extension << " file " << endl;
@@ -408,8 +421,7 @@ PHG4InnerHcalSubsystem::ReadParamsFromFile(const PHG4InnerHcalSubsystem::FILE_TY
       cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
       exit(1);
     }
-
-  int iret = params->ReadFromFile(extension);
+  int iret = params->ReadFromFile(extension,calibfiledir);
   if (iret)
     {
       cout << "problem saving to " << extension << " file " << endl;
