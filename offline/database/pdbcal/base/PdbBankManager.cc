@@ -1,5 +1,4 @@
 //-----------------------------------------------------------------------------
-//  $Header: /afs/rhic.bnl.gov/phenix/PHENIX_CVS/offline/database/pdbcal/base/PdbBankManager.cc,v 1.2 2004/08/13 17:46:00 purschke Exp $
 //
 //  The pdbcal package
 //  Copyright (C) PHENIX collaboration, 1999
@@ -10,7 +9,7 @@
 //-----------------------------------------------------------------------------
 #include "PdbBankManager.h"
 
-PdbBankManager *PdbBankManager::__instance = 0;
+PdbBankManager *PdbBankManager::__instance = NULL;
 
 
 PdbBankManager::PdbBankManager()
@@ -19,7 +18,7 @@ PdbBankManager::PdbBankManager()
 
 PdbBankManager::~PdbBankManager()
 {
-  __instance = 0;
+  __instance = NULL;
 }
 
 PdbBankManager *PdbBankManager::instance()

@@ -1,11 +1,11 @@
 #ifndef PDBCALBASE__H
 #define PDBCALBASE__H
 
-#include <TObject.h>
+#include <phool/PHObject.h>
 
 #include <iostream>
 
-class PdbCalBase: public TObject
+class PdbCalBase: public PHObject
 {
  public: 
   /// ctor

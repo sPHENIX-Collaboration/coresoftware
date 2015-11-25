@@ -52,7 +52,7 @@ Fun4AllSyncManager::registerInputManager(Fun4AllInputManager *InputManager)
 {
   BOOST_FOREACH(Fun4AllInputManager * inman, InManager)
     {
-      if ( !strcmp(inman->Name(), InputManager->Name() ) )
+      if ( inman->Name() == InputManager->Name() )
 	{
           cout << "InputManager " << InputManager->Name() << " allready in list" << endl;
           return -1;

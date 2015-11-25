@@ -2,29 +2,25 @@
 //  Purpose: Calibration bank base class
 //  Author: Matthias Messer
 
-#ifndef __PDBCALBANK_HH__
-#define __PDBCALBANK_HH__
+#ifndef PDBCALBANK_HH__
+#define PDBCALBANK_HH__
 
 #include "PdbBankID.h"
 
 #include <phool/PHTimeStamp.h>
+#include <phool/PHObject.h>
 
-#include <TObject.h>
-
-//#ifndef __CINT__
-//#include <cstddef>
-//#endif
 #include <string>
 
 class PdbCalChan;
 class PHTimeStamp;
 class PdbBankID;
 
-class PdbCalBank : public  TObject 
+class PdbCalBank : public  PHObject 
 {
 public:
-   PdbCalBank();
-   virtual ~PdbCalBank();
+  PdbCalBank(){}
+   virtual ~PdbCalBank() {}
    virtual PdbCalBank* clone() const = 0;
 
    virtual void printHeader() const = 0;
@@ -54,7 +50,7 @@ public:
    
    virtual int isValid(const PHTimeStamp &) const = 0;
 
-  ClassDef(PdbCalBank,2);
+   ClassDef(PdbCalBank,0); // no I/O
 };
 
-#endif /* __PDBCALBANK_HH__ */
+#endif /* PDBCALBANK_HH__ */

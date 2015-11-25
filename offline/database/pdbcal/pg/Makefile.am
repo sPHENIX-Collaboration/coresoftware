@@ -67,6 +67,8 @@ libPgCal_la_SOURCES = \
   PgPostMapIntIntBank_dict.C \
   PgPostParameterBank.cc \
   PgPostParameterBank_dict.C \
+  PgPostParameterMapBank.cc \
+  PgPostParameterMapBank_dict.C \
   PgPostParameterErrorBank.cc \
   PgPostParameterErrorBank_dict.C \
   RunToTimePg.cc \
@@ -110,3 +112,6 @@ PgPost%Bank.h PgPost%Bank.cc:
 
 clean-local:
 	rm -rf *_dict*
+	rm -rf *_LinkDef.h
+	rm -rf PgPost*Bank.cc
+	rm -rf PgPost*Bank.h

@@ -14,7 +14,6 @@ class Dumper: public SubsysReco
   int End(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   void SetOutDir(const std::string &outdir);
-  int DumpCompositeNode(PHCompositeNode *ThisTopNode);
   void SetPrecision(const int digits);
   int AddIgnore(const std::string &name);
   int Select(const std::string &name);

@@ -34,7 +34,7 @@ class Fun4AllServer: public Fun4AllBase
 
   int registerSubsystem(SubsysReco *subsystem, const std::string &topnodename="TOP");
   int unregisterSubsystem(SubsysReco *subsystem);
-  SubsysReco *getSubsysReco(const char *name);
+  SubsysReco *getSubsysReco(const std::string &name);
   int registerOutputManager(Fun4AllOutputManager *manager);
   Fun4AllOutputManager *getOutputManager(const std::string &name);
   int registerHistoManager(Fun4AllHistoManager *manager);

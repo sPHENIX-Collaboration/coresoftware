@@ -1,7 +1,5 @@
-// $Id: PgPostBankManager.h,v 1.13 2014/03/21 20:54:44 phnxbld Exp $
-
-#ifndef __PGPOSTBANKMANAGER_HH__
-#define __PGPOSTBANKMANAGER_HH__
+#ifndef PGPOSTBANKMANAGER_HH__
+#define PGPOSTBANKMANAGER_HH__
 
 #include <pdbcalbase/PdbBankManager.h>
 
@@ -23,42 +21,42 @@ public:
  
 
   virtual PdbCalBankIterator* getIterator();
-  virtual PdbCalBank* createBank(const char *,
+  virtual PdbCalBank* createBank(const std::string &,
 				 PdbBankID,
-				 const char *, PHTimeStamp &,PHTimeStamp &,const char *);
+				 const std::string &, PHTimeStamp &,PHTimeStamp &,const std::string &);
 
 
   // create bank with run number as key
-  PdbCalBank* createBank(const int, const char *, PdbBankID, const char *, const char *, const time_t duration=60);
+  PdbCalBank* createBank(const int, const std::string &, PdbBankID, const std::string &, const std::string &, const time_t duration=60);
 
   // create bank for a given range of run numbers rather than timestamps
-  PdbCalBank* createBank(const int, const int, const char *, PdbBankID, const char *, const char *);
+  PdbCalBank* createBank(const int, const int, const std::string &, PdbBankID, const std::string &, const std::string &);
 
   // fetch banks with run number as key
-  PdbCalBank* fetchBank(const char *, PdbBankID, const char *, const int);
+  PdbCalBank* fetchBank(const std::string &, PdbBankID, const std::string &, const int);
 
-  PdbCalBank* fetchClosestBank(const char *, PdbBankID, const char *, const int);
+  PdbCalBank* fetchClosestBank(const std::string &, PdbBankID, const std::string &, const int);
 
 
-//   void fetchAllBanks(PdbBankList &, const char *, PdbBankID, const char *, const int);
-// void fetchAllBanks(PdbBankList &, const char *, PdbBankID2, const char *, const int);
+//   void fetchAllBanks(PdbBankList &, const std::string &, PdbBankID, const std::string &, const int);
+// void fetchAllBanks(PdbBankList &, const std::string &, PdbBankID2, const std::string &, const int);
 
-//   void fetchAllBanks(PdbBankList &, const char *, const char *, const int);
+//   void fetchAllBanks(PdbBankList &, const std::string &, const std::string &, const int);
 
   // fetch banks with timestamp as key
-  PdbCalBank* fetchBank(const char *, PdbBankID, const char *, const PHTimeStamp &);
+  PdbCalBank* fetchBank(const std::string &, PdbBankID, const std::string &, const PHTimeStamp &);
 
 
-  PdbCalBank* fetchClosestBank(const char *, PdbBankID, const char *, PHTimeStamp &);
+  PdbCalBank* fetchClosestBank(const std::string &, PdbBankID, const std::string &, PHTimeStamp &);
 
-  // void fetchAllBanks(PdbBankList &, const char *, PdbBankID, const char *, PHTimeStamp &);
-  // void fetchAllBanks(PdbBankList &, const char *, PdbBankID2, const char *, PHTimeStamp &);
+  // void fetchAllBanks(PdbBankList &, const std::string &, PdbBankID, const std::string &, PHTimeStamp &);
+  // void fetchAllBanks(PdbBankList &, const std::string &, PdbBankID2, const std::string &, PHTimeStamp &);
 
-  // void fetchAllBanks(PdbBankList &, const char *, const char *, PHTimeStamp &);
+  // void fetchAllBanks(PdbBankList &, const std::string &, const std::string &, PHTimeStamp &);
   
   PdbApplication* getApplication(PHBoolean pJob = False);
   
-  void fillCalibObject(PdbCalBank*, const char *,  PHTimeStamp &) {}
+  void fillCalibObject(PdbCalBank*, const std::string &,  PHTimeStamp &) {}
 
   void GetUsedBankRids(std::map<std::string,std::set<int> > &usedbanks) const;
   void ClearUsedBankRids() {BankRid.clear();}
