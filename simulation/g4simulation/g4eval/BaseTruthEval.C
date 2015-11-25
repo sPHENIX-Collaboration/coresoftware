@@ -39,7 +39,7 @@ PHG4Particle* BaseTruthEval::get_particle(PHG4Hit* g4hit) {
   if (_strict) {assert(g4hit);}
   else if (!g4hit) {++_errors; return NULL;}
   
-  PHG4Particle* particle = _truthinfo->GetHit( g4hit->get_trkid() );
+  PHG4Particle* particle = _truthinfo->GetParticle( g4hit->get_trkid() );
   if (_strict) {assert(particle);}
   else if (!particle) {++_errors;}
   
@@ -112,9 +112,9 @@ PHG4Particle* BaseTruthEval::get_primary(PHG4Particle* particle) {
   // primary from the full Map was the argument
   PHG4Particle* returnval = NULL;
   if (particle->get_primary_id() != -1) {
-    returnval = _truthinfo->GetPrimaryHit( particle->get_primary_id() );
+    returnval = _truthinfo->GetPrimaryParticle( particle->get_primary_id() );
   } else {
-    returnval = _truthinfo->GetPrimaryHit( particle->get_track_id() );
+    returnval = _truthinfo->GetPrimaryParticle( particle->get_track_id() );
   }
 
   if (_strict) {assert(returnval);}

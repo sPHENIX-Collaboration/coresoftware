@@ -40,7 +40,7 @@ int DumpPHG4TruthInfoContainer::process_Node(PHNode *myNode)
           (*vtxiter->second).identify(*fout);
 	}
       PHG4TruthInfoContainer::ConstIterator particle_iter;
-      PHG4TruthInfoContainer::ConstRange particlebegin_end = truthcontainer->GetHitRange();
+      PHG4TruthInfoContainer::ConstRange particlebegin_end = truthcontainer->GetParticleRange();
           for (particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; particle_iter++)
             {
 	      *fout << "particle number: " << particle_iter->first << endl;

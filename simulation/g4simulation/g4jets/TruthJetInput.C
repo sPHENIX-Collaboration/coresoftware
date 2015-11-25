@@ -45,9 +45,9 @@ std::vector<Jet*> TruthJetInput::get_input(PHCompositeNode *topNode) {
   }
 
   std::vector<Jet*> pseudojets;
-  PHG4TruthInfoContainer::Map primary_map = truthinfo->GetPrimaryMap();
-  for (PHG4TruthInfoContainer::ConstIterator iter = primary_map.begin(); 
-       iter != primary_map.end(); 
+  PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
+  for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
+       iter != range.second; 
        ++iter) {
     PHG4Particle *part = iter->second;
 

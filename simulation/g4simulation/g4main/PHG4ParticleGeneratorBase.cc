@@ -196,7 +196,7 @@ PHG4ParticleGeneratorBase::SetParticleId(PHG4Particle * particle, PHG4InEvent *i
     }
   if (embedflag)
     {
-      ineve->AddEmbeddedParticle(particle);
+      ineve->AddEmbeddedParticle(particle,embedflag);
     }
   return;
 }

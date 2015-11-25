@@ -5,6 +5,7 @@
 #include "PHG4PhenixDetector.h"
 #include "PHG4PhenixSteppingAction.h"
 #include "PHG4PhenixTrackingAction.h"
+#include "PHG4TrackingAction.h"
 #include "PHG4PhenixEventAction.h"
 #include "PHG4Subsystem.h"
 #include "PHG4InEvent.h"
@@ -327,9 +328,20 @@ PHG4Reco::InitRun( PHCompositeNode* topNode )
   BOOST_FOREACH( PHG4Subsystem * g4sub, subsystems_)
     {
       trackingAction_->AddAction( g4sub->GetTrackingAction() );
-    }
-  runManager_->SetUserAction(trackingAction_ );
 
+      // not all subsystems define a user tracking action
+      if (g4sub->GetTrackingAction())
+	{
+	  // make tracking manager accessible within user tracking action if defined
+	  if( G4TrackingManager* trackingManager = G4EventManager::GetEventManager()->GetTrackingManager() )
+	    {
+	      g4sub->GetTrackingAction()->SetTrackingManagerPointer(trackingManager);
+	    }
+	}
+    }
+
+  runManager_->SetUserAction(trackingAction_ );
+  
   // initialize
   runManager_->Initialize();
 
@@ -391,9 +403,9 @@ PHG4Reco::InitRun( PHCompositeNode* topNode )
 
   // needs large amount of memory which kills central hijing events
   // store generated trajectories
-  //   if( G4TrackingManager* trackingManager = G4EventManager::GetEventManager()->GetTrackingManager() ){
-  //     trackingManager->SetStoreTrajectory( true );
-  //   }
+  //if( G4TrackingManager* trackingManager = G4EventManager::GetEventManager()->GetTrackingManager() ){
+  //  trackingManager->SetStoreTrajectory( true );
+  //}
 
   // quiet some G4 print-outs (EM and Hadronic settings during first event)
   G4HadronicProcessStore::Instance()->SetVerbose(0);

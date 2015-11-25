@@ -189,15 +189,14 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction( const G4Step* aStep, 
 	  hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
 	  //set the track ID
 	  {
-	    int trkoffset = 0;
-	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+            hit->set_trkid(aTrack->GetTrackID());
+            if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	      {
 		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 		  {
-		    trkoffset = pp->GetTrackIdOffset();
+		    hit->set_trkid(pp->GetUserTrackId());
 		  }
 	      }
-	    hit->set_trkid(aTrack->GetTrackID() + trkoffset);
 	  }
 	  //set the initial energy deposit
 	  hit->set_edep(0);

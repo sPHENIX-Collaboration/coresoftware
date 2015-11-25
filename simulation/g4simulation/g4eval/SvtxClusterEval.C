@@ -162,7 +162,7 @@ std::set<PHG4Particle*> SvtxClusterEval::all_truth_particles(SvtxCluster* cluste
        iter != g4hits.end();
        ++iter) {
     PHG4Hit* hit = *iter;
-    PHG4Particle* particle = _truthinfo->GetHit( hit->get_trkid() );
+    PHG4Particle* particle = get_truth_eval()->get_particle(hit);
 
     if (_strict) {assert(particle);}
     else if (!particle) {++_errors; continue;}
