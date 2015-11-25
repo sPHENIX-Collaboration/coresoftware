@@ -20,7 +20,7 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
 
   public:
 
-  enum FILE_TYPE {xml = 1, root = 2};
+  enum FILE_TYPE {none = 0, xml = 1, root = 2};
 
   //! constructor
   PHG4InnerHcalSubsystem( const std::string &name = "HCALIN", const int layer = 0 );
@@ -62,15 +62,20 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   void BlackHole(const int i=1);
   void SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr);
   void set_double_param(const std::string &name, const double dval);
+  double get_double_param(const std::string &name) const;
   void set_int_param(const std::string &name, const int ival);
+  int get_int_param(const std::string &name) const;
   void set_string_param(const std::string &name, const std::string &sval);
+  std::string get_string_param(const std::string &name) const;
   void SetDefaultParameters();
   void UpdateParametersWithMacro();
   void UseDB(const int i = 1) {usedb = i;}
+  void UseCalibFiles(const FILE_TYPE ftyp) {filetype = ftyp;}
   int SaveParamsToDB();
   int ReadParamsFromDB();
   int SaveParamsToFile(const FILE_TYPE ftyp);
   int ReadParamsFromFile(const FILE_TYPE ftyp);
+  void SetCalibrationFileDir(const std::string &calibdir) {calibfiledir = calibdir;}
 
   protected:
 
@@ -91,9 +96,10 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   int layer;
 
   int usedb;
-
+  FILE_TYPE filetype;
   std::string detector_type;
   std::string superdetector;
+  std::string calibfiledir;
   std::map<const std::string, double> dparams;
   std::map<const std::string, int> iparams;
   std::map<const std::string, std::string> cparams;
