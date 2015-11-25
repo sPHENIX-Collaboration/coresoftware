@@ -62,8 +62,11 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   void BlackHole(const int i=1);
   void SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr);
   void set_double_param(const std::string &name, const double dval);
+  double get_double_param(const std::string &name) const;
   void set_int_param(const std::string &name, const int ival);
+  int get_int_param(const std::string &name) const;
   void set_string_param(const std::string &name, const std::string &sval);
+  std::string get_string_param(const std::string &name) const;
   void SetDefaultParameters();
   void UpdateParametersWithMacro();
   void UseDB(const int i = 1) {usedb = i;}

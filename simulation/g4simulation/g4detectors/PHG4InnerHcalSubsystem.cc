@@ -428,3 +428,22 @@ PHG4InnerHcalSubsystem::ReadParamsFromFile(const PHG4InnerHcalSubsystem::FILE_TY
     }
   return iret;
 }
+
+double
+PHG4InnerHcalSubsystem::get_double_param(const std::string &name) const
+{
+  return params->get_double_param(name);
+}
+
+int
+PHG4InnerHcalSubsystem::get_int_param(const std::string &name) const
+{
+  return params->get_int_param(name);
+}
+
+string
+PHG4InnerHcalSubsystem::get_string_param(const std::string &name) const
+{
+  return params->get_string_param(name);
+}
+
