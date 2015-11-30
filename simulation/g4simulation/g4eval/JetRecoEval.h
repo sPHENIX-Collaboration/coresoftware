@@ -48,6 +48,8 @@ public:
   CaloEvalStack*    get_cemc_eval_stack()    {return _jettrutheval.get_cemc_eval_stack();}
   CaloEvalStack*    get_hcalin_eval_stack()  {return _jettrutheval.get_hcalin_eval_stack();}
   CaloEvalStack*    get_hcalout_eval_stack() {return _jettrutheval.get_hcalout_eval_stack();}
+  CaloEvalStack*    get_femc_eval_stack()    {return _jettrutheval.get_femc_eval_stack();}
+  CaloEvalStack*    get_fhcal_eval_stack()   {return _jettrutheval.get_fhcal_eval_stack();}
 
   // backtrace through to PHG4Hits
   std::set<PHG4Hit*> all_truth_hits (Jet* recojet);
@@ -86,6 +88,10 @@ private:
   RawClusterContainer* _hcalinclusters;
   RawTowerContainer*   _hcalouttowers;
   RawClusterContainer* _hcaloutclusters;
+  RawTowerContainer*   _femctowers;
+  RawClusterContainer* _femcclusters;
+  RawTowerContainer*   _fhcaltowers;
+  RawClusterContainer* _fhcalclusters;
 
   bool _strict;
   int _verbosity;

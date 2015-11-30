@@ -59,6 +59,7 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector( PHCompositeNode *Node, const s
   _materialScintillator( "G4_PLASTIC_SC_VINYLTOLUENE" ),
   _materialAbsorber( "G4_Pb" ),
   _active(1),
+  _layer(0),
   _towerlogicnameprefix("hEcalTower"),
   _superdetector("NONE"),
   _mapping_tower_file("")

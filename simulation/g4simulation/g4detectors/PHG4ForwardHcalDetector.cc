@@ -59,6 +59,7 @@ PHG4ForwardHcalDetector::PHG4ForwardHcalDetector( PHCompositeNode *Node, const s
   _materialScintillator( "G4_PLASTIC_SC_VINYLTOLUENE" ),
   _materialAbsorber( "G4_Fe" ),
   _active(1),
+  _layer(0),
   _towerlogicnameprefix("hHcalTower"),
   _superdetector("NONE"),
   _mapping_tower_file("")

@@ -36,6 +36,7 @@ pkginclude_HEADERS = \
   PHG4CylinderCellv1.h \
   PHG4CylinderCell_Spacalv1.h \
   PHG4CylinderCellv2.h \
+  PHG4CylinderCellv3.h \
   PHG4CylinderCellContainer.h \
   PHG4CylinderGeom.h \
   PHG4CylinderGeom_Spacalv1.h \
@@ -85,6 +86,8 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCell_Spacalv1_Dict.cc \
   PHG4CylinderCellv2.cc \
   PHG4CylinderCellv2_Dict.cc \
+  PHG4CylinderCellv3.cc \
+  PHG4CylinderCellv3_Dict.cc \
   PHG4CylinderCellContainer.cc \
   PHG4CylinderCellContainer_Dict.cc \
   PHG4CylinderCellGeom.cc \
@@ -139,6 +142,8 @@ libg4detectors_la_SOURCES = \
   PHG4ForwardHcalSteppingAction.cc \
   PHG4ForwardHcalSubsystem.cc \
   PHG4ForwardHcalSubsystem_Dict.cc \
+  PHG4ForwardCalCellReco.cc \
+  PHG4ForwardCalCellReco_Dict.cc \
   PHG4FPbScDetector.cc \
   PHG4FPbScSteppingAction.cc \
   PHG4FPbScRegionSteppingAction.cc \

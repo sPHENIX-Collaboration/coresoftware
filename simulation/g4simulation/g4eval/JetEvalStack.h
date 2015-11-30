@@ -37,6 +37,8 @@ public:
   CaloEvalStack* get_cemc_eval_stack()    {return _recoeval.get_cemc_eval_stack();}
   CaloEvalStack* get_hcalin_eval_stack()  {return _recoeval.get_hcalin_eval_stack();}
   CaloEvalStack* get_hcalout_eval_stack() {return _recoeval.get_hcalout_eval_stack();}
+  CaloEvalStack* get_femc_eval_stack()    {return _recoeval.get_femc_eval_stack();}
+  CaloEvalStack* get_fhcal_eval_stack()   {return _recoeval.get_fhcal_eval_stack();}
   
 private:
   JetRecoEval _recoeval; 
