@@ -24,8 +24,6 @@ PHG4TruthInfoContainer::~PHG4TruthInfoContainer() {}
 
 void PHG4TruthInfoContainer::Reset() {
 
-  identify(); // MPM remove this before merge
-  
   for (Iterator iter = particlemap.begin(); iter != particlemap.end(); ++iter) {
     delete iter->second;
   }
