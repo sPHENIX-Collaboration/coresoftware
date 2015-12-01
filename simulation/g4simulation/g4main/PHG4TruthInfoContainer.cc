@@ -23,7 +23,7 @@ PHG4TruthInfoContainer::PHG4TruthInfoContainer() :
 PHG4TruthInfoContainer::~PHG4TruthInfoContainer() {}
 
 void PHG4TruthInfoContainer::Reset() {
-  
+
   for (Iterator iter = particlemap.begin(); iter != particlemap.end(); ++iter) {
     delete iter->second;
   }
