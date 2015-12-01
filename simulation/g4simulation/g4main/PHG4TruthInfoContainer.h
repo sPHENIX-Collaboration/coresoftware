@@ -7,6 +7,7 @@
 
 #include "PHG4Particle.h"
 #include "PHG4VtxPoint.h"
+#include "PHG4Shower.h"
 
 class PHG4TruthInfoContainer: public PHObject {
   
@@ -23,6 +24,12 @@ public:
   typedef VtxMap::const_iterator ConstVtxIterator;
   typedef std::pair<VtxIterator, VtxIterator> VtxRange;
   typedef std::pair<ConstVtxIterator, ConstVtxIterator> ConstVtxRange;
+
+  typedef std::map<int,PHG4Shower *> ShowerMap;
+  typedef ShowerMap::iterator ShowerIterator;
+  typedef ShowerMap::const_iterator ConstShowerIterator;
+  typedef std::pair<ShowerIterator, ShowerIterator> ShowerRange;
+  typedef std::pair<ConstShowerIterator, ConstShowerIterator> ConstShowerRange;
 
   PHG4TruthInfoContainer();
   virtual ~PHG4TruthInfoContainer();
@@ -116,6 +123,27 @@ public:
 
   int isEmbededVtx(const int vtxid) const;
 
+  // --- shower storage ------------------------------------------------------
+ 
+  //! Add a shower that the user has created
+  ConstShowerIterator AddShower(const int showerid, PHG4Shower* newshower);
+  void delete_shower(ShowerIterator piter); 
+  
+  PHG4Shower* GetShower(const int showerid);
+
+  //! Get a range of iterators covering the entire container
+  ShowerRange GetShowerRange() {return ShowerRange(showermap.begin(),showermap.end());}
+  ConstShowerRange GetShowerRange() const {return ConstShowerRange(showermap.begin(),showermap.end());}
+
+  //! shower size
+  unsigned int shower_size( void ) const {return showermap.size();}
+  
+  //! Get the Shower Map storage
+  const ShowerMap& GetShowerMap() const {return showermap;}
+  
+  int maxshowerindex() const;
+  int minshowerindex() const;
+
  private:
 
   /// particle storage map format description:
@@ -145,6 +173,10 @@ public:
   /// -M+1
   /// -M   secondary vertex id => vertex*  
   VtxMap vtxmap;
+
+  /// shower map
+  /// showers encapsulate the secondaries and hits from a primary particle
+  ShowerMap showermap;
 
   // embed flag storage, will typically be set for only a few entries or none at all
   std::map< int, int> particle_embed_flags; //< trackid => embed flag
