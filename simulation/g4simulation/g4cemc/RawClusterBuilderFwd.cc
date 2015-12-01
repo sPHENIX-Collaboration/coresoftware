@@ -190,8 +190,8 @@ int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
         {
           std::cout << "RawClusterBuilderFwd id: " << (ctitr->first) << " Tower: "
                     << " (ieta,iphi) = (" << rawtower->get_bineta() << "," << rawtower->get_binphi() << ") "
-                    << " (eta,phi,e) = (" << towergeom->get_etacenter(rawtower->get_bineta()) << ","
-                    << towergeom->get_phicenter(rawtower->get_binphi()) << ","
+                    << " (eta,phi,e) = (" << tgeo->get_eta() << ","
+                    << tgeo->get_phi() << ","
                     << rawtower->get_energy() << ")"
                     << std::endl;
         }
@@ -276,7 +276,9 @@ bool RawClusterBuilderFwd::CorrectPhi(RawCluster* cluster, RawTowerContainer* to
   for (iter = begin_end.first; iter != begin_end.second; ++iter)
     { 
       RawTower* tmpt = towers->getTower(iter->first);
-      double phi = towergeom->get_phicenter(tmpt->get_binphi());
+      RawTowerGeom *tgeo =  
+	towergeom->get_tower_geometry(tmpt->get_id()); 
+      double phi = tgeo->get_phi();
       if(phi > M_PI) phi = phi - 2.*M_PI; // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)
       if (phi < phimin)
         {
