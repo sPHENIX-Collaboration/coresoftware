@@ -151,7 +151,7 @@ int PHG4ShowerReco::process_event(PHCompositeNode *topNode) {
       	 shower_iter != _shower_map->end();
       	 ++shower_iter) {
        PHG4Shower *shower = shower_iter->second;
-       PHG4Particle *candidate = _truth_info->GetHit(shower->get_primary_id());
+       PHG4Particle *candidate = _truth_info->GetParticle(shower->get_primary_id());
        if (_volume_truthevals.begin()->second->are_same_particle(primary,candidate)) {
 	 exists = true;
 	 break;

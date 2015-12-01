@@ -1,6 +1,6 @@
 #include "PHG4InnerHcalSteppingAction.h"
 #include "PHG4InnerHcalDetector.h"
-#include "PHG4InnerHcalParameters.h"
+#include "PHG4Parameters.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
@@ -32,13 +32,21 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector* detector, PHG4InnerHcalParameters *parameters):
+PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector* detector, PHG4Parameters *parameters):
   PHG4SteppingAction(NULL),
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),
   hit(NULL),
-  params(parameters)
+  params(parameters),
+  absorbertruth(params->get_int_param("absorbertruth")),
+  IsActive(params->get_int_param("active")),
+  IsBlackHole(params->get_int_param("blackhole")),
+  light_scint_model(params->get_int_param("light_scint_model")),
+  light_balance_inner_corr(params->get_double_param("light_balance_inner_corr")),
+  light_balance_inner_radius(params->get_double_param("light_balance_inner_radius")*cm),
+  light_balance_outer_corr(params->get_double_param("light_balance_outer_corr")),
+  light_balance_outer_radius(params->get_double_param("light_balance_outer_radius")*cm)
 {}
 
 //____________________________________________________________________________..
@@ -126,7 +134,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this block stops everything, just put all kinetic energy into edep
-  if (detector_->IsBlackHole())
+  if (IsBlackHole)
     {
       edep = aTrack->GetKineticEnergy() / GeV;
       G4Track* killtrack = const_cast<G4Track *> (aTrack);
@@ -135,7 +143,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
   int layer_id = detector_->get_Layer();
 
   // make sure we are in a volume
-  if ( detector_->IsActive() )
+  if ( IsActive )
     {
       bool geantino = false;
 
@@ -167,15 +175,14 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	  hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
 	  //set the track ID
 	  {
-	    int trkoffset = 0;
-	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+            hit->set_trkid(aTrack->GetTrackID());
+            if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	      {
 		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 		  {
-		    trkoffset = pp->GetTrackIdOffset();
+		    hit->set_trkid(pp->GetUserTrackId());
 		  }
 	      }
-	    hit->set_trkid(aTrack->GetTrackID() + trkoffset);
 	  }
 
 	  //set the initial energy deposit
@@ -206,7 +213,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 
       if (whichactive > 0) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
         {
-          if (params->light_scint_model)
+          if (light_scint_model)
             {
               light_yield = GetVisibleEnergyDeposition(aStep); // for scintillator only, calculate light yields
 	      static bool once = true;
@@ -226,7 +233,6 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 			   << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
 			   << "," << "edep = " << edep << ", " << "eion = " << eion
 			   << ", " << "light_yield = " << light_yield << endl;
-		      cout << "light_balance: " << params->light_balance << endl;
 		    }
 		}
 	    }
@@ -234,12 +240,15 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
             {
               light_yield = eion;
             }
-          if (params->light_balance)
+          if (isfinite(light_balance_outer_radius) && 
+              isfinite(light_balance_inner_radius) && 
+	      isfinite(light_balance_outer_corr) &&
+	      isfinite(light_balance_inner_corr))
             {
-              float r = sqrt(
-			     pow(postPoint->GetPosition().x() / cm, 2)
-			     + pow(postPoint->GetPosition().y() / cm, 2));
-              const float cor = GetLightCorrection(r);
+              double r = sqrt(
+			     postPoint->GetPosition().x()*postPoint->GetPosition().x()
+			     + postPoint->GetPosition().y()*postPoint->GetPosition().y());
+              double cor =  GetLightCorrection(r);
               light_yield = light_yield * cor;
 
               static bool once = true;
@@ -249,12 +258,12 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 
 		  if (verbosity > 1) 
 		    {
-		      cout << "PHG4OuterHcalSteppingAction::UserSteppingAction::"
+		      cout << "PHG4InnerHcalSteppingAction::UserSteppingAction::"
 			//
 			   << detector_->GetName() << " - "
 			   << " use a simple light collection model with linear radial dependence. "
 			   <<"First step: "
-			   <<"r = " <<r<<", "
+			   <<"r = " <<r/cm<<", "
 			   <<"correction ratio = " <<cor<<", "
 			   <<"light_yield after cor. = " <<light_yield
 			   << endl;
@@ -276,7 +285,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
           hit->set_eion(-1);
 	}
-      if (edep > 0 && (whichactive > 0 || params->absorbertruth > 0))
+      if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
 	{
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
@@ -335,12 +344,12 @@ void PHG4InnerHcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNode
     }
 }
 
-float 
-PHG4InnerHcalSteppingAction::GetLightCorrection(const float r) const
+double
+PHG4InnerHcalSteppingAction::GetLightCorrection(const double r) const
 {
-  float m = (params->light_balance_outer_corr - params->light_balance_inner_corr)/(params->light_balance_outer_radius - params->light_balance_inner_radius);
-  float b = params->light_balance_inner_corr - m*params->light_balance_inner_radius;
-  float value = m*r+b;  
+  double m = (light_balance_outer_corr - light_balance_inner_corr)/(light_balance_outer_radius - light_balance_inner_radius);
+  double b = light_balance_inner_corr - m*light_balance_inner_radius;
+  double value = m*r+b;  
   if (value > 1.0) return 1.0;
   if (value < 0.0) return 0.0;
 

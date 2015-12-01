@@ -12,15 +12,17 @@ using namespace std;
 
 ClassImp(RawTowerv1)
 
-RawTowerv1::RawTowerv1() : 
-  towerid(~0), // initialize all bits on
-  energy(0)
-{}
+RawTowerv1::RawTowerv1() :
+    towerid(~0), // initialize all bits on
+    energy(0), time(NAN)
+{
+}
 
 RawTowerv1::RawTowerv1(const RawTower & tower)
 {
   towerid = (tower.get_id());
   energy = (tower.get_energy());
+  time = (tower.get_time());
 
   CellConstRange cell_range = tower.get_g4cells();
 
@@ -31,48 +33,52 @@ RawTowerv1::RawTowerv1(const RawTower & tower)
     }
 }
 
-RawTowerv1::RawTowerv1(RawTowerDefs::keytype id) : 
-  towerid(id),
-  energy(0)
-{}
+RawTowerv1::RawTowerv1(RawTowerDefs::keytype id) :
+    towerid(id), energy(0), time(NAN)
+{
+}
 
 RawTowerv1::RawTowerv1(const unsigned int ieta, const unsigned int iphi) :
-  towerid(0),
-  energy(0)
+    towerid(0), energy(0)
 {
-  if (ieta < 0xFFF && iphi < 0xFFF)
-    {
-      towerid = (ieta << RawTowerDefs::eta_idbits) + iphi;
-    }
-  else
-    {
-      cout << "too large eta or phi bin, eta: " << ieta
-	   << ", phi: " << iphi << ", max val: " << 0xFFF << endl;
-      exit(1);
-    }
+  towerid = RawTowerDefs::encode_towerid(RawTowerDefs::NONE, ieta, iphi);
+}
+
+RawTowerv1::RawTowerv1(const RawTowerDefs::CalorimeterId caloid,
+    const unsigned int ieta, const unsigned int iphi) :
+    towerid(0), energy(0), time(NAN)
+{
+  towerid = RawTowerDefs::encode_towerid(caloid, ieta, iphi);
 }
 
 RawTowerv1::~RawTowerv1()
-{}
-
-void RawTowerv1::Reset()
 {
+}
+
+void
+RawTowerv1::Reset()
+{
+  energy = 0;
+  time = NAN;
   ecells.clear();
 }
 
-int RawTowerv1::isValid() const
+int
+RawTowerv1::isValid() const
 {
   return get_energy() != 0;
 }
 
-void RawTowerv1::identify(std::ostream& os) const
+void
+RawTowerv1::identify(std::ostream& os) const
 {
-  os << "RawTowerv1: etabin: " << get_bineta() << ", phibin: " << get_binphi() 
-     << " energy=" << get_energy() << std::endl;
+  os << "RawTowerv1: etabin: " << get_bineta() << ", phibin: " << get_binphi()
+      << " energy=" << get_energy() << std::endl;
 }
 
-void 
-RawTowerv1::add_ecell(const PHG4CylinderCellDefs::keytype g4cellid, const float ecell)
+void
+RawTowerv1::add_ecell(const PHG4CylinderCellDefs::keytype g4cellid,
+    const float ecell)
 {
   if (ecells.find(g4cellid) == ecells.end())
     {
@@ -96,4 +102,3 @@ RawTowerv1::add_eshower(const unsigned int g4showerid, const float eshower)
       eshowers[g4showerid] += eshower;
     }
 }
-

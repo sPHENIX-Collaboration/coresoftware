@@ -183,7 +183,7 @@ std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(SvtxHit* hit) {
        iter != g4hits.end();
        ++iter) {
     PHG4Hit* g4hit = *iter;
-    PHG4Particle* particle = _truthinfo->GetHit( g4hit->get_trkid() );
+    PHG4Particle* particle = get_truth_eval()->get_particle( g4hit );
 
     if (_strict) assert(particle);
     else if (!particle) {++_errors; continue;}

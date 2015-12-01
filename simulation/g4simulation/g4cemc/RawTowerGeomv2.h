@@ -1,150 +1,55 @@
-// $$Id: RawTowerGeomv2.h,v 1.2 2014/10/29 16:55:26 pinkenbu Exp $$
-
-/*!
- * \file RawTowerGeomv2.h
- * \brief generic tower description with variable eta binning
- * \author Jin Huang <jhuang@bnl.gov>
- * \version $$Revision: 1.2 $$
- * \date $$Date: 2014/10/29 16:55:26 $$
- */
-
-#ifndef RawTowerGeomv2_H__
-#define RawTowerGeomv2_H__
+#ifndef NEWGEOMV1_H_
+#define NEWGEOMV1_H_
 
 #include "RawTowerGeom.h"
 
 #include <map>
-#include <string>
 
-//! generic tower description with variable eta binning
-class RawTowerGeomv2 : public RawTowerGeom
-{
-public:
+class RawTowerGeomv2 : public RawTowerGeom {
+
+ public:
   RawTowerGeomv2();
-  RawTowerGeomv2(RawTowerGeom *geo);
+  RawTowerGeomv2(RawTowerDefs::keytype id);
+  virtual ~RawTowerGeomv2();
 
-  virtual
-  ~RawTowerGeomv2()
-  {
-  }
+  void identify(std::ostream& os=std::cout) const;
 
-  void
-  identify(std::ostream& os = std::cout) const;
-  double
-  get_radius() const
-  {
-    return radius;
-  }
-  double
-  get_thickness() const
-  {
-    return thickness;
-  }
-  int
-  get_phibins() const
-  {
-    return nphibins;
-  }
-  double
-  get_phistep() const
-  {
-    return phistep;
-  }
-  double
-  get_phimin() const
-  {
-    return phimin;
-  }
-  int
-  get_etabins() const
-  {
-    return eta_bound_map.size();
-  }
-  virtual double
-  get_etastep() const
-  {
-    PHOOL_VIRTUAL_WARN(
-        "get_etastep() is not supported in RawTowerGeomv2 (variable eta bins)");
-    return NAN;
-  }
-  virtual double
-  get_etamin() const
-  {
-    PHOOL_VIRTUAL_WARN(
-        "get_etamin() is not supported in RawTowerGeomv2 (variable eta bins)");
-    return NAN;
-  }
+  void set_id(RawTowerDefs::keytype key) {_towerid = key;}
+  RawTowerDefs::keytype get_id() const { return _towerid;}
 
-  std::pair<double, double>
-  get_phibounds(const int ibin) const;
-  std::pair<double, double>
-  get_etabounds(const int ibin) const;
-  double
-  get_etacenter(const int ibin) const;
-  double
-  get_phicenter(const int ibin) const;
+  void set_center_x( double x ) { _center_x = x; return ; }
+  void set_center_y( double y ) { _center_y = y; return ; }
+  void set_center_z( double z ) { _center_z = z; return ; }
 
-  int
-  get_etabin(const double eta) const;
-  int
-  get_phibin(const double phi) const;
+  void set_size_x( double dx ) { _size_x = dx; return ; }
+  void set_size_y( double dy ) { _size_y = dy; return ; }
+  void set_size_z( double dz ) { _size_z = dz; return ; }
 
-  void
-  set_radius(const double r)
-  {
-    radius = r;
-  }
-  void
-  set_thickness(const double t)
-  {
-    thickness = t;
-  }
-  void
-  set_phibins(const int i)
-  {
-    nphibins = i;
-  }
-  void
-  set_phistep(const double phi)
-  {
-    phistep = phi;
-  }
-  void
-  set_phimin(const double phi)
-  {
-    phimin = phi;
-  }
-  void
-  set_etabins(const int i);
+  double get_center_x() const { return _center_x; }
+  double get_center_y() const { return _center_y; }
+  double get_center_z() const { return _center_z; }
 
-  virtual void
-  set_etamin(const double z)
-  {
-    PHOOL_VIRTUAL_WARN(
-        "set_etamin(const double) is not supported in RawTowerGeomv2 (variable eta bins)");
-  }
-  virtual void
-  set_etastep(const double z)
-  {
-    PHOOL_VIRTUAL_WARN(
-        "set_etastep(const double) is not supported in RawTowerGeomv2 (variable eta bins)");
-  }
-  void
-  set_etabounds(const int ibin, const std::pair<double, double> & bounds);
+  double get_size_x() const { return _size_x; }
+  double get_size_y() const { return _size_y; }
+  double get_size_z() const { return _size_z; }
+  double get_volume() const { return ( _size_x * _size_y * _size_z ); }
 
-protected:
-  double radius;
-  double thickness;
-  int nphibins;
-  double phimin;
-  double phistep;
+  double get_center_radius() const;
+  double get_eta() const;
+  double get_phi() const;
 
-  typedef std::pair<double, double> bound_t;
-  typedef std::vector<bound_t> bound_map_t;
+ protected:
+  RawTowerDefs::keytype _towerid;
 
-  bound_map_t eta_bound_map;
+  double _center_x;
+  double _center_y;
+  double _center_z;
 
-ClassDef(RawTowerGeomv2,1)
+  double _size_x;
+  double _size_y;
+  double _size_z;
+
+  ClassDef(RawTowerGeomv2,3)
 };
 
-#endif
+#endif /* NEWGEOMV1_H_ */

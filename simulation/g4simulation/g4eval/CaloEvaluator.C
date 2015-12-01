@@ -12,7 +12,7 @@
 #include <g4main/PHG4Particle.h>
 #include <g4hough/SvtxVertexMap.h>
 #include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTowerGeom.h>
+#include <g4cemc/RawTowerGeomContainer.h>
 #include <g4cemc/RawTower.h>
 #include <g4cemc/RawClusterContainer.h>
 #include <g4cemc/RawCluster.h>
@@ -161,7 +161,7 @@ void CaloEvaluator::printInputInfo(PHCompositeNode *topNode) {
     
     cout << "PHG4TruthInfoContainer contents: " << endl; 
 
-    PHG4TruthInfoContainer::Range truthrange = truthinfo->GetHitRange();
+    PHG4TruthInfoContainer::Range truthrange = truthinfo->GetParticleRange();
     for(PHG4TruthInfoContainer::Iterator truthiter = truthrange.first;
 	truthiter != truthrange.second;
 	++truthiter) {
@@ -223,9 +223,9 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 
     cout << "vtrue = (" << gvx << "," << gvy << "," << gvz << ") => vreco = (" << vx << "," << vy << "," << vz << ")" << endl;
 
-    PHG4TruthInfoContainer::Map map = truthinfo->GetPrimaryMap();
-    for (PHG4TruthInfoContainer::ConstIterator iter = map.begin(); 
-	 iter != map.end(); 
+    PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
+    for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
+	 iter != range.second; 
 	 ++iter) {
       PHG4Particle* primary = iter->second;
       
@@ -376,11 +376,12 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
       exit(-1);
     }
-    
-    PHG4TruthInfoContainer::Map map = truthinfo->GetPrimaryMap();
-    for (PHG4TruthInfoContainer::ConstIterator iter = map.begin(); 
-	 iter != map.end(); 
+
+    PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
+    for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
+	 iter != range.second; 
 	 ++iter) {
+    
       PHG4Particle* primary = iter->second;
 
       if (primary->get_e() < _truth_e_threshold) continue;
@@ -476,7 +477,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     }
     
     string towergeomnode = "TOWERGEOM_" + _caloname;
-    RawTowerGeom* towergeom = findNode::getClass<RawTowerGeom>(topNode,towergeomnode.c_str());
+    RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode,towergeomnode.c_str());
     if (!towergeom) {
       cerr << PHWHERE << " ERROR: Can't find " << towergeomnode << endl;
       exit(-1);

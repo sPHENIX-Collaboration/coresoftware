@@ -4,7 +4,7 @@
 #include "PHMakeGroups.h"
 
 #include "RawTower.h"
-#include "RawTowerGeom.h"
+#include "RawTowerGeomContainer.h"
 #include "RawTowerContainer.h"
 
 #include <phool/PHCompositeNode.h>
@@ -135,7 +135,7 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
   string towergeomnodename = "TOWERGEOM_" + detector;
-  RawTowerGeom *towergeom = findNode::getClass<RawTowerGeom>(topNode, towergeomnodename.c_str());
+  RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename.c_str());
  if (! towergeom)
    {
      cout << PHWHERE << ": Could not find node " << towergeomnodename.c_str() << endl;
@@ -186,10 +186,10 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
       int iphi = tmptower.get_binphi();
       int ieta = tmptower.get_bineta();
       RawTower *rawtower = towers->getTower(ieta, iphi);
-      if (tmptower.get_id() != (int) towers->genkey(ieta, iphi))
+      if (tmptower.get_id() != (int) RawTowerDefs::encode_towerid(towers->getCalorimeterID(), ieta, iphi ))
 	{
-	  cout << "id mismatch. internal: " << tmptower.get_id()
-	       << ", towercontainer: " << towers->genkey(ieta, iphi)
+	  cout <<__PRETTY_FUNCTION__<< " - Fatal Error - id mismatch. internal: " << tmptower.get_id()
+	       << ", towercontainer: " << RawTowerDefs::encode_towerid( towers->getCalorimeterID(), ieta, iphi )
 	       << endl;
 	  exit(1);
 	}
@@ -280,7 +280,7 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
 }
 
 
-bool RawClusterBuilder::CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeom *towergeom)
+bool RawClusterBuilder::CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer *towergeom)
 {
   double sum = cluster->get_energy();
   double phimin = 999.;

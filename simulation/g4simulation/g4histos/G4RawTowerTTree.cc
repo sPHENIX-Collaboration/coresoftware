@@ -4,7 +4,7 @@
 
 #include <g4cemc/RawTowerContainer.h>
 #include <g4cemc/RawTower.h>
-#include <g4cemc/RawTowerGeom.h>
+#include <g4cemc/RawTowerGeomContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 
@@ -53,7 +53,7 @@ G4RawTowerTTree::process_event(PHCompositeNode *topNode)
 {
   evtno++;
   G4RootRawTowerContainer *towers = findNode::getClass<G4RootRawTowerContainer>(topNode, _outnodename.c_str());
-  RawTowerGeom *rawtowergeom =  findNode::getClass<RawTowerGeom>(topNode, _towergeomnodename.c_str());
+  RawTowerGeomContainer *rawtowergeom =  findNode::getClass<RawTowerGeomContainer>(topNode, _towergeomnodename.c_str());
 
   RawTowerContainer *g4towers = findNode::getClass<RawTowerContainer>(topNode, _towernodename.c_str());
   if (! g4towers)

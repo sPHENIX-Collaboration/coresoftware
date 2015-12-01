@@ -112,7 +112,7 @@ PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
             }
           if (inEvent->isEmbeded(particle_iter->second))
             {
-              PHG4UserPrimaryParticleInformation *userdata = new PHG4UserPrimaryParticleInformation(1);
+              PHG4UserPrimaryParticleInformation *userdata = new PHG4UserPrimaryParticleInformation(inEvent->isEmbeded(particle_iter->second));
               g4part->SetUserInformation(userdata);
             }
           vertex->SetPrimary(g4part);

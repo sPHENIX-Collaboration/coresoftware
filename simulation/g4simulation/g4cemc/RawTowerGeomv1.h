@@ -1,55 +1,42 @@
-#ifndef RawTowerGeomv1_H__
-#define RawTowerGeomv1_H__
+#ifndef NEWGEOMV1_H_
+#define NEWGEOMV1_H_
 
 #include "RawTowerGeom.h"
 
 #include <map>
-#include <string>
 
-class RawTowerGeomv1: public RawTowerGeom
-{
+class RawTowerGeomv1 : public RawTowerGeom {
+
  public:
   RawTowerGeomv1();
+  RawTowerGeomv1(RawTowerDefs::keytype id);
+  virtual ~RawTowerGeomv1();
 
-  virtual ~RawTowerGeomv1() {}
+  void identify(std::ostream& os=std::cout) const;
 
-  void identify(std::ostream& os = std::cout) const;
-  double get_radius() const {return radius;}
-  double get_thickness() const {return thickness;}
-  int get_phibins() const {return  nphibins;}
-  double get_phistep() const {return phistep;}
-  double get_phimin() const {return phimin;}
-  int get_etabins() const {return netabins;}
-  double get_etastep() const {return etastep;}
-  double get_etamin() const {return etamin;}
+  void set_id(RawTowerDefs::keytype key) {_towerid = key;}
+  RawTowerDefs::keytype get_id() const { return _towerid;}
 
-  std::pair<double, double> get_phibounds(const int ibin) const;
-  std::pair<double, double> get_etabounds(const int ibin) const;
-  double get_etacenter(const int ibin) const;
-  double get_phicenter(const int ibin) const;
+  void set_center_x( double x ) { _center_x = x; return ; }
+  void set_center_y( double y ) { _center_y = y; return ; }
+  void set_center_z( double z ) { _center_z = z; return ; }
 
-  int get_etabin(const double eta) const;
-  int get_phibin(const double phi) const;
+  double get_center_x() const { return _center_x; }
+  double get_center_y() const { return _center_y; }
+  double get_center_z() const { return _center_z; }
 
-   void set_radius(const double r) {radius = r;}
-   void set_thickness(const double t) {thickness = t;}
-   void set_phibins(const int i) {nphibins = i;}
-   void set_phistep(const double phi) {phistep = phi;}
-   void set_phimin(const double phi) {phimin = phi;}
-   void set_etabins(const int i) {netabins = i;}
-   void set_etamin(const double z) {etamin = z;}
-   void set_etastep(const double z) {etastep = z;}
-  
+
+  double get_center_radius() const;
+  double get_eta() const;
+  double get_phi() const;
+
  protected:
-  double radius;
-  double thickness;
-  int netabins;
-  double etamin;
-  double etastep;
-  int nphibins;
-  double phimin;
-  double phistep;
-  ClassDef(RawTowerGeomv1,1)
+  RawTowerDefs::keytype _towerid;
+
+  double _center_x;
+  double _center_y;
+  double _center_z;
+  ClassDef(RawTowerGeomv1,4)
 };
 
-#endif
+#endif /* NEWGEOMV1_H_ */

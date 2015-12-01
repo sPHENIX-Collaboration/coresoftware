@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <limits>       // std::numeric_limits
 
 using namespace std;
 
@@ -34,7 +35,7 @@ PHG4SlatCellReco::PHG4SlatCellReco(const string &name) :
   SubsysReco(name),
   _timer(PHTimeServer::get()->insert_new(name.c_str())),
   nslatscombined(1),
-  chkenergyconservation(0)
+  chkenergyconservation(0), timing_window_size(numeric_limits<double>::max())
 {
   memset(nbins, 0, sizeof(nbins));
   memset(cellptarray, 0, sizeof(cellptarray));
@@ -242,6 +243,10 @@ PHG4SlatCellReco::process_event(PHCompositeNode *topNode)
         {
           for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
             {
+              // checking ADC timing integration window cut
+              if (hiter->second->get_t(0)>timing_window_size)
+                continue;
+
               double etaphi[2];
               int slatbin;
               double etabin[2];

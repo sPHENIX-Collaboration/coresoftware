@@ -166,7 +166,7 @@ PHG4Utils::SetColour(G4VisAttributes* att, const string &material)
   else
     {
       //cout << "default color red for material " << material << endl;
-      att->SetColour(G4Colour::Red());
+      att->SetColour(G4Colour::Cyan());
     }
   return;
 }

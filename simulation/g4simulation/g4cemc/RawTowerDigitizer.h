@@ -8,7 +8,7 @@
 
 class PHCompositeNode;
 class RawTowerContainer;
-class RawTowerGeom;
+class RawTowerGeomContainer;
 
 class RawTower;
 
@@ -51,9 +51,13 @@ public:
   enum enu_digi_algorithm
   {
     //! directly pass the energy of sim tower to digitalized tower
+    kNo_digitization = 0,
+    //! wrong spelling, kept for macro compatibility
     kNo_digitalization = 0,
 
-    //! simple digitalization with photon statistics, ADC conversion and pedstal
+    //! simple digitization with photon statistics, ADC conversion and pedstal
+    kSimple_photon_digitization = 1,
+    //! wrong spelling, kept for macro compatibility
     kSimple_photon_digitalization = 1
   };
 
@@ -158,15 +162,15 @@ protected:
 
   enu_digi_algorithm _digi_algorithm;
 
-  //! simple digitalization with photon statistics, ADC conversion and pedstal
+  //! simple digitization with photon statistics, ADC conversion and pedstal
   //! \param  sim_tower simulation tower input
   //! \return a new RawTower object contain digitalized value of ADC output in RawTower::get_energy()
   RawTower *
-  simple_photon_digitalization(int ieta, int iphi, RawTower * sim_tower);
+  simple_photon_digitization(RawTower * sim_tower);
 
   RawTowerContainer* _sim_towers;
   RawTowerContainer* _raw_towers;
-  RawTowerGeom *rawtowergeom;
+  RawTowerGeomContainer *rawtowergeom;
 
   std::string detector;
   std::string SimTowerNodeName;

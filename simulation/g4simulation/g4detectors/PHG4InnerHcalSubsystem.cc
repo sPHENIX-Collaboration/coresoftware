@@ -2,18 +2,27 @@
 #include "PHG4InnerHcalDetector.h"
 #include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4InnerHcalSteppingAction.h"
-#include "PHG4InnerHcalParameters.h"
+#include "PHG4Parameters.h"
 
 #include <g4main/PHG4HitContainer.h>
+
+#include <pdbcalbase/PdbParameterMap.h>
+
 #include <phool/getClass.h>
 
 #include <Geant4/globals.hh>
 
 #include <boost/foreach.hpp>
 
+#include <set>
 #include <sstream>
 
 using namespace std;
+
+map<const string,double> default_double;
+map<const string, int> default_int;
+map<const string, string> default_string;
+
 
 //_______________________________________________________________________
 PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const int lyr ):
@@ -22,8 +31,11 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const i
   steppingAction_( NULL ),
   eventAction_(NULL),
   layer(lyr),
+  usedb(0),
+  filetype(PHG4InnerHcalSubsystem::none),
   detector_type(name),
-  superdetector("NONE")
+  superdetector("NONE"),
+  calibfiledir("./")
 {
 
   // put the layer into the name so we get unique names
@@ -31,22 +43,81 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const i
   ostringstream nam;
   nam << name << "_" << lyr;
   Name(nam.str().c_str());
-  params = new PHG4InnerHcalParameters();
+  params = new PHG4Parameters(Name()); // temporary name till the init is called
+  SetDefaultParameters();
+}
+
+void
+PHG4InnerHcalSubsystem::SuperDetector(const std::string &name)
+{
+  superdetector = name;
+  Name(name);
+  return;
+}
+
+int 
+PHG4InnerHcalSubsystem::Init(PHCompositeNode* topNode)
+{
+  params->set_name(superdetector);
+  return 0;
 }
 
 //_______________________________________________________________________
-int PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
+int 
+PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
 {
   PHNodeIterator iter( topNode );
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
+  string g4geonodename = "G4GEO_" + superdetector;
+  parNode->addNode(new PHDataNode<PHG4Parameters>(params,g4geonodename));
+
+
+  string paramnodename = "G4GEOPARAM_" + superdetector;
+  // ASSUMPTION: if we read from DB and/or file we don't want the stuff from
+  // the node tree
+  // We leave the defaults intact in case there is no entry for
+  // those in the object read from the DB or file
+  // Order: read first DB, then calib file if both are enabled
+  if (usedb || filetype != PHG4InnerHcalSubsystem::none)
+    {
+      if (usedb)
+	{
+          ReadParamsFromDB();
+	}
+      if (filetype != PHG4InnerHcalSubsystem::none)
+	{
+	  ReadParamsFromFile(filetype);
+	}
+    }
+  else
+    {
+      PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,paramnodename);
+      if (nodeparams)
+	{
+	  params->FillFrom(nodeparams);
+	}
+    }
+  // parameters set in the macro always override whatever is read from
+  // the node tree, DB or file
+  UpdateParametersWithMacro();
+  // save updated persistant copy on node tree
+  params->SaveToNodeTree(parNode,paramnodename);
   // create detector
   detector_ = new PHG4InnerHcalDetector(topNode, params, Name());
   detector_->SuperDetector(superdetector);
   detector_->OverlapCheck(overlapcheck);
   set<string> nodes;
-  if (params->active)
+  if (params->get_int_param("active"))
     {
+      PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",superdetector));
+      if (! DetNode)
+	{
+          DetNode = new PHCompositeNode(superdetector);
+          dstNode->addNode(DetNode);
+        }
+
       ostringstream nodename;
       if (superdetector != "NONE")
 	{
@@ -57,7 +128,7 @@ int PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
 	  nodename <<  "G4HIT_" << detector_type << "_" << layer;
 	}
       nodes.insert(nodename.str());
-      if (params->absorberactive)
+      if (params->get_int_param("absorberactive"))
 	{
 	  nodename.str("");
 	  if (superdetector != "NONE")
@@ -76,8 +147,7 @@ int PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
 	  if ( !g4_hits )
 	    {
 	      g4_hits = new PHG4HitContainer();
-	      dstNode->addNode( new PHIODataNode<PHObject>( g4_hits, node.c_str(), "PHObject" ));
-
+              DetNode->addNode( new PHIODataNode<PHObject>( g4_hits, node.c_str(), "PHObject" ));
 	    }
 	  if (! eventAction_)
 	    {
@@ -98,7 +168,7 @@ int PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
   else
     {
       // if this is a black hole it does not have to be active
-      if (params->blackhole)
+      if (params->get_int_param("blackhole"))
 	{
 	  steppingAction_ = new PHG4InnerHcalSteppingAction(detector_, params);
 	}
@@ -126,6 +196,10 @@ PHG4InnerHcalSubsystem::Print(const string &what) const
 {
   cout << "Inner Hcal Parameters: " << endl;
   params->print();
+  if (detector_)
+    {
+      detector_->Print(what);
+    }
   return;
 }
 
@@ -142,175 +216,240 @@ PHG4SteppingAction* PHG4InnerHcalSubsystem::GetSteppingAction( void ) const
 }
 
 void
-PHG4InnerHcalSubsystem::SetTiltAngle(const double tilt)
-{
-  params->tilt_angle = tilt * deg;
-  params->ncross = 0;
-}
-
-double
-PHG4InnerHcalSubsystem::GetTiltAngle() const
-{
-  return params->tilt_angle/deg;
-}
-
-void
-PHG4InnerHcalSubsystem::SetPlaceZ(const G4double dbl)
-{
-  params->place_in_z = dbl;
-}
-
-void
-PHG4InnerHcalSubsystem::SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
-{
-  params->place_in_x = place_x * cm;
-  params->place_in_y = place_y * cm;
-  params->place_in_z = place_z * cm;
-}
-
-void
-PHG4InnerHcalSubsystem::SetXRot(const G4double dbl)
-{
-  params->x_rot = dbl * deg;
-}
-
-void
-PHG4InnerHcalSubsystem::SetYRot(const G4double dbl)
-{
-  params->y_rot = dbl * deg;
-}
-
-void
-PHG4InnerHcalSubsystem::SetZRot(const G4double dbl)
-{
-  params->z_rot = dbl * deg;
-}
-
-void
-PHG4InnerHcalSubsystem::SetMaterial(const std::string &mat)
-{
-  params->material = mat;
-}
-
-void
 PHG4InnerHcalSubsystem::SetActive(const int i)
 {
-  params->active = i;
+  iparams["active"] = i;
 }
 
 void
 PHG4InnerHcalSubsystem::SetAbsorberActive(const int i)
 {
-  params->absorberactive = i;
-}
-
-void
-PHG4InnerHcalSubsystem::SetAbsorberTruth(const int i)
-{
-  params->absorbertruth = i;
+  iparams["absorberactive"] = i;
 }
 
 void
 PHG4InnerHcalSubsystem::BlackHole(const int i)
 {
-  params->blackhole = i;
+  iparams["blackhole"] = i;
 }
 
 void
-PHG4InnerHcalSubsystem::SetInnerRadius(const double inner)
+PHG4InnerHcalSubsystem::set_double_param(const std::string &name, const double dval)
 {
-  params->inner_radius = inner *cm;
-}
-
-double
-PHG4InnerHcalSubsystem::GetInnerRadius() const
-{
-  return params->inner_radius/cm;
-}
-
-void
-PHG4InnerHcalSubsystem::SetOuterRadius(const double outer)
-{
-  params->outer_radius = outer * cm;
-}
-
-double
-PHG4InnerHcalSubsystem::GetOuterRadius() const
-{
-  return params->outer_radius/cm;
-}
-
-void
-PHG4InnerHcalSubsystem::SetLength(const double len)
-{
-  params->size_z = len * cm;
-}
-
-void
-PHG4InnerHcalSubsystem::SetGapWidth(const double gap)
-{
-  params->scinti_gap = gap *cm;
-}
-
-void
-PHG4InnerHcalSubsystem::SetNumScintiPlates(const int nplates)
-{
-  params->n_scinti_plates = nplates;
-}
-
-void
-PHG4InnerHcalSubsystem::SetNumScintiTiles(const int ntiles)
-{
-  params->n_scinti_tiles = ntiles;
-}
-
-void
-PHG4InnerHcalSubsystem::SetScintiThickness(const double thick)
-{
-  params->scinti_tile_thickness = thick * cm;
-}
-
-void
-PHG4InnerHcalSubsystem::SetScintiGap(const double scgap)
-{
-  params->scinti_gap_neighbor = scgap * cm;
-}
-
-void
-PHG4InnerHcalSubsystem::SetTiltViaNcross(const int ncross)
-{
-  if (ncross == 0)
+  if (default_double.find(name) == default_double.end())
     {
-      cout << "Invalid number of crossings: " << ncross
-	   << " how do you expect me to calculate a tilt angle for this????"
-	   << endl
-	   << "If you want a 0 degree tilt angle, just use SetTiltAngle(0)"
-	   << endl
-	   << "I refuse to continue this!" << endl;
+      cout << "double parameter " << name << " not implemented" << endl;
+      cout << "implemented double parameters are:" << endl;
+      for (map<const string, double>::const_iterator iter = default_double.begin(); iter != default_double.end(); ++iter)
+	{
+	  cout << iter->first << endl;
+	}
+      return;
+    }
+  dparams[name] = dval;
+}
+
+void
+PHG4InnerHcalSubsystem::set_int_param(const std::string &name, const int ival)
+{
+  if (default_int.find(name) == default_int.end())
+    {
+      cout << "integer parameter " << name << " not implemented" << endl;
+      cout << "implemented integer parameters are:" << endl;
+      for (map<const string, int>::const_iterator iter = default_int.begin(); iter != default_int.end(); ++iter)
+	{
+	  cout << iter->first << endl;
+	}
+      return;
+    }
+  iparams[name] = ival;
+}
+
+void
+PHG4InnerHcalSubsystem::SetAbsorberTruth(const int i)
+{
+  iparams["absorbertruth"] = i;
+}
+
+void
+PHG4InnerHcalSubsystem::set_string_param(const std::string &name, const string &sval)
+{
+  if (default_string.find(name) == default_string.end())
+    {
+      cout << "string parameter " << name << " not implemented" << endl;
+      cout << "implemented string parameters are:" << endl;
+      for (map<const string, string>::const_iterator iter = default_string.begin(); iter != default_string.end(); ++iter)
+	{
+	  cout << iter->first << endl;
+	}
+      return;
+    }
+  cparams[name] = sval;
+}
+
+void
+PHG4InnerHcalSubsystem::SetDefaultParameters()
+{
+
+  default_double["inner_radius"] = 116.;
+  default_double["light_balance_inner_corr"] = NAN;
+  default_double["light_balance_inner_radius"] = NAN;
+  default_double["light_balance_outer_corr"] = NAN;
+  default_double["light_balance_outer_radius"] = NAN;
+  default_double["outer_radius"] = 136.;
+  default_double["place_x"] = 0.;
+  default_double["place_y"] = 0.;
+  default_double["place_z"] = 0.;
+  default_double["rot_x"] = 0.;
+  default_double["rot_y"] = 0.;
+  default_double["rot_z"] = 0.;
+  default_double["scinti_eta_coverage"] = 1.1;
+  default_double["scinti_gap"] = 0.85;
+  default_double["scinti_gap_neighbor"] = 0.1;
+  default_double["scinti_tile_thickness"] = 0.7;
+  default_double["size_z"] = 175.94 * 2;
+  default_double["steplimits"] = NAN;
+  default_double["tilt_angle"] = NAN; // default is 4 crossinge
+
+  default_int["absorberactive"] = 0;
+  default_int["absorbertruth"] = 0;
+  default_int["active"] = 0;
+  default_int["blackhole"] = 0;
+  default_int["light_scint_model"] = 1;
+  default_int["ncross"] = 4;
+  default_int["n_scinti_plates"] = 5*64;
+  default_int["n_scinti_tiles"] = 12;
+
+  default_string["material"] = "SS310";
+  for (map<const string,double>::const_iterator iter = default_double.begin(); iter != default_double.end(); ++iter)
+    {
+      params->set_double_param(iter->first,iter->second);
+    }
+  for (map<const string,int>::const_iterator iter = default_int.begin(); iter != default_int.end(); ++iter)
+    {
+      params->set_int_param(iter->first,iter->second);
+    }
+  for (map<const string,string>::const_iterator iter = default_string.begin(); iter != default_string.end(); ++iter)
+    {
+      params->set_string_param(iter->first,iter->second);
+    }
+
+}
+
+void
+PHG4InnerHcalSubsystem::UpdateParametersWithMacro()
+{
+  for (map<const string,double>::const_iterator iter = dparams.begin(); iter != dparams.end(); ++iter)
+    {
+      params->set_double_param(iter->first,iter->second);
+    }
+  for (map<const string,int>::const_iterator iter = iparams.begin(); iter != iparams.end(); ++iter)
+    {
+      params->set_int_param(iter->first,iter->second);
+    }
+  for (map<const string,string>::const_iterator iter = cparams.begin(); iter != cparams.end(); ++iter)
+    {
+      params->set_string_param(iter->first,iter->second);
+    }
+  return;
+}
+
+void
+PHG4InnerHcalSubsystem::SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr)
+{
+  dparams["light_balance_inner_corr"] = inner_corr;
+  dparams["light_balance_inner_radius"] = inner_radius;
+  dparams["light_balance_outer_corr"] = outer_corr;
+  dparams["light_balance_outer_radius"] = outer_radius;
+  return;
+}
+
+int
+PHG4InnerHcalSubsystem::SaveParamsToDB()
+{
+  int iret = params->WriteToDB();
+  if (iret)
+    {
+      cout << "problem committing to DB" << endl;
+    }
+  return iret;
+}
+
+int
+PHG4InnerHcalSubsystem::ReadParamsFromDB()
+{
+  int iret = params->ReadFromDB();
+  if (iret)
+    {
+      cout << "problem reading from DB" << endl;
+    }
+  return iret;
+}
+
+int
+PHG4InnerHcalSubsystem::SaveParamsToFile(const PHG4InnerHcalSubsystem::FILE_TYPE ftyp)
+{
+  string extension;
+  switch(ftyp)
+    {
+    case xml:
+      extension = "xml";
+      break;
+    case root:
+      extension = "root";
+      break;
+    default:
+      cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
       exit(1);
     }
-  params->ncross = ncross;
+
+  int iret = params->WriteToFile(extension,calibfiledir);
+  if (iret)
+    {
+      cout << "problem saving to " << extension << " file " << endl;
+    }
+  return iret;
 }
 
-void
-PHG4InnerHcalSubsystem::SetStepLimits(const double slim)
+int
+PHG4InnerHcalSubsystem::ReadParamsFromFile(const PHG4InnerHcalSubsystem::FILE_TYPE ftyp)
 {
-  params->steplimits = slim*cm;
+  string extension;
+  switch(ftyp)
+    {
+    case xml:
+      extension = "xml";
+      break;
+    case root:
+      extension = "root";
+      break;
+    default:
+      cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
+      exit(1);
+    }
+  int iret = params->ReadFromFile(extension,calibfiledir);
+  if (iret)
+    {
+      cout << "problem saving to " << extension << " file " << endl;
+    }
+  return iret;
 }
 
-void
-PHG4InnerHcalSubsystem::SetLightCorrection(const float inner_radius, const float inner_corr,
-			  const float outer_radius, const float outer_corr) 
+double
+PHG4InnerHcalSubsystem::get_double_param(const std::string &name) const
 {
-  params->light_balance = true;
-  params->light_balance_inner_radius = inner_radius;
-  params->light_balance_inner_corr = inner_corr;
-  params->light_balance_outer_radius = outer_radius;
-  params->light_balance_outer_corr = outer_corr;
+  return params->get_double_param(name);
 }
 
-void
-PHG4InnerHcalSubsystem:: SetLightScintModel(const bool b)
+int
+PHG4InnerHcalSubsystem::get_int_param(const std::string &name) const
 {
-  params->light_scint_model = b;
+  return params->get_int_param(name);
 }
+
+string
+PHG4InnerHcalSubsystem::get_string_param(const std::string &name) const
+{
+  return params->get_string_param(name);
+}
+

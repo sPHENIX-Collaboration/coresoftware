@@ -18,7 +18,7 @@ class Fun4AllHistoManager;
 class PHCompositeNode;
 class PHG4HitContainer;
 class RawTowerContainer;
-class RawTowerGeom;
+class RawTowerGeomContainer;
 class RawClusterContainer;
 
 class mFillG4SnglHTCContainer: public SubsysReco
@@ -41,7 +41,7 @@ class mFillG4SnglHTCContainer: public SubsysReco
   int process_hit(int detid, PHG4HitContainer *hits, G4SnglHit snglhit, G4SnglHTCContainer *snglhits);
 
   //! G4 towers processing method
-  int process_twr(int detid, RawTowerContainer *twrs, RawTowerGeom *twrgeom, G4SnglTower sngltwr, G4SnglHTCContainer *sngltwrs);
+  int process_twr(int detid, RawTowerContainer *twrs, RawTowerGeomContainer *twrgeom, G4SnglTower sngltwr, G4SnglHTCContainer *sngltwrs);
 
   //! G4 clusters processing method
   int process_clr(int detid, RawClusterContainer *clrs, G4SnglCluster snglclr, G4SnglHTCContainer *sngltcls);

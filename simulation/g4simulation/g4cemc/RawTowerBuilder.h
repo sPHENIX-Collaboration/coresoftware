@@ -8,7 +8,7 @@
 
 class PHCompositeNode;
 class RawTowerContainer;
-class RawTowerGeom;
+class RawTowerGeomContainer;
 
 class RawTowerBuilder : public SubsysReco {
 
@@ -62,7 +62,7 @@ class RawTowerBuilder : public SubsysReco {
   void CreateNodes(PHCompositeNode *topNode);
 
   RawTowerContainer* _towers;
-  RawTowerGeom *rawtowergeom;
+  RawTowerGeomContainer *rawtowergeom;
 
   std::string detector;
   std::string TowerNodeName;

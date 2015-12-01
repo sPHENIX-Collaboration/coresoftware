@@ -62,6 +62,9 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4OuterHc
   scinti_tile_x_lower(NAN),
   scinti_tile_x_upper(NAN),
   scinti_tile_z(params->size_z),
+  volume_envelope(NAN),
+  volume_steel(NAN),
+  volume_scintillator(NAN),
   layer(0),
   scintilogicnameprefix("HcalOuterScinti")
 {
@@ -179,7 +182,7 @@ PHG4OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
   scinti_tile_x  = scinti_tile_x_upper + scinti_tile_x_lower;
   scinti_tile_x  -= subtract_from_scinti_x;
   G4VSolid* scintibox =  new G4Box("ScintiTile", scinti_tile_x / 2., params->scinti_tile_thickness / 2., scinti_tile_z / 2.);
-
+  volume_scintillator = scintibox->GetCubicVolume() *params->n_scinti_plates;
   return scintibox;
 }
 
@@ -317,26 +320,26 @@ PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
   vertexes.push_back(v4);
   G4TwoVector zero(0, 0);
   G4VSolid* steel_plate_uncut =  new G4ExtrudedSolid("SteelPlateUnCut",
-					       vertexes,
-					       params->size_z  / 2.0,
-					       zero, 1.0,
-					       zero, 1.0);
+						     vertexes,
+						     params->size_z  / 2.0,
+						     zero, 1.0,
+						     zero, 1.0);
       
-      G4RotationMatrix *rotm = new G4RotationMatrix();
-                rotm->rotateX(-90 * deg);
-
+  G4RotationMatrix *rotm = new G4RotationMatrix();
+  rotm->rotateX(-90 * deg);
+  volume_steel = steel_plate_uncut->GetCubicVolume()*params->n_scinti_plates;
   // now cut out space for magnet at the ends
-       G4VSolid* steel_firstcut_solid = new G4SubtractionSolid("SteelPlateFirstCut",steel_plate_uncut,steel_cutout_for_magnet,rotm,G4ThreeVector(0,0,0));
-       //   DisplayVolume(steel_plate_uncut, hcalenvelope);
-    //    DisplayVolume(steel_cutout_for_magnet, hcalenvelope);
-    //    DisplayVolume(steel_cutout_for_magnet, hcalenvelope,rotm);
-       //    DisplayVolume(steel_firstcut_solid, hcalenvelope);
-      rotm = new G4RotationMatrix();
-                rotm->rotateX(90 * deg);
-       G4VSolid* steel_cut_solid = new G4SubtractionSolid("SteelPlateCut",steel_firstcut_solid,steel_cutout_for_magnet,rotm,G4ThreeVector(0,0,0));
-       //           DisplayVolume(steel_cut_solid, hcalenvelope);
+  G4VSolid* steel_firstcut_solid = new G4SubtractionSolid("SteelPlateFirstCut",steel_plate_uncut,steel_cutout_for_magnet,rotm,G4ThreeVector(0,0,0));
+  //   DisplayVolume(steel_plate_uncut, hcalenvelope);
+  //    DisplayVolume(steel_cutout_for_magnet, hcalenvelope);
+  //    DisplayVolume(steel_cutout_for_magnet, hcalenvelope,rotm);
+  //    DisplayVolume(steel_firstcut_solid, hcalenvelope);
+  rotm = new G4RotationMatrix();
+  rotm->rotateX(90 * deg);
+  G4VSolid* steel_cut_solid = new G4SubtractionSolid("SteelPlateCut",steel_firstcut_solid,steel_cutout_for_magnet,rotm,G4ThreeVector(0,0,0));
+  //           DisplayVolume(steel_cut_solid, hcalenvelope);
  
- return steel_cut_solid;
+  return steel_cut_solid;
 }
 
 void
@@ -398,6 +401,7 @@ PHG4OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
 
   G4Material* Air = G4Material::GetMaterial("G4_AIR");
   G4VSolid* hcal_envelope_cylinder = new G4Tubs("OuterHcal_envelope_solid",  envelope_inner_radius, envelope_outer_radius, envelope_z/2.,0,2*M_PI);
+  volume_envelope = hcal_envelope_cylinder->GetCubicVolume();
   G4LogicalVolume* hcal_envelope_log =  new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("OuterHcal_envelope"), 0, 0, 0);
   G4VisAttributes* hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
@@ -428,8 +432,8 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
   G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(params->material), "HcalOuterSteelPlate", 0, 0, 0);
   G4VisAttributes *visattchk = new G4VisAttributes();
   visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(false);
-  visattchk->SetColour(G4Colour::Magenta());
+  visattchk->SetForceSolid(true);
+  visattchk->SetColour(G4Colour::Grey());
   steel_logical->SetVisAttributes(visattchk);
   double phi = 0;
   double deltaphi = 2 * M_PI / params->n_scinti_plates;
@@ -690,8 +694,8 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalen
       G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i],G4Material::GetMaterial("G4_POLYSTYRENE"),name.str().c_str(), NULL, NULL, g4userlimits);
       G4VisAttributes *visattchk = new G4VisAttributes();
       visattchk->SetVisibility(true);
-      visattchk->SetForceSolid(false);
-      visattchk->SetColour(G4Colour::Cyan());
+      visattchk->SetForceSolid(true);
+      visattchk->SetColour(G4Colour::Green());
       scinti_tile_logic->SetVisAttributes(visattchk);
       assmeblyvol->AddPlacedVolume(scinti_tile_logic,g4vec, NULL);
 
@@ -860,4 +864,18 @@ PHG4OuterHcalDetector::CheckTiltAngle() const
       exit(1);
     }
   return 0;
+}
+
+void
+PHG4OuterHcalDetector::Print(const string &what) const
+{
+  cout << "Outer Hcal Detector:" << endl;
+  if (what == "ALL" || what == "VOLUME")
+    {
+      cout << "Volume Envelope: " << volume_envelope/cm/cm/cm << " cm^3" << endl;
+      cout << "Volume Steel: " << volume_steel/cm/cm/cm << " cm^3" << endl;
+      cout << "Volume Scintillator: " << volume_scintillator/cm/cm/cm << " cm^3" << endl;
+      cout << "Volume Air: " << (volume_envelope - volume_steel - volume_scintillator)/cm/cm/cm << " cm^3" << endl;
+    }
+  return;
 }

@@ -363,7 +363,8 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 
     SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
     
-    cout << "nGtracks = " << truthinfo->GetPrimaryMap().size();
+    cout << "nGtracks = " << std::distance(truthinfo->GetPrimaryParticleRange().first,
+					  truthinfo->GetPrimaryParticleRange().second);
     cout << " => nTracks = ";
     if (trackmap) cout << trackmap->size() << endl;
     else cout << 0 << endl;
@@ -391,11 +392,11 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 	}
       }
 
-      PHG4TruthInfoContainer::Map primarymap = truthinfo->GetPrimaryMap();
-      for (PHG4TruthInfoContainer::Iterator iter = primarymap.begin();
-	   iter != primarymap.end();
+      PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
+      for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
+	   iter != range.second; 
 	   ++iter) {
-      
+	
 	PHG4Particle *particle = iter->second;
 
 	// track-wise information
@@ -1078,10 +1079,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");   
     SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
     if (truthinfo) {
-      PHG4TruthInfoContainer::Map map = truthinfo->GetPrimaryMap();
-      for (PHG4TruthInfoContainer::ConstIterator iter = map.begin(); 
-	   iter != map.end(); 
-	   ++iter) {
+
+      PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
+      for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
+	   iter != range.second; 
+	 ++iter) {
+	
 	PHG4Particle* g4particle = iter->second;
     
 	float gtrackID = g4particle->get_track_id();

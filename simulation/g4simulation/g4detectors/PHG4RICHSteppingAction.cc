@@ -145,15 +145,14 @@ bool PHG4RICHSteppingAction::MakeHit(const G4Step* aStep){
 
   //set the track ID
   {
-    int trkoffset = 0;
+    hit->set_trkid(aTrack->GetTrackID());
     if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
       {
-        if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-          {
-            trkoffset = pp->GetTrackIdOffset();
-          }
+	if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+	  {
+	    hit->set_trkid(pp->GetUserTrackId());
+	  }
       }
-    hit->set_trkid(aTrack->GetTrackID() + trkoffset);
   }
 
   // set optical photon energy deposition to 0

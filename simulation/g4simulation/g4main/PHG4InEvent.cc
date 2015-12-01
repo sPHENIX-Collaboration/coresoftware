@@ -149,9 +149,9 @@ PHG4InEvent::identify(ostream& os) const
   if (!embedded_particlelist.empty())
     {
       os << "embedded particles:" << endl;
-      for (set<PHG4Particle *>::const_iterator iter = embedded_particlelist.begin(); iter != embedded_particlelist.end(); ++iter)
+      for (map<PHG4Particle *,int>::const_iterator iter = embedded_particlelist.begin(); iter != embedded_particlelist.end(); ++iter)
 	{
-	  (*iter)->identify(os);
+	  (iter->first)->identify(os);
 	}
     }
   else
@@ -164,11 +164,12 @@ PHG4InEvent::identify(ostream& os) const
 int
 PHG4InEvent::isEmbeded(PHG4Particle *p) const
 {
-  if (embedded_particlelist.find(p) != embedded_particlelist.end())
-    {
-      return true;
-    }
-  return false;
+  std::map<PHG4Particle*,int>::const_iterator iter = embedded_particlelist.find(p);
+  if (iter == embedded_particlelist.end()) {
+    return 0;
+  }
+
+  return iter->second;
 }
 
 void
