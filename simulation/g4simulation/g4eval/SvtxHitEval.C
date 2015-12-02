@@ -284,6 +284,8 @@ std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Hit* g4hit) {
   }
   
   std::set<SvtxHit*> hits;
+
+  unsigned int hit_layer = g4hit->get_layer();
   
   // loop over all the hits
   for (SvtxHitMap::Iter iter = _hitmap->begin();
@@ -292,7 +294,7 @@ std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Hit* g4hit) {
 
     SvtxHit* hit = iter->second;
 
-    if (hit->get_layer() != g4hit->get_layer()) continue;
+    if (hit->get_layer() != hit_layer) continue;
     
     // loop over all truth hits connected to this hit
     std::set<PHG4Hit*> g4hits = all_truth_hits(hit);
