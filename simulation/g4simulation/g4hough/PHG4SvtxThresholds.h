@@ -29,8 +29,8 @@ class PHG4SvtxThresholds : public SubsysReco
   int End(PHCompositeNode *topNode);
   
   //! set an energy requirement relative to the short-axis MIP expectation
-  void set_threshold(const float fraction_of_mip) {
-    _fraction_of_mip = fraction_of_mip;
+  void set_threshold(const int layer, const float fraction_of_mip) {
+    _fraction_of_mip.insert(std::make_pair(layer,fraction_of_mip));
   }
   float get_threshold_by_layer(const int layer) const {
     if (_thresholds_by_layer.find(layer) == _thresholds_by_layer.end()) return 0.0;
@@ -53,9 +53,9 @@ class PHG4SvtxThresholds : public SubsysReco
   void CalculateLadderThresholds(PHCompositeNode *topNode);
 
   // settings
-  float _fraction_of_mip;
+  std::map<int,float> _fraction_of_mip;
   std::map<int,float> _thresholds_by_layer;
-  std::map<int,bool> _use_thickness_mip;
+  std::map<int,bool>  _use_thickness_mip;
 
   SvtxHitMap* _hits;
   

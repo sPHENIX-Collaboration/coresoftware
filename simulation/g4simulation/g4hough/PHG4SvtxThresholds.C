@@ -21,7 +21,9 @@ using namespace std;
 
 PHG4SvtxThresholds::PHG4SvtxThresholds(const string &name) :
   SubsysReco(name),
-  _fraction_of_mip(0.5),
+  _fraction_of_mip(),
+  _thresholds_by_layer(),
+  _use_thickness_mip(),
   _hits(NULL),
   _timer(PHTimeServer::get()->insert_new(name)) {
 }
@@ -40,7 +42,13 @@ int PHG4SvtxThresholds::InitRun(PHCompositeNode* topNode) {
   
   if (verbosity > 0) {
     cout << "====================== PHG4SvtxThresholds::InitRun() ======================" << endl;
-    cout << " Fraction of expected MIP energy = " << _fraction_of_mip << endl;
+    for (std::map<int,float>::iterator iter = _fraction_of_mip.begin();
+	 iter != _fraction_of_mip.end();
+	 ++iter) {
+      cout << " Fraction of expected MIP energy for Layer #" << iter->first << ": ";
+      cout << iter->second << endl;
+      cout << endl;
+    }
     for (std::map<int,float>::iterator iter = _thresholds_by_layer.begin();
 	 iter != _thresholds_by_layer.end();
 	 ++iter) {
@@ -70,7 +78,7 @@ int PHG4SvtxThresholds::process_event(PHCompositeNode *topNode)
        iter != _hits->end();
        ++iter) {
     SvtxHit* hit = iter->second;
-
+   
     if (hit->get_e() < get_threshold_by_layer(hit->get_layer())) {
       remove_hits.push_back(hit->get_id());
     }
@@ -108,7 +116,10 @@ void PHG4SvtxThresholds::CalculateCylinderThresholds(PHCompositeNode* topNode) {
 
     if (get_use_thickness_mip(layer)) {
       // Si MIP energy = 3.876 MeV / cm
-      float threshold = _fraction_of_mip*0.003876*thickness;
+      float threshold = 0.0;      
+      if (_fraction_of_mip.find(layer) != _fraction_of_mip.end()) {	
+	threshold = _fraction_of_mip[layer]*0.003876*thickness;
+      }	  
       _thresholds_by_layer.insert(std::make_pair(layer,threshold));
     } else {
       float minpath = pitch;
@@ -116,7 +127,10 @@ void PHG4SvtxThresholds::CalculateCylinderThresholds(PHCompositeNode* topNode) {
       if (thickness < minpath) minpath = thickness;
 	
       // Si MIP energy = 3.876 MeV / cm
-      float threshold = _fraction_of_mip*0.003876*minpath;  
+      float threshold = 0.0;      
+      if (_fraction_of_mip.find(layer) != _fraction_of_mip.end()) {	
+	threshold = _fraction_of_mip[layer]*0.003876*minpath;  
+      }	      
       _thresholds_by_layer.insert(std::make_pair(layer,threshold));
     }
   }
@@ -143,7 +157,10 @@ void PHG4SvtxThresholds::CalculateLadderThresholds(PHCompositeNode* topNode) {
 
     if (get_use_thickness_mip(layer)) {
       // Si MIP energy = 3.876 MeV / cm
-      float threshold = _fraction_of_mip*0.003876*thickness;
+      float threshold = 0.0;
+      if (_fraction_of_mip.find(layer) != _fraction_of_mip.end()) {
+	threshold = _fraction_of_mip[layer]*0.003876*thickness;
+      }
       _thresholds_by_layer.insert(std::make_pair(layer,threshold));
     } else {
       float minpath = pitch;
@@ -151,7 +168,10 @@ void PHG4SvtxThresholds::CalculateLadderThresholds(PHCompositeNode* topNode) {
       if (thickness < minpath) minpath = thickness;
       
       // Si MIP energy = 3.876 MeV / cm
-      float threshold = _fraction_of_mip*0.003876*minpath;  
+      float threshold = 0.0;
+      if (_fraction_of_mip.find(layer) != _fraction_of_mip.end()) {
+	threshold = _fraction_of_mip[layer]*0.003876*minpath;
+      }
       _thresholds_by_layer.insert(std::make_pair(layer,threshold));
     }
   }
