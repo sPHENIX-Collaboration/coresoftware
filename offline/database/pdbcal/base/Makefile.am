@@ -5,29 +5,28 @@ lib_LTLIBRARIES = libpdbcalBase.la
 BUILT_SOURCES = \
   testexternals.C
 
-INCLUDES = \
-  -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+INCLUDES = -I$(includedir) -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir`
 
 ROOTIFY  = perl $(srcdir)/PdbRootify.pl
 
 libpdbcalBase_la_LDFLAGS = \
   `root-config --evelibs`
-
 libpdbcalBase_la_LIBADD = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  -lphool
+  -L$(libdir) -L$(OFFLINE_MAIN)/lib -lphool 
 
 #please add new classes sorted according to the roman alphabet
 libpdbcalBase_la_SOURCES = \
+  PHString.C \
+  PHMessage.C \
   PdbApplication.cc \
   PdbApplication_dict.C \
   PdbApplicationFactory.cc \
   PdbApplicationFactory_dict.C \
   PdbBankID.cc \
   PdbBankID_dict.C \
+  PdbBankID2.cc \
+  PdbBankID2_dict.C \
   PdbBankListIterator.cc \
   PdbBankListIterator_dict.C \
   PdbBankList.cc \
@@ -36,9 +35,11 @@ libpdbcalBase_la_SOURCES = \
   PdbBankManager_dict.C \
   PdbBankManagerFactory.cc \
   PdbBankManagerFactory_dict.C \
+  PdbCalBank.cc \
   PdbCalBank_dict.C \
-  PdbCalBase.cc \
-  PdbCalBase_dict.C \
+  PdbCalBankIterator.cc \
+  PdbCalBankIterator_dict.C \
+  PdbCalChan.cc \
   PdbCalChan_dict.C \
   PdbCalHeader.cc \
   PdbCalHeader_dict.C \
@@ -58,12 +59,14 @@ libpdbcalBase_la_SOURCES = \
   PdbMapIntVecFloat_dict.C \
   PdbMapIntInt.cc \
   PdbMapIntInt_dict.C \
+  PdbNames.cc \
   PdbParameter.cc \
   PdbParameter_dict.C \
-  PdbParameterMap.cc \
-  PdbParameterMap_dict.C \
   PdbParameterError.cc \
   PdbParameterError_dict.C \
+  PdbParameterMap.cc \
+  PdbParameterMap_dict.C \
+  PHGenericFactoryT.C \
   RunToTime.cc \
   RunToTime_dict.C \
   RunToTimeFactory.cc \
@@ -72,17 +75,18 @@ libpdbcalBase_la_SOURCES = \
 
 #please add new includes sorted according to the roman alphabet
 pkginclude_HEADERS = \
+  PHString.h \
   Pdb.h \
   PdbApplication.h \
   PdbApplicationFactory.h \
   PdbBankID.h \
+  PdbBankID2.h \
   PdbBankList.h \
   PdbBankListIterator.h \
   PdbBankManager.h \
   PdbBankManagerFactory.h \
   PdbCalBank.h \
   PdbCalBankIterator.h \
-  PdbCalBase.h \
   PdbCalChan.h \
   PdbCalHeader.h \
   PdbCalParameters.h \
@@ -94,9 +98,10 @@ pkginclude_HEADERS = \
   PdbInt.h \
   PdbMapIntVecFloat.h \
   PdbMapIntInt.h \
+  PdbNames.h \
   PdbParameter.h \
-  PdbParameterMap.h \
   PdbParameterError.h \
+  PdbParameterMap.h \
   PHGenericFactoryT.h \
   RunToTime.h \
   RunToTimeFactory.h

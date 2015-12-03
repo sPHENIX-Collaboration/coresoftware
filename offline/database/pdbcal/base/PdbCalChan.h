@@ -13,9 +13,9 @@
 #ifndef __PDBCALCHAN_HH__
 #define __PDBCALCHAN_HH__
 
-#include "PdbCalBase.h"
+#include <TObject.h>
 
-class PdbCalChan : public PdbCalBase{
+class PdbCalChan : public TObject{
 
 public:
   PdbCalChan() {}

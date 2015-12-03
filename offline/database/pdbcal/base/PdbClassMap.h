@@ -1,5 +1,5 @@
-#ifndef PDBCLASSMAP_HH__
-#define PDBCLASSMAP_HH__
+#ifndef __PDBCLASSMAP_HH__
+#define __PDBCLASSMAP_HH__
 
 //
 // This class is a singleton wrapper around the STL-map.
@@ -19,7 +19,7 @@ struct strless :
   std::binary_function<T, T, bool> {
   bool operator()(const T& x, const T& y) const
   {
-    return strcmp(x.c_str(),y.c_str()) < 0;
+    return strcmp(x,y) < 0;
   }
 };
 
@@ -31,17 +31,17 @@ public:
   static PdbClassMap *instance();
   virtual ~PdbClassMap();
 
-  T*& operator [] (const std::string & className) { return _map[className]; }
-  typename std::map<const std::string, T*, strless<const std::string> >::iterator find(const std::string & className) { return _map.find(className); }
-  typename std::map<const std::string, T*, strless<const std::string> >::iterator end() { return _map.end(); }
-  void erase(const std::string & className);
+  T*& operator [] (const char * className) { return _map[className]; }
+  typename std::map<const char*, T*, strless<const char*> >::iterator find(const char * className) { return _map.find(className); }
+  typename std::map<const char*, T*, strless<const char*> >::iterator end() { return _map.end(); }
+  void erase(const char * className);
 
 protected:
   PdbClassMap();
   
 private:
   static PdbClassMap * _instance;
-  std::map<const std::string, T*, strless<const std::string> > _map;
+  std::map<const char*, T*, strless<const char*> > _map;
 };
 
 template <typename T> 
@@ -50,14 +50,14 @@ PdbClassMap<T>::PdbClassMap()
 }
 
 template <typename T> 
-void PdbClassMap<T>::erase(const std::string & className)
+void PdbClassMap<T>::erase(const char * className)
 {
   _map.erase(_map.find(className));
   // if we have no more entries - delete ourselves
   if (_map.size() == 0)
     {
       delete _instance;
-      _instance = NULL;
+      _instance = 0;
     }
 }
 
@@ -81,6 +81,6 @@ PdbClassMap<T>* PdbClassMap<T>::instance()
   return _instance;
 }
 
-template <typename T> PdbClassMap<T>* PdbClassMap<T>::_instance = NULL;
+template <typename T> PdbClassMap<T>* PdbClassMap<T>::_instance = 0;
 
 #endif /* __PDBCLASSMAP_HH__ */

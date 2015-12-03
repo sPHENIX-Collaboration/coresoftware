@@ -3,4 +3,9 @@
 
 typedef int PdbStatus;
 
+#ifdef NULL
+#undef NULL
+#endif
+#define NULL 0
+
 #endif /* __PDB_HH__ */

@@ -9,8 +9,6 @@
 
 #include <phool/phool.h>
 
-#include <string>
-
 class PdbIndex : public PdbCalChan 
 {
 public:
@@ -33,14 +31,14 @@ public:
   
   void setMin(const int val)        { theMinimum = val; }
   void setMax(const int val)        { theMaximum = val; }
-  void setName(const std::string  &name) {theName = name;}
-  bool setValue(const int val);
+  void setName(const char* name);
+  PHBoolean setValue(const int val);
 
 private:
   int   theMinimum;
   int   theMaximum;
   int   theValue;
-  std::string  theName;
+  char  theName[20];
 
   ClassDef(PdbIndex,1);
 };

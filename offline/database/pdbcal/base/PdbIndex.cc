@@ -1,10 +1,11 @@
 //  Implementation of class PdbIndex
 //  Author: Federica Messer
 
-#include "PdbIndex.h"
+#include <PdbIndex.h>
+#include <PHString.h>
 
 #include <cstdlib>
-#include <string>
+#include <cstring>
 #include <iostream>
 
 using namespace std;
@@ -51,8 +52,31 @@ PdbIndex::print() const
        << "\t Present Value :" << theValue    << endl;    
 }
 
+void 
+PdbIndex::setName(const char name[])
+{
+  // this construct protects against not zero terminated strings
+  // it copies only a fixed number of chars into the theName array
+  // (sizeof(theName)-1 leaves space for a zero terminated char
+  // at the end. strlen has problems when used with non zero
+  // terminated strings and might crash
+  // this code might still crash in the cout of name, but that is 
+  // already in the exit() part
+  strncpy(theName,name,(sizeof(theName)-1)); /* Flawfinder: ignore */
+  theName[sizeof(theName)-1] = '\0';
+  if (strncmp(theName,name,sizeof(theName)))
+    {
+      cout << "Name exceeds maximum length of "
+	   << (sizeof(theName)-1) 
+           << " characters or is not zero terminated" << endl;
+      cout << "Max length name: " << theName << endl;
+      cout << "There is no point in continuing, fix your code and try again" << endl;
+      cout << "Name used (code might crash now when printing out not zero terminated string): " << name << endl;
+	exit(1);
+    }
+}
 
-bool 
+PHBoolean 
 PdbIndex::setValue(const int val)
 {
   if (val <= theMaximum && val >= theMinimum)

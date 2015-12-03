@@ -1,4 +1,4 @@
-#include "PdbMapIntVecFloat.h"
+#include <PdbMapIntVecFloat.h>
 #include <phool/phool.h>
 
 #include <iostream>
