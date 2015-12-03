@@ -3,12 +3,14 @@
 
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbBankID.h>
+#include <pdbcalbase/PdbBankID2.h>
+
 #include <phool/PHTimeStamp.h>
 
 #include <TObject.h>
 
 #include <iostream>
-#include <string>
+#include <cstring>
 
 class PgPostCalBank : public PdbCalBank   {
 
@@ -26,20 +28,22 @@ public:
   virtual void setLength(size_t val)      = 0;
    
   virtual  PdbBankID    getBankID()       const { return 0; }
+  virtual  PdbBankID2    getBankID2()       const { return 0; }
   virtual  PHTimeStamp getInsertTime()   const { return PHTimeStamp((time_t)0); }
   virtual  PHTimeStamp getStartValTime() const { return PHTimeStamp((time_t)0); }
   virtual  PHTimeStamp getEndValTime()   const { return PHTimeStamp((time_t)0); }
-  virtual  std::string    getDescription()  const { return 0; }
-  virtual  std::string    getUserName()     const { return 0; }
-  virtual  std::string    getTableName()    const { return 0; }
+  virtual  PHString    getDescription()  const { return 0; }
+  virtual  PHString    getUserName()     const { return 0; }
+  virtual  PHString    getTableName()    const { return 0; }
 
   virtual void setBankID(const PdbBankID & val)          {  }
+  virtual void setBankID2(const PdbBankID2 & val)          {  }
   virtual void setInsertTime(const PHTimeStamp & val)   {  }
   virtual void setStartValTime(const PHTimeStamp & val) {  }
   virtual void setEndValTime(const PHTimeStamp & val)   {  }
-  virtual void setDescription(const std::string & val)     {  }
-  virtual void setUserName(const std::string & val)        {  }
-  virtual void setTableName(const std::string & val)       {  }
+  virtual void setDescription(const PHString & val)     {  }
+  virtual void setUserName(const PHString & val)        {  }
+  virtual void setTableName(const PHString & val)       {  }
 
   virtual int isValid(const PHTimeStamp&) const { return 0; }
 

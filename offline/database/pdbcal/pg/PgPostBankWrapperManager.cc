@@ -1,5 +1,6 @@
-#include "PgPostBankWrapperManager.h"
-#include "PgPostBankWrapper.h"
+#include <PgPostBankWrapperManager.h>
+#include <PgPostBankWrapper.h>
+#include <PgPostBankWrapper2.h>
 
 #include <phool/phool.h>
 
@@ -92,7 +93,29 @@ PgPostBankWrapperManager::registerWrapper(PgPostBankWrapper* wrapper)
   fWrappers.push_back(wrapper);
   return true;
 }
+bool
+PgPostBankWrapperManager::registerWrapper2(PgPostBankWrapper2* wrapper2)
+{
+  if (!wrapper2)
+    {
+      std::cerr << PHWHERE << "Cannot register a null wrapper2!!!"
+		<< std::endl;
+      return false;
+    }
 
+  WVECTOR2::const_iterator it = 
+    std::find(fWrappers2.begin(),fWrappers2.end(),wrapper2);
+
+  if ( it != fWrappers2.end() )
+    {
+      std::cerr << PHWHERE << "This wrapper2 is already registered!!!"
+		<< std::endl;
+      return false;
+    }
+  fWrappers2.push_back(wrapper2);
+  return true;
+}
+//_____________________________________________________________________________
 bool
 PgPostBankWrapperManager::unregisterWrapper(PgPostBankWrapper* wrapper)
 { 
@@ -120,3 +143,30 @@ PgPostBankWrapperManager::unregisterWrapper(PgPostBankWrapper* wrapper)
     }
 }
 
+
+bool
+PgPostBankWrapperManager::unregisterWrapper2(PgPostBankWrapper2* wrapper2)
+{ 
+  if (!wrapper2)
+    {
+      std::cerr << PHWHERE << "Cannot unregister a null wrapper2!!!"
+		<< std::endl;
+      return false;
+    }
+  
+  WVECTOR2::iterator it = 
+    std::find(fWrappers2.begin(),fWrappers2.end(),wrapper2);
+
+  if ( it != fWrappers2.end() )
+    {
+      fWrappers2.erase(it);
+      return true;
+    }
+  else
+    {
+      //      std::cerr << PHWHERE << "This wrapper2 cannot be unregistered, as it's "
+      //	<< " not there !!!!"
+      //	<< std::endl;
+      return false;
+    }
+}

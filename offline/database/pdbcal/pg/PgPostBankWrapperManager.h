@@ -4,6 +4,7 @@
 #include <vector>
 
 class PgPostBankWrapper;
+class PgPostBankWrapper2;
 
 class PgPostBankWrapperManager
 {
@@ -21,6 +22,10 @@ class PgPostBankWrapperManager
 
   bool unregisterWrapper(PgPostBankWrapper* wrapper);
 
+  bool registerWrapper2(PgPostBankWrapper2* wrapper);
+
+  bool unregisterWrapper2(PgPostBankWrapper2* wrapper);
+
  private:
 
   PgPostBankWrapperManager();
@@ -28,6 +33,10 @@ class PgPostBankWrapperManager
   typedef std::vector<PgPostBankWrapper*> WVECTOR;
 
   WVECTOR fWrappers; //!
+
+  typedef std::vector<PgPostBankWrapper2*> WVECTOR2;
+
+  WVECTOR2 fWrappers2; //!
 
 };
 

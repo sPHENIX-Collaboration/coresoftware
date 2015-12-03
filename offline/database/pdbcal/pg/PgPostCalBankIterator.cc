@@ -1,8 +1,10 @@
-#include "PgPostCalBankIterator.h"
+#include <PgPostCalBankIterator.h>
 
-#include "PgPostBankWrapper.h"
-#include "PgPostBankManager.h"
-#include "PgPostApplication.h"
+
+#include <PgPostHelper.h>
+#include <PgPostBankWrapper.h>
+#include <PgPostBankManager.h>
+#include <PgPostApplication.h>
 
 #include <pdbcalbase/PdbBankID.h>
 
@@ -45,7 +47,7 @@ PgPostCalBankIterator::~PgPostCalBankIterator()
 
 //_____________________________________________________________________________
 bool
-PgPostCalBankIterator::init(const string &fulldbname, const PdbBankID& bankid)
+PgPostCalBankIterator::init(const char* fulldbname, const PdbBankID& bankid)
 {
   fDBName=fulldbname;
   fBankID=bankid;
@@ -68,7 +70,7 @@ PgPostCalBankIterator::init(const string &fulldbname, const PdbBankID& bankid)
 
   std::ostringstream query;
 
-  fTableName = fulldbname;
+  fTableName = getTableName(fulldbname);
 
   query << "select * from " << fTableName;
 

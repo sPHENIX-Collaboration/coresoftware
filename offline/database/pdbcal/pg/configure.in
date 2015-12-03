@@ -1,10 +1,13 @@
-AC_INIT(pgcal, [2.0])
-AC_CONFIG_SRCDIR([configure.in])
+AC_INIT(configure.in)
 
-AM_INIT_AUTOMAKE
 
+AM_INIT_AUTOMAKE(pgcal, 1.0)
+
+dnl order is important, if AC_PROG_LIBTOOL is called before AC_PROG_CXX(CC g++)
+dnl it will choose the g++ compiler over CC on Solaris
 AC_PROG_CXX(CC g++)
-LT_INIT([disable-static])
+AC_ENABLE_STATIC(no)
+AC_PROG_LIBTOOL
 
 dnl   no point in suppressing warnings people should
 dnl   at least see them, so here we go for g++: -Wall
@@ -12,5 +15,4 @@ if test $ac_cv_prog_gxx = yes; then
    CXXFLAGS="$CXXFLAGS -Wall -Werror"
 fi
 
-AC_CONFIG_FILES([Makefile])
-AC_OUTPUT
+AC_OUTPUT(Makefile)
