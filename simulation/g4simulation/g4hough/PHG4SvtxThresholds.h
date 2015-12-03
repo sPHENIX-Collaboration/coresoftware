@@ -33,6 +33,7 @@ class PHG4SvtxThresholds : public SubsysReco
     std::cout << "PHG4SvtxThresholds use is out of date. "
 	      << "Continuing with assumption of tracker with <9 layers. "
 	      << "Please update your macros with the latest from GitHub" << std::endl;
+    // remove this function eventually
     _fraction_of_mip[0] = fraction_of_mip;
     _fraction_of_mip[1] = fraction_of_mip;
     _fraction_of_mip[2] = fraction_of_mip;
