@@ -57,7 +57,7 @@ bool PgPostBankWrapper::commit()
       TSQLConnection *con = ap->getConnection();
       
       ostringstream sqlcmd;
-      sqlcmd << "insert into " << ((*this).getTableName())
+      sqlcmd << "insert into " << ((*this).getTableName()).getString()
 	<< " values(?,?,?,?,?,?,?);";
       cout << "query: " << sqlcmd.str() << endl;
       TSQLPreparedStatement* pstmt = con->PrepareStatement(sqlcmd.str().c_str());
@@ -65,8 +65,8 @@ bool PgPostBankWrapper::commit()
       pstmt->SetLong(2, ((*this).getInsertTime()).getTics());
       pstmt->SetLong(3, ((*this).getStartValTime()).getTics());
       pstmt->SetLong(4, ((*this).getEndValTime()).getTics());
-      pstmt->SetString(5, ((*this).getDescription()));
-      pstmt->SetString(6, ((*this).getUserName()));
+      pstmt->SetString(5, ((*this).getDescription()).getString());
+      pstmt->SetString(6, ((*this).getUserName()).getString());
       pstmt->SetObject(7, this);
       int res = 0;
       res = pstmt->ExecuteUpdate();
@@ -91,3 +91,52 @@ bool PgPostBankWrapper::commit()
     }
 }
 
+void
+PgPostBankWrapper::setDescription(const PHString & val)
+{
+  // strncpy does not append \0 if number of characters in input string
+  // exceed number of chars in output string
+  // so we set the last char to \0 by hand
+  strncpy(description, val.getString(),sizeof(description)-1);
+  description[sizeof(description)-1] = '\0';
+  if (strlen(val.getString()) > strlen(description))
+    {
+      cout << "description string length " << strlen(val.getString())
+	   << " exceeds maximum length of " << sizeof(description)
+	   << " description used in DB: " << endl << description
+	   << endl;
+    }
+}
+
+void
+PgPostBankWrapper::setUserName(const PHString & val)
+{
+  // strncpy does not append \0 if number of characters in input string
+  // exceed number of chars in output string
+  // so we set the last char to \0 by hand
+  strncpy(userName, val.getString(),sizeof(userName)-1);
+  userName[sizeof(userName)-1] = '\0';
+  if (strlen(val.getString()) > strlen(userName))
+    {
+      cout << "userName string length " << strlen(val.getString())
+	   << " exceeds maximum length of " << sizeof(userName)
+	   << " userName used in DB: " << endl << userName
+	   << endl;
+    }
+}
+
+void
+PgPostBankWrapper::setTableName(const PHString & val)
+{
+  if (strlen(val.getString()) > sizeof(tableName))
+    {
+      cout << "length of tablename " << val
+	   << " exceeds max length " << sizeof(tableName)
+	   << " fatal, exiting now" << endl;
+      exit(1);
+    }
+  // the above if should take care of overflows and the following use of strncpy
+  // is not needed. I just want to avoid the use of strcpy
+  strncpy(tableName, val.getString(),sizeof(tableName)-1);
+  tableName[sizeof(tableName)-1] = '\0';
+}

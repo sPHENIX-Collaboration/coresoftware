@@ -11,8 +11,10 @@
 #include "PgPostBankBackupStorage.h"
 
 #include "PgPostBankManager.h"
+#include "PgPostHelper.h"
 #include "PgPostCalBankIterator.h"
 #include "PgPostBankWrapper.h"
+#include "PgPostBankWrapper2.h"
 #include "PgPostApplication.h"
 #include "PgPostCalBank.h"
 
@@ -37,7 +39,8 @@ PgPostBankBackupStorage::PgPostBankBackupStorage(PdbCalBank * b) :
       exit(1);
     }
 
-  if (string(b->ClassName()) == string("PgPostBankWrapper"))
+  if (string(b->ClassName()) == string("PgPostBankWrapper")
+      or string(b->ClassName()) == string("PgPostBankWrapper2"))
     {
       cout
           << "PgPostBankBackupStorage::PgPostBankBackupStorage - Fatal Error - "
@@ -87,6 +90,12 @@ PgPostBankBackupStorage::createBank()
       bw = new PgPostBankWrapper(b_clone);
       assert(bw);
       bw->setBankID(obj_header.getBankID());
+    }
+  else if (obj_classname == "PgPostBankWrapper2")
+    {
+      bw = new PgPostBankWrapper2(b_clone);
+      assert(bw);
+      bw->setBankID2(obj_header.getBankID());
     }
   else if (obj_classname == "PgPostCalBank")
     {
@@ -162,6 +171,10 @@ PgPostBankBackupStorage::set_obj_info(const PgPostCalBank * bw)
     {
       obj_header.setBankID(bw->getBankID().getInternalValue());
     }
+  else if (string(bw->ClassName()) == string("PgPostBankWrapper2"))
+    {
+      obj_header.setBankID(bw->getBankID2().getInternalValue());
+    }
   else if (string(bw->ClassName()) == string("PgPostCalBank"))
     {
       cout
@@ -186,9 +199,12 @@ PgPostBankBackupStorage::set_obj_info(const PgPostCalBank * bw)
   obj_header.setInsertTime(bw->getInsertTime());
   obj_header.setStartValTime(bw->getStartValTime());
   obj_header.setEndValTime(bw->getEndValTime());
-  obj_header.setDescription(bw->getDescription());
-  obj_header.setUserName(bw->getUserName());
-  obj_header.setTableName(bw->getTableName());
+  if (bw->getDescription().getString())
+    obj_header.setDescription(bw->getDescription().getString());
+  if (bw->getUserName().getString())
+    obj_header.setUserName(bw->getUserName().getString());
+  if (bw->getTableName().getString())
+    obj_header.setTableName(bw->getTableName().getString());
 }
 
 void
@@ -233,7 +249,8 @@ PgPostBankBackupStorage::isValid() const
           << endl;
       return false;
     }
-  if (string(bank->ClassName()) == string("PgPostBankWrapper"))
+  if (string(bank->ClassName()) == string("PgPostBankWrapper")
+      or string(bank->ClassName()) == string("PgPostBankWrapper2"))
     {
       cout
           << "PgPostBankBackupStorage::isValid - Failed - incorrect bank object"

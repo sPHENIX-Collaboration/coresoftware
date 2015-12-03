@@ -1,12 +1,12 @@
 #include "PgPostApplication.h"
 #include "PgPostBankWrapperManager.h"
 #include "PgPostBankWrapper.h"
+#include "PgPostBankWrapper2.h"
 
 #include <pdbcalbase/PdbApplicationFactory.h>
 
 #include <RDBC/TSQL.h>
 #include <RDBC/TSQLDriverManager.h>
-#include <RDBC/TSQLConnection.h>
 
 #include <sstream>
 
@@ -157,7 +157,17 @@ PgPostApplication::commit(PdbCalBank *b){
   if (tb) {
     return tb->commit(); 
   }
-  return 0;
+  else {
+
+    PgPostBankWrapper2 *tb2 = dynamic_cast<PgPostBankWrapper2*>(b);
+    if (tb2) {
+      return tb2->commit(); 
+    }
+    else {
+      cerr << PHWHERE << "Can only commit PgPostBankWrapper2" << endl;
+      return 0;
+    }
+  }
 }
 
 PdbStatus
@@ -166,7 +176,17 @@ PgPostApplication::commit(PdbCalBank *b, int rid, long it,long st,long et){
   if (tb) {
     return tb->commit(); 
   }
-  return 0;
+  else {
+
+    PgPostBankWrapper2 *tb2 = dynamic_cast<PgPostBankWrapper2*>(b);
+    if (tb2) {
+      return tb2->commit_rid(rid,it,st,et); 
+    }
+    else {
+      cerr << PHWHERE << "Can only commit PgPostBankWrapper2" << endl;
+      return 0;
+    }
+  }
 }
 
 int

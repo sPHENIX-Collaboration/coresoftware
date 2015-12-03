@@ -1,7 +1,7 @@
-// $Id: PgPostBankBackupLog.h,v 1.2 2014/05/19 17:06:23 jinhuang Exp $
+// $Id: PgPostBankBackupLog.hh,v 1.2 2014/05/19 17:06:23 jinhuang Exp $
 
 /*!
- * \file PgPostBankBackupLog.h
+ * \file PgPostBankBackupLog.hh
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.2 $
@@ -12,7 +12,6 @@
 #define PgPostBankBackupLog_HH_
 
 #include <pdbcalbase/PdbCalChan.h>
-
 #include <phool/PHTimeStamp.h>
 
 #include <string>

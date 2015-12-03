@@ -2,12 +2,13 @@
 #define PGPOSTAPPLICATION_H
 
 #include <pdbcalbase/PdbApplication.h>
-#include <phool/phool.h>
 #include <pdbcalbase/Pdb.h>
 
-#include <string>
+#include <phool/phool.h>
 
-class TSQLConnection;
+#include <RDBC/TSQLConnection.h>
+
+#include <string>
 
 class PgPostApplication : public PdbApplication{ 
 
