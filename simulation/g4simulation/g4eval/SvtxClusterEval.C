@@ -263,6 +263,8 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit) {
   }
   
   std::set<SvtxCluster*> clusters;
+
+  unsigned int hit_layer = truthhit->get_layer();
   
   // loop over all the clusters
   for (SvtxClusterMap::Iter iter = _clustermap->begin();
@@ -270,6 +272,8 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit) {
        ++iter) {
 
     SvtxCluster* cluster = iter->second;
+
+    if (cluster->get_layer() != hit_layer) continue;
 
     // loop over all truth hits connected to this cluster
     std::set<PHG4Hit*> hits = all_truth_hits(cluster);
