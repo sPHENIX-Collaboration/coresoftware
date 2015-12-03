@@ -1,5 +1,5 @@
-#ifndef RUNTOTIMEFACTORY__H
-#define RUNTOTIMEFACTORY__H
+#ifndef __RunToTimeFactory_hh__
+#define __RunToTimeFactory_hh__
 
 #include "PHGenericFactoryT.h"
 #include "RunToTime.h"

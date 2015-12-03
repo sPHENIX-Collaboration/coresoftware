@@ -1,5 +1,5 @@
-#ifndef __RUNTOTIME_HH__
-#define __RUNTOTIME_HH__
+#ifndef RUNTOTIME_HH__
+#define RUNTOTIME_HH__
 
 class PHTimeStamp;
 
@@ -22,4 +22,4 @@ public:
 };
 
 
-#endif /* __RUNTOTIME_HH__ */
+#endif /* RUNTOTIME_HH__ */

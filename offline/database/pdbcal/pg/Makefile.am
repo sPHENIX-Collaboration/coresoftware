@@ -38,6 +38,8 @@ libPgCal_la_SOURCES = \
   PgPostBankManager_dict.C \
   PgPostBankWrapper.cc \
   PgPostBankWrapper_dict.C \
+  PgPostBankWrapper2.cc \
+  PgPostBankWrapper2_dict.C \
   PgPostBankWrapperManager.cc \
   PgPostBankWrapperManager_dict.C \
   PgPostBankBackupManager.cc \
@@ -49,6 +51,7 @@ libPgCal_la_SOURCES = \
   PgPostCalBank.cc \
   PgPostCalBank_dict.C \
   PgPostCalBankIterator.cc \
+  PgPostCalBankIterator2.cc \
   PgPostCalParametersBank.cc \
   PgPostCalParametersBank_dict.C \
   PgPostCoordinateBank.cc \
@@ -57,6 +60,7 @@ libPgCal_la_SOURCES = \
   PgPostDoubleBank_dict.C \
   PgPostFloatVectorBank.cc \
   PgPostFloatVectorBank_dict.C \
+  PgPostHelper.cc \
   PgPostIndexBank_dict.C \
   PgPostIndexBank.cc \
   PgPostIntBank.cc \
@@ -67,10 +71,10 @@ libPgCal_la_SOURCES = \
   PgPostMapIntIntBank_dict.C \
   PgPostParameterBank.cc \
   PgPostParameterBank_dict.C \
-  PgPostParameterMapBank.cc \
-  PgPostParameterMapBank_dict.C \
   PgPostParameterErrorBank.cc \
   PgPostParameterErrorBank_dict.C \
+  PgPostParameterMapBank.cc \
+  PgPostParameterMapBank_dict.C \
   RunToTimePg.cc \
   RunToTimePg_dict.C
 
@@ -113,5 +117,3 @@ PgPost%Bank.h PgPost%Bank.cc:
 clean-local:
 	rm -rf *_dict*
 	rm -rf *_LinkDef.h
-	rm -rf PgPost*Bank.cc
-	rm -rf PgPost*Bank.h
