@@ -39,14 +39,14 @@ int PHG4SvtxThresholds::InitRun(PHCompositeNode* topNode) {
   
   CalculateCylinderThresholds(topNode);
   CalculateLadderThresholds(topNode);
-  
+
   if (verbosity > 0) {
     cout << "====================== PHG4SvtxThresholds::InitRun() ======================" << endl;
     for (std::map<int,float>::iterator iter = _fraction_of_mip.begin();
 	 iter != _fraction_of_mip.end();
 	 ++iter) {
       cout << " Fraction of expected MIP energy for Layer #" << iter->first << ": ";
-      cout << iter->second << endl;
+      cout << iter->second;
       cout << endl;
     }
     for (std::map<int,float>::iterator iter = _thresholds_by_layer.begin();
