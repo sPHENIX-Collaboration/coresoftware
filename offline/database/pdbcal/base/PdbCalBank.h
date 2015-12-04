@@ -6,9 +6,8 @@
 #define PDBCALBANK_HH__
 
 #include "PdbBankID.h"
-#include "PdbBankID2.h"
 
-#include "phool/PHTimeStamp.h"
+#include <phool/PHTimeStamp.h>
 
 #include <TObject.h>
 
@@ -17,8 +16,6 @@
 
 class PdbCalChan;
 class PHTimeStamp;
-class PdbBankID;
-class PdbBankID2;
 
 class PdbCalBank : public  TObject 
 {
@@ -39,7 +36,6 @@ public:
    // Access functions for the header
    //
    virtual PdbBankID   getBankID()       const = 0;
-   virtual PdbBankID2  getBankID2()      const = 0;
    virtual PHTimeStamp getInsertTime()   const = 0;
    virtual PHTimeStamp getStartValTime() const = 0;
    virtual PHTimeStamp getEndValTime()   const = 0;
@@ -47,7 +43,6 @@ public:
    virtual std::string    getUserName()     const = 0;
    
    virtual void setBankID(const PdbBankID &)         = 0; 
-   virtual void setBankID2(const PdbBankID2 &)       = 0;
    virtual void setInsertTime(const PHTimeStamp &)   = 0;
    virtual void setStartValTime(const PHTimeStamp &) = 0;
    virtual void setEndValTime(const PHTimeStamp &)   = 0;

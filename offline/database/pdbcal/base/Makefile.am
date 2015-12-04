@@ -23,8 +23,6 @@ libpdbcalBase_la_SOURCES = \
   PdbApplicationFactory_dict.C \
   PdbBankID.cc \
   PdbBankID_dict.C \
-  PdbBankID2.cc \
-  PdbBankID2_dict.C \
   PdbBankListIterator.cc \
   PdbBankListIterator_dict.C \
   PdbBankList.cc \
@@ -58,7 +56,6 @@ pkginclude_HEADERS = \
   PdbApplication.h \
   PdbApplicationFactory.h \
   PdbBankID.h \
-  PdbBankID2.h \
   PdbBankList.h \
   PdbBankListIterator.h \
   PdbBankManager.h \

@@ -2,11 +2,10 @@
 //  Purpose: Abstract factory class to handle banks
 //  Author: Matthias Messer
 
-#ifndef __PDBBANKMANAGER_HH__
-#define __PDBBANKMANAGER_HH__
+#ifndef PDBBANKMANAGER_HH__
+#define PDBBANKMANAGER_HH__
 
 #include "PdbBankID.h"
-#include "PdbBankID2.h"
 
 #include <phool/PHTimeStamp.h>
 #include <phool/phool.h>
@@ -42,14 +41,6 @@ public:
 				 PHTimeStamp &,
 				 PHTimeStamp &,
 				 const char *) = 0;
-  virtual PdbCalBank* createBank(const char *,
-				 PdbBankID2,
-				 const char *,
-				 PHTimeStamp &,
-				 PHTimeStamp &,
-				 const char *) = 0;
-
-
 
   // create bank with run number as key
   virtual PdbCalBank* createBank(const int,
@@ -59,14 +50,6 @@ public:
 				 const char *,
 				 const time_t duration=60) = 0;
 
-  virtual PdbCalBank* createBank(const int,
-				 const char *,
-				 PdbBankID2,
-				 const char *,
-				 const char *,
-				 const time_t duration=60) = 0;
-
-
   // create bank for a given range of run numbers rather than timestamps
   virtual PdbCalBank* createBank(const int,
 				 const int,
@@ -75,23 +58,10 @@ public:
 				 const char *,
 				 const char *) = 0;
   
- virtual PdbCalBank* createBank(const int,
-				 const int,
-				 const char *,
-				 PdbBankID2,
-				 const char *,
-				 const char *) = 0;
-
   virtual PdbCalBank* fetchBank(const char *,
 				PdbBankID,
 				const char *,
 				const int) = 0;
-
-  virtual PdbCalBank* fetchBank(const char *,
-				PdbBankID2,
-				const char *,
-				const int) = 0;
-
 
   virtual PdbCalBank* fetchClosestBank(const char *,
 				       PdbBankID,
@@ -110,12 +80,6 @@ public:
 
   virtual PdbCalBank* fetchBank(const char *,
 				PdbBankID,
-				const char *,
-				const PHTimeStamp &) = 0;
-
-
-  virtual PdbCalBank* fetchBank(const char *,
-				PdbBankID2,
 				const char *,
 				const PHTimeStamp &) = 0;
 
@@ -149,7 +113,6 @@ protected:
 
   static  PdbBankManager *__instance; 
 
-
 };
 
-#endif /* __PDBBANKMANAGER_HH__ */
+#endif /* PDBBANKMANAGER_HH__ */
