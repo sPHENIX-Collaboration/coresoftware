@@ -45,9 +45,6 @@ libpdbcalBase_la_SOURCES = \
   PdbCalChan_dict.C \
   PdbCalHeader.cc \
   PdbCalHeader_dict.C \
-  PdbCalParameters.cc \
-  PdbCalParameters_dict.C \
-  PdbNames.cc \
   PdbParameter.cc \
   PdbParameter_dict.C \
   PdbParameterError.cc \
@@ -77,9 +74,7 @@ pkginclude_HEADERS = \
   PdbCalBankIterator.h \
   PdbCalChan.h \
   PdbCalHeader.h \
-  PdbCalParameters.h \
   PdbClassMap.h \
-  PdbNames.h \
   PdbParameter.h \
   PdbParameterError.h \
   PdbParameterMap.h \
