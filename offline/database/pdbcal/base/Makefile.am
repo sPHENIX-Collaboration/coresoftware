@@ -37,8 +37,6 @@ libpdbcalBase_la_SOURCES = \
   PdbCalBank_dict.C \
   PdbCalBankIterator.cc \
   PdbCalBankIterator_dict.C \
-  PdbCalBase.cc \
-  PdbCalBase_dict.C \
   PdbCalChan.cc \
   PdbCalChan_dict.C \
   PdbParameter.cc \
