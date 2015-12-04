@@ -45,9 +45,7 @@ libpdbcalBase_la_SOURCES = \
   PdbParameterMap_dict.C \
   PHGenericFactoryT.C \
   RunToTime.cc \
-  RunToTime_dict.C \
-  RunToTimeFactory.cc \
-  RunToTimeFactory_dict.C
+  RunToTime_dict.C
 
 
 #please add new includes sorted according to the roman alphabet
@@ -68,8 +66,7 @@ pkginclude_HEADERS = \
   PdbParameterError.h \
   PdbParameterMap.h \
   PHGenericFactoryT.h \
-  RunToTime.h \
-  RunToTimeFactory.h
+  RunToTime.h
 
 noinst_PROGRAMS = \
   testexternals
