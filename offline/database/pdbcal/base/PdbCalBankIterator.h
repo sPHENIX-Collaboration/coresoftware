@@ -13,7 +13,7 @@ class PdbCalBankIterator
 public:
   virtual ~PdbCalBankIterator();
 
-  virtual bool init(const char* fulldbname, const PdbBankID& bankid) = 0;
+  virtual bool init(const std::string &fulldbname, const PdbBankID& bankid) = 0;
   
   virtual bool isValid() const = 0;
 

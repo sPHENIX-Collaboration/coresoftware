@@ -1,6 +1,5 @@
 #include "PgPostBankBackupLog.h"
 #include "PgPostBankManager.h"
-#include "PgPostHelper.h"
 #include "PgPostCalBankIterator.h"
 #include "PgPostBankWrapper.h"
 #include "PgPostApplication.h"
