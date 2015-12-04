@@ -84,7 +84,7 @@ PgPostBankManager::getIterator()
 }
 
 PdbCalBank* 
-PgPostBankManager::createBank(const int beginRunNumber, const int endRunNumber, const char *className, PdbBankID bankID, const char *description, const char *bankName)
+PgPostBankManager::createBank(const int beginRunNumber, const int endRunNumber, const string &className, PdbBankID bankID, const string &description, const string &bankName)
 {
   RunToTime *runTime = RunToTime::instance();
 
@@ -125,7 +125,7 @@ PgPostBankManager::createBank(const int beginRunNumber, const int endRunNumber, 
 
 
 PdbCalBank* 
-PgPostBankManager::createBank(const int runNumber, const char *className, PdbBankID bankID, const char *description, const char *bankName, const time_t duration)
+PgPostBankManager::createBank(const int runNumber, const string &className, PdbBankID bankID, const string &description, const string &bankName, const time_t duration)
 {
   RunToTime *runTime = RunToTime::instance();
 
@@ -152,7 +152,7 @@ PgPostBankManager::createBank(const int runNumber, const char *className, PdbBan
 
 
 PdbCalBank* 
-PgPostBankManager::createBank(const char *className, PdbBankID bankID, const char* descr, PHTimeStamp & tStart, PHTimeStamp & tStop, const char *tablename)
+PgPostBankManager::createBank(const string &className, PdbBankID bankID, const string &descr, PHTimeStamp & tStart, PHTimeStamp & tStop, const string &tablename)
 {
 
   string realName = getRealName(className);
@@ -160,7 +160,6 @@ PgPostBankManager::createBank(const char *className, PdbBankID bankID, const cha
   PdbClassMap<PdbCalBank> *classMap = PdbClassMap<PdbCalBank>::instance();
   if (classMap->find(rName) != classMap->end())
     {
-      std::string a = getTableName(tablename);
       PdbCalBank *b = (*classMap)[rName];
       PdbCalBank *b1 = b->clone();
       PgPostBankWrapper *bw = new PgPostBankWrapper(b1);
@@ -171,7 +170,7 @@ PgPostBankManager::createBank(const char *className, PdbBankID bankID, const cha
       bw->setEndValTime(tStop);
       bw->setDescription(descr);
       bw->setUserName("pdbcal");
-      bw->setTableName(a.c_str());
+      bw->setTableName(tablename);
       return bw;
     }
   else
@@ -184,7 +183,7 @@ PgPostBankManager::createBank(const char *className, PdbBankID bankID, const cha
 
 
 PdbCalBank* 
-PgPostBankManager::fetchBank(const char *className, PdbBankID bankID, const char *bankName, const int runNumber)
+PgPostBankManager::fetchBank(const string &className, PdbBankID bankID, const string &bankName, const int runNumber)
 {
   RunToTime *runTime = RunToTime::instance();
 
@@ -200,7 +199,7 @@ PgPostBankManager::fetchBank(const char *className, PdbBankID bankID, const char
 
 
 PdbCalBank* 
-PgPostBankManager::fetchClosestBank(const char *className, PdbBankID bankID, const char *bankName, const int runNumber)
+PgPostBankManager::fetchClosestBank(const string &className, PdbBankID bankID, const string &bankName, const int runNumber)
 {
   RunToTime *runTime = RunToTime::instance();
 
@@ -216,7 +215,7 @@ PgPostBankManager::fetchClosestBank(const char *className, PdbBankID bankID, con
 
 
 
-// void PgPostBankManager::fetchAllBanks(PdbBankList & bankList, const char *className, PdbBankID bankID, const char *bankName, const int runNumber)
+// void PgPostBankManager::fetchAllBanks(PdbBankList & bankList, const string &className, PdbBankID bankID, const string &bankName, const int runNumber)
 // {
 //   RunToTime *runTime = RunToTime::instance();
 
@@ -230,7 +229,7 @@ PgPostBankManager::fetchClosestBank(const char *className, PdbBankID bankID, con
 
 // }
 
-// void PgPostBankManager::fetchAllBanks(PdbBankList & bankList, const char *className, const char *bankName, const int runNumber)
+// void PgPostBankManager::fetchAllBanks(PdbBankList & bankList, const string &className, const string &bankName, const int runNumber)
 // {
 //   RunToTime *runTime = RunToTime::instance();
 
@@ -244,13 +243,12 @@ PgPostBankManager::fetchClosestBank(const char *className, PdbBankID bankID, con
 // }
 
 //__________________________________________________________________________________
-PdbCalBank* PgPostBankManager::fetchBank(const char *className, PdbBankID bankID, const char *bankName, const PHTimeStamp &searchTime)
+PdbCalBank* PgPostBankManager::fetchBank(const string &className, PdbBankID bankID, const string &bankName, const PHTimeStamp &searchTime)
 {
 #ifdef DEBUG
   cout << "Fetching " << className << " from " << bankName << endl;
 #endif
 
-  std::string a = getTableName(bankName);
   PgPostApplication* ap = PgPostApplication::instance();
   if (!ap)
     {
@@ -271,7 +269,7 @@ PdbCalBank* PgPostBankManager::fetchBank(const char *className, PdbBankID bankID
   std::ostringstream t2;
 
   // cout << bankID.getInternalValue() << endl;
-  t2 << "select * from " << a
+  t2 << "select * from " << bankName
      << " where bankID = " << bankID.getInternalValue()
      << " and startvaltime <= " << sT
      << " and endvaltime > " << sT;
@@ -302,7 +300,7 @@ PdbCalBank* PgPostBankManager::fetchBank(const char *className, PdbBankID bankID
     bw->setEndValTime(rs->GetLong(4));
     bw->setDescription(string(rs->GetString(5)));
     bw->setUserName(string(rs->GetString(6)));
-    bw->setTableName(a);
+    bw->setTableName(bankName);
     #ifdef DEBUG
     bw->printHeader();
     #endif
@@ -313,7 +311,7 @@ PdbCalBank* PgPostBankManager::fetchBank(const char *className, PdbBankID bankID
     Remark: when the key "a" is not already in the map, it is inserted automatically by the call below,
     using the default constructor of the object associated to the key, here std::set<int> 
     */
-    BankRid[a].insert(rid);
+    BankRid[bankName].insert(rid);
     return bw;
     
   } else {
@@ -324,7 +322,7 @@ PdbCalBank* PgPostBankManager::fetchBank(const char *className, PdbBankID bankID
 
 //__________________________________________________________________________________
 PdbCalBank* 
-PgPostBankManager::fetchClosestBank(const char *className, PdbBankID bankID, const char *bankName, PHTimeStamp &searchTime)
+PgPostBankManager::fetchClosestBank(const string &className, PdbBankID bankID, const string &bankName, PHTimeStamp &searchTime)
 { 
   cout << PHWHERE << " PdbBankManager::fetchClosestBank: This method is not implemented" << endl;
   exit(1);
@@ -332,7 +330,7 @@ PgPostBankManager::fetchClosestBank(const char *className, PdbBankID bankID, con
 
 
 
-// void PgPostBankManager::fetchAllBanks(PdbBankList & bankList, const char *className, PdbBankID bankID, const char *bankName, PHTimeStamp &searchTime)
+// void PgPostBankManager::fetchAllBanks(PdbBankList & bankList, const string &className, PdbBankID bankID, const string &bankName, PHTimeStamp &searchTime)
 // {
 // #ifdef DEBUG
 //   cout << "Fetching " << className << " from " << bankName << endl;
@@ -381,7 +379,7 @@ PgPostBankManager::fetchClosestBank(const char *className, PdbBankID bankID, con
 // }
 
 
-// void PgPostBankManager::fetchAllBanks(PdbBankList & bankList, const char *className, const char *bankName, PHTimeStamp &searchTime)
+// void PgPostBankManager::fetchAllBanks(PdbBankList & bankList, const string &className, const string &bankName, PHTimeStamp &searchTime)
 // {
 // #ifdef DEBUG
 //   cout << "Fetching " << className << " from " << bankName << endl;
