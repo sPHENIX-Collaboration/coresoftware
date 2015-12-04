@@ -39,26 +39,14 @@ libpdbcalBase_la_SOURCES = \
   PdbCalBank_dict.C \
   PdbCalBankIterator.cc \
   PdbCalBankIterator_dict.C \
+  PdbCalBase.cc \
+  PdbCalBase_dict.C \
   PdbCalChan.cc \
   PdbCalChan_dict.C \
   PdbCalHeader.cc \
   PdbCalHeader_dict.C \
   PdbCalParameters.cc \
   PdbCalParameters_dict.C \
-  PdbCoordinate.cc \
-  PdbCoordinate_dict.C \
-  PdbDouble.cc \
-  PdbDouble_dict.C \
-  PdbFloatVector.cc \
-  PdbFloatVector_dict.C \
-  PdbIndex.cc \
-  PdbIndex_dict.C \
-  PdbInt.cc \
-  PdbInt_dict.C \
-  PdbMapIntVecFloat.cc \
-  PdbMapIntVecFloat_dict.C \
-  PdbMapIntInt.cc \
-  PdbMapIntInt_dict.C \
   PdbNames.cc \
   PdbParameter.cc \
   PdbParameter_dict.C \
@@ -91,13 +79,6 @@ pkginclude_HEADERS = \
   PdbCalHeader.h \
   PdbCalParameters.h \
   PdbClassMap.h \
-  PdbCoordinate.h \
-  PdbDouble.h \
-  PdbFloatVector.h \
-  PdbIndex.h \
-  PdbInt.h \
-  PdbMapIntVecFloat.h \
-  PdbMapIntInt.h \
   PdbNames.h \
   PdbParameter.h \
   PdbParameterError.h \
