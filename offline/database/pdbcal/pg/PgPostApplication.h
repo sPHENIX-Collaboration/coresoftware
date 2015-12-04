@@ -26,13 +26,11 @@ class PgPostApplication : public PdbApplication{
   PdbStatus abort();
   PdbStatus isActive() { return 0; }
   TSQLConnection * getConnection();
-  size_t getTagFileSize(const char *)  { return 0; }
-  size_t getCalFileSize(const char * ) { return 0; }
 
   static int Register(const std::string &dbname = "calibrations");
   static int releaseConnection( );
   static PgPostApplication *instance();
-  int setDBName(const char *name);
+  int setDBName(const std::string &name);
   int DisconnectDB();
 
  protected:

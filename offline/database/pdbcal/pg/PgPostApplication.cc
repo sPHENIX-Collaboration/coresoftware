@@ -88,12 +88,11 @@ TSQLConnection * PgPostApplication::getConnection()
 }
 
 int
-PgPostApplication::setDBName(const char *name)
+PgPostApplication::setDBName(const string &name)
 {
-  string newname = name;
-  if (dsn != newname)
+  if (dsn != name)
     {
-      dsn = newname;
+      dsn = name;
       if (con)
         {
           con->Close();
@@ -109,7 +108,8 @@ PgPostApplication::setDBName(const char *name)
   return 0;
 }
 
-PdbStatus PgPostApplication::startUpdate()
+PdbStatus
+PgPostApplication::startUpdate()
 {
   readOnly = 0;
   return 1;
