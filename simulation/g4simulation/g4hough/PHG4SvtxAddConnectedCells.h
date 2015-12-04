@@ -32,14 +32,14 @@ public:
 
   void set_phi_offset(const int offset) {
     connected_phi_offset = offset;
-    std::cout << " PHG4SvtxAddConnectedCells: phi bins offset for connected cells set to " << connected_phi_offset << std::endl;
+    if (verbosity) std::cout << " PHG4SvtxAddConnectedCells: phi bins offset for connected cells set to " << connected_phi_offset << std::endl;
   }
   
   void set_ncells_connected(const int layer, const int connected) {
     if(layer < 19)
       {
 	ncells_connected[layer] = connected;
-	std::cout << " PHG4SvtxAddConnectedCells: number of connected cells for layer " << layer << " set to " << connected << std::endl;
+	if (verbosity > 0) std::cout << " PHG4SvtxAddConnectedCells: number of connected cells for layer " << layer << " set to " << connected << std::endl;
       }
     else
       std::cout << " ********* Layer number exceeds maximum layer number of 19, doing nothing!" << std::endl;

@@ -156,7 +156,7 @@ int SvtxEvaluator::process_event(PHCompositeNode *topNode) {
   //---------------------------
   // fill the Evaluator NTuples
   //---------------------------
-  
+
   fillOutputNtuples(topNode);
   
   //--------------------------------------------------

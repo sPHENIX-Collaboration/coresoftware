@@ -51,11 +51,12 @@ PHG4SvtxAddConnectedCells::PHG4SvtxAddConnectedCells(const string &name) :
   ncells_connected[5] = 2;
   ncells_connected[6] = 5;
 
-  cout << "PHG4SvtxAddConnectedCells: Default settings are: " << endl;
-  cout << "phi bins offset for connected cells " << connected_phi_offset << endl;
-  for(int i=0; i<7;i++)
-    cout << " number of connected cells for layer " << i << " is " << ncells_connected[i] << endl;
-  
+  if (verbosity > 0) {
+    cout << "PHG4SvtxAddConnectedCells: Default settings are: " << endl;
+    cout << "phi bins offset for connected cells " << connected_phi_offset << endl;
+    for(int i=0; i<7;i++)
+      cout << " number of connected cells for layer " << i << " is " << ncells_connected[i] << endl;
+  }
 }
 
 int PHG4SvtxAddConnectedCells::InitRun(PHCompositeNode* topNode) {
