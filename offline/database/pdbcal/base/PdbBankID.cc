@@ -9,7 +9,6 @@
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
 #include "PdbBankID.h"
-#include "PHString.h"
 #include <iostream>
 
 PdbBankID::PdbBankID(const int val)

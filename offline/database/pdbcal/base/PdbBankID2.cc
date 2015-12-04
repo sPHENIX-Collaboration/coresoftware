@@ -9,7 +9,6 @@
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
 #include "PdbBankID2.h"
-#include "PHString.h"
 #include <iostream>
 
 ClassImp(PdbBankID2);
