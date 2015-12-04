@@ -10,7 +10,6 @@
 
 #include <pdbcalbase/PdbBankID.h>
 #include <pdbcalbase/PdbBankID2.h>
-#include <pdbcalbase/PHString.h>
 #include <pdbcalbase/PdbBankList.h>
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbClassMap.h>

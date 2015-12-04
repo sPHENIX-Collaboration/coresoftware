@@ -1,5 +1,3 @@
-// $Id: PgPostBankBackupStorage.hh,v 1.3 2014/04/14 22:56:48 jinhuang Exp $                                                                                             
-
 /*!
  * \file PgPostBankBackupStorage.hh
  * \brief 
@@ -14,7 +12,6 @@
 
 #include <pdbcalbase/PdbClassMap.h>
 #include <pdbcalbase/PdbCalChan.h>
-#include <pdbcalbase/PHString.h>
 
 #include <phool/PHTimeStamp.h>
 

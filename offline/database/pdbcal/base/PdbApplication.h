@@ -1,5 +1,5 @@
-#ifndef __PDBAPPLICATION_H__
-#define __PDBAPPLICATION_H__
+#ifndef PDBAPPLICATION_H__
+#define PDBAPPLICATION_H__
 
 #include "Pdb.h"
 

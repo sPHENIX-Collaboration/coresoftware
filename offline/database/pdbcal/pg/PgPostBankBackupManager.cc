@@ -1,5 +1,3 @@
-// $Id: PgPostBankBackupManager.cc,v 1.11 2014/11/24 17:46:49 phnxbld Exp $                                                                                             
-
 /*!
  * \file PgPostBankBackupManager.cc
  * \brief 
@@ -23,7 +21,6 @@
 
 #include <pdbcalbase/PdbBankID.h>
 #include <pdbcalbase/PdbBankID2.h>
-#include <pdbcalbase/PHString.h>
 #include <pdbcalbase/PdbBankList.h>
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbClassMap.h>

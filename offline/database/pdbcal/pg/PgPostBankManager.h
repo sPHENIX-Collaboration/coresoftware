@@ -1,7 +1,5 @@
-// $Id: PgPostBankManager.hh,v 1.13 2014/03/21 20:54:44 phnxbld Exp $
-
-#ifndef __PGPOSTBANKMANAGER_HH__
-#define __PGPOSTBANKMANAGER_HH__
+#ifndef PGPOSTBANKMANAGER_HH__
+#define PGPOSTBANKMANAGER_HH__
 
 #include <pdbcalbase/PdbBankManager.h>
 #include <pdbcalbase/PdbBankID2.h>
@@ -9,8 +7,6 @@
 #include <map>
 #include <set>
 #include <string>
-
-class PHString;
 
 class PgPostBankManager : public PdbBankManager {
 
@@ -79,7 +75,7 @@ public:
 private:
   static PgPostBankManager *mySpecificCopy;
   std::map<std::string,std::set<int> > BankRid;
-  PHString getRealName(const PHString &);
+  std::string getRealName(const std::string &);
   PHTimeStamp tMaxInsertTime;
 };
 

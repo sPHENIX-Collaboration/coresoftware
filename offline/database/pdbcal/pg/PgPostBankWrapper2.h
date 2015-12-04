@@ -28,17 +28,17 @@ public:
   PHTimeStamp getInsertTime()   const { return insertTime; }
   PHTimeStamp getStartValTime() const { return startValTime; }
   PHTimeStamp getEndValTime()   const { return endValTime; }
-  PHString    getDescription()  const { return description; }
-  PHString    getUserName()     const { return userName; }
-  PHString    getTableName()    const { return tableName; }
+  std::string    getDescription()  const { return description; }
+  std::string    getUserName()     const { return userName; }
+  std::string    getTableName()    const { return tableName; }
  
   void setBankID2(const PdbBankID2 & val)          { bankID2 = val; }
   void setInsertTime(const PHTimeStamp & val)   { insertTime = val; }
   void setStartValTime(const PHTimeStamp & val) { startValTime = val; }
   void setEndValTime(const PHTimeStamp & val)   { endValTime = val; }
-  void setDescription(const PHString & val)     { strcpy(description, val.getString()); }  
-  void setUserName(const PHString & val)        { strcpy(userName, val.getString()); }
-  void setTableName(const PHString & val)       { strcpy(tableName, val.getString()); }
+  void setDescription(const std::string & val)     { strcpy(description, val.c_str()); }  
+  void setUserName(const std::string & val)        { strcpy(userName, val.c_str()); }
+  void setTableName(const std::string & val)       { strcpy(tableName, val.c_str()); }
 
   PdbCalBank * getBank() { return  bank; }
   virtual int isValid (const PHTimeStamp &) const { return 0; }

@@ -55,7 +55,7 @@ bool PgPostBankWrapper2::commit()
       TSQLConnection *con = ap->getConnection();
       
       ostringstream sqlcmd;
-      sqlcmd << "insert into " << ((*this).getTableName()).getString()
+      sqlcmd << "insert into " << ((*this).getTableName())
 	<< " values(?,?,?,?,?,?,?);";
       cout << "query: " << sqlcmd.str() << endl;
       TSQLPreparedStatement* pstmt = con->PrepareStatement(sqlcmd.str().c_str());
@@ -63,8 +63,8 @@ bool PgPostBankWrapper2::commit()
       pstmt->SetLong(2, ((*this).getInsertTime()).getTics());
       pstmt->SetLong(3, ((*this).getStartValTime()).getTics());
       pstmt->SetLong(4, ((*this).getEndValTime()).getTics());
-      pstmt->SetString(5, ((*this).getDescription()).getString());
-      pstmt->SetString(6, ((*this).getUserName()).getString());
+      pstmt->SetString(5, ((*this).getDescription()));
+      pstmt->SetString(6, ((*this).getUserName()));
       pstmt->SetObject(7, this);
       int res = 0;
       res = pstmt->ExecuteUpdate();
@@ -107,7 +107,7 @@ bool PgPostBankWrapper2::commit_rid(int rid,long it, long st,long et)
       TSQLConnection *con = ap->getConnection();
       
       ostringstream sqlcmd;
-      sqlcmd << "insert into " << ((*this).getTableName()).getString()
+      sqlcmd << "insert into " << ((*this).getTableName())
 	<< " values(?,?,?,?,?,?,?,?);";
       cout << "query: " << sqlcmd.str() << endl;
       TSQLPreparedStatement* pstmt = con->PrepareStatement(sqlcmd.str().c_str());
@@ -115,8 +115,8 @@ bool PgPostBankWrapper2::commit_rid(int rid,long it, long st,long et)
       pstmt->SetLong(2, it);
       pstmt->SetLong(3, st);
       pstmt->SetLong(4, et);
-      pstmt->SetString(5, ((*this).getDescription()).getString());
-      pstmt->SetString(6, ((*this).getUserName()).getString());
+      pstmt->SetString(5, ((*this).getDescription()));
+      pstmt->SetString(6, ((*this).getUserName()));
       pstmt->SetObject(7, this);
       pstmt->SetInt(8,rid);
       int res = 0;

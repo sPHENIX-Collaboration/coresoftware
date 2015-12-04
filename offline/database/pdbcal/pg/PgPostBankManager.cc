@@ -9,11 +9,9 @@
 
 #include <pdbcalbase/PdbBankID.h>
 #include <pdbcalbase/PdbBankID2.h>
-#include <pdbcalbase/PHString.h>
 #include <pdbcalbase/PdbBankList.h>
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbClassMap.h>
-#include <pdbcalbase/PHString.h>
 #include <pdbcalbase/PdbBankManagerFactory.h>
 
 #include <phool/PHPointerList.h>
@@ -220,8 +218,8 @@ PdbCalBank* PgPostBankManager::createBank(const int runNumber, const char *class
 PdbCalBank* PgPostBankManager::createBank(const char *className, PdbBankID bankID, const char* descr, PHTimeStamp & tStart, PHTimeStamp & tStop, const char *tablename)
 {
 
-  PHString realName = getRealName(className);
-  const char *rName = realName.getString();
+  string realName = getRealName(className);
+  const char *rName = realName.c_str();
   PdbClassMap<PdbCalBank> *classMap = PdbClassMap<PdbCalBank>::instance();
   if (classMap->find(rName) != classMap->end())
     {
@@ -250,8 +248,8 @@ PdbCalBank* PgPostBankManager::createBank(const char *className, PdbBankID bankI
 PdbCalBank* PgPostBankManager::createBank(const char *className, PdbBankID2 bankID2, const char* descr, PHTimeStamp & tStart, PHTimeStamp & tStop, const char *tablename)
 {
 
-  PHString realName = getRealName(className);
-  const char *rName = realName.getString();
+  string realName = getRealName(className);
+  const char *rName = realName.c_str();
   PdbClassMap<PdbCalBank> *classMap = PdbClassMap<PdbCalBank>::instance();
   if (classMap->find(rName) != classMap->end())
     {
@@ -421,9 +419,9 @@ PdbCalBank* PgPostBankManager::fetchBank(const char *className, PdbBankID bankID
     bw->setInsertTime(rs->GetLong(2));
     bw->setStartValTime(rs->GetLong(3));
     bw->setEndValTime(rs->GetLong(4));
-    bw->setDescription((PHString)rs->GetString(5));
-    bw->setUserName((PHString)rs->GetString(6));
-    bw->setTableName((PHString)a.c_str());
+    bw->setDescription(string(rs->GetString(5)));
+    bw->setUserName(string(rs->GetString(6)));
+    bw->setTableName(a);
     #ifdef DEBUG
     bw->printHeader();
     #endif
@@ -500,9 +498,9 @@ PdbCalBank* PgPostBankManager::fetchBank(const char *className, PdbBankID2 bankI
     bw->setInsertTime(rs->GetLong(2));
     bw->setStartValTime(rs->GetLong(3));
     bw->setEndValTime(rs->GetLong(4));
-    bw->setDescription((PHString)rs->GetString(5));
-    bw->setUserName((PHString)rs->GetString(6));
-    bw->setTableName((PHString)a.c_str());
+    bw->setDescription(string(rs->GetString(5)));
+    bw->setUserName(string(rs->GetString(6)));
+    bw->setTableName(a);
     #ifdef DEBUG
     bw->printHeader();
     #endif
@@ -688,23 +686,12 @@ PdbApplication* PgPostBankManager::getApplication(PHBoolean pJob)
   return PgPostApplication::instance();
 }
 
-PHString PgPostBankManager::getRealName(const PHString & searchName)
+string 
+PgPostBankManager::getRealName(const string &searchName)
 {
-  PHPointerList<PHString> subStrings;
-  searchName.split(subStrings, "Pdb");
-  PHString *strippedName;
-  PHString realName("noName");
-  if (!(strippedName = subStrings[1]))
-    {
-      std::cout << "PdbObjyBankManager::getRealName()" << std::endl;
-      std::cout << "\tError" << std::endl;
-      std::cout << "\tCould not parse name " << searchName << std::endl;
-    }
-  else
-    {
-      realName = "PgPost" + *strippedName;
-    }
-  subStrings.clearAndDestroy();
+  string realName = searchName;
+  string pdbsubstring = "Pdb";
+  realName.replace(realName.find(pdbsubstring),realName.find(pdbsubstring)+pdbsubstring.size(),"PgPost");
   return realName;
 }
 

@@ -1,5 +1,3 @@
-// $Id: PgPostBankBackupStorage.cc,v 1.2 2014/01/31 16:50:40 jinhuang Exp $                                                                                             
-
 /*!
  * \file PgPostBankBackupStorage.cc
  * \brief 
@@ -199,12 +197,12 @@ PgPostBankBackupStorage::set_obj_info(const PgPostCalBank * bw)
   obj_header.setInsertTime(bw->getInsertTime());
   obj_header.setStartValTime(bw->getStartValTime());
   obj_header.setEndValTime(bw->getEndValTime());
-  if (bw->getDescription().getString())
-    obj_header.setDescription(bw->getDescription().getString());
-  if (bw->getUserName().getString())
-    obj_header.setUserName(bw->getUserName().getString());
-  if (bw->getTableName().getString())
-    obj_header.setTableName(bw->getTableName().getString());
+  if (! bw->getDescription().empty())
+    obj_header.setDescription(bw->getDescription());
+  if (! bw->getUserName().empty())
+    obj_header.setUserName(bw->getUserName());
+  if (! bw->getTableName().empty())
+    obj_header.setTableName(bw->getTableName());
 }
 
 void
