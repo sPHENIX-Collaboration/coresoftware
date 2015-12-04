@@ -18,7 +18,6 @@ libpdbcalBase_la_LIBADD = \
 #please add new classes sorted according to the roman alphabet
 libpdbcalBase_la_SOURCES = \
   PHString.C \
-  PHMessage.C \
   PdbApplication.cc \
   PdbApplication_dict.C \
   PdbApplicationFactory.cc \
