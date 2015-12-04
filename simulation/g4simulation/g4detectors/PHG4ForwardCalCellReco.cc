@@ -115,7 +115,7 @@ PHG4ForwardCalCellReco::process_event(PHCompositeNode *topNode)
       int numcells = 0;
       for (map<unsigned int, PHG4CylinderCell *>::const_iterator mapiter = celllist.begin();mapiter != celllist.end() ; ++mapiter)
 	{
-	  cells->AddCylinderCell(*layer, mapiter->second);
+	  cells->AddCylinderCellSpecifyKey(mapiter->first, mapiter->second);
 	  numcells++;
 	}
       celllist.clear();
