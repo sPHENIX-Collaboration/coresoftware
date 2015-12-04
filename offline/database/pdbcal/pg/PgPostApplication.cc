@@ -1,7 +1,6 @@
 #include "PgPostApplication.h"
 #include "PgPostBankWrapperManager.h"
 #include "PgPostBankWrapper.h"
-#include "PgPostBankWrapper2.h"
 
 #include <pdbcalbase/PdbApplicationFactory.h>
 
@@ -11,6 +10,9 @@
 #include <sstream>
 
 using namespace std;
+
+PgPostApplication * PgPostApplication::mySpecificCopy = NULL;
+TSQLConnection * PgPostApplication::con = NULL;
 
 namespace
 {
@@ -49,13 +51,10 @@ int PgPostApplication::releaseConnection()
   if ( !__instance.get() ) return -1;
   if(con){
     con->Close();
-    con = 0;
+    con = NULL;
   }
   return 0;
 }
-
-PgPostApplication * PgPostApplication::mySpecificCopy = 0;
-TSQLConnection * PgPostApplication::con = 0;
 
 PgPostApplication::PgPostApplication(const string &dbname)
 {
@@ -158,15 +157,8 @@ PgPostApplication::commit(PdbCalBank *b){
     return tb->commit(); 
   }
   else {
-
-    PgPostBankWrapper2 *tb2 = dynamic_cast<PgPostBankWrapper2*>(b);
-    if (tb2) {
-      return tb2->commit(); 
-    }
-    else {
       cerr << PHWHERE << "Can only commit PgPostBankWrapper2" << endl;
       return 0;
-    }
   }
 }
 
@@ -177,15 +169,8 @@ PgPostApplication::commit(PdbCalBank *b, int rid, long it,long st,long et){
     return tb->commit(); 
   }
   else {
-
-    PgPostBankWrapper2 *tb2 = dynamic_cast<PgPostBankWrapper2*>(b);
-    if (tb2) {
-      return tb2->commit_rid(rid,it,st,et); 
-    }
-    else {
       cerr << PHWHERE << "Can only commit PgPostBankWrapper2" << endl;
       return 0;
-    }
   }
 }
 
@@ -196,6 +181,6 @@ PgPostApplication::DisconnectDB()
     {
       con->Close();
     }
-  con = 0;
+  con = NULL;
   return 0;
 }

@@ -3,13 +3,11 @@
 #include "PgPostHelper.h"
 #include "PgPostCalBankIterator.h"
 #include "PgPostBankWrapper.h"
-#include "PgPostBankWrapper2.h"
 #include "PgPostApplication.h"
 #include "PgPostCalBank.h"
 #include "RunToTimePg.h"
 
 #include <pdbcalbase/PdbBankID.h>
-#include <pdbcalbase/PdbBankID2.h>
 #include <pdbcalbase/PdbBankList.h>
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbClassMap.h>

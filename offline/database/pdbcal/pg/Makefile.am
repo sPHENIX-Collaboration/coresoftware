@@ -38,8 +38,6 @@ libPgCal_la_SOURCES = \
   PgPostBankManager_dict.C \
   PgPostBankWrapper.cc \
   PgPostBankWrapper_dict.C \
-  PgPostBankWrapper2.cc \
-  PgPostBankWrapper2_dict.C \
   PgPostBankWrapperManager.cc \
   PgPostBankWrapperManager_dict.C \
   PgPostBankBackupManager.cc \
@@ -51,7 +49,6 @@ libPgCal_la_SOURCES = \
   PgPostCalBank.cc \
   PgPostCalBank_dict.C \
   PgPostCalBankIterator.cc \
-  PgPostCalBankIterator2.cc \
   PgPostHelper.cc \
   PgPostParameterBank.cc \
   PgPostParameterBank_dict.C \

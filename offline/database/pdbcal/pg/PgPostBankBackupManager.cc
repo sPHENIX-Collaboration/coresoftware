@@ -10,7 +10,6 @@
 #include "PgPostHelper.h"
 #include "PgPostCalBankIterator.h"
 #include "PgPostBankWrapper.h"
-#include "PgPostBankWrapper2.h"
 #include "PgPostApplication.h"
 #include "PgPostCalBank.h"
 #include "PgPostBankBackupManager.h"
@@ -20,7 +19,6 @@
 
 
 #include <pdbcalbase/PdbBankID.h>
-#include <pdbcalbase/PdbBankID2.h>
 #include <pdbcalbase/PdbBankList.h>
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbClassMap.h>
@@ -204,15 +202,6 @@ PgPostBankBackupManager::SQLResultSet2BackupStorage(TSQLResultSet * rs,
       bank_orig = (static_cast<PgPostBankWrapper *>(bw.get()))->getBank();
       assert(bank_orig);
     }
-  else if (string(bw->ClassName()) == string("PgPostBankWrapper2"))
-    {
-      if (verbosity >= 2)
-        cout
-            << "PgPostBankBackupManager::SQLResultSet2BackupStorage - Processing PgPostBankWrapper2 "
-            << endl;
-      bank_orig = (static_cast<PgPostBankWrapper2 *>(bw.get()))->getBank();
-      assert(bank_orig);
-    }
   else if (string(bw->ClassName()) == string("PgPostCalBank"))
     {
       cout << "PgPostBankBackupManager::SQLResultSet2BackupStorage - WARNING - "
@@ -250,16 +239,6 @@ PgPostBankBackupManager::SQLResultSet2BackupStorage(TSQLResultSet * rs,
               << unwrap_cnt << ". Discard secondary wrapper: table "
               << table_name << " where rid = " << rid << endl;
           bank_orig = static_cast<PgPostBankWrapper *>(bank_orig)->getBank();
-          assert(bank_orig);
-        }
-      else if (string(bank_orig->ClassName()) == string("PgPostBankWrapper2"))
-        {
-          cout
-              << "PgPostBankBackupManager::SQLResultSet2BackupStorage - WARNING - "
-              << "PgPostBankWrapper object nested inside PgPostBankWrapper2 layer "
-              << unwrap_cnt << ". Discard secondary wrapper: table "
-              << table_name << " where rid = " << rid << endl;
-          bank_orig = static_cast<PgPostBankWrapper2 *>(bank_orig)->getBank();
           assert(bank_orig);
         }
       else
