@@ -52,8 +52,6 @@ libPgCal_la_SOURCES = \
   PgPostCalBank_dict.C \
   PgPostCalBankIterator.cc \
   PgPostCalBankIterator2.cc \
-  PgPostCalParametersBank.cc \
-  PgPostCalParametersBank_dict.C \
   PgPostHelper.cc \
   PgPostParameterBank.cc \
   PgPostParameterBank_dict.C \
