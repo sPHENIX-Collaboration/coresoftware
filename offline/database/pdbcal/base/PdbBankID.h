@@ -1,5 +1,4 @@
 //-----------------------------------------------------------------------------
-//  $Header: /afs/rhic.bnl.gov/phenix/PHENIX_CVS/offline/database/pdbcal/base/PdbBankID.hh,v 1.6 2006/02/04 16:04:06 pinkenbu Exp $
 //
 //  The pdbcal package
 //  Copyright (C) PHENIX collaboration, 1999
@@ -12,10 +11,12 @@
 //
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
-#ifndef __PDBBANKID_HH__
-#define __PDBBANKID_HH__
+#ifndef PDBBANKID_HH__
+#define PDBBANKID_HH__
 
-class PdbBankID {
+#include <TObject.h>
+
+class PdbBankID : public TObject {
 public:
    PdbBankID(const int val = 0);
    virtual ~PdbBankID(){}
@@ -30,6 +31,8 @@ public:
 private:
   int bankID;
 
+  ClassDef(PdbBankID, 1)
+
 };
 
-#endif /* __PDBBANKID_HH__ */
+#endif /* PDBBANKID_HH__ */
