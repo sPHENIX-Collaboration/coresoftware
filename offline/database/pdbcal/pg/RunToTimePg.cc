@@ -1,12 +1,9 @@
 #include "RunToTimePg.h"
 
-#include <pdbcalbase/RunToTimeFactory.h>
-
 #include <phool/phool.h>
 #include <phool/PHTimeStamp.h>
 
 
-#include <cstring> // odbc++/types.h lacks it, hopefully newer versions have it
 #include <odbc++/connection.h>
 #include <odbc++/setup.h>
 #include <odbc++/types.h>
