@@ -1,4 +1,5 @@
 //-----------------------------------------------------------------------------
+//  $Header: /afs/rhic.bnl.gov/phenix/PHENIX_CVS/offline/database/pdbcal/base/PdbBankManager.cc,v 1.2 2004/08/13 17:46:00 purschke Exp $
 //
 //  The pdbcal package
 //  Copyright (C) PHENIX collaboration, 1999

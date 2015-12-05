@@ -1,5 +1,4 @@
 #include "PgPostCalBankIterator.h"
-
 #include "PgPostBankWrapper.h"
 #include "PgPostBankManager.h"
 #include "PgPostApplication.h"
@@ -68,9 +67,7 @@ PgPostCalBankIterator::init(const string &fulldbname, const PdbBankID& bankid)
 
   std::ostringstream query;
 
-  fTableName = fulldbname;
-
-  query << "select * from " << fTableName;
+  query << "select * from " << fulldbname;
 
   if ( fBankID.getInternalValue() != -1 )
     {

@@ -1,5 +1,4 @@
 //-----------------------------------------------------------------------------
-//  $Header: /afs/rhic.bnl.gov/phenix/PHENIX_CVS/offline/database/pdbcal/base/PdbBankID.h,v 1.6 2006/02/04 16:04:06 pinkenbu Exp $
 //
 //  The pdbcal package
 //  Copyright (C) PHENIX collaboration, 1999
@@ -32,6 +31,8 @@ public:
 private:
   int bankID;
 
+  ClassDef(PdbBankID, 1)
+
 };
 
-#endif /* __PDBBANKID_HH__ */
+#endif /* PDBBANKID_HH__ */

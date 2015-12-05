@@ -10,12 +10,12 @@
 //
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
-#ifndef __PDBCALCHAN_HH__
-#define __PDBCALCHAN_HH__
+#ifndef PDBCALCHAN_HH__
+#define PDBCALCHAN_HH__
 
-#include "PdbCalBase.h"
+#include <phool/PHObject.h>
 
-class PdbCalChan : public PdbCalBase{
+class PdbCalChan : public PHObject{
 
 public:
   PdbCalChan() {}
@@ -26,4 +26,4 @@ public:
   ClassDef(PdbCalChan,1);
 };
 
-#endif /* __PDBCALCHAN_HH__ */
+#endif /* PDBCALCHAN_HH__ */

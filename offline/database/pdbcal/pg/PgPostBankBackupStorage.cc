@@ -1,5 +1,3 @@
-// $Id: PgPostBankBackupStorage.cc,v 1.2 2014/01/31 16:50:40 jinhuang Exp $                                                                                             
-
 /*!
  * \file PgPostBankBackupStorage.cc
  * \brief 
@@ -62,7 +60,7 @@ PgPostBankBackupStorage::~PgPostBankBackupStorage()
     delete bank;
 }
 
-//! use this storage object to recover the PdbCalBankWrapper/PdbCalBankWrapper2
+//! use this storage object to recover the PdbCalBankWrapper
 PgPostCalBank *
 PgPostBankBackupStorage::createBank()
 {
@@ -186,9 +184,12 @@ PgPostBankBackupStorage::set_obj_info(const PgPostCalBank * bw)
   obj_header.setInsertTime(bw->getInsertTime());
   obj_header.setStartValTime(bw->getStartValTime());
   obj_header.setEndValTime(bw->getEndValTime());
-  obj_header.setDescription(bw->getDescription());
-  obj_header.setUserName(bw->getUserName());
-  obj_header.setTableName(bw->getTableName());
+  if (! bw->getDescription().empty())
+    obj_header.setDescription(bw->getDescription());
+  if (! bw->getUserName().empty())
+    obj_header.setUserName(bw->getUserName());
+  if (! bw->getTableName().empty())
+    obj_header.setTableName(bw->getTableName());
 }
 
 void

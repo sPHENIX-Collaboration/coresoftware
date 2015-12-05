@@ -16,12 +16,13 @@
 
 #include "PdbBankList.h"
 #include "PdbCalBank.h"
+
 #include <phool/PHPointerListIterator.h>
 
 class PdbBankListIterator : public PHPointerListIterator<PdbCalBank> {
 public:
    PdbBankListIterator(PdbBankList &);
-   virtual ~PdbBankListIterator();
+   ~PdbBankListIterator();
    
 protected:
    PdbBankListIterator();

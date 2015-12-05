@@ -1,10 +1,11 @@
-#ifndef __PDBAPPLICATION_H__
-#define __PDBAPPLICATION_H__
+#ifndef PDBAPPLICATION_H__
+#define PDBAPPLICATION_H__
 
 #include "Pdb.h"
 
 #include <cstddef> // for size_t
 #include <memory>  // for auto_ptr
+#include <string>
 
 class PdbCalBank;
 class PHTimeStamp;
@@ -30,10 +31,8 @@ public:
   //
   // Should return the file (database) size in bytes.
   //
-  virtual size_t getTagFileSize(const char *) = 0;
-  virtual size_t getCalFileSize(const char *) = 0;
 
-  virtual int setDBName(const char *name) = 0;
+  virtual int setDBName(const std::string &name) = 0;
   virtual int DisconnectDB() = 0;
 
 protected:

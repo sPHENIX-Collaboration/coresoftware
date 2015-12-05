@@ -9,9 +9,10 @@
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
 
-#include "PdbApplication.h"
+#include <PdbApplication.h>
 
 #include <iostream>
+#include <memory>
 
 std::auto_ptr<PdbApplication> PdbApplication::__instance;
 

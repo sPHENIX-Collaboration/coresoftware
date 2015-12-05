@@ -2,6 +2,7 @@
 #define PGPOSTBANKMANAGER_HH__
 
 #include <pdbcalbase/PdbBankManager.h>
+#include <pdbcalbase/PdbBankID.h>
 
 #include <map>
 #include <set>
@@ -39,18 +40,14 @@ public:
 
 
 //   void fetchAllBanks(PdbBankList &, const std::string &, PdbBankID, const std::string &, const int);
-// void fetchAllBanks(PdbBankList &, const std::string &, PdbBankID2, const std::string &, const int);
-
 //   void fetchAllBanks(PdbBankList &, const std::string &, const std::string &, const int);
 
   // fetch banks with timestamp as key
   PdbCalBank* fetchBank(const std::string &, PdbBankID, const std::string &, const PHTimeStamp &);
 
-
   PdbCalBank* fetchClosestBank(const std::string &, PdbBankID, const std::string &, PHTimeStamp &);
 
   // void fetchAllBanks(PdbBankList &, const std::string &, PdbBankID, const std::string &, PHTimeStamp &);
-  // void fetchAllBanks(PdbBankList &, const std::string &, PdbBankID2, const std::string &, PHTimeStamp &);
 
   // void fetchAllBanks(PdbBankList &, const std::string &, const std::string &, PHTimeStamp &);
   
