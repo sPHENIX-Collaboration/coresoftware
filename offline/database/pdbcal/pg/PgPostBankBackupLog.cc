@@ -1,13 +1,3 @@
-// $Id: PgPostBankBackupLog.cc,v 1.2 2014/05/19 17:06:23 jinhuang Exp $
-
-/*!
- * \file PgPostBankBackupLog.cc
- * \brief 
- * \author Jin Huang <jhuang@bnl.gov>
- * \version $Revision: 1.2 $
- * \date $Date: 2014/05/19 17:06:23 $
- */
-
 #include "PgPostBankBackupLog.h"
 #include "PgPostBankManager.h"
 #include "PgPostCalBankIterator.h"
@@ -25,11 +15,6 @@
 #include <phool/PHPointerList.h>
 #include <phool/PHTimeServer.h>
 
-#include <TFile.h>
-#include <TList.h>
-#include <TString.h>
-#include <TBufferFile.h>
-
 #include <RDBC/TSQL.h>
 #include <RDBC/TSQLDriverManager.h>
 #include <RDBC/TSQLConnection.h>
@@ -37,6 +22,12 @@
 #include <RDBC/TSQLResultSetMetaData.h>
 #include <RDBC/TSQLPreparedStatement.h>
 #include <RDBC/TSQLDatabaseMetaData.h>
+
+
+#include <TFile.h>
+#include <TList.h>
+#include <TString.h>
+#include <TBufferFile.h>
 
 #include <ctime>
 #include <vector>

@@ -93,6 +93,7 @@ PgPostBankWrapperManager::registerWrapper(PgPostBankWrapper* wrapper)
   return true;
 }
 
+//_____________________________________________________________________________
 bool
 PgPostBankWrapperManager::unregisterWrapper(PgPostBankWrapper* wrapper)
 { 

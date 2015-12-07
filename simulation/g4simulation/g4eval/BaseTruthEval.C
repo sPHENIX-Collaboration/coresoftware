@@ -36,6 +36,8 @@ void BaseTruthEval::next_event(PHCompositeNode* topNode) {
       
 PHG4Particle* BaseTruthEval::get_particle(PHG4Hit* g4hit) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(g4hit);}
   else if (!g4hit) {++_errors; return NULL;}
   
@@ -48,6 +50,8 @@ PHG4Particle* BaseTruthEval::get_particle(PHG4Hit* g4hit) {
 
 int BaseTruthEval::get_embed(PHG4Particle* particle) {
 
+  if (!has_node_pointers()) {++_errors; return 0;}
+  
   if (_strict) {assert(particle);}
   else if (!particle) {++_errors; return 0;}
 
@@ -62,6 +66,8 @@ int BaseTruthEval::get_embed(PHG4Particle* particle) {
 
 PHG4VtxPoint* BaseTruthEval::get_vertex(PHG4Particle* particle) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;} 
+  
   if (_strict) {assert(particle);}
   else if (!particle) {++_errors; return NULL;}
 
@@ -74,8 +80,10 @@ PHG4VtxPoint* BaseTruthEval::get_vertex(PHG4Particle* particle) {
 
 bool BaseTruthEval::is_primary(PHG4Particle* particle) {
 
+  if (!has_node_pointers()) {++_errors; return false;}
+  
   if (_strict) {assert(particle);}
-  else if (!particle) {return false;}
+  else if (!particle) {++_errors; return false;}
   
   bool is_primary = false;
   if (particle->get_parent_id() == 0) {
@@ -87,6 +95,8 @@ bool BaseTruthEval::is_primary(PHG4Particle* particle) {
 
 PHG4Particle* BaseTruthEval::get_primary(PHG4Hit* g4hit) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(g4hit);}
   else if (!g4hit) {++_errors; return NULL;}
 
@@ -101,6 +111,8 @@ PHG4Particle* BaseTruthEval::get_primary(PHG4Hit* g4hit) {
 
 PHG4Particle* BaseTruthEval::get_primary(PHG4Particle* particle) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(particle);}
   else if (!particle) {++_errors; return NULL;}
 
@@ -114,8 +126,10 @@ PHG4Particle* BaseTruthEval::get_primary(PHG4Particle* particle) {
   return returnval;
 }
 
- bool BaseTruthEval::is_g4hit_from_particle(PHG4Hit* g4hit, PHG4Particle* particle) {
+bool BaseTruthEval::is_g4hit_from_particle(PHG4Hit* g4hit, PHG4Particle* particle) {
 
+  if (!has_node_pointers()) {++_errors; return false;}
+   
   if (_strict) {
     assert(g4hit);
     assert(particle);
@@ -133,6 +147,8 @@ PHG4Particle* BaseTruthEval::get_primary(PHG4Particle* particle) {
 
 bool BaseTruthEval::are_same_particle(PHG4Particle* p1, PHG4Particle* p2) {
 
+  if (!has_node_pointers()) {++_errors; return false;}
+  
   if (_strict) {
     assert(p1);
     assert(p2);
@@ -147,6 +163,8 @@ bool BaseTruthEval::are_same_particle(PHG4Particle* p1, PHG4Particle* p2) {
 
 bool BaseTruthEval::are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2) {
 
+  if (!has_node_pointers()) {++_errors; return false;}
+  
   if (_strict) {
     assert(vtx1);
     assert(vtx2);
@@ -168,4 +186,12 @@ void BaseTruthEval::get_node_pointers(PHCompositeNode* topNode) {
   }
   
   return;
+}
+
+bool BaseTruthEval::has_node_pointers() {
+
+  if (_strict) assert(_truthinfo);
+  else if (!_truthinfo) return false;
+  
+  return true;
 }

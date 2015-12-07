@@ -59,6 +59,8 @@ void CaloTruthEval::next_event(PHCompositeNode* topNode) {
 
 std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Particle* particle) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4Hit*>();}
+  
   if (_strict) {assert(particle);}
   else if (!particle) {++_errors; return std::set<PHG4Hit*>();}
   
@@ -97,6 +99,8 @@ PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Particle* particle) {
 
 PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Hit* g4hit) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(g4hit);}
   else if (!g4hit) {++_errors; return NULL;}
   
@@ -132,6 +136,8 @@ bool CaloTruthEval::is_primary(PHG4Particle* particle) {
 
 std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4Hit*>();}
+  
   if (_strict) {assert(primary);}
   else if (!primary) {++_errors; return std::set<PHG4Hit*>();}
   
@@ -176,6 +182,8 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary)
 // doesn't account for magnetic field bend (photons okay, low pt electrons not so much)
 float CaloTruthEval::get_shower_moliere_radius(PHG4Particle* primary) {
 
+  if (!has_node_pointers()) {++_errors; return NAN;}
+  
   if (_strict) {assert(primary);}
   else if (!primary) {++_errors; return NAN;}
   
@@ -257,6 +265,8 @@ float CaloTruthEval::get_shower_moliere_radius(PHG4Particle* primary) {
 
 float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary) {
 
+  if (!has_node_pointers()) {++_errors; return NAN;}
+  
   if (_strict) {assert(primary);}
   else if (!primary) {++_errors; return NAN;}
   
@@ -306,17 +316,20 @@ void CaloTruthEval::get_node_pointers(PHCompositeNode *topNode) {
 
   // need things off of the DST...
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
-  if (!_truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
-  }
-  
+ 
   std::string name = "G4HIT_" + _caloname;
   _g4hits = findNode::getClass<PHG4HitContainer>(topNode,name.c_str());
-  if (!_g4hits) {
-    cerr << PHWHERE << " ERROR: Can't find " << name << endl;
-    exit(-1);
-  }
   
   return;
+}
+
+bool CaloTruthEval::has_node_pointers() {
+
+  if (_strict) assert(_truthinfo);
+  else if (!_truthinfo) return false;
+
+  if (_strict) assert(_g4hits);
+  if (!_g4hits) return false;
+
+  return true;
 }

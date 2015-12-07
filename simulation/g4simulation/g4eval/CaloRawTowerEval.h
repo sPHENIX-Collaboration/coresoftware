@@ -60,6 +60,7 @@ public:
 private:
 
   void get_node_pointers(PHCompositeNode *topNode);
+  bool has_node_pointers();
 
   std::string _caloname;
   CaloTruthEval _trutheval;  

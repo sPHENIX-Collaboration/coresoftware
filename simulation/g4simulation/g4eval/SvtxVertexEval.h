@@ -65,6 +65,7 @@ public:
 private:
 
   void get_node_pointers(PHCompositeNode* topNode);
+  bool has_node_pointers();
   
   SvtxTrackEval _trackeval;
   SvtxVertexMap* _vertexmap;

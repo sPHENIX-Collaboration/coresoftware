@@ -8,19 +8,20 @@
 #include "PdbBankID.h"
 
 #include <phool/PHTimeStamp.h>
-#include <phool/PHObject.h>
 
+#include <TObject.h>
+
+#include <cstddef>
 #include <string>
 
 class PdbCalChan;
 class PHTimeStamp;
-class PdbBankID;
 
-class PdbCalBank : public  PHObject 
+class PdbCalBank : public  TObject 
 {
 public:
-  PdbCalBank(){}
-   virtual ~PdbCalBank() {}
+   PdbCalBank();
+   virtual ~PdbCalBank();
    virtual PdbCalBank* clone() const = 0;
 
    virtual void printHeader() const = 0;
@@ -38,8 +39,8 @@ public:
    virtual PHTimeStamp getInsertTime()   const = 0;
    virtual PHTimeStamp getStartValTime() const = 0;
    virtual PHTimeStamp getEndValTime()   const = 0;
-   virtual std::string getDescription()  const = 0;
-   virtual std::string getUserName()     const = 0;
+   virtual std::string    getDescription()  const = 0;
+   virtual std::string    getUserName()     const = 0;
    
    virtual void setBankID(const PdbBankID &)         = 0; 
    virtual void setInsertTime(const PHTimeStamp &)   = 0;
@@ -50,7 +51,7 @@ public:
    
    virtual int isValid(const PHTimeStamp &) const = 0;
 
-   ClassDef(PdbCalBank,0); // no I/O
+  ClassDef(PdbCalBank,2);
 };
 
 #endif /* PDBCALBANK_HH__ */

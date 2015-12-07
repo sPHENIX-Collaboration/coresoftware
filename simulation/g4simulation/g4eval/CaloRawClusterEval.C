@@ -67,6 +67,8 @@ void CaloRawClusterEval::next_event(PHCompositeNode* topNode) {
 
 std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4Hit*>();}
+  
   if (_strict) {assert(cluster);}
   else if (!cluster) {++_errors; return std::set<PHG4Hit*>();}
   
@@ -113,6 +115,8 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster) {
   
 std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primaries(RawCluster* cluster) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4Particle*>();}
+  
   if (_strict) {assert(cluster);}
   else if (!cluster) {++_errors; return std::set<PHG4Particle*>();}
   
@@ -158,6 +162,8 @@ std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primaries(RawCluster* clus
 
 PHG4Particle* CaloRawClusterEval::max_truth_primary_by_energy(RawCluster* cluster) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(cluster);}
   else if (!cluster) {++_errors; return NULL;}
   
@@ -198,6 +204,8 @@ PHG4Particle* CaloRawClusterEval::max_truth_primary_by_energy(RawCluster* cluste
 
 std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primary) { 
 
+  if (!has_node_pointers()) {++_errors; return std::set<RawCluster*>();}
+  
   if (_strict) {assert(primary);}
   else if (!primary) {++_errors; return std::set<RawCluster*>();}
   
@@ -248,6 +256,8 @@ std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primar
 
 RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Particle* primary) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(primary);}
   else if (!primary) {++_errors; return NULL;}
   
@@ -293,6 +303,8 @@ RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Particle* primary) {
 // overlap calculations
 float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Particle* primary) {
 
+  if (!has_node_pointers()) {++_errors; return NAN;}
+  
   if (_strict) {
     assert(cluster);
     assert(primary);
@@ -348,17 +360,20 @@ void CaloRawClusterEval::get_node_pointers(PHCompositeNode* topNode) {
   // need things off of the DST...
   std::string nodename = "CLUSTER_" + _caloname;
   _clusters = findNode::getClass<RawClusterContainer>(topNode,nodename.c_str());
-  if (!_clusters) {
-    cerr << PHWHERE << " ERROR: Can't find " << nodename << endl;
-    exit(-1);
-  }
 
   std::string towername = "TOWER_CALIB_" + _caloname;
   _towers = findNode::getClass<RawTowerContainer>(topNode,towername.c_str());
-  if (!_towers) {
-    cerr << PHWHERE << " ERROR: Can't find " << towername << endl;
-    exit(-1);
-  }
   
   return;
+}
+
+bool CaloRawClusterEval::has_node_pointers() {
+
+  if (_strict) assert(_clusters);
+  else if (!_clusters) return false;
+
+  if (_strict) assert(_towers);
+  else if (!_towers) return false;
+  
+  return true;
 }

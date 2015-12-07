@@ -90,4 +90,3 @@ bool PgPostBankWrapper::commit()
       return 0;
     }
 }
-
