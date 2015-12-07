@@ -1,7 +1,7 @@
-// $Id: PgPostBankBackupManager.h,v 1.8 2014/05/19 17:06:23 jinhuang Exp $                                                                                             
+// $Id: PgPostBankBackupManager.hh,v 1.8 2014/05/19 17:06:23 jinhuang Exp $                                                                                             
 
 /*!
- * \file PgPostBankBackupManager.h
+ * \file PgPostBankBackupManager.hh
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.8 $
@@ -10,7 +10,6 @@
 
 #ifndef PGPOSTBANKBACKUPMANAGER_HH_
 #define PGPOSTBANKBACKUPMANAGER_HH_
-
 
 #include <pdbcalbase/PdbCalChan.h>
 #include <phool/PHTimeStamp.h>

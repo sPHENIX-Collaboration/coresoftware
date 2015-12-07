@@ -6,11 +6,13 @@
 
 #include <RDBC/TSQL.h>
 #include <RDBC/TSQLDriverManager.h>
-#include <RDBC/TSQLConnection.h>
 
 #include <sstream>
 
 using namespace std;
+
+PgPostApplication * PgPostApplication::mySpecificCopy = NULL;
+TSQLConnection * PgPostApplication::con = NULL;
 
 namespace
 {
@@ -49,13 +51,10 @@ int PgPostApplication::releaseConnection()
   if ( !__instance.get() ) return -1;
   if(con){
     con->Close();
-    con = 0;
+    con = NULL;
   }
   return 0;
 }
-
-PgPostApplication * PgPostApplication::mySpecificCopy = 0;
-TSQLConnection * PgPostApplication::con = 0;
 
 PgPostApplication::PgPostApplication(const string &dbname)
 {
@@ -89,12 +88,11 @@ TSQLConnection * PgPostApplication::getConnection()
 }
 
 int
-PgPostApplication::setDBName(const char *name)
+PgPostApplication::setDBName(const string &name)
 {
-  string newname = name;
-  if (dsn != newname)
+  if (dsn != name)
     {
-      dsn = newname;
+      dsn = name;
       if (con)
         {
           con->Close();
@@ -110,7 +108,8 @@ PgPostApplication::setDBName(const char *name)
   return 0;
 }
 
-PdbStatus PgPostApplication::startUpdate()
+PdbStatus
+PgPostApplication::startUpdate()
 {
   readOnly = 0;
   return 1;
@@ -157,7 +156,10 @@ PgPostApplication::commit(PdbCalBank *b){
   if (tb) {
     return tb->commit(); 
   }
-  return 0;
+  else {
+      cerr << PHWHERE << "Can only commit PgPostBankWrapper2" << endl;
+      return 0;
+  }
 }
 
 PdbStatus
@@ -166,7 +168,10 @@ PgPostApplication::commit(PdbCalBank *b, int rid, long it,long st,long et){
   if (tb) {
     return tb->commit(); 
   }
-  return 0;
+  else {
+      cerr << PHWHERE << "Can only commit PgPostBankWrapper2" << endl;
+      return 0;
+  }
 }
 
 int
@@ -176,6 +181,6 @@ PgPostApplication::DisconnectDB()
     {
       con->Close();
     }
-  con = 0;
+  con = NULL;
   return 0;
 }

@@ -6,6 +6,7 @@
 #define PDBBANKMANAGER_HH__
 
 #include "PdbBankID.h"
+
 #include <phool/PHTimeStamp.h>
 #include <phool/phool.h>
 
@@ -40,6 +41,7 @@ public:
 				 PHTimeStamp &,
 				 PHTimeStamp &,
 				 const std::string &) = 0;
+
   // create bank with run number as key
   virtual PdbCalBank* createBank(const int,
 				 const std::string &,
@@ -111,7 +113,6 @@ protected:
 
   static  PdbBankManager *__instance; 
 
-
 };
 
-#endif /* __PDBBANKMANAGER_HH__ */
+#endif /* PDBBANKMANAGER_HH__ */

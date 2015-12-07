@@ -4,7 +4,6 @@
 class PdbBankID;
 class PdbCalBank;
 
-
 #include <phool/PHTimeStamp.h>
 
 #include <iostream>
@@ -12,7 +11,7 @@ class PdbCalBank;
 class PdbCalBankIterator 
 {
 public:
-  virtual ~PdbCalBankIterator(){}
+  virtual ~PdbCalBankIterator();
 
   virtual bool init(const std::string &fulldbname, const PdbBankID& bankid) = 0;
   

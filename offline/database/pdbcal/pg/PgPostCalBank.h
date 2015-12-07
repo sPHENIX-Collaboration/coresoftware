@@ -3,12 +3,13 @@
 
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbBankID.h>
+
 #include <phool/PHTimeStamp.h>
 
 #include <TObject.h>
 
 #include <iostream>
-#include <string>
+#include <cstring>
 
 class PgPostCalBank : public PdbCalBank   {
 

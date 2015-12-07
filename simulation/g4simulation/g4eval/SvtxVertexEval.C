@@ -63,6 +63,8 @@ void SvtxVertexEval::next_event(PHCompositeNode* topNode) {
 
 std::set<PHG4Particle*> SvtxVertexEval::all_truth_particles(SvtxVertex* vertex) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4Particle*>();}
+  
   if (_strict) {assert(vertex);}
   else if (!vertex) {++_errors; return std::set<PHG4Particle*>();}
   
@@ -101,6 +103,8 @@ std::set<PHG4Particle*> SvtxVertexEval::all_truth_particles(SvtxVertex* vertex) 
 
 std::set<PHG4VtxPoint*> SvtxVertexEval::all_truth_points(SvtxVertex* vertex) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4VtxPoint*>();}
+  
   if (_strict) {assert(vertex);}
   else if (!vertex) {++_errors; return std::set<PHG4VtxPoint*>();}
   
@@ -134,6 +138,8 @@ std::set<PHG4VtxPoint*> SvtxVertexEval::all_truth_points(SvtxVertex* vertex) {
 
 PHG4VtxPoint* SvtxVertexEval::max_truth_point_by_ntracks(SvtxVertex* vertex) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(vertex);}
   else if (!vertex) {++_errors; return NULL;}
   
@@ -168,6 +174,8 @@ PHG4VtxPoint* SvtxVertexEval::max_truth_point_by_ntracks(SvtxVertex* vertex) {
    
 std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<SvtxVertex*>();}
+  
   if (_strict) {assert(truthpoint);}
   else if (!truthpoint) {++_errors; return std::set<SvtxVertex*>();}
 
@@ -204,6 +212,8 @@ std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint
 
 SvtxVertex* SvtxVertexEval::best_vertex_from(PHG4VtxPoint* truthpoint) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(truthpoint);}
   else if (!truthpoint) {++_errors; return NULL;}
 
@@ -237,6 +247,8 @@ SvtxVertex* SvtxVertexEval::best_vertex_from(PHG4VtxPoint* truthpoint) {
 // overlap calculations
 unsigned int SvtxVertexEval::get_ntracks_contribution(SvtxVertex* vertex, PHG4VtxPoint* truthpoint) {
 
+  if (!has_node_pointers()) {++_errors; return 0;}
+  
   if (_strict) {
     assert(vertex);
     assert(truthpoint);
@@ -281,22 +293,24 @@ void SvtxVertexEval::get_node_pointers(PHCompositeNode* topNode) {
 
   // need things off the DST...
   _vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
-  if (!_vertexmap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap" << endl;
-    exit(-1);
-  }
   
   _trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
-  if (!_trackmap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << endl;
-    exit(-1);
-  }
 
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
-  if (!_truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
-  }
   
   return;
+}
+
+bool SvtxVertexEval::has_node_pointers() {
+
+  if (_strict) assert(_vertexmap);
+  else if (!_vertexmap) return false;
+  
+  if (_strict) assert(_trackmap);
+  else if (!_trackmap) return false;
+
+  if (_strict) assert(_truthinfo);
+  else if (!_truthinfo) return false;
+  
+  return true;
 }

@@ -1,5 +1,3 @@
-// $Id: PgPostBankBackupManager.cc,v 1.11 2014/11/24 17:46:49 phnxbld Exp $                                                                                             
-
 /*!
  * \file PgPostBankBackupManager.cc
  * \brief 
@@ -8,16 +6,16 @@
  * \date $Date: 2014/11/24 17:46:49 $
  */
 
-#include "PgPostBankBackupManager.h"
-#include "PgPostBankBackupStorage.h"
-#include "PgPostBankBackupLog.h"
-
 #include "PgPostBankManager.h"
 #include "PgPostCalBankIterator.h"
 #include "PgPostBankWrapper.h"
 #include "PgPostApplication.h"
 #include "PgPostCalBank.h"
+#include "PgPostBankBackupManager.h"
+#include "PgPostBankBackupStorage.h"
+#include "PgPostBankBackupLog.h"
 #include "RunToTimePg.h"
+
 
 #include <pdbcalbase/PdbBankID.h>
 #include <pdbcalbase/PdbBankList.h>
@@ -35,6 +33,7 @@
 #include <RDBC/TSQLPreparedStatement.h>
 #include <RDBC/TSQLDatabaseMetaData.h>
 
+
 #include <TFile.h>
 #include <TKey.h>
 #include <TList.h>
@@ -50,7 +49,6 @@
 #include <memory>
 #include <sstream>
 #include <algorithm>
-
 
 using namespace std;
 
@@ -338,7 +336,6 @@ PgPostBankBackupManager::fetchBank(const std::string &bankName, int rid)
     cout << "PgPostBankBackupManager::fetchBank - start on fetching "
         << bankName << " ID " << rid << endl;
 
-  std::string table_name = bankName.c_str();
   PgPostApplication* ap = PgPostApplication::instance();
   if (!ap)
     {
@@ -362,7 +359,7 @@ PgPostBankBackupManager::fetchBank(const std::string &bankName, int rid)
 // cout << bankID.getInternalValue() << endl;
   tem
       << "select bankid,inserttime,startvaltime,endvaltime,description,username,calibrations,rid from "
-      << table_name << " where rid = " << rid;
+      << bankName << " where rid = " << rid;
 
   if (verbosity >= 2)
     cout << "PgPostBankBackupManager::fetchBank - database exe : " << tem.str()
@@ -381,7 +378,7 @@ PgPostBankBackupManager::fetchBank(const std::string &bankName, int rid)
   if (rs->Next())
     {
 
-      PgPostBankBackupStorage * bs = SQLResultSet2BackupStorage(rs, table_name);
+      PgPostBankBackupStorage * bs = SQLResultSet2BackupStorage(rs, bankName);
 
       if (Verbosity() >= 2)
         cout << "PgPostBankBackupManager::fetchBank - clear TSQLResultSet"
@@ -885,7 +882,6 @@ PgPostBankBackupManager::fetchAllBank2TFile(const std::string &bankName,
         << bankName << " for records criteria of [" << record_selection
         << "] to " << out_file_base << "*.root" << endl;
 
-  std::string table_name = bankName;
   PgPostApplication* ap = PgPostApplication::instance();
   if (!ap)
     {
@@ -906,7 +902,7 @@ PgPostBankBackupManager::fetchAllBank2TFile(const std::string &bankName,
   if (row_cnt <= 0)
     {
       cout << "PgPostBankBackupManager::fetchAllBank2TFile - WARNING - "
-          << " no data in table " << table_name << endl;
+          << " no data in table " << bankName << endl;
 //      return row_cnt;
     }
 
@@ -916,14 +912,14 @@ PgPostBankBackupManager::fetchAllBank2TFile(const std::string &bankName,
   if (verbosity >= 1)
     cout
         << "PgPostBankBackupManager::fetchAllBank2TFile - reset output length to row count "
-        << row_cnt << " for " << table_name << endl;
+        << row_cnt << " for " << bankName << endl;
   stmt->SetMaxRows(row_cnt + 1);
 
   std::ostringstream tem;
 //  std::ostringstream t2;
   tem
       << "select bankid,inserttime,startvaltime,endvaltime,description,username,calibrations,rid from "
-      << table_name;
+      << bankName;
   if (record_selection.length() > 0)
     tem << " where " << record_selection;
   tem << "   ORDER BY rid ASC";
@@ -966,7 +962,7 @@ PgPostBankBackupManager::fetchAllBank2TFile(const std::string &bankName,
 ////    <<", max row = "<<
 //        << endl;
 
-  PgPostBankBackupLog bklog(table_name, tag);
+  PgPostBankBackupLog bklog(bankName, tag);
   bklog.Init();
 
   int cnt = 0;
@@ -988,7 +984,7 @@ PgPostBankBackupManager::fetchAllBank2TFile(const std::string &bankName,
         {
           if (cnt % 1000 == 0)
             cout << "PgPostBankBackupManager::fetchAllBank2TFile - processing "
-                << table_name << ": " << cnt << "/" << row_cnt << " to "
+                << bankName << ": " << cnt << "/" << row_cnt << " to "
                 << file_name << endl;
 
           if (cnt % 10000 == 1)
@@ -1022,7 +1018,7 @@ PgPostBankBackupManager::fetchAllBank2TFile(const std::string &bankName,
       timer_db.get()->restart();
       const int rid = rs->GetInt(8);
       PgPostBankBackupStorage * bs = SQLResultSet2BackupStorage(rs.get(),
-          table_name);
+          bankName);
       timer_db.get()->stop();
 
       if (bs)
@@ -1100,8 +1096,6 @@ bool
 PgPostBankBackupManager::isRIdExist(const std::string &bankName, int rid)
 {
 
-  std::string table_name = bankName.c_str();
-
   PgPostApplication *ap = PgPostApplication::instance();
   assert(ap);
   TSQLConnection *con = ap->getConnection();
@@ -1111,7 +1105,7 @@ PgPostBankBackupManager::isRIdExist(const std::string &bankName, int rid)
   std::ostringstream tem;
 //  std::ostringstream t2;
 
-  tem << "select bankid, description,rid from " << table_name << " where rid = "
+  tem << "select bankid, description,rid from " << bankName << " where rid = "
       << rid;
 
   if (verbosity >= 2)
@@ -1133,8 +1127,6 @@ int
 PgPostBankBackupManager::getTotalRowCount(const std::string &bankName)
 {
 
-  std::string table_name = bankName.c_str();
-
   PgPostApplication *ap = PgPostApplication::instance();
   assert(ap);
   TSQLConnection *con = ap->getConnection();
@@ -1144,7 +1136,7 @@ PgPostBankBackupManager::getTotalRowCount(const std::string &bankName)
   std::ostringstream tem;
 //  std::ostringstream t2;
 
-  tem << "select COUNT(*) AS NumberOfRows from " << table_name;
+  tem << "select COUNT(*) AS NumberOfRows from " << bankName;
 
   if (verbosity >= 2)
     cout << "PgPostBankBackupManager::getTotalRowCount - database get : "
@@ -1166,8 +1158,6 @@ PgPostBankBackupManager::getListOfRId(const string & bankName,
     const string & condition)
 {
 
-  std::string table_name = bankName.c_str();
-
   rid_list_t l;
 
   PgPostApplication *ap = PgPostApplication::instance();
@@ -1179,7 +1169,7 @@ PgPostBankBackupManager::getListOfRId(const string & bankName,
   std::ostringstream tem;
 //  std::ostringstream t2;
 
-  tem << "select rid from " << table_name;
+  tem << "select rid from " << bankName;
 
   if (condition.length() > 0)
     tem << " where  " << condition;
@@ -1208,11 +1198,9 @@ PgPostBankBackupManager::dumpTable(const std::string &bankName,
     std::ostream & out)
 {
 
-  std::string table_name = bankName.c_str();
-
   if (verbosity >= 2)
     cout << "PgPostBankBackupManager::dumpTable - start on fetching "
-        << bankName << " -> " << table_name << endl;
+        << bankName << " -> " << bankName << endl;
 
   PgPostApplication* ap = PgPostApplication::instance();
   if (!ap)
@@ -1237,7 +1225,7 @@ PgPostBankBackupManager::dumpTable(const std::string &bankName,
 // cout << bankID.getInternalValue() << endl;
   tem
       << "select bankid,inserttime,startvaltime,endvaltime,description,username,calibrations,rid from "
-      << table_name << "  ORDER BY rid ASC";
+      << bankName << "  ORDER BY rid ASC";
 
   if (verbosity >= 2)
     cout << "PgPostBankBackupManager::dumpTable - database exe : " << tem.str()
@@ -1251,7 +1239,7 @@ PgPostBankBackupManager::dumpTable(const std::string &bankName,
       exit(1);
     }
 
-  PgPostBankBackupLog bklog(table_name, tag);
+  PgPostBankBackupLog bklog(bankName, tag);
   bklog.Init();
   int cnt = 0;
   while (rs->Next())
@@ -1263,7 +1251,7 @@ PgPostBankBackupManager::dumpTable(const std::string &bankName,
       cnt++;
 
       const int rid = rs->GetInt(8);
-      out << "New Entry - " << table_name << endl;
+      out << "New Entry - " << bankName << endl;
       out << "\tRId = \t" << rid << endl;
       out << "\tBankID = \t" << (rs->GetInt(1)) << endl;
       out << "\tInsertTime = \t" << (rs->GetLong(2)) << endl;
@@ -1285,7 +1273,7 @@ PgPostBankBackupManager::dumpTable(const std::string &bankName,
 
           if (verbosity >= 4)
             {
-              cout << "PgPostBankBackupManager::dumpTable -  " << table_name
+              cout << "PgPostBankBackupManager::dumpTable -  " << bankName
                   << ":" << rid << ", " << c.GetUniqueID() << ", "
                   << c.TestBits(0xFFFFFFFF) << " -> HASH " << HashPdbCalChan(c)
                   << ", ";
@@ -1330,14 +1318,12 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
     const std::string & log_file_name)
 {
 
-  std::string table_name = bankName.c_str();
-
   const bool do_log = log_file_name.size();
 
   if (verbosity >= 1)
     {
       cout << "PgPostBankBackupManager::CleanTable - start on fetching "
-          << bankName << " -> " << table_name
+          << bankName << " -> " << bankName
           << " with preservation limit of T>" << min_save_time;
       if (do_log)
         cout << ". Log to file " << log_file_name;
@@ -1369,7 +1355,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
       TSQLStatement *stmt = con->CreateStatement();
       std::ostringstream tem;
 
-      tem << "select bankid from " << table_name
+      tem << "select bankid from " << bankName
           << " group by bankid order by bankid";
 
       if (verbosity >= 1)
@@ -1398,7 +1384,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
         }
 
       if (verbosity >= 1)
-        cout << "PgPostBankBackupManager::CleanTable -" << table_name
+        cout << "PgPostBankBackupManager::CleanTable -" << bankName
             << ": received " << bankids.size() << " bank IDs" << endl;
     } // get bank IDs
 
@@ -1411,14 +1397,14 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
       const int bankid = *it;
 
       if (verbosity >= 1)
-        cout << "PgPostBankBackupManager::CleanTable -" << table_name
+        cout << "PgPostBankBackupManager::CleanTable -" << bankName
             << ": process bankID " << bankid << ". Processed " << cnt_total
             << " records / delete " << rid_to_drop.size() << endl;
 
       TSQLStatement *stmt = con->CreateStatement();
       std::ostringstream tem;
 
-      tem << "select inserttime,startvaltime,endvaltime,rid FROM " << table_name
+      tem << "select inserttime,startvaltime,endvaltime,rid FROM " << bankName
           << " where bankid =  " << bankid << " and inserttime < "
           << min_save_time.getTics() << " order by inserttime desc, rid desc";
 
@@ -1450,7 +1436,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
           int drop_record = 0;
 
           if (verbosity >= 2)
-            cout << "PgPostBankBackupManager::CleanTable -" << table_name
+            cout << "PgPostBankBackupManager::CleanTable -" << bankName
                 << " : " << bankid << " : " << rid
                 << " : process record with insert " << inserttime << " covers ("
                 << startvaltime << ", " << endvaltime << ")" << endl;
@@ -1460,7 +1446,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
 //            {
 //              if (verbosity >= 2)
 //                {
-//                  cout << "PgPostBankBackupManager::CleanTable - " << table_name
+//                  cout << "PgPostBankBackupManager::CleanTable - " << bankName
 //                      << " : " << bankid << " : " << rid
 //                      << " : preserve record since insert time" << inserttime
 //                      << " > threshold " << min_save_time.getTics()
@@ -1474,7 +1460,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
               if (verbosity >= 2)
                 {
                   cout << "PgPostBankBackupManager::CleanTable - ERROR -"
-                      << table_name << " : " << bankid << " : " << rid
+                      << bankName << " : " << bankid << " : " << rid
                       << ": wrong record start " << startvaltime << " > end "
                       << endvaltime << ". Drop it \n";
                   drop_record = 1;
@@ -1504,7 +1490,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
                     {
                       if (verbosity >= 2)
                         cout << "PgPostBankBackupManager::CleanTable -"
-                            << table_name << " : " << bankid << " : " << rid
+                            << bankName << " : " << bankid << " : " << rid
                             << " : - fully covered record (" << startvaltime
                             << ", " << endvaltime << ") <-> ("
                             << covered_startvaltime << ", "
@@ -1519,7 +1505,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
                     {
                       if (verbosity >= 2)
                         cout << "PgPostBankBackupManager::CleanTable -"
-                            << table_name << " : " << bankid << " : " << rid
+                            << bankName << " : " << bankid << " : " << rid
                             << " : - afterward merge record (" << startvaltime
                             << ", " << endvaltime << ") <-> ("
                             << covered_startvaltime << ", "
@@ -1541,7 +1527,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
                       if (verbosity >= 2)
 
                         cout << "PgPostBankBackupManager::CleanTable -"
-                            << table_name << " : " << bankid << " : " << rid
+                            << bankName << " : " << bankid << " : " << rid
                             << " : - forward merge record (" << startvaltime
                             << ", " << endvaltime << ") <-> ("
                             << covered_startvaltime << ", "
@@ -1568,7 +1554,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
                       if (verbosity >= 2)
 
                         cout << "PgPostBankBackupManager::CleanTable -"
-                            << table_name << " : " << bankid << " : " << rid
+                            << bankName << " : " << bankid << " : " << rid
                             << " : - over merge record (" << startvaltime
                             << ", " << endvaltime << ") <-> ("
                             << covered_startvaltime << ", "
@@ -1592,7 +1578,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
                       if (verbosity >= 2)
 
                         cout << "PgPostBankBackupManager::CleanTable -"
-                            << table_name << " : " << bankid << " : " << rid
+                            << bankName << " : " << bankid << " : " << rid
                             << " : - not related records (" << startvaltime
                             << ", " << endvaltime << ") <-> ("
                             << covered_startvaltime << ", "
@@ -1611,7 +1597,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
             {
               if (verbosity >= 2)
                 {
-                  cout << "PgPostBankBackupManager::CleanTable -" << table_name
+                  cout << "PgPostBankBackupManager::CleanTable -" << bankName
                       << " : " << bankid << " : " << rid << " : - drop record"
                       << endl;
                 }
@@ -1622,7 +1608,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
             {
               if (verbosity >= 2)
                 {
-                  cout << "PgPostBankBackupManager::CleanTable -" << table_name
+                  cout << "PgPostBankBackupManager::CleanTable -" << bankName
                       << " : " << bankid << " : " << rid << " : - keep record"
                       << endl;
                 }
@@ -1631,7 +1617,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
 
           if (verbosity >= 3)
             {
-              cout << "PgPostBankBackupManager::CleanTable -" << table_name
+              cout << "PgPostBankBackupManager::CleanTable -" << bankName
                   << " : " << bankid << " : " << rid
                   << " : - print covered period";
               for (covered_period_t::iterator piter = covered_period.begin();
@@ -1655,11 +1641,11 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
     {
 
       if (verbosity >= 1)
-        cout << "PgPostBankBackupManager::CleanTable -" << table_name
+        cout << "PgPostBankBackupManager::CleanTable -" << bankName
             << ": will delete " << rid_to_drop.size() << " records." << endl;
 
       ostringstream sqlcmd;
-      sqlcmd << "delete from " << table_name << " where rid = ?";
+      sqlcmd << "delete from " << bankName << " where rid = ?";
 
       if (verbosity >= 1)
         cout << "PgPostBankBackupManager::CleanTable - database commit : "
@@ -1668,7 +1654,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
       TSQLPreparedStatement* pstmt = con->PrepareStatement(
           sqlcmd.str().c_str());
 
-      PgPostBankBackupLog bklog(table_name, tag);
+      PgPostBankBackupLog bklog(bankName, tag);
       bklog.Init();
 
       PHTimeServer::timer timer_loop(
@@ -1686,14 +1672,14 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
           const int rid = *it;
 
           if (verbosity >= 2)
-            cout << "PgPostBankBackupManager::CleanTable -" << table_name
+            cout << "PgPostBankBackupManager::CleanTable -" << bankName
                 << ": delete rid " << rid << ", execute flag (do_delete) = "
                 << do_delete << endl;
 
           if (verbosity >= 1)
             {
               if (cnt % 100 == 0)
-                cout << "PgPostBankBackupManager::CleanTable -  " << table_name
+                cout << "PgPostBankBackupManager::CleanTable -  " << bankName
                     << " delete : " << cnt << "/" << rid_to_drop.size() << endl;
 
               if (cnt % 100 == 1)
@@ -1729,7 +1715,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
               if (res == 0)
                 {
                   cout << "PgPostBankBackupManager::CleanTable - Error - "
-                      << "DATABASE: delete " << table_name << " failed. "
+                      << "DATABASE: delete " << bankName << " failed. "
                       << "Make sure you commit to the master database " << endl;
                   exit(1);
                 }
@@ -1737,7 +1723,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
 
               if (do_log)
                 {
-                  flog << "Deleted Entry - " << table_name << " RId " << rid
+                  flog << "Deleted Entry - " << bankName << " RId " << rid
                       << endl;
                 }
 

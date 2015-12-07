@@ -73,6 +73,8 @@ void SvtxClusterEval::next_event(PHCompositeNode* topNode) {
 
 std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(SvtxCluster* cluster) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4Hit*>();}
+  
   if (_strict) {assert(cluster);}
   else if (!cluster) {++_errors; return std::set<PHG4Hit*>();}
   
@@ -112,6 +114,8 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(SvtxCluster* cluster) {
 
 PHG4Hit* SvtxClusterEval::max_truth_hit_by_energy(SvtxCluster* cluster) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(cluster);}
   else if (!cluster) {++_errors; return NULL;}
   
@@ -143,6 +147,8 @@ PHG4Hit* SvtxClusterEval::max_truth_hit_by_energy(SvtxCluster* cluster) {
   
 std::set<PHG4Particle*> SvtxClusterEval::all_truth_particles(SvtxCluster* cluster) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4Particle*>();}
+  
   if (_strict) {assert(cluster);}
   else if (!cluster) {++_errors; return std::set<PHG4Particle*>();}
   
@@ -177,6 +183,8 @@ std::set<PHG4Particle*> SvtxClusterEval::all_truth_particles(SvtxCluster* cluste
 
 PHG4Particle* SvtxClusterEval::max_truth_particle_by_energy(SvtxCluster* cluster) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(cluster);}
   else if (!cluster) {++_errors; return NULL;}
   
@@ -212,6 +220,8 @@ PHG4Particle* SvtxClusterEval::max_truth_particle_by_energy(SvtxCluster* cluster
 
 std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Particle* truthparticle) { 
 
+  if (!has_node_pointers()) {++_errors; return std::set<SvtxCluster*>();}
+  
   if (_strict) {assert(truthparticle);}
   else if (!truthparticle) {++_errors; return std::set<SvtxCluster*>();}
   
@@ -251,6 +261,8 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Particle* truthpar
 
 std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<SvtxCluster*>();}
+  
   if (_strict) {assert(truthhit);}
   else if (!truthhit) {++_errors; return std::set<SvtxCluster*>();}
   
@@ -294,6 +306,8 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit) {
 
 SvtxCluster* SvtxClusterEval::best_cluster_from(PHG4Hit* truthhit) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(truthhit);}
   else if (!truthhit) {++_errors; return NULL;}
   
@@ -327,6 +341,8 @@ SvtxCluster* SvtxClusterEval::best_cluster_from(PHG4Hit* truthhit) {
 // overlap calculations
 float SvtxClusterEval::get_energy_contribution(SvtxCluster* cluster, PHG4Particle* particle) {
 
+  if (!has_node_pointers()) {++_errors; return NAN;}
+  
   if (_strict) {
     assert(cluster);
     assert(particle);
@@ -361,6 +377,8 @@ float SvtxClusterEval::get_energy_contribution(SvtxCluster* cluster, PHG4Particl
 
 float SvtxClusterEval::get_energy_contribution(SvtxCluster* cluster, PHG4Hit* g4hit) {
 
+  if (!has_node_pointers()) {++_errors; return NAN;}
+  
   if (_strict) {
     assert(cluster);
     assert(g4hit);
@@ -397,22 +415,24 @@ void SvtxClusterEval::get_node_pointers(PHCompositeNode *topNode) {
 
   // need things off of the DST...
   _clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
-  if (!_clustermap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxClusterMap" << endl;
-    exit(-1);
-  }
 
   _hitmap = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
-  if (!_hitmap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxHitMap" << endl;
-    exit(-1);
-  }
 
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
-  if (!_truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
-  }
   
   return;
+}
+
+bool SvtxClusterEval::has_node_pointers() {
+
+  if (_strict) assert(_clustermap);
+  else if (!_clustermap) return false;
+
+  if (_strict) assert(_hitmap);
+  else if (!_hitmap) return false;
+
+  if (_strict) assert(_truthinfo);
+  else if (!_truthinfo) return false;
+  
+  return true;
 }

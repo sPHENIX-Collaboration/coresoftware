@@ -65,6 +65,7 @@ public:
 private:
 
   void get_node_pointers(PHCompositeNode *topNode);
+  bool has_node_pointers();
 
   SvtxTruthEval _trutheval;
   SvtxHitMap* _hitmap;

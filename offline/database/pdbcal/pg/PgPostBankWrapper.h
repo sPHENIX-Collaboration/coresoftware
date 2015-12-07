@@ -2,6 +2,7 @@
 #define __PGPOSTBANKWRAPPER_HH__
 
 #include "PgPostCalBank.h"
+
 #include <phool/PHTimeStamp.h>
 
 #include <iostream>
@@ -35,9 +36,9 @@ public:
   void setInsertTime(const PHTimeStamp & val)   { insertTime = val; }
   void setStartValTime(const PHTimeStamp & val) { startValTime = val; }
   void setEndValTime(const PHTimeStamp & val)   { endValTime = val; }
-  void setDescription(const std::string & val) {description = val;}
-  void setUserName(const std::string & val) {userName = val;}
-  void setTableName(const std::string & val) {tableName = val;}
+  void setDescription(const std::string & val) { strcpy(description, val.c_str()); }  
+  void setUserName(const std::string & val) { strcpy(userName, val.c_str()); }
+  void setTableName(const std::string & val) { strcpy(tableName, val.c_str()); }
 
   PdbCalBank * getBank() { return  bank; }
   virtual int isValid (const PHTimeStamp &) const { return 0; }
@@ -48,9 +49,9 @@ private:
   PHTimeStamp  insertTime;
   PHTimeStamp  startValTime;
   PHTimeStamp  endValTime;
-  std::string  description;
-  std::string  userName;
-  std::string  tableName;
+  char         description[240];
+  char         userName[200];
+  char         tableName[400];
 
   PdbCalBank * bank;
 

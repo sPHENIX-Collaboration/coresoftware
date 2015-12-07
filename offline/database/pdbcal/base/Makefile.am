@@ -5,20 +5,15 @@ lib_LTLIBRARIES = libpdbcalBase.la
 BUILT_SOURCES = \
   testexternals.C
 
-INCLUDES = \
-  -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+INCLUDES = -I$(includedir) -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir`
 
 ROOTIFY  = perl $(srcdir)/PdbRootify.pl
 
 libpdbcalBase_la_LDFLAGS = \
   `root-config --evelibs`
-
 libpdbcalBase_la_LIBADD = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  -lphool
+  -L$(libdir) -L$(OFFLINE_MAIN)/lib -lphool 
 
 #please add new classes sorted according to the roman alphabet
 libpdbcalBase_la_SOURCES = \
@@ -36,38 +31,21 @@ libpdbcalBase_la_SOURCES = \
   PdbBankManager_dict.C \
   PdbBankManagerFactory.cc \
   PdbBankManagerFactory_dict.C \
+  PdbCalBank.cc \
   PdbCalBank_dict.C \
-  PdbCalBase.cc \
-  PdbCalBase_dict.C \
+  PdbCalBankIterator.cc \
+  PdbCalBankIterator_dict.C \
+  PdbCalChan.cc \
   PdbCalChan_dict.C \
-  PdbCalHeader.cc \
-  PdbCalHeader_dict.C \
-  PdbCalParameters.cc \
-  PdbCalParameters_dict.C \
-  PdbCoordinate.cc \
-  PdbCoordinate_dict.C \
-  PdbDouble.cc \
-  PdbDouble_dict.C \
-  PdbFloatVector.cc \
-  PdbFloatVector_dict.C \
-  PdbIndex.cc \
-  PdbIndex_dict.C \
-  PdbInt.cc \
-  PdbInt_dict.C \
-  PdbMapIntVecFloat.cc \
-  PdbMapIntVecFloat_dict.C \
-  PdbMapIntInt.cc \
-  PdbMapIntInt_dict.C \
   PdbParameter.cc \
   PdbParameter_dict.C \
-  PdbParameterMap.cc \
-  PdbParameterMap_dict.C \
   PdbParameterError.cc \
   PdbParameterError_dict.C \
+  PdbParameterMap.cc \
+  PdbParameterMap_dict.C \
+  PHGenericFactoryT.C \
   RunToTime.cc \
-  RunToTime_dict.C \
-  RunToTimeFactory.cc \
-  RunToTimeFactory_dict.C
+  RunToTime_dict.C
 
 
 #please add new includes sorted according to the roman alphabet
@@ -82,24 +60,13 @@ pkginclude_HEADERS = \
   PdbBankManagerFactory.h \
   PdbCalBank.h \
   PdbCalBankIterator.h \
-  PdbCalBase.h \
   PdbCalChan.h \
-  PdbCalHeader.h \
-  PdbCalParameters.h \
   PdbClassMap.h \
-  PdbCoordinate.h \
-  PdbDouble.h \
-  PdbFloatVector.h \
-  PdbIndex.h \
-  PdbInt.h \
-  PdbMapIntVecFloat.h \
-  PdbMapIntInt.h \
   PdbParameter.h \
-  PdbParameterMap.h \
   PdbParameterError.h \
+  PdbParameterMap.h \
   PHGenericFactoryT.h \
-  RunToTime.h \
-  RunToTimeFactory.h
+  RunToTime.h
 
 noinst_PROGRAMS = \
   testexternals
