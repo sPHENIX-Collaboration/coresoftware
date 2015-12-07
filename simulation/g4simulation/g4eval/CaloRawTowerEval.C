@@ -66,6 +66,8 @@ void CaloRawTowerEval::next_event(PHCompositeNode* topNode) {
 
 std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(RawTower* tower) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4Hit*>();}
+  
   if (_strict) {assert(tower);}
   else if (!tower) {++_errors; return std::set<PHG4Hit*>();}
   
@@ -111,6 +113,8 @@ std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(RawTower* tower) {
   
 std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primaries(RawTower* tower) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4Particle*>();}
+  
   if (_strict) {assert(tower);}
   else if (!tower) {++_errors; return std::set<PHG4Particle*>();}
   
@@ -145,6 +149,8 @@ std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primaries(RawTower* tower) {
 
 PHG4Particle* CaloRawTowerEval::max_truth_primary_by_energy(RawTower* tower) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(tower);}
   else if (!tower) {++_errors; return NULL;}
   
@@ -186,6 +192,8 @@ PHG4Particle* CaloRawTowerEval::max_truth_primary_by_energy(RawTower* tower) {
 
 std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Particle* primary) { 
 
+  if (!has_node_pointers()) {++_errors; return std::set<RawTower*>();}
+  
   if (_strict) {assert(primary);}
   else if (!primary) {++_errors; return std::set<RawTower*>();}
   
@@ -237,6 +245,8 @@ std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Particle* primary) {
 
 RawTower* CaloRawTowerEval::best_tower_from(PHG4Particle* primary) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(primary);}
   else if (!primary) {++_errors; return NULL;}
   
@@ -282,6 +292,8 @@ RawTower* CaloRawTowerEval::best_tower_from(PHG4Particle* primary) {
 // overlap calculations
 float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* primary) {
 
+  if (!has_node_pointers()) {++_errors; return NAN;}
+  
   if (_strict) {
     assert(tower);
     assert(primary);
@@ -337,30 +349,31 @@ void CaloRawTowerEval::get_node_pointers(PHCompositeNode *topNode) {
   // need things off of the DST...
   std::string towername = "TOWER_CALIB_" + _caloname;
   _towers = findNode::getClass<RawTowerContainer>(topNode,towername.c_str());
-  if (!_towers) {
-    cerr << PHWHERE << " ERROR: Can't find " << towername << endl;
-    exit(-1);
-  }
   
   std::string cellname = "G4CELL_" + _caloname;
   _g4cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,cellname.c_str());
-  if (!_g4cells) {
-    cerr << PHWHERE << " ERROR: Can't find " << cellname << endl;
-    exit(-1);
-  }
 
   std::string hitname = "G4HIT_" + _caloname;  
   _g4hits = findNode::getClass<PHG4HitContainer>(topNode,hitname.c_str());
-  if (!_g4hits){ 
-    cerr << PHWHERE << " ERROR: Can't find " << hitname << endl;
-    exit(-1);
-  }
 
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
-  if (!_truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
-  }
 
   return;
+}
+
+bool CaloRawTowerEval::has_node_pointers() {
+
+  if (_strict) assert(_towers);
+  else if (!_towers) return false;
+
+  if (_strict) assert(_g4cells);
+  else if (!_g4cells) return false; 
+
+  if (_strict) assert(_g4hits);
+  else if (!_g4hits) return false; 
+
+  if (_strict) assert(_truthinfo);
+  else if (!_truthinfo) return false;
+
+  return true;
 }
