@@ -60,6 +60,8 @@ void SvtxTruthEval::next_event(PHCompositeNode* topNode) {
 /// \todo this copy may be too expensive to call a lot...
 std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits() {
 
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4Hit*>();}
+  
   if (_do_cache) {
     if (!_cache_all_truth_hits.empty()) {
       return _cache_all_truth_hits;
@@ -100,6 +102,8 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits() {
 
 std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4Hit*>();}
+  
   if (_strict) {assert(particle);}
   else if (!particle) {++_errors; return std::set<PHG4Hit*>();}
   
@@ -144,6 +148,8 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle) {
 
 PHG4Hit* SvtxTruthEval::get_innermost_truth_hit(PHG4Particle* particle) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(particle);}
   else if (!particle) {++_errors; return NULL;}
   
@@ -169,6 +175,8 @@ PHG4Hit* SvtxTruthEval::get_innermost_truth_hit(PHG4Particle* particle) {
 
 PHG4Hit* SvtxTruthEval::get_outermost_truth_hit(PHG4Particle* particle) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(particle);}
   else if (!particle) {++_errors; return NULL;}
   
@@ -210,6 +218,8 @@ bool SvtxTruthEval::is_primary(PHG4Particle* particle) {
 
 PHG4Particle* SvtxTruthEval::get_primary(PHG4Hit* g4hit) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(g4hit);}
   else if (!g4hit) {++_errors; return NULL;}
 
@@ -250,17 +260,20 @@ bool SvtxTruthEval::are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2) {
 void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode) {
   
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
-  if (!_truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
-  }
 
   _g4hits_svtx    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SVTX");
   _g4hits_tracker = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SILICON_TRACKER");
-  if (!_g4hits_svtx && !_g4hits_tracker) {
-    cerr << PHWHERE << " ERROR: Can't find G4HIT_SVTX or G4HIT_SILICON_TRACKER" << endl;
-    exit(-1);
-  }
   
   return;
+}
+
+bool SvtxTruthEval::has_node_pointers() {
+
+  if (_strict) assert(_truthinfo);
+  else if (!_truthinfo) return false;
+
+  if (_strict) assert(_g4hits_svtx || _g4hits_tracker);
+  else if (!_g4hits_svtx && !_g4hits_tracker) return false;
+  
+  return true;
 }

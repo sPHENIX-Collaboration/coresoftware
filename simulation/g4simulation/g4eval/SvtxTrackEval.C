@@ -63,6 +63,8 @@ void SvtxTrackEval::next_event(PHCompositeNode* topNode) {
 
 std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
 
+  if (!has_node_pointers()) return std::set<PHG4Hit*>();
+  
   if (_strict) {assert(track);}
   else if (!track) {++_errors; return std::set<PHG4Hit*>();}
   
@@ -102,6 +104,8 @@ std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track) {
   
 std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track) {
 
+  if (!has_node_pointers()) return std::set<PHG4Particle*>();
+  
   if (_strict) {assert(track);}
   else if (!track) {++_errors; return std::set<PHG4Particle*>();}
   
@@ -141,6 +145,8 @@ std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track) {
 
 PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track) {
 
+  if (!has_node_pointers()) return NULL;
+  
   if (_strict) {assert(track);}
   else if (!track) {++_errors; return NULL;}
   
@@ -175,6 +181,8 @@ PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track) {
 
 std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle) { 
 
+  if (!has_node_pointers()) return std::set<SvtxTrack*>();
+  
   if (_strict) {assert(truthparticle);}
   else if (!truthparticle) {++_errors; return std::set<SvtxTrack*>();}
   
@@ -223,6 +231,8 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
 
 std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<SvtxTrack*>();}
+  
   if (_strict) {assert(truthhit);}
   else if (!truthhit) {++_errors; return std::set<SvtxTrack*>();}
   
@@ -273,6 +283,8 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit) {
 
 SvtxTrack* SvtxTrackEval::best_track_from(PHG4Particle* truthparticle) { 
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(truthparticle);}
   else if (!truthparticle) {++_errors; return NULL;}
   
@@ -306,6 +318,8 @@ SvtxTrack* SvtxTrackEval::best_track_from(PHG4Particle* truthparticle) {
 // overlap calculations
 unsigned int SvtxTrackEval::get_nclusters_contribution(SvtxTrack* track, PHG4Particle* particle) {
 
+  if (!has_node_pointers()) {++_errors; return 0;}
+  
   if (_strict) {
     assert(track);
     assert(particle);
@@ -355,16 +369,20 @@ void SvtxTrackEval::get_node_pointers(PHCompositeNode *topNode) {
 
   // need things off of the DST...
   _trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
-  if (!_trackmap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << endl;
-    exit(-1);
-  }
   
   _clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
-  if (!_clustermap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxClusterMap" << endl;
-    exit(-1);
-  }
 
   return;
+}
+
+bool SvtxTrackEval::has_node_pointers() {
+
+  // need things off of the DST...
+  if (_strict) assert(_trackmap);
+  else if (!_trackmap) return false;
+
+  if (_strict) assert(_clustermap);
+  else if (!_clustermap) return false;
+
+  return true;
 }
