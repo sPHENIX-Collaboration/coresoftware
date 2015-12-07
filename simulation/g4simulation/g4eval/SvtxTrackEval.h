@@ -62,6 +62,7 @@ public:
 private:
 
   void get_node_pointers(PHCompositeNode* topNode);
+  bool has_node_pointers();
   
   SvtxClusterEval _clustereval;
   SvtxTrackMap* _trackmap;

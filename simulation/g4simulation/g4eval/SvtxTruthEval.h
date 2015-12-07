@@ -53,6 +53,7 @@ public:
 private:
 
   void get_node_pointers(PHCompositeNode* topNode);
+  bool has_node_pointers();
 
   BaseTruthEval _basetrutheval;
   

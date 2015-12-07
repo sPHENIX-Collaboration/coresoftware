@@ -71,6 +71,8 @@ void SvtxHitEval::next_event(PHCompositeNode* topNode) {
 
 PHG4CylinderCell* SvtxHitEval::get_cell(SvtxHit* hit) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(hit);}
   else if (!hit) {++_errors; return NULL;}
   
@@ -88,6 +90,8 @@ PHG4CylinderCell* SvtxHitEval::get_cell(SvtxHit* hit) {
 
 std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4Hit*>();}
+  
   if (_strict) {assert(hit);}
   else if (!hit) {++_errors; return std::set<PHG4Hit*>();}
   
@@ -133,6 +137,8 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
 
 PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(SvtxHit* hit) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(hit);}
   else if (!hit) {++_errors; return NULL;}
   
@@ -164,6 +170,8 @@ PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(SvtxHit* hit) {
   
 std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(SvtxHit* hit) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4Particle*>();}
+  
   if (_strict) {assert(hit);}
   else if (!hit) {++_errors; return std::set<PHG4Particle*>();}
   
@@ -198,6 +206,8 @@ std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(SvtxHit* hit) {
 
 PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(SvtxHit* hit) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(hit);}
   else if (!hit) {++_errors; return NULL;}
   
@@ -233,6 +243,8 @@ PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(SvtxHit* hit) {
 
 std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Particle* g4particle) { 
 
+  if (!has_node_pointers()) {++_errors; return std::set<SvtxHit*>();}
+  
   if (_strict) {assert(g4particle);}
   else if (!g4particle) {++_errors; return std::set<SvtxHit*>();}
   
@@ -272,6 +284,8 @@ std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Particle* g4particle) {
 
 std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Hit* g4hit) {
 
+  if (!has_node_pointers()) {++_errors; return std::set<SvtxHit*>();}
+  
   if (_strict) {assert(g4hit);}
   else if (!g4hit) {++_errors; return std::set<SvtxHit*>();}
   
@@ -315,6 +329,8 @@ std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Hit* g4hit) {
 
 SvtxHit* SvtxHitEval::best_hit_from(PHG4Hit* g4hit) {
 
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
   if (_strict) {assert(g4hit);}
   else if (!g4hit) {++_errors; return NULL;}
   
@@ -348,6 +364,8 @@ SvtxHit* SvtxHitEval::best_hit_from(PHG4Hit* g4hit) {
 // overlap calculations
 float SvtxHitEval::get_energy_contribution(SvtxHit* hit, PHG4Particle* particle) {
 
+  if (!has_node_pointers()) {++_errors; return NAN;}
+  
   if (_strict) {
     assert(hit);
     assert(particle);
@@ -382,6 +400,8 @@ float SvtxHitEval::get_energy_contribution(SvtxHit* hit, PHG4Particle* particle)
 
 float SvtxHitEval::get_energy_contribution(SvtxHit* hit, PHG4Hit* g4hit) {
 
+  if (!has_node_pointers()) {++_errors; return NAN;}
+  
   if (_strict) {
     assert(hit);
     assert(g4hit);
@@ -420,31 +440,32 @@ void SvtxHitEval::get_node_pointers(PHCompositeNode* topNode) {
 
   // need things off of the DST...
   _hitmap = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
-  if (!_hitmap) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxHitMap" << endl;
-    exit(-1);
-  }
 
   // need things off of the DST...
   _g4cells_svtx    = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
   _g4cells_tracker = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
-  if (!_g4cells_svtx && !_g4cells_tracker) {
-    cerr << PHWHERE << " ERROR: Can't find G4CELL_SVTX or G4CELL_SILICON_TRACKER" << endl;
-    exit(-1);
-  }
     
   _g4hits_svtx    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SVTX");
   _g4hits_tracker = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SILICON_TRACKER");
-  if (!_g4hits_svtx && !_g4hits_tracker) {
-    cerr << PHWHERE << " ERROR: Can't find G4HIT_SVTX or G4HIT_SILICON_TRACKER" << endl;
-    exit(-1);
-  }
   
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
-  if (!_truthinfo) {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-    exit(-1);
-  }
   
   return;
+}
+
+bool SvtxHitEval::has_node_pointers() {
+
+  if (_strict) assert(_hitmap);
+  else if (!_hitmap) return false;
+
+  if (_strict) assert(_g4cells_svtx || _g4cells_tracker);
+  else if (!_g4cells_svtx && !_g4cells_tracker) return false;
+
+  if (_strict) assert(_g4hits_svtx || _g4hits_tracker);
+  else if (!_g4hits_svtx && !_g4hits_tracker) return false;
+
+  if (_strict) assert(_truthinfo);
+  else if (!_truthinfo) return false;
+  
+  return true;
 }
