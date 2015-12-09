@@ -3,6 +3,8 @@
 
 #include <Geant4/G4VUserTrackInformation.hh>
 
+#include "PHG4Shower.h"
+
 // Made this with "V1" in the name in case we ever want to inherit from
 // it with other versions...
 
@@ -15,7 +17,7 @@ class PHG4TrackUserInfoV1 : public G4VUserTrackInformation
 public:
   PHG4TrackUserInfoV1() : G4VUserTrackInformation("TrackUserInfoV1"),
 			  usertrackid(0), userparentid(0), userprimaryid(0),
-			  wanted(0), keep(0) {}
+			  wanted(0), keep(0) , shower(NULL) {}
   virtual ~PHG4TrackUserInfoV1() {}
 
   void Print() const {
@@ -42,12 +44,16 @@ public:
   void SetKeep(const int val) {keep = val;}
   int GetKeep() const {return keep;}
 
+  void SetShower(PHG4Shower *ptr) {shower = ptr;}
+  PHG4Shower* GetShower() const {return shower;}
+
 private:
   int usertrackid;
   int userparentid;
   int userprimaryid;
   int wanted;
   int keep;
+  PHG4Shower* shower;
 };
 
 // Utility function to wrap up the operations involved with adding user info
@@ -61,6 +67,7 @@ namespace PHG4TrackUserInfo
   void SetUserPrimaryId(G4Track* track, const int userprimaryid);
   void SetWanted(G4Track* track, const int wanted);
   void SetKeep(G4Track* track, const int keep);
+  void SetShower(G4Track* track, PHG4Shower* ptr);
 };
 
 #endif
