@@ -11,6 +11,8 @@ using namespace std;
 PHG4BlockCellGeom::PHG4BlockCellGeom():
   _layer(-9999),
   _binning(0),
+  _radius(NAN),
+  _thickness(NAN),
   _nzbins(-1),
   _zmin(NAN),
   _zstep(NAN),
