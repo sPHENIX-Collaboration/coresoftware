@@ -43,7 +43,6 @@ libphg4hit_la_SOURCES = \
     PHG4Particlev2.cc \
     PHG4Shower.cc \
     PHG4Shower_v1.cc \
-    PHG4ShowerMap.cc \
     PHG4TruthInfoContainer.cc \
     PHG4VtxPoint.cc \
     PHG4VtxPointv1.cc
@@ -115,14 +114,13 @@ pkginclude_HEADERS = \
   PHG4Hitv1.h \
   PHG4HitEval.h \
   PHG4HitContainer.h \
-  PHG4Shower.h \
-  PHG4Shower_v1.h \
-  PHG4ShowerMap.h \
   PHG4InEvent.h \
   PHG4NullSteppingAction.h \
   PHG4Particle.h \
   PHG4Particlev1.h \
   PHG4Particlev2.h \
+  PHG4Shower.h \
+  PHG4Shower_v1.h \
   PHG4PhenixDetector.h \
   PHG4RegionInformation.h \
   PHG4SteppingAction.h \
@@ -191,7 +189,6 @@ PHG4Hit_Dict.cc: \
   PHG4HitContainer.h \
   PHG4Shower.h \
   PHG4Shower_v1.h \
-  PHG4ShowerMap.h \
   PHG4Particle.h \
   PHG4Particlev1.h \
   PHG4Particlev2.h \
