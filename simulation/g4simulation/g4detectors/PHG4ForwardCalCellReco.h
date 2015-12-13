@@ -14,7 +14,7 @@ class PHG4ForwardCalCellReco : public SubsysReco
 {
  public:
 
-  PHG4ForwardCalCellReco(const std::string &name = "FHCALCELLRECO");
+  PHG4ForwardCalCellReco(const std::string &name = "FWDCALCELLRECO");
 
   virtual ~PHG4ForwardCalCellReco(){}
   

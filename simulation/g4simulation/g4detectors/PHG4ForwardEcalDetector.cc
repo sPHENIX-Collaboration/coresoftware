@@ -57,7 +57,7 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector( PHCompositeNode *Node, const s
   _tower_dy(30*mm),
   _tower_dz(170.0*mm),
   _materialScintillator( "G4_PLASTIC_SC_VINYLTOLUENE" ),
-  _materialAbsorber( "G4_Pb" ),
+  _materialAbsorber( "G4_W" ),
   _active(1),
   _layer(0),
   _towerlogicnameprefix("hEcalTower"),
@@ -212,6 +212,12 @@ PHG4ForwardEcalDetector::ConstructTower()
 						    "hEcal_scintillator_plate_logic",
 						    0, 0, 0);
 
+  G4VisAttributes *visattscint = new G4VisAttributes();
+  visattscint->SetVisibility(true);
+  visattscint->SetForceSolid(true);
+  visattscint->SetColour(G4Colour::Cyan());
+  logic_absorber->SetVisAttributes(visattscint);
+  logic_scint->SetVisAttributes(visattscint);
 
   /* place physical volumes for absorber and scintillator plates */
   G4double xpos_i = 0;

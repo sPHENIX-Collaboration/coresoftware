@@ -212,6 +212,12 @@ PHG4ForwardHcalDetector::ConstructTower()
 						    "hHcal_scintillator_plate_logic",
 						    0, 0, 0);
 
+  G4VisAttributes *visattscint = new G4VisAttributes();
+  visattscint->SetVisibility(true);
+  visattscint->SetForceSolid(true);
+  visattscint->SetColour(G4Colour::Gray());
+  logic_scint->SetVisAttributes(visattscint);
+  logic_absorber->SetVisAttributes(visattscint);
 
   /* place physical volumes for absorber and scintillator plates */
   G4double xpos_i = 0;

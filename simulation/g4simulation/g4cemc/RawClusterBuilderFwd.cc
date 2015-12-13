@@ -23,10 +23,6 @@
 
 using namespace std;
 
-// this is just a helper class which enables us to handle rollovers
-// when checking for adjacent towers, it requires one bit of
-// information (the total number of phibins) which
-// is not in the tower class
 class twrs_fwd
 {
 public:
