@@ -1,13 +1,13 @@
-#include "PHG4Shower_v1.h"
+#include "PHG4Showerv1.h"
 
 #include <cmath>
 #include <iostream>
 
 using namespace std;
 
-ClassImp(PHG4Shower_v1);
+ClassImp(PHG4Showerv1);
 
-PHG4Shower_v1::PHG4Shower_v1()
+PHG4Showerv1::PHG4Showerv1()
   : _id(0xFFFFFFFF),
     _primary_id(-1),
     _pos(),
@@ -25,8 +25,8 @@ PHG4Shower_v1::PHG4Shower_v1()
   }   
 }
 
-void PHG4Shower_v1::identify(ostream& os) const {
-  os << "---PHG4Shower_v1-------------------------------" << endl;
+void PHG4Showerv1::identify(ostream& os) const {
+  os << "---PHG4Showerv1-------------------------------" << endl;
   os << "id: " << get_id() << endl;
   os << "primary_id: " << get_primary_id() << endl;
   os << "x: " << get_x() << endl;
@@ -62,7 +62,7 @@ void PHG4Shower_v1::identify(ostream& os) const {
   return;  
 }
 
-int PHG4Shower_v1::isValid() const {
+int PHG4Showerv1::isValid() const {
   if (_id == 0xFFFFFFFF) return 0;
   if (_primary_id == -1) return 0;
   for (int i = 0; i < 3; ++i) {
@@ -76,33 +76,33 @@ int PHG4Shower_v1::isValid() const {
   return 1;
 }
 
-void PHG4Shower_v1::set_covar(unsigned int i, unsigned int j, float value) {
+void PHG4Showerv1::set_covar(unsigned int i, unsigned int j, float value) {
   _covar[covar_index(i,j)] = value;
   return;
 }
 
-float PHG4Shower_v1::get_covar(unsigned int i, unsigned int j) const {
+float PHG4Showerv1::get_covar(unsigned int i, unsigned int j) const {
   return _covar[covar_index(i,j)];
 }
 
-unsigned int PHG4Shower_v1::covar_index(unsigned int i, unsigned int j) const {
+unsigned int PHG4Showerv1::covar_index(unsigned int i, unsigned int j) const {
   if (i>j) std::swap(i,j);
   return i+1+(j+1)*(j)/2-1;
 }
 
-float PHG4Shower_v1::get_edep(PHG4Shower::VOLUME volume) const {
+float PHG4Showerv1::get_edep(PHG4Shower::VOLUME volume) const {
   std::map<PHG4Shower::VOLUME,float>::const_iterator citer = _edep.find(volume);
   if (citer == _edep.end()) return 0.0;
   return citer->second;
 }
 
-float PHG4Shower_v1::get_eion(PHG4Shower::VOLUME volume) const {
+float PHG4Showerv1::get_eion(PHG4Shower::VOLUME volume) const {
   std::map<PHG4Shower::VOLUME,float>::const_iterator citer = _eion.find(volume);
   if (citer == _eion.end()) return 0.0;
   return citer->second;
 }
 
-float PHG4Shower_v1::get_light_yield(PHG4Shower::VOLUME volume) const {
+float PHG4Showerv1::get_light_yield(PHG4Shower::VOLUME volume) const {
   std::map<PHG4Shower::VOLUME,float>::const_iterator citer = _light_yield.find(volume);
   if (citer == _light_yield.end()) return 0.0;
   return citer->second;

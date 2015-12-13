@@ -7,18 +7,18 @@
 #include <map>
 #include <iostream>
 
-class PHG4Shower_v1 : public PHG4Shower {
+class PHG4Showerv1 : public PHG4Shower {
 
 public:
   
-  PHG4Shower_v1();
-  virtual ~PHG4Shower_v1() {}
+  PHG4Showerv1();
+  virtual ~PHG4Showerv1() {}
 
   // PHObject virtual overloads
    
   void         identify(std::ostream& os = std::cout) const;
-  PHG4Shower*  Clone() const {return (new PHG4Shower_v1(*this));}
-  void         Reset() {*this = PHG4Shower_v1();}
+  PHG4Shower*  Clone() const {return (new PHG4Showerv1(*this));}
+  void         Reset() {*this = PHG4Showerv1();}
   int          isValid() const;
 
   // shower info
@@ -65,7 +65,7 @@ private:
   std::map<PHG4Shower::VOLUME, float> _eion;        //< ionization energy in different volumes
   std::map<PHG4Shower::VOLUME, float> _light_yield; //< light yield in different volumes
 
-  ClassDef(PHG4Shower_v1, 1);
+  ClassDef(PHG4Showerv1, 1);
 };
 
 #endif

@@ -7,7 +7,7 @@
 #include "PHG4Particlev2.h"
 #include "PHG4VtxPointv1.h"
 #include "PHG4TruthInfoContainer.h"
-#include "PHG4Shower_v1.h"
+#include "PHG4Showerv1.h"
 
 #include <phool/getClass.h>
 
@@ -108,7 +108,7 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
 
   // create or add to a new shower object --------------------------------------
   if (!track->GetParentID()) {
-    PHG4Shower_v1* shower = new PHG4Shower_v1();
+    PHG4Showerv1* shower = new PHG4Showerv1();
     PHG4TrackUserInfo::SetShower(const_cast<G4Track *> (track), shower);
     truthInfoList_->AddShower(trackid, shower);
   } else {
