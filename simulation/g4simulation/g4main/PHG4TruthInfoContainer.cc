@@ -34,6 +34,11 @@ void PHG4TruthInfoContainer::Reset() {
   }
   vtxmap.clear();
 
+  for (ShowerIterator iter = showermap.begin(); iter != showermap.end(); ++iter) {
+    delete iter->second;
+  }
+  showermap.clear();
+  
   particle_embed_flags.clear();
   vertex_embed_flags.clear();
   

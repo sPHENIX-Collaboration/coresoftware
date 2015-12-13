@@ -14,7 +14,9 @@ PHG4Showerv1::PHG4Showerv1()
     _covar(),
     _edep(),
     _eion(),
-    _light_yield() {
+    _light_yield(),
+    _g4particle_ids(),
+    _g4hit_ids() {
 
   for (int i = 0; i < 3; ++i) _pos[i] = NAN;  
 
