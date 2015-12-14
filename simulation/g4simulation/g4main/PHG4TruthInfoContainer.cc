@@ -20,10 +20,12 @@ PHG4TruthInfoContainer::PHG4TruthInfoContainer() :
   vertex_embed_flags() {
 }
 
-PHG4TruthInfoContainer::~PHG4TruthInfoContainer() {}
+PHG4TruthInfoContainer::~PHG4TruthInfoContainer() {Reset();}
 
 void PHG4TruthInfoContainer::Reset() {
 
+  identify();
+  
   for (Iterator iter = particlemap.begin(); iter != particlemap.end(); ++iter) {
     delete iter->second;
   }
@@ -58,7 +60,13 @@ void PHG4TruthInfoContainer::identify(ostream& os) const {
     cout << "vtx id: " << vter ->first << endl;
     (vter ->second)->identify();
   }
-   
+
+  cout << "---showermap-------------------------------" << endl;
+  for (ConstShowerIterator ster = showermap.begin(); ster != showermap.end(); ++ster) {
+    cout << "shower id: " << ster ->first << endl;
+    (ster ->second)->identify();
+  }
+  
   cout << "---list of embeded track flags-------------------" << endl;
   for (std::map<int,int>::const_iterator eter = particle_embed_flags.begin();
        eter != particle_embed_flags.end();
