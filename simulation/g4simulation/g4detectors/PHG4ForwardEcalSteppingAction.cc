@@ -237,7 +237,7 @@ void PHG4ForwardEcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNo
 int
 PHG4ForwardEcalSteppingAction::FindTowerIndex(G4TouchableHandle touch, int& j, int& k)
 {
-        int j_0, k_0;           //The k and k indices for the scintillator / tower
+        int j_0, k_0;           //The j and k indices for the scintillator / tower
 
         G4VPhysicalVolume* tower = touch->GetVolume(1);		//Get the tower solid
 	ParseG4VolumeName(tower, j_0, k_0);
