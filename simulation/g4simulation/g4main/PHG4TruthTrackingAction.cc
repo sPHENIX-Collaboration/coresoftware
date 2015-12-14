@@ -110,10 +110,19 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
   if (!track->GetParentID()) {
     PHG4Showerv1* shower = new PHG4Showerv1();
     PHG4TrackUserInfo::SetShower(const_cast<G4Track *> (track), shower);
-    truthInfoList_->AddShower(trackid, shower);
+    truthInfoList_->AddShower(trackid, shower);    
   } else {
     // get shower
-    // add secondary track id to shower object
+    if ( G4VUserTrackInformation* p = track->GetUserInformation() ) {
+      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) ) {
+	if (pp->GetShower()) {
+	  pp->GetShower()->add_g4particle_id(trackid);
+	} else {
+	  cout << "found null shower pointer" << endl;
+	  pp->GetShower()->add_g4particle_id(trackid);
+	}
+      }
+    }
   }
     
   // tell the primary particle copy in G4 where this output will be stored
@@ -134,9 +143,11 @@ void PHG4TruthTrackingAction::PostUserTrackingAction(const G4Track* track) {
 
     int trackid = track->GetTrackID();
     int primaryid = 0;
+    PHG4Shower* shower = NULL;
     if ( PHG4TrackUserInfoV1* p = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation()) ) {
       trackid = p->GetUserTrackId();
       primaryid = p->GetUserPrimaryId();
+      shower = p->GetShower();
     }
 
     G4TrackVector* secondaries = fpTrackingManager->GimmeSecondaries();
@@ -145,6 +156,7 @@ void PHG4TruthTrackingAction::PostUserTrackingAction(const G4Track* track) {
 	G4Track* secondary = (*secondaries)[i];    
 	PHG4TrackUserInfo::SetUserParentId(const_cast<G4Track *> (secondary), trackid);
 	PHG4TrackUserInfo::SetUserPrimaryId(const_cast<G4Track *> (secondary), primaryid);
+	PHG4TrackUserInfo::SetShower(const_cast<G4Track *> (secondary), shower);
       }
     }
   }
