@@ -424,7 +424,7 @@ PHG4InnerHcalSubsystem::ReadParamsFromFile(const PHG4InnerHcalSubsystem::FILE_TY
   int iret = params->ReadFromFile(extension,calibfiledir);
   if (iret)
     {
-      cout << "problem saving to " << extension << " file " << endl;
+      cout << "problem reading from " << extension << " file " << endl;
     }
   return iret;
 }
