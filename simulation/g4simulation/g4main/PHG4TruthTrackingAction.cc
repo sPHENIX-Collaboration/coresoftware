@@ -117,9 +117,6 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
       if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) ) {
 	if (pp->GetShower()) {
 	  pp->GetShower()->add_g4particle_id(trackid);
-	} else {
-	  cout << "found null shower pointer" << endl;
-	  pp->GetShower()->add_g4particle_id(trackid);
 	}
       }
     }

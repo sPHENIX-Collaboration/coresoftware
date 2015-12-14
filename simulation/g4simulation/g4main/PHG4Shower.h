@@ -1,6 +1,8 @@
 #ifndef __PHG4SHOWER_H__
 #define __PHG4SHOWER_H__
 
+#include "PHG4HitDefs.h"
+
 #include <phool/PHObject.h>
 #include <cmath>
 #include <set>
@@ -62,7 +64,7 @@ public:
   virtual void         add_g4particle_id(int id)  {}
   virtual size_t       remove_g4particle_id(int id) {return 0;}
   
-  virtual void         add_g4hit_id(int id) {}
+  virtual void         add_g4hit_id(PHG4HitDefs::keytype id) {}
   virtual size_t       remove_g4hit_id(int id) {return 0;}
   
 protected:

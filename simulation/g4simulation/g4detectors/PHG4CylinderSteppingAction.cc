@@ -107,15 +107,16 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	  //	  hit->print();
           hits_->AddHit(layer_id, hit);
 
-	  // {
-	  //   if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	  //     {
-	  // 	if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-	  // 	  {
-	  // 	    pp->GetShower()->add_g4hit_id(hit->get_hit_id());
-	  // 	  }
-	  //     }
-	  // }
+	  {
+	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	      {
+		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		  {
+		    pp->GetShower()->add_g4hit_id(hit->get_hit_id());
+		    cout << "adding g4hit to shower" << endl;
+		  }
+	      }
+	  }
 
 	  
 	  if (hit->get_z(0) > zmax || hit->get_z(0) < zmin)
