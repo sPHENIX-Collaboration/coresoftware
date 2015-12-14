@@ -2,8 +2,8 @@
 #define PHG4OuterHcalDetector_h
 
 #include "PHG4OuterHcalFieldSetup.h"
-#include "PHG4OuterHcalParameters.h"
 #include "PHG4Parameters.h"
+
 #include <g4main/PHG4Detector.h>
 
 #include <Geant4/globals.hh>
@@ -31,7 +31,7 @@ class PHG4OuterHcalDetector: public PHG4Detector
   public:
 
   //! constructor
-  PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4OuterHcalParameters *parameters, PHG4Parameters *params, const std::string &dnam="HCALOUT");
+  PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4Parameters *params, const std::string &dnam="HCALOUT");
 
   //! destructor
   virtual ~PHG4OuterHcalDetector();
@@ -46,7 +46,6 @@ class PHG4OuterHcalDetector: public PHG4Detector
   int IsInOuterHcal(G4VPhysicalVolume*) const;
   //@}
 
-  int IsActive() const {return paramsold->active;}
   void SuperDetector(const std::string &name) {superdetector = name;}
   const std::string SuperDetector() const {return superdetector;}
   int get_Layer() const {return layer;}
@@ -65,7 +64,6 @@ class PHG4OuterHcalDetector: public PHG4Detector
   int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
   G4double x_at_y(Point_2 &p0, Point_2 &p1, G4double yin);
   PHG4OuterHcalFieldSetup * field_setup;
-  PHG4OuterHcalParameters *paramsold;
   PHG4Parameters *params;
   G4VSolid *steel_cutout_for_magnet;
   double inner_radius;
@@ -75,12 +73,22 @@ class PHG4OuterHcalDetector: public PHG4Detector
   double scinti_tile_x_lower;
   double scinti_tile_x_upper;
   double scinti_tile_z;
+  double scinti_tile_thickness;
+  double scinti_gap_neighbor;
+  double scinti_gap;
+  double tilt_angle;
   double envelope_inner_radius;
   double envelope_outer_radius;
   double envelope_z;
   double volume_envelope;
   double volume_steel;
   double volume_scintillator;
+
+  int n_scinti_plates;
+  int n_scinti_tiles;
+
+  int active;
+  int absorberactive;
 
   int layer;
   std::string detector_type;

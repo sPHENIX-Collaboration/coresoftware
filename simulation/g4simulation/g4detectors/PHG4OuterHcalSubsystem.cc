@@ -94,11 +94,11 @@ int PHG4OuterHcalSubsystem::InitRun( PHCompositeNode* topNode )
   // save updated persistant copy on node tree
   params->SaveToNodeTree(parNode,paramnodename);
   // create detector
-  detector_ = new PHG4OuterHcalDetector(topNode, paramsold, params, Name());
+  detector_ = new PHG4OuterHcalDetector(topNode, params, Name());
   detector_->SuperDetector(superdetector);
   detector_->OverlapCheck(overlapcheck);
   set<string> nodes;
-  if (paramsold->active)
+  if (params->get_int_param("active"))
     {
       ostringstream nodename;
       if (superdetector != "NONE")

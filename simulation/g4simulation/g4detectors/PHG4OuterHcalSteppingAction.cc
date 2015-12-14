@@ -143,7 +143,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
   int layer_id = detector_->get_Layer();
 
   // make sure we are in a volume
-  if ( detector_->IsActive() )
+  if ( IsActive )
     {
       bool geantino = false;
 
