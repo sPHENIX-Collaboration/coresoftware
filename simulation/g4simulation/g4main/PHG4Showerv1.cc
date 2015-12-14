@@ -1,5 +1,7 @@
 #include "PHG4Showerv1.h"
 
+#include "PHG4HitDefs.h"
+
 #include <cmath>
 #include <iostream>
 
@@ -53,12 +55,28 @@ void PHG4Showerv1::identify(ostream& os) const {
        iter != _edep.end();
        ++iter) {
     PHG4Shower::VOLUME volid = iter->first;
-    cout << volid << " : "
-	 << get_edep(volid) << " "
-      	 << get_eion(volid) << " "
-      	 << get_light_yield(volid) << endl;
+    os << volid << " : "
+       << get_edep(volid) << " "
+       << get_eion(volid) << " "
+       << get_light_yield(volid) << endl;
   }
-  
+
+  os << "Set of G4Particle IDs" << endl;
+  for (std::set<int>::const_iterator iter = _g4particle_ids.begin();
+       iter != _g4particle_ids.end();
+       ++iter) {
+    os << *iter << " ";
+  }
+  os << endl;
+
+  os << "Set of G4Hit IDs" << endl;
+  for (std::set<PHG4HitDefs::keytype>::const_iterator iter = _g4hit_ids.begin();
+       iter != _g4hit_ids.end();
+       ++iter) {
+    os << *iter << " ";
+  }
+  os << endl;
+       
   os << "-----------------------------------------------" << endl;
   
   return;  

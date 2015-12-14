@@ -3,6 +3,8 @@
 
 #include "PHG4Shower.h"
 
+#include "PHG4HitDefs.h"
+
 #include <phool/PHObject.h>
 #include <map>
 #include <set>
@@ -59,8 +61,8 @@ public:
   const std::set<int>& get_g4particle_ids() const {return _g4particle_ids;}
   size_t               remove_g4particle_id(int id) {return _g4particle_ids.erase(id);}
   
-  void                 add_g4hit_id(int id) {_g4hit_ids.insert(id);}
-  const std::set<int>& get_g4hit_ids() const {return _g4hit_ids;}
+  void                 add_g4hit_id(PHG4HitDefs::keytype id) {_g4hit_ids.insert(id);}
+  const std::set<PHG4HitDefs::keytype>& get_g4hit_ids() const {return _g4hit_ids;}
   size_t               remove_g4hit_id(int id) {return _g4hit_ids.erase(id);}
 
 private:
@@ -76,7 +78,7 @@ private:
   std::map<PHG4Shower::VOLUME, float> _light_yield; //< light yield in different volumes
 
   std::set<int> _g4particle_ids;
-  std::set<int> _g4hit_ids;
+  std::set<PHG4HitDefs::keytype> _g4hit_ids;
   
   ClassDef(PHG4Showerv1, 1);
 };

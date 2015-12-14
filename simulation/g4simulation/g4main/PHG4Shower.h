@@ -3,6 +3,7 @@
 
 #include <phool/PHObject.h>
 #include <cmath>
+#include <set>
 #include <iostream>
 
 class PHG4Shower : public PHObject {
@@ -57,6 +58,12 @@ public:
 
   virtual float        get_light_yield(VOLUME calotype) const {return NAN;}
   virtual void         set_light_yield(VOLUME calotype, float light_yield) {}
+
+  virtual void         add_g4particle_id(int id)  {}
+  virtual size_t       remove_g4particle_id(int id) {return 0;}
+  
+  virtual void         add_g4hit_id(int id) {}
+  virtual size_t       remove_g4hit_id(int id) {return 0;}
   
 protected:
   PHG4Shower() {}
