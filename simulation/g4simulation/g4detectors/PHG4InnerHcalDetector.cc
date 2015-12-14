@@ -73,6 +73,8 @@ PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, PHG4Paramet
   volume_scintillator(NAN),
   n_scinti_plates(params->get_int_param("n_scinti_plates")),
   n_scinti_tiles(params->get_int_param("n_scinti_tiles")),
+  active(params->get_int_param("active")),
+  absorberactive(params->get_int_param("absorberactive")),
   layer(0),
   scintilogicnameprefix("HcalInnerScinti")
 {
@@ -99,14 +101,14 @@ PHG4InnerHcalDetector::IsInInnerHcal(G4VPhysicalVolume * volume) const
   // 82 the number of the scintillator mother volume
   // HcalInnerScinti_11: name of scintillator slat
   // 11: number of scintillator slat logical volume
-  if (params->get_int_param("absorberactive"))
+  if (absorberactive)
     {
       if (steel_absorber_vec.find(volume) != steel_absorber_vec.end())
 	{
 	  return -1;
 	}
     }
-    if (params->get_int_param("active"))
+  if (active)
     {
       if (volume->GetName().find(scintilogicnameprefix) != string::npos)
 	{
