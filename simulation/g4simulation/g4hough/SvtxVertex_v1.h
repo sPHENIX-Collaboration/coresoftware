@@ -75,7 +75,7 @@ private:
   float                  _pos[3];    //< collision position x,y,z
   float                  _chisq;     //< vertex fit chisq 
   unsigned int           _ndof;      //< degrees of freedom
-  float                  _err[3];    //< error covariance matrix (packed storage) (+/- cm^2)
+  float                  _err[6];    //< error covariance matrix (packed storage) (+/- cm^2)
   std::set<unsigned int> _track_ids; //< list of track ids
   
   ClassDef(SvtxVertex_v1, 1);
