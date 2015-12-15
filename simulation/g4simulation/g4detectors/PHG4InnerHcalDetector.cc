@@ -473,6 +473,7 @@ PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
   double offset = 1 * cm + overhang; // add 1cm to make sure the G4ExtrudedSolid
   // is larger than the tile so we do not have
   // funny edge effects when overlapping vols
+  double scinti_gap_neighbor = params->get_double_param("scinti_gap_neighbor")*cm;
   for (int i = 0; i < n_scinti_tiles; i++)
     {
       theta = M_PI / 2 - PHG4Utils::get_theta(eta); // theta = 90 for eta=0
@@ -487,7 +488,6 @@ PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
       x[3] =  outer_radius + overhang; // since the tile is tilted, x is not at the outer radius but beyond
       z[3] = tan(theta) * outer_radius;
       // apply gap between scintillators
-      double scinti_gap_neighbor = params->get_double_param("scinti_gap_neighbor")*cm;
       z[0] += scinti_gap_neighbor / 2.;
       z[1] += scinti_gap_neighbor / 2.;
       z[2] -= scinti_gap_neighbor / 2.;
@@ -803,7 +803,6 @@ PHG4InnerHcalDetector::SetTiltViaNcross()
   // gamma = acos((a^2+b^2=c^2)/2ab
   double tiltangle = acos((ll*ll + upside*upside-inner_radius*inner_radius)/(2*ll*upside));
   tiltangle = tiltangle*rad;
-  // set second param to 0 so it does not reset the ncross
   tilt_angle = copysign(tiltangle,ncross);
   params->set_double_param("tilt_angle",tilt_angle/deg);
   return;
