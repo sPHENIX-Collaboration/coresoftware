@@ -1,10 +1,10 @@
 #ifndef PHG4VOuterHcalSteppingAction_h
 #define PHG4VOuterHcalSteppingAction_h
 
-#include "g4main/PHG4SteppingAction.h"
+#include <g4main/PHG4SteppingAction.h>
 
 class PHG4OuterHcalDetector;
-class PHG4OuterHcalParameters;
+class PHG4Parameters;
 class PHG4Hit;
 class PHG4HitContainer;
 
@@ -14,7 +14,7 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   public:
 
   //! constructor
-  PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* , PHG4OuterHcalParameters *parameters);
+  PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* , PHG4Parameters *parameters);
 
   //! destructor
   virtual ~PHG4OuterHcalSteppingAction()
@@ -26,9 +26,10 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   //! reimplemented from base class
   virtual void SetInterfacePointers( PHCompositeNode* );
 
-  float GetLightCorrection(const float r) const;
+  double GetLightCorrection(const double r) const;
 
   void FieldChecker (const G4Step*);
+  void EnableFieldChecker(const int i=1) {enable_field_checker = i;}
 
   private:
 
@@ -40,7 +41,22 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer * absorberhits_;
   PHG4Hit *hit;
 
-  PHG4OuterHcalParameters *params;
+  PHG4Parameters *params;
+
+  int enable_field_checker;
+
+  // since getting parameters is a map search we do not want to
+  // do this in every step, the parameters used are cached
+  // in the following variables
+  int absorbertruth;
+  int IsActive;
+  int IsBlackHole;
+  int light_scint_model;
+  
+  double light_balance_inner_corr;
+  double light_balance_inner_radius;
+  double light_balance_outer_corr;
+  double light_balance_outer_radius;
 };
 
 

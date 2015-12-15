@@ -19,11 +19,6 @@
 
 using namespace std;
 
-map<const string,double> default_double;
-map<const string, int> default_int;
-map<const string, string> default_string;
-
-
 //_______________________________________________________________________
 PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const int lyr ):
   PHG4Subsystem( name ),

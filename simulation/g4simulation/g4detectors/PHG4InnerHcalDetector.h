@@ -2,6 +2,7 @@
 #define PHG4InnerHcalDetector_h
 
 #include "PHG4Parameters.h"
+
 #include <g4main/PHG4Detector.h>
 
 #include <Geant4/globals.hh>
@@ -20,7 +21,6 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
-//class PHG4InnerHcalParameters;
 
 class PHG4InnerHcalDetector: public PHG4Detector
 {
@@ -84,6 +84,9 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
 
   int n_scinti_plates;
   int n_scinti_tiles;
+
+  int active;
+  int absorberactive;
 
   int layer;
   std::string detector_type;
