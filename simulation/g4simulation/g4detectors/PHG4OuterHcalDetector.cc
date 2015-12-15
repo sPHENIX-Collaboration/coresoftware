@@ -406,11 +406,6 @@ PHG4OuterHcalDetector::ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft, P
 void
 PHG4OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
 {
-  field_setup = new PHG4OuterHcalFieldSetup(
-  n_scinti_plates,/*G4int steelPlates*/
-  scinti_gap, /*G4double scintiGap*/
-  tilt_angle);/*G4double tiltAngle*/
-
 
   G4Material* Air = G4Material::GetMaterial("G4_AIR");
   G4VSolid* hcal_envelope_cylinder = new G4Tubs("OuterHcal_envelope_solid",  envelope_inner_radius, envelope_outer_radius, envelope_z/2.,0,2*M_PI);
@@ -427,6 +422,7 @@ PHG4OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
   hcal_rotm.rotateZ(params->get_double_param("rot_z")*deg);
   new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(params->get_double_param("place_x")*cm, params->get_double_param("place_y")*cm, params->get_double_param("place_z")*cm)), hcal_envelope_log, "OuterHcal", logicWorld, 0, false, overlapcheck);
   ConstructOuterHcal(hcal_envelope_log);
+
   AddGeometryNode();
   return;
 }
@@ -438,7 +434,16 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
   SetTiltViaNcross(); // if number of crossings is set, use it to determine tilt
   CheckTiltAngle(); // die if the tilt angle is out of range
   // the needed steel cutout volume for the magnet is constructed with
-  // the scintillators since we have the theta anlge at that point
+  // the scintillators since we have the theta angle at that point
+
+  // call field setup here where we have the calculated tilt angle if number
+  // of crossings is given
+  field_setup = new PHG4OuterHcalFieldSetup(
+  n_scinti_plates,/*G4int steelPlates*/
+  scinti_gap, /*G4double scintiGap*/
+  tilt_angle);/*G4double tiltAngle*/
+
+
   G4AssemblyVolume *scinti_mother_logical = ConstructHcalScintillatorAssembly(hcalenvelope);
   G4VSolid *steel_plate =  ConstructSteelPlate(hcalenvelope);
   //   DisplayVolume(steel_plate_4 ,hcalenvelope);
@@ -556,12 +561,13 @@ PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
   xsteelcut[1] = xsteelcut[0];
   xsteelcut[2] = inner_radius - offset;
   xsteelcut[3] = xsteelcut[2];
+  double scinti_gap_neighbor =  params->get_double_param("scinti_gap_neighbor")*cm;
   for (int i = 0; i < n_scinti_tiles; i++)
     {
       if (i >= params->get_int_param("magnet_cutout_first_scinti"))
 	{
           x_inner = inner_radius - overhang + magnet_cutout_x;
-	  inner_offset = offset - magnet_cutout_x; 
+	  inner_offset = offset - magnet_cutout_x;
 	}
       theta = M_PI / 2 - PHG4Utils::get_theta(eta); // theta = 90 for eta=0
       x[0] = x_inner;
@@ -680,7 +686,7 @@ PHG4OuterHcalDetector::x_at_y(Point_2 &p0, Point_2 &p1, G4double yin)
     }
   else
     {
-      cout << PHWHERE << " failed for y = " << y << endl;
+      cout << PHWHERE << " failed for y = " << yin << endl;
       cout << "p0(x): " << CGAL::to_double(p0.x()) << ", p0(y): " <<  CGAL::to_double(p0.y()) << endl;
       cout << "p1(x): " << CGAL::to_double(p1.x()) << ", p1(y): " <<  CGAL::to_double(p1.y()) << endl;
       exit(1);
