@@ -99,7 +99,7 @@ PHG4ForwardCalCellReco::process_event(PHCompositeNode *topNode)
             continue;
 
           // only hits that deposited energy (or geantinos)
-          if (hiter->second->get_edep()==0)
+          if (hiter->second->get_edep()<=0)
             continue;
 
 	  unsigned int key = (hiter->second->get_index_j()<<16) + hiter->second->get_index_k();
