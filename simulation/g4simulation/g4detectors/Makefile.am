@@ -166,7 +166,6 @@ libg4detectors_la_SOURCES = \
   PHG4OuterHcalDetector.cc \
   PHG4OuterHcalField.cc \
   PHG4OuterHcalFieldSetup.cc \
-  PHG4OuterHcalParameters.cc \
   PHG4OuterHcalSteppingAction.cc \
   PHG4OuterHcalSubsystem.cc \
   PHG4OuterHcalSubsystem_Dict.cc \

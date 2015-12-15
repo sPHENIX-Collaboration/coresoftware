@@ -1,6 +1,5 @@
 #include "PHG4OuterHcalSteppingAction.h"
 #include "PHG4OuterHcalDetector.h"
-#include "PHG4OuterHcalParameters.h"
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllServer.h>

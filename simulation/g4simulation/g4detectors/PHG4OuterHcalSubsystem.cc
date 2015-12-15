@@ -2,7 +2,6 @@
 #include "PHG4OuterHcalDetector.h"
 #include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4OuterHcalSteppingAction.h"
-#include "PHG4OuterHcalParameters.h"
 
 #include <g4main/PHG4HitContainer.h>
 
@@ -33,7 +32,6 @@ PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const i
   ostringstream nam;
   nam << name << "_" << lyr;
   Name(nam.str().c_str());
-  paramsold = new PHG4OuterHcalParameters();
   params = new PHG4Parameters(Name()); // temporary name till the init is called
   SetDefaultParameters();  
 }
@@ -110,7 +108,7 @@ int PHG4OuterHcalSubsystem::InitRun( PHCompositeNode* topNode )
 	  nodename <<  "G4HIT_" << detector_type << "_" << layer;
 	}
       nodes.insert(nodename.str());
-      if (paramsold->absorberactive)
+      if (params->get_int_param("absorberactive"))
 	{
 	  nodename.str("");
 	  if (superdetector != "NONE")
@@ -144,10 +142,13 @@ int PHG4OuterHcalSubsystem::InitRun( PHCompositeNode* topNode )
       steppingAction_ = new PHG4OuterHcalSteppingAction(detector_, params);
       steppingAction_->EnableFieldChecker(enable_field_checker);
     }
-  if (paramsold->blackhole && !paramsold->active)
+  else
     {
-      steppingAction_ = new PHG4OuterHcalSteppingAction(detector_, params);
-      steppingAction_->EnableFieldChecker(enable_field_checker);
+      if (params->get_int_param("blackhole"))
+	{
+	  steppingAction_ = new PHG4OuterHcalSteppingAction(detector_, params);
+	  steppingAction_->EnableFieldChecker(enable_field_checker);
+	}
     }
   return 0;
 
@@ -192,171 +193,31 @@ PHG4SteppingAction* PHG4OuterHcalSubsystem::GetSteppingAction( void ) const
 }
 
 void
-PHG4OuterHcalSubsystem::SetTiltAngle(const double tilt)
-{
-  paramsold->tilt_angle = tilt * deg;
-  paramsold->ncross = 0;
-}
-
-double
-PHG4OuterHcalSubsystem::GetTiltAngle() const
-{
-  return paramsold->tilt_angle/deg;
-}
-
-void
-PHG4OuterHcalSubsystem::SetPlaceZ(const G4double dbl)
-{
-  paramsold->place_in_z = dbl;
-}
-
-void
-PHG4OuterHcalSubsystem::SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
-{
-  paramsold->place_in_x = place_x * cm;
-  paramsold->place_in_y = place_y * cm;
-  paramsold->place_in_z = place_z * cm;
-}
-
-void
-PHG4OuterHcalSubsystem::SetXRot(const G4double dbl)
-{
-  paramsold->x_rot = dbl * deg;
-}
-
-void
-PHG4OuterHcalSubsystem::SetYRot(const G4double dbl)
-{
-  paramsold->y_rot = dbl * deg;
-}
-
-void
-PHG4OuterHcalSubsystem::SetZRot(const G4double dbl)
-{
-  paramsold->z_rot = dbl * deg;
-}
-
-void
-PHG4OuterHcalSubsystem::SetMaterial(const std::string &mat)
-{
-  paramsold->material = mat;
-}
-
-void
 PHG4OuterHcalSubsystem::SetActive(const int i)
 {
-  paramsold->active = i;
+  iparams["active"] = i;
 }
 
 void
 PHG4OuterHcalSubsystem::SetAbsorberActive(const int i)
 {
-  paramsold->absorberactive = i;
+  iparams["absorberactive"] = i;
 }
 
 void
 PHG4OuterHcalSubsystem::BlackHole(const int i)
 {
-  paramsold->blackhole = i;
+  iparams["blackhole"] = i;
 }
 
 void
-PHG4OuterHcalSubsystem::SetInnerRadius(const double inner)
+PHG4OuterHcalSubsystem::SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr)
 {
-  paramsold->inner_radius = inner * cm;
-}
-
-double
-PHG4OuterHcalSubsystem::GetInnerRadius() const
-{
-  return paramsold->inner_radius/cm;
-}
-
-void
-PHG4OuterHcalSubsystem::SetOuterRadius(const double outer)
-{
-  paramsold->outer_radius = outer * cm;
-}
-
-double
-PHG4OuterHcalSubsystem::GetOuterRadius() const
-{
-  return paramsold->outer_radius/cm;
-}
-
-void
-PHG4OuterHcalSubsystem::SetLength(const double len)
-{
-  paramsold->size_z = len * cm;
-}
-
-void
-PHG4OuterHcalSubsystem::SetGapWidth(const double gap)
-{
-  paramsold->scinti_gap = gap *cm;
-}
-
-void
-PHG4OuterHcalSubsystem::SetNumScintiPlates(const int nplates)
-{
-  paramsold->n_scinti_plates = nplates;
-}
-
-void
-PHG4OuterHcalSubsystem::SetNumScintiTiles(const int ntiles)
-{
-  paramsold->n_scinti_tiles = ntiles;
-}
-
-void
-PHG4OuterHcalSubsystem::SetScintiThickness(const double thick)
-{
-  paramsold->scinti_tile_thickness = thick * cm;
-}
-
-void
-PHG4OuterHcalSubsystem::SetScintiGap(const double scgap)
-{
-  paramsold->scinti_gap_neighbor = scgap * cm;
-}
-
-void
-PHG4OuterHcalSubsystem::SetTiltViaNcross(const int ncross)
-{
-  if (ncross == 0)
-    {
-      cout << "Invalid number of crossings: " << ncross
-	   << " how do you expect me to calculate a tilt angle for this????"
-	   << endl
-	   << "If you want a 0 degree tilt angle, just use SetTiltAngle(0)"
-	   << endl
-	   << "I refuse to continue this!" << endl;
-      exit(1);
-    }
-  paramsold->ncross = ncross;
-}
-
-void
-PHG4OuterHcalSubsystem::SetStepLimits(const double slim) 
-{
-  paramsold->steplimits = slim*cm;
-}
-
-void
-PHG4OuterHcalSubsystem::SetLightCorrection(const float inner_radius, const float inner_corr,
-			  const float outer_radius, const float outer_corr) 
-{
-  paramsold->light_balance = true;
-  paramsold->light_balance_inner_radius = inner_radius;
-  paramsold->light_balance_inner_corr = inner_corr;
-  paramsold->light_balance_outer_radius = outer_radius;
-  paramsold->light_balance_outer_corr = outer_corr;
-}
-
-void
-PHG4OuterHcalSubsystem:: SetLightScintModel(const bool b)
-{
-  paramsold->light_scint_model = b;
+  dparams["light_balance_inner_corr"] = inner_corr;
+  dparams["light_balance_inner_radius"] = inner_radius;
+  dparams["light_balance_outer_corr"] = outer_corr;
+  dparams["light_balance_outer_radius"] = outer_radius;
+  return;
 }
 
 void

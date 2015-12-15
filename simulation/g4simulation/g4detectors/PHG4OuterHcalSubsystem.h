@@ -10,7 +10,6 @@
 #include <string>
 
 class PHG4OuterHcalDetector;
-class PHG4OuterHcalParameters;
 class PHG4Parameters;
 class PHG4OuterHcalSteppingAction;
 class PHG4EventAction;
@@ -54,38 +53,13 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
   PHG4SteppingAction* GetSteppingAction( void ) const;
   PHG4EventAction* GetEventAction() const {return eventAction_;}
 
-  void SetPlaceZ(const G4double dbl);
-  void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z);
-  void SetXRot(const G4double dbl);
-  void SetYRot(const G4double dbl);
-  void SetZRot(const G4double dbl);
-  void SetMaterial(const std::string &mat);
   void SetActive(const int i = 1);
   void SetAbsorberActive(const int i = 1);
   void SuperDetector(const std::string &name);
   const std::string SuperDetector() {return superdetector;}
 
   void BlackHole(const int i=1);
-
-  void SetTiltViaNcross(const int ncross);
-  void SetTiltAngle(const double tilt);
-  double GetTiltAngle() const;
-  void SetInnerRadius(const double inner);
-  double GetInnerRadius() const;
-  void SetOuterRadius(const double outer);
-  double GetOuterRadius() const;
-  void SetLength(const double len);
-  void SetGapWidth(const double gap);
-  void SetNumScintiPlates(const int nplates);
-  void SetNumScintiTiles(const int ntiles);
-  void SetScintiThickness(const double thick);
-  void SetScintiGap(const double scgap);
-  void SetStepLimits(const double slim);
-
-
-  void SetLightCorrection(const float inner_radius, const float inner_corr,
-			  const float outer_radius, const float outer_corr);
-  void SetLightScintModel(const bool b = true);
+  void SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr);
 
   void EnableFieldChecker(const int i=1) {enable_field_checker = i;}
 
@@ -122,7 +96,6 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
 
   PHG4Parameters *params;
 
-  PHG4OuterHcalParameters *paramsold;
   int enable_field_checker;
   int layer;
 
