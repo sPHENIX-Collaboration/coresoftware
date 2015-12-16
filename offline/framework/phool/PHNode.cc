@@ -24,9 +24,15 @@ PHNode::PHNode(const string& n) :
   persistent(true),
   type("PHNode"),
   objecttype("PHTable"),
-  name(n),
   reset_able(true)
 {
+  if (n.find(".") != string::npos)
+    {
+      cout << PHWHERE << " No nodenames containing decimal point possible: "
+	   << n << endl;
+      exit(1);
+    }
+  name = n;
   return;
 }
 
@@ -35,9 +41,15 @@ PHNode::PHNode(const string &n, const string &objtype ) :
   persistent(true),
   type("PHNode"),
   objecttype(objtype),
-  name(n),
   reset_able(true)
 {
+  if (n.find(".") != string::npos)
+    {
+      cout << PHWHERE << " No nodenames containing decimal point possible: "
+	   << n << endl;
+      exit(1);
+    }
+  name = n;
   return;
 }
 
