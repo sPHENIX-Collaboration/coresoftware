@@ -24,6 +24,9 @@ PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const i
   steppingAction_( NULL ),
   eventAction_(NULL),
   enable_field_checker(0),
+  layer(lyr),
+  usedb(0),
+  filetype(PHG4OuterHcalSubsystem::none),
   detector_type(name),
   superdetector("NONE")
 {
