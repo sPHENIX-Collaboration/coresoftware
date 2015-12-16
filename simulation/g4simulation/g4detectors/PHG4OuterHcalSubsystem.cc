@@ -98,6 +98,12 @@ int PHG4OuterHcalSubsystem::InitRun( PHCompositeNode* topNode )
   set<string> nodes;
   if (params->get_int_param("active"))
     {
+      PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",superdetector));
+      if (! DetNode)
+	{
+          DetNode = new PHCompositeNode(superdetector);
+          dstNode->addNode(DetNode);
+        }
       ostringstream nodename;
       if (superdetector != "NONE")
 	{
@@ -126,7 +132,8 @@ int PHG4OuterHcalSubsystem::InitRun( PHCompositeNode* topNode )
 	  PHG4HitContainer* g4_hits =  findNode::getClass<PHG4HitContainer>( topNode , node.c_str());
 	  if ( !g4_hits )
 	    {
-	      dstNode->addNode( new PHIODataNode<PHObject>( g4_hits = new PHG4HitContainer(), node.c_str(), "PHObject" ));
+	      g4_hits = new PHG4HitContainer();
+	      DetNode->addNode( new PHIODataNode<PHObject>( g4_hits, node.c_str(), "PHObject" ));
 	    }
 	  if (! eventAction_)
 	    {
