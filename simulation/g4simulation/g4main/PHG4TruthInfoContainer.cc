@@ -24,8 +24,6 @@ PHG4TruthInfoContainer::~PHG4TruthInfoContainer() {Reset();}
 
 void PHG4TruthInfoContainer::Reset() {
 
-  identify();
-  
   for (Iterator iter = particlemap.begin(); iter != particlemap.end(); ++iter) {
     delete iter->second;
   }

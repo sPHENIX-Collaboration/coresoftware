@@ -36,7 +36,9 @@ public:
   void AddTrackidToWritelist( const G4int trackid);
 
  private:
-    
+
+  void ProcessShowers();
+  
   //! set of track ids to be written out
   std::set<G4int> writeList_;
 

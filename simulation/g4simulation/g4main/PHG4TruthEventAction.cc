@@ -53,6 +53,8 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt) {
     return;
   }
 
+  ProcessShowers();
+
   // construct a list of track ids to preserve in the the output that includes any
   // track designated in the writeList_ during processing or its ancestry chain
   
@@ -198,4 +200,16 @@ void PHG4TruthEventAction::SetInterfacePointers(PHCompositeNode* topNode) {
 int PHG4TruthEventAction::ResetEvent(PHCompositeNode *) {
   writeList_.clear();
   return 0;
+}
+
+void PHG4TruthEventAction::ProcessShowers() {
+
+  PHG4TruthInfoContainer::ShowerRange range = truthInfoList_->GetShowerRange();
+  for (PHG4TruthInfoContainer::ShowerIterator iter = range.first;
+       iter != range.second;
+       ++iter) {
+    PHG4Shower* shower = iter->second;
+
+    shower->identify();   
+  }
 }
