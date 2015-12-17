@@ -25,6 +25,8 @@ JetTruthEval::JetTruthEval(PHCompositeNode* topNode,
     _cemcevalstack(topNode,"CEMC"),
     _hcalinevalstack(topNode,"HCALIN"),
     _hcaloutevalstack(topNode,"HCALOUT"),
+    _femcevalstack(topNode,"FEMC"),
+    _fhcalevalstack(topNode,"FHCAL"),
     _truthinfo(NULL),
     _truthjets(NULL),
     _strict(false),
@@ -51,6 +53,8 @@ void JetTruthEval::next_event(PHCompositeNode* topNode) {
   _cemcevalstack.next_event(topNode);
   _hcalinevalstack.next_event(topNode);
   _hcaloutevalstack.next_event(topNode);
+  _femcevalstack.next_event(topNode);
+  _fhcalevalstack.next_event(topNode);
   
   _cache_all_truth_particles.clear();
   _cache_all_truth_hits.clear();
@@ -187,6 +191,39 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
       
       truth_hits.insert(g4hit);      
     }    
+
+    // ask the femc truth eval to backtrack the primary to g4hits
+    CaloTruthEval* femc_truth_eval = _femcevalstack.get_truth_eval(); 
+    std::set<PHG4Hit*> femc_g4hits = femc_truth_eval->get_shower_from_primary(particle);
+
+    for (std::set<PHG4Hit*>::iterator jter = femc_g4hits.begin();
+	 jter != femc_g4hits.end();
+	 ++jter) {
+
+      PHG4Hit* g4hit = *jter;
+
+      if (_strict) {assert(g4hit);}
+      else if (!g4hit) {++_errors; continue;}
+      
+      truth_hits.insert(g4hit);      
+    }    
+
+    // ask the fhcal truth eval to backtrack the primary to g4hits
+    CaloTruthEval* fhcal_truth_eval = _fhcalevalstack.get_truth_eval(); 
+    std::set<PHG4Hit*> fhcal_g4hits = fhcal_truth_eval->get_shower_from_primary(particle);
+
+    for (std::set<PHG4Hit*>::iterator jter = fhcal_g4hits.begin();
+	 jter != fhcal_g4hits.end();
+	 ++jter) {
+
+      PHG4Hit* g4hit = *jter;
+
+      if (_strict) {assert(g4hit);}
+      else if (!g4hit) {++_errors; continue;}
+      
+      truth_hits.insert(g4hit);      
+    }    
+
   }
   
   if (_do_cache) _cache_all_truth_hits.insert(make_pair(truthjet,truth_hits));

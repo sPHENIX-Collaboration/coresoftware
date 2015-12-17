@@ -142,6 +142,9 @@ public:
   virtual float get_cal_energy_3x3(CAL_LAYER layer) const             {return NULL;}
   virtual void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3) {}
 
+  virtual float get_cal_energy_5x5(CAL_LAYER layer) const             {return NULL;}
+  virtual void  set_cal_energy_5x5(CAL_LAYER layer, float energy_5x5) {}
+
   virtual unsigned int get_cal_cluster_id(CAL_LAYER layer) const            {return NULL;}
   virtual void         set_cal_cluster_id(CAL_LAYER layer, unsigned int id) {}
 

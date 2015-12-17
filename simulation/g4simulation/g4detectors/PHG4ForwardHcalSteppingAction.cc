@@ -37,7 +37,8 @@ PHG4ForwardHcalSteppingAction::PHG4ForwardHcalSteppingAction( PHG4ForwardHcalDet
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),
-  hit(NULL)
+  hit(NULL),
+  absorbertruth(0)
 {
 
 }
@@ -177,7 +178,7 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
           hit->set_eion(-1);
 	}
-      if (edep > 0)
+      if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
 	{
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
@@ -237,7 +238,7 @@ void PHG4ForwardHcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNo
 int
 PHG4ForwardHcalSteppingAction::FindTowerIndex(G4TouchableHandle touch, int& j, int& k)
 {
-        int j_0, k_0;           //The k and k indices for the scintillator / tower
+        int j_0, k_0;           //The j and k indices for the scintillator / tower
 
         G4VPhysicalVolume* tower = touch->GetVolume(1);		//Get the tower solid
 	ParseG4VolumeName(tower, j_0, k_0);

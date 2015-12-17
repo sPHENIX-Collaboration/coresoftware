@@ -1,10 +1,11 @@
-#include "RawClusterBuilder.h"
+#include "RawClusterBuilderFwd.h"
 #include "RawClusterContainer.h"
 #include "RawClusterv1.h"
 #include "PHMakeGroups.h"
 
 #include "RawTower.h"
 #include "RawTowerGeomContainer.h"
+#include "RawTowerGeom.h"
 #include "RawTowerContainer.h"
 
 #include <phool/PHCompositeNode.h>
@@ -22,16 +23,12 @@
 
 using namespace std;
 
-// this is just a helper class which enables us to handle rollovers
-// when checking for adjacent towers, it requires one bit of
-// information (the total number of phibins) which
-// is not in the tower class
-class twrs
+class twrs_fwd
 {
 public:
-  twrs(RawTower *);
-  virtual ~twrs() {}
-  bool is_adjacent(twrs &);
+  twrs_fwd(RawTower *);
+  virtual ~twrs_fwd() {}
+  bool is_adjacent(twrs_fwd &);
   void set_id(const int i)
   {
     id = i;
@@ -40,49 +37,33 @@ public:
   {
     return id;
   }
-  void set_maxphibin(const int i)
+  int get_j_bin() const
   {
-    maxphibin = i;
+    return bin_j;
   }
-  int get_maxphibin() const
+  int get_k_bin() const
   {
-    return maxphibin;
-  }
-  int get_bineta() const
-  {
-    return bineta;
-  }
-  int get_binphi() const
-  {
-    return binphi;
+    return bin_k;
   }
 protected:
-  int bineta;
-  int binphi;
-  int maxphibin;
+  int bin_j;
+  int bin_k;
   RawTowerDefs::keytype id;
 };
 
-twrs::twrs(RawTower *rt):
-  maxphibin(-10),
+twrs_fwd::twrs_fwd(RawTower *rt):
   id(-1)
 {
-  bineta = rt->get_bineta();
-  binphi = rt->get_binphi();
+  bin_j = rt->get_bineta();
+  bin_k = rt->get_binphi();
 }
 
 bool
-twrs::is_adjacent(twrs &tower)
+twrs_fwd::is_adjacent(twrs_fwd &tower)
 {
-  if(bineta-1<=tower.get_bineta() && tower.get_bineta()<=bineta+1)
+  if(bin_j-1<=tower.get_j_bin() && tower.get_j_bin()<=bin_j+1)
     {
-      if(binphi-1<=tower.get_binphi() && tower.get_binphi()<=binphi+1)
-	{
-	  return true;
-	}
-      // cluster through the phi-wraparound
-      else if(((tower.get_binphi() == maxphibin-1) && (binphi == 0)) ||
-	      ((tower.get_binphi() == 0) && (binphi == maxphibin-1)))
+      if(bin_k-1<=tower.get_k_bin() && tower.get_k_bin()<=bin_k+1)
 	{
 	  return true;
 	}
@@ -91,16 +72,16 @@ twrs::is_adjacent(twrs &tower)
   return false;
 }
 
-bool operator<(const twrs& a, const twrs& b)
+bool operator<(const twrs_fwd& a, const twrs_fwd& b)
 {
-  if (a.get_bineta() != b.get_bineta())
+  if (a.get_j_bin() != b.get_j_bin())
     {
-      return a.get_bineta() < b.get_bineta();
+      return a.get_j_bin() < b.get_j_bin();
     }
-  return a.get_binphi() < b.get_binphi();
+  return a.get_k_bin() < b.get_k_bin();
 }
 
-RawClusterBuilder::RawClusterBuilder(const std::string& name):
+RawClusterBuilderFwd::RawClusterBuilderFwd(const std::string& name):
   SubsysReco( name ),
   _clusters(NULL),
   _min_tower_e(0.0),
@@ -108,7 +89,7 @@ RawClusterBuilder::RawClusterBuilder(const std::string& name):
   detector("NONE")
 {}
 
-int RawClusterBuilder::InitRun(PHCompositeNode *topNode)
+int RawClusterBuilderFwd::InitRun(PHCompositeNode *topNode)
 {
   try
     {
@@ -123,7 +104,7 @@ int RawClusterBuilder::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawClusterBuilder::process_event(PHCompositeNode *topNode)
+int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
 {
 
   string towernodename = "TOWER_CALIB_" + detector;
@@ -142,7 +123,7 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
      return Fun4AllReturnCodes::ABORTEVENT;
    }
   // make the list of towers above threshold
-  std::vector<twrs> towerVector;
+  std::vector<twrs_fwd> towerVector;
   RawTowerContainer::ConstRange begin_end  = towers->getTowers();
   RawTowerContainer::ConstIterator itr = begin_end.first;
   for (; itr != begin_end.second; ++itr)
@@ -151,15 +132,14 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
       RawTowerDefs::keytype towerid = itr->first;
       if (tower->get_energy() > _min_tower_e)
         {
-          twrs twr(tower);
-	  twr.set_maxphibin(towergeom->get_phibins());
+          twrs_fwd twr(tower);
 	  twr.set_id(towerid);
           towerVector.push_back(twr);
         }
     }
 
   // cluster the towers
-  std::multimap<int, twrs> clusteredTowers;
+  std::multimap<int, twrs_fwd> clusteredTowers;
   PHMakeGroups(towerVector, clusteredTowers);
 
   // extract the clusters
@@ -167,8 +147,8 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
   std::vector<float> eta;
   std::vector<float> phi;
 
-  std::multimap<int, twrs>::iterator ctitr = clusteredTowers.begin();
-  std::multimap<int, twrs>::iterator lastct = clusteredTowers.end();
+  std::multimap<int, twrs_fwd>::iterator ctitr = clusteredTowers.begin();
+  std::multimap<int, twrs_fwd>::iterator lastct = clusteredTowers.end();
   for (; ctitr != lastct; ++ctitr)
     {
       int clusterid = ctitr->first;
@@ -182,30 +162,32 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
           phi.push_back(0.0);
         }
 
-      twrs tmptower = ctitr->second;
-      int iphi = tmptower.get_binphi();
-      int ieta = tmptower.get_bineta();
-      RawTower *rawtower = towers->getTower(ieta, iphi);
-      if (tmptower.get_id() != (int) RawTowerDefs::encode_towerid(towers->getCalorimeterID(), ieta, iphi ))
+      twrs_fwd tmptower = ctitr->second;
+      int ij = tmptower.get_j_bin();
+      int ik = tmptower.get_k_bin();
+      RawTower *rawtower = towers->getTower(ij, ik);
+      if (tmptower.get_id() != (int) RawTowerDefs::encode_towerid(towers->getCalorimeterID(), ij, ik ))
 	{
 	  cout <<__PRETTY_FUNCTION__<< " - Fatal Error - id mismatch. internal: " << tmptower.get_id()
-	       << ", towercontainer: " << RawTowerDefs::encode_towerid( towers->getCalorimeterID(), ieta, iphi )
+	       << ", towercontainer: " << RawTowerDefs::encode_towerid( towers->getCalorimeterID(), ij, ik )
 	       << endl;
 	  exit(1);
 	}
       float e = rawtower->get_energy();
       energy[clusterid] += e;
-      eta[clusterid] += e * towergeom->get_etacenter(rawtower->get_bineta());
-      phi[clusterid] += e * towergeom->get_phicenter(rawtower->get_binphi());
+      RawTowerGeom *tgeo =  
+	towergeom->get_tower_geometry(rawtower->get_id()); 
+      eta[clusterid] += e * tgeo->get_eta();
+      phi[clusterid] += e * tgeo->get_phi();
 
       cluster->addTower(rawtower->get_id(), rawtower->get_energy());
 
       if (verbosity)
         {
-          std::cout << "RawClusterBuilder id: " << (ctitr->first) << " Tower: "
+          std::cout << "RawClusterBuilderFwd id: " << (ctitr->first) << " Tower: "
                     << " (ieta,iphi) = (" << rawtower->get_bineta() << "," << rawtower->get_binphi() << ") "
-                    << " (eta,phi,e) = (" << towergeom->get_etacenter(rawtower->get_bineta()) << ","
-                    << towergeom->get_phicenter(rawtower->get_binphi()) << ","
+                    << " (eta,phi,e) = (" << tgeo->get_eta() << ","
+                    << tgeo->get_phi() << ","
                     << rawtower->get_energy() << ")"
                     << std::endl;
         }
@@ -233,7 +215,7 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
 
       if (verbosity)
         {
-          cout << "RawClusterBuilder: Cluster # " << icluster << " of " << nclusters << " "
+          cout << "RawClusterBuilderFwd: Cluster # " << icluster << " of " << nclusters << " "
                     << " (eta,phi,e) = (" << cluster->get_eta() << ", "
                     << cluster->get_phi() << ","
                     << cluster->get_energy() << ")"
@@ -280,7 +262,7 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
 }
 
 
-bool RawClusterBuilder::CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer *towergeom)
+bool RawClusterBuilderFwd::CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer *towergeom)
 {
   double sum = cluster->get_energy();
   double phimin = 999.;
@@ -290,7 +272,9 @@ bool RawClusterBuilder::CorrectPhi(RawCluster* cluster, RawTowerContainer* tower
   for (iter = begin_end.first; iter != begin_end.second; ++iter)
     { 
       RawTower* tmpt = towers->getTower(iter->first);
-      double phi = towergeom->get_phicenter(tmpt->get_binphi());
+      RawTowerGeom *tgeo =  
+	towergeom->get_tower_geometry(tmpt->get_id()); 
+      double phi = tgeo->get_phi();
       if(phi > M_PI) phi = phi - 2.*M_PI; // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)
       if (phi < phimin)
         {
@@ -309,7 +293,9 @@ bool RawClusterBuilder::CorrectPhi(RawCluster* cluster, RawTowerContainer* tower
     { 
       RawTower* tmpt = towers->getTower(iter->first);
       double e = tmpt->get_energy();
-      double phi = towergeom->get_phicenter(tmpt->get_binphi());
+      RawTowerGeom *tgeo =  
+	towergeom->get_tower_geometry(tmpt->get_id()); 
+      double phi = tgeo->get_phi();
       if(phi > M_PI) phi = phi - 2.*M_PI; // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)
       if (phi < 0.)
         {
@@ -329,12 +315,12 @@ bool RawClusterBuilder::CorrectPhi(RawCluster* cluster, RawTowerContainer* tower
 }
 
 
-int RawClusterBuilder::End(PHCompositeNode *topNode)
+int RawClusterBuilderFwd::End(PHCompositeNode *topNode)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void RawClusterBuilder::CreateNodes(PHCompositeNode *topNode)
+void RawClusterBuilderFwd::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 

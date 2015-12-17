@@ -59,6 +59,9 @@ PHG4ForwardHcalDetector::PHG4ForwardHcalDetector( PHCompositeNode *Node, const s
   _materialScintillator( "G4_PLASTIC_SC_VINYLTOLUENE" ),
   _materialAbsorber( "G4_Fe" ),
   _active(1),
+  _absorberactive(0),
+  _layer(0),
+  _blackhole(0),
   _towerlogicnameprefix("hHcalTower"),
   _superdetector("NONE"),
   _mapping_tower_file("")
@@ -80,12 +83,18 @@ PHG4ForwardHcalDetector::IsInForwardHcal(G4VPhysicalVolume * volume) const
     {
       if (volume->GetName().find("scintillator") != string::npos)
 	{
-	  return 1;
+	  if(_active)
+	    return 1;
+	  else
+	    return 0; 
 	}
       /* only record energy in actual absorber- drop energy lost in air gaps inside hcal envelope */
       else if (volume->GetName().find("absorber") != string::npos)
 	{
-	  return -1;
+	  if(_absorberactive)
+	    return -1;
+	  else
+	    return 0; 
 	}
       else if (volume->GetName().find("envelope") != string::npos)
 	{
@@ -211,6 +220,12 @@ PHG4ForwardHcalDetector::ConstructTower()
 						    "hHcal_scintillator_plate_logic",
 						    0, 0, 0);
 
+  G4VisAttributes *visattscint = new G4VisAttributes();
+  visattscint->SetVisibility(true);
+  visattscint->SetForceSolid(true);
+  visattscint->SetColour(G4Colour::Gray());
+  logic_scint->SetVisAttributes(visattscint);
+  logic_absorber->SetVisAttributes(visattscint);
 
   /* place physical volumes for absorber and scintillator plates */
   G4double xpos_i = 0;

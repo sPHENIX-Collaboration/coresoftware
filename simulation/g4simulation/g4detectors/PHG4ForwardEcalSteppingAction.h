@@ -41,6 +41,8 @@ private:
   PHG4HitContainer * absorberhits_;
   PHG4Hit *hit;
 
+  int absorbertruth; 
+
 };
 
 
