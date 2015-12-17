@@ -55,8 +55,8 @@ static double subtract_from_scinti_x = 0.1*mm;
 PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam  ):
   PHG4Detector(Node, dnam),
   params(parameters),
-  inner_radius(parameters->get_double_param("inner_radius")*cm),
-  outer_radius(parameters->get_double_param("outer_radius")*cm),
+  inner_radius(params->get_double_param("inner_radius")*cm),
+  outer_radius(params->get_double_param("outer_radius")*cm),
   size_z(params->get_double_param("size_z")*cm),
   scinti_tile_x(NAN),
   scinti_tile_x_lower(NAN),
@@ -65,14 +65,16 @@ PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, PHG4Paramet
   scinti_tile_thickness(params->get_double_param("scinti_tile_thickness")*cm),
   scinti_gap(params->get_double_param("scinti_gap")*cm),
   tilt_angle(params->get_double_param("tilt_angle")*deg),
-  envelope_inner_radius(parameters->get_double_param("inner_radius")*cm),
-  envelope_outer_radius(params->get_double_param("outer_radius")*cm),
+  envelope_inner_radius(inner_radius),
+  envelope_outer_radius(outer_radius),
   envelope_z(size_z),
   volume_envelope(NAN),
   volume_steel(NAN),
   volume_scintillator(NAN),
   n_scinti_plates(params->get_int_param("n_scinti_plates")),
   n_scinti_tiles(params->get_int_param("n_scinti_tiles")),
+  active(params->get_int_param("active")),
+  absorberactive(params->get_int_param("absorberactive")),
   layer(0),
   scintilogicnameprefix("HcalInnerScinti")
 {
@@ -99,14 +101,14 @@ PHG4InnerHcalDetector::IsInInnerHcal(G4VPhysicalVolume * volume) const
   // 82 the number of the scintillator mother volume
   // HcalInnerScinti_11: name of scintillator slat
   // 11: number of scintillator slat logical volume
-  if (params->get_int_param("absorberactive"))
+  if (absorberactive)
     {
       if (steel_absorber_vec.find(volume) != steel_absorber_vec.end())
 	{
 	  return -1;
 	}
     }
-    if (params->get_int_param("active"))
+  if (active)
     {
       if (volume->GetName().find(scintilogicnameprefix) != string::npos)
 	{
@@ -471,6 +473,7 @@ PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
   double offset = 1 * cm + overhang; // add 1cm to make sure the G4ExtrudedSolid
   // is larger than the tile so we do not have
   // funny edge effects when overlapping vols
+  double scinti_gap_neighbor = params->get_double_param("scinti_gap_neighbor")*cm;
   for (int i = 0; i < n_scinti_tiles; i++)
     {
       theta = M_PI / 2 - PHG4Utils::get_theta(eta); // theta = 90 for eta=0
@@ -485,7 +488,6 @@ PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
       x[3] =  outer_radius + overhang; // since the tile is tilted, x is not at the outer radius but beyond
       z[3] = tan(theta) * outer_radius;
       // apply gap between scintillators
-      double scinti_gap_neighbor = params->get_double_param("scinti_gap_neighbor")*cm;
       z[0] += scinti_gap_neighbor / 2.;
       z[1] += scinti_gap_neighbor / 2.;
       z[2] -= scinti_gap_neighbor / 2.;
@@ -801,7 +803,6 @@ PHG4InnerHcalDetector::SetTiltViaNcross()
   // gamma = acos((a^2+b^2=c^2)/2ab
   double tiltangle = acos((ll*ll + upside*upside-inner_radius*inner_radius)/(2*ll*upside));
   tiltangle = tiltangle*rad;
-  // set second param to 0 so it does not reset the ncross
   tilt_angle = copysign(tiltangle,ncross);
   params->set_double_param("tilt_angle",tilt_angle/deg);
   return;

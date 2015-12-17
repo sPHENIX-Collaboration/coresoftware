@@ -8,7 +8,7 @@
  * \date $Date: 2015/01/07 23:50:05 $
  */
 
-#include <PHG4SteppingAction.h>
+#include "PHG4SteppingAction.h"
 
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4Material.hh>
