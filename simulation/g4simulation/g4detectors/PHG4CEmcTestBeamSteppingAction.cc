@@ -104,10 +104,29 @@ bool PHG4CEmcTestBeamSteppingAction::UserSteppingAction( const G4Step* aStep, bo
 	    {
 	      // Now add the hit
 	      hits_->AddHit(tower_id, hit);
+
+	      {
+		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		  {
+		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		      {
+			pp->GetShower()->add_g4hit_id(hit->get_hit_id());
+		      }
+		  }
+	      }
 	    }
 	  else
 	    {
 	      absorberhits_->AddHit(tower_id, hit);
+	      {
+		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		  {
+		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		      {
+			pp->GetShower()->add_g4hit_id(hit->get_hit_id());
+		      }
+		  }
+	      }
 	    }
 	  break;
 	default:

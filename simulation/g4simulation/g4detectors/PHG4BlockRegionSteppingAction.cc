@@ -4,6 +4,7 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
+#include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
 
@@ -50,7 +51,16 @@ void PHG4BlockRegionSteppingAction::UserSteppingAction( const G4Step* aStep)
 	  // time in ns
           hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
           //set the track ID
-          hit->set_trkid(aTrack->GetTrackID() );
+	  {
+	    hit->set_trkid(aTrack->GetTrackID());
+	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	      {
+		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		  {
+		    hit->set_trkid(pp->GetUserTrackId());
+		  }
+	      }
+	  }
 
           //set the initial energy deposit
           hit->set_edep(0);
@@ -58,6 +68,16 @@ void PHG4BlockRegionSteppingAction::UserSteppingAction( const G4Step* aStep)
           // Now add the hit
           hits_->AddHit(layer_id, hit);
 
+	  {
+	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	      {
+		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		  {
+		    pp->GetShower()->add_g4hit_id(hit->get_hit_id());
+		  }
+	      }
+	  }
+	  
           break;
         default:
           break;

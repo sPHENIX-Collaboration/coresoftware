@@ -163,10 +163,32 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 	    {
 	      // Now add the hit
 	      hits_->AddHit(layer_id, hit);
+
+	      {
+		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		  {
+		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		      {
+			pp->GetShower()->add_g4hit_id(hit->get_hit_id());
+		      }
+		  }
+	      }
+	      
 	    }
 	  else
 	    {
 	      absorberhits_->AddHit(layer_id, hit);
+
+	      {
+		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		  {
+		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		      {
+			pp->GetShower()->add_g4hit_id(hit->get_hit_id());
+		      }
+		  }
+	      }
+	      
 	    }
 	  break;
 	default:
