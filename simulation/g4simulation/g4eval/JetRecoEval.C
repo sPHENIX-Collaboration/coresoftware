@@ -510,7 +510,7 @@ Jet* JetRecoEval::best_jet_from(Jet* truthjet) {
   
   if (_do_cache) _cache_best_jet_from.insert(make_pair(truthjet,bestrecojet));
 
-  return NULL;
+  return bestrecojet;
 }
 
 // overlap calculations

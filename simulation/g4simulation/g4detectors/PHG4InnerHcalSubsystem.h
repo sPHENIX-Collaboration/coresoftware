@@ -104,6 +104,9 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   std::map<const std::string, double> dparams;
   std::map<const std::string, int> iparams;
   std::map<const std::string, std::string> cparams;
+  std::map<const std::string, double> default_double;
+  std::map<const std::string, int> default_int;
+  std::map<const std::string, std::string> default_string;
 
 };
 

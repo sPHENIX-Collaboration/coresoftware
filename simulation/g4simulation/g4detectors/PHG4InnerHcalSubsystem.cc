@@ -19,11 +19,6 @@
 
 using namespace std;
 
-map<const string,double> default_double;
-map<const string, int> default_int;
-map<const string, string> default_string;
-
-
 //_______________________________________________________________________
 PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const int lyr ):
   PHG4Subsystem( name ),
@@ -430,7 +425,7 @@ PHG4InnerHcalSubsystem::ReadParamsFromFile(const PHG4InnerHcalSubsystem::FILE_TY
   int iret = params->ReadFromFile(extension,calibfiledir);
   if (iret)
     {
-      cout << "problem saving to " << extension << " file " << endl;
+      cout << "problem reading from " << extension << " file " << endl;
     }
   return iret;
 }

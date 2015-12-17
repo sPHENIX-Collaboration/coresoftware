@@ -1,13 +1,16 @@
 #ifndef PHG4OuterHcalSubsystem_h
 #define PHG4OuterHcalSubsystem_h
 
-#include "g4main/PHG4Subsystem.h"
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
 
+#include <map>
+#include <string>
+
 class PHG4OuterHcalDetector;
-class PHG4OuterHcalParameters;
+class PHG4Parameters;
 class PHG4OuterHcalSteppingAction;
 class PHG4EventAction;
 
@@ -15,6 +18,8 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
 {
 
   public:
+
+  enum FILE_TYPE {none = 0, xml = 1, root = 2};
 
   //! constructor
   PHG4OuterHcalSubsystem( const std::string &name = "HCALOUT", const int layer = 0 );
@@ -24,6 +29,8 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
   {}
 
   //! init
+  int Init(PHCompositeNode *);
+
   /*!
   creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
   reates the stepping action and place it on the node tree, under "ACTIONS" node
@@ -46,41 +53,34 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
   PHG4SteppingAction* GetSteppingAction( void ) const;
   PHG4EventAction* GetEventAction() const {return eventAction_;}
 
-  void SetPlaceZ(const G4double dbl);
-  void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z);
-  void SetXRot(const G4double dbl);
-  void SetYRot(const G4double dbl);
-  void SetZRot(const G4double dbl);
-  void SetMaterial(const std::string &mat);
   void SetActive(const int i = 1);
   void SetAbsorberActive(const int i = 1);
-  void SetAbsorberTruth(const int i = 1);
-  void SuperDetector(const std::string &name) {superdetector = name;}
+  void SuperDetector(const std::string &name);
   const std::string SuperDetector() {return superdetector;}
 
   void BlackHole(const int i=1);
+  void SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr);
 
-  void SetTiltViaNcross(const int ncross);
-  void SetTiltAngle(const double tilt);
-  double GetTiltAngle() const;
-  void SetInnerRadius(const double inner);
-  double GetInnerRadius() const;
-  void SetOuterRadius(const double outer);
-  double GetOuterRadius() const;
-  void SetLength(const double len);
-  void SetGapWidth(const double gap);
-  void SetNumScintiPlates(const int nplates);
-  void SetNumScintiTiles(const int ntiles);
-  void SetScintiThickness(const double thick);
-  void SetScintiGap(const double scgap);
-  void SetStepLimits(const double slim);
+  void EnableFieldChecker(const int i=1) {enable_field_checker = i;}
 
+  void set_double_param(const std::string &name, const double dval);
+  double get_double_param(const std::string &name) const;
+  void set_int_param(const std::string &name, const int ival);
+  int get_int_param(const std::string &name) const;
+  void set_string_param(const std::string &name, const std::string &sval);
+  std::string get_string_param(const std::string &name) const;
 
-  void SetLightCorrection(const float inner_radius, const float inner_corr,
-			  const float outer_radius, const float outer_corr);
-  void SetLightScintModel(const bool b = true);
+  void SetDefaultParameters();
+  void UpdateParametersWithMacro();
+  void UseDB(const int i = 1) {usedb = i;}
+  void UseCalibFiles(const FILE_TYPE ftyp) {filetype = ftyp;}
+  int SaveParamsToDB();
+  int ReadParamsFromDB();
+  int SaveParamsToFile(const FILE_TYPE ftyp);
+  int ReadParamsFromFile(const FILE_TYPE ftyp);
+  void SetCalibrationFileDir(const std::string &calibdir) {calibfiledir = calibdir;}
 
-  private:
+  protected:
 
   //! detector geometry
   /*! defives from PHG4Detector */
@@ -94,10 +94,24 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
   /*! derives from PHG4EventAction */
   PHG4EventAction *eventAction_;
 
-  PHG4OuterHcalParameters *params;
+  PHG4Parameters *params;
+
+  int enable_field_checker;
   int layer;
+
+  int usedb;
+  FILE_TYPE filetype;
+
   std::string detector_type;
   std::string superdetector;
+  std::string calibfiledir;
+  std::map<const std::string, double> dparams;
+  std::map<const std::string, int> iparams;
+  std::map<const std::string, std::string> cparams;
+  std::map<const std::string, double> default_double;
+  std::map<const std::string, int> default_int;
+  std::map<const std::string, std::string> default_string;
+
 };
 
 #endif
