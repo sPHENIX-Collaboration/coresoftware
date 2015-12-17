@@ -19,6 +19,8 @@ PHG4ForwardHcalSubsystem::PHG4ForwardHcalSubsystem( const std::string &name, con
   steppingAction_( NULL ),
   eventAction_(NULL),
   active(1),
+  absorber_active(0),
+  blackhole(0),
   detector_type(name),
   mappingfile_("")
 {
@@ -35,6 +37,8 @@ int PHG4ForwardHcalSubsystem::Init( PHCompositeNode* topNode )
   // create detector
   detector_ = new PHG4ForwardHcalDetector(topNode, Name());
   detector_->SetActive(active);
+  detector_->SetAbsorberActive(absorber_active);
+  detector_->BlackHole(blackhole);
   detector_->OverlapCheck(overlapcheck);
   detector_->Verbosity(verbosity);
   detector_->SetTowerMappingFile( mappingfile_ );

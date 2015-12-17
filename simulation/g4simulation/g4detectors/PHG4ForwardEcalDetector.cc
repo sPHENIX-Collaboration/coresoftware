@@ -59,7 +59,9 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector( PHCompositeNode *Node, const s
   _materialScintillator( "G4_PLASTIC_SC_VINYLTOLUENE" ),
   _materialAbsorber( "G4_Pb" ),
   _active(1),
+  _absorberactive(0),
   _layer(0),
+  _blackhole(0),
   _towerlogicnameprefix("hEcalTower"),
   _superdetector("NONE"),
   _mapping_tower_file("")
@@ -81,12 +83,18 @@ PHG4ForwardEcalDetector::IsInForwardEcal(G4VPhysicalVolume * volume) const
     {
       if (volume->GetName().find("scintillator") != string::npos)
 	{
-	  return 1;
+	  if(_active)
+	    return 1;
+	  else
+	    return 0;
 	}
       /* only record energy in actual absorber- drop energy lost in air gaps inside ecal envelope */
       else if (volume->GetName().find("absorber") != string::npos)
 	{
-	  return -1;
+	  if(_absorberactive)
+	    return -1;
+	  else
+	    return 0; 
 	}
       else if (volume->GetName().find("envelope") != string::npos)
 	{

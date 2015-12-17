@@ -47,6 +47,10 @@ public:
     mappingfile_ = filename;
   }
 
+  void SetActive(const int i = 1){active = i;}
+  void SetAbsorberActive(const int i = 1){absorber_active = i;}
+  void BlackHole(const int i=1){blackhole = i;}
+
 private:
 
   /** Pointer to the Geant4 implementation of the detector
@@ -59,6 +63,8 @@ private:
   PHG4EventAction *eventAction_;
 
   int active;
+  int absorber_active; 
+  int blackhole; 
 
   std::string detector_type;
   std::string mappingfile_;
