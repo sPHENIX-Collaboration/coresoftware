@@ -99,17 +99,38 @@ bool PHG4HcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
           //set the initial energy deposit
           hit->set_edep(0);
 	  hit->set_eion(0); // only implemented for v5 otherwise empty
-    hit->set_light_yield(0);
+	  hit->set_light_yield(0);
 	  //	  hit->print();
           // Now add the hit
 	  if (isactive >= 0) // the slat ids start with zero
 	    {
 	      //	      unsigned int shift_layer_id = layer_id << (phg4hitdefs::keybits - 3);
 	      hits_->AddHit(layer_id, hit); // scintillator id is coded into layer number
+
+	      {
+		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		  {
+		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		      {
+			pp->GetShower()->add_g4hit_id(hit->get_hit_id());
+		      }
+		  }
+	      }
+	      
 	    }
 	  else
 	    {
 	      absorberhits_->AddHit(layer_id, hit);
+
+	      {
+		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		  {
+		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		      {
+			pp->GetShower()->add_g4hit_id(hit->get_hit_id());
+		      }
+		  }
+	      }
 	    }
 
 	  if (hit->get_z(0) > zmax || hit->get_z(0) < zmin)
@@ -143,16 +164,16 @@ bool PHG4HcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
                   once = false;
 
                   cout << "PHG4HcalSteppingAction::UserSteppingAction::"
-                      //
-                      << detector_->GetName() << " - "
-                      << " use scintillating light model at each Geant4 steps. "
-                      <<"First step: "
-                      <<"Material = "<<aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()<<", "
-                      <<"Birk Constant = "<<aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()<<","
-                      <<"edep = " <<edep<<", "
-                      <<"eion = " <<eion<<", "
-                      <<"light_yield = " <<light_yield
-                      << endl;
+		    //
+		       << detector_->GetName() << " - "
+		       << " use scintillating light model at each Geant4 steps. "
+		       <<"First step: "
+		       <<"Material = "<<aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()<<", "
+		       <<"Birk Constant = "<<aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()<<","
+		       <<"edep = " <<edep<<", "
+		       <<"eion = " <<eion<<", "
+		       <<"light_yield = " <<light_yield
+		       << endl;
                 }
 
             }
@@ -164,8 +185,8 @@ bool PHG4HcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
           if (light_balance_)
             {
               float r = sqrt(
-                  pow(postPoint->GetPosition().x() / cm, 2)
-                      + pow(postPoint->GetPosition().y() / cm, 2));
+			     pow(postPoint->GetPosition().x() / cm, 2)
+			     + pow(postPoint->GetPosition().y() / cm, 2));
               const float cor = GetLightCorrection(r);
               light_yield = light_yield * cor;
 
@@ -175,14 +196,14 @@ bool PHG4HcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
                   once = false;
 
                   cout << "PHG4HcalSteppingAction::UserSteppingAction::"
-                      //
-                      << detector_->GetName() << " - "
-                      << " use a simple light collection model with linear radial dependence. "
-                      <<"First step: "
-                      <<"r = " <<r<<", "
-                      <<"correction ratio = " <<cor<<", "
-                      <<"light_yield after cor. = " <<light_yield
-                      << endl;
+		    //
+		       << detector_->GetName() << " - "
+		       << " use a simple light collection model with linear radial dependence. "
+		       <<"First step: "
+		       <<"r = " <<r<<", "
+		       <<"correction ratio = " <<cor<<", "
+		       <<"light_yield after cor. = " <<light_yield
+		       << endl;
                 }
 
             }
@@ -206,13 +227,13 @@ bool PHG4HcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	}
       if (edep > 0)
 	{
-	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	      {
-		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		  {
-		    pp->SetKeep(1); // we want to keep the track
-		  }
-	      }
+	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	    {
+	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		{
+		  pp->SetKeep(1); // we want to keep the track
+		}
+	    }
 	}
       //       hit->identify();
       // return true to indicate the hit was used

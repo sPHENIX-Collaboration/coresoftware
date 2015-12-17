@@ -38,9 +38,9 @@ bool PHG4HcalPrototypeSteppingAction::UserSteppingAction( const G4Step* aStep, b
   //  int whichactive = detector_->IsInHcalPrototype(volume);
 
   /*
-  if (!whichactive)
+    if (!whichactive)
     {
-      return false;
+    return false;
     }
   */
 
@@ -168,10 +168,30 @@ bool PHG4HcalPrototypeSteppingAction::UserSteppingAction( const G4Step* aStep, b
 	    {
 	      // Now add the hit
 	      hits_->AddHit(sectionID, hit);
+	      
+	      {
+		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		  {
+		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		      {
+			pp->GetShower()->add_g4hit_id(hit->get_hit_id());
+		      }
+		  }
+	      }
 	    }
 	  else
 	    {
 	      absorberhits_->AddHit(sectionID, hit);
+
+	      {
+		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		  {
+		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		      {
+			pp->GetShower()->add_g4hit_id(hit->get_hit_id());
+		      }
+		  }
+	      }
 	    }
 	  break;
 	default:

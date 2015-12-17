@@ -73,21 +73,21 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
   int tower_id = -1;
   if (whichactive > 0) // scintillator
     {
-// G4AssemblyVolumes naming convention:
-//     av_WWW_impr_XXX_YYY_ZZZ
-// where:
+      // G4AssemblyVolumes naming convention:
+      //     av_WWW_impr_XXX_YYY_ZZZ
+      // where:
 
-//     WWW - assembly volume instance number
-//     XXX - assembly volume imprint number
-//     YYY - the name of the placed logical volume
-//     ZZZ - the logical volume index inside the assembly volume
-// e.g. av_1_impr_82_HcalInnerScinti_11_pv_11
-// 82 the number of the scintillator mother volume
-// HcalInnerScinti_11: name of scintillator slat
-// 11: number of scintillator slat logical volume
-// use boost tokenizer to separate the _, then take value
-// after "impr" for mother volume and after "pv" for scintillator slat
-// use boost lexical cast for string -> int conversion
+      //     WWW - assembly volume instance number
+      //     XXX - assembly volume imprint number
+      //     YYY - the name of the placed logical volume
+      //     ZZZ - the logical volume index inside the assembly volume
+      // e.g. av_1_impr_82_HcalInnerScinti_11_pv_11
+      // 82 the number of the scintillator mother volume
+      // HcalInnerScinti_11: name of scintillator slat
+      // 11: number of scintillator slat logical volume
+      // use boost tokenizer to separate the _, then take value
+      // after "impr" for mother volume and after "pv" for scintillator slat
+      // use boost lexical cast for string -> int conversion
       boost::char_separator<char> sep("_");
       boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
       boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
@@ -193,10 +193,30 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	      hit->set_light_yield(0); // for scintillator only, initialize light yields
 	      // Now add the hit
 	      hits_->AddHit(layer_id, hit);
+	      
+	      {
+		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		  {
+		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		      {
+			pp->GetShower()->add_g4hit_id(hit->get_hit_id());
+		      }
+		  }
+	      }
 	    }
 	  else
 	    {
 	      absorberhits_->AddHit(layer_id, hit);
+	      
+	      {
+		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		  {
+		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		      {
+			pp->GetShower()->add_g4hit_id(hit->get_hit_id());
+		      }
+		  }
+	      }
 	    }
 	  break;
 	default:
@@ -246,8 +266,8 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	      isfinite(light_balance_inner_corr))
             {
               double r = sqrt(
-			     postPoint->GetPosition().x()*postPoint->GetPosition().x()
-			     + postPoint->GetPosition().y()*postPoint->GetPosition().y());
+			      postPoint->GetPosition().x()*postPoint->GetPosition().x()
+			      + postPoint->GetPosition().y()*postPoint->GetPosition().y());
               double cor =  GetLightCorrection(r);
               light_yield = light_yield * cor;
 
@@ -276,7 +296,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
       //sum up the energy to get total deposited
       hit->set_edep(hit->get_edep() + edep);
       hit->set_eion(hit->get_eion() + eion);
-       if (whichactive > 0)
+      if (whichactive > 0)
 	{
 	  hit->set_light_yield(hit->get_light_yield() + light_yield);
 	}

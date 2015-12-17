@@ -205,6 +205,16 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction( const G4Step* aStep, 
 	  //	  hit->print();
 	  hits_->AddHit(layer_id, hit);
 	  
+	  {
+	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	      {
+		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		  {
+		    pp->GetShower()->add_g4hit_id(hit->get_hit_id());
+		  }
+	      }
+	  }
+	  
 	  break;
 	default:
 	  break;
