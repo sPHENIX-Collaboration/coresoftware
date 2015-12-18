@@ -83,6 +83,9 @@ private:
 
   std::set<int> _g4particle_ids;
   std::map<PHG4Shower::VOLUME,std::set<PHG4HitDefs::keytype> > _g4hit_ids;
+
+  static std::map<PHG4Shower::VOLUME,std::string> _volume_names;
+  static std::map<std::string,PHG4Shower::VOLUME> _volume_ids;
   
   ClassDef(PHG4Showerv1, 1);
 };

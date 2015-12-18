@@ -7,6 +7,7 @@
 #include <cmath>
 #include <set>
 #include <iostream>
+#include <string>
 
 class PHG4Shower : public PHObject {
 
@@ -14,12 +15,24 @@ public:
 
   enum VOLUME {NONE=0,
 	       PIPE=1,
-	       SVTX=2,SILICON_TRACKER=3,
-	       CEMC_ELECTRONICS=4,CEMC=5,ABSORBER_CEMC=6,CEMC_SPT=7,
-	       ABSORBER_HCALIN=8,HCALIN=9,HCALIN_SPT=10,
-	       MAGNET=11,
-	       ABSORBER_HCALOUT=12,HCALOUT=13,HCALOUT_SPT=14,
-	       BH_1=15
+	       SVTX=2,
+	       SVTXSUPPORT=3,
+	       SILICON_TRACKER=4,
+	       ABSORBER_SILICON_TRACKER=5,
+	       CEMC_ELECTRONICS=6,
+	       CEMC=7,
+	       ABSORBER_CEMC=8,
+	       CEMC_SPT=9,
+	       ABSORBER_HCALIN=10,
+	       HCALIN=11,
+	       HCALIN_SPT=12,
+	       MAGNET=13,
+	       ABSORBER_HCALOUT=14,
+	       HCALOUT=15,
+	       HCALOUT_SPT=16,
+	       BH_1=17,
+	       BH_FOWARD_PLUS=18,
+	       BH_FOWARD_NEG=19
   };
   
   virtual ~PHG4Shower() {}

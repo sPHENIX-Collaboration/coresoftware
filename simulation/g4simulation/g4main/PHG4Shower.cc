@@ -5,4 +5,3 @@
 using namespace std;
 
 ClassImp(PHG4Shower);
-

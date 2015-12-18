@@ -77,7 +77,7 @@ int PHG4BlockSubsystem::Init( PHCompositeNode* topNode )
     // create hit list
     PHG4HitContainer* block_hits =  findNode::getClass<PHG4HitContainer>( topNode , nodename.str().c_str());
     if( !block_hits ){
-      dstNode->addNode( new PHIODataNode<PHObject>( block_hits = new PHG4HitContainer(), nodename.str().c_str(), "PHObject" ));
+      dstNode->addNode( new PHIODataNode<PHObject>( block_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject" ));
     }
 
     block_hits->AddLayer(_layer);

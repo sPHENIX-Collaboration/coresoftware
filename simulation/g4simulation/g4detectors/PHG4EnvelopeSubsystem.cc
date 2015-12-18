@@ -42,9 +42,9 @@ int PHG4EnvelopeSubsystem::Init( PHCompositeNode* topNode )
 		PHG4HitContainer* crystal_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
 		if (!crystal_hits)
 		{
-			crystal_hits = new PHG4HitContainer();
-			PHIODataNode<PHObject> *hitNode = new PHIODataNode<PHObject>(crystal_hits, nodename.str().c_str(), "PHObject");
-			dstNode->addNode(hitNode);
+		  crystal_hits = new PHG4HitContainer(nodename.str());
+		  PHIODataNode<PHObject> *hitNode = new PHIODataNode<PHObject>(crystal_hits, nodename.str().c_str(), "PHObject");
+		  dstNode->addNode(hitNode);
 		}
 
 		// create stepping action

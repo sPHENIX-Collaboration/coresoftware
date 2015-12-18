@@ -36,7 +36,7 @@ int PHG4RICHSubsystem::Init( PHCompositeNode* topNode )
     
     PHNodeIterator iter( topNode );
     PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST" ));
-    dstNode->addNode( new PHIODataNode<PHObject>( rich_hits = new PHG4HitContainer(), "G4HIT_RICH","PHObject" ));
+    dstNode->addNode( new PHIODataNode<PHObject>( rich_hits = new PHG4HitContainer("G4HIT_RICH"), "G4HIT_RICH","PHObject" ));
     
   }
   

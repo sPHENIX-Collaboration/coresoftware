@@ -4,12 +4,18 @@
 #include "PHG4HitDefs.h"
 
 #include <phool/phool.h>
-
+#include <tr1/functional_hash.h>
 #include <cstdlib>
 
 using namespace std;
 
 PHG4HitContainer::PHG4HitContainer()
+  : id(-1), hitmap(), layers()
+{
+}
+
+PHG4HitContainer::PHG4HitContainer(std::string nodename)
+  : id(tr1::hash<const char*>()(nodename.c_str())), hitmap(), layers()
 {
 }
 
