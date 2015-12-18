@@ -56,11 +56,11 @@ class PHG4CylinderCell : public PHObject
   virtual int get_ladder_z_index() const {return -9999;}
 
   virtual int get_j_index() const {return -9999;}
-  virtual void set_j_index(const int i) const {return;}
+  virtual void set_j_index(const int i) {return;}
   virtual int get_k_index() const {return -9999;}
-  virtual void set_k_index(const int i) const {return;}
+  virtual void set_k_index(const int i) {return;}
   virtual int get_l_index() const {return -9999;}
-  virtual void set_l_index(const int i) const {return;}
+  virtual void set_l_index(const int i) {return;}
   
  protected:
 
