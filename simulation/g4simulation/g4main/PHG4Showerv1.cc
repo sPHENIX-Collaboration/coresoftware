@@ -46,9 +46,9 @@ void PHG4Showerv1::identify(ostream &os) const {
   os << get_covar(2, 2) << " )" << endl;
 
   os << "VOLUME ID : edep eion light_yield" << endl;
-  for (std::map<PHG4Shower::VOLUME, float>::const_iterator iter = _edep.begin();
+  for (std::map<int, float>::const_iterator iter = _edep.begin();
        iter != _edep.end(); ++iter) {
-    PHG4Shower::VOLUME volid = iter->first;
+    int volid = iter->first;
     os << volid << " : " << get_edep(volid) << " " << get_eion(volid) << " "
        << get_light_yield(volid) << endl;
   }
@@ -61,7 +61,7 @@ void PHG4Showerv1::identify(ostream &os) const {
   os << endl;
 
   os << "G4Hit IDs" << endl;
-  for (std::map<PHG4Shower::VOLUME,std::set<PHG4HitDefs::keytype> >::const_iterator iter = _g4hit_ids.begin();
+  for (std::map<int,std::set<PHG4HitDefs::keytype> >::const_iterator iter = _g4hit_ids.begin();
        iter != _g4hit_ids.end();
        ++iter) {
     for (std::set<PHG4HitDefs::keytype>::const_iterator jter = iter->second.begin();
@@ -109,24 +109,24 @@ unsigned int PHG4Showerv1::covar_index(unsigned int i, unsigned int j) const {
   return i + 1 + (j + 1) * (j) / 2 - 1;
 }
 
-float PHG4Showerv1::get_edep(PHG4Shower::VOLUME volume) const {
-  std::map<PHG4Shower::VOLUME, float>::const_iterator citer =
+float PHG4Showerv1::get_edep(int volume) const {
+  std::map<int, float>::const_iterator citer =
       _edep.find(volume);
   if (citer == _edep.end())
     return 0.0;
   return citer->second;
 }
 
-float PHG4Showerv1::get_eion(PHG4Shower::VOLUME volume) const {
-  std::map<PHG4Shower::VOLUME, float>::const_iterator citer =
+float PHG4Showerv1::get_eion(int volume) const {
+  std::map<int, float>::const_iterator citer =
       _eion.find(volume);
   if (citer == _eion.end())
     return 0.0;
   return citer->second;
 }
 
-float PHG4Showerv1::get_light_yield(PHG4Shower::VOLUME volume) const {
-  std::map<PHG4Shower::VOLUME, float>::const_iterator citer =
+float PHG4Showerv1::get_light_yield(int volume) const {
+  std::map<int, float>::const_iterator citer =
       _light_yield.find(volume);
   if (citer == _light_yield.end())
     return 0.0;

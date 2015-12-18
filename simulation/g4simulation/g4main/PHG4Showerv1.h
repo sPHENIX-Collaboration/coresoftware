@@ -50,42 +50,39 @@ public:
   float        get_covar(unsigned int i, unsigned int j) const;
   void         set_covar(unsigned int i, unsigned int j, float entry);
   
-  float        get_edep(PHG4Shower::VOLUME volume) const;
-  void         set_edep(PHG4Shower::VOLUME volume, float edep) {_edep[volume] = edep;}
+  float        get_edep(int volume) const;
+  void         set_edep(int volume, float edep) {_edep[volume] = edep;}
 
-  float        get_eion(PHG4Shower::VOLUME volume) const;
-  void         set_eion(PHG4Shower::VOLUME volume, float eion) {_eion[volume] = eion;}
+  float        get_eion(int volume) const;
+  void         set_eion(int volume, float eion) {_eion[volume] = eion;}
 
-  float        get_light_yield(PHG4Shower::VOLUME volume) const;
-  void         set_light_yield(PHG4Shower::VOLUME volume, float light_yield) {_light_yield[volume] = light_yield;}
+  float        get_light_yield(int volume) const;
+  void         set_light_yield(int volume, float light_yield) {_light_yield[volume] = light_yield;}
 
   // container methods for ids
   void                 add_g4particle_id(int id)  {_g4particle_ids.insert(id);}
   const std::set<int>& get_g4particle_ids() const {return _g4particle_ids;}
   size_t               remove_g4particle_id(int id) {return _g4particle_ids.erase(id);}
   
-  void add_g4hit_id(PHG4Shower::VOLUME volume,PHG4HitDefs::keytype id) {_g4hit_ids[volume].insert(id);}
-  //const std::set<PHG4HitDefs::keytype>& get_g4hit_ids(PHG4Shower::VOLUME volume) const {return _g4hit_ids.fin[volume];}
-  size_t remove_g4hit_id(PHG4Shower::VOLUME volume,int id) {return _g4hit_ids[volume].erase(id);}
+  void add_g4hit_id(int volume,PHG4HitDefs::keytype id) {_g4hit_ids[volume].insert(id);}
+  //const std::set<PHG4HitDefs::keytype>& get_g4hit_ids(int volume) const {return _g4hit_ids.fin[volume];}
+  size_t remove_g4hit_id(int volume,int id) {return _g4hit_ids[volume].erase(id);}
 
 private:
   
   unsigned int covar_index(unsigned int i, unsigned int j) const;
   
-  unsigned int                        _id;          //< unique identifier within container
-  int                                 _primary_id;  //< association of shower to primary particle id
-  int                                 _parent_shower_id; //< association of shower to parent shower id if present
-  float                               _pos[3];      //< mean position of the shower
-  float                               _covar[6];    //< covariance of shower positions
-  std::map<PHG4Shower::VOLUME, float> _edep;        //< energy deposit in different volumes
-  std::map<PHG4Shower::VOLUME, float> _eion;        //< ionization energy in different volumes
-  std::map<PHG4Shower::VOLUME, float> _light_yield; //< light yield in different volumes
+  unsigned int         _id;               //< unique identifier within container
+  int                  _primary_id;       //< association of shower to primary particle id
+  int                  _parent_shower_id; //< association of shower to parent shower id if present
+  float                _pos[3];           //< mean position of the shower
+  float                _covar[6];         //< covariance of shower positions
+  std::map<int, float> _edep;             //< energy deposit in different volumes
+  std::map<int, float> _eion;             //< ionization energy in different volumes
+  std::map<int, float> _light_yield;      //< light yield in different volumes
 
   std::set<int> _g4particle_ids;
-  std::map<PHG4Shower::VOLUME,std::set<PHG4HitDefs::keytype> > _g4hit_ids;
-
-  static std::map<PHG4Shower::VOLUME,std::string> _volume_names;
-  static std::map<std::string,PHG4Shower::VOLUME> _volume_ids;
+  std::map<int,std::set<PHG4HitDefs::keytype> > _g4hit_ids;
   
   ClassDef(PHG4Showerv1, 1);
 };

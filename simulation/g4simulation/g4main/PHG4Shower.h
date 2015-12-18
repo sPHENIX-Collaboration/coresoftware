@@ -13,28 +13,6 @@ class PHG4Shower : public PHObject {
 
 public:
 
-  enum VOLUME {NONE=0,
-	       PIPE=1,
-	       SVTX=2,
-	       SVTXSUPPORT=3,
-	       SILICON_TRACKER=4,
-	       ABSORBER_SILICON_TRACKER=5,
-	       CEMC_ELECTRONICS=6,
-	       CEMC=7,
-	       ABSORBER_CEMC=8,
-	       CEMC_SPT=9,
-	       ABSORBER_HCALIN=10,
-	       HCALIN=11,
-	       HCALIN_SPT=12,
-	       MAGNET=13,
-	       ABSORBER_HCALOUT=14,
-	       HCALOUT=15,
-	       HCALOUT_SPT=16,
-	       BH_1=17,
-	       BH_FOWARD_PLUS=18,
-	       BH_FOWARD_NEG=19
-  };
-  
   virtual ~PHG4Shower() {}
 
   // PHObject virtual overloads
@@ -67,20 +45,20 @@ public:
   virtual float        get_covar(unsigned int i, unsigned int j) const {return NAN;}
   virtual void         set_covar(unsigned int i, unsigned int j, float entry) {}
   
-  virtual float        get_edep(VOLUME calotype) const {return NAN;}
-  virtual void         set_edep(VOLUME calotype, float edep) {}
+  virtual float        get_edep(int volume) const {return NAN;}
+  virtual void         set_edep(int volume, float edep) {}
 
-  virtual float        get_eion(VOLUME calotype) const {return NAN;}
-  virtual void         set_eion(VOLUME calotype, float eion) {}
+  virtual float        get_eion(int volume) const {return NAN;}
+  virtual void         set_eion(int volume, float eion) {}
 
-  virtual float        get_light_yield(VOLUME calotype) const {return NAN;}
-  virtual void         set_light_yield(VOLUME calotype, float light_yield) {}
+  virtual float        get_light_yield(int volume) const {return NAN;}
+  virtual void         set_light_yield(int volume, float light_yield) {}
 
   virtual void         add_g4particle_id(int id)  {}
   virtual size_t       remove_g4particle_id(int id) {return 0;}
   
-  virtual void         add_g4hit_id(PHG4Shower::VOLUME volume, PHG4HitDefs::keytype id) {}
-  virtual size_t       remove_g4hit_id(PHG4Shower::VOLUME, PHG4HitDefs::keytype id) {return 0;}
+  virtual void         add_g4hit_id(int volume, PHG4HitDefs::keytype id) {}
+  virtual size_t       remove_g4hit_id(int volume, PHG4HitDefs::keytype id) {return 0;}
   
 protected:
   PHG4Shower() {}
