@@ -15,7 +15,7 @@ PHG4HitContainer::PHG4HitContainer()
 }
 
 PHG4HitContainer::PHG4HitContainer(std::string nodename)
-  : id(tr1::hash<const char*>()(nodename.c_str())), hitmap(), layers()
+  : id(tr1::hash<std::string>()(nodename.c_str())), hitmap(), layers()
 {
 }
 
