@@ -5,6 +5,8 @@
 
 #include "PHG4VtxPoint.h"
 #include "PHG4TruthInfoContainer.h"
+#include "PHG4HitContainer.h"
+#include "PHG4Hit.h"
 
 #include <phool/getClass.h>
 
@@ -16,8 +18,9 @@
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/globals.hh>
 
-
 #include <map>
+
+#include <Eigen/Dense>
 
 using namespace std;
 
@@ -210,44 +213,39 @@ void PHG4TruthEventAction::ProcessShowers() {
        ++iter) {
     PHG4Shower* shower = iter->second;
 
-    shower->identify();
-
-    // process the showers to create the global properties...
-    /*
     // Data structures to hold weighted pca
     std::vector<std::vector<float> > points;
     std::vector<float> weights;
     float sumw = 0.0;
     float sumw2 = 0.0;
 
-    // loop over all volumes with evals
-    for (std::map<PHG4Shower::VOLUME,CaloTruthEval*>::iterator volume_iter = _volume_truthevals.begin();
-	 volume_iter != _volume_truthevals.end();
-	 ++volume_iter) {
-      PHG4Shower::VOLUME volid = volume_iter->first;
-      CaloTruthEval* eval = volume_iter->second;
-
+    for (std::map<int,std::set<PHG4HitDefs::keytype> >::iterator iter = shower->begin_g4hit_id();
+	 iter != shower->end_g4hit_id();
+	 ++iter) {
+      int g4hitmap_id = iter->first;
+      PHG4HitContainer* hits = NULL;//GetHitContainer(g4hitmap_id);
+      
       float edep = 0.0;
       float eion = 0.0;
       float light_yield = 0.0;
       
       // get the g4hits from this particle in this volume
-
-      std::set<PHG4Hit*> g4hits = eval->get_shower_from_primary(primary);
-      for (std::set<PHG4Hit*>::iterator g4hit_iter = g4hits.begin();
-	   g4hit_iter != g4hits.end();
-	   ++g4hit_iter) {
-	PHG4Hit* g4hit = *g4hit_iter;
+      for (std::set<PHG4HitDefs::keytype>::iterator jter = iter->second.begin();
+	   jter != iter->second.end();
+	   ++jter) {
+	PHG4HitDefs::keytype g4hit_id = *jter;
+      
+	PHG4Hit* g4hit = hits->findHit(g4hit_id);
 		
 	if (!isnan(g4hit->get_x(0)) &&
 	    !isnan(g4hit->get_y(0)) &&
 	    !isnan(g4hit->get_z(0))) {
-
+	  
 	  std::vector<float> entry(3);
 	  entry[0] = g4hit->get_x(0);
 	  entry[1] = g4hit->get_y(0);
 	  entry[2] = g4hit->get_z(0);
-
+	  
 	  points.push_back(entry);
 	  float w = g4hit->get_edep();
 	  weights.push_back(w);
@@ -258,7 +256,7 @@ void PHG4TruthEventAction::ProcessShowers() {
 	if (!isnan(g4hit->get_x(1)) &&
 	    !isnan(g4hit->get_y(1)) &&
 	    !isnan(g4hit->get_z(1))) {
-
+	  
 	  std::vector<float> entry(3);
 	  entry[0] = g4hit->get_x(1);
 	  entry[1] = g4hit->get_y(1);
@@ -276,9 +274,9 @@ void PHG4TruthEventAction::ProcessShowers() {
 	if (!isnan(g4hit->get_light_yield())) light_yield += g4hit->get_light_yield();	
       } // g4hit loop
 
-      if (edep != 0.0)        shower.set_edep(volid,edep);
-      if (eion != 0.0)        shower.set_eion(volid,eion);
-      if (light_yield != 0.0) shower.set_light_yield(volid,light_yield);     
+      if (edep != 0.0)        shower->set_edep(g4hitmap_id,edep);
+      if (eion != 0.0)        shower->set_eion(g4hitmap_id,eion);
+      if (light_yield != 0.0) shower->set_light_yield(g4hitmap_id,light_yield);     
     } // volume loop
 
     // fill Eigen matrices to compute wPCA
@@ -307,28 +305,16 @@ void PHG4TruthEventAction::ProcessShowers() {
     prefactor = sumw / (pow(sumw,2) - sumw2); // effectivelly 1/(N-1) when w_i = 1.0
     Eigen::Matrix<double, 3, 3> covar = prefactor * (X.transpose() * W.asDiagonal() * X);
        
-    shower.set_x(mean(0,0));
-    shower.set_y(mean(0,1));
-    shower.set_z(mean(0,2));
+    shower->set_x(mean(0,0));
+    shower->set_y(mean(0,1));
+    shower->set_z(mean(0,2));
 
     for (unsigned int i = 0; i < 3; ++i) {
       for (unsigned int j = 0; j <= i; ++j) {
-	shower.set_covar(i,j,covar(i,j));
+	shower->set_covar(i,j,covar(i,j));
       }
     }
 
-    PHG4Shower* ptr = _shower_map->insert(&shower);    
-    if (!ptr->isValid()) {
-      static bool first = true;
-      if (first) {
-	cout << PHWHERE << "ERROR: Invalid PHG4Showers are being produced" << endl;
-	ptr->identify();
-	first = false;
-      }
-    }
-
-    ptr->identify();
-  } // primary particle loop
-    */
+    shower->identify();
   }
 }

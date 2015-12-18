@@ -64,9 +64,12 @@ public:
   const std::set<int>& get_g4particle_ids() const {return _g4particle_ids;}
   size_t               remove_g4particle_id(int id) {return _g4particle_ids.erase(id);}
   
-  void add_g4hit_id(int volume,PHG4HitDefs::keytype id) {_g4hit_ids[volume].insert(id);}
-  //const std::set<PHG4HitDefs::keytype>& get_g4hit_ids(int volume) const {return _g4hit_ids.fin[volume];}
-  size_t remove_g4hit_id(int volume,int id) {return _g4hit_ids[volume].erase(id);}
+  void                       add_g4hit_id(int volume,PHG4HitDefs::keytype id) {_g4hit_ids[volume].insert(id);}
+  PHG4Shower::HitIdIter      begin_g4hit_id() {return _g4hit_ids.begin();}
+  PHG4Shower::HitIdConstIter begin_g4hit_id() const {return _g4hit_ids.begin();}
+  PHG4Shower::HitIdIter      end_g4hit_id() {return _g4hit_ids.end();}
+  PHG4Shower::HitIdConstIter end_g4hit_id() const {return _g4hit_ids.end();}
+  size_t                     remove_g4hit_id(int volume,int id) {return _g4hit_ids[volume].erase(id);}
 
 private:
   

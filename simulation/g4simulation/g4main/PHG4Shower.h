@@ -6,6 +6,7 @@
 #include <phool/PHObject.h>
 #include <cmath>
 #include <set>
+#include <map>
 #include <iostream>
 #include <string>
 
@@ -13,6 +14,14 @@ class PHG4Shower : public PHObject {
 
 public:
 
+  typedef std::set<PHG4HitDefs::keytype> ParticleIdSet;
+  typedef ParticleIdSet::iterator ParticleIdIter;
+  typedef ParticleIdSet::const_iterator ParticleIdConstIter;
+  
+  typedef std::map<int,std::set<PHG4HitDefs::keytype> > HitIdMap;
+  typedef HitIdMap::iterator HitIdIter;
+  typedef HitIdMap::const_iterator HitIdConstIter;
+  
   virtual ~PHG4Shower() {}
 
   // PHObject virtual overloads
@@ -57,8 +66,12 @@ public:
   virtual void         add_g4particle_id(int id)  {}
   virtual size_t       remove_g4particle_id(int id) {return 0;}
   
-  virtual void         add_g4hit_id(int volume, PHG4HitDefs::keytype id) {}
-  virtual size_t       remove_g4hit_id(int volume, PHG4HitDefs::keytype id) {return 0;}
+  virtual void           add_g4hit_id(int volume, PHG4HitDefs::keytype id) {}
+  virtual HitIdIter      begin_g4hit_id() {return HitIdMap().end();}
+  virtual HitIdConstIter begin_g4hit_id() const {return HitIdMap().end();}
+  virtual HitIdIter      end_g4hit_id() {return HitIdMap().end();}
+  virtual HitIdConstIter end_g4hit_id() const {return HitIdMap().end();}
+  virtual size_t         remove_g4hit_id(int volume, PHG4HitDefs::keytype id) {return 0;}
   
 protected:
   PHG4Shower() {}

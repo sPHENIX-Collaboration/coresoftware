@@ -12,6 +12,7 @@ INCLUDES = \
     -isystem $(OFFLINE_MAIN)/include \
     -isystem $(ROOTSYS)/include \
     -isystem ${G4_MAIN}/include \
+    -I$(OFFLINE_MAIN)/include/eigen3 \
     -isystem ${G4_MAIN}/include/Geant4
 
 RINCLUDES = \
