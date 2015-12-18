@@ -10,8 +10,9 @@ using namespace std;
 ClassImp(PHG4Showerv1);
 
 PHG4Showerv1::PHG4Showerv1()
-    : _id(0xFFFFFFFF), _primary_id(-1), _pos(), _covar(), _edep(), _eion(),
-      _light_yield(), _g4particle_ids(), _g4hit_ids() {
+  : _id(0xFFFFFFFF), _primary_id(-1), _parent_shower_id(0),
+    _pos(), _covar(), _edep(), _eion(),
+    _light_yield(), _g4particle_ids(), _g4hit_ids() {
 
   for (int i = 0; i < 3; ++i)
     _pos[i] = NAN;
@@ -52,17 +53,21 @@ void PHG4Showerv1::identify(ostream &os) const {
        << get_light_yield(volid) << endl;
   }
 
-  os << "Set of G4Particle IDs" << endl;
+  os << "G4Particle IDs" << endl;
   for (std::set<int>::const_iterator iter = _g4particle_ids.begin();
        iter != _g4particle_ids.end(); ++iter) {
     os << *iter << " ";
   }
   os << endl;
 
-  os << "Set of G4Hit IDs" << endl;
-  for (std::set<PHG4HitDefs::keytype>::const_iterator iter = _g4hit_ids.begin();
-       iter != _g4hit_ids.end(); ++iter) {
-    os << *iter << " ";
+  os << "G4Hit IDs" << endl;
+  for (std::map<PHG4Shower::VOLUME,std::set<PHG4HitDefs::keytype> >::const_iterator iter = _g4hit_ids.begin();
+       iter != _g4hit_ids.end();
+       ++iter) {
+    for (std::set<PHG4HitDefs::keytype>::const_iterator jter = iter->second.begin();
+	 jter != iter->second.end(); ++jter) {
+      os << *jter << " ";
+    }
   }
   os << endl;
 

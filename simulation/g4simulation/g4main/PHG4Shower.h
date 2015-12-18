@@ -13,11 +13,13 @@ class PHG4Shower : public PHObject {
 public:
 
   enum VOLUME {NONE=0,
-	       CEMC_ELECTRONICS=1,CEMC=2,ABSORBER_CEMC=3,CEMC_SPT=4,
-	       ABSORBER_HCALIN=5,HCALIN=6,HCALIN_SPT=7,
-	       MAGNET=8,
-	       ABSORBER_HCALOUT=9,HCALOUT=10,HCALOUT_SPT=11,
-	       BH_1=12
+	       PIPE=1,
+	       SVTX=2,SILICON_TRACKER=3,
+	       CEMC_ELECTRONICS=4,CEMC=5,ABSORBER_CEMC=6,CEMC_SPT=7,
+	       ABSORBER_HCALIN=8,HCALIN=9,HCALIN_SPT=10,
+	       MAGNET=11,
+	       ABSORBER_HCALOUT=12,HCALOUT=13,HCALOUT_SPT=14,
+	       BH_1=15
   };
   
   virtual ~PHG4Shower() {}
@@ -64,8 +66,8 @@ public:
   virtual void         add_g4particle_id(int id)  {}
   virtual size_t       remove_g4particle_id(int id) {return 0;}
   
-  virtual void         add_g4hit_id(PHG4HitDefs::keytype id) {}
-  virtual size_t       remove_g4hit_id(int id) {return 0;}
+  virtual void         add_g4hit_id(PHG4Shower::VOLUME volume, PHG4HitDefs::keytype id) {}
+  virtual size_t       remove_g4hit_id(PHG4Shower::VOLUME, PHG4HitDefs::keytype id) {return 0;}
   
 protected:
   PHG4Shower() {}

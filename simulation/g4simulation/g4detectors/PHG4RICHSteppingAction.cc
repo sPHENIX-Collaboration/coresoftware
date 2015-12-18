@@ -166,7 +166,7 @@ bool PHG4RICHSteppingAction::MakeHit(const G4Step* aStep){
       {
 	if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 	  {
-	    pp->GetShower()->add_g4hit_id(hit->get_hit_id());
+	    pp->GetShower()->add_g4hit_id(PHG4Shower::NONE,hit->get_hit_id());
 	  }
       }
   }

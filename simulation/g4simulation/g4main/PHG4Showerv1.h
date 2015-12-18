@@ -31,6 +31,9 @@ public:
 
   int          get_primary_id() const         {return _primary_id;}
   void         set_primary_id(int primary_id) {_primary_id = primary_id;}
+
+  int          get_parent_shower_id() const   {return _parent_shower_id;}
+  void         set_parent_shower_id(int parent_shower_id) {_parent_shower_id = parent_shower_id;}
   
   float        get_x() const                  {return _pos[0];}
   void         set_x(float x)                 {_pos[0] = x;}
@@ -61,9 +64,9 @@ public:
   const std::set<int>& get_g4particle_ids() const {return _g4particle_ids;}
   size_t               remove_g4particle_id(int id) {return _g4particle_ids.erase(id);}
   
-  void                 add_g4hit_id(PHG4HitDefs::keytype id) {_g4hit_ids.insert(id);}
-  const std::set<PHG4HitDefs::keytype>& get_g4hit_ids() const {return _g4hit_ids;}
-  size_t               remove_g4hit_id(int id) {return _g4hit_ids.erase(id);}
+  void add_g4hit_id(PHG4Shower::VOLUME volume,PHG4HitDefs::keytype id) {_g4hit_ids[volume].insert(id);}
+  //const std::set<PHG4HitDefs::keytype>& get_g4hit_ids(PHG4Shower::VOLUME volume) const {return _g4hit_ids.fin[volume];}
+  size_t remove_g4hit_id(PHG4Shower::VOLUME volume,int id) {return _g4hit_ids[volume].erase(id);}
 
 private:
   
@@ -71,6 +74,7 @@ private:
   
   unsigned int                        _id;          //< unique identifier within container
   int                                 _primary_id;  //< association of shower to primary particle id
+  int                                 _parent_shower_id; //< association of shower to parent shower id if present
   float                               _pos[3];      //< mean position of the shower
   float                               _covar[6];    //< covariance of shower positions
   std::map<PHG4Shower::VOLUME, float> _edep;        //< energy deposit in different volumes
@@ -78,7 +82,7 @@ private:
   std::map<PHG4Shower::VOLUME, float> _light_yield; //< light yield in different volumes
 
   std::set<int> _g4particle_ids;
-  std::set<PHG4HitDefs::keytype> _g4hit_ids;
+  std::map<PHG4Shower::VOLUME,std::set<PHG4HitDefs::keytype> > _g4hit_ids;
   
   ClassDef(PHG4Showerv1, 1);
 };
