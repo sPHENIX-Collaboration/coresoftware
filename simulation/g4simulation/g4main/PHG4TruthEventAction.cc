@@ -9,6 +9,8 @@
 #include "PHG4Hit.h"
 
 #include <phool/getClass.h>
+#include <phool/PHPointerListIterator.h>
+#include <phool/PHNode.h>
 
 #include <Geant4/G4Event.hh>
 #include <Geant4/G4TrajectoryContainer.hh>
@@ -198,6 +200,35 @@ void PHG4TruthEventAction::SetInterfacePointers(PHCompositeNode* topNode) {
   if ( !truthInfoList_ ) {
     std::cout << "PHG4TruthEventAction::SetInterfacePointers - unable to find G4TruthInfo" << std::endl;
   }
+  
+  SearchNode(topNode);
+}
+
+void PHG4TruthEventAction::SearchNode(PHCompositeNode* top) {
+
+  // fill a lookup map between the g4hit container ids and the containers themselves
+  // without knowing what the container names are in advance, only that they
+  // begin G4HIT_*
+  
+  PHNodeIterator nodeiter(top); 
+  PHPointerListIterator<PHNode> iter(nodeiter.ls());
+  PHNode *thisNode; 
+  while ((thisNode = iter())) {
+
+    if (thisNode->getType() == "PHCompositeNode") {
+      SearchNode(static_cast<PHCompositeNode*>(thisNode) );
+    } else if (thisNode->getType() == "PHIODataNode") {
+      if (thisNode->getName().find("G4HIT_") == 0) {
+	PHIODataNode<PHG4HitContainer> *DNode = static_cast<PHIODataNode<PHG4HitContainer>*>(thisNode);
+	if (DNode) {
+	  PHG4HitContainer* object = dynamic_cast<PHG4HitContainer*>(DNode->getData());
+	  if (object) {
+	    hitmap_[object->GetID()] = object;
+	  }
+	}
+      }
+    }
+  }
 }
 
 int PHG4TruthEventAction::ResetEvent(PHCompositeNode *) {
@@ -223,8 +254,17 @@ void PHG4TruthEventAction::ProcessShowers() {
 	 iter != shower->end_g4hit_id();
 	 ++iter) {
       int g4hitmap_id = iter->first;
-      PHG4HitContainer* hits = NULL;//GetHitContainer(g4hitmap_id);
-      
+      std::map<int,PHG4HitContainer*>::iterator mapiter = hitmap_.find(g4hitmap_id);
+      if (mapiter == hitmap_.end()) {
+	static bool count1 = false;
+	if (!count1) {
+	  cout << PHWHERE << "Error:: Unknown map identifier!" << endl;
+	  count1 = true;
+	}
+	continue;
+      }
+      PHG4HitContainer* hits = mapiter->second;
+
       float edep = 0.0;
       float eion = 0.0;
       float light_yield = 0.0;
@@ -234,9 +274,17 @@ void PHG4TruthEventAction::ProcessShowers() {
 	   jter != iter->second.end();
 	   ++jter) {
 	PHG4HitDefs::keytype g4hit_id = *jter;
-      
+
 	PHG4Hit* g4hit = hits->findHit(g4hit_id);
-		
+	if (!g4hit) {
+	  static bool count2 = false;
+	  if (!count2) {
+	    cout << PHWHERE << "Error:: Missing G4Hit!" << endl;
+	    count2 = true;
+	  }
+	  continue;
+	}
+	
 	if (!isnan(g4hit->get_x(0)) &&
 	    !isnan(g4hit->get_y(0)) &&
 	    !isnan(g4hit->get_z(0))) {
