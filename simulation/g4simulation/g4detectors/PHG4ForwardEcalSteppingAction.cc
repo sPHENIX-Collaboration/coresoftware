@@ -148,6 +148,7 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 	  /* set intial energy deposit */
 	  hit->set_edep( 0 );
 	  hit->set_eion( 0 );
+	  hit->set_light_yield( 0 );
 
 	  /* Now add the hit to the hit collection */
 	  if (whichactive > 0)
@@ -176,7 +177,7 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 
 		if (verbosity > 0) 
 		  {
-		    cout << "PHG4InnerHcalSteppingAction::UserSteppingAction::"
+		    cout << "PHG4ForwardEcalSteppingAction::UserSteppingAction::"
 		      //
 			 << detector_->GetName() << " - "
 			 << " use scintillating light model at each Geant4 steps. "
@@ -187,7 +188,7 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 			 << "," << "edep = " << edep << ", " << "eion = " << eion
 			 << ", " << "light_yield = " << light_yield << endl;
 		  }
-	      }
+	       }
 	  }
 	else
 	  {
