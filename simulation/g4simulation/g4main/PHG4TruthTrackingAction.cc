@@ -110,7 +110,10 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
   if (!track->GetParentID()) {
     PHG4Showerv1* shower = new PHG4Showerv1();
     PHG4TrackUserInfo::SetShower(const_cast<G4Track *> (track), shower);
-    truthInfoList_->AddShower(trackid, shower);    
+    truthInfoList_->AddShower(trackid, shower);
+    shower->add_g4particle_id(trackid);
+    shower->set_primary_id(trackid);
+    shower->set_parent_shower_id(0);
   } else {
     // get shower
     if ( G4VUserTrackInformation* p = track->GetUserInformation() ) {

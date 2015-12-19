@@ -41,6 +41,7 @@ public:
  private:
 
   void SearchNode(PHCompositeNode* topNode);
+  void PruneShowers();
   void ProcessShowers();
   
   //! set of track ids to be written out

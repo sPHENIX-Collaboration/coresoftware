@@ -14,7 +14,7 @@ class PHG4Shower : public PHObject {
 
 public:
 
-  typedef std::set<PHG4HitDefs::keytype> ParticleIdSet;
+  typedef std::set<int> ParticleIdSet;
   typedef ParticleIdSet::iterator ParticleIdIter;
   typedef ParticleIdSet::const_iterator ParticleIdConstIter;
   
@@ -63,8 +63,12 @@ public:
   virtual float        get_light_yield(int volume) const {return NAN;}
   virtual void         set_light_yield(int volume, float light_yield) {}
 
-  virtual void         add_g4particle_id(int id)  {}
-  virtual size_t       remove_g4particle_id(int id) {return 0;}
+  virtual void                add_g4particle_id(int id)  {}
+  virtual ParticleIdIter      begin_g4particle_id() {return ParticleIdSet().end();}
+  virtual ParticleIdConstIter begin_g4particle_id() const {return ParticleIdSet().end();}
+  virtual ParticleIdIter      end_g4particle_id() {return ParticleIdSet().end();}
+  virtual ParticleIdConstIter end_g4particle_id() const {return ParticleIdSet().end();}
+  virtual size_t              remove_g4particle_id(int id) {return 0;}
   
   virtual void           add_g4hit_id(int volume, PHG4HitDefs::keytype id) {}
   virtual HitIdIter      begin_g4hit_id() {return HitIdMap().end();}

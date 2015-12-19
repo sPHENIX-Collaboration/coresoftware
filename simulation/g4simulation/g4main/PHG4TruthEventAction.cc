@@ -58,8 +58,6 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt) {
     return;
   }
 
-  ProcessShowers();
-
   // construct a list of track ids to preserve in the the output that includes any
   // track designated in the writeList_ during processing or its ancestry chain
   
@@ -182,6 +180,9 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt) {
     pvtx = pvtx->GetNext();
   }
 
+  PruneShowers();
+  ProcessShowers();
+  
   return;
 }
 
@@ -236,6 +237,42 @@ int PHG4TruthEventAction::ResetEvent(PHCompositeNode *) {
   return 0;
 }
 
+void PHG4TruthEventAction::PruneShowers() {
+
+  PHG4TruthInfoContainer::ShowerRange range = truthInfoList_->GetShowerRange();
+  for (PHG4TruthInfoContainer::ShowerIterator iter = range.first;
+       iter != range.second;
+       ++iter) {
+    PHG4Shower* shower = iter->second;
+    
+    for (std::map<int,std::set<PHG4HitDefs::keytype> >::iterator iter = shower->begin_g4hit_id();
+	 iter != shower->end_g4hit_id();
+	 ++iter) {
+      int g4hitmap_id = iter->first;
+      std::map<int,PHG4HitContainer*>::iterator mapiter = hitmap_.find(g4hitmap_id);
+      if (mapiter == hitmap_.end()) {
+	continue;
+      }
+
+      // get the g4hits from this particle in this volume
+      for (std::set<PHG4HitDefs::keytype>::iterator jter = iter->second.begin();
+	   jter != iter->second.end();
+	   ) {
+	PHG4HitDefs::keytype g4hit_id = *jter;
+
+	PHG4Hit* g4hit = mapiter->second->findHit(g4hit_id);
+	if (!g4hit) {
+	  // some zero edep g4hits have been removed already
+	  iter->second.erase(jter++);	  
+	  continue;
+	} else {
+	  ++jter;
+	}
+      }
+    }
+  }
+}
+
 void PHG4TruthEventAction::ProcessShowers() {
 
   PHG4TruthInfoContainer::ShowerRange range = truthInfoList_->GetShowerRange();
@@ -243,7 +280,7 @@ void PHG4TruthEventAction::ProcessShowers() {
        iter != range.second;
        ++iter) {
     PHG4Shower* shower = iter->second;
-
+    
     // Data structures to hold weighted pca
     std::vector<std::vector<float> > points;
     std::vector<float> weights;
@@ -256,13 +293,9 @@ void PHG4TruthEventAction::ProcessShowers() {
       int g4hitmap_id = iter->first;
       std::map<int,PHG4HitContainer*>::iterator mapiter = hitmap_.find(g4hitmap_id);
       if (mapiter == hitmap_.end()) {
-	static bool count1 = false;
-	if (!count1) {
-	  cout << PHWHERE << "Error:: Unknown map identifier!" << endl;
-	  count1 = true;
-	}
 	continue;
       }
+
       PHG4HitContainer* hits = mapiter->second;
 
       float edep = 0.0;
@@ -277,11 +310,6 @@ void PHG4TruthEventAction::ProcessShowers() {
 
 	PHG4Hit* g4hit = hits->findHit(g4hit_id);
 	if (!g4hit) {
-	  static bool count2 = false;
-	  if (!count2) {
-	    cout << PHWHERE << "Error:: Missing G4Hit!" << endl;
-	    count2 = true;
-	  }
 	  continue;
 	}
 	
@@ -319,7 +347,7 @@ void PHG4TruthEventAction::ProcessShowers() {
 	
 	if (!isnan(g4hit->get_edep()))               edep += g4hit->get_edep();
 	if (!isnan(g4hit->get_eion()))               eion += g4hit->get_eion();
-	if (!isnan(g4hit->get_light_yield())) light_yield += g4hit->get_light_yield();	
+	if (!isnan(g4hit->get_light_yield())) light_yield += g4hit->get_light_yield();
       } // g4hit loop
 
       if (edep != 0.0)        shower->set_edep(g4hitmap_id,edep);

@@ -60,9 +60,12 @@ public:
   void         set_light_yield(int volume, float light_yield) {_light_yield[volume] = light_yield;}
 
   // container methods for ids
-  void                 add_g4particle_id(int id)  {_g4particle_ids.insert(id);}
-  const std::set<int>& get_g4particle_ids() const {return _g4particle_ids;}
-  size_t               remove_g4particle_id(int id) {return _g4particle_ids.erase(id);}
+  void                            add_g4particle_id(int id)  {_g4particle_ids.insert(id);}
+  PHG4Shower::ParticleIdIter      begin_g4particle_id() {return _g4particle_ids.begin();}
+  PHG4Shower::ParticleIdConstIter begin_g4particle_id() const {return _g4particle_ids.begin();}
+  PHG4Shower::ParticleIdIter      end_g4particle_id() {return _g4particle_ids.end();}
+  PHG4Shower::ParticleIdConstIter end_g4particle_id() const {return _g4particle_ids.end();}
+  size_t                          remove_g4particle_id(int id) {return _g4particle_ids.erase(id);}
   
   void                       add_g4hit_id(int volume,PHG4HitDefs::keytype id) {_g4hit_ids[volume].insert(id);}
   PHG4Shower::HitIdIter      begin_g4hit_id() {return _g4hit_ids.begin();}

@@ -7,11 +7,14 @@
 #include <map>
 #include <stdint.h>
 
+#include <iostream>
+
 class PHG4Hitv1 : public PHG4Hit
 {
  public:
   PHG4Hitv1();
   explicit PHG4Hitv1(const PHG4Hit &g4hit);
+  virtual ~PHG4Hitv1() {}
   // The indices here represent the entry and exit points of the particle
   float get_x(const int i) const {return x[i];}
   float get_y(const int i) const {return y[i];}

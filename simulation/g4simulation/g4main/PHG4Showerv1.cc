@@ -28,6 +28,7 @@ void PHG4Showerv1::identify(ostream &os) const {
   os << "---PHG4Showerv1-------------------------------" << endl;
   os << "id: " << get_id() << endl;
   os << "primary_id: " << get_primary_id() << endl;
+  os << "parent_shower_id: " << get_parent_shower_id() << endl;
   os << "x: " << get_x() << endl;
   os << "y: " << get_y() << endl;
   os << "z: " << get_z() << endl;
