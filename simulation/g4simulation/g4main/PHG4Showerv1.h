@@ -60,19 +60,24 @@ public:
   void         set_light_yield(int volume, float light_yield) {_light_yield[volume] = light_yield;}
 
   // container methods for ids
+  bool                            empty_g4particle_id() const {return _g4particle_ids.empty();}
+  size_t                          size_g4particle_id() const {return _g4particle_ids.size();}
   void                            add_g4particle_id(int id)  {_g4particle_ids.insert(id);}
   PHG4Shower::ParticleIdIter      begin_g4particle_id() {return _g4particle_ids.begin();}
   PHG4Shower::ParticleIdConstIter begin_g4particle_id() const {return _g4particle_ids.begin();}
   PHG4Shower::ParticleIdIter      end_g4particle_id() {return _g4particle_ids.end();}
   PHG4Shower::ParticleIdConstIter end_g4particle_id() const {return _g4particle_ids.end();}
   size_t                          remove_g4particle_id(int id) {return _g4particle_ids.erase(id);}
-  
+
+  bool                       empty_g4hit_id() const {return _g4hit_ids.empty();}
+  size_t                     size_g4hit_id() const {return _g4hit_ids.size();}
   void                       add_g4hit_id(int volume,PHG4HitDefs::keytype id) {_g4hit_ids[volume].insert(id);}
   PHG4Shower::HitIdIter      begin_g4hit_id() {return _g4hit_ids.begin();}
   PHG4Shower::HitIdConstIter begin_g4hit_id() const {return _g4hit_ids.begin();}
   PHG4Shower::HitIdIter      end_g4hit_id() {return _g4hit_ids.end();}
   PHG4Shower::HitIdConstIter end_g4hit_id() const {return _g4hit_ids.end();}
   size_t                     remove_g4hit_id(int volume,int id) {return _g4hit_ids[volume].erase(id);}
+  size_t                     remove_g4hit_volume(int volume) {return _g4hit_ids.erase(volume);}
 
 private:
   

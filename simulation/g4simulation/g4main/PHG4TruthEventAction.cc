@@ -244,33 +244,77 @@ void PHG4TruthEventAction::PruneShowers() {
        iter != range.second;
        ++iter) {
     PHG4Shower* shower = iter->second;
-    
-    for (std::map<int,std::set<PHG4HitDefs::keytype> >::iterator iter = shower->begin_g4hit_id();
-	 iter != shower->end_g4hit_id();
-	 ++iter) {
-      int g4hitmap_id = iter->first;
+
+    std::set<int> remove_ids;
+    for (PHG4Shower::ParticleIdIter jter = shower->begin_g4particle_id();
+     	 jter != shower->end_g4particle_id();
+     	 ++jter) {
+      int g4particle_id = *jter;
+      PHG4Particle* particle = truthInfoList_->GetParticle(g4particle_id);
+      if (!particle) {
+	remove_ids.insert(g4particle_id);
+	continue;
+      }
+    }
+
+    for (std::set<int>::iterator jter = remove_ids.begin();
+	 jter != remove_ids.end();
+	 ++jter) {
+      shower->remove_g4particle_id(*jter);
+    }
+
+    std::set<int> remove_more_ids;
+    for (std::map<int,std::set<PHG4HitDefs::keytype> >::iterator jter = shower->begin_g4hit_id();
+	 jter != shower->end_g4hit_id();
+	 ++jter) {
+      int g4hitmap_id = jter->first;
       std::map<int,PHG4HitContainer*>::iterator mapiter = hitmap_.find(g4hitmap_id);
       if (mapiter == hitmap_.end()) {
 	continue;
       }
 
       // get the g4hits from this particle in this volume
-      for (std::set<PHG4HitDefs::keytype>::iterator jter = iter->second.begin();
-	   jter != iter->second.end();
+      for (std::set<PHG4HitDefs::keytype>::iterator kter = jter->second.begin();
+	   kter != jter->second.end();
 	   ) {
-	PHG4HitDefs::keytype g4hit_id = *jter;
+	PHG4HitDefs::keytype g4hit_id = *kter;
 
 	PHG4Hit* g4hit = mapiter->second->findHit(g4hit_id);
 	if (!g4hit) {
 	  // some zero edep g4hits have been removed already
-	  iter->second.erase(jter++);	  
+	  jter->second.erase(kter++);	  
 	  continue;
 	} else {
-	  ++jter;
+	  ++kter;
 	}
       }
+
+      if (jter->second.empty()) {
+	remove_more_ids.insert(g4hitmap_id);
+      }
     }
+
+    for (std::set<int>::iterator jter = remove_more_ids.begin();
+	 jter != remove_more_ids.end();
+	 ++jter) {
+      shower->remove_g4hit_volume(*jter);
+    }    
   }
+
+  range = truthInfoList_->GetShowerRange();
+  for (PHG4TruthInfoContainer::ShowerIterator iter = range.first;
+       iter != range.second;
+       ) {
+    PHG4Shower* shower = iter->second;
+
+    if (shower->empty_g4particle_id() || shower->empty_g4hit_id()) {
+      truthInfoList_->delete_shower(iter++);
+      continue;
+    }
+
+    ++iter;
+  }
+  
 }
 
 void PHG4TruthEventAction::ProcessShowers() {
@@ -303,13 +347,14 @@ void PHG4TruthEventAction::ProcessShowers() {
       float light_yield = 0.0;
       
       // get the g4hits from this particle in this volume
-      for (std::set<PHG4HitDefs::keytype>::iterator jter = iter->second.begin();
-	   jter != iter->second.end();
-	   ++jter) {
-	PHG4HitDefs::keytype g4hit_id = *jter;
+      for (std::set<PHG4HitDefs::keytype>::iterator kter = iter->second.begin();
+	   kter != iter->second.end();
+	   ++kter) {
+	PHG4HitDefs::keytype g4hit_id = *kter;
 
 	PHG4Hit* g4hit = hits->findHit(g4hit_id);
 	if (!g4hit) {
+	  cout << "missing g4hit" << endl;
 	  continue;
 	}
 	
@@ -391,6 +436,6 @@ void PHG4TruthEventAction::ProcessShowers() {
       }
     }
 
-    shower->identify();
+    //shower->identify();
   }
 }
