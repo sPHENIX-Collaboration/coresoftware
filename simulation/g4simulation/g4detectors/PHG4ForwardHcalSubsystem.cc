@@ -1,6 +1,7 @@
 #include "PHG4ForwardHcalSubsystem.h"
 #include "PHG4ForwardHcalDetector.h"
 #include "PHG4ForwardHcalSteppingAction.h"
+#include "PHG4EventActionClearZeroEdep.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <phool/getClass.h>
@@ -8,6 +9,7 @@
 #include <Geant4/globals.hh>
 
 #include <sstream>
+#include <boost/foreach.hpp>
 
 using namespace std;
 
@@ -45,6 +47,8 @@ int PHG4ForwardHcalSubsystem::Init( PHCompositeNode* topNode )
 
   if (active)
     {
+      set<string> nodes;
+
       // create hit output node
       ostringstream nodename;
       nodename <<  "G4HIT_" << detector_type;
@@ -55,6 +59,7 @@ int PHG4ForwardHcalSubsystem::Init( PHCompositeNode* topNode )
           scintillator_hits = new PHG4HitContainer();
           PHIODataNode<PHObject> *hitNode = new PHIODataNode<PHObject>(scintillator_hits, nodename.str().c_str(), "PHObject");
           dstNode->addNode(hitNode);
+          nodes.insert(nodename.str());
         }
 
       ostringstream absnodename;
@@ -66,10 +71,26 @@ int PHG4ForwardHcalSubsystem::Init( PHCompositeNode* topNode )
           absorber_hits = new PHG4HitContainer();
           PHIODataNode<PHObject> *abshitNode = new PHIODataNode<PHObject>(absorber_hits, absnodename.str().c_str(), "PHObject");
           dstNode->addNode(abshitNode);
+          nodes.insert(nodename.str());
         }
 
       // create stepping action
       steppingAction_ = new PHG4ForwardHcalSteppingAction(detector_);
+
+      // event actions
+      BOOST_FOREACH    (string node, nodes)
+      {
+        if (! eventAction_)
+          {
+            eventAction_ = new PHG4EventActionClearZeroEdep(topNode, node);
+          }
+        else
+          {
+            PHG4EventActionClearZeroEdep *evtact = dynamic_cast<PHG4EventActionClearZeroEdep *>(eventAction_);
+            evtact->AddNode(node);
+          }
+      }
+
     }
 
   return 0;

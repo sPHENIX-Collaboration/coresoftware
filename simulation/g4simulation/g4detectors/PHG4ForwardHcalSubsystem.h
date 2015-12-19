@@ -37,8 +37,9 @@ public:
 
   /** Accessors (reimplemented)
    */
-  virtual PHG4Detector* GetDetector( void ) const;
-  virtual PHG4SteppingAction* GetSteppingAction( void ) const;
+  PHG4Detector* GetDetector( void ) const;
+  PHG4SteppingAction* GetSteppingAction( void ) const;
+  PHG4EventAction* GetEventAction() const {return eventAction_;}
 
   /** Set mapping file for calorimeter towers
    */
