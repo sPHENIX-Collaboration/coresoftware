@@ -122,8 +122,10 @@ RawTowerBuilderByHitIndex::process_event(PHCompositeNode *topNode)
           towers_->AddTower( tower->get_id() , tower );
         }
       tower->add_ecell( (g4hit_i->get_index_j()<<16) + g4hit_i->get_index_k(), g4hit_i->get_edep());
-      tower->set_energy( tower->get_energy() + g4hit_i->get_edep() );
 
+      tower->add_eshower(g4hit_i->get_shower_id(), g4hit_i->get_edep());
+            
+      tower->set_energy( tower->get_energy() + g4hit_i->get_edep() );
     }
 
   float towerE = 0.;
