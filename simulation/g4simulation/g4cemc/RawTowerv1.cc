@@ -31,6 +31,14 @@ RawTowerv1::RawTowerv1(const RawTower & tower)
     {
       add_ecell(cell_iter->first, cell_iter->second);
     }
+
+  ShowerConstRange shower_range = tower.get_g4showers();
+
+  for (ShowerConstIterator shower_iter = shower_range.first;
+      shower_iter != shower_range.second; ++shower_iter)
+    {
+      add_eshower(shower_iter->first, shower_iter->second);
+    }
 }
 
 RawTowerv1::RawTowerv1(RawTowerDefs::keytype id) :
@@ -61,6 +69,7 @@ RawTowerv1::Reset()
   energy = 0;
   time = NAN;
   ecells.clear();
+  eshowers.clear();
 }
 
 int
