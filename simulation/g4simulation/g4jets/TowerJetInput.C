@@ -35,6 +35,8 @@ void TowerJetInput::identify(std::ostream& os) {
   if      (_input == Jet::CEMC_TOWER)    os << "TOWER_CEMC to Jet::CEMC_TOWER";
   else if (_input == Jet::HCALIN_TOWER)  os << "TOWER_HCALIN to Jet::HCALIN_TOWER";
   else if (_input == Jet::HCALOUT_TOWER) os << "TOWER_HCALOUT to Jet::HCALOUT_TOWER";
+  else if (_input == Jet::FEMC_TOWER) os << "TOWER_FEMC to Jet::FEMC_TOWER";
+  else if (_input == Jet::FHCAL_TOWER) os << "TOWER_FHCAL to Jet::FHCAL_TOWER";
   os << endl;
 }
 
@@ -64,6 +66,18 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
   } else if (_input == Jet::HCALOUT_TOWER) {
     towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_HCALOUT");
     geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_HCALOUT");
+    if (!towers||!geom) {
+      return std::vector<Jet*>();
+    }
+  } else if (_input == Jet::FEMC_TOWER) {
+    towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_FEMC");
+    geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_FEMC");
+    if (!towers||!geom) {
+      return std::vector<Jet*>();
+    }
+  } else if (_input == Jet::FHCAL_TOWER) {
+    towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_FHCAL");
+    geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_FHCAL");
     if (!towers||!geom) {
       return std::vector<Jet*>();
     }

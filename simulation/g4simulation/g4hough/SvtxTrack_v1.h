@@ -134,6 +134,9 @@ public:
   float get_cal_energy_3x3(CAL_LAYER layer) const;
   void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3) {_cal_energy_3x3[layer] = energy_3x3;}
 
+  float get_cal_energy_5x5(CAL_LAYER layer) const;
+  void  set_cal_energy_5x5(CAL_LAYER layer, float energy_5x5) {_cal_energy_5x5[layer] = energy_5x5;}
+
   unsigned int get_cal_cluster_id(CAL_LAYER layer) const;
   void         set_cal_cluster_id(CAL_LAYER layer, unsigned int id) {_cal_cluster_id[layer] = id;}
 
@@ -166,6 +169,7 @@ public:
   std::map<CAL_LAYER,float> _cal_dphi;
   std::map<CAL_LAYER,float> _cal_deta;
   std::map<CAL_LAYER,float> _cal_energy_3x3;
+  std::map<CAL_LAYER,float> _cal_energy_5x5;
   std::map<CAL_LAYER,int>   _cal_cluster_id;
   std::map<CAL_LAYER,float> _cal_cluster_e;
   

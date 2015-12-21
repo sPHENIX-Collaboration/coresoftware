@@ -30,6 +30,8 @@ public:
     _cemcevalstack.do_caching(do_cache);
     _hcalinevalstack.do_caching(do_cache);
     _hcaloutevalstack.do_caching(do_cache);
+    _femcevalstack.do_caching(do_cache);
+    _fhcalevalstack.do_caching(do_cache);
   }
   void set_strict(bool strict) {
     _strict = strict;
@@ -37,6 +39,8 @@ public:
     _cemcevalstack.set_strict(strict);
     _hcalinevalstack.set_strict(strict);
     _hcaloutevalstack.set_strict(strict); 
+    _femcevalstack.set_strict(strict); 
+    _fhcalevalstack.set_strict(strict); 
   }  
   void set_verbosity(int verbosity) {
     _verbosity = verbosity;
@@ -44,12 +48,16 @@ public:
     _cemcevalstack.set_verbosity(verbosity);
     _hcalinevalstack.set_verbosity(verbosity);
     _hcaloutevalstack.set_verbosity(verbosity); 
+    _femcevalstack.set_verbosity(verbosity); 
+    _fhcalevalstack.set_verbosity(verbosity); 
   }
   
   SvtxEvalStack* get_svtx_eval_stack() {return &_svtxevalstack;}
   CaloEvalStack* get_cemc_eval_stack() {return &_cemcevalstack;}
   CaloEvalStack* get_hcalin_eval_stack() {return &_hcalinevalstack;}
   CaloEvalStack* get_hcalout_eval_stack() {return &_hcaloutevalstack;}
+  CaloEvalStack* get_femc_eval_stack() {return &_femcevalstack;}
+  CaloEvalStack* get_fhcal_eval_stack() {return &_fhcalevalstack;}
   
   std::set<PHG4Particle*> all_truth_particles(Jet* truthjet);
   std::set<PHG4Hit*>      all_truth_hits(Jet* truthjet);
@@ -61,7 +69,9 @@ public:
       + _svtxevalstack.get_errors()
       + _cemcevalstack.get_errors()
       + _hcalinevalstack.get_errors()
-      + _hcaloutevalstack.get_errors();
+      + _hcaloutevalstack.get_errors()
+      + _femcevalstack.get_errors()
+      + _fhcalevalstack.get_errors();
   }
   
 private:
@@ -73,6 +83,8 @@ private:
   CaloEvalStack _cemcevalstack;
   CaloEvalStack _hcalinevalstack;
   CaloEvalStack _hcaloutevalstack;
+  CaloEvalStack _femcevalstack;
+  CaloEvalStack _fhcalevalstack;
 
   PHG4TruthInfoContainer* _truthinfo;
   JetMap* _truthjets;

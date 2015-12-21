@@ -10,6 +10,7 @@
 #include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4MaterialCutsCouple.hh>
 
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
@@ -37,7 +38,9 @@ PHG4ForwardHcalSteppingAction::PHG4ForwardHcalSteppingAction( PHG4ForwardHcalDet
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),
-  hit(NULL)
+  hit(NULL),
+  absorbertruth(0),
+  light_scint_model(1)
 {
 
 }
@@ -82,6 +85,7 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
   /* Get energy deposited by this step */
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
+  G4double light_yield = 0;
 
   /* Get pointer to associated Geant4 track */
   const G4Track* aTrack = aStep->GetTrack();
@@ -144,6 +148,7 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 	  /* set intial energy deposit */
 	  hit->set_edep( 0 );
 	  hit->set_eion( 0 );
+	  hit->set_light_yield( 0 );
 
 	  /* Now add the hit to the hit collection */
 	  if (whichactive > 0)
@@ -160,6 +165,38 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 	  break;
 	}
 
+      if(whichactive>0){
+
+	if (light_scint_model)
+	  {
+	    light_yield = GetVisibleEnergyDeposition(aStep); // for scintillator only, calculate light yields
+	    static bool once = true;
+	    if (once && edep > 0)
+	      {
+		once = false;
+
+		if (verbosity > 0) 
+		  {
+		    cout << "PHG4ForwardHcalSteppingAction::UserSteppingAction::"
+		      //
+			 << detector_->GetName() << " - "
+			 << " use scintillating light model at each Geant4 steps. "
+			 << "First step: " << "Material = "
+			 << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
+			 << ", " << "Birk Constant = "
+			 << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
+			 << "," << "edep = " << edep << ", " << "eion = " << eion
+			 << ", " << "light_yield = " << light_yield << endl;
+		  }
+	      }
+	  }
+	else
+	  {
+	    light_yield = eion;
+	  }
+      
+      }
+
       /* Update exit values- will be overwritten with every step until
        * we leave the volume or the particle ceases to exist */
       hit->set_x( 1, postPoint->GetPosition().x() / cm );
@@ -171,13 +208,17 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
       /* sum up the energy to get total deposited */
       hit->set_edep(hit->get_edep() + edep);
       hit->set_eion(hit->get_eion() + eion);
-
+      if (whichactive > 0)
+	{
+	  hit->set_light_yield(hit->get_light_yield() + light_yield);
+	}
+ 
       if (geantino)
 	{
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
           hit->set_eion(-1);
 	}
-      if (edep > 0)
+      if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
 	{
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
@@ -237,7 +278,7 @@ void PHG4ForwardHcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNo
 int
 PHG4ForwardHcalSteppingAction::FindTowerIndex(G4TouchableHandle touch, int& j, int& k)
 {
-        int j_0, k_0;           //The k and k indices for the scintillator / tower
+        int j_0, k_0;           //The j and k indices for the scintillator / tower
 
         G4VPhysicalVolume* tower = touch->GetVolume(1);		//Get the tower solid
 	ParseG4VolumeName(tower, j_0, k_0);

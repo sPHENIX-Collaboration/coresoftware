@@ -48,6 +48,10 @@ JetRecoEval::JetRecoEval(PHCompositeNode* topNode,
     _hcalinclusters(NULL),
     _hcalouttowers(NULL),
     _hcaloutclusters(NULL),
+    _femctowers(NULL),
+    _femcclusters(NULL),
+    _fhcaltowers(NULL),
+    _fhcalclusters(NULL),
     _strict(false),
     _verbosity(1),
     _errors(0),
@@ -208,7 +212,65 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {
       else if (!cluster) {++_errors; continue;}
       
       new_hits = get_hcalout_eval_stack()->get_rawcluster_eval()->all_truth_hits(cluster); 
+
+    } else if (source == Jet::FEMC_TOWER) {
+
+      if (!_femctowers) {
+	cout << PHWHERE << "ERROR: can't find TOWER_FEMC" << endl;
+	exit(-1);
+      }
+
+      RawTower* tower = _femctowers->getTower(index);
+
+      if (_strict) {assert(tower);}
+      else if (!tower) {++_errors; continue;}
+      
+      new_hits = get_femc_eval_stack()->get_rawtower_eval()->all_truth_hits(tower); 
+
+    } else if (source == Jet::FEMC_CLUSTER) {
+
+      if (!_femcclusters) {
+	cout << PHWHERE << "ERROR: can't find CLUSTER_FEMC" << endl;
+	exit(-1);
+      }
+
+      RawCluster* cluster = _femcclusters->getCluster(index);
+
+      if (_strict) {assert(cluster);}
+      else if (!cluster) {++_errors; continue;}
+      
+      new_hits = get_femc_eval_stack()->get_rawcluster_eval()->all_truth_hits(cluster); 
+
+    } else if (source == Jet::FHCAL_TOWER) {
+
+      if (!_fhcaltowers) {
+	cout << PHWHERE << "ERROR: can't find TOWER_FHCAL" << endl;
+	exit(-1);
+      }
+
+      RawTower* tower = _fhcaltowers->getTower(index);
+
+      if (_strict) {assert(tower);}
+      else if (!tower) {++_errors; continue;}
+      
+      new_hits = get_fhcal_eval_stack()->get_rawtower_eval()->all_truth_hits(tower); 
+
+    } else if (source == Jet::FHCAL_CLUSTER) {
+
+      if (!_fhcalclusters) {
+	cout << PHWHERE << "ERROR: can't find CLUSTER_FHCAL" << endl;
+	exit(-1);
+      }
+
+      RawCluster* cluster = _fhcalclusters->getCluster(index);
+
+      if (_strict) {assert(cluster);}
+      else if (!cluster) {++_errors; continue;}
+      
+      new_hits = get_fhcal_eval_stack()->get_rawcluster_eval()->all_truth_hits(cluster); 
     }
+
+
 
     for (std::set<PHG4Hit*>::iterator jter = new_hits.begin();
 	 jter != new_hits.end();
@@ -345,6 +407,62 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
       else if (!cluster) {++_errors; continue;}
 
       new_particles = get_hcalout_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
+
+    } else if (source == Jet::FEMC_TOWER) {
+
+      if (!_femctowers) {
+	cout << PHWHERE << "ERROR: can't find TOWER_FEMC" << endl;
+	exit(-1);
+      }
+
+      RawTower* tower = _femctowers->getTower(index);
+
+      if (_strict) {assert(tower);}
+      else if (!tower) {++_errors; continue;}
+      
+      new_particles = get_femc_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower); 
+
+    } else if (source == Jet::FEMC_CLUSTER) {
+
+      if (!_femcclusters) {
+	cout << PHWHERE << "ERROR: can't find CLUSTER_FEMC" << endl;
+	exit(-1);
+      }
+
+      RawCluster* cluster = _femcclusters->getCluster(index);
+
+      if (_strict) {assert(cluster);}
+      else if (!cluster) {++_errors; continue;}
+
+      new_particles = get_femc_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
+
+    } else if (source == Jet::FHCAL_TOWER) {
+
+      if (!_fhcaltowers) {
+	cout << PHWHERE << "ERROR: can't find TOWER_FHCAL" << endl;
+	exit(-1);
+      }
+
+      RawTower* tower = _fhcaltowers->getTower(index);
+
+      if (_strict) {assert(tower);}
+      else if (!tower) {++_errors; continue;}
+      
+      new_particles = get_fhcal_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower); 
+
+    } else if (source == Jet::FHCAL_CLUSTER) {
+
+      if (!_fhcalclusters) {
+	cout << PHWHERE << "ERROR: can't find CLUSTER_FHCAL" << endl;
+	exit(-1);
+      }
+
+      RawCluster* cluster = _fhcalclusters->getCluster(index);
+
+      if (_strict) {assert(cluster);}
+      else if (!cluster) {++_errors; continue;}
+
+      new_particles = get_fhcal_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
     }
 
     for (std::set<PHG4Particle*>::iterator jter = new_particles.begin();
@@ -620,6 +738,36 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet) {
 	else if (!cluster) {++_errors; continue;}
 	
 	energy = get_hcalout_eval_stack()->get_rawcluster_eval()->get_energy_contribution(cluster,truthparticle);
+      } else if (source == Jet::FEMC_TOWER) {
+	RawTower* tower = _femctowers->getTower(index);
+
+	if (_strict) {assert(tower);}
+	else if (!tower) {++_errors; continue;}
+	
+	energy = get_femc_eval_stack()->get_rawtower_eval()->get_energy_contribution(tower,truthparticle);
+      } else if (source == Jet::FEMC_CLUSTER) {
+
+	RawCluster* cluster = _femcclusters->getCluster(index);
+
+	if (_strict) {assert(cluster);}
+	else if (!cluster) {++_errors; continue;}
+	
+	energy = get_femc_eval_stack()->get_rawcluster_eval()->get_energy_contribution(cluster,truthparticle);
+      } else if (source == Jet::FHCAL_TOWER) {
+	RawTower* tower = _fhcaltowers->getTower(index);
+
+	if (_strict) {assert(tower);}
+	else if (!tower) {++_errors; continue;}
+	
+	energy = get_fhcal_eval_stack()->get_rawtower_eval()->get_energy_contribution(tower,truthparticle);
+      } else if (source == Jet::FHCAL_CLUSTER) {
+
+	RawCluster* cluster = _fhcalclusters->getCluster(index);
+
+	if (_strict) {assert(cluster);}
+	else if (!cluster) {++_errors; continue;}
+	
+	energy = get_fhcal_eval_stack()->get_rawcluster_eval()->get_energy_contribution(cluster,truthparticle);
       }
 
       energy_contribution += energy;
@@ -650,9 +798,13 @@ void JetRecoEval::get_node_pointers(PHCompositeNode* topNode) {
   _cemctowers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_CEMC");
   _hcalintowers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_HCALIN");
   _hcalouttowers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_HCALOUT");
+  _femctowers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_FEMC");
+  _fhcaltowers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_FHCAL");
   _cemcclusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_CEMC");
   _hcalinclusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_HCALIN");
   _hcaloutclusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_HCALOUT");
+  _femcclusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_FEMC");
+  _fhcalclusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_FHCAL");
 
   return;
 }

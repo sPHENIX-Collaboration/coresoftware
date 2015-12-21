@@ -24,6 +24,7 @@ SvtxTrack_v1::SvtxTrack_v1()
     _cal_dphi(),
     _cal_deta(),
     _cal_energy_3x3(),
+    _cal_energy_5x5(),
     _cal_cluster_id(),
     _cal_cluster_e() {
   // always include the pca point
@@ -72,6 +73,7 @@ SvtxTrack_v1& SvtxTrack_v1::operator=(const SvtxTrack_v1& track) {
   _cal_dphi.clear();
   _cal_deta.clear();
   _cal_energy_3x3.clear();
+  _cal_energy_5x5.clear();
   _cal_cluster_id.clear();
   _cal_cluster_e.clear();
 
@@ -79,6 +81,7 @@ SvtxTrack_v1& SvtxTrack_v1::operator=(const SvtxTrack_v1& track) {
     if (!isnan(track.get_cal_dphi(      types[i])))     set_cal_dphi(      types[i],track.get_cal_dphi(      types[i]));
     if (!isnan(track.get_cal_deta(      types[i])))     set_cal_deta(      types[i],track.get_cal_deta(      types[i]));
     if (!isnan(track.get_cal_energy_3x3(types[i])))     set_cal_energy_3x3(types[i],track.get_cal_energy_3x3(types[i]));
+    if (!isnan(track.get_cal_energy_5x5(types[i])))     set_cal_energy_5x5(types[i],track.get_cal_energy_5x5(types[i]));
     if (track.get_cal_cluster_id(types[i]) != UINT_MAX) set_cal_cluster_id(types[i],track.get_cal_cluster_id(types[i]));
     if (!isnan(track.get_cal_cluster_e(  types[i])))    set_cal_cluster_e( types[i],track.get_cal_cluster_e( types[i]));
   }
@@ -173,6 +176,12 @@ float SvtxTrack_v1::get_cal_deta(SvtxTrack::CAL_LAYER layer) const {
 float SvtxTrack_v1::get_cal_energy_3x3(SvtxTrack::CAL_LAYER layer) const {
   std::map<SvtxTrack::CAL_LAYER,float>::const_iterator citer = _cal_energy_3x3.find(layer);
   if (citer == _cal_energy_3x3.end()) return NAN;
+  return citer->second;
+}
+
+float SvtxTrack_v1::get_cal_energy_5x5(SvtxTrack::CAL_LAYER layer) const {
+  std::map<SvtxTrack::CAL_LAYER,float>::const_iterator citer = _cal_energy_5x5.find(layer);
+  if (citer == _cal_energy_5x5.end()) return NAN;
   return citer->second;
 }
 

@@ -74,6 +74,20 @@ PHG4CylinderCellContainer::AddCylinderCell(const unsigned int detid, PHG4Cylinde
   return cellmap.find(key);
 }
 
+PHG4CylinderCellContainer::ConstIterator
+PHG4CylinderCellContainer::AddCylinderCellSpecifyKey(const PHG4CylinderCellDefs::keytype key, PHG4CylinderCell *newcell)
+{
+  if(cellmap.find(key)!=cellmap.end())
+   {
+     cout << "PHG4CylinderCellContainer::AddCylinderCellSpecifyKey: duplicate key: " << key << " exiting now" << endl;
+     exit(1);
+   }
+  layers.insert(newcell->get_layer());
+  newcell->set_cell_id(key);
+  cellmap[key] = newcell;
+  return cellmap.find(key);
+}
+
 PHG4CylinderCellContainer::ConstRange 
 PHG4CylinderCellContainer::getCylinderCells(const unsigned int detid) const
 {

@@ -60,8 +60,6 @@ double RawTowerGeomv2::get_phi() const
   return atan2(_center_y, _center_x);
 }
 
-
-
 void RawTowerGeomv2::identify(std::ostream& os) const
 {
   std::cout << "RawTowerGeomv2:  x: " << get_center_x() << "  y: " << get_center_y() << "  z: " << get_center_z()
