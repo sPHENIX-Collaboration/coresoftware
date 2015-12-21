@@ -74,6 +74,7 @@ public:
   virtual ParticleIdIter      end_g4particle_id() {return ParticleIdSet().end();}
   virtual ParticleIdConstIter end_g4particle_id() const {return ParticleIdSet().end();}
   virtual size_t              remove_g4particle_id(int id) {return 0;}
+  virtual void                clear_g4particle_id() {}
 
   virtual bool           empty_g4hit_id() const {return true;}
   virtual size_t         size_g4hit_id() const {return 0;}
@@ -84,6 +85,7 @@ public:
   virtual HitIdConstIter end_g4hit_id() const {return HitIdMap().end();}
   virtual size_t         remove_g4hit_id(int volume, PHG4HitDefs::keytype id) {return 0;}
   virtual size_t         remove_g4hit_volume(int volume) {return 0;}
+  virtual void           clear_g4hit_id() {}
   
 protected:
   PHG4Shower() {}
