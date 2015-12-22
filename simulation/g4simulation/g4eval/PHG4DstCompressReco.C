@@ -13,6 +13,8 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
+#include <g4cemc/RawTowerContainer.h>
+#include <g4cemc/RawTower.h>
 
 #include <iostream>
 
@@ -132,11 +134,17 @@ int PHG4DstCompressReco::process_event(PHCompositeNode *topNode) {
   for (std::set<RawTowerContainer*>::iterator iter = _towers.begin();
        iter != _towers.end();
        ++iter) {
-    
+    RawTowerContainer* towers = *iter;
 
+    // loop over all the towers
+    for (RawTowerContainer::Iterator jter = towers->getTowers().first;
+	 jter != towers->getTowers().second;
+	 ++jter) {
+      RawTower* tower = jter->second;
+      tower->clear_g4cells();
+    }
   }
-  
-  
+    
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
