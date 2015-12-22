@@ -4,10 +4,14 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/PHPointerListIterator.h>
 #include <phool/PHNode.h>
+#include <phool/getClass.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4Particle.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
 
 #include <iostream>
@@ -37,7 +41,7 @@ int PHG4DstCompressReco::InitRun(PHCompositeNode *topNode) {
        iter != _compress_g4cell_names.end(); ++iter) {
     std::string name = *iter;
 
-    PHG4CylinderCellContainer* g4cells = findNode::getClass<PHG4TruthInfoContainer>(topNode,name.c_str());
+    PHG4CylinderCellContainer* g4cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,name.c_str());
     if (g4cells) {
       _g4cells.insert(g4cells);
     }    
@@ -58,7 +62,7 @@ int PHG4DstCompressReco::InitRun(PHCompositeNode *topNode) {
 
 int PHG4DstCompressReco::process_event(PHCompositeNode *topNode) {
   
-  if (_g4hits.empty() && _g4cells.empty() && _towers.empty()) Fun4AllReturnCodes::EVENT_OK;
+  if (_g4hits.empty() && _g4cells.empty() && _towers.empty()) return Fun4AllReturnCodes::EVENT_OK;
 
   //---cells--------------------------------------------------------------------
   
@@ -88,8 +92,8 @@ int PHG4DstCompressReco::process_event(PHCompositeNode *topNode) {
        ++iter) {
     PHG4HitContainer* hits = *iter;
     
-    for (PHG4HitContainer::ConstIterator jter = hits.getHits().first;
-	 jter != hits.getHits().second;
+    for (PHG4HitContainer::ConstIterator jter = hits->getHits().first;
+	 jter != hits->getHits().second;
 	 ++jter) {
       PHG4Hit* hit = jter->second;
       keep_particle_ids.insert(hit->get_trkid());
@@ -99,11 +103,10 @@ int PHG4DstCompressReco::process_event(PHCompositeNode *topNode) {
   }
 
   PHG4TruthInfoContainer::Range range = _truth_info->GetSecondaryParticleRange();
-  for (PHG4TruthInfo::Iterator iter = range.first;
+  for (PHG4TruthInfoContainer::Iterator iter = range.first;
        iter != range.second;
        ) {
     int id = iter->first;
-    PHG4Particle* particle = iter->second;
 
     if (keep_particle_ids.find(id) != keep_particle_ids.end()) {
       ++iter;
@@ -116,10 +119,9 @@ int PHG4DstCompressReco::process_event(PHCompositeNode *topNode) {
   //---shower entries-----------------------------------------------------------
   
   PHG4TruthInfoContainer::ShowerRange srange = _truth_info->GetShowerRange();
-  for (PHG4TruthInfo::Iterator iter = srange.first;
+  for (PHG4TruthInfoContainer::ShowerIterator iter = srange.first;
        iter != srange.second;
        ++iter) {
-    int id = iter->first;
     PHG4Shower* shower = iter->second;
 
     shower->clear_g4particle_id();
