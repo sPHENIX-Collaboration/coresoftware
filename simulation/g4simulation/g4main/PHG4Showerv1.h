@@ -68,6 +68,7 @@ public:
   PHG4Shower::ParticleIdIter      end_g4particle_id() {return _g4particle_ids.end();}
   PHG4Shower::ParticleIdConstIter end_g4particle_id() const {return _g4particle_ids.end();}
   size_t                          remove_g4particle_id(int id) {return _g4particle_ids.erase(id);}
+  void                            clear_g4particle_id() {return _g4particle_ids.clear();}
 
   bool                       empty_g4hit_id() const {return _g4hit_ids.empty();}
   size_t                     size_g4hit_id() const {return _g4hit_ids.size();}
@@ -78,7 +79,8 @@ public:
   PHG4Shower::HitIdConstIter end_g4hit_id() const {return _g4hit_ids.end();}
   size_t                     remove_g4hit_id(int volume,int id) {return _g4hit_ids[volume].erase(id);}
   size_t                     remove_g4hit_volume(int volume) {return _g4hit_ids.erase(volume);}
-
+  void                       clear_g4hit_id() {return _g4hit_ids.clear();}
+  
 private:
   
   unsigned int covar_index(unsigned int i, unsigned int j) const;
