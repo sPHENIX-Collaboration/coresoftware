@@ -42,6 +42,7 @@ private:
   PHG4Hit *hit;
 
   int absorbertruth; 
+  int light_scint_model; 
 
 };
 

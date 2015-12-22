@@ -56,7 +56,7 @@ PHG4ForwardHcalDetector::PHG4ForwardHcalDetector( PHCompositeNode *Node, const s
   _tower_dx(100*mm),
   _tower_dy(100*mm),
   _tower_dz(1000.0*mm),
-  _materialScintillator( "G4_PLASTIC_SC_VINYLTOLUENE" ),
+  _materialScintillator( "G4_POLYSTYRENE" ),
   _materialAbsorber( "G4_Fe" ),
   _active(1),
   _absorberactive(0),

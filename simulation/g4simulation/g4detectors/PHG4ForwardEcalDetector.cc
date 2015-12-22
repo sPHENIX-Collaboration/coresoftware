@@ -56,7 +56,7 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector( PHCompositeNode *Node, const s
   _tower_dx(30*mm),
   _tower_dy(30*mm),
   _tower_dz(170.0*mm),
-  _materialScintillator( "G4_PLASTIC_SC_VINYLTOLUENE" ),
+  _materialScintillator( "G4_POLYSTYRENE" ),
   _materialAbsorber( "G4_Pb" ),
   _active(1),
   _absorberactive(0),
