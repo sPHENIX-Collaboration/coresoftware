@@ -70,6 +70,16 @@ public:
   size_t                          remove_g4particle_id(int id) {return _g4particle_ids.erase(id);}
   void                            clear_g4particle_id() {return _g4particle_ids.clear();}
 
+  bool                          empty_g4vertex_id() const {return _g4vertex_ids.empty();}
+  size_t                        size_g4vertex_id() const {return _g4vertex_ids.size();}
+  void                          add_g4vertex_id(int id)  {_g4vertex_ids.insert(id);}
+  PHG4Shower::VertexIdIter      begin_g4vertex_id() {return _g4vertex_ids.begin();}
+  PHG4Shower::VertexIdConstIter begin_g4vertex_id() const {return _g4vertex_ids.begin();}
+  PHG4Shower::VertexIdIter      end_g4vertex_id() {return _g4vertex_ids.end();}
+  PHG4Shower::VertexIdConstIter end_g4vertex_id() const {return _g4vertex_ids.end();}
+  size_t                        remove_g4vertex_id(int id) {return _g4vertex_ids.erase(id);}
+  void                          clear_g4vertex_id() {return _g4vertex_ids.clear();}
+  
   bool                       empty_g4hit_id() const {return _g4hit_ids.empty();}
   size_t                     size_g4hit_id() const {return _g4hit_ids.size();}
   void                       add_g4hit_id(int volume,PHG4HitDefs::keytype id) {_g4hit_ids[volume].insert(id);}
@@ -95,7 +105,8 @@ private:
   std::map<int, float> _light_yield;      //< light yield in different volumes
 
   std::set<int> _g4particle_ids;
-  std::map<int,std::set<PHG4HitDefs::keytype> > _g4hit_ids;
+  std::set<int> _g4vertex_ids;
+  std::map<int,std::set<unsigned long long> > _g4hit_ids;
   
   ClassDef(PHG4Showerv1, 1);
 };

@@ -74,7 +74,6 @@ int PHG4DstCompressReco::process_event(PHCompositeNode *topNode) {
     PHG4CylinderCellContainer* cells = *iter;
     cells->Reset(); // DROP ALL COMPRESSED G4CELLS
   }
-  _g4cells.clear();
 
   //---hits---------------------------------------------------------------------
   
@@ -84,9 +83,8 @@ int PHG4DstCompressReco::process_event(PHCompositeNode *topNode) {
     PHG4HitContainer* hits = *iter;
     hits->Reset(); // DROP ALL COMPRESSED G4HITS
   }
-  _g4hits.clear();
   
-  //---secondary particles------------------------------------------------------
+  //---secondary particles and vertexes-----------------------------------------
   
   std::set<int> keep_particle_ids;
   for (std::set<PHG4HitContainer*>::iterator iter = _keep_g4hits.begin();
@@ -104,20 +102,37 @@ int PHG4DstCompressReco::process_event(PHCompositeNode *topNode) {
     }    
   }
 
+  std::set<int> keep_vertex_ids;
   PHG4TruthInfoContainer::Range range = _truth_info->GetSecondaryParticleRange();
   for (PHG4TruthInfoContainer::Iterator iter = range.first;
        iter != range.second;
        ) {
     int id = iter->first;
-
+    PHG4Particle* particle = iter->second;
+    
     if (keep_particle_ids.find(id) != keep_particle_ids.end()) {
       ++iter;
+      keep_vertex_ids.insert(particle->get_vtx_id());
       continue;
     } else {
       _truth_info->delete_particle(iter++); // DROP PARTICLES NOT ASSOCIATED TO A PRESERVED HIT
     }
   }
 
+  PHG4TruthInfoContainer::VtxRange vrange = _truth_info->GetSecondaryVtxRange();
+  for (PHG4TruthInfoContainer::VtxIterator iter = vrange.first;
+       iter != vrange.second;
+       ) {
+    int id = iter->first;
+    
+    if (keep_vertex_ids.find(id) != keep_vertex_ids.end()) {
+      ++iter;
+      continue;
+    } else {
+      _truth_info->delete_vtx(iter++); // DROP VERTEXES NOT ASSOCIATED TO A PRESERVED HIT
+    }
+  }
+  
   //---shower entries-----------------------------------------------------------
   
   PHG4TruthInfoContainer::ShowerRange srange = _truth_info->GetShowerRange();
@@ -127,6 +142,7 @@ int PHG4DstCompressReco::process_event(PHCompositeNode *topNode) {
     PHG4Shower* shower = iter->second;
 
     shower->clear_g4particle_id();
+    shower->clear_g4vertex_id();
     shower->clear_g4hit_id();
   }
 

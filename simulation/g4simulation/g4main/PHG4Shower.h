@@ -17,6 +17,10 @@ public:
   typedef std::set<int> ParticleIdSet;
   typedef ParticleIdSet::iterator ParticleIdIter;
   typedef ParticleIdSet::const_iterator ParticleIdConstIter;
+
+  typedef std::set<int> VertexIdSet;
+  typedef VertexIdSet::iterator VertexIdIter;
+  typedef VertexIdSet::const_iterator VertexIdConstIter;
   
   typedef std::map<int,std::set<PHG4HitDefs::keytype> > HitIdMap;
   typedef HitIdMap::iterator HitIdIter;
@@ -75,6 +79,16 @@ public:
   virtual ParticleIdConstIter end_g4particle_id() const {return ParticleIdSet().end();}
   virtual size_t              remove_g4particle_id(int id) {return 0;}
   virtual void                clear_g4particle_id() {}
+
+  virtual bool              empty_g4vertex_id() const {return true;}
+  virtual size_t            size_g4vertex_id() const {return 0;}
+  virtual void              add_g4vertex_id(int id)  {}
+  virtual VertexIdIter      begin_g4vertex_id() {return VertexIdSet().end();}
+  virtual VertexIdConstIter begin_g4vertex_id() const {return VertexIdSet().end();}
+  virtual VertexIdIter      end_g4vertex_id() {return VertexIdSet().end();}
+  virtual VertexIdConstIter end_g4vertex_id() const {return VertexIdSet().end();}
+  virtual size_t            remove_g4vertex_id(int id) {return 0;}
+  virtual void              clear_g4vertex_id() {}
 
   virtual bool           empty_g4hit_id() const {return true;}
   virtual size_t         size_g4hit_id() const {return 0;}

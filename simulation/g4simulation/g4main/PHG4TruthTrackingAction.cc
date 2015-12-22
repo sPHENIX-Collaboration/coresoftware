@@ -79,6 +79,7 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
   ti->set_name(def->GetParticleName());
   ti->set_e(track->GetTotalEnergy() / GeV);
 
+  // create a new vertex object ------------------------------------------------
   G4ThreeVector v = track->GetVertexPosition();
   map<G4ThreeVector, int>::const_iterator viter = VertexMap.find(v);
   int vtxindex = 0;
@@ -111,7 +112,6 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
     PHG4Showerv1* shower = new PHG4Showerv1();
     PHG4TrackUserInfo::SetShower(const_cast<G4Track *> (track), shower);
     truthInfoList_->AddShower(trackid, shower);
-    shower->add_g4particle_id(trackid);
     shower->set_primary_id(trackid);
     shower->set_parent_shower_id(0);
   } else {
@@ -120,6 +120,7 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
       if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) ) {
 	if (pp->GetShower()) {
 	  pp->GetShower()->add_g4particle_id(trackid);
+	  pp->GetShower()->add_g4vertex_id(vtxindex);
 	}
       }
     }
