@@ -93,6 +93,21 @@ bool BaseTruthEval::is_primary(PHG4Particle* particle) {
   return is_primary;
 }
 
+bool BaseTruthEval::is_primary(PHG4Shower* shower) {
+
+  if (!has_node_pointers()) {++_errors; return false;}
+  
+  if (_strict) {assert(shower);}
+  else if (!shower) {++_errors; return false;}
+  
+  bool is_primary = false;
+  if (shower->get_parent_shower_id() == 0) {
+    is_primary = true;
+  }
+  
+  return is_primary;
+}
+
 PHG4Particle* BaseTruthEval::get_primary(PHG4Hit* g4hit) {
 
   if (!has_node_pointers()) {++_errors; return NULL;}
@@ -124,6 +139,77 @@ PHG4Particle* BaseTruthEval::get_primary(PHG4Particle* particle) {
   else if (!returnval) {++_errors;}
   
   return returnval;
+}
+
+PHG4Particle* BaseTruthEval::get_primary(PHG4Shower* shower) {
+
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
+  if (_strict) {assert(shower);}
+  else if (!shower) {++_errors; return NULL;}
+
+  PHG4Particle* returnval = _truthinfo->GetPrimaryParticle( shower->get_primary_id() );
+
+  if (_strict) {assert(returnval);}
+  else if (!returnval) {++_errors;}
+  
+  return returnval;
+}
+
+PHG4Shower* BaseTruthEval::get_shower_object_from_primary(PHG4Particle* particle) {
+
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
+  if (_strict) {assert(particle);}
+  else if (!particle) {++_errors; return NULL;}
+
+  if (!is_primary(particle)) particle = get_primary(particle);
+  
+  PHG4Shower* returnval = NULL;
+  
+  PHG4TruthInfoContainer::ShowerRange range = _truthinfo->GetPrimaryShowerRange();
+  for (PHG4TruthInfoContainer::ShowerIterator iter = range.first;
+       iter != range.second;
+       ++iter) {
+    PHG4Shower* shower = iter->second;
+    if (shower->get_primary_id() == particle->get_track_id()) {
+      returnval = shower;
+      break;
+    }
+  }
+  
+  if (_strict) {assert(returnval);}
+  else if (!returnval) {++_errors;}
+  
+  return returnval;
+}
+
+std::set<PHG4Shower*> BaseTruthEval::all_subshower_objects(PHG4Shower* shower) {
+
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4Shower*>();}
+  
+  if (_strict) {assert(shower);}
+  else if (!shower) {++_errors; return std::set<PHG4Shower*>();}
+  
+  std::set<PHG4Shower*> subshowers;
+  
+  PHG4TruthInfoContainer::ShowerRange range = _truthinfo->GetSecondaryShowerRange();
+  for (PHG4TruthInfoContainer::ShowerIterator iter = range.first;
+       iter != range.second;
+       ++iter) {
+    PHG4Shower* shower = iter->second;
+
+    if (_strict) {assert(shower);}
+    else if (!shower) {++_errors;}
+
+    if (shower) {
+      if (shower->get_parent_shower_id() == shower->get_id()) {
+	subshowers.insert(shower);
+      }
+    }
+  }
+  
+  return subshowers;
 }
 
 bool BaseTruthEval::is_g4hit_from_particle(PHG4Hit* g4hit, PHG4Particle* particle) {
