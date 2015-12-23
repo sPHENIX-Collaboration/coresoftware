@@ -37,13 +37,13 @@ public:
 
   // shower info
   
-  virtual unsigned int get_id() const           {return 0xFFFFFFFF;}
+  virtual int          get_id() const           {return 0;}
   virtual void         set_id(unsigned int id)  {}
 
-  virtual int          get_primary_id() const           {return -1;}
+  virtual int          get_primary_id() const           {return 0;}
   virtual void         set_primary_id(int primary_id)   {}
 
-  virtual int          get_parent_shower_id() const              {return -1;}
+  virtual int          get_parent_shower_id() const              {return 0;}
   virtual void         set_parent_shower_id(int parent_shower_id){}
   
   virtual float        get_x() const            {return NAN;}

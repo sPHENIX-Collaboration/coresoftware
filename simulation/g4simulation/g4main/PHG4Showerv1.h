@@ -26,7 +26,7 @@ public:
 
   // shower info
   
-  unsigned int get_id() const                 {return _id;}
+  int          get_id() const                 {return _id;}
   void         set_id(unsigned int id)        {_id = id;}
 
   int          get_primary_id() const         {return _primary_id;}
@@ -95,7 +95,7 @@ private:
   
   unsigned int covar_index(unsigned int i, unsigned int j) const;
   
-  unsigned int         _id;               //< unique identifier within container
+  int                  _id;               //< unique identifier within container
   int                  _primary_id;       //< association of shower to primary particle id
   int                  _parent_shower_id; //< association of shower to parent shower id if present
   float                _pos[3];           //< mean position of the shower

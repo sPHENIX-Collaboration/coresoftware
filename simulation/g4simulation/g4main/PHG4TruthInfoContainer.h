@@ -135,6 +135,12 @@ public:
   ShowerRange GetShowerRange() {return ShowerRange(showermap.begin(),showermap.end());}
   ConstShowerRange GetShowerRange() const {return ConstShowerRange(showermap.begin(),showermap.end());}
 
+  ShowerRange GetPrimaryShowerRange() {return ShowerRange(showermap.upper_bound(0),showermap.end());}
+  ConstShowerRange GetPrimaryShowerRange() const {return ConstShowerRange(showermap.upper_bound(0),showermap.end());}
+
+  ShowerRange GetSecondaryShowerRange() {return ShowerRange(showermap.begin(),showermap.upper_bound(0));}
+  ConstShowerRange GetSecondaryShowerRange() const {return ConstShowerRange(showermap.begin(),showermap.upper_bound(0));}
+  
   //! shower size
   unsigned int shower_size( void ) const {return showermap.size();}
   

@@ -78,9 +78,9 @@ void PHG4Showerv1::identify(ostream &os) const {
 }
 
 int PHG4Showerv1::isValid() const {
-  if (_id == 0xFFFFFFFF)
+  if (_id == 0)
     return 0;
-  if (_primary_id == -1)
+  if (_primary_id == 0)
     return 0;
   for (int i = 0; i < 3; ++i) {
     if (isnan(_pos[i]))
