@@ -20,6 +20,8 @@ PHPy8FwdJetTrigger::PHPy8FwdJetTrigger(const std::string &name):
   _theEtaHigh = 4.0; 
   
   _minPt = 10.0; 
+
+  _R = 1.0; 
  
 }
 
@@ -67,7 +69,6 @@ bool PHPy8FwdJetTrigger::Apply(Pythia8::Pythia *pythia) {
 
   // Call FastJet
 
-  double _R = 1.0; 
   fastjet::JetDefinition *jetdef = new fastjet::JetDefinition(fastjet::antikt_algorithm,_R,fastjet::Best);
   fastjet::ClusterSequence jetFinder(pseudojets,*jetdef);
   std::vector<fastjet::PseudoJet> fastjets = jetFinder.inclusive_jets();
@@ -89,8 +90,12 @@ void PHPy8FwdJetTrigger::SetEtaHighLow(double etaHigh, double etaLow) {
   _theEtaLow = etaLow;
 }
 
-void PHPy8FwdJetTrigger::SetMinPt(double minPt) {
+void PHPy8FwdJetTrigger::SetMinJetPt(double minPt) {
   _minPt = minPt; 
+}
+
+void PHPy8FwdJetTrigger::SetJetR(double R) {
+  _R = R; 
 }
 
 void PHPy8FwdJetTrigger::PrintConfig() {
@@ -98,5 +103,6 @@ void PHPy8FwdJetTrigger::PrintConfig() {
 
   cout << "   Particles EtaCut:  " << _theEtaLow << " < eta < " << _theEtaHigh << endl; 
   cout << "   Minimum Jet pT: " << _minPt << " GeV/c" << endl; 
+  cout << "   Anti-kT Radius: " << _R << endl; 
   cout << "-----------------------------------------------------------------------" << endl;
 }
