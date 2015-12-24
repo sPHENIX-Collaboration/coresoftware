@@ -25,6 +25,9 @@ public:
   CaloTruthEval(PHCompositeNode *topNode, std::string caloname);
   virtual ~CaloTruthEval();
 
+  /// get the hash id for this calorimeter volume
+  int get_caloid() {return _caloid;}
+  
   /// reinitialize the eval for a new event
   void next_event(PHCompositeNode *topNode);
 
@@ -123,6 +126,7 @@ private:
   BaseTruthEval _basetrutheval;
   
   std::string _caloname;
+  int _caloid;
   PHG4TruthInfoContainer* _truthinfo;
   PHG4HitContainer* _g4hits;
 

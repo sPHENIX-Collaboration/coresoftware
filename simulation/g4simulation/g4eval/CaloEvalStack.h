@@ -23,6 +23,7 @@ public:
   CaloEvalStack(PHCompositeNode *topNode, std::string caloname);
   virtual ~CaloEvalStack() {}
 
+  int get_caloid() {return get_truth_eval()->get_caloid();}
   void next_event(PHCompositeNode *topNode);
   void do_caching(bool do_cache) {_clustereval.do_caching(do_cache);}
   void set_strict(bool strict) {_clustereval.set_strict(strict);}

@@ -22,7 +22,6 @@
 
 #include <iostream>
 #include <set>
-//#include <algorithm>
 #include <cmath>
 
 using namespace std;
@@ -376,7 +375,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
       exit(-1);
     }
-
+    
     PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
     for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
 	 iter != range.second; 
@@ -393,9 +392,11 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       
       float gparticleID = primary->get_track_id();
       float gflavor     = primary->get_pid();
-      
-      std::set<PHG4Hit*> g4hits = trutheval->get_shower_hits_from_primary(primary);     
-      float gnhits   = g4hits.size();
+
+      PHG4Shower* shower = trutheval->get_primary_shower(primary);     
+      float gnhits = NAN;
+      if (shower) gnhits = shower->get_nhits(trutheval->get_caloid());
+      else gnhits = 0.0;
       float gpx      = primary->get_px();
       float gpy      = primary->get_py();
       float gpz      = primary->get_pz();
@@ -525,9 +526,10 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	gparticleID = primary->get_track_id();
 	gflavor = primary->get_pid();
-
-	std::set<PHG4Hit*> g4hits = trutheval->get_shower_hits_from_primary(primary);
-	gnhits = g4hits.size();
+	
+	PHG4Shower* shower = trutheval->get_primary_shower(primary);     
+	if (shower) gnhits = shower->get_nhits(trutheval->get_caloid());
+	else gnhits = 0.0;
 	gpx = primary->get_px();
 	gpy = primary->get_py();
 	gpz = primary->get_pz();
@@ -634,8 +636,9 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	gparticleID = primary->get_track_id();
 	gflavor = primary->get_pid();
 	
-	std::set<PHG4Hit*> g4hits = trutheval->get_shower_hits_from_primary(primary);
-	gnhits = g4hits.size();
+	PHG4Shower* shower = trutheval->get_primary_shower(primary);     
+	if (shower) gnhits = shower->get_nhits(trutheval->get_caloid());
+	else gnhits = 0.0;
 	gpx = primary->get_px();
 	gpy = primary->get_py();
 	gpz = primary->get_pz();

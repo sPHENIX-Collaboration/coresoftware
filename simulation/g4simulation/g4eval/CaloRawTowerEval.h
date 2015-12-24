@@ -27,6 +27,9 @@ public:
   CaloRawTowerEval(PHCompositeNode *topNode, std::string caloname);
   virtual ~CaloRawTowerEval();
 
+  /// get the hash id for this calorimeter volume
+  int get_caloid() {return get_truth_eval()->get_caloid();}
+  
   /// reinitialize the eval for a new event
   void next_event(PHCompositeNode *topNode);
 

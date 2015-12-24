@@ -17,12 +17,14 @@
 #include <float.h>
 #include <iostream>
 #include <cassert>
+#include <tr1/functional_hash.h>
 
 using namespace std;
 
 CaloTruthEval::CaloTruthEval(PHCompositeNode* topNode,std::string caloname)
   : _basetrutheval(topNode),
     _caloname(caloname),
+    _caloid(tr1::hash<std::string>()(caloname)),
     _truthinfo(NULL),
     _g4hits(NULL),
     _strict(false),
