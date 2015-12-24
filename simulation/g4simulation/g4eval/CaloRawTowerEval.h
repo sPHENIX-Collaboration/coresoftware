@@ -43,6 +43,7 @@ public:
 
   // backtrace through to PHG4Hits
   std::set<PHG4Hit*> all_truth_hits (RawTower* tower);
+  std::set<PHG4Shower*> all_truth_showers (RawTower* tower);
   
   // backtrace through to PHG4Particles
   std::set<PHG4Particle*> all_truth_primaries         (RawTower* tower);
@@ -75,6 +76,7 @@ private:
   
   bool                                               _do_cache;
   std::map<RawTower*,std::set<PHG4Hit*> >            _cache_all_truth_hits;
+  std::map<RawTower*,std::set<PHG4Shower*> >         _cache_all_truth_showers;
   std::map<RawTower*,std::set<PHG4Particle*> >       _cache_all_truth_primaries;
   std::map<RawTower*,PHG4Particle* >                 _cache_max_truth_primary_by_energy;
   std::map<PHG4Particle*,std::set<RawTower*> >       _cache_all_towers_from_primary;

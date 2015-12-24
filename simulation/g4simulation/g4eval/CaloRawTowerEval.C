@@ -12,6 +12,7 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
+#include <g4main/PHG4Shower.h>
 
 #include <string>
 #include <cstdlib>
@@ -34,6 +35,7 @@ CaloRawTowerEval::CaloRawTowerEval(PHCompositeNode* topNode, std::string calonam
     _errors(0),
     _do_cache(true),
     _cache_all_truth_hits(),
+    _cache_all_truth_showers(),
     _cache_all_truth_primaries(),
     _cache_max_truth_primary_by_energy(),
     _cache_all_towers_from_primary(),
@@ -53,6 +55,7 @@ CaloRawTowerEval::~CaloRawTowerEval() {
 void CaloRawTowerEval::next_event(PHCompositeNode* topNode) {
 
   _cache_all_truth_hits.clear();
+  _cache_all_truth_showers.clear();
   _cache_all_truth_primaries.clear();
   _cache_max_truth_primary_by_energy.clear();
   _cache_all_towers_from_primary.clear();
@@ -110,7 +113,41 @@ std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(RawTower* tower) {
   
   return truth_hits;
 }
+
+std::set<PHG4Shower*> CaloRawTowerEval::all_truth_showers(RawTower* tower) {
+
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4Shower*>();}
   
+  if (_strict) {assert(tower);}
+  else if (!tower) {++_errors; return std::set<PHG4Shower*>();}
+  
+  if (_do_cache) {
+    std::map<RawTower*,std::set<PHG4Shower*> >::iterator iter =
+      _cache_all_truth_showers.find(tower);
+    if (iter != _cache_all_truth_showers.end()) {
+      return iter->second;
+    }
+  }
+
+  std::set<PHG4Shower*> showers;
+
+  RawTower::ShowerConstRange shower_range = tower->get_g4showers();
+  for (RawTower::ShowerConstIterator iter = shower_range.first;
+       iter != shower_range.second;
+       ++iter) {
+    PHG4Shower* shower = _truthinfo->GetShower(iter->first);
+
+    if (_strict) {assert(shower);}
+    else if (!shower) {++_errors; continue;} 
+
+    showers.insert(shower);    
+  }
+  
+  if (_do_cache) _cache_all_truth_showers.insert(make_pair(tower,showers));
+  
+  return showers;
+}
+
 std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primaries(RawTower* tower) {
 
   if (!has_node_pointers()) {++_errors; return std::set<PHG4Particle*>();}
@@ -128,13 +165,13 @@ std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primaries(RawTower* tower) {
   
   std::set<PHG4Particle*> truth_primaries;
   
-  std::set<PHG4Hit*> g4hits = all_truth_hits(tower);
+  std::set<PHG4Shower*> showers = all_truth_showers(tower);
 
-  for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
-       iter != g4hits.end();
+  for (std::set<PHG4Shower*>::iterator iter = showers.begin();
+       iter != showers.end();
        ++iter) {
-    PHG4Hit* g4hit = *iter;
-    PHG4Particle* primary = get_truth_eval()->get_primary_particle( g4hit );
+    PHG4Shower* shower = *iter;
+    PHG4Particle* primary = get_truth_eval()->get_primary_particle( shower );
 
     if (_strict) {assert(primary);}
     else if (!primary) {++_errors; continue;}
@@ -318,26 +355,18 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
     }
   }
   
-  float energy = 0.0;
+  PHG4Shower* shower = get_truth_eval()->get_shower_object_from_primary(primary);
 
-  std::set<PHG4Particle*> g4particles = all_truth_primaries(tower);
-  if (g4particles.find(primary) != g4particles.end()) {
+  if (_strict) assert(shower);
+  else if (!shower) {++_errors; return NAN;}
   
-    std::set<PHG4Hit*> g4hits = all_truth_hits(tower);
-    for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
-	 iter != g4hits.end();
-	 ++iter) {
-      PHG4Hit* g4hit = *iter;
-      PHG4Particle* candidate = get_truth_eval()->get_primary_particle(g4hit);
-
-      if (_strict) {assert(candidate);}
-      else if (!candidate) {++_errors; continue;}
-
-      if (get_truth_eval()->are_same_particle(candidate,primary)) {
-	energy += g4hit->get_edep();
-      }
-    }
-  }
+  // loop over the tower shower entries
+  float energy = 0.0;
+  RawTower::ShowerConstRange range = tower->get_g4showers();
+  RawTower::ShowerConstIterator iter = tower->find_g4shower(shower->get_id());
+  if (iter != range.second) {
+    energy = iter->second;
+  }    
 
   if (_do_cache) _cache_get_energy_contribution_primary.insert(make_pair(make_pair(tower,primary),energy));
   
@@ -355,7 +384,7 @@ void CaloRawTowerEval::get_node_pointers(PHCompositeNode *topNode) {
 
   std::string hitname = "G4HIT_" + _caloname;  
   _g4hits = findNode::getClass<PHG4HitContainer>(topNode,hitname.c_str());
-
+  
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
 
   return;
