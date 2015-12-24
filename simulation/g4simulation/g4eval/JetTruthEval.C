@@ -146,7 +146,7 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
     
     // ask the cemc truth eval to backtrack the primary to g4hits
     CaloTruthEval* cemc_truth_eval = _cemcevalstack.get_truth_eval(); 
-    std::set<PHG4Hit*> cemc_g4hits = cemc_truth_eval->get_shower_from_primary(particle);
+    std::set<PHG4Hit*> cemc_g4hits = cemc_truth_eval->get_shower_hits_from_primary(particle);
 
     for (std::set<PHG4Hit*>::iterator jter = cemc_g4hits.begin();
 	 jter != cemc_g4hits.end();
@@ -162,7 +162,7 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
     
     // ask the hcalin truth eval to backtrack the primary to g4hits
     CaloTruthEval* hcalin_truth_eval = _hcalinevalstack.get_truth_eval(); 
-    std::set<PHG4Hit*> hcalin_g4hits = hcalin_truth_eval->get_shower_from_primary(particle);
+    std::set<PHG4Hit*> hcalin_g4hits = hcalin_truth_eval->get_shower_hits_from_primary(particle);
 
     for (std::set<PHG4Hit*>::iterator jter = hcalin_g4hits.begin();
 	 jter != hcalin_g4hits.end();
@@ -178,7 +178,7 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
     
     // ask the hcalout truth eval to backtrack the primary to g4hits
     CaloTruthEval* hcalout_truth_eval = _hcaloutevalstack.get_truth_eval(); 
-    std::set<PHG4Hit*> hcalout_g4hits = hcalout_truth_eval->get_shower_from_primary(particle);
+    std::set<PHG4Hit*> hcalout_g4hits = hcalout_truth_eval->get_shower_hits_from_primary(particle);
 
     for (std::set<PHG4Hit*>::iterator jter = hcalout_g4hits.begin();
 	 jter != hcalout_g4hits.end();
@@ -194,7 +194,7 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
 
     // ask the femc truth eval to backtrack the primary to g4hits
     CaloTruthEval* femc_truth_eval = _femcevalstack.get_truth_eval(); 
-    std::set<PHG4Hit*> femc_g4hits = femc_truth_eval->get_shower_from_primary(particle);
+    std::set<PHG4Hit*> femc_g4hits = femc_truth_eval->get_shower_hits_from_primary(particle);
 
     for (std::set<PHG4Hit*>::iterator jter = femc_g4hits.begin();
 	 jter != femc_g4hits.end();
@@ -210,7 +210,7 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
 
     // ask the fhcal truth eval to backtrack the primary to g4hits
     CaloTruthEval* fhcal_truth_eval = _fhcalevalstack.get_truth_eval(); 
-    std::set<PHG4Hit*> fhcal_g4hits = fhcal_truth_eval->get_shower_from_primary(particle);
+    std::set<PHG4Hit*> fhcal_g4hits = fhcal_truth_eval->get_shower_hits_from_primary(particle);
 
     for (std::set<PHG4Hit*>::iterator jter = fhcal_g4hits.begin();
 	 jter != fhcal_g4hits.end();

@@ -336,7 +336,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
       if (_strict) {assert(tower);}
       else if (!tower) {++_errors; continue;}
       
-      new_particles = get_cemc_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower);      
+      new_particles = get_cemc_eval_stack()->get_rawtower_eval()->all_truth_primary_particles(tower);      
 
     } else if (source == Jet::CEMC_CLUSTER) {
 
@@ -350,7 +350,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
       if (_strict) {assert(cluster);}
       else if (!cluster) {++_errors; continue;}
       
-      new_particles = get_cemc_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
+      new_particles = get_cemc_eval_stack()->get_rawcluster_eval()->all_truth_primary_particles(cluster); 
 
     } else if (source == Jet::HCALIN_TOWER) {
 
@@ -364,7 +364,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
       if (_strict) {assert(tower);}
       else if (!tower) {++_errors; continue;}
       
-      new_particles = get_hcalin_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower); 
+      new_particles = get_hcalin_eval_stack()->get_rawtower_eval()->all_truth_primary_particles(tower); 
 
     } else if (source == Jet::HCALIN_CLUSTER) {
 
@@ -378,7 +378,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
       if (_strict) {assert(cluster);}
       else if (!cluster) {++_errors; continue;}
 
-      new_particles = get_hcalin_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
+      new_particles = get_hcalin_eval_stack()->get_rawcluster_eval()->all_truth_primary_particles(cluster); 
 
     } else if (source == Jet::HCALOUT_TOWER) {
 
@@ -392,7 +392,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
       if (_strict) {assert(tower);}
       else if (!tower) {++_errors; continue;}
       
-      new_particles = get_hcalout_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower); 
+      new_particles = get_hcalout_eval_stack()->get_rawtower_eval()->all_truth_primary_particles(tower); 
 
     } else if (source == Jet::HCALOUT_CLUSTER) {
 
@@ -406,7 +406,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
       if (_strict) {assert(cluster);}
       else if (!cluster) {++_errors; continue;}
 
-      new_particles = get_hcalout_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
+      new_particles = get_hcalout_eval_stack()->get_rawcluster_eval()->all_truth_primary_particles(cluster); 
 
     } else if (source == Jet::FEMC_TOWER) {
 
@@ -420,7 +420,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
       if (_strict) {assert(tower);}
       else if (!tower) {++_errors; continue;}
       
-      new_particles = get_femc_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower); 
+      new_particles = get_femc_eval_stack()->get_rawtower_eval()->all_truth_primary_particles(tower); 
 
     } else if (source == Jet::FEMC_CLUSTER) {
 
@@ -434,7 +434,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
       if (_strict) {assert(cluster);}
       else if (!cluster) {++_errors; continue;}
 
-      new_particles = get_femc_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
+      new_particles = get_femc_eval_stack()->get_rawcluster_eval()->all_truth_primary_particles(cluster); 
 
     } else if (source == Jet::FHCAL_TOWER) {
 
@@ -448,7 +448,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
       if (_strict) {assert(tower);}
       else if (!tower) {++_errors; continue;}
       
-      new_particles = get_fhcal_eval_stack()->get_rawtower_eval()->all_truth_primaries(tower); 
+      new_particles = get_fhcal_eval_stack()->get_rawtower_eval()->all_truth_primary_particles(tower); 
 
     } else if (source == Jet::FHCAL_CLUSTER) {
 
@@ -462,7 +462,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet) {
       if (_strict) {assert(cluster);}
       else if (!cluster) {++_errors; continue;}
 
-      new_particles = get_fhcal_eval_stack()->get_rawcluster_eval()->all_truth_primaries(cluster); 
+      new_particles = get_fhcal_eval_stack()->get_rawcluster_eval()->all_truth_primary_particles(cluster); 
     }
 
     for (std::set<PHG4Particle*>::iterator jter = new_particles.begin();

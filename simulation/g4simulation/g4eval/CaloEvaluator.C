@@ -394,7 +394,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float gparticleID = primary->get_track_id();
       float gflavor     = primary->get_pid();
       
-      std::set<PHG4Hit*> g4hits = trutheval->get_shower_from_primary(primary);     
+      std::set<PHG4Hit*> g4hits = trutheval->get_shower_hits_from_primary(primary);     
       float gnhits   = g4hits.size();
       float gpx      = primary->get_px();
       float gpy      = primary->get_py();
@@ -497,7 +497,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float phi     = towergeom->get_phicenter(tower->get_binphi());
       float e       = tower->get_energy();
 
-      PHG4Particle* primary = towereval->max_truth_primary_by_energy(tower);
+      PHG4Particle* primary = towereval->max_truth_primary_particle_by_energy(tower);
 
       float gparticleID = NAN;
       float gflavor     = NAN;
@@ -526,7 +526,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	gparticleID = primary->get_track_id();
 	gflavor = primary->get_pid();
 
-	std::set<PHG4Hit*> g4hits = trutheval->get_shower_from_primary(primary);
+	std::set<PHG4Hit*> g4hits = trutheval->get_shower_hits_from_primary(primary);
 	gnhits = g4hits.size();
 	gpx = primary->get_px();
 	gpy = primary->get_py();
@@ -605,7 +605,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float phi       = cluster->get_phi();
       float e         = cluster->get_energy();
       
-      PHG4Particle* primary = clustereval->max_truth_primary_by_energy(cluster);
+      PHG4Particle* primary = clustereval->max_truth_primary_particle_by_energy(cluster);
 
       float gparticleID = NAN;
       float gflavor     = NAN;
@@ -634,7 +634,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	gparticleID = primary->get_track_id();
 	gflavor = primary->get_pid();
 	
-	std::set<PHG4Hit*> g4hits = trutheval->get_shower_from_primary(primary);
+	std::set<PHG4Hit*> g4hits = trutheval->get_shower_hits_from_primary(primary);
 	gnhits = g4hits.size();
 	gpx = primary->get_px();
 	gpy = primary->get_py();
