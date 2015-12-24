@@ -13,6 +13,7 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
+#include <g4main/PHG4Shower.h>
 
 #include <string>
 #include <set>
@@ -58,24 +59,40 @@ public:
 
   /// has the eval initialized correctly for reduced sim DST nodes?
   bool has_reduced_node_pointers();
+
+  // shower interface
   
   /// what showers contributed energy to this tower?
-  std::set<PHG4Shower*> all_truth_showers (RawTower* tower);
+  std::set<PHG4Shower*> all_truth_showers(RawTower* tower);
+
+  /// which shower contributed the most energy to this tower?
+  PHG4Shower* max_truth_shower_by_energy(RawTower* tower);
+
+  /// what towers did this shower contribute energy to?
+  std::set<RawTower*> all_towers_from(PHG4Shower* shower);
+
+  /// which tower did this shower contribute the most energy to?
+  RawTower* best_tower_from(PHG4Shower* shower);
+
+  /// how much energy did this shower contribute to this tower?
+  float get_energy_contribution(RawTower* tower, PHG4Shower* shower);
+
+  // particle interface
   
   /// what particles contributed energy to this tower?
-  std::set<PHG4Particle*> all_truth_primaries         (RawTower* tower);
+  std::set<PHG4Particle*> all_truth_primaries(RawTower* tower);
 
   /// which particle contributed the most energy to this tower?
-  PHG4Particle*           max_truth_primary_by_energy (RawTower* tower);
+  PHG4Particle* max_truth_primary_by_energy(RawTower* tower);
 
   /// what towers did this primary truth particle contribute energy to?
   std::set<RawTower*> all_towers_from(PHG4Particle* primary);
 
   /// which tower did the primary truth particle contribute the most energy to?
-  RawTower*           best_tower_from(PHG4Particle* primary);
-  
-  /// how much energy did this primary truth particle contribut to this tower?
-  float get_energy_contribution (RawTower* tower, PHG4Particle* primary);
+  RawTower* best_tower_from(PHG4Particle* primary);
+
+  /// how much energy did this primary truth particle contribute to this tower?
+  float get_energy_contribution(RawTower* tower, PHG4Particle* primary);
 
   // ---full sim node required--------------------------------------------------
 
@@ -101,13 +118,20 @@ private:
   unsigned int _errors;
   
   bool                                               _do_cache;
-  std::map<RawTower*,std::set<PHG4Hit*> >            _cache_all_truth_hits;
+
   std::map<RawTower*,std::set<PHG4Shower*> >         _cache_all_truth_showers;
+  std::map<RawTower*,PHG4Shower* >                   _cache_max_truth_shower_by_energy;
+  std::map<PHG4Shower*,std::set<RawTower*> >         _cache_all_towers_from_shower;
+  std::map<PHG4Shower*,RawTower*>                    _cache_best_tower_from_shower;
+  std::map<std::pair<RawTower*,PHG4Shower*>,float>   _cache_get_energy_contribution_shower;
+  
   std::map<RawTower*,std::set<PHG4Particle*> >       _cache_all_truth_primaries;
   std::map<RawTower*,PHG4Particle* >                 _cache_max_truth_primary_by_energy;
   std::map<PHG4Particle*,std::set<RawTower*> >       _cache_all_towers_from_primary;
   std::map<PHG4Particle*,RawTower*>                  _cache_best_tower_from_primary;
   std::map<std::pair<RawTower*,PHG4Particle*>,float> _cache_get_energy_contribution_primary;
+  
+  std::map<RawTower*,std::set<PHG4Hit*> >            _cache_all_truth_hits;
 };
 
 #endif // __SVTXHITEVAL_H__
