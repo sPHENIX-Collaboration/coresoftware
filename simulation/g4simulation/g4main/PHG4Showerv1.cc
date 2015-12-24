@@ -10,7 +10,8 @@ using namespace std;
 ClassImp(PHG4Showerv1);
 
 PHG4Showerv1::PHG4Showerv1()
-  : _id(0xFFFFFFFF), _primary_id(-1), _parent_shower_id(0),
+  : _id(0xFFFFFFFF), _primary_particle_id(0), _parent_particle_id(0),
+    _primary_shower_id(0), _parent_shower_id(0),
     _pos(), _covar(), _edep(), _eion(),
     _light_yield(), _g4particle_ids(), _g4hit_ids() {
 
@@ -27,7 +28,9 @@ PHG4Showerv1::PHG4Showerv1()
 void PHG4Showerv1::identify(ostream &os) const {
   os << "---PHG4Showerv1-------------------------------" << endl;
   os << "id: " << get_id() << endl;
-  os << "primary_id: " << get_primary_id() << endl;
+  os << "primary_particle_id: " << get_primary_particle_id() << endl;
+  os << "parent_particle_id: " << get_parent_particle_id() << endl;
+  os << "primary_shower_id: " << get_primary_shower_id() << endl;
   os << "parent_shower_id: " << get_parent_shower_id() << endl;
   os << "x: " << get_x() << endl;
   os << "y: " << get_y() << endl;
@@ -80,7 +83,9 @@ void PHG4Showerv1::identify(ostream &os) const {
 int PHG4Showerv1::isValid() const {
   if (_id == 0)
     return 0;
-  if (_primary_id == 0)
+  if (_primary_particle_id == 0)
+    return 0;
+  if (_primary_shower_id == 0)
     return 0;
   for (int i = 0; i < 3; ++i) {
     if (isnan(_pos[i]))

@@ -130,6 +130,7 @@ public:
   void delete_shower(ShowerIterator piter); 
   
   PHG4Shower* GetShower(const int showerid);
+  PHG4Shower* GetPrimaryShower(const int showerid);
 
   //! Get a range of iterators covering the entire container
   ShowerRange GetShowerRange() {return ShowerRange(showermap.begin(),showermap.end());}

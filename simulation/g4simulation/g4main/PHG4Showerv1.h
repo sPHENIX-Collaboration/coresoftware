@@ -29,10 +29,16 @@ public:
   int          get_id() const                 {return _id;}
   void         set_id(unsigned int id)        {_id = id;}
 
-  int          get_primary_id() const         {return _primary_id;}
-  void         set_primary_id(int primary_id) {_primary_id = primary_id;}
+  int          get_primary_particle_id() const {return _primary_particle_id;}
+  void         set_primary_particle_id(int primary_particle_id) {_primary_particle_id = primary_particle_id;}
 
-  int          get_parent_shower_id() const   {return _parent_shower_id;}
+  int          get_parent_particle_id() const {return _parent_particle_id;}
+  void         set_parent_particle_id(int parent_particle_id) {_parent_particle_id = parent_particle_id;}
+  
+  int          get_primary_shower_id() const {return _primary_shower_id;}
+  void         set_primary_shower_id(int primary_shower_id) {_primary_shower_id = primary_shower_id;}
+  
+  int          get_parent_shower_id() const {return _parent_shower_id;}
   void         set_parent_shower_id(int parent_shower_id) {_parent_shower_id = parent_shower_id;}
   
   float        get_x() const                  {return _pos[0];}
@@ -97,9 +103,11 @@ private:
   
   unsigned int covar_index(unsigned int i, unsigned int j) const;
   
-  int                  _id;               //< unique identifier within container
-  int                  _primary_id;       //< association of shower to primary particle id
-  int                  _parent_shower_id; //< association of shower to parent shower id if present
+  int                  _id;                  //< unique identifier within container
+  int                  _primary_particle_id; //< association of shower to primary particle id
+  int                  _parent_particle_id;  //< association of shower to parent particle id
+  int                  _primary_shower_id;   //< association of shower to primary shower id
+  int                  _parent_shower_id;    //< association of shower to parent shower id
   float                _pos[3];           //< mean position of the shower
   float                _covar[6];         //< covariance of shower positions
   std::map<int, float> _edep;             //< energy deposit in different volumes

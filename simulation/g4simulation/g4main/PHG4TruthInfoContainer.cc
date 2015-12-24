@@ -145,6 +145,14 @@ PHG4Shower* PHG4TruthInfoContainer::GetShower(const int showerid) {
   return NULL;
 }
 
+PHG4Shower* PHG4TruthInfoContainer::GetPrimaryShower(const int showerid) {
+  
+  if (showerid <= 0) return NULL;
+  ShowerIterator it = showermap.find(showerid);
+  if ( it != showermap.end() ) return it->second;
+  return NULL;
+}
+
 PHG4TruthInfoContainer::ConstVtxIterator
 PHG4TruthInfoContainer::AddVertex(const int id, PHG4VtxPoint *newvtx) {
 
