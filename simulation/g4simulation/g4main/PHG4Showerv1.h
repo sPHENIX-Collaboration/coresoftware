@@ -55,6 +55,9 @@ public:
   
   float        get_covar(unsigned int i, unsigned int j) const;
   void         set_covar(unsigned int i, unsigned int j, float entry);
+
+  unsigned int get_nhits(int volume) const;
+  void         set_nhits(int volume, unsigned int nhits) {_nhits[volume] = nhits;}
   
   float        get_edep(int volume) const;
   void         set_edep(int volume, float edep) {_edep[volume] = edep;}
@@ -110,6 +113,7 @@ private:
   int                  _parent_shower_id;    //< association of shower to parent shower id
   float                _pos[3];           //< mean position of the shower
   float                _covar[6];         //< covariance of shower positions
+  std::map<int, unsigned int> _nhits;     //< number of hits in different volumes
   std::map<int, float> _edep;             //< energy deposit in different volumes
   std::map<int, float> _eion;             //< ionization energy in different volumes
   std::map<int, float> _light_yield;      //< light yield in different volumes

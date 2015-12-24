@@ -115,6 +115,14 @@ unsigned int PHG4Showerv1::covar_index(unsigned int i, unsigned int j) const {
   return i + 1 + (j + 1) * (j) / 2 - 1;
 }
 
+unsigned int PHG4Showerv1::get_nhits(int volume) const {
+  std::map<int, unsigned int>::const_iterator citer =
+      _nhits.find(volume);
+  if (citer == _nhits.end())
+    return 0;
+  return citer->second;
+}
+
 float PHG4Showerv1::get_edep(int volume) const {
   std::map<int, float>::const_iterator citer =
       _edep.find(volume);

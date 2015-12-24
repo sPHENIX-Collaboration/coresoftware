@@ -342,6 +342,7 @@ void PHG4TruthEventAction::ProcessShowers() {
 
       PHG4HitContainer* hits = mapiter->second;
 
+      unsigned int nhits = 0;
       float edep = 0.0;
       float eion = 0.0;
       float light_yield = 0.0;
@@ -389,12 +390,14 @@ void PHG4TruthEventAction::ProcessShowers() {
 	  sumw += w;
 	  sumw2 += w*w;
 	}
-	
+
+	if (g4hit)                                   ++nhits;
 	if (!isnan(g4hit->get_edep()))               edep += g4hit->get_edep();
 	if (!isnan(g4hit->get_eion()))               eion += g4hit->get_eion();
 	if (!isnan(g4hit->get_light_yield())) light_yield += g4hit->get_light_yield();
       } // g4hit loop
 
+      if (nhits)              shower->set_nhits(g4hitmap_id,nhits);
       if (edep != 0.0)        shower->set_edep(g4hitmap_id,edep);
       if (eion != 0.0)        shower->set_eion(g4hitmap_id,eion);
       if (light_yield != 0.0) shower->set_light_yield(g4hitmap_id,light_yield);     

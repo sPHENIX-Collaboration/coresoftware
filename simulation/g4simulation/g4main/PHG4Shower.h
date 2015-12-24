@@ -66,6 +66,9 @@ public:
   
   virtual float        get_covar(unsigned int i, unsigned int j) const {return NAN;}
   virtual void         set_covar(unsigned int i, unsigned int j, float entry) {}
+
+  virtual unsigned int get_nhits(int volume) const {return 0;}
+  virtual void         set_nhits(int volume, unsigned int nhits) {}
   
   virtual float        get_edep(int volume) const {return NAN;}
   virtual void         set_edep(int volume, float edep) {}
