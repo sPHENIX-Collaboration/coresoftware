@@ -378,7 +378,7 @@ std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Particle* primary) {
 
   std::set<RawTower*> towers;
   
-  PHG4Shower* shower = get_truth_eval()->get_shower_object_from_primary(primary);
+  PHG4Shower* shower = get_truth_eval()->get_primary_shower(primary);
 
   if (shower) {
     towers = all_towers_from(shower);
@@ -412,7 +412,7 @@ RawTower* CaloRawTowerEval::best_tower_from(PHG4Particle* primary) {
   }
   
   RawTower* best_tower = NULL;
-  PHG4Shower* shower = get_truth_eval()->get_shower_object_from_primary(primary);
+  PHG4Shower* shower = get_truth_eval()->get_primary_shower(primary);
   if (shower) {
     best_tower = best_tower_from(shower);
   }
@@ -453,7 +453,7 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
 
   float energy = 0.0;
   
-  PHG4Shower* shower = get_truth_eval()->get_shower_object_from_primary(primary);
+  PHG4Shower* shower = get_truth_eval()->get_primary_shower(primary);
 
   if (shower) {
     energy = get_energy_contribution(tower,shower);
