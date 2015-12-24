@@ -62,28 +62,28 @@ public:
 
   // shower interface
   
-  /// what showers contributed energy to this tower?
-  std::set<PHG4Shower*> all_truth_showers(RawTower* tower);
+  /// what primary showers contributed energy to this tower?
+  std::set<PHG4Shower*> all_truth_primary_showers(RawTower* tower);
 
-  /// which shower contributed the most energy to this tower?
-  PHG4Shower* max_truth_shower_by_energy(RawTower* tower);
+  /// which primary shower contributed the most energy to this tower?
+  PHG4Shower* max_truth_primary_shower_by_energy(RawTower* tower);
 
-  /// what towers did this shower contribute energy to?
-  std::set<RawTower*> all_towers_from(PHG4Shower* shower);
+  /// what towers did this primary shower contribute energy to?
+  std::set<RawTower*> all_towers_from(PHG4Shower* primary);
 
-  /// which tower did this shower contribute the most energy to?
-  RawTower* best_tower_from(PHG4Shower* shower);
+  /// which tower did this primary shower contribute the most energy to?
+  RawTower* best_tower_from(PHG4Shower* primary);
 
-  /// how much energy did this shower contribute to this tower?
-  float get_energy_contribution(RawTower* tower, PHG4Shower* shower);
+  /// how much energy did this primary shower contribute to this tower?
+  float get_energy_contribution(RawTower* tower, PHG4Shower* primary);
 
   // particle interface
   
   /// what particles contributed energy to this tower?
-  std::set<PHG4Particle*> all_truth_primaries(RawTower* tower);
+  std::set<PHG4Particle*> all_truth_primary_particles(RawTower* tower);
 
   /// which particle contributed the most energy to this tower?
-  PHG4Particle* max_truth_primary_by_energy(RawTower* tower);
+  PHG4Particle* max_truth_primary_particle_by_energy(RawTower* tower);
 
   /// what towers did this primary truth particle contribute energy to?
   std::set<RawTower*> all_towers_from(PHG4Particle* primary);
@@ -119,17 +119,17 @@ private:
   
   bool                                               _do_cache;
 
-  std::map<RawTower*,std::set<PHG4Shower*> >         _cache_all_truth_showers;
-  std::map<RawTower*,PHG4Shower* >                   _cache_max_truth_shower_by_energy;
-  std::map<PHG4Shower*,std::set<RawTower*> >         _cache_all_towers_from_shower;
-  std::map<PHG4Shower*,RawTower*>                    _cache_best_tower_from_shower;
-  std::map<std::pair<RawTower*,PHG4Shower*>,float>   _cache_get_energy_contribution_shower;
+  std::map<RawTower*,std::set<PHG4Shower*> >         _cache_all_truth_primary_showers;
+  std::map<RawTower*,PHG4Shower* >                   _cache_max_truth_primary_shower_by_energy;
+  std::map<PHG4Shower*,std::set<RawTower*> >         _cache_all_towers_from_primary_shower;
+  std::map<PHG4Shower*,RawTower*>                    _cache_best_tower_from_primary_shower;
+  std::map<std::pair<RawTower*,PHG4Shower*>,float>   _cache_get_energy_contribution_primary_shower;
   
-  std::map<RawTower*,std::set<PHG4Particle*> >       _cache_all_truth_primaries;
-  std::map<RawTower*,PHG4Particle* >                 _cache_max_truth_primary_by_energy;
-  std::map<PHG4Particle*,std::set<RawTower*> >       _cache_all_towers_from_primary;
-  std::map<PHG4Particle*,RawTower*>                  _cache_best_tower_from_primary;
-  std::map<std::pair<RawTower*,PHG4Particle*>,float> _cache_get_energy_contribution_primary;
+  std::map<RawTower*,std::set<PHG4Particle*> >       _cache_all_truth_primary_particles;
+  std::map<RawTower*,PHG4Particle* >                 _cache_max_truth_primary_particle_by_energy;
+  std::map<PHG4Particle*,std::set<RawTower*> >       _cache_all_towers_from_primary_particle;
+  std::map<PHG4Particle*,RawTower*>                  _cache_best_tower_from_primary_particle;
+  std::map<std::pair<RawTower*,PHG4Particle*>,float> _cache_get_energy_contribution_primary_particle;
   
   std::map<RawTower*,std::set<PHG4Hit*> >            _cache_all_truth_hits;
 };
