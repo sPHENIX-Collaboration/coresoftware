@@ -22,46 +22,72 @@ class CaloRawTowerEval {
 
 public:
 
+  /// example caloname: CEMC, HCALIN, HCALOUT
   CaloRawTowerEval(PHCompositeNode *topNode, std::string caloname);
   virtual ~CaloRawTowerEval();
 
+  /// reinitialize the eval for a new event
   void next_event(PHCompositeNode *topNode);
+
+  /// activate or deactivate the memory caching inside the evaluation module
   void do_caching(bool do_cache) {
     _do_cache = do_cache;
     _trutheval.do_caching(do_cache);
   }
+
+  /// strict mode will assert when an error is detected
+  /// non-strict mode will notice and report at the End()
   void set_strict(bool strict) {
     _strict = strict;
     _trutheval.set_strict(strict);
   }
+
+  /// get a count of the errors discovered thus far
+  unsigned int get_errors() {return _errors + _trutheval.get_errors();}
+  
+  /// adjust the messaging from the evalutaion module
   void set_verbosity(int verbosity) {
     _verbosity = verbosity;
     _trutheval.set_verbosity(verbosity);
   }
 
+  /// get a copy of the lower level truth eval and its memory cache
   CaloTruthEval* get_truth_eval() {return &_trutheval;}
 
-  // backtrace through to PHG4Hits
-  std::set<PHG4Hit*> all_truth_hits (RawTower* tower);
+  // ---reduced sim node or better----------------------------------------------
+
+  /// has the eval initialized correctly for reduced sim DST nodes?
+  bool has_reduced_node_pointers();
+  
+  /// what showers contributed energy to this tower?
   std::set<PHG4Shower*> all_truth_showers (RawTower* tower);
   
-  // backtrace through to PHG4Particles
+  /// what particles contributed energy to this tower?
   std::set<PHG4Particle*> all_truth_primaries         (RawTower* tower);
+
+  /// which particle contributed the most energy to this tower?
   PHG4Particle*           max_truth_primary_by_energy (RawTower* tower);
 
-  // forwardtrace through to RawTowers
+  /// what towers did this primary truth particle contribute energy to?
   std::set<RawTower*> all_towers_from(PHG4Particle* primary);
+
+  /// which tower did the primary truth particle contribute the most energy to?
   RawTower*           best_tower_from(PHG4Particle* primary);
   
-  // overlap calculations
+  /// how much energy did this primary truth particle contribut to this tower?
   float get_energy_contribution (RawTower* tower, PHG4Particle* primary);
 
-  unsigned int get_errors() {return _errors + _trutheval.get_errors();}
+  // ---full sim node required--------------------------------------------------
+
+  /// has the eval initialized correctly for full sim DST nodes?
+  bool has_full_node_pointers();
+  
+  /// what truth hits contributed energy to this tower?
+  std::set<PHG4Hit*> all_truth_hits (RawTower* tower);
   
 private:
 
   void get_node_pointers(PHCompositeNode *topNode);
-  bool has_node_pointers();
 
   std::string _caloname;
   CaloTruthEval _trutheval;  

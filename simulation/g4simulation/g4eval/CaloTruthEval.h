@@ -21,7 +21,8 @@ class CaloTruthEval {
 
 public:
 
-  CaloTruthEval(PHCompositeNode *topNode, std::string caloname); // CEMC, HCALIN, HCALOUT
+  /// example caloname: CEMC, HCALIN, HCALOUT
+  CaloTruthEval(PHCompositeNode *topNode, std::string caloname);
   virtual ~CaloTruthEval();
 
   /// reinitialize the eval for a new event
@@ -81,7 +82,7 @@ public:
   /// how much energy did this primary and its shower deposit in the calo volume
   float              get_shower_energy_deposit(PHG4Particle* primary);
 
-  //float            get_shower_eh_ratio(PHG4Particle* primary); // need to add this to shower
+  //float            get_shower_eh_ratio(PHG4Particle* primary); // \todo need to add e/h to shower
   
   // ---full sim node required--------------------------------------------------
 
@@ -107,7 +108,7 @@ public:
   std::set<PHG4Hit*> get_shower_from_primary(PHG4Particle* primary);
 
   /// what was the moliere radius of truth hits from this particle inside the calo volume?
-  float              get_shower_moliere_radius(PHG4Particle* primary); // \todo need to add this info to shower
+  float              get_shower_moliere_radius(PHG4Particle* primary); // \todo need to add r_moliere to shower
   
 private:
 

@@ -69,7 +69,7 @@ void CaloRawTowerEval::next_event(PHCompositeNode* topNode) {
 
 std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(RawTower* tower) {
 
-  if (!has_node_pointers()) {++_errors; return std::set<PHG4Hit*>();}
+  if (!has_full_node_pointers()) {++_errors; return std::set<PHG4Hit*>();}
   
   if (_strict) {assert(tower);}
   else if (!tower) {++_errors; return std::set<PHG4Hit*>();}
@@ -116,7 +116,7 @@ std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(RawTower* tower) {
 
 std::set<PHG4Shower*> CaloRawTowerEval::all_truth_showers(RawTower* tower) {
 
-  if (!has_node_pointers()) {++_errors; return std::set<PHG4Shower*>();}
+  if (!has_reduced_node_pointers()) {++_errors; return std::set<PHG4Shower*>();}
   
   if (_strict) {assert(tower);}
   else if (!tower) {++_errors; return std::set<PHG4Shower*>();}
@@ -150,7 +150,7 @@ std::set<PHG4Shower*> CaloRawTowerEval::all_truth_showers(RawTower* tower) {
 
 std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primaries(RawTower* tower) {
 
-  if (!has_node_pointers()) {++_errors; return std::set<PHG4Particle*>();}
+  if (!has_reduced_node_pointers()) {++_errors; return std::set<PHG4Particle*>();}
   
   if (_strict) {assert(tower);}
   else if (!tower) {++_errors; return std::set<PHG4Particle*>();}
@@ -186,7 +186,7 @@ std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primaries(RawTower* tower) {
 
 PHG4Particle* CaloRawTowerEval::max_truth_primary_by_energy(RawTower* tower) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
   
   if (_strict) {assert(tower);}
   else if (!tower) {++_errors; return NULL;}
@@ -229,7 +229,7 @@ PHG4Particle* CaloRawTowerEval::max_truth_primary_by_energy(RawTower* tower) {
 
 std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Particle* primary) { 
 
-  if (!has_node_pointers()) {++_errors; return std::set<RawTower*>();}
+  if (!has_reduced_node_pointers()) {++_errors; return std::set<RawTower*>();}
   
   if (_strict) {assert(primary);}
   else if (!primary) {++_errors; return std::set<RawTower*>();}
@@ -282,7 +282,7 @@ std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Particle* primary) {
 
 RawTower* CaloRawTowerEval::best_tower_from(PHG4Particle* primary) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
   
   if (_strict) {assert(primary);}
   else if (!primary) {++_errors; return NULL;}
@@ -329,7 +329,7 @@ RawTower* CaloRawTowerEval::best_tower_from(PHG4Particle* primary) {
 // overlap calculations
 float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* primary) {
 
-  if (!has_node_pointers()) {++_errors; return NAN;}
+  if (!has_reduced_node_pointers()) {++_errors; return NAN;}
   
   if (_strict) {
     assert(tower);
@@ -390,7 +390,7 @@ void CaloRawTowerEval::get_node_pointers(PHCompositeNode *topNode) {
   return;
 }
 
-bool CaloRawTowerEval::has_node_pointers() {
+bool CaloRawTowerEval::has_full_node_pointers() {
 
   if (_strict) assert(_towers);
   else if (!_towers) return false;
@@ -400,6 +400,17 @@ bool CaloRawTowerEval::has_node_pointers() {
 
   if (_strict) assert(_g4hits);
   else if (!_g4hits) return false; 
+
+  if (_strict) assert(_truthinfo);
+  else if (!_truthinfo) return false;
+
+  return true;
+}
+
+bool CaloRawTowerEval::has_reduced_node_pointers() {
+
+  if (_strict) assert(_towers);
+  else if (!_towers) return false;
 
   if (_strict) assert(_truthinfo);
   else if (!_truthinfo) return false;
