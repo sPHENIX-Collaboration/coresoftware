@@ -70,6 +70,9 @@ public:
   /// which primary shower contributed the most energy to this cluster?
   PHG4Shower* max_truth_primary_shower_by_energy (RawCluster* cluster);
 
+  /// what clusters did this primary truth shower contribute energy to?
+  std::set<RawCluster*> all_clusters_from(PHG4Shower* primary);
+  
   /// which cluster did this primary truth shower contribute the most energy to?
   RawCluster* best_cluster_from(PHG4Shower* primary);
   
@@ -116,7 +119,7 @@ private:
   
   bool                                                 _do_cache;
   std::map<RawCluster*,std::set<PHG4Shower*> >         _cache_all_truth_primary_showers;
-  std::map<RawCluster*,PHG4Shower* >                   _cache_max_truth_primary_showers_by_energy;
+  std::map<RawCluster*,PHG4Shower* >                   _cache_max_truth_primary_shower_by_energy;
   std::map<PHG4Shower*,std::set<RawCluster*> >         _cache_all_clusters_from_primary_shower;
   std::map<PHG4Shower*,RawCluster*>                    _cache_best_cluster_from_primary_shower;
   std::map<std::pair<RawCluster*,PHG4Shower*>,float>   _cache_get_energy_contribution_primary_shower;
