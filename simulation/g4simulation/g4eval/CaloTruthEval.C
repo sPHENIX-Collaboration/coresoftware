@@ -52,7 +52,7 @@ void CaloTruthEval::next_event(PHCompositeNode* topNode) {
   _cache_all_truth_hits_g4shower.clear();
   _cache_all_truth_hits_g4particle.clear();
   _cache_get_primary_particle_g4hit.clear();
-  _cache_get_shower_object_from_primary.clear();
+  _cache_get_shower_hits_from_primary.clear();
   _cache_get_shower_moliere_radius.clear();
 
   _basetrutheval.next_event(topNode);
