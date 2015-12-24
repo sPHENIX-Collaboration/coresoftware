@@ -222,7 +222,7 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary)
 
 PHG4Shower* CaloTruthEval::get_shower_object_from_primary(PHG4Particle* primary) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_compressed_node_pointers()) {++_errors; return NULL;}
 
   if (_strict) {assert(primary);}
   else if (!primary) {++_errors; return NULL;}
@@ -333,7 +333,7 @@ float CaloTruthEval::get_shower_moliere_radius(PHG4Particle* primary) {
 
 float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary) {
 
-  if (!has_node_pointers()) {++_errors; return NAN;}
+  if (!has_compressed_node_pointers()) {++_errors; return NAN;}
   
   if (_strict) {assert(primary);}
   else if (!primary) {++_errors; return NAN;}
@@ -395,6 +395,14 @@ bool CaloTruthEval::has_node_pointers() {
 
   if (_strict) assert(_g4hits);
   if (!_g4hits) return false;
+
+  return true;
+}
+
+bool CaloTruthEval::has_compressed_node_pointers() {
+
+  if (_strict) assert(_truthinfo);
+  else if (!_truthinfo) return false;
 
   return true;
 }
