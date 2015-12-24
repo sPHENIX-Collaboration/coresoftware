@@ -9,6 +9,7 @@
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4Shower.h>
 
 #include <cstdlib>
 #include <set>
@@ -29,8 +30,10 @@ CaloTruthEval::CaloTruthEval(PHCompositeNode* topNode,std::string caloname)
     _errors(0),
     _do_cache(true),
     _cache_all_truth_hits_g4particle(),
+    _cache_all_truth_hits_g4shower(),
     _cache_get_primary_particle_g4hit(),
     _cache_get_shower_from_primary(),
+    _cache_get_shower_object_from_primary(),
     _cache_get_shower_moliere_radius(),
     _cache_get_shower_energy_deposit() {
   get_node_pointers(topNode);
@@ -47,8 +50,10 @@ CaloTruthEval::~CaloTruthEval() {
 void CaloTruthEval::next_event(PHCompositeNode* topNode) {
 
   _cache_all_truth_hits_g4particle.clear();
+  _cache_all_truth_hits_g4shower.clear();
   _cache_get_primary_particle_g4hit.clear();
   _cache_get_shower_from_primary.clear();
+  _cache_get_shower_object_from_primary.clear();
   _cache_get_shower_moliere_radius.clear();
   _cache_get_shower_energy_deposit.clear();
 
@@ -88,6 +93,43 @@ std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Particle* particle) {
   
   return truth_hits;
 }
+ 
+std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Shower* shower) {
+
+  if (!has_node_pointers()) {++_errors; return std::set<PHG4Hit*>();}
+  
+  if (_strict) {assert(shower);}
+  else if (!shower) {++_errors; return std::set<PHG4Hit*>();}
+  
+  if (_do_cache) {
+    std::map<PHG4Shower*,std::set<PHG4Hit*> >::iterator iter =
+      _cache_all_truth_hits_g4shower.find(shower);
+    if (iter != _cache_all_truth_hits_g4shower.end()) {
+      return iter->second;
+    }
+  }
+
+  std::set<PHG4Hit*> truth_hits;
+
+  // loop over all g4hits on the shower
+  PHG4Shower::HitIdIter iter = shower->find_g4hit_id(_g4hits->GetID());
+  if (iter != shower->end_g4hit_id()) return truth_hits;
+
+  for (std::set<PHG4HitDefs::keytype>::iterator jter = iter->second.begin();
+       jter != iter->second.end();
+       ++jter) {
+    PHG4Hit* g4hit = _g4hits->findHit(*jter);
+
+    if (_strict) assert(g4hit);
+    else if (!g4hit) {++_errors;}
+    
+    if (g4hit) truth_hits.insert(g4hit);
+  }
+  
+  if (_do_cache) _cache_all_truth_hits_g4shower.insert(make_pair(shower,truth_hits));
+  
+  return truth_hits;
+}
 
 PHG4Particle* CaloTruthEval::get_parent_particle(PHG4Hit* g4hit) {
   return _basetrutheval.get_particle(g4hit);
@@ -95,6 +137,10 @@ PHG4Particle* CaloTruthEval::get_parent_particle(PHG4Hit* g4hit) {
 
 PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Particle* particle) {
   return _basetrutheval.get_primary(particle);
+}
+
+PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Shower* shower) {
+  return _basetrutheval.get_primary(shower);
 }
 
 PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Hit* g4hit) {
@@ -134,6 +180,10 @@ bool CaloTruthEval::is_primary(PHG4Particle* particle) {
   return _basetrutheval.is_primary(particle);
 }
 
+bool CaloTruthEval::is_primary(PHG4Shower* shower) {
+  return _basetrutheval.is_primary(shower);
+}
+
 std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary) {
 
   if (!has_node_pointers()) {++_errors; return std::set<PHG4Hit*>();}
@@ -158,25 +208,43 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_from_primary(PHG4Particle* primary)
   
   std::set<PHG4Hit*> truth_hits;
 
-  // loop over all the g4hits
-  for (PHG4HitContainer::ConstIterator g4iter = _g4hits->getHits().first;
-       g4iter != _g4hits->getHits().second;
-       ++g4iter) {
+  PHG4Shower* shower = get_shower_object_from_primary(primary);
 
-    PHG4Hit* g4hit = g4iter->second;
-    PHG4Particle* candidate = get_primary_particle(g4hit);
+  if (_strict) {assert(shower);}
+  else if (!shower) {++_errors; return std::set<PHG4Hit*>();}
 
-    if (_strict) {assert(candidate);}
-    else if (!candidate) {++_errors; continue;}
-
-    if (!are_same_particle(candidate,primary)) continue;
-    truth_hits.insert(g4hit);
-  }
+  truth_hits = all_truth_hits(shower);
 
   if (_do_cache) _cache_get_shower_from_primary.insert(make_pair(primary,truth_hits));
   
   return truth_hits;
 }
+
+PHG4Shower* CaloTruthEval::get_shower_object_from_primary(PHG4Particle* primary) {
+
+  if (!has_node_pointers()) {++_errors; return NULL;}
+
+  if (_strict) {assert(primary);}
+  else if (!primary) {++_errors; return NULL;}
+  
+  if (_do_cache) {
+    std::map<PHG4Particle*,PHG4Shower*>::iterator iter =
+      _cache_get_shower_object_from_primary.find(primary);
+    if (iter != _cache_get_shower_object_from_primary.end()) {
+      return iter->second;
+    }
+  }
+  
+  PHG4Shower* shower = _basetrutheval.get_shower_object_from_primary(primary);
+
+  if (_strict) {assert(shower);}
+  else if (!shower) {++_errors; return NULL;}
+  
+  if (_do_cache) _cache_get_shower_object_from_primary.insert(make_pair(primary,shower));
+
+  return shower;
+}
+
 
 // moliere (90% containment) radius of scintilator hits
 // doesn't account for magnetic field bend (photons okay, low pt electrons not so much)
@@ -284,17 +352,14 @@ float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary) {
       return iter->second;
     }
   }
+
+  PHG4Shower* shower = get_shower_object_from_primary(primary);
+
+  if (_strict) {assert(shower);}
+  else if (!shower) {++_errors; return NAN;}
   
-  std::set<PHG4Hit*> g4hits = get_shower_from_primary(primary);
-
-  float shower_e = 0.0;  
-  for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
-       iter != g4hits.end();
-       ++iter) {
-    PHG4Hit* g4hit = (*iter);
-    shower_e += g4hit->get_edep();
-  }
-
+  float shower_e = shower->get_edep(_g4hits->GetID());
+  
   if (_do_cache) _cache_get_shower_energy_deposit.insert(make_pair(primary,shower_e));
   
   return shower_e;
