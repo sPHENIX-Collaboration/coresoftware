@@ -52,6 +52,9 @@ public:
   /// what was the primary particle that is associated with this particle?
   PHG4Particle* get_primary_particle(PHG4Particle* particle);  
 
+  /// what was the primary particle that is associated with this shower?
+  PHG4Particle* get_primary_particle(PHG4Shower* shower);  
+  
   /// which secondary showers are inside this shower?
   std::set<PHG4Shower*> all_secondary_showers(PHG4Shower* shower);
   

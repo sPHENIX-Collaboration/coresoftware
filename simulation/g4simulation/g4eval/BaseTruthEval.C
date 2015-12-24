@@ -156,6 +156,21 @@ PHG4Particle* BaseTruthEval::get_primary_particle(PHG4Particle* particle) {
   return returnval;
 }
 
+PHG4Particle* BaseTruthEval::get_primary_particle(PHG4Shower* shower) {
+
+  if (!has_node_pointers()) {++_errors; return NULL;}
+  
+  if (_strict) {assert(shower);}
+  else if (!shower) {++_errors; return NULL;}
+  
+  PHG4Particle* returnval = _truthinfo->GetPrimaryParticle( shower->get_primary_particle_id() );
+
+  if (_strict) {assert(returnval);}
+  else if (!returnval) {++_errors;}
+  
+  return returnval;
+}
+
 std::set<PHG4Shower*> BaseTruthEval::all_secondary_showers(PHG4Shower* shower) {
 
   if (!has_node_pointers()) {++_errors; return std::set<PHG4Shower*>();}
