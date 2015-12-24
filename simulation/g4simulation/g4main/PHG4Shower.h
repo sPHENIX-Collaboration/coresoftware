@@ -95,6 +95,8 @@ public:
   virtual void           add_g4hit_id(int volume, PHG4HitDefs::keytype id) {}
   virtual HitIdIter      begin_g4hit_id() {return HitIdMap().end();}
   virtual HitIdConstIter begin_g4hit_id() const {return HitIdMap().end();}
+  virtual HitIdIter      find_g4hit_id(int volume) {return HitIdMap().end();}
+  virtual HitIdConstIter find_g4hit_id(int volume) const {return HitIdMap().end();}
   virtual HitIdIter      end_g4hit_id() {return HitIdMap().end();}
   virtual HitIdConstIter end_g4hit_id() const {return HitIdMap().end();}
   virtual size_t         remove_g4hit_id(int volume, PHG4HitDefs::keytype id) {return 0;}
