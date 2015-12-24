@@ -31,6 +31,8 @@ public:
 
   // ---reduced sim node or better---------------------------------------------
 
+  bool has_reduced_node_pointers();
+  
   /// what was the embed flag set for this particle?
   int get_embed(PHG4Particle* particle);
 
@@ -69,6 +71,8 @@ public:
 
   // ---full sim node required--------------------------------------------------
 
+  bool has_full_node_pointers() {return has_reduced_node_pointers();}
+  
   /// which particle left this truth hit?
   PHG4Particle* get_particle(PHG4Hit* g4hit);  
 
@@ -87,7 +91,6 @@ public:
 private:
 
   void get_node_pointers(PHCompositeNode* topNode);
-  bool has_node_pointers();
   
   PHG4TruthInfoContainer* _truthinfo;
 

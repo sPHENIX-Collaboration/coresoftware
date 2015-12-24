@@ -36,7 +36,7 @@ void BaseTruthEval::next_event(PHCompositeNode* topNode) {
 
 int BaseTruthEval::get_embed(PHG4Particle* particle) {
 
-  if (!has_node_pointers()) {++_errors; return 0;}
+  if (!has_reduced_node_pointers()) {++_errors; return 0;}
   
   if (_strict) {assert(particle);}
   else if (!particle) {++_errors; return 0;}
@@ -52,7 +52,7 @@ int BaseTruthEval::get_embed(PHG4Particle* particle) {
 
 PHG4VtxPoint* BaseTruthEval::get_vertex(PHG4Particle* particle) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;} 
+  if (!has_reduced_node_pointers()) {++_errors; return NULL;} 
   
   if (_strict) {assert(particle);}
   else if (!particle) {++_errors; return NULL;}
@@ -66,7 +66,7 @@ PHG4VtxPoint* BaseTruthEval::get_vertex(PHG4Particle* particle) {
 
 bool BaseTruthEval::is_primary(PHG4Shower* shower) {
 
-  if (!has_node_pointers()) {++_errors; return false;}
+  if (!has_reduced_node_pointers()) {++_errors; return false;}
   
   if (_strict) {assert(shower);}
   else if (!shower) {++_errors; return false;}
@@ -81,7 +81,7 @@ bool BaseTruthEval::is_primary(PHG4Shower* shower) {
 
 bool BaseTruthEval::is_primary(PHG4Particle* particle) {
 
-  if (!has_node_pointers()) {++_errors; return false;}
+  if (!has_reduced_node_pointers()) {++_errors; return false;}
   
   if (_strict) {assert(particle);}
   else if (!particle) {++_errors; return false;}
@@ -96,7 +96,7 @@ bool BaseTruthEval::is_primary(PHG4Particle* particle) {
 
 PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Shower* shower) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
   
   if (_strict) {assert(shower);}
   else if (!shower) {++_errors; return NULL;}
@@ -113,7 +113,7 @@ PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Shower* shower) {
 
 PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Particle* particle) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
   
   if (_strict) {assert(particle);}
   else if (!particle) {++_errors; return NULL;}
@@ -141,7 +141,7 @@ PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Particle* particle) {
 
 PHG4Particle* BaseTruthEval::get_primary_particle(PHG4Particle* particle) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
   
   if (_strict) {assert(particle);}
   else if (!particle) {++_errors; return NULL;}
@@ -158,7 +158,7 @@ PHG4Particle* BaseTruthEval::get_primary_particle(PHG4Particle* particle) {
 
 PHG4Particle* BaseTruthEval::get_primary_particle(PHG4Shower* shower) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
   
   if (_strict) {assert(shower);}
   else if (!shower) {++_errors; return NULL;}
@@ -173,7 +173,7 @@ PHG4Particle* BaseTruthEval::get_primary_particle(PHG4Shower* shower) {
 
 std::set<PHG4Shower*> BaseTruthEval::all_secondary_showers(PHG4Shower* shower) {
 
-  if (!has_node_pointers()) {++_errors; return std::set<PHG4Shower*>();}
+  if (!has_reduced_node_pointers()) {++_errors; return std::set<PHG4Shower*>();}
   
   if (_strict) {assert(shower);}
   else if (!shower) {++_errors; return std::set<PHG4Shower*>();}
@@ -201,7 +201,7 @@ std::set<PHG4Shower*> BaseTruthEval::all_secondary_showers(PHG4Shower* shower) {
 
 bool BaseTruthEval::are_same_shower(PHG4Shower* s1, PHG4Shower* s2) {
 
-  if (!has_node_pointers()) {++_errors; return false;}
+  if (!has_reduced_node_pointers()) {++_errors; return false;}
   
   if (_strict) {
     assert(s1);
@@ -217,7 +217,7 @@ bool BaseTruthEval::are_same_shower(PHG4Shower* s1, PHG4Shower* s2) {
 
 bool BaseTruthEval::are_same_particle(PHG4Particle* p1, PHG4Particle* p2) {
 
-  if (!has_node_pointers()) {++_errors; return false;}
+  if (!has_reduced_node_pointers()) {++_errors; return false;}
   
   if (_strict) {
     assert(p1);
@@ -233,7 +233,7 @@ bool BaseTruthEval::are_same_particle(PHG4Particle* p1, PHG4Particle* p2) {
 
 bool BaseTruthEval::are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2) {
 
-  if (!has_node_pointers()) {++_errors; return false;}
+  if (!has_reduced_node_pointers()) {++_errors; return false;}
   
   if (_strict) {
     assert(vtx1);
@@ -249,7 +249,7 @@ bool BaseTruthEval::are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2) {
 
 PHG4Particle* BaseTruthEval::get_particle(PHG4Hit* g4hit) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
   
   if (_strict) {assert(g4hit);}
   else if (!g4hit) {++_errors; return NULL;}
@@ -263,7 +263,7 @@ PHG4Particle* BaseTruthEval::get_particle(PHG4Hit* g4hit) {
 
 PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Hit* g4hit) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
   
   if (_strict) {assert(g4hit);}
   else if (!g4hit) {++_errors; return NULL;}
@@ -277,7 +277,7 @@ PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Hit* g4hit) {
 
 PHG4Particle* BaseTruthEval::get_primary_particle(PHG4Hit* g4hit) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
   
   if (_strict) {assert(g4hit);}
   else if (!g4hit) {++_errors; return NULL;}
@@ -293,7 +293,7 @@ PHG4Particle* BaseTruthEval::get_primary_particle(PHG4Hit* g4hit) {
 
 bool BaseTruthEval::is_g4hit_from_primary_shower(PHG4Hit* g4hit, PHG4Shower* shower) {
 
-  if (!has_node_pointers()) {++_errors; return false;}
+  if (!has_reduced_node_pointers()) {++_errors; return false;}
    
   if (_strict) {
     assert(g4hit);
@@ -312,7 +312,7 @@ bool BaseTruthEval::is_g4hit_from_primary_shower(PHG4Hit* g4hit, PHG4Shower* sho
 
 bool BaseTruthEval::is_g4hit_from_particle(PHG4Hit* g4hit, PHG4Particle* particle) {
 
-  if (!has_node_pointers()) {++_errors; return false;}
+  if (!has_reduced_node_pointers()) {++_errors; return false;}
    
   if (_strict) {
     assert(g4hit);
@@ -329,8 +329,6 @@ bool BaseTruthEval::is_g4hit_from_particle(PHG4Hit* g4hit, PHG4Particle* particl
   return false;
 }
 
-
-
 void BaseTruthEval::get_node_pointers(PHCompositeNode* topNode) {
 
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
@@ -342,7 +340,7 @@ void BaseTruthEval::get_node_pointers(PHCompositeNode* topNode) {
   return;
 }
 
-bool BaseTruthEval::has_node_pointers() {
+bool BaseTruthEval::has_reduced_node_pointers() {
 
   if (_strict) assert(_truthinfo);
   else if (!_truthinfo) return false;

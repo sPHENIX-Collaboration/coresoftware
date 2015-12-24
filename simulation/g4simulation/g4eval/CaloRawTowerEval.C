@@ -79,6 +79,8 @@ void CaloRawTowerEval::next_event(PHCompositeNode* topNode) {
 
 bool CaloRawTowerEval::has_reduced_node_pointers() {
 
+  if (!get_truth_eval()->has_reduced_node_pointers()) return false;
+  
   if (_strict) assert(_towers);
   else if (!_towers) return false;
 
@@ -466,6 +468,8 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
 
 bool CaloRawTowerEval::has_full_node_pointers() {
 
+  if (!get_truth_eval()->has_full_node_pointers()) return false;
+  
   if (_strict) assert(_towers);
   else if (!_towers) return false;
 

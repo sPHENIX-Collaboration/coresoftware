@@ -62,6 +62,8 @@ void CaloTruthEval::next_event(PHCompositeNode* topNode) {
 
 bool CaloTruthEval::has_reduced_node_pointers() {
 
+  if (!_basetrutheval.has_reduced_node_pointers()) return false;
+  
   if (_strict) assert(_truthinfo);
   else if (!_truthinfo) return false;
 
@@ -148,6 +150,8 @@ float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary) {
 
 bool CaloTruthEval::has_full_node_pointers() {
 
+  if (!_basetrutheval.has_full_node_pointers()) return false;
+  
   if (_strict) assert(_truthinfo);
   else if (!_truthinfo) return false;
 
