@@ -367,8 +367,6 @@ std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primary_particles(RawClust
   return truth_primary_particles;
 }
 
-//*****************************
-
 PHG4Particle* CaloRawClusterEval::max_truth_primary_particle_by_energy(RawCluster* cluster) {
 
   if (!has_reduced_node_pointers()) {++_errors; return NULL;}
@@ -400,7 +398,7 @@ PHG4Particle* CaloRawClusterEval::max_truth_primary_particle_by_energy(RawCluste
 
 std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primary) { 
 
-  if (!has_node_pointers()) {++_errors; return std::set<RawCluster*>();}
+  if (!has_reduced_node_pointers()) {++_errors; return std::set<RawCluster*>();}
   
   if (_strict) {assert(primary);}
   else if (!primary) {++_errors; return std::set<RawCluster*>();}
@@ -421,34 +419,17 @@ std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primar
   }
   
   std::set<RawCluster*> clusters;
+
+  PHG4Shower* shower = get_truth_eval()->get_primary_shower(primary);
+
+  if (shower) clusters = all_clusters_from(shower);
   
-  // loop over all the clusters
-  for (RawClusterContainer::Iterator iter = _clusters->getClusters().first;
-       iter != _clusters->getClusters().second;
-       ++iter) {
-
-    RawCluster* cluster = iter->second;
-
-    // loop over all truth particles connected to this cluster
-    std::set<PHG4Particle*> primary_particles = all_truth_primary_particles(cluster);
-    for (std::set<PHG4Particle*>::iterator jter = primary_particles.begin();
-	 jter != primary_particles.end();
-	 ++jter) {
-      PHG4Particle* candidate = *jter;
-
-      if (_strict) {assert(candidate);}
-      else if (!candidate) {++_errors; continue;}
-
-      if (get_truth_eval()->are_same_particle(candidate,primary)) {
-	clusters.insert(cluster);
-      }    
-    }
-  }
-
   if (_do_cache) _cache_all_clusters_from_primary_particle.insert(make_pair(primary,clusters));
   
   return clusters;
 }
+
+//*****************************
 
 RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Particle* primary) {
 
