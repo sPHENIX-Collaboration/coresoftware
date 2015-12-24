@@ -18,7 +18,7 @@ class RawTower : public PHObject {
   typedef std::pair<CellIterator, CellIterator> CellRange;
   typedef std::pair<CellConstIterator, CellConstIterator> CellConstRange;
 
-  typedef std::map<unsigned int, float> ShowerMap;
+  typedef std::map<int, float> ShowerMap;
   typedef ShowerMap::iterator ShowerIterator;
   typedef ShowerMap::const_iterator ShowerConstIterator;
   typedef std::pair<ShowerIterator, ShowerIterator> ShowerRange;
@@ -56,7 +56,9 @@ class RawTower : public PHObject {
     PHOOL_VIRTUAL_WARN("get_g4cells()");
     CellMap dummy;
     return make_pair(dummy.begin(), dummy.end());
-  }  
+  }
+  virtual CellIterator find_g4cell(PHG4CylinderCellDefs::keytype id) {return CellMap().end();}
+  virtual CellConstIterator find_g4cell(PHG4CylinderCellDefs::keytype id) const {return CellMap().end();}
   virtual void add_ecell(const PHG4CylinderCellDefs::keytype  g4cellid, const float ecell) {PHOOL_VIRTUAL_WARN("add_ecell(const PHG4CylinderCellDefs::keytype g4cellid, const float ecell)"); return;}
   virtual void clear_g4cells() {}
 
@@ -67,8 +69,10 @@ class RawTower : public PHObject {
     PHOOL_VIRTUAL_WARN("get_g4showers()");
     ShowerMap dummy;
     return make_pair(dummy.begin(), dummy.end());
-  }  
-  virtual void add_eshower(const unsigned int g4showerid, const float eshower) {PHOOL_VIRTUAL_WARN("add_eshower(const unsigned int g4showerid, const float eshower)"); return;}
+  }
+  virtual ShowerIterator find_g4shower(int id) {return ShowerMap().end();}
+  virtual ShowerConstIterator find_g4shower(int id) const {return ShowerMap().end();}
+  virtual void add_eshower(const int g4showerid, const float eshower) {PHOOL_VIRTUAL_WARN("add_eshower(const unsigned int g4showerid, const float eshower)"); return;}
   virtual void clear_g4showers() {}
   
  protected:
