@@ -371,7 +371,7 @@ std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primary_particles(RawClust
 
 PHG4Particle* CaloRawClusterEval::max_truth_primary_particle_by_energy(RawCluster* cluster) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
   
   if (_strict) {assert(cluster);}
   else if (!cluster) {++_errors; return NULL;}
@@ -383,33 +383,20 @@ PHG4Particle* CaloRawClusterEval::max_truth_primary_particle_by_energy(RawCluste
       return iter->second;
     }
   }
-  
-  // loop over all primaries associated with this cluster and
-  // get the energy contribution for each one, record the max
+
   PHG4Particle* max_primary = NULL;
-  float max_e = FLT_MAX*-1.0;
-  std::set<PHG4Particle*> primary_particles = all_truth_primary_particles(cluster);
-  for (std::set<PHG4Particle*>::iterator iter = primary_particles.begin();
-       iter != primary_particles.end();
-       ++iter) {
+  PHG4Shower* max_shower = max_truth_primary_shower_by_energy(cluster);
 
-    PHG4Particle* primary = *iter;
-
-    if (_strict) {assert(primary);}
-    else if (!primary) {++_errors; continue;}
-    
-    float e = get_energy_contribution(cluster,primary);
-    if (isnan(e)) continue;
-    if (e > max_e) {
-      max_e = e;
-      max_primary = primary;      
-    }
+  if (max_shower) {
+    max_primary = get_truth_eval()->get_primary_particle(max_shower);
   }
-
+  
   if (_do_cache) _cache_max_truth_primary_particle_by_energy.insert(make_pair(cluster,max_primary));
   
   return max_primary;
 }
+
+//*****************************
 
 std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primary) { 
 
