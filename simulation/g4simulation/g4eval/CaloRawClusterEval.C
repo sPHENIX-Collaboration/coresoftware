@@ -327,11 +327,9 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Showe
   return energy;
 }
 
-///****************************
-
 std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primary_particles(RawCluster* cluster) {
 
-  if (!has_node_pointers()) {++_errors; return std::set<PHG4Particle*>();}
+  if (!has_reduced_node_pointers()) {++_errors; return std::set<PHG4Particle*>();}
   
   if (_strict) {assert(cluster);}
   else if (!cluster) {++_errors; return std::set<PHG4Particle*>();}
@@ -345,36 +343,31 @@ std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primary_particles(RawClust
   }
   
   std::set<PHG4Particle*> truth_primary_particles;
+
+  std::set<PHG4Shower*> primary_showers = all_truth_primary_showers(cluster);
   
-  // loop over all the clustered towers
-  RawCluster::TowerConstRange begin_end = cluster->get_towers();
-  for (RawCluster::TowerConstIterator iter = begin_end.first;
-       iter != begin_end.second;
+  for (std::set<PHG4Shower*>::iterator iter = primary_showers.begin();
+       iter != primary_showers.end();
        ++iter) {
+    PHG4Shower* shower = *iter;
+
+    if (_strict) assert(shower);
+    else if (!shower) {++_errors; continue;}
     
-    RawTower* tower = _towers->getTower(iter->first);
+    PHG4Particle* particle = get_truth_eval()->get_primary_particle(shower);
 
-    if (_strict) {assert(tower);}
-    else if (!tower) {++_errors; continue;}
-        
-    std::set<PHG4Particle*> new_primary_particles = _towereval.all_truth_primary_particles(tower);
+    if (_strict) assert(particle);
+    else if (!particle) {++_errors; continue;}
 
-    for (std::set<PHG4Particle*>::iterator iter = new_primary_particles.begin();
-	 iter != new_primary_particles.end();
-	 ++iter) {
-      PHG4Particle* particle = *iter;
-
-      if (_strict) {assert(particle);}
-      else if (!particle) {++_errors; continue;}
-      
-      truth_primary_particles.insert(particle);
-    }
+    truth_primary_particles.insert(particle);
   }
-
+  
   if (_do_cache) _cache_all_truth_primary_particles.insert(make_pair(cluster,truth_primary_particles));
   
   return truth_primary_particles;
 }
+
+//*****************************
 
 PHG4Particle* CaloRawClusterEval::max_truth_primary_particle_by_energy(RawCluster* cluster) {
 
