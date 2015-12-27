@@ -91,7 +91,7 @@ public:
   /// get a copy of the lower level eval and its memory cache
   CaloEvalStack* get_fhcal_eval_stack() {return &_fhcalevalstack;}
   
-  // --- reduced sim node or better---------------------------------------------
+  // ---reduced sim node or better----------------------------------------------
 
   /// which truth jet in the specified node contains this truth particle?
   Jet* get_truth_jet(PHG4Particle* truthparticle);

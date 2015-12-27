@@ -24,51 +24,83 @@ class JetRecoEval {
 
 public:
 
+  /// example recojetname:  AntiKt_Tower_r03
+  /// example truthjetname: AntiKt_Truth_r03
   JetRecoEval(PHCompositeNode *topNode,
 	      std::string recojetname,
 	      std::string truthjetname);
   virtual ~JetRecoEval();
 
+  /// reinitialize the eval for a new event
   void next_event(PHCompositeNode *topNode);
+
+  /// activate or deactivate the memory caching inside the evaluation module
   void do_caching(bool do_cache) {
     _do_cache = do_cache;
     _jettrutheval.do_caching(do_cache);
   }
+
+  /// strict mode will assert when an error is detected
+  /// non-strict mode will notice and report at the End()
   void set_strict(bool strict) {
     _strict = strict;
     _jettrutheval.set_strict(strict);
   }
+
+  /// get a count of the errors discovered thus far
+  unsigned int get_errors() {return _errors + _jettrutheval.get_errors();}
+  
+  /// adjust the messaging from the evalutaion module
   void set_verbosity(int verbosity) {
     _verbosity = verbosity;
     _jettrutheval.set_verbosity(verbosity);
   }
-  
+
+  /// get a copy of the lower level eval and its memory cache
   JetTruthEval*     get_truth_eval()         {return &_jettrutheval;}
+
+  /// get a copy of the lower level eval and its memory cache
   SvtxEvalStack*    get_svtx_eval_stack()    {return _jettrutheval.get_svtx_eval_stack();}
+
+  /// get a copy of the lower level eval and its memory cache
   CaloEvalStack*    get_cemc_eval_stack()    {return _jettrutheval.get_cemc_eval_stack();}
+
+  /// get a copy of the lower level eval and its memory cache
   CaloEvalStack*    get_hcalin_eval_stack()  {return _jettrutheval.get_hcalin_eval_stack();}
+
+  /// get a copy of the lower level eval and its memory cache
   CaloEvalStack*    get_hcalout_eval_stack() {return _jettrutheval.get_hcalout_eval_stack();}
+
+  /// get a copy of the lower level eval and its memory cache
   CaloEvalStack*    get_femc_eval_stack()    {return _jettrutheval.get_femc_eval_stack();}
+
+  /// get a copy of the lower level eval and its memory cache
   CaloEvalStack*    get_fhcal_eval_stack()   {return _jettrutheval.get_fhcal_eval_stack();}
 
-  // backtrace through to PHG4Hits
-  std::set<PHG4Hit*> all_truth_hits (Jet* recojet);
+  // ---reduced sim node or better----------------------------------------------
 
-  // backtrace through to truth particles
+  /// what truth particles contributed to this reconstructed jet?
   std::set<PHG4Particle*> all_truth_particles (Jet* recojet);
   
-  // backtrace through to truth jets
+  /// what truth jets contributed to this reconstructed jet?
   std::set<Jet*> all_truth_jets          (Jet* recojet);
+
+  /// which truth jet contributed the most energy to this reconstructed jet?
   Jet*           max_truth_jet_by_energy (Jet* recojet);
   
-  // forwardtrace through to Reco Jets
+  /// what reconstructed jets had constributions from this truth jet?
   std::set<Jet*> all_jets_from(Jet* truthjet);
+
+  /// which reconstructed jet had the largest energy constribution from this truth jet?
   Jet*           best_jet_from(Jet* truthjet);
   
-  // overlap calculations (to reco from truth)
+  /// what was the energy contribution to this reconstructed jet from this truth jet?
   float get_energy_contribution (Jet* recojet, Jet* truthjet);
 
-  unsigned int get_errors() {return _errors + _jettrutheval.get_errors();}
+  // ---full sim node required--------------------------------------------------
+  
+  /// which truth hits contributed to this reconstructed jet?
+  std::set<PHG4Hit*> all_truth_hits (Jet* recojet);
   
 private:
 
