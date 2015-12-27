@@ -8,6 +8,7 @@
 #include <phool/PHCompositeNode.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
+#include <g4main/PHG4Shower.h>
 #include <g4main/PHG4Hit.h>
 #include <g4jets/JetMap.h>
 #include <g4jets/Jet.h>
@@ -58,12 +59,13 @@ public:
   CaloEvalStack* get_hcalout_eval_stack() {return &_hcaloutevalstack;}
   CaloEvalStack* get_femc_eval_stack() {return &_femcevalstack;}
   CaloEvalStack* get_fhcal_eval_stack() {return &_fhcalevalstack;}
-  
+
   std::set<PHG4Particle*> all_truth_particles(Jet* truthjet);
+  std::set<PHG4Shower*>   all_truth_showers(Jet* truthjet);  
   std::set<PHG4Hit*>      all_truth_hits(Jet* truthjet);
-
+  
   Jet* get_truth_jet(PHG4Particle* truthparticle);
-
+  
   unsigned int get_errors() {
     return _errors
       + _svtxevalstack.get_errors()
@@ -95,6 +97,7 @@ private:
   
   bool                                    _do_cache;
   std::map<Jet*,std::set<PHG4Particle*> > _cache_all_truth_particles;
+  std::map<Jet*,std::set<PHG4Shower*> >   _cache_all_truth_showers;
   std::map<Jet*,std::set<PHG4Hit*> >      _cache_all_truth_hits;
   std::map<PHG4Particle*,Jet*>            _cache_get_truth_jet;  
 };
