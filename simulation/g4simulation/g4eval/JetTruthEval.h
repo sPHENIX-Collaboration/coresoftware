@@ -20,11 +20,15 @@ class JetTruthEval {
 
 public:
 
+  /// example truthjetname: AntiKt_Truth_r03
   JetTruthEval(PHCompositeNode* topNode,
 	       std::string truthjetname);
   virtual ~JetTruthEval();
 
+  /// reinitialize the eval for a new event
   void next_event(PHCompositeNode* topNode);
+
+  /// activate or deactivate the memory caching inside the evaluation module
   void do_caching(bool do_cache) {
     _do_cache = do_cache;
     _svtxevalstack.do_caching(do_cache);
@@ -34,6 +38,9 @@ public:
     _femcevalstack.do_caching(do_cache);
     _fhcalevalstack.do_caching(do_cache);
   }
+
+  /// strict mode will assert when an error is detected
+  /// non-strict mode will notice and report at the End()
   void set_strict(bool strict) {
     _strict = strict;
     _svtxevalstack.set_strict(strict);
@@ -42,30 +49,9 @@ public:
     _hcaloutevalstack.set_strict(strict); 
     _femcevalstack.set_strict(strict); 
     _fhcalevalstack.set_strict(strict); 
-  }  
-  void set_verbosity(int verbosity) {
-    _verbosity = verbosity;
-    _svtxevalstack.set_verbosity(verbosity);
-    _cemcevalstack.set_verbosity(verbosity);
-    _hcalinevalstack.set_verbosity(verbosity);
-    _hcaloutevalstack.set_verbosity(verbosity); 
-    _femcevalstack.set_verbosity(verbosity); 
-    _fhcalevalstack.set_verbosity(verbosity); 
   }
-  
-  SvtxEvalStack* get_svtx_eval_stack() {return &_svtxevalstack;}
-  CaloEvalStack* get_cemc_eval_stack() {return &_cemcevalstack;}
-  CaloEvalStack* get_hcalin_eval_stack() {return &_hcalinevalstack;}
-  CaloEvalStack* get_hcalout_eval_stack() {return &_hcaloutevalstack;}
-  CaloEvalStack* get_femc_eval_stack() {return &_femcevalstack;}
-  CaloEvalStack* get_fhcal_eval_stack() {return &_fhcalevalstack;}
 
-  std::set<PHG4Particle*> all_truth_particles(Jet* truthjet);
-  std::set<PHG4Shower*>   all_truth_showers(Jet* truthjet);  
-  std::set<PHG4Hit*>      all_truth_hits(Jet* truthjet);
-  
-  Jet* get_truth_jet(PHG4Particle* truthparticle);
-  
+  /// get a count of the errors discovered thus far
   unsigned int get_errors() {
     return _errors
       + _svtxevalstack.get_errors()
@@ -75,7 +61,52 @@ public:
       + _femcevalstack.get_errors()
       + _fhcalevalstack.get_errors();
   }
+
+  /// adjust the messaging from the evalutaion module
+  void set_verbosity(int verbosity) {
+    _verbosity = verbosity;
+    _svtxevalstack.set_verbosity(verbosity);
+    _cemcevalstack.set_verbosity(verbosity);
+    _hcalinevalstack.set_verbosity(verbosity);
+    _hcaloutevalstack.set_verbosity(verbosity); 
+    _femcevalstack.set_verbosity(verbosity); 
+    _fhcalevalstack.set_verbosity(verbosity); 
+  }
+
+  /// get a copy of the lower level eval and its memory cache
+  SvtxEvalStack* get_svtx_eval_stack() {return &_svtxevalstack;}
+
+  /// get a copy of the lower level eval and its memory cache
+  CaloEvalStack* get_cemc_eval_stack() {return &_cemcevalstack;}
+
+  /// get a copy of the lower level eval and its memory cache
+  CaloEvalStack* get_hcalin_eval_stack() {return &_hcalinevalstack;}
+
+  /// get a copy of the lower level eval and its memory cache
+  CaloEvalStack* get_hcalout_eval_stack() {return &_hcaloutevalstack;}
+
+  /// get a copy of the lower level eval and its memory cache
+  CaloEvalStack* get_femc_eval_stack() {return &_femcevalstack;}
+
+  /// get a copy of the lower level eval and its memory cache
+  CaloEvalStack* get_fhcal_eval_stack() {return &_fhcalevalstack;}
   
+  // --- reduced sim node or better---------------------------------------------
+
+  /// which truth jet in the specified node contains this truth particle?
+  Jet* get_truth_jet(PHG4Particle* truthparticle);
+  
+  /// which truth particle contributed to this truth jet?
+  std::set<PHG4Particle*> all_truth_particles(Jet* truthjet);
+
+  /// which showers were left by particles contributing to this truth jet?
+  std::set<PHG4Shower*>   all_truth_showers(Jet* truthjet);  
+
+  // ---full sim node required--------------------------------------------------
+  
+  /// which truth hits were left by particles contributing to this truth jet?
+  std::set<PHG4Hit*>      all_truth_hits(Jet* truthjet);
+   
 private:
 
   void get_node_pointers(PHCompositeNode* topNode);
