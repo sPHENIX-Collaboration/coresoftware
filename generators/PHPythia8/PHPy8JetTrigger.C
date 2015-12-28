@@ -1,4 +1,4 @@
-#include "PHPy8FwdJetTrigger.h"
+#include "PHPy8JetTrigger.h"
 
 #include <Pythia8/Pythia.h>
 
@@ -11,7 +11,7 @@
 using namespace std;
 
 //__________________________________________________________
-PHPy8FwdJetTrigger::PHPy8FwdJetTrigger(const std::string &name):
+PHPy8JetTrigger::PHPy8JetTrigger(const std::string &name):
   PHPy8GenTrigger(name) {
   
   _verbosity = 0;
@@ -25,14 +25,14 @@ PHPy8FwdJetTrigger::PHPy8FwdJetTrigger(const std::string &name):
  
 }
 
-PHPy8FwdJetTrigger::~PHPy8FwdJetTrigger() {
+PHPy8JetTrigger::~PHPy8JetTrigger() {
   if (_verbosity > 0) PrintConfig();
 }
 
-bool PHPy8FwdJetTrigger::Apply(Pythia8::Pythia *pythia) {
+bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia) {
 
   if (_verbosity > 2) {
-    cout << "PHPy8FwdJetTrigger::Apply - pythia event size: "
+    cout << "PHPy8JetTrigger::Apply - pythia event size: "
   	 << pythia->event.size() << endl;
   }
   
@@ -85,21 +85,21 @@ bool PHPy8FwdJetTrigger::Apply(Pythia8::Pythia *pythia) {
   return jetFound;
 }
   
-void PHPy8FwdJetTrigger::SetEtaHighLow(double etaHigh, double etaLow) {
+void PHPy8JetTrigger::SetEtaHighLow(double etaHigh, double etaLow) {
   _theEtaHigh = etaHigh;
   _theEtaLow = etaLow;
 }
 
-void PHPy8FwdJetTrigger::SetMinJetPt(double minPt) {
+void PHPy8JetTrigger::SetMinJetPt(double minPt) {
   _minPt = minPt; 
 }
 
-void PHPy8FwdJetTrigger::SetJetR(double R) {
+void PHPy8JetTrigger::SetJetR(double R) {
   _R = R; 
 }
 
-void PHPy8FwdJetTrigger::PrintConfig() {
-  cout << "---------------- PHPy8FwdJetTrigger::PrintConfig --------------------" << endl;
+void PHPy8JetTrigger::PrintConfig() {
+  cout << "---------------- PHPy8JetTrigger::PrintConfig --------------------" << endl;
 
   cout << "   Particles EtaCut:  " << _theEtaLow << " < eta < " << _theEtaHigh << endl; 
   cout << "   Minimum Jet pT: " << _minPt << " GeV/c" << endl; 

@@ -1,5 +1,5 @@
-#ifndef __PHPY8FWDJETTRIGGER_H__
-#define __PHPY8FWDJETTRIGGER_H__
+#ifndef __PHPY8JETTRIGGER_H__
+#define __PHPY8JETTRIGGER_H__
 
 #include "PHPy8GenTrigger.h"
 #include <string>
@@ -8,12 +8,12 @@ namespace Pythia8 {
   class Pythia;
 };
 
-class PHPy8FwdJetTrigger : public PHPy8GenTrigger {
+class PHPy8JetTrigger : public PHPy8GenTrigger {
 
  public:
 
-  PHPy8FwdJetTrigger(const std::string &name = "PHPy8FwdJetTrigger");
-  virtual ~PHPy8FwdJetTrigger();
+  PHPy8JetTrigger(const std::string &name = "PHPy8JetTrigger");
+  virtual ~PHPy8JetTrigger();
 
   #ifndef __CINT__
   bool Apply(Pythia8::Pythia *pythia);
