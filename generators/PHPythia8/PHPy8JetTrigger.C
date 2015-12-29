@@ -7,6 +7,7 @@
 #include <fastjet/PseudoJet.hh>
 #include <fastjet/ClusterSequence.hh>
 #include <fastjet/SISConePlugin.hh>
+#include <cassert>
 
 using namespace std;
 
@@ -75,19 +76,36 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia) {
   delete jetdef;
 
   bool jetFound = false; 
+  double max_pt = -1;
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet) {
-    if( sqrt(pow(fastjets[ijet].px(),2) + pow(fastjets[ijet].py(),2)) > _minPt){
+
+      const double pt =  sqrt(pow(fastjets[ijet].px(),2) + pow(fastjets[ijet].py(),2));
+
+      if (pt > max_pt) max_pt = pt;
+
+    if(pt > _minPt){
       jetFound = true; 
       break; 
     }
+  }
+
+  if (_verbosity > 2) {
+    cout << "PHPy8JetTrigger::Apply - max_pt = "<<max_pt<<", and jetFound = "<<jetFound<<endl;
   }
 
   return jetFound;
 }
   
 void PHPy8JetTrigger::SetEtaHighLow(double etaHigh, double etaLow) {
+
   _theEtaHigh = etaHigh;
   _theEtaLow = etaLow;
+
+  if (_theEtaHigh<_theEtaLow)
+    {
+      swap(_theEtaHigh, _theEtaLow);
+    }
+
 }
 
 void PHPy8JetTrigger::SetMinJetPt(double minPt) {
