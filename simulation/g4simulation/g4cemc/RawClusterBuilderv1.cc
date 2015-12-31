@@ -122,7 +122,7 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
   std::vector<EmcCluster> *ClusterList = bemc->GetClusters();
   std::vector<EmcCluster>::iterator pc;
 
-  float ecl, e9, ecore, xcg, ycg, xx, xy, yy;
+  float ecl, xcg, ycg, xx, xy, yy;
   int npk;
   EmcPeakarea pPList[MaxNofPeaks];
   EmcPeakarea *pp;
@@ -154,9 +154,9 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
       // Cluster energy
       ecl = pp->GetTotalEnergy();
       // 3x3 energy around center of gravity
-      e9 = pp->GetE9();
+      //e9 = pp->GetE9();
       // Ecore (basically near 2x2 energy around center of gravity)
-      ecore = pp->GetECore();
+      //ecore = pp->GetECore();
       // Center of Gravity etc.
       pp->GetMoments( &xcg, &ycg, &xx, &xy, &yy );
       // Tower with max energy

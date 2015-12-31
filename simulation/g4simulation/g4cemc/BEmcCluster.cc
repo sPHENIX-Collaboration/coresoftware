@@ -945,7 +945,7 @@ float EmcPeakarea::GetChi2()
 // Returns Hi2 after its minimization fluctuating CG position 
 // (i.e. after shower profile fit)
 {
-    float chi, chi0, chicorr;
+    float chi, chi0;
     float e1, x1, y1, e2, x2, y2;
     int nh;
     EmcModule *phit, *vv;
@@ -966,8 +966,6 @@ float EmcPeakarea::GetChi2()
     int ndf; // Gamma parameter list changed MV 28.01.00
     fOwner->Gamma(nh, phit, &chi, &chi0, &e1, &x1, &y1, &e2, &x2, &y2, ndf);
     fNdf=ndf;
-    chicorr = fOwner->Chi2Correct(chi0, ndf); // nh->ndf MV 28.01.00
-
     delete [] phit;
     return chi0;
 }
@@ -1160,7 +1158,7 @@ int EmcPeakarea::GetGammas( EmcEmshower* ShList)
   // in Chi2Limit(Number_of_Hits) function, 1-photon hypothesis is 
   // accepted, otherwise the 2-shower hypothesis is checked
   
-  float chi, chi0, e1, x1, y1, e2, x2, y2, chicorr;
+  float chi, chi0, e1, x1, y1, e2, x2, y2;
   int nh, ig;
   EmcModule *phit, *vv;
   EmcEmshower sh1(fOwner), sh2(fOwner);
@@ -1181,7 +1179,6 @@ int EmcPeakarea::GetGammas( EmcEmshower* ShList)
                              // beforehand
   int ndf; // Gamma parameter list changed MV 28.01.00
   fOwner->Gamma(nh, phit, &chi, &chi0, &e1, &x1, &y1, &e2, &x2, &y2, ndf);
-  chicorr = fOwner->Chi2Correct(chi, ndf); // nh->ndf MV 28.01.00
   if(e1>0)
     sh1.ReInitialize(e1, x1*fOwner->GetModSizex(), y1*fOwner->GetModSizey(),
 		     chi, ndf);

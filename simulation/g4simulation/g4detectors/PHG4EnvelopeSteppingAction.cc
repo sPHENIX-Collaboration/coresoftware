@@ -32,7 +32,6 @@ using namespace std;
 
 //______________________________________________________________
 PHG4EnvelopeSteppingAction::PHG4EnvelopeSteppingAction( PHG4EnvelopeDetector* detector ):
-  PHG4SteppingAction(NULL),
   detector_( detector ),
   hits_(NULL),
   hit(NULL)

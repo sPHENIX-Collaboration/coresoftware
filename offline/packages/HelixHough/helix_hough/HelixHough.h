@@ -1,10 +1,6 @@
 #ifndef __HELIX_HOUGH_H__
 #define __HELIX_HOUGH_H__
 
-#include <cmath>
-#include <vector>
-#include <set>
-#include <map>
 #include "fastvec.h"
 #include "HelixRange.h"
 #include "HelixResolution.h"
@@ -13,6 +9,10 @@
 #include "HelixKalmanState.h"
 #include <xmmintrin.h>
 #include <emmintrin.h>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
 
 #ifndef M_PI
 #define M_PI           3.14159265358979323846
@@ -120,7 +120,7 @@ class HelixHough
   public:
     HelixHough(unsigned int n_phi, unsigned int n_d, unsigned int n_k, unsigned int n_dzdl, unsigned int n_z0, HelixResolution& min_resolution, HelixResolution& max_resolution, HelixRange& range);
     HelixHough(std::vector<std::vector<unsigned int> >& zoom_profile, unsigned int minzoom, HelixRange& range);
-    ~HelixHough();
+    virtual ~HelixHough();
     
     void initHelixHough(unsigned int n_phi, unsigned int n_d, unsigned int n_k, unsigned int n_dzdl, unsigned int n_z0, HelixResolution& min_resolution, HelixResolution& max_resolution, HelixRange& range);
     

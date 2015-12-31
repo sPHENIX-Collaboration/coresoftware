@@ -202,7 +202,7 @@ class sPHENIXTracker : public HelixHough
 public:
   sPHENIXTracker(unsigned int n_phi, unsigned int n_d, unsigned int n_k, unsigned int n_dzdl, unsigned int n_z0, HelixResolution& min_resolution, HelixResolution& max_resolution, HelixRange& range, std::vector<float>& material, std::vector<float>& radius, float Bfield);
   sPHENIXTracker(std::vector<std::vector<unsigned int> >& zoom_profile, unsigned int minzoom, HelixRange& range, std::vector<float>& material, std::vector<float>& radius, float Bfield, bool parallel=false, unsigned int num_threads=1);
-  ~sPHENIXTracker();
+  virtual ~sPHENIXTracker();
 
   void finalize(std::vector<SimpleTrack3D>& input, std::vector<SimpleTrack3D>& output);
   void findTracks(std::vector<SimpleHit3D>& hits, std::vector<SimpleTrack3D>& tracks, const HelixRange& range);

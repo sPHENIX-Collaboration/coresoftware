@@ -188,12 +188,15 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
     double phistepsize = phistep[*layer];
     for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
     {
-      double xinout;double yinout;double px;double py;double phi;double z;int phibin;int zbin;
+      double xinout;
+      double yinout;
+      double phi;
+      double z;
+      int phibin;
+      int zbin;
       xinout = hiter->second->get_x(0);
       yinout = hiter->second->get_y(0);
       double r = sqrt( xinout*xinout + yinout*yinout );
-      px = hiter->second->get_px(0);
-      py = hiter->second->get_py(0);
       phi = atan2(hiter->second->get_y(0), hiter->second->get_x(0));
       z =  hiter->second->get_z(0);
       phibin = geo->get_phibin( phi );

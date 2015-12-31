@@ -4,7 +4,7 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
    `geant4-config --libs-without-gui` \
-  -lHepMC -lhijing -lhijing_dummy -lfastjet -lCGAL -lgfortran
+  -lHepMC -lhijing -lhijing_dummy -lfastjet -lCGAL -lgfortran -lpthread
 
 INCLUDES = \
   -I$(includedir) \
