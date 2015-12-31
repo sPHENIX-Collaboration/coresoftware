@@ -88,10 +88,14 @@ public:
   /// is this a primary particle?
   bool               is_primary(PHG4Particle* particle);
 
-  /// how much energy did this primary and its shower deposit in the calo volume
+  /// how much energy did this primary and its shower deposit in the calo volume?
   float              get_shower_energy_deposit(PHG4Particle* primary);
 
-  //float            get_shower_eh_ratio(PHG4Particle* primary); // \todo need to add e/h to shower
+  /// what was the moliere radius of truth hits from this particle inside the calo volume?
+  float              get_shower_moliere_radius(PHG4Particle* primary);
+
+  /// what was the electron/hadron radio of energy deposits inside the calo colume?
+  float              get_shower_eh_ratio(PHG4Particle* primary);
   
   // ---full sim node required--------------------------------------------------
 
@@ -116,9 +120,6 @@ public:
   /// what truth hits are the result of this primary particle and its shower
   std::set<PHG4Hit*> get_shower_hits_from_primary(PHG4Particle* primary);
 
-  /// what was the moliere radius of truth hits from this particle inside the calo volume?
-  float              get_shower_moliere_radius(PHG4Particle* primary); // \todo need to add r_moliere to shower
-  
 private:
 
   void get_node_pointers(PHCompositeNode *topNode);
@@ -140,7 +141,6 @@ private:
   std::map<PHG4Particle*,std::set<PHG4Hit*> > _cache_all_truth_hits_g4particle;
   std::map<PHG4Hit*,PHG4Particle*>            _cache_get_primary_particle_g4hit;
   std::map<PHG4Particle*,std::set<PHG4Hit*> > _cache_get_shower_hits_from_primary;
-  std::map<PHG4Particle*,float>               _cache_get_shower_moliere_radius;
 };
 
 #endif // __CALOTRUTHEVAL_H__

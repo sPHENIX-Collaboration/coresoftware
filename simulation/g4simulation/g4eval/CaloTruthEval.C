@@ -35,8 +35,7 @@ CaloTruthEval::CaloTruthEval(PHCompositeNode* topNode,std::string caloname)
     _cache_all_truth_hits_g4shower(),
     _cache_all_truth_hits_g4particle(),
     _cache_get_primary_particle_g4hit(),
-    _cache_get_shower_hits_from_primary(),
-    _cache_get_shower_moliere_radius() {
+    _cache_get_shower_hits_from_primary() {
   get_node_pointers(topNode);
 }
 
@@ -55,7 +54,6 @@ void CaloTruthEval::next_event(PHCompositeNode* topNode) {
   _cache_all_truth_hits_g4particle.clear();
   _cache_get_primary_particle_g4hit.clear();
   _cache_get_shower_hits_from_primary.clear();
-  _cache_get_shower_moliere_radius.clear();
 
   _basetrutheval.next_event(topNode);
   
@@ -148,6 +146,98 @@ float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary) {
   if (_do_cache) _cache_get_shower_energy_deposit.insert(make_pair(primary,shower_e));
   
   return shower_e;
+}
+
+// moliere (90% containment) radius of scintilator hits
+// doesn't account for magnetic field bend (photons okay, low pt electrons not so much)
+float CaloTruthEval::get_shower_moliere_radius(PHG4Particle* primary) {
+
+  if (!has_full_node_pointers()) {++_errors; return NAN;}
+  
+  if (_strict) {assert(primary);}
+  else if (!primary) {++_errors; return NAN;}
+  
+  if (!is_primary(primary)) return NAN;
+
+  PHG4Shower* shower = get_primary_shower(primary);
+  if (!shower) return 0.0;
+
+  float radius = shower->get_moliere_radius(get_caloid());
+
+  // std::set<PHG4Hit*> g4hits = get_shower_hits_from_primary(primary);
+
+  // std::multimap<float,float> radii_energy_mmap;
+  // float shower_e = 0.0;
+  
+  // for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
+  //      iter != g4hits.end();
+  //      ++iter) {
+
+  //   PHG4Hit *g4hit = (*iter);
+	      
+  //   // momentum vector
+  //   /// \todo for charged particles remove magnetic field bend
+  //   float p_x = primary->get_px();
+  //   float p_y = primary->get_py();
+  //   float p_z = primary->get_pz();
+  //   float p   = sqrt(pow(p_x,2)+pow(p_y,2)+pow(p_z,2));
+
+  //   // relative position vector (vertex-to-ghit)
+  //   PHG4VtxPoint* vtx = get_vertex(primary);
+  //   float d_x = vtx->get_x() - g4hit->get_avg_x();
+  //   float d_y = vtx->get_y() - g4hit->get_avg_y();
+  //   float d_z = vtx->get_z() - g4hit->get_avg_z();
+  //   float d   = sqrt(pow(d_x,2)+pow(d_y,2)+pow(d_z,2));
+    
+  //   // angle between them
+  //   float phi = acos( (p_x*d_x+p_y*d_y+p_z*d_z)/p/d );
+
+  //   // distance between them at ghit
+  //   float r = d*sin(phi); 
+  //   float edep = g4hit->get_edep();
+  //   shower_e += edep;
+    
+  //   radii_energy_mmap.insert(make_pair(r,edep));
+  // }
+
+  // float sum_e = 0.0;
+  // float frac_e = 0.0;
+
+  // float r_in = 0.0;
+  // float r_out = 0.0;
+
+  // for(std::multimap<float,float>::iterator iter = radii_energy_mmap.begin();
+  //     iter != radii_energy_mmap.end();
+  //     iter++) {
+  //   r_out = iter->first;
+  //   sum_e = sum_e + iter->second;
+  //   frac_e = sum_e / shower_e;
+
+  //   if (frac_e > 0.90) break;
+    
+  //   r_in = r_out;
+  // }
+
+  // float radius = 0.5*(r_in+r_out);
+  
+  return radius;
+}
+
+float CaloTruthEval::get_shower_eh_ratio(PHG4Particle* primary) {
+
+  if (!has_full_node_pointers()) {++_errors; return NAN;}
+  
+  if (_strict) {assert(primary);}
+  else if (!primary) {++_errors; return NAN;}
+  
+  if (!is_primary(primary)) return NAN;
+
+  PHG4Shower* shower = get_primary_shower(primary);
+  if (!shower) return 0.0;
+
+  float ratio = shower->get_eh_ratio(get_caloid());
+  
+  return ratio;
 }
 
 bool CaloTruthEval::has_full_node_pointers() {
@@ -301,94 +391,6 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_hits_from_primary(PHG4Particle* pri
   
   return truth_hits;
 }
-
-
-// moliere (90% containment) radius of scintilator hits
-// doesn't account for magnetic field bend (photons okay, low pt electrons not so much)
-float CaloTruthEval::get_shower_moliere_radius(PHG4Particle* primary) {
-
-  if (!has_full_node_pointers()) {++_errors; return NAN;}
-  
-  if (_strict) {assert(primary);}
-  else if (!primary) {++_errors; return NAN;}
-  
-  if (!is_primary(primary)) return NAN;
-
-  primary = get_primary_particle(primary);
-
-  if (_strict) {assert(primary);}
-  else if (!primary) {++_errors; return NAN;}
-  
-  if (_do_cache) {
-    std::map<PHG4Particle*,float>::iterator iter =
-      _cache_get_shower_moliere_radius.find(primary);
-    if (iter != _cache_get_shower_moliere_radius.end()) {
-      return iter->second;
-    }
-  }
-  
-  std::set<PHG4Hit*> g4hits = get_shower_hits_from_primary(primary);
-
-  std::multimap<float,float> radii_energy_mmap;
-  float shower_e = 0.0;
-  
-  for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
-       iter != g4hits.end();
-       ++iter) {
-
-    PHG4Hit *g4hit = (*iter);
-	      
-    // momentum vector
-    /// \todo for charged particles remove magnetic field bend
-    float p_x = primary->get_px();
-    float p_y = primary->get_py();
-    float p_z = primary->get_pz();
-    float p   = sqrt(pow(p_x,2)+pow(p_y,2)+pow(p_z,2));
-
-    // relative position vector (vertex-to-ghit)
-    PHG4VtxPoint* vtx = get_vertex(primary);
-    float d_x = vtx->get_x() - g4hit->get_avg_x();
-    float d_y = vtx->get_y() - g4hit->get_avg_y();
-    float d_z = vtx->get_z() - g4hit->get_avg_z();
-    float d   = sqrt(pow(d_x,2)+pow(d_y,2)+pow(d_z,2));
-    
-    // angle between them
-    float phi = acos( (p_x*d_x+p_y*d_y+p_z*d_z)/p/d );
-
-    // distance between them at ghit
-    float r = d*sin(phi); 
-    float edep = g4hit->get_edep();
-    shower_e += edep;
-    
-    radii_energy_mmap.insert(make_pair(r,edep));
-  }
-
-  float sum_e = 0.0;
-  float frac_e = 0.0;
-
-  float r_in = 0.0;
-  float r_out = 0.0;
-
-  for(std::multimap<float,float>::iterator iter = radii_energy_mmap.begin();
-      iter != radii_energy_mmap.end();
-      iter++) {
-    r_out = iter->first;
-    sum_e = sum_e + iter->second;
-    frac_e = sum_e / shower_e;
-
-    if (frac_e > 0.90) break;
-    
-    r_in = r_out;
-  }
-
-  float radius = 0.5*(r_in+r_out);
-
-  if (_do_cache) _cache_get_shower_moliere_radius.insert(make_pair(primary,radius));
-  
-  return radius;
-}
-
-
 
 void CaloTruthEval::get_node_pointers(PHCompositeNode *topNode) {
 
