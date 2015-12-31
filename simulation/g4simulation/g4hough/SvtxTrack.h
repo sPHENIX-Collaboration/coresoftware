@@ -133,22 +133,22 @@ public:
   //
   // calo projection methods ---------------------------------------------------
   //
-  virtual float get_cal_dphi(CAL_LAYER layer) const       {return NULL;}
+  virtual float get_cal_dphi(CAL_LAYER layer) const       {return 0.;}
   virtual void  set_cal_dphi(CAL_LAYER layer, float dphi) {}
 
-  virtual float get_cal_deta(CAL_LAYER layer) const       {return NULL;}
+  virtual float get_cal_deta(CAL_LAYER layer) const       {return 0.;}
   virtual void  set_cal_deta(CAL_LAYER layer, float deta) {}
 
-  virtual float get_cal_energy_3x3(CAL_LAYER layer) const             {return NULL;}
+  virtual float get_cal_energy_3x3(CAL_LAYER layer) const             {return 0.;}
   virtual void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3) {}
 
-  virtual float get_cal_energy_5x5(CAL_LAYER layer) const             {return NULL;}
+  virtual float get_cal_energy_5x5(CAL_LAYER layer) const             {return 0.;}
   virtual void  set_cal_energy_5x5(CAL_LAYER layer, float energy_5x5) {}
 
-  virtual unsigned int get_cal_cluster_id(CAL_LAYER layer) const            {return NULL;}
+  virtual unsigned int get_cal_cluster_id(CAL_LAYER layer) const            {return 0;}
   virtual void         set_cal_cluster_id(CAL_LAYER layer, unsigned int id) {}
 
-  virtual float get_cal_cluster_e(CAL_LAYER layer) const    {return NULL;}
+  virtual float get_cal_cluster_e(CAL_LAYER layer) const    {return 0.;}
   virtual void  set_cal_cluster_e(CAL_LAYER layer, float e) {}
 
 protected:

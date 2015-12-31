@@ -591,7 +591,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
 	}
 	  
-	float vertex_data[10] = {_ievent,
+	float vertex_data[10] = {(float) _ievent,
 				 vx,
 				 vy,
 				 vz,
@@ -638,7 +638,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
       }
 	
-      float gpoint_data[10] = {_ievent,
+      float gpoint_data[10] = {(float) _ievent,
 			       gvx,
 			       gvy,
 			       gvz,
@@ -689,12 +689,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float gembed  = NAN;
       float gprimary = NAN;
 
-      float gfpx      = NULL;
-      float gfpy      = NULL;
-      float gfpz      = NULL;
-      float gfx       = NULL;
-      float gfy       = NULL;
-      float gfz       = NULL;
+      float gfpx      = 0.;
+      float gfpy      = 0.;
+      float gfpz      = 0.;
+      float gfx       = 0.;
+      float gfy       = 0.;
+      float gfz       = 0.;
 
       if (g4particle) {
 
@@ -759,7 +759,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	}
       }
 
-      float g4hit_data[35] = {_ievent,
+      float g4hit_data[35] = {(float) _ievent,
 			      g4hitID,
 			      gx,
 			      gy,
@@ -845,7 +845,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float gfx      = NAN;
 	float gfy      = NAN;
 	float gfz      = NAN;
-	float glast    = NAN;
 	float gembed   = NAN;
 	float gprimary = NAN;
       
@@ -886,7 +885,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	      gfy      = outerhit->get_y(1);
 	      gfz      = outerhit->get_z(1);
 	    }
-	    glast    = NAN;
 	    gembed   = trutheval->get_embed(g4particle);
 	    gprimary = trutheval->is_primary(g4particle);
 	  } //   if (g4particle){
@@ -979,7 +977,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float gfx      = NAN;
 	float gfy      = NAN;
 	float gfz      = NAN;
-	float glast    = NAN;
 	float gembed   = NAN;
 	float gprimary = NAN;
     
@@ -1020,7 +1017,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	      gfz      = outerhit->get_z(1);
 	    }
 	    
-	    glast    = NAN;
 	    gembed   = trutheval->get_embed(g4particle);
 	    gprimary = trutheval->is_primary(g4particle);
 	  }      //   if (g4particle){
@@ -1030,7 +1026,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
 	}
 
-	float cluster_data[33] = {_ievent,
+	float cluster_data[33] = {(float) _ievent,
 				  hitID,
 				  x,
 				  y,
@@ -1101,12 +1097,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float gvy      = vtx->get_y();
 	float gvz      = vtx->get_z();
 
-	float gfpx      = NULL;
-	float gfpy      = NULL;
-	float gfpz      = NULL;
-	float gfx       = NULL;
-	float gfy       = NULL;
-	float gfz       = NULL;
+	float gfpx      = 0.;
+	float gfpy      = 0.;
+	float gfpz      = 0.;
+	float gfx       = 0.;
+	float gfy       = 0.;
+	float gfz       = 0.;
     
 	PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
 	if (outerhit) {
@@ -1130,7 +1126,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float ndf           = NAN;
 	float nhits         = NAN;
 	unsigned int layers = 0x0;
-	float dca           = NAN;
 	float dca2d         = NAN;
 	float dca2dsigma    = NAN;
 	float px            = NAN;
@@ -1159,7 +1154,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	    if (layer < 32) layers |= (0x1 << layer);
 	  }
 
-	  dca       = track->get_dca();
 	  dca2d     = track->get_dca2d();
 	  dca2dsigma = track->get_dca2d_error();
 	  px        = track->get_px();
@@ -1172,7 +1166,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  nfromtruth = trackeval->get_nclusters_contribution(track,g4particle);
 	}
       
-	float gtrack_data[34] = {_ievent,
+	float gtrack_data[34] = {(float) _ievent,
 				 gtrackID,
 				 gflavor,
 				 ng4hits,
@@ -1199,7 +1193,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				 chisq,      
 				 ndf,        
 				 nhits,      
-				 layers,     
+				 (float) layers,     
 				 dca2d,      
 				 dca2dsigma, 			       
 				 pcax,       
@@ -1327,7 +1321,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  nfromtruth = trackeval->get_nclusters_contribution(track,g4particle);
 	}
       
-	float track_data[50] = {_ievent,
+	float track_data[50] = {(float) _ievent,
 				trackID, 
 				px,        
 				py,        
@@ -1337,7 +1331,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				chisq,   
 				ndf,     
 				nhits,   
-				layers,
+				(float) layers,
 				dca2d,     
 				dca2dsigma,      
 				pcax,      

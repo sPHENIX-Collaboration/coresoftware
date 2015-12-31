@@ -67,9 +67,9 @@ PHG4InEvent::AddParticle(const int vtxid, PHG4Particle *particle)
       cout << "cannot add particle to non existing vertex, id: " << vtxid << endl;
       exit(1);
     }
-  std::pair< std::multimap<int,PHG4Particle *>::const_iterator, std::multimap<int,PHG4Particle *>::const_iterator > particles = GetParticles(vtxid);
-
   // checking for duplicate particles - sometimes interesting
+  //  std::pair< std::multimap<int,PHG4Particle *>::const_iterator, std::multimap<int,PHG4Particle *>::const_iterator > particles = GetParticles(vtxid);
+
 //   for (multimap<int,PHG4Particle *>::const_iterator piter = particles.first; piter != particles.second; piter++)
 //     {
 //       if (*particle == *(piter->second))

@@ -24,7 +24,6 @@ PHMakeGroups(std::vector<Hit>& hits,
 
   using namespace boost;
   typedef adjacency_list <vecS, vecS, undirectedS> Graph;
-  typedef graph_traits<Graph>::vertex_descriptor Vertex;
   
   Graph G;
   

@@ -7,7 +7,7 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
    `geant4-config --libs-without-gui` \
-  -lHepMC -lgsl -lgslcblas
+  -lHepMC -lgsl -lgslcblas -lpthread
 
 INCLUDES = \
   -I$(includedir) \
