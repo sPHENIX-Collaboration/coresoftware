@@ -79,6 +79,12 @@ public:
   virtual float        get_light_yield(int volume) const {return NAN;}
   virtual void         set_light_yield(int volume, float light_yield) {}
 
+  virtual float        get_moliere_radius(int volume) const {return NAN;}
+  virtual void         set_moliere_radius(int volume, float moliere_radius) {}
+
+  virtual float        get_eh_ratio(int volume) const {return NAN;}
+  virtual void         set_eh_ratio(int volume, float eh_ratio) {}
+  
   virtual bool                empty_g4particle_id() const {return true;}
   virtual size_t              size_g4particle_id() const {return 0;}
   virtual void                add_g4particle_id(int id)  {}

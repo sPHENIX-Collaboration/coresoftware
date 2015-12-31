@@ -68,6 +68,12 @@ public:
   float        get_light_yield(int volume) const;
   void         set_light_yield(int volume, float light_yield) {_light_yield[volume] = light_yield;}
 
+  float        get_moliere_radius(int volume) const;
+  void         set_moliere_radius(int volume, float moliere_radius) {_moliere_radius[volume] = moliere_radius;}
+
+  float        get_eh_ratio(int volume) const;
+  void         set_eh_ratio(int volume, float eh_ratio) {_eh_ratio[volume] = eh_ratio;}
+  
   // container methods for ids
   bool                            empty_g4particle_id() const {return _g4particle_ids.empty();}
   size_t                          size_g4particle_id() const {return _g4particle_ids.size();}
@@ -117,6 +123,8 @@ private:
   std::map<int, float> _edep;             //< energy deposit in different volumes
   std::map<int, float> _eion;             //< ionization energy in different volumes
   std::map<int, float> _light_yield;      //< light yield in different volumes
+  std::map<int, float> _moliere_radius;   //< moliere radius in different volumes
+  std::map<int, float> _eh_ratio;         //< electron/hadron ratio of energy in different volumes
 
   std::set<int> _g4particle_ids;
   std::set<int> _g4vertex_ids;
