@@ -163,62 +163,6 @@ float CaloTruthEval::get_shower_moliere_radius(PHG4Particle* primary) {
   if (!shower) return 0.0;
 
   float radius = shower->get_moliere_radius(get_caloid());
-
-  // std::set<PHG4Hit*> g4hits = get_shower_hits_from_primary(primary);
-
-  // std::multimap<float,float> radii_energy_mmap;
-  // float shower_e = 0.0;
-  
-  // for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
-  //      iter != g4hits.end();
-  //      ++iter) {
-
-  //   PHG4Hit *g4hit = (*iter);
-	      
-  //   // momentum vector
-  //   /// \todo for charged particles remove magnetic field bend
-  //   float p_x = primary->get_px();
-  //   float p_y = primary->get_py();
-  //   float p_z = primary->get_pz();
-  //   float p   = sqrt(pow(p_x,2)+pow(p_y,2)+pow(p_z,2));
-
-  //   // relative position vector (vertex-to-ghit)
-  //   PHG4VtxPoint* vtx = get_vertex(primary);
-  //   float d_x = vtx->get_x() - g4hit->get_avg_x();
-  //   float d_y = vtx->get_y() - g4hit->get_avg_y();
-  //   float d_z = vtx->get_z() - g4hit->get_avg_z();
-  //   float d   = sqrt(pow(d_x,2)+pow(d_y,2)+pow(d_z,2));
-    
-  //   // angle between them
-  //   float phi = acos( (p_x*d_x+p_y*d_y+p_z*d_z)/p/d );
-
-  //   // distance between them at ghit
-  //   float r = d*sin(phi); 
-  //   float edep = g4hit->get_edep();
-  //   shower_e += edep;
-    
-  //   radii_energy_mmap.insert(make_pair(r,edep));
-  // }
-
-  // float sum_e = 0.0;
-  // float frac_e = 0.0;
-
-  // float r_in = 0.0;
-  // float r_out = 0.0;
-
-  // for(std::multimap<float,float>::iterator iter = radii_energy_mmap.begin();
-  //     iter != radii_energy_mmap.end();
-  //     iter++) {
-  //   r_out = iter->first;
-  //   sum_e = sum_e + iter->second;
-  //   frac_e = sum_e / shower_e;
-
-  //   if (frac_e > 0.90) break;
-    
-  //   r_in = r_out;
-  // }
-
-  // float radius = 0.5*(r_in+r_out);
   
   return radius;
 }
