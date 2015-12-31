@@ -411,9 +411,9 @@ PHG4DSTReader::process_event(PHCompositeNode* topNode)
       else if (rec._type == record::typ_jets)
         {
 
-          std::cout
-              << "PHG4DSTReader::AddJet - Error - temp. disabled until jet added back to sPHENIX software"
-              << std::endl;
+//          std::cout
+//              << "PHG4DSTReader::AddJet - Error - temp. disabled until jet added back to sPHENIX software"
+//              << std::endl;
 //
           if (Verbosity() >= 2)
             cout << "PHG4DSTReader::process_event - processing jets "
