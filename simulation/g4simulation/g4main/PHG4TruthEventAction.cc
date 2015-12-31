@@ -346,6 +346,9 @@ void PHG4TruthEventAction::ProcessShowers() {
       float edep = 0.0;
       float eion = 0.0;
       float light_yield = 0.0;
+      //      float moliere_radius = 0.0;
+      float edep_e = 0.0;
+      float edep_h = 0.0;
       
       // get the g4hits from this particle in this volume
       for (std::set<PHG4HitDefs::keytype>::iterator kter = iter->second.begin();
@@ -355,10 +358,16 @@ void PHG4TruthEventAction::ProcessShowers() {
 
 	PHG4Hit* g4hit = hits->findHit(g4hit_id);
 	if (!g4hit) {
-	  cout << "missing g4hit" << endl;
+	  cout << PHWHERE << " missing g4hit" << endl;
 	  continue;
 	}
-	
+
+	PHG4Particle* particle = truthInfoList_->GetParticle(g4hit->get_trkid());
+	if (!particle) {
+	  cout << PHWHERE << " missing g4particle" << endl;
+	  continue;
+	}
+
 	if (!isnan(g4hit->get_x(0)) &&
 	    !isnan(g4hit->get_y(0)) &&
 	    !isnan(g4hit->get_z(0))) {
@@ -391,6 +400,14 @@ void PHG4TruthEventAction::ProcessShowers() {
 	  sumw2 += w*w;
 	}
 
+	if (!isnan(g4hit->get_edep())) {
+	  if (abs(particle->get_pid()) == 11) {
+	    edep_e += g4hit->get_edep();
+	  } else {
+	    edep_h += g4hit->get_edep();
+	  }
+	}
+	
 	if (g4hit)                                   ++nhits;
 	if (!isnan(g4hit->get_edep()))               edep += g4hit->get_edep();
 	if (!isnan(g4hit->get_eion()))               eion += g4hit->get_eion();
@@ -400,7 +417,8 @@ void PHG4TruthEventAction::ProcessShowers() {
       if (nhits)              shower->set_nhits(g4hitmap_id,nhits);
       if (edep != 0.0)        shower->set_edep(g4hitmap_id,edep);
       if (eion != 0.0)        shower->set_eion(g4hitmap_id,eion);
-      if (light_yield != 0.0) shower->set_light_yield(g4hitmap_id,light_yield);     
+      if (light_yield != 0.0) shower->set_light_yield(g4hitmap_id,light_yield);
+      if (edep_h != 0.0)      shower->set_eh_ratio(g4hitmap_id,edep_e/edep_h);
     } // volume loop
 
     // fill Eigen matrices to compute wPCA
