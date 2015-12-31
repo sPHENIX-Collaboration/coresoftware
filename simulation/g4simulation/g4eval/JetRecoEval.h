@@ -79,20 +79,23 @@ public:
 
   // ---reduced sim node or better----------------------------------------------
 
+  /// what truth showers contributed to this reconstructed jet?
+  std::set<PHG4Shower*> all_truth_showers (Jet* recojet);
+  
   /// what truth particles contributed to this reconstructed jet?
   std::set<PHG4Particle*> all_truth_particles (Jet* recojet);
-  
+
   /// what truth jets contributed to this reconstructed jet?
-  std::set<Jet*> all_truth_jets          (Jet* recojet);
+  std::set<Jet*> all_truth_jets (Jet* recojet);
 
   /// which truth jet contributed the most energy to this reconstructed jet?
-  Jet*           max_truth_jet_by_energy (Jet* recojet);
+  Jet* max_truth_jet_by_energy (Jet* recojet);
   
   /// what reconstructed jets had constributions from this truth jet?
-  std::set<Jet*> all_jets_from(Jet* truthjet);
+  std::set<Jet*> all_jets_from (Jet* truthjet);
 
   /// which reconstructed jet had the largest energy constribution from this truth jet?
-  Jet*           best_jet_from(Jet* truthjet);
+  Jet* best_jet_from (Jet* truthjet);
   
   /// what was the energy contribution to this reconstructed jet from this truth jet?
   float get_energy_contribution (Jet* recojet, Jet* truthjet);
@@ -130,13 +133,14 @@ private:
   unsigned int _errors;
   
   bool                                    _do_cache;
-  std::map<Jet*,std::set<PHG4Hit*> >      _cache_all_truth_hits;
+  std::map<Jet*,std::set<PHG4Shower*> >   _cache_all_truth_showers;
+  std::map<Jet*,std::set<PHG4Particle*> > _cache_all_truth_particles;
   std::map<Jet*,std::set<Jet*> >          _cache_all_truth_jets;
   std::map<Jet*,Jet* >                    _cache_max_truth_jet_by_energy;
-  std::map<Jet*,std::set<PHG4Particle*> > _cache_all_truth_particles;
   std::map<Jet*,std::set<Jet*> >          _cache_all_jets_from;
   std::map<Jet*,Jet* >                    _cache_best_jet_from;
   std::map<std::pair<Jet*,Jet*>,float>    _cache_get_energy_contribution;
+  std::map<Jet*,std::set<PHG4Hit*> >      _cache_all_truth_hits;
 };
 
 #endif // __SVTXHITEVAL_H__
