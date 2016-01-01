@@ -136,12 +136,9 @@ float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary) {
     }
   }
 
-  PHG4Shower* shower = get_primary_shower(primary);
-
-  if (_strict) {assert(shower);}
-  else if (!shower) {++_errors; return NAN;}
-  
-  float shower_e = shower->get_edep(_g4hits->GetID());
+  float shower_e = 0.0;  
+  PHG4Shower* shower = get_primary_shower(primary);  
+  if (shower) shower_e = shower->get_edep(_g4hits->GetID());
   
   if (_do_cache) _cache_get_shower_energy_deposit.insert(make_pair(primary,shower_e));
   
@@ -325,11 +322,7 @@ std::set<PHG4Hit*> CaloTruthEval::get_shower_hits_from_primary(PHG4Particle* pri
   std::set<PHG4Hit*> truth_hits;
 
   PHG4Shower* shower = get_primary_shower(primary);
-
-  if (_strict) {assert(shower);}
-  else if (!shower) {++_errors; return std::set<PHG4Hit*>();}
-
-  truth_hits = all_truth_hits(shower);
+  if (shower) truth_hits = all_truth_hits(shower);
 
   if (_do_cache) _cache_get_shower_hits_from_primary.insert(make_pair(primary,truth_hits));
   

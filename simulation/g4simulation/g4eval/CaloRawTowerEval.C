@@ -111,6 +111,7 @@ std::set<PHG4Shower*> CaloRawTowerEval::all_truth_primary_showers(RawTower* towe
   for (RawTower::ShowerConstIterator iter = shower_range.first;
        iter != shower_range.second;
        ++iter) {
+
     PHG4Shower* shower = _truthinfo->GetShower(iter->first);
 
     if (_strict) {assert(shower);}

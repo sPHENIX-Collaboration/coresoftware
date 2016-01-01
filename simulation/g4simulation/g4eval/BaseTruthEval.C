@@ -132,10 +132,7 @@ PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Particle* particle) {
       break;
     }
   }
-  
-  if (_strict) {assert(returnval);}
-  else if (!returnval) {++_errors;}
-  
+
   return returnval;
 }
 

@@ -307,7 +307,7 @@ void PHG4TruthEventAction::PruneShowers() {
        ) {
     PHG4Shower* shower = iter->second;
 
-    if (shower->empty_g4particle_id() || shower->empty_g4hit_id()) {
+    if (shower->empty_g4particle_id() && shower->empty_g4hit_id()) {
       truthInfoList_->delete_shower(iter++);
       continue;
     }
@@ -364,7 +364,7 @@ void PHG4TruthEventAction::ProcessShowers() {
 	}
 
 	PHG4Particle* particle = truthInfoList_->GetParticle(g4hit->get_trkid());
-	if (!particle) {
+	if (!particle) {	  
 	  cout << PHWHERE << " missing g4particle" << endl;
 	  continue;
 	}
@@ -518,6 +518,6 @@ void PHG4TruthEventAction::ProcessShowers() {
       }
     }
 
-    //shower->identify();
+    // shower->identify();
   }
 }
