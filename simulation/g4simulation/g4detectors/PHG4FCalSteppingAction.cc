@@ -75,6 +75,7 @@ void PHG4FCalSteppingAction::UserSteppingAction( const G4Step* aStep)
 	if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 	  {
 	    mhit->set_trkid(pp->GetUserTrackId());
+	    mhit->set_shower_id(pp->GetShower()->get_id());
 	  }
       }
   }

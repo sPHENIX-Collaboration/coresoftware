@@ -58,6 +58,7 @@ void PHG4BlockRegionSteppingAction::UserSteppingAction( const G4Step* aStep)
 		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 		  {
 		    hit->set_trkid(pp->GetUserTrackId());
+		    hit->set_shower_id(pp->GetShower()->get_id());
 		  }
 	      }
 	  }
