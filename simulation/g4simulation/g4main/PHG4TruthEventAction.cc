@@ -519,6 +519,6 @@ void PHG4TruthEventAction::ProcessShowers() {
       }
     }
 
-    //shower->identify();
+    shower->identify();
   }
 }

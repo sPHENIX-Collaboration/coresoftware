@@ -113,6 +113,9 @@ std::set<PHG4Shower*> CaloRawTowerEval::all_truth_primary_showers(RawTower* towe
        ++iter) {
     PHG4Shower* shower = _truthinfo->GetShower(iter->first);
 
+    tower->identify();
+    cout << iter->first << endl;
+    
     if (_strict) {assert(shower);}
     else if (!shower) {++_errors; continue;} 
 

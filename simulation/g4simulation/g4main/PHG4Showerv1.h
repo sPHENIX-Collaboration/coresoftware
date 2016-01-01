@@ -26,8 +26,8 @@ public:
 
   // shower info
   
-  int          get_id() const                 {return _id;}
-  void         set_id(unsigned int id)        {_id = id;}
+  int          get_id() const {return _id;}
+  void         set_id(int id) {_id = id;}
 
   int          get_primary_particle_id() const {return _primary_particle_id;}
   void         set_primary_particle_id(int primary_particle_id) {_primary_particle_id = primary_particle_id;}
