@@ -113,9 +113,6 @@ std::set<PHG4Shower*> CaloRawTowerEval::all_truth_primary_showers(RawTower* towe
        ++iter) {
     PHG4Shower* shower = _truthinfo->GetShower(iter->first);
 
-    tower->identify();
-    cout << iter->first << endl;
-    
     if (_strict) {assert(shower);}
     else if (!shower) {++_errors; continue;} 
 
@@ -345,9 +342,6 @@ PHG4Particle* CaloRawTowerEval::max_truth_primary_particle_by_energy(RawTower* t
 
   PHG4Particle* max_primary = NULL;
   PHG4Shower* max_shower = max_truth_primary_shower_by_energy(tower);
-
-  if (_strict) assert(max_shower);
-  else if (!max_shower) {++_errors;}
 
   if (max_shower) {
     max_primary = get_truth_eval()->get_primary_particle(max_shower);
