@@ -346,7 +346,6 @@ void PHG4TruthEventAction::ProcessShowers() {
       float edep = 0.0;
       float eion = 0.0;
       float light_yield = 0.0;
-      //      float moliere_radius = 0.0;
       float edep_e = 0.0;
       float edep_h = 0.0;
 
@@ -519,6 +518,6 @@ void PHG4TruthEventAction::ProcessShowers() {
       }
     }
 
-    shower->identify();
+    //shower->identify();
   }
 }

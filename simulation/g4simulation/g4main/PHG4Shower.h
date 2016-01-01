@@ -37,8 +37,8 @@ public:
 
   // shower info
   
-  virtual int          get_id() const           {return 0;}
-  virtual void         set_id(unsigned int id)  {}
+  virtual int          get_id() const  {return 0;}
+  virtual void         set_id(int id)  {}
 
   virtual int          get_primary_particle_id() const {return 0;}
   virtual void         set_primary_particle_id(int primary_particle_id) {}
