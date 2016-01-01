@@ -353,7 +353,6 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
     sort(cell_list.begin(), cell_list.end(), PHG4SvtxClusterizer::lessthan);
 
     typedef adjacency_list <vecS, vecS, undirectedS> Graph;
-    typedef graph_traits<Graph>::vertex_descriptor Vertex;
     Graph G;
 
     for(unsigned int i=0; i<cell_list.size(); i++) {
@@ -622,7 +621,6 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
     sort(cell_list.begin(), cell_list.end(), PHG4SvtxClusterizer::ladder_lessthan);
 
     typedef adjacency_list <vecS, vecS, undirectedS> Graph;
-    typedef graph_traits<Graph>::vertex_descriptor Vertex;
     Graph G;
 
     for(unsigned int i=0; i<cell_list.size(); i++) {

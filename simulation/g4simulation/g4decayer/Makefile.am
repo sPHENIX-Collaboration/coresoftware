@@ -3,6 +3,8 @@ AUTOMAKE_OPTIONS = foreign
 lib_LTLIBRARIES = \
   libg4decayer.la
 
+AM_CXXFLAGS = -std=c++11
+
 INCLUDES = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \

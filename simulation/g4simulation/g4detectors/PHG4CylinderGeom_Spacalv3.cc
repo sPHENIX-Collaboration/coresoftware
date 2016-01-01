@@ -15,14 +15,16 @@
 
 #include <cmath>
 #include <cassert>
-#include <limits>       // std::numeric_limits
 #include <iostream>
+#include <limits>       // std::numeric_limits
+#include <map>
 
 ClassImp(PHG4CylinderGeom_Spacalv3)
 ClassImp(PHG4CylinderGeom_Spacalv3::geom_tower)
 ClassImp(PHG4CylinderGeom_Spacalv3::scint_id_coder)
 
 using namespace std;
+using std::make_pair;
 
 PHG4CylinderGeom_Spacalv3::PHG4CylinderGeom_Spacalv3()
 {
@@ -140,10 +142,10 @@ PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
     const int sector_ID) const
 {
   // tower_ID to eta/z within a sector
-  const int z_bin = floor(tower_ID / 10);
+  int z_bin = floor(tower_ID / 10);
 
   // colume ID is from -x to +x at the top of the detector, which is reverse of the phi bin direction.
-  const int phi_bin_in_sec = max_phi_bin_in_sec - (tower_ID % 10);
+  int phi_bin_in_sec = max_phi_bin_in_sec - (tower_ID % 10);
 
   if (!(phi_bin_in_sec < max_phi_bin_in_sec and phi_bin_in_sec >= 0))
     {
@@ -156,9 +158,9 @@ PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
 
   assert(phi_bin_in_sec < max_phi_bin_in_sec and phi_bin_in_sec>=0);
 
-  const int phi_bin = sector_ID * max_phi_bin_in_sec + phi_bin_in_sec;
+  int phi_bin = sector_ID * max_phi_bin_in_sec + phi_bin_in_sec;
 
-  return make_pair<int, int>(z_bin, phi_bin);
+  return make_pair(z_bin, phi_bin);
 }
 
 void

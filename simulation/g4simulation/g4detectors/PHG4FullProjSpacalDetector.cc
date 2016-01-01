@@ -208,10 +208,10 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
 
       typedef map<int, pair<int, int> > sign_t;
       sign_t signs;
-      signs[2000] = make_pair<int, int>(+1, +1);
-      signs[2001] = make_pair<int, int>(+1, -1);
-      signs[2100] = make_pair<int, int>(-1, +1);
-      signs[2101] = make_pair<int, int>(-1, -1);
+      signs[2000] = make_pair(+1, +1);
+      signs[2001] = make_pair(+1, -1);
+      signs[2100] = make_pair(-1, +1);
+      signs[2101] = make_pair(-1, -1);
 
       BOOST_FOREACH(sign_t::value_type& val, signs)
         {
@@ -350,7 +350,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
           vector_fiber *= cm;
           center_fiber *= cm;
 
-          fiber_par[fiber_ID] = make_pair<G4Vector3D, G4Vector3D>(vector_fiber,
+          fiber_par[fiber_ID] = make_pair(vector_fiber,
               center_fiber);
 
           const G4double fiber_length = vector_fiber.mag();

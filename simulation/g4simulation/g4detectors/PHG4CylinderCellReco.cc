@@ -681,7 +681,7 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 
 		      cellptmap.find(key)->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
 
-          if(verbosity > 1 and isnan(hiter->second->get_light_yield()*vdedx[i1]))
+		      if(verbosity > 1 && std::isnan(hiter->second->get_light_yield()*vdedx[i1]))
             {
 
               cout << "    NAN lighy yield with vdedx[i1] = "<<vdedx[i1]
@@ -701,7 +701,7 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
                       it->second->set_zbin(izbin);
 		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
 
-          if(verbosity > 1 and isnan(hiter->second->get_light_yield()*vdedx[i1]))
+		      if(verbosity > 1 && std::isnan(hiter->second->get_light_yield()*vdedx[i1]))
             {
 
               cout << "    NAN lighy yield with vdedx[i1] = "<<vdedx[i1]

@@ -7,6 +7,8 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = -DCGAL_DISABLE_ROUNDING_MATH_CHECK
 
+AM_CXXFLAGS = -std=c++11
+
 AM_LDFLAGS = \
     -L$(libdir) \
     -L$(OFFLINE_MAIN)/lib
