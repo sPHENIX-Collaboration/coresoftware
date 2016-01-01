@@ -214,7 +214,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 		  {
 		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 		      {
-			pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+			pp->GetShower()->add_g4hit_id(absorberhits_->GetID(),hit->get_hit_id());
 		      }
 		  }
 	      }
@@ -306,7 +306,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
           hit->set_eion(-1);
 	}
-      if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
+      if (edep > 0)
 	{
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
