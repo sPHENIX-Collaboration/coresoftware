@@ -7,7 +7,10 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = -DCGAL_DISABLE_ROUNDING_MATH_CHECK
 
-AM_CXXFLAGS = -std=c++11
+# set in configure.in to check if gcc version >= 4.8
+if GCC_GE_48
+  AM_CXXFLAGS = -std=c++11
+endif
 
 AM_LDFLAGS = \
     -L$(libdir) \
