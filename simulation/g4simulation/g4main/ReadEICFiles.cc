@@ -30,7 +30,13 @@ ReadEICFiles::ReadEICFiles(const string &name):
   Particle(NULL),
   ParticleArray(NULL),
   nEntries(0),
-  entry(0)
+  entry(0),
+  ProcessID(0),
+  Y(NAN),
+  Q2(NAN),
+  X(NAN),
+  W2(NAN),
+  NU(NAN)
 {
   return;
 }
