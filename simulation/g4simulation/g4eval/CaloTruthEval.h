@@ -91,9 +91,6 @@ public:
   /// how much energy did this primary and its shower deposit in the calo volume?
   float              get_shower_energy_deposit(PHG4Particle* primary);
 
-  /// what was the moliere radius of truth hits from this particle inside the calo volume?
-  float              get_shower_moliere_radius(PHG4Particle* primary);
-
   /// what was the electron/hadron radio of energy deposits inside the calo colume?
   float              get_shower_eh_ratio(PHG4Particle* primary);
   

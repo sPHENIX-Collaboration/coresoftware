@@ -13,7 +13,7 @@ PHG4Showerv1::PHG4Showerv1()
   : _id(0xFFFFFFFF), _primary_particle_id(0), _parent_particle_id(0),
     _primary_shower_id(0), _parent_shower_id(0),
     _pos(), _covar(), _edep(), _eion(),
-    _light_yield(), _moliere_radius(), _eh_ratio(),
+    _light_yield(), _eh_ratio(),
     _g4particle_ids(), _g4hit_ids() {
 
   for (int i = 0; i < 3; ++i)
@@ -144,14 +144,6 @@ float PHG4Showerv1::get_light_yield(int volume) const {
   std::map<int, float>::const_iterator citer =
       _light_yield.find(volume);
   if (citer == _light_yield.end())
-    return 0.0;
-  return citer->second;
-}
-
-float PHG4Showerv1::get_moliere_radius(int volume) const {
-  std::map<int, float>::const_iterator citer =
-      _moliere_radius.find(volume);
-  if (citer == _moliere_radius.end())
     return 0.0;
   return citer->second;
 }

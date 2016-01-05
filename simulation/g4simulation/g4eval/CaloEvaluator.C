@@ -62,21 +62,21 @@ int CaloEvaluator::Init(PHCompositeNode *topNode) {
   
   if (_do_gshower_eval) _ntp_gshower = new TNtuple("ntp_gshower","truth shower => best cluster",
 						   "event:gparticleID:gflavor:gnhits:"
-						   "geta:gphi:ge:gpt:gvx:gvy:gvz:gembed:gedep:gmrad:"
+						   "geta:gphi:ge:gpt:gvx:gvy:gvz:gembed:gedep:"
 						   "clusterID:ntowers:eta:phi:e:efromtruth");
   
   if (_do_tower_eval) _ntp_tower = new TNtuple("ntp_tower","tower => max truth primary",
 					       "event:towerID:ieta:iphi:eta:phi:e:"
 					       "gparticleID:gflavor:gnhits:"
 					       "geta:gphi:ge:gpt:gvx:gvy:gvz:"
-					       "gembed:gedep:gmrad:"
+					       "gembed:gedep:"
 					       "efromtruth");
 
   if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster","cluster => max truth primary",
 						   "event:clusterID:ntowers:eta:phi:e:"
 						   "gparticleID:gflavor:gnhits:"
 						   "geta:gphi:ge:gpt:gvx:gvy:gvz:"
-						   "gembed:gedep:gmrad:"
+						   "gembed:gedep:"
 						   "efromtruth");
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -279,7 +279,6 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 
       cout << " embed = " << trutheval->get_embed(primary) << endl;
       cout << " edep = " << trutheval->get_shower_energy_deposit(primary) << endl;
-      cout << " mrad = " << trutheval->get_shower_moliere_radius(primary) << endl;
 
       std::set<RawCluster*> clusters = clustereval->all_clusters_from(primary);
       for (std::set<RawCluster*>::iterator clusiter = clusters.begin();
@@ -414,7 +413,6 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       
       float gembed   = trutheval->get_embed(primary);
       float gedep    = trutheval->get_shower_energy_deposit(primary);
-      float gmrad    = trutheval->get_shower_moliere_radius(primary);
 
       RawCluster* cluster = clustereval->best_cluster_from(primary);
 
@@ -436,7 +434,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	efromtruth     = clustereval->get_energy_contribution(cluster, primary);
       }
       
-      float shower_data[20] = {_ievent,
+      float shower_data[19] = {_ievent,
 			       gparticleID,
 			       gflavor,
 			       gnhits,
@@ -449,7 +447,6 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 			       gvz,
 			       gembed,
 			       gedep,
-			       gmrad,
 			       clusterID,
 			       ntowers,
 			       eta,
@@ -518,7 +515,6 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
       float gembed   = NAN;
       float gedep    = NAN;
-      float gmrad    = NAN;
 
       float efromtruth = NAN;
 
@@ -549,12 +545,11 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	gembed = trutheval->get_embed(primary);
 	gedep = trutheval->get_shower_energy_deposit(primary);
-	gmrad = trutheval->get_shower_moliere_radius(primary);
 
 	efromtruth = towereval->get_energy_contribution(tower, primary);
       }
 
-      float tower_data[21] = {_ievent,
+      float tower_data[20] = {_ievent,
 			      towerid,
 			      ieta,
 			      iphi,
@@ -573,7 +568,6 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 			      gvz,
 			      gembed,
 			      gedep,
-			      gmrad,
 			      efromtruth
       };
       
@@ -628,7 +622,6 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       
       float gembed   = NAN;
       float gedep    = NAN;
-      float gmrad    = NAN;
 
       float efromtruth = NAN;
 
@@ -658,13 +651,12 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	
 	gembed = trutheval->get_embed(primary);
 	gedep = trutheval->get_shower_energy_deposit(primary);
-	gmrad = trutheval->get_shower_moliere_radius(primary);
 
 	efromtruth = clustereval->get_energy_contribution(cluster,
 							  primary);
       }
       
-      float cluster_data[20] = {_ievent,
+      float cluster_data[19] = {_ievent,
 				clusterID,
 				ntowers,
 				eta,
@@ -682,7 +674,6 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				gvz,
 				gembed,
 				gedep,
-				gmrad,
 				efromtruth
       };
 

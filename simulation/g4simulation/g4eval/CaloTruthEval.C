@@ -145,25 +145,6 @@ float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary) {
   return shower_e;
 }
 
-// moliere (90% containment) radius of scintilator hits
-// doesn't account for magnetic field bend (photons okay, low pt electrons not so much)
-float CaloTruthEval::get_shower_moliere_radius(PHG4Particle* primary) {
-
-  if (!has_full_node_pointers()) {++_errors; return NAN;}
-  
-  if (_strict) {assert(primary);}
-  else if (!primary) {++_errors; return NAN;}
-  
-  if (!is_primary(primary)) return NAN;
-
-  PHG4Shower* shower = get_primary_shower(primary);
-  if (!shower) return 0.0;
-
-  float radius = shower->get_moliere_radius(get_caloid());
-  
-  return radius;
-}
-
 float CaloTruthEval::get_shower_eh_ratio(PHG4Particle* primary) {
 
   if (!has_full_node_pointers()) {++_errors; return NAN;}

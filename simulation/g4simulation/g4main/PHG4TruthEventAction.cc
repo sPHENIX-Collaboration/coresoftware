@@ -349,8 +349,6 @@ void PHG4TruthEventAction::ProcessShowers() {
       float edep_e = 0.0;
       float edep_h = 0.0;
 
-      std::multimap<float,float> radii_energy_mmap;
-      
       // get the g4hits from this particle in this volume
       for (std::set<PHG4HitDefs::keytype>::iterator kter = iter->second.begin();
 	   kter != iter->second.end();
@@ -408,28 +406,6 @@ void PHG4TruthEventAction::ProcessShowers() {
 	  sumw += w;
 	  sumw2 += w*w;
 	}
-
-	// moliere radius
-
-	// momentum vector
-	/// \todo for charged particles remove magnetic field bend
-	float p_x = particle->get_px();
-	float p_y = particle->get_py();
-	float p_z = particle->get_pz();
-	float p   = sqrt(pow(p_x,2)+pow(p_y,2)+pow(p_z,2));
-	
-	// relative position vector (vertex-to-ghit)
-	float d_x = vtx->get_x() - g4hit->get_avg_x();
-	float d_y = vtx->get_y() - g4hit->get_avg_y();
-	float d_z = vtx->get_z() - g4hit->get_avg_z();
-	float d   = sqrt(pow(d_x,2)+pow(d_y,2)+pow(d_z,2));
-    
-	// angle between them
-	float phi = acos( (p_x*d_x+p_y*d_y+p_z*d_z)/p/d );
-
-	// distance between them at ghit
-	float r = d*sin(phi); 
-	radii_energy_mmap.insert(make_pair(r,g4hit->get_edep()));
 	
 	// e/h ratio
 	
@@ -449,36 +425,12 @@ void PHG4TruthEventAction::ProcessShowers() {
 	if (!isnan(g4hit->get_light_yield())) light_yield += g4hit->get_light_yield();
       } // g4hit loop
 
-
-      // moliere radius
-      
-      float sum_e = 0.0;
-      float frac_e = 0.0;
-
-      float r_in = 0.0;
-      float r_out = 0.0;
-
-      for(std::multimap<float,float>::iterator iter = radii_energy_mmap.begin();
-          iter != radii_energy_mmap.end();
-          iter++) {
-        r_out = iter->first;
-        sum_e = sum_e + iter->second;
-        frac_e = sum_e / edep;
-      
-        if (frac_e > 0.90) break;
-      
-        r_in = r_out;
-      }
-
-      float radius = 0.5*(r_in+r_out);
-
       // summary info
       
       if (nhits)              shower->set_nhits(g4hitmap_id,nhits);
       if (edep != 0.0)        shower->set_edep(g4hitmap_id,edep);
       if (eion != 0.0)        shower->set_eion(g4hitmap_id,eion);
       if (light_yield != 0.0) shower->set_light_yield(g4hitmap_id,light_yield);
-      if (radius != 0.0)      shower->set_moliere_radius(g4hitmap_id,radius);
       if (edep_h != 0.0)      shower->set_eh_ratio(g4hitmap_id,edep_e/edep_h);
     } // volume loop
 
