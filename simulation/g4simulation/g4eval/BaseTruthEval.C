@@ -103,12 +103,14 @@ PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Shower* shower) {
 
   if (is_primary(shower)) return shower;
 
-  PHG4Shower* returnval = _truthinfo->GetPrimaryShower( shower->get_primary_shower_id() );
+  while (!is_primary(shower)) {
+    shower = _truthinfo->GetShower( shower->get_parent_shower_id() );
 
-  if (_strict) {assert(returnval);}
-  else if (!returnval) {++_errors;}
-  
-  return returnval;
+    if (_strict) {assert(shower);}
+    else if (!shower) {++_errors; break;}
+  }
+
+  return shower;
 }
 
 PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Particle* particle) {
@@ -127,7 +129,7 @@ PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Particle* particle) {
        iter != range.second;
        ++iter) {
     PHG4Shower* shower = iter->second;
-    if (shower->get_primary_particle_id() == particle->get_track_id()) {
+    if (shower->get_parent_particle_id() == particle->get_track_id()) {
       returnval = shower;
       break;
     }
@@ -159,13 +161,18 @@ PHG4Particle* BaseTruthEval::get_primary_particle(PHG4Shower* shower) {
   
   if (_strict) {assert(shower);}
   else if (!shower) {++_errors; return NULL;}
-  
-  PHG4Particle* returnval = _truthinfo->GetPrimaryParticle( shower->get_primary_particle_id() );
 
-  if (_strict) {assert(returnval);}
-  else if (!returnval) {++_errors;}
+  PHG4Particle* parent_particle = _truthinfo->GetParticle( shower->get_parent_particle_id() );
+
+  if (_strict) {assert(parent_particle);}
+  else if (!parent_particle) {++_errors; return NULL;}
   
-  return returnval;
+  PHG4Particle* primary_particle = get_primary_particle(parent_particle);
+
+  if (_strict) {assert(primary_particle);}
+  else if (!primary_particle) {++_errors; return NULL;}
+    
+  return primary_particle;
 }
 
 std::set<PHG4Shower*> BaseTruthEval::all_secondary_showers(PHG4Shower* shower) {

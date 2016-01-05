@@ -40,15 +40,9 @@ public:
   virtual int          get_id() const  {return 0;}
   virtual void         set_id(int id)  {}
 
-  virtual int          get_primary_particle_id() const {return 0;}
-  virtual void         set_primary_particle_id(int primary_particle_id) {}
-
   virtual int          get_parent_particle_id() const {return 0;}
   virtual void         set_parent_particle_id(int parent_particle_id) {}
 
-  virtual int          get_primary_shower_id() const {return 0;}
-  virtual void         set_primary_shower_id(int primary_shower_id) {}
-  
   virtual int          get_parent_shower_id() const {return 0;}
   virtual void         set_parent_shower_id(int parent_shower_id) {}
   

@@ -29,14 +29,8 @@ public:
   int          get_id() const {return _id;}
   void         set_id(int id) {_id = id;}
 
-  int          get_primary_particle_id() const {return _primary_particle_id;}
-  void         set_primary_particle_id(int primary_particle_id) {_primary_particle_id = primary_particle_id;}
-
   int          get_parent_particle_id() const {return _parent_particle_id;}
   void         set_parent_particle_id(int parent_particle_id) {_parent_particle_id = parent_particle_id;}
-  
-  int          get_primary_shower_id() const {return _primary_shower_id;}
-  void         set_primary_shower_id(int primary_shower_id) {_primary_shower_id = primary_shower_id;}
   
   int          get_parent_shower_id() const {return _parent_shower_id;}
   void         set_parent_shower_id(int parent_shower_id) {_parent_shower_id = parent_shower_id;}
@@ -109,22 +103,21 @@ private:
   
   unsigned int covar_index(unsigned int i, unsigned int j) const;
   
-  int                  _id;                  //< unique identifier within container
-  int                  _primary_particle_id; //< association of shower to primary particle id
-  int                  _parent_particle_id;  //< association of shower to parent particle id
-  int                  _primary_shower_id;   //< association of shower to primary shower id
-  int                  _parent_shower_id;    //< association of shower to parent shower id
-  float                _pos[3];           //< mean position of the shower
-  float                _covar[6];         //< covariance of shower positions
-  std::map<int, unsigned int> _nhits;     //< number of hits in different volumes
-  std::map<int, float> _edep;             //< energy deposit in different volumes
-  std::map<int, float> _eion;             //< ionization energy in different volumes
-  std::map<int, float> _light_yield;      //< light yield in different volumes
-  std::map<int, float> _eh_ratio;         //< electron/hadron ratio of energy in different volumes
+  int                  _id;                 //< unique identifier within container
+  int                  _parent_particle_id; //< association of shower to parent particle id
+  int                  _parent_shower_id;   //< association of shower to parent shower id
+  float                _pos[3];             //< mean position of the shower hits
+  float                _covar[6];           //< covariance of shower hits
+  std::map<int, unsigned int> _nhits;       //< number of hits in different volumes
+  std::map<int, float> _edep;               //< energy deposit in different volumes
+  std::map<int, float> _eion;               //< ionization energy in different volumes
+  std::map<int, float> _light_yield;        //< light yield in different volumes
+  std::map<int, float> _eh_ratio;           //< electron/hadron ratio of energy in different volumes
 
-  std::set<int> _g4particle_ids;
-  std::set<int> _g4vertex_ids;
-  std::map<int,std::set<unsigned long long> > _g4hit_ids;
+  // these containers are cleared during dst reduction, but are available in full dsts
+  std::set<int> _g4particle_ids; //< contained secondary particle ids
+  std::set<int> _g4vertex_ids;   //< contained secondary vertex ids
+  std::map<int,std::set<unsigned long long> > _g4hit_ids; //< contained hit ids
   
   ClassDef(PHG4Showerv1, 1);
 };

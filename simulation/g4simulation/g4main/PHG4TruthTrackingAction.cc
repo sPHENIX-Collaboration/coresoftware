@@ -112,10 +112,8 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
     PHG4Showerv1* shower = new PHG4Showerv1();
     PHG4TrackUserInfo::SetShower(const_cast<G4Track *> (track), shower);
     truthInfoList_->AddShower(trackid, shower);
-    shower->set_id(trackid);
-    shower->set_primary_particle_id(trackid);
-    shower->set_primary_shower_id(trackid);
-    shower->set_parent_particle_id(0);
+    shower->set_id(trackid); // fyi, secondary showers may not share these ids
+    shower->set_parent_particle_id(trackid);
     shower->set_parent_shower_id(0);
   } else {
     // get shower
