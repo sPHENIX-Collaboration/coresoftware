@@ -17,7 +17,6 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4CEmcTestBeamSteppingAction::PHG4CEmcTestBeamSteppingAction( PHG4CEmcTestBeamDetector* detector ):
-  PHG4SteppingAction(NULL),
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),

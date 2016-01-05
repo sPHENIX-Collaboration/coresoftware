@@ -23,21 +23,27 @@ using namespace std;
 
 PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string &name): 
   PHG4ParticleGeneratorBase(name),
+  vtx_zmin(-10.),
+  vtx_zmax(10),
+  y_min(0.),
+  y_max(0.),
   eta_min(-1.0),
   eta_max(1.0),
   mom_min(0.0),
   mom_max(10.0),
+  pt_min(4.),
+  pt_max(4.),
   mass(9.46),
   width(54.02e-6),
   m1(0.511e-3),
   m2(0.511e-3),
-  _embedflag(0),
   _histrand_init(0),
   decay1("e+"),
   decay2("e-"),
   fsin(NULL),
   frap(NULL),
-  fpt(NULL)
+  fpt(NULL),
+  trand(NULL)
 {
 
   // From PDG:
@@ -280,7 +286,7 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
       PHG4Particle *particle = new PHG4Particlev1(*iter);
       SetParticleId(particle,ineve);
       ineve->AddParticle(vtxindex, particle);
-      if(_embedflag!=0) { ineve->AddEmbeddedParticle(particle,embedflag); }
+      if(embedflag!=0) { ineve->AddEmbeddedParticle(particle,embedflag); }
     }
 
   // List what has been put into ineve for this event

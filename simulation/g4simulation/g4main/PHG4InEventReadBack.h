@@ -3,8 +3,6 @@
 
 #include <fun4all/SubsysReco.h>
 
-class VariableArray;
-
 class PHG4InEventReadBack: public SubsysReco
 {
  public:
@@ -15,8 +13,6 @@ class PHG4InEventReadBack: public SubsysReco
   int End(PHCompositeNode *topNode);
 
  protected:
-  VariableArray *vtxarray;
-  VariableArray *particlearray;
   
 };
 

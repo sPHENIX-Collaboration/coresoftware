@@ -36,14 +36,7 @@ class ReadEICFiles: public SubsysReco
   ///  Input Tree Variables
   int nEntries;
   int entry;
-  int Event;
-  int NPart;
   int ProcessID;
-  int Parton1;
-  int Parton2;
-  float Sqrt_s_hat;
-  float X1;
-  float X2;
   float Y;
   float Q2;
   float X;

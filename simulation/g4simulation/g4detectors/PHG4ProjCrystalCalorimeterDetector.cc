@@ -1052,7 +1052,6 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 		z_cent = 0.00;
 		G4double rot_x = 0.020928529;
 		G4double rot_y = -1.0*rot_x;
-		G4double rot_z = 0.00;
 
 		G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 

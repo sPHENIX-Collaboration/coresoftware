@@ -175,7 +175,7 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	efromtruth = recoeval->get_energy_contribution(recojet,truthjet);
       }
       
-      float recojet_data[14] = {_ievent,
+      float recojet_data[14] = {(float) _ievent,
 				id,
 				ncomp,
 				eta,
@@ -240,7 +240,7 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	efromtruth = recoeval->get_energy_contribution(recojet,truthjet);
       }
       
-      float truthjet_data[14] = {_ievent,
+      float truthjet_data[14] = {(float) _ievent,
 				 gid,
 				 gncomp,
 				 geta,

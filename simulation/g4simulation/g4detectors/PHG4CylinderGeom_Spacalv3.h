@@ -110,6 +110,7 @@ public:
     int NFiberY;
 
     geom_tower();
+    virtual ~geom_tower(){}
 
     virtual void
     identify(std::ostream& os = std::cout) const;

@@ -80,7 +80,7 @@ class CaloEvaluator : public SubsysReco {
 
   std::string _caloname;
   
-  unsigned long _ievent;
+  unsigned int _ievent;
 
   std::set<int> _truth_trace_embed_flags;
   float _truth_e_threshold;

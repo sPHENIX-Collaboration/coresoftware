@@ -753,11 +753,6 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
   vector<SimpleHit3D> track_hits;
   int clusterID;
   int clusterLayer;
-  float cluster_x;
-  float cluster_y;
-  float cluster_z;
-  //  float dEdx1;
-  //  float dEdx2;
 
   for(unsigned int itrack=0; itrack<_tracks.size();itrack++)
   {
@@ -774,9 +769,6 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
       SvtxCluster *cluster = _g4clusters->get(track_hits.at(ihit).index);
       clusterID = cluster->get_id();
       clusterLayer = cluster->get_layer();
-      cluster_x = cluster->get_x();
-      cluster_y = cluster->get_y();
-      cluster_z = cluster->get_z();
       if( (clusterLayer < (int)_seed_layers) && (clusterLayer >= 0) )
       {
         track.insert_cluster(clusterID);

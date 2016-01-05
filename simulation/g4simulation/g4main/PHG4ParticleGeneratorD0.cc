@@ -24,14 +24,19 @@ using namespace std;
 
 PHG4ParticleGeneratorD0::PHG4ParticleGeneratorD0(const string &name): 
   PHG4ParticleGeneratorBase(name),
+  vtx_zmin(-10.),
+  vtx_zmax(10),
+  y_min(0.),
+  y_max(0.),
   eta_min(-1.0),
   eta_max(1.0),
   mom_min(0.0),
   mom_max(10.0),
+  pt_min(4.),
+  pt_max(4.),
   mass(1.86486),
   m1(0.493677),
   m2(0.13957018),
-  _embedflag(0),
   fsin(NULL),
   frap(NULL),
   fpt(NULL)
@@ -234,12 +239,12 @@ PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   // Now output the list of boosted decay particles to the node tree
 
   vector<PHG4Particle *>::const_iterator iter;
-  for (iter = particlelist.begin(); iter != particlelist.end(); iter++)
+  for (iter = particlelist.begin(); iter != particlelist.end(); ++iter)
     {
       PHG4Particle *particle = new PHG4Particlev1(*iter);
       SetParticleId(particle,ineve);
       ineve->AddParticle(vtxindex, particle);
-      if(_embedflag!=0) { ineve->AddEmbeddedParticle(particle,embedflag); }
+      if(embedflag!=0) { ineve->AddEmbeddedParticle(particle,embedflag); }
     }
 
   // List what has been put into ineve for this event

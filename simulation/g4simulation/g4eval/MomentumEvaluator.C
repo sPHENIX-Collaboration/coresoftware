@@ -385,12 +385,12 @@ int MomentumEvaluator::process_event( PHCompositeNode *topNode )
    			}
    		}
    		
-   		float ntp_data[14] = { event_counter, t_track->px, t_track->py, t_track->pz, t_track->dcax, t_track->dcay, t_track->dcaz, pointer_list[best_ind]->px, pointer_list[best_ind]->py, pointer_list[best_ind]->pz, pointer_list[best_ind]->dcax, pointer_list[best_ind]->dcay, pointer_list[best_ind]->dcaz, pointer_list[best_ind]->quality };
+   		float ntp_data[14] = { (float) event_counter, t_track->px, t_track->py, t_track->pz, t_track->dcax, t_track->dcay, t_track->dcaz, pointer_list[best_ind]->px, pointer_list[best_ind]->py, pointer_list[best_ind]->pz, pointer_list[best_ind]->dcax, pointer_list[best_ind]->dcay, pointer_list[best_ind]->dcaz, pointer_list[best_ind]->quality };
    		ntp_true->Fill(ntp_data);
    	}
    	else
    	{
-   		float ntp_data[14] = { event_counter, t_track->px, t_track->py, t_track->pz, t_track->dcax, t_track->dcay, t_track->dcaz, -9999.,-9999.,-9999.,-9999.,-9999.,-9999., -9999. };
+   		float ntp_data[14] = { (float) event_counter, t_track->px, t_track->py, t_track->pz, t_track->dcax, t_track->dcay, t_track->dcaz, -9999.,-9999.,-9999.,-9999.,-9999.,-9999., -9999. };
    		ntp_true->Fill(ntp_data);
    	}
 
@@ -430,12 +430,12 @@ int MomentumEvaluator::process_event( PHCompositeNode *topNode )
    			}
    		}
    		
-   		float ntp_data[14] = { event_counter, r_track->px, r_track->py, r_track->pz, r_track->dcax, r_track->dcay, r_track->dcaz, pointer_list[best_ind]->px, pointer_list[best_ind]->py, pointer_list[best_ind]->pz, pointer_list[best_ind]->dcax, pointer_list[best_ind]->dcay, pointer_list[best_ind]->dcaz, r_track->quality };
+   		float ntp_data[14] = { (float) event_counter, r_track->px, r_track->py, r_track->pz, r_track->dcax, r_track->dcay, r_track->dcaz, pointer_list[best_ind]->px, pointer_list[best_ind]->py, pointer_list[best_ind]->pz, pointer_list[best_ind]->dcax, pointer_list[best_ind]->dcay, pointer_list[best_ind]->dcaz, r_track->quality };
    		ntp_reco->Fill(ntp_data);
    	}
    	else
    	{
-   		float ntp_data[14] = { event_counter, r_track->px, r_track->py, r_track->pz, r_track->dcax, r_track->dcay, r_track->dcaz, -9999.,-9999.,-9999.,-9999.,-9999.,-9999., r_track->quality };
+   		float ntp_data[14] = { (float) event_counter, r_track->px, r_track->py, r_track->pz, r_track->dcax, r_track->dcay, r_track->dcaz, -9999.,-9999.,-9999.,-9999.,-9999.,-9999., r_track->quality };
    		ntp_reco->Fill(ntp_data);
    	}
 

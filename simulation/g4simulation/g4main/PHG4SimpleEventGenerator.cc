@@ -274,9 +274,9 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
       double phi = (_phi_max-_phi_min) * gsl_rng_uniform_pos(RandomGenerator) + _phi_min;
 
       double pt;
-      if (!isnan(_p_min) && !isnan(_p_max)) {
+      if (!std::isnan(_p_min) && !std::isnan(_p_max)) {
 	pt = ((_p_max-_p_min) * gsl_rng_uniform_pos(RandomGenerator) + _p_min) / cosh(eta);
-      } else if (!isnan(_pt_min) && !isnan(_pt_max)) {
+      } else if (!std::isnan(_pt_min) && !std::isnan(_pt_max)) {
 	pt = (_pt_max-_pt_min) * gsl_rng_uniform_pos(RandomGenerator) + _pt_min;
       } else {
 	cout << PHWHERE << "Error: neither a p range or pt range was specified" << endl;

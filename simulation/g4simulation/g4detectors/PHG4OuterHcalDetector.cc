@@ -669,11 +669,8 @@ PHG4OuterHcalDetector::x_at_y(Point_2 &p0, Point_2 &p1, G4double yin)
 {
   double xret = NAN;
   double x[2];
-  double y[2];
   x[0] = CGAL::to_double(p0.x());
-  y[0] = CGAL::to_double(p0.y());
   x[1] = CGAL::to_double(p1.x());
-  y[1] = CGAL::to_double(p1.y());
   Line_2 l(p0, p1);
   double newx = fabs(x[0]) + fabs(x[1]);
   Point_2 p0new(-newx, yin);

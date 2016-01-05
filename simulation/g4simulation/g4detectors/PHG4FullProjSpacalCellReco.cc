@@ -185,7 +185,7 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
           // ...
         } //       BOOST_FOREACH(const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type& tower_pair, tower_map)
 
-      assert(not isnan(phi_min));
+      assert(! std::isnan(phi_min));
       layerseggeo->set_phimin(phi_min);
       layerseggeo->set_phistep(deltaphi);
       layerseggeo->set_phibins(nphibin);

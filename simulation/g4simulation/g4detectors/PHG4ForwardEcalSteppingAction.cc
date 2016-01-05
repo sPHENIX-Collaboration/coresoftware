@@ -34,7 +34,6 @@ using namespace std;
 
 //____________________________________________________________________________..
 PHG4ForwardEcalSteppingAction::PHG4ForwardEcalSteppingAction( PHG4ForwardEcalDetector* detector ):
-  PHG4SteppingAction(NULL),
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),

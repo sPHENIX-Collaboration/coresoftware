@@ -478,7 +478,7 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Parti
   primary = get_truth_eval()->get_primary_particle(primary);
 
   if (_strict) {assert(primary);}
-  else if (!primary) {++_errors; return NULL;}
+  else if (!primary) {++_errors; return 0.;}
   
   if (_do_cache) {
     std::map<std::pair<RawCluster*,PHG4Particle*>,float>::iterator iter =
