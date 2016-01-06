@@ -183,7 +183,7 @@ PgPostBankBackupManager::SQLResultSet2BackupStorage(TSQLResultSet * rs,
     }
 
   const int rid = rs->GetInt(8);
-  std::auto_ptr<PgPostCalBank> bw(
+  std::unique_ptr<PgPostCalBank> bw(
       dynamic_cast<PgPostCalBank *>(rs->GetObject(7)));
   assert(bw.get());
   int length = 0;
@@ -365,7 +365,7 @@ PgPostBankBackupManager::fetchBank(const std::string &bankName, int rid)
     cout << "PgPostBankBackupManager::fetchBank - database exe : " << tem.str()
         << endl;
 
-//  std::auto_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
+//  std::unique_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
 //  if (!rs.get())
   TSQLResultSet * rs(stmt->ExecuteQuery(tem.str().c_str()));
   if (!rs)
@@ -439,7 +439,7 @@ PgPostBankBackupManager::commit(PgPostBankBackupStorage * bs)
       return false;
     }
 
-//  std::auto_ptr<PgPostCalBank> bw(bs->createBank());
+//  std::unique_ptr<PgPostCalBank> bw(bs->createBank());
 //  assert(bw.get());
 
   try
@@ -470,7 +470,7 @@ PgPostBankBackupManager::commit(PgPostBankBackupStorage * bs)
             << sqlcmd.str() << endl;
       TSQLPreparedStatement* pstmt = con->PrepareStatement(
           sqlcmd.str().c_str());
-//  std::auto_ptr<TSQLPreparedStatement> pstmt(
+//  std::unique_ptr<TSQLPreparedStatement> pstmt(
 //      con->PrepareStatement(sqlcmd.str().c_str()));
 
 //      deleteODBCPreparedStatement(pstmt);
@@ -482,7 +482,7 @@ PgPostBankBackupManager::commit(PgPostBankBackupStorage * bs)
       pstmt->SetLong(4, (bs->get_database_header().getEndValTime()).getTics());
       pstmt->SetString(5, (bs->get_database_header().getDescription()).c_str());
       pstmt->SetString(6, (bs->get_database_header().getUserName()).c_str());
-      std::auto_ptr<PgPostCalBank> bw(bs->createBank());
+      std::unique_ptr<PgPostCalBank> bw(bs->createBank());
       assert(bw.get());
       pstmt->SetObject(7, bw.get());
       pstmt->SetInt(8, bs->get_database_header().getRId());
@@ -631,7 +631,7 @@ PgPostBankBackupManager::commitAllBankfromTFile(const std::string &input_file)
 
           timer_file.get()->restart();
 
-          std::auto_ptr<PgPostBankBackupStorage>
+          std::unique_ptr<PgPostBankBackupStorage>
 //          PgPostBankBackupStorage *
           bs (dynamic_cast<PgPostBankBackupStorage*>(key->ReadObj()));
           timer_file.get()->stop();
@@ -730,7 +730,7 @@ PgPostBankBackupManager::commitAllBankfromTFile(const std::string &input_file)
                   (bs->get_database_header().getDescription()).c_str());
               pstmt->SetString(6,
                   (bs->get_database_header().getUserName()).c_str());
-              std::auto_ptr<PgPostCalBank> bw(bs->createBank());
+              std::unique_ptr<PgPostCalBank> bw(bs->createBank());
               assert(bw.get());
               pstmt->SetObject(7, bw.get());
               pstmt->SetInt(8, bs->get_database_header().getRId());
@@ -946,7 +946,7 @@ PgPostBankBackupManager::fetchAllBank2TFile(const std::string &bankName,
     cout << "PgPostBankBackupManager::fetchAllBank2TFile - writing new file "
         << file_name << endl;
 
-  std::auto_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
+  std::unique_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
   if (!rs.get())
 //  TSQLResultSet * rs(stmt->ExecuteQuery(tem.str().c_str()));
 //  if (!rs)
@@ -1113,7 +1113,7 @@ PgPostBankBackupManager::isRIdExist(const std::string &bankName, int rid)
         << tem.str() << endl;
 
   TSQLStatement *stmt = con->CreateStatement();
-  std::auto_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
+  std::unique_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
   if ((&*rs) && rs->Next())
     {
       return true;
@@ -1143,7 +1143,7 @@ PgPostBankBackupManager::getTotalRowCount(const std::string &bankName)
         << tem.str() << endl;
 
   TSQLStatement *stmt = con->CreateStatement();
-  std::auto_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
+  std::unique_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
   if ((&*rs) && rs->Next())
     {
       return rs->GetInt(1);
@@ -1179,7 +1179,7 @@ PgPostBankBackupManager::getListOfRId(const string & bankName,
         << tem.str() << endl;
 
   TSQLStatement *stmt = con->CreateStatement();
-  std::auto_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
+  std::unique_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
   while ((&*rs) && rs->Next())
     {
       int rid = rs->GetInt(1);
@@ -1231,7 +1231,7 @@ PgPostBankBackupManager::dumpTable(const std::string &bankName,
     cout << "PgPostBankBackupManager::dumpTable - database exe : " << tem.str()
         << endl;
 
-  std::auto_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
+  std::unique_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
   if (!rs.get())
     {
       cout << "PgPostBankBackupManager::dumpTable - ERROR - "
@@ -1244,7 +1244,7 @@ PgPostBankBackupManager::dumpTable(const std::string &bankName,
   int cnt = 0;
   while (rs->Next())
     {
-      std::auto_ptr<PgPostCalBank> bw(
+      std::unique_ptr<PgPostCalBank> bw(
           dynamic_cast<PgPostCalBank *>(rs->GetObject(7)));
       assert(bw.get());
 
@@ -1296,7 +1296,7 @@ PgPostBankBackupManager::HashPdbCalChan(const PdbCalChan & c)
 {
   const TObject *ptr = dynamic_cast<const TObject *>(&c);
   assert(ptr);
-  std::auto_ptr<TBuffer> b(new TBufferFile(TBuffer::kWrite));
+  std::unique_ptr<TBuffer> b(new TBufferFile(TBuffer::kWrite));
 
   b->WriteObject(ptr);
 
@@ -1362,7 +1362,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
         cout << "PgPostBankBackupManager::CleanTable - database exe : "
             << tem.str() << endl;
 
-      std::auto_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
+      std::unique_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
       if (!rs.get())
         {
           cout << "PgPostBankBackupManager::CleanTable - ERROR - "
@@ -1412,7 +1412,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
         cout << "PgPostBankBackupManager::CleanTable - database exe : "
             << tem.str() << endl;
 
-      std::auto_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
+      std::unique_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
       if (!rs.get())
         {
           cout << "PgPostBankBackupManager::CleanTable - ERROR - "
