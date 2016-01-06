@@ -20,6 +20,7 @@ class PHG4HitContainer: public PHObject
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
   typedef std::set<unsigned int>::const_iterator LayerIter;
 
+  PHG4HitContainer(); //< used only by ROOT for DST readback
   PHG4HitContainer(std::string nodename);
 
   virtual ~PHG4HitContainer() {}
@@ -58,8 +59,7 @@ class PHG4HitContainer: public PHObject
   PHG4HitDefs::keytype getmaxkey(const unsigned int detid);
 
  protected:
-  PHG4HitContainer();
-  
+
   int id; //< unique identifier from hash of node name
   Map hitmap;
   std::set<unsigned int> layers; // layers is not reset since layers must not change event by event
