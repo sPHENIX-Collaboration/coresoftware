@@ -495,14 +495,12 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     
     cout << "-------------------------------------------------------------------" << endl;
   }
-
-  cout<<"_clusters_init.size() = "<<_clusters_init.size()<<endl;
   
   //------------------------------------
   // Perform the initial zvertex finding
   //------------------------------------
 
-  if(verbosity > 0) cout << "PHG4HoughTransformTPC::process_event -- initial vertex finding..." << endl;
+  
 
   // Grab some initial tracks for initial z-vertex finding
   _tracks.clear();
@@ -513,14 +511,17 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
   _vertex.push_back(0.0); // z guess
 
   if(_use_vertex) {
+
+    if(verbosity > 0) cout << "PHG4HoughTransformTPC::process_event -- initial vertex finding..." << endl;
     
     // find maxtracks tracks
-    unsigned int maxtracks = 100;
-    // _tracker->setRemoveHits(false);
-    _tracker->findHelices(_clusters_init, _req_seed, _max_hits_init, _tracks, maxtracks);
+    // unsigned int maxtracks = 100;
+    // _tracker->findHelices(_clusters_init, _req_seed, _max_hits_init, _tracks, maxtracks);
+    _tracker->findHelices(_clusters_init, _req_seed, _max_hits_init, _tracks);
+    // _tracker_vertex.at(0)->findHelices(_clusters_init, _req_seed, _max_hits_init, _tracks, maxtracks);
     // _tracker->setRemoveHits(_remove_hits);
 
-    cout<<"found "<<_tracks.size()<<" tracks"<<endl;
+    cout<<"found "<<_tracks.size()<<" initial tracks"<<endl;
     
     if(_tracks.size() == 0){return Fun4AllReturnCodes::EVENT_OK;}
     else if(_tracks.size() == 1)
@@ -1059,45 +1060,49 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
     top_range.min_z0 = -10.;
     top_range.max_z0 = 10.;
   }
+
+  top_range.min_z0 = -10.;
+  top_range.max_z0 = 10.;
   
   vector<unsigned int> onezoom(5,0);
   vector<vector<unsigned int> > zoomprofile;
-  zoomprofile.assign(3,onezoom);
+  zoomprofile.assign(8,onezoom);
   zoomprofile[0][0] = 16;
   zoomprofile[0][1] = 1;
   zoomprofile[0][2] = 4;
   zoomprofile[0][3] = 8;
-  zoomprofile[0][4] = 1;
+  zoomprofile[0][4] = 4;
   
   zoomprofile[1][0] = 16;
   zoomprofile[1][1] = 1;
   zoomprofile[1][2] = 4;
   zoomprofile[1][3] = 4;
-  zoomprofile[1][4] = 1;
+  zoomprofile[1][4] = 4;
   
   zoomprofile[2][0] = 4;
   zoomprofile[2][1] = 2;
-  zoomprofile[2][2] = 2;
+  zoomprofile[2][2] = 3;
   zoomprofile[2][3] = 2;
-  zoomprofile[2][4] = 2;
+  zoomprofile[2][4] = 4;
   
-  // for (unsigned int i = 3; i <= 4; ++i) {
-  //   zoomprofile[i][0] = 4;
-  //   zoomprofile[i][1] = 2;
-  //   zoomprofile[i][2] = 2;
-  //   zoomprofile[i][3] = 3;
-  //   zoomprofile[i][4] = 2;
-  // }
+  for (unsigned int i = 3; i <= 7; ++i) {
+    zoomprofile[i][0] = 5;
+    zoomprofile[i][1] = 2;
+    zoomprofile[i][2] = 5;
+    zoomprofile[i][3] = 5;
+    zoomprofile[i][4] = 5;
+  }
     
-  _tracker = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
+  _tracker = new sPHENIXTracker(zoomprofile, 3, top_range, _material, _radii, _magField);
   _tracker->setIterateClustering(true);
   _tracker->setNLayers(_seed_layers);
   _tracker->requireLayers(_req_seed);
   _max_hits_init = _seed_layers*4;
-  if(_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
+  if(_seed_layers >= 10){_max_hits_init = _seed_layers*1;}
   _min_hits_init = _req_seed;
-  if(_seed_layers < 10){ _tracker->setClusterStartBin(1); }
-  else{ _tracker->setClusterStartBin(10); }
+  _tracker->setClusterStartBin(1);
+  // if(_seed_layers < 10){ _tracker->setClusterStartBin(1); }
+  // else{ _tracker->setClusterStartBin(10); }
   _tracker->setRejectGhosts(_reject_ghosts);
   _tracker->setFastChi2Cut(_chi2_cut_fast_par0,
 			   _chi2_cut_fast_par1,
@@ -1151,26 +1156,34 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
     {
       top_range_init.push_back(HelixRange(phimin, phimin+phi_step,   -0.2, 0.2,   0.0, kappa_max_init,   -0.9, 0.9,   z0min, z0min+z0_step));
       _tracker_vertex.push_back( new sPHENIXTracker(zoomprofile_init, 1, top_range_init.back(), _material, _radii, _magField) );
-      if(verbosity > 3){(_tracker_vertex.back())->setPrintTimings(true);}
-      (_tracker_vertex.back())->setVerbosity(verbosity);
-      (_tracker_vertex.back())->setNLayers(_seed_layers);
-      (_tracker_vertex.back())->requireLayers(_req_seed);
-      (_tracker_vertex.back())->setClusterStartBin(1);
-      (_tracker_vertex.back())->setRejectGhosts(true);
-      (_tracker_vertex.back())->setFastChi2Cut(_chi2_cut_fast_par0,
-					       _chi2_cut_fast_par1,
-					       _chi2_cut_fast_max);
-      (_tracker_vertex.back())->setChi2Cut(_chi2_cut_init);
-      (_tracker_vertex.back())->setChi2RemovalCut(_chi2_cut_init*0.5);
-      (_tracker_vertex.back())->setCellularAutomatonChi2Cut(_ca_chi2_cut);
-      (_tracker_vertex.back())->setCutOnDca(false);
-      (_tracker_vertex.back())->setSmoothBack(true);
-      (_tracker_vertex.back())->setBinScale(_bin_scale);
-      (_tracker_vertex.back())->setZBinScale(_z_bin_scale);
-      (_tracker_vertex.back())->setRemoveHits(false);
-      (_tracker_vertex.back())->setSeparateByHelicity(true);
-      (_tracker_vertex.back())->setMaxHitsPairs(0);
-      (_tracker_vertex.back())->setCosAngleCut(_cos_angle_cut);
+
+        (_tracker_vertex.back())->setIterateClustering(true);
+        (_tracker_vertex.back())->setNLayers(_seed_layers);
+        (_tracker_vertex.back())->requireLayers(_req_seed);
+        _max_hits_init = _seed_layers*4;
+        if(_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
+        _min_hits_init = _req_seed;
+        if(_seed_layers < 10){ (_tracker_vertex.back())->setClusterStartBin(1); }
+        else{ (_tracker_vertex.back())->setClusterStartBin(10); }
+        (_tracker_vertex.back())->setRejectGhosts(_reject_ghosts);
+        (_tracker_vertex.back())->setFastChi2Cut(_chi2_cut_fast_par0,
+               _chi2_cut_fast_par1,
+               _chi2_cut_fast_max);
+        (_tracker_vertex.back())->setChi2Cut(_chi2_cut_full);
+        (_tracker_vertex.back())->setChi2RemovalCut(_chi2_cut_full*0.5);
+        (_tracker_vertex.back())->setCellularAutomatonChi2Cut(_ca_chi2_cut);
+        (_tracker_vertex.back())->setPrintTimings(false);
+        if(verbosity > 3){(_tracker_vertex.back())->setPrintTimings(true);}
+        (_tracker_vertex.back())->setVerbosity(verbosity);
+        (_tracker_vertex.back())->setCutOnDca(_cut_on_dca);
+        (_tracker_vertex.back())->setDcaCut(_dca_cut);
+        (_tracker_vertex.back())->setSmoothBack(false);
+        (_tracker_vertex.back())->setBinScale(_bin_scale);
+        (_tracker_vertex.back())->setZBinScale(_z_bin_scale);
+        (_tracker_vertex.back())->setRemoveHits(_remove_hits);
+        (_tracker_vertex.back())->setSeparateByHelicity(true);
+        (_tracker_vertex.back())->setMaxHitsPairs(0);
+        (_tracker_vertex.back())->setCosAngleCut(_cos_angle_cut);
       z0min += z0_step;
     }
     phimin += phi_step;
