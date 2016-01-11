@@ -58,7 +58,9 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode 
   _crystal_dz(180.0*mm),
   _materialCrystal( "G4_PbWO4" ),
   _active(1),
+  _absorberactive(0),
   _layer(0),
+  _blackhole(0),
   _towerlogicnameprefix("CrystalCalorimeterTower"),
   _superdetector("NONE"),
   _mapping_tower_file("")
@@ -292,7 +294,7 @@ PHG4CrystalCalorimeterDetector::PlaceTower(G4LogicalVolume* eemcenvelope, G4Logi
   /* Loop over all tower positions in vector and place tower */
   typedef std::map< std::string, towerposition>::iterator it_type;
 
-  for(it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); iterator++) {
+  for(it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); ++iterator) {
 
       if ( verbosity > 0 )
 	{
