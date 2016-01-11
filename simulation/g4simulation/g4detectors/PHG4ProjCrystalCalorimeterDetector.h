@@ -1,8 +1,9 @@
 #ifndef PHG4ProjCrystalCalorimeterDetector_h
 #define PHG4ProjCrystalCalorimeterDetector_h
 
-#include <g4main/PHG4Detector.h>
 #include "PHG4CrystalCalorimeterDetector.h"
+
+#include <g4main/PHG4Detector.h>
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4Types.hh>
@@ -100,24 +101,6 @@ private:
   int Fill4x4Unit(G4LogicalVolume *crystal_logic);
   int FillSpecialUnit(G4LogicalVolume *crystal_logic, G4int ident);
 
-  /* Calorimeter envelope geometry */
-  G4double _place_in_x;
-  G4double _place_in_y;
-  G4double _place_in_z;
-
-  G4double _rot_in_x;
-  G4double _rot_in_y;
-  G4double _rot_in_z;
-
-  G4double _rMin1;
-  G4double _rMax1;
-  G4double _rMin2;
-  G4double _rMax2;
-
-  G4double _dZ;
-  G4double _sPhi;
-  G4double _dPhi;
-
   /* crystal geometry */
   G4double _dx_front;
   G4double _dy_front;
@@ -125,15 +108,7 @@ private:
   G4double _dy_back;
   G4double _dz_crystal;
 
-  G4String _materialCrystal;
-
-  int _active;
-  int _absorberactive;
-  int _layer;
-  int _blackhole;
-
   std::string _crystallogicnameprefix;
-  std::string _superdetector;
   std::string _inputFile;
   std::string _inputFile_4x4_construct;
 };

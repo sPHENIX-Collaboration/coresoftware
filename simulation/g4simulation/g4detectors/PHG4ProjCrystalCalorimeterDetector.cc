@@ -43,33 +43,17 @@ static bool overlapcheck_local = true;
 //_______________________________________________________________________
 PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector( PHCompositeNode *Node, const std::string &dnam ):
   PHG4CrystalCalorimeterDetector(Node, dnam),
-  _place_in_x(0.0*mm),
-  _place_in_y(0.0*mm),
-  _place_in_z(-1080.0*mm),
-  _rot_in_x(0.0),
-  _rot_in_y(M_PI),
-  _rot_in_z(0.0),
-  _rMin1(22*mm),
-  _rMax1(656*mm),
-  _rMin2(26*mm),
-  _rMax2(775*mm),
-  _dZ(180*mm),
-  _sPhi(0),
-  _dPhi(2*M_PI),
-//  _dx_front(50.19*mm),		//****************************************************************//
-//  _dy_front(50.19*mm),		//****************************************************************//
-//  _dx_back(59.3154545455*mm),		// PANDA eEMCAL Numbers: Crystals are 2.4cm * 2.4cm on front face //
-//  _dy_back(59.3154545455*mm),		//****************************************************************//
-//  _dz_crystal(90.000*mm),		//****************************************************************//
+  //  _dx_front(50.19*mm),		//****************************************************************//
+  //  _dy_front(50.19*mm),		//****************************************************************//
+  //  _dx_back(59.3154545455*mm),		// PANDA eEMCAL Numbers: Crystals are 2.4cm * 2.4cm on front face //
+  //  _dy_back(59.3154545455*mm),		//****************************************************************//
+  //  _dz_crystal(90.000*mm),		//****************************************************************//
   _dx_front(41.44*mm),
   _dy_front(41.44*mm),
   _dx_back(48.97454545455*mm),
   _dy_back(48.97454545455*mm),
   _dz_crystal(90.000*mm),
-  _materialCrystal( "G4_PbWO4" ),
-  _active(1),
   _crystallogicnameprefix("eEcalCrystal"),
-  _superdetector("NONE"),
   _inputFile( "" ),
   _inputFile_4x4_construct( "" )
 {
@@ -350,8 +334,8 @@ PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 			x_cent = TwoByTwo[j][2];
 			y_cent = TwoByTwo[j][3];
 			z_cent = TwoByTwo[j][4];
-			rot_x = TwoByTwo[j][5];
-			rot_y = TwoByTwo[j][6];
+			//rot_x = TwoByTwo[j][5];
+			//rot_y = TwoByTwo[j][6];
 			rot_z = TwoByTwo[j][7];
 
 			G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
@@ -413,7 +397,7 @@ PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 				0, 0, overlapcheck_local);
 
 			j_idx = k_idx = 0;
-			x_cent = y_cent = z_cent = rot_x = rot_y = rot_z = 0.0;
+			x_cent = y_cent = z_cent = rot_x = rot_y = 0.0;
 		}
 
 		j++;
@@ -463,7 +447,7 @@ PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 	z_cent = TwoByTwo[j][4];
 	rot_x = TwoByTwo[j][5];
 	rot_y = TwoByTwo[j][6];
-	rot_z = TwoByTwo[j][7];
+	//rot_z = TwoByTwo[j][7];
 
 	G4ThreeVector Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
@@ -487,7 +471,7 @@ PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 	z_cent = TwoByTwo[j][4];
 	rot_x = TwoByTwo[j][5];
 	rot_y = TwoByTwo[j][6];
-	rot_z = TwoByTwo[j][7];
+	//rot_z = TwoByTwo[j][7];
 
 	Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
@@ -511,7 +495,7 @@ PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 	z_cent = TwoByTwo[j][4];
 	rot_x = TwoByTwo[j][5];
 	rot_y = TwoByTwo[j][6];
-	rot_z = TwoByTwo[j][7];
+	//rot_z = TwoByTwo[j][7];
 
 	Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
@@ -535,7 +519,7 @@ PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 	z_cent = TwoByTwo[j][4];
 	rot_x = TwoByTwo[j][5];
 	rot_y = TwoByTwo[j][6];
-	rot_z = TwoByTwo[j][7];
+	//rot_z = TwoByTwo[j][7];
 
 	Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
@@ -778,7 +762,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 				0, 0, overlapcheck_local);
 			
 			j_idx = k_idx = 0;
-			x_cent = y_cent = z_cent = rot_x = rot_y = rot_z = 0.0;
+			x_cent = y_cent = z_cent = rot_z = 0.0;
 		}
 		j++;
 	}
@@ -999,8 +983,8 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 		y_cent = TwoByTwo[j][3];
 		z_cent = TwoByTwo[j][4];
 		rot_x = TwoByTwo[j][5];
-		rot_y = TwoByTwo[j][6];
-		rot_z = TwoByTwo[j][7];
+		//rot_y = TwoByTwo[j][6];
+		//rot_z = TwoByTwo[j][7];
 
 		Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
@@ -1136,7 +1120,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 		z_cent = TwoByTwo[j][4];
 		rot_x = TwoByTwo[j][5];
 		rot_y = TwoByTwo[j][6];
-		rot_z = TwoByTwo[j][7];
+		//rot_z = TwoByTwo[j][7];
 
 		Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
@@ -1160,7 +1144,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 		z_cent = TwoByTwo[j][4];
 		rot_x = TwoByTwo[j][5];
 		rot_y = TwoByTwo[j][6];
-		rot_z = TwoByTwo[j][7];
+		//rot_z = TwoByTwo[j][7];
 
 		Crystal_Center = G4ThreeVector(x_cent*mm, y_cent*mm, z_cent*mm);
 
