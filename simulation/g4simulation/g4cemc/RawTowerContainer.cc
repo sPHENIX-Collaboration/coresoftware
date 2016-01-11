@@ -8,22 +8,6 @@ ClassImp(RawTowerContainer)
 
 using namespace std;
 
-unsigned int
-RawTowerContainer::genkey(const unsigned int ieta, const unsigned int iphi) const
-{
-  if (ieta > 0xFFFF || iphi > 0xFFFF)
-    {
-      cout << "ieta " << ieta << " or iphi " << iphi 
-	   << " exceed max length of " << 0xFFFF << endl;
-      cout << "reconsider the generation of unique keys" << endl;
-      exit(1);
-    }
-  unsigned int key = 0;
-  key |= (ieta << 16);
-  key |= iphi;
-  return key;
-}
-
 void 
 RawTowerContainer::compress(const double emin)
 {
@@ -31,8 +15,8 @@ RawTowerContainer::compress(const double emin)
     {
       return;
     }
-  std::map<unsigned int, RawTower*>::iterator itr = _towers.begin();
-  std::map<unsigned int, RawTower*>::iterator last = _towers.end();
+  Iterator itr = _towers.begin();
+  Iterator last = _towers.end();
   for (; itr != last; )
     {
       RawTower *tower = (itr->second);
@@ -54,24 +38,57 @@ RawTowerContainer::getTowers( void ) const
   return make_pair(_towers.begin(), _towers.end());
 }
 
-RawTowerContainer::ConstIterator
-RawTowerContainer::AddTower(const int ieta, const int iphi, RawTower *rawtower)
+
+RawTowerContainer::Range
+RawTowerContainer::getTowers( void )
 {
-  unsigned int key = genkey(ieta,iphi);
+  return make_pair(_towers.begin(), _towers.end());
+}
+
+
+RawTowerContainer::ConstIterator
+RawTowerContainer::AddTower(const unsigned int ieta, const int unsigned iphi, RawTower *rawtower)
+{
+  RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(_caloid,ieta,iphi);
+
   _towers[key] = rawtower;
+  rawtower->set_id(key); // force tower key to be synced to container key
+
+  return _towers.find(key);
+}
+
+RawTowerContainer::ConstIterator
+RawTowerContainer::AddTower(RawTowerDefs::keytype key, RawTower *twr)
+{
+  if (RawTowerDefs::decode_caloid(key) != _caloid)
+    {
+      cout <<"RawTowerContainer::AddTower - Error - adding tower to wrong container! Container CaloID = "
+          <<_caloid << ", requested CaloID = "<<RawTowerDefs::decode_caloid(key)<<" based on key "<<key<<endl;
+      exit(2);
+    }
+
+  _towers[key] = twr;
+  twr->set_id(key); // force tower key to be synced to container key
+
   return _towers.find(key);
 }
 
 RawTower *
-RawTowerContainer::getTower(const int ieta, const int iphi)
+RawTowerContainer::getTower(RawTowerDefs::keytype key)
 {
-  unsigned int key = genkey(ieta,iphi);
   Iterator it = _towers.find(key);
   if (it != _towers.end())
     {
       return it->second;
     }
   return NULL;
+}
+
+RawTower *
+RawTowerContainer::getTower(const unsigned int ieta, const unsigned int iphi)
+{
+  RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(_caloid,ieta,iphi);
+  return getTower(key);
 }
 
 int 

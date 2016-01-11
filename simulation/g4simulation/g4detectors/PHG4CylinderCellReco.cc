@@ -14,7 +14,7 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include<TROOT.h>
 
@@ -22,13 +22,15 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <limits>       // std::numeric_limits
+
 
 using namespace std;
 
 PHG4CylinderCellReco::PHG4CylinderCellReco(const string &name) :
   SubsysReco(name),
   _timer(PHTimeServer::get()->insert_new("PHG4CylinderCellReco")),
-  chkenergyconservation(0)
+  chkenergyconservation(0), timing_window_size(numeric_limits<double>::max())
 {
   memset(nbins, 0, sizeof(nbins));
 }
@@ -56,9 +58,18 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
   PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode , cellnodename);
   if (!cells)
     {
+      PHNodeIterator dstiter(dstNode);
+      PHCompositeNode *DetNode =
+          dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",
+              detector));
+      if (!DetNode)
+        {
+          DetNode = new PHCompositeNode(detector);
+          dstNode->addNode(DetNode);
+        }
       cells = new PHG4CylinderCellContainer();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str() , "PHObject");
-      dstNode->addNode(newNode);
+      DetNode->addNode(newNode);
     }
 
   geonodename = "CYLINDERGEOM_" + detector;
@@ -86,7 +97,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
   map<int, PHG4CylinderGeom *>::const_iterator miter;
   pair <map<int, PHG4CylinderGeom *>::const_iterator, map<int, PHG4CylinderGeom *>::const_iterator> begin_end = geo->get_begin_end();
   map<int, std::pair <double, double> >::iterator sizeiter;
-  for (miter = begin_end.first; miter != begin_end.second; miter++)
+  for (miter = begin_end.first; miter != begin_end.second; ++miter)
     {
       PHG4CylinderGeom *layergeom = miter->second;
       int layer = layergeom->get_layer();
@@ -103,7 +114,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       layerseggeo->set_layer(layergeom->get_layer());
       layerseggeo->set_radius(layergeom->get_radius());
       layerseggeo->set_thickness(layergeom->get_thickness());
-      if (binning[layer] == phg4cylindercelldefs::etaphibinning)
+      if (binning[layer] == PHG4CylinderCellDefs::etaphibinning)
         {
           // calculate eta at radius+ thickness (outer radius)
           // length via eta coverage is calculated using the outer radius
@@ -155,7 +166,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
             }
           pair<int, int> phi_z_bin = make_pair(phibins, etabins);
           n_phi_z_bins[layer] = phi_z_bin;
-          layerseggeo->set_binning(phg4cylindercelldefs::etaphibinning);
+          layerseggeo->set_binning(PHG4CylinderCellDefs::etaphibinning);
           layerseggeo->set_etabins(etabins);
           layerseggeo->set_etamin(etamin);
           layerseggeo->set_etastep(etastepsize);
@@ -165,7 +176,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
           phistep[layer] = phistepsize;
           etastep[layer] = etastepsize;
         }
-      else if (binning[layer] == phg4cylindercelldefs::sizebinning)
+      else if (binning[layer] == PHG4CylinderCellDefs::sizebinning)
         {
           zmin_max[layer] = make_pair(layergeom->get_zmin(), layergeom->get_zmax());
           double size_z = (sizeiter->second).second;
@@ -222,7 +233,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
                 }
               zhigh += size_z;
             }
-          layerseggeo->set_binning(phg4cylindercelldefs::sizebinning);
+          layerseggeo->set_binning(PHG4CylinderCellDefs::sizebinning);
           layerseggeo->set_zbins(nbins[1]);
           layerseggeo->set_zmin(layergeom->get_zmin());
           layerseggeo->set_zstep(size_z);
@@ -238,21 +249,21 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
     }
 
   // print out settings
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "===================== PHG4CylinderCellReco::InitRun() =====================" << endl;
     cout << " " << outdetector << " Segmentation Description: " << endl;
     for (std::map<int,int>::iterator iter = binning.begin(); 
 	 iter != binning.end(); ++iter) {
       int layer = iter->first;
 
-      if (binning[layer] == phg4cylindercelldefs::etaphibinning) {
+      if (binning[layer] == PHG4CylinderCellDefs::etaphibinning) {
 	// phi & eta bin is usually used to make projective towers
 	// so just print the first layer
 	cout << " Layer #" << binning.begin()->first << "-" << binning.rbegin()->first << endl;
 	cout << "   Nbins (phi,eta): (" << n_phi_z_bins[layer].first << ", " << n_phi_z_bins[layer].second << ")" << endl;
 	cout << "   Cell Size (phi,eta): (" << cell_size[layer].first << " rad, " << cell_size[layer].second << " units)" << endl;
 	break;
-      } else if (binning[layer] == phg4cylindercelldefs::sizebinning) {	
+      } else if (binning[layer] == PHG4CylinderCellDefs::sizebinning) {	
 	cout << " Layer #" << layer << endl;
 	cout << "   Nbins (phi,z): (" << n_phi_z_bins[layer].first << ", " << n_phi_z_bins[layer].second << ")" << endl;
 	cout << "   Cell Size (phi,z): (" << cell_size[layer].first << " cm, " << cell_size[layer].second << " cm)" << endl;
@@ -308,10 +319,14 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
       int nzbins = n_phi_z_bins[*layer].second;
 
       // ------- eta/phi binning ------------------------------------------------------------------------
-      if (binning[*layer] == phg4cylindercelldefs::etaphibinning)
+      if (binning[*layer] == PHG4CylinderCellDefs::etaphibinning)
         {
           for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
             {
+              // checking ADC timing integration window cut
+              if (hiter->second->get_t(0)>timing_window_size)
+                continue;
+
               pair<double, double> etaphi[2];
               double phibin[2];
               double etabin[2];
@@ -442,7 +457,7 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 		      if(verbosity > 1)
 			cout << "  add energy to existing cell " << endl;
 
-		      cellptmap.find(key)->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1]);
+		      cellptmap.find(key)->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
 		    }
 		  else
 		    {
@@ -454,7 +469,7 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
                       it->second->set_layer(*layer);
                       it->second->set_phibin(iphibin);
                       it->second->set_etabin(ietabin);		      
-		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1]);
+		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
 		    }
 
 		  // just a sanity check - we don't want to mess up by having Nan's or Infs in our energy deposition
@@ -507,6 +522,10 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 
           for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
             {
+              // checking ADC timing integration window cut
+              if (hiter->second->get_t(0)>timing_window_size)
+                continue;
+
               double xinout[2];
               double yinout[2];
               double px[2];
@@ -586,6 +605,16 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
                 }
 
               double trklen = sqrt((ax - bx) * (ax - bx) + (ay - by) * (ay - by));
+              // if entry and exit hit are the same (seems to happen rarely), trklen = 0
+              // which leads to a 0/0 and an NaN in edep later on
+              // this code does for particles in the same cell a trklen/trklen (vdedx[ii]/trklen)
+              // so setting this to any non zero number will do just fine
+              // I just pick -1 here to flag those strange hits in case I want t oanalyze them
+              // later on
+              if (trklen == 0)
+          {
+            trklen = -1.;
+          }
               vector<int> vphi;
               vector<int> vz;
               vector<double> vdedx;
@@ -650,7 +679,15 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 		      if(verbosity > 1)
 			cout << "  add energy to existing cell for key = " << cellptmap.find(key)->first << endl;
 
-		      cellptmap.find(key)->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1]);
+		      cellptmap.find(key)->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
+
+		      if(verbosity > 1 && std::isnan(hiter->second->get_light_yield()*vdedx[i1]))
+            {
+
+              cout << "    NAN lighy yield with vdedx[i1] = "<<vdedx[i1]
+              <<" and hiter->second->get_light_yield() = "<<hiter->second->get_light_yield() << endl;
+
+            }
 		    }
 		  else
 		    {
@@ -662,7 +699,16 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 		      it->second->set_layer(*layer);
                       it->second->set_phibin(iphibin);
                       it->second->set_zbin(izbin);
-		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1]);
+		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
+
+		      if(verbosity > 1 && std::isnan(hiter->second->get_light_yield()*vdedx[i1]))
+            {
+
+              cout << "    NAN lighy yield with vdedx[i1] = "<<vdedx[i1]
+              <<" and hiter->second->get_light_yield() = "<<hiter->second->get_light_yield() << endl;
+
+            }
+
 		    }
 		}
               vphi.clear();
@@ -722,13 +768,13 @@ PHG4CylinderCellReco::End(PHCompositeNode *topNode)
 void
 PHG4CylinderCellReco::cellsize(const int i, const double sr, const double sz)
 {
-  set_size(i, sr, sz, phg4cylindercelldefs::sizebinning);
+  set_size(i, sr, sz, PHG4CylinderCellDefs::sizebinning);
 }
 
 void
 PHG4CylinderCellReco::etaphisize(const int i, const double deltaeta, const double deltaphi)
 {
-  set_size(i, deltaeta, deltaphi, phg4cylindercelldefs::etaphibinning);
+  set_size(i, deltaeta, deltaphi, PHG4CylinderCellDefs::etaphibinning);
   return;
 }
 
@@ -945,7 +991,7 @@ PHG4CylinderCellReco::CheckEnergy(PHCompositeNode *topNode)
     }
   PHG4CylinderCellContainer::ConstRange cell_begin_end = cells->getCylinderCells();
   PHG4CylinderCellContainer::ConstIterator citer;
-  for (citer = cell_begin_end.first; citer != cell_begin_end.second; citer++)
+  for (citer = cell_begin_end.first; citer != cell_begin_end.second; ++citer)
     {
       sum_energy_cells += citer->second->get_edep();
     }

@@ -1,31 +1,28 @@
 #include "PHG4TrackGhostRejection.h"
 
-// PHENIX includes
+#include "SvtxVertexMap.h"
+#include "SvtxVertex.h"
+#include "SvtxTrackMap.h"
+#include "SvtxTrack.h"
+
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
-// PHENIX Geant4 includes
-#include <SvtxTrackMap.h>
-#include <SvtxTrack.h>
-
-// standard includes
 #include <iostream>
 #include <algorithm>
 
 using namespace std;
 
-bool hit_sort(unsigned int i, unsigned int j) { return (i < j);}
+bool hit_sort(const unsigned int i, const unsigned int j) { return (i < j);}
 
-PHG4TrackGhostRejection::PHG4TrackGhostRejection(int nlayers, const string &name) :
-SubsysReco(name)
+PHG4TrackGhostRejection::PHG4TrackGhostRejection(const int nlayers, const string &name) :
+  SubsysReco(name),
+  _g4tracks(NULL),
+  _nlayers(nlayers),
+  _max_shared_hits(_nlayers)
 {
-  verbosity = 0;
-  _nlayers = nlayers;
-  _max_shared_hits = _nlayers;
   _layer_enabled.assign(_nlayers,true);
   _overlapping.clear();
   _candidates.clear();
@@ -38,9 +35,8 @@ int PHG4TrackGhostRejection::Init(PHCompositeNode *topNode)
 
 int PHG4TrackGhostRejection::InitRun(PHCompositeNode *topNode)
 {
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "================== PHG4TrackGhostRejection::InitRun() =====================" << endl;
-    cout << " CVS Version: $Id: PHG4TrackGhostRejection.C,v 1.12 2015/04/21 23:47:10 pinkenbu Exp $" << endl;
     cout << " Maximum allowed shared hits: " << _max_shared_hits << endl;
     for (unsigned int i=0;i<_layer_enabled.size();++i) {
       cout << " Enabled for hits in layer #" << i << ": " << boolalpha << _layer_enabled[i] << noboolalpha << endl;
@@ -72,7 +68,7 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
     for (SvtxTrackMap::Iter iter = _g4tracks->begin();
 	 iter != _g4tracks->end();
 	 ++iter) {
-      SvtxTrack *track = &iter->second;
+      SvtxTrack *track = iter->second;
       track->identify();
     }
   }
@@ -87,23 +83,22 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
        iter != _g4tracks->end();
        ++iter) {
 
-    SvtxTrack* track = &iter->second;
+    SvtxTrack* track = iter->second;
   
     PHG4TrackCandidate combo;
 
-    combo.trackid = track->getTrackID();
-    combo.nhits = track->getNhits();
+    combo.trackid = track->get_id();
+    combo.nhits = track->size_clusters();
 
-    for (unsigned int j = 0; j < _nlayers; ++j) {
-      if (!_layer_enabled[j]) continue;
-      
-      if (track->hasCluster(j)) {
-	combo.hitids.push_back(track->getClusterID(j));
-      }
+    for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
+	 iter != track->end_clusters();
+	 ++iter) {
+      unsigned int cluster_id = *iter;
+      combo.hitids.push_back(cluster_id);
     }
-
-    if (track->getNDF() != 0) {
-      combo.chisq = track->getChisq()/track->getNDF();
+      
+    if (track->get_ndf() != 0) {
+      combo.chisq = track->get_chisq()/track->get_ndf();
     }
 
     combo.keep = true;
@@ -178,6 +173,8 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
   // Remove the ghost tracks
   //------------------------
 
+  SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  
   int initial_size = _g4tracks->size();
 
   // loop over container and delete!
@@ -186,6 +183,15 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
       // look for the track to delete
       if (_g4tracks->find(_candidates[i].trackid) != _g4tracks->end()) {
 	_g4tracks->erase(_candidates[i].trackid);
+
+	// also remove the track id from any vertex that contains this track
+	if (!vertexmap) continue;
+	for (SvtxVertexMap::Iter iter = vertexmap->begin();
+	     iter != vertexmap->end();
+	     ++iter) {
+	  SvtxVertex* vertex = iter->second;
+	  vertex->erase_track(_candidates[i].trackid);
+	}
       }
     }
   }
@@ -195,7 +201,7 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
     for (SvtxTrackMap::Iter iter = _g4tracks->begin();
 	 iter != _g4tracks->end();
 	 ++iter) {
-      SvtxTrack *track = &iter->second;
+      SvtxTrack *track = iter->second;
       track->identify();
     }
   }

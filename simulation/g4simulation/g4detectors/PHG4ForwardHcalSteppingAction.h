@@ -41,6 +41,9 @@ private:
   PHG4HitContainer * absorberhits_;
   PHG4Hit *hit;
 
+  int absorbertruth; 
+  int light_scint_model; 
+
 };
 
 

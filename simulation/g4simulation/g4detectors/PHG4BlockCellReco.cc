@@ -14,7 +14,7 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include<TROOT.h>
 
@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <limits>       // std::numeric_limits
 
 using namespace std;
 
@@ -33,7 +34,7 @@ static vector<PHG4CylinderCell*> cellptarray;
 PHG4BlockCellReco::PHG4BlockCellReco(const string &name) :
   SubsysReco(name),
   _timer(PHTimeServer::get()->insert_new("PHG4BlockCellReco")),
-  chkenergyconservation(0)
+  chkenergyconservation(0), timing_window_size(numeric_limits<double>::max())
 {
   memset(nbins, 0, sizeof(nbins));
 }
@@ -62,10 +63,20 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
   cellnodename = "G4CELL_" + detector;
   PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode , cellnodename);
   if (!cells)
-  {
+    {
+      PHNodeIterator dstiter(dstNode);
+      PHCompositeNode *DetNode =
+          dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",
+              detector));
+      if (!DetNode)
+        {
+          DetNode = new PHCompositeNode(detector);
+          dstNode->addNode(DetNode);
+        }
+
     cells = new PHG4CylinderCellContainer();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str() , "PHObject");
-    dstNode->addNode(newNode);
+    DetNode->addNode(newNode);
   }
 
   geonodename = "BLOCKGEOM_" + detector;
@@ -118,7 +129,7 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
     // layerseggeo->set_radius(layergeom->get_radius());
     // layerseggeo->set_thickness(layergeom->get_thickness());
 
-    if (binning[layer] == phg4cylindercelldefs::etaphibinning)
+    if (binning[layer] == PHG4CylinderCellDefs::etaphibinning)
     {
       // calculate eta at radius+ thickness (outer radius)
       // length via eta coverage is calculated using the outer radius
@@ -173,7 +184,7 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
 
       pair<int, int> x_z_bin = make_pair(xbins, etabins);
       n_x_z_bins[layer] = x_z_bin;
-      layerseggeo->set_binning(phg4cylindercelldefs::etaphibinning);
+      layerseggeo->set_binning(PHG4CylinderCellDefs::etaphibinning);
       layerseggeo->set_etabins(etabins);
       layerseggeo->set_etamin(etamin);
       layerseggeo->set_etastep(etastepsize);
@@ -257,10 +268,14 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
 
 
     // ------- eta/x binning ------------------------------------------------------------------------
-    if (binning[*layer] == phg4cylindercelldefs::etaphibinning)
+    if (binning[*layer] == PHG4CylinderCellDefs::etaphibinning)
     {
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
       {
+          // checking ADC timing integration window cut
+          if (hiter->second->get_t(0)>timing_window_size)
+            continue;
+
         pair<double, double> etax[2];
         double xbin[2];
         double etabin[2];
@@ -387,7 +402,7 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
             cellptarray[ibin]->set_phibin(ixbin);
             cellptarray[ibin]->set_etabin(ietabin);
           }
-          cellptarray[ibin]->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1]);
+          cellptarray[ibin]->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
           // just a sanity check - we don't want to mess up by having Nan's or Infs in our energy deposition
           if (! isfinite(hiter->second->get_edep()*vdedx[i1]))
           {
@@ -452,13 +467,13 @@ PHG4BlockCellReco::End(PHCompositeNode *topNode)
 void
 PHG4BlockCellReco::cellsize(const int i, const double sr, const double sz)
 {
-  set_size(i, sr, sz, phg4cylindercelldefs::sizebinning);
+  set_size(i, sr, sz, PHG4CylinderCellDefs::sizebinning);
 }
 
 void
 PHG4BlockCellReco::etaxsize(const int i, const double deltaeta, const double deltax)
 {
-  set_size(i, deltaeta, deltax, phg4cylindercelldefs::etaphibinning);
+  set_size(i, deltaeta, deltax, PHG4CylinderCellDefs::etaphibinning);
   return;
 }
 

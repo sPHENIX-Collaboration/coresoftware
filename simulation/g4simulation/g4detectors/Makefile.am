@@ -7,6 +7,11 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = -DCGAL_DISABLE_ROUNDING_MATH_CHECK
 
+# set in configure.in to check if gcc version >= 4.8
+if GCC_GE_48
+  AM_CXXFLAGS = -std=c++11
+endif
+
 AM_LDFLAGS = \
     -L$(libdir) \
     -L$(OFFLINE_MAIN)/lib
@@ -23,6 +28,7 @@ libg4detectors_io_la_LIBADD = \
 
 libg4detectors_la_LIBADD = \
   -lphool \
+  -lpdbcalBase \
   -lSubsysReco \
   -lg4testbench \
   -lCGAL \
@@ -33,13 +39,20 @@ pkginclude_HEADERS = \
   PHG4BlockGeomContainer.h \
   PHG4CylinderCell.h \
   PHG4CylinderCellv1.h \
+  PHG4CylinderCell_Spacalv1.h \
   PHG4CylinderCellv2.h \
+  PHG4CylinderCellv3.h \
   PHG4CylinderCellContainer.h \
   PHG4CylinderGeom.h \
+  PHG4CylinderGeom_Spacalv1.h \
+  PHG4CylinderGeom_Spacalv2.h \
+  PHG4CylinderGeom_Spacalv3.h \
   PHG4CylinderGeomContainer.h \
   PHG4CylinderCellDefs.h \
   PHG4CylinderCellGeom.h \
-  PHG4CylinderCellGeomContainer.h
+  PHG4CylinderCellGeom_Spacalv1.h \
+  PHG4CylinderCellGeomContainer.h \
+  PHG4CylinderCellTPCReco.h
 
 libg4detectors_io_la_SOURCES = \
   PHG4BlockCellGeom.cc \
@@ -66,18 +79,26 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderGeom_Spacalv1_Dict.cc \
   PHG4CylinderGeom_Spacalv2.cc \
   PHG4CylinderGeom_Spacalv2_Dict.cc \
+  PHG4CylinderGeom_Spacalv3.cc \
+  PHG4CylinderGeom_Spacalv3_Dict.cc \
   PHG4CylinderGeomContainer.cc \
   PHG4CylinderGeomContainer_Dict.cc \
   PHG4CylinderCell.cc \
   PHG4CylinderCell_Dict.cc \
   PHG4CylinderCellv1.cc \
   PHG4CylinderCellv1_Dict.cc \
+  PHG4CylinderCell_Spacalv1.cc \
+  PHG4CylinderCell_Spacalv1_Dict.cc \
   PHG4CylinderCellv2.cc \
   PHG4CylinderCellv2_Dict.cc \
+  PHG4CylinderCellv3.cc \
+  PHG4CylinderCellv3_Dict.cc \
   PHG4CylinderCellContainer.cc \
   PHG4CylinderCellContainer_Dict.cc \
   PHG4CylinderCellGeom.cc \
   PHG4CylinderCellGeom_Dict.cc \
+  PHG4CylinderCellGeom_Spacalv1.cc \
+  PHG4CylinderCellGeom_Spacalv1_Dict.cc \
   PHG4CylinderCellGeomContainer.cc \
   PHG4CylinderCellGeomContainer_Dict.cc
 
@@ -85,7 +106,6 @@ libg4detectors_la_SOURCES = \
   PHG4BlockCellReco.cc \
   PHG4BlockCellReco_Dict.cc \
   PHG4BlockDetector.cc \
-  PHG4BlockEventAction.cc \
   PHG4BlockRegionSteppingAction.cc \
   PHG4BlockSteppingAction.cc \
   PHG4BlockSubsystem.cc \
@@ -96,7 +116,6 @@ libg4detectors_la_SOURCES = \
   PHG4CEmcTestBeamSubsystem_Dict.cc \
   PHG4EventActionClearZeroEdep.cc \
   PHG4ConeDetector.cc \
-  PHG4ConeEventAction.cc \
   PHG4ConeRegionSteppingAction.cc \
   PHG4ConeSteppingAction.cc \
   PHG4ConeSubsystem.cc \
@@ -106,7 +125,6 @@ libg4detectors_la_SOURCES = \
   PHG4CrystalCalorimeterSubsystem.cc \
   PHG4CrystalCalorimeterSubsystem_Dict.cc \
   PHG4CylinderDetector.cc \
-  PHG4CylinderEventAction.cc \
   PHG4CylinderRegionSteppingAction.cc \
   PHG4CylinderSubsystem.cc \
   PHG4CylinderSubsystem_Dict.cc \
@@ -121,12 +139,17 @@ libg4detectors_la_SOURCES = \
   PHG4FCalSteppingAction.cc \
   PHG4FCalSubsystem.cc \
   PHG4FCalSubsystem_Dict.cc \
+  PHG4ForwardEcalDetector.cc \
+  PHG4ForwardEcalSteppingAction.cc \
+  PHG4ForwardEcalSubsystem.cc \
+  PHG4ForwardEcalSubsystem_Dict.cc \
   PHG4ForwardHcalDetector.cc \
   PHG4ForwardHcalSteppingAction.cc \
   PHG4ForwardHcalSubsystem.cc \
   PHG4ForwardHcalSubsystem_Dict.cc \
+  PHG4ForwardCalCellReco.cc \
+  PHG4ForwardCalCellReco_Dict.cc \
   PHG4FPbScDetector.cc \
-  PHG4FPbScEventAction.cc \
   PHG4FPbScSteppingAction.cc \
   PHG4FPbScRegionSteppingAction.cc \
   PHG4FPbScSubsystem.cc \
@@ -145,18 +168,19 @@ libg4detectors_la_SOURCES = \
   PHG4HcalPrototypeSubsystem.cc \
   PHG4HcalPrototypeSubsystem_Dict.cc \
   PHG4InnerHcalDetector.cc \
-  PHG4InnerHcalParameters.cc \
   PHG4InnerHcalSteppingAction.cc \
   PHG4InnerHcalSubsystem.cc \
-  PHG4InnerHcalSubsystem_Dict.cc \
+  PHG4InnerHcal_Dict.C \
   PHG4SlatCellReco.cc \
   PHG4SlatCellReco_Dict.cc \
   PHG4OuterHcalDetector.cc \
-  PHG4OuterHcalSteppingAction.cc \
-  PHG4OuterHcalSubsystem.cc \
   PHG4OuterHcalField.cc \
   PHG4OuterHcalFieldSetup.cc \
+  PHG4OuterHcalSteppingAction.cc \
+  PHG4OuterHcalSubsystem.cc \
   PHG4OuterHcalSubsystem_Dict.cc \
+  PHG4Parameters.cc \
+  PHG4ProjCrystalCalorimeterDetector.cc \
   PHG4RICHDetector.cc \
   PHG4RICHSteppingAction.cc \
   PHG4RICHSubsystem.cc \
@@ -166,7 +190,6 @@ libg4detectors_la_SOURCES = \
   PHG4SectorConstructor.cc \
   PHG4SectorConstructor_Dict.cc \
   PHG4SectorDetector.cc \
-  PHG4SectorEventAction.cc \
   PHG4SectorSteppingAction.cc \
   PHG4SectorSubsystem.cc \
   PHG4SectorSubsystem_Dict.cc \
@@ -178,12 +201,22 @@ libg4detectors_la_SOURCES = \
   PHG4SiliconTrackerSubsystem_Dict.cc \
   PHG4SpacalDetector.cc \
   PHG4ProjSpacalDetector.cc \
+  PHG4FullProjSpacalDetector.cc \
+  PHG4FullProjSpacalCellReco.cc \
+  PHG4FullProjSpacalCellReco_Dict.cc \
   PHG4SpacalSteppingAction.cc \
   PHG4SpacalSubsystem.cc \
-  PHG4SpacalSubsystem_Dict.cc
+  PHG4SpacalSubsystem_Dict.cc \
+  PHG4CylinderCellTPCReco.cc \
+  PHG4CylinderCellTPCReco_Dict.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+
+PHG4InnerHcal_Dict.C: \
+  PHG4InnerHcalSubsystem.h \
+  PHG4InnerHcalLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
 ################################################
@@ -207,4 +240,3 @@ testexternals.cc:
 
 clean-local:
 	rm -f *Dict* $(BUILT_SOURCES)
-

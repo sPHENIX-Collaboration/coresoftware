@@ -1,12 +1,11 @@
 #include "PHG4SvtxAddConnectedCells.h"
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4CylinderCell.h>
 #include <g4detectors/PHG4CylinderCellv1.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
@@ -38,57 +37,39 @@ bool PHG4SvtxAddConnectedCells::lessthan(const PHG4CylinderCell* lhs,
   return false;
 }
 
-PHG4SvtxAddConnectedCells::PHG4SvtxAddConnectedCells(const char* name) :
+PHG4SvtxAddConnectedCells::PHG4SvtxAddConnectedCells(const string &name) :
   SubsysReco(name),
+  connected_phi_offset(128), // offset in phi bins for connected cells
   _cells(NULL),
   _geom_container(NULL),
   _timer(PHTimeServer::get()->insert_new(name)) {
 
-  for(int i=0;i<20;i++)
-    ncells_connected[i] = 0;
+  memset(ncells_connected,0,sizeof(ncells_connected));
 
   // Default values. Override using the setters if desired
-  connected_phi_offset = 128; // offset in phi bins for connected cells
-  ncells_connected[0] = 0;
-  ncells_connected[1] = 0;
-  ncells_connected[2] = 0;
-  ncells_connected[3] = 0;
   ncells_connected[4] = 2;
   ncells_connected[5] = 2;
   ncells_connected[6] = 5;
 
-  cout << "PHG4SvtxAddConnectedCells: Default settings are: " << endl;
-  cout << "phi bins offset for connected cells " << connected_phi_offset << endl;
-  for(int i=0; i<7;i++)
-    cout << " number of connected cells for layer " << i << " is " << ncells_connected[i] << endl;
-  
+  if (verbosity > 0) {
+    cout << "PHG4SvtxAddConnectedCells: Default settings are: " << endl;
+    cout << "phi bins offset for connected cells " << connected_phi_offset << endl;
+    for(int i=0; i<7;i++)
+      cout << " number of connected cells for layer " << i << " is " << ncells_connected[i] << endl;
+  }
 }
 
 int PHG4SvtxAddConnectedCells::InitRun(PHCompositeNode* topNode) {
 
-  PHNodeIterator iter(topNode);
-
-  // Looking for the DST node
-  PHCompositeNode *dstNode 
-    = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
-  if (!dstNode) {
-    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-  
   // get the SVX geometry object
-  _geom_container = 0;
-  PHTypedNodeIterator<PHG4CylinderCellGeomContainer> geomiter(topNode);
-  PHIODataNode<PHG4CylinderCellGeomContainer>* PHG4CylinderCellGeomContainerNode = geomiter.find("CYLINDERCELLGEOM_SVTX");
-  if(!PHG4CylinderCellGeomContainerNode) {
-    cout << PHWHERE
-	 << " ERROR: Can't find PHG4CylinderCellGeomContainerNode."
-	 << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  } else {
-    _geom_container = (PHG4CylinderCellGeomContainer*) PHG4CylinderCellGeomContainerNode->getData();
-  }
-  
+  _geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
+  if (!_geom_container)
+    {
+      cout << PHWHERE
+	   << " ERROR: Can't find PHG4CylinderCellGeomContainerNode."
+	   << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -101,14 +82,10 @@ int PHG4SvtxAddConnectedCells::process_event(PHCompositeNode *topNode) {
   // Get Nodes
   //----------
 
-  _cells = 0;
-  PHTypedNodeIterator<PHG4CylinderCellContainer> celliter(topNode);
-  PHIODataNode<PHG4CylinderCellContainer>* cell_container_node = celliter.find("G4CELL_SVTX");
-  if (!cell_container_node) {
+  _cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
+  if (!_cells) {
     cout << PHWHERE << " ERROR: Can't find G4CELL_SVTX." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
-  } else {
-    _cells = (PHG4CylinderCellContainer*) cell_container_node->getData();
   }
 
   // Since the G4 layers don't necessarily correspond to the silicon
@@ -147,17 +124,18 @@ int PHG4SvtxAddConnectedCells::process_event(PHCompositeNode *topNode) {
 	int ibinz = cell_list[i]->get_binz();
 	int ibinphi = cell_list[i]->get_binphi();
 
-	int g4hitid = -1;
-	typedef map<unsigned int,float>::const_iterator hitmapiterator;
-	pair<hitmapiterator,hitmapiterator> maprange = cell_list[i]->get_g4hits();
-	for (hitmapiterator hititer = maprange.first;
+	PHG4HitDefs::keytype g4hitid = ~0;
+	int foundit = 0;
+	PHG4CylinderCell::EdepConstRange maprange = cell_list[i]->get_g4hits();
+	for (PHG4CylinderCell::EdepConstIterator hititer = maprange.first;
 	     hititer != maprange.second;
 	     hititer++) {
 	  g4hitid = hititer->first;
+	  foundit = 1;
 	}
 
 	// Should be impossible
-	if(g4hitid == -1)
+	if(!foundit)
 	  {
 	    cout << "Oops! G4 hitid not found" << endl;
 	    continue;
@@ -212,10 +190,9 @@ int PHG4SvtxAddConnectedCells::process_event(PHCompositeNode *topNode) {
 	  PHG4CylinderCell* cell = celliter->second;
 	  
 	  // Get the G4 hitid
-	  int g4hitid = -1;
-	  typedef map<unsigned int,float>::const_iterator hitmapiterator;
-	  pair<hitmapiterator,hitmapiterator> maprange = cell->get_g4hits();
-	  for (hitmapiterator hititer = maprange.first;
+	  PHG4HitDefs::keytype g4hitid = ~0;
+	  PHG4CylinderCell::EdepConstRange maprange = cell->get_g4hits();
+	  for (PHG4CylinderCell::EdepConstIterator hititer = maprange.first;
 	       hititer != maprange.second;
 	       hititer++) {
 	    g4hitid = hititer->first;

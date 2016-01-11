@@ -1,6 +1,7 @@
-#ifndef __PHG4HITCONTAINER_H__
-#define __PHG4HITCONTAINER_H__
+#ifndef PHG4HITCONTAINER_H__
+#define PHG4HITCONTAINER_H__
 
+#include "PHG4HitDefs.h"
 
 #include <phool/PHObject.h>
 #include <map>
@@ -11,12 +12,12 @@ class PHG4HitContainer: public PHObject
 {
 
   public:
-  typedef std::map<unsigned long long,PHG4Hit *> Map;
+  typedef std::map<PHG4HitDefs::keytype, PHG4Hit *> Map;
   typedef Map::iterator Iterator;
   typedef Map::const_iterator ConstIterator;
   typedef std::pair<Iterator, Iterator> Range;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
-  typedef std::set<int>::const_iterator LayerIter;
+  typedef std::set<unsigned int>::const_iterator LayerIter;
 
   PHG4HitContainer();
 
@@ -26,16 +27,18 @@ class PHG4HitContainer: public PHObject
 
   void identify(std::ostream& os = std::cout) const;
 
-  ConstIterator AddHit(const int detid, PHG4Hit *newhit);
+  ConstIterator AddHit(PHG4Hit *newhit);
+
+  ConstIterator AddHit(const unsigned int detid, PHG4Hit *newhit);
   
-  Iterator findOrAddHit(unsigned long long key);
+  Iterator findOrAddHit(PHG4HitDefs::keytype key);
 
-  PHG4Hit* findHit( unsigned long long key );
+  PHG4Hit* findHit(PHG4HitDefs::keytype key );
 
-  unsigned long long genkey(const int detid);
+  PHG4HitDefs::keytype genkey(const unsigned int detid);
 
   //! return all hits matching a given detid
-  ConstRange getHits(const int detid) const;
+  ConstRange getHits(const unsigned int detid) const;
 
   //! return all hist
   ConstRange getHits( void ) const;
@@ -45,14 +48,14 @@ class PHG4HitContainer: public PHObject
   unsigned int num_layers(void) const
   { return layers.size(); }
   std::pair<LayerIter, LayerIter> getLayers() const
-    { return make_pair(layers.begin(), layers.end());}
-  void AddLayer(const int ilayer) {layers.insert(ilayer);}
+     { return make_pair(layers.begin(), layers.end());} 
+  void AddLayer(const unsigned int ilayer) {layers.insert(ilayer);}
   void RemoveZeroEDep();
-  unsigned long long getmaxkey(const int detid);
+  PHG4HitDefs::keytype getmaxkey(const unsigned int detid);
 
  protected:
   Map hitmap;
-  std::set<int> layers; // layers is not reset since layers must not change event by event
+  std::set<unsigned int> layers; // layers is not reset since layers must not change event by event
 
   ClassDef(PHG4HitContainer,1)
 };

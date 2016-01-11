@@ -81,9 +81,12 @@ public:
             (get_radius()) * (get_radius())
                 + (get_sec_azimuthal_width() / 2)
                     * (get_sec_azimuthal_width() / 2)) - get_radius()) - get_assembly_spacing();
-    return sqrt(
-        available_depth * available_depth
-            - get_sec_azimuthal_width() * get_sec_azimuthal_width());
+    if (available_depth < get_sec_azimuthal_width())
+      return NAN;
+    else
+      return sqrt(
+          available_depth * available_depth
+              - get_sec_azimuthal_width() * get_sec_azimuthal_width());
   }
 
   double

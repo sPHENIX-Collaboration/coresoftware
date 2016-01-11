@@ -10,7 +10,7 @@
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>
 
@@ -19,7 +19,6 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4HcalPrototypeSteppingAction::PHG4HcalPrototypeSteppingAction( PHG4HcalPrototypeDetector* detector ):
-  PHG4SteppingAction(NULL),
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),
@@ -147,22 +146,18 @@ bool PHG4HcalPrototypeSteppingAction::UserSteppingAction( const G4Step* aStep, b
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm);
 	  hit->set_y( 0, prePoint->GetPosition().y() / cm );
 	  hit->set_z( 0, prePoint->GetPosition().z() / cm );
-	  hit->set_px( 0, prePoint->GetMomentum().x() / GeV );
-	  hit->set_py( 0, prePoint->GetMomentum().y() / GeV );
-	  hit->set_pz( 0, prePoint->GetMomentum().z() / GeV );
 	  // time in ns
 	  hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
 	  //set the track ID
 	  {
-	    int trkoffset = 0;
-	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+            hit->set_trkid(aTrack->GetTrackID());
+            if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	      {
 		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 		  {
-		    trkoffset = pp->GetTrackIdOffset();
+		    hit->set_trkid(pp->GetUserTrackId());
 		  }
 	      }
-	    hit->set_trkid(aTrack->GetTrackID() + trkoffset);
 	  }
 	  
 	  //set the initial energy deposit
@@ -188,10 +183,6 @@ bool PHG4HcalPrototypeSteppingAction::UserSteppingAction( const G4Step* aStep, b
       hit->set_x( 1, postPoint->GetPosition().x() / cm );
       hit->set_y( 1, postPoint->GetPosition().y() / cm );
       hit->set_z( 1, postPoint->GetPosition().z() / cm );
-
-      hit->set_px(1, postPoint->GetMomentum().x() / GeV );
-      hit->set_py(1, postPoint->GetMomentum().y() / GeV );
-      hit->set_pz(1, postPoint->GetMomentum().z() / GeV );
 
       hit->set_t( 1, postPoint->GetGlobalTime() / nanosecond );
       //sum up the energy to get total deposited

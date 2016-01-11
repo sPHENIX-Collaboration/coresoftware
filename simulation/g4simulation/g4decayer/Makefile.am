@@ -3,6 +3,11 @@ AUTOMAKE_OPTIONS = foreign
 lib_LTLIBRARIES = \
   libg4decayer.la
 
+# set in configure.in to check if gcc version >= 4.8
+if GCC_GE_48
+  AM_CXXFLAGS = -std=c++11
+endif
+
 INCLUDES = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
@@ -23,15 +28,13 @@ libg4decayer_la_SOURCES = \
   Pythia6.cc \
   G4Pythia6Decayer.cc \
   G4Pythia6DecayerMessenger.cc \
-  P6DExtDecayerPhysics.cc \
-  P6DPhysicsList.cc
+  P6DExtDecayerPhysics.cc
 
 pkginclude_HEADERS = \
   EDecayType.hh \
   G4Pythia6Decayer.hh \
   G4Pythia6DecayerMessenger.hh \
-  P6DExtDecayerPhysics.hh \
-  P6DPhysicsList.hh
+  P6DExtDecayerPhysics.hh
 
 ################################################
 # linking tests

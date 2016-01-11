@@ -9,7 +9,7 @@
 #include <vararray/VariableArrayUtils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -51,14 +51,14 @@ PHG4InEventReadBack::process_event(PHCompositeNode *topNode)
       cout << "no PHG4INEVENT node found" << endl;
       return Fun4AllReturnCodes::EVENT_OK;
     }
-  vtxarray = findNode::getClass<VariableArray>(topNode,"PHG4Vtx_VarArray");
+  VariableArray *vtxarray = findNode::getClass<VariableArray>(topNode,"PHG4Vtx_VarArray");
   if (!vtxarray)
     {
       cout << "no PHG4Vtx_VarArray node found" << endl;
       return Fun4AllReturnCodes::EVENT_OK;
     }
 
-  particlearray = findNode::getClass<VariableArray>(topNode,"PHG4Particle_VarArray");
+  VariableArray *particlearray = findNode::getClass<VariableArray>(topNode,"PHG4Particle_VarArray");
   if (!particlearray)
     {
       cout << "no PHG4Particle_VarArray node found" << endl;

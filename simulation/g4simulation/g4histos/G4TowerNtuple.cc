@@ -1,12 +1,12 @@
 #include "G4TowerNtuple.h"
 
-#include <g4cemc/RawTowerGeom.h>
+#include <g4cemc/RawTowerGeomContainer.h>
 #include <g4cemc/RawTowerContainer.h>
 #include <g4cemc/RawTower.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -61,10 +61,10 @@ G4TowerNtuple::process_event( PHCompositeNode* topNode )
     {
       int detid = (_detid.find(*iter))->second;
       nodename.str("");
-      nodename << "TOWER_" << *iter;
+      nodename << "TOWER_CALIB_" << *iter;
       geonodename.str("");
       geonodename << "TOWERGEOM_" << *iter;
-      RawTowerGeom* towergeom = findNode::getClass<RawTowerGeom>(topNode, geonodename.str().c_str());
+      RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, geonodename.str().c_str());
       if (!towergeom)
 	{
 	  cout << "no geometry node " << geonodename.str() << " for " << *iter << endl;

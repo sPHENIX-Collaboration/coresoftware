@@ -7,11 +7,12 @@
 /// \author Mike McCumber
 //===========================================================
 
+#include "PHG4HoughTransform.h"
+
+#include "SvtxTrack.h"
+
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
-
-// PHG4 includes
-#include <PHG4HoughTransform.h>
 
 // std includes
 #include <vector>
@@ -37,12 +38,17 @@ class PHG4SvtxTrackProjection : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
   
+  float get_mag_field() const          {return _magfield;}
+  void  set_mag_field(float magfield) {_magfield = magfield;}
+  
  private:
 
   PHG4HoughTransform _hough;
   int _num_cal_layers;
+  std::vector<SvtxTrack::CAL_LAYER> _cal_types;
   std::vector<std::string> _cal_names;
   std::vector<float> _cal_radii;
+  double _magfield;
   double _mag_extent;
 };
 

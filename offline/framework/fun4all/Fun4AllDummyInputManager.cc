@@ -1,6 +1,6 @@
 #include "Fun4AllDummyInputManager.h"
 #include "Fun4AllSyncManager.h"
-#include <recoConsts.h>
+#include <phool/recoConsts.h>
 
 #include <iostream>
 

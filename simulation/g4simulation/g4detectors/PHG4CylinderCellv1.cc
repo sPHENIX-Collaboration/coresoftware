@@ -1,4 +1,5 @@
 #include "PHG4CylinderCellv1.h"
+#include "PHG4CylinderCellDefs.h"
 
 using namespace std;
 
@@ -9,11 +10,11 @@ PHG4CylinderCellv1::PHG4CylinderCellv1():
   cellid(0xFFFFFFFF),
   binz(-1),
   binphi(-1),
-  edeps()
+  edeps(), light_yield(0)
 {}
 
 void
-PHG4CylinderCellv1::add_edep(const unsigned int g4hitid, const float edep)
+PHG4CylinderCellv1::add_edep(const PHG4HitDefs::keytype g4hitid, const float edep)
 {
   if (edeps.find(g4hitid) == edeps.end())
     {
@@ -25,10 +26,17 @@ PHG4CylinderCellv1::add_edep(const unsigned int g4hitid, const float edep)
     }
 }
 
+void
+PHG4CylinderCellv1::add_edep(const PHG4HitDefs::keytype g4hitid, const float edep, const float ly)
+{
+  add_edep(g4hitid, edep);
+  light_yield += ly;
+}
+
 double PHG4CylinderCellv1::get_edep() const {
   
   double esum = 0.0;
-  map<unsigned int,float>::const_iterator iter;
+  EdepConstIterator iter;
   for (iter = edeps.begin(); iter != edeps.end(); ++iter) {
     esum += iter->second;
   }

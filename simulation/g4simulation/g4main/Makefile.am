@@ -1,6 +1,11 @@
 AUTOMAKE_OPTIONS = foreign
 
-AM_CXXFLAGS = -DG4INTY_USE_XT -DG4VIS_USE_OPENGL -DG4UI_USE_TCSH -DG4UI_USE_XM -DG4VIS_USE_OPENGLXM -DG4VIS_USE_RAYTRACERX -DG4VIS_USE_OPENGLX 
+AM_CXXFLAGS = -DG4INTY_USE_XT -DG4VIS_USE_OPENGL -DG4UI_USE_TCSH -DG4UI_USE_XM -DG4VIS_USE_OPENGLXM -DG4VIS_USE_RAYTRACERX -DG4VIS_USE_OPENGLX
+
+# set in configure.in to check if gcc version >= 4.8
+if GCC_GE_48
+  AM_CXXFLAGS += -std=c++11
+endif
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
@@ -81,6 +86,7 @@ libg4testbench_la_SOURCES = \
     PHG4TruthSubsystem.cc \
     PHG4TruthTrackingAction.cc \
     PHG4SteppingAction.cc \
+    PHG4UIsession.cc \
     PHG4Utils.cc \
     ReadEICFiles.cc
 
@@ -89,6 +95,7 @@ libg4testbench_la_LDFLAGS = \
     -L$(OFFLINE_MAIN)/lib \
     -lboost_filesystem \
     -lg4field -lg4decayer \
+    -lgsl -lgslcblas \
     -lvararray \
     -lHepMC \
     -lphhepmc \
@@ -177,6 +184,7 @@ PHG4_Dict.cc: \
 PHG4Hit_Dict.cc: \
   PHG4HitReadBack.h \
   PHG4Hit.h \
+  PHG4HitDefs.h \
   PHG4Hitv1.h \
   PHG4HitEval.h \
   PHG4HitContainer.h \

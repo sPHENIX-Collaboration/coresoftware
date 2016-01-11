@@ -12,17 +12,22 @@ public:
 
   // enums can be extended with new values, but values not altered
   
-  enum ALGO {NONE=0, ANTIKT=1, KT=2, CONE=3};
+  enum ALGO {NONE=0, ANTIKT=1, KT=2, CAMBRIDGE=3};
 
   enum SRC {
-    TRACKS=0,
-    CEMC_TOWERS=1, CEMC_CLUSTERS=2,
-    HCALIN_TOWERS=3, HCALIN_CLUSTERS=4,
-    HCALOUT_TOWERS=5, HCALOUT_CLUSTERS=6
+    VOID=0,
+    PARTICLE=1,
+    TRACK=2,
+    CEMC_TOWER=3, CEMC_CLUSTER=4,
+    HCALIN_TOWER=5, HCALIN_CLUSTER=6,
+    HCALOUT_TOWER=7, HCALOUT_CLUSTER=8,
+    FEMC_TOWER=9, FEMC_CLUSTER=10,
+    FHCAL_TOWER=11, FHCAL_CLUSTER=12,
   };
 
-  enum PROPERTY {prop_JetCharge = 12, prop_BFrac = 101};
-  
+  enum PROPERTY {prop_JetCharge = 1,prop_BFrac = 2};
+
+  Jet();
   virtual ~Jet() {}
 
   virtual void identify(std::ostream& os = std::cout) const;
@@ -96,9 +101,6 @@ public:
   virtual Iter end_comp() {return typ_comp_ids().end();}
 
   /*! @} */
-  
-protected:
-  Jet();  
   
   ClassDef(Jet, 1);
 };

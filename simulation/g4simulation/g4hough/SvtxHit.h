@@ -3,46 +3,44 @@
 
 #include <phool/PHObject.h>
 #include <iostream>
+#include <limits.h>
 
 class SvtxHit : public PHObject {
 
 public:
   
-  SvtxHit();
-  SvtxHit(const SvtxHit &hit);
-  SvtxHit& operator=(const SvtxHit &hit);
-  virtual ~SvtxHit();
+  virtual ~SvtxHit() {}
 
   // PHObject virtual overloads
   
-  void         identify(std::ostream& os = std::cout) const;
-  void         Reset();
-  int          IsValid() const;
+  virtual void         identify(std::ostream& os = std::cout) const {
+    os << "---SvtxHit base class------------" << std::endl;
+  }
+  virtual void         Reset() {};
+  virtual int          IsValid() const {return 0;}
+  virtual SvtxHit*     Clone() const {return NULL;}
 
   // digitized hit info
   
-  unsigned int get_id() const                        {return _id;}
-  void         set_id(unsigned int id)               {_id = id;}
+  virtual unsigned int get_id() const                        {return UINT_MAX;}
+  virtual void         set_id(unsigned int id)               {}
   
-  unsigned int get_layer() const                     {return _layer;}
-  void         set_layer(unsigned int layer)         {_layer = layer;}
+  virtual unsigned int get_layer() const                     {return UINT_MAX;}
+  virtual void         set_layer(unsigned int layer)         {}
 
-  unsigned int get_adc() const                       {return _adc;}
-  void         set_adc(unsigned int adc)             {_adc = adc;}
+  virtual unsigned int get_adc() const                       {return UINT_MAX;}
+  virtual void         set_adc(unsigned int adc)             {}
 
-  float        get_e() const                         {return _e;}
-  void         set_e(float e)                        {_e = e;}
+  virtual float        get_e() const                         {return UINT_MAX;}
+  virtual void         set_e(float e)                        {}
   
-  unsigned int get_cellid() const                    {return _cellid;}
-  void         set_cellid(unsigned int cellid)       {_cellid = cellid;}
+  virtual unsigned int get_cellid() const                    {return UINT_MAX;}
+  virtual void         set_cellid(unsigned int cellid)       {}
+
+protected:
+  SvtxHit() {}
   
 private:
-  
-  unsigned int _id;                //< unique identifier within container
-  unsigned int _layer;             //< detector layer id
-  unsigned int _adc;               //< digitized adc value
-  float        _e;                 //< digitized energy value
-  unsigned int _cellid;            //< geant4 cell object
   
   ClassDef(SvtxHit, 1);
 };

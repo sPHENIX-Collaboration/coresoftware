@@ -5,7 +5,7 @@
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4TrackUserInfoV1.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>
 

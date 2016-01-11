@@ -27,9 +27,13 @@ public:
   //! reimplemented from base class
   virtual void SetInterfacePointers( PHCompositeNode* );
 
-  int WhatAreYou(G4TouchableHandle touch, int& j, int& k);
+  //! Find tower index of mother volume
+  int FindTowerIndex(G4TouchableHandle touch, int& j, int& k);
 
-  int ParseName(G4VPhysicalVolume* volume, int& j, int& k);
+  //! Find combined tower index of volume, mother volume, and mother+1 volume
+  int FindTowerIndex2LevelUp(G4TouchableHandle touch, int& j, int& k);
+
+  int ParseG4VolumeName(G4VPhysicalVolume* volume, int& j, int& k);
 
 private:
 

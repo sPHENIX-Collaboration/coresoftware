@@ -15,13 +15,13 @@
 #include <g4main/PHG4InEvent.h>
 #include <g4main/PHG4Particle.h>
 //#include <PHG4Particlev2.h>
-//#include <PHPythiaJet/PHPyJetContainerV2.h>
+#include <g4jets/JetMap.h>
 
 #include <fun4all/PHTFileServer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 //#include <PHGeometry.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <TTree.h>
 #include <TMath.h>
@@ -119,29 +119,27 @@ PHG4DSTReader::Init(PHCompositeNode*)
       nblocks++;
     }
 
-//  for (vector<string>::const_iterator it = _jet_postfix.begin();
-//      it != _jet_postfix.end(); ++it)
-//    {
-//      const char * class_name = PHPyJet_type::Class()->GetName();
-//
-//      const string & hname = *it;
-//
-////      string hname = Form("TOWER_%s", nodenam.c_str());
-////      _node_name.push_back(hname);
-//      cout << "PHG4DSTReader::Init - saving jets from node: " << hname << " - "
-//          << class_name << endl;
-//
-//      record rec;
-//      rec._cnt = 0;
-//      rec._name = hname;
-//      rec._arr = boost::make_shared<TClonesArray>(class_name, arr_size);
-//      rec._arr_ptr = rec._arr.get();
-//      rec._type = record::typ_jets;
-//
-//      _records.push_back(rec);
-//
-//      nblocks++;
-//    }
+  for (vector<string>::const_iterator it = _jet_postfix.begin();
+      it != _jet_postfix.end(); ++it)
+    {
+      const char * class_name = PHPyJet_type::Class()->GetName();
+
+      const string & hname = *it;
+
+      cout << "PHG4DSTReader::Init - saving jets from node: " << hname << " - "
+          << class_name << endl;
+
+      record rec;
+      rec._cnt = 0;
+      rec._name = hname;
+      rec._arr = boost::make_shared<TClonesArray>(class_name, arr_size);
+      rec._arr_ptr = rec._arr.get();
+      rec._type = record::typ_jets;
+
+      _records.push_back(rec);
+
+      nblocks++;
+    }
 
   if (_save_particle)
     {
@@ -413,58 +411,58 @@ PHG4DSTReader::process_event(PHCompositeNode* topNode)
       else if (rec._type == record::typ_jets)
         {
 
-          std::cout
-              << "PHG4DSTReader::AddJet - Error - temp. disabled until jet added back to sPHENIX software"
-              << std::endl;
+//          std::cout
+//              << "PHG4DSTReader::AddJet - Error - temp. disabled until jet added back to sPHENIX software"
+//              << std::endl;
 //
-//          if (Verbosity() >= 2)
-//            cout << "PHG4DSTReader::process_event - processing jets " << rec._name
-//                << endl;
-//
-//          PHPyJetContainerV2 *hits = findNode::getClass<PHPyJetContainerV2>(topNode,
-//              rec._name);
-//          if (!hits)
-//            {
-//              if (_event < 2)
-//                cout
-//                    << "PHG4DSTReader::process_event - Error - can not find node "
-//                    << rec._name << endl;
-//
-//            }
-//          else
-//            {
-//
-//              if (Verbosity() >= 2)
-//                cout << "PHG4DSTReader::process_event - processing " << rec._name
-//                    << " and received " << hits->size() << " jets"
-//                    << endl;
-//
-//              for (unsigned int i = 0; i < hits->size(); i++)
-//                {
-//                  PHPyJet * hit_raw = hits->getJet(i);
-//
-//                  if (Verbosity() >= 2)
-//                    cout << "PHG4DSTReader::process_event - processing jet "
-//                        << rec._name << " @ (" << hit_raw->Eta() << ", "
-//                        << hit_raw->Phi() << "), pT = " << hit_raw->Pt() << " - with raw type "
-//                        << hit_raw->ClassName() << endl;
-//
-//                  PHPyJet_type * hit = dynamic_cast<PHPyJet_type *>(hit_raw);
-//
-//                  assert(hit);
-//
-//                  new ((*(rec._arr.get()))[rec._cnt]) PHPyJet_type();
-//
-//
-//                  PHPyJet_type * new_hit =
-//                      dynamic_cast<PHPyJet_type *>(rec._arr.get()->At(rec._cnt));
-//                  assert(new_hit);
-//
-//                  *new_hit = (*hit);
-//
-//                  rec._cnt++;
-//                }
-//            } // if (!hits)
+          if (Verbosity() >= 2)
+            cout << "PHG4DSTReader::process_event - processing jets "
+                << rec._name << endl;
+
+          JetMap *hits = findNode::getClass<JetMap>(topNode, rec._name);
+          if (!hits)
+            {
+              if (_event < 2)
+                cout
+                    << "PHG4DSTReader::process_event - Error - can not find node "
+                    << rec._name << endl;
+
+            }
+          else
+            {
+
+              if (Verbosity() >= 2)
+                cout << "PHG4DSTReader::process_event - processing "
+                    << rec._name << " and received " << hits->size() << " jets"
+                    << endl;
+
+              // for every recojet
+              for (JetMap::Iter iter = hits->begin();
+                  iter != hits->end(); ++iter)
+                {
+                  Jet* hit_raw = iter->second;
+
+                  if (Verbosity() >= 2)
+                    cout << "PHG4DSTReader::process_event - processing jet "
+                        << rec._name << " @ (" << hit_raw->get_eta() << ", "
+                        << hit_raw->get_phi() << "), pT = " << hit_raw->get_pt()
+                        << " - with raw type " << hit_raw->ClassName() << endl;
+
+                  PHPyJet_type * hit = dynamic_cast<PHPyJet_type *>(hit_raw);
+
+                  assert(hit);
+
+                  new ((*(rec._arr.get()))[rec._cnt]) PHPyJet_type();
+
+                  PHPyJet_type * new_hit =
+                      dynamic_cast<PHPyJet_type *>(rec._arr.get()->At(rec._cnt));
+                  assert(new_hit);
+
+                  *new_hit = (*hit);
+
+                  rec._cnt++;
+                }
+            } // if (!hits)
         } //      if (rec._type == record::typ_hit)
       else if (rec._type == record::typ_part)
         {
@@ -531,12 +529,12 @@ PHG4DSTReader::process_event(PHCompositeNode* topNode)
 //                  add_particle(rec, part);
 //                }
 
-              for (particle_iter = truthInfoList->GetPrimaryMap().begin();
-                  particle_iter != truthInfoList->GetPrimaryMap().end();
+              for (particle_iter = truthInfoList->GetMap().begin();
+                  particle_iter != truthInfoList->GetMap().end();
                   particle_iter++)
                 {
-
-                  _particle_set.insert(particle_iter->first);
+                  if (particle_iter->second->get_parent_id() <= 0)
+                    _particle_set.insert(particle_iter->first);
 
 //                  PHG4Particle * part = particle_iter->second;
 //

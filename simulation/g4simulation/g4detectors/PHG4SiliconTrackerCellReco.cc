@@ -15,7 +15,7 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 
 #include <cmath>
@@ -57,9 +57,18 @@ int PHG4SiliconTrackerCellReco::InitRun(PHCompositeNode *topNode)
   PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode , cellnodename);
   if (!cells)
     {
+      PHNodeIterator dstiter(dstNode);
+      PHCompositeNode *DetNode =
+          dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",
+              detector));
+      if (!DetNode)
+        {
+          DetNode = new PHCompositeNode(detector);
+          dstNode->addNode(DetNode);
+        }
       cells = new PHG4CylinderCellContainer();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str() , "PHObject");
-      dstNode->addNode(newNode);
+      DetNode->addNode(newNode);
     
     }
 

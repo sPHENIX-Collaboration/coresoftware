@@ -7,27 +7,48 @@ INCLUDES = \
   -I${G4_MAIN}/include/Geant4 \
   -I`root-config --incdir`
 
-lib_LTLIBRARIES = libg4jets.la
+lib_LTLIBRARIES = \
+   libg4jets_io.la \
+   libg4jets.la
 
 AM_CXXFLAGS = \
  -Wall -Werror -msse2
 
-libg4jets_la_LDFLAGS = \
+AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  `geant4-config --libs`
+
+libg4jets_io_la_LIBADD = \
+  -lphool
+
+libg4jets_la_LIBADD = \
   -lfun4all \
+  -lphg4hit \
   -lg4hough_io \
-  -lcemc_io
+  -lcemc_io \
+  -lg4vertex_io \
+  -lCGAL \
+  -lfastjet \
+  libg4jets_io.la
 
 pkginclude_HEADERS = \
   Jet.h \
   JetV1.h \
   JetMap.h \
-  JetMapV1.h
+  JetMapV1.h \
+  JetInput.h \
+  JetAlgo.h \
+  JetReco.h \
+  TruthJetInput.h \
+  TrackJetInput.h \
+  TowerJetInput.h \
+  ClusterJetInput.h \
+  FastJetAlgo.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
-libg4jets_la_SOURCES = \
+libg4jets_io_la_SOURCES = \
   Jet.C \
   Jet_Dict.C \
   JetV1.C \
@@ -36,6 +57,20 @@ libg4jets_la_SOURCES = \
   JetMap_Dict.C \
   JetMapV1.C \
   JetMapV1_Dict.C
+
+libg4jets_la_SOURCES = \
+  JetReco.C \
+  JetReco_Dict.C \
+  TruthJetInput.C \
+  TruthJetInput_Dict.C \
+  TrackJetInput.C \
+  TrackJetInput_Dict.C \
+  TowerJetInput.C \
+  TowerJetInput_Dict.C \
+  ClusterJetInput.C \
+  ClusterJetInput_Dict.C \
+  FastJetAlgo.C \
+  FastJetAlgo_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
@@ -53,6 +88,7 @@ BUILT_SOURCES = \
   testexternals.C
 
 testexternals_LDADD = \
+  libg4jets_io.la \
   libg4jets.la
 
 testexternals.C:
@@ -63,4 +99,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict*
+	rm -f *Dict* testexternals.C

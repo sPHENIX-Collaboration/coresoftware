@@ -6,9 +6,8 @@
 #include "Fun4AllOutputManager.h"
 #include "Fun4AllReturnCodes.h"
 #include "SubsysReco.h"
-#include "getClass.h"
-#include "recoConsts.h"
 
+#include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/PHObject.h>
 #include <phool/PHCompositeNode.h>
@@ -19,6 +18,7 @@
 #include <phool/PHPointerListIterator.h>
 #include <phool/PHTypedNodeIterator.h>
 #include <phool/PHTimeStamp.h>
+#include <phool/recoConsts.h>
 
 #include <TDirectory.h>
 #include <TFile.h>
@@ -208,9 +208,9 @@ Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const string &topnodenam
     }
   gROOT->cd(topnodename.c_str());
   tmpdir = gDirectory;
-  if (!tmpdir->FindObject(subsystem->Name()))
+  if (!tmpdir->FindObject(subsystem->Name().c_str()))
     {
-      tmpdir = tmpdir->mkdir(subsystem->Name());
+      tmpdir = tmpdir->mkdir(subsystem->Name().c_str());
       if (!tmpdir)
         {
           cout << "Error creating TDirectory subdir " << subsystem->Name() << endl;
@@ -323,12 +323,12 @@ Fun4AllServer::unregisterSubsystemsNow()
 }
 
 SubsysReco *
-Fun4AllServer::getSubsysReco(const char *name)
+Fun4AllServer::getSubsysReco(const string &name)
 {
   vector<pair<SubsysReco *, PHCompositeNode *> >::iterator sysiter;
   for (sysiter = Subsystems.begin(); sysiter != Subsystems.end(); ++sysiter)
     {
-      if ( !strcmp((*sysiter).first->Name(), name))
+      if ( (*sysiter).first->Name() == name )
         {
           if (verbosity > 0)
             {
@@ -365,7 +365,7 @@ Fun4AllServer::registerOutputManager(Fun4AllOutputManager *manager)
   vector<Fun4AllOutputManager *>::iterator iter;
   for (iter = OutputManager.begin(); iter != OutputManager.end(); ++iter)
     {
-      if ( !strcmp( (*iter)->Name(), manager->Name() ) )
+      if ( (*iter)->Name() == manager->Name() )
         {
           cout << "OutputManager " << manager->Name() << " allready in list" << endl;
           return -1;
@@ -398,7 +398,7 @@ Fun4AllServer::UpdateEventSelector(Fun4AllOutputManager *manager)
       int found = 0;
       for (subsysiter = Subsystems.begin(); subsysiter != Subsystems.end(); ++subsysiter)
         {
-          if (!strcmp(striter->c_str(), (*subsysiter).first->Name()))
+          if ( *striter == (*subsysiter).first->Name() )
             {
               manager->RecoModuleIndex()->push_back(index);
               if (verbosity > 0)
@@ -468,7 +468,7 @@ Fun4AllServer::registerHistoManager(Fun4AllHistoManager *manager)
   vector<Fun4AllHistoManager *>::iterator iter;
   for (iter = HistoManager.begin(); iter != HistoManager.end(); ++iter)
     {
-      if ( !strcmp( (*iter)->Name(), manager->Name() ) )
+      if ( (*iter)->Name() == manager->Name() )
         {
           cout << "HistoManager " << manager->Name() << " allready in list" << endl;
           return -1;
@@ -856,17 +856,26 @@ int Fun4AllServer::BeginRun(const int runno)
   return 0;
 }
 
-int Fun4AllServer::CountOutNodes(PHCompositeNode *startNode)
+int 
+Fun4AllServer::CountOutNodes(PHCompositeNode *startNode)
+{
+  int icount = 0;
+  icount = CountOutNodesRecursive(startNode, icount);
+  return icount;
+}
+
+int 
+Fun4AllServer::CountOutNodesRecursive(PHCompositeNode *startNode, const int icount)
 {
   PHNodeIterator nodeiter(startNode);
   PHPointerListIterator<PHNode> iterat(nodeiter.ls());
   PHNode *thisNode;
-  int icnt = 0;
+  int icnt = icount;
   while ((thisNode = iterat()))
     {
       if ((thisNode->getType() == "PHCompositeNode"))
         {
-          icnt += CountOutNodes(static_cast<PHCompositeNode*>(thisNode)); // if this is a CompositeNode do this trick again
+          icnt = CountOutNodesRecursive(static_cast<PHCompositeNode*>(thisNode), icnt); // if this is a CompositeNode do this trick again
         }
       else
         {
@@ -1547,7 +1556,7 @@ Fun4AllServer::registerSyncManager(Fun4AllSyncManager *newmaster)
 {
   BOOST_FOREACH(Fun4AllSyncManager *syncman, SyncManagers)
     {
-      if ( !strcmp(syncman->Name(), newmaster->Name()))
+      if ( syncman->Name() == newmaster->Name() )
         {
 	  cout << "Input Master " << newmaster->Name()
 	       << " already registered" << endl;

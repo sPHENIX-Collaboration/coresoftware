@@ -2,7 +2,7 @@
 #include "Fun4AllInputManager.h"
 #include "Fun4AllHistoBinDefs.h"
 #include "Fun4AllServer.h"
-#include "recoConsts.h"
+#include <phool/recoConsts.h>
 
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncObject.h>
@@ -52,7 +52,7 @@ Fun4AllSyncManager::registerInputManager(Fun4AllInputManager *InputManager)
 {
   BOOST_FOREACH(Fun4AllInputManager * inman, InManager)
     {
-      if ( !strcmp(inman->Name(), InputManager->Name() ) )
+      if ( inman->Name() == InputManager->Name() )
 	{
           cout << "InputManager " << InputManager->Name() << " allready in list" << endl;
           return -1;

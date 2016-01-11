@@ -6,7 +6,7 @@
 #include <vararray/VariableArrayIds.h>
 #include <half/half.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <HepMC/GenEvent.h>
 #include <gsl/gsl_const.h>
@@ -89,7 +89,7 @@ HepMCCompress::process_event(PHCompositeNode *topNode)
         {
           if (isfinal(*p))
             {
-              if (select_pid.size() > 0)
+              if (!select_pid.empty())
                 {
                   if (select_pid.find((*p)->pdg_id()) != select_pid.end())
                     {
@@ -97,7 +97,7 @@ HepMCCompress::process_event(PHCompositeNode *topNode)
                     }
                   continue;
                 }
-              if (exclude_pid.size() > 0)
+              if (!exclude_pid.empty())
                 {
                   if (exclude_pid.find((*p)->pdg_id()) != exclude_pid.end())
                     {
@@ -107,7 +107,7 @@ HepMCCompress::process_event(PHCompositeNode *topNode)
               finalstateparticles.push_back(*p);
             }
         }
-      if (finalstateparticles.size())
+      if (!finalstateparticles.empty())
         {
           //  	  cout << "Vertex : " << endl;
           //  	    (*v)->print();

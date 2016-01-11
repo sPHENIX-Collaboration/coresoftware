@@ -21,7 +21,7 @@ libphnodedump_la_SOURCES = \
   DumpPHG4InEvent.cc \
   DumpRawClusterContainer.cc \
   DumpRawTowerContainer.cc \
-  DumpRawTowerGeom.cc \
+  DumpRawTowerGeomContainer.cc \
   DumpRunHeader.cc \
   DumpSyncObject.cc \
   DumpVariableArray.cc \

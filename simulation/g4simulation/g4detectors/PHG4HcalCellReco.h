@@ -30,6 +30,12 @@ class PHG4HcalCellReco : public SubsysReco
   void Detector(const std::string &d) {detector = d;}
   void etasize_nslat(const int i, const double deltaeta, const int nslat);
   void checkenergy(const int i=1) {chkenergyconservation = i;}
+  void set_etabins(const int nbins=24) {netabins = nbins;}
+
+  //! get timing window size in ns.
+  double get_timing_window_size() const {return timing_window_size;}
+  //! set timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
+  void set_timing_window_size(const double s) {timing_window_size = s;}
 
  protected:
   void set_size(const int i, const double sizeA, const int sizeB, const int what);
@@ -50,8 +56,13 @@ class PHG4HcalCellReco : public SubsysReco
   PHTimeServer::timer _timer;
   int nbins[2];
   int nslatscombined;
+  int netabins;
   int chkenergyconservation;
   std::map<unsigned int, PHG4CylinderCell *> celllist;
+
+  //! timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
+  double timing_window_size;
+
 };
 
 #endif

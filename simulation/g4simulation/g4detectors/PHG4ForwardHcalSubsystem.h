@@ -37,8 +37,20 @@ public:
 
   /** Accessors (reimplemented)
    */
-  virtual PHG4Detector* GetDetector( void ) const;
-  virtual PHG4SteppingAction* GetSteppingAction( void ) const;
+  PHG4Detector* GetDetector( void ) const;
+  PHG4SteppingAction* GetSteppingAction( void ) const;
+  PHG4EventAction* GetEventAction() const {return eventAction_;}
+
+  /** Set mapping file for calorimeter towers
+   */
+  void SetTowerMappingFile( std::string filename )
+  {
+    mappingfile_ = filename;
+  }
+
+  void SetActive(const int i = 1){active = i;}
+  void SetAbsorberActive(const int i = 1){absorber_active = i;}
+  void BlackHole(const int i=1){blackhole = i;}
 
 private:
 
@@ -52,8 +64,11 @@ private:
   PHG4EventAction *eventAction_;
 
   int active;
+  int absorber_active; 
+  int blackhole; 
 
   std::string detector_type;
+  std::string mappingfile_;
 
 };
 

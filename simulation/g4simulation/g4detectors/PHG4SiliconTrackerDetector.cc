@@ -7,7 +7,7 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4IntersectionSolid.hh>

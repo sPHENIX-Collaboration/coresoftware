@@ -28,22 +28,17 @@ public:
   //! Set pointers to the i/o nodes
   virtual void SetInterfacePointers( PHCompositeNode* );
 
-  void TrackIdOffset(const int i) {trackidoffset = i;}
-
   int ResetEvent(PHCompositeNode *);
 
 private:
 
   std::map<G4ThreeVector,int> VertexMap;
 
-  int trackidoffset;
-
   //! pointer to the "owning" event action
   PHG4TruthEventAction* eventAction_;
 
   //! pointer to truth information container
   PHG4TruthInfoContainer* truthInfoList_;
-
 };
 
 

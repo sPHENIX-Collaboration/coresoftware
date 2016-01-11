@@ -34,7 +34,7 @@ class Fun4AllServer: public Fun4AllBase
 
   int registerSubsystem(SubsysReco *subsystem, const std::string &topnodename="TOP");
   int unregisterSubsystem(SubsysReco *subsystem);
-  SubsysReco *getSubsysReco(const char *name);
+  SubsysReco *getSubsysReco(const std::string &name);
   int registerOutputManager(Fun4AllOutputManager *manager);
   Fun4AllOutputManager *getOutputManager(const std::string &name);
   int registerHistoManager(Fun4AllHistoManager *manager);
@@ -103,6 +103,7 @@ class Fun4AllServer: public Fun4AllBase
   Fun4AllServer(const std::string &name = "Fun4AllServer");
   int InitNodeTree(PHCompositeNode *topNode);
   int CountOutNodes(PHCompositeNode *startNode);
+  int CountOutNodesRecursive(PHCompositeNode *startNode, const int icount);
   int UpdateEventSelector(Fun4AllOutputManager *manager);
   int unregisterSubsystemsNow();
   int setRun(const int runnumber);

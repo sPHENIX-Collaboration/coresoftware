@@ -14,7 +14,7 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 
 #include <boost/tuple/tuple.hpp>
@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <limits>       // std::numeric_limits
 
 using namespace std;
 
@@ -34,7 +35,7 @@ PHG4SlatCellReco::PHG4SlatCellReco(const string &name) :
   SubsysReco(name),
   _timer(PHTimeServer::get()->insert_new(name.c_str())),
   nslatscombined(1),
-  chkenergyconservation(0)
+  chkenergyconservation(0), timing_window_size(numeric_limits<double>::max())
 {
   memset(nbins, 0, sizeof(nbins));
   memset(cellptarray, 0, sizeof(cellptarray));
@@ -63,9 +64,18 @@ int PHG4SlatCellReco::InitRun(PHCompositeNode *topNode)
   PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode , cellnodename);
   if (!cells)
     {
+      PHNodeIterator dstiter(dstNode);
+      PHCompositeNode *DetNode =
+          dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",
+              detector));
+      if (!DetNode)
+        {
+          DetNode = new PHCompositeNode(detector);
+          dstNode->addNode(DetNode);
+        }
       cells = new PHG4CylinderCellContainer();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str() , "PHObject");
-      dstNode->addNode(newNode);
+      DetNode->addNode(newNode);
     }
 
   geonodename = "CYLINDERGEOM_" + detector;
@@ -111,7 +121,7 @@ int PHG4SlatCellReco::InitRun(PHCompositeNode *topNode)
       layerseggeo->set_layer(layergeom->get_layer());
       layerseggeo->set_radius(layergeom->get_radius());
       layerseggeo->set_thickness(layergeom->get_thickness());
-      if (binning[layer] == phg4cylindercelldefs::etaslatbinning)
+      if (binning[layer] == PHG4CylinderCellDefs::etaslatbinning)
         {
           // calculate eta at radius+ thickness (outer radius)
           // length via eta coverage is calculated using the outer radius
@@ -157,7 +167,7 @@ int PHG4SlatCellReco::InitRun(PHCompositeNode *topNode)
 	    {
 	      layergeom->identify();
 	    }
-          layerseggeo->set_binning(phg4cylindercelldefs::etaslatbinning);
+          layerseggeo->set_binning(PHG4CylinderCellDefs::etaslatbinning);
           layerseggeo->set_etabins(etabins);
           layerseggeo->set_etamin(etamin);
           layerseggeo->set_etastep(etastepsize);
@@ -229,10 +239,14 @@ PHG4SlatCellReco::process_event(PHCompositeNode *topNode)
 
 
       // ------- eta/phi binning ------------------------------------------------------------------------
-      if (binning[*layer] == phg4cylindercelldefs::etaslatbinning)
+      if (binning[*layer] == PHG4CylinderCellDefs::etaslatbinning)
         {
           for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
             {
+              // checking ADC timing integration window cut
+              if (hiter->second->get_t(0)>timing_window_size)
+                continue;
+
               double etaphi[2];
               int slatbin;
               double etabin[2];
@@ -320,7 +334,7 @@ PHG4SlatCellReco::process_event(PHCompositeNode *topNode)
 			  cellptarray[slatbin][intetabin]->set_phibin(slatbin);
 			  cellptarray[slatbin][intetabin]->set_etabin(intetabin);
 			}
-		      cellptarray[slatbin][intetabin]->add_edep(hiter->first, hiter->second->get_edep()*bins_fraction.back().get<2>());
+		      cellptarray[slatbin][intetabin]->add_edep(hiter->first, hiter->second->get_edep()*bins_fraction.back().get<2>(), hiter->second->get_light_yield()*bins_fraction.back().get<2>());
 		      bins_fraction.pop_back();
 		    }
 		}
@@ -333,7 +347,7 @@ PHG4SlatCellReco::process_event(PHCompositeNode *topNode)
 		      cellptarray[slatbin][intetabin]->set_phibin(slatbin);
 		      cellptarray[slatbin][intetabin]->set_etabin(intetabin);
 		    }
-		  cellptarray[slatbin][intetabin]->add_edep(hiter->first, hiter->second->get_edep());
+		  cellptarray[slatbin][intetabin]->add_edep(hiter->first, hiter->second->get_edep(), hiter->second->get_light_yield());
 		}
 	    } // end loop over g4hits
           int numcells = 0;
@@ -384,13 +398,13 @@ PHG4SlatCellReco::End(PHCompositeNode *topNode)
 void
 PHG4SlatCellReco::cellsize(const int i, const double sr, const double sz)
 {
-  set_size(i, sr, sz, phg4cylindercelldefs::sizebinning);
+  set_size(i, sr, sz, PHG4CylinderCellDefs::sizebinning);
 }
 
 void
 PHG4SlatCellReco::etaphisize(const int i, const double deltaeta, const double deltaphi)
 {
-  set_size(i, deltaeta, deltaphi, phg4cylindercelldefs::etaphibinning);
+  set_size(i, deltaeta, deltaphi, PHG4CylinderCellDefs::etaphibinning);
   return;
 }
 
@@ -400,7 +414,7 @@ PHG4SlatCellReco::etasize_nslat(const int i, const double deltaeta, const int ns
   if (nslat >= 1)
     {
       nslatscombined = nslat;
-      set_size(i, deltaeta, nslat, phg4cylindercelldefs::etaslatbinning);
+      set_size(i, deltaeta, nslat, PHG4CylinderCellDefs::etaslatbinning);
     }
   else
     {

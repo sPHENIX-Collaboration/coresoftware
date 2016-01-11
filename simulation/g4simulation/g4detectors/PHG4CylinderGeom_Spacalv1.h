@@ -13,6 +13,7 @@
 #include "PHG4CylinderGeomv2.h"
 #include <string>
 #include <cmath>
+#include <map>
 
 class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
 {
@@ -113,6 +114,27 @@ public:
   virtual
   double
   get_z_distance() const;
+
+  //! sector map sector_ID -> azimuthal rotation.
+  typedef std::map<int,double> sector_map_t;
+
+  //! sector map sector_ID -> azimuthal rotation.
+  const sector_map_t &
+  get_sector_map() const
+  {
+    return sector_map;
+  }
+
+  //! sector map sector_ID -> azimuthal rotation.
+  sector_map_t &
+  get_sector_map()
+  {
+    return sector_map;
+  }
+
+  //! load a default map that populate all the sectors
+  void
+  init_default_sector_map();
 
   ///@}
 
@@ -229,11 +251,24 @@ public:
   {
 
     //! fiber always placed radially
-    kNonProjective,
+    kNonProjective = 0,
+    //! alias of above, more explicit
+    k1DProjectiveSpacal = kNonProjective,
 
     //! Block constructed with taper in polar direction, non-taper in azimuthal direction.
     //! The final layout is approximately projective in both azimuthal and polar directions.
-    kProjective_PolarTaper
+    kProjective_PolarTaper = 1,
+
+    //! Fully projective spacal with 2D tapered modules
+    kFullProjective_2DTaper = 2,
+
+    //! Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower
+    kFullProjective_2DTaper_SameLengthFiberPerTower = 3,
+    //! alias of above, more explicit
+    k2DProjectiveSpacal = kFullProjective_2DTaper_SameLengthFiberPerTower,
+
+    //! max allowed value, for boundary cross check
+    kInvalidSpacalConfig
   };
 
   config_t
@@ -294,7 +329,11 @@ protected:
   bool virualize_fiber;
   int construction_verbose;
 
-ClassDef(PHG4CylinderGeom_Spacalv1,1)
+  //! sector map sector_ID -> azimuthal rotation.
+  sector_map_t sector_map;
+
+
+ClassDef(PHG4CylinderGeom_Spacalv1,2)
 
 };
 

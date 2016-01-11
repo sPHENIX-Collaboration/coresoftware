@@ -39,13 +39,13 @@ int DumpPHG4CylinderCellGeomContainer::process_Node(PHNode *myNode)
           *fout << "binning: " << binning << endl;
           switch (binning)
             {
-            case phg4cylindercelldefs::sizebinning:
+            case PHG4CylinderCellDefs::sizebinning:
 
               *fout << "zbins: " << hiter->second->get_zbins() << endl;
               *fout << "zmin: " << hiter->second->get_zmin() << endl;
               *fout << "zstep: " << hiter->second->get_zstep() << endl;
               break;
-            case phg4cylindercelldefs::etaphibinning:
+            case PHG4CylinderCellDefs::etaphibinning:
               *fout << "etabins: " << hiter->second->get_etabins() << endl;
               *fout << "etastep: " << hiter->second->get_etastep() << endl;
               *fout << "etamin: " << hiter->second->get_etamin() << endl;

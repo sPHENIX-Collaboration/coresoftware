@@ -1,198 +1,160 @@
 #ifndef __SVTXTRACK_H__
 #define __SVTXTRACK_H__
 
+#include "SvtxTrackState.h"
+
 #include <phool/PHObject.h>
-#include <TMatrix.h>
+
 #include <iostream>
+#include <set>
+#include <map>
+#include <cmath>
+#include <limits.h>
 
-class SvtxTrack : public PHObject
-{
+class SvtxTrack : public PHObject {
   
- public:
+public:
+  typedef std::map<float,SvtxTrackState*> StateMap;
+  typedef StateMap::const_iterator        ConstStateIter;
+  typedef StateMap::iterator              StateIter; 
 
-  enum CAL_LAYER {PRES,CEMC,HCALIN,HCALOUT};
+  typedef std::set<unsigned int>     ClusterSet;
+  typedef ClusterSet::const_iterator ConstClusterIter;
+  typedef ClusterSet::iterator       ClusterIter;
+  
+  enum CAL_LAYER {PRES=0,CEMC=1,HCALIN=2,HCALOUT=3};
 
-  SvtxTrack();
-  SvtxTrack(SvtxTrack *track);
-  SvtxTrack(const SvtxTrack& track);
-  virtual ~SvtxTrack() {};
+  virtual ~SvtxTrack() {}
   
   // The "standard PHObject response" functions...
-  void identify(std::ostream &os=std::cout) const;
-  void Reset();
-  int  isValid() const;
-
-  void set_id(int id) {trackID = id;}
-  void setTrackID(int index){trackID = index;}
-  int getTrackID() const {return trackID;}  
+  virtual void identify(std::ostream &os=std::cout) const {
+    os << "SvtxTrack base class" << std::endl;
+  }
+  virtual void Reset() {}
+  virtual int  isValid() const {return 0;}
+  virtual SvtxTrack* Clone() const {return NULL;}
   
-  void setClusterID(int layer, int index);
-  int getClusterID(int layer) const;
-  bool hasCluster(int layer) const;
+  //
+  // basic track information ---------------------------------------------------
+  //
   
-  void setScatter(int layer, float sct);
-  float getScatter(int layer) const;
+  virtual unsigned int get_id() const          {return UINT_MAX;}
+  virtual void         set_id(unsigned int id) {}
+
+  virtual bool get_positive_charge() const     {return false;}
+  virtual void set_positive_charge(bool ispos) {}
+
+  virtual int  get_charge() const              {return -1;}
+  virtual void set_charge(int charge)          {}
+
+  virtual float get_chisq() const              {return NAN;}
+  virtual void  set_chisq(float chisq)         {}
+
+  virtual unsigned int get_ndf() const         {return UINT_MAX;}
+  virtual void         set_ndf(int ndf)        {}
+
+  virtual float get_quality() const            {return NAN;}
+
+  virtual float get_dca() const                {return NAN;}
+  virtual void  set_dca(float dca)             {}
+
+  virtual float get_dca2d() const              {return NAN;}  
+  virtual void  set_dca2d(float dca2d)         {}
+
+  virtual float get_dca2d_error() const        {return NAN;}
+  virtual void  set_dca2d_error(float error)   {}
+
+  virtual float get_x() const                  {return NAN;}
+  virtual void  set_x(float x)                 {}
   
-  void setHitPosition(int layer, float x, float y, float z);
-  float getHitPosition(int layer, int coor) const;
+  virtual float get_y() const                  {return NAN;}
+  virtual void  set_y(float y)                 {}
+
+  virtual float get_z() const                  {return NAN;}
+  virtual void  set_z(float z)                 {}
+
+  virtual float get_pos(unsigned int i) const  {return NAN;}
+
+  virtual float get_px() const                 {return NAN;}
+  virtual void  set_px(float px)               {}
   
-  void setMomentum(float p);
-  float getMomentum() const;
+  virtual float get_py() const                 {return NAN;}
+  virtual void  set_py(float py)               {}
+
+  virtual float get_pz() const                 {return NAN;}
+  virtual void  set_pz(float pz)               {}
+
+  virtual float get_mom(unsigned int i) const  {return NAN;}
+
+  virtual float get_p() const                  {return NAN;}
+  virtual float get_pt() const                 {return NAN;}
+  virtual float get_eta() const                {return NAN;}
+  virtual float get_phi() const                {return NAN;}
+
+  virtual float get_error(int i, int j) const        {return NAN;}
+  virtual void  set_error(int i, int j, float value) {}
+
+  //
+  // state methods -------------------------------------------------------------
+  //
+  virtual bool   empty_states()                 const {return false;}
+  virtual size_t size_states()                  const {return 0;}
+  virtual size_t count_states(float pathlength) const {return 0;}
+  virtual void   clear_states()                       {}
   
-  void set3Momentum(float px, float py, float pz);
-  float get3Momentum(int coor) const;
-  
-  void setCharge(int c);
-  int getCharge() const;
-  
-  void setPrimary(bool prim);
-  bool getPrimary() const;
-  
-  void setPositive(bool prim);
-  bool getPositive() const;
-  
-  //void setNhits(int layer, short n);
-  short getNhits() const;
-  
-  void setQuality(float q);
-  float getQuality() const;
+  virtual const SvtxTrackState* get_state(float pathlength) const          {return NULL;}
+  virtual       SvtxTrackState* get_state(float pathlength)                {return NULL;}
+  virtual       SvtxTrackState* insert_state(const SvtxTrackState* state)  {return NULL;}
+  virtual                size_t erase_state(float pathlength)              {return 0;}
 
-  void setChisq(float q);
-  float getChisq() const;
+  virtual ConstStateIter begin_states()                const {return StateMap().end();}
+  virtual ConstStateIter  find_state(float pathlength) const {return StateMap().end();}
+  virtual ConstStateIter   end_states()                const {return StateMap().end();}
 
-  void setChisqv(float q);
-  float getChisqv() const;
+  virtual StateIter begin_states()                {return StateMap().end();}
+  virtual StateIter  find_state(float pathlength) {return StateMap().end();}
+  virtual StateIter   end_states()                {return StateMap().end();}
+    
+  //
+  // associated cluster ids methods --------------------------------------------
+  //
+  virtual void                clear_clusters()                           {}
+  virtual bool                empty_clusters() const                     {return false;}
+  virtual size_t              size_clusters() const                      {return 0;}
+  virtual void                insert_cluster(unsigned int clusterid)     {}
+  virtual size_t              erase_cluster(unsigned int clusterid)      {return 0;}
+  virtual ConstClusterIter    begin_clusters() const                     {return ClusterSet().end();}
+  virtual ConstClusterIter    find_cluster(unsigned int clusterid) const {return ClusterSet().end();}
+  virtual ConstClusterIter    end_clusters() const                       {return ClusterSet().end();}
+  virtual ClusterIter         begin_clusters()                           {return ClusterSet().end();}
+  virtual ClusterIter         find_cluster(unsigned int clusterid)       {return ClusterSet().end();}
+  virtual ClusterIter         end_clusters()                             {return ClusterSet().end();}
 
-  void setNDF(int q);
-  int getNDF() const;
+  //
+  // calo projection methods ---------------------------------------------------
+  //
+  virtual float get_cal_dphi(CAL_LAYER layer) const       {return 0.;}
+  virtual void  set_cal_dphi(CAL_LAYER layer, float dphi) {}
 
-  void setDCA(float d);
-  float getDCA() const;
+  virtual float get_cal_deta(CAL_LAYER layer) const       {return 0.;}
+  virtual void  set_cal_deta(CAL_LAYER layer, float deta) {}
 
-  void setDCA2D(float d);
-  float getDCA2D() const;
-  
-  void setDCA2Dsigma(float d);
-  float getDCA2Dsigma() const;
+  virtual float get_cal_energy_3x3(CAL_LAYER layer) const             {return 0.;}
+  virtual void  set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3) {}
 
-  float getInnerMostHitPosition(int coor) const;
-  
-  float phi,d,kappa,z0,dzdl;
-  
-  const TMatrix* getCovariance() const {return &covariance;}
-  TMatrix* getCovariance() {return &covariance;}
-  
+  virtual float get_cal_energy_5x5(CAL_LAYER layer) const             {return 0.;}
+  virtual void  set_cal_energy_5x5(CAL_LAYER layer, float energy_5x5) {}
 
-  void set_cal_dphi(int layer, float dphi) {cal_dphi[layer] = dphi;}
-  float get_cal_dphi(int layer) const {return cal_dphi[layer];}
+  virtual unsigned int get_cal_cluster_id(CAL_LAYER layer) const            {return 0;}
+  virtual void         set_cal_cluster_id(CAL_LAYER layer, unsigned int id) {}
 
-  void set_cal_deta(int layer, float deta) {cal_deta[layer] = deta;}
-  float get_cal_deta(int layer) const {return cal_deta[layer];}
+  virtual float get_cal_cluster_e(CAL_LAYER layer) const    {return 0.;}
+  virtual void  set_cal_cluster_e(CAL_LAYER layer, float e) {}
 
-  void set_cal_energy_3x3(int layer, float energy_3x3) {cal_energy_3x3[layer] = energy_3x3;}
-  float get_cal_energy_3x3(int layer) const {return cal_energy_3x3[layer];}
+protected:
+  SvtxTrack() {}
 
-  void set_cal_cluster_id(int layer, int id) {cal_cluster_id[layer] = id;}
-  float get_cal_cluster_id(int layer) const {return cal_cluster_id[layer];}
-
-  void set_cal_cluster_e(int layer, float e) {cal_cluster_e[layer] = e;}
-  float get_cal_cluster_e(int layer) const {return cal_cluster_e[layer];}
-
-  float get_x() const{return x;}
-  void set_x(float val){x = val;}
-  float get_y() const{return y;}
-  void set_y(float val){y = val;}
-  float get_z() const{return z;}
-  void set_z(float val){z = val;}
-
- protected:
-
-  int     clusterID[100];
-  int     trackID;
-  float   position[100][3];
-  float   momentum;
-  float   mom3[3];
-  int     charge;
-  bool    isprimary;
-  bool    ispositive;
-  float   quality;
-  float   chisq;
-  float   chisqv;
-  int     ndf;
-  float   DCA;
-  float   DCA2D;
-  float   DCA2Dsigma;
-  float   scatter[100];
-  float   x,y,z;
-  
-  TMatrix covariance;
-  
-  // calorimeter matches
-  float   cal_dphi[4];
-  float   cal_deta[4];
-  float   cal_energy_3x3[4];
-  int     cal_cluster_id[4];
-  float   cal_cluster_e[4];
-
-  ClassDef(SvtxTrack,1)
+  ClassDef(SvtxTrack,1);
 };
 
-
-inline void SvtxTrack::setClusterID(int layer, int index){clusterID[layer]=index;}
-inline int SvtxTrack::getClusterID(int layer) const {return clusterID[layer];}
-inline bool SvtxTrack::hasCluster(int layer) const {return (clusterID[layer]>-9999);}
-
-inline void SvtxTrack::setScatter(int layer, float sct){scatter[layer]=sct;}
-inline float SvtxTrack::getScatter(int layer) const {return scatter[layer];}
-
-inline void SvtxTrack::setDCA(float d){DCA=d;}
-inline float SvtxTrack::getDCA() const {return DCA;}
-inline void SvtxTrack::setDCA2D(float d){DCA2D=d;}
-inline float SvtxTrack::getDCA2D() const {return DCA2D;}
-inline void SvtxTrack::setDCA2Dsigma(float s){DCA2Dsigma=s;}
-inline float SvtxTrack::getDCA2Dsigma() const {return DCA2Dsigma;}
-
-inline void SvtxTrack::setMomentum(float p){momentum=p;}
-inline float SvtxTrack::getMomentum() const {return momentum;}
-
-inline void SvtxTrack::setQuality(float q){quality=q;}
-inline float SvtxTrack::getQuality() const {return quality;}
-
-inline void SvtxTrack::setChisq(float q){chisq=q;}
-inline float SvtxTrack::getChisq() const {return chisq;}
-
-inline void SvtxTrack::setChisqv(float q){chisqv=q;}
-inline float SvtxTrack::getChisqv() const {return chisqv;}
-
-inline void SvtxTrack::setNDF(int q){ndf=q;}
-inline int SvtxTrack::getNDF() const {return ndf;}
-
-
-inline void SvtxTrack::set3Momentum(float px, float py, float pz)
-{
-  mom3[0] = px;
-  mom3[1] = py;
-  mom3[2] = pz;
-}
-inline float SvtxTrack::get3Momentum(int coor) const {return mom3[coor];}
-
-inline void SvtxTrack::setCharge(int c){charge=c;}
-inline int SvtxTrack::getCharge() const {return charge;}
-
-inline void SvtxTrack::setPrimary(bool prim){isprimary=prim;}
-inline bool SvtxTrack::getPrimary() const {return isprimary;}
-
-inline void SvtxTrack::setPositive(bool p){ispositive=p;}
-inline bool SvtxTrack::getPositive() const {return ispositive;}
-
-inline float SvtxTrack::getHitPosition(int layer, int coor) const {return position[layer][coor];}
-inline void SvtxTrack::setHitPosition(int layer, float x, float y, float z)
-{
-  position[layer][0]=x;
-  position[layer][1]=y;
-  position[layer][2]=z;
-}
-
-
 #endif
-

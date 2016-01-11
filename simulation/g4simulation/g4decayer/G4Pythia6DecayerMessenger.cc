@@ -36,9 +36,9 @@
 // - /pythia6Decayer/forceDecayType [decayType]
 // ----------------------------------------------------------------------------
 
-#include <G4Pythia6DecayerMessenger.hh>
-#include <G4Pythia6Decayer.hh>
-#include <EDecayType.hh>
+#include "G4Pythia6DecayerMessenger.hh"
+#include "G4Pythia6Decayer.hh"
+#include "EDecayType.hh"
 
 #include <Geant4/G4UIdirectory.hh>
 #include <Geant4/G4UIcmdWithAnInteger.hh>

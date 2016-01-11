@@ -3,13 +3,13 @@
 #include "SvtxHitMap.h"
 #include "SvtxHit.h"
 
+#include <phool/getClass.h>
+#include <phool/recoConsts.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
-#include <fun4all/recoConsts.h>
+#include <phool/PHRandomSeed.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
@@ -18,16 +18,24 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
+#include <gsl/gsl_rng.h>
+
 #include <iostream>
 
 using namespace std;
 
-PHG4SvtxDeadArea::PHG4SvtxDeadArea(const char* name) :
+PHG4SvtxDeadArea::PHG4SvtxDeadArea(const string &name) :
   SubsysReco(name),
-  _eff_by_layer(),
   _hits(NULL),
-  _rand(NULL),
-  _timer(PHTimeServer::get()->insert_new(name)) {
+  _timer(PHTimeServer::get()->insert_new(name)) 
+{
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  return;
+}
+
+PHG4SvtxDeadArea::~PHG4SvtxDeadArea()
+{
+  gsl_rng_free (RandomGenerator);
 }
 
 int PHG4SvtxDeadArea::InitRun(PHCompositeNode* topNode) {
@@ -40,16 +48,14 @@ int PHG4SvtxDeadArea::InitRun(PHCompositeNode* topNode) {
   }
   
   // setup our random number generator
-  recoConsts *rc = recoConsts::instance();
-  int seed = rc->get_IntFlag("RANDOMSEED");
-  _rand = new TRandom3(seed);
+  unsigned int seed = PHRandomSeed(); // fixed seed handled in PHRandomSeed()
+  gsl_rng_set(RandomGenerator,seed);
 
   FillCylinderDeadAreaMap(topNode);
   FillLadderDeadAreaMap(topNode);
   
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "====================== PHG4SvtxDeadArea::InitRun() ========================" << endl;
-    cout << " CVS Version: $Id: PHG4SvtxDeadArea.C,v 1.6 2015/04/21 23:47:09 pinkenbu Exp $" << endl;
     cout << " Random number seed = " << seed << endl;    
     for (std::map<int,float>::iterator iter = _eff_by_layer.begin();
 	 iter != _eff_by_layer.end();
@@ -71,9 +77,9 @@ int PHG4SvtxDeadArea::process_event(PHCompositeNode *topNode) {
   for (SvtxHitMap::Iter iter = _hits->begin();
        iter != _hits->end();
        ++iter) {
-    SvtxHit* hit = &iter->second;
+    SvtxHit* hit = iter->second;
 
-    if (_rand->Rndm() > get_hit_efficiency(hit->get_layer())) {
+    if (gsl_rng_uniform_pos(RandomGenerator) > get_hit_efficiency(hit->get_layer())) {
       remove_hits.push_back(hit->get_id());
     }
   }
@@ -92,20 +98,9 @@ int PHG4SvtxDeadArea::End(PHCompositeNode* topNode) {
 
 void PHG4SvtxDeadArea::FillCylinderDeadAreaMap(PHCompositeNode* topNode) {
 
-  PHG4CylinderCellContainer *cells = NULL;
-  PHG4CylinderCellGeomContainer *geom_container = NULL;
+  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
+  PHG4CylinderCellGeomContainer *geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
     
-  PHTypedNodeIterator<PHG4CylinderCellContainer> celliter(topNode);
-  PHIODataNode<PHG4CylinderCellContainer>* cell_container_node = celliter.find("G4CELL_SVTX");
-  if (cell_container_node) {
-    cells = (PHG4CylinderCellContainer*) cell_container_node->getData();
-  }
-
-  PHTypedNodeIterator<PHG4CylinderCellGeomContainer> geomiter(topNode);
-  PHIODataNode<PHG4CylinderCellGeomContainer>* PHG4CylinderCellGeomContainerNode = geomiter.find("CYLINDERCELLGEOM_SVTX");
-  if (PHG4CylinderCellGeomContainerNode) {
-    geom_container = (PHG4CylinderCellGeomContainer*) PHG4CylinderCellGeomContainerNode->getData();
-  }
 
   if (!geom_container || !cells) return;
   
@@ -125,21 +120,9 @@ void PHG4SvtxDeadArea::FillCylinderDeadAreaMap(PHCompositeNode* topNode) {
 
 void PHG4SvtxDeadArea::FillLadderDeadAreaMap(PHCompositeNode* topNode) {
 
-  PHG4CylinderCellContainer *cells = NULL;
-  PHG4CylinderGeomContainer *geom_container = NULL;
+  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
     
-  PHTypedNodeIterator<PHG4CylinderCellContainer> celliter(topNode);
-  PHIODataNode<PHG4CylinderCellContainer>* cell_container_node = celliter.find("G4CELL_SILICON_TRACKER");
-  if (cell_container_node) {
-    cells = (PHG4CylinderCellContainer*) cell_container_node->getData();
-  }
-
-  PHTypedNodeIterator<PHG4CylinderGeomContainer> geomiter(topNode);
-  PHIODataNode<PHG4CylinderGeomContainer>* PHG4CylinderGeomContainerNode = geomiter.find("CYLINDERGEOM_SILICON_TRACKER");
-  if (PHG4CylinderGeomContainerNode) {
-    geom_container = (PHG4CylinderGeomContainer*) PHG4CylinderGeomContainerNode->getData();
-  }
-  
   if (!geom_container || !cells) return;
 
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();

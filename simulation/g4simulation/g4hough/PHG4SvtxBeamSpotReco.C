@@ -1,15 +1,14 @@
 #include "PHG4SvtxBeamSpotReco.h"
-
+#include "SvtxBeamSpot.h"
 #include "SvtxVertexMap.h"
 #include "SvtxVertex.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
-#include <fun4all/recoConsts.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <TPrincipal.h>
 
@@ -17,13 +16,12 @@
 
 using namespace std;
 
-PHG4SvtxBeamSpotReco::PHG4SvtxBeamSpotReco(const char* name) :
+PHG4SvtxBeamSpotReco::PHG4SvtxBeamSpotReco(const string &name) :
   SubsysReco(name),
   _pca(2),
   _vertexes(NULL),
   _beamspot(NULL),
   _timer(PHTimeServer::get()->insert_new(name)) {
-  verbosity = 0;
 }
 
 int PHG4SvtxBeamSpotReco::InitRun(PHCompositeNode* topNode) {
@@ -35,7 +33,7 @@ int PHG4SvtxBeamSpotReco::InitRun(PHCompositeNode* topNode) {
   PHNodeIterator iter(topNode);
   
   PHCompositeNode *parNode 
-    = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","PAR"));
+    = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","PAR"));
   if (!parNode) {
     cout << PHWHERE << "PAR Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
@@ -67,9 +65,8 @@ int PHG4SvtxBeamSpotReco::InitRun(PHCompositeNode* topNode) {
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "=================== PHG4SvtxBeamSpotReco::InitRun() =======================" << endl;
-    cout << " CVS Version: $Id: PHG4SvtxBeamSpotReco.C,v 1.5 2015/04/21 23:47:09 pinkenbu Exp $" << endl;
     cout << " Storing cumulative beam spot location under PAR/SVTX/SvtxBeamSpot" << endl;
     cout << "===========================================================================" << endl;
   }
@@ -86,7 +83,7 @@ int PHG4SvtxBeamSpotReco::process_event(PHCompositeNode *topNode)
   for (SvtxVertexMap::ConstIter iter = _vertexes->begin();
        iter != _vertexes->end();
        ++iter) {
-    const SvtxVertex* vertex = &iter->second;
+    const SvtxVertex* vertex = iter->second;
     double data[2] = {vertex->get_x(),vertex->get_y()};
     _pca.AddRow(data);
   }
@@ -112,7 +109,7 @@ int PHG4SvtxBeamSpotReco::process_event(PHCompositeNode *topNode)
 
 int PHG4SvtxBeamSpotReco::End(PHCompositeNode* topNode) {
 
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "=================== PHG4SvtxBeamSpotReco::End() ===========================" << endl;
     _beamspot->identify();
     cout << "===========================================================================" << endl;

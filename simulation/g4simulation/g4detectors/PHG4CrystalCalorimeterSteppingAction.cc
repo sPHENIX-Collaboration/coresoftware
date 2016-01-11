@@ -7,7 +7,7 @@
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>
 
@@ -33,7 +33,6 @@ using namespace std;
 
 //____________________________________________________________________________..
 PHG4CrystalCalorimeterSteppingAction::PHG4CrystalCalorimeterSteppingAction( PHG4CrystalCalorimeterDetector* detector ):
-  PHG4SteppingAction(NULL),
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),
@@ -57,7 +56,6 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 
   int whichactive = detector_->IsInCrystalCalorimeter(volume);
 
-
   if ( !whichactive  )
     {
       return false;
@@ -72,13 +70,16 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
   if (whichactive > 0) // in crystal
     {
       /* Find indizes of crystal containing this step */
-      WhatAreYou(touch, idx_j, idx_k);
+      if ( touch->GetVolume(2)->GetName().find("_j_") != string::npos )
+	FindTowerIndex2LevelUp(touch, idx_j, idx_k);
+      else
+	FindTowerIndex(touch, idx_j, idx_k);
+
       tower_id = touch->GetCopyNumber();
     }
   else if (whichactive < 0)
     {
-      //Get the absorber indices 
-      WhatAreYou(touch, idx_j, idx_k);
+      //no tower ID for absorber
       tower_id = touch->GetCopyNumber();
     }
   else
@@ -124,35 +125,32 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 //	  hit->set_layer(0);
 	  hit->set_scint_id(tower_id);
 
-	  /* Set hit location (tower index) */
-	  hit->set_index_j(idx_j);
-	  hit->set_index_k(idx_k);
-	  hit->set_index_l(idx_l);
+	  /* Set hit location (tower index) only for crystals*/
+	  if (whichactive > 0)
+	    {
+	      hit->set_index_j(idx_j);
+	      hit->set_index_k(idx_k);
+	      hit->set_index_l(idx_l);
+	    }
 
-	  /* Set hit location (space point) */
+	  /* Set hit location (space point) only for crystals*/
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm);
 	  hit->set_y( 0, prePoint->GetPosition().y() / cm );
 	  hit->set_z( 0, prePoint->GetPosition().z() / cm );
-
-	  /* Set momentum */
-	  hit->set_x( 0, prePoint->GetMomentum().x() / GeV );
-	  hit->set_y( 0, prePoint->GetMomentum().y() / GeV );
-	  hit->set_z( 0, prePoint->GetMomentum().z() / GeV );
 
 	  /* Set hit time */
 	  hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
 
 	  /* set the track ID */
 	  {
-	    int trkoffset = 0;
-	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+            hit->set_trkid(aTrack->GetTrackID());
+            if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	      {
 		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 		  {
-		    trkoffset = pp->GetTrackIdOffset();
+		    hit->set_trkid(pp->GetUserTrackId());
 		  }
 	      }
-	    hit->set_trkid(aTrack->GetTrackID() + trkoffset);
 	  }
 
 	  /* set intial energy deposit */
@@ -179,10 +177,6 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
       hit->set_x( 1, postPoint->GetPosition().x() / cm );
       hit->set_y( 1, postPoint->GetPosition().y() / cm );
       hit->set_z( 1, postPoint->GetPosition().z() / cm );
-
-      hit->set_px(1, postPoint->GetMomentum().x() / GeV );
-      hit->set_py(1, postPoint->GetMomentum().y() / GeV );
-      hit->set_pz(1, postPoint->GetMomentum().z() / GeV );
 
       hit->set_t( 1, postPoint->GetGlobalTime() / nanosecond );
 
@@ -254,10 +248,24 @@ void PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers( PHCompositeNode
 }
 
 int
-PHG4CrystalCalorimeterSteppingAction::WhatAreYou(G4TouchableHandle touch, int& j, int& k)
+PHG4CrystalCalorimeterSteppingAction::FindTowerIndex(G4TouchableHandle touch, int& j, int& k)
+{
+        int j_0, k_0;           //The k and k indices for the scintillator / tower
+
+        G4VPhysicalVolume* tower = touch->GetVolume(1);		//Get the tower solid
+	ParseG4VolumeName(tower, j_0, k_0);
+
+        j = (j_0*1);
+        k = (k_0*1);
+
+        return 0;
+}
+
+int
+PHG4CrystalCalorimeterSteppingAction::FindTowerIndex2LevelUp(G4TouchableHandle touch, int& j, int& k)
 {
         int j_0, k_0;           //The k and k indices for the crystal within the 2x2 matrix
-        int j_1, k_1;           //The k and k indices for the 2x2 within the 4x4 
+        int j_1, k_1;           //The k and k indices for the 2x2 within the 4x4
         int j_2, k_2;           //The k and k indices for the 4x4 within the mother volume
         //int j, k;             //The final indices of the crystal
 
@@ -270,10 +278,10 @@ PHG4CrystalCalorimeterSteppingAction::WhatAreYou(G4TouchableHandle touch, int& j
 		G4VPhysicalVolume* TwoByTwo = touch->GetVolume(1);		//Get the crystal solid
 		G4VPhysicalVolume* FourByFour = touch->GetVolume(2);		//Get the crystal solid
 
-		ParseName(crystal, j_0, k_0);
-		ParseName(TwoByTwo, j_1, k_1);
-		ParseName(FourByFour, j_2, k_2);
-		
+		ParseG4VolumeName(crystal, j_0, k_0);
+		ParseG4VolumeName(TwoByTwo, j_1, k_1);
+		ParseG4VolumeName(FourByFour, j_2, k_2);
+
 		j = (j_0*1) + (j_1*2) + (j_2*4);
 		k = (k_0*1) + (k_1*2) + (k_2*4);
 
@@ -281,7 +289,7 @@ PHG4CrystalCalorimeterSteppingAction::WhatAreYou(G4TouchableHandle touch, int& j
 	else if ( (name.find("arbon") != string::npos) )
 	{
 		G4VPhysicalVolume* carbon = touch->GetVolume(1);		//Get the carbon fiber solid
-		ParseName(carbon, j_0, k_0);
+		ParseG4VolumeName(carbon, j_0, k_0);
 		j = j_0;
 		k = k_0;
 		//cout << "Carbon_" << j << "_" << k << endl;
@@ -296,8 +304,8 @@ PHG4CrystalCalorimeterSteppingAction::WhatAreYou(G4TouchableHandle touch, int& j
         return 0;
 }
 
-int 
-PHG4CrystalCalorimeterSteppingAction::ParseName( G4VPhysicalVolume* volume, int& j, int& k ) 
+int
+PHG4CrystalCalorimeterSteppingAction::ParseG4VolumeName( G4VPhysicalVolume* volume, int& j, int& k )
 {
 	boost::char_separator<char> sep("_");
 	boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
@@ -315,6 +323,6 @@ PHG4CrystalCalorimeterSteppingAction::ParseName( G4VPhysicalVolume* volume, int&
 			k = boost::lexical_cast<int>(*tokeniter);
 		}
 	}
-	
+
 	return 0;
 }

@@ -1,6 +1,6 @@
 #include "PHG4BlockSubsystem.h"
 #include "PHG4BlockDetector.h"
-#include "PHG4BlockEventAction.h"
+#include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4BlockRegionSteppingAction.h"
 #include "PHG4BlockSteppingAction.h"
 #include "PHG4BlockGeomv1.h"
@@ -8,7 +8,7 @@
 #include <g4main/PHG4Utils.h>
 
 #include <g4main/PHG4HitContainer.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <Geant4/globals.hh>
 
@@ -98,7 +98,7 @@ int PHG4BlockSubsystem::Init( PHCompositeNode* topNode )
     _steppingAction = new PHG4BlockSteppingAction(_detector);
     _steppingAction->UseG4Steps(_use_g4_steps);
     _steppingAction->UseIonizationEnergy(_use_ionisation_energy);
-    _eventAction = new PHG4BlockEventAction(topNode, nodename.str());
+    _eventAction = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
 
   } else if(_blackhole) {
     _steppingAction = new PHG4BlockSteppingAction(_detector);

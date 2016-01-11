@@ -10,12 +10,12 @@
 #include "DumpPHG4TruthInfoContainer.h"
 #include "DumpRawClusterContainer.h"
 #include "DumpRawTowerContainer.h"
-#include "DumpRawTowerGeom.h"
+#include "DumpRawTowerGeomContainer.h"
 #include "DumpRunHeader.h"
 #include "DumpSyncObject.h"
 #include "DumpVariableArray.h"
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <ffaobjects/RunHeader.h>
 
@@ -182,9 +182,9 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
             {
               newdump = new DumpRawTowerContainer(NodeName);
             }
-          else if (tmp->InheritsFrom("RawToweGeom"))
+          else if (tmp->InheritsFrom("RawTowerGeomContainer"))
             {
-              newdump = new DumpRawTowerGeom(NodeName);
+              newdump = new DumpRawTowerGeomContainer(NodeName);
             }
           else if (tmp->InheritsFrom("RunHeader"))
             {

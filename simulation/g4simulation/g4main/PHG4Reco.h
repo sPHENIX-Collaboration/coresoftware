@@ -21,6 +21,7 @@ class PHG4Subsystem;
 class PHG4EventGenerator;
 class G4TBMagneticFieldSetup;
 class G4VUserPrimaryGeneratorAction;
+class PHG4UIsession;
 
 // for the G4 cmd interface and the graphics
 class G4UImanager;
@@ -29,7 +30,7 @@ class G4VisManager;
 /*!
   \class   PHG4Reco
   \ingroup supermodules
-  \brief   mutoo reconstruction event loop, twicked to cope with Run4 Au-Au data
+  \brief   Runs G4 as a subsystem
 */
 class PHG4Reco: public SubsysReco
 {
@@ -44,6 +45,8 @@ class PHG4Reco: public SubsysReco
   //! full initialization
   int Init(PHCompositeNode *);
 
+  int InitRun( PHCompositeNode* topNode );
+
   //! event processing method
   int process_event(PHCompositeNode *);
 
@@ -52,6 +55,9 @@ class PHG4Reco: public SubsysReco
 
   //! end of run method
   int End(PHCompositeNode *);
+
+  //! print info
+  void  Print(const std::string &what = "ALL") const;
 
   //! register subsystem
   void registerSubsystem( PHG4Subsystem* subsystem )
@@ -70,6 +76,8 @@ class PHG4Reco: public SubsysReco
   void set_field_map(const std::string &fmap, const int dim)
   { fieldmapfile = fmap; mapdim = dim;}
 
+  void set_field_rescale(const float rescale) {magfield_rescale = rescale;}
+  
   void set_decayer_active(bool b) {active_decayer_ = b;}
   void set_force_decay(EDecayType force_decay_type) {
     active_decayer_ = true;
@@ -93,7 +101,7 @@ class PHG4Reco: public SubsysReco
 
   int setupInputEventNodeReader(PHCompositeNode *);
 
-  static void G4Seed(const int i);
+  static void G4Seed(const unsigned int i);
 
   // this is an ugly hack to get Au ions working for CAD
   // our particle generators have pdg build in which doesn't work
@@ -102,11 +110,14 @@ class PHG4Reco: public SubsysReco
   // the physics lists are instantiated
   void setGeneratorAction(G4VUserPrimaryGeneratorAction *action);
 
-  private:
+  PHG4Subsystem *getSubsystem(const std::string &name);
+
+  protected:
   
   int InitUImanager();
   void DefineMaterials();
   float magfield;
+  float magfield_rescale;
   double WorldSize[3];
 
   //! magnetic field
@@ -114,6 +125,9 @@ class PHG4Reco: public SubsysReco
 
   //! pointer to geant run manager
   G4RunManager* runManager_;
+
+  //! pointer to geant ui session
+  PHG4UIsession* uisession_;
 
   //! pointer to detector
   PHG4PhenixDetector* detector_;

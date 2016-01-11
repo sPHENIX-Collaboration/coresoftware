@@ -1,17 +1,17 @@
 #ifndef __PHG4TRUTHINFOCONTAINER_H__
 #define __PHG4TRUTHINFOCONTAINER_H__
 
-
 #include <phool/PHObject.h>
 #include <map>
 #include <set>
 
-class PHG4Particle;
-class PHG4VtxPoint;
+#include "PHG4Particle.h"
+#include "PHG4VtxPoint.h"
 
-class PHG4TruthInfoContainer: public PHObject
-{
-  public:
+class PHG4TruthInfoContainer: public PHObject {
+  
+public:
+
   typedef std::map<int,PHG4Particle *> Map;
   typedef Map::iterator Iterator;
   typedef Map::const_iterator ConstIterator;
@@ -25,88 +25,130 @@ class PHG4TruthInfoContainer: public PHObject
   typedef std::pair<ConstVtxIterator, ConstVtxIterator> ConstVtxRange;
 
   PHG4TruthInfoContainer();
-
   virtual ~PHG4TruthInfoContainer();
 
   void Reset();
-
   void identify(std::ostream& os = std::cout) const;
 
-  //! Add a hit that the user has created (use with caution)
-  ConstIterator AddHit(const int detid, PHG4Particle *newhit);
-
-  //! Add a hit and return an iterator to the user
-  //  Iterator AddHit(const int detid);
-
-  PHG4Particle* GetHit(const int detid);
-
-  //! Add a vertex and return an iterator to the user
-  VtxIterator AddVertex(const int detid);
-
-  //! Add a vertex and return an iterator to the user
-  ConstVtxIterator AddVertex(const int detid, PHG4VtxPoint *);
-
-  //! Add a primary vertex and return index to the user
-  int AddPrimaryVertex(PHG4VtxPoint *);
-
-  ConstIterator AddPrimaryParticle(PHG4Particle *newparticle);
-
-  PHG4VtxPoint* GetVtx(const int detid);
-
-  PHG4VtxPoint* GetPrimaryVtx(const int vtxid);
-
-  //! Get a range of iterators covering the entire container
-  Range GetHitRange();
-  ConstRange GetHitRange() const;
+  // --- particle storage ------------------------------------------------------
+ 
+  //! Add a particle that the user has created
+  ConstIterator AddParticle(const int particleid, PHG4Particle* newparticle);
+  void delete_particle(Iterator piter); 
   
-  //! Get a range of iterators covering the entire vertex container
-  VtxRange GetVtxRange();
-  ConstVtxRange GetVtxRange() const;
+  PHG4Particle* GetParticle(const int particleid);
+  PHG4Particle* GetPrimaryParticle(const int particleid);
 
-  //! hit size
-  unsigned int size( void ) const
-  { return hitmap.size(); }
+  bool is_primary(const PHG4Particle* p) const {return (p->get_track_id() > 0);}
+  
+  //! Get a range of iterators covering the entire container
+  Range GetParticleRange() {return Range(particlemap.begin(),particlemap.end());}
+  ConstRange GetParticleRange() const {return ConstRange(particlemap.begin(),particlemap.end());}
 
-  //! Get the number of vertices stored
-  unsigned int GetNumVertices() const { return vtxmap.size(); }
+  Range GetPrimaryParticleRange() {return Range(particlemap.upper_bound(0),particlemap.end());}
+  ConstRange GetPrimaryParticleRange() const {return ConstRange(particlemap.upper_bound(0),particlemap.end());}
 
-  //! Get the map itself
-  const Map& GetMap() const { return hitmap; }
-  const Map& GetPrimaryMap() const { return primary_particle_map; }
-  const VtxMap& GetVtxMap() const { return vtxmap; }
+  Range GetSecondaryParticleRange() {return Range(particlemap.begin(),particlemap.upper_bound(0));}
+  ConstRange GetSecondaryParticleRange() const {return ConstRange(particlemap.begin(),particlemap.upper_bound(0));}
 
+  //! particle size
+  unsigned int size( void ) const {return particlemap.size();}
+  int GetNumPrimaryVertexParticles() {
+    return std::distance(particlemap.upper_bound(0),particlemap.end());
+  }
+  
+  //! Get the Particle Map storage
+  const Map& GetMap() const {return particlemap;}
+  
   int maxtrkindex() const;
   int mintrkindex() const;
 
-  int maxvtxindex() const;
-  int minvtxindex() const;
- 
-  void delete_hit(Iterator hiter);
-  void delete_vtx(VtxIterator viter);
-
-  int GetPrimaryVertexIndex() {return (primary_vtxmap.begin())->first;}
-  int GetNumPrimaryVertexParticles() {return primary_particle_map.size();}
-  
-  int GetLastParticleIndex() {return (primary_particle_map.rbegin())->first;}
-
-  std::pair< std::set<int>::const_iterator, std::set<int>::const_iterator > GetEmbeddedTrkIds() const
-    {return std::make_pair(embedded_trkid.begin(), embedded_trkid.end());}
-  void AddEmbededTrkId(const int i) {embedded_trkid.insert(i);}
+  std::pair< std::map<int,int>::const_iterator,
+	     std::map<int,int>::const_iterator > GetEmbeddedTrkIds() const {
+    return std::make_pair(particle_embed_flags.begin(), particle_embed_flags.end());
+  }
+  void AddEmbededTrkId(const int id, const int flag) {
+    particle_embed_flags.insert(std::make_pair(id,flag));
+  }
 
   int isEmbeded(const int trackid) const;
+   
+  // --- vertex storage --------------------------------------------------------
+  
+  //! Add a vertex and return an iterator to the user
+  ConstVtxIterator AddVertex(const int vtxid, PHG4VtxPoint* vertex);
+  void delete_vtx(VtxIterator viter);
+  
+  PHG4VtxPoint* GetVtx(const int vtxid);
+  PHG4VtxPoint* GetPrimaryVtx(const int vtxid);
 
- protected:
+  bool is_primary_vtx(const PHG4VtxPoint* v) const {return (v->get_id() > 0);}
+  
+  //! Get a range of iterators covering the entire vertex container
+  VtxRange GetVtxRange() {return VtxRange(vtxmap.begin(),vtxmap.end());}
+  ConstVtxRange GetVtxRange() const {return ConstVtxRange(vtxmap.begin(),vtxmap.end());}
 
-  //! generate a key
-  static int get_key(const int detid);
+  VtxRange GetPrimaryVtxRange() {return VtxRange(vtxmap.upper_bound(0),vtxmap.end());}
+  ConstVtxRange GetPrimaryVtxRange() const {return ConstVtxRange(vtxmap.upper_bound(0),vtxmap.end());}
 
-  Map hitmap;
+  VtxRange GetSecondaryVtxRange() {return VtxRange(vtxmap.begin(),vtxmap.upper_bound(0));}
+  ConstVtxRange GetSecondaryVtxRange() const {return ConstVtxRange(vtxmap.begin(),vtxmap.upper_bound(0));}
+  
+  //! Get the number of vertices stored
+  unsigned int GetNumVertices() const {return vtxmap.size();}
+
+  //! Get the Vertex Map storage
+  const VtxMap& GetVtxMap() const {return vtxmap;}
+
+  int maxvtxindex() const;
+  int minvtxindex() const;
+
+  // returns the first primary vertex that was processed by Geant4
+  int GetPrimaryVertexIndex() {return (vtxmap.lower_bound(1))->first;}
+
+  std::pair< std::map<int,int>::const_iterator,
+	     std::map<int,int>::const_iterator > GetEmbeddedVtxIds() const {
+    return std::make_pair(vertex_embed_flags.begin(), vertex_embed_flags.end());
+  }
+  void AddEmbededVtxId(const int id, const int flag) {
+    vertex_embed_flags.insert(std::make_pair(id,flag));
+  }
+
+  int isEmbededVtx(const int vtxid) const;
+
+ private:
+
+  /// particle storage map format description:
+  /// primary particles are appended in the positive direction
+  /// secondary particles are appended in the negative direction
+  /// +N   primary particle id => particle*
+  /// +N-1 
+  /// ...
+  /// +1   primary particle id => particle*
+  /// 0    no entry
+  /// -1   secondary particle id => particle*
+  /// ...
+  /// -M+1
+  /// -M   secondary particle id => particle*  
+  Map particlemap;
+
+  /// vertex storage map format description:
+  /// primary vertexes are appended in the positive direction
+  /// secondary vertexes are appended in the negative direction
+  /// +N   primary vertex id => vertex*
+  /// +N-1 
+  /// ...
+  /// +1   primary vertex id => vertex*
+  /// 0    no entry
+  /// -1   secondary vertex id => vertex*
+  /// ...
+  /// -M+1
+  /// -M   secondary vertex id => vertex*  
   VtxMap vtxmap;
 
-  Map primary_particle_map;
-  VtxMap primary_vtxmap;
-  // track ids of embedded particles
-  std::set<int> embedded_trkid;
+  // embed flag storage, will typically be set for only a few entries or none at all
+  std::map< int, int> particle_embed_flags; //< trackid => embed flag
+  std::map< int, int> vertex_embed_flags;   //< vtxid => embed flag
 
   ClassDef(PHG4TruthInfoContainer,1)
 };

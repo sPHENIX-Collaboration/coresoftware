@@ -10,7 +10,7 @@ PHG4PhenixTrackingAction::PreUserTrackingAction( const G4Track* track )
   if ( Verbosity()>0 ) std::cout << "PHG4PhenixTrackingAction::PreUserTrackingAction" << std::endl;
   
   // loop over registered actions, and process
-  for( ActionList::const_iterator iter = actions_.begin(); iter != actions_.end(); iter++ )
+  for( ActionList::const_iterator iter = actions_.begin(); iter != actions_.end(); ++iter )
     {
       if (*iter)
 	{
@@ -28,7 +28,7 @@ PHG4PhenixTrackingAction::PostUserTrackingAction( const G4Track* track )
   if ( Verbosity()>0 ) std::cout << "PHG4PhenixTrackingAction::PostUserTrackingAction" << std::endl;
 
   // loop over registered actions, and process
-  for( ActionList::const_iterator iter = actions_.begin(); iter != actions_.end(); iter++ )
+  for( ActionList::const_iterator iter = actions_.begin(); iter != actions_.end(); ++iter )
     {
       if (*iter)
 	{

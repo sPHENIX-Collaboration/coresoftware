@@ -2,7 +2,7 @@
 #include "PHG4Detector.h"
 #include "PHG4RegionInformation.h"
 
-#include <fun4all/recoConsts.h>
+#include <phool/recoConsts.h>
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Element.hh>
@@ -84,7 +84,7 @@ G4VPhysicalVolume* PHG4PhenixDetector::Construct()
   }
   
   // construct all detectors
-  for( DetectorList::iterator iter = detectors_.begin(); iter != detectors_.end(); iter++ )
+  for( DetectorList::iterator iter = detectors_.begin(); iter != detectors_.end(); ++iter )
   {
     if( *iter )
     {

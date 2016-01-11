@@ -5,19 +5,22 @@
 #include "PHG4PhenixDetector.h"
 #include "PHG4PhenixSteppingAction.h"
 #include "PHG4PhenixTrackingAction.h"
+#include "PHG4TrackingAction.h"
 #include "PHG4PhenixEventAction.h"
 #include "PHG4Subsystem.h"
 #include "PHG4InEvent.h"
 #include "PHG4Utils.h"
+#include "PHG4UIsession.h"
 
 #include <g4decayer/P6DExtDecayerPhysics.hh>
 #include <g4decayer/EDecayType.hh>
 
-#include <fun4all/getClass.h>
-#include <fun4all/recoConsts.h>
+#include <phool/getClass.h>
+#include <phool/recoConsts.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHRandomSeed.h>
 
 #include <TThread.h>
 
@@ -96,14 +99,18 @@ void g4guithread(void *ptr);
 PHG4Reco::PHG4Reco( const string &name ) :
   SubsysReco( name ),
   magfield(2),
-  field_(0),
-  runManager_(0),
-  detector_(0),
-  steppingAction_(0),
+  magfield_rescale(1.0),
+  field_(NULL),
+  runManager_(NULL),
+  uisession_(NULL),
+  detector_(NULL),
+  eventAction_(NULL),
+  steppingAction_(NULL),
   trackingAction_(NULL),
   generatorAction_(NULL),
-  visManager(0),
+  visManager(NULL),
   _eta_coverage(1.0),
+  mapdim(0),
   fieldmapfile("NONE"),
   worldshape("G4Tubs"),
   worldmaterial("G4_AIR"),
@@ -128,37 +135,48 @@ PHG4Reco::~PHG4Reco( void )
   delete gui_thread;
   delete field_;
   delete runManager_;
+  if (uisession_) delete uisession_;
   delete visManager;
 }
 
 //_________________________________________________________________
 int PHG4Reco::Init( PHCompositeNode* topNode )
 {
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "========================= PHG4Reco::Init() ================================" << endl;
   }
+
+  G4Seed(PHRandomSeed()); // fixed seed handled in PHRandomSeed()
   
-  if (verbosity > 0) cout << "PHG4Reco::Init" << endl;
   // create GEANT run manager
-  if (verbosity > 0) cout << "PHG4Reco::Init - create run manager" << endl;
+  if (verbosity > 1) cout << "PHG4Reco::Init - create run manager" << endl;
+
+  // redirect GEANT verbosity to nowhere
+  if (verbosity < 1) {
+     G4UImanager* uimanager = G4UImanager::GetUIpointer();
+     uisession_ = new PHG4UIsession();  
+     uimanager->SetSession(uisession_);
+     uimanager->SetCoutDestination(uisession_);
+  }
+  
   runManager_ = new G4RunManager();
 
   DefineMaterials();
 
   //setup the constant field
-  if (verbosity > 0) cout << "PHG4Reco::Init - create magnetic field setup" << endl;
+  if (verbosity > 1) cout << "PHG4Reco::Init - create magnetic field setup" << endl;
   if (fieldmapfile != "NONE")
     {
-      field_ = new G4TBMagneticFieldSetup(fieldmapfile, mapdim) ;
+      field_ = new G4TBMagneticFieldSetup(fieldmapfile, mapdim, magfield_rescale) ;
       magfield = field_->get_magfield_at_000(2); // get the z coordinate at 0/0/0
-      if (verbosity > 0)
+      if (verbosity > 1)
 	{
 	  cout << "magfield in PHG4Reco: " << magfield << endl;
 	}
     }
   else
     {
-      field_ = new G4TBMagneticFieldSetup(magfield) ;
+      field_ = new G4TBMagneticFieldSetup(magfield*magfield_rescale);
     }
 
   // create physics processes
@@ -218,6 +236,35 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
     {
       reco->Init( topNode );
     }
+
+  if (verbosity > 0) {
+    cout << "===========================================================================" << endl;
+  }
+  return 0;
+}
+
+int
+PHG4Reco::InitRun( PHCompositeNode* topNode )
+{
+  // this is a dumb protection against executing this twice.
+  // we have cases (currently detector display or material scan) where
+  // we need the detector bu have not run any events (who wants to wait
+  // for processing an event if you just want a detector display?).
+  // Then the InitRun is executed from a macro. But if you decide to run events
+  // afterwards, the InitRun is executed by the framework together with all
+  // other modules. This prevents the PHG4Reco::InitRun() to be executed
+  // again in this case
+  static int InitRunDone = 0;
+  if (InitRunDone)
+    {
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+  InitRunDone = 1;
+  if (verbosity > 0) 
+  {
+    cout << "========================= PHG4Reco::InitRun() ================================" << endl;
+  }
+
   recoConsts *rc = recoConsts::instance();
 
   // initialize registered subsystems
@@ -227,7 +274,7 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
     }
 
   // create phenix detector, add subsystems, and register to GEANT
-  if (verbosity > 0) cout << "PHG4Reco::Init - create detector" << endl;
+  if (verbosity > 1) cout << "PHG4Reco::Init - create detector" << endl;
   detector_ = new PHG4PhenixDetector();
   detector_->Verbosity(verbosity);
   detector_->SetWorldSizeX(WorldSize[0]*cm);
@@ -267,7 +314,7 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
       PHG4SteppingAction *action = g4sub->GetSteppingAction();
       if (action)
 	{
-	  if (verbosity > 0)
+	  if (verbosity > 1)
 	    {
 	      cout << "Adding steppingaction for " << g4sub->Name() << endl;
 	    }
@@ -281,9 +328,20 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
   BOOST_FOREACH( PHG4Subsystem * g4sub, subsystems_)
     {
       trackingAction_->AddAction( g4sub->GetTrackingAction() );
-    }
-  runManager_->SetUserAction(trackingAction_ );
 
+      // not all subsystems define a user tracking action
+      if (g4sub->GetTrackingAction())
+	{
+	  // make tracking manager accessible within user tracking action if defined
+	  if( G4TrackingManager* trackingManager = G4EventManager::GetEventManager()->GetTrackingManager() )
+	    {
+	      g4sub->GetTrackingAction()->SetTrackingManagerPointer(trackingManager);
+	    }
+	}
+    }
+
+  runManager_->SetUserAction(trackingAction_ );
+  
   // initialize
   runManager_->Initialize();
 
@@ -294,10 +352,10 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
   // G4Scintillation* theScintillationProcess      = new G4Scintillation("Scintillation");
 
   /*
-  if (verbosity > 0)
+    if (verbosity > 0)
     {
-      // This segfaults  
-      theCerenkovProcess->DumpPhysicsTable();
+    // This segfaults
+    theCerenkovProcess->DumpPhysicsTable();
     }
   */
   theCerenkovProcess->SetMaxNumPhotonsPerStep(100);
@@ -308,7 +366,7 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
   // theScintillationProcess->SetTrackSecondariesFirst(true);
 
   // Use Birks Correction in the Scintillation process
-  
+
   // G4EmSaturation* emSaturation = G4LossTableManager::Instance()->EmSaturation();
   // theScintillationProcess->AddSaturation(emSaturation);
 
@@ -342,21 +400,25 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
   pmanager->AddDiscreteProcess(new G4OpWLS());
   pmanager->AddDiscreteProcess(new G4PhotoElectricEffect());
   // pmanager->DumpInfo();
-  
+
   // needs large amount of memory which kills central hijing events
   // store generated trajectories
-  //   if( G4TrackingManager* trackingManager = G4EventManager::GetEventManager()->GetTrackingManager() ){
-  //     trackingManager->SetStoreTrajectory( true );
-  //   }
+  //if( G4TrackingManager* trackingManager = G4EventManager::GetEventManager()->GetTrackingManager() ){
+  //  trackingManager->SetStoreTrajectory( true );
+  //}
 
   // quiet some G4 print-outs (EM and Hadronic settings during first event)
   G4HadronicProcessStore::Instance()->SetVerbose(0);
   G4LossTableManager::Instance()->SetVerbose(0);
 
-  if (verbosity >= 0) {
+  if ((verbosity < 1) && (uisession_)) {
+    uisession_->Verbosity(1); // let messages after setup come through
+  }
+
+  if (verbosity > 0) {
     cout << "===========================================================================" << endl;
   }
-  
+
   return 0;
 }
 
@@ -468,9 +530,25 @@ PHG4Reco::ResetEvent(PHCompositeNode *topNode)
 }
 
 //_________________________________________________________________
-int PHG4Reco::End( PHCompositeNode* )
+int
+PHG4Reco::End( PHCompositeNode* )
 {
   return 0;
+}
+
+void
+PHG4Reco::Print(const std::string &what) const
+{
+  BOOST_FOREACH(SubsysReco * reco, subsystems_)
+    {
+      if (what == "ALL" || reco->Name() == what)
+	{
+	  cout << "Printing " << reco->Name() << endl;
+	  reco->Print(what);
+	  cout << "---------------------------" << endl;
+	}
+    }
+  return;
 }
 
 int
@@ -511,7 +589,7 @@ PHG4Reco::set_rapidity_coverage(const double eta)
 }
 
 void
-PHG4Reco::G4Seed(const int i)
+PHG4Reco::G4Seed(const unsigned int i)
 {
   CLHEP::HepRandom::setTheSeed(i);
   return;
@@ -792,7 +870,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
       LiF->AddElement(Li, natoms = 1);
       LiF->AddElement(F, natoms = 1);
 
-      if (verbosity > 0)
+      if (verbosity > 1)
 	{
 	  cout << "g4_lif: " << g4_lif << endl;
 	  cout << "LiF: " << LiF << endl;
@@ -905,3 +983,20 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
     P10->AddElement(H,  fractionmass=0.0155);
 }
 
+PHG4Subsystem *
+PHG4Reco::getSubsystem(const string &name)
+{
+  BOOST_FOREACH(PHG4Subsystem *subsys, subsystems_)
+    {
+      if (subsys->Name() == name)
+	{
+          if (verbosity > 0)
+            {
+              cout << "Found Subsystem " << name << endl;
+            }
+          return subsys;
+        }
+    }
+  cout << "Could not find Subsystem " << name << endl;
+  return NULL;
+}

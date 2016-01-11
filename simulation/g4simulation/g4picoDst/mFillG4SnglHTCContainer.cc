@@ -9,7 +9,7 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4cemc/RawTower.h>
 #include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTowerGeom.h>
+#include <g4cemc/RawTowerGeomContainer.h>
 #include <g4cemc/RawCluster.h>
 #include <g4cemc/RawClusterContainer.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -18,7 +18,7 @@
 #include <fun4all/Fun4AllHistoManager.h>
 #include <phool/PHObject.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 #include <boost/foreach.hpp>
 #include<sstream>
 #include <cstdlib>
@@ -92,15 +92,15 @@ mFillG4SnglHTCContainer::process_event( PHCompositeNode* top_node )
    PHG4TruthInfoContainer* truthInfoList 
 	=  findNode::getClass<PHG4TruthInfoContainer>(top_node , "G4TruthInfo" );
 
-   const PHG4TruthInfoContainer::Map primMap = truthInfoList->GetPrimaryMap();
+   const PHG4TruthInfoContainer::Range primRange = truthInfoList->GetPrimaryParticleRange();
 
-   snglhtcs->set_PID( primMap.begin()->second->get_pid() );
-   snglhtcs->set_Energy( primMap.begin()->second->get_e() );
-   snglhtcs->set_Theta( atan2(sqrt(pow(primMap.begin()->second->get_px(),2) + pow(primMap.begin()->second->get_py(),2)), primMap.begin()->second->get_pz()) );
-   snglhtcs->set_Phi( atan2(primMap.begin()->second->get_py(), primMap.begin()->second->get_px()) );
-   snglhtcs->set_Px( primMap.begin()->second->get_px() );
-   snglhtcs->set_Py( primMap.begin()->second->get_py() );
-   snglhtcs->set_Pz( primMap.begin()->second->get_pz() );
+   snglhtcs->set_PID( primRange.first->second->get_pid() );
+   snglhtcs->set_Energy( primRange.first->second->get_e() );
+   snglhtcs->set_Theta( atan2(sqrt(pow(primRange.first->second->get_px(),2) + pow(primRange.first->second->get_py(),2)), primRange.first->second->get_pz()) );
+   snglhtcs->set_Phi( atan2(primRange.first->second->get_py(), primRange.first->second->get_px()) );
+   snglhtcs->set_Px( primRange.first->second->get_px() );
+   snglhtcs->set_Py( primRange.first->second->get_py() );
+   snglhtcs->set_Pz( primRange.first->second->get_pz() );
 
    ostringstream hitnode, towernode, towergeomnode, clusternode;
    set<string>::const_iterator iter;
@@ -122,11 +122,11 @@ mFillG4SnglHTCContainer::process_event( PHCompositeNode* top_node )
 	   string tmpstr(*iter);
 	   if( !(tmpstr.compare(0,8,"ABSORBER")==0) ){ 
 	   towernode.str("");
-	   towernode << "TOWER_" << *iter;
+	   towernode << "TOWER_CALIB_" << *iter;
 	   RawTowerContainer *twrs = findNode::getClass<RawTowerContainer>(top_node, towernode.str().c_str());
 	   towergeomnode.str("");
 	   towergeomnode << "TOWERGEOM_" << *iter;
-	   RawTowerGeom *twrgeom = findNode::getClass<RawTowerGeom>(top_node,towergeomnode.str().c_str());
+	   RawTowerGeomContainer *twrgeom = findNode::getClass<RawTowerGeomContainer>(top_node,towergeomnode.str().c_str());
 	   G4SnglTower sngltwr;
 	   process_twr(detid, twrs, twrgeom, sngltwr, snglhtcs);
 	   }
@@ -186,7 +186,7 @@ return 0;
 
 
 int 
-mFillG4SnglHTCContainer::process_twr(int detid, RawTowerContainer *twrs, RawTowerGeom *twrgeom, G4SnglTower sngltwr, G4SnglHTCContainer *sngltwrs)
+mFillG4SnglHTCContainer::process_twr(int detid, RawTowerContainer *twrs, RawTowerGeomContainer *twrgeom, G4SnglTower sngltwr, G4SnglHTCContainer *sngltwrs)
 {
 
     sngltwr.Reset();

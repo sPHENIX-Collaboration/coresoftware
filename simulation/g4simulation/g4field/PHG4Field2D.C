@@ -14,18 +14,19 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 #include <set>
+#include <iostream>
 
 using namespace std;
 
-PHG4Field2D::PHG4Field2D( const string &filename, const int verb ) :
-  verb_(verb)
+PHG4Field2D::PHG4Field2D( const string &filename, const int verb, const float magfield_rescale) :
+  verb_(verb)  
 {
   r_index0_cache = 0;
   r_index1_cache = 0;
   z_index0_cache = 0;
   z_index1_cache = 0;
 
-  if (verb_ >= 0)
+  if (verb_ > 0)
     cout << " ------------- PHG4Field2D::PHG4Field2D() ------------------" << endl;
 
   // open file
@@ -35,7 +36,7 @@ PHG4Field2D::PHG4Field2D( const string &filename, const int verb ) :
       G4cout << " could not open " << filename << " exiting now" << endl;
       exit(1);
     }
-  if (verb_ >= 0) G4cout << "  Field grid file: " << filename << endl;
+  if (verb_ > 0) G4cout << "  Field grid file: " << filename << endl;
   rootinput->cd();
 
   Float_t ROOT_Z,  ROOT_R;
@@ -68,8 +69,8 @@ PHG4Field2D::PHG4Field2D( const string &filename, const int verb ) :
   static const int NENTRIES = field_map->GetEntries();
 
   // run checks on entries
-  if (verb_ >= 0) G4cout << "  The field grid contained " << NENTRIES << " entries" << endl;
-  if ( verb_ > 0 )
+  if (verb_ > 0) G4cout << "  The field grid contained " << NENTRIES << " entries" << endl;
+  if ( verb_ > 1 )
     {
       G4cout << "\n  NENTRIES should be the same as the following values:"
 	     << "\n  [ Number of values r,z: "
@@ -92,7 +93,7 @@ PHG4Field2D::PHG4Field2D( const string &filename, const int verb ) :
   // We copy the TNtuple into a std::map (which is always sorted)
   // using a 3-tuple of (z, r, phi) so it is sorted in z, then r, then
   // phi.
-  if ( verb_ > 0 )
+  if ( verb_ > 1 )
     {
       G4cout << "  --> Sorting Entries..." << endl;
     }
@@ -124,7 +125,7 @@ PHG4Field2D::PHG4Field2D( const string &filename, const int verb ) :
         }
     }
 
-  if (verb_ > 0)
+  if (verb_ > 1)
     {
       G4cout << "  --> Putting entries into containers... " <<  endl;
     }
@@ -181,8 +182,8 @@ PHG4Field2D::PHG4Field2D( const string &filename, const int verb ) :
           G4cout << "!!!!!!!!! Your map isn't ordered.... z: " << z << " zprev: " << z_map_[iz-1] << endl;
         }
 
-      BFieldR_[iz][ir] = Br;
-      BFieldZ_[iz][ir] = Bz;
+      BFieldR_[iz][ir] = Br * magfield_rescale;
+      BFieldZ_[iz][ir] = Bz * magfield_rescale;
 
       // you can change this to check table values for correctness
       // print_map prints the values in the root table, and the
@@ -200,10 +201,10 @@ PHG4Field2D::PHG4Field2D( const string &filename, const int verb ) :
 
     } // end loop over root field map file
 
-  if (verb_ >= 0) G4cout << "  Mag field z boundaries (min,max): (" << minz_ / cm << ", " << maxz_ / cm << ") cm" << endl;
-  if (verb_ >= 0) G4cout << "  Mag field r max boundary: " << r_map_.back()/ cm << " cm" << endl;
-    
-  if (verb_ >= 0)
+  if (verb_ > 0) G4cout << "  Mag field z boundaries (min,max): (" << minz_ / cm << ", " << maxz_ / cm << ") cm" << endl;
+  if (verb_ > 0) G4cout << "  Mag field r max boundary: " << r_map_.back()/ cm << " cm" << endl;
+
+  if (verb_ > 0)
     cout << " -----------------------------------------------------------" << endl;
 }
 

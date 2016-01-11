@@ -328,11 +328,24 @@ void sPHENIXTracker::calculateKappaTangents(float* x1_a, float* y1_a, float* z1_
 
 struct TempComb
 {
-  TempComb() : ndummies(0) {}
+  TempComb() {}
   HelixKalmanState state;
-  vector<int> hit_indexes;
-  unsigned int ndummies;
+  SimpleTrack3D track;
+
+  inline bool operator<(const TempComb& other) const
+  {
+    if( track.hits.size() > other.track.hits.size() )
+    {
+      return true;
+    }
+    else if( track.hits.size() == other.track.hits.size() )
+    {
+      return state.chi2 < other.state.chi2;
+    }
+    else{return false;}
+  }
 };
+
 
 void sPHENIXTracker::initDummyHits( vector<SimpleHit3D>& dummies, const HelixRange& range, HelixKalmanState& init_state )
 {
@@ -404,195 +417,341 @@ static SimpleHit3D& get_hit( vector<SimpleHit3D>& hits, vector<SimpleHit3D>& dum
   }
 }
 
-void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, vector<SimpleTrack3D>& tracks, const HelixRange& range)
+class hit_triplet
 {
-  vector<SimpleHit3D> dummies(n_layers, SimpleHit3D());
-  HelixKalmanState init_state;
-  initDummyHits( dummies, range, init_state );
-  vector<vector<int> > layer_indexes;layer_indexes.assign( n_layers, vector<int>() );
-  for(unsigned int i=0;i<hits.size();++i){layer_indexes[ hits[i].layer ].push_back( i );}
-  for(int i =0;i<(int)n_layers;++i){layer_indexes[i].push_back( -(i+1) );}
-  
-  vector<TempComb> comb1;
-  vector<TempComb> comb2;
-  
-  vector<TempComb>* cur = &comb1;
-  vector<TempComb>* prev = &comb2;
-  
-  unsigned int n_side = 6;
-  unsigned int n_req = 3;
-  vector<int> lsizes;
-  for(int i=0;i<n_side;++i){ lsizes.push_back( layer_indexes[ i ].size() ); }
-  for(int i=0;i<n_side;++i){ lsizes.push_back( layer_indexes[ n_layers - n_side + i ].size() ); }
-  vector<int> comb_n;comb_n.assign(2*n_side, 0);
+  public:
+    hit_triplet(unsigned int h1, unsigned int h2, unsigned int h3, unsigned int t, float c) : hit1(h1), hit2(h2), hit3(h3), track(t), chi2(c) {}
+    ~hit_triplet(){}
+    
+    bool operator<(const hit_triplet& other) const
+    {
+      return ( hit1 < other.hit1 ) || ( ( hit2 < other.hit2 ) && ( hit1 == other.hit1 ) ) || ( ( hit3 < other.hit3 ) && ( hit1 == other.hit1 ) && ( hit2 == other.hit2 ) );
+    }
+    
+    bool operator==(const hit_triplet& other) const
+    {
+      return ( (hit1 == other.hit1) && (hit2 == other.hit2) && (hit3 == other.hit3) );
+    }
+    
+    unsigned int hit1, hit2, hit3, track;
+    float chi2;
+};
+
+
+static void triplet_rejection(vector<SimpleTrack3D>& input, vector<float>& chi2s, vector<bool>& usetrack)
+{
+  vector<hit_triplet> trips;
+  for(unsigned int i=0;i<input.size();++i)
+  {
+    for(unsigned int h1=0;h1<input[i].hits.size();++h1)
+    {
+      for(unsigned int h2=(h1+1);h2<input[i].hits.size();++h2)
+      {
+        for(unsigned int h3=(h2+1);h3<input[i].hits.size();++h3)
+        {
+          trips.push_back(hit_triplet(input[i].hits[h1].index,input[i].hits[h2].index,input[i].hits[h3].index,i,chi2s[i]));
+        }
+      }
+    }
+  }
+  if(trips.size() == 0){return;}
+  sort(trips.begin(), trips.end());
+  unsigned int pos=0;
+  unsigned int cur_h1 = trips[pos].hit1;
+  unsigned int cur_h2 = trips[pos].hit2;
+  while(pos < trips.size())
+  {
+    unsigned int next_pos = pos+1;
+    if(next_pos >= trips.size()){break;}
+    while( trips[pos] == trips[next_pos] )
+    {
+      next_pos+=1;
+      if(next_pos >= trips.size()){break;}
+    }
+    if((next_pos - pos) > 1)
+    {
+      float best_chi2 = trips[pos].chi2;
+      float next_chi2 = trips[pos+1].chi2;
+      unsigned int best_pos = pos;
+      for(unsigned int i=(pos+1);i<next_pos;++i)
+      {
+        if(input[trips[i].track].hits.size() < input[trips[best_pos].track].hits.size())
+        {
+          continue;
+        }
+        else if( (input[trips[i].track].hits.size() > input[trips[best_pos].track].hits.size()) || ( input[trips[i].track].hits.back().layer > input[trips[best_pos].track].hits.back().layer ) )
+        {
+          next_chi2 = best_chi2;
+          best_chi2 = trips[i].chi2;
+          best_pos = i;
+          continue;
+        }
+        if((trips[i].chi2 < best_chi2) || ( usetrack[trips[best_pos].track]==false ))
+        {
+          next_chi2 = best_chi2;
+          best_chi2 = trips[i].chi2;
+          best_pos = i;
+        }
+        else if(trips[i].chi2 < next_chi2)
+        {
+          next_chi2 = trips[i].chi2;
+        }
+      }
+      for(unsigned int i=pos;i<next_pos;++i)
+      {
+        if(i != best_pos)
+        {
+          usetrack[trips[i].track] = false;
+        }
+      }
+    }
+    pos = next_pos;
+    cur_h1 = trips[pos].hit1;
+    cur_h2 = trips[pos].hit2;
+  }
+}
+
+
+static bool remove_bad_hits( SimpleTrack3D& track, float cut )
+{
+  SimpleTrack3D temp_track = track;
+  float fit_chi2 = 0.;
+  vector<float> chi2_hit;
+  vector<float> temp_hits;
   while(true)
   {
-    unsigned int ndummies = 0;
-    unsigned int n_in = 0;
-    unsigned int n_out = 0;
+    temp_track = track;
+    fit_chi2 = sPHENIXTracker::fitTrack(temp_track, chi2_hit);
+    bool all_good = true;
+    track.hits.clear();
+    for(int h=0;h<temp_track.hits.size();h+=1)
+    {
+      if(chi2_hit[h] < cut)
+      {
+        track.hits.push_back(temp_track.hits[h]);
+      }
+      else{all_good=false;}
+    }
+    if(track.hits.size()<3){return false;}
+    if(all_good==true){return true;}
+  }
+}
+
+static void initial_combos( int nhits, vector<SimpleHit3D>& hits, vector<vector<int> >& layer_indexes, vector<TempComb>& cur_comb, float CHI2_CUT, int n_layers, CylinderKalman* kalman )
+{
+  vector<int> lsizes;
+  for(int i=0;i<nhits;++i){ lsizes.push_back( layer_indexes[ i ].size() ); }
+  vector<int> comb_n;comb_n.assign(nhits, 0);
+  vector<TempComb> comb;
+  while(true)
+  {
     SimpleTrack3D temp_track;
     TempComb tc;
-    for(unsigned int h=0;h<n_side;++h)
+    float sqrt12_inv = 1./sqrt(12.);
+    for(unsigned int h=0;h<nhits;++h)
     {
-      if(layer_indexes[ h ][ comb_n[ h ] ] < 0){ndummies += 1;}
-      if(layer_indexes[ h ][ comb_n[ h ] ] >= 0){n_in += 1;}
-      SimpleHit3D& hit = get_hit( hits, dummies, layer_indexes[ h ][ comb_n[ h ] ] );
+      if(layer_indexes[ h ][ comb_n[ h ] ] < 0){continue;}
+      SimpleHit3D& hit = hits[layer_indexes[ h ][ comb_n[ h ] ]];
       temp_track.hits.push_back(hit);
-      tc.hit_indexes.push_back( layer_indexes[ h ][ comb_n[ h ] ] );
+      temp_track.hits.back().dx *= sqrt12_inv;
+      temp_track.hits.back().dy *= sqrt12_inv;
+      temp_track.hits.back().dz *= sqrt12_inv;
     }
-    for(unsigned int h=0;h<n_side;++h)
+    if(temp_track.hits.size() >= 3)
     {
-      if(layer_indexes[ n_layers - n_side + h ][ comb_n[ h+n_side ] ] < 0){ndummies += 1;}
-      if(layer_indexes[ n_layers - n_side + h ][ comb_n[ h+n_side ] ] >= 0){n_out += 1;}
-      SimpleHit3D& hit = get_hit( hits, dummies, layer_indexes[ n_layers - n_side + h ][ comb_n[ h+n_side ] ] );
-      temp_track.hits.push_back(hit);
-      tc.hit_indexes.push_back( layer_indexes[ n_layers - n_side + h ][ comb_n[ h+n_side ] ] );
-    }
-    
-    if(layer_indexes[ 0 ][ comb_n[ 0 ] ] < 0){ if( next_combo_n( lsizes, comb_n ) == false ){break;} continue;}
-    if(layer_indexes[ 1 ][ comb_n[ 1 ] ] < 0){ if( next_combo_n( lsizes, comb_n ) == false ){break;} continue;}
-    
-    float init_chi2 = 100.;
-    if( (n_in >= n_req) && (n_out >= n_req) ){init_chi2 = fitTrack(temp_track);}
-    if( (init_chi2/(2.*((float)( n_out + n_in ) ) - 5.) < 10.) && ( (n_in >= n_req) && (n_out >= n_req) ) )
-    {
-      cur->push_back( TempComb() );
-      TempComb& curcomb = cur->back();
-      curcomb.ndummies = ndummies;
-      curcomb.state.chi2 = init_chi2;
-      
-      curcomb.state.phi = temp_track.phi;
-      if(curcomb.state.phi < 0.){curcomb.state.phi += 2.*M_PI;}
-      curcomb.state.d = temp_track.d;
-      curcomb.state.kappa = temp_track.kappa;
-      curcomb.state.nu = sqrt(curcomb.state.kappa);
-      curcomb.state.z0 = temp_track.z0;
-      curcomb.state.dzdl = temp_track.dzdl;
-      curcomb.hit_indexes = tc.hit_indexes;
+      float init_chi2 = sPHENIXTracker::fitTrack(temp_track);
+      comb.push_back( TempComb() );
+      TempComb& curcomb = comb.back();
+      if( init_chi2/( 2.*( temp_track.hits.size() ) - 5. ) > CHI2_CUT ){comb.pop_back();}
+      else
+      {
+        curcomb.state.phi = temp_track.phi;
+        if(curcomb.state.phi < 0.){curcomb.state.phi += 2.*M_PI;}
+        curcomb.state.d = temp_track.d;
+        curcomb.state.kappa = temp_track.kappa;
+        curcomb.state.nu = sqrt(curcomb.state.kappa);
+        curcomb.state.z0 = temp_track.z0;
+        curcomb.state.dzdl = temp_track.dzdl;
+        curcomb.state.C = Matrix<float,5,5>::Zero(5,5);
+        curcomb.state.C(0,0) = pow(0.01, 2.);
+        curcomb.state.C(1,1) = pow(0.5, 2.);
+        curcomb.state.C(2,2) = pow(0.3*curcomb.state.nu, 2.);
+        curcomb.state.C(3,3) = pow(0.5, 2.);
+        curcomb.state.C(4,4) = pow(0.05, 2.);
+        curcomb.state.chi2 = 0.;
+        curcomb.state.position = n_layers;
+        curcomb.state.x_int = 0.;
+        curcomb.state.y_int = 0.;
+        curcomb.state.z_int = 0.;
+
+        curcomb.track = temp_track;
+
+        for(int h=0;h<curcomb.track.hits.size();h+=1)
+        {
+          kalman->addHit( curcomb.track.hits[h] , curcomb.state );
+        }
+      }
     }
     if( next_combo_n( lsizes, comb_n ) == false ){break;}
   }
-  if(cur->size() == 0){return;}
-  
-  // find the best seed
-  int best = 0;
-  for( unsigned int i=1;i<cur->size();++i )
+
+  vector<SimpleTrack3D> comb_tracks;
+  vector<TempComb> comb2;
+  vector<float> chi2s;
+  for(int t=0;t<comb.size();t+=1)
   {
-    if( cur->at(i).ndummies < cur->at(best).ndummies )
+    if(remove_bad_hits(comb[t].track, CHI2_CUT+2.)==false){continue;}
+    comb_tracks.push_back(comb[t].track);
+    chi2s.push_back(comb[t].state.chi2);
+    comb2.push_back(comb[t]);
+  }
+  vector<bool> usetrack(comb2.size(),true);
+
+  triplet_rejection(comb_tracks, chi2s, usetrack);
+
+  
+  for(int t=0;t<comb_tracks.size();t+=1)
+  {
+    if(usetrack[t])
     {
-      best = i;continue;
-    }
-    if( cur->at(i).ndummies == cur->at(best).ndummies )
-    {
-      if( cur->at(i).state.chi2 < cur->at(best).state.chi2 )
+      if( comb2[t].state.chi2/( 2.*( comb2[t].track.hits.size() ) - 5. ) < CHI2_CUT )
       {
-        best = i;continue;
+        cur_comb.push_back( comb2[t] );
       }
     }
   }
-  TempComb seed = cur->at(best);
-  
-  seed.state.C = Matrix<float,5,5>::Zero(5,5);
-  seed.state.C(0,0) = pow(0.01, 2.);
-  seed.state.C(1,1) = pow(0.5, 2.);
-  seed.state.C(2,2) = pow(0.05*seed.state.nu, 2.);
-  seed.state.C(3,3) = pow(0.5, 2.);
-  seed.state.C(4,4) = pow(0.05, 2.);
-  seed.state.chi2 = 0.;
-  seed.state.position = 0;
-  seed.state.x_int = 0.;
-  seed.state.y_int = 0.;
-  seed.state.z_int = 0.;
-  
-  seed.ndummies = 0;
-  
-  vector<int> in_seed( n_side, -1 );
-  for(unsigned int i=0;i<n_side;++i)
+
+  sort( cur_comb.begin(), cur_comb.end() );
+  if(cur_comb.size() > 4){cur_comb.resize(4,TempComb());}
+}
+
+static void extend_combos( vector<SimpleHit3D>& hits, vector<vector<int> >& layer_indexes, vector<TempComb>& cur_comb, float CHI2_CUT, CylinderKalman* kalman, int layer_begin, int layer_end )
+{
+  vector<TempComb> comb;
+  vector<TempComb> comb2;
+  vector<TempComb> comb3;
+  for(int c=0;c<cur_comb.size();c+=1)
   {
-    if( seed.hit_indexes[i] > 0 )
+    comb2.clear();comb2.push_back(cur_comb[c]);
+    for(int l=layer_begin;l<=layer_end;l+=1)
     {
-      in_seed[i] = seed.hit_indexes[i];
-    }
-  }
-  
-  seed.hit_indexes.clear();
-  vector<HelixKalmanState> temp_states;
-  vector<int> temp_indexes;
-  for(unsigned int l=0;l<n_layers;++l)
-  {
-    temp_states.clear();
-    temp_indexes.clear();
-    for( unsigned int h=0;h<layer_indexes[l].size();++h )
-    {
-      if( l < n_side )
+      comb3.clear();
+      for(int i=0;i<comb2.size();i+=1)
       {
-        if( in_seed[l] >= 0 )
+        comb3.push_back(comb2[i]);
+        for(int h=0;h<(layer_indexes[l].size()-1);h+=1)
         {
-          if( layer_indexes[l][h] != in_seed[l] ){break;}
+          comb3.push_back(comb2[i]);
+          kalman->addHit( hits[layer_indexes[ l ][ h ]] , comb3.back().state );
+          if( comb3.back().state.chi2 > CHI2_CUT*( 2.*( comb3.back().track.hits.size() ) - 5. ) )
+          {
+            comb3.pop_back();
+          }
+          else
+          {
+            comb3.back().track.hits.push_back( hits[layer_indexes[ l ][ h ]] );
+          }
         }
       }
-      
-      temp_indexes.push_back( layer_indexes[l][h] );
-      temp_states.push_back( seed.state );
-      kalman->addHit( get_hit( hits, dummies, temp_indexes.back() ) , temp_states.back() );
+      comb2 = comb3;
     }
-    // is there a good hit?
-    int best = -1;
-    float best_chi2 = 9999.;
-    for( unsigned int h=0;h<temp_indexes.size();++h )
+    for(int i=0;i<comb2.size();i+=1)
     {
-      if(temp_indexes[h] < 0){continue;}
-      if( best == -1 )
+      comb.push_back(comb2[i]);
+    }
+  }
+  cur_comb.clear();
+
+  vector<SimpleTrack3D> comb_tracks;
+  comb2.clear();
+  vector<float> chi2s;
+  for(int t=0;t<comb.size();t+=1)
+  {
+    if(remove_bad_hits(comb[t].track, CHI2_CUT+2.)==false){continue;}
+    comb_tracks.push_back(comb[t].track);
+    chi2s.push_back(comb[t].state.chi2);
+    comb2.push_back(comb[t]);
+  }
+  vector<bool> usetrack(comb2.size(),true);
+
+  triplet_rejection(comb_tracks, chi2s, usetrack);
+
+  
+  for(int t=0;t<comb_tracks.size();t+=1)
+  {
+    if(usetrack[t])
+    {
+      if( comb2[t].state.chi2/( 2.*( comb2[t].track.hits.size() ) - 5. ) < CHI2_CUT )
       {
-        if( temp_states[h].chi2/(2.*( (float)(l+2 - seed.ndummies) ) - 0.) < (chi2_cut * pow(hit_error_scale.back(),-2.) ) )
+        cur_comb.push_back( comb2[t] );
+      }
+    }
+  }
+
+  sort( cur_comb.begin(), cur_comb.end() );
+  if(cur_comb.size() > 4){cur_comb.resize(4,TempComb());}
+}
+
+
+void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, vector<SimpleTrack3D>& tracks, const HelixRange& range)
+{
+  float CHI2_CUT = chi2_cut+2.;
+
+  vector<vector<int> > layer_indexes;layer_indexes.assign( n_layers, vector<int>() );
+  for(unsigned int i=0;i<hits.size();++i){layer_indexes[ hits[i].layer ].push_back( i );}
+  for(int i =0;i<(int)n_layers;++i){layer_indexes[i].push_back( -(i+1) );}
+  vector<TempComb> cur_comb;
+  
+  initial_combos( 12, hits, layer_indexes, cur_comb, CHI2_CUT, n_layers, kalman );
+  if(cur_comb.size()==0){return;}
+
+  int cur_layer = 12;
+  int layer_iter = 1;
+  while(true)
+  {
+    bool finished = false;
+    int layer_end = cur_layer + layer_iter-1;
+    if( layer_end >= (n_layers-1) )
+    {
+      finished = true;
+      layer_end = n_layers-1;
+    }
+    extend_combos( hits, layer_indexes, cur_comb, CHI2_CUT, kalman, cur_layer, layer_end );
+    if(finished==true){break;}
+    cur_layer = layer_end+1;
+
+    vector<TempComb> tcomb;
+    for(int i=0;i<cur_comb.size();i+=1)
+    {
+      if(cur_comb[i].track.hits.size() > (( cur_layer+1 )/2))
+      {
+        if( cur_comb[i].state.chi2 < chi2_cut*( 2.*( cur_comb[i].track.hits.size() ) - 5. ) )
         {
-          best = h;
-          best_chi2 = temp_states[h].chi2;
+          tcomb.push_back(cur_comb[i]);
         }
       }
-      else if( temp_states[h].chi2 < best_chi2 )
+    }
+    cur_comb = tcomb;
+
+    if(cur_comb.size()==0){return;}
+  }
+
+  
+
+  for(int i=0;i<cur_comb.size();i+=1)
+  {
+    if( !(cur_comb[i].state.chi2 == cur_comb[i].state.chi2) ){continue;}
+    tracks.push_back(cur_comb[i].track);
+    track_states.push_back(cur_comb[i].state);
+    if(remove_hits == true)
+    {
+      for(unsigned int i=0;i<tracks.back().hits.size();++i)
       {
-        best = h;
+        (*hit_used)[tracks.back().hits[i].index] = true;
       }
     }
-    
-    if( best >= 0 )
-    {
-      seed.hit_indexes.push_back( temp_indexes[best] );
-      seed.state = temp_states[ best ];
-    }
-    else
-    {
-      seed.hit_indexes.push_back( -(l+1) );
-      seed.ndummies += 1;
-    }
-    
-    if( seed.ndummies > (n_layers - req_layers) ){  return; }
   }
   
-  tracks.push_back( SimpleTrack3D() );
-  for(unsigned int i=0;i<n_layers;++i)
-  {
-    if( seed.hit_indexes[i] >= 0 )
-    {
-      tracks.back().hits.push_back( get_hit( hits, dummies, seed.hit_indexes[i] ) );
-    }
-  }
-  
-  if(seed.state.phi < 0.){seed.state.phi += 2.*M_PI;}
-  tracks.back().phi = seed.state.phi;
-  tracks.back().d = seed.state.d;
-  tracks.back().kappa = seed.state.kappa;
-  tracks.back().z0 = seed.state.z0;
-  tracks.back().dzdl = seed.state.dzdl;
-  track_states.push_back(seed.state);
-  if((remove_hits == true) && (seed.state.chi2/(2.*( (float)(tracks.back().hits.size()) ) - 5.) < chi2_removal_cut) && (tracks.back().hits.size() >= n_removal_hits) )
-  {
-    for(unsigned int i=0;i<tracks.back().hits.size();++i)
-    {
-      (*hit_used)[tracks.back().hits[i].index] = true;
-    }
-  }
 }
 
 
@@ -934,21 +1093,21 @@ void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits, vector<Simp
     
     gettimeofday(&t1, NULL);
     
-//     unsigned int layer_out = temp_track.hits.size()-1;
-//     unsigned int layer_mid = layer_out/2;
-//     temp_track_3hits.hits[0] = temp_track.hits[0];
-//     temp_track_3hits.hits[1] = temp_track.hits[layer_mid];
-//     temp_track_3hits.hits[2] = temp_track.hits[layer_out];
+    // unsigned int layer_out = temp_track.hits.size()-1;
+    // unsigned int layer_mid = layer_out/2;
+    // temp_track_3hits.hits[0] = temp_track.hits[0];
+    // temp_track_3hits.hits[1] = temp_track.hits[layer_mid];
+    // temp_track_3hits.hits[2] = temp_track.hits[layer_out];
     
     float init_chi2 = fitTrack(temp_track);
 
     if (init_chi2 > fast_chi2_cut_max) {
       if (init_chi2 > fast_chi2_cut_par0+fast_chi2_cut_par1/kappaToPt(temp_track.kappa)) {
-	gettimeofday(&t2, NULL);
-	time1 = ((double)(t1.tv_sec) + (double)(t1.tv_usec)/1000000.);
-	time2 = ((double)(t2.tv_sec) + (double)(t2.tv_usec)/1000000.);
-	KALtime += (time2 - time1);
-	continue;
+  gettimeofday(&t2, NULL);
+  time1 = ((double)(t1.tv_sec) + (double)(t1.tv_usec)/1000000.);
+  time2 = ((double)(t2.tv_sec) + (double)(t2.tv_usec)/1000000.);
+  KALtime += (time2 - time1);
+  continue;
       }
     }
     HelixKalmanState state;

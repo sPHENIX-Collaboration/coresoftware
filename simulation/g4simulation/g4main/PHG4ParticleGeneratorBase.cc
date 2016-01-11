@@ -2,25 +2,35 @@
 #include "PHG4Particlev1.h"
 
 #include "PHG4InEvent.h"
+#include "PHG4VtxPoint.h"
+#include "PHG4TruthInfoContainer.h"
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHRandomSeed.h>
 
 #include <Geant4/G4ParticleTable.hh>
 #include <Geant4/G4ParticleDefinition.hh>
+
+#include <gsl/gsl_rng.h>
 
 using namespace std;
 
 PHG4ParticleGeneratorBase::PHG4ParticleGeneratorBase(const string &name):
   SubsysReco(name),
   embedflag(0),
+  reuse_existing_vertex(0),
   vtx_x(0),
   vtx_y(0),
   vtx_z(0),
   t0(0)
 {
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  seed = PHRandomSeed(); // fixed seed is handled in this funtcion
+  gsl_rng_set(RandomGenerator,seed);
   return;
 }
 
@@ -31,16 +41,16 @@ PHG4ParticleGeneratorBase::~PHG4ParticleGeneratorBase()
       delete particlelist.back();
       particlelist.pop_back();
     }
+  gsl_rng_free (RandomGenerator);
   return;
 }
 
 int
-PHG4ParticleGeneratorBase::get_pdgcode(const std::string &name)
+PHG4ParticleGeneratorBase::get_pdgcode(const std::string &name) const
 {
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
   G4String particleName = name;
-  G4ParticleDefinition* particledef
-    = particleTable->FindParticle(particleName);
+  G4ParticleDefinition* particledef = particleTable->FindParticle(particleName);
   if (particledef)
     {
       return particledef->GetPDGEncoding();
@@ -49,14 +59,25 @@ PHG4ParticleGeneratorBase::get_pdgcode(const std::string &name)
 }
 
 string
-PHG4ParticleGeneratorBase::get_pdgname(const int pdgcode)
+PHG4ParticleGeneratorBase::get_pdgname(const int pdgcode) const
 {
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* particledef
-    = particleTable->FindParticle(pdgcode);
+  G4ParticleDefinition* particledef = particleTable->FindParticle(pdgcode);
   if (particledef)
     {
       return particledef->GetParticleName();
+    }
+  return 0;
+}
+
+double
+PHG4ParticleGeneratorBase::get_mass(const int pdgcode) const
+{
+  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+  G4ParticleDefinition* particledef = particleTable->FindParticle(get_pdgname(pdgcode));
+  if (particledef)
+    {
+      return particledef->GetPDGMass();
     }
   return 0;
 }
@@ -125,7 +146,7 @@ PHG4ParticleGeneratorBase::Print(const std::string &what) const
 {
   vector<PHG4Particle *>::const_iterator iter;
   int i = 0;
-  for (iter = particlelist.begin(); iter != particlelist.end(); iter++)
+  for (iter = particlelist.begin(); iter != particlelist.end(); ++iter)
     {
       cout << "particle " << i << endl;
       (*iter)->identify();
@@ -175,8 +196,85 @@ PHG4ParticleGeneratorBase::SetParticleId(PHG4Particle * particle, PHG4InEvent *i
     }
   if (embedflag)
     {
-      ineve->AddEmbeddedParticle(particle);
+      ineve->AddEmbeddedParticle(particle,embedflag);
     }
   return;
 }
 
+void
+PHG4ParticleGeneratorBase::set_seed(const unsigned int iseed)
+{
+  seed = iseed;
+  gsl_rng_set(RandomGenerator,seed);
+}
+
+int
+PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)
+{
+  if (!reuse_existing_vertex)
+    {
+      return 0;
+    }
+  PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
+  if (ineve->GetNVtx() > 0)
+    {
+      std::pair< std::map<int, PHG4VtxPoint *>::const_iterator,
+	std::map<int, PHG4VtxPoint *>::const_iterator >
+	range = ineve->GetVertices();
+      std::map<int, PHG4VtxPoint* >::const_iterator iter = range.first;
+      PHG4VtxPoint* vtx = iter->second;
+
+      if (!vtx)
+	{
+	  cout << PHWHERE << "::Error - PHG4SimpleEventGenerator expects an existing vertex in PHG4InEvent, but none exists" << endl;
+	  exit(1);
+	}
+      if (verbosity > 0)
+	{
+	  cout << PHWHERE << "::Info - use this primary vertex from PHG4InEvent:" << endl;
+	  vtx->identify();
+	}
+
+      set_vtx(vtx->get_x(), vtx->get_y(), vtx->get_z());
+
+} // if (_ineve->GetNVtx() > 0) {
+  else
+    {
+      // try the next option for getting primary vertex
+
+      PHG4TruthInfoContainer* truthInfoList = //
+	findNode::getClass<PHG4TruthInfoContainer>(topNode,
+						   "G4TruthInfo");
+      if (truthInfoList)
+	{
+	  // embed to vertexes as set by primary vertex from the truth container, e.g. when embedding into DST
+
+	  PHG4VtxPoint* vtx = truthInfoList->GetPrimaryVtx(1);
+
+	  if (!vtx)
+	    {
+	      truthInfoList->identify();
+	      cout << PHWHERE << "::Error - PHG4SimpleEventGenerator expects an existing truth vertex in PHG4TruthInfoContainer, but none exists"
+		   << endl;
+	      exit(1);
+	    }
+
+	  if (verbosity > 0)
+	    {
+	      cout << PHWHERE << "::Info - use this primary vertex from PHG4TruthInfoContainer:" << endl;
+	      vtx->identify();
+	    }
+
+	  set_vtx(vtx->get_x(), vtx->get_y(), vtx->get_z());
+
+	}
+
+      else
+	{
+	  cout << PHWHERE << "::Error - PHG4SimpleEventGenerator expects an existing truth vertex, but none exists"
+	       << endl;
+	  exit(1);
+	}
+    }
+  return 1;
+}

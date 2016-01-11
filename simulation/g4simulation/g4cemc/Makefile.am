@@ -27,12 +27,10 @@ libcemc_io_la_SOURCES = \
   RawClusterv1_Dict.cc \
   RawClusterContainer.cc \
   RawClusterContainer_Dict.cc \
-  RawTower.cc \
+  RawTowerDefs_Dict.cc \
   RawTower_Dict.cc \
   RawTowerv1.cc \
   RawTowerv1_Dict.cc \
-  RawTowerv2.cc \
-  RawTowerv2_Dict.cc \
   RawTowerContainer.cc \
   RawTowerContainer_Dict.cc \
   RawTowerGeom.cc \
@@ -40,23 +38,29 @@ libcemc_io_la_SOURCES = \
   RawTowerGeomv1.cc \
   RawTowerGeomv1_Dict.cc \
   RawTowerGeomv2.cc \
-  RawTowerGeomv2_Dict.cc
+  RawTowerGeomv2_Dict.cc \
+  RawTowerGeomContainer.cc \
+  RawTowerGeomContainer_Dict.cc \
+  RawTowerGeomContainerv1.cc \
+  RawTowerGeomContainerv1_Dict.cc \
+  RawTowerGeomContainer_Cylinderv1.cc \
+  RawTowerGeomContainer_Cylinderv1_Dict.cc
 
 libcemc_la_SOURCES = \
-  CrystalCalorimeterDigitization.cc \
-  CrystalCalorimeterDigitization_Dict.cc \
-  CrystalCalorimeterTowerBuilder.cc \
-  CrystalCalorimeterTowerBuilder_Dict.cc \
   RawClusterBuilder.cc \
   RawClusterBuilder_Dict.cc \
   RawClusterBuilderv1.cc \
   RawClusterBuilderv1_Dict.cc \
+  RawClusterBuilderFwd.cc \
+  RawClusterBuilderFwd_Dict.cc \
   RawTowerBuilder.cc \
   RawTowerBuilder_Dict.cc \
-  RawTowerBuilderCone.cc \
-  RawTowerBuilderCone_Dict.cc \
-  RawTowerCombiner.cc \
-  RawTowerCombiner_Dict.cc \
+  RawTowerBuilderByHitIndex.cc \
+  RawTowerBuilderByHitIndex_Dict.cc \
+  RawTowerCalibration.cc \
+  RawTowerCalibration_Dict.cc \
+  RawTowerDigitizer.cc \
+  RawTowerDigitizer_Dict.cc \
   BEmcCluster.cc \
   BEmcRec.cc
 
@@ -88,12 +92,18 @@ libcemc_la_LIBADD = \
 
 pkginclude_HEADERS = \
   RawCluster.h \
+  RawClusterDefs.h \
   RawClusterContainer.h \
   RawTower.h \
+  RawTowerDefs.h \
   RawTowerv1.h \
-  RawTowerv2.h \
-  RawTowerContainer.h \
-  RawTowerGeom.h
+  RawTowerContainer.h  \
+  RawTowerGeom.h \
+  RawTowerGeomv1.h \
+  RawTowerGeomv2.h \
+  RawTowerGeomContainer.h \
+  RawTowerGeomContainerv1.h \
+  RawTowerGeomContainer_Cylinderv1.h
 
 ################################################
 # linking tests

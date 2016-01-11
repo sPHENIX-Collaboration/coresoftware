@@ -3,16 +3,17 @@
 #include "SvtxHitMap.h"
 #include "SvtxHit.h"
 #include "SvtxClusterMap.h"
+#include "SvtxClusterMap_v1.h"
 #include "SvtxCluster.h"
+#include "SvtxCluster_v1.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/getClass.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -123,7 +124,7 @@ bool PHG4SvtxClusterizer::ladder_are_adjacent(const PHG4CylinderCell* lhs,
   return false;
 }
 
-PHG4SvtxClusterizer::PHG4SvtxClusterizer(const char* name) :
+PHG4SvtxClusterizer::PHG4SvtxClusterizer(const string &name) :
   SubsysReco(name),
   _hits(NULL),
   _clusterlist(NULL),
@@ -131,8 +132,7 @@ PHG4SvtxClusterizer::PHG4SvtxClusterizer(const char* name) :
   _thresholds_by_layer(),
   _make_z_clustering(),
   _make_e_weights(),
-  _timer(PHTimeServer::get()->insert_new(name)) {
-}
+  _timer(PHTimeServer::get()->insert_new(name)) {}
 
 int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
 
@@ -151,7 +151,7 @@ int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
 
   // Looking for the DST node
   PHCompositeNode *dstNode 
-    = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
+    = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
   if (!dstNode) {
     cout << PHWHERE << "DST Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
@@ -169,7 +169,7 @@ int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
   SvtxClusterMap *svxclusters 
     = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
   if (!svxclusters) {
-    svxclusters = new SvtxClusterMap();
+    svxclusters = new SvtxClusterMap_v1();
     PHIODataNode<PHObject> *SvtxClusterMapNode =
       new PHIODataNode<PHObject>(svxclusters, "SvtxClusterMap", "PHObject");
     svxNode->addNode(SvtxClusterMapNode);
@@ -186,9 +186,8 @@ int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
   // Report Settings
   //----------------
 
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     cout << "====================== PHG4SvtxClusterizer::InitRun() =====================" << endl;
-    cout << " CVS Version: $Id: PHG4SvtxClusterizer.C,v 1.15 2015/04/21 23:47:09 pinkenbu Exp $" << endl;
     cout << " Fraction of expected thickness MIP energy = " << _fraction_of_mip << endl;
     for (std::map<int,float>::iterator iter = _thresholds_by_layer.begin();
 	 iter != _thresholds_by_layer.end();
@@ -215,16 +214,12 @@ int PHG4SvtxClusterizer::process_event(PHCompositeNode *topNode) {
 
   _timer.get()->restart();
   
-  _clusterlist = 0;
-  PHTypedNodeIterator<SvtxClusterMap> clusteriter(topNode);
-  PHIODataNode<SvtxClusterMap> *SvtxClusterMapNode = clusteriter.find("SvtxClusterMap");
-  if (!SvtxClusterMapNode) {
-    cout << PHWHERE << " ERROR: Can't find SvtxClusterMap." << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  } else {
-    _clusterlist = (SvtxClusterMap*)SvtxClusterMapNode->getData();
-  }
-
+  _clusterlist = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
+  if (!_clusterlist) 
+    {
+      cout << PHWHERE << " ERROR: Can't find SvtxClusterMap." << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
   _clusterlist->Reset();
   
   ClusterCylinderCells(topNode);
@@ -239,12 +234,7 @@ int PHG4SvtxClusterizer::process_event(PHCompositeNode *topNode) {
 void PHG4SvtxClusterizer::CalculateCylinderThresholds(PHCompositeNode *topNode) {
 
   // get the SVX geometry object
-  PHG4CylinderCellGeomContainer* geom_container = 0;
-  PHTypedNodeIterator<PHG4CylinderCellGeomContainer> geomiter(topNode);
-  PHIODataNode<PHG4CylinderCellGeomContainer>* PHG4CylinderCellGeomContainerNode = geomiter.find("CYLINDERCELLGEOM_SVTX");
-  if(PHG4CylinderCellGeomContainerNode) {
-    geom_container = (PHG4CylinderCellGeomContainer*) PHG4CylinderCellGeomContainerNode->getData();
-  }
+  PHG4CylinderCellGeomContainer* geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
   if (!geom_container) return;
   
   // determine cluster thresholds and layer index mapping
@@ -276,21 +266,10 @@ void PHG4SvtxClusterizer::CalculateCylinderThresholds(PHCompositeNode *topNode) 
 
 void PHG4SvtxClusterizer::CalculateLadderThresholds(PHCompositeNode *topNode) {
 
-  PHG4CylinderCellContainer *cells = NULL;
-  PHG4CylinderGeomContainer *geom_container = NULL;
-    
-  PHTypedNodeIterator<PHG4CylinderCellContainer> celliter(topNode);
-  PHIODataNode<PHG4CylinderCellContainer>* cell_container_node = celliter.find("G4CELL_SILICON_TRACKER");
-  if (cell_container_node) {
-    cells = (PHG4CylinderCellContainer*) cell_container_node->getData();
-  }
+  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
   if (!cells) return;
-  
-  PHTypedNodeIterator<PHG4CylinderGeomContainer> geomiter(topNode);
-  PHIODataNode<PHG4CylinderGeomContainer>* PHG4CylinderGeomContainerNode = geomiter.find("CYLINDERGEOM_SILICON_TRACKER");
-  if (PHG4CylinderGeomContainerNode) {
-    geom_container = (PHG4CylinderGeomContainer*) PHG4CylinderGeomContainerNode->getData();
-  }
+
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
   if (!geom_container) return;
   
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
@@ -326,28 +305,13 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
   //----------
 
   // get the SVX geometry object
-  PHG4CylinderCellGeomContainer* geom_container = 0;
-  PHTypedNodeIterator<PHG4CylinderCellGeomContainer> geomiter(topNode);
-  PHIODataNode<PHG4CylinderCellGeomContainer>* PHG4CylinderCellGeomContainerNode = geomiter.find("CYLINDERCELLGEOM_SVTX");
-  if(PHG4CylinderCellGeomContainerNode) {
-    geom_container = (PHG4CylinderCellGeomContainer*) PHG4CylinderCellGeomContainerNode->getData();
-  }
+  PHG4CylinderCellGeomContainer* geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
   if (!geom_container) return;
   
-  PHG4HitContainer* g4hits = 0;
-  PHTypedNodeIterator<PHG4HitContainer> g4hititer(topNode);
-  PHIODataNode<PHG4HitContainer> *PHG4HitContainerNode = g4hititer.find("G4HIT_SVTX");
-  if (PHG4HitContainerNode) {
-    g4hits = (PHG4HitContainer*)PHG4HitContainerNode->getData();
-  }
+  PHG4HitContainer* g4hits = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SVTX");
   if (!g4hits) return;
   
-  PHG4CylinderCellContainer* cells = 0;
-  PHTypedNodeIterator<PHG4CylinderCellContainer> celliter(topNode);
-  PHIODataNode<PHG4CylinderCellContainer>* cell_container_node = celliter.find("G4CELL_SVTX");
-  if (cell_container_node) {
-    cells = (PHG4CylinderCellContainer*) cell_container_node->getData();
-  }
+  PHG4CylinderCellContainer* cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
   if (!cells) return; 
   
   //-----------
@@ -359,7 +323,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
   for (SvtxHitMap::Iter iter = _hits->begin();
        iter != _hits->end();
        ++iter) {
-    SvtxHit* hit = &iter->second;
+    SvtxHit* hit = iter->second;
     layer_hits_mmap.insert(make_pair(hit->get_layer(),hit));
   }
   
@@ -389,7 +353,6 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
     sort(cell_list.begin(), cell_list.end(), PHG4SvtxClusterizer::lessthan);
 
     typedef adjacency_list <vecS, vecS, undirectedS> Graph;
-    typedef graph_traits<Graph>::vertex_descriptor Vertex;
     Graph G;
 
     for(unsigned int i=0; i<cell_list.size(); i++) {
@@ -431,7 +394,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       int layer = mapiter->second->get_layer();
       PHG4CylinderCellGeom* geom = geom_container->GetLayerCellGeom(layer);
       
-      SvtxCluster clus;
+      SvtxCluster_v1 clus;
       clus.set_layer( layer );
       float clus_energy = 0.0;
       unsigned int clus_adc = 0;
@@ -577,7 +540,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       clus.set_error( 2 , 2 , COVAR_ERR[2][2] );
       
       if (clus_energy > get_threshold_by_layer(layer)) {
-	SvtxCluster* ptr = _clusterlist->insert(clus);
+	SvtxCluster* ptr = _clusterlist->insert(&clus);
 	if (!ptr->IsValid()) {
 	  static bool first = true;
 	  if (first) {
@@ -612,28 +575,13 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
   //----------
 
   // get the SVX geometry object
-  PHG4CylinderGeomContainer* geom_container = 0;
-  PHTypedNodeIterator<PHG4CylinderGeomContainer> geomiter(topNode);
-  PHIODataNode<PHG4CylinderGeomContainer>* PHG4CylinderGeomContainerNode = geomiter.find("CYLINDERGEOM_SILICON_TRACKER");
-  if(PHG4CylinderGeomContainerNode) {
-    geom_container = (PHG4CylinderGeomContainer*) PHG4CylinderGeomContainerNode->getData();
-  }
+  PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
   if (!geom_container) return;
   
-  PHG4HitContainer* g4hits = 0;
-  PHTypedNodeIterator<PHG4HitContainer> g4hititer(topNode);
-  PHIODataNode<PHG4HitContainer> *PHG4HitContainerNode = g4hititer.find("G4HIT_SILICON_TRACKER");
-  if (PHG4HitContainerNode) {
-    g4hits = (PHG4HitContainer*)PHG4HitContainerNode->getData();
-  }
+  PHG4HitContainer* g4hits =  findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SILICON_TRACKER");
   if (!g4hits) return;
   
-  PHG4CylinderCellContainer* cells = 0;
-  PHTypedNodeIterator<PHG4CylinderCellContainer> celliter(topNode);
-  PHIODataNode<PHG4CylinderCellContainer>* cell_container_node = celliter.find("G4CELL_SILICON_TRACKER");
-  if (cell_container_node) {
-    cells = (PHG4CylinderCellContainer*) cell_container_node->getData();
-  }
+  PHG4CylinderCellContainer* cells =  findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
   if (!cells) return; 
  
   //-----------
@@ -645,7 +593,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
   for (SvtxHitMap::Iter iter = _hits->begin();
        iter != _hits->end();
        ++iter) {
-    SvtxHit* hit = &iter->second;
+    SvtxHit* hit = iter->second;
     layer_hits_mmap.insert(make_pair(hit->get_layer(),hit));
   }
   
@@ -673,7 +621,6 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
     sort(cell_list.begin(), cell_list.end(), PHG4SvtxClusterizer::ladder_lessthan);
 
     typedef adjacency_list <vecS, vecS, undirectedS> Graph;
-    typedef graph_traits<Graph>::vertex_descriptor Vertex;
     Graph G;
 
     for(unsigned int i=0; i<cell_list.size(); i++) {
@@ -715,7 +662,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       int layer = mapiter->second->get_layer();
       PHG4CylinderGeom* geom = geom_container->GetLayerGeom(layer);
       
-      SvtxCluster clus;
+      SvtxCluster_v1 clus;
       clus.set_layer( layer );
       float clus_energy = 0.0;
       unsigned int clus_adc = 0;
@@ -885,7 +832,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       clus.set_error( 2 , 2 , COVAR_ERR[2][2] );
       
       if (clus_energy > get_threshold_by_layer(layer)) {
-	SvtxCluster* ptr = _clusterlist->insert(clus);
+	SvtxCluster* ptr = _clusterlist->insert(&clus);
 	if (!ptr->IsValid()) {
 	  static bool first = true;
 	  if (first) {
@@ -921,13 +868,11 @@ void PHG4SvtxClusterizer::PrintClusters(PHCompositeNode *topNode) {
 
   if (verbosity >= 1) {
 
-    PHTypedNodeIterator<SvtxClusterMap> clusteriter(topNode);
-    PHIODataNode<SvtxClusterMap> *SvtxClusterMapNode = clusteriter.find("SvtxClusterMap");
-    if (!SvtxClusterMapNode) return;
+    SvtxClusterMap *clusterlist = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
+    if (!clusterlist) return;
     
     cout << "================= PHG4SvtxClusterizer::process_event() ====================" << endl;
   
-    SvtxClusterMap *clusterlist = (SvtxClusterMap*)SvtxClusterMapNode->getData();
 
     cout << " Found and recorded the following " << clusterlist->size() << " clusters: " << endl;
 
@@ -936,7 +881,7 @@ void PHG4SvtxClusterizer::PrintClusters(PHCompositeNode *topNode) {
 	 iter != clusterlist->end();
 	 ++iter) {
 
-      SvtxCluster* cluster = &iter->second;
+      SvtxCluster* cluster = iter->second;
       cout << icluster << " of " << clusterlist->size() << endl;
       cluster->identify();
       ++icluster;

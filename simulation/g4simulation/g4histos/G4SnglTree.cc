@@ -6,7 +6,7 @@
 
 #include <fun4all/Fun4AllHistoManager.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -84,11 +84,11 @@ G4SnglTree::process_event( PHCompositeNode* topNode )
 	PHG4TruthInfoContainer* truthInfoList 
 		=  findNode::getClass<PHG4TruthInfoContainer>(topNode , "G4TruthInfo" );
 
-	const PHG4TruthInfoContainer::Map primMap = truthInfoList->GetPrimaryMap();
-	double px = primMap.begin()->second->get_px();
-	double py = primMap.begin()->second->get_py();
-	double pz = primMap.begin()->second->get_pz();
-	double e = primMap.begin()->second->get_e();
+	const PHG4TruthInfoContainer::Range primRange = truthInfoList->GetPrimaryParticleRange();
+	double px = primRange.first->second->get_px();
+	double py = primRange.first->second->get_py();
+	double pz = primRange.first->second->get_pz();
+	double e = primRange.first->second->get_e();
 	double pt = sqrt(px * px + py * py);
 	double phi = atan2(py, px);
 	double theta = atan2(pt, pz);

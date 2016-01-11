@@ -1,10 +1,11 @@
-#ifndef PHG4HITGEFS_H
-#define PHG4HITGEFS_H
+#ifndef PHG4HITDEFS_H
+#define PHG4HITDEFS_H
 
-namespace phg4hitdefs
+namespace PHG4HitDefs
 {
-static int keybits = 8;
-static int hit_idbits = 32-keybits;
+  typedef unsigned long long keytype;
+  static int keybits = 8;
+  static int hit_idbits = sizeof(keytype)*8-keybits;
 }
 
 #endif

@@ -14,13 +14,14 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <limits>       // std::numeric_limits
 
 using namespace std;
 
@@ -28,9 +29,10 @@ PHG4HcalCellReco::PHG4HcalCellReco(const string &name) :
   SubsysReco(name),
   _timer(PHTimeServer::get()->insert_new(name.c_str())),
   nslatscombined(1),
-  chkenergyconservation(0)
+  netabins(24), // that is our default
+  chkenergyconservation(0), timing_window_size(numeric_limits<double>::max())
 {
-  memset(nbins, 0, sizeof(nbins));
+  memset(nbins, 0, sizeof(nbins));  
 }
 
 int PHG4HcalCellReco::InitRun(PHCompositeNode *topNode)
@@ -56,9 +58,18 @@ int PHG4HcalCellReco::InitRun(PHCompositeNode *topNode)
   PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode , cellnodename);
   if (!cells)
     {
+      PHNodeIterator dstiter(dstNode);
+      PHCompositeNode *DetNode =
+          dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",
+              detector));
+      if (!DetNode)
+        {
+          DetNode = new PHCompositeNode(detector);
+          dstNode->addNode(DetNode);
+        }
       cells = new PHG4CylinderCellContainer();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str() , "PHObject");
-      dstNode->addNode(newNode);
+      DetNode->addNode(newNode);
     }
 
   geonodename = "CYLINDERGEOM_" + detector;
@@ -114,15 +125,15 @@ int PHG4HcalCellReco::InitRun(PHCompositeNode *topNode)
 	    {
 	      layergeom->identify();
 	    }
-          layerseggeo->set_binning(phg4cylindercelldefs::etaslatbinning);
-          layerseggeo->set_etabins(22);
+          layerseggeo->set_binning(PHG4CylinderCellDefs::etaslatbinning);
+          layerseggeo->set_etabins(netabins);
           layerseggeo->set_etamin(-1.1);
-          layerseggeo->set_etastep((1.1+1.1)/22.);
+          layerseggeo->set_etastep((1.1+1.1)/netabins);
           layerseggeo->set_phimin(layergeom->get_phi_slat_zero());
 	  double deltaphi = 2.*M_PI/layergeom->get_nscint();
 	  layerseggeo->set_phistep(deltaphi*nslatscombined);
 	  layerseggeo->set_phibins(nslatbins);
-          etastep[layer] = (1.1+1.1)/22.;
+          etastep[layer] = (1.1+1.1)/netabins;
       // add geo object filled by different binning methods
       seggeo->AddLayerCellGeom(layerseggeo);
       if (verbosity > 1)
@@ -168,6 +179,10 @@ PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
       int nslatbins = geo->get_phibins();
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
 	{
+          // checking ADC timing integration window cut
+          if (hiter->second->get_t(0)>timing_window_size)
+            continue;
+
 	  int slatno = hiter->second->get_scint_id();
 	  int slatbin;
 	  slatbin = hiter->second->get_layer() / nslatscombined;
@@ -196,7 +211,7 @@ PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
 	      celllist[key]->set_etabin(slatno);
 	    }
 
-	  celllist[key]->add_edep(hiter->first, hiter->second->get_edep());
+	  celllist[key]->add_edep(hiter->first, hiter->second->get_edep(),hiter->second->get_light_yield());
 	} // end loop over g4hits
       int numcells = 0;
       for (map<unsigned int, PHG4CylinderCell *>::const_iterator mapiter = celllist.begin();mapiter != celllist.end() ; ++mapiter)
@@ -241,7 +256,7 @@ PHG4HcalCellReco::etasize_nslat(const int i, const double deltaeta, const int ns
   if (nslat >= 1)
     {
       nslatscombined = nslat;
-      set_size(i, deltaeta, nslat, phg4cylindercelldefs::etaslatbinning);
+      set_size(i, deltaeta, nslat, PHG4CylinderCellDefs::etaslatbinning);
     }
   else
     {

@@ -4,25 +4,32 @@ using namespace std;
 
 ClassImp(RawClusterv1)
 
-RawClusterv1::RawClusterv1() : RawCluster(), _eta(0.0), _phi(0.0), _energy(0.0)
+RawClusterv1::RawClusterv1()
+: RawCluster(),
+  clusterid(0),
+  _eta(0.0),
+  _phi(0.0),
+  _energy(0.0)
 {}
 
 void
 RawClusterv1::Reset()
 {
+  clusterid = 0;
   _eta = 0.0;
   _phi = 0.0;
   _energy = 0.0;
-  _towers.clear();
+  towermap.clear();
 }
 
-std::pair<int,int>
-RawClusterv1::getTowerBin(const unsigned int itower) const
+void
+RawClusterv1::addTower(const RawClusterDefs::keytype twrid, const float etower)
 {
-  if (itower < _towers.size())
+  if (towermap.find(twrid) != towermap.end())
     {
-      return  _towers[itower];
+      cout << "tower 0x" << hex << twrid << ", dec: " << dec
+	   << twrid << " already exists, that is bad" << endl;
+      exit(1);
     }
-  return make_pair(-9999,-9999);
+  towermap[twrid] = etower;
 }
-

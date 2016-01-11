@@ -4,8 +4,8 @@
 #include "PHG4Particlev1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/recoConsts.h>
-#include <fun4all/getClass.h>
+#include <phool/recoConsts.h>
+#include <phool/getClass.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
@@ -30,7 +30,13 @@ ReadEICFiles::ReadEICFiles(const string &name):
   Particle(NULL),
   ParticleArray(NULL),
   nEntries(0),
-  entry(0)
+  entry(0),
+  ProcessID(0),
+  Y(NAN),
+  Q2(NAN),
+  X(NAN),
+  W2(NAN),
+  NU(NAN)
 {
   return;
 }

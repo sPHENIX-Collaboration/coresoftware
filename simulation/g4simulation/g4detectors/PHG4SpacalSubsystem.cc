@@ -8,18 +8,20 @@
  * \date $$Date: 2014/08/12 03:49:12 $$
  */
 #include "PHG4SpacalSubsystem.h"
+
 #include "PHG4SpacalDetector.h"
 #include "PHG4ProjSpacalDetector.h"
+#include "PHG4FullProjSpacalDetector.h"
 #include "PHG4CylinderGeom.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4SpacalSteppingAction.h"
-#include "PHG4CylinderEventAction.h"
+#include "PHG4EventActionClearZeroEdep.h"
 #include <g4main/PHG4Utils.h>
 
 #include <g4main/PHG4PhenixDetector.h>
 #include <g4main/PHG4HitContainer.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <Geant4/globals.hh>
 
@@ -64,22 +66,29 @@ int PHG4SpacalSubsystem::InitRun( PHCompositeNode* topNode )
   switch (_geom.get_config())
     {
   case PHG4CylinderGeom_Spacalv1::kNonProjective:
-    cout << "PHG4SpacalSubsystem::InitRun - use PHG4SpacalDetector" << endl;
+    if (verbosity > 0) cout << "PHG4SpacalSubsystem::InitRun - use PHG4SpacalDetector" << endl;
     detector_ = new PHG4SpacalDetector(topNode, Name(),
         dynamic_cast<PHG4SpacalDetector::SpacalGeom_t *>(&_geom), layer);
     break;
 
   case PHG4CylinderGeom_Spacalv1::kProjective_PolarTaper:
-    cout << "PHG4SpacalSubsystem::InitRun - use PHG4ProjSpacalDetector" << endl;
+    if (verbosity > 0) cout << "PHG4SpacalSubsystem::InitRun - use PHG4ProjSpacalDetector" << endl;
     detector_ = new PHG4ProjSpacalDetector(topNode, Name(),
         dynamic_cast<PHG4ProjSpacalDetector::SpacalGeom_t *>(&_geom), layer);
     break;
 
-  default:
-    cout << "PHG4SpacalSubsystem::InitRun - use PHG4SpacalDetector" << endl;
-    exit(1);
+
+  case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper:
+  case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_SameLengthFiberPerTower:
+    if (verbosity > 0) cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjSpacalDetector" << endl;
+    detector_ = new PHG4FullProjSpacalDetector(topNode, Name(),
+        dynamic_cast<PHG4FullProjSpacalDetector::SpacalGeom_t *>(&_geom), layer);
     break;
 
+  default:
+    cout << "PHG4SpacalSubsystem::InitRun - unknown option exiting" << endl;
+    exit(1);
+    break;
     }
 
   detector_->SetActive(active);
@@ -104,7 +113,7 @@ int PHG4SpacalSubsystem::InitRun( PHCompositeNode* topNode )
           dstNode->addNode( new PHIODataNode<PHObject>( cylinder_hits = new PHG4HitContainer(), nodename.str().c_str(), "PHObject" ));
         }
       cylinder_hits->AddLayer(layer);
-      PHG4CylinderEventAction *evtac = new PHG4CylinderEventAction(topNode, nodename.str());
+      PHG4EventActionClearZeroEdep *evtac = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
       if (absorberactive)
         {
           nodename.str("");

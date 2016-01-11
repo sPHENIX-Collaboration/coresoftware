@@ -88,7 +88,7 @@
 // **                                                                          **
 // ******************************************************************************
 
-#include <Pythia6.hh>
+#include "Pythia6.hh"
 
 #include <iostream>
 #include <cstdlib>
@@ -145,9 +145,9 @@ Pythia6::Pythia6()
    fParticles = new ParticleVector();
 
    // initialize common-blocks
-   fPyjets = (Pyjets_t*) pythia6_common_address("PYJETS");
-   fPydat1 = (Pydat1_t*) pythia6_common_address("PYDAT1");
-   fPydat3 = (Pydat3_t*) pythia6_common_address("PYDAT3");
+   fPyjets = static_cast<Pyjets_t*> (pythia6_common_address("PYJETS"));
+   fPydat1 = static_cast<Pydat1_t*> (pythia6_common_address("PYDAT1"));
+   fPydat3 = static_cast<Pydat3_t*> (pythia6_common_address("PYDAT3"));
 
    // turn off Pythia Logo print
    fPydat1->MSTU[12-1] = 12345;
@@ -162,7 +162,7 @@ Pythia6::~Pythia6()
 
    if ( fParticles ) {
       ParticleVector::const_iterator it;
-      for ( it = fParticles->begin(); it != fParticles->end(); it++ )
+      for ( it = fParticles->begin(); it != fParticles->end(); ++it )
         delete  *it;
       delete fParticles;
    }
@@ -219,7 +219,7 @@ int Pythia6::ImportParticles(ParticleVector* particles, const char* option)
    if ( particles == 0 ) return 0;
    
    ParticleVector::const_iterator it;
-   for ( it = particles->begin(); it != particles->end(); it++ )
+   for ( it = particles->begin(); it != particles->end(); ++it )
      delete  *it;
    particles->clear();
    

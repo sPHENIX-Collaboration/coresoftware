@@ -30,7 +30,7 @@ PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   multimap<int, PHG4Particle *>::const_iterator particle_iter;
   std::pair< std::map<int, PHG4VtxPoint *>::const_iterator, std::map<int, PHG4VtxPoint *>::const_iterator > vtxbegin_end = inEvent->GetVertices();
 
-  for (vtxiter = vtxbegin_end.first; vtxiter != vtxbegin_end.second; vtxiter++)
+  for (vtxiter = vtxbegin_end.first; vtxiter != vtxbegin_end.second; ++vtxiter)
     {
       //       cout << "vtx number: " << vtxiter->first << endl;
       //       (*vtxiter->second).identify();
@@ -38,7 +38,7 @@ PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4ThreeVector position((*vtxiter->second).get_x()*cm, (*vtxiter->second).get_y()*cm, (*vtxiter->second).get_z()*cm );
       G4PrimaryVertex* vertex = new G4PrimaryVertex(position, (*vtxiter->second).get_t()*s);
       pair<multimap<int, PHG4Particle *>::const_iterator, multimap<int, PHG4Particle *>::const_iterator > particlebegin_end = inEvent->GetParticles(vtxiter->first);
-      for (particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; particle_iter++)
+      for (particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; ++particle_iter)
         {
 	  //          cout << "PHG4PrimaryGeneratorAction: dealing with" << endl;
 	  //           (particle_iter->second)->identify();
@@ -112,7 +112,7 @@ PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
             }
           if (inEvent->isEmbeded(particle_iter->second))
             {
-              PHG4UserPrimaryParticleInformation *userdata = new PHG4UserPrimaryParticleInformation(1);
+              PHG4UserPrimaryParticleInformation *userdata = new PHG4UserPrimaryParticleInformation(inEvent->isEmbeded(particle_iter->second));
               g4part->SetUserInformation(userdata);
             }
           vertex->SetPrimary(g4part);

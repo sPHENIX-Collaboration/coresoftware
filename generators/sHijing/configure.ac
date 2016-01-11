@@ -1,0 +1,10 @@
+AC_INIT(Hijing.cxx)
+
+AM_INIT_AUTOMAKE(sHijing, 1.00)
+
+AC_PROG_CXX
+AC_PROG_F77(gfortran)
+AC_ENABLE_STATIC(no)
+AC_PROG_LIBTOOL
+
+AC_OUTPUT(Makefile)

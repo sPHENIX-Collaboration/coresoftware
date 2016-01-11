@@ -4,7 +4,7 @@
 #include "PHMakeGroups.h"
 
 #include "RawTower.h"
-#include "RawTowerGeom.h"
+#include "RawTowerGeomContainer.h"
 #include "RawTowerContainer.h"
 
 #include "BEmcRec.h"
@@ -14,7 +14,7 @@
 
 #include <phool/PHCompositeNode.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 #include <iostream>
 #include <stdexcept>
 #include <vector>
@@ -67,7 +67,7 @@ int RawClusterBuilderv1::InitRun(PHCompositeNode *topNode)
 int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 {
 
-  string towernodename = "TOWER_" + detector;
+  string towernodename = "TOWER_CALIB_" + detector;
   // Grab the towers
   RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, towernodename.c_str());
   if (!towers)
@@ -76,7 +76,7 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
   string towergeomnodename = "TOWERGEOM_" + detector;
-  RawTowerGeom *towergeom = findNode::getClass<RawTowerGeom>(topNode, towergeomnodename.c_str());
+  RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename.c_str());
  if (! towergeom)
    {
      cout << PHWHERE << ": Could not find node " << towergeomnodename.c_str() << endl;
@@ -122,7 +122,7 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
   std::vector<EmcCluster> *ClusterList = bemc->GetClusters();
   std::vector<EmcCluster>::iterator pc;
 
-  float ecl, e9, ecore, xcg, ycg, xx, xy, yy;
+  float ecl, xcg, ycg, xx, xy, yy;
   int npk;
   EmcPeakarea pPList[MaxNofPeaks];
   EmcPeakarea *pp;
@@ -154,9 +154,9 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
       // Cluster energy
       ecl = pp->GetTotalEnergy();
       // 3x3 energy around center of gravity
-      e9 = pp->GetE9();
+      //e9 = pp->GetE9();
       // Ecore (basically near 2x2 energy around center of gravity)
-      ecore = pp->GetECore();
+      //ecore = pp->GetECore();
       // Center of Gravity etc.
       pp->GetMoments( &xcg, &ycg, &xx, &xy, &yy );
       // Tower with max energy
@@ -168,7 +168,8 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
       iphi = xcg+0.5;
       dphi = xcg - float(iphi); // this is from -0.5 to +0.5
       phi = towergeom->get_phicenter(iphi);
-      phistep = towergeom->get_phistep();
+      std::pair<double, double> phibounds = towergeom->get_phibounds(iphi);
+      phistep = phibounds.second - phibounds.first;
       phi += dphi*phistep;
 
       ieta = ycg+0.5;
@@ -190,7 +191,11 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 	ich = (*ph).ich;
 	ieta = ich/NPHI;
 	iphi = ich%NPHI;
-	cluster->addTower(ieta,iphi);
+	// that code needs a closer look - here are the towers 
+	// with their energy added to the cluster object where 
+	// the id is the tower id
+	RawTowerDefs::keytype twrkey = RawTowerDefs::encode_towerid( RawTowerDefs::NONE , ieta , iphi );
+	cluster->addTower(twrkey,(*ph).amp/fEnergyNorm);
 	ph++;
       }
 
@@ -229,20 +234,16 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 }
 
 
-bool RawClusterBuilderv1::CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeom *towergeom)
+bool RawClusterBuilderv1::CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer *towergeom)
 {
-
-  int nt = cluster->getNTowers();
   double sum = cluster->get_energy();
   double phimin = 999.;
   double phimax = -999.;
-
-  for (int j = 0; j < nt; j++)
-    {
-      std::pair<int, int> tmpc = cluster->getTowerBin(j);
-      int ieta = tmpc.first;
-      int iphi = tmpc.second;
-      RawTower* tmpt = towers->getTower(ieta, iphi);
+  RawCluster::TowerConstRange begin_end = cluster->get_towers();
+  RawCluster::TowerConstIterator iter;
+  for (iter =begin_end.first; iter != begin_end.second; ++iter)
+    { 
+      RawTower* tmpt = towers->getTower(iter->first);
       double phi = towergeom->get_phicenter(tmpt->get_binphi());
       if(phi > M_PI) phi = phi - 2.*M_PI; // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)
       if (phi < phimin)
@@ -258,12 +259,9 @@ bool RawClusterBuilderv1::CorrectPhi(RawCluster* cluster, RawTowerContainer* tow
   if ((phimax - phimin) < 3.) return false; // cluster is not at phi discontinuity
 
   float mean = 0.;
-  for (int j = 0; j < nt; j++)
-    {
-      std::pair<int, int> tmpc = cluster->getTowerBin(j);
-      int ieta = tmpc.first;
-      int iphi = tmpc.second;
-      RawTower* tmpt = towers->getTower(ieta, iphi);
+  for (iter =begin_end.first; iter != begin_end.second; ++iter)
+    { 
+      RawTower* tmpt = towers->getTower(iter->first);
       double e = tmpt->get_energy();
       double phi = towergeom->get_phicenter(tmpt->get_binphi());
       if(phi > M_PI) phi = phi - 2.*M_PI; // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)

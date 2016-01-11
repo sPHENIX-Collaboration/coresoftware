@@ -1,11 +1,11 @@
 #include "PHG4ConeSubsystem.h"
 #include "PHG4ConeDetector.h"
-#include "PHG4ConeEventAction.h"
+#include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4ConeRegionSteppingAction.h"
 #include "PHG4ConeSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <Geant4/globals.hh>
 
@@ -84,7 +84,7 @@ int PHG4ConeSubsystem::Init( PHCompositeNode* topNode )
   // create stepping action
   steppingAction_ = new PHG4ConeSteppingAction(detector_);
 
-  eventAction_ = new PHG4ConeEventAction(topNode, nodename.str());
+  eventAction_ = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
     }
   return 0;
 
