@@ -85,7 +85,7 @@ public:
   void BlackHole(const int i=1) {_blackhole = i;}
   int IsBlackHole() const {return _blackhole;}
 
-protected:
+private:
 
   G4LogicalVolume* ConstructTower();
   int PlaceTower(G4LogicalVolume* envelope , G4LogicalVolume* tower);
