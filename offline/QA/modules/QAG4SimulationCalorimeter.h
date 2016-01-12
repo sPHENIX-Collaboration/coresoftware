@@ -31,7 +31,7 @@ public:
     kDefaultFlag = kProcessSF | kProcessTower
   };
 
-  QAG4SimulationCalorimeter(enu_flags flags = kDefaultFlag);
+  QAG4SimulationCalorimeter(std::string calo_name, enu_flags flags = kDefaultFlag);
   virtual
   ~QAG4SimulationCalorimeter();
 
@@ -102,32 +102,18 @@ private:
 //  int
 //  process_event_MCPhoton(PHCompositeNode *topNode);
 
-  enum enu_calo
-  {
-    kCEMC, kHCALIN, kHCALOUT
-  };
 
   SvtxEvalStack * _eval_stack;
 
+  //! to be retired with system interface
   double _magfield;
 
+  std::string _calo_name;
   uint32_t _flags;
   unsigned long _ievent;
 
-  PHG4HitContainer* _hcalout_hit_container;
-  PHG4HitContainer* _hcalin_hit_container;
-  PHG4HitContainer* _cemc_hit_container;
-  PHG4HitContainer* _hcalout_abs_hit_container;
-  PHG4HitContainer* _hcalin_abs_hit_container;
-  PHG4HitContainer* _cemc_abs_hit_container;
-  PHG4HitContainer* _magnet_hit_container;
-  PHG4HitContainer* _bh_hit_container;
-  PHG4HitContainer* _bh_plus_hit_container;
-  PHG4HitContainer* _bh_minus_hit_container;
-  PHG4HitContainer* _cemc_electronics_hit_container;
-  PHG4HitContainer* _hcalin_spt_hit_container;
-  PHG4HitContainer* _svtx_hit_container;
-  PHG4HitContainer* _svtx_support_hit_container;
+  PHG4HitContainer* _calo_hit_container;
+  PHG4HitContainer* _calo_abs_hit_container;
 };
 
 #endif // __CALOEVALUATOR_H__
