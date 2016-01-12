@@ -1087,7 +1087,7 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
   
   for (unsigned int i = 3; i <= 7; ++i) {
     zoomprofile[i][0] = 5;
-    zoomprofile[i][1] = 2;
+    zoomprofile[i][1] = 5;
     zoomprofile[i][2] = 5;
     zoomprofile[i][3] = 5;
     zoomprofile[i][4] = 5;
@@ -1115,7 +1115,7 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
   _tracker->setVerbosity(verbosity);
   _tracker->setCutOnDca(_cut_on_dca);
   _tracker->setDcaCut(_dca_cut);
-  _tracker->setSmoothBack(false);
+  _tracker->setSmoothBack(true);
   _tracker->setBinScale(_bin_scale);
   _tracker->setZBinScale(_z_bin_scale);
   _tracker->setRemoveHits(_remove_hits);
