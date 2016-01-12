@@ -3,27 +3,9 @@
 
 #include "PHG4CrystalCalorimeterDetector.h"
 
-#include <g4main/PHG4Detector.h>
-
-#include <Geant4/globals.hh>
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4RotationMatrix.hh>
-#include <Geant4/G4Material.hh>
-
-#include <string>
-#include <map>
-#include <vector>
-#include <set>
-
-class G4AssemblyVolume;
-class G4LogicalVolume;
-class G4VPhysicalVolume;
-class G4VSolid;
-
 /**
  * \file ${file_name}
- * \brief Module to build crystal calorimeter (endcap) in Geant4
+ * \brief Module to build crystal calorimeter with projective crystal geometry in Geant4
  * \author Nils Feege <nils.feege@stonybrook.edu>
  */
 

@@ -1,6 +1,4 @@
 #include "PHG4ProjCrystalCalorimeterDetector.h"
-#include "PHG4CylinderGeomContainer.h"
-#include "PHG4CylinderGeomv3.h"
 
 #include <g4main/PHG4Utils.h>
 
@@ -8,22 +6,17 @@
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 
-#include <Geant4/G4AssemblyVolume.hh>
-#include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4Trap.hh>
 #include <Geant4/G4GenericTrap.hh>
 #include <Geant4/G4Cons.hh>
-#include <Geant4/G4Box.hh>
 #include <Geant4/G4Trd.hh>
 #include <Geant4/G4Tubs.hh>
-
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Colour.hh>
 
@@ -31,7 +24,6 @@
 #include <sstream>
 
 #include <iostream>
-#include <fstream>
 #include <cstdlib>
 
 

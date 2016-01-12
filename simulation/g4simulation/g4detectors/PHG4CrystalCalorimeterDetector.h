@@ -11,17 +11,14 @@
 
 #include <string>
 #include <map>
-#include <vector>
-#include <set>
 
-class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
 
 /**
  * \file ${file_name}
- * \brief Module to build forward sampling Hadron calorimeterr (endcap) in Geant4
+ * \brief Module to build crystal calorimeter in Geant4
  * \author Nils Feege <nils.feege@stonybrook.edu>
  */
 
