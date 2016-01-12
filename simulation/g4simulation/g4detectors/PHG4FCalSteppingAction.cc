@@ -66,6 +66,29 @@ void PHG4FCalSteppingAction::UserSteppingAction( const G4Step* aStep)
     pv->SetWanted(true);
     aTrack->SetUserInformation(pv);
   }
+
+  //set the track ID
+  {
+    hit->set_trkid(aTrack->GetTrackID());
+    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+      {
+	if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+	  {
+	    mhit->set_trkid(pp->GetUserTrackId());
+	    mhit->set_shower_id(pp->GetShower()->get_id());
+	  }
+      }
+  }
+
+  {
+    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+      {
+	if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+	  {
+	    pp->GetShower()->add_g4hit_id(hits_->GetID(),mhit->get_hit_id());
+	  }
+      }
+  }
   
 }
 

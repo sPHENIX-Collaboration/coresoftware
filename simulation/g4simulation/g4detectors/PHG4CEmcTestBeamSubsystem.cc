@@ -78,7 +78,7 @@ PHG4CEmcTestBeamSubsystem::Init( PHCompositeNode* topNode )
       if ( !block_hits )
 	{
 
-	  dstNode->addNode( new PHIODataNode<PHObject>( block_hits = new PHG4HitContainer(), nodename.str().c_str(), "PHObject" ));
+	  dstNode->addNode( new PHIODataNode<PHObject>( block_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject" ));
 
 	}
       if (absorberactive)
@@ -97,7 +97,7 @@ PHG4CEmcTestBeamSubsystem::Init( PHCompositeNode* topNode )
       if ( !block_hits )
 	{
 
-	  dstNode->addNode( new PHIODataNode<PHObject>( block_hits = new PHG4HitContainer(), nodename.str().c_str(), "PHObject" ));
+	  dstNode->addNode( new PHIODataNode<PHObject>( block_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject" ));
 
 	}
       // create stepping action

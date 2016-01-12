@@ -17,6 +17,7 @@ INCLUDES = \
     -isystem $(OFFLINE_MAIN)/include \
     -isystem $(ROOTSYS)/include \
     -isystem ${G4_MAIN}/include \
+    -I$(OFFLINE_MAIN)/include/eigen3 \
     -isystem ${G4_MAIN}/include/Geant4
 
 RINCLUDES = \
@@ -46,6 +47,8 @@ libphg4hit_la_SOURCES = \
     PHG4Particle.cc \
     PHG4Particlev1.cc \
     PHG4Particlev2.cc \
+    PHG4Shower.cc \
+    PHG4Showerv1.cc \
     PHG4TruthInfoContainer.cc \
     PHG4VtxPoint.cc \
     PHG4VtxPointv1.cc
@@ -122,6 +125,8 @@ pkginclude_HEADERS = \
   PHG4Particle.h \
   PHG4Particlev1.h \
   PHG4Particlev2.h \
+  PHG4Shower.h \
+  PHG4Showerv1.h \
   PHG4PhenixDetector.h \
   PHG4RegionInformation.h \
   PHG4SteppingAction.h \
@@ -188,6 +193,8 @@ PHG4Hit_Dict.cc: \
   PHG4Hitv1.h \
   PHG4HitEval.h \
   PHG4HitContainer.h \
+  PHG4Shower.h \
+  PHG4Showerv1.h \
   PHG4Particle.h \
   PHG4Particlev1.h \
   PHG4Particlev2.h \

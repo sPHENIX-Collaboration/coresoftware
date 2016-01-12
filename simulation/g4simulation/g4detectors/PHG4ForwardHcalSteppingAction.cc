@@ -140,6 +140,7 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 		  {
 		    hit->set_trkid(pp->GetUserTrackId());
+		    hit->set_shower_id(pp->GetShower()->get_id());
 		  }
 	      }
 	  }
@@ -154,10 +155,31 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 	    {
 	      // Now add the hit
 	      hits_->AddHit(layer_id, hit);
+
+	      {
+		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		  {
+		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		      {
+			pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		      }
+		  }
+	      }
+	      
 	    }
 	  else
 	    {
 	      absorberhits_->AddHit(layer_id, hit);
+
+	      {
+		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		  {
+		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		      {
+			pp->GetShower()->add_g4hit_id(absorberhits_->GetID(),hit->get_hit_id());
+		      }
+		  }
+	      }
 	    }
 	  break;
 	default:

@@ -52,7 +52,7 @@ PHG4SectorSubsystem::Init(PHCompositeNode* topNode)
         {
 
           dstNode->addNode(new PHIODataNode<PHObject>(block_hits =
-              new PHG4HitContainer(), nodename.str().c_str(), "PHObject"));
+						      new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject"));
 
         }
       // create stepping action

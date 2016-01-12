@@ -78,7 +78,7 @@ void SvtxCluster_v1::identify(ostream& os) const {
   return;  
 }
 
-int SvtxCluster_v1::IsValid() const {
+int SvtxCluster_v1::isValid() const {
   if (_id == 0xFFFFFFFF) return 0;
   if (_layer == 0xFFFFFFFF) return 0;
   for (int i = 0; i < 3; ++i) {

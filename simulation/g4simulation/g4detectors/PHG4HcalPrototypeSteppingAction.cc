@@ -37,9 +37,9 @@ bool PHG4HcalPrototypeSteppingAction::UserSteppingAction( const G4Step* aStep, b
   //  int whichactive = detector_->IsInHcalPrototype(volume);
 
   /*
-  if (!whichactive)
+    if (!whichactive)
     {
-      return false;
+    return false;
     }
   */
 
@@ -156,6 +156,7 @@ bool PHG4HcalPrototypeSteppingAction::UserSteppingAction( const G4Step* aStep, b
 		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 		  {
 		    hit->set_trkid(pp->GetUserTrackId());
+		    hit->set_shower_id(pp->GetShower()->get_id());
 		  }
 	      }
 	  }
@@ -167,10 +168,30 @@ bool PHG4HcalPrototypeSteppingAction::UserSteppingAction( const G4Step* aStep, b
 	    {
 	      // Now add the hit
 	      hits_->AddHit(sectionID, hit);
+	      
+	      {
+		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		  {
+		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		      {
+			pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		      }
+		  }
+	      }
 	    }
 	  else
 	    {
 	      absorberhits_->AddHit(sectionID, hit);
+
+	      {
+		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		  {
+		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		      {
+			pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		      }
+		  }
+	      }
 	    }
 	  break;
 	default:
