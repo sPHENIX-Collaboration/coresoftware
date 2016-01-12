@@ -66,8 +66,8 @@ PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector( PHCompos
   _blackhole(0),
   _superdetector("NONE"),
   _crystallogicnameprefix("eEcalCrystal"),
-  _inputFile( "" ),
-  _inputFile_4x4_construct( "" )
+  _mapping_tower_file( "" ),
+  _4x4_construct_file( "" )
 {
 
 }
@@ -109,7 +109,7 @@ PHG4ProjCrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
     }
 
 
-  if ( _inputFile.empty() )
+  if ( _mapping_tower_file.empty() )
     {
       cout << "ERROR in PHG4ProjCrystalCalorimeterDetector: No tower mapping file specified. Abort detector construction." << endl;
       cout << "Please run SetTowerMappingFile( std::string filename ) first." << endl;
@@ -150,18 +150,6 @@ PHG4ProjCrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
 
   return;
 }
-
-void
-PHG4ProjCrystalCalorimeterDetector::CrystalDimensions(G4double& dx_front, G4double& dy_front, G4double& dx_back, G4double& dy_back, G4double& dz)
-{
-	dx_front = _dx_front;
-	dy_front = _dy_front;
-	dx_back = _dx_back;
-	dy_back = _dy_back;
-	dz = _dz_crystal;
-	
-} 
-
 
 void
 PHG4ProjCrystalCalorimeterDetector::CarbonFiberAdjustments(G4double& adjust_width, G4double& adjust_length)
@@ -284,7 +272,7 @@ PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 	
 	//The first four lines of the data file refer to the 2x2 block, and the last four lines refer to the mapping of the 4x4 block
 
-	const string Crystal_Mapping_Small = _inputFile_4x4_construct;		//Get the mapping file for the 4 x 4 block
+	const string Crystal_Mapping_Small = _4x4_construct_file;		//Get the mapping file for the 4 x 4 block
 	const int NumberOfIndices = 9; 						//Number of indices in mapping file for 4x4 block
 
         ifstream datafile_2;
@@ -692,7 +680,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 	
 	//The first four lines of the data file refer to the 2x2 block, and the last four lines refer to the mapping of the 4x4 block
 
-	const string Crystal_Mapping_Small = _inputFile_4x4_construct;		//Get the mapping file for the 4 x 4 block
+	const string Crystal_Mapping_Small = _4x4_construct_file;		//Get the mapping file for the 4 x 4 block
 	const int NumberOfIndices = 9; 						//Number of indices in mapping file for 4x4 block
 
         ifstream datafile_2;
@@ -877,7 +865,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 	//*******************
 
 	G4double dx1, dx2, dy1, dy2;
-	CrystalDimensions(dx1, dy1, dx2, dy2, dz);
+	GetCrystalSize(dx1, dy1, dx2, dy2, dz);
 
 
 	if (ident == 12) 
@@ -1217,7 +1205,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 
 	G4int NumberOfLines;		 			//Number of crystals to be created.
 	const G4int NumberOfIndices = 9; 			//Different dimensions needed for crystal placement
-	const string FileName = _inputFile.c_str();		//File in which crystal positions are stored
+	const string FileName = _mapping_tower_file.c_str();		//File in which crystal positions are stored
 	
 	G4int j_cry, k_cry;					//Indices for matrix
 	G4int j_idx, k_idx;					//Indices of each crstals
@@ -1229,7 +1217,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 	G4double dy2;					//Half of the extent of the back face of the trapezoid in y
 	G4double dz;					//Half of the extent of the crystal in z
 
-	CrystalDimensions(dx1, dy1, dx2, dy2, dz); 		//Fill crystal dimensions with function PHG4ProjCrystalCalorimeterDetector::CrystalDimensions
+	GetCrystalSize(dx1, dy1, dx2, dy2, dz); 		//Fill crystal dimensions with function PHG4ProjCrystalCalorimeterDetector::CrystalDimensions
 
 	//Create single crystal
 
@@ -1367,7 +1355,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 
 	//Determine the number of crystals to be created
 	NumberOfLines = 0;
-	ifstream in(_inputFile.c_str());
+	ifstream in(_mapping_tower_file.c_str());
 	std::string unused;
 	while ( std::getline(in, unused) )
 	   ++NumberOfLines;

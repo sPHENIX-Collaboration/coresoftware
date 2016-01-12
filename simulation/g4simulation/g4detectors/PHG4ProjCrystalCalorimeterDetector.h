@@ -27,19 +27,9 @@ public:
   int IsInCrystalCalorimeter(G4VPhysicalVolume*) const;
 
 
-  //! Select mapping file for calorimeter tower
-  virtual void SetTowerMappingFile( std::string filename ) {
-    _inputFile = filename;
-  }
+  // ----- accessing member variables: ------------
 
-  //! Select mapping file for supermodule
-  virtual void SetSupermoduleGeometry( std::string filename2 ) {
-    _inputFile_4x4_construct = filename2;
-  }
-
-  virtual void CrystalDimensions(G4double& dx_front, G4double& dy_front, G4double& dx_back, G4double& dy_back, G4double& dz);
-
-  virtual void SetDimensions(G4double dx_front, G4double dy_front, G4double dx_back, G4double dy_back, G4double dz) {
+  void SetCrystalSize(G4double dx_front, G4double dy_front, G4double dx_back, G4double dy_back, G4double dz) {
   _dx_front = dx_front;
   _dy_front = dy_front;
   _dx_back = dx_back;
@@ -47,35 +37,18 @@ public:
   _dz_crystal = dz;
   }
 
-  virtual void CarbonFiberAdjustments(G4double& adjust_width, G4double& adjust_length);
-
-  virtual void CarbonFiberSpacing(G4double& CF_width, G4double& Air_CF, G4double& Air_Cry);
-
-  void SetPlace( G4double place_in_x, G4double place_in_y, G4double place_in_z) {
-    _place_in_x = place_in_x;
-    _place_in_y = place_in_y;
-    _place_in_z = place_in_z;
+  void GetCrystalSize(G4double& dx_front, G4double& dy_front, G4double& dx_back, G4double& dy_back, G4double& dz) {
+  dx_front = _dx_front;
+  dy_front = _dy_front;
+  dx_back = _dx_back;
+  dy_back = _dy_back;
+  dz = _dz_crystal;
   }
-  void SetXRot( G4double rot_in_x ) { _rot_in_x = rot_in_x; }
-  void SetYRot( G4double rot_in_y ) { _rot_in_y = rot_in_y; }
-  void SetZRot( G4double rot_in_z ) { _rot_in_z = rot_in_z; }
 
-  void SetMaterial( G4String material ) { _materialCrystal = material; }
+  void CarbonFiberAdjustments(G4double& adjust_width, G4double& adjust_length);
 
-  void SetActive(const int i = 1) {_active = i;}
-  void SetAbsorberActive(const int i = 1) {_absorberactive = i;}
+  void CarbonFiberSpacing(G4double& CF_width, G4double& Air_CF, G4double& Air_Cry);
 
-  void SetInput( G4String inFile ) { _inputFile = inFile; }
-
-  int IsActive() const {return _active;}
-
-  void SuperDetector(const std::string &name) {_superdetector = name;}
-  const std::string SuperDetector() const {return _superdetector;}
-
-  int get_Layer() const {return _layer;}
-
-  void BlackHole(const int i=1) {_blackhole = i;}
-  int IsBlackHole() const {return _blackhole;}
 
 private:
 
@@ -118,8 +91,8 @@ private:
   std::string _superdetector;
 
   std::string _crystallogicnameprefix;
-  std::string _inputFile;
-  std::string _inputFile_4x4_construct;
+  std::string _mapping_tower_file;
+  std::string _4x4_construct_file;
 };
 
 #endif

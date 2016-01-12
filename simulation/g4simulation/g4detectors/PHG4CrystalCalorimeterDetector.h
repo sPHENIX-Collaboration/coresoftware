@@ -36,38 +36,42 @@ public:
   //! construct
   virtual void Construct( G4LogicalVolume* world );
 
-  //!@name volume accessors
+  //! check if volume is in this calorimeter
   virtual int IsInCrystalCalorimeter(G4VPhysicalVolume*) const;
 
+  // ----- accessing member variables: ------------
 
   //! Select mapping file for calorimeter tower
-  virtual void SetTowerMappingFile( std::string filename ) {
+  void SetTowerMappingFile( std::string filename )
+  {
     _mapping_tower_file = filename;
   }
 
-  //! Select mapping file for supermodule
-  virtual void SetSupermoduleGeometry( std::string filename2 ) {
-    //_inputFile_4x4_construct = filename2;
-  }
-
-
-  void SetCrystalSize(G4double dx, G4double dy, G4double dz) {
-    _crystal_dx = dx;
-    _crystal_dy = dy;
-    _crystal_dz = dz;
-  }
-
-  void SetPlace( G4double place_in_x, G4double place_in_y, G4double place_in_z) {
+  void SetPlace( G4double place_in_x, G4double place_in_y, G4double place_in_z)
+  {
     _place_in_x = place_in_x;
     _place_in_y = place_in_y;
     _place_in_z = place_in_z;
   }
 
-  void SetXRot( G4double rot_in_x ) { _rot_in_x = rot_in_x; }
-  void SetYRot( G4double rot_in_y ) { _rot_in_y = rot_in_y; }
-  void SetZRot( G4double rot_in_z ) { _rot_in_z = rot_in_z; }
+  void SetRotation( G4double rot_in_x, G4double rot_in_y, G4double rot_in_z )
+  {
+    _rot_in_x = rot_in_x;
+    _rot_in_y = rot_in_y;
+    _rot_in_z = rot_in_z;
+  }
 
-  void SetMaterialCrystal( G4String material ) { _materialCrystal = material; }
+  void SetCrystalSize(G4double dx, G4double dy, G4double dz)
+  {
+    _crystal_dx = dx;
+    _crystal_dy = dy;
+    _crystal_dz = dz;
+  }
+
+  void SetMaterialCrystal( G4String material )
+  {
+    _materialCrystal = material;
+  }
 
   void SetActive(const int i = 1) {_active = i;}
   void SetAbsorberActive(const int i = 1) {_absorberactive = i;}
@@ -81,6 +85,15 @@ public:
 
   void BlackHole(const int i=1) {_blackhole = i;}
   int IsBlackHole() const {return _blackhole;}
+
+  // ----- additional accessors used by derived classes: ------------
+
+  //! Select mapping file for supermodule
+  virtual void SetSupermoduleGeometry( std::string filename2 )
+  {
+    return;
+  }
+
 
 private:
 
@@ -112,13 +125,14 @@ private:
   G4double _sPhi;
   G4double _dPhi;
 
-  /* HCAL tower geometry */
+  /* crystal geometry */
   G4double _crystal_dx;
   G4double _crystal_dy;
   G4double _crystal_dz;
 
   G4String _materialCrystal;
 
+  /* general detector parameters */
   int _active;
   int _absorberactive;
   int _layer;
