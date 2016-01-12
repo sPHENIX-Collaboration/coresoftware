@@ -20,7 +20,6 @@ class PHG4ParticleGeneratorD0: public PHG4ParticleGeneratorBase
   void set_pt_range(const double pt_min, const double pt_max);
   void set_vtx_zrange(const double zmin, const double zmax);
   void set_mass(const double mass);
-  void set_embedflag(int embedflag) {_embedflag = embedflag;}
 
  protected:
   double vtx_zmin;
@@ -36,7 +35,6 @@ class PHG4ParticleGeneratorD0: public PHG4ParticleGeneratorBase
   double mass;
   double m1;
   double m2;
-  int _embedflag;
 
   TF1 *fsin;
   TF1 *frap;

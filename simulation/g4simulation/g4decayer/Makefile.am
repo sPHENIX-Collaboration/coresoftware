@@ -3,7 +3,10 @@ AUTOMAKE_OPTIONS = foreign
 lib_LTLIBRARIES = \
   libg4decayer.la
 
-AM_CXXFLAGS = -std=c++11
+# set in configure.in to check if gcc version >= 4.8
+if GCC_GE_48
+  AM_CXXFLAGS = -std=c++11
+endif
 
 INCLUDES = \
   -I$(includedir) \

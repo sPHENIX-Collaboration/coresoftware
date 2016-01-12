@@ -42,7 +42,7 @@ PHG4InputFilter::process_event(PHCompositeNode *topNode)
           if (eta < etamin)
             {
               multimap<int, PHG4Particle *>::iterator particleiter_cache = particleiter  ;
-              particleiter_cache++;
+              ++particleiter_cache;
               ineve->DeleteParticle(particleiter);
               particleiter = particleiter_cache;
               continue;
@@ -54,7 +54,7 @@ PHG4InputFilter::process_event(PHCompositeNode *topNode)
           if (eta > etamax)
             {
               multimap<int, PHG4Particle *>::iterator particleiter_cache = particleiter  ;
-              particleiter_cache++;
+              ++particleiter_cache;
               ineve->DeleteParticle(particleiter);
               particleiter = particleiter_cache;
               continue;
@@ -66,7 +66,7 @@ PHG4InputFilter::process_event(PHCompositeNode *topNode)
           if (pt < ptmin)
             {
               multimap<int, PHG4Particle *>::iterator particleiter_cache = particleiter  ;
-              particleiter_cache++;
+              ++particleiter_cache;
               ineve->DeleteParticle(particleiter);
               particleiter = particleiter_cache;
               continue;
@@ -78,13 +78,13 @@ PHG4InputFilter::process_event(PHCompositeNode *topNode)
           if (pt > ptmax)
             {
               multimap<int, PHG4Particle *>::iterator particleiter_cache = particleiter  ;
-              particleiter_cache++;
+              ++particleiter_cache;
               ineve->DeleteParticle(particleiter);
               particleiter = particleiter_cache;
               continue;
             }
         }
-      particleiter++;
+      ++particleiter;
     }
   if (verbosity > 0)
     {

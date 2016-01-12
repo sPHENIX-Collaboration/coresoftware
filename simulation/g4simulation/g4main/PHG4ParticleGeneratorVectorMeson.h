@@ -23,7 +23,6 @@ class PHG4ParticleGeneratorVectorMeson: public PHG4ParticleGeneratorBase
   void set_mass(const double mass);
   void set_width(const double width);
   void set_decay_types(const std::string &decay1, const std::string &decay2);
-  void set_embedflag(int embedflag) {_embedflag = embedflag;}
   void set_histrand_init(const int initflag) {_histrand_init = initflag;}
 
  protected:
@@ -41,7 +40,6 @@ class PHG4ParticleGeneratorVectorMeson: public PHG4ParticleGeneratorBase
   double width;
   double m1;
   double m2;
-  int _embedflag;
   int _histrand_init;
   std::string decay1;
   std::string decay2;

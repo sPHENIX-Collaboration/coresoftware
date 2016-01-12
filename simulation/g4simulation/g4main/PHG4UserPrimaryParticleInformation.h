@@ -7,8 +7,11 @@
 class PHG4UserPrimaryParticleInformation : public G4VUserPrimaryParticleInformation
 {
 public:
-  PHG4UserPrimaryParticleInformation(const int emb) : embed(emb),
-						      usertrackid(0) {}
+  PHG4UserPrimaryParticleInformation(const int emb) : 
+    embed(emb),
+    usertrackid(0),
+    uservtxid(0) {}
+
   void Print() const 
   {
     std::cout << "Embedding = " << embed << std::endl;

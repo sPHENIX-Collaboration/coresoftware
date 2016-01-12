@@ -32,7 +32,7 @@ PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
   PHG4TruthInfoContainer::ConstRange trange = truthcont->GetParticleRange();
   PHG4TruthInfoContainer::ConstIterator titer;
   int imax = 1000000;
-  for (titer = trange.first; titer != trange.second; titer++)
+  for (titer = trange.first; titer != trange.second; ++titer)
     {
       if (titer->first < imax)
         {
@@ -42,7 +42,7 @@ PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
   cout << "min index: " << imax << endl;
   std::pair< std::map<int,int>::const_iterator, std::map<int,int>::const_iterator > embtrk_b_e = truthcont->GetEmbeddedTrkIds();
   std::map<int,int>::const_iterator embiter;
-  for (embiter = embtrk_b_e.first; embiter != embtrk_b_e.second; embiter++)
+  for (embiter = embtrk_b_e.first; embiter != embtrk_b_e.second; ++embiter)
     {
       cout << "embedded trkid: " << embiter->first << endl;
     }
@@ -52,7 +52,7 @@ PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
       PHG4HitContainer::ConstIterator hit;
       PHG4HitContainer::ConstRange hit_begin_end = ghit->getHits();
       set<int> printpart;
-      for (hit = hit_begin_end.first; hit != hit_begin_end.second; hit++)
+      for (hit = hit_begin_end.first; hit != hit_begin_end.second; ++hit)
         {
 
           int trkid = hit->second->get_trkid();
@@ -84,7 +84,7 @@ PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
     {
       PHG4HitContainer::ConstIterator hit;
       PHG4HitContainer::ConstRange hit_begin_end = ghit->getHits();
-      for (hit = hit_begin_end.first; hit != hit_begin_end.second; hit++)
+      for (hit = hit_begin_end.first; hit != hit_begin_end.second; ++hit)
         {
           int trkid = hit->second->get_trkid();
           PHG4Particle* part = truthcont->GetParticle(trkid);

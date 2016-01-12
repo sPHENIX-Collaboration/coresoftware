@@ -55,7 +55,7 @@ int PHG4SvtxTrackProjection::InitRun(PHCompositeNode *topNode)
   if (verbosity > 0) {
     cout << "================== PHG4SvtxTrackProjection::InitRun() =====================" << endl;
     for (int i=0;i<_num_cal_layers;++i) {
-      if (!isnan(_cal_radii[i])) {
+      if (!std::isnan(_cal_radii[i])) {
 	cout << " " << _cal_names[i] << " projection radius: " << _cal_radii[i] << " cm" << endl;
       }
     }
@@ -85,7 +85,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
 
   for (int i=0;i<_num_cal_layers;++i) {
 
-    if (isnan(_cal_radii[i])) continue;
+    if (std::isnan(_cal_radii[i])) continue;
 
     if (verbosity > 1) cout << "Projecting tracks into: " << _cal_names[i] << endl;
 
@@ -134,22 +134,22 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
 
       _hough.projectToRadius(track,_magfield,_cal_radii[i],point);
 
-      if (isnan(point[0])) continue;
-      if (isnan(point[1])) continue;
-      if (isnan(point[2])) continue;
+      if (std::isnan(point[0])) continue;
+      if (std::isnan(point[1])) continue;
+      if (std::isnan(point[2])) continue;
       // } else {
       // 	// straight line projections after mag field exit
       // 	_hough.projectToRadius(track,_mag_extent-0.05,point);
-      // 	if (isnan(point[0])) continue;
-      // 	if (isnan(point[1])) continue;
-      // 	if (isnan(point[2])) continue;
+      // 	if (std::isnan(point[0])) continue;
+      // 	if (std::isnan(point[1])) continue;
+      // 	if (std::isnan(point[2])) continue;
 
       // 	std::vector<double> point2;
       // 	point2.assign(3,-9999.);
       // 	_hough.projectToRadius(track,_mag_extent+0.05,point2);
-      // 	if (isnan(point2[0])) continue;
-      // 	if (isnan(point2[1])) continue;
-      // 	if (isnan(point2[2])) continue;
+      // 	if (std::isnan(point2[0])) continue;
+      // 	if (std::isnan(point2[1])) continue;
+      // 	if (std::isnan(point2[2])) continue;
 
       // 	// find intersection of r and z
 
