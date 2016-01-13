@@ -32,19 +32,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector( PHCompositeNode *Node, const std::string &dnam ):
   PHG4CrystalCalorimeterDetector(Node, dnam),
-  _place_in_x(0.0*mm),
-  _place_in_y(0.0*mm),
-  _place_in_z(-1080.0*mm),
-  _rot_in_x(0.0),
-  _rot_in_y(M_PI),
-  _rot_in_z(0.0),
-  _rMin1(22*mm),
-  _rMax1(656*mm),
-  _rMin2(26*mm),
-  _rMax2(775*mm),
-  _dZ(180*mm),
-  _sPhi(0),
-  _dPhi(2*M_PI),
   //  _dx_front(50.19*mm),		//****************************************************************//
   //  _dy_front(50.19*mm),		//****************************************************************//
   //  _dx_back(59.3154545455*mm),		// PANDA eEMCAL Numbers: Crystals are 2.4cm * 2.4cm on front face //
@@ -55,14 +42,7 @@ PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector( PHCompos
   _dx_back(48.97454545455*mm),
   _dy_back(48.97454545455*mm),
   _dz_crystal(90.000*mm),
-  _materialCrystal( "G4_PbWO4" ),
-  _active(1),
-  _absorberactive(0),
-  _layer(0),
-  _blackhole(0),
-  _superdetector("NONE"),
   _crystallogicnameprefix("eEcalCrystal"),
-  _mapping_tower_file( "" ),
   _4x4_construct_file( "" ),
   _overlapcheck_local(false)
 {

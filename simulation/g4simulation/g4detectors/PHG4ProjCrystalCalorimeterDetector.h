@@ -55,23 +55,6 @@ private:
   int Fill4x4Unit(G4LogicalVolume *crystal_logic);
   int FillSpecialUnit(G4LogicalVolume *crystal_logic, G4int ident);
 
-  /* Calorimeter envelope geometry */
-  G4double _place_in_x;
-  G4double _place_in_y;
-  G4double _place_in_z;
-
-  G4double _rot_in_x;
-  G4double _rot_in_y;
-  G4double _rot_in_z;
-
-  G4double _rMin1;
-  G4double _rMax1;
-  G4double _rMin2;
-  G4double _rMax2;
-
-  G4double _dZ;
-  G4double _sPhi;
-  G4double _dPhi;
 
   /* crystal geometry */
   G4double _dx_front;
@@ -80,18 +63,8 @@ private:
   G4double _dy_back;
   G4double _dz_crystal;
 
-  G4String _materialCrystal;
-
-  /* general detector parameters */
-  int _active;
-  int _absorberactive;
-  int _layer;
-  int _blackhole;
-
-  std::string _superdetector;
 
   std::string _crystallogicnameprefix;
-  std::string _mapping_tower_file;
   std::string _4x4_construct_file;
 
   bool _overlapcheck_local;
