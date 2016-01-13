@@ -24,8 +24,7 @@ public:
   virtual void Construct( G4LogicalVolume* world );
 
   //!@name volume accessors
-  int IsInCrystalCalorimeter(G4VPhysicalVolume*) const;
-
+  virtual int IsInCrystalCalorimeter(G4VPhysicalVolume*) const;
 
   // ----- accessing member variables: ------------
 
@@ -45,9 +44,9 @@ public:
   dz = _dz_crystal;
   }
 
-  void CarbonFiberAdjustments(G4double& adjust_width, G4double& adjust_length);
+  void GetCarbonFiberAdjustments(G4double& adjust_width, G4double& adjust_length);
 
-  void CarbonFiberSpacing(G4double& CF_width, G4double& Air_CF, G4double& Air_Cry);
+  void GetCarbonFiberSpacing(G4double& CF_width, G4double& Air_CF, G4double& Air_Cry);
 
 
 private:
@@ -74,8 +73,6 @@ private:
   G4double _sPhi;
   G4double _dPhi;
 
-  G4String _materialCrystal;
-
   /* crystal geometry */
   G4double _dx_front;
   G4double _dy_front;
@@ -83,6 +80,9 @@ private:
   G4double _dy_back;
   G4double _dz_crystal;
 
+  G4String _materialCrystal;
+
+  /* general detector parameters */
   int _active;
   int _absorberactive;
   int _layer;
@@ -93,6 +93,8 @@ private:
   std::string _crystallogicnameprefix;
   std::string _mapping_tower_file;
   std::string _4x4_construct_file;
+
+  bool _overlapcheck_local;
 };
 
 #endif

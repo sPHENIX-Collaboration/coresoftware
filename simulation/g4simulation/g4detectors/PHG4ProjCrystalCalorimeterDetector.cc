@@ -29,9 +29,6 @@
 
 using namespace std;
 
-//static double no_overlap = 0.00015 * cm; // added safety margin against overlaps by using same boundary between volumes
-static bool overlapcheck_local = true;
-
 //_______________________________________________________________________
 PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector( PHCompositeNode *Node, const std::string &dnam ):
   PHG4CrystalCalorimeterDetector(Node, dnam),
@@ -48,7 +45,6 @@ PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector( PHCompos
   _dZ(180*mm),
   _sPhi(0),
   _dPhi(2*M_PI),
-  _materialCrystal( "G4_PbWO4" ),
   //  _dx_front(50.19*mm),		//****************************************************************//
   //  _dy_front(50.19*mm),		//****************************************************************//
   //  _dx_back(59.3154545455*mm),		// PANDA eEMCAL Numbers: Crystals are 2.4cm * 2.4cm on front face //
@@ -59,7 +55,7 @@ PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector( PHCompos
   _dx_back(48.97454545455*mm),
   _dy_back(48.97454545455*mm),
   _dz_crystal(90.000*mm),
-
+  _materialCrystal( "G4_PbWO4" ),
   _active(1),
   _absorberactive(0),
   _layer(0),
@@ -67,7 +63,8 @@ PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector( PHCompos
   _superdetector("NONE"),
   _crystallogicnameprefix("eEcalCrystal"),
   _mapping_tower_file( "" ),
-  _4x4_construct_file( "" )
+  _4x4_construct_file( "" ),
+  _overlapcheck_local(false)
 {
 
 }
@@ -143,7 +140,7 @@ PHG4ProjCrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
 
   /* Place envelope cone in simulation */
   new G4PVPlacement( G4Transform3D(ecal_rotm, G4ThreeVector(_place_in_x, _place_in_y, _place_in_z) ),
-		     ecal_envelope_log, "CrystalCalorimeter", logicWorld, 0, false, overlapcheck_local);
+		     ecal_envelope_log, "CrystalCalorimeter", logicWorld, 0, false, _overlapcheck_local);
 
   /* Construct crystal calorimeter within envelope */
   ConstructProjectiveCrystals(ecal_envelope_log);
@@ -152,15 +149,15 @@ PHG4ProjCrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
 }
 
 void
-PHG4ProjCrystalCalorimeterDetector::CarbonFiberAdjustments(G4double& adjust_width, G4double& adjust_length)
+PHG4ProjCrystalCalorimeterDetector::GetCarbonFiberAdjustments(G4double& adjust_width, G4double& adjust_length)
 {
-        adjust_width = 0.1258525627*mm;   //Because the crystals are slightly angled, the carbon fiber needs to be shortened 
+        adjust_width = 0.1258525627*mm;   //Because the crystals are slightly angled, the carbon fiber needs to be shortened
         adjust_length = 2.4824474402*mm;  //      from the mother volume (to prevent clipping) by this amount.
 }
 
 
 void
-PHG4ProjCrystalCalorimeterDetector::CarbonFiberSpacing(G4double& CF_width, G4double& Air_CF, G4double& Air_Cry)
+PHG4ProjCrystalCalorimeterDetector::GetCarbonFiberSpacing(G4double& CF_width, G4double& Air_CF, G4double& Air_Cry)
 {
         //Parameters of the spacing given by PANDA document arXiv:0810.1216v1 Fig. 7.25
         CF_width = 0.18*mm;		//Width of the carbon fiber which surrounds the crystal
@@ -201,7 +198,7 @@ PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 
 	//Parameters of the spacing given by PANDA document arXiv:0810.1216v1 Fig. 7.25
 	G4double carbon_fiber_width, air_gap_carbon_fiber, air_gap_crystals;
-	CarbonFiberSpacing(carbon_fiber_width, air_gap_carbon_fiber, air_gap_crystals);
+	GetCarbonFiberSpacing(carbon_fiber_width, air_gap_carbon_fiber, air_gap_crystals);
 
 	//Crystal Dimensions
 	G4double dx_front_small = ( _dx_front - (2.0 * carbon_fiber_width ) - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;		//Full width of the front crystal face	
@@ -353,7 +350,7 @@ PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 				crystal_logic_small,
 				crystal_name.str().c_str(),
 				Two_by_Two_logic,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 			
 			j_idx = k_idx = 0;
 			x_cent = y_cent = z_cent = rot_x = rot_y = rot_z = 0.0;
@@ -394,7 +391,7 @@ PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 				Two_by_Two_logic,
 				Two_by_Two_name.str().c_str(),
 				crystal_logic,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 
 			j_idx = k_idx = 0;
 			x_cent = y_cent = z_cent = rot_x = rot_y = 0.0;
@@ -411,7 +408,7 @@ PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 
 	G4double dx1, dy1, dx2, dy2, dz_whole, carbon_fiber_adjust_width, carbon_fiber_adjust_length;
 
-	CarbonFiberAdjustments(carbon_fiber_adjust_width, carbon_fiber_adjust_length);
+	GetCarbonFiberAdjustments(carbon_fiber_adjust_width, carbon_fiber_adjust_length);
 
 	dx1 = _dx_front + carbon_fiber_adjust_width;
 	dy1 = dx1;
@@ -567,7 +564,7 @@ PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 		Carbon_Shell_logic,
 		"Carbon_Fiber_Shell",
 		crystal_logic,
-		0, 0, overlapcheck_local);
+		0, 0, _overlapcheck_local);
 
 	//***********************************
 	//All done! Return to parent function
@@ -609,7 +606,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 
 	//Parameters of the spacing given by PANDA document arXiv:0810.1216v1 Fig. 7.25
 	G4double carbon_fiber_width, air_gap_carbon_fiber, air_gap_crystals;
-	CarbonFiberSpacing(carbon_fiber_width, air_gap_carbon_fiber, air_gap_crystals);
+	GetCarbonFiberSpacing(carbon_fiber_width, air_gap_carbon_fiber, air_gap_crystals);
 
 	//Crystal Dimensions
 	G4double dx_front_small = ( _dx_front - (2.0 * carbon_fiber_width ) - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;		//Full width of the front crystal face	
@@ -759,7 +756,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 				crystal_logic_small,
 				crystal_name.str().c_str(),
 				Two_by_Two_logic,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 			
 			j_idx = k_idx = 0;
 			x_cent = y_cent = z_cent = rot_z = 0.0;
@@ -801,7 +798,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 				Two_by_Two_logic,
 				Two_by_Two_name.str().c_str(),
 				crystal_logic,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 
 		}
 		else if (ident == 22)
@@ -823,7 +820,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 					Two_by_Two_logic,
 					Two_by_Two_name.str().c_str(),
 					crystal_logic,
-					0, 0, overlapcheck_local);
+					0, 0, _overlapcheck_local);
 			}
 			
 		}
@@ -846,7 +843,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 					Two_by_Two_logic,
 					Two_by_Two_name.str().c_str(),
 					crystal_logic,
-					0, 0, overlapcheck_local);
+					0, 0, _overlapcheck_local);
 			}
 		}
 		else
@@ -924,7 +921,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 			Carbon_Shell_logic,
 			"Carbon_Fiber_Shell",
 			crystal_logic,
-			0, 0, overlapcheck_local);
+			0, 0, _overlapcheck_local);
 
 
 	
@@ -934,7 +931,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 
 		G4double carbon_fiber_adjust_width;	//Because the crystals are slightly angled, the carbon fiber needs to be shortened 
 		G4double carbon_fiber_adjust_length;	//	from the mother volume (to prevent clipping) by this amount.
-		CarbonFiberAdjustments(carbon_fiber_adjust_width, carbon_fiber_adjust_length);
+		GetCarbonFiberAdjustments(carbon_fiber_adjust_width, carbon_fiber_adjust_length);
 		G4double x_adjust = 0.0519558696*mm;
 
 		G4VSolid* Carbon_hunk_solid = new G4Trd(G4String("Carbon_hunk_solid"),
@@ -1025,7 +1022,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 			Carbon_Shell_logic,
 			"Carbon_Fiber_Shell",
 			crystal_logic,
-			0, 0, overlapcheck_local);
+			0, 0, _overlapcheck_local);
 
 	}
 	else if (ident == 32)
@@ -1053,7 +1050,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 
 		//Parameters of the spacing given by PANDA document arXiv:0810.1216v1 Fig. 7.25
 		G4double carbon_fiber_width, air_gap_carbon_fiber, air_gap_crystals;
-		CarbonFiberSpacing(carbon_fiber_width, air_gap_carbon_fiber, air_gap_crystals);
+		GetCarbonFiberSpacing(carbon_fiber_width, air_gap_carbon_fiber, air_gap_crystals);
 
 		//Crystal Dimensions
 		G4double dx_front_small = ( _dx_front - (2.0 * carbon_fiber_width ) - (2.0 * air_gap_carbon_fiber) - air_gap_crystals ) / 2.0;		//Full width of the front crystal face	
@@ -1185,7 +1182,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 			Carbon_Shell_logic,
 			"Carbon_Fiber_Shell",
 			crystal_logic,
-			0, 0, overlapcheck_local);
+			0, 0, _overlapcheck_local);
 	}
 	else
 	{
@@ -1419,7 +1416,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 				crystal_logic,
 				name.str().c_str(),
 				ecalenvelope,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 		}
 		else if (MappingIndex == 32) 
 		{
@@ -1439,7 +1436,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 				thirtytwo_logic,
 				name.str().c_str(),
 				ecalenvelope,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 
 		}
 		else if (MappingIndex == 22)
@@ -1459,7 +1456,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 				twentytwo_logic,
 				name.str().c_str(),
 				ecalenvelope,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 		}
 		else if (MappingIndex == 12)
 		{
@@ -1478,7 +1475,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 				twelve_logic,
 				name.str().c_str(),
 				ecalenvelope,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 		}
 		else
 		{
@@ -1518,7 +1515,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 				crystal_logic,
 				name.str().c_str(),
 				ecalenvelope,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 		}
 		else if (MappingIndex == 32) 
 		{
@@ -1538,7 +1535,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 				thirtytwo_logic,
 				name.str().c_str(),
 				ecalenvelope,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 
 		}
 		else if (MappingIndex == 22)
@@ -1560,7 +1557,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 				twentytwo_logic,
 				name.str().c_str(),
 				ecalenvelope,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 		}
 		else if (MappingIndex == 12)
 		{
@@ -1581,7 +1578,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 				twelve_logic,
 				name.str().c_str(),
 				ecalenvelope,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 		}
 		else
 		{
@@ -1620,7 +1617,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 				crystal_logic,
 				name.str().c_str(),
 				ecalenvelope,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 		}
 		else if (MappingIndex == 32) 
 		{
@@ -1640,7 +1637,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 				thirtytwo_logic,
 				name.str().c_str(),
 				ecalenvelope,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 
 		}
 		else if (MappingIndex == 22)
@@ -1662,7 +1659,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 				twentytwo_logic,
 				name.str().c_str(),
 				ecalenvelope,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 		}
 		else if (MappingIndex == 12)
 		{
@@ -1681,7 +1678,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 				twelve_logic,
 				name.str().c_str(),
 				ecalenvelope,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 		}
 		else
 		{
@@ -1722,7 +1719,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 				crystal_logic,
 				name.str().c_str(),
 				ecalenvelope,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 		}
 		else if (MappingIndex == 32) 
 		{
@@ -1742,7 +1739,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 				thirtytwo_logic,
 				name.str().c_str(),
 				ecalenvelope,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 
 		}
 		else if (MappingIndex == 22)
@@ -1764,7 +1761,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 				twentytwo_logic,
 				name.str().c_str(),
 				ecalenvelope,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 		}
 		else if (MappingIndex == 12)
 		{
@@ -1785,7 +1782,7 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 				twelve_logic,
 				name.str().c_str(),
 				ecalenvelope,
-				0, 0, overlapcheck_local);
+				0, 0, _overlapcheck_local);
 		}
 		else
 		{
