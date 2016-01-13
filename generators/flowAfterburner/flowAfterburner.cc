@@ -179,11 +179,8 @@ jjia_minbias_new_v2only (double b, double eta, double pt)
 
 // Custom vn 
 void
-custom_vn (double b, double eta, double pt)
+custom_vn (double /*b*/, double /*eta*/, double /*pt*/)
 {
-  b = b;
-  eta = eta;
-  pt = pt;			// to avoid compiler warnings
   v1 = 0.0000;
   v2 = 0.0500;
   v3 = 0.0280;

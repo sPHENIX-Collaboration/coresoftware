@@ -110,14 +110,14 @@ void HelixHough::z0Range_sse(const SimpleHit3D& hit, float cosphi1, float sinphi
   _mm_store_ps(z0_a, v_z0_1);
   
   min_z0 = z0_a[0];
-  z0_a[1] < min_z0 ? min_z0 = z0_a[1] : min_z0 = min_z0;
-  z0_a[2] < min_z0 ? min_z0 = z0_a[2] : min_z0 = min_z0;
-  z0_a[3] < min_z0 ? min_z0 = z0_a[3] : min_z0 = min_z0;
+  if (z0_a[1] < min_z0)  min_z0 = z0_a[1] ;
+  if (z0_a[2] < min_z0)  min_z0 = z0_a[2] ;
+  if (z0_a[3] < min_z0)  min_z0 = z0_a[3] ;
   
   max_z0 = z0_a[0];
-  z0_a[1] > max_z0 ? max_z0 = z0_a[1] : max_z0 = max_z0;
-  z0_a[2] > max_z0 ? max_z0 = z0_a[2] : max_z0 = max_z0;
-  z0_a[3] > max_z0 ? max_z0 = z0_a[3] : max_z0 = max_z0;
+  if (z0_a[1] > max_z0)  max_z0 = z0_a[1] ;
+  if (z0_a[2] > max_z0)  max_z0 = z0_a[2] ;
+  if (z0_a[3] > max_z0)  max_z0 = z0_a[3] ;
   
   
   min_z0 -= hit.dz;
