@@ -97,16 +97,6 @@ public:
 
 protected: // for variable also used in PHG4ProjCrystalCalorimeterDetector
 
-  G4LogicalVolume* ConstructTower();
-  int PlaceTower(G4LogicalVolume* envelope , G4LogicalVolume* tower);
-  int ParseParametersFromTable();
-
-  struct towerposition {
-    G4double x;
-    G4double y;
-    G4double z;
-  } ;
-
   /* Calorimeter envelope geometry */
   G4double _place_in_x;
   G4double _place_in_y;
@@ -142,6 +132,16 @@ protected: // for variable also used in PHG4ProjCrystalCalorimeterDetector
   std::string _mapping_tower_file;
 
 private: // private stuff
+
+  G4LogicalVolume* ConstructTower();
+  int PlaceTower(G4LogicalVolume* envelope , G4LogicalVolume* tower);
+  int ParseParametersFromTable();
+
+  struct towerposition {
+    G4double x;
+    G4double y;
+    G4double z;
+  } ;
 
   std::string _towerlogicnameprefix;
 
