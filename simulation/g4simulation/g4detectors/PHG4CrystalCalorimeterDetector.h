@@ -95,7 +95,7 @@ public:
   }
 
 
-private:
+protected: // for variable also used in PHG4ProjCrystalCalorimeterDetector
 
   G4LogicalVolume* ConstructTower();
   int PlaceTower(G4LogicalVolume* envelope , G4LogicalVolume* tower);
@@ -138,9 +138,12 @@ private:
   int _layer;
   int _blackhole;
 
-  std::string _towerlogicnameprefix;
   std::string _superdetector;
   std::string _mapping_tower_file;
+
+private: // private stuff
+
+  std::string _towerlogicnameprefix;
 
   std::map< std::string, G4double > _map_global_parameter;
   std::map< std::string, towerposition > _map_tower;

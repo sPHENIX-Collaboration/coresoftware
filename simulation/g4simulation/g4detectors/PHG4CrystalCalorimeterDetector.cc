@@ -52,9 +52,9 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode 
   _absorberactive(0),
   _layer(0),
   _blackhole(0),
-  _towerlogicnameprefix("CrystalCalorimeterTower"),
   _superdetector("NONE"),
-  _mapping_tower_file("")
+  _mapping_tower_file(""),
+  _towerlogicnameprefix("CrystalCalorimeterTower")
 {
 
 }
