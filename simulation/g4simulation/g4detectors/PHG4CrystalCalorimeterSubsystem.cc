@@ -64,7 +64,7 @@ int PHG4CrystalCalorimeterSubsystem::Init( PHCompositeNode* topNode )
       PHG4HitContainer* crystal_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
       if (!crystal_hits)
         {
-          crystal_hits = new PHG4HitContainer();
+          crystal_hits = new PHG4HitContainer(nodename.str());
           PHIODataNode<PHObject> *hitNode = new PHIODataNode<PHObject>(crystal_hits, nodename.str().c_str(), "PHObject");
           dstNode->addNode(hitNode);
         }
@@ -75,7 +75,7 @@ int PHG4CrystalCalorimeterSubsystem::Init( PHCompositeNode* topNode )
       PHG4HitContainer* absorber_hits = findNode::getClass<PHG4HitContainer>(topNode, absnodename.str().c_str());
       if (!absorber_hits)
         {
-          absorber_hits = new PHG4HitContainer();
+          absorber_hits = new PHG4HitContainer(absnodename.str());
           PHIODataNode<PHObject> *abshitNode = new PHIODataNode<PHObject>(absorber_hits, absnodename.str().c_str(), "PHObject");
           dstNode->addNode(abshitNode);
         }

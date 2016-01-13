@@ -144,6 +144,7 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 		{
 		  hit->set_trkid(pp->GetUserTrackId());
+		  hit->set_shower_id(pp->GetShower()->get_id());
 		}
 	    }
 	}
@@ -160,10 +161,30 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           {
             //	      unsigned int shift_layer_id = layer_id << (phg4hitdefs::keybits - 3);
             hits_->AddHit(layer_id, hit); // scintillator id is coded into layer number
+	    
+	    {
+	      if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		{
+		  if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		    {
+		      pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		    }
+		}
+	    }
           }
         else
           {
             absorberhits_->AddHit(layer_id, hit);
+	    
+	    {
+	      if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		{
+		  if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		    {
+		      pp->GetShower()->add_g4hit_id(absorberhits_->GetID(),hit->get_hit_id());
+		    }
+		}
+	    }
           }
 
         if (hit->get_z(0) > get_zmax() || hit->get_z(0) < get_zmin())

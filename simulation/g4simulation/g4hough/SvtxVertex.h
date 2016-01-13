@@ -24,7 +24,7 @@ public:
     os << "SvtxVertex base class" << std::endl;
   }
   virtual void         Reset() {}
-  virtual int          IsValid() const {return 0;}
+  virtual int          isValid() const {return 0;}
   virtual SvtxVertex*  Clone() const {return NULL;}
 
   // vertex info

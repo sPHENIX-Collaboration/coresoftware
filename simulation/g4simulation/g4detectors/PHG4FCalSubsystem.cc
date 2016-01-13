@@ -24,7 +24,7 @@ int PHG4FCalSubsystem::Init( PHCompositeNode* topNode )
     
     PHNodeIterator iter( topNode );
     PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST" ));
-    dstNode->addNode( new PHIODataNode<PHObject>( fcal_hits = new PHG4HitContainer(), "G4HIT_FCAL","PHObject" ));
+    dstNode->addNode( new PHIODataNode<PHObject>( fcal_hits = new PHG4HitContainer("G4HIT_FCAL"), "G4HIT_FCAL","PHObject" ));
     
   }
   

@@ -84,8 +84,9 @@ int PHG4SvtxBeamSpotReco::process_event(PHCompositeNode *topNode)
        iter != _vertexes->end();
        ++iter) {
     const SvtxVertex* vertex = iter->second;
-    double data[2] = {vertex->get_x(),vertex->get_y()};
-    _pca.AddRow(data);
+    Double_t data[2] = {vertex->get_x(),vertex->get_y()};
+    Double_t* pdata = &data[0];
+    _pca.AddRow(pdata);
   }
 
   // recalculate beam spot x,y

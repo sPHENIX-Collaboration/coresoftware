@@ -26,7 +26,7 @@ void SvtxHit_v1::identify(ostream& os) const {
   return;  
 }
 
-int SvtxHit_v1::IsValid() const {
+int SvtxHit_v1::isValid() const {
   if (_id == 0xFFFFFFFF) return 0;
   if (_layer == 0xFFFFFFFF) return 0;
   if (_adc == 0xFFFFFFFF) return 0;

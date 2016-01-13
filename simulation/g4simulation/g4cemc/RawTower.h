@@ -18,6 +18,11 @@ class RawTower : public PHObject {
   typedef std::pair<CellIterator, CellIterator> CellRange;
   typedef std::pair<CellConstIterator, CellConstIterator> CellConstRange;
 
+  typedef std::map<int, float> ShowerMap;
+  typedef ShowerMap::iterator ShowerIterator;
+  typedef ShowerMap::const_iterator ShowerConstIterator;
+  typedef std::pair<ShowerIterator, ShowerIterator> ShowerRange;
+  typedef std::pair<ShowerConstIterator, ShowerConstIterator> ShowerConstRange;
 
   virtual ~RawTower() {}
 
@@ -43,16 +48,33 @@ class RawTower : public PHObject {
   virtual float get_time() const { PHOOL_VIRTUAL_WARN("get_time()"); return NAN; }
   //! Time stamp assigned to the tower. Depending on the tower maker, it could be rise time or peak time.
   virtual void set_time (const float ) { PHOOL_VIRTUAL_WARN("set_time()"); return  ; }
-
+  
+  virtual bool empty_g4cells() const {return true;}
+  virtual size_t size_g4cells() const {return 0;}
   virtual CellConstRange get_g4cells() const
   {
     PHOOL_VIRTUAL_WARN("get_g4cells()");
     CellMap dummy;
     return make_pair(dummy.begin(), dummy.end());
   }
-
+  virtual CellIterator find_g4cell(PHG4CylinderCellDefs::keytype id) {return CellMap().end();}
+  virtual CellConstIterator find_g4cell(PHG4CylinderCellDefs::keytype id) const {return CellMap().end();}
   virtual void add_ecell(const PHG4CylinderCellDefs::keytype  g4cellid, const float ecell) {PHOOL_VIRTUAL_WARN("add_ecell(const PHG4CylinderCellDefs::keytype g4cellid, const float ecell)"); return;}
+  virtual void clear_g4cells() {}
 
+  virtual bool empty_g4showers() const {return true;}
+  virtual size_t size_g4showers() const {return 0;}
+  virtual ShowerConstRange get_g4showers() const
+  {
+    PHOOL_VIRTUAL_WARN("get_g4showers()");
+    ShowerMap dummy;
+    return make_pair(dummy.begin(), dummy.end());
+  }
+  virtual ShowerIterator find_g4shower(int id) {return ShowerMap().end();}
+  virtual ShowerConstIterator find_g4shower(int id) const {return ShowerMap().end();}
+  virtual void add_eshower(const int g4showerid, const float eshower) {PHOOL_VIRTUAL_WARN("add_eshower(const unsigned int g4showerid, const float eshower)"); return;}
+  virtual void clear_g4showers() {}
+  
  protected:
   RawTower() {}
 

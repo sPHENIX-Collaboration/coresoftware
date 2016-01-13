@@ -43,7 +43,8 @@ pkginclude_HEADERS = \
   SvtxTrackEval.h \
   SvtxVertexEval.h \
   SvtxEvaluator.h \
-  MomentumEvaluator.h
+  MomentumEvaluator.h \
+  PHG4DstCompressReco.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
@@ -84,7 +85,9 @@ libg4eval_la_SOURCES = \
   SvtxEvaluator.C \
   SvtxEvaluator_Dict.C \
   MomentumEvaluator.C \
-  MomentumEvaluator_Dict.C
+  MomentumEvaluator_Dict.C \
+  PHG4DstCompressReco.C \
+  PHG4DstCompressReco_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h

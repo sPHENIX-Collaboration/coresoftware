@@ -60,7 +60,7 @@ void SvtxVertex_v1::identify(ostream& os) const {
   return;  
 }
 
-int SvtxVertex_v1::IsValid() const {
+int SvtxVertex_v1::isValid() const {
   if (_id == 0xFFFFFFFF) return 0;
   if (isnan(_t0)) return 0;
   if (isnan(_chisq)) return 0;

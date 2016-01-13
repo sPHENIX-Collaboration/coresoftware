@@ -35,7 +35,7 @@ void SvtxBeamSpot::identify(ostream& os) const {
   return;  
 }
 
-int SvtxBeamSpot::IsValid() const {
+int SvtxBeamSpot::isValid() const {
   for (int i = 0; i < 2; ++i) {
     if (isnan(_pos[i])) return 0;
   }

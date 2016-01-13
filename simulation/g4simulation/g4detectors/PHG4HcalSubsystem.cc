@@ -93,7 +93,7 @@ int PHG4HcalSubsystem::InitRun( PHCompositeNode* topNode )
       PHG4HitContainer* cylinder_hits =  findNode::getClass<PHG4HitContainer>( topNode , nodename.str().c_str() );
       if ( !cylinder_hits )
         {
-          dstNode->addNode( new PHIODataNode<PHObject>( cylinder_hits = new PHG4HitContainer(), nodename.str().c_str(), "PHObject" ));
+          dstNode->addNode( new PHIODataNode<PHObject>( cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject" ));
         }
       cylinder_hits->AddLayer(layer);
       PHG4EventActionClearZeroEdep *evtac = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
@@ -111,7 +111,7 @@ int PHG4HcalSubsystem::InitRun( PHCompositeNode* topNode )
           PHG4HitContainer* cylinder_hits =  findNode::getClass<PHG4HitContainer>( topNode , nodename.str().c_str() );
           if ( !cylinder_hits )
             {
-              dstNode->addNode( new PHIODataNode<PHObject>( cylinder_hits = new PHG4HitContainer(), nodename.str().c_str(), "PHObject" ));
+              dstNode->addNode( new PHIODataNode<PHObject>( cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject" ));
             }
           cylinder_hits->AddLayer(layer);
           evtac->AddNode(nodename.str());

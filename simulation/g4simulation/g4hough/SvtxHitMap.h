@@ -21,7 +21,7 @@ public:
     os << "SvtxHitMap base class" << std::endl;
   }
   virtual void Reset() {}
-  virtual int  IsValid() const {return 0;}
+  virtual int  isValid() const {return 0;}
   virtual SvtxHitMap* Clone() const {return NULL;}
   
   virtual bool   empty()                   const {return true;}
