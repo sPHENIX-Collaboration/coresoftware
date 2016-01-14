@@ -1,6 +1,4 @@
 #include "PHG4CrystalCalorimeterDetector.h"
-#include "PHG4CylinderGeomContainer.h"
-#include "PHG4CylinderGeomv3.h"
 
 #include <g4main/PHG4Utils.h>
 
@@ -8,21 +6,16 @@
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 
-#include <Geant4/G4AssemblyVolume.hh>
-#include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4Trap.hh>
 #include <Geant4/G4GenericTrap.hh>
 #include <Geant4/G4Cons.hh>
-#include <Geant4/G4Box.hh>
 #include <Geant4/G4Trd.hh>
-
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Colour.hh>
 
@@ -30,12 +23,10 @@
 #include <sstream>
 
 #include <iostream>
-#include <fstream>
 #include <cstdlib>
 
 
 using namespace std;
-
 
 //_______________________________________________________________________
 PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode *Node, const std::string &dnam ):
@@ -58,10 +49,12 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode 
   _crystal_dz(180.0*mm),
   _materialCrystal( "G4_PbWO4" ),
   _active(1),
+  _absorberactive(0),
   _layer(0),
-  _towerlogicnameprefix("CrystalCalorimeterTower"),
+  _blackhole(0),
   _superdetector("NONE"),
-  _mapping_tower_file("")
+  _mapping_tower_file(""),
+  _towerlogicnameprefix("CrystalCalorimeterTower")
 {
 
 }
@@ -292,7 +285,7 @@ PHG4CrystalCalorimeterDetector::PlaceTower(G4LogicalVolume* eemcenvelope, G4Logi
   /* Loop over all tower positions in vector and place tower */
   typedef std::map< std::string, towerposition>::iterator it_type;
 
-  for(it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); iterator++) {
+  for(it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); ++iterator) {
 
       if ( verbosity > 0 )
 	{

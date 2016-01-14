@@ -476,12 +476,7 @@ void sPHENIXTracker::finalize(vector<SimpleTrack3D>& input, vector<SimpleTrack3D
       {
         HelixKalmanState state = track_states[i];
         
-        track_states[i].C *= 0.05;
-        for(int j=0;j<5;++j)
-        {
-          track_states[i].C(2,j) *= 0.03;
-          track_states[i].C(j,2) *= 0.03;
-        }
+        track_states[i].C *= 30;
         
         track_states[i].chi2 = 0.;
         track_states[i].x_int = 0.;
@@ -491,17 +486,19 @@ void sPHENIXTracker::finalize(vector<SimpleTrack3D>& input, vector<SimpleTrack3D
         for(int h=(output[i].hits.size() - 1);h>=0;--h)
         {
           SimpleHit3D hit = output[i].hits[h];
-          float err_scale = 1.;
-          int layer = hit.layer;
-          if( (layer >= 0) && (layer < (int)(hit_error_scale.size()) ) ){err_scale = hit_error_scale[layer];}
-          err_scale *= 0.5;
+          float err_scale = 0.66;
           hit.dx *= err_scale;hit.dy *= err_scale;hit.dz *= err_scale;
-          
           kalman->addHit(hit, track_states[i]);
         }
+
+        SimpleTrack3D temp_track = output[i];
+        fitTrack(temp_track);
+        track_states[i].kappa = temp_track.kappa;
+        track_states[i].nu = sqrt(temp_track.kappa);
         
         if(!(track_states[i].kappa == track_states[i].kappa)){track_states[i] = state;}
         
+        if(output[i].phi < 0.){output[i].phi += 2.*M_PI;}
         output[i].phi = track_states[i].phi;
         output[i].d = track_states[i].d;
         output[i].kappa = track_states[i].kappa;
