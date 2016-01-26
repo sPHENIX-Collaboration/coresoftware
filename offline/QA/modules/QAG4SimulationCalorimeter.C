@@ -244,7 +244,8 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
     }
 
   assert(not _truth_container->GetMap().empty());
-  const PHG4Particle * last_primary = _truth_container->GetMap().rbegin()->second;
+  const PHG4Particle * last_primary =
+      _truth_container->GetMap().rbegin()->second;
   assert(last_primary);
 
   if (verbosity > 2)
@@ -376,55 +377,58 @@ QAG4SimulationCalorimeter::Init_Tower(PHCompositeNode *topNode)
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_1x1", //
-  "h_" + TString(_calo_name) + "_TOWER_1x1", 5000, 0, 50));
-  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_1x1_max", //
-  TString(get_histo_prefix()) + "_TOWER_1x1_max", 5000, 0, 50));
-  hm->registerHisto(
-      new TH1F(TString(get_histo_prefix()) + "_TOWER_1x1_max_trigger_ADC", //
-      TString(get_histo_prefix()) + "_TOWER_1x1_max_trigger_ADC", 5000, 0, 50));
+  TH1F * h = NULL;
 
-  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_2x2", //
-  "h_" + TString(_calo_name) + "_TOWER_2x2", 5000, 0, 50));
-  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_2x2_max", //
-  TString(get_histo_prefix()) + "_TOWER_2x2_max", 5000, 0, 50));
-  hm->registerHisto(
-      new TH1F(TString(get_histo_prefix()) + "_TOWER_2x2_max_trigger_ADC", //
-      TString(get_histo_prefix()) + "_TOWER_2x2_max_trigger_ADC", 5000, 0, 50));
-  hm->registerHisto(
-      new TH1F(
-          TString(get_histo_prefix()) + "_TOWER_2x2_slide2_max_trigger_ADC", //
-          TString(get_histo_prefix()) + "_TOWER_2x2_slide2_max_trigger_ADC",
-          5000, 0, 50));
+  h = new TH1F(TString(get_histo_prefix()) + "_TOWER_1x1", //
+  TString(_calo_name) + " 1x1 tower;1x1 TOWER Energy (GeV)", 100, 9e-4, 100);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
 
-  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_3x3", //
-  "h_" + TString(_calo_name) + "_TOWER_3x3", 5000, 0, 50));
-  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_3x3_max", //
-  TString(get_histo_prefix()) + "_TOWER_3x3_max", 5000, 0, 50));
   hm->registerHisto(
-      new TH1F(TString(get_histo_prefix()) + "_TOWER_3x3_max_trigger_ADC", //
-      TString(get_histo_prefix()) + "_TOWER_3x3_max_trigger_ADC", 5000, 0, 50));
+      new TH1F(TString(get_histo_prefix()) + "_TOWER_1x1_max", //
+          TString(_calo_name)
+              + " 1x1 tower max per event;1x1 tower max per event (GeV)", 5000,
+          0, 50));
 
-  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_4x4", //
-  "h_" + TString(_calo_name) + "_TOWER_4x4", 5000, 0, 50));
-  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_4x4_max", //
-  TString(get_histo_prefix()) + "_TOWER_4x4_max", 5000, 0, 50));
+  h = new TH1F(TString(get_histo_prefix()) + "_TOWER_2x2", //
+  TString(_calo_name) + " 2x2 tower;2x2 TOWER Energy (GeV)", 100, 9e-4, 100);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
   hm->registerHisto(
-      new TH1F(TString(get_histo_prefix()) + "_TOWER_4x4_max_trigger_ADC", //
-      TString(get_histo_prefix()) + "_TOWER_4x4_max_trigger_ADC", 5000, 0, 50));
-  hm->registerHisto(
-      new TH1F(
-          TString(get_histo_prefix()) + "_TOWER_4x4_slide2_max_trigger_ADC", //
-          TString(get_histo_prefix()) + "_TOWER_4x4_slide2_max_trigger_ADC",
-          5000, 0, 50));
+      new TH1F(TString(get_histo_prefix()) + "_TOWER_2x2_max", //
+          TString(_calo_name)
+              + " 2x2 tower max per event;2x2 tower max per event (GeV)", 5000,
+          0, 50));
 
-  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_5x5", //
-  "h_" + TString(_calo_name) + "_TOWER_4x4", 5000, 0, 50));
-  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_5x5_max", //
-  TString(get_histo_prefix()) + "_TOWER_5x5_max", 5000, 0, 50));
+  h = new TH1F(TString(get_histo_prefix()) + "_TOWER_3x3", //
+  TString(_calo_name) + " 3x3 tower;3x3 TOWER Energy (GeV)", 100, 9e-4, 100);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
   hm->registerHisto(
-      new TH1F(TString(get_histo_prefix()) + "_TOWER_5x5_max_trigger_ADC", //
-      TString(get_histo_prefix()) + "_TOWER_5x5_max_trigger_ADC", 5000, 0, 50));
+      new TH1F(TString(get_histo_prefix()) + "_TOWER_3x3_max", //
+          TString(_calo_name)
+              + " 3x3 tower max per event;3x3 tower max per event (GeV)", 5000,
+          0, 50));
+
+  h = new TH1F(TString(get_histo_prefix()) + "_TOWER_4x4", //
+  TString(_calo_name) + " 4x4 tower;4x4 TOWER Energy (GeV)", 100, 9e-4, 100);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+  hm->registerHisto(
+      new TH1F(TString(get_histo_prefix()) + "_TOWER_4x4_max", //
+          TString(_calo_name)
+              + " 4x4 tower max per event;4x4 tower max per event (GeV)", 5000,
+          0, 50));
+
+  h = new TH1F(TString(get_histo_prefix()) + "_TOWER_5x5", //
+  TString(_calo_name) + " 5x5 tower;5x5 TOWER Energy (GeV)", 100, 9e-4, 100);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+  hm->registerHisto(
+      new TH1F(TString(get_histo_prefix()) + "_TOWER_5x5_max", //
+          TString(_calo_name)
+              + " 5x5 tower max per event;5x5 tower max per event (GeV)", 5000,
+          0, 50));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -457,7 +461,6 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  static const double trigger_ADC_bin = 45. / 256.; //8-bit ADC max to 45 GeV
   static const int max_size = 5;
   map<int, string> size_label;
   size_label[1] = "1x1";
@@ -466,19 +469,14 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
   size_label[4] = "4x4";
   size_label[5] = "5x5";
   map<int, double> max_energy;
-  map<int, double> max_energy_trigger_ADC;
-  map<int, double> slide2_max_energy_trigger_ADC;
   map<int, TH1F*> energy_hist_list;
   map<int, TH1F*> max_energy_hist_list;
-  map<int, TH1F*> max_energy_trigger_ADC_hist_list;
-  map<int, TH1F*> slide2_max_energy_trigger_ADC_hist_list;
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
   for (int size = 1; size <= max_size; ++size)
     {
       max_energy[size] = 0;
-      max_energy_trigger_ADC[size] = 0;
 
       TH1F* h = NULL;
 
@@ -491,25 +489,6 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
       assert(h);
       max_energy_hist_list[size] = h;
 
-      h = (TH1F*) hm->getHisto(
-          get_histo_prefix() + "_TOWER_" + size_label[size]
-              + "_max_trigger_ADC");
-      assert(h);
-      max_energy_trigger_ADC_hist_list[size] = h;
-
-      if (size == 2 or size == 4)
-        {
-          // sliding window made from 2x2 sums
-          slide2_max_energy_trigger_ADC[size] = 0;
-
-          h = (TH1F*) hm->getHisto(
-              get_histo_prefix() + "_TOWER_" + size_label[size]
-                  + "_slide2_max_trigger_ADC");
-          assert(h);
-          slide2_max_energy_trigger_ADC_hist_list[size] = h;
-
-        }
-
     }
 
   for (int binphi = 0; binphi < towergeom->get_phibins(); ++binphi)
@@ -518,10 +497,15 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
         {
           for (int size = 1; size <= max_size; ++size)
             {
-              double energy = 0;
-              double energy_trigger_ADC = 0;
-              double slide2_energy_trigger_ADC = 0;
 
+              // for 2x2 and 4x4 use slide-2 window as implimented in DAQ
+              if ((size == 2 or size == 4)
+                  and ((binphi % 2 != 0) and (bineta % 2 != 0)))
+                continue;
+
+              double energy = 0;
+
+              // sliding window made from 2x2 sums
               for (int iphi = binphi; iphi < binphi + size; ++iphi)
                 {
                   for (int ieta = bineta; ieta < bineta + size; ++ieta)
@@ -543,40 +527,15 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
                         {
                           const double e_intput = tower->get_energy();
 
-                          const double e_trigger_ADC = round(
-                              e_intput / trigger_ADC_bin) * trigger_ADC_bin;
-
                           energy += e_intput;
-                          energy_trigger_ADC += e_trigger_ADC;
-
-                          if ((size == 2 or size == 4) and (binphi % 2 == 0)
-                              and (bineta % 2 == 0))
-                            {
-                              // sliding window made from 2x2 sums
-
-                              slide2_energy_trigger_ADC += e_trigger_ADC;
-                            }
                         }
                     }
                 }
 
-              energy_hist_list[size]->Fill(energy);
+              energy_hist_list[size]->Fill(energy == 0 ? 9.1e-4 : energy); // trick to fill 0 energy tower to the first bin
 
               if (energy > max_energy[size])
                 max_energy[size] = energy;
-              if (energy_trigger_ADC > max_energy_trigger_ADC[size])
-                max_energy_trigger_ADC[size] = energy_trigger_ADC;
-
-              if ((size == 2 or size == 4) and (binphi % 2 == 0)
-                  and (bineta % 2 == 0))
-                {
-                  // sliding window made from 2x2 sums
-
-                  if (slide2_energy_trigger_ADC
-                      > slide2_max_energy_trigger_ADC[size])
-                    slide2_max_energy_trigger_ADC[size] =
-                        slide2_energy_trigger_ADC;
-                }
 
             } //          for (int size = 1; size <= 4; ++size)
         }
@@ -585,15 +544,6 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
   for (int size = 1; size <= max_size; ++size)
     {
       max_energy_hist_list[size]->Fill(max_energy[size]);
-      max_energy_trigger_ADC_hist_list[size]->Fill(
-          max_energy_trigger_ADC[size]);
-
-      if (size == 2 or size == 4)
-        {
-          // sliding window made from 2x2 sums
-          slide2_max_energy_trigger_ADC_hist_list[size]->Fill(
-              slide2_max_energy_trigger_ADC[size]);
-        }
     }
   return Fun4AllReturnCodes::EVENT_OK;
 }
