@@ -41,7 +41,7 @@ QA_Draw_HCALOUT_TowerCluster(const char * qa_file_name_new =
       assert(qa_file_ref->IsOpen());
     }
 
-  TCanvas *c1 = new TCanvas("QA_Draw_HCALOUT_G4Hit", "QA_Draw_HCALOUT_G4Hit",
+  TCanvas *c1 = new TCanvas("QA_Draw_HCALOUT_", "QA_Draw_HCALOUT_",
       1800, 900);
   c1->Divide(4, 2);
   int idx = 1;
