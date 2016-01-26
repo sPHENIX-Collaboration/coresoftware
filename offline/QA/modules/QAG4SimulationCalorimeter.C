@@ -386,23 +386,29 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
         << " - SF = " << e_calo / (e_calo + ea_calo + 1e-9) << ", VSF = "
         << ev_calo / (e_calo + ea_calo + 1e-9) << endl;
 
-  h = dynamic_cast<TH1F*>(hm->getHisto(get_histo_prefix() + "_G4Hit_SF"));
-  assert(h);
-  h->Fill(e_calo / (e_calo + ea_calo + 1e-9));
+  if (e_calo + ea_calo > 0)
+    {
+      h = dynamic_cast<TH1F*>(hm->getHisto(get_histo_prefix() + "_G4Hit_SF"));
+      assert(h);
+      h->Fill(e_calo / (e_calo + ea_calo));
 
-  h = dynamic_cast<TH1F*>(hm->getHisto(get_histo_prefix() + "_G4Hit_VSF"));
-  assert(h);
-  h->Fill(ev_calo / (e_calo + ea_calo + 1e-9));
+      h = dynamic_cast<TH1F*>(hm->getHisto(get_histo_prefix() + "_G4Hit_VSF"));
+      assert(h);
+      h->Fill(ev_calo / (e_calo + ea_calo));
+    }
 
   h = dynamic_cast<TH1F*>(hm->getHisto(
       get_histo_prefix() + "_G4Hit_FractionTruthEnergy"));
   assert(h);
   h->Fill((e_calo + ea_calo) / total_primary_energy);
 
-  h = dynamic_cast<TH1F*>(hm->getHisto(
-      get_histo_prefix() + "_G4Hit_FractionEMVisibleEnergy"));
-  assert(h);
-  h->Fill(ev_calo_em / (ev_calo + 1e-9));
+  if (ev_calo > 0)
+    {
+      h = dynamic_cast<TH1F*>(hm->getHisto(
+          get_histo_prefix() + "_G4Hit_FractionEMVisibleEnergy"));
+      assert(h);
+      h->Fill(ev_calo_em / (ev_calo));
+    }
 
   if (verbosity > 3)
     cout << "QAG4SimulationCalorimeter::process_event_G4Hit::" << _calo_name
