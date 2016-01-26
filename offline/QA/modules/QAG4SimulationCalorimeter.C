@@ -197,32 +197,32 @@ QAG4SimulationCalorimeter::Init_G4Hit(PHCompositeNode *topNode)
   assert(hm);
 
   hm->registerHisto(
-      new TH2F(TString(get_histo_prefix()) + "_RZ", //
+      new TH2F(TString(get_histo_prefix()) + "_G4Hit_RZ", //
       TString(_calo_name) + " RZ projection;Z (cm);R (cm)", 1200, -300, 300,
           600, -000, 300));
 
   hm->registerHisto(
-      new TH2F(TString(get_histo_prefix()) + "_XY", //
+      new TH2F(TString(get_histo_prefix()) + "_G4Hit_XY", //
       TString(_calo_name) + " XY projection;X (cm);Y (cm)", 1200, -300, 300,
           1200, -300, 300));
 
   hm->registerHisto(
-      new TH2F(TString(get_histo_prefix()) + "_LateralTruthProjection", //
+      new TH2F(TString(get_histo_prefix()) + "_G4Hit_LateralTruthProjection", //
           TString(_calo_name)
               + " shower lateral projection (last primary);Polar direction (cm);Azimuthal direction (cm)",
           200, -30, 30, 200, -30, 30));
 
-  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_SF", //
+  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_G4Hit_SF", //
   TString(_calo_name) + " sampling fraction;Sampling fraction", 1000, 0, .2));
 
   hm->registerHisto(
-      new TH1F(TString(get_histo_prefix()) + "_VSF", //
+      new TH1F(TString(get_histo_prefix()) + "_G4Hit_VSF", //
           TString(_calo_name)
               + " visible sampling fraction;Visible sampling fraction", 1000, 0,
           .2));
 
   TH1F * h =
-      new TH1F(TString(get_histo_prefix()) + "_HitTime", //
+      new TH1F(TString(get_histo_prefix()) + "_G4Hit_HitTime", //
           TString(_calo_name)
               + " hit time (edep weighting);Hit time - T0 (ns);Geant4 energy density",
           1000, 0.5, 10000);
@@ -230,7 +230,7 @@ QAG4SimulationCalorimeter::Init_G4Hit(PHCompositeNode *topNode)
   hm->registerHisto(h);
 
   hm->registerHisto(
-      new TH1F(TString(get_histo_prefix()) + "_FractionEnergy", //
+      new TH1F(TString(get_histo_prefix()) + "_G4Hit_FractionEnergy", //
           TString(_calo_name)
               + " fraction truth energy ;G4 energy (active + absorber) / total truth energy",
           1000, 0, 1));
@@ -314,14 +314,14 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
 
   if (_calo_hit_container)
     {
-      TH2F * hrz = (TH2F*) hm->getHisto(get_histo_prefix() + "_RZ");
+      TH2F * hrz = (TH2F*) hm->getHisto(get_histo_prefix() + "_G4Hit_RZ");
       assert(hrz);
-      TH2F * hxy = (TH2F*) hm->getHisto(get_histo_prefix() + "_XY");
+      TH2F * hxy = (TH2F*) hm->getHisto(get_histo_prefix() + "_G4Hit_XY");
       assert(hxy);
-      TH2F * ht = (TH2F*) hm->getHisto(get_histo_prefix() + "_HitTime");
+      TH2F * ht = (TH2F*) hm->getHisto(get_histo_prefix() + "_G4Hit_HitTime");
       assert(ht);
       TH2F * hlat = (TH2F*) hm->getHisto(
-          get_histo_prefix() + "_LateralTruthProjection");
+          get_histo_prefix() + "_G4Hit_LateralTruthProjection");
       assert(hlat);
 
       PHG4HitContainer::ConstRange calo_hit_range =
@@ -370,15 +370,15 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
         << " - SF = " << e_calo / (e_calo + ea_calo + 1e-9) << ", VSF = "
         << ev_calo / (e_calo + ea_calo + 1e-9) << endl;
 
-  h = (TH1F*) hm->getHisto(get_histo_prefix() + "_SF");
+  h = (TH1F*) hm->getHisto(get_histo_prefix() + "_G4Hit_SF");
   assert(h);
   h->Fill(e_calo / (e_calo + ea_calo + 1e-9));
 
-  h = (TH1F*) hm->getHisto(get_histo_prefix() + "_VSF");
+  h = (TH1F*) hm->getHisto(get_histo_prefix() + "_G4Hit_VSF");
   assert(h);
   h->Fill(ev_calo / (e_calo + ea_calo + 1e-9));
 
-  h = (TH1F*) hm->getHisto(get_histo_prefix() + "_FractionEnergy");
+  h = (TH1F*) hm->getHisto(get_histo_prefix() + "_G4Hit_FractionEnergy");
   assert(h);
   h->Fill((e_calo + ea_calo) / total_primary_energy);
 
@@ -399,53 +399,53 @@ QAG4SimulationCalorimeter::Init_Tower(PHCompositeNode *topNode)
 
   TH1F * h = NULL;
 
-  h = new TH1F(TString(get_histo_prefix()) + "_TOWER_1x1", //
+  h = new TH1F(TString(get_histo_prefix()) + "_Tower_1x1", //
   TString(_calo_name) + " 1x1 tower;1x1 TOWER Energy (GeV)", 100, 9e-4, 100);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
 
   hm->registerHisto(
-      new TH1F(TString(get_histo_prefix()) + "_TOWER_1x1_max", //
+      new TH1F(TString(get_histo_prefix()) + "_Tower_1x1_max", //
           TString(_calo_name)
               + " 1x1 tower max per event;1x1 tower max per event (GeV)", 5000,
           0, 50));
 
-  h = new TH1F(TString(get_histo_prefix()) + "_TOWER_2x2", //
+  h = new TH1F(TString(get_histo_prefix()) + "_Tower_2x2", //
   TString(_calo_name) + " 2x2 tower;2x2 TOWER Energy (GeV)", 100, 9e-4, 100);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
   hm->registerHisto(
-      new TH1F(TString(get_histo_prefix()) + "_TOWER_2x2_max", //
+      new TH1F(TString(get_histo_prefix()) + "_Tower_2x2_max", //
           TString(_calo_name)
               + " 2x2 tower max per event;2x2 tower max per event (GeV)", 5000,
           0, 50));
 
-  h = new TH1F(TString(get_histo_prefix()) + "_TOWER_3x3", //
+  h = new TH1F(TString(get_histo_prefix()) + "_Tower_3x3", //
   TString(_calo_name) + " 3x3 tower;3x3 TOWER Energy (GeV)", 100, 9e-4, 100);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
   hm->registerHisto(
-      new TH1F(TString(get_histo_prefix()) + "_TOWER_3x3_max", //
+      new TH1F(TString(get_histo_prefix()) + "_Tower_3x3_max", //
           TString(_calo_name)
               + " 3x3 tower max per event;3x3 tower max per event (GeV)", 5000,
           0, 50));
 
-  h = new TH1F(TString(get_histo_prefix()) + "_TOWER_4x4", //
+  h = new TH1F(TString(get_histo_prefix()) + "_Tower_4x4", //
   TString(_calo_name) + " 4x4 tower;4x4 TOWER Energy (GeV)", 100, 9e-4, 100);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
   hm->registerHisto(
-      new TH1F(TString(get_histo_prefix()) + "_TOWER_4x4_max", //
+      new TH1F(TString(get_histo_prefix()) + "_Tower_4x4_max", //
           TString(_calo_name)
               + " 4x4 tower max per event;4x4 tower max per event (GeV)", 5000,
           0, 50));
 
-  h = new TH1F(TString(get_histo_prefix()) + "_TOWER_5x5", //
+  h = new TH1F(TString(get_histo_prefix()) + "_Tower_5x5", //
   TString(_calo_name) + " 5x5 tower;5x5 TOWER Energy (GeV)", 100, 9e-4, 100);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
   hm->registerHisto(
-      new TH1F(TString(get_histo_prefix()) + "_TOWER_5x5_max", //
+      new TH1F(TString(get_histo_prefix()) + "_Tower_5x5_max", //
           TString(_calo_name)
               + " 5x5 tower max per event;5x5 tower max per event (GeV)", 5000,
           0, 50));
@@ -501,11 +501,11 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
       TH1F* h = NULL;
 
       h = (TH1F*) hm->getHisto(
-          get_histo_prefix() + "_TOWER_" + size_label[size]);
+          get_histo_prefix() + "_Tower_" + size_label[size]);
       assert(h);
       energy_hist_list[size] = h;
       h = (TH1F*) hm->getHisto(
-          get_histo_prefix() + "_TOWER_" + size_label[size] + "_max");
+          get_histo_prefix() + "_Tower_" + size_label[size] + "_max");
       assert(h);
       max_energy_hist_list[size] = h;
 
@@ -576,7 +576,7 @@ QAG4SimulationCalorimeter::Init_Cluster(PHCompositeNode *topNode)
   assert(hm);
 
   hm->registerHisto(
-      new TH1F(TString(get_histo_prefix()) + "_MaxClusterE", //
+      new TH1F(TString(get_histo_prefix()) + "_Cluster_BestMatchERatio", //
           TString(_calo_name)
               + " best matched cluster E/E_{Truth};E_{Cluster}/E_{Truth}", 150,
           0, 1.5));
@@ -613,7 +613,7 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
   CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
   assert(clustereval);
 
-  TH1F* h = (TH1F*) hm->getHisto(get_histo_prefix() + "_MaxClusterE");
+  TH1F* h = (TH1F*) hm->getHisto(get_histo_prefix() + "_Cluster_BestMatchERatio");
   assert(h);
 
   RawCluster* cluster = clustereval->best_cluster_from(last_primary);
@@ -622,11 +622,10 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
 
       if (verbosity > 3)
       cout << "QAG4SimulationCalorimeter::process_event_Cluster::" << _calo_name
-          << " - get cluster :";
-
-      cluster->identify();
+          << " - get cluster with energy "<<cluster->get_energy() <<" VS primary energy "<< last_primary->get_e() <<endl;
 
       h->Fill(cluster->get_energy() / (last_primary->get_e() + 1e-9)); //avoids divide zero
+
     }
   else
     {
