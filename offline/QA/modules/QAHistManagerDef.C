@@ -1,5 +1,5 @@
 // $Id: $                                                                                             
- 
+
 /*!
  * \file QAHistManagerDef.h
  * \brief 
@@ -9,10 +9,15 @@
  */
 
 #include "QAHistManagerDef.h"
+
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllHistoManager.h>
 
+#include <TAxis.h>
+#include <TMath.h>
+
 #include <cassert>
+#include <vector>
 
 using namespace std;
 
@@ -47,6 +52,28 @@ namespace QAHistManagerDef
   {
     getHistoManager()->dumpHistos(file_name);
   }
-}
 
+//! utility function to
+  void
+  useLogBins(TAxis * axis)
+  {
+    assert(axis);
+    assert(axis->GetXmin()>0);
+    assert( axis->GetXmax()>0);
+
+    const int bins = axis->GetNbins();
+
+    Axis_t from = log10(axis->GetXmin());
+    Axis_t to = log10(axis->GetXmax());
+    Axis_t width = (to - from) / bins;
+    vector<Axis_t> new_bins(bins + 1);
+
+    for (int i = 0; i <= bins; i++)
+      {
+        new_bins[i] = TMath::Power(10, from + i * width);
+      }
+    axis->Set(bins, new_bins.data());
+
+  }
+}
 

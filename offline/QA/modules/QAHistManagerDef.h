@@ -12,7 +12,9 @@
 #define QAHISTMANAGERDEF_H_
 
 #include <string>
+
 class Fun4AllHistoManager;
+class TAxis;
 
 namespace QAHistManagerDef
 {
@@ -27,6 +29,9 @@ namespace QAHistManagerDef
 
   //! default name for QA histogram manager
   static const std::string HistoManagerName = "QA_HISTOS";
+
+  //! utility function to convert TAxis to log scale binning (usually for x axis)
+  void useLogBins(TAxis * axis);
 }
 
 #endif /* QAHISTMANAGERDEF_H_ */
