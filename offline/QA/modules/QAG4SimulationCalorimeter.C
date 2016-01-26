@@ -469,7 +469,7 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
     {
       std::cout << PHWHERE << ": Could not find node " << towernodename.c_str()
           << std::endl;
-      return Fun4AllReturnCodes::DISCARDEVENT;
+      return Fun4AllReturnCodes::ABORTRUN;
     }
   string towergeomnodename = "TOWERGEOM_" + detector;
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(
@@ -478,7 +478,7 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
     {
       cout << PHWHERE << ": Could not find node " << towergeomnodename.c_str()
           << endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
+      return Fun4AllReturnCodes::ABORTRUN;
     }
 
   static const int max_size = 5;
@@ -581,6 +581,12 @@ QAG4SimulationCalorimeter::Init_Cluster(PHCompositeNode *topNode)
               + " best matched cluster E/E_{Truth};E_{Cluster}/E_{Truth}", 150,
           0, 1.5));
 
+  hm->registerHisto(
+      new TH2F(TString(get_histo_prefix()) + "_Cluster_LateralTruthProjection", //
+          TString(_calo_name)
+              + " best cluster lateral projection (last primary);Polar direction (cm);Azimuthal direction (cm)",
+          200, -15, 15, 200, -15, 15));
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -589,10 +595,20 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
 {
 
   if (verbosity > 2)
-    cout << "QAG4SimulationCalorimeter::process_event_G4Hit() entered" << endl;
+    cout << "QAG4SimulationCalorimeter::process_event_Cluster() entered" << endl;
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
+
+  string towergeomnodename = "TOWERGEOM_" + _calo_name;
+  RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(
+      topNode, towergeomnodename.c_str());
+  if (!towergeom)
+    {
+      cout << PHWHERE << ": Could not find node " << towergeomnodename.c_str()
+          << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
 
   // get primary
   assert(_truth_container);
@@ -604,10 +620,11 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
   if (verbosity > 2)
     {
       cout
-          << "QAG4SimulationCalorimeter::process_event_Cluster() handle this truth particle"
+          << "QAG4SimulationCalorimeter::process_event_G4Hit() handle this truth particle"
           << endl;
       last_primary->identify();
     }
+
 
   assert(_caloevalstack);
   CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
@@ -619,12 +636,59 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
   RawCluster* cluster = clustereval->best_cluster_from(last_primary);
   if (cluster)
     {
+      // has a cluster matched and best cluster selected
 
       if (verbosity > 3)
       cout << "QAG4SimulationCalorimeter::process_event_Cluster::" << _calo_name
           << " - get cluster with energy "<<cluster->get_energy() <<" VS primary energy "<< last_primary->get_e() <<endl;
 
       h->Fill(cluster->get_energy() / (last_primary->get_e() + 1e-9)); //avoids divide zero
+
+      // now work on the projection:
+      const double average_r = towergeom->get_radius() + towergeom->get_thickness() / 2;
+      const double theta = 2 * atan( exp(- cluster-> get_eta()));
+      TVector3 hit ( average_r*cos(cluster-> get_phi()) , average_r*sin(cluster-> get_phi()), average_r/tan(theta)   );
+
+
+      const PHG4VtxPoint* primary_vtx = //
+          _truth_container->GetPrimaryVtx(last_primary->get_vtx_id());
+      assert(primary_vtx);
+      if (verbosity > 2)
+        {
+          cout
+              << "QAG4SimulationCalorimeter::process_event_G4Hit() handle this vertex"
+              << endl;
+          primary_vtx->identify();
+        }
+
+      const TVector3 vertex(primary_vtx->get_x(), primary_vtx->get_y(),
+          primary_vtx->get_z());
+
+      // projection axis
+      TVector3 axis_proj(last_primary->get_px(), last_primary->get_py(),
+          last_primary->get_pz());
+      if (axis_proj.Mag() == 0)
+        axis_proj.SetXYZ(0, 0, 1);
+      axis_proj = axis_proj.Unit();
+
+      // azimuthal direction axis
+      TVector3 axis_azimuth = axis_proj.Cross(TVector3(0, 0, 1));
+      if (axis_azimuth.Mag() == 0)
+        axis_azimuth.SetXYZ(1, 0, 0);
+      axis_azimuth = axis_azimuth.Unit();
+
+      // polar direction axis
+      TVector3 axis_polar = axis_proj.Cross(axis_azimuth);
+      assert(axis_polar.Mag() >0);
+      axis_polar = axis_polar.Unit();
+
+      TH2F * hlat = (TH2F*) hm->getHisto(
+          get_histo_prefix() + "_Cluster_LateralTruthProjection");
+      assert(hlat);
+
+      const double hit_azimuth = axis_azimuth.Dot(hit - vertex);
+      const double hit_polar = axis_polar.Dot(hit - vertex);
+      hlat->Fill(hit_polar, hit_azimuth);
 
     }
   else
