@@ -48,7 +48,7 @@ namespace QAHistManagerDef
 
   //! Save hist to root files
   void
-  saveQARootFile(const std::string file_name)
+  saveQARootFile(const std::string & file_name)
   {
     getHistoManager()->dumpHistos(file_name);
   }

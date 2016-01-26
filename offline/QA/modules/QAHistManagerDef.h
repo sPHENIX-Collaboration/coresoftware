@@ -25,7 +25,7 @@ namespace QAHistManagerDef
 
   //! Save hist to root files. It will overwrite the old file if exist
   void
-  saveQARootFile(const std::string file_name);
+  saveQARootFile(const std::string & file_name);
 
   //! default name for QA histogram manager
   static const std::string HistoManagerName = "QA_HISTOS";
