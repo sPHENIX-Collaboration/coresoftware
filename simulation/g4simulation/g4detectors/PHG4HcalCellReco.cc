@@ -211,7 +211,8 @@ PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
 	      celllist[key]->set_etabin(slatno);
 	    }
 
-	  celllist[key]->add_edep(hiter->first, hiter->second->get_edep(),hiter->second->get_light_yield());
+    celllist[key]->add_edep(hiter->first, hiter->second->get_edep(),hiter->second->get_light_yield());
+    celllist[key]->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep());
 	} // end loop over g4hits
       int numcells = 0;
       for (map<unsigned int, PHG4CylinderCell *>::const_iterator mapiter = celllist.begin();mapiter != celllist.end() ; ++mapiter)
