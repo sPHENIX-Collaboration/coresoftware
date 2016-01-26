@@ -230,10 +230,16 @@ QAG4SimulationCalorimeter::Init_G4Hit(PHCompositeNode *topNode)
   hm->registerHisto(h);
 
   hm->registerHisto(
-      new TH1F(TString(get_histo_prefix()) + "_G4Hit_FractionEnergy", //
+      new TH1F(TString(get_histo_prefix()) + "_G4Hit_FractionTruthEnergy", //
           TString(_calo_name)
               + " fraction truth energy ;G4 energy (active + absorber) / total truth energy",
           1000, 0, 1));
+
+  hm->registerHisto(
+      new TH1F(TString(get_histo_prefix()) + "_G4Hit_FractionEMVisibleEnergy", //
+          TString(_calo_name)
+              + " fraction visible energy from EM; visible energy from e^{#pm} / total visible energy",
+          100, 0, 1));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -308,19 +314,23 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
   assert(axis_polar.Mag() >0);
   axis_polar = axis_polar.Unit();
 
-  double e_calo = 0.0;
-  double ev_calo = 0.0;
-  double ea_calo = 0.0;
+  double e_calo = 0.0; // active energy deposition
+  double ev_calo = 0.0; // visible energy
+  double ea_calo = 0.0; // absorber energy
+  double ev_calo_em = 0.0; // EM visible energy
 
   if (_calo_hit_container)
     {
-      TH2F * hrz = dynamic_cast<TH2F*>( hm->getHisto(get_histo_prefix() + "_G4Hit_RZ"));
+      TH2F * hrz = dynamic_cast<TH2F*>(hm->getHisto(
+          get_histo_prefix() + "_G4Hit_RZ"));
       assert(hrz);
-      TH2F * hxy = dynamic_cast<TH2F*>( hm->getHisto(get_histo_prefix() + "_G4Hit_XY"));
+      TH2F * hxy = dynamic_cast<TH2F*>(hm->getHisto(
+          get_histo_prefix() + "_G4Hit_XY"));
       assert(hxy);
-      TH2F * ht = dynamic_cast<TH2F*>( hm->getHisto(get_histo_prefix() + "_G4Hit_HitTime"));
+      TH1F * ht = dynamic_cast<TH1F*>(hm->getHisto(
+          get_histo_prefix() + "_G4Hit_HitTime"));
       assert(ht);
-      TH2F * hlat = dynamic_cast<TH2F*>( hm->getHisto(
+      TH2F * hlat = dynamic_cast<TH2F*>(hm->getHisto(
           get_histo_prefix() + "_G4Hit_LateralTruthProjection"));
       assert(hlat);
 
@@ -335,6 +345,12 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
 
           e_calo += this_hit->get_edep();
           ev_calo += this_hit->get_light_yield();
+
+          // EM visible energy that is only associated with electron energy deposition
+          PHG4Particle* particle = _truth_container->GetParticle(
+              this_hit->get_trkid());
+          if (abs(particle->get_pid()) == 11)
+            ev_calo_em += this_hit->get_light_yield();
 
           const TVector3 hit(this_hit->get_avg_x(), this_hit->get_avg_y(),
               this_hit->get_avg_z());
@@ -370,17 +386,23 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
         << " - SF = " << e_calo / (e_calo + ea_calo + 1e-9) << ", VSF = "
         << ev_calo / (e_calo + ea_calo + 1e-9) << endl;
 
-  h = dynamic_cast<TH1F*>( hm->getHisto(get_histo_prefix() + "_G4Hit_SF"));
+  h = dynamic_cast<TH1F*>(hm->getHisto(get_histo_prefix() + "_G4Hit_SF"));
   assert(h);
   h->Fill(e_calo / (e_calo + ea_calo + 1e-9));
 
-  h = dynamic_cast<TH1F*>( hm->getHisto(get_histo_prefix() + "_G4Hit_VSF"));
+  h = dynamic_cast<TH1F*>(hm->getHisto(get_histo_prefix() + "_G4Hit_VSF"));
   assert(h);
   h->Fill(ev_calo / (e_calo + ea_calo + 1e-9));
 
-  h = dynamic_cast<TH1F*>( hm->getHisto(get_histo_prefix() + "_G4Hit_FractionEnergy"));
+  h = dynamic_cast<TH1F*>(hm->getHisto(
+      get_histo_prefix() + "_G4Hit_FractionTruthEnergy"));
   assert(h);
   h->Fill((e_calo + ea_calo) / total_primary_energy);
+
+  h = dynamic_cast<TH1F*>(hm->getHisto(
+      get_histo_prefix() + "_G4Hit_FractionEMVisibleEnergy"));
+  assert(h);
+  h->Fill(ev_calo_em / (ev_calo + 1e-9));
 
   if (verbosity > 3)
     cout << "QAG4SimulationCalorimeter::process_event_G4Hit::" << _calo_name
@@ -500,11 +522,11 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
 
       TH1F* h = NULL;
 
-      h = dynamic_cast<TH1F*>( hm->getHisto(
+      h = dynamic_cast<TH1F*>(hm->getHisto(
           get_histo_prefix() + "_Tower_" + size_label[size]));
       assert(h);
       energy_hist_list[size] = h;
-      h = dynamic_cast<TH1F*>( hm->getHisto(
+      h = dynamic_cast<TH1F*>(hm->getHisto(
           get_histo_prefix() + "_Tower_" + size_label[size] + "_max"));
       assert(h);
       max_energy_hist_list[size] = h;
@@ -595,7 +617,8 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
 {
 
   if (verbosity > 2)
-    cout << "QAG4SimulationCalorimeter::process_event_Cluster() entered" << endl;
+    cout << "QAG4SimulationCalorimeter::process_event_Cluster() entered"
+        << endl;
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -613,8 +636,7 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
   // get primary
   assert(_truth_container);
   assert(not _truth_container->GetMap().empty());
-  PHG4Particle * last_primary =
-      _truth_container->GetMap().rbegin()->second;
+  PHG4Particle * last_primary = _truth_container->GetMap().rbegin()->second;
   assert(last_primary);
 
   if (verbosity > 2)
@@ -625,12 +647,12 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
       last_primary->identify();
     }
 
-
   assert(_caloevalstack);
   CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
   assert(clustereval);
 
-  TH1F* h = dynamic_cast<TH1F*>( hm->getHisto(get_histo_prefix() + "_Cluster_BestMatchERatio"));
+  TH1F* h = dynamic_cast<TH1F*>(hm->getHisto(
+      get_histo_prefix() + "_Cluster_BestMatchERatio"));
   assert(h);
 
   RawCluster* cluster = clustereval->best_cluster_from(last_primary);
@@ -639,16 +661,19 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
       // has a cluster matched and best cluster selected
 
       if (verbosity > 3)
-      cout << "QAG4SimulationCalorimeter::process_event_Cluster::" << _calo_name
-          << " - get cluster with energy "<<cluster->get_energy() <<" VS primary energy "<< last_primary->get_e() <<endl;
+        cout << "QAG4SimulationCalorimeter::process_event_Cluster::"
+            << _calo_name << " - get cluster with energy "
+            << cluster->get_energy() << " VS primary energy "
+            << last_primary->get_e() << endl;
 
       h->Fill(cluster->get_energy() / (last_primary->get_e() + 1e-9)); //avoids divide zero
 
       // now work on the projection:
-      const double average_r = towergeom->get_radius() + towergeom->get_thickness() / 2;
-      const double theta = 2 * atan( exp(- cluster-> get_eta()));
-      TVector3 hit ( average_r*cos(cluster-> get_phi()) , average_r*sin(cluster-> get_phi()), average_r/tan(theta)   );
-
+      const double average_r = towergeom->get_radius()
+          + towergeom->get_thickness() / 2;
+      const double theta = 2 * atan(exp(-cluster->get_eta()));
+      TVector3 hit(average_r * cos(cluster->get_phi()),
+          average_r * sin(cluster->get_phi()), average_r / tan(theta));
 
       const PHG4VtxPoint* primary_vtx = //
           _truth_container->GetPrimaryVtx(last_primary->get_vtx_id());
@@ -682,7 +707,7 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
       assert(axis_polar.Mag() >0);
       axis_polar = axis_polar.Unit();
 
-      TH2F * hlat = dynamic_cast<TH2F*>( hm->getHisto(
+      TH2F * hlat = dynamic_cast<TH2F*>(hm->getHisto(
           get_histo_prefix() + "_Cluster_LateralTruthProjection"));
       assert(hlat);
 
@@ -694,8 +719,8 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
   else
     {
       if (verbosity > 3)
-      cout << "QAG4SimulationCalorimeter::process_event_Cluster::" << _calo_name
-          << " - missing cluster !";
+        cout << "QAG4SimulationCalorimeter::process_event_Cluster::"
+            << _calo_name << " - missing cluster !";
       h->Fill(0); // no cluster matched
     }
 
