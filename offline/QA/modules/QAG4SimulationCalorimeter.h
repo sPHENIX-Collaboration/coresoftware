@@ -14,11 +14,10 @@ class PHG4TruthInfoContainer;
 class Fun4AllHistoManager;
 class TH1F;
 class TTree;
-class SvtxEvalStack;
 class PHG4Particle;
 class RawTowerGeom;
 class RawTowerContainer;
-class SvtxTrack;
+class CaloEvalStack;
 
 /// \class QAG4SimulationCalorimeter
 class QAG4SimulationCalorimeter : public SubsysReco
@@ -30,7 +29,7 @@ public:
   {
     kProcessG4Hit = 1 << 1, kProcessTower = 1 << 2, kProcessCluster = 1 << 3,
 
-    kDefaultFlag = kProcessG4Hit | kProcessTower
+    kDefaultFlag = kProcessG4Hit | kProcessTower | kProcessCluster
   };
 
   QAG4SimulationCalorimeter(std::string calo_name, enu_flags flags = kDefaultFlag);
@@ -76,17 +75,6 @@ public:
     _flags &= ~(uint32_t) flag;
   }
 
-  float
-  get_mag_field() const
-  {
-    return _magfield;
-  }
-  void
-  set_mag_field(float magfield)
-  {
-    _magfield = magfield;
-  }
-
   //! common prefix for QA histograms
   std::string get_histo_prefix();
 
@@ -102,15 +90,12 @@ private:
   int
   process_event_Tower(PHCompositeNode *topNode);
 
-//  int
-//  Init_MCPhoton(PHCompositeNode *topNode);
-//  int
-//  process_event_MCPhoton(PHCompositeNode *topNode);
+  int
+  Init_Cluster(PHCompositeNode *topNode);
+  int
+  process_event_Cluster(PHCompositeNode *topNode);
 
-  SvtxEvalStack * _eval_stack;
-
-  //! to be retired with system interface
-  double _magfield;
+  CaloEvalStack* _caloevalstack;
 
   std::string _calo_name;
   uint32_t _flags;

@@ -51,7 +51,7 @@ using namespace std;
 QAG4SimulationCalorimeter::QAG4SimulationCalorimeter(string _calo_name,
     QAG4SimulationCalorimeter::enu_flags flags) :
     SubsysReco("QAG4SimulationCalorimeter_" + _calo_name), //
-    _eval_stack(NULL), _magfield(1.5), //
+    _caloevalstack(NULL), //
     _calo_name(_calo_name), _flags(flags), _ievent(0), //
     _calo_hit_container(NULL), _calo_abs_hit_container(NULL), _truth_container(
         NULL)
@@ -61,9 +61,9 @@ QAG4SimulationCalorimeter::QAG4SimulationCalorimeter(string _calo_name,
 
 QAG4SimulationCalorimeter::~QAG4SimulationCalorimeter()
 {
-  if (_eval_stack)
+  if (_caloevalstack)
     {
-      delete _eval_stack;
+      delete _caloevalstack;
     }
 }
 
@@ -108,6 +108,19 @@ QAG4SimulationCalorimeter::InitRun(PHCompositeNode *topNode)
       assert(_truth_container);
     }
 
+  if (flag(kProcessCluster))
+    {
+      if (!_caloevalstack)
+        {
+          _caloevalstack = new CaloEvalStack(topNode, _calo_name);
+          _caloevalstack->set_strict(true);
+          _caloevalstack->set_verbosity(verbosity + 1);
+        }
+      else
+        {
+          _caloevalstack->next_event(topNode);
+        }
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -139,6 +152,13 @@ QAG4SimulationCalorimeter::Init(PHCompositeNode *topNode)
             << endl;
       Init_Tower(topNode);
     }
+  if (flag(kProcessCluster))
+    {
+      if (verbosity >= 1)
+        cout << "QAG4SimulationCalorimeter::Init - Process tower occupancies"
+            << endl;
+      Init_Cluster(topNode);
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -150,15 +170,15 @@ QAG4SimulationCalorimeter::process_event(PHCompositeNode *topNode)
   if (verbosity > 2)
     cout << "QAG4SimulationCalorimeter::process_event() entered" << endl;
 
-  if (_eval_stack)
-    _eval_stack->next_event(topNode);
+  if (_caloevalstack)
+    _caloevalstack->next_event(topNode);
 
   if (flag(kProcessG4Hit))
     process_event_G4Hit(topNode);
   if (flag(kProcessTower))
     process_event_Tower(topNode);
-//  if (flag(kProcessMCPhoton))
-//    process_event_MCPhoton(topNode);
+  if (flag(kProcessCluster))
+    process_event_Cluster(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -545,5 +565,76 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
     {
       max_energy_hist_list[size]->Fill(max_energy[size]);
     }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int
+QAG4SimulationCalorimeter::Init_Cluster(PHCompositeNode *topNode)
+{
+
+  Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  hm->registerHisto(
+      new TH1F(TString(get_histo_prefix()) + "_MaxClusterE", //
+          TString(_calo_name)
+              + " best matched cluster E/E_{Truth};E_{Cluster}/E_{Truth}", 150,
+          0, 1.5));
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int
+QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
+{
+
+  if (verbosity > 2)
+    cout << "QAG4SimulationCalorimeter::process_event_G4Hit() entered" << endl;
+
+  Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  // get primary
+  assert(_truth_container);
+  assert(not _truth_container->GetMap().empty());
+  PHG4Particle * last_primary =
+      _truth_container->GetMap().rbegin()->second;
+  assert(last_primary);
+
+  if (verbosity > 2)
+    {
+      cout
+          << "QAG4SimulationCalorimeter::process_event_Cluster() handle this truth particle"
+          << endl;
+      last_primary->identify();
+    }
+
+  assert(_caloevalstack);
+  CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
+  assert(clustereval);
+
+  TH1F* h = (TH1F*) hm->getHisto(get_histo_prefix() + "_MaxClusterE");
+  assert(h);
+
+  RawCluster* cluster = clustereval->best_cluster_from(last_primary);
+  if (cluster)
+    {
+
+      if (verbosity > 3)
+      cout << "QAG4SimulationCalorimeter::process_event_Cluster::" << _calo_name
+          << " - get cluster :";
+
+      cluster->identify();
+
+      h->Fill(cluster->get_energy() / (last_primary->get_e() + 1e-9)); //avoids divide zero
+    }
+  else
+    {
+      if (verbosity > 3)
+      cout << "QAG4SimulationCalorimeter::process_event_Cluster::" << _calo_name
+          << " - missing cluster !";
+      h->Fill(0); // no cluster matched
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
