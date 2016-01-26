@@ -54,6 +54,7 @@ QA_Draw_CEMC_G4Hit(const char * qa_file_name_new =
   TH2F * h_QAG4Sim_CEMC_G4Hit_XY = (TH2F *) qa_file_new->GetObjectChecked(
       "h_QAG4Sim_CEMC_G4Hit_XY", "TH2F");
   assert(h_QAG4Sim_CEMC_G4Hit_XY);
+  h_QAG4Sim_CEMC_G4Hit_XY->GetYaxis()->SetTitleOffset(1.5);
   h_QAG4Sim_CEMC_G4Hit_XY->Draw("COLZ");
 
   p = (TPad *) c1->cd(idx++);
@@ -63,6 +64,7 @@ QA_Draw_CEMC_G4Hit(const char * qa_file_name_new =
   TH2F * h_QAG4Sim_CEMC_G4Hit_RZ = (TH2F *) qa_file_new->GetObjectChecked(
       "h_QAG4Sim_CEMC_G4Hit_RZ", "TH2F");
   assert(h_QAG4Sim_CEMC_G4Hit_RZ);
+  h_QAG4Sim_CEMC_G4Hit_RZ->GetYaxis()->SetTitleOffset(1.5);
   h_QAG4Sim_CEMC_G4Hit_RZ->Draw("COLZ");
 
   p = (TPad *) c1->cd(idx++);
@@ -275,7 +277,7 @@ QA_Draw_CEMC_G4Hit(const char * qa_file_name_new =
         }
 
 
-  SaveCanvas(c1, TString(qa_file_name_new) + TString(c1->GetName()), kFALSE);
+  SaveCanvas(c1, TString(qa_file_name_new) + TString(c1->GetName()), true);
 }
 
 void
