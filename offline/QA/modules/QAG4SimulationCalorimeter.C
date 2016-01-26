@@ -53,7 +53,8 @@ QAG4SimulationCalorimeter::QAG4SimulationCalorimeter(string _calo_name,
     SubsysReco("QAG4SimulationCalorimeter_" + _calo_name), //
     _eval_stack(NULL), _magfield(1.5), //
     _calo_name(_calo_name), _flags(flags), _ievent(0), //
-    _calo_hit_container(NULL), _calo_abs_hit_container(NULL)
+    _calo_hit_container(NULL), _calo_abs_hit_container(NULL), _truth_container(
+        NULL)
 {
 
 }
@@ -76,23 +77,35 @@ QAG4SimulationCalorimeter::InitRun(PHCompositeNode *topNode)
       "PHCompositeNode", "DST"));
   assert(dstNode);
 
-  _calo_hit_container = findNode::getClass<PHG4HitContainer>(topNode,
-      "G4HIT_" + _calo_name);
-  if (!_calo_hit_container)
+  if (flag(kProcessG4Hit))
     {
-      cout << "QAG4SimulationCalorimeter::InitRun - Fatal Error - "
-          << "unable to find DST node " << "G4HIT_" + _calo_name << endl;
-      assert(_calo_hit_container);
+      _calo_hit_container = findNode::getClass<PHG4HitContainer>(topNode,
+          "G4HIT_" + _calo_name);
+      if (!_calo_hit_container)
+        {
+          cout << "QAG4SimulationCalorimeter::InitRun - Fatal Error - "
+              << "unable to find DST node " << "G4HIT_" + _calo_name << endl;
+          assert(_calo_hit_container);
+        }
+
+      _calo_abs_hit_container = findNode::getClass<PHG4HitContainer>(topNode,
+          "G4HIT_ABSORBER_" + _calo_name);
+      if (!_calo_abs_hit_container)
+        {
+          cout << "QAG4SimulationCalorimeter::InitRun - Fatal Error - "
+              << "unable to find DST node " << "G4HIT_ABSORBER_" + _calo_name
+              << endl;
+          assert(_calo_abs_hit_container);
+        }
     }
 
-  _calo_abs_hit_container = findNode::getClass<PHG4HitContainer>(topNode,
-      "G4HIT_ABSORBER_" + _calo_name);
-  if (!_calo_abs_hit_container)
+  _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode,
+      "G4TruthInfo");
+  if (!_truth_container)
     {
       cout << "QAG4SimulationCalorimeter::InitRun - Fatal Error - "
-          << "unable to find DST node " << "G4HIT_ABSORBER_" + _calo_name
-          << endl;
-      assert(_calo_abs_hit_container);
+          << "unable to find DST node " << "G4TruthInfo" << endl;
+      assert(_truth_container);
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -111,22 +124,20 @@ QAG4SimulationCalorimeter::Init(PHCompositeNode *topNode)
 
   _ievent = 0;
 
-  if (flag(kProcessSF))
+  if (flag(kProcessG4Hit))
     {
-      cout << "QAG4SimulationCalorimeter::Init - Process sampling fraction"
-          << endl;
-      Init_SF(topNode);
+
+      if (verbosity >= 1)
+        cout << "QAG4SimulationCalorimeter::Init - Process sampling fraction"
+            << endl;
+      Init_G4Hit(topNode);
     }
   if (flag(kProcessTower))
     {
-      cout << "QAG4SimulationCalorimeter::Init - Process tower occupancies"
-          << endl;
+      if (verbosity >= 1)
+        cout << "QAG4SimulationCalorimeter::Init - Process tower occupancies"
+            << endl;
       Init_Tower(topNode);
-    }
-  if (flag(kProcessMCPhoton))
-    {
-      cout << "QAG4SimulationCalorimeter::Init - Process trakcs" << endl;
-//      Init_MCPhoton(topNode);
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -142,8 +153,8 @@ QAG4SimulationCalorimeter::process_event(PHCompositeNode *topNode)
   if (_eval_stack)
     _eval_stack->next_event(topNode);
 
-  if (flag(kProcessSF))
-    process_event_SF(topNode);
+  if (flag(kProcessG4Hit))
+    process_event_G4Hit(topNode);
   if (flag(kProcessTower))
     process_event_Tower(topNode);
 //  if (flag(kProcessMCPhoton))
@@ -152,42 +163,129 @@ QAG4SimulationCalorimeter::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+string
+QAG4SimulationCalorimeter::get_histo_prefix()
+{
+  return "h_QAG4Sim_" + string(_calo_name);
+}
+
 int
-QAG4SimulationCalorimeter::Init_SF(PHCompositeNode *topNode)
+QAG4SimulationCalorimeter::Init_G4Hit(PHCompositeNode *topNode)
 {
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  hm->registerHisto(new TH1F("EMCalAna_h_" + TString(_calo_name) + "_SF", //
-  "_h_" + TString(_calo_name) + "_SF", 1000, 0, .2));
-  hm->registerHisto(new TH1F("EMCalAna_h_" + TString(_calo_name) + "_VSF", //
-  "_h_" + TString(_calo_name) + "_VSF", 1000, 0, .2));
+  hm->registerHisto(
+      new TH2F(TString(get_histo_prefix()) + "_RZ", //
+      TString(_calo_name) + " RZ projection;Z (cm);R (cm)", 1200, -300, 300,
+          600, -000, 300));
 
   hm->registerHisto(
-      new TH2F("EMCalAna_h_" + TString(_calo_name) + "_RZ", //
-      "EMCalAna_h_" + TString(_calo_name) + "_RZ;Z (cm);R (cm)", 1200, -300, 300, 600,
-          -000, 300));
+      new TH2F(TString(get_histo_prefix()) + "_XY", //
+      TString(_calo_name) + " XY projection;X (cm);Y (cm)", 1200, -300, 300,
+          1200, -300, 300));
 
   hm->registerHisto(
-      new TH2F("EMCalAna_h_" + TString(_calo_name) + "_XY", //
-      "EMCalAna_h_" + TString(_calo_name) + "_XY;X (cm);Y (cm)", 1200, -300, 300, 1200,
-          -300, 300));
+      new TH2F(TString(get_histo_prefix()) + "_LateralTruthProjection", //
+          TString(_calo_name)
+              + " shower lateral projection (last primary);Polar direction (cm);Azimuthal direction (cm)",
+          200, -30, 30, 200, -30, 30));
+
+  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_SF", //
+  TString(_calo_name) + " sampling fraction;Sampling fraction", 1000, 0, .2));
+
+  hm->registerHisto(
+      new TH1F(TString(get_histo_prefix()) + "_VSF", //
+          TString(_calo_name)
+              + " visible sampling fraction;Visible sampling fraction", 1000, 0,
+          .2));
+
+  TH1F * h =
+      new TH1F(TString(get_histo_prefix()) + "_HitTime", //
+          TString(_calo_name)
+              + " hit time (edep weighting);Hit time - T0 (ns);Geant4 energy density",
+          1000, 0.5, 10000);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+
+  hm->registerHisto(
+      new TH1F(TString(get_histo_prefix()) + "_FractionEnergy", //
+          TString(_calo_name)
+              + " fraction truth energy ;G4 energy (active + absorber) / total truth energy",
+          1000, 0, 1));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int
-QAG4SimulationCalorimeter::process_event_SF(PHCompositeNode *topNode)
+QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
 {
 
   if (verbosity > 2)
-    cout << "QAG4SimulationCalorimeter::process_event_SF() entered" << endl;
+    cout << "QAG4SimulationCalorimeter::process_event_G4Hit() entered" << endl;
 
   TH1F* h = NULL;
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
+
+  // get primary
+  assert(_truth_container);
+  PHG4TruthInfoContainer::ConstRange primary_range =
+      _truth_container->GetPrimaryParticleRange();
+  double total_primary_energy = 1e-9; //make it zero energy epsilon samll so it can be used for denominator
+  for (PHG4TruthInfoContainer::ConstIterator particle_iter = primary_range.first;
+      particle_iter != primary_range.second; ++particle_iter)
+    {
+      const PHG4Particle *particle = particle_iter->second;
+      assert(particle);
+      total_primary_energy += particle->get_e();
+    }
+
+  assert(not _truth_container->GetMap().empty());
+  const PHG4Particle * last_primary = _truth_container->GetMap().rbegin()->second;
+  assert(last_primary);
+
+  if (verbosity > 2)
+    {
+      cout
+          << "QAG4SimulationCalorimeter::process_event_G4Hit() handle this truth particle"
+          << endl;
+      last_primary->identify();
+    }
+  const PHG4VtxPoint* primary_vtx = //
+      _truth_container->GetPrimaryVtx(last_primary->get_vtx_id());
+  assert(primary_vtx);
+  if (verbosity > 2)
+    {
+      cout
+          << "QAG4SimulationCalorimeter::process_event_G4Hit() handle this vertex"
+          << endl;
+      primary_vtx->identify();
+    }
+
+  const double t0 = primary_vtx->get_t();
+  const TVector3 vertex(primary_vtx->get_x(), primary_vtx->get_y(),
+      primary_vtx->get_z());
+
+  // projection axis
+  TVector3 axis_proj(last_primary->get_px(), last_primary->get_py(),
+      last_primary->get_pz());
+  if (axis_proj.Mag() == 0)
+    axis_proj.SetXYZ(0, 0, 1);
+  axis_proj = axis_proj.Unit();
+
+  // azimuthal direction axis
+  TVector3 axis_azimuth = axis_proj.Cross(TVector3(0, 0, 1));
+  if (axis_azimuth.Mag() == 0)
+    axis_azimuth.SetXYZ(1, 0, 0);
+  axis_azimuth = axis_azimuth.Unit();
+
+  // polar direction axis
+  TVector3 axis_polar = axis_proj.Cross(axis_azimuth);
+  assert(axis_polar.Mag() >0);
+  axis_polar = axis_polar.Unit();
 
   double e_calo = 0.0;
   double ev_calo = 0.0;
@@ -195,10 +293,15 @@ QAG4SimulationCalorimeter::process_event_SF(PHCompositeNode *topNode)
 
   if (_calo_hit_container)
     {
-      TH2F * hrz = (TH2F*) hm->getHisto("EMCalAna_h_" + _calo_name + "_RZ");
+      TH2F * hrz = (TH2F*) hm->getHisto(get_histo_prefix() + "_RZ");
       assert(hrz);
-      TH2F * hxy = (TH2F*) hm->getHisto("EMCalAna_h_" + _calo_name + "_XY");
+      TH2F * hxy = (TH2F*) hm->getHisto(get_histo_prefix() + "_XY");
       assert(hxy);
+      TH2F * ht = (TH2F*) hm->getHisto(get_histo_prefix() + "_HitTime");
+      assert(ht);
+      TH2F * hlat = (TH2F*) hm->getHisto(
+          get_histo_prefix() + "_LateralTruthProjection");
+      assert(hlat);
 
       PHG4HitContainer::ConstRange calo_hit_range =
           _calo_hit_container->getHits();
@@ -214,8 +317,14 @@ QAG4SimulationCalorimeter::process_event_SF(PHCompositeNode *topNode)
 
           const TVector3 hit(this_hit->get_avg_x(), this_hit->get_avg_y(),
               this_hit->get_avg_z());
-          hrz->Fill(hit.Z(), hit.Perp(), this_hit->get_light_yield());
-          hxy->Fill(hit.X(), hit.Y(), this_hit->get_light_yield());
+
+          hrz->Fill(hit.Z(), hit.Perp(), this_hit->get_edep());
+          hxy->Fill(hit.X(), hit.Y(), this_hit->get_edep());
+          ht->Fill(this_hit->get_avg_t() - t0, this_hit->get_edep());
+
+          const double hit_azimuth = axis_azimuth.Dot(hit - vertex);
+          const double hit_polar = axis_polar.Dot(hit - vertex);
+          hlat->Fill(hit_polar, hit_azimuth, this_hit->get_edep());
         }
     }
 
@@ -235,12 +344,27 @@ QAG4SimulationCalorimeter::process_event_SF(PHCompositeNode *topNode)
         }
     }
 
-  h = (TH1F*) hm->getHisto("EMCalAna_h_" + _calo_name + "_SF");
+  if (verbosity > 3)
+    cout << "QAG4SimulationCalorimeter::process_event_G4Hit::" << _calo_name
+        << " - SF = " << e_calo / (e_calo + ea_calo + 1e-9) << ", VSF = "
+        << ev_calo / (e_calo + ea_calo + 1e-9) << endl;
+
+  h = (TH1F*) hm->getHisto(get_histo_prefix() + "_SF");
   assert(h);
-  h->Fill(e_calo / (e_calo + ea_calo) + 1e-9);
-  h = (TH1F*) hm->getHisto("EMCalAna_h_" + _calo_name + "_VSF");
+  h->Fill(e_calo / (e_calo + ea_calo + 1e-9));
+
+  h = (TH1F*) hm->getHisto(get_histo_prefix() + "_VSF");
   assert(h);
-  h->Fill(ev_calo / (e_calo + ea_calo) + 1e-9);
+  h->Fill(ev_calo / (e_calo + ea_calo + 1e-9));
+
+  h = (TH1F*) hm->getHisto(get_histo_prefix() + "_FractionEnergy");
+  assert(h);
+  h->Fill((e_calo + ea_calo) / total_primary_energy);
+
+  if (verbosity > 3)
+    cout << "QAG4SimulationCalorimeter::process_event_G4Hit::" << _calo_name
+        << " - histogram " << h->GetName() << " Get Sum = " << h->GetSum()
+        << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -252,53 +376,55 @@ QAG4SimulationCalorimeter::Init_Tower(PHCompositeNode *topNode)
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  hm->registerHisto(new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_1x1", //
+  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_1x1", //
   "h_" + TString(_calo_name) + "_TOWER_1x1", 5000, 0, 50));
-  hm->registerHisto(new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_1x1_max", //
-  "EMCalAna_h_" + TString(_calo_name) + "_TOWER_1x1_max", 5000, 0, 50));
+  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_1x1_max", //
+  TString(get_histo_prefix()) + "_TOWER_1x1_max", 5000, 0, 50));
   hm->registerHisto(
-      new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_1x1_max_trigger_ADC", //
-      "EMCalAna_h_" + TString(_calo_name) + "_TOWER_1x1_max_trigger_ADC", 5000, 0, 50));
+      new TH1F(TString(get_histo_prefix()) + "_TOWER_1x1_max_trigger_ADC", //
+      TString(get_histo_prefix()) + "_TOWER_1x1_max_trigger_ADC", 5000, 0, 50));
 
-  hm->registerHisto(new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_2x2", //
+  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_2x2", //
   "h_" + TString(_calo_name) + "_TOWER_2x2", 5000, 0, 50));
-  hm->registerHisto(new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_2x2_max", //
-  "EMCalAna_h_" + TString(_calo_name) + "_TOWER_2x2_max", 5000, 0, 50));
+  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_2x2_max", //
+  TString(get_histo_prefix()) + "_TOWER_2x2_max", 5000, 0, 50));
   hm->registerHisto(
-      new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_2x2_max_trigger_ADC", //
-      "EMCalAna_h_" + TString(_calo_name) + "_TOWER_2x2_max_trigger_ADC", 5000, 0, 50));
+      new TH1F(TString(get_histo_prefix()) + "_TOWER_2x2_max_trigger_ADC", //
+      TString(get_histo_prefix()) + "_TOWER_2x2_max_trigger_ADC", 5000, 0, 50));
   hm->registerHisto(
-      new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_2x2_slide2_max_trigger_ADC", //
-      "EMCalAna_h_" + TString(_calo_name) + "_TOWER_2x2_slide2_max_trigger_ADC", 5000, 0,
-          50));
+      new TH1F(
+          TString(get_histo_prefix()) + "_TOWER_2x2_slide2_max_trigger_ADC", //
+          TString(get_histo_prefix()) + "_TOWER_2x2_slide2_max_trigger_ADC",
+          5000, 0, 50));
 
-  hm->registerHisto(new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_3x3", //
+  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_3x3", //
   "h_" + TString(_calo_name) + "_TOWER_3x3", 5000, 0, 50));
-  hm->registerHisto(new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_3x3_max", //
-  "EMCalAna_h_" + TString(_calo_name) + "_TOWER_3x3_max", 5000, 0, 50));
+  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_3x3_max", //
+  TString(get_histo_prefix()) + "_TOWER_3x3_max", 5000, 0, 50));
   hm->registerHisto(
-      new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_3x3_max_trigger_ADC", //
-      "EMCalAna_h_" + TString(_calo_name) + "_TOWER_3x3_max_trigger_ADC", 5000, 0, 50));
+      new TH1F(TString(get_histo_prefix()) + "_TOWER_3x3_max_trigger_ADC", //
+      TString(get_histo_prefix()) + "_TOWER_3x3_max_trigger_ADC", 5000, 0, 50));
 
-  hm->registerHisto(new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_4x4", //
+  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_4x4", //
   "h_" + TString(_calo_name) + "_TOWER_4x4", 5000, 0, 50));
-  hm->registerHisto(new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_4x4_max", //
-  "EMCalAna_h_" + TString(_calo_name) + "_TOWER_4x4_max", 5000, 0, 50));
+  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_4x4_max", //
+  TString(get_histo_prefix()) + "_TOWER_4x4_max", 5000, 0, 50));
   hm->registerHisto(
-      new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_4x4_max_trigger_ADC", //
-      "EMCalAna_h_" + TString(_calo_name) + "_TOWER_4x4_max_trigger_ADC", 5000, 0, 50));
+      new TH1F(TString(get_histo_prefix()) + "_TOWER_4x4_max_trigger_ADC", //
+      TString(get_histo_prefix()) + "_TOWER_4x4_max_trigger_ADC", 5000, 0, 50));
   hm->registerHisto(
-      new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_4x4_slide2_max_trigger_ADC", //
-      "EMCalAna_h_" + TString(_calo_name) + "_TOWER_4x4_slide2_max_trigger_ADC", 5000, 0,
-          50));
+      new TH1F(
+          TString(get_histo_prefix()) + "_TOWER_4x4_slide2_max_trigger_ADC", //
+          TString(get_histo_prefix()) + "_TOWER_4x4_slide2_max_trigger_ADC",
+          5000, 0, 50));
 
-  hm->registerHisto(new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_5x5", //
+  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_5x5", //
   "h_" + TString(_calo_name) + "_TOWER_4x4", 5000, 0, 50));
-  hm->registerHisto(new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_5x5_max", //
-  "EMCalAna_h_" + TString(_calo_name) + "_TOWER_5x5_max", 5000, 0, 50));
+  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "_TOWER_5x5_max", //
+  TString(get_histo_prefix()) + "_TOWER_5x5_max", 5000, 0, 50));
   hm->registerHisto(
-      new TH1F("EMCalAna_h_" + TString(_calo_name) + "_TOWER_5x5_max_trigger_ADC", //
-      "EMCalAna_h_" + TString(_calo_name) + "_TOWER_5x5_max_trigger_ADC", 5000, 0, 50));
+      new TH1F(TString(get_histo_prefix()) + "_TOWER_5x5_max_trigger_ADC", //
+      TString(get_histo_prefix()) + "_TOWER_5x5_max_trigger_ADC", 5000, 0, 50));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -309,7 +435,7 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
   const string detector(_calo_name);
 
   if (verbosity > 2)
-    cout << "QAG4SimulationCalorimeter::process_event_SF() entered" << endl;
+    cout << "QAG4SimulationCalorimeter::process_event_Tower() entered" << endl;
 
   string towernodename = "TOWER_CALIB_" + detector;
   // Grab the towers
@@ -357,16 +483,16 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
       TH1F* h = NULL;
 
       h = (TH1F*) hm->getHisto(
-          "EMCalAna_h_" + _calo_name + "_TOWER_" + size_label[size]);
+          get_histo_prefix() + "_TOWER_" + size_label[size]);
       assert(h);
       energy_hist_list[size] = h;
       h = (TH1F*) hm->getHisto(
-          "EMCalAna_h_" + _calo_name + "_TOWER_" + size_label[size] + "_max");
+          get_histo_prefix() + "_TOWER_" + size_label[size] + "_max");
       assert(h);
       max_energy_hist_list[size] = h;
 
       h = (TH1F*) hm->getHisto(
-          "EMCalAna_h_" + _calo_name + "_TOWER_" + size_label[size]
+          get_histo_prefix() + "_TOWER_" + size_label[size]
               + "_max_trigger_ADC");
       assert(h);
       max_energy_trigger_ADC_hist_list[size] = h;
@@ -377,7 +503,7 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
           slide2_max_energy_trigger_ADC[size] = 0;
 
           h = (TH1F*) hm->getHisto(
-              "EMCalAna_h_" + _calo_name + "_TOWER_" + size_label[size]
+              get_histo_prefix() + "_TOWER_" + size_label[size]
                   + "_slide2_max_trigger_ADC");
           assert(h);
           slide2_max_energy_trigger_ADC_hist_list[size] = h;

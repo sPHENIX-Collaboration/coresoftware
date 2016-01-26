@@ -6,9 +6,11 @@
 
 #include <string>
 #include <stdint.h>
+#include <TString.h>
 
 class PHCompositeNode;
 class PHG4HitContainer;
+class PHG4TruthInfoContainer;
 class Fun4AllHistoManager;
 class TH1F;
 class TTree;
@@ -26,9 +28,9 @@ public:
 
   enum enu_flags
   {
-    kProcessSF = 1 << 1, kProcessTower = 1 << 2, kProcessMCPhoton = 1 << 3,
+    kProcessG4Hit = 1 << 1, kProcessTower = 1 << 2, kProcessCluster = 1 << 3,
 
-    kDefaultFlag = kProcessSF | kProcessTower
+    kDefaultFlag = kProcessG4Hit | kProcessTower
   };
 
   QAG4SimulationCalorimeter(std::string calo_name, enu_flags flags = kDefaultFlag);
@@ -85,12 +87,15 @@ public:
     _magfield = magfield;
   }
 
+  //! common prefix for QA histograms
+  std::string get_histo_prefix();
+
 private:
 
   int
-  Init_SF(PHCompositeNode *topNode);
+  Init_G4Hit(PHCompositeNode *topNode);
   int
-  process_event_SF(PHCompositeNode *topNode);
+  process_event_G4Hit(PHCompositeNode *topNode);
 
   int
   Init_Tower(PHCompositeNode *topNode);
@@ -101,7 +106,6 @@ private:
 //  Init_MCPhoton(PHCompositeNode *topNode);
 //  int
 //  process_event_MCPhoton(PHCompositeNode *topNode);
-
 
   SvtxEvalStack * _eval_stack;
 
@@ -114,6 +118,7 @@ private:
 
   PHG4HitContainer* _calo_hit_container;
   PHG4HitContainer* _calo_abs_hit_container;
+  PHG4TruthInfoContainer* _truth_container;
 };
 
 #endif // __CALOEVALUATOR_H__
