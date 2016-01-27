@@ -177,7 +177,7 @@ QA_Draw_HCALOUT_G4Hit(const char * qa_file_name_new =
     p = (TPad *) c1->cd(idx++);
     c1->Update();
 //    p->SetLogx();
-//    p->SetLogy();
+    p->SetLogy();
 
       {
 
@@ -203,7 +203,7 @@ QA_Draw_HCALOUT_G4Hit(const char * qa_file_name_new =
           }
 
         h_new->GetYaxis()->SetTitleOffset(1.5);
-        h_new->GetYaxis()->SetTitle("Normalized probability per bin");
+        h_new->GetYaxis()->SetTitle("Probability per bin");
   //      h_new->GetXaxis()->SetRangeUser(-0, .1);
 
         DrawReference(h_new, h_ref);
@@ -236,7 +236,7 @@ QA_Draw_HCALOUT_G4Hit(const char * qa_file_name_new =
           }
 
         h_new->GetYaxis()->SetTitleOffset(1.5);
-        h_new->GetYaxis()->SetTitle("Normalized Probability per bin");
+        h_new->GetYaxis()->SetTitle("Probability per bin");
         h_new->GetXaxis()->SetRangeUser(-0, .1);
 
         DrawReference(h_new, h_ref);
@@ -270,7 +270,7 @@ QA_Draw_HCALOUT_G4Hit(const char * qa_file_name_new =
             }
 
           h_new->GetYaxis()->SetTitleOffset(1.5);
-          h_new->GetYaxis()->SetTitle("Normalized Probability per bin");
+          h_new->GetYaxis()->SetTitle("Probability per bin");
 //          h_new->GetXaxis()->SetRangeUser(-0, .1);
 
           DrawReference(h_new, h_ref);

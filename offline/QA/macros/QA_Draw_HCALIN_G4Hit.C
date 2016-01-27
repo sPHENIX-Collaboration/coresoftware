@@ -177,7 +177,7 @@ QA_Draw_HCALIN_G4Hit(const char * qa_file_name_new =
     p = (TPad *) c1->cd(idx++);
     c1->Update();
 //    p->SetLogx();
-//    p->SetLogy();
+    p->SetLogy();
 
       {
 
@@ -203,7 +203,7 @@ QA_Draw_HCALIN_G4Hit(const char * qa_file_name_new =
           }
 
         h_new->GetYaxis()->SetTitleOffset(1.5);
-        h_new->GetYaxis()->SetTitle("Normalized probability per bin");
+        h_new->GetYaxis()->SetTitle("Probability per bin");
   //      h_new->GetXaxis()->SetRangeUser(-0, .1);
 
         DrawReference(h_new, h_ref);
@@ -220,7 +220,7 @@ QA_Draw_HCALIN_G4Hit(const char * qa_file_name_new =
                 "h_QAG4Sim_HCALIN_G4Hit_VSF", "TH1F");
         assert(h_new);
 
-//        h_new->Rebin(2);
+        h_new->Rebin(2);
 //        h_new->Sumw2();
         h_new->Scale(1. / h_new->GetSum());
 
@@ -232,11 +232,12 @@ QA_Draw_HCALIN_G4Hit(const char * qa_file_name_new =
                     "h_QAG4Sim_HCALIN_G4Hit_VSF", "TH1F");
             assert(h_ref);
 
+            h_ref->Rebin(2);
             h_ref->Scale(1. / h_ref->GetSum());
           }
 
         h_new->GetYaxis()->SetTitleOffset(1.5);
-        h_new->GetYaxis()->SetTitle("Normalized Probability per bin");
+        h_new->GetYaxis()->SetTitle("Probability per bin");
         h_new->GetXaxis()->SetRangeUser(-0, .2);
 
         DrawReference(h_new, h_ref);
@@ -270,7 +271,7 @@ QA_Draw_HCALIN_G4Hit(const char * qa_file_name_new =
             }
 
           h_new->GetYaxis()->SetTitleOffset(1.5);
-          h_new->GetYaxis()->SetTitle("Normalized Probability per bin");
+          h_new->GetYaxis()->SetTitle("Probability per bin");
 //          h_new->GetXaxis()->SetRangeUser(-0, .1);
 
           DrawReference(h_new, h_ref);
