@@ -188,11 +188,28 @@ QAG4SimulationCalorimeter::process_event(PHCompositeNode *topNode)
     _caloevalstack->next_event(topNode);
 
   if (flag(kProcessG4Hit))
-    process_event_G4Hit(topNode);
+    {
+      int ret = process_event_G4Hit(topNode);
+
+      if (ret != Fun4AllReturnCodes::EVENT_OK)
+        return ret;
+    }
+
   if (flag(kProcessTower))
-    process_event_Tower(topNode);
+    {
+      int ret = process_event_Tower(topNode);
+
+      if (ret != Fun4AllReturnCodes::EVENT_OK)
+        return ret;
+    }
+
   if (flag(kProcessCluster))
-    process_event_Cluster(topNode);
+    {
+      int ret = process_event_Cluster(topNode);
+
+      if (ret != Fun4AllReturnCodes::EVENT_OK)
+        return ret;
+    }
 
   // at the end, count success events
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
