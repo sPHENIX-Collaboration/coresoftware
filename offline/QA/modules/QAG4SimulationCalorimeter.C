@@ -137,6 +137,20 @@ QAG4SimulationCalorimeter::Init(PHCompositeNode *topNode)
 
   _ievent = 0;
 
+  Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+  TH1D * h = new TH1D(TString(get_histo_prefix()) + "_Normalization", //
+  TString(_calo_name) + " Normalization;Z (cm);Count", 10, -.5, 9.5);
+  int i = 1;
+  h->GetXaxis()->SetBinLabel(i++, "Event");
+  h->GetXaxis()->SetBinLabel(i++, "G4Hit Active");
+  h->GetXaxis()->SetBinLabel(i++, "G4Hit Absor.");
+  h->GetXaxis()->SetBinLabel(i++, "Tower");
+  h->GetXaxis()->SetBinLabel(i++, "Tower Hit");
+  h->GetXaxis()->SetBinLabel(i++, "Cluster");
+  h->GetXaxis()->LabelsOption("v");
+  hm->registerHisto(h);
+
   if (flag(kProcessG4Hit))
     {
 
@@ -179,6 +193,14 @@ QAG4SimulationCalorimeter::process_event(PHCompositeNode *topNode)
     process_event_Tower(topNode);
   if (flag(kProcessCluster))
     process_event_Cluster(topNode);
+
+  // at the end, count success events
+  Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+  TH1D* h_norm = dynamic_cast<TH1D*>(hm->getHisto(
+      get_histo_prefix() + "_Normalization"));
+  assert(h_norm);
+  h_norm->Fill("Event", 1);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -256,6 +278,10 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
+  TH1D* h_norm = dynamic_cast<TH1D*>(hm->getHisto(
+      get_histo_prefix() + "_Normalization"));
+  assert(h_norm);
+
   // get primary
   assert(_truth_container);
   PHG4TruthInfoContainer::ConstRange primary_range =
@@ -311,7 +337,7 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
 
   // polar direction axis
   TVector3 axis_polar = axis_proj.Cross(axis_azimuth);
-  assert(axis_polar.Mag() >0);
+  assert(axis_polar.Mag() > 0);
   axis_polar = axis_polar.Unit();
 
   double e_calo = 0.0; // active energy deposition
@@ -334,6 +360,7 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
           get_histo_prefix() + "_G4Hit_LateralTruthProjection"));
       assert(hlat);
 
+      h_norm->Fill("G4Hit Active", _calo_hit_container->size());
       PHG4HitContainer::ConstRange calo_hit_range =
           _calo_hit_container->getHits();
       for (PHG4HitContainer::ConstIterator hit_iter = calo_hit_range.first;
@@ -367,6 +394,9 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
 
   if (_calo_abs_hit_container)
     {
+
+      h_norm->Fill("G4Hit Absor.", _calo_abs_hit_container->size());
+
       PHG4HitContainer::ConstRange calo_abs_hit_range =
           _calo_abs_hit_container->getHits();
       for (PHG4HitContainer::ConstIterator hit_iter = calo_abs_hit_range.first;
@@ -489,6 +519,12 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
   if (verbosity > 2)
     cout << "QAG4SimulationCalorimeter::process_event_Tower() entered" << endl;
 
+  Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+  TH1D* h_norm = dynamic_cast<TH1D*>(hm->getHisto(
+      get_histo_prefix() + "_Normalization"));
+  assert(h_norm);
+
   string towernodename = "TOWER_CALIB_" + detector;
   // Grab the towers
   RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode,
@@ -520,8 +556,6 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
   map<int, TH1F*> energy_hist_list;
   map<int, TH1F*> max_energy_hist_list;
 
-  Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
-  assert(hm);
   for (int size = 1; size <= max_size; ++size)
     {
       max_energy[size] = 0;
@@ -539,6 +573,9 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
 
     }
 
+  h_norm->Fill("Tower", towergeom->size()); // total tower count
+  h_norm->Fill("Tower Hit", towers->size());
+
   for (int binphi = 0; binphi < towergeom->get_phibins(); ++binphi)
     {
       for (int bineta = 0; bineta < towergeom->get_etabins(); ++bineta)
@@ -546,7 +583,7 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
           for (int size = 1; size <= max_size; ++size)
             {
 
-              // for 2x2 and 4x4 use slide-2 window as implimented in DAQ
+              // for 2x2 and 4x4 use slide-2 window as implemented in DAQ
               if ((size == 2 or size == 4)
                   and ((binphi % 2 != 0) and (bineta % 2 != 0)))
                 continue;
@@ -628,7 +665,6 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-
   string towergeomnodename = "TOWERGEOM_" + _calo_name;
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(
       topNode, towergeomnodename.c_str());
@@ -638,6 +674,17 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
           << endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
+
+  //get a cluster count
+  TH1D* h_norm = dynamic_cast<TH1D*>(hm->getHisto(
+      get_histo_prefix() + "_Normalization"));
+  assert(h_norm);
+
+  std::string nodename = "CLUSTER_" + _calo_name;
+  RawClusterContainer* clusters = findNode::getClass<RawClusterContainer>(
+      topNode, nodename.c_str());
+  assert(clusters);
+  h_norm->Fill("Cluster", clusters->size());
 
   // get primary
   assert(_truth_container);
@@ -710,7 +757,7 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
 
       // polar direction axis
       TVector3 axis_polar = axis_proj.Cross(axis_azimuth);
-      assert(axis_polar.Mag() >0);
+      assert(axis_polar.Mag() > 0);
       axis_polar = axis_polar.Unit();
 
       TH2F * hlat = dynamic_cast<TH2F*>(hm->getHisto(
