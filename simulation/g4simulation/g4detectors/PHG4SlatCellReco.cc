@@ -347,7 +347,8 @@ PHG4SlatCellReco::process_event(PHCompositeNode *topNode)
 		      cellptarray[slatbin][intetabin]->set_phibin(slatbin);
 		      cellptarray[slatbin][intetabin]->set_etabin(intetabin);
 		    }
-		  cellptarray[slatbin][intetabin]->add_edep(hiter->first, hiter->second->get_edep(), hiter->second->get_light_yield());
+      cellptarray[slatbin][intetabin]->add_edep(hiter->first, hiter->second->get_edep(), hiter->second->get_light_yield());
+      cellptarray[slatbin][intetabin]->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep());
 		}
 	    } // end loop over g4hits
           int numcells = 0;
