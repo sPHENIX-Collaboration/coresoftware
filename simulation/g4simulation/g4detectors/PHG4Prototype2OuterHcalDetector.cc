@@ -1,4 +1,4 @@
-#include "PHG4OuterHcalPrototype2Detector.h"
+#include "PHG4Prototype2OuterHcalDetector.h"
 #include "PHG4Parameters.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeomv3.h"
@@ -52,7 +52,7 @@ using namespace std;
 // scintilator length takes care of this
 static double subtract_from_scinti_x = 0.1*mm;
 
-PHG4OuterHcalPrototype2Detector::PHG4OuterHcalPrototype2Detector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam  ):
+PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam  ):
   PHG4Detector(Node, dnam),
   params(parameters),
   inner_radius(1830*mm),
@@ -86,7 +86,7 @@ PHG4OuterHcalPrototype2Detector::PHG4OuterHcalPrototype2Detector( PHCompositeNod
 //_______________________________________________________________
 //_______________________________________________________________
 int
-PHG4OuterHcalPrototype2Detector::IsInOuterHcalPrototype2(G4VPhysicalVolume * volume) const
+PHG4Prototype2OuterHcalDetector::IsInPrototype2OuterHcal(G4VPhysicalVolume * volume) const
 {
   // G4AssemblyVolumes naming convention:
   //     av_WWW_impr_XXX_YYY_ZZZ
@@ -119,7 +119,7 @@ PHG4OuterHcalPrototype2Detector::IsInOuterHcalPrototype2(G4VPhysicalVolume * vol
 }
 
 G4VSolid*
-PHG4OuterHcalPrototype2Detector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
+PHG4Prototype2OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
 {
   double mid_radius = inner_radius + (outer_radius - inner_radius) / 2.;
   Point_2 p_in_1(mid_radius, 0); // center of scintillator
@@ -197,7 +197,7 @@ PHG4OuterHcalPrototype2Detector::ConstructScintillatorBox(G4LogicalVolume* hcale
 }
 
 G4VSolid*
-PHG4OuterHcalPrototype2Detector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
+PHG4Prototype2OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
 {
   // calculate steel plate on top of the scinti box. Lower edge is the upper edge of
   G4TwoVector v1(0+inner_radius,26.2*mm);
@@ -226,7 +226,7 @@ PHG4OuterHcalPrototype2Detector::ConstructSteelPlate(G4LogicalVolume* hcalenvelo
 }
 
 void
-PHG4OuterHcalPrototype2Detector::ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright)
+PHG4Prototype2OuterHcalDetector::ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright)
 {
   Line_2 secant(lowleft, upleft);
   Segment_2 upedge(upleft, upright);
@@ -276,7 +276,7 @@ PHG4OuterHcalPrototype2Detector::ShiftSecantToTangent(Point_2 &lowleft, Point_2 
 // Construct the envelope and the call the
 // actual inner hcal construction
 void
-PHG4OuterHcalPrototype2Detector::Construct( G4LogicalVolume* logicWorld )
+PHG4Prototype2OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
 {
   G4Material* Air = G4Material::GetMaterial("G4_AIR");
   G4VSolid* hcal_envelope_cylinder = new G4Tubs("OuterHcal_envelope_solid",  envelope_inner_radius, envelope_outer_radius, envelope_z / 2., 0, 2 * M_PI);
@@ -298,7 +298,7 @@ PHG4OuterHcalPrototype2Detector::Construct( G4LogicalVolume* logicWorld )
 }
 
 int
-PHG4OuterHcalPrototype2Detector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
+PHG4Prototype2OuterHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
 {
   G4VSolid *steel_plate  = ConstructSteelPlate(hcalenvelope);
   G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(params->get_string_param("material")), "HcalInnerSteelPlate", 0, 0, 0);
@@ -342,7 +342,7 @@ PHG4OuterHcalPrototype2Detector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
 // since they are tilted it is not a straightforward theta cut
 // it starts at a given eta at the inner radius but the outer radius needs adjusting
 void
-PHG4OuterHcalPrototype2Detector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenvelope)
+PHG4Prototype2OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenvelope)
 {
   G4VSolid *bigtile = ConstructScintillatorBox(hcalenvelope);
   // eta->theta
@@ -427,7 +427,7 @@ PHG4OuterHcalPrototype2Detector::ConstructHcalSingleScintillators(G4LogicalVolum
 }
 
 double
-PHG4OuterHcalPrototype2Detector::x_at_y(Point_2 &p0, Point_2 &p1, double yin)
+PHG4Prototype2OuterHcalDetector::x_at_y(Point_2 &p0, Point_2 &p1, double yin)
 {
   double xret = NAN;
   double x[2];
@@ -457,7 +457,7 @@ PHG4OuterHcalPrototype2Detector::x_at_y(Point_2 &p0, Point_2 &p1, double yin)
 }
 
 G4AssemblyVolume *
-PHG4OuterHcalPrototype2Detector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope)
+PHG4Prototype2OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope)
 {
   ConstructHcalSingleScintillators(hcalenvelope);
   G4AssemblyVolume *assmeblyvol = new G4AssemblyVolume();
@@ -487,7 +487,7 @@ PHG4OuterHcalPrototype2Detector::ConstructHcalScintillatorAssembly(G4LogicalVolu
 
 
 int
-PHG4OuterHcalPrototype2Detector::DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix *rotm )
+PHG4Prototype2OuterHcalDetector::DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix *rotm )
 {
   static int i = 0;
   G4LogicalVolume* checksolid = new G4LogicalVolume(volume, G4Material::GetMaterial("G4_POLYSTYRENE"), "DISPLAYLOGICAL", 0, 0, 0);
@@ -528,7 +528,7 @@ PHG4OuterHcalPrototype2Detector::DisplayVolume(G4VSolid *volume,  G4LogicalVolum
 }
 
 void
-PHG4OuterHcalPrototype2Detector::AddGeometryNode()
+PHG4Prototype2OuterHcalDetector::AddGeometryNode()
 {
   if (params->get_int_param("active"))
     {
@@ -559,7 +559,7 @@ PHG4OuterHcalPrototype2Detector::AddGeometryNode()
 }
 
 void
-PHG4OuterHcalPrototype2Detector::Print(const string &what) const
+PHG4Prototype2OuterHcalDetector::Print(const string &what) const
 {
   cout << "Inner Hcal Detector:" << endl;
   if (what == "ALL" || what == "VOLUME")

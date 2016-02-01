@@ -1,5 +1,5 @@
-#ifndef PHG4OuterHcalPrototype2Subsystem_h
-#define PHG4OuterHcalPrototype2Subsystem_h
+#ifndef PHG4Prototype2OuterHcalSubsystem_h
+#define PHG4Prototype2OuterHcalSubsystem_h
 
 #include <g4main/PHG4Subsystem.h>
 
@@ -10,12 +10,12 @@
 #include <set>
 #include <string>
 
-class PHG4OuterHcalPrototype2Detector;
+class PHG4Prototype2OuterHcalDetector;
 class PHG4Parameters;
-class PHG4OuterHcalPrototype2SteppingAction;
+class PHG4Prototype2OuterHcalSteppingAction;
 class PHG4EventAction;
 
-class PHG4OuterHcalPrototype2Subsystem: public PHG4Subsystem
+class PHG4Prototype2OuterHcalSubsystem: public PHG4Subsystem
 {
 
   public:
@@ -23,10 +23,10 @@ class PHG4OuterHcalPrototype2Subsystem: public PHG4Subsystem
   enum FILE_TYPE {none = 0, xml = 1, root = 2};
 
   //! constructor
-  PHG4OuterHcalPrototype2Subsystem( const std::string &name = "HCALIN", const int layer = 0 );
+  PHG4Prototype2OuterHcalSubsystem( const std::string &name = "HCALIN", const int layer = 0 );
 
   //! destructor
-  virtual ~PHG4OuterHcalPrototype2Subsystem( void )
+  virtual ~PHG4Prototype2OuterHcalSubsystem( void )
   {}
 
   //! init
@@ -82,11 +82,11 @@ class PHG4OuterHcalPrototype2Subsystem: public PHG4Subsystem
 
   //! detector geometry
   /*! derives from PHG4Detector */
-  PHG4OuterHcalPrototype2Detector* detector_;
+  PHG4Prototype2OuterHcalDetector* detector_;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingAction */
-  PHG4OuterHcalPrototype2SteppingAction* steppingAction_;
+  PHG4Prototype2OuterHcalSteppingAction* steppingAction_;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4EventAction */

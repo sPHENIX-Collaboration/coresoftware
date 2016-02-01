@@ -1,7 +1,7 @@
-#include "PHG4OuterHcalPrototype2Subsystem.h"
-#include "PHG4OuterHcalPrototype2Detector.h"
+#include "PHG4Prototype2OuterHcalSubsystem.h"
+#include "PHG4Prototype2OuterHcalDetector.h"
 #include "PHG4EventActionClearZeroEdep.h"
-#include "PHG4OuterHcalPrototype2SteppingAction.h"
+#include "PHG4Prototype2OuterHcalSteppingAction.h"
 #include "PHG4Parameters.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -20,14 +20,14 @@
 using namespace std;
 
 //_______________________________________________________________________
-PHG4OuterHcalPrototype2Subsystem::PHG4OuterHcalPrototype2Subsystem( const std::string &name, const int lyr ):
+PHG4Prototype2OuterHcalSubsystem::PHG4Prototype2OuterHcalSubsystem( const std::string &name, const int lyr ):
   PHG4Subsystem( name ),
   detector_(NULL),
   steppingAction_( NULL ),
   eventAction_(NULL),
   layer(lyr),
   usedb(0),
-  filetype(PHG4OuterHcalPrototype2Subsystem::none),
+  filetype(PHG4Prototype2OuterHcalSubsystem::none),
   detector_type(name),
   superdetector("NONE"),
   calibfiledir("./")
@@ -43,7 +43,7 @@ PHG4OuterHcalPrototype2Subsystem::PHG4OuterHcalPrototype2Subsystem( const std::s
 }
 
 void
-PHG4OuterHcalPrototype2Subsystem::SuperDetector(const std::string &name)
+PHG4Prototype2OuterHcalSubsystem::SuperDetector(const std::string &name)
 {
   superdetector = name;
   Name(name);
@@ -51,7 +51,7 @@ PHG4OuterHcalPrototype2Subsystem::SuperDetector(const std::string &name)
 }
 
 int 
-PHG4OuterHcalPrototype2Subsystem::Init(PHCompositeNode* topNode)
+PHG4Prototype2OuterHcalSubsystem::Init(PHCompositeNode* topNode)
 {
   params->set_name(superdetector);
   return 0;
@@ -59,7 +59,7 @@ PHG4OuterHcalPrototype2Subsystem::Init(PHCompositeNode* topNode)
 
 //_______________________________________________________________________
 int 
-PHG4OuterHcalPrototype2Subsystem::InitRun( PHCompositeNode* topNode )
+PHG4Prototype2OuterHcalSubsystem::InitRun( PHCompositeNode* topNode )
 {
   PHNodeIterator iter( topNode );
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
@@ -75,13 +75,13 @@ PHG4OuterHcalPrototype2Subsystem::InitRun( PHCompositeNode* topNode )
   // We leave the defaults intact in case there is no entry for
   // those in the object read from the DB or file
   // Order: read first DB, then calib file if both are enabled
-  if (usedb || filetype != PHG4OuterHcalPrototype2Subsystem::none)
+  if (usedb || filetype != PHG4Prototype2OuterHcalSubsystem::none)
     {
       if (usedb)
 	{
           ReadParamsFromDB();
 	}
-      if (filetype != PHG4OuterHcalPrototype2Subsystem::none)
+      if (filetype != PHG4Prototype2OuterHcalSubsystem::none)
 	{
 	  ReadParamsFromFile(filetype);
 	}
@@ -100,7 +100,7 @@ PHG4OuterHcalPrototype2Subsystem::InitRun( PHCompositeNode* topNode )
   // save updated persistant copy on node tree
   params->SaveToNodeTree(parNode,paramnodename);
   // create detector
-  detector_ = new PHG4OuterHcalPrototype2Detector(topNode, params, Name());
+  detector_ = new PHG4Prototype2OuterHcalDetector(topNode, params, Name());
   detector_->SuperDetector(superdetector);
   detector_->OverlapCheck(overlapcheck);
   set<string> nodes;
@@ -157,7 +157,7 @@ PHG4OuterHcalPrototype2Subsystem::InitRun( PHCompositeNode* topNode )
 	}
 
       // create stepping action
-      steppingAction_ = new PHG4OuterHcalPrototype2SteppingAction(detector_, params);
+      steppingAction_ = new PHG4Prototype2OuterHcalSteppingAction(detector_, params);
 
     }
   else
@@ -165,7 +165,7 @@ PHG4OuterHcalPrototype2Subsystem::InitRun( PHCompositeNode* topNode )
       // if this is a black hole it does not have to be active
       if (params->get_int_param("blackhole"))
 	{
-	  steppingAction_ = new PHG4OuterHcalPrototype2SteppingAction(detector_, params);
+	  steppingAction_ = new PHG4Prototype2OuterHcalSteppingAction(detector_, params);
 	}
     }
   return 0;
@@ -174,7 +174,7 @@ PHG4OuterHcalPrototype2Subsystem::InitRun( PHCompositeNode* topNode )
 
 //_______________________________________________________________________
 int
-PHG4OuterHcalPrototype2Subsystem::process_event( PHCompositeNode * topNode )
+PHG4Prototype2OuterHcalSubsystem::process_event( PHCompositeNode * topNode )
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
@@ -187,7 +187,7 @@ PHG4OuterHcalPrototype2Subsystem::process_event( PHCompositeNode * topNode )
 
 
 void
-PHG4OuterHcalPrototype2Subsystem::Print(const string &what) const
+PHG4Prototype2OuterHcalSubsystem::Print(const string &what) const
 {
   cout << "Inner Hcal Parameters: " << endl;
   params->print();
@@ -199,37 +199,37 @@ PHG4OuterHcalPrototype2Subsystem::Print(const string &what) const
 }
 
 //_______________________________________________________________________
-PHG4Detector* PHG4OuterHcalPrototype2Subsystem::GetDetector( void ) const
+PHG4Detector* PHG4Prototype2OuterHcalSubsystem::GetDetector( void ) const
 {
   return detector_;
 }
 
 //_______________________________________________________________________
-PHG4SteppingAction* PHG4OuterHcalPrototype2Subsystem::GetSteppingAction( void ) const
+PHG4SteppingAction* PHG4Prototype2OuterHcalSubsystem::GetSteppingAction( void ) const
 {
   return steppingAction_;
 }
 
 void
-PHG4OuterHcalPrototype2Subsystem::SetActive(const int i)
+PHG4Prototype2OuterHcalSubsystem::SetActive(const int i)
 {
   iparams["active"] = i;
 }
 
 void
-PHG4OuterHcalPrototype2Subsystem::SetAbsorberActive(const int i)
+PHG4Prototype2OuterHcalSubsystem::SetAbsorberActive(const int i)
 {
   iparams["absorberactive"] = i;
 }
 
 void
-PHG4OuterHcalPrototype2Subsystem::BlackHole(const int i)
+PHG4Prototype2OuterHcalSubsystem::BlackHole(const int i)
 {
   iparams["blackhole"] = i;
 }
 
 void
-PHG4OuterHcalPrototype2Subsystem::set_double_param(const std::string &name, const double dval)
+PHG4Prototype2OuterHcalSubsystem::set_double_param(const std::string &name, const double dval)
 {
   if (default_double.find(name) == default_double.end())
     {
@@ -245,7 +245,7 @@ PHG4OuterHcalPrototype2Subsystem::set_double_param(const std::string &name, cons
 }
 
 void
-PHG4OuterHcalPrototype2Subsystem::set_int_param(const std::string &name, const int ival)
+PHG4Prototype2OuterHcalSubsystem::set_int_param(const std::string &name, const int ival)
 {
   if (default_int.find(name) == default_int.end())
     {
@@ -261,13 +261,13 @@ PHG4OuterHcalPrototype2Subsystem::set_int_param(const std::string &name, const i
 }
 
 void
-PHG4OuterHcalPrototype2Subsystem::SetAbsorberTruth(const int i)
+PHG4Prototype2OuterHcalSubsystem::SetAbsorberTruth(const int i)
 {
   iparams["absorbertruth"] = i;
 }
 
 void
-PHG4OuterHcalPrototype2Subsystem::set_string_param(const std::string &name, const string &sval)
+PHG4Prototype2OuterHcalSubsystem::set_string_param(const std::string &name, const string &sval)
 {
   if (default_string.find(name) == default_string.end())
     {
@@ -283,7 +283,7 @@ PHG4OuterHcalPrototype2Subsystem::set_string_param(const std::string &name, cons
 }
 
 void
-PHG4OuterHcalPrototype2Subsystem::SetDefaultParameters()
+PHG4Prototype2OuterHcalSubsystem::SetDefaultParameters()
 {
 
   default_double["inner_radius"] = 116.;
@@ -332,7 +332,7 @@ PHG4OuterHcalPrototype2Subsystem::SetDefaultParameters()
 }
 
 void
-PHG4OuterHcalPrototype2Subsystem::UpdateParametersWithMacro()
+PHG4Prototype2OuterHcalSubsystem::UpdateParametersWithMacro()
 {
   for (map<const string,double>::const_iterator iter = dparams.begin(); iter != dparams.end(); ++iter)
     {
@@ -350,7 +350,7 @@ PHG4OuterHcalPrototype2Subsystem::UpdateParametersWithMacro()
 }
 
 void
-PHG4OuterHcalPrototype2Subsystem::SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr)
+PHG4Prototype2OuterHcalSubsystem::SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr)
 {
   dparams["light_balance_inner_corr"] = inner_corr;
   dparams["light_balance_inner_radius"] = inner_radius;
@@ -360,7 +360,7 @@ PHG4OuterHcalPrototype2Subsystem::SetLightCorrection(const double inner_radius, 
 }
 
 int
-PHG4OuterHcalPrototype2Subsystem::SaveParamsToDB()
+PHG4Prototype2OuterHcalSubsystem::SaveParamsToDB()
 {
   int iret = params->WriteToDB();
   if (iret)
@@ -371,7 +371,7 @@ PHG4OuterHcalPrototype2Subsystem::SaveParamsToDB()
 }
 
 int
-PHG4OuterHcalPrototype2Subsystem::ReadParamsFromDB()
+PHG4Prototype2OuterHcalSubsystem::ReadParamsFromDB()
 {
   int iret = params->ReadFromDB();
   if (iret)
@@ -382,7 +382,7 @@ PHG4OuterHcalPrototype2Subsystem::ReadParamsFromDB()
 }
 
 int
-PHG4OuterHcalPrototype2Subsystem::SaveParamsToFile(const PHG4OuterHcalPrototype2Subsystem::FILE_TYPE ftyp)
+PHG4Prototype2OuterHcalSubsystem::SaveParamsToFile(const PHG4Prototype2OuterHcalSubsystem::FILE_TYPE ftyp)
 {
   string extension;
   switch(ftyp)
@@ -407,7 +407,7 @@ PHG4OuterHcalPrototype2Subsystem::SaveParamsToFile(const PHG4OuterHcalPrototype2
 }
 
 int
-PHG4OuterHcalPrototype2Subsystem::ReadParamsFromFile(const PHG4OuterHcalPrototype2Subsystem::FILE_TYPE ftyp)
+PHG4Prototype2OuterHcalSubsystem::ReadParamsFromFile(const PHG4Prototype2OuterHcalSubsystem::FILE_TYPE ftyp)
 {
   string extension;
   switch(ftyp)
@@ -431,19 +431,19 @@ PHG4OuterHcalPrototype2Subsystem::ReadParamsFromFile(const PHG4OuterHcalPrototyp
 }
 
 double
-PHG4OuterHcalPrototype2Subsystem::get_double_param(const std::string &name) const
+PHG4Prototype2OuterHcalSubsystem::get_double_param(const std::string &name) const
 {
   return params->get_double_param(name);
 }
 
 int
-PHG4OuterHcalPrototype2Subsystem::get_int_param(const std::string &name) const
+PHG4Prototype2OuterHcalSubsystem::get_int_param(const std::string &name) const
 {
   return params->get_int_param(name);
 }
 
 string
-PHG4OuterHcalPrototype2Subsystem::get_string_param(const std::string &name) const
+PHG4Prototype2OuterHcalSubsystem::get_string_param(const std::string &name) const
 {
   return params->get_string_param(name);
 }

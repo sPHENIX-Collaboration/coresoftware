@@ -1,5 +1,5 @@
-#ifndef PHG4OuterHcalPrototype2Detector_h
-#define PHG4OuterHcalPrototype2Detector_h
+#ifndef PHG4Prototype2OuterHcalDetector_h
+#define PHG4Prototype2OuterHcalDetector_h
 
 #include "PHG4Parameters.h"
 
@@ -22,7 +22,7 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
 
-class PHG4OuterHcalPrototype2Detector: public PHG4Detector
+class PHG4Prototype2OuterHcalDetector: public PHG4Detector
 {
 typedef CGAL::Exact_circular_kernel_2             Circular_k;
 typedef CGAL::Point_2<Circular_k>                 Point_2;
@@ -30,10 +30,10 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   public:
 
   //! constructor
- PHG4OuterHcalPrototype2Detector( PHCompositeNode *Node,  PHG4Parameters *parameters, const std::string &dnam);
+ PHG4Prototype2OuterHcalDetector( PHCompositeNode *Node,  PHG4Parameters *parameters, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4OuterHcalPrototype2Detector(){}
+  virtual ~PHG4Prototype2OuterHcalDetector(){}
 
   //! construct
   virtual void Construct( G4LogicalVolume* world );
@@ -42,7 +42,7 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
 
   //!@name volume accessors
   //@{
-  int IsInOuterHcalPrototype2(G4VPhysicalVolume*) const;
+  int IsInPrototype2OuterHcal(G4VPhysicalVolume*) const;
   //@}
 
   void SuperDetector(const std::string &name) {superdetector = name;}
