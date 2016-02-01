@@ -1,5 +1,5 @@
-#include "PHG4OuterHcalPrototype2SteppingAction.h"
-#include "PHG4OuterHcalPrototype2Detector.h"
+#include "PHG4Prototype2OuterHcalSteppingAction.h"
+#include "PHG4Prototype2OuterHcalDetector.h"
 #include "PHG4Parameters.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -32,7 +32,7 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4OuterHcalPrototype2SteppingAction::PHG4OuterHcalPrototype2SteppingAction( PHG4OuterHcalPrototype2Detector* detector, PHG4Parameters *parameters):
+PHG4Prototype2OuterHcalSteppingAction::PHG4Prototype2OuterHcalSteppingAction( PHG4Prototype2OuterHcalDetector* detector, PHG4Parameters *parameters):
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),
@@ -49,20 +49,20 @@ PHG4OuterHcalPrototype2SteppingAction::PHG4OuterHcalPrototype2SteppingAction( PH
 {}
 
 //____________________________________________________________________________..
-bool PHG4OuterHcalPrototype2SteppingAction::UserSteppingAction( const G4Step* aStep, bool )
+bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 {
 
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   // get volume of the current step
   G4VPhysicalVolume* volume = touch->GetVolume();
 
-  // detector_->IsInOuterHcalPrototype2(volume)
+  // detector_->IsInPrototype2OuterHcal(volume)
   // returns 
-  //  0 is outside of OuterHcalPrototype2
+  //  0 is outside of Prototype2OuterHcal
   //  1 is inside scintillator
   // -1 is steel absorber
 
-  int whichactive = detector_->IsInOuterHcalPrototype2(volume);
+  int whichactive = detector_->IsInPrototype2OuterHcal(volume);
 
   if (!whichactive)
     {
@@ -188,7 +188,7 @@ bool PHG4OuterHcalPrototype2SteppingAction::UserSteppingAction( const G4Step* aS
 	  //set the initial energy deposit
 	  hit->set_edep(0);
 	  hit->set_eion(0); // only implemented for v5 otherwise empty
-	  if (whichactive > 0) // return of IsInOuterHcalPrototype2Detector, > 0 hit in scintillator, < 0 hit in absorber
+	  if (whichactive > 0) // return of IsInPrototype2OuterHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
 	    {
 	      hit->set_light_yield(0); // for scintillator only, initialize light yields
 	      // Now add the hit
@@ -231,7 +231,7 @@ bool PHG4OuterHcalPrototype2SteppingAction::UserSteppingAction( const G4Step* aS
 
       hit->set_t( 1, postPoint->GetGlobalTime() / nanosecond );
 
-      if (whichactive > 0) // return of IsInOuterHcalPrototype2Detector, > 0 hit in scintillator, < 0 hit in absorber
+      if (whichactive > 0) // return of IsInPrototype2OuterHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
         {
           if (light_scint_model)
             {
@@ -243,7 +243,7 @@ bool PHG4OuterHcalPrototype2SteppingAction::UserSteppingAction( const G4Step* aS
 
 		  if (verbosity > 0) 
 		    {
-		      cout << "PHG4OuterHcalPrototype2SteppingAction::UserSteppingAction::"
+		      cout << "PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction::"
 			//
 			   << detector_->GetName() << " - "
 			   << " use scintillating light model at each Geant4 steps. "
@@ -278,7 +278,7 @@ bool PHG4OuterHcalPrototype2SteppingAction::UserSteppingAction( const G4Step* aS
 
 		  if (verbosity > 1) 
 		    {
-		      cout << "PHG4OuterHcalPrototype2SteppingAction::UserSteppingAction::"
+		      cout << "PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction::"
 			//
 			   << detector_->GetName() << " - "
 			   << " use a simple light collection model with linear radial dependence. "
@@ -330,7 +330,7 @@ bool PHG4OuterHcalPrototype2SteppingAction::UserSteppingAction( const G4Step* aS
 }
 
 //____________________________________________________________________________..
-void PHG4OuterHcalPrototype2SteppingAction::SetInterfacePointers( PHCompositeNode* topNode )
+void PHG4Prototype2OuterHcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNode )
 {
 
   string hitnodename;
@@ -353,7 +353,7 @@ void PHG4OuterHcalPrototype2SteppingAction::SetInterfacePointers( PHCompositeNod
   // if we do not find the node it's messed up.
   if ( ! hits_ )
     {
-      std::cout << "PHG4OuterHcalPrototype2SteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+      std::cout << "PHG4Prototype2OuterHcalSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
     }
   if ( ! absorberhits_)
     {
@@ -365,7 +365,7 @@ void PHG4OuterHcalPrototype2SteppingAction::SetInterfacePointers( PHCompositeNod
 }
 
 double
-PHG4OuterHcalPrototype2SteppingAction::GetLightCorrection(const double r) const
+PHG4Prototype2OuterHcalSteppingAction::GetLightCorrection(const double r) const
 {
   double m = (light_balance_outer_corr - light_balance_inner_corr)/(light_balance_outer_radius - light_balance_inner_radius);
   double b = light_balance_inner_corr - m*light_balance_inner_radius;
