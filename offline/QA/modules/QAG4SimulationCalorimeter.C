@@ -48,11 +48,11 @@
 
 using namespace std;
 
-QAG4SimulationCalorimeter::QAG4SimulationCalorimeter(string _calo_name,
+QAG4SimulationCalorimeter::QAG4SimulationCalorimeter(string calo_name,
     QAG4SimulationCalorimeter::enu_flags flags) :
-    SubsysReco("QAG4SimulationCalorimeter_" + _calo_name), //
+    SubsysReco("QAG4SimulationCalorimeter_" + calo_name), //
     _caloevalstack(NULL), //
-    _calo_name(_calo_name), _flags(flags), _ievent(0), //
+    _calo_name(calo_name), _flags(flags), _ievent(0), //
     _calo_hit_container(NULL), _calo_abs_hit_container(NULL), _truth_container(
         NULL)
 {
