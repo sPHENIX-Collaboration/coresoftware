@@ -64,7 +64,7 @@ PHG4OuterHcalPrototype2Detector::PHG4OuterHcalPrototype2Detector( PHCompositeNod
   scinti_tile_z(size_z),
   scinti_tile_thickness(params->get_double_param("scinti_tile_thickness")*cm),
   scinti_gap(params->get_double_param("scinti_gap")*cm),
-  tilt_angle(-12*deg),
+  tilt_angle(12*deg),
   envelope_inner_radius(inner_radius),
   envelope_outer_radius(outer_radius),
   envelope_z(size_z),
@@ -307,7 +307,7 @@ PHG4OuterHcalPrototype2Detector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
   visattchk->SetForceSolid(true);
   visattchk->SetColour(G4Colour::Grey());
   steel_logical->SetVisAttributes(visattchk);
-  G4AssemblyVolume *scinti_mother_logical = ConstructHcalScintillatorAssembly(hcalenvelope);
+  //  G4AssemblyVolume *scinti_mother_logical = ConstructHcalScintillatorAssembly(hcalenvelope);
   double phi = 0;
   double deltaphi = 2 * M_PI / n_scinti_plates;
   deltaphi = 2 * M_PI / 320.;
@@ -326,7 +326,7 @@ PHG4OuterHcalPrototype2Detector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
       xpos -= cos((-tilt_angle)/rad - phi)*shiftslat;
       Rot->rotateZ(phi * rad + tilt_angle);
       G4ThreeVector g4vec(xpos, ypos, 0);
-      scinti_mother_logical->MakeImprint(hcalenvelope, g4vec, Rot, i, overlapcheck);
+      //      scinti_mother_logical->MakeImprint(hcalenvelope, g4vec, Rot, i, overlapcheck);
       Rot = new G4RotationMatrix();
       Rot->rotateZ(-phi * rad);
       name.str("");
