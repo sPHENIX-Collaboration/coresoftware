@@ -426,28 +426,28 @@ QAG4SimulationJet::Init_TruthMatching(PHCompositeNode *topNode,
   h = new TH2F(
       TString(get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dEt", //
       TString(reco_jet_name) + " E_{T} difference, " + get_eta_range_str()
-          + ";E_{T, Truth} (GeV);E_{T, Reco} / E_{T, Truth} (GeV)", 20, 0, 100,
+          + ";E_{T, Truth} (GeV);E_{T, Reco} / E_{T, Truth}", 20, 0, 100,
       100, 0, 2);
   hm->registerHisto(h);
 
   h = new TH2F(
       TString(get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dE", //
       TString(reco_jet_name) + " Jet Energy Difference, " + get_eta_range_str()
-          + ";E_{Truth} (GeV);E_{Reco} / E_{Truth} (GeV)", 20, 0, 100, 100, 0,
+          + ";E_{Truth} (GeV);E_{Reco} / E_{Truth}", 20, 0, 100, 100, 0,
       2);
   hm->registerHisto(h);
 
   h = new TH2F(
       TString(get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dEta", //
       TString(reco_jet_name) + " #eta difference, " + get_eta_range_str()
-          + ";E_{T, Truth} (GeV);#eta_{Reco} - #eta_{Truth} (GeV)", 20, 0, 100,
+          + ";E_{T, Truth} (GeV);#eta_{Reco} - #eta_{Truth}", 20, 0, 100,
       200, -.1, .1);
   hm->registerHisto(h);
 
   h = new TH2F(
       TString(get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dPhi", //
       TString(reco_jet_name) + " #phi difference, " + get_eta_range_str()
-          + ";E_{T, Truth} (GeV);#phi_{Reco} - #phi_{Truth} (GeV)", 20, 0, 100,
+          + ";E_{T, Truth} (GeV);#phi_{Reco} - #phi_{Truth} (rad)", 20, 0, 100,
       200, -.1, .1);
   hm->registerHisto(h);
 

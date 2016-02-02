@@ -148,7 +148,7 @@ QA_Draw_Jet_Spectrum(const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
             TString(jet) + TString("_Inclusive_eta"), "TH1F");
         assert(h_new);
 
-        h_new->Sumw2();
+//        h_new->Sumw2();
         h_new->Scale(1. / Nevent_new);
 
         TH1F * h_ref = NULL;
@@ -162,7 +162,7 @@ QA_Draw_Jet_Spectrum(const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
           }
 
         h_new->GetYaxis()->SetTitleOffset(1.5);
-        h_new->GetYaxis()->SetTitle("Count / event / bin");
+        h_new->GetYaxis()->SetTitle("Energy (GeV) / event / bin");
         //      h_new->GetXaxis()->SetRangeUser(-0, .1);
 
         DrawReference(h_new, h_ref);
@@ -177,7 +177,7 @@ QA_Draw_Jet_Spectrum(const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
             TString(jet) + TString("_Inclusive_phi"), "TH1F");
         assert(h_new);
 
-        h_new->Sumw2();
+//        h_new->Sumw2();
         h_new->Scale(1. / Nevent_new);
 
         TH1F * h_ref = NULL;
@@ -191,7 +191,7 @@ QA_Draw_Jet_Spectrum(const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
           }
 
         h_new->GetYaxis()->SetTitleOffset(1.5);
-        h_new->GetYaxis()->SetTitle("Count / event / bin");
+        h_new->GetYaxis()->SetTitle("Energy (GeV) / event / bin");
         //      h_new->GetXaxis()->SetRangeUser(-0, .1);
 
         DrawReference(h_new, h_ref);

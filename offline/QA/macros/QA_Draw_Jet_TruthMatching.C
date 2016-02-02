@@ -64,12 +64,12 @@ QA_Draw_Jet_TruthMatching(const char * jet =
       assert(proj_new);
 
       proj_new->Rebin2D(1, 5);
-//    TGraphErrors * ge = FitResolution(proj_new, false);
+
+      TGraphErrors * ge = FitProfile(proj_new);
 
       proj_new->Draw("COLZ");
-//    ge->Draw("p");
+      ge->Draw("p");
 
-//    DrawReference(proj_new, proj_ref);
     }
   TLine * l = new TLine(0, 0, 100, 00);
   l->Draw();
@@ -86,12 +86,10 @@ QA_Draw_Jet_TruthMatching(const char * jet =
       assert(proj_new);
 
       proj_new->Rebin2D(1, 5);
-//    TGraphErrors * ge = FitResolution(proj_new, false);
+      TGraphErrors * ge = FitProfile(proj_new);
 
       proj_new->Draw("COLZ");
-//    ge->Draw("p");
-
-//    DrawReference(proj_new, proj_ref);
+      ge->Draw("p");
     }
   TLine * l = new TLine(0, 0, 100, 00);
   l->Draw();
@@ -108,12 +106,10 @@ QA_Draw_Jet_TruthMatching(const char * jet =
       assert(proj_new);
 
 //    proj_new->Rebin2D(1,5);
-//    TGraphErrors * ge = FitResolution(proj_new, false);
 
+      TGraphErrors * ge = FitProfile(proj_new);
       proj_new->Draw("COLZ");
-//    ge->Draw("p");
-
-//    DrawReference(proj_new, proj_ref);
+      ge->Draw("p");
     }
   TLine * l = new TLine(0, 1, 100, 1);
   l->Draw();
@@ -130,12 +126,9 @@ QA_Draw_Jet_TruthMatching(const char * jet =
       assert(proj_new);
 
 //    proj_new->Rebin2D(1,5);
-//    TGraphErrors * ge = FitResolution(proj_new, false);
-
+      TGraphErrors * ge = FitProfile(proj_new);
       proj_new->Draw("COLZ");
-//    ge->Draw("p");
-
-//    DrawReference(proj_new, proj_ref);
+      ge->Draw("p");
     }
   TLine * l = new TLine(0, 1, 100, 1);
   l->Draw();
@@ -252,17 +245,6 @@ FitResolution(const TH2F * h2, const bool normalize_mean = true)
 
       h1->Fit(&fgaus, "MQ0");
 
-//      f2.SetParameters(fgaus.GetParameter(0) / 2, fgaus.GetParameter(1),
-//          fgaus.GetParameter(2), fgaus.GetParameter(0) / 2,
-//          fgaus.GetParameter(2) / 4, 0);
-//
-//      h1->Fit(&f2, "MQ0");
-
-      new TCanvas(Form("htmp_%d", rand()), Form("htmp_%d", rand()));
-      h1->Draw();
-      fgaus.Draw("same");
-      break;
-
       x[n] = p2->GetBinCenter(i);
       ex[n] = (p2->GetBinCenter(2) - p2->GetBinCenter(1)) / 2;
 
@@ -278,6 +260,69 @@ FitResolution(const TH2F * h2, const bool normalize_mean = true)
   TGraphErrors * ge = new TGraphErrors(n, x, y, 0, ey);
   ge->SetName(TString(h2->GetName()) + "_FitResolution");
 
+  ge->SetLineColor(kBlue + 3);
+  ge->SetMarkerColor(kBlue + 3);
+  ge->SetLineWidth(2);
+  ge->SetMarkerStyle(kFullCircle);
+  ge->SetMarkerSize(1);
+  return ge;
+}
+
+TGraphErrors *
+FitProfile(const TH2F * h2)
+{
+
+  TProfile * p2 = h2->ProfileX();
+
+  int n = 0;
+  double x[1000];
+  double ex[1000];
+  double y[1000];
+  double ey[1000];
+
+  for (int i = 1; i <= h2->GetNbinsX(); i++)
+    {
+      TH1D * h1 = h2->ProjectionY(Form("htmp_%d", rand()), i, i);
+
+      if (h1->GetSum() < 10)
+        continue;
+
+      TF1 fgaus("fgaus", "gaus", -p2->GetBinError(i) * 4,
+          p2->GetBinError(i) * 4);
+
+      TF1 f2(Form("dgaus"), "gaus + [3]*exp(-0.5*((x-[1])/[4])**2) + [5]",
+          -p2->GetBinError(i) * 4, p2->GetBinError(i) * 4);
+
+      fgaus.SetParameter(1, p2->GetBinContent(i));
+      fgaus.SetParameter(2, p2->GetBinError(i));
+
+      h1->Fit(&fgaus, "MQ0");
+
+//      f2.SetParameters(fgaus.GetParameter(0) / 2, fgaus.GetParameter(1),
+//          fgaus.GetParameter(2), fgaus.GetParameter(0) / 2,
+//          fgaus.GetParameter(2) / 4, 0);
+//
+//      h1->Fit(&f2, "MQ0");
+
+//      new TCanvas;
+//      h1->Draw();
+//      fgaus.Draw("same");
+//      break;
+
+      x[n] = p2->GetBinCenter(i);
+      ex[n] = (p2->GetBinCenter(2) - p2->GetBinCenter(1)) / 2;
+      y[n] = fgaus.GetParameter(1);
+      ey[n] = fgaus.GetParameter(2);
+
+//      p2->SetBinContent(i, fgaus.GetParameter(1));
+//      p2->SetBinError(i, fgaus.GetParameter(2));
+
+      n++;
+      delete h1;
+    }
+
+  TGraphErrors * ge = new TGraphErrors(n, x, y, ex, ey);
+  ge->SetName(TString(h2->GetName()) + "_FitProfile");
   ge->SetLineColor(kBlue + 3);
   ge->SetMarkerColor(kBlue + 3);
   ge->SetLineWidth(2);
