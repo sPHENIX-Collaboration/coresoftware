@@ -7,6 +7,7 @@
 #include <string>
 #include <set>
 #include <map>
+#include <utility>      // std::pair, std::make_pair
 #include <stdint.h>
 #ifndef __CINT__
 #include <memory>
@@ -18,6 +19,7 @@ class PHCompositeNode;
 class Fun4AllHistoManager;
 class TH1F;
 class JetEvalStack;
+class Jet;
 
 /// \class QAG4SimulationJet
 class QAG4SimulationJet : public SubsysReco
@@ -85,6 +87,52 @@ public:
     _flags &= ~(uint32_t) flag;
   }
 
+  //! Energy ratio difference cut from 1 for matched jets
+  double
+  get_jet_match_dE_Ratio() const
+  {
+    return _jet_match_dE_Ratio;
+  }
+
+  //! Energy ratio difference cut from 1 for matched jets
+  void
+  set_jet_match_dE_Ratio(double jetMatchDERatio)
+  {
+    _jet_match_dE_Ratio = jetMatchDERatio;
+  }
+
+  //! Eta difference cut for matched jets
+  double
+  get_jet_match_dEta() const
+  {
+    return _jet_match_dEta;
+  }
+
+  //! Eta difference cut for matched jets
+  void
+  set_jet_match_dEta(double jetMatchDEta)
+  {
+    _jet_match_dEta = jetMatchDEta;
+  }
+
+  //! Phi difference cut for matched jets
+  double
+  get_jet_match_dPhi() const
+  {
+    return _jet_match_dPhi;
+  }
+
+  //! Phi difference cut for matched jets
+  void
+  set_jet_match_dPhi(double jetMatchDPhi)
+  {
+    _jet_match_dPhi = jetMatchDPhi;
+  }
+
+  //! set eta range
+  void
+  set_eta_range(double low, double high);
+
   int
   Init(PHCompositeNode *topNode);
   int
@@ -129,6 +177,26 @@ private:
   //! simple counter
   unsigned long _ievent;
 
+  //! eta range
+  std::pair<double, double> eta_range;
+
+  //! string description of eta range
+  //! @return TString as ROOT likes
+  TString
+  get_eta_range_str(const char * eta_name = "#eta_{Jet}") const;
+
+  //! acceptance cut on jet object
+  bool
+  jet_acceptance_cut(const Jet * jet) const;
+
+  //! Eta difference cut for matched jets
+  double _jet_match_dEta;
+
+  //! Phi difference cut for matched jets
+  double _jet_match_dPhi;
+
+  //! Energy ratio difference cut from 1 for matched jets
+  double _jet_match_dE_Ratio;
 };
 
 #endif // __CALOEVALUATOR_H__

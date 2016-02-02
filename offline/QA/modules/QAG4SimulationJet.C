@@ -40,7 +40,9 @@ QAG4SimulationJet::QAG4SimulationJet(const std::string & truth_jet,
     enu_flags flags) :
     SubsysReco("QAG4SimulationJet_" + truth_jet), //
     _jetevalstacks(), //
-    _truth_jet(truth_jet), _reco_jets(), _flags(flags), _ievent(0)
+    _truth_jet(truth_jet), _reco_jets(), _flags(flags), //
+    _ievent(0), eta_range(-1, 1), //
+    _jet_match_dEta(.1), _jet_match_dPhi(.1), _jet_match_dE_Ratio(.5)
 {
 
 }
@@ -67,7 +69,7 @@ QAG4SimulationJet::InitRun(PHCompositeNode *topNode)
           if (it_jetevalstack == _jetevalstacks.end())
             {
               _jetevalstacks[reco_jet] = shared_ptr < JetEvalStack
-                  > (new JetEvalStack(topNode, _truth_jet, reco_jet));
+                  > (new JetEvalStack(topNode,  reco_jet, _truth_jet));
               assert(_jetevalstacks[reco_jet]);
               _jetevalstacks[reco_jet]->set_strict(true);
               _jetevalstacks[reco_jet]->set_verbosity(verbosity + 1);
@@ -217,6 +219,38 @@ QAG4SimulationJet::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+//! set eta range
+void
+QAG4SimulationJet::set_eta_range(double low, double high)
+{
+  if (low > high)
+    swap(low, high);
+  assert(low < high); // eliminate zero range
+
+  eta_range.first = low;
+  eta_range.second = high;
+}
+
+//! string description of eta range
+//! @return TString as ROOT likes
+TString
+QAG4SimulationJet::get_eta_range_str(const char * eta_name) const
+{
+  assert(eta_name);
+  return TString(
+      Form("%.1f < %s < %.1f", eta_range.first, eta_name, eta_range.second));
+}
+
+//! acceptance cut on jet object
+bool
+QAG4SimulationJet::jet_acceptance_cut(const Jet * jet) const
+{
+  assert(jet);
+  bool eta_cut = (jet->get_eta() >= eta_range.first)
+      and (jet->get_eta() <= eta_range.second);
+  return eta_cut;
+}
+
 string
 QAG4SimulationJet::get_histo_prefix(const std::string & src_jet_name,
     const std::string & reco_jet_name)
@@ -244,35 +278,44 @@ QAG4SimulationJet::Init_Spectrum(PHCompositeNode *topNode,
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  hm->registerHisto(new TH1F( //
-      TString(get_histo_prefix(jet_name)) + "Leading_Et", //
-      TString(jet_name) + " leading jet Et;E_{T} (GeV)", 100, 0, 100));
-  hm->registerHisto(new TH1F( //
-      TString(get_histo_prefix(jet_name)) + "Leading_eta", //
-      TString(jet_name) + " leading jet #eta;#eta", 50, -1, 1));
-  hm->registerHisto(new TH1F( //
-      TString(get_histo_prefix(jet_name)) + "Leading_phi", //
-      TString(jet_name) + " leading jet #phi;#phi", 50, -M_PI, M_PI));
+  hm->registerHisto(
+      new TH1F(
+          //
+          TString(get_histo_prefix(jet_name)) + "Leading_Et", //
+          TString(jet_name) + " leading jet Et, " + get_eta_range_str()
+              + ";E_{T} (GeV)", 100, 0, 100));
+  hm->registerHisto(
+      new TH1F(
+          //
+          TString(get_histo_prefix(jet_name)) + "Leading_eta", //
+          TString(jet_name) + " leading jet #eta, " + get_eta_range_str()
+              + ";#eta", 50, -1, 1));
+  hm->registerHisto(
+      new TH1F(
+          //
+          TString(get_histo_prefix(jet_name)) + "Leading_phi", //
+          TString(jet_name) + " leading jet #phi, " + get_eta_range_str()
+              + ";#phi", 50, -M_PI, M_PI));
 
   TH1F * h = new TH1F(
       //
       TString(get_histo_prefix(jet_name)) + "Inclusive_E", //
-      TString(jet_name) + " inclusive jet E;Total jet energy (GeV)", 100, 1e-3,
-      100);
+      TString(jet_name) + " inclusive jet E, " + get_eta_range_str()
+          + ";Total jet energy (GeV)", 100, 1e-3, 100);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
   hm->registerHisto(
       new TH1F(
           //
           TString(get_histo_prefix(jet_name)) + "Inclusive_eta", //
-          TString(jet_name) + " inclusive jet #eta;#eta;Jet energy density", 50,
-          -1, 1));
+          TString(jet_name) + " inclusive jet #eta, " + get_eta_range_str()
+              + ";#eta;Jet energy density", 50, -1, 1));
   hm->registerHisto(
       new TH1F(
           //
           TString(get_histo_prefix(jet_name)) + "Inclusive_phi", //
-          TString(jet_name) + " inclusive jet #phi;#phi;Jet energy density", 50,
-          -M_PI, M_PI));
+          TString(jet_name) + " inclusive jet #phi, " + get_eta_range_str()
+              + ";#phi;Jet energy density", 50, -M_PI, M_PI));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -317,6 +360,9 @@ QAG4SimulationJet::process_Spectrum(PHCompositeNode *topNode,
     {
       Jet* jet = iter->second;
       assert(jet);
+
+      if (not jet_acceptance_cut(jet))
+        continue;
 
       if (jet->get_et() > max_et)
         {
@@ -364,8 +410,8 @@ QAG4SimulationJet::Init_Comparison(PHCompositeNode *topNode,
   TH2F * h = new TH2F(
       TString(get_histo_prefix(_truth_jet, reco_jet_name))
           + "Matching_Count_Truth_Et", //
-      TString(reco_jet_name) + " Matching Count;E_{T, Truth} (GeV)", 20, 0, 100, 2,
-      0.5, 2.5);
+      TString(reco_jet_name) + " Matching Count, " + get_eta_range_str()
+          + ";E_{T, Truth} (GeV)", 20, 0, 100, 2, 0.5, 2.5);
   h->GetYaxis()->SetBinLabel(1, "Total");
   h->GetYaxis()->SetBinLabel(2, "Matched");
   hm->registerHisto(h);
@@ -374,43 +420,38 @@ QAG4SimulationJet::Init_Comparison(PHCompositeNode *topNode,
       //
       TString(get_histo_prefix(_truth_jet, reco_jet_name))
           + "Matching_Count_Reco_Et", //
-      TString(reco_jet_name) + " Matching Count;E_{T, Reco} (GeV)", 20, 0, 100, 2,
-      0.5, 2.5);
+      TString(reco_jet_name) + " Matching Count, " + get_eta_range_str()
+          + ";E_{T, Reco} (GeV)", 20, 0, 100, 2, 0.5, 2.5);
   h->GetYaxis()->SetBinLabel(1, "Total");
   h->GetYaxis()->SetBinLabel(2, "Matched");
   hm->registerHisto(h);
 
-  h =
-      new TH2F(
-          TString(get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dEt", //
-          TString(reco_jet_name)
-              + " E_{T} difference;E_{T, Truth} (GeV);E_{T, Reco} - E_{T, Truth} (GeV)",
-          20, 0, 100, 100, 0, 2);
+  h = new TH2F(
+      TString(get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dEt", //
+      TString(reco_jet_name) + " E_{T} difference, " + get_eta_range_str()
+          + ";E_{T, Truth} (GeV);E_{T, Reco} / E_{T, Truth} (GeV)", 20, 0, 100,
+      100, 0, 2);
   hm->registerHisto(h);
 
   h = new TH2F(
       TString(get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dE", //
-      TString(reco_jet_name)
-          + " Jet Energy Difference;E_{Truth} (GeV);E_{Reco} - E_{Truth} (GeV)",
-      20, 0, 100, 100, 0, 2);
+      TString(reco_jet_name) + " Jet Energy Difference, " + get_eta_range_str()
+          + ";E_{Truth} (GeV);E_{Reco} / E_{Truth} (GeV)", 20, 0, 100, 100, 0,
+      2);
   hm->registerHisto(h);
 
-  h =
-      new TH2F(
-          TString(get_histo_prefix(_truth_jet, reco_jet_name))
-              + "Matching_dEta", //
-          TString(reco_jet_name)
-              + " #eta difference;E_{T, Truth} (GeV);#eta_{Reco} - #eta_{Truth} (GeV)",
-          20, 0, 100, 200, -.1, .1);
+  h = new TH2F(
+      TString(get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dEta", //
+      TString(reco_jet_name) + " #eta difference, " + get_eta_range_str()
+          + ";E_{T, Truth} (GeV);#eta_{Reco} - #eta_{Truth} (GeV)", 20, 0, 100,
+      200, -.1, .1);
   hm->registerHisto(h);
 
-  h =
-      new TH2F(
-          TString(get_histo_prefix(_truth_jet, reco_jet_name))
-              + "Matching_dPhi", //
-          TString(reco_jet_name)
-              + " #phi difference;E_{T, Truth} (GeV);#phi_{Reco} - #phi_{Truth} (GeV)",
-          20, 0, 100, 200, -.1, .1);
+  h = new TH2F(
+      TString(get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dPhi", //
+      TString(reco_jet_name) + " #phi difference, " + get_eta_range_str()
+          + ";E_{T, Truth} (GeV);#phi_{Reco} - #phi_{Truth} (GeV)", 20, 0, 100,
+      200, -.1, .1);
   hm->registerHisto(h);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -420,9 +461,165 @@ int
 QAG4SimulationJet::process_Comparison(PHCompositeNode *topNode,
     const std::string & reco_jet_name)
 {
+  assert(_jet_match_dPhi > 0);
+  assert(_jet_match_dEta > 0);
+  assert(_jet_match_dE_Ratio > 0);
 
+  Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
 
+  TH2F * Matching_Count_Truth_Et = dynamic_cast<TH2F*>(hm->getHisto(
+      (get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_Count_Truth_Et" //
+          ));
+  assert(Matching_Count_Truth_Et);
+  TH2F * Matching_Count_Reco_Et = dynamic_cast<TH2F*>(hm->getHisto(
+      (get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_Count_Reco_Et" //
+          ));
+  assert(Matching_Count_Reco_Et);
+  TH2F * Matching_dEt = dynamic_cast<TH2F*>(hm->getHisto(
+      (get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dEt" //
+          ));
+  assert(Matching_dEt);
+  TH2F * Matching_dE = dynamic_cast<TH2F*>(hm->getHisto(
+      (get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dE" //
+          ));
+  assert(Matching_dE);
+  TH2F * Matching_dEta = dynamic_cast<TH2F*>(hm->getHisto(
+      (get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dEta" //
+          ));
+  assert(Matching_dEta);
+  TH2F * Matching_dPhi = dynamic_cast<TH2F*>(hm->getHisto(
+      (get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dPhi" //
+          ));
+  assert(Matching_dPhi);
 
+  jetevalstacks_map::iterator it_stack = _jetevalstacks.find(reco_jet_name);
+  assert(it_stack != _jetevalstacks.end());
+  shared_ptr<JetEvalStack> eval_stack = it_stack->second;
+  assert(eval_stack);
+  JetRecoEval* recoeval = eval_stack->get_reco_eval();
+  assert(recoeval);
+
+  // iterate over truth jets
+  JetMap* truthjets = findNode::getClass<JetMap>(topNode, _truth_jet);
+  if (!truthjets)
+    {
+      cout
+          << "QAG4SimulationJet::process_Comparison - Error can not find DST JetMap node "
+          << _truth_jet << endl;
+      exit(-1);
+    }
+  for (JetMap::Iter iter = truthjets->begin(); iter != truthjets->end(); ++iter)
+    {
+      Jet* truthjet = iter->second;
+      assert(truthjet);
+
+      if (verbosity > 1)
+        {
+          cout << "QAG4SimulationJet::process_Comparison - " << _truth_jet
+              << " process truth jet ";
+          truthjet->identify();
+        }
+
+      if (not jet_acceptance_cut(truthjet))
+        continue;
+
+      Matching_Count_Truth_Et->Fill(truthjet->get_et(), "Total", 1);
+
+      const Jet* recojet = recoeval->best_jet_from(truthjet);
+      if (recojet)
+        {
+          const double dPhi = recojet->get_phi() - truthjet->get_phi();
+          Matching_dPhi->Fill(truthjet->get_et(), dPhi);
+
+          if (fabs(dPhi) < _jet_match_dPhi)
+            {
+
+              const double dEta = recojet->get_eta() - truthjet->get_eta();
+              Matching_dEta->Fill(truthjet->get_et(), dEta);
+
+              if (fabs(dEta) < _jet_match_dEta)
+                {
+
+                  const double Et_r = recojet->get_et()
+                      / (truthjet->get_et() + 1e-9);
+                  const double E_r = recojet->get_e()
+                      / (truthjet->get_e() + 1e-9);
+                  Matching_dEt->Fill(truthjet->get_et(), Et_r);
+                  Matching_dE->Fill(truthjet->get_et(), E_r);
+
+                  if (fabs(E_r - 1) < _jet_match_dE_Ratio)
+                    {
+                      // matched in eta, phi and energy
+
+                      Matching_Count_Truth_Et->Fill(truthjet->get_et(),
+                          "Matched", 1);
+                    }
+
+                } //  if (fabs(dEta) < 0.1)
+
+            } // if (fabs(dPhi) < 0.1)
+
+        } //       if (recojet)
+
+    } //  for (JetMap::Iter iter = truthjets->begin(); iter != truthjets->end(); ++iter)
+
+  // next for reco jets
+  JetMap* recojets = findNode::getClass<JetMap>(topNode, reco_jet_name);
+  if (!recojets)
+    {
+      cout
+          << "QAG4SimulationJet::process_Comparison - Error can not find DST JetMap node "
+          << reco_jet_name << endl;
+      exit(-1);
+    }
+  for (JetMap::Iter iter = recojets->begin(); iter != recojets->end(); ++iter)
+    {
+      Jet* recojet = iter->second;
+      assert(recojet);
+
+      if (verbosity > 1)
+        {
+          cout << "QAG4SimulationJet::process_Comparison - " << reco_jet_name
+              << " process reco jet ";
+          recojet->identify();
+        }
+
+      if (not jet_acceptance_cut(recojet))
+        continue;
+
+      Matching_Count_Reco_Et->Fill(recojet->get_et(), "Total", 1);
+
+      Jet* truthjet = recoeval->max_truth_jet_by_energy(recojet);
+      if (truthjet)
+        {
+
+          const double dPhi = recojet->get_phi() - truthjet->get_phi();
+          if (fabs(dPhi) < _jet_match_dPhi)
+            {
+
+              const double dEta = recojet->get_eta() - truthjet->get_eta();
+              if (fabs(dEta) < _jet_match_dEta)
+                {
+
+                  const double E_r = recojet->get_e()
+                      / (truthjet->get_e() + 1e-9);
+
+                  if (fabs(E_r - 1) < _jet_match_dE_Ratio)
+                    {
+                      // matched in eta, phi and energy
+
+                      Matching_Count_Reco_Et->Fill(recojet->get_et(), "Matched",
+                          1);
+                    }
+
+                } //  if (fabs(dEta) < 0.1)
+
+            } // if (fabs(dPhi) < 0.1)
+
+        } //      if (truthjet)
+
+    } //  for (JetMap::Iter iter = recojets->begin(); iter != recojets->end(); ++iter)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
