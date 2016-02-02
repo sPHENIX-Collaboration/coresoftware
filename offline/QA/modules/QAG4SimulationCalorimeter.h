@@ -105,7 +105,6 @@ private:
 
   std::string _calo_name;
   uint32_t _flags;
-  unsigned long _ievent;
 
   PHG4HitContainer* _calo_hit_container;
   PHG4HitContainer* _calo_abs_hit_container;

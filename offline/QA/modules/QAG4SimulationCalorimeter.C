@@ -51,7 +51,7 @@ using namespace std;
 QAG4SimulationCalorimeter::QAG4SimulationCalorimeter(string calo_name,
     QAG4SimulationCalorimeter::enu_flags flags) :
     SubsysReco("QAG4SimulationCalorimeter_" + calo_name), //
-    _calo_name(calo_name), _flags(flags), _ievent(0), //
+    _calo_name(calo_name), _flags(flags), //
     _calo_hit_container(NULL), _calo_abs_hit_container(NULL), _truth_container(
         NULL)
 {
@@ -65,8 +65,6 @@ QAG4SimulationCalorimeter::~QAG4SimulationCalorimeter()
 int
 QAG4SimulationCalorimeter::InitRun(PHCompositeNode *topNode)
 {
-  _ievent = 0;
-
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = static_cast<PHCompositeNode*>(iter.findFirst(
       "PHCompositeNode", "DST"));
@@ -129,8 +127,6 @@ QAG4SimulationCalorimeter::End(PHCompositeNode *topNode)
 int
 QAG4SimulationCalorimeter::Init(PHCompositeNode *topNode)
 {
-
-  _ievent = 0;
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);

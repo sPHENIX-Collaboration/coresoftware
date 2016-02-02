@@ -41,7 +41,7 @@ QAG4SimulationJet::QAG4SimulationJet(const std::string & truth_jet,
     SubsysReco("QAG4SimulationJet_" + truth_jet), //
     _jetevalstacks(), //
     _truth_jet(truth_jet), _reco_jets(), _flags(flags), //
-    _ievent(0), eta_range(-1, 1), //
+    eta_range(-1, 1), //
     _jet_match_dEta(.1), _jet_match_dPhi(.1), _jet_match_dE_Ratio(.5)
 {
 
@@ -54,7 +54,6 @@ QAG4SimulationJet::~QAG4SimulationJet()
 int
 QAG4SimulationJet::InitRun(PHCompositeNode *topNode)
 {
-  _ievent = 0;
 
   if (flag(kProcessComparison))
     {
@@ -69,7 +68,7 @@ QAG4SimulationJet::InitRun(PHCompositeNode *topNode)
           if (it_jetevalstack == _jetevalstacks.end())
             {
               _jetevalstacks[reco_jet] = shared_ptr < JetEvalStack
-                  > (new JetEvalStack(topNode,  reco_jet, _truth_jet));
+                  > (new JetEvalStack(topNode, reco_jet, _truth_jet));
               assert(_jetevalstacks[reco_jet]);
               _jetevalstacks[reco_jet]->set_strict(true);
               _jetevalstacks[reco_jet]->set_verbosity(verbosity + 1);
@@ -94,8 +93,6 @@ QAG4SimulationJet::End(PHCompositeNode *topNode)
 int
 QAG4SimulationJet::Init(PHCompositeNode *topNode)
 {
-
-  _ievent = 0;
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);

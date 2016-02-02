@@ -174,9 +174,6 @@ private:
 
   uint32_t _flags;
 
-  //! simple counter
-  unsigned long _ievent;
-
   //! eta range
   std::pair<double, double> eta_range;
 
