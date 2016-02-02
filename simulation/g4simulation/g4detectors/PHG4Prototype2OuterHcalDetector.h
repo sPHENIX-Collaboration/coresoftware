@@ -51,14 +51,13 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
 
   G4VSolid* ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
   G4VSolid* ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
-  void ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright);
 
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
   void ConstructHcalSingleScintillators(G4LogicalVolume* hcalenvelope);
 
   protected:
   void AddGeometryNode();
-  int ConstructInnerHcal(G4LogicalVolume* sandwich);
+  int ConstructOuterHcal(G4LogicalVolume* sandwich);
   int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
   double x_at_y(Point_2 &p0, Point_2 &p1, double yin);
   PHG4Parameters *params;
