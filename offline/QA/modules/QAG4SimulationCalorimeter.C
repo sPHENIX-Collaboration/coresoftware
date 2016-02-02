@@ -51,7 +51,6 @@ using namespace std;
 QAG4SimulationCalorimeter::QAG4SimulationCalorimeter(string calo_name,
     QAG4SimulationCalorimeter::enu_flags flags) :
     SubsysReco("QAG4SimulationCalorimeter_" + calo_name), //
-    _caloevalstack(NULL), //
     _calo_name(calo_name), _flags(flags), _ievent(0), //
     _calo_hit_container(NULL), _calo_abs_hit_container(NULL), _truth_container(
         NULL)
@@ -61,10 +60,6 @@ QAG4SimulationCalorimeter::QAG4SimulationCalorimeter(string calo_name,
 
 QAG4SimulationCalorimeter::~QAG4SimulationCalorimeter()
 {
-  if (_caloevalstack)
-    {
-      delete _caloevalstack;
-    }
 }
 
 int
@@ -112,7 +107,7 @@ QAG4SimulationCalorimeter::InitRun(PHCompositeNode *topNode)
     {
       if (!_caloevalstack)
         {
-          _caloevalstack = new CaloEvalStack(topNode, _calo_name);
+          _caloevalstack.reset( new CaloEvalStack(topNode, _calo_name));
           _caloevalstack->set_strict(true);
           _caloevalstack->set_verbosity(verbosity + 1);
         }
