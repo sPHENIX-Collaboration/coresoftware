@@ -36,11 +36,11 @@ public:
     kProcessRecoSpectrum = 1 << 2,
 
     //! comparison of reco jet VS truth
-    kProcessComparison = 1 << 3,
+    kProcessTruthMatching = 1 << 3,
 
     //! default. Do everything
     kDefaultFlag = kProcessTruthSpectrum | kProcessRecoSpectrum
-        | kProcessComparison
+        | kProcessTruthMatching
   };
 
   QAG4SimulationJet(const std::string & truth_jet, enu_flags flags =
@@ -150,9 +150,9 @@ private:
   process_Spectrum(PHCompositeNode *topNode, const std::string & jet_name);
 
   int
-  Init_Comparison(PHCompositeNode *topNode, const std::string & reco_jet_name);
+  Init_TruthMatching(PHCompositeNode *topNode, const std::string & reco_jet_name);
   int
-  process_Comparison(PHCompositeNode *topNode,
+  process_TruthMatching(PHCompositeNode *topNode,
       const std::string & reco_jet_name);
 
   //! common prefix for QA histograms

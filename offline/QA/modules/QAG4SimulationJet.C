@@ -55,7 +55,7 @@ int
 QAG4SimulationJet::InitRun(PHCompositeNode *topNode)
 {
 
-  if (flag(kProcessComparison))
+  if (flag(kProcessTruthMatching))
     {
       for (set<string>::const_iterator it_reco_jets = _reco_jets.begin();
           it_reco_jets != _reco_jets.end(); ++it_reco_jets)
@@ -139,7 +139,7 @@ QAG4SimulationJet::Init(PHCompositeNode *topNode)
         }
     }
 
-  if (flag(kProcessComparison))
+  if (flag(kProcessTruthMatching))
     {
       for (set<string>::const_iterator it_reco_jets = _reco_jets.begin();
           it_reco_jets != _reco_jets.end(); ++it_reco_jets)
@@ -148,7 +148,7 @@ QAG4SimulationJet::Init(PHCompositeNode *topNode)
           if (verbosity >= 1)
             cout << "QAG4SimulationJet::Init - Process Reco jet spectrum "
                 << reco_jet << endl;
-          Init_Comparison(topNode, reco_jet);
+          Init_TruthMatching(topNode, reco_jet);
         }
     }
 
@@ -191,7 +191,7 @@ QAG4SimulationJet::process_event(PHCompositeNode *topNode)
         }
     }
 
-  if (flag(kProcessComparison))
+  if (flag(kProcessTruthMatching))
     {
       for (set<string>::const_iterator it_reco_jets = _reco_jets.begin();
           it_reco_jets != _reco_jets.end(); ++it_reco_jets)
@@ -201,7 +201,7 @@ QAG4SimulationJet::process_event(PHCompositeNode *topNode)
             cout
                 << "QAG4SimulationJet::process_event - Process Reco jet spectrum "
                 << reco_jet << endl;
-          process_Comparison(topNode, reco_jet);
+          process_TruthMatching(topNode, reco_jet);
         }
     }
 
@@ -398,7 +398,7 @@ QAG4SimulationJet::process_Spectrum(PHCompositeNode *topNode,
 }
 
 int
-QAG4SimulationJet::Init_Comparison(PHCompositeNode *topNode,
+QAG4SimulationJet::Init_TruthMatching(PHCompositeNode *topNode,
     const std::string & reco_jet_name)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
@@ -455,7 +455,7 @@ QAG4SimulationJet::Init_Comparison(PHCompositeNode *topNode,
 }
 
 int
-QAG4SimulationJet::process_Comparison(PHCompositeNode *topNode,
+QAG4SimulationJet::process_TruthMatching(PHCompositeNode *topNode,
     const std::string & reco_jet_name)
 {
   assert(_jet_match_dPhi > 0);
@@ -502,7 +502,7 @@ QAG4SimulationJet::process_Comparison(PHCompositeNode *topNode,
   if (!truthjets)
     {
       cout
-          << "QAG4SimulationJet::process_Comparison - Error can not find DST JetMap node "
+          << "QAG4SimulationJet::process_TruthMatching - Error can not find DST JetMap node "
           << _truth_jet << endl;
       exit(-1);
     }
@@ -513,7 +513,7 @@ QAG4SimulationJet::process_Comparison(PHCompositeNode *topNode,
 
       if (verbosity > 1)
         {
-          cout << "QAG4SimulationJet::process_Comparison - " << _truth_jet
+          cout << "QAG4SimulationJet::process_TruthMatching - " << _truth_jet
               << " process truth jet ";
           truthjet->identify();
         }
@@ -566,7 +566,7 @@ QAG4SimulationJet::process_Comparison(PHCompositeNode *topNode,
   if (!recojets)
     {
       cout
-          << "QAG4SimulationJet::process_Comparison - Error can not find DST JetMap node "
+          << "QAG4SimulationJet::process_TruthMatching - Error can not find DST JetMap node "
           << reco_jet_name << endl;
       exit(-1);
     }
@@ -577,7 +577,7 @@ QAG4SimulationJet::process_Comparison(PHCompositeNode *topNode,
 
       if (verbosity > 1)
         {
-          cout << "QAG4SimulationJet::process_Comparison - " << reco_jet_name
+          cout << "QAG4SimulationJet::process_TruthMatching - " << reco_jet_name
               << " process reco jet ";
           recojet->identify();
         }
