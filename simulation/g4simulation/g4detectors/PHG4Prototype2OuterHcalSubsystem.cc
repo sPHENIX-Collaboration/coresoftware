@@ -285,13 +285,13 @@ PHG4Prototype2OuterHcalSubsystem::set_string_param(const std::string &name, cons
 void
 PHG4Prototype2OuterHcalSubsystem::SetDefaultParameters()
 {
-
-  default_double["inner_radius"] = 116.;
+  // all in cm
+  default_double["inner_radius"] = 183.;
   default_double["light_balance_inner_corr"] = NAN;
   default_double["light_balance_inner_radius"] = NAN;
   default_double["light_balance_outer_corr"] = NAN;
   default_double["light_balance_outer_radius"] = NAN;
-  default_double["outer_radius"] = 136.;
+  default_double["outer_radius"] = 268.5;
   default_double["place_x"] = 0.;
   default_double["place_y"] = 0.;
   default_double["place_z"] = 0.;
@@ -302,17 +302,17 @@ PHG4Prototype2OuterHcalSubsystem::SetDefaultParameters()
   default_double["scinti_gap"] = 0.85;
   default_double["scinti_gap_neighbor"] = 0.1;
   default_double["scinti_tile_thickness"] = 0.7;
-  default_double["size_z"] = 175.94 * 2;
+  default_double["size_z"] = 160;
   default_double["steplimits"] = NAN;
-  default_double["tilt_angle"] = NAN; // default is 4 crossinge
+  default_double["tilt_angle"] = 12; // default is 4 crossinge
 
   default_int["absorberactive"] = 0;
   default_int["absorbertruth"] = 0;
   default_int["active"] = 0;
   default_int["blackhole"] = 0;
   default_int["light_scint_model"] = 1;
-  default_int["ncross"] = 4;
-  default_int["n_scinti_plates"] = 5*64;
+  default_int["ncross"] = 0;
+  default_int["n_scinti_plates"] = 20;
   default_int["n_scinti_tiles"] = 12;
 
   default_string["material"] = "SS310";

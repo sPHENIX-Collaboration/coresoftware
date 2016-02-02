@@ -200,14 +200,14 @@ G4VSolid*
 PHG4Prototype2OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
 {
   // calculate steel plate on top of the scinti box. Lower edge is the upper edge of
-  G4TwoVector v1(0+inner_radius,26.2*mm);
-  G4TwoVector v2(823*mm+inner_radius, 42.5*mm);
-  G4TwoVector v3(823*mm+inner_radius,0.);
-  G4TwoVector v4(0.+inner_radius,0.);
-  cout << "v1: " << 0+inner_radius << "/" << 26.2*mm << endl;
-  cout << "v2: " << 823*mm+inner_radius << "/" << 42.5*mm << endl;
-  cout << "v3: " << 823*mm+inner_radius << "/" << 0 << endl;
-  cout << "v4: " << 0+inner_radius << "/" << 0 << endl;
+  G4TwoVector v4(1770.9*mm,-459.8*mm);
+  G4TwoVector v3(2601.2*mm,-459.8*mm);
+  G4TwoVector v2(2601.2*mm,-417.4*mm);
+  G4TwoVector v1(1777.6*mm,-433.5*mm);
+  cout << "v1: " << v1 << endl;
+  cout << "v2: " << v2 << endl;
+  cout << "v3: " << v3 << endl;
+  cout << "v4: " << v4 << endl;
   std::vector<G4TwoVector> vertexes;
   vertexes.push_back(v1);
   vertexes.push_back(v2);
@@ -225,61 +225,13 @@ PHG4Prototype2OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelo
   return steel_plate;
 }
 
-void
-PHG4Prototype2OuterHcalDetector::ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright)
-{
-  Line_2 secant(lowleft, upleft);
-  Segment_2 upedge(upleft, upright);
-  Segment_2 lowedge(lowleft, lowright);
-  double xmid = (CGAL::to_double(lowleft.x()) + CGAL::to_double(upleft.x())) / 2.;
-  double ymid = (CGAL::to_double(lowleft.y()) + CGAL::to_double(upleft.y())) / 2.;
-  Point_2 midpoint(xmid, ymid);
-  Line_2 sekperp = secant.perpendicular(midpoint);
-  Point_2 sc1(inner_radius, 0), sc2(0, inner_radius), sc3(-inner_radius, 0);
-  Circle_2 inner_circle(sc1, sc2, sc3);
-  vector< CGAL::Object > res;
-  CGAL::intersection(inner_circle, sekperp, std::back_inserter(res));
-  vector< CGAL::Object >::const_iterator iter;
-  double pxmax = 0.;
-  Point_2 tangtouch;
-  for (iter = res.begin(); iter != res.end(); ++iter)
-    {
-      CGAL::Object obj = *iter;
-      if (const std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<Circular_k>, unsigned> >(&obj))
-	{
-	  if (CGAL::to_double(point->first.x()) > pxmax)
-	    {
-	      pxmax = CGAL::to_double(point->first.x());
-	      Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
-	      tangtouch = pntmp;
-	    }
-	}
-      else
-	{
-	  cout << "CGAL::Object type not pair..." << endl;
-	}
-    }
-  Line_2 leftside = sekperp.perpendicular(tangtouch);
-  CGAL::Object result = CGAL::intersection(upedge, leftside);
-  if (const Point_2 *ipoint = CGAL::object_cast<Point_2>(&result))
-    {
-      upleft = *ipoint;
-    }
-  result = CGAL::intersection(lowedge, leftside);
-  if (const Point_2 *ipoint = CGAL::object_cast<Point_2>(&result))
-    {
-      lowleft = *ipoint;
-    }
-  return;
-}
-
 // Construct the envelope and the call the
 // actual inner hcal construction
 void
 PHG4Prototype2OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
 {
   G4Material* Air = G4Material::GetMaterial("G4_AIR");
-  G4VSolid* hcal_envelope_cylinder = new G4Tubs("OuterHcal_envelope_solid",  envelope_inner_radius, envelope_outer_radius, envelope_z / 2., 0, 2 * M_PI);
+  G4VSolid* hcal_envelope_cylinder = new G4Tubs("OuterHcal_envelope_solid",  envelope_inner_radius-0.5*cm, envelope_outer_radius, envelope_z / 2., tan(-459.8/1770.9), fabs(tan(-459.8/1770.9)) +  12.4/180.* M_PI);
   volume_envelope = hcal_envelope_cylinder->GetCubicVolume();
   G4LogicalVolume* hcal_envelope_log =  new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("Hcal_envelope"), 0, 0, 0);
   G4VisAttributes* hcalVisAtt = new G4VisAttributes();
@@ -291,14 +243,15 @@ PHG4Prototype2OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
   hcal_rotm.rotateX(params->get_double_param("rot_x")*deg);
   hcal_rotm.rotateY(params->get_double_param("rot_y")*deg);
   hcal_rotm.rotateZ(params->get_double_param("rot_z")*deg);
+  //  new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(0,0,0)), hcal_envelope_log, "OuterHcalEnvelope", logicWorld, 0, false, overlapcheck);
   new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(params->get_double_param("place_x")*cm, params->get_double_param("place_y")*cm, params->get_double_param("place_z")*cm)), hcal_envelope_log, "OuterHcalEnvelope", logicWorld, 0, false, overlapcheck);
-  ConstructInnerHcal(hcal_envelope_log);
+  ConstructOuterHcal(hcal_envelope_log);
   //  AddGeometryNode();
   return;
 }
 
 int
-PHG4Prototype2OuterHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
+PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
 {
   G4VSolid *steel_plate  = ConstructSteelPlate(hcalenvelope);
   G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(params->get_string_param("material")), "HcalInnerSteelPlate", 0, 0, 0);
@@ -308,13 +261,14 @@ PHG4Prototype2OuterHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
   visattchk->SetColour(G4Colour::Grey());
   steel_logical->SetVisAttributes(visattchk);
   //  G4AssemblyVolume *scinti_mother_logical = ConstructHcalScintillatorAssembly(hcalenvelope);
-  double phi = 0;
+  double phi = 0.;
   double deltaphi = 2 * M_PI / n_scinti_plates;
   deltaphi = 2 * M_PI / 320.;
   ostringstream name;
   double middlerad = outer_radius - (outer_radius - inner_radius) / 2.;
   double shiftslat = fabs(scinti_tile_x_lower - scinti_tile_x_upper)/2.;
   for (int i = 0; i < n_scinti_plates; i++)
+    //  for (int i = 0; i < 2; i++)
     {
       G4RotationMatrix *Rot = new G4RotationMatrix();
       double ypos = sin(phi) * middlerad;
@@ -330,7 +284,7 @@ PHG4Prototype2OuterHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
       Rot = new G4RotationMatrix();
       Rot->rotateZ(-phi * rad);
       name.str("");
-      name << "InnerHcalSteel_" << i;
+      name << "OuterHcalSteel_" << i;
       steel_absorber_vec.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str().c_str(), hcalenvelope, 0, i, overlapcheck));
       phi += deltaphi;
     }
