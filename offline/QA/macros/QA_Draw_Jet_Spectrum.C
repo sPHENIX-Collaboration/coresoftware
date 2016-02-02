@@ -1,0 +1,260 @@
+// $Id: $
+
+/*!
+ * \file QA_Draw_HCALOUT_TowerCluster.C
+ * \brief
+ * \author Jin Huang <jhuang@bnl.gov>
+ * \version $Revision:   $
+ * \date $Date: $
+ */
+
+#include <cmath>
+#include <TFile.h>
+#include <TString.h>
+#include <TLine.h>
+#include <TTree.h>
+#include <cassert>
+
+//some common style files
+#include "SaveCanvas.C"
+#include "SetOKStyle.C"
+using namespace std;
+
+void
+QA_Draw_Jet_Spectrum(const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
+    const char * qa_file_name_new = "G4sPHENIXCells_250jets25GeV.root_qa.root",
+    const char * qa_file_name_ref = "G4sPHENIXCells_250jets25GeV.root_qa.root")
+{
+
+  SetOKStyle();
+  gStyle->SetOptStat(0);
+  gStyle->SetOptFit(1111);
+  TVirtualFitter::SetDefaultFitter("Minuit2");
+
+  TFile * qa_file_new = new TFile(qa_file_name_new);
+  assert(qa_file_new->IsOpen());
+
+  TFile * qa_file_ref = NULL;
+  if (qa_file_name_ref)
+    {
+      qa_file_ref = new TFile(qa_file_name_ref);
+      assert(qa_file_ref->IsOpen());
+    }
+
+  const double Nevent_new = 250; // TODO: need to use normalization histos
+  const double Nevent_ref = 250; // TODO: need to use normalization histos
+
+  TCanvas *c1 = new TCanvas(TString("QA_Draw_Jet_Spectrum_") + TString(jet),
+      TString("QA_Draw_Jet_Spectrum_") + TString(jet), 1800, 900);
+  c1->Divide(3, 2);
+  int idx = 1;
+  TPad * p;
+
+  p = (TPad *) c1->cd(idx++);
+  c1->Update();
+  p->SetLogy();
+
+    {
+      TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+          TString(jet) + TString("_Leading_eta"), "TH1F");
+      assert(h_new);
+
+      h_new->Sumw2();
+      h_new->Scale(1. / Nevent_new);
+
+      TH1F * h_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+              TString(jet) + TString("_Leading_eta"), "TH1F");
+          assert(h_ref);
+
+          h_ref->Scale(1. / Nevent_ref);
+        }
+
+      h_new->GetYaxis()->SetTitleOffset(1.5);
+      h_new->GetYaxis()->SetTitle("Count / event / bin");
+      //      h_new->GetXaxis()->SetRangeUser(-0, .1);
+
+      DrawReference(h_new, h_ref);
+    }
+
+  p = (TPad *) c1->cd(idx++);
+  c1->Update();
+  p->SetLogy();
+
+    {
+      TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+          TString(jet) + TString("_Leading_phi"), "TH1F");
+      assert(h_new);
+
+      h_new->Sumw2();
+      h_new->Scale(1. / Nevent_new);
+
+      TH1F * h_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+              TString(jet) + TString("_Leading_phi"), "TH1F");
+          assert(h_ref);
+
+          h_ref->Scale(1. / Nevent_ref);
+        }
+
+      h_new->GetYaxis()->SetTitleOffset(1.5);
+      h_new->GetYaxis()->SetTitle("Count / event / bin");
+      //      h_new->GetXaxis()->SetRangeUser(-0, .1);
+
+      DrawReference(h_new, h_ref);
+    }
+
+  p = (TPad *) c1->cd(idx++);
+  c1->Update();
+  p->SetLogy();
+
+    {
+      TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+          TString(jet) + TString("_Leading_Et"), "TH1F");
+      assert(h_new);
+
+      h_new->Sumw2();
+      h_new->Scale(1. / Nevent_new);
+
+      TH1F * h_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+              TString(jet) + TString("_Leading_Et"), "TH1F");
+          assert(h_ref);
+
+          h_ref->Scale(1. / Nevent_ref);
+        }
+
+      h_new->GetYaxis()->SetTitleOffset(1.5);
+      h_new->GetYaxis()->SetTitle("Count / event / bin");
+      //      h_new->GetXaxis()->SetRangeUser(-0, .1);
+
+      DrawReference(h_new, h_ref);
+    }
+
+
+
+    p = (TPad *) c1->cd(idx++);
+    c1->Update();
+    p->SetLogy();
+
+      {
+        TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+            TString(jet) + TString("_Inclusive_eta"), "TH1F");
+        assert(h_new);
+
+        h_new->Sumw2();
+        h_new->Scale(1. / Nevent_new);
+
+        TH1F * h_ref = NULL;
+        if (qa_file_ref)
+          {
+            TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+                TString(jet) + TString("_Inclusive_eta"), "TH1F");
+            assert(h_ref);
+
+            h_ref->Scale(1. / Nevent_ref);
+          }
+
+        h_new->GetYaxis()->SetTitleOffset(1.5);
+        h_new->GetYaxis()->SetTitle("Count / event / bin");
+        //      h_new->GetXaxis()->SetRangeUser(-0, .1);
+
+        DrawReference(h_new, h_ref);
+      }
+
+    p = (TPad *) c1->cd(idx++);
+    c1->Update();
+    p->SetLogy();
+
+      {
+        TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+            TString(jet) + TString("_Inclusive_phi"), "TH1F");
+        assert(h_new);
+
+        h_new->Sumw2();
+        h_new->Scale(1. / Nevent_new);
+
+        TH1F * h_ref = NULL;
+        if (qa_file_ref)
+          {
+            TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+                TString(jet) + TString("_Inclusive_phi"), "TH1F");
+            assert(h_ref);
+
+            h_ref->Scale(1. / Nevent_ref);
+          }
+
+        h_new->GetYaxis()->SetTitleOffset(1.5);
+        h_new->GetYaxis()->SetTitle("Count / event / bin");
+        //      h_new->GetXaxis()->SetRangeUser(-0, .1);
+
+        DrawReference(h_new, h_ref);
+      }
+
+    p = (TPad *) c1->cd(idx++);
+    c1->Update();
+    p->SetLogy();
+    p->SetLogx();
+
+      {
+        TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+            TString(jet) + TString("_Inclusive_E"), "TH1F");
+        assert(h_new);
+
+        h_new->Sumw2();
+        h_new->Scale(1. / Nevent_new);
+
+        TH1F * h_ref = NULL;
+        if (qa_file_ref)
+          {
+            TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+                TString(jet) + TString("_Inclusive_E"), "TH1F");
+            assert(h_ref);
+
+            h_ref->Scale(1. / Nevent_ref);
+          }
+
+        h_new->GetYaxis()->SetTitleOffset(1.5);
+        h_new->GetYaxis()->SetTitle("Count / event / bin");
+        //      h_new->GetXaxis()->SetRangeUser(-0, .1);
+
+        DrawReference(h_new, h_ref);
+      }
+
+  SaveCanvas(c1, TString(qa_file_name_new) + TString(c1->GetName()), true);
+}
+
+void
+DrawReference(TH1 * hnew, TH1 * href)
+{
+
+  hnew->SetLineColor(kBlue + 3);
+  hnew->SetMarkerColor(kBlue + 3);
+  hnew->SetLineWidth(2);
+  hnew->SetMarkerStyle(kFullCircle);
+  hnew->SetMarkerSize(1);
+
+  if (href)
+    {
+      href->SetLineColor(kGreen + 1);
+      href->SetFillColor(kGreen + 1);
+      href->SetLineStyle(0);
+      href->SetMarkerColor(kGreen + 1);
+      href->SetLineWidth(0);
+      href->SetMarkerStyle(kDot);
+      href->SetMarkerSize(0);
+    }
+
+  hnew->Draw(); // set scale
+  if (href)
+    {
+      href->Draw("HIST same");
+      hnew->Draw("same"); // over lay data points
+    }
+}
