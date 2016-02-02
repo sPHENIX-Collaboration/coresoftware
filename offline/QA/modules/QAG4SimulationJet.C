@@ -98,10 +98,11 @@ QAG4SimulationJet::Init(PHCompositeNode *topNode)
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
+  // normalization plot with counts
   const int norm_size = 2 + _reco_jets.size();
 
   TH1D * h = new TH1D(TString(get_histo_prefix(_truth_jet)) + "Normalization",
-      " Normalization;Z (cm);Count", norm_size, -.5, norm_size - .5);
+      " Normalization;Z (cm);Count", norm_size, .5, norm_size + .5);
   int i = 1;
 
   h->GetXaxis()->SetBinLabel(i++, "Event");
@@ -357,6 +358,61 @@ int
 QAG4SimulationJet::Init_Comparison(PHCompositeNode *topNode,
     const std::string & reco_jet_name)
 {
+  Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  TH2F * h = new TH2F(
+      TString(get_histo_prefix(_truth_jet, reco_jet_name))
+          + "Matching_Count_Truth_Et", //
+      TString(reco_jet_name) + " Matching Count;E_{T, Truth} (GeV)", 20, 0, 100, 2,
+      0.5, 2.5);
+  h->GetYaxis()->SetBinLabel(1, "Total");
+  h->GetYaxis()->SetBinLabel(2, "Matched");
+  hm->registerHisto(h);
+
+  h = new TH2F(
+      //
+      TString(get_histo_prefix(_truth_jet, reco_jet_name))
+          + "Matching_Count_Reco_Et", //
+      TString(reco_jet_name) + " Matching Count;E_{T, Reco} (GeV)", 20, 0, 100, 2,
+      0.5, 2.5);
+  h->GetYaxis()->SetBinLabel(1, "Total");
+  h->GetYaxis()->SetBinLabel(2, "Matched");
+  hm->registerHisto(h);
+
+  h =
+      new TH2F(
+          TString(get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dEt", //
+          TString(reco_jet_name)
+              + " E_{T} difference;E_{T, Truth} (GeV);E_{T, Reco} - E_{T, Truth} (GeV)",
+          20, 0, 100, 100, 0, 2);
+  hm->registerHisto(h);
+
+  h = new TH2F(
+      TString(get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dE", //
+      TString(reco_jet_name)
+          + " Jet Energy Difference;E_{Truth} (GeV);E_{Reco} - E_{Truth} (GeV)",
+      20, 0, 100, 100, 0, 2);
+  hm->registerHisto(h);
+
+  h =
+      new TH2F(
+          TString(get_histo_prefix(_truth_jet, reco_jet_name))
+              + "Matching_dEta", //
+          TString(reco_jet_name)
+              + " #eta difference;E_{T, Truth} (GeV);#eta_{Reco} - #eta_{Truth} (GeV)",
+          20, 0, 100, 200, -.1, .1);
+  hm->registerHisto(h);
+
+  h =
+      new TH2F(
+          TString(get_histo_prefix(_truth_jet, reco_jet_name))
+              + "Matching_dPhi", //
+          TString(reco_jet_name)
+              + " #phi difference;E_{T, Truth} (GeV);#phi_{Reco} - #phi_{Truth} (GeV)",
+          20, 0, 100, 200, -.1, .1);
+  hm->registerHisto(h);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -364,6 +420,10 @@ int
 QAG4SimulationJet::process_Comparison(PHCompositeNode *topNode,
     const std::string & reco_jet_name)
 {
+
+
+
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
