@@ -703,7 +703,7 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
   if (verbosity > 2)
     {
       cout
-          << "QAG4SimulationCalorimeter::process_event_G4Hit() handle this truth particle"
+          << "QAG4SimulationCalorimeter::process_event_Cluster() handle this truth particle"
           << endl;
       last_primary->identify();
     }
@@ -742,7 +742,7 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
       if (verbosity > 2)
         {
           cout
-              << "QAG4SimulationCalorimeter::process_event_G4Hit() handle this vertex"
+              << "QAG4SimulationCalorimeter::process_event_Cluster() handle this vertex"
               << endl;
           primary_vtx->identify();
         }
