@@ -18,6 +18,7 @@
 //some common style files
 #include "SaveCanvas.C"
 #include "SetOKStyle.C"
+#include "QA_Draw_Utility.C"
 using namespace std;
 
 void
@@ -230,31 +231,3 @@ QA_Draw_Jet_Spectrum(const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
   SaveCanvas(c1, TString(qa_file_name_new) + TString(c1->GetName()), true);
 }
 
-void
-DrawReference(TH1 * hnew, TH1 * href)
-{
-
-  hnew->SetLineColor(kBlue + 3);
-  hnew->SetMarkerColor(kBlue + 3);
-  hnew->SetLineWidth(2);
-  hnew->SetMarkerStyle(kFullCircle);
-  hnew->SetMarkerSize(1);
-
-  if (href)
-    {
-      href->SetLineColor(kGreen + 1);
-      href->SetFillColor(kGreen + 1);
-      href->SetLineStyle(0);
-      href->SetMarkerColor(kGreen + 1);
-      href->SetLineWidth(0);
-      href->SetMarkerStyle(kDot);
-      href->SetMarkerSize(0);
-    }
-
-  hnew->Draw(); // set scale
-  if (href)
-    {
-      href->Draw("HIST same");
-      hnew->Draw("same"); // over lay data points
-    }
-}

@@ -18,6 +18,7 @@
 //some common style files
 #include "SaveCanvas.C"
 #include "SetOKStyle.C"
+#include "QA_Draw_Utility.C"
 using namespace std;
 
 void
@@ -41,8 +42,7 @@ QA_Draw_CEMC_TowerCluster(const char * qa_file_name_new =
       assert(qa_file_ref->IsOpen());
     }
 
-  TCanvas *c1 = new TCanvas("QA_Draw_CEMC_", "QA_Draw_CEMC_", 1800,
-      900);
+  TCanvas *c1 = new TCanvas("QA_Draw_CEMC_TowerCluster", "QA_Draw_CEMC_TowerCluster", 1800, 900);
   c1->Divide(4, 2);
   int idx = 1;
   TPad * p;
@@ -108,7 +108,7 @@ QA_Draw_CEMC_TowerCluster(const char * qa_file_name_new =
   p = (TPad *) c1->cd(idx++);
   c1->Update();
   //    p->SetLogx();
-      p->SetLogy();
+  p->SetLogy();
 
     {
 
@@ -138,39 +138,38 @@ QA_Draw_CEMC_TowerCluster(const char * qa_file_name_new =
       DrawReference(h_new, h_ref);
     }
 
+  p = (TPad *) c1->cd(idx++);
+  c1->Update();
+  //    p->SetLogx();
+  p->SetLogy();
 
-    p = (TPad *) c1->cd(idx++);
-    c1->Update();
-    //    p->SetLogx();
-        p->SetLogy();
+    {
 
-      {
+      TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+          "h_QAG4Sim_CEMC_Tower_4x4_max", "TH1F");
+      assert(h_new);
 
-        TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
-            "h_QAG4Sim_CEMC_Tower_4x4_max", "TH1F");
-        assert(h_new);
+      h_new->Rebin(40);
+      h_new->Sumw2();
+      h_new->Scale(1. / h_new->GetSum());
 
-        h_new->Rebin(40);
-        h_new->Sumw2();
-        h_new->Scale(1. / h_new->GetSum());
+      TH1F * h_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+              "h_QAG4Sim_CEMC_Tower_4x4_max", "TH1F");
+          assert(h_ref);
 
-        TH1F * h_ref = NULL;
-        if (qa_file_ref)
-          {
-            TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
-                "h_QAG4Sim_CEMC_Tower_4x4_max", "TH1F");
-            assert(h_ref);
+          h_ref->Rebin(40);
+          h_ref->Scale(1. / h_ref->GetSum());
+        }
 
-            h_ref->Rebin(40);
-            h_ref->Scale(1. / h_ref->GetSum());
-          }
+      h_new->GetYaxis()->SetTitleOffset(1.5);
+      h_new->GetYaxis()->SetTitle("Probability per bin");
+      //      h_new->GetXaxis()->SetRangeUser(-0, .1);
 
-        h_new->GetYaxis()->SetTitleOffset(1.5);
-        h_new->GetYaxis()->SetTitle("Probability per bin");
-        //      h_new->GetXaxis()->SetRangeUser(-0, .1);
-
-        DrawReference(h_new, h_ref);
-      }
+      DrawReference(h_new, h_ref);
+    }
 
   p = (TPad *) c1->cd(idx++);
   c1->Update();
@@ -268,7 +267,7 @@ QA_Draw_CEMC_TowerCluster(const char * qa_file_name_new =
 
   p = (TPad *) c1->cd(idx++);
   c1->Update();
-  //  p->SetLogz();
+  p->SetLogy();
 
     {
 
@@ -299,31 +298,4 @@ QA_Draw_CEMC_TowerCluster(const char * qa_file_name_new =
     }
 
   SaveCanvas(c1, TString(qa_file_name_new) + TString(c1->GetName()), true);
-}
-
-void
-DrawReference(TH1 * hnew, TH1 * href)
-{
-
-  hnew->SetLineColor(kBlue + 3);
-  hnew->SetMarkerColor(kBlue + 3);
-  hnew->SetLineWidth(2);
-  hnew->SetMarkerStyle(kFullCircle);
-  hnew->SetMarkerSize(1);
-
-  href->SetLineColor(kGreen + 1);
-  href->SetFillColor(kGreen + 1);
-  href->SetLineStyle(0);
-  href->SetMarkerColor(kGreen + 1);
-  href->SetLineWidth(0);
-  href->SetMarkerStyle(kDot);
-  href->SetMarkerSize(0);
-
-  hnew->Draw(); // set scale
-
-  if (href)
-    {
-      href->Draw("HIST same");
-      hnew->Draw("same"); // over lay data points
-    }
 }

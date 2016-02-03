@@ -18,6 +18,7 @@
 //some common style files
 #include "SaveCanvas.C"
 #include "SetOKStyle.C"
+#include "QA_Draw_Utility.C"
 using namespace std;
 
 void
@@ -41,7 +42,7 @@ QA_Draw_HCALOUT_TowerCluster(const char * qa_file_name_new =
       assert(qa_file_ref->IsOpen());
     }
 
-  TCanvas *c1 = new TCanvas("QA_Draw_HCALOUT_", "QA_Draw_HCALOUT_",
+  TCanvas *c1 = new TCanvas("QA_Draw_HCALOUT_TowerCluster", "QA_Draw_HCALOUT_TowerCluster",
       1800, 900);
   c1->Divide(4, 2);
   int idx = 1;
@@ -273,8 +274,7 @@ QA_Draw_HCALOUT_TowerCluster(const char * qa_file_name_new =
 
   p = (TPad *) c1->cd(idx++);
   c1->Update();
-  //  p->SetLogz();
-
+  p->SetLogy();
     {
 
       TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
@@ -306,29 +306,3 @@ QA_Draw_HCALOUT_TowerCluster(const char * qa_file_name_new =
   SaveCanvas(c1, TString(qa_file_name_new) + TString(c1->GetName()), true);
 }
 
-void
-DrawReference(TH1 * hnew, TH1 * href)
-{
-
-  hnew->SetLineColor(kBlue + 3);
-  hnew->SetMarkerColor(kBlue + 3);
-  hnew->SetLineWidth(2);
-  hnew->SetMarkerStyle(kFullCircle);
-  hnew->SetMarkerSize(1);
-
-  href->SetLineColor(kGreen + 1);
-  href->SetFillColor(kGreen + 1);
-  href->SetLineStyle(0);
-  href->SetMarkerColor(kGreen + 1);
-  href->SetLineWidth(0);
-  href->SetMarkerStyle(kDot);
-  href->SetMarkerSize(0);
-
-  hnew->Draw(); // set scale
-
-  if (href)
-    {
-      href->Draw("HIST same");
-      hnew->Draw("same"); // over lay data points
-    }
-}
