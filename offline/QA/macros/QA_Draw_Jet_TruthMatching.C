@@ -70,6 +70,7 @@ QA_Draw_Jet_TruthMatching(const char * jet =
 
       TGraphErrors * ge = FitProfile(proj_new);
 
+      proj_new->GetYaxis()->SetTitleOffset(1.5);
       proj_new->Draw("COLZ");
       ge->Draw("p");
 
@@ -91,6 +92,7 @@ QA_Draw_Jet_TruthMatching(const char * jet =
       proj_new->Rebin2D(1, 5);
       TGraphErrors * ge = FitProfile(proj_new);
 
+      proj_new->GetYaxis()->SetTitleOffset(1.5);
       proj_new->Draw("COLZ");
       ge->Draw("p");
     }
@@ -111,6 +113,8 @@ QA_Draw_Jet_TruthMatching(const char * jet =
 //    proj_new->Rebin2D(1,5);
 
       TGraphErrors * ge = FitProfile(proj_new);
+
+      proj_new->GetYaxis()->SetTitleOffset(1.5);
       proj_new->Draw("COLZ");
       ge->Draw("p");
     }
@@ -130,6 +134,8 @@ QA_Draw_Jet_TruthMatching(const char * jet =
 
 //    proj_new->Rebin2D(1,5);
       TGraphErrors * ge = FitProfile(proj_new);
+
+      proj_new->GetYaxis()->SetTitleOffset(1.5);
       proj_new->Draw("COLZ");
       ge->Draw("p");
     }
@@ -144,21 +150,35 @@ QA_Draw_Jet_TruthMatching(const char * jet =
 
       TH2F * h2 = (TH2F *) qa_file_new->GetObjectChecked(
           TString(jet) + "_Matching_Count_Truth_Et", "TH2F");
-
       assert(h2);
 
       TH1 * h_norm = h2->ProjectionX(
           TString(jet) + "_Matching_Count_Truth_Et" + "_All", 1, 1);
       TH1 * h_pass = h2->ProjectionX(
           TString(jet) + "_Matching_Count_Truth_Et" + "_Matched", 2, 2);
+      assert(h_norm);
+      assert(h_pass);
+      TH1 * h_ratio = GetBinominalRatio(h_pass, h_norm);
 
-      h_pass->Sumw2();
+      h_ratio->GetYaxis()->SetTitle("Reco efficiency");
+      h_ratio->GetYaxis()->SetRangeUser(-0, 1.2);
 
-      h_pass->Divide(h_norm);
+      TH1 * h_ratio_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH2F * h2 = (TH2F *) qa_file_ref->GetObjectChecked(
+              TString(jet) + "_Matching_Count_Truth_Et", "TH2F");
+          assert(h2);
+          TH1 * h_norm = h2->ProjectionX(
+              TString(jet) + "_Matching_Count_Truth_Et" + "_All", 1, 1);
+          TH1 * h_pass = h2->ProjectionX(
+              TString(jet) + "_Matching_Count_Truth_Et" + "_Matched", 2, 2);
+          assert(h_norm);
+          assert(h_pass);
+          h_ratio_ref = GetBinominalRatio(h_pass, h_norm);
+        }
 
-      h_pass->GetYaxis()->SetTitle("Reco efficiency");
-
-      DrawReference(h_pass, NULL);
+      DrawReference(h_ratio, h_ratio_ref);
     }
 
   p = (TPad *) c1->cd(idx++);
@@ -169,21 +189,36 @@ QA_Draw_Jet_TruthMatching(const char * jet =
 
       TH2F * h2 = (TH2F *) qa_file_new->GetObjectChecked(
           TString(jet) + "_Matching_Count_Reco_Et", "TH2F");
-
       assert(h2);
 
       TH1 * h_norm = h2->ProjectionX(
           TString(jet) + "_Matching_Count_Reco_Et" + "_All", 1, 1);
       TH1 * h_pass = h2->ProjectionX(
           TString(jet) + "_Matching_Count_Reco_Et" + "_Matched", 2, 2);
+      assert(h_norm);
+      assert(h_pass);
+      TH1 * h_ratio = GetBinominalRatio(h_pass, h_norm);
 
-      h_pass->Sumw2();
+      h_ratio->GetYaxis()->SetTitle("Reconstruction Purity");
+      h_ratio->GetYaxis()->SetRangeUser(-0, 1.2);
 
-      h_pass->Divide(h_norm);
+      TH1 * h_ratio_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH2F * h2 = (TH2F *) qa_file_ref->GetObjectChecked(
+              TString(jet) + "_Matching_Count_Reco_Et", "TH2F");
+          assert(h2);
 
-      h_pass->GetYaxis()->SetTitle("Reconstruction Purity");
+          TH1 * h_norm = h2->ProjectionX(
+              TString(jet) + "_Matching_Count_Reco_Et" + "_All", 1, 1);
+          TH1 * h_pass = h2->ProjectionX(
+              TString(jet) + "_Matching_Count_Reco_Et" + "_Matched", 2, 2);
+          assert(h_norm);
+          assert(h_pass);
+          h_ratio_ref = GetBinominalRatio(h_pass, h_norm);
+        }
 
-      DrawReference(h_pass, NULL);
+      DrawReference(h_ratio, h_ratio_ref);
     }
 
   SaveCanvas(c1, TString(qa_file_name_new) + TString(c1->GetName()), true);

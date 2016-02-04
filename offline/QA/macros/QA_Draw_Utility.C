@@ -15,7 +15,6 @@
 #include <TTree.h>
 #include <cassert>
 
-
 //! Draw 1D histogram along with its reference as shade
 void
 DrawReference(TH1 * hnew, TH1 * href)
@@ -163,4 +162,43 @@ FitProfile(const TH2F * h2)
   ge->SetMarkerStyle(kFullCircle);
   ge->SetMarkerSize(1);
   return ge;
+}
+
+//!ratio between two histograms with binominal error based on Wilson score interval. Assuming each histogram is count.
+TH1 *
+GetBinominalRatio(TH1 * h_pass, TH1 * h_n_trial)
+{
+  assert(h_pass);
+  assert(h_n_trial);
+
+  assert(h_pass->GetNbinsX() == h_n_trial->GetNbinsX());
+  assert(h_pass->GetNbinsY() == h_n_trial->GetNbinsY());
+  assert(h_pass->GetNbinsZ() == h_n_trial->GetNbinsZ());
+
+  TH1 * h_ratio = (TH1 *) h_pass->Clone(TString(h_pass->GetName()) + "_Ratio");
+  assert(h_ratio);
+  h_ratio->Divide(h_n_trial); // a rough estimation first, also taking care of the overflow bins and zero bins
+
+  for (int x = 1; x <= h_n_trial->GetNbinsX(); ++x)
+    for (int y = 1; y <= h_n_trial->GetNbinsY(); ++y)
+      for (int z = 1; z <= h_n_trial->GetNbinsZ(); ++z)
+        {
+          const double n_trial = h_n_trial->GetBinContent(x, y, z);
+
+          if (n_trial > 0)
+            {
+              const double p = h_pass->GetBinContent(x, y, z) / n_trial;
+
+              // Wilson score interval
+              h_ratio->SetBinContent(x, y, z, //
+                  (p + 1 / (2 * n_trial)) / (1 + 1 / n_trial));
+              h_ratio->SetBinError(x, y,
+                  z, //
+                  TMath::Sqrt(
+                      1. / n_trial * p * (1 - p) + 1. / (4 * n_trial * n_trial))
+                      / (1 + 1 / n_trial));
+            }
+        }
+
+  return h_ratio;
 }
