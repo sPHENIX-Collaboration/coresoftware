@@ -24,9 +24,14 @@ using namespace std;
 void
 QA_Draw_Jet_TruthMatching(const char * jet =
     "h_QAG4SimJet_AntiKt_Truth_r07_AntiKt_Tower_r07",
-    const char * qa_file_name_new = "data/G4sPHENIXCells_2000jets25GeV.root_qa.root",
-    const char * qa_file_name_ref = "data/G4sPHENIXCells_250jets25GeV.root_qa.root")
+    const char * qa_file_name_new =
+        "data/G4sPHENIXCells_250jets25GeV.root_qa.root",
+    const char * qa_file_name_ref =
+        "data/G4sPHENIXCells_2000jets25GeV.root_qa.root")
 {
+  //! drawing energy range
+  const double min_Et = 10;
+  const double max_Et = 80;
 
   SetOKStyle();
   gStyle->SetOptStat(0);
@@ -42,7 +47,6 @@ QA_Draw_Jet_TruthMatching(const char * jet =
       qa_file_ref = new TFile(qa_file_name_ref);
       assert(qa_file_ref->IsOpen());
     }
-
 
   // obtain normalization
   const double Nevent_new = 2000; // TODO: need to use normalization histos
@@ -70,12 +74,23 @@ QA_Draw_Jet_TruthMatching(const char * jet =
 
       TGraphErrors * ge = FitProfile(proj_new);
 
+      proj_new->GetXaxis()->SetRangeUser(min_Et, max_Et);
       proj_new->GetYaxis()->SetTitleOffset(1.5);
       proj_new->Draw("COLZ");
-      ge->Draw("p");
+
+      TGraphErrors * ge_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH2F * proj_ref = (TH2F *) qa_file_ref->GetObjectChecked(
+              TString(jet) + "_Matching_dPhi", "TH2F");
+          assert(proj_ref);
+          proj_ref->Rebin2D(1, 5);
+          TGraphErrors * ge_ref = FitProfile(proj_ref);
+        }
+      DrawReference(ge, ge_ref);
 
     }
-  TLine * l = new TLine(0, 0, 100, 00);
+  TLine * l = new TLine(min_Et, 0, max_Et, 00);
   l->Draw();
 
   p = (TPad *) c1->cd(idx++);
@@ -92,11 +107,23 @@ QA_Draw_Jet_TruthMatching(const char * jet =
       proj_new->Rebin2D(1, 5);
       TGraphErrors * ge = FitProfile(proj_new);
 
+      proj_new->GetXaxis()->SetRangeUser(min_Et, max_Et);
       proj_new->GetYaxis()->SetTitleOffset(1.5);
       proj_new->Draw("COLZ");
-      ge->Draw("p");
+
+      TGraphErrors * ge_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH2F * proj_ref = (TH2F *) qa_file_ref->GetObjectChecked(
+              TString(jet) + "_Matching_dEta", "TH2F");
+          assert(proj_ref);
+          proj_ref->Rebin2D(1, 5);
+          TGraphErrors * ge_ref = FitProfile(proj_ref);
+        }
+      DrawReference(ge, ge_ref);
+
     }
-  TLine * l = new TLine(0, 0, 100, 00);
+  TLine * l = new TLine(min_Et, 0, max_Et, 00);
   l->Draw();
 
   p = (TPad *) c1->cd(idx++);
@@ -114,11 +141,22 @@ QA_Draw_Jet_TruthMatching(const char * jet =
 
       TGraphErrors * ge = FitProfile(proj_new);
 
+      proj_new->GetXaxis()->SetRangeUser(min_Et, max_Et);
       proj_new->GetYaxis()->SetTitleOffset(1.5);
       proj_new->Draw("COLZ");
-      ge->Draw("p");
+
+      TGraphErrors * ge_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH2F * proj_ref = (TH2F *) qa_file_ref->GetObjectChecked(
+              TString(jet) + "_Matching_dE", "TH2F");
+          assert(proj_ref);
+          proj_ref->Rebin2D(1, 5);
+          TGraphErrors * ge_ref = FitProfile(proj_ref);
+        }
+      DrawReference(ge, ge_ref);
     }
-  TLine * l = new TLine(0, 1, 100, 1);
+  TLine * l = new TLine(min_Et, 1, max_Et, 1);
   l->Draw();
 
   p = (TPad *) c1->cd(idx++);
@@ -135,11 +173,22 @@ QA_Draw_Jet_TruthMatching(const char * jet =
 //    proj_new->Rebin2D(1,5);
       TGraphErrors * ge = FitProfile(proj_new);
 
+      proj_new->GetXaxis()->SetRangeUser(min_Et, max_Et);
       proj_new->GetYaxis()->SetTitleOffset(1.5);
       proj_new->Draw("COLZ");
-      ge->Draw("p");
+
+      TGraphErrors * ge_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH2F * proj_ref = (TH2F *) qa_file_ref->GetObjectChecked(
+              TString(jet) + "_Matching_dEt", "TH2F");
+          assert(proj_ref);
+          proj_ref->Rebin2D(1, 5);
+          TGraphErrors * ge_ref = FitProfile(proj_ref);
+        }
+      DrawReference(ge, ge_ref);
     }
-  TLine * l = new TLine(0, 1, 100, 1);
+  TLine * l = new TLine(min_Et, 1, max_Et, 1);
   l->Draw();
 
   p = (TPad *) c1->cd(idx++);
@@ -160,6 +209,7 @@ QA_Draw_Jet_TruthMatching(const char * jet =
       assert(h_pass);
       TH1 * h_ratio = GetBinominalRatio(h_pass, h_norm);
 
+      h_ratio->GetXaxis()->SetRangeUser(min_Et, max_Et);
       h_ratio->GetYaxis()->SetTitle("Reco efficiency");
       h_ratio->GetYaxis()->SetRangeUser(-0, 1.2);
 
@@ -175,11 +225,14 @@ QA_Draw_Jet_TruthMatching(const char * jet =
               TString(jet) + "_Matching_Count_Truth_Et" + "_Matched", 2, 2);
           assert(h_norm);
           assert(h_pass);
-          h_ratio_ref = GetBinominalRatio(h_pass, h_norm);
+          h_ratio_ref = GetBinominalRatio(h_pass, h_norm, true);
         }
 
-      DrawReference(h_ratio, h_ratio_ref);
+      DrawReference(h_ratio, h_ratio_ref, true);
     }
+
+  TLine * l = new TLine(min_Et, 1, max_Et, 1);
+  l->Draw();
 
   p = (TPad *) c1->cd(idx++);
   c1->Update();
@@ -199,6 +252,7 @@ QA_Draw_Jet_TruthMatching(const char * jet =
       assert(h_pass);
       TH1 * h_ratio = GetBinominalRatio(h_pass, h_norm);
 
+      h_ratio->GetXaxis()->SetRangeUser(min_Et, max_Et);
       h_ratio->GetYaxis()->SetTitle("Reconstruction Purity");
       h_ratio->GetYaxis()->SetRangeUser(-0, 1.2);
 
@@ -215,11 +269,14 @@ QA_Draw_Jet_TruthMatching(const char * jet =
               TString(jet) + "_Matching_Count_Reco_Et" + "_Matched", 2, 2);
           assert(h_norm);
           assert(h_pass);
-          h_ratio_ref = GetBinominalRatio(h_pass, h_norm);
+          h_ratio_ref = GetBinominalRatio(h_pass, h_norm, true);
         }
 
-      DrawReference(h_ratio, h_ratio_ref);
+      DrawReference(h_ratio, h_ratio_ref, true);
     }
+
+  TLine * l = new TLine(min_Et, 1, max_Et, 1);
+  l->Draw();
 
   SaveCanvas(c1, TString(qa_file_name_new) + TString(c1->GetName()), true);
 }

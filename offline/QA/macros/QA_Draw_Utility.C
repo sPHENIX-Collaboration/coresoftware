@@ -16,8 +16,9 @@
 #include <cassert>
 
 //! Draw 1D histogram along with its reference as shade
+//! @param[in] draw_href_error whether to draw error band for reference plot. Otherwise, it is a filled histogram (default)
 void
-DrawReference(TH1 * hnew, TH1 * href)
+DrawReference(TH1 * hnew, TH1 * href, bool draw_href_error = false)
 {
 
   hnew->SetLineColor(kBlue + 3);
@@ -28,21 +29,102 @@ DrawReference(TH1 * hnew, TH1 * href)
 
   if (href)
     {
-      href->SetLineColor(kGreen + 1);
-      href->SetFillColor(kGreen + 1);
-      href->SetLineStyle(0);
-      href->SetMarkerColor(kGreen + 1);
-      href->SetLineWidth(0);
-      href->SetMarkerStyle(kDot);
-      href->SetMarkerSize(0);
+      if (draw_href_error)
+        {
+
+          href->SetLineColor(kGreen + 1);
+          href->SetFillColor(kGreen + 1);
+          href->SetLineStyle(kSolid);
+          href->SetMarkerColor(kGreen + 1);
+          href->SetLineWidth(2);
+          href->SetMarkerStyle(kDot);
+          href->SetMarkerSize(0);
+
+        }
+      else
+        {
+
+          href->SetLineColor(kGreen + 1);
+          href->SetFillColor(kGreen + 1);
+          href->SetLineStyle(0);
+          href->SetMarkerColor(kGreen + 1);
+          href->SetLineWidth(0);
+          href->SetMarkerStyle(kDot);
+          href->SetMarkerSize(0);
+
+        }
+
     }
 
   hnew->Draw(); // set scale
 
   if (href)
     {
-      href->Draw("HIST same");
+      if (draw_href_error)
+        {
+          href->DrawClone("E2 same");
+          href->SetFillStyle(0);
+          href->SetLineWidth(8);
+          href->DrawClone("HIST same ][");
+        }
+      else
+        href->Draw("HIST same");
       hnew->Draw("same"); // over lay data points
+    }
+}
+
+
+//! Draw 1D TGraph along with its reference as shade
+//! @param[in] draw_href_error whether to draw error band for reference plot. Otherwise, it is a filled histogram (default)
+void
+DrawReference(TGraph * hnew, TGraph * href, bool draw_href_error = true)
+{
+
+  hnew->SetLineColor(kBlue + 3);
+  hnew->SetMarkerColor(kBlue + 3);
+  hnew->SetLineWidth(2);
+  hnew->SetMarkerStyle(kFullCircle);
+  hnew->SetMarkerSize(1);
+
+  if (href)
+    {
+      if (draw_href_error)
+        {
+
+          href->SetLineColor(kGreen + 1);
+          href->SetFillColor(kGreen + 1);
+          href->SetFillStyle(0);
+          href->SetLineStyle(kSolid);
+          href->SetMarkerColor(kGreen + 1);
+          href->SetLineWidth(4);
+          href->SetMarkerStyle(kDot);
+          href->SetMarkerSize(0);
+
+        }
+      else
+        {
+
+          href->SetLineColor(kGreen + 1);
+          href->SetFillColor(kGreen + 1);
+          href->SetLineStyle(0);
+          href->SetMarkerColor(kGreen + 1);
+          href->SetLineWidth(0);
+          href->SetMarkerStyle(kDot);
+          href->SetMarkerSize(0);
+
+        }
+
+    }
+
+  if (href)
+    {
+      if (draw_href_error)
+        {
+          href->DrawClone("E2");
+        }
+      else
+        href->Draw("HIST same");
+      hnew->Draw("p e"); // over lay data points
     }
 }
 
@@ -166,7 +248,7 @@ FitProfile(const TH2F * h2)
 
 //!ratio between two histograms with binominal error based on Wilson score interval. Assuming each histogram is count.
 TH1 *
-GetBinominalRatio(TH1 * h_pass, TH1 * h_n_trial)
+GetBinominalRatio(TH1 * h_pass, TH1 * h_n_trial, bool process_zero_bins = false)
 {
   assert(h_pass);
   assert(h_n_trial);
@@ -197,6 +279,12 @@ GetBinominalRatio(TH1 * h_pass, TH1 * h_n_trial)
                   TMath::Sqrt(
                       1. / n_trial * p * (1 - p) + 1. / (4 * n_trial * n_trial))
                       / (1 + 1 / n_trial));
+            }
+          else if (process_zero_bins)
+            {
+
+              h_ratio->SetBinContent(x, y, z, 0.5);
+              h_ratio->SetBinError(x, y, z, 0.5);
             }
         }
 
