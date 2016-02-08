@@ -11,9 +11,11 @@
 #include <cmath>
 #include <TFile.h>
 #include <TString.h>
+#include <TGraphErrors.h>
 #include <TLine.h>
 #include <TTree.h>
 #include <cassert>
+#include <vector>
 
 //some common style files
 #include "SaveCanvas.C"
@@ -21,7 +23,7 @@
 #include "QA_Draw_Utility.C"
 using namespace std;
 
-void
+vector<TGraphErrors *>
 QA_Draw_Jet_TruthMatching(const char * jet =
     "h_QAG4SimJet_AntiKt_Truth_r07_AntiKt_Tower_r07",
     const char * qa_file_name_new =
@@ -47,6 +49,8 @@ QA_Draw_Jet_TruthMatching(const char * jet =
       qa_file_ref = new TFile(qa_file_name_ref);
       assert(qa_file_ref->IsOpen());
     }
+
+  vector<TGraphErrors *> resolution_collections;
 
   TCanvas *c1 = new TCanvas(
       TString("QA_Draw_Jet_TruthMatching_") + TString(jet),
@@ -85,6 +89,8 @@ QA_Draw_Jet_TruthMatching(const char * jet =
         }
       DrawReference(ge, ge_ref);
 
+      resolution_collections.push_back(ge);
+
     }
   TLine * l = new TLine(min_Et, 0, max_Et, 00);
   l->Draw();
@@ -118,6 +124,7 @@ QA_Draw_Jet_TruthMatching(const char * jet =
         }
       DrawReference(ge, ge_ref);
 
+      resolution_collections.push_back(ge);
     }
   TLine * l = new TLine(min_Et, 0, max_Et, 00);
   l->Draw();
@@ -151,6 +158,8 @@ QA_Draw_Jet_TruthMatching(const char * jet =
           TGraphErrors * ge_ref = FitProfile(proj_ref);
         }
       DrawReference(ge, ge_ref);
+
+      resolution_collections.push_back(ge);
     }
   TLine * l = new TLine(min_Et, 1, max_Et, 1);
   l->Draw();
@@ -183,6 +192,8 @@ QA_Draw_Jet_TruthMatching(const char * jet =
           TGraphErrors * ge_ref = FitProfile(proj_ref);
         }
       DrawReference(ge, ge_ref);
+
+      resolution_collections.push_back(ge);
     }
   TLine * l = new TLine(min_Et, 1, max_Et, 1);
   l->Draw();
@@ -225,6 +236,8 @@ QA_Draw_Jet_TruthMatching(const char * jet =
         }
 
       DrawReference(h_ratio, h_ratio_ref, true);
+
+      resolution_collections.push_back(new TGraphErrors(h_ratio));
     }
 
   TLine * l = new TLine(min_Et, 1, max_Et, 1);
@@ -269,11 +282,15 @@ QA_Draw_Jet_TruthMatching(const char * jet =
         }
 
       DrawReference(h_ratio, h_ratio_ref, true);
+
+      resolution_collections.push_back(new TGraphErrors(h_ratio));
     }
 
   TLine * l = new TLine(min_Et, 1, max_Et, 1);
   l->Draw();
 
   SaveCanvas(c1, TString(qa_file_name_new) + TString(c1->GetName()), true);
+
+  return resolution_collections;
 }
 
