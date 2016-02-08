@@ -97,27 +97,6 @@ QAG4SimulationJet::Init(PHCompositeNode *topNode)
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  // normalization plot with counts
-  const int norm_size = 2 + _reco_jets.size();
-
-  TH1D * h = new TH1D(TString(get_histo_prefix(_truth_jet)) + "Normalization",
-      " Normalization;Z (cm);Count", norm_size, .5, norm_size + .5);
-  int i = 1;
-
-  h->GetXaxis()->SetBinLabel(i++, "Event");
-  h->GetXaxis()->SetBinLabel(i++, _truth_jet.c_str());
-
-  for (set<string>::const_iterator it_reco_jets = _reco_jets.begin();
-      it_reco_jets != _reco_jets.end(); ++it_reco_jets)
-    {
-      const string & reco_jet = *it_reco_jets;
-      h->GetXaxis()->SetBinLabel(i++, reco_jet.c_str());
-    }
-
-  assert(norm_size >= i - 1);
-  h->GetXaxis()->LabelsOption("v");
-  hm->registerHisto(h);
-
   if (flag(kProcessTruthSpectrum))
     {
       if (verbosity >= 1)
@@ -205,14 +184,6 @@ QAG4SimulationJet::process_event(PHCompositeNode *topNode)
         }
     }
 
-  // at the end, count success events
-  Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
-  assert(hm);
-  TH1D* h_norm = dynamic_cast<TH1D*>(hm->getHisto(
-      get_histo_prefix(_truth_jet) + "Normalization"));
-  assert(h_norm);
-  h_norm->Fill("Event", 1);
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -275,6 +246,21 @@ QAG4SimulationJet::Init_Spectrum(PHCompositeNode *topNode,
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
+
+  // normalization plot with counts
+  const int norm_size = 3;
+
+  TH1D * h_norm = new TH1D(TString(get_histo_prefix(jet_name)) + "Normalization",
+      " Normalization;Item;Count", norm_size, .5, norm_size + .5);
+  int i = 1;
+
+  h_norm->GetXaxis()->SetBinLabel(i++, "Event");
+  h_norm->GetXaxis()->SetBinLabel(i++, "Inclusive Jets");
+  h_norm->GetXaxis()->SetBinLabel(i++, "Leading Jets");
+  assert(norm_size >= i - 1);
+  h_norm->GetXaxis()->LabelsOption("v");
+  hm->registerHisto(h_norm);
+
   hm->registerHisto(
       new TH1F(
           //
@@ -334,9 +320,10 @@ QAG4SimulationJet::process_Spectrum(PHCompositeNode *topNode,
   assert(hm);
 
   TH1D* h_norm = dynamic_cast<TH1D*>(hm->getHisto(
-      get_histo_prefix(_truth_jet) + "Normalization"));
+      get_histo_prefix(jet_name) + "Normalization"));
   assert(h_norm);
-  h_norm->Fill(jet_name.c_str(), jets->size());
+  h_norm->Fill("Event", 1);
+  h_norm->Fill("Inclusive Jets", jets->size());
 
   TH1F * ie = dynamic_cast<TH1F*>(hm->getHisto(
       (get_histo_prefix(jet_name)) + "Inclusive_E" //
@@ -374,6 +361,7 @@ QAG4SimulationJet::process_Spectrum(PHCompositeNode *topNode,
 
   if (leading_jet)
     {
+      h_norm->Fill("Leading Jets", 1);
 
       TH1F * let = dynamic_cast<TH1F*>(hm->getHisto(
           (get_histo_prefix(jet_name)) + "Leading_Et" //
@@ -426,22 +414,21 @@ QAG4SimulationJet::Init_TruthMatching(PHCompositeNode *topNode,
   h = new TH2F(
       TString(get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dEt", //
       TString(reco_jet_name) + " E_{T} difference, " + get_eta_range_str()
-          + ";E_{T, Truth} (GeV);E_{T, Reco} / E_{T, Truth}", 20, 0, 100,
-      100, 0, 2);
+          + ";E_{T, Truth} (GeV);E_{T, Reco} / E_{T, Truth}", 20, 0, 100, 100,
+      0, 2);
   hm->registerHisto(h);
 
   h = new TH2F(
       TString(get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dE", //
       TString(reco_jet_name) + " Jet Energy Difference, " + get_eta_range_str()
-          + ";E_{Truth} (GeV);E_{Reco} / E_{Truth}", 20, 0, 100, 100, 0,
-      2);
+          + ";E_{Truth} (GeV);E_{Reco} / E_{Truth}", 20, 0, 100, 100, 0, 2);
   hm->registerHisto(h);
 
   h = new TH2F(
       TString(get_histo_prefix(_truth_jet, reco_jet_name)) + "Matching_dEta", //
       TString(reco_jet_name) + " #eta difference, " + get_eta_range_str()
-          + ";E_{T, Truth} (GeV);#eta_{Reco} - #eta_{Truth}", 20, 0, 100,
-      200, -.1, .1);
+          + ";E_{T, Truth} (GeV);#eta_{Reco} - #eta_{Truth}", 20, 0, 100, 200,
+      -.1, .1);
   hm->registerHisto(h);
 
   h = new TH2F(

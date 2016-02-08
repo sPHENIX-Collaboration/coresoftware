@@ -48,10 +48,6 @@ QA_Draw_Jet_TruthMatching(const char * jet =
       assert(qa_file_ref->IsOpen());
     }
 
-  // obtain normalization
-  const double Nevent_new = 2000; // TODO: need to use normalization histos
-  const double Nevent_ref = 250; // TODO: need to use normalization histos
-
   TCanvas *c1 = new TCanvas(
       TString("QA_Draw_Jet_TruthMatching_") + TString(jet),
       TString("QA_Draw_Jet_TruthMatching_") + TString(jet), 1800, 900);

@@ -131,7 +131,7 @@ QAG4SimulationCalorimeter::Init(PHCompositeNode *topNode)
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
   TH1D * h = new TH1D(TString(get_histo_prefix()) + "_Normalization", //
-  TString(_calo_name) + " Normalization;Z (cm);Count", 10, .5, 10.5);
+  TString(_calo_name) + " Normalization;Items;Count", 10, .5, 10.5);
   int i = 1;
   h->GetXaxis()->SetBinLabel(i++, "Event");
   h->GetXaxis()->SetBinLabel(i++, "G4Hit Active");

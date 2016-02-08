@@ -23,8 +23,10 @@ using namespace std;
 
 void
 QA_Draw_Jet_Spectrum(const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
-    const char * qa_file_name_new = "data/G4sPHENIXCells_2000jets25GeV.root_qa.root",
-    const char * qa_file_name_ref = "data/G4sPHENIXCells_250jets25GeV.root_qa.root")
+    const char * qa_file_name_new =
+        "data/G4sPHENIXCells_250jets25GeV.root_qa.root",
+    const char * qa_file_name_ref =
+        "data/G4sPHENIXCells_2000jets25GeV.root_qa.root")
 {
 
   SetOKStyle();
@@ -43,8 +45,25 @@ QA_Draw_Jet_Spectrum(const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
     }
 
   // obtain normalization
-  const double Nevent_new = 2000; // TODO: need to use normalization histos
-  const double Nevent_ref = 250; // TODO: need to use normalization histos
+  double Nevent_new = 1;
+  double Nevent_ref = 1;
+
+  if (qa_file_new)
+    {
+      TH1D * h_norm = (TH1D *) qa_file_new->GetObjectChecked(
+          TString(jet) + TString("_Normalization"), "TH1D");
+      assert(h_norm);
+
+      Nevent_new = h_norm->GetBinContent(h_norm->GetXaxis()->FindBin("Event"));
+    }
+  if (qa_file_ref)
+    {
+      TH1D * h_norm = (TH1D *) qa_file_ref->GetObjectChecked(
+          TString(jet) + TString("_Normalization"), "TH1D");
+      assert(h_norm);
+
+      Nevent_ref = h_norm->GetBinContent(h_norm->GetXaxis()->FindBin("Event"));
+    }
 
   TCanvas *c1 = new TCanvas(TString("QA_Draw_Jet_Spectrum_") + TString(jet),
       TString("QA_Draw_Jet_Spectrum_") + TString(jet), 1800, 500);
@@ -138,7 +157,6 @@ QA_Draw_Jet_Spectrum(const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
 
       DrawReference(h_new, h_ref);
     }
-
 
 // inclusive jet stuff. Not very interesting.
 
