@@ -8,6 +8,9 @@
  * \date $Date: $
  */
 
+#ifndef QA_Draw_Utility_C
+#define QA_Draw_Utility_C
+
 #include <cmath>
 #include <TFile.h>
 #include <TString.h>
@@ -290,3 +293,5 @@ GetBinominalRatio(TH1 * h_pass, TH1 * h_n_trial, bool process_zero_bins = false)
 
   return h_ratio;
 }
+
+#endif

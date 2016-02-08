@@ -106,6 +106,7 @@ SaveCanvas(TCanvas * c, TString name = "", Bool_t bEPS = kTRUE)
 //      c->Print(name + ".eps");
       c->Print(name + ".svg");
       gSystem->Exec("rsvg-convert -f pdf -o "+name + ".pdf " + name + ".svg");
+      gSystem->Exec("rm -fv " +  name + ".svg");
 
       gStyle->SetPaperSize(x, y);
     }

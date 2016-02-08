@@ -1,3 +1,8 @@
+
+#ifndef SetOKStyle_C
+#define SetOKStyle_C
+
+
 void
 SetOKStyle()
 {
@@ -98,3 +103,5 @@ SetOKStyle()
 
   cout << "Using Jin's Style" << endl;
 }
+
+#endif
