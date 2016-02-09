@@ -122,8 +122,8 @@ QAG4SimulationCalorimeterSum::Init(PHCompositeNode *topNode)
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  TH1D * h = new TH1D(TString(get_histo_prefix()) + "_Normalization", //
-      TString(get_histo_prefix()) + " Normalization;Items;Count", 10, .5, 10.5);
+  TH1D * h = new TH1D(TString(get_histo_prefix()) + "Normalization", //
+  TString(get_histo_prefix()) + " Normalization;Items;Count", 10, .5, 10.5);
   int i = 1;
   h->GetXaxis()->SetBinLabel(i++, "Event");
   h->GetXaxis()->SetBinLabel(i++, (_calo_name_cemc + " Tower").c_str());
@@ -206,7 +206,7 @@ QAG4SimulationCalorimeterSum::process_event(PHCompositeNode *topNode)
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
   TH1D* h_norm = dynamic_cast<TH1D*>(hm->getHisto(
-      get_histo_prefix() + "_Normalization"));
+      get_histo_prefix() + "Normalization"));
   assert(h_norm);
   h_norm->Fill("Event", 1);
 
@@ -281,6 +281,58 @@ QAG4SimulationCalorimeterSum::Init_Cluster(PHCompositeNode *topNode)
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
+  hm->registerHisto(
+      new TH2F(
+          TString(get_histo_prefix()) + "Cluster_" + _calo_name_cemc.c_str()
+              + "_" + _calo_name_hcalin.c_str(), //
+          TString(_calo_name_hcalin.c_str()) + " VS "
+              + TString(_calo_name_cemc.c_str()) + ": best cluster energy;"
+              + TString(_calo_name_cemc.c_str()) + " cluster energy (GeV);"
+              + TString(_calo_name_hcalin.c_str()) + " cluster energy (GeV)",
+          70, 0, 70, 70, 0, 70));
+
+  hm->registerHisto(
+      new TH2F(
+          TString(get_histo_prefix()) + "Cluster_" + _calo_name_cemc.c_str()
+              + "_" + _calo_name_hcalin.c_str() + "_"
+              + _calo_name_hcalout.c_str(), //
+          TString(_calo_name_cemc.c_str()) + " + "
+              + TString(_calo_name_hcalin.c_str()) + " VS "
+              + TString(_calo_name_hcalout.c_str()) + ": best cluster energy;"
+              + TString(_calo_name_cemc.c_str()) + " + "
+              + TString(_calo_name_hcalin.c_str()) + " cluster energy (GeV);"
+              + TString(_calo_name_hcalout.c_str()) + " cluster energy (GeV)",
+          70, 0, 70, 70, 0, 70));
+
+  hm->registerHisto(
+      new TH1F(TString(get_histo_prefix()) + "Cluster_EP", //
+          "Total Cluster E_{Reco}/E_{Truth};Reco cluster energy sum / total truth energy",
+          150, 0, 1.5));
+
+  hm->registerHisto(
+      new TH1F(
+          TString(get_histo_prefix()) + "Cluster_Ratio_"
+              + _calo_name_cemc.c_str() + "_" + _calo_name_hcalin.c_str(), //
+          "Energy ratio " + TString(_calo_name_cemc.c_str()) + " VS "
+              + TString(_calo_name_hcalin.c_str()) + ";Best cluster"
+              + TString(_calo_name_cemc.c_str()) + " / ("
+              + TString(_calo_name_cemc.c_str())
+              + TString(_calo_name_hcalin.c_str()) + ")", 100, 0, 1));
+
+  hm->registerHisto(
+      new TH1F(
+          TString(get_histo_prefix()) + "Cluster_Ratio_"
+              + _calo_name_cemc.c_str() + "_" + _calo_name_hcalin.c_str() + "_"
+              + TString(_calo_name_hcalout.c_str()), //
+          "Energy ratio " + TString(_calo_name_cemc.c_str()) + " + "
+              + TString(_calo_name_hcalin.c_str()) + " VS "
+              + TString(_calo_name_hcalout.c_str()) + ";Best cluster ("
+              + TString(_calo_name_cemc.c_str()) + " + "
+              + TString(_calo_name_hcalin.c_str()) + ") / ("
+              + TString(_calo_name_cemc.c_str())
+              + TString(_calo_name_hcalin.c_str()) + " + "
+              + TString(_calo_name_hcalout.c_str()) + ")", 100, 0, 1));
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -294,6 +346,68 @@ QAG4SimulationCalorimeterSum::process_event_Cluster(PHCompositeNode *topNode)
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
+
+  PHG4Particle * primary = get_truth_particle();
+  assert(primary);
+
+  RawCluster* cluster_cemc =
+      _caloevalstack_cemc->get_rawcluster_eval()->best_cluster_from(primary);
+  RawCluster* cluster_hcalin =
+      _caloevalstack_hcalin->get_rawcluster_eval()->best_cluster_from(primary);
+  RawCluster* cluster_hcalout =
+      _caloevalstack_hcalout->get_rawcluster_eval()->best_cluster_from(primary);
+
+  const double cluster_cemc_e = cluster_cemc ? cluster_cemc->get_energy() : 0;
+  const double cluster_hcalin_e =
+      cluster_hcalin ? cluster_hcalin->get_energy() : 0;
+  const double cluster_hcalout_e =
+      cluster_hcalout ? cluster_hcalout->get_energy() : 0;
+
+  if (cluster_cemc_e + cluster_hcalin_e > 0)
+    {
+
+      TH2F * h2 = dynamic_cast<TH2F*>(hm->getHisto(
+          (get_histo_prefix()) + "Cluster_" + _calo_name_cemc + "_"
+              + _calo_name_hcalin));
+      assert(h2);
+
+      h2->Fill(cluster_cemc_e, cluster_hcalin_e);
+
+      TH1F * hr = dynamic_cast<TH1F*>(hm->getHisto(
+          (get_histo_prefix()) + "Cluster_Ratio_" + _calo_name_cemc + "_"
+              + _calo_name_hcalin));
+      assert(hr);
+
+      hr->Fill(cluster_cemc_e / (cluster_cemc_e + cluster_hcalin_e));
+    }
+
+  if (cluster_cemc_e + cluster_hcalin_e + cluster_hcalout_e > 0)
+    {
+
+      TH2F * h2 = dynamic_cast<TH2F*>(hm->getHisto(
+          (get_histo_prefix()) + "Cluster_" + _calo_name_cemc + "_"
+              + _calo_name_hcalin + "_" + _calo_name_hcalout));
+      assert(h2);
+
+      h2->Fill((cluster_cemc_e + cluster_hcalin_e), cluster_hcalout_e);
+
+      TH1F * hr = dynamic_cast<TH1F*>(hm->getHisto(
+          (get_histo_prefix()) + "Cluster_Ratio_" + _calo_name_cemc + "_"
+              + _calo_name_hcalin + "_" + _calo_name_hcalout));
+      assert(hr);
+
+      hr->Fill(
+          (cluster_cemc_e + cluster_hcalin_e)
+              / (cluster_cemc_e + cluster_hcalin_e + cluster_hcalout_e));
+
+      TH1F * hsum = dynamic_cast<TH1F*>(hm->getHisto(
+          (get_histo_prefix()) + "Cluster_EP"));
+      assert(hsum);
+
+      hsum->Fill(
+          (cluster_cemc_e + cluster_hcalin_e + cluster_hcalout_e)
+              / (primary->get_e() + 1e-9));
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
