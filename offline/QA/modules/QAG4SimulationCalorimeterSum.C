@@ -314,10 +314,10 @@ QAG4SimulationCalorimeterSum::Init_Cluster(PHCompositeNode *topNode)
           TString(get_histo_prefix()) + "Cluster_Ratio_"
               + _calo_name_cemc.c_str() + "_" + _calo_name_hcalin.c_str(), //
           "Energy ratio " + TString(_calo_name_cemc.c_str()) + " VS "
-              + TString(_calo_name_hcalin.c_str()) + ";Best cluster"
+              + TString(_calo_name_hcalin.c_str()) + ";Best cluster "
               + TString(_calo_name_cemc.c_str()) + " / ("
-              + TString(_calo_name_cemc.c_str())
-              + TString(_calo_name_hcalin.c_str()) + ")", 100, 0, 1));
+              + TString(_calo_name_cemc.c_str()) + " + "
+              + TString(_calo_name_hcalin.c_str()) + ")", 110, 0, 1.1));
 
   hm->registerHisto(
       new TH1F(
@@ -329,9 +329,9 @@ QAG4SimulationCalorimeterSum::Init_Cluster(PHCompositeNode *topNode)
               + TString(_calo_name_hcalout.c_str()) + ";Best cluster ("
               + TString(_calo_name_cemc.c_str()) + " + "
               + TString(_calo_name_hcalin.c_str()) + ") / ("
-              + TString(_calo_name_cemc.c_str())
+              + TString(_calo_name_cemc.c_str()) + " + "
               + TString(_calo_name_hcalin.c_str()) + " + "
-              + TString(_calo_name_hcalout.c_str()) + ")", 100, 0, 1));
+              + TString(_calo_name_hcalout.c_str()) + ")", 110, 0, 1.1));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -383,6 +383,17 @@ QAG4SimulationCalorimeterSum::process_event_Cluster(PHCompositeNode *topNode)
 
   if (cluster_cemc_e + cluster_hcalin_e + cluster_hcalout_e > 0)
     {
+
+      if (verbosity)
+        {
+          cout << "QAG4SimulationCalorimeterSum::process_event_Cluster - "
+              << " cluster_cemc_e = " << cluster_cemc_e
+              << " cluster_hcalin_e = " << cluster_hcalin_e
+              << " cluster_hcalout_e = " << cluster_hcalout_e << " hr = "
+              << (cluster_cemc_e + cluster_hcalin_e)
+                  / (cluster_cemc_e + cluster_hcalin_e + cluster_hcalout_e)
+              << endl;
+        }
 
       TH2F * h2 = dynamic_cast<TH2F*>(hm->getHisto(
           (get_histo_prefix()) + "Cluster_" + _calo_name_cemc + "_"
