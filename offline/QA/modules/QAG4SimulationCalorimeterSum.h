@@ -19,6 +19,7 @@ class PHG4Particle;
 class RawTowerGeom;
 class RawTowerContainer;
 class CaloEvalStack;
+class SvtxEvalStack;
 
 /// \class QAG4SimulationCalorimeterSum
 class QAG4SimulationCalorimeterSum : public SubsysReco
@@ -28,13 +29,13 @@ public:
 
   enum enu_flags
   {
-    kProcessG4Hit = 1 << 1, kProcessTower = 1 << 2, kProcessCluster = 1 << 3,
+    kProcessTower = 1 << 1, kProcessCluster = 1 << 2, kProcessTrackProj = 1
+        << 3,
 
-    kDefaultFlag = kProcessG4Hit | kProcessTower | kProcessCluster
+    kDefaultFlag = kProcessTower | kProcessCluster | kProcessTrackProj
   };
 
-  QAG4SimulationCalorimeterSum(std::string calo_name, enu_flags flags =
-      kDefaultFlag);
+  QAG4SimulationCalorimeterSum(enu_flags flags = kDefaultFlag);
   virtual
   ~QAG4SimulationCalorimeterSum();
 
@@ -81,12 +82,42 @@ public:
   std::string
   get_histo_prefix();
 
-private:
+  std::string
+  get_calo_name_cemc() const
+  {
+    return _calo_name_cemc;
+  }
 
-  int
-  Init_G4Hit(PHCompositeNode *topNode);
-  int
-  process_event_G4Hit(PHCompositeNode *topNode);
+  void
+  set_calo_name_cemc(const std::string & caloNameCemc)
+  {
+    _calo_name_cemc = caloNameCemc;
+  }
+
+  std::string
+  get_calo_name_hcalin() const
+  {
+    return _calo_name_hcalin;
+  }
+
+  void
+  set_calo_name_hcalin(const std::string & caloNameHcalin)
+  {
+    _calo_name_hcalin = caloNameHcalin;
+  }
+
+  std::string
+  get_calo_name_hcalout() const
+  {
+    return _calo_name_hcalout;
+  }
+
+  void
+  set_calo_name_hcalout(const std::string & caloNameHcalout)
+  {
+    _calo_name_hcalout = caloNameHcalout;
+  }
+private:
 
   int
   Init_Tower(PHCompositeNode *topNode);
@@ -98,17 +129,30 @@ private:
   int
   process_event_Cluster(PHCompositeNode *topNode);
 
+  int
+  Init_TrackProj(PHCompositeNode *topNode);
+  int
+  process_event_TrackProj(PHCompositeNode *topNode);
+
 #ifndef __CINT__
   //CINT is not c++11 compatible
-  std::shared_ptr<CaloEvalStack> _caloevalstack;
+  std::shared_ptr<CaloEvalStack> _caloevalstack_cemc;
+  std::shared_ptr<CaloEvalStack> _caloevalstack_hcalin;
+  std::shared_ptr<CaloEvalStack> _caloevalstack_hcalout;
+  std::shared_ptr<SvtxEvalStack> _svtxevalstack;
 #endif
 
-  std::string _calo_name;
   uint32_t _flags;
 
-  PHG4HitContainer* _calo_hit_container;
-  PHG4HitContainer* _calo_abs_hit_container;
+  std::string _calo_name_cemc;
+  std::string _calo_name_hcalin;
+  std::string _calo_name_hcalout;
+
   PHG4TruthInfoContainer* _truth_container;
+
+  //! fetch the truth particle to be analyzed. By default it is the last primary particle in truth container (therefore works in single particle embedding)
+  PHG4Particle *
+  get_truth_particle();
 };
 
 #endif // __CALOEVALUATOR_H__
