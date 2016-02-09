@@ -30,7 +30,7 @@ QA_Draw_Jet_Summary(const char * jet_family = "AntiKt_Tower",
     const char * qa_file_name_new =
         "data/G4sPHENIXCells_2000jets25GeV.root_qa.root",
     const char * qa_file_name_ref =
-        "data/G4sPHENIXCells_2000jets25GeV.root_qa.root")
+        "data/G4sPHENIXCells_250jets25GeV.root_qa.root")
 {
   //! drawing energy range
   const double min_Et = 10;
