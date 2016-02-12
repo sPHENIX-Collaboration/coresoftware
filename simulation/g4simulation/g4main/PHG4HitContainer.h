@@ -29,6 +29,7 @@ class PHG4HitContainer: public PHObject
 
   void identify(std::ostream& os = std::cout) const;
 
+  //! container ID should follow definition of PHG4HitDefs::get_volume_id(DST nodename)
   void SetID(int i) {id = i;}
   int GetID() const {return id;}
   
@@ -60,7 +61,7 @@ class PHG4HitContainer: public PHObject
 
  protected:
 
-  int id; //< unique identifier from hash of node name
+  int id; //< unique identifier from hash of node name. Defined following PHG4HitDefs::get_volume_id
   Map hitmap;
   std::set<unsigned int> layers; // layers is not reset since layers must not change event by event
 
