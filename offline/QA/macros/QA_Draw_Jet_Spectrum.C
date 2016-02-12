@@ -22,7 +22,9 @@
 using namespace std;
 
 void
-QA_Draw_Jet_Spectrum(const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
+QA_Draw_Jet_Spectrum(//
+    const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
+//    const char * jet = "h_QAG4SimJet_AntiKt_Truth_r07",
     const char * qa_file_name_new =
         "data/G4sPHENIXCells_250jets25GeV.root_qa.root",
     const char * qa_file_name_ref =
@@ -66,8 +68,8 @@ QA_Draw_Jet_Spectrum(const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
     }
 
   TCanvas *c1 = new TCanvas(TString("QA_Draw_Jet_Spectrum_") + TString(jet),
-      TString("QA_Draw_Jet_Spectrum_") + TString(jet), 1800, 500);
-  c1->Divide(3, 1);
+      TString("QA_Draw_Jet_Spectrum_") + TString(jet), 1800, 1000);
+  c1->Divide(4, 2);
   int idx = 1;
   TPad * p;
 
@@ -80,6 +82,7 @@ QA_Draw_Jet_Spectrum(const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
           TString(jet) + TString("_Leading_eta"), "TH1F");
       assert(h_new);
 
+      h_new -> Rebin(2);
       h_new->Sumw2();
       h_new->Scale(1. / Nevent_new);
 
@@ -90,6 +93,7 @@ QA_Draw_Jet_Spectrum(const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
               TString(jet) + TString("_Leading_eta"), "TH1F");
           assert(h_ref);
 
+          h_ref -> Rebin(2);
           h_ref->Scale(1. / Nevent_ref);
         }
 
@@ -109,6 +113,7 @@ QA_Draw_Jet_Spectrum(const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
           TString(jet) + TString("_Leading_phi"), "TH1F");
       assert(h_new);
 
+      h_new -> Rebin(2);
       h_new->Sumw2();
       h_new->Scale(1. / Nevent_new);
 
@@ -119,6 +124,7 @@ QA_Draw_Jet_Spectrum(const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
               TString(jet) + TString("_Leading_phi"), "TH1F");
           assert(h_ref);
 
+          h_ref -> Rebin(2);
           h_ref->Scale(1. / Nevent_ref);
         }
 
@@ -157,6 +163,168 @@ QA_Draw_Jet_Spectrum(const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
 
       DrawReference(h_new, h_ref);
     }
+
+  p = (TPad *) c1->cd(idx++);
+  c1->Update();
+  p->SetLogy();
+
+    {
+      TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+          TString(jet) + TString("_Leading_Mass"), "TH1F");
+      assert(h_new);
+
+      h_new->Rebin(2);
+      h_new->Sumw2();
+      h_new->Scale(1. / Nevent_new);
+
+      TH1F * h_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+              TString(jet) + TString("_Leading_Mass"), "TH1F");
+          assert(h_ref);
+
+          h_ref->Rebin(2);
+          h_ref->Scale(1. / Nevent_ref);
+        }
+
+      h_new->GetYaxis()->SetTitleOffset(1.5);
+      h_new->GetYaxis()->SetTitle("Count / event / bin");
+      //      h_new->GetXaxis()->SetRangeUser(-0, .1);
+
+      DrawReference(h_new, h_ref);
+    }
+
+  p = (TPad *) c1->cd(idx++);
+  c1->Update();
+  p->SetLogx();
+
+    {
+      TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+          TString(jet) + TString("_Leading_CompSize"), "TH1F");
+      assert(h_new);
+
+      h_new->Rebin(4);
+      h_new->Sumw2();
+      h_new->Scale(1. / Nevent_new);
+
+      TH1F * h_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+              TString(jet) + TString("_Leading_CompSize"), "TH1F");
+          assert(h_ref);
+
+          h_ref->Rebin(4);
+          h_ref->Scale(1. / Nevent_ref);
+        }
+
+      h_new->GetYaxis()->SetTitleOffset(1.5);
+      h_new->GetYaxis()->SetTitle("Count / event / bin");
+      //      h_new->GetXaxis()->SetRangeUser(-0, .1);
+
+      DrawReference(h_new, h_ref);
+    }
+
+  p = (TPad *) c1->cd(idx++);
+  c1->Update();
+  p->SetLogy();
+
+    {
+      TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+          TString(jet) + TString("_Leading_CEMC_Ratio"), "TH1F");
+      assert(h_new);
+
+      h_new->Rebin(2);
+      h_new->Sumw2();
+      h_new->Scale(1. / Nevent_new);
+
+      TH1F * h_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+              TString(jet) + TString("_Leading_CEMC_Ratio"), "TH1F");
+          assert(h_ref);
+
+          h_ref->Rebin(2);
+          h_ref->Scale(1. / Nevent_ref);
+        }
+
+      h_new->GetYaxis()->SetTitleOffset(1.5);
+      h_new->GetYaxis()->SetTitle("Count / event / bin");
+      //      h_new->GetXaxis()->SetRangeUser(-0, .1);
+
+      DrawReference(h_new, h_ref);
+    }
+
+  p = (TPad *) c1->cd(idx++);
+  c1->Update();
+  p->SetLogy();
+
+    {
+      TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+          TString(jet) + TString("_Leading_CEMC_HCalIN_Ratio"), "TH1F");
+      assert(h_new);
+
+      h_new->Rebin(2);
+      h_new->Sumw2();
+      h_new->Scale(1. / Nevent_new);
+
+      TH1F * h_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+              TString(jet) + TString("_Leading_CEMC_HCalIN_Ratio"), "TH1F");
+          assert(h_ref);
+
+          h_ref->Rebin(2);
+          h_ref->Scale(1. / Nevent_ref);
+        }
+
+      h_new->GetYaxis()->SetTitleOffset(1.5);
+      h_new->GetYaxis()->SetTitle("Count / event / bin");
+      //      h_new->GetXaxis()->SetRangeUser(-0, .1);
+
+      DrawReference(h_new, h_ref);
+    }
+
+    if (TString(jet).Contains("Truth"))
+      {
+        // truth jets
+
+        p = (TPad *) c1->cd(idx++);
+        c1->Update();
+        p->SetLogy();
+
+          {
+            TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+                TString(jet) + TString("_Leading_Leakage_Ratio"), "TH1F");
+            assert(h_new);
+
+            h_new->Rebin(2);
+            h_new->Sumw2();
+            h_new->Scale(1. / Nevent_new);
+
+            TH1F * h_ref = NULL;
+            if (qa_file_ref)
+              {
+                TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+                    TString(jet) + TString("_Leading_Leakage_Ratio"), "TH1F");
+                assert(h_ref);
+
+                h_ref->Rebin(2);
+                h_ref->Scale(1. / Nevent_ref);
+              }
+
+            h_new->GetYaxis()->SetTitleOffset(1.5);
+            h_new->GetYaxis()->SetTitle("Count / event / bin");
+            //      h_new->GetXaxis()->SetRangeUser(-0, .1);
+
+            DrawReference(h_new, h_ref);
+          }
+
+
+      }
 
 // inclusive jet stuff. Not very interesting.
 

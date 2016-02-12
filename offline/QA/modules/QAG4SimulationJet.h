@@ -19,6 +19,7 @@ class PHCompositeNode;
 class Fun4AllHistoManager;
 class TH1F;
 class JetEvalStack;
+class JetTruthEval;
 class Jet;
 
 /// \class QAG4SimulationJet
@@ -147,7 +148,7 @@ private:
   int
   Init_Spectrum(PHCompositeNode *topNode, const std::string & jet_name);
   int
-  process_Spectrum(PHCompositeNode *topNode, const std::string & jet_name);
+  process_Spectrum(PHCompositeNode *topNode, const std::string & jet_name, const bool is_reco_jet);
 
   int
   Init_TruthMatching(PHCompositeNode *topNode, const std::string & reco_jet_name);
@@ -164,6 +165,7 @@ private:
   //! cache the jet evaluation modules
   typedef std::map<std::string, std::shared_ptr<JetEvalStack>> jetevalstacks_map;
   jetevalstacks_map _jetevalstacks;
+  std::shared_ptr<JetTruthEval> _jettrutheval;
 #endif
 
   //! truth jet name
