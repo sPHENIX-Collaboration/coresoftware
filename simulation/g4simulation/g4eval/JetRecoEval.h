@@ -159,7 +159,7 @@ private:
 
   //! put higher energy-contribution pair first in unique_match_map
   struct unique_match_map_comp {
-    bool operator() (const char& lhs, const char& rhs) const
+    bool operator() (const float& lhs, const float& rhs) const
     {return lhs>rhs;}
   };
   typedef std::multimap<float, std::pair<Jet*,Jet*>, unique_match_map_comp> unique_match_map;
