@@ -91,11 +91,19 @@ public:
   /// which truth jet contributed the most energy to this reconstructed jet?
   Jet* max_truth_jet_by_energy (Jet* recojet);
   
-  /// what reconstructed jets had constributions from this truth jet?
+  /// what reconstructed jets had contributions from this truth jet?
   std::set<Jet*> all_jets_from (Jet* truthjet);
 
-  /// which reconstructed jet had the largest energy constribution from this truth jet?
+  /// which reconstructed jet had the largest energy contribution from this truth jet?
   Jet* best_jet_from (Jet* truthjet);
+
+  /// which reconstructed jet had the largest energy contribution from this truth jet in a unique match?
+  /// @return pointer to reco jet. And NULL if no unique match
+  Jet* unique_reco_jet_from_truth (Jet* truthjet);
+
+  /// which truth jet had the largest energy contribution from this reco jet in a unique match?
+  /// @return pointer to truth jet. And NULL if no unique match
+  Jet* unique_truth_jet_from_reco (Jet* recojet);
 
   /// what was the energy contribution to this reconstructed jet from this truth jet?
   float get_energy_contribution (Jet* recojet, Jet* truthjet);
@@ -111,6 +119,9 @@ public:
 private:
 
   void get_node_pointers(PHCompositeNode *topNode);
+
+  /// build _cache_unique_match that match between truth jet -> reco jet with weight of energy contribution
+  void build_unique_match();
 
   JetTruthEval _jettrutheval;
   std::string _recojetname;
@@ -145,6 +156,14 @@ private:
   std::map<std::pair<Jet*,Jet*>,float>    _cache_get_energy_contribution;
   std::map<std::pair<Jet*,Jet::SRC>,float> _cache_get_energy_contribution_src; /// used in get_energy_contribution (Jet* recojet, Jet::SRC src);
   std::map<Jet*,std::set<PHG4Hit*> >      _cache_all_truth_hits;
+
+  //! put higher energy-contribution pair first in unique_match_map
+  struct unique_match_map_comp {
+    bool operator() (const char& lhs, const char& rhs) const
+    {return lhs>rhs;}
+  };
+  typedef std::multimap<float, std::pair<Jet*,Jet*>, unique_match_map_comp> unique_match_map;
+  unique_match_map _cache_unique_match; /// unique match between truth jet -> reco jet with weight of energy contribution
 };
 
 #endif // __SVTXHITEVAL_H__
