@@ -29,7 +29,7 @@ QA_Draw_Jet_TruthMatching(const char * jet =
     const char * qa_file_name_new =
         "data/G4sPHENIXCells_2000jets25GeV.root_qa.root",
     const char * qa_file_name_ref =
-        "data/G4sPHENIXCells_2000jets25GeV.root_qa.root")
+        "data/G4sPHENIXCells_250jets25GeV.root_qa.root")
 {
   //! drawing energy range
   const double min_Et = 10;
@@ -246,13 +246,6 @@ QA_Draw_Jet_TruthMatching(const char * jet =
 
   TLine * l = new TLine(min_Et, 1, max_Et, 1);
   l->Draw();
-
-  new TCanvas;
-  h_norm->Draw();
-  new TCanvas;
-  h_pass->Draw();
-
-  return;
 
   p = (TPad *) c1->cd(idx++);
   c1->Update();
