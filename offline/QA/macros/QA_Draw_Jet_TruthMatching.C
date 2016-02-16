@@ -27,7 +27,7 @@ vector<TGraphErrors *>
 QA_Draw_Jet_TruthMatching(const char * jet =
     "h_QAG4SimJet_AntiKt_Truth_r07_AntiKt_Tower_r07",
     const char * qa_file_name_new =
-        "data/G4sPHENIXCells_250jets25GeV.root_qa.root",
+        "data/G4sPHENIXCells_2000jets25GeV.root_qa.root",
     const char * qa_file_name_ref =
         "data/G4sPHENIXCells_2000jets25GeV.root_qa.root")
 {
@@ -210,8 +210,10 @@ QA_Draw_Jet_TruthMatching(const char * jet =
 
       TH1 * h_norm = h2->ProjectionX(
           TString(jet) + "_Matching_Count_Truth_Et" + "_All", 1, 1);
+      //          TH1 * h_pass = h2->ProjectionX(
+      //              TString(jet) + "_Matching_Count_Truth_Et" + "_Matched", 2, 2);// inclusive match
       TH1 * h_pass = h2->ProjectionX(
-          TString(jet) + "_Matching_Count_Truth_Et" + "_Matched", 2, 2);
+          TString(jet) + "_Matching_Count_Truth_Et" + "_Matched", 3, 3); // unique match
       assert(h_norm);
       assert(h_pass);
       TH1 * h_ratio = GetBinominalRatio(h_pass, h_norm);
@@ -228,8 +230,10 @@ QA_Draw_Jet_TruthMatching(const char * jet =
           assert(h2);
           TH1 * h_norm = h2->ProjectionX(
               TString(jet) + "_Matching_Count_Truth_Et" + "_All", 1, 1);
+//          TH1 * h_pass = h2->ProjectionX(
+//              TString(jet) + "_Matching_Count_Truth_Et" + "_Matched", 2, 2);// inclusive match
           TH1 * h_pass = h2->ProjectionX(
-              TString(jet) + "_Matching_Count_Truth_Et" + "_Matched", 2, 2);
+              TString(jet) + "_Matching_Count_Truth_Et" + "_Matched", 3, 3); // unique match
           assert(h_norm);
           assert(h_pass);
           h_ratio_ref = GetBinominalRatio(h_pass, h_norm, true);
@@ -243,6 +247,13 @@ QA_Draw_Jet_TruthMatching(const char * jet =
   TLine * l = new TLine(min_Et, 1, max_Et, 1);
   l->Draw();
 
+  new TCanvas;
+  h_norm->Draw();
+  new TCanvas;
+  h_pass->Draw();
+
+  return;
+
   p = (TPad *) c1->cd(idx++);
   c1->Update();
   //  p->SetLogz();
@@ -255,8 +266,10 @@ QA_Draw_Jet_TruthMatching(const char * jet =
 
       TH1 * h_norm = h2->ProjectionX(
           TString(jet) + "_Matching_Count_Reco_Et" + "_All", 1, 1);
+//      TH1 * h_pass = h2->ProjectionX(
+//          TString(jet) + "_Matching_Count_Reco_Et" + "_Matched", 2, 2); // inclusive match
       TH1 * h_pass = h2->ProjectionX(
-          TString(jet) + "_Matching_Count_Reco_Et" + "_Matched", 2, 2);
+          TString(jet) + "_Matching_Count_Reco_Et" + "_Matched", 3, 3); // unique match
       assert(h_norm);
       assert(h_pass);
       TH1 * h_ratio = GetBinominalRatio(h_pass, h_norm);
@@ -274,8 +287,10 @@ QA_Draw_Jet_TruthMatching(const char * jet =
 
           TH1 * h_norm = h2->ProjectionX(
               TString(jet) + "_Matching_Count_Reco_Et" + "_All", 1, 1);
+          //      TH1 * h_pass = h2->ProjectionX(
+          //          TString(jet) + "_Matching_Count_Reco_Et" + "_Matched", 2, 2); // inclusive match
           TH1 * h_pass = h2->ProjectionX(
-              TString(jet) + "_Matching_Count_Reco_Et" + "_Matched", 2, 2);
+              TString(jet) + "_Matching_Count_Reco_Et" + "_Matched", 3, 3); // unique match
           assert(h_norm);
           assert(h_pass);
           h_ratio_ref = GetBinominalRatio(h_pass, h_norm, true);
