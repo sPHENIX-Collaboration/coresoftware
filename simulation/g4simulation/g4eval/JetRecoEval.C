@@ -793,6 +793,29 @@ JetRecoEval::build_unique_match()
 
     } //  for (unique_match_map::reverse_iterator it_best_match =
 
+  // step 3: print the association if requested verbosity:
+  if (_verbosity > 2)
+    {
+      cout <<"JetRecoEval::build_unique_match::<"<<_truthjetname<<"::"<<_recojetname<<"> - unique jet association:"<<endl;
+      for (unique_match_map::const_iterator it_best_match =
+          _cache_unique_match.begin(); it_best_match != _cache_unique_match.end();
+          ++it_best_match)
+        {
+
+          const Jet * truthjet = it_best_match->second.first;
+          const Jet * recojet = it_best_match->second.second;
+          const float energy = it_best_match->first;
+
+          assert(truthjet);
+          assert(recojet);
+
+          cout <<"E = "<<energy;
+          cout <<", truth jet "<<truthjet->get_id()<<" Et= "<<truthjet->get_et();
+          cout <<", reco jet "<<recojet->get_id()<<" Et= "<<recojet->get_et();
+          cout << endl;
+        }
+    }
+
 }
 
 // overlap calculations

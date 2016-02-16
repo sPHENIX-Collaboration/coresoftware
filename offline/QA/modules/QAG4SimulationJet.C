@@ -687,6 +687,13 @@ QAG4SimulationJet::process_TruthMatching(PHCompositeNode *topNode,
         { // inclusive best energy match
 
           const Jet* recojet = recoeval->best_jet_from(truthjet);
+          if (verbosity > 1)
+            {
+              cout << "QAG4SimulationJet::process_TruthMatching - " << _truth_jet
+                  << " inclusively matched with best reco jet: ";
+              recojet->identify();
+            }
+
           if (recojet)
             {
               const double dPhi = recojet->get_phi() - truthjet->get_phi();
@@ -727,6 +734,15 @@ QAG4SimulationJet::process_TruthMatching(PHCompositeNode *topNode,
           const Jet* recojet = recoeval->unique_reco_jet_from_truth(truthjet);
           if (recojet)
             {
+
+              if (verbosity > 1)
+                {
+                  cout << "QAG4SimulationJet::process_TruthMatching - " << _truth_jet
+                      << " uniquely matched with reco jet: ";
+                  recojet->identify();
+                }
+
+
               const double dPhi = recojet->get_phi() - truthjet->get_phi();
 
               if (fabs(dPhi) < _jet_match_dPhi)
