@@ -49,11 +49,12 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   const std::string SuperDetector() const {return superdetector;}
   int get_Layer() const {return layer;}
 
-  G4VSolid* ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
-  G4VSolid* ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
-
+  G4LogicalVolume* ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
+  G4LogicalVolume* ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
+  G4VSolid* ConstructScintiTile_1(G4LogicalVolume* hcalenvelope);
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
   void ConstructHcalSingleScintillators(G4LogicalVolume* hcalenvelope);
+  G4LogicalVolume* ConstructSteelScintiVolume(G4LogicalVolume* hcalenvelope);
 
   protected:
   void AddGeometryNode();
@@ -63,6 +64,10 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   PHG4Parameters *params;
   double inner_radius;
   double outer_radius;
+  double steel_x;
+  double steel_yhi;
+  double steel_ylo;
+  double steel_z;
   double size_z;
   double scinti_tile_x;
   double scinti_tile_x_lower;
