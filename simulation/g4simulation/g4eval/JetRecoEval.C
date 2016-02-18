@@ -64,8 +64,7 @@ JetRecoEval::JetRecoEval(PHCompositeNode* topNode,
     _cache_best_jet_from(),
     _cache_get_energy_contribution(),
     _cache_get_energy_contribution_src(),
-    _cache_all_truth_hits() ,
-    _cache_unique_match(){
+    _cache_all_truth_hits() {
   get_node_pointers(topNode);
 }
 
@@ -88,7 +87,6 @@ void JetRecoEval::next_event(PHCompositeNode* topNode) {
   _cache_get_energy_contribution.clear();
   _cache_get_energy_contribution_src.clear();
   _cache_all_truth_hits.clear();
-  _cache_unique_match.clear();
   
   _jettrutheval.next_event(topNode);
   
@@ -651,33 +649,20 @@ JetRecoEval::unique_reco_jet_from_truth(Jet* truthjet)
       return NULL;
     }
 
-  if (_do_cache)
+  Jet* recojet = best_jet_from(truthjet);
+
+  if (recojet)
     {
-      if (_cache_unique_match.size() == 0)
-        build_unique_match();
+      Jet* back_matching = max_truth_jet_by_energy(recojet);
+
+      if (back_matching == truthjet)
+        return recojet; // uniquely matched
+      else
+        return NULL;
+
     }
   else
-    build_unique_match(); // always rebuild jet match if no not use cache.
-
-  Jet* recojet = NULL;
-
-  // linear speed matching search
-  for (unique_match_map::iterator it_best_match =
-      _cache_unique_match.begin(); it_best_match != _cache_unique_match.end();
-      ++it_best_match)
-    {
-//      const Jet * truthjet = it_best_match->second.first;
-//      const Jet * recojet = it_best_match->second.second;
-
-      if (truthjet == it_best_match->second.first)
-        {
-          recojet = it_best_match->second.second;
-          assert(recojet);
-          break;
-        }
-    }
-
-  return recojet;
+    return NULL;
 }
 
 Jet*
@@ -694,128 +679,20 @@ JetRecoEval::unique_truth_jet_from_reco(Jet* recojet)
       return NULL;
     }
 
-  if (_do_cache)
+  Jet* truthjet =   max_truth_jet_by_energy(recojet);
+
+  if (truthjet)
     {
-      if (_cache_unique_match.size() == 0)
-        build_unique_match();
+      Jet* back_matching = best_jet_from(truthjet);
+
+      if (back_matching == recojet)
+        return truthjet; // uniquely matched
+      else
+        return NULL;
+
     }
   else
-    build_unique_match(); // always rebuild jet match if no not use cache.
-
-  Jet* truthjet = NULL;
-
-  // linear speed matching search
-  for (unique_match_map::iterator it_best_match =
-      _cache_unique_match.begin(); it_best_match != _cache_unique_match.end();
-      ++it_best_match)
-    {
-//      const Jet * truthjet = it_best_match->second.first;
-//      const Jet * recojet = it_best_match->second.second;
-
-      if (recojet == it_best_match->second.second)
-        {
-          truthjet = it_best_match->second.first;
-          assert(truthjet);
-          break;
-        }
-    }
-
-  return truthjet;
-}
-
-
-void
-JetRecoEval::build_unique_match()
-{
-  _cache_unique_match.clear();
-
-  assert(_truthjets);
-
-  //step 1: build all truth -> reco association. At this moment, allow multi-associations
-  for (JetMap::Iter iter = _truthjets->begin(); iter != _truthjets->end();
-      ++iter)
-    {
-      // for every truth jet
-      Jet* truthjet = iter->second;
-
-      std::set<Jet*> recojets = all_jets_from(truthjet);
-      for (std::set<Jet*>::iterator iter = recojets.begin();
-          iter != recojets.end(); ++iter)
-        {
-          Jet* recojet = *iter;
-
-          if (_strict)
-            {
-              assert(recojet);
-            }
-          else if (!recojet)
-            {
-              ++_errors;
-              continue;
-            }
-
-          const float energy = get_energy_contribution(recojet, truthjet);
-
-          _cache_unique_match.insert(
-              make_pair(energy, make_pair(truthjet, recojet)));
-
-        }
-    }
-
-  // step 2: delete multi associations between truth to reco jets and keep the highest energy association
-  for (unique_match_map::iterator it_best_match =
-      _cache_unique_match.begin(); it_best_match != _cache_unique_match.end();
-      ++it_best_match)
-    {
-      const Jet * truthjet = it_best_match->second.first;
-      const Jet * recojet = it_best_match->second.second;
-
-      unique_match_map::iterator it_next_match =
-          it_best_match;
-      ++it_next_match; // go to the next pair
-      while (it_next_match != _cache_unique_match.end())
-        {
-          if (truthjet == it_next_match->second.first
-              or recojet == it_next_match->second.second)
-            {
-              //this jet has already been used in higher overlap matches. delete it.
-
-              unique_match_map::iterator toErase =
-                  it_next_match;
-              ++it_next_match;
-              _cache_unique_match.erase(toErase);
-            }
-          else
-            {
-              ++it_next_match;
-            }
-        } //       while (it_next_match != _cache_unique_match.rend())
-
-    } //  for (unique_match_map::reverse_iterator it_best_match =
-
-  // step 3: print the association if requested verbosity:
-  if (_verbosity > 2)
-    {
-      cout <<"JetRecoEval::build_unique_match::<"<<_truthjetname<<"::"<<_recojetname<<"> - unique jet association:"<<endl;
-      for (unique_match_map::const_iterator it_best_match =
-          _cache_unique_match.begin(); it_best_match != _cache_unique_match.end();
-          ++it_best_match)
-        {
-
-          const Jet * truthjet = it_best_match->second.first;
-          const Jet * recojet = it_best_match->second.second;
-          const float energy = it_best_match->first;
-
-          assert(truthjet);
-          assert(recojet);
-
-          cout <<"E = "<<energy;
-          cout <<", truth jet "<<truthjet->get_id()<<" Et= "<<truthjet->get_et();
-          cout <<", reco jet "<<recojet->get_id()<<" Et= "<<recojet->get_et();
-          cout << endl;
-        }
-    }
-
+    return NULL;
 }
 
 // overlap calculations
