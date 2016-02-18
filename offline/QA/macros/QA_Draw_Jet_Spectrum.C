@@ -23,12 +23,12 @@ using namespace std;
 
 void
 QA_Draw_Jet_Spectrum(//
-    const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
-//    const char * jet = "h_QAG4SimJet_AntiKt_Truth_r07",
+//    const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
+    const char * jet = "h_QAG4SimJet_AntiKt_Truth_r07",
     const char * qa_file_name_new =
         "data/G4sPHENIXCells_250jets25GeV.root_qa.root",
     const char * qa_file_name_ref =
-        "data/G4sPHENIXCells_250jets25GeV.root_qa.root")
+        "data/G4sPHENIXCells_2000jets25GeV.root_qa.root")
 {
 
   SetOKStyle();
@@ -204,7 +204,7 @@ QA_Draw_Jet_Spectrum(//
           TString(jet) + TString("_Leading_CompSize"), "TH1F");
       assert(h_new);
 
-      h_new->Rebin(4);
+      h_new->Rebin(2);
       h_new->Sumw2();
       h_new->Scale(1. / Nevent_new);
 
@@ -215,7 +215,7 @@ QA_Draw_Jet_Spectrum(//
               TString(jet) + TString("_Leading_CompSize"), "TH1F");
           assert(h_ref);
 
-          h_ref->Rebin(4);
+          h_ref->Rebin(2);
           h_ref->Scale(1. / Nevent_ref);
         }
 
