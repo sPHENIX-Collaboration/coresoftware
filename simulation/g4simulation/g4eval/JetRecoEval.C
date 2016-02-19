@@ -63,6 +63,7 @@ JetRecoEval::JetRecoEval(PHCompositeNode* topNode,
     _cache_all_jets_from(),
     _cache_best_jet_from(),
     _cache_get_energy_contribution(),
+    _cache_get_energy_contribution_src(),
     _cache_all_truth_hits() {
   get_node_pointers(topNode);
 }
@@ -84,6 +85,7 @@ void JetRecoEval::next_event(PHCompositeNode* topNode) {
   _cache_all_jets_from.clear();
   _cache_best_jet_from.clear();
   _cache_get_energy_contribution.clear();
+  _cache_get_energy_contribution_src.clear();
   _cache_all_truth_hits.clear();
   
   _jettrutheval.next_event(topNode);
@@ -633,6 +635,66 @@ Jet* JetRecoEval::best_jet_from(Jet* truthjet) {
   return bestrecojet;
 }
 
+Jet*
+JetRecoEval::unique_reco_jet_from_truth(Jet* truthjet)
+{
+
+  if (_strict)
+    {
+      assert(truthjet);
+    }
+  else if (!truthjet)
+    {
+      ++_errors;
+      return NULL;
+    }
+
+  Jet* recojet = best_jet_from(truthjet);
+
+  if (recojet)
+    {
+      Jet* back_matching = max_truth_jet_by_energy(recojet);
+
+      if (back_matching->get_id() == truthjet->get_id())
+        return recojet; // uniquely matched
+      else
+        return NULL;
+
+    }
+  else
+    return NULL;
+}
+
+Jet*
+JetRecoEval::unique_truth_jet_from_reco(Jet* recojet)
+{
+
+  if (_strict)
+    {
+      assert(recojet);
+    }
+  else if (!recojet)
+    {
+      ++_errors;
+      return NULL;
+    }
+
+  Jet* truthjet =   max_truth_jet_by_energy(recojet);
+
+  if (truthjet)
+    {
+      Jet* back_matching = best_jet_from(truthjet);
+
+      if (back_matching ->get_id() == recojet->get_id())
+        return truthjet; // uniquely matched
+      else
+        return NULL;
+
+    }
+  else
+    return NULL;
+}
+
 // overlap calculations
 float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet) {
 
@@ -781,6 +843,133 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet) {
   
   return energy_contribution;
 }
+
+
+// overlap calculations
+float JetRecoEval::get_energy_contribution(Jet* recojet, Jet::SRC src) {
+
+  if (_strict) {
+    assert(recojet);
+  } else if (!recojet ) {
+    ++_errors;
+    return NAN;
+  }
+
+  if (_do_cache) {
+    std::map<std::pair<Jet*,Jet::SRC>,float>::iterator iter =
+        _cache_get_energy_contribution_src.find(make_pair(recojet,src));
+    if (iter != _cache_get_energy_contribution_src.end()) {
+      return iter->second;
+    }
+  }
+
+  float energy = 0.0;
+
+    // loop over all recojet constituents
+    for (Jet::ConstIter jter = recojet->lower_bound_comp(src);
+   jter != recojet->upper_bound_comp(src);
+   ++jter) {
+      Jet::SRC source = jter->first;
+      assert(source == src); // jet container consistency check
+      unsigned int index = jter->second;
+
+
+      if (source == Jet::TRACK) {
+
+  SvtxTrack* track = _trackmap->get(index);
+  energy += track->get_p();
+
+      } else if (source == Jet::CEMC_TOWER) {
+
+  RawTower* tower = _cemctowers->getTower(index);
+
+  if (_strict) {assert(tower);}
+  else if (!tower) {++_errors; continue;}
+
+  energy += tower->get_energy();
+
+      } else if (source == Jet::CEMC_CLUSTER) {
+
+  RawCluster* cluster = _cemcclusters->getCluster(index);
+
+  if (_strict) {assert(cluster);}
+  else if (!cluster) {++_errors; continue;}
+
+  energy += cluster -> get_energy();
+
+      } else if (source == Jet::HCALIN_TOWER) {
+
+  RawTower* tower = _hcalintowers->getTower(index);
+
+  if (_strict) {assert(tower);}
+  else if (!tower) {++_errors; continue;}
+
+  energy += tower->get_energy();
+
+      } else if (source == Jet::HCALIN_CLUSTER) {
+
+  RawCluster* cluster = _hcalinclusters->getCluster(index);
+
+  if (_strict) {assert(cluster);}
+  else if (!cluster) {++_errors; continue;}
+
+  energy += cluster -> get_energy();
+
+      } else if (source == Jet::HCALOUT_TOWER) {
+  RawTower* tower = _hcalouttowers->getTower(index);
+
+  if (_strict) {assert(tower);}
+  else if (!tower) {++_errors; continue;}
+
+  energy += tower->get_energy();
+      } else if (source == Jet::HCALOUT_CLUSTER) {
+
+  RawCluster* cluster = _hcaloutclusters->getCluster(index);
+
+  if (_strict) {assert(cluster);}
+  else if (!cluster) {++_errors; continue;}
+
+  energy += cluster -> get_energy();
+      } else if (source == Jet::FEMC_TOWER) {
+  RawTower* tower = _femctowers->getTower(index);
+
+  if (_strict) {assert(tower);}
+  else if (!tower) {++_errors; continue;}
+
+  energy += tower->get_energy();
+      } else if (source == Jet::FEMC_CLUSTER) {
+
+  RawCluster* cluster = _femcclusters->getCluster(index);
+
+  if (_strict) {assert(cluster);}
+  else if (!cluster) {++_errors; continue;}
+
+  energy += cluster -> get_energy();
+      } else if (source == Jet::FHCAL_TOWER) {
+  RawTower* tower = _fhcaltowers->getTower(index);
+
+  if (_strict) {assert(tower);}
+  else if (!tower) {++_errors; continue;}
+
+  energy += tower->get_energy();
+      } else if (source == Jet::FHCAL_CLUSTER) {
+
+  RawCluster* cluster = _fhcalclusters->getCluster(index);
+
+  if (_strict) {assert(cluster);}
+  else if (!cluster) {++_errors; continue;}
+
+  energy += cluster -> get_energy();
+      } // else if (source == Jet::FHCAL_CLUSTER)
+
+    } // for (Jet::ConstIter jter = recojet->lower_bound_comp(src);
+
+
+  if (_do_cache) _cache_get_energy_contribution_src.insert(make_pair(make_pair(recojet,src),energy));
+
+  return energy;
+}
+
 
 
 std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet) {

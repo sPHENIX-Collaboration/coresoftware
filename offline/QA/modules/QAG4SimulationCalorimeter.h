@@ -5,6 +5,7 @@
 #include <phool/PHCompositeNode.h>
 
 #include <string>
+#include <memory>
 #include <stdint.h>
 #include <TString.h>
 
@@ -32,7 +33,8 @@ public:
     kDefaultFlag = kProcessG4Hit | kProcessTower | kProcessCluster
   };
 
-  QAG4SimulationCalorimeter(std::string calo_name, enu_flags flags = kDefaultFlag);
+  QAG4SimulationCalorimeter(std::string calo_name, enu_flags flags =
+      kDefaultFlag);
   virtual
   ~QAG4SimulationCalorimeter();
 
@@ -76,7 +78,8 @@ public:
   }
 
   //! common prefix for QA histograms
-  std::string get_histo_prefix();
+  std::string
+  get_histo_prefix();
 
 private:
 
@@ -95,11 +98,13 @@ private:
   int
   process_event_Cluster(PHCompositeNode *topNode);
 
-  CaloEvalStack* _caloevalstack;
+#ifndef __CINT__
+  //CINT is not c++11 compatible
+  std::shared_ptr<CaloEvalStack> _caloevalstack;
+#endif
 
   std::string _calo_name;
   uint32_t _flags;
-  unsigned long _ievent;
 
   PHG4HitContainer* _calo_hit_container;
   PHG4HitContainer* _calo_abs_hit_container;

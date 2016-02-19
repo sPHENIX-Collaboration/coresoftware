@@ -29,10 +29,12 @@ pkginclude_HEADERS =
 #pkginclude_HEADERS = $(include_HEADERS)
 
 libqa_modules_la_SOURCES = \
+  QAHistManagerDef.C \
+  QAHistManagerDef_Dict.C \
   QAG4SimulationCalorimeter.C \
   QAG4SimulationCalorimeter_Dict.C \
-  QAHistManagerDef.C \
-  QAHistManagerDef_Dict.C
+  QAG4SimulationJet.C \
+  QAG4SimulationJet_Dict.C 
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h

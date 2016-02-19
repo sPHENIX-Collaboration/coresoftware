@@ -40,6 +40,7 @@ libphg4hit_la_LIBADD = \
 libphg4hit_la_SOURCES = \
     PHG4Hit_Dict.cc \
     PHG4HitReadBack.cc \
+    PHG4HitDefs.cc \
     PHG4Hit.cc \
     PHG4Hitv1.cc \
     PHG4HitEval.cc \

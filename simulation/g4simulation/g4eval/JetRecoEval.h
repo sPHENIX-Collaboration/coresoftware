@@ -91,14 +91,25 @@ public:
   /// which truth jet contributed the most energy to this reconstructed jet?
   Jet* max_truth_jet_by_energy (Jet* recojet);
   
-  /// what reconstructed jets had constributions from this truth jet?
+  /// what reconstructed jets had contributions from this truth jet?
   std::set<Jet*> all_jets_from (Jet* truthjet);
 
-  /// which reconstructed jet had the largest energy constribution from this truth jet?
+  /// which reconstructed jet had the largest energy contribution from this truth jet?
   Jet* best_jet_from (Jet* truthjet);
-  
+
+  /// which reconstructed jet had the largest energy contribution from this truth jet in a unique match?
+  /// @return pointer to reco jet. And NULL if no unique match
+  Jet* unique_reco_jet_from_truth (Jet* truthjet);
+
+  /// which truth jet had the largest energy contribution from this reco jet in a unique match?
+  /// @return pointer to truth jet. And NULL if no unique match
+  Jet* unique_truth_jet_from_reco (Jet* recojet);
+
   /// what was the energy contribution to this reconstructed jet from this truth jet?
   float get_energy_contribution (Jet* recojet, Jet* truthjet);
+
+  /// what was the energy contribution to this reconstructed jet from a particular source
+  float get_energy_contribution (Jet* recojet, Jet::SRC src);
 
   // ---full sim node required--------------------------------------------------
   
@@ -140,6 +151,7 @@ private:
   std::map<Jet*,std::set<Jet*> >          _cache_all_jets_from;
   std::map<Jet*,Jet* >                    _cache_best_jet_from;
   std::map<std::pair<Jet*,Jet*>,float>    _cache_get_energy_contribution;
+  std::map<std::pair<Jet*,Jet::SRC>,float> _cache_get_energy_contribution_src; /// used in get_energy_contribution (Jet* recojet, Jet::SRC src);
   std::map<Jet*,std::set<PHG4Hit*> >      _cache_all_truth_hits;
 };
 
