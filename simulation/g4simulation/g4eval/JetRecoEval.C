@@ -655,7 +655,7 @@ JetRecoEval::unique_reco_jet_from_truth(Jet* truthjet)
     {
       Jet* back_matching = max_truth_jet_by_energy(recojet);
 
-      if (back_matching == truthjet)
+      if (back_matching->get_id() == truthjet->get_id())
         return recojet; // uniquely matched
       else
         return NULL;
@@ -685,7 +685,7 @@ JetRecoEval::unique_truth_jet_from_reco(Jet* recojet)
     {
       Jet* back_matching = best_jet_from(truthjet);
 
-      if (back_matching == recojet)
+      if (back_matching ->get_id() == recojet->get_id())
         return truthjet; // uniquely matched
       else
         return NULL;
