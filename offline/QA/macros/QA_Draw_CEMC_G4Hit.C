@@ -149,9 +149,8 @@ QA_Draw_CEMC_G4Hit(const char * qa_file_name_new =
 
     {
 
-      TH1F * h_new =
-          (TH1F *) qa_file_new->GetObjectChecked(
-              "h_QAG4Sim_CEMC_G4Hit_HitTime", "TH1F");
+      TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+          "h_QAG4Sim_CEMC_G4Hit_HitTime", "TH1F");
       assert(h_new);
 
       h_new->Scale(1. / h_new->GetSum());
@@ -159,9 +158,8 @@ QA_Draw_CEMC_G4Hit(const char * qa_file_name_new =
       TH1F * h_ref = NULL;
       if (qa_file_ref)
         {
-          TH1F * h_ref =
-              (TH1F *) qa_file_ref->GetObjectChecked(
-                  "h_QAG4Sim_CEMC_G4Hit_HitTime", "TH1F");
+          TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+              "h_QAG4Sim_CEMC_G4Hit_HitTime", "TH1F");
           assert(h_ref);
 
           h_ref->Scale(1. / h_ref->GetSum());
@@ -174,109 +172,103 @@ QA_Draw_CEMC_G4Hit(const char * qa_file_name_new =
       DrawReference(h_new, h_ref);
     }
 
-
-    p = (TPad *) c1->cd(idx++);
-    c1->Update();
+  p = (TPad *) c1->cd(idx++);
+  c1->Update();
 //    p->SetLogx();
-    p->SetLogy();
+  p->SetLogy();
 
-      {
+    {
 
-        TH1F * h_new =
-            (TH1F *) qa_file_new->GetObjectChecked(
-                "h_QAG4Sim_CEMC_G4Hit_FractionTruthEnergy", "TH1F");
-        assert(h_new);
+      TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+          "h_QAG4Sim_CEMC_G4Hit_FractionTruthEnergy", "TH1F");
+      assert(h_new);
 
-        h_new->Rebin(20);
-        h_new->Sumw2();
-        h_new->Scale(1. / h_new->GetSum());
+      h_new->Rebin(20);
+      h_new->Sumw2();
+      h_new->Scale(1. / h_new->GetSum());
 
-        TH1F * h_ref = NULL;
-        if (qa_file_ref)
-          {
-            TH1F * h_ref =
-                (TH1F *) qa_file_ref->GetObjectChecked(
-                    "h_QAG4Sim_CEMC_G4Hit_FractionTruthEnergy", "TH1F");
-            assert(h_ref);
-
-            h_ref->Rebin(20);
-            h_ref->Scale(1. / h_ref->GetSum());
-          }
-
-        h_new->GetYaxis()->SetTitleOffset(1.5);
-        h_new->GetYaxis()->SetTitle("Probability per bin");
-  //      h_new->GetXaxis()->SetRangeUser(-0, .1);
-
-        DrawReference(h_new, h_ref);
-      }
-
-    p = (TPad *) c1->cd(idx++);
-    c1->Update();
-    //  p->SetLogz();
-
-      {
-
-        TH1F * h_new =
-            (TH1F *) qa_file_new->GetObjectChecked(
-                "h_QAG4Sim_CEMC_G4Hit_VSF", "TH1F");
-        assert(h_new);
-
-//        h_new->Rebin(2);
-//        h_new->Sumw2();
-        h_new->Scale(1. / h_new->GetSum());
-
-        TH1F * h_ref = NULL;
-        if (qa_file_ref)
-          {
-            TH1F * h_ref =
-                (TH1F *) qa_file_ref->GetObjectChecked(
-                    "h_QAG4Sim_CEMC_G4Hit_VSF", "TH1F");
-            assert(h_ref);
-
-            h_ref->Scale(1. / h_ref->GetSum());
-          }
-
-        h_new->GetYaxis()->SetTitleOffset(1.5);
-        h_new->GetYaxis()->SetTitle("Probability per bin");
-        h_new->GetXaxis()->SetRangeUser(-0, .1);
-
-        DrawReference(h_new, h_ref);
-      }
-
-      p = (TPad *) c1->cd(idx++);
-      c1->Update();
-      //  p->SetLogz();
-
+      TH1F * h_ref = NULL;
+      if (qa_file_ref)
         {
+          TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+              "h_QAG4Sim_CEMC_G4Hit_FractionTruthEnergy", "TH1F");
+          assert(h_ref);
 
-          TH1F * h_new =
-              (TH1F *) qa_file_new->GetObjectChecked(
-                  "h_QAG4Sim_CEMC_G4Hit_FractionEMVisibleEnergy", "TH1F");
-          assert(h_new);
-
-          h_new->Rebin(4);
-          h_new->Sumw2();
-          h_new->Scale(1. / h_new->GetSum());
-
-          TH1F * h_ref = NULL;
-          if (qa_file_ref)
-            {
-              TH1F * h_ref =
-                  (TH1F *) qa_file_ref->GetObjectChecked(
-                      "h_QAG4Sim_CEMC_G4Hit_FractionEMVisibleEnergy", "TH1F");
-              assert(h_ref);
-
-              h_ref->Rebin(4);
-              h_ref->Scale(1. / h_ref->GetSum());
-            }
-
-          h_new->GetYaxis()->SetTitleOffset(1.5);
-          h_new->GetYaxis()->SetTitle("Probability per bin");
-//          h_new->GetXaxis()->SetRangeUser(-0, .1);
-
-          DrawReference(h_new, h_ref);
+          h_ref->Rebin(20);
+          h_ref->Scale(1. / h_ref->GetSum());
         }
 
+      h_new->GetYaxis()->SetTitleOffset(1.5);
+      h_new->GetYaxis()->SetTitle("Probability per bin");
+      //      h_new->GetXaxis()->SetRangeUser(-0, .1);
+
+      DrawReference(h_new, h_ref);
+    }
+
+  p = (TPad *) c1->cd(idx++);
+  c1->Update();
+  //  p->SetLogz();
+
+    {
+
+      TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+          "h_QAG4Sim_CEMC_G4Hit_VSF", "TH1F");
+      assert(h_new);
+
+      h_new->Rebin(2);
+      h_new->Sumw2();
+      h_new->Scale(1. / h_new->GetSum());
+
+      TH1F * h_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+              "h_QAG4Sim_CEMC_G4Hit_VSF", "TH1F");
+          assert(h_ref);
+
+          h_ref->Rebin(2);
+          h_ref->Sumw2();
+          h_ref->Scale(1. / h_ref->GetSum());
+        }
+
+      h_new->GetYaxis()->SetTitleOffset(1.5);
+      h_new->GetYaxis()->SetTitle("Probability per bin");
+      h_new->GetXaxis()->SetRangeUser(-0, .1);
+
+      DrawReference(h_new, h_ref);
+    }
+
+  p = (TPad *) c1->cd(idx++);
+  c1->Update();
+  //  p->SetLogz();
+
+    {
+
+      TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+          "h_QAG4Sim_CEMC_G4Hit_FractionEMVisibleEnergy", "TH1F");
+      assert(h_new);
+
+      h_new->Rebin(4);
+      h_new->Sumw2();
+      h_new->Scale(1. / h_new->GetSum());
+
+      TH1F * h_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+              "h_QAG4Sim_CEMC_G4Hit_FractionEMVisibleEnergy", "TH1F");
+          assert(h_ref);
+
+          h_ref->Rebin(4);
+          h_ref->Scale(1. / h_ref->GetSum());
+        }
+
+      h_new->GetYaxis()->SetTitleOffset(1.5);
+      h_new->GetYaxis()->SetTitle("Probability per bin");
+//          h_new->GetXaxis()->SetRangeUser(-0, .1);
+
+      DrawReference(h_new, h_ref);
+    }
 
   SaveCanvas(c1, TString(qa_file_name_new) + TString(c1->GetName()), true);
 }

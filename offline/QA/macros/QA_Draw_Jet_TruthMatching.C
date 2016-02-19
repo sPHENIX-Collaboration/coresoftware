@@ -210,8 +210,10 @@ QA_Draw_Jet_TruthMatching(const char * jet =
 
       TH1 * h_norm = h2->ProjectionX(
           TString(jet) + "_Matching_Count_Truth_Et" + "_All", 1, 1);
+      //          TH1 * h_pass = h2->ProjectionX(
+      //              TString(jet) + "_Matching_Count_Truth_Et" + "_Matched", 2, 2);// inclusive match
       TH1 * h_pass = h2->ProjectionX(
-          TString(jet) + "_Matching_Count_Truth_Et" + "_Matched", 2, 2);
+          TString(jet) + "_Matching_Count_Truth_Et" + "_Matched", 3, 3); // unique match
       assert(h_norm);
       assert(h_pass);
       TH1 * h_ratio = GetBinominalRatio(h_pass, h_norm);
@@ -228,8 +230,10 @@ QA_Draw_Jet_TruthMatching(const char * jet =
           assert(h2);
           TH1 * h_norm = h2->ProjectionX(
               TString(jet) + "_Matching_Count_Truth_Et" + "_All", 1, 1);
+//          TH1 * h_pass = h2->ProjectionX(
+//              TString(jet) + "_Matching_Count_Truth_Et" + "_Matched", 2, 2);// inclusive match
           TH1 * h_pass = h2->ProjectionX(
-              TString(jet) + "_Matching_Count_Truth_Et" + "_Matched", 2, 2);
+              TString(jet) + "_Matching_Count_Truth_Et" + "_Matched", 3, 3); // unique match
           assert(h_norm);
           assert(h_pass);
           h_ratio_ref = GetBinominalRatio(h_pass, h_norm, true);
@@ -255,8 +259,10 @@ QA_Draw_Jet_TruthMatching(const char * jet =
 
       TH1 * h_norm = h2->ProjectionX(
           TString(jet) + "_Matching_Count_Reco_Et" + "_All", 1, 1);
+//      TH1 * h_pass = h2->ProjectionX(
+//          TString(jet) + "_Matching_Count_Reco_Et" + "_Matched", 2, 2); // inclusive match
       TH1 * h_pass = h2->ProjectionX(
-          TString(jet) + "_Matching_Count_Reco_Et" + "_Matched", 2, 2);
+          TString(jet) + "_Matching_Count_Reco_Et" + "_Matched", 3, 3); // unique match
       assert(h_norm);
       assert(h_pass);
       TH1 * h_ratio = GetBinominalRatio(h_pass, h_norm);
@@ -274,8 +280,10 @@ QA_Draw_Jet_TruthMatching(const char * jet =
 
           TH1 * h_norm = h2->ProjectionX(
               TString(jet) + "_Matching_Count_Reco_Et" + "_All", 1, 1);
+          //      TH1 * h_pass = h2->ProjectionX(
+          //          TString(jet) + "_Matching_Count_Reco_Et" + "_Matched", 2, 2); // inclusive match
           TH1 * h_pass = h2->ProjectionX(
-              TString(jet) + "_Matching_Count_Reco_Et" + "_Matched", 2, 2);
+              TString(jet) + "_Matching_Count_Reco_Et" + "_Matched", 3, 3); // unique match
           assert(h_norm);
           assert(h_pass);
           h_ratio_ref = GetBinominalRatio(h_pass, h_norm, true);
