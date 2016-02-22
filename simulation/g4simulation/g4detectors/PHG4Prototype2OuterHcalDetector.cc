@@ -62,13 +62,15 @@ PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNod
   steel_yhi(42.5*mm),
   steel_ylo(26.2*mm),
   steel_z(1600.*mm),
+  bottom_xmiddle_steel_tile((2601.2*mm-1777.6*mm)/2.+1777.6*mm),
+  bottom_ymiddle_steel_tile(-459.8*mm+(steel_yhi+steel_ylo)/4.),
   size_z(1600*mm),
   scinti_tile_x(NAN),
   scinti_tile_x_lower(NAN),
   scinti_tile_x_upper(NAN),
   scinti_tile_z(size_z),
   scinti_tile_thickness(params->get_double_param("scinti_tile_thickness")*cm),
-  scinti_gap(8*mm),
+  scinti_gap(8.5*mm),
   tilt_angle(12*deg),
   envelope_inner_radius(inner_radius),
   envelope_outer_radius(outer_radius),
@@ -153,26 +155,16 @@ PHG4Prototype2OuterHcalDetector::ConstructSteelScintiVolume(G4LogicalVolume* hca
   G4VSolid* steelscintimother = new  G4Trap("steelscintimother",steel_z,steel_x,yhi,ylo);
   G4LogicalVolume* steelscintilogical = new G4LogicalVolume(steelscintimother,G4Material::GetMaterial("G4_AIR"),G4String("steelscintimotherlog"), 0, 0, 0);
   G4RotationMatrix *rot = new G4RotationMatrix();
-  rot->rotateZ(-90*deg);
-  //  DisplayVolume(steelscintimother,hcalenvelope,rot);
-  rot = new G4RotationMatrix();
   double ymiddle = scinti_gap + (steel_yhi + steel_ylo)/2.;
-  //  new G4PVPlacement(rot, G4ThreeVector(0,ymiddle+(steel_yhi + steel_ylo)/2.,0),steel_plate,"steelscintimother",steelscintilogical,0,0,overlapcheck);
-  //  new G4PVPlacement(rot, G4ThreeVector(0,0,0),steel_plate,"steel",hcalenvelope,false,0,overlapcheck);
-  new G4PVPlacement(rot, G4ThreeVector(-(yhi+ylo)/4.+scinti_gap+(steel_yhi + steel_ylo)/4.,0,0),steel_plate,"steel",steelscintilogical,false,0,overlapcheck);
+  steel_absorber_vec.insert(new G4PVPlacement(rot, G4ThreeVector(-(yhi+ylo)/4.+scinti_gap+(steel_yhi + steel_ylo)/4.,0,0),steel_plate,"steel",steelscintilogical,false,0,overlapcheck));
   double ydown = ymiddle; 
   rot = new G4RotationMatrix();
-  //  rot->rotateZ(-90*deg);
-  //  new G4PVPlacement(rot, G4ThreeVector(0,ymiddle-scinti_gap/2.,0),scintibox_logical,"steelscintimother",steelscintilogical,0,false,overlapcheck);
-  //  new G4PVPlacement(rot, G4ThreeVector(0,0,0),scintibox_logical,"scintibox",hcalenvelope,false,0,overlapcheck);
   new G4PVPlacement(rot, G4ThreeVector(-(yhi+ylo)/4.+scinti_gap/2.,0,0),scintibox_logical,"scintibox",steelscintilogical,false,0,overlapcheck);
   visattchk = new G4VisAttributes();
   visattchk->SetVisibility(true);
   visattchk->SetForceSolid(false);
   visattchk->SetColour(G4Colour::Green());
   steelscintilogical->SetVisAttributes(visattchk);
-  rot = new G4RotationMatrix();
-  new G4PVPlacement(rot, G4ThreeVector(20*cm,0,0),steelscintilogical,"steelscintibox",hcalenvelope,false,0,overlapcheck);
   return steelscintilogical;
 
 
@@ -274,35 +266,43 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
   double deltaphi = 2 * M_PI / n_scinti_plates;
   deltaphi = 2 * M_PI / 320.;
   ostringstream name;
-  double middlerad = outer_radius - (outer_radius - inner_radius) / 2.;
+  //  double middlerad = outer_radius - (outer_radius - inner_radius) / 2.;
   double shiftslat = fabs(scinti_tile_x_lower - scinti_tile_x_upper)/2.;
   double bottomslat_y = -460.3*mm;
   name.str("");
   name << "Steel_plate_1";
   G4RotationMatrix *Rot = new G4RotationMatrix();
-  Rot->rotateX(-90*deg);
-  steel_absorber_vec.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_plate, name.str().c_str(), hcalenvelope, false, 0, overlapcheck));
-
-  //for (int i = 0; i < n_scinti_plates; i++)
-  for (int i = 1; i < 2; i++)
+  Rot->rotateZ(-90*deg);
+  steel_absorber_vec.insert(new G4PVPlacement(Rot, G4ThreeVector(bottom_xmiddle_steel_tile, bottom_ymiddle_steel_tile, 0), steel_plate, name.str().c_str(), hcalenvelope, false, 0, overlapcheck));
+  //  double middlerad = sqrt(bottom_xmiddle_steel_tile*bottom_xmiddle_steel_tile + (bottom_ymiddle_steel_tile+scinti_gap/2.) * (bottom_ymiddle_steel_tile+scinti_gap/2.));
+  double middlerad = sqrt(bottom_xmiddle_steel_tile*bottom_xmiddle_steel_tile + (bottom_ymiddle_steel_tile) * (bottom_ymiddle_steel_tile));
+  double philow = atan((bottom_ymiddle_steel_tile-scinti_gap/2.)/bottom_xmiddle_steel_tile);
+  cout << "philow: " << philow*180./M_PI << endl;
+  //return 0;
+  for (int i = 0; i < n_scinti_plates; i++)
+    //for (int i = 1; i < 2; i++)
     {
-      double ypos = sin(phi) * middlerad;
-      double xpos = cos(phi) * middlerad;
+      phi += deltaphi;
+      double ypos = sin(phi+philow) * middlerad;
+      double xpos = cos(phi+philow) * middlerad;
+      cout << "bottom_ymiddle_steel_tile: " << bottom_ymiddle_steel_tile
+	   << ", ypos: " << ypos << endl;
+      cout << "bottom_xmiddle_steel_tile: " << bottom_xmiddle_steel_tile
+	   << ", xpos: " << xpos << endl;
       // the center of the scintillator is not the center of the inner hcal
       // but depends on the tilt angle. Therefore we need to shift
       // the center from the mid point
-      ypos += sin((-tilt_angle)/rad - phi)*shiftslat;
-      xpos -= cos((-tilt_angle)/rad - phi)*shiftslat;
-      Rot->rotateZ(phi * rad + tilt_angle);
-      G4ThreeVector g4vec(xpos, ypos, 0);
-      //      scinti_mother_logical->MakeImprint(hcalenvelope, g4vec, Rot, i, overlapcheck);
+      // ypos += sin((-tilt_angle)/rad - phi)*shiftslat;
+      // xpos -= cos((-tilt_angle)/rad - phi)*shiftslat;
       Rot = new G4RotationMatrix();
-      Rot->rotateZ(-phi * rad);
+      Rot->rotateZ(-90*deg - phi);
+            G4ThreeVector g4vec(xpos, ypos, 0);
+	    //G4ThreeVector g4vec(bottom_xmiddle_steel_tile, bottom_ymiddle_steel_tile, 0);
+      //      scinti_mother_logical->MakeImprint(hcalenvelope, g4vec, Rot, i, overlapcheck);
       name.str("");
       name << "OuterHcalSteel_" << i;
-      steel_absorber_vec.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steelscinti, name.str().c_str(), hcalenvelope, false, i, overlapcheck));
+      steel_absorber_vec.insert(new G4PVPlacement(Rot, g4vec, steelscinti, name.str().c_str(), hcalenvelope, false, i, overlapcheck));
       bottomslat_y += 30*mm;
-      phi += deltaphi;
       phislat += deltaphi;
     }
   return 0;

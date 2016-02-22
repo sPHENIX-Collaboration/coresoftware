@@ -68,6 +68,8 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   double steel_yhi;
   double steel_ylo;
   double steel_z;
+  double bottom_xmiddle_steel_tile;
+  double bottom_ymiddle_steel_tile;
   double size_z;
   double scinti_tile_x;
   double scinti_tile_x_lower;
