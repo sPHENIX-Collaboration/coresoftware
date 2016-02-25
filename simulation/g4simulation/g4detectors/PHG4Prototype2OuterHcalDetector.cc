@@ -63,14 +63,15 @@ PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNod
   steel_ylo(26.2*mm),
   steel_z(1600.*mm),
   bottom_xmiddle_steel_tile((2601.2*mm-1777.6*mm)/2.+1777.6*mm),
-  bottom_ymiddle_steel_tile(-459.8*mm+(steel_yhi+steel_ylo)/4.),
+  //  bottom_ymiddle_steel_tile(-459.8*mm+(steel_yhi+steel_ylo)/4.),
+  bottom_ymiddle_steel_tile(-459.8*mm),
   size_z(1600*mm),
   scinti_tile_x(NAN),
   scinti_tile_x_lower(NAN),
   scinti_tile_x_upper(NAN),
   scinti_tile_z(size_z),
   scinti_tile_thickness(params->get_double_param("scinti_tile_thickness")*cm),
-  scinti_gap(8.5*mm),
+  scinti_gap(8.482*mm),
   tilt_angle(12*deg),
   envelope_inner_radius(inner_radius),
   envelope_outer_radius(outer_radius),
@@ -276,13 +277,19 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
   steel_absorber_vec.insert(new G4PVPlacement(Rot, G4ThreeVector(bottom_xmiddle_steel_tile, bottom_ymiddle_steel_tile, 0), steel_plate, name.str().c_str(), hcalenvelope, false, 0, overlapcheck));
   //  double middlerad = sqrt(bottom_xmiddle_steel_tile*bottom_xmiddle_steel_tile + (bottom_ymiddle_steel_tile+scinti_gap/2.) * (bottom_ymiddle_steel_tile+scinti_gap/2.));
   double middlerad = sqrt(bottom_xmiddle_steel_tile*bottom_xmiddle_steel_tile + (bottom_ymiddle_steel_tile) * (bottom_ymiddle_steel_tile));
-  double philow = atan((bottom_ymiddle_steel_tile-scinti_gap/2.)/bottom_xmiddle_steel_tile);
+  //  double philow = atan((bottom_ymiddle_steel_tile-scinti_gap/2.)/bottom_xmiddle_steel_tile);
+  double philow = atan((bottom_ymiddle_steel_tile)/bottom_xmiddle_steel_tile);
+  double steelrat = ((steel_yhi + steel_ylo)/2.)/((steel_yhi + steel_ylo)/2. + scinti_gap);
+  cout << "steel ratio: " << steelrat << " deltaphi: " << deltaphi*180/M_PI << ", steel phi: " << deltaphi*steelrat*180./M_PI << endl;
+  //  phi -= deltaphi*steelrat;
   cout << "philow: " << philow*180./M_PI << endl;
   //return 0;
+  //phi -= deltaphi;
+  //  phi+= deltaphi;//*steelrat;
+  phi+= 1.032*M_PI/180.;//*steelrat;
   for (int i = 0; i < n_scinti_plates; i++)
     //for (int i = 1; i < 2; i++)
     {
-      phi += deltaphi;
       double ypos = sin(phi+philow) * middlerad;
       double xpos = cos(phi+philow) * middlerad;
       cout << "bottom_ymiddle_steel_tile: " << bottom_ymiddle_steel_tile
@@ -304,6 +311,7 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
       steel_absorber_vec.insert(new G4PVPlacement(Rot, g4vec, steelscinti, name.str().c_str(), hcalenvelope, false, i, overlapcheck));
       bottomslat_y += 30*mm;
       phislat += deltaphi;
+      phi += deltaphi;
     }
   return 0;
 }
