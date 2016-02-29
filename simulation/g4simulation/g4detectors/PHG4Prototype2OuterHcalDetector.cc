@@ -182,13 +182,37 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcale
   visattchk->SetForceSolid(false);
   visattchk->SetColour(G4Colour::Yellow());
   scintiboxlogical->SetVisAttributes(visattchk);
-
+  ConstructScintiTile_1(hcalenvelope);
   return scintiboxlogical;
 }
 
 G4VSolid*
 PHG4Prototype2OuterHcalDetector::ConstructScintiTile_1(G4LogicalVolume* hcalenvelope)
 {
+  G4double outer2UpDz = 0.5*649.8*mm;
+  G4double outer2UpTheta = 8.8*M_PI/180.;
+  G4double outer2UpPhi = 0.0*M_PI/180.;
+  G4double outer2UpDy1 = 0.35*cm;
+  G4double outer2UpDy2 = 0.35*cm;
+  G4double outer2UpDx1 = 0.5*179.3*mm, outer2UpDx2 = 0.5*179.3*mm;
+  G4double outer2UpDx3 = 0.5*113.2*mm, outer2UpDx4 = 0.5*113.2*mm;
+  G4double outer2UpAlp1 = 0.*M_PI/180., outer2UpAlp2 = 0.*M_PI/180;
+
+  G4VSolid *outer2USheetSolid = new G4Trap("outer2USheet",
+				  outer2UpDz,
+				  outer2UpTheta,
+				  outer2UpPhi, 
+				  outer2UpDy1,
+				  outer2UpDx1,
+				  outer2UpDx2,
+				  outer2UpAlp1,
+				  outer2UpDy2,
+				  outer2UpDx3,
+				  outer2UpDx4,
+				  outer2UpAlp2);
+  DisplayVolume(outer2USheetSolid,hcalenvelope);
+  return outer2USheetSolid;
+
   double xbase = 1770.9;
   double ybase = -460.3;
   G4TwoVector v4(xbase*mm,ybase*mm);
@@ -275,6 +299,7 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
   G4RotationMatrix *Rot = new G4RotationMatrix();
   Rot->rotateZ(-90*deg);
   steel_absorber_vec.insert(new G4PVPlacement(Rot, G4ThreeVector(bottom_xmiddle_steel_tile, bottom_ymiddle_steel_tile, 0), steel_plate, name.str().c_str(), hcalenvelope, false, 0, overlapcheck));
+  return 0;
   //  double middlerad = sqrt(bottom_xmiddle_steel_tile*bottom_xmiddle_steel_tile + (bottom_ymiddle_steel_tile+scinti_gap/2.) * (bottom_ymiddle_steel_tile+scinti_gap/2.));
   double middlerad = sqrt(bottom_xmiddle_steel_tile*bottom_xmiddle_steel_tile + (bottom_ymiddle_steel_tile) * (bottom_ymiddle_steel_tile));
   //  double philow = atan((bottom_ymiddle_steel_tile-scinti_gap/2.)/bottom_xmiddle_steel_tile);
