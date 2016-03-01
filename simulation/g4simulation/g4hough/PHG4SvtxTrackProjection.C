@@ -179,8 +179,9 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
       int bineta = towergeo->get_etabin(eta);
 
       double energy_3x3 = 0.0;
-      for (int iphi = binphi-1; iphi < binphi+2; ++iphi) { 
-      	for (int ieta = bineta-1; ieta < bineta+2; ++ieta) { 
+      double energy_5x5 = 0.0;
+      for (int iphi = binphi-2; iphi <= binphi+2; ++iphi) {
+      	for (int ieta = bineta-2; ieta <= bineta+2; ++ieta) {
 
 	  // wrap around
 	  int wrapphi = iphi;
@@ -197,7 +198,10 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
 
 	  RawTower* tower = towerList->getTower(ieta,wrapphi);
 	  if (tower) {
-	    energy_3x3 += tower->get_energy();
+
+        energy_5x5 += tower->get_energy();
+	      if (abs(iphi - binphi)<=1 and abs(ieta - bineta)<=1 )
+	        energy_3x3 += tower->get_energy();
 
 	    if (verbosity > 1) cout << " tower " << ieta << " " << wrapphi << " energy = " << tower->get_energy() << endl;
 	  }
@@ -205,6 +209,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
       }
 
       track->set_cal_energy_3x3(_cal_types[i],energy_3x3);
+      track->set_cal_energy_5x5(_cal_types[i],energy_5x5);
 
       // loop over all clusters and find nearest
       double min_r = DBL_MAX;
