@@ -20,6 +20,7 @@ class RawTowerGeom;
 class RawTowerContainer;
 class CaloEvalStack;
 class SvtxEvalStack;
+class SvtxTrack;
 
 /// \class QAG4SimulationCalorimeterSum
 class QAG4SimulationCalorimeterSum : public SubsysReco
@@ -29,10 +30,11 @@ public:
 
   enum enu_flags
   {
-    kProcessTower = 1 << 1, kProcessCluster = 1 << 2, kProcessTrackProj = 1
-        << 3,
+//    kProcessTower = 1 << 1,
+    kProcessCluster = 1 << 2,  // histograms of best cluster matched to truth particle
+    kProcessTrackProj = 1 << 3,// histograms of tower/tower sums VS track projections
 
-    kDefaultFlag = kProcessTower | kProcessCluster | kProcessTrackProj
+    kDefaultFlag = kProcessCluster | kProcessTrackProj
   };
 
   QAG4SimulationCalorimeterSum(enu_flags flags = kDefaultFlag);
@@ -117,12 +119,17 @@ public:
   {
     _calo_name_hcalout = caloNameHcalout;
   }
+
+
+  float get_mag_field() const          {return _magField;}
+  void  set_mag_field(float magField) {_magField = magField;}
+
 private:
 
-  int
-  Init_Tower(PHCompositeNode *topNode);
-  int
-  process_event_Tower(PHCompositeNode *topNode);
+//  int
+//  Init_Tower(PHCompositeNode *topNode);
+//  int
+//  process_event_Tower(PHCompositeNode *topNode);
 
   int
   Init_Cluster(PHCompositeNode *topNode);
@@ -144,6 +151,7 @@ private:
 
   uint32_t _flags;
 
+
   std::string _calo_name_cemc;
   std::string _calo_name_hcalin;
   std::string _calo_name_hcalout;
@@ -153,6 +161,20 @@ private:
   //! fetch the truth particle to be analyzed. By default it is the last primary particle in truth container (therefore works in single particle embedding)
   PHG4Particle *
   get_truth_particle();
+
+  //! fetch tower around track and histogram energy distributions
+  bool
+  eval_trk_proj(std::string detector, SvtxTrack * track,
+      PHCompositeNode *topNode);
+
+  //! central magnetic field strength in T
+  float _magField;
+
+  enum {
+    //! max number of tower row/column to process around a track projection
+    Max_N_Tower = 11
+  };
+
 };
 
 #endif // __CALOEVALUATOR_H__

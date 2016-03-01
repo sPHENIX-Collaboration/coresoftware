@@ -3,6 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 INCLUDES = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
+  -I$(OFFLINE_MAIN)/include/eigen3 \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
