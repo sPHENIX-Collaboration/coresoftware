@@ -23,7 +23,7 @@ using namespace std;
 
 void
 QA_Draw_Sum_Cluster(const char * qa_file_name_new =
-    "data/G4sPHENIXCells_1000pi24GeV.root_qa.root",
+    "data/G4Hits_sPHENIX_pi-_eta0_24GeV-0000.root_qa.root",
     const char * qa_file_name_ref =
         "data/G4Hits_sPHENIX_pi-_eta0_24GeV-0000.root_qa.root")
 //QA_Draw_Sum_Cluster(const char * qa_file_name_new =
