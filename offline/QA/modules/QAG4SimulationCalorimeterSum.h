@@ -38,6 +38,7 @@ public:
   };
 
   QAG4SimulationCalorimeterSum(enu_flags flags = kDefaultFlag);
+
   virtual
   ~QAG4SimulationCalorimeterSum();
 
