@@ -22,9 +22,11 @@
 using namespace std;
 
 void
-QA_Draw_HCALOUT_TowerCluster(const char * qa_file_name_new =
-    "G4sPHENIXCells_1000pi24GeV.root_qa.root", const char * qa_file_name_ref =
-    "G4sPHENIXCells_100e24GeV.root_qa.root")
+QA_Draw_HCALOUT_TowerCluster(
+    const char * qa_file_name_new =
+        "/phenix/u/jinhuang/links/ePHENIX_work/sPHENIX_work/production_analysis_updates/spacal1d/fieldmap/G4Hits_sPHENIX_pi-_eta0.30_32GeV-0000.root_qa.root",
+    const char * qa_file_name_ref =
+        "/phenix/u/jinhuang/links/ePHENIX_work/sPHENIX_work/production_analysis_updates/spacal1d/fieldmap/G4Hits_sPHENIX_pi+_eta0.30_32GeV-0000.root_qa.root")
 {
 
   SetOKStyle();
@@ -42,8 +44,8 @@ QA_Draw_HCALOUT_TowerCluster(const char * qa_file_name_new =
       assert(qa_file_ref->IsOpen());
     }
 
-  TCanvas *c1 = new TCanvas("QA_Draw_HCALOUT_TowerCluster", "QA_Draw_HCALOUT_TowerCluster",
-      1800, 900);
+  TCanvas *c1 = new TCanvas("QA_Draw_HCALOUT_TowerCluster",
+      "QA_Draw_HCALOUT_TowerCluster", 1800, 900);
   c1->Divide(4, 2);
   int idx = 1;
   TPad * p;
@@ -303,6 +305,7 @@ QA_Draw_HCALOUT_TowerCluster(const char * qa_file_name_new =
       DrawReference(h_new, h_ref);
     }
 
+  PutInputFileName(c1, .04, qa_file_name_new, qa_file_name_ref);
   SaveCanvas(c1, TString(qa_file_name_new) + TString(c1->GetName()), true);
 }
 
