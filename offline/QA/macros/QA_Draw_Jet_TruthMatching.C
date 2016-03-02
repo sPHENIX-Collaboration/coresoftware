@@ -297,6 +297,7 @@ QA_Draw_Jet_TruthMatching(const char * jet =
   TLine * l = new TLine(min_Et, 1, max_Et, 1);
   l->Draw();
 
+  PutInputFileName(c1, .04, qa_file_name_new, qa_file_name_ref);
   SaveCanvas(c1, TString(qa_file_name_new) + TString(c1->GetName()), true);
 
   return resolution_collections;

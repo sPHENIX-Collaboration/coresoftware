@@ -76,7 +76,6 @@ DrawReference(TH1 * hnew, TH1 * href, bool draw_href_error = false)
     }
 }
 
-
 //! Draw 1D TGraph along with its reference as shade
 //! @param[in] draw_href_error whether to draw error band for reference plot. Otherwise, it is a filled histogram (default)
 void
@@ -292,6 +291,37 @@ GetBinominalRatio(TH1 * h_pass, TH1 * h_n_trial, bool process_zero_bins = false)
         }
 
   return h_ratio;
+}
+
+//! Put input file name on the canvas
+//! \param[in] c1 canvas pointer
+//! \param[in] bottom height fraction height of the canvas to be used for this label
+//! \param[in] new_file_name new file name being inspected
+//! \param[in] ref_file_name reference file name
+void
+PutInputFileName(TCanvas * c1, const double height, const char * new_file_name, const char * ref_file_name)
+{
+  c1->cd();
+  TPad *pad = new TPad("PutInputFileName","PutInputFileName",0,0,1,height, 18);
+  pad->Draw();
+  pad->cd();
+
+  if (new_file_name)
+  {
+    TText * t = new TText(0.05,0.75,TString("New QA File:          ")+TString(new_file_name));
+    t->SetTextAlign(12);
+    t->SetTextColor(kBlue + 3);
+    t->SetTextSize(.4);
+    t->Draw();
+  }
+  if (ref_file_name)
+  {
+    TText * t = new TText(0.05,0.25,TString("Reference QA File: ")+TString(ref_file_name));
+    t->SetTextAlign(12);
+    t->SetTextColor(kGreen + 1);
+    t->SetTextSize(.4);
+    t->Draw();
+  }
 }
 
 #endif

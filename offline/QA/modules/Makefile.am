@@ -3,6 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 INCLUDES = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
+  -I$(OFFLINE_MAIN)/include/eigen3 \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
@@ -33,6 +34,8 @@ libqa_modules_la_SOURCES = \
   QAHistManagerDef_Dict.C \
   QAG4SimulationCalorimeter.C \
   QAG4SimulationCalorimeter_Dict.C \
+  QAG4SimulationCalorimeterSum.C \
+  QAG4SimulationCalorimeterSum_Dict.C \
   QAG4SimulationJet.C \
   QAG4SimulationJet_Dict.C 
 

@@ -349,6 +349,7 @@ QA_Draw_Jet_Summary(const char * jet_family = "AntiKt_Tower",
     }
   legend->Draw();
 
+  PutInputFileName(c1, .03, qa_file_name_new, qa_file_name_ref);
   SaveCanvas(c1, TString(qa_file_name_new) + TString(c1->GetName()), true);
 
 }

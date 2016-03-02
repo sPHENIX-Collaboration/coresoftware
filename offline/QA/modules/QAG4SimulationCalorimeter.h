@@ -1,5 +1,5 @@
-#ifndef __CALOEVALUATOR_H__
-#define __CALOEVALUATOR_H__
+#ifndef __QAG4SimulationCalorimeter_H__
+#define __QAG4SimulationCalorimeter_H__
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHCompositeNode.h>

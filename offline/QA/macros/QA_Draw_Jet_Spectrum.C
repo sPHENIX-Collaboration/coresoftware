@@ -22,7 +22,8 @@
 using namespace std;
 
 void
-QA_Draw_Jet_Spectrum(//
+QA_Draw_Jet_Spectrum(
+    //
 //    const char * jet = "h_QAG4SimJet_AntiKt_Tower_r07",
     const char * jet = "h_QAG4SimJet_AntiKt_Truth_r07",
     const char * qa_file_name_new =
@@ -82,7 +83,7 @@ QA_Draw_Jet_Spectrum(//
           TString(jet) + TString("_Leading_eta"), "TH1F");
       assert(h_new);
 
-      h_new -> Rebin(2);
+      h_new->Rebin(2);
       h_new->Sumw2();
       h_new->Scale(1. / Nevent_new);
 
@@ -93,7 +94,7 @@ QA_Draw_Jet_Spectrum(//
               TString(jet) + TString("_Leading_eta"), "TH1F");
           assert(h_ref);
 
-          h_ref -> Rebin(2);
+          h_ref->Rebin(2);
           h_ref->Scale(1. / Nevent_ref);
         }
 
@@ -113,7 +114,7 @@ QA_Draw_Jet_Spectrum(//
           TString(jet) + TString("_Leading_phi"), "TH1F");
       assert(h_new);
 
-      h_new -> Rebin(2);
+      h_new->Rebin(2);
       h_new->Sumw2();
       h_new->Scale(1. / Nevent_new);
 
@@ -124,7 +125,7 @@ QA_Draw_Jet_Spectrum(//
               TString(jet) + TString("_Leading_phi"), "TH1F");
           assert(h_ref);
 
-          h_ref -> Rebin(2);
+          h_ref->Rebin(2);
           h_ref->Scale(1. / Nevent_ref);
         }
 
@@ -288,43 +289,46 @@ QA_Draw_Jet_Spectrum(//
       DrawReference(h_new, h_ref);
     }
 
-    if (TString(jet).Contains("Truth"))
-      {
-        // truth jets
+  if (TString(jet).Contains("Truth"))
+    {
+      // truth jets
 
-        p = (TPad *) c1->cd(idx++);
-        c1->Update();
-        p->SetLogy();
+      p = (TPad *) c1->cd(idx++);
+      c1->Update();
+      p->SetLogy();
 
-          {
-            TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
-                TString(jet) + TString("_Leading_Leakage_Ratio"), "TH1F");
-            assert(h_new);
+        {
+          TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+              TString(jet) + TString("_Leading_Leakage_Ratio"), "TH1F");
+          assert(h_new);
 
-            h_new->Rebin(2);
-            h_new->Sumw2();
-            h_new->Scale(1. / Nevent_new);
+          h_new->Rebin(2);
+          h_new->Sumw2();
+          h_new->Scale(1. / Nevent_new);
 
-            TH1F * h_ref = NULL;
-            if (qa_file_ref)
-              {
-                TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
-                    TString(jet) + TString("_Leading_Leakage_Ratio"), "TH1F");
-                assert(h_ref);
+          TH1F * h_ref = NULL;
+          if (qa_file_ref)
+            {
+              TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+                  TString(jet) + TString("_Leading_Leakage_Ratio"), "TH1F");
+              assert(h_ref);
 
-                h_ref->Rebin(2);
-                h_ref->Scale(1. / Nevent_ref);
-              }
+              h_ref->Rebin(2);
+              h_ref->Scale(1. / Nevent_ref);
+            }
 
-            h_new->GetYaxis()->SetTitleOffset(1.5);
-            h_new->GetYaxis()->SetTitle("Count / event / bin");
-            //      h_new->GetXaxis()->SetRangeUser(-0, .1);
+          h_new->GetYaxis()->SetTitleOffset(1.5);
+          h_new->GetYaxis()->SetTitle("Count / event / bin");
+          //      h_new->GetXaxis()->SetRangeUser(-0, .1);
 
-            DrawReference(h_new, h_ref);
-          }
+          DrawReference(h_new, h_ref);
+        }
 
+    }
 
-      }
+  PutInputFileName(c1, .04, qa_file_name_new, qa_file_name_ref);
+  SaveCanvas(c1, TString(qa_file_name_new) + TString(c1->GetName()), true);
+}
 
 // inclusive jet stuff. Not very interesting.
 
@@ -415,7 +419,4 @@ QA_Draw_Jet_Spectrum(//
 //
 //        DrawReference(h_new, h_ref);
 //      }
-
-  SaveCanvas(c1, TString(qa_file_name_new) + TString(c1->GetName()), true);
-}
 

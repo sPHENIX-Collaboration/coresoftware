@@ -22,9 +22,11 @@
 using namespace std;
 
 void
-QA_Draw_HCALOUT_G4Hit(const char * qa_file_name_new =
-    "G4sPHENIXCells_1000pi24GeV.root_qa.root", const char * qa_file_name_ref =
-    "G4sPHENIXCells_100e24GeV.root_qa.root")
+QA_Draw_HCALOUT_G4Hit(
+    const char * qa_file_name_new =
+        "/phenix/u/jinhuang/links/ePHENIX_work/sPHENIX_work/production_analysis_updates/spacal1d/fieldmap/G4Hits_sPHENIX_pi-_eta0.30_32GeV-0000.root_qa.root",
+    const char * qa_file_name_ref =
+        "/phenix/u/jinhuang/links/ePHENIX_work/sPHENIX_work/production_analysis_updates/spacal1d/fieldmap/G4Hits_sPHENIX_pi+_eta0.30_32GeV-0000.root_qa.root")
 {
 
   SetOKStyle();
@@ -42,8 +44,8 @@ QA_Draw_HCALOUT_G4Hit(const char * qa_file_name_new =
       assert(qa_file_ref->IsOpen());
     }
 
-  TCanvas *c1 = new TCanvas("QA_Draw_HCALOUT_G4Hit", "QA_Draw_HCALOUT_G4Hit", 1800,
-      900);
+  TCanvas *c1 = new TCanvas("QA_Draw_HCALOUT_G4Hit", "QA_Draw_HCALOUT_G4Hit",
+      1800, 900);
   c1->Divide(4, 2);
   int idx = 1;
   TPad * p;
@@ -93,8 +95,9 @@ QA_Draw_HCALOUT_G4Hit(const char * qa_file_name_new =
                   "h_QAG4Sim_HCALOUT_G4Hit_LateralTruthProjection", "TH2F");
           assert(h_QAG4Sim_HCALOUT_G4Hit_LateralTruthProjection);
 
-          proj_ref = h_QAG4Sim_HCALOUT_G4Hit_LateralTruthProjection->ProjectionX(
-              "qa_file_ref_h_QAG4Sim_HCALOUT_G4Hit_LateralTruthProjection_px");
+          proj_ref =
+              h_QAG4Sim_HCALOUT_G4Hit_LateralTruthProjection->ProjectionX(
+                  "qa_file_ref_h_QAG4Sim_HCALOUT_G4Hit_LateralTruthProjection_px");
           proj_ref->Scale(1. / proj_ref->GetSum());
 
         }
@@ -130,8 +133,9 @@ QA_Draw_HCALOUT_G4Hit(const char * qa_file_name_new =
                   "h_QAG4Sim_HCALOUT_G4Hit_LateralTruthProjection", "TH2F");
           assert(h_QAG4Sim_HCALOUT_G4Hit_LateralTruthProjection);
 
-          proj_ref = h_QAG4Sim_HCALOUT_G4Hit_LateralTruthProjection->ProjectionY(
-              "qa_file_ref_h_QAG4Sim_HCALOUT_G4Hit_LateralTruthProjection_py");
+          proj_ref =
+              h_QAG4Sim_HCALOUT_G4Hit_LateralTruthProjection->ProjectionY(
+                  "qa_file_ref_h_QAG4Sim_HCALOUT_G4Hit_LateralTruthProjection_py");
           proj_ref->Scale(1. / proj_ref->GetSum());
 
         }
@@ -149,9 +153,8 @@ QA_Draw_HCALOUT_G4Hit(const char * qa_file_name_new =
 
     {
 
-      TH1F * h_new =
-          (TH1F *) qa_file_new->GetObjectChecked(
-              "h_QAG4Sim_HCALOUT_G4Hit_HitTime", "TH1F");
+      TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+          "h_QAG4Sim_HCALOUT_G4Hit_HitTime", "TH1F");
       assert(h_new);
 
       h_new->Scale(1. / h_new->GetSum());
@@ -159,9 +162,8 @@ QA_Draw_HCALOUT_G4Hit(const char * qa_file_name_new =
       TH1F * h_ref = NULL;
       if (qa_file_ref)
         {
-          TH1F * h_ref =
-              (TH1F *) qa_file_ref->GetObjectChecked(
-                  "h_QAG4Sim_HCALOUT_G4Hit_HitTime", "TH1F");
+          TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+              "h_QAG4Sim_HCALOUT_G4Hit_HitTime", "TH1F");
           assert(h_ref);
 
           h_ref->Scale(1. / h_ref->GetSum());
@@ -174,110 +176,103 @@ QA_Draw_HCALOUT_G4Hit(const char * qa_file_name_new =
       DrawReference(h_new, h_ref);
     }
 
-
-    p = (TPad *) c1->cd(idx++);
-    c1->Update();
+  p = (TPad *) c1->cd(idx++);
+  c1->Update();
 //    p->SetLogx();
-    p->SetLogy();
+  p->SetLogy();
 
-      {
+    {
 
-        TH1F * h_new =
-            (TH1F *) qa_file_new->GetObjectChecked(
-                "h_QAG4Sim_HCALOUT_G4Hit_FractionTruthEnergy", "TH1F");
-        assert(h_new);
+      TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+          "h_QAG4Sim_HCALOUT_G4Hit_FractionTruthEnergy", "TH1F");
+      assert(h_new);
 
-        h_new->Rebin(20);
-        h_new->Sumw2();
-        h_new->Scale(1. / h_new->GetSum());
+      h_new->Rebin(20);
+      h_new->Sumw2();
+      h_new->Scale(1. / h_new->GetSum());
 
-        TH1F * h_ref = NULL;
-        if (qa_file_ref)
-          {
-            TH1F * h_ref =
-                (TH1F *) qa_file_ref->GetObjectChecked(
-                    "h_QAG4Sim_HCALOUT_G4Hit_FractionTruthEnergy", "TH1F");
-            assert(h_ref);
+      TH1F * h_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+              "h_QAG4Sim_HCALOUT_G4Hit_FractionTruthEnergy", "TH1F");
+          assert(h_ref);
 
-            h_ref->Rebin(20);
-            h_ref->Scale(1. / h_ref->GetSum());
-          }
+          h_ref->Rebin(20);
+          h_ref->Scale(1. / h_ref->GetSum());
+        }
 
-        h_new->GetYaxis()->SetTitleOffset(1.5);
-        h_new->GetYaxis()->SetTitle("Probability per bin");
-  //      h_new->GetXaxis()->SetRangeUser(-0, .1);
+      h_new->GetYaxis()->SetTitleOffset(1.5);
+      h_new->GetYaxis()->SetTitle("Probability per bin");
+      //      h_new->GetXaxis()->SetRangeUser(-0, .1);
 
-        DrawReference(h_new, h_ref);
-      }
+      DrawReference(h_new, h_ref);
+    }
 
-    p = (TPad *) c1->cd(idx++);
-    c1->Update();
-    //  p->SetLogz();
+  p = (TPad *) c1->cd(idx++);
+  c1->Update();
+  //  p->SetLogz();
 
-      {
+    {
 
-        TH1F * h_new =
-            (TH1F *) qa_file_new->GetObjectChecked(
-                "h_QAG4Sim_HCALOUT_G4Hit_VSF", "TH1F");
-        assert(h_new);
+      TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+          "h_QAG4Sim_HCALOUT_G4Hit_VSF", "TH1F");
+      assert(h_new);
 
 //        h_new->Rebin(2);
 //        h_new->Sumw2();
-        h_new->Scale(1. / h_new->GetSum());
+      h_new->Scale(1. / h_new->GetSum());
 
-        TH1F * h_ref = NULL;
-        if (qa_file_ref)
-          {
-            TH1F * h_ref =
-                (TH1F *) qa_file_ref->GetObjectChecked(
-                    "h_QAG4Sim_HCALOUT_G4Hit_VSF", "TH1F");
-            assert(h_ref);
-
-            h_ref->Scale(1. / h_ref->GetSum());
-          }
-
-        h_new->GetYaxis()->SetTitleOffset(1.5);
-        h_new->GetYaxis()->SetTitle("Probability per bin");
-        h_new->GetXaxis()->SetRangeUser(-0, .1);
-
-        DrawReference(h_new, h_ref);
-      }
-
-      p = (TPad *) c1->cd(idx++);
-      c1->Update();
-      //  p->SetLogz();
-
+      TH1F * h_ref = NULL;
+      if (qa_file_ref)
         {
+          TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+              "h_QAG4Sim_HCALOUT_G4Hit_VSF", "TH1F");
+          assert(h_ref);
 
-          TH1F * h_new =
-              (TH1F *) qa_file_new->GetObjectChecked(
-                  "h_QAG4Sim_HCALOUT_G4Hit_FractionEMVisibleEnergy", "TH1F");
-          assert(h_new);
-
-          h_new->Rebin(4);
-          h_new->Sumw2();
-          h_new->Scale(1. / h_new->GetSum());
-
-          TH1F * h_ref = NULL;
-          if (qa_file_ref)
-            {
-              TH1F * h_ref =
-                  (TH1F *) qa_file_ref->GetObjectChecked(
-                      "h_QAG4Sim_HCALOUT_G4Hit_FractionEMVisibleEnergy", "TH1F");
-              assert(h_ref);
-
-              h_ref->Rebin(4);
-              h_ref->Scale(1. / h_ref->GetSum());
-            }
-
-          h_new->GetYaxis()->SetTitleOffset(1.5);
-          h_new->GetYaxis()->SetTitle("Probability per bin");
-//          h_new->GetXaxis()->SetRangeUser(-0, .1);
-
-          DrawReference(h_new, h_ref);
+          h_ref->Scale(1. / h_ref->GetSum());
         }
 
+      h_new->GetYaxis()->SetTitleOffset(1.5);
+      h_new->GetYaxis()->SetTitle("Probability per bin");
+      h_new->GetXaxis()->SetRangeUser(-0, .1);
 
+      DrawReference(h_new, h_ref);
+    }
+
+  p = (TPad *) c1->cd(idx++);
+  c1->Update();
+  //  p->SetLogz();
+
+    {
+
+      TH1F * h_new = (TH1F *) qa_file_new->GetObjectChecked(
+          "h_QAG4Sim_HCALOUT_G4Hit_FractionEMVisibleEnergy", "TH1F");
+      assert(h_new);
+
+      h_new->Rebin(4);
+      h_new->Sumw2();
+      h_new->Scale(1. / h_new->GetSum());
+
+      TH1F * h_ref = NULL;
+      if (qa_file_ref)
+        {
+          TH1F * h_ref = (TH1F *) qa_file_ref->GetObjectChecked(
+              "h_QAG4Sim_HCALOUT_G4Hit_FractionEMVisibleEnergy", "TH1F");
+          assert(h_ref);
+
+          h_ref->Rebin(4);
+          h_ref->Scale(1. / h_ref->GetSum());
+        }
+
+      h_new->GetYaxis()->SetTitleOffset(1.5);
+      h_new->GetYaxis()->SetTitle("Probability per bin");
+//          h_new->GetXaxis()->SetRangeUser(-0, .1);
+
+      DrawReference(h_new, h_ref);
+    }
+
+  PutInputFileName(c1, .04, qa_file_name_new, qa_file_name_ref);
   SaveCanvas(c1, TString(qa_file_name_new) + TString(c1->GetName()), true);
 }
 
