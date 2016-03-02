@@ -243,7 +243,7 @@ QAG4SimulationCalorimeterSum::Init_TrackProj(PHCompositeNode *topNode)
           TString(get_histo_prefix()) + TString(_calo_name_cemc.c_str())
               + "_TrackProj", //
           TString(_calo_name_cemc.c_str())
-              + " Tower Energy Distr. around Track Proj.;Azimuthal distance / Tower width;Polar distance / Tower width",
+              + " Tower Energy Distr. around Track Proj.;Polar distance / Tower width;Azimuthal distance / Tower width",
           (Max_N_Tower - 1) * 10, -Max_N_Tower / 2, Max_N_Tower / 2,
           (Max_N_Tower - 1) * 10, -Max_N_Tower / 2, Max_N_Tower / 2));
 
@@ -252,7 +252,7 @@ QAG4SimulationCalorimeterSum::Init_TrackProj(PHCompositeNode *topNode)
           TString(get_histo_prefix()) + TString(_calo_name_hcalin.c_str())
               + "_TrackProj", //
           TString(_calo_name_hcalin.c_str())
-              + " Tower Energy Distr. around Track Proj.;Azimuthal distance / Tower width;Polar distance / Tower width",
+              + " Tower Energy Distr. around Track Proj.;Polar distance / Tower width;Azimuthal distance / Tower width",
           (Max_N_Tower - 1) * 10, -Max_N_Tower / 2, Max_N_Tower / 2,
           (Max_N_Tower - 1) * 10, -Max_N_Tower / 2, Max_N_Tower / 2));
 
@@ -261,7 +261,7 @@ QAG4SimulationCalorimeterSum::Init_TrackProj(PHCompositeNode *topNode)
           TString(get_histo_prefix()) + TString(_calo_name_hcalout.c_str())
               + "_TrackProj", //
           TString(_calo_name_hcalout.c_str())
-              + " Tower Energy Distr. around Track Proj.;Azimuthal distance / Tower width;Polar distance / Tower width",
+              + " Tower Energy Distr. around Track Proj.;Polar distance / Tower width;Azimuthal distance / Tower width",
           (Max_N_Tower - 1) * 10, -Max_N_Tower / 2, Max_N_Tower / 2,
           (Max_N_Tower - 1) * 10, -Max_N_Tower / 2, Max_N_Tower / 2));
 
