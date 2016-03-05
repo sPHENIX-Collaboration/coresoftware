@@ -1,9 +1,9 @@
 #ifndef __ONCSSUB_IDFNALMWPCV2_H__
 #define __ONCSSUB_IDFNALMWPCV2_H__
 
-#include "oncsSub_idfnalmwpc.h"
-
 #include <vector>
+
+#include "oncsSub_idfnalmwpc.h"
 
 #ifndef __CINT__
 class WINDOWSEXPORT oncsSub_idfnalmwpcv2 :  public oncsSub_idfnalmwpc {

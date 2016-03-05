@@ -18,7 +18,7 @@ public:
   /// The virtual destructor.
   inline virtual ~Eventiterator(){};
 
-  virtual char * getIdTag() const =0;
+  virtual const char * getIdTag() const =0;
 
   virtual void identify(std::ostream& os = std::cout) const = 0;
 

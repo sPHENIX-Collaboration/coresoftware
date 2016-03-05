@@ -26,8 +26,7 @@ main(int argc, char *argv[])
 {
 
   unsigned int buffer[8*8192];
-  unsigned int rest[8*8192];
-  
+
   int fd;
 
   fd = open(argv[1], O_RDONLY | O_LARGEFILE);
@@ -101,7 +100,7 @@ main(int argc, char *argv[])
 	    {
 	      std::cout << "LZO Marker ";
 	      std::cout << " Or.length: " << buffer[3];
-	      float ratio = 100*buffer[0] / buffer[3];
+	      float ratio = 100.*buffer[0]/buffer[3];
 	      std::cout << "  " << ratio << "%";
 
 	      int e = buffer[2] & 0xffff;

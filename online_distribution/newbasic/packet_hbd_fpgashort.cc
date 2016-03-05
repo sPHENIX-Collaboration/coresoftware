@@ -9,6 +9,7 @@ Packet_hbd_fpgashort::Packet_hbd_fpgashort(PACKET_ptr data)
 {
   nr_modules = 0;
   HBD_NSAMPLES = 12;
+  hbd_parity=0;
 }
   
 int *Packet_hbd_fpgashort::decode ( int *nwout)
@@ -44,7 +45,6 @@ int *Packet_hbd_fpgashort::decode ( int *nwout)
   int l1_trig_nr;
   int beam_clock;
   int phys_mod_nr;
-  int i;
 
   while ( pos < dlength - 10)
     {
@@ -126,11 +126,13 @@ int *Packet_hbd_fpgashort::decode ( int *nwout)
 	}
 
     }
-  if ( (k[pos] & 0xF0000000) ==  0x20000000 )
+  if ( (k[pos] & 0xE0000000) ==  0xA0000000 )
     {
       // the parity data
+      hbd_parity = (k[pos] & 0xfff);
       pos++;
     }
+
   
   *nwout = 48 * HBD_NSAMPLES * HBD_MAX_MODULES;
   return iarr;
@@ -140,14 +142,19 @@ int *Packet_hbd_fpgashort::decode ( int *nwout)
 
 int  Packet_hbd_fpgashort::iValue(const int ich, const int is)
 {
-  if (ich < 0 || ich >= nr_modules *HBD_NSAMPLES*48) return 0;
-  if (is < 0 || is >= HBD_NSAMPLES) return 0;
-
   if (decoded_data1 == NULL )
     {
       if ( (decoded_data1 = decode(&data1_length))==NULL)
 	return 0;
     }
+
+  if (ich < 0 || ich >= nr_modules *48) return 0;
+
+  if ( is == 100) return ( iValue(ich,0) + iValue(ich,1));
+  if ( is == 101) return ( iValue(ich,4));
+  if ( is == 102) return ( iValue(ich,10) + iValue(ich,11));
+
+  if (is < 0 || is >= HBD_NSAMPLES) return 0;
 
   return decoded_data1[ich*HBD_NSAMPLES + is]; 
 }
@@ -186,6 +193,10 @@ int  Packet_hbd_fpgashort::iValue(const int ich, const char *what)
       return decoded_data3[ich];  // ich really refers to sample index
     }
 
+  else if (strcmp(what,"NRSAMPLES") == 0)  // how many samples does this format have?
+    {			
+      return HBD_NSAMPLES;
+    }
 
   else if (strcmp(what,"MODULEID") == 0)  // user requested the module number
     {			
@@ -212,6 +223,18 @@ int  Packet_hbd_fpgashort::iValue(const int ich, const char *what)
       return nr_modules;
     }
 
+  else if (strcmp(what,"PARITY") == 0)  // user requested the module number
+    {			
+
+      if (decoded_data1 == NULL ) // no mistake, we decode this to get that info
+	{
+	  if ( (decoded_data1 = decode(&data1_length))==NULL)
+	    return 0;
+	}
+      return hbd_parity;
+	
+    }
+
   return 0;
 }
 
@@ -226,7 +249,9 @@ void Packet_hbd_fpgashort::dump ( OSTREAM &os)
 
   this->identify(os);
 
-  os << "  Number of Modules:  "  << SETW(8) << iValue(0,"NRMODULES") <<  std::endl; 
+  os << "  Number of Modules:  "  << SETW(8) << iValue(0,"NRMODULES") <<  "  Parity: "  << SETW(8) << std::hex << iValue(0,"PARITY") << std::dec  <<  std::endl; 
+  os << "  Number of Samples:  "  << SETW(8) << iValue(0,"NRSAMPLES") << std::endl;
+
 
   for (i = 0; i < iValue(0,"NRMODULES"); i++)
     {
@@ -244,7 +269,14 @@ void Packet_hbd_fpgashort::dump ( OSTREAM &os)
 	{
 	  os <<  std::setw(5) << iValue(i,j);
 	} 
-
+      os << "   ";
+/*
+      for ( j = 100; j < 103; j++)
+	{
+	  os <<  std::setw(5) << iValue(i,j);
+	} 
+*/
+      
       os << std::endl;
     }
    dumpErrorBlock(os);

@@ -4,48 +4,40 @@
 // this iterator reads events froma data file. 
 
 
-#include "fileEventiterator.h"
-#include "oncsEventiterator.h"
 #include <stddef.h>
 #include <string.h>
-//#include <sys/types.h>
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "Cframe.h"
-#include "framePackets.h"
-
 // there are two similar constructors, one with just the
 // filename, the other with an additional status value
 // which is non-zero on return if anything goes wrong. 
+#include "fileEventiterator.h"
 
 //#ifndef LVL2_WINNT
-#include <lzobuffer.h>
+#include "lzobuffer.h"
 //#endif
 
 
 fileEventiterator::~fileEventiterator()
 {
-  if ( legacy) delete legacy;
-
-  if (fd) close (fd);
-  if (thefilename != NULL) delete [] thefilename;
-  if (bp != NULL ) delete [] bp;
-  if (bptr != NULL ) delete bptr;
+     if (fd) close (fd);
+     if (thefilename != NULL) delete [] thefilename;
+     if (bp != NULL ) delete [] bp;
+     if (bptr != NULL ) delete bptr;
 }  
 
 
 fileEventiterator::fileEventiterator(const char *filename)
 {
-  legacy = 0;
   open_file ( filename);
 }  
 
 fileEventiterator::fileEventiterator(const char *filename, int &status)
 {
-  legacy = 0;
   status =  open_file ( filename);
 }
 
@@ -59,21 +51,10 @@ int fileEventiterator::open_file(const char *filename)
   thefilename = NULL;
   events_so_far = 0;
   verbosity=0;
+  _defunct = 0;
+
   if (fd > 0) 
     {
-      PHDWORD cp[2048];
-      int xc = read ( fd, cp, BUFFERBLOCKSIZE);
-      if ( ! validFrameHdr( &cp[12]) )
-	{
-	  std::cout << "This doesn't look right" << std::endl;
-	  close (fd);
-	  int s;
-	  legacy = new oncsEventiterator(filename, s);
-	  return s;
-	}
-
-      lseek (fd, 0, SEEK_SET);
-
       thefilename = new char[strlen(filename)+1];
       strcpy (thefilename, filename);
       last_read_status = 0;
@@ -83,6 +64,7 @@ int fileEventiterator::open_file(const char *filename)
   else
     {
       last_read_status = 1;
+      _defunct = 1;
     }
   return 1;
 
@@ -92,23 +74,15 @@ int fileEventiterator::open_file(const char *filename)
 
 void fileEventiterator::identify (OSTREAM &os) const
 { 
-  if ( legacy) 
-    {
-      legacy->identify(os);
-      return;
-    }
-  os << "fileEventiterator reading from " << thefilename << std::endl;
+  os << "fileEventiterator reading from " << thefilename;
+  if ( _defunct ) os << " *** defunct";
+  os<< std::endl;
 
 };
 
 
 const char * fileEventiterator::getCurrentFileName() const
 { 
-  if ( legacy) 
-    {
-      return legacy->getCurrentFileName();
-    }
-
   static char namestr[512];
   if ( thefilename == NULL)
     {
@@ -124,13 +98,8 @@ const char * fileEventiterator::getCurrentFileName() const
 
 
 
-char *  fileEventiterator::getIdTag () const
+const char *  fileEventiterator::getIdTag () const
 { 
-  if ( legacy) 
-    {
-      return legacy->getIdTag();
-    }
-
   //  sprintf (idline, " -- fileEventiterator reading from %s", thefilename);
   return "fileEventiterator";
 };
@@ -142,10 +111,7 @@ char *  fileEventiterator::getIdTag () const
 
 Event * fileEventiterator::getNextEvent()
 {
-  if ( legacy) 
-    {
-      return legacy->getNextEvent();
-    }
+  if ( _defunct ) return 0;
   Event *evt = 0;
 
   // if we had a read error before, we just return
@@ -181,37 +147,37 @@ Event * fileEventiterator::getNextEvent()
 
 int fileEventiterator::read_next_buffer()
 {
+  PHDWORD initialbuffer[BUFFERBLOCKSIZE/4];
+
   unsigned int ip = 8192;
  
   buffer_size = 0;
   
   if (bptr) 
     {
-      if (verbosity >0)
-	{
-	  int ecount =  bp[2] & 0xffff;
-	  int atpid = ( bp[2] >> 16) & 0xffff ;
-	  std::cout << "Length: " <<  bp[0]
-		    << " Atp id: " << atpid
-		    << " Events in header: " <<  ecount
-		    << " Events counted: " << events_so_far;
-	  
-	  if ( ecount != events_so_far )
-	    {
-	      std::cout << " ****";
-	    }
-	  std::cout << std::endl;
-	}
       delete bptr;
       bptr = 0;
     }
   events_so_far = 0;
 	
+  // we are now reading the first block (8192 bytes) into
+  // initialbuffer. The buffer is at least that long. We
+  // look up the buffersize etc from that, and 
+  // start filling the actual buffer. We do not read 
+  // the data into the eventual destination since we may 
+  // have to delete it to get more room (we might find that
+  // the buffer is larger than what we have allocated).
+
+
   // set the pointer to char to the destination buffer
   char *cp = (char *) initialbuffer;
 
   int xc;
 
+
+  // this while loop implements the skipping of 8k records until
+  // we find a valid buffer marker. (We usually find it right away). 
+ 
   while (buffer_size == 0 )
     {  
       // read the first record
@@ -225,15 +191,16 @@ int fileEventiterator::read_next_buffer()
 	}
 
 
-      // get the length into a dedicated variable
-      if (initialbuffer[1] == BUFFERMARKER || initialbuffer[1]== GZBUFFERMARKER ||  initialbuffer[1]== LZO1XBUFFERMARKER) 
+      // get the buffer length into a dedicated variable
+      if (initialbuffer[1] == BUFFERMARKER || initialbuffer[1]== GZBUFFERMARKER 
+	  ||  initialbuffer[1]== LZO1XBUFFERMARKER || initialbuffer[1]== ONCSBUFFERMARKER) 
 	{
 	  buffer_size = initialbuffer[0];
 	}
       else
 	{
 	  unsigned int  marker = buffer::u4swap(initialbuffer[1]);
-	  if (marker == BUFFERMARKER || marker == GZBUFFERMARKER || marker ==  LZO1XBUFFERMARKER )
+	  if (marker == BUFFERMARKER || marker == GZBUFFERMARKER || marker ==  LZO1XBUFFERMARKER || marker == ONCSBUFFERMARKER)
 	    {
 	      buffer_size = buffer::u4swap(initialbuffer[0]);
 	    }
@@ -244,9 +211,9 @@ int fileEventiterator::read_next_buffer()
   int i;
   if (bp) 
     {
-      if  (buffer_size > allocatedsize*4)
+      // this tests if we have enough space in the existing buffer
+      if  (buffer_size > allocatedsize*4)   // no, we delete and make a bigger one
 	{
-
 	  delete [] bp;
 	  i = (buffer_size +BUFFERBLOCKSIZE-1) /BUFFERBLOCKSIZE;
 	  allocatedsize = i * BUFFERBLOCKSIZE/4;
@@ -261,8 +228,10 @@ int fileEventiterator::read_next_buffer()
       bp = new PHDWORD[allocatedsize];
 
     }
-  for (i = 0; i<BUFFERBLOCKSIZE/4; i++ ) bp[i] = initialbuffer[i];
 
+  //  for (i = 0; i<BUFFERBLOCKSIZE/4; i++ ) bp[i] = initialbuffer[i];
+  memcpy ( bp, initialbuffer, BUFFERBLOCKSIZE);
+ 
   cp = (char *) bp;
 
   // and update the destination buffer pointer
@@ -293,7 +262,7 @@ int fileEventiterator::read_next_buffer()
     }
 
   // and initialize the current_index to be the first event
-//#ifndef WIN32
+
   if ( ( initialbuffer[1]== GZBUFFERMARKER || 
        buffer::u4swap(initialbuffer[1])== GZBUFFERMARKER ||
        initialbuffer[1]== LZO1XBUFFERMARKER || 
@@ -303,24 +272,9 @@ int fileEventiterator::read_next_buffer()
       bptr = 0;
       return -3;
     }
-  else if ( initialbuffer[1]== GZBUFFERMARKER || buffer::u4swap(initialbuffer[1])== GZBUFFERMARKER )
-    {
-      bptr = new gzbuffer(bp, allocatedsize );
-    }
 
-  else if ( initialbuffer[1]== LZO1XBUFFERMARKER || buffer::u4swap(initialbuffer[1])== LZO1XBUFFERMARKER )
-    {
-      bptr = new lzobuffer ( bp, allocatedsize );
-    }
+  return buffer::makeBuffer( bp, allocatedsize, &bptr);
 
-  else
-    {
 
-//#endif
-      bptr = new buffer ( bp, allocatedsize );
-//#ifndef WIN32
-    }
-//#endif
-  return 0;
 }
 

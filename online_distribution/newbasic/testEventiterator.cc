@@ -10,9 +10,7 @@
 
 #include "testEventiterator.h"
 #include "oBuffer.h"
-#ifdef WIN32
 #include <stdlib.h>
-#endif
 
 #include "A_Event.h"
 #include "Cframe.h"
@@ -25,17 +23,12 @@ class oBuffer;
 
 testEventiterator::~testEventiterator()
 {
-#ifndef WIN32
   delete R;
-#endif
-
 }
 
 testEventiterator::testEventiterator()
 {
-#ifndef WIN32
   R = new simpleRandom(876565);
-#endif
   current_event = 0;
 }
 
@@ -47,7 +40,8 @@ testEventiterator::identify (OSTREAM &os) const
 
 };
 
-char * testEventiterator::getIdTag () const
+const char * 
+testEventiterator::getIdTag () const
 { 
   return " -- testEventiterator (standard) ";
 };

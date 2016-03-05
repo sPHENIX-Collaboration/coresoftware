@@ -1,14 +1,14 @@
 #ifndef __LZOBUFFER_H
 #define __LZOBUFFER_H
 
-#include "buffer.h"
+#include "prdfBuffer.h"
 #include <lzo/lzo1x.h>
 
 
 #ifndef __CINT__
-class WINDOWSEXPORT lzobuffer : public buffer{
+class WINDOWSEXPORT lzobuffer : public prdfBuffer{
 #else
-class  lzobuffer : public buffer{
+class  lzobuffer : public prdfBuffer{
 #endif
 
 public:

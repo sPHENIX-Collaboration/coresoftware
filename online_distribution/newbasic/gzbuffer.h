@@ -1,12 +1,12 @@
 #ifndef __GZBUFFER_H
 #define __GZBUFFER_H
 
-#include "buffer.h"
+#include "prdfBuffer.h"
 
 #ifndef __CINT__
-class WINDOWSEXPORT gzbuffer : public buffer{
+class WINDOWSEXPORT gzbuffer : public prdfBuffer{
 #else
-class  gzbuffer : public buffer{
+class  gzbuffer : public prdfBuffer{
 #endif
 
 public:

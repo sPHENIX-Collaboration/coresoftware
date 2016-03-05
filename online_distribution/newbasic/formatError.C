@@ -28,10 +28,11 @@
 #define ERROR_PACKAGE_RAWFMT 1
 
 typedef struct formatError {
-  UINT subType ;
-  ERRORVALUE errorNumber;
-  PHDWORD* frameOrPacket_ptr;
-  PHDWORD  additionalData;
+	UINT subType ;
+	ERRORVALUE errorNumber;
+
+	PHDWORD* frameOrPacket_ptr;
+	PHDWORD  additionalData;
 } FORMATERROR;
 
 FORMATERROR rawfmtLastError;
@@ -100,7 +101,7 @@ ERRORVALUE formatGetError (UINT* subType, PHDWORD** errorPointer, PHDWORD* addit
 /*
 **  Returns the pointer to the last failed frame or packet
 */
- PHDWORD* formatGetErrorPointer () {
+PHDWORD* formatGetErrorPointer () {
 	if (rawfmtLastError.errorNumber == 0) 
 		return 0;
 	else 
@@ -110,7 +111,7 @@ ERRORVALUE formatGetError (UINT* subType, PHDWORD** errorPointer, PHDWORD* addit
 /*
 ** Returns additional data about the last error
 */
- PHDWORD formatGetErrorAdditionalData () {
+PHDWORD formatGetErrorAdditionalData () {
 	if (rawfmtLastError.errorNumber == 0) 
 		return 0;
 	else 

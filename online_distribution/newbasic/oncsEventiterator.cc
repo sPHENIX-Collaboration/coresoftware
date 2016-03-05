@@ -75,7 +75,7 @@ oncsEventiterator::identify (OSTREAM &os) const
 
 };
 
-char * oncsEventiterator::getIdTag () const
+const char * oncsEventiterator::getIdTag () const
 { 
   static char line[180];
   strcpy (line, " -- oncsEventiterator reading from ");
@@ -143,11 +143,22 @@ int oncsEventiterator::read_next_buffer()
   if ( xc < 8192 ) return -1;
 
   // get the length into a dedicated variable
-  if (initialbuffer[1] == -64) 
+  if (initialbuffer[1] == ONCSBUFFERID || initialbuffer[1] == PRDFBUFFERID ) // we check for both for legacy data
+    {
       buffer_size = initialbuffer[0];
+    }
   else
-    buffer_size = oncsBuffer::i4swap(initialbuffer[0]);
-
+    {
+      unsigned int id = oncsBuffer::i4swap(initialbuffer[1]);
+      if (id == ONCSBUFFERID || id == PRDFBUFFERID ) // we check for both for legacy data
+	{
+	  buffer_size = oncsBuffer::i4swap(initialbuffer[0]);
+	}
+      else
+	{
+	  return 1;
+	}
+    }
   int i;
   if (bp) 
     {
@@ -185,7 +196,7 @@ int oncsEventiterator::read_next_buffer()
     }
 
   // and initialize the current_index to be the first event
-  bptr = new oncsBuffer ( bp, allocatedsize );
+  bptr = new oncsBuffer ( (PHDWORD *) bp, (PHDWORD) allocatedsize );
   return 0;
 }
 

@@ -3,12 +3,7 @@
 
 #include "event_io.h"
 
-#ifdef WIN32
-#include "stdafx.h"
-#define WINDOWSEXPORT  __declspec(dllexport)
-#else
 #define WINDOWSEXPORT 
-#endif
 
 int WINDOWSEXPORT decode_id4evt( int *, int[]  ,int ,int ,int* );
 

@@ -1,7 +1,7 @@
 #ifndef __PHMD5UTILS_H__
 #define __PHMD5UTILS_H__
 
-#include <cstdio>
+#include "stdio.h"
 
 
 #ifdef __cplusplus

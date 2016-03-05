@@ -1,7 +1,7 @@
 #include "packet_idcdevdescr.h"
 #include <stdio.h>
 #include <vector>
-#include <strstream>
+#include <sstream>
 #include <string.h>
 
 
@@ -66,10 +66,8 @@ int *Packet_idcdevdescr::decode ( )
  
   char* from = ( char  *) &x[1];
 
-  int dlength = 4* getDataLength() -4;
-  int i, ic;
- 
-  
+  int dlength = 4 * getDataLength() - 4;
+
   char *t = new char[dlength+1];
   strncpy ( t, from, dlength);
   
@@ -101,8 +99,8 @@ int *Packet_idcdevdescr::decode ( )
 	  }
 
 	  {
-	    std::istrstream iss ( copy);
-	    while ( iss >> value )
+            std::stringstream iss(copy);
+            while ( iss >> value )
 	      {
 		//		  std::cout  << " " << value << "  ";
 		xx->values.push_back(value);
@@ -139,10 +137,8 @@ void Packet_idcdevdescr::dump (  OSTREAM& os)
  
   char* from = ( char  *) &x[1];
 
-  int dlength = 4* getDataLength() -4;
-  int i, ic;
- 
-  
+  int dlength = 4 * getDataLength() - 4;
+
   os << "Length = " << *x << std::endl;
  
   char *t = new char[dlength+1];

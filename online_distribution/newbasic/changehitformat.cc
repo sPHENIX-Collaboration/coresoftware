@@ -7,7 +7,11 @@
 #include "frameRoutines.h"
 #include "frameHdr.h"
 
-
+#include "fileEventiterator.h"
+#include "testEventiterator.h"
+#include "phenixTypes.h"
+#include "oBuffer.h"
+#include "oEvent.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -18,12 +22,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
-#include "fileEventiterator.h"
-#include "testEventiterator.h"
 
-#include "phenixTypes.h"
-#include "oBuffer.h"
-#include "oEvent.h"
 #include <stdio.h>
 
 #ifdef HAVE_GETOPT_H

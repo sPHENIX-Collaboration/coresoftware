@@ -2,8 +2,10 @@
 #define __ONCS_EVENT_H
 
 #include "Event.h"
+#include "phenixTypes.h"
 #include "oncsEvtConstants.h"
 #include "oncsEvtStructures.h"
+#include <map>
 
 #ifndef __CINT__
 class WINDOWSEXPORT oncsEvent : public Event {
@@ -39,11 +41,17 @@ public:
 
   virtual int getDate() { return 0;};
   virtual time_t getTime() const;
+  virtual Packet * makePacket(PHDWORD *pp, const int hitFormat = 0);
 
 protected:
   int is_data_type;  // 0 is pointer based --  1 is data based
 
   oncsevtdata_ptr EventData;
+
+  int hasMap;
+  int errorcode;
+  virtual int createMap();
+  std::map <int, PHDWORD *> pmap;
 };
 
 #endif

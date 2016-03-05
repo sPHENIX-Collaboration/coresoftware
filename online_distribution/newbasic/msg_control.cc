@@ -41,7 +41,7 @@ msg_control::deactivate()
 }
 
 void
-msg_control::set_sourcecomponent (char * msgsourcecomponent)
+msg_control::set_sourcecomponent (const char * msgsourcecomponent)
 {
 
       delete msg_sourcecomponent;

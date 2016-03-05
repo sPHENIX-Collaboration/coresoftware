@@ -1,7 +1,7 @@
-#include  "packet_A.h"
+#include "packet_A.h"
 #include "packetHeaders.h"
-#include "buffer.h"
 #include  <string.h>
+#include "buffer.h"
 
 Packet_A::Packet_A()
 {
@@ -68,19 +68,60 @@ Packet_A::Packet_A(PACKET_ptr packet_ptr)
 Packet_A::~Packet_A()
 {
 
-  if (decoded_data1 != NULL) delete [] decoded_data1;
-  if (decoded_data2 != NULL) delete [] decoded_data2;
-  if (decoded_data3 != NULL) delete [] decoded_data3;
-  if (decoded_data4 != NULL) delete [] decoded_data4;
-  if (decoded_data5 != NULL) delete [] decoded_data5;
-  if (decoded_data6 != NULL) delete [] decoded_data6;
-  if (decoded_data7 != NULL) delete [] decoded_data7;
-  if (decoded_data8 != NULL) delete [] decoded_data8;
-  if (decoded_data9 != NULL) delete [] decoded_data9;
-  if (decoded_data10 != NULL) delete [] decoded_data10;
+  if (decoded_data1 != NULL) 
+    {
+      delete [] decoded_data1;
+      decoded_data1 = 0;
+    }
+  if (decoded_data2 != NULL) 
+    {
+      delete [] decoded_data2;
+      decoded_data2 = 0;
+    }
+  if (decoded_data3 != NULL) 
+    {
+      delete [] decoded_data3;
+      decoded_data3 = 0;
+    }
+  if (decoded_data4 != NULL) 
+    {
+      delete [] decoded_data4;
+      decoded_data4 = 0;
+    }
+  if (decoded_data5 != NULL) 
+    {
+      delete [] decoded_data5;
+      decoded_data5 = 0;
+    }
+  if (decoded_data6 != NULL) 
+    {
+      delete [] decoded_data6;
+      decoded_data6 = 0;
+    }
+  if (decoded_data7 != NULL) 
+    {
+      delete [] decoded_data7;
+      decoded_data7 = 0;
+    }
+  if (decoded_data8 != NULL) 
+    {
+      delete [] decoded_data8;
+      decoded_data8 = 0;
+    }
+  if (decoded_data9 != NULL) 
+    {
+      delete [] decoded_data9;
+      decoded_data9 = 0;
+    }
+  if (decoded_data10 != NULL) 
+    {
+      delete [] decoded_data10;
+      decoded_data10 = 0;
+    }
 
   if (is_data_type) delete [] packet;
 }
+
 
 int Packet_A::is_pointer_type() const
 {

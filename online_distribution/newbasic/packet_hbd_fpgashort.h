@@ -40,7 +40,7 @@ public:
   virtual int *decode (int *);
   int nr_modules;
   int HBD_NSAMPLES;
-
+  int hbd_parity;
 };
 
 #endif /* __PACKET_hbd_fpgashort_H__ */

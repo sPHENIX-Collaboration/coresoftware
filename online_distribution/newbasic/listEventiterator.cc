@@ -85,7 +85,7 @@ const char * listEventiterator::getCurrentFileName() const
 };
 
 
-char *  listEventiterator::getIdTag () const
+const char *  listEventiterator::getIdTag () const
 { 
   //  sprintf (idline, " -- listEventiterator reading from %s", thefilename);
   return "listEventiterator";

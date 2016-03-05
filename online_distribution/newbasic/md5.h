@@ -35,7 +35,7 @@
 /*$Id: md5.h,v 1.1.1.1 2000/07/21 01:51:14 purschke Exp $ */
 
 #ifndef md5_INCLUDED
-#define md5_INCLUDED
+#  define md5_INCLUDED
 
 /*
  * This code has some adaptations for the Ghostscript environment, but it

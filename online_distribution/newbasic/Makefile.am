@@ -51,12 +51,21 @@ allheaders = \
   Eventiterator.h \
   EvtConstants.h \
   EvtStructures.h \
+  simpleRandom.h \
+  testEventiterator.h \
+  fileEventiterator.h \
+  listEventiterator.h \
+  md5.h \
+  PHmd5Utils.h \
+  gen_utilities.h \
+  dpipe_filter.h \
+  PHmd5Value.h \
   buffer.h \
+  prdfBuffer.h \
   decoding_routines.h \
   generalDefinitions.h \
   gzbuffer.h \
   lzobuffer.h \
-  mizar.h \
   oBuffer.h \
   oEvent.h \
   ogzBuffer.h \
@@ -73,16 +82,10 @@ allheaders = \
   oncsSubConstants.h \
   oncsSub_id2evt.h \
   oncsSub_id4evt.h \
-  oncsSub_iddcfem.h \
-  oncsSub_idhammond.h \
-  oncsSub_idmiznhc.h \
-  oncsSub_idsam.h \
-  oncsSub_idtecfem.h \
   oncsSub_idsis3300.h \
   oncsSub_idsis3300r.h \
   oncsSub_idcaenv792.h \
   oncsSub_idcaenv1742.h \
-  oncsSub_idfifoboard.h \
   oncsSub_idbspetdata.h \
   oncsSub_idrcpetdata.h \
   oncsSub_iduppetdata.h \
@@ -97,23 +100,29 @@ allheaders = \
   packetConstants.h \
   packetHeaders.h \
   packet_A.h \
-  packet_w124.h \
-  packet_idcstr.h \
+  packet_collection.h \
+  packet_gl1.h \
+  packet_gl1p.h \
+  packet_gl1_evclocks.h \
+  packet_gl1psum.h \
   packet_id2evt.h \
   packet_id4evt.h \
-  packet_mutrg_dcm0.h \
+  packet_id4scaler.h \
+  packet_w124.h \
+  packet_cdevpolarimeter.h \
+  packet_cdevir.h \
+  packet_cdevwcm.h \
+  packet_cdevbpm.h \
+  packet_cdevmadch.h \
+  packet_cdevpoltarget.h \
+  packet_starscaler.h \
   packet_hbd_fpga.h \
   packet_hbd_fpgashort.h \
-  packet_starscaler.h \
-  simpleRandom.h \
-  testEventiterator.h \
-  fileEventiterator.h \
-  listEventiterator.h \
-  md5.h \
-  PHmd5Utils.h \
-  gen_utilities.h \
-  dpipe_filter.h \
-  PHmd5Value.h 
+  packet_cdevring.h \
+  packet_cdevringnopol.h \
+  packet_cdevbuckets.h \
+  packet_cdevdvm.h \
+  packet_idcdevdescr.h
 
 
 allsources = \
@@ -131,8 +140,16 @@ allsources = \
   packetRoutines.C \
   A_Event.cc \
   buffer.cc \
+  prdfBuffer.cc \
   decoding_routines.cc \
   evt_mnemonic.cc \
+  simpleRandom.cc \
+  testEventiterator.cc \
+  fileEventiterator.cc \
+  listEventiterator.cc \
+  md5.cc \
+  PHmd5Utils.cc \
+  PHmd5Value.cc \
   gzbuffer.cc \
   lzobuffer.cc \
   oBuffer.cc \
@@ -147,16 +164,10 @@ allsources = \
   oncsSub_idcstr.cc \
   oncsSub_id2evt.cc \
   oncsSub_id4evt.cc \
-  oncsSub_iddcfem.cc \
-  oncsSub_idhammond.cc \
-  oncsSub_idmiznhc.cc \
-  oncsSub_idsam.cc \
-  oncsSub_idtecfem.cc \
   oncsSub_idsis3300.cc \
   oncsSub_idsis3300r.cc \
   oncsSub_idcaenv792.cc \
   oncsSub_idcaenv1742.cc \
-  oncsSub_idfifoboard.cc \
   oncsSub_idbspetdata.cc \
   oncsSub_idrcpetdata.cc \
   oncsSub_iduppetdata.cc \
@@ -169,22 +180,30 @@ allsources = \
   oncsSubevent.cc \
   oncs_mnemonic.cc \
   packet_A.cc \
-  packet_mnemonic.cc \
-  packet_w124.cc \
+  packet_gl1.cc \
+  packet_gl1p.cc \
+  packet_gl1_evclocks.cc \
+  packet_gl1psum.cc \
   packet_idcstr.cc \
   packet_id2evt.cc \
   packet_id4evt.cc \
-  packet_mutrg_dcm0.cc \
+  packet_id4scaler.cc \
+  packet_mnemonic.cc \
+  packet_w124.cc \
+  packet_cdevpolarimeter.cc \
+  packet_cdevir.cc \
+  packet_cdevwcm.cc \
+  packet_cdevbpm.cc \
+  packet_cdevmadch.cc \
+  packet_cdevpoltarget.cc \
+  packet_starscaler.cc \
   packet_hbd_fpga.cc \
   packet_hbd_fpgashort.cc \
-  packet_starscaler.cc \
-  simpleRandom.cc \
-  testEventiterator.cc \
-  fileEventiterator.cc \
-  listEventiterator.cc \
-  md5.cc \
-  PHmd5Utils.cc \
-  PHmd5Value.cc
+  packet_cdevring.cc \
+  packet_cdevringnopol.cc \
+  packet_cdevbuckets.cc \
+  packet_cdevdvm.cc \
+  packet_idcdevdescr.cc 
 
 AM_LDFLAGS = -L$(libdir) -L$(ONLINE_MAIN)/lib -L$(OPT_SPHENIX)/lib
 
@@ -206,7 +225,7 @@ noinst_HEADERS = \
   eventLinkDef.h \
   all.h
 
-pkginclude_HEADERS = $(allheaders) $(msgheaders)
+include_HEADERS = $(allheaders) $(msgheaders)
 
 CLEANFILES = \
   ioselect.h \
@@ -251,17 +270,18 @@ prdfcheck_SOURCES = prdfcheck.cc
 prdfsplit_SOURCES = prdfsplit.cc
 
 
-dpipe_LDADD = libNoRootEvent.la libmessage.la  -llzo2 -ldl
-dlist_LDADD = libNoRootEvent.la libmessage.la  -llzo2
-ddump_LDADD = libNoRootEvent.la libmessage.la  -llzo2
-eventcombiner_LDADD = libNoRootEvent.la libmessage.la -llzo2
+dpipe_LDADD = libNoRootEvent.la libmessage.la  -ldl  @LZOLIB@
+dlist_LDADD = libNoRootEvent.la libmessage.la  -ldl  @LZOLIB@
+ddump_LDADD = libNoRootEvent.la libmessage.la  -ldl @LZOLIB@
+eventcombiner_LDADD = libNoRootEvent.la libmessage.la -ldl  @LZOLIB@
 
 
-changeid_LDADD = libNoRootEvent.la libmessage.la -llzo2
-changehitformat_LDADD = libNoRootEvent.la libmessage.la -llzo2
-prdf2prdf_LDADD = libNoRootEvent.la libmessage.la -llzo2
-prdfcheck_LDADD = libNoRootEvent.la -llzo2
-prdfsplit_LDADD = libNoRootEvent.la -llzo2
+changeid_LDADD = libNoRootEvent.la libmessage.la -ldl @LZOLIB@
+changehitformat_LDADD = libNoRootEvent.la libmessage.la -ldl @LZOLIB@
+prdf2prdf_LDADD = libNoRootEvent.la libmessage.la -ldl  @LZOLIB@
+prdfcheck_LDADD = libNoRootEvent.la -ldl  @LZOLIB@
+prdfsplit_LDADD = libNoRootEvent.la -ldl  @LZOLIB@
+
 
 libmessage_la_SOURCES = \
   date_filter_msg_buffer.cc \
@@ -273,10 +293,10 @@ libmessage_la_SOURCES = \
 
 
 libEvent_la_SOURCES =  event_dict.C 
-libEvent_la_LIBADD = libNoRootEvent.la libRootmessage.la @ROOTGLIBS@ -lz -llzo2
+libEvent_la_LIBADD = libNoRootEvent.la libRootmessage.la  @ROOTGLIBS@  -lz @LZOLIB@
 
 libNoRootEvent_la_SOURCES = $(allsources) 
-libNoRootEvent_la_LIBADD = libmessage.la  -lz -llzo2
+libNoRootEvent_la_LIBADD = libmessage.la  -lz @LZOLIB@
 
 
 # because this if statement contains dependencies, no more definitions after
@@ -327,6 +347,7 @@ libRootmessage_la_SOURCES = \
   strnstr.cc
 
 endif
+
 
 
 event_dict.C : \

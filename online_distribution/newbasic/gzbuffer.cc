@@ -36,7 +36,7 @@ gzbuffer::gzbuffer (PHDWORD *array , const int length )
 
   uncompress ( (Bytef*) bufferarray, &i,  (Bytef*) &array[4], bytes); 
 
-  theBuffer = new buffer(bufferarray, outputlength);
+  theBuffer = new prdfBuffer(bufferarray, outputlength);
 
 }
 

@@ -25,10 +25,9 @@
 #ifndef _FORMATIO_
 #define _FORMATIO_
 
+#include <stdio.h>
 #include "Cpacket.h"
 #include "framePackets.h"
-
-#include <cstdio>
 
 /*
 **  Use C linkage for below structures

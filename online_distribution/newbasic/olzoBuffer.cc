@@ -1,6 +1,7 @@
 
 #include "olzoBuffer.h"
 #include "BufferConstants.h"
+
 #include <lzo/lzoutil.h>
 #include <cstring>
 #include <stdlib.h>
