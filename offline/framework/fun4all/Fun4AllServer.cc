@@ -30,6 +30,7 @@
 #include <boost/foreach.hpp>
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <exception>
 #include <iostream>
@@ -1394,7 +1395,38 @@ Fun4AllServer::run(const int nevnts, const bool require_nevents)
 	      BeginRun(runnumber);
 	    }
 	}
+
+      if (verbosity>=VERBOSITY_SOME)
+        {
+          // print event cycle counter in log scale if VERBOSITY_SOME
+
+          const double significand = icnt / pow(10, (int) (log10(icnt)));
+
+          if ((fmod(significand, 1.0) == 0 && significand <= 10) or icnt == 0)
+            {
+              cout << "Fun4AllServer::run - process_event cycle "
+              << icnt << "\t for run " << runnumber ;
+              if (require_nevents)
+                cout <<", "<<icnt_good <<" good event so far";
+              cout << endl;
+            }
+        }
+
+
+      if (icnt == 0 and verbosity>VERBOSITY_QUIET)
+        {
+          // increase verbosity for the first event in verbose modes
+          ++verbosity;
+        }
+
       iret = process_event();      
+
+      if (icnt == 0 and verbosity>VERBOSITY_QUIET)
+        {
+          // increase verbosity for the first event in verbose modes
+          --verbosity;
+        }
+
       if (require_nevents)
         {
           if (std::find(RetCodes.begin(),
