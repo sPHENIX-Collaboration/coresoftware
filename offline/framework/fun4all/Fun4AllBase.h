@@ -2,6 +2,7 @@
 #define __FUN4ALLBASE_H__
 
 #include <string>
+#include <climits>       // std::numeric_limits
 
 /** Base class for all Fun4All Classes
  *
@@ -29,8 +30,35 @@ class Fun4AllBase
   */
   virtual void Print(const std::string &what = "ALL") const;
 
+  enum enu_Verbosity{
+
+    //! Quiet mode. Only output critical messages. Intended for batch production mode.
+    VERBOSITY_QUIET = 0,
+
+    //! Output some useful messages during manual command line running
+    VERBOSITY_SOME = 1,
+
+    //! Output more messages
+    VERBOSITY_MORE = 2,
+
+    //! Output even more messages
+    VERBOSITY_EVEN_MORE = 3,
+
+    //! Output a lot of messages
+    VERBOSITY_A_LOT = 4,
+
+    // ... use your imagination ...
+
+    //! Show all messages. Useful for step-by-step debugging
+    VERBOSITY_MAX =  INT_MAX
+
+  } ;
+
   /// Sets the verbosity of this module (0 by default=quiet).
-  virtual void Verbosity(const int ival) {verbosity = ival;}
+  virtual void Verbosity(const int ival) {verbosity = static_cast<enu_Verbosity>(ival);}
+
+  /// Sets the verbosity of this module (0 by default=quiet).
+  virtual void Verbosity(enu_Verbosity ival) {verbosity = ival;}
 
   /// Gets the verbosity of this module.
   virtual int Verbosity() const {return verbosity;}
