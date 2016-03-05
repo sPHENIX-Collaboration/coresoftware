@@ -6,14 +6,14 @@ using namespace std;
 
 Fun4AllBase::Fun4AllBase(const string &name):
   ThisName(name),
-  verbosity(0)
+  verbosity(VERBOSITY_QUIET)
 {
   return;
 }
 
 Fun4AllBase::~Fun4AllBase()
 {
-  if (verbosity > 0)
+  if (verbosity >= VERBOSITY_MORE)
     {
       cout << "Deleting " << Name () << endl;
     }
