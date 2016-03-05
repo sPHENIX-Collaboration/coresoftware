@@ -6,14 +6,7 @@
 #include "EvtStructures.h"
 #include "packet.h"
 
-#ifdef WINDOWS
-#include "stdafx.h"
-#define WINDOWSEXPORT __declspec(dllexport)
-#else
 #define WINDOWSEXPORT
-#endif
-
-
 
 // virtual base class for an "event"
 

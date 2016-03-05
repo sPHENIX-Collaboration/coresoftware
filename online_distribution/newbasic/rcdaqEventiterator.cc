@@ -8,7 +8,12 @@
 #include "rcdaqEventiterator.h"
 #include <stdio.h>
 #include <iostream>
-#include "oncsEvent.h"
+
+#include "oncsBuffer.h"
+#include "gzbuffer.h"
+#include "lzobuffer.h"
+#include "Event.h"
+
 #include <stddef.h>
 #include <string.h>
 #include <sys/types.h>
@@ -16,13 +21,14 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+
+#include <netdb.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 
 
 using namespace std;
-
 
 
 // there are two similar constructors, one with just the
@@ -49,16 +55,29 @@ rcdaqEventiterator::rcdaqEventiterator(const char *ip, int &status)
 }  
 
 
-
 int rcdaqEventiterator::setup(const char *ip, int &status)
 {
+  _defunct = 0;
+
+  struct hostent *p_host;
+  p_host = gethostbyname(ip);
+
+  if ( ! p_host ) 
+    {
+      status = -2;
+      _defunct = 1;
+      return -2;
+    }
+
+  //  std::cout << p_host->h_name << "  " << p_host->h_addr << std::endl;
+
   _sockfd  = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   bptr = 0;
   bp = 0;
   allocatedsize = 0;
   if (_sockfd >0 ) 
     {
-      _theIP = ip;
+      _theIP = p_host->h_name;
       status = 0;
       last_read_status = 0;
       current_index = 0;
@@ -71,23 +90,27 @@ int rcdaqEventiterator::setup(const char *ip, int &status)
 
   memset((char *) &server, 0, sizeof(server));
   server.sin_family = AF_INET;
-  if (inet_aton(_theIP.c_str(), &server.sin_addr)==0) 
-    {
-      fprintf(stderr, "inet_aton() failed\n");
-    }
+
+  bcopy(p_host->h_addr, &(server.sin_addr.s_addr), p_host->h_length);
+
+  //  if (inet_aton(p_host->h_addr, &server.sin_addr)==0) 
+  //  {
+  //    fprintf(stderr, "inet_aton() failed\n");
+  //  }
 
   server.sin_port = htons(MONITORINGPORT);
   return 0;
 }  
 
-void  
-rcdaqEventiterator::identify (OSTREAM &os) const
+void rcdaqEventiterator::identify (OSTREAM &os) const
 { 
-  os << getIdTag() << std::endl;
+  os << getIdTag();
+  if ( _defunct ) os << " *** defunct";
+  os << std::endl;
 
 };
 
-char * rcdaqEventiterator::getIdTag () const
+const char * rcdaqEventiterator::getIdTag () const
 { 
   static char line[180];
   strcpy (line, " -- rcdaqEventiterator reading from ");
@@ -101,8 +124,8 @@ char * rcdaqEventiterator::getIdTag () const
 
 Event * rcdaqEventiterator::getNextEvent()
 {
+  if ( _defunct ) return 0;
   Event *evt = 0;
-
 
   // if we had a read error before, we just return
   if (last_read_status) return NULL;
@@ -150,8 +173,6 @@ int rcdaqEventiterator::read_next_buffer()
       perror("sendto 1 " );
     }
       
-
-
   int xc;
   int total;
 
@@ -177,14 +198,15 @@ int rcdaqEventiterator::read_next_buffer()
 	  delete [] bp;
 	  i = (buffer_size +8191) /8192;
 	  allocatedsize = i * 2048;
-	  bp = new int[allocatedsize];
+	  bp = new PHDWORD[allocatedsize];
 	}
     }
   else
     {
       i = (buffer_size +8191) /8192;
-      allocatedsize = i * 2048;
-      bp = new int[allocatedsize];
+      allocatedsize = i * BUFFERBLOCKSIZE/4;
+      bp = new PHDWORD[allocatedsize];
+
     }
 
   int max_sock_length = 48*1024;
@@ -216,7 +238,8 @@ int rcdaqEventiterator::read_next_buffer()
 
   //  cout << "received: " << ip << "  bytes" << endl;
   // and initialize the current_index to be the first event
-  bptr = new oncsBuffer ( bp, allocatedsize );
-  return 0;
+
+  return buffer::makeBuffer( bp, allocatedsize, &bptr);
+
 }
 

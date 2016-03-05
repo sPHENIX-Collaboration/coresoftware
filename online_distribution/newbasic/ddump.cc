@@ -1,26 +1,24 @@
 #include <stdlib.h>
 #include <signal.h>
+
 #include "fileEventiterator.h"
-//#include <packetConstants.h>
 #include "testEventiterator.h"
-
-
-#ifndef WIN32
+#include "rcdaqEventiterator.h"
 #include "oncsEventiterator.h"
-#endif
 
 #include <stdio.h>
 
 #ifdef HAVE_GETOPT_H
-#ifndef WIN32
-#include "getopt.h"
-#else
-#include "win_getopt.h"
-#endif
+#include <getopt.h>
 #endif
 
+#include<vector>
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 
-#define ETEVENTITERATOR 1
+
+
+#define RCDAQEVENTITERATOR 1
 #define FILEEVENTITERATOR 2
 #define TESTEVENTITERATOR 3
 #define ONCSEVENTITERATOR 4
@@ -84,7 +82,7 @@ void exithelp()
   COUT << "   The -I option gets you an in-depth identification of the packets." << std::endl;
 
   COUT << std::endl;
-  COUT << "   > ddump -s 1002 -T -i" << std::endl;
+  COUT << "   > ddump -p 1002 -T -i" << std::endl;
   COUT << "    -- Event     1 Run:  1331 length:    68 frames:   1 type:  1 (Data Event)" << std::endl;
   COUT << "   Packet  1002    16  0 (Unformatted)  30005 (ID2EVT)" << std::endl;
   COUT << "       0 |     1    2    3    4    5    6    7    8 " << std::endl;
@@ -94,6 +92,15 @@ void exithelp()
   COUT << " The -F option also causes the frames in the event to be listed." << std::endl;
   COUT << " If you list a particular packet, you will get the frame where" << std::endl; 
   COUT << " this packet is in." << std::endl; 
+
+  COUT << std::endl;
+
+  COUT << "  The -p option takes a number, a list, or a range of packets" << std::endl;
+  COUT << "  You can combine ranges and lists:" << std::endl;
+  COUT << "   > ddump -p 1001 -T -i" << std::endl;
+  COUT << "   > ddump -p 1001,1002 -T -i" << std::endl;
+  COUT << "   > ddump -p 1001-1003 -T -i" << std::endl;
+  COUT << "   > ddump -p 1001-1002,1003 -T -i" << std::endl;
 
   COUT << std::endl;
 
@@ -107,7 +114,8 @@ void exithelp()
   COUT << " -I <print in-depth packet identity (default is short form)>" << std::endl;
   COUT << " -f (stream is a file)" << std::endl;
   COUT << " -T (stream is a test stream)" << std::endl;
-  COUT << " -O (stream is a legacy old-style ONCS format file)" << std::endl;
+  COUT << " -r (stream is a rcdaq monitoring stream)" << std::endl;
+  COUT << " -O (stream is a legacy ONCS format file)" << std::endl;
   COUT << " -g use generic dump" << std::endl;
   COUT << " -d numbers are std::decimal (default std::hex) for generic dump" << std::endl;
   COUT << " -o numbers are octal (default std::hex) for generic dump" << std::endl;
@@ -122,15 +130,50 @@ void sig_handler(int i)
   void sig_handler(...)
 #endif
 {
-  COUT << "sig_handler: signal seen " << std::endl;
   if (it) delete it;
   exit(0);
 }
 
+int rangeParser ( const std::string string, std::vector<int> &selection)
+{
+  std::vector<std::string>::const_iterator it, itr;
+  std::vector<std::string> strs,r;
+
+  std::vector<int>::const_iterator vit;
+  int low,high,i;
+  boost::split(strs,string, boost::is_any_of(","));
+
+  for (it= strs.begin(); it!= strs.end(); ++it)
+    {
+      boost::split(r,*it,boost::is_any_of("-"));
+
+      itr = r.begin();
+      low = high =boost::lexical_cast<int>(r[0]);
+      itr++;
+      if(itr!=r.end())
+	{
+	  high = boost::lexical_cast<int>(r[1]);
+	}
+      for(i=low;i<=high;++i)
+	{
+	  selection.push_back(i);
+	}
+    }
+
+  //  for(vit= selection.begin(); vit!= selection.end(); ++vit)
+  //  {
+  //    std::cout<<*vit<<std::endl;
+  //  }
+  return 0;
+
+}
 
 int 
 main(int argc, char *argv[])
 {
+
+  if (argc < 2) exitmsg();
+
   int c;
   int status;
 
@@ -146,7 +189,7 @@ main(int argc, char *argv[])
   int verbose = 0;
 
 
-  int ittype = ETEVENTITERATOR;
+  int ittype = FILEEVENTITERATOR;
   int dumpstyle = EVT_HEXADECIMAL;
   int identify = 0;
   int fullidentify = 0;
@@ -158,10 +201,9 @@ main(int argc, char *argv[])
   extern char *optarg;
   extern int optind;
 
-  if (argc < 2) exitmsg();
+  std::vector<int> packetSelection;
 
-#ifndef WIN32
-  while ((c = getopt(argc, argv, "n:c:e:s:p:t:idfghIFTOHEv")) != EOF)
+  while ((c = getopt(argc, argv, "n:c:e:s:p:t:idfrghIFTOHEv")) != EOF)
     switch (c) 
       {
       case 'e':
@@ -176,13 +218,13 @@ main(int argc, char *argv[])
 	if ( !sscanf(optarg, "%d", &repeatcount) ) exitmsg();
 	break;
 
+      case 's':
       case 'p':
-	if ( !sscanf(optarg, "%d", &subeventid) ) exitmsg();
+	//	if ( !sscanf(optarg, "%d", &subeventid) ) exitmsg();
+	if ( rangeParser ( optarg, packetSelection) ) exitmsg();
+	subeventid=1;  // yes, select
 	break;
 
-      case 's':
-	if ( !sscanf(optarg, "%d", &subeventid) ) exitmsg();
-	break;
 
       case 't':
 	if (*optarg == 'S' || *optarg == 's' )
@@ -242,6 +284,10 @@ main(int argc, char *argv[])
 	ittype = FILEEVENTITERATOR;
 	break;
 
+      case 'r':
+	ittype = RCDAQEVENTITERATOR;
+	break;
+
       case 'O':
 	ittype = ONCSEVENTITERATOR;
 	break;
@@ -262,122 +308,48 @@ main(int argc, char *argv[])
 	exithelp();
 	break;
       }
-#else
-  char* pszParam;
-  char chOpt;
-  while ((chOpt = GetOption(argc, argv, "n:c:e:s:p:t:idfghIFTO", &pszParam)) >1 )
-    switch (chOpt) 
-      {
-      case 'e':
-	if ( !sscanf(pszParam, "%d", &eventnumber) ) exitmsg();
-	break;
 
-      case 'c':
-	if ( !sscanf(pszParam, "%d", &countnumber) ) exitmsg();
-	break;
-
-      case 'n':
-	if ( !sscanf(pszParam, "%d", &repeatcount) ) exitmsg();
-	break;
-
-      case 'p':
-	if ( !sscanf(pszParam, "%d", &subeventid) ) exitmsg();
-	break;
-
-      case 's':
-	if ( !sscanf(pszParam, "%d", &subeventid) ) exitmsg();
-	break;
-
-      case 't':
-	if ( !sscanf(pszParam, "%d", &eventtype) ) exitmsg();
-	break;
-
-      case 'i':
-	identify = 1;
-	break;
-
-      case 'I':
-	fullidentify = 1;
-	break;
-
-      case 'F':
-	listframe = 1;
-	break;
-
-      case 'H':
-	listHistory = 1;
-	break;
-
-      case 'E':
-	listError = 1;
-	break;
-
-      case 'g':
-	generic = 1;
-	break;
-
-      case 'T':
-	ittype = TESTEVENTITERATOR;
-	break;
-
-      case 'f':
-	ittype = FILEEVENTITERATOR;
-	break;
-
-      case 'O':
-	ittype = ONCSEVENTITERATOR;
-	break;
-
-      case 'o':
-	dumpstyle = EVT_OCTAL;
-	break;
-
-      case 'd':
-	dumpstyle = EVT_DECIMAL;
-	break;
-
-      case 'h':
-	exithelp();
-	break;
-      }
-#endif
   
 
   if ( eventnumber && countnumber) evtcountexitmsg();
 
-
-#ifndef WIN32
   signal(SIGKILL, sig_handler);
   signal(SIGTERM, sig_handler);
   signal(SIGINT,  sig_handler);
-#endif
 
   // see if we can open the file
   it = 0;
 
   switch (ittype)
     {
+    case RCDAQEVENTITERATOR:
+      if ( optind+1>argc) 
+	{
+	  it = new rcdaqEventiterator("localhost", status);
+	}
+      else
+	{
+	  it = new rcdaqEventiterator(argv[optind], status);
+	}
+      break;
+
     case  TESTEVENTITERATOR:
       it = new testEventiterator();
       status =0;
       break;
 
     case  FILEEVENTITERATOR:
-#ifndef WIN32
+      if ( optind+1>argc) exitmsg();
       it = new fileEventiterator(argv[optind], status);
-#else
-      it = new fileEventiterator(pszParam, status);
-#endif
       break;
      
     case  ONCSEVENTITERATOR:
-#ifndef WIN32
+      if ( optind+1>argc) exitmsg();
       it = new oncsEventiterator(argv[optind], status);
       break;
-#else
+
       status = 1;
       break;
-#endif
       
     default:
       exitmsg();
@@ -398,7 +370,6 @@ main(int argc, char *argv[])
   // ok. now go through the events
   Event *evt;
   Packet *s;
-  int run;
   int i;
 
   evt = it->getNextEvent();
@@ -451,15 +422,19 @@ main(int argc, char *argv[])
 
 	  if ( subeventid)
 	    {
-	      
-	      if ( (s = evt->getPacket(subeventid)) )  // get the subevent
+	      std::vector<int>::const_iterator vit;
+	      for (vit= packetSelection.begin(); vit!= packetSelection.end(); ++vit)
 		{
-		  if (listframe)  evt->listFrame (subeventid);
-		  if (fullidentify) s->fullIdentify();
-		  if (generic) s->gdump(dumpstyle);
-		  else s->dump();
-		  if (listHistory) evt->listHistory();
-		  if (listError) evt->listError();
+		  if ( (s = evt->getPacket(*vit)) )  // get the subevent
+		    {
+		      if (listframe)  evt->listFrame (*vit);
+		      if (fullidentify) s->fullIdentify();
+		      if (generic) s->gdump(dumpstyle);
+		      else s->dump();
+		      if (listHistory) evt->listHistory();
+		      if (listError) evt->listError();
+		      delete s;
+		    }
 		}
 	    }
 	  else
@@ -477,7 +452,7 @@ main(int argc, char *argv[])
 	      if (listHistory) evt->listHistory();
 	      if (listError) evt->listError();
 	    }
-      
+	  
 		
 	  delete evt;
 	  if ( repeatcount==0 ||  ++accepted_count < repeatcount) evt = it->getNextEvent();

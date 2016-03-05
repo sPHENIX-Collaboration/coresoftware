@@ -1,10 +1,10 @@
 #ifndef __OLZOBUFFER_H__
 #define __OLZOBUFFER_H__
 
+#include <lzo/lzo1x.h>
 
 #include "oBuffer.h"
 
-#include <lzo/lzo1x.h>
 
 
 #ifndef __CINT__

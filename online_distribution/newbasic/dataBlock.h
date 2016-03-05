@@ -1,16 +1,19 @@
 /* 
 ** dataBlock.h
 ** 
-** Author: $Author: purschke $  
-**   Date: $Date: 2000/07/21 01:51:11 $ 
+** Author: $Author: phoncs $  
+**   Date: $Date: 2010/09/21 19:37:49 $ 
 ** 
 ** $Log: dataBlock.h,v $
+** Revision 1.2  2010/09/21 19:37:49  phoncs
+** DLW: change name of DWORD to PHDWORD
+**
 ** Revision 1.1.1.1  2000/07/21 01:51:11  purschke
 ** mlp -- adding the new automakified "basic" module to CVS.
 **
 **
 ** Revision 1.6  2000/03/22 22:58:37  phoncs
-** mlp -- added PHDWORD
+** mlp -- added DWORD
 **
 ** Revision 1.5  1998/12/11 22:01:15  markacs
 ** (stephen markacs) adding log into cvs tags

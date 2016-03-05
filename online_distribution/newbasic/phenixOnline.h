@@ -39,10 +39,10 @@
 #include <assert.h>
 #define Debug_Output
 
-#define PHDWORD_SIZE sizeof(PHDWORD)
+#define DWORD_SIZE sizeof(PHDWORD)
 #define SWORD_SIZE sizeof(SWORD)
 
-CONSTANT UINT DwordSize = PHDWORD_SIZE;
+CONSTANT UINT DwordSize = DWORD_SIZE;
 CONSTANT UINT SwordSize = SWORD_SIZE;
 
 #define PRDF_BIG_ENDIAN 2
@@ -112,7 +112,7 @@ memcpy (out_ptr, in_ptr, numBytes)
 **  Note that the swap is not done "in-place".
 */
 //inline int mlp();
-//inline unsigned long singleDwordByteSwap(PHDWORD);
+//inline unsigned long singleDwordByteSwap(DWORD);
 INLINE_D PHDWORD singleDwordByteSwap(PHDWORD inDword)
 {
   PHDWORD outDword;
@@ -137,7 +137,7 @@ inline void dwordByteSwap (PHDWORD* out_ptr, PHDWORD* in_ptr, PHDWORD numDwords)
 }
 
 /*
-** Define macros to insert/extract bit fields from PHDWORD
+** Define macros to insert/extract bit fields from DWORD
 */
 
 #define getWordMACRO(packet_ptr,offsetOfDWORD) (*((packet_ptr)+(offsetOfDWORD)))

@@ -2,7 +2,6 @@
 #define __PACKET_W124_H__
 
 #include "packet_A.h"
-#include "packet_A.h"
 #include "packetHeaders.h"
 #include <stddef.h>
 #include <stdlib.h>

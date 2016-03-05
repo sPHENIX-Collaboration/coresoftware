@@ -1,9 +1,8 @@
 #ifndef __OGZBUFFER_H
 #define __OGZBUFFER_H
 
-#include "oBuffer.h"
-
 #include <zlib.h>
+#include "oBuffer.h"
 
 
 

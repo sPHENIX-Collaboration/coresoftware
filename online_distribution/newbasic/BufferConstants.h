@@ -7,6 +7,7 @@
 #define BUFFERSIZE (1024*1024)
 
 #define BUFFERMARKER      0xffffffc0
+#define ONCSBUFFERMARKER  0xffffc0c0
 #define GZBUFFERMARKER    0xfffffafe
 #define LZO1XBUFFERMARKER 0xffffbbfe
 

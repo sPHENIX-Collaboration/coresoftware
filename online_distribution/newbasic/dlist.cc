@@ -3,23 +3,18 @@
 #include <stdlib.h>
 #include <signal.h>
 #include "fileEventiterator.h"
+#include "rcdaqEventiterator.h"
 #include "testEventiterator.h"
-
-#ifndef WIN32
 #include "oncsEventiterator.h"
-#endif
+
 
 #include <stdio.h>
 
 #ifdef HAVE_GETOPT_H
-#ifndef WIN32
 #include "getopt.h"
-#else
-#include "win_getopt.h"
-#endif
 #endif
 
-#define ETEVENTITERATOR 1
+#define RCDAQEVENTITERATOR 1
 #define FILEEVENTITERATOR 2
 #define TESTEVENTITERATOR 3
 #define ONCSEVENTITERATOR 4
@@ -58,9 +53,8 @@ void exithelp()
   COUT << "test output " << 5 <<  ii << std::endl;
 
  COUT << "  dlist lists the packets contained in a given event. The event can come" << std::endl;
-  COUT << "  from any of the standard sources, ET pool, file, or test stream. " << std::endl;
-  COUT << "  The default is to get the next available event from a ET pool." << std::endl;
-  COUT << "  dlist ONLINE would read the next event from a ET pool called ONLINE." << std::endl;
+  COUT << "  from any of the standard sources, rcdaq, file, or test stream. " << std::endl;
+  COUT << "  The default is to get the next available event from a file." << std::endl;
   COUT << "  dlist can optionally identify the event with the  -i option." << std::endl;
   COUT << "  You can request a certain event number with the -e option. " << std::endl;
   COUT << "  You can ask for a certain event type (data, beg-run, etc) with -t." << std::endl;
@@ -94,7 +88,8 @@ void exithelp()
   COUT << "  -I <print in-depth packet identity>" << std::endl;
   COUT << "  -f (stream is a file)" << std::endl;
   COUT << "  -T (stream is a test stream)" << std::endl;
-  COUT << "  -O (stream is a legacy old-style ONCS format file)" << std::endl;
+  COUT << "  -r (stream is a rcdaq monitoring stream)" << std::endl;
+  COUT << "  -O (stream is a legacy ONCS format file)" << std::endl;
   COUT << "  -v verbose" << std::endl;
   COUT << "  -h this message" << std::endl << std::endl;
   exit(0);
@@ -120,7 +115,6 @@ main(int argc, char *argv[])
   int eventnumber =0;
   int countnumber =0;
   int repeatcount =1;
-  int subeventid =0;
 
   int eventtypemin = 1;  
   int eventtypemax = 7;  
@@ -129,18 +123,17 @@ main(int argc, char *argv[])
 
   int verbose = 0;
 
-  int ittype = ETEVENTITERATOR;
+  int ittype = FILEEVENTITERATOR;
   int identify = 0;
   int fullidentify = 0;
-  int generic = 0;
 
   extern char *optarg;
   extern int optind;
 
   if (argc < 2) exitmsg();
 
-#ifndef WIN32
-  while ((c = getopt(argc, argv, "n:c:e:t:iIfhTOv")) != EOF)
+
+  while ((c = getopt(argc, argv, "n:c:e:t:iIrfhTOv")) != EOF)
     switch (c) 
       {
       case 'e':
@@ -197,6 +190,10 @@ main(int argc, char *argv[])
 	ittype = FILEEVENTITERATOR;
 	break;
 
+      case 'r':
+	ittype = RCDAQEVENTITERATOR;
+	break;
+
       case 'O':
 	ittype = ONCSEVENTITERATOR;
 	break;
@@ -210,57 +207,6 @@ main(int argc, char *argv[])
 	break;
       }
 
-#else
-  char* pszParam;             // gotten parameter
-  char chOpt;
-
-  while ( (chOpt = GetOption(argc, argv, "n:c:e:t:iIfhT", &pszParam) ) >1)
-    {
-      // COUT << "option is " << chOpt  << std::endl;
-      // chOpt is valid argument
-      switch (chOpt)
-	{
-
-      case 'e':
-	if ( !sscanf(pszParam, "%d", &eventnumber) ) exitmsg();
-	break;
-
-      case 'c':
-	if ( !sscanf(pszParam, "%d", &countnumber) ) exitmsg();
-	break;
-
-      case 'n':
-	if ( !sscanf(pszParam, "%d", &repeatcount) ) exitmsg();
-	break;
-
-      case 't':
-	if ( !sscanf(pszParam, "%d", &eventtype) ) exitmsg();
-	break;
-
-      case 'i':
-	identify = 1;
-	break;
-
-      case 'I':
-	fullidentify = 1;
-	break;
-
-       case 'T':
-	ittype = TESTEVENTITERATOR;
-	break;
-
-      case 'f':
-	ittype = FILEEVENTITERATOR;
-	break;
-
-      case 'h':
-	exithelp();
-	break;
-
-	   
-	 }
-     }
-#endif
 
 
   if ( eventnumber && countnumber) evtcountexitmsg();
@@ -278,29 +224,33 @@ main(int argc, char *argv[])
 
   switch (ittype)
     {
+
+    case RCDAQEVENTITERATOR:
+      if ( optind+1>argc) 
+	{
+	  it = new rcdaqEventiterator("localhost", status);
+	}
+      else
+	{
+	  it = new rcdaqEventiterator(argv[optind], status);
+	}
+      break;
+
     case  TESTEVENTITERATOR:
-      
       it = new testEventiterator();
       status =0;
       break;
 
     case  FILEEVENTITERATOR:
-#ifndef WIN32
+      if ( optind+1>argc) exitmsg();
       it = new fileEventiterator(argv[optind], status);
-#else
-      //      COUT <<  " filename  is " << pszParam << std::endl;      
-      it = new fileEventiterator(pszParam, status);
-#endif
       break;
        
-#ifndef WIN32
     case  ONCSEVENTITERATOR:
+      if ( optind+1>argc) exitmsg();
       it = new oncsEventiterator(argv[optind], status);
       break;
-#else
-      status = 1;
-      break;
-#endif
+
     default:
       exitmsg();
       break;
@@ -320,8 +270,6 @@ main(int argc, char *argv[])
 
   // ok. now go through the events
   Event *evt;
-  Packet *s;
-  int run;
 
   evt = it->getNextEvent();
 

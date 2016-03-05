@@ -20,7 +20,11 @@ int *oncsSub_id4evt::decode ( int *nwout)
  
   p = new int[olength];
   k = p;
-  for (i =0; i<olength; i++) *k++ = temp[i];
+  for (i =0; i<olength; i++) 
+    {
+      *k++ = temp[i];
+      //     std::cout << i << "  " << temp[i] << std::endl;
+    } 
   *nwout = olength;
   return p;
 }

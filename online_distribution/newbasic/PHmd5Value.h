@@ -24,12 +24,8 @@ compiler.
 #define PHMD5DIGESTLENGTH 16
 #include "event_io.h"
 
-#ifdef WINDOWS
-#include "stdafx.h"
-#define WINDOWSEXPORT __declspec(dllexport)
-#else
+
 #define WINDOWSEXPORT
-#endif
 
 
 #ifndef __CINT__

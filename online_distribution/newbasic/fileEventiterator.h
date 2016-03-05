@@ -2,12 +2,13 @@
 #ifndef __FILEEVENTITERATOR_H__
 #define __FILEEVENTITERATOR_H__
 
+#include <stdio.h>
 
 #include "Eventiterator.h"
 #include "Event.h"
-#include "gzbuffer.h"
 
-#include <cstdio>
+#include "gzbuffer.h"
+#include "oncsBuffer.h"
 
 /**
    The fileEventiterator reads the event data from a data file on disk. 
@@ -33,7 +34,7 @@ public:
   */
   fileEventiterator(const char *filename, int &status);
 
-  char * getIdTag() const;
+  const char * getIdTag() const;
 
   virtual void identify(std::ostream& os = std::cout) const;
 
@@ -60,12 +61,10 @@ public:
 private:
   int open_file(const char *filename);
   int read_next_buffer();
-  
-  char idline[200];
-  char * thefilename;
+
+  char *thefilename;
   int fd;
   
-  PHDWORD initialbuffer[BUFFERSIZE];
   PHDWORD *bp;
   unsigned int allocatedsize;
 
@@ -76,8 +75,7 @@ private:
 
   int events_so_far;
   int verbosity;
-  Eventiterator *legacy;
-
+  int _defunct;
 };
 
 #endif /* __FILEEVENTITERATOR_H__ */

@@ -7,6 +7,15 @@ Packet_hbd_fpga::Packet_hbd_fpga(PACKET_ptr data)
   : Packet_w4 (data)
 {
   nr_modules = 0;
+  if ( getHitFormat() == IDHBD_FPGA3SAMPLES)
+    {
+      HBD_NSAMPLES = 3;
+    }
+  else
+    {
+      HBD_NSAMPLES = 12;
+    }
+  std::cout << "Samples = " << HBD_NSAMPLES << std::endl;
 }
   
 int *Packet_hbd_fpga::decode ( int *nwout)
@@ -25,14 +34,14 @@ int *Packet_hbd_fpga::decode ( int *nwout)
     }
 
 
-  int *iarr = new int[ 48 * 12 * HBD_MAX_MODULES  ];
+  int *iarr = new int[ 48 * HBD_NSAMPLES * HBD_MAX_MODULES  ];
 
 
   decoded_data2 = new int[ HBD_MAX_MODULES ]; // trig nr
   decoded_data3 = new int[ HBD_MAX_MODULES ]; // beam clock
   decoded_data4 = new int[ HBD_MAX_MODULES ]; // module number in crate list
 
-  memset( iarr, 0, 48*12*4*HBD_MAX_MODULES);
+  memset( iarr, 0, 48*HBD_NSAMPLES*4*HBD_MAX_MODULES);
   memset( decoded_data2, 0, 4*HBD_MAX_MODULES);
   memset( decoded_data3, 0, 4*HBD_MAX_MODULES);
   memset( decoded_data4, 0, 4*HBD_MAX_MODULES);
@@ -100,12 +109,11 @@ int *Packet_hbd_fpga::decode ( int *nwout)
 
       while ( (k[pos] & 0xF0002000) ==  0x40002000 )  // we have a first adc
 	{
-	  int adc        =  ( k[pos] & 0xfff);  
-	  int clockphase = (( k[pos] >>12 ) & 0x1);
-	  int firstadc   = (( k[pos] >>13 ) & 0x1);
+	  int adc          =  ( k[pos] & 0xfff);
+	  int clockphase   = (( k[pos] >>12 ) & 0x1);
 	  int f_channr     = (( k[pos] >>16 ) & 0x3f);
 	  int f_modnr      = (( k[pos] >>22 ) & 0x3);
-	  int slot = 48*12*f_modnr + 12*f_channr ; 
+	  int slot = 48*HBD_NSAMPLES*f_modnr + HBD_NSAMPLES*f_channr ; 
 	  //std::cout <<  pos << "  " << std::hex << k[pos] << std::dec 
 	  //	    << "   " << f_modnr << "  " << f_channr  << "  "
 	  //	    << firstadc  << "  "<< clockphase  << "  "<< adc <<  "  " << slot << std::endl;
@@ -137,7 +145,7 @@ int *Packet_hbd_fpga::decode ( int *nwout)
 	  pos++;
 	}
     }
-  *nwout = 48 * 12 * HBD_MAX_MODULES;
+  *nwout = 48 * HBD_NSAMPLES * HBD_MAX_MODULES;
   return iarr;
 
 }
@@ -145,8 +153,8 @@ int *Packet_hbd_fpga::decode ( int *nwout)
 
 int  Packet_hbd_fpga::iValue(const int ich, const int is)
 {
-  if (ich < 0 || ich >= nr_modules *12*48) return 0;
-  if (is < 0 || is >= 12) return 0;
+  if (ich < 0 || ich >= nr_modules *HBD_NSAMPLES*48) return 0;
+  if (is < 0 || is >= HBD_NSAMPLES) return 0;
 
   if (decoded_data1 == NULL )
     {
@@ -154,7 +162,7 @@ int  Packet_hbd_fpga::iValue(const int ich, const int is)
 	return 0;
     }
 
-  return decoded_data1[ich*12 + is]; 
+  return decoded_data1[ich*HBD_NSAMPLES + is]; 
 }
 
 // ------------------------------------------------------
@@ -245,7 +253,7 @@ void Packet_hbd_fpga::dump ( OSTREAM &os)
   for (i = 0; i < iValue(0,"NRMODULES") * 48 ; i++)
     {
       os << std::setw(5) << i << " | " ;
-      for ( j = 0; j < 12; j++)
+      for ( j = 0; j < HBD_NSAMPLES; j++)
 	{
 	  os <<  std::setw(5) << iValue(i,j);
 	} 

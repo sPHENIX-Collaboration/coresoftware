@@ -4,37 +4,28 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
+
 
 #include "fileEventiterator.h"
 #include "testEventiterator.h"
 #include "listEventiterator.h"
-
-#ifndef WIN32
-#include <unistd.h>
-#ifndef OSF1
-#endif
+#include "rcdaqEventiterator.h"
 #include "ogzBuffer.h"
 #include "olzoBuffer.h"
 #include "oamlBuffer.h"
-#else
 #include "oBuffer.h"
-#endif
-
 #include "dpipe_filter.h"
 
 #include "phenixTypes.h"
 #include "oEvent.h"
-#include <stdio.h>
+#include "stdio.h"
 #include "EventTypes.h"
 #ifdef HAVE_GETOPT_H
-#ifndef WIN32
-#include "getopt.h"
-#else
-#include "win_getopt.h"
-#endif
+#include <getopt.h>
 #endif
 
-#define ETEVENTITERATOR 1
+#define RCDAQEVENTITERATOR 1
 #define FILEEVENTITERATOR 2
 #define TESTEVENTITERATOR 3
 #define ETPOOL 4
@@ -127,7 +118,6 @@ void exithelp()
 // get at it in the signal handler) 
 Eventiterator *it;
 
-int we_use_et;
 
 char *sharedlib;
 int load_lib = 0;
@@ -172,7 +162,6 @@ main(int argc, char *argv[])
   int lzocompress = 0;
   int eventnumber =0;
   int countnumber =0;
-  we_use_et = 0;
   void *voidpointer;
 
 
@@ -210,7 +199,7 @@ main(int argc, char *argv[])
 	case 's':
 	  if ( *optarg == 'T' ) sourcetype = TESTEVENTITERATOR;
 	  else if ( *optarg == 'f' ) sourcetype = FILEEVENTITERATOR;
-	  else if ( *optarg == 'e' ) sourcetype = ETEVENTITERATOR;
+	  else if ( *optarg == 'r' ) sourcetype = RCDAQEVENTITERATOR;
 	  else if ( *optarg == 'l' ) sourcetype = LISTEVENTITERATOR;
 	  else  exitmsg();
 	  break;
@@ -220,7 +209,6 @@ main(int argc, char *argv[])
 	  if ( *optarg == 'd' ) destinationtype = ETPOOL;
 	  else if ( *optarg == 'f' ) destinationtype = DFILE;
 	  else if ( *optarg == 'n' ) destinationtype = DNULL;
-	  else if ( *optarg == 'e' ) destinationtype = ETPOOL;
 	  else if ( *optarg == 'a' ) destinationtype = OAML;
 	  else exitmsg();
 	  break;
@@ -359,6 +347,10 @@ main(int argc, char *argv[])
   // see if we can open the file
   switch (sourcetype)
     {
+    case RCDAQEVENTITERATOR:
+      it = new rcdaqEventiterator(argv[optind], status);
+      break;
+
     case  TESTEVENTITERATOR:
       
       it = new testEventiterator();
@@ -366,19 +358,12 @@ main(int argc, char *argv[])
       break;
 
     case  FILEEVENTITERATOR:
-#ifndef WIN32
       it = new fileEventiterator(argv[optind], status);
-#else
-      //      COUT <<  " filename  is " << pszParam << std::endl;      
-      it = new fileEventiterator(pszParam, status);
-#endif
       break;
        
-#ifndef WIN32
     case  LISTEVENTITERATOR:
       it = new listEventiterator(argv[optind], status);
       break;
-#endif
        
     default:
       exitmsg();
@@ -401,10 +386,11 @@ main(int argc, char *argv[])
     {
       //	identify = 1;
     }
+
   else if (  destinationtype == DFILE)
     {
       buffer = new PHDWORD [buffer_size];
-#ifndef WIN32
+
       unlink (argv[optind+1]);
  
       fd = open (argv[optind+1], O_WRONLY | O_CREAT | O_EXCL | O_LARGEFILE , 
@@ -427,17 +413,6 @@ main(int argc, char *argv[])
 	{
 	  ob = new oBuffer (fd, buffer, buffer_size);
 	}
-#else
-      chOpt = GetOption(argc, argv, "e:c:s:d:n:w:vhiz", &pszParam);
-      int status;
-      ob = new oBuffer (pszParam, buffer, buffer_size, status);
-      if (status)
-	{
-	  exit(1);
-	}
-#endif
-
-
 
     }
 
@@ -528,18 +503,15 @@ main(int argc, char *argv[])
   return 0;
 }
 
-#ifndef WIN32
 #if defined(SunOS) || defined(Linux) || defined(OSF1) 
 void sig_handler(int i)
 #else
   void sig_handler(...)
 #endif
 {
-  COUT << "sig_handler: signal seen " << std::endl;
   if (it) delete it;
-
   exit(0);
 }
-#endif
+
 
   

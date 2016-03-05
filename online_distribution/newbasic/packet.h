@@ -6,12 +6,7 @@
 
 #include "event_io.h"
 
-#ifdef WINDOWS
-#include "stdafx.h"
-#define WINDOWSEXPORT __declspec(dllexport)
-#else
 #define WINDOWSEXPORT
-#endif
 
 // --------------------------------------------------
 // the virtual base base class for all Packets.

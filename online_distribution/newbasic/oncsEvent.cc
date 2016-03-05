@@ -7,6 +7,8 @@
 oncsEvent::oncsEvent (int *data)
 { 
   is_data_type = 0;
+  hasMap = 0;
+  errorcode = 0;
   EventData = (oncsevtdata_ptr) data;
 }
 
@@ -100,12 +102,26 @@ int oncsEvent::is_pointer_type() const
 Packet* 
 oncsEvent::getPacket (const int id, const int hitFormat)
 {
-  return getPacket (id);
+  PHDWORD *pp;
+
+  if (!hasMap) createMap();
+
+  if ( errorcode) return 0;
+
+  pp = pmap[id];
+  if (!pp) return 0;
+
+  return makePacket(pp,hitFormat);
+
 }
 
-// getSubevent (int)
 Packet* 
 oncsEvent::getPacket (const int id)
+{
+  return getPacket (id, 0);
+}
+
+int oncsEvent::createMap()
 {
   int i;
   subevtdata_ptr sevt_ptr;
@@ -116,7 +132,6 @@ oncsEvent::getPacket (const int id)
 
   for (i=0; i<datalength; i+=  EventData->data[i])
     { 
-
       // each data[i] is the start of a subevent;
       // we map it on a subevent_ptr
 
@@ -125,299 +140,153 @@ oncsEvent::getPacket (const int id)
       // now we see what type of subevent we are supposed
       // to return
 
-      if ( sevt_ptr->sub_id == id) 
-	{
-	  switch ( sevt_ptr->sub_decoding )
-	    {
-	    case (ID4EVT):
-	      return new 
-		oncsSub_id4evt( sevt_ptr);
-	      break;
-      
-	    case (ID2EVT):
-	      return new 
-		oncsSub_id2evt( sevt_ptr );
-	      break;
-      
-	    case (IDCSTR):
-	      return new 
-		oncsSub_idcstr( sevt_ptr );
-	      break;
-      
-	    case (IDHAMMOND):
-	      return new 
-		oncsSub_idhammond( sevt_ptr );
-	      break;
-      
-	    case (IDSAM):
-	      return new 
-		oncsSub_idsam( sevt_ptr );
-	      break;
-      
-	    case (IDDCFEM):
-	      return new 
-		oncsSub_iddcfem( sevt_ptr );
-	      break;
-
-	    case (IDTECFEM):
-	      return new 
-		oncsSub_idtecfem( sevt_ptr );
-	      break;
-      
-	    case (IDMIZNHC):
-	      return new 
-		oncsSub_idmiznhc( sevt_ptr );
-	      break;
-      
-	    case (IDSIS3300):
-	      return new 
-		oncsSub_idsis3300( sevt_ptr );
-	      break;
-      
-	    case (IDSIS3300R):
-	      return new 
-		oncsSub_idsis3300r( sevt_ptr );
-	      break;
-      
-	    case (IDCAENV792):
-	      return new 
-		oncsSub_idcaenv792( sevt_ptr );
-	      break;
-      
-	    case (IDCAENV1742):
-	      return new 
-		oncsSub_idcaenv1742( sevt_ptr );
-	      break;
-      
-      	    case (IDFIFOBOARD):
-	      return new 
-		oncsSub_idfifoboard( sevt_ptr );
-	      break;
-      
-      
-      	    case (IDRCPETDATA):
-	      return new 
-		oncsSub_idrcpetdata( sevt_ptr );
-	      break;
-      
-      
-      	    case (IDBSPETDATA):
-	      return new 
-		oncsSub_idbspetdata( sevt_ptr );
-	      break;
-      
-      	    case (IDUPPETDATA):
-	      return new 
-		oncsSub_iduppetdata( sevt_ptr );
-	      break;
-      
-      	    case (IDUPPETDATA_V104):
-	      return new 
-		oncsSub_iduppetdata_v104( sevt_ptr );
-	      break;
-      
-      	    case (IDUPPETPARAMS):
-	      return new 
-		oncsSub_iduppetparams( sevt_ptr );
-	      break;
-      
-      	    case (IDSRSV01):
-	      return new 
-		oncsSub_idsrs_v01( sevt_ptr );
-	      break;
-
-	    case (IDFNALMWPC):
-	      return 
-		new oncsSub_idfnalmwpc( sevt_ptr );
-	      break;
-
-	    case (IDFNALMWPCV2):
-	      return 
-		new oncsSub_idfnalmwpcv2( sevt_ptr );
-	      break;
-
-      	    case (IDDRS4V1):
-	      return new 
-		oncsSub_iddrs4v1( sevt_ptr );
-	      break;
-      
-
-	    default:
-	      switch (sevt_ptr->sub_type)
-		{
-		case 1:
-		  return  new oncsSubevent_w1(sevt_ptr);
-		  break;
-		case 2:
-		  return new oncsSubevent_w2(sevt_ptr);
-		  break;
-		case 4:
-		  return new oncsSubevent_w4(sevt_ptr);
-		  break;
-		default:
-		  return new oncsSubevent_w4(sevt_ptr); 
-		}
-	      
-	      return 0;
-	    }
-	}
+      pmap[sevt_ptr->sub_id] = (PHDWORD *) &EventData->data[i];
+      //      std::cout << __FILE__ << "  " << __LINE__ << " subid, adr " << sevt_ptr->sub_id << "  " << pmap[sevt_ptr->sub_id] << "  " << *(pmap[sevt_ptr->sub_id]) << std::endl;
     }
+  hasMap = 1;
+
   return 0;
 }
 
-int 
-oncsEvent::getPacketList( Packet* sl[], const int ne)
+Packet *oncsEvent::makePacket(PHDWORD *pp, const int hitFormat)	
 {
-  int i,entries;
-  subevtdata_ptr sevt_ptr;
+  int wanted_hitformat;
 
-  int  datalength = EventData->evt_length - EVTHEADERLENGTH;
+  subevtdata_ptr sevt_ptr = (subevtdata_ptr) pp;
 
-  entries = 0;
-  // loop through the subevents and see if we locate the id
+  if (hitFormat)  wanted_hitformat = hitFormat;
+  else wanted_hitformat  = sevt_ptr->sub_decoding;
 
-  for (i=0; i<datalength; i+=  EventData->data[i])
-    { 
+  switch (wanted_hitformat)
+    {
 
-      // each data[i] is the start of a subevent;
-      // we map it on a subevent_ptr
-
-      sevt_ptr = (subevtdata_ptr) &EventData->data[i];
-      switch ( sevt_ptr->sub_decoding )
-	{
-	case (ID4EVT):
-	  sl[entries++] = 
-	    new oncsSub_id4evt( sevt_ptr);
-	  break;
-
-	case (ID2EVT):
-	  sl[entries++] = 
-	    new oncsSub_id2evt( sevt_ptr );
-	  break;
-      
-	case (IDCSTR):
-	  sl[entries++] = 
-	    new oncsSub_idcstr( sevt_ptr );
-	  break;
-      
-	case (IDHAMMOND):
-	  sl[entries++] = 
-	    new oncsSub_idhammond( sevt_ptr );
-	  break;
-	  
-	case (IDSAM):
-	  sl[entries++] = 
-	    new oncsSub_idsam( sevt_ptr );
-	  break;
-	  
-
-	case (IDDCFEM):
-	  sl[entries++] = 
-	    new oncsSub_iddcfem( sevt_ptr );
-	  break;
-
-	case (IDTECFEM):
-	  sl[entries++] = 
-	    new oncsSub_idtecfem( sevt_ptr );
-	  break;
-      
-	case (IDMIZNHC):
-	  sl[entries++] = 
-	    new oncsSub_idmiznhc( sevt_ptr );
-	  break;
-      
-
-	case (IDSIS3300):
-	  sl[entries++] = 
-	    new oncsSub_idsis3300( sevt_ptr );
-	  break;
-
-	case (IDSIS3300R):
-	  sl[entries++] = 
-	    new oncsSub_idsis3300r( sevt_ptr );
-	  break;
-
-	case (IDCAENV792):
-	  sl[entries++] = 
-	    new oncsSub_idcaenv792( sevt_ptr );
-	  break;
-      
-	case (IDCAENV1742):
-	  sl[entries++] = 
-	    new oncsSub_idcaenv1742( sevt_ptr );
-	  break;
-      
-	case (IDFIFOBOARD):
-	  sl[entries++] = 
-	    new oncsSub_idfifoboard( sevt_ptr );
-	  break;
-      
-	case (IDRCPETDATA):
-	  sl[entries++] = 
-	    new oncsSub_idrcpetdata( sevt_ptr );
-	  break;
-      
-	case (IDBSPETDATA):
-	  sl[entries++] = 
-	    new oncsSub_idbspetdata( sevt_ptr );
-	  break;
-            
-	case (IDUPPETDATA):
-	  sl[entries++] = 
-	    new oncsSub_iduppetdata( sevt_ptr );
-	  break;
-            
-	case (IDUPPETDATA_V104):
-	  sl[entries++] = 
-	    new oncsSub_iduppetdata_v104( sevt_ptr );
-	  break;
-            
-	case (IDUPPETPARAMS):
-	  sl[entries++] = 
-	    new oncsSub_iduppetparams( sevt_ptr );
-	  break;
-            
-	case (IDSRSV01):
-	  sl[entries++] = 
-	    new oncsSub_idsrs_v01( sevt_ptr );
-	  break;
-
-	case (IDFNALMWPC):
-	  sl[entries++] = 
-	    new oncsSub_idfnalmwpc( sevt_ptr );
-	  break;
-
-	case (IDFNALMWPCV2):
-	  sl[entries++] = 
-	    new oncsSub_idfnalmwpcv2( sevt_ptr );
-	  break;
-
-	case (IDDRS4V1):
-	  sl[entries++] = 
-	    new oncsSub_iddrs4v1( sevt_ptr );
-	  break;
-
-	default:
-
+    case (ID4EVT):
+      return new 
+	oncsSub_id4evt( sevt_ptr);
+      break;
+	
+    case (ID2EVT):
+      return new 
+	oncsSub_id2evt( sevt_ptr );
+      break;
+	
+    case (IDCSTR):
+      return new 
+	oncsSub_idcstr( sevt_ptr );
+      break;
+	
+    case (IDSIS3300):
+      return new 
+	oncsSub_idsis3300( sevt_ptr );
+      break;
+	
+    case (IDSIS3300R):
+      return new 
+	oncsSub_idsis3300r( sevt_ptr );
+      break;
+	
+    case (IDCAENV792):
+      return new 
+	oncsSub_idcaenv792( sevt_ptr );
+      break;
+	
+    case (IDCAENV1742):
+      return new 
+	oncsSub_idcaenv1742( sevt_ptr );
+      break;
+	
+	
+    case (IDRCPETDATA):
+      return new 
+	oncsSub_idrcpetdata( sevt_ptr );
+      break;
+	
+	
+    case (IDBSPETDATA):
+      return new 
+	oncsSub_idbspetdata( sevt_ptr );
+      break;
+	
+    case (IDUPPETDATA):
+      return new 
+	oncsSub_iduppetdata( sevt_ptr );
+      break;
+	
+    case (IDUPPETDATA_V104):
+      return new 
+	oncsSub_iduppetdata_v104( sevt_ptr );
+      break;
+	
+    case (IDUPPETPARAMS):
+      return new 
+	oncsSub_iduppetparams( sevt_ptr );
+      break;
+	
+    case (IDSRSV01):
+      return new 
+	oncsSub_idsrs_v01( sevt_ptr );
+      break;
+	
+    case (IDFNALMWPC):
+      return 
+	new oncsSub_idfnalmwpc( sevt_ptr );
+      break;
+	
+    case (IDFNALMWPCV2):
+      return 
+	new oncsSub_idfnalmwpcv2( sevt_ptr );
+      break;
+	
+    case (IDDRS4V1):
+      return new 
+	oncsSub_iddrs4v1( sevt_ptr );
+      break;
+	
+	
+    default:
       switch (sevt_ptr->sub_type)
 	{
 	case 1:
-	  sl[entries++] = new oncsSubevent_w1(sevt_ptr);
+	  return  new oncsSubevent_w1(sevt_ptr);
 	  break;
 	case 2:
-	  sl[entries++] = new oncsSubevent_w2(sevt_ptr);
+	  return new oncsSubevent_w2(sevt_ptr);
 	  break;
 	case 4:
-	  sl[entries++] = new oncsSubevent_w4(sevt_ptr);
+	  return new oncsSubevent_w4(sevt_ptr);
 	  break;
 	default:
-	  sl[entries++]= new oncsSubevent_w4(sevt_ptr); 
+	  return new oncsSubevent_w4(sevt_ptr); 
 	}
-
-
-	}
-
+	
+      return 0;
     }
+  
+  return 0;
+}
+
+
+int oncsEvent::getPacketList( Packet* sl[], const int ne)
+{
+
+
+  if (!hasMap) createMap();
+  if ( errorcode) return 0;
+
+  std::map <int, PHDWORD *>::const_iterator it;
+
+
+  int entries = 0;
+
+  for ( it = pmap.begin() ; it != pmap.end(); ++it)
+    {
+      if ( entries == ne) break;
+      PHDWORD *p = it->second;
+      //std::cout << __FILE__ << "  " << __LINE__ << " subid, adr " << it->first << "  " << it->second << "  " << *(it->second) << std::endl;
+
+      sl[entries++] = makePacket(p);
+    }
+
   return entries;
 }
 

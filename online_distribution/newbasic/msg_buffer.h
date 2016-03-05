@@ -4,7 +4,6 @@
 
 
 #include "event_io.h"
-#include "msg_control.h"
 
 #ifdef __CINT__
 #include <iostream>
@@ -22,6 +21,7 @@
 #endif
 
 
+#include "msg_control.h"
 
 // if we find that our buffer is too small, we extend it
 // by this amount.

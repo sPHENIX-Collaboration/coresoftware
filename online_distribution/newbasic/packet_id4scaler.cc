@@ -92,6 +92,34 @@ int Packet_id4scaler::iValue(const int channel,const char *what)
   return 0;
 }
 
+long long  Packet_id4scaler::lValue(const int channel, const char *what)
+{
+  if (strcmp(what,"BEAMCLOCK") == 0 || strcmp(what,"BCLCK") == 0)  // "BCLCK" because it's standard for other packets 
+    {			
+
+      unsigned int *k = (unsigned int *) findPacketDataStart(packet);
+      if (k == 0) 
+	{
+	  return 0;
+	}
+
+
+
+#ifdef WIN32 
+      ULONGLONG beamclock = k[0];
+#else
+      unsigned long long beamclock = k[0];
+#endif
+
+      beamclock <<=32;
+      beamclock += k[1];
+
+      std::cout << std::hex << k[0] << "  " << k[1] << "  " << beamclock << std::dec<< std::endl;
+      return beamclock;
+    }
+
+  return 0;
+}
 
 
 void Packet_id4scaler::dump ( OSTREAM& os) 
@@ -104,20 +132,9 @@ void Packet_id4scaler::dump ( OSTREAM& os)
       return;
     }
 
-#ifdef WIN32 
-  ULONGLONG *beamclock = (ULONGLONG  * ) k;
-  os << "Beamclock " << std::hex << (ULONG) *beamclock << std::dec << std::endl;
-#else
-  unsigned long long *beamclock = ( unsigned long long * ) k;
-  os << "Beamclock " << std::hex <<  *beamclock << std::dec << std::endl;
-#endif
+  os << "Beamclock " << std::hex << std::setw(16)<< lValue(0,"BEAMCLOCK") << std::dec << std::endl;
 
   int triggermasklength = k[2];
-  int scalerlength = k[3+triggermasklength];
-  int rawIndex    = 3+triggermasklength +1;
-  int lifeIndex   = rawIndex + scalerlength;
-  int scaledIndex = lifeIndex + scalerlength;
-  int stringIndex = scaledIndex + scalerlength;
 
   for (i=0; i< triggermasklength ; i++)
     {
@@ -136,11 +153,10 @@ void Packet_id4scaler::dump ( OSTREAM& os)
     }
 
   os << "time string: ";
-  char *c = (char *)  &k[stringIndex+1];
-  for ( i = 0; i< k[stringIndex]; i++)
-    {
-      os << *c++;
-    }
+  i = 0;
+  char c;
+  while ( (c =  iValue(i++,"TIMESTRING")) ) os << c;
+
 
   os << std::endl;
 }
