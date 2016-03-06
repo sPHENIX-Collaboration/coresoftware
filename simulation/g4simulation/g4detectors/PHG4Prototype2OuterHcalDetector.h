@@ -60,7 +60,6 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   protected:
   void AddGeometryNode();
   int ConstructOuterHcal(G4LogicalVolume* sandwich);
-  int ConstructOuterHcal1(G4LogicalVolume* sandwich);
   int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
   PHG4Parameters *params;
   G4LogicalVolume *outerhcalsteelplate;
