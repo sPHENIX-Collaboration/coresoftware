@@ -20,7 +20,6 @@ case "$host" in
   *-*-osf*)
     CPPFLAGS="$CPPFLAGS -DOSF1 -D_BSD"
     LIBS="-lm"
-    ETLIB=
     AC_ENABLE_STATIC(no)
     AC_ENABLE_SHARED(yes)
   ;;
@@ -52,10 +51,9 @@ dnl  CXXFLAGS="+p -mt -g -xildoff"
   ;;
 esac
 
-AM_INIT_AUTOMAKE(Event.h,1.00)
+AM_INIT_AUTOMAKE(Event,1.00)
 
 AC_PROG_INSTALL
-AC_SUBST(ETLIB)
 
 AC_PROG_LIBTOOL
 
