@@ -56,6 +56,7 @@ PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNod
   PHG4Detector(Node, dnam),
   params(parameters),
   outerhcalsteelplate(NULL),
+  outerhcalassembly(NULL),
   inner_radius(1830*mm),
   outer_radius(2685*mm),
   steel_x(823.*mm),
@@ -85,7 +86,7 @@ PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNod
   active(params->get_int_param("active")),
   absorberactive(params->get_int_param("absorberactive")),
   layer(0),
-  scintilogicnameprefix("HcalInnerScinti")
+  scintilogicnameprefix("OuterHcalScintiMother")
 {
 
   // allocate memory for scintillator plates
@@ -110,10 +111,13 @@ PHG4Prototype2OuterHcalDetector::IsInPrototype2OuterHcal(G4VPhysicalVolume * vol
   // 82 the number of the scintillator mother volume
   // HcalInnerScinti_11: name of scintillator slat
   // 11: number of scintillator slat logical volume
+  cout << "volume name: " << volume->GetName() << endl;
   if (absorberactive)
     {
-      if (steel_absorber_vec.find(volume) != steel_absorber_vec.end())
+      if (volume->GetName().find("OuterHcalSteelPlate") != string::npos)
+	//       if (steel_absorber_vec.find(volume) != steel_absorber_vec.end())
 	{
+	  cout << "absorber" << endl;
 	  return -1;
 	}
     }
@@ -121,6 +125,7 @@ PHG4Prototype2OuterHcalDetector::IsInPrototype2OuterHcal(G4VPhysicalVolume * vol
     {
       if (volume->GetName().find(scintilogicnameprefix) != string::npos)
 	{
+	  cout << "scitni" << endl;
 	  return 1;
 	}
     }
@@ -284,11 +289,16 @@ PHG4Prototype2OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
   hcal_rotm.rotateY(params->get_double_param("rot_y")*deg);
   hcal_rotm.rotateZ(params->get_double_param("rot_z")*deg);
   //  new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(0,0,0)), hcal_envelope_log, "OuterHcalEnvelope", logicWorld, 0, false, overlapcheck);
-  new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(params->get_double_param("place_x")*cm, params->get_double_param("place_y")*cm, params->get_double_param("place_z")*cm)), hcal_envelope_log, "OuterHcalEnvelope", logicWorld, 0, false, overlapcheck);
+
+  //     new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(params->get_double_param("place_x")*cm, params->get_double_param("place_y")*cm, params->get_double_param("place_z")*cm)), hcal_envelope_log, "OuterHcalEnvelope", logicWorld, 0, false, overlapcheck);
+  G4ThreeVector g4vec(0,0,0);
+  G4RotationMatrix *RotA = new G4RotationMatrix();
+  outerhcalassembly = new G4AssemblyVolume();
   //ConstructSteelScintiVolume(hcal_envelope_log);
   //ConstructSteelPlate(hcal_envelope_log);
   //ConstructScintiTile_1(hcal_envelope_log);
   ConstructOuterHcal(hcal_envelope_log);
+  outerhcalassembly->MakeImprint(logicWorld,g4vec,RotA,0,overlapcheck);
   //  AddGeometryNode();
   return;
 }
@@ -330,7 +340,11 @@ double scintiangle =   GetScintiAngle();
 	name << "OuterHcalSteel_" << i;
 	G4RotationMatrix *Rot = new G4RotationMatrix();
 	Rot->rotateZ(-phi*rad);
-	steel_absorber_vec.insert(new G4PVPlacement(Rot, G4ThreeVector(0,0,0), steel_plate, name.str().c_str(), hcalenvelope, false, 0, overlapcheck));
+	//       	steel_absorber_vec.insert(new G4PVPlacement(Rot, G4ThreeVector(0,0,0), steel_plate, name.str().c_str(), hcalenvelope, false, 0, overlapcheck));
+	Rot = new G4RotationMatrix();
+	Rot->rotateZ(phi*rad);
+	G4ThreeVector g4vec(0,0,0);
+        outerhcalassembly->AddPlacedVolume(steel_plate,g4vec,Rot);
 	if (i > 0)
 	  {
 	    double ypos = sin(phi+philow) * middlerad;
@@ -343,9 +357,13 @@ double scintiangle =   GetScintiAngle();
 	    name.str("");
 	    name << "OuterHcalScintiBox_" << i;
 	    Rot = new G4RotationMatrix();
-	    Rot->rotateZ(-scintiangle-phislat);
+	    Rot->rotateZ(scintiangle+phislat);
 	    G4ThreeVector g4vec(xpos, ypos, 0);
-	    new G4PVPlacement(Rot, G4ThreeVector(xpos,ypos,0), scintibox, name.str().c_str(), hcalenvelope, false, 0, overlapcheck);
+
+            outerhcalassembly->AddPlacedVolume(scintibox,g4vec,Rot);
+	    // Rot = new G4RotationMatrix();
+	    // Rot->rotateZ(-scintiangle-phislat);
+	    // 	    new G4PVPlacement(Rot, G4ThreeVector(xpos,ypos,0), scintibox, name.str().c_str(), hcalenvelope, false, 0, overlapcheck);
 	    phislat += deltaphi;
 	  }
       phi += deltaphi;
