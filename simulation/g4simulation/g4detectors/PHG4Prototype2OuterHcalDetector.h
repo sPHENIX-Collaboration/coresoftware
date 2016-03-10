@@ -51,10 +51,9 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
 
   G4LogicalVolume* ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
   G4LogicalVolume* ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
-  G4VSolid* ConstructScintiTile_1(G4LogicalVolume* hcalenvelope);
+  G4LogicalVolume* ConstructScintiTileU1(G4LogicalVolume* hcalenvelope);
+  G4LogicalVolume* ConstructScintiTileU2(G4LogicalVolume* hcalenvelope);
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
-  void ConstructHcalSingleScintillators(G4LogicalVolume* hcalenvelope);
-  G4LogicalVolume* ConstructSteelScintiVolume(G4LogicalVolume* hcalenvelope);
   double GetScintiAngle();
 
   protected:
@@ -66,6 +65,7 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   G4AssemblyVolume *outerhcalassembly;
   double inner_radius;
   double outer_radius;
+  double scinti_x;
   double steel_x;
   double steel_yhi;
   double steel_ylo;
@@ -78,6 +78,7 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   double scinti_tile_x_upper;
   double scinti_tile_z;
   double scinti_tile_thickness;
+  double gap_between_tiles;
   double scinti_gap;
   double tilt_angle;
   double envelope_inner_radius;
