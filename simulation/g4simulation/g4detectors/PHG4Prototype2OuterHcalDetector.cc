@@ -52,6 +52,10 @@ PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNod
   params(parameters),
   outerhcalsteelplate(NULL),
   outerhcalassembly(NULL),
+  steel_plate_corner_upper_left(1777.6*mm,-433.5*mm),
+  steel_plate_corner_upper_right(2600.4*mm,-417.4*mm), 
+  steel_plate_corner_lower_right(2601.2*mm,-459.8*mm),
+  steel_plate_corner_lower_left(1770.9*mm,-459.8*mm),
   inner_radius(1830*mm),
   outer_radius(2685*mm),
   scinti_x(828.9),
@@ -59,9 +63,10 @@ PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNod
   steel_yhi(42.5*mm),
   steel_ylo(26.2*mm),
   steel_z(1600.*mm),
-  bottom_xmiddle_steel_tile((2601.2*mm-1777.6*mm)/2.+1777.6*mm),
+  //  bottom_xmiddle_steel_tile((2601.2*mm-1777.6*mm)/2.+1777.6*mm),
+  bottom_xmiddle_steel_tile((steel_plate_corner_lower_right.x()-steel_plate_corner_lower_left.x())/2.+steel_plate_corner_lower_left.x()),
   //  bottom_ymiddle_steel_tile(-459.8*mm+(steel_yhi+steel_ylo)/4.),
-  bottom_ymiddle_steel_tile(-459.8*mm),
+  bottom_ymiddle_steel_tile(steel_plate_corner_lower_right.y()),
   size_z(1600*mm),
   scinti_tile_z(size_z),
   scinti_tile_thickness(7*mm),
@@ -81,8 +86,6 @@ PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNod
   layer(0),
   scintilogicnameprefix("OuterHcalScintiMother")
 {
-
-  // allocate memory for scintillator plates
 }
 
 //_______________________________________________________________
@@ -133,10 +136,10 @@ PHG4Prototype2OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelo
       G4TwoVector v3(2601.2*mm,-459.8*mm);
       G4TwoVector v4(1770.9*mm,-459.8*mm);
       std::vector<G4TwoVector> vertexes;
-      vertexes.push_back(v1);
-      vertexes.push_back(v2);
-      vertexes.push_back(v3);
-      vertexes.push_back(v4);
+      vertexes.push_back(steel_plate_corner_upper_left);
+      vertexes.push_back(steel_plate_corner_upper_right);
+      vertexes.push_back(steel_plate_corner_lower_right);
+      vertexes.push_back(steel_plate_corner_lower_left);
       G4TwoVector zero(0, 0);
       steel_plate =  new G4ExtrudedSolid("OuterHcalSteelPlateSolid",
 					 vertexes,

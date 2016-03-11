@@ -6,12 +6,10 @@
 #include <g4main/PHG4Detector.h>
 
 #include <Geant4/globals.hh>
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4RotationMatrix.hh>
-
-#include <CGAL/Exact_circular_kernel_2.h>
-#include <CGAL/point_generators_2.h>
+#include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4TwoVector.hh>
+#include <Geant4/G4Types.hh>
 
 #include <map>
 #include <vector>
@@ -24,8 +22,6 @@ class G4VSolid;
 
 class PHG4Prototype2OuterHcalDetector: public PHG4Detector
 {
-typedef CGAL::Exact_circular_kernel_2             Circular_k;
-typedef CGAL::Point_2<Circular_k>                 Point_2;
 
   public:
 
@@ -62,6 +58,10 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   PHG4Parameters *params;
   G4LogicalVolume *outerhcalsteelplate;
   G4AssemblyVolume *outerhcalassembly;
+  G4TwoVector steel_plate_corner_upper_left;
+  G4TwoVector steel_plate_corner_upper_right;
+  G4TwoVector steel_plate_corner_lower_right;
+  G4TwoVector steel_plate_corner_lower_left;
   double inner_radius;
   double outer_radius;
   double scinti_x;
