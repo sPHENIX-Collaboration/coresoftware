@@ -78,6 +78,7 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   double scinti_tile_x_upper;
   double scinti_tile_z;
   double scinti_tile_thickness;
+  double scinti_box_shift;
   double gap_between_tiles;
   double scinti_gap;
   double tilt_angle;

@@ -68,6 +68,7 @@ PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNod
   scinti_tile_x_upper(NAN),
   scinti_tile_z(size_z),
   scinti_tile_thickness(params->get_double_param("scinti_tile_thickness")*cm),
+  scinti_box_shift(1.09*mm),
   gap_between_tiles(1*mm),
   scinti_gap(8.5*mm),
   tilt_angle(12*deg),
@@ -292,32 +293,15 @@ int
 PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
 {
   G4LogicalVolume* steel_plate = ConstructSteelPlate(hcalenvelope); // bottom steel plate
-  G4VisAttributes* visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(false);
-  visattchk->SetColour(G4Colour::Blue());
-  steel_plate->SetVisAttributes(visattchk);
   G4LogicalVolume* scintibox = ConstructScintillatorBox(hcalenvelope);
   double phi = 0.;
   double phislat = 0.;
-  double deltaphi = 2 * M_PI / n_scinti_plates;
-  deltaphi = 2 * M_PI / 320.;
-  cout << "delta phi: " << deltaphi*180/M_PI;
+  double deltaphi = 2 * M_PI / 320;
   ostringstream name;
-  //  double middlerad = outer_radius - (outer_radius - inner_radius) / 2.;
   double middlerad = sqrt(bottom_xmiddle_steel_tile*bottom_xmiddle_steel_tile + bottom_ymiddle_steel_tile * bottom_ymiddle_steel_tile);
-  //  double philow = atan((bottom_ymiddle_steel_tile-scinti_gap/2.)/bottom_xmiddle_steel_tile);
   double philow = atan((bottom_ymiddle_steel_tile-scinti_gap/2.)/bottom_xmiddle_steel_tile);
-  double steelrat = ((steel_yhi + steel_ylo)/2.)/((steel_yhi + steel_ylo)/2. + scinti_gap);
-  //  phi -= deltaphi*steelrat;
-  cout << "philow: " << philow*180./M_PI << endl;
-  //return 0;
-  //phi -= deltaphi;
-  //  phi+= deltaphi;//*steelrat;
-  phi = 0;
-  double shiftslat = 1.09*mm;
-double scintiangle =   GetScintiAngle();
- cout << "scintiangle: " << scintiangle*180./M_PI << endl;
+  double scintiangle = GetScintiAngle();
+  cout << "scintiangle: " << scintiangle*180./M_PI << endl;
      for (int i = 0; i < n_scinti_plates+1; i++)
        //      for (int i = 0; i < 2; i++)
       {
@@ -325,7 +309,6 @@ double scintiangle =   GetScintiAngle();
 	name << "OuterHcalSteel_" << i;
 	G4RotationMatrix *Rot = new G4RotationMatrix();
 	Rot->rotateZ(-phi*rad);
-	//       	steel_absorber_vec.insert(new G4PVPlacement(Rot, G4ThreeVector(0,0,0), steel_plate, name.str().c_str(), hcalenvelope, false, 0, overlapcheck));
 	Rot = new G4RotationMatrix();
 	Rot->rotateZ(phi*rad);
 	G4ThreeVector g4vec(0,0,0);
@@ -337,8 +320,8 @@ double scintiangle =   GetScintiAngle();
 	    // the center of the scintillator is not the center of the inner hcal
 	    // but depends on the tilt angle. Therefore we need to shift
 	    // the center from the mid point
-	    ypos += sin((-tilt_angle)/rad - phi)*shiftslat;
-	    xpos -= cos((-tilt_angle)/rad - phi)*shiftslat;
+	    ypos += sin((-tilt_angle)/rad - phi)*scinti_box_shift;
+	    xpos -= cos((-tilt_angle)/rad - phi)*scinti_box_shift;
 	    name.str("");
 	    name << "OuterHcalScintiBox_" << i;
 	    Rot = new G4RotationMatrix();
@@ -346,9 +329,6 @@ double scintiangle =   GetScintiAngle();
 	    G4ThreeVector g4vec(xpos, ypos, 0);
 
             outerhcalassembly->AddPlacedVolume(scintibox,g4vec,Rot);
-	    // Rot = new G4RotationMatrix();
-	    // Rot->rotateZ(-scintiangle-phislat);
-	    // 	    new G4PVPlacement(Rot, G4ThreeVector(xpos,ypos,0), scintibox, name.str().c_str(), hcalenvelope, false, 0, overlapcheck);
 	    phislat += deltaphi;
 	  }
       phi += deltaphi;
