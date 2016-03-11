@@ -66,11 +66,7 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   double outer_radius;
   double scinti_x;
   double steel_x;
-  double steel_yhi;
-  double steel_ylo;
   double steel_z;
-  double bottom_xmiddle_steel_tile;
-  double bottom_ymiddle_steel_tile;
   double size_z;
   double scinti_tile_z;
   double scinti_tile_thickness;
@@ -78,10 +74,10 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   double gap_between_tiles;
   double scinti_gap;
   double tilt_angle;
-  double envelope_inner_radius;
-  double envelope_outer_radius;
-  double envelope_z;
-  double volume_envelope;
+  /* double envelope_inner_radius; */
+  /* double envelope_outer_radius; */
+  /* double envelope_z; */
+  /* double volume_envelope; */
   double volume_steel;
   double volume_scintillator;
 
