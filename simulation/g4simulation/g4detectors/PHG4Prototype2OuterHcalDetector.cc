@@ -137,17 +137,17 @@ PHG4Prototype2OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelo
       G4TwoVector v2(2600.4*mm,-417.4*mm);
       G4TwoVector v3(2601.2*mm,-459.8*mm);
       G4TwoVector v4(1770.9*mm,-459.8*mm);
-  std::vector<G4TwoVector> vertexes;
-  vertexes.push_back(v1);
-  vertexes.push_back(v2);
-  vertexes.push_back(v3);
-  vertexes.push_back(v4);
-  G4TwoVector zero(0, 0);
-  steel_plate =  new G4ExtrudedSolid("OuterHcalSteelPlateSolid",
-					       vertexes,
-					       size_z  / 2.0,
-					       zero, 1.0,
-					       zero, 1.0);
+      std::vector<G4TwoVector> vertexes;
+      vertexes.push_back(v1);
+      vertexes.push_back(v2);
+      vertexes.push_back(v3);
+      vertexes.push_back(v4);
+      G4TwoVector zero(0, 0);
+      steel_plate =  new G4ExtrudedSolid("OuterHcalSteelPlateSolid",
+					 vertexes,
+					 size_z  / 2.0,
+					 zero, 1.0,
+					 zero, 1.0);
 
       volume_steel = steel_plate->GetCubicVolume()*n_scinti_plates;
       outerhcalsteelplate = new G4LogicalVolume(steel_plate,G4Material::GetMaterial("SS310"),"OuterHcalSteelPlate", 0, 0, 0);
@@ -184,21 +184,21 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcale
   hcalVisAtt->SetColour(G4Colour::Cyan());
   G4LogicalVolume *scintiu2_logic = ConstructScintiTileU2(hcalenvelope);
   scintiu2_logic->SetVisAttributes(hcalVisAtt);
-	G4RotationMatrix *Rot;  
-   Rot = new G4RotationMatrix();  
-   Rot->rotateX(-90*deg);
-   new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-166.2*mm-gap_between_tiles/2.-gap_between_tiles),scintiu2_logic,"OuterScinti_0", scintiboxlogical, false, 0, overlapcheck);
+  G4RotationMatrix *Rot;  
+  Rot = new G4RotationMatrix();  
+  Rot->rotateX(-90*deg);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-166.2*mm-gap_between_tiles/2.-gap_between_tiles),scintiu2_logic,"OuterScinti_0", scintiboxlogical, false, 0, overlapcheck);
 
-   Rot = new G4RotationMatrix();  
-   Rot->rotateX(-90*deg);
-   new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-gap_between_tiles/2.),scintiu1_logic,"OuterScinti_1", scintiboxlogical, false, 0, overlapcheck);
+  Rot = new G4RotationMatrix();  
+  Rot->rotateX(-90*deg);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-gap_between_tiles/2.),scintiu1_logic,"OuterScinti_1", scintiboxlogical, false, 0, overlapcheck);
 
-   Rot = new G4RotationMatrix();  
-   Rot->rotateX(90*deg);
-   new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,gap_between_tiles/2.),scintiu1_logic,"OuterScinti_2", scintiboxlogical, false, 0, overlapcheck);
+  Rot = new G4RotationMatrix();  
+  Rot->rotateX(90*deg);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,gap_between_tiles/2.),scintiu1_logic,"OuterScinti_2", scintiboxlogical, false, 0, overlapcheck);
 
-   Rot = new G4RotationMatrix();  
-   Rot->rotateX(90*deg);
+  Rot = new G4RotationMatrix();  
+  Rot->rotateX(90*deg);
   new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,166.2*mm+gap_between_tiles/2.+gap_between_tiles),scintiu2_logic,"OuterScinti_3", scintiboxlogical, false, 0, overlapcheck);
 
 
@@ -219,10 +219,10 @@ PHG4Prototype2OuterHcalDetector::ConstructScintiTileU1(G4LogicalVolume* hcalenve
   vertexes.push_back(v4);
   G4TwoVector zero(0, 0);
   G4VSolid *scintiu1 =  new G4ExtrudedSolid("OuterHcalScintiU1",
-					       vertexes,
-					       7*mm  / 2.0,
-					       zero, 1.0,
-					       zero, 1.0);
+					    vertexes,
+					    7*mm  / 2.0,
+					    zero, 1.0,
+					    zero, 1.0);
 
   G4LogicalVolume *scintiu1_logic = new G4LogicalVolume(scintiu1,G4Material::GetMaterial("G4_POLYSTYRENE"),"OuterHcalScintiU1", NULL, NULL, NULL);
   //   DisplayVolume(scintiu1,hcalenvelope);
@@ -243,10 +243,10 @@ PHG4Prototype2OuterHcalDetector::ConstructScintiTileU2(G4LogicalVolume* hcalenve
   vertexes.push_back(v4);
   G4TwoVector zero(0, 0);
   G4VSolid *scintiu2 =  new G4ExtrudedSolid("OuterHcalScintiU2",
-					       vertexes,
-					       7*mm  / 2.0,
-					       zero, 1.0,
-					       zero, 1.0);
+					    vertexes,
+					    7*mm  / 2.0,
+					    zero, 1.0,
+					    zero, 1.0);
 
   G4LogicalVolume *scintiu2_logic = new G4LogicalVolume(scintiu2,G4Material::GetMaterial("G4_POLYSTYRENE"),"OuterHcalScintiU2", NULL, NULL, NULL);
   //   DisplayVolume(scintiu2,hcalenvelope);
@@ -302,35 +302,35 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
   double philow = atan((bottom_ymiddle_steel_tile-scinti_gap/2.)/bottom_xmiddle_steel_tile);
   double scintiangle = GetScintiAngle();
   cout << "scintiangle: " << scintiangle*180./M_PI << endl;
-     for (int i = 0; i < n_scinti_plates+1; i++)
-       //      for (int i = 0; i < 2; i++)
-      {
-	name.str("");
-	name << "OuterHcalSteel_" << i;
-	G4RotationMatrix *Rot = new G4RotationMatrix();
-	Rot->rotateZ(-phi*rad);
-	Rot = new G4RotationMatrix();
-	Rot->rotateZ(phi*rad);
-	G4ThreeVector g4vec(0,0,0);
-        outerhcalassembly->AddPlacedVolume(steel_plate,g4vec,Rot);
-	if (i > 0)
-	  {
-	    double ypos = sin(phi+philow) * middlerad;
-	    double xpos = cos(phi+philow) * middlerad;
-	    // the center of the scintillator is not the center of the inner hcal
-	    // but depends on the tilt angle. Therefore we need to shift
-	    // the center from the mid point
-	    ypos += sin((-tilt_angle)/rad - phi)*scinti_box_shift;
-	    xpos -= cos((-tilt_angle)/rad - phi)*scinti_box_shift;
-	    name.str("");
-	    name << "OuterHcalScintiBox_" << i;
-	    Rot = new G4RotationMatrix();
-	    Rot->rotateZ(scintiangle+phislat);
-	    G4ThreeVector g4vec(xpos, ypos, 0);
+  for (int i = 0; i < n_scinti_plates+1; i++)
+    //      for (int i = 0; i < 2; i++)
+    {
+      name.str("");
+      name << "OuterHcalSteel_" << i;
+      G4RotationMatrix *Rot = new G4RotationMatrix();
+      Rot->rotateZ(-phi*rad);
+      Rot = new G4RotationMatrix();
+      Rot->rotateZ(phi*rad);
+      G4ThreeVector g4vec(0,0,0);
+      outerhcalassembly->AddPlacedVolume(steel_plate,g4vec,Rot);
+      if (i > 0)
+	{
+	  double ypos = sin(phi+philow) * middlerad;
+	  double xpos = cos(phi+philow) * middlerad;
+	  // the center of the scintillator is not the center of the inner hcal
+	  // but depends on the tilt angle. Therefore we need to shift
+	  // the center from the mid point
+	  ypos += sin((-tilt_angle)/rad - phi)*scinti_box_shift;
+	  xpos -= cos((-tilt_angle)/rad - phi)*scinti_box_shift;
+	  name.str("");
+	  name << "OuterHcalScintiBox_" << i;
+	  Rot = new G4RotationMatrix();
+	  Rot->rotateZ(scintiangle+phislat);
+	  G4ThreeVector g4vec(xpos, ypos, 0);
 
-            outerhcalassembly->AddPlacedVolume(scintibox,g4vec,Rot);
-	    phislat += deltaphi;
-	  }
+	  outerhcalassembly->AddPlacedVolume(scintibox,g4vec,Rot);
+	  phislat += deltaphi;
+	}
       phi += deltaphi;
     }
   return 0;
