@@ -56,25 +56,31 @@ PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNod
   steel_plate_corner_upper_right(2600.4*mm,-417.4*mm), 
   steel_plate_corner_lower_right(2601.2*mm,-459.8*mm),
   steel_plate_corner_lower_left(1770.9*mm,-459.8*mm),
+  scinti_u1_corner_upper_left(0*mm,0*mm),
+  scinti_u1_corner_upper_right(828.9*mm,0*mm),
+  scinti_u1_corner_lower_right(828.9*mm,-240.54*mm),
+  scinti_u1_corner_lower_left(0*mm,-166.2*mm),
+  scinti_u2_corner_upper_left(0*mm,0*mm),
+  scinti_u2_corner_upper_right(828.9*mm,-74.3*mm),
+  scinti_u2_corner_lower_right(828.9*mm,-320.44*mm),
+  scinti_u2_corner_lower_left(0*mm,-171.0*mm),
   inner_radius(1830*mm),
   outer_radius(2685*mm),
   scinti_x(828.9),
   steel_x(823.*mm),
   steel_z(1600.*mm),
-  size_z(1600*mm),
-  scinti_tile_z(size_z),
+  size_z(steel_z),
+  scinti_tile_z(steel_z),
   scinti_tile_thickness(7*mm),
   scinti_box_shift(1.09*mm), // that was found experimetnally by removing overlaps
   gap_between_tiles(1*mm),
   scinti_gap(8.5*mm),
   tilt_angle(12*deg),
-  // envelope_inner_radius(inner_radius),
-  // envelope_outer_radius(outer_radius),
-  // envelope_z(size_z),
-  // volume_envelope(NAN),
+  deltaphi(2*M_PI/320.),
   volume_steel(NAN),
   volume_scintillator(NAN),
   n_scinti_plates(20),
+  n_steel_plates(n_scinti_plates+1),
   active(params->get_int_param("active")),
   absorberactive(params->get_int_param("absorberactive")),
   layer(0),
@@ -125,10 +131,6 @@ PHG4Prototype2OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelo
   if (!outerhcalsteelplate)
     {
       G4VSolid* steel_plate;
-      G4TwoVector v1(1777.6*mm,-433.5*mm);
-      G4TwoVector v2(2600.4*mm,-417.4*mm);
-      G4TwoVector v3(2601.2*mm,-459.8*mm);
-      G4TwoVector v4(1770.9*mm,-459.8*mm);
       std::vector<G4TwoVector> vertexes;
       vertexes.push_back(steel_plate_corner_upper_left);
       vertexes.push_back(steel_plate_corner_upper_right);
@@ -141,7 +143,7 @@ PHG4Prototype2OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelo
 					 zero, 1.0,
 					 zero, 1.0);
 
-      volume_steel = steel_plate->GetCubicVolume()*n_scinti_plates;
+      volume_steel = steel_plate->GetCubicVolume()*n_steel_plates;
       outerhcalsteelplate = new G4LogicalVolume(steel_plate,G4Material::GetMaterial("SS310"),"OuterHcalSteelPlate", 0, 0, 0);
       G4VisAttributes* visattchk = new G4VisAttributes();
       visattchk->SetVisibility(true);
@@ -200,15 +202,11 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcale
 G4LogicalVolume*
 PHG4Prototype2OuterHcalDetector::ConstructScintiTileU1(G4LogicalVolume* hcalenvelope)
 {
-  G4TwoVector v1(0*mm,0*mm);
-  G4TwoVector v2(828.9*mm,0*mm);
-  G4TwoVector v3(828.9*mm,-240.54*mm);
-  G4TwoVector v4(0*mm,-166.2*mm);
   std::vector<G4TwoVector> vertexes;
-  vertexes.push_back(v1);
-  vertexes.push_back(v2);
-  vertexes.push_back(v3);
-  vertexes.push_back(v4);
+  vertexes.push_back(scinti_u1_corner_upper_left);
+  vertexes.push_back(scinti_u1_corner_upper_right);
+  vertexes.push_back(scinti_u1_corner_lower_right);
+  vertexes.push_back(scinti_u1_corner_lower_left);
   G4TwoVector zero(0, 0);
   G4VSolid *scintiu1 =  new G4ExtrudedSolid("OuterHcalScintiU1",
 					    vertexes,
@@ -224,15 +222,11 @@ PHG4Prototype2OuterHcalDetector::ConstructScintiTileU1(G4LogicalVolume* hcalenve
 G4LogicalVolume*
 PHG4Prototype2OuterHcalDetector::ConstructScintiTileU2(G4LogicalVolume* hcalenvelope)
 {
-  G4TwoVector v1(0*mm,0*mm);
-  G4TwoVector v2(828.9*mm,-74.3*mm);
-  G4TwoVector v3(828.9*mm,-320.44*mm);
-  G4TwoVector v4(0*mm,-171.0*mm);
   std::vector<G4TwoVector> vertexes;
-  vertexes.push_back(v1);
-  vertexes.push_back(v2);
-  vertexes.push_back(v3);
-  vertexes.push_back(v4);
+  vertexes.push_back(scinti_u2_corner_upper_left);
+  vertexes.push_back(scinti_u2_corner_upper_right);
+  vertexes.push_back(scinti_u2_corner_lower_right);
+  vertexes.push_back(scinti_u2_corner_lower_left);
   G4TwoVector zero(0, 0);
   G4VSolid *scintiu2 =  new G4ExtrudedSolid("OuterHcalScintiU2",
 					    vertexes,
@@ -271,7 +265,6 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
   G4LogicalVolume* scintibox = ConstructScintillatorBox(hcalenvelope);
   double phi = 0.;
   double phislat = 0.;
-  double deltaphi = 2 * M_PI / 320;
   ostringstream name;
   // the coordinate of the center of the bottom of the bottom steel plate
   // to get the radius of the circle which is the center of the scintillator box
@@ -280,7 +273,7 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
   double middlerad = sqrt(bottom_xmiddle_steel_tile*bottom_xmiddle_steel_tile + bottom_ymiddle_steel_tile * bottom_ymiddle_steel_tile);
   double philow = atan((bottom_ymiddle_steel_tile-scinti_gap/2.)/bottom_xmiddle_steel_tile);
   double scintiangle = GetScintiAngle();
-  for (int i = 0; i < n_scinti_plates+1; i++)
+  for (int i = 0; i < n_steel_plates; i++)
     //      for (int i = 0; i < 2; i++)
     {
       name.str("");
@@ -314,25 +307,36 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
   return 0;
 }
 
+// calculate the angle of the bottom scintillator. It is the angle of the top edge
+// of the steel plate
 double
 PHG4Prototype2OuterHcalDetector::GetScintiAngle()
 {
-  Point_2 upleft(1777.6*mm,-433.5*mm);
-  Point_2 lefttmp(1900*mm,-433.5*mm);
-  Point_2 upright(2600.4*mm,-417.4*mm);
-  Point_2 downright(2601.2*mm,-459.8*mm);
+  Point_2 upleft(steel_plate_corner_upper_left.x(),steel_plate_corner_upper_left.y());
+  // we just need a horizontal line from the upper left corner for the intersection
+  // with the rear end of the steel plate
+  Point_2 lefttmp(steel_plate_corner_upper_left.x()+200*mm,steel_plate_corner_upper_left.y());
+  Point_2 upright(steel_plate_corner_upper_right.x(),steel_plate_corner_upper_right.y());
+  Point_2 downright(steel_plate_corner_lower_right.x(),steel_plate_corner_lower_right.y());
   Line_2 rightside(upright,downright);
   Line_2 horiz(upleft,lefttmp);
   CGAL::Object result = CGAL::intersection(rightside, horiz);
+  // this point is the intersection of the horizontal line going through the
+  // upper left steel plate cornet with the rear edge of the steel plate
   Point_2 intersect;
   if (const Point_2 *ipoint = CGAL::object_cast<Point_2>(&result))
     {
       intersect = *ipoint;
     }
-  cout << "intersect x: " << CGAL::to_double(intersect.x())
-       << ", y: " <<  CGAL::to_double(intersect.y()) << endl;
-  double lenshort = sqrt((2600.4*mm-CGAL::to_double(intersect.x()))*(2600.4*mm-CGAL::to_double(intersect.x()))+(-417.4*mm-CGAL::to_double(intersect.y()))*(-417.4*mm-CGAL::to_double(intersect.y())));
-  double lenup = sqrt((1777.6*mm-2600.4*mm)*(1777.6*mm-2600.4*mm) + (-433.5*mm + 417.4*mm)* (-433.5*mm + 417.4*mm));
+  // length of rear edge of steel plate from upper right corner to intersection point
+  double lenshort = sqrt((steel_plate_corner_upper_right.x()-CGAL::to_double(intersect.x()))
+                        *(steel_plate_corner_upper_right.x()-CGAL::to_double(intersect.x()))
+		       + (steel_plate_corner_upper_right.y()-CGAL::to_double(intersect.y()))
+                        *(steel_plate_corner_upper_right.y()-CGAL::to_double(intersect.y())));
+  double lenup = sqrt((steel_plate_corner_upper_right.x() - steel_plate_corner_upper_left.x())
+                     *(steel_plate_corner_upper_right.x() - steel_plate_corner_upper_left.x())
+		    + (steel_plate_corner_upper_right.y() - steel_plate_corner_upper_left.y())
+		      *(steel_plate_corner_upper_right.y() - steel_plate_corner_upper_left.y()));
   double angle = asin(lenshort/lenup);
   return angle;
 }
@@ -413,7 +417,7 @@ PHG4Prototype2OuterHcalDetector::AddGeometryNode()
 void
 PHG4Prototype2OuterHcalDetector::Print(const string &what) const
 {
-  cout << "Inner Hcal Detector:" << endl;
+  cout << "Outer Hcal Detector:" << endl;
   if (what == "ALL" || what == "VOLUME")
     {
       cout << "Volume Steel: " << volume_steel/cm/cm/cm << " cm^3" << endl;

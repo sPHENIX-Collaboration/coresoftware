@@ -62,6 +62,14 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   G4TwoVector steel_plate_corner_upper_right;
   G4TwoVector steel_plate_corner_lower_right;
   G4TwoVector steel_plate_corner_lower_left;
+  G4TwoVector scinti_u1_corner_upper_left;
+  G4TwoVector scinti_u1_corner_upper_right;
+  G4TwoVector scinti_u1_corner_lower_right;
+  G4TwoVector scinti_u1_corner_lower_left;
+  G4TwoVector scinti_u2_corner_upper_left;
+  G4TwoVector scinti_u2_corner_upper_right;
+  G4TwoVector scinti_u2_corner_lower_right;
+  G4TwoVector scinti_u2_corner_lower_left;
   double inner_radius;
   double outer_radius;
   double scinti_x;
@@ -74,14 +82,12 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   double gap_between_tiles;
   double scinti_gap;
   double tilt_angle;
-  /* double envelope_inner_radius; */
-  /* double envelope_outer_radius; */
-  /* double envelope_z; */
-  /* double volume_envelope; */
+  double deltaphi;
   double volume_steel;
   double volume_scintillator;
 
   int n_scinti_plates;
+  int n_steel_plates;
 
   int active;
   int absorberactive;
@@ -89,7 +95,6 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   int layer;
   std::string detector_type;
   std::string superdetector;
-  std::set<G4VPhysicalVolume *>steel_absorber_vec;
   std::string scintilogicnameprefix;
 };
 
