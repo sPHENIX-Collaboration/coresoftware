@@ -63,12 +63,9 @@ PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNod
   //  bottom_ymiddle_steel_tile(-459.8*mm+(steel_yhi+steel_ylo)/4.),
   bottom_ymiddle_steel_tile(-459.8*mm),
   size_z(1600*mm),
-  scinti_tile_x(NAN),
-  scinti_tile_x_lower(NAN),
-  scinti_tile_x_upper(NAN),
   scinti_tile_z(size_z),
-  scinti_tile_thickness(params->get_double_param("scinti_tile_thickness")*cm),
-  scinti_box_shift(1.09*mm),
+  scinti_tile_thickness(7*mm),
+  scinti_box_shift(1.09*mm), // that was found experimetnally by removing overlaps
   gap_between_tiles(1*mm),
   scinti_gap(8.5*mm),
   tilt_angle(12*deg),
@@ -79,7 +76,6 @@ PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNod
   volume_steel(NAN),
   volume_scintillator(NAN),
   n_scinti_plates(20),
-  n_scinti_tiles(params->get_int_param("n_scinti_tiles")),
   active(params->get_int_param("active")),
   absorberactive(params->get_int_param("absorberactive")),
   layer(0),
@@ -87,7 +83,6 @@ PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNod
 {
 
   // allocate memory for scintillator plates
-  scinti_tiles_vec.assign(2 * n_scinti_tiles, static_cast<G4VSolid *>(NULL));
 }
 
 //_______________________________________________________________
@@ -220,7 +215,7 @@ PHG4Prototype2OuterHcalDetector::ConstructScintiTileU1(G4LogicalVolume* hcalenve
   G4TwoVector zero(0, 0);
   G4VSolid *scintiu1 =  new G4ExtrudedSolid("OuterHcalScintiU1",
 					    vertexes,
-					    7*mm  / 2.0,
+					    scinti_tile_thickness  / 2.0,
 					    zero, 1.0,
 					    zero, 1.0);
 
@@ -244,7 +239,7 @@ PHG4Prototype2OuterHcalDetector::ConstructScintiTileU2(G4LogicalVolume* hcalenve
   G4TwoVector zero(0, 0);
   G4VSolid *scintiu2 =  new G4ExtrudedSolid("OuterHcalScintiU2",
 					    vertexes,
-					    7*mm  / 2.0,
+					    scinti_tile_thickness  / 2.0,
 					    zero, 1.0,
 					    zero, 1.0);
 
@@ -259,7 +254,6 @@ void
 PHG4Prototype2OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
 {
   G4Material* Air = G4Material::GetMaterial("G4_AIR");
-  //  G4VSolid* hcal_envelope_cylinder = new G4Tubs("OuterHcal_envelope_solid",  envelope_inner_radius-0.5*cm, envelope_outer_radius, envelope_z / 2., tan(-459.8/1770.9), fabs(tan(-459.8/1770.9)) +  12.4/180.* M_PI);
   G4VSolid* hcal_envelope_cylinder = new G4Tubs("OuterHcal_envelope_solid",  0*cm, envelope_outer_radius, envelope_z / 2., 0, 2.* M_PI);
   volume_envelope = hcal_envelope_cylinder->GetCubicVolume();
   G4LogicalVolume* hcal_envelope_log =  new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("Hcal_envelope"), 0, 0, 0);
@@ -358,35 +352,6 @@ PHG4Prototype2OuterHcalDetector::GetScintiAngle()
   double angle = asin(lenshort/lenup);
   return angle;
 }
-
-G4AssemblyVolume *
-PHG4Prototype2OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope)
-{
-  G4AssemblyVolume *assmeblyvol = new G4AssemblyVolume();
-  ostringstream name;
-  G4ThreeVector g4vec;
-
-  double steplimits = params->get_double_param("steplimits")*cm;
-  for (unsigned int i = 0; i < scinti_tiles_vec.size(); i++)
-    {
-      name.str("");
-      name << scintilogicnameprefix << i;
-      G4UserLimits *g4userlimits = NULL;
-      if (isfinite(steplimits))
-	{
-	  g4userlimits = new G4UserLimits(steplimits);
-	}
-      G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i], G4Material::GetMaterial("G4_POLYSTYRENE"), name.str().c_str(), NULL, NULL, g4userlimits);
-      G4VisAttributes *visattchk = new G4VisAttributes();
-      visattchk->SetVisibility(true);
-      visattchk->SetForceSolid(true);
-      visattchk->SetColour(G4Colour::Green());
-      scinti_tile_logic->SetVisAttributes(visattchk);
-      assmeblyvol->AddPlacedVolume(scinti_tile_logic, g4vec, NULL);
-    }
-  return assmeblyvol;
-}
-
 
 int
 PHG4Prototype2OuterHcalDetector::DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix *rotm )

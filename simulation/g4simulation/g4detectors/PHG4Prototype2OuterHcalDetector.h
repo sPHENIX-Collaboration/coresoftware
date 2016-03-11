@@ -53,7 +53,6 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   G4LogicalVolume* ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
   G4LogicalVolume* ConstructScintiTileU1(G4LogicalVolume* hcalenvelope);
   G4LogicalVolume* ConstructScintiTileU2(G4LogicalVolume* hcalenvelope);
-  G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
   double GetScintiAngle();
 
   protected:
@@ -73,9 +72,6 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   double bottom_xmiddle_steel_tile;
   double bottom_ymiddle_steel_tile;
   double size_z;
-  double scinti_tile_x;
-  double scinti_tile_x_lower;
-  double scinti_tile_x_upper;
   double scinti_tile_z;
   double scinti_tile_thickness;
   double scinti_box_shift;
@@ -90,7 +86,6 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   double volume_scintillator;
 
   int n_scinti_plates;
-  int n_scinti_tiles;
 
   int active;
   int absorberactive;
@@ -99,7 +94,6 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   std::string detector_type;
   std::string superdetector;
   std::set<G4VPhysicalVolume *>steel_absorber_vec;
-  std::vector<G4VSolid *> scinti_tiles_vec; 
   std::string scintilogicnameprefix;
 };
 
