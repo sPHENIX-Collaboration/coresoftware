@@ -31,7 +31,6 @@
 #include <CGAL/point_generators_2.h>
 #include <CGAL/Object.h>
 #include <CGAL/Circular_kernel_intersections.h>
-#include <CGAL/Boolean_set_operations_2.h>
 
 #include <boost/math/special_functions/sign.hpp>
 
@@ -40,10 +39,7 @@
 
 typedef CGAL::Exact_circular_kernel_2             Circular_k;
 typedef CGAL::Point_2<Circular_k>                 Point_2;
-typedef CGAL::Circle_2<Circular_k>                Circle_2;
-typedef CGAL::Circular_arc_point_2<Circular_k>          Circular_arc_point_2;
 typedef CGAL::Line_2<Circular_k>                Line_2;
-typedef CGAL::Segment_2<Circular_k>                Segment_2;
 
 using namespace std;
 
@@ -106,18 +102,16 @@ PHG4Prototype2OuterHcalDetector::IsInPrototype2OuterHcal(G4VPhysicalVolume * vol
   // 82 the number of the scintillator mother volume
   // HcalInnerScinti_11: name of scintillator slat
   // 11: number of scintillator slat logical volume
-  cout << "volume name: " << volume->GetName() << endl;
   if (absorberactive)
     {
       if (volume->GetName().find("OuterHcalSteelPlate") != string::npos)
-	//       if (steel_absorber_vec.find(volume) != steel_absorber_vec.end())
 	{
 	  return -1;
 	}
     }
   if (active)
     {
-      if (volume->GetName().find(scintilogicnameprefix) != string::npos)
+      if (volume->GetName().find("OuterScinti") != string::npos)
 	{
 	  return 1;
 	}
