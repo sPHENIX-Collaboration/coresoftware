@@ -72,6 +72,12 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
   int tower_id = -1;
   if (whichactive > 0) // scintillator
     {
+      // first extract the scintillator id (0-3) from the volume name (OuterScinti_0,1,2,3)
+      boost::char_separator<char> sep("_");
+      boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
+      boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter =  tok.begin();
+      ++tokeniter;
+      tower_id = boost::lexical_cast<int>(*tokeniter);
       // G4AssemblyVolumes naming convention:
       //     av_WWW_impr_XXX_YYY_ZZZ
       // where:
@@ -80,47 +86,35 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
       //     XXX - assembly volume imprint number
       //     YYY - the name of the placed logical volume
       //     ZZZ - the logical volume index inside the assembly volume
-      // e.g. av_1_impr_82_HcalInnerScinti_11_pv_11
+      // e.g. av_1_impr_1_OuterHcalScintiMother_pv_11
       // 82 the number of the scintillator mother volume
-      // HcalInnerScinti_11: name of scintillator slat
+      // OuterHcalScintiMother_11: name of scintillator slat
       // 11: number of scintillator slat logical volume
       // use boost tokenizer to separate the _, then take value
       // after "impr" for mother volume and after "pv" for scintillator slat
       // use boost lexical cast for string -> int conversion
-      boost::char_separator<char> sep("_");
-      boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
-      boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
-      for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
-	{
-	  if (*tokeniter == "impr")
-	    {
-	      ++tokeniter;
-	      if (tokeniter != tok.end())
-		{
+      G4VPhysicalVolume* mothervolume = touch->GetVolume(1);
+      boost::tokenizer<boost::char_separator<char> > tokm(mothervolume->GetName(), sep);
+      for (tokeniter = tokm.begin(); tokeniter != tokm.end(); ++tokeniter)
+       	{
+       	  if (*tokeniter == "pv")
+       	    {
+       	      ++tokeniter;
+       	      if (tokeniter != tokm.end())
+       		{
 		  motherid = boost::lexical_cast<int>(*tokeniter);
 		}
-	      else
-		{
-		  cout << PHWHERE << " Error parsing " << volume->GetName()
-		       << " for mother volume number " << endl;
-		}
-	    }
-	  else if (*tokeniter == "pv")
-	    {
-	      ++tokeniter;
-	      if (tokeniter != tok.end())
-		{
-		  tower_id = boost::lexical_cast<int>(*tokeniter);
-		}
-	      else
-		{
-		  cout << PHWHERE << " Error parsing " << volume->GetName()
-		       << " for mother scinti slat id " << endl;
-		}
+       	      else
+       		{
+       		  cout << PHWHERE << " Error parsing " << mothervolume->GetName()
+       		       << " for mother scinti slat id " << endl;
+		  exit(1);
+       		}
+	      break;
 	    }
 	}
       // cout << "name " << volume->GetName() << ", mid: " << motherid
-      //  	   << ", twr: " << tower_id << endl;
+      // 	   << ", twr: " << tower_id << endl;
     }
   else
     {
