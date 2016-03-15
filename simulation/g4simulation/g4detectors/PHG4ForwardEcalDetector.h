@@ -42,14 +42,12 @@ public:
   //!@name volume accessors
   int IsInForwardEcal(G4VPhysicalVolume*) const;
 
-
   //! Select mapping file for calorimeter tower
   void SetTowerMappingFile( std::string filename ) {
     _mapping_tower_file = filename;
   }
 
-
-  void SetTowerDimensions(G4double dx, G4double dy, G4double dz, G4double type) {
+  virtual void SetTowerDimensions(G4double dx, G4double dy, G4double dz, G4double type) {
     if(type==0){
       _tower0_dx = dx;
       _tower0_dy = dy;
@@ -98,6 +96,19 @@ private:
     G4double type; 
   } ;
 
+  std::map< std::string, towerposition > _map_tower;
+
+  /* ECAL tower geometry */
+  G4double _tower0_dx;
+  G4double _tower0_dy;
+  G4double _tower0_dz;
+
+  G4double _tower1_dx;
+  G4double _tower1_dy;
+  G4double _tower1_dz;
+
+protected:
+
   /* Calorimeter envelope geometry */
   G4double _place_in_x;
   G4double _place_in_y;
@@ -116,15 +127,6 @@ private:
   G4double _sPhi;
   G4double _dPhi;
 
-  /* ECAL tower geometry */
-  G4double _tower0_dx;
-  G4double _tower0_dy;
-  G4double _tower0_dz;
-
-  G4double _tower1_dx;
-  G4double _tower1_dy;
-  G4double _tower1_dz;
-
   int _active;
   int _absorberactive;
   int _layer;
@@ -135,7 +137,7 @@ private:
   std::string _mapping_tower_file;
 
   std::map< std::string, G4double > _map_global_parameter;
-  std::map< std::string, towerposition > _map_tower;
+
 };
 
 #endif
