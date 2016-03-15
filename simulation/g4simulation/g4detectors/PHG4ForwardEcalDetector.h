@@ -49,10 +49,17 @@ public:
   }
 
 
-  void SetTowerDimensions(G4double dx, G4double dy, G4double dz) {
-  _tower_dx = dx;
-  _tower_dy = dy;
-  _tower_dz = dz;
+  void SetTowerDimensions(G4double dx, G4double dy, G4double dz, G4double type) {
+    if(type==0){
+      _tower0_dx = dx;
+      _tower0_dy = dy;
+      _tower0_dz = dz;
+    }
+    else{
+      _tower1_dx = dx;
+      _tower1_dy = dy;
+      _tower1_dz = dz;
+    }
   }
 
   void SetPlace( G4double place_in_x, G4double place_in_y, G4double place_in_z) {
@@ -64,9 +71,6 @@ public:
   void SetXRot( G4double rot_in_x ) { _rot_in_x = rot_in_x; }
   void SetYRot( G4double rot_in_y ) { _rot_in_y = rot_in_y; }
   void SetZRot( G4double rot_in_z ) { _rot_in_z = rot_in_z; }
-
-  void SetMaterialScintillator( G4String material ) { _materialScintillator = material; }
-  void SetMaterialAbsorber( G4String material ) { _materialAbsorber = material; }
 
   void SetActive(const int i = 1) {_active = i;}
   void SetAbsorberActive(const int i = 1) {_absorberactive = i;}
@@ -83,14 +87,15 @@ public:
 
 private:
 
-  G4LogicalVolume* ConstructTower();
-  int PlaceTower(G4LogicalVolume* envelope , G4LogicalVolume* tower);
+  G4LogicalVolume* ConstructTower( int type );
+  int PlaceTower(G4LogicalVolume* envelope , G4LogicalVolume* tower0, G4LogicalVolume* tower1 );
   int ParseParametersFromTable();
 
   struct towerposition {
     G4double x;
     G4double y;
     G4double z;
+    G4double type; 
   } ;
 
   /* Calorimeter envelope geometry */
@@ -112,12 +117,13 @@ private:
   G4double _dPhi;
 
   /* ECAL tower geometry */
-  G4double _tower_dx;
-  G4double _tower_dy;
-  G4double _tower_dz;
+  G4double _tower0_dx;
+  G4double _tower0_dy;
+  G4double _tower0_dz;
 
-  G4String _materialScintillator;
-  G4String _materialAbsorber;
+  G4double _tower1_dx;
+  G4double _tower1_dy;
+  G4double _tower1_dz;
 
   int _active;
   int _absorberactive;
