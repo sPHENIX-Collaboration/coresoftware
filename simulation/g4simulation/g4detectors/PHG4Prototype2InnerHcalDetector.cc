@@ -27,19 +27,8 @@
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Colour.hh>
 
-#include <CGAL/Exact_circular_kernel_2.h>
-#include <CGAL/point_generators_2.h>
-#include <CGAL/Object.h>
-#include <CGAL/Circular_kernel_intersections.h>
-
-#include <boost/math/special_functions/sign.hpp>
-
 #include <cmath>
 #include <sstream>
-
-typedef CGAL::Exact_circular_kernel_2             Circular_k;
-typedef CGAL::Point_2<Circular_k>                 Point_2;
-typedef CGAL::Line_2<Circular_k>                Line_2;
 
 using namespace std;
 
@@ -48,10 +37,10 @@ PHG4Prototype2InnerHcalDetector::PHG4Prototype2InnerHcalDetector( PHCompositeNod
   params(parameters),
   outerhcalsteelplate(NULL),
   outerhcalassembly(NULL),
-  steel_plate_corner_upper_left(1155.8*mm,-151.44*mm),
+  steel_plate_corner_upper_left(1157.5*mm,-151.44*mm),
   steel_plate_corner_upper_right(1308.5*mm,-286.96*mm), 
   steel_plate_corner_lower_right(1298.8*mm,-297.39*mm),
-  steel_plate_corner_lower_left(1157.5*mm,-163.92*mm),
+  steel_plate_corner_lower_left(1155.8*mm,-163.92*mm),
   scinti_u1_corner_upper_left(0*mm,0*mm),
   scinti_u1_corner_upper_right(198.1*mm,0*mm),
   scinti_u1_corner_lower_right(198.1*mm,-121.3*mm),
@@ -68,7 +57,7 @@ PHG4Prototype2InnerHcalDetector::PHG4Prototype2InnerHcalDetector( PHCompositeNod
   size_z(steel_z),
   scinti_tile_z(steel_z),
   scinti_tile_thickness(7*mm),
-  scinti_box_shift(1.9*mm), // that was found experimetnally by removing overlaps
+  scinti_box_shift(0.75*mm), // that was found experimentally by removing overlaps
   gap_between_tiles(1*mm),
   scinti_gap(8.5*mm),
   tilt_angle(32*deg),
@@ -277,7 +266,7 @@ PHG4Prototype2InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
       Rot->rotateZ(phi*rad);
       G4ThreeVector g4vec(0,0,0);
       outerhcalassembly->AddPlacedVolume(steel_plate,g4vec,Rot);
-      if (i > 0)
+      if (i > 0 && i < 2)
 	{
 	  double ypos = sin(phi+philow) * middlerad;
 	  double xpos = cos(phi+philow) * middlerad;
@@ -307,34 +296,7 @@ PHG4Prototype2InnerHcalDetector::GetScintiAngle()
 {
   double xlen = steel_plate_corner_upper_right.x() - steel_plate_corner_upper_left.x();
   double ylen = steel_plate_corner_upper_right.y() - steel_plate_corner_upper_left.y();
-  double angleN = atan(ylen/xlen);
-  return angleN;
-  Point_2 upleft(steel_plate_corner_upper_left.x(),steel_plate_corner_upper_left.y());
-  // we just need a horizontal line from the upper left corner for the intersection
-  // with the rear end of the steel plate
-  Point_2 lefttmp(steel_plate_corner_upper_left.x()+200*mm,steel_plate_corner_upper_left.y());
-  Point_2 upright(steel_plate_corner_upper_right.x(),steel_plate_corner_upper_right.y());
-  Point_2 downright(steel_plate_corner_lower_right.x(),steel_plate_corner_lower_right.y());
-  Line_2 rightside(upright,downright);
-  Line_2 horiz(upleft,lefttmp);
-  CGAL::Object result = CGAL::intersection(rightside, horiz);
-  // this point is the intersection of the horizontal line going through the
-  // upper left steel plate cornet with the rear edge of the steel plate
-  Point_2 intersect;
-  if (const Point_2 *ipoint = CGAL::object_cast<Point_2>(&result))
-    {
-      intersect = *ipoint;
-    }
-  // length of rear edge of steel plate from upper right corner to intersection point
-  double lenshort = sqrt((steel_plate_corner_upper_right.x()-CGAL::to_double(intersect.x()))
-                        *(steel_plate_corner_upper_right.x()-CGAL::to_double(intersect.x()))
-		       + (steel_plate_corner_upper_right.y()-CGAL::to_double(intersect.y()))
-                        *(steel_plate_corner_upper_right.y()-CGAL::to_double(intersect.y())));
-  double lenup = sqrt((steel_plate_corner_upper_right.x() - steel_plate_corner_upper_left.x())
-                     *(steel_plate_corner_upper_right.x() - steel_plate_corner_upper_left.x())
-		    + (steel_plate_corner_upper_right.y() - steel_plate_corner_upper_left.y())
-		      *(steel_plate_corner_upper_right.y() - steel_plate_corner_upper_left.y()));
-  double angle = asin(lenshort/lenup);
+  double angle = atan(ylen/xlen);
   return angle;
 }
 
