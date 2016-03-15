@@ -175,6 +175,10 @@ libg4detectors_la_SOURCES = \
   PHG4Prototype2OuterHcalSteppingAction.cc \
   PHG4Prototype2OuterHcalSubsystem.cc \
   PHG4Prototype2OuterHcalSubsystem_Dict.C \
+  PHG4Prototype2InnerHcalDetector.cc \
+  PHG4Prototype2InnerHcalSteppingAction.cc \
+  PHG4Prototype2InnerHcalSubsystem.cc \
+  PHG4Prototype2InnerHcalSubsystem_Dict.C \
   PHG4SlatCellReco.cc \
   PHG4SlatCellReco_Dict.cc \
   PHG4OuterHcalDetector.cc \

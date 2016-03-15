@@ -68,7 +68,7 @@ PHG4Prototype2InnerHcalDetector::PHG4Prototype2InnerHcalDetector( PHCompositeNod
   size_z(steel_z),
   scinti_tile_z(steel_z),
   scinti_tile_thickness(7*mm),
-  scinti_box_shift(1.09*mm), // that was found experimetnally by removing overlaps
+  scinti_box_shift(1.9*mm), // that was found experimetnally by removing overlaps
   gap_between_tiles(1*mm),
   scinti_gap(8.5*mm),
   tilt_angle(32*deg),
@@ -111,7 +111,7 @@ PHG4Prototype2InnerHcalDetector::IsInPrototype2InnerHcal(G4VPhysicalVolume * vol
     }
   if (active)
     {
-      if (volume->GetName().find("OuterScinti") != string::npos)
+      if (volume->GetName().find("InnerScinti") != string::npos)
 	{
 	  return 1;
 	}
@@ -262,19 +262,18 @@ PHG4Prototype2InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
   ostringstream name;
   // the coordinate of the center of the bottom of the bottom steel plate
   // to get the radius of the circle which is the center of the scintillator box
-  double bottom_xmiddle_steel_tile = (steel_plate_corner_lower_right.x()-steel_plate_corner_lower_left.x())/2.+steel_plate_corner_lower_left.x();
-  double bottom_ymiddle_steel_tile = steel_plate_corner_lower_right.y();
+  double bottom_xmiddle_steel_tile = (steel_plate_corner_lower_right.x()+steel_plate_corner_lower_left.x())/2.;
+  double bottom_ymiddle_steel_tile = (steel_plate_corner_lower_left.y()+steel_plate_corner_lower_right.y())/2.;
   double middlerad = sqrt(bottom_xmiddle_steel_tile*bottom_xmiddle_steel_tile + bottom_ymiddle_steel_tile * bottom_ymiddle_steel_tile);
   double philow = atan((bottom_ymiddle_steel_tile-scinti_gap/2.)/bottom_xmiddle_steel_tile);
   double scintiangle = GetScintiAngle();
+  cout << "scinti angle: " << scintiangle*180./M_PI << endl;
   for (int i = 0; i < n_steel_plates; i++)
     //      for (int i = 0; i < 2; i++)
     {
       name.str("");
       name << "InnerHcalSteel_" << i;
       G4RotationMatrix *Rot = new G4RotationMatrix();
-      Rot->rotateZ(-phi*rad);
-      Rot = new G4RotationMatrix();
       Rot->rotateZ(phi*rad);
       G4ThreeVector g4vec(0,0,0);
       outerhcalassembly->AddPlacedVolume(steel_plate,g4vec,Rot);
@@ -306,6 +305,10 @@ PHG4Prototype2InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
 double
 PHG4Prototype2InnerHcalDetector::GetScintiAngle()
 {
+  double xlen = steel_plate_corner_upper_right.x() - steel_plate_corner_upper_left.x();
+  double ylen = steel_plate_corner_upper_right.y() - steel_plate_corner_upper_left.y();
+  double angleN = atan(ylen/xlen);
+  return angleN;
   Point_2 upleft(steel_plate_corner_upper_left.x(),steel_plate_corner_upper_left.y());
   // we just need a horizontal line from the upper left corner for the intersection
   // with the rear end of the steel plate

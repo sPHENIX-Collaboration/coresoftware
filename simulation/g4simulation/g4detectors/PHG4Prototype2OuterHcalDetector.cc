@@ -273,8 +273,6 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
       name.str("");
       name << "OuterHcalSteel_" << i;
       G4RotationMatrix *Rot = new G4RotationMatrix();
-      Rot->rotateZ(-phi*rad);
-      Rot = new G4RotationMatrix();
       Rot->rotateZ(phi*rad);
       G4ThreeVector g4vec(0,0,0);
       outerhcalassembly->AddPlacedVolume(steel_plate,g4vec,Rot);
