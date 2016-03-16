@@ -140,15 +140,15 @@ PHG4EICForwardEcalDetector::ConstructTower()
 						      0, 0, 0);
 
   /* create geometry volumes for scintillator and absorber plates to place inside single_tower */
-  //G4int nlayers = 60;
-  //G4double thickness_layer = _tower_dz/(float)nlayers;
-  //G4double thickness_absorber = thickness_layer / 3.0 * 2.0; // 2/3rd absorber
-  //G4double thickness_scintillator = thickness_layer / 3.0 * 1.0; // 1/3rd scintillator
-  // PHENIX EMCal JGL 12/27/2015
-  G4int nlayers = 66;
+  G4int nlayers = 60;
   G4double thickness_layer = _tower_dz/(float)nlayers;
-  G4double thickness_absorber = thickness_layer*0.23; // 27% absorber by length
-  G4double thickness_scintillator = thickness_layer*0.73; // 73% scintillator by length
+  G4double thickness_absorber = thickness_layer / 3.0 * 2.0; // 2/3rd absorber
+  G4double thickness_scintillator = thickness_layer / 3.0 * 1.0; // 1/3rd scintillator
+  // PHENIX EMCal JGL 12/27/2015
+  // G4int nlayers = 66;
+  // G4double thickness_layer = _tower_dz/(float)nlayers;
+  // G4double thickness_absorber = thickness_layer*0.23; // 27% absorber by length
+  // G4double thickness_scintillator = thickness_layer*0.73; // 73% scintillator by length
 
   G4VSolid* solid_absorber = new G4Box( G4String("single_plate_absorber_solid"),
 				   _tower_dx / 2.0,
