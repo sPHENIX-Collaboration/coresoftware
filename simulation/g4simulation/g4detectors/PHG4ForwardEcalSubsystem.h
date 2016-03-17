@@ -52,6 +52,9 @@ public:
   void SetAbsorberActive(const int i = 1){absorber_active = i;}
   void BlackHole(const int i=1){blackhole = i;}
 
+  void SetEICDetector(){EICDetector = 1;}
+  void SetfsPHENIXDetector(){EICDetector = 0;}
+
 private:
 
   /** Pointer to the Geant4 implementation of the detector
@@ -69,6 +72,8 @@ private:
 
   std::string detector_type;
   std::string mappingfile_;
+
+  int EICDetector; 
 
 };
 

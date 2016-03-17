@@ -1,5 +1,6 @@
 #include "PHG4ForwardEcalSubsystem.h"
 #include "PHG4ForwardEcalDetector.h"
+#include "PHG4EICForwardEcalDetector.h"
 #include "PHG4ForwardEcalSteppingAction.h"
 #include "PHG4EventActionClearZeroEdep.h"
 
@@ -24,7 +25,8 @@ PHG4ForwardEcalSubsystem::PHG4ForwardEcalSubsystem( const std::string &name, con
   absorber_active(0),
   blackhole(0),
   detector_type(name),
-  mappingfile_("")
+  mappingfile_(""),
+  EICDetector(0)
 {
 
 }
@@ -37,7 +39,11 @@ int PHG4ForwardEcalSubsystem::Init( PHCompositeNode* topNode )
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
   // create detector
-  detector_ = new PHG4ForwardEcalDetector(topNode, Name());
+  if(EICDetector)
+    detector_ = new PHG4EICForwardEcalDetector(topNode, Name());
+  else
+    detector_ = new PHG4ForwardEcalDetector(topNode, Name());
+
   detector_->SetActive(active);
   detector_->SetAbsorberActive(absorber_active);
   detector_->BlackHole(blackhole);
