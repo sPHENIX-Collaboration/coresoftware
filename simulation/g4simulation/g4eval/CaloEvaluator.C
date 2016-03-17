@@ -22,7 +22,6 @@
 
 #include <iostream>
 #include <set>
-//#include <algorithm>
 #include <cmath>
 
 using namespace std;
@@ -63,21 +62,21 @@ int CaloEvaluator::Init(PHCompositeNode *topNode) {
   
   if (_do_gshower_eval) _ntp_gshower = new TNtuple("ntp_gshower","truth shower => best cluster",
 						   "event:gparticleID:gflavor:gnhits:"
-						   "geta:gphi:ge:gpt:gvx:gvy:gvz:gembed:gedep:gmrad:"
+						   "geta:gphi:ge:gpt:gvx:gvy:gvz:gembed:gedep:"
 						   "clusterID:ntowers:eta:phi:e:efromtruth");
   
   if (_do_tower_eval) _ntp_tower = new TNtuple("ntp_tower","tower => max truth primary",
 					       "event:towerID:ieta:iphi:eta:phi:e:"
 					       "gparticleID:gflavor:gnhits:"
 					       "geta:gphi:ge:gpt:gvx:gvy:gvz:"
-					       "gembed:gedep:gmrad:"
+					       "gembed:gedep:"
 					       "efromtruth");
 
   if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster","cluster => max truth primary",
 						   "event:clusterID:ntowers:eta:phi:e:"
 						   "gparticleID:gflavor:gnhits:"
 						   "geta:gphi:ge:gpt:gvx:gvy:gvz:"
-						   "gembed:gedep:gmrad:"
+						   "gembed:gedep:"
 						   "efromtruth");
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -280,7 +279,6 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 
       cout << " embed = " << trutheval->get_embed(primary) << endl;
       cout << " edep = " << trutheval->get_shower_energy_deposit(primary) << endl;
-      cout << " mrad = " << trutheval->get_shower_moliere_radius(primary) << endl;
 
       std::set<RawCluster*> clusters = clustereval->all_clusters_from(primary);
       for (std::set<RawCluster*>::iterator clusiter = clusters.begin();
@@ -376,7 +374,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
       exit(-1);
     }
-
+    
     PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
     for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
 	 iter != range.second; 
@@ -393,9 +391,11 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       
       float gparticleID = primary->get_track_id();
       float gflavor     = primary->get_pid();
-      
-      std::set<PHG4Hit*> g4hits = trutheval->get_shower_from_primary(primary);     
-      float gnhits   = g4hits.size();	
+
+      PHG4Shower* shower = trutheval->get_primary_shower(primary);     
+      float gnhits = NAN;
+      if (shower) gnhits = shower->get_nhits(trutheval->get_caloid());
+      else gnhits = 0.0;
       float gpx      = primary->get_px();
       float gpy      = primary->get_py();
       float gpz      = primary->get_pz();
@@ -413,7 +413,6 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       
       float gembed   = trutheval->get_embed(primary);
       float gedep    = trutheval->get_shower_energy_deposit(primary);
-      float gmrad    = trutheval->get_shower_moliere_radius(primary);
 
       RawCluster* cluster = clustereval->best_cluster_from(primary);
 
@@ -435,7 +434,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	efromtruth     = clustereval->get_energy_contribution(cluster, primary);
       }
       
-      float shower_data[20] = {(float)_ievent,
+      float shower_data[19] = {(float)_ievent,
 			       gparticleID,
 			       gflavor,
 			       gnhits,
@@ -448,7 +447,6 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 			       gvz,
 			       gembed,
 			       gedep,
-			       gmrad,
 			       clusterID,
 			       ntowers,
 			       eta,
@@ -497,7 +495,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float phi     = towergeom->get_phicenter(tower->get_binphi());
       float e       = tower->get_energy();
 
-      PHG4Particle* primary = towereval->max_truth_primary_by_energy(tower);
+      PHG4Particle* primary = towereval->max_truth_primary_particle_by_energy(tower);
 
       float gparticleID = NAN;
       float gflavor     = NAN;
@@ -517,7 +515,6 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
       float gembed   = NAN;
       float gedep    = NAN;
-      float gmrad    = NAN;
 
       float efromtruth = NAN;
 
@@ -525,9 +522,10 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	gparticleID = primary->get_track_id();
 	gflavor = primary->get_pid();
-
-	std::set<PHG4Hit*> g4hits = trutheval->get_shower_from_primary(primary);
-	gnhits = g4hits.size();
+	
+	PHG4Shower* shower = trutheval->get_primary_shower(primary);     
+	if (shower) gnhits = shower->get_nhits(trutheval->get_caloid());
+	else gnhits = 0.0;
 	gpx = primary->get_px();
 	gpy = primary->get_py();
 	gpz = primary->get_pz();
@@ -547,12 +545,11 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	gembed = trutheval->get_embed(primary);
 	gedep = trutheval->get_shower_energy_deposit(primary);
-	gmrad = trutheval->get_shower_moliere_radius(primary);
 
 	efromtruth = towereval->get_energy_contribution(tower, primary);
       }
 
-      float tower_data[21] = {(float) _ievent,
+      float tower_data[20] = {(float)_ievent,
 			      towerid,
 			      ieta,
 			      iphi,
@@ -571,7 +568,6 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 			      gvz,
 			      gembed,
 			      gedep,
-			      gmrad,
 			      efromtruth
       };
       
@@ -605,7 +601,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float phi       = cluster->get_phi();
       float e         = cluster->get_energy();
       
-      PHG4Particle* primary = clustereval->max_truth_primary_by_energy(cluster);
+      PHG4Particle* primary = clustereval->max_truth_primary_particle_by_energy(cluster);
 
       float gparticleID = NAN;
       float gflavor     = NAN;
@@ -626,7 +622,6 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       
       float gembed   = NAN;
       float gedep    = NAN;
-      float gmrad    = NAN;
 
       float efromtruth = NAN;
 
@@ -634,8 +629,9 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	gparticleID = primary->get_track_id();
 	gflavor = primary->get_pid();
 	
-	std::set<PHG4Hit*> g4hits = trutheval->get_shower_from_primary(primary);
-	gnhits = g4hits.size();
+	PHG4Shower* shower = trutheval->get_primary_shower(primary);     
+	if (shower) gnhits = shower->get_nhits(trutheval->get_caloid());
+	else gnhits = 0.0;
 	gpx = primary->get_px();
 	gpy = primary->get_py();
 	gpz = primary->get_pz();
@@ -655,13 +651,12 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	
 	gembed = trutheval->get_embed(primary);
 	gedep = trutheval->get_shower_energy_deposit(primary);
-	gmrad = trutheval->get_shower_moliere_radius(primary);
 
 	efromtruth = clustereval->get_energy_contribution(cluster,
 							  primary);
       }
       
-      float cluster_data[20] = {(float) _ievent,
+      float cluster_data[19] = {(float)_ievent,
 				clusterID,
 				ntowers,
 				eta,
@@ -679,7 +674,6 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				gvz,
 				gembed,
 				gedep,
-				gmrad,
 				efromtruth
       };
 

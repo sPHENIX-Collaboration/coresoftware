@@ -131,6 +131,14 @@ RawTowerBuilder::process_event(PHCompositeNode *topNode)
         cell_weight = cell->get_light_yield();
 
       tower->add_ecell(cell->get_cell_id(), cell_weight);
+
+      PHG4CylinderCell::ShowerEdepConstRange range = cell->get_g4showers();
+      for (PHG4CylinderCell::ShowerEdepConstIterator shower_iter = range.first;
+	   shower_iter != range.second;
+	   ++shower_iter) {
+	tower->add_eshower(shower_iter->first,shower_iter->second);
+      }
+      
       tower->set_energy(tower->get_energy() + cell_weight);
 
       if (verbosity > 2)

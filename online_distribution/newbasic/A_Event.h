@@ -65,6 +65,7 @@ public:
   virtual int convert ();
 
   static void dumpFrame(PHDWORD *fp, OSTREAM &os = COUT);
+  static void dumpErrorBlock(PHDWORD *fp, OSTREAM &os = COUT);
 
   static void dumpBlock(PHDWORD *p, UINT len, OSTREAM &os = COUT, const int how=EVT_HEXADECIMAL);
 

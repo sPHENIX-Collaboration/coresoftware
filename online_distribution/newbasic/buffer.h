@@ -18,40 +18,22 @@ public:
   //** Constructors
 
   buffer();
-  buffer( PHDWORD *array, const int length);
   virtual ~buffer();
 
   //  this creates a new event on the next address
-  virtual Event * getEvent();
+  virtual Event * getEvent() = 0;
 
-  virtual int * getEventData();
+  virtual int * getEventData() = 0;
 
-  virtual int isGood() const { return is_good; } ;
+  virtual int isGood() const = 0;
 
-  int buffer_swap();
-  int frame_swap(PHDWORD * fp, const int eventlength);
-
+  static int makeBuffer( PHDWORD *bp, const int allocatedsize, buffer **bptr);
   static int i4swap (const int in);
   static unsigned int u4swap (const unsigned int in);
   static int i22swap (const int in);
   static short i2swap (const short in);
 
 protected:
-  typedef struct 
-  { 
-    unsigned int Length;
-    unsigned int ID;
-    int Bufseq;
-    int Runnr;
-    PHDWORD data[1];
-  } *buffer_ptr;
-
-  buffer_ptr bptr;
-  PHDWORD *data_ptr;
-  int buffer_size;
-  int max_length;
-  int current_index;
-  int is_good;
 };
 
 #endif

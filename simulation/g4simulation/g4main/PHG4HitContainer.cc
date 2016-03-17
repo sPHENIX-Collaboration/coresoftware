@@ -4,12 +4,17 @@
 #include "PHG4HitDefs.h"
 
 #include <phool/phool.h>
-
 #include <cstdlib>
 
 using namespace std;
 
 PHG4HitContainer::PHG4HitContainer()
+  : id(-1), hitmap(), layers()
+{
+}
+
+PHG4HitContainer::PHG4HitContainer(std::string nodename)
+  : id(PHG4HitDefs::get_volume_id(nodename)), hitmap(), layers()
 {
 }
 

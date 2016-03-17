@@ -16,7 +16,7 @@ public:
   oncsEventiterator(const char *filename);
   oncsEventiterator(const char *filename, int &status);
 
-  char * getIdTag() const;
+  const char * getIdTag() const;
   virtual void identify(std::ostream& os = std::cout) const;
 
 

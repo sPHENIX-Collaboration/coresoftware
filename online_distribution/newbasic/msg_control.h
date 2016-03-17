@@ -3,7 +3,7 @@
 
 #include "msg_profile.h"
 #include "event_io.h"
-#include <cstring>
+#include <string.h>
 
 /** 
 Objects of the msg\_control class maintain the profiling information 
@@ -61,7 +61,7 @@ public:
   // set the message source id
   virtual void set_source(const int source) {msg_source = source; };
   virtual int  get_source() const { return msg_source; };
-  virtual void set_sourcecomponent(char * msgsourcecomponent = "ONLINE");
+  virtual void set_sourcecomponent(const char * msgsourcecomponent = "ONLINE");
   virtual const char * get_sourcecomponent(){ return msg_sourcecomponent; };
 
   static int xx_active;

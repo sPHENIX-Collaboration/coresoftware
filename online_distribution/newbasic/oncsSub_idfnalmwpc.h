@@ -1,9 +1,9 @@
 #ifndef __ONCSSUB_IDFNALMWPC_H__
 #define __ONCSSUB_IDFNALMWPC_H__
 
-#include "oncsSubevent.h"
-
 #include <vector>
+
+#include "oncsSubevent.h"
 
 #ifndef __CINT__
 class WINDOWSEXPORT oncsSub_idfnalmwpc : public  oncsSubevent_w4 {

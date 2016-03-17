@@ -99,10 +99,19 @@ HepMCNodeReader::process_event(PHCompositeNode *topNode)
       cout << PHWHERE << " unknown world shape " << worldshape << endl;
       exit(1);
     }
-  double xshift = vertex_pos_x + smeargauss(width_vx);
-  double yshift = vertex_pos_y + smeargauss(width_vy);
-  double zshift = vertex_pos_z + smeargauss(width_vz);
+  double xshift = vertex_pos_x; + smeargauss(width_vx);
+  double yshift = vertex_pos_y; + smeargauss(width_vy);
+  double zshift = vertex_pos_z; + smeargauss(width_vz);
 
+  if (width_vx > 0.0) xshift += smeargauss(width_vx);
+  else                xshift += smearflat(width_vx);
+
+  if (width_vy > 0.0) yshift += smeargauss(width_vy);
+  else                yshift += smearflat(width_vy);
+  
+  if (width_vz > 0.0) zshift += smeargauss(width_vz);
+  else                zshift += smearflat(width_vz);
+  
   PHHepMCGenEvent *genevt = findNode::getClass<PHHepMCGenEvent>(topNode,"PHHepMCGenEvent");
   
   HepMC::GenEvent *evt = genevt->getEvent();
@@ -210,6 +219,16 @@ HepMCNodeReader::smeargauss(const double width)
       return 0;
     }
   return gsl_ran_gaussian(RandomGenerator,width);
+}
+
+double
+HepMCNodeReader::smearflat(const double width)
+{
+  if (width == 0)
+    {
+      return 0;
+    }
+  return width*(gsl_rng_uniform_pos(RandomGenerator) - 0.5);
 }
 
 void

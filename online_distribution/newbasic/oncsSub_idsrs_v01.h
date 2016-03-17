@@ -1,10 +1,9 @@
 #ifndef __ONCSSUB_IDSRS_V01_H__
 #define __ONCSSUB_IDSRS_V01_H__
 
+#include <vector>
 
 #include "oncsSubevent.h"
-
-#include <vector>
 
 #ifndef __CINT__
 class WINDOWSEXPORT oncsSub_idsrs_v01 : public  oncsSubevent_w4 {

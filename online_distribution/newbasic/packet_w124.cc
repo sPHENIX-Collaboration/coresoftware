@@ -78,9 +78,10 @@ void Packet_w4::gdump(const int i, OSTREAM& out) const
 	    }
 	  if (j>=getDataLength() ) break;
 	  out << std::dec<< std::endl;
-	}
+	} 
+      out << std::dec<< std::endl;
       break;
-		
+     
     case (EVT_DECIMAL):
       j = 0;
       while (1)
@@ -95,12 +96,13 @@ void Packet_w4::gdump(const int i, OSTREAM& out) const
 	  if (j>=getDataLength() ) break;
 	  out << std::endl;
 	}
+      out << std::dec<< std::endl;
       break;
 	 
     default: 
       break;
     }
-  out << std::endl << std::endl;
+  out << std::dec << std::endl << std::endl;
  
 }
 
@@ -139,6 +141,7 @@ void Packet_w2::gdump(const int i, OSTREAM& out) const
 	  if (j>=2*getDataLength() ) break;
 	  out << std::dec <<  std::endl;
 	}
+      out << std::dec <<  std::endl;
       break;
 
     case (EVT_DECIMAL):
@@ -154,12 +157,13 @@ void Packet_w2::gdump(const int i, OSTREAM& out) const
 	  if (j>=2*getDataLength() ) break;
 	  out << std::endl;
 	}
+      out << std::dec <<  std::endl;
       break;
 
     default: 
       break;
     }
-  out << std::endl << std::endl;
+  out << std::dec << std::endl << std::endl;
 
 }
 // ---------------------------------------------------------------------
@@ -234,5 +238,5 @@ void Packet_w1::gdump(const int i, OSTREAM& out) const
 
     default: break;
     }
-  out << std::endl << std::endl;
+  out << std::dec << std::endl << std::endl;
 }

@@ -1,5 +1,5 @@
 #include "lzobuffer.h"
-#include <lzo/lzoutil.h>
+#include "lzo/lzoutil.h"
 
 int lzobuffer::lzo_initialized = 0;
 
@@ -67,7 +67,7 @@ lzobuffer::lzobuffer (PHDWORD *array , const int length )
 	//	return;
      }
 
-  theBuffer = new buffer(bufferarray, outputlength);
+  theBuffer = new prdfBuffer(bufferarray, outputlength);
 
 }
 

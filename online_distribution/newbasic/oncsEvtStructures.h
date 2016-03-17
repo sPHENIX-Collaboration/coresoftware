@@ -12,7 +12,7 @@ typedef struct oncsevt_data
    int date;
    int time;
    int reserved[2];
-   int data[99999];
+   int data[];
 } *oncsevtdata_ptr;
 
 

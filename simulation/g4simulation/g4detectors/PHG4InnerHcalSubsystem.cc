@@ -141,7 +141,7 @@ PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
 	  PHG4HitContainer* g4_hits =  findNode::getClass<PHG4HitContainer>( topNode , node.c_str());
 	  if ( !g4_hits )
 	    {
-	      g4_hits = new PHG4HitContainer();
+	      g4_hits = new PHG4HitContainer(node);
               DetNode->addNode( new PHIODataNode<PHObject>( g4_hits, node.c_str(), "PHObject" ));
 	    }
 	  if (! eventAction_)
@@ -258,6 +258,12 @@ PHG4InnerHcalSubsystem::set_int_param(const std::string &name, const int ival)
       return;
     }
   iparams[name] = ival;
+}
+
+void
+PHG4InnerHcalSubsystem::SetAbsorberTruth(const int i)
+{
+  iparams["absorbertruth"] = i;
 }
 
 void

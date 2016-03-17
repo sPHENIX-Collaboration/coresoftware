@@ -24,7 +24,7 @@ public:
     os << "SvtxCluster base class" << std::endl;
   }
   virtual void         Reset() {}
-  virtual int          IsValid() const {return 0;}
+  virtual int          isValid() const {return 0;}
   virtual SvtxCluster* Clone() const {return NULL;}
 
   // cluster info

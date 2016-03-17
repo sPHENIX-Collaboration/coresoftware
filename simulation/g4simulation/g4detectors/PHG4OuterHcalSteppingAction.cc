@@ -179,6 +179,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 		  {
 		    hit->set_trkid(pp->GetUserTrackId());
+		    hit->set_shower_id(pp->GetShower()->get_id());
 		  }
 	      }
 	  }
@@ -191,10 +192,30 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	      hit->set_light_yield(0); //  for scintillator only, initialize light yields
 	      // Now add the hit
 	      hits_->AddHit(layer_id, hit);
+	      
+	      {
+		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		  {
+		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		      {
+			pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		      }
+		  }
+	      }
 	    }
 	  else
 	    {
 	      absorberhits_->AddHit(layer_id, hit);
+	      
+	      {
+		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+		  {
+		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		      {
+			pp->GetShower()->add_g4hit_id(absorberhits_->GetID(),hit->get_hit_id());
+		      }
+		  }
+	      }
 	    }
 	  break;
 	default:
@@ -248,8 +269,8 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	      isfinite(light_balance_inner_corr))
             {
               double r = sqrt(
-			     postPoint->GetPosition().x()*postPoint->GetPosition().x()
-			     + postPoint->GetPosition().y()*postPoint->GetPosition().y());
+			      postPoint->GetPosition().x()*postPoint->GetPosition().x()
+			      + postPoint->GetPosition().y()*postPoint->GetPosition().y());
               double cor = GetLightCorrection(r);
               light_yield = light_yield * cor;
 
@@ -286,7 +307,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
           hit->set_eion(-1);
 	}
-      if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
+      if (edep > 0)
 	{
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
@@ -368,12 +389,12 @@ PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
   if (not se->isHistoRegistered(h_field_name))
     {
       TH2F * h = new TH2F(h_field_name.c_str(), "Magnetic field (Tesla) in HCal;X (cm);Y (cm)", 2400,
-          -300, 300, 2400, -300, 300);
+			  -300, 300, 2400, -300, 300);
 
       se->registerHisto(h, 1);
 
       cout <<"PHG4OuterHcalSteppingAction::FieldChecker - make a histograme to check outer Hcal field map."<<
-          " Saved to Fun4AllServer Histo with name "<<h_field_name<<endl;
+	" Saved to Fun4AllServer Histo with name "<<h_field_name<<endl;
     }
 
   TH2F * h = dynamic_cast<TH2F *>(se->getHisto(h_field_name));
@@ -390,7 +411,7 @@ PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
 
   G4double globPosVec[4] =
     { 0 }, FieldValueVec[6] =
-    { 0 };
+	     { 0 };
 
   globPosVec[0] = globPosition.x();
   globPosVec[1] = globPosition.y();
@@ -404,15 +425,15 @@ PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
     { // only fille unfilled bins
 
       G4TransportationManager* transportMgr =
-          G4TransportationManager::GetTransportationManager();
+	G4TransportationManager::GetTransportationManager();
       assert(transportMgr);
 
       G4PropagatorInField* fFieldPropagator =
-          transportMgr->GetPropagatorInField();
+	transportMgr->GetPropagatorInField();
       assert(fFieldPropagator);
 
       G4FieldManager* fieldMgr = fFieldPropagator->FindAndSetFieldManager(
-          volume);
+									  volume);
       assert(fieldMgr);
 
       const G4Field* pField = fieldMgr->GetDetectorField();
@@ -421,15 +442,15 @@ PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
       pField->GetFieldValue(globPosVec, FieldValueVec);
 
       G4ThreeVector FieldValue = G4ThreeVector(FieldValueVec[0],
-          FieldValueVec[1], FieldValueVec[2]);
+					       FieldValueVec[1], FieldValueVec[2]);
 
       const double B = FieldValue.mag() / tesla;
 
       h->SetBinContent(binx, biny, B);
 
       cout << "PHG4OuterHcalSteppingAction::FieldChecker - " << "bin " << binx
-          << ", " << biny << " := " << B << " Tesla @ x,y = " << globPosVec[0] / cm
-          << "," << globPosVec[1] / cm << " cm"<<endl;
+	   << ", " << biny << " := " << B << " Tesla @ x,y = " << globPosVec[0] / cm
+	   << "," << globPosVec[1] / cm << " cm"<<endl;
     }
 
 }

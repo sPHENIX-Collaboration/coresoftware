@@ -111,6 +111,7 @@
 **
 */
 
+#include <stdio.h>  /* DEBUG */
 
 #ifndef _FRAMES_
 #define _FRAMES_
@@ -123,8 +124,6 @@ extern "C" {
 #include "framePublic.h"
 #include "formatError.h"
 #include "frameHdr.h"
-
-#include <cstdio>  /* DEBUG */
 
   /* Version-INDEPENDENT functions' prototypes */
 

@@ -3,18 +3,18 @@
 #include "oncsSubConstants.h"
 
 // the constructor first ----------------
-oncsBuffer::oncsBuffer (int *array , const int length )
+oncsBuffer::oncsBuffer (PHDWORD *array , const PHDWORD length )
 {
   bptr =  (buffer_ptr) array;
   data_ptr = &(bptr->data[0]);
   max_length = length;
   current_index = 0;
 
-  if (bptr->ID != -64) 
+  if (bptr->ID != ONCSBUFFERID && bptr->ID != PRDFBUFFERID) // PRDFBUFFERID is for legacy data 
   {
     //    COUT << " will swap the buffer " << std::endl;
-    int id = i4swap(bptr->ID);
-    if (id != -64) 
+    unsigned int id = i4swap(bptr->ID);
+    if (id != ONCSBUFFERID && id != PRDFBUFFERID ) 
       {
 	COUT << " wrong buffer" << std::endl;
 	return;
@@ -173,7 +173,7 @@ Event * oncsBuffer::getEvent()
   current_index += evt->getEvtLength();
 
   // now is the new index pointing outside the allocated memory?
-  if (current_index < 0 || current_index >= max_length)
+  if (current_index < 0 || current_index > BUFFERSIZE)
     {
       //COUT << "end of buffer r1" << current_index << std::endl;
       current_index = -1;

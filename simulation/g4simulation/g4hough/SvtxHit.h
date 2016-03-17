@@ -17,7 +17,7 @@ public:
     os << "---SvtxHit base class------------" << std::endl;
   }
   virtual void         Reset() {};
-  virtual int          IsValid() const {return 0;}
+  virtual int          isValid() const {return 0;}
   virtual SvtxHit*     Clone() const {return NULL;}
 
   // digitized hit info

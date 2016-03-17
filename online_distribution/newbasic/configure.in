@@ -60,7 +60,7 @@ AC_PROG_LIBTOOL
 dnl   no point in suppressing warnings people should 
 dnl   at least see them, so here we go for g++: -Wall
 if test $ac_cv_prog_gxx = yes; then
-  CXXFLAGS="$CXXFLAGS -Wall -fkeep-inline-functions"
+  CXXFLAGS="$CXXFLAGS -Wall"
 fi
 
 AC_HEADER_STDC

@@ -4,9 +4,7 @@
 
 #include "Eventiterator.h"
 
-#ifndef WIN32
 #include "simpleRandom.h"
-#endif
 
 /** The testEventiterator creates Event objects with known properties
    from scratch. The events contain 1 frame and 3 packets. The first 2
@@ -27,7 +25,7 @@ public:
   /// The destructor.
   ~testEventiterator();
 
-  char * getIdTag() const;
+  const char * getIdTag() const;
   //#ifdef WIN32
   virtual void identify(std::ostream& os = std::cout) const;
 

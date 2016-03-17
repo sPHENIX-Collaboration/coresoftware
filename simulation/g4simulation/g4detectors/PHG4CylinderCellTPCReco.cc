@@ -214,7 +214,10 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
         char inkey[1024];
         sprintf(inkey,"%i-%i",phibin,zbin);
         std::string key(inkey);
-        if(cellptmap.count(key) > 0){cellptmap.find(key)->second->add_edep(hiter->first, edep);}
+        if(cellptmap.count(key) > 0){
+	  cellptmap.find(key)->second->add_edep(hiter->first, edep);
+	  cellptmap.find(key)->second->add_shower_edep(hiter->second->get_shower_id(), edep);
+	}
         else
         {
           cellptmap[key] = new PHG4CylinderCellv1();
@@ -223,6 +226,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
           it->second->set_phibin(phibin);
           it->second->set_zbin(zbin);
           it->second->add_edep(hiter->first, edep);
+	  it->second->add_shower_edep(hiter->second->get_shower_id(), edep);
         }
       }
       else
@@ -263,7 +267,10 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
             char inkey[1024];
             sprintf(inkey,"%i-%i",cur_phi_bin,cur_z_bin);
             std::string key(inkey);
-            if(cellptmap.count(key) > 0){cellptmap.find(key)->second->add_edep(hiter->first, total_weight);}
+            if(cellptmap.count(key) > 0){
+	      cellptmap.find(key)->second->add_edep(hiter->first, total_weight);
+	      cellptmap.find(key)->second->add_shower_edep(hiter->second->get_shower_id(), total_weight);
+	    }
             else
             {
               cellptmap[key] = new PHG4CylinderCellv1();
@@ -272,6 +279,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
               it->second->set_phibin(cur_phi_bin);
               it->second->set_zbin(cur_z_bin);
               it->second->add_edep(hiter->first, total_weight);
+	      it->second->add_shower_edep(hiter->second->get_shower_id(), total_weight);
             }
           }
         }

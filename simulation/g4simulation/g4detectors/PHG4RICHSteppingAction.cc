@@ -151,6 +151,7 @@ bool PHG4RICHSteppingAction::MakeHit(const G4Step* aStep){
 	if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 	  {
 	    hit->set_trkid(pp->GetUserTrackId());
+	    hit->set_shower_id(pp->GetShower()->get_id());
 	  }
       }
   }
@@ -161,6 +162,16 @@ bool PHG4RICHSteppingAction::MakeHit(const G4Step* aStep){
   // Now add the hit
   hits_->AddHit(layer_id, hit);
 
+  {
+    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+      {
+	if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+	  {
+	    pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+	  }
+      }
+  }
+  
   // return true to indicate the hit was used
   return true;
 }

@@ -155,12 +155,12 @@ struct cdevIrData
       double m_betaStarBlueHorz;
       double m_betaStarYellowVert;
       double m_betaStarBlueVert;
-      double m_polarPerBunchYellowX[60];
-      double m_polarPerBunchYellowY[60];
-      double m_polarPerBunchYellowZ[60];
-      double m_polarPerBunchBlueX[60];
-      double m_polarPerBunchBlueY[60];
-      double m_polarPerBunchBlueZ[60];
+      double m_polarPerBunchYellowX[360];
+      double m_polarPerBunchYellowY[360];
+      double m_polarPerBunchYellowZ[360];
+      double m_polarPerBunchBlueX[360];
+      double m_polarPerBunchBlueY[360];
+      double m_polarPerBunchBlueZ[360];
       int m_avgOrbitDXBpmYellowHorzOdd;
       int m_avgOrbitDXBpmYellowHorzEven;
       int m_avgOrbitDXBpmYellowVertOdd;

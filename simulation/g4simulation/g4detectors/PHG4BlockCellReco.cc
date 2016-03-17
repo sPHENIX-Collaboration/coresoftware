@@ -403,6 +403,8 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
             cellptarray[ibin]->set_etabin(ietabin);
           }
           cellptarray[ibin]->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
+          cellptarray[ibin]->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep()*vdedx[i1]);
+
           // just a sanity check - we don't want to mess up by having Nan's or Infs in our energy deposition
           if (! isfinite(hiter->second->get_edep()*vdedx[i1]))
           {

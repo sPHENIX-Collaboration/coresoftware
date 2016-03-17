@@ -64,6 +64,7 @@ void exithelp()
   COUT << "  -n <number>   stop after so many events" << std::endl;
   COUT << "  -u  write uncompressed data, default is compressed "<< std::endl;
   COUT << "  -f  force output file overwrite, normally you cannot overwrite an existing file (safety belt)"<< std::endl;
+  COUT << "  -x  ignore event numbers (allow non-matching evt nrs to be combined, DANGEROUS)"<< std::endl;
   COUT << "  -h  this message" << std::endl;
   exit(0);
 }
@@ -93,6 +94,7 @@ main(int argc, char *argv[])
   int maxevents = 0;
   int eventnr = 0;
   int gzipcompress = 1;
+  int ignoreeventnr = 0;
   extern char *optarg;
   extern int optind;
 
@@ -107,7 +109,7 @@ main(int argc, char *argv[])
 
 
 
-  while ((c = getopt(argc, argv, "n:c:e:viufh")) != EOF)
+  while ((c = getopt(argc, argv, "n:c:e:viufhx")) != EOF)
     {
 
       switch (c) 
@@ -127,6 +129,10 @@ main(int argc, char *argv[])
 
 	case 'f':   // do not gzip-compress
 	  forceflag = 1;
+	  break;
+
+	case 'x':   // do not gzip-compress
+	  ignoreeventnr = 1;
 	  break;
 
 	case 'e':
@@ -256,10 +262,11 @@ main(int argc, char *argv[])
 		enr = evt[i]->getEvtSequence();
 		evt[i]->Copy ( out , total_length , &nwout);
 		current  = nwout;
+		delete evt[i];
 	      }
 	    else
 	      {
-		if (take_this ==0  || evt[i]->getEvtSequence() != enr)
+		if (take_this ==0  || (ignoreeventnr ==0 && evt[i]->getEvtSequence() != enr ))
 		  {
 		    take_this = 0;
 		  }
@@ -268,6 +275,7 @@ main(int argc, char *argv[])
 		    evt[i]->Copy (  &out[current] , total_length-current , &nwout, "DATA");
 		    current += nwout;
 		    out[0] +=  nwout;
+		    delete evt[i];
 		  }
 	      }
 	  }

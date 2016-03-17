@@ -121,6 +121,7 @@ time_t A_Event::getTime() const
     }
 }
 
+
 void A_Event::listFrame ( const int id, OSTREAM &os) const
 {
   PHDWORD *fp;
@@ -198,6 +199,7 @@ A_Event::listError( const int id, OSTREAM& os ) const
 	  PHDWORD* ptr = findFrameErrorStart(fp);
 	  UINT len = getFrameErrorLength(fp);
 	  dumpBlock(ptr, len, os);
+	  dumpErrorBlock(fp,os);
 	}
     }
   else // find the frame for a given packet
@@ -232,11 +234,11 @@ void A_Event::dumpFrame(PHDWORD *fp, OSTREAM &os)
   os << "Frame Source id:    " << getFrameSourceId(fp) << std::endl;
   os << "Frame data type:    " << getFrameDataType(fp) << std::endl;
   os << "Frame type:         " << getFrameType(fp) << std::endl;
-  os << "Frame Hist Length:  " << getFrameHistoryLength(fp) << std::endl;
   os << "Frame Error Length: " << getFrameErrorLength(fp) << std::endl;
+  os << "Frame Hist Length:  " << getFrameHistoryLength(fp) << std::endl;
   os << "Frame align length: " << getFrameAlignLength(fp) << std::endl;
-  
-  unsigned int i;
+  os << "Frame padding:      " << getFramePadding(fp) << std::endl;
+  unsigned int i = 0;
   PHDWORD *p = findFrameAlignBlock(fp);
   for (i = 0; i<  getFrameAlignLength(fp); i++ )
     {
@@ -245,6 +247,32 @@ void A_Event::dumpFrame(PHDWORD *fp, OSTREAM &os)
       os.fill('0');
       os << SETW(8) << std::hex << *p++ << std::dec << std::endl;  
       os.fill (' ');
+    }
+  os << std::endl;
+}
+
+void
+A_Event::dumpErrorBlock(PHDWORD *fp, OSTREAM &os)
+{
+  PHDWORD* ptr = findFrameErrorStart(fp);
+  UINT len = getFrameErrorLength(fp);
+  UINT nerr = calcNumErrorsV1(len);
+  if ( nerr == 0 ) return;
+
+  errorEntryV1* p = reinterpret_cast<errorEntryV1*>(ptr);
+  for (UINT i=0; i<nerr; ++i)
+    {
+      errorEntryV1& e = *p;
+      os << "ErrorEntry " << i << ": ";
+      os << "severity: " << (int) e.severity << " "
+	 << "deviceType: " << (int)e.deviceType << " "
+	 << "deviceId: " << std::dec << e.deviceId << " "
+	 << "errorCode: " << e.errorCode << " "
+	 << "detectCode: " << e.detectCode << " "
+	 << "addData: (" << std::hex << e.addData[0] << "," << std::hex << e.addData[1] << ")"
+	 << std::dec
+	 << std::endl;
+      p++;
     }
   os << std::endl;
 }
@@ -401,6 +429,8 @@ int A_Event::createMap()
 			    << std::hex << "(0x" << *pp << ")" << std::dec 
 			    << " packet Id: " <<  getPacketId(pp)  
 			    << " Event: " << getEvtSequence() 
+			    << " EvtLength: " << getEvtLength()
+			    << " PosInEvent: " << pos_in_event
 			    << std::endl;
 		  errorcode =-2;
 		  break;
@@ -540,6 +570,8 @@ Packet *A_Event::makePacket(PHDWORD *pp, const int hitFormat)
   switch (wanted_hitformat)
     {
 
+      // pbsc "32 channel format"
+
     case 50400:
     case IDHBD_FPGA:
     case IDHBD_FPGA0SUP:
@@ -552,9 +584,80 @@ Packet *A_Event::makePacket(PHDWORD *pp, const int hitFormat)
       return new Packet_hbd_fpgashort(pp);
       break;
 
+    case IDCDEVPOLARIMETER:
+      return new Packet_cdevpolarimeter(pp);
+      break;
+
+    case IDCDEVPOLARIMETERTARGET:
+      return new Packet_cdevpoltarget(pp);
+      break;
+
+    case IDCDEVIR:
+      return new Packet_cdevir(pp);
+      break;
+
+    case IDCDEVWCMHISTORY:
+      return new Packet_cdevwcm(pp);
+      break;
+
+    case IDCDEVBPM:
+      return new Packet_cdevbpm(pp);
+      break;
+
+    case IDCDEVDVM:
+      return new Packet_cdevdvm(pp);
+      break;
+
+    case IDCDEVRING:
+      return new Packet_cdevring(pp);
+      break;
+
+    case IDCDEVRINGPOL:
+      return new Packet_cdevring(pp);
+      break;
+
+    case IDCDEVRINGFILL:
+      return new Packet_cdevring(pp);
+      break;
+
+    case IDCDEVRINGNOPOL:
+      return new Packet_cdevringnopol(pp);
+      break;
+
+    case IDCDEVBUCKETS:
+      return new Packet_cdevbuckets(pp);
+      break;
+
+      //mlp 10/27/03 added this - the SIS is a straight array of numbers.
+    case IDCDEVSIS:
+      return new Packet_id4evt(pp);
+      break;
+
+    case IDCDEVMADCH:
+      return new Packet_cdevmadch(pp);
+      break;
+
+    case ID4SCALER:
+      return new Packet_id4scaler(pp);
+      break;
+
+    case IDGL1P:
+      return new Packet_gl1p(pp);
+      break;
+
+    case IDGL1_EVCLOCK:
+      return new Packet_gl1_evclocks(pp);
+      break;
+
+    case IDGL1PSUM:
+    case IDGL1PSUMOBS:
+      return new Packet_gl1psum(pp);
+      break;
+
     case ID4EVT:
       return new Packet_id4evt(pp);
       break;
+
     case ID2EVT:
       return new Packet_id2evt(pp);
       break;
@@ -567,6 +670,9 @@ Packet *A_Event::makePacket(PHDWORD *pp, const int hitFormat)
       return new Packet_starscaler(pp);
       break;
 
+    case IDCDEVDESCR:
+      return new Packet_idcdevdescr(pp);
+      break;
 
 
     default:
@@ -617,11 +723,6 @@ A_Event::identify (OSTREAM &os) const
   os << x;
   
   os << std::endl;
-
-  //PHTimeStamp *p = getTimeStamp();
-  // os << *p << std::endl;
-  //delete p;
-
 
 };
 

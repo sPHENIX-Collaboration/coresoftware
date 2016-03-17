@@ -32,7 +32,7 @@ SvtxTruthEval::SvtxTruthEval(PHCompositeNode* topNode)
     _cache_all_truth_hits_g4particle(),
     _cache_get_innermost_truth_hit(),
     _cache_get_outermost_truth_hit(),
-    _cache_get_primary_g4hit() {
+    _cache_get_primary_particle_g4hit() {
   get_node_pointers(topNode);
 }
 
@@ -50,7 +50,7 @@ void SvtxTruthEval::next_event(PHCompositeNode* topNode) {
   _cache_all_truth_hits_g4particle.clear();
   _cache_get_innermost_truth_hit.clear();
   _cache_get_outermost_truth_hit.clear();
-  _cache_get_primary_g4hit.clear();
+  _cache_get_primary_particle_g4hit.clear();
 
   _basetrutheval.next_event(topNode);
   
@@ -216,7 +216,7 @@ bool SvtxTruthEval::is_primary(PHG4Particle* particle) {
   return _basetrutheval.is_primary(particle);
 }
 
-PHG4Particle* SvtxTruthEval::get_primary(PHG4Hit* g4hit) {
+PHG4Particle* SvtxTruthEval::get_primary_particle(PHG4Hit* g4hit) {
 
   if (!has_node_pointers()) {++_errors; return NULL;}
   
@@ -225,15 +225,15 @@ PHG4Particle* SvtxTruthEval::get_primary(PHG4Hit* g4hit) {
 
   if (_do_cache) {
     std::map<PHG4Hit*,PHG4Particle*>::iterator iter =
-      _cache_get_primary_g4hit.find(g4hit);
-    if (iter != _cache_get_primary_g4hit.end()) {
+      _cache_get_primary_particle_g4hit.find(g4hit);
+    if (iter != _cache_get_primary_particle_g4hit.end()) {
       return iter->second;
     }
   }
   
-  PHG4Particle* primary = _basetrutheval.get_primary(g4hit);
+  PHG4Particle* primary = _basetrutheval.get_primary_particle(g4hit);
 
-  if (_do_cache) _cache_get_primary_g4hit.insert(make_pair(g4hit,primary));
+  if (_do_cache) _cache_get_primary_particle_g4hit.insert(make_pair(g4hit,primary));
   
   if (_strict) {assert(primary);}
   else if (!primary) {++_errors;}
@@ -241,8 +241,8 @@ PHG4Particle* SvtxTruthEval::get_primary(PHG4Hit* g4hit) {
   return primary;
 }
 
-PHG4Particle* SvtxTruthEval::get_primary(PHG4Particle* particle) {
-  return _basetrutheval.get_primary(particle);
+PHG4Particle* SvtxTruthEval::get_primary_particle(PHG4Particle* particle) {
+  return _basetrutheval.get_primary_particle(particle);
 }
 
 bool SvtxTruthEval::is_g4hit_from_particle(PHG4Hit* g4hit, PHG4Particle* particle) {

@@ -227,10 +227,10 @@ int
 PHG4DSTReader::process_event(PHCompositeNode* topNode)
 {
 
-  const double significand = _event / TMath::Power(10, (int) (log10(_event)));
-
-  if (fmod(significand, 1.0) == 0 && significand <= 10)
-    cout << "PHG4DSTReader::process_event - " << _event << endl;
+//  const double significand = _event / TMath::Power(10, (int) (log10(_event)));
+//
+//  if (fmod(significand, 1.0) == 0 && significand <= 10)
+//    cout << "PHG4DSTReader::process_event - " << _event << endl;
   _event++;
 
   //clean ups

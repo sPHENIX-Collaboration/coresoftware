@@ -20,7 +20,7 @@ PHG4TruthInfoContainer::PHG4TruthInfoContainer() :
   vertex_embed_flags() {
 }
 
-PHG4TruthInfoContainer::~PHG4TruthInfoContainer() {}
+PHG4TruthInfoContainer::~PHG4TruthInfoContainer() {Reset();}
 
 void PHG4TruthInfoContainer::Reset() {
 
@@ -34,6 +34,11 @@ void PHG4TruthInfoContainer::Reset() {
   }
   vtxmap.clear();
 
+  for (ShowerIterator iter = showermap.begin(); iter != showermap.end(); ++iter) {
+    delete iter->second;
+  }
+  showermap.clear();
+  
   particle_embed_flags.clear();
   vertex_embed_flags.clear();
   
@@ -53,7 +58,13 @@ void PHG4TruthInfoContainer::identify(ostream& os) const {
     cout << "vtx id: " << vter ->first << endl;
     (vter ->second)->identify();
   }
-   
+
+  cout << "---showermap-------------------------------" << endl;
+  for (ConstShowerIterator ster = showermap.begin(); ster != showermap.end(); ++ster) {
+    cout << "shower id: " << ster ->first << endl;
+    (ster ->second)->identify();
+  }
+  
   cout << "---list of embeded track flags-------------------" << endl;
   for (std::map<int,int>::const_iterator eter = particle_embed_flags.begin();
        eter != particle_embed_flags.end();
@@ -126,6 +137,22 @@ PHG4VtxPoint* PHG4TruthInfoContainer::GetPrimaryVtx(const int vtxid) {
   return NULL;
 }
 
+PHG4Shower* PHG4TruthInfoContainer::GetShower(const int showerid) {
+  
+  int key = showerid;
+  ShowerIterator it = showermap.find(key);
+  if ( it != showermap.end() ) return it->second;
+  return NULL;
+}
+
+PHG4Shower* PHG4TruthInfoContainer::GetPrimaryShower(const int showerid) {
+  
+  if (showerid <= 0) return NULL;
+  ShowerIterator it = showermap.find(showerid);
+  if ( it != showermap.end() ) return it->second;
+  return NULL;
+}
+
 PHG4TruthInfoContainer::ConstVtxIterator
 PHG4TruthInfoContainer::AddVertex(const int id, PHG4VtxPoint *newvtx) {
 
@@ -149,6 +176,31 @@ PHG4TruthInfoContainer::AddVertex(const int id, PHG4VtxPoint *newvtx) {
   cerr << "PHG4TruthInfoContainer::AddVertex"
        << " - Attempt to add vertex with existing id " << id << std::endl;
   return vtxmap.end();
+}
+
+PHG4TruthInfoContainer::ConstShowerIterator
+PHG4TruthInfoContainer::AddShower(const int id, PHG4Shower *newshower) {
+
+  int key = id;
+  ConstShowerIterator it;
+  bool added = false;
+
+  if (showermap.find(id) != showermap.end()) {
+    cout << "trying to add existing shower " << id 
+	 << " shower pos: " << endl;
+    (showermap.find(id)->second)->identify();
+    identify();
+  }
+  
+  boost::tie(it,added) = showermap.insert(std::make_pair(key,newshower));
+  if ( added ) {
+    newshower->set_id(key);
+    return it;
+  }
+
+  cerr << "PHG4TruthInfoContainer::AddShower"
+       << " - Attempt to add shower with existing id " << id << std::endl;
+  return showermap.end();
 }
 
 int PHG4TruthInfoContainer::maxtrkindex() const {
@@ -183,6 +235,22 @@ int PHG4TruthInfoContainer::minvtxindex() const {
   return key;
 }
 
+int PHG4TruthInfoContainer::maxshowerindex() const {
+  
+  int key = 0;
+  if (!showermap.empty()) key = showermap.rbegin()->first;
+  if (key < 0) key = 0;
+  return key;
+}
+
+int PHG4TruthInfoContainer::minshowerindex() const {
+  
+  int key = 0;
+  if (!showermap.empty()) key = showermap.begin()->first;
+  if (key > 0) key = 0;
+  return key;
+}
+
 void PHG4TruthInfoContainer::delete_particle(Iterator piter) {
   
   delete piter->second;
@@ -194,6 +262,13 @@ void PHG4TruthInfoContainer::delete_vtx(VtxIterator viter) {
   
   delete viter->second;
   vtxmap.erase(viter);
+  return;
+}
+
+void PHG4TruthInfoContainer::delete_shower(ShowerIterator siter) {
+  
+  delete siter->second;
+  showermap.erase(siter);
   return;
 }
 

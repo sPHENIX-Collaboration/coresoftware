@@ -19,7 +19,7 @@
 // define the source of a message
 
 #define MSG_SOURCE_WIDTH        3
-#define MSG_SOURCE_MAX          31
+#define MSG_SOURCE_MAX          34
 
 #define MSG_SOURCE_UNSPECIFIED  0
 #define MSG_SOURCE_BEAMBEAM     1
@@ -53,6 +53,9 @@
 #define MSG_SOURCE_MONITOR     28
 #define MSG_SOURCE_MUTR        29
 #define MSG_SOURCE_TOFW        30
+#define MSG_SOURCE_CLOCK       31
+#define MSG_SOURCE_VTX         32
+#define MSG_SOURCE_FVTX        33
 
 #define MSG_SOURCE_DEFAULT      MSG_SOURCE_UNSPECIFIED 
 

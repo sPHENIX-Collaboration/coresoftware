@@ -19,7 +19,7 @@ public:
   
   void identify(std::ostream& os = std::cout) const;
   void Reset();
-  int  IsValid() const {return 1;}
+  int  isValid() const {return 1;}
   SvtxHitMap* Clone() const {return new SvtxHitMap_v1(*this);}
   
   bool   empty()                   const {return _map.empty();}

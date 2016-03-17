@@ -56,7 +56,7 @@ int PHG4ForwardHcalSubsystem::Init( PHCompositeNode* topNode )
       PHG4HitContainer* scintillator_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
       if (!scintillator_hits)
         {
-          scintillator_hits = new PHG4HitContainer();
+          scintillator_hits = new PHG4HitContainer(nodename.str());
           PHIODataNode<PHObject> *hitNode = new PHIODataNode<PHObject>(scintillator_hits, nodename.str().c_str(), "PHObject");
           dstNode->addNode(hitNode);
           nodes.insert(nodename.str());
@@ -68,7 +68,7 @@ int PHG4ForwardHcalSubsystem::Init( PHCompositeNode* topNode )
       PHG4HitContainer* absorber_hits = findNode::getClass<PHG4HitContainer>(topNode, absnodename.str().c_str());
       if (!absorber_hits)
         {
-          absorber_hits = new PHG4HitContainer();
+          absorber_hits = new PHG4HitContainer(absnodename.str());
           PHIODataNode<PHObject> *abshitNode = new PHIODataNode<PHObject>(absorber_hits, absnodename.str().c_str(), "PHObject");
           dstNode->addNode(abshitNode);
           nodes.insert(nodename.str());

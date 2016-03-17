@@ -1,15 +1,14 @@
 #ifndef __LISTEVENTITERATOR_H__
 #define __LISTEVENTITERATOR_H__
 
-#include "fileEventiterator.h"
-#include "Event.h"
-
 #include <cstdio>
 
 #ifndef __CINT__
 #include <fstream>
 #endif
 
+#include "fileEventiterator.h"
+#include "Event.h"
 
 #define FEMAXFILENAMELENGTH 256
 
@@ -39,7 +38,7 @@ public:
   */
   listEventiterator(const char *filename, int &status);
 
-  char * getIdTag() const;
+  const char * getIdTag() const;
 
   virtual void identify(std::ostream& os = std::cout) const;
 

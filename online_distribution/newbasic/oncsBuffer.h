@@ -1,30 +1,37 @@
 #ifndef __ONCSBUFFER_H
 #define __ONCSBUFFER_H
 
+#include "buffer.h"
 #include "oncsEvent.h"
 #include "BufferConstants.h"
-
 #include "event_io.h"
 
-#include <cstdio>
+#include <stdio.h>
+
 
 #ifndef __CINT__
 
-class WINDOWSEXPORT oncsBuffer {
+#define PRDFBUFFERID 0xffffffc0
+#define ONCSBUFFERID 0xffffc0c0
+
+class WINDOWSEXPORT oncsBuffer : public buffer {
 #else
-class  oncsBuffer {
+  class  oncsBuffer : public buffer {
 #endif
 
 public:
 
   //** Constructors
 
-  oncsBuffer( int *array, const int length);
+  oncsBuffer( PHDWORD *array, const PHDWORD length);
 
   //  this creates a new event on the next address
   Event * getEvent();
 
   int buffer_swap();
+
+  int *getEventData() { return 0;};
+  int isGood() const { return 1;};
 
   static int i4swap (const int in);
   static int i22swap (const int in);
@@ -34,10 +41,10 @@ protected:
   typedef struct 
   { 
     int Length;
-    int ID;
+    unsigned int ID;
     int Bufseq;
     int Runnr;
-    int data[1];
+    int data[];
   } *buffer_ptr;
 
   buffer_ptr bptr;

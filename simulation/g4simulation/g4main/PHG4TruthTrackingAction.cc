@@ -1,10 +1,13 @@
 #include "PHG4TruthTrackingAction.h"
+
 #include "PHG4TruthEventAction.h"
-#include <PHG4TruthInfoContainer.h>
 #include "PHG4TrackUserInfoV1.h"
+#include "PHG4UserPrimaryParticleInformation.h"
+
 #include "PHG4Particlev2.h"
 #include "PHG4VtxPointv1.h"
-#include "PHG4UserPrimaryParticleInformation.h"
+#include "PHG4TruthInfoContainer.h"
+#include "PHG4Showerv1.h"
 
 #include <phool/getClass.h>
 
@@ -50,7 +53,7 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
   G4ThreeVector pdir = track->GetVertexMomentumDirection();
   pdir *= ptot;
 
-  // create a new particle for the output structure for each G4Track
+  // create a new particle -----------------------------------------------------
   PHG4Particlev2* ti = new PHG4Particlev2;
   ti->set_px(pdir[0] / GeV);
   ti->set_py(pdir[1] / GeV);
@@ -76,6 +79,7 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
   ti->set_name(def->GetParticleName());
   ti->set_e(track->GetTotalEnergy() / GeV);
 
+  // create a new vertex object ------------------------------------------------
   G4ThreeVector v = track->GetVertexPosition();
   map<G4ThreeVector, int>::const_iterator viter = VertexMap.find(v);
   int vtxindex = 0;
@@ -102,6 +106,27 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
   // insert particle into the output
   truthInfoList_->AddParticle(trackid, ti);
 
+
+  // create or add to a new shower object --------------------------------------
+  if (!track->GetParentID()) {
+    PHG4Showerv1* shower = new PHG4Showerv1();
+    PHG4TrackUserInfo::SetShower(const_cast<G4Track *> (track), shower);
+    truthInfoList_->AddShower(trackid, shower);
+    shower->set_id(trackid); // fyi, secondary showers may not share these ids
+    shower->set_parent_particle_id(trackid);
+    shower->set_parent_shower_id(0);
+  } else {
+    // get shower
+    if ( G4VUserTrackInformation* p = track->GetUserInformation() ) {
+      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) ) {
+	if (pp->GetShower()) {
+	  pp->GetShower()->add_g4particle_id(trackid);
+	  pp->GetShower()->add_g4vertex_id(vtxindex);
+	}
+      }
+    }
+  }
+    
   // tell the primary particle copy in G4 where this output will be stored
   if (!track->GetParentID()) {
     PHG4UserPrimaryParticleInformation* userdata = (PHG4UserPrimaryParticleInformation*)track->GetDynamicParticle()->GetPrimaryParticle()->GetUserInformation();
@@ -120,9 +145,11 @@ void PHG4TruthTrackingAction::PostUserTrackingAction(const G4Track* track) {
 
     int trackid = track->GetTrackID();
     int primaryid = 0;
+    PHG4Shower* shower = NULL;
     if ( PHG4TrackUserInfoV1* p = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation()) ) {
       trackid = p->GetUserTrackId();
       primaryid = p->GetUserPrimaryId();
+      shower = p->GetShower();
     }
 
     G4TrackVector* secondaries = fpTrackingManager->GimmeSecondaries();
@@ -131,6 +158,7 @@ void PHG4TruthTrackingAction::PostUserTrackingAction(const G4Track* track) {
 	G4Track* secondary = (*secondaries)[i];    
 	PHG4TrackUserInfo::SetUserParentId(const_cast<G4Track *> (secondary), trackid);
 	PHG4TrackUserInfo::SetUserPrimaryId(const_cast<G4Track *> (secondary), primaryid);
+	PHG4TrackUserInfo::SetShower(const_cast<G4Track *> (secondary), shower);
       }
     }
   }
