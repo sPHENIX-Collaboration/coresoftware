@@ -16,80 +16,94 @@
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4SpacalPrototypeSteppingAction.h"
 #include "PHG4EventActionClearZeroEdep.h"
-#include <g4main/PHG4Utils.h>
 
+#include <g4main/PHG4Utils.h>
 #include <g4main/PHG4PhenixDetector.h>
 #include <g4main/PHG4HitContainer.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
 
+#include <pdbcalbase/PdbParameterMap.h>
 #include <Geant4/globals.hh>
 
 #include <sstream>
+#include <cassert>
 
 using namespace std;
 
 //_______________________________________________________________________
-PHG4SpacalPrototypeSubsystem::PHG4SpacalPrototypeSubsystem( const std::string &na, const int lyr):
-  detector_( NULL ),
-  steppingAction_( NULL ),
-  eventAction_(NULL),
-  active(0),
-  absorberactive(0),
-  layer(lyr),
-  lengthViaRapidityCoverage(true),
-  detector_type(na),
-  superdetector("NONE")
+PHG4SpacalPrototypeSubsystem::PHG4SpacalPrototypeSubsystem(
+    const std::string &na) :
+    detector_(NULL), steppingAction_(NULL), eventAction_(NULL), //
+    active(0), absorberactive(0), //
+    detector_type(na), superdetector("NONE"),//
+    Params(na)
 {
-  // put the layer into the name so we get unique names
-  // for multiple SVX layers
-  ostringstream nam;
-  nam << na << "_" << lyr;
-  Name(nam.str().c_str());
+  Name(na);
 }
 
 //_______________________________________________________________________
-int PHG4SpacalPrototypeSubsystem::InitRun( PHCompositeNode* topNode )
+int
+PHG4SpacalPrototypeSubsystem::InitRun(PHCompositeNode* topNode)
 {
   // create hit list only for active layers
-  PHNodeIterator iter( topNode );
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
-  // create detector
-  _geom.set_layer( layer );
-  if (lengthViaRapidityCoverage)
+  PHNodeIterator iter(topNode);
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
+      "PHCompositeNode", "DST"));
+
+  // update the parameters on the node tree
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
+      "PHCompositeNode", "RUN"));
+  string g4geonodename = "G4GEO_" + superdetector;
+  parNode->addNode(new PHDataNode<PHG4Parameters>(new PHG4Parameters(superdetector), g4geonodename));
+
+  PHG4Parameters *construction_params = findNode::getClass<PHG4Parameters>(
+      parNode, g4geonodename);
+  assert(construction_params);
+
+  // start with default then fill it up.
+  SetDefaultParameters(construction_params);
+
+  // save updated persistant copy on node tree
+  const string paramnodename = "G4GEOPARAM_" + superdetector;
+
+  if (useDB)
     {
-       const double half_length =  PHG4Utils::GetLengthForRapidityCoverage(_geom.get_max_radius());
-       _geom.set_zmin(-half_length);
-       _geom.set_zmax(+half_length);
+      // use DB
+
+      int iret = construction_params->ReadFromDB();
+      if (iret)
+        {
+          cout
+              << "PHG4SpacalPrototypeSubsystem::InitRun - problem reading from DB"
+              << endl;
+
+          return Fun4AllReturnCodes::ABORTRUN;
+        }
+    }
+  else
+    {
+      PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,
+          paramnodename);
+      if (nodeparams)
+        {
+          construction_params->FillFrom(nodeparams);
+        }
     }
 
-  switch (_geom.get_config())
-    {
-  case PHG4CylinderGeom_Spacalv1::kNonProjective:
-    if (verbosity > 0) cout << "PHG4SpacalPrototypeSubsystem::InitRun - use PHG4SpacalPrototypeDetector" << endl;
-    detector_ = new PHG4SpacalPrototypeDetector(topNode, Name(),
-        dynamic_cast<PHG4SpacalPrototypeDetector::SpacalGeom_t *>(&_geom), layer);
-    break;
+  // additional user set parameters
+  construction_params->FillFrom(&Params);
 
-  case PHG4CylinderGeom_Spacalv1::kProjective_PolarTaper:
-    if (verbosity > 0) cout << "PHG4SpacalPrototypeSubsystem::InitRun - use PHG4ProjSpacalDetector" << endl;
-    detector_ = new PHG4ProjSpacalDetector(topNode, Name(),
-        dynamic_cast<PHG4ProjSpacalDetector::SpacalGeom_t *>(&_geom), layer);
-    break;
+  // this step is moved to after detector construction
+  // save updated persistant copy on node tree
+  //  params->SaveToNodeTree(parNode, paramnodename);
 
-
-  case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper:
-  case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_SameLengthFiberPerTower:
-    if (verbosity > 0) cout << "PHG4SpacalPrototypeSubsystem::InitRun - use PHG4FullProjSpacalDetector" << endl;
-    detector_ = new PHG4FullProjSpacalDetector(topNode, Name(),
-        dynamic_cast<PHG4FullProjSpacalDetector::SpacalGeom_t *>(&_geom), layer);
-    break;
-
-  default:
-    cout << "PHG4SpacalPrototypeSubsystem::InitRun - unknown option exiting" << endl;
-    exit(1);
-    break;
-    }
+  if (verbosity > 0)
+    cout
+        << "PHG4SpacalPrototypeSubsystem::InitRun - use PHG4SpacalPrototypeDetector"
+        << endl;
+  detector_ = new PHG4SpacalPrototypeDetector(topNode, Name());
 
   detector_->SetActive(active);
   detector_->SetAbsorberActive(absorberactive);
@@ -101,72 +115,83 @@ int PHG4SpacalPrototypeSubsystem::InitRun( PHCompositeNode* topNode )
       ostringstream nodename;
       if (superdetector != "NONE")
         {
-          nodename <<  "G4HIT_" << superdetector;
+          nodename << "G4HIT_" << superdetector;
         }
       else
         {
-          nodename <<  "G4HIT_" << detector_type << "_" << layer;
+          nodename << "G4HIT_" << detector_type;
         }
-      PHG4HitContainer* cylinder_hits =  findNode::getClass<PHG4HitContainer>( topNode , nodename.str().c_str() );
-      if ( !cylinder_hits )
+      PHG4HitContainer* cylinder_hits = findNode::getClass<PHG4HitContainer>(
+          topNode, nodename.str().c_str());
+      if (!cylinder_hits)
         {
-          dstNode->addNode( new PHIODataNode<PHObject>( cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject" ));
+          dstNode->addNode(
+              new PHIODataNode<PHObject>(
+                  cylinder_hits = new PHG4HitContainer(nodename.str()),
+                  nodename.str().c_str(), "PHObject"));
         }
-      cylinder_hits->AddLayer(layer);
-      PHG4EventActionClearZeroEdep *evtac = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
+      cylinder_hits->AddLayer(0);
+      PHG4EventActionClearZeroEdep *evtac = new PHG4EventActionClearZeroEdep(
+          topNode, nodename.str());
       if (absorberactive)
         {
           nodename.str("");
           if (superdetector != "NONE")
             {
-              nodename <<  "G4HIT_ABSORBER_" << superdetector;
+              nodename << "G4HIT_ABSORBER_" << superdetector;
             }
           else
             {
-              nodename <<  "G4HIT_ABSORBER_" << detector_type << "_" << layer;
+              nodename << "G4HIT_ABSORBER_" << detector_type ;
             }
-          PHG4HitContainer* cylinder_hits =  findNode::getClass<PHG4HitContainer>( topNode , nodename.str().c_str() );
-          if ( !cylinder_hits )
+          PHG4HitContainer* cylinder_hits =
+              findNode::getClass<PHG4HitContainer>(topNode,
+                  nodename.str().c_str());
+          if (!cylinder_hits)
             {
-              dstNode->addNode( new PHIODataNode<PHObject>( cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject" ));
+              dstNode->addNode(
+                  new PHIODataNode<PHObject>(cylinder_hits =
+                      new PHG4HitContainer(nodename.str()),
+                      nodename.str().c_str(), "PHObject"));
             }
-          cylinder_hits->AddLayer(layer);
+          cylinder_hits->AddLayer(0);
           evtac->AddNode(nodename.str());
         }
       eventAction_ = evtac;
       steppingAction_ = new PHG4SpacalPrototypeSteppingAction(detector_);
     }
 
-
   return 0;
 
 }
 
 //_______________________________________________________________________
-int PHG4SpacalPrototypeSubsystem::process_event( PHCompositeNode* topNode )
+int
+PHG4SpacalPrototypeSubsystem::process_event(PHCompositeNode* topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
   if (steppingAction_)
     {
-      steppingAction_->SetInterfacePointers( topNode );
+      steppingAction_->SetInterfacePointers(topNode);
     }
   return 0;
 
 }
 
 //_______________________________________________________________________
-PHG4Detector* PHG4SpacalPrototypeSubsystem::GetDetector( void ) const
+PHG4Detector*
+PHG4SpacalPrototypeSubsystem::GetDetector(void) const
 {
   return detector_;
 }
 
 //_______________________________________________________________________
-PHG4SteppingAction* PHG4SpacalPrototypeSubsystem::GetSteppingAction( void ) const
+PHG4SteppingAction*
+PHG4SpacalPrototypeSubsystem::GetSteppingAction(void) const
 {
   return steppingAction_;
 }
-
 
 void
 PHG4SpacalPrototypeSubsystem::Print(const std::string &what) const
@@ -175,3 +200,43 @@ PHG4SpacalPrototypeSubsystem::Print(const std::string &what) const
   return;
 }
 
+void
+PHG4SpacalPrototypeSubsystem::SetDefaultParameters(PHG4Parameters * param)
+{
+  assert(param);
+
+  param->set_double_param("radius", 95);
+  param->set_double_param("zmin", -40);
+  param->set_double_param("zmax", 40);
+  param->set_double_param("thickness", 16.6);
+
+
+  param->set_string_param("absorber_mat","Spacal_W_Epoxy");
+  param->set_string_param("fiber_clading_mat","PMMA");
+  param->set_string_param("fiber_core_mat","G4_POLYSTYRENE");
+
+  param->set_double_param("xpos", 0);
+  param->set_double_param("ypos", 0);
+  param->set_double_param("zpos", 0);
+
+
+  param->set_double_param("fiber_clading_thickness", 0.003 / 2);
+  param->set_double_param("fiber_core_diameter", 0.047 - (0.003 / 2) * 2);
+  param->set_double_param("fiber_distance",  0.1);
+
+  param->set_int_param("virualize_fiber",  0);
+  param->set_int_param("azimuthal_seg_visible",  0);
+  param->set_int_param("construction_verbose",  verbosity);
+
+  param->set_int_param("azimuthal_n_sec", 8);
+
+  param->set_double_param("assembly_spacing",  0.0001);
+
+  param->set_double_param("sidewall_thickness",  0.075000);
+  param->set_double_param("sidewall_outer_torr",  0.030000);
+  param->set_string_param("sidewall_mat",  "SS310");
+
+  param->set_int_param("max_phi_bin_in_sec", 1);
+
+//  param->set_int_param("radius", 100);
+}

@@ -35,8 +35,7 @@ class PHG4SpacalPrototypeDetector : public PHG4Detector
 public:
   typedef PHG4CylinderGeom_Spacalv1 SpacalGeom_t;
 
-  PHG4SpacalPrototypeDetector(PHCompositeNode* Node, const std::string& dnam,
-      SpacalGeom_t * geom, const int layer = 0);
+  PHG4SpacalPrototypeDetector(PHCompositeNode* Node, const std::string& dnam);
 
   virtual
   ~PHG4SpacalPrototypeDetector(void);
@@ -86,11 +85,6 @@ public:
     return superdetector;
   }
 
-  int
-  get_Layer() const
-  {
-    return layer;
-  }
 
   G4UserSteppingAction*
   GetSteppingAction()
@@ -110,23 +104,6 @@ public:
     return _geom;
   }
 
-  virtual
-  PHG4CylinderGeom * clone_geom() const
-  {
-    return new SpacalGeom_t(*_geom);
-  }
-
-//  SpacalGeom_t &
-//  get_geom()
-//  {
-//    return _geom;
-//  }
-
-//  void
-//  set_geom(const SpacalGeom_t & geom)
-//  {
-//    _geom = geom;
-//  }
 
   enum
   {
@@ -156,7 +133,6 @@ protected:
 
   int active;
   int absorberactive;
-  int layer;
   std::string detector_type;
   std::string superdetector;
 
@@ -165,7 +141,6 @@ protected:
   G4UserLimits * fiber_core_step_limits;
 
 private:
-
   SpacalGeom_t * _geom;
 
 };

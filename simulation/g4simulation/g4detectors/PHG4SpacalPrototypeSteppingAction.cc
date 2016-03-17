@@ -48,7 +48,7 @@ PHG4SpacalPrototypeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
   const G4Track* aTrack = aStep->GetTrack();
 
-  int layer_id = detector_->get_Layer();
+  const int layer_id = 0;
   // make sure we are in a volume
   // IsInCylinderActive returns the number of the scintillator 
   // slat which has fired

@@ -12,7 +12,7 @@
 #define PHG4SpacalPrototypeSubsystem_h
 
 #include "g4main/PHG4Subsystem.h"
-#include "PHG4CylinderGeom_Spacalv3.h"
+#include "PHG4Parameters.h"
 
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
@@ -27,8 +27,8 @@ class PHG4SpacalPrototypeSubsystem : public PHG4Subsystem
 public:
 
   //! constructor
-  PHG4SpacalPrototypeSubsystem(const std::string &name = "PHG4SpacalPrototypeSubsystem",
-      const int layer = 0);
+  PHG4SpacalPrototypeSubsystem(const std::string &name =
+      "CEMC");
 
   //! destructor
   virtual
@@ -63,11 +63,6 @@ public:
   {
     return eventAction_;
   }
-  void
-  SetLengthViaRapidityCoverage(const G4bool bl)
-  {
-    lengthViaRapidityCoverage = bl;
-  }
 
   void
   SetActive(const int i = 1)
@@ -83,6 +78,7 @@ public:
   SuperDetector(const std::string &name)
   {
     superdetector = name;
+    Params.set_name(superdetector);
   }
   const std::string
   SuperDetector()
@@ -93,28 +89,39 @@ public:
   void
   Print(const std::string &what = "ALL") const;
 
-  typedef PHG4CylinderGeom_Spacalv3 SpacalGeom_t;
-
-  const SpacalGeom_t &
-  get_geom() const
-  {
-    return _geom;
-  }
-
-SpacalGeom_t &
-  get_geom()
-  {
-    return _geom;
-  }
-
+  //! load the default parameter to param
   void
-  set_geom(const SpacalGeom_t & geom)
+  SetDefaultParameters(PHG4Parameters * param);
+
+  //! Get the parameters for readonly
+  const PHG4Parameters &
+  GetParameters() const
   {
-    _geom = geom;
+    return Params;
+  }
+
+  //! Get the parameters for update. Useful fields are listed in SetDefaultParameters();
+  PHG4Parameters &
+  GetParameters()
+  {
+    return Params;
+  }
+
+  //! Overwrite the parameter. Useful fields are listed in SetDefaultParameters();
+  void
+  SetParameters(const PHG4Parameters & geom)
+  {
+    Params = geom;
+  }
+
+  //! use database?
+  void
+  UseDB(const bool b = true)
+  {
+    useDB = b;
   }
 
 private:
-  SpacalGeom_t _geom;
 
   //! detector geometry
   /*! defives from PHG4Detector */
@@ -127,10 +134,11 @@ private:
 
   int active;
   int absorberactive;
-  int layer;
-  G4bool lengthViaRapidityCoverage;
   std::string detector_type;
   std::string superdetector;
+
+  int useDB;
+  PHG4Parameters Params;
 };
 
 #endif

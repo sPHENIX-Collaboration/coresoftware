@@ -37,6 +37,7 @@ class PHG4Parameters: public PHObject
   void set_name(const std::string &name) {detname = name;}
 
   void FillFrom(const PdbParameterMap *saveparams);
+  void FillFrom(const PHG4Parameters *saveparams);
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename);
   int WriteToDB();
   int ReadFromDB();
@@ -51,9 +52,9 @@ class PHG4Parameters: public PHObject
   unsigned int ConvertStringToUint(const std::string &str) const;
   PdbParameterMap *pdbparam;
   std::string detname;
-  std::map<const std::string, double> doubleparams;
-  std::map<const std::string, int> intparams;
-  std::map<const std::string, std::string> stringparams;
+  dMap doubleparams;
+  iMap intparams;
+  strMap stringparams;
 
 };
 
