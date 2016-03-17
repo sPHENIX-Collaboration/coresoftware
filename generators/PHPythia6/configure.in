@@ -1,0 +1,9 @@
+AC_INIT(configure.in)
+
+AM_INIT_AUTOMAKE(PHPythia, 0.1)
+
+AC_PROG_CXX(CC g++)
+AC_ENABLE_STATIC(no)
+AC_PROG_LIBTOOL
+
+AC_OUTPUT(Makefile)
