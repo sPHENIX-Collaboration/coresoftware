@@ -298,7 +298,9 @@ int PHPythia::process_event(PHCompositeNode *topNode) {
 
   // add some information to the event
   evt->set_event_number(_eventcount);
-  evt->set_signal_process_id(20);
+
+  /* @TODO How to find out correct process ID from pythia? */
+  //  evt->set_signal_process_id(20);
 
   // set number of multi parton interactions
   evt->set_mpi( pypars.msti[31-1] );
