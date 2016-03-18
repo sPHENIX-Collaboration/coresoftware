@@ -56,8 +56,8 @@ class PHG4Prototype2InnerHcalDetector: public PHG4Detector
   int ConstructInnerHcal(G4LogicalVolume* sandwich);
   int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
   PHG4Parameters *params;
-  G4LogicalVolume *outerhcalsteelplate;
-  G4AssemblyVolume *outerhcalassembly;
+  G4LogicalVolume *innerhcalsteelplate;
+  G4AssemblyVolume *innerhcalassembly;
   G4TwoVector steel_plate_corner_upper_left;
   G4TwoVector steel_plate_corner_upper_right;
   G4TwoVector steel_plate_corner_lower_right;
@@ -78,7 +78,7 @@ class PHG4Prototype2InnerHcalDetector: public PHG4Detector
   double size_z;
   double scinti_tile_z;
   double scinti_tile_thickness;
-  double scinti_box_shift;
+  double scinti_box_smaller;
   double gap_between_tiles;
   double scinti_gap;
   double tilt_angle;
