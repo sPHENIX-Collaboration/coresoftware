@@ -41,10 +41,11 @@ PHG4Prototype2InnerHcalDetector::PHG4Prototype2InnerHcalDetector( PHCompositeNod
   steel_plate_corner_upper_right(1308.5*mm,-286.96*mm), 
   steel_plate_corner_lower_right(1298.8*mm,-297.39*mm),
   steel_plate_corner_lower_left(1155.8*mm,-163.92*mm),
+  scinti_u1_front_size(105.9*mm),
   scinti_u1_corner_upper_left(0*mm,0*mm),
   scinti_u1_corner_upper_right(198.1*mm,0*mm),
   scinti_u1_corner_lower_right(198.1*mm,-121.3*mm),
-  scinti_u1_corner_lower_left(0*mm,-105.9*mm),
+  scinti_u1_corner_lower_left(0*mm,-scinti_u1_front_size),
   scinti_u2_corner_upper_left(0*mm,0*mm),
   scinti_u2_corner_upper_right(198.1*mm,-15.4*mm),
   scinti_u2_corner_lower_right(198.1*mm,-141.5*mm),
@@ -143,11 +144,6 @@ PHG4Prototype2InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcale
   G4VSolid* scintiboxsolid = new G4Box("InnerHcalScintiMother",scinti_x/2.,(scinti_gap-scinti_box_smaller)/2.,scinti_tile_z/2.);
   //  DisplayVolume(scintiboxsolid,hcalenvelope);
   G4LogicalVolume* scintiboxlogical = new G4LogicalVolume(scintiboxsolid,G4Material::GetMaterial("G4_AIR"),G4String("InnerHcalScintiMother"), 0, 0, 0);
-  G4VisAttributes *visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(false);
-  visattchk->SetColour(G4Colour::Yellow());
-  scintiboxlogical->SetVisAttributes(visattchk);
   G4VisAttributes* hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
   hcalVisAtt->SetForceSolid(false);
@@ -164,7 +160,7 @@ PHG4Prototype2InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcale
   G4RotationMatrix *Rot;  
   Rot = new G4RotationMatrix();  
   Rot->rotateX(-90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-166.2*mm-gap_between_tiles/2.-gap_between_tiles),scintiu2_logic,"InnerScinti_0", scintiboxlogical, false, 0, overlapcheck);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-scinti_u1_front_size-gap_between_tiles/2.-gap_between_tiles),scintiu2_logic,"InnerScinti_0", scintiboxlogical, false, 0, overlapcheck);
 
   Rot = new G4RotationMatrix();  
   Rot->rotateX(-90*deg);
@@ -176,7 +172,7 @@ PHG4Prototype2InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcale
 
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,166.2*mm+gap_between_tiles/2.+gap_between_tiles),scintiu2_logic,"InnerScinti_3", scintiboxlogical, false, 0, overlapcheck);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,scinti_u1_front_size+gap_between_tiles/2.+gap_between_tiles),scintiu2_logic,"InnerScinti_3", scintiboxlogical, false, 0, overlapcheck);
 
 
   return scintiboxlogical;
