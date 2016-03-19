@@ -62,6 +62,7 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   G4TwoVector steel_plate_corner_upper_right;
   G4TwoVector steel_plate_corner_lower_right;
   G4TwoVector steel_plate_corner_lower_left;
+  double scinti_u1_front_size;
   G4TwoVector scinti_u1_corner_upper_left;
   G4TwoVector scinti_u1_corner_upper_right;
   G4TwoVector scinti_u1_corner_lower_right;
