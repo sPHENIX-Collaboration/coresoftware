@@ -62,7 +62,7 @@ int prdfBuffer::buffer_swap()
 
   while (evtindex*4  < bptr->Length - BUFFERHEADERLENGTH)
     {
-      COUT << "evt index " << evtindex << "  buffer length = " <<   bptr->Length << std::endl;
+      //      COUT << "evt index " << evtindex << "  buffer length = " <<   bptr->Length << std::endl;
 
       // map event header on data
       evtptr = (  evtdata_ptr ) &bptr->data[evtindex];

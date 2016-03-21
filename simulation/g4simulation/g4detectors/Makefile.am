@@ -140,6 +140,7 @@ libg4detectors_la_SOURCES = \
   PHG4FCalSubsystem.cc \
   PHG4FCalSubsystem_Dict.cc \
   PHG4ForwardEcalDetector.cc \
+  PHG4EICForwardEcalDetector.cc \
   PHG4ForwardEcalSteppingAction.cc \
   PHG4ForwardEcalSubsystem.cc \
   PHG4ForwardEcalSubsystem_Dict.cc \
@@ -171,6 +172,14 @@ libg4detectors_la_SOURCES = \
   PHG4InnerHcalSteppingAction.cc \
   PHG4InnerHcalSubsystem.cc \
   PHG4InnerHcal_Dict.C \
+  PHG4Prototype2OuterHcalDetector.cc \
+  PHG4Prototype2OuterHcalSteppingAction.cc \
+  PHG4Prototype2OuterHcalSubsystem.cc \
+  PHG4Prototype2OuterHcalSubsystem_Dict.C \
+  PHG4Prototype2InnerHcalDetector.cc \
+  PHG4Prototype2InnerHcalSteppingAction.cc \
+  PHG4Prototype2InnerHcalSubsystem.cc \
+  PHG4Prototype2InnerHcalSubsystem_Dict.C \
   PHG4SlatCellReco.cc \
   PHG4SlatCellReco_Dict.cc \
   PHG4OuterHcalDetector.cc \

@@ -225,7 +225,7 @@ noinst_HEADERS = \
   eventLinkDef.h \
   all.h
 
-include_HEADERS = $(allheaders) $(msgheaders)
+pkginclude_HEADERS = $(allheaders) $(msgheaders)
 
 CLEANFILES = \
   ioselect.h \
