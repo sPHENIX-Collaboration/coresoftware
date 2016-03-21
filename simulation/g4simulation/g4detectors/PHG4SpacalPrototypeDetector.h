@@ -12,7 +12,7 @@
 #define PHG4SpacalPrototypeDetector_h
 
 #include "g4main/PHG4Detector.h"
-#include "PHG4CylinderGeom_Spacalv1.h"
+#include "PHG4CylinderGeom_Spacalv3.h"
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4Region.hh>
@@ -33,7 +33,7 @@ class PHG4SpacalPrototypeDetector : public PHG4Detector
 {
 
 public:
-  typedef PHG4CylinderGeom_Spacalv1 SpacalGeom_t;
+  typedef PHG4CylinderGeom_Spacalv3 SpacalGeom_t;
 
   PHG4SpacalPrototypeDetector(PHCompositeNode* Node, const std::string& dnam);
 

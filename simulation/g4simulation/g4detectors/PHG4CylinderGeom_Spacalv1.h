@@ -15,6 +15,8 @@
 #include <cmath>
 #include <map>
 
+class PHG4Parameters;
+
 class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
 {
 public:
@@ -39,6 +41,11 @@ public:
   virtual
   void
   SetDefault();
+
+//  //! load parameters from PHG4Parameters, which interface to Database/XML/ROOT files
+//  //! \return number of parameters loaded
+//  virtual int ImportParameters(const PHG4Parameters * param);
+
   ///@}
 
   /** @name Set Cylinder Geometry

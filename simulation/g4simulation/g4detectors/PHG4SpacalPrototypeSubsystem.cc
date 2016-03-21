@@ -95,9 +95,9 @@ PHG4SpacalPrototypeSubsystem::InitRun(PHCompositeNode* topNode)
   // additional user set parameters
   construction_params->FillFrom(&Params);
 
-  // this step is moved to after detector construction
-  // save updated persistant copy on node tree
-  //  params->SaveToNodeTree(parNode, paramnodename);
+//   this step is moved to after detector construction
+//   save updated persistant copy on node tree
+  construction_params->SaveToNodeTree(parNode, paramnodename);
 
   if (verbosity > 0)
     cout
