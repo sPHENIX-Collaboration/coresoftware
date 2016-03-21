@@ -45,8 +45,7 @@ class PHG4CylinderGeom: public PHObject
   virtual int get_N_sensors_in_layer() const {PHOOL_VIRTUAL_WARN("get_N_sensors_in_layer"); return -9999;}
 
   //! load parameters from PHG4Parameters, which interface to Database/XML/ROOT files
-  //! \return number of parameters loaded
-  virtual void ImportParameters(const PHG4Parameters & param) {return;}
+  virtual void ImportParameters(const PHG4Parameters & param) {return ;}
 
  protected:
   PHG4CylinderGeom() {}

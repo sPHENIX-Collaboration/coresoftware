@@ -58,6 +58,16 @@ PHG4Parameters::get_int_param(const std::string &name) const
   exit(1);
 }
 
+bool
+PHG4Parameters::exist_int_param(const std::string &name) const
+{
+  if (intparams.find(name) != intparams.end())
+    {
+      return true;
+    }
+  return false;
+}
+
 void
 PHG4Parameters::printint() const
 {
@@ -88,6 +98,17 @@ PHG4Parameters::get_double_param(const std::string &name) const
 
   exit(1);
 }
+
+bool
+PHG4Parameters::exist_double_param(const std::string &name) const
+{
+  if (doubleparams.find(name) != doubleparams.end())
+    {
+      return true;
+    }
+  return false;
+}
+
 
 void
 PHG4Parameters::print() const
@@ -128,6 +149,16 @@ PHG4Parameters::get_string_param(const std::string &name) const
       << " does not exist (forgot to set?)" << endl;
 
   exit(1);
+}
+
+bool
+PHG4Parameters::exist_string_param(const std::string &name) const
+{
+  if (stringparams.find(name) != stringparams.end())
+    {
+      return true;
+    }
+  return false;
 }
 
 void

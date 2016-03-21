@@ -34,7 +34,6 @@ class PHG4CylinderGeomv1: public PHG4CylinderGeom
   void set_zmax(const double z) {zmax = z;}
 
   //! load parameters from PHG4Parameters, which interface to Database/XML/ROOT files
-  //! \return number of parameters loaded
   virtual void ImportParameters(const PHG4Parameters & param);
   
  protected:

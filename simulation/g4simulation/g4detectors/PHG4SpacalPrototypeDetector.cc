@@ -245,7 +245,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
 //      //    geo->identify();
 //    }
 
-  if ((verbosity > 0) && (_geom->get_construction_verbose() >= 1))
+  if (_geom->get_construction_verbose() >= 1)
     {
       cout << "PHG4SpacalPrototypeDetector::Construct::" << GetName()
           << " - Completed. Print Geometry:" << endl;
@@ -306,7 +306,7 @@ PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg()
     }
   _geom->set_nscint(fiber_count);
 
-  if (verbosity > 0)
+  if (_geom->get_construction_verbose() >= 1)
     {
       cout << "PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg::"
           << GetName() << " - constructed " << fiber_count << " fibers" << endl;

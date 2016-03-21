@@ -31,6 +31,9 @@ public:
   virtual void
   SetDefault();
 
+  //! load parameters from PHG4Parameters, which interface to Database/XML/ROOT files
+  virtual void ImportParameters(const PHG4Parameters & param);
+
   virtual
   int
   get_azimuthal_n_sec() const;

@@ -33,6 +33,8 @@ public:
   virtual void
   SetDefault();
 
+  //! load parameters from PHG4Parameters, which interface to Database/XML/ROOT files
+  virtual void ImportParameters(const PHG4Parameters & param);
 
   double
   get_sidewall_outer_torr() const

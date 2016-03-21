@@ -42,9 +42,8 @@ public:
   void
   SetDefault();
 
-//  //! load parameters from PHG4Parameters, which interface to Database/XML/ROOT files
-//  //! \return number of parameters loaded
-//  virtual int ImportParameters(const PHG4Parameters * param);
+  //! load parameters from PHG4Parameters, which interface to Database/XML/ROOT files
+  virtual void ImportParameters(const PHG4Parameters & param);
 
   ///@}
 

@@ -9,6 +9,7 @@
  */
 
 #include "PHG4CylinderGeom_Spacalv3.h"
+#include "PHG4Parameters.h"
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4PhysicalConstants.hh>
@@ -85,6 +86,19 @@ PHG4CylinderGeom_Spacalv3::SetDefault()
   sidewall_outer_torr = 0.030000;
   sidewall_mat = "SS310";
   max_phi_bin_in_sec = 8;
+}
+
+void
+PHG4CylinderGeom_Spacalv3::ImportParameters(const PHG4Parameters & param)
+{
+  PHG4CylinderGeom_Spacalv2::ImportParameters(param);
+
+  if (param.exist_double_param("sidewall_thickness")) sidewall_thickness = param.get_double_param("sidewall_thickness");
+  if (param.exist_double_param("sidewall_outer_torr")) sidewall_outer_torr = param.get_double_param("sidewall_outer_torr");
+  if (param.exist_string_param("sidewall_mat")) sidewall_mat = param.get_string_param("sidewall_mat");
+  if (param.exist_int_param("max_phi_bin_in_sec")) max_phi_bin_in_sec = param.get_int_param("max_phi_bin_in_sec");
+
+  return;
 }
 
 PHG4CylinderGeom_Spacalv3::geom_tower::geom_tower() :

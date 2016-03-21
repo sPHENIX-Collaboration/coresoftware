@@ -27,12 +27,15 @@ class PHG4Parameters: public PHObject
 
   void set_int_param(const std::string &name, const int ival);
   int get_int_param(const std::string &name) const;
+  bool exist_int_param(const std::string &name) const;
 
   void set_double_param(const std::string &name, const double dval);
   double get_double_param(const std::string &name) const;
+  bool exist_double_param(const std::string &name) const;
 
   void set_string_param(const std::string &name, const std::string &str);
   std::string get_string_param(const std::string &name) const;
+  bool exist_string_param(const std::string &name) const;
 
   void set_name(const std::string &name) {detname = name;}
 
