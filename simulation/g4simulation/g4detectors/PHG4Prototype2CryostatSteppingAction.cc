@@ -68,6 +68,10 @@ bool PHG4Prototype2CryostatSteppingAction::UserSteppingAction( const G4Step* aSt
     {
       return false;
     }
+  if (whichactive > 0)
+    {
+      cout << "hit in " << volume->GetName() << endl;
+    }
   unsigned int motherid = ~0x0; // initialize to 0xFFFFFF using the correct bitness
   int tower_id = -1;
   if (whichactive > 0) // scintillator
@@ -184,6 +188,7 @@ bool PHG4Prototype2CryostatSteppingAction::UserSteppingAction( const G4Step* aSt
 	  hit->set_eion(0); // only implemented for v5 otherwise empty
 	  if (whichactive > 0) // return of IsInPrototype2CryostatDetector, > 0 hit in scintillator, < 0 hit in absorber
 	    {
+	      cout << "found active hit!!!" << endl;
 	      hit->set_light_yield(0); // for scintillator only, initialize light yields
 	      // Now add the hit
 	      hits_->AddHit(layer_id, hit);
@@ -327,28 +332,20 @@ bool PHG4Prototype2CryostatSteppingAction::UserSteppingAction( const G4Step* aSt
 void PHG4Prototype2CryostatSteppingAction::SetInterfacePointers( PHCompositeNode* topNode )
 {
 
-  string hitnodename;
   string absorbernodename;
   if (detector_->SuperDetector() != "NONE")
     {
-      hitnodename = "G4HIT_" + detector_->SuperDetector();
       absorbernodename =  "G4HIT_ABSORBER_" + detector_->SuperDetector();
     }
   else
     {
-      hitnodename = "G4HIT_" + detector_->GetName();
       absorbernodename =  "G4HIT_ABSORBER_" + detector_->GetName();
     }
 
   //now look for the map and grab a pointer to it.
-  hits_ =  findNode::getClass<PHG4HitContainer>( topNode , hitnodename.c_str() );
   absorberhits_ =  findNode::getClass<PHG4HitContainer>( topNode , absorbernodename.c_str() );
 
   // if we do not find the node it's messed up.
-  if ( ! hits_ )
-    {
-      std::cout << "PHG4Prototype2CryostatSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
-    }
   if ( ! absorberhits_)
     {
       if (verbosity > 1)

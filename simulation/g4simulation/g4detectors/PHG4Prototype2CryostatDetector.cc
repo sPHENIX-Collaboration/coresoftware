@@ -90,13 +90,6 @@ PHG4Prototype2CryostatDetector::IsInPrototype2Cryostat(G4VPhysicalVolume * volum
 	  return -1;
 	}
     }
-  if (active)
-    {
-      if (volume->GetName().find("InnerScinti") != string::npos)
-	{
-	  return 1;
-	}
-    }
   return 0;
 }
 
@@ -127,7 +120,7 @@ PHG4Prototype2CryostatDetector::ConstructAluPlate(G4LogicalVolume* hcalenvelope,
   volume_alu[n] = alu_plate->GetCubicVolume()*n_alu_plates;
   name.str("");
   name << "CryostatAluPlate_" << n;
-  G4LogicalVolume *cryostataluplate = new G4LogicalVolume(alu_plate,G4Material::GetMaterial("G4_AL"),"CryostatAluPlate", 0, 0, 0);
+  G4LogicalVolume *cryostataluplate = new G4LogicalVolume(alu_plate,G4Material::GetMaterial("G4_Al"),name.str(), 0, 0, 0);
   G4VisAttributes* visattchk = new G4VisAttributes();
   visattchk->SetVisibility(true);
   visattchk->SetForceSolid(false);

@@ -114,15 +114,15 @@ PHG4Prototype2CryostatSubsystem::InitRun( PHCompositeNode* topNode )
         }
 
       ostringstream nodename;
-      if (superdetector != "NONE")
-	{
-	  nodename <<  "G4HIT_" << superdetector;
-	}
-      else
-	{
-	  nodename <<  "G4HIT_" << detector_type << "_" << layer;
-	}
-      nodes.insert(nodename.str());
+      // if (superdetector != "NONE")
+      // 	{
+      // 	  nodename <<  "G4HIT_" << superdetector;
+      // 	}
+      // else
+      // 	{
+      // 	  nodename <<  "G4HIT_" << detector_type << "_" << layer;
+      // 	}
+      //      nodes.insert(nodename.str());
       if (params->get_int_param("absorberactive"))
 	{
 	  nodename.str("");
