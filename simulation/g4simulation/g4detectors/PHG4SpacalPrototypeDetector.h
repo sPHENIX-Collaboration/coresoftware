@@ -24,7 +24,7 @@
 #include <utility>
 
 class G4Material;
-class G4Tubs;
+class G4VSolid;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4UserLimits;
@@ -123,7 +123,7 @@ public:
 protected:
 
   G4Region* _region;
-  G4Tubs* cylinder_solid;
+  G4VSolid* cylinder_solid;
   G4LogicalVolume* cylinder_logic;
   G4VPhysicalVolume* cylinder_physi;
   std::map<const G4VPhysicalVolume*, int> fiber_core_vol;

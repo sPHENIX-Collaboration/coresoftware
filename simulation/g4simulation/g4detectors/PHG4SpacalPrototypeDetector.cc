@@ -36,6 +36,7 @@
 #include <Geant4/G4UnionSolid.hh>
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Vector3D.hh>
+#include <Geant4/G4DisplacedSolid.hh>
 
 #include <numeric>      // std::accumulate
 #include <cassert>
@@ -54,9 +55,9 @@ using namespace std;
 PHG4SpacalPrototypeDetector::PHG4SpacalPrototypeDetector(PHCompositeNode *Node,
     const std::string &dnam) :
     PHG4Detector(Node, dnam), _region(NULL), cylinder_solid(NULL), cylinder_logic(
-        NULL), cylinder_physi(NULL), active(0), absorberactive(0),//
-        step_limits(NULL), clading_step_limits(NULL), fiber_core_step_limits(NULL),//
-        _geom(NULL)
+        NULL), cylinder_physi(NULL), active(0), absorberactive(0), //
+    step_limits(NULL), clading_step_limits(NULL), fiber_core_step_limits(NULL), //
+    _geom(NULL)
 {
 }
 
@@ -120,7 +121,8 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
     }
   assert(_geom);
 
-  _geom->set_config(SpacalGeom_t::kFullProjective_2DTaper_SameLengthFiberPerTower);
+  _geom->set_config(
+      SpacalGeom_t::kFullProjective_2DTaper_SameLengthFiberPerTower);
 //  _geom->load_demo_sector_tower_map4();
   //  _geom->set_construction_verbose(2);
   _geom->ImportParameters(*construction_params);
@@ -150,11 +152,18 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
       exit(-1);
     }
 
-  G4Tubs* _cylinder_solid = new G4Tubs(G4String(GetName().c_str()),
-      _geom->get_radius() * cm, _geom->get_max_radius() * cm,
-      _geom->get_length() * cm / 2.0, 0, twopi);
+//  G4Tubs* _cylinder_solid = new G4Tubs(G4String(GetName().c_str()),
+//      _geom->get_radius() * cm, _geom->get_max_radius() * cm,
+//      _geom->get_length() * cm / 2.0, 0, twopi);
+  G4VSolid* cylinder_solid = new G4Box(G4String(GetName().c_str()),
+      _geom->get_thickness() * 1.1 * 0.5 * cm , //
+      twopi / _geom->get_azimuthal_n_sec() * _geom->get_sector_map().size()
+          * 0.5 * _geom->get_max_radius() * cm,//
+          _geom->get_length() * cm / 2.0);
 
-  cylinder_solid = _cylinder_solid;
+  cylinder_solid = new G4DisplacedSolid(G4String(GetName() + "_displaced"),
+      cylinder_solid, 0, //
+      G4ThreeVector((_geom->get_radius() + 0.5 * _geom->get_thickness()) * cm, 0, 0));
 
   G4Material * cylinder_mat = G4Material::GetMaterial("G4_AIR");
   assert(cylinder_mat);
@@ -303,119 +312,121 @@ PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg()
       _geom->is_azimuthal_seg_visible() and (not _geom->is_virualize_fiber()));
   wall_VisAtt->SetForceSolid(true);
 
-  if (_geom->get_sidewall_thickness() > 0)
-    {
-      // end walls
-      if (_geom->get_construction_verbose() >= 1)
-        {
-          cout << "PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg::"
-              << GetName() << " - construct end walls." << endl;
-        }
-      G4Tubs* wall_solid = new G4Tubs(G4String(GetName() + string("_EndWall")),
-          _geom->get_radius() * cm + _geom->get_sidewall_outer_torr() * cm,
-          _geom->get_max_radius() * cm - _geom->get_sidewall_outer_torr() * cm,
-          _geom->get_sidewall_thickness() * cm / 2.0,
-          halfpi - pi / _geom->get_azimuthal_n_sec(),
-          twopi / _geom->get_azimuthal_n_sec());
-
-      G4LogicalVolume * wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
-          G4String(G4String(GetName() + string("_EndWall"))), 0, 0,
-          step_limits);
-      wall_logic->SetVisAttributes(wall_VisAtt);
-
-      typedef map<int, double> z_locations_t;
-      z_locations_t z_locations;
-      z_locations[1000] = _geom->get_sidewall_thickness() * cm / 2.0
-          + _geom->get_assembly_spacing() * cm;
-      z_locations[1001] = _geom->get_length() * cm / 2.0
-          - (_geom->get_sidewall_thickness() * cm / 2.0
-              + _geom->get_assembly_spacing() * cm);
-      z_locations[1100] = -(_geom->get_sidewall_thickness() * cm / 2.0
-          + _geom->get_assembly_spacing() * cm);
-      z_locations[1101] = -(_geom->get_length() * cm / 2.0
-          - (_geom->get_sidewall_thickness() * cm / 2.0
-              + _geom->get_assembly_spacing() * cm));
-
-      BOOST_FOREACH(z_locations_t::value_type& val, z_locations)
-        {
-          if (_geom->get_construction_verbose() >= 2)
-            cout << "PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg::"
-                << GetName() << " - constructed End Wall ID " << val.first
-                << " @ Z = " << val.second << endl;
-
-          G4Transform3D wall_trans = G4TranslateZ3D(val.second);
-
-          G4PVPlacement * wall_phys = new G4PVPlacement(wall_trans, wall_logic,
-              G4String(GetName().c_str()) + G4String("_EndWall"), sec_logic,
-              false, val.first, overlapcheck);
-
-          calo_vol[wall_phys] = val.first;
-        }
-    }
-
-  if (_geom->get_sidewall_thickness() > 0)
-    {
-      // side walls
-      if (_geom->get_construction_verbose() >= 1)
-        {
-          cout << "PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg::"
-              << GetName() << " - construct side walls." << endl;
-        }
-      G4Box* wall_solid = new G4Box(G4String(GetName() + string("_SideWall")),
-          _geom->get_sidewall_thickness() * cm / 2.0,
-          _geom->get_thickness() * cm / 2.
-              - 2 * _geom->get_sidewall_outer_torr() * cm,
-          (_geom->get_length() / 2.
-              - 2
-                  * (_geom->get_sidewall_thickness()
-                      + 2. * _geom->get_assembly_spacing())) * cm * .5);
-
-      G4LogicalVolume * wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
-          G4String(G4String(GetName() + string("_SideWall"))), 0, 0,
-          step_limits);
-      wall_logic->SetVisAttributes(wall_VisAtt);
-
-      typedef map<int, pair<int, int> > sign_t;
-      sign_t signs;
-      signs[2000] = make_pair(+1, +1);
-      signs[2001] = make_pair(+1, -1);
-      signs[2100] = make_pair(-1, +1);
-      signs[2101] = make_pair(-1, -1);
-
-      BOOST_FOREACH(sign_t::value_type& val, signs)
-        {
-          const int sign_z = val.second.first;
-          const int sign_azimuth = val.second.second;
-
-          if (_geom->get_construction_verbose() >= 2)
-            cout << "PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg::"
-                << GetName() << " - constructed Side Wall ID " << val.first
-                << " with" << " Shift X = "
-                << sign_azimuth
-                    * (_geom->get_sidewall_thickness() * cm / 2.0
-                        + _geom->get_sidewall_outer_torr() * cm)
-                << " Rotation Z = "
-                << sign_azimuth * pi / _geom->get_azimuthal_n_sec()
-                << " Shift Z = " << sign_z * (_geom->get_length() * cm / 4)
-                << endl;
-
-          G4Transform3D wall_trans = G4RotateZ3D(
-              sign_azimuth * pi / _geom->get_azimuthal_n_sec())
-              * G4TranslateZ3D(sign_z * (_geom->get_length() * cm / 4))
-              * G4TranslateY3D(
-                  _geom->get_radius() * cm + _geom->get_thickness() * cm / 2.)
-              * G4TranslateX3D(
-                  sign_azimuth
-                      * (_geom->get_sidewall_thickness() * cm / 2.0
-                          + _geom->get_sidewall_outer_torr() * cm));
-
-          G4PVPlacement * wall_phys = new G4PVPlacement(wall_trans, wall_logic,
-              G4String(GetName().c_str()) + G4String("_EndWall"), sec_logic,
-              false, val.first, overlapcheck);
-
-          calo_vol[wall_phys] = val.first;
-        }
-    }
+  assert(_geom->get_sidewall_thickness() == 0);
+  //section skin not used in prototype construction
+//  if (_geom->get_sidewall_thickness() > 0)
+//    {
+//      // end walls
+//      if (_geom->get_construction_verbose() >= 1)
+//        {
+//          cout << "PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg::"
+//              << GetName() << " - construct end walls." << endl;
+//        }
+//      G4Tubs* wall_solid = new G4Tubs(G4String(GetName() + string("_EndWall")),
+//          _geom->get_radius() * cm + _geom->get_sidewall_outer_torr() * cm,
+//          _geom->get_max_radius() * cm - _geom->get_sidewall_outer_torr() * cm,
+//          _geom->get_sidewall_thickness() * cm / 2.0,
+//          halfpi - pi / _geom->get_azimuthal_n_sec(),
+//          twopi / _geom->get_azimuthal_n_sec());
+//
+//      G4LogicalVolume * wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
+//          G4String(G4String(GetName() + string("_EndWall"))), 0, 0,
+//          step_limits);
+//      wall_logic->SetVisAttributes(wall_VisAtt);
+//
+//      typedef map<int, double> z_locations_t;
+//      z_locations_t z_locations;
+//      z_locations[1000] = _geom->get_sidewall_thickness() * cm / 2.0
+//          + _geom->get_assembly_spacing() * cm;
+//      z_locations[1001] = _geom->get_length() * cm / 2.0
+//          - (_geom->get_sidewall_thickness() * cm / 2.0
+//              + _geom->get_assembly_spacing() * cm);
+//      z_locations[1100] = -(_geom->get_sidewall_thickness() * cm / 2.0
+//          + _geom->get_assembly_spacing() * cm);
+//      z_locations[1101] = -(_geom->get_length() * cm / 2.0
+//          - (_geom->get_sidewall_thickness() * cm / 2.0
+//              + _geom->get_assembly_spacing() * cm));
+//
+//      BOOST_FOREACH(z_locations_t::value_type& val, z_locations)
+//        {
+//          if (_geom->get_construction_verbose() >= 2)
+//            cout << "PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg::"
+//                << GetName() << " - constructed End Wall ID " << val.first
+//                << " @ Z = " << val.second << endl;
+//
+//          G4Transform3D wall_trans = G4TranslateZ3D(val.second);
+//
+//          G4PVPlacement * wall_phys = new G4PVPlacement(wall_trans, wall_logic,
+//              G4String(GetName().c_str()) + G4String("_EndWall"), sec_logic,
+//              false, val.first, overlapcheck);
+//
+//          calo_vol[wall_phys] = val.first;
+//        }
+//    }
+//
+//  if (_geom->get_sidewall_thickness() > 0)
+//    {
+//      // side walls
+//      if (_geom->get_construction_verbose() >= 1)
+//        {
+//          cout << "PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg::"
+//              << GetName() << " - construct side walls." << endl;
+//        }
+//      G4Box* wall_solid = new G4Box(G4String(GetName() + string("_SideWall")),
+//          _geom->get_sidewall_thickness() * cm / 2.0,
+//          _geom->get_thickness() * cm / 2.
+//              - 2 * _geom->get_sidewall_outer_torr() * cm,
+//          (_geom->get_length() / 2.
+//              - 2
+//                  * (_geom->get_sidewall_thickness()
+//                      + 2. * _geom->get_assembly_spacing())) * cm * .5);
+//
+//      G4LogicalVolume * wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
+//          G4String(G4String(GetName() + string("_SideWall"))), 0, 0,
+//          step_limits);
+//      wall_logic->SetVisAttributes(wall_VisAtt);
+//
+//      typedef map<int, pair<int, int> > sign_t;
+//      sign_t signs;
+//      signs[2000] = make_pair(+1, +1);
+//      signs[2001] = make_pair(+1, -1);
+//      signs[2100] = make_pair(-1, +1);
+//      signs[2101] = make_pair(-1, -1);
+//
+//      BOOST_FOREACH(sign_t::value_type& val, signs)
+//        {
+//          const int sign_z = val.second.first;
+//          const int sign_azimuth = val.second.second;
+//
+//          if (_geom->get_construction_verbose() >= 2)
+//            cout << "PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg::"
+//                << GetName() << " - constructed Side Wall ID " << val.first
+//                << " with" << " Shift X = "
+//                << sign_azimuth
+//                    * (_geom->get_sidewall_thickness() * cm / 2.0
+//                        + _geom->get_sidewall_outer_torr() * cm)
+//                << " Rotation Z = "
+//                << sign_azimuth * pi / _geom->get_azimuthal_n_sec()
+//                << " Shift Z = " << sign_z * (_geom->get_length() * cm / 4)
+//                << endl;
+//
+//          G4Transform3D wall_trans = G4RotateZ3D(
+//              sign_azimuth * pi / _geom->get_azimuthal_n_sec())
+//              * G4TranslateZ3D(sign_z * (_geom->get_length() * cm / 4))
+//              * G4TranslateY3D(
+//                  _geom->get_radius() * cm + _geom->get_thickness() * cm / 2.)
+//              * G4TranslateX3D(
+//                  sign_azimuth
+//                      * (_geom->get_sidewall_thickness() * cm / 2.0
+//                          + _geom->get_sidewall_outer_torr() * cm));
+//
+//          G4PVPlacement * wall_phys = new G4PVPlacement(wall_trans, wall_logic,
+//              G4String(GetName().c_str()) + G4String("_EndWall"), sec_logic,
+//              false, val.first, overlapcheck);
+//
+//          calo_vol[wall_phys] = val.first;
+//        }
+//    }
 
   // construct towers
 
