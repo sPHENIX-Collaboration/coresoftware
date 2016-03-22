@@ -69,14 +69,7 @@ bool PHG4BlockSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 //       cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
       if (use_g4_steps)
 	{
-	  if (use_ionisation_energy)
-	    {
-	      hit = new PHG4Hitv1();
-	    }
-	  else
-	    {
-	      hit = new PHG4Hitv1();
-	    }
+	  hit = new PHG4Hitv1();
 	  //here we set the entrance values in cm
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm);
 	  hit->set_y( 0, prePoint->GetPosition().y() / cm );
@@ -102,6 +95,7 @@ bool PHG4BlockSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 
 	  // Now add the hit
 	  hits_->AddHit(layer_id, hit);
+	  hit->set_layer(layer_id);
 
 	  {
 	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
@@ -120,7 +114,7 @@ bool PHG4BlockSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
             {
             case fGeomBoundary:
             case fUndefined:
-		  hit = new PHG4Hitv1();
+	      hit = new PHG4Hitv1();
 	      //here we set the entrance values in cm
 	      hit->set_x( 0, prePoint->GetPosition().x() / cm);
 	      hit->set_y( 0, prePoint->GetPosition().y() / cm );
@@ -142,11 +136,12 @@ bool PHG4BlockSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	      //set the initial energy deposit
 	      hit->set_edep(0);
         if (use_ionisation_energy)
+	  {
           hit->set_eion(0);
-
+	  }
 	      // Now add the hit
 	      hits_->AddHit(layer_id, hit);
-
+	      hit->set_layer(layer_id);
 	      {
 		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 		  {
@@ -175,7 +170,9 @@ bool PHG4BlockSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       //sum up the energy to get total deposited
       hit->set_edep(hit->get_edep() + edep);
       if (use_ionisation_energy)
-        hit->set_eion(hit->get_eion() + eion);
+	{
+	  hit->set_eion(hit->get_eion() + eion);
+	}
       if (geantino)
 	{
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
