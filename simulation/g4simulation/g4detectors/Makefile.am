@@ -189,6 +189,7 @@ libg4detectors_la_SOURCES = \
   PHG4OuterHcalSubsystem.cc \
   PHG4OuterHcalSubsystem_Dict.cc \
   PHG4Parameters.cc \
+  PHG4Parameters_Dict.cc \
   PHG4ProjCrystalCalorimeterDetector.cc \
   PHG4RICHDetector.cc \
   PHG4RICHSteppingAction.cc \
