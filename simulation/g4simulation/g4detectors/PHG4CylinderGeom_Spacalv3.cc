@@ -156,8 +156,14 @@ void
 PHG4CylinderGeom_Spacalv3::geom_tower::identify(std::ostream& os) const
 {
   os << "PHG4CylinderGeom_Spacalv3::geom_super_tower" << "[" << id << "]"
-      << " @ <Azimuthal, R, z> = " << centralX << ", " << centralY << ", "
-      << centralZ << " cm" << endl;
+      << " @ <Azimuthal, R, z> = "
+      << centralX << ", " << centralY << ", "
+      << centralZ << " cm" //
+      <<" with " //
+      <<"Half length = "<<pDz<<", "<<pDy1<<", "<<pDx1<<", "<<pDx2<<", "<<pDy2<<", "<<pDx3<<", "<<pDx4<<", "//
+      <<"Angles = "<<pTheta<<", "<<pPhi<<", "<<pAlp1<<", "<<pAlp2<<", "//
+      <<"Rotation = "<<pRotationAngleX//
+      << endl;
 }
 
 void
