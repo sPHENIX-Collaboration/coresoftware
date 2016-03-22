@@ -44,9 +44,17 @@ public:
   void
   Construct(G4LogicalVolume* world);
 
-  virtual
-  std::pair<G4LogicalVolume *,G4Transform3D>
+  virtual std::pair<G4LogicalVolume *, G4Transform3D>
   Construct_AzimuthalSeg();
+
+  //! a block along z axis built with G4Trd that is slightly tapered in x dimension
+  virtual G4LogicalVolume*
+  Construct_Tower(const SpacalGeom_t::geom_tower & tower);
+
+  //! Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower
+  virtual int
+  Construct_Fibers_SameLengthFiberPerTower(
+      const SpacalGeom_t::geom_tower & tower, G4LogicalVolume* LV_tower);
 
   virtual
   G4LogicalVolume *
@@ -85,7 +93,6 @@ public:
     return superdetector;
   }
 
-
   G4UserSteppingAction*
   GetSteppingAction()
   {
@@ -103,7 +110,6 @@ public:
   {
     return _geom;
   }
-
 
   enum
   {

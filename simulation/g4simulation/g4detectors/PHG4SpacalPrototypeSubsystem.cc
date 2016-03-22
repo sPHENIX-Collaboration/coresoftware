@@ -38,7 +38,7 @@ PHG4SpacalPrototypeSubsystem::PHG4SpacalPrototypeSubsystem(
     detector_(NULL), steppingAction_(NULL), eventAction_(NULL), //
     active(0), absorberactive(0), //
     detector_type(na), superdetector("NONE"),//
-    Params(na)
+    useDB(false),Params(na)
 {
   Name(na);
 }
