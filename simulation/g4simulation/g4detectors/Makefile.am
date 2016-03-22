@@ -172,10 +172,6 @@ libg4detectors_la_SOURCES = \
   PHG4InnerHcalSteppingAction.cc \
   PHG4InnerHcalSubsystem.cc \
   PHG4InnerHcal_Dict.C \
-  PHG4Prototype2CryostatDetector.cc \
-  PHG4Prototype2CryostatSteppingAction.cc \
-  PHG4Prototype2CryostatSubsystem.cc \
-  PHG4Prototype2CryostatSubsystem_Dict.C \
   PHG4Prototype2OuterHcalDetector.cc \
   PHG4Prototype2OuterHcalSteppingAction.cc \
   PHG4Prototype2OuterHcalSubsystem.cc \
