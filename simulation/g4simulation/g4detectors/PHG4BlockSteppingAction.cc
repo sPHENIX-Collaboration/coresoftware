@@ -95,8 +95,6 @@ bool PHG4BlockSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 
 	  // Now add the hit
 	  hits_->AddHit(layer_id, hit);
-	  hit->set_layer(layer_id);
-
 	  {
 	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	      {
@@ -141,7 +139,6 @@ bool PHG4BlockSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	  }
 	      // Now add the hit
 	      hits_->AddHit(layer_id, hit);
-	      hit->set_layer(layer_id);
 	      {
 		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 		  {
