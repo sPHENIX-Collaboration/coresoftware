@@ -17,6 +17,7 @@
 #include <cmath>
 #include <cassert>
 #include <iostream>
+#include <sstream>
 #include <limits>       // std::numeric_limits
 #include <map>
 
@@ -61,13 +62,17 @@ PHG4CylinderGeom_Spacalv3::Print(Option_t *opt) const
   cout << "\t" << "get_sidewall_mat() = " << get_sidewall_mat() << endl;
   cout << "\t" << "get_max_phi_bin_in_sec() = " << get_max_phi_bin_in_sec()
       << endl;
-  cout << "Containing " << sector_tower_map.size()
+  cout << "\t" << "Containing " << sector_tower_map.size()
       << " unique towers per sector." << endl;
 
   if (get_construction_verbose() >= 2)
     for (tower_map_t::const_iterator it = sector_tower_map.begin();
         it != sector_tower_map.end(); ++it)
-      it->second.identify(cout);
+      {
+        cout << "\t";
+        cout << "\t";
+        it->second.identify(cout);
+      }
 }
 
 void
@@ -102,6 +107,26 @@ PHG4CylinderGeom_Spacalv3::ImportParameters(const PHG4Parameters & param)
   if (param.exist_int_param("max_phi_bin_in_sec"))
     max_phi_bin_in_sec = param.get_int_param("max_phi_bin_in_sec");
 
+  // load sector_tower_map
+  if (param.exist_int_param("sector_tower_map_size"))
+    {
+      sector_tower_map.clear();
+
+      const int n = param.get_int_param("sector_tower_map_size");
+
+      for (int i = 0; i < n; i++)
+        {
+          stringstream prefix;
+          prefix << "sector_tower_map";
+          prefix << "[" << i << "]" << ".";
+
+          geom_tower t;
+          t.ImportParameters(param, prefix.str());
+
+          sector_tower_map[t.id] = t;
+        }
+    }
+
   return;
 }
 
@@ -133,6 +158,38 @@ PHG4CylinderGeom_Spacalv3::geom_tower::identify(std::ostream& os) const
   os << "PHG4CylinderGeom_Spacalv3::geom_super_tower" << "[" << id << "]"
       << " @ <Azimuthal, R, z> = " << centralX << ", " << centralY << ", "
       << centralZ << " cm" << endl;
+}
+
+void
+PHG4CylinderGeom_Spacalv3::geom_tower::ImportParameters(
+    const PHG4Parameters & param, const std::string & param_prefix)
+{
+
+  id = param.get_int_param(param_prefix + "id");
+  pDz = param.get_double_param(param_prefix + "pDz");
+
+  pDy1 = param.get_double_param(param_prefix + "pDy1");
+  pDx1 = param.get_double_param(param_prefix + "pDx1");
+  pDx2 = param.get_double_param(param_prefix + "pDx2");
+  pDy2 = param.get_double_param(param_prefix + "pDy2");
+  pDx3 = param.get_double_param(param_prefix + "pDx3");
+  pDx4 = param.get_double_param(param_prefix + "pDx4");
+
+  pTheta = param.get_double_param(param_prefix + "pTheta");
+  pPhi = param.get_double_param(param_prefix + "pPhi");
+  pAlp1 = param.get_double_param(param_prefix + "pAlp1");
+  pAlp2 = param.get_double_param(param_prefix + "pAlp2");
+
+  pRotationAngleX = param.get_double_param(param_prefix + "pRotationAngleX");
+  centralX = param.get_double_param(param_prefix + "centralX");
+  centralY = param.get_double_param(param_prefix + "centralY");
+  centralZ = param.get_double_param(param_prefix + "centralZ");
+
+  ModuleSkinThickness = param.get_double_param(
+      param_prefix + "ModuleSkinThickness");
+  NFiberX = param.get_int_param(param_prefix + "NFiberX");
+  NFiberY = param.get_int_param(param_prefix + "NFiberY");
+
 }
 
 PHG4CylinderGeom_Spacalv3::scint_id_coder::scint_id_coder(int scint_id) :
@@ -524,11 +581,11 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map4()
   const double nawrrow_width_x_construction = radius * 2
       * tan(M_PI / azimuthal_n_sec) - 2 * assembly_spacing;
   const double wide_width_x_construction = (radius + module_length) * 2
-      * tan(M_PI / azimuthal_n_sec) - 2 *assembly_spacing;
+      * tan(M_PI / azimuthal_n_sec) - 2 * assembly_spacing;
 
-  cout  << "PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map4 - "
+  cout << "PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map4 - "
 
-      << "Adjust wide end width by ratio of "
+  << "Adjust wide end width by ratio of "
       << wide_width_x_construction / wide_width_x
       << " and narrow end by ratio of "
       << nawrrow_width_x_construction / nawrrow_width_x << endl;

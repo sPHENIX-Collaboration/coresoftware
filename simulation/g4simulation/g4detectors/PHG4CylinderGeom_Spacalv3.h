@@ -117,6 +117,9 @@ public:
     virtual void
     identify(std::ostream& os = std::cout) const;
 
+    //! read via PHG4Parameters
+    void ImportParameters(const PHG4Parameters & param, const std::string & param_prefix);
+
   ClassDef(PHG4CylinderGeom_Spacalv3::geom_tower,1)
 
   };
