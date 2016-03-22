@@ -236,9 +236,9 @@ PHG4SpacalPrototypeSubsystem::SetDefaultParameters(PHG4Parameters * param)
 //  param->set_double_param("sidewall_outer_torr",  0.030000);
 //  param->set_string_param("sidewall_mat",  "SS310");
 
-  param->set_int_param("max_phi_bin_in_sec", 1);
-
-  param->set_int_param("init_default_sector_map", 1);
+//  param->set_int_param("max_phi_bin_in_sec", 1);
+//
+//  param->set_int_param("init_default_sector_map", 1);
 
 
 }

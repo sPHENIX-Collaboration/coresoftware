@@ -179,7 +179,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
   cylinder_logic->SetVisAttributes(VisAtt);
 
   cylinder_physi = new G4PVPlacement(0,
-      G4ThreeVector(_geom->get_xpos() * cm, _geom->get_ypos() * cm,
+      G4ThreeVector(_geom->get_xpos() * cm - (_geom->get_radius() + 0.5 * _geom->get_thickness()) * cm, _geom->get_ypos() * cm,
           _geom->get_zpos() * cm), cylinder_logic, G4String(GetName().c_str()),
       logicWorld, false, 0, overlapcheck);
 
