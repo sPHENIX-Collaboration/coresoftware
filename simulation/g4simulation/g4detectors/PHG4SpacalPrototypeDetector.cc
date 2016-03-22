@@ -110,6 +110,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
     }
   assert(_geom);
 
+//  _geom->load_demo_sector_tower_map4();
   _geom->ImportParameters(*construction_params);
 
   step_limits = new G4UserLimits(_geom->get_calo_step_size() * cm);

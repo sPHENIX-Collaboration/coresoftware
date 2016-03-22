@@ -205,38 +205,40 @@ PHG4SpacalPrototypeSubsystem::SetDefaultParameters(PHG4Parameters * param)
 {
   assert(param);
 
-  param->set_double_param("radius", 95);
-  param->set_double_param("zmin", -40);
-  param->set_double_param("zmax", 40);
-  param->set_double_param("thickness", 16.6);
-
-
-  param->set_string_param("absorber_mat","Spacal_W_Epoxy");
-  param->set_string_param("fiber_clading_mat","PMMA");
-  param->set_string_param("fiber_core_mat","G4_POLYSTYRENE");
-
-  param->set_double_param("xpos", 0);
-  param->set_double_param("ypos", 0);
-  param->set_double_param("zpos", 0);
-
-
-  param->set_double_param("fiber_clading_thickness", 0.003 / 2);
-  param->set_double_param("fiber_core_diameter", 0.047 - (0.003 / 2) * 2);
-  param->set_double_param("fiber_distance",  0.1);
-
-  param->set_int_param("virualize_fiber",  0);
-  param->set_int_param("azimuthal_seg_visible",  0);
-  param->set_int_param("construction_verbose",  verbosity);
-
-  param->set_int_param("azimuthal_n_sec", 8);
-
-  param->set_double_param("assembly_spacing",  0.0001);
-
-  param->set_double_param("sidewall_thickness",  0.075000);
-  param->set_double_param("sidewall_outer_torr",  0.030000);
-  param->set_string_param("sidewall_mat",  "SS310");
+//  param->set_double_param("radius", 95);
+//  param->set_double_param("zmin", -40);
+//  param->set_double_param("zmax", 40);
+//  param->set_double_param("thickness", 16.6);
+//
+//
+//  param->set_string_param("absorber_mat","Spacal_W_Epoxy");
+//  param->set_string_param("fiber_clading_mat","PMMA");
+//  param->set_string_param("fiber_core_mat","G4_POLYSTYRENE");
+//
+//  param->set_double_param("xpos", 0);
+//  param->set_double_param("ypos", 0);
+//  param->set_double_param("zpos", 0);
+//
+//
+//  param->set_double_param("fiber_clading_thickness", 0.003 / 2);
+//  param->set_double_param("fiber_core_diameter", 0.047 - (0.003 / 2) * 2);
+//  param->set_double_param("fiber_distance",  0.1);
+//
+//  param->set_int_param("virualize_fiber",  0);
+//  param->set_int_param("azimuthal_seg_visible",  0);
+//  param->set_int_param("construction_verbose",  verbosity);
+//
+//  param->set_int_param("azimuthal_n_sec", 8);
+//
+//  param->set_double_param("assembly_spacing",  0.0001);
+//
+//  param->set_double_param("sidewall_thickness",  0.075000);
+//  param->set_double_param("sidewall_outer_torr",  0.030000);
+//  param->set_string_param("sidewall_mat",  "SS310");
 
   param->set_int_param("max_phi_bin_in_sec", 1);
 
-//  param->set_int_param("radius", 100);
+  param->set_int_param("init_default_sector_map", 1);
+
+
 }
