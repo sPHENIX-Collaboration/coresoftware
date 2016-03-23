@@ -437,8 +437,8 @@ PHG4DSTReader::process_event(PHCompositeNode* topNode)
                     << endl;
 
               // for every recojet
-              for (JetMap::Iter iter = hits->begin();
-                  iter != hits->end(); ++iter)
+              for (JetMap::Iter iter = hits->begin(); iter != hits->end();
+                  ++iter)
                 {
                   Jet* hit_raw = iter->second;
 
@@ -488,11 +488,6 @@ PHG4DSTReader::process_event(PHCompositeNode* topNode)
 
                   _particle_set.insert(particle_iter->first);
 
-//                  PHG4Particle * part = particle_iter->second;
-//
-//                  assert(part);
-//
-//                  add_particle(rec, part);
                 }
 
             } //          if (_load_all_particle)
@@ -508,43 +503,18 @@ PHG4DSTReader::process_event(PHCompositeNode* topNode)
                   once = false;
                 }
 
-//              PHG4InEvent *inEvent = findNode::getClass<PHG4InEvent>(topNode,
-//                  "PHG4INEVENT");
-//              assert(inEvent);
-//
-//              pair<multimap<int, PHG4Particle *>::const_iterator,
-//                  multimap<int, PHG4Particle *>::const_iterator> particlebegin_end =
-//                  inEvent->GetParticles();
-//
-//              multimap<int, PHG4Particle *>::const_iterator particle_iter;
-//
-//              for (particle_iter = particlebegin_end.first;
-//                  particle_iter != particlebegin_end.second; particle_iter++)
-//                {
-//
-//                  PHG4Particle * part = particle_iter->second;
-//
-//                  assert(part);
-//
-//                  add_particle(rec, part);
-//                }
+              PHG4TruthInfoContainer::ConstRange primary_range =
+                  truthInfoList->GetPrimaryParticleRange();
 
-              for (particle_iter = truthInfoList->GetMap().begin();
-                  particle_iter != truthInfoList->GetMap().end();
-                  particle_iter++)
+              for (PHG4TruthInfoContainer::ConstIterator particle_iter =
+                  primary_range.first; particle_iter != primary_range.second;
+                  ++particle_iter)
                 {
-                  if (particle_iter->second->get_parent_id() <= 0)
-                    _particle_set.insert(particle_iter->first);
 
-//                  PHG4Particle * part = particle_iter->second;
-//
-//                  assert(part);
-//
-//                  add_particle(rec, part);
-                }
+                  _particle_set.insert(particle_iter->first);
 
-            } //          if (_load_all_particle) else
-
+                } //          if (_load_all_particle) else
+            }
           for (PartSet_t::const_iterator i = _particle_set.begin();
               i != _particle_set.end(); i++)
             {
