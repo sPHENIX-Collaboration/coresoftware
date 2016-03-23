@@ -231,9 +231,15 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
         }
       // here in the detector class we have internal units, convert to cm
       // before putting into the geom object
-//      PHG4CylinderGeom *mygeom = clone_geom();
-//      geo->AddLayerGeom(0, mygeom);
-      //    geo->identify();
+      PHG4CylinderGeom *mygeom = new SpacalGeom_t(*_geom);
+      geo->AddLayerGeom(0, mygeom);
+      if (_geom->get_construction_verbose() >= 1)
+        {
+
+          cout << "PHG4SpacalPrototypeDetector::Construct::" << GetName()
+              << " - Print Layer Geometry:" << endl;
+          geo->identify();
+        }
     }
 
   if (absorberactive)
@@ -264,13 +270,19 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
       // before putting into the geom object
       PHG4CylinderGeom *mygeom = new SpacalGeom_t(*_geom);
       geo->AddLayerGeom(0, mygeom);
-      //    geo->identify();
-    }
+      if (_geom->get_construction_verbose() >= 1)
+        {
+
+          cout << "PHG4SpacalPrototypeDetector::Construct::" << GetName()
+                  << " - Print Absorber Layer Geometry:" << endl;
+          geo->identify();
+
+    }}
 
   if (_geom->get_construction_verbose() >= 1)
     {
       cout << "PHG4SpacalPrototypeDetector::Construct::" << GetName()
-          << " - Completed. Print Geometry:" << endl;
+          << " - Completed. Print G4 Geometry:" << endl;
       Print();
     }
 }
