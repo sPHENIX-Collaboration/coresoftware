@@ -54,7 +54,8 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       hitnodename.c_str());
   if (!g4hit)
     {
-      cout << "Could not locate g4 hit node " << hitnodename << endl;
+      cout << "PHG4FullProjSpacalCellReco::InitRun - Could not locate g4 hit node " << hitnodename << endl;
+      topNode->print();
       exit(1);
     }
   cellnodename = "G4CELL_" + detector;
@@ -83,12 +84,15 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
           geonodename.c_str());
   if (!geo)
     {
-      cout << "Could not locate geometry node " << geonodename << endl;
+      cout << "PHG4FullProjSpacalCellReco::InitRun - Could not locate geometry node " << geonodename << endl;
+      topNode->print();
       exit(1);
     }
   if (verbosity > 0)
     {
+      cout << "PHG4FullProjSpacalCellReco::InitRun - incoming geometry:"<<endl;
       geo->identify();
+      assert(geo->get_NLayers()>0);
     }
   seggeonodename = "CYLINDERCELLGEOM_" + detector;
   PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<
@@ -247,7 +251,7 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
 
       // add geo object filled by different binning methods
       seggeo->AddLayerCellGeom(layerseggeo);
-      if (verbosity > 1)
+      if (verbosity >= VERBOSITY_SOME)
         {
           cout <<"PHG4FullProjSpacalCellReco::InitRun::"<<Name()<<" - Done layer"<< (layergeom->get_layer()) <<". Print out the cell geometry:"<<endl;
           layerseggeo->identify();
