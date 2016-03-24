@@ -26,7 +26,6 @@
 #include <boost/foreach.hpp>
 #include <exception>
 #include <limits>       // std::numeric_limits
-
 using namespace std;
 
 PHG4FullProjSpacalCellReco::PHG4FullProjSpacalCellReco(const string &name) :
@@ -54,7 +53,9 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       hitnodename.c_str());
   if (!g4hit)
     {
-      cout << "PHG4FullProjSpacalCellReco::InitRun - Could not locate g4 hit node " << hitnodename << endl;
+      cout
+          << "PHG4FullProjSpacalCellReco::InitRun - Could not locate g4 hit node "
+          << hitnodename << endl;
       topNode->print();
       exit(1);
     }
@@ -84,13 +85,16 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
           geonodename.c_str());
   if (!geo)
     {
-      cout << "PHG4FullProjSpacalCellReco::InitRun - Could not locate geometry node " << geonodename << endl;
+      cout
+          << "PHG4FullProjSpacalCellReco::InitRun - Could not locate geometry node "
+          << geonodename << endl;
       topNode->print();
       exit(1);
     }
   if (verbosity > 0)
     {
-      cout << "PHG4FullProjSpacalCellReco::InitRun - incoming geometry:"<<endl;
+      cout << "PHG4FullProjSpacalCellReco::InitRun - incoming geometry:"
+          << endl;
       geo->identify();
       assert(geo->get_NLayers()>0);
     }
@@ -152,8 +156,9 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
           layergeom->get_sector_tower_map();
       const PHG4CylinderGeom_Spacalv3::sector_map_t & sector_map =
           layergeom->get_sector_map();
-      const int nphibin = layergeom->get_azimuthal_n_sec()
-          * layergeom->get_max_phi_bin_in_sec();
+      const int nphibin = layergeom->get_azimuthal_n_sec() // sector
+      * layergeom->get_max_phi_bin_in_sec() // blocks per sector
+          * layergeom->get_n_subtower_phi(); // subtower per block
       const double deltaphi = 2. * M_PI / nphibin;
 
       typedef map<double, int> map_z_tower_z_ID_t;
@@ -177,7 +182,10 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
           if (tower_ID_phi == 0)
             {
               //assign phi min according phi bin 0
-              phi_min = atan2(tower.centralY, tower.centralX + 0.25*(tower.pDx1+tower.pDx2+tower.pDx3+tower.pDx4))
+              phi_min = atan2(tower.centralY,
+                  tower.centralX
+                      + 0.25
+                          * (tower.pDx1 + tower.pDx2 + tower.pDx3 + tower.pDx4))
                   + sector_map.begin()->second;
             }
 
@@ -202,7 +210,7 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
           eta_bin++;
         }
       layerseggeo->set_tower_z_ID_eta_bin_map(tower_z_ID_eta_bin_map);
-      layerseggeo->set_etabins(eta_bin);
+      layerseggeo->set_etabins(eta_bin * layergeom->get_n_subtower_eta());
       layerseggeo->set_etamin(NAN);
       layerseggeo->set_etastep(NAN);
 
@@ -239,12 +247,30 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
                                       * atan2(tower.centralY,
                                           tower.centralZ + dz)))));
 
-              layerseggeo->set_etabounds(etabin,
-                  make_pair<double, double>(eta_central - deta,
-                      eta_central + deta));
-              layerseggeo->set_zbounds(etabin,
-                  make_pair<double, double>(tower.centralZ - dz,
-                      tower.centralZ + dz));
+              for (int sub_tower_ID_y = 0; sub_tower_ID_y < tower.NSubtowerY;
+                  ++sub_tower_ID_y)
+                {
+                  assert(tower.NSubtowerY <=layergeom->get_n_subtower_eta());
+                  // do not overlap to the next bin.
+                  const int sub_tower_etabin = etabin
+                      * layergeom->get_n_subtower_eta() + sub_tower_ID_y;
+
+                  layerseggeo->set_etabounds(sub_tower_etabin,
+                      make_pair<double, double>(
+                          eta_central - deta
+                              + sub_tower_ID_y * 2 * deta / tower.NSubtowerY,
+                          eta_central - deta
+                              + (sub_tower_ID_y + 1) * 2 * deta
+                                  / tower.NSubtowerY));
+                  layerseggeo->set_zbounds(sub_tower_etabin,
+                      make_pair<double, double>(
+                          tower.centralZ - dz
+                              + sub_tower_ID_y * 2 * dz / tower.NSubtowerY,
+                          tower.centralZ - dz
+                              + (sub_tower_ID_y + 1) * 2 * dz
+                                  / tower.NSubtowerY));
+                }
+
             }
           // ...
         } //       BOOST_FOREACH(const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type& tower_pair, tower_map)
@@ -253,7 +279,9 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       seggeo->AddLayerCellGeom(layerseggeo);
       if (verbosity >= VERBOSITY_SOME)
         {
-          cout <<"PHG4FullProjSpacalCellReco::InitRun::"<<Name()<<" - Done layer"<< (layergeom->get_layer()) <<". Print out the cell geometry:"<<endl;
+          cout << "PHG4FullProjSpacalCellReco::InitRun::" << Name()
+              << " - Done layer" << (layergeom->get_layer())
+              << ". Print out the cell geometry:" << endl;
           layerseggeo->identify();
         }
     }
@@ -327,7 +355,7 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
         {
           // checking ADC timing integration window cut
-          if (hiter->second->get_t(0)>timing_window_size)
+          if (hiter->second->get_t(0) > timing_window_size)
             continue;
 
           // hit loop
@@ -346,11 +374,15 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
               const int & tower_ID_z = tower_z_phi_ID.first;
               const int & tower_ID_phi = tower_z_phi_ID.second;
 
+              PHG4CylinderGeom_Spacalv3::tower_map_t::const_iterator it_tower =
+                  layergeom->get_sector_tower_map().find(decoder.tower_ID);
+              assert(it_tower != layergeom->get_sector_tower_map().end());
+
               // convert tower_ID_z to to eta bin number
               int etabin = -1;
               try
                 {
-                  etabin = geo->get_etabin(tower_ID_z);
+                  etabin = geo->get_etabin_block(tower_ID_z); // block eta bin
                 }
               catch (exception & e)
                 {
@@ -360,21 +392,30 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
                   decoder.identify();
                   cout << "Print the hit:" << endl;
                   hiter->second->print();
-                  cout << "PHG4FullProjSpacalCellReco::process_event::" << Name()
-                      << " - Fatal Error - " << e.what() << endl;
+                  cout << "PHG4FullProjSpacalCellReco::process_event::"
+                      << Name() << " - Fatal Error - " << e.what() << endl;
                   exit(1);
                 }
 
+              const int sub_tower_ID_x = it_tower->second.get_sub_tower_ID_x(
+                  decoder.fiber_ID);
+              const int sub_tower_ID_y = it_tower->second.get_sub_tower_ID_y(
+                  decoder.fiber_ID);
+
               celllist[key] = new PHG4CylinderCell_Spacalv1();
               celllist[key]->set_layer(*layer);
-              celllist[key]->set_phibin(tower_ID_phi);
-              celllist[key]->set_etabin(etabin);
+              celllist[key]->set_phibin(
+                  tower_ID_phi * layergeom->get_n_subtower_phi()
+                      + sub_tower_ID_x);
+              celllist[key]->set_etabin(
+                  etabin * layergeom->get_n_subtower_eta() + sub_tower_ID_y);
               celllist[key]->set_fiber_ID(decoder.fiber_ID);
             }
 
           celllist[key]->add_edep(hiter->first, hiter->second->get_edep(),
               hiter->second->get_light_yield());
-          celllist[key]->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep());
+          celllist[key]->add_shower_edep(hiter->second->get_shower_id(),
+              hiter->second->get_edep());
 
         } // end loop over g4hits
       int numcells = 0;
@@ -387,20 +428,19 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
             {
               cout << "PHG4FullProjSpacalCellReco::process_event::" << Name()
                   << " - " << "Adding cell in bin eta "
-                  << (mapiter->second->get_bineta())
-                  <<" phi "<< (mapiter->second->get_binphi())
-                  <<" fiber "<< (mapiter->second->get_fiber_ID())
-                  << ", energy dep: "
-                                    << mapiter->second->get_edep()<< ", light yield: "
-                                    << mapiter->second->get_light_yield() << endl;
+                  << (mapiter->second->get_bineta()) << " phi "
+                  << (mapiter->second->get_binphi()) << " fiber "
+                  << (mapiter->second->get_fiber_ID()) << ", energy dep: "
+                  << mapiter->second->get_edep() << ", light yield: "
+                  << mapiter->second->get_light_yield() << endl;
             }
         }
       celllist.clear();
       if (verbosity > 0)
         {
-          cout << "PHG4FullProjSpacalCellReco::process_event::" << Name() << " - "
-              << " found " << numcells << " fibers with energy deposition"
-              << endl;
+          cout << "PHG4FullProjSpacalCellReco::process_event::" << Name()
+              << " - " << " found " << numcells
+              << " fibers with energy deposition" << endl;
         }
     }
 
@@ -444,8 +484,9 @@ PHG4FullProjSpacalCellReco::CheckEnergy(PHCompositeNode *topNode)
   // the fractional eloss for particles traversing eta bins leads to minute rounding errors
   if (fabs(sum_energy_cells - sum_energy_g4hit) / sum_energy_g4hit > 1e-6)
     {
-      cout << "PHG4FullProjSpacalCellReco::CheckEnergy - energy mismatch between cells: " << sum_energy_cells
-          << " and hits: " << sum_energy_g4hit
+      cout
+          << "PHG4FullProjSpacalCellReco::CheckEnergy - energy mismatch between cells: "
+          << sum_energy_cells << " and hits: " << sum_energy_g4hit
           << " diff sum(cells) - sum(hits): "
           << sum_energy_cells - sum_energy_g4hit << endl;
       return -1;
@@ -454,8 +495,9 @@ PHG4FullProjSpacalCellReco::CheckEnergy(PHCompositeNode *topNode)
     {
       if (verbosity > 0)
         {
-          cout <<"PHG4FullProjSpacalCellReco::CheckEnergy::"<< Name() << " - total energy for this event: "
-              << sum_energy_g4hit << " GeV. Passed CheckEnergy" << endl;
+          cout << "PHG4FullProjSpacalCellReco::CheckEnergy::" << Name()
+              << " - total energy for this event: " << sum_energy_g4hit
+              << " GeV. Passed CheckEnergy" << endl;
         }
     }
   return 0;

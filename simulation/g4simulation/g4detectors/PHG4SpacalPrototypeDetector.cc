@@ -127,6 +127,8 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
   //  _geom->set_construction_verbose(2);
   _geom->ImportParameters(*construction_params);
 
+  _geom-> subtower_consistency_check();
+
   step_limits = new G4UserLimits(_geom->get_calo_step_size() * cm);
 
   clading_step_limits = new G4UserLimits(
@@ -553,7 +555,7 @@ PHG4SpacalPrototypeDetector::Construct_Fibers_SameLengthFiberPerTower(
 
   G4Vector3D v_zshift = G4Vector3D(tan(g_tower.pTheta) * cos(g_tower.pPhi),
       tan(g_tower.pTheta) * sin(g_tower.pPhi), 1) * g_tower.pDz;
-  int fiber_ID = 0;
+//  int fiber_ID = 0;
   for (int ix = 0; ix < g_tower.NFiberX; ix++)
 //  int ix = 0;
     {
@@ -607,13 +609,14 @@ PHG4SpacalPrototypeDetector::Construct_Fibers_SameLengthFiberPerTower(
           vector_fiber *= cm;
           center_fiber *= cm;
 
+          const int fiber_ID = g_tower.compose_fiber_id(ix,iy);
           fiber_par[fiber_ID] = make_pair(vector_fiber, center_fiber);
 
           const G4double fiber_length = vector_fiber.mag();
 
           min_fiber_length = min(fiber_length, min_fiber_length);
 
-          ++fiber_ID;
+//          ++fiber_ID;
         }
     }
 

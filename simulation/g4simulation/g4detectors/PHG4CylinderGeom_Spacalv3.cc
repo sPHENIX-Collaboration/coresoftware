@@ -148,21 +148,68 @@ PHG4CylinderGeom_Spacalv3::geom_tower::geom_tower() :
     centralZ(numeric_limits<double>::signaling_NaN()), //
     ModuleSkinThickness(numeric_limits<double>::signaling_NaN()), //
     NFiberX(numeric_limits<int>::min()), //
-    NFiberY(numeric_limits<int>::min())
+    NFiberY(numeric_limits<int>::min()), //
+    NSubtowerX(1), //
+    NSubtowerY(1)
 {
+}
+
+//! fiber layout -> fiber_id
+int
+PHG4CylinderGeom_Spacalv3::geom_tower::compose_fiber_id(int index_x,
+    int index_y) const
+{
+  return NFiberY * index_x + index_y;
+}
+
+//! fiber_id -> sub tower ID x: 0 ... NSubtowerX -1
+int
+PHG4CylinderGeom_Spacalv3::geom_tower::get_sub_tower_ID_x(int fiber_id) const
+{
+  const int index_x = fiber_id / NFiberY;
+  assert(index_x < NFiberX);
+  assert(index_x >= 0);
+
+  const double sub_tower_width_x = (double) NFiberX / NSubtowerX;
+  const int tower_ID_x = (NSubtowerX - 1) - floor(index_x / sub_tower_width_x); //! x is negative azimuthal direction
+  assert(tower_ID_x < NSubtowerX);
+  assert(tower_ID_x >= 0);
+
+  return tower_ID_x;
+}
+
+//! fiber_id -> sub tower ID y: 0 ... NSubtowerY -1
+int
+PHG4CylinderGeom_Spacalv3::geom_tower::get_sub_tower_ID_y(int fiber_id) const
+{
+  assert(fiber_id >= 0);
+  const int index_y = fiber_id % NFiberY;
+
+  const double sub_tower_width_y = (double) NFiberY / NSubtowerY;
+
+  assert(pRotationAngleX < 0);
+  const int tower_ID_y = (NSubtowerY - 1) - floor(index_y / sub_tower_width_y); //! y is negative polar direction
+  assert(tower_ID_y < NSubtowerY);
+  assert(tower_ID_y >= 0);
+
+  return tower_ID_y;
 }
 
 void
 PHG4CylinderGeom_Spacalv3::geom_tower::identify(std::ostream& os) const
 {
   os << "PHG4CylinderGeom_Spacalv3::geom_super_tower" << "[" << id << "]"
-      << " @ <Azimuthal, R, z> = "
-      << centralX << ", " << centralY << ", "
-      << centralZ << " cm" //
-      <<" with " //
-      <<"Half length = "<<pDz<<", "<<pDy1<<", "<<pDx1<<", "<<pDx2<<", "<<pDy2<<", "<<pDx3<<", "<<pDx4<<", "//
-      <<"Angles = "<<pTheta<<", "<<pPhi<<", "<<pAlp1<<", "<<pAlp2<<", "//
-      <<"Rotation = "<<pRotationAngleX//
+      << " @ <Azimuthal, R, z> = " << centralX << ", " << centralY << ", "
+      << centralZ << " cm"
+      //
+      << " with "
+      //
+      << "Half length = " << pDz << ", " << pDy1 << ", " << pDx1 << ", " << pDx2
+      << ", " << pDy2 << ", " << pDx3 << ", " << pDx4 << ", "
+      //
+      << "Angles = " << pTheta << ", " << pPhi << ", " << pAlp1 << ", " << pAlp2
+      << ", " //
+      << "Rotation = " << pRotationAngleX //
       << endl;
 }
 
@@ -195,6 +242,8 @@ PHG4CylinderGeom_Spacalv3::geom_tower::ImportParameters(
       param_prefix + "ModuleSkinThickness");
   NFiberX = param.get_int_param(param_prefix + "NFiberX");
   NFiberY = param.get_int_param(param_prefix + "NFiberY");
+  NSubtowerX = param.get_int_param(param_prefix + "NSubtowerX");
+  NSubtowerY = param.get_int_param(param_prefix + "NSubtowerY");
 
 }
 
@@ -242,6 +291,42 @@ PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
   int phi_bin = sector_ID * max_phi_bin_in_sec + phi_bin_in_sec;
 
   return make_pair(z_bin, phi_bin);
+}
+
+//! check that all towers has consistent sub-tower divider
+void
+PHG4CylinderGeom_Spacalv3::subtower_consistency_check() const
+{
+  assert(sector_tower_map.begin() != sector_tower_map.end());
+
+  for (tower_map_t::const_iterator it = sector_tower_map.begin();
+      it != sector_tower_map.end(); ++it)
+    {
+      assert(get_n_subtower_eta() == it->second.NSubtowerY);
+      assert(get_n_subtower_phi() == it->second.NSubtowerX);
+    }
+
+  if (get_construction_verbose())
+    {
+      cout
+          << "PHG4CylinderGeom_Spacalv3::subtower_consistency_check - Passed with get_n_subtower_phi() = "
+          << get_n_subtower_phi() << " and get_n_subtower_eta()"
+          << get_n_subtower_eta() << endl;
+    }
+}
+//! sub-tower divider along the polar direction
+int
+PHG4CylinderGeom_Spacalv3::get_n_subtower_eta() const
+{
+  assert(sector_tower_map.begin() != sector_tower_map.end());
+  return sector_tower_map.begin()->second.NSubtowerY;
+}
+//! sub-tower divider along the azimuthal direction
+int
+PHG4CylinderGeom_Spacalv3::get_n_subtower_phi() const
+{
+  assert(sector_tower_map.begin() != sector_tower_map.end());
+  return sector_tower_map.begin()->second.NSubtowerX;
 }
 
 void

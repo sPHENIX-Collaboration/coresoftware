@@ -79,7 +79,7 @@ PHG4CylinderCellGeom_Spacalv1::map_consistency_check() const
           << " in inconsistent with nzbins of " << nzbins << endl;
       exit(1);
     }
-  if ((size_t) nzbins != tower_z_ID_eta_bin_map.size())
+  if ((size_t) nzbins < tower_z_ID_eta_bin_map.size())
     {
       cout << "PHG4CylinderCellGeom_Spacalv1::map_consistency_check - "
           << "tower_z_ID_eta_bin_map.size() of " << tower_z_ID_eta_bin_map.size()
@@ -173,7 +173,7 @@ PHG4CylinderCellGeom_Spacalv1::get_etacenter(const int ibin) const
   return 0.5 * (bound.first + bound.second);
 }
 
-int PHG4CylinderCellGeom_Spacalv1::get_etabin(const int tower_z_ID) const
+int PHG4CylinderCellGeom_Spacalv1::get_etabin_block(const int tower_z_ID) const
 {
   map_consistency_check();
 

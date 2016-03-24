@@ -87,6 +87,9 @@ public:
   class geom_tower
   {
   public:
+    geom_tower();
+    virtual ~geom_tower(){}
+
     int id;
     double pDz;
 
@@ -108,11 +111,23 @@ public:
     double centralZ;
 
     double ModuleSkinThickness;
+
+    //! number of fiber along final azimuthal direction
     int NFiberX;
+    //! number of fiber along final polar direction
     int NFiberY;
 
-    geom_tower();
-    virtual ~geom_tower(){}
+    //! number of fiber along final azimuthal direction
+    int NSubtowerX;
+    //! number of fiber along final polar direction
+    int NSubtowerY;
+
+    //! fiber layout (2D index of 0...NFiberX/NFiberY) -> fiber_id
+    int compose_fiber_id(int index_x, int index_y) const;
+    //! fiber_id -> sub tower ID x.azimuthal direction: 0 ... NSubtowerX -1
+    int get_sub_tower_ID_x(int fiber_id) const;
+    //! fiber_id -> sub tower ID y/polar direction: 0 ... NSubtowerY -1
+    int get_sub_tower_ID_y(int fiber_id) const;
 
     virtual void
     identify(std::ostream& os = std::cout) const;
@@ -120,7 +135,7 @@ public:
     //! read via PHG4Parameters
     void ImportParameters(const PHG4Parameters & param, const std::string & param_prefix);
 
-  ClassDef(PHG4CylinderGeom_Spacalv3::geom_tower,1)
+  ClassDef(PHG4CylinderGeom_Spacalv3::geom_tower,2)
 
   };
   typedef std::map<int, geom_tower> tower_map_t;
@@ -139,6 +154,14 @@ public:
   {
     return sector_tower_map;
   }
+
+  //! check that all towers has consistent sub-tower divider
+  void subtower_consistency_check() const;
+  //! sub-tower divider along the polar direction
+  int get_n_subtower_eta() const;
+  //! sub-tower divider along the azimuthal direction
+  int get_n_subtower_phi() const;
+
 //
 //  void
 //  set_geom_super_tower_map(geom_super_tower_map_t geomSuperTowerMap)
