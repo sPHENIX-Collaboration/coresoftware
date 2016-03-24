@@ -100,7 +100,11 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCellGeom_Spacalv1.cc \
   PHG4CylinderCellGeom_Spacalv1_Dict.cc \
   PHG4CylinderCellGeomContainer.cc \
-  PHG4CylinderCellGeomContainer_Dict.cc
+  PHG4CylinderCellGeomContainer_Dict.cc \
+  PHG4ScintillatorSlat.cc \
+  PHG4ScintillatorSlat_Dict.cc \
+  PHG4ScintillatorSlatContainer.cc \
+  PHG4ScintillatorSlatContainer_Dict.cc
 
 libg4detectors_la_SOURCES = \
   PHG4BlockCellReco.cc \
@@ -172,14 +176,12 @@ libg4detectors_la_SOURCES = \
   PHG4InnerHcalSteppingAction.cc \
   PHG4InnerHcalSubsystem.cc \
   PHG4InnerHcal_Dict.C \
-  PHG4Prototype2OuterHcalDetector.cc \
-  PHG4Prototype2OuterHcalSteppingAction.cc \
-  PHG4Prototype2OuterHcalSubsystem.cc \
-  PHG4Prototype2OuterHcalSubsystem_Dict.C \
-  PHG4Prototype2InnerHcalDetector.cc \
-  PHG4Prototype2InnerHcalSteppingAction.cc \
-  PHG4Prototype2InnerHcalSubsystem.cc \
-  PHG4Prototype2InnerHcalSubsystem_Dict.C \
+  PHG4ScintillatorSlat.cc \
+  PHG4ScintillatorSlat_Dict.cc \
+  PHG4ScintillatorSlatDefs.cc \
+  PHG4ScintillatorSlatDefs_Dict.cc \
+  PHG4ScintillatorSlatv1.cc \
+  PHG4ScintillatorSlatv1_Dict.cc \
   PHG4SlatCellReco.cc \
   PHG4SlatCellReco_Dict.cc \
   PHG4OuterHcalDetector.cc \
@@ -190,6 +192,16 @@ libg4detectors_la_SOURCES = \
   PHG4OuterHcalSubsystem_Dict.cc \
   PHG4Parameters.cc \
   PHG4ProjCrystalCalorimeterDetector.cc \
+  PHG4Prototype2InnerHcalDetector.cc \
+  PHG4Prototype2InnerHcalSteppingAction.cc \
+  PHG4Prototype2InnerHcalSubsystem.cc \
+  PHG4Prototype2InnerHcalSubsystem_Dict.C \
+  PHG4Prototype2HcalCellReco.cc \
+  PHG4Prototype2HcalCellReco_Dict.cc \
+  PHG4Prototype2OuterHcalDetector.cc \
+  PHG4Prototype2OuterHcalSteppingAction.cc \
+  PHG4Prototype2OuterHcalSubsystem.cc \
+  PHG4Prototype2OuterHcalSubsystem_Dict.C \
   PHG4RICHDetector.cc \
   PHG4RICHSteppingAction.cc \
   PHG4RICHSubsystem.cc \
