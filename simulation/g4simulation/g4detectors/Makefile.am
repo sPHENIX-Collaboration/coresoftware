@@ -24,17 +24,20 @@ INCLUDES = \
     -I${G4_MAIN}/include/Geant4
 
 libg4detectors_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lboost_filesystem \
+  -lboost_system \
+  -lpdbcalBase
 
 libg4detectors_la_LIBADD = \
-  -lphool \
-  -lpdbcalBase \
-  -lSubsysReco \
-  -lg4testbench \
+  -lphool  \
+  libg4detectors_io.la \
   -lCGAL \
-  libg4detectors_io.la
+  -lSubsysReco \
+  -lg4testbench 
 
 pkginclude_HEADERS = \
+  PHG4Parameters.h \
   PHG4BlockGeom.h \
   PHG4BlockGeomContainer.h \
   PHG4CylinderCell.h \
@@ -55,6 +58,8 @@ pkginclude_HEADERS = \
   PHG4CylinderCellTPCReco.h
 
 libg4detectors_io_la_SOURCES = \
+  PHG4Parameters.cc \
+  PHG4Parameters_Dict.cc \
   PHG4BlockCellGeom.cc \
   PHG4BlockCellGeom_Dict.cc \
   PHG4BlockCellGeomContainer.cc \
@@ -188,8 +193,6 @@ libg4detectors_la_SOURCES = \
   PHG4OuterHcalSteppingAction.cc \
   PHG4OuterHcalSubsystem.cc \
   PHG4OuterHcalSubsystem_Dict.cc \
-  PHG4Parameters.cc \
-  PHG4Parameters_Dict.cc \
   PHG4ProjCrystalCalorimeterDetector.cc \
   PHG4RICHDetector.cc \
   PHG4RICHSteppingAction.cc \
