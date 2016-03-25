@@ -539,7 +539,7 @@ PHG4DSTReader::process_event(PHCompositeNode* topNode)
           if (once)
             {
               cout
-                  << "PHG4DSTReader::process_event - will load all vertex from G4TruthInfo"
+                  << "PHG4DSTReader::process_event - will load vertex from G4TruthInfo"
                   << endl;
 
               once = false;
