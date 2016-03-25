@@ -5,20 +5,20 @@ AM_LDFLAGS = -L$(libdir) -L$(OFFLINE_MAIN)/lib -L$(OPT_SPHENIX)/lib
 
 AM_CXXFLAGS = -Wall -Werror
 
-lib_LTLIBRARIES = libPHPythia.la
+lib_LTLIBRARIES = libPHPythia6.la
 
 include_HEADERS = \
-  PHPythia.h
+  PHPythia6.h
 
-libPHPythia_la_LDFLAGS = ${AM_LDFLAGS} `root-config --libs`
+libPHPythia6_la_LDFLAGS = ${AM_LDFLAGS} `root-config --libs`
 
-libPHPythia_la_LIBADD = \
+libPHPythia6_la_LIBADD = \
   -lphool -lSubsysReco -lfun4all -lPythia6 -lEG -lEGPythia6 \
   -lphhepmc -lHepMC -lHepMCfio -lgsl -lgslcblas
 
-libPHPythia_la_SOURCES = \
-  PHPythia.C \
-  PHPythia_Dict.C
+libPHPythia6_la_SOURCES = \
+  PHPythia6.C \
+  PHPythia6_Dict.C
 
 BUILT_SOURCES = \
   testexternals.C
@@ -27,7 +27,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_LDADD = \
-  libPHPythia.la
+  libPHPythia6.la
 
 testexternals.C:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
@@ -36,9 +36,9 @@ testexternals.C:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-PHPythia_Dict.C: \
-  PHPythia.h \
-  PHPythiaLinkDef.h
+PHPythia6_Dict.C: \
+  PHPythia6.h \
+  PHPythia6LinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
