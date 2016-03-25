@@ -133,6 +133,12 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
               << layergeom_raw->ClassName() << endl;
           exit(1);
         }
+      if (verbosity > 1)
+        {
+          layergeom->identify();
+        }
+
+      layergeom-> subtower_consistency_check();
 
 //      int layer = layergeom->get_layer();
 
@@ -142,12 +148,6 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       layerseggeo->set_layer(layergeom->get_layer());
       layerseggeo->set_radius(layergeom->get_radius());
       layerseggeo->set_thickness(layergeom->get_thickness());
-
-      if (verbosity > 1)
-        {
-          layergeom->identify();
-        }
-
       layerseggeo->set_binning(PHG4CylinderCellDefs::spacalbinning);
 
       // construct a map to convert tower_ID into the older eta bins.
