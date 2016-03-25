@@ -1,15 +1,15 @@
 #include <stdlib.h>
 #include <signal.h>
+#include <string>
 
 #include "fileEventiterator.h"
 #include "testEventiterator.h"
 #include "rcdaqEventiterator.h"
 #include "oncsEventiterator.h"
-
 #include <stdio.h>
 
 #ifdef HAVE_GETOPT_H
-#include <getopt.h>
+#include "getopt.h"
 #endif
 
 #include<vector>
@@ -130,6 +130,7 @@ void sig_handler(int i)
   void sig_handler(...)
 #endif
 {
+  COUT << "sig_handler: signal seen " << std::endl;
   if (it) delete it;
   exit(0);
 }
@@ -325,7 +326,15 @@ main(int argc, char *argv[])
     case RCDAQEVENTITERATOR:
       if ( optind+1>argc) 
 	{
-	  it = new rcdaqEventiterator("localhost", status);
+	  std::string host = "localhost";
+    
+	  if ( getenv("RCDAQHOST")  )
+	    {
+	      host = getenv("RCDAQHOST");
+	    }
+	  
+	  it = new rcdaqEventiterator(host.c_str(), status);
+
 	}
       else
 	{

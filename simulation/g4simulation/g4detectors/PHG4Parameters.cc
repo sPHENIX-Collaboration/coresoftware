@@ -411,9 +411,8 @@ PHG4Parameters::ReadFromFile(const string &extension, const string &dir)
     }
   cout << "Reading from File: " << (calibfiles.rbegin())->second << endl;
   string fname = (calibfiles.rbegin())->second;
-  PdbParameterMap *myparm = new PdbParameterMap();
   TFile *f = TFile::Open(fname.c_str());
-  myparm = (PdbParameterMap *) f->Get("PdbParameterMap");
+  PdbParameterMap *myparm = (PdbParameterMap *) f->Get("PdbParameterMap");
   FillFrom(myparm);
   delete f;
   delete myparm;

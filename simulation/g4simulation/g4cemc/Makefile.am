@@ -1,7 +1,5 @@
 AUTOMAKE_OPTIONS = foreign
 
-AM_CXXFLAGS=-std=c++0x 
-
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
   libcemc_io.la \
@@ -47,6 +45,8 @@ libcemc_io_la_SOURCES = \
   RawTowerGeomContainer_Cylinderv1_Dict.cc
 
 libcemc_la_SOURCES = \
+  Prototype2RawTowerBuilder.cc \
+  Prototype2RawTowerBuilder_Dict.cc \
   RawClusterBuilder.cc \
   RawClusterBuilder_Dict.cc \
   RawClusterBuilderv1.cc \

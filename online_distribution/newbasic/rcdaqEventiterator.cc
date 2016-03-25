@@ -8,6 +8,7 @@
 #include "rcdaqEventiterator.h"
 #include <stdio.h>
 #include <iostream>
+#include <stdlib.h>
 
 #include "oncsBuffer.h"
 #include "gzbuffer.h"
@@ -42,6 +43,19 @@ rcdaqEventiterator::~rcdaqEventiterator()
      if (bptr != NULL ) delete bptr;
 }  
 
+
+rcdaqEventiterator::rcdaqEventiterator()
+{
+  string host = "localhost";
+    
+  if ( getenv("RCDAQHOST")  )
+    {
+      host = getenv("RCDAQHOST");
+    }
+
+  int status;
+  setup (host.c_str(), status);
+}  
 
 rcdaqEventiterator::rcdaqEventiterator(const char *ip)
 {

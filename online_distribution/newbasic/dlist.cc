@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 #include <signal.h>
+#include <string>
+
 #include "fileEventiterator.h"
 #include "rcdaqEventiterator.h"
 #include "testEventiterator.h"
@@ -228,7 +230,14 @@ main(int argc, char *argv[])
     case RCDAQEVENTITERATOR:
       if ( optind+1>argc) 
 	{
-	  it = new rcdaqEventiterator("localhost", status);
+	  std::string host = "localhost";
+    
+	  if ( getenv("RCDAQHOST")  )
+	    {
+	      host = getenv("RCDAQHOST");
+	    }
+	  
+	  it = new rcdaqEventiterator(host.c_str(), status);
 	}
       else
 	{
