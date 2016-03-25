@@ -25,8 +25,11 @@ public:
   virtual ~PHPythia6();
 
   int Init(PHCompositeNode *topNode);
+
   int process_event(PHCompositeNode *topNode);
+
   int ResetEvent(PHCompositeNode *topNode);
+
   int End(PHCompositeNode *topNode);
 
   void set_config_file( const std::string cfg_file ) { _configFile = cfg_file; }
@@ -34,21 +37,6 @@ public:
   void print_config() const;
 
   void set_node_name(std::string s) {_node_name = s;}
-
-  void beam_vertex_parameters(double beamX,
-			      double beamY,
-			      double beamZ,
-			      double beamXsigma,
-			      double beamYsigma,
-			      double beamZsigma) {
-    _useBeamVtx = true;
-    _beamX = beamX;
-    _beamY = beamY;
-    _beamZ = beamZ;
-    _beamXsigma = beamXsigma;
-    _beamYsigma = beamYsigma;
-    _beamZsigma = beamZsigma;
-  }
 
   void save_ascii( std::string fname = "pythia_hepmc.dat" )
   {
@@ -66,12 +54,7 @@ private:
   // output
   std::string _node_name;
 
-  // vertex placement
-  bool _useBeamVtx;
-  double _beamX, _beamXsigma;
-  double _beamY, _beamYsigma;
-  double _beamZ, _beamZsigma;
-
+  // Pythia6 configuration file
   std::string _configFile;
 
   // HepMC

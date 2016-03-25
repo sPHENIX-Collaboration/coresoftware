@@ -42,13 +42,6 @@ PHPythia6::PHPythia6(const std::string &name):
   SubsysReco(name),
   _eventcount(0),
   _node_name("PHHepMCGenEvent"),
-  _useBeamVtx(false),
-  _beamX(0),
-  _beamXsigma(0),
-  _beamY(0),
-  _beamYsigma(0),
-  _beamZ(0),
-  _beamZsigma(0),
   _configFile("phpythia6.cfg"),
   _phhepmcevt(NULL),
   _save_ascii( false ),
@@ -321,14 +314,6 @@ int PHPythia6::process_event(PHCompositeNode *topNode) {
     cout << "PHPythia6::process_event - Failed to add event to HepMC record!" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-  /* shift node if needed */
-  //  if (_useBeamVtx) {
-  //    double mvVtxX = gsl_ran_gaussian(RandomGenerator,_beamXsigma) + _beamX;
-  //    double mvVtxY = gsl_ran_gaussian(RandomGenerator,_beamYsigma) + _beamY;
-  //    double mvVtxZ = gsl_ran_gaussian(RandomGenerator,_beamZsigma) + _beamZ;
-  //    _phhepmcevt->moveVertex(mvVtxX,mvVtxY,mvVtxZ,0.0);
-  //  }
 
   /* print outs*/
   if (verbosity > 2) cout << "PHPythia6::process_event - FINISHED WHOLE EVENT" << endl;
