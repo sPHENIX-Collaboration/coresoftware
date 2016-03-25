@@ -14,6 +14,7 @@
 #include <Geant4/globals.hh>
 #include <Geant4/G4PhysicalConstants.hh>
 
+#include <algorithm>
 #include <cmath>
 #include <cassert>
 #include <iostream>
@@ -62,6 +63,13 @@ PHG4CylinderGeom_Spacalv3::Print(Option_t *opt) const
   cout << "\t" << "get_sidewall_mat() = " << get_sidewall_mat() << endl;
   cout << "\t" << "get_max_phi_bin_in_sec() = " << get_max_phi_bin_in_sec()
       << endl;
+
+  subtower_consistency_check();
+  cout << "\t" << "get_n_subtower_eta() = " << get_n_subtower_eta() << endl;
+  cout << "\t" << "get_n_subtower_phi() = " << get_n_subtower_phi() << endl;
+
+  cout << "\t" << "get_max_lightguide_height() = "
+      << get_max_lightguide_height() << endl;
   cout << "\t" << "Containing " << sector_tower_map.size()
       << " unique towers per sector." << endl;
 
@@ -150,7 +158,10 @@ PHG4CylinderGeom_Spacalv3::geom_tower::geom_tower() :
     NFiberX(numeric_limits<int>::min()), //
     NFiberY(numeric_limits<int>::min()), //
     NSubtowerX(1), //
-    NSubtowerY(1)
+    NSubtowerY(1), //
+    LightguideHeight(0), //
+    LightguideTaperRatio(numeric_limits<double>::signaling_NaN()), //
+    LightguideMaterial("PMMA")
 {
 }
 
@@ -245,6 +256,11 @@ PHG4CylinderGeom_Spacalv3::geom_tower::ImportParameters(
   NSubtowerX = param.get_int_param(param_prefix + "NSubtowerX");
   NSubtowerY = param.get_int_param(param_prefix + "NSubtowerY");
 
+  LightguideHeight = param.get_double_param(param_prefix + "LightguideHeight");
+  LightguideTaperRatio = param.get_double_param(
+      param_prefix + "LightguideTaperRatio");
+  LightguideMaterial = param.get_string_param(
+      param_prefix + "LightguideMaterial");
 }
 
 PHG4CylinderGeom_Spacalv3::scint_id_coder::scint_id_coder(int scint_id) :
@@ -327,6 +343,21 @@ PHG4CylinderGeom_Spacalv3::get_n_subtower_phi() const
 {
   assert(sector_tower_map.begin() != sector_tower_map.end());
   return sector_tower_map.begin()->second.NSubtowerX;
+}
+
+double
+PHG4CylinderGeom_Spacalv3::get_max_lightguide_height() const
+{
+  double max_height = 0;
+
+  for (tower_map_t::const_iterator it = sector_tower_map.begin();
+      it != sector_tower_map.end(); ++it)
+    {
+      const double h = it->second.LightguideHeight;
+      max_height = max(max_height, h);
+    }
+
+  return max_height;
 }
 
 void

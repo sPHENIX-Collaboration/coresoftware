@@ -127,7 +127,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
   //  _geom->set_construction_verbose(2);
   _geom->ImportParameters(*construction_params);
 
-  _geom-> subtower_consistency_check();
+  _geom->subtower_consistency_check();
 
   step_limits = new G4UserLimits(_geom->get_calo_step_size() * cm);
 
@@ -154,18 +154,34 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
       exit(-1);
     }
 
+  const G4double z_rotation = construction_params->get_double_param(
+      "z_rotation_degree") * degree;
+  const G4double enclosure_x = construction_params->get_double_param(
+      "enclosure_x") * cm;
+  const G4double enclosure_y = construction_params->get_double_param(
+      "enclosure_y") * cm;
+  const G4double enclosure_z = construction_params->get_double_param(
+      "enclosure_z") * cm;
+
+  const G4double box_x_shift = (_geom->get_radius()
+      + 0.5 * _geom->get_thickness()) * cm;
+
 //  G4Tubs* _cylinder_solid = new G4Tubs(G4String(GetName().c_str()),
 //      _geom->get_radius() * cm, _geom->get_max_radius() * cm,
 //      _geom->get_length() * cm / 2.0, 0, twopi);
+//  G4VSolid* cylinder_solid = new G4Box(G4String(GetName().c_str()),
+//      _geom->get_thickness() * 1.1 * 0.5 * cm, //
+//      twopi / _geom->get_azimuthal_n_sec() * _geom->get_sector_map().size()
+//          * 0.5 * _geom->get_max_radius() * cm, //
+//      _geom->get_length() * cm / 2.0);
   G4VSolid* cylinder_solid = new G4Box(G4String(GetName().c_str()),
-      _geom->get_thickness() * 1.1 * 0.5 * cm , //
-      twopi / _geom->get_azimuthal_n_sec() * _geom->get_sector_map().size()
-          * 0.5 * _geom->get_max_radius() * cm,//
-          _geom->get_length() * cm / 2.0);
+      enclosure_x * 0.5, //
+      enclosure_y * 0.5, //
+      enclosure_z * 0.5);
 
   cylinder_solid = new G4DisplacedSolid(G4String(GetName() + "_displaced"),
       cylinder_solid, 0, //
-      G4ThreeVector((_geom->get_radius() + 0.5 * _geom->get_thickness()) * cm, 0, 0));
+      G4ThreeVector(box_x_shift, 0, 0));
 
   G4Material * cylinder_mat = G4Material::GetMaterial("G4_AIR");
   assert(cylinder_mat);
@@ -180,10 +196,14 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
           and (not _geom->is_azimuthal_seg_visible()));
   cylinder_logic->SetVisAttributes(VisAtt);
 
-  cylinder_physi = new G4PVPlacement(0,
-      G4ThreeVector(_geom->get_xpos() * cm - (_geom->get_radius() + 0.5 * _geom->get_thickness()) * cm, _geom->get_ypos() * cm,
-          _geom->get_zpos() * cm), cylinder_logic, G4String(GetName().c_str()),
-      logicWorld, false, 0, overlapcheck);
+  G4Transform3D cylinder_place(
+      G4Translate3D(_geom->get_xpos() * cm, _geom->get_ypos() * cm,
+          _geom->get_zpos() * cm) //
+      * G4RotateZ3D(z_rotation) //
+          * G4Translate3D(-box_x_shift, 0, 0));
+
+  cylinder_physi = new G4PVPlacement(cylinder_place, cylinder_logic,
+      G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
 
   // install sectors
   std::pair<G4LogicalVolume *, G4Transform3D> psec = Construct_AzimuthalSeg();
@@ -206,6 +226,82 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
 
     }
   _geom->set_nscint(_geom->get_nscint() * _geom->get_sector_map().size());
+
+  // install electronics
+  const G4double electronics_thickness = construction_params->get_double_param(
+      "electronics_thickness") * cm;
+  const string electronics_material = construction_params->get_string_param(
+      "electronics_material");
+
+  G4VSolid* electronics_solid = new G4Box(G4String(GetName().c_str()),
+      electronics_thickness / 2.0, //
+      sin(
+          twopi / _geom->get_azimuthal_n_sec() * _geom->get_sector_map().size()
+              / 2) * (_geom->get_radius() - _geom->get_max_lightguide_height())
+          * cm, //
+      _geom->get_length() * cm / 2.0);
+
+  electronics_solid = new G4DisplacedSolid(G4String(GetName() + "_displaced"),
+      electronics_solid,
+      0, //
+      G4ThreeVector(
+          cos(
+              twopi / _geom->get_azimuthal_n_sec()
+                  * _geom->get_sector_map().size() / 2)
+              * (_geom->get_radius() - _geom->get_max_lightguide_height()) * cm
+              - electronics_thickness, 0, 0));
+
+  G4Material * electronics_mat = G4Material::GetMaterial(electronics_material);
+  assert(electronics_mat);
+
+  G4LogicalVolume * electronics_logic = new G4LogicalVolume(electronics_solid,
+      electronics_mat, G4String(GetName().c_str()) + "_Electronics", 0, 0, 0);
+  VisAtt = new G4VisAttributes();
+  PHG4Utils::SetColour(VisAtt, electronics_material);
+  VisAtt->SetVisibility(true);
+  VisAtt->SetForceSolid(not _geom->is_virualize_fiber());
+  electronics_logic->SetVisAttributes(VisAtt);
+
+  new G4PVPlacement(G4Transform3D::Identity, electronics_logic,
+      G4String(name.c_str()) + "_Electronics", cylinder_logic, false, 0,
+      overlapcheck);
+
+  // install the enclosure box
+  const G4double enclosure_thickness = construction_params->get_double_param(
+      "enclosure_thickness") * cm;
+  const string enclosure_material = construction_params->get_string_param(
+      "enclosure_material");
+
+  G4VSolid* outer_enclosur_solid = new G4Box(G4String(GetName().c_str()) + "_outer_enclosur_solid",
+      enclosure_x * 0.5, //
+      enclosure_y * 0.5, //
+      enclosure_z * 0.5);
+  G4VSolid* inner_enclosur_solid = new G4Box(G4String(GetName().c_str()) + "_inner_enclosur_solid",
+      enclosure_x * 0.5 - enclosure_thickness, //
+      enclosure_y * 0.5 - enclosure_thickness, //
+      enclosure_z * 0.5 - enclosure_thickness);
+  G4VSolid*enclosure_solid = new G4SubtractionSolid(G4String(GetName().c_str()) + "_enclosure_solid",//
+      outer_enclosur_solid,inner_enclosur_solid);
+  enclosure_solid = new G4DisplacedSolid(G4String(GetName() + "_enclosure_solid_displaced"),
+      enclosure_solid, 0, //
+      G4ThreeVector(box_x_shift, 0, 0));
+
+  G4Material * enclosure_mat = G4Material::GetMaterial(enclosure_material);
+  assert(enclosure_mat);
+
+  G4LogicalVolume * enclosure_logic = new G4LogicalVolume(enclosure_solid,
+      enclosure_mat, G4String(GetName().c_str()) + "_enclosure", 0, 0, 0);
+  VisAtt = new G4VisAttributes();
+  PHG4Utils::SetColour(VisAtt, enclosure_material);
+  VisAtt->SetVisibility(true);
+  VisAtt->SetForceSolid(not _geom->is_virualize_fiber());
+  enclosure_logic->SetVisAttributes(VisAtt);
+
+  new G4PVPlacement(G4Transform3D::Identity, enclosure_logic,
+      G4String(name.c_str()) + "_enclosure", cylinder_logic, false, 0,
+      overlapcheck);
+
+
 
   if (active)
     {
@@ -276,10 +372,11 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
         {
 
           cout << "PHG4SpacalPrototypeDetector::Construct::" << GetName()
-                  << " - Print Absorber Layer Geometry:" << endl;
+              << " - Print Absorber Layer Geometry:" << endl;
           geo->identify();
 
-    }}
+        }
+    }
 
   if (_geom->get_construction_verbose() >= 1)
     {
@@ -296,8 +393,8 @@ PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg()
   assert(_geom->get_azimuthal_n_sec()>4);
 
   G4Tubs* sec_solid = new G4Tubs(G4String(GetName() + string("_sec")),
-      _geom->get_radius() * cm, _geom->get_max_radius() * cm,
-      _geom->get_length() * cm / 2.0,
+      (_geom->get_radius() - _geom->get_max_lightguide_height()) * cm,
+      _geom->get_max_radius() * cm, _geom->get_length() * cm / 2.0,
       halfpi - pi / _geom->get_azimuthal_n_sec(),
       twopi / _geom->get_azimuthal_n_sec());
 
@@ -308,24 +405,23 @@ PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg()
       G4String(G4String(GetName() + string("_sec"))), 0, 0, step_limits);
 
   G4VisAttributes* VisAtt = new G4VisAttributes();
-  VisAtt->SetColor(.5, .9, .5, .5);
+  VisAtt->SetColor(.5, .9, .5, .1);
   VisAtt->SetVisibility(
       _geom->is_azimuthal_seg_visible() or _geom->is_virualize_fiber());
   VisAtt->SetForceSolid(false);
   VisAtt->SetForceWireframe(true);
   sec_logic->SetVisAttributes(VisAtt);
 
-  // construct walls
-
-  G4Material * wall_mat = G4Material::GetMaterial(_geom->get_sidewall_mat());
-  assert(wall_mat);
-
-  G4VisAttributes* wall_VisAtt = new G4VisAttributes();
-  wall_VisAtt->SetColor(.5, .9, .5, .2);
-  wall_VisAtt->SetVisibility(
-      _geom->is_azimuthal_seg_visible() and (not _geom->is_virualize_fiber()));
-  wall_VisAtt->SetForceSolid(true);
-
+//  // construct walls
+//  G4Material * wall_mat = G4Material::GetMaterial(_geom->get_sidewall_mat());
+//  assert(wall_mat);
+//
+//  G4VisAttributes* wall_VisAtt = new G4VisAttributes();
+//  VisAtt->SetColor(.5, .9, .5, .5);
+//  wall_VisAtt->SetVisibility(
+//      _geom->is_azimuthal_seg_visible() and (not _geom->is_virualize_fiber()));
+//  wall_VisAtt->SetForceSolid(true);
+//
   assert(_geom->get_sidewall_thickness() == 0);
   //section skin not used in prototype construction
 //  if (_geom->get_sidewall_thickness() > 0)
@@ -461,6 +557,17 @@ PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg()
           G4String(GetName().c_str()) + G4String("_Tower"), sec_logic, false,
           g_tower.id, overlapcheck_block);
       block_vol[block_phys] = g_tower.id;
+
+      if (g_tower.LightguideHeight > 0)
+        {
+          // also build a light guide
+
+          G4LogicalVolume* LV_lg = Construct_LightGuide(g_tower);
+
+          new G4PVPlacement(block_trans, LV_lg,
+              G4String(GetName().c_str()) + G4String("_Tower"), sec_logic,
+              false, g_tower.id, overlapcheck_block);
+        }
 
     }
 
@@ -609,7 +716,7 @@ PHG4SpacalPrototypeDetector::Construct_Fibers_SameLengthFiberPerTower(
           vector_fiber *= cm;
           center_fiber *= cm;
 
-          const int fiber_ID = g_tower.compose_fiber_id(ix,iy);
+          const int fiber_ID = g_tower.compose_fiber_id(ix, iy);
           fiber_par[fiber_ID] = make_pair(vector_fiber, center_fiber);
 
           const G4double fiber_length = vector_fiber.mag();
@@ -751,3 +858,56 @@ PHG4SpacalPrototypeDetector::Construct_Tower(
   return block_logic;
 }
 
+G4LogicalVolume*
+PHG4SpacalPrototypeDetector::Construct_LightGuide(
+    const PHG4SpacalPrototypeDetector::SpacalGeom_t::geom_tower & g_tower)
+{
+  assert(_geom);
+
+  std::stringstream sout;
+  sout << "_Lightguide_" << g_tower.id;
+  const G4String sTowerID(sout.str());
+
+  assert(g_tower.LightguideHeight>0);
+
+  //Processed PostionSeeds 1 from 1 1
+
+  G4VSolid* block_solid = new G4Trap(
+  /*const G4String& pName*/G4String(GetName().c_str()) + sTowerID,
+      0.5 * g_tower.LightguideHeight * cm, // G4double pDz,
+      g_tower.pTheta * rad, g_tower.pPhi * rad, // G4double pTheta, G4double pPhi,
+      g_tower.LightguideTaperRatio * g_tower.pDy1 * cm,
+      g_tower.LightguideTaperRatio * g_tower.pDx1 * cm,
+      g_tower.LightguideTaperRatio * g_tower.pDx2 * cm, // G4double pDy1, G4double pDx1, G4double pDx2,
+      g_tower.pAlp1 * rad, // G4double pAlp1,
+      g_tower.pDy1 * cm, g_tower.pDx1 * cm, g_tower.pDx2 * cm, // G4double pDy2, G4double pDx3, G4double pDx4,
+      g_tower.pAlp1 * rad // G4double pAlp2 //
+          );
+
+  block_solid = new G4DisplacedSolid(G4String(GetName() + "_displaced"),
+      block_solid, 0, //
+      G4ThreeVector( //
+          tan(g_tower.pTheta * rad) * cos(g_tower.pPhi * rad), //
+          tan(g_tower.pTheta * rad) * sin(g_tower.pPhi * rad), //
+          1) * // G4ThreeVector
+          -(g_tower.pDz + 0.5 * g_tower.LightguideHeight) * cm //
+          );
+
+  G4Material * cylinder_mat = G4Material::GetMaterial(
+      g_tower.LightguideMaterial);
+  assert(cylinder_mat);
+
+  G4LogicalVolume * block_logic = new G4LogicalVolume(block_solid, cylinder_mat,
+      G4String(G4String(GetName()) + string("_Tower") + sTowerID), 0, 0,
+      step_limits);
+
+  G4VisAttributes* VisAtt = new G4VisAttributes();
+  PHG4Utils::SetColour(VisAtt, g_tower.LightguideMaterial);
+//  VisAtt->SetColor(.3, .3, .3, .3);
+  VisAtt->SetVisibility(
+      _geom->is_azimuthal_seg_visible() or _geom->is_virualize_fiber());
+  VisAtt->SetForceSolid(not _geom->is_virualize_fiber());
+  block_logic->SetVisAttributes(VisAtt);
+
+  return block_logic;
+}

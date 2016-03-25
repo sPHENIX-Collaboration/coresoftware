@@ -50,6 +50,9 @@ public:
   //! a block along z axis built with G4Trd that is slightly tapered in x dimension
   virtual G4LogicalVolume*
   Construct_Tower(const SpacalGeom_t::geom_tower & tower);
+  //! a block for the light guide along z axis that fit to the tower
+  virtual G4LogicalVolume*
+  Construct_LightGuide(const SpacalGeom_t::geom_tower & tower);
 
   //! Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower
   virtual int
