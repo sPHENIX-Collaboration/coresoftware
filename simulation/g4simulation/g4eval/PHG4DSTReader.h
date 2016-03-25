@@ -176,16 +176,13 @@ protected:
 
   typedef std::set<int> PartSet_t;
   PartSet_t _particle_set;
+  PartSet_t _vertex_set;
 
   //! save vertex for particles?
   bool _save_vertex;
 
   //! zero suppression for all calorimeters
   double _tower_zero_sup;
-
-  typedef std::map<int, int> VtxMap_t;
-  VtxMap_t _vertex_map_old2new;
-  VtxMap_t _vertex_map_new2old;
 
 #ifndef __CINT__
 
