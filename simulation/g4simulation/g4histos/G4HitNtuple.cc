@@ -70,9 +70,11 @@ G4HitNtuple::process_event( PHCompositeNode* topNode )
           for ( PHG4HitContainer::ConstIterator hit_iter = hit_range.first ; hit_iter !=  hit_range.second; hit_iter++ )
 
             {
+	      PHG4HitDefs::keytype detidlong = hit_iter->second->get_hit_id() >>  PHG4HitDefs::hit_idbits;
+	      unsigned int layer = detidlong;
               esum += hit_iter->second->get_edep();
               ntup->Fill(detid,
-                         hit_iter->second->get_layer(),
+                         layer,
                          hit_iter->second->get_x(0),
                          hit_iter->second->get_y(0),
                          hit_iter->second->get_z(0),
