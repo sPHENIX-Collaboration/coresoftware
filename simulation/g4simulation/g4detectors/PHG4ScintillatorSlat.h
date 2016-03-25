@@ -20,9 +20,7 @@ class PHG4ScintillatorSlat : public PHObject
   
   virtual void add_edep(const double edep, const double e, const double light_yield) {return;}
 
-  virtual void set_column(const short i) {return;}
   virtual void set_key(const PHG4ScintillatorSlatDefs::keytype) {return;}
-  virtual void set_row(const short i) {return;}
   virtual void add_hit_key(PHG4HitDefs::keytype) {return;}
 
   virtual short get_column() const {return 0xFFFF;}

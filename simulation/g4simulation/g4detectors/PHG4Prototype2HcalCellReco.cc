@@ -128,8 +128,6 @@ PHG4Prototype2HcalCellReco::process_event(PHCompositeNode *topNode)
 	  if (!slatarray[irow][icolumn])
 	    {
 	      slatarray[irow][icolumn] = new PHG4ScintillatorSlatv1();
-	      slatarray[irow][icolumn]->set_column(icolumn);
-	      slatarray[irow][icolumn]->set_row(irow);
 	    }
 	  slatarray[irow][icolumn]->add_edep(hiter->second->get_edep(),
 					     hiter->second->get_eion(),

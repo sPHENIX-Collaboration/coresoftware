@@ -20,14 +20,12 @@ class PHG4ScintillatorSlatv1 : public PHG4ScintillatorSlat
   void add_edep(const double f, const double e, const double ly) {edep+=f; eion+= e; light_yield+=ly;}
   void add_hit_key(PHG4HitDefs::keytype key) {hit_id.insert(key);}
   
-  void set_column(const short id) {column = id;}
-  void set_key(const unsigned int i) {key = i;}
-  void set_row(const short i) {row = i;}
+  void set_key(PHG4ScintillatorSlatDefs::keytype i) {key = i;}
   void set_light_yield(const double lightYield)  {light_yield = lightYield;}
 
-  short get_row() const {return row;}
-  short get_column() const {return column;}
-  unsigned int get_key() const;
+  short get_row() const;
+  short get_column() const;
+  PHG4ScintillatorSlatDefs::keytype get_key() const {return key;}
   double get_edep() const {return edep;}
   double get_eion() const {return eion;}
   double get_light_yield() const {return light_yield;}
@@ -35,9 +33,7 @@ class PHG4ScintillatorSlatv1 : public PHG4ScintillatorSlat
 
 
  protected:
-  unsigned int key;
-  short row;
-  short column;
+  PHG4ScintillatorSlatDefs::keytype key;
   double edep;
   double eion;
   double light_yield;

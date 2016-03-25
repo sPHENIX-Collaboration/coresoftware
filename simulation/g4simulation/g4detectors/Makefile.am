@@ -52,7 +52,9 @@ pkginclude_HEADERS = \
   PHG4CylinderCellGeom.h \
   PHG4CylinderCellGeom_Spacalv1.h \
   PHG4CylinderCellGeomContainer.h \
-  PHG4CylinderCellTPCReco.h
+  PHG4ScintillatorSlat.h \
+  PHG4ScintillatorSlatContainer.h \
+  PHG4ScintillatorSlatDefs.h
 
 libg4detectors_io_la_SOURCES = \
   PHG4BlockCellGeom.cc \
