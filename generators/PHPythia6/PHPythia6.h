@@ -1,5 +1,5 @@
-#ifndef __PHPYTHIA_H__
-#define __PHPYTHIA_H__
+#ifndef __PHPYTHIA6_H__
+#define __PHPYTHIA6_H__
 
 #include <fun4all/SubsysReco.h>
 #include <phhepmc/PHHepMCGenEvent.h>
@@ -17,12 +17,12 @@ namespace HepMC {
   class GenEvent;
 };
 
-class PHPythia: public SubsysReco {
+class PHPythia6: public SubsysReco {
 
 public:
 
-  PHPythia(const std::string &name = "PHPythia");
-  virtual ~PHPythia();
+  PHPythia6(const std::string &name = "PHPythia6");
+  virtual ~PHPythia6();
 
   int Init(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);

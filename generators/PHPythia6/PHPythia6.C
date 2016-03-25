@@ -1,4 +1,4 @@
-#include "PHPythia.h"
+#include "PHPythia6.h"
 
 #include <phhepmc/PHHepMCGenEvent.h>
 
@@ -38,7 +38,7 @@ using namespace std;
 
 typedef PHIODataNode<PHObject> PHObjectNode_t;
 
-PHPythia::PHPythia(const std::string &name):
+PHPythia6::PHPythia6(const std::string &name):
   SubsysReco(name),
   _eventcount(0),
   _node_name("PHHepMCGenEvent"),
@@ -57,11 +57,11 @@ PHPythia::PHPythia(const std::string &name):
   //RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
 }
 
-PHPythia::~PHPythia() {
+PHPythia6::~PHPythia6() {
   //gsl_rng_free (RandomGenerator);
 }
 
-int PHPythia::Init(PHCompositeNode *topNode) {
+int PHPythia6::Init(PHCompositeNode *topNode) {
 
   /* Create node tree */
   CreateNodeTree(topNode);
@@ -88,7 +88,7 @@ int PHPythia::Init(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHPythia::End(PHCompositeNode *topNode) {
+int PHPythia6::End(PHCompositeNode *topNode) {
 
   //........................................TERMINATION
   // write out some information from Pythia to the screen
@@ -98,14 +98,14 @@ int PHPythia::End(PHCompositeNode *topNode) {
 }
 
 //__________________________________________________________
-int PHPythia::ReadConfig(const string cfg_file) {
+int PHPythia6::ReadConfig(const string cfg_file) {
 
   if ( cfg_file != "" ) _configFile = cfg_file;
-  cout << "PHPythia::read_config - Reading " << _configFile << endl;
+  cout << "PHPythia6::read_config - Reading " << _configFile << endl;
 
   ifstream infile( _configFile );
   if (infile.fail ()) {
-    cout << "PHPythia::read_config - Failed to open file " << _configFile << endl;
+    cout << "PHPythia6::read_config - Failed to open file " << _configFile << endl;
     exit(2);
   }
 
@@ -258,7 +258,7 @@ int PHPythia::ReadConfig(const string cfg_file) {
       {
 	// label was not understood
 	cout << "************************************************************" << endl;
-	cout << "PHPythia::ReadConfig(), ERROR this option is not supported: " << FullLine << endl;
+	cout << "PHPythia6::ReadConfig(), ERROR this option is not supported: " << FullLine << endl;
 	cout << "************************************************************" << endl;
       }
 
@@ -275,12 +275,12 @@ int PHPythia::ReadConfig(const string cfg_file) {
 }
 
 //-* print pythia config info
-void PHPythia::print_config() const {
+void PHPythia6::print_config() const {
 }
 
-int PHPythia::process_event(PHCompositeNode *topNode) {
+int PHPythia6::process_event(PHCompositeNode *topNode) {
 
-  if (verbosity > 1) cout << "PHPythia::process_event - event: " << _eventcount << endl;
+  if (verbosity > 1) cout << "PHPythia6::process_event - event: " << _eventcount << endl;
 
   /* based on HepMC/example_MyPythia.cc
    *........................................HepMC INITIALIZATIONS
@@ -318,7 +318,7 @@ int PHPythia::process_event(PHCompositeNode *topNode) {
   /* pass HepMC to PHNode*/
   bool success = _phhepmcevt->addEvent(evt);
   if (!success) {
-    cout << "PHPythia::process_event - Failed to add event to HepMC record!" << endl;
+    cout << "PHPythia6::process_event - Failed to add event to HepMC record!" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -331,13 +331,13 @@ int PHPythia::process_event(PHCompositeNode *topNode) {
   //  }
 
   /* print outs*/
-  if (verbosity > 2) cout << "PHPythia::process_event - FINISHED WHOLE EVENT" << endl;
+  if (verbosity > 2) cout << "PHPythia6::process_event - FINISHED WHOLE EVENT" << endl;
 
   ++_eventcount;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHPythia::CreateNodeTree(PHCompositeNode *topNode) {
+int PHPythia6::CreateNodeTree(PHCompositeNode *topNode) {
 
   PHCompositeNode *dstNode;
   PHNodeIterator iter(topNode);
@@ -355,6 +355,6 @@ int PHPythia::CreateNodeTree(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHPythia::ResetEvent(PHCompositeNode *topNode) {
+int PHPythia6::ResetEvent(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
