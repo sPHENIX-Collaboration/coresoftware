@@ -54,8 +54,9 @@ using namespace std;
 //note this inactive thickness is ~1.5% of a radiation length
 PHG4SpacalPrototypeDetector::PHG4SpacalPrototypeDetector(PHCompositeNode *Node,
     const std::string &dnam) :
-    PHG4Detector(Node, dnam), _region(NULL), cylinder_solid(NULL), cylinder_logic(
-        NULL), cylinder_physi(NULL), active(0), absorberactive(0), //
+    PHG4Detector(Node, dnam), _region(NULL), //
+    cylinder_solid(NULL), cylinder_logic(NULL), cylinder_physi(NULL), //
+    active(0), absorberactive(0), //
     step_limits(NULL), clading_step_limits(NULL), fiber_core_step_limits(NULL), //
     _geom(NULL)
 {
@@ -201,9 +202,10 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
   G4Transform3D cylinder_place(
       G4Translate3D(_geom->get_xpos() * cm, _geom->get_ypos() * cm,
           _geom->get_zpos() * cm) //
-      * G4RotateZ3D(z_rotation) //
-          * G4Translate3D(-(_geom->get_radius()
-              + 0.5 * _geom->get_thickness()) * cm, 0, 0));
+          * G4RotateZ3D(z_rotation) //
+          * G4Translate3D(
+              -(_geom->get_radius() + 0.5 * _geom->get_thickness()) * cm, 0,
+              0));
 
   cylinder_physi = new G4PVPlacement(cylinder_place, cylinder_logic,
       G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
@@ -275,18 +277,20 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
   const string enclosure_material = construction_params->get_string_param(
       "enclosure_material");
 
-  G4VSolid* outer_enclosur_solid = new G4Box(G4String(GetName().c_str()) + "_outer_enclosur_solid",
-      enclosure_x * 0.5, //
+  G4VSolid* outer_enclosur_solid = new G4Box(
+      G4String(GetName().c_str()) + "_outer_enclosur_solid", enclosure_x * 0.5, //
       enclosure_y * 0.5, //
       enclosure_z * 0.5);
-  G4VSolid* inner_enclosur_solid = new G4Box(G4String(GetName().c_str()) + "_inner_enclosur_solid",
+  G4VSolid* inner_enclosur_solid = new G4Box(
+      G4String(GetName().c_str()) + "_inner_enclosur_solid",
       enclosure_x * 0.5 - enclosure_thickness, //
       enclosure_y * 0.5 - enclosure_thickness, //
       enclosure_z * 0.5 - enclosure_thickness);
-  G4VSolid*enclosure_solid = new G4SubtractionSolid(G4String(GetName().c_str()) + "_enclosure_solid",//
-      outer_enclosur_solid,inner_enclosur_solid);
-  enclosure_solid = new G4DisplacedSolid(G4String(GetName() + "_enclosure_solid_displaced"),
-      enclosure_solid, 0, //
+  G4VSolid*enclosure_solid = new G4SubtractionSolid(
+      G4String(GetName().c_str()) + "_enclosure_solid", //
+      outer_enclosur_solid, inner_enclosur_solid);
+  enclosure_solid = new G4DisplacedSolid(
+      G4String(GetName() + "_enclosure_solid_displaced"), enclosure_solid, 0, //
       G4ThreeVector(box_x_shift, 0, 0));
 
   G4Material * enclosure_mat = G4Material::GetMaterial(enclosure_material);
@@ -303,8 +307,6 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
   new G4PVPlacement(G4Transform3D::Identity, enclosure_logic,
       G4String(name.c_str()) + "_enclosure", cylinder_logic, false, 0,
       overlapcheck);
-
-
 
   if (active)
     {
@@ -557,19 +559,29 @@ PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg()
           and (_geom->get_construction_verbose() >= 2);
 
       G4PVPlacement * block_phys = new G4PVPlacement(block_trans, LV_tower,
-          G4String(GetName().c_str()) + G4String("_Tower"), sec_logic, false,
-          g_tower.id, overlapcheck_block);
+          LV_tower->GetName(), sec_logic, false, g_tower.id,
+          overlapcheck_block);
       block_vol[block_phys] = g_tower.id;
 
       if (g_tower.LightguideHeight > 0)
         {
           // also build a light guide
 
-          G4LogicalVolume* LV_lg = Construct_LightGuide(g_tower);
+          for (int ix = 0; ix < g_tower.NSubtowerX; ix++)
+          //  int ix = 0;
+            {
 
-          new G4PVPlacement(block_trans, LV_lg,
-              G4String(GetName().c_str()) + G4String("_Tower"), sec_logic,
-              false, g_tower.id, overlapcheck_block);
+              for (int iy = 0; iy < g_tower.NSubtowerY; iy++)
+              //        int iy = 0;
+                {
+
+                  G4LogicalVolume* LV_lg = Construct_LightGuide(g_tower, ix,
+                      iy);
+
+                  new G4PVPlacement(block_trans, LV_lg, LV_lg->GetName(),
+                      sec_logic, false, g_tower.id, overlapcheck_block);
+                }
+            }
         }
 
     }
@@ -863,28 +875,55 @@ PHG4SpacalPrototypeDetector::Construct_Tower(
 
 G4LogicalVolume*
 PHG4SpacalPrototypeDetector::Construct_LightGuide(
-    const PHG4SpacalPrototypeDetector::SpacalGeom_t::geom_tower & g_tower)
+    const PHG4SpacalPrototypeDetector::SpacalGeom_t::geom_tower & g_tower,
+    const int index_x, const int index_y)
 {
   assert(_geom);
 
   std::stringstream sout;
-  sout << "_Lightguide_" << g_tower.id;
+  sout << "_Lightguide_" << g_tower.id << "_" << index_x << "_" << index_y;
   const G4String sTowerID(sout.str());
 
   assert(g_tower.LightguideHeight>0);
 
-  //Processed PostionSeeds 1 from 1 1
+  // light guide parameters in PHENIX units
+  const double weight_x1 = 1 - (double) index_y / g_tower.NSubtowerY;
+  const double weight_x2 = 1 - (double) (index_y + 1) / g_tower.NSubtowerY;
+  const double weight_xcenter = 1
+      - (double) (index_y + 0.5) / g_tower.NSubtowerY;
+
+  assert(weight_x1 >=0 and weight_x1<=1);
+  assert(weight_x2 >=0 and weight_x2<=1);
+  assert(weight_xcenter >=0 and weight_xcenter<=1);
+
+  const double lg_pDx1 = g_tower.pDx1 * weight_x1 //
+  + g_tower.pDx2 * (1 - weight_x1) / g_tower.NSubtowerX;
+  const double lg_pDx2 = g_tower.pDx1 * weight_x2 //
+  + g_tower.pDx2 * (1 - weight_x2) / g_tower.NSubtowerX;
+  const double lg_pDy1 = g_tower.pDy1 / g_tower.NSubtowerY;
+  const double lg_Alp1 = atan(
+      (g_tower.pDx2 - g_tower.pDx1) * (-g_tower.NSubtowerX + 1. + 2 * index_x)
+          / (double) (g_tower.NSubtowerX) / (2. * g_tower.pDy1)
+          + tan(g_tower.pAlp1));
+
+  const double shift_xcenter = (g_tower.pDx1 * weight_xcenter //
+  + g_tower.pDx2 * (1 - weight_xcenter)) //
+  *//
+      (-g_tower.NSubtowerX + 1. + 2 * index_x) / (double) (g_tower.NSubtowerX);
+  const double shift_ycenter = g_tower.pDy1 //
+  *//
+      (-g_tower.NSubtowerY + 1. + 2 * index_y) / (double) (g_tower.NSubtowerY);
 
   G4VSolid* block_solid = new G4Trap(
   /*const G4String& pName*/G4String(GetName().c_str()) + sTowerID,
       0.5 * g_tower.LightguideHeight * cm, // G4double pDz,
-      g_tower.pTheta * rad, g_tower.pPhi * rad, // G4double pTheta, G4double pPhi,
-      g_tower.LightguideTaperRatio * g_tower.pDy1 * cm,
-      g_tower.LightguideTaperRatio * g_tower.pDx1 * cm,
-      g_tower.LightguideTaperRatio * g_tower.pDx2 * cm, // G4double pDy1, G4double pDx1, G4double pDx2,
-      g_tower.pAlp1 * rad, // G4double pAlp1,
-      g_tower.pDy1 * cm, g_tower.pDx1 * cm, g_tower.pDx2 * cm, // G4double pDy2, G4double pDx3, G4double pDx4,
-      g_tower.pAlp1 * rad // G4double pAlp2 //
+      0 * rad, 0 * rad, // G4double pTheta, G4double pPhi,
+      g_tower.LightguideTaperRatio * lg_pDy1 * cm,
+      g_tower.LightguideTaperRatio * lg_pDx1 * cm,
+      g_tower.LightguideTaperRatio * lg_pDx2 * cm, // G4double pDy1, G4double pDx1, G4double pDx2,
+      lg_Alp1 * rad, // G4double pAlp1,
+      lg_pDy1 * cm, lg_pDx1 * cm, lg_pDx2 * cm, // G4double pDy2, G4double pDx3, G4double pDx4,
+      lg_Alp1 * rad // G4double pAlp2 //
           );
 
   block_solid = new G4DisplacedSolid(G4String(GetName() + "_displaced"),
@@ -893,8 +932,10 @@ PHG4SpacalPrototypeDetector::Construct_LightGuide(
           tan(g_tower.pTheta * rad) * cos(g_tower.pPhi * rad), //
           tan(g_tower.pTheta * rad) * sin(g_tower.pPhi * rad), //
           1) * // G4ThreeVector
-          -(g_tower.pDz + 0.5 * g_tower.LightguideHeight) * cm //
-          );
+          -(g_tower.pDz) * cm //
+      + G4ThreeVector(shift_xcenter * cm, shift_ycenter * cm, 0) // shit in subtower direction
+          + G4ThreeVector(0, 0, -0.5 * g_tower.LightguideHeight * cm) //shift in the light guide height
+              );
 
   G4Material * cylinder_mat = G4Material::GetMaterial(
       g_tower.LightguideMaterial);

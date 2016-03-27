@@ -52,7 +52,7 @@ public:
   Construct_Tower(const SpacalGeom_t::geom_tower & tower);
   //! a block for the light guide along z axis that fit to the tower
   virtual G4LogicalVolume*
-  Construct_LightGuide(const SpacalGeom_t::geom_tower & tower);
+  Construct_LightGuide(const SpacalGeom_t::geom_tower & tower, const int index_x, const int index_y);
 
   //! Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower
   virtual int
