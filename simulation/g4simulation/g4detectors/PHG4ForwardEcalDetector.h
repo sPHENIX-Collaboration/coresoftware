@@ -53,10 +53,15 @@ public:
       _tower0_dy = dy;
       _tower0_dz = dz;
     }
-    else{
+    else if(type==1){
       _tower1_dx = dx;
       _tower1_dy = dy;
       _tower1_dz = dz;
+    }
+    else if(type==2){
+      _tower2_dx = dx;
+      _tower2_dy = dy;
+      _tower2_dz = dz;
     }
   }
 
@@ -86,7 +91,8 @@ public:
 private:
 
   G4LogicalVolume* ConstructTower( int type );
-  int PlaceTower(G4LogicalVolume* envelope , G4LogicalVolume* tower0, G4LogicalVolume* tower1 );
+  G4LogicalVolume* ConstructTowerType2();
+  int PlaceTower(G4LogicalVolume* envelope , G4LogicalVolume* tower0, G4LogicalVolume* tower1, G4LogicalVolume* tower2 );
   int ParseParametersFromTable();
 
   struct towerposition {
@@ -106,6 +112,10 @@ private:
   G4double _tower1_dx;
   G4double _tower1_dy;
   G4double _tower1_dz;
+
+  G4double _tower2_dx;
+  G4double _tower2_dy;
+  G4double _tower2_dz;
 
 protected:
 
