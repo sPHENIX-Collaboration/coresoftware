@@ -158,13 +158,15 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
       "z_rotation_degree") * degree;
   const G4double enclosure_x = construction_params->get_double_param(
       "enclosure_x") * cm;
+  const G4double enclosure_x_shift = construction_params->get_double_param(
+      "enclosure_x_shift") * cm;
   const G4double enclosure_y = construction_params->get_double_param(
       "enclosure_y") * cm;
   const G4double enclosure_z = construction_params->get_double_param(
       "enclosure_z") * cm;
 
   const G4double box_x_shift = (_geom->get_radius()
-      + 0.5 * _geom->get_thickness()) * cm;
+      + 0.5 * _geom->get_thickness()) * cm + enclosure_x_shift;
 
 //  G4Tubs* _cylinder_solid = new G4Tubs(G4String(GetName().c_str()),
 //      _geom->get_radius() * cm, _geom->get_max_radius() * cm,
@@ -200,7 +202,8 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
       G4Translate3D(_geom->get_xpos() * cm, _geom->get_ypos() * cm,
           _geom->get_zpos() * cm) //
       * G4RotateZ3D(z_rotation) //
-          * G4Translate3D(-box_x_shift, 0, 0));
+          * G4Translate3D(-(_geom->get_radius()
+              + 0.5 * _geom->get_thickness()) * cm, 0, 0));
 
   cylinder_physi = new G4PVPlacement(cylinder_place, cylinder_logic,
       G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
