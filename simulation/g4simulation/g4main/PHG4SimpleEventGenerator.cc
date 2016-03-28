@@ -18,6 +18,7 @@
 
 #include <cstdlib>
 #include <cmath>
+#include <cassert>
 
 using namespace std;
 
@@ -46,8 +47,10 @@ PHG4SimpleEventGenerator::PHG4SimpleEventGenerator(const string &name):
   _phi_max(M_PI),
   _pt_min(0.0),
   _pt_max(10.0),
+  _pt_gaus_width(0.0),
   _p_min(NAN),
   _p_max(NAN),
+  _p_gaus_width(NAN),
   _ineve(NULL) 
 {
   return;
@@ -85,29 +88,36 @@ void PHG4SimpleEventGenerator::set_phi_range(const double min, const double max)
   return;
 }
 
-void PHG4SimpleEventGenerator::set_pt_range(const double min, const double max) {
+void PHG4SimpleEventGenerator::set_pt_range(const double min, const double max, const double pt_gaus_width) {
   if (min > max)
     {
       cout << "not setting pt bc ptmin " << min << " > ptmax: " << max << endl;
       return;
     }
+  assert(pt_gaus_width >=0 );
+
   _pt_min = min;
   _pt_max = max;
+  _pt_gaus_width = pt_gaus_width;
   _p_min = NAN;
   _p_max = NAN;
+  _p_gaus_width = NAN;
   return;
 }
 
-void PHG4SimpleEventGenerator::set_p_range(const double min, const double max) {
+void PHG4SimpleEventGenerator::set_p_range(const double min, const double max, const double p_gaus_width) {
   if (min > max)
     {
       cout << "not setting p bc ptmin " << min << " > ptmax: " << max << endl;
       return;
     }
+  assert(p_gaus_width >=0 );
   _pt_min = NAN;
   _pt_max = NAN;
+  _pt_gaus_width = NAN;
   _p_min = min;
   _p_max = max;
+  _p_gaus_width = p_gaus_width;
   return;
 }
 
@@ -274,10 +284,10 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
       double phi = (_phi_max-_phi_min) * gsl_rng_uniform_pos(RandomGenerator) + _phi_min;
 
       double pt;
-      if (!std::isnan(_p_min) && !std::isnan(_p_max)) {
-	pt = ((_p_max-_p_min) * gsl_rng_uniform_pos(RandomGenerator) + _p_min) / cosh(eta);
-      } else if (!std::isnan(_pt_min) && !std::isnan(_pt_max)) {
-	pt = (_pt_max-_pt_min) * gsl_rng_uniform_pos(RandomGenerator) + _pt_min;
+      if (!std::isnan(_p_min) && !std::isnan(_p_max) && !std::isnan(_p_gaus_width)) {
+	pt =  ((_p_max-_p_min) * gsl_rng_uniform_pos(RandomGenerator) + _p_min + gsl_ran_gaussian(RandomGenerator, _p_gaus_width)) / cosh(eta);
+      } else if (!std::isnan(_pt_min) && !std::isnan(_pt_max) && !std::isnan(_pt_gaus_width)) {
+	pt = (_pt_max-_pt_min) * gsl_rng_uniform_pos(RandomGenerator) + _pt_min + gsl_ran_gaussian(RandomGenerator, _pt_gaus_width);
       } else {
 	cout << PHWHERE << "Error: neither a p range or pt range was specified" << endl;
 	exit(-1);
