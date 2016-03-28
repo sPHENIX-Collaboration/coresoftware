@@ -134,6 +134,14 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
 
       if (digi_tower)
         _raw_towers->AddTower(key, digi_tower);
+
+      if (verbosity)
+        {
+          std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+              << " output tower:"
+              << std::endl;
+          digi_tower->identify();
+        }
     }
 
   if (verbosity)
