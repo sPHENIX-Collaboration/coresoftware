@@ -36,6 +36,12 @@ libg4histos_la_SOURCES = \
   G4RootHitContainer.cc \
   G4RootRawTower.cc \
   G4RootRawTowerContainer.cc \
+  G4RootScintillatorSlat.cc \
+  G4RootScintillatorSlatContainer.cc \
+  G4ScintillatorSlatTTree.cc \
+  G4RootScintillatorTower.cc \
+  G4RootScintillatorTowerContainer.cc \
+  G4ScintillatorTowerTTree.cc \
   G4SnglNtuple.cc \
   G4SnglTree.cc \
   G4TowerNtuple.cc
@@ -83,6 +89,12 @@ G4Analysis_Dict.C: \
   G4RootHitContainer.h \
   G4RootRawTower.h \
   G4RootRawTowerContainer.h \
+  G4RootScintillatorSlat.h \
+  G4RootScintillatorSlatContainer.h \
+  G4ScintillatorSlatTTree.h \
+  G4RootScintillatorTower.h \
+  G4RootScintillatorTowerContainer.h \
+  G4ScintillatorTowerTTree.h \
   G4SnglNtuple.h \
   G4SnglTree.h \
   G4TowerNtuple.h \

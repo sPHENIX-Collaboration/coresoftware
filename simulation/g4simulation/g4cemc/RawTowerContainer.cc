@@ -50,7 +50,6 @@ RawTowerContainer::ConstIterator
 RawTowerContainer::AddTower(const unsigned int ieta, const int unsigned iphi, RawTower *rawtower)
 {
   RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(_caloid,ieta,iphi);
-
   _towers[key] = rawtower;
   rawtower->set_id(key); // force tower key to be synced to container key
 

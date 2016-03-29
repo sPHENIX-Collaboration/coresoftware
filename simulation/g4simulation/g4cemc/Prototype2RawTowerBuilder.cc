@@ -98,14 +98,14 @@ Prototype2RawTowerBuilder::process_event(PHCompositeNode *topNode)
           std::cout << PHWHERE << " print out the cell:" << std::endl;
           cell->identify();
         }
-      short twrcol = get_tower_column(cell->get_column());
+      short twrrow = get_tower_row(cell->get_row());
       // add the energy to the corresponding tower
-      RawTower *tower = _towers->getTower(cell->get_row(), twrcol);
+      RawTower *tower = _towers->getTower(twrrow, cell->get_column());
       if (!tower)
         {
           tower = new RawTowerv1();
           tower->set_energy(0);
-          _towers->AddTower(cell->get_row(), twrcol, tower);
+          _towers->AddTower(twrrow, cell->get_column(), tower);
         }
       double cell_weight = 0;
       if (_tower_energy_src == kEnergyDeposition)
@@ -209,8 +209,8 @@ Prototype2RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 }
 
 short
-Prototype2RawTowerBuilder::get_tower_column(const short cellcol) const
+Prototype2RawTowerBuilder::get_tower_row(const short cellrow) const
 {
-  short twrcol = cellcol/ncell_to_tower;
-  return twrcol;
+  short twrrow = cellrow/ncell_to_tower;
+  return twrrow;
 }
