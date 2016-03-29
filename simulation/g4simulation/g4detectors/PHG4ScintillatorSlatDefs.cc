@@ -3,8 +3,9 @@
 PHG4ScintillatorSlatDefs::keytype
 PHG4ScintillatorSlatDefs::genkey(const short irow, const short icolumn)
 {
-  keytype key = icolumn;
-  key |= (irow << columnbits);
+  keytype key = irow; // lower bits used by row
+  key |= (icolumn << columnbits); // upper bits used by column, so we can easily extract 
+                                  // slats by column which are combined to towers
   return key;
 }
 
