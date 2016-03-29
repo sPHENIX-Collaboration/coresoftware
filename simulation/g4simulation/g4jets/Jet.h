@@ -64,7 +64,7 @@ public:
   virtual bool  has_property(Jet::PROPERTY prop_id) const {return false;}
   virtual float get_property(Jet::PROPERTY prop_id) const {return NAN;}
   virtual void  set_property(Jet::PROPERTY prop_id, float value) {return;}
-  virtual void  print_property(ostream& os) const {return;}
+  virtual void  print_property(std::ostream& os) const {return;}
 
   // component id storage ------------------------------------------------------
   

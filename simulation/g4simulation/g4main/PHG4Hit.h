@@ -14,7 +14,7 @@ class PHG4Hit: public PHObject
 
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Copy(PHG4Hit const &g4hit);
-  friend ostream &operator<<(ostream & stream, const PHG4Hit * hit);
+  friend std::ostream &operator<<(std::ostream & stream, const PHG4Hit * hit);
 
   // The indices here represent the entry and exit points of the particle
   virtual float get_x(const int i) const {return NAN;}

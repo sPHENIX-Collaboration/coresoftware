@@ -57,7 +57,7 @@ public:
   bool  has_property(Jet::PROPERTY prop_id) const;
   float get_property(Jet::PROPERTY prop_id) const;
   void  set_property(Jet::PROPERTY prop_id, float value);
-  void  print_property(ostream& os) const;
+  void  print_property(std::ostream& os) const;
   
   //
   // clustered component methods (multimap interface based)
