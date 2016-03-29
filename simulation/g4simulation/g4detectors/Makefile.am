@@ -24,17 +24,20 @@ INCLUDES = \
     -I${G4_MAIN}/include/Geant4
 
 libg4detectors_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lboost_filesystem \
+  -lboost_system \
+  -lpdbcalBase
 
 libg4detectors_la_LIBADD = \
-  -lphool \
-  -lpdbcalBase \
-  -lSubsysReco \
-  -lg4testbench \
+  -lphool  \
+  libg4detectors_io.la \
   -lCGAL \
-  libg4detectors_io.la
+  -lSubsysReco \
+  -lg4testbench 
 
 pkginclude_HEADERS = \
+  PHG4Parameters.h \
   PHG4BlockGeom.h \
   PHG4BlockGeomContainer.h \
   PHG4CylinderCell.h \
@@ -57,6 +60,8 @@ pkginclude_HEADERS = \
   PHG4ScintillatorSlatDefs.h
 
 libg4detectors_io_la_SOURCES = \
+  PHG4Parameters.cc \
+  PHG4Parameters_Dict.cc \
   PHG4BlockCellGeom.cc \
   PHG4BlockCellGeom_Dict.cc \
   PHG4BlockCellGeomContainer.cc \
@@ -192,7 +197,6 @@ libg4detectors_la_SOURCES = \
   PHG4OuterHcalSteppingAction.cc \
   PHG4OuterHcalSubsystem.cc \
   PHG4OuterHcalSubsystem_Dict.cc \
-  PHG4Parameters.cc \
   PHG4ProjCrystalCalorimeterDetector.cc \
   PHG4Prototype2InnerHcalDetector.cc \
   PHG4Prototype2InnerHcalSteppingAction.cc \
@@ -227,9 +231,13 @@ libg4detectors_la_SOURCES = \
   PHG4FullProjSpacalDetector.cc \
   PHG4FullProjSpacalCellReco.cc \
   PHG4FullProjSpacalCellReco_Dict.cc \
+  PHG4SpacalPrototypeDetector.cc \
   PHG4SpacalSteppingAction.cc \
+  PHG4SpacalPrototypeSteppingAction.cc \
   PHG4SpacalSubsystem.cc \
   PHG4SpacalSubsystem_Dict.cc \
+  PHG4SpacalPrototypeSubsystem.cc \
+  PHG4SpacalPrototypeSubsystem_Dict.cc \
   PHG4CylinderCellTPCReco.cc \
   PHG4CylinderCellTPCReco_Dict.cc
 

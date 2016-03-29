@@ -6,6 +6,8 @@
 #include <phool/phool.h>
 #include <cmath>
 
+class PHG4Parameters;
+
 class PHG4CylinderGeom: public PHObject
 {
  public:
@@ -41,6 +43,9 @@ class PHG4CylinderGeom: public PHObject
   virtual int get_N_strip_columns() const {PHOOL_VIRTUAL_WARN("get_N_strip_columns"); return -9999;}
   virtual int get_N_strips_per_column() const {PHOOL_VIRTUAL_WARN("get_N_strips_per_column"); return -9999;}
   virtual int get_N_sensors_in_layer() const {PHOOL_VIRTUAL_WARN("get_N_sensors_in_layer"); return -9999;}
+
+  //! load parameters from PHG4Parameters, which interface to Database/XML/ROOT files
+  virtual void ImportParameters(const PHG4Parameters & param) {return ;}
 
  protected:
   PHG4CylinderGeom() {}

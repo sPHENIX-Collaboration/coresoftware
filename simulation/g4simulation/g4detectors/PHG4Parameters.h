@@ -27,16 +27,20 @@ class PHG4Parameters: public PHObject
 
   void set_int_param(const std::string &name, const int ival);
   int get_int_param(const std::string &name) const;
+  bool exist_int_param(const std::string &name) const;
 
   void set_double_param(const std::string &name, const double dval);
   double get_double_param(const std::string &name) const;
+  bool exist_double_param(const std::string &name) const;
 
   void set_string_param(const std::string &name, const std::string &str);
   std::string get_string_param(const std::string &name) const;
+  bool exist_string_param(const std::string &name) const;
 
   void set_name(const std::string &name) {detname = name;}
 
   void FillFrom(const PdbParameterMap *saveparams);
+  void FillFrom(const PHG4Parameters *saveparams);
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename);
   int WriteToDB();
   int ReadFromDB();
@@ -51,9 +55,9 @@ class PHG4Parameters: public PHObject
   unsigned int ConvertStringToUint(const std::string &str) const;
   PdbParameterMap *pdbparam;
   std::string detname;
-  std::map<const std::string, double> doubleparams;
-  std::map<const std::string, int> intparams;
-  std::map<const std::string, std::string> stringparams;
+  dMap doubleparams;
+  iMap intparams;
+  strMap stringparams;
 
 };
 
