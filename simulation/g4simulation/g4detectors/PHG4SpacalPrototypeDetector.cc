@@ -138,23 +138,6 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
   fiber_core_step_limits = new G4UserLimits(
       _geom->get_fiber_core_step_size() * cm);
 
-  if ((_geom->get_zmin() * cm + _geom->get_zmax() * cm) / 2
-      != _geom->get_zpos() * cm)
-    {
-      cout
-          << "PHG4SpacalPrototypeDetector::Construct - ERROR - not yet support unsymmetric system. Let me know if you need it. - Jin"
-          << endl;
-      _geom->Print();
-      exit(-1);
-    }
-  if (_geom->get_zmin() * cm >= _geom->get_zmax() * cm)
-    {
-      cout << "PHG4SpacalPrototypeDetector::Construct - ERROR - zmin >= zmax!"
-          << endl;
-      _geom->Print();
-      exit(-1);
-    }
-
   const G4double z_rotation = construction_params->get_double_param(
       "z_rotation_degree") * degree;
   const G4double enclosure_x = construction_params->get_double_param(
