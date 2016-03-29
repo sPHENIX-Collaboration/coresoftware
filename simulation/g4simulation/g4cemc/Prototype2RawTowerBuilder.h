@@ -60,7 +60,7 @@ class Prototype2RawTowerBuilder : public SubsysReco {
     _sim_tower_node_prefix = simTowerNodePrefix;
   }
 
-  short get_tower_column(const short cellcol) const;
+  short get_tower_row(const short cellrow) const;
 
  protected:
   void CreateNodes(PHCompositeNode *topNode);
