@@ -39,6 +39,11 @@ public:
   {
     detector = d;
   }
+  void
+  TowerType(const double type)
+  {
+    _tower_type = type; 
+  } 
 
   void
   set_seed(const unsigned int iseed);
@@ -194,6 +199,9 @@ protected:
 
   //! zero suppression in unit of ADC
   double _zero_suppression_ADC;
+
+  //! tower type to act on
+  double _tower_type; 
 
   PHTimeServer::timer _timer;
 
