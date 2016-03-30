@@ -112,6 +112,8 @@ class PHG4Reco: public SubsysReco
 
   PHG4Subsystem *getSubsystem(const std::string &name);
 
+  void Dump_GDML(const std::string &filename);
+
   protected:
   
   int InitUImanager();

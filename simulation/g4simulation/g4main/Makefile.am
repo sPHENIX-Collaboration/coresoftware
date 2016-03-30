@@ -14,22 +14,26 @@ lib_LTLIBRARIES = \
 
 INCLUDES = \
     -I$(includedir) \
+    -I$(XERCESCROOT)/include \
     -isystem $(OFFLINE_MAIN)/include \
     -isystem $(ROOTSYS)/include \
     -isystem ${G4_MAIN}/include \
     -I$(OFFLINE_MAIN)/include/eigen3 \
     -isystem ${G4_MAIN}/include/Geant4
 
+
 RINCLUDES = \
     -I$(includedir) \
     -I$(OFFLINE_MAIN)/include \
     -I$(ROOTSYS)/include \
     -I${G4_MAIN}/include \
-    -I${G4_MAIN}/include/Geant4
+    -I${G4_MAIN}/include/Geant4 \
+    -I$(XERCESCROOT)/include
 
 libphg4hit_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  -L$(XERCESCROOT)/lib \
   `geant4-config --libs`
 
 libphg4hit_la_LIBADD = \
@@ -103,6 +107,7 @@ libg4testbench_la_LDFLAGS = \
     -lvararray \
     -lHepMC \
     -lphhepmc \
+    -lxerces-c \
     `geant4-config --libs`
 
 libg4testbench_la_LIBADD = \
