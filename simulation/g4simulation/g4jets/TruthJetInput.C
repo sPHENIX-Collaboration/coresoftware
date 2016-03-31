@@ -19,6 +19,8 @@
 #include <iostream>
 #include <vector>
 #include <cstdlib>
+#include <algorithm>    // std::find
+
 
 using namespace std;
 
@@ -64,7 +66,7 @@ std::vector<Jet*> TruthJetInput::get_input(PHCompositeNode *topNode) {
       {
         const int this_embed_id = truthinfo->isEmbeded(part->get_track_id());
 
-        if (_embed_id.find( this_embed_id ) ==  it != _embed_id.end())
+        if ( std::find(_embed_id.begin(), _embed_id.end(), this_embed_id) == _embed_id.end() )
           {
             continue; // reject particle as it is not in the interested embedding stream.
           }
