@@ -30,7 +30,16 @@ TruthJetInput::TruthJetInput(Jet::SRC input)
 }
 
 void TruthJetInput::identify(std::ostream& os) {
-  os << "   TruthJetInput: G4TruthInfo to Jet::PARTICLE" << endl;
+  os << "   TruthJetInput: G4TruthInfo to Jet::PARTICLE";
+  if ( use_embed_stream())
+    {
+      os<<". Processing embedded streams: ";
+      for (std::vector<int>::const_iterator it = _embed_id.begin(); it != _embed_id.end(); ++it)
+        {
+          os << (*it)<<", ";
+        }
+    }
+  os << endl;
 }
 
 std::vector<Jet*> TruthJetInput::get_input(PHCompositeNode *topNode) {
@@ -50,6 +59,16 @@ std::vector<Jet*> TruthJetInput::get_input(PHCompositeNode *topNode) {
        iter != range.second; 
        ++iter) {
     PHG4Particle *part = iter->second;
+
+    if (use_embed_stream())
+      {
+        const int this_embed_id = truthinfo->isEmbeded(part->get_track_id());
+
+        if (_embed_id.find( this_embed_id ) ==  it != _embed_id.end())
+          {
+            continue; // reject particle as it is not in the interested embedding stream.
+          }
+      }
 
     // remove some particles (muons, taus, neutrinos)...
     // 12 == nu_e
