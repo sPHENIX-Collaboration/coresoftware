@@ -236,13 +236,13 @@ PHG4SpacalPrototypeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           hit->set_light_yield(hit->get_light_yield() + light_yield);
         }
 
-      if (hit->get_z(1) > get_zmax() || hit->get_z(1) < get_zmin())
-        {
-          cout << "PHG4SpacalPrototypeSteppingAction: hit outside acceptance get_zmin() "
-              << get_zmin() << ", get_zmax() " << get_zmax() << " at exit"
-              << endl;
-          hit->identify();
-        }
+//      if (hit->get_z(1) > get_zmax() || hit->get_z(1) < get_zmin())
+//        {
+//          cout << "PHG4SpacalPrototypeSteppingAction: hit outside acceptance get_zmin() "
+//              << get_zmin() << ", get_zmax() " << get_zmax() << " at exit"
+//              << endl;
+//          hit->identify();
+//        }
       if (geantino)
         {
           hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
