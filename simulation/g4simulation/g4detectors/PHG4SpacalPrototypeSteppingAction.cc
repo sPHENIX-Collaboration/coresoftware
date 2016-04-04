@@ -187,12 +187,12 @@ PHG4SpacalPrototypeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 	    }
           }
 
-        if (hit->get_z(0) > get_zmax() || hit->get_z(0) < get_zmin())
-          {
-            cout << "PHG4SpacalPrototypeSteppingAction: hit outside acceptance, layer: "
-                << layer_id << endl;
-            hit->identify();
-          }
+//        if (hit->get_z(0) > get_zmax() || hit->get_z(0) < get_zmin())
+//          {
+//            cout << "PHG4SpacalPrototypeSteppingAction: hit outside acceptance, layer: "
+//                << layer_id << endl;
+//            hit->identify();
+//          }
         break;
       default:
         break;
