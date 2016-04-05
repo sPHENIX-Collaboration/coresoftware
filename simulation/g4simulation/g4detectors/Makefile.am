@@ -21,7 +21,8 @@ INCLUDES = \
     -I$(OFFLINE_MAIN)/include \
     -I$(ROOTSYS)/include \
     -I${G4_MAIN}/include \
-    -I${G4_MAIN}/include/Geant4
+    -I${G4_MAIN}/include/Geant4 \
+	-I/opt/sphenix/core/stow/xerces-c-3.1.2/include/
 
 libg4detectors_io_la_LIBADD = \
   -lphool \
@@ -43,17 +44,20 @@ pkginclude_HEADERS = \
   PHG4CylinderCell.h \
   PHG4CylinderCellv1.h \
   PHG4CylinderCell_Spacalv1.h \
+  PHG4CylinderCell_MAPS.h \
   PHG4CylinderCellv2.h \
   PHG4CylinderCellv3.h \
   PHG4CylinderCellContainer.h \
   PHG4CylinderGeom.h \
   PHG4CylinderGeom_Spacalv1.h \
+  PHG4CylinderGeom_MAPS.h \
   PHG4CylinderGeom_Spacalv2.h \
   PHG4CylinderGeom_Spacalv3.h \
   PHG4CylinderGeomContainer.h \
   PHG4CylinderCellDefs.h \
   PHG4CylinderCellGeom.h \
   PHG4CylinderCellGeom_Spacalv1.h \
+  PHG4CylinderCellGeom_MAPS.h \
   PHG4CylinderCellGeomContainer.h \
   PHG4ScintillatorSlat.h \
   PHG4ScintillatorSlatContainer.h \
@@ -84,6 +88,8 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderGeomv4_Dict.cc \
   PHG4CylinderGeom_Spacalv1.cc \
   PHG4CylinderGeom_Spacalv1_Dict.cc \
+  PHG4CylinderGeom_MAPS.cc \
+  PHG4CylinderGeom_MAPS_Dict.cc \
   PHG4CylinderGeom_Spacalv2.cc \
   PHG4CylinderGeom_Spacalv2_Dict.cc \
   PHG4CylinderGeom_Spacalv3.cc \
@@ -96,6 +102,8 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCellv1_Dict.cc \
   PHG4CylinderCell_Spacalv1.cc \
   PHG4CylinderCell_Spacalv1_Dict.cc \
+  PHG4CylinderCell_MAPS.cc \
+  PHG4CylinderCell_MAPS_Dict.cc \
   PHG4CylinderCellv2.cc \
   PHG4CylinderCellv2_Dict.cc \
   PHG4CylinderCellv3.cc \
@@ -105,7 +113,9 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCellGeom.cc \
   PHG4CylinderCellGeom_Dict.cc \
   PHG4CylinderCellGeom_Spacalv1.cc \
+  PHG4CylinderCellGeom_MAPS.cc \
   PHG4CylinderCellGeom_Spacalv1_Dict.cc \
+  PHG4CylinderCellGeom_MAPS_Dict.cc \
   PHG4CylinderCellGeomContainer.cc \
   PHG4CylinderCellGeomContainer_Dict.cc \
   PHG4ScintillatorSlat.cc \
@@ -226,6 +236,12 @@ libg4detectors_la_SOURCES = \
   PHG4SiliconTrackerSteppingAction.cc \
   PHG4SiliconTrackerSubsystem.cc \
   PHG4SiliconTrackerSubsystem_Dict.cc \
+  PHG4MapsCellReco.cc \
+  PHG4MapsCellReco_Dict.cc \
+  PHG4MapsDetector.cc \
+  PHG4MapsSteppingAction.cc \
+  PHG4MapsSubsystem.cc \
+  PHG4MapsSubsystem_Dict.cc \
   PHG4SpacalDetector.cc \
   PHG4ProjSpacalDetector.cc \
   PHG4FullProjSpacalDetector.cc \

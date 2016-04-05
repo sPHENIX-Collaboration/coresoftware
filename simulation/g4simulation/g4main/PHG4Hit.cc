@@ -98,6 +98,26 @@ PHG4Hit::get_property_info(const PROPERTY prop_id)
     return make_pair("generic index k",PHG4Hit::type_int);
   case   prop_index_l:
     return make_pair("generic index l",PHG4Hit::type_int);
+  case  prop_stave_index:
+    return make_pair("stave index",PHG4Hit::type_int);
+  case  prop_half_stave_index:
+    return make_pair("half stave index",PHG4Hit::type_int);
+  case  prop_module_index:
+    return make_pair("module index",PHG4Hit::type_int);
+  case  prop_chip_index:
+    return make_pair("chip index",PHG4Hit::type_int);
+  case  prop_local_pos_x_0:
+    return make_pair("local x pos in",PHG4Hit::type_float);
+  case  prop_local_pos_y_0:
+    return make_pair("local y pos in",PHG4Hit::type_float);
+  case  prop_local_pos_z_0:
+    return make_pair("local z pos in",PHG4Hit::type_float);
+case  prop_local_pos_x_1:
+    return make_pair("local x pos out",PHG4Hit::type_float);
+  case  prop_local_pos_y_1:
+    return make_pair("local y pos out",PHG4Hit::type_float);
+  case  prop_local_pos_z_1:
+    return make_pair("local z pos out",PHG4Hit::type_float);
   default:
     cout << "unknown index " << prop_id << endl;
     exit(1);
