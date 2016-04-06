@@ -23,6 +23,7 @@ RawTowerv2::RawTowerv2(const RawTower & tower)
   towerid = (tower.get_id());
   energy = (tower.get_energy());
   time = (tower.get_time());
+  _tower_type = (tower.get_tower_type()); 
 
   CellConstRange cell_range = tower.get_g4cells();
 

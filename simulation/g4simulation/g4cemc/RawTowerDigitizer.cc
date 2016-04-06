@@ -287,12 +287,15 @@ RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-  _raw_towers = new RawTowerContainer(
-      RawTowerDefs::convert_name_to_caloid(detector));
+  // Be careful as a previous digitizer may have been registered for this detector
   RawTowerNodeName = "TOWER_" + _raw_tower_node_prefix + "_" + detector;
-  PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_raw_towers,
-      RawTowerNodeName.c_str(), "PHObject");
-  DetNode->addNode(towerNode);
+  _raw_towers = findNode::getClass<RawTowerContainer>(DetNode,RawTowerNodeName.c_str());
+  if (!_raw_towers){
+    _raw_towers = new RawTowerContainer(RawTowerDefs::convert_name_to_caloid(detector));
+    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_raw_towers,
+								   RawTowerNodeName.c_str(), "PHObject");
+    DetNode->addNode(towerNode);
+  }
 
   return;
 }

@@ -1,7 +1,7 @@
 #include "RawTowerCalibration.h"
 #include "RawTowerContainer.h"
 #include "RawTowerGeomContainer.h"
-#include "RawTowerv1.h"
+#include "RawTowerv2.h"
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
@@ -83,7 +83,6 @@ RawTowerCalibration::process_event(PHCompositeNode *topNode)
       if(_tower_type>=0){
 	// Skip towers that don't match the type we are supposed to calibrate
 	if(_tower_type != raw_tower->get_tower_type()) {
-	  //std::cout << "tower_type = " << _tower_type << ", skipping tower type = " << raw_tower->get_tower_type() << std::endl; 
 	  continue;
 	}
       }
@@ -92,7 +91,7 @@ RawTowerCalibration::process_event(PHCompositeNode *topNode)
         {
           if (raw_tower->get_energy() > _zero_suppression_GeV)
             {
-              _calib_towers->AddTower(key, new RawTowerv1(*raw_tower));
+              _calib_towers->AddTower(key, new RawTowerv2(*raw_tower));
             }
         }
       else if (_calib_algorithm == kSimple_linear_calibration)
@@ -103,7 +102,7 @@ RawTowerCalibration::process_event(PHCompositeNode *topNode)
 
           if (calib_energy > _zero_suppression_GeV)
             {
-              RawTower *calib_tower = new RawTowerv1(*raw_tower);
+              RawTower *calib_tower = new RawTowerv2(*raw_tower);
               calib_tower->set_energy(calib_energy);
               _calib_towers->AddTower(key, calib_tower);
             }
@@ -200,12 +199,16 @@ RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-  _calib_towers = new RawTowerContainer( RawTowerDefs::convert_name_to_caloid( detector ) );
+  // Be careful as a previous calibrator may have been registered for this detector
   CaliTowerNodeName = "TOWER_" + _calib_tower_node_prefix + "_" + detector;
-  PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_calib_towers,
-      CaliTowerNodeName.c_str(), "PHObject");
-  DetNode->addNode(towerNode);
-
+  _calib_towers = findNode::getClass<RawTowerContainer>(DetNode,CaliTowerNodeName.c_str());
+  if (!_calib_towers)
+    {
+      _calib_towers = new RawTowerContainer( RawTowerDefs::convert_name_to_caloid( detector ) );
+      PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_calib_towers,
+								     CaliTowerNodeName.c_str(), "PHObject");
+      DetNode->addNode(towerNode);
+    }
   return;
 }
 
