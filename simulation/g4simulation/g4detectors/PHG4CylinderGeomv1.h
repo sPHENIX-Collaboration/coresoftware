@@ -32,6 +32,9 @@ class PHG4CylinderGeomv1: public PHG4CylinderGeom
   void set_thickness(const double t) {thickness = t;}
   void set_zmin(const double z) {zmin = z;}
   void set_zmax(const double z) {zmax = z;}
+
+  //! load parameters from PHG4Parameters, which interface to Database/XML/ROOT files
+  virtual void ImportParameters(const PHG4Parameters & param);
   
  protected:
   int layer;

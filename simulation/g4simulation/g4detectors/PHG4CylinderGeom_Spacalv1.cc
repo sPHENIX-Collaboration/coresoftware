@@ -9,6 +9,7 @@
  */
 
 #include "PHG4CylinderGeom_Spacalv1.h"
+#include "PHG4Parameters.h"
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4PhysicalConstants.hh>
@@ -75,8 +76,9 @@ PHG4CylinderGeom_Spacalv1::Print(Option_t *) const
   cout << "\t" << "get_*pos() = " << get_xpos() << ", " << get_ypos() << ", "
       << get_zpos() << endl;
 
-  cout << "\t" << "get_azimuthal_n_sec() = " << get_azimuthal_n_sec()
-      <<", "<<sector_map.size()<<"/"<< get_azimuthal_n_sec()<<" azimuthal sectors would be filled with SPACAL."<< endl;
+  cout << "\t" << "get_azimuthal_n_sec() = " << get_azimuthal_n_sec() << ", "
+      << sector_map.size() << "/" << get_azimuthal_n_sec()
+      << " azimuthal sectors would be filled with SPACAL." << endl;
   cout << "\t" << "get_azimuthal_distance() = " << get_azimuthal_distance()
       << endl;
   cout << "\t" << "get_z_distance() = " << get_z_distance() << endl;
@@ -98,6 +100,21 @@ PHG4CylinderGeom_Spacalv1::Print(Option_t *) const
       << endl;
 
   cout << "\t" << "is_virualize_fiber() = " << is_virualize_fiber() << endl;
+  cout << "\t" << "get_construction_verbose() = " << get_construction_verbose()
+      << endl;
+
+  if (get_construction_verbose() >= 2)
+    {
+
+      cout << "\t" << "Containing " << sector_map.size()
+          << " sector with rotation specified:" << endl;
+      for (sector_map_t::const_iterator it = sector_map.begin();
+          it != sector_map.end(); ++it)
+        {
+          cout << "\t" << "\t" << "sector_map[" << it->first << "] = " << it->second
+              << endl;
+        }
+    }
 }
 
 void
@@ -128,6 +145,69 @@ PHG4CylinderGeom_Spacalv1::SetDefault()
   construction_verbose = 0;
 
   init_default_sector_map();
+}
+
+void
+PHG4CylinderGeom_Spacalv1::ImportParameters(const PHG4Parameters & param)
+{
+  PHG4CylinderGeomv2::ImportParameters(param);
+
+  if (param.exist_string_param("absorber_mat"))
+    absorber_mat = param.get_string_param("absorber_mat");
+  if (param.exist_string_param("fiber_core_mat"))
+    fiber_core_mat = param.get_string_param("fiber_core_mat");
+  if (param.exist_string_param("fiber_clading_mat"))
+    fiber_clading_mat = param.get_string_param("fiber_clading_mat");
+  if (param.exist_double_param("xpos"))
+    xpos = param.get_double_param("xpos");
+  if (param.exist_double_param("ypos"))
+    ypos = param.get_double_param("ypos");
+  if (param.exist_double_param("zpos"))
+    zpos = param.get_double_param("zpos");
+  if (param.exist_double_param("fiber_core_diameter"))
+    fiber_core_diameter = param.get_double_param("fiber_core_diameter");
+  if (param.exist_double_param("fiber_clading_thickness"))
+    fiber_clading_thickness = param.get_double_param("fiber_clading_thickness");
+  if (param.exist_double_param("fiber_distance"))
+    fiber_distance = param.get_double_param("fiber_distance");
+  if (param.exist_int_param("config"))
+    config = static_cast<config_t>(param.get_int_param("config"));
+  if (param.exist_int_param("virualize_fiber"))
+    virualize_fiber = static_cast<bool>(param.get_int_param("virualize_fiber"));
+  if (param.exist_int_param("construction_verbose"))
+    construction_verbose = param.get_int_param("construction_verbose");
+
+  //init_default_sector_map if instructed to do so
+  if (param.exist_int_param("init_default_sector_map"))
+    {
+      if (param.get_int_param("init_default_sector_map"))
+        {
+          init_default_sector_map();
+        }
+    }
+
+  // load sector_map if specified. Over write init_default_sector_map if both presents
+  if (param.exist_int_param("sector_map_size"))
+    {
+      sector_map.clear();
+
+      const int n = param.get_int_param("sector_map_size");
+
+      for (int i = 0; i < n; i++)
+        {
+          stringstream prefix;
+          prefix << "sector_map";
+          prefix << "[" << i << "]" << ".";
+
+          const int id = param.get_int_param(prefix.str() + "id");
+          const double rotation = param.get_double_param(
+              prefix.str() + "rotation");
+
+          sector_map[id] = rotation;
+        }
+    }
+
+  return;
 }
 
 int
@@ -163,5 +243,3 @@ PHG4CylinderGeom_Spacalv1::init_default_sector_map()
       sector_map[sec] = rot;
     }
 }
-
-

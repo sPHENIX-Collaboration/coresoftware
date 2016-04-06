@@ -295,7 +295,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
 
   G4Vector3D v_zshift = G4Vector3D(tan(g_tower.pTheta) * cos(g_tower.pPhi),
       tan(g_tower.pTheta) * sin(g_tower.pPhi), 1) * g_tower.pDz;
-  int fiber_ID = 0;
+//  int fiber_ID = 0;
   for (int ix = 0; ix < g_tower.NFiberX; ix++)
 //  int ix = 0;
     {
@@ -350,6 +350,8 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
           vector_fiber *= cm;
           center_fiber *= cm;
 
+
+          const int fiber_ID = g_tower.compose_fiber_id(ix,iy);
           fiber_par[fiber_ID] = make_pair(vector_fiber,
               center_fiber);
 
@@ -357,7 +359,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
 
           min_fiber_length = min(fiber_length, min_fiber_length);
 
-          ++fiber_ID;
+//          ++fiber_ID;
         }
     }
 
@@ -447,7 +449,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
 
   G4Vector3D v_zshift = G4Vector3D(tan(g_tower.pTheta) * cos(g_tower.pPhi),
       tan(g_tower.pTheta) * sin(g_tower.pPhi), 1) * g_tower.pDz;
-  int fiber_ID = 0;
+  int fiber_cnt = 0;
   for (int ix = 0; ix < g_tower.NFiberX; ix++)
     {
       const double weighted_ix = static_cast<double>(ix)
@@ -467,6 +469,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
         {
           if ((ix + iy) % 2 == 1)
             continue; // make a triangle pattern
+          const int fiber_ID = g_tower.compose_fiber_id(ix,iy);
 
 
           const double weighted_iy = static_cast<double>(iy)
@@ -543,16 +546,16 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
               fiber_ID, overlapcheck_fiber);
           fiber_vol[fiber_physi] = fiber_ID;
 
-          ++fiber_ID;
+          ++fiber_cnt;
         }
     }
 
   if (_geom->get_construction_verbose() >= 3)
     cout << "PHG4FullProjSpacalDetector::Construct_Fibers::" << GetName()
-        << " - constructed tower ID " << g_tower.id << " with " << fiber_ID
+        << " - constructed tower ID " << g_tower.id << " with " << fiber_cnt
         << " fibers" << endl;
 
-  return fiber_ID;
+  return fiber_cnt;
 }
 
 //! a block along z axis built with G4Trd that is slightly tapered in x dimension

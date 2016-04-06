@@ -22,7 +22,8 @@ class  rcdaqEventiterator : public Eventiterator {
 public:
 
   virtual ~rcdaqEventiterator();
-  rcdaqEventiterator(const char *ip = "127.0.0.1");
+  rcdaqEventiterator();
+  rcdaqEventiterator(const char *ip );
   rcdaqEventiterator(const char *ip, int &status);
 
   const char * getIdTag() const;

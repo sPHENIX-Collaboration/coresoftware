@@ -86,9 +86,9 @@ public:
   }
 
   virtual int
-  get_etabin(const int tower_z_ID) const;
+  get_etabin_block(const int tower_z_ID) const;
 
-  //! map tower_z_ID -> eta_bin number
+  //! map tower_z_ID -> eta_bin number for blocks
   void
   set_tower_z_ID_eta_bin_map(const tower_z_ID_eta_bin_map_t & m)
   {
@@ -103,9 +103,10 @@ protected:
   bound_map_t z_bound_map;
   bound_map_t eta_bound_map;
 
+  //! map tower_z_ID -> eta_bin number for blocks
   tower_z_ID_eta_bin_map_t tower_z_ID_eta_bin_map;
 
-ClassDef(PHG4CylinderCellGeom_Spacalv1,1)
+ClassDef(PHG4CylinderCellGeom_Spacalv1,2)
 
 };
 

@@ -9,13 +9,16 @@
  */
 
 #include "PHG4CylinderGeom_Spacalv3.h"
+#include "PHG4Parameters.h"
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4PhysicalConstants.hh>
 
+#include <algorithm>
 #include <cmath>
 #include <cassert>
 #include <iostream>
+#include <sstream>
 #include <limits>       // std::numeric_limits
 #include <map>
 
@@ -60,13 +63,24 @@ PHG4CylinderGeom_Spacalv3::Print(Option_t *opt) const
   cout << "\t" << "get_sidewall_mat() = " << get_sidewall_mat() << endl;
   cout << "\t" << "get_max_phi_bin_in_sec() = " << get_max_phi_bin_in_sec()
       << endl;
-  cout << "Containing " << sector_tower_map.size()
+
+  subtower_consistency_check();
+  cout << "\t" << "get_n_subtower_eta() = " << get_n_subtower_eta() << endl;
+  cout << "\t" << "get_n_subtower_phi() = " << get_n_subtower_phi() << endl;
+
+  cout << "\t" << "get_max_lightguide_height() = "
+      << get_max_lightguide_height() << endl;
+  cout << "\t" << "Containing " << sector_tower_map.size()
       << " unique towers per sector." << endl;
 
   if (get_construction_verbose() >= 2)
     for (tower_map_t::const_iterator it = sector_tower_map.begin();
         it != sector_tower_map.end(); ++it)
-      it->second.identify(cout);
+      {
+        cout << "\t";
+        cout << "\t";
+        it->second.identify(cout);
+      }
 }
 
 void
@@ -87,6 +101,43 @@ PHG4CylinderGeom_Spacalv3::SetDefault()
   max_phi_bin_in_sec = 8;
 }
 
+void
+PHG4CylinderGeom_Spacalv3::ImportParameters(const PHG4Parameters & param)
+{
+  PHG4CylinderGeom_Spacalv2::ImportParameters(param);
+
+  if (param.exist_double_param("sidewall_thickness"))
+    sidewall_thickness = param.get_double_param("sidewall_thickness");
+  if (param.exist_double_param("sidewall_outer_torr"))
+    sidewall_outer_torr = param.get_double_param("sidewall_outer_torr");
+  if (param.exist_string_param("sidewall_mat"))
+    sidewall_mat = param.get_string_param("sidewall_mat");
+  if (param.exist_int_param("max_phi_bin_in_sec"))
+    max_phi_bin_in_sec = param.get_int_param("max_phi_bin_in_sec");
+
+  // load sector_tower_map
+  if (param.exist_int_param("sector_tower_map_size"))
+    {
+      sector_tower_map.clear();
+
+      const int n = param.get_int_param("sector_tower_map_size");
+
+      for (int i = 0; i < n; i++)
+        {
+          stringstream prefix;
+          prefix << "sector_tower_map";
+          prefix << "[" << i << "]" << ".";
+
+          geom_tower t;
+          t.ImportParameters(param, prefix.str());
+
+          sector_tower_map[t.id] = t;
+        }
+    }
+
+  return;
+}
+
 PHG4CylinderGeom_Spacalv3::geom_tower::geom_tower() :
     id(numeric_limits<int>::min()), //
     pDz(numeric_limits<double>::signaling_NaN()), //
@@ -105,8 +156,54 @@ PHG4CylinderGeom_Spacalv3::geom_tower::geom_tower() :
     centralZ(numeric_limits<double>::signaling_NaN()), //
     ModuleSkinThickness(numeric_limits<double>::signaling_NaN()), //
     NFiberX(numeric_limits<int>::min()), //
-    NFiberY(numeric_limits<int>::min())
+    NFiberY(numeric_limits<int>::min()), //
+    NSubtowerX(1), //
+    NSubtowerY(1), //
+    LightguideHeight(0), //
+    LightguideTaperRatio(numeric_limits<double>::signaling_NaN()), //
+    LightguideMaterial("PMMA")
 {
+}
+
+//! fiber layout -> fiber_id
+int
+PHG4CylinderGeom_Spacalv3::geom_tower::compose_fiber_id(int index_x,
+    int index_y) const
+{
+  return NFiberY * index_x + index_y;
+}
+
+//! fiber_id -> sub tower ID x: 0 ... NSubtowerX -1
+int
+PHG4CylinderGeom_Spacalv3::geom_tower::get_sub_tower_ID_x(int fiber_id) const
+{
+  const int index_x = fiber_id / NFiberY;
+  assert(index_x < NFiberX);
+  assert(index_x >= 0);
+
+  const double sub_tower_width_x = (double) NFiberX / NSubtowerX;
+  const int tower_ID_x = (NSubtowerX - 1) - floor(index_x / sub_tower_width_x); //! x is negative azimuthal direction
+  assert(tower_ID_x < NSubtowerX);
+  assert(tower_ID_x >= 0);
+
+  return tower_ID_x;
+}
+
+//! fiber_id -> sub tower ID y: 0 ... NSubtowerY -1
+int
+PHG4CylinderGeom_Spacalv3::geom_tower::get_sub_tower_ID_y(int fiber_id) const
+{
+  assert(fiber_id >= 0);
+  const int index_y = fiber_id % NFiberY;
+
+  const double sub_tower_width_y = (double) NFiberY / NSubtowerY;
+
+  assert(pRotationAngleX < 0);
+  const int tower_ID_y = (NSubtowerY - 1) - floor(index_y / sub_tower_width_y); //! y is negative polar direction
+  assert(tower_ID_y < NSubtowerY);
+  assert(tower_ID_y >= 0);
+
+  return tower_ID_y;
 }
 
 void
@@ -114,7 +211,56 @@ PHG4CylinderGeom_Spacalv3::geom_tower::identify(std::ostream& os) const
 {
   os << "PHG4CylinderGeom_Spacalv3::geom_super_tower" << "[" << id << "]"
       << " @ <Azimuthal, R, z> = " << centralX << ", " << centralY << ", "
-      << centralZ << " cm" << endl;
+      << centralZ << " cm"
+      //
+      << " with "
+      //
+      << "Half length = " << pDz << ", " << pDy1 << ", " << pDx1 << ", " << pDx2
+      << ", " << pDy2 << ", " << pDx3 << ", " << pDx4 << ", "
+      //
+      << "Angles = " << pTheta << ", " << pPhi << ", " << pAlp1 << ", " << pAlp2
+      << ", " //
+      << "Rotation = " << pRotationAngleX //
+      << endl;
+}
+
+void
+PHG4CylinderGeom_Spacalv3::geom_tower::ImportParameters(
+    const PHG4Parameters & param, const std::string & param_prefix)
+{
+
+  id = param.get_int_param(param_prefix + "id");
+  pDz = param.get_double_param(param_prefix + "pDz");
+
+  pDy1 = param.get_double_param(param_prefix + "pDy1");
+  pDx1 = param.get_double_param(param_prefix + "pDx1");
+  pDx2 = param.get_double_param(param_prefix + "pDx2");
+  pDy2 = param.get_double_param(param_prefix + "pDy2");
+  pDx3 = param.get_double_param(param_prefix + "pDx3");
+  pDx4 = param.get_double_param(param_prefix + "pDx4");
+
+  pTheta = param.get_double_param(param_prefix + "pTheta");
+  pPhi = param.get_double_param(param_prefix + "pPhi");
+  pAlp1 = param.get_double_param(param_prefix + "pAlp1");
+  pAlp2 = param.get_double_param(param_prefix + "pAlp2");
+
+  pRotationAngleX = param.get_double_param(param_prefix + "pRotationAngleX");
+  centralX = param.get_double_param(param_prefix + "centralX");
+  centralY = param.get_double_param(param_prefix + "centralY");
+  centralZ = param.get_double_param(param_prefix + "centralZ");
+
+  ModuleSkinThickness = param.get_double_param(
+      param_prefix + "ModuleSkinThickness");
+  NFiberX = param.get_int_param(param_prefix + "NFiberX");
+  NFiberY = param.get_int_param(param_prefix + "NFiberY");
+  NSubtowerX = param.get_int_param(param_prefix + "NSubtowerX");
+  NSubtowerY = param.get_int_param(param_prefix + "NSubtowerY");
+
+  LightguideHeight = param.get_double_param(param_prefix + "LightguideHeight");
+  LightguideTaperRatio = param.get_double_param(
+      param_prefix + "LightguideTaperRatio");
+  LightguideMaterial = param.get_string_param(
+      param_prefix + "LightguideMaterial");
 }
 
 PHG4CylinderGeom_Spacalv3::scint_id_coder::scint_id_coder(int scint_id) :
@@ -130,9 +276,9 @@ PHG4CylinderGeom_Spacalv3::scint_id_coder::scint_id_coder(int sector_id,
     int tower_id, int fiber_id) :
     sector_ID(sector_id), tower_ID(tower_id), fiber_ID(fiber_id)
 {
-  assert(fiber_ID<(1<<kfiber_bit) and fiber_ID>=0);
-  assert(tower_ID<(1<<ktower_bit) and tower_ID>=0);
-  assert(sector_ID<(1<<ksector_bit) and sector_ID>=0);
+  assert(fiber_ID < (1 << kfiber_bit) and fiber_ID >= 0);
+  assert(tower_ID < (1 << ktower_bit) and tower_ID >= 0);
+  assert(sector_ID < (1 << ksector_bit) and sector_ID >= 0);
 
   scint_ID = (((sector_ID << ktower_bit) | tower_ID) << kfiber_bit) | fiber_ID;
 }
@@ -156,11 +302,62 @@ PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
       Print();
     }
 
-  assert(phi_bin_in_sec < max_phi_bin_in_sec and phi_bin_in_sec>=0);
+  assert(phi_bin_in_sec < max_phi_bin_in_sec and phi_bin_in_sec >= 0);
 
   int phi_bin = sector_ID * max_phi_bin_in_sec + phi_bin_in_sec;
 
   return make_pair(z_bin, phi_bin);
+}
+
+//! check that all towers has consistent sub-tower divider
+void
+PHG4CylinderGeom_Spacalv3::subtower_consistency_check() const
+{
+  assert(sector_tower_map.begin() != sector_tower_map.end());
+
+  for (tower_map_t::const_iterator it = sector_tower_map.begin();
+      it != sector_tower_map.end(); ++it)
+    {
+      assert(get_n_subtower_eta() == it->second.NSubtowerY);
+      assert(get_n_subtower_phi() == it->second.NSubtowerX);
+    }
+
+  if (get_construction_verbose())
+    {
+      cout
+          << "PHG4CylinderGeom_Spacalv3::subtower_consistency_check - Passed with get_n_subtower_phi() = "
+          << get_n_subtower_phi() << " and get_n_subtower_eta()"
+          << get_n_subtower_eta() << endl;
+    }
+}
+//! sub-tower divider along the polar direction
+int
+PHG4CylinderGeom_Spacalv3::get_n_subtower_eta() const
+{
+  assert(sector_tower_map.begin() != sector_tower_map.end());
+  return sector_tower_map.begin()->second.NSubtowerY;
+}
+//! sub-tower divider along the azimuthal direction
+int
+PHG4CylinderGeom_Spacalv3::get_n_subtower_phi() const
+{
+  assert(sector_tower_map.begin() != sector_tower_map.end());
+  return sector_tower_map.begin()->second.NSubtowerX;
+}
+
+double
+PHG4CylinderGeom_Spacalv3::get_max_lightguide_height() const
+{
+  double max_height = 0;
+
+  for (tower_map_t::const_iterator it = sector_tower_map.begin();
+      it != sector_tower_map.end(); ++it)
+    {
+      const double h = it->second.LightguideHeight;
+      max_height = max(max_height, h);
+    }
+
+  return max_height;
 }
 
 void
@@ -456,6 +653,112 @@ PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2()
     }
 
 }
+
+void
+PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map4()
+{
+  cout << "PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map4 - "
+      << "FermiLab test beam 2014. Need to move to calibration database"
+      << endl;
+
+  // From Oleg's documents
+
+  const int ny = 3;
+  const int nx = 3;
+
+  const double inch_to_cm = 2.54;
+
+  const double screen_size_y = 2.108 * inch_to_cm;
+  const double screen_size_x = 1.049 * inch_to_cm;
+
+  const double z_screen_6_7 = 0.5 * (6.6 + 6.75) * inch_to_cm;
+  const double angle_screen_6_7 = 64.78 / 180. * M_PI;
+  const double nawrrow_width_x = screen_size_x * sin(angle_screen_6_7);
+
+  const double z_screen_1_2 = 0.5 * (1.35 + 1.6) * inch_to_cm;
+  const double angle_screen_1_2 = 90.56 / 180. * M_PI;
+  const double wide_width_x = screen_size_x * sin(angle_screen_1_2);
+
+  const double module_length = z_screen_6_7 - z_screen_1_2;
+  assert(module_length > 0);
+
+  //tapering, dxwidth/dlength
+  const double tapering_ratio = (wide_width_x - nawrrow_width_x)
+      / module_length;
+  assert(tapering_ratio < 1);
+  assert(tapering_ratio > 0);
+
+  fiber_clading_thickness = 0.003;
+  fiber_core_diameter = 0.050 - fiber_clading_thickness * 2;
+
+  assembly_spacing = 0.002500;
+
+  radius = (nawrrow_width_x) / tapering_ratio;
+  thickness = module_length * 1.5; // keep a large torlerence space
+  zmin = -(0.5 * ny * screen_size_y + 2 * assembly_spacing * (ny + 1));
+  zmax = -zmin;
+  azimuthal_n_sec = floor(2 * M_PI / atan(tapering_ratio));
+  max_phi_bin_in_sec = 1;
+
+  const double nawrrow_width_x_construction = radius * 2
+      * tan(M_PI / azimuthal_n_sec) - 2 * assembly_spacing;
+  const double wide_width_x_construction = (radius + module_length) * 2
+      * tan(M_PI / azimuthal_n_sec) - 2 * assembly_spacing;
+
+  cout << "PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map4 - "
+
+  << "Adjust wide end width by ratio of "
+      << wide_width_x_construction / wide_width_x
+      << " and narrow end by ratio of "
+      << nawrrow_width_x_construction / nawrrow_width_x << endl;
+
+  sector_map.clear();
+  for (int sec = 0; sec < nx; ++sec)
+    {
+      const double rot = twopi / (double) (get_azimuthal_n_sec())
+          * ((double) (sec) - 1);
+
+      sector_map[sec] = rot;
+    }
+
+  azimuthal_tilt = 0;
+  azimuthal_seg_visible = true;
+  polar_taper_ratio = 1.;
+  sidewall_thickness = 0;
+  sidewall_outer_torr = 0;
+  sector_tower_map.clear();
+
+  for (int y = 0; y < ny; y++)
+    {
+
+      geom_tower geom;
+      geom.id = y;
+      geom.pDz = module_length / 2;
+      geom.pTheta = 0.;
+      geom.pPhi = 0.;
+      geom.pAlp1 = 0.;
+      geom.pAlp2 = 0.;
+      geom.pDy1 = 0.5 * screen_size_y;
+      geom.pDx1 = 0.5 * nawrrow_width_x_construction;
+      geom.pDx2 = 0.5 * nawrrow_width_x_construction;
+      geom.pDy2 = 0.5 * screen_size_y;
+      geom.pDx3 = 0.5 * wide_width_x_construction;
+      geom.pDx4 = 0.5 * wide_width_x_construction;
+
+      geom.centralX = 0.;
+      geom.centralY = module_length * 0.5 + radius + assembly_spacing;
+      geom.centralZ = screen_size_y * (y - 1);
+
+      geom.pRotationAngleX = -M_PI / 2.;
+      geom.ModuleSkinThickness = 0.010000;
+      geom.NFiberX = 30;
+      geom.NFiberY = 26 * 2 * 2;
+      sector_tower_map[geom.id] = geom;
+    }
+
+}
+
+
 void
 PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map3()
 {

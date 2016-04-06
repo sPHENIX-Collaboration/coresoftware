@@ -103,6 +103,11 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
        	      if (tokeniter != tokm.end())
        		{
 		  motherid = boost::lexical_cast<int>(*tokeniter);
+// from the construction via assembly volumes, the mother id starts 
+// at 2 and is incremented by 2 for each new row of slats
+// this maps it back to 0-nslats
+		  motherid -= 2;  
+		  motherid /= 2;
 		}
        	      else
        		{
