@@ -674,11 +674,6 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
   std::vector<SimpleTrack3D> vtxtracks;
   std::vector<Matrix<float,5,5> > vtxcovariances;
 
-  // unsigned int maxvtxtracks = 100;
-  // if (_tracks.size() < maxvtxtracks) {
-  //   maxvtxtracks = _tracks.size();
-  // }
-
   for (unsigned int i = 0; i < _tracks.size(); ++i) {
     vtxtracks.push_back( _tracks[ (int)(pTmap[pTmap.size()-1-i][1]) ] );
     vtxcovariances.push_back( (_tracker->getKalmanStates())[ (int)(pTmap[pTmap.size()-1-i][1]) ].C );
@@ -709,28 +704,28 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
   // Update track fields for final vertex position
   //----------------------------------------------
   
-  // shift to precision vertex position
-  for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
-    for (unsigned int hh = 0;hh < _tracks[tt].hits.size(); ++hh) {
-      _tracks[tt].hits[hh].x = _tracks[tt].hits[hh].x - _vertex[0];
-      _tracks[tt].hits[hh].y = _tracks[tt].hits[hh].y - _vertex[1];
-      _tracks[tt].hits[hh].z = _tracks[tt].hits[hh].z - _vertex[2];
-    }
-  }
+  // // shift to precision vertex position
+  // for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
+  //   for (unsigned int hh = 0;hh < _tracks[tt].hits.size(); ++hh) {
+  //     _tracks[tt].hits[hh].x = _tracks[tt].hits[hh].x - _vertex[0];
+  //     _tracks[tt].hits[hh].y = _tracks[tt].hits[hh].y - _vertex[1];
+  //     _tracks[tt].hits[hh].z = _tracks[tt].hits[hh].z - _vertex[2];
+  //   }
+  // }
   
-  // recompute track fits
-  std::vector<SimpleTrack3D> refit_tracks;
-  _tracker->finalize(_tracks,refit_tracks);
-  _tracks = refit_tracks;
+  // // recompute track fits
+  // std::vector<SimpleTrack3D> refit_tracks;
+  // _tracker->finalize(_tracks,refit_tracks);
+  // _tracks = refit_tracks;
   
-  // shift back to global coordianates
-  for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
-    for (unsigned int hh = 0;hh < _tracks[tt].hits.size(); ++hh) {
-      _tracks[tt].hits[hh].x = _tracks[tt].hits[hh].x + _vertex[0];
-      _tracks[tt].hits[hh].y = _tracks[tt].hits[hh].y + _vertex[1];
-      _tracks[tt].hits[hh].z = _tracks[tt].hits[hh].z + _vertex[2];
-    }
-  }
+  // // shift back to global coordianates
+  // for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
+  //   for (unsigned int hh = 0;hh < _tracks[tt].hits.size(); ++hh) {
+  //     _tracks[tt].hits[hh].x = _tracks[tt].hits[hh].x + _vertex[0];
+  //     _tracks[tt].hits[hh].y = _tracks[tt].hits[hh].y + _vertex[1];
+  //     _tracks[tt].hits[hh].z = _tracks[tt].hits[hh].z + _vertex[2];
+  //   }
+  // }
   
   //--------------------------------
   // Translate back into PHG4 objects
