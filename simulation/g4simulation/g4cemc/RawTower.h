@@ -75,7 +75,7 @@ class RawTower : public PHObject {
   virtual void add_eshower(const int g4showerid, const float eshower) {PHOOL_VIRTUAL_WARN("add_eshower(const unsigned int g4showerid, const float eshower)"); return;}
   virtual void clear_g4showers() {}
 
-  virtual double get_tower_type() const { PHOOL_VIRTUAL_WARN("get_tower_type()"); return -1.0; }
+  virtual int get_tower_type() const { PHOOL_VIRTUAL_WARN("get_tower_type()"); return -1; }
   virtual void set_tower_type (const double ) { PHOOL_VIRTUAL_WARN("set_tower_type()"); return  ; }
 
   

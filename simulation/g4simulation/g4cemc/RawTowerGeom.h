@@ -41,7 +41,7 @@ class RawTowerGeom : public PHObject {
   virtual double get_phi() const { PHOOL_VIRTUAL_WARN("get_phi()"); return -1; }
 
   virtual void set_tower_type( double ) { PHOOL_VIRTUAL_WARN("set_tower_type()"); return ; }
-  virtual double get_tower_type() const { PHOOL_VIRTUAL_WARN("get_tower_type()"); return -1; }
+  virtual int get_tower_type() const { PHOOL_VIRTUAL_WARN("get_tower_type()"); return -1; }
 
  protected:
   RawTowerGeom() {}

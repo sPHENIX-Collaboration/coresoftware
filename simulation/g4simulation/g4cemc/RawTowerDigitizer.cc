@@ -36,7 +36,7 @@ RawTowerDigitizer::RawTowerDigitizer(const std::string& name) :
     _pedstal_central_ADC(NAN), //default to invalid
     _pedstal_width_ADC(NAN), //default to invalid
     _zero_suppression_ADC(0), //default to apply no zero suppression
-    _tower_type(-1.0),
+    _tower_type(-1),
     _timer(PHTimeServer::get()->insert_new(name))
 {
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);

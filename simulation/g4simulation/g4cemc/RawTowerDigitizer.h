@@ -40,7 +40,7 @@ public:
     detector = d;
   }
   void
-  TowerType(const double type)
+  TowerType(const int type)
   {
     _tower_type = type; 
   } 
@@ -201,7 +201,7 @@ protected:
   double _zero_suppression_ADC;
 
   //! tower type to act on
-  double _tower_type; 
+  int _tower_type; 
 
   PHTimeServer::timer _timer;
 

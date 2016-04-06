@@ -55,8 +55,8 @@ class RawTowerv2 : public RawTower {
   void add_eshower(const int g4showerid, const float eshower);
   void clear_g4showers() { eshowers.clear(); }
 
-  void set_tower_type(const double tt) { _tower_type = tt; }
-  double get_tower_type() const { return _tower_type; }
+  void set_tower_type(const int tt) { _tower_type = tt; }
+  int get_tower_type() const { return _tower_type; }
 
  protected:
   RawTowerDefs::keytype towerid;
@@ -68,7 +68,7 @@ class RawTowerv2 : public RawTower {
   //! be rise time or peak time.
   float time;
 
-  double _tower_type; 
+  int _tower_type; 
 
   CellMap ecells;      //< default truth storage
   ShowerMap eshowers;  //< alternate truth storage for smaller filesizes

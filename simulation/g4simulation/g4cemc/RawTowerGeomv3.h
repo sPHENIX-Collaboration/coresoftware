@@ -38,8 +38,8 @@ class RawTowerGeomv3 : public RawTowerGeom {
   double get_eta() const;
   double get_phi() const;
 
-  void set_tower_type( double tt ) { _tower_type = tt; return ; }
-  double get_tower_type() const { return _tower_type; }
+  void set_tower_type( int tt ) { _tower_type = tt; return ; }
+  int get_tower_type() const { return _tower_type; }
 
  protected:
   RawTowerDefs::keytype _towerid;
@@ -52,7 +52,7 @@ class RawTowerGeomv3 : public RawTowerGeom {
   double _size_y;
   double _size_z;
 
-  double _tower_type; 
+  int _tower_type; 
 
   ClassDef(RawTowerGeomv3,4)
 };

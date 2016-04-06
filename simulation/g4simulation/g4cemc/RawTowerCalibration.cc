@@ -31,7 +31,7 @@ RawTowerCalibration::RawTowerCalibration(const std::string& name) :
     //! calibration constant in unit of GeV per ADC
     _calib_const_GeV_ADC(NAN), //
     _zero_suppression_GeV(0), //
-    _tower_type(-1.0), 
+    _tower_type(-1), 
     _timer(PHTimeServer::get()->insert_new(name))
 {
 }
@@ -81,8 +81,11 @@ RawTowerCalibration::process_event(PHCompositeNode *topNode)
       assert(raw_tower);
       
       if(_tower_type>=0){
-	// Skip towers that don't match the type we are supposed to digitize
-	if(_tower_type != raw_tower->get_tower_type()) continue; 
+	// Skip towers that don't match the type we are supposed to calibrate
+	if(_tower_type != raw_tower->get_tower_type()) {
+	  //std::cout << "tower_type = " << _tower_type << ", skipping tower type = " << raw_tower->get_tower_type() << std::endl; 
+	  continue;
+	}
       }
 
       if (_calib_algorithm == kNo_calibration)
