@@ -2,7 +2,7 @@
 #include "RawTowerContainer.h"
 #include "RawTowerGeomContainer.h"
 #include "RawTowerGeom.h"
-#include "RawTowerv2.h"
+#include "RawTowerv1.h"
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
@@ -121,7 +121,7 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
       if (_digi_algorithm == kNo_digitization)
         {
           if (sim_tower)
-            digi_tower = new RawTowerv2(*sim_tower);
+            digi_tower = new RawTowerv1(*sim_tower);
         }
       else if (_digi_algorithm == kSimple_photon_digitization)
         digi_tower = simple_photon_digitization(sim_tower);
@@ -139,7 +139,7 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
         }
 
       if (digi_tower){
-	digi_tower->set_tower_type(_tower_type); 
+//	digi_tower->set_tower_type(_tower_type);
         _raw_towers->AddTower(key, digi_tower);
       }
 
@@ -186,9 +186,9 @@ RawTowerDigitizer::simple_photon_digitization(RawTower * sim_tower)
     {
       // create new digitalizaed tower
       if (sim_tower)
-        digi_tower = new RawTowerv2(*sim_tower);
+        digi_tower = new RawTowerv1(*sim_tower);
       else
-        digi_tower = new RawTowerv2();
+        digi_tower = new RawTowerv1();
 
       digi_tower->set_energy((double) sum_ADC);
     }

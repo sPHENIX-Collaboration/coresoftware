@@ -1,7 +1,8 @@
 #include "RawTowerCalibration.h"
 #include "RawTowerContainer.h"
 #include "RawTowerGeomContainer.h"
-#include "RawTowerv2.h"
+#include "RawTowerGeom.h"
+#include "RawTowerv1.h"
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
@@ -72,6 +73,7 @@ RawTowerCalibration::process_event(PHCompositeNode *topNode)
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__<< "Process event entered" << std::endl;
     }
 
+
   RawTowerContainer::ConstRange begin_end = _raw_towers->getTowers();
   RawTowerContainer::ConstIterator rtiter;
   for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
@@ -80,18 +82,24 @@ RawTowerCalibration::process_event(PHCompositeNode *topNode)
       const RawTower *raw_tower = rtiter->second;
       assert(raw_tower);
       
-      if(_tower_type>=0){
-	// Skip towers that don't match the type we are supposed to calibrate
-	if(_tower_type != raw_tower->get_tower_type()) {
-	  continue;
-	}
-      }
+      RawTowerGeom * raw_tower_geom =
+      rawtowergeom->get_tower_geometry(raw_tower->get_id());
+      assert(raw_tower_geom);
+
+      if (_tower_type >= 0)
+        {
+          // Skip towers that don't match the type we are supposed to calibrate
+          if (_tower_type != raw_tower_geom->get_tower_type())
+            {
+              continue;
+            }
+        }
 
       if (_calib_algorithm == kNo_calibration)
         {
           if (raw_tower->get_energy() > _zero_suppression_GeV)
             {
-              _calib_towers->AddTower(key, new RawTowerv2(*raw_tower));
+              _calib_towers->AddTower(key, new RawTowerv1(*raw_tower));
             }
         }
       else if (_calib_algorithm == kSimple_linear_calibration)
@@ -102,7 +110,7 @@ RawTowerCalibration::process_event(PHCompositeNode *topNode)
 
           if (calib_energy > _zero_suppression_GeV)
             {
-              RawTower *calib_tower = new RawTowerv2(*raw_tower);
+              RawTower *calib_tower = new RawTowerv1(*raw_tower);
               calib_tower->set_energy(calib_energy);
               _calib_towers->AddTower(key, calib_tower);
             }
