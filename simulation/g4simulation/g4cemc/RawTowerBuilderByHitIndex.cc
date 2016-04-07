@@ -1,6 +1,6 @@
 #include "RawTowerBuilderByHitIndex.h"
 
-#include "RawTowerv2.h"
+#include "RawTowerv1.h"
 #include "RawTowerContainer.h"
 
 #include "RawTowerGeomv3.h"
@@ -114,10 +114,10 @@ RawTowerBuilderByHitIndex::process_event(PHCompositeNode *topNode)
 							       g4hit_i->get_index_k() );
 
       /* add the energy to the corresponding tower */
-      RawTowerv2 *tower = dynamic_cast<RawTowerv2 *> (towers_->getTower( calotowerid ));
+      RawTowerv1 *tower = dynamic_cast<RawTowerv1 *> (towers_->getTower( calotowerid ));
       if (! tower)
         {
-          tower = new RawTowerv2( calotowerid );
+          tower = new RawTowerv1( calotowerid );
 	  tower->set_energy( 0 );
           towers_->AddTower( tower->get_id() , tower );
         }
