@@ -37,6 +37,8 @@ libcemc_io_la_SOURCES = \
   RawTowerGeomv1_Dict.cc \
   RawTowerGeomv2.cc \
   RawTowerGeomv2_Dict.cc \
+  RawTowerGeomv3.cc \
+  RawTowerGeomv3_Dict.cc \
   RawTowerGeomContainer.cc \
   RawTowerGeomContainer_Dict.cc \
   RawTowerGeomContainerv1.cc \
@@ -101,6 +103,7 @@ pkginclude_HEADERS = \
   RawTowerGeom.h \
   RawTowerGeomv1.h \
   RawTowerGeomv2.h \
+  RawTowerGeomv3.h \
   RawTowerGeomContainer.h \
   RawTowerGeomContainerv1.h \
   RawTowerGeomContainer_Cylinderv1.h
