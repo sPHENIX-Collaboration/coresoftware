@@ -13,7 +13,7 @@ Packet_hbd_fpga::Packet_hbd_fpga(PACKET_ptr data)
     }
   else
     {
-      HBD_NSAMPLES = 12;
+      HBD_NSAMPLES = 24;
     }
   std::cout << "Samples = " << HBD_NSAMPLES << std::endl;
 }
