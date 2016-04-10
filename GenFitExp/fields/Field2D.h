@@ -8,7 +8,7 @@
 #ifndef genfit_Field2D_h
 #define genfit_Field2D_h
 
-#include "AbsBField.h"
+#include "GenFit/AbsBField.h"
 
 #include "boost/tuple/tuple.hpp"
 #include "boost/tuple/tuple_comparison.hpp"

@@ -16,6 +16,9 @@ libgenfit2exp_la_LDFLAGS = \
 lib_LTLIBRARIES = \
   libgenfit2exp.la
 
+pkginclude_HEADERS = \
+  fields/Field2D.h
+
 libgenfit2exp_la_SOURCES = \
   fields/Field2D.cc
 

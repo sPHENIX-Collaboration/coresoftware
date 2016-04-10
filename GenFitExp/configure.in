@@ -1,4 +1,4 @@
-AC_INIT(PHAna,[1.00])
+AC_INIT(GenFitExp,[1.00])
 AC_CONFIG_SRCDIR([configure.in])
 AM_INIT_AUTOMAKE
 

@@ -15,6 +15,11 @@ libPHGenFit_la_LDFLAGS = \
 
 lib_LTLIBRARIES = \
   libPHGenFit.la
+  
+pkginclude_HEADERS = \
+  Fitter.h \
+  Measurement.h \
+  Track.h
 
 libPHGenFit_la_SOURCES = \
   Fitter.cc \
