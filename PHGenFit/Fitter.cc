@@ -1,3 +1,12 @@
+/*!
+ *  \file		Fitter.cc
+ *  \brief		Fitter class handles setups for the fitting.
+ *  \details	Fitter class handles setups for the fitting like Geometry, Fields, fitter choice, etc.
+ *  \author		Haiwang Yu <yuhw@nmsu.edu>
+ */
+
+
+//!
 #include <Fitter.h>
 
 namespace PHGenFit {

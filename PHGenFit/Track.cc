@@ -1,3 +1,9 @@
+/*!
+ *  \file		Track.cc
+ *  \brief		Data structure and output of the fitting.
+ *  \author		Haiwang Yu <yuhw@nmsu.edu>
+ */
+
 //STL
 
 //BOOST
@@ -5,7 +11,7 @@
 
 #include <GenFit/Track.h>
 
-#include <Track.h>
+#include "Track.h"
 
 
 namespace PHGenFit {

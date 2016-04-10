@@ -1,3 +1,9 @@
+/*!
+ *  \file		Track.h
+ *  \brief		Data structure and output of the fitting.
+ *  \author		Haiwang Yu <yuhw@nmsu.edu>
+ */
+
 #ifndef __PHGenFit_Track__
 #define __PHGenFit_Track__
 
@@ -6,7 +12,7 @@
 #include <GenFit/Track.h>
 
 
-#include <Measurement.h>
+#include "Measurement.h"
 
 namespace PHGenFit {
 

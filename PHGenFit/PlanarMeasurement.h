@@ -1,13 +1,20 @@
+/*!
+ *  \file		PlanarMeasurement.h
+ *  \brief		Handles the palnar type of measurements.
+ *  \author		Haiwang Yu <yuhw@nmsu.edu>
+ */
+
+
 #ifndef __PHGenFit_PlanarPlanarMeasurement__
 #define __PHGenFit_PlanarPlanarMeasurement__
 
-#include <Measurement.h>
+#include "Measurement.h"
 
 class TVector3;
 
 namespace PHGenFit {
 
-class PlanarMeasurement : Measurement
+class PlanarMeasurement : public Measurement
 {
 public:
 	//!ctor

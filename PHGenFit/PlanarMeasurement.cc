@@ -1,6 +1,12 @@
+/*!
+ *  \file		PlanarMeasurement.cc
+ *  \brief		Handles the palnar type of measurements.
+ *  \author		Haiwang Yu <yuhw@nmsu.edu>
+ */
+
 #include <GenFit/PlanarMeasurement.h>
 
-#include <PlanarMeasurement.h>
+#include "PlanarMeasurement.h"
 
 
 namespace PHGenFit {

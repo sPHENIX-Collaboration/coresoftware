@@ -1,3 +1,9 @@
+/*!
+ *  \file		Measurement.h
+ *  \brief		Measurement is the base class for input of the fitter.
+ *  \author		Haiwang Yu <yuhw@nmsu.edu>
+ */
+
 #ifndef __PHGenFit_Measurement__
 #define __PHGenFit_Measurement__
 

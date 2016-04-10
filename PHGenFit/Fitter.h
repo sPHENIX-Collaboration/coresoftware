@@ -1,3 +1,10 @@
+/*!
+ *  \file		Fitter.h
+ *  \brief		Fitter class handles setups for the fitting.
+ *  \details	Fitter class handles setups for the fitting like Geometry, Fields, fitter choice, etc.
+ *  \author		Haiwang Yu <yuhw@nmsu.edu>
+ */
+
 #ifndef __PHGenFit_Fitter__
 #define __PHGenFit_Fitter__
 
@@ -60,7 +67,7 @@
 #include <genfitexp/Field2D.h>
 
 //PHGenFit
-#include <Track.h>
+#include "Track.h"
 
 #define LogDEBUG    std::cout<<"DEBUG: "<<__LINE__<<"\n"
 

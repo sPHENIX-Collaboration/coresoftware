@@ -18,18 +18,18 @@ LD            = c++ -Wall -O3 -g3
 LDFLAGS       = -lpthread
 SOFLAGS       = -shared
 
-CXXFLAGS	+=	-I$(OFFLINE_MAIN)/include
-LDFLAGS		+=	-L$(OFFLINE_MAIN)/lib -lgenfit2exp -lPHGenFit
-
 CXXFLAGS     += $(ROOTCFLAGS)
-LDFLAGS      += $(ROOTLDFLAGS) ${ROOTLIBS}
-#LDFLAGS      += $(ROOTLDFLAGS) $(ROOTGLIBS) ${ROOTLIBS}
+#LDFLAGS      += $(ROOTLDFLAGS) ${ROOTGLIBS}
+LDFLAGS      += $(ROOTLDFLAGS) $(ROOTGLIBS) ${ROOTLIBS}
 
 #CXXFLAGS     += $(G4CFLAGS)
 #LDFLAGS      += $(G4LDFLAGS)
 
 CXXFLAGS     += $(GENFITCFLAGS)
 LDFLAGS      += $(GENFITLDFLAGS)
+
+CXXFLAGS	+=	-I$(OFFLINE_MAIN)/include
+LDFLAGS		+=	-L$(OFFLINE_MAIN)/lib -lgenfit2exp -lPHGenFit
 
 TESTO         = testPHGenFit.o
 TEST	        = testPHGenFit
