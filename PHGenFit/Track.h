@@ -7,14 +7,23 @@
 #ifndef __PHGenFit_Track__
 #define __PHGenFit_Track__
 
+//STL
 #include <vector>
 
-#include <GenFit/Track.h>
+//GenFit
 
 
-#include "Measurement.h"
+namespace genfit {
+
+class AbsTrackRep;
+class StateOnPlane;
+class Track;
+
+}
 
 namespace PHGenFit {
+
+class Measurement;
 
 class Track
 {
@@ -26,13 +35,23 @@ public:
 	//! Default dtor
 	~Track();
 
+	//! Add measurement
 	int addMeasurements(std::vector<PHGenFit::Measurement*> measurements);
+
+	//!
+	genfit::StateOnPlane* extrapolateToLine(TVector3 line_point, TVector3 line_direction) const;
 
 	//!
 	genfit::Track* getGenFitTrack() {return _track;}
 
 private:
+
 	genfit::Track* _track;
+
+//	TODO figure out how to handle multiple TrackReps
+//	double _chi2;
+//	double _ndf;
+
 };
 } //End of PHGenFit namespace
 

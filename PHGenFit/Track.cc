@@ -9,9 +9,15 @@
 //BOOST
 #include <boost/foreach.hpp>
 
+//GenFit
 #include <GenFit/Track.h>
+#include <GenFit/KalmanFittedStateOnPlane.h>
+#include <GenFit/KalmanFitterInfo.h>
+#include <GenFit/KalmanFitter.h>
 
+//PHGenFit
 #include "Track.h"
+#include "Measurement.h"
 
 
 namespace PHGenFit {
@@ -48,6 +54,29 @@ int Track::addMeasurements(std::vector<PHGenFit::Measurement*> measurements)
 Track::~Track()
 {
 	delete _track;
+}
+
+genfit::StateOnPlane* Track::extrapolateToLine(TVector3 line_point, TVector3 line_direction) const
+{
+	genfit::AbsTrackRep* rep = _track->getCardinalRep();
+	genfit::TrackPoint* tp = _track->getPointWithMeasurementAndFitterInfo(
+			0, rep);
+	if (tp == NULL) {
+		std::cout << "Track has no TrackPoint with fitterInfo! \n";
+		return NULL;
+	}
+	genfit::KalmanFittedStateOnPlane *kfsop = new genfit::KalmanFittedStateOnPlane(
+			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getBackwardUpdate()));
+	// extrapolate back to reference plane.
+	try {
+		rep->extrapolateToLine(*kfsop, line_point, line_direction);
+	} catch (genfit::Exception& e) {
+		std::cerr << "Exception, next track" << std::endl;
+		std::cerr << e.what();
+		return NULL;
+	}
+
+	return kfsop;
 }
 
 } //End of PHGenFit namespace

@@ -22,8 +22,8 @@ PlanarMeasurement::PlanarMeasurement(TVector3 pos, TVector3 u, TVector3 v, doubl
 	hitCoords(0) = 0;
 	hitCoords(1) = 0;
 
-	hitCov(0,0) = du;
-	hitCov(1,1) = dv;
+	hitCov(0,0) = du*du;
+	hitCov(1,1) = dv*dv;
 
 	genfit::SharedPlanePtr plane(
 			new genfit::DetPlane(pos, u, v));

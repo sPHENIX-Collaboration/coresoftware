@@ -7,7 +7,7 @@
 #ifndef __PHGenFit_Measurement__
 #define __PHGenFit_Measurement__
 
-#include "GenFit/AbsMeasurement.h"
+#include <GenFit/AbsMeasurement.h>
 
 namespace PHGenFit {
 
