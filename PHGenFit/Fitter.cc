@@ -35,4 +35,13 @@ Fitter::~Fitter()
 	delete _fitter;
 }
 
+int Fitter::processTrack(PHGenFit::Track* track)
+{
+
+//FIXME Add more fitting info
+	_fitter->processTrack(track->getGenFitTrack());
+
+	return 0;
+}
+
 } //End of PHGenFit namespace

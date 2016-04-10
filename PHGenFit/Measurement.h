@@ -9,7 +9,8 @@ class Measurement
 {
 public:
 	//!ctor
-	Measurement();
+	Measurement() : _measurement(NULL) {};
+
 	//!dtor
 	~Measurement();
 

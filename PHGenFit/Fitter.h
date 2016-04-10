@@ -78,7 +78,7 @@ public:
 	//! Default destructor
 	~Fitter();
 
-	int processTrack(PHGenFit::Track track);
+	int processTrack(PHGenFit::Track* track);
 
 private:
 

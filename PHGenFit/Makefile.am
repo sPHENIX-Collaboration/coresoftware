@@ -19,11 +19,13 @@ lib_LTLIBRARIES = \
 pkginclude_HEADERS = \
   Fitter.h \
   Measurement.h \
+  PlanarMeasurement.h \
   Track.h
 
 libPHGenFit_la_SOURCES = \
   Fitter.cc \
   Measurement.cc \
+  PlanarMeasurement.cc \
   Track.cc
 
 libPHGenFit_la_LIBADD = \
