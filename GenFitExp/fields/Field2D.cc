@@ -96,7 +96,7 @@ void Field2D::plot(std::string option){
 			double bz;
 			get(r, 0, z, bx, by, bz);
 
-			double br = sqrt(bx * bx + by * by);
+//			double br = sqrt(bx * bx + by * by);
 
 			//std::cout <<"DEBUG: "<<__LINE__<<":"<< r << " ," << z << " ," << br << " ," << bz << "\n";
 
