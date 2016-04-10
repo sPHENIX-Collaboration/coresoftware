@@ -26,6 +26,9 @@
 #include <sPHENIXTracker.h>
 #endif
 
+// ROOT includes
+#include <TVector3.h>
+
 // standard includes
 #include <vector>
 #include <map>
@@ -182,6 +185,11 @@ public:
   /// convert from momentum to inverse curvature
   float ptToKappa(float pt);
 
+  /// utility to quickly compute cluster-pair pca
+  bool pca_line_to_line( const TVector3& point_a0, const TVector3& point_a1, // track
+			 const TVector3& point_b0, const TVector3& point_b1, // beam line
+			 TVector3& pca_on_a); // cpa on track
+  
   /// helper function for projection code
   static bool circle_line_intersections(double x0, double y0, double r0,
 					double x1, double y1, double vx1, double vy1,
