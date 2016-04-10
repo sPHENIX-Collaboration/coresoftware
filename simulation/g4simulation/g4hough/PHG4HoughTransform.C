@@ -529,67 +529,9 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
   // Guess a vertex position from pairs of clusters
   //-----------------------------------------------
 
-  double xave = 0.0;
-  double yave = 0.0;
-  double zave = 0.0;
-
-  for (unsigned int cycle = 0; cycle < 3; ++cycle) {
-    
-    double xsum = 0.0;
-    double ysum = 0.0;
-    double zsum = 0.0;     
-    double wsum = 0.0;
-      
-    for (unsigned int i = 0; i < _clusters_init.size(); ++i) {
-      if (_clusters_init[i].layer != 0) continue;
-	
-      float x1 = _clusters_init[i].x;
-      float y1 = _clusters_init[i].y;
-      float z1 = _clusters_init[i].z;
-      float phi1 = atan2(y1,x1);
-      
-      for (unsigned int j = i+1; j < _clusters_init.size(); ++j) {    
-	if (_clusters_init[j].layer != 1) continue;
-	  
-	float x2 = _clusters_init[j].x;
-	float y2 = _clusters_init[j].y;
-	float z2 = _clusters_init[j].z;
-	float phi2 = atan2(y2,x2);
-
-	float dphi = phi2-phi1;
-	dphi = atan2(sin(dphi),cos(dphi));	
-	if (fabs(dphi) > 0.3) continue; // clusters should be in the same phi region
-	
-	TVector3 pca;
-	if (!pca_line_to_line(TVector3(x1,y1,z1)      ,TVector3(x2,y2,z2),
-			      TVector3(xave,yave,-1000.),TVector3(xave,yave,+1000.0),
-			      pca)) continue;
-
-	float dx = pca.X() - xave;
-	float dy = pca.Y() - yave;	  
-	float dca = sqrt(dx*dx + dy*dy);
-	  
-	if (dca > 1.0) continue; // only consider PCA within 1cm of nominal beam line
-	if (fabs(pca.Z()) > 10.0) continue;
-	
-	if (dca == 0.0) dca = FLT_MIN;
-	  
-	xsum += pca.X() * 1/dca;
-	ysum += pca.Y() * 1/dca;
-	zsum += pca.Z() * 1/dca;
-	wsum += 1/dca;
-      }
-    }
-
-    if (wsum == 0) return Fun4AllReturnCodes::EVENT_OK;
-
-    xave = xsum / wsum;
-    yave = ysum / wsum;
-    zave = zsum / wsum;
-
-    cout << " initial pair vertex guess: " << xave << " " << yave << " " << zave << endl;
-  }      
-
+  int code = fast_vertex_guessing();
+  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+  
   //-----------------------------------
   // Find an initial vertex with tracks
   //-----------------------------------
@@ -1378,4 +1320,74 @@ bool PHG4HoughTransform::circle_circle_intersections(double x0, double y0, doubl
   points->insert(p3);
 
   return points;  
+}
+
+int PHG4HoughTransform::fast_vertex_guessing() {
+
+  double xave = 0.0;
+  double yave = 0.0;
+  double zave = 0.0;
+
+  for (unsigned int cycle = 0; cycle < 3; ++cycle) {
+    
+    double xsum = 0.0;
+    double ysum = 0.0;
+    double zsum = 0.0;     
+    double wsum = 0.0;
+      
+    for (unsigned int i = 0; i < _clusters_init.size(); ++i) {
+      if (_clusters_init[i].layer != 0) continue;
+	
+      float x1 = _clusters_init[i].x;
+      float y1 = _clusters_init[i].y;
+      float z1 = _clusters_init[i].z;
+      float phi1 = atan2(y1,x1);
+      
+      for (unsigned int j = i+1; j < _clusters_init.size(); ++j) {    
+	if (_clusters_init[j].layer != 1) continue;
+	  
+	float x2 = _clusters_init[j].x;
+	float y2 = _clusters_init[j].y;
+	float z2 = _clusters_init[j].z;
+	float phi2 = atan2(y2,x2);
+
+	float dphi = phi2-phi1;
+	dphi = atan2(sin(dphi),cos(dphi));	
+	if (fabs(dphi) > 0.3) continue; // clusters should be in the same phi region
+	
+	TVector3 pca;
+	if (!pca_line_to_line(TVector3(x1,y1,z1)      ,TVector3(x2,y2,z2),
+			      TVector3(xave,yave,-1000.),TVector3(xave,yave,+1000.0),
+			      pca)) continue;
+
+	float dx = pca.X() - xave;
+	float dy = pca.Y() - yave;	  
+	float dca = sqrt(dx*dx + dy*dy);
+	  
+	if (dca > 1.0) continue; // only consider PCA within 1cm of nominal beam line
+	if (fabs(pca.Z()) > 10.0) continue;
+	
+	if (dca == 0.0) dca = FLT_MIN;
+	  
+	xsum += pca.X() * 1/dca;
+	ysum += pca.Y() * 1/dca;
+	zsum += pca.Z() * 1/dca;
+	wsum += 1/dca;
+      }
+    }
+
+    if (wsum == 0) return Fun4AllReturnCodes::EVENT_OK;
+
+    xave = xsum / wsum;
+    yave = ysum / wsum;
+    zave = zsum / wsum;
+
+    if (verbosity) cout << " initial pair vertex guess: " << xave << " " << yave << " " << zave << endl;
+  }      
+
+  _vertex[0] = xave;
+  _vertex[1] = yave;
+  _vertex[2] = zave;
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
