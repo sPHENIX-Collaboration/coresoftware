@@ -536,71 +536,13 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
   // Find an initial vertex with tracks
   //-----------------------------------
 
-  // limit each window to no more than 80 tracks
-  unsigned int maxtracks = 80;
-    
-  // storage for tracking for initial vertex finding
-  std::vector<SimpleTrack3D> vtxtracks;
-  std::vector<Matrix<float,5,5> > vtxcovariances;
-
-  // loop over initial tracking windows
-  for (unsigned int i = 0; i < _tracker_vertex.size(); ++i) {
-
-    std::vector<SimpleTrack3D> newtracks;
+  code = initial_vertex_finding();
+  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
       
-    _tracker_vertex[i]->clear();
-    _tracker_vertex[i]->findHelices(_clusters_init, _req_seed, _max_hits_init, newtracks, maxtracks);
-
-    for(unsigned int t = 0; t < newtracks.size(); ++t) {
-      vtxtracks.push_back(newtracks[t]);
-      vtxcovariances.push_back( (_tracker_vertex[i]->getKalmanStates())[t].C );
-    }
-  }
-    
-  if (vtxtracks.size() == 0) return Fun4AllReturnCodes::EVENT_OK;
-
-  // --- compute seed vertex from initial track finding --------------------
-
-  cout << " initial track finding count: " << vtxtracks.size() << endl;
-      
-  double xsum = 0.0;
-  double ysum = 0.0;
-  double zsum = 0.0;
-
-  for (unsigned int i = 0; i < vtxtracks.size(); ++i) {
-    xsum += vtxtracks[i].d * cos( vtxtracks[i].phi );
-    ysum += vtxtracks[i].d * sin( vtxtracks[i].phi );
-    zsum += vtxtracks[i].z0;
-  }
-
-  std::vector<float> temp_vertex(3,0.0);
-  if (vtxtracks.size() != 0) {
-    temp_vertex[0] = xsum / vtxtracks.size();
-    temp_vertex[1] = ysum / vtxtracks.size();
-    temp_vertex[2] = zsum / vtxtracks.size();
-  }
-
-  if (verbosity > 0) {
-    cout << " initial track vertex pre-fit : "
-	 << temp_vertex[0] << " " << temp_vertex[1] << " " << temp_vertex[2] << endl;
-  }
-      
-  // start with the average position and converge from there
-  _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 3.00, true);
-  _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.10, true);
-  _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.02, false);
-        
-  _vertex[0] = temp_vertex[0];
-  _vertex[1] = temp_vertex[1];
-  _vertex[2] = temp_vertex[2];
-                
-  if (verbosity > 0) {
-    cout << " initial track vertex post-fit : "
-	 << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
-  }
-    
-  _tracks.clear();
-    
+  //----------------------------------
+  // Preform the track finding
+  //----------------------------------
+  
   // --- shift coordinate system to place vertex at the origin ---------------
     
   for(unsigned int ht = 0; ht < _clusters_init.size(); ++ht) {
@@ -614,10 +556,6 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
     _clusters[ht].y -= _vertex[1];
     _clusters[ht].z -= _vertex[2];
   }
-    
-  //----------------------------------
-  // Preform the track finding
-  //----------------------------------
   
   _tracker->clear();
   _tracks.clear();
@@ -652,6 +590,9 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
     pTmap.back().push_back((double)i);
   }
   sort(pTmap.begin(), pTmap.end());
+
+  std::vector<SimpleTrack3D> vtxtracks;
+  std::vector<Matrix<float,5,5> > vtxcovariances;
   
   vtxtracks.clear();
   vtxcovariances.clear();
@@ -1061,8 +1002,7 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
   _tracker->setChi2RemovalCut(_chi2_cut_full*0.5);
   _tracker->setCellularAutomatonChi2Cut(_ca_chi2_cut);
   _tracker->setPrintTimings(false);
-  //if(verbosity > 10){_tracker->setPrintTimings(true);}
-  //_tracker->setVerbosity(verbosity);
+  _tracker->setVerbosity(verbosity);
   _tracker->setCutOnDca(_cut_on_dca);
   _tracker->setDcaCut(_dca_cut);
   _tracker->setSmoothBack(true);
@@ -1072,8 +1012,7 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
   _tracker->setSeparateByHelicity(true);
   _tracker->setMaxHitsPairs(0);
   _tracker->setCosAngleCut(_cos_angle_cut);
-  
-  
+    
   vector<vector<unsigned int> > zoomprofile_init;
   zoomprofile_init.assign(4,onezoom);
   for(unsigned int i=0;i<=1;++i)
@@ -1106,8 +1045,7 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
 	{
 	  top_range_init.push_back(HelixRange(phimin, phimin+phi_step,   -0.2, 0.2,   0.0, kappa_max_init,   -0.9, 0.9,   z0min, z0min+z0_step));
 	  _tracker_vertex.push_back( new sPHENIXTracker(zoomprofile_init, 1, top_range_init.back(), _material, _radii, _magField) );
-	  //if(verbosity > 3){(_tracker_vertex.back())->setPrintTimings(true);}
-	  //(_tracker_vertex.back())->setVerbosity(verbosity);
+	  (_tracker_vertex.back())->setVerbosity(verbosity);
 	  (_tracker_vertex.back())->setNLayers(_seed_layers);
 	  (_tracker_vertex.back())->requireLayers(_req_seed);
 	  (_tracker_vertex.back())->setClusterStartBin(1);
@@ -1324,6 +1262,10 @@ bool PHG4HoughTransform::circle_circle_intersections(double x0, double y0, doubl
 
 int PHG4HoughTransform::fast_vertex_guessing() {
 
+  // 1/dca weighted average of pca positions from cluster pair projections
+  // cycles a few times to update vertex position used in dca creation
+  // so can slide to beam line positions with a standoff from (0,0)
+
   double xave = 0.0;
   double yave = 0.0;
   double zave = 0.0;
@@ -1365,7 +1307,7 @@ int PHG4HoughTransform::fast_vertex_guessing() {
 	float dca = sqrt(dx*dx + dy*dy);
 	  
 	if (dca > 1.0) continue; // only consider PCA within 1cm of nominal beam line
-	if (fabs(pca.Z()) > 10.0) continue;
+	if (fabs(pca.Z()) > 15.0) continue;
 	
 	if (dca == 0.0) dca = FLT_MIN;
 	  
@@ -1389,5 +1331,107 @@ int PHG4HoughTransform::fast_vertex_guessing() {
   _vertex[1] = yave;
   _vertex[2] = zave;
 
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4HoughTransform::initial_vertex_finding() {
+
+  // shift to the guess vertex position
+  // run the tracking pattern recognition, stop after some number of tracks
+  // have been found, fit those tracks to a vertex
+  
+  // shift to vertex guess position
+  for(unsigned int ht = 0; ht < _clusters_init.size(); ++ht) {
+    _clusters_init[ht].x -= _vertex[0];
+    _clusters_init[ht].y -= _vertex[1];
+    _clusters_init[ht].z -= _vertex[2];
+  }
+
+  for(unsigned int ht = 0; ht < _clusters.size(); ++ht) {
+    _clusters[ht].x -= _vertex[0];
+    _clusters[ht].y -= _vertex[1];
+    _clusters[ht].z -= _vertex[2];
+  }
+  
+  // limit each window to no more than 80 tracks
+  unsigned int maxtracks = 80;
+    
+  // storage for tracking for initial vertex finding
+  std::vector<SimpleTrack3D> vtxtracks;
+  std::vector<Matrix<float,5,5> > vtxcovariances;
+
+  // loop over initial tracking windows
+  std::vector<SimpleTrack3D> newtracks;
+      
+  _tracker->clear();
+  _tracker->findHelices(_clusters_init, _req_seed,
+			_max_hits_init, newtracks, maxtracks);
+
+  for(unsigned int t = 0; t < newtracks.size(); ++t) {
+    vtxtracks.push_back(newtracks[t]);
+    vtxcovariances.push_back( (_tracker->getKalmanStates())[t].C );
+  }
+    
+  if (vtxtracks.size() == 0) return Fun4AllReturnCodes::EVENT_OK;
+
+  // --- compute seed vertex from initial track finding --------------------
+
+  cout << " initial track finding count: " << vtxtracks.size() << endl;
+      
+  double xsum = 0.0;
+  double ysum = 0.0;
+  double zsum = 0.0;
+
+  for (unsigned int i = 0; i < vtxtracks.size(); ++i) {
+    xsum += vtxtracks[i].d * cos( vtxtracks[i].phi );
+    ysum += vtxtracks[i].d * sin( vtxtracks[i].phi );
+    zsum += vtxtracks[i].z0;
+  }
+
+  std::vector<float> temp_vertex(3,0.0);
+  if (vtxtracks.size() != 0) {
+    temp_vertex[0] = xsum / vtxtracks.size();
+    temp_vertex[1] = ysum / vtxtracks.size();
+    temp_vertex[2] = zsum / vtxtracks.size();
+  }
+
+  if (verbosity > 0) {
+    cout << " initial track vertex pre-fit : "
+	 << temp_vertex[0] + _vertex[0] << " "
+	 << temp_vertex[1] + _vertex[1] << " "
+	 << temp_vertex[2] + _vertex[2] << endl;
+  }
+      
+  // start with the average position and converge from there
+  _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 3.00, true);
+  _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.10, true);
+  _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.02, false);
+
+  // shift back to global coordinates
+  for(unsigned int ht = 0; ht < _clusters_init.size(); ++ht) {
+    _clusters_init[ht].x += _vertex[0];
+    _clusters_init[ht].y += _vertex[1];
+    _clusters_init[ht].z += _vertex[2];
+  }
+
+  for(unsigned int ht = 0; ht < _clusters.size(); ++ht) {
+    _clusters[ht].x += _vertex[0];
+    _clusters[ht].y += _vertex[1];
+    _clusters[ht].z += _vertex[2];
+  }
+
+  // update vertex position in global coordinates
+  
+  _vertex[0] = temp_vertex[0] + _vertex[0];
+  _vertex[1] = temp_vertex[1] + _vertex[1];
+  _vertex[2] = temp_vertex[2] + _vertex[2];
+                
+  if (verbosity > 0) {
+    cout << " initial track vertex post-fit : "
+	 << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
+  }
+
+  _tracker->clear();
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }

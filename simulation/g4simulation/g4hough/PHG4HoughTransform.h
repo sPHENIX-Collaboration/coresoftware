@@ -191,6 +191,7 @@ public:
 			 TVector3& pca_on_a); // cpa on track
 
   int fast_vertex_guessing();
+  int initial_vertex_finding();
   
   /// helper function for projection code
   static bool circle_line_intersections(double x0, double y0, double r0,
