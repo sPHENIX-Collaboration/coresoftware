@@ -49,6 +49,10 @@ int main(int argc, char**argv) {
 
 	double resolution_detector_xy = 0.005/3.; //50/3. micron
 
+
+	TH2D *hpT_residual_vs_pT = new TH2D("hpT_residual_vs_pT", "#Delta pT/pT; pT[GeV/c]; #Delta pT/pT", 20, 0.5, 40.5, 1000, -1, 1);
+
+
 #define NLAYERS 7
 
 
@@ -86,12 +90,15 @@ int main(int argc, char**argv) {
 	T->SetBranchAddress("size_dphi", Cluster_size_dphi);
 	T->SetBranchAddress("size_dz", Cluster_size_dz);
 
-	for (unsigned int ientry = 0; ientry < 1; ++ientry) {
+	double nentries = 10000;
+	for (unsigned int ientry = 0; ientry < nentries; ++ientry) {
 		//T->GetEntry(atoi(argv[1]));
+		if(ientry%1000==0) std::cout<<"Processing: "<<100.*ientry/nentries <<"%"<<"\n";
+
 		T->GetEntry(ientry);
 
 		if (nhits < 0) {
-			LogDEBUG;
+			//LogDEBUG;
 			continue;
 		}
 
@@ -161,8 +168,29 @@ int main(int argc, char**argv) {
 		//!
 		genfit::StateOnPlane* state_at_beam_line = track->extrapolateToLine(
 				TVector3(0, 0, 0), TVector3(0, 0, 1));
-		state_at_beam_line->Print();
+		//state_at_beam_line->Print();
+
+		TVector3 GenFit_mom = state_at_beam_line->getMom();
+
+		TVector3 AlanDion_mom(AlanDion_px,AlanDion_py,AlanDion_pz);
+
+		hpT_residual_vs_pT->Fill(True_mom.Pt(),(GenFit_mom.Pt() - True_mom.Pt())/True_mom.Pt());
 	}
+
+	gStyle->SetOptFit();
+	gStyle->SetOptStat(000000000);
+
+	TF1 *tf_pT_resolution = new TF1("tf_pT_resolution","sqrt([0]*[0] + x*x*[1]*[1])", 0, 40);
+	tf_pT_resolution->SetParameters(0,0);
+	TCanvas *c3 = new TCanvas("c3","c3");
+	c3->Divide(2,1);
+	c3->cd(1);
+	hpT_residual_vs_pT->FitSlicesY();
+	TH1D *hpT_resolution_vs_pT = (TH1D*)gDirectory->Get("hpT_residual_vs_pT_2");
+	hpT_resolution_vs_pT->SetTitle("GenFit: #sigma_{p_{T}}/p_{T}; p_{T}[GeV/c]; #sigma_{p_{T}}/p_{T}");
+	hpT_resolution_vs_pT->SetMarkerStyle(20);
+	hpT_resolution_vs_pT->Draw("e");
+	hpT_resolution_vs_pT->Fit(tf_pT_resolution);
 
 
 	//! Event display

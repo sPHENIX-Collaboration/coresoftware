@@ -10,6 +10,12 @@
 //STL
 #include <vector>
 
+//BOOST
+#include<boost/make_shared.hpp>
+
+#define SMART(expr) boost::shared_ptr<expr>
+#define NEW(expr) boost::make_shared<expr>
+
 //GenFit
 
 
@@ -42,11 +48,13 @@ public:
 	genfit::StateOnPlane* extrapolateToLine(TVector3 line_point, TVector3 line_direction) const;
 
 	//!
-	genfit::Track* getGenFitTrack() {return _track;}
+	genfit::Track* getGenFitTrack() {return _track.get();}
+	//SMART(genfit::Track) getGenFitTrack() {return _track;}
 
 private:
 
-	genfit::Track* _track;
+	//genfit::Track* _track;
+	SMART(genfit::Track) _track;
 
 //	TODO figure out how to handle multiple TrackReps
 //	double _chi2;
