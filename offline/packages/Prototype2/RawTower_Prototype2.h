@@ -28,30 +28,8 @@ class RawTower_Prototype2 : public RawTower {
   float get_time() const { return time; }
   void set_time(const float t) { time = t; }
 
-  //---cell access--------------------------------------------------------------
-  
-  bool empty_g4cells() const { return ecells.empty(); }
-  size_t size_g4cells() const { return ecells.size(); }
-  RawTower::CellConstRange get_g4cells() const {
-    return make_pair(ecells.begin(), ecells.end());
-  }
-  RawTower::CellIterator find_g4cell(int id) { return ecells.find(id); }
-  RawTower::CellConstIterator find_g4cell(int id) const {return ecells.find(id);}
-  void add_ecell(const PHG4CylinderCellDefs::keytype g4cellid,
-                 const float ecell);
-  void clear_g4cells() { ecells.clear(); }
-
   //---shower access------------------------------------------------------------
   
-  bool empty_g4showers() const { return eshowers.empty(); }
-  size_t size_g4showers() const { return eshowers.size(); }
-  RawTower::ShowerConstRange get_g4showers() const {
-    return make_pair(eshowers.begin(), eshowers.end());
-  }
-  RawTower::ShowerIterator find_g4shower(int id) { return eshowers.find(id); }
-  RawTower::ShowerConstIterator find_g4shower(int id) const {return eshowers.find(id);}
-  void add_eshower(const int g4showerid, const float eshower);
-  void clear_g4showers() { eshowers.clear(); }
   void set_signal_samples_hg(int i,int sig) 
     { hg_signal_samples[i]=sig; }
   int get_signal_samples_hg(int i)
@@ -79,8 +57,6 @@ class RawTower_Prototype2 : public RawTower {
   int hg_signal_samples[24];  //High Gain
   int lg_signal_samples[24];  //Low Gain
   int HBD_channel;
-  CellMap ecells;      //< default truth storage
-  ShowerMap eshowers;  //< alternate truth storage for smaller filesizes
 
   ClassDef(RawTower_Prototype2, 1)
 };

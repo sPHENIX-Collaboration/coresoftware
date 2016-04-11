@@ -65,8 +65,6 @@ RawTower_Prototype2::Reset()
 {
   energy = 0;
   time = NAN;
-  ecells.clear();
-  eshowers.clear();
 }
 
 int
@@ -82,29 +80,3 @@ RawTower_Prototype2::identify(std::ostream& os) const
       << " energy=" << get_energy() << std::endl;
 }
 
-void
-RawTower_Prototype2::add_ecell(const PHG4CylinderCellDefs::keytype g4cellid,
-    const float ecell)
-{
-  if (ecells.find(g4cellid) == ecells.end())
-    {
-      ecells[g4cellid] = ecell;
-    }
-  else
-    {
-      ecells[g4cellid] += ecell;
-    }
-}
-
-void 
-RawTower_Prototype2::add_eshower(const int g4showerid, const float eshower)
-{
-  if (eshowers.find(g4showerid) == eshowers.end())
-    {
-      eshowers[g4showerid] = eshower;
-    }
-  else
-    {
-      eshowers[g4showerid] += eshower;
-    }
-}
