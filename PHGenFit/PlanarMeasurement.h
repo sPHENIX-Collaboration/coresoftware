@@ -20,6 +20,8 @@ public:
 	//!ctor
 	PlanarMeasurement(TVector3 pos, TVector3 u, TVector3 v, double du, double dv);
 
+	PlanarMeasurement(TVector3 pos, TVector3 n, double du, double dv);
+
 	//!dtor
 	~PlanarMeasurement();
 

@@ -24,7 +24,7 @@ namespace PHGenFit {
 
 Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMatrixDSym seed_cov)
 {
-//FIXME Add input param check
+//TODO Add input param check
 
 	genfit::MeasuredStateOnPlane seedMSoP(rep);
 	seedMSoP.setPosMomCov(seed_pos, seed_mom, seed_cov);
@@ -57,11 +57,36 @@ Track::~Track()
 	//delete _track;
 }
 
-genfit::StateOnPlane* Track::extrapolateToLine(TVector3 line_point, TVector3 line_direction) const
+genfit::StateOnPlane* Track::extrapolateToPlane(TVector3 O, TVector3 n, const int tr_point_id) const
+{
+	genfit::SharedPlanePtr destPlane(new genfit::DetPlane(O, n));
+
+	genfit::AbsTrackRep* rep = _track->getCardinalRep();
+	genfit::TrackPoint* tp = _track->getPointWithMeasurementAndFitterInfo(
+			tr_point_id, rep);
+	if (tp == NULL) {
+		std::cout << "Track has no TrackPoint with fitterInfo! \n";
+		return NULL;
+	}
+	genfit::KalmanFittedStateOnPlane *kfsop = new genfit::KalmanFittedStateOnPlane(
+			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getBackwardUpdate()));
+	// extrapolate back to reference plane.
+	try {
+		rep->extrapolateToPlane(*kfsop, destPlane);
+	} catch (genfit::Exception& e) {
+		std::cerr << "Exception, next track" << std::endl;
+		std::cerr << e.what();
+		return NULL;
+	}
+
+	return kfsop;
+}
+
+genfit::StateOnPlane* Track::extrapolateToLine(TVector3 line_point, TVector3 line_direction, const int tr_point_id) const
 {
 	genfit::AbsTrackRep* rep = _track->getCardinalRep();
 	genfit::TrackPoint* tp = _track->getPointWithMeasurementAndFitterInfo(
-			0, rep);
+			tr_point_id, rep);
 	if (tp == NULL) {
 		std::cout << "Track has no TrackPoint with fitterInfo! \n";
 		return NULL;
@@ -71,6 +96,53 @@ genfit::StateOnPlane* Track::extrapolateToLine(TVector3 line_point, TVector3 lin
 	// extrapolate back to reference plane.
 	try {
 		rep->extrapolateToLine(*kfsop, line_point, line_direction);
+	} catch (genfit::Exception& e) {
+		std::cerr << "Exception, next track" << std::endl;
+		std::cerr << e.what();
+		return NULL;
+	}
+
+	return kfsop;
+}
+
+genfit::StateOnPlane* Track::extrapolateToCylinder(double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id) const
+{
+	genfit::AbsTrackRep* rep = _track->getCardinalRep();
+	genfit::TrackPoint* tp = _track->getPointWithMeasurementAndFitterInfo(
+			tr_point_id, rep);
+	if (tp == NULL) {
+		std::cout << "Track has no TrackPoint with fitterInfo! \n";
+		return NULL;
+	}
+	genfit::KalmanFittedStateOnPlane *kfsop = new genfit::KalmanFittedStateOnPlane(
+			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getForwardUpdate()));
+	// extrapolate back to reference plane.
+	try {
+		//rep->extrapolateToLine(*kfsop, line_point, line_direction);
+		rep->extrapolateToCylinder(*kfsop, radius, line_point, line_direction);
+	} catch (genfit::Exception& e) {
+		std::cerr << "Exception, next track" << std::endl;
+		std::cerr << e.what();
+		return NULL;
+	}
+
+	return kfsop;
+}
+
+genfit::StateOnPlane* Track::extrapolateToPoint(TVector3 P, const int tr_point_id) const
+{
+	genfit::AbsTrackRep* rep = _track->getCardinalRep();
+	genfit::TrackPoint* tp = _track->getPointWithMeasurementAndFitterInfo(
+			tr_point_id, rep);
+	if (tp == NULL) {
+		std::cout << "Track has no TrackPoint with fitterInfo! \n";
+		return NULL;
+	}
+	genfit::KalmanFittedStateOnPlane *kfsop = new genfit::KalmanFittedStateOnPlane(
+			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getBackwardUpdate()));
+	// extrapolate back to reference plane.
+	try {
+		rep->extrapolateToPoint(*kfsop, P);
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();

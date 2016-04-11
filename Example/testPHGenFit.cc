@@ -33,8 +33,7 @@
 
 int main(int argc, char**argv) {
 	//! Initiallize Geometry, Field, Fitter
-	PHGenFit::Fitter* fitter = new PHGenFit::Fitter("sPHENIX_Geo.root",
-			"sPHENIX.2d.root", 1.4 / 1.5);
+	PHGenFit::Fitter* fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
 
 	TFile *fPHG4Hits = TFile::Open("AnaSvtxTracksForGenFit.root", "read");
 	if (!fPHG4Hits) {
@@ -90,7 +89,7 @@ int main(int argc, char**argv) {
 	T->SetBranchAddress("size_dphi", Cluster_size_dphi);
 	T->SetBranchAddress("size_dz", Cluster_size_dz);
 
-	double nentries = 10000;
+	double nentries = 1;
 	for (unsigned int ientry = 0; ientry < nentries; ++ientry) {
 		//T->GetEntry(atoi(argv[1]));
 		if(ientry%1000==0) std::cout<<"Processing: "<<100.*ientry/nentries <<"%"<<"\n";
@@ -168,7 +167,12 @@ int main(int argc, char**argv) {
 		//!
 		genfit::StateOnPlane* state_at_beam_line = track->extrapolateToLine(
 				TVector3(0, 0, 0), TVector3(0, 0, 1));
-		//state_at_beam_line->Print();
+		state_at_beam_line->Print();
+
+		genfit::StateOnPlane* state_at_layer_6 = track->extrapolateToCylinder(80.,
+						TVector3(0, 0, 0), TVector3(0, 0, 1));
+		state_at_layer_6->Print();
+
 
 		TVector3 GenFit_mom = state_at_beam_line->getMom();
 

@@ -45,7 +45,16 @@ public:
 	int addMeasurements(std::vector<PHGenFit::Measurement*> measurements);
 
 	//!
-	genfit::StateOnPlane* extrapolateToLine(TVector3 line_point, TVector3 line_direction) const;
+	genfit::StateOnPlane* extrapolateToPlane(TVector3 O, TVector3 n, const int tr_point_id = -1) const;
+
+	//!
+	genfit::StateOnPlane* extrapolateToLine(TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0) const;
+
+	//!
+	genfit::StateOnPlane* extrapolateToCylinder(double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id = -1) const;
+
+	//!
+	genfit::StateOnPlane* extrapolateToPoint(TVector3 P, const int tr_point_id = 0) const;
 
 	//!
 	genfit::Track* getGenFitTrack() {return _track.get();}
@@ -56,7 +65,8 @@ private:
 	//genfit::Track* _track;
 	SMART(genfit::Track) _track;
 
-//	TODO figure out how to handle multiple TrackReps
+	//TODO how to handle multiple TrackReps
+	//TODO how to store fitting information
 //	double _chi2;
 //	double _ndf;
 
