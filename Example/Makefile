@@ -34,14 +34,21 @@ LDFLAGS		+=	-L$(OFFLINE_MAIN)/lib -lgenfit2exp -lPHGenFit
 TESTO         = testPHGenFit.o
 TEST	        = testPHGenFit
 
-OBJS          = $(TESTO)
-PROGRAMS      = $(TEST)
+TEST2O			=	minimumTestPHGenFit.o
+TEST2			=	minimumTestPHGenFit
 
-all:            $(TEST)
+OBJS          = $(TESTO) $(TEST2O)
+PROGRAMS      = $(TEST) $(TEST2)
+
+all:            $(PROGRAMS)
 
 .SUFFIXES: .cc .o
 
 $(TEST):       $(TESTO)
+	$(LD) $^ -o $@ $(LDFLAGS)
+	@echo "$@ done."
+
+$(TEST2):       $(TEST2O)
 	$(LD) $^ -o $@ $(LDFLAGS)
 	@echo "$@ done."
 

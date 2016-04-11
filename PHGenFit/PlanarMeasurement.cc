@@ -11,8 +11,7 @@
 
 namespace PHGenFit {
 
-
-PlanarMeasurement::PlanarMeasurement(TVector3 pos, TVector3 u, TVector3 v, double du, double dv)
+void PlanarMeasurement::init(const TVector3& pos, const TVector3& u, const TVector3& v, const double du, const double dv)
 {
 
 	int nDim = 2;
@@ -37,7 +36,13 @@ PlanarMeasurement::PlanarMeasurement(TVector3 pos, TVector3 u, TVector3 v, doubl
 			plane, measurementCounter_);
 }
 
-PlanarMeasurement::PlanarMeasurement(TVector3 pos, TVector3 n, double du, double dv)
+
+PlanarMeasurement::PlanarMeasurement(const TVector3& pos, const TVector3& u, const TVector3& v, const double du, const double dv)
+{
+	init(pos, u, v, du, dv);
+}
+
+PlanarMeasurement::PlanarMeasurement(const TVector3& pos, const TVector3& n, const double du, const double dv)
 {
 	/*!
 	 *  Mainly for "n" in xy plane, or n.z() = 0;
@@ -48,12 +53,12 @@ PlanarMeasurement::PlanarMeasurement(TVector3 pos, TVector3 n, double du, double
 	 */
 	TVector3 u = n.Orthogonal();
 	TVector3 v = n.Cross(u);
-	PlanarMeasurement(pos, u, v, du, dv);
+	init(pos, u, v, du, dv);
 }
 
 PlanarMeasurement::~PlanarMeasurement()
 {
-	delete _measurement;
+	//delete _measurement;
 }
 
 

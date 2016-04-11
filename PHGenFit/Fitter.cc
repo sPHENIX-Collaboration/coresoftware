@@ -103,7 +103,12 @@ Fitter::Fitter(
 	_display = genfit::EventDisplay::getInstance();
 
 	// init fitter
-	_fitter = new genfit::KalmanFitterRefTrack();
+	if(fitter_choice.compare("KalmanFitterRefTrack")==0)
+		_fitter = new genfit::KalmanFitterRefTrack();
+	else if(fitter_choice.compare("KalmanFitter")==0)
+		_fitter = new genfit::KalmanFitter();
+	else
+		_fitter = new genfit::KalmanFitter();
 }
 
 Fitter::~Fitter()
@@ -116,7 +121,7 @@ Fitter::~Fitter()
 int Fitter::processTrack(PHGenFit::Track* track, const bool save_to_evt_disp)
 {
 
-//TODO Add savety checks
+//TODO Add safety checks
 	_fitter->processTrack(track->getGenFitTrack());
 
 	if(save_to_evt_disp)
