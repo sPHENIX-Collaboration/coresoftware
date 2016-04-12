@@ -1321,11 +1321,11 @@ int PHG4HoughTransform::setup_tracker_object() {
   
   float kappa_max = ptToKappa(_min_pT);
 
-  HelixRange top_range( 0.0, 2.*M_PI,
-			-0.2, 0.2,
-			0.0, kappa_max,
-			-0.9, 0.9,
-			-1.0*_dcaz_cut, 1.0*_dcaz_cut);
+  HelixRange top_range( 0.0, 2.*M_PI,                   // center of rotation azimuthal angles
+			-0.2, 0.2,                      // 2d dca range
+			0.0, kappa_max,                 // curvature range
+			-0.9, 0.9,                      // dzdl range
+			-1.0*_dcaz_cut, 1.0*_dcaz_cut); // dca_z range
   
   if (!_use_vertex) {
     top_range.min_z0 = -10.;
@@ -1401,16 +1401,21 @@ int PHG4HoughTransform::setup_tracker_object() {
 
 int PHG4HoughTransform::setup_initial_tracker_object() {
 
+  // copy of the final tracker with expanded DCA search regions
+  
   // tell the initial tracker object the phase space extent of the search region
   // and the recursive zoom factors to utilize  
 
   float kappa_max = ptToKappa(_min_pT);
 
-  HelixRange top_range( 0.0, 2.*M_PI,
-			-0.2, 0.2,
-			0.0, kappa_max,
-			-0.9, 0.9,
-			-1.0*_dcaz_cut, 1.0*_dcaz_cut);
+  // for the initial tracker we may not have the best guess on the vertex yet
+  // so I've doubled the search range on dca and dcaz
+  
+  HelixRange top_range( 0.0, 2.*M_PI,                   // center of rotation azimuthal angles
+			-0.2*2, 0.2*2,                  // 2d dca range
+			0.0, kappa_max,                 // curvature range
+			-0.9, 0.9,                      // dzdl range
+			-2.0*_dcaz_cut, 2.0*_dcaz_cut); // dca_z range
   
   if (!_use_vertex) {
     top_range.min_z0 = -10.;
