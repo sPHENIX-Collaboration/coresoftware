@@ -192,6 +192,8 @@ public:
 
   int fast_vertex_guessing();
   int initial_vertex_finding();
+  int setup_tracker_object();
+  int setup_initial_tracker_object();
   
   /// helper function for projection code
   static bool circle_line_intersections(double x0, double y0, double r0,
@@ -231,10 +233,9 @@ public:
   std::vector<float> _vertex;         ///< working array for collision vertex                                           
 
   // track finding routines                                                                                             
-  sPHENIXTracker *_tracker;    // finds full tracks  
+  sPHENIXTracker *_tracker;    // finds full tracks
   std::vector<sPHENIXTracker*> _tracker_vertex; // finds a subset of tracks for initial vertex-finding
-  
-  
+    
   VertexFinder _vertexFinder; ///< vertex finding object
 
   float _magField; ///< in Tesla

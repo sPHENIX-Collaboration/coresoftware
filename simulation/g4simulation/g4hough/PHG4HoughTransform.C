@@ -945,139 +945,10 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
     _material[_layer_ilayer_map[iter->first]] = iter->second;
   }
 
-  float kappa_max = ptToKappa(_min_pT);
+  // initialize the pattern recogition tools
 
-  HelixRange top_range( 0.0, 2.*M_PI,
-			-0.2, 0.2,
-			0.0, kappa_max,
-			-0.9, 0.9,
-			-1.0*_dcaz_cut, 1.0*_dcaz_cut);
-  if (!_use_vertex) {
-    top_range.min_z0 = -10.;
-    top_range.max_z0 = 10.;
-  }
-  
-  vector<unsigned int> onezoom(5,0);
-  vector<vector<unsigned int> > zoomprofile;
-  zoomprofile.assign(5,onezoom);
-  zoomprofile[0][0] = 16;
-  zoomprofile[0][1] = 1;
-  zoomprofile[0][2] = 4;
-  zoomprofile[0][3] = 8;
-  zoomprofile[0][4] = 1;
-  
-  zoomprofile[1][0] = 16;
-  zoomprofile[1][1] = 1;
-  zoomprofile[1][2] = 4;
-  zoomprofile[1][3] = 4;
-  zoomprofile[1][4] = 2;
-  
-  zoomprofile[2][0] = 4;
-  zoomprofile[2][1] = 3;
-  zoomprofile[2][2] = 2;
-  zoomprofile[2][3] = 1;
-  zoomprofile[2][4] = 3;
-  
-  for (unsigned int i = 2; i <= 3; ++i) {
-    zoomprofile[i][0] = 3;
-    zoomprofile[i][1] = 3;
-    zoomprofile[i][2] = 3;
-    zoomprofile[i][3] = 3;
-    zoomprofile[i][4] = 3;
-  }
-    
-  _tracker = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
-  _tracker->setNLayers(_seed_layers);
-  _tracker->requireLayers(_req_seed);
-  _max_hits_init = _seed_layers*4;
-  if(_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
-  _min_hits_init = _req_seed;
-  if(_seed_layers < 10){ _tracker->setClusterStartBin(1); }
-  else{ _tracker->setClusterStartBin(10); }
-  _tracker->setRejectGhosts(_reject_ghosts);
-  _tracker->setFastChi2Cut(_chi2_cut_fast_par0,
-			   _chi2_cut_fast_par1,
-			   _chi2_cut_fast_max);
-  _tracker->setChi2Cut(_chi2_cut_full);
-  _tracker->setChi2RemovalCut(_chi2_cut_full*0.5);
-  _tracker->setCellularAutomatonChi2Cut(_ca_chi2_cut);
-  _tracker->setPrintTimings(false);
-  _tracker->setVerbosity(verbosity);
-  _tracker->setCutOnDca(_cut_on_dca);
-  _tracker->setDcaCut(_dca_cut);
-  _tracker->setSmoothBack(true);
-  _tracker->setBinScale(_bin_scale);
-  _tracker->setZBinScale(_z_bin_scale);
-  _tracker->setRemoveHits(_remove_hits);
-  _tracker->setSeparateByHelicity(true);
-  _tracker->setMaxHitsPairs(0);
-  _tracker->setCosAngleCut(_cos_angle_cut);
-    
-  vector<vector<unsigned int> > zoomprofile_init;
-  zoomprofile_init.assign(4,onezoom);
-  for(unsigned int i=0;i<=1;++i)
-    {
-      zoomprofile_init[i][0] = 8;
-      zoomprofile_init[i][1] = 1;
-      zoomprofile_init[i][2] = 3;
-      zoomprofile_init[i][3] = 4;
-      zoomprofile_init[i][4] = 4;
-    }
-  for(unsigned int i=2;i<=3;++i)
-    {
-      zoomprofile_init[i][0] = 8;
-      zoomprofile_init[i][1] = 1;
-      zoomprofile_init[i][2] = 2;
-      zoomprofile_init[i][3] = 2;
-      zoomprofile_init[i][4] = 2;
-    }
-  vector<HelixRange> top_range_init;
-  unsigned int nphi = 1;
-  unsigned int nz0 = 5;
-  double phimin = 0.;
-  double phi_step = 2.0*M_PI/((double)nphi);
-  float kappa_max_init = ptToKappa(_min_pT_init);
-  for(unsigned int i=0;i<nphi;++i)
-    {
-      double z0min = -10.;
-      double z0_step = 20./((double)nz0);
-      for(unsigned int j=0;j<nz0;++j)
-	{
-	  top_range_init.push_back(HelixRange(phimin, phimin+phi_step,   -0.2, 0.2,   0.0, kappa_max_init,   -0.9, 0.9,   z0min, z0min+z0_step));
-	  _tracker_vertex.push_back( new sPHENIXTracker(zoomprofile_init, 1, top_range_init.back(), _material, _radii, _magField) );
-	  (_tracker_vertex.back())->setVerbosity(verbosity);
-	  (_tracker_vertex.back())->setNLayers(_seed_layers);
-	  (_tracker_vertex.back())->requireLayers(_req_seed);
-	  (_tracker_vertex.back())->setClusterStartBin(1);
-	  (_tracker_vertex.back())->setRejectGhosts(true);
-	  (_tracker_vertex.back())->setFastChi2Cut(_chi2_cut_fast_par0,
-						   _chi2_cut_fast_par1,
-						   _chi2_cut_fast_max);
-	  (_tracker_vertex.back())->setChi2Cut(_chi2_cut_init);
-	  (_tracker_vertex.back())->setChi2RemovalCut(_chi2_cut_init*0.5);
-	  (_tracker_vertex.back())->setCellularAutomatonChi2Cut(_ca_chi2_cut);
-	  (_tracker_vertex.back())->setCutOnDca(false);
-	  (_tracker_vertex.back())->setSmoothBack(true);
-	  (_tracker_vertex.back())->setBinScale(_bin_scale);
-	  (_tracker_vertex.back())->setZBinScale(_z_bin_scale);
-	  (_tracker_vertex.back())->setRemoveHits(true);
-	  (_tracker_vertex.back())->setSeparateByHelicity(true);
-	  (_tracker_vertex.back())->setMaxHitsPairs(0);
-	  (_tracker_vertex.back())->setCosAngleCut(_cos_angle_cut);
-	  z0min += z0_step;
-	}
-      phimin += phi_step;
-    }
-  
-  for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
-    float scale1 = _fit_error_scale[ilayer];
-    float scale2 = _vote_error_scale[ilayer];
-    float scale = scale1/scale2;
-    _tracker->setHitErrorScale(ilayer, scale);
-    for(unsigned int j = 0; j < _tracker_vertex.size(); ++j) {
-      _tracker_vertex[j]->setHitErrorScale(ilayer, scale);
-    }
-  }
+  setup_tracker_object();
+  setup_initial_tracker_object();
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1433,5 +1304,167 @@ int PHG4HoughTransform::initial_vertex_finding() {
 
   _tracker->clear();
   
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4HoughTransform::setup_tracker_object() {
+
+  // tell the tracker object the phase space extent of the search region
+  // and the recursive zoom factors to utilize
+  
+  float kappa_max = ptToKappa(_min_pT);
+
+  HelixRange top_range( 0.0, 2.*M_PI,
+			-0.2, 0.2,
+			0.0, kappa_max,
+			-0.9, 0.9,
+			-1.0*_dcaz_cut, 1.0*_dcaz_cut);
+  
+  if (!_use_vertex) {
+    top_range.min_z0 = -10.;
+    top_range.max_z0 = 10.;
+  }
+  
+  vector<unsigned int> onezoom(5,0);
+  vector<vector<unsigned int> > zoomprofile;
+  zoomprofile.assign(5,onezoom);
+  zoomprofile[0][0] = 16;
+  zoomprofile[0][1] = 1;
+  zoomprofile[0][2] = 4;
+  zoomprofile[0][3] = 8;
+  zoomprofile[0][4] = 1;
+  
+  zoomprofile[1][0] = 16;
+  zoomprofile[1][1] = 1;
+  zoomprofile[1][2] = 4;
+  zoomprofile[1][3] = 4;
+  zoomprofile[1][4] = 2;
+  
+  zoomprofile[2][0] = 4;
+  zoomprofile[2][1] = 3;
+  zoomprofile[2][2] = 2;
+  zoomprofile[2][3] = 1;
+  zoomprofile[2][4] = 3;
+  
+  for (unsigned int i = 2; i <= 3; ++i) {
+    zoomprofile[i][0] = 3;
+    zoomprofile[i][1] = 3;
+    zoomprofile[i][2] = 3;
+    zoomprofile[i][3] = 3;
+    zoomprofile[i][4] = 3;
+  }
+    
+  _tracker = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
+  _tracker->setNLayers(_seed_layers);
+  _tracker->requireLayers(_req_seed);
+  _max_hits_init = _seed_layers*4;
+  if(_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
+  _min_hits_init = _req_seed;
+  if(_seed_layers < 10){ _tracker->setClusterStartBin(1); }
+  else{ _tracker->setClusterStartBin(10); }
+  _tracker->setRejectGhosts(_reject_ghosts);
+  _tracker->setFastChi2Cut(_chi2_cut_fast_par0,
+			   _chi2_cut_fast_par1,
+			   _chi2_cut_fast_max);
+  _tracker->setChi2Cut(_chi2_cut_full);
+  _tracker->setChi2RemovalCut(_chi2_cut_full*0.5);
+  _tracker->setCellularAutomatonChi2Cut(_ca_chi2_cut);
+  _tracker->setPrintTimings(false);
+  _tracker->setVerbosity(verbosity);
+  _tracker->setCutOnDca(_cut_on_dca);
+  _tracker->setDcaCut(_dca_cut);
+  _tracker->setSmoothBack(true);
+  _tracker->setBinScale(_bin_scale);
+  _tracker->setZBinScale(_z_bin_scale);
+  _tracker->setRemoveHits(_remove_hits);
+  _tracker->setSeparateByHelicity(true);
+  _tracker->setMaxHitsPairs(0);
+  _tracker->setCosAngleCut(_cos_angle_cut);
+      
+  for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
+    float scale1 = _fit_error_scale[ilayer];
+    float scale2 = _vote_error_scale[ilayer];
+    float scale = scale1/scale2;
+    _tracker->setHitErrorScale(ilayer, scale);
+  }
+  
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+int PHG4HoughTransform::setup_initial_tracker_object() {
+
+  // tell the initial tracker object the phase space extent of the search region
+  // and the recursive zoom factors to utilize
+  
+  std::vector<unsigned int> onezoom(5, 0);
+  std::vector<vector<unsigned int> > zoomprofile_init;
+  zoomprofile_init.assign(4, onezoom);
+  for (unsigned int i = 0; i <= 1; ++i) {
+    zoomprofile_init[i][0] = 8;
+    zoomprofile_init[i][1] = 1;
+    zoomprofile_init[i][2] = 3;
+    zoomprofile_init[i][3] = 4;
+    zoomprofile_init[i][4] = 4;
+  }
+  for (unsigned int i = 2; i <= 3; ++i) {
+    zoomprofile_init[i][0] = 8;
+    zoomprofile_init[i][1] = 1;
+    zoomprofile_init[i][2] = 2;
+    zoomprofile_init[i][3] = 2;
+    zoomprofile_init[i][4] = 2;
+  }
+  
+  std::vector<HelixRange> top_range_init;
+  unsigned int nphi = 1;
+  unsigned int nz0 = 5;
+  double phimin = 0.;
+  double phi_step = 2.0 * M_PI / ((double)nphi);
+  
+  float kappa_max_init = ptToKappa(_min_pT_init);
+
+  for (unsigned int i = 0; i < nphi; ++i) {
+    double z0min = -10.;
+    double z0_step = 20. / ((double)nz0);
+    for (unsigned int j = 0; j < nz0; ++j) {
+      top_range_init.push_back(HelixRange(phimin, phimin + phi_step, -0.2, 0.2,
+                                          0.0, kappa_max_init, -0.9, 0.9, z0min,
+                                          z0min + z0_step));
+      _tracker_vertex.push_back(
+          new sPHENIXTracker(zoomprofile_init, 1, top_range_init.back(),
+                             _material, _radii, _magField));
+      (_tracker_vertex.back())->setVerbosity(verbosity);
+      (_tracker_vertex.back())->setNLayers(_seed_layers);
+      (_tracker_vertex.back())->requireLayers(_req_seed);
+      (_tracker_vertex.back())->setClusterStartBin(1);
+      (_tracker_vertex.back())->setRejectGhosts(true);
+      (_tracker_vertex.back())
+          ->setFastChi2Cut(_chi2_cut_fast_par0, _chi2_cut_fast_par1,
+                           _chi2_cut_fast_max);
+      (_tracker_vertex.back())->setChi2Cut(_chi2_cut_init);
+      (_tracker_vertex.back())->setChi2RemovalCut(_chi2_cut_init * 0.5);
+      (_tracker_vertex.back())->setCellularAutomatonChi2Cut(_ca_chi2_cut);
+      (_tracker_vertex.back())->setCutOnDca(false);
+      (_tracker_vertex.back())->setSmoothBack(true);
+      (_tracker_vertex.back())->setBinScale(_bin_scale);
+      (_tracker_vertex.back())->setZBinScale(_z_bin_scale);
+      (_tracker_vertex.back())->setRemoveHits(true);
+      (_tracker_vertex.back())->setSeparateByHelicity(true);
+      (_tracker_vertex.back())->setMaxHitsPairs(0);
+      (_tracker_vertex.back())->setCosAngleCut(_cos_angle_cut);
+      z0min += z0_step;
+    }
+    phimin += phi_step;
+  }
+
+  for (unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
+    float scale1 = _fit_error_scale[ilayer];
+    float scale2 = _vote_error_scale[ilayer];
+    float scale = scale1 / scale2;
+    for (unsigned int j = 0; j < _tracker_vertex.size(); ++j) {
+      _tracker_vertex[j]->setHitErrorScale(ilayer, scale);
+    }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
