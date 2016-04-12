@@ -3,9 +3,9 @@
 using namespace std;
 
 void Fun4All_TestBeam(
-          const char *input_file= "/sphenix/data/data01/t1044-2016a/cosmics/cosmics_00001554-0000.prdf",
+          const char *input_file= "/gpfs/mnt/gpfs02/sphenix/data/data01/t1044-2016a/fnal/beam/beam_00002013-0000.prdf",
           const char *output_file = "TB_DST.root",
-	  int nEvents = 4000)
+	  int nEvents = 10)
 {
  gSystem->Load("libfun4all");
  gSystem->Load("libPrototype2.so");
@@ -26,7 +26,11 @@ void Fun4All_TestBeam(
 
  //alternatively, fast check on DST using DST Reader:
  Prototype2DSTReader *reader = new Prototype2DSTReader(string(output_file) + string("_DSTReader.root"));
-// reader->AddTower("RAW");
+ reader->AddTower("RAW_LG_HCALIN");
+ reader->AddTower("RAW_HG_HCALIN");
+ reader->AddTower("RAW_LG_HCALOUT");
+ reader->AddTower("RAW_HG_HCALOUT");
+ reader->AddTower("RAW_CEMC");
  se->registerSubsystem( reader );
 
 
