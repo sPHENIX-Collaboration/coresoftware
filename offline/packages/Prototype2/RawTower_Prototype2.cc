@@ -72,14 +72,14 @@ RawTower_Prototype2::identify(std::ostream& os) const
 }
 
 void
-RawTower_Prototype2::set_signal_samples(int i, int sig)
+RawTower_Prototype2::set_signal_samples(int i, RawTower_Prototype2::signal_type sig)
 {
   assert(i>=0);
   assert(i<NSAMPLES);
   signal_samples[i] = sig;
 }
 
-int
+RawTower_Prototype2::signal_type
 RawTower_Prototype2::get_signal_samples(int i)
 {
   assert(i>=0);

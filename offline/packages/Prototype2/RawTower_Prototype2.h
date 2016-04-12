@@ -4,6 +4,7 @@
 #include <g4cemc/RawTower.h>
 #include <g4cemc/RawTowerDefs.h>
 #include <map>
+#include <stdint.h>
 
 class RawTower_Prototype2 : public RawTower {
  public:
@@ -32,10 +33,14 @@ class RawTower_Prototype2 : public RawTower {
 
   //---Raw data access------------------------------------------------------------
 
-  enum {NSAMPLES = 24};
+  enum
+  {
+    NSAMPLES = 24
+  };
+  typedef float signal_type;
 
-  void set_signal_samples(int i,int sig);
-  int get_signal_samples(int i);
+  void set_signal_samples(int i,signal_type sig);
+  signal_type get_signal_samples(int i);
   void set_HBD_channel_number(int i)
     { HBD_channel=i; }
   int get_HBD_channel_number()
@@ -52,10 +57,10 @@ class RawTower_Prototype2 : public RawTower {
   float time;
 
   //Signal samples from DATA
-  int signal_samples[NSAMPLES];  //Low Gain
+  signal_type signal_samples[NSAMPLES];  //Low Gain
   int HBD_channel;
 
-  ClassDef(RawTower_Prototype2, 1)
+  ClassDef(RawTower_Prototype2, 3)
 };
 
 #endif /* RAWTOWER_PROTOTYPE2_H_ */
