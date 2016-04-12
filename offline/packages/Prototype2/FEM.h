@@ -1,7 +1,7 @@
 #ifndef __FEM_H__
 #define __FEM_H__
 
-namespace FEM {
+namespace PROTOTYPE2_FEM {
 
  /*! Packet ID */
  const int PACKET_ID = 21101;
