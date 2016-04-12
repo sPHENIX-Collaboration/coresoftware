@@ -15,11 +15,8 @@ lib_LTLIBRARIES = \
   libHCal.la
 
 include_HEADERS = \
-  RawTower_Prototype2.h \
-  RawTower_Prototype2LinkDef.h \
-  HCalUnpackPRDF.h \
-  HCalUnpackPRDFLinkDef.h 
-
+  RawTower_Prototype2.h 
+  
 libHCal_la_SOURCES = \
   RawTower_Prototype2.cc \
   RawTower_Prototype2Dict.cc \
