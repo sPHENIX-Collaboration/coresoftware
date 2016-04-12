@@ -10,7 +10,7 @@ class RawTower_Prototype2 : public RawTower {
   RawTower_Prototype2();
   RawTower_Prototype2(const RawTower& tower);
   RawTower_Prototype2(RawTowerDefs::keytype id);
-  RawTower_Prototype2(const unsigned int ieta, const unsigned int iphi);
+  RawTower_Prototype2(const unsigned int icol, const unsigned int irow);
   RawTower_Prototype2(const RawTowerDefs::CalorimeterId caloid, const unsigned int ieta,
              const unsigned int iphi);
   virtual ~RawTower_Prototype2();
@@ -23,21 +23,19 @@ class RawTower_Prototype2 : public RawTower {
   RawTowerDefs::keytype get_id() const { return towerid; }
   int get_bineta() const { return RawTowerDefs::decode_index1(towerid); }
   int get_binphi() const { return RawTowerDefs::decode_index2(towerid); }
+  int get_column() const { return RawTowerDefs::decode_index1(towerid); }
+  int get_row() const { return RawTowerDefs::decode_index2(towerid); }
   double get_energy() const { return energy; }
   void set_energy(const double e) { energy = e; }
   float get_time() const { return time; }
   void set_time(const float t) { time = t; }
 
-  //---shower access------------------------------------------------------------
-  
-  void set_signal_samples_hg(int i,int sig) 
-    { hg_signal_samples[i]=sig; }
-  int get_signal_samples_hg(int i)
-    { return hg_signal_samples[i]; }
-  void set_signal_samples_lg(int i,int sig)
-    { lg_signal_samples[i]=sig; }
-  int get_signal_samples_lg(int i)
-    { return lg_signal_samples[i]; }
+  //---Raw data access------------------------------------------------------------
+
+  enum {NSAMPLES = 24};
+
+  void set_signal_samples(int i,int sig);
+  int get_signal_samples(int i);
   void set_HBD_channel_number(int i)
     { HBD_channel=i; }
   int get_HBD_channel_number()
@@ -54,8 +52,7 @@ class RawTower_Prototype2 : public RawTower {
   float time;
 
   //Signal samples from DATA
-  int hg_signal_samples[24];  //High Gain
-  int lg_signal_samples[24];  //Low Gain
+  int signal_samples[NSAMPLES];  //Low Gain
   int HBD_channel;
 
   ClassDef(RawTower_Prototype2, 1)
