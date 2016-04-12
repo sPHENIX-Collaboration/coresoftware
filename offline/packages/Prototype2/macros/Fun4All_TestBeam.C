@@ -3,7 +3,7 @@
 using namespace std;
 
 void Fun4All_TestBeam(
-          const char *input_file= "/gpfs/mnt/gpfs02/sphenix/data/data01/t1044-2016a/fnal/beam/beam_00002008-0000.prdf",
+          const char *input_file= "/gpfs/mnt/gpfs02/sphenix/data/data01/t1044-2016a/fnal/beam/beam_00002051-0000.prdf",
           const char *output_file = "data/TB_DST.root",
 	  int nEvents = 1000)
 {
