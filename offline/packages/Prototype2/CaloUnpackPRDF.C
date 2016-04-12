@@ -13,12 +13,12 @@
 #include <iostream>
 #include <string>
 #include <cassert>
-#include "HCalUnpackPRDF.h"
+#include "CaloUnpackPRDF.h"
 
 using namespace std;
 
 //____________________________________
-HCalUnpackPRDF::HCalUnpackPRDF() : SubsysReco( "HCalUnpackPRDF" ),
+CaloUnpackPRDF::CaloUnpackPRDF() : SubsysReco( "CaloUnpackPRDF" ),
     /*Event**/ _event(NULL),
     /*Packet_hbd_fpgashort**/ _packet(NULL),
     /*int*/ _nevents(0),
@@ -34,26 +34,26 @@ HCalUnpackPRDF::HCalUnpackPRDF() : SubsysReco( "HCalUnpackPRDF" ),
 
 
 //____________________________________
-int HCalUnpackPRDF::Init(PHCompositeNode *topNode)
+int CaloUnpackPRDF::Init(PHCompositeNode *topNode)
 {
  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //_____________________________________
-int HCalUnpackPRDF::InitRun(PHCompositeNode *topNode)
+int CaloUnpackPRDF::InitRun(PHCompositeNode *topNode)
 {
  CreateNodeTree( topNode );
  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________
-int HCalUnpackPRDF::process_event(PHCompositeNode *topNode)
+int CaloUnpackPRDF::process_event(PHCompositeNode *topNode)
 {
  _nevents++;
  _event = findNode::getClass<Event>( topNode, "PRDF"); 
  if(_event==0)
  {
-  cout << "HCalUnpackPRDF::Process_Event - Event not found" << endl;
+  cout << "CaloUnpackPRDF::Process_Event - Event not found" << endl;
   return -1;
  }
 
@@ -70,7 +70,7 @@ int HCalUnpackPRDF::process_event(PHCompositeNode *topNode)
   //They could be special events at the beginning or end of run
   if(_event->getEvtType()==1)
   {
-   cout << "HCalUnpackPRDF::Process_Event - Packet not found" << endl;
+   cout << "CaloUnpackPRDF::Process_Event - Packet not found" << endl;
    _event->identify();
   }
    return Fun4AllReturnCodes::ABORTEVENT;
@@ -191,7 +191,7 @@ int HCalUnpackPRDF::process_event(PHCompositeNode *topNode)
 }
 
 //________________________________________
-int HCalUnpackPRDF::GetHBDCh(string caloname,int zbin,int phibin)
+int CaloUnpackPRDF::GetHBDCh(string caloname,int zbin,int phibin)
 {
  if(caloname=="HCALIN")
  {
@@ -208,7 +208,7 @@ int HCalUnpackPRDF::GetHBDCh(string caloname,int zbin,int phibin)
 }
 
 //_______________________________________
-void HCalUnpackPRDF::CreateNodeTree(PHCompositeNode *topNode)
+void CaloUnpackPRDF::CreateNodeTree(PHCompositeNode *topNode)
 {
   PHNodeIterator nodeItr( topNode );
   //DST node
@@ -254,9 +254,9 @@ void HCalUnpackPRDF::CreateNodeTree(PHCompositeNode *topNode)
 }
 
 //___________________________________
-int HCalUnpackPRDF::End(PHCompositeNode *topNode)
+int CaloUnpackPRDF::End(PHCompositeNode *topNode)
 {
- cout << "HCalUnpackPRDFF::End - Total Events: " << _nevents << endl;
+ cout << "CaloUnpackPRDFF::End - Total Events: " << _nevents << endl;
  return Fun4AllReturnCodes::EVENT_OK;
 }
 

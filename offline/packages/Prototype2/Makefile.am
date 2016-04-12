@@ -5,25 +5,25 @@ INCLUDES = \
   -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir`
 
-libHCal_la_LDFLAGS = \
+libPrototype2_la_LDFLAGS = \
   -nodefaultlibs \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   `root-config --libs`
 
 lib_LTLIBRARIES = \
-  libHCal.la
+  libPrototype2.la
 
 include_HEADERS = \
   RawTower_Prototype2.h 
   
-libHCal_la_SOURCES = \
+libPrototype2_la_SOURCES = \
   RawTower_Prototype2.cc \
   RawTower_Prototype2Dict.cc \
-  HCalUnpackPRDF.C \
-  HCalUnpackPRDFDict.C 
+  CaloUnpackPRDF.C \
+  CaloUnpackPRDFDict.C 
 
-libHCal_la_LIBADD = \
+libPrototype2_la_LIBADD = \
   -lSubsysReco \
   -lphool \
   -lfun4all \
@@ -31,7 +31,7 @@ libHCal_la_LIBADD = \
   -lcemc
 
 install-exec-hook:
-	@[ $$OSTYPE = darwin ] && ln -sf $(DESTDIR)$(libdir)/libHCal.dylib $(DESTDIR)$(libdir)/libHCal.so || true
+	@[ $$OSTYPE = darwin ] && ln -sf $(DESTDIR)$(libdir)/libPrototype2.dylib $(DESTDIR)$(libdir)/libPrototype2.so || true
 
 BUILT_SOURCES = \
   testexternals.C
@@ -40,7 +40,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_LDADD = \
-  libHCal.la
+  libPrototype2.la
 
 testexternals.C:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

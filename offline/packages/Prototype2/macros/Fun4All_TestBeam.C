@@ -12,8 +12,8 @@ void Fun4All_TestBeam(
  recoConsts *rc = recoConsts::instance();
  //rc->set_IntFlag("RUNNUMBER",0);
 
- SubsysReco *unpack = new HCalUnpackPRDF();
- //unpack->Verbosity(1);
+ SubsysReco *unpack = new CaloUnpackPRDF();
+// unpack->Verbosity(1);
  se->registerSubsystem( unpack );
 
  Fun4AllDstOutputManager *out_Manager  = new Fun4AllDstOutputManager("DSTOUT",output_file);

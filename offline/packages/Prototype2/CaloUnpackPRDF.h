@@ -1,5 +1,5 @@
-#ifndef __HCALUNPACKPRDFF__
-#define __HCALUNPACKPRDFF__
+#ifndef __CaloUnpackPRDFF__
+#define __CaloUnpackPRDFF__
 
 //* Unpacks raw HCAL PRDF files *//
 //Abhisek Sen
@@ -14,10 +14,10 @@ class RawTowerContainer;
 class RawTower;
 
 
-class HCalUnpackPRDF : public SubsysReco
+class CaloUnpackPRDF : public SubsysReco
 {
  public:
-  HCalUnpackPRDF();
+  CaloUnpackPRDF();
 
   int Init(PHCompositeNode *topNode);
 
@@ -52,4 +52,4 @@ class HCalUnpackPRDF : public SubsysReco
 };
 
 
-#endif //**HCALUNPACKPRDFF**//
+#endif //**CaloUnpackPRDFF**//
