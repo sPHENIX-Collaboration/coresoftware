@@ -1241,13 +1241,13 @@ int PHG4HoughTransform::initial_vertex_finding() {
   // loop over initial tracking windows
   std::vector<SimpleTrack3D> newtracks;
       
-  _tracker->clear();
-  _tracker->findHelices(_clusters_init, _req_seed,
-			_max_hits_init, newtracks, maxtracks);
+  _tracker_vertex->clear();
+  _tracker_vertex->findHelices(_clusters_init, _req_seed,
+			       _max_hits_init, newtracks, maxtracks);
 
   for(unsigned int t = 0; t < newtracks.size(); ++t) {
     vtxtracks.push_back(newtracks[t]);
-    vtxcovariances.push_back( (_tracker->getKalmanStates())[t].C );
+    vtxcovariances.push_back( (_tracker_vertex->getKalmanStates())[t].C );
   }
     
   if (vtxtracks.size() == 0) return Fun4AllReturnCodes::EVENT_OK;
@@ -1309,7 +1309,7 @@ int PHG4HoughTransform::initial_vertex_finding() {
 	 << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
   }
 
-  _tracker->clear();
+  _tracker_vertex->clear();
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1403,7 +1403,7 @@ int PHG4HoughTransform::setup_initial_tracker_object() {
 
   // tell the initial tracker object the phase space extent of the search region
   // and the recursive zoom factors to utilize  
- 
+
   float kappa_max = ptToKappa(_min_pT);
 
   HelixRange top_range( 0.0, 2.*M_PI,
