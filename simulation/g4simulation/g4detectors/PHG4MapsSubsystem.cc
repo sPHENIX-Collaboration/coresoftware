@@ -15,7 +15,7 @@
 using namespace std;
 
 //_______________________________________________________________________
-PHG4MapsSubsystem::PHG4MapsSubsystem( const std::string &name, const int lyr ):
+PHG4MapsSubsystem::PHG4MapsSubsystem( const std::string &name, const int lyr, int in_stave_type ):
   PHG4Subsystem( name ),
   detector_( 0 ),
   steppingAction_( NULL ),
@@ -26,10 +26,11 @@ PHG4MapsSubsystem::PHG4MapsSubsystem( const std::string &name, const int lyr ):
   rot_in_x(0),
   rot_in_y(0),
   rot_in_z(0),
+  layer(lyr),
+  stave_type(in_stave_type),
   material("G4_AIR"),  // default - almost nothing
   active(0),
   absorberactive(0),
-  layer(lyr),
   blackhole(0),
   detector_type(name),
   superdetector(name)
@@ -58,9 +59,10 @@ int PHG4MapsSubsystem::Init( PHCompositeNode* topNode )
   // create detector
   // These values are set from the calling macro using the setters defined in the .h file
   cout << "    create MAPS detector for layer " << layer << endl;
-  detector_ = new PHG4MapsDetector(topNode, Name(), layer);
+  detector_ = new PHG4MapsDetector(topNode, Name(), layer, stave_type);
   detector_->Verbosity(2);
   detector_->set_nominal_layer_radius(layer_nominal_radius);
+  //detector_->set_stave_type(stave_type);
   detector_->SetActive(active);
   detector_->SetAbsorberActive(absorberactive);
   detector_->BlackHole(blackhole);
@@ -88,6 +90,8 @@ int PHG4MapsSubsystem::Init( PHCompositeNode* topNode )
 	  dstNode->addNode( new PHIODataNode<PHObject>( block_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject" ));
 
 	}
+      cout << PHWHERE << "creating hits node " << nodename.str() << endl;
+
       PHG4EventActionClearZeroEdep *eventaction = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
       if (absorberactive)
 	{

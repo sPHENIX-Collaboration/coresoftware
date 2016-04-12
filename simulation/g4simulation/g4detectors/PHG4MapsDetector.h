@@ -24,7 +24,7 @@ class PHG4MapsDetector: public PHG4Detector
   public:
 
   //! constructor
-  PHG4MapsDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK", const int lyr = 0 );
+  PHG4MapsDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK", const int lyr = 0, int stave_type = 0 );
 
   //! destructor
   virtual ~PHG4MapsDetector();
@@ -37,7 +37,7 @@ class PHG4MapsDetector: public PHG4Detector
   int IsInMaps(G4VPhysicalVolume*) const;
   //@}
 
-
+  void set_stave_type(const int st){stave_type = st;}
   void set_nominal_layer_radius(const G4double radius){layer_nominal_radius = radius * mm;}
 
   void SetPlaceZ(const G4double place_z) {place_in_z = place_z*cm;}
@@ -85,6 +85,7 @@ class PHG4MapsDetector: public PHG4Detector
   int blackhole;
 
   // setup parameters
+  int stave_type;
   G4double layer_nominal_radius;
   int N_staves;
   G4double phistep;

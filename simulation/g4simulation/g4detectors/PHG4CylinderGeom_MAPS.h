@@ -2,7 +2,7 @@
 #define PHG4CylinderGeomMAPS_H__
 
 #include "PHG4CylinderGeomv4.h"
-
+#include "TVector3.h"
 #include <phool/phool.h>
 #include <cmath>
 
@@ -10,12 +10,12 @@ class PHG4CylinderGeom_MAPS: public PHG4CylinderGeomv4
 {
  public:
 
-  PHG4CylinderGeom_MAPS(int layer, int in_Nstaves, double in_layer_nominal_radius, double in_phistep, double in_phitilt);
+  PHG4CylinderGeom_MAPS(int layer, int stave_type, int in_Nstaves, double in_layer_nominal_radius, double in_phistep, double in_phitilt);
 
   virtual ~PHG4CylinderGeom_MAPS() {}
 
   void identify(std::ostream& os = std::cout) const;
-  void construct_geometry();
+  TVector3 get_world_from_local_coords(int stave, int half_stave, int module, int chip, TVector3 sensor_local);
   void set_layer(const int i) {layer = i;}
   int get_layer() const {return layer;}
   double get_radius() const {return layer_radius;}
@@ -29,6 +29,7 @@ class PHG4CylinderGeom_MAPS: public PHG4CylinderGeomv4
 protected:
 
   int layer;
+  int stave_type;
   int N_staves;
   int N_half_staves;
   int N_modules;

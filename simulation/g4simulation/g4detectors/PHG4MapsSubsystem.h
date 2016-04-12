@@ -16,7 +16,7 @@ class PHG4MapsSubsystem: public PHG4Subsystem
   public:
 
   //! constructor
-  PHG4MapsSubsystem( const std::string &name = "BLOCK", const int layer = 0 );
+  PHG4MapsSubsystem( const std::string &name = "BLOCK", const int layer = 0 , int stave_type = 0);
 
   //! destructor
   virtual ~PHG4MapsSubsystem( void )
@@ -43,7 +43,7 @@ class PHG4MapsSubsystem: public PHG4Subsystem
 
   // These are passed on to the detector class, which expects mm and radians
   void set_nominal_layer_radius(const G4double radius){layer_nominal_radius = radius;}
-
+  void set_stave_type(const int stype){stave_type = stype;}
   void SetSize(const G4double sizex, const G4double sizey, const G4double sizez)
      {dimension[0] = sizex; dimension[1] = sizey; dimension[2] = sizez;}
   void SetPlaceZ(const G4double dbl) {place_in_z = dbl;}
@@ -85,11 +85,12 @@ class PHG4MapsSubsystem: public PHG4Subsystem
 
   // These are passed on to the detector class
   G4double layer_nominal_radius;
+  int layer;
+  int stave_type;
 
   G4String material;
   int active;
   int absorberactive;
-  int layer;
   int blackhole;
   std::string detector_type;
   std::string superdetector;

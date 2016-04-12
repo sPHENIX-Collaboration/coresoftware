@@ -34,7 +34,7 @@ using namespace std;
 
 //static double no_overlap = 0.00015 * cm; // added safety margin against overlaps by using same boundary between volumes
 
-PHG4MapsDetector::PHG4MapsDetector( PHCompositeNode *Node, const std::string &dnam, const int lyr  ):
+PHG4MapsDetector::PHG4MapsDetector( PHCompositeNode *Node, const std::string &dnam, const int lyr, const int in_stave_type  ):
   PHG4Detector(Node, dnam),
   //envelope_inner_radius(26.0*mm),
   //envelope_outer_radius(880*mm),
@@ -48,7 +48,8 @@ PHG4MapsDetector::PHG4MapsDetector( PHCompositeNode *Node, const std::string &dn
   active(0),
   absorberactive(0),
   layer(lyr),
-  layer_nominal_radius(800*mm)
+  stave_type(in_stave_type),
+  layer_nominal_radius(-1)
 {
   verbosity = 2;
 
@@ -62,7 +63,7 @@ PHG4MapsDetector::PHG4MapsDetector( PHCompositeNode *Node, const std::string &dn
   layer_string = name.str().c_str();
 
   if (verbosity > 0) 
-    cout << "PHG4MapsDetector constructor: making layer with sensor string: " << layer_string.c_str() << endl;
+    cout << "PHG4MapsDetector constructor: making layer with sensor string: " << layer_string.c_str() << "using stave_type " << stave_type << endl;
 }
 
 PHG4MapsDetector::~PHG4MapsDetector()
@@ -93,6 +94,12 @@ PHG4MapsDetector::Construct( G4LogicalVolume* logicWorld )
 
   if(verbosity>0)
     cout << endl << "PHG4MapsDetector::Construct called for layer " << layer << endl;
+
+  if(layer_nominal_radius < 0 || stave_type < 0)
+    {
+      cout << PHWHERE << "layer radius or stave type undefined, quit!" << endl;
+      exit(1);
+    }
 
   // the tracking layers are placed directly in the world volume, since some layers are (touching) double layers
   // this reads in the ITS stave geometry from a file and constructs the layer from it 
@@ -143,29 +150,42 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
   //=========================================
   // Now we populate the whole layer with the staves
   //==========================================
-      
+
+  /*      
+  // In the ITS we should have these numbers for how staves are built (from ITS.gdml file)
+   lyr rad   L   staves     modules                                                                                                     chips/module
+   0  23    290    12    1 (x=0, y=0, z=0)                                                                                     9 (x=0, y=-0.00875, z=- 12.04, -9,03, -6.02, -3.01, 0, 3.01, 6.02, 9.03, 12.04) 
+   1  31    290    16   1 (x=0, y=0, z=0)                                                                                     9 (x=0, y=-0.00875, z=- 12.04, -9,03, -6.02, -3.01, 0, 3.01, 6.02, 9.03, 12.04) 
+   2  39    290    20   1 (x=0, y=0, z=0)                                                                                     9 (x=0, y=-0.00875, z=- 12.04, -9,03, -6.02, -3.01, 0, 3.01, 6.02, 9.03, 12.04) 
+   3  194  900    24   4 (x=0, y=-0.06075, z= -31.605, -10.535, 10.535, 31.605)                    14  (x = -0.755 or +0.755, y= -0.00825, z = -9.03, -9.03, -6.02, -6.02, -3.01, -3.01, 0, 0, 3.01, 3.01, 6.02, 6.02, 9.03, 9.03)      
+   4  247  900    30   4 (x=0, y=-0.06075, z= -31.605, -10.535, 10.535, 31.605)                    14  (x = -0.755 or +0.755, y= -0.00825, z = -9.03, -9.03, -6.02, -6.02, -3.01, -3.01, 0, 0, 3.01, 3.01, 6.02, 6.02, 9.03, 9.03)      
+   5  253 1500   42   7 (x=0, y=-0.06075, z = -63.21, -42.14, -21.07, 0.0, 21.07, 42.14, 63.21)   14  (x = -0.755 or +0.755, y= -0.00825, z = -9.03, -9.03, -6.02, -6.02, -3.01, -3.01, 0, 0, 3.01, 3.01, 6.02, 6.02, 9.03, 9.03) 
+   6  405 1500  48  7 (x=0, y=-0.06075, z = -63.21, -42.14, -21.07, 0.0, 21.07, 42.14, 63.21)   14  (x = -0.755 or +0.755, y= -0.00825, z = -9.03, -9.03, -6.02, -6.02, -3.01, -3.01, 0, 0, 3.01, 3.01, 6.02, 6.02, 9.03, 9.03) 
+
+   sensor is in chip at (x=0, y=-0.0016, z=0)
+   3-6 half-staves are in 3-6 staves at:  (x = -1.29, y = +2.067, z = 0)  or (x = +1.29 cm, y = 2.243, z = 0)
+
+   // layers 0,1,2 have one stave with 1 module and 7 chips in that module
+   // where layers 3 and 4  have two half-staves with 4 modules and 7 chips/module
+   // layers 5 and 6 have two half staves with 7 modules and 7 chips/module 
+   // module coordinates are in the stave (0-2) or in the half staves (3-6) 
+   // chip coordinates are in the module
+   // 
+  */
+
   // Step through all phi values
-  // In the ITS we should have these numbers for radius, length, # of staves, modules/stave, and chips/stave (from Musa talk)
-  // Layer 0:  23     290    12   1   9
-  // Layer 1:  31     290    16   1   9
-  // Layer 2:  39     290    20   1   9
-  // Layer 3:  194   900    24   4        
-  // Layer 4:  247   900    30   4
-  // Layer 5:  253   1500  42   7
-  // Layer 6:  405   1500  48   7 
-
-
   double arcstep;
-  if(layer == 0 || layer == 1 || layer ==2)
+  if(stave_type == 0)
     {
       arcstep = 12.0;  // inner barrel, mm
     }
-  else if(layer == 3 || layer == 4)
+  else if(stave_type == 1)
     {
       arcstep = 50.5;  // middle barrel, mm
     }
   else
     {
+      // stave_type is 2
       arcstep = 52.0;  // outer barrel, mm
     }
 
@@ -173,9 +193,9 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
   phistep = 2.0 * M_PI / (double) N_staves;
   double z_location = 0.0;
   
-  // this is the tilt for layers 0-2
-  phitilt = 0.25;
-  if(layer > 2)
+  // this is the tilt for stave type 0 (usually layers 0-2)
+  phitilt = 0.304;   // radians, equivalent to 17.4 degrees
+  if(stave_type != 0)
     phitilt = 0.0;
 
   if(verbosity > 0)
@@ -188,31 +208,61 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
 	   << endl;
     }
 
-  // The stave starts out at (0,0,0)
-  // It starts out oriented so that the sensors face upward in y
+  // The stave starts out at (0,0,0) and oriented so that the sensors face upward in y
   // So we need to rotate the sensor 90 degrees before placing it using phi_offset
-  double phi_offset = M_PI /2.0;
+  double phi_offset =  M_PI /2.0;
 
   for (int iphi=0; iphi<N_staves; iphi++)
+  //for (int iphi=0; iphi<1; iphi++)
     {
       // Place the ladder segment envelopes at the correct z and phi 
       // This is the azimuthal angle at which we place the stave
       G4double phi_rotation = (double) iphi * phistep;
 
-      cout << "phi_offset = " << phi_offset << " iphi " << iphi << " phi_rotation = " << phi_rotation << " phitilt " << endl;
-
-      // It  is first rotated in phi by the azimuthal angle plus the 90 degrees plus the tilt (if appropriate)
       G4RotationMatrix Ra;
-      Ra.rotateZ(phi_rotation + phi_offset + phitilt); // note - if this is layer 0-3, phitilt is the additional tilt for clearance. Otherwise it is zero
-      // Then translated as follows
       G4ThreeVector Ta;
-      Ta.setX(layer_nominal_radius * cos(phi_rotation)); 
-      Ta.setY(layer_nominal_radius * sin(phi_rotation)) ; 
-      Ta.setZ( z_location );
+      double notest = true;
+
+      if(notest)
+	{
+	  cout << "phi_offset = " << phi_offset << " iphi " << iphi << " phi_rotation = " << phi_rotation << " phitilt " << phitilt << endl;
+	  
+	  // It  is first rotated in phi by the azimuthal angle phi_rotation, plus the 90 degrees needed to point the face of the sensor  at the origin,  plus the tilt (if a tilt is appropriate)
+	  
+	  Ra.rotateZ(phi_rotation + phi_offset + phitilt); // note - if this is layer 0-2, phitilt is the additional tilt for clearance. Otherwise it is zero
+	  // Then translated as follows
+
+	  Ta.setX(layer_nominal_radius * cos(phi_rotation)); 
+	  Ta.setY(layer_nominal_radius * sin(phi_rotation)) ; 
+	  Ta.setZ( z_location );
+
+	  if(verbosity > 0)
+	    cout << " iphi " << iphi << " phi_rotation " << phi_rotation 
+		 << " x " << layer_nominal_radius * cos(phi_rotation)
+		 << " y " <<  layer_nominal_radius * sin(phi_rotation)
+		 << " z " << z_location 
+		 << endl;      	  
+	}
+      else
+	{
+	  // testing!!!
+	  
+	  double phitest = -88.9770648826 * M_PI / 180.0;
+	  double xtest = 2.24456394319 * cm;
+	  double ytest = 0.661462549917 * cm;
+	  double ztest = 0.0 * cm;
+	  
+	  cout << "phitest = " << phitest << " xtest " << xtest << " ytest " << ytest << " ztest " << ztest << endl;
+	  
+	  // It  is first rotated in phi by the azimuthal angle phi_rotation, plus the 90 degrees needed to point the face of the sensor  at the origin,  plus the tilt (if a tilt is appropriate)
+
+	  Ra.rotateZ(phitest); 
+	  // Then translated as follows
+	  Ta.setX(xtest); 
+	  Ta.setY(ytest) ; 
+	  Ta.setZ( ztest);
+	}
       G4Transform3D Tr(Ra,Ta);
-     
-      if(verbosity > 0)
-	cout << " iphi " << iphi << " phi_rotation " << phi_rotation << endl;      
 
       av_ITSUStave->MakeImprint(trackerenvelope, Tr, 0, overlapcheck);
     } 
@@ -272,6 +322,15 @@ void PHG4MapsDetector::SetDisplayProperty( G4LogicalVolume* lv)
 void
 PHG4MapsDetector::AddGeometryNode()
 {
+  // How to handle geometry for MAPS pixels:
+  // 1) Find the center of the sensor that contains the hit.
+  //     
+  //
+  //
+  //
+  //
+  //
+
   if (active)
     {
       ostringstream geonode;
@@ -294,7 +353,7 @@ PHG4MapsDetector::AddGeometryNode()
         }
       // here in the detector class we have internal units, convert to cm
       // before putting into the geom object
-      PHG4CylinderGeom *mygeom = new PHG4CylinderGeom_MAPS(layer, N_staves, layer_nominal_radius/cm, phistep/rad, phitilt/rad);
+      PHG4CylinderGeom *mygeom = new PHG4CylinderGeom_MAPS(layer, stave_type, N_staves, layer_nominal_radius/cm, phistep/rad, phitilt/rad);
 
       geo->AddLayerGeom(layer, mygeom);
       geo->identify();

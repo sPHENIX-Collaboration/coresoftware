@@ -32,6 +32,8 @@ PHG4MapsCellReco::PHG4MapsCellReco(const string &name) :
 {
   memset(nbins, 0, sizeof(nbins));
   Detector(name);
+  cout << "Creating PHG4MapsCellReco for name = " << name << endl;
+  verbosity = 2;
 }
 
 int PHG4MapsCellReco::InitRun(PHCompositeNode *topNode)
@@ -131,32 +133,56 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
       if(!layergeom)
 	exit(1);
 
-      //layergeom->identify();
+      layergeom->identify();
 
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
 	{
+	  cout << "From MapsCellReco: " << endl;
+	  hiter->second->print();
+
 	  // get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
 	  int stave_number = hiter->second->get_property_int(PHG4Hit::prop_stave_index);
 	  int half_stave_number = hiter->second->get_property_int(PHG4Hit::prop_half_stave_index);
 	  int module_number = hiter->second->get_property_int(PHG4Hit::prop_module_index);
 	  int chip_number = hiter->second->get_property_int(PHG4Hit::prop_chip_index);
+	  double xsensor_in = hiter->second->get_property_float(PHG4Hit::prop_local_pos_x_0);
+	  double ysensor_in = hiter->second->get_property_float(PHG4Hit::prop_local_pos_y_0);
+	  double zsensor_in = hiter->second->get_property_float(PHG4Hit::prop_local_pos_z_0);
+	  /*
+	  double xsensor_out = hiter->second->get_property_float(PHG4Hit::prop_local_pos_x_1);
+	  double ysensor_out = hiter->second->get_property_float(PHG4Hit::prop_local_pos_y_1);
+	  double zsensor_out = hiter->second->get_property_float(PHG4Hit::prop_local_pos_z_1);
+	  */
 
+	  TVector3 local_in(xsensor_in, ysensor_in, zsensor_in);
+      
 	  // As a check, get the positions of the hit strips from the geo object
-	  double location[3] = {-1,-1,-1};
-	  layergeom->find_sensor_center(stave_number, half_stave_number, module_number, chip_number, location);
+	  TVector3 location = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_in);
 
-	  if(verbosity > 0)
-	    {
-	      cout << "      Found location from geometry for  " 
-		   << " stave number " << stave_number
-		   << " half stave number " << half_stave_number 
-		   << " module number" << module_number
-		   <<  " is:  x = " << location[0]
-		   << " y = " << location[1]
-		   << " z  = " << location[2]
-		   << endl;
-	    }
+	  cout << "      Found location from geometry for  " 
+	       << " stave number " << stave_number
+	       << " half stave number " << half_stave_number 
+	       << " module number" << module_number 
+	       << endl
+	       <<  " x = " << location.X()
+	       << " y = " << location.Y()
+	       << " z  = " << location.Z()
+	       << " radius " << sqrt( pow(location.X(), 2) + pow(location.Y(), 2) ) 
+	       << " angle " << atan( location.Y() / location.X() )
+	       << endl;
 
+	  cout << "     The location from G4 was "
+	       << endl
+	       << " x = " <<   hiter->second->get_x( 0)
+	       << " y " <<  hiter->second->get_y( 0)
+	       << " z " << hiter->second->get_z( 0)
+	       << " radius " << sqrt( pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2) )
+	       << " angle " << atan( hiter->second->get_y(0) / hiter->second->get_x(0) )
+	       << endl;
+	  cout << " difference in radius = " <<  sqrt( pow(location.X(),2) + pow(location.Y(),2) )  -  sqrt( pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2) ) 
+	       << " in angle = " <<  atan( location.Y() / location.X() ) - atan( hiter->second->get_y(0) / hiter->second->get_x(0) ) 
+	       << endl;
+	  
 	  // combine ladder index values to get a single key
 	  char inkey[1024];
 	  sprintf(inkey,"%i-%i_%i_%i",stave_number, half_stave_number, module_number, chip_number);
@@ -184,14 +210,15 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  cells->AddCylinderCell(*layer, mapiter->second);
 	  numcells++;
 
-	  if (verbosity > 0)
-	    {
-	      cout << "Adding cell for sensor_index: " << mapiter->second->get_sensor_index()
-		   << ", srip z index: " << mapiter->second->get_binz()
-		   << ", strip y index: " << mapiter->second->get_binphi()
+	  //if (verbosity > 0)
+	  //{
+	      cout << "From MapsCellReco: Adding cell for stave: " << mapiter->second->get_stave_index()
+		   << " , half stave index: " << mapiter->second->get_half_stave_index()
+		   << ", module index: " << mapiter->second->get_module_index()
+		   << ", chip index: " << mapiter->second->get_chip_index()
 		   << ", energy dep: " << mapiter->second->get_edep()
 		   << endl;
-	    }
+	      //}
 	}
       celllist.clear();
       if (verbosity > 0)

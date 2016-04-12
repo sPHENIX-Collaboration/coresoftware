@@ -4,9 +4,9 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
-
 #include <g4main/PHG4TrackUserInfoV1.h>
 
+#include "PHG4CylinderGeom_MAPS.h"
 #include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>
@@ -92,7 +92,7 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
   int module_number = -1;
   int chip_number = -1;
 
-  if(verbosity > 0) cout << "  UaserSteppingAction: layer " << detector_->get_Layer();
+  if(verbosity > 0) cout << endl << "  UaserSteppingAction: layer " << detector_->get_Layer();
   boost::char_separator<char> sep("_");
   boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
 
@@ -122,7 +122,7 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
   ++tokeniter;
   ++tokeniter;
   ++tokeniter;
-  stave_number = boost::lexical_cast<int>(*tokeniter);
+  stave_number = boost::lexical_cast<int>(*tokeniter) - 1;   // starts counting imprints at 1, we count staves from 0!
   if(verbosity > 0) cout << " stave " << stave_number;
   ++tokeniter;
   ++tokeniter;
@@ -254,18 +254,25 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       hit->set_y( 1, postPoint->GetPosition().y() / cm );
       hit->set_z( 1, postPoint->GetPosition().z() / cm );
 
-      G4ThreeVector worldPosition_out = postPoint->GetPosition();
+      G4ThreeVector worldPosition_exit = postPoint->GetPosition();
       theTouchable = postPoint->GetTouchableHandle(); 
-      G4ThreeVector localPosition_out = theTouchable->GetHistory()-> GetTopTransform().TransformPoint(worldPosition_out);
-      
-      x= localPosition_out.x() / cm;
-      y= localPosition_out.y() / cm;
-      z= localPosition_out.z() / cm;
+      G4ThreeVector localPosition_exit = theTouchable->GetHistory()-> GetTopTransform().TransformPoint(worldPosition_exit);
+
+      x = localPosition_exit.x() / cm;
+      y = localPosition_exit.y() / cm;
+      z = localPosition_exit.z() / cm;
+      cout << "x " << x << " y " << y << " z " << z << endl;
 
       hit->set_property( PHG4Hit::prop_local_pos_x_1, x);
       hit->set_property( PHG4Hit::prop_local_pos_y_1, y);
       hit->set_property( PHG4Hit::prop_local_pos_z_1, z);
-      
+
+      /*
+      hit->set_property( PHG4Hit::prop_local_pos_x_1, ( localPosition_exit.x() / cm) );
+      hit->set_property( PHG4Hit::prop_local_pos_y_1, ( localPosition_exit.y() / cm) );
+      hit->set_property( PHG4Hit::prop_local_pos_z_1, ( localPosition_exit.z() / cm) );
+      */
+
       hit->set_px(1, postPoint->GetMomentum().x() / GeV );
       hit->set_py(1, postPoint->GetMomentum().y() / GeV );
       hit->set_pz(1, postPoint->GetMomentum().z() / GeV );
@@ -288,7 +295,7 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	    }
 	}
 
-      /*      
+
       if(verbosity>0)
 	{  
 	  G4StepPoint * prePoint = aStep->GetPreStepPoint();
@@ -305,13 +312,13 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	  cout << "       postpoint z position " << postPoint->GetPosition().z() / cm << endl;
 	  cout << "       edep " << edep  << endl;
 	}
-      */
+
 
       if(verbosity>0)
 	{  
 	  cout << "  stepping action found hit:" << endl;
 	  hit->print(); 
-	  cout << endl;
+	  cout << endl << endl;
 	}
 
       // return true to indicate the hit was used
