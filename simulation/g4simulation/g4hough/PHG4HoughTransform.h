@@ -234,7 +234,7 @@ public:
 
   // track finding routines                                                                                             
   sPHENIXTracker *_tracker;    // finds full tracks
-  std::vector<sPHENIXTracker*> _tracker_vertex; // finds a subset of tracks for initial vertex-finding
+  sPHENIXTracker* _tracker_vertex; // finds a subset of tracks for initial vertex-finding
     
   VertexFinder _vertexFinder; ///< vertex finding object
 
