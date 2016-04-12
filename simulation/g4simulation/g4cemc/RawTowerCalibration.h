@@ -34,6 +34,11 @@ public:
   {
     detector = d;
   }
+  void
+  TowerType(const int type)
+  {
+    _tower_type = type; 
+  } 
 
   enum enu_calib_algorithm
   {
@@ -142,6 +147,9 @@ protected:
 
   //! zero suppression in unit of GeV
   double _zero_suppression_GeV;
+
+  //! tower type to act on
+  int _tower_type; 
 
   PHTimeServer::timer _timer;
 

@@ -8,7 +8,7 @@ Packet_hbd_fpgashort::Packet_hbd_fpgashort(PACKET_ptr data)
   : Packet_w4 (data)
 {
   nr_modules = 0;
-  HBD_NSAMPLES = 12;
+  HBD_NSAMPLES = 24;
   hbd_parity=0;
 }
   

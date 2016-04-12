@@ -3,7 +3,7 @@
 #include "RawTowerv1.h"
 #include "RawTowerContainer.h"
 
-#include "RawTowerGeomv2.h"
+#include "RawTowerGeomv3.h"
 #include "RawTowerGeomContainerv1.h"
 
 #include <g4main/PHG4Hit.h>
@@ -260,11 +260,11 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable() {
 	  double pos_x, pos_y, pos_z;
 	  double size_x, size_y, size_z;
 	  double rot_x, rot_y, rot_z;
-	  double dummy;
+	  double type; 
 	  string dummys;
 
 	  /* read string- break if error */
-	  if ( !( iss >> dummys >> dummy >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> rot_x >> rot_y >> rot_z ) )
+	  if ( !( iss >> dummys >> type >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> rot_x >> rot_y >> rot_z ) )
 	    {
 	      cerr << "ERROR in RawTowerBuilderByHitIndex: Failed to read line in mapping file " << mapping_tower_file_ << endl;
 	      exit(1);
@@ -274,13 +274,14 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable() {
 	  unsigned int temp_id = RawTowerDefs::encode_towerid( calo_id_ , idx_j , idx_k );
 
 	  /* Create tower geometry object */
-	  RawTowerGeom* temp_geo = new RawTowerGeomv2( temp_id );
+	  RawTowerGeom* temp_geo = new RawTowerGeomv3( temp_id );
 	  temp_geo->set_center_x( pos_x );
 	  temp_geo->set_center_y( pos_y );
 	  temp_geo->set_center_z( pos_z );
 	  temp_geo->set_size_x( size_x );
 	  temp_geo->set_size_y( size_y );
 	  temp_geo->set_size_z( size_z );
+	  temp_geo->set_tower_type( (int) type );
 
 	  /* Insert this tower into position map */
 	  geoms_->add_tower_geometry( temp_geo );

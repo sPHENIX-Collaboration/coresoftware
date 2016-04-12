@@ -1,16 +1,16 @@
-#ifndef NEWGEOMV2_H_
-#define NEWGEOMV2_H_
+#ifndef NEWGEOMV3_H_
+#define NEWGEOMV3_H_
 
 #include "RawTowerGeom.h"
 
 #include <map>
 
-class RawTowerGeomv2 : public RawTowerGeom {
+class RawTowerGeomv3 : public RawTowerGeom {
 
  public:
-  RawTowerGeomv2();
-  RawTowerGeomv2(RawTowerDefs::keytype id);
-  virtual ~RawTowerGeomv2();
+  RawTowerGeomv3();
+  RawTowerGeomv3(RawTowerDefs::keytype id);
+  virtual ~RawTowerGeomv3();
 
   void identify(std::ostream& os=std::cout) const;
 
@@ -38,6 +38,9 @@ class RawTowerGeomv2 : public RawTowerGeom {
   double get_eta() const;
   double get_phi() const;
 
+  void set_tower_type( int tt ) { _tower_type = tt; return ; }
+  int get_tower_type() const { return _tower_type; }
+
  protected:
   RawTowerDefs::keytype _towerid;
 
@@ -49,7 +52,9 @@ class RawTowerGeomv2 : public RawTowerGeom {
   double _size_y;
   double _size_z;
 
-  ClassDef(RawTowerGeomv2,3)
+  int _tower_type; 
+
+  ClassDef(RawTowerGeomv3,4)
 };
 
-#endif /* NEWGEOMV2_H_ */
+#endif /* NEWGEOMV3_H_ */
