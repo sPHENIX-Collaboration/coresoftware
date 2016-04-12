@@ -4,8 +4,8 @@
 #include "GlobalVertexMap_v1.h"
 #include "GlobalVertex_v1.h"
 
-#include "BbcVertexMap.h"
-#include "BbcVertex.h"
+#include <g4bbc/BbcVertexMap.h>
+#include <g4bbc/BbcVertex.h>
 
 #include <g4hough/SvtxVertexMap.h>
 #include <g4hough/SvtxVertex.h>
