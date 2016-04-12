@@ -12,15 +12,24 @@
 #include "FEM.h"
 #include <iostream>
 #include <string>
+#include <cassert>
 #include "HCalUnpackPRDF.h"
 
 using namespace std;
 
 //____________________________________
-HCalUnpackPRDF::HCalUnpackPRDF() : SubsysReco( "HCalUnpackPRDF" )
+HCalUnpackPRDF::HCalUnpackPRDF() : SubsysReco( "HCalUnpackPRDF" ),
+    /*Event**/ _event(NULL),
+    /*Packet_hbd_fpgashort**/ _packet(NULL),
+    /*int*/ _nevents(0),
+    /*PHCompositeNode **/ dst_node(NULL),
+    /*PHCompositeNode **/ data_node(NULL),
+    /*RawTowerContainer**/ hcalin_towers_lg(NULL),
+    /*RawTowerContainer**/ hcalout_towers_lg(NULL),
+    /*RawTowerContainer**/ hcalin_towers_hg(NULL),
+    /*RawTowerContainer**/ hcalout_towers_hg(NULL),
+    /*RawTowerContainer**/ emcal_towers(NULL)
 {
-  verbosity = 0;
-  _nevents = 0;
 }
 
 
@@ -54,7 +63,7 @@ int HCalUnpackPRDF::process_event(PHCompositeNode *topNode)
  }
 
  if(verbosity) _event->identify();
- _packet = dynamic_cast<Packet_hbd_fpgashort*>(_event->getPacket(FEM::PACKET_ID));
+ _packet = dynamic_cast<Packet_hbd_fpgashort*>(_event->getPacket(PROTOTYPE2_FEM::PACKET_ID));
 
  if(!_packet)
  {
@@ -67,71 +76,94 @@ int HCalUnpackPRDF::process_event(PHCompositeNode *topNode)
    return Fun4AllReturnCodes::ABORTEVENT;
  }
 
- _packet->setNumSamples( FEM::NSAMPLES );
- RawTower_Prototype2 *tower;
+ _packet->setNumSamples( PROTOTYPE2_FEM::NSAMPLES );
+ RawTower_Prototype2 *tower_lg = NULL;
+ RawTower_Prototype2 *tower_hg = NULL;
 
  //HCALIN
- for(int ibinz=0; ibinz<FEM::NCH_IHCAL_ROWS; ibinz++)
+ assert(hcalin_towers_lg);
+ assert(hcalin_towers_hg);
+ for(int ibinz=0; ibinz<PROTOTYPE2_FEM::NCH_IHCAL_ROWS; ibinz++)
  {
-  for(int ibinphi=0; ibinphi<FEM::NCH_IHCAL_COLUMNS; ibinphi++)
+  for(int ibinphi=0; ibinphi<PROTOTYPE2_FEM::NCH_IHCAL_COLUMNS; ibinphi++)
   {
-   tower = dynamic_cast<RawTower_Prototype2*>(hcalin_towers->getTower(ibinz,ibinphi));
-   if(!tower)
+   tower_lg = dynamic_cast<RawTower_Prototype2*>(hcalin_towers_lg->getTower(ibinz,ibinphi));
+   if(!tower_lg)
    {
-    tower = new RawTower_Prototype2();
-    tower->set_energy(0);
-    hcalin_towers->AddTower(ibinz,ibinphi,tower);
+       tower_lg = new RawTower_Prototype2();
+       tower_lg->set_energy(NAN);
+       hcalin_towers_lg->AddTower(ibinz,ibinphi,tower_lg);
    }
-   int ich = GetHBDCh("HCALIN",ibinz,ibinphi);
-   tower->set_HBD_channel_number(ich);
-   for(int isamp=0; isamp<FEM::NSAMPLES; isamp++)
+   tower_hg = dynamic_cast<RawTower_Prototype2*>(hcalin_towers_hg->getTower(ibinz,ibinphi));
+   if(!tower_hg)
    {
-    tower->set_signal_samples_hg(isamp,_packet->iValue(ich,isamp));
-    tower->set_signal_samples_lg(isamp,_packet->iValue(ich+1,isamp));
+       tower_hg = new RawTower_Prototype2();
+       tower_hg->set_energy(NAN);
+       hcalin_towers_hg->AddTower(ibinz,ibinphi,tower_hg);
+   }
+
+   int ich = GetHBDCh("HCALIN",ibinz,ibinphi);
+   tower_lg->set_HBD_channel_number(ich);
+   tower_hg->set_HBD_channel_number(ich);
+   for(int isamp=0; isamp<PROTOTYPE2_FEM::NSAMPLES; isamp++)
+   {
+       tower_hg->set_signal_samples(isamp,_packet->iValue(ich,isamp));
+       tower_lg->set_signal_samples(isamp,_packet->iValue(ich+1,isamp));
    }
   }
  }
 
-
  //HCALOUT
- for(int ibinz=0; ibinz<FEM::NCH_OHCAL_ROWS; ibinz++)
+ assert(hcalout_towers_lg);
+ assert(hcalout_towers_hg);
+ for(int ibinz=0; ibinz<PROTOTYPE2_FEM::NCH_OHCAL_ROWS; ibinz++)
  {
-  for(int ibinphi=0; ibinphi<FEM::NCH_OHCAL_COLUMNS; ibinphi++)
+  for(int ibinphi=0; ibinphi<PROTOTYPE2_FEM::NCH_OHCAL_COLUMNS; ibinphi++)
   {
-   tower = dynamic_cast<RawTower_Prototype2*>(hcalout_towers->getTower(ibinz,ibinphi));
-   if(!tower)
-   {
-    tower = new RawTower_Prototype2();
-    tower->set_energy(0);
-    hcalout_towers->AddTower(ibinz,ibinphi,tower);
-   }
+      tower_lg = dynamic_cast<RawTower_Prototype2*>(hcalout_towers_lg->getTower(ibinz,ibinphi));
+      if(!tower_lg)
+      {
+          tower_lg = new RawTower_Prototype2();
+          tower_lg->set_energy(NAN);
+          hcalout_towers_lg->AddTower(ibinz,ibinphi,tower_lg);
+      }
+      tower_hg = dynamic_cast<RawTower_Prototype2*>(hcalout_towers_hg->getTower(ibinz,ibinphi));
+      if(!tower_hg)
+      {
+          tower_hg = new RawTower_Prototype2();
+          tower_hg->set_energy(NAN);
+          hcalout_towers_hg->AddTower(ibinz,ibinphi,tower_hg);
+      }
    int ich = GetHBDCh("HCALOUT",ibinz,ibinphi);
-   tower->set_HBD_channel_number(ich);
-   for(int isamp=0; isamp<FEM::NSAMPLES; isamp++)
+   tower_lg->set_HBD_channel_number(ich);
+   tower_hg->set_HBD_channel_number(ich);
+   for(int isamp=0; isamp<PROTOTYPE2_FEM::NSAMPLES; isamp++)
    {
-    tower->set_signal_samples_hg(isamp,_packet->iValue(ich,isamp));
-    tower->set_signal_samples_lg(isamp,_packet->iValue(ich+1,isamp));
+       tower_hg->set_signal_samples(isamp,_packet->iValue(ich,isamp));
+       tower_lg->set_signal_samples(isamp,_packet->iValue(ich+1,isamp));
    }
   }
  }
 
  //EMCAL
- for(int ibinz=0; ibinz<FEM::NCH_EMCAL_ROWS; ibinz++)
+ RawTower_Prototype2 *tower = NULL;
+ assert(emcal_towers);
+ for(int ibinz=0; ibinz<PROTOTYPE2_FEM::NCH_EMCAL_ROWS; ibinz++)
  {
-  for(int ibinphi=0; ibinphi<FEM::NCH_EMCAL_COLUMNS; ibinphi++)
+  for(int ibinphi=0; ibinphi<PROTOTYPE2_FEM::NCH_EMCAL_COLUMNS; ibinphi++)
   {
    tower = dynamic_cast<RawTower_Prototype2*>(emcal_towers->getTower(ibinz,ibinphi));
    if(!tower)
    {
     tower = new RawTower_Prototype2();
-    tower->set_energy(0);
+    tower->set_energy(NAN);
     emcal_towers->AddTower(ibinz,ibinphi,tower);
    }
    int ich = GetHBDCh("EMCAL",ibinz,ibinphi);
    tower->set_HBD_channel_number(ich);
-   for(int isamp=0; isamp<FEM::NSAMPLES; isamp++)
+   for(int isamp=0; isamp<PROTOTYPE2_FEM::NSAMPLES; isamp++)
    {
-    tower->set_signal_samples_hg(isamp,_packet->iValue(ich,isamp));
+    tower->set_signal_samples(isamp,_packet->iValue(ich,isamp));
    }
   }
  }
@@ -139,17 +171,17 @@ int HCalUnpackPRDF::process_event(PHCompositeNode *topNode)
  if(verbosity)
  {
    cout << "HCALIN Towers: " << endl;
-   hcalin_towers->identify();
-   RawTowerContainer::ConstRange begin_end = hcalin_towers->getTowers();
+   hcalin_towers_hg->identify();
+   RawTowerContainer::ConstRange begin_end = hcalin_towers_lg->getTowers();
    RawTowerContainer::ConstIterator iter;
    for(iter=begin_end.first; iter!=begin_end.second;++iter)
    {
     RawTower_Prototype2 *tower = dynamic_cast<RawTower_Prototype2*>(iter->second);
     tower->identify();
     cout << "Signal Samples: [" << endl;
-    for(int isamp=0; isamp<FEM::NSAMPLES;isamp++)
+    for(int isamp=0; isamp<PROTOTYPE2_FEM::NSAMPLES;isamp++)
     {
-     cout << tower->get_signal_samples_hg(isamp) <<", ";
+     cout << tower->get_signal_samples(isamp) <<", ";
     }
     cout << " ]" << endl;
    }
@@ -189,23 +221,31 @@ void HCalUnpackPRDF::CreateNodeTree(PHCompositeNode *topNode)
   }
 
   //DATA nodes
-  data_node =  static_cast<PHCompositeNode*>( nodeItr.findFirst("PHCompositeNode", "DATA_NODE" ));
+  data_node =  static_cast<PHCompositeNode*>( nodeItr.findFirst("PHCompositeNode", "RAW_DATA" ));
   if(!data_node)
   {
-    cout << "PHComposite node created: DATA_NODE" << endl;
-    data_node  = new PHCompositeNode( "DATA_NODE" );
+      if (Verbosity())
+    cout << "PHComposite node created: RAW_DATA" << endl;
+    data_node  = new PHCompositeNode( "RAW_DATA" );
     dst_node->addNode( data_node );
   }
 
+  PHIODataNode<PHObject> *tower_node = NULL;
 
   //HCAL Towers
-  hcalin_towers = new RawTowerContainer(RawTowerDefs::HCALIN);
-  PHIODataNode<PHObject> *hcalin_towerNode = new PHIODataNode<PHObject>(hcalin_towers, "HCALIN_DATA_TOWERS", "PHObject" );
-  data_node->addNode(hcalin_towerNode);
+  hcalin_towers_lg = new RawTowerContainer(RawTowerDefs::HCALIN);
+  tower_node = new PHIODataNode<PHObject>(hcalin_towers_lg, "TOWER_RAW_LG_HCALIN", "PHObject" );
+  data_node->addNode(tower_node);
+  hcalin_towers_hg = new RawTowerContainer(RawTowerDefs::HCALIN);
+  tower_node = new PHIODataNode<PHObject>(hcalin_towers_hg, "TOWER_RAW_HG_HCALIN", "PHObject" );
+  data_node->addNode(tower_node);
 
-  hcalout_towers = new RawTowerContainer(RawTowerDefs::HCALOUT);
-  PHIODataNode<PHObject> *hcalout_towerNode = new PHIODataNode<PHObject>(hcalout_towers, "HCALOUT_DATA_TOWERS", "PHObject" );
-  data_node->addNode(hcalout_towerNode);
+  hcalout_towers_lg = new RawTowerContainer(RawTowerDefs::HCALOUT);
+  tower_node = new PHIODataNode<PHObject>(hcalout_towers_lg, "TOWER_RAW_LG_HCALOUT", "PHObject" );
+  data_node->addNode(tower_node);
+  hcalout_towers_hg = new RawTowerContainer(RawTowerDefs::HCALOUT);
+  tower_node = new PHIODataNode<PHObject>(hcalout_towers_hg, "TOWER_RAW_HG_HCALOUT", "PHObject" );
+  data_node->addNode(tower_node);
 
   //EMCAL towers
   emcal_towers = new RawTowerContainer(RawTowerDefs::CEMC);
