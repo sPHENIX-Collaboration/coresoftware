@@ -249,7 +249,7 @@ void CaloUnpackPRDF::CreateNodeTree(PHCompositeNode *topNode)
 
   //EMCAL towers
   emcal_towers = new RawTowerContainer(RawTowerDefs::CEMC);
-  PHIODataNode<PHObject> *emcal_towerNode = new PHIODataNode<PHObject>(emcal_towers, "EMCAL_DATA_TOWERS", "PHObject" );
+  PHIODataNode<PHObject> *emcal_towerNode = new PHIODataNode<PHObject>(emcal_towers, "TOWER_RAW_CEMC", "PHObject" );
   data_node->addNode(emcal_towerNode);
 }
 
