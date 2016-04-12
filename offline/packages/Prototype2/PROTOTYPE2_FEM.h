@@ -1,5 +1,7 @@
-#ifndef __FEM_H__
-#define __FEM_H__
+#ifndef __PROTOTYPE2_FEM_H__
+#define __PROTOTYPE2_FEM_H__
+
+#include <string>
 
 namespace PROTOTYPE2_FEM {
 
@@ -26,6 +28,9 @@ namespace PROTOTYPE2_FEM {
 
  /*! Error assigned to dead channels */
  const int DEAD_CHANNEL_ERROR = 300;
+
+ int
+ GetHBDCh(std::string caloname, int i_column, int i_row);
 
 }
 

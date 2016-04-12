@@ -3,9 +3,9 @@
 using namespace std;
 
 void Fun4All_TestBeam(
-          const char *input_file= "/gpfs/mnt/gpfs02/sphenix/data/data01/t1044-2016a/fnal/beam/beam_00002013-0000.prdf",
-          const char *output_file = "TB_DST.root",
-	  int nEvents = 10)
+          const char *input_file= "/gpfs/mnt/gpfs02/sphenix/data/data01/t1044-2016a/fnal/beam/beam_00002008-0000.prdf",
+          const char *output_file = "data/TB_DST.root",
+	  int nEvents = 1000)
 {
  gSystem->Load("libfun4all");
  gSystem->Load("libPrototype2.so");

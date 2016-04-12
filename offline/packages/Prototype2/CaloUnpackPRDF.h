@@ -29,8 +29,6 @@ class CaloUnpackPRDF : public SubsysReco
   
   void CreateNodeTree(PHCompositeNode *topNode);
 
-  int GetHBDCh(std::string,int,int);
-
  private:
 
   Event* _event;
