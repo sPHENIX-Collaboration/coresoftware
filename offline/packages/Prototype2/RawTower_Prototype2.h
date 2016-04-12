@@ -5,6 +5,7 @@
 #include <g4cemc/RawTowerDefs.h>
 #include <map>
 #include <stdint.h>
+#include "PROTOTYPE2_FEM.h"
 
 class RawTower_Prototype2 : public RawTower {
  public:
@@ -35,7 +36,7 @@ class RawTower_Prototype2 : public RawTower {
 
   enum
   {
-    NSAMPLES = 24
+    NSAMPLES = PROTOTYPE2_FEM::NSAMPLES
   };
   typedef float signal_type;
 
@@ -45,6 +46,11 @@ class RawTower_Prototype2 : public RawTower {
     { HBD_channel=i; }
   int get_HBD_channel_number()
     { return HBD_channel; }
+
+  //---Fits------------------------------------------------------------
+
+    double get_energy_power_law_exp(int verbosity = 0);
+
 
  protected:
   RawTowerDefs::keytype towerid;

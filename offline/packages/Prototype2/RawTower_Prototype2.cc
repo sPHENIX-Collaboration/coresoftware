@@ -6,6 +6,8 @@
 #include <map>
 #include <cassert>
 
+#include "PROTOTYPE2_FEM.h"
+
 using namespace std;
 
 ClassImp(RawTower_Prototype2)
@@ -85,4 +87,17 @@ RawTower_Prototype2::get_signal_samples(int i)
   assert(i>=0);
   assert(i<NSAMPLES);
   return signal_samples[i];
+}
+
+double
+RawTower_Prototype2::get_energy_power_law_exp(int verbosity)
+{
+  double peak = NAN;
+  double peak_sample = NAN;
+  double pedstal = NAN;
+
+  PROTOTYPE2_FEM::
+  SampleFit_PowerLawExp(signal_samples, peak, peak_sample, pedstal, verbosity);
+
+  return peak;
 }
