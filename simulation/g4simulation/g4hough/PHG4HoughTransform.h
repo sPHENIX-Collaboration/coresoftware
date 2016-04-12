@@ -17,6 +17,7 @@
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHTimeServer.h>
+#include <g4bbc/BbcVertexMap.h>
 
 // Helix Hough includes
 #ifndef __CINT__
@@ -203,6 +204,8 @@ public:
   static bool circle_circle_intersections(double x0, double y0, double r0,
 					  double x1, double y1, double r1,
 					  std::set<std::vector<double> >* points);
+
+  BbcVertexMap* _bbc_vertexes;
   
   bool _use_vertex;
   int _beta, _lambda; ///< resolution tuning parameters 

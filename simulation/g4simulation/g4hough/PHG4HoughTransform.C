@@ -23,6 +23,8 @@
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
+#include <g4bbc/BbcVertexMap.h>
+#include <g4bbc/BbcVertex.h>
 
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -354,6 +356,8 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers, unsigned int re
   _cut_on_dca(false), 
   _dca_cut(0.1),
   _dcaz_cut(0.2) {
+
+  _bbc_vertexes = NULL;
   
   _magField = 1.5; // Tesla
   _use_vertex = true;
@@ -1006,42 +1010,41 @@ int PHG4HoughTransform::CreateNodes(PHCompositeNode *topNode)
   return InitializeGeometry(topNode);
 }
 
-int PHG4HoughTransform::GetNodes(PHCompositeNode *topNode)
-{
+int PHG4HoughTransform::GetNodes(PHCompositeNode* topNode) {
+
   //---------------------------------
   // Get Objects off of the Node Tree
   //---------------------------------
+
+  // Pull the reconstructed track information off the node tree...
+  _bbc_vertexes = getClass<BbcVertexMap>(topNode, "BbcVertexMap");
   
-  _ghitlist = getClass<PHG4HitContainer>(topNode,"G4HIT_SVTX");
-  if(!_ghitlist) 
-    {
-      cerr << PHWHERE << " ERROR: Can't find node PHG4HitContainer" << endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  
-  _g4clusters = getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
-  if(!_g4clusters) 
-    {
-      cerr << PHWHERE << " ERROR: Can't find node SvtxClusterMap" << endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+  _ghitlist = getClass<PHG4HitContainer>(topNode, "G4HIT_SVTX");
+  if (!_ghitlist) {
+    cerr << PHWHERE << " ERROR: Can't find node PHG4HitContainer" << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _g4clusters = getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
+  if (!_g4clusters) {
+    cerr << PHWHERE << " ERROR: Can't find node SvtxClusterMap" << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   // Pull the reconstructed track information off the node tree...
   _g4tracks = getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-  if(!_g4tracks) 
-    {
-      cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap." << endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+  if (!_g4tracks) {
+    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap." << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   // Pull the reconstructed track information off the node tree...
   _g4vertexes = getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-  if(!_g4vertexes) 
-    {
-      cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  
+  if (!_g4vertexes) {
+    cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1140,6 +1143,27 @@ bool PHG4HoughTransform::circle_circle_intersections(double x0, double y0, doubl
 
 int PHG4HoughTransform::fast_vertex_guessing() {
 
+  // if the BBC vertex exists use that first
+  
+  if (_bbc_vertexes) {
+
+    BbcVertex* vertex = _bbc_vertexes->begin()->second;
+
+    if (vertex) {
+
+      _vertex[0] = 0.0;
+      _vertex[1] = 0.0;
+      _vertex[2] = vertex->get_z();
+
+      if (verbosity) cout << " initial bbc vertex guess: "
+			  << _vertex[0] << " "
+			  << _vertex[1] << " "
+			  << _vertex[2] << endl;
+      
+      return Fun4AllReturnCodes::EVENT_OK;
+    }  
+  }
+    
   // 1/dca weighted average of pca positions from cluster pair projections
   // cycles a few times to update vertex position used in dca creation
   // so can slide to beam line positions with a standoff from (0,0)
@@ -1231,8 +1255,8 @@ int PHG4HoughTransform::initial_vertex_finding() {
     _clusters[ht].z -= _vertex[2];
   }
   
-  // limit each window to no more than 80 tracks
-  unsigned int maxtracks = 80;
+  // limit each window to no more than 40 tracks
+  unsigned int maxtracks = 40;
     
   // storage for tracking for initial vertex finding
   std::vector<SimpleTrack3D> vtxtracks;
@@ -1249,42 +1273,51 @@ int PHG4HoughTransform::initial_vertex_finding() {
     vtxtracks.push_back(newtracks[t]);
     vtxcovariances.push_back( (_tracker_vertex->getKalmanStates())[t].C );
   }
-    
-  if (vtxtracks.size() == 0) return Fun4AllReturnCodes::EVENT_OK;
-
-  // --- compute seed vertex from initial track finding --------------------
 
   cout << " initial track finding count: " << vtxtracks.size() << endl;
-      
-  double xsum = 0.0;
-  double ysum = 0.0;
-  double zsum = 0.0;
-
-  for (unsigned int i = 0; i < vtxtracks.size(); ++i) {
-    xsum += vtxtracks[i].d * cos( vtxtracks[i].phi );
-    ysum += vtxtracks[i].d * sin( vtxtracks[i].phi );
-    zsum += vtxtracks[i].z0;
-  }
-
-  std::vector<float> temp_vertex(3,0.0);
+  
   if (vtxtracks.size() != 0) {
+
+    // --- compute seed vertex from initial track finding --------------------
+    
+    double xsum = 0.0;
+    double ysum = 0.0;
+    double zsum = 0.0;
+
+    for (unsigned int i = 0; i < vtxtracks.size(); ++i) {
+      xsum += vtxtracks[i].d * cos( vtxtracks[i].phi );
+      ysum += vtxtracks[i].d * sin( vtxtracks[i].phi );
+      zsum += vtxtracks[i].z0;
+    }
+
+    std::vector<float> temp_vertex(3,0.0);
     temp_vertex[0] = xsum / vtxtracks.size();
     temp_vertex[1] = ysum / vtxtracks.size();
     temp_vertex[2] = zsum / vtxtracks.size();
-  }
 
-  if (verbosity > 0) {
-    cout << " initial track vertex pre-fit : "
-	 << temp_vertex[0] + _vertex[0] << " "
-	 << temp_vertex[1] + _vertex[1] << " "
-	 << temp_vertex[2] + _vertex[2] << endl;
-  }
+    if (verbosity > 0) {
+      cout << " initial track vertex pre-fit : "
+	   << temp_vertex[0] + _vertex[0] << " "
+	   << temp_vertex[1] + _vertex[1] << " "
+	   << temp_vertex[2] + _vertex[2] << endl;
+    }
       
-  // start with the average position and converge from there
-  _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 3.00, true);
-  _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.10, true);
-  _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.02, false);
+    // start with the average position and converge from there
+    _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 3.00, true);
+    _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.10, true);
+    _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.02, false);
 
+    // update vertex position in global coordinates  
+    _vertex[0] = temp_vertex[0] + _vertex[0];
+    _vertex[1] = temp_vertex[1] + _vertex[1];
+    _vertex[2] = temp_vertex[2] + _vertex[2];
+    
+    if (verbosity > 0) {
+      cout << " initial track vertex post-fit : "
+	   << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
+    }    
+  }
+    
   // shift back to global coordinates
   for(unsigned int ht = 0; ht < _clusters_init.size(); ++ht) {
     _clusters_init[ht].x += _vertex[0];
@@ -1298,17 +1331,6 @@ int PHG4HoughTransform::initial_vertex_finding() {
     _clusters[ht].z += _vertex[2];
   }
 
-  // update vertex position in global coordinates
-  
-  _vertex[0] = temp_vertex[0] + _vertex[0];
-  _vertex[1] = temp_vertex[1] + _vertex[1];
-  _vertex[2] = temp_vertex[2] + _vertex[2];
-                
-  if (verbosity > 0) {
-    cout << " initial track vertex post-fit : "
-	 << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
-  }
-
   _tracker_vertex->clear();
   
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1316,21 +1338,18 @@ int PHG4HoughTransform::initial_vertex_finding() {
 
 int PHG4HoughTransform::setup_tracker_object() {
 
+  // input vertex must be within 500 um of final
+  
   // tell the tracker object the phase space extent of the search region
   // and the recursive zoom factors to utilize
   
   float kappa_max = ptToKappa(_min_pT);
 
   HelixRange top_range( 0.0, 2.*M_PI,                   // center of rotation azimuthal angles
-			-0.2, 0.2,                      // 2d dca range
+			-2.0*_dca_cut, 2.0*_dca_cut,    // 2d dca range
 			0.0, kappa_max,                 // curvature range
 			-0.9, 0.9,                      // dzdl range
-			-1.0*_dcaz_cut, 1.0*_dcaz_cut); // dca_z range
-  
-  if (!_use_vertex) {
-    top_range.min_z0 = -10.;
-    top_range.max_z0 = 10.;
-  }
+			-2.0*_dcaz_cut, 2.0*_dcaz_cut); // dca_z range
   
   vector<unsigned int> onezoom(5,0);
   vector<vector<unsigned int> > zoomprofile;
@@ -1365,10 +1384,10 @@ int PHG4HoughTransform::setup_tracker_object() {
   _tracker->setNLayers(_seed_layers);
   _tracker->requireLayers(_req_seed);
   _max_hits_init = _seed_layers*4;
-  if(_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
+  if (_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
   _min_hits_init = _req_seed;
-  if(_seed_layers < 10){ _tracker->setClusterStartBin(1); }
-  else{ _tracker->setClusterStartBin(10); }
+  if (_seed_layers < 10){ _tracker->setClusterStartBin(1); }
+  else { _tracker->setClusterStartBin(10); }
   _tracker->setRejectGhosts(_reject_ghosts);
   _tracker->setFastChi2Cut(_chi2_cut_fast_par0,
 			   _chi2_cut_fast_par1,
@@ -1401,7 +1420,9 @@ int PHG4HoughTransform::setup_tracker_object() {
 
 int PHG4HoughTransform::setup_initial_tracker_object() {
 
-  // copy of the final tracker with expanded DCA search regions
+  // copy of the final tracker modified to:
+  // expand the DCA search regions
+  // remove the DCA cut on the track output
   
   // tell the initial tracker object the phase space extent of the search region
   // and the recursive zoom factors to utilize  
@@ -1411,16 +1432,11 @@ int PHG4HoughTransform::setup_initial_tracker_object() {
   // for the initial tracker we may not have the best guess on the vertex yet
   // so I've doubled the search range on dca and dcaz
   
-  HelixRange top_range( 0.0, 2.*M_PI,                   // center of rotation azimuthal angles
-			-0.2*2, 0.2*2,                  // 2d dca range
-			0.0, kappa_max,                 // curvature range
-			-0.9, 0.9,                      // dzdl range
-			-2.0*_dcaz_cut, 2.0*_dcaz_cut); // dca_z range
-  
-  if (!_use_vertex) {
-    top_range.min_z0 = -10.;
-    top_range.max_z0 = 10.;
-  }
+  HelixRange top_range( 0.0, 2.*M_PI,    // center of rotation azimuthal angles
+			-1.0, 1.0,       // 2d dca range
+			0.0, kappa_max,  // curvature range
+			-0.9, 0.9,       // dzdl range
+			-2.0, 2.0);      // dca_z range
   
   vector<unsigned int> onezoom(5,0);
   vector<vector<unsigned int> > zoomprofile;
@@ -1467,9 +1483,7 @@ int PHG4HoughTransform::setup_initial_tracker_object() {
   _tracker_vertex->setChi2RemovalCut(_chi2_cut_full*0.5);
   _tracker_vertex->setCellularAutomatonChi2Cut(_ca_chi2_cut);
   _tracker_vertex->setPrintTimings(false);
-  //_tracker_vertex->setVerbosity(verbosity);
-  _tracker_vertex->setCutOnDca(_cut_on_dca);
-  _tracker_vertex->setDcaCut(_dca_cut);
+  _tracker_vertex->setCutOnDca(false);
   _tracker_vertex->setSmoothBack(true);
   _tracker_vertex->setBinScale(_bin_scale);
   _tracker_vertex->setZBinScale(_z_bin_scale);
