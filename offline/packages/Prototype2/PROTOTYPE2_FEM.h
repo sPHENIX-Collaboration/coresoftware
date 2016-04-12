@@ -29,8 +29,10 @@ namespace PROTOTYPE2_FEM {
  /*! Error assigned to dead channels */
  const int DEAD_CHANNEL_ERROR = 300;
 
+ //! FEM mapping of channel -> calorimeter col and rows
  int
  GetHBDCh(std::string caloname, int i_column, int i_row);
+
 
 }
 

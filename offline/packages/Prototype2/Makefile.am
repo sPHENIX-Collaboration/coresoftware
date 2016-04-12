@@ -24,7 +24,8 @@ libPrototype2_la_SOURCES = \
   Prototype2DSTReaderDict.cc \
   CaloUnpackPRDF.C \
   CaloUnpackPRDFDict.C \
-  PROTOTYPE2_FEM.C
+  PROTOTYPE2_FEM.C \
+  PROTOTYPE2_FEMDict.cc
 
 libPrototype2_la_LIBADD = \
   -lSubsysReco \
