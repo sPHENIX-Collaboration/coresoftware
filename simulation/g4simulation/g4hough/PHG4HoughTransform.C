@@ -1377,7 +1377,7 @@ int PHG4HoughTransform::setup_tracker_object() {
   _tracker->setChi2RemovalCut(_chi2_cut_full*0.5);
   _tracker->setCellularAutomatonChi2Cut(_ca_chi2_cut);
   _tracker->setPrintTimings(false);
-  _tracker->setVerbosity(verbosity);
+  //_tracker->setVerbosity(verbosity);
   _tracker->setCutOnDca(_cut_on_dca);
   _tracker->setDcaCut(_dca_cut);
   _tracker->setSmoothBack(true);
@@ -1462,7 +1462,7 @@ int PHG4HoughTransform::setup_initial_tracker_object() {
   _tracker_vertex->setChi2RemovalCut(_chi2_cut_full*0.5);
   _tracker_vertex->setCellularAutomatonChi2Cut(_ca_chi2_cut);
   _tracker_vertex->setPrintTimings(false);
-  _tracker_vertex->setVerbosity(verbosity);
+  //_tracker_vertex->setVerbosity(verbosity);
   _tracker_vertex->setCutOnDca(_cut_on_dca);
   _tracker_vertex->setDcaCut(_dca_cut);
   _tracker_vertex->setSmoothBack(true);
