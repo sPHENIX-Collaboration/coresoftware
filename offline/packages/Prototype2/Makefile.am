@@ -20,6 +20,8 @@ include_HEADERS = \
 libPrototype2_la_SOURCES = \
   RawTower_Prototype2.cc \
   RawTower_Prototype2Dict.cc \
+  Prototype2DSTReader.cc \
+  Prototype2DSTReaderDict.cc \
   CaloUnpackPRDF.C \
   CaloUnpackPRDFDict.C 
 
