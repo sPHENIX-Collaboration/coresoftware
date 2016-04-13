@@ -1421,7 +1421,6 @@ int PHG4HoughTransform::setup_tracker_object() {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-
 int PHG4HoughTransform::setup_initial_tracker_object() {
 
   // copy of the final tracker modified to:
@@ -1501,6 +1500,155 @@ int PHG4HoughTransform::setup_initial_tracker_object() {
     float scale2 = _vote_error_scale[ilayer];
     float scale = scale1/scale2;
     _tracker_vertex->setHitErrorScale(ilayer, scale);
+  }
+  
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4HoughTransform::setup_seed_tracker_objects() {
+
+  float kappa_max = ptToKappa(_min_pT);
+
+  // for the initial tracker we may not have the best guess on the vertex yet
+  // so I've doubled the search range on dca and dcaz
+  {
+    HelixRange top_range( 0.0, 2.*M_PI,    // center of rotation azimuthal angles
+			  -1.0, 1.0,       // 2d dca range
+			  0.0, kappa_max,  // curvature range
+			  0.0, 0.9,        // dzdl range
+			  -10.0, 10.0);    // dca_z range
+  
+    vector<unsigned int> onezoom(5,0);
+    vector<vector<unsigned int> > zoomprofile;
+    zoomprofile.assign(5,onezoom);
+    zoomprofile[0][0] = 16;
+    zoomprofile[0][1] = 1;
+    zoomprofile[0][2] = 4;
+    zoomprofile[0][3] = 8;
+    zoomprofile[0][4] = 1;
+  
+    zoomprofile[1][0] = 16;
+    zoomprofile[1][1] = 1;
+    zoomprofile[1][2] = 4;
+    zoomprofile[1][3] = 4;
+    zoomprofile[1][4] = 2;
+  
+    zoomprofile[2][0] = 4;
+    zoomprofile[2][1] = 3;
+    zoomprofile[2][2] = 2;
+    zoomprofile[2][3] = 1;
+    zoomprofile[2][4] = 3;
+  
+    for (unsigned int i = 2; i <= 3; ++i) {
+      zoomprofile[i][0] = 3;
+      zoomprofile[i][1] = 3;
+      zoomprofile[i][2] = 3;
+      zoomprofile[i][3] = 3;
+      zoomprofile[i][4] = 3;
+    }
+    
+    _tracker_etap_seed = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
+    _tracker_etap_seed->setNLayers(_seed_layers);
+    _tracker_etap_seed->requireLayers(_req_seed);
+    _max_hits_init = _seed_layers*4;
+    if(_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
+    _min_hits_init = _req_seed;
+    if(_seed_layers < 10){ _tracker_etap_seed->setClusterStartBin(1); }
+    else{ _tracker_etap_seed->setClusterStartBin(10); }
+    _tracker_etap_seed->setRejectGhosts(_reject_ghosts);
+    _tracker_etap_seed->setFastChi2Cut(_chi2_cut_fast_par0,
+				    _chi2_cut_fast_par1,
+				    _chi2_cut_fast_max);
+    _tracker_etap_seed->setChi2Cut(_chi2_cut_full);
+    _tracker_etap_seed->setChi2RemovalCut(_chi2_cut_full*0.5);
+    _tracker_etap_seed->setCellularAutomatonChi2Cut(_ca_chi2_cut);
+    _tracker_etap_seed->setPrintTimings(false);
+    _tracker_etap_seed->setCutOnDca(false);
+    _tracker_etap_seed->setSmoothBack(true);
+    _tracker_etap_seed->setBinScale(_bin_scale);
+    _tracker_etap_seed->setZBinScale(_z_bin_scale);
+    _tracker_etap_seed->setRemoveHits(_remove_hits);
+    _tracker_etap_seed->setSeparateByHelicity(true);
+    _tracker_etap_seed->setMaxHitsPairs(0);
+    _tracker_etap_seed->setCosAngleCut(_cos_angle_cut);
+      
+    for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
+      float scale1 = _fit_error_scale[ilayer];
+      float scale2 = _vote_error_scale[ilayer];
+      float scale = scale1/scale2;
+      _tracker_etap_seed->setHitErrorScale(ilayer, scale);
+    }
+  }
+
+  // for the initial tracker we may not have the best guess on the vertex yet
+  // so I've doubled the search range on dca and dcaz
+  {
+    HelixRange top_range( 0.0, 2.*M_PI,    // center of rotation azimuthal angles
+			  -1.0, 1.0,       // 2d dca range
+			  0.0, kappa_max,  // curvature range
+			  -0.9, 0.0,        // dzdl range
+			  -10.0, 10.0);    // dca_z range
+  
+    vector<unsigned int> onezoom(5,0);
+    vector<vector<unsigned int> > zoomprofile;
+    zoomprofile.assign(5,onezoom);
+    zoomprofile[0][0] = 16;
+    zoomprofile[0][1] = 1;
+    zoomprofile[0][2] = 4;
+    zoomprofile[0][3] = 8;
+    zoomprofile[0][4] = 1;
+  
+    zoomprofile[1][0] = 16;
+    zoomprofile[1][1] = 1;
+    zoomprofile[1][2] = 4;
+    zoomprofile[1][3] = 4;
+    zoomprofile[1][4] = 2;
+  
+    zoomprofile[2][0] = 4;
+    zoomprofile[2][1] = 3;
+    zoomprofile[2][2] = 2;
+    zoomprofile[2][3] = 1;
+    zoomprofile[2][4] = 3;
+  
+    for (unsigned int i = 2; i <= 3; ++i) {
+      zoomprofile[i][0] = 3;
+      zoomprofile[i][1] = 3;
+      zoomprofile[i][2] = 3;
+      zoomprofile[i][3] = 3;
+      zoomprofile[i][4] = 3;
+    }
+    
+    _tracker_etam_seed = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
+    _tracker_etam_seed->setNLayers(_seed_layers);
+    _tracker_etam_seed->requireLayers(_req_seed);
+    _max_hits_init = _seed_layers*4;
+    if(_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
+    _min_hits_init = _req_seed;
+    if(_seed_layers < 10){ _tracker_etam_seed->setClusterStartBin(1); }
+    else{ _tracker_etam_seed->setClusterStartBin(10); }
+    _tracker_etam_seed->setRejectGhosts(_reject_ghosts);
+    _tracker_etam_seed->setFastChi2Cut(_chi2_cut_fast_par0,
+				    _chi2_cut_fast_par1,
+				    _chi2_cut_fast_max);
+    _tracker_etam_seed->setChi2Cut(_chi2_cut_full);
+    _tracker_etam_seed->setChi2RemovalCut(_chi2_cut_full*0.5);
+    _tracker_etam_seed->setCellularAutomatonChi2Cut(_ca_chi2_cut);
+    _tracker_etam_seed->setPrintTimings(false);
+    _tracker_etam_seed->setCutOnDca(false);
+    _tracker_etam_seed->setSmoothBack(true);
+    _tracker_etam_seed->setBinScale(_bin_scale);
+    _tracker_etam_seed->setZBinScale(_z_bin_scale);
+    _tracker_etam_seed->setRemoveHits(_remove_hits);
+    _tracker_etam_seed->setSeparateByHelicity(true);
+    _tracker_etam_seed->setMaxHitsPairs(0);
+    _tracker_etam_seed->setCosAngleCut(_cos_angle_cut);
+      
+    for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
+      float scale1 = _fit_error_scale[ilayer];
+      float scale2 = _vote_error_scale[ilayer];
+      float scale = scale1/scale2;
+      _tracker_etam_seed->setHitErrorScale(ilayer, scale);
+    }
   }
   
   return Fun4AllReturnCodes::EVENT_OK;

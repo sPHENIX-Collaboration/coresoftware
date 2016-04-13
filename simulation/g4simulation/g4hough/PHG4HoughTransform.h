@@ -195,6 +195,7 @@ public:
   int initial_vertex_finding();
   int setup_tracker_object();
   int setup_initial_tracker_object();
+  int setup_seed_tracker_objects();
   
   /// helper function for projection code
   static bool circle_line_intersections(double x0, double y0, double r0,
@@ -238,7 +239,9 @@ public:
   // track finding routines                                                                                             
   sPHENIXTracker *_tracker;    // finds full tracks
   sPHENIXTracker* _tracker_vertex; // finds a subset of tracks for initial vertex-finding
-    
+  sPHENIXTracker* _tracker_etap_seed; 
+  sPHENIXTracker* _tracker_etam_seed;
+  
   VertexFinder _vertexFinder; ///< vertex finding object
 
   float _magField; ///< in Tesla
