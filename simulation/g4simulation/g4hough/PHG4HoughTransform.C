@@ -1279,7 +1279,7 @@ int PHG4HoughTransform::initial_vertex_finding() {
 
   std::vector<float> temp_vertex(3,0.0);
   
-  cout << " initial track finding count: " << vtxtracks.size() << endl;
+  if (verbosity) cout << " initial track finding count: " << vtxtracks.size() << endl;
 
   if (vtxtracks.size() != 0) {
 
