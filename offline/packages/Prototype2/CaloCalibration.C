@@ -1,4 +1,3 @@
-
 #include "CaloCalibration.h"
 
 #include "RawTower_Prototype2.h"
@@ -9,6 +8,7 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include "PROTOTYPE2_FEM.h"
 #include <iostream>
+#include <TString.h>
 #include <string>
 #include <cassert>
 #include "PROTOTYPE2_FEM.h"
@@ -18,11 +18,12 @@ using namespace std;
 //____________________________________
 CaloCalibration::CaloCalibration(const std::string& name) : //
     SubsysReco(string("CaloCalibration_") + name), //
-    _calib_const_scale(-1), //negative pulse
     _calib_towers(NULL), _raw_towers(NULL), detector(name), //
     _calib_tower_node_prefix("CALIB"), //
-    _raw_tower_node_prefix("RAW") //
+    _raw_tower_node_prefix("RAW"), //
+    _calib_params(name)
 {
+  SetDefaultParameters(_calib_params);
 }
 
 //____________________________________
@@ -37,6 +38,14 @@ int
 CaloCalibration::InitRun(PHCompositeNode *topNode)
 {
   CreateNodeTree(topNode);
+
+  if (verbosity)
+    {
+      std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+          << " - print calibration parameters: "<<endl;
+      _calib_params.print();
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -51,6 +60,11 @@ CaloCalibration::process_event(PHCompositeNode *topNode)
           << "Process event entered" << std::endl;
     }
 
+  const double calib_const_scale = _calib_params.get_double_param(
+      "calib_const_scale");
+  const bool use_chan_calibration = _calib_params.get_int_param(
+      "use_chan_calibration") > 0;
+
   RawTowerContainer::ConstRange begin_end = _raw_towers->getTowers();
   RawTowerContainer::ConstIterator rtiter;
   for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
@@ -60,7 +74,21 @@ CaloCalibration::process_event(PHCompositeNode *topNode)
           dynamic_cast<RawTower_Prototype2 *>(rtiter->second);
       assert(raw_tower);
 
-      const double calibration_const = _calib_const_scale;
+      double calibration_const = calib_const_scale;
+
+      if (use_chan_calibration)
+        {
+          // channel to channel calibration.
+          const int column = raw_tower->get_column();
+          const int row = raw_tower->get_row();
+
+          assert(column >= 0);
+          assert(row >= 0);
+
+          string calib_const_name(Form("calib_const_column%d_row%d",column,row));
+
+          calibration_const *= _calib_params.get_double_param(calib_const_name);
+        }
 
       vector<double> vec_signal_samples;
       for (int i = 0; i < RawTower_Prototype2::NSAMPLES; i++)
@@ -73,7 +101,8 @@ CaloCalibration::process_event(PHCompositeNode *topNode)
       double peak_sample = NAN;
       double pedstal = NAN;
 
-      PROTOTYPE2_FEM::SampleFit_PowerLawExp(vec_signal_samples, peak, peak_sample, pedstal);
+      PROTOTYPE2_FEM::SampleFit_PowerLawExp(vec_signal_samples, peak,
+          peak_sample, pedstal);
 
       RawTower_Prototype2 *calib_tower = new RawTower_Prototype2(*raw_tower);
       calib_tower->set_energy(peak);
@@ -150,6 +179,17 @@ CaloCalibration::CreateNodeTree(PHCompositeNode *topNode)
           _calib_towers, CaliTowerNodeName.c_str(), "PHObject");
       DetNode->addNode(towerNode);
     }
+
+  // update the parameters on the node tree
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
+      "PHCompositeNode", "RUN"));
+  assert(parNode);
+  const string paramnodename = string("aloCalibration_") + detector;
+
+  //   this step is moved to after detector construction
+  //   save updated persistant copy on node tree
+  _calib_params.SaveToNodeTree(parNode, paramnodename);
+
 }
 
 //___________________________________
@@ -159,3 +199,14 @@ CaloCalibration::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void
+CaloCalibration::SetDefaultParameters(PHG4Parameters & param)
+{
+
+  param.set_int_param("use_chan_calibration", 0);
+
+  // additional scale for the calibration constant
+  // negative pulse -> positive with -1
+  param.set_double_param("calib_const_scale", -1);
+
+}

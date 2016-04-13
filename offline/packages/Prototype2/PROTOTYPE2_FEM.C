@@ -15,7 +15,7 @@
 #include <cmath>
 #include <TGraph.h>
 #include <TF1.h>
-#include <TCanvas.h>
+//#include <TCanvas.h>
 
 using namespace std;
 
@@ -134,13 +134,13 @@ PROTOTYPE2_FEM::SampleFit_PowerLawExp(//
   fits.SetParLimits(2, 2, 4.);
   fits.SetParLimits(3, 1., 2.);
   fits.SetParLimits(4, pedestal - abs(peakval), pedestal + abs(peakval));
-//  fits.SetParLimits(5, pedestal - peakval, pedestal + peakval);
-  fits.SetParLimits(5, - abs(peakval),  + abs(peakval));
+//  fits.SetParLimits(5, - abs(peakval),  + abs(peakval));
+  fits.FixParameter(5, 0);
   gpulse.Fit(&fits, "MQRN0", "goff", 0., (double) NSAMPLES);
 
   if (verbosity)
     {
-      new TCanvas("PROTOTYPE2_FEM_SampleFit_PowerLawExp","PROTOTYPE2_FEM::SampleFit_PowerLawExp");
+//      new TCanvas("PROTOTYPE2_FEM_SampleFit_PowerLawExp","PROTOTYPE2_FEM::SampleFit_PowerLawExp");
       gpulse.DrawClone("ap*l");
       fits.DrawClone("same");
       fits.Print();
