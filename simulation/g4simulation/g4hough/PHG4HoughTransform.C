@@ -529,20 +529,21 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode) {
   // Perform the initial zvertex finding
   //------------------------------------
 
-  // Grab some initial tracks for initial z-vertex finding
   _tracks.clear();
-
   _vertex.clear();
+  
   _vertex.push_back(0.0);
   _vertex.push_back(0.0);
   _vertex.push_back(0.0);
 
-  //-----------------------------------------------
-  // Guess a vertex position from pairs of clusters
-  //-----------------------------------------------
+  //------------------------
+  // Guess a vertex position
+  //------------------------
 
   int code = fast_vertex_guessing();
   if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+
+  // expect vertex to be better than +/-2.0 cm
   
   //-----------------------------------
   // Find an initial vertex with tracks
@@ -550,11 +551,13 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode) {
 
   code = initial_vertex_finding();
   if (code != Fun4AllReturnCodes::EVENT_OK) return code;
-      
+
+  // expect vertex to be better than +/- 500 um
+  
   //----------------------------------
   // Preform the track finding
   //----------------------------------
-  
+
   // --- shift coordinate system to place vertex at the origin ---------------
     
   for(unsigned int ht = 0; ht < _clusters_init.size(); ++ht) {
@@ -577,7 +580,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode) {
   // Shift coordinate system back to global coordinates
   std::vector<double> chi_squareds;
   for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
-    for (unsigned int hh = 0;hh < _tracks[tt].hits.size(); ++hh) {
+    for (unsigned int hh = 0; hh < _tracks[tt].hits.size(); ++hh) {
       _tracks[tt].hits[hh].x = _tracks[tt].hits[hh].x + _vertex[0];
       _tracks[tt].hits[hh].y = _tracks[tt].hits[hh].y + _vertex[1];
       _tracks[tt].hits[hh].z = _tracks[tt].hits[hh].z + _vertex[2];
@@ -1274,8 +1277,10 @@ int PHG4HoughTransform::initial_vertex_finding() {
     vtxcovariances.push_back( (_tracker_vertex->getKalmanStates())[t].C );
   }
 
-  cout << " initial track finding count: " << vtxtracks.size() << endl;
+  std::vector<float> temp_vertex(3,0.0);
   
+  cout << " initial track finding count: " << vtxtracks.size() << endl;
+
   if (vtxtracks.size() != 0) {
 
     // --- compute seed vertex from initial track finding --------------------
@@ -1290,7 +1295,6 @@ int PHG4HoughTransform::initial_vertex_finding() {
       zsum += vtxtracks[i].z0;
     }
 
-    std::vector<float> temp_vertex(3,0.0);
     temp_vertex[0] = xsum / vtxtracks.size();
     temp_vertex[1] = ysum / vtxtracks.size();
     temp_vertex[2] = zsum / vtxtracks.size();
@@ -1306,31 +1310,31 @@ int PHG4HoughTransform::initial_vertex_finding() {
     _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 3.00, true);
     _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.10, true);
     _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.02, false);
-
-    // update vertex position in global coordinates  
-    _vertex[0] = temp_vertex[0] + _vertex[0];
-    _vertex[1] = temp_vertex[1] + _vertex[1];
-    _vertex[2] = temp_vertex[2] + _vertex[2];
-    
-    if (verbosity > 0) {
-      cout << " initial track vertex post-fit : "
-	   << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
-    }    
   }
     
   // shift back to global coordinates
-  for(unsigned int ht = 0; ht < _clusters_init.size(); ++ht) {
+  for (unsigned int ht = 0; ht < _clusters_init.size(); ++ht) {
     _clusters_init[ht].x += _vertex[0];
     _clusters_init[ht].y += _vertex[1];
     _clusters_init[ht].z += _vertex[2];
   }
 
-  for(unsigned int ht = 0; ht < _clusters.size(); ++ht) {
+  for (unsigned int ht = 0; ht < _clusters.size(); ++ht) {
     _clusters[ht].x += _vertex[0];
     _clusters[ht].y += _vertex[1];
     _clusters[ht].z += _vertex[2];
   }
 
+  // update vertex position in global coordinates  
+  _vertex[0] = temp_vertex[0] + _vertex[0];
+  _vertex[1] = temp_vertex[1] + _vertex[1];
+  _vertex[2] = temp_vertex[2] + _vertex[2];
+    
+  if (verbosity > 0) {
+    cout << " initial track vertex post-fit : "
+	 << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
+  }  
+  
   _tracker_vertex->clear();
   
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1346,10 +1350,10 @@ int PHG4HoughTransform::setup_tracker_object() {
   float kappa_max = ptToKappa(_min_pT);
 
   HelixRange top_range( 0.0, 2.*M_PI,                   // center of rotation azimuthal angles
-			-2.0*_dca_cut, 2.0*_dca_cut,    // 2d dca range
+			-0.2, 0.2,    // 2d dca range
 			0.0, kappa_max,                 // curvature range
 			-0.9, 0.9,                      // dzdl range
-			-2.0*_dcaz_cut, 2.0*_dcaz_cut); // dca_z range
+			-1.0*_dcaz_cut, 1.0*_dcaz_cut); // dca_z range
   
   vector<unsigned int> onezoom(5,0);
   vector<vector<unsigned int> > zoomprofile;
@@ -1421,7 +1425,7 @@ int PHG4HoughTransform::setup_tracker_object() {
 int PHG4HoughTransform::setup_initial_tracker_object() {
 
   // copy of the final tracker modified to:
-  // expand the DCA search regions
+  // expand the DCA search regions (2.0 cm z search > 3 sigma of BBC z vertex
   // remove the DCA cut on the track output
   
   // tell the initial tracker object the phase space extent of the search region
