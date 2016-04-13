@@ -41,10 +41,10 @@ class RawTower_Prototype2 : public RawTower {
   typedef float signal_type;
 
   void set_signal_samples(int i,signal_type sig);
-  signal_type get_signal_samples(int i);
+  signal_type get_signal_samples(int i) const;
   void set_HBD_channel_number(int i)
     { HBD_channel=i; }
-  int get_HBD_channel_number()
+  int get_HBD_channel_number() const
     { return HBD_channel; }
 
   //---Fits------------------------------------------------------------

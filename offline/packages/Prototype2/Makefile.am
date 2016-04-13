@@ -24,6 +24,8 @@ libPrototype2_la_SOURCES = \
   Prototype2DSTReaderDict.cc \
   CaloUnpackPRDF.C \
   CaloUnpackPRDFDict.C \
+  CaloCalibration.C \
+  CaloCalibrationDict.C \
   PROTOTYPE2_FEM.C \
   PROTOTYPE2_FEMDict.cc
 

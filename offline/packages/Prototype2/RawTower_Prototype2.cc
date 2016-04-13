@@ -82,7 +82,7 @@ RawTower_Prototype2::set_signal_samples(int i, RawTower_Prototype2::signal_type 
 }
 
 RawTower_Prototype2::signal_type
-RawTower_Prototype2::get_signal_samples(int i)
+RawTower_Prototype2::get_signal_samples(int i) const
 {
   assert(i>=0);
   assert(i<NSAMPLES);
@@ -96,8 +96,14 @@ RawTower_Prototype2::get_energy_power_law_exp(int verbosity)
   double peak_sample = NAN;
   double pedstal = NAN;
 
+  vector<double> vec_signal_samples;
+  for (int i = 0; i < NSAMPLES; i++)
+    {
+      vec_signal_samples.push_back(signal_samples[i]);
+    }
+
   PROTOTYPE2_FEM::
-  SampleFit_PowerLawExp(signal_samples, peak, peak_sample, pedstal, verbosity);
+  SampleFit_PowerLawExp(vec_signal_samples, peak, peak_sample, pedstal, verbosity);
 
   return peak;
 }

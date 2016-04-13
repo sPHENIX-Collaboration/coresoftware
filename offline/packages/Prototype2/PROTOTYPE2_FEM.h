@@ -2,6 +2,7 @@
 #define __PROTOTYPE2_FEM_H__
 
 #include <string>
+#include <vector>
 
 namespace PROTOTYPE2_FEM
 {
@@ -37,7 +38,7 @@ namespace PROTOTYPE2_FEM
   //! Abhisek's power-law + exp fit
   bool
   SampleFit_PowerLawExp(//
-      const float * samples, //
+      const std::vector<double> & samples, //
       double & peak,//
       double & peak_sample,//
       double & pedstal, //

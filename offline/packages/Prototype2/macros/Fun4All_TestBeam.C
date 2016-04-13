@@ -3,8 +3,8 @@
 using namespace std;
 
 void Fun4All_TestBeam(
-          const char *input_file= "/gpfs/mnt/gpfs02/sphenix/data/data01/t1044-2016a/fnal/beam/beam_00002070-0000.prdf",
-          const char *output_file = "data/TB_DST.root",
+          const char *input_file= "/gpfs/mnt/gpfs02/sphenix/data/data01/t1044-2016a/fnal/beam/beam_00002078-0000.prdf",
+          const char *output_file = "data/beam_00002078.root",
 	  int nEvents = 1000)
 {
  gSystem->Load("libfun4all");
@@ -20,6 +20,13 @@ void Fun4All_TestBeam(
 // unpack->Verbosity(1);
  se->registerSubsystem( unpack );
 
+ CaloCalibration * calib = NULL;
+
+ calib = new CaloCalibration("CEMC");
+ se->registerSubsystem( calib );
+
+
+
  //main DST output
  Fun4AllDstOutputManager *out_Manager  = new Fun4AllDstOutputManager("DSTOUT",output_file);
 // se->registerOutputManager( out_Manager );
@@ -31,6 +38,7 @@ void Fun4All_TestBeam(
  reader->AddTower("RAW_LG_HCALOUT");
  reader->AddTower("RAW_HG_HCALOUT");
  reader->AddTower("RAW_CEMC");
+ reader->AddTower("CALIB_CEMC");
  se->registerSubsystem( reader );
 
 

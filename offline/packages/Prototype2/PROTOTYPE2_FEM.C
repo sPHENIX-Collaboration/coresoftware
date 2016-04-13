@@ -80,13 +80,15 @@ PROTOTYPE2_FEM::GetHBDCh(std::string caloname, int i_column, int i_row)
 
 bool
 PROTOTYPE2_FEM::SampleFit_PowerLawExp(//
-    const float * samples, //
+    const std::vector<double> & samples, //
     double & peak,//
     double & peak_sample,//
     double & pedstal, //
     const int verbosity)
 {
   int peakPos = 0.;
+
+  assert(samples.size( ) == NSAMPLES);
 
   TGraph gpulse(NSAMPLES);
   for (int i = 0; i < NSAMPLES; i++)
@@ -154,7 +156,7 @@ PROTOTYPE2_FEM::SampleFit_PowerLawExp(//
 double
 PROTOTYPE2_FEM::SignalShape_PowerLawExp(double *x, double *par)
 {
-  double pedestal = par[4] + ((x[0] - 2* par[1])>0) * par[5];
+  double pedestal = par[4] + ((x[0] - 1.5* par[1])>0) * par[5]; // quick fix on exting tails on the signal function
   if (x[0] < par[1])
     return pedestal;
   //double  signal = (-1)*par[0]*pow((x[0]-par[1]),par[2])*exp(-(x[0]-par[1])*par[3]);
