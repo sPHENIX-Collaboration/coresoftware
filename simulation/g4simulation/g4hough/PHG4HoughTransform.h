@@ -191,6 +191,7 @@ public:
 			 const TVector3& point_b0, const TVector3& point_b1, // beam line
 			 TVector3& pca_on_a); // cpa on track
 
+  int fast_vertex_from_bbc();
   int fast_vertex_guessing();
   int initial_vertex_finding();
   int setup_tracker_object();

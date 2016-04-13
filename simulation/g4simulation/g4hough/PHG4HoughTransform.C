@@ -1145,6 +1145,30 @@ bool PHG4HoughTransform::circle_circle_intersections(double x0, double y0, doubl
   return points;  
 }
 
+int PHG4HoughTransform::fast_vertex_from_bbc() {
+  
+  // fail over to bbc vertex if no tracks were found...
+  if (_bbc_vertexes) {
+
+    BbcVertex* vertex = _bbc_vertexes->begin()->second;
+
+    if (vertex) {
+	
+      _vertex[0] = 0.0;
+      _vertex[1] = 0.0;
+      _vertex[2] = vertex->get_z();
+
+      if (verbosity) cout << " initial bbc vertex guess: "
+			  << _vertex[0] << " "
+			  << _vertex[1] << " "
+			  << _vertex[2] << endl;
+      
+    }  
+  }
+  
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
 int PHG4HoughTransform::fast_vertex_guessing() {
 
   // fast vertex guessing uses two tracker objects
