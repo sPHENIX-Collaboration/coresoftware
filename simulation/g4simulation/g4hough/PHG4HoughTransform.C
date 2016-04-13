@@ -963,6 +963,7 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
 
   setup_tracker_object();
   setup_initial_tracker_object();
+  setup_seed_tracker_objects();
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1146,28 +1147,11 @@ bool PHG4HoughTransform::circle_circle_intersections(double x0, double y0, doubl
 
 int PHG4HoughTransform::fast_vertex_guessing() {
 
-  // if the BBC vertex exists use that first
+  // fast vertex guessing uses two tracker objects
+  // one looks for postive going eta tracks, the other for negative going tracks
+  // it asks for just a handful of each, but searches
+  // over the broadest possible phase space for the vertex origin
   
-  if (_bbc_vertexes) {
-
-    BbcVertex* vertex = _bbc_vertexes->begin()->second;
-
-    if (vertex) {
-
-      _vertex[0] = 0.0;
-      _vertex[1] = 0.0;
-      _vertex[2] = vertex->get_z();
-
-      if (verbosity) cout << " initial bbc vertex guess: "
-			  << _vertex[0] << " "
-			  << _vertex[1] << " "
-			  << _vertex[2] << endl;
-      
-      return Fun4AllReturnCodes::EVENT_OK;
-    }  
-  }
-
-
   // limit each window to no more than 4 tracks
   unsigned int maxtracks = 4;
     
@@ -1221,7 +1205,7 @@ int PHG4HoughTransform::fast_vertex_guessing() {
     temp_vertex[2] = zsum / vtxtracks.size();
 
     if (verbosity > 0) {
-      cout << " initial track vertex pre-fit : "
+      cout << " seed track vertex pre-fit : "
 	   << temp_vertex[0] + _vertex[0] << " "
 	   << temp_vertex[1] + _vertex[1] << " "
 	   << temp_vertex[2] + _vertex[2] << endl;
@@ -1245,6 +1229,27 @@ int PHG4HoughTransform::fast_vertex_guessing() {
   
   _tracker_etap_seed->clear();
   _tracker_etam_seed->clear();
+
+  // fail over to bbc vertex if no tracks were found...
+  // if (vtxtracks.size() == 0) {
+  //   if (_bbc_vertexes) {
+
+  //     BbcVertex* vertex = _bbc_vertexes->begin()->second;
+
+  //     if (vertex) {
+	
+  // 	_vertex[0] = 0.0;
+  // 	_vertex[1] = 0.0;
+  // 	_vertex[2] = vertex->get_z();
+
+  // 	if (verbosity) cout << " initial bbc vertex guess: "
+  // 			    << _vertex[0] << " "
+  // 			    << _vertex[1] << " "
+  // 			    << _vertex[2] << endl;
+      
+  //     }  
+  //   }
+  // }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
