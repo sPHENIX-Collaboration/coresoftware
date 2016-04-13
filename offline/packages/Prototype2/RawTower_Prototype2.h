@@ -4,13 +4,15 @@
 #include <g4cemc/RawTower.h>
 #include <g4cemc/RawTowerDefs.h>
 #include <map>
+#include <stdint.h>
+#include "PROTOTYPE2_FEM.h"
 
 class RawTower_Prototype2 : public RawTower {
  public:
   RawTower_Prototype2();
   RawTower_Prototype2(const RawTower& tower);
   RawTower_Prototype2(RawTowerDefs::keytype id);
-  RawTower_Prototype2(const unsigned int ieta, const unsigned int iphi);
+  RawTower_Prototype2(const unsigned int icol, const unsigned int irow);
   RawTower_Prototype2(const RawTowerDefs::CalorimeterId caloid, const unsigned int ieta,
              const unsigned int iphi);
   virtual ~RawTower_Prototype2();
@@ -23,47 +25,32 @@ class RawTower_Prototype2 : public RawTower {
   RawTowerDefs::keytype get_id() const { return towerid; }
   int get_bineta() const { return RawTowerDefs::decode_index1(towerid); }
   int get_binphi() const { return RawTowerDefs::decode_index2(towerid); }
+  int get_column() const { return RawTowerDefs::decode_index1(towerid); }
+  int get_row() const { return RawTowerDefs::decode_index2(towerid); }
   double get_energy() const { return energy; }
   void set_energy(const double e) { energy = e; }
   float get_time() const { return time; }
   void set_time(const float t) { time = t; }
 
-  //---cell access--------------------------------------------------------------
-  
-  bool empty_g4cells() const { return ecells.empty(); }
-  size_t size_g4cells() const { return ecells.size(); }
-  RawTower::CellConstRange get_g4cells() const {
-    return make_pair(ecells.begin(), ecells.end());
-  }
-  RawTower::CellIterator find_g4cell(int id) { return ecells.find(id); }
-  RawTower::CellConstIterator find_g4cell(int id) const {return ecells.find(id);}
-  void add_ecell(const PHG4CylinderCellDefs::keytype g4cellid,
-                 const float ecell);
-  void clear_g4cells() { ecells.clear(); }
+  //---Raw data access------------------------------------------------------------
 
-  //---shower access------------------------------------------------------------
-  
-  bool empty_g4showers() const { return eshowers.empty(); }
-  size_t size_g4showers() const { return eshowers.size(); }
-  RawTower::ShowerConstRange get_g4showers() const {
-    return make_pair(eshowers.begin(), eshowers.end());
-  }
-  RawTower::ShowerIterator find_g4shower(int id) { return eshowers.find(id); }
-  RawTower::ShowerConstIterator find_g4shower(int id) const {return eshowers.find(id);}
-  void add_eshower(const int g4showerid, const float eshower);
-  void clear_g4showers() { eshowers.clear(); }
-  void set_signal_samples_hg(int i,int sig) 
-    { hg_signal_samples[i]=sig; }
-  int get_signal_samples_hg(int i)
-    { return hg_signal_samples[i]; }
-  void set_signal_samples_lg(int i,int sig)
-    { lg_signal_samples[i]=sig; }
-  int get_signal_samples_lg(int i)
-    { return lg_signal_samples[i]; }
+  enum
+  {
+    NSAMPLES = PROTOTYPE2_FEM::NSAMPLES
+  };
+  typedef float signal_type;
+
+  void set_signal_samples(int i,signal_type sig);
+  signal_type get_signal_samples(int i) const;
   void set_HBD_channel_number(int i)
     { HBD_channel=i; }
-  int get_HBD_channel_number()
+  int get_HBD_channel_number() const
     { return HBD_channel; }
+
+  //---Fits------------------------------------------------------------
+
+    double get_energy_power_law_exp(int verbosity = 0);
+
 
  protected:
   RawTowerDefs::keytype towerid;
@@ -76,13 +63,10 @@ class RawTower_Prototype2 : public RawTower {
   float time;
 
   //Signal samples from DATA
-  int hg_signal_samples[24];  //High Gain
-  int lg_signal_samples[24];  //Low Gain
+  signal_type signal_samples[NSAMPLES];  //Low Gain
   int HBD_channel;
-  CellMap ecells;      //< default truth storage
-  ShowerMap eshowers;  //< alternate truth storage for smaller filesizes
 
-  ClassDef(RawTower_Prototype2, 1)
+  ClassDef(RawTower_Prototype2, 3)
 };
 
 #endif /* RAWTOWER_PROTOTYPE2_H_ */

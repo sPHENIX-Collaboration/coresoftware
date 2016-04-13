@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
+#include <cassert>
+
+#include "PROTOTYPE2_FEM.h"
 
 using namespace std;
 
@@ -11,8 +14,9 @@ ClassImp(RawTower_Prototype2)
 
 RawTower_Prototype2::RawTower_Prototype2() :
     towerid(~0), // initialize all bits on
-    energy(0), time(NAN)
+    energy(0), time(NAN), HBD_channel(-1)
 {
+  for (int i=0; i<NSAMPLES; ++i  ) signal_samples[i] = -9999;
 }
 
 RawTower_Prototype2::RawTower_Prototype2(const RawTower & tower)
@@ -20,40 +24,29 @@ RawTower_Prototype2::RawTower_Prototype2(const RawTower & tower)
   towerid = (tower.get_id());
   energy = (tower.get_energy());
   time = (tower.get_time());
-
-  CellConstRange cell_range = tower.get_g4cells();
-
-  for (CellConstIterator cell_iter = cell_range.first;
-      cell_iter != cell_range.second; ++cell_iter)
-    {
-      add_ecell(cell_iter->first, cell_iter->second);
-    }
-
-  ShowerConstRange shower_range = tower.get_g4showers();
-
-  for (ShowerConstIterator shower_iter = shower_range.first;
-      shower_iter != shower_range.second; ++shower_iter)
-    {
-      add_eshower(shower_iter->first, shower_iter->second);
-    }
+  HBD_channel = -1;
+  for (int i=0; i<NSAMPLES; ++i  ) signal_samples[i] = -9999;
 }
 
 RawTower_Prototype2::RawTower_Prototype2(RawTowerDefs::keytype id) :
-    towerid(id), energy(0), time(NAN)
+    towerid(id), energy(0), time(NAN), HBD_channel(-1)
 {
+  for (int i=0; i<NSAMPLES; ++i  ) signal_samples[i] = -9999;
 }
 
-RawTower_Prototype2::RawTower_Prototype2(const unsigned int ieta, const unsigned int iphi) :
-    towerid(0), energy(0)
+RawTower_Prototype2::RawTower_Prototype2(const unsigned int icol, const unsigned int irow) :
+    towerid(0), energy(0), time(NAN), HBD_channel(-1)
 {
-  towerid = RawTowerDefs::encode_towerid(RawTowerDefs::NONE, ieta, iphi);
+  towerid = RawTowerDefs::encode_towerid(RawTowerDefs::NONE, icol, irow);
+  for (int i=0; i<NSAMPLES; ++i  ) signal_samples[i] = -9999;
 }
 
 RawTower_Prototype2::RawTower_Prototype2(const RawTowerDefs::CalorimeterId caloid,
     const unsigned int ieta, const unsigned int iphi) :
-    towerid(0), energy(0), time(NAN)
+    towerid(0), energy(0), time(NAN), HBD_channel(-1)
 {
   towerid = RawTowerDefs::encode_towerid(caloid, ieta, iphi);
+  for (int i=0; i<NSAMPLES; ++i  ) signal_samples[i] = -9999;
 }
 
 RawTower_Prototype2::~RawTower_Prototype2()
@@ -65,8 +58,6 @@ RawTower_Prototype2::Reset()
 {
   energy = 0;
   time = NAN;
-  ecells.clear();
-  eshowers.clear();
 }
 
 int
@@ -83,28 +74,36 @@ RawTower_Prototype2::identify(std::ostream& os) const
 }
 
 void
-RawTower_Prototype2::add_ecell(const PHG4CylinderCellDefs::keytype g4cellid,
-    const float ecell)
+RawTower_Prototype2::set_signal_samples(int i, RawTower_Prototype2::signal_type sig)
 {
-  if (ecells.find(g4cellid) == ecells.end())
-    {
-      ecells[g4cellid] = ecell;
-    }
-  else
-    {
-      ecells[g4cellid] += ecell;
-    }
+  assert(i>=0);
+  assert(i<NSAMPLES);
+  signal_samples[i] = sig;
 }
 
-void 
-RawTower_Prototype2::add_eshower(const int g4showerid, const float eshower)
+RawTower_Prototype2::signal_type
+RawTower_Prototype2::get_signal_samples(int i) const
 {
-  if (eshowers.find(g4showerid) == eshowers.end())
+  assert(i>=0);
+  assert(i<NSAMPLES);
+  return signal_samples[i];
+}
+
+double
+RawTower_Prototype2::get_energy_power_law_exp(int verbosity)
+{
+  double peak = NAN;
+  double peak_sample = NAN;
+  double pedstal = NAN;
+
+  vector<double> vec_signal_samples;
+  for (int i = 0; i < NSAMPLES; i++)
     {
-      eshowers[g4showerid] = eshower;
+      vec_signal_samples.push_back(signal_samples[i]);
     }
-  else
-    {
-      eshowers[g4showerid] += eshower;
-    }
+
+  PROTOTYPE2_FEM::
+  SampleFit_PowerLawExp(vec_signal_samples, peak, peak_sample, pedstal, verbosity);
+
+  return peak;
 }

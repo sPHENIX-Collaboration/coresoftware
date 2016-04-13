@@ -1,5 +1,5 @@
-#ifndef __HCALUNPACKPRDFF__
-#define __HCALUNPACKPRDFF__
+#ifndef __CaloUnpackPRDFF__
+#define __CaloUnpackPRDFF__
 
 //* Unpacks raw HCAL PRDF files *//
 //Abhisek Sen
@@ -14,10 +14,10 @@ class RawTowerContainer;
 class RawTower;
 
 
-class HCalUnpackPRDF : public SubsysReco
+class CaloUnpackPRDF : public SubsysReco
 {
  public:
-  HCalUnpackPRDF();
+  CaloUnpackPRDF();
 
   int Init(PHCompositeNode *topNode);
 
@@ -29,20 +29,25 @@ class HCalUnpackPRDF : public SubsysReco
   
   void CreateNodeTree(PHCompositeNode *topNode);
 
-  int GetHBDCh(std::string,int,int);
-
  private:
+
   Event* _event;
   Packet_hbd_fpgashort* _packet;
   int _nevents; 
+
   // HCAL node
   PHCompositeNode * dst_node;
   PHCompositeNode * data_node;
+
   //Towers
-  RawTowerContainer* hcalin_towers;
-  RawTowerContainer* hcalout_towers;
+  RawTowerContainer* hcalin_towers_lg;
+  RawTowerContainer* hcalout_towers_lg;
+
+  RawTowerContainer* hcalin_towers_hg;
+  RawTowerContainer* hcalout_towers_hg;
+
   RawTowerContainer* emcal_towers;
 };
 
 
-#endif //**HCALUNPACKPRDFF**//
+#endif //**CaloUnpackPRDFF**//
