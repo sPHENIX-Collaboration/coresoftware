@@ -1166,76 +1166,86 @@ int PHG4HoughTransform::fast_vertex_guessing() {
       return Fun4AllReturnCodes::EVENT_OK;
     }  
   }
+
+
+  // limit each window to no more than 4 tracks
+  unsigned int maxtracks = 4;
     
-  // 1/dca weighted average of pca positions from cluster pair projections
-  // cycles a few times to update vertex position used in dca creation
-  // so can slide to beam line positions with a standoff from (0,0)
+  // storage for tracking for initial vertex finding
+  std::vector<SimpleTrack3D> vtxtracks;
+  std::vector<Matrix<float,5,5> > vtxcovariances;
 
-  double xave = 0.0;
-  double yave = 0.0;
-  double zave = 0.0;
+  // loop over initial tracking windows
+  std::vector<SimpleTrack3D> newtracks;
+      
+  _tracker_etap_seed->clear();
+  _tracker_etap_seed->findHelices(_clusters_init, _req_seed,
+				  _max_hits_init, newtracks, maxtracks);
 
-  for (unsigned int cycle = 0; cycle < 3; ++cycle) {
+  for(unsigned int t = 0; t < newtracks.size(); ++t) {
+    vtxtracks.push_back(newtracks[t]);
+    vtxcovariances.push_back( (_tracker_etap_seed->getKalmanStates())[t].C );
+  }
+
+  newtracks.clear();
+
+  _tracker_etam_seed->clear();
+  _tracker_etam_seed->findHelices(_clusters_init, _req_seed,
+				  _max_hits_init, newtracks, maxtracks);
+
+  for(unsigned int t = 0; t < newtracks.size(); ++t) {
+    vtxtracks.push_back(newtracks[t]);
+    vtxcovariances.push_back( (_tracker_etam_seed->getKalmanStates())[t].C );
+  }
+  
+  std::vector<float> temp_vertex(3,0.0);
+  
+  if (verbosity) cout << " seed track finding count: " << vtxtracks.size() << endl;
+
+  if (vtxtracks.size() != 0) {
+
+    // --- compute seed vertex from initial track finding --------------------
     
     double xsum = 0.0;
     double ysum = 0.0;
-    double zsum = 0.0;     
-    double wsum = 0.0;
-      
-    for (unsigned int i = 0; i < _clusters_init.size(); ++i) {
-      if (_clusters_init[i].layer != 0) continue;
-	
-      float x1 = _clusters_init[i].x;
-      float y1 = _clusters_init[i].y;
-      float z1 = _clusters_init[i].z;
-      float phi1 = atan2(y1,x1);
-      
-      for (unsigned int j = i+1; j < _clusters_init.size(); ++j) {    
-	if (_clusters_init[j].layer != 1) continue;
-	  
-	float x2 = _clusters_init[j].x;
-	float y2 = _clusters_init[j].y;
-	float z2 = _clusters_init[j].z;
-	float phi2 = atan2(y2,x2);
+    double zsum = 0.0;
 
-	float dphi = phi2-phi1;
-	dphi = atan2(sin(dphi),cos(dphi));	
-	if (fabs(dphi) > 0.3) continue; // clusters should be in the same phi region
-	
-	TVector3 pca;
-	if (!pca_line_to_line(TVector3(x1,y1,z1)      ,TVector3(x2,y2,z2),
-			      TVector3(xave,yave,-1000.),TVector3(xave,yave,+1000.0),
-			      pca)) continue;
-
-	float dx = pca.X() - xave;
-	float dy = pca.Y() - yave;	  
-	float dca = sqrt(dx*dx + dy*dy);
-	  
-	if (dca > 1.0) continue; // only consider PCA within 1cm of nominal beam line
-	if (fabs(pca.Z()) > 15.0) continue;
-	
-	if (dca == 0.0) dca = FLT_MIN;
-	  
-	xsum += pca.X() * 1/dca;
-	ysum += pca.Y() * 1/dca;
-	zsum += pca.Z() * 1/dca;
-	wsum += 1/dca;
-      }
+    for (unsigned int i = 0; i < vtxtracks.size(); ++i) {
+      xsum += vtxtracks[i].d * cos( vtxtracks[i].phi );
+      ysum += vtxtracks[i].d * sin( vtxtracks[i].phi );
+      zsum += vtxtracks[i].z0;
     }
 
-    if (wsum == 0) return Fun4AllReturnCodes::EVENT_OK;
+    temp_vertex[0] = xsum / vtxtracks.size();
+    temp_vertex[1] = ysum / vtxtracks.size();
+    temp_vertex[2] = zsum / vtxtracks.size();
 
-    xave = xsum / wsum;
-    yave = ysum / wsum;
-    zave = zsum / wsum;
-
-    if (verbosity) cout << " initial pair vertex guess: " << xave << " " << yave << " " << zave << endl;
-  }      
-
-  _vertex[0] = xave;
-  _vertex[1] = yave;
-  _vertex[2] = zave;
-
+    if (verbosity > 0) {
+      cout << " initial track vertex pre-fit : "
+	   << temp_vertex[0] + _vertex[0] << " "
+	   << temp_vertex[1] + _vertex[1] << " "
+	   << temp_vertex[2] + _vertex[2] << endl;
+    }
+      
+    // start with the average position and converge from there
+    _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 3.00, true);
+    _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.10, true);
+    _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.02, false);
+  }
+    
+  // update vertex position in global coordinates  
+  _vertex[0] = temp_vertex[0];
+  _vertex[1] = temp_vertex[1];
+  _vertex[2] = temp_vertex[2];
+    
+  if (verbosity > 0) {
+    cout << " seed track vertex post-fit : "
+	 << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
+  }  
+  
+  _tracker_etap_seed->clear();
+  _tracker_etam_seed->clear();
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
