@@ -200,7 +200,10 @@ private:
   // Process Event Calls
   //--------------------
   
-  //int translate_input();
+  int translate_input();
+
+  /// code to combine seed tracking vertex with BBCZ if available
+  int fast_composite_seed();
   
   /// code to seed vertex from bbc
   int fast_vertex_from_bbc();
@@ -225,7 +228,11 @@ private:
 
   //int export_output();
 
+  //------------------
+  // Subfunction Calls
+  //------------------
 
+  void shift_coordinate_system(double dx, double dy, double dz);
   
   /// helper function for projection code
   static bool circle_line_intersections(double x0, double y0, double r0,
@@ -253,20 +260,19 @@ private:
   unsigned int _maxtracks;
   unsigned int _max_hits;
   unsigned int _min_hits;
-  
-  int _nlayers;                  ///< number of detector layers                                                         
-  std::vector<float> _radii;          ///< radial distance of each layer (cm)                                           
-  std::vector<float> _smear_xy_layer; ///< detector hit resolution in phi (cm)                                          
-  std::vector<float> _smear_z_layer;  ///< detector hit resolution in z (cm)                 
-  std::vector<float> _material;  ///< material at each layer in rad. lengths
+
+  int _nlayers;                        ///< number of detector layers
+  std::vector<float> _radii;           ///< radial distance of each layer (cm)
+  std::vector<float> _smear_xy_layer;  ///< detector hit resolution in phi (cm)
+  std::vector<float> _smear_z_layer;   ///< detector hit resolution in z (cm)
+  std::vector<float> _material;        ///< material at each layer in rad. lengths
 
   // object storage                                                                                                     
-  std::vector<SimpleHit3D> _clusters_init; ///< working array of clusters                                                    
+  std::vector<SimpleHit3D> _clusters_init; ///< working array of clusters
   std::vector<SimpleHit3D> _clusters;
-  std::vector<SimpleTrack3D> _tracks; ///< working array of tracks                                                      
-  std::vector<double> _track_errors;  ///< working array of track chisq
-  std::vector<float> _vertex;         ///< working array for collision vertex
-
+  std::vector<SimpleTrack3D> _tracks;      ///< working array of tracks
+  std::vector<double> _track_errors;       ///< working array of track chisq
+  std::vector<float> _vertex;              ///< working array for collision vertex
 
   // track finding routines                                                                                             
   sPHENIXTracker *_tracker;    // finds full tracks

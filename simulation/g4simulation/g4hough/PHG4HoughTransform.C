@@ -428,75 +428,8 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode) {
   // Translate into Helix_Hough objects
   //-----------------------------------
 
-  for (SvtxClusterMap::Iter iter = _g4clusters->begin();
-       iter != _g4clusters->end(); ++iter) {
-    SvtxCluster* cluster = iter->second;
-
-    float phi = atan2(cluster->get_position(1), cluster->get_position(0));
-    unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
-
-    float xy_error = 0.;
-    float z_error = 0.;
-    if (_use_cell_size) {
-      xy_error = _smear_xy_layer[ilayer] * _vote_error_scale[ilayer];
-      z_error = _smear_z_layer[ilayer] * _vote_error_scale[ilayer];
-
-    } else {
-      if (cluster->get_phi_size() <=
-          _max_cluster_error * _smear_xy_layer[ilayer]) {
-        xy_error = cluster->get_phi_size() * _vote_error_scale[ilayer];
-      } else {
-        xy_error = _max_cluster_error * _smear_xy_layer[ilayer] *
-                   _vote_error_scale[ilayer];
-      }
-      if (cluster->get_z_size() <=
-          _max_cluster_error * _smear_z_layer[ilayer]) {
-        z_error = cluster->get_z_size() * _vote_error_scale[ilayer];
-      } else {
-        z_error = _max_cluster_error * _smear_z_layer[ilayer] *
-                  _vote_error_scale[ilayer];
-      }
-    }
-
-    vector<SimpleHit3D>* which_vec = &_clusters;
-    if (ilayer < _seed_layers) {
-      which_vec = &_clusters_init;
-    }
-
-    // SimpleHit3D(float xx, float dxx, float yy, float dyy, float zz, float
-    // dzz, unsigned int ind, int lyr=-1)
-    SimpleHit3D hit3d(cluster->get_x(), fabs(xy_error * sin(phi)),
-                      cluster->get_y(), fabs(xy_error * cos(phi)),
-                      cluster->get_z(), z_error, cluster->get_id(), ilayer);
-
-    // copy covariance over
-    for (int i = 0; i < 3; ++i) {
-      for (int j = i; j < 3; ++j) {
-        hit3d.set_error(i, j, cluster->get_error(i, j));
-      }
-    }
-
-    which_vec->push_back(hit3d);
-  }
-
-  if (verbosity > 20) {
-    cout << "-------------------------------------------------------------------" << endl;
-    cout << "PHG4HoughTransform::process_event has the following input clusters:" << endl;
-
-    if (!_clusters_init.empty()) {
-      for (unsigned int i = 0; i < _clusters_init.size(); ++i) {
-	cout << "n init clusters = "<<_clusters_init.size() << endl;
-	_clusters_init[i].print();
-      }
-    } else {
-      for (unsigned int i = 0; i < _clusters.size(); ++i) {
-	cout << "n clusters = "<<_clusters.size() << endl;
-	_clusters[i].print();
-      }
-    }
-    
-    cout << "-------------------------------------------------------------------" << endl;
-  }
+  int code = translate_input();
+  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
   
   //------------------------------------
   // Perform the initial zvertex finding
@@ -514,7 +447,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode) {
   // Guess a vertex position
   //------------------------
 
-  int code = fast_vertex_guessing();
+  code = fast_vertex_guessing();
   if (code != Fun4AllReturnCodes::EVENT_OK) return code;
 
   // expect vertex to be better than +/-2.0 cm
@@ -655,11 +588,11 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode) {
 
   SvtxVertex *vtxptr = _g4vertexes->insert(&vertex);
   if (verbosity > 5) vtxptr->identify();
-  
-  if(verbosity > 0)
-    {
-      cout << "PHG4HoughTransform::process_event -- leaving process_event" << endl;
-    }
+
+  if (verbosity > 0) {
+    cout << "PHG4HoughTransform::process_event -- leaving process_event"
+         << endl;
+  }
 
   _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1008,6 +941,81 @@ bool PHG4HoughTransform::circle_circle_intersections(double x0, double y0, doubl
   return points;  
 }
 
+int PHG4HoughTransform::translate_input() {
+
+  for (SvtxClusterMap::Iter iter = _g4clusters->begin();
+       iter != _g4clusters->end(); ++iter) {
+    SvtxCluster* cluster = iter->second;
+
+    float phi = atan2(cluster->get_position(1), cluster->get_position(0));
+    unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
+
+    float xy_error = 0.;
+    float z_error = 0.;
+    if (_use_cell_size) {
+      xy_error = _smear_xy_layer[ilayer] * _vote_error_scale[ilayer];
+      z_error = _smear_z_layer[ilayer] * _vote_error_scale[ilayer];
+
+    } else {
+      if (cluster->get_phi_size() <=
+          _max_cluster_error * _smear_xy_layer[ilayer]) {
+        xy_error = cluster->get_phi_size() * _vote_error_scale[ilayer];
+      } else {
+        xy_error = _max_cluster_error * _smear_xy_layer[ilayer] *
+	  _vote_error_scale[ilayer];
+      }
+      if (cluster->get_z_size() <=
+          _max_cluster_error * _smear_z_layer[ilayer]) {
+        z_error = cluster->get_z_size() * _vote_error_scale[ilayer];
+      } else {
+        z_error = _max_cluster_error * _smear_z_layer[ilayer] *
+	  _vote_error_scale[ilayer];
+      }
+    }
+
+    vector<SimpleHit3D>* which_vec = &_clusters;
+    if (ilayer < _seed_layers) {
+      which_vec = &_clusters_init;
+    }
+
+    // SimpleHit3D(float xx, float dxx, float yy, float dyy, float zz, float
+    // dzz, unsigned int ind, int lyr=-1)
+    SimpleHit3D hit3d(cluster->get_x(), fabs(xy_error * sin(phi)),
+                      cluster->get_y(), fabs(xy_error * cos(phi)),
+                      cluster->get_z(), z_error, cluster->get_id(), ilayer);
+
+    // copy covariance over
+    for (int i = 0; i < 3; ++i) {
+      for (int j = i; j < 3; ++j) {
+        hit3d.set_error(i, j, cluster->get_error(i, j));
+      }
+    }
+
+    which_vec->push_back(hit3d);
+  }
+
+  if (verbosity > 20) {
+    cout << "-------------------------------------------------------------------" << endl;
+    cout << "PHG4HoughTransform::process_event has the following input clusters:" << endl;
+
+    if (!_clusters_init.empty()) {
+      for (unsigned int i = 0; i < _clusters_init.size(); ++i) {
+	cout << "n init clusters = "<<_clusters_init.size() << endl;
+	_clusters_init[i].print();
+      }
+    } else {
+      for (unsigned int i = 0; i < _clusters.size(); ++i) {
+	cout << "n clusters = "<<_clusters.size() << endl;
+	_clusters[i].print();
+      }
+    }
+    
+    cout << "-------------------------------------------------------------------" << endl;
+  }
+  
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
 int PHG4HoughTransform::fast_vertex_from_bbc() {
   
   // fail over to bbc vertex if no tracks were found...
@@ -1024,8 +1032,7 @@ int PHG4HoughTransform::fast_vertex_from_bbc() {
       if (verbosity) cout << " initial bbc vertex guess: "
 			  << _vertex[0] << " "
 			  << _vertex[1] << " "
-			  << _vertex[2] << endl;
-      
+			  << _vertex[2] << endl;      
     }  
   }
   
@@ -1077,36 +1084,30 @@ int PHG4HoughTransform::fast_vertex_guessing() {
 
     // --- compute seed vertex from initial track finding --------------------
     
-    double xsum = 0.0;
-    double ysum = 0.0;
     double zsum = 0.0;
 
     for (unsigned int i = 0; i < vtxtracks.size(); ++i) {
-      xsum += vtxtracks[i].d * cos( vtxtracks[i].phi );
-      ysum += vtxtracks[i].d * sin( vtxtracks[i].phi );
       zsum += vtxtracks[i].z0;
     }
 
-    temp_vertex[0] = xsum / vtxtracks.size();
-    temp_vertex[1] = ysum / vtxtracks.size();
     temp_vertex[2] = zsum / vtxtracks.size();
 
     if (verbosity > 0) {
       cout << " seed track vertex pre-fit : "
-	   << temp_vertex[0] + _vertex[0] << " "
-	   << temp_vertex[1] + _vertex[1] << " "
+	   << temp_vertex[0] << " "
+	   << temp_vertex[1] << " "
 	   << temp_vertex[2] + _vertex[2] << endl;
     }
       
     // start with the average position and converge from there
     _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 3.00, true);
     _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.10, true);
-    _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.02, false);
+    _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.02, true);
   }
     
   // update vertex position in global coordinates  
-  _vertex[0] = 0.0;//temp_vertex[0];
-  _vertex[1] = 0.0;//temp_vertex[1];
+  _vertex[0] = 0.0;
+  _vertex[1] = 0.0;
   _vertex[2] = temp_vertex[2];
     
   if (verbosity > 0) {
@@ -1392,144 +1393,113 @@ int PHG4HoughTransform::setup_seed_tracker_objects() {
 
   // for the initial tracker we may not have the best guess on the vertex yet
   // so I've doubled the search range on dca and dcaz
-  {
-    HelixRange top_range( 0.0, 2.*M_PI,    // center of rotation azimuthal angles
-			  -1.0, 1.0,       // 2d dca range
-			  0.0, kappa_max,  // curvature range
-			  0.0, 0.9,        // dzdl range
-			  -10.0, 10.0);    // dca_z range
+
+  std::vector<unsigned int> onezoom(5,0);
+  std::vector<vector<unsigned int> > zoomprofile;
+  zoomprofile.assign(5,onezoom);
+  zoomprofile[0][0] = 16;
+  zoomprofile[0][1] = 1; 
+  zoomprofile[0][2] = 4;
+  zoomprofile[0][3] = 8;
+  zoomprofile[0][4] = 1;
   
-    vector<unsigned int> onezoom(5,0);
-    vector<vector<unsigned int> > zoomprofile;
-    zoomprofile.assign(5,onezoom);
-    zoomprofile[0][0] = 16;
-    zoomprofile[0][1] = 1; 
-    zoomprofile[0][2] = 4;
-    zoomprofile[0][3] = 8;
-    zoomprofile[0][4] = 1;
+  zoomprofile[1][0] = 16;
+  zoomprofile[1][1] = 1;
+  zoomprofile[1][2] = 4;
+  zoomprofile[1][3] = 4;
+  zoomprofile[1][4] = 2;
   
-    zoomprofile[1][0] = 16;
-    zoomprofile[1][1] = 1;
-    zoomprofile[1][2] = 4;
-    zoomprofile[1][3] = 4;
-    zoomprofile[1][4] = 2;
+  zoomprofile[2][0] = 4;
+  zoomprofile[2][1] = 3;
+  zoomprofile[2][2] = 2;
+  zoomprofile[2][3] = 1;
+  zoomprofile[2][4] = 3;
   
-    zoomprofile[2][0] = 4;
-    zoomprofile[2][1] = 3;
-    zoomprofile[2][2] = 2;
-    zoomprofile[2][3] = 1;
-    zoomprofile[2][4] = 3;
+  for (unsigned int i = 2; i <= 3; ++i) {
+    zoomprofile[i][0] = 3;
+    zoomprofile[i][1] = 3;
+    zoomprofile[i][2] = 3;
+    zoomprofile[i][3] = 3;
+    zoomprofile[i][4] = 3;
+  }
   
-    for (unsigned int i = 2; i <= 3; ++i) {
-      zoomprofile[i][0] = 3;
-      zoomprofile[i][1] = 3;
-      zoomprofile[i][2] = 3;
-      zoomprofile[i][3] = 3;
-      zoomprofile[i][4] = 3;
-    }
-    
-    _tracker_etap_seed = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
-    _tracker_etap_seed->setNLayers(_seed_layers);
-    _tracker_etap_seed->requireLayers(_req_seed);
-    _max_hits_init = _seed_layers*4;
-    if(_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
-    _min_hits_init = _req_seed;
-    if(_seed_layers < 10){ _tracker_etap_seed->setClusterStartBin(1); }
-    else{ _tracker_etap_seed->setClusterStartBin(10); }
-    _tracker_etap_seed->setRejectGhosts(_reject_ghosts);
-    _tracker_etap_seed->setFastChi2Cut(_chi2_cut_fast_par0,
-				    _chi2_cut_fast_par1,
-				    _chi2_cut_fast_max);
-    _tracker_etap_seed->setChi2Cut(_chi2_cut_full);
-    _tracker_etap_seed->setChi2RemovalCut(_chi2_cut_full*0.5);
-    _tracker_etap_seed->setCellularAutomatonChi2Cut(_ca_chi2_cut);
-    _tracker_etap_seed->setPrintTimings(false);
-    _tracker_etap_seed->setCutOnDca(false);
-    _tracker_etap_seed->setSmoothBack(true);
-    _tracker_etap_seed->setBinScale(_bin_scale);
-    _tracker_etap_seed->setZBinScale(_z_bin_scale);
-    _tracker_etap_seed->setRemoveHits(_remove_hits);
-    _tracker_etap_seed->setSeparateByHelicity(true);
-    _tracker_etap_seed->setMaxHitsPairs(0);
-    _tracker_etap_seed->setCosAngleCut(_cos_angle_cut);
+  HelixRange pos_range( 0.0, 2.*M_PI,    // center of rotation azimuthal angles
+			-1.0, 1.0,       // 2d dca range
+			0.0, kappa_max,  // curvature range
+			0.0, 0.9,        // dzdl range
+			-10.0, 10.0);    // dca_z range
+  
+  _tracker_etap_seed = new sPHENIXTracker(zoomprofile, 1, pos_range, _material, _radii, _magField);
+  _tracker_etap_seed->setNLayers(_seed_layers);
+  _tracker_etap_seed->requireLayers(_req_seed);
+  _max_hits_init = _seed_layers*4;
+  if (_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
+  _min_hits_init = _req_seed;
+  if (_seed_layers < 10){ _tracker_etap_seed->setClusterStartBin(1); }
+  else{ _tracker_etap_seed->setClusterStartBin(10); }
+  _tracker_etap_seed->setRejectGhosts(_reject_ghosts);
+  _tracker_etap_seed->setFastChi2Cut(_chi2_cut_fast_par0,
+				     _chi2_cut_fast_par1,
+				     _chi2_cut_fast_max);
+  _tracker_etap_seed->setChi2Cut(_chi2_cut_full);
+  _tracker_etap_seed->setChi2RemovalCut(_chi2_cut_full*0.5);
+  _tracker_etap_seed->setCellularAutomatonChi2Cut(_ca_chi2_cut);
+  _tracker_etap_seed->setPrintTimings(false);
+  _tracker_etap_seed->setCutOnDca(false);
+  _tracker_etap_seed->setSmoothBack(true);
+  _tracker_etap_seed->setBinScale(_bin_scale);
+  _tracker_etap_seed->setZBinScale(_z_bin_scale);
+  _tracker_etap_seed->setRemoveHits(_remove_hits);
+  _tracker_etap_seed->setSeparateByHelicity(true);
+  _tracker_etap_seed->setMaxHitsPairs(0);
+  _tracker_etap_seed->setCosAngleCut(_cos_angle_cut);
       
-    for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
-      float scale1 = _fit_error_scale[ilayer];
-      float scale2 = _vote_error_scale[ilayer];
-      float scale = scale1/scale2;
-      _tracker_etap_seed->setHitErrorScale(ilayer, scale);
-    }
+  for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
+    float scale1 = _fit_error_scale[ilayer];
+    float scale2 = _vote_error_scale[ilayer];
+    float scale = scale1/scale2;
+    _tracker_etap_seed->setHitErrorScale(ilayer, scale);
   }
 
   // for the initial tracker we may not have the best guess on the vertex yet
   // so I've doubled the search range on dca and dcaz
-  {
-    HelixRange top_range( 0.0, 2.*M_PI,    // center of rotation azimuthal angles
-			  -1.0, 1.0,       // 2d dca range
-			  0.0, kappa_max,  // curvature range
-			  -0.9, 0.0,        // dzdl range
-			  -10.0, 10.0);    // dca_z range
+
+  HelixRange neg_range( 0.0, 2.*M_PI,    // center of rotation azimuthal angles
+			-1.0, 1.0,       // 2d dca range
+			0.0, kappa_max,  // curvature range
+			-0.9, 0.0,        // dzdl range
+			-10.0, 10.0);    // dca_z range
   
-    vector<unsigned int> onezoom(5,0);
-    vector<vector<unsigned int> > zoomprofile;
-    zoomprofile.assign(5,onezoom);
-    zoomprofile[0][0] = 16;
-    zoomprofile[0][1] = 1;
-    zoomprofile[0][2] = 4;
-    zoomprofile[0][3] = 8;
-    zoomprofile[0][4] = 1;
+  _tracker_etam_seed = new sPHENIXTracker(zoomprofile, 1, neg_range, _material, _radii, _magField);
+  _tracker_etam_seed->setNLayers(_seed_layers);
+  _tracker_etam_seed->requireLayers(_req_seed);
+  _max_hits_init = _seed_layers*4;
+  if (_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
+  _min_hits_init = _req_seed;
+  if (_seed_layers < 10){ _tracker_etam_seed->setClusterStartBin(1); }
+  else{ _tracker_etam_seed->setClusterStartBin(10); }
+  _tracker_etam_seed->setRejectGhosts(_reject_ghosts);
+  _tracker_etam_seed->setFastChi2Cut(_chi2_cut_fast_par0,
+				     _chi2_cut_fast_par1,
+				     _chi2_cut_fast_max);
+  _tracker_etam_seed->setChi2Cut(_chi2_cut_full);
+  _tracker_etam_seed->setChi2RemovalCut(_chi2_cut_full*0.5);
+  _tracker_etam_seed->setCellularAutomatonChi2Cut(_ca_chi2_cut);
+  _tracker_etam_seed->setPrintTimings(false);
+  _tracker_etam_seed->setCutOnDca(false);
+  _tracker_etam_seed->setSmoothBack(true);
+  _tracker_etam_seed->setBinScale(_bin_scale);
+  _tracker_etam_seed->setZBinScale(_z_bin_scale);
+  _tracker_etam_seed->setRemoveHits(_remove_hits);
+  _tracker_etam_seed->setSeparateByHelicity(true);
+  _tracker_etam_seed->setMaxHitsPairs(0);
+  _tracker_etam_seed->setCosAngleCut(_cos_angle_cut);
   
-    zoomprofile[1][0] = 16;
-    zoomprofile[1][1] = 1;
-    zoomprofile[1][2] = 4;
-    zoomprofile[1][3] = 4;
-    zoomprofile[1][4] = 2;
-  
-    zoomprofile[2][0] = 4;
-    zoomprofile[2][1] = 3;
-    zoomprofile[2][2] = 2;
-    zoomprofile[2][3] = 1;
-    zoomprofile[2][4] = 3;
-  
-    for (unsigned int i = 2; i <= 3; ++i) {
-      zoomprofile[i][0] = 3;
-      zoomprofile[i][1] = 3;
-      zoomprofile[i][2] = 3;
-      zoomprofile[i][3] = 3;
-      zoomprofile[i][4] = 3;
-    }
-    
-    _tracker_etam_seed = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
-    _tracker_etam_seed->setNLayers(_seed_layers);
-    _tracker_etam_seed->requireLayers(_req_seed);
-    _max_hits_init = _seed_layers*4;
-    if(_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
-    _min_hits_init = _req_seed;
-    if(_seed_layers < 10){ _tracker_etam_seed->setClusterStartBin(1); }
-    else{ _tracker_etam_seed->setClusterStartBin(10); }
-    _tracker_etam_seed->setRejectGhosts(_reject_ghosts);
-    _tracker_etam_seed->setFastChi2Cut(_chi2_cut_fast_par0,
-				    _chi2_cut_fast_par1,
-				    _chi2_cut_fast_max);
-    _tracker_etam_seed->setChi2Cut(_chi2_cut_full);
-    _tracker_etam_seed->setChi2RemovalCut(_chi2_cut_full*0.5);
-    _tracker_etam_seed->setCellularAutomatonChi2Cut(_ca_chi2_cut);
-    _tracker_etam_seed->setPrintTimings(false);
-    _tracker_etam_seed->setCutOnDca(false);
-    _tracker_etam_seed->setSmoothBack(true);
-    _tracker_etam_seed->setBinScale(_bin_scale);
-    _tracker_etam_seed->setZBinScale(_z_bin_scale);
-    _tracker_etam_seed->setRemoveHits(_remove_hits);
-    _tracker_etam_seed->setSeparateByHelicity(true);
-    _tracker_etam_seed->setMaxHitsPairs(0);
-    _tracker_etam_seed->setCosAngleCut(_cos_angle_cut);
-      
-    for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
-      float scale1 = _fit_error_scale[ilayer];
-      float scale2 = _vote_error_scale[ilayer];
-      float scale = scale1/scale2;
-      _tracker_etam_seed->setHitErrorScale(ilayer, scale);
-    }
+  for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
+    float scale1 = _fit_error_scale[ilayer];
+    float scale2 = _vote_error_scale[ilayer];
+    float scale = scale1/scale2;
+    _tracker_etam_seed->setHitErrorScale(ilayer, scale);
   }
   
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1659,4 +1629,35 @@ int PHG4HoughTransform::full_tracking_and_vertexing() {
   }
   
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void PHG4HoughTransform::shift_coordinate_system(double dx,
+						 double dy,
+                                                 double dz) {
+  
+  for (unsigned int ht = 0; ht < _clusters_init.size(); ++ht) {
+    _clusters_init[ht].x += dx;
+    _clusters_init[ht].y += dy;
+    _clusters_init[ht].z += dz;
+  }
+
+  for (unsigned int ht = 0; ht < _clusters.size(); ++ht) {
+    _clusters[ht].x += dx;
+    _clusters[ht].y += dy;
+    _clusters[ht].z += dz;
+  }
+
+  for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
+    for (unsigned int hh = 0; hh < _tracks[tt].hits.size(); ++hh) {
+      _tracks[tt].hits[hh].x += dx;
+      _tracks[tt].hits[hh].y += dy;
+      _tracks[tt].hits[hh].z += dz;
+    }
+  }
+
+  _vertex[0] += dx;
+  _vertex[1] += dy;
+  _vertex[2] += dz;
+  
+  return;
 }
