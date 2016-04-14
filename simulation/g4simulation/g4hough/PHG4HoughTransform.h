@@ -187,19 +187,19 @@ private:
   
   bool new_dca_nbin, new_z_z0, new_circle_dca, new_circle_kappa;
 
-  int CreateNodes(PHCompositeNode *topNode);
-  int GetNodes(PHCompositeNode *topNode);
-  int InitializeGeometry(PHCompositeNode *topNode);
+  //--------------
+  // InitRun Calls
+  //--------------
 
-  /// convert from inverse curvature to momentum
-  float kappaToPt(float kappa);
-  /// convert from momentum to inverse curvature
-  float ptToKappa(float pt);
+  int GetNodes(PHCompositeNode *topNode);
+  int CreateNodes(PHCompositeNode *topNode);
+  int InitializeGeometry(PHCompositeNode *topNode);
 
   //--------------------
   // Process Event Calls
   //--------------------
-  
+
+  /// code to translate into the HelixHough universe
   int translate_input();
 
   /// code to combine seed tracking vertex with BBCZ if available
@@ -226,12 +226,18 @@ private:
   /// code to setup full tracking object
   int setup_tracker_object();
 
-  //int export_output();
+  /// code to translate back to the SVTX universe
+  int export_output();
 
   //------------------
   // Subfunction Calls
   //------------------
 
+  /// convert from inverse curvature to momentum
+  float kappaToPt(float kappa);
+  /// convert from momentum to inverse curvature
+  float ptToKappa(float pt);
+  
   void shift_coordinate_system(double dx, double dy, double dz);
   
   /// helper function for projection code
@@ -268,11 +274,11 @@ private:
   std::vector<float> _material;        ///< material at each layer in rad. lengths
 
   // object storage                                                                                                     
-  std::vector<SimpleHit3D> _clusters_init; ///< working array of clusters
-  std::vector<SimpleHit3D> _clusters;
-  std::vector<SimpleTrack3D> _tracks;      ///< working array of tracks
-  std::vector<double> _track_errors;       ///< working array of track chisq
-  std::vector<float> _vertex;              ///< working array for collision vertex
+  std::vector<SimpleHit3D> _clusters;    ///< working array of clusters
+  std::vector<SimpleTrack3D> _tracks;    ///< working array of tracks
+  std::vector<double> _track_errors;     ///< working array of track chisq
+  std::vector<Eigen::Matrix<float,5,5> > _track_covars; ///< working array of track covariances
+  std::vector<float> _vertex;            ///< working array for collision vertex
 
   // track finding routines                                                                                             
   sPHENIXTracker *_tracker;    // finds full tracks
@@ -292,9 +298,6 @@ private:
   SvtxVertexMap* _g4vertexes;
   PHG4InEvent* _inevent;
 
-  PHTimeServer::timer _timer;
-  PHTimeServer::timer _timer_initial_hough;
-  
   float _min_pT;
   float _min_pT_init;
   
