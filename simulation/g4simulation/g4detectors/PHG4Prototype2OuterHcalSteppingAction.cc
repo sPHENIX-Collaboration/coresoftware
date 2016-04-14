@@ -303,6 +303,10 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
 	{
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
           hit->set_eion(-1);
+	  if (whichactive > 0)
+	    {
+	      hit->set_light_yield(-1);
+	    }
 	}
       if (edep > 0)
 	{
