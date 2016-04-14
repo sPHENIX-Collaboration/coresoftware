@@ -3,10 +3,10 @@
 using namespace std;
 
 void
-Fun4All_TestBeam(int nEvents = 10,
+Fun4All_TestBeam(int nEvents = 100,
     const char *input_file =
         "/gpfs/mnt/gpfs02/sphenix/data/data01/t1044-2016a/fnal/beam/beam_00002078-0000.prdf",
-    const char *output_file = "beam_00002078.root")
+    const char *output_file = "data/beam_00002078.root")
 {
   gSystem->Load("libfun4all");
   gSystem->Load("libPrototype2.so");
@@ -163,12 +163,13 @@ Fun4All_TestBeam(int nEvents = 10,
   reader->AddTower("RAW_LG_HCALOUT");
   reader->AddTower("RAW_HG_HCALOUT");
 
-  reader->AddTower("RAW_CEMC");
-
   reader->AddTower("CALIB_LG_HCALIN");
   reader->AddTower("CALIB_HG_HCALIN");
   reader->AddTower("CALIB_LG_HCALOUT");
   reader->AddTower("CALIB_HG_HCALOUT");
+
+  reader->AddTower("RAW_CEMC");
+  reader->AddTower("CALIB_CEMC");
 
   reader->AddTower("RAW_HODO_VERTICAL");
   reader->AddTower("RAW_HODO_HORIZONTAL");
