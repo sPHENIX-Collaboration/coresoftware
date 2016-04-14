@@ -104,7 +104,7 @@ CaloCalibration::process_event(PHCompositeNode *topNode)
       double pedstal = NAN;
 
       PROTOTYPE2_FEM::SampleFit_PowerLawExp(vec_signal_samples, peak,
-          peak_sample, pedstal);
+          peak_sample, pedstal, verbosity);
 
       // store the result - raw_tower
       if (std::isnan(raw_tower->get_energy()))

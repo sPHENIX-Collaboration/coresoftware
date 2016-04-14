@@ -15,7 +15,7 @@
 #include <cmath>
 #include <TGraph.h>
 #include <TF1.h>
-//#include <TCanvas.h>
+#include <TCanvas.h>
 
 using namespace std;
 
@@ -140,10 +140,12 @@ PROTOTYPE2_FEM::SampleFit_PowerLawExp(//
 
   if (verbosity)
     {
-//      new TCanvas("PROTOTYPE2_FEM_SampleFit_PowerLawExp","PROTOTYPE2_FEM::SampleFit_PowerLawExp");
+      TCanvas *canvas = new TCanvas("PROTOTYPE2_FEM_SampleFit_PowerLawExp","PROTOTYPE2_FEM::SampleFit_PowerLawExp");
       gpulse.DrawClone("ap*l");
       fits.DrawClone("same");
       fits.Print();
+      canvas->Update();
+      sleep(1);
     }
 
   peak = fits.GetParameter(0);
