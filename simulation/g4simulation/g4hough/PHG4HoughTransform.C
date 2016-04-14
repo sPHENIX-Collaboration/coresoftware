@@ -309,31 +309,31 @@ float PHG4HoughTransform::ptToKappa(float pt) {
   return _pt_rescale * _magField / 333.6 / pt;
 }
 
-bool PHG4HoughTransform::pca_line_to_line( const TVector3& point_a0, const TVector3& point_a1, // track
-					   const TVector3& point_b0, const TVector3& point_b1, // beam line
-					   TVector3& pca_on_a) { // cpa on track
+bool PHG4HoughTransform::pca_line_to_line(const TVector3& point_a0, const TVector3& point_a1,  // track
+					  const TVector3& point_b0, const TVector3& point_b1,  // beam line
+					  TVector3& pca_on_a) {                                // cpa on track
   TVector3 u = point_a1 - point_a0;
   TVector3 v = point_b1 - point_b0;
   TVector3 w = point_a0 - point_b0;
-  
+
   double a = u.Dot(u);  // always >= 0
-  double b = u.Dot(v);  
+  double b = u.Dot(v);
   double c = v.Dot(v);  // always >= 0
-  double d = u.Dot(w);  
-  double e = v.Dot(w);  
-  double D = a*c - b*b; // always >= 0
+  double d = u.Dot(w);
+  double e = v.Dot(w);
+  double D = a * c - b * b;  // always >= 0
   double sc = 0.0;
   double tc = 0.0;
 
   // compute the line parameters of the two closest points
   if (D == 0.0) return false;
 
-  sc = (b*e - c*d) / D;
-  tc = (a*e - b*d) / D;
+  sc = (b * e - c * d) / D;
+  tc = (a * e - b * d) / D;
 
-  // get the difference of the two closest points  
-  TVector3 dP = w + (sc * u) - (tc * v); // =  L1(sc) - L2(tc)
-  
+  // get the difference of the two closest points
+  TVector3 dP = w + (sc * u) - (tc * v);  // =  L1(sc) - L2(tc)
+
   pca_on_a = sc * u + point_a0;
 
   return true;
@@ -691,104 +691,98 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode) {
   int clusterID;
   int clusterLayer;
 
-  for(unsigned int itrack=0; itrack<_tracks.size();itrack++)
-    {
-      SvtxTrack_v1 track;
-      track.set_id(itrack);
-      track_hits.clear();
-      track_hits = _tracks.at(itrack).hits;
-    
-      for(unsigned int ihit = 0; ihit<track_hits.size();ihit++)
-	{
-	  //      dEdx1=0;
-	  //      dEdx2=0;
-	  if( (track_hits.at(ihit).index) >= _g4clusters->size()){continue;}
-	  SvtxCluster *cluster = _g4clusters->get(track_hits.at(ihit).index);
-	  clusterID = cluster->get_id();
-	  clusterLayer = cluster->get_layer();
-	  if( (clusterLayer < (int)_seed_layers) && (clusterLayer >= 0) )
-	    {
-	      track.insert_cluster(clusterID);
-	    }
-	}
-      float kappa = _tracks.at(itrack).kappa;
-      float d = _tracks.at(itrack).d;
-      float phi = _tracks.at(itrack).phi;
-      float dzdl = _tracks.at(itrack).dzdl;
-      float z0 = _tracks.at(itrack).z0;
-    
-      //    track.set_helix_phi(phi);
-      //    track.set_helix_kappa(kappa);
-      //    track.set_helix_d(d);
-      //    track.set_helix_z0(z0);
-      //    track.set_helix_dzdl(dzdl);
-    
-      float pT = kappaToPt(kappa);
+  for (unsigned int itrack = 0; itrack < _tracks.size(); itrack++) {
+    SvtxTrack_v1 track;
+    track.set_id(itrack);
+    track_hits.clear();
+    track_hits = _tracks.at(itrack).hits;
 
-      float x_center = cos(phi)*(d+1/kappa); // x coordinate of circle center
-      float y_center = sin(phi)*(d+1/kappa); // y    "      "     "      "
-
-      // find helicity from cross product sign
-      short int helicity;
-      if((track_hits[0].x-x_center)*(track_hits[track_hits.size()-1].y-y_center) -
-	 (track_hits[0].y-y_center)*(track_hits[track_hits.size()-1].x-x_center) > 0)
-	{
-	  helicity = 1;
-	}
-      else
-	{ 
-	  helicity = -1;
-	}
-      float pZ = 0;
-      if(dzdl != 1)
-	{
-	  pZ = pT * dzdl / sqrt(1.0 - dzdl*dzdl);
-	}
-      int ndf = 2*_tracks.at(itrack).hits.size() - 5;
-      track.set_chisq(chi_squareds[itrack]);
-      track.set_ndf(ndf);
-      track.set_px( pT*cos(phi-helicity*M_PI/2) );
-      track.set_py( pT*sin(phi-helicity*M_PI/2) );
-      track.set_pz( pZ );
-
-      track.set_dca2d( d );
-      track.set_dca2d_error(sqrt(_tracker->getKalmanStates()[itrack].C(1,1)));  
-
-      if(_magField > 0)
-	{
-	  track.set_charge( helicity );
-	}
-      else
-	{
-	  track.set_charge( -1.0*helicity );
-	}
-
-      Matrix<float,6,6> euclidean_cov = Matrix<float,6,6>::Zero(6,6);
-      convertHelixCovarianceToEuclideanCovariance( _magField, phi, d, kappa, z0, dzdl, _tracker->getKalmanStates()[itrack].C, euclidean_cov );
-    
-      for(unsigned int row=0;row<6;++row)
-	{
-	  for(unsigned int col=0;col<6;++col)
-	    {
-	      track.set_error(row,col,euclidean_cov(row,col));
-	    }
-	}
-
-      track.set_x( vertex.get_x() + d*cos(phi) );
-      track.set_y( vertex.get_y() + d*sin(phi) );
-      track.set_z( vertex.get_z() + z0 );
-    
-      _g4tracks->insert(&track);
-      vertex.insert_track(track.get_id());
-
-      if (verbosity > 5) {
-	cout << "track " << itrack << " quality = "
-	     << track.get_quality() << endl;
-	cout << "px = " << track.get_px()
-	     << " py = " << track.get_py()
-	     << " pz = " << track.get_pz() << endl;
+    for (unsigned int ihit = 0; ihit < track_hits.size(); ihit++) {
+      if ((track_hits.at(ihit).index) >= _g4clusters->size()) {
+        continue;
       }
-    } // track loop
+      SvtxCluster* cluster = _g4clusters->get(track_hits.at(ihit).index);
+      clusterID = cluster->get_id();
+      clusterLayer = cluster->get_layer();
+      if ((clusterLayer < (int)_seed_layers) && (clusterLayer >= 0)) {
+        track.insert_cluster(clusterID);
+      }
+    }
+    
+    float kappa = _tracks.at(itrack).kappa;
+    float d = _tracks.at(itrack).d;
+    float phi = _tracks.at(itrack).phi;
+    float dzdl = _tracks.at(itrack).dzdl;
+    float z0 = _tracks.at(itrack).z0;
+
+    //    track.set_helix_phi(phi);
+    //    track.set_helix_kappa(kappa);
+    //    track.set_helix_d(d);
+    //    track.set_helix_z0(z0);
+    //    track.set_helix_dzdl(dzdl);
+
+    float pT = kappaToPt(kappa);
+
+    float x_center =
+        cos(phi) * (d + 1 / kappa);  // x coordinate of circle center
+    float y_center = sin(phi) * (d + 1 / kappa);  // y    "      "     " "
+
+    // find helicity from cross product sign
+    short int helicity;
+    if ((track_hits[0].x - x_center) *
+                (track_hits[track_hits.size() - 1].y - y_center) -
+            (track_hits[0].y - y_center) *
+                (track_hits[track_hits.size() - 1].x - x_center) >
+        0) {
+      helicity = 1;
+    } else {
+      helicity = -1;
+    }
+    float pZ = 0;
+    if (dzdl != 1) {
+      pZ = pT * dzdl / sqrt(1.0 - dzdl * dzdl);
+    }
+    int ndf = 2 * _tracks.at(itrack).hits.size() - 5;
+    track.set_chisq(chi_squareds[itrack]);
+    track.set_ndf(ndf);
+    track.set_px(pT * cos(phi - helicity * M_PI / 2));
+    track.set_py(pT * sin(phi - helicity * M_PI / 2));
+    track.set_pz(pZ);
+
+    track.set_dca2d(d);
+    track.set_dca2d_error(sqrt(_tracker->getKalmanStates()[itrack].C(1, 1)));
+
+    if (_magField > 0) {
+      track.set_charge(helicity);
+    } else {
+      track.set_charge(-1.0 * helicity);
+    }
+
+    Matrix<float, 6, 6> euclidean_cov = Matrix<float, 6, 6>::Zero(6, 6);
+    convertHelixCovarianceToEuclideanCovariance(
+        _magField, phi, d, kappa, z0, dzdl,
+        _tracker->getKalmanStates()[itrack].C, euclidean_cov);
+
+    for (unsigned int row = 0; row < 6; ++row) {
+      for (unsigned int col = 0; col < 6; ++col) {
+        track.set_error(row, col, euclidean_cov(row, col));
+      }
+    }
+
+    track.set_x(vertex.get_x() + d * cos(phi));
+    track.set_y(vertex.get_y() + d * sin(phi));
+    track.set_z(vertex.get_z() + z0);
+
+    _g4tracks->insert(&track);
+    vertex.insert_track(track.get_id());
+
+    if (verbosity > 5) {
+      cout << "track " << itrack << " quality = " << track.get_quality()
+           << endl;
+      cout << "px = " << track.get_px() << " py = " << track.get_py()
+           << " pz = " << track.get_pz() << endl;
+    }
+  }  // track loop
 
   SvtxVertex *vtxptr = _g4vertexes->insert(&vertex);
   if (verbosity > 5) vtxptr->identify();
@@ -968,48 +962,48 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4HoughTransform::set_material(int layer, float value)
-{
+void PHG4HoughTransform::set_material(int layer, float value) {
   _user_material[layer] = value;
 }
 
-int PHG4HoughTransform::CreateNodes(PHCompositeNode *topNode)
-{
+int PHG4HoughTransform::CreateNodes(PHCompositeNode* topNode) {
   // create nodes...
   PHNodeIterator iter(topNode);
-  
-  PHCompositeNode *dstNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-  if(!dstNode)
-    {
-      cerr << PHWHERE << "DST Node missing, doing nothing." << endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-      
+
+  PHCompositeNode* dstNode =
+    static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode) {
+    cerr << PHWHERE << "DST Node missing, doing nothing." << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   // Create the SVTX node
-  PHCompositeNode* tb_node = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "SVTX"));
-  if (!tb_node) 
-    {
-      tb_node = new PHCompositeNode("SVTX");
-      dstNode->addNode(tb_node);
-      if (verbosity>0) cout << "SVTX node added" << endl;
-    }
- 	
+  PHCompositeNode* tb_node =
+    dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "SVTX"));
+  if (!tb_node) {
+    tb_node = new PHCompositeNode("SVTX");
+    dstNode->addNode(tb_node);
+    if (verbosity > 0) cout << "SVTX node added" << endl;
+  }
+
   _g4tracks = new SvtxTrackMap_v1;
-  PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(_g4tracks,"SvtxTrackMap","PHObject");
+  PHIODataNode<PHObject>* tracks_node =
+    new PHIODataNode<PHObject>(_g4tracks, "SvtxTrackMap", "PHObject");
   tb_node->addNode(tracks_node);
-  if (verbosity>0) cout << "Svtx/SvtxTrackMap node added" << endl;
+  if (verbosity > 0) cout << "Svtx/SvtxTrackMap node added" << endl;
 
   _g4vertexes = new SvtxVertexMap_v1;
-  PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(_g4vertexes,"SvtxVertexMap","PHObject");
+  PHIODataNode<PHObject>* vertexes_node =
+    new PHIODataNode<PHObject>(_g4vertexes, "SvtxVertexMap", "PHObject");
   tb_node->addNode(vertexes_node);
-  if (verbosity>0) cout << "Svtx/SvtxVertexMap node added" << endl;
-  
-  PHG4CylinderGeomContainer* geoms = getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SVTX");
-  if(!geoms) 
-    {
-      cerr << PHWHERE << " ERROR: Can't find CYLINDERGEOM_SVTX Node." << endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+  if (verbosity > 0) cout << "Svtx/SvtxVertexMap node added" << endl;
+
+  PHG4CylinderGeomContainer* geoms =
+    getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SVTX");
+  if (!geoms) {
+    cerr << PHWHERE << " ERROR: Can't find CYLINDERGEOM_SVTX Node." << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   return InitializeGeometry(topNode);
 }
@@ -1176,8 +1170,8 @@ int PHG4HoughTransform::fast_vertex_guessing() {
   // it asks for just a handful of each, but searches
   // over the broadest possible phase space for the vertex origin
   
-  // limit each window to no more than 4 tracks
-  unsigned int maxtracks = 4;
+  // limit each window to no more than N tracks
+  unsigned int maxtracks = 10;
     
   // storage for tracking for initial vertex finding
   std::vector<SimpleTrack3D> vtxtracks;
@@ -1242,8 +1236,8 @@ int PHG4HoughTransform::fast_vertex_guessing() {
   }
     
   // update vertex position in global coordinates  
-  _vertex[0] = temp_vertex[0];
-  _vertex[1] = temp_vertex[1];
+  _vertex[0] = 0.0;//temp_vertex[0];
+  _vertex[1] = 0.0;//temp_vertex[1];
   _vertex[2] = temp_vertex[2];
     
   if (verbosity > 0) {
@@ -1253,27 +1247,6 @@ int PHG4HoughTransform::fast_vertex_guessing() {
   
   _tracker_etap_seed->clear();
   _tracker_etam_seed->clear();
-
-  // fail over to bbc vertex if no tracks were found...
-  // if (vtxtracks.size() == 0) {
-  //   if (_bbc_vertexes) {
-
-  //     BbcVertex* vertex = _bbc_vertexes->begin()->second;
-
-  //     if (vertex) {
-	
-  // 	_vertex[0] = 0.0;
-  // 	_vertex[1] = 0.0;
-  // 	_vertex[2] = vertex->get_z();
-
-  // 	if (verbosity) cout << " initial bbc vertex guess: "
-  // 			    << _vertex[0] << " "
-  // 			    << _vertex[1] << " "
-  // 			    << _vertex[2] << endl;
-      
-  //     }  
-  //   }
-  // }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1561,7 +1534,7 @@ int PHG4HoughTransform::setup_seed_tracker_objects() {
     vector<vector<unsigned int> > zoomprofile;
     zoomprofile.assign(5,onezoom);
     zoomprofile[0][0] = 16;
-    zoomprofile[0][1] = 1;
+    zoomprofile[0][1] = 1; 
     zoomprofile[0][2] = 4;
     zoomprofile[0][3] = 8;
     zoomprofile[0][4] = 1;
