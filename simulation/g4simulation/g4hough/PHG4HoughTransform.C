@@ -414,9 +414,9 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode) {
   _vertex.clear();
   _vertex.assign(3,0.0);
   
-  //---------------------------------
+  //-----------------------------------
   // Get Objects off of the Node Tree
-  //---------------------------------
+  //-----------------------------------
   
   GetNodes(topNode);
 
@@ -427,27 +427,15 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode) {
   int code = translate_input();
   if (code != Fun4AllReturnCodes::EVENT_OK) return code;
   
-  //------------------------------------
-  // Perform the initial zvertex finding
-  //------------------------------------
-
-  _tracks.clear();
-  _track_errors.clear();
-  _vertex.clear();
-  
-  _vertex.push_back(0.0);
-  _vertex.push_back(0.0);
-  _vertex.push_back(0.0);
-
-  //------------------------
+  //-----------------------------------
   // Guess a vertex position
-  //------------------------
+  //-----------------------------------
 
   code = fast_vertex_guessing();
   if (code != Fun4AllReturnCodes::EVENT_OK) return code;
 
   // here expect vertex to be better than +/-2.0 cm
-  
+
   //-----------------------------------
   // Find an initial vertex with tracks
   //-----------------------------------
@@ -457,16 +445,16 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode) {
 
   // here expect vertex to be better than +/- 500 um
   
-  //----------------------------------
+  //-----------------------------------
   // Preform the track finding
-  //----------------------------------
+  //-----------------------------------
 
   code = full_tracking_and_vertexing();
   if (code != Fun4AllReturnCodes::EVENT_OK) return code;
   
-  //--------------------------------
-  // Translate back into PHG4 objects
-  //--------------------------------
+  //-----------------------------------
+  // Translate back into SVTX objects
+  //-----------------------------------
 
   code = export_output();
   if (code != Fun4AllReturnCodes::EVENT_OK) return code;
@@ -1008,7 +996,7 @@ int PHG4HoughTransform::initial_vertex_finding() {
   // shift to vertex guess position
   shift_coordinate_system(shift_dx,shift_dy,shift_dz);
   
-  // limit each window to no more than 40 tracks
+  // limit each window to no more than N tracks
   unsigned int maxtracks = 40;
     
   // reset track storage and tracker
@@ -1051,15 +1039,15 @@ int PHG4HoughTransform::initial_vertex_finding() {
 
     if (verbosity > 0) {
       cout << " initial track vertex pre-fit: "
-	   << _vertex[0] + shift_dx << " "
-	   << _vertex[1] + shift_dy << " "
-	   << _vertex[2] + shift_dz << endl;
+	   << _vertex[0] - shift_dx << " "
+	   << _vertex[1] - shift_dy << " "
+	   << _vertex[2] - shift_dz << endl;
     }
       
     // start with the average position and converge from there
-    _vertexFinder.findVertex(_tracks, _track_covars, _vertex, 3.00, true);
-    _vertexFinder.findVertex(_tracks, _track_covars, _vertex, 0.10, true);
-    _vertexFinder.findVertex(_tracks, _track_covars, _vertex, 0.02, false);
+    _vertexFinder.findVertex( _tracks, _track_covars, _vertex, 3.00, true  );
+    _vertexFinder.findVertex( _tracks, _track_covars, _vertex, 0.10, true  );
+    _vertexFinder.findVertex( _tracks, _track_covars, _vertex, 0.02, false );
   }
 
   // don't need the tracks anymore
@@ -1363,127 +1351,89 @@ int PHG4HoughTransform::setup_seed_tracker_objects() {
 
 int PHG4HoughTransform::full_tracking_and_vertexing() {
 
-  //---------------
-  // Final Tracking
-  //---------------
-  
-  // --- shift coordinate system to place vertex at the origin ---------------
+  float shift_dx = -_vertex[0];
+  float shift_dy = -_vertex[1];
+  float shift_dz = -_vertex[2];
 
-  for(unsigned int ht = 0; ht < _clusters.size(); ++ht) {
-    _clusters[ht].x -= _vertex[0];
-    _clusters[ht].y -= _vertex[1];
-    _clusters[ht].z -= _vertex[2];
-  }
+  // shift to initial vertex position  
+  shift_coordinate_system(shift_dx,shift_dy,shift_dz);
   
+  // reset track storage and tracker
   _tracks.clear();
   _track_errors.clear();
   _track_covars.clear();
 
   _tracker->clear();
-  
+
+  // final track finding
   _tracker->findHelices(_clusters, _min_hits_init, _max_hits_init, _tracks);  
    
-  // Shift coordinate system back to global coordinates
   for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
-    for (unsigned int hh = 0; hh < _tracks[tt].hits.size(); ++hh) {
-      _tracks[tt].hits[hh].x = _tracks[tt].hits[hh].x + _vertex[0];
-      _tracks[tt].hits[hh].y = _tracks[tt].hits[hh].y + _vertex[1];
-      _tracks[tt].hits[hh].z = _tracks[tt].hits[hh].z + _vertex[2];
+    _track_covars.push_back( (_tracker->getKalmanStates())[tt].C );
+    _track_errors.push_back( _tracker->getKalmanStates()[tt].chi2 );
+  }
+
+  // we will need the tracker object below to refit the tracks... so we won't
+  // reset it here
+  
+  if (verbosity > 0) cout << " final track count: " << _tracks.size() << endl;
+
+  if (!_tracks.empty()) {
+
+    if (verbosity > 0) {
+      cout << " final vertex pre-fit: "
+	   << _vertex[0] - shift_dx << " "
+	   << _vertex[1] - shift_dy << " "
+	   << _vertex[2] - shift_dz << endl;
     }
-    _track_errors.push_back(_tracker->getKalmanStates()[tt].chi2);
-  }
   
-  if (verbosity > 0) {
-    cout << " final track count: " << _tracks.size() << endl;
-  }
-
-  //---------------------------
-  // Final vertex determination
-  //---------------------------
+    _vertexFinder.findVertex( _tracks, _track_covars, _vertex, 0.300, false );
+    _vertexFinder.findVertex( _tracks, _track_covars, _vertex, 0.100, false );
+    _vertexFinder.findVertex( _tracks, _track_covars, _vertex, 0.020, false );
+    _vertexFinder.findVertex( _tracks, _track_covars, _vertex, 0.005, false );
   
-  // sort the tracks by pT
-  std::vector<vector<double> > pTmap;
-  for (unsigned int i = 0; i < _tracks.size(); ++i) {
-    double pT = kappaToPt(_tracks[i].kappa);
-    pTmap.push_back(vector<double>());
-    pTmap.back().push_back(pT);
-    pTmap.back().push_back((double)i);
-  }
-  sort(pTmap.begin(), pTmap.end());
-
-  std::vector<SimpleTrack3D> vtxtracks;
-  std::vector<Matrix<float,5,5> > vtxcovariances;
-  
-  vtxtracks.clear();
-  vtxcovariances.clear();
-
-  for (unsigned int i = 0; i < _tracks.size(); ++i) {
-    vtxtracks.push_back(_tracks[(int)(pTmap[pTmap.size() - 1 - i][1])]);
-    vtxcovariances.push_back(
-        (_tracker->getKalmanStates())[(int)(pTmap[pTmap.size() - 1 - i][1])].C);
-  }
-
-  if (verbosity > 0) {
-    cout << " final vertex pre-fit: " << _vertex[0] << " " << _vertex[1] << " "
-         << _vertex[2] << endl;
-  }
-  
-  double vx = _vertex[0];
-  double vy = _vertex[1];
-  double vz = _vertex[2];
-  
-  _vertex[0] = 0.0;
-  _vertex[1] = 0.0;
-  _vertex[2] = 0.0;
-  
-  _vertexFinder.findVertex(vtxtracks, vtxcovariances, _vertex, 0.300, false);
-  _vertexFinder.findVertex(vtxtracks, vtxcovariances, _vertex, 0.100, false);
-  _vertexFinder.findVertex(vtxtracks, vtxcovariances, _vertex, 0.020, false);
-  _vertexFinder.findVertex(vtxtracks, vtxcovariances, _vertex, 0.005, false);
-  
-  _vertex[0] += vx;
-  _vertex[1] += vy;
-  _vertex[2] += vz;
-
-  if (verbosity > 0) {
-    cout << " final vertex post-fit: " << _vertex[0] << " " << _vertex[1] << " "
-         << _vertex[2] << endl;
-  }
-
-  //----------------------------------------------
-  // Update track fields for final vertex position
-  //----------------------------------------------
-  
-  // shift to precision vertex position
-  for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
-    for (unsigned int hh = 0;hh < _tracks[tt].hits.size(); ++hh) {
-      _tracks[tt].hits[hh].x = _tracks[tt].hits[hh].x - _vertex[0];
-      _tracks[tt].hits[hh].y = _tracks[tt].hits[hh].y - _vertex[1];
-      _tracks[tt].hits[hh].z = _tracks[tt].hits[hh].z - _vertex[2];
+    if (verbosity > 0) {
+      cout << " final vertex post-fit: "
+	   << _vertex[0] - shift_dx << " "
+	   << _vertex[1] - shift_dy << " "
+	   << _vertex[2] - shift_dz << endl;
     }
   }
+
+  // shift back to global coordinates
+  shift_coordinate_system(-shift_dx,-shift_dy,-shift_dz);
   
-  // recompute track fits
+  // we still need to update the track fields for DCA and PCA
+  // we can do that from the final vertex position
+  
+  shift_dx = _vertex[0];
+  shift_dy = _vertex[1];
+  shift_dz = _vertex[2];
+
+  // shift to precision final vertex
+  shift_coordinate_system(shift_dx,shift_dy,shift_dz);
+  
+  // recompute track fits to fill dca and pca + error fields
   std::vector<SimpleTrack3D> refit_tracks;
   std::vector<double> refit_errors;
+  std::vector<Eigen::Matrix<float,5,5> > refit_covars;
 
   _tracker->finalize(_tracks,refit_tracks);
   
   for (unsigned int tt = 0; tt < refit_tracks.size(); ++tt) {
-    refit_errors.push_back(_tracker->getKalmanStates()[tt].chi2);
+    refit_errors.push_back( _tracker->getKalmanStates()[tt].chi2);
+    refit_covars.push_back( _tracker->getKalmanStates()[tt].C );
   }
+
+  // okay now we are done with the tracker
+  _tracker->clear();
   
   _tracks = refit_tracks;
   _track_errors = refit_errors;
+  _track_covars = refit_covars;
   
-  // shift back to global coordianates
-  for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
-    for (unsigned int hh = 0;hh < _tracks[tt].hits.size(); ++hh) {
-      _tracks[tt].hits[hh].x = _tracks[tt].hits[hh].x + _vertex[0];
-      _tracks[tt].hits[hh].y = _tracks[tt].hits[hh].y + _vertex[1];
-      _tracks[tt].hits[hh].z = _tracks[tt].hits[hh].z + _vertex[2];
-    }
-  }
+  // shift back to global coordinates
+  shift_coordinate_system(-shift_dx,-shift_dy,-shift_dz);
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1570,7 +1520,7 @@ int PHG4HoughTransform::export_output() {
     track.set_pz(pZ);
 
     track.set_dca2d(d);
-    track.set_dca2d_error(sqrt(_tracker->getKalmanStates()[itrack].C(1, 1)));
+    track.set_dca2d_error(sqrt(_track_covars[itrack](1, 1)));
 
     if (_magField > 0) {
       track.set_charge(helicity);
@@ -1581,7 +1531,7 @@ int PHG4HoughTransform::export_output() {
     Matrix<float, 6, 6> euclidean_cov = Matrix<float, 6, 6>::Zero(6, 6);
     convertHelixCovarianceToEuclideanCovariance(
         _magField, phi, d, kappa, z0, dzdl,
-        _tracker->getKalmanStates()[itrack].C, euclidean_cov);
+        _track_covars[itrack], euclidean_cov);
 
     for (unsigned int row = 0; row < 6; ++row) {
       for (unsigned int col = 0; col < 6; ++col) {
@@ -1611,6 +1561,14 @@ int PHG4HoughTransform::export_output() {
     cout << "PHG4HoughTransform::process_event -- leaving process_event"
          << endl;
   }
+
+  // we are done with these now...
+  _clusters.clear();
+  _tracks.clear();
+  _track_errors.clear();
+  _track_covars.clear();
+  _vertex.clear();
+  _vertex.assign(3,0.0);
   
   return Fun4AllReturnCodes::EVENT_OK;
 }

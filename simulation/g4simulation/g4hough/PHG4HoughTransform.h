@@ -195,6 +195,15 @@ private:
   int CreateNodes(PHCompositeNode *topNode);
   int InitializeGeometry(PHCompositeNode *topNode);
 
+  /// code to setup seed tracking objects
+  int setup_seed_tracker_objects();
+  
+  /// code to setup initial vertexing tracker
+  int setup_initial_tracker_object();
+  
+  /// code to setup full tracking object
+  int setup_tracker_object();
+  
   //--------------------
   // Process Event Calls
   //--------------------
@@ -210,22 +219,13 @@ private:
 
   /// code to seed vertex from initial tracking using a broad search window
   int fast_vertex_guessing();
-
-  /// code to setup seed tracking objects
-  int setup_seed_tracker_objects();
   
   /// code to produce an initial track vertex from the seed
   int initial_vertex_finding();
   
-  /// code to setup initial vertexing tracker
-  int setup_initial_tracker_object();
-
   /// code to perform the final tracking and vertexing
   int full_tracking_and_vertexing();
   
-  /// code to setup full tracking object
-  int setup_tracker_object();
-
   /// code to translate back to the SVTX universe
   int export_output();
 
