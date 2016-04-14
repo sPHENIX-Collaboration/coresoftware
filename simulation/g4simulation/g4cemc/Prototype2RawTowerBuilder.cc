@@ -70,7 +70,7 @@ Prototype2RawTowerBuilder::InitRun(PHCompositeNode *topNode)
 int
 Prototype2RawTowerBuilder::process_event(PHCompositeNode *topNode)
 {
-  if (verbosity)
+  if (verbosity>3)
     {
       std::cout << PHWHERE << "Process event entered" << std::endl;
     }
