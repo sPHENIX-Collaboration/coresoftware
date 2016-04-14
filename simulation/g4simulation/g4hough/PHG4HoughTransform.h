@@ -5,7 +5,8 @@
 /// \file PHG4HoughTransform.h
 /// \brief A fun4all implementation of Alan's Hough Transform
 /// \author Matt Wysocki (copied from SvxHoughTransform)
-/// go to https://www.phenix.bnl.gov/WWW/offline/wikioffline/index.php/SvxHoughTransform
+/// go to
+/// https://www.phenix.bnl.gov/WWW/offline/wikioffline/index.php/SvxHoughTransform
 /// \edited by Theo Koblesky to conform to new changes in HelixHough (1/10/2012)
 
 // edited week of 11/14/2012 by Alan Dion to use new HelixHough
@@ -70,11 +71,7 @@ public:
   int End(PHCompositeNode *topNode);
 
   /// set verbosity
-  void Verbosity(int verb) {
-    verbosity = verb; // SubsysReco verbosity
-    //if(_tracker_init) _tracker_init->setVerbosity(verb);
-    //if(_tracker) _tracker->setVerbosity(verb);
-  }
+  void Verbosity(int verb) {verbosity = verb;}
 
   /// external handle for projecting tracks into the calorimetry
   static void projectToRadius(const SvtxTrack* track,
@@ -82,12 +79,12 @@ public:
 			      double radius,   // in cm
 			      std::vector<double>& intersection);
 
+  /// external handle for state objects
   static void projectToRadius(const SvtxTrackState* state,
 			      int charge,
 			      double magfield, // in Tesla
 			      double radius,   // in cm
 			      std::vector<double>& intersection);
-
 
   float get_mag_field() const          {return _magField;}
   void  set_mag_field(float magField) {_magField = magField;}
@@ -160,23 +157,36 @@ public:
   /// sets an upper limit on Z DCA
   void setDCAZCut(float dzcut){_dcaz_cut = dzcut;}
 
-  /// adjust the fit pt by a recalibration factor (constant B versus real mag field)
-  void setPtRescaleFactor(float pt_rescale) {_pt_rescale = pt_rescale;}
+  /// adjust the fit pt by a recalibration factor (constant B versus real mag
+  /// field)
+  void setPtRescaleFactor(float pt_rescale) { _pt_rescale = pt_rescale; }
 
   /// adjust the relative voting error scale w.r.t. the cluster size
   void setVoteErrorScale(unsigned int layer, float scale) {
-    if(scale > 0.0){_vote_error_scale.at(layer) = scale;}
-    else{std::cout<<"PHG4HoughTransform::setVoteErrorScale : scale must be greater than zero ... doing nothing"<<std::endl;}
+    if (scale > 0.0) {
+      _vote_error_scale.at(layer) = scale;
+    } else {
+      std::cout << "PHG4HoughTransform::setVoteErrorScale : scale must be "
+                   "greater than zero ... doing nothing"
+                << std::endl;
+    }
   }
   /// adjust the relative fit error scale w.r.t. the cluster size
   void setFitErrorScale(unsigned int layer, float scale) {
-    if(scale > 0.0){_fit_error_scale.at(layer) = scale;}
-    else{std::cout<<"PHG4HoughTransform::setFitErrorScale : scale must be greater than zero ... doing nothing"<<std::endl;}
+    if (scale > 0.0) {
+      _fit_error_scale.at(layer) = scale;
+    } else {
+      std::cout << "PHG4HoughTransform::setFitErrorScale : scale must be "
+                   "greater than zero ... doing nothing"
+                << std::endl;
+    }
   }
 
 #ifndef __CINT__
- private:
+private:
+  
   bool new_dca_nbin, new_z_z0, new_circle_dca, new_circle_kappa;
+
   int CreateNodes(PHCompositeNode *topNode);
   int GetNodes(PHCompositeNode *topNode);
   int InitializeGeometry(PHCompositeNode *topNode);
@@ -186,17 +196,36 @@ public:
   /// convert from momentum to inverse curvature
   float ptToKappa(float pt);
 
-  /// utility to quickly compute cluster-pair pca
-  bool pca_line_to_line( const TVector3& point_a0, const TVector3& point_a1, // track
-			 const TVector3& point_b0, const TVector3& point_b1, // beam line
-			 TVector3& pca_on_a); // cpa on track
-
+  //--------------------
+  // Process Event Calls
+  //--------------------
+  
+  //int translate_input();
+  
+  /// code to seed vertex from bbc
   int fast_vertex_from_bbc();
+
+  /// code to seed vertex from initial tracking using a broad search window
   int fast_vertex_guessing();
-  int initial_vertex_finding();
-  int setup_tracker_object();
-  int setup_initial_tracker_object();
+
+  /// code to setup seed tracking objects
   int setup_seed_tracker_objects();
+  
+  /// code to produce an initial track vertex from the seed
+  int initial_vertex_finding();
+  
+  /// code to setup initial vertexing tracker
+  int setup_initial_tracker_object();
+
+  /// code to perform the final tracking and vertexing
+  int full_tracking_and_vertexing();
+  
+  /// code to setup full tracking object
+  int setup_tracker_object();
+
+  //int export_output();
+
+
   
   /// helper function for projection code
   static bool circle_line_intersections(double x0, double y0, double r0,
@@ -235,7 +264,9 @@ public:
   std::vector<SimpleHit3D> _clusters_init; ///< working array of clusters                                                    
   std::vector<SimpleHit3D> _clusters;
   std::vector<SimpleTrack3D> _tracks; ///< working array of tracks                                                      
-  std::vector<float> _vertex;         ///< working array for collision vertex                                           
+  std::vector<double> _track_errors;  ///< working array of track chisq
+  std::vector<float> _vertex;         ///< working array for collision vertex
+
 
   // track finding routines                                                                                             
   sPHENIXTracker *_tracker;    // finds full tracks
