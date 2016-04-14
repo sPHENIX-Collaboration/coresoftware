@@ -33,6 +33,21 @@ Fun4All_TestBeam(int nEvents = 100,
   calib->set_raw_tower_node_prefix("RAW_LG");
   se->registerSubsystem(calib);
 
+  calib = new CaloCalibration("HCALIN");
+  calib->set_calib_tower_node_prefix("CALIB_HG");
+  calib->set_raw_tower_node_prefix("RAW_HG");
+  se->registerSubsystem(calib);
+
+  calib = new CaloCalibration("HCALOUT");
+  calib->set_calib_tower_node_prefix("CALIB_LG");
+  calib->set_raw_tower_node_prefix("RAW_LG");
+  se->registerSubsystem(calib);
+
+  calib = new CaloCalibration("HCALOUT");
+  calib->set_calib_tower_node_prefix("CALIB_HG");
+  calib->set_raw_tower_node_prefix("RAW_HG");
+  se->registerSubsystem(calib);
+
   //main DST output
   Fun4AllDstOutputManager *out_Manager = new Fun4AllDstOutputManager("DSTOUT",
       output_file);
@@ -47,6 +62,9 @@ Fun4All_TestBeam(int nEvents = 100,
   reader->AddTower("RAW_HG_HCALOUT");
   reader->AddTower("RAW_CEMC");
   reader->AddTower("CALIB_LG_HCALIN");
+  reader->AddTower("CALIB_HG_HCALIN");
+  reader->AddTower("CALIB_LG_HCALOUT");
+  reader->AddTower("CALIB_HG_HCALOUT");
   reader->AddTower("CALIB_CEMC");
   se->registerSubsystem(reader);
 
