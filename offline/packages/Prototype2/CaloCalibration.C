@@ -9,8 +9,10 @@
 #include "PROTOTYPE2_FEM.h"
 #include <iostream>
 #include <TString.h>
+#include <cmath>
 #include <string>
 #include <cassert>
+#include <cfloat>
 #include "PROTOTYPE2_FEM.h"
 
 using namespace std;
@@ -65,12 +67,12 @@ CaloCalibration::process_event(PHCompositeNode *topNode)
   const bool use_chan_calibration = _calib_params.get_int_param(
       "use_chan_calibration") > 0;
 
-  RawTowerContainer::ConstRange begin_end = _raw_towers->getTowers();
-  RawTowerContainer::ConstIterator rtiter;
+  RawTowerContainer::Range begin_end = _raw_towers->getTowers();
+  RawTowerContainer::Iterator rtiter;
   for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
     {
-      const RawTowerDefs::keytype key = rtiter->first;
-      const RawTower_Prototype2 *raw_tower =
+      RawTowerDefs::keytype key = rtiter->first;
+      RawTower_Prototype2 *raw_tower =
           dynamic_cast<RawTower_Prototype2 *>(rtiter->second);
       assert(raw_tower);
 
@@ -94,7 +96,7 @@ CaloCalibration::process_event(PHCompositeNode *topNode)
       for (int i = 0; i < RawTower_Prototype2::NSAMPLES; i++)
         {
           vec_signal_samples.push_back(
-              calibration_const * raw_tower->get_signal_samples(i));
+              raw_tower->get_signal_samples(i));
         }
 
       double peak = NAN;
@@ -104,13 +106,23 @@ CaloCalibration::process_event(PHCompositeNode *topNode)
       PROTOTYPE2_FEM::SampleFit_PowerLawExp(vec_signal_samples, peak,
           peak_sample, pedstal);
 
+      // store the result - raw_tower
+      if (std::isnan(raw_tower->get_energy()))
+        {
+          //Raw tower was never fit, store the current fit
+
+          raw_tower->set_energy(peak);
+          raw_tower->set_time(peak_sample);
+        }
+
+      // store the result - calib_tower
       RawTower_Prototype2 *calib_tower = new RawTower_Prototype2(*raw_tower);
-      calib_tower->set_energy(peak);
+      calib_tower->set_energy(peak * calibration_const);
       calib_tower->set_time(peak_sample);
 
       for (int i = 0; i < RawTower_Prototype2::NSAMPLES; i++)
         {
-          calib_tower->set_signal_samples(i, vec_signal_samples[i] - pedstal);
+          calib_tower->set_signal_samples(i, (vec_signal_samples[i] - pedstal) * calibration_const);
         }
 
       _calib_towers->AddTower(key, calib_tower);
@@ -184,7 +196,7 @@ CaloCalibration::CreateNodeTree(PHCompositeNode *topNode)
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
       "PHCompositeNode", "RUN"));
   assert(parNode);
-  const string paramnodename = string("aloCalibration_") + detector;
+  const string paramnodename = string("Calibration_") + detector;
 
   //   this step is moved to after detector construction
   //   save updated persistant copy on node tree
