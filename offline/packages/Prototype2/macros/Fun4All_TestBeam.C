@@ -9,7 +9,7 @@ Fun4All_TestBeam(int nEvents = 10,
     const char *output_file = "beam_00002078.root")
 {
   gSystem->Load("libfun4all");
-  gSystem->Load("/gpfs/mnt/gpfs02/phenix/scratch/abhisek/coresoftware/offline/packages/Prototype2/build/lib/libPrototype2.so");
+  gSystem->Load("libPrototype2.so");
 
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(Fun4AllServer::VERBOSITY_SOME);
