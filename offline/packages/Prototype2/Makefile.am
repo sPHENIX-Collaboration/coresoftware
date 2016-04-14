@@ -26,6 +26,8 @@ libPrototype2_la_SOURCES = \
   CaloUnpackPRDFDict.C \
   CaloCalibration.C \
   CaloCalibrationDict.C \
+  GenericUnpackPRDF.C \
+  GenericUnpackPRDFDict.C \
   PROTOTYPE2_FEM.C \
   PROTOTYPE2_FEMDict.cc
 
@@ -33,7 +35,6 @@ libPrototype2_la_LIBADD = \
   -lSubsysReco \
   -lphool \
   -lfun4all \
-  -lphg4hit \
   -lcemc
 
 install-exec-hook:

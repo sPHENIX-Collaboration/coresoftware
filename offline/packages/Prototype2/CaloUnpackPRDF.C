@@ -240,7 +240,6 @@ void CaloUnpackPRDF::CreateNodeTree(PHCompositeNode *topNode)
 //___________________________________
 int CaloUnpackPRDF::End(PHCompositeNode *topNode)
 {
- cout << "CaloUnpackPRDFF::End - Total Events: " << _nevents << endl;
  return Fun4AllReturnCodes::EVENT_OK;
 }
 

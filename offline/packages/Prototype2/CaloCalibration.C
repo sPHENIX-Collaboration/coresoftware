@@ -185,8 +185,7 @@ CaloCalibration::CreateNodeTree(PHCompositeNode *topNode)
       CaliTowerNodeName.c_str());
   if (!_calib_towers)
     {
-      _calib_towers = new RawTowerContainer(
-          RawTowerDefs::convert_name_to_caloid(detector));
+      _calib_towers = new RawTowerContainer(_raw_towers->getCalorimeterID());
       PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(
           _calib_towers, CaliTowerNodeName.c_str(), "PHObject");
       DetNode->addNode(towerNode);
