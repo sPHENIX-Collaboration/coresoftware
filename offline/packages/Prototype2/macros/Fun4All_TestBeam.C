@@ -25,8 +25,8 @@ Fun4All_TestBeam(int nEvents = 10,
   CaloCalibration * calib = NULL;
 
   calib = new CaloCalibration("CEMC");
-  //calib->GetCalibrationParameters().ReadFromFile("xml",
-  //    string(getenv("CALIBRATIONROOT")) + string("/Prototype2/Calibration/")); // calibration database
+  calib->GetCalibrationParameters().ReadFromFile("xml",
+      string(getenv("CALIBRATIONROOT")) + string("/Prototype2/Calibration/")); // calibration database
   se->registerSubsystem(calib);
 
   calib = new CaloCalibration("HCALIN");
@@ -143,7 +143,7 @@ Fun4All_TestBeam(int nEvents = 10,
 
   gunpack = new GenericUnpackPRDF("TILE_MAPPER");
   for (int i = 0; i < N_hodo; ++i)
-    gunpack->add_channel(21101, 32 + i, i); // 24 Cerenkov 1
+    gunpack->add_channel(21102, 32 + i, i); // 24 Cerenkov 1
   se->registerSubsystem(gunpack);
 
   calib = new CaloCalibration("TILE_MAPPER");
