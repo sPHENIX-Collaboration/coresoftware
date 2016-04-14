@@ -228,7 +228,7 @@ HepMCNodeReader::smearflat(const double width)
     {
       return 0;
     }
-  return width*(gsl_rng_uniform_pos(RandomGenerator) - 0.5);
+  return 2.0*width*(gsl_rng_uniform_pos(RandomGenerator) - 0.5);
 }
 
 void

@@ -6,10 +6,10 @@ void
 Fun4All_TestBeam(int nEvents = 10,
     const char *input_file =
         "/gpfs/mnt/gpfs02/sphenix/data/data01/t1044-2016a/fnal/beam/beam_00002078-0000.prdf",
-    const char *output_file = "data/beam_00002078.root")
+    const char *output_file = "beam_00002078.root")
 {
   gSystem->Load("libfun4all");
-  gSystem->Load("libPrototype2.so");
+  gSystem->Load("/gpfs/mnt/gpfs02/phenix/scratch/abhisek/coresoftware/offline/packages/Prototype2/build/lib/libPrototype2.so");
 
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(Fun4AllServer::VERBOSITY_SOME);
@@ -25,13 +25,14 @@ Fun4All_TestBeam(int nEvents = 10,
   CaloCalibration * calib = NULL;
 
   calib = new CaloCalibration("CEMC");
-  calib->GetCalibrationParameters().ReadFromFile("xml",
-      string(getenv("CALIBRATIONROOT")) + string("/Prototype2/Calibration/")); // calibration database
+  //calib->GetCalibrationParameters().ReadFromFile("xml",
+  //    string(getenv("CALIBRATIONROOT")) + string("/Prototype2/Calibration/")); // calibration database
   se->registerSubsystem(calib);
 
   calib = new CaloCalibration("HCALIN");
   calib->set_calib_tower_node_prefix("CALIB_LG");
   calib->set_raw_tower_node_prefix("RAW_LG");
+  //calib->Verbosity(true);
   se->registerSubsystem(calib);
 
   calib = new CaloCalibration("HCALIN");
