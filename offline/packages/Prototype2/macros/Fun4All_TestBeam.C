@@ -2,52 +2,78 @@
 
 using namespace std;
 
-void Fun4All_TestBeam(
-          const char *input_file= "/gpfs/mnt/gpfs02/sphenix/data/data01/t1044-2016a/fnal/beam/beam_00002078-0000.prdf",
-          const char *output_file = "data/beam_00002078.root",
-	  int nEvents = 1000)
+void
+Fun4All_TestBeam(int nEvents = 100,
+    const char *input_file =
+        "/gpfs/mnt/gpfs02/sphenix/data/data01/t1044-2016a/fnal/beam/beam_00002078-0000.prdf",
+    const char *output_file = "data/beam_00002078.root")
 {
- gSystem->Load("libfun4all");
- gSystem->Load("libPrototype2.so");
+  gSystem->Load("libfun4all");
+  gSystem->Load("libPrototype2.so");
 
- Fun4AllServer *se = Fun4AllServer::instance();
- se->Verbosity(Fun4AllServer::VERBOSITY_SOME);
+  Fun4AllServer *se = Fun4AllServer::instance();
+  se->Verbosity(Fun4AllServer::VERBOSITY_SOME);
 
- recoConsts *rc = recoConsts::instance();
- //rc->set_IntFlag("RUNNUMBER",0);
+  recoConsts *rc = recoConsts::instance();
+  //rc->set_IntFlag("RUNNUMBER",0);
 
- SubsysReco *unpack = new CaloUnpackPRDF();
+  SubsysReco *unpack = new CaloUnpackPRDF();
 // unpack->Verbosity(1);
- se->registerSubsystem( unpack );
+  se->registerSubsystem(unpack);
 
- CaloCalibration * calib = NULL;
+  CaloCalibration * calib = NULL;
 
- calib = new CaloCalibration("CEMC");
- se->registerSubsystem( calib );
+  calib = new CaloCalibration("CEMC");
+  calib->GetCalibrationParameters().ReadFromFile("xml",
+      string(getenv("CALIBRATIONROOT")) + string("/Prototype2/Calibration/")); // calibration database
+  se->registerSubsystem(calib);
 
+  calib = new CaloCalibration("HCALIN");
+  calib->set_calib_tower_node_prefix("CALIB_LG");
+  calib->set_raw_tower_node_prefix("RAW_LG");
+  se->registerSubsystem(calib);
 
+  calib = new CaloCalibration("HCALIN");
+  calib->set_calib_tower_node_prefix("CALIB_HG");
+  calib->set_raw_tower_node_prefix("RAW_HG");
+  se->registerSubsystem(calib);
 
- //main DST output
- Fun4AllDstOutputManager *out_Manager  = new Fun4AllDstOutputManager("DSTOUT",output_file);
-// se->registerOutputManager( out_Manager );
+  calib = new CaloCalibration("HCALOUT");
+  calib->set_calib_tower_node_prefix("CALIB_LG");
+  calib->set_raw_tower_node_prefix("RAW_LG");
+  se->registerSubsystem(calib);
 
- //alternatively, fast check on DST using DST Reader:
- Prototype2DSTReader *reader = new Prototype2DSTReader(string(output_file) + string("_DSTReader.root"));
- reader->AddTower("RAW_LG_HCALIN");
- reader->AddTower("RAW_HG_HCALIN");
- reader->AddTower("RAW_LG_HCALOUT");
- reader->AddTower("RAW_HG_HCALOUT");
- reader->AddTower("RAW_CEMC");
- reader->AddTower("CALIB_CEMC");
- se->registerSubsystem( reader );
+  calib = new CaloCalibration("HCALOUT");
+  calib->set_calib_tower_node_prefix("CALIB_HG");
+  calib->set_raw_tower_node_prefix("RAW_HG");
+  se->registerSubsystem(calib);
 
+  //main DST output
+  Fun4AllDstOutputManager *out_Manager = new Fun4AllDstOutputManager("DSTOUT",
+      output_file);
+  se->registerOutputManager(out_Manager);
 
- Fun4AllInputManager *in = new Fun4AllPrdfInputManager("PRDFin");
- in->fileopen(input_file);
- se->registerInputManager(in);
+  //alternatively, fast check on DST using DST Reader:
+  Prototype2DSTReader *reader = new Prototype2DSTReader(
+      string(output_file) + string("_DSTReader.root"));
+  reader->AddTower("RAW_LG_HCALIN");
+  reader->AddTower("RAW_HG_HCALIN");
+  reader->AddTower("RAW_LG_HCALOUT");
+  reader->AddTower("RAW_HG_HCALOUT");
+  reader->AddTower("RAW_CEMC");
+  reader->AddTower("CALIB_LG_HCALIN");
+  reader->AddTower("CALIB_HG_HCALIN");
+  reader->AddTower("CALIB_LG_HCALOUT");
+  reader->AddTower("CALIB_HG_HCALOUT");
+  reader->AddTower("CALIB_CEMC");
+  se->registerSubsystem(reader);
 
- se->run(nEvents);
+  Fun4AllInputManager *in = new Fun4AllPrdfInputManager("PRDFin");
+  in->fileopen(input_file);
+  se->registerInputManager(in);
 
- se->End(); 
+  se->run(nEvents);
+
+  se->End();
 
 }

@@ -323,24 +323,29 @@ PHG4Parameters::ReadFromDB()
 int
 PHG4Parameters::WriteToFile(const string &extension, const string &dir)
 {
+  ostringstream fullpath;
   ostringstream fnamestream;
   PdbBankID bankID(0); // lets start at zero
   PHTimeStamp TStart(0);
   PHTimeStamp TStop(0xffffffff);
-  fnamestream << dir;
+  fullpath << dir;
   // add / if directory lacks ending /
   if (*(dir.rbegin()) != '/')
     {
-      fnamestream << "/";
+      fullpath << "/";
     }
   fnamestream << detname << "_geoparams" << "-" << bankID.getInternalValue()
       << "-" << TStart.getTics() << "-" << TStop.getTics() << "-" << time(0)
       << "." << extension;
   string fname = fnamestream.str();
   std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
+  fullpath << fname;
+
+  cout <<"PHG4Parameters::WriteToFile - save to "<<fullpath.str()<<endl;
+
   PdbParameterMap *myparm = new PdbParameterMap();
   CopyToPdbParameterMap(myparm);
-  TFile *f = TFile::Open(fname.c_str(), "recreate");
+  TFile *f = TFile::Open(fullpath.str().c_str(), "recreate");
   myparm->Write();
   delete f;
   cout << "sleeping 1 second to prevent duplicate inserttimes" << endl;
