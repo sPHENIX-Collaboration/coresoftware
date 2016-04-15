@@ -32,22 +32,33 @@ Fun4All_TestBeam(int nEvents = 100,
   calib = new CaloCalibration("HCALIN");
   calib->set_calib_tower_node_prefix("CALIB_LG");
   calib->set_raw_tower_node_prefix("RAW_LG");
-  //calib->Verbosity(true);
+  calib->GetCalibrationParameters().set_name("hcalin_lg");
+  calib->GetCalibrationParameters().ReadFromFile("xml",
+      string(getenv("CALIBRATIONROOT")) + string("/Prototype2/Calibration/")); // calibration database
   se->registerSubsystem(calib);
 
   calib = new CaloCalibration("HCALIN");
   calib->set_calib_tower_node_prefix("CALIB_HG");
   calib->set_raw_tower_node_prefix("RAW_HG");
+  calib->GetCalibrationParameters().set_name("hcalin_hg");
+  calib->GetCalibrationParameters().ReadFromFile("xml",
+      string(getenv("CALIBRATIONROOT")) + string("/Prototype2/Calibration/")); // calibration database
   se->registerSubsystem(calib);
 
   calib = new CaloCalibration("HCALOUT");
   calib->set_calib_tower_node_prefix("CALIB_LG");
   calib->set_raw_tower_node_prefix("RAW_LG");
+  calib->GetCalibrationParameters().set_name("hcalout_lg");
+  calib->GetCalibrationParameters().ReadFromFile("xml",
+      string(getenv("CALIBRATIONROOT")) + string("/Prototype2/Calibration/")); // calibration database
   se->registerSubsystem(calib);
 
   calib = new CaloCalibration("HCALOUT");
   calib->set_calib_tower_node_prefix("CALIB_HG");
   calib->set_raw_tower_node_prefix("RAW_HG");
+  calib->GetCalibrationParameters().set_name("hcalout_hg");
+  calib->GetCalibrationParameters().ReadFromFile("xml",
+      string(getenv("CALIBRATIONROOT")) + string("/Prototype2/Calibration/")); // calibration database
   se->registerSubsystem(calib);
 
   // ------------------- Hodoscpes -------------------
