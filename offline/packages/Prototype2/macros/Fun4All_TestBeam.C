@@ -52,18 +52,21 @@ Fun4All_TestBeam(int nEvents = 100,
 
   // ------------------- Hodoscpes -------------------
 
+  const int first_packet_id = PROTOTYPE2_FEM::PACKET_ID; // 21101
+  const int second_packet_id = 21102;
+
   GenericUnpackPRDF *gunpack = NULL;
 
   const int N_hodo = 8;
 
   gunpack = new GenericUnpackPRDF("HODO_VERTICAL");
   for (int i = 0; i < N_hodo; ++i)
-    gunpack->add_channel(21101, 96 + i, i); // 24 Cerenkov 1
+    gunpack->add_channel(first_packet_id, 96 + i, i); // 24 Cerenkov 1
   se->registerSubsystem(gunpack);
 
   gunpack = new GenericUnpackPRDF("HODO_HORIZONTAL");
   for (int i = 0; i < N_hodo; ++i)
-    gunpack->add_channel(21101, 104 + i, i); // 24 Cerenkov 1
+    gunpack->add_channel(first_packet_id, 104 + i, i); // 24 Cerenkov 1
   se->registerSubsystem(gunpack);
 
   calib = new CaloCalibration("HODO_VERTICAL");
@@ -88,7 +91,7 @@ Fun4All_TestBeam(int nEvents = 100,
 
   gunpack = new GenericUnpackPRDF("C1");
 // unpack->Verbosity(1);
-  gunpack->add_channel(21102, 24, 0); // 24 Cerenkov 1
+  gunpack->add_channel(second_packet_id, 24, 0); // 24 Cerenkov 1
   se->registerSubsystem(gunpack);
 
   calib = new CaloCalibration("C1");
@@ -96,21 +99,19 @@ Fun4All_TestBeam(int nEvents = 100,
 
   gunpack = new GenericUnpackPRDF("C2");
 // unpack->Verbosity(1);
-  gunpack->add_channel(21102, 25, 0); //25 Cerenkov 2 Inner
-  gunpack->add_channel(21102, 26, 1); //26  Cerenkov 2 Outer
+  gunpack->add_channel(second_packet_id, 25, 0); //25 Cerenkov 2 Inner
+  gunpack->add_channel(second_packet_id, 26, 1); //26  Cerenkov 2 Outer
   se->registerSubsystem(gunpack);
 
   calib = new CaloCalibration("C2");
   se->registerSubsystem(calib);
 
-//  16  HCAL S1 In front of Inner HCAL
-//  17  HCAL S2 In "cryostat"
-//  18  HCAL S3 On wall behind Outer HCAL
+//  John H. : should be 19, 20, 21 and the other channels are a litle permuted from  what I thought
   gunpack = new GenericUnpackPRDF("HCAL_SCINT");
 // unpack->Verbosity(1);
-  gunpack->add_channel(21102, 16, 1);
-  gunpack->add_channel(21102, 17, 2);
-  gunpack->add_channel(21102, 18, 3);
+  gunpack->add_channel(second_packet_id, 19, 1);
+  gunpack->add_channel(second_packet_id, 20, 2);
+  gunpack->add_channel(second_packet_id, 21, 3);
   se->registerSubsystem(gunpack);
 
   calib = new CaloCalibration("HCAL_SCINT");
@@ -118,22 +119,18 @@ Fun4All_TestBeam(int nEvents = 100,
 
   gunpack = new GenericUnpackPRDF("PbGL");
 // unpack->Verbosity(1);
-  gunpack->add_channel(21102, 0, 0); // 0 PbGL  Only inserted in beam for testing
+  gunpack->add_channel(second_packet_id, 0, 0); // 0 PbGL  Only inserted in beam for testing
   se->registerSubsystem(gunpack);
 
   calib = new CaloCalibration("PbGL");
   se->registerSubsystem(calib);
 
-//  28  Bottom trigger veto
-//  29  Top trigger veto
-//  30  Left trigger veto
-//  31  Right trigger veto
   gunpack = new GenericUnpackPRDF("TRIGGER_VETO");
 // unpack->Verbosity(1);
-  gunpack->add_channel(21102, 28, 0);
-  gunpack->add_channel(21102, 29, 1);
-  gunpack->add_channel(21102, 30, 2);
-  gunpack->add_channel(21102, 31, 3);
+  gunpack->add_channel(second_packet_id, 28, 0); //  28  Bottom trigger veto
+  gunpack->add_channel(second_packet_id, 29, 1); //  29  Top trigger veto
+  gunpack->add_channel(second_packet_id, 30, 2); //  30  Left trigger veto
+  gunpack->add_channel(second_packet_id, 31, 3); //  31  Right trigger veto
   se->registerSubsystem(gunpack);
 
   calib = new CaloCalibration("TRIGGER_VETO");
@@ -143,7 +140,7 @@ Fun4All_TestBeam(int nEvents = 100,
 
   gunpack = new GenericUnpackPRDF("TILE_MAPPER");
   for (int i = 0; i < N_hodo; ++i)
-    gunpack->add_channel(21102, 32 + i, i); // 24 Cerenkov 1
+    gunpack->add_channel(second_packet_id, 32 + i, i); // 24 Cerenkov 1
   se->registerSubsystem(gunpack);
 
   calib = new CaloCalibration("TILE_MAPPER");
