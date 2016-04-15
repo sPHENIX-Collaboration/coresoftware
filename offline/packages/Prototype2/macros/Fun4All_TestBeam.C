@@ -61,12 +61,12 @@ Fun4All_TestBeam(int nEvents = 100,
 
   gunpack = new GenericUnpackPRDF("HODO_VERTICAL");
   for (int i = 0; i < N_hodo; ++i)
-    gunpack->add_channel(first_packet_id, 96 + i, i); // 24 Cerenkov 1
+    gunpack->add_channel(first_packet_id, 104 + i, i); // 24 Cerenkov 1
   se->registerSubsystem(gunpack);
 
   gunpack = new GenericUnpackPRDF("HODO_HORIZONTAL");
   for (int i = 0; i < N_hodo; ++i)
-    gunpack->add_channel(first_packet_id, 104 + i, i); // 24 Cerenkov 1
+    gunpack->add_channel(first_packet_id, 96 + i, i); // 24 Cerenkov 1
   se->registerSubsystem(gunpack);
 
   calib = new CaloCalibration("HODO_VERTICAL");
@@ -75,7 +75,7 @@ Fun4All_TestBeam(int nEvents = 100,
   // Martin find that even channel has negative polarity and odd channel has positive polarity
   for (int i = 0; i < N_hodo; ++i)
     calib->GetCalibrationParameters().set_double_param(
-        Form("calib_const_column0_row%d", i), ((i % 2 > 0) ? +1 : -1));
+        Form("calib_const_column0_row%d", i), ((i % 2 > 0) ? -1 : +1));
   se->registerSubsystem(calib);
 
   calib = new CaloCalibration("HODO_HORIZONTAL");
@@ -84,7 +84,7 @@ Fun4All_TestBeam(int nEvents = 100,
   // Martin find that even channel has negative polarity and odd channel has positive polarity
   for (int i = 0; i < N_hodo; ++i)
     calib->GetCalibrationParameters().set_double_param(
-        Form("calib_const_column0_row%d", i), ((i % 2 > 0) ? +1 : -1));
+        Form("calib_const_column0_row%d", i), ((i % 2 > 0) ? -1 : +1));
   se->registerSubsystem(calib);
 
   // ------------------- Other detectors -------------------
@@ -104,6 +104,7 @@ Fun4All_TestBeam(int nEvents = 100,
   se->registerSubsystem(gunpack);
 
   calib = new CaloCalibration("C2");
+  calib->GetCalibrationParameters().set_int_param("calib_const_scale", 1);
   se->registerSubsystem(calib);
 
 //  John H. : should be 19, 20, 21 and the other channels are a litle permuted from  what I thought
