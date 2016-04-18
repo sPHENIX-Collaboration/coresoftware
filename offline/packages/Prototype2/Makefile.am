@@ -14,7 +14,7 @@ libPrototype2_la_LDFLAGS = \
 lib_LTLIBRARIES = \
   libPrototype2.la
 
-pkg_include_HEADERS = \
+pkginclude_HEADERS = \
   RawTower_Prototype2.h 
 
 libPrototype2_la_SOURCES = \
