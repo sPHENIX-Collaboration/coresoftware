@@ -82,6 +82,8 @@ PHG4Hit::get_property_info(const PROPERTY prop_id)
     return make_pair("layer ID",PHG4Hit::type_uint);
   case   prop_scint_id:
     return make_pair("scintillator ID",PHG4Hit::type_int);
+  case   prop_row:
+    return make_pair("row",PHG4Hit::type_int);
   case   prop_strip_z_index:
     return make_pair("strip z index",PHG4Hit::type_int);
   case   prop_strip_y_index:
