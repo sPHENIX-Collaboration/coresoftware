@@ -42,7 +42,7 @@ PHPythia6::PHPythia6(const std::string &name):
   SubsysReco(name),
   _eventcount(0),
   _node_name("PHHepMCGenEvent"),
-  _configFile("phpythia6.cfg"),
+  _configFile("phpythia6_ep.cfg"),
   _phhepmcevt(NULL),
   _save_ascii( false ),
   _filename_ascii("pythia_hepmc.dat"){
@@ -165,6 +165,21 @@ int PHPythia6::ReadConfig(const string cfg_file) {
     }
     else if ( label == "p1" || label == "p2")
     {
+      if (label == "p1") //Momentum of Projectile Beam (e- for e-p)
+	{
+	  line >> index >> value;
+	  //Index Options(3MOM): 1 = x-momentum; 2 = y-momentum; 3 = z-momentum
+	  pyjets.p[index-1][0] = value;
+	  cout << "p1\t" << index << " " << value << endl;
+	}
+      if (label == "p2") //Momentum of Target Beam (p for e-p)
+	{
+	  line >> index >> value;
+	  //Index Options(3MOM): 1 = x-momentum; 2 = y-momentum; 3 = z-momentum
+	  pyjets.p[index-1][1] = value;
+	  cout << "p2\t" << index << " " << value << endl;
+	}
+      /*
       int entry = 0;
       if ( label=="p1") entry = 1;
       else if ( label=="p2") entry = 2;
@@ -183,7 +198,7 @@ int PHPythia6::ReadConfig(const string cfg_file) {
           cout << "\t" << val;
           sptr = strtok(NULL," \t");
         }
-      cout << endl;
+	cout << endl;*/
     }
     else if ( label == "msel" )
       {
@@ -220,7 +235,7 @@ int PHPythia6::ReadConfig(const string cfg_file) {
     else if ( label == "ckin" )
       {
 	line >> index >> value;
-	pysubs.ckin[index-1] = ivalue;
+	pysubs.ckin[index-1] = value;
 	cout << "ckin\t" << index << " " << value << endl;
       }
     else if ( label == "parp" )
