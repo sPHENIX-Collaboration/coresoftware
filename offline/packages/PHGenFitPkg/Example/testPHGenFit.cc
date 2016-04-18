@@ -49,7 +49,9 @@ int main(int argc, char**argv) {
 	double resolution_detector_xy = 0.005/3.; //50/3. micron
 
 
-	TH2D *hpT_residual_vs_pT = new TH2D("hpT_residual_vs_pT", "#Delta pT/pT; pT[GeV/c]; #Delta pT/pT", 20, 0.5, 40.5, 1000, -1, 1);
+	TH2D *hpT_residual_vs_pT = new TH2D("hpT_residual_vs_pT", "#Delta pT/pT; pT[GeV/c]; #Delta pT/pT", 40, 0.5, 40.5, 1000, -1, 1);
+
+	TH2D *hDCAr_vs_pT = new TH2D("hDCAr_vs_pT", "DCAr vs. p; p [GeV/c]; DCAr [cm]", 40, 0.5, 40.5, 1000, -0.1, 0.1);
 
 
 #define NLAYERS 7
@@ -89,7 +91,8 @@ int main(int argc, char**argv) {
 	T->SetBranchAddress("size_dphi", Cluster_size_dphi);
 	T->SetBranchAddress("size_dz", Cluster_size_dz);
 
-	double nentries = 1;
+	//double nentries = 100000;
+	double nentries = T->GetEntries();
 	for (unsigned int ientry = 0; ientry < nentries; ++ientry) {
 		//T->GetEntry(atoi(argv[1]));
 		if(ientry%1000==0) std::cout<<"Processing: "<<100.*ientry/nentries <<"%"<<"\n";
@@ -162,16 +165,16 @@ int main(int argc, char**argv) {
 		track->addMeasurements(measurements);
 
 		//! Fit the track
-		fitter->processTrack(track, true);
+		fitter->processTrack(track, false);
 
 		//!
 		genfit::StateOnPlane* state_at_beam_line = track->extrapolateToLine(
 				TVector3(0, 0, 0), TVector3(0, 0, 1));
-		state_at_beam_line->Print();
+		//state_at_beam_line->Print();
 
 		genfit::StateOnPlane* state_at_layer_6 = track->extrapolateToCylinder(80.,
 						TVector3(0, 0, 0), TVector3(0, 0, 1));
-		state_at_layer_6->Print();
+		//state_at_layer_6->Print();
 
 
 		TVector3 GenFit_mom = state_at_beam_line->getMom();
@@ -179,6 +182,10 @@ int main(int argc, char**argv) {
 		TVector3 AlanDion_mom(AlanDion_px,AlanDion_py,AlanDion_pz);
 
 		hpT_residual_vs_pT->Fill(True_mom.Pt(),(GenFit_mom.Pt() - True_mom.Pt())/True_mom.Pt());
+
+		hDCAr_vs_pT->Fill(True_mom.Mag(),state_at_beam_line->getState()[3]);
+
+		delete track;
 	}
 
 	gStyle->SetOptFit();
@@ -191,14 +198,23 @@ int main(int argc, char**argv) {
 	c3->cd(1);
 	hpT_residual_vs_pT->FitSlicesY();
 	TH1D *hpT_resolution_vs_pT = (TH1D*)gDirectory->Get("hpT_residual_vs_pT_2");
-	hpT_resolution_vs_pT->SetTitle("GenFit: #sigma_{p_{T}}/p_{T}; p_{T}[GeV/c]; #sigma_{p_{T}}/p_{T}");
+	hpT_resolution_vs_pT->SetTitle("PHGenFit: #sigma_{p_{T}}/p_{T}; p_{T}[GeV/c]; #sigma_{p_{T}}/p_{T}");
 	hpT_resolution_vs_pT->SetMarkerStyle(20);
 	hpT_resolution_vs_pT->Draw("e");
 	hpT_resolution_vs_pT->Fit(tf_pT_resolution);
+	c3->cd(2);
+	hDCAr_vs_pT->FitSlicesY();
+        TH1D *hDCAr_resolution_vs_pT = (TH1D*)gDirectory->Get("hDCAr_vs_pT_2");
+        hDCAr_resolution_vs_pT->SetTitle("PHGenFit: #sigma_{DCAr} [cm]; p [GeV/c]; #sigma_{DCAr}");
+        hDCAr_resolution_vs_pT->SetMarkerStyle(20);
+        hDCAr_resolution_vs_pT->Draw("e");
+        //hDCAr_resolution_vs_pT->Fit(tf_pT_resolution);
+				c3->Print("pT_DCA_resolution.root");
+
 
 
 	//! Event display
-	fitter->displayEvent();
+	//fitter->displayEvent();
 
 	return 0;
 }
