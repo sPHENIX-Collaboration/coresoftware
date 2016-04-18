@@ -1076,7 +1076,7 @@ int PHG4HoughTransform::setup_tracker_object() {
   float kappa_max = ptToKappa(_min_pT);
 
   HelixRange top_range( 0.0, 2.*M_PI,                   // center of rotation azimuthal angles
-			-0.2, 0.2,    // 2d dca range
+			-0.2, 0.2,                      // 2d dca range
 			0.0, kappa_max,                 // curvature range
 			-0.9, 0.9,                      // dzdl range
 			-1.0*_dcaz_cut, 1.0*_dcaz_cut); // dca_z range

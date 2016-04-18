@@ -95,9 +95,9 @@ public:
   bool get_use_vertex() {return _use_vertex;}
 
   /// set the tracking chi2 for initial vertex finding
-  void set_chi2_cut_init(double chi2_cut) { _chi2_cut_init = chi2_cut;}
+  void set_chi2_cut_init(double chi2_cut) {_chi2_cut_init = chi2_cut;}
   /// get the tracking chi2 cut for initial vertex finding
-  double get_chi2_cut_init() { return _chi2_cut_init;}
+  double get_chi2_cut_init() {return _chi2_cut_init;}
 
   /// set the tracking pt-dependent chi2 cut for fast fit, cut = min(par0 + par1 / pt, max)
   void set_chi2_cut_fast(double cut_par0,
@@ -109,35 +109,35 @@ public:
   }
 
   /// set the tracking chi2 cut for full fit 
-  void set_chi2_cut_full(double chi2_cut) { _chi2_cut_full = chi2_cut;}
+  void set_chi2_cut_full(double chi2_cut) {_chi2_cut_full = chi2_cut;}
   /// get the tracking chi2 cut for full fit
-  double get_chi2_cut_full() { return _chi2_cut_full;}
+  double get_chi2_cut_full() {return _chi2_cut_full;}
 
   /// set early combination-land chi2 cut(?)
-  void set_ca_chi2_cut(double chi2_cut) { _ca_chi2_cut = chi2_cut;}
+  void set_ca_chi2_cut(double chi2_cut) {_ca_chi2_cut = chi2_cut;}
   /// get early combination-land chi2 cut(?)
-  double get_ca_chi2_cut() { return _ca_chi2_cut;}
+  double get_ca_chi2_cut() {return _ca_chi2_cut;}
 
   /// set early curvature cut between hits, lower values are more open
-  void set_cos_angle_cut(double cos_angle_cut) { _cos_angle_cut = cos_angle_cut;}
+  void set_cos_angle_cut(double cos_angle_cut) {_cos_angle_cut = cos_angle_cut;}
   /// get early curvature cut between hits, lower values are more open
-  double get_cos_angle_cut() { return _cos_angle_cut;}
+  double get_cos_angle_cut() {return _cos_angle_cut;}
 
-  void setInitialResMultiplier(int beta){ _beta = beta;}
-  void setFullResMultiplier(int lambda){ _lambda = lambda;}
+  void setInitialResMultiplier(int beta) {_beta = beta;}
+  void setFullResMultiplier(int lambda) {_lambda = lambda;}
   
   /// set the minimum pT to try to find during full tracking
-  void set_min_pT(float PT){_min_pT=PT;}
+  void set_min_pT(float PT) {_min_pT=PT;}
   /// set the minimum pT to try to find during initial vertex finding tracking
-  void set_min_pT_init(float PT){_min_pT_init=PT;}
+  void set_min_pT_init(float PT) {_min_pT_init=PT;}
   
   /// radiation length per layer, sequential layer indexes required here
   void set_material(int layer, float value);
 
   /// set internal ghost rejection
-  void setRejectGhosts(bool rg){_reject_ghosts = rg;}
+  void setRejectGhosts(bool rg) {_reject_ghosts = rg;}
   /// set for internal hit rejection
-  void setRemoveHits(bool rh){_remove_hits = rh;}
+  void setRemoveHits(bool rh) {_remove_hits = rh;}
 
   /// use the cell size as cluster size instead of value stored on cluster
   void setUseCellSize(bool use_cell_size) {_use_cell_size = use_cell_size;}
@@ -146,20 +146,20 @@ public:
   void setMaxClusterError(float max_cluster_error) {_max_cluster_error = max_cluster_error;}
 
   /// adjusts the rate of zooming
-  void setBinScale(float scale){_bin_scale = scale;}
+  void setBinScale(float scale) {_bin_scale = scale;}
   /// adjusts the rate of zooming
-  void setZBinScale(float scale){_z_bin_scale = scale;}
+  void setZBinScale(float scale) {_z_bin_scale = scale;}
 
   /// turn on DCA limitation
-  void setCutOnDCA(bool cod){_cut_on_dca = cod;}
+  void setCutOnDCA(bool cod) {_cut_on_dca = cod;}
   /// sets an upper limit on X-Y DCA
-  void setDCACut(float dcut){_dca_cut = dcut;}
+  void setDCACut(float dcut) {_dca_cut = dcut;}
   /// sets an upper limit on Z DCA
-  void setDCAZCut(float dzcut){_dcaz_cut = dzcut;}
+  void setDCAZCut(float dzcut) {_dcaz_cut = dzcut;}
 
   /// adjust the fit pt by a recalibration factor (constant B versus real mag
   /// field)
-  void setPtRescaleFactor(float pt_rescale) { _pt_rescale = pt_rescale; }
+  void setPtRescaleFactor(float pt_rescale) {_pt_rescale = pt_rescale;}
 
   /// adjust the relative voting error scale w.r.t. the cluster size
   void setVoteErrorScale(unsigned int layer, float scale) {
@@ -185,8 +185,6 @@ public:
 #ifndef __CINT__
 private:
   
-  bool new_dca_nbin, new_z_z0, new_circle_dca, new_circle_kappa;
-
   //--------------
   // InitRun Calls
   //--------------
@@ -235,9 +233,11 @@ private:
 
   /// convert from inverse curvature to momentum
   float kappaToPt(float kappa);
+  
   /// convert from momentum to inverse curvature
   float ptToKappa(float pt);
-  
+
+  /// translate the clusters, tracks, and vertex from one origin to another
   void shift_coordinate_system(double dx, double dy, double dz);
   
   /// helper function for projection code
@@ -250,6 +250,8 @@ private:
 					  std::set<std::vector<double> >* points);
 
   BbcVertexMap* _bbc_vertexes;
+
+  bool new_dca_nbin, new_z_z0, new_circle_dca, new_circle_kappa;
   
   bool _use_vertex;
   int _beta, _lambda; ///< resolution tuning parameters 
@@ -331,4 +333,4 @@ private:
 #endif // __CINT__
 };
 
-#endif // __SVXHOUGHTRANSFORM_H__
+#endif // __PHG4HOUGHTRANSFORM_H__
