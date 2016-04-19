@@ -21,6 +21,7 @@
 #include <phgenfit/Track.h>
 #include <phgenfit/Measurement.h>
 #include <phgenfit/PlanarMeasurement.h>
+#include <phgenfit/SpacepointMeasurement.h>
 
 #define LogDEBUG    std::cout<<"DEBUG: "<<__LINE__<<"\n"
 
@@ -64,7 +65,8 @@ int main(int argc, char**argv) {
 	for (unsigned int imeasurement = 0; imeasurement < v_pos.size(); imeasurement++) {
 		TVector3 pos = v_pos[imeasurement];
 		TVector3 n(pos.x(),pos.Y(),0);
-		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,n,res_phi, res_z);
+		//PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,n,res_phi, res_z);
+		PHGenFit::Measurement* meas = new PHGenFit::SpacepointMeasurement(pos,res_phi);
 		meas->getMeasurement()->Print();
 		measurements.push_back(meas);
 	}

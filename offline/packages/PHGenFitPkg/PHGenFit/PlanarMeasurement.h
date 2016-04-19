@@ -5,8 +5,8 @@
  */
 
 
-#ifndef __PHGenFit_PlanarPlanarMeasurement__
-#define __PHGenFit_PlanarPlanarMeasurement__
+#ifndef __PHGenFit_PlanarMeasurement__
+#define __PHGenFit_PlanarMeasurement__
 
 #include "Measurement.h"
 
@@ -32,4 +32,4 @@ protected:
 	};
 } //End of PHGenFit namespace
 
-#endif //__PHGenFit_PlanarPlanarMeasurement__
+#endif //__PHGenFit_PlanarMeasurement__
