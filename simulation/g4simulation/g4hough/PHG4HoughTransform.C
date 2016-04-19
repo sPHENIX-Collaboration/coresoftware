@@ -1406,9 +1406,9 @@ int PHG4HoughTransform::full_tracking_and_vertexing() {
   // we still need to update the track fields for DCA and PCA
   // we can do that from the final vertex position
   
-  shift_dx = _vertex[0];
-  shift_dy = _vertex[1];
-  shift_dz = _vertex[2];
+  shift_dx = -_vertex[0];
+  shift_dy = -_vertex[1];
+  shift_dz = -_vertex[2];
 
   // shift to precision final vertex
   shift_coordinate_system(shift_dx,shift_dy,shift_dz);
