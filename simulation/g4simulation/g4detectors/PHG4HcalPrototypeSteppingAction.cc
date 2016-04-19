@@ -188,7 +188,7 @@ bool PHG4HcalPrototypeSteppingAction::UserSteppingAction( const G4Step* aStep, b
 		  {
 		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 		      {
-			pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+			pp->GetShower()->add_g4hit_id(absorberhits_->GetID(),hit->get_hit_id());
 		      }
 		  }
 	      }
