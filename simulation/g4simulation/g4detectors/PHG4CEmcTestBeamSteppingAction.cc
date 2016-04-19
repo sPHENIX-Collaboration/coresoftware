@@ -99,34 +99,24 @@ bool PHG4CEmcTestBeamSteppingAction::UserSteppingAction( const G4Step* aStep, bo
 	  //set the initial energy deposit
 	  hit->set_edep(0);
 	  hit->set_eion(0); // only implemented for v5 otherwise empty
-
+          PHG4HitContainer *hitcontainer;
+	  // here we do things which are different between scintillator and absorber hits
 	  if (whichactive > 0) // return of isinCEmcTestDetector, > 0 hit in scintillator, < 0 hit in absorber
 	    {
-	      // Now add the hit
-	      hits_->AddHit(tower_id, hit);
-
-	      {
-		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		  {
-		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		      {
-			pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
-		      }
-		  }
-	      }
+              hitcontainer = hits_;
 	    }
 	  else
 	    {
-	      absorberhits_->AddHit(tower_id, hit);
-	      {
-		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		  {
-		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		      {
-			pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
-		      }
-		  }
-	      }
+	      hitcontainer = absorberhits_;
+	    }
+	  // here we set what is common for scintillator and absorber hits
+	  hitcontainer->AddHit(tower_id, hit);
+	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	    {
+	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		{
+		  pp->GetShower()->add_g4hit_id(hitcontainer->GetID(),hit->get_hit_id());
+		}
 	    }
 	  break;
 	default:

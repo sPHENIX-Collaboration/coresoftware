@@ -108,7 +108,6 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
       it != all_towers.second; ++it)
     {
       const RawTowerDefs::keytype key = it->second->get_id();
-     
       if(_tower_type>=0){
 	// Skip towers that don't match the type we are supposed to digitize
 	if(_tower_type != it->second->get_tower_type()) continue; 
@@ -121,19 +120,20 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
       if (_digi_algorithm == kNo_digitization)
         {
           if (sim_tower)
+	    {
             digi_tower = new RawTowerv1(*sim_tower);
+	    }
         }
       else if (_digi_algorithm == kSimple_photon_digitization)
+	{
         digi_tower = simple_photon_digitization(sim_tower);
+	}
       else
         {
 
           std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
               << " invalid digitization algorithm #" << _digi_algorithm
               << std::endl;
-
-          if (digi_tower)
-            delete digi_tower;
 
           return Fun4AllReturnCodes::ABORTRUN;
         }
