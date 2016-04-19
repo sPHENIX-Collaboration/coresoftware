@@ -10,53 +10,6 @@
 //#include <boost/make_shared.hpp>
 
 //ROOT
-//#include <TDatabasePDG.h>
-//#include <TEveManager.h>
-//#include <TGeoManager.h>
-//#include <TRandom.h>
-//#include <TVector3.h>
-//#include "TDatabasePDG.h"
-//#include <TMath.h>
-//#include <TF1.h>
-//#include <TH1D.h>
-//#include <TH2D.h>
-//#include <TProfile.h>
-//#include <TFile.h>
-//#include <TTree.h>
-//#include <TCanvas.h>
-//#include <TROOT.h>
-//#include <TStyle.h>
-
-//GenFit
-//#include <GenFit/ConstField.h>
-//#include <GenFit/Exception.h>
-//#include <GenFit/FieldManager.h>
-////#include <GenFit/KalmanFitterRefTrack.h>
-////#include <GenFit/StateOnPlane.h>
-////#include <GenFit/Track.h>
-////#include <GenFit/TrackPoint.h>
-////
-//#include <GenFit/MaterialEffects.h>
-//#include <GenFit/RKTrackRep.h>
-//#include <GenFit/TGeoMaterialInterface.h>
-////
-//#include <GenFit/EventDisplay.h>
-////
-////#include <GenFit/HelixTrackModel.h>
-////#include <GenFit/MeasurementCreator.h>
-////
-////#include "GenFit/PlanarMeasurement.h"
-////#include "GenFit/DetPlane.h"
-////#include "GenFit/SharedPlanePtr.h"
-//
-////#include <GenFit/KalmanFittedStateOnPlane.h>
-//#include <AbsKalmanFitter.h>
-//#include <KalmanFitter.h>
-//#include <KalmanFitterRefTrack.h>
-//#include <GenFit/KalmanFitterInfo.h>
-//#include <GenFit/KalmanFitter.h>
-
-//ROOT
 #include <TGeoManager.h>
 
 //GenFit
@@ -85,8 +38,9 @@ Fitter::Fitter(
 		const std::string field_file_name,
 		const double field_scaling_factor,
 		const std::string fitter_choice,
-		const std::string track_rep_choice
-)
+		const std::string track_rep_choice,
+		const bool doEventDisplay
+) : _doEventDisplay(doEventDisplay)
 {
 	_tgeo_manager = new TGeoManager("Default", "Geane geometry");
 	TGeoManager::Import(tgeo_file_name.data());
@@ -100,7 +54,10 @@ Fitter::Fitter(
 			new genfit::TGeoMaterialInterface());
 
 	// init event display
-	_display = genfit::EventDisplay::getInstance();
+	if(_doEventDisplay)
+		_display = genfit::EventDisplay::getInstance();
+	else
+		_display = NULL;
 
 	// init fitter
 	if(fitter_choice.compare("KalmanFitterRefTrack")==0)
@@ -113,9 +70,12 @@ Fitter::Fitter(
 
 Fitter::~Fitter()
 {
-	delete _fitter;
-	delete _tgeo_manager;
-	delete _display;
+	if(_fitter)
+		delete _fitter;
+	if(_tgeo_manager)
+		delete _tgeo_manager;
+	if(_display)
+		delete _display;
 }
 
 int Fitter::processTrack(PHGenFit::Track* track, const bool save_to_evt_disp)
@@ -124,7 +84,7 @@ int Fitter::processTrack(PHGenFit::Track* track, const bool save_to_evt_disp)
 //TODO Add safety checks
 	_fitter->processTrack(track->getGenFitTrack());
 
-	if(save_to_evt_disp)
+	if(_display and save_to_evt_disp)
 		_display->addEvent(track->getGenFitTrack());
 
 	return 0;

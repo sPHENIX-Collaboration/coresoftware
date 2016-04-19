@@ -37,7 +37,8 @@ public:
 			const std::string field_file_name,
 			const double field_scaling_factor = 1.4/1.5,
 			const std::string fitter_choice = "KalmanFitterRefTrack",
-			const std::string track_rep_choice = "RKTrackRep");
+			const std::string track_rep_choice = "RKTrackRep",
+			const bool doEventDisplay = false);
 	//! Default destructor
 	~Fitter();
 
@@ -46,6 +47,8 @@ public:
 	int displayEvent();
 
 private:
+
+	bool _doEventDisplay;
 
 	TGeoManager* _tgeo_manager;
 

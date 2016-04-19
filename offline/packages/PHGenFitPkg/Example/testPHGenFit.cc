@@ -4,8 +4,16 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
+//STL
 #include <vector>
 
+//BOOST
+#include<boost/make_shared.hpp>
+
+#define SMART(expr) boost::shared_ptr<expr>
+#define NEW(expr) boost::make_shared<expr>
+
+//ROOT
 #include <TVector3.h>
 #include <TMatrixDSym.h>
 #include <TF1.h>
@@ -20,16 +28,25 @@
 #include <TMath.h>
 #include <TRandom.h>
 
+//GenFit
 #include <GenFit/AbsTrackRep.h>
 #include <GenFit/RKTrackRep.h>
 #include <GenFit/StateOnPlane.h>
 
+//PHGenFit
 #include <phgenfit/Fitter.h>
 #include <phgenfit/Track.h>
 #include <phgenfit/Measurement.h>
 #include <phgenfit/PlanarMeasurement.h>
 
 #define LogDEBUG    std::cout<<"DEBUG: "<<__LINE__<<"\n"
+
+//void pause() {
+//  std::cout << "Press ENTER to continue..." << std::flush;
+//  std::cin.clear();  // use only if a human is involved
+//  std::cin.flush();  // use only if a human is involved
+//  std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+//}
 
 int main(int argc, char**argv) {
 	//! Initiallize Geometry, Field, Fitter
@@ -91,7 +108,7 @@ int main(int argc, char**argv) {
 	T->SetBranchAddress("size_dphi", Cluster_size_dphi);
 	T->SetBranchAddress("size_dz", Cluster_size_dz);
 
-	//double nentries = 100000;
+	//double nentries = 10000;
 	double nentries = T->GetEntries();
 	for (unsigned int ientry = 0; ientry < nentries; ++ientry) {
 		//T->GetEntry(atoi(argv[1]));
@@ -141,6 +158,7 @@ int main(int argc, char**argv) {
 
 		//! Build TrackRep from particle assumption
 		int pid = -13; //mu+
+		//SMART(genfit::AbsTrackRep) rep = NEW(genfit::RKTrackRep)(pid);
 		genfit::AbsTrackRep* rep = new genfit::RKTrackRep(pid);
 
 		//! Initiallize track with seed from pattern recognition
@@ -168,13 +186,14 @@ int main(int argc, char**argv) {
 		fitter->processTrack(track, false);
 
 		//!
-		genfit::StateOnPlane* state_at_beam_line = track->extrapolateToLine(
+		genfit::MeasuredStateOnPlane* state_at_beam_line = track->extrapolateToLine(
 				TVector3(0, 0, 0), TVector3(0, 0, 1));
 		//state_at_beam_line->Print();
 
-		genfit::StateOnPlane* state_at_layer_6 = track->extrapolateToCylinder(80.,
-						TVector3(0, 0, 0), TVector3(0, 0, 1));
-		//state_at_layer_6->Print();
+//		genfit::MeasuredStateOnPlane* state_at_layer_6 = track->extrapolateToCylinder(80.,
+//						TVector3(0, 0, 0), TVector3(0, 0, 1));
+//		//state_at_layer_6->Print();
+//		delete state_at_layer_6;
 
 
 		TVector3 GenFit_mom = state_at_beam_line->getMom();
@@ -185,7 +204,9 @@ int main(int argc, char**argv) {
 
 		hDCAr_vs_pT->Fill(True_mom.Mag(),state_at_beam_line->getState()[3]);
 
+		delete state_at_beam_line;
 		delete track;
+		measurements.clear();
 	}
 
 	gStyle->SetOptFit();
@@ -204,17 +225,22 @@ int main(int argc, char**argv) {
 	hpT_resolution_vs_pT->Fit(tf_pT_resolution);
 	c3->cd(2);
 	hDCAr_vs_pT->FitSlicesY();
-        TH1D *hDCAr_resolution_vs_pT = (TH1D*)gDirectory->Get("hDCAr_vs_pT_2");
-        hDCAr_resolution_vs_pT->SetTitle("PHGenFit: #sigma_{DCAr} [cm]; p [GeV/c]; #sigma_{DCAr}");
-        hDCAr_resolution_vs_pT->SetMarkerStyle(20);
-        hDCAr_resolution_vs_pT->Draw("e");
-        //hDCAr_resolution_vs_pT->Fit(tf_pT_resolution);
-				c3->Print("pT_DCA_resolution.root");
-
-
+	TH1D *hDCAr_resolution_vs_pT = (TH1D*) gDirectory->Get("hDCAr_vs_pT_2");
+	hDCAr_resolution_vs_pT->SetTitle(
+			"PHGenFit: #sigma_{DCAr} [cm]; p [GeV/c]; #sigma_{DCAr}");
+	hDCAr_resolution_vs_pT->SetMarkerStyle(20);
+	hDCAr_resolution_vs_pT->Draw("e");
+	//hDCAr_resolution_vs_pT->Fit(tf_pT_resolution);
+	c3->Print("pT_DCA_resolution.root");
 
 	//! Event display
 	//fitter->displayEvent();
+
+	fPHG4Hits->Close();
+
+	delete fitter;
+
+	pause();
 
 	return 0;
 }

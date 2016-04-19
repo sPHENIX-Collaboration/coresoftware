@@ -43,7 +43,7 @@ std::vector<TVector3> get_raw_measurements()
 
 int main(int argc, char**argv) {
 	//! Initiallize Geometry, Field, Fitter
-	PHGenFit::Fitter* fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5,"KalmanFitter");
+	PHGenFit::Fitter* fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5,"KalmanFitter","RKTrackRep",true);
 
 	//! Build TrackRep from particle assumption
 	int pid = -13; //mu+
@@ -76,7 +76,7 @@ int main(int argc, char**argv) {
 	fitter->processTrack(track, true);
 
 	//! Extrapolate to beam line
-	genfit::StateOnPlane* state_at_beam_line = track->extrapolateToLine(TVector3(0, 0, 0), TVector3(0, 0, 1));
+	genfit::MeasuredStateOnPlane* state_at_beam_line = track->extrapolateToLine(TVector3(0, 0, 0), TVector3(0, 0, 1));
 	state_at_beam_line->Print();
 
 	//! Event display

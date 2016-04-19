@@ -35,8 +35,8 @@ Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMa
 	seedMSoP.get6DStateCov(seedState, seedCov);
 
 
-	//_track = new genfit::Track(rep, seedState, seedCov);
-	_track = NEW(genfit::Track)(rep, seedState, seedCov);
+	_track = new genfit::Track(rep, seedState, seedCov);
+	//_track = NEW(genfit::Track)(rep, seedState, seedCov);
 }
 
 int Track::addMeasurements(std::vector<PHGenFit::Measurement*> measurements)
@@ -46,7 +46,7 @@ int Track::addMeasurements(std::vector<PHGenFit::Measurement*> measurements)
 		std::vector<genfit::AbsMeasurement*> msmts;
 		msmts.push_back(measurement->getMeasurement());
 		_track->insertPoint(
-				new genfit::TrackPoint(msmts, _track.get()));
+				new genfit::TrackPoint(msmts, _track));
 	}
 
 	return 0;
@@ -54,10 +54,10 @@ int Track::addMeasurements(std::vector<PHGenFit::Measurement*> measurements)
 
 Track::~Track()
 {
-	//delete _track;
+	delete _track;
 }
 
-genfit::StateOnPlane* Track::extrapolateToPlane(TVector3 O, TVector3 n, const int tr_point_id) const
+genfit::MeasuredStateOnPlane* Track::extrapolateToPlane(TVector3 O, TVector3 n, const int tr_point_id) const
 {
 	genfit::SharedPlanePtr destPlane(new genfit::DetPlane(O, n));
 
@@ -82,7 +82,7 @@ genfit::StateOnPlane* Track::extrapolateToPlane(TVector3 O, TVector3 n, const in
 	return kfsop;
 }
 
-genfit::StateOnPlane* Track::extrapolateToLine(TVector3 line_point, TVector3 line_direction, const int tr_point_id) const
+genfit::MeasuredStateOnPlane* Track::extrapolateToLine(TVector3 line_point, TVector3 line_direction, const int tr_point_id) const
 {
 	genfit::AbsTrackRep* rep = _track->getCardinalRep();
 	genfit::TrackPoint* tp = _track->getPointWithMeasurementAndFitterInfo(
@@ -105,7 +105,7 @@ genfit::StateOnPlane* Track::extrapolateToLine(TVector3 line_point, TVector3 lin
 	return kfsop;
 }
 
-genfit::StateOnPlane* Track::extrapolateToCylinder(double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id) const
+genfit::MeasuredStateOnPlane* Track::extrapolateToCylinder(double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id) const
 {
 	genfit::AbsTrackRep* rep = _track->getCardinalRep();
 	genfit::TrackPoint* tp = _track->getPointWithMeasurementAndFitterInfo(
@@ -129,7 +129,7 @@ genfit::StateOnPlane* Track::extrapolateToCylinder(double radius, TVector3 line_
 	return kfsop;
 }
 
-genfit::StateOnPlane* Track::extrapolateToPoint(TVector3 P, const int tr_point_id) const
+genfit::MeasuredStateOnPlane* Track::extrapolateToPoint(TVector3 P, const int tr_point_id) const
 {
 	genfit::AbsTrackRep* rep = _track->getCardinalRep();
 	genfit::TrackPoint* tp = _track->getPointWithMeasurementAndFitterInfo(
