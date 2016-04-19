@@ -133,89 +133,74 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 	  hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
 
 	  //set the track ID
-	  {
-            hit->set_trkid(aTrack->GetTrackID());
-            if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	      {
-		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		  {
-		    hit->set_trkid(pp->GetUserTrackId());
-		    hit->set_shower_id(pp->GetShower()->get_id());
-		  }
-	      }
-	  }
+	  hit->set_trkid(aTrack->GetTrackID());
+	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	    {
+	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		{
+		  hit->set_trkid(pp->GetUserTrackId());
+		  hit->set_shower_id(pp->GetShower()->get_id());
+		}
+	    }
 
 	  /* set intial energy deposit */
 	  hit->set_edep( 0 );
 	  hit->set_eion( 0 );
-	  hit->set_light_yield( 0 );
 
 	  /* Now add the hit to the hit collection */
+          PHG4HitContainer *hitcontainer;
+	  // here we do things which are different between scintillator and absorber hits
 	  if (whichactive > 0)
 	    {
-	      // Now add the hit
-	      hits_->AddHit(layer_id, hit);
-
-	      {
-		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		  {
-		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		      {
-			pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
-		      }
-		  }
-	      }
+              hitcontainer = hits_;
+	      hit->set_light_yield( 0 ); // for scintillator only, initialize light yields
 	    }
 	  else
 	    {
-	      absorberhits_->AddHit(layer_id, hit);
-
-	      {
-		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		  {
-		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		      {
-			pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
-		      }
-		  }
-	      }
+	      hitcontainer = absorberhits_;
+	    }
+	  // here we set what is common for scintillator and absorber hits
+	  hitcontainer->AddHit(layer_id, hit);
+	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	    {
+	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		{
+		  pp->GetShower()->add_g4hit_id(hitcontainer->GetID(),hit->get_hit_id());
+		}
 	    }
 	  break;
 	default:
 	  break;
 	}
 
-      if(whichactive>0){
+      if (whichactive > 0)
+	{
 
-	if (light_scint_model)
-	  {
-	    light_yield = GetVisibleEnergyDeposition(aStep); // for scintillator only, calculate light yields
-	    static bool once = true;
-	    if (once && edep > 0)
-	      {
-		once = false;
+	  light_yield = eion;
+	  if (light_scint_model)
+	    {
+	      light_yield = GetVisibleEnergyDeposition(aStep); // for scintillator only, calculate light yields
+	      static bool once = true;
+	      if (once && edep > 0)
+		{
+		  once = false;
 
-		if (verbosity > 0) 
-		  {
-		    cout << "PHG4ForwardEcalSteppingAction::UserSteppingAction::"
-		      //
-			 << detector_->GetName() << " - "
-			 << " use scintillating light model at each Geant4 steps. "
-			 << "First step: " << "Material = "
-			 << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
-			 << ", " << "Birk Constant = "
-			 << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
-			 << "," << "edep = " << edep << ", " << "eion = " << eion
-			 << ", " << "light_yield = " << light_yield << endl;
-		  }
-	       }
-	  }
-	else
-	  {
-	    light_yield = eion;
-	  }
-
-      }
+		  if (verbosity > 0) 
+		    {
+		      cout << "PHG4ForwardEcalSteppingAction::UserSteppingAction::"
+			//
+			   << detector_->GetName() << " - "
+			   << " use scintillating light model at each Geant4 steps. "
+			   << "First step: " << "Material = "
+			   << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
+			   << ", " << "Birk Constant = "
+			   << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
+			   << "," << "edep = " << edep << ", " << "eion = " << eion
+			   << ", " << "light_yield = " << light_yield << endl;
+		    }
+		}
+	    }
+	}
 
       /* Update exit values- will be overwritten with every step until
        * we leave the volume or the particle ceases to exist */
@@ -237,6 +222,10 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 	{
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
           hit->set_eion(-1);
+	  if (whichactive > 0)
+	    {
+	      hit->set_light_yield(-1);
+	    }
 	}
       if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
 	{
