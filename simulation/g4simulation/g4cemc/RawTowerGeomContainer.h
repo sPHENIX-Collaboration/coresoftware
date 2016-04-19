@@ -1,5 +1,5 @@
-#ifndef NEWGEOMCONTAINER_H__
-#define NEWGEOMCONTAINER_H__
+#ifndef RawTowerGeomContainer_H__
+#define RawTowerGeomContainer_H__
 
 #include "RawTowerDefs.h"
 #include <phool/PHObject.h>
@@ -88,4 +88,4 @@ class RawTowerGeomContainer : public PHObject
   ClassDef(RawTowerGeomContainer,2)
 };
 
-#endif /* NEWGEOMCONTAINER_H__ */
+#endif /* RawTowerGeomContainer_H__ */
