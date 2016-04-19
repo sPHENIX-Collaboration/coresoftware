@@ -110,7 +110,7 @@ bool PHG4CEmcTestBeamSteppingAction::UserSteppingAction( const G4Step* aStep, bo
 	      hitcontainer = absorberhits_;
 	    }
 	  // here we set what is common for scintillator and absorber hits
-	  hitcontainer->AddHit(layer_id, hit);
+	  hitcontainer->AddHit(tower_id, hit);
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
 	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
