@@ -70,7 +70,7 @@ Prototype2RawTowerBuilder::InitRun(PHCompositeNode *topNode)
 int
 Prototype2RawTowerBuilder::process_event(PHCompositeNode *topNode)
 {
-  if (verbosity)
+  if (verbosity>3)
     {
       std::cout << PHWHERE << "Process event entered" << std::endl;
     }
@@ -100,12 +100,13 @@ Prototype2RawTowerBuilder::process_event(PHCompositeNode *topNode)
         }
       short twrrow = get_tower_row(cell->get_row());
       // add the energy to the corresponding tower
-      RawTower *tower = _towers->getTower(twrrow, cell->get_column());
+      // towers are addressed column/row to make the mapping more intuitive
+      RawTower *tower = _towers->getTower(cell->get_column(), twrrow);
       if (!tower)
         {
           tower = new RawTowerv1();
           tower->set_energy(0);
-          _towers->AddTower(twrrow, cell->get_column(), tower);
+          _towers->AddTower(cell->get_column(), twrrow, tower);
         }
       double cell_weight = 0;
       if (_tower_energy_src == kEnergyDeposition)

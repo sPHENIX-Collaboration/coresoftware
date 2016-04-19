@@ -405,7 +405,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
 {
   _timer.get()->restart();
 
-  if(verbosity > 0) cout << "PHG4HoughTransform::process_event -- entered" << endl;
+  if (verbosity > 0) cout << "PHG4HoughTransform::process_event -- entered" << endl;
 
   // moving clearing to the beginning of event or we will have
   // return bugs from early exits!
@@ -488,8 +488,6 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
   // Perform the initial zvertex finding
   //------------------------------------
 
-  if(verbosity > 0) cout << "PHG4HoughTransform::process_event -- initial vertex finding..." << endl;
-
   // Grab some initial tracks for initial z-vertex finding
   _tracks.clear();
 
@@ -498,7 +496,7 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
   _vertex.push_back(0.0); // y guess
   _vertex.push_back(0.0); // z guess
 
-  if(_use_vertex) {
+  if (_use_vertex) {
     
     unsigned int nz0 = _tracker_vertex.size();
     double z0min = -10.;
@@ -542,18 +540,12 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
       }
     }
     
-    if(_tracks.size() == 0){return Fun4AllReturnCodes::EVENT_OK;}
-    else if(_tracks.size() == 1)
-    {
-      _vertex[0] = cos(_tracks[0].phi) * _tracks[0].d;
-      _vertex[1] = sin(_tracks[0].phi) * _tracks[0].d;
-      _vertex[2] = _tracks[0].z0;
-    }
-    else
-    {
+    if (_tracks.size() == 0) {
+      return Fun4AllReturnCodes::EVENT_OK;
+    } else {
       vector<vector<double> > pTmap;
       for(unsigned int i=0;i<_tracks.size();++i)
-      {
+	{
         if(_tracks[i].kappa == 0.0){continue;}
         double pT = kappaToPt(_tracks[i].kappa);
         pTmap.push_back(vector<double>());
@@ -576,179 +568,168 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
           vtxtracks.push_back(_tracks[ (int)(pTmap[pTmap.size()-1-i][1]) ]);
           vtxcovariances.push_back(covariances[ (int)(pTmap[pTmap.size()-1-i][1]) ] );
         }
+      }      
+
+      // --- compute seed vertex from initial track finding --------------------
+
+      double xsum = 0.0;
+      double ysum = 0.0;
+      double zsum = 0.0;
+
+      for (unsigned int i = 0; i < vtxtracks.size(); ++i) {
+	xsum += vtxtracks[i].d * cos( vtxtracks[i].phi );
+	ysum += vtxtracks[i].d * sin( vtxtracks[i].phi );
+	zsum += vtxtracks[i].z0;
+      }
+
+      std::vector<float> temp_vertex(3,0.0);
+      if (vtxtracks.size() != 0) {
+	temp_vertex[0] = xsum / vtxtracks.size();
+	temp_vertex[1] = ysum / vtxtracks.size();
+	temp_vertex[2] = zsum / vtxtracks.size();
+      }
+
+      if (verbosity > 0) {
+	cout << " initial vertex ave : "
+	     << temp_vertex[0] << " " << temp_vertex[1] << " " << temp_vertex[2] << endl;
       }
       
-      
-      vector<double> zvertices(3,0.);
-      vector<float> temp_vertex(3,0.);
-      vector<unsigned int> vtracks(3,0);
-      for(unsigned int iter = 0;iter < 3; ++iter)
-      {
-        temp_vertex[2] = 0.;
+      // start with the average position and converge from there
+      _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 3.00, true);
+      _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.10, true);
+      _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.02, false);
         
-        TH1D z0_hist("z0_hist","z0_hist", 20, -10., 10.);
-        for(unsigned int i=0;i<vtxtracks.size();++i)
-        {
-          z0_hist.Fill(vtxtracks[i].z0);
-        }
-        temp_vertex[2] = z0_hist.GetBinCenter( z0_hist.GetMaximumBin() );
-        
-        _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 3., true);
-        _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.1, true);
-        _vertexFinder.findVertex(vtxtracks, vtxcovariances, temp_vertex, 0.02, false);
-        
-        
-        vector<SimpleTrack3D> ttracks;
-        for(unsigned int t=0;t<vtxtracks.size();++t)
-        {
-          if( fabs(vtxtracks[t].z0 - temp_vertex[2]) < 0.1 ){vtracks[iter] += 1;}
-          else{ttracks.push_back(vtxtracks[t]);}
-        }
-        vtxtracks = ttracks;
-        zvertices[iter] = temp_vertex[2];
-      }
-      _vertex[2] = zvertices[0];
-      unsigned int zbest = 0;
-      for(unsigned int iter = 1;iter < 3; ++iter)
-      {
-        if(vtracks[iter] > vtracks[zbest])
-        {
-          _vertex[2] = zvertices[iter];
-          zbest = iter;
-        }
-      }
+      _vertex[0] = temp_vertex[0];
+      _vertex[1] = temp_vertex[1];
+      _vertex[2] = temp_vertex[2];
     }
-    
-    
-    
-    
-    
-    
-    if(verbosity > 0) cout << "PHG4HoughTransform::process_event -- found initial vertex : " << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
+                
+    if (verbosity > 0) {
+      cout << " initial vertex fit : "
+	   << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
+    }
     
     _tracks.clear();
     
-    // shift the vertex to the origin
-    for(unsigned int ht=0;ht<_clusters_init.size();++ht)
-    {
+    // --- shift coordinate system to place vertex at the origin ---------------
+    
+    for(unsigned int ht = 0; ht < _clusters_init.size(); ++ht) {
       _clusters_init[ht].x -= _vertex[0];
       _clusters_init[ht].y -= _vertex[1];
       _clusters_init[ht].z -= _vertex[2];
     }
-    for(unsigned int ht=0;ht<_clusters.size();++ht)
-    {
+
+    for(unsigned int ht = 0; ht < _clusters.size(); ++ht) {
       _clusters[ht].x -= _vertex[0];
       _clusters[ht].y -= _vertex[1];
       _clusters[ht].z -= _vertex[2];
-    }
-    
-    
-
-    
+    }        
   }  // if(_use_vertex)
   
   //----------------------------------
   // Preform the track finding
   //----------------------------------
+  
   _tracker->clear();
   _tracks.clear();
-  _timer_initial_hough.get()->restart();
+  
   _tracker->findHelices(_clusters_init, _min_hits_init, _max_hits_init, _tracks);
-  _timer_initial_hough.get()->stop();
-  
-  
-
-  if(verbosity > 0)
-  {
-    cout << "PHG4HoughTransform::process_event -- full track finding pass found: " << _tracks.size() << " tracks" << endl;
+ 
+  if (verbosity > 0) {
+    cout << " full track finding pass found: " << _tracks.size() << " tracks" << endl;
   }    
    
-  //----------------------------
-  // Re-center event on detector
-  //----------------------------
+  //---------------------------------------------------
+  // Shift coordinate system back to global coordinates
+  //---------------------------------------------------
 
-  if(verbosity > 0) cout << "PHG4HoughTransform::process_event -- recentering event on detector..." << endl;
-  vector<double> chi_squareds;
-  for(unsigned int tt=0;tt<_tracks.size();tt++)
-  {
-    // move the hits in the track back to their original position                
-    for(unsigned int hh=0;hh<_tracks[tt].hits.size();hh++)
-    {
+  std::vector<double> chi_squareds;
+  for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
+    for (unsigned int hh = 0;hh < _tracks[tt].hits.size(); ++hh) {
       _tracks[tt].hits[hh].x = _tracks[tt].hits[hh].x + _vertex[0];
       _tracks[tt].hits[hh].y = _tracks[tt].hits[hh].y + _vertex[1];
       _tracks[tt].hits[hh].z = _tracks[tt].hits[hh].z + _vertex[2];
-//       _tracks[tt].z0 += _vertex[2];
     }
-    chi_squareds.push_back(_tracker->getKalmanStates()[tt].chi2);}
-
-  if(verbosity > 0)
-  {
-    cout << "PHG4HoughTransform::process_event -- final track count: " << _tracks.size() << endl;
+    chi_squareds.push_back(_tracker->getKalmanStates()[tt].chi2);
+  }
+  
+  if (verbosity > 0) {
+    cout << " final track count: " << _tracks.size() << endl;
   }
 
   //---------------------------
   // Final vertex determination
   //---------------------------
   
-  // final best guess of the primary vertex position here...
-  if(verbosity > 0)
-  {
-    cout<< "PHG4HoughTransform::process_event -- calculating final vertex" << endl;
-  }
-  
   // sort the tracks by pT
-  vector<vector<double> > pTmap;
-  for(unsigned int i=0;i<_tracks.size();++i)
-  {
+  std::vector<vector<double> > pTmap;
+  for (unsigned int i = 0; i < _tracks.size(); ++i) {
     double pT = kappaToPt(_tracks[i].kappa);
     pTmap.push_back(vector<double>());
     pTmap.back().push_back(pT);
     pTmap.back().push_back((double)i);
   }
   sort(pTmap.begin(), pTmap.end());
-  vector<SimpleTrack3D> vtxtracks;
-  vector<Matrix<float,5,5> > vtxcovariances;
-  unsigned int maxvtxtracks=100;
-  if(_tracks.size() < maxvtxtracks){vtxtracks = _tracks;}
-  else
-  {
-    for(unsigned int i=0;i<maxvtxtracks;++i)
-    {
-      vtxtracks.push_back(_tracks[ (int)(pTmap[pTmap.size()-1-i][1]) ]);
-      vtxcovariances.push_back( (_tracker->getKalmanStates())[ (int)(pTmap[pTmap.size()-1-i][1]) ].C );
-    }
+  
+  std::vector<SimpleTrack3D> vtxtracks;
+  std::vector<Matrix<float,5,5> > vtxcovariances;
+
+  for (unsigned int i = 0; i < _tracks.size(); ++i) {
+    vtxtracks.push_back( _tracks[ (int)(pTmap[pTmap.size()-1-i][1]) ] );
+    vtxcovariances.push_back( (_tracker->getKalmanStates())[ (int)(pTmap[pTmap.size()-1-i][1]) ].C );
   }
   
   double vx = _vertex[0];
   double vy = _vertex[1];
   double vz = _vertex[2];
   
-  _vertex[0] = 0.;
-  _vertex[1] = 0.;
-  _vertex[2] = 0.;
+  _vertex[0] = 0.0;
+  _vertex[1] = 0.0;
+  _vertex[2] = 0.0;
   
-  _vertexFinder.findVertex(vtxtracks, vtxcovariances, _vertex, 0.3, false);
-  _vertexFinder.findVertex(vtxtracks, vtxcovariances, _vertex, 0.1, false);
-  _vertexFinder.findVertex(vtxtracks, vtxcovariances, _vertex, 0.02, false);
+  _vertexFinder.findVertex(vtxtracks, vtxcovariances, _vertex, 0.300, false);
+  _vertexFinder.findVertex(vtxtracks, vtxcovariances, _vertex, 0.100, false);
+  _vertexFinder.findVertex(vtxtracks, vtxcovariances, _vertex, 0.020, false);
   _vertexFinder.findVertex(vtxtracks, vtxcovariances, _vertex, 0.005, false);
   
   _vertex[0] += vx;
   _vertex[1] += vy;
   _vertex[2] += vz;
   
-  if(verbosity > 0)
-  {
-    cout << "PHG4HoughTransform::process_event -- final vertex: " << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
+  if (verbosity > 0) {
+    cout << " final vertex: " << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
   }
 
+  //----------------------------------------------
+  // Update track fields for final vertex position
+  //----------------------------------------------
+  
+  // shift to precision vertex position
+  for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
+    for (unsigned int hh = 0;hh < _tracks[tt].hits.size(); ++hh) {
+      _tracks[tt].hits[hh].x = _tracks[tt].hits[hh].x - _vertex[0];
+      _tracks[tt].hits[hh].y = _tracks[tt].hits[hh].y - _vertex[1];
+      _tracks[tt].hits[hh].z = _tracks[tt].hits[hh].z - _vertex[2];
+    }
+  }
+  
+  // recompute track fits
+  std::vector<SimpleTrack3D> refit_tracks;
+  _tracker->finalize(_tracks,refit_tracks);
+  _tracks = refit_tracks;
+  
+  // shift back to global coordianates
+  for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
+    for (unsigned int hh = 0;hh < _tracks[tt].hits.size(); ++hh) {
+      _tracks[tt].hits[hh].x = _tracks[tt].hits[hh].x + _vertex[0];
+      _tracks[tt].hits[hh].y = _tracks[tt].hits[hh].y + _vertex[1];
+      _tracks[tt].hits[hh].z = _tracks[tt].hits[hh].z + _vertex[2];
+    }
+  }
+  
   //--------------------------------
   // Translate back into PHG4 objects
   //--------------------------------
-
-  if(verbosity > 0)
-  {
-    cout << "PHG4HoughTransform::process_event -- producing PHG4Track objects..." << endl;
-  }
 
   SvtxVertex_v1 vertex;
   vertex.set_t0(0.0);
@@ -765,10 +746,6 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode)
   vertex.set_error(2,1,0.0);
   vertex.set_error(2,2,0.0);
   
-  // copy out the reconstructed vertex position
-  //_g4tracks->setVertex(_vertex[0],_vertex[1],_vertex[2]);
-  //_g4tracks->setVertexError(0.0,0.0,0.0);
- 
   // at this point we should already have an initial pt and pz guess...
   // need to translate this into the PHG4Track object...
 

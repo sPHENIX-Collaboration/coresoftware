@@ -106,9 +106,9 @@ PHG4Prototype2HcalCellReco::process_event(PHCompositeNode *topNode)
 	    {
 	      continue;
 	    }
-	  short irow = hiter->second->get_layer();
 	  short icolumn = hiter->second->get_scint_id();
-	  if ( irow >= ROWDIM)
+	  short irow = hiter->second->get_row();
+	  if ( irow >= ROWDIM || irow < 0)
 	    {
 	      cout << "row " << irow
 		   << " exceed array size: " << ROWDIM
@@ -116,7 +116,7 @@ PHG4Prototype2HcalCellReco::process_event(PHCompositeNode *topNode)
 	      exit(1);
 	    }
 
-	  if (icolumn >= COLUMNDIM)
+	  if (icolumn >= COLUMNDIM || icolumn < 0)
 	    {
 	      cout << "column: " << icolumn
 		   << " exceed array size: " << COLUMNDIM
@@ -133,7 +133,7 @@ PHG4Prototype2HcalCellReco::process_event(PHCompositeNode *topNode)
 					     hiter->second->get_eion(),
 					     hiter->second->get_light_yield());
 	  slatarray[irow][icolumn]->add_hit_key(hiter->first);
-	  // cout << "row: " << hiter->second->get_layer() 
+	  // cout << "row: " << hiter->second->get_row() 
 	  // 	   << ", column: " << hiter->second->get_scint_id() << endl;
 	  // checking ADC timing integration window cut
 	} // end loop over g4hits
