@@ -199,7 +199,7 @@ int SvtxEvaluator::End(PHCompositeNode *topNode) {
     }
   }
   
-  if (_svtxevalstack) delete _svtxevalstack;
+  delete _svtxevalstack;
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
