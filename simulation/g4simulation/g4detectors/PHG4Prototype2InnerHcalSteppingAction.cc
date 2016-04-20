@@ -253,7 +253,7 @@ bool PHG4Prototype2InnerHcalSteppingAction::UserSteppingAction( const G4Step* aS
 	      hit->set_light_yield(-1);
 	    }
 	}
-      if (edep > 0)
+      if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
 	{
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
