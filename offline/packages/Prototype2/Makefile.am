@@ -37,9 +37,6 @@ libPrototype2_la_LIBADD = \
   -lfun4all \
   -lcemc
 
-install-exec-hook:
-	@[ $$OSTYPE = darwin ] && ln -sf $(DESTDIR)$(libdir)/libPrototype2.dylib $(DESTDIR)$(libdir)/libPrototype2.so || true
-
 BUILT_SOURCES = \
   testexternals.C
 
