@@ -32,6 +32,9 @@ libg4hough_la_LIBADD = \
   -lFitNewton \
   -lSeamstress \
   -lcemc \
+  -lgenfit2 \
+  -lgenfit2exp \
+  -lPHGenFit \
   libg4hough_io.la
 
 pkginclude_HEADERS = \

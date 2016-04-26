@@ -9,16 +9,34 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
+#include <g4hough/SvtxCluster.h>
 #include <g4hough/SvtxClusterMap.h>
 #include <g4main/PHG4TruthInfoContainer.h>
+#include <GenFit/GFRaveVertex.h>
+#include <GenFit/GFRaveVertexFactory.h>
+#include <GenFit/MeasuredStateOnPlane.h>
+#include <GenFit/RKTrackRep.h>
+#include <GenFit/StateOnPlane.h>
+#include <GenFit/Track.h>
+#include <phgenfit/Fitter.h>
+#include <phgenfit/PlanarMeasurement.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <iostream>
+#include <map>
+#include <utility>
+#include <vector>
 
+#include "TMatrixDSym.h"
 #include "TTree.h"
+#include "TVector3.h"
+#include "phgenfit/Track.h"
+#include "SvtxTrack.h"
+#include "SvtxTrack_v1.h"
+#include "SvtxTrackMap.h"
 #include "SvtxTrackMap_v1.h"
 #include "SvtxVertexMap_v1.h"
 
@@ -30,10 +48,12 @@ using namespace std;
 //--  simple initialization
 //----------------------------------------------------------------------------//
 PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
-		SubsysReco(name), _do_eval(false), _flags(NONE), _eval_tree( NULL) {
+		SubsysReco(name), _do_eval(false), _flags(NONE), _fitter( NULL), _vertex_finder( NULL ), _eval_tree( NULL) {
 	//initialize
 	_event = 0;
 	_eval_outname = "PHG4TrackKalmanFitter_eval.root";
+
+	reset_variables();
 }
 
 //----------------------------------------------------------------------------//
@@ -44,6 +64,11 @@ int PHG4TrackKalmanFitter::Init(PHCompositeNode *topNode) {
 	cout << PHWHERE << " Openning file " << _eval_outname << endl;
 
 	CreateNodes(topNode);
+
+	_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
+
+	_vertex_finder = new genfit::GFRaveVertexFactory(verbosity);
+	_vertex_finder->setMethod("kalman-smoothing:1");
 
 	if (_do_eval) {
 		PHTFileServer::get().open(_eval_outname, "RECREATE");
@@ -89,6 +114,26 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 	GetNodes(topNode);
 
+	//! stands for Refit_GenFit_Tracks
+	vector<genfit::Track*> rf_gf_tracks;
+	rf_gf_tracks.clear();
+
+	std::vector<genfit::GFRaveVertex*> rave_vertices;
+	rave_vertices.clear();
+
+
+	for(SvtxTrackMap::ConstIter iter = _trackmap->begin(); iter != _trackmap->end();++iter)
+	{
+		//! stands for Refit_PHGenFit_Track
+		PHGenFit::Track* rf_phgf_track = ReFitTrack(iter->second);
+		SvtxTrack* rf_track = MakeSvtxTrack(iter->second,rf_phgf_track);
+		_trackmap_refit->insert(rf_track);
+
+		rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
+	}
+
+	_vertex_finder->findVertices(&rave_vertices,rf_gf_tracks);
+
 
 	if (_do_eval) {
 		fill_tree(topNode);
@@ -102,6 +147,10 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 //--   End method, wrap everything up
 //----------------------------------------------------------------------------//
 int PHG4TrackKalmanFitter::End(PHCompositeNode *topNode) {
+
+	delete _fitter;
+
+	delete _vertex_finder;
 
 	if (_do_eval) {
 		PHTFileServer::get().cd(_eval_outname);
@@ -253,4 +302,104 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
+
+PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack) {
+	if(!intrack){
+		cerr << PHWHERE << " Input SvtxTrack is NULL!"
+						<< endl;
+		return NULL;
+	}
+
+	//! prepare seed from input SvtxTrack
+	TVector3 seed_mom(intrack->get_px(),intrack->get_py(),intrack->get_pz());
+	TVector3 seed_pos(intrack->get_x(),intrack->get_y(),intrack->get_z());
+	TMatrixDSym seed_cov(6);
+	for(int i=0;i<6;i++)
+	{
+		for(int j=0;j<6;j++)
+		{
+			seed_cov[i][j] = intrack->get_error(i,j);
+		}
+	}
+
+	//TODO Add multiple TrackRep choices.
+	int pid = -13; //mu+
+	genfit::AbsTrackRep* rep = new genfit::RKTrackRep(pid);
+	PHGenFit::Track* track = new PHGenFit::Track(rep, seed_pos,
+			seed_mom, seed_cov);
+
+	//! Create measurements
+	std::vector<PHGenFit::Measurement*> measurements;
+
+	for (SvtxTrack::ConstClusterIter iter = intrack->begin_clusters();
+			iter != intrack->end_clusters(); ++iter) {
+		unsigned int cluster_id = *iter;
+		SvtxCluster* cluster = _clustermap->get(cluster_id);
+		//unsigned int l = cluster->get_layer();
+
+		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
+		TVector3 n(cluster->get_x(), cluster->get_y(), 0);
+
+		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
+				cluster->get_phi_size(), cluster->get_z_size());
+
+		measurements.push_back(meas);
+	}
+
+	//TODO unsorted measurements, should use sorted ones?
+	track->addMeasurements(measurements);
+
+	//! Fit the track
+	_fitter->processTrack(track, false);
+
+	//TODO if not convered, make some noise
+
+	return track;
+}
+
+SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
+		const PHGenFit::Track* phgf_track) {
+
+	double chi2 = phgf_track->get_chi2();
+	double ndf = phgf_track->get_ndf();
+
+	genfit::MeasuredStateOnPlane* gf_state = phgf_track->extrapolateToLine(TVector3(0.,0.,0.), TVector3(0.,0.,1.));
+	TVector3 mom = gf_state->getMom();
+	TVector3 pos = gf_state->getPos();
+	TMatrixDSym cov = gf_state->get6DCov();
+
+
+	//const SvtxTrack_v1* temp_track = static_cast<const SvtxTrack_v1*> (svtx_track);
+	SvtxTrack_v1* out_track = new SvtxTrack_v1(*static_cast<const SvtxTrack_v1*> (svtx_track));
+
+	out_track->set_chisq(chi2);
+	out_track->set_ndf(ndf);
+
+	out_track->set_px(mom.Px());
+	out_track->set_py(mom.Py());
+	out_track->set_pz(mom.Pz());
+
+	out_track->set_x(pos.X());
+	out_track->set_y(pos.Y());
+	out_track->set_z(pos.Z());
+
+	for(int i=0;i<6;i++)
+	{
+		for(int j=i;j<6;j++)
+		{
+			out_track->set_error(i,j,cov[i][j]);
+		}
+	}
+
+	return out_track;
+}
+
+
+
+
+
+
+
+
+
 

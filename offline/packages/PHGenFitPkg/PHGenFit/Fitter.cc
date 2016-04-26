@@ -78,13 +78,28 @@ Fitter::~Fitter()
 		delete _display;
 }
 
-int Fitter::processTrack(PHGenFit::Track* track, const bool save_to_evt_disp)
-{
+int Fitter::processTrack(PHGenFit::Track* track, const bool save_to_evt_disp) {
 
-//TODO Add safety checks
-	_fitter->processTrack(track->getGenFitTrack());
+//TODO Change to better logger
+	genfit::Track* fitTrack = track->getGenFitTrack();
+	if(!fitTrack->checkConsistency()){
+		LogDEBUG;
+		return -1;
+	}
+	_fitter->processTrack(fitTrack);
+	if(!fitTrack->checkConsistency()){
+		LogDEBUG;
+	}
 
-	if(_display and save_to_evt_disp)
+	genfit::AbsTrackRep* rep = fitTrack->getCardinalRep();
+	if (!fitTrack->getFitStatus(rep)->isFitConverged()) {
+		std::cout
+				<< "Track could not be fitted successfully! Fit is not converged! \n";
+		return -1;
+		return -1;
+	}
+
+	if (_display and save_to_evt_disp)
 		_display->addEvent(track->getGenFitTrack());
 
 	return 0;

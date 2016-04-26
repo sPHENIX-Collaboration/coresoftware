@@ -11,6 +11,19 @@
 #include <fun4all/SubsysReco.h>
 #include <string>
 
+namespace PHGenFit {
+class Track;
+} /* namespace PHGenFit */
+
+namespace genfit {
+class GFRaveVertexFactory;
+} /* namespace genfit */
+
+class SvtxTrack;
+namespace PHGenFit {
+class Fitter;
+} /* namespace PHGenFit */
+
 class SvtxTrackMap;
 class SvtxVertexMap;
 class PHCompositeNode;
@@ -77,20 +90,30 @@ private:
 	//! switch eval out
 	bool _do_eval;
 
-	//!output filename
+	//! eval output filename
 	std::string _eval_outname;
 
-	//Event counter
+	//! Event counter
 	int _event;
 
-	//!Get all the nodes
+	//! Get all the nodes
 	int GetNodes(PHCompositeNode *);
 
 	//!Create New nodes
-	int CreateNodes(PHCompositeNode *topNode);
+	int CreateNodes(PHCompositeNode *);
+
+	//! Refit SvtxTrack
+	PHGenFit::Track* ReFitTrack(const SvtxTrack*);
+
+	//! Make SvtxTrack from PHGenFit::Track and SvtxTrack
+	SvtxTrack* MakeSvtxTrack(const SvtxTrack*, const PHGenFit::Track*);
 
 	//!flags
 	unsigned int _flags;
+
+	PHGenFit::Fitter* _fitter;
+	genfit::GFRaveVertexFactory* _vertex_finder;
+
 
 	//TTrees
 	TTree* _eval_tree;
