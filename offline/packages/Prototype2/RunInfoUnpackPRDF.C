@@ -58,54 +58,12 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
 
   map<int, Packet_hbd_fpgashort*> packet_list;
 
-  for (hbd_channel_map::const_iterator it = _hbd_channel_map.begin();
-      it != _hbd_channel_map.end(); ++it)
-    {
+  packet_list[packet_id] =
+      dynamic_cast<Packet_hbd_fpgashort*>(_event->getPacket(packet_id));
+  Packet_hbd_fpgashort * packet = packet_list[packet_id];
 
-      const int packet_id = it->first.first;
-      const int channel = it->first.second;
-      const int tower_id = it->second;
+  tower->set_signal_samples(isamp, packet->iValue(channel, isamp));
 
-      if (packet_list.find(packet_id) == packet_list.end())
-        {
-          packet_list[packet_id] =
-              dynamic_cast<Packet_hbd_fpgashort*>(_event->getPacket(packet_id));
-        }
-
-      Packet_hbd_fpgashort * packet = packet_list[packet_id];
-
-      if (!packet)
-        {
-//          if (Verbosity() >= VERBOSITY_SOME)
-          cout << "RunInfoUnpackPRDF::process_event - failed to locate packet "
-              << packet_id << endl;
-          continue;
-        }
-      assert(packet);
-
-      packet->setNumSamples(PROTOTYPE2_FEM::NSAMPLES);
-
-      RawTower_Prototype2 *tower =
-          dynamic_cast<RawTower_Prototype2*>(_towers->getTower(tower_id));
-      if (!tower)
-        {
-          tower = new RawTower_Prototype2();
-          tower->set_energy(NAN);
-          _towers->AddTower(tower_id, tower);
-        }
-      tower->set_HBD_channel_number(channel);
-      for (int isamp = 0; isamp < PROTOTYPE2_FEM::NSAMPLES; isamp++)
-        {
-          tower->set_signal_samples(isamp, packet->iValue(channel, isamp));
-        }
-    }
-
-  for (map<int, Packet_hbd_fpgashort*>::iterator it = packet_list.begin();
-      it != packet_list.end(); ++it)
-    {
-      if (it->second)
-        delete it->second;
-    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
