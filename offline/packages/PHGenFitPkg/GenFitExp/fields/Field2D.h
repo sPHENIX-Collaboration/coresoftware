@@ -33,6 +33,8 @@ class Field2D : public AbsBField {
   Field2D(std::string inname)
   { initialize(inname); }
 
+  ~Field2D();
+
   bool initialize(std::string inname = "");
 
   bool re_scale(double r);

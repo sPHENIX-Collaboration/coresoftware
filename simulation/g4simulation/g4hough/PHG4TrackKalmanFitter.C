@@ -65,7 +65,13 @@ int PHG4TrackKalmanFitter::Init(PHCompositeNode *topNode) {
 
 	CreateNodes(topNode);
 
-	_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
+	//_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
+	_fitter = PHGenFit::Fitter::getInstance("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
+	if(!_fitter)
+	{
+		cerr << PHWHERE << endl;
+		return Fun4AllReturnCodes::ABORTRUN;
+	}
 
 	_vertex_finder = new genfit::GFRaveVertexFactory(verbosity);
 	_vertex_finder->setMethod("kalman-smoothing:1");

@@ -172,4 +172,11 @@ void Field2D::get(const double&x, const double&y, const double&z, double& Bx, do
 	//std::cout<<"DEBUG: "<<__LINE__<<": "<<z<<","<<r<<","<<bin_z<<","<<bin_r<<": "<<Br<<","<<Bz<<"\n";
 }
 
+
+Field2D::~Field2D() {
+	if(field_map_r_) delete field_map_r_;
+	if(field_map_z_) delete field_map_z_;
+}
+
 } /* End of namespace genfit */
+

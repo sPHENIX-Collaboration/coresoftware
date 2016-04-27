@@ -105,6 +105,57 @@ int Fitter::processTrack(PHGenFit::Track* track, const bool save_to_evt_disp) {
 	return 0;
 }
 
+Fitter* Fitter::getInstance(const std::string tgeo_file_name,
+		const std::string field_file_name, const double field_scaling_factor,
+		const std::string fitter_choice, const std::string track_rep_choice,
+		const bool doEventDisplay) {
+
+	TGeoManager* tgeo_manager = TGeoManager::Import(tgeo_file_name.data(), "Default");
+	if(!tgeo_manager)
+	{
+		//TODO better logger
+		LogDEBUG;
+		return NULL;
+	}
+
+	genfit::Field2D *fieldMap = new genfit::Field2D();
+	if(!fieldMap->initialize(field_file_name.data()))
+	{
+		//TODO better logger
+		LogDEBUG;
+		delete fieldMap;
+		return NULL;
+	}
+	fieldMap->re_scale(field_scaling_factor);// Re-scale to 1.4 T
+
+	return new Fitter(tgeo_manager, fieldMap, fitter_choice, track_rep_choice, doEventDisplay);
+}
+
+Fitter::Fitter(TGeoManager* tgeo_manager, genfit::AbsBField* fieldMap,
+		const std::string fitter_choice, const std::string track_rep_choice,
+		const bool doEventDisplay): _tgeo_manager(tgeo_manager), _doEventDisplay(doEventDisplay)
+{
+
+	genfit::FieldManager::getInstance()->init(
+			fieldMap);
+	genfit::MaterialEffects::getInstance()->init(
+			new genfit::TGeoMaterialInterface());
+
+	// init event display
+	if(_doEventDisplay)
+		_display = genfit::EventDisplay::getInstance();
+	else
+		_display = NULL;
+
+	// init fitter
+	if(fitter_choice.compare("KalmanFitterRefTrack")==0)
+		_fitter = new genfit::KalmanFitterRefTrack();
+	else if(fitter_choice.compare("KalmanFitter")==0)
+		_fitter = new genfit::KalmanFitter();
+	else
+		_fitter = new genfit::KalmanFitter();
+}
+
 int Fitter::displayEvent()
 {
 	_display->open();
