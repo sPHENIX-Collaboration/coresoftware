@@ -182,8 +182,25 @@ void PHG4TrackKalmanFitter::fill_eval_tree(PHCompositeNode *topNode) {
 		new ((*_tca_trackmap)[i++]) (SvtxTrack_v1)(
 				*dynamic_cast<SvtxTrack_v1*>(itr->second));
 
+	i = 0;
+	for (SvtxVertexMap::ConstIter itr =
+			_vertexmap->begin();
+			itr != _vertexmap->end(); ++itr)
+		new ((*_tca_vertexmap)[i++]) (SvtxVertex_v1)(
+				*dynamic_cast<SvtxVertex_v1*>(itr->second));
+	i = 0;
+	for (SvtxTrackMap::ConstIter itr =
+			_trackmap_refit->begin();
+			itr != _trackmap_refit->end(); ++itr)
+		new ((*_tca_trackmap_refit)[i++]) (SvtxTrack_v1)(
+				*dynamic_cast<SvtxTrack_v1*>(itr->second));
 
-
+	i = 0;
+	for (SvtxVertexMap::ConstIter itr =
+			_vertexmap_refit->begin();
+			itr != _vertexmap_refit->end(); ++itr)
+		new ((*_tca_vertexmap_refit)[i++]) (SvtxVertex_v1)(
+				*dynamic_cast<SvtxVertex_v1*>(itr->second));
 
 
 	_eval_tree->Fill();
