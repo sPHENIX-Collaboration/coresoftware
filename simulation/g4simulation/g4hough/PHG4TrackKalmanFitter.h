@@ -9,7 +9,10 @@
 #define __PHG4TrackKalmanFitter_H__
 
 #include <fun4all/SubsysReco.h>
+#include <GenFit/GFRaveVertex.h>
+#include <GenFit/Track.h>
 #include <string>
+#include <vector>
 
 namespace PHGenFit {
 class Track;
@@ -36,8 +39,11 @@ class TTree;
 //! \brief		Refit SvtxTracks with PHGenFit.
 class PHG4TrackKalmanFitter: public SubsysReco {
 public:
-	//!Default constructor
+	//! Default constructor
 	PHG4TrackKalmanFitter(const std::string &name = "PHG4TrackKalmanFitter");
+
+	//! dtor
+	~PHG4TrackKalmanFitter();
 
 	//!Initialization, called for initialization
 	int Init(PHCompositeNode *);
@@ -48,15 +54,9 @@ public:
 	//!End, write and close files
 	int End(PHCompositeNode *);
 
-	  /// set verbosity
-	  void Verbosity(int verb) {
-	    verbosity = verb; // SubsysReco verbosity
-	  }
-
-	//Change output filename
-	void set_filename(const char* file) {
-		if (file)
-			_eval_outname = file;
+	/// set verbosity
+	void Verbosity(int verb) {
+		verbosity = verb; // SubsysReco verbosity
 	}
 
 	//Flags of different kinds of outputs
@@ -74,9 +74,16 @@ public:
 			_flags &= (~flag);
 	}
 
-	//User modules
-	void fill_tree(PHCompositeNode*);
-	void reset_variables();
+	//! For evalution
+	//! Change eval output filename
+	void set_eval_filename(const char* file) {
+		if (file)
+			_eval_outname = file;
+	}
+
+	void fill_eval_tree(PHCompositeNode*);
+	void init_eval_tree();
+	void reset_eval_variables();
 
 	bool is_do_eval() const {
 		return _do_eval;
@@ -87,11 +94,6 @@ public:
 	}
 
 private:
-	//! switch eval out
-	bool _do_eval;
-
-	//! eval output filename
-	std::string _eval_outname;
 
 	//! Event counter
 	int _event;
@@ -108,50 +110,42 @@ private:
 	//! Make SvtxTrack from PHGenFit::Track and SvtxTrack
 	SvtxTrack* MakeSvtxTrack(const SvtxTrack*, const PHGenFit::Track*);
 
+	//! Fill SvtxVertexMap from GFRaveVertexes and Tracks
+	bool FillSvtxVertexMap(
+			const std::vector<genfit::GFRaveVertex*> & rave_vertices,
+			const std::vector<genfit::Track*> & gf_tracks);
+
 	//!flags
 	unsigned int _flags;
 
 	PHGenFit::Fitter* _fitter;
 	genfit::GFRaveVertexFactory* _vertex_finder;
 
-
-	//TTrees
-	TTree* _eval_tree;
-	int event;
-	//-- truth
-	int gtrackID;
-	int gflavor;
-	float gpx;
-	float gpy;
-	float gpz;
-	float gvx;
-	float gvy;
-	float gvz;
-	//-- reco
-	int trackID;
-	int charge;
-	int nhits;
-	float px;
-	float py;
-	float pz;
-	float dca2d;
-	//-- clusters
-	int clusterID[7];
-	int layer[7];
-	float x[7];
-	float y[7];
-	float z[7];
-	float size_dphi[7];
-	float size_dz[7];
-
 	//! Input Node pointers
 	PHG4TruthInfoContainer* _truth_container;
 	SvtxClusterMap* _clustermap;
 	SvtxTrackMap* _trackmap;
+	SvtxVertexMap* _vertexmap;
 
 	//! Output Node pointers
 	SvtxTrackMap* _trackmap_refit;
 	SvtxVertexMap* _vertexmap_refit;
+
+	//! Evaluation
+	//! switch eval out
+	bool _do_eval;
+
+	//! eval output filename
+	std::string _eval_outname;
+
+	TTree* _eval_tree;
+	TClonesArray* _tca_particlemap;
+	TClonesArray* _tca_vtxmap;
+	TClonesArray* _tca_trackmap;
+	TClonesArray* _tca_vertexmap;
+	TClonesArray* _tca_trackmap_refit;
+	TClonesArray* _tca_vertexmap_refit;
+
 };
 
 #endif //* __PHG4TrackKalmanFitter_H__ *//
