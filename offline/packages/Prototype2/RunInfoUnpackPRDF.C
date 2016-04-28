@@ -2,7 +2,6 @@
 #include <Event/EventTypes.h>
 #include <Event/packetConstants.h>
 #include <Event/packet.h>
-#include <Event/packet_hbd_fpgashort.h>
 #include "RawTower_Prototype2.h"
 #include <g4cemc/RawTowerContainer.h>
 #include <phool/PHCompositeNode.h>
@@ -19,10 +18,7 @@ using namespace std;
 
 //____________________________________
 RunInfoUnpackPRDF::RunInfoUnpackPRDF(const string & detector) :
-    SubsysReco("RunInfoUnpackPRDF_" + detector), //
-    _detector(detector),
-    /*Event**/_event(NULL),
-    /*PHCompositeNode **/_towers(NULL)
+    SubsysReco("RunInfoUnpackPRDF")
 {
 }
 
@@ -45,8 +41,8 @@ RunInfoUnpackPRDF::InitRun(PHCompositeNode *topNode)
 int
 RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
 {
-  _event = findNode::getClass<Event>(topNode, "PRDF");
-  if (_event == NULL)
+  Event* event = findNode::getClass<Event>(topNode, "PRDF");
+  if (event == NULL)
     {
       if (Verbosity() >= VERBOSITY_SOME)
         cout << "RunInfoUnpackPRDF::Process_Event - Event not found" << endl;
@@ -54,16 +50,64 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
     }
 
   if (verbosity >= VERBOSITY_SOME)
-    _event->identify();
+    {
 
-  map<int, Packet_hbd_fpgashort*> packet_list;
+      cout << "RunInfoUnpackPRDF::process_event - ";
+      event->identify();
+    }
 
-  packet_list[packet_id] =
-      dynamic_cast<Packet_hbd_fpgashort*>(_event->getPacket(packet_id));
-  Packet_hbd_fpgashort * packet = packet_list[packet_id];
+  if (event->getEvtType() != BEGRUNEVENT)
+    return Fun4AllReturnCodes::EVENT_OK;
 
-  tower->set_signal_samples(isamp, packet->iValue(channel, isamp));
+  map<int, Packet*> packet_list;
+//
+//  packet_list[packet_id] =
+//      dynamic_cast<Packet_hbd_fpgashort*>(_event->getPacket(packet_id));
+//  Packet_hbd_fpgashort * packet = packet_list[packet_id];
+//
+//  tower->set_signal_samples(isamp, packet->iValue(channel, isamp));
 
+  for (typ_channel_map::const_iterator it = channel_map.begin();
+      it != channel_map.end(); ++it)
+    {
+      const string & name = it->first;
+      const channel_info & info = it->second;
+
+      if (packet_list.find(info.packet_id) == packet_list.end())
+        {
+          packet_list[info.packet_id] = event->getPacket(info.packet_id);
+        }
+
+      Packet * packet = packet_list[info.packet_id];
+
+      if (!packet)
+        {
+//          if (Verbosity() >= VERBOSITY_SOME)
+          cout << "RunInfoUnpackPRDF::process_event - failed to locate packet "
+              << info.packet_id << " from ";
+          event->identify();
+
+          continue;
+        }
+
+      const int ivalue = packet->iValue(info.offset);
+
+      const double dvalue = ivalue * info.calibration_const;
+
+      if (verbosity >= VERBOSITY_SOME)
+        {
+          cout << "RunInfoUnpackPRDF::process_event - " << name << " = "
+              << dvalue << ", raw = " << ivalue << " @ packet "
+              << info.packet_id << ", offset " << info.offset << endl;
+        }
+    }
+
+  for (map<int, Packet*>::iterator it = packet_list.begin();
+      it != packet_list.end(); ++it)
+    {
+      if (it->second)
+        delete it->second;
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -74,31 +118,15 @@ RunInfoUnpackPRDF::CreateNodeTree(PHCompositeNode *topNode)
 {
   PHNodeIterator nodeItr(topNode);
   //DST node
-  PHCompositeNode * dst_node = static_cast<PHCompositeNode*>(nodeItr.findFirst(
-      "PHCompositeNode", "DST"));
-  if (!dst_node)
+  PHCompositeNode * run_node = static_cast<PHCompositeNode*>(nodeItr.findFirst(
+      "PHCompositeNode", "RUN"));
+  if (!run_node)
     {
-      cout << "PHComposite node created: DST" << endl;
-      dst_node = new PHCompositeNode("DST");
-      topNode->addNode(dst_node);
+      cout << "PHComposite node created: RUN" << endl;
+      run_node = new PHCompositeNode("RUN");
+      topNode->addNode(run_node);
     }
 
-  //DATA nodes
-  PHCompositeNode * data_node = static_cast<PHCompositeNode*>(nodeItr.findFirst(
-      "PHCompositeNode", "RAW_DATA"));
-  if (!data_node)
-    {
-      if (Verbosity())
-        cout << "PHComposite node created: RAW_DATA" << endl;
-      data_node = new PHCompositeNode("RAW_DATA");
-      dst_node->addNode(data_node);
-    }
-
-  //output as towers
-  _towers = new RawTowerContainer(RawTowerDefs::NONE);
-  PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_towers,
-      "TOWER_RAW_" + _detector, "PHObject");
-  data_node->addNode(towerNode);
 }
 
 //___________________________________
@@ -109,19 +137,12 @@ RunInfoUnpackPRDF::End(PHCompositeNode *topNode)
 }
 
 void
-RunInfoUnpackPRDF::add_channel(const int packet_id, //! packet id
-    const int channel, //! channel in packet
-    const int tower_id //! output tower id
+RunInfoUnpackPRDF::add_channel(const std::string & name, //! name of the channel
+    const int packet_id, //! packet id
+    const unsigned int offset, //! offset in packet data
+    const double calibration_const //! conversion constant from integer to meaningful value
     )
 {
-  hbd_channel_typ hbd_channel(packet_id, channel);
-
-  if (_hbd_channel_map.find(hbd_channel) != _hbd_channel_map.end())
-    {
-      cout << "RunInfoUnpackPRDF::add_channel - packet " << packet_id
-          << ", channel " << channel << " is already registered as tower "
-          << _hbd_channel_map.find(hbd_channel)->second << endl;
-      exit(12);
-    }
-  _hbd_channel_map[hbd_channel] = tower_id;
+  channel_map.insert(
+      make_pair(name, channel_info(packet_id, offset, calibration_const)));
 }

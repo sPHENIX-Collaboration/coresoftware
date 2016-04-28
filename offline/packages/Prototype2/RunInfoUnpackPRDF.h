@@ -1,7 +1,6 @@
 #ifndef __CaloUnpackPRDFF__
 #define __CaloUnpackPRDFF__
 
-
 #include <fun4all/SubsysReco.h>
 #include <phool/PHObject.h>
 #include <string>
@@ -13,45 +12,54 @@ class Packet;
 class RawTowerContainer;
 class RawTower;
 
-
 class RunInfoUnpackPRDF : public SubsysReco
 {
- public:
+public:
   RunInfoUnpackPRDF(const std::string & detector);
 
-  int Init(PHCompositeNode *topNode);
+  int
+  Init(PHCompositeNode *topNode);
 
-  int InitRun(PHCompositeNode *topNode);
+  int
+  InitRun(PHCompositeNode *topNode);
 
-  int process_event(PHCompositeNode *topNode);
+  int
+  process_event(PHCompositeNode *topNode);
 
-  int End(PHCompositeNode *topNode);
-  
-  void CreateNodeTree(PHCompositeNode *topNode);
+  int
+  End(PHCompositeNode *topNode);
+
+  void
+  CreateNodeTree(PHCompositeNode *topNode);
 
   //! add stuff to be unpacked
-  void add_channel(
+  void
+  add_channel(const std::string & name, //! name of the channel
       const int packet_id, //! packet id
-      const int channel, //! channel in packet
-      const int tower_id //! output tower id
-  );
+      const unsigned int offset, //! offset in packet data
+      const double calibration_const = +1 //! conversion constant from integer to meaningful value
+      );
 
- private:
-  std::string _detector;
+private:
 
-  //!packet_id, channel number to define a hbd_channel
-  typedef std::pair<int, int> hbd_channel_typ;
+  class channel_info
+  {
+  public:
+    channel_info(int p, unsigned int o, double c) :
+        packet_id(p), offset(o), calibration_const(c)
+    {
+    }
 
-  //! list of hbd_channel -> channel id which is also tower id
-  typedef std::map<hbd_channel_typ, int> hbd_channel_map;
+    int packet_id;
+    unsigned offset;
+    double calibration_const;
+  };
 
-  hbd_channel_map _hbd_channel_map;
+  //! list of channel name -> channel info
+  typedef std::map<std::string, channel_info> typ_channel_map;
 
-  Event* _event;
+  typ_channel_map channel_map;
 
-  //output -> Towers
-  RawTowerContainer* _towers;
 };
-
 
 #endif //**CaloUnpackPRDFF**//
