@@ -3,7 +3,8 @@
 #include <Event/packetConstants.h>
 #include <Event/packet.h>
 #include "RawTower_Prototype2.h"
-#include <g4cemc/RawTowerContainer.h>
+#include <pdbcalbase/PdbParameterMap.h>
+#include <g4detectors/PHG4Parameters.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/phool.h>
 #include <phool/getClass.h>
@@ -17,8 +18,8 @@
 using namespace std;
 
 //____________________________________
-RunInfoUnpackPRDF::RunInfoUnpackPRDF(const string & detector) :
-    SubsysReco("RunInfoUnpackPRDF")
+RunInfoUnpackPRDF::RunInfoUnpackPRDF() :
+    SubsysReco("RunInfoUnpackPRDF"), runinfo_node_name("RUN_INFO")
 {
 }
 
@@ -49,6 +50,9 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
 
+  if (event->getEvtType() != BEGRUNEVENT)
+    return Fun4AllReturnCodes::EVENT_OK;
+
   if (verbosity >= VERBOSITY_SOME)
     {
 
@@ -56,16 +60,9 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
       event->identify();
     }
 
-  if (event->getEvtType() != BEGRUNEVENT)
-    return Fun4AllReturnCodes::EVENT_OK;
-
   map<int, Packet*> packet_list;
-//
-//  packet_list[packet_id] =
-//      dynamic_cast<Packet_hbd_fpgashort*>(_event->getPacket(packet_id));
-//  Packet_hbd_fpgashort * packet = packet_list[packet_id];
-//
-//  tower->set_signal_samples(isamp, packet->iValue(channel, isamp));
+
+  PHG4Parameters Params("RunInfo");
 
   for (typ_channel_map::const_iterator it = channel_map.begin();
       it != channel_map.end(); ++it)
@@ -100,6 +97,8 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
               << dvalue << ", raw = " << ivalue << " @ packet "
               << info.packet_id << ", offset " << info.offset << endl;
         }
+
+      Params.set_double_param(name, dvalue);
     }
 
   for (map<int, Packet*>::iterator it = packet_list.begin();
@@ -108,6 +107,10 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
       if (it->second)
         delete it->second;
     }
+
+  Params.SaveToNodeTree(topNode, runinfo_node_name);
+
+  if (verbosity >= VERBOSITY_SOME) Params.print();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -125,6 +128,15 @@ RunInfoUnpackPRDF::CreateNodeTree(PHCompositeNode *topNode)
       cout << "PHComposite node created: RUN" << endl;
       run_node = new PHCompositeNode("RUN");
       topNode->addNode(run_node);
+    }
+
+  PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(run_node,
+      runinfo_node_name);
+  if (not nodeparams)
+    {
+      run_node->addNode(
+          new PHIODataNode<PdbParameterMap>(new PdbParameterMap(),
+              runinfo_node_name));
     }
 
 }

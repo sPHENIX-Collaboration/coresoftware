@@ -15,7 +15,7 @@ class RawTower;
 class RunInfoUnpackPRDF : public SubsysReco
 {
 public:
-  RunInfoUnpackPRDF(const std::string & detector);
+  RunInfoUnpackPRDF();
 
   int
   Init(PHCompositeNode *topNode);
@@ -60,6 +60,7 @@ private:
 
   typ_channel_map channel_map;
 
+  std::string runinfo_node_name;
 };
 
 #endif //**CaloUnpackPRDFF**//
