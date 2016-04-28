@@ -177,9 +177,6 @@ Prototype2DSTReader::process_event(PHCompositeNode* topNode)
       record & rec = *it;
 
       rec._cnt = 0;
-      assert(rec._arr.get() == rec._arr_ptr);
-      assert(rec._arr.get());
-      rec._arr->Clear();
 
       if (rec._type == record::typ_hit)
         {
@@ -187,6 +184,10 @@ Prototype2DSTReader::process_event(PHCompositeNode* topNode)
         } //      if (rec._type == record::typ_hit)
       else if (rec._type == record::typ_tower)
         {
+          assert(rec._arr.get() == rec._arr_ptr);
+          assert(rec._arr.get());
+          rec._arr->Clear();
+
           if (Verbosity() >= 2)
             cout << "Prototype2DSTReader::process_event - processing tower "
                 << rec._name << endl;

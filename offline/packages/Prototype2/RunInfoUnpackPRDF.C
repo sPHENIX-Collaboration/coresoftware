@@ -84,6 +84,7 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
               << info.packet_id << " from ";
           event->identify();
 
+          Params.set_double_param(name, NAN);
           continue;
         }
 
