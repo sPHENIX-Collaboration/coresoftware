@@ -15,6 +15,7 @@
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4Particlev2.h>
 #include <g4main/PHG4VtxPointv1.h>
+#include <GenFit/FieldManager.h>
 #include <GenFit/GFRaveVertex.h>
 #include <GenFit/GFRaveVertexFactory.h>
 #include <GenFit/MeasuredStateOnPlane.h>
@@ -49,10 +50,9 @@
 
 using namespace std;
 
-//----------------------------------------------------------------------------//
-//-- Constructor:
-//--  simple initialization
-//----------------------------------------------------------------------------//
+/*
+ * Constructor
+ */
 PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 		SubsysReco(name), _flags(NONE), _fitter( NULL), _vertex_finder( NULL), _truth_container(
 				NULL), _clustermap(NULL), _trackmap(NULL), _vertexmap(NULL), _trackmap_refit(
@@ -64,10 +64,9 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 	_event = 0;
 }
 
-//----------------------------------------------------------------------------//
-//-- Init():
-//--   Intialize all histograms, trees, and ntuples
-//----------------------------------------------------------------------------//
+/*
+ * Init
+ */
 int PHG4TrackKalmanFitter::Init(PHCompositeNode *topNode) {
 	cout << PHWHERE << " Openning file " << _eval_outname << endl;
 
@@ -83,9 +82,15 @@ int PHG4TrackKalmanFitter::Init(PHCompositeNode *topNode) {
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
 
+	//LogDebug(genfit::FieldManager::getInstance()->getFieldVal(TVector3(0, 0, 0)).Z());
+
 	_vertex_finder = new genfit::GFRaveVertexFactory(verbosity);
-	_vertex_finder->setMethod("kalman-smoothing:1");
+	//_vertex_finder->setMethod("kalman-smoothing:1"); //! kalman-smoothing:1 is the defaul method
 	//_vertex_finder->setBeamspot();
+	if (!_vertex_finder) {
+		cerr << PHWHERE << endl;
+		return Fun4AllReturnCodes::ABORTRUN;
+	}
 
 	if (_do_eval) {
 		PHTFileServer::get().open(_eval_outname, "RECREATE");
@@ -95,11 +100,12 @@ int PHG4TrackKalmanFitter::Init(PHCompositeNode *topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//----------------------------------------------------------------------------//
-//-- process_event():
-//--   Call user instructions for every event.
-//--   This function contains the analysis structure.
-//----------------------------------------------------------------------------//
+/*
+ * process_event():
+ *  Call user instructions for every event.
+ *  This function contains the analysis structure.
+ *
+ */
 int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 	_event++;
 	if (_event % 1000 == 0)
@@ -123,13 +129,16 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		_trackmap_refit->insert(rf_track);
 		rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
 
-		if(verbosity >= 2){
-			rf_phgf_track->getGenFitTrack()->Print();
-		}
+//		if(verbosity >= 2){
+//			rf_phgf_track->getGenFitTrack()->Print();
+//		}
 	}
 
+	//! add tracks to event display
 	if(_do_evt_display)
 		_fitter->getEventDisplay()->addEvent(rf_gf_tracks);
+
+	//! find vertex using tracks
 	_vertex_finder->findVertices(&rave_vertices,rf_gf_tracks);
 
 
@@ -142,10 +151,9 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//----------------------------------------------------------------------------//
-//-- End():
-//--   End method, wrap everything up
-//----------------------------------------------------------------------------//
+/*
+ * End
+ */
 int PHG4TrackKalmanFitter::End(PHCompositeNode *topNode) {
 
 	if (_do_eval) {
@@ -160,19 +168,17 @@ int PHG4TrackKalmanFitter::End(PHCompositeNode *topNode) {
 }
 
 /*
- *
+ * dtor
  */
-
 PHG4TrackKalmanFitter::~PHG4TrackKalmanFitter()
 {
 	delete _fitter;
 	delete _vertex_finder;
 }
 
-//----------------------------------------------------------------------------//
-//-- fill_eval_tree():
-//--   Fill the trees with truth, track fit, and cluster information
-//----------------------------------------------------------------------------//
+/*
+ * fill_eval_tree():
+ */
 void PHG4TrackKalmanFitter::fill_eval_tree(PHCompositeNode *topNode) {
 	//! Make sure to reset all the TTree variables before trying to set them.
 	reset_eval_variables();
@@ -225,9 +231,8 @@ void PHG4TrackKalmanFitter::fill_eval_tree(PHCompositeNode *topNode) {
 }
 
 /*
- *
+ * init_eval_tree
  */
-
 void PHG4TrackKalmanFitter::init_eval_tree()
 {
 	if(!_tca_particlemap) _tca_particlemap = new TClonesArray("PHG4Particlev2");
@@ -239,16 +244,8 @@ void PHG4TrackKalmanFitter::init_eval_tree()
 	if(!_tca_vertexmap_refit) _tca_vertexmap_refit = new TClonesArray("SvtxVertex_v1");
 
 
-	// create TTree
+	//! create TTree
 	_eval_tree = new TTree("T", "PHG4TrackKalmanFitter Evaluation");
-
-//	_eval_tree->Branch("PrimaryParticle","PHG4Particlev2", _tca_particlemap);
-//	_eval_tree->Branch("TruethVtx","PHG4VtxPointv1", _tca_vtxmap);
-//
-//	_eval_tree->Branch("SvtxTrack","SvtxTrack_v1", _tca_trackmap);
-//	_eval_tree->Branch("SvtxVertex","SvtxVertex_v1", _tca_vertexmap);
-//	_eval_tree->Branch("SvtxTrackRefit","SvtxTrack_v1", _tca_trackmap_refit);
-//	_eval_tree->Branch("SvtxVertexRefit","SvtxVertex_v1", _tca_vertexmap_refit);
 
 	_eval_tree->Branch("PrimaryParticle", _tca_particlemap);
 	_eval_tree->Branch("TruethVtx", _tca_vtxmap);
@@ -260,13 +257,19 @@ void PHG4TrackKalmanFitter::init_eval_tree()
 
 }
 
-//----------------------------------------------------------------------------//
-//-- reset_eval_variables():
-//--   Reset all the tree variables to their default values.
-//--   Needs to be called at the start of every event
-//----------------------------------------------------------------------------//
+/*
+ * reset_eval_variables():
+ *  Reset all the tree variables to their default values.
+ *  Needs to be called at the start of every event
+ */
 void PHG4TrackKalmanFitter::reset_eval_variables() {
 	_tca_particlemap->Clear();
+	_tca_vtxmap->Clear();
+
+	_tca_trackmap->Clear();
+	_tca_vertexmap->Clear();
+	_tca_trackmap_refit->Clear();
+	_tca_vertexmap_refit->Clear();
 }
 
 int PHG4TrackKalmanFitter::CreateNodes(PHCompositeNode *topNode) {
@@ -307,10 +310,10 @@ int PHG4TrackKalmanFitter::CreateNodes(PHCompositeNode *topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//----------------------------------------------------------------------------//
-//-- GetNodes():
-//--   Get all the all the required nodes off the node tree
-//----------------------------------------------------------------------------//
+/*
+ * GetNodes():
+ *  Get all the all the required nodes off the node tree
+ */
 int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 	//DST objects
 	//Truth container
@@ -322,7 +325,7 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 		return Fun4AllReturnCodes::ABORTEVENT;
 	}
 
-	//! Input Svtx Clusters
+	// Input Svtx Clusters
 	_clustermap = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
 	if (!_clustermap && _event < 2) {
 		cout << PHWHERE << " SvtxClusterMap node not found on node tree"
@@ -330,7 +333,7 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 		return Fun4AllReturnCodes::ABORTEVENT;
 	}
 
-	//! Input Svtx Tracks
+	// Input Svtx Tracks
 	_trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 	if (!_trackmap && _event < 2) {
 		cout << PHWHERE << " SvtxClusterMap node not found on node tree"
@@ -338,7 +341,7 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 		return Fun4AllReturnCodes::ABORTEVENT;
 	}
 
-	//! Input Svtx Vertices
+	// Input Svtx Vertices
 	_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
 	if (!_vertexmap && _event < 2) {
 		cout << PHWHERE << " SvtxVertexrMap node not found on node tree"
@@ -346,7 +349,7 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 		return Fun4AllReturnCodes::ABORTEVENT;
 	}
 
-	//! Output Svtx Tracks
+	// Output Svtx Tracks
 	_trackmap_refit = findNode::getClass<SvtxTrackMap>(topNode,
 			"SvtxTrackMapRefit");
 	if (!_trackmap_refit && _event < 2) {
@@ -355,7 +358,7 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 		return Fun4AllReturnCodes::ABORTEVENT;
 	}
 
-	//! Output Svtx Vertices
+	// Output Svtx Vertices
 	_vertexmap_refit = findNode::getClass<SvtxVertexMap>(topNode,
 			"SvtxVertexMapRefit");
 	if (!_vertexmap_refit && _event < 2) {
@@ -367,6 +370,10 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
+/*
+ * fit track with SvtxTrack as input seed.
+ * \param intrack Input SvtxTrack
+ */
 PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack) {
 	if(!intrack){
 		cerr << PHWHERE << " Input SvtxTrack is NULL!"
@@ -374,7 +381,7 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack) {
 		return NULL;
 	}
 
-	//! prepare seed from input SvtxTrack
+	// prepare seed from input SvtxTrack
 	TVector3 seed_mom(intrack->get_px(),intrack->get_py(),intrack->get_pz());
 	TVector3 seed_pos(intrack->get_x(),intrack->get_y(),intrack->get_z());
 	TMatrixDSym seed_cov(6);
@@ -392,7 +399,7 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack) {
 	PHGenFit::Track* track = new PHGenFit::Track(rep, seed_pos,
 			seed_mom, seed_cov);
 
-	//! Create measurements
+	// Create measurements
 	std::vector<PHGenFit::Measurement*> measurements;
 
 	for (SvtxTrack::ConstClusterIter iter = intrack->begin_clusters();
@@ -422,6 +429,9 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack) {
 	return track;
 }
 
+/*
+ * Make SvtxTrack from PHGenFit::Track and SvtxTrack
+ */
 SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 		const PHGenFit::Track* phgf_track) {
 
@@ -459,6 +469,9 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 	return out_track;
 }
 
+/*
+ * Fill SvtxVertexMap from GFRaveVertexes and Tracks
+ */
 bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 		const std::vector<genfit::GFRaveVertex*>& rave_vertices,
 		const std::vector<genfit::Track*>& gf_tracks) {
