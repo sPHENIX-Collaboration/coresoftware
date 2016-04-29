@@ -363,7 +363,8 @@ void PHG4TruthEventAction::ProcessShowers() {
 
 	PHG4Particle* particle = truthInfoList_->GetParticle(g4hit->get_trkid());
 	if (!particle) {	  
-	  cout << PHWHERE << " missing g4particle" << endl;
+	  cout << PHWHERE << " missing g4particle for track " 
+	       << g4hit->get_trkid() << endl;
 	  continue;
 	}
 
