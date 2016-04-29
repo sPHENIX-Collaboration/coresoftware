@@ -93,6 +93,14 @@ public:
 		_do_eval = doEval;
 	}
 
+	bool is_do_evt_display() const {
+		return _do_evt_display;
+	}
+
+	void set_do_evt_display(bool doEvtDisplay) {
+		_do_evt_display = doEvtDisplay;
+	}
+
 private:
 
 	//! Event counter
@@ -145,6 +153,8 @@ private:
 	TClonesArray* _tca_vertexmap;
 	TClonesArray* _tca_trackmap_refit;
 	TClonesArray* _tca_vertexmap_refit;
+
+	bool _do_evt_display;
 
 };
 

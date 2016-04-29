@@ -9,7 +9,9 @@
 #define __PHGenFit_Fitter__
 
 //STL
-#include <vector>
+
+#include <GenFit/EventDisplay.h>
+#include <string>
 
 //BOOST
 //#include<boost/make_shared.hpp>
@@ -61,6 +63,21 @@ public:
 	int processTrack(PHGenFit::Track* track, const bool save_to_evt_disp = false);
 
 	int displayEvent();
+
+	bool is_do_Event_Display() const {
+		return _doEventDisplay;
+	}
+
+	void set_do_Event_Display(bool doEventDisplay) {
+		_doEventDisplay = doEventDisplay;
+		if(!_display && _doEventDisplay)
+			_display = genfit::EventDisplay::getInstance();
+	}
+
+	genfit::EventDisplay* getEventDisplay()
+	{
+		return _display;
+	}
 
 private:
 
