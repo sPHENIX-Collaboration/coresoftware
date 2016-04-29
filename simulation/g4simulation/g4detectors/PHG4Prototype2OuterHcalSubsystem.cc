@@ -299,7 +299,7 @@ PHG4Prototype2OuterHcalSubsystem::SetDefaultParameters()
   default_double["steplimits"] = NAN;
 
   default_int["absorberactive"] = 0;
-  default_int["absorbertruth"] = 0;
+  default_int["absorbertruth"] = 1;
   default_int["active"] = 0;
   default_int["blackhole"] = 0;
   default_int["light_scint_model"] = 1;
