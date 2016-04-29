@@ -56,6 +56,12 @@ public:
     _tower_postfix.push_back(name);
   }
 
+  void
+  AddRunInfo(const std::string &name)
+  {
+    _runinfo_list.push_back(name);
+  }
+
   //! zero suppression for all calorimeters
   double
   get_tower_zero_sup()
@@ -76,6 +82,8 @@ protected:
   std::vector<std::string> _tower_postfix;
 //  std::vector<std::string> _jet_postfix;
 //  std::vector<std::string> _node_name;
+  std::vector<std::string> _runinfo_list;
+
   int nblocks;
 
 #ifndef __CINT__
@@ -88,10 +96,11 @@ protected:
     std::string _name;
     arr_ptr _arr;
     TClonesArray * _arr_ptr;
+    double _dvalue;
 
     enum enu_type
     {
-      typ_hit, typ_part, typ_vertex, typ_tower, typ_jets
+      typ_hit, typ_part, typ_vertex, typ_tower, typ_jets, typ_runinfo
     };
     enu_type _type;
   };

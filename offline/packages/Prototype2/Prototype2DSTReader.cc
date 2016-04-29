@@ -16,6 +16,8 @@
 #include <phool/getClass.h>
 
 #include <g4cemc/RawTowerContainer.h>
+#include <pdbcalbase/PdbParameterMap.h>
+#include <g4detectors/PHG4Parameters.h>
 
 #include <TTree.h>
 #include <TMath.h>
@@ -63,6 +65,23 @@ Prototype2DSTReader::Init(PHCompositeNode*)
           << "Prototype2DSTReader::Init - zero suppression for calorimeter towers = "
           << _tower_zero_sup << " GeV" << endl;
     }
+  for (vector<string>::const_iterator it = _runinfo_list.begin();
+      it != _runinfo_list.end(); ++it)
+    {
+      const string & nodenam = *it;
+
+      record rec;
+      rec._cnt = 0;
+      rec._name = nodenam;
+      rec._arr = NULL;
+      rec._arr_ptr = NULL;
+      rec._dvalue = 0;
+      rec._type = record::typ_runinfo;
+
+      _records.push_back(rec);
+
+      nblocks++;
+    }
   for (vector<string>::const_iterator it = _tower_postfix.begin();
       it != _tower_postfix.end(); ++it)
     {
@@ -80,6 +99,7 @@ Prototype2DSTReader::Init(PHCompositeNode*)
       rec._name = hname;
       rec._arr = boost::make_shared<TClonesArray>(class_name, arr_size);
       rec._arr_ptr = rec._arr.get();
+      rec._dvalue = 0;
       rec._type = record::typ_tower;
 
       _records.push_back(rec);
@@ -115,11 +135,23 @@ Prototype2DSTReader::build_tree()
 
       cout << "Prototype2DSTReader::build_tree - Add " << rec._name << endl;
 
-      const string name_cnt = "n_" + rec._name;
-      const string name_cnt_desc = name_cnt + "/I";
-      _T->Branch(name_cnt.c_str(), &(rec._cnt), name_cnt_desc.c_str(),
-          BUFFER_SIZE);
-      _T->Branch(rec._name.c_str(), &(rec._arr_ptr), BUFFER_SIZE, 99);
+      if (rec._type == record::typ_runinfo)
+        {
+
+          const string name_cnt = rec._name;
+          const string name_cnt_desc = name_cnt + "/D";
+          _T->Branch(name_cnt.c_str(), &(rec._dvalue), name_cnt_desc.c_str(),
+              BUFFER_SIZE);
+        }
+      else if (rec._type == record::typ_tower)
+        {
+
+          const string name_cnt = "n_" + rec._name;
+          const string name_cnt_desc = name_cnt + "/I";
+          _T->Branch(name_cnt.c_str(), &(rec._cnt), name_cnt_desc.c_str(),
+              BUFFER_SIZE);
+          _T->Branch(rec._name.c_str(), &(rec._arr_ptr), BUFFER_SIZE, 99);
+        }
 
       nblocks++;
     }
@@ -145,9 +177,6 @@ Prototype2DSTReader::process_event(PHCompositeNode* topNode)
       record & rec = *it;
 
       rec._cnt = 0;
-      assert(rec._arr.get() == rec._arr_ptr);
-      assert(rec._arr.get());
-      rec._arr->Clear();
 
       if (rec._type == record::typ_hit)
         {
@@ -155,6 +184,10 @@ Prototype2DSTReader::process_event(PHCompositeNode* topNode)
         } //      if (rec._type == record::typ_hit)
       else if (rec._type == record::typ_tower)
         {
+          assert(rec._arr.get() == rec._arr_ptr);
+          assert(rec._arr.get());
+          rec._arr->Clear();
+
           if (Verbosity() >= 2)
             cout << "Prototype2DSTReader::process_event - processing tower "
                 << rec._name << endl;
@@ -225,9 +258,19 @@ Prototype2DSTReader::process_event(PHCompositeNode* topNode)
                 }
             } // if (!hits)
         } //      if (rec._type == record::typ_hit)
-      else if (rec._type == record::typ_jets)
+      else if (rec._type == record::typ_runinfo)
         {
-          assert(0);
+
+          PdbParameterMap *info = findNode::getClass<PdbParameterMap>(topNode,
+              "RUN_INFO");
+
+          assert(info);
+
+          PHG4Parameters run_info_copy("RunInfo");
+          run_info_copy.FillFrom(info);
+
+          rec._dvalue = run_info_copy.get_double_param(rec._name);
+
         } //      if (rec._type == record::typ_hit)
       else if (rec._type == record::typ_part)
         {
