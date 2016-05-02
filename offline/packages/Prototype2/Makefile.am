@@ -15,7 +15,8 @@ lib_LTLIBRARIES = \
   libPrototype2.la
 
 pkginclude_HEADERS = \
-  RawTower_Prototype2.h 
+  RawTower_Prototype2.h \
+  RawTower_Temperature.h 
 
 libPrototype2_la_SOURCES = \
   RawTower_Prototype2.cc \
@@ -31,7 +32,9 @@ libPrototype2_la_SOURCES = \
   GenericUnpackPRDF.C \
   GenericUnpackPRDFDict.C \
   PROTOTYPE2_FEM.C \
-  PROTOTYPE2_FEMDict.cc
+  PROTOTYPE2_FEMDict.cc \
+  RawTower_Temperature.cc \
+  RawTower_TemperatureDict.cc
 
 libPrototype2_la_LIBADD = \
   -lSubsysReco \
