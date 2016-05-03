@@ -1209,7 +1209,7 @@ int PHG4HoughTransform::setup_tracker_object() {
     _tracker->setChi2RemovalCut(_chi2_cut_full * 0.5);
     _tracker->setCellularAutomatonChi2Cut(_ca_chi2_cut);
     _tracker->setPrintTimings(false);
-    _tracker->setVerbosity(verbosity);
+    //_tracker->setVerbosity(verbosity);
     _tracker->setCutOnDca(_cut_on_dca);
     _tracker->setDcaCut(_dca_cut);
     _tracker->setSmoothBack(true);
