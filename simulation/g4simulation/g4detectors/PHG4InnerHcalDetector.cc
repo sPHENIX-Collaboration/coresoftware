@@ -63,7 +63,8 @@ PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, PHG4Paramet
   scinti_tile_x_upper(NAN),
   scinti_tile_z(size_z),
   scinti_tile_thickness(params->get_double_param("scinti_tile_thickness")*cm),
-  scinti_gap(params->get_double_param("scinti_gap")*cm),
+  scinti_inner_gap(params->get_double_param("scinti_inner_gap")*cm),
+  scinti_outer_gap(params->get_double_param("scinti_outer_gap")*cm),
   tilt_angle(params->get_double_param("tilt_angle")*deg),
   envelope_inner_radius(inner_radius),
   envelope_outer_radius(outer_radius),
@@ -206,8 +207,8 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
   // and calculate intersection of edge with inner and outer radius.
   Point_2 p_in_1(mid_radius, 0); // center of lower scintillator
   double angle_mid_scinti = M_PI / 2. + tilt_angle / rad;
-  double xcoord = scinti_gap / 2. * cos(angle_mid_scinti / rad) + mid_radius;
-  double ycoord =   scinti_gap / 2. * sin(angle_mid_scinti / rad) + 0;
+  double xcoord = scinti_inner_gap / 2. * cos(angle_mid_scinti / rad) + mid_radius;
+  double ycoord =   scinti_inner_gap / 2. * sin(angle_mid_scinti / rad) + 0;
   Point_2 p_loweredge(xcoord, ycoord);
   Line_2 s2(p_in_1, p_loweredge); // center vertical
   Line_2 perp =  s2.perpendicular(p_loweredge); // that is the lower edge of the steel plate
@@ -233,10 +234,17 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
 	  cout << "CGAL::Object type not pair..." << endl;
 	}
     }
+
+  double xcoord2 = scinti_outer_gap / 2. * cos(angle_mid_scinti / rad) + mid_radius;
+  double ycoord2 =  scinti_outer_gap / 2. * sin(angle_mid_scinti / rad) + 0;
+  Point_2 p_loweredge2(xcoord2, ycoord2);
+  Line_2 s2_2(p_in_1, p_loweredge2); // center vertical
+  Line_2 perp2 =  s2_2.perpendicular(p_loweredge2); // that is the lower edge of the steel plate
+
   Point_2 so1(outer_radius, 0), so2(0, outer_radius), so3(-outer_radius, 0);
   Circle_2 outer_circle(so1, so2, so3);
   res.clear(); // just clear the content from the last intersection search
-  CGAL::intersection(outer_circle, perp, std::back_inserter(res));
+  CGAL::intersection(outer_circle, perp2, std::back_inserter(res));
   Point_2 lowerright;
   for (iter = res.begin(); iter != res.end(); ++iter)
     {
@@ -263,8 +271,8 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
   double ymidpoint = sin(phi_midpoint) * mid_radius;
   // angle of perp line at center of scintillator
   angle_mid_scinti = (M_PI / 2. - phi_midpoint) - (M_PI / 2. + tilt_angle / rad);
-  double xcoordup = xmidpoint - scinti_gap / 2. * sin(angle_mid_scinti / rad);
-  double ycoordup = ymidpoint - scinti_gap / 2. * cos(angle_mid_scinti / rad);
+  double xcoordup = xmidpoint - scinti_inner_gap / 2. * sin(angle_mid_scinti / rad);
+  double ycoordup = ymidpoint - scinti_inner_gap / 2. * cos(angle_mid_scinti / rad);
   Point_2 upperleft;
   Point_2 upperright;
   Point_2 mid_upperscint(xmidpoint, ymidpoint);
@@ -295,10 +303,17 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelope)
 	    cout << "CGAL::Object type not pair..." << endl;
 	  }
       }
+
+    double xcoordup2 = xmidpoint - scinti_outer_gap / 2. * sin(angle_mid_scinti / rad);
+    double ycoordup2 = ymidpoint - scinti_outer_gap / 2. * cos(angle_mid_scinti / rad);
+    Point_2 p_upperedge2(xcoordup2, ycoordup2);
+    Line_2 sup2(mid_upperscint, p_upperedge2); // center vertical
+    Line_2 perp2 =  sup2.perpendicular(p_upperedge2); // that is the upper edge of the steel plate
+
     Point_2 so1(outer_radius, 0), so2(0, outer_radius), so3(-outer_radius, 0);
     Circle_2 outer_circle(so1, so2, so3);
     res.clear(); // just clear the content from the last intersection search
-    CGAL::intersection(outer_circle, perp, std::back_inserter(res));
+    CGAL::intersection(outer_circle, perp2, std::back_inserter(res));
     for (iter = res.begin(); iter != res.end(); ++iter)
       {
 	CGAL::Object obj = *iter;
@@ -716,10 +731,10 @@ PHG4InnerHcalDetector::ConsistencyCheck() const
 	   << " cm" << endl;
       exit(1);
     }
-  if (scinti_tile_thickness > scinti_gap)
+  if (scinti_tile_thickness > scinti_inner_gap)
     {
       cout << PHWHERE << "Scintillator thickness " << scinti_tile_thickness/cm
-	   << " cm larger than scintillator gap " << scinti_gap/cm
+	   << " cm larger than scintillator inner gap " << scinti_inner_gap/cm
 	   << " cm" << endl;
       exit(1);
     }
