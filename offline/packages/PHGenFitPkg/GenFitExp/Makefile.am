@@ -25,9 +25,6 @@ libgenfit2exp_la_SOURCES = \
 libgenfit2exp_la_LIBADD = \
   -lgenfit2
 
-#install-exec-hook:
-#	@[ $$OSTYPE = darwin ] && ln -sf $(DESTDIR)$(libdir)/libgenfit2exp.dylib $(DESTDIR)$(libdir)/libgenfit2exp.so || true
-
 BUILT_SOURCES = \
   testexternals.C
 

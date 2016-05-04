@@ -37,6 +37,7 @@ extern "C" {
 #include "packetV1Public.h"
 #include "packetHdrV1.h"
 #include "formatError.h"
+#include "dataBlock.h"
 
 VALUE_ret makePacketV1Hdr (PACKET_ptr, UINT);
 
@@ -86,7 +87,24 @@ INLINE_D LOGIC_ret emptyPacketV1 (PACKET_ptr packet_ptr)
 
 INLINE_D VALUE_ret getPacketV1DataLength (PACKET_ptr packet_ptr)
 {
-  PHDWORD dataLength = getPacketLength(packet_ptr) - getPacketHdrLength(packet_ptr) -
+
+  PHDWORD dataLength;
+  if (getPacketStructure(packet_ptr) == Unstructured)
+    {
+
+      int factor = 4 / getUnstructPacketWordSize(packet_ptr);
+
+      dataLength = factor * ( getPacketLength(packet_ptr)
+			      - getPacketHdrLength(packet_ptr)
+			      - getPacketErrorLength(packet_ptr)
+			      - getPacketDebugLength(packet_ptr) )
+	- getPacketPadding(packet_ptr);
+
+      return dataLength;
+
+    }
+  
+  dataLength = getPacketLength(packet_ptr) - getPacketHdrLength(packet_ptr) -
                      getPacketErrorLength(packet_ptr) - getPacketDebugLength(packet_ptr) -
                      getPacketPadding(packet_ptr);
   return dataLength;

@@ -34,9 +34,6 @@ libPHGenFit_la_LIBADD = \
   -lgenfit2 \
   -lgenfit2exp
 
-#install-exec-hook:
-#	@[ $$OSTYPE = darwin ] && ln -sf $(DESTDIR)$(libdir)/libPHGenFit.dylib $(DESTDIR)$(libdir)/libPHGenFit.so || true
-
 BUILT_SOURCES = \
   testexternals.C
 

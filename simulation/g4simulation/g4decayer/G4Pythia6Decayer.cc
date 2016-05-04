@@ -44,7 +44,7 @@
 #include <Geant4/G4Track.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 
-#include <Geant4/CLHEP/Vector/LorentzVector.h>
+#include <CLHEP/Vector/LorentzVector.h>
 
 #include <cmath>
 

@@ -15,7 +15,8 @@ lib_LTLIBRARIES = \
   libPrototype2.la
 
 pkginclude_HEADERS = \
-  RawTower_Prototype2.h 
+  RawTower_Prototype2.h \
+  RawTower_Temperature.h 
 
 libPrototype2_la_SOURCES = \
   RawTower_Prototype2.cc \
@@ -24,21 +25,22 @@ libPrototype2_la_SOURCES = \
   Prototype2DSTReaderDict.cc \
   CaloUnpackPRDF.C \
   CaloUnpackPRDFDict.C \
+  RunInfoUnpackPRDF.C \
+  RunInfoUnpackPRDFDict.C \
   CaloCalibration.C \
   CaloCalibrationDict.C \
   GenericUnpackPRDF.C \
   GenericUnpackPRDFDict.C \
   PROTOTYPE2_FEM.C \
-  PROTOTYPE2_FEMDict.cc
+  PROTOTYPE2_FEMDict.cc \
+  RawTower_Temperature.cc \
+  RawTower_TemperatureDict.cc
 
 libPrototype2_la_LIBADD = \
   -lSubsysReco \
   -lphool \
   -lfun4all \
   -lcemc
-
-install-exec-hook:
-	@[ $$OSTYPE = darwin ] && ln -sf $(DESTDIR)$(libdir)/libPrototype2.dylib $(DESTDIR)$(libdir)/libPrototype2.so || true
 
 BUILT_SOURCES = \
   testexternals.C
