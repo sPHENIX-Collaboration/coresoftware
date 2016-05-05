@@ -50,6 +50,86 @@
 
 using namespace std;
 
+
+//Rave
+#include <rave/Version.h>
+#include <rave/Track.h>
+#include <rave/VertexFactory.h>
+#include <rave/ConstantMagneticField.h>
+
+//GenFit
+#include <GenFit/GFRaveConverters.h>
+
+class PHRaveVertexFactory {
+
+public:
+	//! ctor
+	PHRaveVertexFactory(const int verbosity) {
+		rave::ConstantMagneticField mfield(0., 0., 0.); // RAVE use Tesla
+		_factory = new rave::VertexFactory(mfield, rave::VacuumPropagator(),
+				"default", verbosity);
+
+		IdGFTrackStateMap_.clear();
+	}
+
+	//! dotr
+	~PHRaveVertexFactory() {
+		clearMap();
+
+		delete _factory;
+	}
+
+	void findVertices(std::vector<genfit::GFRaveVertex*>* vertices,
+			const std::vector<genfit::Track*>& tracks,
+			const bool use_beamspot = false) {
+
+		clearMap();
+
+		try {
+			genfit::RaveToGFVertices(vertices,
+					_factory->create(
+							genfit::GFTracksToTracks(tracks, NULL,
+									IdGFTrackStateMap_, 0), use_beamspot),
+					IdGFTrackStateMap_);
+		} catch (genfit::Exception & e) {
+			std::cerr << e.what();
+		}
+	}
+
+	void findVertices(std::vector<genfit::GFRaveVertex*>* vertices,
+			const std::vector<genfit::Track*>& tracks,
+			std::vector < genfit::MeasuredStateOnPlane* > & GFStates,
+			const bool use_beamspot = false) {
+
+		clearMap();
+
+		try {
+			genfit::RaveToGFVertices(vertices,
+					_factory->create(
+							genfit::GFTracksToTracks(tracks, &GFStates,
+									IdGFTrackStateMap_, 0), use_beamspot),
+					IdGFTrackStateMap_);
+		} catch (genfit::Exception & e) {
+			std::cerr << e.what();
+		}
+	}
+
+private:
+	void clearMap() {
+
+		for (unsigned int i = 0; i < IdGFTrackStateMap_.size(); ++i)
+			delete IdGFTrackStateMap_[i].state_;
+
+		IdGFTrackStateMap_.clear();
+	}
+
+	std::map<int, genfit::trackAndState> IdGFTrackStateMap_;
+
+	rave::VertexFactory* _factory;
+
+};
+
+
 /*
  * Constructor
  */
@@ -84,9 +164,14 @@ int PHG4TrackKalmanFitter::Init(PHCompositeNode *topNode) {
 
 	//LogDebug(genfit::FieldManager::getInstance()->getFieldVal(TVector3(0, 0, 0)).Z());
 
-	_vertex_finder = new genfit::GFRaveVertexFactory(verbosity);
+
+	//_vertex_finder = new genfit::GFRaveVertexFactory(verbosity);
 	//_vertex_finder->setMethod("kalman-smoothing:1"); //! kalman-smoothing:1 is the defaul method
 	//_vertex_finder->setBeamspot();
+
+	_vertex_finder = new PHRaveVertexFactory(verbosity);
+
+
 	if (!_vertex_finder) {
 		cerr << PHWHERE << endl;
 		return Fun4AllReturnCodes::ABORTRUN;
@@ -519,8 +604,6 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 
 	return true;
 }
-
-
 
 
 

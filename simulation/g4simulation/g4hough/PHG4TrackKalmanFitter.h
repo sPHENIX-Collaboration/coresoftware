@@ -36,6 +36,9 @@ class SvtxEvalStack;
 class TFile;
 class TTree;
 
+//! \brief Helper class for using RAVE vertex finder.
+class PHRaveVertexFactory;
+
 //! \brief		Refit SvtxTracks with PHGenFit.
 class PHG4TrackKalmanFitter: public SubsysReco {
 public:
@@ -127,7 +130,8 @@ private:
 	unsigned int _flags;
 
 	PHGenFit::Fitter* _fitter;
-	genfit::GFRaveVertexFactory* _vertex_finder;
+	//genfit::GFRaveVertexFactory* _vertex_finder;
+	PHRaveVertexFactory* _vertex_finder;
 
 	//! Input Node pointers
 	PHG4TruthInfoContainer* _truth_container;

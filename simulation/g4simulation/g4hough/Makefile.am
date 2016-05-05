@@ -13,7 +13,7 @@ lib_LTLIBRARIES = \
    libg4hough.la
 
 AM_CXXFLAGS = \
- -Wall -Werror -msse2
+ -Wall -Werror -msse2 -DRAVE -DRaveDllExport=
 
 AM_LDFLAGS = \
   -L$(libdir) \
