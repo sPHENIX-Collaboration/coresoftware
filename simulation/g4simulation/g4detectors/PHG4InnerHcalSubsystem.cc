@@ -160,7 +160,6 @@ PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
 
       // create stepping action
       steppingAction_ = new PHG4InnerHcalSteppingAction(detector_, params);
-      trackingAction_ = new PHG4FlushStepTrackingAction(steppingAction_);
     }
   else
     {
@@ -169,6 +168,10 @@ PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
 	{
 	  steppingAction_ = new PHG4InnerHcalSteppingAction(detector_, params);
 	}
+    }
+  if (steppingAction_)
+    {
+      trackingAction_ = new PHG4FlushStepTrackingAction(steppingAction_);
     }
   return 0;
 
