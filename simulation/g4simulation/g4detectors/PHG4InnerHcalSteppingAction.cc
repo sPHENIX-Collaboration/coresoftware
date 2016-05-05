@@ -186,14 +186,13 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	  if (whichactive > 0) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
 	    {
 	      hit->set_light_yield(0); // for scintillator only, initialize light yields
-	      // Now add the hit
+	      // Now save the container we want to add this hit to
 	      savehitcontainer = hits_;
 	    }
 	  else
 	    {
 	      savehitcontainer = absorberhits_;
 	    }
-	  //savehitcontainer->AddHit(save_layer_id, hit);
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
 	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
@@ -201,11 +200,6 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 		  hit->set_trkid(pp->GetUserTrackId());
 		  hit->set_shower_id(pp->GetShower()->get_id());
 		  saveshower =  pp->GetShower();
-		  cout << "1 would add id: " << savehitcontainer->GetID() 
-		       << ", hitid: " << hit->get_hit_id() 
-		       << " to " << saveshower << endl;
-		  //saveshower->add_g4hit_id(savehitcontainer->GetID(),hit->get_hit_id());
-		  //		  pp->GetShower()->add_g4hit_id(savehitcontainer->GetID(),hit->get_hit_id());
 		}
 	    }
 
@@ -380,16 +374,13 @@ PHG4InnerHcalSteppingAction::save_previous_g4hit()
     {
       return;
     }
+  // save only hits with non zero energy deposition (remember geantinos edep = -1)
    if (hit->get_edep())
-     //    if (1)
     {
       savehitcontainer->AddHit(save_layer_id, hit);
       if (saveshower)
 	{
-	  cout << "2 would add id: " << savehitcontainer->GetID()
-	       << ", hitid: " << hit->get_hit_id()
-	       << " to " << saveshower << endl;
-               saveshower->add_g4hit_id(savehitcontainer->GetID(),hit->get_hit_id());
+	  saveshower->add_g4hit_id(savehitcontainer->GetID(),hit->get_hit_id());
 	}
     }
   else
