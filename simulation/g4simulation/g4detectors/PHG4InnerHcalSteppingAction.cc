@@ -202,7 +202,6 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 		  saveshower =  pp->GetShower();
 		}
 	    }
-
 	  break;
 	default:
 	  break;
@@ -360,6 +359,7 @@ PHG4InnerHcalSteppingAction::GetLightCorrection(const double r) const
 
   return value;
 }
+
 void
 PHG4InnerHcalSteppingAction::flush_cached_values()
 {
