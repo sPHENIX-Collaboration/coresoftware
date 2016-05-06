@@ -132,6 +132,7 @@ pkginclude_HEADERS = \
   PHG4RegionInformation.h \
   PHG4SteppingAction.h \
   PHG4Subsystem.h \
+  PHG4TrackingAction.h \
   PHG4TrackUserInfoV1.h \
   PHG4TruthInfoContainer.h \
   PHG4Utils.h \

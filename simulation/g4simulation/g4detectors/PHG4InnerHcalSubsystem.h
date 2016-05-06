@@ -14,6 +14,7 @@ class PHG4InnerHcalDetector;
 class PHG4Parameters;
 class PHG4InnerHcalSteppingAction;
 class PHG4EventAction;
+class PHG4FlushStepTrackingAction;
 
 class PHG4InnerHcalSubsystem: public PHG4Subsystem
 {
@@ -50,8 +51,9 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   void Print(const std::string &what = "ALL") const;
 
   //! accessors (reimplemented)
-  virtual PHG4Detector* GetDetector( void ) const;
-  virtual PHG4SteppingAction* GetSteppingAction( void ) const;
+  PHG4Detector* GetDetector( void ) const;
+  PHG4SteppingAction* GetSteppingAction( void ) const;
+  PHG4TrackingAction* GetTrackingAction( void ) const;
 
   PHG4EventAction* GetEventAction() const {return eventAction_;}
   void SetActive(const int i = 1);
@@ -87,6 +89,8 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingAction */
   PHG4InnerHcalSteppingAction* steppingAction_;
+
+  PHG4FlushStepTrackingAction *trackingAction_;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4EventAction */
