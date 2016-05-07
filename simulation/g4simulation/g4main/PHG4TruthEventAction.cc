@@ -4,6 +4,8 @@
 #include "PHG4UserPrimaryParticleInformation.h"
 
 #include "PHG4VtxPoint.h"
+#include "PHG4Shower.h"
+
 #include "PHG4TruthInfoContainer.h"
 #include "PHG4HitContainer.h"
 #include "PHG4Hit.h"

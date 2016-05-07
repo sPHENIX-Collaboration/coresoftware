@@ -1,9 +1,8 @@
 #ifndef PHG4EventAction_h
 #define PHG4EventAction_h
 
-#include <phool/PHCompositeNode.h>
-
 class G4Event;
+class PHCompositeNode;
 
 class PHG4EventAction
 {
