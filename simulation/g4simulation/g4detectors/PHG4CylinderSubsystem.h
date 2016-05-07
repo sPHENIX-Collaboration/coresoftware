@@ -1,7 +1,7 @@
 #ifndef PHG4CylinderSubsystem_h
 #define PHG4CylinderSubsystem_h
 
-#include "g4main/PHG4Subsystem.h"
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
@@ -9,6 +9,7 @@
 class PHG4CylinderDetector;
 class PHG4CylinderSteppingAction;
 class PHG4EventAction;
+class PHG4FlushStepTrackingAction;
 
 class PHG4CylinderSubsystem: public PHG4Subsystem
 {
@@ -38,8 +39,9 @@ class PHG4CylinderSubsystem: public PHG4Subsystem
   int process_event(PHCompositeNode *);
 
   //! accessors (reimplemented)
-  virtual PHG4Detector* GetDetector( void ) const;
-  virtual PHG4SteppingAction* GetSteppingAction( void ) const;
+  PHG4Detector* GetDetector( void ) const;
+  PHG4SteppingAction* GetSteppingAction( void ) const;
+  PHG4TrackingAction* GetTrackingAction( void ) const;
   PHG4EventAction* GetEventAction() const {return eventAction_;}
 
   void SetRadius(const G4double dbl) {radius = dbl;}
@@ -69,6 +71,9 @@ class PHG4CylinderSubsystem: public PHG4Subsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4CylinderSteppingAction* steppingAction_;
+
+  PHG4FlushStepTrackingAction *trackingAction_;
+
   PHG4EventAction *eventAction_;
   G4double radius;
   G4double length;
