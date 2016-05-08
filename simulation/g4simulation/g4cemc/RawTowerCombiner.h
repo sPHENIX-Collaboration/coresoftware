@@ -79,29 +79,10 @@ public:
     _n_combine_phi = combinePhi;
   }
 
-  //! suffix added to the calorimeter detector name
-  //! if empty, suffix will be automatically assigned, e.g. "2x2"
-  std::string
-  get_output_node_suffix() const
-  {
-    return _output_node_suffix;
-  }
-
-  //! suffix added to the calorimeter detector name
-  //! if empty, suffix will be automatically assigned, e.g. "2x2"
-  void
-  set_output_node_suffix(std::string outputNodeSuffix)
-  {
-    _output_node_suffix = outputNodeSuffix;
-  }
 protected:
 
   //! prefix to the tower node
   std::string _tower_node_prefix;
-
-  //! suffix added to the calorimeter detector name
-  //! if empty, suffix will be automatically assigned, e.g. "2x2"
-  std::string _output_node_suffix;
 
   //! number of eta towers to be merged into a new tower
   unsigned int _n_combine_eta;
@@ -117,8 +98,7 @@ protected:
   void
   CreateNodes(PHCompositeNode *topNode);
 
-  RawTowerContainer* _intput_towers;
-  RawTowerContainer* _output_towers;
+  RawTowerContainer* _towers;
 
   std::string detector;
 
