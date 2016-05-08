@@ -106,8 +106,6 @@ protected:
   RawTowerContainer* _output_towers;
 
   std::string detector;
-  std::string TowerNodeName;
-  std::string TowerGeomNodeName;
 
 };
 
