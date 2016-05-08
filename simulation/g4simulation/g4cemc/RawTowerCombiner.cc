@@ -82,6 +82,7 @@ RawTowerCombiner::process_event(PHCompositeNode *topNode)
   assert(_towers);
 
   const double input_e_sum = _towers->getTotalEdep();
+  const double input_n_tower = _towers->size();
 
   if (verbosity)
     {
@@ -180,8 +181,9 @@ RawTowerCombiner::process_event(PHCompositeNode *topNode)
   if (verbosity)
     {
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
-          << "input sum energy = " << input_e_sum << ", merged sum energy = "
-          << _towers->getTotalEdep() << std::endl;
+          << "input sum energy = " << input_e_sum <<" from "<<input_n_tower<< " towers, merged sum energy = "
+          << _towers->getTotalEdep()<<" from "<<_towers->size()<<" towers" << std::endl;
+      assert(input_e_sum ==  _towers->getTotalEdep());
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
