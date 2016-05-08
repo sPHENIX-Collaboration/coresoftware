@@ -91,7 +91,6 @@ RawTowerGeomContainerv1::Reset()
       _geoms.erase(_geoms.begin());
     }
 
-  RawTowerGeomContainer::Reset();
 }
 
 void
