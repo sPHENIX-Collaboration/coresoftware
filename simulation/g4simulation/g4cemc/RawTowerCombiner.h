@@ -30,54 +30,65 @@ public:
   process_event(PHCompositeNode *topNode);
   int
   End(PHCompositeNode *topNode);
+
   void
   Detector(const std::string &d)
   {
     detector = d;
   }
 
+  //! prefix to the tower node
   std::string
   get_tower_node_prefix() const
   {
     return _tower_node_prefix;
   }
 
+  //! prefix to the tower node
   void
-  set_tower_node_prefix(std::string simTowerNodePrefix)
+  set_tower_node_prefix(const std::string & simTowerNodePrefix)
   {
     _tower_node_prefix = simTowerNodePrefix;
   }
 
+  //! number of eta towers to be merged into a new tower
   unsigned int
   get_combine_eta() const
   {
     return _n_combine_eta;
   }
 
+  //! number of eta towers to be merged into a new tower
   void
   set_combine_eta(unsigned int combineEta)
   {
     _n_combine_eta = combineEta;
   }
 
+  //! number of eta towers to be merged into a new tower
   unsigned int
   get_combine_phi() const
   {
     return _n_combine_phi;
   }
 
+  //! number of eta towers to be merged into a new tower
   void
   set_combine_phi(unsigned int combinePhi)
   {
     _n_combine_phi = combinePhi;
   }
 
+  //! suffix added to the calorimeter detector name
+  //! if empty, suffix will be automatically assigned, e.g. "2x2"
   std::string
   get_output_node_suffix() const
   {
     return _output_node_suffix;
   }
 
+  //! suffix added to the calorimeter detector name
+  //! if empty, suffix will be automatically assigned, e.g. "2x2"
   void
   set_output_node_suffix(std::string outputNodeSuffix)
   {
@@ -85,12 +96,16 @@ public:
   }
 protected:
 
+  //! prefix to the tower node
   std::string _tower_node_prefix;
 
-  //! if empty, suffix will be automatically assigned
+  //! suffix added to the calorimeter detector name
+  //! if empty, suffix will be automatically assigned, e.g. "2x2"
   std::string _output_node_suffix;
 
+  //! number of eta towers to be merged into a new tower
   unsigned int _n_combine_eta;
+  //! number of phi towers to be merged into a new tower
   unsigned int _n_combine_phi;
 
   //! get the new ieta from the old
