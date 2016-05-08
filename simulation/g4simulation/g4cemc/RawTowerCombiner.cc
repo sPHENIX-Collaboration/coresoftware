@@ -222,7 +222,70 @@ RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
       runNode->addNode(newNode);
     }
 
-  if (verbosity >= 1)
+  assert(output_towergeom);
+
+  const double r = input_towergeom->get_radius();
+  output_towergeom->set_radius(r);
+  output_towergeom->set_thickness(input_towergeom->get_thickness());
+  output_towergeom->set_phibins(
+      ceil(double(input_towergeom->get_phibins()) / double(_n_combine_phi)));
+  output_towergeom->set_etabins(
+      ceil(double(input_towergeom->get_etabins()) / double(_n_combine_eta)));
+
+  for (int ibin = 0; ibin < output_towergeom->get_phibins(); ibin++)
+    {
+      const int first_bin = ibin * _n_combine_phi;
+      assert(first_bin >= 0 && first_bin < input_towergeom->get_phibins());
+
+      int last_bin = (ibin + 1) * _n_combine_phi - 1;
+      if (last_bin >= input_towergeom->get_phibins())
+        last_bin = input_towergeom->get_phibins();
+
+      const pair<double, double> range1 = input_towergeom->get_phibounds(
+          first_bin);
+      const pair<double, double> range2 = input_towergeom->get_phibounds(
+          last_bin);
+
+      output_towergeom->set_phibounds(ibin,
+          make_pair(range1.first, range2.second));
+    }
+
+  for (int ibin = 0; ibin < output_towergeom->get_etabins(); ibin++)
+    {
+      const int first_bin = ibin * _n_combine_eta;
+      assert(first_bin >= 0 && first_bin < input_towergeom->get_etabins());
+
+      int last_bin = (ibin + 1) * _n_combine_eta - 1;
+      if (last_bin >= input_towergeom->get_etabins())
+        last_bin = input_towergeom->get_etabins();
+
+      const pair<double, double> range1 = input_towergeom->get_etabounds(
+          first_bin);
+      const pair<double, double> range2 = input_towergeom->get_etabounds(
+          last_bin);
+
+      output_towergeom->set_etabounds(ibin,
+          make_pair(range1.first, range2.second));
+
+    }
+
+  // setup location of all towers
+  for (int iphi = 0; iphi < output_towergeom->get_phibins(); iphi++)
+    for (int ieta = 0; ieta < output_towergeom->get_etabins(); ieta++)
+      {
+        RawTowerGeomv1 * tg = new RawTowerGeomv1(
+            RawTowerDefs::encode_towerid(caloid, ieta, iphi));
+
+        tg->set_center_x(r * cos(output_towergeom->get_phicenter(iphi)));
+        tg->set_center_y(r * sin(output_towergeom->get_phicenter(iphi)));
+        tg->set_center_z(
+            r
+                / tan(
+                    PHG4Utils::get_theta(
+                        output_towergeom->get_etacenter(ieta))));
+        output_towergeom->add_tower_geometry(tg);
+      }
+  if (verbosity >= VERBOSITY_SOME)
     {
       output_towergeom->identify();
     }
@@ -237,7 +300,7 @@ RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
           << " " << input_TowerNodeName << " Node missing, doing bail out!"
           << std::endl;
       throw std::runtime_error(
-          "Failed to find " + SimTowerNodeName
+          "Failed to find " + input_TowerNodeName
               + " node in RawTowerCombiner::CreateNodes");
     }
 
