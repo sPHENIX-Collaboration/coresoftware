@@ -15,9 +15,9 @@ class RawTowerGeomContainerv1 : public RawTowerGeomContainer
   RawTowerGeomContainerv1( RawTowerDefs::CalorimeterId caloid );
   virtual ~RawTowerGeomContainerv1();
 
-  void Reset();
-  int isValid() const;
-  void identify(std::ostream& os=std::cout) const;
+  virtual void Reset();
+  virtual int isValid() const;
+  virtual void identify(std::ostream& os=std::cout) const;
 
   void set_calorimeter_id( RawTowerDefs::CalorimeterId caloid ) { _caloid = caloid; }
   RawTowerDefs::CalorimeterId get_calorimeter_id( ) const { return _caloid; }

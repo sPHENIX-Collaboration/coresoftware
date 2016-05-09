@@ -84,11 +84,13 @@ RawTowerGeomContainerv1::isValid() const
 void
 RawTowerGeomContainerv1::Reset()
 {
+
   while (_geoms.begin() != _geoms.end())
     {
       delete _geoms.begin()->second;
       _geoms.erase(_geoms.begin());
     }
+
 }
 
 void

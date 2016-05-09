@@ -15,6 +15,19 @@ RawTowerGeomContainer_Cylinderv1::RawTowerGeomContainer_Cylinderv1(
   return;
 }
 
+
+void
+RawTowerGeomContainer_Cylinderv1::Reset()
+{
+  eta_bound_map.clear();
+
+  phi_bound_map.clear();
+
+  RawTowerGeomContainerv1::Reset();
+}
+
+
+
 void
 RawTowerGeomContainer_Cylinderv1::set_etabins(const int i)
 {

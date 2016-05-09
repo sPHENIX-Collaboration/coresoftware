@@ -291,7 +291,7 @@ RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
   RawTowerNodeName = "TOWER_" + _raw_tower_node_prefix + "_" + detector;
   _raw_towers = findNode::getClass<RawTowerContainer>(DetNode,RawTowerNodeName.c_str());
   if (!_raw_towers){
-    _raw_towers = new RawTowerContainer(RawTowerDefs::convert_name_to_caloid(detector));
+    _raw_towers = new RawTowerContainer( _sim_towers -> getCalorimeterID()  );
     PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_raw_towers,
 								   RawTowerNodeName.c_str(), "PHObject");
     DetNode->addNode(towerNode);
