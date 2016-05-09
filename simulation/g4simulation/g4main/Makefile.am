@@ -83,7 +83,6 @@ libg4testbench_la_SOURCES = \
     PHG4PrimaryGeneratorAction.cc \
     PHG4Reco.cc \
     PHG4RegionInformation.cc \
-    PHG4TrackInformation.cc \
     PHG4TrackUserInfoV1.cc \
     PHG4TruthEventAction.cc \
     PHG4TruthSteppingAction.cc \
