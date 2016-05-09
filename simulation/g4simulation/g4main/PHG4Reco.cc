@@ -15,12 +15,12 @@
 #include <g4decayer/P6DExtDecayerPhysics.hh>
 #include <g4decayer/EDecayType.hh>
 
-#include <phool/getClass.h>
-#include <phool/recoConsts.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHRandomSeed.h>
+#include <phool/recoConsts.h>
 
 #include <TThread.h>
 
@@ -53,7 +53,6 @@
 #include <Geant4/G4PEEffectFluoModel.hh>
 #include <Geant4/G4EmProcessOptions.hh>
 #include <Geant4/G4HadronicProcessStore.hh>
-#include <Geant4/G4LossTableManager.hh>
 
 #include <Geant4/globals.hh>
 
