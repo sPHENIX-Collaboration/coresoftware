@@ -12,9 +12,12 @@ class RawTowerGeomContainer_Cylinderv1 : public RawTowerGeomContainerv1
 public:
   RawTowerGeomContainer_Cylinderv1(
       RawTowerDefs::CalorimeterId caloid);
+  virtual ~RawTowerGeomContainer_Cylinderv1() {Reset();}
 
-  void
+  virtual void
   identify(std::ostream& os = std::cout) const;
+
+  virtual void Reset();
 
   double
   get_radius() const
