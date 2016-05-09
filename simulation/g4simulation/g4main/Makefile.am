@@ -121,7 +121,6 @@ pkginclude_HEADERS = \
   PHG4HitEval.h \
   PHG4HitContainer.h \
   PHG4InEvent.h \
-  PHG4NullSteppingAction.h \
   PHG4Particle.h \
   PHG4Particlev1.h \
   PHG4Particlev2.h \
