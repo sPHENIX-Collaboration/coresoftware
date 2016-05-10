@@ -5,12 +5,12 @@
 #include "PHG4HcalPrototype2DetectorMessenger.h"
 
 #include "PHG4HcalPrototype2Detector.h"
-#include "G4UIdirectory.hh"
-#include "G4UIcommand.hh"
-#include "G4UIparameter.hh"
-#include "G4UIcmdWithAString.hh"
-#include "G4UIcmdWithADoubleAndUnit.hh"
-#include "G4UIcmdWithoutParameter.hh"
+#include <Geant4/G4UIdirectory.hh>
+#include <Geant4/G4UIcommand.hh>
+#include <Geant4/G4UIparameter.hh>
+#include <Geant4/G4UIcmdWithAString.hh>
+#include <Geant4/G4UIcmdWithADoubleAndUnit.hh>
+#include <Geant4/G4UIcmdWithoutParameter.hh>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

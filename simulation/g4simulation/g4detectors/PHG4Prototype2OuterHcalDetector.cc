@@ -1,5 +1,4 @@
 #include "PHG4Prototype2OuterHcalDetector.h"
-#include "PHG4Parameters.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeomv3.h"
 

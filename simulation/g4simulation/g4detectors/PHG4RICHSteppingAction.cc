@@ -1,5 +1,3 @@
-// $$Id: PHG4RICHSteppingAction.cc,v 1.5 2015/01/07 21:54:33 pinkenbu Exp $$
-
 /*!
  * \file ${file_name}
  * \brief
@@ -16,8 +14,8 @@
 #include <g4main/PHG4Shower.h>
 #include <g4main/PHG4TrackUserInfoV1.h>
 
-#include "Geant4/G4ProcessManager.hh"
-#include "Geant4/G4SDManager.hh"
+#include <Geant4/G4ProcessManager.hh>
+#include <Geant4/G4SDManager.hh>
 
 #include <phool/getClass.h>
 
