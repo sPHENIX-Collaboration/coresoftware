@@ -478,8 +478,17 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack) {
 		}
 	}
 
+
+	/*!
+	 * mu+:	-13
+	 * mu-:	13
+	 * pi+:	211
+	 * pi-:	-211
+	 * e-:	11
+	 * e+:	-11
+	 */
 	//TODO Add multiple TrackRep choices.
-	int pid = -13; //mu+
+	int pid = 211;
 	genfit::AbsTrackRep* rep = new genfit::RKTrackRep(pid);
 	PHGenFit::Track* track = new PHGenFit::Track(rep, seed_pos,
 			seed_mom, seed_cov);
@@ -531,6 +540,20 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 
 	//const SvtxTrack_v1* temp_track = static_cast<const SvtxTrack_v1*> (svtx_track);
 	SvtxTrack_v1* out_track = new SvtxTrack_v1(*static_cast<const SvtxTrack_v1*> (svtx_track));
+
+	/*!
+	 *  1/p, u'/z', v'/z', u, v
+	 *  u is defined as mom X beam line at POCA
+	 *  so u is the dca2d direction
+	 */
+	double dca2d = gf_state->getState()[3];
+	out_track->set_dca2d(dca2d);
+	out_track->set_dca2d_error(gf_state->getCov()[3][3]);
+	double dca3d = sqrt(
+			dca2d*dca2d +
+			gf_state->getState()[4]*gf_state->getState()[4]);
+	out_track->set_dca(dca3d);
+
 
 	out_track->set_chisq(chi2);
 	out_track->set_ndf(ndf);

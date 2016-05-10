@@ -29,7 +29,9 @@
 #include "Fitter.h"
 #include "Track.h"
 
-#define LogDEBUG    std::cout<<"DEBUG: "<<__LINE__<<"\n"
+#define LogDEBUG(exp)		std::cout<<"DEBUG: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
+#define LogERROR(exp)		std::cout<<"ERROR: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
+#define LogWARNING(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
 
 namespace PHGenFit {
 
@@ -40,7 +42,7 @@ Fitter::Fitter(
 		const std::string fitter_choice,
 		const std::string track_rep_choice,
 		const bool doEventDisplay
-) : _doEventDisplay(doEventDisplay)
+) : verbosity(0), _doEventDisplay(doEventDisplay)
 {
 	_tgeo_manager = new TGeoManager("Default", "Geane geometry");
 	TGeoManager::Import(tgeo_file_name.data());
@@ -73,29 +75,27 @@ Fitter::~Fitter()
 	if(_fitter)
 		delete _fitter;
 	if(_tgeo_manager)
-		delete _tgeo_manager;
+		//delete _tgeo_manager;
+		_tgeo_manager->Delete();
 	if(_display)
 		delete _display;
 }
 
 int Fitter::processTrack(PHGenFit::Track* track, const bool save_to_evt_disp) {
-
-//TODO Change to better logger
 	genfit::Track* fitTrack = track->getGenFitTrack();
 	if(!fitTrack->checkConsistency()){
-		LogDEBUG;
+		if(verbosity >= 1) LogWARNING("genfit::Track::checkConsistency() failed!") ;
 		return -1;
 	}
 	_fitter->processTrack(fitTrack);
 	if(!fitTrack->checkConsistency()){
-		LogDEBUG;
+		if(verbosity >= 1) LogWARNING("genfit::Track::checkConsistency() failed!") ;
+		return -1;
 	}
 
 	genfit::AbsTrackRep* rep = fitTrack->getCardinalRep();
 	if (!fitTrack->getFitStatus(rep)->isFitConverged()) {
-		std::cout
-				<< "Track could not be fitted successfully! Fit is not converged! \n";
-		return -1;
+		if(verbosity >= 1) LogWARNING("Track could not be fitted successfully! Fit is not converged!");
 		return -1;
 	}
 
@@ -113,16 +113,14 @@ Fitter* Fitter::getInstance(const std::string tgeo_file_name,
 	TGeoManager* tgeo_manager = TGeoManager::Import(tgeo_file_name.data(), "Default");
 	if(!tgeo_manager)
 	{
-		//TODO better logger
-		LogDEBUG;
+		LogERROR("No TGeoManager found!");
 		return NULL;
 	}
 
 	genfit::Field2D *fieldMap = new genfit::Field2D();
 	if(!fieldMap->initialize(field_file_name.data()))
 	{
-		//TODO better logger
-		LogDEBUG;
+		LogERROR("Field map initialization failed!");
 		delete fieldMap;
 		return NULL;
 	}
@@ -133,7 +131,7 @@ Fitter* Fitter::getInstance(const std::string tgeo_file_name,
 
 Fitter::Fitter(TGeoManager* tgeo_manager, genfit::AbsBField* fieldMap,
 		const std::string fitter_choice, const std::string track_rep_choice,
-		const bool doEventDisplay): _tgeo_manager(tgeo_manager), _doEventDisplay(doEventDisplay)
+		const bool doEventDisplay): verbosity(0), _tgeo_manager(tgeo_manager), _doEventDisplay(doEventDisplay)
 {
 
 	genfit::FieldManager::getInstance()->init(
@@ -158,7 +156,10 @@ Fitter::Fitter(TGeoManager* tgeo_manager, genfit::AbsBField* fieldMap,
 
 int Fitter::displayEvent()
 {
-	_display->open();
+	if(_display)
+		_display->open();
+	else
+		if(verbosity >= 0) LogERROR("No genfit::EventDisplay found!");
 
 	return 0;
 }

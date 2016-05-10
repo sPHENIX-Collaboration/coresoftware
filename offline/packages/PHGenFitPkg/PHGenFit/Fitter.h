@@ -79,7 +79,25 @@ public:
 		return _display;
 	}
 
+	int get_verbosity() const {
+		return verbosity;
+	}
+
+	void set_verbosity(int verbosity) {
+		this->verbosity = verbosity;
+	}
+
 private:
+
+	/*!
+	 * Verbose control:
+	 * -1: Silient
+	 * 0: Only Error
+	 * 1: Error + Warning
+	 * 2: DEBUG info
+	 */
+
+	int verbosity;
 
 	TGeoManager* _tgeo_manager;
 
@@ -87,12 +105,6 @@ private:
 
 	genfit::EventDisplay* _display;
 	genfit::AbsKalmanFitter* _fitter;
-
-
-
-
-
-
 
 }; //class Fitter
 
