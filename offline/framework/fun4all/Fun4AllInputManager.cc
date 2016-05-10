@@ -1,6 +1,5 @@
 #include "Fun4AllInputManager.h"
 #include "Fun4AllServer.h"
-#include "Fun4AllReturnCodes.h"
 #include "SubsysReco.h"
 #include <phool/phool.h>
 
