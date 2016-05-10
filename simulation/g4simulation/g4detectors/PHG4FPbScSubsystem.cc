@@ -4,7 +4,6 @@
 #include "PHG4FPbScRegionSteppingAction.h"
 #include "PHG4EventActionClearZeroEdep.h"
 
-#include <g4main/PHG4NullSteppingAction.h>
 #include <g4main/PHG4HitContainer.h>
 #include <phool/getClass.h>
 
