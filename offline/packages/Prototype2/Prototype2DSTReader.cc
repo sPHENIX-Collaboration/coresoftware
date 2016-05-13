@@ -82,6 +82,7 @@ Prototype2DSTReader::Init(PHCompositeNode*)
 
       nblocks++;
     }
+
   for (vector<string>::const_iterator it = _tower_postfix.begin();
       it != _tower_postfix.end(); ++it)
     {
@@ -107,6 +108,27 @@ Prototype2DSTReader::Init(PHCompositeNode*)
       nblocks++;
     }
 
+  for (vector<string>::const_iterator it = _towertemp_postfix.begin();
+      it != _towertemp_postfix.end(); ++it)
+    {
+      const string & nodenam = *it;
+      string hname = Form("TOWER_TEMPERATURE_%s", nodenam.c_str());
+
+      cout << "Prototype2DSTReader::Init - saving average tower temperature info from node: "
+          << hname<< endl;
+
+      record rec;
+      rec._cnt = 0;
+      rec._name = hname;
+      rec._arr = NULL;
+      rec._arr_ptr = NULL;
+      rec._dvalue = 0;
+      rec._type = record::typ_towertemp;
+
+      _records.push_back(rec);
+
+      nblocks++;
+    }
   cout << "Prototype2DSTReader::Init - requested " << nblocks << " nodes"
       << endl;
 
@@ -151,6 +173,14 @@ Prototype2DSTReader::build_tree()
           _T->Branch(name_cnt.c_str(), &(rec._cnt), name_cnt_desc.c_str(),
               BUFFER_SIZE);
           _T->Branch(rec._name.c_str(), &(rec._arr_ptr), BUFFER_SIZE, 99);
+        }
+      else if (rec._type == record::typ_towertemp)
+        {
+
+          const string name_cnt = rec._name + "_AVG";
+          const string name_cnt_desc = name_cnt + "/D";
+          _T->Branch(name_cnt.c_str(), &(rec._dvalue), name_cnt_desc.c_str(),
+              BUFFER_SIZE);
         }
 
       nblocks++;
@@ -256,6 +286,53 @@ Prototype2DSTReader::process_event(PHCompositeNode* topNode)
 
                   rec._cnt++;
                 }
+            } // if (!hits)
+        } //      if (rec._type == record::typ_hit)
+      else if (rec._type == record::typ_towertemp)
+        {
+          if (Verbosity() >= 2)
+            cout
+                << "Prototype2DSTReader::process_event - processing tower temperature "
+                << rec._name << endl;
+
+          RawTowerContainer *hits = findNode::getClass<RawTowerContainer>(
+              topNode, rec._name);
+          if (!hits)
+            {
+              if (_event < 2)
+                cout
+                    << "Prototype2DSTReader::process_event - Error - can not find node "
+                    << rec._name << endl;
+
+            }
+          else
+            {
+              RawTowerContainer::ConstRange hit_range = hits->getTowers();
+
+              if (Verbosity() >= 2)
+                cout << "Prototype2DSTReader::process_event - processing "
+                    << rec._name << " and received " << hits->size()
+                    << " tower hits" << endl;
+
+              rec._cnt = 0;
+
+              for (RawTowerContainer::ConstIterator hit_iter = hit_range.first;
+                  hit_iter != hit_range.second; hit_iter++)
+                {
+                  RawTower * hit_raw = hit_iter->second;
+
+                  RawTowerT_type * hit = dynamic_cast<RawTowerT_type *>(hit_raw);
+//                  RawTower * hit = hit_iter->second;
+
+                  assert(hit);
+
+                  rec._dvalue += hit->get_temperature_from_entry(
+                      hit->get_nr_entries() - 1);
+
+                  ++rec._cnt;
+                }
+
+              rec._dvalue /= rec._cnt;
             } // if (!hits)
         } //      if (rec._type == record::typ_hit)
       else if (rec._type == record::typ_runinfo)
