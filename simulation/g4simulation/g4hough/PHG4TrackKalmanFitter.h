@@ -104,6 +104,22 @@ public:
 		_do_evt_display = doEvtDisplay;
 	}
 
+	bool is_reverse_mag_field() const {
+		return _reverse_mag_field;
+	}
+
+	void set_reverse_mag_field(bool reverseMagField) {
+		_reverse_mag_field = reverseMagField;
+	}
+
+	float get_mag_field_re_scaling_factor() const {
+		return _mag_field_re_scaling_factor;
+	}
+
+	void set_mag_field_re_scaling_factor(float magFieldReScalingFactor) {
+		_mag_field_re_scaling_factor = magFieldReScalingFactor;
+	}
+
 private:
 
 	//! Event counter
@@ -129,9 +145,15 @@ private:
 	//!flags
 	unsigned int _flags;
 
+	//! rescale mag field, modify the original mag field read in
+	float _mag_field_re_scaling_factor;
+
+	//! Switch to reverse Magnetic field
+	bool _reverse_mag_field;
+
 	PHGenFit::Fitter* _fitter;
-	//genfit::GFRaveVertexFactory* _vertex_finder;
-	PHRaveVertexFactory* _vertex_finder;
+	genfit::GFRaveVertexFactory* _vertex_finder;
+	//PHRaveVertexFactory* _vertex_finder;
 
 	//! Input Node pointers
 	PHG4TruthInfoContainer* _truth_container;
