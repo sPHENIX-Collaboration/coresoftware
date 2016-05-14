@@ -5,7 +5,6 @@
 #include <g4cemc/RawTowerDefs.h>
 #include <vector>
 #include <stdint.h>
-#include "PROTOTYPE2_FEM.h"
 
 class RawTower_Temperature : public RawTower {
  public:
