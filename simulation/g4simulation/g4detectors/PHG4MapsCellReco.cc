@@ -182,6 +182,10 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  cout << " difference in radius = " <<  sqrt( pow(location.X(),2) + pow(location.Y(),2) )  -  sqrt( pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2) ) 
 	       << " in angle = " <<  atan( location.Y() / location.X() ) - atan( hiter->second->get_y(0) / hiter->second->get_x(0) ) 
 	       << endl;
+
+	  // Get the pixel number of the input hit
+	 int pixel_number = layergeom->get_pixel_from_local_coords(local_in);
+	 cout << " CellReco: pixel number = " << pixel_number << endl;
 	  
 	  // combine ladder index values to get a single key
 	  char inkey[1024];

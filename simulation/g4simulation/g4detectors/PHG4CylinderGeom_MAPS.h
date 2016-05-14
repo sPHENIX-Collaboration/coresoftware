@@ -16,6 +16,8 @@ class PHG4CylinderGeom_MAPS: public PHG4CylinderGeomv4
 
   void identify(std::ostream& os = std::cout) const;
   TVector3 get_world_from_local_coords(int stave, int half_stave, int module, int chip, TVector3 sensor_local);
+  int get_pixel_from_local_coords(TVector3 sensor_local);
+
   void set_layer(const int i) {layer = i;}
   int get_layer() const {return layer;}
   double get_radius() const {return layer_radius;}

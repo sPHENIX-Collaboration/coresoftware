@@ -138,7 +138,7 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
   
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   const G4Track* aTrack = aStep->GetTrack();
-  if(verbosity > 0)  cout << " edep = " << edep;
+  if(verbosity > 0)  cout << " edep = " << edep << endl;
 
   // if this cylinder stops everything, just put all kinetic energy into edep
   if (detector_->IsBlackHole())
@@ -164,17 +164,24 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	  geantino = true;
 	}
 
-      G4StepPoint * prePoint = aStep->GetPreStepPoint();
-      G4StepPoint * postPoint = aStep->GetPostStepPoint();
-      //cout << "time prepoint: " << prePoint->GetGlobalTime()/ns << endl;
-      //cout << "time postpoint: " << postPoint->GetGlobalTime()/ns << endl;
-      //cout << "kinetic energy: " <<  aTrack->GetKineticEnergy()/GeV << endl;
-      G4ParticleDefinition* def = aTrack->GetDefinition();
-      cout << " Particle: " << def->GetParticleName() << endl;
-
       float x,y,z;
       G4ThreeVector worldPosition, localPosition;
       G4TouchableHandle theTouchable;
+      //G4VPhysicalVolume *vol2;
+      //G4VPhysicalVolume *vol1;
+
+      G4StepPoint * prePoint = aStep->GetPreStepPoint();
+      G4StepPoint * postPoint = aStep->GetPostStepPoint();
+      /*
+      worldPosition = postPoint->GetPosition();
+      theTouchable = postPoint->GetTouchableHandle(); 
+      localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
+      cout << "A: Exit world coords: x " <<  worldPosition.x() / cm << " y " <<  worldPosition.y() / cm << " z " <<  worldPosition.z() / cm << endl;
+      cout << "A: Exit local coords: x " << localPosition.x() / cm << " y " << localPosition.y() / cm << " z " << localPosition.z() / cm << endl;
+      */
+
+      G4ParticleDefinition* def = aTrack->GetDefinition();
+      cout << " Particle: " << def->GetParticleName() << endl;
 
       switch (prePoint->GetStepStatus())
 	{
@@ -193,15 +200,19 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 
 	  worldPosition = prePoint->GetPosition();
 	  theTouchable = prePoint->GetTouchableHandle(); 
+	  //vol1 = theTouchable->GetVolume();
+	  //cout << "pre point volume name = " << vol1->GetName() << endl;
 	  localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
-
 	  x = localPosition.x() / cm;
 	  y = localPosition.y() / cm;
 	  z = localPosition.z() / cm;
+
 	  hit->set_property( PHG4Hit::prop_local_pos_x_0, x);
 	  hit->set_property( PHG4Hit::prop_local_pos_y_0, y);
 	  hit->set_property( PHG4Hit::prop_local_pos_z_0, z);
- 	  
+	  cout << "Entrance world coords: x " <<  worldPosition.x() / cm  << " y " <<  worldPosition.y() / cm << " z " <<  worldPosition.z() / cm << endl;
+	  cout << "Entrance local coords: x " << x << " y " << y << " z " << z << endl;
+  
 	  //here we set the entrance values in cm in world coordinates
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm );
 	  hit->set_y( 0, prePoint->GetPosition().y() / cm );
@@ -253,25 +264,29 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       hit->set_x( 1, postPoint->GetPosition().x() / cm );
       hit->set_y( 1, postPoint->GetPosition().y() / cm );
       hit->set_z( 1, postPoint->GetPosition().z() / cm );
+      
 
-      G4ThreeVector worldPosition_exit = postPoint->GetPosition();
+
       theTouchable = postPoint->GetTouchableHandle(); 
-      G4ThreeVector localPosition_exit = theTouchable->GetHistory()-> GetTopTransform().TransformPoint(worldPosition_exit);
+      worldPosition = postPoint->GetPosition();
+      // Note that the after you reach the boundary the touchable for the postPoint points to the glue, not the sensor! 
+      const G4NavigationHistory *history = theTouchable->GetHistory();
+      localPosition = history->GetTransform(history->GetDepth() - 1).TransformPoint(worldPosition);
 
-      x = localPosition_exit.x() / cm;
-      y = localPosition_exit.y() / cm;
-      z = localPosition_exit.z() / cm;
-      cout << "x " << x << " y " << y << " z " << z << endl;
+      //localPosition = theTouchable->GetHistory()->GetTransform( theTouchable->GetHistory()->GetDepth() - 1).TransformPoint(worldPosition);
+      x = localPosition.x() / cm;
+      y = localPosition.y() / cm;
+      z = localPosition.z() / cm;
+      /*
+      vol2 = theTouchable->GetVolume();
+      cout << "post point volume name = " << vol2->GetName() << endl;
+      */
+      cout << "Exit world coords: x " <<  worldPosition.x() / cm << " y " <<  worldPosition.y() / cm << " z " <<  worldPosition.z() / cm << endl;
+      cout << "Exit local coords: x " << x << " y " << y << " z " << z << endl;
 
       hit->set_property( PHG4Hit::prop_local_pos_x_1, x);
       hit->set_property( PHG4Hit::prop_local_pos_y_1, y);
       hit->set_property( PHG4Hit::prop_local_pos_z_1, z);
-
-      /*
-      hit->set_property( PHG4Hit::prop_local_pos_x_1, ( localPosition_exit.x() / cm) );
-      hit->set_property( PHG4Hit::prop_local_pos_y_1, ( localPosition_exit.y() / cm) );
-      hit->set_property( PHG4Hit::prop_local_pos_z_1, ( localPosition_exit.z() / cm) );
-      */
 
       hit->set_px(1, postPoint->GetMomentum().x() / GeV );
       hit->set_py(1, postPoint->GetMomentum().y() / GeV );
