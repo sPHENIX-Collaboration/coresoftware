@@ -1,5 +1,4 @@
 #include "PHG4ScintillatorSlatContainer.h"
-#include "PHG4ScintillatorSlat.h"
 #include "PHG4ScintillatorSlatDefs.h"
 
 #include <cstdlib>

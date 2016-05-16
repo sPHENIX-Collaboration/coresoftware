@@ -13,6 +13,7 @@ class PHG4OuterHcalDetector;
 class PHG4Parameters;
 class PHG4OuterHcalSteppingAction;
 class PHG4EventAction;
+class PHG4FlushStepTrackingAction;
 
 class PHG4OuterHcalSubsystem: public PHG4Subsystem
 {
@@ -51,6 +52,7 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
   //! accessors (reimplemented)
   PHG4Detector* GetDetector( void ) const;
   PHG4SteppingAction* GetSteppingAction( void ) const;
+  PHG4TrackingAction* GetTrackingAction( void ) const;
   PHG4EventAction* GetEventAction() const {return eventAction_;}
 
   void SetActive(const int i = 1);
@@ -89,6 +91,8 @@ class PHG4OuterHcalSubsystem: public PHG4Subsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4OuterHcalSteppingAction* steppingAction_;
+
+  PHG4FlushStepTrackingAction *trackingAction_;
 
   //! begin/end of event action
   /*! derives from PHG4EventAction */

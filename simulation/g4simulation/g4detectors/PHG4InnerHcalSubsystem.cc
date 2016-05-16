@@ -1,6 +1,7 @@
 #include "PHG4InnerHcalSubsystem.h"
 #include "PHG4InnerHcalDetector.h"
 #include "PHG4EventActionClearZeroEdep.h"
+#include "PHG4FlushStepTrackingAction.h"
 #include "PHG4InnerHcalSteppingAction.h"
 #include "PHG4Parameters.h"
 
@@ -24,6 +25,7 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const i
   PHG4Subsystem( name ),
   detector_(NULL),
   steppingAction_( NULL ),
+  trackingAction_(NULL),
   eventAction_(NULL),
   layer(lyr),
   usedb(0),
@@ -158,7 +160,6 @@ PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
 
       // create stepping action
       steppingAction_ = new PHG4InnerHcalSteppingAction(detector_, params);
-
     }
   else
     {
@@ -167,6 +168,10 @@ PHG4InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
 	{
 	  steppingAction_ = new PHG4InnerHcalSteppingAction(detector_, params);
 	}
+    }
+  if (steppingAction_)
+    {
+      trackingAction_ = new PHG4FlushStepTrackingAction(steppingAction_);
     }
   return 0;
 
@@ -299,7 +304,8 @@ PHG4InnerHcalSubsystem::SetDefaultParameters()
   default_double["rot_y"] = 0.;
   default_double["rot_z"] = 0.;
   default_double["scinti_eta_coverage"] = 1.1;
-  default_double["scinti_gap"] = 0.85;
+  default_double["scinti_inner_gap"] = 0.85;
+  default_double["scinti_outer_gap"] = 1.22;
   default_double["scinti_gap_neighbor"] = 0.1;
   default_double["scinti_tile_thickness"] = 0.7;
   default_double["size_z"] = 175.94 * 2;
@@ -448,3 +454,8 @@ PHG4InnerHcalSubsystem::get_string_param(const std::string &name) const
   return params->get_string_param(name);
 }
 
+PHG4TrackingAction*
+PHG4InnerHcalSubsystem::GetTrackingAction( void ) const
+{
+  return trackingAction_; 
+}

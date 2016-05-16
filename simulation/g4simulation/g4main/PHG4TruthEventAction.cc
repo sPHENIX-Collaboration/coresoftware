@@ -4,6 +4,8 @@
 #include "PHG4UserPrimaryParticleInformation.h"
 
 #include "PHG4VtxPoint.h"
+#include "PHG4Shower.h"
+
 #include "PHG4TruthInfoContainer.h"
 #include "PHG4HitContainer.h"
 #include "PHG4Hit.h"
@@ -363,7 +365,8 @@ void PHG4TruthEventAction::ProcessShowers() {
 
 	PHG4Particle* particle = truthInfoList_->GetParticle(g4hit->get_trkid());
 	if (!particle) {	  
-	  cout << PHWHERE << " missing g4particle" << endl;
+	  cout << PHWHERE << " missing g4particle for track " 
+	       << g4hit->get_trkid() << endl;
 	  continue;
 	}
 

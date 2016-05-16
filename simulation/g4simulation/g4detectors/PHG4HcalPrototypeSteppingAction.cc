@@ -7,6 +7,7 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
+#include <g4main/PHG4Shower.h>
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
@@ -188,7 +189,7 @@ bool PHG4HcalPrototypeSteppingAction::UserSteppingAction( const G4Step* aStep, b
 		  {
 		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 		      {
-			pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+			pp->GetShower()->add_g4hit_id(absorberhits_->GetID(),hit->get_hit_id());
 		      }
 		  }
 	      }

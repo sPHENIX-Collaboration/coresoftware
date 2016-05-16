@@ -1,5 +1,7 @@
 #include "Prototype2RawTowerBuilder.h"
 #include "RawTowerContainer.h"
+#include "RawTowerGeomContainer_Cylinderv1.h"
+#include "RawTowerGeomv1.h"
 #include "RawTowerv1.h"
 #include <g4detectors/PHG4ScintillatorSlat.h>
 #include <g4detectors/PHG4ScintillatorSlatContainer.h>
@@ -70,7 +72,7 @@ Prototype2RawTowerBuilder::InitRun(PHCompositeNode *topNode)
 int
 Prototype2RawTowerBuilder::process_event(PHCompositeNode *topNode)
 {
-  if (verbosity)
+  if (verbosity>3)
     {
       std::cout << PHWHERE << "Process event entered" << std::endl;
     }
@@ -100,12 +102,13 @@ Prototype2RawTowerBuilder::process_event(PHCompositeNode *topNode)
         }
       short twrrow = get_tower_row(cell->get_row());
       // add the energy to the corresponding tower
-      RawTower *tower = _towers->getTower(twrrow, cell->get_column());
+      // towers are addressed column/row to make the mapping more intuitive
+      RawTower *tower = _towers->getTower(cell->get_column(), twrrow);
       if (!tower)
         {
           tower = new RawTowerv1();
           tower->set_energy(0);
-          _towers->AddTower(twrrow, cell->get_column(), tower);
+          _towers->AddTower(cell->get_column(), twrrow, tower);
         }
       double cell_weight = 0;
       if (_tower_energy_src == kEnergyDeposition)
@@ -171,7 +174,34 @@ Prototype2RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 {
 
   PHNodeIterator iter(topNode);
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
+      "PHCompositeNode", "RUN"));
+  if (!runNode)
+    {
+      std::cerr << PHWHERE << "Run Node missing, doing nothing." << std::endl;
+      throw std::runtime_error(
+          "Failed to find Run node in Prototype2RawTowerBuilder::CreateNodes");
+    }
+  TowerGeomNodeName = "TOWERGEOM_" + detector;
+  rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode,
+      TowerGeomNodeName.c_str());
+  if (!rawtowergeom)
+    {
 
+      rawtowergeom = new RawTowerGeomContainer_Cylinderv1(RawTowerDefs::convert_name_to_caloid(detector));
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(rawtowergeom,
+          TowerGeomNodeName.c_str(), "PHObject");
+      runNode->addNode(newNode);
+    }
+  for (int irow = 0; irow < 4; irow++)
+    {
+      for (int icolumn=0; icolumn<4; icolumn++)
+	{
+	  RawTowerGeomv1 * tg = new RawTowerGeomv1(RawTowerDefs::encode_towerid(RawTowerDefs::convert_name_to_caloid(detector), icolumn, irow));
+            rawtowergeom->add_tower_geometry(tg);
+	}
+    }
+	     	     
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
       "PHCompositeNode", "DST"));
   if (!dstNode)
@@ -191,7 +221,7 @@ Prototype2RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
     }
 
   // Create the tower nodes on the tree
-  _towers = new RawTowerContainer();
+  _towers = new RawTowerContainer(RawTowerDefs::convert_name_to_caloid(detector));
   if (_sim_tower_node_prefix.length() == 0)
     {
       // no prefix, consistent with older convension

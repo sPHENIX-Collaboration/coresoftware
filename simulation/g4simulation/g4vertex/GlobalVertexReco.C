@@ -4,8 +4,8 @@
 #include "GlobalVertexMap_v1.h"
 #include "GlobalVertex_v1.h"
 
-#include "BbcVertexMap.h"
-#include "BbcVertex.h"
+#include <g4bbc/BbcVertexMap.h>
+#include <g4bbc/BbcVertex.h>
 
 #include <g4hough/SvtxVertexMap.h>
 #include <g4hough/SvtxVertex.h>
@@ -86,6 +86,8 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
   std::set<unsigned int> used_bbc_vtxids;
   
   if (svtxmap && bbcmap) {
+
+      if (verbosity) cout <<"GlobalVertexReco::process_event - svtxmap && bbcmap"<<endl;
     
     for (SvtxVertexMap::ConstIter svtxiter = svtxmap->begin();
 	 svtxiter != svtxmap->end();
@@ -130,6 +132,8 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
       vertex->insert_vtxids(GlobalVertex::BBC,bbc_best->get_id());
       used_bbc_vtxids.insert(bbc_best->get_id());
       
+      if (verbosity) vertex->identify();
+
       globalmap->insert(vertex);
     }
   }
@@ -137,11 +141,14 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
   // okay now loop over all unused SVTX vertexes (2nd class)...
   if (svtxmap) {
 
+      if (verbosity) cout <<"GlobalVertexReco::process_event - svtxmap "<<endl;
     for (SvtxVertexMap::ConstIter svtxiter = svtxmap->begin();
 	 svtxiter != svtxmap->end();
 	 ++svtxiter) {
       const SvtxVertex* svtx = svtxiter->second;
       if (used_svtx_vtxids.find(svtx->get_id()) != used_svtx_vtxids.end()) continue;
+
+      if (isnan(svtx->get_z())) continue;
 
       // we have a standalone SVTX vertex
       GlobalVertex* vertex = new GlobalVertex_v1();
@@ -162,7 +169,8 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
 
       vertex->insert_vtxids(GlobalVertex::SVTX,svtx->get_id());
       used_svtx_vtxids.insert(svtx->get_id());
-      
+
+      if (verbosity) vertex->identify();
       globalmap->insert(vertex);      
     }    
   }
@@ -170,11 +178,14 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
   // okay now loop over all unused BBC vertexes (3rd class)...
   if (bbcmap) {
 
+      if (verbosity) cout <<"GlobalVertexReco::process_event -  bbcmap"<<endl;
     for (BbcVertexMap::ConstIter bbciter = bbcmap->begin();
 	 bbciter != bbcmap->end();
 	 ++bbciter) {
       const BbcVertex* bbc = bbciter->second;      
       if (used_bbc_vtxids.find(bbc->get_id()) != used_bbc_vtxids.end()) continue;
+
+      if (isnan(bbc->get_z())) continue;
 
       GlobalVertex* vertex = new GlobalVertex_v1();
 
@@ -201,7 +212,8 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
 
       vertex->insert_vtxids(GlobalVertex::BBC,bbc->get_id());
       used_bbc_vtxids.insert(bbc->get_id());
-      
+
+      if (verbosity) vertex->identify();
       globalmap->insert(vertex);    
     }
   }

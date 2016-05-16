@@ -1,4 +1,3 @@
-#include "PHG4ForwardEcalDetector.h"
 #include "PHG4EICForwardEcalDetector.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeomv3.h"

@@ -38,6 +38,8 @@ class RawTower : public PHObject {
 
   virtual int get_bineta() const { PHOOL_VIRTUAL_WARN("get_ieta()"); return -1; }
   virtual int get_binphi() const { PHOOL_VIRTUAL_WARN("get_iphi()"); return -1; }
+  virtual int get_column() const { PHOOL_VIRTUAL_WARN("get_column()"); return -1; }
+  virtual int get_row() const { PHOOL_VIRTUAL_WARN("get_row()"); return -1; }
 
   //! energy assigned to the tower. Depending on stage of process and DST node name, it could be energy deposition, light yield or calibrated energies
   virtual double get_energy() const { PHOOL_VIRTUAL_WARN("get_energy()"); return 0.0; }

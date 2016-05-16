@@ -5,7 +5,8 @@
 /// \file PHG4HoughTransform.h
 /// \brief A fun4all implementation of Alan's Hough Transform
 /// \author Matt Wysocki (copied from SvxHoughTransform)
-/// go to https://www.phenix.bnl.gov/WWW/offline/wikioffline/index.php/SvxHoughTransform
+/// go to
+/// https://www.phenix.bnl.gov/WWW/offline/wikioffline/index.php/SvxHoughTransform
 /// \edited by Theo Koblesky to conform to new changes in HelixHough (1/10/2012)
 
 // edited week of 11/14/2012 by Alan Dion to use new HelixHough
@@ -17,6 +18,7 @@
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHTimeServer.h>
+#include <g4bbc/BbcVertexMap.h>
 
 // Helix Hough includes
 #ifndef __CINT__
@@ -25,6 +27,9 @@
 #include <VertexFinder.h> 
 #include <sPHENIXTracker.h>
 #endif
+
+// ROOT includes
+#include <TVector3.h>
 
 // standard includes
 #include <vector>
@@ -66,11 +71,7 @@ public:
   int End(PHCompositeNode *topNode);
 
   /// set verbosity
-  void Verbosity(int verb) {
-    verbosity = verb; // SubsysReco verbosity
-    //if(_tracker_init) _tracker_init->setVerbosity(verb);
-    //if(_tracker) _tracker->setVerbosity(verb);
-  }
+  void Verbosity(int verb) {verbosity = verb;}
 
   /// external handle for projecting tracks into the calorimetry
   static void projectToRadius(const SvtxTrack* track,
@@ -78,12 +79,12 @@ public:
 			      double radius,   // in cm
 			      std::vector<double>& intersection);
 
+  /// external handle for state objects
   static void projectToRadius(const SvtxTrackState* state,
 			      int charge,
 			      double magfield, // in Tesla
 			      double radius,   // in cm
 			      std::vector<double>& intersection);
-
 
   float get_mag_field() const          {return _magField;}
   void  set_mag_field(float magField) {_magField = magField;}
@@ -94,9 +95,9 @@ public:
   bool get_use_vertex() {return _use_vertex;}
 
   /// set the tracking chi2 for initial vertex finding
-  void set_chi2_cut_init(double chi2_cut) { _chi2_cut_init = chi2_cut;}
+  void set_chi2_cut_init(double chi2_cut) {_chi2_cut_init = chi2_cut;}
   /// get the tracking chi2 cut for initial vertex finding
-  double get_chi2_cut_init() { return _chi2_cut_init;}
+  double get_chi2_cut_init() {return _chi2_cut_init;}
 
   /// set the tracking pt-dependent chi2 cut for fast fit, cut = min(par0 + par1 / pt, max)
   void set_chi2_cut_fast(double cut_par0,
@@ -108,35 +109,35 @@ public:
   }
 
   /// set the tracking chi2 cut for full fit 
-  void set_chi2_cut_full(double chi2_cut) { _chi2_cut_full = chi2_cut;}
+  void set_chi2_cut_full(double chi2_cut) {_chi2_cut_full = chi2_cut;}
   /// get the tracking chi2 cut for full fit
-  double get_chi2_cut_full() { return _chi2_cut_full;}
+  double get_chi2_cut_full() {return _chi2_cut_full;}
 
   /// set early combination-land chi2 cut(?)
-  void set_ca_chi2_cut(double chi2_cut) { _ca_chi2_cut = chi2_cut;}
+  void set_ca_chi2_cut(double chi2_cut) {_ca_chi2_cut = chi2_cut;}
   /// get early combination-land chi2 cut(?)
-  double get_ca_chi2_cut() { return _ca_chi2_cut;}
+  double get_ca_chi2_cut() {return _ca_chi2_cut;}
 
   /// set early curvature cut between hits, lower values are more open
-  void set_cos_angle_cut(double cos_angle_cut) { _cos_angle_cut = cos_angle_cut;}
+  void set_cos_angle_cut(double cos_angle_cut) {_cos_angle_cut = cos_angle_cut;}
   /// get early curvature cut between hits, lower values are more open
-  double get_cos_angle_cut() { return _cos_angle_cut;}
+  double get_cos_angle_cut() {return _cos_angle_cut;}
 
-  void setInitialResMultiplier(int beta){ _beta = beta;}
-  void setFullResMultiplier(int lambda){ _lambda = lambda;}
+  void setInitialResMultiplier(int beta) {_beta = beta;}
+  void setFullResMultiplier(int lambda) {_lambda = lambda;}
   
   /// set the minimum pT to try to find during full tracking
-  void set_min_pT(float PT){_min_pT=PT;}
+  void set_min_pT(float PT) {_min_pT=PT;}
   /// set the minimum pT to try to find during initial vertex finding tracking
-  void set_min_pT_init(float PT){_min_pT_init=PT;}
+  void set_min_pT_init(float PT) {_min_pT_init=PT;}
   
   /// radiation length per layer, sequential layer indexes required here
   void set_material(int layer, float value);
 
   /// set internal ghost rejection
-  void setRejectGhosts(bool rg){_reject_ghosts = rg;}
+  void setRejectGhosts(bool rg) {_reject_ghosts = rg;}
   /// set for internal hit rejection
-  void setRemoveHits(bool rh){_remove_hits = rh;}
+  void setRemoveHits(bool rh) {_remove_hits = rh;}
 
   /// use the cell size as cluster size instead of value stored on cluster
   void setUseCellSize(bool use_cell_size) {_use_cell_size = use_cell_size;}
@@ -145,43 +146,100 @@ public:
   void setMaxClusterError(float max_cluster_error) {_max_cluster_error = max_cluster_error;}
 
   /// adjusts the rate of zooming
-  void setBinScale(float scale){_bin_scale = scale;}
+  void setBinScale(float scale) {_bin_scale = scale;}
   /// adjusts the rate of zooming
-  void setZBinScale(float scale){_z_bin_scale = scale;}
+  void setZBinScale(float scale) {_z_bin_scale = scale;}
 
   /// turn on DCA limitation
-  void setCutOnDCA(bool cod){_cut_on_dca = cod;}
+  void setCutOnDCA(bool cod) {_cut_on_dca = cod;}
   /// sets an upper limit on X-Y DCA
-  void setDCACut(float dcut){_dca_cut = dcut;}
+  void setDCACut(float dcut) {_dca_cut = dcut;}
   /// sets an upper limit on Z DCA
-  void setDCAZCut(float dzcut){_dcaz_cut = dzcut;}
+  void setDCAZCut(float dzcut) {_dcaz_cut = dzcut;}
 
-  /// adjust the fit pt by a recalibration factor (constant B versus real mag field)
+  /// adjust the fit pt by a recalibration factor (constant B versus real mag
+  /// field)
   void setPtRescaleFactor(float pt_rescale) {_pt_rescale = pt_rescale;}
 
   /// adjust the relative voting error scale w.r.t. the cluster size
   void setVoteErrorScale(unsigned int layer, float scale) {
-    if(scale > 0.0){_vote_error_scale.at(layer) = scale;}
-    else{std::cout<<"PHG4HoughTransform::setVoteErrorScale : scale must be greater than zero ... doing nothing"<<std::endl;}
+    if (scale > 0.0) {
+      _vote_error_scale.at(layer) = scale;
+    } else {
+      std::cout << "PHG4HoughTransform::setVoteErrorScale : scale must be "
+                   "greater than zero ... doing nothing"
+                << std::endl;
+    }
   }
   /// adjust the relative fit error scale w.r.t. the cluster size
   void setFitErrorScale(unsigned int layer, float scale) {
-    if(scale > 0.0){_fit_error_scale.at(layer) = scale;}
-    else{std::cout<<"PHG4HoughTransform::setFitErrorScale : scale must be greater than zero ... doing nothing"<<std::endl;}
+    if (scale > 0.0) {
+      _fit_error_scale.at(layer) = scale;
+    } else {
+      std::cout << "PHG4HoughTransform::setFitErrorScale : scale must be "
+                   "greater than zero ... doing nothing"
+                << std::endl;
+    }
   }
 
 #ifndef __CINT__
- private:
-  bool new_dca_nbin, new_z_z0, new_circle_dca, new_circle_kappa;
-  int CreateNodes(PHCompositeNode *topNode);
+private:
+  
+  //--------------
+  // InitRun Calls
+  //--------------
+
   int GetNodes(PHCompositeNode *topNode);
+  int CreateNodes(PHCompositeNode *topNode);
   int InitializeGeometry(PHCompositeNode *topNode);
+
+  /// code to setup seed tracking objects
+  int setup_seed_tracker_objects();
+  
+  /// code to setup initial vertexing tracker
+  int setup_initial_tracker_object();
+  
+  /// code to setup full tracking object
+  int setup_tracker_object();
+  
+  //--------------------
+  // Process Event Calls
+  //--------------------
+
+  /// code to translate into the HelixHough universe
+  int translate_input();
+
+  /// code to combine seed tracking vertex with BBCZ if available
+  int fast_composite_seed();
+  
+  /// code to seed vertex from bbc
+  int fast_vertex_from_bbc();
+
+  /// code to seed vertex from initial tracking using a broad search window
+  int fast_vertex_guessing();
+  
+  /// code to produce an initial track vertex from the seed
+  int initial_vertex_finding();
+  
+  /// code to perform the final tracking and vertexing
+  int full_tracking_and_vertexing();
+  
+  /// code to translate back to the SVTX universe
+  int export_output();
+
+  //------------------
+  // Subfunction Calls
+  //------------------
 
   /// convert from inverse curvature to momentum
   float kappaToPt(float kappa);
+  
   /// convert from momentum to inverse curvature
   float ptToKappa(float pt);
 
+  /// translate the clusters, tracks, and vertex from one origin to another
+  void shift_coordinate_system(double dx, double dy, double dz);
+  
   /// helper function for projection code
   static bool circle_line_intersections(double x0, double y0, double r0,
 					double x1, double y1, double vx1, double vy1,
@@ -190,6 +248,10 @@ public:
   static bool circle_circle_intersections(double x0, double y0, double r0,
 					  double x1, double y1, double r1,
 					  std::set<std::vector<double> >* points);
+
+  BbcVertexMap* _bbc_vertexes;
+
+  bool new_dca_nbin, new_z_z0, new_circle_dca, new_circle_kappa;
   
   bool _use_vertex;
   int _beta, _lambda; ///< resolution tuning parameters 
@@ -206,23 +268,25 @@ public:
   unsigned int _maxtracks;
   unsigned int _max_hits;
   unsigned int _min_hits;
-  
-  int _nlayers;                  ///< number of detector layers                                                         
-  std::vector<float> _radii;          ///< radial distance of each layer (cm)                                           
-  std::vector<float> _smear_xy_layer; ///< detector hit resolution in phi (cm)                                          
-  std::vector<float> _smear_z_layer;  ///< detector hit resolution in z (cm)                 
-  std::vector<float> _material;  ///< material at each layer in rad. lengths
+
+  int _nlayers;                        ///< number of detector layers
+  std::vector<float> _radii;           ///< radial distance of each layer (cm)
+  std::vector<float> _smear_xy_layer;  ///< detector hit resolution in phi (cm)
+  std::vector<float> _smear_z_layer;   ///< detector hit resolution in z (cm)
+  std::vector<float> _material;        ///< material at each layer in rad. lengths
 
   // object storage                                                                                                     
-  std::vector<SimpleHit3D> _clusters_init; ///< working array of clusters                                                    
-  std::vector<SimpleHit3D> _clusters;
-  std::vector<SimpleTrack3D> _tracks; ///< working array of tracks                                                      
-  std::vector<float> _vertex;         ///< working array for collision vertex                                           
+  std::vector<SimpleHit3D> _clusters;    ///< working array of clusters
+  std::vector<SimpleTrack3D> _tracks;    ///< working array of tracks
+  std::vector<double> _track_errors;     ///< working array of track chisq
+  std::vector<Eigen::Matrix<float,5,5> > _track_covars; ///< working array of track covariances
+  std::vector<float> _vertex;            ///< working array for collision vertex
 
   // track finding routines                                                                                             
-  sPHENIXTracker *_tracker;    // finds full tracks  
-  std::vector<sPHENIXTracker*> _tracker_vertex; // finds a subset of tracks for initial vertex-finding
-  
+  sPHENIXTracker *_tracker;    // finds full tracks
+  sPHENIXTracker* _tracker_vertex; // finds a subset of tracks for initial vertex-finding
+  sPHENIXTracker* _tracker_etap_seed; 
+  sPHENIXTracker* _tracker_etam_seed;
   
   VertexFinder _vertexFinder; ///< vertex finding object
 
@@ -236,9 +300,6 @@ public:
   SvtxVertexMap* _g4vertexes;
   PHG4InEvent* _inevent;
 
-  PHTimeServer::timer _timer;
-  PHTimeServer::timer _timer_initial_hough;
-  
   float _min_pT;
   float _min_pT_init;
   
@@ -272,4 +333,4 @@ public:
 #endif // __CINT__
 };
 
-#endif // __SVXHOUGHTRANSFORM_H__
+#endif // __PHG4HOUGHTRANSFORM_H__

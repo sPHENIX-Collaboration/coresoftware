@@ -13,6 +13,7 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4HitDefs.h>
+#include <g4main/PHG4Shower.h>
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
@@ -27,10 +28,15 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4SpacalSteppingAction::PHG4SpacalSteppingAction(PHG4SpacalDetector* detector) :
-    PHG4SteppingAction(0), detector_(detector), hits_(NULL), absorberhits_(
-        NULL), hit(NULL)
-{
-}
+  PHG4SteppingAction(0), 
+  detector_(detector), 
+  hits_(NULL), 
+  absorberhits_(NULL), 
+  hit(NULL),
+  savehitcontainer(NULL),
+  saveshower(NULL),
+  save_layer_id(-1)
+{}
 
 //____________________________________________________________________________..
 bool
@@ -124,6 +130,9 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         {
       case fGeomBoundary:
       case fUndefined:
+	  // flush out previous hit
+	  save_previous_g4hit();
+          save_layer_id = layer_id;
 
         hit = new PHG4Hitv1();
 
@@ -137,17 +146,7 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         // time in ns
         hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
 	//set the track ID
-	{
-	  hit->set_trkid(aTrack->GetTrackID());
-	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	    {
-	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		{
-		  hit->set_trkid(pp->GetUserTrackId());
-		  hit->set_shower_id(pp->GetShower()->get_id());
-		}
-	    }
-	}
+	hit->set_trkid(aTrack->GetTrackID());
         //set the initial energy deposit
         hit->set_edep(0);
         if (isactive == PHG4SpacalDetector::FIBER_CORE) // only for active areas
@@ -159,33 +158,21 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         // Now add the hit
         if (isactive == PHG4SpacalDetector::FIBER_CORE) // the slat ids start with zero
           {
-            //	      unsigned int shift_layer_id = layer_id << (phg4hitdefs::keybits - 3);
-            hits_->AddHit(layer_id, hit); // scintillator id is coded into layer number
-	    
-	    {
-	      if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		{
-		  if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		    {
-		      pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
-		    }
-		}
-	    }
+	    savehitcontainer = hits_;	    
           }
         else
           {
-            absorberhits_->AddHit(layer_id, hit);
-	    
-	    {
-	      if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		{
-		  if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		    {
-		      pp->GetShower()->add_g4hit_id(absorberhits_->GetID(),hit->get_hit_id());
-		    }
-		}
-	    }
+            savehitcontainer = absorberhits_;
           }
+	if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	  {
+	    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+	      {
+		hit->set_trkid(pp->GetUserTrackId());
+		hit->set_shower_id(pp->GetShower()->get_id());
+                saveshower =  pp->GetShower();
+	      }
+	  }
 
         if (hit->get_z(0) > get_zmax() || hit->get_z(0) < get_zmin())
           {
@@ -326,4 +313,35 @@ PHG4SpacalSteppingAction::get_zmax()
     return 0;
   else
     return detector_->get_geom()->get_zmax() + .0001;
+}
+
+void
+PHG4SpacalSteppingAction::flush_cached_values()
+{
+  save_previous_g4hit();
+  return;
+}
+
+void
+PHG4SpacalSteppingAction::save_previous_g4hit()
+{
+  if (!hit)
+    {
+      return;
+    }
+  // save only hits with non zero energy deposition (remember geantinos edep = -1)
+   if (hit->get_edep())
+    {
+      savehitcontainer->AddHit(save_layer_id, hit);
+      if (saveshower)
+	{
+	  saveshower->add_g4hit_id(savehitcontainer->GetID(),hit->get_hit_id());
+	}
+    }
+  else
+    {
+      delete hit;
+    }
+  hit = NULL;
+  return;
 }

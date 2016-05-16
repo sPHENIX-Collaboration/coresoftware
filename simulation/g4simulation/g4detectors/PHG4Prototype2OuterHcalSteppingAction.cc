@@ -5,6 +5,7 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
+#include <g4main/PHG4Shower.h>
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
@@ -68,8 +69,8 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
     {
       return false;
     }
-  unsigned int motherid = ~0x0; // initialize to 0xFFFFFF using the correct bitness
-  int tower_id = -1;
+  int row_id = -1;
+  int slat_id = -1;
   if (whichactive > 0) // scintillator
     {
       // first extract the scintillator id (0-3) from the volume name (OuterScinti_0,1,2,3)
@@ -77,7 +78,7 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
       boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
       boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter =  tok.begin();
       ++tokeniter;
-      tower_id = boost::lexical_cast<int>(*tokeniter);
+      slat_id = boost::lexical_cast<int>(*tokeniter);
       // G4AssemblyVolumes naming convention:
       //     av_WWW_impr_XXX_YYY_ZZZ
       // where:
@@ -102,12 +103,12 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
        	      ++tokeniter;
        	      if (tokeniter != tokm.end())
        		{
-		  motherid = boost::lexical_cast<int>(*tokeniter);
+		  row_id = boost::lexical_cast<int>(*tokeniter);
 // from the construction via assembly volumes, the mother id starts 
 // at 2 and is incremented by 2 for each new row of slats
 // this maps it back to 0-nslats
-		  motherid -= 2;  
-		  motherid /= 2;
+		  row_id -= 2;  
+		  row_id /= 2;
 		}
        	      else
        		{
@@ -118,12 +119,13 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
 	      break;
 	    }
 	}
-      // cout << "name " << volume->GetName() << ", mid: " << motherid
-      // 	   << ", twr: " << tower_id << endl;
+      // cout << "mother volume: " <<  mothervolume->GetName() 
+      //      << ", volume name " << volume->GetName() << ", row: " << row_id
+      //  	   << ", column: " << slat_id << endl;
     }
   else
     {
-      tower_id = touch->GetCopyNumber(); // steel plate id
+      row_id = touch->GetCopyNumber(); // steel plate id
     }
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -163,8 +165,11 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
 	case fGeomBoundary:
 	case fUndefined:
 	  hit = new PHG4Hitv1();
-	  hit->set_layer(motherid);
-	  hit->set_scint_id(tower_id); // the slat id (or steel plate id)
+	  hit->set_row(row_id); // this is the row
+	  if (whichactive > 0) // only for scintillators
+	    {
+	       hit->set_scint_id(slat_id); // the slat id in the mother volume (or steel plate id), the column
+	    }
 	  //here we set the entrance values in cm
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm);
 	  hit->set_y( 0, prePoint->GetPosition().y() / cm );
@@ -172,50 +177,38 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
 	  // time in ns
 	  hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
 	  //set the track ID
-	  {
-            hit->set_trkid(aTrack->GetTrackID());
-            if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	      {
-		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		  {
-		    hit->set_trkid(pp->GetUserTrackId());
-		    hit->set_shower_id(pp->GetShower()->get_id());
-		  }
-	      }
-	  }
+	  hit->set_trkid(aTrack->GetTrackID());
+	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	    {
+	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		{
+		  hit->set_trkid(pp->GetUserTrackId());
+		  hit->set_shower_id(pp->GetShower()->get_id());
+		}
+	    }
 
 	  //set the initial energy deposit
 	  hit->set_edep(0);
 	  hit->set_eion(0); // only implemented for v5 otherwise empty
+          PHG4HitContainer *hitcontainer;
+	  // here we do things which are different between scintillator and absorber hits
 	  if (whichactive > 0) // return of IsInPrototype2OuterHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
 	    {
+              hitcontainer = hits_;
 	      hit->set_light_yield(0); // for scintillator only, initialize light yields
-	      // Now add the hit
-	      hits_->AddHit(layer_id, hit);
-	      
-	      {
-		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		  {
-		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		      {
-			pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
-		      }
-		  }
-	      }
 	    }
 	  else
 	    {
-	      absorberhits_->AddHit(layer_id, hit);
-	      
-	      {
-		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		  {
-		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		      {
-			pp->GetShower()->add_g4hit_id(absorberhits_->GetID(),hit->get_hit_id());
-		      }
-		  }
-	      }
+	      hitcontainer = absorberhits_;
+	    }
+	  // here we set what is common for scintillator and absorber hits
+	  hitcontainer->AddHit(layer_id, hit);
+	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	    {
+	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		{
+		  pp->GetShower()->add_g4hit_id(hitcontainer->GetID(),hit->get_hit_id());
+		}
 	    }
 	  break;
 	default:
@@ -232,79 +225,37 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
 
       if (whichactive > 0) // return of IsInPrototype2OuterHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
         {
+          light_yield = eion;
           if (light_scint_model)
             {
               light_yield = GetVisibleEnergyDeposition(aStep); // for scintillator only, calculate light yields
-	      static bool once = true;
-	      if (once && edep > 0)
-		{
-		  once = false;
-
-		  if (verbosity > 0) 
-		    {
-		      cout << "PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction::"
-			//
-			   << detector_->GetName() << " - "
-			   << " use scintillating light model at each Geant4 steps. "
-			   << "First step: " << "Material = "
-			   << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
-			   << ", " << "Birk Constant = "
-			   << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
-			   << "," << "edep = " << edep << ", " << "eion = " << eion
-			   << ", " << "light_yield = " << light_yield << endl;
-		    }
-		}
 	    }
-	  else
-            {
-              light_yield = eion;
-            }
           if (isfinite(light_balance_outer_radius) && 
               isfinite(light_balance_inner_radius) && 
 	      isfinite(light_balance_outer_corr) &&
 	      isfinite(light_balance_inner_corr))
             {
-              double r = sqrt(
-			      postPoint->GetPosition().x()*postPoint->GetPosition().x()
-			      + postPoint->GetPosition().y()*postPoint->GetPosition().y());
+              double r = sqrt(postPoint->GetPosition().x()*postPoint->GetPosition().x()
+			    + postPoint->GetPosition().y()*postPoint->GetPosition().y());
               double cor =  GetLightCorrection(r);
               light_yield = light_yield * cor;
-
-              static bool once = true;
-              if (once && light_yield>0)
-                {
-                  once = false;
-
-		  if (verbosity > 1) 
-		    {
-		      cout << "PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction::"
-			//
-			   << detector_->GetName() << " - "
-			   << " use a simple light collection model with linear radial dependence. "
-			   <<"First step: "
-			   <<"r = " <<r/cm<<", "
-			   <<"correction ratio = " <<cor<<", "
-			   <<"light_yield after cor. = " <<light_yield
-			   << endl;
-		    }
-                }
-
             }
+	  hit->set_light_yield(hit->get_light_yield() + light_yield);
         }
 
       //sum up the energy to get total deposited
       hit->set_edep(hit->get_edep() + edep);
       hit->set_eion(hit->get_eion() + eion);
-      if (whichactive > 0)
-	{
-	  hit->set_light_yield(hit->get_light_yield() + light_yield);
-	}
       if (geantino)
 	{
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
           hit->set_eion(-1);
+	  if (whichactive > 0)
+	    {
+	      hit->set_light_yield(-1);
+	    }
 	}
-      if (edep > 0)
+      if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
 	{
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {

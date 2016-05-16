@@ -193,7 +193,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 {
 
   PHNodeIterator iter(topNode);
-  PHCompositeNode *runNode = static_cast<PHCompositeNode*>(iter.findFirst(
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
       "PHCompositeNode", "RUN"));
   if (!runNode)
     {
@@ -407,12 +407,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 
             tg->set_center_x(r * cos(rawtowergeom->get_phicenter(iphi)));
             tg->set_center_y(r * sin(rawtowergeom->get_phicenter(iphi)));
-            tg->set_center_z(
-                r
-                    / tan(
-                        PHG4Utils::get_theta(
-                            rawtowergeom->get_etacenter(ieta))));
-
+            tg->set_center_z(r / tan(PHG4Utils::get_theta(rawtowergeom->get_etacenter(ieta))));
             rawtowergeom->add_tower_geometry(tg);
           }
 

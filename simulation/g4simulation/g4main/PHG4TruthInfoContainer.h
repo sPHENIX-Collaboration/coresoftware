@@ -1,13 +1,14 @@
-#ifndef __PHG4TRUTHINFOCONTAINER_H__
-#define __PHG4TRUTHINFOCONTAINER_H__
+#ifndef PHG4TRUTHINFOCONTAINER_H__
+#define PHG4TRUTHINFOCONTAINER_H__
 
 #include <phool/PHObject.h>
+
 #include <map>
 #include <set>
 
-#include "PHG4Particle.h"
-#include "PHG4VtxPoint.h"
-#include "PHG4Shower.h"
+class PHG4Shower;
+class PHG4Particle;
+class PHG4VtxPoint;
 
 class PHG4TruthInfoContainer: public PHObject {
   
@@ -46,7 +47,7 @@ public:
   PHG4Particle* GetParticle(const int particleid);
   PHG4Particle* GetPrimaryParticle(const int particleid);
 
-  bool is_primary(const PHG4Particle* p) const {return (p->get_track_id() > 0);}
+  bool is_primary(const PHG4Particle* p) const;
   
   //! Get a range of iterators covering the entire container
   Range GetParticleRange() {return Range(particlemap.begin(),particlemap.end());}
@@ -89,7 +90,7 @@ public:
   PHG4VtxPoint* GetVtx(const int vtxid);
   PHG4VtxPoint* GetPrimaryVtx(const int vtxid);
 
-  bool is_primary_vtx(const PHG4VtxPoint* v) const {return (v->get_id() > 0);}
+  bool is_primary_vtx(const PHG4VtxPoint* v) const;
   
   //! Get a range of iterators covering the entire vertex container
   VtxRange GetVtxRange() {return VtxRange(vtxmap.begin(),vtxmap.end());}

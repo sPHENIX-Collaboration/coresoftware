@@ -1,5 +1,5 @@
-#ifndef NEWGEOMV1_H_
-#define NEWGEOMV1_H_
+#ifndef NEWGEOMV2_H_
+#define NEWGEOMV2_H_
 
 #include "RawTowerGeom.h"
 
@@ -52,4 +52,4 @@ class RawTowerGeomv2 : public RawTowerGeom {
   ClassDef(RawTowerGeomv2,3)
 };
 
-#endif /* NEWGEOMV1_H_ */
+#endif /* NEWGEOMV2_H_ */

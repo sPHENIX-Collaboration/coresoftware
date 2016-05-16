@@ -1,6 +1,7 @@
 #include "PHG4OuterHcalSubsystem.h"
 #include "PHG4OuterHcalDetector.h"
 #include "PHG4EventActionClearZeroEdep.h"
+#include "PHG4FlushStepTrackingAction.h"
 #include "PHG4OuterHcalSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -22,6 +23,7 @@ PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const i
   PHG4Subsystem( name ),
   detector_( NULL ),
   steppingAction_( NULL ),
+  trackingAction_(NULL),
   eventAction_(NULL),
   enable_field_checker(0),
   layer(lyr),
@@ -159,6 +161,10 @@ int PHG4OuterHcalSubsystem::InitRun( PHCompositeNode* topNode )
 	  steppingAction_ = new PHG4OuterHcalSteppingAction(detector_, params);
 	  steppingAction_->EnableFieldChecker(enable_field_checker);
 	}
+    }
+  if (steppingAction_)
+    {
+      trackingAction_ = new PHG4FlushStepTrackingAction(steppingAction_);
     }
   return 0;
 
@@ -439,3 +445,8 @@ PHG4OuterHcalSubsystem::get_string_param(const std::string &name) const
   return params->get_string_param(name);
 }
 
+PHG4TrackingAction*
+PHG4OuterHcalSubsystem::GetTrackingAction( void ) const
+{
+  return trackingAction_; 
+}

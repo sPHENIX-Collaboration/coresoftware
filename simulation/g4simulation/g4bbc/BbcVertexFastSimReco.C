@@ -84,11 +84,23 @@ int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode) {
 
   PHG4VtxPoint* point = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
   BbcVertex* vertex = new BbcVertex_v1();
-  vertex->set_t(point->get_t() + gsl_ran_gaussian(RandomGenerator,_t_smear) );
-  vertex->set_t_err( _t_smear );
-  vertex->set_z(point->get_z() +  gsl_ran_gaussian(RandomGenerator,_z_smear) );
-  vertex->set_z_err( _z_smear );
 
+  if (_t_smear >= 0.0) {
+    vertex->set_t(point->get_t() + gsl_ran_gaussian(RandomGenerator,_t_smear) );
+    vertex->set_t_err( _t_smear );
+  } else {
+    vertex->set_t(point->get_t() + 2.0*gsl_rng_uniform_pos(RandomGenerator)*_t_smear );
+    vertex->set_t_err( fabs(_t_smear) / sqrt(12) );
+  }
+
+  if (_z_smear >= 0.0) {
+    vertex->set_z(point->get_z() +  gsl_ran_gaussian(RandomGenerator,_z_smear) );
+    vertex->set_z_err( _z_smear );
+  } else {
+    vertex->set_z(point->get_z() +  2.0*gsl_rng_uniform_pos(RandomGenerator)*_z_smear );
+    vertex->set_z_err( fabs(_z_smear) / sqrt(12) );
+  }
+  
   vertexes->insert(vertex);
   
   return Fun4AllReturnCodes::EVENT_OK;

@@ -1,10 +1,12 @@
-#include <PHHepMCGenEvent.h>
-#include "HepMC/GenEvent.h"
+#include "PHHepMCGenEvent.h"
+#include <HepMC/GenEvent.h>
 
 #include <TBuffer.h>
 #include <TClass.h>
 
 #include <RVersion.h> // root version 
+
+#include <boost/foreach.hpp>
 
 #include <cassert>
 #include <cstdlib>
@@ -12,7 +14,6 @@
 #include <sstream>
 #include <vector>
 #include <stdexcept>
-#include <boost/foreach.hpp>
 
 ClassImp(PHHepMCGenEvent)
 

@@ -1,5 +1,4 @@
 #include "PHG4TPCClusterizer.h"
-#include <vector>
 #include "SvtxHitMap.h"
 #include "SvtxHit.h"
 #include "SvtxClusterMap.h"
@@ -22,11 +21,12 @@
 #include <g4detectors/PHG4CylinderCell.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
-#include "TMath.h"
+#include <TMath.h>
 
-#include <iostream>
-
+#include <cassert>
 #include <cstdlib>
+#include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -53,6 +53,7 @@ static bool is_local_maximum( std::vector<std::vector<float> > const& amps, int 
 		{
 			if( (iz==0) && (ip==0) ){continue;}
 			int cp = wrap_bin( phi+ip, amps[cz].size() );
+			assert (cp >= 0);
 			if( amps[cz][cp] > cent_val ){is_max=false;break;}
 		}
 		if(is_max==false){break;}
@@ -111,6 +112,7 @@ static void fit_cluster( std::vector<std::vector<float> >& amps, int& nhits_tot,
 		for( int ip=1;ip<=phi_span;++ip )
 		{
 			int cp = wrap_bin( phibin-ip, amps[cz].size() );
+			assert(cp >= 0);
 			if(amps[cz][cp] <= 0.){break;}
 			if( amps[cz][cp] < prop_cut*peak ){break;}
 			e += amps[cz][cp];
