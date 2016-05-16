@@ -134,7 +134,7 @@ private:
  * Constructor
  */
 PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
-		SubsysReco(name), _flags(NONE), _mag_field_re_scaling_factor(1.4/1.5), _reverse_mag_field(true), _fitter( NULL), _vertex_finder( NULL), _truth_container(
+		SubsysReco(name), _flags(NONE), _mag_field_re_scaling_factor(1.4/1.5), _reverse_mag_field(true), _fitter( NULL), _vertex_finder( NULL), _vertexing_method("mvf"), _truth_container(
 				NULL), _clustermap(NULL), _trackmap(NULL), _vertexmap(NULL), _trackmap_refit(
 				NULL), _vertexmap_refit(NULL), _do_eval(false), _eval_outname(
 				"PHG4TrackKalmanFitter_eval.root"), _eval_tree(
@@ -166,7 +166,8 @@ int PHG4TrackKalmanFitter::Init(PHCompositeNode *topNode) {
 
 
 	_vertex_finder = new genfit::GFRaveVertexFactory(verbosity);
-	_vertex_finder->setMethod("kalman-smoothing:1"); //! kalman-smoothing:1 is the defaul method
+	//_vertex_finder->setMethod("kalman-smoothing:1"); //! kalman-smoothing:1 is the defaul method
+	_vertex_finder->setMethod(_vertexing_method.data());
 	//_vertex_finder->setBeamspot();
 
 	//_vertex_finder = new PHRaveVertexFactory(verbosity);

@@ -120,6 +120,14 @@ public:
 		_mag_field_re_scaling_factor = magFieldReScalingFactor;
 	}
 
+	const std::string& get_vertexing_method() const {
+		return _vertexing_method;
+	}
+
+	void set_vertexing_method(const std::string& vertexingMethod) {
+		_vertexing_method = vertexingMethod;
+	}
+
 private:
 
 	//! Event counter
@@ -153,6 +161,7 @@ private:
 
 	PHGenFit::Fitter* _fitter;
 	genfit::GFRaveVertexFactory* _vertex_finder;
+	std::string _vertexing_method;
 	//PHRaveVertexFactory* _vertex_finder;
 
 	//! Input Node pointers
