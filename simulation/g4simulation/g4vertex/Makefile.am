@@ -25,15 +25,11 @@ libg4vertex_io_la_LIBADD = \
 libg4vertex_la_LIBADD = \
   -lg4detectors \
   -lfun4all \
+  -lg4bbc_io \
   -lg4hough_io \
   libg4vertex_io.la
 
 pkginclude_HEADERS = \
-  BbcVertex.h \
-  BbcVertex_v1.h \
-  BbcVertexMap.h \
-  BbcVertexMap_v1.h \
-  BbcVertexFastSimReco.h \
   GlobalVertex.h \
   GlobalVertex_v1.h \
   GlobalVertexMap.h \
@@ -41,14 +37,6 @@ pkginclude_HEADERS = \
   GlobalVertexReco.h
 
 libg4vertex_io_la_SOURCES = \
-  BbcVertex.C \
-  BbcVertex_Dict.C \
-  BbcVertex_v1.C \
-  BbcVertex_v1_Dict.C \
-  BbcVertexMap.C \
-  BbcVertexMap_Dict.C \
-  BbcVertexMap_v1.C \
-  BbcVertexMap_v1_Dict.C \
   GlobalVertex.C \
   GlobalVertex_Dict.C \
   GlobalVertex_v1.C \
@@ -59,8 +47,6 @@ libg4vertex_io_la_SOURCES = \
   GlobalVertexMap_v1_Dict.C
 
 libg4vertex_la_SOURCES = \
-  BbcVertexFastSimReco.C \
-  BbcVertexFastSimReco_Dict.C \
   GlobalVertexFastSimReco.C \
   GlobalVertexFastSimReco_Dict.C \
   GlobalVertexReco.C \

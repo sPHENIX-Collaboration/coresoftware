@@ -31,7 +31,8 @@ libg4hough_la_LIBADD = \
   -lHelixHough \
   -lFitNewton \
   -lSeamstress \
-  -lcemc \
+  -lg4bbc_io \
+  -lcemc_io \
   -lgenfit2 \
   -lgenfit2exp \
   -lPHGenFit \

@@ -1,5 +1,3 @@
-// $Id: PHG4SteppingAction.cc,v 1.1 2015/01/07 23:50:05 jinhuang Exp $                                                                                             
-
 /*!
  * \file PHG4SteppingAction.cc
  * \brief 
@@ -92,9 +90,11 @@ PHG4SteppingAction::GetVisibleEnergyDeposition(const G4Step* step)
   if (emSaturation)
     {
       if (verbosity)
-        emSaturation->SetVerbose(verbosity);
-
-      return emSaturation->VisibleEnergyDeposition(step) / GeV;
+	{
+	  emSaturation->SetVerbose(verbosity);
+	}
+      double visen = emSaturation->VisibleEnergyDepositionAtAStep(step) / GeV;
+      return visen;
     }
   else
     {

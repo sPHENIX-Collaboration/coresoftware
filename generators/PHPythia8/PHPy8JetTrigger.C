@@ -70,7 +70,7 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia) {
 
   // Call FastJet
 
-  fastjet::JetDefinition *jetdef = new fastjet::JetDefinition(fastjet::antikt_algorithm,_R,fastjet::Best);
+  fastjet::JetDefinition *jetdef = new fastjet::JetDefinition(fastjet::antikt_algorithm,_R, fastjet::E_scheme,fastjet::Best);
   fastjet::ClusterSequence jetFinder(pseudojets,*jetdef);
   std::vector<fastjet::PseudoJet> fastjets = jetFinder.inclusive_jets();
   delete jetdef;

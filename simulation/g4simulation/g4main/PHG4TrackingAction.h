@@ -19,7 +19,7 @@ public:
 //   virtual void PostUserTrackingAction(const G4Track*) = 0;
 
   //! Set the node pointers
-  virtual void SetInterfacePointers( PHCompositeNode* ) = 0;
+  virtual void SetInterfacePointers( PHCompositeNode* ) {return;}
 
   virtual int ResetEvent(PHCompositeNode *) {return 0;}
 

@@ -125,7 +125,6 @@ libg4detectors_la_SOURCES = \
   PHG4CEmcTestBeamSteppingAction.cc \
   PHG4CEmcTestBeamSubsystem.cc \
   PHG4CEmcTestBeamSubsystem_Dict.cc \
-  PHG4EventActionClearZeroEdep.cc \
   PHG4ConeDetector.cc \
   PHG4ConeRegionSteppingAction.cc \
   PHG4ConeSteppingAction.cc \
@@ -146,11 +145,13 @@ libg4detectors_la_SOURCES = \
   PHG4EnvelopeSteppingAction.cc \
   PHG4EnvelopeSubsystem.cc \
   PHG4EnvelopeSubsystem_Dict.cc \
+  PHG4EventActionClearZeroEdep.cc \
   PHG4FCalDetector.cc \
   PHG4FCalSteppingAction.cc \
   PHG4FCalSubsystem.cc \
   PHG4FCalSubsystem_Dict.cc \
   PHG4ForwardEcalDetector.cc \
+  PHG4FlushStepTrackingAction.cc \
   PHG4EICForwardEcalDetector.cc \
   PHG4ForwardEcalSteppingAction.cc \
   PHG4ForwardEcalSubsystem.cc \
@@ -179,6 +180,11 @@ libg4detectors_la_SOURCES = \
   PHG4HcalPrototypeSteppingAction.cc \
   PHG4HcalPrototypeSubsystem.cc \
   PHG4HcalPrototypeSubsystem_Dict.cc \
+  PHG4HcalPrototype2Detector.cc \
+  PHG4HcalPrototype2DetectorMessenger.cc \
+  PHG4HcalPrototype2SteppingAction.cc \
+  PHG4HcalPrototype2Subsystem.cc \
+  PHG4HcalPrototype2Subsystem_Dict.cc \
   PHG4InnerHcalDetector.cc \
   PHG4InnerHcalSteppingAction.cc \
   PHG4InnerHcalSubsystem.cc \

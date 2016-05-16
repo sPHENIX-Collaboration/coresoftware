@@ -1,14 +1,16 @@
 #include "TDirectoryHelper.h"
-#include <vector>
-#include <iostream>
-#include <string>
-#include "TDirectory.h"
-#include "TH1.h"
+
+#include <TDirectory.h>
+#include <TFile.h>
+#include <TH1.h>
+#include <TObject.h>
+#include <TROOT.h>
+
 #include <cassert>
-#include "TObject.h"
-#include "TROOT.h"
+#include <iostream>
 #include <list>
-#include "TFile.h"
+#include <string>
+#include <vector>
 
 using namespace std;
 

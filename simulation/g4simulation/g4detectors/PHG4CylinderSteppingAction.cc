@@ -4,9 +4,9 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
+#include <g4main/PHG4Shower.h>
 
 #include <g4main/PHG4TrackUserInfoV1.h>
-
 
 #include <phool/getClass.h>
 
@@ -20,6 +20,9 @@ PHG4CylinderSteppingAction::PHG4CylinderSteppingAction( PHG4CylinderDetector* de
   detector_( detector ),
   hits_(NULL),
   hit(NULL),
+  savehitcontainer(NULL),
+  saveshower(NULL),
+  save_layer_id(-1),
   zmin(NAN),
   zmax(NAN)
 {}
@@ -73,6 +76,9 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
         {
         case fGeomBoundary:
         case fUndefined:
+	  // flush out previous hit
+	  save_previous_g4hit();
+          save_layer_id = layer_id;
 
           hit = new PHG4Hitv1();
 
@@ -90,35 +96,20 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	  // time in ns
           hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
 	  //set the track ID
-	  {
-	    hit->set_trkid(aTrack->GetTrackID());
-	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	      {
-		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		  {
-		    hit->set_trkid(pp->GetUserTrackId());
-		    hit->set_shower_id(pp->GetShower()->get_id());
-		  }
-	      }
-	  }
+	  hit->set_trkid(aTrack->GetTrackID());
           //set the initial energy deposit
           hit->set_edep(0);
+	  savehitcontainer = hits_;
+	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	    {
+	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		{
+		  hit->set_trkid(pp->GetUserTrackId());
+		  hit->set_shower_id(pp->GetShower()->get_id());
+		  saveshower = pp->GetShower();
+		}
+	    }
 
-          // Now add the hit
-	  //	  hit->print();
-          hits_->AddHit(layer_id, hit);
-
-	  {
-	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	      {
-		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		  {
-		    pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
-		  }
-	      }
-	  }
-
-	  
 	  if (hit->get_z(0) > zmax || hit->get_z(0) < zmin)
 	    {
 	      cout << "PHG4CylinderSteppingAction: hit outside acceptance, layer: " << layer_id << endl;
@@ -192,4 +183,34 @@ void PHG4CylinderSteppingAction::SetInterfacePointers( PHCompositeNode* topNode 
   if ( ! hits_  && ! detector_->IsBlackHole())
     { std::cout << "PHG4CylinderSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl; }
 
+}
+void
+PHG4CylinderSteppingAction::flush_cached_values()
+{
+  save_previous_g4hit();
+  return;
+}
+
+void
+PHG4CylinderSteppingAction::save_previous_g4hit()
+{
+  if (!hit)
+    {
+      return;
+    }
+  // save only hits with non zero energy deposition (remember geantinos edep = -1)
+   if (hit->get_edep())
+    {
+      savehitcontainer->AddHit(save_layer_id, hit);
+      if (saveshower)
+	{
+	  saveshower->add_g4hit_id(savehitcontainer->GetID(),hit->get_hit_id());
+	}
+    }
+  else
+    {
+      delete hit;
+    }
+  hit = NULL;
+  return;
 }

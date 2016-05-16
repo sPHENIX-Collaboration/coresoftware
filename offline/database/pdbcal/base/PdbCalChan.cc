@@ -8,6 +8,6 @@
 //
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
-#include <PdbCalChan.h>
+#include "PdbCalChan.h"
 
 ClassImp(PdbCalChan);

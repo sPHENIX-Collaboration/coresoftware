@@ -1,5 +1,7 @@
 #include "PHG4TruthInfoContainer.h"
-#include "PHG4Particlev1.h"
+
+#include "PHG4Particle.h"
+#include "PHG4Shower.h"
 #include "PHG4VtxPointv1.h"
 
 #include <phool/phool.h>
@@ -290,4 +292,16 @@ int PHG4TruthInfoContainer::isEmbededVtx(const int vtxid) const {
   }
   
   return iter->second;
+}
+
+bool
+PHG4TruthInfoContainer::is_primary_vtx(const PHG4VtxPoint* v) const
+{
+  return (v->get_id() > 0);
+}
+
+bool
+PHG4TruthInfoContainer::is_primary(const PHG4Particle* p) const
+{
+  return (p->get_track_id() > 0);
 }

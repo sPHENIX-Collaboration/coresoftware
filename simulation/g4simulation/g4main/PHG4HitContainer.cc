@@ -1,7 +1,6 @@
 #include "PHG4HitContainer.h"
 #include "PHG4Hit.h"
 #include "PHG4Hitv1.h"
-#include "PHG4HitDefs.h"
 
 #include <phool/phool.h>
 #include <cstdlib>
