@@ -49,8 +49,6 @@
 //}
 
 int main(int argc, char**argv) {
-	//! Initiallize Geometry, Field, Fitter
-	PHGenFit::Fitter* fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
 
 	TFile *fPHG4Hits = TFile::Open("AnaSvtxTracksForGenFit.root", "read");
 	if (!fPHG4Hits) {
@@ -62,6 +60,10 @@ int main(int argc, char**argv) {
 		std::cout << "No TTree Found: " << __LINE__ << "\n";
 		return -1;
 	}
+
+	//! Initiallize Geometry, Field, Fitter
+	PHGenFit::Fitter* fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
+
 
 	double resolution_detector_xy = 0.005/3.; //50/3. micron
 

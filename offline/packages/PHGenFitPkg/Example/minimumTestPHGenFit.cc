@@ -81,8 +81,11 @@ int main(int argc, char**argv) {
 	genfit::MeasuredStateOnPlane* state_at_beam_line = track->extrapolateToLine(TVector3(0, 0, 0), TVector3(0, 0, 1));
 	state_at_beam_line->Print();
 
-	//! Event display
-	fitter->displayEvent();
+	//! Event display, uncomment to use
+	//fitter->displayEvent();
+
+	//! Comment off if want to keep event display.
+	delete fitter;
 
 	return 0;
 }
