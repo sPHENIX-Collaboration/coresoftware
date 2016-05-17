@@ -1,17 +1,15 @@
-
-
 #include "PHG4CylinderSubsystem.h"
 #include "PHG4CylinderDetector.h"
 #include "PHG4CylinderGeomv1.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderSteppingAction.h"
 #include "PHG4EventActionClearZeroEdep.h"
-//#include "PHG4CylinderEventAction.h"
+#include "PHG4FlushStepTrackingAction.h"
 #include "PHG4CylinderRegionSteppingAction.h"
-#include <g4main/PHG4Utils.h>
 
-#include <g4main/PHG4PhenixDetector.h>
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4PhenixDetector.h>
+#include <g4main/PHG4Utils.h>
 
 #include <phool/getClass.h>
 
@@ -25,6 +23,7 @@ using namespace std;
 PHG4CylinderSubsystem::PHG4CylinderSubsystem( const std::string &na, const int lyr):
   detector_( NULL ),
   steppingAction_( NULL ),
+  trackingAction_(NULL),
   eventAction_(NULL),
   radius(100),
   length(100),
@@ -112,6 +111,10 @@ int PHG4CylinderSubsystem::InitRun( PHCompositeNode* topNode )
       steppingAction_->set_zmin(zpos-detlength/2.);
       steppingAction_->set_zmax(zpos + detlength/2.);
     }
+  if (steppingAction_)
+    {
+      trackingAction_ = new PHG4FlushStepTrackingAction(steppingAction_);
+    }
   return 0;
 
 }
@@ -141,4 +144,8 @@ PHG4SteppingAction* PHG4CylinderSubsystem::GetSteppingAction( void ) const
   return steppingAction_;
 }
 
-
+PHG4TrackingAction*
+PHG4CylinderSubsystem::GetTrackingAction( void ) const
+{
+  return trackingAction_; 
+}

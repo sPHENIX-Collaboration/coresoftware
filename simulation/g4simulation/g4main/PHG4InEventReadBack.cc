@@ -1,16 +1,15 @@
 #include "PHG4InEventReadBack.h"
 #include "PHG4InEvent.h"
-#include "PHG4VtxPointv1.h"
 #include "PHG4Particlev1.h"
-#include "PHG4InEvent.h"
+#include "PHG4VtxPointv1.h"
 
 #include <vararray/VariableArray.h>
 #include <vararray/VariableArrayIds.h>
 #include <vararray/VariableArrayUtils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/getClass.h>
 
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/phool.h>

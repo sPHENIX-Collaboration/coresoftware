@@ -3,8 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 INCLUDES = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I`root-config --incdir` \
-  -I$(GENFIT)/include
+  -I`root-config --incdir`
 
 libgenfit2exp_la_LDFLAGS = \
   -nodefaultlibs \

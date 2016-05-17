@@ -11,7 +11,6 @@
 #include "PHG4RICHSubsystem.h"
 #include "PHG4RICHDetector.h"
 #include "PHG4RICHSteppingAction.h"
-#include "g4main/PHG4NullSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <phool/getClass.h>
@@ -21,7 +20,7 @@ using namespace ePHENIXRICH;
 //_______________________________________________________________________
 PHG4RICHSubsystem::PHG4RICHSubsystem( const char* name ):
 PHG4Subsystem( name ),
-detector_( 0 )
+detector_( NULL )
 {
 }
 

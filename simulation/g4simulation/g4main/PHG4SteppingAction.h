@@ -34,6 +34,8 @@ class PHG4SteppingAction
   //! get amount of energy that can make scintillation light, in Unit of GeV.
   virtual double GetVisibleEnergyDeposition(const G4Step* step);
 
+  virtual void flush_cached_values() {return;}
+
  protected:
 
   std::set<std::string> _ScintLightYieldMissingMaterial;

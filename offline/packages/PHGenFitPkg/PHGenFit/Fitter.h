@@ -9,7 +9,9 @@
 #define __PHGenFit_Fitter__
 
 //STL
-#include <vector>
+
+#include <GenFit/EventDisplay.h>
+#include <string>
 
 //BOOST
 //#include<boost/make_shared.hpp>
@@ -24,6 +26,8 @@ namespace genfit{
 	class MaterialEffects;
 	class EventDisplay;
 	class AbsKalmanFitter;
+	class AbsBField;
+	class Field2D;
 }
 
 namespace PHGenFit {
@@ -39,27 +43,68 @@ public:
 			const std::string fitter_choice = "KalmanFitterRefTrack",
 			const std::string track_rep_choice = "RKTrackRep",
 			const bool doEventDisplay = false);
+
+	Fitter(TGeoManager* tgeo_manager,
+			genfit::AbsBField* fieldMap,
+			const std::string fitter_choice = "KalmanFitterRefTrack",
+			const std::string track_rep_choice = "RKTrackRep",
+			const bool doEventDisplay = false);
+
 	//! Default destructor
 	~Fitter();
+
+	static Fitter* getInstance(const std::string tgeo_file_name,
+			const std::string field_file_name,
+			const double field_scaling_factor = 1.4/1.5,
+			const std::string fitter_choice = "KalmanFitterRefTrack",
+			const std::string track_rep_choice = "RKTrackRep",
+			const bool doEventDisplay = false);
 
 	int processTrack(PHGenFit::Track* track, const bool save_to_evt_disp = false);
 
 	int displayEvent();
 
+	bool is_do_Event_Display() const {
+		return _doEventDisplay;
+	}
+
+	void set_do_Event_Display(bool doEventDisplay) {
+		_doEventDisplay = doEventDisplay;
+		if(!_display && _doEventDisplay)
+			_display = genfit::EventDisplay::getInstance();
+	}
+
+	genfit::EventDisplay* getEventDisplay()
+	{
+		return _display;
+	}
+
+	int get_verbosity() const {
+		return verbosity;
+	}
+
+	void set_verbosity(int verbosity) {
+		this->verbosity = verbosity;
+	}
+
 private:
 
-	bool _doEventDisplay;
+	/*!
+	 * Verbose control:
+	 * -1: Silient
+	 * 0: Only Error
+	 * 1: Error + Warning
+	 * 2: DEBUG info
+	 */
+
+	int verbosity;
 
 	TGeoManager* _tgeo_manager;
 
+	bool _doEventDisplay;
+
 	genfit::EventDisplay* _display;
 	genfit::AbsKalmanFitter* _fitter;
-
-
-
-
-
-
 
 }; //class Fitter
 

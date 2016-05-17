@@ -1,5 +1,3 @@
-// $$Id: PHG4SpacalDetector.cc,v 1.7 2015/02/10 15:39:26 pinkenbu Exp $$
-
 /*!
  * \file ${file_name}
  * \brief
@@ -9,7 +7,6 @@
  */
 #include "PHG4SpacalDetector.h"
 #include "PHG4CylinderGeomContainer.h"
-#include "PHG4CylinderGeom_Spacalv1.h"
 
 #include <g4main/PHG4PhenixDetector.h>
 #include <g4main/PHG4Utils.h>

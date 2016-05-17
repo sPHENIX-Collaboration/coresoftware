@@ -49,8 +49,6 @@
 //}
 
 int main(int argc, char**argv) {
-	//! Initiallize Geometry, Field, Fitter
-	PHGenFit::Fitter* fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
 
 	TFile *fPHG4Hits = TFile::Open("AnaSvtxTracksForGenFit.root", "read");
 	if (!fPHG4Hits) {
@@ -62,6 +60,10 @@ int main(int argc, char**argv) {
 		std::cout << "No TTree Found: " << __LINE__ << "\n";
 		return -1;
 	}
+
+	//! Initiallize Geometry, Field, Fitter
+	PHGenFit::Fitter* fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
+
 
 	double resolution_detector_xy = 0.005/3.; //50/3. micron
 
@@ -108,8 +110,8 @@ int main(int argc, char**argv) {
 	T->SetBranchAddress("size_dphi", Cluster_size_dphi);
 	T->SetBranchAddress("size_dz", Cluster_size_dz);
 
-	//double nentries = 10000;
-	double nentries = T->GetEntries();
+	double nentries = 10;
+	//double nentries = T->GetEntries();
 	for (unsigned int ientry = 0; ientry < nentries; ++ientry) {
 		//T->GetEntry(atoi(argv[1]));
 		if(ientry%1000==0) std::cout<<"Processing: "<<100.*ientry/nentries <<"%"<<"\n";
@@ -240,7 +242,9 @@ int main(int argc, char**argv) {
 
 	delete fitter;
 
-	pause();
+	//pause();
+
+	std::cout<<"SUCCESS! \n";
 
 	return 0;
 }

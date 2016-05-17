@@ -3,17 +3,15 @@
 
 #include "PHG4EventAction.h"
 
-#include "PHG4HitContainer.h"
-
-#include <phool/PHCompositeNode.h>
-
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/globals.hh>
 
 #include <set>
 #include <map>
 
+class PHG4HitContainer;
 class PHG4TruthInfoContainer;
+class PHCompositeNode;
 
 class PHG4TruthEventAction: public PHG4EventAction
 {

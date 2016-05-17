@@ -11,5 +11,6 @@ namespace PHGenFit {
 Measurement::~Measurement()
 {
 	delete _measurement;
+	_measurement = NULL;
 }
 } //End of PHGenFit namespace

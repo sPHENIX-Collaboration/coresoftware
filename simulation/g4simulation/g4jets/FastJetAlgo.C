@@ -5,15 +5,16 @@
 #include "Jet.h"
 #include "JetV1.h"
 
-// standard includes
-#include <iostream>
-#include <vector>
 
 // fastjet includes
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
 #include <fastjet/ClusterSequence.hh>
 #include <fastjet/SISConePlugin.hh>
+
+// standard includes
+#include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -57,9 +58,9 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles) {
 
   // run fast jet
   fastjet::JetDefinition *jetdef = NULL;
-  if (_algo == Jet::ANTIKT)  jetdef = new fastjet::JetDefinition(fastjet::antikt_algorithm,_par,fastjet::Best);
-  else if (_algo == Jet::KT) jetdef = new fastjet::JetDefinition(fastjet::kt_algorithm,_par,fastjet::Best);
-  else if (_algo == Jet::CAMBRIDGE) jetdef = new fastjet::JetDefinition(fastjet::cambridge_algorithm,_par,fastjet::Best);
+  if (_algo == Jet::ANTIKT)  jetdef = new fastjet::JetDefinition(fastjet::antikt_algorithm,_par,fastjet::E_scheme, fastjet::Best);
+  else if (_algo == Jet::KT) jetdef = new fastjet::JetDefinition(fastjet::kt_algorithm,_par,fastjet::E_scheme,fastjet::Best);
+  else if (_algo == Jet::CAMBRIDGE) jetdef = new fastjet::JetDefinition(fastjet::cambridge_algorithm,_par,fastjet::E_scheme,fastjet::Best);
   else return std::vector<Jet*>();
   fastjet::ClusterSequence jetFinder(pseudojets,*jetdef);
   std::vector<fastjet::PseudoJet> fastjets = jetFinder.inclusive_jets();

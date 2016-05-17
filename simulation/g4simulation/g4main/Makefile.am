@@ -83,7 +83,6 @@ libg4testbench_la_SOURCES = \
     PHG4PrimaryGeneratorAction.cc \
     PHG4Reco.cc \
     PHG4RegionInformation.cc \
-    PHG4TrackInformation.cc \
     PHG4TrackUserInfoV1.cc \
     PHG4TruthEventAction.cc \
     PHG4TruthSteppingAction.cc \
@@ -122,7 +121,6 @@ pkginclude_HEADERS = \
   PHG4HitEval.h \
   PHG4HitContainer.h \
   PHG4InEvent.h \
-  PHG4NullSteppingAction.h \
   PHG4Particle.h \
   PHG4Particlev1.h \
   PHG4Particlev2.h \
@@ -132,6 +130,7 @@ pkginclude_HEADERS = \
   PHG4RegionInformation.h \
   PHG4SteppingAction.h \
   PHG4Subsystem.h \
+  PHG4TrackingAction.h \
   PHG4TrackUserInfoV1.h \
   PHG4TruthInfoContainer.h \
   PHG4Utils.h \

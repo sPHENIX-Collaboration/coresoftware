@@ -1,5 +1,3 @@
-// $$Id: PHG4SpacalSubsystem.h,v 1.2 2014/08/12 03:49:12 jinhuang Exp $$
-
 /*!
  * \file ${file_name}
  * \brief
@@ -11,8 +9,9 @@
 #ifndef PHG4SpacalSubsystem_h
 #define PHG4SpacalSubsystem_h
 
-#include "g4main/PHG4Subsystem.h"
 #include "PHG4CylinderGeom_Spacalv3.h"
+
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
@@ -20,6 +19,7 @@
 class PHG4SpacalDetector;
 class PHG4SpacalSteppingAction;
 class PHG4EventAction;
+class PHG4FlushStepTrackingAction;
 
 class PHG4SpacalSubsystem : public PHG4Subsystem
 {
@@ -58,6 +58,8 @@ public:
   GetDetector(void) const;
   virtual PHG4SteppingAction*
   GetSteppingAction(void) const;
+  PHG4TrackingAction* GetTrackingAction( void ) const;
+
   PHG4EventAction*
   GetEventAction() const
   {
@@ -123,6 +125,9 @@ private:
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4SpacalSteppingAction* steppingAction_;
+
+  PHG4FlushStepTrackingAction *trackingAction_;
+
   PHG4EventAction *eventAction_;
 
   int active;
