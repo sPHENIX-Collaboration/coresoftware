@@ -11,22 +11,26 @@
 
 namespace PHGenFit {
 
-class Measurement
-{
+class Measurement {
 public:
 	//!ctor
-	Measurement() : _measurement(NULL) {};
+	Measurement() :
+			_measurement(NULL) {
+	}
+	;
 
 	//!dtor
 	~Measurement();
 
 	//!
-	genfit::AbsMeasurement* getMeasurement() {return _measurement;}
+	genfit::AbsMeasurement* getMeasurement() {
+		return _measurement;
+	}
 
 protected:
 	genfit::AbsMeasurement* _measurement;
 
-	};
+};
 } //End of PHGenFit namespace
 
 #endif //__PHGenFit_Measurement__
