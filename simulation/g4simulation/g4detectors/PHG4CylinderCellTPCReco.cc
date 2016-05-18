@@ -27,8 +27,8 @@
 using namespace std;
 
 
-PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(const string &name) :
-SubsysReco(name), diffusion(0.0057), elec_per_kev(38.)
+PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel, const string &name) :
+SubsysReco(name), diffusion(0.0057), elec_per_kev(38.), num_pixel_layers(n_pixel)
 {
   memset(nbins, 0, sizeof(nbins));
 }
@@ -209,7 +209,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       
       double edep = hiter->second->get_edep();
       
-      if( (*layer) < 2 )
+      if( (*layer) < (unsigned int)num_pixel_layers )
       {
         char inkey[1024];
         sprintf(inkey,"%i-%i",phibin,zbin);

@@ -14,7 +14,7 @@ class PHG4CylinderCellTPCReco : public SubsysReco
 {
 public:
   
-  PHG4CylinderCellTPCReco(const std::string &name = "CYLINDERTPCRECO");
+  PHG4CylinderCellTPCReco( int n_pixel=2, const std::string &name = "CYLINDERTPCRECO");
   
   virtual ~PHG4CylinderCellTPCReco(){}
   
@@ -67,6 +67,8 @@ protected:
 
   double diffusion;
   double elec_per_kev;
+
+  int num_pixel_layers;
   
 };
 
