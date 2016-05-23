@@ -42,7 +42,7 @@ PHPythia6::PHPythia6(const std::string &name):
   SubsysReco(name),
   _eventcount(0),
   _node_name("PHHepMCGenEvent"),
-  _configFile("phpythia6_ep.cfg"),
+  _configFile("phpythia6.cfg"),
   _phhepmcevt(NULL),
   _save_ascii( false ),
   _filename_ascii("pythia_hepmc.dat"){
