@@ -111,11 +111,6 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
     phistep[layer] = phistepsize;
     for (int i = 0 ; i < nbins[0]; i++)
     {
-      if (phimax > (M_PI + 1e-9))
-      {
-        cout << "phimax: " << phimax << ", M_PI: " << M_PI
-        << "phimax-M_PI: " << phimax-M_PI << endl;
-      }
       phimax += phistepsize;
     }
     // unlikely but if the length is a multiple of the cell size
@@ -136,13 +131,6 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
     double zhigh = zlow + size_z;;
     for (int i = 0 ; i < nbins[1]; i++)
     {
-      if (zhigh > (layergeom->get_zmax()+1e-9))
-      {
-        cout << "zhigh: " << zhigh << ", zmax " 
-        << layergeom->get_zmax()
-        << ", zhigh-zmax: " <<  zhigh-layergeom->get_zmax()
-        << endl;
-      }
       zhigh += size_z;
     }
     layerseggeo->set_binning(PHG4CylinderCellDefs::sizebinning);
@@ -161,7 +149,6 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
 
 int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 {
-  
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit){cout << "Could not locate g4 hit node " << hitnodename << endl;exit(1);}
   PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode, cellnodename);
@@ -214,10 +201,11 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
         char inkey[1024];
         sprintf(inkey,"%i-%i",phibin,zbin);
         std::string key(inkey);
-        if(cellptmap.count(key) > 0){
-	  cellptmap.find(key)->second->add_edep(hiter->first, edep);
-	  cellptmap.find(key)->second->add_shower_edep(hiter->second->get_shower_id(), edep);
-	}
+        if(cellptmap.count(key) > 0)
+        {
+          cellptmap.find(key)->second->add_edep(hiter->first, edep);
+          cellptmap.find(key)->second->add_shower_edep(hiter->second->get_shower_id(), edep);
+        }
         else
         {
           cellptmap[key] = new PHG4CylinderCellv1();
@@ -226,7 +214,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
           it->second->set_phibin(phibin);
           it->second->set_zbin(zbin);
           it->second->add_edep(hiter->first, edep);
-	  it->second->add_shower_edep(hiter->second->get_shower_id(), edep);
+          it->second->add_shower_edep(hiter->second->get_shower_id(), edep);
         }
       }
       else
@@ -234,10 +222,10 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
         double nelec = elec_per_kev*1.0e6*edep;
 
         double cloud_sig_x = 1.5*sqrt( diffusion*diffusion*(100. - TMath::Abs(hiter->second->get_z(0))) + 0.03*0.03 );
-        double cloud_sig_z = 1.5*sqrt((1.+2.2*2.2)*diffusion*diffusion*(80. - TMath::Abs(hiter->second->get_z(0))) + 0.03*0.03 );
+        double cloud_sig_z = 1.5*sqrt((1.+2.2*2.2)*diffusion*diffusion*(100. - TMath::Abs(hiter->second->get_z(0))) + 0.01*0.01 );
         
-        int n_phi = (int)(3.*( cloud_sig_x/(r*phistepsize) )) + 1;
-        int n_z = (int)(3.*( cloud_sig_z/zstepsize )) + 1;
+        int n_phi = (int)(3.*( cloud_sig_x/(r*phistepsize) )) + 3;
+        int n_z = (int)(3.*( cloud_sig_z/zstepsize )) + 3;
         
         double cloud_sig_x_inv = 1./cloud_sig_x;
         double cloud_sig_z_inv = 1./cloud_sig_z;
@@ -258,19 +246,28 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
           {
             int cur_z_bin = zbin + iz;if( (cur_z_bin < 0) || (cur_z_bin >= nzbins) ){continue;}
             
-            double z_integral = 0.5*erf(-0.5*sqrt(2.)*zdisp*r*cloud_sig_z_inv + 0.5*sqrt(2.)*( (0.5 + (double)iz)*zstepsize*r )*cloud_sig_z_inv) - 0.5*erf(-0.5*sqrt(2.)*zdisp*r*cloud_sig_z_inv + 0.5*sqrt(2.)*( (-0.5 + (double)iz)*zstepsize*r )*cloud_sig_z_inv);
-            
+            double z_integral = 0.5*erf(-0.5*sqrt(2.)*zdisp*cloud_sig_z_inv + 0.5*sqrt(2.)*( (0.5 + (double)iz)*zstepsize )*cloud_sig_z_inv) - 0.5*erf(-0.5*sqrt(2.)*zdisp*cloud_sig_z_inv + 0.5*sqrt(2.)*( (-0.5 + (double)iz)*zstepsize )*cloud_sig_z_inv);
+
+            //   0.5*erf(-0.5*sqrt(2.)*(b)*cloud_sig_z_inv + 0.5*sqrt(2.)*( a )*cloud_sig_z_inv)
+
+            // 0.5*erf(-0.5*sqrt(2.)*(b+ 2*a)*cloud_sig_z_inv + 0.5*sqrt(2.)*( (0.5 + 1)*2*a )*cloud_sig_z_inv)
+            // 0.5*erf(-0.5*sqrt(2.)*(b)*cloud_sig_z_inv + 0.5*sqrt(2.)*( (0.5)*2*a )*cloud_sig_z_inv)
+            // 0.5*erf(-0.5*sqrt(2.)*(b)*cloud_sig_z_inv + 0.5*sqrt(2.)*( (-0.5)*2a )*cloud_sig_z_inv)
+            // b = zdisp - 2*a
+            // zdisp = b + 2*a
             double total_weight = rand.Poisson( nelec*( phi_integral * z_integral ) );
             
             if( !(total_weight == total_weight) ){continue;}
+            if(total_weight == 0.){continue;}
             
             char inkey[1024];
             sprintf(inkey,"%i-%i",cur_phi_bin,cur_z_bin);
             std::string key(inkey);
-            if(cellptmap.count(key) > 0){
-	      cellptmap.find(key)->second->add_edep(hiter->first, total_weight);
-	      cellptmap.find(key)->second->add_shower_edep(hiter->second->get_shower_id(), total_weight);
-	    }
+            if(cellptmap.count(key) > 0)
+            {
+              cellptmap.find(key)->second->add_edep(hiter->first, total_weight);
+              cellptmap.find(key)->second->add_shower_edep(hiter->second->get_shower_id(), total_weight);
+            }
             else
             {
               cellptmap[key] = new PHG4CylinderCellv1();
@@ -279,7 +276,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
               it->second->set_phibin(cur_phi_bin);
               it->second->set_zbin(cur_z_bin);
               it->second->add_edep(hiter->first, total_weight);
-	      it->second->add_shower_edep(hiter->second->get_shower_id(), total_weight);
+              it->second->add_shower_edep(hiter->second->get_shower_id(), total_weight);
             }
           }
         }
