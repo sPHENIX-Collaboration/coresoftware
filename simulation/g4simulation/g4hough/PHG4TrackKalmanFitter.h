@@ -29,6 +29,7 @@ class Fitter;
 
 class SvtxTrackMap;
 class SvtxVertexMap;
+class SvtxVertex;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class SvtxClusterMap;
@@ -128,6 +129,14 @@ public:
 		_vertexing_method = vertexingMethod;
 	}
 
+	bool is_fit_primary_tracks() const {
+		return _fit_primary_tracks;
+	}
+
+	void set_fit_primary_tracks(bool fitPrimaryTracks) {
+		_fit_primary_tracks = fitPrimaryTracks;
+	}
+
 private:
 
 	//! Event counter
@@ -139,8 +148,12 @@ private:
 	//!Create New nodes
 	int CreateNodes(PHCompositeNode *);
 
-	//! Refit SvtxTrack
-	PHGenFit::Track* ReFitTrack(const SvtxTrack*);
+	/*
+	 * fit track with SvtxTrack as input seed.
+	 * \param intrack Input SvtxTrack
+	 * \param invertex Input Vertex, if fit track as a primary vertex
+	 */
+	PHGenFit::Track* ReFitTrack(const SvtxTrack* intrack, const SvtxVertex* invertex = NULL);
 
 	//! Make SvtxTrack from PHGenFit::Track and SvtxTrack
 	SvtxTrack* MakeSvtxTrack(const SvtxTrack*, const PHGenFit::Track*);
@@ -152,6 +165,8 @@ private:
 
 	//!flags
 	unsigned int _flags;
+
+	bool _fit_primary_tracks;
 
 	//! rescale mag field, modify the original mag field read in
 	float _mag_field_re_scaling_factor;
@@ -172,6 +187,7 @@ private:
 
 	//! Output Node pointers
 	SvtxTrackMap* _trackmap_refit;
+	SvtxTrackMap* _primary_trackmap;
 	SvtxVertexMap* _vertexmap_refit;
 
 	//! Evaluation
@@ -187,6 +203,7 @@ private:
 	TClonesArray* _tca_trackmap;
 	TClonesArray* _tca_vertexmap;
 	TClonesArray* _tca_trackmap_refit;
+	TClonesArray* _tca_primtrackmap;
 	TClonesArray* _tca_vertexmap_refit;
 
 	bool _do_evt_display;
