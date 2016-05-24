@@ -1073,7 +1073,8 @@ int PHG4HoughTransform::initial_vertex_finding() {
 
 int PHG4HoughTransform::setup_tracker_object() {
 
-  if (!_tpc_mode) {
+  if (!_tpc_mode) { // Silicon Mode
+    
     // input vertex must be within 500 um of final
   
     // tell the tracker object the phase space extent of the search region
@@ -1086,7 +1087,7 @@ int PHG4HoughTransform::setup_tracker_object() {
 			  0.0, kappa_max,                 // curvature range
 			  -0.9, 0.9,                      // dzdl range
 			  -1.0*_dcaz_cut, 1.0*_dcaz_cut); // dca_z range
-  
+
     vector<unsigned int> onezoom(5,0);
     vector<vector<unsigned int> > zoomprofile;
     zoomprofile.assign(5,onezoom);
@@ -1150,11 +1151,11 @@ int PHG4HoughTransform::setup_tracker_object() {
       _tracker->setHitErrorScale(ilayer, scale);
     }
 
-  } else {
+  } else { // TPC mode
 
     float kappa_max = ptToKappa(_min_pT);
     
-    HelixRange top_range( 0.0, 2.*M_PI,
+    HelixRange top_range( 0.0, 2.0*M_PI,
 			  -0.2, 0.2,
 			  0.0, kappa_max,
 			  -0.9, 0.9,
