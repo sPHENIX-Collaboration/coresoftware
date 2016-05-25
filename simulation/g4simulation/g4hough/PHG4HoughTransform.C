@@ -1163,54 +1163,57 @@ int PHG4HoughTransform::setup_tracker_object() {
 
     vector<unsigned int> onezoom(5,0);
     vector<vector<unsigned int> > zoomprofile;
-    zoomprofile.assign(8,onezoom);
+    zoomprofile.assign(5,onezoom);
     zoomprofile[0][0] = 16;
     zoomprofile[0][1] = 1;
-    zoomprofile[0][2] = 4;
+    zoomprofile[0][2] = 5;
     zoomprofile[0][3] = 8;
-    zoomprofile[0][4] = 4;
+    zoomprofile[0][4] = 1;
   
     zoomprofile[1][0] = 16;
     zoomprofile[1][1] = 1;
-    zoomprofile[1][2] = 4;
-    zoomprofile[1][3] = 4;
-    zoomprofile[1][4] = 4;
+    zoomprofile[1][2] = 5;
+    zoomprofile[1][3] = 8;
+    zoomprofile[1][4] = 1;
   
-    zoomprofile[2][0] = 4;
-    zoomprofile[2][1] = 2;
-    zoomprofile[2][2] = 3;
-    zoomprofile[2][3] = 2;
-    zoomprofile[2][4] = 4;
-  
-    for (unsigned int i = 3; i <= 7; ++i) {
-      zoomprofile[i][0] = 5;
-      zoomprofile[i][1] = 5;
-      zoomprofile[i][2] = 5;
-      zoomprofile[i][3] = 5;
-      zoomprofile[i][4] = 5;
-    }
+    zoomprofile[2][0] = 16;
+    zoomprofile[2][1] = 1;
+    zoomprofile[2][2] = 5;
+    zoomprofile[2][3] = 8;
+    zoomprofile[2][4] = 1;
 
-    _tracker = new sPHENIXTracker(zoomprofile, 3, top_range, _material, _radii,
-                                  _magField);
+    zoomprofile[3][0] = 16;
+    zoomprofile[3][1] = 3;
+    zoomprofile[3][2] = 3;
+    zoomprofile[3][3] = 4;
+    zoomprofile[3][4] = 3;
+
+    zoomprofile[4][0] = 16;
+    zoomprofile[4][1] = 3;
+    zoomprofile[4][2] = 3;
+    zoomprofile[4][3] = 4;
+    zoomprofile[4][4] = 3;
+
+    _tracker = new sPHENIXTracker(zoomprofile, 3, top_range, _material, _radii, _magField);
     _tracker->setIterateClustering(true);
     _tracker->setNLayers(_seed_layers);
     _tracker->requireLayers(_req_seed);
-    _max_hits_init = _seed_layers * 4;
-    if (_seed_layers >= 10) {
-      _max_hits_init = _seed_layers * 1;
-    }
+    _max_hits_init = (_seed_layers*3)/2;
+    if(_seed_layers >= 10){_max_hits_init = _seed_layers;}
     _min_hits_init = _req_seed;
     _tracker->setClusterStartBin(1);
     // if(_seed_layers < 10){ _tracker->setClusterStartBin(1); }
     // else{ _tracker->setClusterStartBin(10); }
     _tracker->setRejectGhosts(_reject_ghosts);
-    _tracker->setFastChi2Cut(_chi2_cut_fast_par0, _chi2_cut_fast_par1,
-                             _chi2_cut_fast_max);
+    _tracker->setFastChi2Cut(_chi2_cut_fast_par0,
+			     _chi2_cut_fast_par1,
+			     _chi2_cut_fast_max);
     _tracker->setChi2Cut(_chi2_cut_full);
-    _tracker->setChi2RemovalCut(_chi2_cut_full * 0.5);
+    _tracker->setChi2RemovalCut(_chi2_cut_full*0.5);
     _tracker->setCellularAutomatonChi2Cut(_ca_chi2_cut);
     _tracker->setPrintTimings(false);
-    //_tracker->setVerbosity(verbosity);
+    //    if(verbosity > 3){_tracker->setPrintTimings(true);}
+    //    _tracker->setVerbosity(verbosity);
     _tracker->setCutOnDca(_cut_on_dca);
     _tracker->setDcaCut(_dca_cut);
     _tracker->setSmoothBack(true);
