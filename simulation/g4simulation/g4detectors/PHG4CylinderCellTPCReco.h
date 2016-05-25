@@ -33,7 +33,6 @@ public:
   void Detector(const std::string &d);
   void cellsize(const int i, const double sr, const double sz);
 //   void etaphisize(const int i, const double deltaeta, const double deltaphi);
-  void checkenergy(const int i=1) {chkenergyconservation = i;}
   void OutputDetector(const std::string &d) {outdetector = d;}
 
   void setDiffusion( double diff ){diffusion = diff;}
@@ -61,7 +60,6 @@ protected:
   std::map<int, std::pair<int, int> > n_phi_z_bins;
   
   int nbins[2];
-  int chkenergyconservation;
   
   TRandom3 rand;
 
