@@ -9,6 +9,7 @@
 
 class PHCompositeNode;
 class PHG4CylinderCell;
+class PHG4TPCDistortion;
 
 class PHG4CylinderCellTPCReco : public SubsysReco
 {
@@ -16,7 +17,7 @@ public:
   
   PHG4CylinderCellTPCReco( int n_pixel=2, const std::string &name = "CYLINDERTPCRECO");
   
-  virtual ~PHG4CylinderCellTPCReco(){}
+  virtual ~PHG4CylinderCellTPCReco();
   
   //! module initialization
   int InitRun(PHCompositeNode *topNode);
@@ -37,7 +38,10 @@ public:
 
   void setDiffusion( double diff ){diffusion = diff;}
   void setElectronsPerKeV( double epk ){elec_per_kev = epk;}
-  
+
+  //! distortion to the primary ionization
+  void set_distortion (PHG4TPCDistortion * d) {distortion = d;}
+
 protected:
 //   void set_size(const int i, const double sizeA, const double sizeB, const int what);
 //   int CheckEnergy(PHCompositeNode *topNode);
@@ -68,6 +72,8 @@ protected:
 
   int num_pixel_layers;
   
+  //! distortion to the primary ionization if not NULL
+  PHG4TPCDistortion * distortion;
 };
 
 #endif
