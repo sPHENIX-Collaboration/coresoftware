@@ -15,6 +15,8 @@ class TH2D;
 
 #include "PHG4TPCDistortion.h"
 
+#include <string>
+
 /*!
  * \brief PHG4TPCSpaceChargeDistortion
  */
@@ -44,7 +46,7 @@ class TH2D;
 class PHG4TPCSpaceChargeDistortion : public PHG4TPCDistortion
 {
 public:
-  PHG4TPCSpaceChargeDistortion(const char * distortion_map_file, int verbose = 0);
+  PHG4TPCSpaceChargeDistortion(const std::string & distortion_map_file, int verbose = 0);
 
   virtual
   ~PHG4TPCSpaceChargeDistortion();
