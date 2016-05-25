@@ -753,18 +753,13 @@ static bool fit_all_update(vector<vector<int> >& layer_indexes, SimpleTrack3D& t
 
     chi2_xy += chi2_z;
 
-    if(chi2_xy > 4.0){continue;}
+    if(chi2_xy > 16.0){continue;}
 
     if( (best_chi2[temp_track.hits[i].layer] < -0.) || (best_chi2[temp_track.hits[i].layer] > chi2_xy) )
     {
       best_chi2[temp_track.hits[i].layer] = chi2_xy;
       best_ind[temp_track.hits[i].layer] = i;
     }
-  }
-
-  if( (best_ind[0]<0) || best_ind[1]<0 )
-  {
-    return false;
   }
 
   track.hits.clear();
@@ -789,9 +784,9 @@ static bool fit_all(vector<SimpleHit3D>& hits, vector<vector<int> >& layer_index
   for(int i=0;i<hits.size();i+=1)
   {
     temp_track.hits.push_back(hits[i]);
-    temp_track.hits.back().dx *= 1./sqrt(12.);
-    temp_track.hits.back().dy *= 1./sqrt(12.);
-    temp_track.hits.back().dz *= 1./sqrt(12.);
+    // temp_track.hits.back().dx *= 1./sqrt(12.);
+    // temp_track.hits.back().dy *= 1./sqrt(12.);
+    // temp_track.hits.back().dz *= 1./sqrt(12.);
   }
 
   vector<int> best_ind;
@@ -799,21 +794,33 @@ static bool fit_all(vector<SimpleHit3D>& hits, vector<vector<int> >& layer_index
   track.hits.clear();
   for(int i=0;i<hits.size();i+=1)
   {
+    if(hits[i].layer < 3){continue;}
     if( layer_indexes[hits[i].layer].size()!=2 ){continue;}
     track.hits.push_back(hits[i]);
-    track.hits.back().dx *= 1./sqrt(12.);
-    track.hits.back().dy *= 1./sqrt(12.);
-    track.hits.back().dz *= 1./sqrt(12.);
+    // track.hits.back().dx *= 1./sqrt(12.);
+    // track.hits.back().dy *= 1./sqrt(12.);
+    // track.hits.back().dz *= 1./sqrt(12.);
   }
   sPHENIXTracker::fitTrack(track, chi2_hit);
 
   if(fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track, chi2)==false){return false;}
+  if(fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track, chi2)==false){return false;}
+  if(fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track, chi2)==false){return false;}
+
+  temp_track.hits.clear();
+  for(int i=0;i<hits.size();i+=1)
+  {
+    temp_track.hits.push_back(hits[i]);
+    temp_track.hits.back().dx *= 1./sqrt(12.);
+    temp_track.hits.back().dy *= 1./sqrt(12.);
+    temp_track.hits.back().dz *= 1./sqrt(12.);
+  }
 
   if(fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track, chi2)==false){return false;}
   
 
   chi2 = sPHENIXTracker::fitTrack(track, chi2_hit);
-  if( (chi2 < 4.0) && (track.hits.size() > ((layer_indexes.size()*2)/3)) ){return true;}
+  if( (chi2 < 40.0) && (track.hits.size() > ((layer_indexes.size()*1)/3)) ){return true;}
   return false;
 }
 
@@ -856,14 +863,65 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
     state.y_int = 0.;
     state.z_int = 0.;
 
+    SimpleTrack3D temp_track;
 
-    for(int h=0;h<fit_all_track.hits.size();h+=1)
+
+    for(int h=((int)(fit_all_track.hits.size()-1));h>=0;h-=1)
     {
-      kalman->addHit( fit_all_track.hits[h] , state );
+      HelixKalmanState temp_state(state);
+      kalman->addHit( fit_all_track.hits[h] , temp_state );
+      if( (temp_state.chi2 - state.chi2) < 8.  )
+      {
+        state = temp_state;
+        temp_track.hits.push_back(fit_all_track.hits[h]);
+      }
     }
-    if( (state.chi2 < chi2_cut*( 2.*( fit_all_track.hits.size() ) - 5. )) && (fit_all_track.hits.size()>(n_layers-4)) )
+
+    vector<SimpleHit3D> inner_hits;
+
+    for( int l=2;l>=0;l-=1 )
     {
-      tracks.push_back(fit_all_track);
+      float best_chi2 = -1.;
+      int best_index = -1;
+      for(unsigned int i=0;i<layer_indexes[l].size();++i)
+      {
+        if( layer_indexes[l][i]<0 ){continue;}
+        HelixKalmanState temp_state(state);
+
+        SimpleHit3D temp_hit = hits[layer_indexes[l][i]];
+        temp_hit.dx /= sqrt(12.);
+        temp_hit.dy /= sqrt(12.);
+        temp_hit.dz /= sqrt(12.);
+
+        kalman->addHit( temp_hit , temp_state );
+        best_chi2 = temp_state.chi2 - state.chi2;
+        best_index = layer_indexes[l][i];
+      }
+      if( best_chi2 < 6. )
+      {
+        SimpleHit3D temp_hit = hits[best_index];
+        temp_hit.dx /= sqrt(12.);
+        temp_hit.dy /= sqrt(12.);
+        temp_hit.dz /= sqrt(12.);
+        inner_hits.push_back(temp_hit);
+        kalman->addHit( temp_hit , state );
+      }
+    }
+
+    vector<SimpleHit3D> new_hits;
+    for( int i=(((int)(inner_hits.size()))-1); i>=0; i-=1 )
+    {
+      new_hits.push_back( inner_hits[i] );
+    }
+    for(unsigned int i=0;i<temp_track.hits.size();++i)
+    {
+      new_hits.push_back(temp_track.hits[i]);
+    }
+    temp_track.hits = new_hits;
+
+    if( (state.chi2 < chi2_cut*( 2.*( temp_track.hits.size() ) - 5. )) && (temp_track.hits.size()>(n_layers/4)) )
+    {
+      tracks.push_back(temp_track);
       track_states.push_back(state);
       if(remove_hits == true)
       {
@@ -878,74 +936,23 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
       CAtime += (time2 - time1);
       return;
     }
-  }
-
-
-  
-  initial_combos( 6, hits, layer_indexes, cur_comb, CHI2_CUT, n_layers, kalman );
-  if(cur_comb.size()==0)
-  {
-    gettimeofday(&t2, NULL);
-    time1 = ((double)(t1.tv_sec) + (double)(t1.tv_usec)/1000000.);
-    time2 = ((double)(t2.tv_sec) + (double)(t2.tv_usec)/1000000.);
-    CAtime += (time2 - time1);
-    return;
-  }
-
-  int cur_layer = 6;
-  int layer_iter = 1;
-  while(true)
-  {
-    bool finished = false;
-    int layer_end = cur_layer + layer_iter-1;
-    if( layer_end >= (n_layers-1) )
+    else
     {
-      finished = true;
-      layer_end = n_layers-1;
-    }
-    extend_combos( hits, layer_indexes, cur_comb, CHI2_CUT, kalman, cur_layer, layer_end );
-    if(finished==true){break;}
-    cur_layer = layer_end+1;
-
-    vector<TempComb> tcomb;
-    for(int i=0;i<cur_comb.size();i+=1)
-    {
-      if(cur_comb[i].track.hits.size() > (( cur_layer+1 )/2))
+      if(remove_hits == true)
       {
-        if( cur_comb[i].state.chi2 < chi2_cut*( 2.*( cur_comb[i].track.hits.size() ) - 5. ) )
+        for(unsigned int i=0;i<hits.size();++i)
         {
-          tcomb.push_back(cur_comb[i]);
+          (*hit_used)[hits[i].index] = true;
         }
       }
-    }
-    cur_comb = tcomb;
 
-    if(cur_comb.size()==0){gettimeofday(&t2, NULL);
+      gettimeofday(&t2, NULL);
       time1 = ((double)(t1.tv_sec) + (double)(t1.tv_usec)/1000000.);
       time2 = ((double)(t2.tv_sec) + (double)(t2.tv_usec)/1000000.);
-      CAtime += (time2 - time1); return;}
-  }
-
-  
-
-  for(int i=0;i<cur_comb.size();i+=1)
-  {
-    if(cur_comb[i].track.hits.size() <= (n_layers-4)){continue;}
-    if( !(cur_comb[i].state.chi2 == cur_comb[i].state.chi2) ){continue;}
-    tracks.push_back(cur_comb[i].track);
-    track_states.push_back(cur_comb[i].state);
-    if(remove_hits == true)
-    {
-      for(unsigned int i=0;i<tracks.back().hits.size();++i)
-      {
-        (*hit_used)[tracks.back().hits[i].index] = true;
-      }
+      CAtime += (time2 - time1);
+      return;
     }
   }
-  gettimeofday(&t2, NULL);
-  time1 = ((double)(t1.tv_sec) + (double)(t1.tv_usec)/1000000.);
-  time2 = ((double)(t2.tv_sec) + (double)(t2.tv_usec)/1000000.);
-  CAtime += (time2 - time1);
 }
 
 
