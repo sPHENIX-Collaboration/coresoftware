@@ -146,7 +146,8 @@ sPHENIXTracker::sPHENIXTracker(unsigned int n_phi,
     prev_p_inv(0.),
     seed_layer(0),
     ca_chi2_cut(2.0),
-    cosang_cut(0.985)
+    cosang_cut(0.985),
+    require_pixels(false)
 {
   vector<float> detector_material;
   
@@ -215,7 +216,8 @@ sPHENIXTracker::sPHENIXTracker(vector<vector<unsigned int> >& zoom_profile,
     is_parallel(parallel),
     is_thread(false),
     ca_chi2_cut(2.0),
-    cosang_cut(0.985)
+    cosang_cut(0.985),
+    require_pixels(false)
 {
   vector<float> detector_material;
   
@@ -433,6 +435,7 @@ void sPHENIXTracker::finalize(vector<SimpleTrack3D>& input, vector<SimpleTrack3D
       isolation_variable.push_back(next_best_chi2[i]);
     }
   }
+
   track_states = states_new;
   if(smooth_back == true)
   {
@@ -474,6 +477,53 @@ void sPHENIXTracker::finalize(vector<SimpleTrack3D>& input, vector<SimpleTrack3D
       }
       else
       {
+        // HelixKalmanState state = track_states[i];
+        
+        // track_states[i].C *= 30;
+        
+        // track_states[i].chi2 = 0.;
+        // track_states[i].x_int = 0.;
+        // track_states[i].y_int = 0.;
+        // track_states[i].z_int = 0.;
+        // track_states[i].position = output[i].hits.size();
+        // for(int h=(output[i].hits.size() - 1);h>=0;--h)
+        // {
+        //   SimpleHit3D hit = output[i].hits[h];
+        //   float err_scale = 1.0;
+        //   hit.dx *= err_scale;hit.dy *= err_scale;hit.dz *= err_scale;
+        //   kalman->addHit(hit, track_states[i]);
+        // }
+
+        // SimpleTrack3D temp_track = output[i];
+        // fitTrack(temp_track);
+        // if( temp_track.kappa == temp_track.kappa )
+        // {
+        //   track_states[i].kappa = temp_track.kappa;
+        //   track_states[i].nu = sqrt(temp_track.kappa);
+        // }
+
+
+        SimpleTrack3D temp_track = output[i];
+        vector<SimpleHit3D> temp_hits;
+        vector<float> chi2_hit;
+        fitTrack(temp_track, chi2_hit);
+        for(unsigned int i=0;i<chi2_hit.size();++i)
+        {
+          if(chi2_hit[i]<3. || temp_track.hits[i].layer<2)
+          {
+            temp_hits.push_back(temp_track.hits[i]);
+          }
+        }
+
+        temp_track.hits = temp_hits;
+        fitTrack(temp_track, chi2_hit);
+
+        if( temp_track.kappa == temp_track.kappa )
+        {
+          track_states[i].kappa = temp_track.kappa;
+          track_states[i].nu = sqrt(temp_track.kappa);
+        }
+
         HelixKalmanState state = track_states[i];
         
         track_states[i].C *= 30;
@@ -483,20 +533,33 @@ void sPHENIXTracker::finalize(vector<SimpleTrack3D>& input, vector<SimpleTrack3D
         track_states[i].y_int = 0.;
         track_states[i].z_int = 0.;
         track_states[i].position = output[i].hits.size();
-        for(int h=(output[i].hits.size() - 1);h>=0;--h)
+        for(int h=(temp_track.hits.size() - 1);h>=0;--h)
         {
           SimpleHit3D hit = output[i].hits[h];
-          float err_scale = 0.66;
+          float err_scale = 1.0;
           hit.dx *= err_scale;hit.dy *= err_scale;hit.dz *= err_scale;
           kalman->addHit(hit, track_states[i]);
         }
 
-        SimpleTrack3D temp_track = output[i];
-        fitTrack(temp_track);
-        track_states[i].kappa = temp_track.kappa;
-        track_states[i].nu = sqrt(temp_track.kappa);
+
+
+        if( temp_track.kappa == temp_track.kappa )
+        {
+          track_states[i].kappa = temp_track.kappa;
+          track_states[i].nu = sqrt(temp_track.kappa);
+        }
+
+
+
+
+
+
+
         
-        if(!(track_states[i].kappa == track_states[i].kappa)){track_states[i] = state;}
+        if(!(track_states[i].kappa == track_states[i].kappa))
+        {
+          track_states[i] = state;
+        }
         
         if(output[i].phi < 0.){output[i].phi += 2.*M_PI;}
         output[i].phi = track_states[i].phi;
@@ -553,9 +616,13 @@ bool sPHENIXTracker::breakRecursion(const vector<SimpleHit3D>& hits, const Helix
     else if(  hits[i].layer < 128  ) { layer_mask[3] = layer_mask[3] | (1 << (hits[i].layer-96) ); }
   }
   unsigned int nlayers = __builtin_popcount( layer_mask[0] ) + __builtin_popcount( layer_mask[1] ) + __builtin_popcount( layer_mask[2] ) + __builtin_popcount( layer_mask[3] ) ;
+
+  if( require_pixels == true )
+  {
+    if( ((layer_mask[0] & 1) == 0) || ((layer_mask[0] & 2) == 0) ){return true;}
+  }
   
   return (nlayers < required_layers);
-  
 }
 
 

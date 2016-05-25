@@ -486,6 +486,8 @@ class sPHENIXTracker : public HelixHough {
     hit_error_scale[layer] = scale;
   }
 
+  void setRequirePixels(bool rp){require_pixels = rp;}
+
  private:
   float kappaToPt(float kappa);
   float ptToKappa(float pt);
@@ -570,6 +572,8 @@ class sPHENIXTracker : public HelixHough {
   float cosang_cut;
   
   std::vector<float> hit_error_scale;
+
+  bool require_pixels;
 };
 
 
