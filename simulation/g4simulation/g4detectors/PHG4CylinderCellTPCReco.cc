@@ -195,20 +195,23 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       z =  hiter->second->get_z(0);
 
       // apply primary charge distortion
-      if (distortion)
-        {
+      if( (*layer) >= (unsigned int)num_pixel_layers )
+        { // in TPC
+          if (distortion)
+            {
+              // do TPC distortion
 
-          const double dz = distortion ->get_z_distortion(r,phi,z);
-          const double drphi = distortion ->get_rphi_distortion(r,phi,z);
-          //TODO: radial distortion is not applied at the moment,
-          //      because it leads to major change to the structure of this code and it affect the insensitive direction to
-          //      near radial tracks
-          //
-          //          const double dr = distortion ->get_r_distortion(r,phi,z);
-          phi += drphi/r;
-          z += dz;
+              const double dz = distortion ->get_z_distortion(r,phi,z);
+              const double drphi = distortion ->get_rphi_distortion(r,phi,z);
+              //TODO: radial distortion is not applied at the moment,
+              //      because it leads to major change to the structure of this code and it affect the insensitive direction to
+              //      near radial tracks
+              //
+              //          const double dr = distortion ->get_r_distortion(r,phi,z);
+              phi += drphi/r;
+              z += dz;
+            }
         }
-
 
       phibin = geo->get_phibin( phi );
       if(phibin < 0 || phibin >= nphibins){continue;}

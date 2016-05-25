@@ -22,10 +22,10 @@
 using namespace std;
 
 PHG4TPCSpaceChargeDistortion::PHG4TPCSpaceChargeDistortion(
-    const char * distortion_map_file, int verbose) :
+    const std::string & distortion_map_file, int verbose) :
     PHG4TPCDistortion(verbose)
 {
-  TFile file(distortion_map_file);
+  TFile file(distortion_map_file.c_str());
 
   if (not file.IsOpen())
     {
@@ -157,6 +157,10 @@ PHG4TPCSpaceChargeDistortion::get_r_distortion(double r, double phi, double z)
       + gsl_ran_gaussian(RandomGenerator, precisionFactor * dist);
   if (verbosity > 0)
     {
+      cout <<"PHG4TPCSpaceChargeDistortion::get_r_distortion - input"
+          <<" r = "<<r
+          <<" phi = "<<phi
+          <<" z = "<<z<<endl;
       cout << " Uncorrected R Distortion:" << dist;
       cout << " Corrected R Distortion:" << dist2;
       cout << endl;
@@ -180,6 +184,10 @@ PHG4TPCSpaceChargeDistortion::get_rphi_distortion(double r, double phi,
       + gsl_ran_gaussian(RandomGenerator, precisionFactor * dist);
   if (verbosity > 0)
     {
+      cout <<"PHG4TPCSpaceChargeDistortion::get_rphi_distortion - input"
+          <<" r = "<<r
+          <<" phi = "<<phi
+          <<" z = "<<z<<endl;
       cout << " Uncorrected rPHI Distortion:" << dist;
       cout << " Corrected rPHI Distortion:" << dist2;
       cout << endl;
