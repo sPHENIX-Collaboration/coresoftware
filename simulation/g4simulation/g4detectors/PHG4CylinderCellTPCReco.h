@@ -40,7 +40,7 @@ public:
   void setElectronsPerKeV( double epk ){elec_per_kev = epk;}
 
   //! distortion to the primary ionization
-  void set_distortion (PHG4TPCDistortion * d) {distortion = d;}
+  void setDistortion (PHG4TPCDistortion * d) {distortion = d;}
 
 protected:
 //   void set_size(const int i, const double sizeA, const double sizeB, const int what);
