@@ -853,7 +853,8 @@ int PHG4HoughTransform::translate_input() {
     // dzz, unsigned int ind, int lyr=-1)
     SimpleHit3D hit3d(cluster->get_x(), fabs(xy_error * sin(phi)),
                       cluster->get_y(), fabs(xy_error * cos(phi)),
-                      cluster->get_z(), z_error, cluster->get_id(), ilayer);
+                      cluster->get_z(), z_error,
+		      cluster->get_id(), ilayer);
 
     // copy covariance over
     for (int i = 0; i < 3; ++i) {

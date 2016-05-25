@@ -897,7 +897,7 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
         best_chi2 = temp_state.chi2 - state.chi2;
         best_index = layer_indexes[l][i];
       }
-      if( best_chi2 < 6. )
+      if( (best_chi2 < 6.) && (best_index != -1))
       {
         SimpleHit3D temp_hit = hits[best_index];
         temp_hit.dx /= sqrt(12.);
