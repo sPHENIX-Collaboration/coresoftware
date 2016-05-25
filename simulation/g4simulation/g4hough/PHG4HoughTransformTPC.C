@@ -460,16 +460,16 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
 
     // cout<<"layer : "<<ilayer<<" , xy_error : "<<xy_error<<" , z_error : "<<z_error<<endl;
 
-    // if(ilayer < 3)
-    // {
-    //   xy_error = 0.002;
-    //   z_error = 0.002;
-    // }
-    // else
-    // {
-    //   xy_error = 0.013;
-    //   z_error = 0.02;
-    // }
+    if(ilayer < 3)
+    {
+      xy_error = 0.002;
+      z_error = 0.002;
+    }
+    else
+    {
+      xy_error = 0.013;
+      z_error = 0.02;
+    }
 
 
     vector<SimpleHit3D>* which_vec = &_clusters;
