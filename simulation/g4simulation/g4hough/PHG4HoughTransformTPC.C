@@ -458,6 +458,20 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
       else{z_error  = _max_cluster_error*_smear_z_layer[ilayer] * _vote_error_scale[ilayer];}
     }
 
+    // cout<<"layer : "<<ilayer<<" , xy_error : "<<xy_error<<" , z_error : "<<z_error<<endl;
+
+    if(ilayer < 3)
+    {
+      xy_error = 0.002;
+      z_error = 0.002;
+    }
+    else
+    {
+      xy_error = 0.013;
+      z_error = 0.02;
+    }
+
+
     vector<SimpleHit3D>* which_vec = &_clusters;
     if (ilayer<_seed_layers) {which_vec=&_clusters_init;}
 
@@ -515,10 +529,11 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     if(verbosity > 0) cout << "PHG4HoughTransformTPC::process_event -- initial vertex finding..." << endl;
     
     // find maxtracks tracks
-    unsigned int maxtracks = 40;
+    //unsigned int maxtracks = 40;
     // _tracker->findHelices(_clusters_init, _req_seed, _max_hits_init, _tracks, maxtracks);
     // _tracker->findHelices(_clusters_init, _req_seed, _max_hits_init, _tracks);
-    _tracker_vertex->findHelices(_clusters_init, _req_seed, _max_hits_init, _tracks, maxtracks);
+    // _tracker_vertex->findHelices(_clusters_init, _req_seed, _max_hits_init, _tracks, maxtracks);
+    _tracker_vertex->findHelices(_clusters_init, _req_seed, _max_hits_init, _tracks);
     // _tracker->setRemoveHits(_remove_hits);
 
     cout<<"found "<<_tracks.size()<<" initial tracks"<<endl;
@@ -543,7 +558,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
       }
       sort(pTmap.begin(), pTmap.end());
       vector<SimpleTrack3D> vtxtracks;
-      unsigned int maxvtxtracks=100;
+      unsigned int maxvtxtracks=1000;
       if(_tracks.size() < maxvtxtracks)
       {
         vtxtracks = _tracks;
@@ -556,38 +571,36 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
         }
       }
       
-      
-      vector<double> zvertices(3,0.);
+      unsigned int niter = 11;
+      vector<double> zvertices(niter,0.);
       vector<float> temp_vertex(3,0.);
-      vector<unsigned int> vtracks(3,0);
-      for(unsigned int iter = 0;iter < 3; ++iter)
+      vector<unsigned int> vtracks(niter,0);
+      float init_z_guess = -10.;
+      for(unsigned int iter = 0;iter < niter; ++iter)
       {
-        temp_vertex[2] = 0.;
+        temp_vertex[2] = init_z_guess;
+        init_z_guess += 2.;
         
-        TH1D z0_hist("z0_hist","z0_hist", 20, -10., 10.);
-        for(unsigned int i=0;i<vtxtracks.size();++i)
-        {
-          z0_hist.Fill(vtxtracks[i].z0);
-        }
-        temp_vertex[2] = z0_hist.GetBinCenter( z0_hist.GetMaximumBin() );
-        
-        _vertexFinder.findVertex(vtxtracks, temp_vertex, 3., true);
+        _vertexFinder.findVertex(vtxtracks, temp_vertex, 10., true);
+        _vertexFinder.findVertex(vtxtracks, temp_vertex, 5., true);
+        _vertexFinder.findVertex(vtxtracks, temp_vertex, 2., true);
+        _vertexFinder.findVertex(vtxtracks, temp_vertex, 1., true);
+        _vertexFinder.findVertex(vtxtracks, temp_vertex, 0.5, true);
         _vertexFinder.findVertex(vtxtracks, temp_vertex, 0.1, true);
         _vertexFinder.findVertex(vtxtracks, temp_vertex, 0.02, false);
         
-        
-        vector<SimpleTrack3D> ttracks;
-        for(unsigned int t=0;t<vtxtracks.size();++t)
-        {
-          if( fabs(vtxtracks[t].z0 - temp_vertex[2]) < 0.1 ){vtracks[iter] += 1;}
-          else{ttracks.push_back(vtxtracks[t]);}
-        }
-        vtxtracks = ttracks;
+        // vector<SimpleTrack3D> ttracks;
+        // for(unsigned int t=0;t<vtxtracks.size();++t)
+        // {
+        //   if( fabs(vtxtracks[t].z0 - temp_vertex[2]) < 0.1 ){vtracks[iter] += 1;}
+        //   else{ttracks.push_back(vtxtracks[t]);}
+        // }
+        // vtxtracks = ttracks;
         zvertices[iter] = temp_vertex[2];
       }
       _vertex[2] = zvertices[0];
       unsigned int zbest = 0;
-      for(unsigned int iter = 1;iter < 3; ++iter)
+      for(unsigned int iter = 1;iter < niter; ++iter)
       {
         if(vtracks[iter] > vtracks[zbest])
         {
@@ -1089,34 +1102,34 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
   vector<unsigned int> onezoom(5,0);
   vector<vector<unsigned int> > zoomprofile;
   zoomprofile.assign(5,onezoom);
-  zoomprofile[0][0] = 16;
+  zoomprofile[0][0] = 8;
   zoomprofile[0][1] = 1;
-  zoomprofile[0][2] = 5;
+  zoomprofile[0][2] = 8;
   zoomprofile[0][3] = 8;
   zoomprofile[0][4] = 1;
   
-  zoomprofile[1][0] = 16;
+  zoomprofile[1][0] = 8;
   zoomprofile[1][1] = 1;
-  zoomprofile[1][2] = 5;
+  zoomprofile[1][2] = 8;
   zoomprofile[1][3] = 8;
   zoomprofile[1][4] = 1;
   
-  zoomprofile[2][0] = 16;
+  zoomprofile[2][0] = 8;
   zoomprofile[2][1] = 1;
-  zoomprofile[2][2] = 5;
+  zoomprofile[2][2] = 8;
   zoomprofile[2][3] = 8;
   zoomprofile[2][4] = 1;
 
-  zoomprofile[3][0] = 16;
+  zoomprofile[3][0] = 8;
   zoomprofile[3][1] = 3;
-  zoomprofile[3][2] = 3;
-  zoomprofile[3][3] = 4;
+  zoomprofile[3][2] = 8;
+  zoomprofile[3][3] = 2;
   zoomprofile[3][4] = 3;
 
-  zoomprofile[4][0] = 16;
+  zoomprofile[4][0] = 8;
   zoomprofile[4][1] = 3;
-  zoomprofile[4][2] = 3;
-  zoomprofile[4][3] = 4;
+  zoomprofile[4][2] = 8;
+  zoomprofile[4][3] = 2;
   zoomprofile[4][4] = 3;
   
     
@@ -1127,7 +1140,7 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
   _max_hits_init = (_seed_layers*3)/2;
   if(_seed_layers >= 10){_max_hits_init = _seed_layers;}
   _min_hits_init = _req_seed;
-  _tracker->setClusterStartBin(1);
+  _tracker->setClusterStartBin(3);
   // if(_seed_layers < 10){ _tracker->setClusterStartBin(1); }
   // else{ _tracker->setClusterStartBin(10); }
   _tracker->setRejectGhosts(_reject_ghosts);
@@ -1149,44 +1162,33 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
   _tracker->setSeparateByHelicity(true);
   _tracker->setMaxHitsPairs(0);
   _tracker->setCosAngleCut(_cos_angle_cut);
+  _tracker->setRequirePixels(true);
   
-  
-  
-
-
-
     vector<vector<unsigned int> > zoomprofile2;
-    zoomprofile2.assign(5,onezoom);
-    zoomprofile2[0][0] = 16;
+    zoomprofile2.assign(4,onezoom);
+    zoomprofile2[0][0] = 8;
     zoomprofile2[0][1] = 1;
     zoomprofile2[0][2] = 4;
     zoomprofile2[0][3] = 8;
     zoomprofile2[0][4] = 4;
     
-    zoomprofile2[1][0] = 16;
+    zoomprofile2[1][0] = 8;
     zoomprofile2[1][1] = 1;
     zoomprofile2[1][2] = 4;
     zoomprofile2[1][3] = 8;
     zoomprofile2[1][4] = 4;
     
-    zoomprofile2[2][0] = 16;
+    zoomprofile2[2][0] = 8;
     zoomprofile2[2][1] = 1;
     zoomprofile2[2][2] = 4;
     zoomprofile2[2][3] = 4;
     zoomprofile2[2][4] = 4;
 
-    zoomprofile2[3][0] = 16;
+    zoomprofile2[3][0] = 8;
     zoomprofile2[3][1] = 3;
     zoomprofile2[3][2] = 3;
     zoomprofile2[3][3] = 4;
     zoomprofile2[3][4] = 3;
-
-    zoomprofile2[4][0] = 16;
-    zoomprofile2[4][1] = 3;
-    zoomprofile2[4][2] = 3;
-    zoomprofile2[4][3] = 4;
-    zoomprofile2[4][4] = 3;
-
 
       HelixRange top_range2( 0.0, 2.*M_PI,
                -0.2, 0.2,
@@ -1201,7 +1203,7 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
     _max_hits_init = _seed_layers*4;
     if(_seed_layers >= 10){_max_hits_init = _seed_layers*1;}
     _min_hits_init = _req_seed;
-    _tracker_vertex->setClusterStartBin(1);
+    _tracker_vertex->setClusterStartBin(2);
     // if(_seed_layers < 10){ _tracker_vertex->setClusterStartBin(1); }
     // else{ _tracker_vertex->setClusterStartBin(10); }
     _tracker_vertex->setRejectGhosts(_reject_ghosts);
@@ -1223,13 +1225,9 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
     _tracker_vertex->setSeparateByHelicity(true);
     _tracker_vertex->setMaxHitsPairs(0);
     _tracker_vertex->setCosAngleCut(_cos_angle_cut);
+    _tracker_vertex->setRequirePixels(true);
 
-
-
-
-
-   
-  
+    
   for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
     float scale1 = _fit_error_scale[ilayer];
     float scale2 = _vote_error_scale[ilayer];

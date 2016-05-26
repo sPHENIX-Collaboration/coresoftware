@@ -779,15 +779,26 @@ static bool fit_all_update(vector<vector<int> >& layer_indexes, SimpleTrack3D& t
 
 static bool fit_all(vector<SimpleHit3D>& hits, vector<vector<int> >& layer_indexes, SimpleTrack3D& track, float& chi2)
 {
+
+  float scale1 = 8.;
+  float scale2 = 0.5;
+
   SimpleTrack3D temp_track;
   vector<float> chi2_hit;
   for(int i=0;i<hits.size();i+=1)
   {
+
+    if(hits[i].layer < 3){continue;}
     temp_track.hits.push_back(hits[i]);
     // temp_track.hits.back().dx *= 1./sqrt(12.);
     // temp_track.hits.back().dy *= 1./sqrt(12.);
     // temp_track.hits.back().dz *= 1./sqrt(12.);
+
+    temp_track.hits.back().dx *= scale1;
+    temp_track.hits.back().dy *= scale1;
+    temp_track.hits.back().dz *= scale1;
   }
+
 
   vector<int> best_ind;
   vector<float> best_chi2;
@@ -800,27 +811,53 @@ static bool fit_all(vector<SimpleHit3D>& hits, vector<vector<int> >& layer_index
     // track.hits.back().dx *= 1./sqrt(12.);
     // track.hits.back().dy *= 1./sqrt(12.);
     // track.hits.back().dz *= 1./sqrt(12.);
+
+    track.hits.back().dx *= scale1;
+    track.hits.back().dy *= scale1;
+    track.hits.back().dz *= scale1;
   }
   sPHENIXTracker::fitTrack(track, chi2_hit);
 
   if(fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track, chi2)==false){return false;}
-  if(fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track, chi2)==false){return false;}
-  if(fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track, chi2)==false){return false;}
 
-  temp_track.hits.clear();
-  for(int i=0;i<hits.size();i+=1)
+  for(unsigned int h=0;h<temp_track.hits.size();++h)
   {
-    temp_track.hits.push_back(hits[i]);
-    temp_track.hits.back().dx *= 1./sqrt(12.);
-    temp_track.hits.back().dy *= 1./sqrt(12.);
-    temp_track.hits.back().dz *= 1./sqrt(12.);
+    temp_track.hits[h].dx *= scale2;
+    temp_track.hits[h].dy *= scale2;
+    temp_track.hits[h].dz *= scale2;
   }
 
   if(fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track, chi2)==false){return false;}
+
+  for(unsigned int h=0;h<temp_track.hits.size();++h)
+  {
+    temp_track.hits[h].dx *= scale2;
+    temp_track.hits[h].dy *= scale2;
+    temp_track.hits[h].dz *= scale2;
+  }
+
+  if(fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track, chi2)==false){return false;}
+
+  for(unsigned int h=0;h<temp_track.hits.size();++h)
+  {
+    temp_track.hits[h].dx *= scale2;
+    temp_track.hits[h].dy *= scale2;
+    temp_track.hits[h].dz *= scale2;
+  }
+
+  if(fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track, chi2)==false){return false;}
+
+  for(unsigned int h=0;h<temp_track.hits.size();++h)
+  {
+    temp_track.hits[h].dx *= 1./sqrt(12.);
+    temp_track.hits[h].dy *= 1./sqrt(12.);
+    temp_track.hits[h].dz *= 1./sqrt(12.);
+  }
   
 
   chi2 = sPHENIXTracker::fitTrack(track, chi2_hit);
-  if( (chi2 < 40.0) && (track.hits.size() > ((layer_indexes.size()*1)/3)) ){return true;}
+  if( (chi2 < 100.0) && (track.hits.size() > ((layer_indexes.size()*2)/3)) ){return true;}
+
   return false;
 }
 
@@ -836,6 +873,7 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
   vector<vector<int> > layer_indexes;layer_indexes.assign( n_layers, vector<int>() );
   for(unsigned int i=0;i<hits.size();++i){layer_indexes[ hits[i].layer ].push_back( i );}
   for(int i =0;i<(int)n_layers;++i){layer_indexes[i].push_back( -(i+1) );}
+
   vector<TempComb> cur_comb;
   
   SimpleTrack3D fit_all_track;
@@ -863,27 +901,56 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
     state.y_int = 0.;
     state.z_int = 0.;
 
-    SimpleTrack3D temp_track;
+    state.C *= 100.;
 
+    SimpleTrack3D temp_track;
+    vector<SimpleHit3D> temp_hits;
 
     for(int h=((int)(fit_all_track.hits.size()-1));h>=0;h-=1)
     {
       HelixKalmanState temp_state(state);
       kalman->addHit( fit_all_track.hits[h] , temp_state );
-      if( (temp_state.chi2 - state.chi2) < 8.  )
+
+      if( (temp_state.chi2 - state.chi2) < 100.  )
       {
         state = temp_state;
-        temp_track.hits.push_back(fit_all_track.hits[h]);
+        temp_hits.push_back(fit_all_track.hits[h]);
       }
     }
 
-    vector<SimpleHit3D> inner_hits;
+    state.chi2 = 0.;
+    state.position = n_layers;
+    state.x_int = 0.;
+    state.y_int = 0.;
+    state.z_int = 0.;
 
+    state.C *= 100.;
+    temp_hits.clear();
+    for(int h=((int)(fit_all_track.hits.size()-1));h>=0;h-=1)
+    {
+      HelixKalmanState temp_state(state);
+      kalman->addHit( fit_all_track.hits[h] , temp_state );
+      if( (temp_state.chi2 - state.chi2) < 10.  )
+      {
+        state = temp_state;
+        temp_hits.push_back(fit_all_track.hits[h]);
+      }
+    }
+    for(int h=((int)(temp_hits.size()-1));h>=0;h-=1)
+    {
+      temp_track.hits.push_back( temp_hits[h] );
+    }
+
+
+
+
+    vector<SimpleHit3D> inner_hits;
+    int npixels = 0;
     for( int l=2;l>=0;l-=1 )
     {
       float best_chi2 = -1.;
       int best_index = -1;
-      for(unsigned int i=0;i<layer_indexes[l].size();++i)
+      for(unsigned int i=0;i<(layer_indexes[l].size()-1);++i)
       {
         if( layer_indexes[l][i]<0 ){continue;}
         HelixKalmanState temp_state(state);
@@ -893,12 +960,21 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
         temp_hit.dy /= sqrt(12.);
         temp_hit.dz /= sqrt(12.);
 
-        kalman->addHit( temp_hit , temp_state );
-        best_chi2 = temp_state.chi2 - state.chi2;
+        // kalman->addHit( temp_hit , temp_state );
+        // best_chi2 = temp_state.chi2 - state.chi2;
+
+        temp_track.hits.push_back( temp_hit );
+        vector<float> chi2_hit;
+        float chi2 = sPHENIXTracker::fitTrack(temp_track, chi2_hit);
+        best_chi2 = chi2;
+        temp_track.hits.pop_back();
+
         best_index = layer_indexes[l][i];
       }
-      if( (best_chi2 < 6.) && (best_index != -1))
+      if( best_index== -1 ){continue;}
+      if( best_chi2 < 2. )
       {
+        npixels += 1;
         SimpleHit3D temp_hit = hits[best_index];
         temp_hit.dx /= sqrt(12.);
         temp_hit.dy /= sqrt(12.);
@@ -919,7 +995,7 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
     }
     temp_track.hits = new_hits;
 
-    if( (state.chi2 < chi2_cut*( 2.*( temp_track.hits.size() ) - 5. )) && (temp_track.hits.size()>(n_layers/4)) )
+    if( (state.chi2 < chi2_cut*( 2.*( temp_track.hits.size() ) - 5. )) && (temp_track.hits.size()>(n_layers/2)) && npixels>1 )
     {
       tracks.push_back(temp_track);
       track_states.push_back(state);
@@ -938,13 +1014,13 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, 
     }
     else
     {
-      if(remove_hits == true)
-      {
-        for(unsigned int i=0;i<hits.size();++i)
-        {
-          (*hit_used)[hits[i].index] = true;
-        }
-      }
+      // if(remove_hits == true)
+      // {
+      //   for(unsigned int i=0;i<hits.size();++i)
+      //   {
+      //     (*hit_used)[hits[i].index] = true;
+      //   }
+      // }
 
       gettimeofday(&t2, NULL);
       time1 = ((double)(t1.tv_sec) + (double)(t1.tv_usec)/1000000.);

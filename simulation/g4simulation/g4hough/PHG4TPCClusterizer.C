@@ -256,6 +256,13 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 					if( is_local_maximum( amps, nphibins, nzbins, phibin, zbin ) == false ){continue;}
 					float phi=0.;float z=0.;float e=0.;
 					fit_cluster( amps, nphibins, nzbins, nhits_tot, nhits, phibin, zbin, geo, phi, z, e );
+
+					// if(layer > 2)
+					// {
+					// 	cout<<"added cluster : "<<layer<<" "<<e<<endl;
+					// }
+					// if( (layer>2) && (e<3.) ){continue;}
+
 					SvtxCluster_v1 clus;
 					clus.set_layer( layer );
 					clus.set_e(e);
