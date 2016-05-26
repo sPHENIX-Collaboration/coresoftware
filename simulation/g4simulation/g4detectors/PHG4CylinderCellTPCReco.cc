@@ -7,6 +7,35 @@
 #include "PHG4CylinderCellContainer.h"
 #include "PHG4CylinderCellDefs.h"
 
+#include "G4Material.hh"
+#include "G4Isotope.hh"
+#include "G4LogicalVolume.hh"
+#include "G4PVPlacement.hh"
+#include "G4PVParameterised.hh"
+#include "G4SDManager.hh"
+#include "Randomize.hh"
+#include "G4UserLimits.hh"
+#include "G4VisAttributes.hh"
+#include "G4Colour.hh"
+#include "G4ios.hh"
+#include "G4VSolid.hh"
+#include "G4Tubs.hh"
+#include "G4Box.hh"
+#include "G4Sphere.hh"
+#include "G4Torus.hh"
+#include "G4UnionSolid.hh"
+#include "G4SubtractionSolid.hh"
+#include "G4Cons.hh"
+#include "G4UserLimits.hh"
+#include "G4RotationMatrix.hh"
+#include "G4NistManager.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4ReflectionFactory.hh"
+#include "G4OpticalSurface.hh"
+#include "G4LogicalBorderSurface.hh"
+#include "G4LogicalSkinSurface.hh"
+
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -26,11 +55,27 @@
 
 using namespace std;
 
+G4String name, symbol;             // a=mass of a mole;
+G4double a, z, density;            // z=mean number of protons;  
+G4int iz, n, nel;                       // iz=nb of protons  in an isotope; 
+                                   // n=nb of nucleons in an isotope;
+G4int ncomponents, natoms;
+G4double abundance, fractionmass;
+G4double temperature, pressure;
+
+G4Material* PHG4CylinderCellTPCReco::CF4 = new G4Material("CF4",density=3.72*mg/cm3,nel=2);
+
 
 PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel, const string &name) :
 SubsysReco(name), diffusion(0.0057), elec_per_kev(38.), num_pixel_layers(n_pixel)
 {
-  memset(nbins, 0, sizeof(nbins));
+  // memset(nbins, 0, sizeof(nbins));
+
+  G4Element* C = new G4Element("Carbon","C",z=6., a=12.01*g/mole);
+  G4Element* F = new G4Element("Fluorine","F",z=9., a=18.9984*g/mole);
+
+  PHG4CylinderCellTPCReco::CF4->AddElement(C , natoms=1);
+  PHG4CylinderCellTPCReco::CF4->AddElement(F , natoms=4);
 }
 
 
@@ -220,6 +265,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       else
       {
         double nelec = elec_per_kev*1.0e6*edep;
+        //cout<<"nelec = "<<nelec<<endl;
+        double total_integral = 0.;
 
         double cloud_sig_x = 1.5*sqrt( diffusion*diffusion*(100. - TMath::Abs(hiter->second->get_z(0))) + 0.03*0.03 );
         double cloud_sig_z = 1.5*sqrt((1.+2.2*2.2)*diffusion*diffusion*(100. - TMath::Abs(hiter->second->get_z(0))) + 0.01*0.01 );
@@ -259,6 +306,10 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
             
             if( !(total_weight == total_weight) ){continue;}
             if(total_weight == 0.){continue;}
+
+            total_integral += total_weight;
+
+            //cout<<"adding "<<iphi<<" "<<iz<<" "<<total_weight<<endl;
             
             char inkey[1024];
             sprintf(inkey,"%i-%i",cur_phi_bin,cur_z_bin);
@@ -280,6 +331,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
             }
           }
         }
+        //cout<<"total_integral = "<<total_integral<<endl<<endl;
       }
     }
     int count = 0;

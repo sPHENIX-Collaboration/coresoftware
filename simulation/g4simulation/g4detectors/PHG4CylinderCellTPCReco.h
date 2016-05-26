@@ -9,6 +9,7 @@
 
 class PHCompositeNode;
 class PHG4CylinderCell;
+class G4Material;
 
 class PHG4CylinderCellTPCReco : public SubsysReco
 {
@@ -38,6 +39,8 @@ public:
 
   void setDiffusion( double diff ){diffusion = diff;}
   void setElectronsPerKeV( double epk ){elec_per_kev = epk;}
+
+  static G4Material* CF4;
   
 protected:
 //   void set_size(const int i, const double sizeA, const double sizeB, const int what);

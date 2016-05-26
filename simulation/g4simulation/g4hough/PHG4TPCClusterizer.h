@@ -7,7 +7,7 @@
 class PHG4TPCClusterizer : public SubsysReco
 {
 	public:
-		PHG4TPCClusterizer(const char * name = "PHG4SvtxClusterizer", unsigned int phi_s=10,unsigned int z_s=5) : SubsysReco(name), _phi_span(phi_s), _z_span(z_s) {}
+		PHG4TPCClusterizer(const char * name = "PHG4SvtxClusterizer", unsigned int phi_s=10,unsigned int z_s=5) : SubsysReco(name), _phi_span(phi_s), _z_span(z_s), energy_cut(-1.) {}
 		~PHG4TPCClusterizer(){}
 
 		//! module initialization
@@ -21,6 +21,8 @@ class PHG4TPCClusterizer : public SubsysReco
 
 		//! end of process
 		int End(PHCompositeNode *topNode){return 0;}
+
+		void setEnergyCut(double ecut){energy_cut=ecut;}
 
 
 	private:
@@ -38,6 +40,7 @@ class PHG4TPCClusterizer : public SubsysReco
 
 		unsigned int _phi_span;
 		unsigned int _z_span;
+		double energy_cut;
 };
 
 
