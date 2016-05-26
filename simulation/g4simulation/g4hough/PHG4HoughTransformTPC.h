@@ -17,6 +17,7 @@
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHTimeServer.h>
+#include <g4bbc/BbcVertexMap.h>
 
 // Helix Hough includes
 #ifndef __CINT__
@@ -179,6 +180,9 @@ public:
   int GetNodes(PHCompositeNode *topNode);
   int InitializeGeometry(PHCompositeNode *topNode);
 
+  /// code to seed vertex from bbc
+  int fast_vertex_from_bbc();
+  
   /// convert from inverse curvature to momentum
   float kappaToPt(float kappa);
   /// convert from momentum to inverse curvature
@@ -274,6 +278,8 @@ public:
   bool _write_reco_tree;
   TTree* _reco_tree;
   SimpleRecoEvent* _recoevent;
+
+  BbcVertexMap* _bbc_vertexes;
 
 #endif // __CINT__
 };

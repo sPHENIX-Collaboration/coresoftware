@@ -23,6 +23,8 @@
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
+#include <g4bbc/BbcVertexMap.h>
+#include <g4bbc/BbcVertex.h>
 
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -327,6 +329,7 @@ PHG4HoughTransformTPC::PHG4HoughTransformTPC(unsigned int seed_layers, unsigned 
   _dcaz_cut(0.2),
   _write_reco_tree(false)
 {
+  _bbc_vertexes = NULL;
   _magField = 1.5; // Tesla
   _use_vertex = true;
   _chi2_cut_init = 4.0;
@@ -524,119 +527,24 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
   _vertex.push_back(0.0); // y guess
   _vertex.push_back(0.0); // z guess
 
-  if(_use_vertex) {
+  //  if(_use_vertex) {
+  fast_vertex_from_bbc();            
+  //}  // if(_use_vertex)
 
-    if(verbosity > 0) cout << "PHG4HoughTransformTPC::process_event -- initial vertex finding..." << endl;
-    
-    // find maxtracks tracks
-    //unsigned int maxtracks = 40;
-    // _tracker->findHelices(_clusters_init, _req_seed, _max_hits_init, _tracks, maxtracks);
-    // _tracker->findHelices(_clusters_init, _req_seed, _max_hits_init, _tracks);
-    // _tracker_vertex->findHelices(_clusters_init, _req_seed, _max_hits_init, _tracks, maxtracks);
-    _tracker_vertex->findHelices(_clusters_init, _req_seed, _max_hits_init, _tracks);
-    // _tracker->setRemoveHits(_remove_hits);
-
-    cout<<"found "<<_tracks.size()<<" initial tracks"<<endl;
-    
-    if(_tracks.size() == 0){return Fun4AllReturnCodes::EVENT_OK;}
-    else if(_tracks.size() == 1)
-    {
-      _vertex[0] = cos(_tracks[0].phi) * _tracks[0].d;
-      _vertex[1] = sin(_tracks[0].phi) * _tracks[0].d;
-      _vertex[2] = _tracks[0].z0;
-    }
-    else
-    {
-      vector<vector<double> > pTmap;
-      for(unsigned int i=0;i<_tracks.size();++i)
-      {
-        if(_tracks[i].kappa == 0.0){continue;}
-        double pT = kappaToPt(_tracks[i].kappa);
-        pTmap.push_back(vector<double>());
-        pTmap.back().push_back(pT);
-        pTmap.back().push_back((double)i);
-      }
-      sort(pTmap.begin(), pTmap.end());
-      vector<SimpleTrack3D> vtxtracks;
-      unsigned int maxvtxtracks=1000;
-      if(_tracks.size() < maxvtxtracks)
-      {
-        vtxtracks = _tracks;
-      }
-      else
-      {
-        for(unsigned int i=0;i<maxvtxtracks;++i)
-        {
-          vtxtracks.push_back(_tracks[ (int)(pTmap[pTmap.size()-1-i][1]) ]);
-        }
-      }
-      
-      unsigned int niter = 11;
-      vector<double> zvertices(niter,0.);
-      vector<float> temp_vertex(3,0.);
-      vector<unsigned int> vtracks(niter,0);
-      float init_z_guess = -10.;
-      for(unsigned int iter = 0;iter < niter; ++iter)
-      {
-        temp_vertex[2] = init_z_guess;
-        init_z_guess += 2.;
-        
-        _vertexFinder.findVertex(vtxtracks, temp_vertex, 10., true);
-        _vertexFinder.findVertex(vtxtracks, temp_vertex, 5., true);
-        _vertexFinder.findVertex(vtxtracks, temp_vertex, 2., true);
-        _vertexFinder.findVertex(vtxtracks, temp_vertex, 1., true);
-        _vertexFinder.findVertex(vtxtracks, temp_vertex, 0.5, true);
-        _vertexFinder.findVertex(vtxtracks, temp_vertex, 0.1, true);
-        _vertexFinder.findVertex(vtxtracks, temp_vertex, 0.02, false);
-        
-        // vector<SimpleTrack3D> ttracks;
-        // for(unsigned int t=0;t<vtxtracks.size();++t)
-        // {
-        //   if( fabs(vtxtracks[t].z0 - temp_vertex[2]) < 0.1 ){vtracks[iter] += 1;}
-        //   else{ttracks.push_back(vtxtracks[t]);}
-        // }
-        // vtxtracks = ttracks;
-        zvertices[iter] = temp_vertex[2];
-      }
-      _vertex[2] = zvertices[0];
-      unsigned int zbest = 0;
-      for(unsigned int iter = 1;iter < niter; ++iter)
-      {
-        if(vtracks[iter] > vtracks[zbest])
-        {
-          _vertex[2] = zvertices[iter];
-          zbest = iter;
-        }
-      }
-    }
-    
-    
-    
-    
-    
-    
-    if(verbosity > 0) cout << "PHG4HoughTransformTPC::process_event -- found initial vertex : " << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
-    
-    _tracks.clear();
-    
-    // shift the vertex to the origin
-    for(unsigned int ht=0;ht<_clusters_init.size();++ht)
+  // shift the vertex to the origin
+  for(unsigned int ht=0;ht<_clusters_init.size();++ht)
     {
       _clusters_init[ht].x -= _vertex[0];
       _clusters_init[ht].y -= _vertex[1];
       _clusters_init[ht].z -= _vertex[2];
     }
-    for(unsigned int ht=0;ht<_clusters.size();++ht)
+  for(unsigned int ht=0;ht<_clusters.size();++ht)
     {
       _clusters[ht].x -= _vertex[0];
       _clusters[ht].y -= _vertex[1];
       _clusters[ht].z -= _vertex[2];
     }
     
-    
-
-    
-  }  // if(_use_vertex)
   
   //----------------------------------
   // Preform the track finding
@@ -1290,6 +1198,8 @@ int PHG4HoughTransformTPC::GetNodes(PHCompositeNode *topNode)
   //---------------------------------
   // Get Objects off of the Node Tree
   //---------------------------------
+
+  _bbc_vertexes = getClass<BbcVertexMap>(topNode, "BbcVertexMap");
   
   _ghitlist = getClass<PHG4HitContainer>(topNode,"G4HIT_SVTX");
   if(!_ghitlist) 
@@ -1418,4 +1328,25 @@ bool PHG4HoughTransformTPC::circle_circle_intersections(double x0, double y0, do
   return points;  
 }
 
+int PHG4HoughTransformTPC::fast_vertex_from_bbc() {
+  
+  // fail over to bbc vertex if no tracks were found...
+  if (_bbc_vertexes) {
 
+    BbcVertex* vertex = _bbc_vertexes->begin()->second;
+
+    if (vertex) {
+	
+      _vertex[0] = 0.0;
+      _vertex[1] = 0.0;
+      _vertex[2] = vertex->get_z();
+
+      if (verbosity) cout << " initial bbc vertex guess: "
+			  << _vertex[0] << " "
+			  << _vertex[1] << " "
+			  << _vertex[2] << endl;      
+    }  
+  }
+  
+  return Fun4AllReturnCodes::EVENT_OK;
+}
