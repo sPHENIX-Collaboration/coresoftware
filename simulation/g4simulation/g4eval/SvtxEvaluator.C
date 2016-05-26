@@ -97,7 +97,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
   if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster","svtxcluster => max truth",
 						   "event:hitID:x:y:z:ex:ey:ez:ephi:"
 						   "e:adc:layer:size:phisize:"
-						   "zsize:g4hitID:gx:"
+						   "zsize:trackID:g4hitID:gx:"
 						   "gy:gz:gtrackID:gflavor:"
 						   "gpx:gpy:gpz:gvx:gvy:gvz:"
 						   "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
@@ -966,6 +966,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float phisize  = cluster->get_phi_size();
 	float zsize    = cluster->get_z_size();
 
+	SvtxTrack* track = trackeval->best_track_from(cluster);
+	float trackID  = NAN;
+	if (track) trackID = track->get_id();
+
 	float g4hitID  = NAN;
 	float gx       = NAN;
 	float gy       = NAN;
@@ -1032,7 +1036,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
 	}
 
-	float cluster_data[36] = {(float) _ievent,
+	float cluster_data[37] = {(float) _ievent,
 				  hitID,
 				  x,
 				  y,
@@ -1047,6 +1051,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				  size,
 				  phisize,
 				  zsize,
+				  trackID,
 				  g4hitID,
 				  gx,
 				  gy,
