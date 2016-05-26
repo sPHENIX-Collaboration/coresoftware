@@ -28,16 +28,6 @@
 
 using namespace std;
 
-G4String name, symbol;             // a=mass of a mole;
-G4double a, z, density;            // z=mean number of protons;  
-G4int iz, n, nel;                       // iz=nb of protons  in an isotope; 
-                                   // n=nb of nucleons in an isotope;
-G4int ncomponents, natoms;
-G4double abundance, fractionmass;
-G4double temperature, pressure;
-
-G4Material* PHG4CylinderCellTPCReco::CF4 = new G4Material("CF4",density=3.72*mg/cm3,nel=2);
-
 
 
 PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel, const string &name) :
@@ -233,8 +223,6 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       else
       {
         double nelec = elec_per_kev*1.0e6*edep;
-        //cout<<"nelec = "<<nelec<<endl;
-        double total_integral = 0.;
 
         double cloud_sig_x = 1.5*sqrt( diffusion*diffusion*(100. - TMath::Abs(hiter->second->get_z(0))) + 0.03*0.03 );
         double cloud_sig_z = 1.5*sqrt((1.+2.2*2.2)*diffusion*diffusion*(100. - TMath::Abs(hiter->second->get_z(0))) + 0.01*0.01 );
@@ -288,7 +276,6 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
             }
           }
         }
-        //cout<<"total_integral = "<<total_integral<<endl<<endl;
       }
     }
     int count = 0;
