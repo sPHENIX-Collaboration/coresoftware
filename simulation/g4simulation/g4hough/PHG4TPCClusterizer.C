@@ -73,7 +73,6 @@ static void fit_cluster( vector<float>& amps, int nphibins, int nzbins, int& nhi
 	e = 0.;
 	phi = 0.;
 	z = 0.;
-	max_e = 0.;
 	float prop_cut = 0.05;
 	float peak = amps[zbin*nphibins+phibin];
 
