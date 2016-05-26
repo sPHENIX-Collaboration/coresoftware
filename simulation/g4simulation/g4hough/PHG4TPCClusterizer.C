@@ -43,16 +43,17 @@ static inline int wrap_bin( int bin, int nbins )
 
 static bool is_local_maximum( vector<float> const& amps, int nphibins, int nzbins, int phi, int z )
 {
+	int max_width = 32;
 	if( amps[z*nphibins + phi] <= 0. ){return false;}
 	float cent_val = amps[z*nphibins + phi];
 	bool is_max = true;
-	for( int iz=-1;iz<=1;++iz )
+	for( int iz=-max_width;iz<=max_width;++iz )
 	{
 		int cz = z+iz;if(cz<0){continue;}if(cz>=(int)(nzbins)){continue;}
-		for( int ip=-1;ip<=1;++ip )
+		for( int ip=-max_width;ip<=max_width;++ip )
 		{
 			if( (iz==0) && (ip==0) ){continue;}
-			int cp = wrap_bin( phi+ip, nzbins );
+			int cp = wrap_bin( phi+ip, nphibins );
 			assert (cp >= 0);
 			if( amps[cz*nphibins+cp] > cent_val ){is_max=false;break;}
 		}
@@ -62,79 +63,38 @@ static bool is_local_maximum( vector<float> const& amps, int nphibins, int nzbin
 }
 
 
-static void fit_cluster( vector<float>& amps, int nphibins, int nzbins, int& nhits_tot, vector<int>& nhits, int phibin, int zbin, PHG4CylinderCellGeom* geo, float& phi, float& z, float& e )
+static void fit_cluster( vector<float>& amps, int nphibins, int nzbins, int& nhits_tot, vector<int>& nhits, int phibin, int zbin, PHG4CylinderCellGeom* geo, float& phi, float& z, float& e, float& max_e )
 {
 	e = 0.;
 	phi = 0.;
 	z = 0.;
+	max_e = 0.;
 	float prop_cut = 0.05;
 	float peak = amps[zbin*nphibins+phibin];
 
-	for( int iz=0;iz<=z_span;++iz )
+	for( int iz=-z_span;iz<=z_span;++iz )
 	{
 		int cz = zbin+iz;if(cz<0){continue;}if(cz>=(int)(nzbins)){continue;}
-		bool breakout = true;
-		for( int ip=1;ip<=phi_span;++ip )
-		{
-			int cp = wrap_bin( phibin-ip, nphibins );
-			if(amps[cz*nphibins+cp] <= 0.){continue;}
-			if( amps[cz*nphibins+cp] < prop_cut*peak ){continue;}
-			e += amps[cz*nphibins+cp];
-			phi += amps[cz*nphibins+cp]*geo->get_phicenter(cp);
-			z += amps[cz*nphibins+cp]*geo->get_zcenter(cz);
-			nhits_tot -= 1;
-			nhits[cz] -= 1;
-			amps[cz*nphibins+cp] = 0.;
-			breakout=false;
-		}
-		for( int ip=0;ip<=phi_span;++ip )
+		for( int ip=-phi_span;ip<=phi_span;++ip )
 		{
 			int cp = wrap_bin( phibin+ip, nphibins );
-			if(amps[cz*nphibins+cp] <= 0.){continue;}
-			if( amps[cz*nphibins+cp] < prop_cut*peak ){continue;}
+			assert (cp >= 0);
+			if(amps[cz*nphibins+cp] <= 0.)
+			{
+				continue;
+			}
+			if( amps[cz*nphibins+cp] < prop_cut*peak )
+			{
+				continue;
+			}
 			e += amps[cz*nphibins+cp];
+			if(amps[cz*nphibins+cp] > max_e){max_e = amps[cz*nphibins+cp];}
 			phi += amps[cz*nphibins+cp]*geo->get_phicenter(cp);
 			z += amps[cz*nphibins+cp]*geo->get_zcenter(cz);
 			nhits_tot -= 1;
 			nhits[cz] -= 1;
 			amps[cz*nphibins+cp] = 0.;
-			breakout=false;
 		}
-		if(breakout==true){break;}
-	}
-
-	for( int iz=1;iz<=z_span;++iz )
-	{
-		int cz = zbin-iz;if(cz<0){continue;}if(cz>=(int)(nzbins)){continue;}
-		bool breakout = true;
-		for( int ip=1;ip<=phi_span;++ip )
-		{
-			int cp = wrap_bin( phibin-ip, nphibins );
-			assert(cp >= 0);
-			if(amps[cz*nphibins+cp] <= 0.){continue;}
-			if( amps[cz*nphibins+cp] < prop_cut*peak ){continue;}
-			e += amps[cz*nphibins+cp];
-			phi += amps[cz*nphibins+cp]*geo->get_phicenter(cp);
-			z += amps[cz*nphibins+cp]*geo->get_zcenter(cz);
-			nhits_tot -= 1;
-			nhits[cz] -= 1;
-			amps[cz*nphibins+cp] = 0.;
-			breakout=false;
-		}
-		for( int ip=0;ip<=phi_span;++ip )
-		{
-			int cp = wrap_bin( phibin+ip, nphibins );
-			if(amps[cz*nphibins+cp] <= 0.){continue;}
-			if( amps[cz*nphibins+cp] < prop_cut*peak ){continue;}
-			e += amps[cz*nphibins+cp];
-			phi += amps[cz*nphibins+cp]*geo->get_phicenter(cp);
-			z += amps[cz*nphibins+cp]*geo->get_zcenter(cz);
-			nhits_tot -= 1;
-			nhits[cz] -= 1;
-			amps[cz*nphibins+cp] = 0.;
-			breakout=false;
-		}
-		if(breakout==true){break;}
 	}
 
 	phi /= e;
@@ -254,14 +214,11 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 				for( int phibin=0;phibin<nphibins;++phibin )
 				{
 					if( is_local_maximum( amps, nphibins, nzbins, phibin, zbin ) == false ){continue;}
-					float phi=0.;float z=0.;float e=0.;
-					fit_cluster( amps, nphibins, nzbins, nhits_tot, nhits, phibin, zbin, geo, phi, z, e );
 
-					// if(layer > 2)
-					// {
-					// 	cout<<"added cluster : "<<layer<<" "<<e<<endl;
-					// }
-					// if( (layer>2) && (e<3.) ){continue;}
+					float phi=0.;float z=0.;float e=0.;float max_e=0.;
+					fit_cluster( amps, nphibins, nzbins, nhits_tot, nhits, phibin, zbin, geo, phi, z, e, max_e );
+
+					if( (layer>2) && (e<energy_cut) ){continue;}
 
 					SvtxCluster_v1 clus;
 					clus.set_layer( layer );

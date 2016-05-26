@@ -509,7 +509,7 @@ void sPHENIXTracker::finalize(vector<SimpleTrack3D>& input, vector<SimpleTrack3D
         fitTrack(temp_track, chi2_hit);
         for(unsigned int i=0;i<chi2_hit.size();++i)
         {
-          if(chi2_hit[i]<3. || temp_track.hits[i].layer<2)
+          if(chi2_hit[i]<30. || temp_track.hits[i].layer<2)
           {
             temp_hits.push_back(temp_track.hits[i]);
           }
