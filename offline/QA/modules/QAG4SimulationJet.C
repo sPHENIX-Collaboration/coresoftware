@@ -84,17 +84,13 @@ QAG4SimulationJet::InitRun(PHCompositeNode *topNode)
 
   if (flag(kProcessTruthSpectrum))
     {
-      for (set<string>::const_iterator it_reco_jets = _reco_jets.begin();
-          it_reco_jets != _reco_jets.end(); ++it_reco_jets)
-        {
-          if (not _jettrutheval)
-            _jettrutheval = shared_ptr < JetTruthEval
-                > (new JetTruthEval(topNode, _truth_jet));
+      if (not _jettrutheval)
+        _jettrutheval = shared_ptr < JetTruthEval
+            > (new JetTruthEval(topNode, _truth_jet));
 
-          assert(_jettrutheval);
-          _jettrutheval->set_strict(true);
-          _jettrutheval->set_verbosity(verbosity + 1);
-        }
+      assert(_jettrutheval);
+      _jettrutheval->set_strict(true);
+      _jettrutheval->set_verbosity(verbosity + 1);
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
