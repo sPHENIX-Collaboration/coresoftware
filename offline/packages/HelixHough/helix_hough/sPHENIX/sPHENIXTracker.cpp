@@ -509,14 +509,17 @@ void sPHENIXTracker::finalize(vector<SimpleTrack3D>& input, vector<SimpleTrack3D
         fitTrack(temp_track, chi2_hit);
         for(unsigned int i=0;i<chi2_hit.size();++i)
         {
-          if(chi2_hit[i]<30. || temp_track.hits[i].layer<2)
+          if(chi2_hit[i]<10. || temp_track.hits[i].layer<2)
           {
             temp_hits.push_back(temp_track.hits[i]);
           }
         }
 
         temp_track.hits = temp_hits;
+
         fitTrack(temp_track, chi2_hit);
+
+        
 
         if( temp_track.kappa == temp_track.kappa )
         {
@@ -526,7 +529,7 @@ void sPHENIXTracker::finalize(vector<SimpleTrack3D>& input, vector<SimpleTrack3D
 
         HelixKalmanState state = track_states[i];
         
-        track_states[i].C *= 30;
+        track_states[i].C *= 10.;
         
         track_states[i].chi2 = 0.;
         track_states[i].x_int = 0.;
@@ -535,13 +538,25 @@ void sPHENIXTracker::finalize(vector<SimpleTrack3D>& input, vector<SimpleTrack3D
         track_states[i].position = output[i].hits.size();
         for(int h=(temp_track.hits.size() - 1);h>=0;--h)
         {
-          SimpleHit3D hit = output[i].hits[h];
+          SimpleHit3D hit = temp_track.hits[h];
           float err_scale = 1.0;
           hit.dx *= err_scale;hit.dy *= err_scale;hit.dz *= err_scale;
           kalman->addHit(hit, track_states[i]);
         }
 
+        if(fabs(track_states[i].d) < 0.01)
+        {
+          SimpleHit3D vertex_hit;
+          vertex_hit.x = 0.;vertex_hit.y = 0.;vertex_hit.z = 0.;
+          vertex_hit.dx = 0.0001;vertex_hit.dy = 0.0001;vertex_hit.dz = 0.0001;
+          temp_track.hits.push_back(vertex_hit);
 
+          fitTrack(temp_track, chi2_hit);
+
+          temp_track.hits.pop_back();
+        }
+
+        
 
         if( temp_track.kappa == temp_track.kappa )
         {
@@ -559,6 +574,11 @@ void sPHENIXTracker::finalize(vector<SimpleTrack3D>& input, vector<SimpleTrack3D
         if(!(track_states[i].kappa == track_states[i].kappa))
         {
           track_states[i] = state;
+          if( temp_track.kappa == temp_track.kappa )
+          {
+            track_states[i].kappa = temp_track.kappa;
+            track_states[i].nu = sqrt(temp_track.kappa);
+          }
         }
         
         if(output[i].phi < 0.){output[i].phi += 2.*M_PI;}
