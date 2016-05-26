@@ -23,6 +23,11 @@
 
 #include <TMath.h>
 
+#include <TH1D.h>
+#include <TFitResult.h>
+#include <TFitResultPtr.h>
+#include <TF1.h>
+
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
@@ -63,7 +68,7 @@ static bool is_local_maximum( vector<float> const& amps, int nphibins, int nzbin
 }
 
 
-static void fit_cluster( vector<float>& amps, int nphibins, int nzbins, int& nhits_tot, vector<int>& nhits, int phibin, int zbin, PHG4CylinderCellGeom* geo, float& phi, float& z, float& e, float& max_e )
+static void fit_cluster( vector<float>& amps, int nphibins, int nzbins, int& nhits_tot, vector<int>& nhits, int phibin, int zbin, PHG4CylinderCellGeom* geo, float& phi, float& z, float& e )
 {
 	e = 0.;
 	phi = 0.;
@@ -71,6 +76,7 @@ static void fit_cluster( vector<float>& amps, int nphibins, int nzbins, int& nhi
 	max_e = 0.;
 	float prop_cut = 0.05;
 	float peak = amps[zbin*nphibins+phibin];
+
 
 	for( int iz=-z_span;iz<=z_span;++iz )
 	{
@@ -88,7 +94,6 @@ static void fit_cluster( vector<float>& amps, int nphibins, int nzbins, int& nhi
 				continue;
 			}
 			e += amps[cz*nphibins+cp];
-			if(amps[cz*nphibins+cp] > max_e){max_e = amps[cz*nphibins+cp];}
 			phi += amps[cz*nphibins+cp]*geo->get_phicenter(cp);
 			z += amps[cz*nphibins+cp]*geo->get_zcenter(cz);
 			nhits_tot -= 1;
@@ -215,8 +220,9 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 				{
 					if( is_local_maximum( amps, nphibins, nzbins, phibin, zbin ) == false ){continue;}
 
-					float phi=0.;float z=0.;float e=0.;float max_e=0.;
-					fit_cluster( amps, nphibins, nzbins, nhits_tot, nhits, phibin, zbin, geo, phi, z, e, max_e );
+					float phi=0.;float z=0.;float e=0.;
+					fit_cluster( amps, nphibins, nzbins, nhits_tot, nhits, phibin, zbin, geo, phi, z, e );
+					
 
 					if( (layer>2) && (e<energy_cut) ){continue;}
 

@@ -467,8 +467,8 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     }
     else
     {
-      xy_error = 0.013;
-      z_error = 0.02;
+      xy_error = 0.011;
+      z_error = 0.03;
     }
 
 
