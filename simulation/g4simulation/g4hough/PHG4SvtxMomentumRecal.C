@@ -70,8 +70,6 @@ int PHG4SvtxMomentumRecal::process_event(PHCompositeNode *topNode)
       rescale = _corr->Eval(pt);
     }
 
-    cout << pt << " " << rescale << endl;
-
     track->set_px( track->get_px() * rescale );
     track->set_py( track->get_py() * rescale );
     track->set_pz( track->get_pz() * rescale );
