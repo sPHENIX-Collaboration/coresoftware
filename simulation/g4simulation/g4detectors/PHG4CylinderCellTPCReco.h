@@ -9,14 +9,15 @@
 
 class PHCompositeNode;
 class PHG4CylinderCell;
+class PHG4TPCDistortion;
 
 class PHG4CylinderCellTPCReco : public SubsysReco
 {
 public:
   
-  PHG4CylinderCellTPCReco(const std::string &name = "CYLINDERTPCRECO");
+  PHG4CylinderCellTPCReco( int n_pixel=2, const std::string &name = "CYLINDERTPCRECO");
   
-  virtual ~PHG4CylinderCellTPCReco(){}
+  virtual ~PHG4CylinderCellTPCReco();
   
   //! module initialization
   int InitRun(PHCompositeNode *topNode);
@@ -33,12 +34,14 @@ public:
   void Detector(const std::string &d);
   void cellsize(const int i, const double sr, const double sz);
 //   void etaphisize(const int i, const double deltaeta, const double deltaphi);
-  void checkenergy(const int i=1) {chkenergyconservation = i;}
   void OutputDetector(const std::string &d) {outdetector = d;}
 
   void setDiffusion( double diff ){diffusion = diff;}
   void setElectronsPerKeV( double epk ){elec_per_kev = epk;}
-  
+
+  //! distortion to the primary ionization
+  void setDistortion (PHG4TPCDistortion * d) {distortion = d;}
+
 protected:
 //   void set_size(const int i, const double sizeA, const double sizeB, const int what);
 //   int CheckEnergy(PHCompositeNode *topNode);
@@ -61,13 +64,16 @@ protected:
   std::map<int, std::pair<int, int> > n_phi_z_bins;
   
   int nbins[2];
-  int chkenergyconservation;
   
   TRandom3 rand;
 
   double diffusion;
   double elec_per_kev;
+
+  int num_pixel_layers;
   
+  //! distortion to the primary ionization if not NULL
+  PHG4TPCDistortion * distortion;
 };
 
 #endif
