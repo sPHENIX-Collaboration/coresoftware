@@ -48,6 +48,7 @@ SvtxEvaluator::SvtxEvaluator(const string &name, const string &filename) :
   _do_cluster_eval(true),
   _do_gtrack_eval(true),
   _do_track_eval(true),
+  _scan_for_embedded(false),
   _ntp_vertex(NULL),
   _ntp_gpoint(NULL),
   _ntp_g4hit(NULL),
@@ -698,6 +699,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
       if (g4particle) {
 
+	if (_scan_for_embedded) {
+	  if (trutheval->get_embed(g4particle) == 0) continue;
+	}
+	
 	gflavor   = g4particle->get_pid();
 	gpx       = g4particle->get_px();
 	gpy       = g4particle->get_py();
@@ -862,6 +867,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	  if (g4particle) {
 
+	    if (_scan_for_embedded) {
+	      if (trutheval->get_embed(g4particle) == 0) continue;
+	    }
+	    
 	    gtrackID = g4particle->get_track_id();
 	    gflavor  = g4particle->get_pid();
 	    gpx      = g4particle->get_px();
@@ -1004,6 +1013,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	  if (g4particle) {
 
+	    if (_scan_for_embedded) {
+	      if (trutheval->get_embed(g4particle) == 0) continue;
+	    }
+	    
 	    gtrackID = g4particle->get_track_id();
 	    gflavor  = g4particle->get_pid();
 	    gpx      = g4particle->get_px();
@@ -1096,7 +1109,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	 ++iter) {
 	
 	PHG4Particle* g4particle = iter->second;
-    
+
+	if (_scan_for_embedded) {
+	  if (trutheval->get_embed(g4particle) == 0) continue;
+	}
+	
 	float gtrackID = g4particle->get_track_id();
 	float gflavor  = g4particle->get_pid();
       
@@ -1254,7 +1271,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  unsigned int cluster_id = *iter;
 	  SvtxCluster* cluster = clustermap->get(cluster_id);
 	  unsigned int layer = cluster->get_layer();
-	  if (layer < 32) layers |= (0x1 << layer);
+	  if (layer < 31) layers |= (0x1 << layer);
 	}
       
 	float dca2d     = track->get_dca2d();
@@ -1307,9 +1324,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float nfromtruth = NAN;
 	float layersfromtruth = NAN;
       
-	PHG4Particle* g4particle = trackeval->max_truth_particle_by_nclusters(track);
-      
+	PHG4Particle* g4particle = trackeval->max_truth_particle_by_nclusters(track);	
+	
 	if (g4particle) {
+
+	  if (_scan_for_embedded) {
+	    if (trutheval->get_embed(g4particle) == 0) continue;
+	  }
+	  
 	  gtrackID = g4particle->get_track_id();
 	  gflavor  = g4particle->get_pid();
       
