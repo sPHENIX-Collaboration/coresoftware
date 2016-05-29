@@ -1457,8 +1457,6 @@ int PHG4HoughTransform::export_output() {
   vertex.set_error(2,1,0.0);
   vertex.set_error(2,2,0.0);
 
-  vertex.identify();
-  
   // at this point we should already have an initial pt and pz guess...
   // need to translate this into the PHG4Track object...
 

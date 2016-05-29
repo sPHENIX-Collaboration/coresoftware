@@ -134,8 +134,6 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
       
       globalmap->insert(vertex);
 
-      cout << "insert on globalmap" << endl;
-      
       if (verbosity) vertex->identify();
     }
   }
@@ -175,8 +173,6 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
 
       globalmap->insert(vertex);      
 
-      cout << "insert on globalmap" << endl;
-      
       if (verbosity) vertex->identify();
     }    
   }
@@ -222,8 +218,6 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
 
       globalmap->insert(vertex);    
 
-      cout << "insert on globalmap" << endl;
-      
       if (verbosity) vertex->identify();
     }
   }
