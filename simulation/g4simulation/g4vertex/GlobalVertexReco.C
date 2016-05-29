@@ -132,9 +132,9 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
       vertex->insert_vtxids(GlobalVertex::BBC,bbc_best->get_id());
       used_bbc_vtxids.insert(bbc_best->get_id());
       
-      if (verbosity) vertex->identify();
-
       globalmap->insert(vertex);
+
+      if (verbosity) vertex->identify();
     }
   }
 

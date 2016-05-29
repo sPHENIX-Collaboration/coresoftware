@@ -43,10 +43,8 @@ GlobalVertex* GlobalVertexMap_v1::get(unsigned int id) {
 }
 
 GlobalVertex* GlobalVertexMap_v1::insert(GlobalVertex* clus) {
-  cout << "map size = " << _map.size() << endl;
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  cout << "index = " << index << endl;
   _map.insert(make_pair( index , clus ));
   _map[index]->set_id(index);
   return _map[index];
