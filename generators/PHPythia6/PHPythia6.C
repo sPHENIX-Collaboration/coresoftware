@@ -90,6 +90,25 @@ int PHPythia6::End(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+//..........Integer Test........
+//...Certain Pythia switches and parameters only accept integer values
+//...This function checks if input values are integers and 
+//...warns the user if they are not
+
+void IntegerTest(double number ) {
+
+  if (fmod(number, 1.0) != 0) {
+    cout << "Warning: Value " << number << " is not an integer." << endl;
+    cout << "This parameter requires an integer value." << endl;
+    cout << "Value of parameter truncated to " << (int) number  << endl;
+    
+    //...End simulation if a double value is input for an integer parameter
+    //    throw Fun4AllReturnCodes::ABORTRUN;
+  }
+  return;
+}
+
+
 //__________________________________________________________
 int PHPythia6::ReadConfig(const string cfg_file) {
 
@@ -113,7 +132,6 @@ int PHPythia6::ReadConfig(const string cfg_file) {
   string label;         // the label
 
   int index = 999999;
-  int ivalue = 999999;
   double value = 1e9;
 
   // get one line first
@@ -202,64 +220,69 @@ int PHPythia6::ReadConfig(const string cfg_file) {
     }
     else if ( label == "msel" )
       {
-	line >> ivalue;
-	pysubs.msel=ivalue;
-	cout << "msel\t" << ivalue << endl;
+	line >> value;
+	pysubs.msel= (int) value;
+	cout << "msel\t" << value << endl;
+	IntegerTest(value);
       }
     else if ( label == "msub" )
     {
-      line >> index >> ivalue;
+      line >> index >> value;
       // careful with C/F77 differences: arrays in C start at 0, F77 at 1,
       // so we need to subtract 1 from the process #)
-      pysubs.msub[index-1] = ivalue;
-      cout << "msub\t" << index << " " << ivalue << endl;
+      pysubs.msub[index-1] = (int) value;
+      cout << "msub\t" << index << " " << value << endl;
+      IntegerTest(value);
     }
     else if ( label == "mstp" )
       {
-	line >> index >> ivalue;
-	pypars.mstp[index-1] = ivalue;
-	cout << "mstp\t" << index << " " << ivalue << endl;
+	line >> index >> value;
+	pypars.mstp[index-1] = (int) value;
+	cout << "mstp\t" << index << " " << value << endl;
+	IntegerTest(value);
       }
     else if ( label == "mstj" )
       {
-	line >> index >> ivalue;
-	pydat1.mstj[index-1] = ivalue;
-	cout << "mstj\t" << index << " " << ivalue << endl;
+	line >> index >> value;
+	pydat1.mstj[index-1] = (int) value;
+	cout << "mstj\t" << index << " " << value << endl;
+	IntegerTest(value);
       }
     else if ( label == "mstu" )
       {
-	line >> index >> ivalue;
-	pydat1.mstu[index-1] = ivalue;
-	cout << "mstu\t" << index << " " << ivalue << endl;
+	line >> index >> value;
+	pydat1.mstu[index-1] = (int) value;
+	cout << "mstu\t" << index << " " << value << endl;
+	IntegerTest(value);
       }
     else if ( label == "ckin" )
       {
 	line >> index >> value;
-	pysubs.ckin[index-1] = value;
+	pysubs.ckin[index-1] =value;
 	cout << "ckin\t" << index << " " << value << endl;
       }
     else if ( label == "parp" )
       {
 	line >> index >> value;
-	pypars.parp[index-1] = ivalue;
+	pypars.parp[index-1] = value;
 	cout << "parp\t" << index << " " << value << endl;
       }
     else if ( label == "parj" )
       {
 	line >> index >> value;
-	pydat1.parj[index-1] = ivalue;
+	pydat1.parj[index-1] = value;
 	cout << "parj\t" << index << " " << value << endl;
       }
     else if ( label == "paru" )
       {
 	line >> index >> value;
-	pydat1.paru[index-1] = ivalue;
+	pydat1.paru[index-1] = value;
 	cout << "paru\t" << index << " " << value << endl;
       }
     else if ( label == "parf" )
       {
 	line >> index >> value;
-	pydat2.parf[index-1] = ivalue;
+	pydat2.parf[index-1] = value;
 	cout << "parf\t" << index << " " << value << endl;
       }
     else
