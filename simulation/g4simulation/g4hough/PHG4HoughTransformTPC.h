@@ -24,7 +24,7 @@
 #include <SimpleHit3D.h>
 #include <SimpleTrack3D.h>
 #include <VertexFinder.h> 
-#include <sPHENIXTracker.h>
+#include <sPHENIXTrackerTPC.h>
 #endif
 
 // standard includes
@@ -226,8 +226,8 @@ public:
   std::vector<float> _vertex;         ///< working array for collision vertex                                           
 
   // track finding routines                                                                                             
-  sPHENIXTracker *_tracker;    // finds full tracks  
-  sPHENIXTracker* _tracker_vertex; // finds a subset of tracks for initial vertex-finding
+  sPHENIXTrackerTPC *_tracker;    // finds full tracks  
+  sPHENIXTrackerTPC* _tracker_vertex; // finds a subset of tracks for initial vertex-finding
   
   
   VertexFinder _vertexFinder; ///< vertex finding object

@@ -1041,7 +1041,7 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
   zoomprofile[4][4] = 3;
   
     
-  _tracker = new sPHENIXTracker(zoomprofile, 3, top_range, _material, _radii, _magField);
+  _tracker = new sPHENIXTrackerTPC(zoomprofile, 3, top_range, _material, _radii, _magField);
   _tracker->setIterateClustering(true);
   _tracker->setNLayers(_seed_layers);
   _tracker->requireLayers(_req_seed);
@@ -1104,7 +1104,7 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
                -0.9, 0.9,
                -10., 10.);
       
-    _tracker_vertex = new sPHENIXTracker(zoomprofile2, 3, top_range2, _material, _radii, _magField);
+    _tracker_vertex = new sPHENIXTrackerTPC(zoomprofile2, 3, top_range2, _material, _radii, _magField);
     _tracker_vertex->setIterateClustering(true);
     _tracker_vertex->setNLayers(_seed_layers);
     _tracker_vertex->requireLayers(_req_seed);
