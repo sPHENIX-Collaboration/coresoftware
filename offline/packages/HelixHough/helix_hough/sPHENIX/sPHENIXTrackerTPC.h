@@ -1,5 +1,5 @@
-#ifndef __SPHENIXTRACKER__
-#define __SPHENIXTRACKER__
+#ifndef __SPHENIXTRACKERTPC__
+#define __SPHENIXTRACKERTPC__
 
 #include "HelixHough.h"
 #include <vector>
@@ -184,20 +184,20 @@ class TrackSegment {
   unsigned int n_hits;
 };
 
-class sPHENIXTracker : public HelixHough {
+class sPHENIXTrackerTPC : public HelixHough {
  public:
-  sPHENIXTracker(unsigned int n_phi, unsigned int n_d, unsigned int n_k,
+  sPHENIXTrackerTPC(unsigned int n_phi, unsigned int n_d, unsigned int n_k,
                  unsigned int n_dzdl, unsigned int n_z0,
                  HelixResolution& min_resolution,
                  HelixResolution& max_resolution, HelixRange& range,
                  std::vector<float>& material, std::vector<float>& radius,
                  float Bfield);
-  sPHENIXTracker(std::vector<std::vector<unsigned int> >& zoom_profile,
+  sPHENIXTrackerTPC(std::vector<std::vector<unsigned int> >& zoom_profile,
                  unsigned int minzoom, HelixRange& range,
                  std::vector<float>& material, std::vector<float>& radius,
                  float Bfield, bool parallel = false,
                  unsigned int num_threads = 1);
-  virtual ~sPHENIXTracker();
+  virtual ~sPHENIXTrackerTPC();
 
   void finalize(std::vector<SimpleTrack3D>& input,
                 std::vector<SimpleTrack3D>& output);
@@ -486,6 +486,8 @@ class sPHENIXTracker : public HelixHough {
     hit_error_scale[layer] = scale;
   }
 
+  void setRequirePixels(bool rp){require_pixels = rp;}
+
  private:
   float kappaToPt(float kappa);
   float ptToKappa(float pt);
@@ -545,8 +547,8 @@ class sPHENIXTracker : public HelixHough {
   unsigned int nthreads;
   std::vector<SeamStress::Seamstress*> *vssp;
   std::vector<SeamStress::Seamstress> vss;
-  SeamStress::Pincushion<sPHENIXTracker> *pins;
-  std::vector<sPHENIXTracker*> thread_trackers;
+  SeamStress::Pincushion<sPHENIXTrackerTPC> *pins;
+  std::vector<sPHENIXTrackerTPC*> thread_trackers;
   std::vector<std::vector<SimpleTrack3D> > thread_tracks;
   std::vector<HelixRange> thread_ranges;
   std::vector<std::vector<SimpleHit3D> > thread_hits;
@@ -570,6 +572,8 @@ class sPHENIXTracker : public HelixHough {
   float cosang_cut;
   
   std::vector<float> hit_error_scale;
+
+  bool require_pixels;
 };
 
 
