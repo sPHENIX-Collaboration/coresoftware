@@ -18,7 +18,8 @@ VertexFitFunc.h \
 Kalman/HelixKalman.h \
 Kalman/HelixKalmanState.h \
 Kalman/CylinderKalman.h \
-sPHENIX/sPHENIXTracker.h
+sPHENIX/sPHENIXTracker.h \
+sPHENIX/sPHENIXTrackerTPC.h
 
 libHelixHough_la_SOURCES = \
 SimpleHit3D.cpp \
