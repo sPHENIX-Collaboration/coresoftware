@@ -612,46 +612,52 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //-----------------------
   // fill the gpoint NTuple
   //-----------------------
-
+  
   if (_ntp_gpoint) {
+    
     SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+
     if (vertexmap && truthinfo) {
 
       PHG4VtxPoint* point =  truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
-      SvtxVertex* vertex = vertexeval->best_vertex_from(point);
+
+      if (point) {
+      
+	SvtxVertex* vertex = vertexeval->best_vertex_from(point);
     
-      float gvx        = point->get_x();
-      float gvy        = point->get_y();
-      float gvz        = point->get_z();
-      float gntracks   = truthinfo->GetNumPrimaryVertexParticles();
-      float vx         = NAN;
-      float vy         = NAN;
-      float vz         = NAN;
-      float ntracks    = NAN;
-      float nfromtruth = NAN;
+	float gvx        = point->get_x();
+	float gvy        = point->get_y();
+	float gvz        = point->get_z();
+	float gntracks   = truthinfo->GetNumPrimaryVertexParticles();
+	float vx         = NAN;
+	float vy         = NAN;
+	float vz         = NAN;
+	float ntracks    = NAN;
+	float nfromtruth = NAN;
 
-      if (vertex) {
-	vx         = vertex->get_x();
-	vy         = vertex->get_y();
-	vz         = vertex->get_z();
-	ntracks    = vertex->size_tracks();
-	nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
-      }
+	if (vertex) {
+	  vx         = vertex->get_x();
+	  vy         = vertex->get_y();
+	  vz         = vertex->get_z();
+	  ntracks    = vertex->size_tracks();
+	  nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
+	}
 	
-      float gpoint_data[10] = {(float) _ievent,
-			       gvx,
-			       gvy,
-			       gvz,
-			       gntracks,
-			       vx,
-			       vy,
-			       vz,
-			       ntracks,
-			       nfromtruth
-      };
+	float gpoint_data[10] = {(float) _ievent,
+				 gvx,
+				 gvy,
+				 gvz,
+				 gntracks,
+				 vx,
+				 vy,
+				 vz,
+				 ntracks,
+				 nfromtruth
+	};
 
-      _ntp_gpoint->Fill(gpoint_data);      
+	_ntp_gpoint->Fill(gpoint_data);      
+      }
     }
   }
   
