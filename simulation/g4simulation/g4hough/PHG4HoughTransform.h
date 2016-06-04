@@ -86,9 +86,6 @@ public:
 			      double radius,   // in cm
 			      std::vector<double>& intersection);
 
-  bool get_tpc_mode() const        {return _tpc_mode;}
-  void set_tpc_mode(bool tpc_mode) {_tpc_mode = tpc_mode;}
-  
   float get_mag_field() const          {return _magField;}
   void  set_mag_field(float magField) {_magField = magField;}
   
@@ -255,8 +252,7 @@ private:
   BbcVertexMap* _bbc_vertexes;
 
   bool new_dca_nbin, new_z_z0, new_circle_dca, new_circle_kappa;
-
-  bool _tpc_mode;
+  
   bool _use_vertex;
   int _beta, _lambda; ///< resolution tuning parameters 
 
