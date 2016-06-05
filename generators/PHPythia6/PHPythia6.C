@@ -90,25 +90,6 @@ int PHPythia6::End(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//..........Integer Test........
-//...Certain Pythia switches and parameters only accept integer values
-//...This function checks if input values are integers and 
-//...warns the user if they are not
-
-void IntegerTest(double number ) {
-
-  if (fmod(number, 1.0) != 0) {
-    cout << "Warning: Value " << number << " is not an integer." << endl;
-    cout << "This parameter requires an integer value." << endl;
-    cout << "Value of parameter truncated to " << (int) number  << endl;
-    
-    //...End simulation if a double value is input for an integer parameter
-    //    throw Fun4AllReturnCodes::ABORTRUN;
-  }
-  return;
-}
-
-
 //__________________________________________________________
 int PHPythia6::ReadConfig(const string cfg_file) {
 
@@ -376,6 +357,19 @@ int PHPythia6::CreateNodeTree(PHCompositeNode *topNode) {
   dstNode->addNode(newNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void PHPythia6::IntegerTest(double number ) {
+
+  if (fmod(number, 1.0) != 0) {
+    cout << "Warning: Value " << number << " is not an integer." << endl;
+    cout << "This parameter requires an integer value." << endl;
+    cout << "Value of parameter truncated to " << (int) number  << endl;
+
+    //...End simulation if a double value is input for an integer parameter
+    //    throw Fun4AllReturnCodes::ABORTRUN;
+  }
+  return;
 }
 
 int PHPythia6::ResetEvent(PHCompositeNode *topNode) {
