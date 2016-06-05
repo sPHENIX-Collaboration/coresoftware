@@ -49,6 +49,12 @@ private:
   int ReadConfig(const std::string cfg_file = "");
   int CreateNodeTree(PHCompositeNode *topNode);
 
+  /** Certain Pythia switches and parameters only accept integer values
+   * This function checks if input values are integers and
+   * warns the user if they are not
+   */
+  void IntegerTest(double number );
+
   int _eventcount;
 
   // output
