@@ -83,6 +83,8 @@ int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode) {
   //---------------------
 
   PHG4VtxPoint* point = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
+  if (!point) return Fun4AllReturnCodes::EVENT_OK;
+  
   BbcVertex* vertex = new BbcVertex_v1();
 
   if (_t_smear >= 0.0) {

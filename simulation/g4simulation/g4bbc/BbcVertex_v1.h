@@ -18,10 +18,10 @@ public:
   // PHObject virtual overloads
   
   void         identify(std::ostream& os = std::cout) const;
-  BbcVertex*   Clone();
-  void         Reset();
+  void         Reset() {*this = BbcVertex_v1();}
   int          isValid() const;
-
+  BbcVertex*   Clone() {return new BbcVertex_v1(*this);}
+  
   // vertex info
   
   unsigned int get_id() const                        {return _id;}
