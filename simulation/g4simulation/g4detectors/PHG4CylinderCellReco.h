@@ -35,10 +35,16 @@ class PHG4CylinderCellReco : public SubsysReco
   void checkenergy(const int i=1) {chkenergyconservation = i;}
   void OutputDetector(const std::string &d) {outdetector = d;}
 
+  double get_timing_window_min() {return timing_min;}
+  double get_timing_window_max() {return timing_max;}
+  void set_timing_window(const double tmin, const double tmax) {
+    timing_min = tmin; timing_max = tmax;
+  }
+  
   //! get timing window size in ns.
-  double get_timing_window_size() const {return timing_window_size;}
+  double get_timing_window_size() const {return timing_max - timing_min;}
   //! set timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
-  void set_timing_window_size(const double s) {timing_window_size = s;}
+  void set_timing_window_size(const double s) {set_timing_window(0.0,s);}
 
  protected:
   void set_size(const int i, const double sizeA, const double sizeB, const int what);
@@ -68,7 +74,8 @@ class PHG4CylinderCellReco : public SubsysReco
   int chkenergyconservation;
 
   //! timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
-  double timing_window_size;
+  double timing_min;
+  double timing_max;
 };
 
 #endif
