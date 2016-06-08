@@ -23,12 +23,15 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <limits>
 
 using namespace std;
 
 
 PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(const string &name) :
-SubsysReco(name), diffusion(0.0057), elec_per_kev(38.)
+  SubsysReco(name), diffusion(0.0057), elec_per_kev(38.),
+  timing_min(0.0),
+  timing_max(numeric_limits<double>::max())
 {
   memset(nbins, 0, sizeof(nbins));
 }
@@ -188,6 +191,10 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
     double phistepsize = phistep[*layer];
     for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
     {
+      // checking ADC timing integration window cut
+      if (hiter->second->get_t(0)>timing_max) continue;
+      if (hiter->second->get_t(1)<timing_min) continue;
+      
       double xinout;
       double yinout;
       double phi;
