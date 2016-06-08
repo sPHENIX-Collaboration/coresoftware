@@ -28,7 +28,9 @@ using namespace std;
 PHG4SiliconTrackerCellReco::PHG4SiliconTrackerCellReco(const string &name) :
   SubsysReco(name),
   _timer(PHTimeServer::get()->insert_new(name.c_str())),
-  chkenergyconservation(0)
+  chkenergyconservation(0),
+  timing_min(0.0),
+  timing_max(numeric_limits<double>::max())
 {
   memset(nbins, 0, sizeof(nbins));
   Detector(name);
@@ -193,6 +195,9 @@ PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
 	{
+	  if (hiter->second->get_t(0)>timing_max) continue;
+	  if (hiter->second->get_t(1)<timing_min) continue;
+	  
 	  int ladder_z_index = hiter->second->get_ladder_z_index();
 	  int ladder_phi_index = hiter->second->get_ladder_phi_index();
 	  int strip_z_index = hiter->second->get_strip_z_index();

@@ -35,7 +35,9 @@ PHG4SlatCellReco::PHG4SlatCellReco(const string &name) :
   SubsysReco(name),
   _timer(PHTimeServer::get()->insert_new(name.c_str())),
   nslatscombined(1),
-  chkenergyconservation(0), timing_window_size(numeric_limits<double>::max())
+  chkenergyconservation(0),
+  timing_min(0.0),
+  timing_max(numeric_limits<double>::max())
 {
   memset(nbins, 0, sizeof(nbins));
   memset(cellptarray, 0, sizeof(cellptarray));
@@ -244,8 +246,8 @@ PHG4SlatCellReco::process_event(PHCompositeNode *topNode)
           for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
             {
               // checking ADC timing integration window cut
-              if (hiter->second->get_t(0)>timing_window_size)
-                continue;
+	      if (hiter->second->get_t(0)>timing_max) continue;
+	      if (hiter->second->get_t(1)<timing_min) continue;
 
               double etaphi[2];
               int slatbin;
