@@ -44,8 +44,10 @@ overlapcheck(false)
   virtual PHG4TrackingAction* GetTrackingAction( void ) const
   { return 0; }
 
-  virtual void OverlapCheck(const bool chk = true) {overlapcheck = chk;}
-    
+  void OverlapCheck(const bool chk = true) {overlapcheck = chk;}
+
+  bool CheckOverlap() const {return overlapcheck;}
+
  protected:
   bool overlapcheck;
 

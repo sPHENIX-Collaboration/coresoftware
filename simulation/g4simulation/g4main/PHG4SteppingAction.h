@@ -1,11 +1,13 @@
 #ifndef PHG4SteppingAction_h
 #define PHG4SteppingAction_h
 
-#include <phool/PHCompositeNode.h>
+//#include <phool/PHCompositeNode.h>
+
 #include <set>
 #include <string>
 
 class G4Step;
+class PHCompositeNode;
 
 class PHG4SteppingAction
 {
@@ -35,6 +37,8 @@ class PHG4SteppingAction
   virtual double GetVisibleEnergyDeposition(const G4Step* step);
 
   virtual void flush_cached_values() {return;}
+
+  virtual void SetInterfacePointers( PHCompositeNode* ) {return;}
 
  protected:
 
