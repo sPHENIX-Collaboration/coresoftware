@@ -30,8 +30,8 @@ libg4detectors_io_la_LIBADD = \
   -lpdbcalBase
 
 libg4detectors_la_LIBADD = \
-  -lphool  \
   libg4detectors_io.la \
+  -lphool  \
   -lCGAL \
   -lSubsysReco \
   -lg4testbench 
@@ -141,6 +141,8 @@ libg4detectors_la_SOURCES = \
   PHG4CylinderCellReco.cc \
   PHG4CylinderCellReco_Dict.cc \
   PHG4CylinderSteppingAction.cc \
+  PHG4DetectorSubsystem.cc \
+  PHG4DetectorSubsystem_Dict.cc \
   PHG4EnvelopeDetector.cc \
   PHG4EnvelopeSteppingAction.cc \
   PHG4EnvelopeSubsystem.cc \
