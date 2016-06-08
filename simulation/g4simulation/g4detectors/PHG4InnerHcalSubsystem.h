@@ -47,15 +47,15 @@ class PHG4InnerHcalSubsystem: public PHG4DetectorSubsystem
 
   //! accessors (reimplemented)
   PHG4Detector* GetDetector( void ) const;
-  PHG4SteppingAction* GetSteppingAction( void ) const;
-  PHG4TrackingAction* GetTrackingAction( void ) const;
+  PHG4SteppingAction* GetSteppingAction( void ) const {return steppingAction_;}
+  PHG4TrackingAction* GetTrackingAction( void ) const {return  trackingAction_;}
 
   PHG4EventAction* GetEventAction() const {return eventAction_;}
 
   void SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr);
 
 
-  protected:
+  private:
 
   void SetDefaultParameters();
 
@@ -63,14 +63,15 @@ class PHG4InnerHcalSubsystem: public PHG4DetectorSubsystem
   /*! derives from PHG4Detector */
   PHG4InnerHcalDetector* detector_;
 
-  //! particle tracking "stepping" action
+  //! detector "stepping" action, executes after every G4 step
   /*! derives from PHG4SteppingAction */
   PHG4SteppingAction* steppingAction_;
-  //  PHG4InnerHcalSteppingAction* steppingAction_;
 
-  PHG4FlushStepTrackingAction *trackingAction_;
+  //! detector "tracking" action, executes before/after every G4 track
+  /*! derives from PHG4TrackingAction */
+  PHG4TrackingAction *trackingAction_;
 
-  //! particle tracking "stepping" action
+  //! detector event action executes before/after every event
   /*! derives from PHG4EventAction */
   PHG4EventAction *eventAction_;
 };

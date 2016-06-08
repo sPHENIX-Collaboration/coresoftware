@@ -143,12 +143,6 @@ PHG4Detector* PHG4InnerHcalSubsystem::GetDetector( void ) const
   return detector_;
 }
 
-//_______________________________________________________________________
-PHG4SteppingAction* PHG4InnerHcalSubsystem::GetSteppingAction( void ) const
-{
-  return steppingAction_;
-}
-
 void
 PHG4InnerHcalSubsystem::SetDefaultParameters()
 {
@@ -190,11 +184,4 @@ PHG4InnerHcalSubsystem::SetLightCorrection(const double inner_radius, const doub
   set_double_param("light_balance_outer_corr", outer_corr);
   set_double_param("light_balance_outer_radius", outer_radius);
   return;
-}
-
-
-PHG4TrackingAction*
-PHG4InnerHcalSubsystem::GetTrackingAction( void ) const
-{
-  return trackingAction_; 
 }
