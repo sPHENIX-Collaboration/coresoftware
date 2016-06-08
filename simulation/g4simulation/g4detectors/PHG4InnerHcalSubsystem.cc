@@ -130,6 +130,7 @@ void
 PHG4InnerHcalSubsystem::Print(const string &what) const
 {
   cout << "Inner Hcal Parameters: " << endl;
+  GetParams()->Print();
   if (detector_)
     {
       detector_->Print(what);
