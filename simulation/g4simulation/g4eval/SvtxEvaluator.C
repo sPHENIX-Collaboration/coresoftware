@@ -48,6 +48,7 @@ SvtxEvaluator::SvtxEvaluator(const string &name, const string &filename) :
   _do_cluster_eval(true),
   _do_gtrack_eval(true),
   _do_track_eval(true),
+  _scan_for_embedded(false),
   _ntp_vertex(NULL),
   _ntp_gpoint(NULL),
   _ntp_g4hit(NULL),
@@ -704,6 +705,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
       if (g4particle) {
 
+	if (_scan_for_embedded) {
+	  if (trutheval->get_embed(g4particle) == 0) continue;
+	}
+	
 	gflavor   = g4particle->get_pid();
 	gpx       = g4particle->get_px();
 	gpy       = g4particle->get_py();
@@ -868,6 +873,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	  if (g4particle) {
 
+	    if (_scan_for_embedded) {
+	      if (trutheval->get_embed(g4particle) == 0) continue;
+	    }
+	    
 	    gtrackID = g4particle->get_track_id();
 	    gflavor  = g4particle->get_pid();
 	    gpx      = g4particle->get_px();
@@ -941,7 +950,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   // fill the Cluster NTuple
   //------------------------
 
-  if (_ntp_cluster) {
+  if (_ntp_cluster && !_scan_for_embedded) {
     // need things off of the DST...
     SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
     if (clustermap) {
@@ -951,6 +960,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	   ++iter) {
     
 	SvtxCluster* cluster     = iter->second;   
+	SvtxTrack* track = trackeval->best_track_from(cluster);
+	
 	PHG4Hit *g4hit           = clustereval->max_truth_hit_by_energy(cluster); 
 	PHG4Particle *g4particle = trutheval->get_particle(g4hit);
     
@@ -972,7 +983,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float phisize  = cluster->get_phi_size();
 	float zsize    = cluster->get_z_size();
 
-	SvtxTrack* track = trackeval->best_track_from(cluster);
 	float trackID  = NAN;
 	if (track) trackID = track->get_id();
 
@@ -1083,8 +1093,169 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	_ntp_cluster->Fill(cluster_data);
       }		  
     }
+    
+  } else if (_ntp_cluster && _scan_for_embedded) {
+
+    // if only scanning embedded signals, loop over all the tracks from
+    // embedded particles and report all of their clusters, including those
+    // from other sources (noise hits on the embedded track)
+    
+    // need things off of the DST...
+    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+    SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
+    if (trackmap) {
+      
+      for (SvtxTrackMap::Iter iter = trackmap->begin();
+	   iter != trackmap->end();
+	   ++iter) {
+	
+	SvtxTrack* track = iter->second;
+	PHG4Particle* truth = trackeval->max_truth_particle_by_nclusters(track);
+	if (truth) {	  
+	  if (trutheval->get_embed(truth) == 0) continue;
+	}
+	
+	for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
+	     iter != track->end_clusters();
+	     ++iter) {
+
+	  unsigned int cluster_id = *iter;
+	  SvtxCluster* cluster = clustermap->get(cluster_id);
+
+	  PHG4Hit *g4hit           = clustereval->max_truth_hit_by_energy(cluster); 
+	  PHG4Particle *g4particle = trutheval->get_particle(g4hit);
+    
+	  float hitID    = cluster->get_id();
+	  float x        = cluster->get_x();
+	  float y        = cluster->get_y();
+	  float z        = cluster->get_z();
+
+	  float ex       = sqrt(cluster->get_error(0,0));
+	  float ey       = sqrt(cluster->get_error(1,1));
+	  float ez       = cluster->get_z_error();
+
+	  float ephi     = cluster->get_phi_error();
+	  
+	  float e        = cluster->get_e();
+	  float adc      = cluster->get_adc();
+	  float layer    = cluster->get_layer();
+	  float size     = cluster->size_hits();
+	  float phisize  = cluster->get_phi_size();
+	  float zsize    = cluster->get_z_size();
+
+	  float trackID  = NAN;
+	  if (track) trackID = track->get_id();
+
+	  float g4hitID  = NAN;
+	  float gx       = NAN;
+	  float gy       = NAN;
+	  float gz       = NAN;
+	  float gtrackID = NAN;
+	  float gflavor  = NAN;
+	  float gpx      = NAN;
+	  float gpy      = NAN;
+	  float gpz      = NAN;
+	  float gvx      = NAN;
+	  float gvy      = NAN;
+	  float gvz      = NAN;
+	  float gfpx     = NAN;
+	  float gfpy     = NAN;
+	  float gfpz     = NAN;
+	  float gfx      = NAN;
+	  float gfy      = NAN;
+	  float gfz      = NAN;
+	  float gembed   = NAN;
+	  float gprimary = NAN;
+    
+	  float efromtruth = NAN;
+      
+	  if (g4hit) {
+	    g4hitID  = g4hit->get_hit_id();
+	    gx       = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
+	    gy       = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
+	    gz       = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
+	    gx       = g4hit->get_x(0);
+	    gy       = g4hit->get_y(0);
+	    gz       = g4hit->get_z(0);
+
+	    if (g4particle) {
+	    
+	      gtrackID = g4particle->get_track_id();
+	      gflavor  = g4particle->get_pid();
+	      gpx      = g4particle->get_px();
+	      gpy      = g4particle->get_py();
+	      gpz      = g4particle->get_pz();
+
+	      PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
+	      if (vtx) {
+		gvx      = vtx->get_x();
+		gvy      = vtx->get_y();
+		gvz      = vtx->get_z();
+	      }
+
+	      PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
+	      if (outerhit) {
+		gfpx     = outerhit->get_px(1);
+		gfpy     = outerhit->get_py(1);
+		gfpz     = outerhit->get_pz(1);
+		gfx      = outerhit->get_x(1);
+		gfy      = outerhit->get_y(1);
+		gfz      = outerhit->get_z(1);
+	      }
+	    
+	      gembed   = trutheval->get_embed(g4particle);
+	      gprimary = trutheval->is_primary(g4particle);
+	    }      //   if (g4particle){
+	  } //  if (g4hit) {
+
+	  if (g4particle){
+	    efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
+	  }
+
+	  float cluster_data[37] = {(float) _ievent,
+				    hitID,
+				    x,
+				    y,
+				    z,
+				    ex,
+				    ey,
+				    ez,
+				    ephi,
+				    e,
+				    adc,
+				    layer,
+				    size,
+				    phisize,
+				    zsize,
+				    trackID,
+				    g4hitID,
+				    gx,
+				    gy,
+				    gz,
+				    gtrackID,
+				    gflavor,
+				    gpx,
+				    gpy,
+				    gpz,
+				    gvx,
+				    gvy,
+				    gvz,
+				    gfpx,
+				    gfpy,
+				    gfpz,
+				    gfx,
+				    gfy,
+				    gfz,
+				    gembed,
+				    gprimary,
+				    efromtruth};
+
+	  _ntp_cluster->Fill(cluster_data);
+	}		  
+      }
+    }
   }
-  
+    
   //------------------------
   // fill the Gtrack NTuple
   //------------------------
@@ -1102,7 +1273,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	 ++iter) {
 	
 	PHG4Particle* g4particle = iter->second;
-    
+
+	if (_scan_for_embedded) {
+	  if (trutheval->get_embed(g4particle) == 0) continue;
+	}
+	
 	float gtrackID = g4particle->get_track_id();
 	float gflavor  = g4particle->get_pid();
       
@@ -1260,7 +1435,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  unsigned int cluster_id = *iter;
 	  SvtxCluster* cluster = clustermap->get(cluster_id);
 	  unsigned int layer = cluster->get_layer();
-	  if (layer < 32) layers |= (0x1 << layer);
+	  if (layer < 31) layers |= (0x1 << layer);
 	}
       
 	float dca2d     = track->get_dca2d();
@@ -1313,9 +1488,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float nfromtruth = NAN;
 	float layersfromtruth = NAN;
       
-	PHG4Particle* g4particle = trackeval->max_truth_particle_by_nclusters(track);
-      
+	PHG4Particle* g4particle = trackeval->max_truth_particle_by_nclusters(track);	
+	
 	if (g4particle) {
+
+	  if (_scan_for_embedded) {
+	    if (trutheval->get_embed(g4particle) == 0) continue;
+	  }
+	  
 	  gtrackID = g4particle->get_track_id();
 	  gflavor  = g4particle->get_pid();
       
