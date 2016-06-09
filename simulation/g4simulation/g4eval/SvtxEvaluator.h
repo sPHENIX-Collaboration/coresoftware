@@ -49,6 +49,8 @@ public:
   void do_cluster_eval(bool b) {_do_cluster_eval = b;}
   void do_gtrack_eval(bool b) {_do_gtrack_eval = b;}
   void do_track_eval(bool b) {_do_track_eval = b;}
+
+  void scan_for_embedded(bool b) {_scan_for_embedded = b;}
   
  private:
 
@@ -70,6 +72,8 @@ public:
   bool _do_cluster_eval;
   bool _do_gtrack_eval;
   bool _do_track_eval;
+
+  bool _scan_for_embedded;
   
   TNtuple *_ntp_vertex;
   TNtuple *_ntp_gpoint;

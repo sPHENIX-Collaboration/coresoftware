@@ -9,14 +9,15 @@
 
 class PHCompositeNode;
 class PHG4CylinderCell;
+class PHG4TPCDistortion;
 
 class PHG4CylinderCellTPCReco : public SubsysReco
 {
 public:
   
-  PHG4CylinderCellTPCReco(const std::string &name = "CYLINDERTPCRECO");
+  PHG4CylinderCellTPCReco( int n_pixel=2, const std::string &name = "CYLINDERTPCRECO");
   
-  virtual ~PHG4CylinderCellTPCReco(){}
+  virtual ~PHG4CylinderCellTPCReco();
   
   //! module initialization
   int InitRun(PHCompositeNode *topNode);
@@ -33,7 +34,6 @@ public:
   void Detector(const std::string &d);
   void cellsize(const int i, const double sr, const double sz);
 //   void etaphisize(const int i, const double deltaeta, const double deltaphi);
-  void checkenergy(const int i=1) {chkenergyconservation = i;}
   void OutputDetector(const std::string &d) {outdetector = d;}
 
   void setDiffusion( double diff ){diffusion = diff;}
@@ -50,6 +50,9 @@ public:
   //! set timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
   void set_timing_window_size(const double s) {set_timing_window(0.0,s);}
   
+  //! distortion to the primary ionization
+  void setDistortion (PHG4TPCDistortion * d) {distortion = d;}
+
 protected:
 //   void set_size(const int i, const double sizeA, const double sizeB, const int what);
 //   int CheckEnergy(PHCompositeNode *topNode);
@@ -72,7 +75,6 @@ protected:
   std::map<int, std::pair<int, int> > n_phi_z_bins;
   
   int nbins[2];
-  int chkenergyconservation;
   
   TRandom3 rand;
 
@@ -81,6 +83,11 @@ protected:
 
   double timing_min;
   double timing_max;
+
+  int num_pixel_layers;
+  
+  //! distortion to the primary ionization if not NULL
+  PHG4TPCDistortion * distortion;
 };
 
 #endif

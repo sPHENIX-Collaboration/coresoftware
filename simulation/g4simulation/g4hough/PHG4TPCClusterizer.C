@@ -23,6 +23,11 @@
 
 #include <TMath.h>
 
+#include <TH1D.h>
+#include <TFitResult.h>
+#include <TFitResultPtr.h>
+#include <TF1.h>
+
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
@@ -41,20 +46,21 @@ static inline int wrap_bin( int bin, int nbins )
 	return bin;
 }
 
-static bool is_local_maximum( std::vector<std::vector<float> > const& amps, int phi, int z )
+static bool is_local_maximum( vector<float> const& amps, int nphibins, int nzbins, int phi, int z )
 {
-	if( amps[z][phi] <= 0. ){return false;}
-	float cent_val = amps[z][phi];
+	int max_width = 32;
+	if( amps[z*nphibins + phi] <= 0. ){return false;}
+	float cent_val = amps[z*nphibins + phi];
 	bool is_max = true;
-	for( int iz=-1;iz<=1;++iz )
+	for( int iz=-max_width;iz<=max_width;++iz )
 	{
-		int cz = z+iz;if(cz<0){continue;}if(cz>=(int)(amps.size())){continue;}
-		for( int ip=-1;ip<=1;++ip )
+		int cz = z+iz;if(cz<0){continue;}if(cz>=(int)(nzbins)){continue;}
+		for( int ip=-max_width;ip<=max_width;++ip )
 		{
 			if( (iz==0) && (ip==0) ){continue;}
-			int cp = wrap_bin( phi+ip, amps[cz].size() );
+			int cp = wrap_bin( phi+ip, nphibins );
 			assert (cp >= 0);
-			if( amps[cz][cp] > cent_val ){is_max=false;break;}
+			if( amps[cz*nphibins+cp] > cent_val ){is_max=false;break;}
 		}
 		if(is_max==false){break;}
 	}
@@ -62,81 +68,37 @@ static bool is_local_maximum( std::vector<std::vector<float> > const& amps, int 
 }
 
 
-static void fit_cluster( std::vector<std::vector<float> >& amps, int& nhits_tot, std::vector<int>& nhits, int phibin, int zbin, PHG4CylinderCellGeom* geo, float& phi, float& z, float& e )
+static void fit_cluster( vector<float>& amps, int nphibins, int nzbins, int& nhits_tot, vector<int>& nhits, int phibin, int zbin, PHG4CylinderCellGeom* geo, float& phi, float& z, float& e )
 {
-	// int phi_span = 3;
-	// int z_span = 1;
 	e = 0.;
 	phi = 0.;
 	z = 0.;
 	float prop_cut = 0.05;
-	float peak = amps[zbin][phibin];
+	float peak = amps[zbin*nphibins+phibin];
 
-	for( int iz=0;iz<=z_span;++iz )
-	{
-		int cz = zbin+iz;if(cz<0){continue;}if(cz>=(int)(amps.size())){continue;}
-		bool breakout = true;
-		for( int ip=1;ip<=phi_span;++ip )
-		{
-			int cp = wrap_bin( phibin-ip, amps[cz].size() );
-			if(amps[cz][cp] <= 0.){break;}
-			if( amps[cz][cp] < prop_cut*peak ){break;}
-			e += amps[cz][cp];
-			phi += amps[cz][cp]*geo->get_phicenter(cp);
-			z += amps[cz][cp]*geo->get_zcenter(cz);
-			nhits_tot -= 1;
-			nhits[cz] -= 1;
-			amps[cz][cp] = 0.;
-			breakout=false;
-		}
-		for( int ip=0;ip<=phi_span;++ip )
-		{
-			int cp = wrap_bin( phibin+ip, amps[cz].size() );
-			if(amps[cz][cp] <= 0.){break;}
-			if( amps[cz][cp] < prop_cut*peak ){break;}
-			e += amps[cz][cp];
-			phi += amps[cz][cp]*geo->get_phicenter(cp);
-			z += amps[cz][cp]*geo->get_zcenter(cz);
-			nhits_tot -= 1;
-			nhits[cz] -= 1;
-			amps[cz][cp] = 0.;
-			breakout=false;
-		}
-		if(breakout==true){break;}
-	}
 
-	for( int iz=1;iz<=z_span;++iz )
+	for( int iz=-z_span;iz<=z_span;++iz )
 	{
-		int cz = zbin-iz;if(cz<0){continue;}if(cz>=(int)(amps.size())){continue;}
-		bool breakout = true;
-		for( int ip=1;ip<=phi_span;++ip )
+		int cz = zbin+iz;if(cz<0){continue;}if(cz>=(int)(nzbins)){continue;}
+		for( int ip=-phi_span;ip<=phi_span;++ip )
 		{
-			int cp = wrap_bin( phibin-ip, amps[cz].size() );
-			assert(cp >= 0);
-			if(amps[cz][cp] <= 0.){break;}
-			if( amps[cz][cp] < prop_cut*peak ){break;}
-			e += amps[cz][cp];
-			phi += amps[cz][cp]*geo->get_phicenter(cp);
-			z += amps[cz][cp]*geo->get_zcenter(cz);
+			int cp = wrap_bin( phibin+ip, nphibins );
+			assert (cp >= 0);
+			if(amps[cz*nphibins+cp] <= 0.)
+			{
+				continue;
+			}
+			if( amps[cz*nphibins+cp] < prop_cut*peak )
+			{
+				continue;
+			}
+			e += amps[cz*nphibins+cp];
+			phi += amps[cz*nphibins+cp]*geo->get_phicenter(cp);
+			z += amps[cz*nphibins+cp]*geo->get_zcenter(cz);
 			nhits_tot -= 1;
 			nhits[cz] -= 1;
-			amps[cz][cp] = 0.;
-			breakout=false;
+			amps[cz*nphibins+cp] = 0.;
 		}
-		for( int ip=0;ip<=phi_span;++ip )
-		{
-			int cp = wrap_bin( phibin+ip, amps[cz].size() );
-			if(amps[cz][cp] <= 0.){break;}
-			if( amps[cz][cp] < prop_cut*peak ){break;}
-			e += amps[cz][cp];
-			phi += amps[cz][cp]*geo->get_phicenter(cp);
-			z += amps[cz][cp]*geo->get_zcenter(cz);
-			nhits_tot -= 1;
-			nhits[cz] -= 1;
-			amps[cz][cp] = 0.;
-			breakout=false;
-		}
-		if(breakout==true){break;}
 	}
 
 	phi /= e;
@@ -147,67 +109,12 @@ int PHG4TPCClusterizer::InitRun(PHCompositeNode *topNode)
 {
 	phi_span = _phi_span;
 	z_span = _z_span;
-
-	PHG4CylinderCellGeomContainer* geom_container = 0;
-	PHTypedNodeIterator<PHG4CylinderCellGeomContainer> geomiter(topNode);
-	PHIODataNode<PHG4CylinderCellGeomContainer>* PHG4CylinderCellGeomContainerNode = geomiter.find("CYLINDERCELLGEOM_SVTX");
-	if(PHG4CylinderCellGeomContainerNode){geom_container = (PHG4CylinderCellGeomContainer*) PHG4CylinderCellGeomContainerNode->getData();}
-	if (!geom_container)
-		{
-			cout<<"can't find CYLINDERCELLGEOM_SVTX"<<endl;
-			return Fun4AllReturnCodes::ABORTRUN;
-		}
-	amps.clear();
-	cellids.clear();
-	nhits.clear();
-	PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
-	for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;layeriter != layerrange.second;++layeriter)
-	{
-    	int nphibins = layeriter->second->get_phibins();
-    	int nzbins =  layeriter->second->get_zbins();
-    	amps.push_back( std::vector<std::vector<float> >() );
-    	amps.back().assign( nzbins, std::vector<float>() );
-    	cellids.push_back( std::vector<std::vector<int> >() );
-    	cellids.back().assign( nzbins, std::vector<int>() );
-    	nhits.push_back( std::vector<int>() );
-    	nhits.back().assign( nzbins, 0 );
-    	for (int i = 0; i < nzbins; ++i){
-    		amps.back()[i].assign( nphibins, 0. );
-    		cellids.back()[i].assign( nphibins, 0 );
-    	}
-	}
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void PHG4TPCClusterizer::reset()
 {
-	for(unsigned int i=0,isize=amps.size();i<isize;i+=1)
-	{
-		for(unsigned int j=0,jsize=amps[i].size();j<jsize;j+=1)
-		{
-			for(unsigned int k=0,ksize=amps[i][j].size();k<ksize;k+=1)
-			{
-				amps[i][j][k] = 0.;
-			}
-		}
-	}
-	for(unsigned int i=0,isize=cellids.size();i<isize;i+=1)
-	{
-		for(unsigned int j=0,jsize=cellids[i].size();j<jsize;j+=1)
-		{
-			for(unsigned int k=0,ksize=cellids[i][j].size();k<ksize;k+=1)
-			{
-				cellids[i][j][k] = 0;
-			}
-		}
-	}
-	for(unsigned int i=0,isize=nhits.size();i<isize;i+=1)
-	{
-		for(unsigned int j=0,jsize=nhits[i].size();j<jsize;j+=1)
-		{
-			nhits[i][j] = 0;
-		}
-	}
+
 }
 
 
@@ -262,37 +169,62 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 		return Fun4AllReturnCodes::ABORTRUN;}
 		else {clusterlist = (SvtxClusterMap*)SvtxClusterMapNode->getData();}
 	clusterlist->Reset();
-	
+
+	vector<vector<SvtxHit*> > layer_sorted;
+	PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
+	for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;layeriter != layerrange.second;++layeriter)
+	{
+		layer_sorted.push_back( vector<SvtxHit*>() );
+	}
 	for(SvtxHitMap::Iter iter = hits->begin();iter != hits->end();++iter)
 	{
 		SvtxHit* hit = iter->second;
-		if(hit->get_e() <= 0.){continue;}
-		int layer = hit->get_layer();
-		PHG4CylinderCell* cell = cells->findCylinderCell(hit->get_cellid());
-		int phibin = cell->get_binphi();
-		int zbin = cell->get_binz();
-		nhits[layer][zbin] += 1;
-		amps[layer][zbin][phibin] += hit->get_e();
-		cellids[layer][zbin][phibin] = hit->get_id();
+		layer_sorted[ hit->get_layer() ].push_back( hit->Clone() );
 	}
-	for(unsigned int layer=0;layer<amps.size();++layer)
+
+	unsigned int layer = 0;
+	for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;layeriter != layerrange.second;++layeriter)
 	{
+
 		PHG4CylinderCellGeom* geo = geom_container->GetLayerCellGeom(layer);
-		int nhits_tot = 0;
-		for(int zbin=0;zbin<(int)(nhits[layer].size());++zbin)
+		nphibins = layeriter->second->get_phibins();
+		nzbins =  layeriter->second->get_zbins();
+
+
+		nhits.clear();nhits.assign( nzbins, 0 );
+		amps.clear();amps.assign( nphibins*nzbins, 0. );
+		cellids.clear();cellids.assign( nphibins*nzbins, 0 );
+		for(unsigned int i=0;i<layer_sorted[layer].size();++i)
 		{
-			nhits_tot += nhits[layer][zbin];
+			SvtxHit* hit = layer_sorted[layer][i];
+			if(hit->get_e() <= 0.){continue;}
+			PHG4CylinderCell* cell = cells->findCylinderCell(hit->get_cellid());
+			int phibin = cell->get_binphi();
+			int zbin = cell->get_binz();
+			nhits[zbin] += 1;
+			amps[ zbin*nphibins + phibin ] += hit->get_e();
+			cellids[ zbin*nphibins + phibin ] = hit->get_id();
+		}
+		int nhits_tot = 0;
+		for(int zbin=0;zbin<nzbins;++zbin)
+		{
+			nhits_tot += nhits[zbin];
 		}
 		while( nhits_tot > 0 )
 		{
-			for(int zbin=0;zbin<(int)(amps[layer].size());++zbin)
+			for(int zbin=0;zbin<nzbins;++zbin)
 			{
-				if(nhits[layer][zbin] <= 0){continue;}
-				for( int phibin=0;phibin<(int)(amps[layer][zbin].size());++phibin )
+				if(nhits[zbin] <= 0){continue;}
+				for( int phibin=0;phibin<nphibins;++phibin )
 				{
-					if( is_local_maximum( amps[layer], phibin, zbin ) == false ){continue;}
+					if( is_local_maximum( amps, nphibins, nzbins, phibin, zbin ) == false ){continue;}
+
 					float phi=0.;float z=0.;float e=0.;
-					fit_cluster( amps[layer], nhits_tot, nhits[layer], phibin, zbin, geo, phi, z, e );
+					fit_cluster( amps, nphibins, nzbins, nhits_tot, nhits, phibin, zbin, geo, phi, z, e );
+					
+
+					if( (layer>2) && (e<energy_cut) ){continue;}
+
 					SvtxCluster_v1 clus;
 					clus.set_layer( layer );
 					clus.set_e(e);
@@ -300,12 +232,24 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode *topNode)
 					clus.set_position( 0, radius*cos(phi) );
 					clus.set_position( 1, radius*sin(phi) );
 					clus.set_position( 2, z );
-					clus.insert_hit( cellids[layer][zbin][phibin] );
+					clus.insert_hit( cellids[ zbin*nphibins + phibin ] );
 					clusterlist->insert(&clus);
 				}
 			}
 		}
+
+
+		layer += 1;
 	}
+
+	for( unsigned int l=0;l<layer_sorted.size();++l )
+	{
+		for(unsigned int i=0;i<layer_sorted[l].size();++i)
+		{
+			delete layer_sorted[l][i];
+		}
+	}
+
 	reset();
 	return Fun4AllReturnCodes::EVENT_OK;
 }
