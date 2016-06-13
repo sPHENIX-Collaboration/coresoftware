@@ -24,6 +24,8 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
 
+  virtual int Init();
+
   //! reimplemented from base class
   virtual void SetInterfacePointers( PHCompositeNode* );
 
