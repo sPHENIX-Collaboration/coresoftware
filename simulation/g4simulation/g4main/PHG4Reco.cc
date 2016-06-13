@@ -134,7 +134,7 @@ PHG4Reco::~PHG4Reco( void )
   delete gui_thread;
   delete field_;
   delete runManager_;
-  if (uisession_) delete uisession_;
+  delete uisession_;
   delete visManager;
 }
 
@@ -628,7 +628,7 @@ PHG4Reco::DefineMaterials()
   //load all Materials from the nist database
   G4NistManager * nist = G4NistManager::Instance();
   vector<G4String> matnames = nist->GetNistMaterialNames();
-   while (matnames.begin() != matnames.end())
+  while (matnames.begin() != matnames.end())
      {
        G4String mat = matnames.back();
        if (ignoremat.find(mat) == ignoremat.end())
