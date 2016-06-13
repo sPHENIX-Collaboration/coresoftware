@@ -227,8 +227,6 @@ PHG4DetectorSubsystem::set_default_string_param( const std::string &name, const 
 void
 PHG4DetectorSubsystem::InitializeParameters()
 {
-  cout << "init params" << endl;
-
   set_default_int_param("absorberactive", 0);
   set_default_int_param("absorbertruth", 0);
   set_default_int_param("active", 0);
