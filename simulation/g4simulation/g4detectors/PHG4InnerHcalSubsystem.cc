@@ -27,7 +27,9 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const i
   steppingAction_( NULL ),
   trackingAction_(NULL),
   eventAction_(NULL)
-{}
+{
+  InitializeParameters();
+}
 
 //_______________________________________________________________________
 int 
@@ -129,7 +131,7 @@ PHG4InnerHcalSubsystem::process_event( PHCompositeNode * topNode )
 void
 PHG4InnerHcalSubsystem::Print(const string &what) const
 {
-  cout << "Inner Hcal Parameters: " << endl;
+  cout << Name() << " Parameters: " << endl;
   GetParams()->Print();
   if (detector_)
     {

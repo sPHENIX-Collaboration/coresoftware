@@ -26,7 +26,9 @@ PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const i
   trackingAction_(NULL),
   eventAction_(NULL),
   enable_field_checker(0)
-{}
+{
+  InitializeParameters();
+}
 
 //_______________________________________________________________________
 int
@@ -128,7 +130,7 @@ void
 PHG4OuterHcalSubsystem::Print(const string &what) const
 {
   cout << "Outer Hcal Parameters: " << endl;
-  GetParams()->print();
+  GetParams()->Print();
   if (detector_)
     {
       detector_->Print(what);
