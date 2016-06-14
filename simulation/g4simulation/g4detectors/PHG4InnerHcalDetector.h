@@ -1,8 +1,6 @@
 #ifndef PHG4InnerHcalDetector_h
 #define PHG4InnerHcalDetector_h
 
-#include "PHG4Parameters.h"
-
 #include <g4main/PHG4Detector.h>
 
 #include <Geant4/globals.hh>
@@ -21,6 +19,7 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHG4Parameters;
 
 class PHG4InnerHcalDetector: public PHG4Detector
 {
