@@ -3,9 +3,6 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4String.hh>
-
 #include <map>
 #include <string>
 
