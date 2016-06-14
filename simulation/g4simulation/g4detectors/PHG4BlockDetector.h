@@ -1,7 +1,9 @@
 #ifndef PHG4BlockDetector_h
 #define PHG4BlockDetector_h
 
-#include "g4main/PHG4Detector.h"
+#include "PHG4Parameters.h"
+
+#include <g4main/PHG4Detector.h>
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4Region.hh>
@@ -23,7 +25,7 @@ class PHG4BlockDetector: public PHG4Detector
   public:
 
   //! constructor
-  PHG4BlockDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK", const int lyr = 0 );
+  PHG4BlockDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam="BLOCK", const int lyr = 0 );
 
   //! destructor
   virtual ~PHG4BlockDetector( void )
@@ -71,6 +73,7 @@ class PHG4BlockDetector: public PHG4Detector
 
   private:
 
+  PHG4Parameters *params;
  
   G4Material* TrackerMaterial;
   G4double TrackerThickness;

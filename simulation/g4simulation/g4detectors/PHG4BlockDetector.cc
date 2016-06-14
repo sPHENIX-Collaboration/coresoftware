@@ -23,13 +23,14 @@ using namespace std;
 
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
-PHG4BlockDetector::PHG4BlockDetector( PHCompositeNode *Node, const std::string &dnam,const int lyr  ):
+PHG4BlockDetector::PHG4BlockDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam,const int lyr  ):
   PHG4Detector(Node, dnam),
-  center_in_x(0*cm),
-  center_in_y(0*cm),
-  center_in_z(-200*cm),
+  params(parameters),
+  center_in_x(params->get_double_param("place_x")*cm),
+  center_in_y(params->get_double_param("place_y")*cm),
+  center_in_z(params->get_double_param("place_z")*cm),
   _region(NULL),
-  active(0),
+  active(params->get_int_param("active")),
   layer(lyr),
   blackhole(0)
 {
@@ -64,7 +65,7 @@ bool PHG4BlockDetector::IsInBlockActive(G4VPhysicalVolume * volume) const
 void PHG4BlockDetector::Construct( G4LogicalVolume* logicWorld )
 {
 
-  TrackerMaterial = G4Material::GetMaterial(material.c_str());
+  TrackerMaterial = G4Material::GetMaterial(params->get_string_param("material"));
 
 
   if ( ! TrackerMaterial )
