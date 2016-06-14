@@ -30,13 +30,11 @@ PHG4DetectorSubsystem::PHG4DetectorSubsystem(const std::string &name, const int 
   ostringstream nam;
   nam << name << "_" << lyr;
   Name(nam.str().c_str());
-  //  InitializeParameters();
 }
 
 int 
 PHG4DetectorSubsystem::Init(PHCompositeNode* topNode)
 {
-  InitializeParameters();
   params->set_name(superdetector);
   return 0;
 }

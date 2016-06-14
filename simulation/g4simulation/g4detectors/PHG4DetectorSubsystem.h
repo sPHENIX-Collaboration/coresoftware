@@ -68,12 +68,12 @@ class PHG4DetectorSubsystem : public PHG4Subsystem
   // these initialize the defaults and add new entries to the
   // list of variables. This should not be possible from the macro to
   // prevent abuse (this makes the list of possible parameters deterministic)
+  void InitializeParameters();
   void set_default_double_param( const std::string &name, const double dval);
   void set_default_int_param( const std::string &name, const int ival);
   void set_default_string_param( const std::string &name, const std::string &sval);
 
  private:
-  void InitializeParameters();
   PHG4Parameters *params;
   bool overlapcheck;
   int layer;
