@@ -23,7 +23,7 @@ class PHG4Parameters: public PHObject
  PHG4Parameters(const std::string &name): pdbparam(NULL),detname(name) {}
   virtual ~PHG4Parameters() {}
 
-  void print() const;
+  void Print() const;
 
   void set_int_param(const std::string &name, const int ival);
   int get_int_param(const std::string &name) const;
