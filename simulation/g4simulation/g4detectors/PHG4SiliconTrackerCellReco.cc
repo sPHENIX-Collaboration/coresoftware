@@ -29,8 +29,9 @@ PHG4SiliconTrackerCellReco::PHG4SiliconTrackerCellReco(const string &name) :
   SubsysReco(name),
   _timer(PHTimeServer::get()->insert_new(name.c_str())),
   chkenergyconservation(0),
-  timing_min(0.0),
-  timing_max(numeric_limits<double>::max())
+  tmin_default(0.0),  // ns
+  tmax_default(60.0), // ns
+  tmin_max()
 {
   memset(nbins, 0, sizeof(nbins));
   Detector(name);
@@ -147,6 +148,13 @@ int PHG4SiliconTrackerCellReco::InitRun(PHCompositeNode *topNode)
     }
   */
 
+  for (std::map<int,int>::iterator iter = binning.begin(); 
+       iter != binning.end(); ++iter) {
+    int layer = iter->first;
+    // if the user doesn't set an integration window, set the default
+    tmin_max.insert(std::make_pair(layer,std::make_pair(tmin_default,tmax_default)));    
+  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -195,8 +203,9 @@ PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
 	{
-	  if (hiter->second->get_t(0)>timing_max) continue;
-	  if (hiter->second->get_t(1)<timing_min) continue;
+	  // checking ADC timing integration window cut
+	  if (hiter->second->get_t(0)>tmin_max[*layer].second) continue;
+	  if (hiter->second->get_t(1)<tmin_max[*layer].first) continue;
 	  
 	  int ladder_z_index = hiter->second->get_ladder_z_index();
 	  int ladder_phi_index = hiter->second->get_ladder_phi_index();

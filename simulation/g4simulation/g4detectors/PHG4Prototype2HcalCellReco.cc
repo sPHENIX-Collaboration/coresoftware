@@ -31,8 +31,9 @@ PHG4Prototype2HcalCellReco::PHG4Prototype2HcalCellReco(const string &name) :
   _timer(PHTimeServer::get()->insert_new(name.c_str())),
   nslatscombined(1),
   chkenergyconservation(0),
-  timing_min(0.0),
-  timing_max(numeric_limits<double>::max())
+  tmin_default(0.0),  // ns
+  tmax_default(60.0), // ns
+  tmin_max()
 {
   memset(nbins, 0, sizeof(nbins));
   memset(slatarray, 0, sizeof(slatarray));
@@ -75,6 +76,13 @@ int PHG4Prototype2HcalCellReco::InitRun(PHCompositeNode *topNode)
       DetNode->addNode(newNode);
     }
 
+  for (std::map<int,int>::iterator iter = binning.begin(); 
+       iter != binning.end(); ++iter) {
+    int layer = iter->first;
+    // if the user doesn't set an integration window, set the default
+    tmin_max.insert(std::make_pair(layer,std::make_pair(tmin_default,tmax_default)));    
+  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -104,8 +112,8 @@ PHG4Prototype2HcalCellReco::process_event(PHCompositeNode *topNode)
       PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(*layer);
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
 	{
-	  if (hiter->second->get_t(0)>timing_max) continue;
-	  if (hiter->second->get_t(1)<timing_min) continue;
+	  if (hiter->second->get_t(0)>tmin_max[*layer].second) continue;
+	  if (hiter->second->get_t(1)<tmin_max[*layer].first) continue;
 	  
 	  short icolumn = hiter->second->get_scint_id();
 	  short irow = hiter->second->get_row();

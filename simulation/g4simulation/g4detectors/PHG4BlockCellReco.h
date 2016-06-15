@@ -39,7 +39,10 @@ class PHG4BlockCellReco : public SubsysReco
   void   set_timing_window(const int i, const double tmin, const double tmax) {
     tmin_max[i] = std::make_pair(tmin,tmax);
   }
-
+  void   set_timing_window_defaults(const double tmin, const double tmax) {
+    tmin_default = tmin; tmax_default = tmax;
+  }
+  
  protected:
   void set_size(const int i, const double sizeA, const double sizeB, const int what);
   int CheckEnergy(PHCompositeNode *topNode);

@@ -44,6 +44,9 @@ public:
   void   set_timing_window(const int i, const double tmin, const double tmax) {
     tmin_max[i] = std::make_pair(tmin,tmax);
   }
+  void   set_timing_window_defaults(const double tmin, const double tmax) {
+    tmin_default = tmin; tmax_default = tmax;
+  }
 
   //! distortion to the primary ionization
   void setDistortion (PHG4TPCDistortion * d) {distortion = d;}

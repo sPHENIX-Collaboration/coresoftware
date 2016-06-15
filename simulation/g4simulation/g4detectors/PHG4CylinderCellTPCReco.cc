@@ -36,8 +36,8 @@ PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
       diffusion(0.0057),
       elec_per_kev(38.),
       num_pixel_layers(n_pixel),
-      tmin_default(-0.0),  // ns
-      tmax_default(100.0), // ns
+      tmin_default(0.0),  // ns
+      tmax_default(60.0), // ns
       tmin_max(),
       distortion(NULL) {}
 

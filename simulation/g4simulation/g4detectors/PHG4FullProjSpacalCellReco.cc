@@ -31,8 +31,9 @@ using namespace std;
 PHG4FullProjSpacalCellReco::PHG4FullProjSpacalCellReco(const string &name) :
     SubsysReco(name), _timer(PHTimeServer::get()->insert_new(name.c_str())), chkenergyconservation(
         0),
-    timing_min(0.0),
-    timing_max(numeric_limits<double>::max())
+    tmin_default(0.0),  // ns
+    tmax_default(60.0), // ns
+    tmin_max()
 {
 }
 
@@ -287,6 +288,7 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
           layerseggeo->identify();
         }
     }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -357,8 +359,8 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
         {
 	  // checking ADC timing integration window cut
-	  if (hiter->second->get_t(0)>timing_max) continue;
-	  if (hiter->second->get_t(1)<timing_min) continue;
+	  if (hiter->second->get_t(0)>tmax_default) continue;
+	  if (hiter->second->get_t(1)<tmin_default) continue;
 
           // hit loop
           int scint_id = hiter->second->get_scint_id();

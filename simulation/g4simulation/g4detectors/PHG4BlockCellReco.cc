@@ -35,8 +35,8 @@ PHG4BlockCellReco::PHG4BlockCellReco(const string &name) :
   SubsysReco(name),
   _timer(PHTimeServer::get()->insert_new("PHG4BlockCellReco")),
   chkenergyconservation(0),
-  tmin_default(-0.0),  // ns
-  tmax_default(100.0), // ns
+  tmin_default(0.0),  // ns
+  tmax_default(60.0), // ns
   tmin_max()
 {
   memset(nbins, 0, sizeof(nbins));
