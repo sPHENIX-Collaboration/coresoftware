@@ -49,7 +49,7 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* detector,  PHG4Parameters *parameters):
+PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* detector,  const PHG4Parameters *parameters):
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),

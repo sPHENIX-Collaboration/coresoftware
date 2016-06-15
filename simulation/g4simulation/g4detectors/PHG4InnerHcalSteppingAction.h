@@ -15,7 +15,7 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   public:
 
   //! constructor
-  PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector*, PHG4Parameters *parameters );
+  PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector*, const PHG4Parameters *parameters );
 
   //! destroctor
   virtual ~PHG4InnerHcalSteppingAction()
@@ -42,7 +42,7 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer *hits_;
   PHG4HitContainer *absorberhits_;
   PHG4Hit *hit;
-  PHG4Parameters *params;
+  const PHG4Parameters *params;
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
   // since getting parameters is a map search we do not want to
