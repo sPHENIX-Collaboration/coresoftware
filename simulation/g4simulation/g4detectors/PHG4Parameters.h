@@ -20,7 +20,7 @@ class PHG4Parameters: public PHObject
   typedef std::map<const std::string, int> iMap;
   typedef std::map<const std::string, std::string> strMap;
 
- PHG4Parameters(const std::string &name): pdbparam(NULL),detname(name) {}
+  PHG4Parameters(const std::string &name): pdbparam(NULL),detname(name) {}
   virtual ~PHG4Parameters() {}
 
   void Print() const;
