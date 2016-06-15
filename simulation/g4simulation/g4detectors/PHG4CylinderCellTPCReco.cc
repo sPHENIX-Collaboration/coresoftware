@@ -8,8 +8,6 @@
 #include "PHG4CylinderCellDefs.h"
 #include "PHG4TPCDistortion.h"
 
-
-
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
