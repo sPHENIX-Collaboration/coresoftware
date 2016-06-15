@@ -76,9 +76,6 @@ protected:
   double diffusion;
   double elec_per_kev;
 
-  double timing_min;
-  double timing_max;
-
   int num_pixel_layers;
 
   double tmin_default;
