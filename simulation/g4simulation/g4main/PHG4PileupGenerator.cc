@@ -17,9 +17,9 @@ PHG4PileupGenerator::PHG4PileupGenerator(const string &name)
       _max_integration_time(+1000.0),
       _collision_rate(100.0),
       _time_between_crossings(106.0),
-      _ave_coll_per_crossing(1.0),
-      _min_crossing(0),
-      _max_crossing(0) {
+      _ave_coll_per_crossing(1.0), // recalculated
+      _min_crossing(0),            // recalculated
+      _max_crossing(0) {           // recalculated
   return;
 }
 
@@ -49,10 +49,6 @@ int PHG4PileupGenerator::InitRun(PHCompositeNode *topNode) {
   _min_crossing = _min_integration_time / _time_between_crossings;
   _max_crossing = _max_integration_time / _time_between_crossings;
 
-  cout << "min crossing: " << _min_crossing << endl;
-  cout << "max crossing: " << _max_crossing << endl;
-  cout << "ave collisions per crossing: " << _ave_coll_per_crossing << endl;
-  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -61,15 +57,13 @@ int PHG4PileupGenerator::process_event(PHCompositeNode *topNode) {
   if (!_generator) return Fun4AllReturnCodes::EVENT_OK;
 
   // toss multiple crossings all the way back
-  for (int icrossing = _min_crossing; icrossing < _max_crossing; ++icrossing) {
+  for (int icrossing = _min_crossing; icrossing <= _max_crossing; ++icrossing) {
   
     double crossing_time = _time_between_crossings * icrossing;
 
     int ncollisions = gsl_ran_poisson(RandomGenerator,_ave_coll_per_crossing);
     if (icrossing == 0) --ncollisions;
 
-    cout << icrossing << " " << crossing_time << " " << ncollisions << endl;
-    
     for (int icollision = 0; icollision < ncollisions; ++icollision) {
       _generator->set_t0(crossing_time);
       _generator->process_event(topNode);
@@ -90,7 +84,6 @@ int PHG4PileupGenerator::ResetEvent(PHCompositeNode *topNode) {
   _generator->ResetEvent(topNode);
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
 
 int PHG4PileupGenerator::EndRun(const int runnumber) {
   if (!_generator) return Fun4AllReturnCodes::EVENT_OK;
