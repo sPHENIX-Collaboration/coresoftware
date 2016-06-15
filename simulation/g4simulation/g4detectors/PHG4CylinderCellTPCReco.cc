@@ -35,6 +35,7 @@ PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
     : SubsysReco(name),
       diffusion(0.0057),
       elec_per_kev(38.),
+      driftv(6.0), // cm per nanosec
       num_pixel_layers(n_pixel),
       tmin_default(0.0),  // ns
       tmax_default(60.0), // ns
@@ -189,6 +190,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
     PHG4CylinderCellGeom *geo = seggeo->GetLayerCellGeom(*layer);
     int nphibins = n_phi_z_bins[*layer].first;
     int nzbins = n_phi_z_bins[*layer].second;
+
+    double zlength = zmin_max[*layer].second - zmin_max[*layer].first;
     
     sizeiter = cell_size.find(*layer);
     if (sizeiter == cell_size.end()){cout << "logical screwup!!! no sizes for layer " << *layer << endl;exit(1);}
@@ -211,10 +214,26 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       double r = sqrt( xinout*xinout + yinout*yinout );
       phi = atan2(hiter->second->get_y(0), hiter->second->get_x(0));
       z =  hiter->second->get_z(0);
-
+      
       // apply primary charge distortion
       if( (*layer) >= (unsigned int)num_pixel_layers )
         { // in TPC
+
+	  if ( z >= 0.0 ) {
+	    // drift hits towards the positive-z readout
+	    z += -1.0 * driftv * hiter->second->get_t(0);
+	    
+	    // hits so far out of time that they appear outside the detector volume
+	    if (( z < 0.0 ) || ( z > 0.5 * zlength )) continue;
+	  } else {
+	    // drift hits towards the negative-z readout
+	    z += driftv * hiter->second->get_t(0);
+	    
+	    // hits so far out of time that they appear outside the detector volume
+	    if (( z >= 0.0 ) || ( z < -0.5 * zlength )) continue;
+	  }
+
+	  
           if (distortion)
             {
               // do TPC distortion

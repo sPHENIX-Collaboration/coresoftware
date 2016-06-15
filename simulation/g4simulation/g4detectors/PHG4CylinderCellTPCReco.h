@@ -38,7 +38,8 @@ public:
 
   void setDiffusion( double diff ){diffusion = diff;}
   void setElectronsPerKeV( double epk ){elec_per_kev = epk;}
-
+  void set_drift_velocity( const double cm_per_ns) { driftv = cm_per_ns;}
+  
   double get_timing_window_min(const int i) {return tmin_max[i].first;}
   double get_timing_window_max(const int i) {return tmin_max[i].second;}
   void   set_timing_window(const int i, const double tmin, const double tmax) {
@@ -78,6 +79,7 @@ protected:
 
   double diffusion;
   double elec_per_kev;
+  double driftv;
 
   int num_pixel_layers;
 
