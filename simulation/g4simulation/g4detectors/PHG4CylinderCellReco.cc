@@ -24,7 +24,6 @@
 #include <sstream>
 #include <limits>       // std::numeric_limits
 
-
 using namespace std;
 
 PHG4CylinderCellReco::PHG4CylinderCellReco(const string &name) :
