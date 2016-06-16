@@ -25,8 +25,6 @@ class PHG4BlockSteppingAction : public PHG4SteppingAction
 
   //! reimplemented from base class
   virtual void SetInterfacePointers( PHCompositeNode* );
-  void UseG4Steps(const int i = 1) {use_g4_steps = i;}
-  void UseIonizationEnergy(const int i) {use_ionisation_energy = i;}
 
   private:
 
@@ -42,7 +40,6 @@ class PHG4BlockSteppingAction : public PHG4SteppingAction
   int IsBlackHole;
   
   int use_g4_steps;
-  int use_ionisation_energy;
 };
 
 

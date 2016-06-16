@@ -21,9 +21,7 @@ PHG4BlockSubsystem::PHG4BlockSubsystem( const std::string &name, const int lyr )
   PHG4DetectorSubsystem( name, lyr ),
   _detector( NULL ),
   _steppingAction(NULL),
-  _eventAction(NULL),
-  _use_g4_steps(0),
-  _use_ionisation_energy(0)
+  _eventAction(NULL)
 {
   InitializeParameters();
 }
@@ -83,8 +81,6 @@ int PHG4BlockSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
       geocont->AddLayerGeom(GetLayer(), geom);
 
       _steppingAction = new PHG4BlockSteppingAction(_detector, GetParams());
-      // _steppingAction->UseG4Steps(_use_g4_steps);
-      // _steppingAction->UseIonizationEnergy(_use_ionisation_energy);
       _eventAction = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
 
     }
@@ -110,37 +106,10 @@ int PHG4BlockSubsystem::process_event( PHCompositeNode* topNode )
 
 
 //_______________________________________________________________________
-PHG4Detector* PHG4BlockSubsystem::GetDetector( void ) const
+PHG4Detector*
+PHG4BlockSubsystem::GetDetector( void ) const
 {
   return _detector;
-}
-
-//_______________________________________________________________________
-PHG4SteppingAction* PHG4BlockSubsystem::GetSteppingAction( void ) const
-{
-  return _steppingAction;
-}
-
-//_______________________________________________________________________
-void PHG4BlockSubsystem::UseG4Steps(const int i)
-{
-  _use_g4_steps = i;
-  if(_steppingAction)
-    {
-      //    _steppingAction->UseG4Steps(i);
-    }
-  return;
-}
-
-//_______________________________________________________________________
-void PHG4BlockSubsystem::UseIonizationEnergy(const int i)
-{
-  _use_ionisation_energy = i;
-  if(_steppingAction)
-    {
-      //    _steppingAction->UseIonizationEnergy(i);
-    }
-  return;
 }
 
 void
@@ -155,6 +124,8 @@ PHG4BlockSubsystem::SetDefaultParameters()
   set_default_double_param("size_x", 10.);
   set_default_double_param("size_y", 10.);
   set_default_double_param("size_z", 10.);
+
+  set_default_int_param("use_g4steps",0);
   
   set_default_string_param("material", "G4_Galactic");
 }

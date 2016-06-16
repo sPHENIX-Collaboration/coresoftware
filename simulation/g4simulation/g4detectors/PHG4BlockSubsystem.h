@@ -35,12 +35,9 @@ class PHG4BlockSubsystem: public PHG4DetectorSubsystem
 
   //! accessors (reimplemented)
   virtual PHG4Detector* GetDetector( void ) const;
-  virtual PHG4SteppingAction* GetSteppingAction( void ) const;
+  virtual PHG4SteppingAction* GetSteppingAction( void ) const {return  _steppingAction;}
 
   PHG4EventAction* GetEventAction() const {return _eventAction;}
-
-  void UseG4Steps(const int i = 1);
-  void UseIonizationEnergy(const int i = 1);
 
  private:
   void SetDefaultParameters();
@@ -54,8 +51,6 @@ class PHG4BlockSubsystem: public PHG4DetectorSubsystem
   PHG4SteppingAction* _steppingAction;
   PHG4EventAction *_eventAction;
 
-  int _use_g4_steps;
-  int _use_ionisation_energy;
 };
 
 #endif
