@@ -1,6 +1,7 @@
 #include "PHNodeDump.h"
 #include "DumpObject.h"
 
+#include "DumpPdbParameterMap.h"
 #include "DumpPHG4BlockGeomContainer.h"
 #include "DumpPHG4CylinderCellContainer.h"
 #include "DumpPHG4CylinderCellGeomContainer.h"
@@ -150,7 +151,11 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
           // need a static cast since only from DST these guys are of type PHIODataNode<TObject*>
           // when created they are normally  PHIODataNode<PHObject*> but can be anything else as well
           TObject *tmp = (TObject *)(static_cast <PHIODataNode<TObject> *>(node))->getData();
-          if (tmp->InheritsFrom("PHG4BlockGeomContainer"))
+          if (tmp->InheritsFrom("PdbParameterMap"))
+            {
+              newdump = new DumpPdbParameterMap(NodeName);
+            }
+          else if (tmp->InheritsFrom("PHG4BlockGeomContainer"))
             {
               newdump = new DumpPHG4BlockGeomContainer(NodeName);
             }
