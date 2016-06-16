@@ -38,6 +38,7 @@ class PHG4Parameters: public PHObject
   bool exist_string_param(const std::string &name) const;
 
   void set_name(const std::string &name) {detname = name;}
+  std::string Name() const {return detname;}
 
   void FillFrom(const PdbParameterMap *saveparams);
   void FillFrom(const PHG4Parameters *saveparams);
