@@ -13,6 +13,7 @@ pkginclude_HEADERS = \
 
 libphnodedump_la_SOURCES = \
   Dumper.cc \
+  DumpPHG4BlockGeomContainer.cc \
   DumpPHG4CylinderCellContainer.cc \
   DumpPHG4CylinderCellGeomContainer.cc \
   DumpPHG4CylinderGeomContainer.cc \
