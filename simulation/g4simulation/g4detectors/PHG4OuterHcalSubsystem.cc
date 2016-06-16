@@ -57,7 +57,7 @@ PHG4OuterHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	}
       else
 	{
-	  nodename <<  "G4HIT_" << Name() << "_" << GetLayer();
+	  nodename <<  "G4HIT_" << Name();
 	}
       nodes.insert(nodename.str());
       if (GetParams()->get_int_param("absorberactive"))
@@ -69,7 +69,7 @@ PHG4OuterHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	    }
 	  else
 	    {
-	      nodename <<  "G4HIT_ABSORBER_" << Name() << "_" << GetLayer();
+	      nodename <<  "G4HIT_ABSORBER_" << Name();
 	    }
           nodes.insert(nodename.str());
 	}

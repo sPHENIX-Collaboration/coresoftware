@@ -35,7 +35,15 @@ PHG4DetectorSubsystem::PHG4DetectorSubsystem(const std::string &name, const int 
 int 
 PHG4DetectorSubsystem::Init(PHCompositeNode* topNode)
 {
-  params->set_name(superdetector);
+  if (superdetector != "NONE")
+    {
+      params->set_name(SuperDetector());
+    }
+  else
+    {
+      params->set_name(Name());
+    }
+
   return 0;
 }
 
@@ -44,11 +52,11 @@ PHG4DetectorSubsystem::InitRun( PHCompositeNode* topNode )
 {
   PHNodeIterator iter( topNode );
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
-  string g4geonodename = "G4GEO_" + superdetector;
+  string g4geonodename = "G4GEO_" + params->Name();
   parNode->addNode(new PHDataNode<PHG4Parameters>(params,g4geonodename));
 
 
-  string paramnodename = "G4GEOPARAM_" + superdetector;
+  string paramnodename = "G4GEOPARAM_" + params->Name();
   // ASSUMPTION: if we read from DB and/or file we don't want the stuff from
   // the node tree
   // We leave the defaults intact in case there is no entry for
