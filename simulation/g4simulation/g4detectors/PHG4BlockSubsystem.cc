@@ -22,24 +22,10 @@ PHG4BlockSubsystem::PHG4BlockSubsystem( const std::string &name, const int lyr )
   _detector( NULL ),
   _steppingAction(NULL),
   _eventAction(NULL),
-  _rot_in_z(0),
-  _layer(lyr),
-  _blackhole(0),
   _use_g4_steps(0),
-  _use_ionisation_energy(0),
-  _detector_type(name),
-  _superdetector("NONE")
+  _use_ionisation_energy(0)
 {
   InitializeParameters();
-  // put the layer into the name so we get unique names
-  // for multiple layers
-  ostringstream nam;
-  nam << name << "_" << lyr;
-  Name(nam.str().c_str());
-  for (int i = 0; i < 3; i++)
-    {
-      _dimension[i] = 100.0 * cm;
-    }
 }
 
 //_______________________________________________________________________
@@ -49,26 +35,23 @@ int PHG4BlockSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
   // create detector
-  _detector = new PHG4BlockDetector(topNode, GetParams(), Name(), _layer);
-  _detector->SetSize(_dimension[0], _dimension[1], _dimension[2]);
-  _detector->SetZRot(_rot_in_z);
-  _detector->BlackHole(_blackhole);
-  _detector->SuperDetector(_superdetector);
+  _detector = new PHG4BlockDetector(topNode, GetParams(), Name(), GetLayer());
+  _detector->SuperDetector(SuperDetector());
   _detector->OverlapCheck(CheckOverlap());
   if(GetParams()->get_int_param("active"))
     {
 
       ostringstream nodename;
       ostringstream geonode;
-      if(_superdetector != "NONE")
+      if(SuperDetector() != "NONE")
 	{
-	  nodename <<  "G4HIT_" << _superdetector;
-	  geonode << "BLOCKGEOM_" << _superdetector;
+	  nodename <<  "G4HIT_" << SuperDetector();
+	  geonode << "BLOCKGEOM_" << SuperDetector();
 	}
       else
 	{
-	  nodename <<  "G4HIT_" << _detector_type << "_" << _layer;
-	  geonode << "BLOCKGEOM_" << _detector_type << "_" << _layer;
+	  nodename <<  "G4HIT_" << Name();
+	  geonode << "BLOCKGEOM_" << Name();
 	}
 
       // create hit list
@@ -78,7 +61,7 @@ int PHG4BlockSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	  dstNode->addNode( new PHIODataNode<PHObject>( block_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject" ));
 	}
 
-      block_hits->AddLayer(_layer);
+      block_hits->AddLayer(GetLayer());
       PHG4BlockGeomContainer *geocont = findNode::getClass<PHG4BlockGeomContainer>(topNode,
 										   geonode.str().c_str());
       if(!geocont)
@@ -89,23 +72,25 @@ int PHG4BlockSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	  runNode->addNode(newNode);
 	}
 
-      PHG4BlockGeom *geom = new PHG4BlockGeomv1(_layer,
-						_dimension[0], _dimension[1], _dimension[2],
-						GetParams()->get_double_param("place_x"),
-						GetParams()->get_double_param("place_y"),
-						GetParams()->get_double_param("place_z"),
-						_rot_in_z);
-      geocont->AddLayerGeom(_layer, geom);
+      PHG4BlockGeom *geom = new PHG4BlockGeomv1(GetLayer(),
+						GetParams()->get_double_param("size_x")*cm,
+						GetParams()->get_double_param("size_y")*cm,
+						GetParams()->get_double_param("size_z")*cm,
+						GetParams()->get_double_param("place_x")*cm,
+						GetParams()->get_double_param("place_y")*cm,
+						GetParams()->get_double_param("place_z")*cm,
+						GetParams()->get_double_param("rot_z")*deg);
+      geocont->AddLayerGeom(GetLayer(), geom);
 
-      _steppingAction = new PHG4BlockSteppingAction(_detector);
+      _steppingAction = new PHG4BlockSteppingAction(_detector, GetParams());
       // _steppingAction->UseG4Steps(_use_g4_steps);
       // _steppingAction->UseIonizationEnergy(_use_ionisation_energy);
       _eventAction = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
 
     }
-  else if(_blackhole)
+  else if(GetParams()->get_int_param("blackhole"))
     {
-      _steppingAction = new PHG4BlockSteppingAction(_detector);
+      _steppingAction = new PHG4BlockSteppingAction(_detector, GetParams());
     }
 
   return 0;
@@ -164,9 +149,12 @@ PHG4BlockSubsystem::SetDefaultParameters()
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
+  set_default_double_param("rot_x", 0.);
+  set_default_double_param("rot_y", 0.);
+  set_default_double_param("rot_z", 0.);
   set_default_double_param("size_x", 10.);
   set_default_double_param("size_y", 10.);
   set_default_double_param("size_z", 10.);
-
+  
   set_default_string_param("material", "G4_Galactic");
 }

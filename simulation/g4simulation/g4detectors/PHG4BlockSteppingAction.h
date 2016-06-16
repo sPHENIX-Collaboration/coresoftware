@@ -6,6 +6,7 @@
 class PHG4BlockDetector;
 class PHG4Hit;
 class PHG4HitContainer;
+class PHG4Parameters;
 
 class PHG4BlockSteppingAction : public PHG4SteppingAction
 {
@@ -13,7 +14,7 @@ class PHG4BlockSteppingAction : public PHG4SteppingAction
   public:
 
   //! constructor
-  PHG4BlockSteppingAction( PHG4BlockDetector* );
+  PHG4BlockSteppingAction( PHG4BlockDetector*, const PHG4Parameters *parameters );
 
   //! destroctor
   virtual ~PHG4BlockSteppingAction()
@@ -31,11 +32,15 @@ class PHG4BlockSteppingAction : public PHG4SteppingAction
 
   //! pointer to the detector
   PHG4BlockDetector* detector_;
-
+  const PHG4Parameters *params;
   //! pointer to hit container
   PHG4HitContainer * hits_;
   PHG4Hit *hit;
 
+  int absorbertruth;
+  int active;
+  int IsBlackHole;
+  
   int use_g4_steps;
   int use_ionisation_energy;
 };

@@ -1,5 +1,6 @@
 #include "PHG4BlockSteppingAction.h"
 #include "PHG4BlockDetector.h"
+#include "PHG4Parameters.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
@@ -14,12 +15,14 @@
 
 #include <iostream>
 
-#define GEANTSTEPS
-
 using namespace std;
 //____________________________________________________________________________..
-PHG4BlockSteppingAction::PHG4BlockSteppingAction( PHG4BlockDetector* detector ):
+PHG4BlockSteppingAction::PHG4BlockSteppingAction( PHG4BlockDetector* detector, const PHG4Parameters *parameters ):
   detector_( detector ),
+  params(parameters),
+  absorbertruth(params->get_int_param("absorbertruth")),
+  active(params->get_int_param("active")),
+  IsBlackHole(params->get_int_param("blackhole")),
   use_g4_steps(0),
   use_ionisation_energy(0)
 {}
@@ -42,17 +45,17 @@ bool PHG4BlockSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this block stops everything, just put all kinetic energy into edep
-   if (detector_->IsBlackHole())
+   if (IsBlackHole)
      {
         edep = aTrack->GetKineticEnergy()/GeV;
         G4Track* killtrack = const_cast<G4Track *> (aTrack);
         killtrack->SetTrackStatus(fStopAndKill);
      }
 
-  int layer_id = detector_->get_Layer();
   // make sure we are in a volume
-  if ( detector_->IsActive() )
+  if ( active )
     {
+      int layer_id = detector_->get_Layer();
       bool geantino = false;
       // the check for the pdg code speeds things up, I do not want to make 
       // an expensive string compare for every track when we know

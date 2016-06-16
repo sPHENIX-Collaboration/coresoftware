@@ -117,7 +117,6 @@ libg4detectors_la_SOURCES = \
   PHG4BlockCellReco.cc \
   PHG4BlockCellReco_Dict.cc \
   PHG4BlockDetector.cc \
-  PHG4BlockRegionSteppingAction.cc \
   PHG4BlockSteppingAction.cc \
   PHG4BlockSubsystem.cc \
   PHG4BlockSubsystem_Dict.cc \
