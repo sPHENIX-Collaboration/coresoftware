@@ -73,13 +73,13 @@ int PHG4BlockSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	}
 
       PHG4BlockGeom *geom = new PHG4BlockGeomv1(GetLayer(),
-						GetParams()->get_double_param("size_x")*cm,
-						GetParams()->get_double_param("size_y")*cm,
-						GetParams()->get_double_param("size_z")*cm,
-						GetParams()->get_double_param("place_x")*cm,
-						GetParams()->get_double_param("place_y")*cm,
-						GetParams()->get_double_param("place_z")*cm,
-						GetParams()->get_double_param("rot_z")*deg);
+						GetParams()->get_double_param("size_x"),
+						GetParams()->get_double_param("size_y"),
+						GetParams()->get_double_param("size_z"),
+						GetParams()->get_double_param("place_x"),
+						GetParams()->get_double_param("place_y"),
+						GetParams()->get_double_param("place_z"),
+						GetParams()->get_double_param("rot_z"));
       geocont->AddLayerGeom(GetLayer(), geom);
 
       _steppingAction = new PHG4BlockSteppingAction(_detector, GetParams());
