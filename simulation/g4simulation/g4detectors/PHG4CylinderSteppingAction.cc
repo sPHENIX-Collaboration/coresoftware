@@ -47,9 +47,12 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
   // if this cylinder stops everything, just put all kinetic energy into edep
   if (detector_->IsBlackHole())
     {
-      edep = aTrack->GetKineticEnergy()/GeV;
-      G4Track* killtrack = const_cast<G4Track *> (aTrack);
-      killtrack->SetTrackStatus(fStopAndKill);
+      if ((aTrack->GetGlobalTime() / nanosecond < detector_->GetBlackHoleTMin()) ||
+	  (aTrack->GetGlobalTime() / nanosecond > detector_->GetBlackHoleTMax())) {
+	edep = aTrack->GetKineticEnergy()/GeV;
+	G4Track* killtrack = const_cast<G4Track *> (aTrack);
+	killtrack->SetTrackStatus(fStopAndKill);
+      }
     }
 
   int layer_id = detector_->get_Layer();

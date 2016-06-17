@@ -9,6 +9,7 @@
 #include <Geant4/G4Types.hh>
 
 #include <map>
+#include <float.h>
 
 class G4Material;
 class G4Tubs;
@@ -57,9 +58,15 @@ class PHG4CylinderDetector: public PHG4Detector
     else return 0;
   }
 
-  void BlackHole(const int i=1) {blackhole = i;}
+  void BlackHole(const int i=1,
+		 const double tmin = DBL_MAX,
+		 const double tmax = -1.0*DBL_MAX) {
+    blackhole = i; blackhole_tmin = tmin; blackhole_tmax = tmax;
+  }
   int IsBlackHole() const {return blackhole;}
-
+  double GetBlackHoleTMin() {return blackhole_tmin;}
+  double GetBlackHoleTMax() {return blackhole_tmax;}
+  
   private:
 
   G4Material* TrackerMaterial;
@@ -79,6 +86,8 @@ class PHG4CylinderDetector: public PHG4Detector
   bool reduced;
   int layer;
   int blackhole;
+  double blackhole_tmin;
+  double blackhole_tmax;
   std::string detector_type;
   std::string superdetector;
 };

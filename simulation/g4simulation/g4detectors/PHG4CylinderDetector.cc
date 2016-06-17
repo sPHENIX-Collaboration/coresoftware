@@ -32,7 +32,9 @@ PHG4CylinderDetector::PHG4CylinderDetector( PHCompositeNode *Node, const std::st
   zpos(0),
   active(0),
   layer(lyr),
-  blackhole(0)
+  blackhole(0),
+  blackhole_tmin(-1.0*DBL_MAX),
+  blackhole_tmax(DBL_MAX)
 {
 }
 
