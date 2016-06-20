@@ -34,7 +34,10 @@ static vector<PHG4CylinderCell*> cellptarray;
 PHG4BlockCellReco::PHG4BlockCellReco(const string &name) :
   SubsysReco(name),
   _timer(PHTimeServer::get()->insert_new("PHG4BlockCellReco")),
-  chkenergyconservation(0), timing_window_size(numeric_limits<double>::max())
+  chkenergyconservation(0),
+  tmin_default(0.0),  // ns
+  tmax_default(60.0), // ns
+  tmin_max()
 {
   memset(nbins, 0, sizeof(nbins));
 }
@@ -202,6 +205,14 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
       layerseggeo->identify();
     }
   }
+
+  for (std::map<int,int>::iterator iter = binning.begin(); 
+       iter != binning.end(); ++iter) {
+    int layer = iter->first;
+    // if the user doesn't set an integration window, set the default
+    tmin_max.insert(std::make_pair(layer,std::make_pair(tmin_default,tmax_default)));    
+  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -272,9 +283,9 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
     {
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
       {
-          // checking ADC timing integration window cut
-          if (hiter->second->get_t(0)>timing_window_size)
-            continue;
+	// checking ADC timing integration window cut
+	if (hiter->second->get_t(0)>tmin_max[*layer].second) continue;
+	if (hiter->second->get_t(1)<tmin_max[*layer].first) continue;	      
 
         pair<double, double> etax[2];
         double xbin[2];

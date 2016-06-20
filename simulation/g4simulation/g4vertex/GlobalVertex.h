@@ -18,10 +18,13 @@ public:
   virtual ~GlobalVertex() {}
 
   // PHObject virtual overloads
-  
-  virtual void         identify(std::ostream& os = std::cout) const {os << "GlobalVertex base class" << std::endl;}
-  virtual void         Reset()                                      {}
-  virtual int          isValid() const                              {return 0;}
+
+  virtual void identify(std::ostream& os = std::cout) const {
+    os << "GlobalVertex base class" << std::endl;
+  }
+  virtual void          Reset() {}
+  virtual int           isValid() const {return 0;}
+  virtual GlobalVertex* Clone() const {return NULL;}
 
   // vertex info
   
@@ -47,7 +50,7 @@ public:
   virtual void         set_chisq(float chisq)                {}
 
   virtual unsigned int get_ndof() const                      {return 0xFFFFFFFF;}
-  virtual void         set_ndof(float ndof)                  {}
+  virtual void         set_ndof(unsigned int ndof)           {}
   
   virtual float        get_position(unsigned int coor) const          {return NAN;}
   virtual void         set_position(unsigned int coor, float xi)      {}

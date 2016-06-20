@@ -33,11 +33,13 @@ class Field2D : public AbsBField {
   Field2D(std::string inname)
   { initialize(inname); }
 
+  ~Field2D();
+
   bool initialize(std::string inname = "");
 
   bool re_scale(double r);
 
-  void plot(std::string option = "");
+//  void plot(std::string option = "");
 
   //! return value at position
   TVector3 get(const TVector3& pos) const;

@@ -62,22 +62,6 @@ void GlobalVertex_v1::identify(ostream& os) const {
   return;  
 }
 
-void GlobalVertex_v1::Reset() {
-  _id    = 0xFFFFFFFF;
-  _t = NAN;
-  _t_err = NAN;
-  _chisq = NAN;
-  _ndof = 0xFFFFFFFF;
-  
-  for (int i = 0; i < 3; ++i) _pos[i] = NAN;
-  for (int j = 0; j < 3; ++j) {
-    for (int i = j; i < 3; ++i) {
-      set_error(i,j,NAN);
-    }
-  } 
-  _vtx_ids.clear();
-}
-
 int GlobalVertex_v1::isValid() const {
   if (_id == 0xFFFFFFFF) return 0;
   if (isnan(_t)) return 0;

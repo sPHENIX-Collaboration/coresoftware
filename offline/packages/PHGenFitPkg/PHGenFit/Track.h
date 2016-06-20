@@ -58,18 +58,33 @@ public:
 
 	//!
 	genfit::Track* getGenFitTrack() {return _track;}
+
+	double get_chi2() const {
+		genfit::AbsTrackRep* rep = _track->getCardinalRep();
+		double chi2 = _track->getFitStatus(rep)->getChi2();
+		return chi2;
+	}
+
+	double get_ndf() const {
+		genfit::AbsTrackRep* rep = _track->getCardinalRep();
+		double ndf = _track->getFitStatus(rep)->getNdf();
+		return ndf;
+	}
+
+	double get_charge() const {
+		genfit::AbsTrackRep* rep = _track->getCardinalRep();
+		genfit::StateOnPlane* state = this->extrapolateToLine(TVector3(0,0,0), TVector3(1,0,0));
+		double charge =  rep->getCharge(*state);
+		delete state;
+		return charge;
+	}
+
 	//SMART(genfit::Track) getGenFitTrack() {return _track;}
 
 private:
 
 	genfit::Track* _track;
 	//SMART(genfit::Track) _track;
-
-	//TODO how to handle multiple TrackReps
-	//TODO how to store fitting information
-//	double _chi2;
-//	double _ndf;
-
 };
 } //End of PHGenFit namespace
 

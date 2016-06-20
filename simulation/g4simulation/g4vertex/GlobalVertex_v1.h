@@ -17,9 +17,10 @@ public:
 
   // PHObject virtual overloads
   
-  void         identify(std::ostream& os = std::cout) const;
-  void         Reset();
-  int          isValid() const;
+  void          identify(std::ostream& os = std::cout) const;
+  void          Reset() {*this = GlobalVertex_v1();}
+  int           isValid() const;
+  GlobalVertex* Clone() const {return new GlobalVertex_v1(*this);}
 
   // vertex info
   
@@ -45,7 +46,7 @@ public:
   void         set_chisq(float chisq)                {_chisq = chisq;}
 
   unsigned int get_ndof() const                      {return _ndof;}
-  void         set_ndof(float ndof)                  {_ndof = ndof;}
+  void         set_ndof(unsigned int ndof)           {_ndof = ndof;}
   
   float        get_position(unsigned int coor) const          {return _pos[coor];}
   void         set_position(unsigned int coor, float xi)      {_pos[coor] = xi;}
