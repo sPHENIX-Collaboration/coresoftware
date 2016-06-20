@@ -31,15 +31,18 @@ class PHG4FullProjSpacalCellReco : public SubsysReco
 
   void checkenergy(const int i=1) {chkenergyconservation = i;}
 
-  //! get timing window size in ns.
-  double get_timing_window_size() const {return timing_window_size;}
-  //! set timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
-  void set_timing_window_size(const double s) {timing_window_size = s;}
-
+  double get_timing_window_min(const int i) {return tmin_default;}
+  double get_timing_window_max(const int i) {return tmax_default;}
+  void   set_timing_window(const int i, const double tmin, const double tmax) {
+    tmin_default = tmin; tmax_default = tmax;
+  }
+  void   set_timing_window_defaults(const double tmin, const double tmax) {
+    tmin_default = tmin; tmax_default = tmax;
+  }
+  
  protected:
 
   int CheckEnergy(PHCompositeNode *topNode);
-
 
   std::string detector;
   std::string hitnodename;
@@ -52,8 +55,9 @@ class PHG4FullProjSpacalCellReco : public SubsysReco
   std::map<unsigned int, PHG4CylinderCell *> celllist;
 
   //! timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
-  double timing_window_size;
-
+  double tmin_default;
+  double tmax_default;
+  std::map<int, std::pair<double,double> > tmin_max;
 };
 
 #endif

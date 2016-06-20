@@ -69,16 +69,16 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 
   if (_do_vertex_eval) _ntp_vertex = new TNtuple("ntp_vertex","vertex => max truth",
 						 "event:vx:vy:vz:ntracks:"
-						 "gvx:gvy:gvz:gntracks:"
+						 "gvx:gvy:gvz:gvt:gntracks:"
 						 "nfromtruth");
 
   if (_do_gpoint_eval) _ntp_gpoint = new TNtuple("ntp_gpoint","g4point => best vertex",
-						 "event:gvx:gvy:gvz:gntracks:"
+						 "event:gvx:gvy:gvz:gvt:gntracks:"
 						 "vx:vy:vz:ntracks:"
 						 "nfromtruth");
   
   if (_do_g4hit_eval) _ntp_g4hit = new TNtuple("ntp_g4hit","g4hit => best svtxcluster",
-					       "event:g4hitID:gx:gy:gz:gedep:"
+					       "event:g4hitID:gx:gy:gz:gt:gedep:"
 					       "glayer:gtrackID:gflavor:"
 					       "gpx:gpy:gpz:gvx:gvy:gvz:"
 					       "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
@@ -89,7 +89,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
   if (_do_hit_eval) _ntp_hit = new TNtuple("ntp_hit","svtxhit => max truth",
 					   "event:hitID:e:adc:layer:"
 					   "cellID:ecell:"
-					   "g4hitID:gedep:gx:gy:gz:"
+					   "g4hitID:gedep:gx:gy:gz:gt:"
 					   "gtrackID:gflavor:"
 					   "gpx:gpy:gpz:gvx:gvy:gvz:"
 					   "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
@@ -99,7 +99,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 						   "event:hitID:x:y:z:ex:ey:ez:ephi:"
 						   "e:adc:layer:size:phisize:"
 						   "zsize:trackID:g4hitID:gx:"
-						   "gy:gz:gtrackID:gflavor:"
+						   "gy:gz:gt:gtrackID:gflavor:"
 						   "gpx:gpy:gpz:gvx:gvy:gvz:"
 						   "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
 						   "gembed:gprimary:efromtruth");
@@ -581,6 +581,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float gvx        = NAN;
 	float gvy        = NAN;
 	float gvz        = NAN;
+	float gvt        = NAN;
 	float gntracks   = truthinfo->GetNumPrimaryVertexParticles();
 	float nfromtruth = NAN;
 	
@@ -588,11 +589,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  gvx        = point->get_x();
 	  gvy        = point->get_y();
 	  gvz        = point->get_z();
+	  gvt        = point->get_t();
 	  gntracks   = truthinfo->GetNumPrimaryVertexParticles();
 	  nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
 	}
 	  
-	float vertex_data[10] = {(float) _ievent,
+	float vertex_data[11] = {(float) _ievent,
 				 vx,
 				 vy,
 				 vz,
@@ -600,6 +602,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				 gvx,
 				 gvy,
 				 gvz,
+				 gvt,
 				 gntracks,
 				 nfromtruth
 	};
@@ -629,6 +632,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float gvx        = point->get_x();
 	float gvy        = point->get_y();
 	float gvz        = point->get_z();
+	float gvt        = point->get_t();
 	float gntracks   = truthinfo->GetNumPrimaryVertexParticles();
 	float vx         = NAN;
 	float vy         = NAN;
@@ -644,10 +648,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
 	}
 	
-	float gpoint_data[10] = {(float) _ievent,
+	float gpoint_data[11] = {(float) _ievent,
 				 gvx,
 				 gvy,
 				 gvz,
+				 gvt,
 				 gntracks,
 				 vx,
 				 vy,
@@ -678,11 +683,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float gx        = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
       float gy        = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
       float gz        = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
+      float gt        = 0.5*(g4hit->get_t(0)+g4hit->get_t(1));
       float gedep     = g4hit->get_edep();
       float glayer    = g4hit->get_layer();
   
       float gtrackID  = g4hit->get_trkid();
-
 
       float gflavor   = NAN;
       float gpx       = NAN;
@@ -770,11 +775,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	}
       }
 
-      float g4hit_data[35] = {(float) _ievent,
+      float g4hit_data[36] = {(float) _ievent,
 			      g4hitID,
 			      gx,
 			      gy,
 			      gz,
+			      gt,
 			      gedep,
 			      glayer,
 			      gtrackID,
@@ -842,6 +848,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float gx       = NAN;
 	float gy       = NAN;
 	float gz       = NAN;
+	float gt       = NAN;
 	float gtrackID = NAN;
 	float gflavor  = NAN;
 	float gpx      = NAN;
@@ -867,6 +874,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  gx       = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
 	  gy       = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
 	  gz       = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
+	  gt       = 0.5*(g4hit->get_t(0)+g4hit->get_t(1));
 	  gx       = g4hit->get_x(0);
 	  gy       = g4hit->get_y(0);
 	  gz       = g4hit->get_z(0);
@@ -909,7 +917,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  efromtruth = hiteval->get_energy_contribution(hit,g4particle);
 	}
 
-	float hit_data[32] = {
+	float hit_data[33] = {
 	  event,
 	  hitID,
 	  e,
@@ -922,6 +930,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  gx,
 	  gy,
 	  gz,
+	  gt,
 	  gtrackID,
 	  gflavor,
 	  gpx,
@@ -990,6 +999,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float gx       = NAN;
 	float gy       = NAN;
 	float gz       = NAN;
+	float gt       = NAN;
 	float gtrackID = NAN;
 	float gflavor  = NAN;
 	float gpx      = NAN;
@@ -1014,6 +1024,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  gx       = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
 	  gy       = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
 	  gz       = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
+	  gt       = 0.5*(g4hit->get_t(0)+g4hit->get_t(1));
 	  gx       = g4hit->get_x(0);
 	  gy       = g4hit->get_y(0);
 	  gz       = g4hit->get_z(0);
@@ -1052,7 +1063,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
 	}
 
-	float cluster_data[37] = {(float) _ievent,
+	float cluster_data[38] = {(float) _ievent,
 				  hitID,
 				  x,
 				  y,
@@ -1072,6 +1083,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				  gx,
 				  gy,
 				  gz,
+				  gt,
 				  gtrackID,
 				  gflavor,
 				  gpx,

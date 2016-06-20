@@ -36,7 +36,7 @@ PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       //       (*vtxiter->second).identify();
       // expected units are cm !
       G4ThreeVector position((*vtxiter->second).get_x()*cm, (*vtxiter->second).get_y()*cm, (*vtxiter->second).get_z()*cm );
-      G4PrimaryVertex* vertex = new G4PrimaryVertex(position, (*vtxiter->second).get_t()*s);
+      G4PrimaryVertex* vertex = new G4PrimaryVertex(position, (*vtxiter->second).get_t()*nanosecond);
       pair<multimap<int, PHG4Particle *>::const_iterator, multimap<int, PHG4Particle *>::const_iterator > particlebegin_end = inEvent->GetParticles(vtxiter->first);
       for (particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; ++particle_iter)
         {

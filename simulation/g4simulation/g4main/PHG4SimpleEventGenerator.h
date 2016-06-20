@@ -28,6 +28,9 @@ public:
   //! interface for adding particle by pid
   void add_particles(const int pid, const unsigned int count);
 
+  //! set the starting time for the event
+  void set_t0(const double t0);
+  
   //! range of randomized eta values
   void set_eta_range(const double eta_min, const double eta_max);
 
@@ -66,10 +69,11 @@ private:
   // these need to be stored separately until run time when the names
   // can be translated using the GEANT4 lookup
   std::vector<std::pair<int, unsigned int> > _particle_codes; // <pdgcode, count>
-  std::vector<std::pair<std::string, unsigned int> > _particle_names; // <names, count>
+  std::vector<std::pair<std::string, unsigned int> > _particle_names; // <names, count>  
   FUNCTION _vertex_func_x;
   FUNCTION _vertex_func_y;
   FUNCTION _vertex_func_z;
+  double _t0;
   double _vertex_x;
   double _vertex_y;
   double _vertex_z;

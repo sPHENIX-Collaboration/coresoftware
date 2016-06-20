@@ -26,17 +26,20 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <limits>
 
 using namespace std;
 
-
-
-PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel, const string &name) :
-SubsysReco(name), diffusion(0.0057), elec_per_kev(38.), num_pixel_layers(n_pixel),
-distortion(NULL)
-{
-  
-}
+PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
+                                                 const string &name)
+    : SubsysReco(name),
+      diffusion(0.0057),
+      elec_per_kev(38.),
+      num_pixel_layers(n_pixel),
+      tmin_default(0.0),  // ns
+      tmax_default(60.0), // ns
+      tmin_max(),
+      distortion(NULL) {}
 
 PHG4CylinderCellTPCReco::~PHG4CylinderCellTPCReco()
 {
@@ -152,6 +155,14 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
     
     seggeo->AddLayerCellGeom(layerseggeo);
   }
+
+  for (std::map<int,int>::iterator iter = binning.begin(); 
+       iter != binning.end(); ++iter) {
+    int layer = iter->first;
+    // if the user doesn't set an integration window, set the default
+    tmin_max.insert(std::make_pair(layer,std::make_pair(tmin_default,tmax_default)));    
+  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -185,6 +196,10 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
     double phistepsize = phistep[*layer];
     for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
     {
+      // checking ADC timing integration window cut
+      if (hiter->second->get_t(0)>tmin_max[*layer].second) continue;
+      if (hiter->second->get_t(1)<tmin_max[*layer].first) continue;
+      
       double xinout;
       double yinout;
       double phi;

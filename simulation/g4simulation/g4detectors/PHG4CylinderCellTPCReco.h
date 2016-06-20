@@ -39,6 +39,15 @@ public:
   void setDiffusion( double diff ){diffusion = diff;}
   void setElectronsPerKeV( double epk ){elec_per_kev = epk;}
 
+  double get_timing_window_min(const int i) {return tmin_max[i].first;}
+  double get_timing_window_max(const int i) {return tmin_max[i].second;}
+  void   set_timing_window(const int i, const double tmin, const double tmax) {
+    tmin_max[i] = std::make_pair(tmin,tmax);
+  }
+  void   set_timing_window_defaults(const double tmin, const double tmax) {
+    tmin_default = tmin; tmax_default = tmax;
+  }
+
   //! distortion to the primary ionization
   void setDistortion (PHG4TPCDistortion * d) {distortion = d;}
 
@@ -71,6 +80,10 @@ protected:
   double elec_per_kev;
 
   int num_pixel_layers;
+
+  double tmin_default;
+  double tmax_default;
+  std::map<int, std::pair<double,double> > tmin_max;
   
   //! distortion to the primary ionization if not NULL
   PHG4TPCDistortion * distortion;
