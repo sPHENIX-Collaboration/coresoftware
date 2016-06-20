@@ -35,7 +35,6 @@ class PHG4BlockSteppingAction : public PHG4SteppingAction
   PHG4HitContainer * hits_;
   PHG4Hit *hit;
 
-  int absorbertruth;
   int active;
   int IsBlackHole;
   
