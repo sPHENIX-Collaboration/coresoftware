@@ -1,4 +1,5 @@
 #include "PHG4BlockDetector.h"
+#include "PHG4Parameters.h"
 
 #include <g4main/PHG4Utils.h>
 
