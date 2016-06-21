@@ -1,4 +1,5 @@
 #include "PHPythia6.h"
+#include "PHPy6GenTrigger.h"
 
 #include <phhepmc/PHHepMCGenEvent.h>
 
@@ -45,7 +46,10 @@ PHPythia6::PHPythia6(const std::string &name):
   _configFile("phpythia6.cfg"),
   _phhepmcevt(NULL),
   _save_ascii( false ),
-  _filename_ascii("pythia_hepmc.dat"){
+  _filename_ascii("pythia_hepmc.dat"),
+  _registeredTriggers(),
+  _triggersOR(true),
+  _triggersAND(false){
 
   //RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
 }
@@ -86,6 +90,14 @@ int PHPythia6::End(PHCompositeNode *topNode) {
   //........................................TERMINATION
   // write out some information from Pythia to the screen
   call_pystat( 1 );
+
+  //match pythia printout
+  cout << " |                                                                "
+       << "                                                 | " << endl; 
+  cout << "                         PHPythia6::End - " << _eventcount
+       << " events passed trigger" << endl;
+  cout << " *-------  End PYTHIA Trigger Statistics  ------------------------"
+       << "-------------------------------------------------* " << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -266,6 +278,15 @@ int PHPythia6::ReadConfig(const string cfg_file) {
 	pydat2.parf[index-1] = value;
 	cout << "parf\t" << index << " " << value << endl;
       }
+    else if ( label == "mdme" )
+    {
+      int idc = 0;          // decay channel
+      line >> idc >> index >> value;
+      
+      // if (ivalue==1/0) turn on/off decay channel idc
+      pydat3.mdme[index-1][idc-1] = value; 
+      cout << "mdme\t" << idc << " " << index << " " << value << endl;
+    }
     else
       {
 	// label was not understood
@@ -281,6 +302,8 @@ int PHPythia6::ReadConfig(const string cfg_file) {
   // Call pythia initialization
   call_pyinit( _frame.c_str(), _proj.c_str(), _targ.c_str(), _roots );
 
+  //call_pylist(12); 
+
   infile.close();
 
   return _nevents;
@@ -294,40 +317,84 @@ int PHPythia6::process_event(PHCompositeNode *topNode) {
 
   if (verbosity > 1) cout << "PHPythia6::process_event - event: " << _eventcount << endl;
 
+  bool passedTrigger = false;
+  std::vector<bool> theTriggerResults;
+  int genCounter = 0;
+
   /* based on HepMC/example_MyPythia.cc
    *........................................HepMC INITIALIZATIONS
    *
    * Instantiate an IO strategy for reading from HEPEVT. */
   HepMC::IO_HEPEVT hepevtio;
+  HepMC::GenEvent* evt; 
 
-  call_pyevnt();      // generate one event with Pythia
-  // pythia pyhepc routine converts common PYJETS in common HEPEVT
-  call_pyhepc( 1 );
-  HepMC::GenEvent* evt = hepevtio.read_next_event();
+  while (!passedTrigger) {
+    ++genCounter;
 
-  // define the units (Pythia uses GeV and mm)
-  evt->use_units(HepMC::Units::GEV, HepMC::Units::MM);
+    call_pyevnt();      // generate one event with Pythia
+    // pythia pyhepc routine converts common PYJETS in common HEPEVT
+    call_pyhepc( 1 );
+    evt = hepevtio.read_next_event();
 
-  // add some information to the event
-  evt->set_event_number(_eventcount);
+    // define the units (Pythia uses GeV and mm)
+    evt->use_units(HepMC::Units::GEV, HepMC::Units::MM);
 
-  /* @TODO How to find out correct process ID from pythia? */
-  //  evt->set_signal_process_id(20);
+    // add some information to the event
+    evt->set_event_number(_eventcount);
 
-  // set number of multi parton interactions
-  evt->set_mpi( pypars.msti[31-1] );
+    /* process ID from pythia */
+    evt->set_signal_process_id(pypars.msti[1-1]);
 
-  // set cross section information
-  evt->set_cross_section( HepMC::getPythiaCrossSection() );
+    // set number of multi parton interactions
+    evt->set_mpi( pypars.msti[31-1] );
+
+    // set cross section information
+    evt->set_cross_section( HepMC::getPythiaCrossSection() );
+
+    // test trigger logic
+    
+    bool andScoreKeeper = true;
+    if (verbosity > 2) {
+      cout << "PHPythia6::process_event - triggersize: " << _registeredTriggers.size() << endl;
+    }
+
+    for (unsigned int tr = 0; tr < _registeredTriggers.size(); tr++) { 
+      bool trigResult = _registeredTriggers[tr]->Apply(evt);
+
+      if (verbosity > 2) {
+	cout << "PHPythia6::process_event trigger: "
+	     << _registeredTriggers[tr]->GetName() << "  " << trigResult << endl;
+      }
+
+      if (_triggersOR && trigResult) {
+	passedTrigger = true;
+	break;
+      } else if (_triggersAND) {
+	andScoreKeeper &= trigResult;
+      }
+      
+      if (verbosity > 2 && !passedTrigger) {
+	cout << "PHPythia8::process_event - failed trigger: "
+	     << _registeredTriggers[tr]->GetName() <<  endl;
+      }
+    }
+
+    if ((andScoreKeeper && _triggersAND) || (_registeredTriggers.size() == 0)) {
+      passedTrigger = true;
+      genCounter = 0;
+    }
+
+  }
 
   /* write the event out to the ascii files */
   if ( _save_ascii )
-    {
-      HepMC::IO_GenEvent ascii_io(_filename_ascii.c_str(),std::ios::out);
-      ascii_io << evt;
-    }
+  {
+    HepMC::IO_GenEvent ascii_io(_filename_ascii.c_str(),std::ios::out);
+    ascii_io << evt;
+  }
 
   /* pass HepMC to PHNode*/
+
   bool success = _phhepmcevt->addEvent(evt);
   if (!success) {
     cout << "PHPythia6::process_event - Failed to add event to HepMC record!" << endl;
@@ -374,4 +441,9 @@ void PHPythia6::IntegerTest(double number ) {
 
 int PHPythia6::ResetEvent(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void PHPythia6::register_trigger(PHPy6GenTrigger *theTrigger) {
+  if(verbosity > 1) cout << "PHPythia6::registerTrigger - trigger " << theTrigger->GetName() << " registered" << endl;
+  _registeredTriggers.push_back(theTrigger);
 }
