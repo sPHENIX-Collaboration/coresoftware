@@ -4,6 +4,7 @@
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
 #include <map>
+#include <limits.h>
 
 class SvtxHitMap;
 class SvtxClusterMap;
@@ -13,7 +14,8 @@ class PHG4SvtxClusterizer : public SubsysReco {
 
 public:
 
-  PHG4SvtxClusterizer(const std::string &name = "PHG4SvtxClusterizer");
+  PHG4SvtxClusterizer(const std::string &name = "PHG4SvtxClusterizer",
+		      unsigned int min_layer = 0, unsigned int max_layer = UINT_MAX);
   virtual ~PHG4SvtxClusterizer(){}
   
   //! module initialization
@@ -84,6 +86,9 @@ private:
   std::map<int,float> _thresholds_by_layer; // layer->threshold
   std::map<int,bool> _make_z_clustering;    // layer->z_clustering_option
   std::map<int,bool> _make_e_weights;       // layer->energy_weighting_option
+
+  unsigned int _min_layer;
+  unsigned int _max_layer;
   
   PHTimeServer::timer _timer;
 };
