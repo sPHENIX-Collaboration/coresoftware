@@ -184,11 +184,12 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     layer_sorted[hit->get_layer()].push_back(hit);
   }
 
-  unsigned int layer = 0;
   for (PHG4CylinderCellGeomContainer::ConstIterator layeriter =
            layerrange.first;
        layeriter != layerrange.second; ++layeriter) {
 
+    unsigned int layer = (unsigned int)layeriter->second->get_layer();
+    
     // exit on the MAPS layers...
     if (layer < _min_layer) continue;
     if (layer > _max_layer) continue;
@@ -260,8 +261,6 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
         }
       }
     }
-
-    layer += 1;
   }
 
   cout << "clusters = " << svxclusters->size() << endl;
