@@ -121,7 +121,7 @@ PHG4CylinderSubsystem::SetDefaultParameters()
 
   set_default_int_param("lengthviarapidity",1);
 
-  set_default_string_param("material", "G4_AIR");
+  set_default_string_param("material", "G4_Galactic");
 }
 
 void
