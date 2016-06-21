@@ -245,7 +245,11 @@ libg4detectors_la_SOURCES = \
   PHG4SpacalPrototypeSubsystem.cc \
   PHG4SpacalPrototypeSubsystem_Dict.cc \
   PHG4CylinderCellTPCReco.cc \
-  PHG4CylinderCellTPCReco_Dict.cc
+  PHG4CylinderCellTPCReco_Dict.cc\
+  PHG4TPCDistortion.cc \
+  PHG4TPCDistortion_Dict.cc\
+  PHG4TPCSpaceChargeDistortion.cc \
+  PHG4TPCSpaceChargeDistortion_Dict.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

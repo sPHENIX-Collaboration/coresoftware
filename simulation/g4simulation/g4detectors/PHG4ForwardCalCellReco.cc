@@ -23,7 +23,10 @@ using namespace std;
 PHG4ForwardCalCellReco::PHG4ForwardCalCellReco(const string &name) :
   SubsysReco(name),
   _timer(PHTimeServer::get()->insert_new(name.c_str())),
-  chkenergyconservation(0), timing_window_size(numeric_limits<double>::max())
+  chkenergyconservation(0),
+  tmin_default(0.0),  // ns
+  tmax_default(60.0), // ns
+  tmin_max()
 {
   memset(nbins, 0, sizeof(nbins));  
 }
@@ -64,7 +67,7 @@ int PHG4ForwardCalCellReco::InitRun(PHCompositeNode *topNode)
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str() , "PHObject");
       DetNode->addNode(newNode);
     }
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -94,9 +97,9 @@ PHG4ForwardCalCellReco::process_event(PHCompositeNode *topNode)
       PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(*layer);
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
 	{
-          // checking ADC timing integration window cut
-          if (hiter->second->get_t(0)>timing_window_size)
-            continue;
+	  // checking ADC timing integration window cut
+	  if (hiter->second->get_t(0)>tmax_default) continue;
+	  if (hiter->second->get_t(1)<tmin_default) continue;
 
           // only hits that deposited energy (or geantinos)
           if (hiter->second->get_edep()<=0)

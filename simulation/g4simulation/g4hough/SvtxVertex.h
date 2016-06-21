@@ -48,7 +48,7 @@ public:
   virtual void         set_chisq(float chisq)                {}
 
   virtual unsigned int get_ndof() const                      {return UINT_MAX;}
-  virtual void         set_ndof(float ndof)                  {}
+  virtual void         set_ndof(unsigned int ndof)           {}
   
   virtual float        get_position(unsigned int coor) const          {return NAN;}
   virtual void         set_position(unsigned int coor, float xi)      {}

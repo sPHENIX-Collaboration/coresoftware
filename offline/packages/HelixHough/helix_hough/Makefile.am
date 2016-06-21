@@ -18,7 +18,8 @@ VertexFitFunc.h \
 Kalman/HelixKalman.h \
 Kalman/HelixKalmanState.h \
 Kalman/CylinderKalman.h \
-sPHENIX/sPHENIXTracker.h
+sPHENIX/sPHENIXTracker.h \
+sPHENIX/sPHENIXTrackerTPC.h
 
 libHelixHough_la_SOURCES = \
 SimpleHit3D.cpp \
@@ -28,6 +29,12 @@ sPHENIX/sPHENIXTracker_findTracksBySegments.cpp \
 sPHENIX/sPHENIXTracker_parallel.cpp \
 sPHENIX/sPHENIXTracker_projection.cpp \
 sPHENIX/sPHENIXTracker_findTracksBySegments_avx.cpp \
+sPHENIX/sPHENIXTrackerTPC.cpp \
+sPHENIX/sPHENIXTrackerTPC_fastFit.cpp \
+sPHENIX/sPHENIXTrackerTPC_findTracksBySegments.cpp \
+sPHENIX/sPHENIXTrackerTPC_parallel.cpp \
+sPHENIX/sPHENIXTrackerTPC_projection.cpp \
+sPHENIX/sPHENIXTrackerTPC_findTracksBySegments_avx.cpp \
 HelixHough_findHelices.cpp \
 HelixHough_findPairs.cpp \
 HelixHough_init.cpp \

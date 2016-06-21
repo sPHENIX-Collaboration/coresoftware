@@ -1440,6 +1440,8 @@ int PHG4HoughTransform::full_tracking_and_vertexing() {
 
 int PHG4HoughTransform::export_output() {
 
+  if (_tracks.empty()) return Fun4AllReturnCodes::EVENT_OK;
+  
   SvtxVertex_v1 vertex;
   vertex.set_t0(0.0);
   for (int i=0;i<3;++i) vertex.set_position(i,_vertex[i]);
@@ -1454,7 +1456,7 @@ int PHG4HoughTransform::export_output() {
   vertex.set_error(2,0,0.0);
   vertex.set_error(2,1,0.0);
   vertex.set_error(2,2,0.0);
-  
+
   // at this point we should already have an initial pt and pz guess...
   // need to translate this into the PHG4Track object...
 

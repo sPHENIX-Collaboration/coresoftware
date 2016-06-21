@@ -26,19 +26,6 @@ void BbcVertex_v1::identify(ostream& os) const {
   return;  
 }
 
-BbcVertex* BbcVertex_v1::Clone() {
-  BbcVertex_v1* vertex = new BbcVertex_v1(*this);
-  return vertex;
-}
-
-void BbcVertex_v1::Reset() {
-  _id = 0xFFFFFFFF;
-  _t = NAN;
-  _t_err = NAN;
-  _z = NAN;
-  _z_err = NAN;
-}
-
 int BbcVertex_v1::isValid() const {
   if (_id == 0xFFFFFFFF) return 0;
   if (isnan(_t)) return 0;
