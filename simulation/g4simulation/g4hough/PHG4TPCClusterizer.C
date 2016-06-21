@@ -190,6 +190,8 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
        layeriter != layerrange.second; ++layeriter) {
 
     // exit on the MAPS layers...
+    if (layer < _min_layer) continue;
+    if (layer > _max_layer) continue;
     
     PHG4CylinderCellGeom* geo = geom_container->GetLayerCellGeom(layer);
     nphibins = layeriter->second->get_phibins();
