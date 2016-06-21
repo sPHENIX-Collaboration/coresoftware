@@ -18,7 +18,11 @@ libPHPythia6_la_LIBADD = \
 
 libPHPythia6_la_SOURCES = \
   PHPythia6.C \
-  PHPythia6_Dict.C
+  PHPythia6_Dict.C \
+  PHPy6GenTrigger.C \
+  PHPy6GenTrigger.h \
+  PHPy6ForwardElectronTrig.C \
+  PHPy6ForwardElectronTrig.h 
 
 BUILT_SOURCES = \
   testexternals.C
@@ -38,6 +42,8 @@ testexternals.C:
 
 PHPythia6_Dict.C: \
   PHPythia6.h \
+  PHPy6GenTrigger.h \
+  PHPy6ForwardElectronTrig.h \
   PHPythia6LinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
