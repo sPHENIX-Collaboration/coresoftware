@@ -115,7 +115,7 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 		}
 	    }
 
-	  if (hit->get_z(0) > zmax || hit->get_z(0) < zmin)
+	  if (hit->get_z(0)*cm > zmax || hit->get_z(0)*cm < zmin)
 	    {
 	      cout << "PHG4CylinderSteppingAction: hit outside acceptance, layer: " << layer_id << endl;
 	      hit->identify();
@@ -138,9 +138,9 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       hit->set_t( 1, postPoint->GetGlobalTime() / nanosecond );
       //sum up the energy to get total deposited
       hit->set_edep(hit->get_edep() + edep);
-      if (hit->get_z(1) > zmax || hit->get_z(1) < zmin)
+      if (hit->get_z(1)*cm > zmax || hit->get_z(1)*cm < zmin)
 	{
-	  cout << "PHG4CylinderSteppingAction: hit outside acceptance zmin " << zmin << ", zmax " << zmax << " at exit" << endl;
+	  cout << detector_->SuperDetector() << " PHG4CylinderSteppingAction: hit outside acceptance zmin " << zmin << ", zmax " << zmax << " at exit" << endl;
 	  hit->identify();
 	}
       if (geantino)
