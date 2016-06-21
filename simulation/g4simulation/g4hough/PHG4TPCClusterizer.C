@@ -163,7 +163,6 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
         new PHIODataNode<PHObject>(svxclusters, "SvtxClusterMap", "PHObject");
     svxNode->addNode(SvtxClusterMapNode);
   }
-  svxclusters->Reset();
 
   PHG4CylinderCellGeomContainer* geom_container =
     findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
@@ -197,8 +196,6 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     PHG4CylinderCellGeom* geo = geom_container->GetLayerCellGeom(layer);
     nphibins = layeriter->second->get_phibins();
     nzbins = layeriter->second->get_zbins();
-
-    cout << nphibins*nzbins << endl;
 
     nhits.clear();
     nhits.assign(nzbins, 0);
@@ -263,8 +260,6 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     }
   }
 
-  cout << "clusters = " << svxclusters->size() << endl;
-  
   reset();
   return Fun4AllReturnCodes::EVENT_OK;
 }
