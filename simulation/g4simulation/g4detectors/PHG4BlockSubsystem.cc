@@ -127,5 +127,5 @@ PHG4BlockSubsystem::SetDefaultParameters()
 
   set_default_int_param("use_g4steps",0);
   
-  set_default_string_param("material", "G4_Air");
+  set_default_string_param("material", "G4_AIR");
 }
