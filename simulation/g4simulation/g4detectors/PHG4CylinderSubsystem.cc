@@ -36,12 +36,12 @@ int PHG4CylinderSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
   // create hit list only for active layers
   PHNodeIterator iter( topNode );
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
-  // create detector
-  detector_ = new PHG4CylinderDetector(topNode, GetParams(), Name(), GetLayer());
   if (GetParams()->get_int_param("lengthviarapidity"))
     {
       GetParams()->set_double_param("length",PHG4Utils::GetLengthForRapidityCoverage( GetParams()->get_double_param("radius") + GetParams()->get_double_param("thickness"))*2);
     }
+  // create detector
+  detector_ = new PHG4CylinderDetector(topNode, GetParams(), Name(), GetLayer());
   G4double detlength = GetParams()->get_double_param("length");
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
