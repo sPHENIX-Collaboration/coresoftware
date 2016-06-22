@@ -135,8 +135,10 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 
 	  if (hit->get_z(0)*cm > zmax || hit->get_z(0)*cm < zmin)
 	    {
-	      cout << detector_->SuperDetector()  "PHG4CylinderSteppingAction: Entry hit z " << hit->get_z(0)*cm << " outside acceptance,  zmin " << zmin << ", zmax " << zmax << ", layer: " << layer_id << endl;
-	      hit->identify();
+	      cout << detector_->SuperDetector()  << std::setprecision(9)
+		   << "PHG4CylinderSteppingAction: Entry hit z " << hit->get_z(0)*cm 
+                   << " outside acceptance,  zmin " << zmin 
+                   << ", zmax " << zmax << ", layer: " << layer_id << endl;
 	    }
           break;
         default:
@@ -159,7 +161,9 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       if (hit->get_z(1)*cm > zmax || hit->get_z(1)*cm < zmin)
 	{
 	  cout << detector_->SuperDetector() << std::setprecision(9)
-	       << " PHG4CylinderSteppingAction: Exit hit z " << hit->get_z(1)*cm << " outside acceptance zmin " << zmin << ", zmax " << zmax << ", layer: " << layer_id << endl;
+	       << " PHG4CylinderSteppingAction: Exit hit z " << hit->get_z(1)*cm 
+               << " outside acceptance zmin " << zmin 
+               << ", zmax " << zmax << ", layer: " << layer_id << endl;
 	}
       if (geantino)
 	{
