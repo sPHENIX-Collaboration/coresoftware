@@ -73,16 +73,10 @@ void PHG4CylinderDetector::Construct( G4LogicalVolume* logicWorld )
 			      radius,
 			      radius + thickness, 
 			      params->get_double_param("length")*cm/2. ,0,twopi);
-  cout << "radius: " << radius << ", TrackerThickness: " << thickness
-       << ", rad+tthi: " << radius+thickness 
-       << ", length: " << params->get_double_param("length")*cm
-       << endl;
- 
   G4LogicalVolume *cylinder_logic = new G4LogicalVolume(cylinder_solid, 
 				       TrackerMaterial, 
 				       G4String(GetName().c_str()),
 				       0,0,0);
-  cout << "Material: " << TrackerMaterial->GetName() << endl;
   cylinder_logic->SetVisAttributes(siliconVis);
   cylinder_physi = new G4PVPlacement(0, G4ThreeVector(params->get_double_param("place_x")*cm,
                                                       params->get_double_param("place_y")*cm,
@@ -90,5 +84,4 @@ void PHG4CylinderDetector::Construct( G4LogicalVolume* logicWorld )
 				     cylinder_logic, 
 				     G4String(GetName().c_str()), 
 				     logicWorld, 0, false, overlapcheck);
-
 }
