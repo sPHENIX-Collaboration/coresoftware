@@ -14,6 +14,7 @@
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 
+#include <iomanip>
 #include <iostream>
 
 using namespace std;
@@ -30,7 +31,24 @@ PHG4CylinderSteppingAction::PHG4CylinderSteppingAction( PHG4CylinderDetector* de
   save_layer_id(-1),
   zmin(params->get_double_param("place_z")*cm-params->get_double_param("length")*cm/2.),
   zmax(params->get_double_param("place_z")*cm+params->get_double_param("length")*cm/2.)
-{}
+{
+  if (zmin > 0)
+    {
+      zmin -= zmin/1.e6;
+    }
+  else
+    {
+      zmin += zmin/1.e6;
+    }
+  if (zmax > 0)
+    {
+      zmax += zmax/1.e6;
+    }
+  else
+    {
+      zmax -= zmax/1.e6;
+    }
+}
 
 //____________________________________________________________________________..
 bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
@@ -117,7 +135,7 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 
 	  if (hit->get_z(0)*cm > zmax || hit->get_z(0)*cm < zmin)
 	    {
-	      cout << "PHG4CylinderSteppingAction: hit outside acceptance, layer: " << layer_id << endl;
+	      cout << detector_->SuperDetector()  "PHG4CylinderSteppingAction: Entry hit z " << hit->get_z(0)*cm << " outside acceptance,  zmin " << zmin << ", zmax " << zmax << ", layer: " << layer_id << endl;
 	      hit->identify();
 	    }
           break;
@@ -140,8 +158,8 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       hit->set_edep(hit->get_edep() + edep);
       if (hit->get_z(1)*cm > zmax || hit->get_z(1)*cm < zmin)
 	{
-	  cout << detector_->SuperDetector() << " PHG4CylinderSteppingAction: hit outside acceptance zmin " << zmin << ", zmax " << zmax << " at exit" << endl;
-	  hit->identify();
+	  cout << detector_->SuperDetector() << std::setprecision(9)
+	       << " PHG4CylinderSteppingAction: Exit hit z " << hit->get_z(1)*cm << " outside acceptance zmin " << zmin << ", zmax " << zmax << ", layer: " << layer_id << endl;
 	}
       if (geantino)
 	{
