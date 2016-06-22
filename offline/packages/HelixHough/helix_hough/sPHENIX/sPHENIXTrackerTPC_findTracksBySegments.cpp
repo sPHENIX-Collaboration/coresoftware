@@ -851,7 +851,7 @@ static bool fit_all(vector<SimpleHit3D>& hits, vector<vector<int> >& layer_index
 
 void sPHENIXTrackerTPC::findTracksByCombinatorialKalman(vector<SimpleHit3D>& hits, vector<SimpleTrack3D>& tracks, const HelixRange& range)
 {
-  cout<<"findTracksByCombinatorialKalman "<<hits.size()<<" "<<tracks.size()<<endl;
+  //cout<<"findTracksByCombinatorialKalman "<<hits.size()<<" "<<tracks.size()<<endl;
 
   timeval t1,t2;
   double time1=0.;
