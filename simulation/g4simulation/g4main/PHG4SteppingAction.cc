@@ -16,6 +16,7 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 #include <iostream>
+
 using namespace std;
 
 double
@@ -104,4 +105,25 @@ PHG4SteppingAction::GetVisibleEnergyDeposition(const G4Step* step)
 
       return 0;
     }
+}
+
+bool
+PHG4SteppingAction::IntOptExist(const std::string &name)
+{
+  if (opt_int.find(name) != opt_int.end())
+    {
+      return true;
+    }
+  return false;
+}
+
+int
+PHG4SteppingAction::GetIntOpt(const std::string &name)
+{
+  if (IntOptExist(name))
+    {
+      return opt_int.find(name)->second;
+    }
+  cout << "option " << name << " does not exist" << endl;
+  exit(1);
 }

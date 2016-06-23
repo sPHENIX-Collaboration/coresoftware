@@ -9,22 +9,30 @@
 class PdbParameterMap: public PdbCalChan
 {
  public:
+  typedef std::map<const std::string, double> dMap;
+  typedef std::map<const std::string, int> iMap;
+  typedef std::map<const std::string, std::string> strMap;
+  typedef dMap::const_iterator dIter;
+  typedef iMap::const_iterator iIter;
+  typedef strMap::const_iterator strIter;
+  typedef std::pair<dIter, dIter> dConstRange;
+  typedef std::pair<iIter, iIter> iConstRange;
+  typedef std::pair<strIter, strIter> strConstRange;
+
   PdbParameterMap() {}
   virtual ~PdbParameterMap() {}
 
   void print() const;
   void Reset(); // from PHObject - clear content
 
-  std::pair<std::map<const std::string, double>::const_iterator,
-    std::map<const std::string, double>::const_iterator> get_dparam_iters() const
-  {return make_pair(dparams.begin(),dparams.end());}
+  dConstRange get_dparam_iters() const 
+    {return make_pair(dparams.begin(),dparams.end());}
 
-  std::pair<std::map<const std::string, int>::const_iterator,
-    std::map<const std::string, int>::const_iterator> get_iparam_iters() const
-  {return make_pair(iparams.begin(),iparams.end());}
+  iConstRange get_iparam_iters() const 
+    {return make_pair(iparams.begin(),iparams.end());}
 
-  std::pair<std::map<const std::string, std::string>::const_iterator,
-    std::map<const std::string, std::string>::const_iterator> get_cparam_iters() const
+
+  strConstRange get_cparam_iters() const 
   {return make_pair(cparams.begin(),cparams.end());}
 
   void set_int_param(const std::string &name, const int ival);
@@ -33,9 +41,9 @@ class PdbParameterMap: public PdbCalChan
 
  protected:
 
-  std::map<const std::string, double> dparams;
-  std::map<const std::string, int> iparams;
-  std::map<const std::string, std::string> cparams;
+  dMap dparams;
+  iMap iparams;
+  strMap cparams;
 
 
   ClassDef(PdbParameterMap,1)

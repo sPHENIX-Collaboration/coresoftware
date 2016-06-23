@@ -11,7 +11,7 @@ class RawTowerGeomContainer_Cylinderv1 : public RawTowerGeomContainerv1
 
 public:
   RawTowerGeomContainer_Cylinderv1(
-      RawTowerDefs::CalorimeterId caloid);
+      RawTowerDefs::CalorimeterId caloid  = RawTowerDefs::NONE);
   virtual ~RawTowerGeomContainer_Cylinderv1() {Reset();}
 
   virtual void

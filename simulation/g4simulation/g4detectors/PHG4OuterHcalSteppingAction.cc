@@ -49,7 +49,7 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* detector,  PHG4Parameters *parameters):
+PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* detector,  const PHG4Parameters *parameters):
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),
@@ -58,7 +58,7 @@ PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector*
   savehitcontainer(NULL),
   saveshower(NULL),
   save_layer_id(-1),
-   enable_field_checker(0),
+  enable_field_checker(0),
   absorbertruth(params->get_int_param("absorbertruth")),
   IsActive(params->get_int_param("active")),
   IsBlackHole(params->get_int_param("blackhole")),
@@ -68,6 +68,13 @@ PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector*
   light_balance_outer_corr(params->get_double_param("light_balance_outer_corr")),
   light_balance_outer_radius(params->get_double_param("light_balance_outer_radius")*cm)
 {}
+
+int
+PHG4OuterHcalSteppingAction::Init()
+{
+  enable_field_checker = GetIntOpt("FieldChecker");
+  return 0;
+}
 
 //____________________________________________________________________________..
 bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
@@ -245,7 +252,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
                 {
                   once = false;
 
-		  if (verbosity > 0) {
+		  if (Verbosity() > 0) {
 		    cout << "PHG4OuterHcalSteppingAction::UserSteppingAction::"
                       //
 			 << detector_->GetName() << " - "
@@ -282,7 +289,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
                 {
                   once = false;
 
-		  if (verbosity > 1) {
+		  if (Verbosity() > 1) {
 		    cout << "PHG4OuterHcalSteppingAction::UserSteppingAction::"
                       //
 			 << detector_->GetName() << " - "
@@ -360,7 +367,7 @@ void PHG4OuterHcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNode
     }
   if ( ! absorberhits_)
     {
-      if (verbosity > 1)
+      if (Verbosity() > 1)
 	{
 	  cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
 	}
@@ -410,9 +417,8 @@ PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
 
   G4ThreeVector globPosition = aStep->GetPreStepPoint()->GetPosition();
 
-  G4double globPosVec[4] =
-    { 0 }, FieldValueVec[6] =
-	     { 0 };
+  G4double globPosVec[4] = { 0 };
+  G4double FieldValueVec[6] = { 0 };
 
   globPosVec[0] = globPosition.x();
   globPosVec[1] = globPosition.y();
@@ -433,8 +439,7 @@ PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
 	transportMgr->GetPropagatorInField();
       assert(fFieldPropagator);
 
-      G4FieldManager* fieldMgr = fFieldPropagator->FindAndSetFieldManager(
-									  volume);
+      G4FieldManager* fieldMgr = fFieldPropagator->FindAndSetFieldManager(volume);
       assert(fieldMgr);
 
       const G4Field* pField = fieldMgr->GetDetectorField();

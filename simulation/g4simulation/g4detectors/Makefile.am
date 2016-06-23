@@ -30,8 +30,8 @@ libg4detectors_io_la_LIBADD = \
   -lpdbcalBase
 
 libg4detectors_la_LIBADD = \
-  -lphool  \
   libg4detectors_io.la \
+  -lphool  \
   -lCGAL \
   -lSubsysReco \
   -lg4testbench 
@@ -117,7 +117,6 @@ libg4detectors_la_SOURCES = \
   PHG4BlockCellReco.cc \
   PHG4BlockCellReco_Dict.cc \
   PHG4BlockDetector.cc \
-  PHG4BlockRegionSteppingAction.cc \
   PHG4BlockSteppingAction.cc \
   PHG4BlockSubsystem.cc \
   PHG4BlockSubsystem_Dict.cc \
@@ -135,12 +134,13 @@ libg4detectors_la_SOURCES = \
   PHG4CrystalCalorimeterSubsystem.cc \
   PHG4CrystalCalorimeterSubsystem_Dict.cc \
   PHG4CylinderDetector.cc \
-  PHG4CylinderRegionSteppingAction.cc \
   PHG4CylinderSubsystem.cc \
   PHG4CylinderSubsystem_Dict.cc \
   PHG4CylinderCellReco.cc \
   PHG4CylinderCellReco_Dict.cc \
   PHG4CylinderSteppingAction.cc \
+  PHG4DetectorSubsystem.cc \
+  PHG4DetectorSubsystem_Dict.cc \
   PHG4EnvelopeDetector.cc \
   PHG4EnvelopeSteppingAction.cc \
   PHG4EnvelopeSubsystem.cc \
