@@ -6,6 +6,8 @@
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
 
+#include <float.h>
+
 class PHG4CylinderDetector;
 class PHG4CylinderSteppingAction;
 class PHG4EventAction;
@@ -60,8 +62,15 @@ class PHG4CylinderSubsystem: public PHG4Subsystem
   void SuperDetector(const std::string &name) {superdetector = name;}
   const std::string SuperDetector() {return superdetector;}
 
-  void BlackHole(const int i=1) {blackhole = i;}
-
+   void BlackHole(const int i=1,
+		 const double tmin = DBL_MAX,
+		 const double tmax = -1.0*DBL_MAX) {
+    blackhole = i; blackhole_tmin = tmin; blackhole_tmax = tmax;
+  }
+  int IsBlackHole() const {return blackhole;}
+  double GetBlackHoleTMin() {return blackhole_tmin;}
+  double GetBlackHoleTMax() {return blackhole_tmax;}
+  
   private:
 
   //! detector geometry
@@ -85,6 +94,8 @@ class PHG4CylinderSubsystem: public PHG4Subsystem
   bool reduced;
   int layer;
   int blackhole;
+  double blackhole_tmin;
+  double blackhole_tmax;
   std::string detector_type;
   std::string superdetector;
 };

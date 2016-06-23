@@ -37,6 +37,8 @@ PHG4CylinderSubsystem::PHG4CylinderSubsystem( const std::string &na, const int l
   reduced(false),
   layer(lyr),
   blackhole(0),
+  blackhole_tmin(-1.0*DBL_MAX),
+  blackhole_tmax(DBL_MAX),
   detector_type(na),
   superdetector("NONE")
 {
@@ -66,7 +68,7 @@ int PHG4CylinderSubsystem::InitRun( PHCompositeNode* topNode )
   detector_->SetThickness(TrackerThickness);
   detector_->SetMaterial(material);
   detector_->SetActive(active);
-  detector_->BlackHole(blackhole);
+  detector_->BlackHole(blackhole,blackhole_tmin,blackhole_tmax);
   detector_->SetReducedTruthInfo(reduced);
   detector_->SuperDetector(superdetector);
   detector_->OverlapCheck(overlapcheck);
