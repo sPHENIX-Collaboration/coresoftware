@@ -31,6 +31,15 @@ PHG4CylinderSubsystem::PHG4CylinderSubsystem( const std::string &na, const int l
 }
 
 //_______________________________________________________________________
+int
+PHG4CylinderSubsystem::InitSubsystem( PHCompositeNode* topNode )
+{
+  // kludge until the phg4parameters are sorted out (adding layers)
+  GetParams()->set_name(Name());
+  return 0;
+}
+
+//_______________________________________________________________________
 int PHG4CylinderSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 {
   // create hit list only for active layers

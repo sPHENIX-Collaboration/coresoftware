@@ -26,6 +26,7 @@ class PHG4DetectorSubsystem : public PHG4Subsystem
 #endif
 
   virtual int InitRunSubsystem(PHCompositeNode *) {return 0;}
+  virtual int InitSubsystem(PHCompositeNode *) {return 0;}
 
   void OverlapCheck(const bool chk = true) {overlapcheck = chk;}
   bool CheckOverlap() const {return overlapcheck;}

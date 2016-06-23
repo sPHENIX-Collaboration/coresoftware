@@ -27,6 +27,15 @@ PHG4BlockSubsystem::PHG4BlockSubsystem( const std::string &name, const int lyr )
 }
 
 //_______________________________________________________________________
+int
+PHG4BlockSubsystem::InitSubsystem( PHCompositeNode* topNode )
+{
+  // kludge until the phg4parameters are sorted out (adding layers)
+  GetParams()->set_name(Name());
+  return 0;
+}
+
+//_______________________________________________________________________
 int PHG4BlockSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 {
   PHNodeIterator iter( topNode );

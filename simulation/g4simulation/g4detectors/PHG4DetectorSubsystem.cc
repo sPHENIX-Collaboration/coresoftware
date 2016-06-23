@@ -43,8 +43,8 @@ PHG4DetectorSubsystem::Init(PHCompositeNode* topNode)
     {
       params->set_name(Name());
     }
-
-  return 0;
+  int iret = InitSubsystem(topNode);
+  return iret;
 }
 
 int 
@@ -94,7 +94,6 @@ void
 PHG4DetectorSubsystem::SuperDetector(const std::string &name)
 {
   superdetector = name;
-  Name(name);
   return;
 }
 

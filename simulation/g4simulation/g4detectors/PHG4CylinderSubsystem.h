@@ -24,6 +24,9 @@ class PHG4CylinderSubsystem: public PHG4DetectorSubsystem
   {}
 
   //! init
+  int InitSubsystem(PHCompositeNode *);
+
+  //! init runwise stuff
   /*!
   creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
   reates the stepping action and place it on the node tree, under "ACTIONS" node
