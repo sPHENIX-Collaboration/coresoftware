@@ -111,7 +111,7 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
 
   Params.SaveToNodeTree(topNode, runinfo_node_name);
 
-  if (verbosity >= VERBOSITY_SOME) Params.print();
+  if (verbosity >= VERBOSITY_SOME) Params.Print();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
