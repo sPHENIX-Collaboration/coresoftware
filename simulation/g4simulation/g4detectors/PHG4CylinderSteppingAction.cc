@@ -63,7 +63,7 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
     {
       if ( (!isfinite(tmin) && !isfinite(tmax)) ||
            aTrack->GetGlobalTime() < tmin ||
-	   aTrack->GetGlobalTime() > tmax))
+	   aTrack->GetGlobalTime() > tmax)
 	{
 	  edep = aTrack->GetKineticEnergy()/GeV;
 	  G4Track* killtrack = const_cast<G4Track *> (aTrack);
