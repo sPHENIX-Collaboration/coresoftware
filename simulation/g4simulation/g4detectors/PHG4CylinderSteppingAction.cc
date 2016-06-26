@@ -14,6 +14,8 @@
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 
+#include <boost/math/special_functions/sign.hpp>
+
 #include <iomanip>
 #include <iostream>
 
@@ -30,24 +32,13 @@ PHG4CylinderSteppingAction::PHG4CylinderSteppingAction( PHG4CylinderDetector* de
   IsBlackHole(params->get_int_param("blackhole")),
   save_layer_id(-1),
   zmin(params->get_double_param("place_z")*cm-params->get_double_param("length")*cm/2.),
-  zmax(params->get_double_param("place_z")*cm+params->get_double_param("length")*cm/2.)
+  zmax(params->get_double_param("place_z")*cm+params->get_double_param("length")*cm/2.),
+  tmin(params->get_double_param("tmin")*ns),
+  tmax(params->get_double_param("tmax")*ns)
 {
-  if (zmin > 0)
-    {
-      zmin -= zmin/1.e6;
-    }
-  else
-    {
-      zmin += zmin/1.e6;
-    }
-  if (zmax > 0)
-    {
-      zmax += zmax/1.e6;
-    }
-  else
-    {
-      zmax -= zmax/1.e6;
-    }
+  // G4 seems to have issues in the um range
+  zmin -= copysign(zmin,1./1e6*cm);
+  zmax += copysign(zmax,1./1e6*cm);
 }
 
 //____________________________________________________________________________..
@@ -70,9 +61,14 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
   // if this cylinder stops everything, just put all kinetic energy into edep
   if (IsBlackHole)
     {
-      edep = aTrack->GetKineticEnergy()/GeV;
-      G4Track* killtrack = const_cast<G4Track *> (aTrack);
-      killtrack->SetTrackStatus(fStopAndKill);
+      if ( (!isfinite(tmin) && !isfinite(tmax)) ||
+           aTrack->GetGlobalTime() < tmin ||
+	   aTrack->GetGlobalTime() > tmax))
+	{
+	  edep = aTrack->GetKineticEnergy()/GeV;
+	  G4Track* killtrack = const_cast<G4Track *> (aTrack);
+	  killtrack->SetTrackStatus(fStopAndKill);
+	}
     }
 
   int layer_id = detector_->get_Layer();

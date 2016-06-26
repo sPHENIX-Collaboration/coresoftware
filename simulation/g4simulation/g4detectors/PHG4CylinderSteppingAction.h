@@ -50,7 +50,8 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
   int save_layer_id;
   double zmin;
   double zmax;
+  double tmin;
+  double tmax;
 };
-
 
 #endif
