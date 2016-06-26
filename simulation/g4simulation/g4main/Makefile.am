@@ -70,6 +70,7 @@ libg4testbench_la_SOURCES = \
     PHG4InEventReadBack.cc \
     PHG4InputFilter.cc \
     PHG4ParameterisationTubsEta.cc \
+    PHG4PileupGenerator.cc \
     PHG4SimpleEventGenerator.cc \
     PHG4ParticleGun.cc \
     PHG4ParticleGeneratorBase.cc \
@@ -173,6 +174,7 @@ PHG4_Dict.cc: \
   PHG4InEventCompress.h \
   PHG4InEventReadBack.h \
   PHG4InputFilter.h \
+  PHG4PileupGenerator.h \
   PHG4SimpleEventGenerator.h \
   PHG4ParticleGun.h \
   PHG4ParticleGenerator.h \
