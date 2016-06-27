@@ -34,11 +34,13 @@ bool PHPy6ForwardElectronTrig::Apply( const HepMC::GenEvent* evt )
 
   // Check the HepMC particle list - 
   // final state e+/- within 1.0 < eta < 5.0 
+  // momentum > 1.0 
 	
   for ( HepMC::GenEvent::particle_const_iterator p 
 	  = evt->particles_begin(); p != evt->particles_end(); ++p ){
     if ( (abs((*p)->pdg_id()) == 11) && ((*p)->status()==1) && 
-	 ((*p)->momentum().eta() > 1.0) && ((*p)->momentum().eta() < 5.0) ) {
+	 ((*p)->momentum().pseudoRapidity() > 1.0) && ((*p)->momentum().pseudoRapidity() < 5.0) && 
+	 (sqrt(pow((*p)->momentum().px(),2) + pow((*p)->momentum().py(),2) + pow((*p)->momentum().pz(),2))>1.0) ) {
       ++ntriggered_forward_electron;
       return true;
     }
