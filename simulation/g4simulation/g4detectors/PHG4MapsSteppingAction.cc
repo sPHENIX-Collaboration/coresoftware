@@ -168,8 +168,8 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       float x,y,z;
       G4ThreeVector worldPosition, localPosition;
       G4TouchableHandle theTouchable;
-      //G4VPhysicalVolume *vol2;
-      //G4VPhysicalVolume *vol1;
+      G4VPhysicalVolume *vol2;
+      G4VPhysicalVolume *vol1;
 
       G4StepPoint * prePoint = aStep->GetPreStepPoint();
       G4StepPoint * postPoint = aStep->GetPostStepPoint();
@@ -201,8 +201,11 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 
 	  worldPosition = prePoint->GetPosition();
 	  theTouchable = prePoint->GetTouchableHandle(); 
-	  //vol1 = theTouchable->GetVolume();
-	  //cout << "pre point volume name = " << vol1->GetName() << endl;
+
+	  cout << "entering: depth = " << theTouchable->GetHistory()->GetDepth() <<  endl;
+	  vol1 = theTouchable->GetVolume();
+	  cout << "entering volume name = " << vol1->GetName() << endl;
+	  
 	  localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
 	  x = localPosition.x() / cm;
 	  y = localPosition.y() / cm;
@@ -262,27 +265,39 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       // here we just update the exit values, it will be overwritten
       // for every step until we leave the volume or the particle
       // ceases to exist
-      hit->set_x( 1, postPoint->GetPosition().x() / cm );
-      hit->set_y( 1, postPoint->GetPosition().y() / cm );
-      hit->set_z( 1, postPoint->GetPosition().z() / cm );
-      
-
-
-      theTouchable = postPoint->GetTouchableHandle(); 
       worldPosition = postPoint->GetPosition();
-      // Note that the after you reach the boundary the touchable for the postPoint points to the glue, not the sensor! 
-      const G4NavigationHistory *history = theTouchable->GetHistory();
-      localPosition = history->GetTransform(history->GetDepth() - 1).TransformPoint(worldPosition);
+      cout << "Exit world coords postPoint: x " <<  worldPosition.x() / cm << " y " <<  worldPosition.y() / cm << " z " <<  worldPosition.z() / cm << endl;
 
-      //localPosition = theTouchable->GetHistory()->GetTransform( theTouchable->GetHistory()->GetDepth() - 1).TransformPoint(worldPosition);
+      // Note that the after you reach the boundary the touchable for the postPoint points to the next volume, not the sensor! 
+
+      // This was given to me as the way to get back to the sensor volume, but it does not work
+      //theTouchable = postPoint->GetTouchableHandle(); 
+      //localPosition = history->GetTransform(history->GetDepth() - 1).TransformPoint(worldPosition);
+      //cout << "Exit local coords: x " <<  localPosition.x() / cm << " y " <<  localPosition.y() / cm << " z " <<  localPosition.z() / cm << endl;
+
+      // Use the prePoint from the final step  for now, until I understand how to get the exit point in the sensor volume
+      //============================================================================== 
+     theTouchable = prePoint->GetTouchableHandle(); 
+      vol2 = theTouchable->GetVolume();
+      cout << "exiting volume name = " << vol2->GetName() << endl;
+      worldPosition = prePoint->GetPosition();
+      cout << "Exit world coords prePoint: x " <<  worldPosition.x() / cm << " y " <<  worldPosition.y() / cm << " z " <<  worldPosition.z() / cm << endl;
+
+      //hit->set_x( 1, postPoint->GetPosition().x() / cm );
+      //hit->set_y( 1, postPoint->GetPosition().y() / cm );
+      //hit->set_z( 1, postPoint->GetPosition().z() / cm );
+
+      hit->set_x( 1, prePoint->GetPosition().x() / cm );
+      hit->set_y( 1, prePoint->GetPosition().y() / cm );
+      hit->set_z( 1, prePoint->GetPosition().z() / cm );
+
+      const G4NavigationHistory *history = theTouchable->GetHistory();
+      //cout << "exiting: depth = " << history->GetDepth() <<  " volume name = " << history->GetVolume(history->GetDepth())->GetName() << endl;
+      localPosition = history->GetTransform(history->GetDepth()).TransformPoint(worldPosition);
+
       x = localPosition.x() / cm;
       y = localPosition.y() / cm;
       z = localPosition.z() / cm;
-      /*
-      vol2 = theTouchable->GetVolume();
-      cout << "post point volume name = " << vol2->GetName() << endl;
-      */
-      cout << "Exit world coords: x " <<  worldPosition.x() / cm << " y " <<  worldPosition.y() / cm << " z " <<  worldPosition.z() / cm << endl;
       cout << "Exit local coords: x " << x << " y " << y << " z " << z << endl;
 
       hit->set_property( PHG4Hit::prop_local_pos_x_1, x);

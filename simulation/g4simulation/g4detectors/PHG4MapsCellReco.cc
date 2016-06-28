@@ -137,7 +137,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
 	{
-	  cout << "From MapsCellReco: " << endl;
+	  cout << "From MapsCellReco: Call hit print method: " << endl;
 	  hiter->second->print();
 
 	  // get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
@@ -148,30 +148,29 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  double xsensor_in = hiter->second->get_property_float(PHG4Hit::prop_local_pos_x_0);
 	  double ysensor_in = hiter->second->get_property_float(PHG4Hit::prop_local_pos_y_0);
 	  double zsensor_in = hiter->second->get_property_float(PHG4Hit::prop_local_pos_z_0);
-	  /*
 	  double xsensor_out = hiter->second->get_property_float(PHG4Hit::prop_local_pos_x_1);
 	  double ysensor_out = hiter->second->get_property_float(PHG4Hit::prop_local_pos_y_1);
 	  double zsensor_out = hiter->second->get_property_float(PHG4Hit::prop_local_pos_z_1);
-	  */
 
 	  TVector3 local_in(xsensor_in, ysensor_in, zsensor_in);
+	  TVector3 local_out(xsensor_out, ysensor_out, zsensor_out);
       
-	  // As a check, get the positions of the hit strips from the geo object
-	  TVector3 location = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_in);
+	  // As a check, get the positions of the hit strips in world coordinates from the geo object 
+	  TVector3 location_in = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_in);
+	  TVector3 location_out = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_out);
 
-	  cout << "      Found location from geometry for  " 
+	  cout << "      PHG4MapsCellReco:  Found entry location from geometry for  " 
 	       << " stave number " << stave_number
 	       << " half stave number " << half_stave_number 
 	       << " module number" << module_number 
 	       << endl
-	       <<  " x = " << location.X()
-	       << " y = " << location.Y()
-	       << " z  = " << location.Z()
-	       << " radius " << sqrt( pow(location.X(), 2) + pow(location.Y(), 2) ) 
-	       << " angle " << atan( location.Y() / location.X() )
+	       <<  " x = " << location_in.X()
+	       << " y = " << location_in.Y()
+	       << " z  = " << location_in.Z()
+	       << " radius " << sqrt( pow(location_in.X(), 2) + pow(location_in.Y(), 2) ) 
+	       << " angle " << atan( location_in.Y() / location_in.X() )
 	       << endl;
-
-	  cout << "     The location from G4 was "
+	  cout << "     PHG4MapsCellReco: The entry location from G4 was "
 	       << endl
 	       << " x = " <<   hiter->second->get_x( 0)
 	       << " y " <<  hiter->second->get_y( 0)
@@ -179,9 +178,32 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	       << " radius " << sqrt( pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2) )
 	       << " angle " << atan( hiter->second->get_y(0) / hiter->second->get_x(0) )
 	       << endl;
-	  cout << " difference in radius = " <<  sqrt( pow(location.X(),2) + pow(location.Y(),2) )  -  sqrt( pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2) ) 
-	       << " in angle = " <<  atan( location.Y() / location.X() ) - atan( hiter->second->get_y(0) / hiter->second->get_x(0) ) 
+	  cout << " difference in radius = " <<  sqrt( pow(location_in.X(),2) + pow(location_in.Y(),2) )  -  sqrt( pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2) ) 
+	       << " in angle = " <<  atan( location_in.Y() / location_in.X() ) - atan( hiter->second->get_y(0) / hiter->second->get_x(0) ) 
+	       << endl << endl;
+
+	  cout << "      PHG4MapsCellReco:  Found exit location from geometry for  " 
+	       << " stave number " << stave_number
+	       << " half stave number " << half_stave_number 
+	       << " module number" << module_number 
+	       << endl
+	       <<  " x = " << location_out.X()
+	       << " y = " << location_out.Y()
+	       << " z  = " << location_out.Z()
+	       << " radius " << sqrt( pow(location_out.X(), 2) + pow(location_out.Y(), 2) ) 
+	       << " angle " << atan( location_out.Y() / location_out.X() )
 	       << endl;
+	  cout << "     PHG4MapsCellReco: The exit location from G4 was "
+	       << endl
+	       << " x = " <<   hiter->second->get_x( 1)
+	       << " y " <<  hiter->second->get_y( 1)
+	       << " z " << hiter->second->get_z( 1)
+	       << " radius " << sqrt( pow(hiter->second->get_x(1), 2) + pow(hiter->second->get_y(1), 2) )
+	       << " angle " << atan( hiter->second->get_y(1) / hiter->second->get_x(1) )
+	       << endl;
+	  cout << " difference in radius = " <<  sqrt( pow(location_out.X(),2) + pow(location_out.Y(),2) )  -  sqrt( pow(hiter->second->get_x(1), 2) + pow(hiter->second->get_y(1), 2) ) 
+	       << " in angle = " <<  atan( location_out.Y() / location_out.X() ) - atan( hiter->second->get_y(1) / hiter->second->get_x(1) ) 
+	       << endl << endl;
 
 	  // Get the pixel number of the input hit
 	 int pixel_number = layergeom->get_pixel_from_local_coords(local_in);
