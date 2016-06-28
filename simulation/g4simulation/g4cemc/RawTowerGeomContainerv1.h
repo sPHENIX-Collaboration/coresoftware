@@ -12,7 +12,7 @@ class RawTowerGeomContainerv1 : public RawTowerGeomContainer
 
  public:
 
-  RawTowerGeomContainerv1( RawTowerDefs::CalorimeterId caloid );
+  RawTowerGeomContainerv1( RawTowerDefs::CalorimeterId caloid = RawTowerDefs::NONE);
   virtual ~RawTowerGeomContainerv1();
 
   virtual void Reset();

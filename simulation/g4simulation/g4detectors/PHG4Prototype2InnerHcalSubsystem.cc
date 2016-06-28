@@ -189,8 +189,8 @@ PHG4Prototype2InnerHcalSubsystem::process_event( PHCompositeNode * topNode )
 void
 PHG4Prototype2InnerHcalSubsystem::Print(const string &what) const
 {
-  cout << "Inner Hcal Parameters: " << endl;
-  params->print();
+  cout << Name() << " Parameters: " << endl;
+  params->Print();
   if (detector_)
     {
       detector_->Print(what);

@@ -1,6 +1,7 @@
 #include "PHG4InnerHcalDetector.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeomv3.h"
+#include "PHG4Parameters.h"
 
 #include <g4main/PHG4Utils.h>
 

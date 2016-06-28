@@ -20,10 +20,10 @@ class PHG4Parameters: public PHObject
   typedef std::map<const std::string, int> iMap;
   typedef std::map<const std::string, std::string> strMap;
 
- PHG4Parameters(const std::string &name): pdbparam(NULL),detname(name) {}
+  PHG4Parameters(const std::string &name): pdbparam(NULL),detname(name) {}
   virtual ~PHG4Parameters() {}
 
-  void print() const;
+  void Print() const;
 
   void set_int_param(const std::string &name, const int ival);
   int get_int_param(const std::string &name) const;
@@ -38,6 +38,7 @@ class PHG4Parameters: public PHObject
   bool exist_string_param(const std::string &name) const;
 
   void set_name(const std::string &name) {detname = name;}
+  std::string Name() const {return detname;}
 
   void FillFrom(const PdbParameterMap *saveparams);
   void FillFrom(const PHG4Parameters *saveparams);

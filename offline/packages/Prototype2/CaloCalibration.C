@@ -45,7 +45,7 @@ CaloCalibration::InitRun(PHCompositeNode *topNode)
     {
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
           << " - print calibration parameters: "<<endl;
-      _calib_params.print();
+      _calib_params.Print();
     }
 
   return Fun4AllReturnCodes::EVENT_OK;

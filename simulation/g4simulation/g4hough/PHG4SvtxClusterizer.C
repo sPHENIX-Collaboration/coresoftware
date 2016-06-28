@@ -124,7 +124,9 @@ bool PHG4SvtxClusterizer::ladder_are_adjacent(const PHG4CylinderCell* lhs,
   return false;
 }
 
-PHG4SvtxClusterizer::PHG4SvtxClusterizer(const string &name) :
+PHG4SvtxClusterizer::PHG4SvtxClusterizer(const string &name,
+					 unsigned int min_layer,
+					 unsigned int max_layer) :
   SubsysReco(name),
   _hits(NULL),
   _clusterlist(NULL),
@@ -132,6 +134,8 @@ PHG4SvtxClusterizer::PHG4SvtxClusterizer(const string &name) :
   _thresholds_by_layer(),
   _make_z_clustering(),
   _make_e_weights(),
+  _min_layer(min_layer),
+  _max_layer(max_layer),
   _timer(PHTimeServer::get()->insert_new(name)) {}
 
 int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
@@ -334,6 +338,10 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       ++layeriter) {
 
     int layer = layeriter->second->get_layer();
+
+    if ((unsigned int)layer < _min_layer) continue;
+    if ((unsigned int)layer > _max_layer) continue;
+    
     int nphibins = layeriter->second->get_phibins();
 
     // loop over all hits/cells in this layer
@@ -604,6 +612,9 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 
     int layer = layeriter->second->get_layer();
 
+    if ((unsigned int)layer < _min_layer) continue;
+    if ((unsigned int)layer > _max_layer) continue;
+    
     std::map<PHG4CylinderCell*,SvtxHit*> cell_hit_map;
     vector<PHG4CylinderCell*> cell_list;
     for (std::multimap<int,SvtxHit*>::iterator hiter = layer_hits_mmap.lower_bound(layer);
