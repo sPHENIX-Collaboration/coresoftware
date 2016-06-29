@@ -28,9 +28,9 @@ class PHG4BlockGeomv1: public PHG4BlockGeom
   double get_center_z() const {return _center[2];}
   double get_z_rot() const {return _rotation_z;}
 
-  double get_size_global_x() const {return _size[0];}
-  double get_size_global_y() const {return _size[1];}
-  double get_size_global_z() const {return _size[2];}
+  double get_size_x() const {return _size[0];}
+  double get_size_y() const {return _size[1];}
+  double get_size_z() const {return _size[2];}
 
   double get_rot_matrix(const int i, const int j) const {return _rot_matrix[i][j];}
 

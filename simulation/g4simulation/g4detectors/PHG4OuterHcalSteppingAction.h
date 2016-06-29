@@ -15,7 +15,7 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   public:
 
   //! constructor
-  PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* , PHG4Parameters *parameters);
+  PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* , const PHG4Parameters *parameters);
 
   //! destructor
   virtual ~PHG4OuterHcalSteppingAction()
@@ -23,6 +23,8 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
+
+  virtual int Init();
 
   //! reimplemented from base class
   virtual void SetInterfacePointers( PHCompositeNode* );
@@ -45,7 +47,7 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer * hits_;
   PHG4HitContainer * absorberhits_;
   PHG4Hit *hit;
-  PHG4Parameters *params;
+  const PHG4Parameters *params;
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
 

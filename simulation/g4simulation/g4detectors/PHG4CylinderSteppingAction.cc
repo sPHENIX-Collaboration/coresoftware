@@ -1,5 +1,6 @@
 #include "PHG4CylinderSteppingAction.h"
 #include "PHG4CylinderDetector.h"
+#include "PHG4Parameters.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
@@ -11,21 +12,34 @@
 #include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 
+#include <boost/math/special_functions/sign.hpp>
+
+#include <iomanip>
 #include <iostream>
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4CylinderSteppingAction::PHG4CylinderSteppingAction( PHG4CylinderDetector* detector ):
+PHG4CylinderSteppingAction::PHG4CylinderSteppingAction( PHG4CylinderDetector* detector, const PHG4Parameters *parameters ):
   detector_( detector ),
+  params(parameters),
   hits_(NULL),
   hit(NULL),
   savehitcontainer(NULL),
   saveshower(NULL),
+  active(params->get_int_param("active")),
+  IsBlackHole(params->get_int_param("blackhole")),
   save_layer_id(-1),
-  zmin(NAN),
-  zmax(NAN)
-{}
+  zmin(params->get_double_param("place_z")*cm-params->get_double_param("length")*cm/2.),
+  zmax(params->get_double_param("place_z")*cm+params->get_double_param("length")*cm/2.),
+  tmin(params->get_double_param("tmin")*ns),
+  tmax(params->get_double_param("tmax")*ns)
+{
+  // G4 seems to have issues in the um range
+  zmin -= copysign(zmin,1./1e6*cm);
+  zmax += copysign(zmax,1./1e6*cm);
+}
 
 //____________________________________________________________________________..
 bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
@@ -45,16 +59,21 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this cylinder stops everything, just put all kinetic energy into edep
-  if (detector_->IsBlackHole())
+  if (IsBlackHole)
     {
-      edep = aTrack->GetKineticEnergy()/GeV;
-      G4Track* killtrack = const_cast<G4Track *> (aTrack);
-      killtrack->SetTrackStatus(fStopAndKill);
+      if ( (!isfinite(tmin) && !isfinite(tmax)) ||
+           aTrack->GetGlobalTime() < tmin ||
+	   aTrack->GetGlobalTime() > tmax)
+	{
+	  edep = aTrack->GetKineticEnergy()/GeV;
+	  G4Track* killtrack = const_cast<G4Track *> (aTrack);
+	  killtrack->SetTrackStatus(fStopAndKill);
+	}
     }
 
   int layer_id = detector_->get_Layer();
   // test if we are active
-  if ( detector_->IsActive() )
+  if ( active )
     {
       bool geantino = false;
       // the check for the pdg code speeds things up, I do not want to make 
@@ -110,10 +129,12 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 		}
 	    }
 
-	  if (hit->get_z(0) > zmax || hit->get_z(0) < zmin)
+	  if (hit->get_z(0)*cm > zmax || hit->get_z(0)*cm < zmin)
 	    {
-	      cout << "PHG4CylinderSteppingAction: hit outside acceptance, layer: " << layer_id << endl;
-	      hit->identify();
+	      cout << detector_->SuperDetector()  << std::setprecision(9)
+		   << "PHG4CylinderSteppingAction: Entry hit z " << hit->get_z(0)*cm 
+                   << " outside acceptance,  zmin " << zmin 
+                   << ", zmax " << zmax << ", layer: " << layer_id << endl;
 	    }
           break;
         default:
@@ -133,10 +154,12 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       hit->set_t( 1, postPoint->GetGlobalTime() / nanosecond );
       //sum up the energy to get total deposited
       hit->set_edep(hit->get_edep() + edep);
-      if (hit->get_z(1) > zmax || hit->get_z(1) < zmin)
+      if (hit->get_z(1)*cm > zmax || hit->get_z(1)*cm < zmin)
 	{
-	  cout << "PHG4CylinderSteppingAction: hit outside acceptance zmin " << zmin << ", zmax " << zmax << " at exit" << endl;
-	  hit->identify();
+	  cout << detector_->SuperDetector() << std::setprecision(9)
+	       << " PHG4CylinderSteppingAction: Exit hit z " << hit->get_z(1)*cm 
+               << " outside acceptance zmin " << zmin 
+               << ", zmax " << zmax << ", layer: " << layer_id << endl;
 	}
       if (geantino)
 	{
@@ -180,7 +203,7 @@ void PHG4CylinderSteppingAction::SetInterfacePointers( PHCompositeNode* topNode 
   hits_ =  findNode::getClass<PHG4HitContainer>( topNode , hitnodename.c_str() );
 
   // if we do not find the node we need to make it.
-  if ( ! hits_  && ! detector_->IsBlackHole())
+  if ( ! hits_  && !IsBlackHole)
     { std::cout << "PHG4CylinderSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl; }
 
 }

@@ -12,6 +12,7 @@
 
 class PHCompositeNode;
 class PHHepMCGenEvent;
+class PHPy6GenTrigger; 
 
 namespace HepMC {
   class GenEvent;
@@ -43,6 +44,11 @@ public:
     _save_ascii = true;
     _filename_ascii = fname;
   }
+
+  /// set event selection criteria
+  void register_trigger(PHPy6GenTrigger *theTrigger);
+  void set_trigger_OR() { _triggersOR = true; } // default true
+  void set_trigger_AND() { _triggersAND = true; }
 
 private:
 
@@ -76,6 +82,11 @@ private:
    */
   std::string _filename_ascii;
 
+  // event selection
+  std::vector<PHPy6GenTrigger*> _registeredTriggers;
+  bool _triggersOR;
+  bool _triggersAND;
+ 
   /**
    * definition needed to use pythia wrapper headers from HepMC
    */

@@ -111,7 +111,7 @@ PHG4Parameters::exist_double_param(const std::string &name) const
 
 
 void
-PHG4Parameters::print() const
+PHG4Parameters::Print() const
 {
   cout << "Parameters for " << detname << endl;
   printint();
