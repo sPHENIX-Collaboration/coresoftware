@@ -52,7 +52,6 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   double GetScintiAngle();
 
   protected:
-  void AddGeometryNode();
   int ConstructOuterHcal(G4LogicalVolume* sandwich);
   int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
   PHG4Parameters *params;
