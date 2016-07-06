@@ -53,6 +53,11 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers,
                                        unsigned int req_seed,
                                        const string& name)
     : SubsysReco(name),
+      _beta(1),
+      _lambda(1),
+      _nlayers(7),
+      _radii(),
+      _material(),
       _magField(1.4),
       _min_pT(0.2),
       _min_pT_init(0.2),
@@ -94,9 +99,6 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers,
   _chi2_cut_full = 4.0;
   _ca_chi2_cut = 4.0;
   _cos_angle_cut = 0.985;
-
-  _beta = 1;
-  _lambda = 1;
 }
 
 int PHG4HoughTransform::Init(PHCompositeNode* topNode) {
@@ -208,7 +210,9 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode) {
 }
 
 int PHG4HoughTransform::End(PHCompositeNode *topNode) {
-  
+
+  delete _tracker_etap_seed; _tracker_etap_seed = NULL;
+  delete _tracker_etam_seed; _tracker_etam_seed = NULL;
   delete _tracker_vertex; _tracker_vertex = NULL;
   delete _tracker; _tracker = NULL;
   

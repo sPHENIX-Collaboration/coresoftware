@@ -259,7 +259,8 @@ private:
 
   bool new_dca_nbin, new_z_z0, new_circle_dca, new_circle_kappa;
   
-  int _beta, _lambda; ///< resolution tuning parameters 
+  int _beta;
+  int _lambda; ///< resolution tuning parameters 
 
   double _chi2_cut_init;            ///< fit quality chisq/dof for initial track finding
   double _chi2_cut_fast_par0;       ///< fit quality chisq/dof for fast fit track fitting
