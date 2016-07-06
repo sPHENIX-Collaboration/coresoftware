@@ -206,6 +206,37 @@ PHG4CylinderGeom_Spacalv3::geom_tower::get_sub_tower_ID_y(int fiber_id) const
   return tower_ID_y;
 }
 
+double
+PHG4CylinderGeom_Spacalv3::geom_tower::get_position_fraction_x_in_sub_tower(int fiber_id) const
+{
+  const int index_x = fiber_id / NFiberY;
+  assert(index_x < NFiberX);
+  assert(index_x >= 0);
+
+  const double sub_tower_width_x = (double) NFiberX / NSubtowerX;
+  const double x_in_sub_tower = fmod(index_x,  sub_tower_width_x); //! x is negative azimuthal direction
+  assert(x_in_sub_tower <=1 );
+  assert(x_in_sub_tower >= 0);
+
+  return x_in_sub_tower;
+}
+
+double
+PHG4CylinderGeom_Spacalv3::geom_tower::get_position_fraction_y_in_sub_tower(int fiber_id) const
+{
+  assert(fiber_id >= 0);
+  const int index_y = fiber_id % NFiberY;
+
+  const double sub_tower_width_y = (double) NFiberY / NSubtowerY;
+
+  assert(pRotationAngleX < 0);
+  const double y_in_sub_tower = fmod(index_y ,  sub_tower_width_y); //! y is negative polar direction
+  assert(y_in_sub_tower <=1 );
+  assert(y_in_sub_tower >= 0);
+
+  return y_in_sub_tower;
+}
+
 void
 PHG4CylinderGeom_Spacalv3::geom_tower::identify(std::ostream& os) const
 {

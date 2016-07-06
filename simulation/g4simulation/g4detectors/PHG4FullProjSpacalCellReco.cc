@@ -26,6 +26,12 @@
 #include <boost/foreach.hpp>
 #include <exception>
 #include <limits>       // std::numeric_limits
+
+
+#include <TH2.h>
+#include <TH1.h>
+#include <TFile.h>
+
 using namespace std;
 
 PHG4FullProjSpacalCellReco::PHG4FullProjSpacalCellReco(const string &name) :
@@ -505,5 +511,55 @@ PHG4FullProjSpacalCellReco::CheckEnergy(PHCompositeNode *topNode)
         }
     }
   return 0;
+}
+
+PHG4FullProjSpacalCellReco::LightCollectionModel::LightCollectionModel() :
+    data_grid_light_guide_efficiency(NULL)
+{
+}
+
+PHG4FullProjSpacalCellReco::LightCollectionModel::~LightCollectionModel()
+{
+  if (data_grid_light_guide_efficiency)
+    delete data_grid_light_guide_efficiency;
+  if (data_grid_fiber_trans)
+    delete data_grid_fiber_trans;
+}
+
+void
+PHG4FullProjSpacalCellReco::LightCollectionModel::load_data_file(
+    std::string input_file,  std::string histogram_light_guide_model, std::string histogram_fiber_model)
+{
+  TFile fin(input_file.c_str());
+
+  assert(fin.IsOpen());
+
+  data_grid_light_guide_efficiency = dynamic_cast<TH2 *>(fin.FindObject(histogram_light_guide_model.c_str()));
+  assert(data_grid_light_guide_efficiency);
+  data_grid_light_guide_efficiency->SetDirectory(NULL);
+
+  data_grid_fiber_trans = dynamic_cast<TH1 *>(fin.FindObject(histogram_fiber_model.c_str()));
+  assert(data_grid_fiber_trans);
+  data_grid_fiber_trans->SetDirectory(NULL);
+}
+
+double
+PHG4FullProjSpacalCellReco::LightCollectionModel::get_light_guide_efficiency(
+    const double x_fraction, const double y_fraction)
+{
+  assert(data_grid_light_guide_efficiency);
+  assert(x_fraction >=0);
+  assert(x_fraction <=1);
+  assert(y_fraction >=0);
+  assert(y_fraction <=1);
+
+  return data_grid_light_guide_efficiency->Interpolate(x_fraction, y_fraction);
+}
+
+double
+PHG4FullProjSpacalCellReco::LightCollectionModel::get_fiber_transmission(const double z_distance)
+{
+  assert(data_grid_light_guide_efficiency);
+  return data_grid_light_guide_efficiency->Interpolate(z_distance);
 }
 

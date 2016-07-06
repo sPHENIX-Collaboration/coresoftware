@@ -9,6 +9,8 @@
 
 class PHCompositeNode;
 class PHG4CylinderCell;
+class TH2;
+class TH1;
 
 class PHG4FullProjSpacalCellReco : public SubsysReco
 {
@@ -58,6 +60,38 @@ class PHG4FullProjSpacalCellReco : public SubsysReco
   double tmin_default;
   double tmax_default;
   std::map<int, std::pair<double,double> > tmin_max;
+
+  class LightCollectionModel
+  {
+  public:
+    LightCollectionModel();
+    virtual ~LightCollectionModel();
+
+    //! input data file
+    void load_data_file(std::string input_file, std::string histogram_light_guide_model, std::string histogram_fiber_model);
+
+    //! Whether use light collection model
+    bool use_light_guide_model() {return data_grid_light_guide_efficiency != NULL;}
+
+    //! Whether use Light Transmission Efficiency model for the fiber
+    bool use_fiber_model() {return data_grid_fiber_trans != NULL;}
+
+    //! get Light Collection Efficiency for the light guide as function of x,y position in fraction of tower width
+    double get_light_guide_efficiency(const double x_fraction, const double y_fraction);
+
+    //! get Light Transmission Efficiency for the fiber as function of z position (cm) in the fiber away from the readout end
+    double get_fiber_transmission(const double z_distance);
+
+  private:
+    //! 2-D data grid for Light Collection Efficiency for the light guide as function of x,y position in fraction of tower width
+    TH2 * data_grid_light_guide_efficiency;
+
+//    //! 1-D data grid for the light transmission efficiency in the fiber as function of distance to the readout end
+    TH1 * data_grid_fiber_trans;
+  };
+
+  LightCollectionModel light_collection_model;
+
 };
 
 #endif
