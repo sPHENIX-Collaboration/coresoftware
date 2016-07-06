@@ -257,8 +257,6 @@ private:
 					  double x1, double y1, double r1,
 					  std::set<std::vector<double> >* points);
 
-  bool new_dca_nbin, new_z_z0, new_circle_dca, new_circle_kappa;
-  
   int _beta;
   int _lambda; ///< resolution tuning parameters 
 
@@ -269,6 +267,7 @@ private:
   double _chi2_cut_full;            ///< fit quality chisq/dof for kalman track fitting
   double _ca_chi2_cut;
   double _cos_angle_cut;
+  
   unsigned int _max_hits_init;
   unsigned int _min_hits_init;
   unsigned int _maxtracks;
