@@ -49,37 +49,38 @@
 
 using namespace std;
 
-PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers,
-                                       unsigned int req_seed,
+PHG4HoughTransform::PHG4HoughTransform(unsigned int nlayers,
+                                       unsigned int min_nlayers,
                                        const string& name)
     : SubsysReco(name),
-      _min_hits(0),
-      _max_hits(0),
-      _nlayers(7),
+      _nlayers(nlayers),
+      _min_nlayers(min_nlayers),
       _radii(),
       _material(),
       _user_material(),
       _magField(1.4),
-      _min_pT(0.2),
-      _seed_layers(seed_layers),
-      _req_seed(req_seed),
-      _reject_ghosts(true),
-      _remove_hits(true),
-      _chi2_cut_init(4.0),
+      _reject_ghosts(false),
+      _remove_hits(false),
+      _min_pt(0.2),
+      _min_z0(-14.0),
+      _max_z0(+14.0),
+      _max_r(1.0),
+      _cut_on_dca(false),
+      _dcaxy_cut(0.2),
+      _dcaz_cut(0.2),
       _chi2_cut_fast_par0(16.0),
       _chi2_cut_fast_par1(0.0),
       _chi2_cut_fast_max(FLT_MAX),
       _chi2_cut_full(4.0),
       _ca_chi2_cut(4.0),
       _cos_angle_cut(0.985),
-      _cut_on_dca(false),
-      _dca_cut(0.1),
-      _dcaz_cut(0.2),
       _bin_scale(0.8),
       _z_bin_scale(0.8),
+      _min_combo_hits(min_nlayers),
+      _max_combo_hits(nlayers*4),
       _pt_rescale(1.0),
-      _fit_error_scale(_seed_layers,1.0/sqrt(12.0)),
-      _vote_error_scale(_seed_layers,1.0),
+      _fit_error_scale(_nlayers,1.0/sqrt(12.0)),
+      _vote_error_scale(_nlayers,1.0),
       _layer_ilayer_map(),
       _clusters(),
       _tracks(),
@@ -109,7 +110,7 @@ int PHG4HoughTransform::InitRun(PHCompositeNode* topNode) {
     cout << "====================== PHG4HoughTransform::InitRun() ======================" << endl;
     cout << " Magnetic field set to: " << _magField << " Tesla" << endl;
     cout << " Number of tracking layers: " << _nlayers << endl;
-    for (int i=0; i<_nlayers; ++i) {
+    for (unsigned int i=0; i<_nlayers; ++i) {
       cout << "   Tracking layer #" << i << " "
 	   << "radius = " << _radii[i] << " cm, "
 	   << "material = " << _material[i]
@@ -119,8 +120,8 @@ int PHG4HoughTransform::InitRun(PHCompositeNode* topNode) {
 	   << "fit error scale = " << _fit_error_scale[i]
 	   << endl;
     }
-    cout << " Required hits: " << _req_seed << endl;
-    cout << " Minimum pT: " << _min_pT << endl;
+    cout << " Required hits: " << _min_nlayers << endl;
+    cout << " Minimum pT: " << _min_pt << endl;
     cout << " Fast fit chisq cut min(par0+par1/pt,max): min( "
 	 << _chi2_cut_fast_par0 << " + " << _chi2_cut_fast_par1 << " / pt, "
 	 << _chi2_cut_fast_max << " )" << endl;
@@ -131,7 +132,7 @@ int PHG4HoughTransform::InitRun(PHCompositeNode* topNode) {
     cout << " Hit removal: " << boolalpha << _remove_hits << noboolalpha << endl;
     cout << " Maximum DCA: " << boolalpha << _cut_on_dca << noboolalpha << endl;
     if (_cut_on_dca) {
-      cout << "   Maximum DCA cut: " << _dca_cut << endl;
+      cout << "   Maximum DCA cut: " << _dcaxy_cut << endl;
     }
     cout << "   Maximum DCAZ cut: " << _dcaz_cut << endl;
     cout << " Phi bin scale: " << _bin_scale << endl;
@@ -576,7 +577,7 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
 
 int PHG4HoughTransform::setup_seed_tracker_objects() {
 
-  float kappa_max = ptToKappa(_min_pT);
+  float kappa_max = ptToKappa(_min_pt);
 
   // for the initial tracker we may not have the best guess on the vertex yet
   // so I've doubled the search range on dca and dcaz
@@ -610,20 +611,16 @@ int PHG4HoughTransform::setup_seed_tracker_objects() {
     zoomprofile[i][4] = 3;
   }
   
-  HelixRange pos_range( 0.0, 2.*M_PI,    // center of rotation azimuthal angles
-			-1.0, 1.0,       // 2d dca range
-			0.0, kappa_max,  // curvature range
-			0.0, 0.9,        // dzdl range
-			-10.0, 10.0);    // dca_z range
+  HelixRange pos_range( 0.0, 2.*M_PI,      // center of rotation azimuthal angles
+			-_max_r, _max_r,   // 2d dca range
+			0.0, kappa_max,    // curvature range
+			0.0, 0.9,          // dzdl range
+			_min_z0, _max_z0); // dca_z range
   
   _tracker_etap_seed = new sPHENIXTracker(zoomprofile, 1, pos_range, _material, _radii, _magField);
-  _tracker_etap_seed->setNLayers(_seed_layers);
-  _tracker_etap_seed->requireLayers(_req_seed);
-  _max_hits = _seed_layers*4;
-  if (_seed_layers >= 10) _max_hits = _seed_layers*2;
-  _min_hits = _req_seed;
-  if (_seed_layers < 10) _tracker_etap_seed->setClusterStartBin(1);
-  else _tracker_etap_seed->setClusterStartBin(10);
+  _tracker_etap_seed->setNLayers(_nlayers);
+  _tracker_etap_seed->requireLayers(_min_nlayers);
+  _tracker_etap_seed->setClusterStartBin(1);
   _tracker_etap_seed->setRejectGhosts(_reject_ghosts);
   _tracker_etap_seed->setFastChi2Cut(_chi2_cut_fast_par0,
 				     _chi2_cut_fast_par1,
@@ -651,20 +648,16 @@ int PHG4HoughTransform::setup_seed_tracker_objects() {
   // for the initial tracker we may not have the best guess on the vertex yet
   // so I've doubled the search range on dca and dcaz
 
-  HelixRange neg_range( 0.0, 2.*M_PI,    // center of rotation azimuthal angles
-			-1.0, 1.0,       // 2d dca range
-			0.0, kappa_max,  // curvature range
-			-0.9, 0.0,       // dzdl range
-			-10.0, 10.0);    // dca_z range
+  HelixRange neg_range( 0.0, 2.*M_PI,      // center of rotation azimuthal angles
+			-_max_r, _max_r,   // 2d dca range
+			0.0, kappa_max,    // curvature range
+			-0.9, 0.0,         // dzdl range
+			_min_z0, _max_z0); // dca_z range
   
   _tracker_etam_seed = new sPHENIXTracker(zoomprofile, 1, neg_range, _material, _radii, _magField);
-  _tracker_etam_seed->setNLayers(_seed_layers);
-  _tracker_etam_seed->requireLayers(_req_seed);
-  _max_hits = _seed_layers*4;
-  if (_seed_layers >= 10) _max_hits = _seed_layers*2;
-  _min_hits = _req_seed;
-  if (_seed_layers < 10) _tracker_etam_seed->setClusterStartBin(1);
-  else _tracker_etam_seed->setClusterStartBin(10);
+  _tracker_etam_seed->setNLayers(_nlayers);
+  _tracker_etam_seed->requireLayers(_min_nlayers);
+  _tracker_etam_seed->setClusterStartBin(1);
   _tracker_etam_seed->setRejectGhosts(_reject_ghosts);
   _tracker_etam_seed->setFastChi2Cut(_chi2_cut_fast_par0,
 				     _chi2_cut_fast_par1,
@@ -701,16 +694,16 @@ int PHG4HoughTransform::setup_initial_tracker_object() {
   // tell the initial tracker object the phase space extent of the search region
   // and the recursive zoom factors to utilize  
 
-  float kappa_max = ptToKappa(_min_pT);
+  float kappa_max = ptToKappa(_min_pt);
 
   // for the initial tracker we may not have the best guess on the vertex yet
   // so I've doubled the search range on dca and dcaz
   
   HelixRange top_range( 0.0, 2.*M_PI,    // center of rotation azimuthal angles
-			-1.0, 1.0,       // 2d dca range
+			-1.0, +1.0,      // 2d dca range
 			0.0, kappa_max,  // curvature range
 			-0.9, 0.9,       // dzdl range
-			-2.0, 2.0);      // dca_z range
+			-2.0, +2.0);     // dca_z range
   
   vector<unsigned int> onezoom(5,0);
   vector<vector<unsigned int> > zoomprofile;
@@ -742,13 +735,9 @@ int PHG4HoughTransform::setup_initial_tracker_object() {
   }
     
   _tracker_vertex = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
-  _tracker_vertex->setNLayers(_seed_layers);
-  _tracker_vertex->requireLayers(_req_seed);
-  _max_hits = _seed_layers*4;
-  if(_seed_layers >= 10){_max_hits = _seed_layers*2;}
-  _min_hits = _req_seed;
-  if(_seed_layers < 10){ _tracker_vertex->setClusterStartBin(1); }
-  else{ _tracker_vertex->setClusterStartBin(10); }
+  _tracker_vertex->setNLayers(_nlayers);
+  _tracker_vertex->requireLayers(_min_nlayers);
+  _tracker_vertex->setClusterStartBin(1);
   _tracker_vertex->setRejectGhosts(_reject_ghosts);
   _tracker_vertex->setFastChi2Cut(_chi2_cut_fast_par0,
 			   _chi2_cut_fast_par1,
@@ -783,13 +772,13 @@ int PHG4HoughTransform::setup_tracker_object() {
   // tell the tracker object the phase space extent of the search region
   // and the recursive zoom factors to utilize
   
-  float kappa_max = ptToKappa(_min_pT);
+  float kappa_max = ptToKappa(_min_pt);
 
-  HelixRange top_range( 0.0, 2.*M_PI,                   // center of rotation azimuthal angles
-			-0.2, 0.2,                      // 2d dca range
-			0.0, kappa_max,                 // curvature range
-			-0.9, 0.9,                      // dzdl range
-			-1.0*_dcaz_cut, 1.0*_dcaz_cut); // dca_z range
+  HelixRange top_range( 0.0, 2.*M_PI,             // center of rotation azimuthal angles
+			-_dcaxy_cut, _dcaxy_cut,  // 2d dca range
+			0.0, kappa_max,           // curvature range
+			-0.9, 0.9,                // dzdl range
+			-_dcaz_cut, _dcaz_cut);   // dca_z range
   
   vector<unsigned int> onezoom(5,0);
   vector<vector<unsigned int> > zoomprofile;
@@ -821,13 +810,9 @@ int PHG4HoughTransform::setup_tracker_object() {
   }
     
   _tracker = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
-  _tracker->setNLayers(_seed_layers);
-  _tracker->requireLayers(_req_seed);
-  _max_hits = _seed_layers*4;
-  if (_seed_layers >= 10){_max_hits = _seed_layers*2;}
-  _min_hits = _req_seed;
-  if (_seed_layers < 10){ _tracker->setClusterStartBin(1); }
-  else { _tracker->setClusterStartBin(10); }
+  _tracker->setNLayers(_nlayers);
+  _tracker->requireLayers(_min_nlayers);
+  _tracker->setClusterStartBin(1);
   _tracker->setRejectGhosts(_reject_ghosts);
   _tracker->setFastChi2Cut(_chi2_cut_fast_par0,
 			   _chi2_cut_fast_par1,
@@ -838,7 +823,7 @@ int PHG4HoughTransform::setup_tracker_object() {
   _tracker->setPrintTimings(false);
   //_tracker->setVerbosity(verbosity);
   _tracker->setCutOnDca(_cut_on_dca);
-  _tracker->setDcaCut(_dca_cut);
+  _tracker->setDcaCut(_dcaxy_cut);
   _tracker->setSmoothBack(true);
   _tracker->setBinScale(_bin_scale);
   _tracker->setZBinScale(_z_bin_scale);
@@ -967,8 +952,8 @@ int PHG4HoughTransform::fast_vertex_guessing() {
   std::vector<SimpleTrack3D> newtracks;
       
   _tracker_etap_seed->clear();
-  _tracker_etap_seed->findHelices(_clusters, _req_seed,
-				  _max_hits, newtracks, maxtracks);
+  _tracker_etap_seed->findHelices(_clusters, _min_combo_hits, _max_combo_hits,
+				  newtracks, maxtracks);
 
   for (unsigned int t = 0; t < newtracks.size(); ++t) {
     _tracks.push_back(newtracks[t]);
@@ -979,8 +964,8 @@ int PHG4HoughTransform::fast_vertex_guessing() {
   newtracks.clear();
 
   _tracker_etam_seed->clear();
-  _tracker_etam_seed->findHelices(_clusters, _req_seed,
-				  _max_hits, newtracks, maxtracks);
+  _tracker_etam_seed->findHelices(_clusters, _min_combo_hits, _max_combo_hits,
+				  newtracks, maxtracks);
 
   for (unsigned int t = 0; t < newtracks.size(); ++t) {
     _tracks.push_back(newtracks[t]);
@@ -1058,8 +1043,8 @@ int PHG4HoughTransform::initial_vertex_finding() {
   _tracker_vertex->clear();
 
   // initial track finding  
-  _tracker_vertex->findHelices(_clusters, _req_seed,
-			       _max_hits, _tracks, maxtracks);
+  _tracker_vertex->findHelices(_clusters, _min_combo_hits, _max_combo_hits,
+			       _tracks, maxtracks);
 
   for(unsigned int t = 0; t < _tracks.size(); ++t) {
     _track_covars.push_back( (_tracker_vertex->getKalmanStates())[t].C );
@@ -1134,7 +1119,7 @@ int PHG4HoughTransform::full_tracking_and_vertexing() {
   _tracker->clear();
 
   // final track finding
-  _tracker->findHelices(_clusters, _min_hits, _max_hits, _tracks);  
+  _tracker->findHelices(_clusters, _min_combo_hits, _max_combo_hits, _tracks);  
    
   for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
     _track_covars.push_back( (_tracker->getKalmanStates())[tt].C );
@@ -1245,7 +1230,7 @@ int PHG4HoughTransform::export_output() {
       SvtxCluster* cluster = _g4clusters->get(track_hits.at(ihit).index);
       clusterID = cluster->get_id();
       clusterLayer = cluster->get_layer();
-      if ((clusterLayer < (int)_seed_layers) && (clusterLayer >= 0)) {
+      if ((clusterLayer < (int)_nlayers) && (clusterLayer >= 0)) {
         track.insert_cluster(clusterID);
       }
     }

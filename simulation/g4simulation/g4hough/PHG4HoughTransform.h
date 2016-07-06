@@ -56,8 +56,8 @@ class PHG4HoughTransform : public SubsysReco {
 
 public:
  
-  PHG4HoughTransform(unsigned int seed_layers = 4,
-		     unsigned int req_seed = 4,
+  PHG4HoughTransform(unsigned int nlayers = 7,
+		     unsigned int min_nlayers = 7,
 		     const std::string &name = "PHG4HoughTransform");
   virtual ~PHG4HoughTransform() {}
 		
@@ -82,10 +82,7 @@ public:
   void  set_mag_field(float magField) {_magField = magField;}
   float get_mag_field() const {return _magField;}
   
-  /// set the tracking chi2 for initial vertex finding
-  void set_chi2_cut_init(double chi2_cut) {_chi2_cut_init = chi2_cut;}
-  /// get the tracking chi2 cut for initial vertex finding
-  double get_chi2_cut_init() const {return _chi2_cut_init;}
+
 
   /// set the tracking pt-dependent chi2 cut for fast fit, cut = min(par0 + par1 / pt, max)
   void set_chi2_cut_fast(double cut_par0,
@@ -111,9 +108,16 @@ public:
   /// get early curvature cut between hits, lower values are more open
   double get_cos_angle_cut() const {return _cos_angle_cut;}
 
-  /// set the minimum pT to try to find during full tracking
-  void set_min_pT(float PT) {_min_pT=PT;}
+  void set_min_pT(float pt) {_min_pt = pt;}
+  
+  /// set the z0 search window
+  void set_z0_range(float min_z0, float max_z0) {
+    _min_z0 = min_z0; _max_z0 = max_z0;
+  }
 
+  /// set the r search window
+  void set_r_max(float max_r) {_max_r = max_r;}
+  
   /// radiation length per layer, sequential layer indexes required here
   void set_material(int layer, float value);
 
@@ -130,7 +134,7 @@ public:
   /// turn on DCA limitation
   void setCutOnDCA(bool cod) {_cut_on_dca = cod;}
   /// sets an upper limit on X-Y DCA
-  void setDCACut(float dcut) {_dca_cut = dcut;}
+  void setDCACut(float dcut) {_dcaxy_cut = dcut;}
   /// sets an upper limit on Z DCA
   void setDCAZCut(float dzcut) {_dcaz_cut = dzcut;}
 
@@ -163,8 +167,6 @@ public:
   
   /// set option to produce initial vertex for further tracking
   void set_use_vertex(bool b) {}
-  /// fetch option to produce initial vertex for further tracking
-  bool get_use_vertex() {return true;}
 
   void setInitialResMultiplier(int beta) {}
   void setFullResMultiplier(int lambda) {}
@@ -177,6 +179,9 @@ public:
 
   /// use the cell size as cluster size instead of value stored on cluster
   void setUseCellSize(bool use_cell_size) {}
+
+  /// set the tracking chi2 for initial vertex finding
+  void set_chi2_cut_init(double chi2_cut) {}
   
 #ifndef __CINT__
 private:
@@ -257,38 +262,38 @@ private:
 					  double x1, double y1, double r1,
 					  std::set<std::vector<double> >* points);
 
-  unsigned int _min_hits;
-  unsigned int _max_hits;
-
-  int _nlayers;                        ///< number of detector layers
+  unsigned int _nlayers;               ///< number of detector layers
+  unsigned int _min_nlayers;           ///< minimum number of layers to make a track
   std::vector<float> _radii;           ///< radial distance of each layer (cm)
   std::vector<float> _material;        ///< material at each layer in rad. lengths
   std::map<int, float> _user_material; ///< material in user ladder indexes
-  
-  float _magField; ///< in Tesla
 
-  float _min_pT;
-  
-  unsigned int _seed_layers;
-  unsigned int _req_seed;
+  float _magField; ///< in Tesla
   
   bool _reject_ghosts;
   bool _remove_hits;
+  
+  float _min_pt;
+  float _min_z0;
+  float _max_z0;
+  float _max_r;
 
-  double _chi2_cut_init;            ///< fit quality chisq/dof for initial track finding
+  bool _cut_on_dca;
+  float _dcaxy_cut;
+  float _dcaz_cut;
+
   double _chi2_cut_fast_par0;       ///< fit quality chisq/dof for fast fit track fitting
   double _chi2_cut_fast_par1;       ///< fit quality chisq/dof for fast fit track fitting
   double _chi2_cut_fast_max;        ///< fit quality chisq/dof for fast fit track fitting
   double _chi2_cut_full;            ///< fit quality chisq/dof for kalman track fitting
-  double _ca_chi2_cut;
-  double _cos_angle_cut;
+  double _ca_chi2_cut;              ///< initial combination cut?
+  double _cos_angle_cut;            ///< curvature restriction on cluster combos
   
-  bool _cut_on_dca;
-  float _dca_cut;
-  float _dcaz_cut;
-
   float _bin_scale;
   float _z_bin_scale;
+
+  unsigned int _min_combo_hits; ///< minimum hits to enter combination gun
+  unsigned int _max_combo_hits; ///< maximum hits to enter combination gun
   
   float _pt_rescale;
   std::vector<float> _fit_error_scale;
