@@ -7,6 +7,7 @@
 
 class G4Step;
 class PHCompositeNode;
+class PHG4Hit;
 
 class PHG4SteppingAction
 {
@@ -37,6 +38,9 @@ class PHG4SteppingAction
 
   //! get amount of energy that can make scintillation light, in Unit of GeV.
   virtual double GetVisibleEnergyDeposition(const G4Step* step);
+
+  //! Extract local coordinate of the hit and save to PHG4Hit
+  virtual void StoreLocalCoorindate(PHG4Hit * hit, const G4Step* step, bool do_prepoint, bool do_postpoint);
 
   virtual void flush_cached_values() {return;}
 
