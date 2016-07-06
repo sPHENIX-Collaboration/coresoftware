@@ -300,14 +300,7 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrackState* state,
   
   return;
 }
-  
-float PHG4HoughTransform::kappaToPt(float kappa) {  
-  return _pt_rescale * _magField / 333.6 / kappa;
-}
 
-float PHG4HoughTransform::ptToKappa(float pt) {  
-  return _pt_rescale * _magField / 333.6 / pt;
-}
 
 PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers,
                                        unsigned int req_seed,
@@ -470,172 +463,46 @@ int PHG4HoughTransform::End(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
-
-  //---------------------------------------------------------
-  // Grab Run-Dependent Detector Geometry and Configure Hough
-  //---------------------------------------------------------
-
-  bool default_geo = false;
-
-  PHG4CylinderCellGeomContainer* cellgeos =
-      findNode::getClass<PHG4CylinderCellGeomContainer>(
-          topNode, "CYLINDERCELLGEOM_SVTX");
-  PHG4CylinderGeomContainer* laddergeos =
-      findNode::getClass<PHG4CylinderGeomContainer>(
-          topNode, "CYLINDERGEOM_SILICON_TRACKER");
-  // PHG4CylinderCellContainer* cells =
-  // findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
-
-  if (cellgeos || laddergeos) {
-    unsigned int ncelllayers = 0;
-    if (cellgeos) ncelllayers += cellgeos->get_NLayers();
-    unsigned int nladderlayers = 0;
-    if (laddergeos) nladderlayers += laddergeos->get_NLayers();
-    _nlayers = ncelllayers + nladderlayers;
-    default_geo = false;
-  } else {
-    cerr << PHWHERE
-         << "Neither CYLINDERCELLGEOM_SVTX nor CYLINDERGEOM_SILICON_TRACKER "
-            "available, reverting to a default geometry"
-         << std::endl;
-    _nlayers = 6;
-    default_geo = true;
-  }
-
-  //=================================================//
-  //  Initializing HelixHough objects                //
-  //=================================================//
-  
-  _radii.assign(_nlayers, 0.0);
-  _smear_xy_layer.assign(_nlayers, 0.0);
-  _smear_z_layer.assign(_nlayers, 0.0);
-  float sqrt_12 = sqrt(12.);
-	
-  if (default_geo) {
-
-    // default geometry
-    _radii[0] = 2.5;
-    _radii[1] = 5.0;
-    _radii[2] = 10.0;
-    _radii[3] = 14.0;
-    _radii[4] = 40.0;
-    _radii[5] = 60.0;
-    
-    _smear_xy_layer[0] = (50.0e-4/sqrt_12);
-    _smear_z_layer[0] = (425.0e-4/sqrt_12);
-    _smear_xy_layer[1] = (50.0e-4/sqrt_12);
-    _smear_z_layer[1] = (425.0e-4/sqrt_12);
-    _smear_xy_layer[2] = (80.0e-4/sqrt_12);
-    _smear_z_layer[2] = (1000.0e-4/sqrt_12);
-    _smear_xy_layer[3] = (80.0e-4/sqrt_12);
-    _smear_z_layer[3] = (1000.0e-4/sqrt_12);
-    
-    for(int il=4; il<_nlayers; ++il) {
-      _smear_xy_layer[il] = (80.0e-4/sqrt_12);
-      _smear_z_layer[il] = (30000.0e-4/sqrt_12);
-    }
-
-    _layer_ilayer_map.clear();
-    for (int ilayer = 0; ilayer < _nlayers; ++ilayer) {
-      _layer_ilayer_map.insert(make_pair(ilayer,ilayer));
-    }
-    
-  } else {
-
-    // Since the G4 layers don't necessarily correspond to the
-    // silicon layers, and don't necessarily start from zero (argh),
-    // we create our own layers numbers that are consecutive
-    // starting from zero.
-
-    // Now that we have two kinds of layers, I won't know in principle
-    // which type is in what order, so I figure that out now...
-    
-    map<float,int> radius_layer_map;
-
-    if (cellgeos) {
-      PHG4CylinderCellGeomContainer::ConstRange layerrange = cellgeos->get_begin_end();
-      for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
-	  layeriter != layerrange.second;
-	  ++layeriter) {
-	radius_layer_map.insert( make_pair(layeriter->second->get_radius(),
-					   layeriter->second->get_layer()) );
-      }
-    }
-
-    if (laddergeos) {
-      PHG4CylinderGeomContainer::ConstRange layerrange = laddergeos->get_begin_end();
-      for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
-	  layeriter != layerrange.second;
-	  ++layeriter) {
-	radius_layer_map.insert( make_pair(layeriter->second->get_radius(),
-					   layeriter->second->get_layer()) );
-      }
-    }
-
-    // now that the layer ids are sorted by radius, I can create a storage
-    // index, ilayer, that is 0..N-1 and sorted by radius
-    
-    int ilayer = 0;
-    for(map<float,int>::iterator iter = radius_layer_map.begin();
-	iter != radius_layer_map.end();
-	++iter) {
-      _layer_ilayer_map.insert( make_pair(iter->second,ilayer) );
-      ++ilayer;
-    }   
-
-    // now we extract the information from the cellgeos first
-    if (cellgeos) {    
-      PHG4CylinderCellGeomContainer::ConstRange begin_end = cellgeos->get_begin_end();
-      PHG4CylinderCellGeomContainer::ConstIterator miter = begin_end.first;
-      for( ; miter != begin_end.second; miter++) {
-	PHG4CylinderCellGeom *cellgeo = miter->second;
-      
-	if (verbosity > 1) cellgeo->identify();
-
-	_radii[_layer_ilayer_map[cellgeo->get_layer()]] = cellgeo->get_radius();      
-	_smear_xy_layer[_layer_ilayer_map[cellgeo->get_layer()]] = cellgeo->get_radius()*cellgeo->get_phistep();
-	_smear_z_layer[_layer_ilayer_map[cellgeo->get_layer()]] = cellgeo->get_zstep();     
-      }
-    }
-
-    if (laddergeos) {    
-      PHG4CylinderGeomContainer::ConstRange begin_end = laddergeos->get_begin_end();
-      PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
-      for( ; miter != begin_end.second; miter++) {
-	PHG4CylinderGeom *geo = miter->second;
-	
-	if (verbosity > 1) geo->identify();
-	
-	_radii[_layer_ilayer_map[geo->get_layer()]] = geo->get_radius();      
-	_smear_xy_layer[_layer_ilayer_map[geo->get_layer()]] = geo->get_strip_y_spacing();
-	_smear_z_layer[_layer_ilayer_map[geo->get_layer()]] = geo->get_strip_z_spacing();     
-      }
-    }
-  }  
-
-  // set material on each layer
-  
-  _material.assign(_radii.size(), 0.03);
-
-  map<int, float>::iterator mat_it;
-  for (map<int, float>::iterator iter = _user_material.begin();
-       iter != _user_material.end();
-       ++iter) {
-    _material[_layer_ilayer_map[iter->first]] = iter->second;
-  }
-
-  // initialize the pattern recogition tools
-
-  setup_tracker_object();
-  setup_initial_tracker_object();
-  setup_seed_tracker_objects();
-  
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 void PHG4HoughTransform::set_material(int layer, float value) {
   _user_material[layer] = value;
+}
+
+int PHG4HoughTransform::GetNodes(PHCompositeNode* topNode) {
+
+  //---------------------------------
+  // Get Objects off of the Node Tree
+  //---------------------------------
+
+  // Pull the reconstructed track information off the node tree...
+  _bbc_vertexes = getClass<BbcVertexMap>(topNode, "BbcVertexMap");
+  
+  _ghitlist = getClass<PHG4HitContainer>(topNode, "G4HIT_SVTX");
+  if (!_ghitlist) {
+    cerr << PHWHERE << " ERROR: Can't find node PHG4HitContainer" << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _g4clusters = getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
+  if (!_g4clusters) {
+    cerr << PHWHERE << " ERROR: Can't find node SvtxClusterMap" << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  // Pull the reconstructed track information off the node tree...
+  _g4tracks = getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  if (!_g4tracks) {
+    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap." << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  // Pull the reconstructed track information off the node tree...
+  _g4vertexes = getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if (!_g4vertexes) {
+    cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4HoughTransform::CreateNodes(PHCompositeNode* topNode) {
@@ -680,135 +547,405 @@ int PHG4HoughTransform::CreateNodes(PHCompositeNode* topNode) {
   return InitializeGeometry(topNode);
 }
 
-int PHG4HoughTransform::GetNodes(PHCompositeNode* topNode) {
+int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
 
-  //---------------------------------
-  // Get Objects off of the Node Tree
-  //---------------------------------
+  //---------------------------------------------------------
+  // Grab Run-Dependent Detector Geometry and Configure Hough
+  //---------------------------------------------------------
 
-  // Pull the reconstructed track information off the node tree...
-  _bbc_vertexes = getClass<BbcVertexMap>(topNode, "BbcVertexMap");
+  PHG4CylinderCellGeomContainer* cellgeos =
+      findNode::getClass<PHG4CylinderCellGeomContainer>(
+          topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4CylinderGeomContainer* laddergeos =
+      findNode::getClass<PHG4CylinderGeomContainer>(
+          topNode, "CYLINDERGEOM_SILICON_TRACKER");
+
+  if (cellgeos || laddergeos) {
+    unsigned int ncelllayers = 0;
+    if (cellgeos) ncelllayers += cellgeos->get_NLayers();
+    unsigned int nladderlayers = 0;
+    if (laddergeos) nladderlayers += laddergeos->get_NLayers();
+    _nlayers = ncelllayers + nladderlayers;
+  } else {
+    cerr << PHWHERE
+         << "Neither CYLINDERCELLGEOM_SVTX nor CYLINDERGEOM_SILICON_TRACKER "
+            "available, bail"
+         << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  //=================================================//
+  //  Initializing HelixHough objects                //
+  //=================================================//
+  	
+  // Since the G4 layers don't necessarily correspond to the
+  // silicon layers, and don't necessarily start from zero (argh),
+  // we create our own layers numbers that are consecutive
+  // starting from zero.
+
+  // Now that we have two kinds of layers, I won't know in principle
+  // which type is in what order, so I figure that out now...
+
+  _radii.assign(_nlayers, 0.0);    
+  map<float,int> radius_layer_map;
+
+  if (cellgeos) {
+    PHG4CylinderCellGeomContainer::ConstRange layerrange = cellgeos->get_begin_end();
+    for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
+	layeriter != layerrange.second;
+	++layeriter) {
+      radius_layer_map.insert( make_pair(layeriter->second->get_radius(),
+					 layeriter->second->get_layer()) );
+    }
+  }
+
+  if (laddergeos) {
+    PHG4CylinderGeomContainer::ConstRange layerrange = laddergeos->get_begin_end();
+    for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+	layeriter != layerrange.second;
+	++layeriter) {
+      radius_layer_map.insert( make_pair(layeriter->second->get_radius(),
+					 layeriter->second->get_layer()) );
+    }
+  }
+
+  // now that the layer ids are sorted by radius, I can create a storage
+  // index, ilayer, that is 0..N-1 and sorted by radius
   
-  _ghitlist = getClass<PHG4HitContainer>(topNode, "G4HIT_SVTX");
-  if (!_ghitlist) {
-    cerr << PHWHERE << " ERROR: Can't find node PHG4HitContainer" << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+  int ilayer = 0;
+  for(map<float,int>::iterator iter = radius_layer_map.begin();
+      iter != radius_layer_map.end();
+      ++iter) {
+    _layer_ilayer_map.insert( make_pair(iter->second,ilayer) );
+    ++ilayer;
+  }   
+
+  // now we extract the information from the cellgeos first
+  if (cellgeos) {    
+    PHG4CylinderCellGeomContainer::ConstRange begin_end = cellgeos->get_begin_end();
+    PHG4CylinderCellGeomContainer::ConstIterator miter = begin_end.first;
+    for( ; miter != begin_end.second; miter++) {
+      PHG4CylinderCellGeom *cellgeo = miter->second;
+      
+      if (verbosity > 1) cellgeo->identify();
+      
+      _radii[_layer_ilayer_map[cellgeo->get_layer()]] = cellgeo->get_radius();      
+    }
   }
 
-  _g4clusters = getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
-  if (!_g4clusters) {
-    cerr << PHWHERE << " ERROR: Can't find node SvtxClusterMap" << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+  if (laddergeos) {    
+    PHG4CylinderGeomContainer::ConstRange begin_end = laddergeos->get_begin_end();
+    PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
+    for( ; miter != begin_end.second; miter++) {
+      PHG4CylinderGeom *geo = miter->second;
+      
+      if (verbosity > 1) geo->identify();
+      
+      _radii[_layer_ilayer_map[geo->get_layer()]] = geo->get_radius();      
+    }
   }
 
-  // Pull the reconstructed track information off the node tree...
-  _g4tracks = getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-  if (!_g4tracks) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+  // set material on each layer
+  
+  _material.assign(_radii.size(), 0.03);
+
+  map<int, float>::iterator mat_it;
+  for (map<int, float>::iterator iter = _user_material.begin();
+       iter != _user_material.end();
+       ++iter) {
+    _material[_layer_ilayer_map[iter->first]] = iter->second;
   }
 
-  // Pull the reconstructed track information off the node tree...
-  _g4vertexes = getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-  if (!_g4vertexes) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
+  // initialize the pattern recogition tools
 
+  setup_tracker_object();
+  setup_initial_tracker_object();
+  setup_seed_tracker_objects();
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-bool PHG4HoughTransform::circle_line_intersections(double x0, double y0, double r0,
-						   double x1, double y1, double vx1, double vy1,
-						   std::set<std::vector<double> >* points) {
-  // P0: center of rotation
-  // P1: point on line
-  // P2: second point on line
-  // P3: intersections
+int PHG4HoughTransform::setup_seed_tracker_objects() {
 
-  // dr: distance between P1 & P2
-  // delta: discriminant on number of solutions
+  float kappa_max = ptToKappa(_min_pT);
+
+  // for the initial tracker we may not have the best guess on the vertex yet
+  // so I've doubled the search range on dca and dcaz
+
+  std::vector<unsigned int> onezoom(5,0);
+  std::vector<vector<unsigned int> > zoomprofile;
+  zoomprofile.assign(5,onezoom);
+  zoomprofile[0][0] = 16;
+  zoomprofile[0][1] = 1; 
+  zoomprofile[0][2] = 4;
+  zoomprofile[0][3] = 8;
+  zoomprofile[0][4] = 1;
   
-  points->clear();
+  zoomprofile[1][0] = 16;
+  zoomprofile[1][1] = 1;
+  zoomprofile[1][2] = 4;
+  zoomprofile[1][3] = 4;
+  zoomprofile[1][4] = 2;
   
-  double x2 = x1 + vx1;
-  double y2 = y1 + vy1;
-
-  double dr = sqrt(pow(vx1,2)+pow(vy1,2));
-  double det = x1*y2-x2*y1;
-
-  double delta = pow(r0,2)*pow(dr,2) - pow(det,2);
-  if (delta < 0) return false;
-
-  double sgn_vy1 = 1.0;
-  if (vy1 < 0.0) sgn_vy1 = -1.0;
+  zoomprofile[2][0] = 4;
+  zoomprofile[2][1] = 3;
+  zoomprofile[2][2] = 2;
+  zoomprofile[2][3] = 1;
+  zoomprofile[2][4] = 3;
   
-  double x3 = (det*vy1 + sgn_vy1*vx1*sqrt(pow(r0,2)*pow(dr,2)-pow(det,2))) / pow(dr,2);
-  double y3 = (-1.0*det*vx1 + fabs(vy1)*sqrt(pow(r0,2)*pow(dr,2)-pow(det,2))) / pow(dr,2);
+  for (unsigned int i = 2; i <= 3; ++i) {
+    zoomprofile[i][0] = 3;
+    zoomprofile[i][1] = 3;
+    zoomprofile[i][2] = 3;
+    zoomprofile[i][3] = 3;
+    zoomprofile[i][4] = 3;
+  }
+  
+  HelixRange pos_range( 0.0, 2.*M_PI,    // center of rotation azimuthal angles
+			-1.0, 1.0,       // 2d dca range
+			0.0, kappa_max,  // curvature range
+			0.0, 0.9,        // dzdl range
+			-10.0, 10.0);    // dca_z range
+  
+  _tracker_etap_seed = new sPHENIXTracker(zoomprofile, 1, pos_range, _material, _radii, _magField);
+  _tracker_etap_seed->setNLayers(_seed_layers);
+  _tracker_etap_seed->requireLayers(_req_seed);
+  _max_hits_init = _seed_layers*4;
+  if (_seed_layers >= 10) _max_hits_init = _seed_layers*2;
+  _min_hits_init = _req_seed;
+  if (_seed_layers < 10) _tracker_etap_seed->setClusterStartBin(1);
+  else _tracker_etap_seed->setClusterStartBin(10);
+  _tracker_etap_seed->setRejectGhosts(_reject_ghosts);
+  _tracker_etap_seed->setFastChi2Cut(_chi2_cut_fast_par0,
+				     _chi2_cut_fast_par1,
+				     _chi2_cut_fast_max);
+  _tracker_etap_seed->setChi2Cut(_chi2_cut_full);
+  _tracker_etap_seed->setChi2RemovalCut(_chi2_cut_full*0.5);
+  _tracker_etap_seed->setCellularAutomatonChi2Cut(_ca_chi2_cut);
+  _tracker_etap_seed->setPrintTimings(false);
+  _tracker_etap_seed->setCutOnDca(false);
+  _tracker_etap_seed->setSmoothBack(true);
+  _tracker_etap_seed->setBinScale(_bin_scale);
+  _tracker_etap_seed->setZBinScale(_z_bin_scale);
+  _tracker_etap_seed->setRemoveHits(_remove_hits);
+  _tracker_etap_seed->setSeparateByHelicity(true);
+  _tracker_etap_seed->setMaxHitsPairs(0);
+  _tracker_etap_seed->setCosAngleCut(_cos_angle_cut);
+      
+  for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
+    float scale1 = _fit_error_scale[ilayer];
+    float scale2 = _vote_error_scale[ilayer];
+    float scale = scale1/scale2;
+    _tracker_etap_seed->setHitErrorScale(ilayer, scale);
+  }
 
-  std::vector<double> p3;
-  p3.push_back(x3);
-  p3.push_back(y3);
-  points->insert(p3);
+  // for the initial tracker we may not have the best guess on the vertex yet
+  // so I've doubled the search range on dca and dcaz
 
-  x3 = (det*vy1 - sgn_vy1*vx1*sqrt(pow(r0,2)*pow(dr,2)-pow(det,2))) / pow(dr,2);
-  y3 = (-1.0*det*vx1 - fabs(vy1)*sqrt(pow(r0,2)*pow(dr,2)-pow(det,2))) / pow(dr,2);
-
-  p3[0] = x3;
-  p3[1] = y3;
-  points->insert(p3);
-
-  return true;
+  HelixRange neg_range( 0.0, 2.*M_PI,    // center of rotation azimuthal angles
+			-1.0, 1.0,       // 2d dca range
+			0.0, kappa_max,  // curvature range
+			-0.9, 0.0,       // dzdl range
+			-10.0, 10.0);    // dca_z range
+  
+  _tracker_etam_seed = new sPHENIXTracker(zoomprofile, 1, neg_range, _material, _radii, _magField);
+  _tracker_etam_seed->setNLayers(_seed_layers);
+  _tracker_etam_seed->requireLayers(_req_seed);
+  _max_hits_init = _seed_layers*4;
+  if (_seed_layers >= 10) _max_hits_init = _seed_layers*2;
+  _min_hits_init = _req_seed;
+  if (_seed_layers < 10) _tracker_etam_seed->setClusterStartBin(1);
+  else _tracker_etam_seed->setClusterStartBin(10);
+  _tracker_etam_seed->setRejectGhosts(_reject_ghosts);
+  _tracker_etam_seed->setFastChi2Cut(_chi2_cut_fast_par0,
+				     _chi2_cut_fast_par1,
+				     _chi2_cut_fast_max);
+  _tracker_etam_seed->setChi2Cut(_chi2_cut_full);
+  _tracker_etam_seed->setChi2RemovalCut(_chi2_cut_full*0.5);
+  _tracker_etam_seed->setCellularAutomatonChi2Cut(_ca_chi2_cut);
+  _tracker_etam_seed->setPrintTimings(false);
+  _tracker_etam_seed->setCutOnDca(false);
+  _tracker_etam_seed->setSmoothBack(true);
+  _tracker_etam_seed->setBinScale(_bin_scale);
+  _tracker_etam_seed->setZBinScale(_z_bin_scale);
+  _tracker_etam_seed->setRemoveHits(_remove_hits);
+  _tracker_etam_seed->setSeparateByHelicity(true);
+  _tracker_etam_seed->setMaxHitsPairs(0);
+  _tracker_etam_seed->setCosAngleCut(_cos_angle_cut);
+  
+  for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
+    float scale1 = _fit_error_scale[ilayer];
+    float scale2 = _vote_error_scale[ilayer];
+    float scale = scale1/scale2;
+    _tracker_etam_seed->setHitErrorScale(ilayer, scale);
+  }
+  
+  return Fun4AllReturnCodes::EVENT_OK;
 }
+
+int PHG4HoughTransform::setup_initial_tracker_object() {
+
+  // copy of the final tracker modified to:
+  // expand the DCA search regions (2.0 cm z search > 3 sigma of BBC z vertex
+  // remove the DCA cut on the track output
   
-bool PHG4HoughTransform::circle_circle_intersections(double x0, double y0, double r0,
-						     double x1, double y1, double r1,
-						     std::set<std::vector<double> >* points) {
-  // P0: center of rotation on first circle
-  // P1: center of rotation of second circle
-  // P2: point between P0 & P1 on radical line
-  // P3: intersection points
+  // tell the initial tracker object the phase space extent of the search region
+  // and the recursive zoom factors to utilize  
 
-  // d: distance between P0 and P1
-  // a: distance between P0 and P2
-  // h: distance from P2 and P3s
+  float kappa_max = ptToKappa(_min_pT);
 
-  points->clear();
+  // for the initial tracker we may not have the best guess on the vertex yet
+  // so I've doubled the search range on dca and dcaz
   
-  // distance between two circle centers
-  double d = sqrt(pow(x0-x1,2)+pow(y0-y1,2));
-
-  // handle error conditions
-  if (fabs(r0+r1) < d) return false; // no solution
-  if (fabs(r0-r1) > d) return false; // no solution
-  if (d == 0 && r0 == r1) return false; // infinite solutions
-
-  // compute distances to intersection points
-  double a = (pow(r0,2)-pow(r1,2)+pow(d,2)) / (2*d);
-  double h = sqrt(pow(r0,2)-pow(a,2));
-
-  // compute P2
-  double x2 = x0 + a * (x1 - x0) / d;
-  double y2 = y0 + a * (y1 - y0) / d;
+  HelixRange top_range( 0.0, 2.*M_PI,    // center of rotation azimuthal angles
+			-1.0, 1.0,       // 2d dca range
+			0.0, kappa_max,  // curvature range
+			-0.9, 0.9,       // dzdl range
+			-2.0, 2.0);      // dca_z range
   
-  // compute intersection, p3
-  double x3 = x2 + h * (y1 - y0) / d;
-  double y3 = y2 - h * (x1 - x0) / d;
-
-  std::vector<double> p3;
-  p3.push_back(x3);
-  p3.push_back(y3);
-  points->insert(p3);
+  vector<unsigned int> onezoom(5,0);
+  vector<vector<unsigned int> > zoomprofile;
+  zoomprofile.assign(5,onezoom);
+  zoomprofile[0][0] = 16;
+  zoomprofile[0][1] = 1;
+  zoomprofile[0][2] = 4;
+  zoomprofile[0][3] = 8;
+  zoomprofile[0][4] = 1;
   
-  // second intersection (if different than first)
-  x3 = x2 - h * (y1 - y0) / d;
-  y3 = y2 + h * (x1 - x0) / d;
+  zoomprofile[1][0] = 16;
+  zoomprofile[1][1] = 1;
+  zoomprofile[1][2] = 4;
+  zoomprofile[1][3] = 4;
+  zoomprofile[1][4] = 2;
+  
+  zoomprofile[2][0] = 4;
+  zoomprofile[2][1] = 3;
+  zoomprofile[2][2] = 2;
+  zoomprofile[2][3] = 1;
+  zoomprofile[2][4] = 3;
+  
+  for (unsigned int i = 2; i <= 3; ++i) {
+    zoomprofile[i][0] = 3;
+    zoomprofile[i][1] = 3;
+    zoomprofile[i][2] = 3;
+    zoomprofile[i][3] = 3;
+    zoomprofile[i][4] = 3;
+  }
+    
+  _tracker_vertex = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
+  _tracker_vertex->setNLayers(_seed_layers);
+  _tracker_vertex->requireLayers(_req_seed);
+  _max_hits_init = _seed_layers*4;
+  if(_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
+  _min_hits_init = _req_seed;
+  if(_seed_layers < 10){ _tracker_vertex->setClusterStartBin(1); }
+  else{ _tracker_vertex->setClusterStartBin(10); }
+  _tracker_vertex->setRejectGhosts(_reject_ghosts);
+  _tracker_vertex->setFastChi2Cut(_chi2_cut_fast_par0,
+			   _chi2_cut_fast_par1,
+			   _chi2_cut_fast_max);
+  _tracker_vertex->setChi2Cut(_chi2_cut_full);
+  _tracker_vertex->setChi2RemovalCut(_chi2_cut_full*0.5);
+  _tracker_vertex->setCellularAutomatonChi2Cut(_ca_chi2_cut);
+  _tracker_vertex->setPrintTimings(false);
+  _tracker_vertex->setCutOnDca(false);
+  _tracker_vertex->setSmoothBack(true);
+  _tracker_vertex->setBinScale(_bin_scale);
+  _tracker_vertex->setZBinScale(_z_bin_scale);
+  _tracker_vertex->setRemoveHits(_remove_hits);
+  _tracker_vertex->setSeparateByHelicity(true);
+  _tracker_vertex->setMaxHitsPairs(0);
+  _tracker_vertex->setCosAngleCut(_cos_angle_cut);
+      
+  for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
+    float scale1 = _fit_error_scale[ilayer];
+    float scale2 = _vote_error_scale[ilayer];
+    float scale = scale1/scale2;
+    _tracker_vertex->setHitErrorScale(ilayer, scale);
+  }
+  
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 
-  p3[0] = x3;
-  p3[1] = y3;
-  points->insert(p3);
+int PHG4HoughTransform::setup_tracker_object() {
 
-  return points;  
+  // input vertex must be within 500 um of final
+  
+  // tell the tracker object the phase space extent of the search region
+  // and the recursive zoom factors to utilize
+  
+  float kappa_max = ptToKappa(_min_pT);
+
+  HelixRange top_range( 0.0, 2.*M_PI,                   // center of rotation azimuthal angles
+			-0.2, 0.2,                      // 2d dca range
+			0.0, kappa_max,                 // curvature range
+			-0.9, 0.9,                      // dzdl range
+			-1.0*_dcaz_cut, 1.0*_dcaz_cut); // dca_z range
+  
+  vector<unsigned int> onezoom(5,0);
+  vector<vector<unsigned int> > zoomprofile;
+  zoomprofile.assign(5,onezoom);
+  zoomprofile[0][0] = 16;
+  zoomprofile[0][1] = 1;
+  zoomprofile[0][2] = 4;
+  zoomprofile[0][3] = 8;
+  zoomprofile[0][4] = 1;
+  
+  zoomprofile[1][0] = 16;
+  zoomprofile[1][1] = 1;
+  zoomprofile[1][2] = 4;
+  zoomprofile[1][3] = 4;
+  zoomprofile[1][4] = 2;
+  
+  zoomprofile[2][0] = 4;
+  zoomprofile[2][1] = 3;
+  zoomprofile[2][2] = 2;
+  zoomprofile[2][3] = 1;
+  zoomprofile[2][4] = 3;
+  
+  for (unsigned int i = 2; i <= 3; ++i) {
+    zoomprofile[i][0] = 3;
+    zoomprofile[i][1] = 3;
+    zoomprofile[i][2] = 3;
+    zoomprofile[i][3] = 3;
+    zoomprofile[i][4] = 3;
+  }
+    
+  _tracker = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
+  _tracker->setNLayers(_seed_layers);
+  _tracker->requireLayers(_req_seed);
+  _max_hits_init = _seed_layers*4;
+  if (_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
+  _min_hits_init = _req_seed;
+  if (_seed_layers < 10){ _tracker->setClusterStartBin(1); }
+  else { _tracker->setClusterStartBin(10); }
+  _tracker->setRejectGhosts(_reject_ghosts);
+  _tracker->setFastChi2Cut(_chi2_cut_fast_par0,
+			   _chi2_cut_fast_par1,
+			   _chi2_cut_fast_max);
+  _tracker->setChi2Cut(_chi2_cut_full);
+  _tracker->setChi2RemovalCut(_chi2_cut_full*0.5);
+  _tracker->setCellularAutomatonChi2Cut(_ca_chi2_cut);
+  _tracker->setPrintTimings(false);
+  //_tracker->setVerbosity(verbosity);
+  _tracker->setCutOnDca(_cut_on_dca);
+  _tracker->setDcaCut(_dca_cut);
+  _tracker->setSmoothBack(true);
+  _tracker->setBinScale(_bin_scale);
+  _tracker->setZBinScale(_z_bin_scale);
+  _tracker->setRemoveHits(_remove_hits);
+  _tracker->setSeparateByHelicity(true);
+  _tracker->setMaxHitsPairs(0);
+  _tracker->setCosAngleCut(_cos_angle_cut);
+      
+  for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
+    float scale1 = _fit_error_scale[ilayer];
+    float scale2 = _vote_error_scale[ilayer];
+    float scale = scale1/scale2;
+    _tracker->setHitErrorScale(ilayer, scale);
+  }
+  
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4HoughTransform::translate_input() {
@@ -1039,289 +1176,6 @@ int PHG4HoughTransform::initial_vertex_finding() {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4HoughTransform::setup_tracker_object() {
-
-  // input vertex must be within 500 um of final
-  
-  // tell the tracker object the phase space extent of the search region
-  // and the recursive zoom factors to utilize
-  
-  float kappa_max = ptToKappa(_min_pT);
-
-  HelixRange top_range( 0.0, 2.*M_PI,                   // center of rotation azimuthal angles
-			-0.2, 0.2,                      // 2d dca range
-			0.0, kappa_max,                 // curvature range
-			-0.9, 0.9,                      // dzdl range
-			-1.0*_dcaz_cut, 1.0*_dcaz_cut); // dca_z range
-  
-  vector<unsigned int> onezoom(5,0);
-  vector<vector<unsigned int> > zoomprofile;
-  zoomprofile.assign(5,onezoom);
-  zoomprofile[0][0] = 16;
-  zoomprofile[0][1] = 1;
-  zoomprofile[0][2] = 4;
-  zoomprofile[0][3] = 8;
-  zoomprofile[0][4] = 1;
-  
-  zoomprofile[1][0] = 16;
-  zoomprofile[1][1] = 1;
-  zoomprofile[1][2] = 4;
-  zoomprofile[1][3] = 4;
-  zoomprofile[1][4] = 2;
-  
-  zoomprofile[2][0] = 4;
-  zoomprofile[2][1] = 3;
-  zoomprofile[2][2] = 2;
-  zoomprofile[2][3] = 1;
-  zoomprofile[2][4] = 3;
-  
-  for (unsigned int i = 2; i <= 3; ++i) {
-    zoomprofile[i][0] = 3;
-    zoomprofile[i][1] = 3;
-    zoomprofile[i][2] = 3;
-    zoomprofile[i][3] = 3;
-    zoomprofile[i][4] = 3;
-  }
-    
-  _tracker = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
-  _tracker->setNLayers(_seed_layers);
-  _tracker->requireLayers(_req_seed);
-  _max_hits_init = _seed_layers*4;
-  if (_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
-  _min_hits_init = _req_seed;
-  if (_seed_layers < 10){ _tracker->setClusterStartBin(1); }
-  else { _tracker->setClusterStartBin(10); }
-  _tracker->setRejectGhosts(_reject_ghosts);
-  _tracker->setFastChi2Cut(_chi2_cut_fast_par0,
-			   _chi2_cut_fast_par1,
-			   _chi2_cut_fast_max);
-  _tracker->setChi2Cut(_chi2_cut_full);
-  _tracker->setChi2RemovalCut(_chi2_cut_full*0.5);
-  _tracker->setCellularAutomatonChi2Cut(_ca_chi2_cut);
-  _tracker->setPrintTimings(false);
-  //_tracker->setVerbosity(verbosity);
-  _tracker->setCutOnDca(_cut_on_dca);
-  _tracker->setDcaCut(_dca_cut);
-  _tracker->setSmoothBack(true);
-  _tracker->setBinScale(_bin_scale);
-  _tracker->setZBinScale(_z_bin_scale);
-  _tracker->setRemoveHits(_remove_hits);
-  _tracker->setSeparateByHelicity(true);
-  _tracker->setMaxHitsPairs(0);
-  _tracker->setCosAngleCut(_cos_angle_cut);
-      
-  for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
-    float scale1 = _fit_error_scale[ilayer];
-    float scale2 = _vote_error_scale[ilayer];
-    float scale = scale1/scale2;
-    _tracker->setHitErrorScale(ilayer, scale);
-  }
-  
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHG4HoughTransform::setup_initial_tracker_object() {
-
-  // copy of the final tracker modified to:
-  // expand the DCA search regions (2.0 cm z search > 3 sigma of BBC z vertex
-  // remove the DCA cut on the track output
-  
-  // tell the initial tracker object the phase space extent of the search region
-  // and the recursive zoom factors to utilize  
-
-  float kappa_max = ptToKappa(_min_pT);
-
-  // for the initial tracker we may not have the best guess on the vertex yet
-  // so I've doubled the search range on dca and dcaz
-  
-  HelixRange top_range( 0.0, 2.*M_PI,    // center of rotation azimuthal angles
-			-1.0, 1.0,       // 2d dca range
-			0.0, kappa_max,  // curvature range
-			-0.9, 0.9,       // dzdl range
-			-2.0, 2.0);      // dca_z range
-  
-  vector<unsigned int> onezoom(5,0);
-  vector<vector<unsigned int> > zoomprofile;
-  zoomprofile.assign(5,onezoom);
-  zoomprofile[0][0] = 16;
-  zoomprofile[0][1] = 1;
-  zoomprofile[0][2] = 4;
-  zoomprofile[0][3] = 8;
-  zoomprofile[0][4] = 1;
-  
-  zoomprofile[1][0] = 16;
-  zoomprofile[1][1] = 1;
-  zoomprofile[1][2] = 4;
-  zoomprofile[1][3] = 4;
-  zoomprofile[1][4] = 2;
-  
-  zoomprofile[2][0] = 4;
-  zoomprofile[2][1] = 3;
-  zoomprofile[2][2] = 2;
-  zoomprofile[2][3] = 1;
-  zoomprofile[2][4] = 3;
-  
-  for (unsigned int i = 2; i <= 3; ++i) {
-    zoomprofile[i][0] = 3;
-    zoomprofile[i][1] = 3;
-    zoomprofile[i][2] = 3;
-    zoomprofile[i][3] = 3;
-    zoomprofile[i][4] = 3;
-  }
-    
-  _tracker_vertex = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
-  _tracker_vertex->setNLayers(_seed_layers);
-  _tracker_vertex->requireLayers(_req_seed);
-  _max_hits_init = _seed_layers*4;
-  if(_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
-  _min_hits_init = _req_seed;
-  if(_seed_layers < 10){ _tracker_vertex->setClusterStartBin(1); }
-  else{ _tracker_vertex->setClusterStartBin(10); }
-  _tracker_vertex->setRejectGhosts(_reject_ghosts);
-  _tracker_vertex->setFastChi2Cut(_chi2_cut_fast_par0,
-			   _chi2_cut_fast_par1,
-			   _chi2_cut_fast_max);
-  _tracker_vertex->setChi2Cut(_chi2_cut_full);
-  _tracker_vertex->setChi2RemovalCut(_chi2_cut_full*0.5);
-  _tracker_vertex->setCellularAutomatonChi2Cut(_ca_chi2_cut);
-  _tracker_vertex->setPrintTimings(false);
-  _tracker_vertex->setCutOnDca(false);
-  _tracker_vertex->setSmoothBack(true);
-  _tracker_vertex->setBinScale(_bin_scale);
-  _tracker_vertex->setZBinScale(_z_bin_scale);
-  _tracker_vertex->setRemoveHits(_remove_hits);
-  _tracker_vertex->setSeparateByHelicity(true);
-  _tracker_vertex->setMaxHitsPairs(0);
-  _tracker_vertex->setCosAngleCut(_cos_angle_cut);
-      
-  for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
-    float scale1 = _fit_error_scale[ilayer];
-    float scale2 = _vote_error_scale[ilayer];
-    float scale = scale1/scale2;
-    _tracker_vertex->setHitErrorScale(ilayer, scale);
-  }
-  
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHG4HoughTransform::setup_seed_tracker_objects() {
-
-  float kappa_max = ptToKappa(_min_pT);
-
-  // for the initial tracker we may not have the best guess on the vertex yet
-  // so I've doubled the search range on dca and dcaz
-
-  std::vector<unsigned int> onezoom(5,0);
-  std::vector<vector<unsigned int> > zoomprofile;
-  zoomprofile.assign(5,onezoom);
-  zoomprofile[0][0] = 16;
-  zoomprofile[0][1] = 1; 
-  zoomprofile[0][2] = 4;
-  zoomprofile[0][3] = 8;
-  zoomprofile[0][4] = 1;
-  
-  zoomprofile[1][0] = 16;
-  zoomprofile[1][1] = 1;
-  zoomprofile[1][2] = 4;
-  zoomprofile[1][3] = 4;
-  zoomprofile[1][4] = 2;
-  
-  zoomprofile[2][0] = 4;
-  zoomprofile[2][1] = 3;
-  zoomprofile[2][2] = 2;
-  zoomprofile[2][3] = 1;
-  zoomprofile[2][4] = 3;
-  
-  for (unsigned int i = 2; i <= 3; ++i) {
-    zoomprofile[i][0] = 3;
-    zoomprofile[i][1] = 3;
-    zoomprofile[i][2] = 3;
-    zoomprofile[i][3] = 3;
-    zoomprofile[i][4] = 3;
-  }
-  
-  HelixRange pos_range( 0.0, 2.*M_PI,    // center of rotation azimuthal angles
-			-1.0, 1.0,       // 2d dca range
-			0.0, kappa_max,  // curvature range
-			0.0, 0.9,        // dzdl range
-			-10.0, 10.0);    // dca_z range
-  
-  _tracker_etap_seed = new sPHENIXTracker(zoomprofile, 1, pos_range, _material, _radii, _magField);
-  _tracker_etap_seed->setNLayers(_seed_layers);
-  _tracker_etap_seed->requireLayers(_req_seed);
-  _max_hits_init = _seed_layers*4;
-  if (_seed_layers >= 10) _max_hits_init = _seed_layers*2;
-  _min_hits_init = _req_seed;
-  if (_seed_layers < 10) _tracker_etap_seed->setClusterStartBin(1);
-  else _tracker_etap_seed->setClusterStartBin(10);
-  _tracker_etap_seed->setRejectGhosts(_reject_ghosts);
-  _tracker_etap_seed->setFastChi2Cut(_chi2_cut_fast_par0,
-				     _chi2_cut_fast_par1,
-				     _chi2_cut_fast_max);
-  _tracker_etap_seed->setChi2Cut(_chi2_cut_full);
-  _tracker_etap_seed->setChi2RemovalCut(_chi2_cut_full*0.5);
-  _tracker_etap_seed->setCellularAutomatonChi2Cut(_ca_chi2_cut);
-  _tracker_etap_seed->setPrintTimings(false);
-  _tracker_etap_seed->setCutOnDca(false);
-  _tracker_etap_seed->setSmoothBack(true);
-  _tracker_etap_seed->setBinScale(_bin_scale);
-  _tracker_etap_seed->setZBinScale(_z_bin_scale);
-  _tracker_etap_seed->setRemoveHits(_remove_hits);
-  _tracker_etap_seed->setSeparateByHelicity(true);
-  _tracker_etap_seed->setMaxHitsPairs(0);
-  _tracker_etap_seed->setCosAngleCut(_cos_angle_cut);
-      
-  for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
-    float scale1 = _fit_error_scale[ilayer];
-    float scale2 = _vote_error_scale[ilayer];
-    float scale = scale1/scale2;
-    _tracker_etap_seed->setHitErrorScale(ilayer, scale);
-  }
-
-  // for the initial tracker we may not have the best guess on the vertex yet
-  // so I've doubled the search range on dca and dcaz
-
-  HelixRange neg_range( 0.0, 2.*M_PI,    // center of rotation azimuthal angles
-			-1.0, 1.0,       // 2d dca range
-			0.0, kappa_max,  // curvature range
-			-0.9, 0.0,       // dzdl range
-			-10.0, 10.0);    // dca_z range
-  
-  _tracker_etam_seed = new sPHENIXTracker(zoomprofile, 1, neg_range, _material, _radii, _magField);
-  _tracker_etam_seed->setNLayers(_seed_layers);
-  _tracker_etam_seed->requireLayers(_req_seed);
-  _max_hits_init = _seed_layers*4;
-  if (_seed_layers >= 10) _max_hits_init = _seed_layers*2;
-  _min_hits_init = _req_seed;
-  if (_seed_layers < 10) _tracker_etam_seed->setClusterStartBin(1);
-  else _tracker_etam_seed->setClusterStartBin(10);
-  _tracker_etam_seed->setRejectGhosts(_reject_ghosts);
-  _tracker_etam_seed->setFastChi2Cut(_chi2_cut_fast_par0,
-				     _chi2_cut_fast_par1,
-				     _chi2_cut_fast_max);
-  _tracker_etam_seed->setChi2Cut(_chi2_cut_full);
-  _tracker_etam_seed->setChi2RemovalCut(_chi2_cut_full*0.5);
-  _tracker_etam_seed->setCellularAutomatonChi2Cut(_ca_chi2_cut);
-  _tracker_etam_seed->setPrintTimings(false);
-  _tracker_etam_seed->setCutOnDca(false);
-  _tracker_etam_seed->setSmoothBack(true);
-  _tracker_etam_seed->setBinScale(_bin_scale);
-  _tracker_etam_seed->setZBinScale(_z_bin_scale);
-  _tracker_etam_seed->setRemoveHits(_remove_hits);
-  _tracker_etam_seed->setSeparateByHelicity(true);
-  _tracker_etam_seed->setMaxHitsPairs(0);
-  _tracker_etam_seed->setCosAngleCut(_cos_angle_cut);
-  
-  for(unsigned int ilayer = 0; ilayer < _fit_error_scale.size(); ++ilayer) {
-    float scale1 = _fit_error_scale[ilayer];
-    float scale2 = _vote_error_scale[ilayer];
-    float scale = scale1/scale2;
-    _tracker_etam_seed->setHitErrorScale(ilayer, scale);
-  }
-  
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int PHG4HoughTransform::full_tracking_and_vertexing() {
 
   float shift_dx = -_vertex[0];
@@ -1548,6 +1402,14 @@ int PHG4HoughTransform::export_output() {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+float PHG4HoughTransform::kappaToPt(float kappa) {  
+  return _pt_rescale * _magField / 333.6 / kappa;
+}
+
+float PHG4HoughTransform::ptToKappa(float pt) {  
+  return _pt_rescale * _magField / 333.6 / pt;
+}
+
 void PHG4HoughTransform::shift_coordinate_system(double dx,
 						 double dy,
                                                  double dz) {
@@ -1571,4 +1433,97 @@ void PHG4HoughTransform::shift_coordinate_system(double dx,
   _vertex[2] += dz;
   
   return;
+}
+
+bool PHG4HoughTransform::circle_line_intersections(double x0, double y0, double r0,
+						   double x1, double y1, double vx1, double vy1,
+						   std::set<std::vector<double> >* points) {
+  // P0: center of rotation
+  // P1: point on line
+  // P2: second point on line
+  // P3: intersections
+
+  // dr: distance between P1 & P2
+  // delta: discriminant on number of solutions
+  
+  points->clear();
+  
+  double x2 = x1 + vx1;
+  double y2 = y1 + vy1;
+
+  double dr = sqrt(pow(vx1,2)+pow(vy1,2));
+  double det = x1*y2-x2*y1;
+
+  double delta = pow(r0,2)*pow(dr,2) - pow(det,2);
+  if (delta < 0) return false;
+
+  double sgn_vy1 = 1.0;
+  if (vy1 < 0.0) sgn_vy1 = -1.0;
+  
+  double x3 = (det*vy1 + sgn_vy1*vx1*sqrt(pow(r0,2)*pow(dr,2)-pow(det,2))) / pow(dr,2);
+  double y3 = (-1.0*det*vx1 + fabs(vy1)*sqrt(pow(r0,2)*pow(dr,2)-pow(det,2))) / pow(dr,2);
+
+  std::vector<double> p3;
+  p3.push_back(x3);
+  p3.push_back(y3);
+  points->insert(p3);
+
+  x3 = (det*vy1 - sgn_vy1*vx1*sqrt(pow(r0,2)*pow(dr,2)-pow(det,2))) / pow(dr,2);
+  y3 = (-1.0*det*vx1 - fabs(vy1)*sqrt(pow(r0,2)*pow(dr,2)-pow(det,2))) / pow(dr,2);
+
+  p3[0] = x3;
+  p3[1] = y3;
+  points->insert(p3);
+
+  return true;
+}
+  
+bool PHG4HoughTransform::circle_circle_intersections(double x0, double y0, double r0,
+						     double x1, double y1, double r1,
+						     std::set<std::vector<double> >* points) {
+  // P0: center of rotation on first circle
+  // P1: center of rotation of second circle
+  // P2: point between P0 & P1 on radical line
+  // P3: intersection points
+
+  // d: distance between P0 and P1
+  // a: distance between P0 and P2
+  // h: distance from P2 and P3s
+
+  points->clear();
+  
+  // distance between two circle centers
+  double d = sqrt(pow(x0-x1,2)+pow(y0-y1,2));
+
+  // handle error conditions
+  if (fabs(r0+r1) < d) return false; // no solution
+  if (fabs(r0-r1) > d) return false; // no solution
+  if (d == 0 && r0 == r1) return false; // infinite solutions
+
+  // compute distances to intersection points
+  double a = (pow(r0,2)-pow(r1,2)+pow(d,2)) / (2*d);
+  double h = sqrt(pow(r0,2)-pow(a,2));
+
+  // compute P2
+  double x2 = x0 + a * (x1 - x0) / d;
+  double y2 = y0 + a * (y1 - y0) / d;
+  
+  // compute intersection, p3
+  double x3 = x2 + h * (y1 - y0) / d;
+  double y3 = y2 - h * (x1 - x0) / d;
+
+  std::vector<double> p3;
+  p3.push_back(x3);
+  p3.push_back(y3);
+  points->insert(p3);
+  
+  // second intersection (if different than first)
+  x3 = x2 - h * (y1 - y0) / d;
+  y3 = y2 + h * (x1 - x0) / d;
+
+  p3[0] = x3;
+  p3[1] = y3;
+  points->insert(p3);
+
+  return points;  
 }

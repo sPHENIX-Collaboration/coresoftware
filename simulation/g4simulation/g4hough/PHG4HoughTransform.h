@@ -71,7 +71,7 @@ public:
   int End(PHCompositeNode *topNode);
 
   /// set verbosity
-  void Verbosity(int verb) {verbosity = verb;}
+  //void Verbosity(int verb) {verbosity = verb;}
 
   /// external handle for projecting tracks into the calorimetry
   static void projectToRadius(const SvtxTrack* track,
@@ -189,8 +189,13 @@ private:
   // InitRun Calls
   //--------------
 
+  /// fetch node pointers
   int GetNodes(PHCompositeNode *topNode);
+
+  /// create new node output pointers
   int CreateNodes(PHCompositeNode *topNode);
+
+  /// scan tracker geometry objects
   int InitializeGeometry(PHCompositeNode *topNode);
 
   /// code to setup seed tracking objects
@@ -244,6 +249,7 @@ private:
   static bool circle_line_intersections(double x0, double y0, double r0,
 					double x1, double y1, double vx1, double vy1,
 					std::set<std::vector<double> >* points);
+  
   /// helper function for projection code
   static bool circle_circle_intersections(double x0, double y0, double r0,
 					  double x1, double y1, double r1,
@@ -271,8 +277,6 @@ private:
 
   int _nlayers;                        ///< number of detector layers
   std::vector<float> _radii;           ///< radial distance of each layer (cm)
-  std::vector<float> _smear_xy_layer;  ///< detector hit resolution in phi (cm)
-  std::vector<float> _smear_z_layer;   ///< detector hit resolution in z (cm)
   std::vector<float> _material;        ///< material at each layer in rad. lengths
 
   // object storage                                                                                                     
