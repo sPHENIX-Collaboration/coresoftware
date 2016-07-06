@@ -267,12 +267,9 @@ private:
   double _chi2_cut_full;            ///< fit quality chisq/dof for kalman track fitting
   double _ca_chi2_cut;
   double _cos_angle_cut;
-  
-  unsigned int _max_hits_init;
-  unsigned int _min_hits_init;
-  unsigned int _maxtracks;
-  unsigned int _max_hits;
+
   unsigned int _min_hits;
+  unsigned int _max_hits;
 
   int _nlayers;                        ///< number of detector layers
   std::vector<float> _radii;           ///< radial distance of each layer (cm)

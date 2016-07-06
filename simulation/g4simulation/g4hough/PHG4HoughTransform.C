@@ -55,6 +55,15 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers,
     : SubsysReco(name),
       _beta(1),
       _lambda(1),
+      _chi2_cut_init(4.0),
+      _chi2_cut_fast_par0(16.0),
+      _chi2_cut_fast_par1(0.0),
+      _chi2_cut_fast_max(FLT_MAX),
+      _chi2_cut_full(4.0),
+      _ca_chi2_cut(4.0),
+      _cos_angle_cut(0.985),
+      _min_hits(0),
+      _max_hits(0),
       _nlayers(7),
       _radii(),
       _material(),
@@ -92,13 +101,7 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers,
       _g4tracks(NULL),
       _g4vertexes(NULL) {
 
-  _chi2_cut_init = 4.0;
-  _chi2_cut_fast_par0 = 16.0;
-  _chi2_cut_fast_par1 = 0.0;
-  _chi2_cut_fast_max = FLT_MAX;
-  _chi2_cut_full = 4.0;
-  _ca_chi2_cut = 4.0;
-  _cos_angle_cut = 0.985;
+
 }
 
 int PHG4HoughTransform::Init(PHCompositeNode* topNode) {
@@ -625,9 +628,9 @@ int PHG4HoughTransform::setup_seed_tracker_objects() {
   _tracker_etap_seed = new sPHENIXTracker(zoomprofile, 1, pos_range, _material, _radii, _magField);
   _tracker_etap_seed->setNLayers(_seed_layers);
   _tracker_etap_seed->requireLayers(_req_seed);
-  _max_hits_init = _seed_layers*4;
-  if (_seed_layers >= 10) _max_hits_init = _seed_layers*2;
-  _min_hits_init = _req_seed;
+  _max_hits = _seed_layers*4;
+  if (_seed_layers >= 10) _max_hits = _seed_layers*2;
+  _min_hits = _req_seed;
   if (_seed_layers < 10) _tracker_etap_seed->setClusterStartBin(1);
   else _tracker_etap_seed->setClusterStartBin(10);
   _tracker_etap_seed->setRejectGhosts(_reject_ghosts);
@@ -666,9 +669,9 @@ int PHG4HoughTransform::setup_seed_tracker_objects() {
   _tracker_etam_seed = new sPHENIXTracker(zoomprofile, 1, neg_range, _material, _radii, _magField);
   _tracker_etam_seed->setNLayers(_seed_layers);
   _tracker_etam_seed->requireLayers(_req_seed);
-  _max_hits_init = _seed_layers*4;
-  if (_seed_layers >= 10) _max_hits_init = _seed_layers*2;
-  _min_hits_init = _req_seed;
+  _max_hits = _seed_layers*4;
+  if (_seed_layers >= 10) _max_hits = _seed_layers*2;
+  _min_hits = _req_seed;
   if (_seed_layers < 10) _tracker_etam_seed->setClusterStartBin(1);
   else _tracker_etam_seed->setClusterStartBin(10);
   _tracker_etam_seed->setRejectGhosts(_reject_ghosts);
@@ -750,9 +753,9 @@ int PHG4HoughTransform::setup_initial_tracker_object() {
   _tracker_vertex = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
   _tracker_vertex->setNLayers(_seed_layers);
   _tracker_vertex->requireLayers(_req_seed);
-  _max_hits_init = _seed_layers*4;
-  if(_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
-  _min_hits_init = _req_seed;
+  _max_hits = _seed_layers*4;
+  if(_seed_layers >= 10){_max_hits = _seed_layers*2;}
+  _min_hits = _req_seed;
   if(_seed_layers < 10){ _tracker_vertex->setClusterStartBin(1); }
   else{ _tracker_vertex->setClusterStartBin(10); }
   _tracker_vertex->setRejectGhosts(_reject_ghosts);
@@ -829,9 +832,9 @@ int PHG4HoughTransform::setup_tracker_object() {
   _tracker = new sPHENIXTracker(zoomprofile, 1, top_range, _material, _radii, _magField);
   _tracker->setNLayers(_seed_layers);
   _tracker->requireLayers(_req_seed);
-  _max_hits_init = _seed_layers*4;
-  if (_seed_layers >= 10){_max_hits_init = _seed_layers*2;}
-  _min_hits_init = _req_seed;
+  _max_hits = _seed_layers*4;
+  if (_seed_layers >= 10){_max_hits = _seed_layers*2;}
+  _min_hits = _req_seed;
   if (_seed_layers < 10){ _tracker->setClusterStartBin(1); }
   else { _tracker->setClusterStartBin(10); }
   _tracker->setRejectGhosts(_reject_ghosts);
@@ -974,7 +977,7 @@ int PHG4HoughTransform::fast_vertex_guessing() {
       
   _tracker_etap_seed->clear();
   _tracker_etap_seed->findHelices(_clusters, _req_seed,
-				  _max_hits_init, newtracks, maxtracks);
+				  _max_hits, newtracks, maxtracks);
 
   for (unsigned int t = 0; t < newtracks.size(); ++t) {
     _tracks.push_back(newtracks[t]);
@@ -986,7 +989,7 @@ int PHG4HoughTransform::fast_vertex_guessing() {
 
   _tracker_etam_seed->clear();
   _tracker_etam_seed->findHelices(_clusters, _req_seed,
-				  _max_hits_init, newtracks, maxtracks);
+				  _max_hits, newtracks, maxtracks);
 
   for (unsigned int t = 0; t < newtracks.size(); ++t) {
     _tracks.push_back(newtracks[t]);
@@ -1065,7 +1068,7 @@ int PHG4HoughTransform::initial_vertex_finding() {
 
   // initial track finding  
   _tracker_vertex->findHelices(_clusters, _req_seed,
-			       _max_hits_init, _tracks, maxtracks);
+			       _max_hits, _tracks, maxtracks);
 
   for(unsigned int t = 0; t < _tracks.size(); ++t) {
     _track_covars.push_back( (_tracker_vertex->getKalmanStates())[t].C );
@@ -1140,7 +1143,7 @@ int PHG4HoughTransform::full_tracking_and_vertexing() {
   _tracker->clear();
 
   // final track finding
-  _tracker->findHelices(_clusters, _min_hits_init, _max_hits_init, _tracks);  
+  _tracker->findHelices(_clusters, _min_hits, _max_hits, _tracks);  
    
   for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
     _track_covars.push_back( (_tracker->getKalmanStates())[tt].C );
