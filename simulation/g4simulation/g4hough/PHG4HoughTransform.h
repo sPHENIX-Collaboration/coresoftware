@@ -79,18 +79,14 @@ public:
 			      double radius,   // in cm
 			      std::vector<double>& intersection);
 
-  float get_mag_field() const          {return _magField;}
-  void  set_mag_field(float magField) {_magField = magField;}
-  
-  /// set option to produce initial vertex for further tracking
-  void set_use_vertex(bool b) {_use_vertex = b;}
-  /// fetch option to produce initial vertex for further tracking
-  bool get_use_vertex() {return _use_vertex;}
 
+  void  set_mag_field(float magField) {_magField = magField;}
+  float get_mag_field() const {return _magField;}
+  
   /// set the tracking chi2 for initial vertex finding
   void set_chi2_cut_init(double chi2_cut) {_chi2_cut_init = chi2_cut;}
   /// get the tracking chi2 cut for initial vertex finding
-  double get_chi2_cut_init() {return _chi2_cut_init;}
+  double get_chi2_cut_init() const {return _chi2_cut_init;}
 
   /// set the tracking pt-dependent chi2 cut for fast fit, cut = min(par0 + par1 / pt, max)
   void set_chi2_cut_fast(double cut_par0,
@@ -104,17 +100,17 @@ public:
   /// set the tracking chi2 cut for full fit 
   void set_chi2_cut_full(double chi2_cut) {_chi2_cut_full = chi2_cut;}
   /// get the tracking chi2 cut for full fit
-  double get_chi2_cut_full() {return _chi2_cut_full;}
+  double get_chi2_cut_full() const {return _chi2_cut_full;}
 
   /// set early combination-land chi2 cut(?)
   void set_ca_chi2_cut(double chi2_cut) {_ca_chi2_cut = chi2_cut;}
   /// get early combination-land chi2 cut(?)
-  double get_ca_chi2_cut() {return _ca_chi2_cut;}
+  double get_ca_chi2_cut() const {return _ca_chi2_cut;}
 
   /// set early curvature cut between hits, lower values are more open
   void set_cos_angle_cut(double cos_angle_cut) {_cos_angle_cut = cos_angle_cut;}
   /// get early curvature cut between hits, lower values are more open
-  double get_cos_angle_cut() {return _cos_angle_cut;}
+  double get_cos_angle_cut() const {return _cos_angle_cut;}
 
   void setInitialResMultiplier(int beta) {_beta = beta;}
   void setFullResMultiplier(int lambda) {_lambda = lambda;}
@@ -175,6 +171,13 @@ public:
     }
   }
 
+  //---deprecated---------------------------------------------------------------
+  
+  /// set option to produce initial vertex for further tracking
+  void set_use_vertex(bool b) {}
+  /// fetch option to produce initial vertex for further tracking
+  bool get_use_vertex() {return true;}
+  
 #ifndef __CINT__
 private:
   
@@ -256,7 +259,6 @@ private:
 
   bool new_dca_nbin, new_z_z0, new_circle_dca, new_circle_kappa;
   
-  bool _use_vertex;
   int _beta, _lambda; ///< resolution tuning parameters 
 
   double _chi2_cut_init;            ///< fit quality chisq/dof for initial track finding
@@ -276,23 +278,15 @@ private:
   std::vector<float> _radii;           ///< radial distance of each layer (cm)
   std::vector<float> _material;        ///< material at each layer in rad. lengths
 
-
-
-
-  
-  VertexFinder _vertexFinder; ///< vertex finding object
-
   float _magField; ///< in Tesla
-  static float _cmToGeV;  ///< radius of curvature conversion (radius of curvature for a 1 GeV/c particle in 1 Tesla is 333.6 cm)
 
   std::vector<double> _radius_vec;
-  
-
 
   float _min_pT;
   float _min_pT_init;
   
-  unsigned int _seed_layers, _req_seed;
+  unsigned int _seed_layers;
+  unsigned int _req_seed;
   
   std::map<int, float> _user_material;
   
@@ -310,7 +304,6 @@ private:
   float _dcaz_cut;
 
   float _pt_rescale;
-  
   std::vector<float> _fit_error_scale;
   std::vector<float> _vote_error_scale;
 
@@ -325,10 +318,11 @@ private:
   std::vector<float> _vertex;            ///< working array for collision vertex
 
   // track finding routines                                                                                             
-  sPHENIXTracker *_tracker;           //< finds full tracks
-  sPHENIXTracker* _tracker_vertex;    //< finds a subset of tracks for initial vertex-finding
-  sPHENIXTracker* _tracker_etap_seed; //< finds a subset of tracks for the vertex guess
-  sPHENIXTracker* _tracker_etam_seed; //< finds a subset of tracks for the vertex guess
+  sPHENIXTracker *_tracker;           ///< finds full tracks
+  sPHENIXTracker* _tracker_vertex;    ///< finds a subset of tracks for initial vertex-finding
+  sPHENIXTracker* _tracker_etap_seed; ///< finds a subset of tracks for the vertex guess
+  sPHENIXTracker* _tracker_etam_seed; ///< finds a subset of tracks for the vertex guess
+  VertexFinder    _vertexFinder;      ///< vertex finding object
   
   // node pointers
   BbcVertexMap* _bbc_vertexes;

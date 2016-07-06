@@ -13,7 +13,7 @@
 #include "SvtxClusterMap.h"
 #include "SvtxCluster.h"
 
-// PHENIX Geant4 includes
+// sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -22,14 +22,14 @@
 #include <g4bbc/BbcVertexMap.h>
 #include <g4bbc/BbcVertex.h>
 
-// PHENIX includes
+// sPHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 
-// Geant4 includes
+// sGeant4 includes
 #include <Geant4/G4MagneticField.hh>
 #include <Geant4/G4TransportationManager.hh>
 #include <Geant4/G4FieldManager.hh>
@@ -42,26 +42,23 @@
 #include <HelixHough.h>
 #include <VertexFinder.h>
 
-// ROOT includes
-#include <TH1D.h>
-#include <TVector3.h>
-
 // standard includes
 #include <cmath>
 #include <float.h>
 #include <iostream>
 
-//using findNode::getClass;
 using namespace std;
 
 PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers,
                                        unsigned int req_seed,
                                        const string& name)
     : SubsysReco(name),
+      _magField(1.4),
       _min_pT(0.2),
       _min_pT_init(0.2),
       _seed_layers(seed_layers),
       _req_seed(req_seed),
+      _user_material(),
       _reject_ghosts(true),
       _remove_hits(true),
       _use_cell_size(false),
@@ -84,13 +81,12 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers,
       _tracker_vertex(NULL),
       _tracker_etap_seed(NULL),
       _tracker_etam_seed(NULL),
+      _vertexFinder(),
       _bbc_vertexes(NULL),
       _g4clusters(NULL),
       _g4tracks(NULL),
-      _g4vertexes(NULL)
-{
-  _magField = 1.5;  // Tesla
-  _use_vertex = true;
+      _g4vertexes(NULL) {
+
   _chi2_cut_init = 4.0;
   _chi2_cut_fast_par0 = 16.0;
   _chi2_cut_fast_par1 = 0.0;
@@ -144,11 +140,6 @@ int PHG4HoughTransform::InitRun(PHCompositeNode* topNode) {
     cout << "   Maximum DCAZ cut: " << _dcaz_cut << endl;
     cout << " Phi bin scale: " << _bin_scale << endl;
     cout << " Z bin scale: " << _z_bin_scale << endl;
-    cout << " Produce an initial vertex for tracking: " << boolalpha << _use_vertex << noboolalpha << endl;
-    if (_use_vertex) {
-      cout << "   Initial vertex minimum pT: " << _min_pT_init << endl;
-      cout << "   Initial vertex maximum chisq: " << _chi2_cut_init << endl;
-    }
     cout << " Momentum rescale factor: " << _pt_rescale << endl; 
     cout << "===========================================================================" << endl;
   }
