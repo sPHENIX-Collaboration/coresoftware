@@ -79,7 +79,6 @@ public:
 			      double radius,   // in cm
 			      std::vector<double>& intersection);
 
-
   void  set_mag_field(float magField) {_magField = magField;}
   float get_mag_field() const {return _magField;}
   
@@ -112,14 +111,9 @@ public:
   /// get early curvature cut between hits, lower values are more open
   double get_cos_angle_cut() const {return _cos_angle_cut;}
 
-  void setInitialResMultiplier(int beta) {_beta = beta;}
-  void setFullResMultiplier(int lambda) {_lambda = lambda;}
-  
   /// set the minimum pT to try to find during full tracking
   void set_min_pT(float PT) {_min_pT=PT;}
-  /// set the minimum pT to try to find during initial vertex finding tracking
-  void set_min_pT_init(float PT) {_min_pT_init=PT;}
-  
+
   /// radiation length per layer, sequential layer indexes required here
   void set_material(int layer, float value);
 
@@ -127,12 +121,6 @@ public:
   void setRejectGhosts(bool rg) {_reject_ghosts = rg;}
   /// set for internal hit rejection
   void setRemoveHits(bool rh) {_remove_hits = rh;}
-
-  /// use the cell size as cluster size instead of value stored on cluster
-  void setUseCellSize(bool use_cell_size) {_use_cell_size = use_cell_size;}
-
-  /// limit the maximum error reported by cluster (in number of cell units)
-  void setMaxClusterError(float max_cluster_error) {_max_cluster_error = max_cluster_error;}
 
   /// adjusts the rate of zooming
   void setBinScale(float scale) {_bin_scale = scale;}
@@ -177,6 +165,18 @@ public:
   void set_use_vertex(bool b) {}
   /// fetch option to produce initial vertex for further tracking
   bool get_use_vertex() {return true;}
+
+  void setInitialResMultiplier(int beta) {}
+  void setFullResMultiplier(int lambda) {}
+
+  /// set the minimum pT to try to find during initial vertex finding tracking
+  void set_min_pT_init(float PT) {}
+
+  /// limit the maximum error reported by cluster (in number of cell units)
+  void setMaxClusterError(float max_cluster_error) {}
+
+  /// use the cell size as cluster size instead of value stored on cluster
+  void setUseCellSize(bool use_cell_size) {}
   
 #ifndef __CINT__
 private:
@@ -257,8 +257,23 @@ private:
 					  double x1, double y1, double r1,
 					  std::set<std::vector<double> >* points);
 
-  int _beta;
-  int _lambda; ///< resolution tuning parameters 
+  unsigned int _min_hits;
+  unsigned int _max_hits;
+
+  int _nlayers;                        ///< number of detector layers
+  std::vector<float> _radii;           ///< radial distance of each layer (cm)
+  std::vector<float> _material;        ///< material at each layer in rad. lengths
+  std::map<int, float> _user_material; ///< material in user ladder indexes
+  
+  float _magField; ///< in Tesla
+
+  float _min_pT;
+  
+  unsigned int _seed_layers;
+  unsigned int _req_seed;
+  
+  bool _reject_ghosts;
+  bool _remove_hits;
 
   double _chi2_cut_init;            ///< fit quality chisq/dof for initial track finding
   double _chi2_cut_fast_par0;       ///< fit quality chisq/dof for fast fit track fitting
@@ -267,39 +282,14 @@ private:
   double _chi2_cut_full;            ///< fit quality chisq/dof for kalman track fitting
   double _ca_chi2_cut;
   double _cos_angle_cut;
-
-  unsigned int _min_hits;
-  unsigned int _max_hits;
-
-  int _nlayers;                        ///< number of detector layers
-  std::vector<float> _radii;           ///< radial distance of each layer (cm)
-  std::vector<float> _material;        ///< material at each layer in rad. lengths
-
-  float _magField; ///< in Tesla
-
-  std::vector<double> _radius_vec;
-
-  float _min_pT;
-  float _min_pT_init;
-  
-  unsigned int _seed_layers;
-  unsigned int _req_seed;
-  
-  std::map<int, float> _user_material;
-  
-  bool _reject_ghosts;
-  bool _remove_hits;
-  bool _use_cell_size;
-
-  float _max_cluster_error;
-  
-  float _bin_scale;
-  float _z_bin_scale;
   
   bool _cut_on_dca;
   float _dca_cut;
   float _dcaz_cut;
 
+  float _bin_scale;
+  float _z_bin_scale;
+  
   float _pt_rescale;
   std::vector<float> _fit_error_scale;
   std::vector<float> _vote_error_scale;

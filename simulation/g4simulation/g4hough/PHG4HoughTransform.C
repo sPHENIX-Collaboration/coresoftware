@@ -53,8 +53,18 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers,
                                        unsigned int req_seed,
                                        const string& name)
     : SubsysReco(name),
-      _beta(1),
-      _lambda(1),
+      _min_hits(0),
+      _max_hits(0),
+      _nlayers(7),
+      _radii(),
+      _material(),
+      _user_material(),
+      _magField(1.4),
+      _min_pT(0.2),
+      _seed_layers(seed_layers),
+      _req_seed(req_seed),
+      _reject_ghosts(true),
+      _remove_hits(true),
       _chi2_cut_init(4.0),
       _chi2_cut_fast_par0(16.0),
       _chi2_cut_fast_par1(0.0),
@@ -62,26 +72,11 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers,
       _chi2_cut_full(4.0),
       _ca_chi2_cut(4.0),
       _cos_angle_cut(0.985),
-      _min_hits(0),
-      _max_hits(0),
-      _nlayers(7),
-      _radii(),
-      _material(),
-      _magField(1.4),
-      _min_pT(0.2),
-      _min_pT_init(0.2),
-      _seed_layers(seed_layers),
-      _req_seed(req_seed),
-      _user_material(),
-      _reject_ghosts(true),
-      _remove_hits(true),
-      _use_cell_size(false),
-      _max_cluster_error(3.0),
-      _bin_scale(0.8),
-      _z_bin_scale(0.8),
       _cut_on_dca(false),
       _dca_cut(0.1),
       _dcaz_cut(0.2),
+      _bin_scale(0.8),
+      _z_bin_scale(0.8),
       _pt_rescale(1.0),
       _fit_error_scale(_seed_layers,1.0/sqrt(12.0)),
       _vote_error_scale(_seed_layers,1.0),
@@ -100,8 +95,6 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers,
       _g4clusters(NULL),
       _g4tracks(NULL),
       _g4vertexes(NULL) {
-
-
 }
 
 int PHG4HoughTransform::Init(PHCompositeNode* topNode) {
@@ -136,8 +129,6 @@ int PHG4HoughTransform::InitRun(PHCompositeNode* topNode) {
     cout << " Cos Angle Cut: " << _cos_angle_cut << endl;
     cout << " Ghost rejection: " << boolalpha << _reject_ghosts << noboolalpha << endl;
     cout << " Hit removal: " << boolalpha << _remove_hits << noboolalpha << endl;
-    cout << " Use cell size in place of cluster sizes: " << boolalpha << _use_cell_size << noboolalpha << endl;
-    if (!_use_cell_size) cout << " Max cluster size error = " << _max_cluster_error << endl;
     cout << " Maximum DCA: " << boolalpha << _cut_on_dca << noboolalpha << endl;
     if (_cut_on_dca) {
       cout << "   Maximum DCA cut: " << _dca_cut << endl;
