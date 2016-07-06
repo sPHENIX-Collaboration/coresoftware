@@ -19,9 +19,6 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4VtxPoint.h>
 #include <g4bbc/BbcVertexMap.h>
 #include <g4bbc/BbcVertex.h>
 
@@ -56,6 +53,176 @@
 
 //using findNode::getClass;
 using namespace std;
+
+PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers,
+                                       unsigned int req_seed,
+                                       const string& name)
+    : SubsysReco(name),
+      _min_pT(0.2),
+      _min_pT_init(0.2),
+      _seed_layers(seed_layers),
+      _req_seed(req_seed),
+      _reject_ghosts(true),
+      _remove_hits(true),
+      _use_cell_size(false),
+      _max_cluster_error(3.0),
+      _bin_scale(0.8),
+      _z_bin_scale(0.8),
+      _cut_on_dca(false),
+      _dca_cut(0.1),
+      _dcaz_cut(0.2),
+      _pt_rescale(1.0),
+      _fit_error_scale(_seed_layers,1.0/sqrt(12.0)),
+      _vote_error_scale(_seed_layers,1.0),
+      _layer_ilayer_map(),
+      _clusters(),
+      _tracks(),
+      _track_errors(),
+      _track_covars(),
+      _vertex(),
+      _tracker(NULL),
+      _tracker_vertex(NULL),
+      _tracker_etap_seed(NULL),
+      _tracker_etam_seed(NULL),
+      _bbc_vertexes(NULL),
+      _g4clusters(NULL),
+      _g4tracks(NULL),
+      _g4vertexes(NULL)
+{
+  _magField = 1.5;  // Tesla
+  _use_vertex = true;
+  _chi2_cut_init = 4.0;
+  _chi2_cut_fast_par0 = 16.0;
+  _chi2_cut_fast_par1 = 0.0;
+  _chi2_cut_fast_max = FLT_MAX;
+  _chi2_cut_full = 4.0;
+  _ca_chi2_cut = 4.0;
+  _cos_angle_cut = 0.985;
+
+  _beta = 1;
+  _lambda = 1;
+}
+
+int PHG4HoughTransform::Init(PHCompositeNode* topNode) {
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4HoughTransform::InitRun(PHCompositeNode* topNode) {
+  
+  int code = CreateNodes(topNode);
+
+  if (verbosity > 0) {
+    cout << "====================== PHG4HoughTransform::InitRun() ======================" << endl;
+    cout << " Magnetic field set to: " << _magField << " Tesla" << endl;
+    cout << " Number of tracking layers: " << _nlayers << endl;
+    for (int i=0; i<_nlayers; ++i) {
+      cout << "   Tracking layer #" << i << " "
+	   << "radius = " << _radii[i] << " cm, "
+	   << "material = " << _material[i]
+	   << endl;
+      cout << "   Tracking layer #" << i << " "
+	   << "vote error scale = " << _vote_error_scale[i] << ", "
+	   << "fit error scale = " << _fit_error_scale[i]
+	   << endl;
+    }
+    cout << " Required hits: " << _req_seed << endl;
+    cout << " Minimum pT: " << _min_pT << endl;
+    cout << " Fast fit chisq cut min(par0+par1/pt,max): min( "
+	 << _chi2_cut_fast_par0 << " + " << _chi2_cut_fast_par1 << " / pt, "
+	 << _chi2_cut_fast_max << " )" << endl;
+    cout << " Maximum chisq (kalman fit): " << _chi2_cut_full << endl;
+    cout << " Cell automaton chisq: " << _ca_chi2_cut << endl;
+    cout << " Cos Angle Cut: " << _cos_angle_cut << endl;
+    cout << " Ghost rejection: " << boolalpha << _reject_ghosts << noboolalpha << endl;
+    cout << " Hit removal: " << boolalpha << _remove_hits << noboolalpha << endl;
+    cout << " Use cell size in place of cluster sizes: " << boolalpha << _use_cell_size << noboolalpha << endl;
+    if (!_use_cell_size) cout << " Max cluster size error = " << _max_cluster_error << endl;
+    cout << " Maximum DCA: " << boolalpha << _cut_on_dca << noboolalpha << endl;
+    if (_cut_on_dca) {
+      cout << "   Maximum DCA cut: " << _dca_cut << endl;
+    }
+    cout << "   Maximum DCAZ cut: " << _dcaz_cut << endl;
+    cout << " Phi bin scale: " << _bin_scale << endl;
+    cout << " Z bin scale: " << _z_bin_scale << endl;
+    cout << " Produce an initial vertex for tracking: " << boolalpha << _use_vertex << noboolalpha << endl;
+    if (_use_vertex) {
+      cout << "   Initial vertex minimum pT: " << _min_pT_init << endl;
+      cout << "   Initial vertex maximum chisq: " << _chi2_cut_init << endl;
+    }
+    cout << " Momentum rescale factor: " << _pt_rescale << endl; 
+    cout << "===========================================================================" << endl;
+  }
+
+  return code;
+}
+
+int PHG4HoughTransform::process_event(PHCompositeNode *topNode) {
+  
+  if (verbosity > 0) cout << "PHG4HoughTransform::process_event -- entered" << endl;
+
+  // start fresh  
+  _clusters.clear();
+  _clusters.clear();
+  _tracks.clear();
+  _track_errors.clear();
+  _vertex.clear();
+  _vertex.assign(3,0.0);
+  
+  //-----------------------------------
+  // Get Objects off of the Node Tree
+  //-----------------------------------
+  
+  GetNodes(topNode);
+
+  //-----------------------------------
+  // Translate into Helix_Hough objects
+  //-----------------------------------
+
+  int code = translate_input();
+  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+  
+  //-----------------------------------
+  // Guess a vertex position
+  //-----------------------------------
+
+  code = fast_vertex_guessing();
+  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+
+  // here expect vertex to be better than +/-2.0 cm
+
+  //-----------------------------------
+  // Find an initial vertex with tracks
+  //-----------------------------------
+
+  code = initial_vertex_finding();
+  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+
+  // here expect vertex to be better than +/- 500 um
+  
+  //-----------------------------------
+  // Preform the track finding
+  //-----------------------------------
+
+  code = full_tracking_and_vertexing();
+  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+  
+  //-----------------------------------
+  // Translate back into SVTX objects
+  //-----------------------------------
+
+  code = export_output();
+  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4HoughTransform::End(PHCompositeNode *topNode) {
+  
+  delete _tracker_vertex; _tracker_vertex = NULL;
+  delete _tracker; _tracker = NULL;
+  
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 
 void PHG4HoughTransform::projectToRadius(const SvtxTrack* track,
 					 double B,
@@ -252,168 +419,6 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrackState* state,
   }
   
   return;
-}
-
-
-PHG4HoughTransform::PHG4HoughTransform(unsigned int seed_layers,
-                                       unsigned int req_seed,
-                                       const string& name)
-    : SubsysReco(name),
-      _min_pT(0.2),
-      _min_pT_init(0.2),
-      _seed_layers(seed_layers),
-      _req_seed(req_seed),
-      _reject_ghosts(true),
-      _remove_hits(true),
-      _use_cell_size(false),
-      _max_cluster_error(3.0),
-      _bin_scale(0.8),
-      _z_bin_scale(0.8),
-      _cut_on_dca(false),
-      _dca_cut(0.1),
-      _dcaz_cut(0.2) {
-  _bbc_vertexes = NULL;
-
-  _magField = 1.5;  // Tesla
-  _use_vertex = true;
-  _chi2_cut_init = 4.0;
-  _chi2_cut_fast_par0 = 16.0;
-  _chi2_cut_fast_par1 = 0.0;
-  _chi2_cut_fast_max = FLT_MAX;
-  _chi2_cut_full = 4.0;
-  _ca_chi2_cut = 4.0;
-  _cos_angle_cut = 0.985;
-
-  _beta = 1;
-  _lambda = 1;
-
-  _pt_rescale = 1.0;
-  
-  _vote_error_scale.assign(_seed_layers, 1.0);
-  _fit_error_scale.assign(_seed_layers, 1.0/sqrt(12.));
-
-  _layer_ilayer_map.clear();
-}
-
-int PHG4HoughTransform::Init(PHCompositeNode* topNode) {
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHG4HoughTransform::InitRun(PHCompositeNode* topNode) {
-  
-  int code = CreateNodes(topNode);
-
-  if (verbosity > 0) {
-    cout << "====================== PHG4HoughTransform::InitRun() ======================" << endl;
-    cout << " Magnetic field set to: " << _magField << " Tesla" << endl;
-    cout << " Number of tracking layers: " << _nlayers << endl;
-    for (int i=0; i<_nlayers; ++i) {
-      cout << "   Tracking layer #" << i << " "
-	   << "radius = " << _radii[i] << " cm, "
-	   << "material = " << _material[i]
-	   << endl;
-      cout << "   Tracking layer #" << i << " "
-	   << "vote error scale = " << _vote_error_scale[i] << ", "
-	   << "fit error scale = " << _fit_error_scale[i]
-	   << endl;
-    }
-    cout << " Required hits: " << _req_seed << endl;
-    cout << " Minimum pT: " << _min_pT << endl;
-    cout << " Fast fit chisq cut min(par0+par1/pt,max): min( "
-	 << _chi2_cut_fast_par0 << " + " << _chi2_cut_fast_par1 << " / pt, "
-	 << _chi2_cut_fast_max << " )" << endl;
-    cout << " Maximum chisq (kalman fit): " << _chi2_cut_full << endl;
-    cout << " Cell automaton chisq: " << _ca_chi2_cut << endl;
-    cout << " Cos Angle Cut: " << _cos_angle_cut << endl;
-    cout << " Ghost rejection: " << boolalpha << _reject_ghosts << noboolalpha << endl;
-    cout << " Hit removal: " << boolalpha << _remove_hits << noboolalpha << endl;
-    cout << " Use cell size in place of cluster sizes: " << boolalpha << _use_cell_size << noboolalpha << endl;
-    if (!_use_cell_size) cout << " Max cluster size error = " << _max_cluster_error << endl;
-    cout << " Maximum DCA: " << boolalpha << _cut_on_dca << noboolalpha << endl;
-    if (_cut_on_dca) {
-      cout << "   Maximum DCA cut: " << _dca_cut << endl;
-    }
-    cout << "   Maximum DCAZ cut: " << _dcaz_cut << endl;
-    cout << " Phi bin scale: " << _bin_scale << endl;
-    cout << " Z bin scale: " << _z_bin_scale << endl;
-    cout << " Produce an initial vertex for tracking: " << boolalpha << _use_vertex << noboolalpha << endl;
-    if (_use_vertex) {
-      cout << "   Initial vertex minimum pT: " << _min_pT_init << endl;
-      cout << "   Initial vertex maximum chisq: " << _chi2_cut_init << endl;
-    }
-    cout << " Momentum rescale factor: " << _pt_rescale << endl; 
-    cout << "===========================================================================" << endl;
-  }
-
-  return code;
-}
-
-int PHG4HoughTransform::process_event(PHCompositeNode *topNode) {
-  
-  if (verbosity > 0) cout << "PHG4HoughTransform::process_event -- entered" << endl;
-
-  // start fresh  
-  _clusters.clear();
-  _clusters.clear();
-  _tracks.clear();
-  _track_errors.clear();
-  _vertex.clear();
-  _vertex.assign(3,0.0);
-  
-  //-----------------------------------
-  // Get Objects off of the Node Tree
-  //-----------------------------------
-  
-  GetNodes(topNode);
-
-  //-----------------------------------
-  // Translate into Helix_Hough objects
-  //-----------------------------------
-
-  int code = translate_input();
-  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
-  
-  //-----------------------------------
-  // Guess a vertex position
-  //-----------------------------------
-
-  code = fast_vertex_guessing();
-  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
-
-  // here expect vertex to be better than +/-2.0 cm
-
-  //-----------------------------------
-  // Find an initial vertex with tracks
-  //-----------------------------------
-
-  code = initial_vertex_finding();
-  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
-
-  // here expect vertex to be better than +/- 500 um
-  
-  //-----------------------------------
-  // Preform the track finding
-  //-----------------------------------
-
-  code = full_tracking_and_vertexing();
-  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
-  
-  //-----------------------------------
-  // Translate back into SVTX objects
-  //-----------------------------------
-
-  code = export_output();
-  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHG4HoughTransform::End(PHCompositeNode *topNode) {
-  
-  delete _tracker_vertex; _tracker_vertex = NULL;
-  delete _tracker; _tracker = NULL;
-  
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void PHG4HoughTransform::set_material(int layer, float value) {
@@ -872,12 +877,6 @@ int PHG4HoughTransform::GetNodes(PHCompositeNode* topNode) {
   // Pull the reconstructed track information off the node tree...
   _bbc_vertexes = findNode::getClass<BbcVertexMap>(topNode, "BbcVertexMap");
   
-  _ghitlist = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_SVTX");
-  if (!_ghitlist) {
-    cerr << PHWHERE << " ERROR: Can't find node PHG4HitContainer" << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
   _g4clusters = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
   if (!_g4clusters) {
     cerr << PHWHERE << " ERROR: Can't find node SvtxClusterMap" << endl;

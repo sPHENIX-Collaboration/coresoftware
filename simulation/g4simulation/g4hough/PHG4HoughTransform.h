@@ -28,9 +28,6 @@
 #include <sPHENIXTracker.h>
 #endif
 
-// ROOT includes
-#include <TVector3.h>
-
 // standard includes
 #include <vector>
 #include <map>
@@ -257,8 +254,6 @@ private:
 					  double x1, double y1, double r1,
 					  std::set<std::vector<double> >* points);
 
-
-  
   bool new_dca_nbin, new_z_z0, new_circle_dca, new_circle_kappa;
   
   bool _use_vertex;
@@ -281,18 +276,9 @@ private:
   std::vector<float> _radii;           ///< radial distance of each layer (cm)
   std::vector<float> _material;        ///< material at each layer in rad. lengths
 
-  // object storage                                                                                                     
-  std::vector<SimpleHit3D> _clusters;    ///< working array of clusters
-  std::vector<SimpleTrack3D> _tracks;    ///< working array of tracks
-  std::vector<double> _track_errors;     ///< working array of track chisq
-  std::vector<Eigen::Matrix<float,5,5> > _track_covars; ///< working array of track covariances
-  std::vector<float> _vertex;            ///< working array for collision vertex
 
-  // track finding routines                                                                                             
-  sPHENIXTracker *_tracker;    // finds full tracks
-  sPHENIXTracker* _tracker_vertex; // finds a subset of tracks for initial vertex-finding
-  sPHENIXTracker* _tracker_etap_seed; 
-  sPHENIXTracker* _tracker_etam_seed;
+
+
   
   VertexFinder _vertexFinder; ///< vertex finding object
 
@@ -305,8 +291,6 @@ private:
 
   float _min_pT;
   float _min_pT_init;
-  
-  PHG4HitContainer* _ghitlist;
   
   unsigned int _seed_layers, _req_seed;
   
@@ -333,7 +317,19 @@ private:
   /// recorded layer indexes to internal sequential indexes
   std::map<int,unsigned int> _layer_ilayer_map;
 
+  // object storage                                                                                                     
+  std::vector<SimpleHit3D> _clusters;    ///< working array of clusters
+  std::vector<SimpleTrack3D> _tracks;    ///< working array of tracks
+  std::vector<double> _track_errors;     ///< working array of track chisq
+  std::vector<Eigen::Matrix<float,5,5> > _track_covars; ///< working array of track covariances
+  std::vector<float> _vertex;            ///< working array for collision vertex
 
+  // track finding routines                                                                                             
+  sPHENIXTracker *_tracker;           //< finds full tracks
+  sPHENIXTracker* _tracker_vertex;    //< finds a subset of tracks for initial vertex-finding
+  sPHENIXTracker* _tracker_etap_seed; //< finds a subset of tracks for the vertex guess
+  sPHENIXTracker* _tracker_etam_seed; //< finds a subset of tracks for the vertex guess
+  
   // node pointers
   BbcVertexMap* _bbc_vertexes;
   SvtxClusterMap* _g4clusters;
