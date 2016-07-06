@@ -45,7 +45,6 @@ class SvtxClusterMap;
 class SvtxTrackMap;
 class SvtxTrack;
 class SvtxVertexMap;
-class PHG4InEvent;
 class PHG4HitContainer;
 
 /// \class PHG4HoughTransform
@@ -69,9 +68,6 @@ public:
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
-
-  /// set verbosity
-  //void Verbosity(int verb) {verbosity = verb;}
 
   /// external handle for projecting tracks into the calorimetry
   static void projectToRadius(const SvtxTrack* track,
@@ -189,9 +185,6 @@ private:
   // InitRun Calls
   //--------------
 
-  /// fetch node pointers
-  int GetNodes(PHCompositeNode *topNode);
-
   /// create new node output pointers
   int CreateNodes(PHCompositeNode *topNode);
 
@@ -210,7 +203,10 @@ private:
   //--------------------
   // Process Event Calls
   //--------------------
-
+  
+  /// fetch node pointers
+  int GetNodes(PHCompositeNode *topNode);
+  
   /// code to translate into the HelixHough universe
   int translate_input();
 
@@ -242,6 +238,12 @@ private:
   /// convert from momentum to inverse curvature
   float ptToKappa(float pt);
 
+  /// convert the covariance from HelixHough coords to x,y,z,px,py,pz
+  void convertHelixCovarianceToEuclideanCovariance(
+      float B, float phi, float d, float kappa, float z0, float dzdl,
+      Eigen::Matrix<float, 5, 5> const& input,
+      Eigen::Matrix<float, 6, 6>& output);
+
   /// translate the clusters, tracks, and vertex from one origin to another
   void shift_coordinate_system(double dx, double dy, double dz);
   
@@ -255,8 +257,8 @@ private:
 					  double x1, double y1, double r1,
 					  std::set<std::vector<double> >* points);
 
-  BbcVertexMap* _bbc_vertexes;
 
+  
   bool new_dca_nbin, new_z_z0, new_circle_dca, new_circle_kappa;
   
   bool _use_vertex;
@@ -299,10 +301,7 @@ private:
 
   std::vector<double> _radius_vec;
   
-  SvtxClusterMap* _g4clusters;
-  SvtxTrackMap* _g4tracks;
-  SvtxVertexMap* _g4vertexes;
-  PHG4InEvent* _inevent;
+
 
   float _min_pT;
   float _min_pT_init;
@@ -332,7 +331,14 @@ private:
   std::vector<float> _vote_error_scale;
 
   /// recorded layer indexes to internal sequential indexes
-  std::map<int,unsigned int> _layer_ilayer_map; 
+  std::map<int,unsigned int> _layer_ilayer_map;
+
+
+  // node pointers
+  BbcVertexMap* _bbc_vertexes;
+  SvtxClusterMap* _g4clusters;
+  SvtxTrackMap* _g4tracks;
+  SvtxVertexMap* _g4vertexes;
 
 #endif // __CINT__
 };

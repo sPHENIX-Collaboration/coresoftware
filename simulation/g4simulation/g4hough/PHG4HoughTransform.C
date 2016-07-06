@@ -16,13 +16,12 @@
 // PHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
-#include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
-#include <g4main/PHG4InEvent.h>
-#include <g4main/PHG4VtxPoint.h>
+#include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4VtxPoint.h>
 #include <g4bbc/BbcVertexMap.h>
 #include <g4bbc/BbcVertex.h>
 
@@ -55,54 +54,8 @@
 #include <float.h>
 #include <iostream>
 
-using findNode::getClass;
+//using findNode::getClass;
 using namespace std;
-using namespace Eigen;
-
-static void convertHelixCovarianceToEuclideanCovariance(
-    float B, float phi, float d, float kappa, float z0, float dzdl,
-    Eigen::Matrix<float, 5, 5> const& input,
-    Eigen::Matrix<float, 6, 6>& output) {
-  
-  Matrix<float, 6, 5> J = Matrix<float, 6, 5>::Zero(6, 5);
-
-  // phi,d,nu,z0,dzdl
-  // -->
-  // x,y,z,px,py,pz
-
-  float nu = sqrt(kappa);
-  float dk_dnu = 2 * nu;
-
-  float cosphi = cos(phi);
-  float sinphi = sin(phi);
-
-  J(0, 0) = -sinphi * d;
-  J(0, 1) = cosphi;
-  J(1, 0) = d * cosphi;
-  J(1, 1) = sinphi;
-  J(2, 3) = 1;
-
-  float pt = 0.003 * B / kappa;
-  float dpt_dk = -0.003 * B / (kappa * kappa);
-
-  J(3, 0) = -cosphi * pt;
-  J(3, 2) = -sinphi * dpt_dk * dk_dnu;
-  J(4, 0) = -sinphi * pt;
-  J(4, 2) = cosphi * dpt_dk * dk_dnu;
-
-  float alpha = 1. / (1. - dzdl * dzdl);
-  float alpha_half = pow(alpha, 0.5);
-  float alpha_3_half = alpha * alpha_half;
-
-  J(5, 2) = dpt_dk * dzdl * alpha_half * dk_dnu;
-  J(5, 4) = pt * (alpha_half + dzdl * dzdl * alpha_3_half) * dk_dnu;
-
-  output = J * input * (J.transpose());
-}
-
-static inline double sign(double x) {
-  return ((double)(x > 0.)) - ((double)(x < 0.));
-}
 
 void PHG4HoughTransform::projectToRadius(const SvtxTrack* track,
 					 double B,
@@ -467,44 +420,6 @@ void PHG4HoughTransform::set_material(int layer, float value) {
   _user_material[layer] = value;
 }
 
-int PHG4HoughTransform::GetNodes(PHCompositeNode* topNode) {
-
-  //---------------------------------
-  // Get Objects off of the Node Tree
-  //---------------------------------
-
-  // Pull the reconstructed track information off the node tree...
-  _bbc_vertexes = getClass<BbcVertexMap>(topNode, "BbcVertexMap");
-  
-  _ghitlist = getClass<PHG4HitContainer>(topNode, "G4HIT_SVTX");
-  if (!_ghitlist) {
-    cerr << PHWHERE << " ERROR: Can't find node PHG4HitContainer" << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  _g4clusters = getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
-  if (!_g4clusters) {
-    cerr << PHWHERE << " ERROR: Can't find node SvtxClusterMap" << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  // Pull the reconstructed track information off the node tree...
-  _g4tracks = getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-  if (!_g4tracks) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  // Pull the reconstructed track information off the node tree...
-  _g4vertexes = getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-  if (!_g4vertexes) {
-    cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int PHG4HoughTransform::CreateNodes(PHCompositeNode* topNode) {
   // create nodes...
   PHNodeIterator iter(topNode);
@@ -538,7 +453,7 @@ int PHG4HoughTransform::CreateNodes(PHCompositeNode* topNode) {
   if (verbosity > 0) cout << "Svtx/SvtxVertexMap node added" << endl;
 
   PHG4CylinderGeomContainer* geoms =
-    getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SVTX");
+    findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SVTX");
   if (!geoms) {
     cerr << PHWHERE << " ERROR: Can't find CYLINDERGEOM_SVTX Node." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -945,6 +860,44 @@ int PHG4HoughTransform::setup_tracker_object() {
     _tracker->setHitErrorScale(ilayer, scale);
   }
   
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4HoughTransform::GetNodes(PHCompositeNode* topNode) {
+
+  //---------------------------------
+  // Get Objects off of the Node Tree
+  //---------------------------------
+
+  // Pull the reconstructed track information off the node tree...
+  _bbc_vertexes = findNode::getClass<BbcVertexMap>(topNode, "BbcVertexMap");
+  
+  _ghitlist = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_SVTX");
+  if (!_ghitlist) {
+    cerr << PHWHERE << " ERROR: Can't find node PHG4HitContainer" << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _g4clusters = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
+  if (!_g4clusters) {
+    cerr << PHWHERE << " ERROR: Can't find node SvtxClusterMap" << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  // Pull the reconstructed track information off the node tree...
+  _g4tracks = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  if (!_g4tracks) {
+    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap." << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  // Pull the reconstructed track information off the node tree...
+  _g4vertexes = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if (!_g4vertexes) {
+    cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1357,7 +1310,7 @@ int PHG4HoughTransform::export_output() {
       track.set_charge(-1.0 * helicity);
     }
 
-    Matrix<float, 6, 6> euclidean_cov = Matrix<float, 6, 6>::Zero(6, 6);
+    Eigen::Matrix<float, 6, 6> euclidean_cov = Eigen::Matrix<float, 6, 6>::Zero(6, 6);
     convertHelixCovarianceToEuclideanCovariance(
         _magField, phi, d, kappa, z0, dzdl,
         _track_covars[itrack], euclidean_cov);
@@ -1408,6 +1361,47 @@ float PHG4HoughTransform::kappaToPt(float kappa) {
 
 float PHG4HoughTransform::ptToKappa(float pt) {  
   return _pt_rescale * _magField / 333.6 / pt;
+}
+
+void PHG4HoughTransform::convertHelixCovarianceToEuclideanCovariance(
+    float B, float phi, float d, float kappa, float z0, float dzdl,
+    Eigen::Matrix<float, 5, 5> const& input,
+    Eigen::Matrix<float, 6, 6>& output) {
+  
+  Eigen::Matrix<float, 6, 5> J = Eigen::Matrix<float, 6, 5>::Zero(6, 5);
+
+  // phi,d,nu,z0,dzdl
+  // -->
+  // x,y,z,px,py,pz
+
+  float nu = sqrt(kappa);
+  float dk_dnu = 2 * nu;
+
+  float cosphi = cos(phi);
+  float sinphi = sin(phi);
+
+  J(0, 0) = -sinphi * d;
+  J(0, 1) = cosphi;
+  J(1, 0) = d * cosphi;
+  J(1, 1) = sinphi;
+  J(2, 3) = 1;
+
+  float pt = 0.003 * B / kappa;
+  float dpt_dk = -0.003 * B / (kappa * kappa);
+
+  J(3, 0) = -cosphi * pt;
+  J(3, 2) = -sinphi * dpt_dk * dk_dnu;
+  J(4, 0) = -sinphi * pt;
+  J(4, 2) = cosphi * dpt_dk * dk_dnu;
+
+  float alpha = 1. / (1. - dzdl * dzdl);
+  float alpha_half = pow(alpha, 0.5);
+  float alpha_3_half = alpha * alpha_half;
+
+  J(5, 2) = dpt_dk * dzdl * alpha_half * dk_dnu;
+  J(5, 4) = pt * (alpha_half + dzdl * dzdl * alpha_3_half) * dk_dnu;
+
+  output = J * input * (J.transpose());
 }
 
 void PHG4HoughTransform::shift_coordinate_system(double dx,
@@ -1527,3 +1521,4 @@ bool PHG4HoughTransform::circle_circle_intersections(double x0, double y0, doubl
 
   return points;  
 }
+
