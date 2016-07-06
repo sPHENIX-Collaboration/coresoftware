@@ -817,38 +817,11 @@ int PHG4HoughTransform::translate_input() {
        iter != _g4clusters->end(); ++iter) {
     SvtxCluster* cluster = iter->second;
 
-    float phi = atan2(cluster->get_position(1), cluster->get_position(0));
     unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
 
-    float xy_error = 0.;
-    float z_error = 0.;
-    
-    if (_use_cell_size) {
-      xy_error = _smear_xy_layer[ilayer] * _vote_error_scale[ilayer];
-      z_error = _smear_z_layer[ilayer] * _vote_error_scale[ilayer];
-
-    } else {
-      if (cluster->get_phi_size() <=
-          _max_cluster_error * _smear_xy_layer[ilayer]) {
-        xy_error = cluster->get_phi_size() * _vote_error_scale[ilayer];
-      } else {
-        xy_error = _max_cluster_error * _smear_xy_layer[ilayer] *
-	  _vote_error_scale[ilayer];
-      }
-      if (cluster->get_z_size() <=
-          _max_cluster_error * _smear_z_layer[ilayer]) {
-        z_error = cluster->get_z_size() * _vote_error_scale[ilayer];
-      } else {
-        z_error = _max_cluster_error * _smear_z_layer[ilayer] *
-	  _vote_error_scale[ilayer];
-      }
-    }
-
-    // SimpleHit3D(float xx, float dxx, float yy, float dyy, float zz, float
-    // dzz, unsigned int ind, int lyr=-1)
-    SimpleHit3D hit3d(cluster->get_x(), fabs(xy_error * sin(phi)),
-                      cluster->get_y(), fabs(xy_error * cos(phi)),
-                      cluster->get_z(), z_error, cluster->get_id(), ilayer);
+    SimpleHit3D hit3d(cluster->get_x(), 2.0*sqrt(cluster->get_size(0,0)),
+		      cluster->get_y(), 2.0*sqrt(cluster->get_size(1,1)),
+                      cluster->get_z(), 2.0*sqrt(cluster->get_size(2,2)), cluster->get_id(), ilayer);
 
     // copy covariance over
     for (int i = 0; i < 3; ++i) {
