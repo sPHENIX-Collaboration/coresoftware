@@ -41,7 +41,42 @@ class PHG4FullProjSpacalCellReco : public SubsysReco
   void   set_timing_window_defaults(const double tmin, const double tmax) {
     tmin_default = tmin; tmax_default = tmax;
   }
-  
+
+  class LightCollectionModel
+  {
+  public:
+    LightCollectionModel();
+    virtual ~LightCollectionModel();
+
+    //! input data file
+    void load_data_file(const std::string & input_file, const std::string & histogram_light_guide_model, const std::string & histogram_fiber_model);
+
+    //! Whether use light collection model
+    bool use_light_guide_model() {return data_grid_light_guide_efficiency != NULL;}
+
+    //! Whether use Light Transmission Efficiency model for the fiber
+    bool use_fiber_model() {return data_grid_fiber_trans != NULL;}
+
+    //! get Light Collection Efficiency for the light guide as function of x,y position in fraction of tower width
+    double get_light_guide_efficiency(const double x_fraction, const double y_fraction);
+
+    //! get Light Transmission Efficiency for the fiber as function of z position (cm) in the fiber. Z=0 is at the middle of the fiber
+    double get_fiber_transmission(const double z_distance);
+
+  private:
+    //! 2-D data grid for Light Collection Efficiency for the light guide as function of x,y position in fraction of tower width
+    TH2 * data_grid_light_guide_efficiency;
+
+    //! 1-D data grid for the light transmission efficiency in the fiber as function of distance to location in the fiber. Z=0 is at the middle of the fiber
+    TH1 * data_grid_fiber_trans;
+
+    TH2 * data_grid_light_guide_efficiency_verify;
+    TH1 * data_grid_fiber_trans_verify;
+
+  };
+
+  LightCollectionModel & get_light_collection_model () {return light_collection_model;}
+
  protected:
 
   int CheckEnergy(PHCompositeNode *topNode);
@@ -60,35 +95,6 @@ class PHG4FullProjSpacalCellReco : public SubsysReco
   double tmin_default;
   double tmax_default;
   std::map<int, std::pair<double,double> > tmin_max;
-
-  class LightCollectionModel
-  {
-  public:
-    LightCollectionModel();
-    virtual ~LightCollectionModel();
-
-    //! input data file
-    void load_data_file(std::string input_file, std::string histogram_light_guide_model, std::string histogram_fiber_model);
-
-    //! Whether use light collection model
-    bool use_light_guide_model() {return data_grid_light_guide_efficiency != NULL;}
-
-    //! Whether use Light Transmission Efficiency model for the fiber
-    bool use_fiber_model() {return data_grid_fiber_trans != NULL;}
-
-    //! get Light Collection Efficiency for the light guide as function of x,y position in fraction of tower width
-    double get_light_guide_efficiency(const double x_fraction, const double y_fraction);
-
-    //! get Light Transmission Efficiency for the fiber as function of z position (cm) in the fiber away from the readout end
-    double get_fiber_transmission(const double z_distance);
-
-  private:
-    //! 2-D data grid for Light Collection Efficiency for the light guide as function of x,y position in fraction of tower width
-    TH2 * data_grid_light_guide_efficiency;
-
-//    //! 1-D data grid for the light transmission efficiency in the fiber as function of distance to the readout end
-    TH1 * data_grid_fiber_trans;
-  };
 
   LightCollectionModel light_collection_model;
 

@@ -214,7 +214,7 @@ PHG4CylinderGeom_Spacalv3::geom_tower::get_position_fraction_x_in_sub_tower(int 
   assert(index_x >= 0);
 
   const double sub_tower_width_x = (double) NFiberX / NSubtowerX;
-  const double x_in_sub_tower = fmod(index_x,  sub_tower_width_x); //! x is negative azimuthal direction
+  const double x_in_sub_tower = (fmod(index_x,  sub_tower_width_x)+0.5)/sub_tower_width_x ; //! x is negative azimuthal direction
   assert(x_in_sub_tower <=1 );
   assert(x_in_sub_tower >= 0);
 
@@ -230,7 +230,7 @@ PHG4CylinderGeom_Spacalv3::geom_tower::get_position_fraction_y_in_sub_tower(int 
   const double sub_tower_width_y = (double) NFiberY / NSubtowerY;
 
   assert(pRotationAngleX < 0);
-  const double y_in_sub_tower = fmod(index_y ,  sub_tower_width_y); //! y is negative polar direction
+  const double y_in_sub_tower = (fmod(index_y ,  sub_tower_width_y) + 0.5)/sub_tower_width_y; //! y is negative polar direction
   assert(y_in_sub_tower <=1 );
   assert(y_in_sub_tower >= 0);
 
