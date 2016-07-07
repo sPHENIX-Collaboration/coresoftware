@@ -292,8 +292,8 @@ float sPHENIXTracker::ptToKappa(float pt) {
 static void xyTangent(SimpleHit3D& hit1, SimpleHit3D& hit2, float kappa,
                       float hel, float& ux_out, float& uy_out, float& ux_in,
                       float& uy_in) {
-  float x = hit2.x - hit1.x;
-  float y = hit2.y - hit1.y;
+  float x = hit2.get_x() - hit1.get_x();
+  float y = hit2.get_y() - hit1.get_y();
   float D = sqrt(x * x + y * y);
   float ak = 0.5 * kappa * D;
   float D_inv = 1. / D;
@@ -332,8 +332,8 @@ static float cosScatter(SimpleHit3D& hit1, SimpleHit3D& hit2, SimpleHit3D& hit3,
 }
 
 static float dzdsSimple(SimpleHit3D& hit1, SimpleHit3D& hit2, float k) {
-  float x = hit2.x - hit1.x;
-  float y = hit2.y - hit1.y;
+  float x = hit2.get_x() - hit1.get_x();
+  float y = hit2.get_y() - hit1.get_y();
   float D = sqrt(x * x + y * y);
   float s = 0.;
   float temp1 = k * D * 0.5;
@@ -347,7 +347,7 @@ static float dzdsSimple(SimpleHit3D& hit1, SimpleHit3D& hit2, float k) {
   temp2 *= temp1;
   s += (5. / 56.) * temp2;
 
-  return (hit2.z - hit1.z) / s;
+  return (hit2.get_z() - hit1.get_z()) / s;
 }
 
 float sPHENIXTracker::dcaToVertexXY(SimpleTrack3D& track, float vx, float vy) {

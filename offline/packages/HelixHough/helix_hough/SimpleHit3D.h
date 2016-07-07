@@ -8,20 +8,26 @@ class SimpleHit3D
 
 public:
   
-  SimpleHit3D(float xx = 0.0, float dxx = 0.0,
-	      float yy = 0.0, float dyy = 0.0,
-	      float zz = 0.0, float dzz = 0.0,
+  SimpleHit3D(float x = 0.0, float dxx = 0.0,
+	      float y = 0.0, float dyy = 0.0,
+	      float z = 0.0, float dzz = 0.0,
 	      unsigned int id = 0, int lyr = -1);
   virtual ~SimpleHit3D() {}
 
   unsigned int get_id() const {return _id;}
   void         set_id(unsigned int id) {_id = id;}
 
+  float get_x() const {return _x;}
+  void  set_x(float x) {_x = x;}
+
+  float get_y() const {return _y;}
+  void  set_y(float y) {_y = y;}
+
+  float get_z() const {return _z;}
+  void  set_z(float z) {_z = z;}
+  
   void  print(std::ostream& out = std::cout) const; //< dump the values to screen
 
-  float get_size(unsigned int i, unsigned int j) const;        //< get cluster size covar
-  void  set_size(unsigned int i, unsigned int j, float value); //< set cluster size covar
-  
   float get_error(unsigned int i, unsigned int j) const;        //< get cluster error covar
   void  set_error(unsigned int i, unsigned int j, float value); //< set cluster error covar
   
@@ -31,15 +37,18 @@ private:
 
   unsigned int _id;
 
+  float _x;
+  float _y;
+  float _z;
+  
 public:
-  float x, dx;
-  float y, dy;
-  float z, dz;  
+  float dx;
+  float dy;
+  float dz;  
   int layer;
 
 private:
   
-  float _size[6]; //< size covariance matrix (x,y,z) (jagged array) 
   float _err[6]; //< error covariance matrix (x,y,z) (jagged array) 
 };
 

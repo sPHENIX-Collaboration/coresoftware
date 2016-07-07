@@ -1255,10 +1255,10 @@ int PHG4HoughTransform::export_output() {
 
     // find helicity from cross product sign
     short int helicity;
-    if ((track_hits[0].x - x_center) *
-                (track_hits[track_hits.size() - 1].y - y_center) -
-            (track_hits[0].y - y_center) *
-                (track_hits[track_hits.size() - 1].x - x_center) > 0) {
+    if ((track_hits[0].get_x() - x_center) *
+	(track_hits[track_hits.size() - 1].get_y() - y_center) -
+	(track_hits[0].get_y() - y_center) *
+	(track_hits[track_hits.size() - 1].get_x() - x_center) > 0) {
       helicity = 1;
     } else {
       helicity = -1;
@@ -1382,16 +1382,16 @@ void PHG4HoughTransform::shift_coordinate_system(double dx,
                                                  double dz) {
   
   for (unsigned int ht = 0; ht < _clusters.size(); ++ht) {
-    _clusters[ht].x += dx;
-    _clusters[ht].y += dy;
-    _clusters[ht].z += dz;
+    _clusters[ht].set_x( _clusters[ht].get_x() + dx);
+    _clusters[ht].set_y( _clusters[ht].get_y() + dy);
+    _clusters[ht].set_z( _clusters[ht].get_z() + dz);
   }
 
   for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
     for (unsigned int hh = 0; hh < _tracks[tt].hits.size(); ++hh) {
-      _tracks[tt].hits[hh].x += dx;
-      _tracks[tt].hits[hh].y += dy;
-      _tracks[tt].hits[hh].z += dz;
+      _tracks[tt].hits[hh].set_x( _tracks[tt].hits[hh].get_x() + dx);
+      _tracks[tt].hits[hh].set_y( _tracks[tt].hits[hh].get_y() + dy);
+      _tracks[tt].hits[hh].set_z( _tracks[tt].hits[hh].get_z() + dz);
     }
   }
 
