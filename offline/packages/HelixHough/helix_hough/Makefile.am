@@ -24,7 +24,6 @@ sPHENIX/sPHENIXTrackerTPC.h
 libHelixHough_la_SOURCES = \
 SimpleHit3D.cpp \
 sPHENIX/sPHENIXTracker.cpp \
-sPHENIX/sPHENIXTracker_findTracksBySegments.cpp \
 sPHENIX/sPHENIXTracker_parallel.cpp \
 sPHENIX/sPHENIXTracker_projection.cpp \
 sPHENIX/sPHENIXTrackerTPC.cpp \
