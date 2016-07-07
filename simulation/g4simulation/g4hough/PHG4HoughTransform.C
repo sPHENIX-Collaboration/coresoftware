@@ -890,7 +890,8 @@ int PHG4HoughTransform::translate_input() {
     // copy covariance over
     for (int i = 0; i < 3; ++i) {
       for (int j = i; j < 3; ++j) {
-        hit3d.set_error(i, j, cluster->get_size(i, j));
+        hit3d.set_error(i, j, cluster->get_error(i, j));
+	hit3d.set_size(i, j, cluster->get_size(i, j));
       }
     }
 
