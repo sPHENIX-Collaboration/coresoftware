@@ -1224,10 +1224,10 @@ int PHG4HoughTransform::export_output() {
     track_hits = _tracks.at(itrack).hits;
 
     for (unsigned int ihit = 0; ihit < track_hits.size(); ihit++) {
-      if ((track_hits.at(ihit).index) >= _g4clusters->size()) {
+      if ((track_hits.at(ihit).get_id()) >= _g4clusters->size()) {
         continue;
       }
-      SvtxCluster* cluster = _g4clusters->get(track_hits.at(ihit).index);
+      SvtxCluster* cluster = _g4clusters->get(track_hits.at(ihit).get_id());
       clusterID = cluster->get_id();
       clusterLayer = cluster->get_layer();
       if ((clusterLayer < (int)_nlayers) && (clusterLayer >= 0)) {

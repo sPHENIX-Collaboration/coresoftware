@@ -560,7 +560,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
   {
     for(unsigned int h=0;h<_tracks[tr].hits.size();++h)
     {
-      used[_tracks[tr].hits[h].index] = 1;
+      used[_tracks[tr].hits[h].get_id()] = 1;
     }
   }
   for(unsigned int i=0;i<_clusters_init.size();++i)
@@ -711,8 +711,8 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     {
       //      dEdx1=0;
       //      dEdx2=0;
-      if( (track_hits.at(ihit).index) >= _g4clusters->size()){continue;}
-      SvtxCluster *cluster = _g4clusters->get(track_hits.at(ihit).index);
+      if( (track_hits.at(ihit).get_id()) >= _g4clusters->size()){continue;}
+      SvtxCluster *cluster = _g4clusters->get(track_hits.at(ihit).get_id());
       clusterID = cluster->get_id();
       clusterLayer = cluster->get_layer();
       if( (clusterLayer < (int)_seed_layers) && (clusterLayer >= 0) )
