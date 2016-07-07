@@ -1333,95 +1333,100 @@ static void initial_combos(int nhits, vector<SimpleHit3D>& hits,
                            vector<vector<int> >& layer_indexes,
                            vector<TempComb>& cur_comb, float CHI2_CUT,
                            int n_layers, CylinderKalman* kalman) {
-  vector<int> lsizes;
-  for (int i = 0; i < nhits; ++i) {
-    lsizes.push_back(layer_indexes[i].size());
-  }
-  vector<int> comb_n;
-  comb_n.assign(nhits, 0);
-  vector<TempComb> comb;
-  while (true) {
-    SimpleTrack3D temp_track;
-    TempComb tc;
-    float sqrt12_inv = 1. / sqrt(12.);
-    for (unsigned int h = 0; h < nhits; ++h) {
-      if (layer_indexes[h][comb_n[h]] < 0) {
-        continue;
-      }
-      SimpleHit3D& hit = hits[layer_indexes[h][comb_n[h]]];
-      temp_track.hits.push_back(hit);
-      temp_track.hits.back().set_ex( temp_track.hits.back().get_ex() * sqrt12_inv);
-      temp_track.hits.back().set_ey( temp_track.hits.back().get_ex() * sqrt12_inv);
-      temp_track.hits.back().set_ez( temp_track.hits.back().get_ex() * sqrt12_inv);
-    }
-    if (temp_track.hits.size() >= 3) {
-      float init_chi2 = sPHENIXTracker::fitTrack(temp_track);
-      comb.push_back(TempComb());
-      TempComb& curcomb = comb.back();
-      if (init_chi2 / (2. * (temp_track.hits.size()) - 5.) > CHI2_CUT) {
-        comb.pop_back();
-      } else {
-        curcomb.state.phi = temp_track.phi;
-        if (curcomb.state.phi < 0.) {
-          curcomb.state.phi += 2. * M_PI;
-        }
-        curcomb.state.d = temp_track.d;
-        curcomb.state.kappa = temp_track.kappa;
-        curcomb.state.nu = sqrt(curcomb.state.kappa);
-        curcomb.state.z0 = temp_track.z0;
-        curcomb.state.dzdl = temp_track.dzdl;
-        curcomb.state.C = Matrix<float, 5, 5>::Zero(5, 5);
-        curcomb.state.C(0, 0) = pow(0.01, 2.);
-        curcomb.state.C(1, 1) = pow(0.5, 2.);
-        curcomb.state.C(2, 2) = pow(0.3 * curcomb.state.nu, 2.);
-        curcomb.state.C(3, 3) = pow(0.5, 2.);
-        curcomb.state.C(4, 4) = pow(0.05, 2.);
-        curcomb.state.chi2 = 0.;
-        curcomb.state.position = n_layers;
-        curcomb.state.x_int = 0.;
-        curcomb.state.y_int = 0.;
-        curcomb.state.z_int = 0.;
+  // vector<int> lsizes;
+  // for (int i = 0; i < nhits; ++i) {
+  //   lsizes.push_back(layer_indexes[i].size());
+  // }
+  // vector<int> comb_n;
+  // comb_n.assign(nhits, 0);
+  // vector<TempComb> comb;
+  // while (true) {
+  //   SimpleTrack3D temp_track;
+  //   TempComb tc;
+  //   float sqrt12_inv = 1. / sqrt(12.);
+  //   for (unsigned int h = 0; h < nhits; ++h) {
+  //     if (layer_indexes[h][comb_n[h]] < 0) {
+  //       continue;
+  //     }
+  //     SimpleHit3D& hit = hits[layer_indexes[h][comb_n[h]]];
+  //     temp_track.hits.push_back(hit);
 
-        curcomb.track = temp_track;
+  //     /// \todo location of a fudge factor
+  //     cout << temp_track.hits.back().get_ex() /
+  // 	(2.0*sqrt(temp_track.hits.back().get_size(0,0))) << endl;
+	
+  //     temp_track.hits.back().set_ex( temp_track.hits.back().get_ex() * sqrt12_inv);
+  //     temp_track.hits.back().set_ey( temp_track.hits.back().get_ex() * sqrt12_inv);
+  //     temp_track.hits.back().set_ez( temp_track.hits.back().get_ex() * sqrt12_inv);
+  //   }
+  //   if (temp_track.hits.size() >= 3) {
+  //     float init_chi2 = sPHENIXTracker::fitTrack(temp_track);
+  //     comb.push_back(TempComb());
+  //     TempComb& curcomb = comb.back();
+  //     if (init_chi2 / (2. * (temp_track.hits.size()) - 5.) > CHI2_CUT) {
+  //       comb.pop_back();
+  //     } else {
+  //       curcomb.state.phi = temp_track.phi;
+  //       if (curcomb.state.phi < 0.) {
+  //         curcomb.state.phi += 2. * M_PI;
+  //       }
+  //       curcomb.state.d = temp_track.d;
+  //       curcomb.state.kappa = temp_track.kappa;
+  //       curcomb.state.nu = sqrt(curcomb.state.kappa);
+  //       curcomb.state.z0 = temp_track.z0;
+  //       curcomb.state.dzdl = temp_track.dzdl;
+  //       curcomb.state.C = Matrix<float, 5, 5>::Zero(5, 5);
+  //       curcomb.state.C(0, 0) = pow(0.01, 2.);
+  //       curcomb.state.C(1, 1) = pow(0.5, 2.);
+  //       curcomb.state.C(2, 2) = pow(0.3 * curcomb.state.nu, 2.);
+  //       curcomb.state.C(3, 3) = pow(0.5, 2.);
+  //       curcomb.state.C(4, 4) = pow(0.05, 2.);
+  //       curcomb.state.chi2 = 0.;
+  //       curcomb.state.position = n_layers;
+  //       curcomb.state.x_int = 0.;
+  //       curcomb.state.y_int = 0.;
+  //       curcomb.state.z_int = 0.;
 
-        for (int h = 0; h < curcomb.track.hits.size(); h += 1) {
-          kalman->addHit(curcomb.track.hits[h], curcomb.state);
-        }
-      }
-    }
-    if (next_combo_n(lsizes, comb_n) == false) {
-      break;
-    }
-  }
+  //       curcomb.track = temp_track;
 
-  vector<SimpleTrack3D> comb_tracks;
-  vector<TempComb> comb2;
-  vector<float> chi2s;
-  for (int t = 0; t < comb.size(); t += 1) {
-    if (remove_bad_hits(comb[t].track, CHI2_CUT + 2.) == false) {
-      continue;
-    }
-    comb_tracks.push_back(comb[t].track);
-    chi2s.push_back(comb[t].state.chi2);
-    comb2.push_back(comb[t]);
-  }
-  vector<bool> usetrack(comb2.size(), true);
+  //       for (int h = 0; h < curcomb.track.hits.size(); h += 1) {
+  //         kalman->addHit(curcomb.track.hits[h], curcomb.state);
+  //       }
+  //     }
+  //   }
+  //   if (next_combo_n(lsizes, comb_n) == false) {
+  //     break;
+  //   }
+  // }
 
-  triplet_rejection(comb_tracks, chi2s, usetrack);
+  // vector<SimpleTrack3D> comb_tracks;
+  // vector<TempComb> comb2;
+  // vector<float> chi2s;
+  // for (int t = 0; t < comb.size(); t += 1) {
+  //   if (remove_bad_hits(comb[t].track, CHI2_CUT + 2.) == false) {
+  //     continue;
+  //   }
+  //   comb_tracks.push_back(comb[t].track);
+  //   chi2s.push_back(comb[t].state.chi2);
+  //   comb2.push_back(comb[t]);
+  // }
+  // vector<bool> usetrack(comb2.size(), true);
 
-  for (int t = 0; t < comb_tracks.size(); t += 1) {
-    if (usetrack[t]) {
-      if (comb2[t].state.chi2 / (2. * (comb2[t].track.hits.size()) - 5.) <
-          CHI2_CUT) {
-        cur_comb.push_back(comb2[t]);
-      }
-    }
-  }
+  // triplet_rejection(comb_tracks, chi2s, usetrack);
 
-  sort(cur_comb.begin(), cur_comb.end());
-  if (cur_comb.size() > 4) {
-    cur_comb.resize(4, TempComb());
-  }
+  // for (int t = 0; t < comb_tracks.size(); t += 1) {
+  //   if (usetrack[t]) {
+  //     if (comb2[t].state.chi2 / (2. * (comb2[t].track.hits.size()) - 5.) <
+  //         CHI2_CUT) {
+  //       cur_comb.push_back(comb2[t]);
+  //     }
+  //   }
+  // }
+
+  // sort(cur_comb.begin(), cur_comb.end());
+  // if (cur_comb.size() > 4) {
+  //   cur_comb.resize(4, TempComb());
+  // }
 }
 
 static void extend_combos(vector<SimpleHit3D>& hits,
@@ -1488,79 +1493,9 @@ static void extend_combos(vector<SimpleHit3D>& hits,
   }
 }
 
-void sPHENIXTracker::findTracksByCombinatorialKalman(
-    vector<SimpleHit3D>& hits, vector<SimpleTrack3D>& tracks,
-    const HelixRange& range) {
-  float CHI2_CUT = chi2_cut + 2.;
-
-  vector<vector<int> > layer_indexes;
-  layer_indexes.assign(n_layers, vector<int>());
-  for (unsigned int i = 0; i < hits.size(); ++i) {
-    layer_indexes[hits[i].get_layer()].push_back(i);
-  }
-  for (int i = 0; i < (int)n_layers; ++i) {
-    layer_indexes[i].push_back(-(i + 1));
-  }
-  vector<TempComb> cur_comb;
-
-  initial_combos(12, hits, layer_indexes, cur_comb, CHI2_CUT, n_layers, kalman);
-  if (cur_comb.size() == 0) {
-    return;
-  }
-
-  int cur_layer = 12;
-  int layer_iter = 1;
-  while (true) {
-    bool finished = false;
-    int layer_end = cur_layer + layer_iter - 1;
-    if (layer_end >= (n_layers - 1)) {
-      finished = true;
-      layer_end = n_layers - 1;
-    }
-    extend_combos(hits, layer_indexes, cur_comb, CHI2_CUT, kalman, cur_layer,
-                  layer_end);
-    if (finished == true) {
-      break;
-    }
-    cur_layer = layer_end + 1;
-
-    vector<TempComb> tcomb;
-    for (int i = 0; i < cur_comb.size(); i += 1) {
-      if (cur_comb[i].track.hits.size() > ((cur_layer + 1) / 2)) {
-        if (cur_comb[i].state.chi2 <
-            chi2_cut * (2. * (cur_comb[i].track.hits.size()) - 5.)) {
-          tcomb.push_back(cur_comb[i]);
-        }
-      }
-    }
-    cur_comb = tcomb;
-
-    if (cur_comb.size() == 0) {
-      return;
-    }
-  }
-
-  for (int i = 0; i < cur_comb.size(); i += 1) {
-    if (!(cur_comb[i].state.chi2 == cur_comb[i].state.chi2)) {
-      continue;
-    }
-    tracks.push_back(cur_comb[i].track);
-    track_states.push_back(cur_comb[i].state);
-    if (remove_hits == true) {
-      for (unsigned int i = 0; i < tracks.back().hits.size(); ++i) {
-        (*hit_used)[tracks.back().hits[i].get_id()] = true;
-      }
-    }
-  }
-}
-
 void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits,
                                           vector<SimpleTrack3D>& tracks,
                                           const HelixRange& range) {
-  if (n_layers > 20) {
-    findTracksByCombinatorialKalman(hits, tracks, range);
-    return;
-  }
 
   vector<TrackSegment>* cur_seg = &segments1;
   vector<TrackSegment>* next_seg = &segments2;
@@ -1587,9 +1522,12 @@ void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits,
       if ((layer >= 0) && (layer < (int)(hit_error_scale.size()))) {
         err_scale *= 3. * hit_error_scale[layer];
       }
-      hit.set_ex( hit.get_ex() * err_scale);
-      hit.set_ey( hit.get_ey() * err_scale);
-      hit.set_ez( hit.get_ez() * err_scale);
+
+      /// \todo location of a fudge factor
+      
+      hit.set_ex( 2.0*sqrt(hit.get_size(0,0)) * err_scale);
+      hit.set_ey( 2.0*sqrt(hit.get_size(1,1)) * err_scale);
+      hit.set_ez( 2.0*sqrt(hit.get_size(2,2)) * err_scale);
     }
   }
   for (unsigned int l = 0; l < n_layers; ++l) {
@@ -1674,16 +1612,20 @@ void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits,
         x1_a[hit_counter] = layer_sorted[0][i].get_x();
         y1_a[hit_counter] = layer_sorted[0][i].get_y();
         z1_a[hit_counter] = layer_sorted[0][i].get_z();
-        dx1_a[hit_counter] = layer_sorted[0][i].get_ex();
-        dy1_a[hit_counter] = layer_sorted[0][i].get_ey();
-        dz1_a[hit_counter] = layer_sorted[0][i].get_ez();
+
+	/// \todo location of a fudge scale factor
+	
+        dx1_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[0][i].get_size(0,0));
+        dy1_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[0][i].get_size(1,1));
+        dz1_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[0][i].get_size(2,2));
 
         x2_a[hit_counter] = layer_sorted[1][j].get_x();
         y2_a[hit_counter] = layer_sorted[1][j].get_y();
         z2_a[hit_counter] = layer_sorted[1][j].get_z();
-        dx2_a[hit_counter] = layer_sorted[1][j].get_ex();
-        dy2_a[hit_counter] = layer_sorted[1][j].get_ey();
-        dz2_a[hit_counter] = layer_sorted[1][j].get_ez();
+	
+        dx2_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[1][j].get_size(0,0));
+        dy2_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[1][j].get_size(1,1));
+        dz2_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[1][j].get_size(2,2));
 
         x3_a[hit_counter] = layer_sorted[2][k].get_x();
         y3_a[hit_counter] = layer_sorted[2][k].get_y();

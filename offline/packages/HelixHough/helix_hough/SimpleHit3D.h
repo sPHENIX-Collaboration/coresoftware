@@ -51,8 +51,6 @@ public:
   float get_ez() const {return _ez;}
   void  set_ez(float ez) {_ez = ez;}
 
-
-  
 private:
   
   unsigned int covar_index(unsigned int i, unsigned int j) const;

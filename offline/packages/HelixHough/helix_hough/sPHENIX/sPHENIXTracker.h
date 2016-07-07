@@ -210,13 +210,6 @@ class sPHENIXTracker : public HelixHough {
                             std::vector<SimpleTrack3D>& tracks,
                             const HelixRange& range);
 
-#ifdef AVXHOUGH
-  void findTracksBySegments_avx(std::vector<SimpleHit3D>& hits,
-                                std::vector<SimpleTrack3D>& tracks,
-                                const HelixRange& range);
-  void findTracksBySegments_avx_run(std::vector<SimpleTrack3D>& tracks);
-#endif
-  
   void initEvent(std::vector<SimpleHit3D>& hits, unsigned int min_hits) {
     int min_layer = 999999;
     int max_layer = 0;
@@ -314,10 +307,6 @@ class sPHENIXTracker : public HelixHough {
       float* chi2_a);
   void projectToLayer(SimpleTrack3D& seed, unsigned int layer, float& x,
                       float& y, float& z);
-  // void findSeededTracksByProjection(std::vector<SimpleTrack3D>& seeds,
-  //                                   std::vector<SimpleHit3D>& hits,
-  //                                   std::vector<SimpleTrack3D>& tracks,
-  //                                   const HelixRange& range);
 
   void setRangeFromSeed(HelixRange& range, SimpleTrack3D& seed);
 
@@ -482,9 +471,6 @@ class sPHENIXTracker : public HelixHough {
 
   void initDummyHits(std::vector<SimpleHit3D>& dummies, const HelixRange& range,
                      HelixKalmanState& init_state);
-  void findTracksByCombinatorialKalman(std::vector<SimpleHit3D>& hits,
-                                       std::vector<SimpleTrack3D>& tracks,
-                                       const HelixRange& range);
 
   float fast_chi2_cut_par0;
   float fast_chi2_cut_par1;
