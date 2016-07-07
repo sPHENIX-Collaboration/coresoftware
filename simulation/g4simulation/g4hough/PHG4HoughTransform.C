@@ -882,10 +882,18 @@ int PHG4HoughTransform::translate_input() {
 
     unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
 
-    SimpleHit3D hit3d(cluster->get_x(), 2.0*sqrt(cluster->get_size(0,0)),
-		      cluster->get_y(), 2.0*sqrt(cluster->get_size(1,1)),
-                      cluster->get_z(), 2.0*sqrt(cluster->get_size(2,2)),
-		      cluster->get_id(), ilayer);
+    SimpleHit3D hit3d;
+
+    hit3d.set_id(cluster->get_id());
+    hit3d.set_layer(ilayer);
+    
+    hit3d.set_x(cluster->get_x());
+    hit3d.set_y(cluster->get_y());
+    hit3d.set_z(cluster->get_z());
+
+    hit3d.set_ex(2.0*sqrt(cluster->get_size(0,0)));
+    hit3d.set_ey(2.0*sqrt(cluster->get_size(1,1)));
+    hit3d.set_ez(2.0*sqrt(cluster->get_size(2,2)));
 
     // copy covariance over
     for (int i = 0; i < 3; ++i) {

@@ -21,8 +21,11 @@ float sPHENIXTracker::fitTrack(SimpleTrack3D& track, vector<float>& chi2_hit) {
   vector<float> zres;
   vector<float> zres_inv;
   for (unsigned int i = 0; i < track.hits.size(); i++) {
-    xyres.push_back(sqrt(track.hits[i].get_ex() * track.hits[i].get_ex() +
-                         track.hits[i].get_ey() * track.hits[i].get_ey()));
+
+    /// \todo fudge factor location
+    
+    xyres.push_back(sqrt((0.5*sqrt(12.)*sqrt(track.hits[i].get_size(0,0))) * (0.5*sqrt(12.)*sqrt(track.hits[i].get_size(0,0))) +
+                         (0.5*sqrt(12.)*sqrt(track.hits[i].get_size(1,1))) * (0.5*sqrt(12.)*sqrt(track.hits[i].get_size(1,1)))));
     xyres_inv.push_back(1. / xyres.back());
     zres.push_back(track.hits[i].get_ez());
     zres_inv.push_back(1. / zres.back());

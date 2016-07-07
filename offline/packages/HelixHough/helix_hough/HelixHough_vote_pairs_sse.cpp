@@ -78,7 +78,7 @@ void HelixHough::vote_pairs(unsigned int zoomlevel) {
   vector<vector<SimpleHit3D> > four_pairs;
   vector<SimpleHit3D> onepair;
   unsigned int pair_index[4];
-  onepair.assign(2, SimpleHit3D(0., 0., 0., 0., 0., 0., 0, 0));
+  onepair.assign(2, SimpleHit3D());
   four_pairs.assign(4, onepair);
   float x1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
   float y1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};

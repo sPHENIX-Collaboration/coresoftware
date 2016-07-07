@@ -4,6 +4,27 @@
 
 using namespace std;
 
+
+SimpleHit3D::SimpleHit3D()
+  : _id(0),
+    _layer(-1),
+    _x(0.0),
+    _y(0.0),
+    _z(0.0),
+    _ex(0.0),
+    _ey(0.0),
+    _ez(0.0),
+    _err(),
+    _size()
+{
+  for (int j = 0; j < 3; ++j) {
+    for (int i = j; i < 3; ++i) {
+      set_error(i,j,0.0);
+      set_size(i,j,0.0);
+    }
+  }
+}	
+/*
 SimpleHit3D::SimpleHit3D(float x, float ex,
 			 float y, float ey,
 			 float z, float ez,
@@ -27,7 +48,7 @@ SimpleHit3D::SimpleHit3D(float x, float ex,
     }
   }
 }			 
-
+*/
 void SimpleHit3D::print(std::ostream& out) const {
 
   out << "SimpleHit3D: "
@@ -48,6 +69,19 @@ void SimpleHit3D::print(std::ostream& out) const {
   out << get_error(2,1) << " , ";
   out << get_error(2,2) << " )" << endl;
 
+  out << "       ( ";
+  out << get_size(0,0) << " , ";
+  out << get_size(0,1) << " , ";
+  out << get_size(0,2) << " )" << endl; 
+  out << "size = ( ";
+  out << get_size(1,0) << " , ";
+  out << get_size(1,1) << " , ";
+  out << get_size(1,2) << " )" << endl;
+  out << "       ( ";
+  out << get_size(2,0) << " , ";
+  out << get_size(2,1) << " , ";
+  out << get_size(2,2) << " )" << endl;
+  
   return;
 }
 

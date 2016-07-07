@@ -437,9 +437,12 @@ void sPHENIXTracker::finalize(vector<SimpleTrack3D>& input,
           }
           err_scale *=
               3.0;  // fudge factor, like needed due to non-gaussian errors
-          hit.set_ex( hit.get_ex() * err_scale);
-	  hit.set_ey( hit.get_ey() * err_scale);
-	  hit.set_ez( hit.get_ez() * err_scale);
+
+	  // \todo location of a rescale fudge factor    
+	  
+          hit.set_ex( (0.5*sqrt(12.0)*sqrt(hit.get_size(0,0))) * err_scale);
+	  hit.set_ey( (0.5*sqrt(12.0)*sqrt(hit.get_size(1,1))) * err_scale);
+	  hit.set_ez( (0.5*sqrt(12.0)*sqrt(hit.get_size(2,2))) * err_scale);
           kalman->addHit(hit, track_states[i]);
           track_states[i].position = h;
         }
@@ -466,9 +469,9 @@ void sPHENIXTracker::finalize(vector<SimpleTrack3D>& input,
         for (int h = (output[i].hits.size() - 1); h >= 0; --h) {
           SimpleHit3D hit = output[i].hits[h];
           float err_scale = 0.66;
-          hit.set_ex( hit.get_ex() * err_scale);
-          hit.set_ey( hit.get_ey() * err_scale);
-          hit.set_ez( hit.get_ez() * err_scale);
+          hit.set_ex( (0.5*sqrt(12.0)*sqrt(hit.get_size(0,0))) * err_scale);
+          hit.set_ey( (0.5*sqrt(12.0)*sqrt(hit.get_size(1,1))) * err_scale);
+          hit.set_ez( (0.5*sqrt(12.0)*sqrt(hit.get_size(2,2))) * err_scale);
           kalman->addHit(hit, track_states[i]);
         }
 

@@ -366,7 +366,7 @@ void HelixHough::vote_z(unsigned int zoomlevel, unsigned int n_phi,
   float max_z0_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
   float dz_a[4] = {0., 0., 0., 0.};
   vector<SimpleHit3D> four_hits;
-  SimpleHit3D temphit(0., 0., 0., 0., 0., 0., 0, 0);
+  SimpleHit3D temphit;
   four_hits.assign(4, temphit);
   unsigned int temp_zcount[4];
   unsigned buffer[4][1 << 8];
@@ -576,7 +576,7 @@ void HelixHough::vote(unsigned int zoomlevel) {
   float x_a_2[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
   float y_a_2[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
   vector<SimpleHit3D> four_hits;
-  SimpleHit3D temphit(0., 0., 0., 0., 0., 0., 0, 0);
+  SimpleHit3D temphit;
   four_hits.assign(4, temphit);
   vector<SimpleHit3D> four_hits_2;
   four_hits_2.assign(4, temphit);

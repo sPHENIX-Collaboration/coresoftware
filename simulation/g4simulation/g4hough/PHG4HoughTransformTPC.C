@@ -478,16 +478,24 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     vector<SimpleHit3D>* which_vec = &_clusters;
     if (ilayer<_seed_layers) {which_vec=&_clusters_init;}
 
-    //SimpleHit3D(float xx, float dxx, float yy, float dyy, float zz, float dzz, unsigned int ind, int lyr=-1)
-    SimpleHit3D hit3d(cluster->get_x(),fabs(xy_error*sin(phi)),
-		      cluster->get_y(),fabs(xy_error*cos(phi)),
-		      cluster->get_z(),z_error,
-		      cluster->get_id(),ilayer);
+    SimpleHit3D hit3d;
 
+    hit3d.set_id(cluster->get_id());
+    hit3d.set_layer(ilayer);
+    
+    hit3d.set_x(cluster->get_x());
+    hit3d.set_y(cluster->get_y());
+    hit3d.set_z(cluster->get_z());
+
+    hit3d.set_ex(fabs(xy_error*sin(phi)));
+    hit3d.set_ey(fabs(xy_error*cos(phi)));
+    hit3d.set_ez(z_error);
+    
     // copy covariance over
     for (int i=0; i<3; ++i) {
       for (int j=i; j<3; ++j) {
 	hit3d.set_error(i,j,cluster->get_error(i,j));
+	hit3d.set_size(i,j,cluster->get_size(i,j));
       }
     }
 

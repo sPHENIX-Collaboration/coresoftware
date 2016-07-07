@@ -8,11 +8,12 @@ class SimpleHit3D
 {
 
 public:
-  
-  SimpleHit3D(float x = 0.0, float ex = 0.0,
+
+  SimpleHit3D();
+  /*  SimpleHit3D(float x = 0.0, float ex = 0.0,
 	      float y = 0.0, float ey = 0.0,
 	      float z = 0.0, float ez = 0.0,
-	      unsigned int id = 0, int layer = -1);
+	      unsigned int id = 0, int layer = -1);*/
   virtual ~SimpleHit3D() {}
 
   unsigned int get_id() const {return _id;}
@@ -37,7 +38,10 @@ public:
   /// set cluster error covar
   void  set_error(unsigned int i, unsigned int j, float value);
 
+  //private:
   float get_ex() const {return _ex;}
+
+  public:
   void  set_ex(float ex) {_ex = ex;}
   
   float get_ey() const {return _ey;}
