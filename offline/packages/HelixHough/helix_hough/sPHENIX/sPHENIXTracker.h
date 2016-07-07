@@ -266,18 +266,6 @@ class sPHENIXTracker : public HelixHough {
                                       unsigned int max_hits,
                                       std::vector<SimpleTrack3D>& tracks);
 
-  // void findSeededTracks(std::vector<SimpleTrack3D>& seeds,
-  //                       std::vector<SimpleHit3D>& hits,
-  //                       std::vector<SimpleTrack3D>& tracks,
-  //                       const HelixRange& range);
-  // void findSeededTracksbySegments(std::vector<SimpleTrack3D>& seeds,
-  //                                 std::vector<SimpleHit3D>& hits,
-  //                                 std::vector<SimpleTrack3D>& tracks,
-  //                                 const HelixRange& range);
-  // void findSeededTracksbySegments_run(std::vector<SimpleTrack3D>& seeds,
-  //                                     std::vector<SimpleHit3D>& hits,
-  //                                     std::vector<SimpleTrack3D>& tracks);
-
   float dcaToVertexXY(SimpleTrack3D& track, float vx, float vy);
 
   bool breakRecursion(const std::vector<SimpleHit3D>& hits,
