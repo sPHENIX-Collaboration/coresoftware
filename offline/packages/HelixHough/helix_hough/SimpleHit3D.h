@@ -45,6 +45,10 @@ public:
   
   float get_ez() const {return _ez;}
   void  set_ez(float ez) {_ez = ez;}
+
+  // temporarily store the cluster size as well
+  float get_size(unsigned int i, unsigned int j) const;
+  void  set_size(unsigned int i, unsigned int j, float value);
   
 private:
   
@@ -61,7 +65,8 @@ private:
   float _ey;
   float _ez;
   
-  float _err[6]; //< error covariance matrix (x,y,z) (jagged array) 
+  float _err[6]; //< error covariance matrix (x,y,z)
+  float _size[6]; //< size covariance matrix (x,y,z)
 };
 
 #endif // __SIMPLEHIT3D__

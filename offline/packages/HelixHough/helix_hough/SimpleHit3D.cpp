@@ -17,11 +17,13 @@ SimpleHit3D::SimpleHit3D(float x, float ex,
     _ex(ex),
     _ey(ey),
     _ez(ez),
-    _err()
+    _err(),
+    _size()
 {
   for (int j = 0; j < 3; ++j) {
     for (int i = j; i < 3; ++i) {
       set_error(i,j,0.0);
+      set_size(i,j,0.0);
     }
   }
 }			 
@@ -56,6 +58,15 @@ void SimpleHit3D::set_error(unsigned int i, unsigned int j, float value) {
 
 float SimpleHit3D::get_error(unsigned int i, unsigned int j) const {
   return _err[covar_index(i,j)];
+}
+
+void SimpleHit3D::set_size(unsigned int i, unsigned int j, float value) {
+  _size[covar_index(i,j)] = value;
+  return;
+}
+
+float SimpleHit3D::get_size(unsigned int i, unsigned int j) const {
+  return _size[covar_index(i,j)];
 }
 
 unsigned int SimpleHit3D::covar_index(unsigned int i, unsigned int j) const {
