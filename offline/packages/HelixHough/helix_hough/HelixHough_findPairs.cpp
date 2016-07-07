@@ -67,15 +67,15 @@ void HelixHough::findHelicesByPairsBegin(unsigned int min_hits,
   pair<unsigned int, unsigned int> onepair;
   // make list of all pairs from the hits in this zoomlevel
   for (unsigned int i = 0; i < (hits_vec[zoomlevel]->size()); ++i) {
-    //     if( (*(hits_vec[zoomlevel]))[i].layer != 0 ){continue;}
+    //     if( (*(hits_vec[zoomlevel]))[i].get_layer() != 0 ){continue;}
     onepair.first = i;
     for (unsigned int j = 0; j < (hits_vec[zoomlevel]->size()); ++j) {
-      if (((*(hits_vec[zoomlevel]))[j].layer <=
-           (*(hits_vec[zoomlevel]))[i].layer)) {
+      if (((*(hits_vec[zoomlevel]))[j].get_layer() <=
+           (*(hits_vec[zoomlevel]))[i].get_layer())) {
         continue;
       }
 
-      //       if( (*(hits_vec[zoomlevel]))[i].layer != 4 ){continue;}
+      //       if( (*(hits_vec[zoomlevel]))[i].get_layer() != 4 ){continue;}
       onepair.second = j;
       pairs_vec[zoomlevel]->push_back(onepair);
     }

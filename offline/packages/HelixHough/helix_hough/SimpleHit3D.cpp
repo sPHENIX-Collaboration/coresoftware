@@ -4,18 +4,19 @@
 
 using namespace std;
 
-SimpleHit3D::SimpleHit3D(float x, float dxx,
-			 float y, float dyy,
-			 float z, float dzz,
-			 unsigned int id, int lyr) 
+SimpleHit3D::SimpleHit3D(float x, float ex,
+			 float y, float ey,
+			 float z, float ez,
+			 unsigned int id,
+			 int layer) 
   : _id(id),
+    _layer(layer),
     _x(x),
     _y(y),
     _z(z),
-    dx(dxx),    
-    dy(dyy),
-    dz(dzz),
-    layer(lyr),
+    _ex(ex),
+    _ey(ey),
+    _ez(ez),
     _err()
 {
   for (int j = 0; j < 3; ++j) {
@@ -28,9 +29,9 @@ SimpleHit3D::SimpleHit3D(float x, float dxx,
 void SimpleHit3D::print(std::ostream& out) const {
 
   out << "SimpleHit3D: "
-      << "id: " << get_id() << " layer: " << layer << " "
+      << "id: " << get_id() << " layer: " << get_layer() << " "
       << "(x,y,z) = (" << get_x() << "," << get_y() << "," << get_z() << ") "
-      << "(dx,dy,dz) = (" << dx << "," << dy << "," << dz << ")" << endl;
+      << "(ex,ey,ez) = (" << get_ex() << "," << get_ey() << "," << get_ez() << ")" << endl;
 
   out << "       ( ";
   out << get_error(0,0) << " , ";

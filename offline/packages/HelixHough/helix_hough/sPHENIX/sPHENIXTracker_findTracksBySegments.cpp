@@ -387,12 +387,12 @@ void sPHENIXTracker::initDummyHits(vector<SimpleHit3D>& dummies,
     float x, y, z;
     projectToLayer(dummy_track, i, x, y, z);
     dummies[i].set_x(x);
-    dummies[i].dx = 5.;
+    dummies[i].set_ex(5.);
     dummies[i].set_y(x);
-    dummies[i].dy = 5.;
+    dummies[i].set_ey(5.);
     dummies[i].set_z(x);
-    dummies[i].dz = 5.;
-    dummies[i].layer = i;
+    dummies[i].set_ez(5.);
+    dummies[i].set_layer(i);
   }
 }
 
@@ -483,8 +483,8 @@ static void triplet_rejection(vector<SimpleTrack3D>& input,
           continue;
         } else if ((input[trips[i].track].hits.size() >
                     input[trips[best_pos].track].hits.size()) ||
-                   (input[trips[i].track].hits.back().layer >
-                    input[trips[best_pos].track].hits.back().layer)) {
+                   (input[trips[i].track].hits.back().get_layer() >
+                    input[trips[best_pos].track].hits.back().get_layer())) {
           next_chi2 = best_chi2;
           best_chi2 = trips[i].chi2;
           best_pos = i;
@@ -558,9 +558,9 @@ static void initial_combos(int nhits, vector<SimpleHit3D>& hits,
       }
       SimpleHit3D& hit = hits[layer_indexes[h][comb_n[h]]];
       temp_track.hits.push_back(hit);
-      temp_track.hits.back().dx *= sqrt12_inv;
-      temp_track.hits.back().dy *= sqrt12_inv;
-      temp_track.hits.back().dz *= sqrt12_inv;
+      temp_track.hits.back().set_ex( temp_track.hits.back().get_ex() * sqrt12_inv);
+      temp_track.hits.back().set_ey( temp_track.hits.back().get_ex() * sqrt12_inv);
+      temp_track.hits.back().set_ez( temp_track.hits.back().get_ex() * sqrt12_inv);
     }
     if (temp_track.hits.size() >= 3) {
       float init_chi2 = sPHENIXTracker::fitTrack(temp_track);
@@ -704,7 +704,7 @@ void sPHENIXTracker::findTracksByCombinatorialKalman(
   vector<vector<int> > layer_indexes;
   layer_indexes.assign(n_layers, vector<int>());
   for (unsigned int i = 0; i < hits.size(); ++i) {
-    layer_indexes[hits[i].layer].push_back(i);
+    layer_indexes[hits[i].get_layer()].push_back(i);
   }
   for (int i = 0; i < (int)n_layers; ++i) {
     layer_indexes[i].push_back(-(i + 1));
@@ -783,21 +783,21 @@ void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits,
     layer_sorted[l].clear();
   }
   for (unsigned int i = 0; i < hits.size(); ++i) {
-    unsigned int min = (hits[i].layer - allowed_missing);
-    if (allowed_missing > hits[i].layer) {
+    unsigned int min = (hits[i].get_layer() - allowed_missing);
+    if (allowed_missing > hits[i].get_layer()) {
       min = 0;
     }
-    for (unsigned int l = min; l <= hits[i].layer; l += 1) {
+    for (unsigned int l = min; l <= hits[i].get_layer(); l += 1) {
       layer_sorted[l].push_back(hits[i]);
       SimpleHit3D& hit = layer_sorted[l].back();
       float err_scale = 1.;
-      int layer = hit.layer;
+      int layer = hit.get_layer();
       if ((layer >= 0) && (layer < (int)(hit_error_scale.size()))) {
         err_scale *= 3. * hit_error_scale[layer];
       }
-      hit.dx *= err_scale;
-      hit.dy *= err_scale;
-      hit.dz *= err_scale;
+      hit.set_ex( hit.get_ex() * err_scale);
+      hit.set_ey( hit.get_ey() * err_scale);
+      hit.set_ez( hit.get_ez() * err_scale);
     }
   }
   for (unsigned int l = 0; l < n_layers; ++l) {
@@ -874,31 +874,31 @@ void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits,
   for (unsigned int i = 0, sizei = layer_sorted[0].size(); i < sizei; ++i) {
     for (unsigned int j = 0, sizej = layer_sorted[1].size(); j < sizej; ++j) {
       for (unsigned int k = 0, sizek = layer_sorted[2].size(); k < sizek; ++k) {
-        if ((layer_sorted[0][i].layer >= layer_sorted[1][j].layer) ||
-            (layer_sorted[1][j].layer >= layer_sorted[2][k].layer)) {
+        if ((layer_sorted[0][i].get_layer() >= layer_sorted[1][j].get_layer()) ||
+            (layer_sorted[1][j].get_layer() >= layer_sorted[2][k].get_layer())) {
           continue;
         }
 
         x1_a[hit_counter] = layer_sorted[0][i].get_x();
         y1_a[hit_counter] = layer_sorted[0][i].get_y();
         z1_a[hit_counter] = layer_sorted[0][i].get_z();
-        dx1_a[hit_counter] = layer_sorted[0][i].dx;
-        dy1_a[hit_counter] = layer_sorted[0][i].dy;
-        dz1_a[hit_counter] = layer_sorted[0][i].dz;
+        dx1_a[hit_counter] = layer_sorted[0][i].get_ex();
+        dy1_a[hit_counter] = layer_sorted[0][i].get_ey();
+        dz1_a[hit_counter] = layer_sorted[0][i].get_ez();
 
         x2_a[hit_counter] = layer_sorted[1][j].get_x();
         y2_a[hit_counter] = layer_sorted[1][j].get_y();
         z2_a[hit_counter] = layer_sorted[1][j].get_z();
-        dx2_a[hit_counter] = layer_sorted[1][j].dx;
-        dy2_a[hit_counter] = layer_sorted[1][j].dy;
-        dz2_a[hit_counter] = layer_sorted[1][j].dz;
+        dx2_a[hit_counter] = layer_sorted[1][j].get_ex();
+        dy2_a[hit_counter] = layer_sorted[1][j].get_ey();
+        dz2_a[hit_counter] = layer_sorted[1][j].get_ez();
 
         x3_a[hit_counter] = layer_sorted[2][k].get_x();
         y3_a[hit_counter] = layer_sorted[2][k].get_y();
         z3_a[hit_counter] = layer_sorted[2][k].get_z();
-        dx3_a[hit_counter] = layer_sorted[2][k].dx;
-        dy3_a[hit_counter] = layer_sorted[2][k].dy;
-        dz3_a[hit_counter] = layer_sorted[2][k].dz;
+        dx3_a[hit_counter] = layer_sorted[2][k].get_ex();
+        dy3_a[hit_counter] = layer_sorted[2][k].get_ey();
+        dz3_a[hit_counter] = layer_sorted[2][k].get_ez();
 
         hit1[hit_counter] = i;
         hit2[hit_counter] = j;
@@ -933,7 +933,7 @@ void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits,
             temp_segment.hits[2] = hit3[h];
             temp_segment.n_hits = 3;
             unsigned int outer_layer =
-                layer_sorted[2][temp_segment.hits[2]].layer;
+                layer_sorted[2][temp_segment.hits[2]].get_layer();
             if ((outer_layer - 2) > allowed_missing) {
               continue;
             }
@@ -980,7 +980,7 @@ void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits,
       temp_segment.hits[1] = hit2[h];
       temp_segment.hits[2] = hit3[h];
       temp_segment.n_hits = 3;
-      unsigned int outer_layer = layer_sorted[2][temp_segment.hits[2]].layer;
+      unsigned int outer_layer = layer_sorted[2][temp_segment.hits[2]].get_layer();
       if ((outer_layer - 2) > allowed_missing) {
         continue;
       }
@@ -1011,8 +1011,8 @@ void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits,
     nextseg_size = 0;
     for (unsigned int i = 0, sizei = curseg_size; i < sizei; ++i) {
       for (unsigned int j = 0, sizej = layer_sorted[l].size(); j < sizej; ++j) {
-        if ((layer_sorted[l - 1][(*cur_seg)[i].hits[l - 1]].layer >=
-             layer_sorted[l][j].layer)) {
+        if ((layer_sorted[l - 1][(*cur_seg)[i].hits[l - 1]].get_layer() >=
+             layer_sorted[l][j].get_layer())) {
           continue;
         }
 
@@ -1026,15 +1026,15 @@ void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits,
         y3_a[hit_counter] = layer_sorted[l][j].get_y();
         z3_a[hit_counter] = layer_sorted[l][j].get_z();
 
-        dx1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[i].hits[l - 2]].dx;
-        dy1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[i].hits[l - 2]].dy;
-        dz1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[i].hits[l - 2]].dz;
-        dx2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[i].hits[l - 1]].dx;
-        dy2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[i].hits[l - 1]].dy;
-        dz2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[i].hits[l - 1]].dz;
-        dx3_a[hit_counter] = layer_sorted[l][j].dx;
-        dy3_a[hit_counter] = layer_sorted[l][j].dy;
-        dz3_a[hit_counter] = layer_sorted[l][j].dz;
+        dx1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[i].hits[l - 2]].get_ex();
+        dy1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[i].hits[l - 2]].get_ey();
+        dz1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[i].hits[l - 2]].get_ez();
+        dx2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[i].hits[l - 1]].get_ex();
+        dy2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[i].hits[l - 1]].get_ey();
+        dz2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[i].hits[l - 1]].get_ez();
+        dx3_a[hit_counter] = layer_sorted[l][j].get_ex();
+        dy3_a[hit_counter] = layer_sorted[l][j].get_ey();
+        dz3_a[hit_counter] = layer_sorted[l][j].get_ez();
 
         cur_kappa_a[hit_counter] = (*cur_seg)[i].kappa;
         cur_dkappa_a[hit_counter] = (*cur_seg)[i].dkappa;
@@ -1070,7 +1070,7 @@ void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits,
               }
               temp_segment.hits[l] = hit1[h];
               unsigned int outer_layer =
-                  layer_sorted[l][temp_segment.hits[l]].layer;
+                  layer_sorted[l][temp_segment.hits[l]].get_layer();
               temp_segment.n_hits = l + 1;
               if ((n_layers - (l + 1)) <= allowed_missing) {
                 complete_segments.push_back(temp_segment);
@@ -1115,7 +1115,7 @@ void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits,
           }
           temp_segment.hits[l] = hit1[h];
           unsigned int outer_layer =
-              layer_sorted[l][temp_segment.hits[l]].layer;
+              layer_sorted[l][temp_segment.hits[l]].get_layer();
           temp_segment.n_hits = l + 1;
           if ((n_layers - (l + 1)) <= allowed_missing) {
             complete_segments.push_back(temp_segment);
@@ -1275,11 +1275,11 @@ void sPHENIXTracker::findSeededTracksbySegments(vector<SimpleTrack3D>& seeds,
     layer_sorted[l].clear();
   }
   for (unsigned int i = 0; i < hits.size(); ++i) {
-    unsigned int min = (hits[i].layer - allowed_missing);
-    if (allowed_missing > hits[i].layer) {
+    unsigned int min = (hits[i].get_layer() - allowed_missing);
+    if (allowed_missing > hits[i].get_layer()) {
       min = 0;
     }
-    for (unsigned int l = min; l <= hits[i].layer; l += 1) {
+    for (unsigned int l = min; l <= hits[i].get_layer(); l += 1) {
       layer_sorted[l].push_back(hits[i]);
     }
   }
@@ -1368,15 +1368,15 @@ void sPHENIXTracker::findSeededTracksbySegments_run(
     y3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_y();
     z3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_z();
 
-    dx1_a[hit_counter] = seeds[seed].hits[firsthit - 3].dx;
-    dy1_a[hit_counter] = seeds[seed].hits[firsthit - 3].dy;
-    dz1_a[hit_counter] = seeds[seed].hits[firsthit - 3].dz;
-    dx2_a[hit_counter] = seeds[seed].hits[firsthit - 2].dx;
-    dy2_a[hit_counter] = seeds[seed].hits[firsthit - 2].dy;
-    dz2_a[hit_counter] = seeds[seed].hits[firsthit - 2].dz;
-    dx3_a[hit_counter] = seeds[seed].hits[firsthit - 1].dx;
-    dy3_a[hit_counter] = seeds[seed].hits[firsthit - 1].dy;
-    dz3_a[hit_counter] = seeds[seed].hits[firsthit - 1].dz;
+    dx1_a[hit_counter] = seeds[seed].hits[firsthit - 3].get_ex();
+    dy1_a[hit_counter] = seeds[seed].hits[firsthit - 3].get_ey();
+    dz1_a[hit_counter] = seeds[seed].hits[firsthit - 3].get_ez();
+    dx2_a[hit_counter] = seeds[seed].hits[firsthit - 2].get_ex();
+    dy2_a[hit_counter] = seeds[seed].hits[firsthit - 2].get_ey();
+    dz2_a[hit_counter] = seeds[seed].hits[firsthit - 2].get_ez();
+    dx3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_ex();
+    dy3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_ey();
+    dz3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_ez();
 
     whichseed[hit_counter] = seed;
     hit_counter += 1;
@@ -1451,23 +1451,23 @@ void sPHENIXTracker::findSeededTracksbySegments_run(
 	    .get_z();
           dx1_a[hit_counter] = seeds[(*cur_seg)[j].seed]
 	    .hits[l - 2 - (first_new_layer - firsthit)]
-	    .dx;
+	    .get_ex();
           dy1_a[hit_counter] = seeds[(*cur_seg)[j].seed]
 	    .hits[l - 2 - (first_new_layer - firsthit)]
-	    .dy;
+	    .get_ey();
           dz1_a[hit_counter] = seeds[(*cur_seg)[j].seed]
 	    .hits[l - 2 - (first_new_layer - firsthit)]
-	    .dz;
+	    .get_ez();
         } else {
           x1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_x();
           y1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_y();
           z1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_z();
           dx1_a[hit_counter] =
-              layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].dx;
+              layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_ex();
           dy1_a[hit_counter] =
-              layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].dy;
+              layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_ey();
           dz1_a[hit_counter] =
-              layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].dz;
+              layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_ez();
         }
         if ((l - 1) <= (first_new_layer - 1)) {
           x2_a[hit_counter] = seeds[(*cur_seg)[j].seed]
@@ -1481,30 +1481,30 @@ void sPHENIXTracker::findSeededTracksbySegments_run(
 	    .get_z();
           dx2_a[hit_counter] = seeds[(*cur_seg)[j].seed]
 	    .hits[l - 1 - (first_new_layer - firsthit)]
-	    .dx;
+	    .get_ex();
           dy2_a[hit_counter] = seeds[(*cur_seg)[j].seed]
 	    .hits[l - 1 - (first_new_layer - firsthit)]
-	    .dy;
+	    .get_ey();
           dz2_a[hit_counter] = seeds[(*cur_seg)[j].seed]
 	    .hits[l - 1 - (first_new_layer - firsthit)]
-	    .dz;
+	    .get_ez();
         } else {
           x2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_x();
           y2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_y();
           z2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_z();
           dx2_a[hit_counter] =
-              layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].dx;
+              layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_ex();
           dy2_a[hit_counter] =
-              layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].dy;
+              layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_ey();
           dz2_a[hit_counter] =
-              layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].dz;
+              layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_ez();
         }
         x3_a[hit_counter] = layer_sorted[l][i].get_x();
         y3_a[hit_counter] = layer_sorted[l][i].get_y();
         z3_a[hit_counter] = layer_sorted[l][i].get_z();
-        dx3_a[hit_counter] = layer_sorted[l][i].dx;
-        dy3_a[hit_counter] = layer_sorted[l][i].dy;
-        dz3_a[hit_counter] = layer_sorted[l][i].dz;
+        dx3_a[hit_counter] = layer_sorted[l][i].get_ex();
+        dy3_a[hit_counter] = layer_sorted[l][i].get_ey();
+        dz3_a[hit_counter] = layer_sorted[l][i].get_ez();
 
         whichhit[hit_counter] = i;
         whichseg[hit_counter] = j;
@@ -1544,7 +1544,7 @@ void sPHENIXTracker::findSeededTracksbySegments_run(
               temp_segment.hits[l] = whichhit[h];
               temp_segment.seed = (*cur_seg)[whichseg[h]].seed;
               unsigned int outer_layer =
-                  layer_sorted[l][temp_segment.hits[l]].layer;
+                  layer_sorted[l][temp_segment.hits[l]].get_layer();
               temp_segment.n_hits = l + 1;
               if ((n_layers - (l + 1)) <= allowed_missing) {
                 complete_segments.push_back(temp_segment);
@@ -1600,7 +1600,7 @@ void sPHENIXTracker::findSeededTracksbySegments_run(
           temp_segment.hits[l] = whichhit[h];
           temp_segment.seed = (*cur_seg)[whichseg[h]].seed;
           unsigned int outer_layer =
-              layer_sorted[l][temp_segment.hits[l]].layer;
+              layer_sorted[l][temp_segment.hits[l]].get_layer();
           temp_segment.n_hits = l + 1;
           if ((n_layers - (l + 1)) <= allowed_missing) {
             complete_segments.push_back(temp_segment);

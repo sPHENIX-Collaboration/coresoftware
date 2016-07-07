@@ -221,11 +221,11 @@ class sPHENIXTrackerTPC : public HelixHough {
     int min_layer = 999999;
     int max_layer = 0;
     for (unsigned int i = 0; i < hits.size(); ++i) {
-      if (hits[i].layer < min_layer) {
-        min_layer = hits[i].layer;
+      if (hits[i].get_layer() < min_layer) {
+        min_layer = hits[i].get_layer();
       }
-      if (hits[i].layer > max_layer) {
-        max_layer = hits[i].layer;
+      if (hits[i].get_layer() > max_layer) {
+        max_layer = hits[i].get_layer();
       }
     }
     setSeedLayer(min_layer);

@@ -22,10 +22,10 @@ float sPHENIXTrackerTPC::fitTrack(SimpleTrack3D& track,
   vector<float> zres;
   vector<float> zres_inv;
   for (unsigned int i = 0; i < track.hits.size(); i++) {
-    xyres.push_back(sqrt(track.hits[i].dx * track.hits[i].dx +
-                         track.hits[i].dy * track.hits[i].dy));
+    xyres.push_back(sqrt(track.hits[i].get_ex() * track.hits[i].get_ex() +
+                         track.hits[i].get_ey() * track.hits[i].get_ey()));
     xyres_inv.push_back(1. / xyres.back());
-    zres.push_back(track.hits[i].dz);
+    zres.push_back(track.hits[i].get_ez());
     zres_inv.push_back(1. / zres.back());
   }
 
@@ -169,10 +169,10 @@ float sPHENIXTrackerTPC::fitTrack_3(SimpleTrack3D& track) {
   vector<double> zres;
   vector<double> zres_inv;
   for (unsigned int i = 0; i < 3; i++) {
-    xyres.push_back(sqrt(track.hits[i].dx * track.hits[i].dx +
-                         track.hits[i].dy * track.hits[i].dy));
+    xyres.push_back(sqrt(track.hits[i].get_ex() * track.hits[i].get_ex() +
+                         track.hits[i].get_ey() * track.hits[i].get_ey()));
     xyres_inv.push_back(1. / xyres.back());
-    zres.push_back(track.hits[i].dz);
+    zres.push_back(track.hits[i].get_ez());
     zres_inv.push_back(1. / zres.back());
   }
 

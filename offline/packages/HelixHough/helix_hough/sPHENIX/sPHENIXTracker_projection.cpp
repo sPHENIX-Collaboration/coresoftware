@@ -110,7 +110,7 @@ void sPHENIXTracker::findSeededTracksByProjection(vector<SimpleTrack3D>& seeds,
     layer_sorted[l].clear();
   }
   for (unsigned int i = 0; i < hits.size(); ++i) {
-    layer_sorted[hits[i].layer].push_back(hits[i]);
+    layer_sorted[hits[i].get_layer()].push_back(hits[i]);
   }
 
   vector<float> layer_phi_error;
@@ -148,13 +148,13 @@ void sPHENIXTracker::findSeededTracksByProjection(vector<SimpleTrack3D>& seeds,
     float dr_big = 0.;
     float dz_big = 0.;
     for (unsigned int i = 0; i < layer_sorted[l].size(); ++i) {
-      float dx = layer_sorted[l][i].dx;
-      float dy = layer_sorted[l][i].dy;
+      float dx = layer_sorted[l][i].get_ex();
+      float dy = layer_sorted[l][i].get_ey();
       float dr = dx * dx + dy * dy;
       if (dr > dr_big) {
         dr_big = dr;
       }
-      float dz = layer_sorted[l][i].dz;
+      float dz = layer_sorted[l][i].get_ez();
       if (dz > dz_big) {
         dz_big = dz;
       }
@@ -169,7 +169,7 @@ void sPHENIXTracker::findSeededTracksByProjection(vector<SimpleTrack3D>& seeds,
 
   for (unsigned int i = 0; i < hits.size(); i++) {
     AngleIndexPair temppair(atan2(hits[i].get_y(), hits[i].get_x()), i);
-    angle_list[hits[i].layer].addPair(temppair);
+    angle_list[hits[i].get_layer()].addPair(temppair);
   }
 
   float phi_tol = 0.15;

@@ -267,39 +267,39 @@ void HelixHough::makeClusters(unsigned int zoomlevel, unsigned int MAX,
                      ++i) {
                   if ((*(hits_vec[zoomlevel]))[(*(bins_vec[zoomlevel]))[i]
                                                    .entry]
-                          .layer < 32) {
+                          .get_layer() < 32) {
                     layer_mask[0] =
                         layer_mask[0] |
                         (1 << (*(
                              hits_vec[zoomlevel]))[(*(bins_vec[zoomlevel]))[i]
                                                        .entry]
-                                  .layer);
+                                  .get_layer());
                   } else if ((*(hits_vec[zoomlevel]))
                                  [(*(bins_vec[zoomlevel]))[i].entry]
-                                     .layer < 64) {
+                                     .get_layer() < 64) {
                     layer_mask[1] =
                         layer_mask[1] |
                         (1 << ((*(hits_vec[zoomlevel]))
                                    [(*(bins_vec[zoomlevel]))[i].entry]
-                                       .layer -
+                                       .get_layer() -
                                32));
                   } else if ((*(hits_vec[zoomlevel]))
                                  [(*(bins_vec[zoomlevel]))[i].entry]
-                                     .layer < 96) {
+                                     .get_layer() < 96) {
                     layer_mask[2] =
                         layer_mask[2] |
                         (1 << ((*(hits_vec[zoomlevel]))
                                    [(*(bins_vec[zoomlevel]))[i].entry]
-                                       .layer -
+                                       .get_layer() -
                                64));
                   } else if ((*(hits_vec[zoomlevel]))
                                  [(*(bins_vec[zoomlevel]))[i].entry]
-                                     .layer < 128) {
+                                     .get_layer() < 128) {
                     layer_mask[3] =
                         layer_mask[3] |
                         (1 << ((*(hits_vec[zoomlevel]))
                                    [(*(bins_vec[zoomlevel]))[i].entry]
-                                       .layer -
+                                       .get_layer() -
                                96));
                   }
                 }
@@ -608,13 +608,13 @@ void HelixHough::findSeededHelices(vector<SimpleTrack3D>& seeds,
   int max_layer = 0;
   int min_layer = 999999;
   for (unsigned int i = 0; i < hits.size(); ++i) {
-    if (hits[i].layer > max_layer) {
-      max_layer = hits[i].layer;
+    if (hits[i].get_layer() > max_layer) {
+      max_layer = hits[i].get_layer();
     }
-    if (hits[i].layer < min_layer) {
-      min_layer = hits[i].layer;
+    if (hits[i].get_layer() < min_layer) {
+      min_layer = hits[i].get_layer();
     }
-    if (hits[i].layer < 0) {
+    if (hits[i].get_layer() < 0) {
       findSeededHelices_run(seeds, hits, min_hits, max_hits, tracks, maxtracks);
       return;
     }
@@ -644,8 +644,8 @@ void HelixHough::findSeededHelices(vector<SimpleTrack3D>& seeds,
     cur_tracks.clear();
     cur_hits.clear();
     for (unsigned int i = 0; i < hits.size(); ++i) {
-      if ((hits[i].layer >= cur_layer) &&
-          (hits[i].layer <= (cur_layer + layers_at_a_time - 1))) {
+      if ((hits[i].get_layer() >= cur_layer) &&
+          (hits[i].get_layer() <= (cur_layer + layers_at_a_time - 1))) {
         cur_hits.push_back(hits[i]);
       }
     }

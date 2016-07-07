@@ -884,12 +884,13 @@ int PHG4HoughTransform::translate_input() {
 
     SimpleHit3D hit3d(cluster->get_x(), 2.0*sqrt(cluster->get_size(0,0)),
 		      cluster->get_y(), 2.0*sqrt(cluster->get_size(1,1)),
-                      cluster->get_z(), 2.0*sqrt(cluster->get_size(2,2)), cluster->get_id(), ilayer);
+                      cluster->get_z(), 2.0*sqrt(cluster->get_size(2,2)),
+		      cluster->get_id(), ilayer);
 
     // copy covariance over
     for (int i = 0; i < 3; ++i) {
       for (int j = i; j < 3; ++j) {
-        hit3d.set_error(i, j, cluster->get_error(i, j));
+        hit3d.set_error(i, j, cluster->get_size(i, j));
       }
     }
 

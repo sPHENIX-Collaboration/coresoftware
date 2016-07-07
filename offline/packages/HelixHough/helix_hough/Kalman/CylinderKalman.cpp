@@ -30,7 +30,7 @@ void CylinderKalman::calculate_dxda(SimpleHit3D& hit, HelixKalmanState& state,
   float z0 = state.z0;
   float dzdl = state.dzdl;
 
-  float rad_det = det_rad[hit.layer];
+  float rad_det = det_rad[hit.get_layer()];
 
   float cosphi = cos(phi);
   float sinphi = sin(phi);
@@ -57,8 +57,10 @@ void CylinderKalman::calculate_dxda(SimpleHit3D& hit, HelixKalmanState& state,
   float y1 = P2y + uy * h;
   float x2 = P2x - ux * h;
   float y2 = P2y - uy * h;
-  float diff1 = (x1 - hit.get_x()) * (x1 - hit.get_x()) + (y1 - hit.get_y()) * (y1 - hit.get_y());
-  float diff2 = (x2 - hit.get_x()) * (x2 - hit.get_x()) + (y2 - hit.get_y()) * (y2 - hit.get_y());
+  float diff1 = (x1 - hit.get_x()) * (x1 - hit.get_x()) +
+                (y1 - hit.get_y()) * (y1 - hit.get_y());
+  float diff2 = (x2 - hit.get_x()) * (x2 - hit.get_x()) +
+                (y2 - hit.get_y()) * (y2 - hit.get_y());
   float signk = 0.;
   if (diff1 < diff2) {
     signk = 1.;
@@ -387,7 +389,8 @@ void CylinderKalman::calculateProjections(SimpleHit3D& hit,
                                           HelixKalmanState& state,
                                           Matrix<float, 2, 5>& H,
                                           Matrix<float, 2, 1>& ha) {
-  det_rad[hit.layer] = sqrt(hit.get_x() * hit.get_x() + hit.get_y() * hit.get_y());
+  det_rad[hit.get_layer()] =
+      sqrt(hit.get_x() * hit.get_x() + hit.get_y() * hit.get_y());
 
   // calculate dx/dA, A are the helix params, x is (x,y,z)
   // first calculate for x-y plane
@@ -419,9 +422,9 @@ void CylinderKalman::calculateMeasurements(SimpleHit3D& hit,
                                            Matrix<float, 2, 2>& G) {
   Matrix<float, 2, 2> V = Matrix<float, 2, 2>::Zero(2, 2);
   V(0, 0) = 3.33333333333333426e-01 *
-            ((hit.dx) * (hit.dx) + (hit.dy) * (hit.dy)) /
+            ((hit.get_ex()) * (hit.get_ex()) + (hit.get_ey()) * (hit.get_ey())) /
             ((hit.get_x()) * (hit.get_x()) + (hit.get_y()) * (hit.get_y()));
-  V(1, 1) = 3.33333333333333426e-01 * (hit.dz) * (hit.dz);
+  V(1, 1) = 3.33333333333333426e-01 * (hit.get_ez()) * (hit.get_ez());
 
   G = V.fullPivLu().inverse();
 

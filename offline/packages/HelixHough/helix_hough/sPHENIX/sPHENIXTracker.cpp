@@ -78,8 +78,8 @@ void sPHENIXTracker::tripletRejection(vector<SimpleTrack3D>& input,
           continue;
         } else if ((input[trips[i].track].hits.size() >
                     input[trips[best_pos].track].hits.size()) ||
-                   (input[trips[i].track].hits.back().layer >
-                    input[trips[best_pos].track].hits.back().layer)) {
+                   (input[trips[i].track].hits.back().get_layer() >
+                    input[trips[best_pos].track].hits.back().get_layer())) {
           next_chi2 = best_chi2;
           best_chi2 = trips[i].chi2;
           best_pos = i;
@@ -431,15 +431,15 @@ void sPHENIXTracker::finalize(vector<SimpleTrack3D>& input,
         for (int h = (output[i].hits.size() - 1); h >= 0; --h) {
           SimpleHit3D hit = output[i].hits[h];
           float err_scale = 1.;
-          int layer = hit.layer;
+          int layer = hit.get_layer();
           if ((layer >= 0) && (layer < (int)(hit_error_scale.size()))) {
             err_scale = hit_error_scale[layer];
           }
           err_scale *=
               3.0;  // fudge factor, like needed due to non-gaussian errors
-          hit.dx *= err_scale;
-          hit.dy *= err_scale;
-          hit.dz *= err_scale;
+          hit.set_ex( hit.get_ex() * err_scale);
+	  hit.set_ey( hit.get_ey() * err_scale);
+	  hit.set_ez( hit.get_ez() * err_scale);
           kalman->addHit(hit, track_states[i]);
           track_states[i].position = h;
         }
@@ -466,9 +466,9 @@ void sPHENIXTracker::finalize(vector<SimpleTrack3D>& input,
         for (int h = (output[i].hits.size() - 1); h >= 0; --h) {
           SimpleHit3D hit = output[i].hits[h];
           float err_scale = 0.66;
-          hit.dx *= err_scale;
-          hit.dy *= err_scale;
-          hit.dz *= err_scale;
+          hit.set_ex( hit.get_ex() * err_scale);
+          hit.set_ey( hit.get_ey() * err_scale);
+          hit.set_ez( hit.get_ez() * err_scale);
           kalman->addHit(hit, track_states[i]);
         }
 
@@ -530,14 +530,14 @@ bool sPHENIXTracker::breakRecursion(const vector<SimpleHit3D>& hits,
   }
   unsigned int layer_mask[4] = {0, 0, 0, 0};
   for (unsigned int i = 0; i < hits.size(); ++i) {
-    if (hits[i].layer < 32) {
-      layer_mask[0] = layer_mask[0] | (1 << hits[i].layer);
-    } else if (hits[i].layer < 64) {
-      layer_mask[1] = layer_mask[1] | (1 << (hits[i].layer - 32));
-    } else if (hits[i].layer < 96) {
-      layer_mask[2] = layer_mask[2] | (1 << (hits[i].layer - 64));
-    } else if (hits[i].layer < 128) {
-      layer_mask[3] = layer_mask[3] | (1 << (hits[i].layer - 96));
+    if (hits[i].get_layer() < 32) {
+      layer_mask[0] = layer_mask[0] | (1 << hits[i].get_layer());
+    } else if (hits[i].get_layer() < 64) {
+      layer_mask[1] = layer_mask[1] | (1 << (hits[i].get_layer() - 32));
+    } else if (hits[i].get_layer() < 96) {
+      layer_mask[2] = layer_mask[2] | (1 << (hits[i].get_layer() - 64));
+    } else if (hits[i].get_layer() < 128) {
+      layer_mask[3] = layer_mask[3] | (1 << (hits[i].get_layer() - 96));
     }
   }
   unsigned int nlayers =
@@ -564,7 +564,7 @@ float sPHENIXTracker::phiError(SimpleHit3D& hit, float min_k, float max_k,
     p_inv = prev_p_inv;
   }
   float total_scatter_2 = 0.;
-  for (int i = seed_layer + 1; i <= (hit.layer); ++i) {
+  for (int i = seed_layer + 1; i <= (hit.get_layer()); ++i) {
     float this_scatter = detector_scatter[i - 1] *
                          (detector_radii[i] - detector_radii[i - 1]) /
                          detector_radii[i];
@@ -572,7 +572,7 @@ float sPHENIXTracker::phiError(SimpleHit3D& hit, float min_k, float max_k,
   }
   float angle = p_inv * sqrt(total_scatter_2) * 1.0;
   float dsize = 0.5 * (max_d - min_d);
-  float angle_from_d = dsize / detector_radii[hit.layer];
+  float angle_from_d = dsize / detector_radii[hit.get_layer()];
   float returnval = 0.;
   if (pairvoting == false) {
     if (angle_from_d > angle) {
@@ -604,7 +604,7 @@ float sPHENIXTracker::dzdlError(SimpleHit3D& hit, float min_k, float max_k,
     p_inv = prev_p_inv;
   }
   float total_scatter_2 = 0.;
-  for (int i = seed_layer + 1; i <= (hit.layer); ++i) {
+  for (int i = seed_layer + 1; i <= (hit.get_layer()); ++i) {
     float this_scatter = detector_scatter[i - 1] *
                          (detector_radii[i] - detector_radii[i - 1]) /
                          detector_radii[i];
@@ -612,7 +612,7 @@ float sPHENIXTracker::dzdlError(SimpleHit3D& hit, float min_k, float max_k,
   }
   float angle = p_inv * sqrt(total_scatter_2) * 1.0;
   float z0size = 0.5 * (max_z0 - min_z0);
-  float angle_from_z0 = z0size / detector_radii[hit.layer];
+  float angle_from_z0 = z0size / detector_radii[hit.get_layer()];
   float returnval = 0.;
   if (pairvoting == false) {
     if (angle_from_z0 > angle) {

@@ -2,21 +2,25 @@
 #define __SIMPLEHIT3D__
 
 #include <iostream>
+#include <cmath>
 
 class SimpleHit3D
 {
 
 public:
   
-  SimpleHit3D(float x = 0.0, float dxx = 0.0,
-	      float y = 0.0, float dyy = 0.0,
-	      float z = 0.0, float dzz = 0.0,
-	      unsigned int id = 0, int lyr = -1);
+  SimpleHit3D(float x = 0.0, float ex = 0.0,
+	      float y = 0.0, float ey = 0.0,
+	      float z = 0.0, float ez = 0.0,
+	      unsigned int id = 0, int layer = -1);
   virtual ~SimpleHit3D() {}
 
   unsigned int get_id() const {return _id;}
   void         set_id(unsigned int id) {_id = id;}
 
+  int  get_layer() const {return _layer;}
+  void set_layer(int layer) {_layer = layer;}
+  
   float get_x() const {return _x;}
   void  set_x(float x) {_x = x;}
 
@@ -28,26 +32,34 @@ public:
   
   void  print(std::ostream& out = std::cout) const; //< dump the values to screen
 
-  float get_error(unsigned int i, unsigned int j) const;        //< get cluster error covar
-  void  set_error(unsigned int i, unsigned int j, float value); //< set cluster error covar
+  /// get cluster error covar
+  float get_error(unsigned int i, unsigned int j) const;
+  /// set cluster error covar
+  void  set_error(unsigned int i, unsigned int j, float value);
+
+  float get_ex() const {return _ex;}
+  void  set_ex(float ex) {_ex = ex;}
+  
+  float get_ey() const {return _ey;}
+  void  set_ey(float ey) {_ey = ey;}
+  
+  float get_ez() const {return _ez;}
+  void  set_ez(float ez) {_ez = ez;}
   
 private:
   
   unsigned int covar_index(unsigned int i, unsigned int j) const;
 
   unsigned int _id;
-
+  int _layer;
+  
   float _x;
   float _y;
   float _z;
-  
-public:
-  float dx;
-  float dy;
-  float dz;  
-  int layer;
 
-private:
+  float _ex;
+  float _ey;
+  float _ez;
   
   float _err[6]; //< error covariance matrix (x,y,z) (jagged array) 
 };
