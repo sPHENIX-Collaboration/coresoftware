@@ -266,17 +266,17 @@ class sPHENIXTracker : public HelixHough {
                                       unsigned int max_hits,
                                       std::vector<SimpleTrack3D>& tracks);
 
-  void findSeededTracks(std::vector<SimpleTrack3D>& seeds,
-                        std::vector<SimpleHit3D>& hits,
-                        std::vector<SimpleTrack3D>& tracks,
-                        const HelixRange& range);
-  void findSeededTracksbySegments(std::vector<SimpleTrack3D>& seeds,
-                                  std::vector<SimpleHit3D>& hits,
-                                  std::vector<SimpleTrack3D>& tracks,
-                                  const HelixRange& range);
-  void findSeededTracksbySegments_run(std::vector<SimpleTrack3D>& seeds,
-                                      std::vector<SimpleHit3D>& hits,
-                                      std::vector<SimpleTrack3D>& tracks);
+  // void findSeededTracks(std::vector<SimpleTrack3D>& seeds,
+  //                       std::vector<SimpleHit3D>& hits,
+  //                       std::vector<SimpleTrack3D>& tracks,
+  //                       const HelixRange& range);
+  // void findSeededTracksbySegments(std::vector<SimpleTrack3D>& seeds,
+  //                                 std::vector<SimpleHit3D>& hits,
+  //                                 std::vector<SimpleTrack3D>& tracks,
+  //                                 const HelixRange& range);
+  // void findSeededTracksbySegments_run(std::vector<SimpleTrack3D>& seeds,
+  //                                     std::vector<SimpleHit3D>& hits,
+  //                                     std::vector<SimpleTrack3D>& tracks);
 
   float dcaToVertexXY(SimpleTrack3D& track, float vx, float vy);
 
@@ -326,10 +326,10 @@ class sPHENIXTracker : public HelixHough {
       float* chi2_a);
   void projectToLayer(SimpleTrack3D& seed, unsigned int layer, float& x,
                       float& y, float& z);
-  void findSeededTracksByProjection(std::vector<SimpleTrack3D>& seeds,
-                                    std::vector<SimpleHit3D>& hits,
-                                    std::vector<SimpleTrack3D>& tracks,
-                                    const HelixRange& range);
+  // void findSeededTracksByProjection(std::vector<SimpleTrack3D>& seeds,
+  //                                   std::vector<SimpleHit3D>& hits,
+  //                                   std::vector<SimpleTrack3D>& tracks,
+  //                                   const HelixRange& range);
 
   void setRangeFromSeed(HelixRange& range, SimpleTrack3D& seed);
 

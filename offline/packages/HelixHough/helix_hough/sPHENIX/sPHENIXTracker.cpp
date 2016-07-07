@@ -517,14 +517,14 @@ void sPHENIXTracker::findTracks(vector<SimpleHit3D>& hits,
   //   findTracksBySegments(hits,tracks,range);
 }
 
-void sPHENIXTracker::findSeededTracks(vector<SimpleTrack3D>& seeds,
-                                      vector<SimpleHit3D>& hits,
-                                      vector<SimpleTrack3D>& tracks,
-                                      const HelixRange& range) {
-  findtracksiter += 1;
-  //   findSeededTracksByProjection(seeds, hits, tracks, range);
-  findSeededTracksbySegments(seeds, hits, tracks, range);
-}
+// void sPHENIXTracker::findSeededTracks(vector<SimpleTrack3D>& seeds,
+//                                       vector<SimpleHit3D>& hits,
+//                                       vector<SimpleTrack3D>& tracks,
+//                                       const HelixRange& range) {
+//   // findtracksiter += 1;
+//   // //   findSeededTracksByProjection(seeds, hits, tracks, range);
+//   // findSeededTracksbySegments(seeds, hits, tracks, range);
+// }
 
 bool sPHENIXTracker::breakRecursion(const vector<SimpleHit3D>& hits,
                                     const HelixRange& range) {

@@ -1265,462 +1265,462 @@ void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits,
   }
 }
 
-void sPHENIXTracker::findSeededTracksbySegments(vector<SimpleTrack3D>& seeds,
-                                                vector<SimpleHit3D>& hits,
-                                                vector<SimpleTrack3D>& tracks,
-                                                const HelixRange& range) {
-  unsigned int allowed_missing = n_layers - seed_layer - req_layers;
+// // void sPHENIXTracker::findSeededTracksbySegments(vector<SimpleTrack3D>& seeds,
+// //                                                 vector<SimpleHit3D>& hits,
+// //                                                 vector<SimpleTrack3D>& tracks,
+// //                                                 const HelixRange& range) {
+// //   unsigned int allowed_missing = n_layers - seed_layer - req_layers;
 
-  for (unsigned int l = 0; l < n_layers; ++l) {
-    layer_sorted[l].clear();
-  }
-  for (unsigned int i = 0; i < hits.size(); ++i) {
-    unsigned int min = (hits[i].get_layer() - allowed_missing);
-    if (allowed_missing > hits[i].get_layer()) {
-      min = 0;
-    }
-    for (unsigned int l = min; l <= hits[i].get_layer(); l += 1) {
-      layer_sorted[l].push_back(hits[i]);
-    }
-  }
+// //   for (unsigned int l = 0; l < n_layers; ++l) {
+// //     layer_sorted[l].clear();
+// //   }
+// //   for (unsigned int i = 0; i < hits.size(); ++i) {
+// //     unsigned int min = (hits[i].get_layer() - allowed_missing);
+// //     if (allowed_missing > hits[i].get_layer()) {
+// //       min = 0;
+// //     }
+// //     for (unsigned int l = min; l <= hits[i].get_layer(); l += 1) {
+// //       layer_sorted[l].push_back(hits[i]);
+// //     }
+// //   }
 
-  findSeededTracksbySegments_run(seeds, hits, tracks);
-}
+// //   findSeededTracksbySegments_run(seeds, hits, tracks);
+// // }
 
-void sPHENIXTracker::findSeededTracksbySegments_run(
-    vector<SimpleTrack3D>& seeds, vector<SimpleHit3D>& hits,
-    vector<SimpleTrack3D>& tracks) {
-  if (seeds.size() == 0) {
-    return;
-  }
+// // void sPHENIXTracker::findSeededTracksbySegments_run(
+// //     vector<SimpleTrack3D>& seeds, vector<SimpleHit3D>& hits,
+// //     vector<SimpleTrack3D>& tracks) {
+// //   if (seeds.size() == 0) {
+// //     return;
+// //   }
 
-  timeval t1, t2;
-  double time1 = 0.;
-  double time2 = 0.;
+// //   timeval t1, t2;
+// //   double time1 = 0.;
+// //   double time2 = 0.;
 
-  gettimeofday(&t1, NULL);
+// //   gettimeofday(&t1, NULL);
 
-  unsigned int first_new_layer = seed_layer;
+// //   unsigned int first_new_layer = seed_layer;
 
-  unsigned int allowed_missing = n_layers - seed_layer - req_layers;
+// //   unsigned int allowed_missing = n_layers - seed_layer - req_layers;
 
-  vector<TrackSegment>* cur_seg = &segments1;
-  vector<TrackSegment>* next_seg = &segments2;
-  unsigned int curseg_size = 0;
-  unsigned int nextseg_size = 0;
+// //   vector<TrackSegment>* cur_seg = &segments1;
+// //   vector<TrackSegment>* next_seg = &segments2;
+// //   unsigned int curseg_size = 0;
+// //   unsigned int nextseg_size = 0;
 
-  vector<TrackSegment> complete_segments;
+// //   vector<TrackSegment> complete_segments;
 
-  float cosang_diff = 1. - cosang_cut;
-  float cosang_diff_inv = 1. / cosang_diff;
-  float sinang_cut = sqrt(1. - cosang_cut * cosang_cut);
-  float easy_chi2_cut = ca_chi2_cut;
+// //   float cosang_diff = 1. - cosang_cut;
+// //   float cosang_diff_inv = 1. / cosang_diff;
+// //   float sinang_cut = sqrt(1. - cosang_cut * cosang_cut);
+// //   float easy_chi2_cut = ca_chi2_cut;
 
-  unsigned int hit_counter = 0;
-  float x1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float x2_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float x3_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float y1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float y2_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float y3_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float z1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float z2_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float z3_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   unsigned int hit_counter = 0;
+// //   float x1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float x2_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float x3_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float y1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float y2_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float y3_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float z1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float z2_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float z3_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
 
-  float dx1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float dx2_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float dx3_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float dy1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float dy2_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float dy3_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float dz1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float dz2_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float dz3_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float dx1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float dx2_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float dx3_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float dy1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float dy2_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float dy3_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float dz1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float dz2_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float dz3_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
 
-  float kappa_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float dkappa_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float kappa_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float dkappa_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
 
-  float ux_mid_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float uy_mid_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float ux_end_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float uy_end_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float ux_mid_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float uy_mid_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float ux_end_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float uy_end_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
 
-  float dzdl_1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float dzdl_2_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float ddzdl_1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
-  float ddzdl_2_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float dzdl_1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float dzdl_2_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float ddzdl_1_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
+// //   float ddzdl_2_a[4] __attribute__((aligned(16))) = {0., 0., 0., 0.};
 
-  TrackSegment temp_segment;
-  temp_segment.hits.assign(n_layers, 0);
-  unsigned int whichhit[4];
-  unsigned int whichseed[4];
-  for (unsigned int seed = 0, seedsize = seeds.size(); seed < seedsize;
-       ++seed) {
-    unsigned int firsthit = seeds[seed].hits.size();
+// //   TrackSegment temp_segment;
+// //   temp_segment.hits.assign(n_layers, 0);
+// //   unsigned int whichhit[4];
+// //   unsigned int whichseed[4];
+// //   for (unsigned int seed = 0, seedsize = seeds.size(); seed < seedsize;
+// //        ++seed) {
+// //     unsigned int firsthit = seeds[seed].hits.size();
 
-    x1_a[hit_counter] = seeds[seed].hits[firsthit - 3].get_x();
-    y1_a[hit_counter] = seeds[seed].hits[firsthit - 3].get_y();
-    z1_a[hit_counter] = seeds[seed].hits[firsthit - 3].get_z();
-    x2_a[hit_counter] = seeds[seed].hits[firsthit - 2].get_x();
-    y2_a[hit_counter] = seeds[seed].hits[firsthit - 2].get_y();
-    z2_a[hit_counter] = seeds[seed].hits[firsthit - 2].get_z();
-    x3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_x();
-    y3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_y();
-    z3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_z();
+// //     x1_a[hit_counter] = seeds[seed].hits[firsthit - 3].get_x();
+// //     y1_a[hit_counter] = seeds[seed].hits[firsthit - 3].get_y();
+// //     z1_a[hit_counter] = seeds[seed].hits[firsthit - 3].get_z();
+// //     x2_a[hit_counter] = seeds[seed].hits[firsthit - 2].get_x();
+// //     y2_a[hit_counter] = seeds[seed].hits[firsthit - 2].get_y();
+// //     z2_a[hit_counter] = seeds[seed].hits[firsthit - 2].get_z();
+// //     x3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_x();
+// //     y3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_y();
+// //     z3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_z();
 
-    dx1_a[hit_counter] = seeds[seed].hits[firsthit - 3].get_ex();
-    dy1_a[hit_counter] = seeds[seed].hits[firsthit - 3].get_ey();
-    dz1_a[hit_counter] = seeds[seed].hits[firsthit - 3].get_ez();
-    dx2_a[hit_counter] = seeds[seed].hits[firsthit - 2].get_ex();
-    dy2_a[hit_counter] = seeds[seed].hits[firsthit - 2].get_ey();
-    dz2_a[hit_counter] = seeds[seed].hits[firsthit - 2].get_ez();
-    dx3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_ex();
-    dy3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_ey();
-    dz3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_ez();
+// //     dx1_a[hit_counter] = seeds[seed].hits[firsthit - 3].get_ex();
+// //     dy1_a[hit_counter] = seeds[seed].hits[firsthit - 3].get_ey();
+// //     dz1_a[hit_counter] = seeds[seed].hits[firsthit - 3].get_ez();
+// //     dx2_a[hit_counter] = seeds[seed].hits[firsthit - 2].get_ex();
+// //     dy2_a[hit_counter] = seeds[seed].hits[firsthit - 2].get_ey();
+// //     dz2_a[hit_counter] = seeds[seed].hits[firsthit - 2].get_ez();
+// //     dx3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_ex();
+// //     dy3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_ey();
+// //     dz3_a[hit_counter] = seeds[seed].hits[firsthit - 1].get_ez();
 
-    whichseed[hit_counter] = seed;
-    hit_counter += 1;
-    if (hit_counter == 4) {
-      calculateKappaTangents(x1_a, y1_a, z1_a, x2_a, y2_a, z2_a, x3_a, y3_a,
-                             z3_a, dx1_a, dy1_a, dz1_a, dx2_a, dy2_a, dz2_a,
-                             dx3_a, dy3_a, dz3_a, kappa_a, dkappa_a, ux_mid_a,
-                             uy_mid_a, ux_end_a, uy_end_a, dzdl_1_a, dzdl_2_a,
-                             ddzdl_1_a, ddzdl_2_a);
+// //     whichseed[hit_counter] = seed;
+// //     hit_counter += 1;
+// //     if (hit_counter == 4) {
+// //       calculateKappaTangents(x1_a, y1_a, z1_a, x2_a, y2_a, z2_a, x3_a, y3_a,
+// //                              z3_a, dx1_a, dy1_a, dz1_a, dx2_a, dy2_a, dz2_a,
+// //                              dx3_a, dy3_a, dz3_a, kappa_a, dkappa_a, ux_mid_a,
+// //                              uy_mid_a, ux_end_a, uy_end_a, dzdl_1_a, dzdl_2_a,
+// //                              ddzdl_1_a, ddzdl_2_a);
 
-      for (unsigned int h = 0; h < hit_counter; ++h) {
-        temp_segment.chi2 = 0.;
-        temp_segment.ux = ux_end_a[h];
-        temp_segment.uy = uy_end_a[h];
-        temp_segment.kappa = kappa_a[h];
-        temp_segment.dkappa = dkappa_a[h];
-        temp_segment.seed = whichseed[h];
-        if (next_seg->size() == nextseg_size) {
-          next_seg->push_back(temp_segment);
-          nextseg_size += 1;
-        } else {
-          (*next_seg)[nextseg_size] = temp_segment;
-          nextseg_size += 1;
-        }
-      }
+// //       for (unsigned int h = 0; h < hit_counter; ++h) {
+// //         temp_segment.chi2 = 0.;
+// //         temp_segment.ux = ux_end_a[h];
+// //         temp_segment.uy = uy_end_a[h];
+// //         temp_segment.kappa = kappa_a[h];
+// //         temp_segment.dkappa = dkappa_a[h];
+// //         temp_segment.seed = whichseed[h];
+// //         if (next_seg->size() == nextseg_size) {
+// //           next_seg->push_back(temp_segment);
+// //           nextseg_size += 1;
+// //         } else {
+// //           (*next_seg)[nextseg_size] = temp_segment;
+// //           nextseg_size += 1;
+// //         }
+// //       }
 
-      hit_counter = 0;
-    }
-  }
-  if (hit_counter != 0) {
-    calculateKappaTangents(x1_a, y1_a, z1_a, x2_a, y2_a, z2_a, x3_a, y3_a, z3_a,
-                           dx1_a, dy1_a, dz1_a, dx2_a, dy2_a, dz2_a, dx3_a,
-                           dy3_a, dz3_a, kappa_a, dkappa_a, ux_mid_a, uy_mid_a,
-                           ux_end_a, uy_end_a, dzdl_1_a, dzdl_2_a, ddzdl_1_a,
-                           ddzdl_2_a);
+// //       hit_counter = 0;
+// //     }
+// //   }
+// //   if (hit_counter != 0) {
+// //     calculateKappaTangents(x1_a, y1_a, z1_a, x2_a, y2_a, z2_a, x3_a, y3_a, z3_a,
+// //                            dx1_a, dy1_a, dz1_a, dx2_a, dy2_a, dz2_a, dx3_a,
+// //                            dy3_a, dz3_a, kappa_a, dkappa_a, ux_mid_a, uy_mid_a,
+// //                            ux_end_a, uy_end_a, dzdl_1_a, dzdl_2_a, ddzdl_1_a,
+// //                            ddzdl_2_a);
 
-    for (unsigned int h = 0; h < hit_counter; ++h) {
-      temp_segment.chi2 = 0.;
-      temp_segment.ux = ux_end_a[h];
-      temp_segment.uy = uy_end_a[h];
-      temp_segment.kappa = kappa_a[h];
-      temp_segment.dkappa = dkappa_a[h];
-      temp_segment.seed = whichseed[h];
-      if (next_seg->size() == nextseg_size) {
-        next_seg->push_back(temp_segment);
-        nextseg_size += 1;
-      } else {
-        (*next_seg)[nextseg_size] = temp_segment;
-        nextseg_size += 1;
-      }
-    }
+// //     for (unsigned int h = 0; h < hit_counter; ++h) {
+// //       temp_segment.chi2 = 0.;
+// //       temp_segment.ux = ux_end_a[h];
+// //       temp_segment.uy = uy_end_a[h];
+// //       temp_segment.kappa = kappa_a[h];
+// //       temp_segment.dkappa = dkappa_a[h];
+// //       temp_segment.seed = whichseed[h];
+// //       if (next_seg->size() == nextseg_size) {
+// //         next_seg->push_back(temp_segment);
+// //         nextseg_size += 1;
+// //       } else {
+// //         (*next_seg)[nextseg_size] = temp_segment;
+// //         nextseg_size += 1;
+// //       }
+// //     }
 
-    hit_counter = 0;
-  }
-  swap(cur_seg, next_seg);
-  swap(curseg_size, nextseg_size);
-  unsigned int whichseg[4];
-  for (unsigned int l = first_new_layer; l < n_layers; ++l) {
-    nextseg_size = 0;
-    for (unsigned int j = 0, sizej = curseg_size; j < sizej; ++j) {
-      unsigned int firsthit = seeds[(*cur_seg)[j].seed].hits.size();
-      for (unsigned int i = 0, sizei = layer_sorted[l].size(); i < sizei; ++i) {
-        if ((l - 2) <= (first_new_layer - 1)) {
-          x1_a[hit_counter] = seeds[(*cur_seg)[j].seed]
-	    .hits[l - 2 - (first_new_layer - firsthit)]
-	    .get_x();
-          y1_a[hit_counter] = seeds[(*cur_seg)[j].seed]
-	    .hits[l - 2 - (first_new_layer - firsthit)]
-	    .get_y();
-          z1_a[hit_counter] = seeds[(*cur_seg)[j].seed]
-	    .hits[l - 2 - (first_new_layer - firsthit)]
-	    .get_z();
-          dx1_a[hit_counter] = seeds[(*cur_seg)[j].seed]
-	    .hits[l - 2 - (first_new_layer - firsthit)]
-	    .get_ex();
-          dy1_a[hit_counter] = seeds[(*cur_seg)[j].seed]
-	    .hits[l - 2 - (first_new_layer - firsthit)]
-	    .get_ey();
-          dz1_a[hit_counter] = seeds[(*cur_seg)[j].seed]
-	    .hits[l - 2 - (first_new_layer - firsthit)]
-	    .get_ez();
-        } else {
-          x1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_x();
-          y1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_y();
-          z1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_z();
-          dx1_a[hit_counter] =
-              layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_ex();
-          dy1_a[hit_counter] =
-              layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_ey();
-          dz1_a[hit_counter] =
-              layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_ez();
-        }
-        if ((l - 1) <= (first_new_layer - 1)) {
-          x2_a[hit_counter] = seeds[(*cur_seg)[j].seed]
-	    .hits[l - 1 - (first_new_layer - firsthit)]
-	    .get_x();
-          y2_a[hit_counter] = seeds[(*cur_seg)[j].seed]
-	    .hits[l - 1 - (first_new_layer - firsthit)]
-	    .get_y();
-          z2_a[hit_counter] = seeds[(*cur_seg)[j].seed]
-	    .hits[l - 1 - (first_new_layer - firsthit)]
-	    .get_z();
-          dx2_a[hit_counter] = seeds[(*cur_seg)[j].seed]
-	    .hits[l - 1 - (first_new_layer - firsthit)]
-	    .get_ex();
-          dy2_a[hit_counter] = seeds[(*cur_seg)[j].seed]
-	    .hits[l - 1 - (first_new_layer - firsthit)]
-	    .get_ey();
-          dz2_a[hit_counter] = seeds[(*cur_seg)[j].seed]
-	    .hits[l - 1 - (first_new_layer - firsthit)]
-	    .get_ez();
-        } else {
-          x2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_x();
-          y2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_y();
-          z2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_z();
-          dx2_a[hit_counter] =
-              layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_ex();
-          dy2_a[hit_counter] =
-              layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_ey();
-          dz2_a[hit_counter] =
-              layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_ez();
-        }
-        x3_a[hit_counter] = layer_sorted[l][i].get_x();
-        y3_a[hit_counter] = layer_sorted[l][i].get_y();
-        z3_a[hit_counter] = layer_sorted[l][i].get_z();
-        dx3_a[hit_counter] = layer_sorted[l][i].get_ex();
-        dy3_a[hit_counter] = layer_sorted[l][i].get_ey();
-        dz3_a[hit_counter] = layer_sorted[l][i].get_ez();
+// //     hit_counter = 0;
+// //   }
+// //   swap(cur_seg, next_seg);
+// //   swap(curseg_size, nextseg_size);
+// //   unsigned int whichseg[4];
+// //   for (unsigned int l = first_new_layer; l < n_layers; ++l) {
+// //     nextseg_size = 0;
+// //     for (unsigned int j = 0, sizej = curseg_size; j < sizej; ++j) {
+// //       unsigned int firsthit = seeds[(*cur_seg)[j].seed].hits.size();
+// //       for (unsigned int i = 0, sizei = layer_sorted[l].size(); i < sizei; ++i) {
+// //         if ((l - 2) <= (first_new_layer - 1)) {
+// //           x1_a[hit_counter] = seeds[(*cur_seg)[j].seed]
+// // 	    .hits[l - 2 - (first_new_layer - firsthit)]
+// // 	    .get_x();
+// //           y1_a[hit_counter] = seeds[(*cur_seg)[j].seed]
+// // 	    .hits[l - 2 - (first_new_layer - firsthit)]
+// // 	    .get_y();
+// //           z1_a[hit_counter] = seeds[(*cur_seg)[j].seed]
+// // 	    .hits[l - 2 - (first_new_layer - firsthit)]
+// // 	    .get_z();
+// //           dx1_a[hit_counter] = seeds[(*cur_seg)[j].seed]
+// // 	    .hits[l - 2 - (first_new_layer - firsthit)]
+// // 	    .get_ex();
+// //           dy1_a[hit_counter] = seeds[(*cur_seg)[j].seed]
+// // 	    .hits[l - 2 - (first_new_layer - firsthit)]
+// // 	    .get_ey();
+// //           dz1_a[hit_counter] = seeds[(*cur_seg)[j].seed]
+// // 	    .hits[l - 2 - (first_new_layer - firsthit)]
+// // 	    .get_ez();
+// //         } else {
+// //           x1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_x();
+// //           y1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_y();
+// //           z1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_z();
+// //           dx1_a[hit_counter] =
+// //               layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_ex();
+// //           dy1_a[hit_counter] =
+// //               layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_ey();
+// //           dz1_a[hit_counter] =
+// //               layer_sorted[l - 2][(*cur_seg)[j].hits[l - 2]].get_ez();
+// //         }
+// //         if ((l - 1) <= (first_new_layer - 1)) {
+// //           x2_a[hit_counter] = seeds[(*cur_seg)[j].seed]
+// // 	    .hits[l - 1 - (first_new_layer - firsthit)]
+// // 	    .get_x();
+// //           y2_a[hit_counter] = seeds[(*cur_seg)[j].seed]
+// // 	    .hits[l - 1 - (first_new_layer - firsthit)]
+// // 	    .get_y();
+// //           z2_a[hit_counter] = seeds[(*cur_seg)[j].seed]
+// // 	    .hits[l - 1 - (first_new_layer - firsthit)]
+// // 	    .get_z();
+// //           dx2_a[hit_counter] = seeds[(*cur_seg)[j].seed]
+// // 	    .hits[l - 1 - (first_new_layer - firsthit)]
+// // 	    .get_ex();
+// //           dy2_a[hit_counter] = seeds[(*cur_seg)[j].seed]
+// // 	    .hits[l - 1 - (first_new_layer - firsthit)]
+// // 	    .get_ey();
+// //           dz2_a[hit_counter] = seeds[(*cur_seg)[j].seed]
+// // 	    .hits[l - 1 - (first_new_layer - firsthit)]
+// // 	    .get_ez();
+// //         } else {
+// //           x2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_x();
+// //           y2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_y();
+// //           z2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_z();
+// //           dx2_a[hit_counter] =
+// //               layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_ex();
+// //           dy2_a[hit_counter] =
+// //               layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_ey();
+// //           dz2_a[hit_counter] =
+// //               layer_sorted[l - 1][(*cur_seg)[j].hits[l - 1]].get_ez();
+// //         }
+// //         x3_a[hit_counter] = layer_sorted[l][i].get_x();
+// //         y3_a[hit_counter] = layer_sorted[l][i].get_y();
+// //         z3_a[hit_counter] = layer_sorted[l][i].get_z();
+// //         dx3_a[hit_counter] = layer_sorted[l][i].get_ex();
+// //         dy3_a[hit_counter] = layer_sorted[l][i].get_ey();
+// //         dz3_a[hit_counter] = layer_sorted[l][i].get_ez();
 
-        whichhit[hit_counter] = i;
-        whichseg[hit_counter] = j;
-        hit_counter += 1;
-        if (hit_counter == 4) {
-          calculateKappaTangents(x1_a, y1_a, z1_a, x2_a, y2_a, z2_a, x3_a, y3_a,
-                                 z3_a, dx1_a, dy1_a, dz1_a, dx2_a, dy2_a, dz2_a,
-                                 dx3_a, dy3_a, dz3_a, kappa_a, dkappa_a,
-                                 ux_mid_a, uy_mid_a, ux_end_a, uy_end_a,
-                                 dzdl_1_a, dzdl_2_a, ddzdl_1_a, ddzdl_2_a);
+// //         whichhit[hit_counter] = i;
+// //         whichseg[hit_counter] = j;
+// //         hit_counter += 1;
+// //         if (hit_counter == 4) {
+// //           calculateKappaTangents(x1_a, y1_a, z1_a, x2_a, y2_a, z2_a, x3_a, y3_a,
+// //                                  z3_a, dx1_a, dy1_a, dz1_a, dx2_a, dy2_a, dz2_a,
+// //                                  dx3_a, dy3_a, dz3_a, kappa_a, dkappa_a,
+// //                                  ux_mid_a, uy_mid_a, ux_end_a, uy_end_a,
+// //                                  dzdl_1_a, dzdl_2_a, ddzdl_1_a, ddzdl_2_a);
 
-          for (unsigned int h = 0; h < hit_counter; ++h) {
-            float kdiff = (*cur_seg)[whichseg[h]].kappa - kappa_a[h];
-            float dk = (*cur_seg)[whichseg[h]].dkappa + dkappa_a[h];
-            dk += sinang_cut * kappa_a[h];
-            float chi2_k = kdiff * kdiff / (dk * dk);
-            float cos_scatter = (*cur_seg)[whichseg[h]].ux * ux_mid_a[h] +
-                                (*cur_seg)[whichseg[h]].uy * uy_mid_a[h];
-            float chi2_ang = (1. - cos_scatter) * (1. - cos_scatter) *
-                             cosang_diff_inv * cosang_diff_inv;
-            float chi2_dzdl =
-                (dzdl_1_a[h] - dzdl_2_a[h]) /
-                (ddzdl_1_a[h] + ddzdl_2_a[h] + fabs(dzdl_1_a[h] * sinang_cut));
-            chi2_dzdl *= chi2_dzdl;
-            if (((*cur_seg)[whichseg[h]].chi2 + chi2_ang + chi2_k + chi2_dzdl) /
-                    ((float)l - 2.) <
-                easy_chi2_cut) {
-              temp_segment.chi2 =
-                  (*cur_seg)[whichseg[h]].chi2 + chi2_ang + chi2_k + chi2_dzdl;
-              temp_segment.ux = ux_end_a[h];
-              temp_segment.uy = uy_end_a[h];
-              temp_segment.kappa = kappa_a[h];
-              temp_segment.dkappa = dkappa_a[h];
-              for (unsigned int ll = 0; ll < l; ++ll) {
-                temp_segment.hits[ll] = (*cur_seg)[whichseg[h]].hits[ll];
-              }
-              temp_segment.hits[l] = whichhit[h];
-              temp_segment.seed = (*cur_seg)[whichseg[h]].seed;
-              unsigned int outer_layer =
-                  layer_sorted[l][temp_segment.hits[l]].get_layer();
-              temp_segment.n_hits = l + 1;
-              if ((n_layers - (l + 1)) <= allowed_missing) {
-                complete_segments.push_back(temp_segment);
-              }
-              if ((outer_layer - l) > allowed_missing) {
-                continue;
-              }
-              if (next_seg->size() == nextseg_size) {
-                next_seg->push_back(temp_segment);
-                nextseg_size += 1;
-              } else {
-                (*next_seg)[nextseg_size] = temp_segment;
-                nextseg_size += 1;
-              }
-            }
-          }
-          hit_counter = 0;
-        }
-      }
-    }
-    if (hit_counter != 0) {
-      calculateKappaTangents(x1_a, y1_a, z1_a, x2_a, y2_a, z2_a, x3_a, y3_a,
-                             z3_a, dx1_a, dy1_a, dz1_a, dx2_a, dy2_a, dz2_a,
-                             dx3_a, dy3_a, dz3_a, kappa_a, dkappa_a, ux_mid_a,
-                             uy_mid_a, ux_end_a, uy_end_a, dzdl_1_a, dzdl_2_a,
-                             ddzdl_1_a, ddzdl_2_a);
+// //           for (unsigned int h = 0; h < hit_counter; ++h) {
+// //             float kdiff = (*cur_seg)[whichseg[h]].kappa - kappa_a[h];
+// //             float dk = (*cur_seg)[whichseg[h]].dkappa + dkappa_a[h];
+// //             dk += sinang_cut * kappa_a[h];
+// //             float chi2_k = kdiff * kdiff / (dk * dk);
+// //             float cos_scatter = (*cur_seg)[whichseg[h]].ux * ux_mid_a[h] +
+// //                                 (*cur_seg)[whichseg[h]].uy * uy_mid_a[h];
+// //             float chi2_ang = (1. - cos_scatter) * (1. - cos_scatter) *
+// //                              cosang_diff_inv * cosang_diff_inv;
+// //             float chi2_dzdl =
+// //                 (dzdl_1_a[h] - dzdl_2_a[h]) /
+// //                 (ddzdl_1_a[h] + ddzdl_2_a[h] + fabs(dzdl_1_a[h] * sinang_cut));
+// //             chi2_dzdl *= chi2_dzdl;
+// //             if (((*cur_seg)[whichseg[h]].chi2 + chi2_ang + chi2_k + chi2_dzdl) /
+// //                     ((float)l - 2.) <
+// //                 easy_chi2_cut) {
+// //               temp_segment.chi2 =
+// //                   (*cur_seg)[whichseg[h]].chi2 + chi2_ang + chi2_k + chi2_dzdl;
+// //               temp_segment.ux = ux_end_a[h];
+// //               temp_segment.uy = uy_end_a[h];
+// //               temp_segment.kappa = kappa_a[h];
+// //               temp_segment.dkappa = dkappa_a[h];
+// //               for (unsigned int ll = 0; ll < l; ++ll) {
+// //                 temp_segment.hits[ll] = (*cur_seg)[whichseg[h]].hits[ll];
+// //               }
+// //               temp_segment.hits[l] = whichhit[h];
+// //               temp_segment.seed = (*cur_seg)[whichseg[h]].seed;
+// //               unsigned int outer_layer =
+// //                   layer_sorted[l][temp_segment.hits[l]].get_layer();
+// //               temp_segment.n_hits = l + 1;
+// //               if ((n_layers - (l + 1)) <= allowed_missing) {
+// //                 complete_segments.push_back(temp_segment);
+// //               }
+// //               if ((outer_layer - l) > allowed_missing) {
+// //                 continue;
+// //               }
+// //               if (next_seg->size() == nextseg_size) {
+// //                 next_seg->push_back(temp_segment);
+// //                 nextseg_size += 1;
+// //               } else {
+// //                 (*next_seg)[nextseg_size] = temp_segment;
+// //                 nextseg_size += 1;
+// //               }
+// //             }
+// //           }
+// //           hit_counter = 0;
+// //         }
+// //       }
+// //     }
+// //     if (hit_counter != 0) {
+// //       calculateKappaTangents(x1_a, y1_a, z1_a, x2_a, y2_a, z2_a, x3_a, y3_a,
+// //                              z3_a, dx1_a, dy1_a, dz1_a, dx2_a, dy2_a, dz2_a,
+// //                              dx3_a, dy3_a, dz3_a, kappa_a, dkappa_a, ux_mid_a,
+// //                              uy_mid_a, ux_end_a, uy_end_a, dzdl_1_a, dzdl_2_a,
+// //                              ddzdl_1_a, ddzdl_2_a);
 
-      for (unsigned int h = 0; h < hit_counter; ++h) {
-        float kdiff = (*cur_seg)[whichseg[h]].kappa - kappa_a[h];
-        float dk = (*cur_seg)[whichseg[h]].dkappa + dkappa_a[h];
-        dk += sinang_cut * kappa_a[h];
-        float chi2_k = kdiff * kdiff / (dk * dk);
-        float cos_scatter = (*cur_seg)[whichseg[h]].ux * ux_mid_a[h] +
-                            (*cur_seg)[whichseg[h]].uy * uy_mid_a[h];
-        float chi2_ang = (1. - cos_scatter) * (1. - cos_scatter) *
-                         cosang_diff_inv * cosang_diff_inv;
-        float chi2_dzdl =
-            (dzdl_1_a[h] - dzdl_2_a[h]) /
-            (ddzdl_1_a[h] + ddzdl_2_a[h] + fabs(dzdl_1_a[h] * sinang_cut));
-        chi2_dzdl *= chi2_dzdl;
-        if (((*cur_seg)[whichseg[h]].chi2 + chi2_ang + chi2_k + chi2_dzdl) /
-                ((float)l - 2.) <
-            easy_chi2_cut) {
-          temp_segment.chi2 =
-              (*cur_seg)[whichseg[h]].chi2 + chi2_ang + chi2_k + chi2_dzdl;
-          temp_segment.ux = ux_end_a[h];
-          temp_segment.uy = uy_end_a[h];
-          temp_segment.kappa = kappa_a[h];
-          temp_segment.dkappa = dkappa_a[h];
-          for (unsigned int ll = 0; ll < l; ++ll) {
-            temp_segment.hits[ll] = (*cur_seg)[whichseg[h]].hits[ll];
-          }
-          temp_segment.hits[l] = whichhit[h];
-          temp_segment.seed = (*cur_seg)[whichseg[h]].seed;
-          unsigned int outer_layer =
-              layer_sorted[l][temp_segment.hits[l]].get_layer();
-          temp_segment.n_hits = l + 1;
-          if ((n_layers - (l + 1)) <= allowed_missing) {
-            complete_segments.push_back(temp_segment);
-          }
-          if ((outer_layer - l) > allowed_missing) {
-            continue;
-          }
-          if (next_seg->size() == nextseg_size) {
-            next_seg->push_back(temp_segment);
-            nextseg_size += 1;
-          } else {
-            (*next_seg)[nextseg_size] = temp_segment;
-            nextseg_size += 1;
-          }
-        }
-      }
-      hit_counter = 0;
-    }
+// //       for (unsigned int h = 0; h < hit_counter; ++h) {
+// //         float kdiff = (*cur_seg)[whichseg[h]].kappa - kappa_a[h];
+// //         float dk = (*cur_seg)[whichseg[h]].dkappa + dkappa_a[h];
+// //         dk += sinang_cut * kappa_a[h];
+// //         float chi2_k = kdiff * kdiff / (dk * dk);
+// //         float cos_scatter = (*cur_seg)[whichseg[h]].ux * ux_mid_a[h] +
+// //                             (*cur_seg)[whichseg[h]].uy * uy_mid_a[h];
+// //         float chi2_ang = (1. - cos_scatter) * (1. - cos_scatter) *
+// //                          cosang_diff_inv * cosang_diff_inv;
+// //         float chi2_dzdl =
+// //             (dzdl_1_a[h] - dzdl_2_a[h]) /
+// //             (ddzdl_1_a[h] + ddzdl_2_a[h] + fabs(dzdl_1_a[h] * sinang_cut));
+// //         chi2_dzdl *= chi2_dzdl;
+// //         if (((*cur_seg)[whichseg[h]].chi2 + chi2_ang + chi2_k + chi2_dzdl) /
+// //                 ((float)l - 2.) <
+// //             easy_chi2_cut) {
+// //           temp_segment.chi2 =
+// //               (*cur_seg)[whichseg[h]].chi2 + chi2_ang + chi2_k + chi2_dzdl;
+// //           temp_segment.ux = ux_end_a[h];
+// //           temp_segment.uy = uy_end_a[h];
+// //           temp_segment.kappa = kappa_a[h];
+// //           temp_segment.dkappa = dkappa_a[h];
+// //           for (unsigned int ll = 0; ll < l; ++ll) {
+// //             temp_segment.hits[ll] = (*cur_seg)[whichseg[h]].hits[ll];
+// //           }
+// //           temp_segment.hits[l] = whichhit[h];
+// //           temp_segment.seed = (*cur_seg)[whichseg[h]].seed;
+// //           unsigned int outer_layer =
+// //               layer_sorted[l][temp_segment.hits[l]].get_layer();
+// //           temp_segment.n_hits = l + 1;
+// //           if ((n_layers - (l + 1)) <= allowed_missing) {
+// //             complete_segments.push_back(temp_segment);
+// //           }
+// //           if ((outer_layer - l) > allowed_missing) {
+// //             continue;
+// //           }
+// //           if (next_seg->size() == nextseg_size) {
+// //             next_seg->push_back(temp_segment);
+// //             nextseg_size += 1;
+// //           } else {
+// //             (*next_seg)[nextseg_size] = temp_segment;
+// //             nextseg_size += 1;
+// //           }
+// //         }
+// //       }
+// //       hit_counter = 0;
+// //     }
 
-    swap(cur_seg, next_seg);
-    swap(curseg_size, nextseg_size);
-  }
+// //     swap(cur_seg, next_seg);
+// //     swap(curseg_size, nextseg_size);
+// //   }
 
-  for (unsigned int i = 0; i < complete_segments.size(); ++i) {
-    if (cur_seg->size() == curseg_size) {
-      cur_seg->push_back(complete_segments[i]);
-      curseg_size += 1;
-    } else {
-      (*cur_seg)[curseg_size] = complete_segments[i];
-      curseg_size += 1;
-    }
-  }
+// //   for (unsigned int i = 0; i < complete_segments.size(); ++i) {
+// //     if (cur_seg->size() == curseg_size) {
+// //       cur_seg->push_back(complete_segments[i]);
+// //       curseg_size += 1;
+// //     } else {
+// //       (*cur_seg)[curseg_size] = complete_segments[i];
+// //       curseg_size += 1;
+// //     }
+// //   }
 
-  gettimeofday(&t2, NULL);
-  time1 = ((double)(t1.tv_sec) + (double)(t1.tv_usec) / 1000000.);
-  time2 = ((double)(t2.tv_sec) + (double)(t2.tv_usec) / 1000000.);
-  CAtime += (time2 - time1);
+// //   gettimeofday(&t2, NULL);
+// //   time1 = ((double)(t1.tv_sec) + (double)(t1.tv_usec) / 1000000.);
+// //   time2 = ((double)(t2.tv_sec) + (double)(t2.tv_usec) / 1000000.);
+// //   CAtime += (time2 - time1);
 
-  gettimeofday(&t1, NULL);
+// //   gettimeofday(&t1, NULL);
 
-  SimpleTrack3D temp_track;
-  temp_track.hits.assign(n_layers, SimpleHit3D());
-  for (unsigned int i = 0, sizei = curseg_size; i < sizei; ++i) {
-    temp_track.hits.clear();
-    for (unsigned int l = 0; l < seeds[(*cur_seg)[i].seed].hits.size(); ++l) {
-      temp_track.hits.push_back(seeds[(*cur_seg)[i].seed].hits[l]);
-    }
-    for (unsigned int l = seed_layer; l < (*cur_seg)[i].n_hits; ++l) {
-      temp_track.hits.push_back(layer_sorted[l][(*cur_seg)[i].hits[l]]);
-    }
+// //   SimpleTrack3D temp_track;
+// //   temp_track.hits.assign(n_layers, SimpleHit3D());
+// //   for (unsigned int i = 0, sizei = curseg_size; i < sizei; ++i) {
+// //     temp_track.hits.clear();
+// //     for (unsigned int l = 0; l < seeds[(*cur_seg)[i].seed].hits.size(); ++l) {
+// //       temp_track.hits.push_back(seeds[(*cur_seg)[i].seed].hits[l]);
+// //     }
+// //     for (unsigned int l = seed_layer; l < (*cur_seg)[i].n_hits; ++l) {
+// //       temp_track.hits.push_back(layer_sorted[l][(*cur_seg)[i].hits[l]]);
+// //     }
 
-    HelixKalmanState state;
+// //     HelixKalmanState state;
 
-    fitTrack(temp_track);
-    state.C = Matrix<float, 5, 5>::Zero(5, 5);
-    state.phi = temp_track.phi;
-    if (state.phi < 0.) {
-      state.phi += 2. * M_PI;
-    }
-    state.d = temp_track.d;
-    state.kappa = temp_track.kappa;
-    state.nu = sqrt(state.kappa);
-    state.z0 = temp_track.z0;
-    state.dzdl = temp_track.dzdl;
-    state.C(0, 0) = pow(0.1 * state.phi, 2.);
-    state.C(1, 1) = pow(0.1 * state.d, 2.);
-    state.C(2, 2) = pow(0.1 * state.nu, 2.);
-    state.C(3, 3) = pow(0.1 * state.z0, 2.);
-    state.C(4, 4) = pow(0.1 * state.dzdl, 2.);
+// //     fitTrack(temp_track);
+// //     state.C = Matrix<float, 5, 5>::Zero(5, 5);
+// //     state.phi = temp_track.phi;
+// //     if (state.phi < 0.) {
+// //       state.phi += 2. * M_PI;
+// //     }
+// //     state.d = temp_track.d;
+// //     state.kappa = temp_track.kappa;
+// //     state.nu = sqrt(state.kappa);
+// //     state.z0 = temp_track.z0;
+// //     state.dzdl = temp_track.dzdl;
+// //     state.C(0, 0) = pow(0.1 * state.phi, 2.);
+// //     state.C(1, 1) = pow(0.1 * state.d, 2.);
+// //     state.C(2, 2) = pow(0.1 * state.nu, 2.);
+// //     state.C(3, 3) = pow(0.1 * state.z0, 2.);
+// //     state.C(4, 4) = pow(0.1 * state.dzdl, 2.);
 
-    state.chi2 = 0.;
-    state.position = 0;
-    state.x_int = 0.;
-    state.y_int = 0.;
-    state.z_int = 0.;
-    for (unsigned int l = 0; l < temp_track.hits.size(); ++l) {
-      kalman->addHit(temp_track.hits[l], state);
-      nfits += 1;
-    }
+// //     state.chi2 = 0.;
+// //     state.position = 0;
+// //     state.x_int = 0.;
+// //     state.y_int = 0.;
+// //     state.z_int = 0.;
+// //     for (unsigned int l = 0; l < temp_track.hits.size(); ++l) {
+// //       kalman->addHit(temp_track.hits[l], state);
+// //       nfits += 1;
+// //     }
 
-    if (state.chi2 / (2. * ((float)(temp_track.hits.size() + 1)) - 5.) >
-        chi2_cut) {
-      continue;
-    }
-    if (state.chi2 != state.chi2) {
-      continue;
-    }
+// //     if (state.chi2 / (2. * ((float)(temp_track.hits.size() + 1)) - 5.) >
+// //         chi2_cut) {
+// //       continue;
+// //     }
+// //     if (state.chi2 != state.chi2) {
+// //       continue;
+// //     }
 
-    temp_track.phi = state.phi;
-    if (temp_track.phi < 0.) {
-      temp_track.phi += 2. * M_PI;
-    }
-    if (temp_track.phi > 2. * M_PI) {
-      temp_track.phi -= 2. * M_PI;
-    }
-    temp_track.d = state.d;
-    temp_track.kappa = state.kappa;
-    temp_track.z0 = state.z0;
-    temp_track.dzdl = state.dzdl;
+// //     temp_track.phi = state.phi;
+// //     if (temp_track.phi < 0.) {
+// //       temp_track.phi += 2. * M_PI;
+// //     }
+// //     if (temp_track.phi > 2. * M_PI) {
+// //       temp_track.phi -= 2. * M_PI;
+// //     }
+// //     temp_track.d = state.d;
+// //     temp_track.kappa = state.kappa;
+// //     temp_track.z0 = state.z0;
+// //     temp_track.dzdl = state.dzdl;
 
-    if ((remove_hits == true) && (state.chi2 < chi2_removal_cut) &&
-        (temp_track.hits.size() >= n_removal_hits)) {
-      for (unsigned int l = (seeds[(*cur_seg)[i].seed].hits.size());
-           l < temp_track.hits.size(); ++l) {
-        (*hit_used)[temp_track.hits[l].get_id()] = true;
-        temp_track.hits[l].set_id(index_mapping[temp_track.hits[l].get_id()]);
-      }
-    } else {
-      for (unsigned int l = (seeds[(*cur_seg)[i].seed].hits.size());
-           l < temp_track.hits.size(); ++l) {
-        temp_track.hits[l].set_id(index_mapping[temp_track.hits[l].get_id()]);
-      }
-    }
-    tracks.push_back(temp_track);
-    track_states.push_back(state);
-    seed_used[seeds[(*cur_seg)[i].seed].index] = true;
-  }
+// //     if ((remove_hits == true) && (state.chi2 < chi2_removal_cut) &&
+// //         (temp_track.hits.size() >= n_removal_hits)) {
+// //       for (unsigned int l = (seeds[(*cur_seg)[i].seed].hits.size());
+// //            l < temp_track.hits.size(); ++l) {
+// //         (*hit_used)[temp_track.hits[l].get_id()] = true;
+// //         temp_track.hits[l].set_id(index_mapping[temp_track.hits[l].get_id()]);
+// //       }
+// //     } else {
+// //       for (unsigned int l = (seeds[(*cur_seg)[i].seed].hits.size());
+// //            l < temp_track.hits.size(); ++l) {
+// //         temp_track.hits[l].set_id(index_mapping[temp_track.hits[l].get_id()]);
+// //       }
+// //     }
+// //     tracks.push_back(temp_track);
+// //     track_states.push_back(state);
+// //     seed_used[seeds[(*cur_seg)[i].seed].index] = true;
+// //   }
 
-  gettimeofday(&t2, NULL);
-  time1 = ((double)(t1.tv_sec) + (double)(t1.tv_usec) / 1000000.);
-  time2 = ((double)(t2.tv_sec) + (double)(t2.tv_usec) / 1000000.);
-  KALtime += (time2 - time1);
-}
+// //   gettimeofday(&t2, NULL);
+// //   time1 = ((double)(t1.tv_sec) + (double)(t1.tv_usec) / 1000000.);
+// //   time2 = ((double)(t2.tv_sec) + (double)(t2.tv_usec) / 1000000.);
+// //   KALtime += (time2 - time1);
+// // }
