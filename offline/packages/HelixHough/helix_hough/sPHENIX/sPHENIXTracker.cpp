@@ -1688,9 +1688,10 @@ void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits,
         x3_a[hit_counter] = layer_sorted[2][k].get_x();
         y3_a[hit_counter] = layer_sorted[2][k].get_y();
         z3_a[hit_counter] = layer_sorted[2][k].get_z();
-        dx3_a[hit_counter] = layer_sorted[2][k].get_ex();
-        dy3_a[hit_counter] = layer_sorted[2][k].get_ey();
-        dz3_a[hit_counter] = layer_sorted[2][k].get_ez();
+	
+        dx3_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[2][k].get_size(0,0));
+        dy3_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[2][k].get_size(1,1));
+        dz3_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[2][k].get_size(2,2));
 
         hit1[hit_counter] = i;
         hit2[hit_counter] = j;

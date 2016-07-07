@@ -33,11 +33,12 @@ public:
   
   void  print(std::ostream& out = std::cout) const; //< dump the values to screen
 
-  /// get cluster error covar
   float get_error(unsigned int i, unsigned int j) const;
-  /// set cluster error covar
   void  set_error(unsigned int i, unsigned int j, float value);
 
+  float get_size(unsigned int i, unsigned int j) const;
+  void  set_size(unsigned int i, unsigned int j, float value);
+  
   //private:
   float get_ex() const {return _ex;}
 
@@ -50,9 +51,7 @@ public:
   float get_ez() const {return _ez;}
   void  set_ez(float ez) {_ez = ez;}
 
-  // temporarily store the cluster size as well
-  float get_size(unsigned int i, unsigned int j) const;
-  void  set_size(unsigned int i, unsigned int j, float value);
+
   
 private:
   
