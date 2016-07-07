@@ -2056,3 +2056,224 @@ void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits,
     }
   }
 }
+
+
+
+static inline double sign(double x) {
+  return ((double)(x > 0.)) - ((double)(x < 0.));
+}
+
+void sPHENIXTracker::projectToLayer(SimpleTrack3D& seed, unsigned int layer,
+                                    float& x, float& y, float& z) {
+  float phi = seed.phi;
+  float d = seed.d;
+  float k = seed.kappa;
+  float z0 = seed.z0;
+  float dzdl = seed.dzdl;
+
+  float hitx = seed.hits.back().get_x();
+  float hity = seed.hits.back().get_y();
+
+  float rad_det = detector_radii[layer];
+
+  float cosphi = cos(phi);
+  float sinphi = sin(phi);
+
+  k = fabs(k);
+
+  float kd = (d * k + 1.);
+  float kcx = kd * cosphi;
+  float kcy = kd * sinphi;
+  float kd_inv = 1. / kd;
+  float R2 = rad_det * rad_det;
+  float a = 0.5 * (k * R2 + (d * d * k + 2. * d)) * kd_inv;
+  float tmp1 = a * kd_inv;
+  float P2x = kcx * tmp1;
+  float P2y = kcy * tmp1;
+
+  float h = sqrt(R2 - a * a);
+
+  float ux = -kcy * kd_inv;
+  float uy = kcx * kd_inv;
+
+  float x1 = P2x + ux * h;
+  float y1 = P2y + uy * h;
+  float x2 = P2x - ux * h;
+  float y2 = P2y - uy * h;
+  float diff1 = (x1 - hitx) * (x1 - hitx) + (y1 - hity) * (y1 - hity);
+  float diff2 = (x2 - hitx) * (x2 - hitx) + (y2 - hity) * (y2 - hity);
+  float signk = 0.;
+  if (diff1 < diff2) {
+    signk = 1.;
+  } else {
+    signk = -1.;
+  }
+  x = P2x + signk * ux * h;
+  y = P2y + signk * uy * h;
+
+  double sign_dzdl = sign(dzdl);
+  double onedzdl2_inv = 1. / (1. - dzdl * dzdl);
+  double startx = d * cosphi;
+  double starty = d * sinphi;
+  double D = sqrt((startx - x) * (startx - x) + (starty - y) * (starty - y));
+  double D_inv = 1. / D;
+  double v = 0.5 * k * D;
+  z = 0.;
+  if (v > 0.1) {
+    if (v >= 0.999999) {
+      v = 0.999999;
+    }
+    double s = 2. * asin(v) / k;
+    double s_inv = 1. / s;
+    double sqrtvv = sqrt(1 - v * v);
+    double dz = sqrt(s * s * dzdl * dzdl / (1. - dzdl * dzdl));
+    z = z0 + sign_dzdl * dz;
+  } else {
+    double s = 0.;
+    double temp1 = k * D * 0.5;
+    temp1 *= temp1;
+    double temp2 = D * 0.5;
+    s += 2. * temp2;
+    temp2 *= temp1;
+    s += temp2 / 3.;
+    temp2 *= temp1;
+    s += (3. / 20.) * temp2;
+    temp2 *= temp1;
+    s += (5. / 56.) * temp2;
+    double s_inv = 1. / s;
+    double dz = sqrt(s * s * dzdl * dzdl / (1. - dzdl * dzdl));
+    z = z0 + sign_dzdl * dz;
+  }
+}
+
+void sPHENIXTracker::initSplitting(vector<SimpleHit3D>& hits,
+                                   unsigned int min_hits,
+                                   unsigned int max_hits) {
+  initEvent(hits, min_hits);
+  (*(hits_vec[0])) = hits;
+  zoomranges.clear();
+  for (unsigned int z = 0; z <= max_zoom; z++) {
+    zoomranges.push_back(top_range);
+  }
+}
+
+void sPHENIXTracker::findHelicesParallelOneHelicity(
+    vector<SimpleHit3D>& hits, unsigned int min_hits, unsigned int max_hits,
+    vector<SimpleTrack3D>& tracks) {
+  unsigned int hits_per_thread = (hits.size() + 2 * nthreads) / nthreads;
+  unsigned int pos = 0;
+  while (pos < hits.size()) {
+    for (unsigned int i = 0; i < nthreads; ++i) {
+      if (pos >= hits.size()) {
+        break;
+      }
+      for (unsigned int j = 0; j < hits_per_thread; ++j) {
+        if (pos >= hits.size()) {
+          break;
+        }
+        split_input_hits[i].push_back(hits[pos]);
+        pos += 1;
+      }
+    }
+  }
+  for (unsigned int i = 0; i < nthreads; ++i) {
+    thread_trackers[i]->setTopRange(top_range);
+    thread_trackers[i]->initSplitting(split_input_hits[i], thread_min_hits,
+                                      thread_max_hits);
+  }
+  pins->sewStraight(&sPHENIXTracker::splitHitsParallelThread, nthreads);
+  thread_ranges.clear();
+  thread_hits.clear();
+
+  unsigned int nbins = split_output_hits[0]->size();
+  for (unsigned int b = 0; b < nbins; ++b) {
+    thread_ranges.push_back((*(split_ranges[0]))[b]);
+    thread_hits.push_back(vector<SimpleHit3D>());
+    for (unsigned int i = 0; i < nthreads; ++i) {
+      for (unsigned int j = 0; j < (*(split_output_hits[i]))[b].size(); ++j) {
+        thread_hits.back().push_back((*(split_output_hits[i]))[b][j]);
+      }
+    }
+  }
+
+  pins->sewStraight(&sPHENIXTracker::findHelicesParallelThread, nthreads);
+}
+
+void sPHENIXTracker::findHelicesParallel(vector<SimpleHit3D>& hits,
+                                         unsigned int min_hits,
+                                         unsigned int max_hits,
+                                         vector<SimpleTrack3D>& tracks) {
+  thread_min_hits = min_hits;
+  thread_max_hits = max_hits;
+
+  for (unsigned int i = 0; i < nthreads; ++i) {
+    thread_tracks[i].clear();
+    thread_trackers[i]->clear();
+    if (cluster_start_bin != 0) {
+      thread_trackers[i]->setClusterStartBin(cluster_start_bin - 1);
+    } else {
+      thread_trackers[i]->setClusterStartBin(0);
+    }
+  }
+
+  initSplitting(hits, min_hits, max_hits);
+
+  if (separate_by_helicity == true) {
+    for (unsigned int i = 0; i < nthreads; ++i) {
+      thread_trackers[i]->setSeparateByHelicity(true);
+      thread_trackers[i]->setOnlyOneHelicity(true);
+      thread_trackers[i]->setHelicity(true);
+      split_output_hits[i]->clear();
+      split_input_hits[i].clear();
+    }
+    findHelicesParallelOneHelicity(hits, min_hits, max_hits, tracks);
+
+    for (unsigned int i = 0; i < nthreads; ++i) {
+      thread_trackers[i]->setSeparateByHelicity(true);
+      thread_trackers[i]->setOnlyOneHelicity(true);
+      thread_trackers[i]->setHelicity(false);
+      split_output_hits[i]->clear();
+      split_input_hits[i].clear();
+    }
+    findHelicesParallelOneHelicity(hits, min_hits, max_hits, tracks);
+  } else {
+    for (unsigned int i = 0; i < nthreads; ++i) {
+      thread_trackers[i]->setSeparateByHelicity(false);
+      thread_trackers[i]->setOnlyOneHelicity(false);
+      split_output_hits[i]->clear();
+      split_input_hits[i].clear();
+    }
+
+    findHelicesParallelOneHelicity(hits, min_hits, max_hits, tracks);
+  }
+
+  vector<SimpleTrack3D> temp_tracks;
+  for (unsigned int i = 0; i < nthreads; ++i) {
+    vector<HelixKalmanState>* states = &(thread_trackers[i]->getKalmanStates());
+    for (unsigned int j = 0; j < thread_tracks[i].size(); ++j) {
+      track_states.push_back((*states)[j]);
+      temp_tracks.push_back(thread_tracks[i][j]);
+    }
+  }
+  finalize(temp_tracks, tracks);
+}
+
+void sPHENIXTracker::splitHitsParallelThread(void* arg) {
+  unsigned long int w = (*((unsigned long int*)arg));
+  thread_trackers[w]->splitIntoBins(thread_min_hits, thread_max_hits,
+                                    *(split_ranges[w]), *(split_output_hits[w]),
+                                    0);
+}
+
+void sPHENIXTracker::findHelicesParallelThread(void* arg) {
+  unsigned long int w = (*((unsigned long int*)arg));
+
+  for (unsigned int i = w; i < thread_ranges.size(); i += nthreads) {
+    if (thread_hits[i].size() == 0) {
+      continue;
+    }
+    thread_trackers[w]->setTopRange(thread_ranges[i]);
+    thread_trackers[w]->findHelices(thread_hits[i], thread_min_hits,
+                                    thread_max_hits, thread_tracks[w]);
+  }
+}
