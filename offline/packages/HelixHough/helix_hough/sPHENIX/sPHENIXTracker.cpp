@@ -417,81 +417,44 @@ void sPHENIXTracker::finalize(vector<SimpleTrack3D>& input,
   track_states = states_new;
   if (smooth_back == true) {
     for (unsigned int i = 0; i < output.size(); ++i) {
-      if (n_layers < 20) {
-        HelixKalmanState state = track_states[i];
 
-        track_states[i].C *= 3.;
-        track_states[i].chi2 = 0.;
-        track_states[i].x_int = 0.;
-        track_states[i].y_int = 0.;
-        track_states[i].z_int = 0.;
-        //       track_states[i].position = output[i].hits.size();
-        track_states[i].position = 0;
-        for (int h = (output[i].hits.size() - 1); h >= 0; --h) {
-          SimpleHit3D hit = output[i].hits[h];
-          float err_scale = 1.;
-          int layer = hit.get_layer();
-          if ((layer >= 0) && (layer < (int)(hit_error_scale.size()))) {
-            err_scale = hit_error_scale[layer];
-          }
-          err_scale *=
-              3.0;  // fudge factor, like needed due to non-gaussian errors
+      HelixKalmanState state = track_states[i];
 
-	  // \todo location of a rescale fudge factor    
+      track_states[i].C *= 3.;
+      track_states[i].chi2 = 0.;
+      track_states[i].x_int = 0.;
+      track_states[i].y_int = 0.;
+      track_states[i].z_int = 0.;
+      //       track_states[i].position = output[i].hits.size();
+      track_states[i].position = 0;
+      for (int h = (output[i].hits.size() - 1); h >= 0; --h) {
+	SimpleHit3D hit = output[i].hits[h];
+	float err_scale = 1.;
+	int layer = hit.get_layer();
+	if ((layer >= 0) && (layer < (int)(hit_error_scale.size()))) {
+	  err_scale = hit_error_scale[layer];
+	}
+	err_scale *=
+	  3.0;  // fudge factor, like needed due to non-gaussian errors
+
+	// \todo location of a rescale fudge factor    
 	  
-          hit.set_ex( (0.5*sqrt(12.0)*sqrt(hit.get_size(0,0))) * err_scale);
-	  hit.set_ey( (0.5*sqrt(12.0)*sqrt(hit.get_size(1,1))) * err_scale);
-	  hit.set_ez( (0.5*sqrt(12.0)*sqrt(hit.get_size(2,2))) * err_scale);
-          kalman->addHit(hit, track_states[i]);
-          track_states[i].position = h;
-        }
-
-        //       track_states[i].C = state.C;
-        track_states[i].chi2 = state.chi2;
-        track_states[i].C *= 2. / 3.;
-
-        output[i].phi = track_states[i].phi;
-        output[i].d = track_states[i].d;
-        output[i].kappa = track_states[i].kappa;
-        output[i].z0 = track_states[i].z0;
-        output[i].dzdl = track_states[i].dzdl;
-      } else {
-        HelixKalmanState state = track_states[i];
-
-        track_states[i].C *= 30;
-
-        track_states[i].chi2 = 0.;
-        track_states[i].x_int = 0.;
-        track_states[i].y_int = 0.;
-        track_states[i].z_int = 0.;
-        track_states[i].position = output[i].hits.size();
-        for (int h = (output[i].hits.size() - 1); h >= 0; --h) {
-          SimpleHit3D hit = output[i].hits[h];
-          float err_scale = 0.66;
-          hit.set_ex( (0.5*sqrt(12.0)*sqrt(hit.get_size(0,0))) * err_scale);
-          hit.set_ey( (0.5*sqrt(12.0)*sqrt(hit.get_size(1,1))) * err_scale);
-          hit.set_ez( (0.5*sqrt(12.0)*sqrt(hit.get_size(2,2))) * err_scale);
-          kalman->addHit(hit, track_states[i]);
-        }
-
-        SimpleTrack3D temp_track = output[i];
-        fitTrack(temp_track);
-        track_states[i].kappa = temp_track.kappa;
-        track_states[i].nu = sqrt(temp_track.kappa);
-
-        if (!(track_states[i].kappa == track_states[i].kappa)) {
-          track_states[i] = state;
-        }
-
-        if (output[i].phi < 0.) {
-          output[i].phi += 2. * M_PI;
-        }
-        output[i].phi = track_states[i].phi;
-        output[i].d = track_states[i].d;
-        output[i].kappa = track_states[i].kappa;
-        output[i].z0 = track_states[i].z0;
-        output[i].dzdl = track_states[i].dzdl;
+	hit.set_ex( (0.5*sqrt(12.0)*sqrt(hit.get_size(0,0))) * err_scale);
+	hit.set_ey( (0.5*sqrt(12.0)*sqrt(hit.get_size(1,1))) * err_scale);
+	hit.set_ez( (0.5*sqrt(12.0)*sqrt(hit.get_size(2,2))) * err_scale);
+	kalman->addHit(hit, track_states[i]);
+	track_states[i].position = h;
       }
+
+      //       track_states[i].C = state.C;
+      track_states[i].chi2 = state.chi2;
+      track_states[i].C *= 2. / 3.;
+
+      output[i].phi = track_states[i].phi;
+      output[i].d = track_states[i].d;
+      output[i].kappa = track_states[i].kappa;
+      output[i].z0 = track_states[i].z0;
+      output[i].dzdl = track_states[i].dzdl;
     }
   }
 
