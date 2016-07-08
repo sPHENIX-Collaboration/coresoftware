@@ -55,7 +55,6 @@
 #include <Geant4/G4HadronicProcessStore.hh>
 
 #include <Geant4/globals.hh>
-
 #include <Geant4/G4Version.hh>
 
 // physics lists
@@ -64,6 +63,7 @@
 #include <Geant4/QGSP_BERT.hh>
 #include <Geant4/QGSP_BIC.hh>
 #include <Geant4/QGSP_BIC_HP.hh>
+#include <Geant4/G4GDMLParser.hh>
 
 #if G4VERSION_NUMBER <= 951
 #define HAVE_LHEP
@@ -419,6 +419,15 @@ PHG4Reco::InitRun( PHCompositeNode* topNode )
   }
 
   return 0;
+}
+
+//________________________________________________________________
+//Dump TGeo File
+void PHG4Reco::Dump_GDML(const std::string &filename)
+{
+  G4GDMLParser gdml_parser;
+  gdml_parser.Write(filename,detector_->GetPhysicalVolume());
+  //gGeoManager = TGeoManager::Import(filename);
 }
 
 //_________________________________________________________________
