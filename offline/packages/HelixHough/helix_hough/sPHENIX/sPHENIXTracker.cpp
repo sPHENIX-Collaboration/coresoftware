@@ -13,6 +13,29 @@ using namespace std;
 using namespace Eigen;
 using namespace SeamStress;
 
+class hit_triplet {
+ public:
+  hit_triplet(unsigned int h1, unsigned int h2, unsigned int h3, unsigned int t,
+              float c)
+      : hit1(h1), hit2(h2), hit3(h3), track(t), chi2(c) {}
+  ~hit_triplet() {}
+
+  bool operator<(const hit_triplet& other) const {
+    return (hit1 < other.hit1) ||
+           ((hit2 < other.hit2) && (hit1 == other.hit1)) ||
+           ((hit3 < other.hit3) && (hit1 == other.hit1) &&
+            (hit2 == other.hit2));
+  }
+
+  bool operator==(const hit_triplet& other) const {
+    return ((hit1 == other.hit1) && (hit2 == other.hit2) &&
+            (hit3 == other.hit3));
+  }
+
+  unsigned int hit1, hit2, hit3, track;
+  float chi2;
+};
+
 class hitTriplet {
  public:
   hitTriplet(unsigned int h1, unsigned int h2, unsigned int h3, unsigned int t,
@@ -1151,50 +1174,7 @@ void sPHENIXTracker::initDummyHits(vector<SimpleHit3D>& dummies,
   }
 }
 
-static bool next_combo_n(vector<int> const& lsizes, vector<int>& comb_n) {
-  unsigned int n = lsizes.size() / 2;
-  for (int l = 0; l < n; ++l) {
-    if (comb_n[l] == (lsizes[l] - 1)) {
-      comb_n[l] = 0;
-    } else {
-      comb_n[l] += 1;
-      return true;
-    }
-  }
-  return false;
-}
 
-static SimpleHit3D& get_hit(vector<SimpleHit3D>& hits,
-                            vector<SimpleHit3D>& dummies, int index) {
-  if (index >= 0) {
-    return hits[index];
-  } else {
-    return dummies[(-index) - 1];
-  }
-}
-
-class hit_triplet {
- public:
-  hit_triplet(unsigned int h1, unsigned int h2, unsigned int h3, unsigned int t,
-              float c)
-      : hit1(h1), hit2(h2), hit3(h3), track(t), chi2(c) {}
-  ~hit_triplet() {}
-
-  bool operator<(const hit_triplet& other) const {
-    return (hit1 < other.hit1) ||
-           ((hit2 < other.hit2) && (hit1 == other.hit1)) ||
-           ((hit3 < other.hit3) && (hit1 == other.hit1) &&
-            (hit2 == other.hit2));
-  }
-
-  bool operator==(const hit_triplet& other) const {
-    return ((hit1 == other.hit1) && (hit2 == other.hit2) &&
-            (hit3 == other.hit3));
-  }
-
-  unsigned int hit1, hit2, hit3, track;
-  float chi2;
-};
 
 static void triplet_rejection(vector<SimpleTrack3D>& input,
                               vector<float>& chi2s, vector<bool>& usetrack) {
@@ -1263,196 +1243,6 @@ static void triplet_rejection(vector<SimpleTrack3D>& input,
     pos = next_pos;
     cur_h1 = trips[pos].hit1;
     cur_h2 = trips[pos].hit2;
-  }
-}
-
-static bool remove_bad_hits(SimpleTrack3D& track, float cut) {
-  SimpleTrack3D temp_track = track;
-  float fit_chi2 = 0.;
-  vector<float> chi2_hit;
-  vector<float> temp_hits;
-  while (true) {
-    temp_track = track;
-    fit_chi2 = sPHENIXTracker::fitTrack(temp_track, chi2_hit);
-    bool all_good = true;
-    track.hits.clear();
-    for (int h = 0; h < temp_track.hits.size(); h += 1) {
-      if (chi2_hit[h] < cut) {
-        track.hits.push_back(temp_track.hits[h]);
-      } else {
-        all_good = false;
-      }
-    }
-    if (track.hits.size() < 3) {
-      return false;
-    }
-    if (all_good == true) {
-      return true;
-    }
-  }
-}
-
-static void initial_combos(int nhits, vector<SimpleHit3D>& hits,
-                           vector<vector<int> >& layer_indexes,
-                           vector<TempComb>& cur_comb, float CHI2_CUT,
-                           int n_layers, CylinderKalman* kalman) {
-  // vector<int> lsizes;
-  // for (int i = 0; i < nhits; ++i) {
-  //   lsizes.push_back(layer_indexes[i].size());
-  // }
-  // vector<int> comb_n;
-  // comb_n.assign(nhits, 0);
-  // vector<TempComb> comb;
-  // while (true) {
-  //   SimpleTrack3D temp_track;
-  //   TempComb tc;
-  //   float sqrt12_inv = 1. / sqrt(12.);
-  //   for (unsigned int h = 0; h < nhits; ++h) {
-  //     if (layer_indexes[h][comb_n[h]] < 0) {
-  //       continue;
-  //     }
-  //     SimpleHit3D& hit = hits[layer_indexes[h][comb_n[h]]];
-  //     temp_track.hits.push_back(hit);
-
-  //     /// \todo location of a fudge factor
-  //     cout << temp_track.hits.back().get_ex() /
-  // 	(2.0*sqrt(temp_track.hits.back().get_size(0,0))) << endl;
-	
-  //     temp_track.hits.back().set_ex( temp_track.hits.back().get_ex() * sqrt12_inv);
-  //     temp_track.hits.back().set_ey( temp_track.hits.back().get_ex() * sqrt12_inv);
-  //     temp_track.hits.back().set_ez( temp_track.hits.back().get_ex() * sqrt12_inv);
-  //   }
-  //   if (temp_track.hits.size() >= 3) {
-  //     float init_chi2 = sPHENIXTracker::fitTrack(temp_track);
-  //     comb.push_back(TempComb());
-  //     TempComb& curcomb = comb.back();
-  //     if (init_chi2 / (2. * (temp_track.hits.size()) - 5.) > CHI2_CUT) {
-  //       comb.pop_back();
-  //     } else {
-  //       curcomb.state.phi = temp_track.phi;
-  //       if (curcomb.state.phi < 0.) {
-  //         curcomb.state.phi += 2. * M_PI;
-  //       }
-  //       curcomb.state.d = temp_track.d;
-  //       curcomb.state.kappa = temp_track.kappa;
-  //       curcomb.state.nu = sqrt(curcomb.state.kappa);
-  //       curcomb.state.z0 = temp_track.z0;
-  //       curcomb.state.dzdl = temp_track.dzdl;
-  //       curcomb.state.C = Matrix<float, 5, 5>::Zero(5, 5);
-  //       curcomb.state.C(0, 0) = pow(0.01, 2.);
-  //       curcomb.state.C(1, 1) = pow(0.5, 2.);
-  //       curcomb.state.C(2, 2) = pow(0.3 * curcomb.state.nu, 2.);
-  //       curcomb.state.C(3, 3) = pow(0.5, 2.);
-  //       curcomb.state.C(4, 4) = pow(0.05, 2.);
-  //       curcomb.state.chi2 = 0.;
-  //       curcomb.state.position = n_layers;
-  //       curcomb.state.x_int = 0.;
-  //       curcomb.state.y_int = 0.;
-  //       curcomb.state.z_int = 0.;
-
-  //       curcomb.track = temp_track;
-
-  //       for (int h = 0; h < curcomb.track.hits.size(); h += 1) {
-  //         kalman->addHit(curcomb.track.hits[h], curcomb.state);
-  //       }
-  //     }
-  //   }
-  //   if (next_combo_n(lsizes, comb_n) == false) {
-  //     break;
-  //   }
-  // }
-
-  // vector<SimpleTrack3D> comb_tracks;
-  // vector<TempComb> comb2;
-  // vector<float> chi2s;
-  // for (int t = 0; t < comb.size(); t += 1) {
-  //   if (remove_bad_hits(comb[t].track, CHI2_CUT + 2.) == false) {
-  //     continue;
-  //   }
-  //   comb_tracks.push_back(comb[t].track);
-  //   chi2s.push_back(comb[t].state.chi2);
-  //   comb2.push_back(comb[t]);
-  // }
-  // vector<bool> usetrack(comb2.size(), true);
-
-  // triplet_rejection(comb_tracks, chi2s, usetrack);
-
-  // for (int t = 0; t < comb_tracks.size(); t += 1) {
-  //   if (usetrack[t]) {
-  //     if (comb2[t].state.chi2 / (2. * (comb2[t].track.hits.size()) - 5.) <
-  //         CHI2_CUT) {
-  //       cur_comb.push_back(comb2[t]);
-  //     }
-  //   }
-  // }
-
-  // sort(cur_comb.begin(), cur_comb.end());
-  // if (cur_comb.size() > 4) {
-  //   cur_comb.resize(4, TempComb());
-  // }
-}
-
-static void extend_combos(vector<SimpleHit3D>& hits,
-                          vector<vector<int> >& layer_indexes,
-                          vector<TempComb>& cur_comb, float CHI2_CUT,
-                          CylinderKalman* kalman, int layer_begin,
-                          int layer_end) {
-  vector<TempComb> comb;
-  vector<TempComb> comb2;
-  vector<TempComb> comb3;
-  for (int c = 0; c < cur_comb.size(); c += 1) {
-    comb2.clear();
-    comb2.push_back(cur_comb[c]);
-    for (int l = layer_begin; l <= layer_end; l += 1) {
-      comb3.clear();
-      for (int i = 0; i < comb2.size(); i += 1) {
-        comb3.push_back(comb2[i]);
-        for (int h = 0; h < (layer_indexes[l].size() - 1); h += 1) {
-          comb3.push_back(comb2[i]);
-          kalman->addHit(hits[layer_indexes[l][h]], comb3.back().state);
-          if (comb3.back().state.chi2 >
-              CHI2_CUT * (2. * (comb3.back().track.hits.size()) - 5.)) {
-            comb3.pop_back();
-          } else {
-            comb3.back().track.hits.push_back(hits[layer_indexes[l][h]]);
-          }
-        }
-      }
-      comb2 = comb3;
-    }
-    for (int i = 0; i < comb2.size(); i += 1) {
-      comb.push_back(comb2[i]);
-    }
-  }
-  cur_comb.clear();
-
-  vector<SimpleTrack3D> comb_tracks;
-  comb2.clear();
-  vector<float> chi2s;
-  for (int t = 0; t < comb.size(); t += 1) {
-    if (remove_bad_hits(comb[t].track, CHI2_CUT + 2.) == false) {
-      continue;
-    }
-    comb_tracks.push_back(comb[t].track);
-    chi2s.push_back(comb[t].state.chi2);
-    comb2.push_back(comb[t]);
-  }
-  vector<bool> usetrack(comb2.size(), true);
-
-  triplet_rejection(comb_tracks, chi2s, usetrack);
-
-  for (int t = 0; t < comb_tracks.size(); t += 1) {
-    if (usetrack[t]) {
-      if (comb2[t].state.chi2 / (2. * (comb2[t].track.hits.size()) - 5.) <
-          CHI2_CUT) {
-        cur_comb.push_back(comb2[t]);
-      }
-    }
-  }
-
-  sort(cur_comb.begin(), cur_comb.end());
-  if (cur_comb.size() > 4) {
-    cur_comb.resize(4, TempComb());
   }
 }
 
