@@ -388,6 +388,9 @@ int PHPythia6::process_event(PHCompositeNode *topNode) {
       passedTrigger = true;
       genCounter = 0;
     }
+    
+    // delete failed events
+    if(!passedTrigger) delete evt; 
 
   }
 
