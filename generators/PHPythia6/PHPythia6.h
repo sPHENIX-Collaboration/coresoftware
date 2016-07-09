@@ -62,6 +62,7 @@ private:
   void IntegerTest(double number );
 
   int _eventcount;
+  int _geneventcount;
 
   // output
   std::string _node_name;
