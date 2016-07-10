@@ -3,8 +3,7 @@ lib_LTLIBRARIES = \
 libHelixHough.la
 
 noinst_HEADERS = \
-vector_math_inline.h \
-vector_math_inline_avx.h
+vector_math_inline.h
 
 pkginclude_HEADERS = \
 HelixHough.h \
@@ -29,7 +28,6 @@ sPHENIX/sPHENIXTrackerTPC_fastFit.cpp \
 sPHENIX/sPHENIXTrackerTPC_findTracksBySegments.cpp \
 sPHENIX/sPHENIXTrackerTPC_parallel.cpp \
 sPHENIX/sPHENIXTrackerTPC_projection.cpp \
-sPHENIX/sPHENIXTrackerTPC_findTracksBySegments_avx.cpp \
 HelixHough_findHelices.cpp \
 HelixHough_findPairs.cpp \
 HelixHough_init.cpp \
