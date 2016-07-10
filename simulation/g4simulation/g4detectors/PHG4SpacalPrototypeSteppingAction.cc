@@ -137,6 +137,13 @@ PHG4SpacalPrototypeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
         // time in ns
         hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
+
+        if (isactive == PHG4SpacalPrototypeDetector::FIBER_CORE) // only for active areas
+          {
+            // store all pre local coordinates
+            StoreLocalCoorindate(hit, aStep, true, false);
+          }
+
 	//set the track ID
 	{
 	  hit->set_trkid(aTrack->GetTrackID());
@@ -206,6 +213,13 @@ PHG4SpacalPrototypeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       hit->set_z(1, postPoint->GetPosition().z() / cm);
 
       hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
+
+      if (isactive == PHG4SpacalPrototypeDetector::FIBER_CORE) // only for active areas
+        {
+          // store all pre local coordinates
+          StoreLocalCoorindate(hit, aStep, false, true);
+        }
+
       //sum up the energy to get total deposited
       hit->set_edep(hit->get_edep() + edep);
 
