@@ -20,7 +20,7 @@
 #include <Geant4/G4NavigationHistory.hh>
 
 
-#include <g4main/PHG4Hit.h>
+#include "PHG4Hit.h"
 
 #include <iostream>
 #include <cassert>
