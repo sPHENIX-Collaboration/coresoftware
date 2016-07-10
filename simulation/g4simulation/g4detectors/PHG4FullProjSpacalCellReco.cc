@@ -26,6 +26,12 @@
 #include <boost/foreach.hpp>
 #include <exception>
 #include <limits>       // std::numeric_limits
+
+
+#include <TH2.h>
+#include <TH1.h>
+#include <TFile.h>
+
 using namespace std;
 
 PHG4FullProjSpacalCellReco::PHG4FullProjSpacalCellReco(const string &name) :
@@ -33,7 +39,8 @@ PHG4FullProjSpacalCellReco::PHG4FullProjSpacalCellReco(const string &name) :
         0),
     tmin_default(0.0),  // ns
     tmax_default(60.0), // ns
-    tmin_max()
+    tmin_max(), //
+    light_collection_model()
 {
 }
 
@@ -365,22 +372,23 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
           // hit loop
           int scint_id = hiter->second->get_scint_id();
 
+          // decode scint_id
+          PHG4CylinderGeom_Spacalv3::scint_id_coder decoder(scint_id);
+
+          // convert to z_ID, phi_ID
+          std::pair<int, int> tower_z_phi_ID =
+              layergeom->get_tower_z_phi_ID(decoder.tower_ID,
+                  decoder.sector_ID);
+          const int & tower_ID_z = tower_z_phi_ID.first;
+          const int & tower_ID_phi = tower_z_phi_ID.second;
+
+          PHG4CylinderGeom_Spacalv3::tower_map_t::const_iterator it_tower =
+              layergeom->get_sector_tower_map().find(decoder.tower_ID);
+          assert(it_tower != layergeom->get_sector_tower_map().end());
+
           unsigned int key = static_cast<unsigned int>(scint_id);
           if (celllist.find(key) == celllist.end())
             {
-              // decode scint_id
-              PHG4CylinderGeom_Spacalv3::scint_id_coder decoder(scint_id);
-
-              // convert to z_ID, phi_ID
-              std::pair<int, int> tower_z_phi_ID =
-                  layergeom->get_tower_z_phi_ID(decoder.tower_ID,
-                      decoder.sector_ID);
-              const int & tower_ID_z = tower_z_phi_ID.first;
-              const int & tower_ID_phi = tower_z_phi_ID.second;
-
-              PHG4CylinderGeom_Spacalv3::tower_map_t::const_iterator it_tower =
-                  layergeom->get_sector_tower_map().find(decoder.tower_ID);
-              assert(it_tower != layergeom->get_sector_tower_map().end());
 
               // convert tower_ID_z to to eta bin number
               int etabin = -1;
@@ -416,8 +424,34 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
               celllist[key]->set_fiber_ID(decoder.fiber_ID);
             }
 
+          double light_yield = hiter->second->get_light_yield();
+
+          // light yield correction from fiber attenuation:
+          if (light_collection_model.use_fiber_model())
+            {
+              const double z = 0.5
+                  * (hiter->second->get_local_z(0)
+                      + hiter->second->get_local_z(1));
+              assert(not std::isnan(z));
+
+              light_yield *= light_collection_model.get_fiber_transmission(z);
+            }
+
+          // light yield correction from light guide collection efficiency:
+          if (light_collection_model.use_fiber_model())
+            {
+              const double x =
+                  it_tower->second.get_position_fraction_x_in_sub_tower(
+                      decoder.fiber_ID);
+              const double y =
+                  it_tower->second.get_position_fraction_y_in_sub_tower(
+                      decoder.fiber_ID);
+
+              light_yield *= light_collection_model.get_light_guide_efficiency(x, y);
+            }
+
           celllist[key]->add_edep(hiter->first, hiter->second->get_edep(),
-              hiter->second->get_light_yield());
+              light_yield);
           celllist[key]->add_shower_edep(hiter->second->get_shower_id(),
               hiter->second->get_edep());
 
@@ -505,5 +539,95 @@ PHG4FullProjSpacalCellReco::CheckEnergy(PHCompositeNode *topNode)
         }
     }
   return 0;
+}
+
+PHG4FullProjSpacalCellReco::LightCollectionModel::LightCollectionModel() :
+    data_grid_light_guide_efficiency(NULL), data_grid_fiber_trans(NULL)
+{
+
+  data_grid_light_guide_efficiency_verify = new TH2F("data_grid_light_guide_efficiency_verify",
+      "light collection efficiency as used in PHG4FullProjSpacalCellReco::LightCollectionModel;x positio fraction;y position fraction", //
+      100, 0., 1., 100, 0., 1.);
+
+  data_grid_fiber_trans_verify = new TH1F("data_grid_fiber_trans",
+      "SCSF-78 Fiber Transmission as used in PHG4FullProjSpacalCellReco::LightCollectionModel;position in fiber (cm);Effective transmission",
+      100, -15, 15);
+
+  // register histograms
+  Fun4AllServer *se = Fun4AllServer::instance();
+
+  se->registerHisto(data_grid_light_guide_efficiency_verify);
+  se->registerHisto(data_grid_fiber_trans_verify);
+
+}
+
+PHG4FullProjSpacalCellReco::LightCollectionModel::~LightCollectionModel()
+{
+  if (data_grid_light_guide_efficiency)
+    delete data_grid_light_guide_efficiency;
+  if (data_grid_fiber_trans)
+    delete data_grid_fiber_trans;
+}
+
+void
+PHG4FullProjSpacalCellReco::LightCollectionModel::load_data_file(
+    const std::string & input_file,
+    const std::string & histogram_light_guide_model,
+    const std::string & histogram_fiber_model)
+{
+  TFile * fin = TFile::Open(input_file.c_str());
+
+  assert(fin);
+  assert(fin->IsOpen());
+
+  data_grid_light_guide_efficiency = dynamic_cast<TH2 *>(fin->Get(
+      histogram_light_guide_model.c_str()));
+  assert(data_grid_light_guide_efficiency);
+  data_grid_light_guide_efficiency->SetDirectory(NULL);
+
+  data_grid_fiber_trans = dynamic_cast<TH1 *>(fin->Get(
+      histogram_fiber_model.c_str()));
+  assert(data_grid_fiber_trans);
+  data_grid_fiber_trans->SetDirectory(NULL);
+
+  delete fin;
+}
+
+double
+PHG4FullProjSpacalCellReco::LightCollectionModel::get_light_guide_efficiency(
+    const double x_fraction, const double y_fraction)
+{
+  assert(data_grid_light_guide_efficiency);
+  assert(x_fraction >= 0);
+  assert(x_fraction <= 1);
+  assert(y_fraction >= 0);
+  assert(y_fraction <= 1);
+
+  const double eff = data_grid_light_guide_efficiency->Interpolate(x_fraction,
+      y_fraction);
+
+  data_grid_light_guide_efficiency_verify->SetBinContent( //
+      data_grid_light_guide_efficiency_verify->GetXaxis()->FindBin(x_fraction), //
+      data_grid_light_guide_efficiency_verify->GetYaxis()->FindBin(y_fraction), //
+      eff //
+      );
+
+  return eff;
+}
+
+double
+PHG4FullProjSpacalCellReco::LightCollectionModel::get_fiber_transmission(
+    const double z_distance)
+{
+  assert(data_grid_fiber_trans);
+
+  const double eff = data_grid_fiber_trans->Interpolate(z_distance);
+
+  data_grid_fiber_trans_verify->SetBinContent( //
+      data_grid_fiber_trans_verify->GetXaxis()->FindBin(z_distance), //
+      eff //
+      );
+
+  return eff;
 }
 
