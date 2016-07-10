@@ -22,10 +22,10 @@
 
 // Helix Hough includes
 #ifndef __CINT__
-#include <SimpleHit3D.h>
-#include <SimpleTrack3D.h>
-#include <VertexFinder.h> 
-#include <sPHENIXTracker.h>
+#include <HelixHough/SimpleHit3D.h>
+#include <HelixHough/SimpleTrack3D.h>
+#include <HelixHough/VertexFinder.h> 
+#include <HelixHough/sPHENIXTracker.h>
 #endif
 
 // standard includes

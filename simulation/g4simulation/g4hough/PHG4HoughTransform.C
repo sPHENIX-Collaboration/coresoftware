@@ -35,12 +35,12 @@
 #include <Geant4/G4FieldManager.hh>
 
 // Helix Hough includes
-#include <SimpleHit3D.h>
-#include <SimpleTrack3D.h>
-#include <HelixResolution.h>
-#include <HelixRange.h>
-#include <HelixHough.h>
-#include <VertexFinder.h>
+#include <HelixHough/SimpleHit3D.h>
+#include <HelixHough/SimpleTrack3D.h>
+#include <HelixHough/HelixResolution.h>
+#include <HelixHough/HelixRange.h>
+#include <HelixHough/HelixHough.h>
+#include <HelixHough/VertexFinder.h>
 
 // standard includes
 #include <cmath>
