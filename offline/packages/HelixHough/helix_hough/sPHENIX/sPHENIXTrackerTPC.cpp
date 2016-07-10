@@ -384,11 +384,6 @@ float sPHENIXTrackerTPC::dcaToVertexXY(SimpleTrack3D& track, float vx,
 
 void sPHENIXTrackerTPC::finalize(vector<SimpleTrack3D>& input,
                                  vector<SimpleTrack3D>& output) {
-#ifdef AVXHOUGH
-  if (findtracks_bin != 0) {
-    findTracksBySegments_avx_run(input);
-  }
-#endif
 
   if (is_thread == true) {
     for (unsigned int i = 0; i < input.size(); ++i) {
@@ -575,11 +570,7 @@ void sPHENIXTrackerTPC::findTracks(vector<SimpleHit3D>& hits,
                                    vector<SimpleTrack3D>& tracks,
                                    const HelixRange& range) {
   findtracksiter += 1;
-#ifdef AVXHOUGH
-  findTracksBySegments_avx(hits, tracks, range);
-#else
   findTracksBySegments(hits, tracks, range);
-#endif
 
   //   findTracksBySegments(hits,tracks,range);
 }
