@@ -6,7 +6,7 @@ noinst_HEADERS = \
 vector_math_inline.h \
 vector_math_inline_avx.h
 
-include_HEADERS = \
+pkginclude_HEADERS = \
 HelixHough.h \
 fastvec.h \
 HelixResolution.h \
