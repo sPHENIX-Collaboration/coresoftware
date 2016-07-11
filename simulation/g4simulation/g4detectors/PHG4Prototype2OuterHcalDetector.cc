@@ -243,7 +243,6 @@ PHG4Prototype2OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
   // return;
   ConstructOuterHcal(logicWorld);
   outerhcalassembly->MakeImprint(logicWorld,g4vec,Rot,0,overlapcheck);
-  //  AddGeometryNode();
   return;
 }
 
@@ -368,37 +367,6 @@ PHG4Prototype2OuterHcalDetector::DisplayVolume(G4VSolid *volume,  G4LogicalVolum
   new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, 0, false, overlapcheck);
   //  new G4PVPlacement(rotm, G4ThreeVector(0, -460.3, 0), checksolid, "DISPLAYVOL", logvol, 0, false, overlapcheck);
   return 0;
-}
-
-void
-PHG4Prototype2OuterHcalDetector::AddGeometryNode()
-{
-  if (params->get_int_param("active"))
-    {
-      ostringstream geonode;
-      if (superdetector != "NONE")
-	{
-	  geonode << "CYLINDERGEOM_" << superdetector;
-	}
-      else
-	{
-	  geonode << "CYLINDERGEOM_" << detector_type << "_" << layer;
-	}
-      PHG4CylinderGeomContainer *geo =  findNode::getClass<PHG4CylinderGeomContainer>(topNode , geonode.str().c_str());
-      if (!geo)
-	{
-	  geo = new PHG4CylinderGeomContainer();
-	  PHNodeIterator iter( topNode );
-	  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
-	  PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo, geonode.str().c_str(), "PHObject");
-	  runNode->addNode(newNode);
-	}
-      // here in the detector class we have internal units, convert to cm
-      // before putting into the geom object
-      PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv3(inner_radius / cm, (params->get_double_param("place_z")*cm - size_z / 2.) / cm, (params->get_double_param("place_z")*cm + size_z / 2.) / cm, (outer_radius - inner_radius) / cm, n_scinti_plates,  tilt_angle / rad, 0);
-      geo->AddLayerGeom(layer, mygeom);
-      if (verbosity > 0) geo->identify();
-    }
 }
 
 void

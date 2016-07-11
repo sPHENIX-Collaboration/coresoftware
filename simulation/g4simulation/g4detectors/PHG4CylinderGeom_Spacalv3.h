@@ -128,12 +128,19 @@ public:
     //! fiber layout (2D index of 0...NFiberX/NFiberY) -> fiber_id
     int
     compose_fiber_id(int index_x, int index_y) const;
-    //! fiber_id -> sub tower ID x.azimuthal direction: 0 ... NSubtowerX -1
+    //! fiber_id -> sub tower ID x/azimuthal direction: 0 ... NSubtowerX -1
     int
     get_sub_tower_ID_x(int fiber_id) const;
     //! fiber_id -> sub tower ID y/polar direction: 0 ... NSubtowerY -1
     int
     get_sub_tower_ID_y(int fiber_id) const;
+    //! fiber_id -> fraction position in sub tower ID in the x/azimuthal direction, [0-1]
+    double
+    get_position_fraction_x_in_sub_tower(int fiber_id) const;
+    //! fiber_id -> fraction position in sub tower ID in the y/polar direction, [0-1]
+    double
+    get_position_fraction_y_in_sub_tower(int fiber_id) const;
+
 
     //! height of light guide
     double LightguideHeight;
