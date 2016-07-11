@@ -12,7 +12,7 @@
 using namespace std;
 
 PHGeomFileImport::PHGeomFileImport(const std::string & geometry_file) :
-    _geometry_file(geometry_file)
+    SubsysReco("PHGeomFileImport"), _geometry_file(geometry_file)
 {
 }
 
