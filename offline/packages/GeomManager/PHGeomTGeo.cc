@@ -38,6 +38,8 @@ PHGeomTGeo::SetGeometry(TGeoManager * g)
       return;
     }
 
+  // this part produce a new copy, rather than depending on the external inputs
+
 //  if (_fGeom)
 //    {
 //      cout << "dbFvtxAlignment::SetGeometry - Clean up the old geometry"
