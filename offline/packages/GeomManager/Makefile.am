@@ -21,7 +21,9 @@ noinst_HEADERS = \
 
 libphgeom_la_SOURCES = \
   PHGeomTGeo.cc \
-  PHGeomManager.cc
+  PHGeomTGeo_Dict.cc \
+  PHGeomManager.cc \
+  PHGeomManager_Dict.cc 
  
 libphgeom_la_LIBADD = \
   -L$(libdir) \

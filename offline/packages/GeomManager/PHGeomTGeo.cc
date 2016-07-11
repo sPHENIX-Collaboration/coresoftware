@@ -15,6 +15,8 @@
 
 using namespace std;
 
+ClassImp(PHGeomTGeo);
+
 PHGeomTGeo::PHGeomTGeo() :
     _fGeom(NULL)
 {
@@ -60,4 +62,39 @@ TGeoManager *
 PHGeomTGeo::GetGeometry()
 {
   return _fGeom;
+}
+
+/** identify Function from PHObject
+ @param os Output Stream
+ */
+void
+PHGeomTGeo::identify(std::ostream& os) const
+{
+  os << "PHGeomTGeo - ";
+  if (_fGeom)
+    os << " with geometry data " << _fGeom->GetName() << ": "
+        << _fGeom->GetTitle();
+  else
+    os << "Empty";
+  os << endl;
+}
+
+/// Clear Event
+void
+PHGeomTGeo::Reset()
+{
+  if (_fGeom)
+    delete _fGeom;
+  _fGeom = NULL;
+}
+
+/// isValid returns non zero if object contains vailid data
+int
+PHGeomTGeo::isValid() const
+{
+  if (_fGeom == NULL)
+    return 0;
+  if (_fGeom->IsZombie())
+    return 0;
+  return 1;
 }
