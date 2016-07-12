@@ -39,6 +39,8 @@
 #include "TMatrixDSym.h"
 #include "TTree.h"
 #include "TVector3.h"
+#include "TRandom3.h"
+
 #include "phgenfit/Track.h"
 #include "SvtxTrack.h"
 #include "SvtxTrack_v1.h"
@@ -138,7 +140,7 @@ private:
  * Constructor
  */
 PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
-		SubsysReco(name), _flags(NONE), _fit_primary_tracks(true), _mag_field_re_scaling_factor(1.4/1.5), _reverse_mag_field(true), _fitter( NULL), _vertex_finder( NULL), _vertexing_method("mvf"), _truth_container(
+		SubsysReco(name), _flags(NONE), _output_mode(OverwriteOriginalNode), _fit_primary_tracks(true), _mag_field_re_scaling_factor(1.4/1.5), _reverse_mag_field(true), _fitter( NULL), _vertex_finder( NULL), _vertexing_method("mvf"), _truth_container(
 				NULL), _clustermap(NULL), _trackmap(NULL), _vertexmap(NULL), _trackmap_refit(
 				NULL), _primary_trackmap(NULL), _vertexmap_refit(NULL), _do_eval(false), _eval_outname(
 				"PHG4TrackKalmanFitter_eval.root"), _eval_tree(
@@ -211,17 +213,23 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 	std::vector<genfit::GFRaveVertex*> rave_vertices;
 	rave_vertices.clear();
 
+	if(_trackmap_refit)
+		_trackmap_refit->empty();
 
-	_trackmap_refit->empty();
-
-	for(SvtxTrackMap::ConstIter iter = _trackmap->begin(); iter != _trackmap->end();++iter)
-	{
+	for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
+			++iter) {
 		//! stands for Refit_PHGenFit_Track
 		PHGenFit::Track* rf_phgf_track = ReFitTrack(iter->second);
-		if(rf_phgf_track) {
-			SvtxTrack* rf_track = MakeSvtxTrack(iter->second,rf_phgf_track);
-			_trackmap_refit->insert(rf_track);
-			rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
+		if (rf_phgf_track) {
+			SvtxTrack* rf_track = MakeSvtxTrack(iter->second, rf_phgf_track);
+
+			if (_output_mode == MakeNewNode || _output_mode == DebugMode)
+				if(_trackmap_refit)
+					_trackmap_refit->insert(rf_track);
+
+			if (_output_mode == OverwriteOriginalNode || _output_mode == DebugMode)
+				*(dynamic_cast<SvtxTrack_v1*>(iter->second)) =
+						*(dynamic_cast<SvtxTrack_v1*>(rf_track));
 		}
 	}
 
@@ -329,12 +337,14 @@ void PHG4TrackKalmanFitter::fill_eval_tree(PHCompositeNode *topNode) {
 			itr != _vertexmap->end(); ++itr)
 		new ((*_tca_vertexmap)[i++]) (SvtxVertex_v1)(
 				*dynamic_cast<SvtxVertex_v1*>(itr->second));
-	i = 0;
-	for (SvtxTrackMap::ConstIter itr =
-			_trackmap_refit->begin();
-			itr != _trackmap_refit->end(); ++itr)
-		new ((*_tca_trackmap_refit)[i++]) (SvtxTrack_v1)(
-				*dynamic_cast<SvtxTrack_v1*>(itr->second));
+
+	if (_trackmap_refit) {
+		i = 0;
+		for (SvtxTrackMap::ConstIter itr = _trackmap_refit->begin();
+				itr != _trackmap_refit->end(); ++itr)
+			new ((*_tca_trackmap_refit)[i++]) (SvtxTrack_v1)(
+					*dynamic_cast<SvtxTrack_v1*>(itr->second));
+	}
 
 	if (_fit_primary_tracks) {
 		i = 0;
@@ -344,13 +354,13 @@ void PHG4TrackKalmanFitter::fill_eval_tree(PHCompositeNode *topNode) {
 					*dynamic_cast<SvtxTrack_v1*>(itr->second));
 	}
 
-	i = 0;
-	for (SvtxVertexMap::ConstIter itr =
-			_vertexmap_refit->begin();
-			itr != _vertexmap_refit->end(); ++itr)
-		new ((*_tca_vertexmap_refit)[i++]) (SvtxVertex_v1)(
-				*dynamic_cast<SvtxVertex_v1*>(itr->second));
-
+	if (_vertexmap_refit) {
+		i = 0;
+		for (SvtxVertexMap::ConstIter itr = _vertexmap_refit->begin();
+				itr != _vertexmap_refit->end(); ++itr)
+			new ((*_tca_vertexmap_refit)[i++]) (SvtxVertex_v1)(
+					*dynamic_cast<SvtxVertex_v1*>(itr->second));
+	}
 
 	_eval_tree->Fill();
 
@@ -426,12 +436,14 @@ int PHG4TrackKalmanFitter::CreateNodes(PHCompositeNode *topNode) {
 			cout << "SVTX node added" << endl;
 	}
 
-	_trackmap_refit = new SvtxTrackMap_v1;
-	PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
-			_trackmap_refit, "SvtxTrackMapRefit", "PHObject");
-	tb_node->addNode(tracks_node);
-	if (verbosity > 0)
-		cout << "Svtx/SvtxTrackMapRefit node added" << endl;
+	if (_output_mode == MakeNewNode || _output_mode == DebugMode) {
+		_trackmap_refit = new SvtxTrackMap_v1;
+		PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
+				_trackmap_refit, "SvtxTrackMapRefit", "PHObject");
+		tb_node->addNode(tracks_node);
+		if (verbosity > 0)
+			cout << "Svtx/SvtxTrackMapRefit node added" << endl;
+	}
 
 	if (_fit_primary_tracks) {
 		_primary_trackmap = new SvtxTrackMap_v1;
@@ -443,12 +455,14 @@ int PHG4TrackKalmanFitter::CreateNodes(PHCompositeNode *topNode) {
 			cout << "Svtx/PrimaryTrackMap node added" << endl;
 	}
 
-	_vertexmap_refit = new SvtxVertexMap_v1;
-	PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
-			_vertexmap_refit, "SvtxVertexMapRefit", "PHObject");
-	tb_node->addNode(vertexes_node);
-	if (verbosity > 0)
-		cout << "Svtx/SvtxVertexMapRefit node added" << endl;
+	if (_output_mode == MakeNewNode || _output_mode == DebugMode) {
+		_vertexmap_refit = new SvtxVertexMap_v1;
+		PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
+				_vertexmap_refit, "SvtxVertexMapRefit", "PHObject");
+		tb_node->addNode(vertexes_node);
+		if (verbosity > 0)
+			cout << "Svtx/SvtxVertexMapRefit node added" << endl;
+	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -588,6 +602,28 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
 //
 //	}
 
+	/*!
+	 * Temprory code.
+	 * Used for single track simulation.
+	 */
+//	if (invertex and invertex->size_tracks() == 1) {
+//		TRandom3 rand(0);
+//		double dxy = 0.0007;	//7 um
+//		double dz = 0.003;		//30 um
+//		double x = rand.Gaus(0,dxy);
+//		double y = rand.Gaus(0,dxy);
+//		double z = rand.Gaus(0,dz);
+//		invertex->set_x(x);
+//		invertex->set_y(y);
+//		invertex->set_z(z);
+//		for(int i=0;i<3;i++)
+//			for(int j=0;j<3;j++)
+//				invertex->set_error(i,j,0);
+//		invertex->set_error(0,0,dxy*dxy);
+//		invertex->set_error(1,1,dxy*dxy);
+//		invertex->set_error(2,2,dz*dz);
+//	}
+
 	if (invertex and invertex->size_tracks() > 1
 			and invertex->get_chisq() / invertex->get_ndof()
 					< vertex_chi2_over_dnf_cut) {
@@ -623,6 +659,13 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
 			iter != intrack->end_clusters(); ++iter) {
 		unsigned int cluster_id = *iter;
 		SvtxCluster* cluster = _clustermap->get(cluster_id);
+		if(!cluster)
+		{
+			LogError("No cluster Found!");
+			continue;
+		}
+		cluster->identify(); //DEBUG
+
 		//unsigned int l = cluster->get_layer();
 
 		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
@@ -631,6 +674,8 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
 		//TODO use u, v explicitly?
 		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
 				cluster->get_phi_size(), cluster->get_z_size());
+
+		//meas->getMeasurement()->Print();// DEBUG
 
 		measurements.push_back(meas);
 	}
@@ -745,7 +790,8 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 			}
 		}
 
-		_vertexmap_refit->insert(svtx_vtx);
+		if(_vertexmap_refit)
+			_vertexmap_refit->insert(svtx_vtx);
 
 		if(verbosity >= 2)
 		{

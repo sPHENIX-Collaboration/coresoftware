@@ -43,6 +43,14 @@ class PHRaveVertexFactory;
 //! \brief		Refit SvtxTracks with PHGenFit.
 class PHG4TrackKalmanFitter: public SubsysReco {
 public:
+
+	/*!
+	 * OverwriteOriginalNode: default mode, overwrite original node
+	 * MakeNewNode: Output extra new refit nodes
+	 * DebugMode: overwrite original node also make extra new refit nodes
+	 */
+	enum OutPutMode {MakeNewNode, OverwriteOriginalNode, DebugMode};
+
 	//! Default constructor
 	PHG4TrackKalmanFitter(const std::string &name = "PHG4TrackKalmanFitter");
 
@@ -137,6 +145,15 @@ public:
 		_fit_primary_tracks = fitPrimaryTracks;
 	}
 
+	OutPutMode get_output_mode() const {
+		return _output_mode;
+	}
+
+	void set_output_mode(OutPutMode outputMode) {
+		_output_mode = outputMode;
+	}
+
+
 private:
 
 	//! Event counter
@@ -165,6 +182,9 @@ private:
 
 	//!flags
 	unsigned int _flags;
+
+	//bool _make_separate_nodes;
+	OutPutMode _output_mode;
 
 	bool _fit_primary_tracks;
 
