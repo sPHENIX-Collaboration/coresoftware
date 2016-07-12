@@ -780,10 +780,12 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 
 		double radius = pos.Pt();
 
+		//TODO add exception handling
 		genfit::MeasuredStateOnPlane* gf_state = phgf_track->extrapolateToCylinder(radius,TVector3(0,0,0),TVector3(0,0,1));
 
-		if(!gf_state) {
-			LogWarning("Exraction failed!");
+		if (!gf_state) {
+			if (verbosity > 1)
+				LogWarning("Exrapolation failed!");
 			continue;
 		}
 
@@ -808,12 +810,14 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 
 		out_track->insert_state(state);
 
-//		std::cout<<"===============\n";
-//		LogDebug(radius);
-//		std::cout<<"---------------\n";
-//		state->identify();
-//		std::cout<<"---------------\n";
-//		out_track->get_state(radius)->identify();
+		std::cout<<"===============\n";
+		LogDebug(radius);
+		std::cout<<"---------------\n";
+		TVector3 temp_vec(state->get_x(),state->get_y(),state->get_z());
+		LogDebug(temp_vec.Pt());
+		//state->identify();
+		std::cout<<"---------------\n";
+		//out_track->get_state(radius)->identify();
 	}
 
 	return out_track;
