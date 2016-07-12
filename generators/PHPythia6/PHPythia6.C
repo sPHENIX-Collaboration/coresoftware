@@ -291,7 +291,15 @@ int PHPythia6::ReadConfig(const string cfg_file) {
       pydat3.mdme[index-1][idc-1] = value; 
       cout << "mdme\t" << idc << " " << index << " " << value << endl;
     }
-    else
+    else if ( label == "pmas" )
+    {
+      int idc = 0;          
+      line >> idc >> index >> value;
+      
+      pydat2.pmas[index-1][idc-1] = value; 
+      cout << "pmas\t" << idc << " " << index << " " << value << endl;
+    }
+     else
       {
 	// label was not understood
 	cout << "************************************************************" << endl;
