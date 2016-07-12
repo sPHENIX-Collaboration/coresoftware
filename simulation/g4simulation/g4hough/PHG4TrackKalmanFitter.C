@@ -11,6 +11,7 @@
 #include <fun4all/PHTFileServer.h>
 #include <g4hough/SvtxCluster.h>
 #include <g4hough/SvtxClusterMap.h>
+#include <g4hough/SvtxTrackState_v1.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4Particlev2.h>
@@ -249,7 +250,6 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 	/*!
 	 * Fit track as primary track, This part need to be called after FillSvtxVertexMap
 	 */
-	LogDebug(rave_vertices.size());
 	if(_fit_primary_tracks && rave_vertices.size() > 0)
 	{
 		_primary_trackmap->empty();
@@ -761,6 +761,59 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 		{
 			out_track->set_error(i,j,cov[i][j]);
 		}
+	}
+
+	for (SvtxTrack::ConstClusterIter iter = svtx_track->begin_clusters();
+			iter != svtx_track->end_clusters(); ++iter) {
+		unsigned int cluster_id = *iter;
+		SvtxCluster* cluster = _clustermap->get(cluster_id);
+		if(!cluster)
+		{
+			LogError("No cluster Found!");
+			continue;
+		}
+		//cluster->identify(); //DEBUG
+
+		//unsigned int l = cluster->get_layer();
+
+		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
+
+		double radius = pos.Pt();
+
+		genfit::MeasuredStateOnPlane* gf_state = phgf_track->extrapolateToCylinder(radius,TVector3(0,0,0),TVector3(0,0,1));
+
+		if(!gf_state) {
+			LogWarning("Exraction failed!");
+			continue;
+		}
+
+		SvtxTrackState* state = new SvtxTrackState_v1(radius);
+		state->set_x(gf_state->getPos().x());
+		state->set_y(gf_state->getPos().y());
+		state->set_z(gf_state->getPos().z());
+
+		state->set_px(gf_state->getMom().x());
+		state->set_py(gf_state->getMom().y());
+		state->set_pz(gf_state->getMom().z());
+
+		//gf_state->getCov().Print();
+
+		for(int i=0;i<6;i++)
+		{
+			for(int j=i;j<6;j++)
+			{
+				out_track->set_error(i,j, gf_state->get6DCov()[i][j]);
+			}
+		}
+
+		out_track->insert_state(state);
+
+//		std::cout<<"===============\n";
+//		LogDebug(radius);
+//		std::cout<<"---------------\n";
+//		state->identify();
+//		std::cout<<"---------------\n";
+//		out_track->get_state(radius)->identify();
 	}
 
 	return out_track;
