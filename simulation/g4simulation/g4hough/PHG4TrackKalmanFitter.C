@@ -49,10 +49,11 @@
 #include "SvtxTrackMap_v1.h"
 #include "SvtxVertexMap_v1.h"
 
-#define LogDebug(exp)		std::cout<<"DEBUG: "<<__FILE__<<": "<<__LINE__<<": "<< #exp << exp <<"\n"
+#define LogDebug(exp)		std::cout<<"DEBUG: "<<__FILE__<<": "<<__LINE__<<": "<< #exp <<" : "<< exp <<"\n"
 #define LogError(exp)		std::cout<<"ERROR: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
 
+#define _DEBUG_MODE_ 1
 
 using namespace std;
 
@@ -223,6 +224,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		if (rf_phgf_track) {
 			SvtxTrack* rf_track = MakeSvtxTrack(iter->second, rf_phgf_track);
 
+			rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
+
 			if (_output_mode == MakeNewNode || _output_mode == DebugMode)
 				if(_trackmap_refit)
 					_trackmap_refit->insert(rf_track);
@@ -246,6 +249,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 	/*!
 	 * Fit track as primary track, This part need to be called after FillSvtxVertexMap
 	 */
+	LogDebug(rave_vertices.size());
 	if(_fit_primary_tracks && rave_vertices.size() > 0)
 	{
 		_primary_trackmap->empty();
@@ -455,14 +459,12 @@ int PHG4TrackKalmanFitter::CreateNodes(PHCompositeNode *topNode) {
 			cout << "Svtx/PrimaryTrackMap node added" << endl;
 	}
 
-	if (_output_mode == MakeNewNode || _output_mode == DebugMode) {
-		_vertexmap_refit = new SvtxVertexMap_v1;
-		PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
-				_vertexmap_refit, "SvtxVertexMapRefit", "PHObject");
-		tb_node->addNode(vertexes_node);
-		if (verbosity > 0)
-			cout << "Svtx/SvtxVertexMapRefit node added" << endl;
-	}
+	_vertexmap_refit = new SvtxVertexMap_v1;
+	PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
+			_vertexmap_refit, "SvtxVertexMapRefit", "PHObject");
+	tb_node->addNode(vertexes_node);
+	if (verbosity > 0)
+		cout << "Svtx/SvtxVertexMapRefit node added" << endl;
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -507,12 +509,14 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 	}
 
 	// Output Svtx Tracks
-	_trackmap_refit = findNode::getClass<SvtxTrackMap>(topNode,
-			"SvtxTrackMapRefit");
-	if (!_trackmap_refit && _event < 2) {
-		cout << PHWHERE << " SvtxTrackMapRefit node not found on node tree"
-				<< endl;
-		return Fun4AllReturnCodes::ABORTEVENT;
+	if (_output_mode == MakeNewNode || _output_mode == DebugMode) {
+		_trackmap_refit = findNode::getClass<SvtxTrackMap>(topNode,
+				"SvtxTrackMapRefit");
+		if (!_trackmap_refit && _event < 2) {
+			cout << PHWHERE << " SvtxTrackMapRefit node not found on node tree"
+					<< endl;
+			return Fun4AllReturnCodes::ABORTEVENT;
+		}
 	}
 
 	// Output Primary Svtx Tracks
@@ -603,26 +607,36 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
 //	}
 
 	/*!
-	 * Temprory code.
-	 * Used for single track simulation.
+	 *
 	 */
-//	if (invertex and invertex->size_tracks() == 1) {
-//		TRandom3 rand(0);
-//		double dxy = 0.0007;	//7 um
-//		double dz = 0.003;		//30 um
-//		double x = rand.Gaus(0,dxy);
-//		double y = rand.Gaus(0,dxy);
-//		double z = rand.Gaus(0,dz);
-//		invertex->set_x(x);
-//		invertex->set_y(y);
-//		invertex->set_z(z);
-//		for(int i=0;i<3;i++)
-//			for(int j=0;j<3;j++)
-//				invertex->set_error(i,j,0);
-//		invertex->set_error(0,0,dxy*dxy);
-//		invertex->set_error(1,1,dxy*dxy);
-//		invertex->set_error(2,2,dz*dz);
-//	}
+#if _DEBUG_MODE_ == 1
+	if (invertex and invertex->size_tracks() == 1) {
+		TRandom3 rand(0);
+		double dxy = 0.0007;	//7 um
+		double dz = 0.003;		//30 um
+
+		TVector3 pos(invertex->get_x(), invertex->get_y(), invertex->get_z());
+		TMatrixDSym cov(3);
+
+		// Use smeared position instead of reco'd one.
+		double x = rand.Gaus(0, dxy);
+		double y = rand.Gaus(0, dxy);
+		double z = rand.Gaus(0, dz);
+		pos.SetXYZ(x, y, z);
+
+		for (int i = 0; i < 3; i++)
+			for (int j = 0; j < 3; j++)
+				cov[i][j] = 0;
+
+		cov[0][0] = dxy * dxy;
+		cov[1][1] = dxy * dxy;
+		cov[2][2] =dz * dz;
+
+		PHGenFit::Measurement* meas = new PHGenFit::SpacepointMeasurement(
+				pos, cov);
+		measurements.push_back(meas);
+	}
+#endif
 
 	if (invertex and invertex->size_tracks() > 1
 			and invertex->get_chisq() / invertex->get_ndof()
@@ -664,7 +678,7 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
 			LogError("No cluster Found!");
 			continue;
 		}
-		cluster->identify(); //DEBUG
+		//cluster->identify(); //DEBUG
 
 		//unsigned int l = cluster->get_layer();
 
