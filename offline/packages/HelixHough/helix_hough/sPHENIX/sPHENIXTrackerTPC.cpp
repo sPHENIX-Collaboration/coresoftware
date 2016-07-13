@@ -714,10 +714,10 @@ float sPHENIXTrackerTPC::fitTrack(SimpleTrack3D& track,
   vector<float> zres_inv;
   for (unsigned int i = 0; i < track.hits.size(); i++) {
 
-    cout << "MIKE ";
-    cout << track.hits[i].get_layer() << " ";
-    cout << track.hits[i].get_ex() << " ";
-    cout << (2.0*sqrt(track.hits[i].get_size(0,0))) << endl;  
+    // cout << "MIKE ";
+    // cout << track.hits[i].get_layer() << " ";
+    // cout << track.hits[i].get_ex() << " ";
+    // cout << (2.0*sqrt(track.hits[i].get_size(0,0))) << endl;  
 
     float ex = track.hits[i].get_ex() * scale;
     float ey = track.hits[i].get_ey() * scale;
@@ -2008,9 +2008,9 @@ static bool fit_all(vector<SimpleHit3D>& hits,
     // temp_track.hits.back().get_ey() *= 1./sqrt(12.);
     // temp_track.hits.back().get_ez() *= 1./sqrt(12.);
 
-    temp_track.hits.back().set_ex( temp_track.hits.back().get_ex() * scale1 );
-    temp_track.hits.back().set_ey( temp_track.hits.back().get_ey() * scale1 );
-    temp_track.hits.back().set_ez( temp_track.hits.back().get_ez() * scale1 );
+    // temp_track.hits.back().set_ex( temp_track.hits.back().get_ex() * scale1 );
+    // temp_track.hits.back().set_ey( temp_track.hits.back().get_ey() * scale1 );
+    // temp_track.hits.back().set_ez( temp_track.hits.back().get_ez() * scale1 );
   }
 
   vector<int> best_ind;
@@ -2028,37 +2028,39 @@ static bool fit_all(vector<SimpleHit3D>& hits,
     // track.hits.back().get_ey() *= 1./sqrt(12.);
     // track.hits.back().get_ez() *= 1./sqrt(12.);
 
-    track.hits.back().set_ex( track.hits.back().get_ex() * scale1);
-    track.hits.back().set_ey( track.hits.back().get_ey() * scale1);
-    track.hits.back().set_ez( track.hits.back().get_ez() * scale1);
+    // track.hits.back().set_ex( track.hits.back().get_ex() * scale1);
+    // track.hits.back().set_ey( track.hits.back().get_ey() * scale1);
+    // track.hits.back().set_ez( track.hits.back().get_ez() * scale1);
   }
-  sPHENIXTrackerTPC::fitTrack(track, chi2_hit, 1.0);//scale1);
+  sPHENIXTrackerTPC::fitTrack(track, chi2_hit, scale1);
 
+  float tempscale = scale1;
   for (int i = 0; i < 20; ++i) {
     if (fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track,
-                       chi2, i, 1.0, 1.0) == false) {
+                       chi2, i, tempscale, scale1) == false) {
       return false;
     }
-    for (unsigned int h = 0; h < temp_track.hits.size(); ++h) {
-      temp_track.hits[h].set_ex( temp_track.hits[h].get_ex() * scale2);
-      temp_track.hits[h].set_ey( temp_track.hits[h].get_ey() * scale2);
-      temp_track.hits[h].set_ez( temp_track.hits[h].get_ez() * scale2);
-    }
-    sPHENIXTrackerTPC::fitTrack(track, chi2_hit, 1.0);
+    tempscale = scale2;
+    // for (unsigned int h = 0; h < temp_track.hits.size(); ++h) {
+    //   temp_track.hits[h].set_ex( temp_track.hits[h].get_ex() * scale2);
+    //   temp_track.hits[h].set_ey( temp_track.hits[h].get_ey() * scale2);
+    //   temp_track.hits[h].set_ez( temp_track.hits[h].get_ez() * scale2);
+    // }
+    sPHENIXTrackerTPC::fitTrack(track, chi2_hit, scale1);
   }
 
   if (fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track,
-                     chi2, 1.0, 1.0) == false) {
+                     chi2, scale2, scale1) == false) {
     return false;
   }
 
-  for (unsigned int h = 0; h < temp_track.hits.size(); ++h) {
-    temp_track.hits[h].set_ex( temp_track.hits[h].get_ex() * 1./sqrt(12.) );
-    temp_track.hits[h].set_ex( temp_track.hits[h].get_ey() * 1./sqrt(12.) );
-    temp_track.hits[h].set_ex( temp_track.hits[h].get_ez() * 1./sqrt(12.) );
-  }
+  // for (unsigned int h = 0; h < temp_track.hits.size(); ++h) {
+  //   temp_track.hits[h].set_ex( temp_track.hits[h].get_ex() * 1./sqrt(12.) );
+  //   temp_track.hits[h].set_ex( temp_track.hits[h].get_ey() * 1./sqrt(12.) );
+  //   temp_track.hits[h].set_ex( temp_track.hits[h].get_ez() * 1./sqrt(12.) );
+  // }
 
-  chi2 = sPHENIXTrackerTPC::fitTrack(track, chi2_hit);
+  chi2 = sPHENIXTrackerTPC::fitTrack(track, chi2_hit, scale1);
   if ((chi2 < 10.0) && (track.hits.size() > ((layer_indexes.size() * 1) / 2))) {
     return true;
   }
@@ -2066,8 +2068,8 @@ static bool fit_all(vector<SimpleHit3D>& hits,
 }
 
 void sPHENIXTrackerTPC::findTracksByCombinatorialKalman(
-							vector<SimpleHit3D>& hits, vector<SimpleTrack3D>& tracks,
-							const HelixRange& range) {
+    vector<SimpleHit3D>& hits, vector<SimpleTrack3D>& tracks,
+    const HelixRange& range) {
   // cout<<"findTracksByCombinatorialKalman "<<hits.size()<<"
   // "<<tracks.size()<<endl;
 
