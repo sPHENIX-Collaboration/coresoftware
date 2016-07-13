@@ -213,7 +213,6 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
   double phi_offset =  M_PI /2.0;
 
   for (int iphi=0; iphi<N_staves; iphi++)
-  //for (int iphi=0; iphi<1; iphi++)
     {
       // Place the ladder segment envelopes at the correct z and phi 
       // This is the azimuthal angle at which we place the stave
@@ -221,8 +220,8 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
 
       G4RotationMatrix Ra;
       G4ThreeVector Ta;
-      double notest = true;
 
+      double notest = true;
       if(notest)
 	{
 	  cout << "phi_offset = " << phi_offset << " iphi " << iphi << " phi_rotation = " << phi_rotation << " phitilt " << phitilt << endl;
@@ -322,14 +321,6 @@ void PHG4MapsDetector::SetDisplayProperty( G4LogicalVolume* lv)
 void
 PHG4MapsDetector::AddGeometryNode()
 {
-  // How to handle geometry for MAPS pixels:
-  // 1) Find the center of the sensor that contains the hit.
-  //     
-  //
-  //
-  //
-  //
-  //
 
   if (active)
     {
