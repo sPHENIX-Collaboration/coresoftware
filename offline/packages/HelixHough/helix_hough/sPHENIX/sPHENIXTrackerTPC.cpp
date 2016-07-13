@@ -731,9 +731,6 @@ float sPHENIXTrackerTPC::fitTrack(SimpleTrack3D& track,
     zres_inv.push_back(1. / zres.back());
   }
 
-  std::iostream *foo = NULL;
-  foo->flush();
-
   chi2_hit.resize(track.hits.size(), 0.);
 
   MatrixXf y = MatrixXf::Zero(track.hits.size(), 1);
