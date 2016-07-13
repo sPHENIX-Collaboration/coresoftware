@@ -56,7 +56,7 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
 
   // construct event info
   EventHeader_Prototype2* eventheader = findNode::getClass<
-      EventHeader_Prototype2>(topNode, "EventHeader_Prototype2");
+      EventHeader_Prototype2>(topNode, "EventHeader");
   if (eventheader)
     {
       eventheader->set_EvtSequence(event->getEvtSequence());
@@ -171,7 +171,7 @@ RunInfoUnpackPRDF::CreateNodeTree(PHCompositeNode *topNode)
   }
 
   EventHeader_Prototype2* eventheader = new EventHeader_Prototype2();
-  PHObjectNode_t *EventHeaderNode = new PHObjectNode_t(eventheader, "EventHeader_Prototype2", "PHObject"); // contain PHObject
+  PHObjectNode_t *EventHeaderNode = new PHObjectNode_t(eventheader, "EventHeader", "PHObject"); // contain PHObject
   dst_node->addNode(EventHeaderNode);
 
 }
