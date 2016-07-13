@@ -486,7 +486,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       float invsqrt12 = 1.0/sqrt(12.);
       
       TMatrixF DIM(3,3);
-      DIM[0][0] = pow(0.5*thickness,2);
+      DIM[0][0] = pow(0.0*0.5*thickness,2);
       DIM[0][1] = 0.0;
       DIM[0][2] = 0.0;
       DIM[1][0] = 0.0;
@@ -497,7 +497,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       DIM[2][2] = pow(0.5*zsize,2);
 
       TMatrixF ERR(3,3);
-      ERR[0][0] = pow(0.5*thickness*invsqrt12,2);
+      ERR[0][0] = pow(0.0*0.5*thickness*invsqrt12,2);
       ERR[0][1] = 0.0;
       ERR[0][2] = 0.0;
       ERR[1][0] = 0.0;

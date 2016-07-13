@@ -39,12 +39,12 @@
 #include <Geant4/G4FieldManager.hh>
 
 // Helix Hough includes
-#include <SimpleHit3D.h>
-#include <SimpleTrack3D.h>
-#include <HelixResolution.h>
-#include <HelixRange.h>
-#include <HelixHough.h>
-#include <VertexFinder.h>
+#include <HelixHough/SimpleHit3D.h>
+#include <HelixHough/SimpleTrack3D.h>
+#include <HelixHough/HelixResolution.h>
+#include <HelixHough/HelixRange.h>
+#include <HelixHough/HelixHough.h>
+#include <HelixHough/VertexFinder.h>
 
 // ROOT includes
 #include <TH1D.h>
@@ -478,16 +478,24 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     vector<SimpleHit3D>* which_vec = &_clusters;
     if (ilayer<_seed_layers) {which_vec=&_clusters_init;}
 
-    //SimpleHit3D(float xx, float dxx, float yy, float dyy, float zz, float dzz, unsigned int ind, int lyr=-1)
-    SimpleHit3D hit3d(cluster->get_x(),fabs(xy_error*sin(phi)),
-		      cluster->get_y(),fabs(xy_error*cos(phi)),
-		      cluster->get_z(),z_error,
-		      cluster->get_id(),ilayer);
+    SimpleHit3D hit3d;
 
+    hit3d.set_id(cluster->get_id());
+    hit3d.set_layer(ilayer);
+    
+    hit3d.set_x(cluster->get_x());
+    hit3d.set_y(cluster->get_y());
+    hit3d.set_z(cluster->get_z());
+
+    hit3d.set_ex(fabs(xy_error*sin(phi)));
+    hit3d.set_ey(fabs(xy_error*cos(phi)));
+    hit3d.set_ez(z_error);
+    
     // copy covariance over
     for (int i=0; i<3; ++i) {
       for (int j=i; j<3; ++j) {
 	hit3d.set_error(i,j,cluster->get_error(i,j));
+	hit3d.set_size(i,j,cluster->get_size(i,j));
       }
     }
 
@@ -534,15 +542,15 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
   // shift the vertex to the origin
   for(unsigned int ht=0;ht<_clusters_init.size();++ht)
     {
-      _clusters_init[ht].x -= _vertex[0];
-      _clusters_init[ht].y -= _vertex[1];
-      _clusters_init[ht].z -= _vertex[2];
+      _clusters_init[ht].set_x( _clusters_init[ht].get_x() - _vertex[0]);
+      _clusters_init[ht].set_y( _clusters_init[ht].get_y() - _vertex[1]);
+      _clusters_init[ht].set_z( _clusters_init[ht].get_z() - _vertex[2]);
     }
   for(unsigned int ht=0;ht<_clusters.size();++ht)
     {
-      _clusters[ht].x -= _vertex[0];
-      _clusters[ht].y -= _vertex[1];
-      _clusters[ht].z -= _vertex[2];
+      _clusters[ht].set_x( _clusters[ht].get_x() - _vertex[0]);
+      _clusters[ht].set_y( _clusters[ht].get_y() - _vertex[1]);
+      _clusters[ht].set_z( _clusters[ht].get_z() - _vertex[2]);
     }
     
   
@@ -560,7 +568,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
   {
     for(unsigned int h=0;h<_tracks[tr].hits.size();++h)
     {
-      used[_tracks[tr].hits[h].index] = 1;
+      used[_tracks[tr].hits[h].get_id()] = 1;
     }
   }
   for(unsigned int i=0;i<_clusters_init.size();++i)
@@ -591,23 +599,25 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
   // Re-center event on detector
   //----------------------------
 
-  if(verbosity > 0) cout << "PHG4HoughTransformTPC::process_event -- recentering event on detector..." << endl;
+  if (verbosity > 0)
+    cout << "PHG4HoughTransformTPC::process_event -- recentering event on "
+            "detector..."
+         << endl;
   vector<double> chi_squareds;
-  for(unsigned int tt=0;tt<_tracks.size();tt++)
-  {
-    // move the hits in the track back to their original position                
-    for(unsigned int hh=0;hh<_tracks[tt].hits.size();hh++)
-    {
-      _tracks[tt].hits[hh].x = _tracks[tt].hits[hh].x + _vertex[0];
-      _tracks[tt].hits[hh].y = _tracks[tt].hits[hh].y + _vertex[1];
-      _tracks[tt].hits[hh].z = _tracks[tt].hits[hh].z + _vertex[2];
+  for (unsigned int tt = 0; tt < _tracks.size(); tt++) {
+    // move the hits in the track back to their original position
+    for (unsigned int hh = 0; hh < _tracks[tt].hits.size(); hh++) {
+      _tracks[tt].hits[hh].set_x(_tracks[tt].hits[hh].get_x() + _vertex[0]);
+      _tracks[tt].hits[hh].set_y(_tracks[tt].hits[hh].get_y() + _vertex[1]);
+      _tracks[tt].hits[hh].set_z(_tracks[tt].hits[hh].get_z() + _vertex[2]);
       // _tracks[tt].z0 += _vertex[2];
     }
-    chi_squareds.push_back(_tracker->getKalmanStates()[tt].chi2);}
+    chi_squareds.push_back(_tracker->getKalmanStates()[tt].chi2);
+  }
 
-  if(verbosity > 0)
-  {
-    cout << "PHG4HoughTransformTPC::process_event -- final track count: " << _tracks.size() << endl;
+  if (verbosity > 0) {
+    cout << "PHG4HoughTransformTPC::process_event -- final track count: "
+         << _tracks.size() << endl;
   }
 
   //---------------------------
@@ -711,8 +721,8 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     {
       //      dEdx1=0;
       //      dEdx2=0;
-      if( (track_hits.at(ihit).index) >= _g4clusters->size()){continue;}
-      SvtxCluster *cluster = _g4clusters->get(track_hits.at(ihit).index);
+      if( (track_hits.at(ihit).get_id()) >= _g4clusters->size()){continue;}
+      SvtxCluster *cluster = _g4clusters->get(track_hits.at(ihit).get_id());
       clusterID = cluster->get_id();
       clusterLayer = cluster->get_layer();
       if( (clusterLayer < (int)_seed_layers) && (clusterLayer >= 0) )
@@ -740,8 +750,8 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
 
     // find helicity from cross product sign
     short int helicity;
-    if((track_hits[0].x-x_center)*(track_hits[track_hits.size()-1].y-y_center) -
-       (track_hits[0].y-y_center)*(track_hits[track_hits.size()-1].x-x_center) > 0)
+    if((track_hits[0].get_x()-x_center)*(track_hits[track_hits.size()-1].get_y()-y_center) -
+       (track_hits[0].get_y()-y_center)*(track_hits[track_hits.size()-1].get_x()-x_center) > 0)
     {
       helicity = 1;
     }

@@ -14,8 +14,16 @@
 #include <Geant4/G4Track.hh>
 #include <Geant4/G4LossTableManager.hh>
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4StepPoint.hh>
+#include <Geant4/G4TouchableHandle.hh>
+#include <Geant4/G4ThreeVector.hh>
+#include <Geant4/G4NavigationHistory.hh>
+
+
+#include "PHG4Hit.h"
 
 #include <iostream>
+#include <cassert>
 
 using namespace std;
 
@@ -105,6 +113,44 @@ PHG4SteppingAction::GetVisibleEnergyDeposition(const G4Step* step)
 
       return 0;
     }
+}
+
+void
+PHG4SteppingAction::StoreLocalCoorindate(PHG4Hit * hit, const G4Step* aStep,
+    bool do_prepoint, bool do_postpoint)
+{
+  assert(hit);
+  assert(aStep);
+
+  if (do_prepoint)
+    {
+      G4StepPoint* preStepPoint = aStep->GetPreStepPoint();
+
+      G4TouchableHandle theTouchable = preStepPoint->GetTouchableHandle();
+      G4ThreeVector worldPosition = preStepPoint->GetPosition();
+      G4ThreeVector localPosition =
+          theTouchable->GetHistory()->GetTopTransform().TransformPoint(
+              worldPosition);
+
+      hit->set_local_x(0, localPosition.x() / cm);
+      hit->set_local_y(0, localPosition.y() / cm);
+      hit->set_local_z(0, localPosition.z() / cm);
+    }
+  if (do_postpoint)
+    {
+      G4StepPoint * postPoint = aStep->GetPostStepPoint();
+
+      G4TouchableHandle theTouchable = postPoint->GetTouchableHandle();
+      G4ThreeVector worldPosition = postPoint->GetPosition();
+      G4ThreeVector localPosition =
+          theTouchable->GetHistory()->GetTopTransform().TransformPoint(
+              worldPosition);
+
+      hit->set_local_x(1, localPosition.x() / cm);
+      hit->set_local_y(1, localPosition.y() / cm);
+      hit->set_local_z(1, localPosition.z() / cm);
+    }
+
 }
 
 bool

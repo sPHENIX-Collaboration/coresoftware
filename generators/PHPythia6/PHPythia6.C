@@ -42,6 +42,7 @@ typedef PHIODataNode<PHObject> PHObjectNode_t;
 PHPythia6::PHPythia6(const std::string &name):
   SubsysReco(name),
   _eventcount(0),
+  _geneventcount(0),
   _node_name("PHHepMCGenEvent"),
   _configFile("phpythia6.cfg"),
   _phhepmcevt(NULL),
@@ -96,6 +97,9 @@ int PHPythia6::End(PHCompositeNode *topNode) {
        << "                                                 | " << endl; 
   cout << "                         PHPythia6::End - " << _eventcount
        << " events passed trigger" << endl;
+  cout << "                         Fraction passed: " << _eventcount
+       << "/" << _geneventcount
+       << " = " << _eventcount/float(_geneventcount) << endl;
   cout << " *-------  End PYTHIA Trigger Statistics  ------------------------"
        << "-------------------------------------------------* " << endl;
 
@@ -287,7 +291,15 @@ int PHPythia6::ReadConfig(const string cfg_file) {
       pydat3.mdme[index-1][idc-1] = value; 
       cout << "mdme\t" << idc << " " << index << " " << value << endl;
     }
-    else
+    else if ( label == "pmas" )
+    {
+      int idc = 0;          
+      line >> idc >> index >> value;
+      
+      pydat2.pmas[index-1][idc-1] = value; 
+      cout << "pmas\t" << idc << " " << index << " " << value << endl;
+    }
+     else
       {
 	// label was not understood
 	cout << "************************************************************" << endl;
@@ -332,6 +344,7 @@ int PHPythia6::process_event(PHCompositeNode *topNode) {
     ++genCounter;
 
     call_pyevnt();      // generate one event with Pythia
+    _geneventcount++; 
     // pythia pyhepc routine converts common PYJETS in common HEPEVT
     call_pyhepc( 1 );
     evt = hepevtio.read_next_event();
@@ -383,6 +396,9 @@ int PHPythia6::process_event(PHCompositeNode *topNode) {
       passedTrigger = true;
       genCounter = 0;
     }
+    
+    // delete failed events
+    if(!passedTrigger) delete evt; 
 
   }
 

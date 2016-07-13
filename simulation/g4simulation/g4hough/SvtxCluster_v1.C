@@ -112,7 +112,7 @@ void SvtxCluster_v1::set_error(unsigned int i, unsigned int j, float value) {
 }
 
 float SvtxCluster_v1::get_error(unsigned int i, unsigned int j) const {
-  return _size[covar_index(i,j)];
+  return _err[covar_index(i,j)];
 }
 
 float SvtxCluster_v1::get_phi_size() const {
