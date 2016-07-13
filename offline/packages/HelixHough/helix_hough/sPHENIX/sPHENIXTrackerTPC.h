@@ -283,9 +283,11 @@ class sPHENIXTrackerTPC : public HelixHough {
                   float max_d, float min_z0, float max_z0, float min_dzdl,
                   float max_dzdl, bool pairvoting = false);
 
-  static float fitTrack(SimpleTrack3D& track);
-  static float fitTrack_3(SimpleTrack3D& track);
-  static float fitTrack(SimpleTrack3D& track, std::vector<float>& chi2_hit);
+  static float fitTrack(SimpleTrack3D& track,
+			float scale = 1.0);
+  static float fitTrack(SimpleTrack3D& track,
+			std::vector<float>& chi2_hit,
+			float scale = 1.0);
 
   void setVerbosity(int v) { verbosity = v; }
 

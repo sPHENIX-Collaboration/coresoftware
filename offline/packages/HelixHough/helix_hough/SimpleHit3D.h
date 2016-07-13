@@ -10,10 +10,6 @@ class SimpleHit3D
 public:
 
   SimpleHit3D();
-  /*  SimpleHit3D(float x = 0.0, float ex = 0.0,
-	      float y = 0.0, float ey = 0.0,
-	      float z = 0.0, float ez = 0.0,
-	      unsigned int id = 0, int layer = -1);*/
   virtual ~SimpleHit3D() {}
 
   unsigned int get_id() const {return _id;}
