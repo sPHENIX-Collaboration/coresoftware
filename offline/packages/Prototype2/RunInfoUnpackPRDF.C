@@ -1,3 +1,5 @@
+#include "RunInfoUnpackPRDF.h"
+
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/packetConstants.h>
@@ -13,7 +15,6 @@
 #include <iostream>
 #include <string>
 #include <cassert>
-#include "RunInfoUnpackPRDF.h"
 
 using namespace std;
 
