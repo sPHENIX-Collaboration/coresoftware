@@ -62,13 +62,13 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
   double inner_loc_chip_in_module[9][3] = {
     0.0, -0.00875, -12.04,
     0.0, -0.00875, -9.03,
-    0.0, -0.0875, -6.02,
-    0.0, -0.0875, -3.01,	   
-    0.0, -0.0875, 0.0,
-    0.0, -0.0875, 3.01,	   
-    0.0, -0.0875, 6.02,	   
-    0.0, -0.0875, 9.03,	   
-    0.0, -0.0875, 12.04};	   
+    0.0, -0.00875, -6.02,
+    0.0, -0.00875, -3.01,	   
+    0.0, -0.00875, 0.0,
+    0.0, -0.00875, 3.01,	   
+    0.0, -0.00875, 6.02,	   
+    0.0, -0.00875, 9.03,	   
+    0.0, -0.00875, 12.04};	   
   double inner_loc_module_in_halfstave[3] = {0.0, 0.0, 0.0};   // only one module
   double inner_loc_halfstave_in_stave[3] = {0.0, 0.00625, 0.0}; 
 
@@ -138,7 +138,7 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
       // Inner stave
       // Start with the point in sensor local coords 
       TVector3   pos1 = sensor_local;
-      cout << " Start with local coords in sensor:  pos1 = " << pos1.X() << "  " << pos1.Y() << "  " << pos1.Z() << endl;
+      cout << " Stave type 0, Start with local coords in sensor:  pos1 = " << pos1.X() << "  " << pos1.Y() << "  " << pos1.Z() << endl;
 
       // transform sensor location to location in chip
       TVector3 tr1(loc_sensor_in_chip[0], loc_sensor_in_chip[1], loc_sensor_in_chip[2]);
@@ -167,7 +167,8 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
       // Rotate stave to its angle in the world
       // This requires rotating it by
       //    90 degrees to make the face point to the origin instead of vertically up in y when it is at phi = 0 - stave_phi_offset is 90 degrees in CCW direction
-      //    Rotating it fiurther so that it points at the origin after being translated to the x and y coords of the stave phi location - stave_phi derived from stave_phi_step  and stave (number), both constructor parameters
+      //    Rotating it fiurther so that it points at the origin after being translated to the x and y coords of the stave phi location - stave_phi derived from 
+      //    stave_phi_step  and stave (number), both constructor parameters
       //    Adding the tilt (for layers 0-2) - stave_phi_tilt is a constructor parameter provided by PHG4MapsDetector
       // for a rotation
       TRotation R;
@@ -236,10 +237,13 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
 
       // Start with the point in sensor local coords 
       TVector3   pos1 = sensor_local;
+      cout << " Stave type 2, Start with local coords in sensor:  pos1 = " << pos1.X() << "  " << pos1.Y() << "  " << pos1.Z() << endl;
 
       // transform sensor location to location in chip
       TVector3 tr1(loc_sensor_in_chip[0], loc_sensor_in_chip[1], loc_sensor_in_chip[2]);
       TVector3  res = pos1 + tr1;
+      cout << " tr1 = " << tr1.X() << "  " << tr1.Y() << "  " << tr1.Z() << endl;
+      cout << " Translated  to local coords in chip: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
 
       // transform location in chip to location in module
       // for odd numbered chips, the chip is flipped by 180 degrees around the x and z axes
@@ -252,14 +256,19 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
 	}
       TVector3 tr2(outer_loc_chip_in_module[chip][0], outer_loc_chip_in_module[chip][1], outer_loc_chip_in_module[chip][2]);
       res = res + tr2;
+      cout << " tr2 = " << tr2.X() << "  " << tr2.Y() << "  " << tr2.Z() << endl;
+      cout << " Translated to local coords in module: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
 
       // module to half stave
       TVector3 tr2a(outer_loc_module_in_halfstave[module][0], outer_loc_module_in_halfstave[module][1], outer_loc_module_in_halfstave[module][2] );
       res = res + tr2a;
+      cout << " Translated to local coords in half stave: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
 
       // transform location in half stave to location in stave 
       TVector3 tr3(outer_loc_halfstave_in_stave[half_stave][0],  outer_loc_halfstave_in_stave[half_stave][1], outer_loc_halfstave_in_stave[half_stave][2]);
       res = res + tr3;
+      cout << " tr3 = " << tr3.X() << "  " << tr3.Y() << "  " << tr3.Z() << endl;
+      cout << " Translated to local coords in stave: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
 
       // Rotate stave to its angle in the world. Rotate by:
       //    90 degrees to make it point to the origin instead of vertically up in y when it is at phi = 0
@@ -268,10 +277,14 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
       TRotation R;
       R.RotateZ(stave_phi + stave_phi_offset + stave_phi_tilt);
       res = R * res;    // rotates res using R
+      cout << "Rotate through phi = " << stave_phi << " + phi_offset = " << stave_phi_offset << " + phitilt = " << stave_phi_tilt << endl;
+      cout << " Rotated stave to point at origin, then tilted it: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
 
       // transform location of stave to its location in the world 
       TVector3 tr4(layer_radius * cos(stave_phi), layer_radius * sin(stave_phi), 0.0);
       res = res + tr4;
+      cout << " tr4 = " << tr4.X() << "  " << tr4.Y() << "  " << tr4.Z() << endl;
+      cout << " Translated stave to location in world: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
 
       return res;
     }
@@ -356,8 +369,6 @@ PHG4CylinderGeom_MAPS::identify(std::ostream& os) const
      << " , stave_type " << stave_type
      << ", N_staves in layer: " << N_staves
      << ", N_half_staves in layer: " << N_half_staves
-     << ", N_modules in layer: " << N_modules
-     << ", N_chips in layer: " << N_chips
      << endl;
   return;
 }

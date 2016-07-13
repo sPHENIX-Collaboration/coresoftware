@@ -122,7 +122,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
   pair<PHG4HitContainer::LayerIter, PHG4HitContainer::LayerIter> layer_begin_end = g4hit->getLayers();
   for (layer = layer_begin_end.first; layer != layer_begin_end.second; ++layer)
     {
-      //cout << "---------- MapsReco:  Looping over layers " << endl;
+      //cout << "---------- PHG4MapsCellReco:  Looping over layers " << endl;
 
       // loop over the hits in this layer
       PHG4HitContainer::ConstIterator hiter;
@@ -137,7 +137,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
 	{
-	  cout << "From MapsCellReco: Call hit print method: " << endl;
+	  cout << "From PHG4MapsCellReco: Call hit print method: " << endl;
 	  hiter->second->print();
 
 	  // get_property_int(const PROPERTY prop_id) const {return INT_MIN;}

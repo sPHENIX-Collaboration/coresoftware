@@ -275,9 +275,9 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       //localPosition = history->GetTransform(history->GetDepth() - 1).TransformPoint(worldPosition);
       //cout << "Exit local coords: x " <<  localPosition.x() / cm << " y " <<  localPosition.y() / cm << " z " <<  localPosition.z() / cm << endl;
 
-      // Use the prePoint from the final step  for now, until I understand how to get the exit point in the sensor volume
-      //============================================================================== 
-     theTouchable = prePoint->GetTouchableHandle(); 
+      // Use the prePoint from the final step  for now, until I understand how to get the exit point in the sensor volume coordinates
+      //======================================================================================
+      theTouchable = prePoint->GetTouchableHandle(); 
       vol2 = theTouchable->GetVolume();
       cout << "exiting volume name = " << vol2->GetName() << endl;
       worldPosition = prePoint->GetPosition();
@@ -286,7 +286,7 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       //hit->set_x( 1, postPoint->GetPosition().x() / cm );
       //hit->set_y( 1, postPoint->GetPosition().y() / cm );
       //hit->set_z( 1, postPoint->GetPosition().z() / cm );
-
+      // This is for consistency with the local coord position, the world coordinate exit position is correct
       hit->set_x( 1, prePoint->GetPosition().x() / cm );
       hit->set_y( 1, prePoint->GetPosition().y() / cm );
       hit->set_z( 1, prePoint->GetPosition().z() / cm );

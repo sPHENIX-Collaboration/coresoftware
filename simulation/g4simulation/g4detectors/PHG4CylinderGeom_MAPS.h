@@ -25,8 +25,8 @@ class PHG4CylinderGeom_MAPS: public PHG4CylinderGeomv4
   void find_sensor_center(int stave_number, int half_stave_number, int module_number, int chip_number, double location[]);
   int get_N_staves() const {return N_staves;}
   int get_N_half_staves() const {return N_half_staves;}
-  int get_N_modules() const {return N_modules;}
-  int get_N_chips() const {return N_chips;}
+  //int get_N_modules() const {return N_modules;}
+  //int get_N_chips() const {return N_chips;}
 
 protected:
 
@@ -34,8 +34,8 @@ protected:
   int stave_type;
   int N_staves;
   int N_half_staves;
-  int N_modules;
-  int N_chips;
+  //int N_modules;
+  //int N_chips;
 
 
   // finding the center of a stave
