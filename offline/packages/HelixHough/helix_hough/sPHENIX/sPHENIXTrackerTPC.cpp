@@ -697,10 +697,6 @@ void sPHENIXTrackerTPC::setRangeFromSeed(HelixRange& range,
   range.max_z0 = seed.z0 + dz0;
 }
 
-
-
-
-
 float sPHENIXTrackerTPC::fitTrack(SimpleTrack3D& track,
 				  float scale) {
   vector<float> chi2_hit;
@@ -719,7 +715,9 @@ float sPHENIXTrackerTPC::fitTrack(SimpleTrack3D& track,
   for (unsigned int i = 0; i < track.hits.size(); i++) {
 
     cout << "MIKE ";
-    cout << track.hits[i].get_ex() / (2.0*sqrt(track.hits[i].get_size(0,0))) << endl;  
+    cout << track.hits[i].get_layer() << " ";
+    cout << track.hits[i].get_ex() << " ";
+    cout << (2.0*sqrt(track.hits[i].get_size(0,0))) << endl;  
 
     float ex = track.hits[i].get_ex() * scale;
     float ey = track.hits[i].get_ey() * scale;
@@ -952,8 +950,8 @@ void sPHENIXTrackerTPC::projectToLayer(SimpleTrack3D& seed, unsigned int layer,
 }
 
 void sPHENIXTrackerTPC::findSeededTracksByProjection(
-						     vector<SimpleTrack3D>& seeds, vector<SimpleHit3D>& hits,
-						     vector<SimpleTrack3D>& tracks, const HelixRange& range) {
+    vector<SimpleTrack3D>& seeds, vector<SimpleHit3D>& hits,
+    vector<SimpleTrack3D>& tracks, const HelixRange& range) {
   findtracksiter += 1;
 
   if (seeds.size() == 0) {
@@ -1889,12 +1887,13 @@ static void extend_combos(vector<SimpleHit3D>& hits,
 static bool fit_all_update(vector<vector<int> >& layer_indexes,
                            SimpleTrack3D& temp_track, vector<int>& best_ind,
                            vector<float>& best_chi2, SimpleTrack3D& track,
-                           float& chi2, int iter = 0) {
+                           float& chi2, int iter = 0,
+			   float tempscale = 1.0, float scale = 1.0) {
   if (iter != 0) {
     if (remove_bad_hits(track, 5.) == false) {
       return false;
     }
-    sPHENIXTrackerTPC::fitTrack(track);
+    sPHENIXTrackerTPC::fitTrack(track, scale);
   }
 
   vector<float> chi2_hit;
@@ -1922,8 +1921,12 @@ static bool fit_all_update(vector<vector<int> >& layer_indexes,
     if (fabs(xydiff1) < fabs(xydiff2)) {
       xydiff = xydiff1;
     }
-    float dr2 = (temp_track.hits[i].get_ex()) * (temp_track.hits[i].get_ex()) +
-      (temp_track.hits[i].get_ey()) * (temp_track.hits[i].get_ey());
+
+    float tex = temp_track.hits[i].get_ex() * tempscale;
+    float tey = temp_track.hits[i].get_ey() * tempscale;
+    float tez = temp_track.hits[i].get_ez() * tempscale;
+    
+    float dr2 = tex * tex + tey * tey;
     float chi2_xy = xydiff * xydiff / dr2;
 
     float D = sqrt(pow(dx - temp_track.hits[i].get_x(), 2) +
@@ -1954,7 +1957,7 @@ static bool fit_all_update(vector<vector<int> >& layer_indexes,
     float diff = temp_track.hits[i].get_z() - x2beta;
 
     float chi2_z =
-      diff * diff / (temp_track.hits[i].get_ez() * temp_track.hits[i].get_ez());
+      diff * diff / (tez * tez);
 
     chi2_xy += chi2_z;
 
@@ -1976,7 +1979,7 @@ static bool fit_all_update(vector<vector<int> >& layer_indexes,
     }
     track.hits.push_back(temp_track.hits[best_ind[i]]);
   }
-  // chi2 = sPHENIXTrackerTPC::fitTrack(track, chi2_hit);
+  // chi2 = sPHENIXTrackerTPC::fitTrack(track, chi2_hit, tempscale);
   // if(remove_bad_hits(track,6.0)==false)
   // {
   //   return false;
@@ -1990,6 +1993,7 @@ static bool fit_all_update(vector<vector<int> >& layer_indexes,
 static bool fit_all(vector<SimpleHit3D>& hits,
                     vector<vector<int> >& layer_indexes, SimpleTrack3D& track,
                     float& chi2) {
+
   float scale1 = 32.;
   float scale2 = sqrt(sqrt(0.5));
 
@@ -2028,11 +2032,11 @@ static bool fit_all(vector<SimpleHit3D>& hits,
     track.hits.back().set_ey( track.hits.back().get_ey() * scale1);
     track.hits.back().set_ez( track.hits.back().get_ez() * scale1);
   }
-  sPHENIXTrackerTPC::fitTrack(track, chi2_hit);
+  sPHENIXTrackerTPC::fitTrack(track, chi2_hit, 1.0);//scale1);
 
   for (int i = 0; i < 20; ++i) {
     if (fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track,
-                       chi2, i) == false) {
+                       chi2, i, 1.0, 1.0) == false) {
       return false;
     }
     for (unsigned int h = 0; h < temp_track.hits.size(); ++h) {
@@ -2040,11 +2044,11 @@ static bool fit_all(vector<SimpleHit3D>& hits,
       temp_track.hits[h].set_ey( temp_track.hits[h].get_ey() * scale2);
       temp_track.hits[h].set_ez( temp_track.hits[h].get_ez() * scale2);
     }
-    sPHENIXTrackerTPC::fitTrack(track, chi2_hit);
+    sPHENIXTrackerTPC::fitTrack(track, chi2_hit, 1.0);
   }
 
   if (fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track,
-                     chi2) == false) {
+                     chi2, 1.0, 1.0) == false) {
     return false;
   }
 
