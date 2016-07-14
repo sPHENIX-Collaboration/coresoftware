@@ -2037,20 +2037,20 @@ static bool fit_all(vector<SimpleHit3D>& hits,
   float tempscale = scale1;
   for (int i = 0; i < 20; ++i) {
     if (fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track,
-                       chi2, i, tempscale, scale1) == false) {
+                       chi2, i, tempscale, tempscale) == false) {
       return false;
     }
-    tempscale = scale2;
+    tempscale *= scale2;
     // for (unsigned int h = 0; h < temp_track.hits.size(); ++h) {
     //   temp_track.hits[h].set_ex( temp_track.hits[h].get_ex() * scale2);
     //   temp_track.hits[h].set_ey( temp_track.hits[h].get_ey() * scale2);
     //   temp_track.hits[h].set_ez( temp_track.hits[h].get_ez() * scale2);
     // }
-    sPHENIXTrackerTPC::fitTrack(track, chi2_hit, scale1);
+    sPHENIXTrackerTPC::fitTrack(track, chi2_hit, tempscale);
   }
 
   if (fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track,
-                     chi2, scale2, scale1) == false) {
+                     chi2, 1.0, 1.0) == false) {
     return false;
   }
 
@@ -2060,7 +2060,7 @@ static bool fit_all(vector<SimpleHit3D>& hits,
   //   temp_track.hits[h].set_ex( temp_track.hits[h].get_ez() * 1./sqrt(12.) );
   // }
 
-  chi2 = sPHENIXTrackerTPC::fitTrack(track, chi2_hit, scale1);
+  chi2 = sPHENIXTrackerTPC::fitTrack(track, chi2_hit, 1.0);//scale1); // maybe this should be one
   if ((chi2 < 10.0) && (track.hits.size() > ((layer_indexes.size() * 1) / 2))) {
     return true;
   }
