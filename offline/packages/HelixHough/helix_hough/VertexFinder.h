@@ -2,7 +2,7 @@
 #define __VERTEXFINDER_H__
 
 // Helix Hough includes
-#include <SimpleTrack3D.h>
+#include "SimpleTrack3D.h"
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
