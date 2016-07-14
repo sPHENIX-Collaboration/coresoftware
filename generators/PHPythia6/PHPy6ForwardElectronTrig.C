@@ -20,7 +20,7 @@ PHPy6ForwardElectronTrig::PHPy6ForwardElectronTrig(const std::string &name): PHP
   n_e_required = 1; 
   ptot_required = 1.0; 
   eta_low = 1.0; 
-  eta_high = 1.0; 
+  eta_high = 5.0; 
 
 }
 
