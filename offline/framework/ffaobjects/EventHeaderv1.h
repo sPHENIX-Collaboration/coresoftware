@@ -1,9 +1,6 @@
 #ifndef __EVENTHEADERv1_H
 #define __EVENTHEADERv1_H
 
-#include <iostream>
-#include <ctime>
-
 #include "EventHeader.h"
 
 //! simple event header with ID and time
