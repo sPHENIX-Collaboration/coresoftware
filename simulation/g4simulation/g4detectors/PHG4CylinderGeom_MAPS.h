@@ -17,6 +17,7 @@ class PHG4CylinderGeom_MAPS: public PHG4CylinderGeomv4
   void identify(std::ostream& os = std::cout) const;
   TVector3 get_world_from_local_coords(int stave, int half_stave, int module, int chip, TVector3 sensor_local);
   int get_pixel_from_local_coords(TVector3 sensor_local);
+  TVector3 get_local_coords_from_pixel(int NXZ);
 
   void set_layer(const int i) {layer = i;}
   int get_layer() const {return layer;}
@@ -37,6 +38,14 @@ protected:
   //int N_modules;
   //int N_chips;
 
+  double Xsensor;
+  double Zsensor;
+
+  double pixel_x;
+  double pixel_z;
+
+  int NZ;
+  int NX;
 
   // finding the center of a stave
   double layer_radius;

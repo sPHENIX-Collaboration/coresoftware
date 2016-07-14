@@ -27,6 +27,9 @@ class PHG4CylinderCell_MAPS : public PHG4CylinderCellv2
   void set_chip_index(const int i) {chip_number = i;}
   int get_chip_index() const {return chip_number;}
 
+  void set_pixel_index(const int i) {pixel_number = i;}
+  int get_pixel_index() const {return pixel_number;}
+
   
  protected:
 
@@ -34,6 +37,7 @@ class PHG4CylinderCell_MAPS : public PHG4CylinderCellv2
   int half_stave_number;
   int module_number;
   int chip_number;
+  int pixel_number;
 
   
   ClassDef(PHG4CylinderCell_MAPS,1)

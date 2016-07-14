@@ -209,8 +209,12 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	       << endl << endl;
 
 	  // Get the pixel number of the input hit
-	  int pixel_number = layergeom->get_pixel_from_local_coords(local_in);
-	  cout << " CellReco: pixel number = " << pixel_number << endl;
+	  int pixel_number_in = layergeom->get_pixel_from_local_coords(local_in);
+	  cout << " CellReco: pixel number in = " << pixel_number_in << endl;
+
+	  // Testing: get the local coords of the center of the pixel
+	  TVector3  pixel_local_coords_in = layergeom->get_local_coords_from_pixel(pixel_number_in);
+	  cout << " PHG4MapsCellReco: local coords from pixel number in = " << pixel_local_coords_in.X() << " " << pixel_local_coords_in.Y() << " " << pixel_local_coords_in.Z() << endl;
 	  
 	  // combine ladder index values to get a single key
 	  char inkey[1024];
@@ -223,11 +227,12 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	    celllist[key] = new PHG4CylinderCell_MAPS();
 	    celllist[key]->set_layer(*layer);
 
-	    // This encodes the z and phi position of the sensor 
+	    // This encodes the z and phi position of the sensor, and pixel number within the sensor
 	    celllist[key]->set_stave_index(stave_number);
 	    celllist[key]->set_half_stave_index(half_stave_number);
 	    celllist[key]->set_module_index(module_number);
 	    celllist[key]->set_chip_index(chip_number);
+	    celllist[key]->set_pixel_index(pixel_number_in);
 	    
 	    celllist[key]->add_edep(hiter->first, hiter->second->get_edep());
 	  }
@@ -245,6 +250,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		   << " , half stave index: " << mapiter->second->get_half_stave_index()
 		   << ", module index: " << mapiter->second->get_module_index()
 		   << ", chip index: " << mapiter->second->get_chip_index()
+		   << ", pixel index: " << mapiter->second->get_pixel_index()
 		   << ", energy dep: " << mapiter->second->get_edep()
 		   << endl;
 	      //}
@@ -252,7 +258,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
       celllist.clear();
       if (verbosity > 0)
 	{
-	  cout << Name() << ": found " << numcells << " silicon strips with energy deposition" << endl;
+	  cout << Name() << ": found " << numcells << " silicon pixels with energy deposition" << endl;
 	}
     }
 

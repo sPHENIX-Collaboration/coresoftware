@@ -25,6 +25,32 @@ PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, in
   else
     N_half_staves = 1;
 
+  // There are two sensor sizes, one for the inner layers and one for the middle/outer layers
+  // Here the sensor is at 0,0,0 with the normal to the face pointing in +y direction
+  // These are half-dimensions, double them to get the full dimensions
+  //    For inner layer:                 0.7525 x 0.0009 x 1.5050
+  //    For mid and outer layer:   0.7500 x 0.0009 x 1.5000
+  if( stave_type == 0 )
+    {
+      Zsensor = 3.0;   // cm
+      Xsensor = 1.5;   // cm  
+    }
+  else
+    {
+      Zsensor = 3.01;   // cm
+      Xsensor = 1.505;   // cm  
+    }
+
+  // The pixel sizes are 28 microns x 28 microns
+  pixel_x = 28.0e-04;    // cm
+  pixel_z = 28.0e-04;    // cm
+  
+  NZ = (int)  ( Zsensor / (pixel_z) );
+  NX = (int)  ( Xsensor / (pixel_x) );
+  
+  //cout  << " Pixels in X: NX  " << NX  << " pixels in Z: NZ  " << NZ << endl;
+
+
   return;
 }
 
@@ -294,38 +320,7 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
 
 int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(TVector3 sensor_local)
 {
-  // There are two sensor sizes, one for the inner layers and one for the middle/outer layers
-  // These are half-dimensions, double them to get the full dimensions
-  // For inner layer:                 0.7525 x 0.0009 x 1.5050
-  // For mid and outer layer:   0.7500 x 0.0009 x 1.5000
-  double Xsensor;
-  double Zsensor;
-  if( stave_type == 0 )
-    {
-      Zsensor = 3.0;   // cm
-      Xsensor = 1.5;   // cm  
-    }
-  else
-    {
-      Zsensor = 3.01;   // cm
-      Xsensor = 1.505;   // cm  
-    }
-
-  // The pixel sizes are 28 microns x 28 microns
-  double pixel_x = 28.0e-04;    // cm
-  double pixel_z = 28.0e-04;    // cm
-
-  int NZ = (int)  ( Zsensor / (2.0 * pixel_z) );
-  int NX = (int)  ( Xsensor / (2.0 * pixel_x) );
-
-  // Choose a pixel numbering scheme
-  // The area of the chip (outer layers) will be 3.0 cm (in z) x 1.5 cm (in x) = 4.5 cm^2
-  // The area of a pixel is 28 x 10^-4 cm squared = 784 x 10^-8 cm^2
-  // There are 4.5 / 784 x 10^8 = 5.74 x 10^5 pixels per sensor
-
   // start pixel numbering from the middle of the sensor
-  // step in x and z
-
   // find the pixel grid point
   
   double npix_x = sensor_local.X() / pixel_x;
@@ -336,33 +331,65 @@ int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(TVector3 sensor_local)
 
   cout << "sensor x " << sensor_local.X()
        << " sensor z " << sensor_local.Z()
-       << " Ngridx " << Ngridx
-       << " Ngridz " << Ngridz
+       << " Ngridx (ref to center) " << Ngridx
+       << " Ngridz (ref to center) " << Ngridz
        << endl;
 
   //  Combine the grid locations into a single integer
   // transform to the grid location referenced to top left corner of the chip as (0,0)
-  Ngridx +=  NX;
-  Ngridz += NZ;
+  //Ngridx +=  NX;
+  //Ngridz += NZ;
+  Ngridx +=  NX/2;
+  Ngridz += NZ/2;
 
   cout << "Transformed grid locations: " 
-       << " NX " << NX
-       << " NZ " << NZ
-       << " Ngridx " << Ngridx
-       << " Ngridz " << Ngridz
+       << " Ngridx (ref to neg x, neg y corner) " << Ngridx
+       << " Ngridz (ref to neg x, neg y corner) " << Ngridz
        << endl;
 
   // numbering starts at zero
-  int NXZ = Ngridz + 2 * NZ * Ngridx;
+  //int NXZ = Ngridz + 2 * NZ * Ngridx;
+  int NXZ = Ngridx + (Ngridz-1) * NX;
   cout << " pixel number is " << NXZ << endl;
 
   return NXZ;
 }
 
+TVector3 PHG4CylinderGeom_MAPS::get_local_coords_from_pixel(int NXZ)
+{  
+  //int Ngridx = NXZ / (2 * NZ);
+  //int Ngridz = NXZ % (2 * NZ);
+
+  int Ngridz = NXZ / NX + 1;
+  int Ngridx = NXZ % NX;
+
+  cout << "Ngridx = " << Ngridx << " Ngridz = " << Ngridz << endl;
+
+  // change to a grid centered on the sensor
+  Ngridx -=  NX/2;
+  Ngridz -= NZ/2;
+
+  cout << "Ngridx (ref to center) = " << Ngridx << " Ngridz (ref to center) = " << Ngridz << endl;
+  
+  double sensor_local_x = (double) Ngridx * pixel_x;
+  if(sensor_local_x < 0)
+    sensor_local_x -= pixel_x / 2.0;
+  else
+    sensor_local_x += pixel_x / 2.0;
+
+  double sensor_local_z = (double) Ngridz * pixel_z;
+  if(sensor_local_z < 0)
+    sensor_local_z -= pixel_z/2.0;
+  else
+    sensor_local_z += pixel_z/2.0;
+
+  TVector3 sensor_local_coords(sensor_local_x, 0.0, sensor_local_z);
+
+  return sensor_local_coords;
+}
 
 
-void
-PHG4CylinderGeom_MAPS::identify(std::ostream& os) const
+void PHG4CylinderGeom_MAPS::identify(std::ostream& os) const
 {
   os << "PHG4CylinderGeom_MAPS: layer: " << layer 
      << ", layer_radius: " << layer_radius 
