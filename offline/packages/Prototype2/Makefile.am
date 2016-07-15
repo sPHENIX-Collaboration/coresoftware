@@ -17,7 +17,6 @@ lib_LTLIBRARIES = \
 pkginclude_HEADERS = \
   RawTower_Prototype2.h \
   RawTower_Temperature.h \
-  EventHeader_Prototype2.h \
   PROTOTYPE2_FEM.h
 
 libPrototype2_la_SOURCES = \
@@ -38,9 +37,7 @@ libPrototype2_la_SOURCES = \
   PROTOTYPE2_FEM.C \
   PROTOTYPE2_FEMDict.cc \
   RawTower_Temperature.cc \
-  RawTower_TemperatureDict.cc \
-  EventHeader_Prototype2.cc \
-  EventHeader_Prototype2Dict.cc
+  RawTower_TemperatureDict.cc
 
 libPrototype2_la_LIBADD = \
   -lSubsysReco \

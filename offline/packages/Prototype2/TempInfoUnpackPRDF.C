@@ -20,7 +20,7 @@ using namespace std;
 
 //____________________________________
 TempInfoUnpackPRDF::TempInfoUnpackPRDF() :
-  SubsysReco("TempInfoUnpackPRDF")
+  SubsysReco("TempInfoUnpackPRDF"), hcalin_temperature(NULL), hcalout_temperature(NULL), emcal_temperature(NULL)
 {
 }
 
