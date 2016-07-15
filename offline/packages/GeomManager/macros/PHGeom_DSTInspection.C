@@ -13,11 +13,11 @@
 //! Quick inspection of PHGeoTGeo object in RUN/GEOMETRY node inside a DST file
 //! Based on abhisek's display macro
 void
-PHGeom_DSTInspection(TString DST_file_name = "DST.root")
+PHGeom_DSTInspection(TString DST_file_name = "DST.root", bool do_clip = true )
 {
   TEveManager::Create();
 
-  TFile * _file0 = TFile::Open("DST.root");
+  TFile * _file0 = TFile::Open(DST_file_name);
   assert(_file0->IsOpen());
 
   TTree * T1 = (TTree *) _file0->GetObjectChecked("T1", "TTree");
@@ -57,10 +57,11 @@ PHGeom_DSTInspection(TString DST_file_name = "DST.root")
   // EClipType not exported to CINT (see TGLUtil.h):
   // 0 - no clip, 1 - clip plane, 2 - clip box
   TGLViewer *v = gEve->GetDefaultGLViewer();
-  v->GetClipSet()->SetClipType(1);
+  if (Clip) v->GetClipSet()->SetClipType(1);
   v->ColorSet().Background().SetColor(kMagenta + 4);
   v->SetGuideState(TGLUtil::kAxesEdge, kTRUE, kFALSE, 0);
   v->RefreshPadEditor(v);
+
   v->CurrentCamera().RotateRad(-0.5, 0.5);
   v->DoDraw();
 }
