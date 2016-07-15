@@ -37,11 +37,20 @@ public:
 
   //! TGeo ROOT/GDML/Macro file -> DST node with automatic file type discrimination based on file names
   static int
-  ImportGeomFile(PHCompositeNode *topNode, const std::string & geometry_root_file);
+  ImportGeomFile(PHCompositeNode *topNode, const std::string & geometry_file);
 
-  //! GDML file -> DST node regardless of the file name format
-  static int
-  ImportGDML(PHCompositeNode *topNode, const std::string & gdml_file);
+//  //! GDML file -> DST node regardless of the file name format
+//  static int
+//  ImportGDML(PHCompositeNode *topNode, const std::string & gdml_file);
+
+  //! Make a name for tmp geometry file
+  //! Geometry files gain a size of ~10MB and it used in translation from Geant4 to DST format.
+  //! This tmp file should be on a local file system (/tmp/) and write/deletable
+  static std::string GenerateGeometryFileName(const std::string & filename_extension = "gdml");
+
+  //! delete the geometry file after use
+  static bool RemoveGeometryFile (const std::string & file_name);
+
 
 protected:
 
