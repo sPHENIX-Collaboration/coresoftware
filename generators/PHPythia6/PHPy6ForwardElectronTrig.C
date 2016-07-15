@@ -17,10 +17,18 @@ PHPy6ForwardElectronTrig::PHPy6ForwardElectronTrig(const std::string &name): PHP
   ntriggered_forward_electron = 0;
   nconsidered_forward_electron = 0;
   
-  n_e_required = 1; 
+  n_em_required = 1; 
+  n_ep_required = 1; 
+  n_comb_required = 1; 
   ptot_required = 1.0; 
   eta_low = 1.0; 
   eta_high = 5.0; 
+
+  RequireElectron = false;
+  RequirePositron = false; 
+  RequireOR = false; 
+  RequireAND = false; 
+  RequireCOMBO = true; 
 
 }
 
@@ -28,9 +36,16 @@ void PHPy6ForwardElectronTrig::PrintConfig()
 {
   cout << endl; 
   cout << "PHPy6ForwardElectronTrig Configuration: " << endl; 
-  cout << " >=" << n_e_required << " e+/e- required" << endl; 
+  cout << " >=" << n_ep_required << " e+ required" << endl; 
+  cout << " >=" << n_em_required << " em required" << endl; 
   cout << " Electron total momentum > " << ptot_required << " GeV required" << endl; 
   cout << " " << eta_low << " < eta < " << eta_high << endl; 
+
+  if(RequireElectron) cout << " RequireElectron is set" << endl;
+  if(RequirePositron) cout << " RequirePositron is set" << endl;
+  if(RequireOR) cout << " RequireOR is set" << endl;
+  if(RequireAND) cout << " RequireAND is set" << endl;
+
   cout << endl; 
 }
 	
@@ -50,19 +65,26 @@ bool PHPy6ForwardElectronTrig::Apply( const HepMC::GenEvent* evt )
 
   // Check the HepMC particle list - 
 	
-  unsigned int n_found = 0; 
+  unsigned int n_em_found = 0; 
+  unsigned int n_ep_found = 0; 
 
   for ( HepMC::GenEvent::particle_const_iterator p 
 	  = evt->particles_begin(); p != evt->particles_end(); ++p ){
     if ( (abs((*p)->pdg_id()) == 11) && ((*p)->status()==1) && 
 	 ((*p)->momentum().pseudoRapidity() > eta_low) && ((*p)->momentum().pseudoRapidity() < eta_high) && 
 	 (sqrt(pow((*p)->momentum().px(),2) + pow((*p)->momentum().py(),2) + pow((*p)->momentum().pz(),2))>ptot_required) ) {
-      n_found++;
+      if(((*p)->pdg_id()) == 11) n_em_found++;
+      if(((*p)->pdg_id()) == -11) n_ep_found++;
       return true;
     }
   }
 
-  if(n_found>=n_e_required) {
+  if( (RequireOR && ((n_em_found>=n_em_required)||(n_ep_found>=n_ep_required)) ) ||
+      (RequireElectron && (n_em_found>=n_em_required)) ||
+      (RequirePositron && (n_ep_found>=n_ep_required)) ||
+      (RequireAND && (n_em_found>=n_em_required) && (n_ep_found>=n_ep_required)) ||
+      (RequireCOMBO && (n_em_found+n_ep_found)>=n_comb_required) ) 
+  {
     ++ntriggered_forward_electron;
     return true; 
   }
