@@ -1,7 +1,7 @@
 #ifndef PHPy6ForwardElectronTrig_h
 #define PHPy6ForwardElectronTrig_h
 
-#include <PHPy6GenTrigger.h>
+#include "PHPy6GenTrigger.h"
 #include <HepMC/GenEvent.h>
 
 namespace HepMC
