@@ -8,7 +8,9 @@ AM_CXXFLAGS = -Wall -Werror
 lib_LTLIBRARIES = libPHPythia6.la
 
 pkginclude_HEADERS = \
-  PHPythia6.h
+  PHPythia6.h \
+  PHPy6GenTrigger.h \
+  PHPy6ForwardElectronTrig.h
 
 libPHPythia6_la_LDFLAGS = ${AM_LDFLAGS} `root-config --libs`
 
