@@ -80,7 +80,7 @@ PHGeomUtility::ImportGeomFile(PHCompositeNode *topNode,
   if (!dst_geom)
     {
       dst_geom = new PHGeomTGeo();
-      PHIODataNode<PHObject> *GeomNode = new PHIODataNode<PHObject>(dst_geom,
+      PHDataNode<PHObject> *GeomNode = new PHDataNode<PHObject>(dst_geom,
           GetDSTNodeName(), "PHObject");
       runNode->addNode(GeomNode);
     }
