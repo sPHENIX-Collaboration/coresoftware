@@ -20,8 +20,7 @@ ClassImp(PHGeomTGeo);
 PHGeomTGeo::PHGeomTGeo() :
     _fGeom(NULL)
 {
-  // TODO Auto-generated constructor stub
-
+//  SplitLevel(0);
 }
 
 PHGeomTGeo::~PHGeomTGeo()
