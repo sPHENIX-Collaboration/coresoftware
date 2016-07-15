@@ -1697,14 +1697,14 @@ static void triplet_rejection(vector<SimpleTrack3D>& input,
   }
 }
 
-static bool remove_bad_hits(SimpleTrack3D& track, float cut) {
+static bool remove_bad_hits(SimpleTrack3D& track, float cut, float scale = 1.0) {
   SimpleTrack3D temp_track = track;
   float fit_chi2 = 0.;
   vector<float> chi2_hit;
   vector<float> temp_hits;
   while (true) {
     temp_track = track;
-    fit_chi2 = sPHENIXTrackerTPC::fitTrack(temp_track, chi2_hit);
+    fit_chi2 = sPHENIXTrackerTPC::fitTrack(temp_track, chi2_hit, scale);
     bool all_good = true;
     track.hits.clear();
     for (int h = 0; h < temp_track.hits.size(); h += 1) {
@@ -1890,7 +1890,7 @@ static bool fit_all_update(vector<vector<int> >& layer_indexes,
                            float& chi2, int iter = 0,
 			   float tempscale = 1.0, float scale = 1.0) {
   if (iter != 0) {
-    if (remove_bad_hits(track, 5.) == false) {
+    if (remove_bad_hits(track, 5., scale) == false) {
       return false;
     }
     sPHENIXTrackerTPC::fitTrack(track, scale);
