@@ -85,6 +85,9 @@ class PHG4Reco: public SubsysReco
     force_decay_type_ = force_decay_type;
   }
   
+  //! Save geometry from Geant4 to DST
+  void save_DST_geometry(bool b) {save_DST_geometry_ = b;}
+
   void SetWorldSizeX(const double sx) {WorldSize[0] = sx;}
   void SetWorldSizeY(const double sy) {WorldSize[1] = sy;}
   void SetWorldSizeZ(const double sz) {WorldSize[2] = sz;}
@@ -165,6 +168,8 @@ class PHG4Reco: public SubsysReco
   bool active_force_decay_; //< turn on/off force decay channels
   EDecayType force_decay_type_;  //< forced decay channel setting
   
+  bool save_DST_geometry_;
+
   //! module timer.
   PHTimeServer::timer _timer;
 

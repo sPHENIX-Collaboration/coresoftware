@@ -22,6 +22,8 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/recoConsts.h>
 
+#include <phgeom/PHGeomUtility.h>
+
 #include <TThread.h>
 
 #include <CLHEP/Random/Random.h>
@@ -117,6 +119,7 @@ PHG4Reco::PHG4Reco( const string &name ) :
   active_decayer_(true),
   active_force_decay_(false),
   force_decay_type_(kAll),
+  save_DST_geometry_(true),
   _timer( PHTimeServer::get()->insert_new( name ) )
 {
   for (int i = 0; i < 3; i++)
@@ -413,6 +416,22 @@ PHG4Reco::InitRun( PHCompositeNode* topNode )
   if ((verbosity < 1) && (uisession_)) {
     uisession_->Verbosity(1); // let messages after setup come through
   }
+
+  // Geometry export to DST
+  if (save_DST_geometry_)
+    {
+
+      const string filename =
+      PHGeomUtility::
+      GenerateGeometryFileName("gdml");
+      cout <<__PRETTY_FUNCTION__<<" export geometry to "<<filename<<endl;
+
+      Dump_GDML(filename);
+
+      PHGeomUtility::ImportGeomFile(topNode,filename);
+
+      PHGeomUtility::RemoveGeometryFile(filename);
+    }
 
   if (verbosity > 0) {
     cout << "===========================================================================" << endl;
