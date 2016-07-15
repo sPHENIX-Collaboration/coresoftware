@@ -1,7 +1,7 @@
 lib_LTLIBRARIES = \
   libSeamstress.la
-  
-include_HEADERS = \
+
+pkginclude_HEADERS = \
   Seamstress.h \
   Needle.h \
   Pincushion.h

@@ -20,7 +20,9 @@ pkginclude_HEADERS = \
   SyncDefs.h \
   SyncObject.h \
   SyncObjectv1.h \
-  SyncObjectv2.h
+  SyncObjectv2.h \
+  EventHeader.h \
+  EventHeaderv1.h
 
 noinst_HEADERS = \
   libffaobjects_LinkDef.h
@@ -31,7 +33,9 @@ libffaobjects_la_SOURCES = \
   RunHeader.cc \
   SyncObject.cc \
   SyncObjectv1.cc \
-  SyncObjectv2.cc
+  SyncObjectv2.cc \
+  EventHeader.cc \
+  EventHeaderv1.cc
 
 nodist_libffaobjects_la_SOURCES = libffaobjects_Dict.cc
 
@@ -57,7 +61,9 @@ libffaobjects_Dict.cc: \
   RunHeader.h \
   SyncObject.h \
   SyncObjectv1.h \
-  SyncObjectv2.h \
+  SyncObjectv2.h  \
+  EventHeader.h \
+  EventHeaderv1.h \
   libffaobjects_LinkDef.h
 	rootcint -f $@ -c $(INCLUDES) $^
 

@@ -3,7 +3,7 @@ AM_CXXFLAGS = -I$(OFFLINE_MAIN)/include/eigen3 -I$(top_srcdir)/Seamstress
 lib_LTLIBRARIES = \
 libFitNewton.la
 
-include_HEADERS = \
+pkginclude_HEADERS = \
 NewtonMinimizerGradHessian.h \
 FunctionGradHessian.h \
 GaussianGradHessian.h \

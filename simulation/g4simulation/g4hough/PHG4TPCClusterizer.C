@@ -28,6 +28,8 @@
 #include <TFitResultPtr.h>
 #include <TH1D.h>
 
+#include <TMatrixF.h>
+
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
@@ -252,8 +254,73 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
           clus.set_position(0, radius * cos(phi));
           clus.set_position(1, radius * sin(phi));
           clus.set_position(2, z);
+	  
           clus.insert_hit(cellids[zbin * nphibins + phibin]);
 
+	  float invsqrt12 = 1.0/sqrt(12.);
+      
+	  TMatrixF DIM(3,3);
+	  DIM[0][0] = 0.0;//pow(0.0*0.5*thickness,2);
+	  DIM[0][1] = 0.0;
+	  DIM[0][2] = 0.0;
+	  DIM[1][0] = 0.0;
+	  DIM[1][1] = pow(0.5*0.011,2);
+	  DIM[1][2] = 0.0;
+	  DIM[2][0] = 0.0;
+	  DIM[2][1] = 0.0;
+	  DIM[2][2] = pow(0.5*0.03,2);
+
+	  TMatrixF ERR(3,3);
+	  ERR[0][0] = 0.0;//pow(0.0*0.5*thickness*invsqrt12,2);
+	  ERR[0][1] = 0.0;
+	  ERR[0][2] = 0.0;
+	  ERR[1][0] = 0.0;
+	  ERR[1][1] = pow(0.5*0.011*invsqrt12,2);
+	  ERR[1][2] = 0.0;
+	  ERR[2][0] = 0.0;
+	  ERR[2][1] = 0.0;
+	  ERR[2][2] = pow(0.5*0.03*invsqrt12,2);
+
+	  TMatrixF ROT(3,3);
+	  ROT[0][0] = cos(phi);
+	  ROT[0][1] = -sin(phi);
+	  ROT[0][2] = 0.0;
+	  ROT[1][0] = sin(phi);
+	  ROT[1][1] = cos(phi);
+	  ROT[1][2] = 0.0;
+	  ROT[2][0] = 0.0;
+	  ROT[2][1] = 0.0;
+	  ROT[2][2] = 1.0;
+
+	  TMatrixF ROT_T(3,3);
+	  ROT_T.Transpose(ROT);
+      
+	  TMatrixF COVAR_DIM(3,3);
+	  COVAR_DIM = ROT * DIM * ROT_T;
+	  
+	  clus.set_size( 0 , 0 , COVAR_DIM[0][0] );
+	  clus.set_size( 0 , 1 , COVAR_DIM[0][1] );
+	  clus.set_size( 0 , 2 , COVAR_DIM[0][2] );
+	  clus.set_size( 1 , 0 , COVAR_DIM[1][0] );
+	  clus.set_size( 1 , 1 , COVAR_DIM[1][1] );
+	  clus.set_size( 1 , 2 , COVAR_DIM[1][2] );
+	  clus.set_size( 2 , 0 , COVAR_DIM[2][0] );
+	  clus.set_size( 2 , 1 , COVAR_DIM[2][1] );
+	  clus.set_size( 2 , 2 , COVAR_DIM[2][2] );
+
+	  TMatrixF COVAR_ERR(3,3);
+	  COVAR_ERR = ROT * ERR * ROT_T;
+	  
+	  clus.set_error( 0 , 0 , COVAR_ERR[0][0] );
+	  clus.set_error( 0 , 1 , COVAR_ERR[0][1] );
+	  clus.set_error( 0 , 2 , COVAR_ERR[0][2] );
+	  clus.set_error( 1 , 0 , COVAR_ERR[1][0] );
+	  clus.set_error( 1 , 1 , COVAR_ERR[1][1] );
+	  clus.set_error( 1 , 2 , COVAR_ERR[1][2] );
+	  clus.set_error( 2 , 0 , COVAR_ERR[2][0] );
+	  clus.set_error( 2 , 1 , COVAR_ERR[2][1] );
+	  clus.set_error( 2 , 2 , COVAR_ERR[2][2] );
+      
           svxclusters->insert(&clus);
         }
       }
