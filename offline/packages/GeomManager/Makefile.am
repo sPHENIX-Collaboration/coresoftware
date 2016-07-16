@@ -15,6 +15,7 @@ lib_LTLIBRARIES = \
 
 pkginclude_HEADERS = \
 	PHGeomTGeo.h \
+	PHGeomIOTGeo.h \
 	PHGeomUtility.h
 
 noinst_HEADERS = \
@@ -24,6 +25,8 @@ noinst_HEADERS = \
 libphgeom_la_SOURCES = \
   PHGeomTGeo.cc \
   PHGeomTGeo_Dict.cc \
+  PHGeomIOTGeo.cc \
+  PHGeomIOTGeo_Dict.cc \
   PHGeomManager.cc \
   PHGeomManager_Dict.cc  \
   PHGeomFileImport.cc \
