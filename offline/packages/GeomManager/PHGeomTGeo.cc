@@ -62,7 +62,18 @@ PHGeomTGeo::SetGeometry(TGeoManager * g)
 TGeoManager *
 PHGeomTGeo::GetGeometry()
 {
+  if (_fGeom == NULL) return NULL;
+
+  if (_fGeom == gGeoManager)
   return _fGeom;
+  else
+    {
+      cout <<__PRETTY_FUNCTION__
+          <<" - ERROR - gGeoManager is overridden by another TGeoManager. "
+          <<"Please avoid using multiple TGeoManager in processing. Stop code!"<<endl;
+      exit(1);
+      return NULL;
+    }
 }
 
 /** identify Function from PHObject
