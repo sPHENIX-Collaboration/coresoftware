@@ -1,7 +1,7 @@
 #ifndef PHPy6ForwardElectronTrig_h
 #define PHPy6ForwardElectronTrig_h
 
-#include <PHPy6GenTrigger.h>
+#include "PHPy6GenTrigger.h"
 #include <HepMC/GenEvent.h>
 
 namespace HepMC
@@ -23,10 +23,22 @@ class PHPy6ForwardElectronTrig: public PHPy6GenTrigger
   bool Apply(const HepMC::GenEvent* evt);
   #endif
  
+  void set_electrons_required(int n){n_e_required = n;}
+  void set_ptot_required(float set_ptot){ptot_required = set_ptot;}
+  void set_eta_range(float set_eta_low, float set_eta_high){eta_low = set_eta_low; eta_high = set_eta_high;}
+
+  void PrintConfig(); 
+
   protected:
 	
   int ntriggered_forward_electron;
   int nconsidered_forward_electron;
+  
+  // trigger variables
+  unsigned int n_e_required; 
+  float ptot_required; 
+  float eta_low; 
+  float eta_high; 
   
 };
 
