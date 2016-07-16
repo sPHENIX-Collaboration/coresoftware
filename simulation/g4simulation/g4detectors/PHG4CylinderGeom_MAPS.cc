@@ -41,16 +41,6 @@ PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, in
       Xsensor = 1.505;   // cm  
     }
 
-  // The pixel sizes are 28 microns x 28 microns
-  pixel_x = 28.0e-04;    // cm
-  pixel_z = 28.0e-04;    // cm
-  
-  NZ = (int)  ( Zsensor / (pixel_z) );
-  NX = (int)  ( Xsensor / (pixel_x) );
-  
-  //cout  << " Pixels in X: NX  " << NX  << " pixels in Z: NZ  " << NZ << endl;
-
-
   return;
 }
 
@@ -164,31 +154,31 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
       // Inner stave
       // Start with the point in sensor local coords 
       TVector3   pos1 = sensor_local;
-      cout << " Stave type 0, Start with local coords in sensor:  pos1 = " << pos1.X() << "  " << pos1.Y() << "  " << pos1.Z() << endl;
+      //cout << " Stave type 0, Start with local coords in sensor:  pos1 = " << pos1.X() << "  " << pos1.Y() << "  " << pos1.Z() << endl;
 
       // transform sensor location to location in chip
       TVector3 tr1(loc_sensor_in_chip[0], loc_sensor_in_chip[1], loc_sensor_in_chip[2]);
       TVector3  res = pos1 + tr1;
 
-      cout << " tr1 = " << tr1.X() << "  " << tr1.Y() << "  " << tr1.Z() << endl;
-      cout << " Translated  to local coords in chip: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
+      //cout << " tr1 = " << tr1.X() << "  " << tr1.Y() << "  " << tr1.Z() << endl;
+      //cout << " Translated  to local coords in chip: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
       
       // transform location in chip to location in module
       TVector3 tr2(inner_loc_chip_in_module[chip][0], inner_loc_chip_in_module[chip][1], inner_loc_chip_in_module[chip][2]);
       res = res + tr2;
-      cout << " tr2 = " << tr2.X() << "  " << tr2.Y() << "  " << tr2.Z() << endl;
-      cout << " Translated to local coords in module: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
+      //cout << " tr2 = " << tr2.X() << "  " << tr2.Y() << "  " << tr2.Z() << endl;
+      //cout << " Translated to local coords in module: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
 
       // module to half stave
       TVector3 tr2a(inner_loc_module_in_halfstave[0], inner_loc_module_in_halfstave[1], inner_loc_module_in_halfstave[2] );
       res = res + tr2a;
-      cout << " Translated to local coords in half stave: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
+      //cout << " Translated to local coords in half stave: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
 
       // transform location in half stave to location in stave 
       TVector3 tr3(inner_loc_halfstave_in_stave[0],  inner_loc_halfstave_in_stave[1],inner_loc_halfstave_in_stave[2]);
       res = res + tr3;
-      cout << " tr3 = " << tr3.X() << "  " << tr3.Y() << "  " << tr3.Z() << endl;
-      cout << " Translated to local coords in stave: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
+      //cout << " tr3 = " << tr3.X() << "  " << tr3.Y() << "  " << tr3.Z() << endl;
+      //cout << " Translated to local coords in stave: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
 
       // Rotate stave to its angle in the world
       // This requires rotating it by
@@ -200,14 +190,14 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
       TRotation R;
       R.RotateZ(stave_phi + stave_phi_offset + stave_phi_tilt);
       res = R * res;    // rotates res using R
-      cout << "Rotate through phi = " << stave_phi << " + phi_offset = " << stave_phi_offset << " + phitilt = " << stave_phi_tilt << endl;
-      cout << " Rotated stave to point at origin, then tilted it: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
+      //cout << "Rotate through phi = " << stave_phi << " + phi_offset = " << stave_phi_offset << " + phitilt = " << stave_phi_tilt << endl;
+      //cout << " Rotated stave to point at origin, then tilted it: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
 
       // transform location of stave to its location in the world 
       TVector3 tr4(layer_radius * cos(stave_phi), layer_radius * sin(stave_phi), 0.0);
       res = res + tr4;
-      cout << " tr4 = " << tr4.X() << "  " << tr4.Y() << "  " << tr4.Z() << endl;
-      cout << " Translated stave to location in world: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
+      //cout << " tr4 = " << tr4.X() << "  " << tr4.Y() << "  " << tr4.Z() << endl;
+      //cout << " Translated stave to location in world: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
 
       return res;
     }
@@ -263,13 +253,13 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
 
       // Start with the point in sensor local coords 
       TVector3   pos1 = sensor_local;
-      cout << " Stave type 2, Start with local coords in sensor:  pos1 = " << pos1.X() << "  " << pos1.Y() << "  " << pos1.Z() << endl;
+      //cout << " Stave type 2, Start with local coords in sensor:  pos1 = " << pos1.X() << "  " << pos1.Y() << "  " << pos1.Z() << endl;
 
       // transform sensor location to location in chip
       TVector3 tr1(loc_sensor_in_chip[0], loc_sensor_in_chip[1], loc_sensor_in_chip[2]);
       TVector3  res = pos1 + tr1;
-      cout << " tr1 = " << tr1.X() << "  " << tr1.Y() << "  " << tr1.Z() << endl;
-      cout << " Translated  to local coords in chip: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
+      //cout << " tr1 = " << tr1.X() << "  " << tr1.Y() << "  " << tr1.Z() << endl;
+      //cout << " Translated  to local coords in chip: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
 
       // transform location in chip to location in module
       // for odd numbered chips, the chip is flipped by 180 degrees around the x and z axes
@@ -282,19 +272,19 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
 	}
       TVector3 tr2(outer_loc_chip_in_module[chip][0], outer_loc_chip_in_module[chip][1], outer_loc_chip_in_module[chip][2]);
       res = res + tr2;
-      cout << " tr2 = " << tr2.X() << "  " << tr2.Y() << "  " << tr2.Z() << endl;
-      cout << " Translated to local coords in module: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
+      //cout << " tr2 = " << tr2.X() << "  " << tr2.Y() << "  " << tr2.Z() << endl;
+      //cout << " Translated to local coords in module: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
 
       // module to half stave
       TVector3 tr2a(outer_loc_module_in_halfstave[module][0], outer_loc_module_in_halfstave[module][1], outer_loc_module_in_halfstave[module][2] );
       res = res + tr2a;
-      cout << " Translated to local coords in half stave: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
+      //cout << " Translated to local coords in half stave: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
 
       // transform location in half stave to location in stave 
       TVector3 tr3(outer_loc_halfstave_in_stave[half_stave][0],  outer_loc_halfstave_in_stave[half_stave][1], outer_loc_halfstave_in_stave[half_stave][2]);
       res = res + tr3;
-      cout << " tr3 = " << tr3.X() << "  " << tr3.Y() << "  " << tr3.Z() << endl;
-      cout << " Translated to local coords in stave: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
+      //cout << " tr3 = " << tr3.X() << "  " << tr3.Y() << "  " << tr3.Z() << endl;
+      //cout << " Translated to local coords in stave: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
 
       // Rotate stave to its angle in the world. Rotate by:
       //    90 degrees to make it point to the origin instead of vertically up in y when it is at phi = 0
@@ -303,14 +293,14 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
       TRotation R;
       R.RotateZ(stave_phi + stave_phi_offset + stave_phi_tilt);
       res = R * res;    // rotates res using R
-      cout << "Rotate through phi = " << stave_phi << " + phi_offset = " << stave_phi_offset << " + phitilt = " << stave_phi_tilt << endl;
-      cout << " Rotated stave to point at origin, then tilted it: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
+      //cout << "Rotate through phi = " << stave_phi << " + phi_offset = " << stave_phi_offset << " + phitilt = " << stave_phi_tilt << endl;
+      //cout << " Rotated stave to point at origin, then tilted it: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
 
       // transform location of stave to its location in the world 
       TVector3 tr4(layer_radius * cos(stave_phi), layer_radius * sin(stave_phi), 0.0);
       res = res + tr4;
-      cout << " tr4 = " << tr4.X() << "  " << tr4.Y() << "  " << tr4.Z() << endl;
-      cout << " Translated stave to location in world: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
+      //cout << " tr4 = " << tr4.X() << "  " << tr4.Y() << "  " << tr4.Z() << endl;
+      //cout << " Translated stave to location in world: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
 
       return res;
     }
@@ -318,58 +308,66 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
 
 }
 
-int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(TVector3 sensor_local)
-{
+int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(double pixel_x, double pixel_y, TVector3 sensor_local)
+{  
+  NZ = (int)  ( Zsensor / (pixel_y) );
+  NX = (int)  ( Xsensor / (pixel_x) );
+  
+  //cout  << " Pixels in X: NX  " << NX  << " pixels in Z: NZ  " << NZ << endl;
+
   // start pixel numbering from the middle of the sensor
   // find the pixel grid point
   
   double npix_x = sensor_local.X() / pixel_x;
   int Ngridx = int(npix_x);
   
-  double npix_z = sensor_local.Z() / pixel_z;
+  double npix_z = sensor_local.Z() / pixel_y;
   int Ngridz = int(npix_z);
 
+  /*
   cout << "sensor x " << sensor_local.X()
        << " sensor z " << sensor_local.Z()
        << " Ngridx (ref to center) " << Ngridx
        << " Ngridz (ref to center) " << Ngridz
        << endl;
+  */
 
   //  Combine the grid locations into a single integer
   // transform to the grid location referenced to top left corner of the chip as (0,0)
-  //Ngridx +=  NX;
-  //Ngridz += NZ;
   Ngridx +=  NX/2;
   Ngridz += NZ/2;
 
+  /*
   cout << "Transformed grid locations: " 
        << " Ngridx (ref to neg x, neg y corner) " << Ngridx
        << " Ngridz (ref to neg x, neg y corner) " << Ngridz
        << endl;
+  */
 
   // numbering starts at zero
-  //int NXZ = Ngridz + 2 * NZ * Ngridx;
   int NXZ = Ngridx + (Ngridz-1) * NX;
-  cout << " pixel number is " << NXZ << endl;
+  //cout << " pixel number is " << NXZ << endl;
 
   return NXZ;
 }
 
-TVector3 PHG4CylinderGeom_MAPS::get_local_coords_from_pixel(int NXZ)
+TVector3 PHG4CylinderGeom_MAPS::get_local_coords_from_pixel(double pixel_x, double pixel_y, int NXZ)
 {  
-  //int Ngridx = NXZ / (2 * NZ);
-  //int Ngridz = NXZ % (2 * NZ);
+  NZ = (int)  ( Zsensor / (pixel_y) );
+  NX = (int)  ( Xsensor / (pixel_x) );
+  
+  //cout  << " Pixels in X: NX  " << NX  << " pixels in Z: NZ  " << NZ << endl;
 
   int Ngridz = NXZ / NX + 1;
   int Ngridx = NXZ % NX;
 
-  cout << "Ngridx = " << Ngridx << " Ngridz = " << Ngridz << endl;
+  //cout << "Ngridx = " << Ngridx << " Ngridz = " << Ngridz << endl;
 
   // change to a grid centered on the sensor
   Ngridx -=  NX/2;
   Ngridz -= NZ/2;
 
-  cout << "Ngridx (ref to center) = " << Ngridx << " Ngridz (ref to center) = " << Ngridz << endl;
+  //cout << "Ngridx (ref to center) = " << Ngridx << " Ngridz (ref to center) = " << Ngridz << endl;
   
   double sensor_local_x = (double) Ngridx * pixel_x;
   if(sensor_local_x < 0)
@@ -377,12 +375,15 @@ TVector3 PHG4CylinderGeom_MAPS::get_local_coords_from_pixel(int NXZ)
   else
     sensor_local_x += pixel_x / 2.0;
 
-  double sensor_local_z = (double) Ngridz * pixel_z;
+  double sensor_local_z = (double) Ngridz * pixel_y;
   if(sensor_local_z < 0)
-    sensor_local_z -= pixel_z/2.0;
+    sensor_local_z -= pixel_y/2.0;
   else
-    sensor_local_z += pixel_z/2.0;
+    sensor_local_z += pixel_y/2.0;
 
+  // The front of the sensor is at y = 0.0009, the back is at y = -0.0009
+  // if we wanted the coordinates of the entrance or exit point, we would make y = to 0.0009 or -0.0009
+  // Because we want the coords of the center of the pixel, we take y = 0
   TVector3 sensor_local_coords(sensor_local_x, 0.0, sensor_local_z);
 
   return sensor_local_coords;
