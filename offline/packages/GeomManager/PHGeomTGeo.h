@@ -16,7 +16,7 @@
 class TGeoManager;
 
 /*!
- * \brief PHGeomTGeo
+ * \brief PHGeomTGeo provide run-time access to TGeoManger. It is non-persistent and can (should) NOT be saved to DST.
  */
 class PHGeomTGeo : public PHObject
 {
