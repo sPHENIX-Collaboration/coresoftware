@@ -25,7 +25,7 @@ PHGeomTGeo::PHGeomTGeo() :
 
 PHGeomTGeo::~PHGeomTGeo()
 {
-  // TODO Auto-generated destructor stub
+  Reset();
 }
 
 void
@@ -62,15 +62,17 @@ PHGeomTGeo::SetGeometry(TGeoManager * g)
 TGeoManager *
 PHGeomTGeo::GetGeometry()
 {
-  if (_fGeom == NULL) return NULL;
+  if (_fGeom == NULL)
+    return NULL;
 
   if (_fGeom == gGeoManager)
-  return _fGeom;
+    return _fGeom;
   else
     {
-      cout <<__PRETTY_FUNCTION__
-          <<" - ERROR - gGeoManager is overridden by another TGeoManager. "
-          <<"Please avoid using multiple TGeoManager in processing. Stop code!"<<endl;
+      cout << __PRETTY_FUNCTION__
+          << " - ERROR - gGeoManager is overridden by another TGeoManager. "
+          << "Please avoid using multiple TGeoManager in processing. Stop code!"
+          << endl;
       exit(1);
       return NULL;
     }
