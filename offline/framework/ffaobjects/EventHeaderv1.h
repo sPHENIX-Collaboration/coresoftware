@@ -26,6 +26,11 @@ class EventHeaderv1: public EventHeader
   /// isValid returns non zero if object contains valid data
   int isValid() const;
 
+  /// get Run Number
+  int get_RunNumber() const {return RunNumber;}
+  /// set Run Number
+  void set_RunNumber(const int run) {RunNumber=run; return;}
+
   /// get Event Number
   int get_EvtSequence() const {return EvtSequence;}
   /// set Event Number
@@ -43,6 +48,7 @@ class EventHeaderv1: public EventHeader
 
  protected:
 
+  int RunNumber;  // Run number
   int EvtSequence;  // Event number
   int EvtType;      // Data type (Data,Rejected,Scaler,PPG ...)
   time_t TimeStamp;  // TimeStamp of Evt from ATP in Ticks 
