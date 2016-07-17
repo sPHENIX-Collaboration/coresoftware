@@ -89,7 +89,7 @@ PHGeomUtility::ImportCurrentTGeoManager(PHCompositeNode *topNode)
   if (dst_geom->GetGeometry() == gGeoManager)
     return Fun4AllReturnCodes::EVENT_OK; // noting to be done
 
-  assert(dst_geom->GetGeometry() == NULL); // check that it is uninitialized
+  assert(not dst_geom->isValid()); // check that it is uninitialized
   dst_geom->SetGeometry(gGeoManager);
 
   return Fun4AllReturnCodes::EVENT_OK;

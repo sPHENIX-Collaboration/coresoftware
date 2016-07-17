@@ -15,7 +15,7 @@ class PHGeomFileImport : public SubsysReco
 {
 
 public:
-
+  explicit
   PHGeomFileImport(const std::string & geometry_file);
   virtual
   ~PHGeomFileImport();
