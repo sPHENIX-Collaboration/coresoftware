@@ -16,7 +16,7 @@
 class TGeoManager;
 
 /*!
- * \brief PHGeomTGeo provide run-time access to TGeoManger. It is non-persistent and can (should) NOT be saved to DST.
+ * \brief PHGeomTGeo provide run-time access to TGeoManger. It is non-persistent and it shall NOT be saved to DST.
  */
 class PHGeomTGeo : public PHObject
 {
@@ -36,8 +36,7 @@ public:
   /// isValid returns non zero if object contains vailid data
   virtual int isValid() const;
 
-  //! WARNING : the new pointer do not belong to this class,
-  //! the TGeoManager should be only deleted after PdbFvtxAlignment is deleted or set to another Geometry object
+  //! The pointer TGeoManager should be the current gGeoManager
   void
   SetGeometry(TGeoManager * g);
 
@@ -46,10 +45,14 @@ public:
 
 protected:
 
+  //! Since ROOT force TGeoManager is a unique object via global pointer gGeoManager,
+  //! this function checks whether _fGeom is still the current gGeoManager which avoids operates on an invalid pointer
+  bool ConsistencyCheck() const;
+
   //! store and stream the full geometry via DST objects
   TGeoManager * _fGeom;
 
-  ClassDef(PHGeomTGeo,1)
+//  ClassDef(PHGeomTGeo,1)
 };
 
 #endif /* PHGEOMTGEO_H_ */
