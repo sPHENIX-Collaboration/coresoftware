@@ -10,6 +10,7 @@
 class PHCompositeNode;
 class TGeoManager;
 class PHGeomTGeo;
+class PHGeomIOTGeo;
 
 //! Toolsets to do geometry operations
 class PHGeomUtility
@@ -24,13 +25,6 @@ protected:
 
 public:
 
-  //! DST node name for geometry storage
-  static std::string
-  GetDSTNodeName()
-  {
-    return std::string("GEOMETRY");
-  }
-
   //! DST node -> TGeoManager for downstream use
   static TGeoManager *
   GetTGeoManager(PHCompositeNode *topNode);
@@ -39,19 +33,51 @@ public:
   static int
   ImportGeomFile(PHCompositeNode *topNode, const std::string & geometry_file);
 
-//  //! GDML file -> DST node regardless of the file name format
-//  static int
-//  ImportGDML(PHCompositeNode *topNode, const std::string & gdml_file);
+  //! gGeoManager -> DST node
+  static int
+  ImportCurrentTGeoManager(PHCompositeNode *topNode);
+
+  //! Get non-persistent PHGeomTGeo from DST nodes. If not found, make a new one
+  static PHGeomTGeo *
+  GetGeomTGeoNode(PHCompositeNode *topNode, bool build_new = true);
+
+  //! Get persistent PHGeomIOTGeo from DST nodes. If not found, make a new one
+  static PHGeomIOTGeo *
+  GetGeomIOTGeoNode(PHCompositeNode *topNode, bool build_new = true);
+
+  //! Update persistent PHGeomIOTGeo node RUN/GEOMETRY_IO based on run-time object PHGeomTGeo at RUN/GEOMETRY
+  //! \return the updated PHGeomIOTGeo from DST tree
+  static PHGeomIOTGeo *
+  UpdateIONode(PHCompositeNode *topNode);
+
+  //! Build or update PHGeomTGeo node RUN/GEOMETRY based on the persistent PHGeomIOTGeo node RUN/GEOMETRY_IO
+  //! \return the updated PHGeomTGeo from DST tree
+  static PHGeomTGeo *
+  LoadFromIONode(PHCompositeNode *topNode);
 
   //! Make a name for tmp geometry file
   //! Geometry files gain a size of ~10MB and it used in translation from Geant4 to DST format.
   //! This tmp file should be on a local file system (/tmp/) and write/deletable
-  static std::string GenerateGeometryFileName(const std::string & filename_extension = "gdml");
+  static std::string
+  GenerateGeometryFileName(const std::string & filename_extension = "gdml");
 
   //! delete the geometry file after use
-  static bool RemoveGeometryFile (const std::string & file_name);
+  static bool
+  RemoveGeometryFile(const std::string & file_name);
 
+  //! DST node name for RunTime geometry object
+  static std::string
+  GetDSTNodeName()
+  {
+    return std::string("GEOMETRY");
+  }
 
+  //! DST node name for persistent geometry storage node
+  static std::string
+  GetDSTIONodeName()
+  {
+    return std::string("GEOMETRY_IO");
+  }
 protected:
 
 };

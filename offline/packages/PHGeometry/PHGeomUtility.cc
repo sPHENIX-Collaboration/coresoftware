@@ -1,5 +1,6 @@
 #include "PHGeomUtility.h"
 #include "PHGeomTGeo.h"
+#include "PHGeomIOTGeo.h"
 
 #include <TGeoManager.h>
 #include <TROOT.h>
@@ -17,6 +18,7 @@
 #include <sstream>
 #include <fstream>
 #include <cstdio>
+#include <stdexcept>
 
 #include <sys/types.h>
 #include <unistd.h> // for generate unique local file
@@ -35,25 +37,22 @@ PHGeomUtility::~PHGeomUtility()
 TGeoManager *
 PHGeomUtility::GetTGeoManager(PHCompositeNode *topNode)
 {
-  PHNodeIterator iter(topNode);
-
-  // Looking for the RUN node
-  PHCompositeNode *runNode = static_cast<PHCompositeNode*>(iter.findFirst(
-      "PHCompositeNode", "RUN"));
-  if (!runNode)
-    {
-      cout << __PRETTY_FUNCTION__ << " - Error - RUN Node missing." << endl;
-      return NULL;
-    }
-
-  PHGeomTGeo *dst_geom = findNode::getClass<PHGeomTGeo>(runNode,
-      GetDSTNodeName());
+  PHGeomTGeo *dst_geom = GetGeomTGeoNode(topNode, true);
   if (!dst_geom)
     {
-      cout << __PRETTY_FUNCTION__ << " - Error - RUN Geometry Node missing."
-          << endl;
+      cout << __PRETTY_FUNCTION__
+          << " - Error - Can NOT construct geometry node." << endl;
+      exit(1);
       return NULL;
     }
+
+  if (not dst_geom->isValid())
+    {
+      // try to construct the geometry node
+      dst_geom = LoadFromIONode(topNode);
+    }
+
+  UpdateIONode(topNode);
 
   return dst_geom->GetGeometry();
 }
@@ -62,28 +61,10 @@ int
 PHGeomUtility::ImportGeomFile(PHCompositeNode *topNode,
     const std::string & geometry_file)
 {
+  PHGeomTGeo *dst_geom = GetGeomTGeoNode(topNode);
+  assert(dst_geom);
 
-  PHNodeIterator iter(topNode);
-
-  // Looking for the RUN node
-  PHCompositeNode *runNode = static_cast<PHCompositeNode*>(iter.findFirst(
-      "PHCompositeNode", "RUN"));
-  if (!runNode)
-    {
-      cout << __PRETTY_FUNCTION__ << "RUN Node missing, request aborting."
-          << endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-
-  PHGeomTGeo *dst_geom = findNode::getClass<PHGeomTGeo>(runNode,
-      GetDSTNodeName());
-  if (!dst_geom)
-    {
-      dst_geom = new PHGeomTGeo();
-      PHDataNode<PHObject> *GeomNode = new PHDataNode<PHObject>(dst_geom,
-          GetDSTNodeName(), "PHObject");
-      runNode->addNode(GeomNode);
-    }
+  dst_geom->Reset();
 
   dst_geom->SetGeometry(TGeoManager::Import(geometry_file.c_str()));
 
@@ -94,51 +75,91 @@ PHGeomUtility::ImportGeomFile(PHCompositeNode *topNode,
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
+  UpdateIONode(topNode);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//int
-//PHGeomUtility::ImportGDML(PHCompositeNode *topNode, const std::string & gdml_file)
-//{
-//  PHNodeIterator iter(topNode);
-//
-//  // Looking for the RUN node
-//  PHCompositeNode *runNode = static_cast<PHCompositeNode*>(iter.findFirst(
-//      "PHCompositeNode", "RUN"));
-//  if (!runNode)
-//    {
-//      cout << __PRETTY_FUNCTION__ << "RUN Node missing, request aborting."
-//          << endl;
-//      return Fun4AllReturnCodes::ABORTRUN;
-//    }
-//
-////  runNode->
-//  PHGeomTGeo *dst_geom = findNode::getClass<PHGeomTGeo>(runNode,
-//      GetDSTNodeName());
-//  if (!dst_geom)
-//    {
-//      dst_geom = new PHGeomTGeo();
-//      PHIODataNode<PHObject> *GeomNode = new PHIODataNode<PHObject>(dst_geom,
-//          GetDSTNodeName(), "PHObject");
-//      runNode->addNode(GeomNode);
-//    }
-//
-//  //TODO: GDML import
-////  dst_geom->SetGeometry(TGeoManager::Import(gdml_file.c_str()));
-//  if (gGeoManager) delete gGeoManager;
-//
-//
-//
-//  if (dst_geom->GetGeometry() == NULL)
-//    {
-//      cout << __PRETTY_FUNCTION__ << "failed to import " << gdml_file
-//          << endl;
-//      return Fun4AllReturnCodes::ABORTRUN;
-//    }
-//
-//
-//  return Fun4AllReturnCodes::EVENT_OK;
-//}
+int
+PHGeomUtility::ImportCurrentTGeoManager(PHCompositeNode *topNode)
+{
+  PHGeomTGeo *dst_geom = GetGeomTGeoNode(topNode);
+  assert(dst_geom);
+
+  if (dst_geom->GetGeometry() == gGeoManager)
+    return Fun4AllReturnCodes::EVENT_OK; // noting to be done
+
+  assert(dst_geom->GetGeometry() == NULL); // check that it is uninitialized
+  dst_geom->SetGeometry(gGeoManager);
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//! Get non-persistent PHGeomTGeo from DST nodes. If not found, make a new one
+PHGeomTGeo *
+PHGeomUtility::GetGeomTGeoNode(PHCompositeNode *topNode, bool build_new)
+{
+  PHNodeIterator iter(topNode);
+
+  // Looking for the RUN node
+  PHCompositeNode *runNode = static_cast<PHCompositeNode*>(iter.findFirst(
+      "PHCompositeNode", "RUN"));
+  if (!runNode)
+    {
+      stringstream serr;
+      serr << __PRETTY_FUNCTION__ << ": RUN Node missing, request aborting.";
+      cout << serr.str() << endl;
+
+      throw runtime_error(serr.str());
+
+      return NULL;
+    }
+
+  PHGeomTGeo *dst_geom = findNode::getClass<PHGeomTGeo>(runNode,
+      GetDSTNodeName());
+  if (!dst_geom and build_new)
+    {
+      dst_geom = new PHGeomTGeo();
+      PHDataNode<PHObject> *GeomNode = new PHDataNode<PHObject>(dst_geom,
+          GetDSTNodeName(), "PHObject");
+      runNode->addNode(GeomNode);
+    }
+
+  return dst_geom;
+}
+
+//! Get persistent PHGeomIOTGeo from DST nodes. If not found, make a new one
+PHGeomIOTGeo *
+PHGeomUtility::GetGeomIOTGeoNode(PHCompositeNode *topNode, bool build_new)
+{
+  PHNodeIterator iter(topNode);
+
+  // Looking for the RUN node
+  PHCompositeNode *runNode = static_cast<PHCompositeNode*>(iter.findFirst(
+      "PHCompositeNode", "RUN"));
+  if (!runNode)
+    {
+      stringstream serr;
+      serr << __PRETTY_FUNCTION__ << ": RUN Node missing, request aborting.";
+      cout << serr.str() << endl;
+
+      throw runtime_error(serr.str());
+
+      return NULL;
+    }
+
+  PHGeomIOTGeo *dst_geom = findNode::getClass<PHGeomIOTGeo>(runNode,
+      GetDSTIONodeName());
+  if (!dst_geom and build_new)
+    {
+      dst_geom = new PHGeomIOTGeo();
+      PHIODataNode<PHObject> *GeomNode = new PHIODataNode<PHObject>(dst_geom,
+          GetDSTIONodeName(), "PHObject");
+      runNode->addNode(GeomNode);
+    }
+
+  return dst_geom;
+}
 
 std::string
 PHGeomUtility::GenerateGeometryFileName(const std::string & filename_extension)
@@ -172,3 +193,73 @@ PHGeomUtility::RemoveGeometryFile(const std::string & file_name)
     return true; // file do not exist
 
 }
+
+//! Update persistent PHGeomIOTGeo node RUN/GEOMETRY_IO based on run-time object PHGeomTGeo at RUN/GEOMETRY
+//! \return the updated PHGeomIOTGeo from DST tree
+PHGeomIOTGeo *
+PHGeomUtility::UpdateIONode(PHCompositeNode *topNode)
+{
+  PHGeomTGeo *dst_geom = GetGeomTGeoNode(topNode, false);
+
+  if (not dst_geom)
+    {
+      cout << __PRETTY_FUNCTION__
+          << " - ERROR - failed to update PHGeomIOTGeo node RUN/GEOMETRY_IO due to missing PHGeomTGeo node at RUN/GEOMETRY"
+          << endl;
+      return NULL;
+    }
+  if (not dst_geom->isValid())
+    {
+      cout << __PRETTY_FUNCTION__
+          << " - ERROR - failed to update PHGeomIOTGeo node RUN/GEOMETRY_IO due to invalid PHGeomTGeo node at RUN/GEOMETRY"
+          << endl;
+      return NULL;
+    }
+
+  PHGeomIOTGeo *dst_geom_io = GetGeomIOTGeoNode(topNode, true);
+  assert(dst_geom_io);
+
+  dst_geom_io->SetGeometry(dst_geom->GetGeometry()->GetTopVolume());
+
+  return dst_geom_io;
+}
+
+//! Build or update PHGeomTGeo node RUN/GEOMETRY based on the persistent PHGeomIOTGeo node RUN/GEOMETRY_IO
+//! \return the updated PHGeomTGeo from DST tree
+PHGeomTGeo *
+PHGeomUtility::LoadFromIONode(PHCompositeNode *topNode)
+{
+  PHGeomIOTGeo *dst_geom_io = GetGeomIOTGeoNode(topNode, false);
+
+  if (not dst_geom_io)
+    {
+      cout << __PRETTY_FUNCTION__
+          << " - ERROR - failed to update PHGeomTGeo node RUN/GEOMETRY due to missing PHGeomIOTGeo node at RUN/GEOMETRY_IO"
+          << endl;
+      return NULL;
+    }
+  if (not dst_geom_io->isValid())
+    {
+      cout << __PRETTY_FUNCTION__
+          << " - ERROR - failed to update PHGeomTGeo node RUN/GEOMETRY due to invalid PHGeomIOTGeo node at RUN/GEOMETRY_IO"
+          << endl;
+      return NULL;
+    }
+
+  PHGeomTGeo *dst_geom = GetGeomTGeoNode(topNode, true);
+  assert(dst_geom);
+
+  stringstream stitle;
+  stitle
+      << "TGeoManager built by PHGeomUtility::LoadFromIONode based on RUN/GEOMETRY_IO node with name ("
+      << dst_geom_io->GetGeometry()->GetName() << ") and title ("
+      << dst_geom_io->GetGeometry()->GetTitle() << ")";
+
+  TGeoManager * tgeo = new TGeoManager("TOP", stitle.str().c_str());
+  tgeo->SetTopVolume(dst_geom_io->GetGeometryCopy());
+
+  dst_geom->SetGeometry(tgeo);
+
+  return dst_geom;
+}
+
