@@ -23,28 +23,45 @@ PHGeomIOTGeo::PHGeomIOTGeo() :
 //  SplitLevel(0);
 }
 
+PHGeomIOTGeo::PHGeomIOTGeo(const PHGeomIOTGeo& geom) :
+    _fGeom(NULL)
+{
+  if (geom.isValid())
+    SetGeometry(geom._fGeom);
+}
+
 PHGeomIOTGeo::~PHGeomIOTGeo()
 {
   Reset();
 }
 
+PHObject*
+PHGeomIOTGeo::clone() const
+{
+  PHGeomIOTGeo * geo = new PHGeomIOTGeo(*this);
+  return geo;
+}
+
 void
-PHGeomIOTGeo::SetGeometry(TGeoVolume * g)
+PHGeomIOTGeo::SetGeometry(const TGeoVolume * g)
 {
   if (!g)
     {
-      cout << "dbFvtxAlignment::SetGeometry - Error - Invalid input" << endl;
+      cout << __PRETTY_FUNCTION__ << " - Error - Invalid input" << endl;
       return;
     }
 
-  _fGeom = g;
+  if (_fGeom)
+    delete _fGeom;
 
+  _fGeom = static_cast< TGeoVolume *> (g->Clone());
 }
 
 TGeoVolume *
-PHGeomIOTGeo::GetGeometry()
+PHGeomIOTGeo::GetGeometryCopy() const
 {
-  return _fGeom;
+  if (not isValid()) return NULL;
+  return static_cast< TGeoVolume *> (_fGeom->Clone());
 }
 
 /** identify Function from PHObject

@@ -22,34 +22,49 @@ class PHGeomIOTGeo : public PHObject
 {
 public:
   PHGeomIOTGeo();
+  PHGeomIOTGeo(const PHGeomIOTGeo& geom);
   virtual
   ~PHGeomIOTGeo();
 
+  /// Virtual copy constructor.
+  virtual PHObject*
+  clone() const;
+
   /** identify Function from PHObject
-      @param os Output Stream
+   @param os Output Stream
    */
-  virtual void identify(std::ostream& os = std::cout) const;
+  virtual void
+  identify(std::ostream& os = std::cout) const;
 
   /// Clear Event
-  virtual void Reset();
+  virtual void
+  Reset();
 
   /// isValid returns non zero if object contains vailid data
-  virtual int isValid() const;
+  virtual int
+  isValid() const;
 
-  //! WARNING : the new pointer do not belong to this class,
-  //! the TGeoVolume should be only deleted after PdbFvtxAlignment is deleted or set to another Geometry object
+  //! PHGeomIOTGeo do NOT own this TGeoVolume * g. Internally, it will use g to make a copy which PHGeomIOTGeo fully owns
   void
-  SetGeometry(TGeoVolume * g);
+  SetGeometry(const TGeoVolume * g);
 
+  //! Make a copy of TGeoVolume. The caller is responsible for deleting the returned TGeoVolume
   TGeoVolume *
-  GetGeometry();
+  GetGeometryCopy() const;
+
+  //! Get a constatnt copy of TGeoVolume. The caller is responsible for deleting the returned TGeoVolume
+  const TGeoVolume *
+  GetGeometry() const
+  {
+    return _fGeom;
+  }
 
 protected:
 
   //! store and stream the full geometry via DST objects
   TGeoVolume * _fGeom;
 
-  ClassDef(PHGeomIOTGeo,1)
+ClassDef(PHGeomIOTGeo,1)
 };
 
 #endif /* PHGeomIOTGeo_H_ */
