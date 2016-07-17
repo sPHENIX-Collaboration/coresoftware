@@ -38,8 +38,7 @@ PHG4MapsCellReco::PHG4MapsCellReco(const string &name) :
   // This can be overidden by the set method
   pixel_x = 28.0e-04;    // cm
   pixel_y = 28.0e-04;    // cm
-  
-  verbosity = 2;
+
 }
 
 int PHG4MapsCellReco::InitRun(PHCompositeNode *topNode)
@@ -99,6 +98,8 @@ int PHG4MapsCellReco::InitRun(PHCompositeNode *topNode)
 int
 PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 {
+  verbosity = 3;
+
   _timer.get()->restart();
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
@@ -152,12 +153,21 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  int half_stave_number = hiter->second->get_property_int(PHG4Hit::prop_half_stave_index);
 	  int module_number = hiter->second->get_property_int(PHG4Hit::prop_module_index);
 	  int chip_number = hiter->second->get_property_int(PHG4Hit::prop_chip_index);
+	  /*
 	  double xsensor_in = hiter->second->get_property_float(PHG4Hit::prop_local_pos_x_0);
 	  double ysensor_in = hiter->second->get_property_float(PHG4Hit::prop_local_pos_y_0);
 	  double zsensor_in = hiter->second->get_property_float(PHG4Hit::prop_local_pos_z_0);
 	  double xsensor_out = hiter->second->get_property_float(PHG4Hit::prop_local_pos_x_1);
 	  double ysensor_out = hiter->second->get_property_float(PHG4Hit::prop_local_pos_y_1);
 	  double zsensor_out = hiter->second->get_property_float(PHG4Hit::prop_local_pos_z_1);
+	  */
+
+	  double xsensor_in = hiter->second->get_local_x(0);
+	  double ysensor_in = hiter->second->get_local_y(0);
+	  double zsensor_in = hiter->second->get_local_z(0);
+	  double xsensor_out = hiter->second->get_local_x(1);
+	  double ysensor_out = hiter->second->get_local_y(1);
+	  double zsensor_out = hiter->second->get_local_z(1);
 
 	  TVector3 local_in(xsensor_in, ysensor_in, zsensor_in);
 	  TVector3 local_out(xsensor_out, ysensor_out, zsensor_out);
@@ -227,7 +237,8 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  if(verbosity > 2)
 	    {
 	      cout << " CellReco: pixel number in = " << pixel_number_in << endl;
-	      cout << " PHG4MapsCellReco: local coords from pixel number in = " << pixel_local_coords_in.X() << " " << pixel_local_coords_in.Y() << " " << pixel_local_coords_in.Z() << endl;
+	      cout << " PHG4MapsCellReco: pixel local coords from pixel number in = " << pixel_local_coords_in.X() << " " << pixel_local_coords_in.Y() << " " << pixel_local_coords_in.Z() << endl;
+	      cout << " PHG4MapsCellReco:hit entry point  local coords from G4 = " << local_in.X() << " " << local_in.Y() << " " << local_in.Z() << endl;
 	    }
 	  
 	  // combine ladder index values to get a single key

@@ -39,12 +39,13 @@ PHG4MapsSteppingAction::PHG4MapsSteppingAction( PHG4MapsDetector* detector ):
   hit(NULL)
 {
   cout << "PHG4MapsSteppingAction created" << endl;
+
+  verbosity = 3;
 }
 
 //____________________________________________________________________________..
 bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 {
-  verbosity = 0;
 
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   // get volume of the current step
@@ -165,21 +166,12 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	  geantino = true;
 	}
 
-      float x,y,z;
-      G4ThreeVector worldPosition, localPosition;
+      G4ThreeVector worldPosition;    // localPosition;
       G4TouchableHandle theTouchable;
-      G4VPhysicalVolume *vol2;
       G4VPhysicalVolume *vol1;
 
       G4StepPoint * prePoint = aStep->GetPreStepPoint();
       G4StepPoint * postPoint = aStep->GetPostStepPoint();
-      /*
-      worldPosition = postPoint->GetPosition();
-      theTouchable = postPoint->GetTouchableHandle(); 
-      localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
-      cout << "A: Exit world coords: x " <<  worldPosition.x() / cm << " y " <<  worldPosition.y() / cm << " z " <<  worldPosition.z() / cm << endl;
-      cout << "A: Exit local coords: x " << localPosition.x() / cm << " y " << localPosition.y() / cm << " z " << localPosition.z() / cm << endl;
-      */
 
       if(verbosity > 0)
 	{
@@ -203,28 +195,27 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	  hit->set_property(PHG4Hit:: prop_chip_index, chip_number);
 
 	  worldPosition = prePoint->GetPosition();
-	  theTouchable = prePoint->GetTouchableHandle(); 
 
-	  //cout << "entering: depth = " << theTouchable->GetHistory()->GetDepth() <<  endl;
-	  vol1 = theTouchable->GetVolume();
 	  if(verbosity > 0)
-	    cout << "entering volume name = " << vol1->GetName() << endl;
-	  
+	    {
+	      theTouchable = prePoint->GetTouchableHandle(); 
+	      cout << "entering: depth = " << theTouchable->GetHistory()->GetDepth() <<  endl;
+	      vol1 = theTouchable->GetVolume();
+	      cout << "entering volume name = " << vol1->GetName() << endl;
+	    }
+
+	  /*	  
 	  localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
 	  x = localPosition.x() / cm;
 	  y = localPosition.y() / cm;
 	  z = localPosition.z() / cm;
+	  */
 
-	  hit->set_property( PHG4Hit::prop_local_pos_x_0, x);
-	  hit->set_property( PHG4Hit::prop_local_pos_y_0, y);
-	  hit->set_property( PHG4Hit::prop_local_pos_z_0, z);
-	  if(verbosity > 0)
-	    {
-	      cout << "Entrance world coords: x " <<  worldPosition.x() / cm  << " y " <<  worldPosition.y() / cm << " z " <<  worldPosition.z() / cm << endl;
-	      cout << "Entrance local coords: x " << x << " y " << y << " z " << z << endl;
-	    }
-
-	  //here we set the entrance values in cm in world coordinates
+	  // Store the local coordinates for the entry point 
+	  // Note the typo in Coordinate is needed!
+	  StoreLocalCoorindate(hit, aStep, true, false);
+	  
+	  // Store the entrance values in cm in world coordinates
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm );
 	  hit->set_y( 0, prePoint->GetPosition().y() / cm );
 	  hit->set_z( 0, prePoint->GetPosition().z() / cm );
@@ -269,19 +260,20 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	  break;
 	}
       
+
       // here we just update the exit values, it will be overwritten
       // for every step until we leave the volume or the particle
       // ceases to exist
-      worldPosition = postPoint->GetPosition();
-      //cout << "Exit world coords postPoint: x " <<  worldPosition.x() / cm << " y " <<  worldPosition.y() / cm << " z " <<  worldPosition.z() / cm << endl;
 
       // Note that the after you reach the boundary the touchable for the postPoint points to the next volume, not the sensor! 
-
       // This was given to me as the way to get back to the sensor volume, but it does not work
-      //theTouchable = postPoint->GetTouchableHandle(); 
-      //localPosition = history->GetTransform(history->GetDepth() - 1).TransformPoint(worldPosition);
-      //cout << "Exit local coords: x " <<  localPosition.x() / cm << " y " <<  localPosition.y() / cm << " z " <<  localPosition.z() / cm << endl;
+      /*
+      theTouchable = postPoint->GetTouchableHandle(); 
+      localPosition = history->GetTransform(history->GetDepth() - 1).TransformPoint(worldPosition);
+      cout << "Exit local coords: x " <<  localPosition.x() / cm << " y " <<  localPosition.y() / cm << " z " <<  localPosition.z() / cm << endl;
+      */
 
+      /*
       // Use the prePoint from the final step  for now, until I understand how to get the exit point in the sensor volume coordinates
       //======================================================================================
       theTouchable = prePoint->GetTouchableHandle(); 
@@ -292,9 +284,6 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       if(verbosity > 0)
 	cout << "Exit world coords prePoint: x " <<  worldPosition.x() / cm << " y " <<  worldPosition.y() / cm << " z " <<  worldPosition.z() / cm << endl;
 
-      //hit->set_x( 1, postPoint->GetPosition().x() / cm );
-      //hit->set_y( 1, postPoint->GetPosition().y() / cm );
-      //hit->set_z( 1, postPoint->GetPosition().z() / cm );
       // This is for consistency with the local coord position, the world coordinate exit position is correct
       hit->set_x( 1, prePoint->GetPosition().x() / cm );
       hit->set_y( 1, prePoint->GetPosition().y() / cm );
@@ -304,14 +293,18 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       //cout << "exiting: depth = " << history->GetDepth() <<  " volume name = " << history->GetVolume(history->GetDepth())->GetName() << endl;
       localPosition = history->GetTransform(history->GetDepth()).TransformPoint(worldPosition);
 
-      x = localPosition.x() / cm;
-      y = localPosition.y() / cm;
-      z = localPosition.z() / cm;
-      //cout << "Exit local coords: x " << x << " y " << y << " z " << z << endl;
+      hit->set_local_x(1, localPosition.x() / cm);
+      hit->set_local_y(1, localPosition.y() / cm);
+      hit->set_local_z(1, localPosition.z() / cm);
+      */
 
-      hit->set_property( PHG4Hit::prop_local_pos_x_1, x);
-      hit->set_property( PHG4Hit::prop_local_pos_y_1, y);
-      hit->set_property( PHG4Hit::prop_local_pos_z_1, z);
+      // Store the local coordinates for the exit point
+      StoreLocalCoorindate(hit, aStep, false, true);
+
+      // Store world coordinates for the exit point
+      hit->set_x( 1, postPoint->GetPosition().x() / cm );
+      hit->set_y( 1, postPoint->GetPosition().y() / cm );
+      hit->set_z( 1, postPoint->GetPosition().z() / cm );
 
       hit->set_px(1, postPoint->GetMomentum().x() / GeV );
       hit->set_py(1, postPoint->GetMomentum().y() / GeV );
