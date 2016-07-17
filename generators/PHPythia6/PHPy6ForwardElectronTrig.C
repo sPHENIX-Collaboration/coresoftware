@@ -38,6 +38,7 @@ void PHPy6ForwardElectronTrig::PrintConfig()
   cout << "PHPy6ForwardElectronTrig Configuration: " << endl; 
   cout << " >=" << n_ep_required << " e+ required" << endl; 
   cout << " >=" << n_em_required << " em required" << endl; 
+  cout << " >=" << n_comb_required << " combined required" << endl; 
   cout << " Electron total momentum > " << ptot_required << " GeV required" << endl; 
   cout << " " << eta_low << " < eta < " << eta_high << endl; 
 
@@ -45,6 +46,7 @@ void PHPy6ForwardElectronTrig::PrintConfig()
   if(RequirePositron) cout << " RequirePositron is set" << endl;
   if(RequireOR) cout << " RequireOR is set" << endl;
   if(RequireAND) cout << " RequireAND is set" << endl;
+  if(RequireCOMBO) cout << " RequireCOMBINED is set" << endl;
 
   cout << endl; 
 }
@@ -75,7 +77,6 @@ bool PHPy6ForwardElectronTrig::Apply( const HepMC::GenEvent* evt )
 	 (sqrt(pow((*p)->momentum().px(),2) + pow((*p)->momentum().py(),2) + pow((*p)->momentum().pz(),2))>ptot_required) ) {
       if(((*p)->pdg_id()) == 11) n_em_found++;
       if(((*p)->pdg_id()) == -11) n_ep_found++;
-      return true;
     }
   }
 
