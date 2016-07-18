@@ -137,41 +137,9 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
   cout << "Geting the stave assembly named " << assemblyname << endl;
   G4AssemblyVolume* av_ITSUStave = reader->GetAssembly(assemblyname);
 
-  /*
-  G4AssemblyVolume* av_ITSUStave0 = reader->GetAssembly("ITSUStave0");
-  G4AssemblyVolume* av_ITSUStave1 = reader->GetAssembly("ITSUStave1");
-  G4AssemblyVolume* av_ITSUStave2 = reader->GetAssembly("ITSUStave2");
-  G4AssemblyVolume* av_ITSUStave3 = reader->GetAssembly("ITSUStave3");
-  G4AssemblyVolume* av_ITSUStave4 = reader->GetAssembly("ITSUStave4");
-  G4AssemblyVolume* av_ITSUStave5 = reader->GetAssembly("ITSUStave5");
-  G4AssemblyVolume* av_ITSUStave6 = reader->GetAssembly("ITSUStave6");
-  */
-
   //=========================================
   // Now we populate the whole layer with the staves
   //==========================================
-
-  /*      
-  // In the ITS we should have these numbers for how staves are built (from ITS.gdml file)
-   lyr rad   L   staves     modules                                                                                                     chips/module
-   0  23    290    12    1 (x=0, y=0, z=0)                                                                                     9 (x=0, y=-0.00875, z=- 12.04, -9,03, -6.02, -3.01, 0, 3.01, 6.02, 9.03, 12.04) 
-   1  31    290    16   1 (x=0, y=0, z=0)                                                                                     9 (x=0, y=-0.00875, z=- 12.04, -9,03, -6.02, -3.01, 0, 3.01, 6.02, 9.03, 12.04) 
-   2  39    290    20   1 (x=0, y=0, z=0)                                                                                     9 (x=0, y=-0.00875, z=- 12.04, -9,03, -6.02, -3.01, 0, 3.01, 6.02, 9.03, 12.04) 
-   3  194  900    24   4 (x=0, y=-0.06075, z= -31.605, -10.535, 10.535, 31.605)                    14  (x = -0.755 or +0.755, y= -0.00825, z = -9.03, -9.03, -6.02, -6.02, -3.01, -3.01, 0, 0, 3.01, 3.01, 6.02, 6.02, 9.03, 9.03)      
-   4  247  900    30   4 (x=0, y=-0.06075, z= -31.605, -10.535, 10.535, 31.605)                    14  (x = -0.755 or +0.755, y= -0.00825, z = -9.03, -9.03, -6.02, -6.02, -3.01, -3.01, 0, 0, 3.01, 3.01, 6.02, 6.02, 9.03, 9.03)      
-   5  253 1500   42   7 (x=0, y=-0.06075, z = -63.21, -42.14, -21.07, 0.0, 21.07, 42.14, 63.21)   14  (x = -0.755 or +0.755, y= -0.00825, z = -9.03, -9.03, -6.02, -6.02, -3.01, -3.01, 0, 0, 3.01, 3.01, 6.02, 6.02, 9.03, 9.03) 
-   6  405 1500  48  7 (x=0, y=-0.06075, z = -63.21, -42.14, -21.07, 0.0, 21.07, 42.14, 63.21)   14  (x = -0.755 or +0.755, y= -0.00825, z = -9.03, -9.03, -6.02, -6.02, -3.01, -3.01, 0, 0, 3.01, 3.01, 6.02, 6.02, 9.03, 9.03) 
-
-   sensor is in chip at (x=0, y=-0.0016, z=0)
-   3-6 half-staves are in 3-6 staves at:  (x = -1.29, y = +2.067, z = 0)  or (x = +1.29 cm, y = 2.243, z = 0)
-
-   // layers 0,1,2 have one stave with 1 module and 7 chips in that module
-   // where layers 3 and 4  have two half-staves with 4 modules and 7 chips/module
-   // layers 5 and 6 have two half staves with 7 modules and 7 chips/module 
-   // module coordinates are in the stave (0-2) or in the half staves (3-6) 
-   // chip coordinates are in the module
-   // 
-  */
 
   // Step through all phi values
   double arcstep;

@@ -206,9 +206,6 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 
 	  /*	  
 	  localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
-	  x = localPosition.x() / cm;
-	  y = localPosition.y() / cm;
-	  z = localPosition.z() / cm;
 	  */
 
 	  // Store the local coordinates for the entry point 
@@ -265,9 +262,9 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       // for every step until we leave the volume or the particle
       // ceases to exist
 
+      /*
       // Note that the after you reach the boundary the touchable for the postPoint points to the next volume, not the sensor! 
       // This was given to me as the way to get back to the sensor volume, but it does not work
-      /*
       theTouchable = postPoint->GetTouchableHandle(); 
       localPosition = history->GetTransform(history->GetDepth() - 1).TransformPoint(worldPosition);
       cout << "Exit local coords: x " <<  localPosition.x() / cm << " y " <<  localPosition.y() / cm << " z " <<  localPosition.z() / cm << endl;
@@ -301,7 +298,7 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       // Store the local coordinates for the exit point
       StoreLocalCoorindate(hit, aStep, false, true);
 
-      // Store world coordinates for the exit point
+       // Store world coordinates for the exit point
       hit->set_x( 1, postPoint->GetPosition().x() / cm );
       hit->set_y( 1, postPoint->GetPosition().y() / cm );
       hit->set_z( 1, postPoint->GetPosition().z() / cm );
