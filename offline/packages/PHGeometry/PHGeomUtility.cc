@@ -266,8 +266,10 @@ PHGeomUtility::LoadFromIONode(PHCompositeNode *topNode)
       << dst_geom_io->GetGeometry()->GetName() << ") and title ("
       << dst_geom_io->GetGeometry()->GetTitle() << ")";
 
+  // build new TGeoManager
   TGeoManager * tgeo = new TGeoManager("TOP", stitle.str().c_str());
   tgeo->SetTopVolume(dst_geom_io->GetGeometryCopy());
+  tgeo->CloseGeometry();
 
   dst_geom->SetGeometry(tgeo);
 
