@@ -714,14 +714,11 @@ float sPHENIXTrackerTPC::fitTrack(SimpleTrack3D& track,
   vector<float> zres_inv;
   for (unsigned int i = 0; i < track.hits.size(); i++) {
 
-    // cout << "MIKE ";
-    // cout << track.hits[i].get_layer() << " ";
-    // cout << track.hits[i].get_ex() << " ";
-    // cout << (2.0*sqrt(track.hits[i].get_size(0,0))) << endl;  
-
-    float ex = track.hits[i].get_ex() * scale;
-    float ey = track.hits[i].get_ey() * scale;
-    float ez = track.hits[i].get_ez() * scale;
+    /// \todo rescale fudge factor
+    
+    float ex = (2.0*sqrt(track.hits[i].get_size(0,0))) * scale;
+    float ey = (2.0*sqrt(track.hits[i].get_size(1,1))) * scale;
+    float ez = (2.0*sqrt(track.hits[i].get_size(2,2))) * scale;
         
     xyres.push_back(sqrt( ex * ex + ey * ey ));
     xyres_inv.push_back(1. / xyres.back());
