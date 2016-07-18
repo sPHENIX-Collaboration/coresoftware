@@ -1651,10 +1651,10 @@ static bool fit_all_update(vector<vector<int> >& layer_indexes,
     if (fabs(xydiff1) < fabs(xydiff2)) {
       xydiff = xydiff1;
     }
-
-    float tex = temp_track.hits[i].get_ex() * tempscale;
-    float tey = temp_track.hits[i].get_ey() * tempscale;
-    float tez = temp_track.hits[i].get_ez() * tempscale;
+   
+    float tex = (2.0*sqrt(temp_track.hits[i].get_size(0,0))) * tempscale;
+    float tey = (2.0*sqrt(temp_track.hits[i].get_size(1,1))) * tempscale;
+    float tez = (2.0*sqrt(temp_track.hits[i].get_size(2,2))) * tempscale;
     
     float dr2 = tex * tex + tey * tey;
     float chi2_xy = xydiff * xydiff / dr2;
