@@ -57,6 +57,17 @@ PHGeomUtility::GetTGeoManager(PHCompositeNode *topNode)
   return dst_geom->GetGeometry();
 }
 
+void
+PHGeomUtility::ExportGeomtry(PHCompositeNode *topNode,
+    const std::string & geometry_file)
+{
+  TGeoManager * tgeo = GetTGeoManager(topNode);
+
+  assert(tgeo);
+
+  tgeo->Export(geometry_file.c_str());
+}
+
 int
 PHGeomUtility::ImportGeomFile(PHCompositeNode *topNode,
     const std::string & geometry_file)
@@ -175,7 +186,7 @@ PHGeomUtility::GenerateGeometryFileName(const std::string & filename_extension)
 bool
 PHGeomUtility::RemoveGeometryFile(const std::string & file_name)
 {
-  fstream ifile(file_name,ios_base::in);
+  fstream ifile(file_name, ios_base::in);
 
   if (ifile)
     {

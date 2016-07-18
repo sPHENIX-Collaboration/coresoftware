@@ -25,7 +25,7 @@ protected:
 
 public:
 
-  //! DST node -> TGeoManager for downstream use
+  //! Main user interface: DST node -> TGeoManager for downstream use
   static TGeoManager *
   GetTGeoManager(PHCompositeNode *topNode);
 
@@ -36,6 +36,10 @@ public:
   //! gGeoManager -> DST node
   static int
   ImportCurrentTGeoManager(PHCompositeNode *topNode);
+
+  //! DST node -> TGeoManager -> export files, like gdml, .root or .C formats
+  static void
+  ExportGeomtry(PHCompositeNode *topNode, const std::string & geometry_file);
 
   //! Get non-persistent PHGeomTGeo from DST nodes. If not found, make a new one
   static PHGeomTGeo *
