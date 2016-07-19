@@ -13,65 +13,17 @@
 //! Quick inspection of PHGeoTGeo object in RUN/GEOMETRY node inside a DST file
 //! Based on abhisek's display macro
 void
-PHGeom_DSTInspection(string DST_file_name = "sPHENIX.root_DST.root", bool do_clip = true )
+PHGeom_DSTInspection(string DST_file_name = "sPHENIX.root_DST.root",
+    bool do_clip = true)
 {
-//  TEveManager::Create();
-//
-//  TFile * _file0 = TFile::Open(DST_file_name);
-//  assert(_file0->IsOpen());
-//
-//  TTree * T1 = (TTree *) _file0->GetObjectChecked("T1", "TTree");
-//  assert(T1);
-//
-//  TBranch * tgeom = T1->GetBranch("RUN.GEOMETRY._fGeom");
-//  assert(tgeom);
-//
-//  tgeom->GetEntry(0);
-//  assert(gGeoManager);
-//
-//  if (!gROOT->GetListOfGeometries()->FindObject(gGeoManager))
-//    gROOT->GetListOfGeometries()->Add(gGeoManager);
-//  if (!gROOT->GetListOfBrowsables()->FindObject(gGeoManager))
-//    gROOT->GetListOfBrowsables()->Add(gGeoManager);
-////  gGeoManager->UpdateElements();
-//
-//  TGeoNode *current = gGeoManager->GetCurrentNode();
-//  //Alternate drawing
-//  //current->GetVolume()->Draw("ogl");
-//  //Print the list of daughters
-//  //current->PrintCandidates();
-//  for (int igeom = 0; igeom < current->GetNdaughters(); igeom++)
-//    {
-//      TGeoNode *geo_node = (TGeoNode*) current->GetNodes()->UncheckedAt(igeom);
-//      geo_node->GetVolume()->VisibleDaughters(kFALSE);
-//      geo_node->GetVolume()->SetTransparency(2);
-//      //Keep the pipe visible all the time
-//      if (string(geo_node->GetName()).find("PIPE") != string::npos)
-//        geo_node->GetVolume()->SetTransparency(0);
-//    }
-//  TEveGeoTopNode* eve_node = new TEveGeoTopNode(gGeoManager, current);
-//  eve_node->SetVisLevel(6);
-//  gEve->AddGlobalElement(eve_node);
-//  gEve->FullRedraw3D(kTRUE);
-//
-//  // EClipType not exported to CINT (see TGLUtil.h):
-//  // 0 - no clip, 1 - clip plane, 2 - clip box
-//  TGLViewer *v = gEve->GetDefaultGLViewer();
-//  if (Clip) v->GetClipSet()->SetClipType(1);
-//  v->ColorSet().Background().SetColor(kMagenta + 4);
-//  v->SetGuideState(TGLUtil::kAxesEdge, kTRUE, kFALSE, 0);
-//  v->RefreshPadEditor(v);
-//
-//  v->CurrentCamera().RotateRad(-0.5, 0.5);
-//  v->DoDraw();
-
+  TEveManager::Create();
 
   gSystem->Load("libphgeom.so");
 
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(1);
   recoConsts *rc = recoConsts::instance();
-   rc->set_IntFlag("RUNNUMBER", 12345);
+  rc->set_IntFlag("RUNNUMBER", 12345);
 
   Fun4AllInputManager *hitsin = new Fun4AllDstInputManager("DSTin");
   hitsin->fileopen(DST_file_name);
@@ -80,15 +32,48 @@ PHGeom_DSTInspection(string DST_file_name = "sPHENIX.root_DST.root", bool do_cli
   // run one event as example
   se->run(1);
 
-  delete gGeoManager;
+  PHGeomUtility::GetTGeoManager(se->topNode());
 
-  PHGeomUtility::ExportGeomtry(se->topNode(),DST_file_name + "_export.root");
+  assert(gGeoManager);
 
-//  se->End();
-//  std::cout << "All done" << std::endl;
-//  delete se;
-//  gSystem->Exit(0);
+  if (!gROOT->GetListOfGeometries()->FindObject(gGeoManager))
+    gROOT->GetListOfGeometries()->Add(gGeoManager);
+  if (!gROOT->GetListOfBrowsables()->FindObject(gGeoManager))
+    gROOT->GetListOfBrowsables()->Add(gGeoManager);
+//  gGeoManager->UpdateElements();
 
-  cout <<"All done"<<endl;
+  TGeoNode *current = gGeoManager->GetCurrentNode();
+  //Alternate drawing
+  //current->GetVolume()->Draw("ogl");
+  //Print the list of daughters
+  //current->PrintCandidates();
+  for (int igeom = 0; igeom < current->GetNdaughters(); igeom++)
+    {
+      TGeoNode *geo_node = (TGeoNode*) current->GetNodes()->UncheckedAt(igeom);
+      geo_node->GetVolume()->VisibleDaughters(kFALSE);
+      geo_node->GetVolume()->SetTransparency(2);
+      //Keep the pipe visible all the time
+      if (string(geo_node->GetName()).find("PIPE") != string::npos)
+        geo_node->GetVolume()->SetTransparency(0);
+    }
+  TEveGeoTopNode* eve_node = new TEveGeoTopNode(gGeoManager, current);
+  eve_node->SetVisLevel(6);
+  gEve->AddGlobalElement(eve_node);
+  gEve->FullRedraw3D(kTRUE);
+
+  // EClipType not exported to CINT (see TGLUtil.h):
+  // 0 - no clip, 1 - clip plane, 2 - clip box
+  TGLViewer *v = gEve->GetDefaultGLViewer();
+  if (do_clip)
+    {
+      v->GetClipSet()->SetClipType( TGLClip::kClipPlane  );
+    }
+//  v->ColorSet().Background().SetColor(kMagenta + 4);
+  v->SetGuideState(TGLUtil::kAxesEdge, kTRUE, kFALSE, 0);
+  v->RefreshPadEditor(v);
+
+  v->CurrentCamera().RotateRad(-1.6.,0.);
+  v->DoDraw();
+
 }
 
