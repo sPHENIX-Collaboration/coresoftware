@@ -12,11 +12,15 @@
 #define PHGeomIOTGeo_H_
 
 #include <phool/PHObject.h>
+#include <vector>
 
 class TGeoVolume;
+class TGeoManager;
 
 /*!
- * \brief PHGeomIOTGeo store geometry information to DST files in the format of TGeoVolume. It completely owns the geometry object
+ * \brief PHGeomIOTGeo store geometry information to DST files in the format of binary streamed TGeoVolume. It completely owns the geometry object
+ * For run-time use of TGeoManager, please use PHGeomTGeo
+ * For operation of this class with DST node, please use PHGeomUtility
  */
 class PHGeomIOTGeo : public PHObject
 {
@@ -48,23 +52,34 @@ public:
   void
   SetGeometry(const TGeoVolume * g);
 
-  //! Make a copy of TGeoVolume. The caller is responsible for deleting the returned TGeoVolume
-  TGeoVolume *
-  GetGeometryCopy() const;
+  //! Construct TGeoManager. The result TGeoManager is not yet closed and open for further editing
+  TGeoManager *
+  ConstructTGeoManager();
 
-  //! Get a constatnt copy of TGeoVolume. The caller is responsible for deleting the returned TGeoVolume
-  const TGeoVolume *
-  GetGeometry() const
+  //! Make a copy of TGeoVolume.
+  //! The caller is responsible for deleting the returned TGeoVolume
+  //! The caller is also responsible for constructing a valid TGeoManager before calling this function
+  TGeoVolume *
+  GetGeometryCopy();
+
+  std::vector<char> &
+  GetData()
   {
-    return _fGeom;
+    return Data;
+  }
+
+  const std::vector<char> &
+  GetData() const
+  {
+    return Data;
   }
 
 protected:
 
-  //! store and stream the full geometry via DST objects
-  TGeoVolume * _fGeom;
+  //! store the streamed geometry and its streamer via a binary stream
+  std::vector<char> Data;
 
-ClassDef(PHGeomIOTGeo,1)
+ClassDef(PHGeomIOTGeo,2)
 };
 
 #endif /* PHGeomIOTGeo_H_ */

@@ -10,7 +10,12 @@
 
 #include "PHGeomIOTGeo.h"
 
-#include "TGeoVolume.h"
+#include <TGeoManager.h>
+#include <TGeoVolume.h>
+#include <TMemFile.h>
+
+#include <cassert>
+#include <sstream>
 #include <iostream>
 
 using namespace std;
@@ -18,16 +23,14 @@ using namespace std;
 ClassImp(PHGeomIOTGeo);
 
 PHGeomIOTGeo::PHGeomIOTGeo() :
-    _fGeom(NULL)
+    Data(0)
 {
 //  SplitLevel(0);
 }
 
 PHGeomIOTGeo::PHGeomIOTGeo(const PHGeomIOTGeo& geom) :
-    _fGeom(NULL)
+    Data(geom.Data)
 {
-  if (geom.isValid())
-    SetGeometry(geom._fGeom);
 }
 
 PHGeomIOTGeo::~PHGeomIOTGeo()
@@ -51,17 +54,57 @@ PHGeomIOTGeo::SetGeometry(const TGeoVolume * g)
       return;
     }
 
-  if (_fGeom)
-    delete _fGeom;
+  // Stream TGeoVolume into binary stream with its streamer using TFIle utility
+  TMemFile f1("mem","CREATE");
+  g->Write("TOP");
 
-  _fGeom = static_cast< TGeoVolume *> (g->Clone());
+  const Long64_t n = f1.GetSize();
+
+  Data.resize(n);
+  Long64_t n1 = f1.CopyTo(Data.data(), n);
+  assert(n1 == n);
+
+  f1.Close();
 }
 
 TGeoVolume *
-PHGeomIOTGeo::GetGeometryCopy() const
+PHGeomIOTGeo::GetGeometryCopy()
 {
   if (not isValid()) return NULL;
-  return static_cast< TGeoVolume *> (_fGeom->Clone());
+
+  TMemFile f2("mem2", Data.data(), Data.size(), "READ");
+  TGeoVolume * vol = dynamic_cast<TGeoVolume *>(f2.Get("TOP"));
+  assert(vol);
+  f2.Close();
+
+  return vol;
+}
+
+TGeoManager *
+PHGeomIOTGeo::
+ConstructTGeoManager()
+{
+  if (not isValid()) return NULL;
+
+  // build new TGeoManager
+  TGeoManager * tgeo = new TGeoManager("PHGeometry", "");
+  assert(tgeo);
+
+  TGeoVolume * vol = GetGeometryCopy();
+  vol->RegisterYourself();
+
+  tgeo->SetTopVolume(vol);
+//  tgeo->CloseGeometry();
+
+  stringstream stitle;
+  stitle
+      << "TGeoManager built by PHGeomUtility::LoadFromIONode based on RUN/GEOMETRY_IO node with name ("
+      << vol->GetName() << ") and title ("
+      << vol->GetTitle() << ")";
+
+  tgeo->SetTitle(stitle.str().c_str());
+
+  return tgeo;
 }
 
 /** identify Function from PHObject
@@ -71,9 +114,8 @@ void
 PHGeomIOTGeo::identify(std::ostream& os) const
 {
   os << "PHGeomIOTGeo - ";
-  if (_fGeom)
-    os << " with geometry data " << _fGeom->GetName() << ": "
-        << _fGeom->GetTitle();
+  if (isValid())
+    os << " with geometry data " << Data.size()<<"Byte";
   else
     os << "Empty";
   os << endl;
@@ -83,18 +125,12 @@ PHGeomIOTGeo::identify(std::ostream& os) const
 void
 PHGeomIOTGeo::Reset()
 {
-  if (_fGeom)
-    delete _fGeom;
-  _fGeom = NULL;
+  Data.resize(0);
 }
 
 /// isValid returns non zero if object contains vailid data
 int
 PHGeomIOTGeo::isValid() const
 {
-  if (_fGeom == NULL)
-    return 0;
-  if (_fGeom->IsZombie())
-    return 0;
-  return 1;
+  return Data.size();
 }
