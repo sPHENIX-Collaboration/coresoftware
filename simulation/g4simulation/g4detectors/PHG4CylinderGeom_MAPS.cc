@@ -41,14 +41,6 @@ PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, in
       Xsensor = 1.505;   // cm  
     }
 
-  return;
-}
-
-TVector3 
-PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, int module, int chip, TVector3 sensor_local)
-{
-  // ITS inner barrel layer geometry
-
  /*      
   // In the ITS we should have these numbers for how staves are built (from ITS.gdml file)
    lyr rad   L   staves     modules                                                                                                     chips/module
@@ -70,12 +62,15 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
   // Units here are cm, same as in the gdml file
 
   // for all layers
-  double loc_sensor_in_chip[3] = {0.0, -0.0016, 0.0};
+  double loc_sensor_in_chip_data[3] = {0.0, -0.0016, 0.0};
+
+  for(int i=0;i<3;i++)
+    loc_sensor_in_chip[i] = loc_sensor_in_chip_data[i];
 
   // inner barrel layers stave construction 
   //========================== 
   // (stave_type == 0)
-  double inner_loc_chip_in_module[9][3] = {
+  double inner_loc_chip_in_module_data[9][3] = {
     0.0, -0.00875, -12.04,
     0.0, -0.00875, -9.03,
     0.0, -0.00875, -6.02,
@@ -85,13 +80,23 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
     0.0, -0.00875, 6.02,	   
     0.0, -0.00875, 9.03,	   
     0.0, -0.00875, 12.04};	   
-  double inner_loc_module_in_halfstave[3] = {0.0, 0.0, 0.0};   // only one module
-  double inner_loc_halfstave_in_stave[3] = {0.0, 0.00625, 0.0}; 
+  double inner_loc_module_in_halfstave_data[3] = {0.0, 0.0, 0.0};   // only one module
+  double inner_loc_halfstave_in_stave_data[3] = {0.0, 0.00625, 0.0}; 
+
+  for(int i=0;i<3;i++)
+    {
+      inner_loc_module_in_halfstave[i] = inner_loc_module_in_halfstave_data[i];
+      inner_loc_halfstave_in_stave[i] = inner_loc_halfstave_in_stave_data[i];
+      for(int j=0;j<9;j++)
+	{
+	  inner_loc_chip_in_module[j][i] = inner_loc_chip_in_module_data[j][i];
+	}
+    }
 
   // middle barrel layers stave construction 
   //=============================
   // (stave_type == 1)
-    double middle_loc_chip_in_module[14][3] = {
+    double middle_loc_chip_in_module_data[14][3] = {
     -0.755, -0.00825, -9.03,
     0.755, -0.00825, -9.03,  
     -0.755, -0.00825, -6.02,
@@ -106,19 +111,31 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
     0.755, -0.00825, 6.02,
     -0.755, -0.00825, 9.03,
     0.755, -0.00825, 9.03  };
-  double middle_loc_module_in_halfstave[4][3] = {
+  double middle_loc_module_in_halfstave_data[4][3] = {
     0.0, -0.06075, -31.605,
     0.0, -0.06075, -10.535,
     0.0, -0.06075, 10.535,
     0.0, -0.06075, 31.605};
-  double middle_loc_halfstave_in_stave[2][3] = {
+  double middle_loc_halfstave_in_stave_data[2][3] = {
     -1.29, 2.067, 0.0,
     1.29, 2.243, 0.0 };
+
+  for(int i=0;i<3;i++)
+    {
+      for(int j=0;j<14;j++)
+	  middle_loc_chip_in_module[j][i] = middle_loc_chip_in_module_data[j][i];
+
+      for(int j=0;j<4;j++)
+	middle_loc_module_in_halfstave[j][i] = middle_loc_module_in_halfstave_data[j][i];
+
+      for(int j=0;j<2;j++)
+	middle_loc_halfstave_in_stave[j][i] = middle_loc_halfstave_in_stave_data[j][i];
+    }
 
   // outer barrel layers stave construction 
   //===========================
   // (stave_type == 2)
-  double outer_loc_chip_in_module[14][3] = {
+  double outer_loc_chip_in_module_data[14][3] = {
     -0.755, -0.00825, -9.03,
     0.755, -0.00825, -9.03, 
     -0.755, -0.00825, -6.02,
@@ -133,7 +150,7 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
     0.755, -0.00825, 6.02,
     -0.755, -0.00825, 9.03,
     0.755, -0.00825, 9.03 };
-  double outer_loc_module_in_halfstave[7][3] = {
+  double outer_loc_module_in_halfstave_data[7][3] = {
     0.0, -0.06075, -63.21,
     0.0, -0.06075, -42.14,
     0.0, -0.06075, -21.07,
@@ -141,12 +158,172 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
     0.0, -0.06075, 21.07,
     0.0, -0.06075, 42.14,
     0.0, -0.06075, 63.21 };
-  double outer_loc_halfstave_in_stave[2][3] = {
+  double outer_loc_halfstave_in_stave_data[2][3] = {
     -1.29, 2.067, 0.0,
     1.29, 2.243, 0.0 };
 
+  for(int i=0;i<3;i++)
+    {
+      for(int j=0;j<14;j++)
+	outer_loc_chip_in_module[j][i] =  outer_loc_chip_in_module_data[j][i];
+
+      for(int j=0;j<7;j++)
+	outer_loc_module_in_halfstave[j][i] =  outer_loc_module_in_halfstave_data[j][i];
+
+      for(int j=0;j<2;j++)
+	outer_loc_halfstave_in_stave[j][i] =  outer_loc_halfstave_in_stave_data[j][i];
+    }
+
+
+  return;
+}
+
+
+TVector3 
+PHG4CylinderGeom_MAPS::get_local_from_world_coords(int stave, int half_stave, int module, int chip, TVector3 world_location)
+{
   double stave_phi = stave_phi_step * (double) stave;
   double stave_phi_offset =  M_PI /2.0;    // stave initially points so that sensor faces upward in y
+
+  /*
+    cout << endl << "PHG4CylinderGeom_MAPS::get_local_from_world_coords: " << " Stave type " << stave_type 
+	 << " chip " << chip 
+	 << " world coords " << world_location.X() << " " << world_location.Y() << " " << world_location.Z() << endl;
+  */
+
+  TVector3 res;
+
+  // Is this is an inner, middle or outer stave?
+  if( stave_type == 0 )
+    {
+      // Inner stave
+
+      // transform location of stave from its location in the world - this is just a translation
+      TVector3 tr4(layer_radius * cos(stave_phi), layer_radius * sin(stave_phi), 0.0);
+      res = world_location - tr4;
+
+      // Rotate stave from its angle in the world
+      // This requires rotating it by:
+      //   removing the tilt (for layers 0-2)
+      //   removing the angle that makes it point at the origin when it was at it's location in the world
+      //   rotating it by -90 degrees to make the face point vertically up in y
+      TRotation R;
+      R.RotateZ(-stave_phi - stave_phi_offset - stave_phi_tilt);
+      res = R * res;    // rotates res using R
+      
+      // transform location in stave to location in half stave 
+      TVector3 tr3(inner_loc_halfstave_in_stave[0],  inner_loc_halfstave_in_stave[1],inner_loc_halfstave_in_stave[2]);
+      res = res - tr3;
+      
+      // transfor from half stave to module 
+      TVector3 tr2a(inner_loc_module_in_halfstave[0], inner_loc_module_in_halfstave[1], inner_loc_module_in_halfstave[2] );
+      res = res - tr2a;
+      
+      // transform location in module to location in chip
+      TVector3 tr2(inner_loc_chip_in_module[chip][0], inner_loc_chip_in_module[chip][1], inner_loc_chip_in_module[chip][2]);
+      res = res - tr2;      
+      
+      // transform location in chip to location in sensor
+      TVector3 tr1(loc_sensor_in_chip[0], loc_sensor_in_chip[1], loc_sensor_in_chip[2]);
+      res = res - tr1;
+    }
+  else if(stave_type == 1)
+    {      
+      // transform location of stave from its location in the world - this is just a translation
+      TVector3 tr4(layer_radius * cos(stave_phi), layer_radius * sin(stave_phi), 0.0);
+      res = world_location - tr4;
+
+      // Rotate stave from its angle in the world
+      // This requires rotating it by:
+      //     removing the tilt (non-zero tilt for layers 0-2)
+      //     removing the angle that makes it point at the origin when it was at it's location in the world
+      //     rotating it by -90 degrees to make the face point vertically up in y
+      TRotation R;
+      R.RotateZ(-stave_phi - stave_phi_offset - stave_phi_tilt);
+      res = R * res;    // rotates res using R
+
+      // transform location in stave to location in half stave 
+      TVector3 tr3(middle_loc_halfstave_in_stave[half_stave][0],  middle_loc_halfstave_in_stave[half_stave][1],middle_loc_halfstave_in_stave[half_stave][2]);
+      res = res - tr3;
+
+      // transform from half stave to module 
+      TVector3 tr2a(middle_loc_module_in_halfstave[module][0], middle_loc_module_in_halfstave[module][1], middle_loc_module_in_halfstave[module][2] );
+      res = res - tr2a;
+      
+     // transform location in module to location in chip
+      TVector3 tr2(middle_loc_chip_in_module[chip][0], middle_loc_chip_in_module[chip][1], middle_loc_chip_in_module[chip][2]);
+      res = res - tr2;
+
+      // for odd numbered chips, the chip is flipped by 180 degrees around the x and z axes
+      TRotation Rchip, Rchip_inv;
+      if(chip % 2)
+	{
+	  Rchip.RotateX(M_PI);
+	  Rchip.RotateZ(M_PI);
+	  res = Rchip * res;
+	}
+
+      // transform location in chip to location in sensor
+      TVector3 tr1(loc_sensor_in_chip[0], loc_sensor_in_chip[1], loc_sensor_in_chip[2]);
+      res = res - tr1;
+      
+    }
+  else if(stave_type == 2)
+    {      
+           // transform location of stave from its location in the world - this is just a translation
+      TVector3 tr4(layer_radius * cos(stave_phi), layer_radius * sin(stave_phi), 0.0);
+      res = world_location - tr4;
+
+      // Rotate stave from its angle in the world
+      // This requires rotating it by:
+      //   removing the tilt (for layers 0-2)
+      //   removing the angle that makes it point at the origin when it was at it's location in the world
+      //   rotating it by -90 degrees to make the face point vertically up in y
+      TRotation R;
+      R.RotateZ(-stave_phi - stave_phi_offset - stave_phi_tilt);
+      res = R * res;    // rotates res using R
+
+      // transform location in stave to location in half stave 
+      TVector3 tr3(outer_loc_halfstave_in_stave[half_stave][0],  outer_loc_halfstave_in_stave[half_stave][1], outer_loc_halfstave_in_stave[half_stave][2]);
+      res = res - tr3;
+
+      // transform from half stave to module 
+      TVector3 tr2a(outer_loc_module_in_halfstave[module][0], outer_loc_module_in_halfstave[module][1], outer_loc_module_in_halfstave[module][2] );
+      res = res - tr2a;
+      
+     // transform location in module to location in chip
+      TVector3 tr2(outer_loc_chip_in_module[chip][0], outer_loc_chip_in_module[chip][1], outer_loc_chip_in_module[chip][2]);
+      res = res - tr2;
+
+      // for odd numbered chips, the chip is flipped by 180 degrees around the x and z axes
+      TRotation Rchip, Rchip_inv;
+      if(chip % 2)
+	{
+	  Rchip.RotateX(M_PI);
+	  Rchip.RotateZ(M_PI);
+	  res = Rchip * res;
+	}
+
+      // transform location in chip to location in sensor
+      TVector3 tr1(loc_sensor_in_chip[0], loc_sensor_in_chip[1], loc_sensor_in_chip[2]);
+      res = res - tr1;
+    }
+  
+  return res;
+}  
+
+TVector3 
+PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, int module, int chip, TVector3 sensor_local)
+{
+ 
+  double stave_phi = stave_phi_step * (double) stave;
+  double stave_phi_offset =  M_PI /2.0;    // stave initially points so that sensor faces upward in y
+
+  /*  
+    cout << endl << "PHG4CylinderGeom_MAPS::get_world_from_local_coords: " << " stave type " << stave_type
+	 << " chip " << chip
+	 << " local coords " << sensor_local.X() << " " << sensor_local.Y() << " " << sensor_local.Z() << endl;
+  */
 
   // Is this is an inner, middle or outer stave?
   if( stave_type == 0 )
@@ -154,31 +331,22 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
       // Inner stave
       // Start with the point in sensor local coords 
       TVector3   pos1 = sensor_local;
-      //cout << " Stave type 0, Start with local coords in sensor:  pos1 = " << pos1.X() << "  " << pos1.Y() << "  " << pos1.Z() << endl;
 
       // transform sensor location to location in chip
       TVector3 tr1(loc_sensor_in_chip[0], loc_sensor_in_chip[1], loc_sensor_in_chip[2]);
       TVector3  res = pos1 + tr1;
-
-      //cout << " tr1 = " << tr1.X() << "  " << tr1.Y() << "  " << tr1.Z() << endl;
-      //cout << " Translated  to local coords in chip: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
       
       // transform location in chip to location in module
       TVector3 tr2(inner_loc_chip_in_module[chip][0], inner_loc_chip_in_module[chip][1], inner_loc_chip_in_module[chip][2]);
       res = res + tr2;
-      //cout << " tr2 = " << tr2.X() << "  " << tr2.Y() << "  " << tr2.Z() << endl;
-      //cout << " Translated to local coords in module: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
 
       // module to half stave
       TVector3 tr2a(inner_loc_module_in_halfstave[0], inner_loc_module_in_halfstave[1], inner_loc_module_in_halfstave[2] );
       res = res + tr2a;
-      //cout << " Translated to local coords in half stave: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
 
       // transform location in half stave to location in stave 
       TVector3 tr3(inner_loc_halfstave_in_stave[0],  inner_loc_halfstave_in_stave[1],inner_loc_halfstave_in_stave[2]);
       res = res + tr3;
-      //cout << " tr3 = " << tr3.X() << "  " << tr3.Y() << "  " << tr3.Z() << endl;
-      //cout << " Translated to local coords in stave: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
 
       // Rotate stave to its angle in the world
       // This requires rotating it by
@@ -190,14 +358,10 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
       TRotation R;
       R.RotateZ(stave_phi + stave_phi_offset + stave_phi_tilt);
       res = R * res;    // rotates res using R
-      //cout << "Rotate through phi = " << stave_phi << " + phi_offset = " << stave_phi_offset << " + phitilt = " << stave_phi_tilt << endl;
-      //cout << " Rotated stave to point at origin, then tilted it: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
 
       // transform location of stave to its location in the world 
       TVector3 tr4(layer_radius * cos(stave_phi), layer_radius * sin(stave_phi), 0.0);
       res = res + tr4;
-      //cout << " tr4 = " << tr4.X() << "  " << tr4.Y() << "  " << tr4.Z() << endl;
-      //cout << " Translated stave to location in world: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
 
       return res;
     }
@@ -216,10 +380,11 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
       TRotation Rchip;
       if(chip % 2)
 	{
-	  Rchip.RotateZ(M_PI);
-	  Rchip.RotateX(M_PI);
+	  Rchip.RotateX(-M_PI);
+	  Rchip.RotateZ(-M_PI);
 	  res = Rchip * res;
 	}
+
       TVector3 tr2(middle_loc_chip_in_module[chip][0], middle_loc_chip_in_module[chip][1], middle_loc_chip_in_module[chip][2]);
       res = res + tr2;
 
@@ -253,38 +418,32 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
 
       // Start with the point in sensor local coords 
       TVector3   pos1 = sensor_local;
-      //cout << " Stave type 2, Start with local coords in sensor:  pos1 = " << pos1.X() << "  " << pos1.Y() << "  " << pos1.Z() << endl;
 
       // transform sensor location to location in chip
       TVector3 tr1(loc_sensor_in_chip[0], loc_sensor_in_chip[1], loc_sensor_in_chip[2]);
       TVector3  res = pos1 + tr1;
-      //cout << " tr1 = " << tr1.X() << "  " << tr1.Y() << "  " << tr1.Z() << endl;
-      //cout << " Translated  to local coords in chip: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
 
       // transform location in chip to location in module
       // for odd numbered chips, the chip is flipped by 180 degrees around the x and z axes
       TRotation Rchip;
       if(chip % 2)
 	{
-	  Rchip.RotateZ(M_PI);
-	  Rchip.RotateX(M_PI);
+	  Rchip.RotateX(-M_PI);
+	  Rchip.RotateZ(-M_PI);
 	  res = Rchip * res;
 	}
+
       TVector3 tr2(outer_loc_chip_in_module[chip][0], outer_loc_chip_in_module[chip][1], outer_loc_chip_in_module[chip][2]);
       res = res + tr2;
-      //cout << " tr2 = " << tr2.X() << "  " << tr2.Y() << "  " << tr2.Z() << endl;
-      //cout << " Translated to local coords in module: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
 
       // module to half stave
       TVector3 tr2a(outer_loc_module_in_halfstave[module][0], outer_loc_module_in_halfstave[module][1], outer_loc_module_in_halfstave[module][2] );
       res = res + tr2a;
-      //cout << " Translated to local coords in half stave: res = " << res.X() << "  " << res.Y() << "  " << res.Z() << endl;
+
 
       // transform location in half stave to location in stave 
       TVector3 tr3(outer_loc_halfstave_in_stave[half_stave][0],  outer_loc_halfstave_in_stave[half_stave][1], outer_loc_halfstave_in_stave[half_stave][2]);
       res = res + tr3;
-      //cout << " tr3 = " << tr3.X() << "  " << tr3.Y() << "  " << tr3.Z() << endl;
-      //cout << " Translated to local coords in stave: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
 
       // Rotate stave to its angle in the world. Rotate by:
       //    90 degrees to make it point to the origin instead of vertically up in y when it is at phi = 0
@@ -293,14 +452,10 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
       TRotation R;
       R.RotateZ(stave_phi + stave_phi_offset + stave_phi_tilt);
       res = R * res;    // rotates res using R
-      //cout << "Rotate through phi = " << stave_phi << " + phi_offset = " << stave_phi_offset << " + phitilt = " << stave_phi_tilt << endl;
-      //cout << " Rotated stave to point at origin, then tilted it: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
 
       // transform location of stave to its location in the world 
       TVector3 tr4(layer_radius * cos(stave_phi), layer_radius * sin(stave_phi), 0.0);
       res = res + tr4;
-      //cout << " tr4 = " << tr4.X() << "  " << tr4.Y() << "  " << tr4.Z() << endl;
-      //cout << " Translated stave to location in world: res = " << res.X() << " " << res.Y() << " " << res.Z() << endl;
 
       return res;
     }

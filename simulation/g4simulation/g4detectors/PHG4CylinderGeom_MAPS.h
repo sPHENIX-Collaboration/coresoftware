@@ -15,6 +15,7 @@ class PHG4CylinderGeom_MAPS: public PHG4CylinderGeomv4
   virtual ~PHG4CylinderGeom_MAPS() {}
 
   void identify(std::ostream& os = std::cout) const;
+  TVector3 get_local_from_world_coords(int stave, int half_stave, int module, int chip, TVector3 world_location);
   TVector3 get_world_from_local_coords(int stave, int half_stave, int module, int chip, TVector3 sensor_local);
   int get_pixel_from_local_coords(double pixel_x, double pixel_y, TVector3 sensor_local);
   TVector3 get_local_coords_from_pixel(double pixel_x, double pixel_y, int NXZ);
@@ -52,6 +53,26 @@ protected:
   // finding the sensor location
   double sensor_z_spacing;
 
+  // for all layers
+  double loc_sensor_in_chip[3];
+
+  // inner barrel layers stave construction 
+  // (stave_type == 0)
+  double inner_loc_chip_in_module[9][3];
+  double inner_loc_module_in_halfstave[3];
+  double inner_loc_halfstave_in_stave[3];
+
+  // middle barrel layers stave construction 
+  // (stave_type == 1)
+  double middle_loc_chip_in_module[14][3];
+  double middle_loc_module_in_halfstave[4][3];
+  double middle_loc_halfstave_in_stave[2][3];
+
+  // outer barrel layers stave construction 
+  // (stave_type == 2)
+  double outer_loc_chip_in_module[14][3];
+  double outer_loc_module_in_halfstave[7][3];
+  double outer_loc_halfstave_in_stave[2][3];
   
   ClassDef(PHG4CylinderGeom_MAPS,1)
 };

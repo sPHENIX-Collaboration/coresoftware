@@ -165,20 +165,37 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  double xsensor_in = hiter->second->get_local_x(0);
 	  double ysensor_in = hiter->second->get_local_y(0);
 	  double zsensor_in = hiter->second->get_local_z(0);
+	  TVector3 local_in(xsensor_in, ysensor_in, zsensor_in);
+
+	  // The G4 transform to local coordinates for the exit point does not work properly
+	  // Use the method in the geometry object to convert from world to local coords
+
+	  TVector3 world_out(  hiter->second->get_x( 1),  hiter->second->get_y( 1),  hiter->second->get_z( 1) );
+	  TVector3 world_in(  hiter->second->get_x( 0),  hiter->second->get_y( 0),  hiter->second->get_z( 0) );
+
+	  /*
 	  double xsensor_out = hiter->second->get_local_x(1);
 	  double ysensor_out = hiter->second->get_local_y(1);
 	  double zsensor_out = hiter->second->get_local_z(1);
+	  */
+	  TVector3 local_out =  layergeom->get_local_from_world_coords(stave_number, half_stave_number, module_number, chip_number, world_out);
+	  TVector3 local_in_check =  layergeom->get_local_from_world_coords(stave_number, half_stave_number, module_number, chip_number, world_in);
 
-	  TVector3 local_in(xsensor_in, ysensor_in, zsensor_in);
-	  TVector3 local_out(xsensor_out, ysensor_out, zsensor_out);
-      
+	  cout << endl << "  world entry point position: " << hiter->second->get_x(0) << " " << hiter->second->get_y(0) << " " << hiter->second->get_z(0) << endl;
+	  cout << "  world exit point position: " << world_out.X() << " " << world_out.Y() << " " << world_out.Z() << endl;
+	  cout << "  local coords of entry point from G4 " << hiter->second->get_local_x(0)  << " " << hiter->second->get_local_y(0) << " " << hiter->second->get_local_z(0) << endl;      
+	  cout << "  local coords of entry point from geom (check) " << local_in_check.X()  << " " << local_in_check.Y() << " " << local_in_check.Z() << endl;      
+	  cout << "  local coords of exit point from geom " << local_out.X()  << " " << local_out.Y() << " " << local_out.Z() << endl;      
+	  cout << "  local coords of exit point from G4 " << hiter->second->get_local_x(1)  << " " << hiter->second->get_local_y(1) << " " << hiter->second->get_local_z(1) << endl;      
+	  cout << endl;
+
 	  // As a check, get the positions of the hit strips in world coordinates from the geo object 
 	  TVector3 location_in = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_in);
 	  TVector3 location_out = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_out);
 
 	  if(verbosity > 2)
 	    {
-	      cout << "      PHG4MapsCellReco:  Found entry location from geometry for  " 
+	      cout << endl << "      PHG4MapsCellReco:  Found world entry location from geometry for  " 
 		   << " stave number " << stave_number
 		   << " half stave number " << half_stave_number 
 		   << " module number" << module_number 
@@ -189,7 +206,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		   << " radius " << sqrt( pow(location_in.X(), 2) + pow(location_in.Y(), 2) ) 
 		   << " angle " << atan( location_in.Y() / location_in.X() )
 		   << endl;
-	      cout << "     PHG4MapsCellReco: The entry location from G4 was "
+	      cout << "     PHG4MapsCellReco: The world entry location from G4 was "
 		   << endl
 		   << " x = " <<   hiter->second->get_x( 0)
 		   << " y " <<  hiter->second->get_y( 0)
@@ -204,7 +221,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		   << " in angle = " <<  atan( hiter->second->get_y(0) / hiter->second->get_x(0) )  -  atan( location_in.Y() / location_in.X() )  
 		   << endl << endl;
 	      
-	      cout << "      PHG4MapsCellReco:  Found exit location from geometry for  " 
+	      cout << "      PHG4MapsCellReco:  Found world exit location from geometry for  " 
 		   << " stave number " << stave_number
 		   << " half stave number " << half_stave_number 
 		   << " module number" << module_number 
@@ -215,7 +232,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		   << " radius " << sqrt( pow(location_out.X(), 2) + pow(location_out.Y(), 2) ) 
 		   << " angle " << atan( location_out.Y() / location_out.X() )
 		   << endl;
-	      cout << "     PHG4MapsCellReco: The exit location from G4 was "
+	      cout << "     PHG4MapsCellReco: The world exit location from G4 was "
 		   << endl
 		   << " x = " <<   hiter->second->get_x( 1)
 		   << " y " <<  hiter->second->get_y( 1)
@@ -239,6 +256,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	      cout << " CellReco: pixel number in = " << pixel_number_in << endl;
 	      cout << " PHG4MapsCellReco: pixel local coords from pixel number in = " << pixel_local_coords_in.X() << " " << pixel_local_coords_in.Y() << " " << pixel_local_coords_in.Z() << endl;
 	      cout << " PHG4MapsCellReco:hit entry point  local coords from G4 = " << local_in.X() << " " << local_in.Y() << " " << local_in.Z() << endl;
+	      cout << " PHG4MapsCellReco:hit exit point  local coords from Geom = " << local_out.X() << " " << local_out.Y() << " " << local_out.Z() << endl;
 	    }
 	  
 	  // combine ladder index values to get a single key
