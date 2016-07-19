@@ -1,6 +1,6 @@
 #include "RunInfoUnpackPRDF.h"
-#include "EventHeader_Prototype2.h"
 
+#include <ffaobjects/EventHeaderv1.h>
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/packetConstants.h>
@@ -55,10 +55,11 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
     }
 
   // construct event info
-  EventHeader_Prototype2* eventheader = findNode::getClass<
-      EventHeader_Prototype2>(topNode, "EventHeader");
+  EventHeaderv1* eventheader = findNode::getClass<
+      EventHeaderv1>(topNode, "EventHeader");
   if (eventheader)
     {
+      eventheader->set_RunNumber(event->getRunNumber());
       eventheader->set_EvtSequence(event->getEvtSequence());
       eventheader->set_EvtType(event->getEvtType());
       eventheader->set_TimeStamp(event->getTime());
@@ -170,7 +171,7 @@ RunInfoUnpackPRDF::CreateNodeTree(PHCompositeNode *topNode)
     topNode->addNode( dst_node );
   }
 
-  EventHeader_Prototype2* eventheader = new EventHeader_Prototype2();
+  EventHeaderv1* eventheader = new EventHeaderv1();
   PHObjectNode_t *EventHeaderNode = new PHObjectNode_t(eventheader, "EventHeader", "PHObject"); // contain PHObject
   dst_node->addNode(EventHeaderNode);
 
