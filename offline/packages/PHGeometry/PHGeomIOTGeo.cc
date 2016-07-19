@@ -57,6 +57,7 @@ PHGeomIOTGeo::SetGeometry(const TGeoVolume * g)
   // Stream TGeoVolume into binary stream with its streamer using TFIle utility
   TMemFile f1("mem","CREATE");
   g->Write("TOP");
+  f1.Close();
 
   const Long64_t n = f1.GetSize();
 
@@ -64,7 +65,6 @@ PHGeomIOTGeo::SetGeometry(const TGeoVolume * g)
   Long64_t n1 = f1.CopyTo(Data.data(), n);
   assert(n1 == n);
 
-  f1.Close();
 }
 
 TGeoVolume *
