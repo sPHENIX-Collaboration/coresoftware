@@ -27,8 +27,6 @@ libphgeom_la_SOURCES = \
   PHGeomTGeo_Dict.cc \
   PHGeomIOTGeo.cc \
   PHGeomIOTGeo_Dict.cc \
-  PHGeomManager.cc \
-  PHGeomManager_Dict.cc  \
   PHGeomFileImport.cc \
   PHGeomFileImport_Dict.cc  \
   PHGeomUtility.cc \
