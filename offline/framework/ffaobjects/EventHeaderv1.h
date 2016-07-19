@@ -1,26 +1,22 @@
-#ifndef EventHeader_Prototype2_H
-#define EventHeader_Prototype2_H
+#ifndef __EVENTHEADERv1_H
+#define __EVENTHEADERv1_H
 
-#include <phool/PHObject.h>
+#include "EventHeader.h"
 
-#include <ctime>
-#include <iostream>
-
-//! EventHeader specific for prototype2 beam tests
-class EventHeader_Prototype2: public PHObject
+//! simple event header with ID and time
+class EventHeaderv1: public EventHeader
 {
  public:
 
   /// ctor
-  EventHeader_Prototype2();
+  EventHeaderv1();
   /// dtor
-  virtual ~EventHeader_Prototype2() {}
+  virtual ~EventHeaderv1() {}
 
-  EventHeader_Prototype2 * clone() const { return new EventHeader_Prototype2(*this); }
+  EventHeaderv1 * clone() const { return new EventHeaderv1(*this); }
 
   ///  Clear Event
   void Reset();
-
 
   /** identify Function from PHObject
       @param os Output Stream 
@@ -29,6 +25,11 @@ class EventHeader_Prototype2: public PHObject
 
   /// isValid returns non zero if object contains valid data
   int isValid() const;
+
+  /// get Run Number
+  int get_RunNumber() const {return RunNumber;}
+  /// set Run Number
+  void set_RunNumber(const int run) {RunNumber=run; return;}
 
   /// get Event Number
   int get_EvtSequence() const {return EvtSequence;}
@@ -47,12 +48,13 @@ class EventHeader_Prototype2: public PHObject
 
  protected:
 
+  int RunNumber;  // Run number
   int EvtSequence;  // Event number
   int EvtType;      // Data type (Data,Rejected,Scaler,PPG ...)
-  time_t TimeStamp;  // TimeStamp of Evt
+  time_t TimeStamp;  // TimeStamp of Evt from ATP in Ticks 
 
  private: // prevent doc++ from showing ClassDef
-  ClassDef(EventHeader_Prototype2,1)
+  ClassDef(EventHeaderv1,1)
 };
 
 #endif
