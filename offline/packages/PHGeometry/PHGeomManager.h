@@ -8,6 +8,8 @@
 #include <string>
 #include <iostream>
 
+class TGeoManager;
+
 class PHGeomManager
 {
 
@@ -23,6 +25,8 @@ public:
   instance();
 
 protected:
+
+
 
   static PHGeomManager *__instance;
 
