@@ -39,11 +39,13 @@ PHGeomTGeo::SetGeometry(TGeoManager * g)
 
   if (!g)
     {
-      cout << __PRETTY_FUNCTION__<<" - Error - Invalid input" << endl;
+      cout << __PRETTY_FUNCTION__ << " - Error - Invalid input" << endl;
       return;
     }
 
   _fGeom = g;
+  _fGeom->LockGeometry();
+
   ConsistencyCheck();
 }
 
@@ -86,7 +88,10 @@ PHGeomTGeo::Reset()
   ConsistencyCheck();
 
   if (_fGeom)
-    delete _fGeom;
+    {
+      _fGeom->UnlockGeometry();
+      delete _fGeom;
+    }
   _fGeom = NULL;
 }
 
