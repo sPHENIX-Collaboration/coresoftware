@@ -15,6 +15,11 @@ Fun4All_ExportGeom(string DST_file_name = "sPHENIX.root_DST.root")
 
   gSystem->Load("libphgeom.so");
 
+  // in case DST contains sPHENIX stuff
+  gSystem->Load("libcemc.so");
+  gSystem->Load("libg4vertex.so");
+  gSystem->Load("libg4eval.so");
+
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(1);
   recoConsts *rc = recoConsts::instance();
