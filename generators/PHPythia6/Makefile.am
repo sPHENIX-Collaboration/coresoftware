@@ -7,8 +7,10 @@ AM_CXXFLAGS = -Wall -Werror
 
 lib_LTLIBRARIES = libPHPythia6.la
 
-include_HEADERS = \
-  PHPythia6.h
+pkginclude_HEADERS = \
+  PHPythia6.h \
+  PHPy6GenTrigger.h \
+  PHPy6ForwardElectronTrig.h 
 
 libPHPythia6_la_LDFLAGS = ${AM_LDFLAGS} `root-config --libs`
 
@@ -22,9 +24,7 @@ libPHPythia6_la_SOURCES = \
   PHPy6GenTrigger.C \
   PHPy6GenTrigger.h \
   PHPy6ForwardElectronTrig.C \
-  PHPy6ForwardElectronTrig.h \
-  PHPy6ForwardDiElectronTrig.C \
-  PHPy6ForwardDiElectronTrig.h 
+  PHPy6ForwardElectronTrig.h 
 
 BUILT_SOURCES = \
   testexternals.C
@@ -46,7 +46,6 @@ PHPythia6_Dict.C: \
   PHPythia6.h \
   PHPy6GenTrigger.h \
   PHPy6ForwardElectronTrig.h \
-  PHPy6ForwardDiElectronTrig.h \
   PHPythia6LinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 

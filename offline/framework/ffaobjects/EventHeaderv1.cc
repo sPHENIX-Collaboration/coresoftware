@@ -14,6 +14,7 @@ EventHeaderv1::EventHeaderv1()
 
 void EventHeaderv1::Reset()
 {
+  RunNumber = 0;
   TimeStamp = 0;
   EvtSequence = -999999;
   EvtType = -999999;
@@ -23,7 +24,8 @@ void EventHeaderv1::Reset()
 void EventHeaderv1::identify(ostream& out) const
 {
   out << "identify yourself: I am an EventHeaderv1 Object" << endl;
-  out << "Event no: " << EvtSequence 
+  out << "Run Number: " << RunNumber 
+      << ", Event no: " << EvtSequence 
       << ", Type: " << EvtType 
       << ", DAQ arrival time: " << ctime(&TimeStamp)
       << endl;
