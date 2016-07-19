@@ -19,7 +19,6 @@ pkginclude_HEADERS = \
 	PHGeomUtility.h
 
 noinst_HEADERS = \
-	PHGeomManager.h \
 	PHGeomFileImport.h
 
 libphgeom_la_SOURCES = \
