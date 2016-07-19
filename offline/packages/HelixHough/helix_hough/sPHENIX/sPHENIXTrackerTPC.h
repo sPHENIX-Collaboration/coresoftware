@@ -249,6 +249,9 @@ class sPHENIXTrackerTPC : public HelixHough {
     isolation_variable.clear();
   }
 
+  bool breakRecursion(const std::vector<SimpleHit3D>& hits,
+                      const HelixRange& range);
+
   static float fitTrack(SimpleTrack3D& track);
   static float fitTrack(SimpleTrack3D& track, std::vector<float>& chi2_hit);
 

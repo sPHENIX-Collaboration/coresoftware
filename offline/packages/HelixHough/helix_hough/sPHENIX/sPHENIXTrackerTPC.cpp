@@ -442,6 +442,36 @@ void sPHENIXTrackerTPC::finalize(vector<SimpleTrack3D>& input,
   }
 }
 
+bool sPHENIXTrackerTPC::breakRecursion(const vector<SimpleHit3D>& hits,
+                                       const HelixRange& range) {
+  if (seeding == true) {
+    return false;
+  }
+  unsigned int layer_mask[4] = {0, 0, 0, 0};
+  for (unsigned int i = 0; i < hits.size(); ++i) {
+    if (hits[i].get_layer() < 32) {
+      layer_mask[0] = layer_mask[0] | (1 << hits[i].get_layer());
+    } else if (hits[i].get_layer() < 64) {
+      layer_mask[1] = layer_mask[1] | (1 << (hits[i].get_layer() - 32));
+    } else if (hits[i].get_layer() < 96) {
+      layer_mask[2] = layer_mask[2] | (1 << (hits[i].get_layer() - 64));
+    } else if (hits[i].get_layer() < 128) {
+      layer_mask[3] = layer_mask[3] | (1 << (hits[i].get_layer() - 96));
+    }
+  }
+  unsigned int nlayers =
+    __builtin_popcount(layer_mask[0]) + __builtin_popcount(layer_mask[1]) +
+    __builtin_popcount(layer_mask[2]) + __builtin_popcount(layer_mask[3]);
+
+  if (require_pixels == true) {
+    if (((layer_mask[0] & 1) == 0) || ((layer_mask[0] & 2) == 0)) {
+      return true;
+    }
+  }
+
+  return (nlayers < required_layers);
+}
+
 void sPHENIXTrackerTPC::findTracks(vector<SimpleHit3D>& hits,
                                    vector<SimpleTrack3D>& tracks,
                                    const HelixRange& range) {
