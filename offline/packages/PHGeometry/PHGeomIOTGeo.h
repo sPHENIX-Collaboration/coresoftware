@@ -79,7 +79,7 @@ protected:
   //! store the streamed geometry and its streamer via a binary stream
   std::vector<char> Data;
 
-ClassDef(PHGeomIOTGeo,2)
+ClassDef(PHGeomIOTGeo,3)
 };
 
 #endif /* PHGeomIOTGeo_H_ */
