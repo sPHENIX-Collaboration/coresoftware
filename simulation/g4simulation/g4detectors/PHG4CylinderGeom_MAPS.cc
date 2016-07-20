@@ -459,8 +459,26 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
 
       return res;
     }
+}
 
+int PHG4CylinderGeom_MAPS::get_pixel_X_from_pixel_number(double pixel_x, double pixel_y, int NXZ)
+{
+  NZ = (int)  ( Zsensor / (pixel_y) );
+  NX = (int)  ( Xsensor / (pixel_x) );
+  
+  int Ngridx = NXZ % NX ;
 
+    return Ngridx;
+}
+
+int PHG4CylinderGeom_MAPS::get_pixel_Y_from_pixel_number(double pixel_x, double pixel_y, int NXZ)
+{  
+  NZ = (int)  ( Zsensor / (pixel_y) );
+  NX = (int)  ( Xsensor / (pixel_x) );
+
+  int Ngridz = NXZ / NX;
+
+    return Ngridz;
 }
 
 int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(double pixel_x, double pixel_y, TVector3 sensor_local)
@@ -474,18 +492,10 @@ int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(double pixel_x, double pi
   // find the pixel grid point
   
   double npix_x = sensor_local.X() / pixel_x;
-  int Ngridx = int(npix_x);
+  int Ngridx = int(npix_x) ;
   
   double npix_z = sensor_local.Z() / pixel_y;
   int Ngridz = int(npix_z);
-
-  /*
-  cout << "sensor x " << sensor_local.X()
-       << " sensor z " << sensor_local.Z()
-       << " Ngridx (ref to center) " << Ngridx
-       << " Ngridz (ref to center) " << Ngridz
-       << endl;
-  */
 
   //  Combine the grid locations into a single integer
   // transform to the grid location referenced to top left corner of the chip as (0,0)
@@ -500,7 +510,7 @@ int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(double pixel_x, double pi
   */
 
   // numbering starts at zero
-  int NXZ = Ngridx + (Ngridz-1) * NX;
+  int NXZ = Ngridx + Ngridz * NX;
   //cout << " pixel number is " << NXZ << endl;
 
   return NXZ;
@@ -513,17 +523,13 @@ TVector3 PHG4CylinderGeom_MAPS::get_local_coords_from_pixel(double pixel_x, doub
   
   //cout  << " Pixels in X: NX  " << NX  << " pixels in Z: NZ  " << NZ << endl;
 
-  int Ngridz = NXZ / NX + 1;
+  int Ngridz = NXZ / NX;
   int Ngridx = NXZ % NX;
-
-  //cout << "Ngridx = " << Ngridx << " Ngridz = " << Ngridz << endl;
 
   // change to a grid centered on the sensor
   Ngridx -=  NX/2;
   Ngridz -= NZ/2;
 
-  //cout << "Ngridx (ref to center) = " << Ngridx << " Ngridz (ref to center) = " << Ngridz << endl;
-  
   double sensor_local_x = (double) Ngridx * pixel_x;
   if(sensor_local_x < 0)
     sensor_local_x -= pixel_x / 2.0;

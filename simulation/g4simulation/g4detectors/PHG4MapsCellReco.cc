@@ -169,32 +169,28 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 
 	  // The G4 transform to local coordinates for the exit point does not work properly
 	  // Use the method in the geometry object to convert from world to local coords
-
 	  TVector3 world_out(  hiter->second->get_x( 1),  hiter->second->get_y( 1),  hiter->second->get_z( 1) );
-	  TVector3 world_in(  hiter->second->get_x( 0),  hiter->second->get_y( 0),  hiter->second->get_z( 0) );
-
-	  /*
-	  double xsensor_out = hiter->second->get_local_x(1);
-	  double ysensor_out = hiter->second->get_local_y(1);
-	  double zsensor_out = hiter->second->get_local_z(1);
-	  */
 	  TVector3 local_out =  layergeom->get_local_from_world_coords(stave_number, half_stave_number, module_number, chip_number, world_out);
-	  TVector3 local_in_check =  layergeom->get_local_from_world_coords(stave_number, half_stave_number, module_number, chip_number, world_in);
 
-	  cout << endl << "  world entry point position: " << hiter->second->get_x(0) << " " << hiter->second->get_y(0) << " " << hiter->second->get_z(0) << endl;
-	  cout << "  world exit point position: " << world_out.X() << " " << world_out.Y() << " " << world_out.Z() << endl;
-	  cout << "  local coords of entry point from G4 " << hiter->second->get_local_x(0)  << " " << hiter->second->get_local_y(0) << " " << hiter->second->get_local_z(0) << endl;      
-	  cout << "  local coords of entry point from geom (check) " << local_in_check.X()  << " " << local_in_check.Y() << " " << local_in_check.Z() << endl;      
-	  cout << "  local coords of exit point from geom " << local_out.X()  << " " << local_out.Y() << " " << local_out.Z() << endl;      
-	  cout << "  local coords of exit point from G4 " << hiter->second->get_local_x(1)  << " " << hiter->second->get_local_y(1) << " " << hiter->second->get_local_z(1) << endl;      
-	  cout << endl;
-
-	  // As a check, get the positions of the hit strips in world coordinates from the geo object 
-	  TVector3 location_in = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_in);
-	  TVector3 location_out = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_out);
+	  if(verbosity > 4)
+	    {
+	      cout << endl << "  world entry point position: " << hiter->second->get_x(0) << " " << hiter->second->get_y(0) << " " << hiter->second->get_z(0) << endl;
+	      cout << "  world exit point position: " << world_out.X() << " " << world_out.Y() << " " << world_out.Z() << endl;
+	      cout << "  local coords of entry point from G4 " << hiter->second->get_local_x(0)  << " " << hiter->second->get_local_y(0) << " " << hiter->second->get_local_z(0) << endl;      
+	      cout << "  local coords of exit point from geom " << local_out.X()  << " " << local_out.Y() << " " << local_out.Z() << endl;      
+	      cout << "  local coords of exit point from G4 " << hiter->second->get_local_x(1)  << " " << hiter->second->get_local_y(1) << " " << hiter->second->get_local_z(1) << endl;      
+	      TVector3 world_in(  hiter->second->get_x( 0),  hiter->second->get_y( 0),  hiter->second->get_z( 0) );
+	      TVector3 local_in_check =  layergeom->get_local_from_world_coords(stave_number, half_stave_number, module_number, chip_number, world_in);
+	      cout << "  local coords of entry point from geom (check) " << local_in_check.X()  << " " << local_in_check.Y() << " " << local_in_check.Z() << endl;      	      
+	      cout << endl;
+	    }
 
 	  if(verbosity > 2)
 	    {
+	      // As a check, get the positions of the hit strips in world coordinates from the geo object 
+	      TVector3 location_in = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_in);
+	      TVector3 location_out = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_out);
+	      
 	      cout << endl << "      PHG4MapsCellReco:  Found world entry location from geometry for  " 
 		   << " stave number " << stave_number
 		   << " half stave number " << half_stave_number 
@@ -245,15 +241,63 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		   << endl << endl;
 	    }
 
-	  // Get the pixel number of the input hit
+	  // Get the pixel number of the entry location
 	  int pixel_number_in = layergeom->get_pixel_from_local_coords(pixel_x, pixel_y, local_in);
+	  // Get the pixel number of the exit location
+	  int pixel_number_out = layergeom->get_pixel_from_local_coords(pixel_x, pixel_y, local_out);
 
-	  // Testing: get the local coords of the center of the pixel
-	  TVector3  pixel_local_coords_in = layergeom->get_local_coords_from_pixel(pixel_x, pixel_y, pixel_number_in);
+	  cout << "entry pixel number " << pixel_number_in << " exit pixel number " << pixel_number_out << endl;
+
+	  // Are they different?
+	  int number_of_pixels = 0;
+	  if(pixel_number_out != pixel_number_in)
+	    {
+	      // There is more than one pixel, have to divide the energy between them?
+	      // Get the list of hit pixels
+
+	      // Get the X and Y grid locations of the pixels?
+	      int Ngridx_in = layergeom->get_pixel_X_from_pixel_number(pixel_x, pixel_y, pixel_number_in);
+	      int Ngridx_out = layergeom->get_pixel_X_from_pixel_number(pixel_x, pixel_y, pixel_number_out);
+
+	      int Ngridy_in = layergeom->get_pixel_Y_from_pixel_number(pixel_x, pixel_y, pixel_number_in);
+	      int Ngridy_out = layergeom->get_pixel_Y_from_pixel_number(pixel_x, pixel_y, pixel_number_out);
+
+	      number_of_pixels = abs(Ngridx_in - Ngridx_out) + abs(Ngridy_in - Ngridy_out) + 1;
+
+	      cout << " Ngridx_in " << Ngridx_in
+		   << " Ngridy_in " << Ngridy_in
+		   << " Ngridx_out " << Ngridx_out
+		   << " Ngridy_out " << Ngridy_out
+		   << endl; 
+	    }
+	  else
+	    {
+	      //There is only one pixel, it gets all of the energy
+	      number_of_pixels = 1;
+
+	      // Get the X and Y grid locations of the pixels?
+	      int Ngridx_in = layergeom->get_pixel_X_from_pixel_number(pixel_x, pixel_y, pixel_number_in);
+	      int Ngridx_out = layergeom->get_pixel_X_from_pixel_number(pixel_x, pixel_y, pixel_number_out);
+
+	      int Ngridy_in = layergeom->get_pixel_Y_from_pixel_number(pixel_x, pixel_y, pixel_number_in);
+	      int Ngridy_out = layergeom->get_pixel_Y_from_pixel_number(pixel_x, pixel_y, pixel_number_out);
+
+	      cout << " Ngridx_in " << Ngridx_in
+		   << " Ngridy_in " << Ngridy_in
+		   << " Ngridx_out " << Ngridx_out
+		   << " Ngridy_out " << Ngridy_out
+		   << endl; 
+	    }
+	  cout << "number of pixels  " << number_of_pixels << endl;
 
 	  if(verbosity > 2)
 	    {
+	      // Testing: get the local coords of the center of the pixel
+	      TVector3  pixel_local_coords_in = layergeom->get_local_coords_from_pixel(pixel_x, pixel_y, pixel_number_in);
 	      cout << " CellReco: pixel number in = " << pixel_number_in << endl;
+	      // check - get pixel number from coords of center of pixel!
+	      int pixel_number_check =  layergeom->get_pixel_from_local_coords(pixel_x, pixel_y, local_in);
+	      cout << "pixel number in check = " << pixel_number_check << endl;
 	      cout << " PHG4MapsCellReco: pixel local coords from pixel number in = " << pixel_local_coords_in.X() << " " << pixel_local_coords_in.Y() << " " << pixel_local_coords_in.Z() << endl;
 	      cout << " PHG4MapsCellReco:hit entry point  local coords from G4 = " << local_in.X() << " " << local_in.Y() << " " << local_in.Z() << endl;
 	      cout << " PHG4MapsCellReco:hit exit point  local coords from Geom = " << local_out.X() << " " << local_out.Y() << " " << local_out.Z() << endl;

@@ -18,7 +18,10 @@ class PHG4CylinderGeom_MAPS: public PHG4CylinderGeomv4
   TVector3 get_local_from_world_coords(int stave, int half_stave, int module, int chip, TVector3 world_location);
   TVector3 get_world_from_local_coords(int stave, int half_stave, int module, int chip, TVector3 sensor_local);
   int get_pixel_from_local_coords(double pixel_x, double pixel_y, TVector3 sensor_local);
-  TVector3 get_local_coords_from_pixel(double pixel_x, double pixel_y, int NXZ);
+  int get_pixel_X_from_pixel_number(double pixel_x, double pixel_y, int NXZ) ;
+  int get_pixel_Y_from_pixel_number(double pixel_x, double pixel_y, int NXZ) ;
+
+TVector3 get_local_coords_from_pixel(double pixel_x, double pixel_y, int NXZ);
 
   void set_layer(const int i) {layer = i;}
   int get_layer() const {return layer;}
