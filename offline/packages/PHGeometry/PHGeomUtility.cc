@@ -180,7 +180,7 @@ PHGeomUtility::GenerateGeometryFileName(const std::string & filename_extension)
 {
   stringstream file;
   file << "/tmp/" << "PHGeomUtility_geom_file_" << ::getpid() << "."
-      << filename_extension << endl;
+      << filename_extension ;
 
   return file.str();
 }
