@@ -38,7 +38,6 @@ PHG4MapsCellReco::PHG4MapsCellReco(const string &name) :
   // This can be overidden by the set method
   pixel_x = 28.0e-04;    // cm
   pixel_y = 28.0e-04;    // cm
-
 }
 
 int PHG4MapsCellReco::InitRun(PHCompositeNode *topNode)
@@ -153,21 +152,10 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  int half_stave_number = hiter->second->get_property_int(PHG4Hit::prop_half_stave_index);
 	  int module_number = hiter->second->get_property_int(PHG4Hit::prop_module_index);
 	  int chip_number = hiter->second->get_property_int(PHG4Hit::prop_chip_index);
-	  /*
-	  double xsensor_in = hiter->second->get_property_float(PHG4Hit::prop_local_pos_x_0);
-	  double ysensor_in = hiter->second->get_property_float(PHG4Hit::prop_local_pos_y_0);
-	  double zsensor_in = hiter->second->get_property_float(PHG4Hit::prop_local_pos_z_0);
-	  double xsensor_out = hiter->second->get_property_float(PHG4Hit::prop_local_pos_x_1);
-	  double ysensor_out = hiter->second->get_property_float(PHG4Hit::prop_local_pos_y_1);
-	  double zsensor_out = hiter->second->get_property_float(PHG4Hit::prop_local_pos_z_1);
-	  */
 
-	  double xsensor_in = hiter->second->get_local_x(0);
-	  double ysensor_in = hiter->second->get_local_y(0);
-	  double zsensor_in = hiter->second->get_local_z(0);
-	  TVector3 local_in(xsensor_in, ysensor_in, zsensor_in);
-
-	  // The G4 transform to local coordinates for the exit point does not work properly
+	  TVector3 local_in( hiter->second->get_local_x(0),  hiter->second->get_local_y(0),  hiter->second->get_local_z(0) );
+ 
+	  // The G4 transform to local coordinates for the exit point does not work properly, so the local exit coordinates in the hit object are wrong
 	  // Use the method in the geometry object to convert from world to local coords
 	  TVector3 world_out(  hiter->second->get_x( 1),  hiter->second->get_y( 1),  hiter->second->get_z( 1) );
 	  TVector3 local_out =  layergeom->get_local_from_world_coords(stave_number, half_stave_number, module_number, chip_number, world_out);
@@ -241,6 +229,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		   << endl << endl;
 	    }
 
+	  /*
 	  // Get the pixel number of the entry location
 	  int pixel_number_in = layergeom->get_pixel_from_local_coords(pixel_x, pixel_y, local_in);
 	  // Get the pixel number of the exit location
@@ -302,6 +291,16 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	      cout << " PHG4MapsCellReco:hit entry point  local coords from G4 = " << local_in.X() << " " << local_in.Y() << " " << local_in.Z() << endl;
 	      cout << " PHG4MapsCellReco:hit exit point  local coords from Geom = " << local_out.X() << " " << local_out.Y() << " " << local_out.Z() << endl;
 	    }
+
+	  */
+
+	  // This is a temporary make-do to get a single pixel that represents the hit.
+	  // Find the mid point between the entry and exit locations in the sensor
+
+	  TVector3 midpoint( (local_in.X() + local_out.X()) / 2.0, (local_in.Y() + local_out.Y()) / 2.0, (local_in.Z() + local_out.Z()) / 2.0 );
+	  int pixel_number_mid = layergeom->get_pixel_from_local_coords(pixel_x, pixel_y, midpoint);
+	  TVector3  pixel_local_coords_mid = layergeom->get_local_coords_from_pixel(pixel_x, pixel_y, pixel_number_mid);
+
 	  
 	  // combine ladder index values to get a single key
 	  char inkey[1024];
@@ -319,7 +318,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	    celllist[key]->set_half_stave_index(half_stave_number);
 	    celllist[key]->set_module_index(module_number);
 	    celllist[key]->set_chip_index(chip_number);
-	    celllist[key]->set_pixel_index(pixel_number_in);
+	    celllist[key]->set_pixel_index(pixel_number_mid);
 	    
 	    celllist[key]->add_edep(hiter->first, hiter->second->get_edep());
 	  }
