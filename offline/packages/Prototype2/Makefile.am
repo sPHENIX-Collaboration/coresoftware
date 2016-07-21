@@ -16,7 +16,8 @@ lib_LTLIBRARIES = \
 
 pkginclude_HEADERS = \
   RawTower_Prototype2.h \
-  RawTower_Temperature.h 
+  RawTower_Temperature.h \
+  PROTOTYPE2_FEM.h
 
 libPrototype2_la_SOURCES = \
   RawTower_Prototype2.cc \
