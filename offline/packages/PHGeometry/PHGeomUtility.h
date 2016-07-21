@@ -69,6 +69,12 @@ public:
   static bool
   RemoveGeometryFile(const std::string & file_name);
 
+  //! Verbosity for geometry IO like, TGeoMangers
+  static void SetVerbosity(int v);
+
+  //! Verbosity for geometry IO like, TGeoMangers
+  static int GetVerbosity();
+
   //! DST node name for RunTime geometry object
   static std::string
   GetDSTNodeName()
