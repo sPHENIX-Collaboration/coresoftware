@@ -13,20 +13,35 @@
 //! Quick inspection of PHGeoTGeo object in RUN/GEOMETRY node inside a DST file
 //! Based on abhisek's display macro
 void
-PHGeom_DSTInspection(TString DST_file_name = "DST.root", bool do_clip = true )
+PHGeom_DSTInspection(string DST_file_name = "sPHENIX.root_DST.root",
+    bool do_clip = true)
 {
   TEveManager::Create();
 
-  TFile * _file0 = TFile::Open(DST_file_name);
-  assert(_file0->IsOpen());
 
-  TTree * T1 = (TTree *) _file0->GetObjectChecked("T1", "TTree");
-  assert(T1);
+  // main lib
+  gSystem->Load("libphgeom.so");
 
-  TBranch * tgeom = T1->GetBranch("RUN.GEOMETRY._fGeom");
-  assert(tgeom);
+  // in case DST contains sPHENIX stuff
+  gSystem->Load("libcemc.so");
+  gSystem->Load("libg4vertex.so");
+  gSystem->Load("libg4eval.so");
 
-  tgeom->GetEntry(0);
+
+  Fun4AllServer *se = Fun4AllServer::instance();
+  se->Verbosity(1);
+  recoConsts *rc = recoConsts::instance();
+  rc->set_IntFlag("RUNNUMBER", 12345);
+
+  Fun4AllInputManager *hitsin = new Fun4AllDstInputManager("DSTin");
+  hitsin->fileopen(DST_file_name);
+  se->registerInputManager(hitsin);
+
+  // run one event as example
+  se->run(1);
+
+  PHGeomUtility::GetTGeoManager(se->topNode());
+
   assert(gGeoManager);
 
   if (!gROOT->GetListOfGeometries()->FindObject(gGeoManager))
@@ -57,12 +72,16 @@ PHGeom_DSTInspection(TString DST_file_name = "DST.root", bool do_clip = true )
   // EClipType not exported to CINT (see TGLUtil.h):
   // 0 - no clip, 1 - clip plane, 2 - clip box
   TGLViewer *v = gEve->GetDefaultGLViewer();
-  if (Clip) v->GetClipSet()->SetClipType(1);
-  v->ColorSet().Background().SetColor(kMagenta + 4);
+  if (do_clip)
+    {
+      v->GetClipSet()->SetClipType( TGLClip::kClipPlane  );
+    }
+//  v->ColorSet().Background().SetColor(kMagenta + 4);
   v->SetGuideState(TGLUtil::kAxesEdge, kTRUE, kFALSE, 0);
   v->RefreshPadEditor(v);
 
-  v->CurrentCamera().RotateRad(-0.5, 0.5);
+  v->CurrentCamera().RotateRad(-1.6.,0.);
   v->DoDraw();
+
 }
 

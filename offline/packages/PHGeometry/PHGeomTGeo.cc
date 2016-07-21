@@ -11,11 +11,13 @@
 #include "PHGeomTGeo.h"
 
 #include "TGeoManager.h"
+
 #include <iostream>
+#include <cassert>
 
 using namespace std;
 
-ClassImp(PHGeomTGeo);
+//ClassImp(PHGeomTGeo);
 
 PHGeomTGeo::PHGeomTGeo() :
     _fGeom(NULL)
@@ -25,44 +27,42 @@ PHGeomTGeo::PHGeomTGeo() :
 
 PHGeomTGeo::~PHGeomTGeo()
 {
-  // TODO Auto-generated destructor stub
+  ConsistencyCheck();
+  Reset();
 }
 
 void
 PHGeomTGeo::SetGeometry(TGeoManager * g)
 {
+  ConsistencyCheck();
+  assert(_fGeom == NULL);
+
   if (!g)
     {
-      cout << "dbFvtxAlignment::SetGeometry - Error - Invalid input" << endl;
+      cout << __PRETTY_FUNCTION__ << " - Error - Invalid input" << endl;
       return;
     }
 
-  // this part produce a new copy, rather than depending on the external inputs
-
-//  if (_fGeom)
-//    {
-//      cout << "dbFvtxAlignment::SetGeometry - Clean up the old geometry"
-//          << endl;
-//      delete _fGeom;
-//    }
-
-////  preserve the gGeoManager
-//  TGeoManager * g_tmp = gGeoManager;
-//  gGeoManager = NULL;
-//
-//  _fGeom = static_cast<TGeoManager *>(g->Clone("PHGeomTGeo_fGeom"));
-//
-//  // recover it
-//  gGeoManager = g_tmp;
-
   _fGeom = g;
+  _fGeom->LockGeometry();
 
+  ConsistencyCheck();
 }
 
 TGeoManager *
 PHGeomTGeo::GetGeometry()
 {
-  return _fGeom;
+  if (_fGeom == NULL)
+    return NULL;
+
+  ConsistencyCheck();
+
+  if (_fGeom == gGeoManager)
+    return _fGeom;
+  else
+    {
+      return NULL;
+    }
 }
 
 /** identify Function from PHObject
@@ -78,14 +78,20 @@ PHGeomTGeo::identify(std::ostream& os) const
   else
     os << "Empty";
   os << endl;
+  ConsistencyCheck();
 }
 
 /// Clear Event
 void
 PHGeomTGeo::Reset()
 {
+  ConsistencyCheck();
+
   if (_fGeom)
-    delete _fGeom;
+    {
+      _fGeom->UnlockGeometry();
+      delete _fGeom;
+    }
   _fGeom = NULL;
 }
 
@@ -93,9 +99,32 @@ PHGeomTGeo::Reset()
 int
 PHGeomTGeo::isValid() const
 {
+  ConsistencyCheck();
+
   if (_fGeom == NULL)
     return 0;
   if (_fGeom->IsZombie())
     return 0;
   return 1;
+}
+
+bool
+PHGeomTGeo::ConsistencyCheck() const
+{
+  if (_fGeom == NULL)
+    return true; // uninitialized
+
+  if (_fGeom == gGeoManager)
+    return true;
+  else
+    {
+
+      cout << __PRETTY_FUNCTION__
+          << " - ERROR - gGeoManager is overridden by another TGeoManager. "
+          << "Please avoid using multiple TGeoManager in processing. Stop the process."
+          << endl;
+      exit(1);
+      return false;
+
+    }
 }

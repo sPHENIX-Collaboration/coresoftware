@@ -59,6 +59,7 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
       EventHeaderv1>(topNode, "EventHeader");
   if (eventheader)
     {
+      eventheader->set_RunNumber(event->getRunNumber());
       eventheader->set_EvtSequence(event->getEvtSequence());
       eventheader->set_EvtType(event->getEvtType());
       eventheader->set_TimeStamp(event->getTime());
