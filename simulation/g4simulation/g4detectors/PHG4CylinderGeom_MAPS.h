@@ -10,19 +10,20 @@ class PHG4CylinderGeom_MAPS: public PHG4CylinderGeomv4
 {
  public:
 
-  PHG4CylinderGeom_MAPS(int layer, int stave_type, int in_Nstaves, double in_layer_nominal_radius, double in_phistep, double in_phitilt);
+  PHG4CylinderGeom_MAPS(int layer, int stave_type, int in_Nstaves, double in_layer_nominal_radius, double in_phistep, double in_phitilt, double in_pixel_x, double in_pixel_y);
 
   virtual ~PHG4CylinderGeom_MAPS() {}
 
   void identify(std::ostream& os = std::cout) const;
   TVector3 get_local_from_world_coords(int stave, int half_stave, int module, int chip, TVector3 world_location);
   TVector3 get_world_from_local_coords(int stave, int half_stave, int module, int chip, TVector3 sensor_local);
-  int get_pixel_from_local_coords(double pixel_x, double pixel_y, TVector3 sensor_local);
-  int get_pixel_X_from_pixel_number(double pixel_x, double pixel_y, int NXZ) ;
-  int get_pixel_Y_from_pixel_number(double pixel_x, double pixel_y, int NXZ) ;
-
-TVector3 get_local_coords_from_pixel(double pixel_x, double pixel_y, int NXZ);
-
+  int get_pixel_from_local_coords(TVector3 sensor_local);
+  TVector3 get_local_coords_from_pixel(int NXZ);
+  int get_pixel_X_from_pixel_number(int NXZ) ;
+  int get_pixel_Y_from_pixel_number(int NXZ) ;
+  void set_pixel_x (const double a) {pixel_x = a;}
+  void set_pixel_y(const double a) {pixel_y = a;}
+  
   void set_layer(const int i) {layer = i;}
   int get_layer() const {return layer;}
   double get_radius() const {return layer_radius;}
@@ -76,6 +77,9 @@ protected:
   double outer_loc_chip_in_module[14][3];
   double outer_loc_module_in_halfstave[7][3];
   double outer_loc_halfstave_in_stave[2][3];
+
+  double pixel_x;
+  double pixel_y;
   
   ClassDef(PHG4CylinderGeom_MAPS,1)
 };

@@ -312,8 +312,7 @@ PHG4MapsDetector::AddGeometryNode()
         }
       // here in the detector class we have internal units, convert to cm
       // before putting into the geom object
-      PHG4CylinderGeom *mygeom = new PHG4CylinderGeom_MAPS(layer, stave_type, N_staves, layer_nominal_radius/cm, phistep/rad, phitilt/rad);
-
+      PHG4CylinderGeom *mygeom = new PHG4CylinderGeom_MAPS(layer, stave_type, N_staves, layer_nominal_radius/cm, phistep/rad, phitilt/rad, pixel_x, pixel_y);
       geo->AddLayerGeom(layer, mygeom);
       geo->identify();
     }

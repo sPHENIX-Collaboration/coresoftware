@@ -57,7 +57,6 @@ pkginclude_HEADERS = \
   PHG4CylinderCellDefs.h \
   PHG4CylinderCellGeom.h \
   PHG4CylinderCellGeom_Spacalv1.h \
-  PHG4CylinderCellGeom_MAPS.h \
   PHG4CylinderCellGeomContainer.h \
   PHG4ScintillatorSlat.h \
   PHG4ScintillatorSlatContainer.h \
@@ -113,9 +112,7 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCellGeom.cc \
   PHG4CylinderCellGeom_Dict.cc \
   PHG4CylinderCellGeom_Spacalv1.cc \
-  PHG4CylinderCellGeom_MAPS.cc \
   PHG4CylinderCellGeom_Spacalv1_Dict.cc \
-  PHG4CylinderCellGeom_MAPS_Dict.cc \
   PHG4CylinderCellGeomContainer.cc \
   PHG4CylinderCellGeomContainer_Dict.cc \
   PHG4ScintillatorSlat.cc \

@@ -33,11 +33,6 @@ PHG4MapsCellReco::PHG4MapsCellReco(const string &name) :
   memset(nbins, 0, sizeof(nbins));
   Detector(name);
   cout << "Creating PHG4MapsCellReco for name = " << name << endl;
-
-  // The default pixel sizes are 28 microns x 28 microns
-  // This can be overidden by the set method
-  pixel_x = 28.0e-04;    // cm
-  pixel_y = 28.0e-04;    // cm
 }
 
 int PHG4MapsCellReco::InitRun(PHCompositeNode *topNode)
@@ -97,7 +92,7 @@ int PHG4MapsCellReco::InitRun(PHCompositeNode *topNode)
 int
 PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 {
-  verbosity = 3;
+  verbosity = 5;
 
   _timer.get()->restart();
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
@@ -154,16 +149,19 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  int chip_number = hiter->second->get_property_int(PHG4Hit::prop_chip_index);
 
 	  TVector3 local_in( hiter->second->get_local_x(0),  hiter->second->get_local_y(0),  hiter->second->get_local_z(0) );
- 
-	  // The G4 transform to local coordinates for the exit point does not work properly, so the local exit coordinates in the hit object are wrong
+ 	  TVector3 local_out( hiter->second->get_local_x(1),  hiter->second->get_local_y(1),  hiter->second->get_local_z(1) );
+
+	  /*
+	  // The G4 transform to local coordinates for the exit point does not work properly, so the local exit coordinates in the hit object are wrong - now fixed!!
 	  // Use the method in the geometry object to convert from world to local coords
 	  TVector3 world_out(  hiter->second->get_x( 1),  hiter->second->get_y( 1),  hiter->second->get_z( 1) );
 	  TVector3 local_out =  layergeom->get_local_from_world_coords(stave_number, half_stave_number, module_number, chip_number, world_out);
+	  */
 
 	  if(verbosity > 4)
 	    {
 	      cout << endl << "  world entry point position: " << hiter->second->get_x(0) << " " << hiter->second->get_y(0) << " " << hiter->second->get_z(0) << endl;
-	      cout << "  world exit point position: " << world_out.X() << " " << world_out.Y() << " " << world_out.Z() << endl;
+	      cout << "  world exit point position: " << hiter->second->get_x(1) << " " << hiter->second->get_y(1) << " " << hiter->second->get_z(1) << endl;
 	      cout << "  local coords of entry point from G4 " << hiter->second->get_local_x(0)  << " " << hiter->second->get_local_y(0) << " " << hiter->second->get_local_z(0) << endl;      
 	      cout << "  local coords of exit point from geom " << local_out.X()  << " " << local_out.Y() << " " << local_out.Z() << endl;      
 	      cout << "  local coords of exit point from G4 " << hiter->second->get_local_x(1)  << " " << hiter->second->get_local_y(1) << " " << hiter->second->get_local_z(1) << endl;      
@@ -298,9 +296,15 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  // Find the mid point between the entry and exit locations in the sensor
 
 	  TVector3 midpoint( (local_in.X() + local_out.X()) / 2.0, (local_in.Y() + local_out.Y()) / 2.0, (local_in.Z() + local_out.Z()) / 2.0 );
-	  int pixel_number_mid = layergeom->get_pixel_from_local_coords(pixel_x, pixel_y, midpoint);
-	  TVector3  pixel_local_coords_mid = layergeom->get_local_coords_from_pixel(pixel_x, pixel_y, pixel_number_mid);
+	  int pixel_number_mid = layergeom->get_pixel_from_local_coords(midpoint);
+	  TVector3  pixel_local_coords_mid = layergeom->get_local_coords_from_pixel(pixel_number_mid);
+	  TVector3 pixel_world_coords_mid = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, pixel_local_coords_mid);
 
+	  if(verbosity > 4)
+	    cout << " pixel number " << pixel_number_mid 
+		 << " pixel local coords " << pixel_local_coords_mid.X() << " " << pixel_local_coords_mid.Y() << " " << pixel_local_coords_mid.Z() 
+		 << " pixel world coords " << pixel_world_coords_mid.X() << " " << pixel_world_coords_mid.Y() << " " << pixel_world_coords_mid.Z() 
+		 << endl << endl;
 	  
 	  // combine ladder index values to get a single key
 	  char inkey[1024];

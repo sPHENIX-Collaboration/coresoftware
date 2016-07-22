@@ -62,6 +62,8 @@ int PHG4MapsSubsystem::Init( PHCompositeNode* topNode )
   detector_ = new PHG4MapsDetector(topNode, Name(), layer, stave_type);
   detector_->Verbosity(2);
   detector_->set_nominal_layer_radius(layer_nominal_radius);
+  detector_->set_pixel_x(pixel_x);
+  detector_->set_pixel_y(pixel_y);
   //detector_->set_stave_type(stave_type);
   detector_->SetActive(active);
   detector_->SetAbsorberActive(absorberactive);

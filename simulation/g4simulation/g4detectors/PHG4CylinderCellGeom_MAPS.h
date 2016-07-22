@@ -2,6 +2,7 @@
 #define PHG4CylinderCellGeom_MAPS_H__
 
 #include <phool/PHObject.h>
+#include "TVector3.h"
 
 #include <map>
 #include <string>
@@ -52,7 +53,7 @@ class PHG4CylinderCellGeom_MAPS: public PHObject
    void set_etabins(const int i);
    void set_etamin(const double z);
    void set_etastep(const double z);
-  
+   
  protected:
   void check_binning_method(const int i) const;
   void check_binning_method_eta(const std::string & src = "") const;
@@ -68,6 +69,8 @@ class PHG4CylinderCellGeom_MAPS: public PHObject
   double phimin;
   double phistep;
   double thickness;
+  double pixel_x;
+  double pixel_y;
 
   ClassDef(PHG4CylinderCellGeom_MAPS,1)
 };

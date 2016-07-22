@@ -12,13 +12,15 @@ ClassImp(PHG4CylinderGeom_MAPS)
 using namespace ROOT::Math;
 using namespace std;
 
-PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, int in_N_staves, double in_layer_nominal_radius, double in_phistep, double in_phitilt):
+PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, int in_N_staves, double in_layer_nominal_radius, double in_phistep, double in_phitilt, double in_pixel_x, double in_pixel_y):
   layer(in_layer),
   stave_type(in_stave_type),
   N_staves(in_N_staves),
   layer_radius(in_layer_nominal_radius),
   stave_phi_step(in_phistep),
-  stave_phi_tilt(in_phitilt)
+  stave_phi_tilt(in_phitilt),
+  pixel_x(in_pixel_x),
+  pixel_y(in_pixel_y)
 {
   if(stave_type < 3)
     N_half_staves = 2;
@@ -41,7 +43,7 @@ PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, in
       Xsensor = 1.505;   // cm  
     }
 
- /*      
+  /*      
   // In the ITS we should have these numbers for how staves are built (from ITS.gdml file)
    lyr rad   L   staves     modules                                                                                                     chips/module
    0  23    290    12   1 (x=0, y=0, z=0)                                                                                     9 (x=0, y=-0.00875, z=- 12.04, -9,03, -6.02, -3.01, 0, 3.01, 6.02, 9.03, 12.04) 
@@ -63,10 +65,10 @@ PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, in
 
   // for all layers
   double loc_sensor_in_chip_data[3] = {0.0, -0.0016, 0.0};
-
+  
   for(int i=0;i<3;i++)
     loc_sensor_in_chip[i] = loc_sensor_in_chip_data[i];
-
+  
   // inner barrel layers stave construction 
   //========================== 
   // (stave_type == 0)
@@ -461,7 +463,7 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
     }
 }
 
-int PHG4CylinderGeom_MAPS::get_pixel_X_from_pixel_number(double pixel_x, double pixel_y, int NXZ)
+int PHG4CylinderGeom_MAPS::get_pixel_X_from_pixel_number(int NXZ)
 {
   NZ = (int)  ( Zsensor / (pixel_y) );
   NX = (int)  ( Xsensor / (pixel_x) );
@@ -471,7 +473,7 @@ int PHG4CylinderGeom_MAPS::get_pixel_X_from_pixel_number(double pixel_x, double 
     return Ngridx;
 }
 
-int PHG4CylinderGeom_MAPS::get_pixel_Y_from_pixel_number(double pixel_x, double pixel_y, int NXZ)
+int PHG4CylinderGeom_MAPS::get_pixel_Y_from_pixel_number( int NXZ)
 {  
   NZ = (int)  ( Zsensor / (pixel_y) );
   NX = (int)  ( Xsensor / (pixel_x) );
@@ -481,8 +483,9 @@ int PHG4CylinderGeom_MAPS::get_pixel_Y_from_pixel_number(double pixel_x, double 
     return Ngridz;
 }
 
-int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(double pixel_x, double pixel_y, TVector3 sensor_local)
+int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(TVector3 sensor_local)
 {  
+
   NZ = (int)  ( Zsensor / (pixel_y) );
   NX = (int)  ( Xsensor / (pixel_x) );
   
@@ -516,7 +519,7 @@ int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(double pixel_x, double pi
   return NXZ;
 }
 
-TVector3 PHG4CylinderGeom_MAPS::get_local_coords_from_pixel(double pixel_x, double pixel_y, int NXZ)
+TVector3 PHG4CylinderGeom_MAPS::get_local_coords_from_pixel(int NXZ)
 {  
   NZ = (int)  ( Zsensor / (pixel_y) );
   NX = (int)  ( Xsensor / (pixel_x) );
@@ -558,9 +561,12 @@ void PHG4CylinderGeom_MAPS::identify(std::ostream& os) const
      << " , stave_type " << stave_type
      << ", N_staves in layer: " << N_staves
      << ", N_half_staves in layer: " << N_half_staves
+     << ", pixel_x: " << pixel_x
+     << ", pixel_y: " << pixel_y
      << endl;
   return;
 }
+
 
 void PHG4CylinderGeom_MAPS::find_sensor_center(int stave_number, int half_stave_number, int module_number, int chip_number, double location[])
 {
