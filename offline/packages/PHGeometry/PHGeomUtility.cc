@@ -7,6 +7,7 @@
 
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <phool/recoConsts.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHTypedNodeIterator.h>
 #include <phool/PHCompositeNode.h>
@@ -77,6 +78,7 @@ PHGeomUtility::ImportGeomFile(PHCompositeNode *topNode,
 
   dst_geom->Reset();
 
+  TGeoManager::SetVerboseLevel(GetVerbosity());
   dst_geom->SetGeometry(TGeoManager::Import(geometry_file.c_str()));
 
   if (dst_geom->GetGeometry() == NULL)
@@ -102,6 +104,7 @@ PHGeomUtility::ImportCurrentTGeoManager(PHCompositeNode *topNode)
 
   assert(not dst_geom->isValid()); // check that it is uninitialized
   dst_geom->SetGeometry(gGeoManager);
+  TGeoManager::SetVerboseLevel(GetVerbosity());
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -177,7 +180,7 @@ PHGeomUtility::GenerateGeometryFileName(const std::string & filename_extension)
 {
   stringstream file;
   file << "/tmp/" << "PHGeomUtility_geom_file_" << ::getpid() << "."
-      << filename_extension << endl;
+      << filename_extension ;
 
   return file.str();
 }
@@ -259,6 +262,7 @@ PHGeomUtility::LoadFromIONode(PHCompositeNode *topNode)
 
 
   // build new TGeoManager
+  TGeoManager::SetVerboseLevel(GetVerbosity());
   TGeoManager * tgeo =  dst_geom_io->ConstructTGeoManager();
   tgeo->CloseGeometry();
 
@@ -269,3 +273,22 @@ PHGeomUtility::LoadFromIONode(PHCompositeNode *topNode)
   return dst_geom;
 }
 
+
+//! Verbosity for geometry IO like, TGeoMangers
+void
+PHGeomUtility::SetVerbosity(int v)
+{
+  recoConsts *rc = recoConsts::instance();
+  rc->set_IntFlag("PHGEOMETRY_VERBOSITY", v);
+}
+
+//! Verbosity for geometry IO like, TGeoMangers
+int
+PHGeomUtility::GetVerbosity()
+{
+  recoConsts *rc = recoConsts::instance();
+  if (rc->FlagExist("PHGEOMETRY_VERBOSITY"))
+    return rc->get_IntFlag("PHGEOMETRY_VERBOSITY");
+  else
+    return 0;
+}

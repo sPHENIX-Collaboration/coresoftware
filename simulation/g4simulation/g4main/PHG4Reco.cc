@@ -424,7 +424,7 @@ PHG4Reco::InitRun( PHCompositeNode* topNode )
       const string filename =
       PHGeomUtility::
       GenerateGeometryFileName("gdml");
-      cout <<__PRETTY_FUNCTION__<<" export geometry to "<<filename<<endl;
+      cout <<"PHG4Reco::InitRun - export geometry to DST via tmp file "<<filename<<endl;
 
       Dump_GDML(filename);
 
