@@ -1,8 +1,6 @@
 #include "PHG4MapsCellReco.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeom_MAPS.h"
-#include "PHG4CylinderCellGeom_MAPS.h"
-#include "PHG4CylinderCellGeomContainer.h"
 #include "PHG4CylinderCell_MAPS.h"
 #include "PHG4CylinderCellContainer.h"
 //#include "PHG4CylinderCellDefs.h"
