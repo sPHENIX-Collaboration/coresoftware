@@ -1,16 +1,16 @@
 #ifndef PHG4CylinderGeomMAPS_H__
 #define PHG4CylinderGeomMAPS_H__
 
-#include "PHG4CylinderGeomv4.h"
+#include "PHG4CylinderGeom.h"
 #include "TVector3.h"
 #include <phool/phool.h>
 #include <cmath>
 
-class PHG4CylinderGeom_MAPS: public PHG4CylinderGeomv4
+class PHG4CylinderGeom_MAPS: public PHG4CylinderGeom
 {
  public:
 
-  PHG4CylinderGeom_MAPS(int layer, int stave_type, int in_Nstaves, double in_layer_nominal_radius, double in_phistep, double in_phitilt, double in_pixel_x, double in_pixel_y);
+  PHG4CylinderGeom_MAPS(int layer, int stave_type, int in_Nstaves, double in_layer_nominal_radius, double in_phistep, double in_phitilt, double in_pixel_x, double in_pixel_y, double in_pixel_thickness);
 
   virtual ~PHG4CylinderGeom_MAPS() {}
 
@@ -21,8 +21,10 @@ class PHG4CylinderGeom_MAPS: public PHG4CylinderGeomv4
   TVector3 get_local_coords_from_pixel(int NXZ);
   int get_pixel_X_from_pixel_number(int NXZ) ;
   int get_pixel_Y_from_pixel_number(int NXZ) ;
-  void set_pixel_x (const double a) {pixel_x = a;}
-  void set_pixel_y(const double a) {pixel_y = a;}
+
+  double get_pixel_x() const {return pixel_x;}
+  double get_pixel_y() const {return pixel_y;}
+  double get_pixel_thickness() const {return pixel_thickness;}
   
   void set_layer(const int i) {layer = i;}
   int get_layer() const {return layer;}
@@ -80,6 +82,7 @@ protected:
 
   double pixel_x;
   double pixel_y;
+  double pixel_thickness;
   
   ClassDef(PHG4CylinderGeom_MAPS,1)
 };

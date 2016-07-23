@@ -46,6 +46,7 @@ class PHG4MapsSubsystem: public PHG4Subsystem
   void set_stave_type(const int stype){stave_type = stype;}
   void set_pixel_x(const double pixel_x_in) {pixel_x = pixel_x_in;}
   void set_pixel_y(const double pixel_y_in) {pixel_y = pixel_y_in;}
+  void set_pixel_thickness(const double pixel_thickness_in) {pixel_thickness = pixel_thickness_in;}
   void SetSize(const G4double sizex, const G4double sizey, const G4double sizez)
      {dimension[0] = sizex; dimension[1] = sizey; dimension[2] = sizez;}
   void SetPlaceZ(const G4double dbl) {place_in_z = dbl;}
@@ -91,6 +92,7 @@ class PHG4MapsSubsystem: public PHG4Subsystem
   int stave_type;
   double pixel_x;
   double pixel_y;
+  double pixel_thickness;
 
   G4String material;
   int active;

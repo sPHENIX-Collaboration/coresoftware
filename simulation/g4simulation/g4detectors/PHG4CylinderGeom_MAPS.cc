@@ -12,7 +12,7 @@ ClassImp(PHG4CylinderGeom_MAPS)
 using namespace ROOT::Math;
 using namespace std;
 
-PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, int in_N_staves, double in_layer_nominal_radius, double in_phistep, double in_phitilt, double in_pixel_x, double in_pixel_y):
+PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, int in_N_staves, double in_layer_nominal_radius, double in_phistep, double in_phitilt, double in_pixel_x, double in_pixel_y, double in_pixel_thickness):
   layer(in_layer),
   stave_type(in_stave_type),
   N_staves(in_N_staves),
@@ -20,7 +20,8 @@ PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, in
   stave_phi_step(in_phistep),
   stave_phi_tilt(in_phitilt),
   pixel_x(in_pixel_x),
-  pixel_y(in_pixel_y)
+  pixel_y(in_pixel_y),
+  pixel_thickness(in_pixel_thickness)
 {
   if(stave_type < 3)
     N_half_staves = 2;
@@ -563,6 +564,7 @@ void PHG4CylinderGeom_MAPS::identify(std::ostream& os) const
      << ", N_half_staves in layer: " << N_half_staves
      << ", pixel_x: " << pixel_x
      << ", pixel_y: " << pixel_y
+     << ", pixel_thickness: " << pixel_thickness
      << endl;
   return;
 }

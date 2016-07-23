@@ -30,7 +30,9 @@ PHG4MapsCellReco::PHG4MapsCellReco(const string &name) :
 {
   memset(nbins, 0, sizeof(nbins));
   Detector(name);
-  cout << "Creating PHG4MapsCellReco for name = " << name << endl;
+
+  if(verbosity > 0)  
+    cout << "Creating PHG4MapsCellReco for name = " << name << endl;
 }
 
 int PHG4MapsCellReco::InitRun(PHCompositeNode *topNode)
@@ -90,8 +92,6 @@ int PHG4MapsCellReco::InitRun(PHCompositeNode *topNode)
 int
 PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 {
-  verbosity = 5;
-
   _timer.get()->restart();
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
