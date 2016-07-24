@@ -18,6 +18,7 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
+#include <g4detectors/PHG4CylinderGeom_MAPS.h>
 #include <g4detectors/PHG4CylinderCell.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
@@ -25,6 +26,7 @@
 #include <boost/format.hpp>
 
 #include <TMatrixF.h>
+#include <TVector3.h>
 
 #define BOOST_NO_HASH // Our version of boost.graph is incompatible with GCC-4.3 w/o this flag
 #include <boost/bind.hpp>
@@ -185,6 +187,7 @@ int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
   
   CalculateCylinderThresholds(topNode);
   CalculateLadderThresholds(topNode);
+  CalculateMapsLadderThresholds(topNode);
 
   //----------------
   // Report Settings
@@ -228,6 +231,7 @@ int PHG4SvtxClusterizer::process_event(PHCompositeNode *topNode) {
   
   ClusterCylinderCells(topNode);
   ClusterLadderCells(topNode);
+  ClusterMapsLadderCells(topNode);
 
   PrintClusters(topNode);
   
@@ -286,6 +290,40 @@ void PHG4SvtxClusterizer::CalculateLadderThresholds(PHCompositeNode *topNode) {
 
     // cluster threshold
     float thickness = (layeriter->second)->get_thickness();
+    float threshold = _fraction_of_mip*0.003876*thickness;
+    _thresholds_by_layer.insert(std::make_pair(layer,threshold));
+
+    // fill in a default z_clustering value if not present
+    if (_make_z_clustering.find(layer) == _make_z_clustering.end()) {
+      _make_z_clustering.insert(std::make_pair(layer,true));
+    }
+
+    if (_make_e_weights.find(layer) == _make_e_weights.end()) {
+      _make_e_weights.insert(std::make_pair(layer,false));
+    }
+  }
+  
+  return;
+}
+
+void PHG4SvtxClusterizer::CalculateMapsLadderThresholds(PHCompositeNode *topNode) {
+
+  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_MAPS");
+  if (!cells) return;
+
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
+  if (!geom_container) return;
+  
+  PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
+  for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+      layeriter != layerrange.second;
+      ++layeriter) {
+
+    // index mapping
+    int layer = layeriter->second->get_layer();
+
+    // cluster threshold
+    float thickness = (layeriter->second)->get_pixel_thickness();
     float threshold = _fraction_of_mip*0.003876*thickness;
     _thresholds_by_layer.insert(std::make_pair(layer,threshold));
 
@@ -874,6 +912,344 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
   
   return;
 }
+
+void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
+
+  //----------
+  // Get Nodes
+  //----------
+
+  // get the SVX geometry object
+  PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
+  if (!geom_container) return;
+  
+  PHG4HitContainer* g4hits =  findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_MAPS");
+  if (!g4hits) return;
+  
+  PHG4CylinderCellContainer* cells =  findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_MAPS");
+  if (!cells) return; 
+ 
+  //-----------
+  // Clustering
+  //-----------
+
+  // sort hits layer by layer
+  std::multimap<int,SvtxHit*> layer_hits_mmap;
+  for (SvtxHitMap::Iter iter = _hits->begin();
+       iter != _hits->end();
+       ++iter) {
+    SvtxHit* hit = iter->second;
+    layer_hits_mmap.insert(make_pair(hit->get_layer(),hit));
+  }
+  
+  PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
+  for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+      layeriter != layerrange.second;
+      ++layeriter) {
+
+    int layer = layeriter->second->get_layer();
+
+    if ((unsigned int)layer < _min_layer) continue;
+    if ((unsigned int)layer > _max_layer) continue;
+    
+    std::map<PHG4CylinderCell*,SvtxHit*> cell_hit_map;
+    vector<PHG4CylinderCell*> cell_list;
+    for (std::multimap<int,SvtxHit*>::iterator hiter = layer_hits_mmap.lower_bound(layer);
+	 hiter != layer_hits_mmap.upper_bound(layer);
+	 ++hiter) {
+      SvtxHit* hit = hiter->second;
+      PHG4CylinderCell* cell = cells->findCylinderCell(hit->get_cellid());
+      cell_list.push_back(cell);
+      cell_hit_map.insert(make_pair(cell,hit));
+    }
+    
+    if (cell_list.size() == 0) continue; // if no cells, go to the next layer
+    
+    // i'm not sure this sorting is ever really used
+    sort(cell_list.begin(), cell_list.end(), PHG4SvtxClusterizer::ladder_lessthan);
+
+    typedef adjacency_list <vecS, vecS, undirectedS> Graph;
+    Graph G;
+
+    for(unsigned int i=0; i<cell_list.size(); i++) {
+      for(unsigned int j=i+1; j<cell_list.size(); j++) {
+        if(ladder_are_adjacent(cell_list[i], cell_list[j]) )
+          add_edge(i,j,G);
+      }
+      
+      add_edge(i,i,G);
+    }
+
+    // Find the connections between the vertices of the graph (vertices are the rawhits, 
+    // connections are made when they are adjacent to one another)
+    vector<int> component(num_vertices(G));
+    
+    // this is the actual clustering, performed by boost
+    connected_components(G, &component[0]); 
+
+    // Loop over the components(hit cells) compiling a list of the
+    // unique connected groups (ie. clusters).
+    set<int> cluster_ids; // unique components
+    multimap<int, PHG4CylinderCell*> clusters;
+    for (unsigned int i=0; i<component.size(); i++) {
+      cluster_ids.insert( component[i] );
+      clusters.insert( make_pair(component[i], cell_list[i]) );
+    }
+    
+    // 
+    for (set<int>::iterator clusiter = cluster_ids.begin(); 
+	 clusiter != cluster_ids.end(); 
+	 clusiter++ ) {
+      
+      int clusid = *clusiter;
+      pair<multimap<int, PHG4CylinderCell*>::iterator,
+	   multimap<int, PHG4CylinderCell*>::iterator> clusrange = clusters.equal_range(clusid);
+      
+      multimap<int, PHG4CylinderCell*>::iterator mapiter = clusrange.first;
+      
+      int layer = mapiter->second->get_layer();
+      PHG4CylinderGeom_MAPS *geom = (PHG4CylinderGeom_MAPS*) geom_container->GetLayerGeom(layer);
+      
+      SvtxCluster_v1 clus;
+      clus.set_layer( layer );
+      float clus_energy = 0.0;
+      unsigned int clus_adc = 0;
+
+      // determine the size of the cluster in phi and z
+      // useful for track fitting the cluster
+
+      set<int> phibins;
+      set<int> zbins;
+      for (mapiter = clusrange.first; mapiter != clusrange.second; mapiter++ ) {
+	PHG4CylinderCell* cell = mapiter->second;     
+
+	int pixel_number = cell->get_pixel_index();
+	// binphi is the cell index in the phi direction in the sensor
+	int binphi = geom->get_pixel_X_from_pixel_number(pixel_number);
+	phibins.insert(binphi);
+	// binz is the cell index in the z direction in the sensor
+	int binz = geom->get_pixel_Y_from_pixel_number(pixel_number);
+	zbins.insert(binz);
+
+	cout << "binphi = " << binphi  << " binz = " << binz  << endl;
+      }
+
+      float thickness = geom->get_pixel_thickness();
+      float pitch = geom->get_pixel_x();
+      float length = geom->get_pixel_y();
+      float phisize = phibins.size()*pitch;
+      float zsize = zbins.size()*length;
+      float tilt = 0.0;
+
+      // determine the cluster position...
+      double xsum = 0.0;
+      double ysum = 0.0;
+      double zsum = 0.0;
+      unsigned nhits = 0;
+
+      /*
+      int ladder_z_index = -1;
+      int ladder_phi_index = -1;
+      */
+
+      int stave_index = -1;
+      int half_stave_index = -1;
+      int module_index = -1;
+      int chip_index = -1;
+
+      for(mapiter = clusrange.first; mapiter != clusrange.second; mapiter++ ) {
+        PHG4CylinderCell* cell = mapiter->second;
+	cell->identify();
+
+	SvtxHit* hit = cell_hit_map[cell];
+	
+	clus.insert_hit(hit->get_id());
+	
+        clus_energy += hit->get_e();
+	clus_adc    += hit->get_adc();
+
+	// find the center of the pixel in world coords
+	TVector3 local_coords = geom->get_local_coords_from_pixel(cell->get_pixel_index());
+	TVector3 world_coords = geom->get_world_from_local_coords(cell->get_stave_index(), cell->get_half_stave_index(), cell->get_module_index(), cell->get_chip_index(), local_coords);
+	double hit_location[3] = {world_coords.X(), world_coords.Y(), world_coords.Z()};
+
+	cout << "Pixel world coords = " << hit_location[0] << " " << hit_location[1] <<  " " << hit_location[2] << endl;
+
+	/*
+	// ladder_z_index indexes the z location of the sensor on the ladder
+	ladder_z_index = geom->get_ladder_z_index( geom->get_module_index(), geom->get_chip_index() );
+	// ladder_phi_index indexes the location of the sensor in phi
+	ladder_phi_index = geom->get_ladder_phi_index( geom->get_stave_index(), geom->get_half_stave_index(), geom->get_chip_index() );
+	*/
+	stave_index = cell->get_stave_index();
+	half_stave_index = cell->get_half_stave_index();
+	module_index = cell->get_module_index();
+	chip_index = cell->get_chip_index();
+
+	cout << "stave_index " << stave_index
+	     << " half_stave_index " << half_stave_index
+	     << " module_index " << module_index 
+	     << " chip_index " << chip_index
+	     << endl;
+
+	if (_make_e_weights[layer]) {
+	  xsum += hit_location[0] * hit->get_adc();
+	  ysum += hit_location[1] * hit->get_adc();
+	  zsum += hit_location[2] * hit->get_adc();  
+	} else {
+	  xsum += hit_location[0];
+	  ysum += hit_location[1];
+	  zsum += hit_location[2];
+	}
+	++nhits;
+      }
+
+      double clusx = NAN;
+      double clusy = NAN;
+      double clusz = NAN;
+
+      if (_make_e_weights[layer]) {
+	clusx = xsum / clus_adc;
+	clusy = ysum / clus_adc;
+	clusz = zsum / clus_adc;	
+      } else {
+	clusx = xsum / nhits;
+	clusy = ysum / nhits;
+	clusz = zsum / nhits;
+      }
+      
+
+      /*
+      geom->find_segment_center(ladder_z_index,
+				ladder_phi_index,
+				ladder_location);
+      */
+
+      double ladder_location[3] = {0.0,0.0,0.0};
+      // returns the center of the sensor in world coordinates 
+      geom->find_sensor_center(stave_index, half_stave_index, module_index, chip_index, ladder_location);
+      double ladderphi = atan2( ladder_location[1], ladder_location[0] );
+
+      cout << "sensor center = " << ladder_location[0] << " " << ladder_location[1] << " " << ladder_location[2] << endl;            
+
+      clus.set_position(0, clusx);
+      clus.set_position(1, clusy);
+      clus.set_position(2, clusz);
+
+      clus.set_e(clus_energy);
+      clus.set_adc(clus_adc);
+
+      float invsqrt12 = 1.0/sqrt(12.0);
+      
+      TMatrixF DIM(3,3);
+      DIM[0][0] = pow(0.5*thickness,2);
+      DIM[0][1] = 0.0;
+      DIM[0][2] = 0.0;
+      DIM[1][0] = 0.0;
+      DIM[1][1] = pow(0.5*phisize,2);
+      DIM[1][2] = 0.0;
+      DIM[2][0] = 0.0;
+      DIM[2][1] = 0.0;
+      DIM[2][2] = pow(0.5*zsize,2);
+
+      TMatrixF ERR(3,3);
+      ERR[0][0] = pow(0.5*thickness*invsqrt12,2);
+      ERR[0][1] = 0.0;
+      ERR[0][2] = 0.0;
+      ERR[1][0] = 0.0;
+      ERR[1][1] = pow(0.5*phisize*invsqrt12,2);
+      ERR[1][2] = 0.0;
+      ERR[2][0] = 0.0;
+      ERR[2][1] = 0.0;
+      ERR[2][2] = pow(0.5*zsize*invsqrt12,2);
+      
+      TMatrixF ROT(3,3);
+      ROT[0][0] = cos(ladderphi);
+      ROT[0][1] = -1.0*sin(ladderphi);
+      ROT[0][2] = 0.0;
+      ROT[1][0] = sin(ladderphi);
+      ROT[1][1] = cos(ladderphi);
+      ROT[1][2] = 0.0;
+      ROT[2][0] = 0.0;
+      ROT[2][1] = 0.0;
+      ROT[2][2] = 1.0;
+
+      TMatrixF TILT(3,3);
+      TILT[0][0] = 1.0;
+      TILT[0][1] = 0.0;
+      TILT[0][2] = 0.0;
+      TILT[1][0] = 0.0;
+      TILT[1][1] = cos(tilt);
+      TILT[1][2] = -1.0*sin(tilt);
+      TILT[2][0] = 0.0;
+      TILT[2][1] = sin(tilt);
+      TILT[2][2] = cos(tilt);
+
+      TMatrixF R(3,3);
+      R = ROT * TILT;
+      
+      TMatrixF R_T(3,3);
+      R_T.Transpose(R);
+          
+      TMatrixF COVAR_DIM(3,3);
+      COVAR_DIM = R * DIM * R_T;
+      
+      clus.set_size( 0 , 0 , COVAR_DIM[0][0] );
+      clus.set_size( 0 , 1 , COVAR_DIM[0][1] );
+      clus.set_size( 0 , 2 , COVAR_DIM[0][2] );
+      clus.set_size( 1 , 0 , COVAR_DIM[1][0] );
+      clus.set_size( 1 , 1 , COVAR_DIM[1][1] );
+      clus.set_size( 1 , 2 , COVAR_DIM[1][2] );
+      clus.set_size( 2 , 0 , COVAR_DIM[2][0] );
+      clus.set_size( 2 , 1 , COVAR_DIM[2][1] );
+      clus.set_size( 2 , 2 , COVAR_DIM[2][2] );
+
+      TMatrixF COVAR_ERR(3,3);
+      COVAR_ERR = R * ERR * R_T;
+      
+      clus.set_error( 0 , 0 , COVAR_ERR[0][0] );
+      clus.set_error( 0 , 1 , COVAR_ERR[0][1] );
+      clus.set_error( 0 , 2 , COVAR_ERR[0][2] );
+      clus.set_error( 1 , 0 , COVAR_ERR[1][0] );
+      clus.set_error( 1 , 1 , COVAR_ERR[1][1] );
+      clus.set_error( 1 , 2 , COVAR_ERR[1][2] );
+      clus.set_error( 2 , 0 , COVAR_ERR[2][0] );
+      clus.set_error( 2 , 1 , COVAR_ERR[2][1] );
+      clus.set_error( 2 , 2 , COVAR_ERR[2][2] );
+      
+      if (clus_energy > get_threshold_by_layer(layer)) {
+	SvtxCluster* ptr = _clusterlist->insert(&clus);
+	if (!ptr->isValid()) {
+	  static bool first = true;
+	  if (first) {
+	    cout << PHWHERE << "ERROR: Invalid SvtxClusters are being produced" << endl;
+	    ptr->identify();
+	    first = false;
+	  }
+	}
+	
+	if (verbosity>1) {
+	  double radius = sqrt(clusx*clusx+clusy*clusy);
+	  double clusphi = atan2(clusy,clusx);
+	  cout << "r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
+	  cout << "pos=(" << clus.get_position(0) << ", " << clus.get_position(1)
+	       << ", " << clus.get_position(2) << ")" << endl;
+	  cout << endl;
+	}
+      }	else if (verbosity>1) {
+	double radius = sqrt(clusx*clusx+clusy*clusy);
+	double clusphi = atan2(clusy,clusx);
+	cout << "removed r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
+	cout << "pos=(" << clus.get_position(0) << ", " << clus.get_position(1)
+	     << ", " << clus.get_position(2) << ")" << endl;
+	cout << endl;
+      } 
+    }
+  }
+  
+  return;
+}
+
 
 void PHG4SvtxClusterizer::PrintClusters(PHCompositeNode *topNode) {
 

@@ -71,9 +71,11 @@ private:
   
   void CalculateCylinderThresholds(PHCompositeNode *topNode);
   void CalculateLadderThresholds(PHCompositeNode *topNode);
+  void CalculateMapsLadderThresholds(PHCompositeNode *topNode);
   
   void ClusterCylinderCells(PHCompositeNode *topNode);
   void ClusterLadderCells(PHCompositeNode *topNode);
+  void ClusterMapsLadderCells(PHCompositeNode *topNode);
 
   void PrintClusters(PHCompositeNode *topNode);
   

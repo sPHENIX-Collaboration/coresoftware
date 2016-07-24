@@ -569,16 +569,68 @@ void PHG4CylinderGeom_MAPS::identify(std::ostream& os) const
   return;
 }
 
-
-void PHG4CylinderGeom_MAPS::find_sensor_center(int stave_number, int half_stave_number, int module_number, int chip_number, double location[])
+int PHG4CylinderGeom_MAPS::get_ladder_z_index(int module, int chip)
 {
-  double x_location = 0.0;
-  double y_location = 0.0;
-  double z_location = 0.0;
+  // return the z index of the sensor on the stave
+  // this depends on the stave type
+  // stave_type 0 has 1 module with 9 chips / module in 9 z locations (no half staves)
+  // stave_type 1 has 2 half-staves separted in azimuth, with 4 modules each lined up in z, with 14 chips / module paired in 7 z locations,  the pairs separated in azimuth
+  // stave_type 2 has 2 half staves separated in azimuth, each with 7 modules lined up in z, with 14 chips / module paired in 7 z locations, the pairs separated in azimuth
 
-  location[0] = x_location;
-  location[1] = y_location;
-  location[2] = z_location;
+  int ladder_z_index;
+
+  if(stave_type == 0)
+    {
+      // only 1 module
+      ladder_z_index = chip;
+    }
+  else 
+    {
+      // stave_type 1 or 2
+      // half stave number does not affect z location, it affects only phi location
+      ladder_z_index = module * 7  + chip;
+    }
+
+  return ladder_z_index;
+}
+
+int PHG4CylinderGeom_MAPS::get_ladder_phi_index(int stave, int half_stave, int chip)
+{
+  // return the phi index of the sensor on the stave
+  // this depends on the stave type
+  // stave_type 0 has 1 module with 9 chips / module in 9 z locations (no half staves)
+  // stave_type 1 has 2 half-staves separted in azimuth, with 4 modules each lined up in z, with 14 chips / module paired in 7 z locations,  the pairs separated in azimuth
+  // stave_type 2 has 2 half staves separated in azimuth, each with 7 modules lined up in z, with 14 chips / module paired in 7 z locations, the pairs separated in azimuth
+ 
+  int ladder_phi_index;
+
+  if(stave_type == 0)
+    {
+      // no half staves
+      ladder_phi_index = stave;
+    }
+  else 
+    {
+      // stave_type 1 or 2
+      // each stave has two half staves separated in azimuth, with two rows of chips each also separated in azimuth
+      ladder_phi_index = stave * 4 + half_stave * 2 + chip % 2; 
+    }
+
+  return ladder_phi_index;
+}
+
+
+void PHG4CylinderGeom_MAPS::find_sensor_center(int stave, int half_stave, int module, int chip, double location[])
+{
+  TVector3 sensor_local(0.0,0.0,0.0);
+
+  TVector3 sensor_world = get_world_from_local_coords(stave, half_stave, module, chip, sensor_local);
+
+  location[0] = sensor_world.X();
+  location[1] = sensor_world.Y();
+  location[2] = sensor_world.Z();
+
+  return;
 }
 
 

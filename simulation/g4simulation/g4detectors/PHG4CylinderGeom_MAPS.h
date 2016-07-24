@@ -30,6 +30,9 @@ class PHG4CylinderGeom_MAPS: public PHG4CylinderGeom
   int get_layer() const {return layer;}
   double get_radius() const {return layer_radius;}
 
+  int get_ladder_phi_index(int stave, int half_stave, int chip);
+  int get_ladder_z_index(int module, int chip);
+
   void find_sensor_center(int stave_number, int half_stave_number, int module_number, int chip_number, double location[]);
   int get_N_staves() const {return N_staves;}
   int get_N_half_staves() const {return N_half_staves;}
