@@ -251,6 +251,12 @@ class sPHENIXTrackerTPC : public HelixHough {
 
   bool breakRecursion(const std::vector<SimpleHit3D>& hits,
                       const HelixRange& range);
+  float phiError(SimpleHit3D& hit, float min_k, float max_k, float min_d,
+                 float max_d, float min_z0, float max_z0, float min_dzdl,
+                 float max_dzdl, bool pairvoting = false);
+  float dzdlError(SimpleHit3D& hit, float min_k, float max_k, float min_d,
+                  float max_d, float min_z0, float max_z0, float min_dzdl,
+                  float max_dzdl, bool pairvoting = false);
 
   static float fitTrack(SimpleTrack3D& track);
   static float fitTrack(SimpleTrack3D& track, std::vector<float>& chi2_hit);

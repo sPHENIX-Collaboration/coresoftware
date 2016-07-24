@@ -472,6 +472,86 @@ bool sPHENIXTrackerTPC::breakRecursion(const vector<SimpleHit3D>& hits,
   return (nlayers < required_layers);
 }
 
+float sPHENIXTrackerTPC::phiError(SimpleHit3D& hit, float min_k, float max_k,
+                                  float min_d, float max_d, float min_z0,
+                                  float max_z0, float min_dzdl, float max_dzdl,
+                                  bool pairvoting) {
+  float Bfield_inv = 1. / detector_B_field;
+  float p_inv = 0.;
+
+  if ((prev_max_k == max_k) && (prev_max_dzdl == max_dzdl)) {
+    p_inv = prev_p_inv;
+  } else {
+    prev_max_k = max_k;
+    prev_max_dzdl = max_dzdl;
+    prev_p_inv = 3.33333333333333314e+02 * max_k * Bfield_inv *
+      sqrt(1. - max_dzdl * max_dzdl);
+    p_inv = prev_p_inv;
+  }
+  float total_scatter_2 = 0.;
+  for (int i = seed_layer + 1; i <= (hit.get_layer()); ++i) {
+    float this_scatter = detector_scatter[i - 1] *
+      (detector_radii[i] - detector_radii[i - 1]) /
+      detector_radii[i];
+    total_scatter_2 += this_scatter * this_scatter;
+  }
+  float angle = p_inv * sqrt(total_scatter_2) * 1.0;
+  float dsize = 0.5 * (max_d - min_d);
+  float angle_from_d = dsize / detector_radii[hit.get_layer()];
+  float returnval = 0.;
+  if (pairvoting == false) {
+    if (angle_from_d > angle) {
+      returnval = 0.;
+    } else {
+      returnval = (angle - angle_from_d);
+    }
+  } else {
+    returnval = angle;
+  }
+
+  return returnval;
+}
+
+float sPHENIXTrackerTPC::dzdlError(SimpleHit3D& hit, float min_k, float max_k,
+                                   float min_d, float max_d, float min_z0,
+                                   float max_z0, float min_dzdl, float max_dzdl,
+                                   bool pairvoting) {
+  float Bfield_inv = 1. / detector_B_field;
+  float p_inv = 0.;
+
+  if ((prev_max_k == max_k) && (prev_max_dzdl == max_dzdl)) {
+    p_inv = prev_p_inv;
+  } else {
+    prev_max_k = max_k;
+    prev_max_dzdl = max_dzdl;
+    prev_p_inv = 3.33333333333333314e+02 * max_k * Bfield_inv *
+      sqrt(1. - max_dzdl * max_dzdl);
+    p_inv = prev_p_inv;
+  }
+  float total_scatter_2 = 0.;
+  for (int i = seed_layer + 1; i <= (hit.get_layer()); ++i) {
+    float this_scatter = detector_scatter[i - 1] *
+      (detector_radii[i] - detector_radii[i - 1]) /
+      detector_radii[i];
+    total_scatter_2 += this_scatter * this_scatter;
+  }
+  float angle = p_inv * sqrt(total_scatter_2) * 1.0;
+  float z0size = 0.5 * (max_z0 - min_z0);
+  float angle_from_z0 = z0size / detector_radii[hit.get_layer()];
+  float returnval = 0.;
+  if (pairvoting == false) {
+    if (angle_from_z0 > angle) {
+      returnval = 0.;
+    } else {
+      returnval = (angle - angle_from_z0);
+    }
+  } else {
+    returnval = angle;
+  }
+
+  return returnval;
+}
+
 void sPHENIXTrackerTPC::findTracks(vector<SimpleHit3D>& hits,
                                    vector<SimpleTrack3D>& tracks,
                                    const HelixRange& range) {
