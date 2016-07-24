@@ -171,7 +171,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 
 	  if(verbosity > 2)
 	    {
-	      // As a check, get the positions of the hit strips in world coordinates from the geo object 
+	      // As a check, get the positions of the hit pixels in world coordinates from the geo object 
 	      TVector3 location_in = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_in);
 	      TVector3 location_out = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_out);
 	      
@@ -289,12 +289,18 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	    }
 
 	  */
-
-	  // This is a temporary make-do to get a single pixel that represents the hit.
+	  //====================
+	  // This is a TEMPORARY make-do to get a single pixel that represents the hit.
+	  // SHOULD make a cell for each pixel that the track passes through
+	  //
 	  // Find the mid point between the entry and exit locations in the sensor
-
+	  //====================
 	  TVector3 midpoint( (local_in.X() + local_out.X()) / 2.0, (local_in.Y() + local_out.Y()) / 2.0, (local_in.Z() + local_out.Z()) / 2.0 );
 	  int pixel_number_mid = layergeom->get_pixel_from_local_coords(midpoint);
+	  // get the phi and Z index for this pixel, it is needed later by the clustering
+	  int phibin = layergeom->get_pixel_X_from_pixel_number(pixel_number_mid);
+	  int zbin = layergeom->get_pixel_Y_from_pixel_number(pixel_number_mid);
+
 	  TVector3  pixel_local_coords_mid = layergeom->get_local_coords_from_pixel(pixel_number_mid);
 	  TVector3 pixel_world_coords_mid = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, pixel_local_coords_mid);
 
@@ -306,7 +312,8 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  
 	  // combine ladder index values to get a single key
 	  char inkey[1024];
-	  sprintf(inkey,"%i-%i_%i_%i",stave_number, half_stave_number, module_number, chip_number);
+	  // add hitid to account for different pixels in the sensor. Could use pixel_index, but that is a big number! 
+	  sprintf(inkey,"%i-%i_%i_%i_%i",stave_number, half_stave_number, module_number, chip_number, pixel_number_mid);
 	  std::string key(inkey);
 
 	  if (celllist.count(key) > 0) {
@@ -321,6 +328,9 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	    celllist[key]->set_module_index(module_number);
 	    celllist[key]->set_chip_index(chip_number);
 	    celllist[key]->set_pixel_index(pixel_number_mid);
+
+	    celllist[key]->set_phibin(phibin);
+	    celllist[key]->set_zbin(zbin);
 	    
 	    celllist[key]->add_edep(hiter->first, hiter->second->get_edep());
 	  }

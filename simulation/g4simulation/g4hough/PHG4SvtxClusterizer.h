@@ -68,7 +68,9 @@ private:
 		    const int &);
   bool ladder_are_adjacent(const PHG4CylinderCell*, 
 			   const PHG4CylinderCell*);
-  
+  bool maps_ladder_are_adjacent(const PHG4CylinderCell*,
+				const PHG4CylinderCell*);
+
   void CalculateCylinderThresholds(PHCompositeNode *topNode);
   void CalculateLadderThresholds(PHCompositeNode *topNode);
   void CalculateMapsLadderThresholds(PHCompositeNode *topNode);
