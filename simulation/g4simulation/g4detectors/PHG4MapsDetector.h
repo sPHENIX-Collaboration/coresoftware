@@ -40,7 +40,7 @@ class PHG4MapsDetector: public PHG4Detector
   void set_stave_type(const int st){stave_type = st;}
   void set_nominal_layer_radius(const G4double radius){layer_nominal_radius = radius * mm;}
   void set_pixel_x(const double pixel_x_in) {pixel_x = pixel_x_in;}
-  void set_pixel_y(const double pixel_y_in) {pixel_y = pixel_y_in;}
+  void set_pixel_z(const double pixel_z_in) {pixel_z = pixel_z_in;}
   void set_pixel_thickness(const double pixel_thickness_in) {pixel_thickness = pixel_thickness_in;}
   void SetPlaceZ(const G4double place_z) {place_in_z = place_z*cm;}
   void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
@@ -93,7 +93,7 @@ class PHG4MapsDetector: public PHG4Detector
   G4double phistep;
   G4double phitilt;
   double pixel_x;
-  double pixel_y;
+  double pixel_z;
   double pixel_thickness;
 
   // calculated quantities

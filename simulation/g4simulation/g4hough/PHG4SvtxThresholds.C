@@ -195,7 +195,7 @@ void PHG4SvtxThresholds::CalculateMapsLadderThresholds(PHCompositeNode* topNode)
     int layer = layeriter->second->get_layer();
     float thickness = (layeriter->second)->get_pixel_thickness();
     float pitch = (layeriter->second)->get_pixel_x();
-    float length = (layeriter->second)->get_pixel_y();
+    float length = (layeriter->second)->get_pixel_z();
 
     if (get_use_thickness_mip(layer)) {
       // Si MIP energy = 3.876 MeV / cm

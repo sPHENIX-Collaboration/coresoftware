@@ -1055,7 +1055,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 	int binphi = geom->get_pixel_X_from_pixel_number(pixel_number);
 	phibins.insert(binphi);
 	// binz is the cell index in the z direction in the sensor
-	int binz = geom->get_pixel_Y_from_pixel_number(pixel_number);
+	int binz = geom->get_pixel_Z_from_pixel_number(pixel_number);
 	zbins.insert(binz);
 
 	//cout << "binphi = " << binphi  << " binz = " << binz  << endl;
@@ -1063,7 +1063,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 
       float thickness = geom->get_pixel_thickness();
       float pitch = geom->get_pixel_x();
-      float length = geom->get_pixel_y();
+      float length = geom->get_pixel_z();
       float phisize = phibins.size()*pitch;
       float zsize = zbins.size()*length;
       // tilt refers to a rotation around the radial vector from the origin, and this is zero for the MAPS ladders

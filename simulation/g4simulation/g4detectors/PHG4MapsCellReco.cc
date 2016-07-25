@@ -149,13 +149,6 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  TVector3 local_in( hiter->second->get_local_x(0),  hiter->second->get_local_y(0),  hiter->second->get_local_z(0) );
  	  TVector3 local_out( hiter->second->get_local_x(1),  hiter->second->get_local_y(1),  hiter->second->get_local_z(1) );
 
-	  /*
-	  // The G4 transform to local coordinates for the exit point does not work properly, so the local exit coordinates in the hit object are wrong - now fixed!!
-	  // Use the method in the geometry object to convert from world to local coords
-	  TVector3 world_out(  hiter->second->get_x( 1),  hiter->second->get_y( 1),  hiter->second->get_z( 1) );
-	  TVector3 local_out =  layergeom->get_local_from_world_coords(stave_number, half_stave_number, module_number, chip_number, world_out);
-	  */
-
 	  if(verbosity > 4)
 	    {
 	      cout << endl << "  world entry point position: " << hiter->second->get_x(0) << " " << hiter->second->get_y(0) << " " << hiter->second->get_z(0) << endl;
@@ -225,70 +218,100 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		   << endl << endl;
 	    }
 
-	  /*
-	  // Get the pixel number of the entry location
-	  int pixel_number_in = layergeom->get_pixel_from_local_coords(pixel_x, pixel_y, local_in);
-	  // Get the pixel number of the exit location
-	  int pixel_number_out = layergeom->get_pixel_from_local_coords(pixel_x, pixel_y, local_out);
 
-	  cout << "entry pixel number " << pixel_number_in << " exit pixel number " << pixel_number_out << endl;
+	  // Get the pixel number of the entry location
+	  int pixel_number_in = layergeom->get_pixel_from_local_coords(local_in);
+	  // Get the pixel number of the exit location
+	  int pixel_number_out = layergeom->get_pixel_from_local_coords(local_out);
+
+	  if(verbosity > 0)
+	    cout << "entry pixel number " << pixel_number_in << " exit pixel number " << pixel_number_out << endl;
+
+	  vector<int> vpixel;
+	  vector<int> vxbin;
+	  vector<int> vzbin;
+	  vector<double> vlen;
+	  double trklen;
 
 	  // Are they different?
-	  int number_of_pixels = 0;
 	  if(pixel_number_out != pixel_number_in)
 	    {
-	      // There is more than one pixel, have to divide the energy between them?
-	      // Get the list of hit pixels
+	      // There is more than one pixel, have to divide the energy between them
 
-	      // Get the X and Y grid locations of the pixels?
-	      int Ngridx_in = layergeom->get_pixel_X_from_pixel_number(pixel_x, pixel_y, pixel_number_in);
-	      int Ngridx_out = layergeom->get_pixel_X_from_pixel_number(pixel_x, pixel_y, pixel_number_out);
+	      // Get the X and Y bin locations of the pixels
+	      int xbin_in = layergeom->get_pixel_X_from_pixel_number(pixel_number_in);
+	      int zbin_in = layergeom->get_pixel_Z_from_pixel_number(pixel_number_in);
+	      int xbin_out = layergeom->get_pixel_X_from_pixel_number(pixel_number_out);
+	      int zbin_out = layergeom->get_pixel_Z_from_pixel_number(pixel_number_out);
 
-	      int Ngridy_in = layergeom->get_pixel_Y_from_pixel_number(pixel_x, pixel_y, pixel_number_in);
-	      int Ngridy_out = layergeom->get_pixel_Y_from_pixel_number(pixel_x, pixel_y, pixel_number_out);
+	      // make sure that the entry and exit bins are in increasing order
+	      if(xbin_in > xbin_out)
+		{
+		  int tmp = xbin_out;
+		  xbin_out = xbin_in;
+		  xbin_in = tmp;
+		}
+	      if(zbin_in > zbin_out)
+		{
+		  int tmp = zbin_out;
+		  zbin_out = zbin_in;
+		  zbin_in = tmp;
+		}
 
-	      number_of_pixels = abs(Ngridx_in - Ngridx_out) + abs(Ngridy_in - Ngridy_out) + 1;
+	      // get the line connecting the entry and exit points
+	      double ax = local_in.X();
+	      double az = local_in.Z();
+	      double bx = local_out.X();
+	      double bz = local_out.Z();
 
-	      cout << " Ngridx_in " << Ngridx_in
-		   << " Ngridy_in " << Ngridy_in
-		   << " Ngridx_out " << Ngridx_out
-		   << " Ngridy_out " << Ngridy_out
-		   << endl; 
-	    }
+	      TVector3 pathvec = local_in - local_out;
+	      trklen = sqrt( pow( local_in.X() - local_out.X(), 2 ) + pow( local_in.Z() - local_out.Z(), 2) );     // only the length in x and z plane
+
+	      for(int xbin=xbin_in; xbin<=xbin_out;xbin++)
+		{
+		  for(int zbin=zbin_in;zbin<=zbin_out;zbin++)
+		    {
+		      // get the pixel center
+		      int pixnum = layergeom->get_pixel_number_from_xbin_zbin( xbin, zbin );
+		      TVector3 tmp = layergeom->get_local_coords_from_pixel( pixnum );
+		      // note that we need cx < dx and cz < dz
+		      double cx = tmp.X() - layergeom->get_pixel_x() / 2.0;
+		      double dx = tmp.X() + layergeom->get_pixel_x() / 2.0;
+		      double cz = tmp.Z() - layergeom->get_pixel_z() / 2.0;
+		      double dz = tmp.Z() + layergeom->get_pixel_z() / 2.0;
+		      double rr = 0.0;
+		      if(verbosity>2)
+			{
+			  cout << "##### line: ax " << ax << " az " << az << " bx " << bx << " bz " << bz << endl;
+			  cout << "####### cell:  cx " << cx << " cz " << cz << " dx " << dx << " dz " << dz << endl;
+			}
+		      bool yesno = line_and_rectangle_intersect(ax, az, bx, bz, cx, cz, dx, dz, &rr);
+
+		      if (yesno)
+			{
+			  if (verbosity > 0) cout << "CELL FIRED: " << xbin << " " << zbin << " " << rr << endl;
+			  vpixel.push_back(pixnum);
+			  vxbin.push_back(xbin);
+			  vzbin.push_back(zbin);
+			  vlen.push_back(rr);
+			}
+		    }
+		}
+ 	    }
 	  else
 	    {
 	      //There is only one pixel, it gets all of the energy
-	      number_of_pixels = 1;
-
-	      // Get the X and Y grid locations of the pixels?
-	      int Ngridx_in = layergeom->get_pixel_X_from_pixel_number(pixel_x, pixel_y, pixel_number_in);
-	      int Ngridx_out = layergeom->get_pixel_X_from_pixel_number(pixel_x, pixel_y, pixel_number_out);
-
-	      int Ngridy_in = layergeom->get_pixel_Y_from_pixel_number(pixel_x, pixel_y, pixel_number_in);
-	      int Ngridy_out = layergeom->get_pixel_Y_from_pixel_number(pixel_x, pixel_y, pixel_number_out);
-
-	      cout << " Ngridx_in " << Ngridx_in
-		   << " Ngridy_in " << Ngridy_in
-		   << " Ngridx_out " << Ngridx_out
-		   << " Ngridy_out " << Ngridy_out
-		   << endl; 
-	    }
-	  cout << "number of pixels  " << number_of_pixels << endl;
-
-	  if(verbosity > 2)
-	    {
-	      // Testing: get the local coords of the center of the pixel
-	      TVector3  pixel_local_coords_in = layergeom->get_local_coords_from_pixel(pixel_x, pixel_y, pixel_number_in);
-	      cout << " CellReco: pixel number in = " << pixel_number_in << endl;
-	      // check - get pixel number from coords of center of pixel!
-	      int pixel_number_check =  layergeom->get_pixel_from_local_coords(pixel_x, pixel_y, local_in);
-	      cout << "pixel number in check = " << pixel_number_check << endl;
-	      cout << " PHG4MapsCellReco: pixel local coords from pixel number in = " << pixel_local_coords_in.X() << " " << pixel_local_coords_in.Y() << " " << pixel_local_coords_in.Z() << endl;
-	      cout << " PHG4MapsCellReco:hit entry point  local coords from G4 = " << local_in.X() << " " << local_in.Y() << " " << local_in.Z() << endl;
-	      cout << " PHG4MapsCellReco:hit exit point  local coords from Geom = " << local_out.X() << " " << local_out.Y() << " " << local_out.Z() << endl;
+	      int xbin = layergeom->get_pixel_X_from_pixel_number(pixel_number_in);
+	      int zbin = layergeom->get_pixel_Z_from_pixel_number(pixel_number_in);
+	 
+	      vpixel.push_back(pixel_number_in);
+	      vxbin.push_back(xbin);
+	      vzbin.push_back(zbin);
+	      vlen.push_back(trklen);
 	    }
 
-	  */
+
+	  /*
 	  //====================
 	  // This is a TEMPORARY make-do to get a single pixel that represents the hit.
 	  // SHOULD make a cell for each pixel that the track passes through
@@ -309,33 +332,62 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		 << " pixel local coords " << pixel_local_coords_mid.X() << " " << pixel_local_coords_mid.Y() << " " << pixel_local_coords_mid.Z() 
 		 << " pixel world coords " << pixel_world_coords_mid.X() << " " << pixel_world_coords_mid.Y() << " " << pixel_world_coords_mid.Z() 
 		 << endl << endl;
-	  
-	  // combine ladder index values to get a single key
-	  char inkey[1024];
-	  // add hitid to account for different pixels in the sensor. Could use pixel_index, but that is a big number! 
-	  sprintf(inkey,"%i-%i_%i_%i_%i",stave_number, half_stave_number, module_number, chip_number, pixel_number_mid);
-	  std::string key(inkey);
+	  */
 
-	  if (celllist.count(key) > 0) {
-	    celllist[key]->add_edep(hiter->first, hiter->second->get_edep());
-	  } else {
-	    celllist[key] = new PHG4CylinderCell_MAPS();
-	    celllist[key]->set_layer(*layer);
+	  // loop over all fired cells and add them to the celllist
+	  for (unsigned int i1 = 0; i1 < vpixel.size(); i1++)   // loop over all fired cells
+	    {
+	      int pixel_number = vpixel[i1];
 
-	    // This encodes the z and phi position of the sensor, and pixel number within the sensor
-	    celllist[key]->set_stave_index(stave_number);
-	    celllist[key]->set_half_stave_index(half_stave_number);
-	    celllist[key]->set_module_index(module_number);
-	    celllist[key]->set_chip_index(chip_number);
-	    celllist[key]->set_pixel_index(pixel_number_mid);
+	      // combine ladder index values to get a single key
+	      char inkey[1024];
+	      // add hitid to account for different pixels in the sensor. Could use pixel_index, but that is a big number! 
+	      sprintf(inkey,"%i_%i_%i_%i_%i",stave_number, half_stave_number, module_number, chip_number, pixel_number);
+	      std::string key(inkey);
 
-	    celllist[key]->set_phibin(phibin);
-	    celllist[key]->set_zbin(zbin);
-	    
-	    celllist[key]->add_edep(hiter->first, hiter->second->get_edep());
-	  }
+	      if (celllist.count(key) > 0) 
+		{
+		  // key exists, just add energy
+		  // this should not happen
+		  double edep;
+		  if(trklen > 0.0)
+		    edep = hiter->second->get_edep() * vlen[i1] / trklen;
+		  else
+		    edep = hiter->second->get_edep();
+		  
+		  celllist[key]->add_edep(hiter->first, edep);
+		} 
+	      else 
+		{
+		  celllist[key] = new PHG4CylinderCell_MAPS();
+		  celllist[key]->set_layer(*layer);
+		  
+		  // This encodes the z and phi position of the sensor, and pixel number within the sensor
+		  celllist[key]->set_stave_index(stave_number);
+		  celllist[key]->set_half_stave_index(half_stave_number);
+		  celllist[key]->set_module_index(module_number);
+		  celllist[key]->set_chip_index(chip_number);
+		  celllist[key]->set_pixel_index(pixel_number);
+		  
+		  celllist[key]->set_phibin(vxbin[i1]);
+		  celllist[key]->set_zbin(vzbin[i1]);
+		  
+		  double edep;
+		  if(trklen > 0.0)
+		    edep = hiter->second->get_edep() * vlen[i1] / trklen;
+		  else
+		    edep = hiter->second->get_edep();
+		  
+		  celllist[key]->add_edep(hiter->first, edep);
+		  
+		  if(verbosity > 1)
+		    cout << " looping over fired cells: cell " << i1 << " inkey " << inkey 
+			 << " cell length " << vlen[i1] << " trklen " << trklen
+			 << " cell edep " << edep << " total edep " << hiter->second->get_edep() << endl;
+		}
+	    }
 	} // end loop over g4hits
-
+      
       int numcells = 0;
       for (map<std::string, PHG4CylinderCell_MAPS *>::const_iterator mapiter = celllist.begin();mapiter != celllist.end() ; ++mapiter)
 	{	  
@@ -359,14 +411,13 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  cout << Name() << ": found " << numcells << " silicon pixels with energy deposition" << endl;
 	}
     }
-  
-  
-if (chkenergyconservation)
-  {
-    CheckEnergy(topNode);
-  }
-_timer.get()->stop();
-return Fun4AllReturnCodes::EVENT_OK;
+    
+  if (chkenergyconservation)
+    {
+      CheckEnergy(topNode);
+    }
+  _timer.get()->stop();
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int
@@ -393,7 +444,7 @@ PHG4MapsCellReco::CheckEnergy(PHCompositeNode *topNode)
   for (citer = cell_begin_end.first; citer != cell_begin_end.second; ++citer)
     {
       sum_energy_cells += citer->second->get_edep();
-
+      
     }
   // the fractional eloss for particles traversing eta bins leads to minute rounding errors
   if (fabs(sum_energy_cells - sum_energy_g4hit) / sum_energy_g4hit > 1e-6)
@@ -414,3 +465,154 @@ PHG4MapsCellReco::CheckEnergy(PHCompositeNode *topNode)
   return 0;
 }
 
+bool PHG4MapsCellReco::lines_intersect(
+				       double ax,
+				       double ay,
+				       double bx,
+				       double by,
+				       double cx,
+				       double cy,
+				       double dx,
+				       double dy,
+				       double* rx, // intersection point (output)
+				       double* ry
+				       )
+{
+  
+  // Find if a line segment limited by points A and B
+  // intersects line segment limited by points C and D.
+  // First check if an infinite line defined by A and B intersects
+  // segment (C,D). If h is from 0 to 1 line and line segment intersect
+  // Then check in intersection point is between C and D
+  
+  double ex = bx - ax; // E=B-A
+  double ey = by - ay;
+  double fx = dx - cx; // F=D-C
+  double fy = dy - cy;
+  double px = -ey;     // P
+  double py = ex;
+
+  double bottom = fx * px + fy * py; // F*P
+  double gx = ax - cx; // A-C
+  double gy = ay - cy;
+  double top = gx * px + gy * py; // G*P
+
+  double h = 99999.;
+  if (bottom != 0.)
+    {
+      h = top / bottom;
+    }
+
+//intersection point R = C + F*h
+  if (h > 0. && h < 1.)
+    {
+      *rx = cx + fx * h;
+      *ry = cy + fy * h;
+      //cout << "      line/segment intersection coordinates: " << *rx << " " << *ry << endl;
+      if ((*rx > ax && *rx > bx) || (*rx < ax && *rx < bx) || (*ry < ay && *ry < by) || (*ry > ay && *ry > by))
+        {
+          //cout << "       NO segment/segment intersection!" << endl;
+          return false;
+        }
+      else
+        {
+          //cout << "       segment/segment intersection!" << endl;
+          return true;
+        }
+    }
+
+  return false;
+}
+
+bool  PHG4MapsCellReco::line_and_rectangle_intersect(
+						     double ax,
+						     double ay,
+						     double bx,
+						     double by,
+						     double cx,
+						     double cy,
+						     double dx,
+						     double dy,
+						     double* rr // length of the line segment inside the rectangle (output)
+						     )
+{
+  
+  // find if a line isegment limited by points (A,B)
+  // intersects with a rectangle defined by two
+  // corner points (C,D) two other points are E and F
+  //   E--------D
+  //   |        |
+  //   |        |
+  //   C--------F
+  
+  if (cx > dx || cy > dy)
+    {
+      cerr << "ERROR: Bad rectangle definition!" << endl;
+      return false;
+    }
+
+  double ex = cx;
+  double ey = dy;
+  double fx = dx;
+  double fy = cy;
+  double rx = 99999.;
+  double ry = 99999.;
+
+  vector<double> vx;
+  vector<double> vy;
+
+  bool i1 = lines_intersect(ax, ay, bx, by, cx, cy, fx, fy, &rx, &ry);
+  if (i1)
+    {
+      vx.push_back(rx);
+      vy.push_back(ry);
+    }
+  bool i2 = lines_intersect(ax, ay, bx, by, fx, fy, dx, dy, &rx, &ry);
+  if (i2)
+    {
+      vx.push_back(rx);
+      vy.push_back(ry);
+    }
+  bool i3 = lines_intersect(ax, ay, bx, by, ex, ey, dx, dy, &rx, &ry);
+  if (i3)
+    {
+      vx.push_back(rx);
+      vy.push_back(ry);
+    }
+  bool i4 = lines_intersect(ax, ay, bx, by, cx, cy, ex, ey, &rx, &ry);
+  if (i4)
+    {
+      vx.push_back(rx);
+      vy.push_back(ry);
+    }
+
+//cout << "Rectangle intersections: " << i1 << " " << i2 << " " << i3 << " " << i4 << endl;
+//cout << "Number of intersections = " << vx.size() << endl;
+
+  *rr = 0.;
+  if (vx.size() == 2)
+    {
+      *rr = sqrt( (vx[0] - vx[1]) * (vx[0] - vx[1]) + (vy[0] - vy[1]) * (vy[0] - vy[1]) );
+//  cout << "Length of intersection = " << *rr << endl;
+    }
+  if (vx.size() == 1)
+    {
+      // find which point (A or B) is within the rectangle
+      if (ax > cx && ay > cy && ax < dx && ay < dy)   // point A is inside the rectangle
+        {
+          //cout << "Point A is inside the rectangle." << endl;
+          *rr = sqrt((vx[0] - ax) * (vx[0] - ax) + (vy[0] - ay) * (vy[0] - ay));
+        }
+      if (bx > cx && by > cy && bx < dx && by < dy)   // point B is inside the rectangle
+        {
+          //cout << "Point B is inside the rectangle." << endl;
+          *rr = sqrt((vx[0] - bx) * (vx[0] - bx) + (vy[0] - by) * (vy[0] - by));
+        }
+    }
+
+  if (i1 || i2 || i3 || i4)
+    {
+      return true;
+    }
+  return false;
+}

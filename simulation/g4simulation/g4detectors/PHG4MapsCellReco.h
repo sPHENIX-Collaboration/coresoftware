@@ -31,6 +31,32 @@ class PHG4MapsCellReco : public SubsysReco
   void checkenergy(const int i=1) {chkenergyconservation = i;}
 
  protected:
+
+  bool lines_intersect(
+		       double ax,
+		       double ay,
+		       double bx,
+		       double by,
+		       double cx,
+		       double cy,
+		       double dx,
+		       double dy,
+		       double* rx, // intersection point (output)
+		       double* ry
+		       );
+  
+  bool  line_and_rectangle_intersect(
+				     double ax,
+				     double ay,
+				     double bx,
+				     double by,
+				     double cx,
+				     double cy,
+				     double dx,
+				     double dy,
+				     double* rr // length of the line segment inside the rectangle (output)
+				     );
+  
   //void set_size(const int i, const double sizeA, const int sizeB, const int what);
   int CheckEnergy(PHCompositeNode *topNode);
   static std::pair<double, double> get_etaphi(const double x, const double y, const double z);

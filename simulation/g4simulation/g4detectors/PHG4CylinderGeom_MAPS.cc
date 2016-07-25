@@ -12,7 +12,7 @@ ClassImp(PHG4CylinderGeom_MAPS)
 using namespace ROOT::Math;
 using namespace std;
 
-PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, int in_N_staves, double in_layer_nominal_radius, double in_phistep, double in_phitilt, double in_pixel_x, double in_pixel_y, double in_pixel_thickness):
+PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, int in_N_staves, double in_layer_nominal_radius, double in_phistep, double in_phitilt, double in_pixel_x, double in_pixel_z, double in_pixel_thickness):
   layer(in_layer),
   stave_type(in_stave_type),
   N_staves(in_N_staves),
@@ -20,7 +20,7 @@ PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, in
   stave_phi_step(in_phistep),
   stave_phi_tilt(in_phitilt),
   pixel_x(in_pixel_x),
-  pixel_y(in_pixel_y),
+  pixel_z(in_pixel_z),
   pixel_thickness(in_pixel_thickness)
 {
   if(stave_type < 3)
@@ -464,9 +464,19 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
     }
 }
 
+int PHG4CylinderGeom_MAPS::get_pixel_number_from_xbin_zbin(int xbin, int ybin)
+{
+  //NZ = (int)  ( Zsensor / (pixel_z) );
+  NX = (int)  ( Xsensor / (pixel_x) );
+  
+  int NXZ = xbin + ybin * NX;
+
+    return NXZ;
+}
+
 int PHG4CylinderGeom_MAPS::get_pixel_X_from_pixel_number(int NXZ)
 {
-  NZ = (int)  ( Zsensor / (pixel_y) );
+  NZ = (int)  ( Zsensor / (pixel_z) );
   NX = (int)  ( Xsensor / (pixel_x) );
   
   int Ngridx = NXZ % NX ;
@@ -474,9 +484,9 @@ int PHG4CylinderGeom_MAPS::get_pixel_X_from_pixel_number(int NXZ)
     return Ngridx;
 }
 
-int PHG4CylinderGeom_MAPS::get_pixel_Y_from_pixel_number( int NXZ)
+int PHG4CylinderGeom_MAPS::get_pixel_Z_from_pixel_number( int NXZ)
 {  
-  NZ = (int)  ( Zsensor / (pixel_y) );
+  NZ = (int)  ( Zsensor / (pixel_z) );
   NX = (int)  ( Xsensor / (pixel_x) );
 
   int Ngridz = NXZ / NX;
@@ -487,7 +497,7 @@ int PHG4CylinderGeom_MAPS::get_pixel_Y_from_pixel_number( int NXZ)
 int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(TVector3 sensor_local)
 {  
 
-  NZ = (int)  ( Zsensor / (pixel_y) );
+  NZ = (int)  ( Zsensor / (pixel_z) );
   NX = (int)  ( Xsensor / (pixel_x) );
   
   //cout  << " Pixels in X: NX  " << NX  << " pixels in Z: NZ  " << NZ << endl;
@@ -498,7 +508,7 @@ int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(TVector3 sensor_local)
   double npix_x = sensor_local.X() / pixel_x;
   int Ngridx = int(npix_x) ;
   
-  double npix_z = sensor_local.Z() / pixel_y;
+  double npix_z = sensor_local.Z() / pixel_z;
   int Ngridz = int(npix_z);
 
   //  Combine the grid locations into a single integer
@@ -522,7 +532,7 @@ int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(TVector3 sensor_local)
 
 TVector3 PHG4CylinderGeom_MAPS::get_local_coords_from_pixel(int NXZ)
 {  
-  NZ = (int)  ( Zsensor / (pixel_y) );
+  NZ = (int)  ( Zsensor / (pixel_z) );
   NX = (int)  ( Xsensor / (pixel_x) );
   
   //cout  << " Pixels in X: NX  " << NX  << " pixels in Z: NZ  " << NZ << endl;
@@ -540,11 +550,11 @@ TVector3 PHG4CylinderGeom_MAPS::get_local_coords_from_pixel(int NXZ)
   else
     sensor_local_x += pixel_x / 2.0;
 
-  double sensor_local_z = (double) Ngridz * pixel_y;
+  double sensor_local_z = (double) Ngridz * pixel_z;
   if(sensor_local_z < 0)
-    sensor_local_z -= pixel_y/2.0;
+    sensor_local_z -= pixel_z/2.0;
   else
-    sensor_local_z += pixel_y/2.0;
+    sensor_local_z += pixel_z/2.0;
 
   // The front of the sensor is at y = 0.0009, the back is at y = -0.0009
   // if we wanted the coordinates of the entrance or exit point, we would make y = to 0.0009 or -0.0009
@@ -563,7 +573,7 @@ void PHG4CylinderGeom_MAPS::identify(std::ostream& os) const
      << ", N_staves in layer: " << N_staves
      << ", N_half_staves in layer: " << N_half_staves
      << ", pixel_x: " << pixel_x
-     << ", pixel_y: " << pixel_y
+     << ", pixel_z: " << pixel_z
      << ", pixel_thickness: " << pixel_thickness
      << endl;
   return;

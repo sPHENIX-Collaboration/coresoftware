@@ -10,7 +10,7 @@ class PHG4CylinderGeom_MAPS: public PHG4CylinderGeom
 {
  public:
 
-  PHG4CylinderGeom_MAPS(int layer, int stave_type, int in_Nstaves, double in_layer_nominal_radius, double in_phistep, double in_phitilt, double in_pixel_x, double in_pixel_y, double in_pixel_thickness);
+  PHG4CylinderGeom_MAPS(int layer, int stave_type, int in_Nstaves, double in_layer_nominal_radius, double in_phistep, double in_phitilt, double in_pixel_x, double in_pixel_z, double in_pixel_thickness);
 
   virtual ~PHG4CylinderGeom_MAPS() {}
 
@@ -20,10 +20,11 @@ class PHG4CylinderGeom_MAPS: public PHG4CylinderGeom
   int get_pixel_from_local_coords(TVector3 sensor_local);
   TVector3 get_local_coords_from_pixel(int NXZ);
   int get_pixel_X_from_pixel_number(int NXZ) ;
-  int get_pixel_Y_from_pixel_number(int NXZ) ;
+  int get_pixel_Z_from_pixel_number(int NXZ) ;
+  int get_pixel_number_from_xbin_zbin(int xbin, int zbin);
 
   double get_pixel_x() const {return pixel_x;}
-  double get_pixel_y() const {return pixel_y;}
+  double get_pixel_z() const {return pixel_z;}
   double get_pixel_thickness() const {return pixel_thickness;}
   
   void set_layer(const int i) {layer = i;}
@@ -84,7 +85,7 @@ protected:
   double outer_loc_halfstave_in_stave[2][3];
 
   double pixel_x;
-  double pixel_y;
+  double pixel_z;
   double pixel_thickness;
   
   ClassDef(PHG4CylinderGeom_MAPS,1)

@@ -63,9 +63,9 @@ int PHG4MapsSubsystem::Init( PHCompositeNode* topNode )
   detector_->Verbosity(2);
   detector_->set_nominal_layer_radius(layer_nominal_radius);
   detector_->set_pixel_x(pixel_x);
-  detector_->set_pixel_y(pixel_y);
+  detector_->set_pixel_z(pixel_z);
   detector_->set_pixel_thickness(pixel_thickness);
-  cout << " setting pixel_x " << pixel_x << " pixel_y " << pixel_y << " pixel_thickness " << pixel_thickness << endl;
+  cout << " setting pixel_x " << pixel_x << " pixel_z " << pixel_z << " pixel_thickness " << pixel_thickness << endl;
   detector_->SetActive(active);
   detector_->SetAbsorberActive(absorberactive);
   detector_->BlackHole(blackhole);
