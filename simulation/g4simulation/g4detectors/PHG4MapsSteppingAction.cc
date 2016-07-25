@@ -40,7 +40,7 @@ PHG4MapsSteppingAction::PHG4MapsSteppingAction( PHG4MapsDetector* detector ):
 {
   cout << "PHG4MapsSteppingAction created" << endl;
 
-  verbosity = 3;
+  //verbosity = 3;
 }
 
 //____________________________________________________________________________..
