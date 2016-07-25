@@ -170,10 +170,14 @@ Event * oncsBuffer::getEvent()
   Event *evt;
   evt =  new oncsEvent( &bptr->data[current_index]);
 
+  
+  int l =  evt->getEvtLength();
+  if ( l<= 0) return 0;
   current_index += evt->getEvtLength();
 
   // now is the new index pointing outside the allocated memory?
-  if (current_index < 0 || current_index > BUFFERSIZE)
+  //  if (current_index < 0 || current_index > BUFFERSIZE)
+  if (current_index < 0 || current_index >= buffer_size)
     {
       //COUT << "end of buffer r1" << current_index << std::endl;
       current_index = -1;
