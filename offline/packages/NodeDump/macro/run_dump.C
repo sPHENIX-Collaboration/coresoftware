@@ -2,7 +2,9 @@ void run_dump(const char *infile, const int evts=100)
 {
   gSystem->Load("libg4hough.so");
   gSystem->Load("libphnodedump.so");
-
+  gSystem->Load("libg4vertex_io.so");
+  gSystem->Load("libg4bbc_io.so");
+  
   Fun4AllServer* se = Fun4AllServer::instance();
 
   Dumper *dmp = new Dumper();
