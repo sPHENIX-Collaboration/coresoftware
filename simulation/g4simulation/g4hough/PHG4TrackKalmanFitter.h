@@ -60,6 +60,9 @@ public:
 	//!Initialization, called for initialization
 	int Init(PHCompositeNode *);
 
+	//!Initialization Run, called for initialization of a run
+	int InitRun(PHCompositeNode *);
+
 	//!Process Event, called for each event
 	int process_event(PHCompositeNode *);
 
@@ -153,6 +156,13 @@ public:
 		_output_mode = outputMode;
 	}
 
+	const std::string& get_mag_field_file_name() const {
+		return _mag_field_file_name;
+	}
+
+	void set_mag_field_file_name(const std::string& magFieldFileName) {
+		_mag_field_file_name = magFieldFileName;
+	}
 
 private:
 
@@ -188,11 +198,15 @@ private:
 
 	bool _fit_primary_tracks;
 
+	//!
+	std::string _mag_field_file_name;
+
 	//! rescale mag field, modify the original mag field read in
 	float _mag_field_re_scaling_factor;
 
 	//! Switch to reverse Magnetic field
 	bool _reverse_mag_field;
+
 
 	PHGenFit::Fitter* _fitter;
 	genfit::GFRaveVertexFactory* _vertex_finder;

@@ -76,7 +76,7 @@ Fitter::~Fitter()
 		delete _fitter;
 	if(_tgeo_manager)
 		//delete _tgeo_manager;
-		_tgeo_manager->Delete();
+		//_tgeo_manager->Delete();
 	if(_display)
 		delete _display;
 }
@@ -111,6 +111,29 @@ Fitter* Fitter::getInstance(const std::string tgeo_file_name,
 		const bool doEventDisplay) {
 
 	TGeoManager* tgeo_manager = TGeoManager::Import(tgeo_file_name.data(), "Default");
+	if(!tgeo_manager)
+	{
+		LogERROR("No TGeoManager found!");
+		return NULL;
+	}
+
+	genfit::Field2D *fieldMap = new genfit::Field2D();
+	if(!fieldMap->initialize(field_file_name.data()))
+	{
+		LogERROR("Field map initialization failed!");
+		delete fieldMap;
+		return NULL;
+	}
+	fieldMap->re_scale(field_scaling_factor);// Re-scale to 1.4 T
+
+	return new Fitter(tgeo_manager, fieldMap, fitter_choice, track_rep_choice, doEventDisplay);
+}
+
+Fitter* Fitter::getInstance(TGeoManager* tgeo_manager,
+		const std::string field_file_name, const double field_scaling_factor,
+		const std::string fitter_choice, const std::string track_rep_choice,
+		const bool doEventDisplay) {
+
 	if(!tgeo_manager)
 	{
 		LogERROR("No TGeoManager found!");

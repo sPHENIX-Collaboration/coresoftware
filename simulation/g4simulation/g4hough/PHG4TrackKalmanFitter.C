@@ -31,10 +31,12 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phgeom/PHGeomUtility.h>
 #include <iostream>
 #include <map>
 #include <utility>
 #include <vector>
+
 
 #include "TClonesArray.h"
 #include "TMatrixDSym.h"
@@ -142,7 +144,7 @@ private:
  * Constructor
  */
 PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
-		SubsysReco(name), _flags(NONE), _output_mode(OverwriteOriginalNode), _fit_primary_tracks(true), _mag_field_re_scaling_factor(1.4/1.5), _reverse_mag_field(true), _fitter( NULL), _vertex_finder( NULL), _vertexing_method("mvf"), _truth_container(
+		SubsysReco(name), _flags(NONE), _output_mode(OverwriteOriginalNode), _fit_primary_tracks(true), _mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),_mag_field_re_scaling_factor(1.4/1.5), _reverse_mag_field(true), _fitter( NULL), _vertex_finder( NULL), _vertexing_method("mvf"), _truth_container(
 				NULL), _clustermap(NULL), _trackmap(NULL), _vertexmap(NULL), _trackmap_refit(
 				NULL), _primary_trackmap(NULL), _vertexmap_refit(NULL), _do_eval(false), _eval_outname(
 				"PHG4TrackKalmanFitter_eval.root"), _eval_tree(
@@ -158,11 +160,25 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 int PHG4TrackKalmanFitter::Init(PHCompositeNode *topNode) {
 	cout << PHWHERE << " Openning file " << _eval_outname << endl;
 
+//	CreateNodes(topNode);
+
+
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+/*
+ * Init run
+ */
+int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
+
 	CreateNodes(topNode);
 
+	TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
+
 	//_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
-	_fitter = PHGenFit::Fitter::getInstance("sPHENIX_Geo.root",
-			"sPHENIX.2d.root", (_reverse_mag_field) ? -1.*_mag_field_re_scaling_factor : _mag_field_re_scaling_factor, "KalmanFitterRefTrack", "RKTrackRep",
+	_fitter = PHGenFit::Fitter::getInstance(tgeo_manager,
+			_mag_field_file_name.data(), (_reverse_mag_field) ? -1.*_mag_field_re_scaling_factor : _mag_field_re_scaling_factor, "KalmanFitterRefTrack", "RKTrackRep",
 			_do_evt_display);
 
 	if (!_fitter) {
@@ -193,7 +209,6 @@ int PHG4TrackKalmanFitter::Init(PHCompositeNode *topNode) {
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
-
 /*
  * process_event():
  *  Call user instructions for every event.
