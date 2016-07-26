@@ -138,12 +138,20 @@ void HelixHough::vote_pairs(unsigned int zoomlevel) {
             min_d_2_a, max_d_2_a, min_dzdl_a, max_dzdl_a, min_z0_1_a,
             max_z0_1_a, min_z0_2_a, max_z0_2_a);
         for (unsigned int h = 0; h < pair_counter; ++h) {
-          float dr0 = sqrt(four_pairs[h][0].get_ex() * four_pairs[h][0].get_ex() +
-                           four_pairs[h][0].get_ey() * four_pairs[h][0].get_ey());
+
+          float dr0 = sqrt((2.0*sqrt(four_pairs[h][0].get_size(0,0))) *
+			   (2.0*sqrt(four_pairs[h][0].get_size(0,0))) +
+                           (2.0*sqrt(four_pairs[h][0].get_size(1,1))) *
+			   (2.0*sqrt(four_pairs[h][0].get_size(1,1))));
+	  
           float r0 = sqrt(four_pairs[h][0].get_x() * four_pairs[h][0].get_x() +
                           four_pairs[h][0].get_y() * four_pairs[h][0].get_y());
-          float dr1 = sqrt(four_pairs[h][1].get_ex() * four_pairs[h][1].get_ex() +
-                           four_pairs[h][1].get_ey() * four_pairs[h][1].get_ey());
+	  
+          float dr1 = sqrt((2.0*sqrt(four_pairs[h][1].get_size(0,0))) *
+			   (2.0*sqrt(four_pairs[h][1].get_size(0,0))) +
+                           (2.0*sqrt(four_pairs[h][1].get_size(1,1))) *
+			   (2.0*sqrt(four_pairs[h][1].get_size(1,1))));
+
           float r1 = sqrt(four_pairs[h][1].get_x() * four_pairs[h][1].get_x() +
                           four_pairs[h][1].get_y() * four_pairs[h][1].get_y());
           float r1r0_inv = 1. / (r1 - r0);
@@ -237,12 +245,20 @@ void HelixHough::vote_pairs(unsigned int zoomlevel) {
           min_d_2_a, max_d_2_a, min_dzdl_a, max_dzdl_a, min_z0_1_a, max_z0_1_a,
           min_z0_2_a, max_z0_2_a);
       for (unsigned int h = 0; h < pair_counter; ++h) {
-        float dr0 = sqrt(four_pairs[h][0].get_ex() * four_pairs[h][0].get_ex() +
-                         four_pairs[h][0].get_ey() * four_pairs[h][0].get_ey());
+	
+	float dr0 = sqrt((2.0*sqrt(four_pairs[h][0].get_size(0,0))) *
+			 (2.0*sqrt(four_pairs[h][0].get_size(0,0))) +
+			 (2.0*sqrt(four_pairs[h][0].get_size(1,1))) *
+			 (2.0*sqrt(four_pairs[h][0].get_size(1,1))));
+
         float r0 = sqrt(four_pairs[h][0].get_x() * four_pairs[h][0].get_x() +
                         four_pairs[h][0].get_y() * four_pairs[h][0].get_y());
-        float dr1 = sqrt(four_pairs[h][1].get_ex() * four_pairs[h][1].get_ex() +
-                         four_pairs[h][1].get_ey() * four_pairs[h][1].get_ey());
+
+	float dr1 = sqrt((2.0*sqrt(four_pairs[h][1].get_size(0,0))) *
+			 (2.0*sqrt(four_pairs[h][1].get_size(0,0))) +
+			 (2.0*sqrt(four_pairs[h][1].get_size(1,1))) *
+			 (2.0*sqrt(four_pairs[h][1].get_size(1,1))));
+
         float r1 = sqrt(four_pairs[h][1].get_x() * four_pairs[h][1].get_x() +
                         four_pairs[h][1].get_y() * four_pairs[h][1].get_y());
         float r1r0_inv = 1. / (r1 - r0);

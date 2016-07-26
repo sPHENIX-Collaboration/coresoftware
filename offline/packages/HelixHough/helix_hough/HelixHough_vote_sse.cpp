@@ -684,8 +684,11 @@ void HelixHough::vote(unsigned int zoomlevel) {
           }
           for (unsigned int h = 0; h < hit_counter; ++h) {
             if (h < 4) {
-              float dphi = sqrt((four_hits[h].get_ex() * four_hits[h].get_ex() +
-                                 four_hits[h].get_ey() * four_hits[h].get_ey()) /
+	      
+              float dphi = sqrt(((2.0*sqrt(four_hits[h].get_size(0,0))) *
+				 (2.0*sqrt(four_hits[h].get_size(0,0))) +
+                                 (2.0*sqrt(four_hits[h].get_size(1,1))) *
+				 (2.0*sqrt(four_hits[h].get_size(1,1)))) /
                                 (four_hits[h].get_x() * four_hits[h].get_x() +
                                  four_hits[h].get_y() * four_hits[h].get_y()));
               dphi += phiError(
@@ -698,10 +701,12 @@ void HelixHough::vote(unsigned int zoomlevel) {
               max_phi_1_a[h] += dphi;
               min_phi_8[h] = min_phi_1_a[h];
               max_phi_8[h] = max_phi_1_a[h];
-            } else {
+            } else {	      
               float dphi =
-                  sqrt((four_hits_2[h - 4].get_ex() * four_hits_2[h - 4].get_ex() +
-                        four_hits_2[h - 4].get_ey() * four_hits_2[h - 4].get_ey()) /
+                  sqrt(((2.0*sqrt(four_hits_2[h - 4].get_size(0,0))) *
+			(2.0*sqrt(four_hits_2[h - 4].get_size(0,0))) +
+                        (2.0*sqrt(four_hits_2[h - 4].get_size(1,1))) *
+			(2.0*sqrt(four_hits_2[h - 4].get_size(1,1)))) /
                        (four_hits_2[h - 4].get_x() * four_hits_2[h - 4].get_x() +
                         four_hits_2[h - 4].get_y() * four_hits_2[h - 4].get_y()));
               dphi += phiError(
@@ -764,10 +769,13 @@ void HelixHough::vote(unsigned int zoomlevel) {
                                      min_phi_2_a, max_phi_2_a);
           }
           for (unsigned int h = 0; h < hit_counter; ++h) {
-            float dphi = sqrt((four_hits[h].get_ex() * four_hits[h].get_ex() +
-                               four_hits[h].get_ey() * four_hits[h].get_ey()) /
+	    
+            float dphi = sqrt((2.0*sqrt(four_hits[h].get_size(0,0))) *
+			      (2.0*sqrt(four_hits[h].get_size(0,0))) +
+                              (2.0*sqrt(four_hits[h].get_size(1,1))) *
+			      (2.0*sqrt(four_hits[h].get_size(1,1)))) /
                               (four_hits[h].get_x() * four_hits[h].get_x() +
-                               four_hits[h].get_y() * four_hits[h].get_y()));
+                               four_hits[h].get_y() * four_hits[h].get_y());
             dphi += phiError(
                 four_hits[h], min_kappa, max_kappa, min_d_array[d_bin],
                 max_d_array[d_bin], zoomranges[zoomlevel].min_z0,
@@ -840,8 +848,11 @@ void HelixHough::vote(unsigned int zoomlevel) {
                                    max_phi_2_a);
         }
         for (unsigned int h = 0; h < hit_counter; ++h) {
-          float dphi = sqrt((four_hits[h].get_ex() * four_hits[h].get_ex() +
-                             four_hits[h].get_ey() * four_hits[h].get_ey()) /
+	  
+          float dphi = sqrt(((2.0*sqrt(four_hits[h].get_size(0,0))) *
+			     (2.0*sqrt(four_hits[h].get_size(0,0))) +
+                             (2.0*sqrt(four_hits[h].get_size(1,1))) *
+			     (2.0*sqrt(four_hits[h].get_size(1,1)))) /
                             (four_hits[h].get_x() * four_hits[h].get_x() +
                              four_hits[h].get_y() * four_hits[h].get_y()));
           dphi += phiError(
