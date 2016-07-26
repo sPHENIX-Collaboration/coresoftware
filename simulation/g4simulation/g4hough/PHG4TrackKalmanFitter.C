@@ -56,7 +56,7 @@
 #define LogError(exp)		std::cout<<"ERROR: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
 
-#define _DEBUG_MODE_ 1
+#define _DEBUG_MODE_ 0
 
 using namespace std;
 
@@ -604,9 +604,6 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
 	 * if fit track as a primary track
 	 */
 
-	//! 1000 is a arbitrary number for now
-	const double vertex_chi2_over_dnf_cut = 1000;
-	const double vertex_cov_element_cut = 10000; //arbitrary cut cm*cm
 
 //	if(invertex and verbosity >= 2)
 //	{
@@ -625,7 +622,9 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
 	 *
 	 */
 #if _DEBUG_MODE_ == 1
-	if (invertex and invertex->size_tracks() == 1) {
+	if (invertex
+//			and invertex->size_tracks() == 1
+			) {
 		TRandom3 rand(0);
 		double dxy = 0.0007;	//7 um
 		double dz = 0.003;		//30 um
@@ -651,7 +650,11 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
 				pos, cov);
 		measurements.push_back(meas);
 	}
-#endif
+#else
+
+	//! 1000 is a arbitrary number for now
+	const double vertex_chi2_over_dnf_cut = 1000;
+	const double vertex_cov_element_cut = 10000; //arbitrary cut cm*cm
 
 	if (invertex and invertex->size_tracks() > 1
 			and invertex->get_chisq() / invertex->get_ndof()
@@ -683,6 +686,7 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
 //			}
 		}
 	}
+#endif
 
 	for (SvtxTrack::ConstClusterIter iter = intrack->begin_clusters();
 			iter != intrack->end_clusters(); ++iter) {

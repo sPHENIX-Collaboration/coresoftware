@@ -189,7 +189,7 @@ PHGeomUtility::GenerateGeometryFileName(const std::string & filename_extension)
 bool
 PHGeomUtility::RemoveGeometryFile(const std::string & file_name)
 {
-  fstream ifile(file_name.c_str(), ios_base::in);
+  fstream ifile(file_name, ios_base::in);
 
   if (ifile)
     {
