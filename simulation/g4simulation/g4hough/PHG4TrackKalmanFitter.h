@@ -152,6 +152,9 @@ public:
 		return _output_mode;
 	}
 
+	/*!
+	 * set output mode, default is OverwriteOriginalNode
+	 */
 	void set_output_mode(OutPutMode outputMode) {
 		_output_mode = outputMode;
 	}
@@ -159,6 +162,10 @@ public:
 	const std::string& get_mag_field_file_name() const {
 		return _mag_field_file_name;
 	}
+
+	/*!
+	 * default is /phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root
+	 */
 
 	void set_mag_field_file_name(const std::string& magFieldFileName) {
 		_mag_field_file_name = magFieldFileName;
