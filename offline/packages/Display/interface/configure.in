@@ -1,0 +1,14 @@
+AC_INIT(configure.in)
+
+AM_INIT_AUTOMAKE(pheve_interface, 1.00)
+AC_PROG_CXX(CC g++)
+AC_ENABLE_STATIC(no)
+AC_PROG_LIBTOOL
+
+if test $ac_cv_prog_gxx = yes; then
+  # cannot add -Werror because of "boost/graph/adjacent_list.hpp"
+  # CXXFLAGS="$CXXFLAGS -Wall -Werror"
+  CXXFLAGS="$CXXFLAGS -Wall"
+fi
+
+AC_OUTPUT(Makefile)
