@@ -374,7 +374,8 @@ void HelixHough::vote_z(unsigned int zoomlevel, unsigned int n_phi,
     x_a[hit_counter] = (*(hits_vec[zoomlevel]))[i].get_x();
     y_a[hit_counter] = (*(hits_vec[zoomlevel]))[i].get_y();
     z_a[hit_counter] = (*(hits_vec[zoomlevel]))[i].get_z();
-    dz_a[hit_counter] = (*(hits_vec[zoomlevel]))[i].get_ez();
+
+    dz_a[hit_counter] = (2.0*sqrt((*(hits_vec[zoomlevel]))[i].get_size(2,2)));
     four_hits[hit_counter] = (*(hits_vec[zoomlevel]))[i];
 
     hit_counter++;
