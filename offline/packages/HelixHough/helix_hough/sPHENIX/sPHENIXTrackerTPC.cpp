@@ -476,13 +476,6 @@ void sPHENIXTrackerTPC::finalize(vector<SimpleTrack3D>& input,
       track_states[i].position = output[i].hits.size();
       for (int h = (temp_track.hits.size() - 1); h >= 0; --h) {
 	SimpleHit3D hit = temp_track.hits[h];
-	float err_scale = 1.0;
-
-	/// \todo fudge factor location
-	
-	hit.set_ex( 2.0*sqrt(hit.get_size(0,0)) * err_scale);
-	hit.set_ey( 2.0*sqrt(hit.get_size(1,1)) * err_scale);
-	hit.set_ez( 2.0*sqrt(hit.get_size(2,2)) * err_scale);
 	kalman->addHit(hit, track_states[i]);
       }
 
@@ -491,9 +484,9 @@ void sPHENIXTrackerTPC::finalize(vector<SimpleTrack3D>& input,
 	vertex_hit.set_x(0.0);
 	vertex_hit.set_y(0.0);
 	vertex_hit.set_z(0.0);
-	vertex_hit.set_ex(0.0001);
-	vertex_hit.set_ey(0.0001);
-	vertex_hit.set_ez(0.0001);
+	//vertex_hit.set_ex(0.0001);
+	//vertex_hit.set_ey(0.0001);
+	//vertex_hit.set_ez(0.0001);
 	temp_track.hits.push_back(vertex_hit);
 
 	fitTrack(temp_track, chi2_hit);
@@ -1459,11 +1452,8 @@ void sPHENIXTrackerTPC::initDummyHits(vector<SimpleHit3D>& dummies,
     float x, y, z;
     projectToLayer(dummy_track, i, x, y, z);
     dummies[i].set_x(x);
-    dummies[i].set_ex(5.);
     dummies[i].set_y(x);
-    dummies[i].set_ey(5.);
     dummies[i].set_z(x);
-    dummies[i].set_ez(5.);
     dummies[i].set_layer(i);
   }
 }
@@ -1729,13 +1719,6 @@ static bool fit_all(vector<SimpleHit3D>& hits,
       continue;
     }
     temp_track.hits.push_back(hits[i]);
-    // temp_track.hits.back().get_ex() *= 1./sqrt(12.);
-    // temp_track.hits.back().get_ey() *= 1./sqrt(12.);
-    // temp_track.hits.back().get_ez() *= 1./sqrt(12.);
-
-    // temp_track.hits.back().set_ex( temp_track.hits.back().get_ex() * scale1 );
-    // temp_track.hits.back().set_ey( temp_track.hits.back().get_ey() * scale1 );
-    // temp_track.hits.back().set_ez( temp_track.hits.back().get_ez() * scale1 );
   }
 
   vector<int> best_ind;
@@ -1749,13 +1732,6 @@ static bool fit_all(vector<SimpleHit3D>& hits,
       continue;
     }
     track.hits.push_back(hits[i]);
-    // track.hits.back().get_ex() *= 1./sqrt(12.);
-    // track.hits.back().get_ey() *= 1./sqrt(12.);
-    // track.hits.back().get_ez() *= 1./sqrt(12.);
-
-    // track.hits.back().set_ex( track.hits.back().get_ex() * scale1);
-    // track.hits.back().set_ey( track.hits.back().get_ey() * scale1);
-    // track.hits.back().set_ez( track.hits.back().get_ez() * scale1);
   }
   sPHENIXTrackerTPC::fitTrack(track, chi2_hit, scale1);
 
@@ -1766,11 +1742,7 @@ static bool fit_all(vector<SimpleHit3D>& hits,
       return false;
     }
     tempscale *= scale2;
-    // for (unsigned int h = 0; h < temp_track.hits.size(); ++h) {
-    //   temp_track.hits[h].set_ex( temp_track.hits[h].get_ex() * scale2);
-    //   temp_track.hits[h].set_ey( temp_track.hits[h].get_ey() * scale2);
-    //   temp_track.hits[h].set_ez( temp_track.hits[h].get_ez() * scale2);
-    // }
+
     sPHENIXTrackerTPC::fitTrack(track, chi2_hit, tempscale);
   }
 
@@ -1778,12 +1750,6 @@ static bool fit_all(vector<SimpleHit3D>& hits,
                      chi2, 1.0, 1.0) == false) {
     return false;
   }
-
-  // for (unsigned int h = 0; h < temp_track.hits.size(); ++h) {
-  //   temp_track.hits[h].set_ex( temp_track.hits[h].get_ex() * 1./sqrt(12.) );
-  //   temp_track.hits[h].set_ex( temp_track.hits[h].get_ey() * 1./sqrt(12.) );
-  //   temp_track.hits[h].set_ex( temp_track.hits[h].get_ez() * 1./sqrt(12.) );
-  // }
 
   chi2 = sPHENIXTrackerTPC::fitTrack(track, chi2_hit, 1.0);//scale1); // maybe this should be one
   if ((chi2 < 10.0) && (track.hits.size() > ((layer_indexes.size() * 1) / 2))) {
