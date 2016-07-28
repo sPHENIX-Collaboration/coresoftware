@@ -14,17 +14,17 @@ using namespace Eigen;
 using namespace SeamStress;
 
 class hitTriplet {
- public:
+public:
   hitTriplet(unsigned int h1, unsigned int h2, unsigned int h3, unsigned int t,
              float c)
-      : hit1(h1), hit2(h2), hit3(h3), track(t), chi2(c) {}
+    : hit1(h1), hit2(h2), hit3(h3), track(t), chi2(c) {}
   ~hitTriplet() {}
 
   bool operator<(const hitTriplet& other) const {
     return (hit1 < other.hit1) ||
-           ((hit2 < other.hit2) && (hit1 == other.hit1)) ||
-           ((hit3 < other.hit3) && (hit1 == other.hit1) &&
-            (hit2 == other.hit2));
+      ((hit2 < other.hit2) && (hit1 == other.hit1)) ||
+      ((hit3 < other.hit3) && (hit1 == other.hit1) &&
+       (hit2 == other.hit2));
   }
 
   bool operator==(const hitTriplet& other) const {
@@ -47,8 +47,8 @@ void sPHENIXTrackerTPC::tripletRejection(vector<SimpleTrack3D>& input,
         for (unsigned int h3 = (h2 + 1); h3 < input[i].hits.size(); ++h3) {
           if (cut_on_dca == false) {
             trips.push_back(
-                hitTriplet(input[i].hits[h1].get_id(), input[i].hits[h2].get_id(),
-                           input[i].hits[h3].get_id(), i, track_states[i].chi2));
+			    hitTriplet(input[i].hits[h1].get_id(), input[i].hits[h2].get_id(),
+				       input[i].hits[h3].get_id(), i, track_states[i].chi2));
           }
         }
       }
@@ -119,32 +119,32 @@ sPHENIXTrackerTPC::sPHENIXTrackerTPC(unsigned int n_phi, unsigned int n_d,
                                      HelixResolution& max_resolution,
                                      HelixRange& range, vector<float>& material,
                                      vector<float>& radius, float Bfield)
-    : HelixHough(n_phi, n_d, n_k, n_dzdl, n_z0, min_resolution, max_resolution,
-                 range),
-      fast_chi2_cut_par0(12.),
-      fast_chi2_cut_par1(0.),
-      fast_chi2_cut_max(FLT_MAX),
-      chi2_cut(3.),
-      chi2_removal_cut(1.),
-      n_removal_hits(0),
-      seeding(false),
-      verbosity(0),
-      cut_on_dca(false),
-      dca_cut(0.01),
-      vertex_x(0.),
-      vertex_y(0.),
-      vertex_z(0.),
-      required_layers(0),
-      reject_ghosts(false),
-      nfits(0),
-      findtracksiter(0),
-      prev_max_k(0.),
-      prev_max_dzdl(0.),
-      prev_p_inv(0.),
-      seed_layer(0),
-      ca_chi2_cut(2.0),
-      cosang_cut(0.985),
-      require_pixels(false) {
+  : HelixHough(n_phi, n_d, n_k, n_dzdl, n_z0, min_resolution, max_resolution,
+	       range),
+    fast_chi2_cut_par0(12.),
+    fast_chi2_cut_par1(0.),
+    fast_chi2_cut_max(FLT_MAX),
+    chi2_cut(3.),
+    chi2_removal_cut(1.),
+    n_removal_hits(0),
+    seeding(false),
+    verbosity(0),
+    cut_on_dca(false),
+    dca_cut(0.01),
+    vertex_x(0.),
+    vertex_y(0.),
+    vertex_z(0.),
+    required_layers(0),
+    reject_ghosts(false),
+    nfits(0),
+    findtracksiter(0),
+    prev_max_k(0.),
+    prev_max_dzdl(0.),
+    prev_p_inv(0.),
+    seed_layer(0),
+    ca_chi2_cut(2.0),
+    cosang_cut(0.985),
+    require_pixels(false) {
   vector<float> detector_material;
 
   for (unsigned int i = 0; i < radius.size(); ++i) {
@@ -166,7 +166,7 @@ sPHENIXTrackerTPC::sPHENIXTrackerTPC(unsigned int n_phi, unsigned int n_d,
   }
 
   kalman =
-      new CylinderKalman(detector_radii, detector_material, detector_B_field);
+    new CylinderKalman(detector_radii, detector_material, detector_B_field);
 
   vector<SimpleHit3D> one_layer;
   layer_sorted.assign(n_layers, one_layer);
@@ -177,39 +177,39 @@ sPHENIXTrackerTPC::sPHENIXTrackerTPC(unsigned int n_phi, unsigned int n_d,
 }
 
 sPHENIXTrackerTPC::sPHENIXTrackerTPC(
-    vector<vector<unsigned int> >& zoom_profile, unsigned int minzoom,
-    HelixRange& range, vector<float>& material, vector<float>& radius,
-    float Bfield, bool parallel, unsigned int num_threads)
-    : HelixHough(zoom_profile, minzoom, range),
-      fast_chi2_cut_par0(12.),
-      fast_chi2_cut_par1(0.),
-      fast_chi2_cut_max(FLT_MAX),
-      chi2_cut(3.),
-      chi2_removal_cut(1.),
-      n_removal_hits(0),
-      seeding(false),
-      verbosity(0),
-      cut_on_dca(false),
-      dca_cut(0.01),
-      vertex_x(0.),
-      vertex_y(0.),
-      vertex_z(0.),
-      required_layers(0),
-      reject_ghosts(false),
-      nfits(0),
-      findtracksiter(0),
-      prev_max_k(0.),
-      prev_max_dzdl(0.),
-      prev_p_inv(0.),
-      seed_layer(0),
-      nthreads(num_threads),
-      vssp(NULL),
-      pins(NULL),
-      is_parallel(parallel),
-      is_thread(false),
-      ca_chi2_cut(2.0),
-      cosang_cut(0.985),
-      require_pixels(false) {
+				     vector<vector<unsigned int> >& zoom_profile, unsigned int minzoom,
+				     HelixRange& range, vector<float>& material, vector<float>& radius,
+				     float Bfield, bool parallel, unsigned int num_threads)
+  : HelixHough(zoom_profile, minzoom, range),
+    fast_chi2_cut_par0(12.),
+    fast_chi2_cut_par1(0.),
+    fast_chi2_cut_max(FLT_MAX),
+    chi2_cut(3.),
+    chi2_removal_cut(1.),
+    n_removal_hits(0),
+    seeding(false),
+    verbosity(0),
+    cut_on_dca(false),
+    dca_cut(0.01),
+    vertex_x(0.),
+    vertex_y(0.),
+    vertex_z(0.),
+    required_layers(0),
+    reject_ghosts(false),
+    nfits(0),
+    findtracksiter(0),
+    prev_max_k(0.),
+    prev_max_dzdl(0.),
+    prev_p_inv(0.),
+    seed_layer(0),
+    nthreads(num_threads),
+    vssp(NULL),
+    pins(NULL),
+    is_parallel(parallel),
+    is_thread(false),
+    ca_chi2_cut(2.0),
+    cosang_cut(0.985),
+    require_pixels(false) {
   vector<float> detector_material;
 
   for (unsigned int i = 0; i < radius.size(); ++i) {
@@ -231,7 +231,7 @@ sPHENIXTrackerTPC::sPHENIXTrackerTPC(
   }
 
   kalman =
-      new CylinderKalman(detector_radii, detector_material, detector_B_field);
+    new CylinderKalman(detector_radii, detector_material, detector_B_field);
 
   vector<SimpleHit3D> one_layer;
   layer_sorted.assign(n_layers, one_layer);
@@ -257,7 +257,7 @@ sPHENIXTrackerTPC::sPHENIXTrackerTPC(
 
     for (unsigned int i = 0; i < nthreads; ++i) {
       thread_trackers.push_back(new sPHENIXTrackerTPC(
-          zoom_profile, minzoom, range, material, radius, Bfield));
+						      zoom_profile, minzoom, range, material, radius, Bfield));
       thread_trackers.back()->setThread();
       thread_trackers.back()->setStartZoom(1);
       thread_tracks.push_back(vector<SimpleTrack3D>());
@@ -323,115 +323,78 @@ void sPHENIXTrackerTPC::finalize(vector<SimpleTrack3D>& input,
   track_states = states_new;
   if (smooth_back == true) {
     for (unsigned int i = 0; i < output.size(); ++i) {
-      if (n_layers < 20) {
-        HelixKalmanState state = track_states[i];
 
-        track_states[i].C *= 3.;
-        track_states[i].chi2 = 0.;
-        track_states[i].x_int = 0.;
-        track_states[i].y_int = 0.;
-        track_states[i].z_int = 0.;
-        track_states[i].position = 0;
-        for (int h = (output[i].hits.size() - 1); h >= 0; --h) {
-          SimpleHit3D hit = output[i].hits[h];
-          float err_scale = 1.;
-          int layer = hit.get_layer();
-          if ((layer >= 0) && (layer < (int)(hit_error_scale.size()))) {
-            err_scale = hit_error_scale[layer];
-          }
-          err_scale *=
-              3.0;  // fudge factor, like needed due to non-gaussian errors
-          hit.set_ex( hit.get_ex() * err_scale);
-          hit.set_ey( hit.get_ey() * err_scale);
-          hit.set_ez( hit.get_ez() * err_scale);
-          kalman->addHit(hit, track_states[i]);
-          track_states[i].position = h;
+      SimpleTrack3D temp_track = output[i];
+      vector<SimpleHit3D> temp_hits;
+      vector<float> chi2_hit;
+      fitTrack(temp_track, chi2_hit);
+      for (unsigned int i = 0; i < chi2_hit.size(); ++i) {
+        if (chi2_hit[i] < 10. || temp_track.hits[i].get_layer() < 2) {
+          temp_hits.push_back(temp_track.hits[i]);
         }
-
-        track_states[i].chi2 = state.chi2;
-        track_states[i].C *= 2. / 3.;
-
-        output[i].phi = track_states[i].phi;
-        output[i].d = track_states[i].d;
-        output[i].kappa = track_states[i].kappa;
-        output[i].z0 = track_states[i].z0;
-        output[i].dzdl = track_states[i].dzdl;
-      } else {
-        SimpleTrack3D temp_track = output[i];
-        vector<SimpleHit3D> temp_hits;
-        vector<float> chi2_hit;
-        fitTrack(temp_track, chi2_hit);
-        for (unsigned int i = 0; i < chi2_hit.size(); ++i) {
-          if (chi2_hit[i] < 10. || temp_track.hits[i].get_layer() < 2) {
-            temp_hits.push_back(temp_track.hits[i]);
-          }
-        }
-
-        temp_track.hits = temp_hits;
-
-        fitTrack(temp_track, chi2_hit);
-
-        if (temp_track.kappa == temp_track.kappa) {
-          track_states[i].kappa = temp_track.kappa;
-          track_states[i].nu = sqrt(temp_track.kappa);
-        }
-
-        HelixKalmanState state = track_states[i];
-
-        track_states[i].C *= 10.;
-
-        track_states[i].chi2 = 0.;
-        track_states[i].x_int = 0.;
-        track_states[i].y_int = 0.;
-        track_states[i].z_int = 0.;
-        track_states[i].position = output[i].hits.size();
-        for (int h = (temp_track.hits.size() - 1); h >= 0; --h) {
-          SimpleHit3D hit = temp_track.hits[h];
-          float err_scale = 1.0;
-          hit.set_ex( hit.get_ex() * err_scale);
-          hit.set_ey( hit.get_ey() * err_scale);
-          hit.set_ez( hit.get_ez() * err_scale);
-          kalman->addHit(hit, track_states[i]);
-        }
-
-        if (fabs(track_states[i].d) < 0.01) {
-          SimpleHit3D vertex_hit;
-          vertex_hit.set_x(0.0);
-          vertex_hit.set_y(0.0);
-          vertex_hit.set_z(0.0);
-          vertex_hit.set_ex(0.0001);
-          vertex_hit.set_ey(0.0001);
-          vertex_hit.set_ez(0.0001);
-          temp_track.hits.push_back(vertex_hit);
-
-          fitTrack(temp_track, chi2_hit);
-
-          temp_track.hits.pop_back();
-        }
-
-        if (temp_track.kappa == temp_track.kappa) {
-          track_states[i].kappa = temp_track.kappa;
-          track_states[i].nu = sqrt(temp_track.kappa);
-        }
-
-        if (!(track_states[i].kappa == track_states[i].kappa)) {
-          track_states[i] = state;
-          if (temp_track.kappa == temp_track.kappa) {
-            track_states[i].kappa = temp_track.kappa;
-            track_states[i].nu = sqrt(temp_track.kappa);
-          }
-        }
-
-        if (output[i].phi < 0.) {
-          output[i].phi += 2. * M_PI;
-        }
-        output[i].phi = track_states[i].phi;
-        output[i].d = track_states[i].d;
-        output[i].kappa = track_states[i].kappa;
-        output[i].z0 = track_states[i].z0;
-        output[i].dzdl = track_states[i].dzdl;
       }
+
+      temp_track.hits = temp_hits;
+
+      fitTrack(temp_track, chi2_hit);
+
+      if (temp_track.kappa == temp_track.kappa) {
+        track_states[i].kappa = temp_track.kappa;
+        track_states[i].nu = sqrt(temp_track.kappa);
+      }
+
+      HelixKalmanState state = track_states[i];
+
+      track_states[i].C *= 10.;
+
+      track_states[i].chi2 = 0.;
+      track_states[i].x_int = 0.;
+      track_states[i].y_int = 0.;
+      track_states[i].z_int = 0.;
+      track_states[i].position = output[i].hits.size();
+      for (int h = (temp_track.hits.size() - 1); h >= 0; --h) {
+	SimpleHit3D hit = temp_track.hits[h];
+	kalman->addHit(hit, track_states[i]);
+      }
+
+      if (fabs(track_states[i].d) < 0.01) {
+	SimpleHit3D vertex_hit;
+	vertex_hit.set_x(0.0);
+	vertex_hit.set_y(0.0);
+	vertex_hit.set_z(0.0);
+	//vertex_hit.set_ex(0.0001);
+	//vertex_hit.set_ey(0.0001);
+	//vertex_hit.set_ez(0.0001);
+	temp_track.hits.push_back(vertex_hit);
+
+	fitTrack(temp_track, chi2_hit);
+
+	temp_track.hits.pop_back();
+      }
+
+      if (temp_track.kappa == temp_track.kappa) {
+	track_states[i].kappa = temp_track.kappa;
+	track_states[i].nu = sqrt(temp_track.kappa);
+      }
+
+      if (!(track_states[i].kappa == track_states[i].kappa)) {
+	track_states[i] = state;
+	if (temp_track.kappa == temp_track.kappa) {
+	  track_states[i].kappa = temp_track.kappa;
+	  track_states[i].nu = sqrt(temp_track.kappa);
+	}
+      }
+
+      if (output[i].phi < 0.) {
+	output[i].phi += 2. * M_PI;
+      }
+      output[i].phi = track_states[i].phi;
+      output[i].d = track_states[i].d;
+      output[i].kappa = track_states[i].kappa;
+      output[i].z0 = track_states[i].z0;
+      output[i].dzdl = track_states[i].dzdl;
     }
+    
   }
 
   if (verbosity > 0) {
@@ -560,23 +523,36 @@ void sPHENIXTrackerTPC::findTracks(vector<SimpleHit3D>& hits,
 
 }
 
-float sPHENIXTrackerTPC::fitTrack(SimpleTrack3D& track) {
+float sPHENIXTrackerTPC::fitTrack(SimpleTrack3D& track,
+				  float scale) {
   vector<float> chi2_hit;
-  return sPHENIXTrackerTPC::fitTrack(track, chi2_hit);
+  return sPHENIXTrackerTPC::fitTrack(track, chi2_hit, scale);
 }
 
 float sPHENIXTrackerTPC::fitTrack(SimpleTrack3D& track,
-                                  vector<float>& chi2_hit) {
+                                  vector<float>& chi2_hit,
+				  float scale) {
+  
   chi2_hit.clear();
   vector<float> xyres;
   vector<float> xyres_inv;
   vector<float> zres;
   vector<float> zres_inv;
   for (unsigned int i = 0; i < track.hits.size(); i++) {
-    xyres.push_back(sqrt(track.hits[i].get_ex() * track.hits[i].get_ex() +
-                         track.hits[i].get_ey() * track.hits[i].get_ey()));
+
+    float ex = (2.0*sqrt(track.hits[i].get_size(0,0))) * scale;
+    float ey = (2.0*sqrt(track.hits[i].get_size(1,1))) * scale;
+    float ez = (2.0*sqrt(track.hits[i].get_size(2,2))) * scale;
+
+    if (track.hits[i].get_layer() < 0) {
+      ex = 0.0001 * scale;
+      ey = 0.0001 * scale;
+      ez = 0.0001 * scale;
+    }
+    
+    xyres.push_back(sqrt( ex * ex + ey * ey ));
     xyres_inv.push_back(1. / xyres.back());
-    zres.push_back(track.hits[i].get_ez());
+    zres.push_back( ez );
     zres_inv.push_back(1. / zres.back());
   }
 
@@ -712,14 +688,25 @@ float sPHENIXTrackerTPC::fitTrack(SimpleTrack3D& track,
   return (chi2_tot) / ((float)(deg_of_freedom));
 }
 
-static bool remove_bad_hits(SimpleTrack3D& track, float cut) {
+void sPHENIXTrackerTPC::initSplitting(vector<SimpleHit3D>& hits,
+                                      unsigned int min_hits,
+                                      unsigned int max_hits) {
+  initEvent(hits, min_hits);
+  (*(hits_vec[0])) = hits;
+  zoomranges.clear();
+  for (unsigned int z = 0; z <= max_zoom; z++) {
+    zoomranges.push_back(top_range);
+  }
+}
+
+static bool remove_bad_hits(SimpleTrack3D& track, float cut, float scale = 1.0) {
   SimpleTrack3D temp_track = track;
   float fit_chi2 = 0.;
   vector<float> chi2_hit;
   vector<float> temp_hits;
   while (true) {
     temp_track = track;
-    fit_chi2 = sPHENIXTrackerTPC::fitTrack(temp_track, chi2_hit);
+    fit_chi2 = sPHENIXTrackerTPC::fitTrack(temp_track, chi2_hit, scale);
     bool all_good = true;
     track.hits.clear();
     for (int h = 0; h < temp_track.hits.size(); h += 1) {
@@ -741,12 +728,13 @@ static bool remove_bad_hits(SimpleTrack3D& track, float cut) {
 static bool fit_all_update(vector<vector<int> >& layer_indexes,
                            SimpleTrack3D& temp_track, vector<int>& best_ind,
                            vector<float>& best_chi2, SimpleTrack3D& track,
-                           float& chi2, int iter = 0) {
+                           float& chi2, int iter = 0,
+			   float tempscale = 1.0, float scale = 1.0) {
   if (iter != 0) {
-    if (remove_bad_hits(track, 5.) == false) {
+    if (remove_bad_hits(track, 5., scale) == false) {
       return false;
     }
-    sPHENIXTrackerTPC::fitTrack(track);
+    sPHENIXTrackerTPC::fitTrack(track, scale);
   }
 
   vector<float> chi2_hit;
@@ -774,8 +762,12 @@ static bool fit_all_update(vector<vector<int> >& layer_indexes,
     if (fabs(xydiff1) < fabs(xydiff2)) {
       xydiff = xydiff1;
     }
-    float dr2 = (temp_track.hits[i].get_ex()) * (temp_track.hits[i].get_ex()) +
-                (temp_track.hits[i].get_ey()) * (temp_track.hits[i].get_ey());
+   
+    float tex = (2.0*sqrt(temp_track.hits[i].get_size(0,0))) * tempscale;
+    float tey = (2.0*sqrt(temp_track.hits[i].get_size(1,1))) * tempscale;
+    float tez = (2.0*sqrt(temp_track.hits[i].get_size(2,2))) * tempscale;
+    
+    float dr2 = tex * tex + tey * tey;
     float chi2_xy = xydiff * xydiff / dr2;
 
     float D = sqrt(pow(dx - temp_track.hits[i].get_x(), 2) +
@@ -802,11 +794,11 @@ static bool fit_all_update(vector<vector<int> >& layer_indexes,
     }
 
     float x2beta =
-        s * track.dzdl / (sqrt(1. - track.dzdl * track.dzdl)) + track.z0;
+      s * track.dzdl / (sqrt(1. - track.dzdl * track.dzdl)) + track.z0;
     float diff = temp_track.hits[i].get_z() - x2beta;
 
     float chi2_z =
-        diff * diff / (temp_track.hits[i].get_ez() * temp_track.hits[i].get_ez());
+      diff * diff / (tez * tez);
 
     chi2_xy += chi2_z;
 
@@ -827,7 +819,7 @@ static bool fit_all_update(vector<vector<int> >& layer_indexes,
       continue;
     }
     track.hits.push_back(temp_track.hits[best_ind[i]]);
-  }
+  } 
   if (track.hits.size() < 8) {
     return false;
   }
@@ -847,9 +839,6 @@ static bool fit_all(vector<SimpleHit3D>& hits,
       continue;
     }
     temp_track.hits.push_back(hits[i]);
-    temp_track.hits.back().set_ex( temp_track.hits.back().get_ex() * scale1 );
-    temp_track.hits.back().set_ey( temp_track.hits.back().get_ey() * scale1 );
-    temp_track.hits.back().set_ez( temp_track.hits.back().get_ez() * scale1 );
   }
 
   vector<int> best_ind;
@@ -863,37 +852,26 @@ static bool fit_all(vector<SimpleHit3D>& hits,
       continue;
     }
     track.hits.push_back(hits[i]);
-    track.hits.back().set_ex( track.hits.back().get_ex() * scale1);
-    track.hits.back().set_ey( track.hits.back().get_ey() * scale1);
-    track.hits.back().set_ez( track.hits.back().get_ez() * scale1);
   }
-  sPHENIXTrackerTPC::fitTrack(track, chi2_hit);
+  sPHENIXTrackerTPC::fitTrack(track, chi2_hit, scale1);
 
+  float tempscale = scale1;
   for (int i = 0; i < 20; ++i) {
     if (fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track,
-                       chi2, i) == false) {
+                       chi2, i, tempscale, tempscale) == false) {
       return false;
     }
-    for (unsigned int h = 0; h < temp_track.hits.size(); ++h) {
-      temp_track.hits[h].set_ex( temp_track.hits[h].get_ex() * scale2);
-      temp_track.hits[h].set_ey( temp_track.hits[h].get_ey() * scale2);
-      temp_track.hits[h].set_ez( temp_track.hits[h].get_ez() * scale2);
-    }
-    sPHENIXTrackerTPC::fitTrack(track, chi2_hit);
+    tempscale *= scale2;
+
+    sPHENIXTrackerTPC::fitTrack(track, chi2_hit, tempscale);
   }
 
   if (fit_all_update(layer_indexes, temp_track, best_ind, best_chi2, track,
-                     chi2) == false) {
+                     chi2, 1.0, 1.0) == false) {
     return false;
   }
 
-  for (unsigned int h = 0; h < temp_track.hits.size(); ++h) {
-    temp_track.hits[h].set_ex( temp_track.hits[h].get_ex() * 1./sqrt(12.) );
-    temp_track.hits[h].set_ex( temp_track.hits[h].get_ey() * 1./sqrt(12.) );
-    temp_track.hits[h].set_ex( temp_track.hits[h].get_ez() * 1./sqrt(12.) );
-  }
-
-  chi2 = sPHENIXTrackerTPC::fitTrack(track, chi2_hit);
+  chi2 = sPHENIXTrackerTPC::fitTrack(track, chi2_hit, 1.0);//scale1); // maybe this should be one
   if ((chi2 < 10.0) && (track.hits.size() > ((layer_indexes.size() * 1) / 2))) {
     return true;
   }
@@ -923,7 +901,7 @@ void sPHENIXTrackerTPC::findTracksByCombinatorialKalman(
   SimpleTrack3D fit_all_track;
   float fit_all_chi2 = -1.;
   bool fit_all_success =
-      fit_all(hits, layer_indexes, fit_all_track, fit_all_chi2);
+    fit_all(hits, layer_indexes, fit_all_track, fit_all_chi2);
   if (fit_all_success == true) {
     HelixKalmanState state;
     state.phi = fit_all_track.phi;

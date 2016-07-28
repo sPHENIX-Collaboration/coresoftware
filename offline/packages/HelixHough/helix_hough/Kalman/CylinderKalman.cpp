@@ -421,10 +421,19 @@ void CylinderKalman::calculateMeasurements(SimpleHit3D& hit,
                                            Matrix<float, 2, 1>& m,
                                            Matrix<float, 2, 2>& G) {
   Matrix<float, 2, 2> V = Matrix<float, 2, 2>::Zero(2, 2);
+
   V(0, 0) = 3.33333333333333426e-01 *
-            ((hit.get_ex()) * (hit.get_ex()) + (hit.get_ey()) * (hit.get_ey())) /
+            (
+	     (2.0*sqrt(hit.get_size(0,0))) *
+	     (2.0*sqrt(hit.get_size(0,0))) +
+	     (2.0*sqrt(hit.get_size(1,1))) *
+	     (2.0*sqrt(hit.get_size(1,1)))
+	     ) /
             ((hit.get_x()) * (hit.get_x()) + (hit.get_y()) * (hit.get_y()));
-  V(1, 1) = 3.33333333333333426e-01 * (hit.get_ez()) * (hit.get_ez());
+  
+  V(1, 1) = 3.33333333333333426e-01 *
+    (2.0*sqrt(hit.get_size(2,2))) *
+    (2.0*sqrt(hit.get_size(2,2)));
 
   G = V.fullPivLu().inverse();
 
