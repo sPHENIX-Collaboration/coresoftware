@@ -1,3 +1,6 @@
+#include "RunInfoUnpackPRDF.h"
+
+#include <ffaobjects/EventHeaderv1.h>
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/packetConstants.h>
@@ -13,9 +16,10 @@
 #include <iostream>
 #include <string>
 #include <cassert>
-#include "RunInfoUnpackPRDF.h"
 
 using namespace std;
+
+typedef PHIODataNode <PHObject> PHObjectNode_t;
 
 //____________________________________
 RunInfoUnpackPRDF::RunInfoUnpackPRDF() :
@@ -50,69 +54,87 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
 
+  // construct event info
+  EventHeaderv1* eventheader = findNode::getClass<
+      EventHeaderv1>(topNode, "EventHeader");
+  if (eventheader)
+    {
+      eventheader->set_RunNumber(event->getRunNumber());
+      eventheader->set_EvtSequence(event->getEvtSequence());
+      eventheader->set_EvtType(event->getEvtType());
+      eventheader->set_TimeStamp(event->getTime());
+      if (verbosity)
+        {
+          eventheader->identify();
+        }
+    }
+
+  // search for run info
   if (event->getEvtType() != BEGRUNEVENT)
     return Fun4AllReturnCodes::EVENT_OK;
-
-  if (verbosity >= VERBOSITY_SOME)
+  else
     {
-
-      cout << "RunInfoUnpackPRDF::process_event - ";
-      event->identify();
-    }
-
-  map<int, Packet*> packet_list;
-
-  PHG4Parameters Params("RunInfo");
-
-  for (typ_channel_map::const_iterator it = channel_map.begin();
-      it != channel_map.end(); ++it)
-    {
-      const string & name = it->first;
-      const channel_info & info = it->second;
-
-      if (packet_list.find(info.packet_id) == packet_list.end())
-        {
-          packet_list[info.packet_id] = event->getPacket(info.packet_id);
-        }
-
-      Packet * packet = packet_list[info.packet_id];
-
-      if (!packet)
-        {
-//          if (Verbosity() >= VERBOSITY_SOME)
-          cout << "RunInfoUnpackPRDF::process_event - failed to locate packet "
-              << info.packet_id << " from ";
-          event->identify();
-
-          Params.set_double_param(name, NAN);
-          continue;
-        }
-
-      const int ivalue = packet->iValue(info.offset);
-
-      const double dvalue = ivalue * info.calibration_const;
-
       if (verbosity >= VERBOSITY_SOME)
         {
-          cout << "RunInfoUnpackPRDF::process_event - " << name << " = "
-              << dvalue << ", raw = " << ivalue << " @ packet "
-              << info.packet_id << ", offset " << info.offset << endl;
+          cout << "RunInfoUnpackPRDF::process_event - with BEGRUNEVENT events ";
+          event->identify();
         }
 
-      Params.set_double_param(name, dvalue);
+      map<int, Packet*> packet_list;
+
+      PHG4Parameters Params("RunInfo");
+
+      for (typ_channel_map::const_iterator it = channel_map.begin();
+          it != channel_map.end(); ++it)
+        {
+          const string & name = it->first;
+          const channel_info & info = it->second;
+
+          if (packet_list.find(info.packet_id) == packet_list.end())
+            {
+              packet_list[info.packet_id] = event->getPacket(info.packet_id);
+            }
+
+          Packet * packet = packet_list[info.packet_id];
+
+          if (!packet)
+            {
+//          if (Verbosity() >= VERBOSITY_SOME)
+              cout
+                  << "RunInfoUnpackPRDF::process_event - failed to locate packet "
+                  << info.packet_id << " from ";
+              event->identify();
+
+              Params.set_double_param(name, NAN);
+              continue;
+            }
+
+          const int ivalue = packet->iValue(info.offset);
+
+          const double dvalue = ivalue * info.calibration_const;
+
+          if (verbosity >= VERBOSITY_SOME)
+            {
+              cout << "RunInfoUnpackPRDF::process_event - " << name << " = "
+                  << dvalue << ", raw = " << ivalue << " @ packet "
+                  << info.packet_id << ", offset " << info.offset << endl;
+            }
+
+          Params.set_double_param(name, dvalue);
+        }
+
+      for (map<int, Packet*>::iterator it = packet_list.begin();
+          it != packet_list.end(); ++it)
+        {
+          if (it->second)
+            delete it->second;
+        }
+
+      Params.SaveToNodeTree(topNode, runinfo_node_name);
+
+      if (verbosity >= VERBOSITY_SOME)
+        Params.Print();
     }
-
-  for (map<int, Packet*>::iterator it = packet_list.begin();
-      it != packet_list.end(); ++it)
-    {
-      if (it->second)
-        delete it->second;
-    }
-
-  Params.SaveToNodeTree(topNode, runinfo_node_name);
-
-  if (verbosity >= VERBOSITY_SOME) Params.Print();
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -139,6 +161,19 @@ RunInfoUnpackPRDF::CreateNodeTree(PHCompositeNode *topNode)
           new PHIODataNode<PdbParameterMap>(new PdbParameterMap(),
               runinfo_node_name));
     }
+
+  //DST node
+  PHCompositeNode* dst_node = static_cast<PHCompositeNode*>( nodeItr.findFirst("PHCompositeNode", "DST" ));
+  if(!dst_node)
+  {
+    cout << "PHComposite node created: DST" << endl;
+    dst_node  = new PHCompositeNode( "DST" );
+    topNode->addNode( dst_node );
+  }
+
+  EventHeaderv1* eventheader = new EventHeaderv1();
+  PHObjectNode_t *EventHeaderNode = new PHObjectNode_t(eventheader, "EventHeader", "PHObject"); // contain PHObject
+  dst_node->addNode(EventHeaderNode);
 
 }
 

@@ -25,6 +25,10 @@ libphnodedump_la_SOURCES = \
   DumpRawTowerContainer.cc \
   DumpRawTowerGeomContainer.cc \
   DumpRunHeader.cc \
+  DumpSvtxClusterMap.cc \
+  DumpSvtxHitMap.cc \
+  DumpSvtxTrackMap.cc \
+  DumpSvtxVertexMap.cc \
   DumpSyncObject.cc \
   DumpVariableArray.cc \
   DumpObject.cc \
@@ -37,6 +41,7 @@ libphnodedump_la_LIBADD = \
   -lcemc \
   -lffaobjects \
   -lg4detectors \
+  -lg4hough_io \
   -lg4testbench \
   -lphg4hit \
   -lvararray

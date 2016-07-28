@@ -122,11 +122,12 @@ PHG4SteppingAction::StoreLocalCoorindate(PHG4Hit * hit, const G4Step* aStep,
   assert(hit);
   assert(aStep);
 
+  G4StepPoint* preStepPoint = aStep->GetPreStepPoint();
+  G4TouchableHandle theTouchable = preStepPoint->GetTouchableHandle();
+
   if (do_prepoint)
     {
-      G4StepPoint* preStepPoint = aStep->GetPreStepPoint();
 
-      G4TouchableHandle theTouchable = preStepPoint->GetTouchableHandle();
       G4ThreeVector worldPosition = preStepPoint->GetPosition();
       G4ThreeVector localPosition =
           theTouchable->GetHistory()->GetTopTransform().TransformPoint(
@@ -140,7 +141,6 @@ PHG4SteppingAction::StoreLocalCoorindate(PHG4Hit * hit, const G4Step* aStep,
     {
       G4StepPoint * postPoint = aStep->GetPostStepPoint();
 
-      G4TouchableHandle theTouchable = postPoint->GetTouchableHandle();
       G4ThreeVector worldPosition = postPoint->GetPosition();
       G4ThreeVector localPosition =
           theTouchable->GetHistory()->GetTopTransform().TransformPoint(
