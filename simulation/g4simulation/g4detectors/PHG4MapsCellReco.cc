@@ -138,7 +138,8 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
 	{
 	  //cout << "From PHG4MapsCellReco: Call hit print method: " << endl;
-	  hiter->second->print();
+	  if(verbosity >4)
+	    hiter->second->print();
 
 	  // get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
 	  int stave_number = hiter->second->get_property_int(PHG4Hit::prop_stave_index);

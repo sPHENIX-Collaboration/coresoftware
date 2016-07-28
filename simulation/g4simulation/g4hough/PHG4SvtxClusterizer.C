@@ -1037,7 +1037,8 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
       int layer = mapiter->second->get_layer();
       PHG4CylinderGeom_MAPS *geom = (PHG4CylinderGeom_MAPS*) geom_container->GetLayerGeom(layer);
 
-      cout << "Filling cluster id " << clusid << " in  layer " << layer << endl;
+      if(verbosity > 2)
+	cout << "Filling cluster id " << clusid << " in  layer " << layer << endl;
       
       SvtxCluster_v1 clus;
       clus.set_layer( layer );
@@ -1060,7 +1061,8 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 	int binz = geom->get_pixel_Z_from_pixel_number(pixel_number);
 	zbins.insert(binz);
 
-	cout << "   pixel number " << pixel_number << " binphi = " << binphi  << " binz = " << binz  << endl;
+	if(verbosity > 2)
+	  cout << "   pixel number " << pixel_number << " binphi = " << binphi  << " binz = " << binz  << endl;
       }
 
       float thickness = geom->get_pixel_thickness();
@@ -1084,8 +1086,10 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 
       for(mapiter = clusrange.first; mapiter != clusrange.second; mapiter++ ) {
         PHG4CylinderCell* cell = mapiter->second;
-	cell->identify();
 
+	if(verbosity > 2)	
+	  cell->identify();
+	
 	SvtxHit* hit = cell_hit_map[cell];
 	
 	clus.insert_hit(hit->get_id());
