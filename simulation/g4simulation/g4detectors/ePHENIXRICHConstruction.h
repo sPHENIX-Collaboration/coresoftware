@@ -389,7 +389,7 @@ namespace ePHENIXRICH
     ePHENIXRICHConstruction();
     ePHENIXRICHConstruction(const RICH_Geometry & g);
 
-    void
+    virtual void
     OverlapCheck( bool check )
     {
       overlapcheck_rich = check;
