@@ -56,12 +56,16 @@ ePHENIXRICHConstruction::ePHENIXRICHConstruction()
 {
   // TODO Auto-generated constructor stub
 
+  overlapcheck_rich = false;
 }
 ePHENIXRICHConstruction::ePHENIXRICHConstruction(const RICH_Geometry & g)
 {
   // TODO Auto-generated constructor stub
 
   geom = g;
+
+  overlapcheck_rich = false;
+
 }
 
 G4LogicalVolume * ePHENIXRICHConstruction::RegisterLogicalVolume(
@@ -182,7 +186,7 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume* WorldLog)
       G4RotateZ3D sec_rot(2 * pi / geom.get_N_RICH_Sector() * sec);
 
       RegisterPhysicalVolume(new G4PVPlacement(sec_rot, RICHSecLog, "RICHSecPhysical", WorldLog,
-                                               false, sec));
+                                               false, sec, overlapcheck_rich));
     }
   //      CLHEP::HepRotationZ sec_rot(0);
   //      G4RotationMatrix g4_sec_rot(sec_rot);
@@ -209,7 +213,7 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume* WorldLog)
                                                        G4Material::GetMaterial(geom.get_RICH_Mirror_mat()),
                                                        "RICHMirrorLog");
   RegisterPhysicalVolume(new G4PVPlacement(0, G4ThreeVector(), RICHMirrorLog, "RICHMirrorPhysical",
-                                           RICHSecLog, false, 0));
+                                           RICHSecLog, false, 0, overlapcheck_rich));
   RegisterLogicalVolume(RICHMirrorLog);
 
   // RICH mirror Optical Surface
@@ -242,7 +246,7 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume* WorldLog)
                                                            "RICHBackWindowLog");
   RegisterLogicalVolume(RICHBackWindowLog);
   RegisterPhysicalVolume(new G4PVPlacement(0, G4ThreeVector(), RICHBackWindowLog,
-                                           "RICHBackWindowPhysical", RICHSecLog, false, 0));
+                                           "RICHBackWindowPhysical", RICHSecLog, false, 0, overlapcheck_rich));
 
   //RICH gas vessel window - front
   //LHCb TDR: The frame will be sealed to contain the C4F10 gas radiator. The vacuum chamber acts as part of the boundary to the gas volume.
@@ -268,7 +272,7 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume* WorldLog)
                                                             "RICHFrontWindowLog");
   RegisterLogicalVolume(RICHFrontWindowLog);
   RegisterPhysicalVolume(new G4PVPlacement(0, G4ThreeVector(), RICHFrontWindowLog,
-                                           "RICHFrontWindowPhysical", RICHSecLog, false, 0));
+                                           "RICHFrontWindowPhysical", RICHSecLog, false, 0, overlapcheck_rich));
 
   // photon detector - HBD
   G4LogicalVolume* RICHHBDLog = Construct_HBD(RICHSecLog);
@@ -336,7 +340,7 @@ ePHENIXRICHConstruction::Construct_HBD(G4LogicalVolume* RICHSecLog)
   //  G4Transform3D transform1 = G4TranslateZ3D(HBD_thickness / 2);
 
   RegisterPhysicalVolume(new G4PVPlacement(transform1, RICHHBDLog, "RICHHBDPhysical", RICHSecLog,
-                                           false, 0));
+                                           false, 0, overlapcheck_rich));
 
   // Internal HBD structure
   // From doi:10.1016/j.nima.2011.04.015
@@ -454,7 +458,7 @@ ePHENIXRICHConstruction::Construct_HBD_Layers(G4LogicalVolume* RICHHBDLog,
 
   RegisterPhysicalVolume(new G4PVPlacement(0, G4ThreeVector(0, 0, start_z + thickness / 2), Log,
                                            G4String("RICHHBD") + name + G4String("Physical"), RICHHBDLog,
-                                           false, 0));
+                                           false, 0, overlapcheck_rich));
 
   return Log;
 }
