@@ -81,6 +81,7 @@ int PHG4SvtxThresholds::process_event(PHCompositeNode *topNode)
     SvtxHit* hit = iter->second;
    
     if (hit->get_e() < get_threshold_by_layer(hit->get_layer())) {
+      cout << "Removing hit with energy " << hit->get_e() <<  " in layer " << hit->get_layer() << " threshold = " << get_threshold_by_layer(hit->get_layer()) << endl;
       remove_hits.push_back(hit->get_id());
     }
   }

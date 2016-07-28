@@ -142,25 +142,34 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
   //==========================================
 
   // Step through all phi values
+
+  // The phistep is determined by the arc length spacing needed bewtween staves, which depends on the stave type
+  // The numbers below are inferred from the arc length spacing in ITS.gdml
+  // These arcstep numbers matter, that is why they are hardcoded here - leave them alone!
   double arcstep;
   if(stave_type == 0)
     {
-      arcstep = 12.0;  // inner barrel, mm
+      arcstep = 12.37;  // inner barrel, mm
     }
   else if(stave_type == 1)
     {
-      arcstep = 50.5;  // middle barrel, mm
+      arcstep = 56.98;  // middle barrel, mm
     }
   else
     {
       // stave_type is 2
-      arcstep = 52.0;  // outer barrel, mm
+      arcstep = 54.33;  // outer barrel, mm
     }
 
-  N_staves = int(2.0 * M_PI * layer_nominal_radius / arcstep);
+  // The objective is to choose a phistep that fits N_staves into this radius, but with an arclength separation of AT LEAST arcstep
+  // ideally, the radius would be chosen so that numstaves = N_staves exactly, to get the closest spacing of staves possible without overlaps
+  double numstaves = 2.0 * M_PI * layer_nominal_radius / arcstep;  // tghis is just to print out
+  N_staves = int(2.0 * M_PI * layer_nominal_radius / arcstep);  // this is the number of staves used  
   phistep = 2.0 * M_PI / (double) N_staves;
   double z_location = 0.0;
-  
+  // suggest the ideal radius for this layer
+  cout << "A radius for this layer of " << (double) N_staves * arcstep / (2.0 * M_PI)  + 0.01 << " or " <<  (double) (N_staves+1) * arcstep / (2.0 * M_PI) + 0.01 << " would produce  perfect stave spacing" << endl;
+
   // this is the tilt for stave type 0 (usually layers 0-2)
   phitilt = 0.304;   // radians, equivalent to 17.4 degrees
   if(stave_type != 0)
@@ -170,14 +179,18 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
     {
       cout << " layer " << layer 
 	   << " layer_nominal_radius " << layer_nominal_radius
+	   << " ITS arcstep " << arcstep
+	   << " circumference divided by arcstep  " << numstaves 
 	   << " N_staves " << N_staves
 	   << " phistep " << phistep
+	   << " arcstep used " << phistep * layer_nominal_radius
 	   << " phtilt " << phitilt
 	   << endl;
     }
 
   // The stave starts out at (0,0,0) and oriented so that the sensors face upward in y
   // So we need to rotate the sensor 90 degrees before placing it using phi_offset
+  // note that the gdml file uses a negative phi_offset - different coord system, apparently - the following works
   double phi_offset =  M_PI /2.0;
 
   for (int iphi=0; iphi<N_staves; iphi++)
@@ -188,52 +201,32 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
 
       G4RotationMatrix Ra;
       G4ThreeVector Ta;
+      
+      if(verbosity >0)
+	cout << "phi_offset = " << phi_offset << " iphi " << iphi << " phi_rotation = " << phi_rotation << " phitilt " << phitilt << endl;
 
-      double notest = true;
-      if(notest)
-	{
-	  cout << "phi_offset = " << phi_offset << " iphi " << iphi << " phi_rotation = " << phi_rotation << " phitilt " << phitilt << endl;
-	  
-	  // It  is first rotated in phi by the azimuthal angle phi_rotation, plus the 90 degrees needed to point the face of the sensor  at the origin,  plus the tilt (if a tilt is appropriate)
-	  
-	  Ra.rotateZ(phi_rotation + phi_offset + phitilt); // note - if this is layer 0-2, phitilt is the additional tilt for clearance. Otherwise it is zero
-	  // Then translated as follows
-
-	  Ta.setX(layer_nominal_radius * cos(phi_rotation)); 
-	  Ta.setY(layer_nominal_radius * sin(phi_rotation)) ; 
-	  Ta.setZ( z_location );
-
-	  if(verbosity > 0)
-	    cout << " iphi " << iphi << " phi_rotation " << phi_rotation 
-		 << " x " << layer_nominal_radius * cos(phi_rotation)
-		 << " y " <<  layer_nominal_radius * sin(phi_rotation)
-		 << " z " << z_location 
-		 << endl;      	  
-	}
-      else
-	{
-	  // testing!!!
-	  
-	  double phitest = -88.9770648826 * M_PI / 180.0;
-	  double xtest = 2.24456394319 * cm;
-	  double ytest = 0.661462549917 * cm;
-	  double ztest = 0.0 * cm;
-	  
-	  cout << "phitest = " << phitest << " xtest " << xtest << " ytest " << ytest << " ztest " << ztest << endl;
-	  
-	  // It  is first rotated in phi by the azimuthal angle phi_rotation, plus the 90 degrees needed to point the face of the sensor  at the origin,  plus the tilt (if a tilt is appropriate)
-
-	  Ra.rotateZ(phitest); 
-	  // Then translated as follows
-	  Ta.setX(xtest); 
-	  Ta.setY(ytest) ; 
-	  Ta.setZ( ztest);
-	}
+      // It  is first rotated in phi by the azimuthal angle phi_rotation, plus the 90 degrees needed to point the face of the sensor  at the origin,  plus the tilt (if a tilt is appropriate)
+      
+      Ra.rotateZ(phi_rotation + phi_offset + phitilt); // note - if this is layer 0-2, phitilt is the additional tilt for clearance. Otherwise it is zero
+      // Then translated as follows
+      
+      Ta.setX(layer_nominal_radius * cos(phi_rotation)); 
+      Ta.setY(layer_nominal_radius * sin(phi_rotation)) ; 
+      Ta.setZ( z_location );
+      
+      if(verbosity > 0)
+	cout << " iphi " << iphi << " phi_rotation " << phi_rotation 
+	     << " x " << layer_nominal_radius * cos(phi_rotation)
+	     << " y " <<  layer_nominal_radius * sin(phi_rotation)
+	     << " z " << z_location 
+	     << endl;      	  
+      
+      
       G4Transform3D Tr(Ra,Ta);
-
+      
       av_ITSUStave->MakeImprint(trackerenvelope, Tr, 0, overlapcheck);
     } 
-
+  
   if(verbosity > 0)
     cout << "This layer has a total of " << N_staves << " staves" << endl;
 

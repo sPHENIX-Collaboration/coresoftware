@@ -138,7 +138,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
 	{
 	  //cout << "From PHG4MapsCellReco: Call hit print method: " << endl;
-	  //hiter->second->print();
+	  hiter->second->print();
 
 	  // get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
 	  int stave_number = hiter->second->get_property_int(PHG4Hit::prop_stave_index);
@@ -153,12 +153,12 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	    {
 	      cout << endl << "  world entry point position: " << hiter->second->get_x(0) << " " << hiter->second->get_y(0) << " " << hiter->second->get_z(0) << endl;
 	      cout << "  world exit point position: " << hiter->second->get_x(1) << " " << hiter->second->get_y(1) << " " << hiter->second->get_z(1) << endl;
-	      cout << "  local coords of entry point from G4 " << hiter->second->get_local_x(0)  << " " << hiter->second->get_local_y(0) << " " << hiter->second->get_local_z(0) << endl;      
-	      cout << "  local coords of exit point from geom " << local_out.X()  << " " << local_out.Y() << " " << local_out.Z() << endl;      
-	      cout << "  local coords of exit point from G4 " << hiter->second->get_local_x(1)  << " " << hiter->second->get_local_y(1) << " " << hiter->second->get_local_z(1) << endl;      
+	      cout << "  local coords of entry point from G4 " << hiter->second->get_local_x(0)  << " " << hiter->second->get_local_y(0) << " " << hiter->second->get_local_z(0) << endl;   
 	      TVector3 world_in(  hiter->second->get_x( 0),  hiter->second->get_y( 0),  hiter->second->get_z( 0) );
 	      TVector3 local_in_check =  layergeom->get_local_from_world_coords(stave_number, half_stave_number, module_number, chip_number, world_in);
-	      cout << "  local coords of entry point from geom (check) " << local_in_check.X()  << " " << local_in_check.Y() << " " << local_in_check.Z() << endl;      	      
+	      cout << "  local coords of entry point from geom (a check) " << local_in_check.X()  << " " << local_in_check.Y() << " " << local_in_check.Z() << endl;      	         
+	      cout << "  local coords of exit point from G4 " << hiter->second->get_local_x(1)  << " " << hiter->second->get_local_y(1) << " " << hiter->second->get_local_z(1) << endl;      
+	      cout << "  local coords of exit point from geom (a check) " << local_out.X()  << " " << local_out.Y() << " " << local_out.Z() << endl;      
 	      cout << endl;
 	    }
 
@@ -234,70 +234,104 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  double trklen;
 
 	  // Are they different?
+	  bool test_one_pixel = false;  // normally false!
+
 	  if(pixel_number_out != pixel_number_in)
 	    {
-	      // There is more than one pixel, have to divide the energy between them
-
-	      // Get the X and Y bin locations of the pixels
-	      int xbin_in = layergeom->get_pixel_X_from_pixel_number(pixel_number_in);
-	      int zbin_in = layergeom->get_pixel_Z_from_pixel_number(pixel_number_in);
-	      int xbin_out = layergeom->get_pixel_X_from_pixel_number(pixel_number_out);
-	      int zbin_out = layergeom->get_pixel_Z_from_pixel_number(pixel_number_out);
-
-	      // make sure that the entry and exit bins are in increasing order
-	      if(xbin_in > xbin_out)
+	      if(test_one_pixel)
 		{
-		  int tmp = xbin_out;
-		  xbin_out = xbin_in;
-		  xbin_in = tmp;
+		  // For testing, assign the hit to 1 pixel, the one encompassing the center of the track line through the sensor
+		  // All of the energy will assigned to this pixel
+
+		  TVector3 pathvec = local_in - local_out;
+		  trklen = sqrt( pow( local_in.X() - local_out.X(), 2 ) + pow( local_in.Z() - local_out.Z(), 2) );     // only the length in x and z plane
+
+		  // Find the mid point between the entry and exit locations in the sensor
+		  TVector3 midpoint( (local_in.X() + local_out.X()) / 2.0, (local_in.Y() + local_out.Y()) / 2.0, (local_in.Z() + local_out.Z()) / 2.0 );
+		  int pixel_number_mid = layergeom->get_pixel_from_local_coords(midpoint);
+		  // get the phi and Z index for this pixel, it is needed later by the clustering
+		  int xbin = layergeom->get_pixel_X_from_pixel_number(pixel_number_mid);
+		  int zbin = layergeom->get_pixel_Z_from_pixel_number(pixel_number_mid);
+		  
+		  vpixel.push_back(pixel_number_mid);
+		  vxbin.push_back(xbin);
+		  vzbin.push_back(zbin);
+		  vlen.push_back(trklen);
+
+		  if(verbosity > 0)
+		    cout << " Test one pixel: pixel number mid " << pixel_number_mid 
+			 << " pixel_number_in " << pixel_number_in
+			 << " pixel_number_out " << pixel_number_out
+			 << " xbin " << xbin << " zbin " << zbin << " trklen " << trklen 
+			 << " edep " <<  hiter->second->get_edep()
+			 << endl << endl; 
 		}
-	      if(zbin_in > zbin_out)
+	      else
 		{
-		  int tmp = zbin_out;
-		  zbin_out = zbin_in;
-		  zbin_in = tmp;
-		}
-
-	      // get the line connecting the entry and exit points
-	      double ax = local_in.X();
-	      double az = local_in.Z();
-	      double bx = local_out.X();
-	      double bz = local_out.Z();
-
-	      TVector3 pathvec = local_in - local_out;
-	      trklen = sqrt( pow( local_in.X() - local_out.X(), 2 ) + pow( local_in.Z() - local_out.Z(), 2) );     // only the length in x and z plane
-
-	      for(int xbin=xbin_in; xbin<=xbin_out;xbin++)
-		{
-		  for(int zbin=zbin_in;zbin<=zbin_out;zbin++)
+		  // This is the correct way
+		  // There is more than one pixel, have to divide the energy between them
+		  
+		  // Get the X and Y bin locations of the pixels
+		  int xbin_in = layergeom->get_pixel_X_from_pixel_number(pixel_number_in);
+		  int zbin_in = layergeom->get_pixel_Z_from_pixel_number(pixel_number_in);
+		  int xbin_out = layergeom->get_pixel_X_from_pixel_number(pixel_number_out);
+		  int zbin_out = layergeom->get_pixel_Z_from_pixel_number(pixel_number_out);
+		  
+		  // make sure that the entry and exit bins are in increasing order, needed by line_and_rectangle_intersect
+		  if(xbin_in > xbin_out)
 		    {
-		      // get the pixel center
-		      int pixnum = layergeom->get_pixel_number_from_xbin_zbin( xbin, zbin );
-		      TVector3 tmp = layergeom->get_local_coords_from_pixel( pixnum );
-		      // note that we need cx < dx and cz < dz
-		      double cx = tmp.X() - layergeom->get_pixel_x() / 2.0;
-		      double dx = tmp.X() + layergeom->get_pixel_x() / 2.0;
-		      double cz = tmp.Z() - layergeom->get_pixel_z() / 2.0;
-		      double dz = tmp.Z() + layergeom->get_pixel_z() / 2.0;
-		      double rr = 0.0;
-		      if(verbosity>2)
-			{
-			  cout << "##### line: ax " << ax << " az " << az << " bx " << bx << " bz " << bz << endl;
-			  cout << "####### cell:  cx " << cx << " cz " << cz << " dx " << dx << " dz " << dz << endl;
-			}
-		      bool yesno = line_and_rectangle_intersect(ax, az, bx, bz, cx, cz, dx, dz, &rr);
-
-		      if (yesno)
-			{
-			  if (verbosity > 0) cout << "CELL FIRED: " << xbin << " " << zbin << " " << rr << endl;
-			  vpixel.push_back(pixnum);
-			  vxbin.push_back(xbin);
-			  vzbin.push_back(zbin);
-			  vlen.push_back(rr);
-			}
+		      int tmp = xbin_out;
+		      xbin_out = xbin_in;
+		      xbin_in = tmp;
 		    }
+		  if(zbin_in > zbin_out)
+		    {
+		      int tmp = zbin_out;
+		      zbin_out = zbin_in;
+		      zbin_in = tmp;
+		    }
+		  
+		  // get the line connecting the entry and exit points
+		  double ax = local_in.X();
+		  double az = local_in.Z();
+		  double bx = local_out.X();
+		  double bz = local_out.Z();
+		  
+		  TVector3 pathvec = local_in - local_out;
+		  trklen = sqrt( pow( local_in.X() - local_out.X(), 2 ) + pow( local_in.Z() - local_out.Z(), 2) );     // only the length in x and z plane
+		  
+		  for(int xbin=xbin_in; xbin<=xbin_out;xbin++)
+		    for(int zbin=zbin_in;zbin<=zbin_out;zbin++)
+		      {
+			// get the pixel center
+			int pixnum = layergeom->get_pixel_number_from_xbin_zbin( xbin, zbin );
+			TVector3 tmp = layergeom->get_local_coords_from_pixel( pixnum );
+			// note that we need cx < dx and cz < dz
+			double cx = tmp.X() - layergeom->get_pixel_x() / 2.0;
+			double dx = tmp.X() + layergeom->get_pixel_x() / 2.0;
+			double cz = tmp.Z() - layergeom->get_pixel_z() / 2.0;
+			double dz = tmp.Z() + layergeom->get_pixel_z() / 2.0;
+			double rr = 0.0;
+
+			bool yesno = line_and_rectangle_intersect(ax, az, bx, bz, cx, cz, dx, dz, &rr);
+			
+			if (yesno)
+			  {
+			    if (verbosity > 0) cout << "CELL FIRED: "  << " xbin " << xbin << " zbin  " << zbin << " rr " << rr  << endl;
+			    if(verbosity>2)
+			      {
+				cout << "##### line: ax " << ax << " az " << az << " bx " << bx << " bz " << bz << endl;
+				cout << "####### cell:  cx " << cx << " cz " << cz << " dx " << dx << " dz " << dz << endl;
+			      }
+
+			    vpixel.push_back(pixnum);
+			    vxbin.push_back(xbin);
+			    vzbin.push_back(zbin);
+			    vlen.push_back(rr);
+			  }
+		      }
 		}
- 	    }
+	    }
 	  else
 	    {
 	      //There is only one pixel, it gets all of the energy
@@ -310,45 +344,24 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	      vlen.push_back(trklen);
 	    }
 
-
-	  /*
-	  //====================
-	  // This is a TEMPORARY make-do to get a single pixel that represents the hit.
-	  // SHOULD make a cell for each pixel that the track passes through
-	  //
-	  // Find the mid point between the entry and exit locations in the sensor
-	  //====================
-	  TVector3 midpoint( (local_in.X() + local_out.X()) / 2.0, (local_in.Y() + local_out.Y()) / 2.0, (local_in.Z() + local_out.Z()) / 2.0 );
-	  int pixel_number_mid = layergeom->get_pixel_from_local_coords(midpoint);
-	  // get the phi and Z index for this pixel, it is needed later by the clustering
-	  int phibin = layergeom->get_pixel_X_from_pixel_number(pixel_number_mid);
-	  int zbin = layergeom->get_pixel_Y_from_pixel_number(pixel_number_mid);
-
-	  TVector3  pixel_local_coords_mid = layergeom->get_local_coords_from_pixel(pixel_number_mid);
-	  TVector3 pixel_world_coords_mid = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, pixel_local_coords_mid);
-
-	  if(verbosity > 4)
-	    cout << " pixel number " << pixel_number_mid 
-		 << " pixel local coords " << pixel_local_coords_mid.X() << " " << pixel_local_coords_mid.Y() << " " << pixel_local_coords_mid.Z() 
-		 << " pixel world coords " << pixel_world_coords_mid.X() << " " << pixel_world_coords_mid.Y() << " " << pixel_world_coords_mid.Z() 
-		 << endl << endl;
-	  */
-
-	  // loop over all fired cells and add them to the celllist
+	  // loop over all fired cells for this hit and add them to the celllist
 	  for (unsigned int i1 = 0; i1 < vpixel.size(); i1++)   // loop over all fired cells
 	    {
 	      int pixel_number = vpixel[i1];
 
-	      // combine ladder index values to get a single key
-	      char inkey[1024];
-	      // add hitid to account for different pixels in the sensor. Could use pixel_index, but that is a big number! 
+	      // combine ladder index and pixel values to get a single unique key for this pixel
+	      char inkey[1024];	      
 	      sprintf(inkey,"%i_%i_%i_%i_%i",stave_number, half_stave_number, module_number, chip_number, pixel_number);
 	      std::string key(inkey);
 
 	      if (celllist.count(key) > 0) 
 		{
-		  // key exists, just add energy
-		  // this should not happen
+
+		  // key exists, just add this energy deposit to it
+		  // this can happen if the pixel was already hit by another g4 track
+		  if(verbosity > 2)
+		    cout << "Found key " << inkey << " already exists! " << endl;
+
 		  double edep;
 		  if(trklen > 0.0)
 		    edep = hiter->second->get_edep() * vlen[i1] / trklen;
@@ -372,12 +385,15 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		  celllist[key]->set_phibin(vxbin[i1]);
 		  celllist[key]->set_zbin(vzbin[i1]);
 		  
-		  double edep;
+		  double edep = 0.0;
 		  if(trklen > 0.0)
 		    edep = hiter->second->get_edep() * vlen[i1] / trklen;
 		  else
 		    edep = hiter->second->get_edep();
-		  
+
+		  if(edep==0)
+		    cout << "edep is crazy: edep = " << edep << endl;
+
 		  celllist[key]->add_edep(hiter->first, edep);
 		  
 		  if(verbosity > 1)

@@ -1036,6 +1036,8 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
       
       int layer = mapiter->second->get_layer();
       PHG4CylinderGeom_MAPS *geom = (PHG4CylinderGeom_MAPS*) geom_container->GetLayerGeom(layer);
+
+      cout << "Filling cluster id " << clusid << " in  layer " << layer << endl;
       
       SvtxCluster_v1 clus;
       clus.set_layer( layer );
@@ -1058,7 +1060,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 	int binz = geom->get_pixel_Z_from_pixel_number(pixel_number);
 	zbins.insert(binz);
 
-	//cout << "binphi = " << binphi  << " binz = " << binz  << endl;
+	cout << "   pixel number " << pixel_number << " binphi = " << binphi  << " binz = " << binz  << endl;
       }
 
       float thickness = geom->get_pixel_thickness();
@@ -1075,11 +1077,6 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
       double zsum = 0.0;
       unsigned nhits = 0;
 
-      /*
-      int ladder_z_index = -1;
-      int ladder_phi_index = -1;
-      */
-
       int stave_index = -1;
       int half_stave_index = -1;
       int module_index = -1;
@@ -1087,7 +1084,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 
       for(mapiter = clusrange.first; mapiter != clusrange.second; mapiter++ ) {
         PHG4CylinderCell* cell = mapiter->second;
-	//cell->identify();
+	cell->identify();
 
 	SvtxHit* hit = cell_hit_map[cell];
 	
@@ -1101,27 +1098,11 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 	TVector3 world_coords = geom->get_world_from_local_coords(cell->get_stave_index(), cell->get_half_stave_index(), cell->get_module_index(), cell->get_chip_index(), local_coords);
 	double hit_location[3] = {world_coords.X(), world_coords.Y(), world_coords.Z()};
 
-	//cout << "Pixel world coords = " << hit_location[0] << " " << hit_location[1] <<  " " << hit_location[2] << endl;
-
-	/*
-	// ladder_z_index indexes the z location of the sensor on the ladder
-	ladder_z_index = geom->get_ladder_z_index( geom->get_module_index(), geom->get_chip_index() );
-	// ladder_phi_index indexes the location of the sensor in phi
-	ladder_phi_index = geom->get_ladder_phi_index( geom->get_stave_index(), geom->get_half_stave_index(), geom->get_chip_index() );
-	*/
 	// These will be used later to get the sensor position so that the sensor phi can be calculated
 	stave_index = cell->get_stave_index();
 	half_stave_index = cell->get_half_stave_index();
 	module_index = cell->get_module_index();
 	chip_index = cell->get_chip_index();
-
-	/*
-	cout << "stave_index " << stave_index
-	     << " half_stave_index " << half_stave_index
-	     << " module_index " << module_index 
-	     << " chip_index " << chip_index
-	     << endl;
-	*/
 
 	if (_make_e_weights[layer]) {
 	  xsum += hit_location[0] * hit->get_adc();
@@ -1132,6 +1113,10 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 	  ysum += hit_location[1];
 	  zsum += hit_location[2];
 	}
+
+	if(verbosity > 2)
+	  cout << " hit x " << hit_location[0] << " hit y " << hit_location[1] << " hit z " << hit_location[2] << " hit e " << hit->get_e() << " hit adc " << hit->get_adc() << " e weight " << _make_e_weights[layer] << endl;
+	
 	++nhits;
       }
 
@@ -1149,13 +1134,6 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 	clusz = zsum / nhits;
       }
       
-
-      /*
-      geom->find_segment_center(ladder_z_index,
-				ladder_phi_index,
-				ladder_location);
-      */
-
       double ladder_location[3] = {0.0,0.0,0.0};
       // returns the center of the sensor in world coordinates - used to get the ladder phi location
       geom->find_sensor_center(stave_index, half_stave_index, module_index, chip_index, ladder_location);
@@ -1169,11 +1147,6 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 
       clus.set_e(clus_energy);
       clus.set_adc(clus_adc);
-
-      /*
-      cout << "clusx " << clusx << " clusy " << clusy << " clusz " << clusz << endl;
-      cout << " clus_energy " << clus_energy << " clus_adc " << clus_adc << endl;
-      */
 
       float invsqrt12 = 1.0/sqrt(12.0);
       
@@ -1267,7 +1240,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 	if (verbosity>1) {
 	  double radius = sqrt(clusx*clusx+clusy*clusy);
 	  double clusphi = atan2(clusy,clusx);
-	  cout << "r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
+	  cout << "clus_energy " << clus_energy << " clus_adc " << clus_adc << " r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
 	  cout << "pos=(" << clus.get_position(0) << ", " << clus.get_position(1)
 	       << ", " << clus.get_position(2) << ")" << endl;
 	  cout << endl;
@@ -1275,7 +1248,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
       }	else if (verbosity>1) {
 	double radius = sqrt(clusx*clusx+clusy*clusy);
 	double clusphi = atan2(clusy,clusx);
-	cout << "removed r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
+	cout << "removed, clus_energy = " << clus_energy << " below threshold of " <<  get_threshold_by_layer(layer)  << " clus_adc " << clus_adc <<  " r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
 	cout << "pos=(" << clus.get_position(0) << ", " << clus.get_position(1)
 	     << ", " << clus.get_position(2) << ")" << endl;
 	cout << endl;
