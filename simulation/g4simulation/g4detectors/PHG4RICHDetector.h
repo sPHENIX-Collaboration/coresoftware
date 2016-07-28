@@ -63,6 +63,12 @@ public:
       return 0;
   }
 
+  virtual void OverlapCheck(const bool chk = true)
+  {
+    PHG4Detector::OverlapCheck(chk);
+    ePHENIXRICHConstruction::OverlapCheck(chk);
+  }
+
 private:
 
   G4UserSteppingAction* stepping_action;
