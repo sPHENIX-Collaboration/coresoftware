@@ -1,5 +1,4 @@
 #include "PHG4CylinderCellContainer.h"
-#include "PHG4CylinderCell.h"
 #include "PHG4CylinderCellv1.h"
 #include "PHG4CylinderCellDefs.h"
 

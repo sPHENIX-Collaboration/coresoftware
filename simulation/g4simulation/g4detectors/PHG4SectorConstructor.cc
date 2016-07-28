@@ -1,5 +1,3 @@
-// $Id: PHG4SectorConstructor.cc,v 1.6 2014/07/31 15:52:37 jinhuang Exp $
-
 /*!
  * \file PHG4SectorConstructor.cc
  * \brief 
@@ -10,31 +8,31 @@
 
 #include "PHG4SectorConstructor.h"
 
-#include "Geant4/G4Material.hh"
-#include "Geant4/G4MaterialTable.hh"
-#include "Geant4/G4Element.hh"
-#include "Geant4/G4ProductionCuts.hh"
-#include "Geant4/G4ElementTable.hh"
-#include "Geant4/G4Box.hh"
-#include "Geant4/G4Tubs.hh"
-#include "Geant4/G4LogicalVolume.hh"
-#include "Geant4/G4ThreeVector.hh"
-#include "Geant4/G4PVPlacement.hh"
-#include "Geant4/G4SDManager.hh"
-#include "Geant4/G4VisAttributes.hh"
-#include "Geant4/G4Colour.hh"
+#include <Geant4/G4Material.hh>
+#include <Geant4/G4MaterialTable.hh>
+#include <Geant4/G4Element.hh>
+#include <Geant4/G4ProductionCuts.hh>
+#include <Geant4/G4ElementTable.hh>
+#include <Geant4/G4Box.hh>
+#include <Geant4/G4Tubs.hh>
+#include <Geant4/G4LogicalVolume.hh>
+#include <Geant4/G4ThreeVector.hh>
+#include <Geant4/G4PVPlacement.hh>
+#include <Geant4/G4SDManager.hh>
+#include <Geant4/G4VisAttributes.hh>
+#include <Geant4/G4Colour.hh>
 
-#include "Geant4/G4NistManager.hh"
+#include <Geant4/G4NistManager.hh>
 
-#include "Geant4/G4Ellipsoid.hh"
-#include "Geant4/G4Sphere.hh"
-#include "Geant4/G4Orb.hh"
-#include "Geant4/G4Cons.hh"
-#include "Geant4/G4DisplacedSolid.hh"
-#include "Geant4/G4ExtrudedSolid.hh"
-#include "Geant4/G4IntersectionSolid.hh"
-#include "Geant4/G4UnionSolid.hh"
-#include "Geant4/G4SubtractionSolid.hh"
+#include <Geant4/G4Ellipsoid.hh>
+#include <Geant4/G4Sphere.hh>
+#include <Geant4/G4Orb.hh>
+#include <Geant4/G4Cons.hh>
+#include <Geant4/G4DisplacedSolid.hh>
+#include <Geant4/G4ExtrudedSolid.hh>
+#include <Geant4/G4IntersectionSolid.hh>
+#include <Geant4/G4UnionSolid.hh>
+#include <Geant4/G4SubtractionSolid.hh>
 
 #include <cassert>
 #include <cmath>

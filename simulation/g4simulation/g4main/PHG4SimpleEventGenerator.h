@@ -28,6 +28,9 @@ public:
   //! interface for adding particle by pid
   void add_particles(const int pid, const unsigned int count);
 
+  //! set the starting time for the event
+  void set_t0(const double t0);
+  
   //! range of randomized eta values
   void set_eta_range(const double eta_min, const double eta_max);
 
@@ -35,10 +38,12 @@ public:
   void set_phi_range(const double phi_min, const double phi_max);
 
   //! range of randomized pt values
-  void set_pt_range(const double pt_min, const double pt_max);
+  //! \param[in] pt_gaus_width   if non-zero, further apply a Gauss smearing to the pt_min - pt_max flat distribution
+  void set_pt_range(const double pt_min, const double pt_max, const double pt_gaus_width = 0);
 
   //! range of randomized p values
-  void set_p_range(const double p_min, const double p_max);
+  //! \param[in] p_gaus_width   if non-zero, further apply a Gauss smearing to the p_min - p_max flat distribution
+  void set_p_range(const double p_min, const double p_max, const double p_gaus_width = 0);
 
   //! toss a new vertex according to a Uniform or Gaus distribution
   void set_vertex_distribution_function(FUNCTION x, FUNCTION y, FUNCTION z);
@@ -64,10 +69,11 @@ private:
   // these need to be stored separately until run time when the names
   // can be translated using the GEANT4 lookup
   std::vector<std::pair<int, unsigned int> > _particle_codes; // <pdgcode, count>
-  std::vector<std::pair<std::string, unsigned int> > _particle_names; // <names, count>
+  std::vector<std::pair<std::string, unsigned int> > _particle_names; // <names, count>  
   FUNCTION _vertex_func_x;
   FUNCTION _vertex_func_y;
   FUNCTION _vertex_func_z;
+  double _t0;
   double _vertex_x;
   double _vertex_y;
   double _vertex_z;
@@ -86,8 +92,10 @@ private:
   double _phi_max;
   double _pt_min;
   double _pt_max;
+  double _pt_gaus_width;
   double _p_min;
   double _p_max; 
+  double _p_gaus_width;
 
   PHG4InEvent* _ineve;
 };

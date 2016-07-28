@@ -1,5 +1,3 @@
-// $$Id: PHG4SpacalSubsystem.cc,v 1.2 2014/08/12 03:49:12 jinhuang Exp $$
-
 /*!
  * \file ${file_name}
  * \brief
@@ -16,8 +14,9 @@
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4SpacalSteppingAction.h"
 #include "PHG4EventActionClearZeroEdep.h"
-#include <g4main/PHG4Utils.h>
+#include "PHG4FlushStepTrackingAction.h"
 
+#include <g4main/PHG4Utils.h>
 #include <g4main/PHG4PhenixDetector.h>
 #include <g4main/PHG4HitContainer.h>
 
@@ -33,6 +32,7 @@ using namespace std;
 PHG4SpacalSubsystem::PHG4SpacalSubsystem( const std::string &na, const int lyr):
   detector_( NULL ),
   steppingAction_( NULL ),
+  trackingAction_(NULL),
   eventAction_(NULL),
   active(0),
   absorberactive(0),
@@ -136,9 +136,11 @@ int PHG4SpacalSubsystem::InitRun( PHCompositeNode* topNode )
       eventAction_ = evtac;
       steppingAction_ = new PHG4SpacalSteppingAction(detector_);
     }
-
-
-  return 0;
+  if (steppingAction_)
+    {
+      trackingAction_ = new PHG4FlushStepTrackingAction(steppingAction_);
+    }
+   return 0;
 
 }
 
@@ -175,3 +177,8 @@ PHG4SpacalSubsystem::Print(const std::string &what) const
   return;
 }
 
+PHG4TrackingAction*
+PHG4SpacalSubsystem::GetTrackingAction( void ) const
+{
+  return trackingAction_; 
+}

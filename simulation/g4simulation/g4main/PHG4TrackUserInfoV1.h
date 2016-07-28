@@ -1,9 +1,9 @@
-#ifndef __PHG4TrackUserInfoV1_H__
-#define __PHG4TrackUserInfoV1_H__
+#ifndef PHG4TrackUserInfoV1_H__
+#define PHG4TrackUserInfoV1_H__
 
 #include <Geant4/G4VUserTrackInformation.hh>
 
-#include "PHG4Shower.h"
+class PHG4Shower;
 
 // Made this with "V1" in the name in case we ever want to inherit from
 // it with other versions...

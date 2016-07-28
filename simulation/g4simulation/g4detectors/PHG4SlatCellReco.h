@@ -33,10 +33,14 @@ class PHG4SlatCellReco : public SubsysReco
   void etasize_nslat(const int i, const double deltaeta, const int nslat);
   void checkenergy(const int i=1) {chkenergyconservation = i;}
 
-  //! get timing window size in ns.
-  double get_timing_window_size() const {return timing_window_size;}
-  //! set timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
-  void set_timing_window_size(const double s) {timing_window_size = s;}
+  double get_timing_window_min(const int i) {return tmin_max[i].first;}
+  double get_timing_window_max(const int i) {return tmin_max[i].second;}
+  void   set_timing_window(const int i, const double tmin, const double tmax) {
+    tmin_max[i] = std::make_pair(tmin,tmax);
+  }
+  void   set_timing_window_defaults(const double tmin, const double tmax) {
+    tmin_default = tmin; tmax_default = tmax;
+  }
 
  protected:
   void set_size(const int i, const double sizeA, const int sizeB, const int what);
@@ -60,8 +64,9 @@ class PHG4SlatCellReco : public SubsysReco
   int nslatscombined;
   int chkenergyconservation;
 
-  //! timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
-  double timing_window_size;
+  double tmin_default;
+  double tmax_default;
+  std::map<int, std::pair<double,double> > tmin_max;
 
 };
 

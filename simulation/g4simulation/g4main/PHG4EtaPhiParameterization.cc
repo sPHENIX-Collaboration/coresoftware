@@ -1,4 +1,4 @@
-#include <PHG4EtaPhiParameterization.h>
+#include "PHG4EtaPhiParameterization.h"
 
 
 #include <Geant4/G4VPhysicalVolume.hh>

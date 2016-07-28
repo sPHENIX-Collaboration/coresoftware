@@ -4,10 +4,13 @@
 #include "PHG4Hit.h"
 #include "PHG4HitDefs.h"
 
-#include <map>
+#ifdef __CINT__
 #include <stdint.h>
-
+#else
+#include <cstdint>
+#endif
 #include <iostream>
+#include <map>
 
 class PHG4Hitv1 : public PHG4Hit
 {
@@ -47,11 +50,15 @@ class PHG4Hitv1 : public PHG4Hit
   virtual float get_px(const int i) const;
   virtual float get_py(const int i) const;
   virtual float get_pz(const int i) const;
+  virtual float get_local_x(const int i) const;
+  virtual float get_local_y(const int i) const;
+  virtual float get_local_z(const int i) const;
   virtual float get_eion() const          {return  get_property_float(prop_eion);}
   virtual float get_light_yield() const   {return  get_property_float(prop_light_yield);}
   virtual float get_path_length() const {return  get_property_float(prop_path_length);}
   virtual unsigned int get_layer() const  {return  get_property_uint(prop_layer);}
   virtual int get_scint_id() const        {return  get_property_int(prop_scint_id);}
+  virtual int get_row() const {return  get_property_int(prop_row);}
   virtual int get_strip_z_index() const   {return  get_property_int(prop_strip_z_index);}
   virtual int get_strip_y_index() const   {return  get_property_int(prop_strip_y_index);}
   virtual int get_ladder_z_index() const  {return  get_property_int(prop_ladder_phi_index);}
@@ -64,11 +71,15 @@ class PHG4Hitv1 : public PHG4Hit
   virtual void set_px(const int i, const float f);
   virtual void set_py(const int i, const float f);
   virtual void set_pz(const int i, const float f);
+  virtual void set_local_x(const int i, const float f);
+  virtual void set_local_y(const int i, const float f);
+  virtual void set_local_z(const int i, const float f);
   virtual void set_eion(const float f)            {set_property(prop_eion,f);}
   virtual void set_light_yield(const float f)           {set_property(prop_light_yield,f);}
   virtual void set_path_length(const float f)           {set_property(prop_path_length,f);}
   virtual void set_layer(const unsigned int i)    {set_property(prop_layer,i);}
   virtual void set_scint_id(const int i)          {set_property(prop_scint_id,i);}
+  virtual void set_row(const int i)          {set_property(prop_row,i);}
   virtual void set_strip_z_index(const int i)     {set_property(prop_strip_z_index,i);}
   virtual void set_strip_y_index(const int i)     {set_property(prop_strip_y_index,i);}
   virtual void set_ladder_z_index(const int i)    {set_property(prop_ladder_phi_index,i);}

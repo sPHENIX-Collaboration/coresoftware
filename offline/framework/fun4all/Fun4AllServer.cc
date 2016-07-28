@@ -1,6 +1,5 @@
 #include "Fun4AllServer.h"
 #include "Fun4AllHistoBinDefs.h"
-#include "Fun4AllHistoManager.h"
 #include "Fun4AllInputManager.h"
 #include "Fun4AllSyncManager.h"
 #include "Fun4AllOutputManager.h"

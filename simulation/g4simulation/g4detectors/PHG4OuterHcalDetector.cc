@@ -45,7 +45,6 @@ typedef CGAL::Segment_2<Circular_k>                Segment_2;
 
 using namespace std;
 
-//static double no_overlap = 0.00015 * cm; // added safety margin against overlaps by using same boundary between volumes
 // face touches the boundary instead of the corner, subtracting 1 permille from the total
 // scintilator length takes care of this
 static double subtract_from_scinti_x = 0.1*mm;
@@ -557,6 +556,7 @@ PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
   // here, this is why the indices are seemingly mixed up
   double xsteelcut[4];
   double zsteelcut[4];
+  fill_n(zsteelcut,4,NAN);
   xsteelcut[0] = x_inner + magnet_cutout_x;
   xsteelcut[1] = xsteelcut[0];
   xsteelcut[2] = inner_radius - offset;

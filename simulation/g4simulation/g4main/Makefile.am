@@ -14,22 +14,26 @@ lib_LTLIBRARIES = \
 
 INCLUDES = \
     -I$(includedir) \
+    -I$(XERCESCROOT)/include \
     -isystem $(OFFLINE_MAIN)/include \
     -isystem $(ROOTSYS)/include \
     -isystem ${G4_MAIN}/include \
     -I$(OFFLINE_MAIN)/include/eigen3 \
     -isystem ${G4_MAIN}/include/Geant4
 
+
 RINCLUDES = \
     -I$(includedir) \
     -I$(OFFLINE_MAIN)/include \
     -I$(ROOTSYS)/include \
     -I${G4_MAIN}/include \
-    -I${G4_MAIN}/include/Geant4
+    -I${G4_MAIN}/include/Geant4 \
+    -I$(XERCESCROOT)/include
 
 libphg4hit_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  -L$(XERCESCROOT)/lib \
   `geant4-config --libs`
 
 libphg4hit_la_LIBADD = \
@@ -70,6 +74,7 @@ libg4testbench_la_SOURCES = \
     PHG4InEventReadBack.cc \
     PHG4InputFilter.cc \
     PHG4ParameterisationTubsEta.cc \
+    PHG4PileupGenerator.cc \
     PHG4SimpleEventGenerator.cc \
     PHG4ParticleGun.cc \
     PHG4ParticleGeneratorBase.cc \
@@ -83,7 +88,6 @@ libg4testbench_la_SOURCES = \
     PHG4PrimaryGeneratorAction.cc \
     PHG4Reco.cc \
     PHG4RegionInformation.cc \
-    PHG4TrackInformation.cc \
     PHG4TrackUserInfoV1.cc \
     PHG4TruthEventAction.cc \
     PHG4TruthSteppingAction.cc \
@@ -103,7 +107,9 @@ libg4testbench_la_LDFLAGS = \
     -lvararray \
     -lHepMC \
     -lphhepmc \
-    `geant4-config --libs`
+    -lxerces-c \
+    `geant4-config --libs` \
+    -lphgeom
 
 libg4testbench_la_LIBADD = \
     libphg4hit.la
@@ -122,7 +128,6 @@ pkginclude_HEADERS = \
   PHG4HitEval.h \
   PHG4HitContainer.h \
   PHG4InEvent.h \
-  PHG4NullSteppingAction.h \
   PHG4Particle.h \
   PHG4Particlev1.h \
   PHG4Particlev2.h \
@@ -132,6 +137,7 @@ pkginclude_HEADERS = \
   PHG4RegionInformation.h \
   PHG4SteppingAction.h \
   PHG4Subsystem.h \
+  PHG4TrackingAction.h \
   PHG4TrackUserInfoV1.h \
   PHG4TruthInfoContainer.h \
   PHG4Utils.h \
@@ -174,6 +180,7 @@ PHG4_Dict.cc: \
   PHG4InEventCompress.h \
   PHG4InEventReadBack.h \
   PHG4InputFilter.h \
+  PHG4PileupGenerator.h \
   PHG4SimpleEventGenerator.h \
   PHG4ParticleGun.h \
   PHG4ParticleGenerator.h \

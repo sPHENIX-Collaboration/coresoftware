@@ -13,7 +13,7 @@ AM_CXXFLAGS = -Wall -Werror
 
 lib_LTLIBRARIES = libPHPythia8.la 
 
-include_HEADERS = \
+pkginclude_HEADERS = \
   PHPythia8.h \
   PHPy8GenTrigger.h \
   PHPy8ParticleTrigger.h \

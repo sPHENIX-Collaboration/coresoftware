@@ -1,5 +1,4 @@
 #include "PHG4Prototype2OuterHcalDetector.h"
-#include "PHG4Parameters.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeomv3.h"
 
@@ -52,10 +51,11 @@ PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNod
   steel_plate_corner_upper_right(2600.4*mm,-417.4*mm), 
   steel_plate_corner_lower_right(2601.2*mm,-459.8*mm),
   steel_plate_corner_lower_left(1770.9*mm,-459.8*mm),
+  scinti_u1_front_size(166.2*mm),
   scinti_u1_corner_upper_left(0*mm,0*mm),
   scinti_u1_corner_upper_right(828.9*mm,0*mm),
   scinti_u1_corner_lower_right(828.9*mm,-240.54*mm),
-  scinti_u1_corner_lower_left(0*mm,-166.2*mm),
+  scinti_u1_corner_lower_left(0*mm,-scinti_u1_front_size),
   scinti_u2_corner_upper_left(0*mm,0*mm),
   scinti_u2_corner_upper_right(828.9*mm,-74.3*mm),
   scinti_u2_corner_lower_right(828.9*mm,-320.44*mm),
@@ -154,11 +154,6 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcale
   G4VSolid* scintiboxsolid = new G4Box("OuterHcalScintiMother",scinti_x/2.,scinti_gap/2.,scinti_tile_z/2.);
   //  DisplayVolume(scintiboxsolid,hcalenvelope);
   G4LogicalVolume* scintiboxlogical = new G4LogicalVolume(scintiboxsolid,G4Material::GetMaterial("G4_AIR"),G4String("OuterHcalScintiMother"), 0, 0, 0);
-  G4VisAttributes *visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(false);
-  visattchk->SetColour(G4Colour::Yellow());
-  scintiboxlogical->SetVisAttributes(visattchk);
   G4VisAttributes* hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
   hcalVisAtt->SetForceSolid(false);
@@ -175,7 +170,7 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcale
   G4RotationMatrix *Rot;  
   Rot = new G4RotationMatrix();  
   Rot->rotateX(-90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-166.2*mm-gap_between_tiles/2.-gap_between_tiles),scintiu2_logic,"OuterScinti_0", scintiboxlogical, false, 0, overlapcheck);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-scinti_u1_front_size-gap_between_tiles/2.-gap_between_tiles),scintiu2_logic,"OuterScinti_0", scintiboxlogical, false, 0, overlapcheck);
 
   Rot = new G4RotationMatrix();  
   Rot->rotateX(-90*deg);
@@ -187,7 +182,7 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcale
 
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,166.2*mm+gap_between_tiles/2.+gap_between_tiles),scintiu2_logic,"OuterScinti_3", scintiboxlogical, false, 0, overlapcheck);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,scinti_u1_front_size+gap_between_tiles/2.+gap_between_tiles),scintiu2_logic,"OuterScinti_3", scintiboxlogical, false, 0, overlapcheck);
 
 
   return scintiboxlogical;
@@ -248,7 +243,6 @@ PHG4Prototype2OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
   // return;
   ConstructOuterHcal(logicWorld);
   outerhcalassembly->MakeImprint(logicWorld,g4vec,Rot,0,overlapcheck);
-  //  AddGeometryNode();
   return;
 }
 
@@ -273,8 +267,6 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
       name.str("");
       name << "OuterHcalSteel_" << i;
       G4RotationMatrix *Rot = new G4RotationMatrix();
-      Rot->rotateZ(-phi*rad);
-      Rot = new G4RotationMatrix();
       Rot->rotateZ(phi*rad);
       G4ThreeVector g4vec(0,0,0);
       outerhcalassembly->AddPlacedVolume(steel_plate,g4vec,Rot);
@@ -375,37 +367,6 @@ PHG4Prototype2OuterHcalDetector::DisplayVolume(G4VSolid *volume,  G4LogicalVolum
   new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, 0, false, overlapcheck);
   //  new G4PVPlacement(rotm, G4ThreeVector(0, -460.3, 0), checksolid, "DISPLAYVOL", logvol, 0, false, overlapcheck);
   return 0;
-}
-
-void
-PHG4Prototype2OuterHcalDetector::AddGeometryNode()
-{
-  if (params->get_int_param("active"))
-    {
-      ostringstream geonode;
-      if (superdetector != "NONE")
-	{
-	  geonode << "CYLINDERGEOM_" << superdetector;
-	}
-      else
-	{
-	  geonode << "CYLINDERGEOM_" << detector_type << "_" << layer;
-	}
-      PHG4CylinderGeomContainer *geo =  findNode::getClass<PHG4CylinderGeomContainer>(topNode , geonode.str().c_str());
-      if (!geo)
-	{
-	  geo = new PHG4CylinderGeomContainer();
-	  PHNodeIterator iter( topNode );
-	  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
-	  PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo, geonode.str().c_str(), "PHObject");
-	  runNode->addNode(newNode);
-	}
-      // here in the detector class we have internal units, convert to cm
-      // before putting into the geom object
-      PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv3(inner_radius / cm, (params->get_double_param("place_z")*cm - size_z / 2.) / cm, (params->get_double_param("place_z")*cm + size_z / 2.) / cm, (outer_radius - inner_radius) / cm, n_scinti_plates,  tilt_angle / rad, 0);
-      geo->AddLayerGeom(layer, mygeom);
-      if (verbosity > 0) geo->identify();
-    }
 }
 
 void

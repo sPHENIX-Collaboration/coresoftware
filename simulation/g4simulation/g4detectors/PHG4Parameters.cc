@@ -30,7 +30,7 @@
 #include <boost/lexical_cast.hpp>
 #endif
 
-
+#include <cassert>
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -52,16 +52,28 @@ PHG4Parameters::get_int_param(const std::string &name) const
     {
       return intparams.find(name)->second;
     }
-  cout << PHWHERE << " integer parameter " << name << " does not exist (forgot to set?)" << endl;
+  cout << PHWHERE << " integer parameter " << name
+      << " does not exist (forgot to set?)" << endl;
 
   exit(1);
+}
+
+bool
+PHG4Parameters::exist_int_param(const std::string &name) const
+{
+  if (intparams.find(name) != intparams.end())
+    {
+      return true;
+    }
+  return false;
 }
 
 void
 PHG4Parameters::printint() const
 {
   cout << "int parameters: " << endl;
-  for (map<const string, int>::const_iterator iter = intparams.begin(); iter != intparams.end(); ++iter)
+  for (map<const string, int>::const_iterator iter = intparams.begin();
+      iter != intparams.end(); ++iter)
     {
       cout << iter->first << ": " << iter->second << endl;
     }
@@ -81,13 +93,25 @@ PHG4Parameters::get_double_param(const std::string &name) const
     {
       return doubleparams.find(name)->second;
     }
-  cout << PHWHERE << " double parameter " << name << " does not exist (forgot to set?)" << endl;
+  cout << PHWHERE << " double parameter " << name
+      << " does not exist (forgot to set?)" << endl;
 
   exit(1);
 }
 
+bool
+PHG4Parameters::exist_double_param(const std::string &name) const
+{
+  if (doubleparams.find(name) != doubleparams.end())
+    {
+      return true;
+    }
+  return false;
+}
+
+
 void
-PHG4Parameters::print() const
+PHG4Parameters::Print() const
 {
   cout << "Parameters for " << detname << endl;
   printint();
@@ -100,7 +124,8 @@ void
 PHG4Parameters::printdouble() const
 {
   cout << "double parameters: " << endl;
-  for (map<const string, double>::const_iterator iter = doubleparams.begin(); iter != doubleparams.end(); ++iter)
+  for (map<const string, double>::const_iterator iter = doubleparams.begin();
+      iter != doubleparams.end(); ++iter)
     {
       cout << iter->first << ": " << iter->second << endl;
     }
@@ -120,38 +145,60 @@ PHG4Parameters::get_string_param(const std::string &name) const
     {
       return stringparams.find(name)->second;
     }
-  cout << PHWHERE << " string parameter " << name << " does not exist (forgot to set?)" << endl;
+  cout << PHWHERE << " string parameter " << name
+      << " does not exist (forgot to set?)" << endl;
 
   exit(1);
+}
+
+bool
+PHG4Parameters::exist_string_param(const std::string &name) const
+{
+  if (stringparams.find(name) != stringparams.end())
+    {
+      return true;
+    }
+  return false;
 }
 
 void
 PHG4Parameters::printstring() const
 {
   cout << "string parameters: " << endl;
-  for (map<const string, string>::const_iterator iter = stringparams.begin(); iter != stringparams.end(); ++iter)
+  for (map<const string, string>::const_iterator iter = stringparams.begin();
+      iter != stringparams.end(); ++iter)
     {
       cout << iter->first << ": " << iter->second << endl;
     }
   return;
 }
 
-
 void
 PHG4Parameters::FillFrom(const PdbParameterMap *saveparams)
 {
-  pair<std::map<const std::string, double>::const_iterator, std::map<const std::string, double>::const_iterator> begin_end_d = saveparams->get_dparam_iters();
-  for (map<const std::string, double>::const_iterator iter = begin_end_d.first; iter != begin_end_d.second;++iter)
+  assert(saveparams);
+
+  pair<std::map<const std::string, double>::const_iterator,
+      std::map<const std::string, double>::const_iterator> begin_end_d =
+      saveparams->get_dparam_iters();
+  for (map<const std::string, double>::const_iterator iter = begin_end_d.first;
+      iter != begin_end_d.second; ++iter)
     {
       doubleparams[iter->first] = iter->second;
     }
-  pair<std::map<const std::string, int>::const_iterator, std::map<const std::string, int>::const_iterator> begin_end_i = saveparams->get_iparam_iters();
-  for (map<const std::string, int>::const_iterator iter = begin_end_i.first; iter != begin_end_i.second;++iter)
+  pair<std::map<const std::string, int>::const_iterator,
+      std::map<const std::string, int>::const_iterator> begin_end_i =
+      saveparams->get_iparam_iters();
+  for (map<const std::string, int>::const_iterator iter = begin_end_i.first;
+      iter != begin_end_i.second; ++iter)
     {
       intparams[iter->first] = iter->second;
     }
-  pair<std::map<const std::string, string>::const_iterator, std::map<const std::string, string>::const_iterator> begin_end_s = saveparams->get_cparam_iters();
-  for (map<const std::string, string>::const_iterator iter = begin_end_s.first; iter != begin_end_s.second;++iter)
+  pair<std::map<const std::string, string>::const_iterator,
+      std::map<const std::string, string>::const_iterator> begin_end_s =
+      saveparams->get_cparam_iters();
+  for (map<const std::string, string>::const_iterator iter = begin_end_s.first;
+      iter != begin_end_s.second; ++iter)
     {
       stringparams[iter->first] = iter->second;
     }
@@ -159,16 +206,37 @@ PHG4Parameters::FillFrom(const PdbParameterMap *saveparams)
   return;
 }
 
+void
+PHG4Parameters::FillFrom(const PHG4Parameters *saveparams)
+{
+  assert(saveparams);
+
+  for (dMap::const_iterator iter = saveparams->doubleparams.begin();
+      iter != saveparams->doubleparams.end(); ++iter)
+    doubleparams[iter->first] = iter->second;
+
+  for (iMap::const_iterator iter = saveparams->intparams.begin();
+      iter != saveparams->intparams.end(); ++iter)
+    intparams[iter->first] = iter->second;
+
+  for (strMap::const_iterator iter = saveparams->stringparams.begin();
+      iter != saveparams->stringparams.end(); ++iter)
+    stringparams[iter->first] = iter->second;
+
+  return;
+}
 
 void
 PHG4Parameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
 {
   // write itself since this class is fine with saving by root
-  PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,nodename);
+  PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,
+      nodename);
   if (!nodeparams)
     {
       nodeparams = new PdbParameterMap();
-      PHIODataNode<PdbParameterMap> *newnode =  new PHIODataNode<PdbParameterMap>(nodeparams,nodename);
+      PHIODataNode<PdbParameterMap> *newnode =
+          new PHIODataNode<PdbParameterMap>(nodeparams, nodename);
       topNode->addNode(newnode);
     }
   else
@@ -197,16 +265,14 @@ PHG4Parameters::WriteToDB()
   PHTimeStamp TStop(0xffffffff);
 
   string tablename = detname + "_geoparams";
-  std::transform(tablename.begin(), tablename.end(), tablename.begin(), ::tolower);
-  PdbCalBank *NewBank = bankManager->createBank("PdbParameterMapBank",
-						bankID,
-						"Geometry Parameters",
-						TStart, TStop,
-						tablename);
+  std::transform(tablename.begin(), tablename.end(), tablename.begin(),
+      ::tolower);
+  PdbCalBank *NewBank = bankManager->createBank("PdbParameterMapBank", bankID,
+      "Geometry Parameters", TStart, TStop, tablename);
   if (NewBank)
     {
       NewBank->setLength(1);
-      PdbParameterMap *myparm = (PdbParameterMap*)&NewBank->getEntry(0);
+      PdbParameterMap *myparm = (PdbParameterMap*) &NewBank->getEntry(0);
       CopyToPdbParameterMap(myparm);
       application->commit(NewBank);
       delete NewBank;
@@ -236,14 +302,13 @@ PHG4Parameters::ReadFromDB()
   PHTimeStamp TSearch(10);
 
   string tablename = detname + "_geoparams";
-  std::transform(tablename.begin(), tablename.end(), tablename.begin(), ::tolower);
-  PdbCalBank *NewBank = bankManager->fetchBank("PdbParameterMapBank",
-						bankID,
-					       tablename,
-					       TSearch);
+  std::transform(tablename.begin(), tablename.end(), tablename.begin(),
+      ::tolower);
+  PdbCalBank *NewBank = bankManager->fetchBank("PdbParameterMapBank", bankID,
+      tablename, TSearch);
   if (NewBank)
     {
-      PdbParameterMap *myparm = (PdbParameterMap*)&NewBank->getEntry(0);
+      PdbParameterMap *myparm = (PdbParameterMap*) &NewBank->getEntry(0);
       FillFrom(myparm);
       delete NewBank;
     }
@@ -258,22 +323,29 @@ PHG4Parameters::ReadFromDB()
 int
 PHG4Parameters::WriteToFile(const string &extension, const string &dir)
 {
+  ostringstream fullpath;
   ostringstream fnamestream;
   PdbBankID bankID(0); // lets start at zero
   PHTimeStamp TStart(0);
   PHTimeStamp TStop(0xffffffff);
-  fnamestream << dir;
+  fullpath << dir;
   // add / if directory lacks ending /
   if (*(dir.rbegin()) != '/')
-    { 
-      fnamestream << "/";
+    {
+      fullpath << "/";
     }
-  fnamestream << detname << "_geoparams" << "-" << bankID.getInternalValue() << "-" << TStart.getTics() << "-" << TStop.getTics() << "-" << time(0) << "." << extension;
+  fnamestream << detname << "_geoparams" << "-" << bankID.getInternalValue()
+      << "-" << TStart.getTics() << "-" << TStop.getTics() << "-" << time(0)
+      << "." << extension;
   string fname = fnamestream.str();
   std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
+  fullpath << fname;
+
+  cout <<"PHG4Parameters::WriteToFile - save to "<<fullpath.str()<<endl;
+
   PdbParameterMap *myparm = new PdbParameterMap();
   CopyToPdbParameterMap(myparm);
-  TFile *f = TFile::Open(fname.c_str(),"recreate");
+  TFile *f = TFile::Open(fullpath.str().c_str(), "recreate");
   myparm->Write();
   delete f;
   cout << "sleeping 1 second to prevent duplicate inserttimes" << endl;
@@ -287,53 +359,55 @@ PHG4Parameters::ReadFromFile(const string &extension, const string &dir)
   PHTimeStamp TSearch(10);
   PdbBankID bankID(0);
   ostringstream fnamestream;
-  fnamestream <<  detname << "_geoparams" << "-" << bankID.getInternalValue();
+  fnamestream << detname << "_geoparams" << "-" << bankID.getInternalValue();
   string fileprefix = fnamestream.str();
-  std::transform(fileprefix.begin(), fileprefix.end(), fileprefix.begin(), ::tolower);
+  std::transform(fileprefix.begin(), fileprefix.end(), fileprefix.begin(),
+      ::tolower);
   boost::filesystem::path targetDir(dir);
 
   boost::filesystem::recursive_directory_iterator iter(targetDir), eod;
-  boost::char_separator<char> sep("-."); 
+  boost::char_separator<char> sep("-.");
   map<unsigned int, string> calibfiles;
   BOOST_FOREACH(boost::filesystem::path const& i, make_pair(iter, eod))
     {
       if (is_regular_file(i))
-	{
-	  // boost leaf() gives the filename without path,
-	  // this checks if the filename starts with fileprefix 
-	  // (start pos of substring=0), if not coninue
-	  string basename = i.filename().string();
-	  if (basename.find(fileprefix))
-	    {
-	      continue;
-	    }
-	  // extension() contains the . - like .xml, so we
-	  // just compare the extensions instead of !=
-	  // and check that the size makes sense
-	  if (i.extension().string().find(extension) == string::npos
-	      || i.extension().string().size() != extension.size()+1)
-	    {
-	      continue;
-	    }
-	  boost::tokenizer<boost::char_separator<char> > tok(basename,sep);
-	  boost::tokenizer<boost::char_separator<char> >::iterator iter = tok.begin();
-	  ++iter; // that skips the file prefix excluding bank id
-	  ++iter; // that skips the bank id we checked already as part of the filename
-	  PHTimeStamp TStart(ConvertStringToUint(*iter));
-	  if (TSearch < TStart)
-	    {
-	      continue; 
-	    }
-	  ++iter;
-	  PHTimeStamp TStop(ConvertStringToUint(*iter));
-	  if (TSearch >= TStop)
-	    {
-	      continue; 
-	    }
-	  ++iter;
-	  calibfiles[ConvertStringToUint(*iter)] = i.string();
+        {
+          // boost leaf() gives the filename without path,
+          // this checks if the filename starts with fileprefix
+          // (start pos of substring=0), if not coninue
+          string basename = i.filename().string();
+          if (basename.find(fileprefix))
+            {
+              continue;
+            }
+          // extension() contains the . - like .xml, so we
+          // just compare the extensions instead of !=
+          // and check that the size makes sense
+          if (i.extension().string().find(extension) == string::npos
+              || i.extension().string().size() != extension.size() + 1)
+            {
+              continue;
+            }
+          boost::tokenizer<boost::char_separator<char> > tok(basename, sep);
+          boost::tokenizer<boost::char_separator<char> >::iterator iter =
+              tok.begin();
+          ++iter; // that skips the file prefix excluding bank id
+          ++iter; // that skips the bank id we checked already as part of the filename
+          PHTimeStamp TStart(ConvertStringToUint(*iter));
+          if (TSearch < TStart)
+            {
+              continue;
+            }
+          ++iter;
+          PHTimeStamp TStop(ConvertStringToUint(*iter));
+          if (TSearch >= TStop)
+            {
+              continue;
+            }
+          ++iter;
+          calibfiles[ConvertStringToUint(*iter)] = i.string();
 
-	}
+        }
     }
   if (calibfiles.empty())
     {
@@ -342,9 +416,8 @@ PHG4Parameters::ReadFromFile(const string &extension, const string &dir)
     }
   cout << "Reading from File: " << (calibfiles.rbegin())->second << endl;
   string fname = (calibfiles.rbegin())->second;
-  PdbParameterMap *myparm = new PdbParameterMap();
   TFile *f = TFile::Open(fname.c_str());
-  myparm = (PdbParameterMap *) f->Get("PdbParameterMap");
+  PdbParameterMap *myparm = (PdbParameterMap *) f->Get("PdbParameterMap");
   FillFrom(myparm);
   delete f;
   delete myparm;
@@ -354,15 +427,18 @@ PHG4Parameters::ReadFromFile(const string &extension, const string &dir)
 void
 PHG4Parameters::CopyToPdbParameterMap(PdbParameterMap *myparm)
 {
-  for (map<const string, double>::const_iterator iter = doubleparams.begin(); iter != doubleparams.end(); ++iter)
+  for (map<const string, double>::const_iterator iter = doubleparams.begin();
+      iter != doubleparams.end(); ++iter)
     {
       myparm->set_double_param(iter->first, iter->second);
     }
-  for (map<const string, int>::const_iterator iter = intparams.begin(); iter != intparams.end(); ++iter)
+  for (map<const string, int>::const_iterator iter = intparams.begin();
+      iter != intparams.end(); ++iter)
     {
       myparm->set_int_param(iter->first, iter->second);
     }
-  for (map<const string, string>::const_iterator iter = stringparams.begin(); iter != stringparams.end(); ++iter)
+  for (map<const string, string>::const_iterator iter = stringparams.begin();
+      iter != stringparams.end(); ++iter)
     {
       myparm->set_string_param(iter->first, iter->second);
     }
@@ -372,14 +448,14 @@ unsigned int
 PHG4Parameters::ConvertStringToUint(const std::string &str) const
 {
   unsigned int tics;
-try
-  {
-    tics = boost::lexical_cast<unsigned int>(str);
-  }
-catch ( boost::bad_lexical_cast const& )
-  {
-    cout << "Cannot extract timestamp from " << str << endl;
-    exit(1);
-  }
- return tics;
+  try
+    {
+      tics = boost::lexical_cast<unsigned int>(str);
+    }
+  catch (boost::bad_lexical_cast const&)
+    {
+      cout << "Cannot extract timestamp from " << str << endl;
+      exit(1);
+    }
+  return tics;
 }

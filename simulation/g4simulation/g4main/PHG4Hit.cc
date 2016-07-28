@@ -76,12 +76,26 @@ PHG4Hit::get_property_info(const PROPERTY prop_id)
     return make_pair("pz in",PHG4Hit::type_float);
   case   prop_pz_1:
     return make_pair("pz out",PHG4Hit::type_float);
+  case   prop_local_x_0:
+    return make_pair("local x in",PHG4Hit::type_float);
+  case   prop_local_x_1:
+    return make_pair("local x out",PHG4Hit::type_float);
+  case   prop_local_y_0:
+    return make_pair("local y in",PHG4Hit::type_float);
+  case   prop_local_y_1:
+    return make_pair("local y out",PHG4Hit::type_float);
+  case   prop_local_z_0:
+    return make_pair("local z in",PHG4Hit::type_float);
+  case   prop_local_z_1:
+    return make_pair("local z out",PHG4Hit::type_float);
   case   prop_path_length:
     return make_pair("pathlength",PHG4Hit::type_float);
   case   prop_layer:
     return make_pair("layer ID",PHG4Hit::type_uint);
   case   prop_scint_id:
     return make_pair("scintillator ID",PHG4Hit::type_int);
+  case   prop_row:
+    return make_pair("row",PHG4Hit::type_int);
   case   prop_strip_z_index:
     return make_pair("strip z index",PHG4Hit::type_int);
   case   prop_strip_y_index:
@@ -99,7 +113,7 @@ PHG4Hit::get_property_info(const PROPERTY prop_id)
   case   prop_index_l:
     return make_pair("generic index l",PHG4Hit::type_int);
   default:
-    cout << "unknown index " << prop_id << endl;
+    cout << "PHG4Hit::get_property_info - Fatal Error - unknown index " << prop_id << endl;
     exit(1);
   }
 }

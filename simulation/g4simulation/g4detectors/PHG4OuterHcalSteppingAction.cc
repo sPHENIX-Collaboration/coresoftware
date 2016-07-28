@@ -1,26 +1,33 @@
+// local headers in quotes (that is important when using include subdirs!)
 #include "PHG4OuterHcalSteppingAction.h"
 #include "PHG4OuterHcalDetector.h"
 
+// our own headers in alphabetical order
+
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllServer.h>
-#include <Geant4/G4TransportationManager.hh>
-#include <Geant4/G4FieldManager.hh>
-#include <Geant4/G4Field.hh>
-#include <Geant4/G4PropagatorInField.hh>
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
-
+#include <g4main/PHG4Shower.h>
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
 
+// Geant4 headers
+
+#include <Geant4/G4Field.hh>
+#include <Geant4/G4FieldManager.hh>
+#include <Geant4/G4MaterialCutsCouple.hh>
+#include <Geant4/G4PropagatorInField.hh>
+#include <Geant4/G4Step.hh>
+#include <Geant4/G4TransportationManager.hh>
+
+// Root headers
 #include <TH2F.h>
 
-#include <Geant4/G4Step.hh>
-#include <Geant4/G4MaterialCutsCouple.hh>
-
+// boost headers
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
 // this is an ugly hack, the gcc optimizer has a bug which
@@ -36,17 +43,21 @@
 #include <boost/lexical_cast.hpp>
 #endif
 
-#include <iostream>
+// finally system headers
 #include <cassert>
+#include <iostream>
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* detector,  PHG4Parameters *parameters):
+PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* detector,  const PHG4Parameters *parameters):
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),
   hit(NULL),
   params(parameters),
+  savehitcontainer(NULL),
+  saveshower(NULL),
+  save_layer_id(-1),
   enable_field_checker(0),
   absorbertruth(params->get_int_param("absorbertruth")),
   IsActive(params->get_int_param("active")),
@@ -57,6 +68,13 @@ PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector*
   light_balance_outer_corr(params->get_double_param("light_balance_outer_corr")),
   light_balance_outer_radius(params->get_double_param("light_balance_outer_radius")*cm)
 {}
+
+int
+PHG4OuterHcalSteppingAction::Init()
+{
+  enable_field_checker = GetIntOpt("FieldChecker");
+  return 0;
+}
 
 //____________________________________________________________________________..
 bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
@@ -162,6 +180,9 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	{
 	case fGeomBoundary:
 	case fUndefined:
+	  // flush out previous hit
+	  save_previous_g4hit();
+          save_layer_id = layer_id;
 	  hit = new PHG4Hitv1();
 	  hit->set_layer(motherid);
 	  hit->set_scint_id(tower_id); // the slat id (or steel plate id)
@@ -190,32 +211,21 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	  if (whichactive > 0) // return of IsInOuterHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
 	    {
 	      hit->set_light_yield(0); //  for scintillator only, initialize light yields
-	      // Now add the hit
-	      hits_->AddHit(layer_id, hit);
-	      
-	      {
-		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		  {
-		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		      {
-			pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
-		      }
-		  }
-	      }
+	      // Now save the container we want to add this hit to
+	      savehitcontainer = hits_;
 	    }
 	  else
 	    {
-	      absorberhits_->AddHit(layer_id, hit);
-	      
-	      {
-		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		  {
-		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		      {
-			pp->GetShower()->add_g4hit_id(absorberhits_->GetID(),hit->get_hit_id());
-		      }
-		  }
-	      }
+	      savehitcontainer = absorberhits_;
+	    }
+	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	    {
+	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		{
+		  hit->set_trkid(pp->GetUserTrackId());
+		  hit->set_shower_id(pp->GetShower()->get_id());
+		  saveshower =  pp->GetShower();
+		}
 	    }
 	  break;
 	default:
@@ -242,7 +252,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
                 {
                   once = false;
 
-		  if (verbosity > 0) {
+		  if (Verbosity() > 0) {
 		    cout << "PHG4OuterHcalSteppingAction::UserSteppingAction::"
                       //
 			 << detector_->GetName() << " - "
@@ -279,7 +289,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
                 {
                   once = false;
 
-		  if (verbosity > 1) {
+		  if (Verbosity() > 1) {
 		    cout << "PHG4OuterHcalSteppingAction::UserSteppingAction::"
                       //
 			 << detector_->GetName() << " - "
@@ -315,8 +325,6 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 		{
 		  pp->SetKeep(1); // we want to keep the track
 		}
-
-
 	    }
 	}
 
@@ -359,7 +367,7 @@ void PHG4OuterHcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNode
     }
   if ( ! absorberhits_)
     {
-      if (verbosity > 1)
+      if (Verbosity() > 1)
 	{
 	  cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
 	}
@@ -409,9 +417,8 @@ PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
 
   G4ThreeVector globPosition = aStep->GetPreStepPoint()->GetPosition();
 
-  G4double globPosVec[4] =
-    { 0 }, FieldValueVec[6] =
-	     { 0 };
+  G4double globPosVec[4] = { 0 };
+  G4double FieldValueVec[6] = { 0 };
 
   globPosVec[0] = globPosition.x();
   globPosVec[1] = globPosition.y();
@@ -432,8 +439,7 @@ PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
 	transportMgr->GetPropagatorInField();
       assert(fFieldPropagator);
 
-      G4FieldManager* fieldMgr = fFieldPropagator->FindAndSetFieldManager(
-									  volume);
+      G4FieldManager* fieldMgr = fFieldPropagator->FindAndSetFieldManager(volume);
       assert(fieldMgr);
 
       const G4Field* pField = fieldMgr->GetDetectorField();
@@ -455,4 +461,33 @@ PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
 
 }
 
+void
+PHG4OuterHcalSteppingAction::flush_cached_values()
+{
+  save_previous_g4hit();
+  return;
+}
 
+void
+PHG4OuterHcalSteppingAction::save_previous_g4hit()
+{
+  if (!hit)
+    {
+      return;
+    }
+  // save only hits with non zero energy deposition (remember geantinos edep = -1)
+   if (hit->get_edep())
+    {
+      savehitcontainer->AddHit(save_layer_id, hit);
+      if (saveshower)
+	{
+	  saveshower->add_g4hit_id(savehitcontainer->GetID(),hit->get_hit_id());
+	}
+    }
+  else
+    {
+      delete hit;
+    }
+  hit = NULL;
+  return;
+}

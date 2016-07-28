@@ -112,7 +112,7 @@ void SvtxCluster_v1::set_error(unsigned int i, unsigned int j, float value) {
 }
 
 float SvtxCluster_v1::get_error(unsigned int i, unsigned int j) const {
-  return _size[covar_index(i,j)];
+  return _err[covar_index(i,j)];
 }
 
 float SvtxCluster_v1::get_phi_size() const {
@@ -148,6 +148,41 @@ float SvtxCluster_v1::get_phi_size() const {
 
 float SvtxCluster_v1::get_z_size() const {
   return 2.0*sqrt(get_size(2,2));
+}
+
+float SvtxCluster_v1::get_phi_error() const {
+
+  TMatrixF COVAR(3,3);
+  for (unsigned int i=0; i<3; ++i) {
+    for (unsigned int j=0; j<3; ++j) {
+      COVAR[i][j] = get_error(i,j);
+    }
+  }
+
+  float phi = -1.0*atan2(_pos[1],_pos[0]);
+  
+  TMatrixF ROT(3,3);
+  ROT[0][0] = cos(phi);
+  ROT[0][1] = -sin(phi);
+  ROT[0][2] = 0.0;
+  ROT[1][0] = sin(phi);
+  ROT[1][1] = cos(phi);
+  ROT[1][2] = 0.0;
+  ROT[2][0] = 0.0;
+  ROT[2][1] = 0.0;
+  ROT[2][2] = 1.0;
+
+  TMatrixF ROT_T(3,3);
+  ROT_T.Transpose(ROT);
+  
+  TMatrixF TRANS(3,3);
+  TRANS = ROT * COVAR * ROT_T;
+  
+  return sqrt(TRANS[1][1]);
+}
+
+float SvtxCluster_v1::get_z_error() const {
+  return sqrt(get_error(2,2));
 }
 
 unsigned int SvtxCluster_v1::covar_index(unsigned int i, unsigned int j) const {

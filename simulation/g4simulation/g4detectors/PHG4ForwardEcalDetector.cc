@@ -22,6 +22,7 @@
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Trd.hh>
+#include <Geant4/G4NistManager.hh>
 
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Colour.hh>
@@ -40,6 +41,15 @@ using namespace std;
 //_______________________________________________________________________
 PHG4ForwardEcalDetector::PHG4ForwardEcalDetector( PHCompositeNode *Node, const std::string &dnam ):
   PHG4Detector(Node, dnam),
+  _tower0_dx(30*mm),
+  _tower0_dy(30*mm),
+  _tower0_dz(170.0*mm),
+  _tower1_dx(30*mm),
+  _tower1_dy(30*mm),
+  _tower1_dz(170.0*mm),
+  _tower2_dx(30*mm),
+  _tower2_dy(30*mm),
+  _tower2_dz(170.0*mm),
   _place_in_x(0.0*mm),
   _place_in_y(0.0*mm),
   _place_in_z(3150.0*mm),
@@ -53,11 +63,6 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector( PHCompositeNode *Node, const s
   _dZ(170*mm),
   _sPhi(0),
   _dPhi(2*M_PI),
-  _tower_dx(30*mm),
-  _tower_dy(30*mm),
-  _tower_dz(170.0*mm),
-  _materialScintillator( "G4_POLYSTYRENE" ),
-  _materialAbsorber( "G4_Pb" ),
   _active(1),
   _absorberactive(0),
   _layer(0),
@@ -159,10 +164,12 @@ PHG4ForwardEcalDetector::Construct( G4LogicalVolume* logicWorld )
 		     ecal_envelope_log, name_envelope.str().c_str(), logicWorld, 0, false, overlapcheck);
 
   /* Construct single calorimeter tower */
-  G4LogicalVolume* singletower = ConstructTower();
+  G4LogicalVolume* singletower0 = ConstructTower(0);
+  G4LogicalVolume* singletower1 = ConstructTower(1);
+  G4LogicalVolume* singletower2 = ConstructTower(2);
 
-  /* Place calorimeter tower within envelope */
-  PlaceTower( ecal_envelope_log , singletower );
+  /* Place calorimeter towers within envelope */
+  PlaceTower( ecal_envelope_log , singletower0, singletower1, singletower2 );
 
   return;
 }
@@ -170,59 +177,163 @@ PHG4ForwardEcalDetector::Construct( G4LogicalVolume* logicWorld )
 
 //_______________________________________________________________________
 G4LogicalVolume*
-PHG4ForwardEcalDetector::ConstructTower()
+PHG4ForwardEcalDetector::ConstructTower( int type )
 {
   if ( verbosity > 0 )
     {
-      cout << "PHG4ForwardEcalDetector: Build logical volume for single tower..." << endl;
+      cout << "PHG4ForwardEcalDetector: Build logical volume for single tower, type = " << type << endl;
+    }
+
+  // This method allows construction of Type 0,1 tower (PbGl or PbW04). 
+  // Call a separate routine to generate Type 2 towers (PbSc)
+
+  if(type==2) return ConstructTowerType2(); 
+
+  /* create logical volume for single tower */
+  G4Material* material_air = G4Material::GetMaterial( "G4_AIR" );
+
+  G4double _tower_dx = 0.0;
+  G4double _tower_dy = 0.0;
+  G4double _tower_dz = 0.0;
+
+  G4NistManager* manager = G4NistManager::Instance();
+  G4Material* material_scintillator;
+
+  if(type==0){
+    _tower_dx = _tower0_dx; 
+    _tower_dy = _tower0_dy; 
+    _tower_dz = _tower0_dz;
+    material_scintillator = manager->FindOrBuildMaterial("G4_LEAD_OXIDE"); 
+  }
+  else if(type==1){
+    _tower_dx = _tower1_dx; 
+    _tower_dy = _tower1_dy; 
+    _tower_dz = _tower1_dz; 
+    material_scintillator = manager->FindOrBuildMaterial("G4_PbWO4"); 
+  }
+  else{
+    cout << "PHG4ForwardEcalDetector::ConstructTower invalid type = " << type << endl;
+    material_scintillator = NULL; 
+  }
+
+  ostringstream single_tower_solid_name;
+  single_tower_solid_name.str("");
+  single_tower_solid_name << _towerlogicnameprefix << "_single_scintillator_type" << type << endl;
+
+  G4VSolid* single_tower_solid = new G4Box( G4String(single_tower_solid_name.str().c_str()),
+                                       _tower_dx / 2.0,
+                                       _tower_dy / 2.0,
+                                       _tower_dz / 2.0 );
+
+  ostringstream single_tower_logic_name;
+  single_tower_logic_name.str("");
+  single_tower_logic_name << "single_tower_logic_type" << type << endl;
+
+  G4LogicalVolume *single_tower_logic = new G4LogicalVolume( single_tower_solid,
+							     material_air,
+							     single_tower_logic_name.str().c_str(),
+							     0, 0, 0);
+
+  ostringstream single_scintillator_name;
+  single_scintillator_name.str("");
+  single_scintillator_name << "single_scintillator_type" << type << endl;
+
+  G4VSolid* solid_scintillator = new G4Box( G4String(single_scintillator_name.str().c_str()),
+				   _tower_dx / 2.0,
+				   _tower_dy / 2.0,
+				   _tower_dz / 2.0 );
+
+  ostringstream hEcal_scintillator_plate_logic_name;
+  hEcal_scintillator_plate_logic_name.str("");
+  hEcal_scintillator_plate_logic_name << "hEcal_scintillator_plate_logic_type" << type << endl;
+
+  G4LogicalVolume *logic_scint = new G4LogicalVolume( solid_scintillator,
+						      material_scintillator,
+						      hEcal_scintillator_plate_logic_name.str().c_str(),
+						      0, 0, 0);
+
+  G4VisAttributes *visattscint = new G4VisAttributes();
+  visattscint->SetVisibility(true);
+  visattscint->SetForceSolid(true);
+  visattscint->SetColour(G4Colour::Cyan());
+  logic_scint->SetVisAttributes(visattscint);
+
+  /* place physical volumes for scintillator */
+
+  ostringstream name_scintillator;
+  name_scintillator.str("");
+  name_scintillator << _towerlogicnameprefix << "_single_plate_scintillator" << endl;
+
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, 0.0),
+		     logic_scint,
+		     name_scintillator.str().c_str(),
+		     single_tower_logic,
+		     0, 0, overlapcheck);
+
+  G4VisAttributes *visattchk = new G4VisAttributes();
+  visattchk->SetVisibility(true);
+  visattchk->SetForceSolid(true);
+  visattchk->SetColour(G4Colour::Cyan());
+  single_tower_logic->SetVisAttributes(visattchk);
+
+  if ( verbosity > 0 )
+    {
+      cout << "PHG4ForwardEcalDetector: Building logical volume for single tower done, type = " << type << endl;
+    }
+
+  return single_tower_logic;
+}
+
+G4LogicalVolume*
+PHG4ForwardEcalDetector::ConstructTowerType2()
+{
+  if ( verbosity > 0 )
+    {
+      cout << "PHG4ForwardEcalDetector: Build logical volume for single tower type 2..." << endl;
     }
 
   /* create logical volume for single tower */
   G4Material* material_air = G4Material::GetMaterial( "G4_AIR" );
 
-  G4VSolid* single_tower_solid = new G4Box( G4String("single_tower_solid"),
-                                       _tower_dx / 2.0,
-                                       _tower_dy / 2.0,
-                                       _tower_dz / 2.0 );
+  G4VSolid* single_tower_solid = new G4Box( G4String("single_tower_solid2"),
+                                       _tower2_dx / 2.0,
+                                       _tower2_dy / 2.0,
+                                       _tower2_dz / 2.0 );
 
   G4LogicalVolume *single_tower_logic = new G4LogicalVolume( single_tower_solid,
 						      material_air,
-						      "single_tower_logic",
+						      "single_tower_logic2",
 						      0, 0, 0);
 
   /* create geometry volumes for scintillator and absorber plates to place inside single_tower */
-  //G4int nlayers = 60;
-  //G4double thickness_layer = _tower_dz/(float)nlayers;
-  //G4double thickness_absorber = thickness_layer / 3.0 * 2.0; // 2/3rd absorber
-  //G4double thickness_scintillator = thickness_layer / 3.0 * 1.0; // 1/3rd scintillator
-  // PHENIX EMCal JGL 12/27/2015
+  // PHENIX EMCal JGL 3/27/2016
   G4int nlayers = 66;
-  G4double thickness_layer = _tower_dz/(float)nlayers;
+  G4double thickness_layer = _tower2_dz/(float)nlayers;
   G4double thickness_absorber = thickness_layer*0.23; // 27% absorber by length
   G4double thickness_scintillator = thickness_layer*0.73; // 73% scintillator by length
 
-  G4VSolid* solid_absorber = new G4Box( G4String("single_plate_absorber_solid"),
-				   _tower_dx / 2.0,
-				   _tower_dy / 2.0,
+  G4VSolid* solid_absorber = new G4Box( G4String("single_plate_absorber_solid2"),
+				   _tower2_dx / 2.0,
+				   _tower2_dy / 2.0,
 				   thickness_absorber / 2.0 );
 
-  G4VSolid* solid_scintillator = new G4Box( G4String("single_plate_scintillator"),
-				   _tower_dx / 2.0,
-				   _tower_dy / 2.0,
+  G4VSolid* solid_scintillator = new G4Box( G4String("single_plate_scintillator2"),
+				   _tower2_dx / 2.0,
+				   _tower2_dy / 2.0,
 				   thickness_scintillator / 2.0 );
 
   /* create logical volumes for scintillator and absorber plates to place inside single_tower */
-  G4Material* material_scintillator = G4Material::GetMaterial( _materialScintillator.c_str() );
-  G4Material* material_absorber = G4Material::GetMaterial( _materialAbsorber.c_str() );
+  G4Material* material_scintillator = G4Material::GetMaterial( "G4_POLYSTYRENE" );
+  G4Material* material_absorber = G4Material::GetMaterial( "G4_Pb" );
 
   G4LogicalVolume *logic_absorber = new G4LogicalVolume( solid_absorber,
 						    material_absorber,
-						    "single_plate_absorber_logic",
+						    "single_plate_absorber_logic2",
 						    0, 0, 0);
 
   G4LogicalVolume *logic_scint = new G4LogicalVolume( solid_scintillator,
 						    material_scintillator,
-						    "hEcal_scintillator_plate_logic",
+						    "hEcal_scintillator_plate_logic2",
 						    0, 0, 0);
 
   G4VisAttributes *visattscint = new G4VisAttributes();
@@ -235,15 +346,15 @@ PHG4ForwardEcalDetector::ConstructTower()
   /* place physical volumes for absorber and scintillator plates */
   G4double xpos_i = 0;
   G4double ypos_i = 0;
-  G4double zpos_i = ( -1 * _tower_dz / 2.0 ) + thickness_absorber / 2.0;
+  G4double zpos_i = ( -1 * _tower2_dz / 2.0 ) + thickness_absorber / 2.0;
 
   ostringstream name_absorber;
   name_absorber.str("");
-  name_absorber << _towerlogicnameprefix << "_single_plate_absorber" << endl;
+  name_absorber << _towerlogicnameprefix << "_single_plate_absorber2" << endl;
 
   ostringstream name_scintillator;
   name_scintillator.str("");
-  name_scintillator << _towerlogicnameprefix << "_single_plate_scintillator" << endl;
+  name_scintillator << _towerlogicnameprefix << "_single_plate_scintillator2" << endl;
 
   for (int i = 1; i <= nlayers; i++)
     {
@@ -273,14 +384,15 @@ PHG4ForwardEcalDetector::ConstructTower()
 
   if ( verbosity > 0 )
     {
-      cout << "PHG4ForwardEcalDetector: Building logical volume for single tower done." << endl;
+      cout << "PHG4EICForwardEcalDetector: Building logical volume for single tower done." << endl;
     }
 
   return single_tower_logic;
 }
 
 int
-PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4LogicalVolume* singletower)
+PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4LogicalVolume* singletower0, 
+				    G4LogicalVolume* singletower1, G4LogicalVolume* singletower2)
 {
   /* Loop over all tower positions in vector and place tower */
   typedef std::map< std::string, towerposition>::iterator it_type;
@@ -292,6 +404,16 @@ PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4LogicalVolu
 	  cout << "PHG4ForwardEcalDetector: Place tower " << iterator->first
 	       << " at x = " << iterator->second.x << " , y = " << iterator->second.y << " , z = " << iterator->second.z << endl;
 	}
+
+      G4LogicalVolume* singletower = NULL;
+      if(iterator->second.type==0)
+	singletower = singletower0; 
+      else if(iterator->second.type==1)
+	singletower = singletower1; 
+      else if(iterator->second.type==2)
+	singletower = singletower2; 
+      else
+	cout << "PHG4ForwardEcalDetector::PlaceTower invalid type =  " << iterator->second.type << endl; 
 
       new G4PVPlacement( 0, G4ThreeVector(iterator->second.x, iterator->second.y, iterator->second.z),
 			 singletower,
@@ -343,11 +465,11 @@ PHG4ForwardEcalDetector::ParseParametersFromTable()
 	  G4double pos_x, pos_y, pos_z;
 	  G4double size_x, size_y, size_z;
 	  G4double rot_x, rot_y, rot_z;
-	  G4double dummy;
+	  G4double type;
 	  string dummys;
 
 	  /* read string- break if error */
-	  if ( !( iss >> dummys >> dummy >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> rot_x >> rot_y >> rot_z ) )
+	  if ( !( iss >> dummys >> type >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> rot_x >> rot_y >> rot_z ) )
 	    {
 	      cerr << "ERROR in PHG4ForwardEcalDetector: Failed to read line in mapping file " << _mapping_tower_file << endl;
 	      exit(1);
@@ -357,7 +479,7 @@ PHG4ForwardEcalDetector::ParseParametersFromTable()
 	  /* Mapping file uses cm, this class uses mm for length */
 	  ostringstream towername;
 	  towername.str("");
-	  towername << _towerlogicnameprefix << "_j_" << idx_j << "_k_" << idx_k;
+	  towername << _towerlogicnameprefix << "_t_" << type << "_j_" << idx_j << "_k_" << idx_k;
 
 	  /* Add Geant4 units */
 	  pos_x = pos_x * cm;
@@ -369,6 +491,7 @@ PHG4ForwardEcalDetector::ParseParametersFromTable()
 	  tower_new.x = pos_x;
 	  tower_new.y = pos_y;
 	  tower_new.z = pos_z;
+	  tower_new.type = type; 
 	  _map_tower.insert( make_pair( towername.str() , tower_new ) );
 
 	}
@@ -393,17 +516,41 @@ PHG4ForwardEcalDetector::ParseParametersFromTable()
   /* Update member variables for global parameters based on parsed parameter file */
   std::map<string,G4double>::iterator parit;
 
-  parit = _map_global_parameter.find("Gtower_dx");
+  parit = _map_global_parameter.find("Gtower0_dx");
   if (parit != _map_global_parameter.end())
-    _tower_dx = parit->second * cm;
+    _tower0_dx = parit->second * cm;
 
-  parit = _map_global_parameter.find("Gtower_dy");
+  parit = _map_global_parameter.find("Gtower0_dy");
   if (parit != _map_global_parameter.end())
-    _tower_dy = parit->second * cm;
+    _tower0_dy = parit->second * cm;
 
-  parit = _map_global_parameter.find("Gtower_dz");
+  parit = _map_global_parameter.find("Gtower0_dz");
   if (parit != _map_global_parameter.end())
-    _tower_dz = parit->second * cm;
+    _tower0_dz = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower1_dx");
+  if (parit != _map_global_parameter.end())
+    _tower1_dx = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower1_dy");
+  if (parit != _map_global_parameter.end())
+    _tower1_dy = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower1_dz");
+  if (parit != _map_global_parameter.end())
+    _tower1_dz = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower2_dx");
+  if (parit != _map_global_parameter.end())
+    _tower2_dx = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower2_dy");
+  if (parit != _map_global_parameter.end())
+    _tower2_dy = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower2_dz");
+  if (parit != _map_global_parameter.end())
+    _tower2_dz = parit->second * cm;
 
   parit = _map_global_parameter.find("Gr1_inner");
   if (parit != _map_global_parameter.end())

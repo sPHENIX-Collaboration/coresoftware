@@ -9,6 +9,7 @@
  */
 
 #include "PHG4CylinderGeom_Spacalv2.h"
+#include "PHG4Parameters.h"
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4PhysicalConstants.hh>
@@ -57,7 +58,8 @@ PHG4CylinderGeom_Spacalv2::Print(Option_t *opt) const
   cout << "\t" << "get_block_depth() = " << get_block_depth() << endl;
   cout << "\t" << "get_assembly_spacing() = " << get_assembly_spacing() << endl;
   cout << "\t" << "get_reg_fiber_grid_distance_taper() = "
-      << get_reg_fiber_grid_distance_taper()<<" = sqrt(3)*"<< get_reg_fiber_grid_distance_taper()/sqrt(3.)<< endl;
+      << get_reg_fiber_grid_distance_taper() << " = sqrt(3)*"
+      << get_reg_fiber_grid_distance_taper() / sqrt(3.) << endl;
   cout << "\t" << "get_reg_fiber_grid_distance_nontaper() = "
       << get_reg_fiber_grid_distance_nontaper() << endl;
 
@@ -78,16 +80,37 @@ PHG4CylinderGeom_Spacalv2::SetDefault()
 
 }
 
+void
+PHG4CylinderGeom_Spacalv2::ImportParameters(const PHG4Parameters & param)
+{
+  PHG4CylinderGeom_Spacalv1::ImportParameters(param);
+
+  if (param.exist_int_param("azimuthal_n_sec"))
+    azimuthal_n_sec = param.get_int_param("azimuthal_n_sec");
+  if (param.exist_double_param("azimuthal_tilt"))
+    azimuthal_tilt = param.get_double_param("azimuthal_tilt");
+  if (param.exist_int_param("azimuthal_seg_visible"))
+    azimuthal_seg_visible = static_cast<bool>(param.get_int_param(
+        "azimuthal_seg_visible"));
+  if (param.exist_double_param("polar_taper_ratio"))
+    polar_taper_ratio = param.get_double_param("polar_taper_ratio");
+  if (param.exist_double_param("assembly_spacing"))
+    assembly_spacing = param.get_double_param("assembly_spacing");
+
+  return;
+}
+
 double
 PHG4CylinderGeom_Spacalv2::get_sec_azimuthal_width() const
 {
-  const double azimuthal_width_base =   get_radius() * twopi / (double) (get_azimuthal_n_sec())
-      - get_assembly_spacing();
+  const double azimuthal_width_base = get_radius() * twopi
+      / (double) (get_azimuthal_n_sec()) - get_assembly_spacing();
 
   // triggernometry stuff to make a tight connection after tilting
 
-  const double theta1 =  get_azimuthal_tilt();
-  const double theta2 = pi + (twopi/get_azimuthal_n_sec()) - halfpi -get_azimuthal_tilt();
+  const double theta1 = get_azimuthal_tilt();
+  const double theta2 = pi + (twopi / get_azimuthal_n_sec()) - halfpi
+      - get_azimuthal_tilt();
 
   return azimuthal_width_base * sin(theta2) / sin(theta1 + theta2);
 }
@@ -152,8 +175,7 @@ double
 PHG4CylinderGeom_Spacalv2::get_reg_fiber_grid_distance_taper() const
 {
   const double mid_plane_width = get_block_width()
-      * ((get_polar_taper_ratio() - 1) * 0.5 + 1)
-      - get_assembly_spacing();
+      * ((get_polar_taper_ratio() - 1) * 0.5 + 1) - get_assembly_spacing();
 
   const int n_grid = floor(mid_plane_width / (get_fiber_distance() * sqrt(3.)));
 

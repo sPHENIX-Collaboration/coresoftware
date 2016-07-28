@@ -1,10 +1,7 @@
 #ifndef PHG4InnerHcalSubsystem_h
 #define PHG4InnerHcalSubsystem_h
 
-#include <g4main/PHG4Subsystem.h>
-
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4String.hh>
+#include "PHG4DetectorSubsystem.h"
 
 #include <map>
 #include <set>
@@ -14,13 +11,12 @@ class PHG4InnerHcalDetector;
 class PHG4Parameters;
 class PHG4InnerHcalSteppingAction;
 class PHG4EventAction;
+class PHG4FlushStepTrackingAction;
 
-class PHG4InnerHcalSubsystem: public PHG4Subsystem
+class PHG4InnerHcalSubsystem: public PHG4DetectorSubsystem
 {
 
   public:
-
-  enum FILE_TYPE {none = 0, xml = 1, root = 2};
 
   //! constructor
   PHG4InnerHcalSubsystem( const std::string &name = "HCALIN", const int layer = 0 );
@@ -29,15 +25,12 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   virtual ~PHG4InnerHcalSubsystem( void )
   {}
 
-  //! init
-  int Init(PHCompositeNode *);
-
   /*!
   creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
   reates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int InitRun(PHCompositeNode *);
+  int InitRunSubsystem(PHCompositeNode *);
 
   //! event processing
   /*!
@@ -50,64 +43,34 @@ class PHG4InnerHcalSubsystem: public PHG4Subsystem
   void Print(const std::string &what = "ALL") const;
 
   //! accessors (reimplemented)
-  virtual PHG4Detector* GetDetector( void ) const;
-  virtual PHG4SteppingAction* GetSteppingAction( void ) const;
+  PHG4Detector* GetDetector( void ) const;
+  PHG4SteppingAction* GetSteppingAction( void ) const {return steppingAction_;}
+  PHG4TrackingAction* GetTrackingAction( void ) const {return  trackingAction_;}
 
   PHG4EventAction* GetEventAction() const {return eventAction_;}
-  void SetActive(const int i = 1);
-  void SetAbsorberActive(const int i = 1);
-  void SetAbsorberTruth(const int i = 1);
-  void SuperDetector(const std::string &name);
-  const std::string SuperDetector() {return superdetector;}
 
-  void BlackHole(const int i=1);
   void SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr);
-  void set_double_param(const std::string &name, const double dval);
-  double get_double_param(const std::string &name) const;
-  void set_int_param(const std::string &name, const int ival);
-  int get_int_param(const std::string &name) const;
-  void set_string_param(const std::string &name, const std::string &sval);
-  std::string get_string_param(const std::string &name) const;
-  void SetDefaultParameters();
-  void UpdateParametersWithMacro();
-  void UseDB(const int i = 1) {usedb = i;}
-  void UseCalibFiles(const FILE_TYPE ftyp) {filetype = ftyp;}
-  int SaveParamsToDB();
-  int ReadParamsFromDB();
-  int SaveParamsToFile(const FILE_TYPE ftyp);
-  int ReadParamsFromFile(const FILE_TYPE ftyp);
-  void SetCalibrationFileDir(const std::string &calibdir) {calibfiledir = calibdir;}
 
-  protected:
+
+  private:
+
+  void SetDefaultParameters();
 
   //! detector geometry
   /*! derives from PHG4Detector */
   PHG4InnerHcalDetector* detector_;
 
-  //! particle tracking "stepping" action
+  //! detector "stepping" action, executes after every G4 step
   /*! derives from PHG4SteppingAction */
-  PHG4InnerHcalSteppingAction* steppingAction_;
+  PHG4SteppingAction* steppingAction_;
 
-  //! particle tracking "stepping" action
+  //! detector "tracking" action, executes before/after every G4 track
+  /*! derives from PHG4TrackingAction */
+  PHG4TrackingAction *trackingAction_;
+
+  //! detector event action executes before/after every event
   /*! derives from PHG4EventAction */
   PHG4EventAction *eventAction_;
-
-  PHG4Parameters *params;
-
-  int layer;
-
-  int usedb;
-  FILE_TYPE filetype;
-  std::string detector_type;
-  std::string superdetector;
-  std::string calibfiledir;
-  std::map<const std::string, double> dparams;
-  std::map<const std::string, int> iparams;
-  std::map<const std::string, std::string> cparams;
-  std::map<const std::string, double> default_double;
-  std::map<const std::string, int> default_int;
-  std::map<const std::string, std::string> default_string;
-
 };
 
 #endif

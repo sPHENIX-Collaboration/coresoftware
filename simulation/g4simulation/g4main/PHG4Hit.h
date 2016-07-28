@@ -14,7 +14,7 @@ class PHG4Hit: public PHObject
 
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Copy(PHG4Hit const &g4hit);
-  friend ostream &operator<<(ostream & stream, const PHG4Hit * hit);
+  friend std::ostream &operator<<(std::ostream & stream, const PHG4Hit * hit);
 
   // The indices here represent the entry and exit points of the particle
   virtual float get_x(const int i) const {return NAN;}
@@ -23,6 +23,9 @@ class PHG4Hit: public PHObject
   virtual float get_px(const int i) const {return NAN;}
   virtual float get_py(const int i) const {return NAN;}
   virtual float get_pz(const int i) const {return NAN;}
+  virtual float get_local_x(const int i) const {return NAN;}
+  virtual float get_local_y(const int i) const {return NAN;}
+  virtual float get_local_z(const int i) const {return NAN;}
   virtual float get_t(const int i) const {return NAN;}
   virtual float get_edep() const {return NAN;}
   virtual float get_eion() const {return NAN;}
@@ -32,6 +35,7 @@ class PHG4Hit: public PHObject
   virtual PHG4HitDefs::keytype get_hit_id() const {return ULONG_LONG_MAX;}
   virtual int get_shower_id() const {return INT_MIN;}
   virtual int get_scint_id() const {return INT_MIN;}
+  virtual int get_row() const {return INT_MIN;}
   virtual int get_trkid() const {return INT_MIN;}
   virtual int get_strip_z_index() const {return INT_MIN;}
   virtual int get_strip_y_index() const {return INT_MIN;}
@@ -48,6 +52,9 @@ class PHG4Hit: public PHObject
   virtual void set_px(const int i, const float f) {return;}
   virtual void set_py(const int i, const float f) {return;}
   virtual void set_pz(const int i, const float f) {return;}
+  virtual void set_local_x(const int i, const float f) {return;}
+  virtual void set_local_y(const int i, const float f) {return;}
+  virtual void set_local_z(const int i, const float f) {return;}
   virtual void set_t(const int i, const float f) {return;}
   virtual void set_edep(const float f) {return;}
   virtual void set_eion(const float f) {return;}
@@ -57,6 +64,7 @@ class PHG4Hit: public PHObject
   virtual void set_hit_id(const PHG4HitDefs::keytype i) {return;}
   virtual void set_shower_id(const int i) {return;}
   virtual void set_scint_id(const int i) {return;}
+  virtual void set_row(const int i) {return;}
   virtual void set_trkid(const int i) {return;}
   virtual void set_strip_z_index(const int i) {return;}
   virtual void set_strip_y_index(const int i) {return;}
@@ -75,7 +83,9 @@ class PHG4Hit: public PHObject
   virtual void print() const {std::cout<<"PHG4Hit base class - print() not implemented"<<std::endl;}
 
 
-  //! add a short name to PHG4Hit::get_property_name
+  //! Procedure to add a new PROPERTY tag:
+  //! 1.add new tag below with unique value,
+  //! 2.add a short name to PHG4Hit::get_property_info
   enum PROPERTY 
   {//
 
@@ -99,12 +109,22 @@ class PHG4Hit: public PHObject
     //! pathlength
     prop_path_length = 16,
 
+    //! local coordinate
+    prop_local_x_0 = 20,
+    prop_local_x_1 = 21,
+    prop_local_y_0 = 22,
+    prop_local_y_1 = 23,
+    prop_local_z_0 = 24,
+    prop_local_z_1 = 25,
+
     //-- detector specific IDs: 100+ --
 
     //! layer ID
     prop_layer = 101,
     //! scintillator ID
     prop_scint_id = 102,
+    //! row (mother volume or steel plate id)
+    prop_row = 103,
 
     //! SVX stuff
     prop_strip_z_index = 110,

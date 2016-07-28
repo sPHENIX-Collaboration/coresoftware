@@ -36,6 +36,7 @@ RawTowerDigitizer::RawTowerDigitizer(const std::string& name) :
     _pedstal_central_ADC(NAN), //default to invalid
     _pedstal_width_ADC(NAN), //default to invalid
     _zero_suppression_ADC(0), //default to apply no zero suppression
+    _tower_type(-1),
     _timer(PHTimeServer::get()->insert_new(name))
 {
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
@@ -107,6 +108,10 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
       it != all_towers.second; ++it)
     {
       const RawTowerDefs::keytype key = it->second->get_id();
+      if(_tower_type>=0){
+	// Skip towers that don't match the type we are supposed to digitize
+	if(_tower_type != it->second->get_tower_type()) continue; 
+      }
 
       RawTower *sim_tower = _sim_towers->getTower(key);
 
@@ -115,10 +120,14 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
       if (_digi_algorithm == kNo_digitization)
         {
           if (sim_tower)
+	    {
             digi_tower = new RawTowerv1(*sim_tower);
+	    }
         }
       else if (_digi_algorithm == kSimple_photon_digitization)
+	{
         digi_tower = simple_photon_digitization(sim_tower);
+	}
       else
         {
 
@@ -126,14 +135,22 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
               << " invalid digitization algorithm #" << _digi_algorithm
               << std::endl;
 
-          if (digi_tower)
-            delete digi_tower;
-
           return Fun4AllReturnCodes::ABORTRUN;
         }
 
-      if (digi_tower)
+      if (digi_tower){
+//	digi_tower->set_tower_type(_tower_type);
         _raw_towers->AddTower(key, digi_tower);
+      }
+
+      if (verbosity)
+        {
+          std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+              << " output tower:"
+              << std::endl;
+          digi_tower->identify();
+        }
+
     }
 
   if (verbosity)
@@ -270,12 +287,15 @@ RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-  _raw_towers = new RawTowerContainer(
-      RawTowerDefs::convert_name_to_caloid(detector));
+  // Be careful as a previous digitizer may have been registered for this detector
   RawTowerNodeName = "TOWER_" + _raw_tower_node_prefix + "_" + detector;
-  PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_raw_towers,
-      RawTowerNodeName.c_str(), "PHObject");
-  DetNode->addNode(towerNode);
+  _raw_towers = findNode::getClass<RawTowerContainer>(DetNode,RawTowerNodeName.c_str());
+  if (!_raw_towers){
+    _raw_towers = new RawTowerContainer( _sim_towers -> getCalorimeterID()  );
+    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_raw_towers,
+								   RawTowerNodeName.c_str(), "PHObject");
+    DetNode->addNode(towerNode);
+  }
 
   return;
 }

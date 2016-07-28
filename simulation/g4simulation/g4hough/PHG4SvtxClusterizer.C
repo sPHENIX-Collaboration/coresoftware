@@ -124,7 +124,9 @@ bool PHG4SvtxClusterizer::ladder_are_adjacent(const PHG4CylinderCell* lhs,
   return false;
 }
 
-PHG4SvtxClusterizer::PHG4SvtxClusterizer(const string &name) :
+PHG4SvtxClusterizer::PHG4SvtxClusterizer(const string &name,
+					 unsigned int min_layer,
+					 unsigned int max_layer) :
   SubsysReco(name),
   _hits(NULL),
   _clusterlist(NULL),
@@ -132,6 +134,8 @@ PHG4SvtxClusterizer::PHG4SvtxClusterizer(const string &name) :
   _thresholds_by_layer(),
   _make_z_clustering(),
   _make_e_weights(),
+  _min_layer(min_layer),
+  _max_layer(max_layer),
   _timer(PHTimeServer::get()->insert_new(name)) {}
 
 int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
@@ -334,6 +338,10 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       ++layeriter) {
 
     int layer = layeriter->second->get_layer();
+
+    if ((unsigned int)layer < _min_layer) continue;
+    if ((unsigned int)layer > _max_layer) continue;
+    
     int nphibins = layeriter->second->get_phibins();
 
     // loop over all hits/cells in this layer
@@ -478,7 +486,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       float invsqrt12 = 1.0/sqrt(12.);
       
       TMatrixF DIM(3,3);
-      DIM[0][0] = pow(0.5*thickness,2);
+      DIM[0][0] = pow(0.0*0.5*thickness,2);
       DIM[0][1] = 0.0;
       DIM[0][2] = 0.0;
       DIM[1][0] = 0.0;
@@ -489,7 +497,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       DIM[2][2] = pow(0.5*zsize,2);
 
       TMatrixF ERR(3,3);
-      ERR[0][0] = pow(0.5*thickness*invsqrt12,2);
+      ERR[0][0] = pow(0.0*0.5*thickness*invsqrt12,2);
       ERR[0][1] = 0.0;
       ERR[0][2] = 0.0;
       ERR[1][0] = 0.0;
@@ -604,6 +612,9 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 
     int layer = layeriter->second->get_layer();
 
+    if ((unsigned int)layer < _min_layer) continue;
+    if ((unsigned int)layer > _max_layer) continue;
+    
     std::map<PHG4CylinderCell*,SvtxHit*> cell_hit_map;
     vector<PHG4CylinderCell*> cell_list;
     for (std::multimap<int,SvtxHit*>::iterator hiter = layer_hits_mmap.lower_bound(layer);

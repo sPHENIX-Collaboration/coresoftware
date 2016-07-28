@@ -7,6 +7,7 @@ class PHG4OuterHcalDetector;
 class PHG4Parameters;
 class PHG4Hit;
 class PHG4HitContainer;
+class PHG4Shower;
 
 class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
 {
@@ -14,7 +15,7 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   public:
 
   //! constructor
-  PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* , PHG4Parameters *parameters);
+  PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* , const PHG4Parameters *parameters);
 
   //! destructor
   virtual ~PHG4OuterHcalSteppingAction()
@@ -22,6 +23,8 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
+
+  virtual int Init();
 
   //! reimplemented from base class
   virtual void SetInterfacePointers( PHCompositeNode* );
@@ -31,7 +34,11 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   void FieldChecker (const G4Step*);
   void EnableFieldChecker(const int i=1) {enable_field_checker = i;}
 
+  void flush_cached_values();
+
   private:
+
+  void save_previous_g4hit();
 
   //! pointer to the detector
   PHG4OuterHcalDetector* detector_;
@@ -40,9 +47,11 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer * hits_;
   PHG4HitContainer * absorberhits_;
   PHG4Hit *hit;
+  const PHG4Parameters *params;
+  PHG4HitContainer *savehitcontainer;
+  PHG4Shower *saveshower;
 
-  PHG4Parameters *params;
-
+  int save_layer_id;
   int enable_field_checker;
 
   // since getting parameters is a map search we do not want to

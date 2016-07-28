@@ -1,7 +1,6 @@
 #include "PHG4FCalSubsystem.h"
 #include "PHG4FCalDetector.h"
 #include "PHG4FCalSteppingAction.h"
-#include "g4main/PHG4NullSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <phool/getClass.h>

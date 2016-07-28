@@ -27,11 +27,20 @@
 #include <exception>
 #include <limits>       // std::numeric_limits
 
+
+#include <TH2.h>
+#include <TH1.h>
+#include <TFile.h>
+
 using namespace std;
 
 PHG4FullProjSpacalCellReco::PHG4FullProjSpacalCellReco(const string &name) :
     SubsysReco(name), _timer(PHTimeServer::get()->insert_new(name.c_str())), chkenergyconservation(
-        0), timing_window_size(numeric_limits<double>::max())
+        0),
+    tmin_default(0.0),  // ns
+    tmax_default(60.0), // ns
+    tmin_max(), //
+    light_collection_model()
 {
 }
 
@@ -54,7 +63,10 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       hitnodename.c_str());
   if (!g4hit)
     {
-      cout << "Could not locate g4 hit node " << hitnodename << endl;
+      cout
+          << "PHG4FullProjSpacalCellReco::InitRun - Could not locate g4 hit node "
+          << hitnodename << endl;
+      topNode->print();
       exit(1);
     }
   cellnodename = "G4CELL_" + detector;
@@ -83,12 +95,18 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
           geonodename.c_str());
   if (!geo)
     {
-      cout << "Could not locate geometry node " << geonodename << endl;
+      cout
+          << "PHG4FullProjSpacalCellReco::InitRun - Could not locate geometry node "
+          << geonodename << endl;
+      topNode->print();
       exit(1);
     }
   if (verbosity > 0)
     {
+      cout << "PHG4FullProjSpacalCellReco::InitRun - incoming geometry:"
+          << endl;
       geo->identify();
+      assert(geo->get_NLayers()>0);
     }
   seggeonodename = "CYLINDERCELLGEOM_" + detector;
   PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<
@@ -125,6 +143,12 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
               << layergeom_raw->ClassName() << endl;
           exit(1);
         }
+      if (verbosity > 1)
+        {
+          layergeom->identify();
+        }
+
+      layergeom-> subtower_consistency_check();
 
 //      int layer = layergeom->get_layer();
 
@@ -134,12 +158,6 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       layerseggeo->set_layer(layergeom->get_layer());
       layerseggeo->set_radius(layergeom->get_radius());
       layerseggeo->set_thickness(layergeom->get_thickness());
-
-      if (verbosity > 1)
-        {
-          layergeom->identify();
-        }
-
       layerseggeo->set_binning(PHG4CylinderCellDefs::spacalbinning);
 
       // construct a map to convert tower_ID into the older eta bins.
@@ -148,8 +166,9 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
           layergeom->get_sector_tower_map();
       const PHG4CylinderGeom_Spacalv3::sector_map_t & sector_map =
           layergeom->get_sector_map();
-      const int nphibin = layergeom->get_azimuthal_n_sec()
-          * layergeom->get_max_phi_bin_in_sec();
+      const int nphibin = layergeom->get_azimuthal_n_sec() // sector
+      * layergeom->get_max_phi_bin_in_sec() // blocks per sector
+          * layergeom->get_n_subtower_phi(); // subtower per block
       const double deltaphi = 2. * M_PI / nphibin;
 
       typedef map<double, int> map_z_tower_z_ID_t;
@@ -173,7 +192,10 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
           if (tower_ID_phi == 0)
             {
               //assign phi min according phi bin 0
-              phi_min = atan2(tower.centralY, tower.centralX + 0.25*(tower.pDx1+tower.pDx2+tower.pDx3+tower.pDx4))
+              phi_min = atan2(tower.centralY,
+                  tower.centralX
+                      + 0.25
+                          * (tower.pDx1 + tower.pDx2 + tower.pDx3 + tower.pDx4))
                   + sector_map.begin()->second;
             }
 
@@ -198,7 +220,7 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
           eta_bin++;
         }
       layerseggeo->set_tower_z_ID_eta_bin_map(tower_z_ID_eta_bin_map);
-      layerseggeo->set_etabins(eta_bin);
+      layerseggeo->set_etabins(eta_bin * layergeom->get_n_subtower_eta());
       layerseggeo->set_etamin(NAN);
       layerseggeo->set_etastep(NAN);
 
@@ -235,24 +257,45 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
                                       * atan2(tower.centralY,
                                           tower.centralZ + dz)))));
 
-              layerseggeo->set_etabounds(etabin,
-                  make_pair<double, double>(eta_central - deta,
-                      eta_central + deta));
-              layerseggeo->set_zbounds(etabin,
-                  make_pair<double, double>(tower.centralZ - dz,
-                      tower.centralZ + dz));
+              for (int sub_tower_ID_y = 0; sub_tower_ID_y < tower.NSubtowerY;
+                  ++sub_tower_ID_y)
+                {
+                  assert(tower.NSubtowerY <=layergeom->get_n_subtower_eta());
+                  // do not overlap to the next bin.
+                  const int sub_tower_etabin = etabin
+                      * layergeom->get_n_subtower_eta() + sub_tower_ID_y;
+
+                  layerseggeo->set_etabounds(sub_tower_etabin,
+                      make_pair<double, double>(
+                          eta_central - deta
+                              + sub_tower_ID_y * 2 * deta / tower.NSubtowerY,
+                          eta_central - deta
+                              + (sub_tower_ID_y + 1) * 2 * deta
+                                  / tower.NSubtowerY));
+                  layerseggeo->set_zbounds(sub_tower_etabin,
+                      make_pair<double, double>(
+                          tower.centralZ - dz
+                              + sub_tower_ID_y * 2 * dz / tower.NSubtowerY,
+                          tower.centralZ - dz
+                              + (sub_tower_ID_y + 1) * 2 * dz
+                                  / tower.NSubtowerY));
+                }
+
             }
           // ...
         } //       BOOST_FOREACH(const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type& tower_pair, tower_map)
 
       // add geo object filled by different binning methods
       seggeo->AddLayerCellGeom(layerseggeo);
-      if (verbosity > 1)
+      if (verbosity >= VERBOSITY_SOME)
         {
-          cout <<"PHG4FullProjSpacalCellReco::InitRun::"<<Name()<<" - Done layer"<< (layergeom->get_layer()) <<". Print out the cell geometry:"<<endl;
+          cout << "PHG4FullProjSpacalCellReco::InitRun::" << Name()
+              << " - Done layer" << (layergeom->get_layer())
+              << ". Print out the cell geometry:" << endl;
           layerseggeo->identify();
         }
     }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -322,31 +365,36 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
 
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
         {
-          // checking ADC timing integration window cut
-          if (hiter->second->get_t(0)>timing_window_size)
-            continue;
+	  // checking ADC timing integration window cut
+	  if (hiter->second->get_t(0)>tmax_default) continue;
+	  if (hiter->second->get_t(1)<tmin_default) continue;
 
           // hit loop
           int scint_id = hiter->second->get_scint_id();
 
+          // decode scint_id
+          PHG4CylinderGeom_Spacalv3::scint_id_coder decoder(scint_id);
+
+          // convert to z_ID, phi_ID
+          std::pair<int, int> tower_z_phi_ID =
+              layergeom->get_tower_z_phi_ID(decoder.tower_ID,
+                  decoder.sector_ID);
+          const int & tower_ID_z = tower_z_phi_ID.first;
+          const int & tower_ID_phi = tower_z_phi_ID.second;
+
+          PHG4CylinderGeom_Spacalv3::tower_map_t::const_iterator it_tower =
+              layergeom->get_sector_tower_map().find(decoder.tower_ID);
+          assert(it_tower != layergeom->get_sector_tower_map().end());
+
           unsigned int key = static_cast<unsigned int>(scint_id);
           if (celllist.find(key) == celllist.end())
             {
-              // decode scint_id
-              PHG4CylinderGeom_Spacalv3::scint_id_coder decoder(scint_id);
-
-              // convert to z_ID, phi_ID
-              std::pair<int, int> tower_z_phi_ID =
-                  layergeom->get_tower_z_phi_ID(decoder.tower_ID,
-                      decoder.sector_ID);
-              const int & tower_ID_z = tower_z_phi_ID.first;
-              const int & tower_ID_phi = tower_z_phi_ID.second;
 
               // convert tower_ID_z to to eta bin number
               int etabin = -1;
               try
                 {
-                  etabin = geo->get_etabin(tower_ID_z);
+                  etabin = geo->get_etabin_block(tower_ID_z); // block eta bin
                 }
               catch (exception & e)
                 {
@@ -356,21 +404,56 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
                   decoder.identify();
                   cout << "Print the hit:" << endl;
                   hiter->second->print();
-                  cout << "PHG4FullProjSpacalCellReco::process_event::" << Name()
-                      << " - Fatal Error - " << e.what() << endl;
+                  cout << "PHG4FullProjSpacalCellReco::process_event::"
+                      << Name() << " - Fatal Error - " << e.what() << endl;
                   exit(1);
                 }
 
+              const int sub_tower_ID_x = it_tower->second.get_sub_tower_ID_x(
+                  decoder.fiber_ID);
+              const int sub_tower_ID_y = it_tower->second.get_sub_tower_ID_y(
+                  decoder.fiber_ID);
+
               celllist[key] = new PHG4CylinderCell_Spacalv1();
               celllist[key]->set_layer(*layer);
-              celllist[key]->set_phibin(tower_ID_phi);
-              celllist[key]->set_etabin(etabin);
+              celllist[key]->set_phibin(
+                  tower_ID_phi * layergeom->get_n_subtower_phi()
+                      + sub_tower_ID_x);
+              celllist[key]->set_etabin(
+                  etabin * layergeom->get_n_subtower_eta() + sub_tower_ID_y);
               celllist[key]->set_fiber_ID(decoder.fiber_ID);
             }
 
+          double light_yield = hiter->second->get_light_yield();
+
+          // light yield correction from fiber attenuation:
+          if (light_collection_model.use_fiber_model())
+            {
+              const double z = 0.5
+                  * (hiter->second->get_local_z(0)
+                      + hiter->second->get_local_z(1));
+              assert(not std::isnan(z));
+
+              light_yield *= light_collection_model.get_fiber_transmission(z);
+            }
+
+          // light yield correction from light guide collection efficiency:
+          if (light_collection_model.use_fiber_model())
+            {
+              const double x =
+                  it_tower->second.get_position_fraction_x_in_sub_tower(
+                      decoder.fiber_ID);
+              const double y =
+                  it_tower->second.get_position_fraction_y_in_sub_tower(
+                      decoder.fiber_ID);
+
+              light_yield *= light_collection_model.get_light_guide_efficiency(x, y);
+            }
+
           celllist[key]->add_edep(hiter->first, hiter->second->get_edep(),
-              hiter->second->get_light_yield());
-          celllist[key]->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep());
+              light_yield);
+          celllist[key]->add_shower_edep(hiter->second->get_shower_id(),
+              hiter->second->get_edep());
 
         } // end loop over g4hits
       int numcells = 0;
@@ -383,20 +466,19 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
             {
               cout << "PHG4FullProjSpacalCellReco::process_event::" << Name()
                   << " - " << "Adding cell in bin eta "
-                  << (mapiter->second->get_bineta())
-                  <<" phi "<< (mapiter->second->get_binphi())
-                  <<" fiber "<< (mapiter->second->get_fiber_ID())
-                  << ", energy dep: "
-                                    << mapiter->second->get_edep()<< ", light yield: "
-                                    << mapiter->second->get_light_yield() << endl;
+                  << (mapiter->second->get_bineta()) << " phi "
+                  << (mapiter->second->get_binphi()) << " fiber "
+                  << (mapiter->second->get_fiber_ID()) << ", energy dep: "
+                  << mapiter->second->get_edep() << ", light yield: "
+                  << mapiter->second->get_light_yield() << endl;
             }
         }
       celllist.clear();
       if (verbosity > 0)
         {
-          cout << "PHG4FullProjSpacalCellReco::process_event::" << Name() << " - "
-              << " found " << numcells << " fibers with energy deposition"
-              << endl;
+          cout << "PHG4FullProjSpacalCellReco::process_event::" << Name()
+              << " - " << " found " << numcells
+              << " fibers with energy deposition" << endl;
         }
     }
 
@@ -440,8 +522,9 @@ PHG4FullProjSpacalCellReco::CheckEnergy(PHCompositeNode *topNode)
   // the fractional eloss for particles traversing eta bins leads to minute rounding errors
   if (fabs(sum_energy_cells - sum_energy_g4hit) / sum_energy_g4hit > 1e-6)
     {
-      cout << "PHG4FullProjSpacalCellReco::CheckEnergy - energy mismatch between cells: " << sum_energy_cells
-          << " and hits: " << sum_energy_g4hit
+      cout
+          << "PHG4FullProjSpacalCellReco::CheckEnergy - energy mismatch between cells: "
+          << sum_energy_cells << " and hits: " << sum_energy_g4hit
           << " diff sum(cells) - sum(hits): "
           << sum_energy_cells - sum_energy_g4hit << endl;
       return -1;
@@ -450,10 +533,101 @@ PHG4FullProjSpacalCellReco::CheckEnergy(PHCompositeNode *topNode)
     {
       if (verbosity > 0)
         {
-          cout <<"PHG4FullProjSpacalCellReco::CheckEnergy::"<< Name() << " - total energy for this event: "
-              << sum_energy_g4hit << " GeV. Passed CheckEnergy" << endl;
+          cout << "PHG4FullProjSpacalCellReco::CheckEnergy::" << Name()
+              << " - total energy for this event: " << sum_energy_g4hit
+              << " GeV. Passed CheckEnergy" << endl;
         }
     }
   return 0;
+}
+
+PHG4FullProjSpacalCellReco::LightCollectionModel::LightCollectionModel() :
+    data_grid_light_guide_efficiency(NULL), data_grid_fiber_trans(NULL)
+{
+
+  data_grid_light_guide_efficiency_verify = new TH2F("data_grid_light_guide_efficiency_verify",
+      "light collection efficiency as used in PHG4FullProjSpacalCellReco::LightCollectionModel;x positio fraction;y position fraction", //
+      100, 0., 1., 100, 0., 1.);
+
+  data_grid_fiber_trans_verify = new TH1F("data_grid_fiber_trans",
+      "SCSF-78 Fiber Transmission as used in PHG4FullProjSpacalCellReco::LightCollectionModel;position in fiber (cm);Effective transmission",
+      100, -15, 15);
+
+  // register histograms
+  Fun4AllServer *se = Fun4AllServer::instance();
+
+  se->registerHisto(data_grid_light_guide_efficiency_verify);
+  se->registerHisto(data_grid_fiber_trans_verify);
+
+}
+
+PHG4FullProjSpacalCellReco::LightCollectionModel::~LightCollectionModel()
+{
+  if (data_grid_light_guide_efficiency)
+    delete data_grid_light_guide_efficiency;
+  if (data_grid_fiber_trans)
+    delete data_grid_fiber_trans;
+}
+
+void
+PHG4FullProjSpacalCellReco::LightCollectionModel::load_data_file(
+    const std::string & input_file,
+    const std::string & histogram_light_guide_model,
+    const std::string & histogram_fiber_model)
+{
+  TFile * fin = TFile::Open(input_file.c_str());
+
+  assert(fin);
+  assert(fin->IsOpen());
+
+  data_grid_light_guide_efficiency = dynamic_cast<TH2 *>(fin->Get(
+      histogram_light_guide_model.c_str()));
+  assert(data_grid_light_guide_efficiency);
+  data_grid_light_guide_efficiency->SetDirectory(NULL);
+
+  data_grid_fiber_trans = dynamic_cast<TH1 *>(fin->Get(
+      histogram_fiber_model.c_str()));
+  assert(data_grid_fiber_trans);
+  data_grid_fiber_trans->SetDirectory(NULL);
+
+  delete fin;
+}
+
+double
+PHG4FullProjSpacalCellReco::LightCollectionModel::get_light_guide_efficiency(
+    const double x_fraction, const double y_fraction)
+{
+  assert(data_grid_light_guide_efficiency);
+  assert(x_fraction >= 0);
+  assert(x_fraction <= 1);
+  assert(y_fraction >= 0);
+  assert(y_fraction <= 1);
+
+  const double eff = data_grid_light_guide_efficiency->Interpolate(x_fraction,
+      y_fraction);
+
+  data_grid_light_guide_efficiency_verify->SetBinContent( //
+      data_grid_light_guide_efficiency_verify->GetXaxis()->FindBin(x_fraction), //
+      data_grid_light_guide_efficiency_verify->GetYaxis()->FindBin(y_fraction), //
+      eff //
+      );
+
+  return eff;
+}
+
+double
+PHG4FullProjSpacalCellReco::LightCollectionModel::get_fiber_transmission(
+    const double z_distance)
+{
+  assert(data_grid_fiber_trans);
+
+  const double eff = data_grid_fiber_trans->Interpolate(z_distance);
+
+  data_grid_fiber_trans_verify->SetBinContent( //
+      data_grid_fiber_trans_verify->GetXaxis()->FindBin(z_distance), //
+      eff //
+      );
+
+  return eff;
 }
 

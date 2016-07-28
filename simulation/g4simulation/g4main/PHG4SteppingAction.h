@@ -1,11 +1,13 @@
 #ifndef PHG4SteppingAction_h
 #define PHG4SteppingAction_h
 
-#include <phool/PHCompositeNode.h>
+#include <map>
 #include <set>
 #include <string>
 
 class G4Step;
+class PHCompositeNode;
+class PHG4Hit;
 
 class PHG4SteppingAction
 {
@@ -27,6 +29,9 @@ class PHG4SteppingAction
   virtual bool UserSteppingAction(const G4Step* step, bool was_used ) = 0;
 
   virtual void Verbosity(const int i) {verbosity = i;}
+  int Verbosity() const {return verbosity;}
+
+  virtual int Init() {return 0;}
 
   //! get scintillation photon count. It require a custom set SCINTILLATIONYIELD property to work
   virtual double GetScintLightYield(const G4Step* step);
@@ -34,11 +39,23 @@ class PHG4SteppingAction
   //! get amount of energy that can make scintillation light, in Unit of GeV.
   virtual double GetVisibleEnergyDeposition(const G4Step* step);
 
+  //! Extract local coordinate of the hit and save to PHG4Hit
+  virtual void StoreLocalCoorindate(PHG4Hit * hit, const G4Step* step, bool do_prepoint, bool do_postpoint);
+
+  virtual void flush_cached_values() {return;}
+
+  virtual void SetInterfacePointers( PHCompositeNode* ) {return;}
+
+  void SetOpt(const std::string &name, const int i) {opt_int[name] = i;}
+  bool IntOptExist(const std::string &name);
+  int GetIntOpt(const std::string &name);
  protected:
+  int verbosity;
+
+ private:
 
   std::set<std::string> _ScintLightYieldMissingMaterial;
-
-  int verbosity;
+  std::map<std::string, int> opt_int;
 
 };
 

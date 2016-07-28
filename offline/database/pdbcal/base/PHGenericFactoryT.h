@@ -41,8 +41,6 @@ public:
   typedef AbstractProduct* (*ProductCreator)();
   typedef std::string IdentifierType;
 
-private:
-
   class ProductCreatorPair
   {
   public:

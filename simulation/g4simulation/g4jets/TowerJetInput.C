@@ -91,6 +91,19 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
   if (vtx) vtxz = vtx->get_z();
   else return std::vector<Jet*>();
 
+  if (isnan(vtxz))
+    {
+      static bool once = true;
+      if (once)
+        {
+          once = false;
+
+          cout <<"TowerJetInput::get_input - WARNING - vertex is NAN. Drop all tower inputs (further NAN-vertex warning will be suppressed)."<<endl;
+        }
+
+      return std::vector<Jet*>();
+    }
+
   std::vector<Jet*> pseudojets;
   RawTowerContainer::ConstRange begin_end = towers->getTowers();
   RawTowerContainer::ConstIterator rtiter;

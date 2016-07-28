@@ -5,6 +5,7 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
+#include <g4main/PHG4Shower.h>
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
@@ -32,12 +33,15 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector* detector, PHG4Parameters *parameters):
+PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector* detector, const PHG4Parameters *parameters):
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),
   hit(NULL),
   params(parameters),
+  savehitcontainer(NULL),
+  saveshower(NULL),
+  save_layer_id(-1),
   absorbertruth(params->get_int_param("absorbertruth")),
   IsActive(params->get_int_param("active")),
   IsBlackHole(params->get_int_param("blackhole")),
@@ -163,6 +167,9 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	{
 	case fGeomBoundary:
 	case fUndefined:
+	  // flush out previous hit
+	  save_previous_g4hit();
+          save_layer_id = layer_id;
 	  hit = new PHG4Hitv1();
 	  hit->set_layer(motherid);
 	  hit->set_scint_id(tower_id); // the slat id (or steel plate id)
@@ -173,50 +180,28 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	  // time in ns
 	  hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
 	  //set the track ID
-	  {
-            hit->set_trkid(aTrack->GetTrackID());
-            if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	      {
-		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		  {
-		    hit->set_trkid(pp->GetUserTrackId());
-		    hit->set_shower_id(pp->GetShower()->get_id());
-		  }
-	      }
-	  }
-
+	  hit->set_trkid(aTrack->GetTrackID());
 	  //set the initial energy deposit
 	  hit->set_edep(0);
 	  hit->set_eion(0); // only implemented for v5 otherwise empty
 	  if (whichactive > 0) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
 	    {
 	      hit->set_light_yield(0); // for scintillator only, initialize light yields
-	      // Now add the hit
-	      hits_->AddHit(layer_id, hit);
-	      
-	      {
-		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		  {
-		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		      {
-			pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
-		      }
-		  }
-	      }
+	      // Now save the container we want to add this hit to
+	      savehitcontainer = hits_;
 	    }
 	  else
 	    {
-	      absorberhits_->AddHit(layer_id, hit);
-	      
-	      {
-		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		  {
-		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		      {
-			pp->GetShower()->add_g4hit_id(absorberhits_->GetID(),hit->get_hit_id());
-		      }
-		  }
-	      }
+	      savehitcontainer = absorberhits_;
+	    }
+	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	    {
+	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		{
+		  hit->set_trkid(pp->GetUserTrackId());
+		  hit->set_shower_id(pp->GetShower()->get_id());
+		  saveshower =  pp->GetShower();
+		}
 	    }
 	  break;
 	default:
@@ -374,4 +359,35 @@ PHG4InnerHcalSteppingAction::GetLightCorrection(const double r) const
   if (value < 0.0) return 0.0;
 
   return value;
+}
+
+void
+PHG4InnerHcalSteppingAction::flush_cached_values()
+{
+  save_previous_g4hit();
+  return;
+}
+
+void
+PHG4InnerHcalSteppingAction::save_previous_g4hit()
+{
+  if (!hit)
+    {
+      return;
+    }
+  // save only hits with non zero energy deposition (remember geantinos edep = -1)
+   if (hit->get_edep())
+    {
+      savehitcontainer->AddHit(save_layer_id, hit);
+      if (saveshower)
+	{
+	  saveshower->add_g4hit_id(savehitcontainer->GetID(),hit->get_hit_id());
+	}
+    }
+  else
+    {
+      delete hit;
+    }
+  hit = NULL;
+  return;
 }

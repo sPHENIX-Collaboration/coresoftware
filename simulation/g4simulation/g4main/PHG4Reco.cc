@@ -15,12 +15,14 @@
 #include <g4decayer/P6DExtDecayerPhysics.hh>
 #include <g4decayer/EDecayType.hh>
 
-#include <phool/getClass.h>
-#include <phool/recoConsts.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHRandomSeed.h>
+#include <phool/recoConsts.h>
+
+#include <phgeom/PHGeomUtility.h>
 
 #include <TThread.h>
 
@@ -53,10 +55,8 @@
 #include <Geant4/G4PEEffectFluoModel.hh>
 #include <Geant4/G4EmProcessOptions.hh>
 #include <Geant4/G4HadronicProcessStore.hh>
-#include <Geant4/G4LossTableManager.hh>
 
 #include <Geant4/globals.hh>
-
 #include <Geant4/G4Version.hh>
 
 // physics lists
@@ -65,6 +65,7 @@
 #include <Geant4/QGSP_BERT.hh>
 #include <Geant4/QGSP_BIC.hh>
 #include <Geant4/QGSP_BIC_HP.hh>
+#include <Geant4/G4GDMLParser.hh>
 
 #if G4VERSION_NUMBER <= 951
 #define HAVE_LHEP
@@ -118,6 +119,7 @@ PHG4Reco::PHG4Reco( const string &name ) :
   active_decayer_(true),
   active_force_decay_(false),
   force_decay_type_(kAll),
+  save_DST_geometry_(true),
   _timer( PHTimeServer::get()->insert_new( name ) )
 {
   for (int i = 0; i < 3; i++)
@@ -135,7 +137,7 @@ PHG4Reco::~PHG4Reco( void )
   delete gui_thread;
   delete field_;
   delete runManager_;
-  if (uisession_) delete uisession_;
+  delete uisession_;
   delete visManager;
 }
 
@@ -415,11 +417,36 @@ PHG4Reco::InitRun( PHCompositeNode* topNode )
     uisession_->Verbosity(1); // let messages after setup come through
   }
 
+  // Geometry export to DST
+  if (save_DST_geometry_)
+    {
+
+      const string filename =
+      PHGeomUtility::
+      GenerateGeometryFileName("gdml");
+      cout <<"PHG4Reco::InitRun - export geometry to DST via tmp file "<<filename<<endl;
+
+      Dump_GDML(filename);
+
+      PHGeomUtility::ImportGeomFile(topNode,filename);
+
+      PHGeomUtility::RemoveGeometryFile(filename);
+    }
+
   if (verbosity > 0) {
     cout << "===========================================================================" << endl;
   }
 
   return 0;
+}
+
+//________________________________________________________________
+//Dump TGeo File
+void PHG4Reco::Dump_GDML(const std::string &filename)
+{
+  G4GDMLParser gdml_parser;
+  gdml_parser.Write(filename,detector_->GetPhysicalVolume());
+  //gGeoManager = TGeoManager::Import(filename);
 }
 
 //_________________________________________________________________
@@ -629,7 +656,7 @@ PHG4Reco::DefineMaterials()
   //load all Materials from the nist database
   G4NistManager * nist = G4NistManager::Instance();
   vector<G4String> matnames = nist->GetNistMaterialNames();
-   while (matnames.begin() != matnames.end())
+  while (matnames.begin() != matnames.end())
      {
        G4String mat = matnames.back();
        if (ignoremat.find(mat) == ignoremat.end())

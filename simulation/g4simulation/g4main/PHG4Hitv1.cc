@@ -268,3 +268,100 @@ PHG4Hitv1::set_pz(const int i, const float f)
       exit(1);
     }
 }
+
+
+float
+PHG4Hitv1::get_local_x(const int i) const
+{
+  switch(i)
+    {
+    case 0:
+      return  get_property_float(prop_local_x_0);
+    case 1:
+      return  get_property_float(prop_local_x_1);
+    default:
+      cout << "Invalid index in get_local_x: " << i << endl;
+      exit(1);
+    }
+}
+
+float
+PHG4Hitv1::get_local_y(const int i) const
+{
+  switch(i)
+    {
+    case 0:
+      return  get_property_float(prop_local_y_0);
+    case 1:
+      return  get_property_float(prop_local_y_1);
+    default:
+      cout << "Invalid index in get_local_y: " << i << endl;
+      exit(1);
+    }
+}
+
+float
+PHG4Hitv1::get_local_z(const int i) const
+{
+  switch(i)
+    {
+    case 0:
+      return  get_property_float(prop_local_z_0);
+    case 1:
+      return  get_property_float(prop_local_z_1);
+    default:
+      cout << "Invalid index in get_local_z: " << i << endl;
+      exit(1);
+    }
+}
+
+void
+PHG4Hitv1::set_local_x(const int i, const float f)
+{
+  switch(i)
+    {
+    case 0:
+      set_property(prop_local_x_0,f);
+      return;
+    case 1:
+      set_property(prop_local_x_1,f);
+      return;
+    default:
+      cout << "Invalid index in set_local_x: " << i << endl;
+      exit(1);
+    }
+}
+
+void
+PHG4Hitv1::set_local_y(const int i, const float f)
+{
+  switch(i)
+    {
+    case 0:
+      set_property(prop_local_y_0,f);
+      return;
+    case 1:
+      set_property(prop_local_y_1,f);
+      return;
+    default:
+      cout << "Invalid index in set_local_y: " << i << endl;
+      exit(1);
+    }
+}
+
+void
+PHG4Hitv1::set_local_z(const int i, const float f)
+{
+  switch(i)
+    {
+    case 0:
+      set_property(prop_local_z_0,f);
+      return;
+    case 1:
+      set_property(prop_local_z_1,f);
+      return;
+    default:
+      cout << "Invalid index in set_local_z: " << i << endl;
+      exit(1);
+    }
+}

@@ -1,20 +1,25 @@
 #include "PHG4DstCompressReco.h"
 
+
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4Shower.h>
+
+#include <g4detectors/PHG4CylinderCellContainer.h>
+
+#include <g4cemc/RawTowerContainer.h>
+#include <g4cemc/RawTower.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHPointerListIterator.h>
 #include <phool/PHNode.h>
 #include <phool/getClass.h>
-
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Particle.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTower.h>
 
 #include <iostream>
 

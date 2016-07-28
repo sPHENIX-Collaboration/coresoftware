@@ -53,12 +53,15 @@ public:
   std::set<SvtxTrack*> all_tracks_from(PHG4Particle* truthparticle);
   SvtxTrack*           best_track_from(PHG4Particle* truthparticle);
   std::set<SvtxTrack*> all_tracks_from(PHG4Hit* truthhit);
+  std::set<SvtxTrack*> all_tracks_from(SvtxCluster* cluster);
+  SvtxTrack*           best_track_from(SvtxCluster* cluster);
   
   // overlap calculations
   unsigned int get_nclusters_contribution(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);  
-
-  unsigned int get_errors() {return _errors + _clustereval.get_errors();}
+  unsigned int get_nclusters_contribution_by_layer(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);  
   
+  unsigned int get_errors() {return _errors + _clustereval.get_errors();}
+
 private:
 
   void get_node_pointers(PHCompositeNode* topNode);
@@ -79,7 +82,10 @@ private:
   std::map<PHG4Particle*,std::set<SvtxTrack*> >               _cache_all_tracks_from_particle;
   std::map<PHG4Particle*,SvtxTrack* >                         _cache_best_track_from_particle;
   std::map<PHG4Hit*,std::set<SvtxTrack*> >                    _cache_all_tracks_from_g4hit;
+  std::map<SvtxCluster*,std::set<SvtxTrack*> >                _cache_all_tracks_from_cluster;
+  std::map<SvtxCluster*,SvtxTrack*>                           _cache_best_track_from_cluster;
   std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int> _cache_get_nclusters_contribution;
+  std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int> _cache_get_nclusters_contribution_by_layer;
 };
 
 #endif // __SVTXTRACKEVAL_H__

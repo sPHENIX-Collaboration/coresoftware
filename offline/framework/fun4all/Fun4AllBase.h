@@ -50,7 +50,7 @@ class Fun4AllBase
     // ... use your imagination ...
 
     //! Show all messages. Useful for step-by-step debugging
-    VERBOSITY_MAX =  INT_MAX
+    VERBOSITY_MAX =  INT_MAX - 10
 
   } ;
 

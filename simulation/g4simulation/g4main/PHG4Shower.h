@@ -1,14 +1,13 @@
-#ifndef __PHG4SHOWER_H__
-#define __PHG4SHOWER_H__
+#ifndef PHG4SHOWER_H__
+#define PHG4SHOWER_H__
 
 #include "PHG4HitDefs.h"
 
 #include <phool/PHObject.h>
-#include <cmath>
+#include <cmath> // for NAN def
 #include <set>
 #include <map>
 #include <iostream>
-#include <string>
 
 class PHG4Shower : public PHObject {
 
@@ -118,4 +117,3 @@ private:
 };
 
 #endif
-
