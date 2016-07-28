@@ -11,9 +11,6 @@ SimpleHit3D::SimpleHit3D()
     _x(0.0),
     _y(0.0),
     _z(0.0),
-    _ex(0.0),
-    _ey(0.0),
-    _ez(0.0),
     _err(),
     _size()
 {
@@ -24,37 +21,13 @@ SimpleHit3D::SimpleHit3D()
     }
   }
 }	
-/*
-SimpleHit3D::SimpleHit3D(float x, float ex,
-			 float y, float ey,
-			 float z, float ez,
-			 unsigned int id,
-			 int layer) 
-  : _id(id),
-    _layer(layer),
-    _x(x),
-    _y(y),
-    _z(z),
-    _ex(ex),
-    _ey(ey),
-    _ez(ez),
-    _err(),
-    _size()
-{
-  for (int j = 0; j < 3; ++j) {
-    for (int i = j; i < 3; ++i) {
-      set_error(i,j,0.0);
-      set_size(i,j,0.0);
-    }
-  }
-}			 
-*/
+
 void SimpleHit3D::print(std::ostream& out) const {
 
   out << "SimpleHit3D: "
       << "id: " << get_id() << " layer: " << get_layer() << " "
       << "(x,y,z) = (" << get_x() << "," << get_y() << "," << get_z() << ") "
-      << "(ex,ey,ez) = (" << get_ex() << "," << get_ey() << "," << get_ez() << ")" << endl;
+      << endl;
 
   out << "       ( ";
   out << get_error(0,0) << " , ";

@@ -138,12 +138,20 @@ void HelixHough::vote_pairs(unsigned int zoomlevel) {
             min_d_2_a, max_d_2_a, min_dzdl_a, max_dzdl_a, min_z0_1_a,
             max_z0_1_a, min_z0_2_a, max_z0_2_a);
         for (unsigned int h = 0; h < pair_counter; ++h) {
-          float dr0 = sqrt(four_pairs[h][0].get_ex() * four_pairs[h][0].get_ex() +
-                           four_pairs[h][0].get_ey() * four_pairs[h][0].get_ey());
+
+          float dr0 = sqrt((2.0*sqrt(four_pairs[h][0].get_size(0,0))) *
+			   (2.0*sqrt(four_pairs[h][0].get_size(0,0))) +
+                           (2.0*sqrt(four_pairs[h][0].get_size(1,1))) *
+			   (2.0*sqrt(four_pairs[h][0].get_size(1,1))));
+	  
           float r0 = sqrt(four_pairs[h][0].get_x() * four_pairs[h][0].get_x() +
                           four_pairs[h][0].get_y() * four_pairs[h][0].get_y());
-          float dr1 = sqrt(four_pairs[h][1].get_ex() * four_pairs[h][1].get_ex() +
-                           four_pairs[h][1].get_ey() * four_pairs[h][1].get_ey());
+	  
+          float dr1 = sqrt((2.0*sqrt(four_pairs[h][1].get_size(0,0))) *
+			   (2.0*sqrt(four_pairs[h][1].get_size(0,0))) +
+                           (2.0*sqrt(four_pairs[h][1].get_size(1,1))) *
+			   (2.0*sqrt(four_pairs[h][1].get_size(1,1))));
+
           float r1 = sqrt(four_pairs[h][1].get_x() * four_pairs[h][1].get_x() +
                           four_pairs[h][1].get_y() * four_pairs[h][1].get_y());
           float r1r0_inv = 1. / (r1 - r0);
@@ -174,7 +182,8 @@ void HelixHough::vote_pairs(unsigned int zoomlevel) {
           max_d_2_a[h] += dd;
 
           // dzdl error from hit error
-          float ddzdl = (four_pairs[h][0].get_ez() + four_pairs[h][1].get_ez()) * r1r0_inv;
+          float ddzdl = ((2.0*sqrt(four_pairs[h][0].get_size(2,2))) +
+			 (2.0*sqrt(four_pairs[h][1].get_size(2,2)))) * r1r0_inv;
           // dzdl error from m.s. or whatever else
           float dzdl_scatt = dzdlError(
               four_pairs[h][1], min_kappa, max_kappa,
@@ -189,7 +198,8 @@ void HelixHough::vote_pairs(unsigned int zoomlevel) {
 
           // z0 error from hit error
           float dz0 =
-              r0 * (four_pairs[h][0].get_ez() + four_pairs[h][1].get_ez()) * r1r0_inv;
+              r0 * ((2.0*sqrt(four_pairs[h][0].get_size(2,2))) +
+		    (2.0*sqrt(four_pairs[h][1].get_size(2,2)))) * r1r0_inv;
           dz0 += dzdl_scatt * r1;
           dz0 *= error_scale;
           min_z0_1_a[h] -= dz0;
@@ -237,12 +247,20 @@ void HelixHough::vote_pairs(unsigned int zoomlevel) {
           min_d_2_a, max_d_2_a, min_dzdl_a, max_dzdl_a, min_z0_1_a, max_z0_1_a,
           min_z0_2_a, max_z0_2_a);
       for (unsigned int h = 0; h < pair_counter; ++h) {
-        float dr0 = sqrt(four_pairs[h][0].get_ex() * four_pairs[h][0].get_ex() +
-                         four_pairs[h][0].get_ey() * four_pairs[h][0].get_ey());
+	
+	float dr0 = sqrt((2.0*sqrt(four_pairs[h][0].get_size(0,0))) *
+			 (2.0*sqrt(four_pairs[h][0].get_size(0,0))) +
+			 (2.0*sqrt(four_pairs[h][0].get_size(1,1))) *
+			 (2.0*sqrt(four_pairs[h][0].get_size(1,1))));
+
         float r0 = sqrt(four_pairs[h][0].get_x() * four_pairs[h][0].get_x() +
                         four_pairs[h][0].get_y() * four_pairs[h][0].get_y());
-        float dr1 = sqrt(four_pairs[h][1].get_ex() * four_pairs[h][1].get_ex() +
-                         four_pairs[h][1].get_ey() * four_pairs[h][1].get_ey());
+
+	float dr1 = sqrt((2.0*sqrt(four_pairs[h][1].get_size(0,0))) *
+			 (2.0*sqrt(four_pairs[h][1].get_size(0,0))) +
+			 (2.0*sqrt(four_pairs[h][1].get_size(1,1))) *
+			 (2.0*sqrt(four_pairs[h][1].get_size(1,1))));
+
         float r1 = sqrt(four_pairs[h][1].get_x() * four_pairs[h][1].get_x() +
                         four_pairs[h][1].get_y() * four_pairs[h][1].get_y());
         float r1r0_inv = 1. / (r1 - r0);
@@ -272,7 +290,8 @@ void HelixHough::vote_pairs(unsigned int zoomlevel) {
         max_d_2_a[h] += dd;
 
         // dzdl error from hit error
-        float ddzdl = (four_pairs[h][0].get_ez() + four_pairs[h][1].get_ez()) * r1r0_inv;
+        float ddzdl = ((2.0*sqrt(four_pairs[h][0].get_size(2,2))) +
+		       (2.0*sqrt(four_pairs[h][1].get_size(2,2)))) * r1r0_inv;
         // dzdl error from m.s. or whatever else
         float dzdl_scatt = dzdlError(
             four_pairs[h][1], min_kappa, max_kappa, zoomranges[zoomlevel].min_d,
@@ -285,7 +304,8 @@ void HelixHough::vote_pairs(unsigned int zoomlevel) {
         max_dzdl_a[h] += ddzdl;
 
         // z0 error from hit error
-        float dz0 = r0 * (four_pairs[h][0].get_ez() + four_pairs[h][1].get_ez()) * r1r0_inv;
+        float dz0 = r0 * ((2.0*sqrt(four_pairs[h][0].get_size(2,2))) +
+			  (2.0*sqrt(four_pairs[h][1].get_size(2,2)))) * r1r0_inv;
         dz0 += dzdl_scatt * r1;
         dz0 *= error_scale;
         min_z0_1_a[h] -= dz0;
