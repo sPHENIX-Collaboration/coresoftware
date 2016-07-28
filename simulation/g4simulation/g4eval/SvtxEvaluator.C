@@ -844,7 +844,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	SvtxHit* hit             = iter->second;
 	PHG4Hit* g4hit           = hiteval->max_truth_hit_by_energy(hit);
-	//PHG4CylinderCell* g4cell = hiteval->get_cell(hit);
+	PHG4CylinderCell* g4cell = hiteval->get_cell(hit);
 	PHG4Particle* g4particle = trutheval->get_particle(g4hit);
 
 	float event  = _ievent;
@@ -853,7 +853,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float adc    = hit->get_adc();
 	float layer  = hit->get_layer();
 	float cellID = hit->get_cellid();
-	//float ecell  = g4cell->get_edep();
+	float ecell  = g4cell->get_edep();
 	float ecell  = 0.0;
 
 	float g4hitID  = NAN;

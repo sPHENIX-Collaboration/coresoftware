@@ -45,6 +45,8 @@ PHG4Hit::identify(ostream& os) const
   cout     << "trackid: " << get_trkid() << ", edep: " << get_edep() << endl;
   cout     << "strip_z_index: " << get_strip_z_index() << ", strip_y_index: " << get_strip_y_index() << endl;
   cout     << "ladder_z_index: " << get_ladder_z_index() << ", ladder_phi_index: " << get_ladder_phi_index() << endl;
+  cout     << "stave_index: " << get_property_int(prop_stave_index) << " half_stave_index " << get_property_int(prop_half_stave_index) << endl;
+  cout     << "module_index: " << get_property_int(prop_module_index) << " chip_index " << get_property_int(prop_chip_index) << endl;
   cout << "layer id: " << get_layer() << ", scint_id: " << get_scint_id() << endl;
   return;
 }

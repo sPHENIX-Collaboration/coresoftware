@@ -360,14 +360,15 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 
 		  // key exists, just add this energy deposit to it
 		  // this can happen if the pixel was already hit by another g4 track
-		  if(verbosity > 2)
-		    cout << "Found key " << inkey << " already exists! " << endl;
 
 		  double edep;
 		  if(trklen > 0.0)
 		    edep = hiter->second->get_edep() * vlen[i1] / trklen;
 		  else
 		    edep = hiter->second->get_edep();
+
+		  if(verbosity > 2)
+		    cout << "Found key " << inkey << " already exists! , adding edep = " << edep << " to it, cell_length " << vlen[i1] <<  " xbin " << vxbin[i1] << " zbin " << vzbin[i1] << endl;
 		  
 		  celllist[key]->add_edep(hiter->first, edep);
 		} 
@@ -386,14 +387,11 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		  celllist[key]->set_phibin(vxbin[i1]);
 		  celllist[key]->set_zbin(vzbin[i1]);
 		  
-		  double edep = 0.0;
+		  double edep;
 		  if(trklen > 0.0)
 		    edep = hiter->second->get_edep() * vlen[i1] / trklen;
 		  else
 		    edep = hiter->second->get_edep();
-
-		  if(edep==0)
-		    cout << "edep is crazy: edep = " << edep << endl;
 
 		  celllist[key]->add_edep(hiter->first, edep);
 		  
