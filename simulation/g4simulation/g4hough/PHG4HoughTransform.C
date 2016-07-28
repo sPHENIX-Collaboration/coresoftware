@@ -891,9 +891,9 @@ int PHG4HoughTransform::translate_input() {
     hit3d.set_y(cluster->get_y());
     hit3d.set_z(cluster->get_z());
 
-    hit3d.set_ex(2.0*sqrt(cluster->get_size(0,0)));
-    hit3d.set_ey(2.0*sqrt(cluster->get_size(1,1)));
-    hit3d.set_ez(2.0*sqrt(cluster->get_size(2,2)));
+    // hit3d.set_ex(2.0*sqrt(cluster->get_size(0,0)));
+    // hit3d.set_ey(2.0*sqrt(cluster->get_size(1,1)));
+    // hit3d.set_ez(2.0*sqrt(cluster->get_size(2,2)));
 
     // copy covariance over
     for (int i = 0; i < 3; ++i) {
