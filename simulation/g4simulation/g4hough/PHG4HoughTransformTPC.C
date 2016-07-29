@@ -445,34 +445,34 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
 
     //cluster->identify();
     
-    float phi = atan2(cluster->get_position(1),cluster->get_position(0));
-    unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
+    //float phi = atan2(cluster->get_position(1),cluster->get_position(0));
+     unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
     
-    float xy_error=0.;float z_error=0.;
-    if (_use_cell_size) {
-      xy_error = _smear_xy_layer[ilayer] * _vote_error_scale[ilayer];
-      z_error  = _smear_z_layer[ilayer] * _vote_error_scale[ilayer];
+    // float xy_error=0.;float z_error=0.;
+    // if (_use_cell_size) {
+    //   xy_error = _smear_xy_layer[ilayer] * _vote_error_scale[ilayer];
+    //   z_error  = _smear_z_layer[ilayer] * _vote_error_scale[ilayer];
       
-    }
-    else {
-      if( cluster->get_phi_size() <= _max_cluster_error*_smear_xy_layer[ilayer] ){xy_error = cluster->get_phi_size() * _vote_error_scale[ilayer];}
-      else{xy_error = _max_cluster_error*_smear_xy_layer[ilayer] * _vote_error_scale[ilayer];}
-      if(cluster->get_z_size() <= _max_cluster_error*_smear_z_layer[ilayer]){z_error  = cluster->get_z_size() * _vote_error_scale[ilayer];}
-      else{z_error  = _max_cluster_error*_smear_z_layer[ilayer] * _vote_error_scale[ilayer];}
-    }
+    // }
+    // else {
+    //   if( cluster->get_phi_size() <= _max_cluster_error*_smear_xy_layer[ilayer] ){xy_error = cluster->get_phi_size() * _vote_error_scale[ilayer];}
+    //   else{xy_error = _max_cluster_error*_smear_xy_layer[ilayer] * _vote_error_scale[ilayer];}
+    //   if(cluster->get_z_size() <= _max_cluster_error*_smear_z_layer[ilayer]){z_error  = cluster->get_z_size() * _vote_error_scale[ilayer];}
+    //   else{z_error  = _max_cluster_error*_smear_z_layer[ilayer] * _vote_error_scale[ilayer];}
+    // }
 
     // cout<<"layer : "<<ilayer<<" , xy_error : "<<xy_error<<" , z_error : "<<z_error<<endl;
 
-    if(ilayer < 3)
-    {
-      xy_error = 0.002;
-      z_error = 0.002;
-    }
-    else
-    {
-      xy_error = 0.011;
-      z_error = 0.03;
-    }
+    // if(ilayer < 3)
+    // {
+    //   xy_error = 0.002;
+    //   z_error = 0.002;
+    // }
+    // else
+    // {
+    //   xy_error = 0.011;
+    //   z_error = 0.03;
+    // }
 
 
     vector<SimpleHit3D>* which_vec = &_clusters;
@@ -487,9 +487,9 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     hit3d.set_y(cluster->get_y());
     hit3d.set_z(cluster->get_z());
 
-    hit3d.set_ex(fabs(xy_error*sin(phi)));
-    hit3d.set_ey(fabs(xy_error*cos(phi)));
-    hit3d.set_ez(z_error);
+    // hit3d.set_ex(fabs(xy_error*sin(phi)));
+    // hit3d.set_ey(fabs(xy_error*cos(phi)));
+    // hit3d.set_ez(z_error);
     
     // copy covariance over
     for (int i=0; i<3; ++i) {
