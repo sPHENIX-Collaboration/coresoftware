@@ -369,12 +369,18 @@ namespace PHG4Sector
   class PHG4SectorConstructor
   {
   public:
-    PHG4SectorConstructor(std::string name, bool overlapcheck);
+    PHG4SectorConstructor(std::string name);
     virtual
     ~PHG4SectorConstructor();
 
     void
     Construct_Sectors(G4LogicalVolume* WorldLog);
+
+    void
+    OverlapCheck( bool check )
+    {
+      overlapcheck_sector = check;
+    }
 
   protected:
 
