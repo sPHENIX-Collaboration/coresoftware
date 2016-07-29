@@ -42,11 +42,11 @@
 using namespace PHG4Sector;
 using namespace std;
 
-PHG4SectorConstructor::PHG4SectorConstructor(std::string name, bool overlapcheck = false) :
+PHG4SectorConstructor::PHG4SectorConstructor(std::string name) :
     name_base(name), DetectorVisAtt(NULL)
 {
   // TODO Auto-generated constructor stub
-  overlapcheck_sector = overlapcheck;
+  overlapcheck_sector = false;
 }
 
 PHG4SectorConstructor::~PHG4SectorConstructor()
