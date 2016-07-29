@@ -854,7 +854,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float layer  = hit->get_layer();
 	float cellID = hit->get_cellid();
 	float ecell  = g4cell->get_edep();
-	float ecell  = 0.0;
 
 	float g4hitID  = NAN;
 	float gedep    = NAN;
