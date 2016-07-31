@@ -23,8 +23,8 @@ class PHG4CylinderGeom_MAPS: public PHG4CylinderGeom
   int get_pixel_Z_from_pixel_number(int NXZ) ;
   int get_pixel_number_from_xbin_zbin(int xbin, int zbin);
 
-  double get_pixel_x() const {return pixel_x;}
-  double get_pixel_z() const {return pixel_z;}
+  double get_pixel_x() const {return pixel_x;} // pitch
+  double get_pixel_z() const {return pixel_z;} // length
   double get_pixel_thickness() const {return pixel_thickness;}
   
   void set_layer(const int i) {layer = i;}
