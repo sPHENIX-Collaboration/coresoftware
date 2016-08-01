@@ -60,6 +60,7 @@ pkginclude_HEADERS = \
   SvtxTrackState_v1.h \
   SvtxTrack.h \
   SvtxTrack_v1.h \
+  SvtxTrack_FastSim.h \
   SvtxTrackMap.h \
   SvtxTrackMap_v1.h \
   SvtxBeamSpot.h \
@@ -67,6 +68,7 @@ pkginclude_HEADERS = \
   PHG4HoughTransformTPC.h \
   PHG4TrackGhostRejection.h \
   PHG4TrackKalmanFitter.h \
+  PHG4TrackFastSim.h \
   PHG4SvtxMomentumRecal.h \
   PHG4SvtxTrackProjection.h \
   PHG4SvtxBeamSpotReco.h \
@@ -97,7 +99,9 @@ libg4hough_io_la_SOURCES = \
   SvtxTrack.C \
   SvtxTrack_Dict.C \
   SvtxTrack_v1.C \
+  SvtxTrack_FastSim.C \
   SvtxTrack_v1_Dict.C \
+  SvtxTrack_FastSim_Dict.C \
   SvtxBeamSpot.C \
   SvtxBeamSpot_Dict.C \
   SvtxTrackMap.C \
@@ -133,7 +137,9 @@ libg4hough_la_SOURCES = \
   PHG4TrackGhostRejection.C \
   PHG4TrackGhostRejection_Dict.C \
   PHG4TrackKalmanFitter.C \
+  PHG4TrackFastSim.C \
   PHG4TrackKalmanFitter_Dict.C \
+  PHG4TrackFastSim_Dict.C \
   PHG4SvtxMomentumRecal.C \
   PHG4SvtxMomentumRecal_Dict.C \
   PHG4SvtxTrackProjection.C \
