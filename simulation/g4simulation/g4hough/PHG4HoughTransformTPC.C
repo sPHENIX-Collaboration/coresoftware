@@ -693,15 +693,15 @@ int PHG4HoughTransformTPC::setup_seed_tracker_objects() {
                         _min_z0, _max_z0); // dca_z range
 
   _tracker_etap_seed = new sPHENIXTrackerTPC(zoomprofile, 1, pos_range, _material, _radii, _magField);
-  _tracker_etap_seed->setEndLayer(4); // layers numbered from 0 towards outside
-  _tracker_etap_seed->requireLayers(5);
+  _tracker_etap_seed->setEndLayer(3); // layers numbered from 0 towards outside
+  _tracker_etap_seed->requireLayers(4);
   _tracker_etap_seed->setClusterStartBin(1);
   _tracker_etap_seed->setRejectGhosts(_reject_ghosts);
   _tracker_etap_seed->setFastChi2Cut(_chi2_cut_fast_par0,
                                      _chi2_cut_fast_par1,
                                      _chi2_cut_fast_max);
-  _tracker_etap_seed->setChi2Cut(_chi2_cut_full);
-  _tracker_etap_seed->setChi2RemovalCut(_chi2_cut_full*0.5);
+  _tracker_etap_seed->setChi2Cut(_chi2_cut_init);
+  _tracker_etap_seed->setChi2RemovalCut(_chi2_cut_init*0.5);
   _tracker_etap_seed->setCellularAutomatonChi2Cut(_ca_chi2_cut);
   _tracker_etap_seed->setPrintTimings(false);
   _tracker_etap_seed->setCutOnDca(false);
@@ -728,15 +728,15 @@ int PHG4HoughTransformTPC::setup_seed_tracker_objects() {
                         _min_z0, _max_z0); // dca_z range
 
   _tracker_etam_seed = new sPHENIXTrackerTPC(zoomprofile, 1, neg_range, _material, _radii, _magField);
-  _tracker_etam_seed->setEndLayer(4);
-  _tracker_etam_seed->requireLayers(5);
+  _tracker_etam_seed->setEndLayer(3);
+  _tracker_etam_seed->requireLayers(4);
   _tracker_etam_seed->setClusterStartBin(1);
   _tracker_etam_seed->setRejectGhosts(_reject_ghosts);
   _tracker_etam_seed->setFastChi2Cut(_chi2_cut_fast_par0,
                                      _chi2_cut_fast_par1,
                                      _chi2_cut_fast_max);
-  _tracker_etam_seed->setChi2Cut(_chi2_cut_full);
-  _tracker_etam_seed->setChi2RemovalCut(_chi2_cut_full*0.5);
+  _tracker_etam_seed->setChi2Cut(_chi2_cut_init);
+  _tracker_etam_seed->setChi2RemovalCut(_chi2_cut_init*0.5);
   _tracker_etam_seed->setCellularAutomatonChi2Cut(_ca_chi2_cut);
   _tracker_etam_seed->setPrintTimings(false);
   _tracker_etam_seed->setCutOnDca(false);
