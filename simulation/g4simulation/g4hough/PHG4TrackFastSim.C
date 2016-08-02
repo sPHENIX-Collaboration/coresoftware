@@ -193,11 +193,11 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 		_trackmap_out->insert(svtx_track_out);
 	}
 
-	if(_trackmap_out->get(0)) {
-		_trackmap_out->get(0)->identify();
-		std::cout<<"DEBUG : "<< _trackmap_out->get(0)->get_px() <<"\n";
-		std::cout<<"DEBUG : "<< _trackmap_out->get(0)->get_truth_track_id() <<"\n";
-	}
+//	if(_trackmap_out->get(0)) {
+//		_trackmap_out->get(0)->identify();
+//		std::cout<<"DEBUG : "<< _trackmap_out->get(0)->get_px() <<"\n";
+//		std::cout<<"DEBUG : "<< _trackmap_out->get(0)->get_truth_track_id() <<"\n";
+//	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -331,29 +331,33 @@ int PHG4TrackFastSim::PseudoPatternRecognition(
 			continue;
 		}
 
-		for (PHG4HitContainer::ConstIterator itr =
-				_phg4hits[ilayer]->getHits().first;
-				itr != _phg4hits[ilayer]->getHits().second; ++itr) {
-			PHG4Hit * hit = itr->second;
-			if(!hit) {
-				LogDebug("No PHG4Hit Found!");
-				continue;
-			}
-			if (hit->get_trkid() == particle->get_track_id() || gRandom->Uniform(0,1) < _pat_rec_nosise_prob) {
-				PHGenFit::Measurement* meas = NULL;
-				if(_detector_type == Vertical_Plane)
-					meas = PHG4HitToMeasurementVerticalPlane(hit);
-				else if(_detector_type == Cylinder)
-					meas = PHG4HitToMeasurementCylinder(hit);
-				else {
-					LogError("Type not implemented!");
-					return Fun4AllReturnCodes::ABORTEVENT;
-				}
-				if(gRandom->Uniform(0,1) <= _pat_rec_hit_finding_eff)
-					meas_out.push_back(meas);
-			}
-		}
+		LogDebug("");
+		std::cout<< "nlayers: " << _phg4hits[ilayer]->num_layers() <<"\n";
 
+		for(unsigned int isublayer=0; isublayer<_phg4hits[ilayer]->num_layers(); isublayer++) {
+			for (PHG4HitContainer::ConstIterator itr =
+					_phg4hits[ilayer]->getHits(isublayer).first;
+					itr != _phg4hits[ilayer]->getHits(isublayer).second; ++itr) {
+				PHG4Hit * hit = itr->second;
+				if(!hit) {
+					LogDebug("No PHG4Hit Found!");
+					continue;
+				}
+				if (hit->get_trkid() == particle->get_track_id() || gRandom->Uniform(0,1) < _pat_rec_nosise_prob) {
+					PHGenFit::Measurement* meas = NULL;
+					if(_detector_type == Vertical_Plane)
+						meas = PHG4HitToMeasurementVerticalPlane(hit);
+					else if(_detector_type == Cylinder)
+						meas = PHG4HitToMeasurementCylinder(hit);
+					else {
+						LogError("Type not implemented!");
+						return Fun4AllReturnCodes::ABORTEVENT;
+					}
+					if(gRandom->Uniform(0,1) <= _pat_rec_hit_finding_eff)
+						meas_out.push_back(meas);
+				}
+			}
+		} /*Loop layers within one detector layer*/
 	} /*Loop detector layers*/
 
 	return Fun4AllReturnCodes::EVENT_OK;

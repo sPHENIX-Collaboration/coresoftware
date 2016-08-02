@@ -170,11 +170,11 @@ public:
 		_N_DETECTOR_LAYER = _phg4hits_names.size();
 	}
 
-	double get_resolution() const {
+	double get_z_resolution() const {
 		return _z_resolution;
 	}
 
-	void set_resolution(double resolution) {
+	void set_z_resolution(double resolution) {
 		_z_resolution = resolution;
 	}
 
