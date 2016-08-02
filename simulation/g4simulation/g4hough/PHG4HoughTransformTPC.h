@@ -94,6 +94,10 @@ public:
     _chi2_cut_fast_max = cut_max;
   }
 
+  /// set the initial tracking chi2 cut
+  void set_chi2_cut_init(double chi2_cut_init) {_chi2_cut_init = chi2_cut_init;}
+  /// get the initial tracking chi2 cut
+  double get_chi2_cut_init() { return _chi2_cut_init;}
   /// set the tracking chi2 cut for full fit 
   void set_chi2_cut_full(double chi2_cut) { _chi2_cut_full = chi2_cut;}
   /// get the tracking chi2 cut for full fit
@@ -297,6 +301,7 @@ public:
   double _chi2_cut_fast_par0;       ///< fit quality chisq/dof for fast fit track fitting
   double _chi2_cut_fast_par1;       ///< fit quality chisq/dof for fast fit track fitting
   double _chi2_cut_fast_max;        ///< fit quality chisq/dof for fast fit track fitting
+  double _chi2_cut_init;	    ///< fil quality chisq/dof for initial track fitting
   double _chi2_cut_full;            ///< fit quality chisq/dof for kalman track fitting
   double _ca_chi2_cut;
   double _cos_angle_cut;

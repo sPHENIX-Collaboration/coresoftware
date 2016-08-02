@@ -84,7 +84,8 @@ PHG4HoughTransformTPC::PHG4HoughTransformTPC(unsigned int seed_layers, unsigned 
   _chi2_cut_fast_par0(16.0),
   _chi2_cut_fast_par1(0.0),
   _chi2_cut_fast_max(FLT_MAX),
-  _chi2_cut_full(4.0),
+  _chi2_cut_init(3.0),
+  _chi2_cut_full(2.0),
   _ca_chi2_cut(4.0),
   _cos_angle_cut(0.985),
   _bin_scale(0.8), 
@@ -104,7 +105,6 @@ PHG4HoughTransformTPC::PHG4HoughTransformTPC(unsigned int seed_layers, unsigned 
   _track_covars(),
   _vertex(),
   _tracker(NULL),
-  _tracker_vertex(NULL),
   _tracker_etap_seed(NULL),
   _tracker_etam_seed(NULL),
   _vertexFinder(),
@@ -155,7 +155,9 @@ int PHG4HoughTransformTPC::InitRun(PHCompositeNode *topNode)
     cout << " Fast fit chisq cut min(par0+par1/pt,max): min( "
 	 << _chi2_cut_fast_par0 << " + " << _chi2_cut_fast_par1 << " / pt, "
 	 << _chi2_cut_fast_max << " )" << endl;
+    cout << " Initial vertex maximum chisq: " << _chi2_cut_init << endl;
     cout << " Maximum chisq (kalman fit): " << _chi2_cut_full << endl;
+
     cout << " Cell automaton chisq: " << _ca_chi2_cut << endl;
     cout << " Cos Angle Cut: " << _cos_angle_cut << endl;
     cout << " Ghost rejection: " << boolalpha << _reject_ghosts << noboolalpha << endl;
@@ -203,8 +205,10 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
   int code = translate_input();
   if (code != Fun4AllReturnCodes::EVENT_OK) return code;  
 
-//  fast_vertex_from_bbc();
-//  _vertex[2]=0.0;
+  if (verbosity>0){
+  fast_vertex_from_bbc();
+  _vertex[2]=0.0;
+  }
 
   //------------------------------------
   // Find an initial z-vertex position
@@ -239,7 +243,6 @@ int PHG4HoughTransformTPC::End(PHCompositeNode *topNode) {
   
   delete _tracker_etap_seed; _tracker_etap_seed = NULL;
   delete _tracker_etam_seed; _tracker_etam_seed = NULL;
-  delete _tracker_vertex; _tracker_vertex = NULL;
   delete _tracker; _tracker = NULL;
 
   if(_write_reco_tree==true)
