@@ -21,20 +21,20 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 
-#include </afs/rhic.bnl.gov/x8664_sl6/opt/sphenix/core/root-5.34.34/include/TMath.h>
-#include </afs/rhic.bnl.gov/x8664_sl6/opt/sphenix/core/root-5.34.34/include/TMatrixF.h>
-#include </afs/rhic.bnl.gov/x8664_sl6/opt/sphenix/core/root-5.34.34/include/TRandom.h>
-#include </afs/rhic.bnl.gov/x8664_sl6/opt/sphenix/core/root-5.34.34/include/TString.h>
-#include <../../../../install/include/g4hough/SvtxTrackMap.h>
-#include <../../../../install/include/g4hough/SvtxTrackMap_v1.h>
-#include <../../../../install/include/g4main/PHG4Hit.h>
-#include <../../../../install/include/g4main/PHG4Particle.h>
-#include <../../../../install/include/g4main/PHG4TruthInfoContainer.h>
-#include <../../../../install/include/phgenfit/Fitter.h>
-#include <../../../../install/include/phgenfit/PlanarMeasurement.h>
-#include <../../../../install/include/phgenfit/Track.h>
-#include <../../../../install/include/phgeom/PHGeomUtility.h>
-#include "../../../offline/packages/PHGenFitPkg/PHGenFit/SpacepointMeasurement.h"
+#include <TMath.h>
+#include <TMatrixF.h>
+#include <TRandom.h>
+#include <TString.h>
+#include <g4hough/SvtxTrackMap.h>
+#include <g4hough/SvtxTrackMap_v1.h>
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <phgenfit/Fitter.h>
+#include <phgenfit/PlanarMeasurement.h>
+#include <phgenfit/Track.h>
+#include <phgeom/PHGeomUtility.h>
+#include <phgenfit/SpacepointMeasurement.h>
 #include "SvtxTrack.h"
 #include "SvtxTrack_FastSim.h"
 
