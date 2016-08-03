@@ -92,11 +92,11 @@ private:
 	/*!
 	 * Verbose control:
 	 * -1: Silient
-	 * 0: Only Error
-	 * 1: Error + Warning
-	 * 2: DEBUG info
+	 * 0: Minimum
+	 * 1: Errors only
+	 * 2: Errors and Warnings
+	 * 3: Verbose mode, long term debugging
 	 */
-
 	int verbosity;
 
 	TGeoManager* _tgeo_manager;

@@ -221,12 +221,12 @@ private:
 			std::vector<PHGenFit::Measurement*> & meas_out, TVector3& seed_pos,
 			TVector3& seed_mom, TMatrixDSym& seed_cov, const bool do_smearing = true);
 
-	PHGenFit::PlanarMeasurement* PHG4HitToMeasurementVerticalPlane(const PHG4Hit* g4hit);
+	PHGenFit::PlanarMeasurement* PHG4HitToMeasurementVerticalPlane(const PHG4Hit* g4hit, const double phi_resolution, const double r_resolution);
 
-	PHGenFit::PlanarMeasurement* PHG4HitToMeasurementCylinder(const PHG4Hit* g4hit);
+	PHGenFit::PlanarMeasurement* PHG4HitToMeasurementCylinder(const PHG4Hit* g4hit, const double phi_resolution, const double z_resolution);
 
-	PHGenFit::PlanarMeasurement* VertexMeasurement(const TVector3 &vtx, const double dr,
-			const double dphi);
+	PHGenFit::Measurement* VertexMeasurement(const TVector3 &vtx, const double dxy,
+			const double dz);
 
 	/*!
 	 * Make SvtxTrack from PHGenFit::Track
@@ -247,10 +247,10 @@ private:
 	//! Output Node pointers
 
 	std::string _sub_top_node_name;
-	std::string _clustermap_out_name;
+//	std::string _clustermap_out_name;
 	std::string _trackmap_out_name;
 
-	SvtxClusterMap* _clustermap_out;
+//	SvtxClusterMap* _clustermap_out;
 
 	SvtxTrackMap* _trackmap_out;
 
