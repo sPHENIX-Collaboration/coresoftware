@@ -144,6 +144,9 @@ PHG4SpacalDetector::Construct(G4LogicalVolume* logicWorld)
 
 
   // install sectors
+  if (_geom->get_sector_map().size() == 0)
+    _geom->init_default_sector_map();
+
   std::pair<G4LogicalVolume *,G4Transform3D> psec = Construct_AzimuthalSeg();
   G4LogicalVolume *sec_logic = psec.first;
   const G4Transform3D & sec_trans = psec.second;
