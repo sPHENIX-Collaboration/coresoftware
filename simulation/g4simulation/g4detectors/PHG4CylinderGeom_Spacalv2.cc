@@ -76,7 +76,7 @@ PHG4CylinderGeom_Spacalv2::SetDefault()
   polar_taper_ratio = 1 + 1.1 / 42.;
   assembly_spacing = 0.0001; // order ~1um clearance around all structures
 
-  init_default_sector_map();
+//  init_default_sector_map();
 
 }
 
@@ -145,7 +145,7 @@ PHG4CylinderGeom_Spacalv2::set_azimuthal_n_sec(int azimuthalNSec)
     }
 
   azimuthal_n_sec = azimuthalNSec;
-  init_default_sector_map();
+//  init_default_sector_map();
 }
 
 bool
