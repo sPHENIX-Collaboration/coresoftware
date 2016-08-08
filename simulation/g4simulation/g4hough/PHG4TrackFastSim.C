@@ -45,6 +45,8 @@
 #define LogError(exp)		std::cout<<"ERROR: "	<<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
 #define LogWarning(exp)	std::cout<<"WARNING: "	<<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
 
+#define _DEBUG_MODE_ 0
+
 //#define _N_DETECTOR_LAYER 5
 
 using namespace std;
@@ -57,15 +59,13 @@ PHG4TrackFastSim::PHG4TrackFastSim(const std::string &name) :
 		/*_clustermap_out(NULL),*/_trackmap_out(NULL),
 		_fitter (NULL),_mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/fsPHENIX.2d.root"),
 		 _mag_field_re_scaling_factor(1.), _reverse_mag_field(false), _fit_alg_name("KalmanFitterRefTrack"), _do_evt_display(false),
-		 _phi_resolution(50E-4), //100um
-		 _r_resolution(1.),
-		 _z_resolution(50E-4),
-		 _pat_rec_hit_finding_eff(1.),
-		 _pat_rec_nosise_prob(0.),
+		 _use_vertex_in_fitting(true), _vertex_xy_resolution(50E-4), _vertex_z_resolution(50E-4),
+		 _phi_resolution(50E-4), _r_resolution(1.), _z_resolution(50E-4),
+		 _pat_rec_hit_finding_eff(1.), _pat_rec_nosise_prob(0.),
 		 _N_DETECTOR_LAYER(5)
 		 {
 
-	_event = 0;
+	_event = -1;
 
 	for(int i=0;i<_N_DETECTOR_LAYER;i++) {
 		_phg4hits_names.push_back(Form("G4HIT_FGEM_%1d",i));
@@ -85,6 +85,8 @@ int PHG4TrackFastSim::Init(PHCompositeNode *topNode) {
 }
 
 int PHG4TrackFastSim::InitRun(PHCompositeNode *topNode) {
+
+	_event = -1;
 
 
 	CreateNodes(topNode);
@@ -151,13 +153,13 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 		//! Create measurements
 		std::vector<PHGenFit::Measurement*> measurements;
 
-		const bool _use_vertex_in_fitting = true;
+//		_use_vertex_in_fitting = true;
 
 		PHGenFit::Measurement* vtx_meas = NULL;
 
 		if (_use_vertex_in_fitting) {
 			vtx_meas = VertexMeasurement(
-					TVector3(0, 0, 0), 0.0050, 0.1);
+					TVector3(0, 0, 0), _vertex_xy_resolution, _vertex_z_resolution);
 			measurements.push_back(vtx_meas);
 		}
 
@@ -166,7 +168,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 		if (measurements.size() < 3) {
 			if(verbosity >= 2) {
 				//LogWarning("measurements.size() < 3");
-				std::cout<<"event: "<< _event << "measurements.size() < 3" <<"\n";
+				std::cout<<"event: "<< _event << " : measurements.size() < 3" <<"\n";
 			}
 			continue;
 		}
@@ -190,6 +192,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 		PHGenFit::Track* track = new PHGenFit::Track(rep, seed_pos, seed_mom,
 				seed_cov);
 
+		rf_gf_tracks.push_back(track->getGenFitTrack());
 
 		//LogDEBUG;
 		//! Add measurements to track
@@ -203,12 +206,10 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 		{
 			if(verbosity >= 2) {
 				//LogWarning("measurements.size() < 3");
-				std::cout<<"event: "<< _event << "fitting_err != 0" <<"\n";
+				std::cout<<"event: "<< _event << " : fitting_err != 0, next track." <<"\n";
 			}
 			continue;
 		}
-
-		rf_gf_tracks.push_back(track->getGenFitTrack());
 
 		SvtxTrack* svtx_track_out = MakeSvtxTrack(track,particle->get_track_id());
 
@@ -351,35 +352,50 @@ int PHG4TrackFastSim::PseudoPatternRecognition(
 		}
 	}
 
-	meas_out.clear();
+	for (int ilayer = 0; ilayer < _N_DETECTOR_LAYER; ilayer++) {
 
-	for(int ilayer=0; ilayer<_N_DETECTOR_LAYER; ilayer++) {
-
-		if(!_phg4hits[ilayer]) {
+		if (!_phg4hits[ilayer]) {
 			LogError("No _phg4hits[i] found!");
 			continue;
 		}
 
-		for(unsigned int isublayer=0; isublayer<_phg4hits[ilayer]->num_layers(); isublayer++) {
+#if _DEBUG_MODE_ == 1
+		std::cout<<"DEBUG: ilayer: " << ilayer <<"; nsublayers: " <<_phg4hits[ilayer]->num_layers() <<" \n";
+#endif
+
+		for (PHG4HitContainer::LayerIter layerit =
+				_phg4hits[ilayer]->getLayers().first;
+				layerit != _phg4hits[ilayer]->getLayers().second; layerit++) {
 			for (PHG4HitContainer::ConstIterator itr =
-					_phg4hits[ilayer]->getHits(isublayer).first;
-					itr != _phg4hits[ilayer]->getHits(isublayer).second; ++itr) {
+					_phg4hits[ilayer]->getHits(*layerit).first;
+					itr != _phg4hits[ilayer]->getHits(*layerit).second; ++itr) {
+
 				PHG4Hit * hit = itr->second;
-				if(!hit) {
+				if (!hit) {
 					LogDebug("No PHG4Hit Found!");
 					continue;
 				}
-				if (hit->get_trkid() == particle->get_track_id() || gRandom->Uniform(0,1) < _pat_rec_nosise_prob) {
+
+#if _DEBUG_MODE_ == 1
+				std::cout<<"DEBUG: ilayer: " << ilayer <<"; sublayer: " <<*layerit << "; itr->first : "<< itr->first <<" \n";
+				//hit->identify();
+#endif
+
+				if (hit->get_trkid() == particle->get_track_id()
+						|| gRandom->Uniform(0, 1) < _pat_rec_nosise_prob) {
+
 					PHGenFit::Measurement* meas = NULL;
-					if(_detector_type == Vertical_Plane)
-						meas = PHG4HitToMeasurementVerticalPlane(hit, _phi_resolution, _r_resolution);
-					else if(_detector_type == Cylinder)
-						meas = PHG4HitToMeasurementCylinder(hit, _phi_resolution, _z_resolution);
+					if (_detector_type == Vertical_Plane)
+						meas = PHG4HitToMeasurementVerticalPlane(hit,
+								_phi_resolution, _r_resolution);
+					else if (_detector_type == Cylinder)
+						meas = PHG4HitToMeasurementCylinder(hit,
+								_phi_resolution, _z_resolution);
 					else {
 						LogError("Type not implemented!");
 						return Fun4AllReturnCodes::ABORTEVENT;
 					}
-					if(gRandom->Uniform(0,1) <= _pat_rec_hit_finding_eff) {
+					if (gRandom->Uniform(0, 1) <= _pat_rec_hit_finding_eff) {
 						meas_out.push_back(meas);
 						//meas->getMeasurement()->Print(); //DEBUG
 					}

@@ -202,6 +202,30 @@ public:
 		_sub_top_node_name = subTopNodeName;
 	}
 
+	bool is_use_vertex_in_fitting() const {
+		return _use_vertex_in_fitting;
+	}
+
+	void set_use_vertex_in_fitting(bool useVertexInFitting) {
+		_use_vertex_in_fitting = useVertexInFitting;
+	}
+
+	double get_vertex_xy_resolution() const {
+		return _vertex_xy_resolution;
+	}
+
+	void set_vertex_xy_resolution(double vertexXyResolution) {
+		_vertex_xy_resolution = vertexXyResolution;
+	}
+
+	double get_vertex_z_resolution() const {
+		return _vertex_z_resolution;
+	}
+
+	void set_vertex_z_resolution(double vertexZResolution) {
+		_vertex_z_resolution = vertexZResolution;
+	}
+
 private:
 
 	/*!
@@ -279,6 +303,11 @@ private:
 	/*!
 	 * For PseudoPatternRecognition function.
 	 */
+
+	bool _use_vertex_in_fitting;
+
+	double _vertex_xy_resolution;
+	double _vertex_z_resolution;
 
 	double _phi_resolution;
 
