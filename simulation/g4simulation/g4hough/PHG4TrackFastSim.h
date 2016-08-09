@@ -15,8 +15,8 @@
 #include <g4main/PHG4HitContainer.h>
 #include <phgenfit/Measurement.h>
 
-#include </afs/rhic.bnl.gov/x8664_sl6/opt/sphenix/core/root-5.34.34/include/TMatrixDSym.h>
-#include </afs/rhic.bnl.gov/x8664_sl6/opt/sphenix/core/root-5.34.34/include/TVector3.h>
+#include <TMatrixDSym.h>
+#include <TVector3.h>
 
 class PHG4Particle;
 namespace PHGenFit {
