@@ -61,7 +61,7 @@ PHG4TrackFastSim::PHG4TrackFastSim(const std::string &name) :
 		 _mag_field_re_scaling_factor(1.), _reverse_mag_field(false), _fit_alg_name("KalmanFitterRefTrack"), _do_evt_display(false),
 		 _use_vertex_in_fitting(true), _vertex_xy_resolution(50E-4), _vertex_z_resolution(50E-4),
 		 _phi_resolution(50E-4), _r_resolution(1.), _z_resolution(50E-4),
-		 _pat_rec_hit_finding_eff(1.), _pat_rec_nosise_prob(0.),
+		 _pat_rec_hit_finding_eff(1.), _pat_rec_noise_prob(0.),
 		 _N_DETECTOR_LAYER(5)
 		 {
 
@@ -382,7 +382,7 @@ int PHG4TrackFastSim::PseudoPatternRecognition(
 #endif
 
 				if (hit->get_trkid() == particle->get_track_id()
-						|| gRandom->Uniform(0, 1) < _pat_rec_nosise_prob) {
+						|| gRandom->Uniform(0, 1) < _pat_rec_noise_prob) {
 
 					PHGenFit::Measurement* meas = NULL;
 					if (_detector_type == Vertical_Plane)

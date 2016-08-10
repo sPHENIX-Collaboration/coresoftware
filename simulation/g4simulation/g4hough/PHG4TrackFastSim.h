@@ -141,16 +141,16 @@ public:
 		_pat_rec_hit_finding_eff = patRecHitFindingEff;
 	}
 
-	double get_pat_rec_nosise_prob() const {
-		return _pat_rec_nosise_prob;
+	double get_pat_rec_noise_prob() const {
+		return _pat_rec_noise_prob;
 	}
 
-	void set_pat_rec_nosise_prob(double patRecNosiseProb) {
-		if(!(patRecNosiseProb <= 1. && patRecNosiseProb >= 0)) {
-			std::cout<<"ERROR: _pat_rec_nosise_prob out of range! \n";
+	void set_pat_rec_noise_prob(double patRecNoiseProb) {
+		if(!(patRecNoiseProb <= 1. && patRecNoiseProb >= 0)) {
+			std::cout<<"ERROR: _pat_rec_noise_prob out of range! \n";
 			return;
 		}
-		_pat_rec_nosise_prob = patRecNosiseProb;
+		_pat_rec_noise_prob = patRecNoiseProb;
 	}
 
 	const std::vector<std::string>& get_phg4hits_names() const {
@@ -319,7 +319,7 @@ private:
 	double _pat_rec_hit_finding_eff;
 
 	//!
-	double _pat_rec_nosise_prob;
+	double _pat_rec_noise_prob;
 
 
 	//!
