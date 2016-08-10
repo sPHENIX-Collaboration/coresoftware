@@ -226,6 +226,14 @@ public:
 		_vertex_z_resolution = vertexZResolution;
 	}
 
+	int get_primary_assumption_pid() const {
+		return _primary_assumption_pid;
+	}
+
+	void set_primary_assumption_pid(int primaryAssumptionPid) {
+		_primary_assumption_pid = primaryAssumptionPid;
+	}
+
 private:
 
 	/*!
@@ -294,8 +302,17 @@ private:
 	//! Switch to reverse Magnetic field
 	bool _reverse_mag_field;
 
-	//!
+	/*!
+	 * Available choices:
+	 * KalmanFitter
+	 * KalmanFitterRefTrack
+	 * DafSimple
+	 * DafRef
+	 */
 	std::string _fit_alg_name;
+
+	//!
+	int _primary_assumption_pid;
 
 	//!
 	bool _do_evt_display;

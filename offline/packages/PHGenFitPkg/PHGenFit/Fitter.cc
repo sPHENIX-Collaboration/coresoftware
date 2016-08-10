@@ -20,6 +20,7 @@
 #include <GenFit/AbsKalmanFitter.h>
 #include <GenFit/KalmanFitter.h>
 #include <GenFit/KalmanFitterRefTrack.h>
+#include <GenFit/DAF.h>
 #include <GenFit/RKTrackRep.h>
 
 //GenFitExp
@@ -66,8 +67,14 @@ Fitter::Fitter(
 		_fitter = new genfit::KalmanFitterRefTrack();
 	else if(fitter_choice.compare("KalmanFitter")==0)
 		_fitter = new genfit::KalmanFitter();
+	else if(fitter_choice.compare("DafSimple")==0)
+		_fitter = new genfit::DAF(false);
+	else if(fitter_choice.compare("DafRef")==0)
+		_fitter = new genfit::DAF(true);
 	else
 		_fitter = new genfit::KalmanFitter();
+
+	genfit::Exception::quiet(true);
 }
 
 Fitter::~Fitter()

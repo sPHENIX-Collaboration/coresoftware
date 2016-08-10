@@ -85,6 +85,7 @@ public:
 
 	void set_verbosity(int verbosity) {
 		this->verbosity = verbosity;
+		if(verbosity>=1) genfit::Exception::quiet(false);
 	}
 
 private:
