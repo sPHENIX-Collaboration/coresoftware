@@ -11,7 +11,7 @@
 
 namespace PHGenFit {
 
-void SpacepointMeasurement::init(const TVector3& pos, const double resolution)
+void SpacepointMeasurement::init(const TVector3& pos, const TMatrixDSym& cov)
 {
 
 	int nDim = 3;
@@ -22,9 +22,9 @@ void SpacepointMeasurement::init(const TVector3& pos, const double resolution)
 	hitCoords(1) = pos.Y();
 	hitCoords(2) = pos.Z();
 
-	hitCov(0,0) = resolution*resolution;
-	hitCov(1,1) = resolution*resolution;
-	hitCov(2,2) = resolution*resolution;
+	for(int i=0;i<3;i++)
+		for(int j=0;j<3;j++)
+			hitCov(i,j) = cov(i,j);
 
 	int measurementCounter_ = 0;
 	_measurement = new genfit::SpacepointMeasurement(hitCoords, hitCov, -1,
@@ -35,7 +35,22 @@ void SpacepointMeasurement::init(const TVector3& pos, const double resolution)
 
 SpacepointMeasurement::SpacepointMeasurement(const TVector3& pos, const double resolution)
 {
-	init(pos, resolution);
+	TMatrixDSym cov(3);
+	cov.Zero();
+	cov(0, 0) = resolution*resolution;
+	cov(1, 1) = resolution*resolution;
+	cov(2, 2) = resolution*resolution;
+	init(pos, cov);
+}
+
+/*!
+ * Ctor
+ * \param pos measurement position
+ * \param covariance matrix
+ */
+SpacepointMeasurement::SpacepointMeasurement(const TVector3& pos, const TMatrixDSym& cov)
+{
+	init(pos, cov);
 }
 
 SpacepointMeasurement::~SpacepointMeasurement()
