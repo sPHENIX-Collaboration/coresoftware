@@ -413,8 +413,25 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	double chi2 = phgf_track->get_chi2();
 	double ndf = phgf_track->get_ndf();
 
-	genfit::MeasuredStateOnPlane* gf_state = phgf_track->extrapolateToPlane(
-			TVector3(0., 0., 0.), TVector3(0., 0., 1.));
+	genfit::MeasuredStateOnPlane* gf_state = NULL;
+
+	if (_detector_type == Vertical_Plane)
+		gf_state = phgf_track->extrapolateToPlane(TVector3(0., 0., 0.),
+				TVector3(0., 0., 1.));
+	else if (_detector_type == Cylinder)
+		gf_state = phgf_track->extrapolateToLine(TVector3(0., 0., 0.),
+				TVector3(0., 0., 1.));
+	else {
+		LogError("Detector Type NOT implemented!");
+		return NULL;
+	}
+
+	if(!gf_state) {
+		LogError("Extraction faild!");
+		return NULL;
+	}
+
+
 	TVector3 mom = gf_state->getMom();
 	TVector3 pos = gf_state->getPos();
 	TMatrixDSym cov = gf_state->get6DCov();
