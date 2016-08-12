@@ -20,6 +20,7 @@
 #include <GenFit/AbsKalmanFitter.h>
 #include <GenFit/KalmanFitter.h>
 #include <GenFit/KalmanFitterRefTrack.h>
+#include <GenFit/DAF.h>
 #include <GenFit/RKTrackRep.h>
 
 //GenFitExp
@@ -66,8 +67,14 @@ Fitter::Fitter(
 		_fitter = new genfit::KalmanFitterRefTrack();
 	else if(fitter_choice.compare("KalmanFitter")==0)
 		_fitter = new genfit::KalmanFitter();
+	else if(fitter_choice.compare("DafSimple")==0)
+		_fitter = new genfit::DAF(false);
+	else if(fitter_choice.compare("DafRef")==0)
+		_fitter = new genfit::DAF(true);
 	else
 		_fitter = new genfit::KalmanFitter();
+
+	genfit::Exception::quiet(true);
 }
 
 Fitter::~Fitter()
@@ -84,18 +91,29 @@ Fitter::~Fitter()
 int Fitter::processTrack(PHGenFit::Track* track, const bool save_to_evt_disp) {
 	genfit::Track* fitTrack = track->getGenFitTrack();
 	if(!fitTrack->checkConsistency()){
-		if(verbosity >= 1) LogWARNING("genfit::Track::checkConsistency() failed!") ;
+		if(verbosity >= 2) LogWARNING("genfit::Track::checkConsistency() failed!") ;
 		return -1;
 	}
-	_fitter->processTrack(fitTrack);
+
+	try {
+		_fitter->processTrack(fitTrack);
+	} catch (genfit::Exception& e) {
+		if (verbosity >= 1) {
+			std::cerr << "PHGenFit::Exception: \n";
+			std::cerr << e.what();
+			std::cerr << "Exception, next track" << std::endl;
+		}
+		return -1;
+	}
+
 	if(!fitTrack->checkConsistency()){
-		if(verbosity >= 1) LogWARNING("genfit::Track::checkConsistency() failed!") ;
+		if(verbosity >= 2) LogWARNING("genfit::Track::checkConsistency() failed!") ;
 		return -1;
 	}
 
 	genfit::AbsTrackRep* rep = fitTrack->getCardinalRep();
 	if (!fitTrack->getFitStatus(rep)->isFitConverged()) {
-		if(verbosity >= 1) LogWARNING("Track could not be fitted successfully! Fit is not converged!");
+		if(verbosity >= 2) LogWARNING("Track could not be fitted successfully! Fit is not converged!");
 		return -1;
 	}
 
