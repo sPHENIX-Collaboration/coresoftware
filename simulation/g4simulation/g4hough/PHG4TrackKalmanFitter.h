@@ -171,6 +171,22 @@ public:
 		_mag_field_file_name = magFieldFileName;
 	}
 
+	const std::string& get_track_fitting_alg_name() const {
+		return _track_fitting_alg_name;
+	}
+
+	void set_track_fitting_alg_name(const std::string& trackFittingAlgName) {
+		_track_fitting_alg_name = trackFittingAlgName;
+	}
+
+	int get_primary_pid_guess() const {
+		return _primary_pid_guess;
+	}
+
+	void set_primary_pid_guess(int primaryPidGuess) {
+		_primary_pid_guess = primaryPidGuess;
+	}
+
 private:
 
 	//! Event counter
@@ -216,6 +232,9 @@ private:
 
 
 	PHGenFit::Fitter* _fitter;
+	std::string _track_fitting_alg_name;
+	int _primary_pid_guess;
+
 	genfit::GFRaveVertexFactory* _vertex_finder;
 	std::string _vertexing_method;
 	//PHRaveVertexFactory* _vertex_finder;

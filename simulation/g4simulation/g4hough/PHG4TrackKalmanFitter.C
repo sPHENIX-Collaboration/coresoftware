@@ -144,13 +144,17 @@ private:
  * Constructor
  */
 PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
-		SubsysReco(name), _flags(NONE), _output_mode(OverwriteOriginalNode), _fit_primary_tracks(true), _mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),_mag_field_re_scaling_factor(1.4/1.5), _reverse_mag_field(true), _fitter( NULL), _vertex_finder( NULL), _vertexing_method("mvf"), _truth_container(
-				NULL), _clustermap(NULL), _trackmap(NULL), _vertexmap(NULL), _trackmap_refit(
-				NULL), _primary_trackmap(NULL), _vertexmap_refit(NULL), _do_eval(false), _eval_outname(
+		SubsysReco(name), _flags(NONE), _output_mode(OverwriteOriginalNode), _fit_primary_tracks(
+				true), _mag_field_file_name(
+				"/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"), _mag_field_re_scaling_factor(
+				1.4 / 1.5), _reverse_mag_field(true), _fitter( NULL), _track_fitting_alg_name("KalmanFitterRefTrack"), _primary_pid_guess(211), _vertex_finder(
+				NULL), _vertexing_method("mvf"), _truth_container(
+		NULL), _clustermap(NULL), _trackmap(NULL), _vertexmap(NULL), _trackmap_refit(
+		NULL), _primary_trackmap(NULL), _vertexmap_refit(NULL), _do_eval(false), _eval_outname(
 				"PHG4TrackKalmanFitter_eval.root"), _eval_tree(
 		NULL), _tca_particlemap(NULL), _tca_vtxmap(NULL), _tca_trackmap(NULL), _tca_vertexmap(
-		NULL), _tca_trackmap_refit(NULL), _tca_primtrackmap(NULL), _tca_vertexmap_refit(NULL), _do_evt_display(
-				false) {
+		NULL), _tca_trackmap_refit(NULL), _tca_primtrackmap(NULL), _tca_vertexmap_refit(
+				NULL), _do_evt_display(false) {
 	_event = 0;
 }
 
@@ -178,8 +182,11 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
 
 	//_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
 	_fitter = PHGenFit::Fitter::getInstance(tgeo_manager,
-			_mag_field_file_name.data(), (_reverse_mag_field) ? -1.*_mag_field_re_scaling_factor : _mag_field_re_scaling_factor, "KalmanFitterRefTrack", "RKTrackRep",
-			_do_evt_display);
+			_mag_field_file_name.data(),
+			(_reverse_mag_field) ?
+					-1. * _mag_field_re_scaling_factor :
+					_mag_field_re_scaling_factor, _track_fitting_alg_name,
+			"RKTrackRep", _do_evt_display);
 
 	if (!_fitter) {
 		cerr << PHWHERE << endl;
@@ -217,8 +224,12 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
  */
 int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 	_event++;
+#if _DEBUG_MODE_ == 1
+	cout << PHWHERE << "Events processed: " << _event << endl;
+#else
 	if (_event % 1000 == 0)
 		cout << PHWHERE << "Events processed: " << _event << endl;
+#endif
 
 	GetNodes(topNode);
 
@@ -227,8 +238,6 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 	//vector<genfit::MeasuredStateOnPlane*> rf_gf_states;
 	rf_gf_tracks.clear();
 
-	std::vector<genfit::GFRaveVertex*> rave_vertices;
-	rave_vertices.clear();
 
 	if(_trackmap_refit)
 		_trackmap_refit->empty();
@@ -237,6 +246,9 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 			++iter) {
 		//! stands for Refit_PHGenFit_Track
 		PHGenFit::Track* rf_phgf_track = ReFitTrack(iter->second);
+#if _DEBUG_MODE_ == 1
+		//rf_phgf_track->getGenFitTrack()->Print();
+#endif
 		if (rf_phgf_track) {
 			SvtxTrack* rf_track = MakeSvtxTrack(iter->second, rf_phgf_track);
 
@@ -257,8 +269,16 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		_fitter->getEventDisplay()->addEvent(rf_gf_tracks);
 
 	//! find vertex using tracks
-	//_vertex_finder->findVertices(&rave_vertices,rf_gf_tracks,rf_gf_states);
-	_vertex_finder->findVertices(&rave_vertices,rf_gf_tracks);
+	std::vector<genfit::GFRaveVertex*> rave_vertices;
+	rave_vertices.clear();
+	if (rf_gf_tracks.size() >= 2) {
+		//_vertex_finder->findVertices(&rave_vertices,rf_gf_tracks,rf_gf_states);
+		try {
+			_vertex_finder->findVertices(&rave_vertices, rf_gf_tracks);
+		} catch (...) {
+			std::cout<< PHWHERE << "GFRaveVertexFactory::findVertices failed!";
+		}
+	}
 
 	FillSvtxVertexMap(rave_vertices,rf_gf_tracks);
 
@@ -592,8 +612,8 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
 	 * e+:	-11
 	 */
 	//TODO Add multiple TrackRep choices.
-	int pid = 211;
-	genfit::AbsTrackRep* rep = new genfit::RKTrackRep(pid);
+	//int pid = 211;
+	genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_pid_guess);
 	PHGenFit::Track* track = new PHGenFit::Track(rep, seed_pos,
 			seed_mom, seed_cov);
 
