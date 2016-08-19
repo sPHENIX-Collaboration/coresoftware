@@ -144,7 +144,7 @@ PHG4CylinderGeom_Spacalv1::SetDefault()
   virualize_fiber = false;
   construction_verbose = 0;
 
-  init_default_sector_map();
+//  init_default_sector_map();
 }
 
 void
