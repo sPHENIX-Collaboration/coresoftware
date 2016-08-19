@@ -629,7 +629,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
 	  cout << endl;
 	}
       }	else if (verbosity>1) {
-	cout << "removed r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
+	cout << "silicon cylinder cell: removed, clus_energy = " << clus_energy << " below threshold of " <<  get_threshold_by_layer(layer)  << " clus_adc " << clus_adc <<  " r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
 	cout << "pos=(" << clus.get_position(0) << ", " << clus.get_position(1)
 	     << ", " << clus.get_position(2) << ")" << endl;
 	cout << endl;
@@ -1244,7 +1244,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 	if (verbosity>1) {
 	  double radius = sqrt(clusx*clusx+clusy*clusy);
 	  double clusphi = atan2(clusy,clusx);
-	  cout << "clus_energy " << clus_energy << " clus_adc " << clus_adc << " r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
+	  cout << "clus energy " << clus_energy << " clus_adc " << clus_adc << " r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
 	  cout << "pos=(" << clus.get_position(0) << ", " << clus.get_position(1)
 	       << ", " << clus.get_position(2) << ")" << endl;
 	  cout << endl;
@@ -1252,7 +1252,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
       }	else if (verbosity>1) {
 	double radius = sqrt(clusx*clusx+clusy*clusy);
 	double clusphi = atan2(clusy,clusx);
-	cout << "removed, clus_energy = " << clus_energy << " below threshold of " <<  get_threshold_by_layer(layer)  << " clus_adc " << clus_adc <<  " r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
+	cout << "MAPS ladder cell: removed, clus_energy = " << clus_energy << " below threshold of " <<  get_threshold_by_layer(layer)  << " clus_adc " << clus_adc <<  " r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
 	cout << "pos=(" << clus.get_position(0) << ", " << clus.get_position(1)
 	     << ", " << clus.get_position(2) << ")" << endl;
 	cout << endl;
