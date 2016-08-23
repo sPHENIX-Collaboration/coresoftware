@@ -262,6 +262,10 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 				*(dynamic_cast<SvtxTrack_v1*>(iter->second)) =
 						*(dynamic_cast<SvtxTrack_v1*>(rf_track));
 		}
+		else {
+			if (_output_mode == OverwriteOriginalNode)
+				_trackmap->erase(iter->first);
+		}
 	}
 
 	//! add tracks to event display
@@ -775,7 +779,13 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 	 */
 	double dca2d = gf_state->getState()[3];
 	out_track->set_dca2d(dca2d);
-	out_track->set_dca2d_error(gf_state->getCov()[3][3]);
+	if(gf_state->getCov()[3][3] > 0)
+		out_track->set_dca2d_error(sqrt(gf_state->getCov()[3][3]));
+	else {
+		out_track->set_dca2d_error(-9999);
+		if(verbosity >= 1)
+			LogWarning("gf_state->getCov()[3][3] <= 0");
+	}
 	double dca3d = sqrt(
 			dca2d*dca2d +
 			gf_state->getState()[4]*gf_state->getState()[4]);
