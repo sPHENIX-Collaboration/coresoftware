@@ -1,7 +1,9 @@
 #include "PHG4DetectorSubsystem.h"
 #include "PHG4Parameters.h"
+#include "PHG4ParametersContainer.h"
 
 #include <pdbcalbase/PdbParameterMap.h>
+#include <pdbcalbase/PdbParameterMapContainer.h>
 
 #include <phool/getClass.h>
 #include <phool/phool.h>
@@ -35,14 +37,7 @@ PHG4DetectorSubsystem::PHG4DetectorSubsystem(const std::string &name, const int 
 int 
 PHG4DetectorSubsystem::Init(PHCompositeNode* topNode)
 {
-  if (superdetector != "NONE")
-    {
-      params->set_name(SuperDetector());
-    }
-  else
-    {
-      params->set_name(Name());
-    }
+  params->set_name(Name());
   int iret = InitSubsystem(topNode);
   return iret;
 }
@@ -51,12 +46,32 @@ int
 PHG4DetectorSubsystem::InitRun( PHCompositeNode* topNode )
 {
   PHNodeIterator iter( topNode );
-  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
-  string g4geonodename = "G4GEO_" + params->Name();
-  parNode->addNode(new PHDataNode<PHG4Parameters>(params,g4geonodename));
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "PAR" ));
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
+
+  string g4geonodename = "G4GEO_";
+  string paramnodename = "G4GEOPARAM_";
+  if (superdetector != "NONE")
+    {
+      g4geonodename += SuperDetector();
+      PHG4ParametersContainer *parcont = findNode::getClass<PHG4ParametersContainer>(parNode,g4geonodename);
+      if (! parcont)
+	{
+	  parcont = new PHG4ParametersContainer();
+	  parNode->addNode(new PHDataNode<PHG4ParametersContainer>(parcont,g4geonodename));
+	}
+      parcont->AddPHG4Parameters(layer,params);
+      paramnodename += superdetector;
+    }
+  else
+    {
+      g4geonodename += params->Name();
+      parNode->addNode(new PHDataNode<PHG4Parameters>(params,g4geonodename));
+      paramnodename += params->Name();
+    }
 
 
-  string paramnodename = "G4GEOPARAM_" + params->Name();
+
   // ASSUMPTION: if we read from DB and/or file we don't want the stuff from
   // the node tree
   // We leave the defaults intact in case there is no entry for
@@ -75,18 +90,21 @@ PHG4DetectorSubsystem::InitRun( PHCompositeNode* topNode )
     }
   else
     {
-      PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,paramnodename);
+      PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode,paramnodename);
       if (nodeparams)
 	{
-	  params->FillFrom(nodeparams);
+	  params->FillFrom(nodeparams, layer);
 	}
     }
   // parameters set in the macro always override whatever is read from
   // the node tree, DB or file
   UpdateParametersWithMacro();
   // save updated persistant copy on node tree
-  params->SaveToNodeTree(parNode,paramnodename);
+  params->SaveToNodeTree(runNode,paramnodename,layer);
   int iret = InitRunSubsystem(topNode);
+PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode,paramnodename);
+ cout << Name() << endl;
+ nodeparams->print();
   return iret;
 }
 
@@ -267,7 +285,7 @@ PHG4DetectorSubsystem::SaveParamsToDB()
 int
 PHG4DetectorSubsystem::ReadParamsFromDB()
 {
-  int iret = params->ReadFromDB();
+  int iret = params->ReadFromDB(layer);
   if (iret)
     {
       cout << "problem reading from DB" << endl;
@@ -316,7 +334,7 @@ PHG4DetectorSubsystem::ReadParamsFromFile(const PHG4DetectorSubsystem::FILE_TYPE
       cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
       exit(1);
     }
-  int iret = params->ReadFromFile(extension,calibfiledir);
+  int iret = params->ReadFromFile(extension, layer, calibfiledir);
   if (iret)
     {
       cout << "problem reading from " << extension << " file " << endl;
