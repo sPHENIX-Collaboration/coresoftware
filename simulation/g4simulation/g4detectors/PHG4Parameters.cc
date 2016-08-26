@@ -5,6 +5,7 @@
 #include <pdbcalbase/PdbBankList.h>
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbParameterMap.h>
+#include <pdbcalbase/PdbParameterMapContainer.h>
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
@@ -174,10 +175,15 @@ PHG4Parameters::printstring() const
 }
 
 void
-PHG4Parameters::FillFrom(const PdbParameterMap *saveparams)
+PHG4Parameters::FillFrom(const PdbParameterMapContainer *saveparamcontainer, const int layer)
 {
-  assert(saveparams);
+  assert(saveparamcontainer);
 
+  const PdbParameterMap *saveparams = saveparamcontainer->GetParameters(layer);
+  if (! saveparams)
+    {
+      return;
+    }
   pair<std::map<const std::string, double>::const_iterator,
       std::map<const std::string, double>::const_iterator> begin_end_d =
       saveparams->get_dparam_iters();
@@ -227,21 +233,26 @@ PHG4Parameters::FillFrom(const PHG4Parameters *saveparams)
 }
 
 void
-PHG4Parameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
+PHG4Parameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename, const int layer)
 {
   // write itself since this class is fine with saving by root
-  PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,
-      nodename);
-  if (!nodeparams)
+  PdbParameterMapContainer *nodeparamcontainer = findNode::getClass<PdbParameterMapContainer>(topNode, nodename);
+  if (!nodeparamcontainer)
     {
-      nodeparams = new PdbParameterMap();
-      PHIODataNode<PdbParameterMap> *newnode =
-          new PHIODataNode<PdbParameterMap>(nodeparams, nodename);
+      nodeparamcontainer = new PdbParameterMapContainer();
+      PHIODataNode<PdbParameterMapContainer> *newnode =
+          new PHIODataNode<PdbParameterMapContainer>(nodeparamcontainer, nodename);
       topNode->addNode(newnode);
+    }
+  PdbParameterMap *nodeparams = nodeparamcontainer->GetParametersToModify(layer);
+  if (nodeparams)
+    {
+      nodeparams->Reset();
     }
   else
     {
-      nodeparams->Reset(); // just clear previous content in case variables were deleted
+      nodeparams = new PdbParameterMap();
+      nodeparamcontainer->AddPdbParameterMap(layer,nodeparams);
     }
   CopyToPdbParameterMap(nodeparams);
   return;
@@ -286,7 +297,7 @@ PHG4Parameters::WriteToDB()
 }
 
 int
-PHG4Parameters::ReadFromDB()
+PHG4Parameters::ReadFromDB(const int layer)
 {
   PdbBankManager* bankManager = PdbBankManager::instance();
   PdbApplication *application = bankManager->getApplication();
@@ -308,8 +319,8 @@ PHG4Parameters::ReadFromDB()
       tablename, TSearch);
   if (NewBank)
     {
-      PdbParameterMap *myparm = (PdbParameterMap*) &NewBank->getEntry(0);
-      FillFrom(myparm);
+      PdbParameterMapContainer *myparm = (PdbParameterMapContainer*) &NewBank->getEntry(0);
+      FillFrom(myparm,layer);
       delete NewBank;
     }
   else
@@ -354,7 +365,7 @@ PHG4Parameters::WriteToFile(const string &extension, const string &dir)
 }
 
 int
-PHG4Parameters::ReadFromFile(const string &extension, const string &dir)
+PHG4Parameters::ReadFromFile(const string &extension, const int layer, const string &dir)
 {
   PHTimeStamp TSearch(10);
   PdbBankID bankID(0);
@@ -417,8 +428,8 @@ PHG4Parameters::ReadFromFile(const string &extension, const string &dir)
   cout << "Reading from File: " << (calibfiles.rbegin())->second << endl;
   string fname = (calibfiles.rbegin())->second;
   TFile *f = TFile::Open(fname.c_str());
-  PdbParameterMap *myparm = (PdbParameterMap *) f->Get("PdbParameterMap");
-  FillFrom(myparm);
+  PdbParameterMapContainer *myparm = (PdbParameterMapContainer *) f->Get("PdbParameterMapContainer");
+  FillFrom(myparm, layer);
   delete f;
   delete myparm;
   return 0;

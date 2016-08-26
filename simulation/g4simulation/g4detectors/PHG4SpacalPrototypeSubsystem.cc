@@ -9,6 +9,8 @@
  */
 #include "PHG4SpacalPrototypeSubsystem.h"
 
+#include "PHG4ParametersContainer.h"
+
 #include "PHG4SpacalPrototypeDetector.h"
 #include "PHG4ProjSpacalDetector.h"
 #include "PHG4FullProjSpacalDetector.h"
@@ -25,6 +27,8 @@
 #include <phool/getClass.h>
 
 #include <pdbcalbase/PdbParameterMap.h>
+#include <pdbcalbase/PdbParameterMapContainer.h>
+
 #include <Geant4/globals.hh>
 
 #include <sstream>
@@ -55,8 +59,12 @@ PHG4SpacalPrototypeSubsystem::InitRun(PHCompositeNode* topNode)
   // update the parameters on the node tree
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
       "PHCompositeNode", "RUN"));
-  string g4geonodename = "G4GEO_" + superdetector;
-  parNode->addNode(new PHDataNode<PHG4Parameters>(new PHG4Parameters(superdetector), g4geonodename));
+  string g4geonodename = "G4GEO_";
+  if (superdetector != "NONE")
+    {
+      g4geonodename += superdetector;
+    }
+  parNode->addNode(new PHDataNode<PHG4ParametersContainer>(new PHG4ParametersContainer(), g4geonodename));
 
   PHG4Parameters *construction_params = findNode::getClass<PHG4Parameters>(
       parNode, g4geonodename);
@@ -72,7 +80,7 @@ PHG4SpacalPrototypeSubsystem::InitRun(PHCompositeNode* topNode)
     {
       // use DB
 
-      int iret = construction_params->ReadFromDB();
+      int iret = construction_params->ReadFromDB(0);
       if (iret)
         {
           cout
@@ -84,11 +92,11 @@ PHG4SpacalPrototypeSubsystem::InitRun(PHCompositeNode* topNode)
     }
   else
     {
-      PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,
+      PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode,
           paramnodename);
       if (nodeparams)
         {
-          construction_params->FillFrom(nodeparams);
+          construction_params->FillFrom(nodeparams,0);
         }
     }
 
@@ -97,7 +105,7 @@ PHG4SpacalPrototypeSubsystem::InitRun(PHCompositeNode* topNode)
 
 //   this step is moved to after detector construction
 //   save updated persistant copy on node tree
-  construction_params->SaveToNodeTree(parNode, paramnodename);
+  construction_params->SaveToNodeTree(parNode, paramnodename, 0);
 
   if (verbosity > 0)
     cout
