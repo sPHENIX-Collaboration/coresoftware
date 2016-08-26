@@ -11,8 +11,9 @@
 #ifndef PHG4SpacalPrototypeSubsystem_h
 #define PHG4SpacalPrototypeSubsystem_h
 
-#include "g4main/PHG4Subsystem.h"
 #include "PHG4Parameters.h"
+
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
