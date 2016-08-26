@@ -55,6 +55,8 @@ libPgCal_la_SOURCES = \
   PgPostParameterErrorBank_dict.C \
   PgPostParameterMapBank.cc \
   PgPostParameterMapBank_dict.C \
+  PgPostParameterMapContainerBank.cc \
+  PgPostParameterMapContainerBank_dict.C \
   RunToTimePg.cc \
   RunToTimePg_dict.C
 

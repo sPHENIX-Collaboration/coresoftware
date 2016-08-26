@@ -43,6 +43,8 @@ libpdbcalBase_la_SOURCES = \
   PdbParameterError_dict.C \
   PdbParameterMap.cc \
   PdbParameterMap_dict.C \
+  PdbParameterMapContainer.cc \
+  PdbParameterMapContainer_dict.C \
   PHGenericFactoryT.C \
   RunToTime.cc \
   RunToTime_dict.C
@@ -65,6 +67,7 @@ pkginclude_HEADERS = \
   PdbParameter.h \
   PdbParameterError.h \
   PdbParameterMap.h \
+  PdbParameterMapContainer.h \
   PHGenericFactoryT.h \
   RunToTime.h
 
