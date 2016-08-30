@@ -41,6 +41,9 @@ public:
   virtual unsigned int get_id() const          {return UINT_MAX;}
   virtual void         set_id(unsigned int id) {}
 
+  virtual unsigned int get_truth_track_id() const {return UINT_MAX;}
+  virtual void set_truth_track_id(unsigned int truthTrackId) {}
+
   virtual bool get_positive_charge() const     {return false;}
   virtual void set_positive_charge(bool ispos) {}
 
