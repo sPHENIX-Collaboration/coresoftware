@@ -7,9 +7,18 @@
 
 #include "SvtxTrack_FastSim.h"
 
-using namespace std;
+#include <limits.h>
 
 ClassImp(SvtxTrack_FastSim)
+
+using namespace std;
+
+SvtxTrack_FastSim::SvtxTrack_FastSim() :
+		_truth_track_id(UINT_MAX) {
+}
+
+SvtxTrack_FastSim::~SvtxTrack_FastSim() {
+}
 
 
 void SvtxTrack_FastSim::identify(std::ostream& os) const {

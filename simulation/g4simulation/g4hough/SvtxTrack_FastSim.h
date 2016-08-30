@@ -13,6 +13,9 @@
 class SvtxTrack_FastSim : public SvtxTrack_v1 {
 
 public:
+	SvtxTrack_FastSim();
+	virtual ~SvtxTrack_FastSim();
+
 	unsigned int get_truth_track_id() const {
 		return _truth_track_id;
 	}
