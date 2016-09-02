@@ -363,7 +363,7 @@ PHG4Prototype2OuterHcalSubsystem::SaveParamsToDB()
 int
 PHG4Prototype2OuterHcalSubsystem::ReadParamsFromDB()
 {
-  int iret = params->ReadFromDB(layer);
+  int iret = params->ReadFromDB(superdetector,layer);
   if (iret)
     {
       cout << "problem reading from DB" << endl;
@@ -412,7 +412,16 @@ PHG4Prototype2OuterHcalSubsystem::ReadParamsFromFile(const PHG4Prototype2OuterHc
       cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
       exit(1);
     }
-  int iret = params->ReadFromFile(extension,layer, calibfiledir);
+  string name;
+  if (superdetector != "NONE")
+    {
+      name = superdetector;
+    }
+  else
+    {
+      name = params->Name();
+    }
+  int iret = params->ReadFromFile(name, extension, layer, calibfiledir);
   if (iret)
     {
       cout << "problem reading from " << extension << " file " << endl;

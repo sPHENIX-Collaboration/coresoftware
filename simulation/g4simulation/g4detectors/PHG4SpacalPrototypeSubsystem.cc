@@ -80,7 +80,7 @@ PHG4SpacalPrototypeSubsystem::InitRun(PHCompositeNode* topNode)
     {
       // use DB
 
-      int iret = construction_params->ReadFromDB(0);
+      int iret = construction_params->ReadFromDB(superdetector,0);
       if (iret)
         {
           cout

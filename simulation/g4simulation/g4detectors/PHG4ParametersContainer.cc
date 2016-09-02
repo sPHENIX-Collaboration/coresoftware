@@ -1,13 +1,27 @@
 #include "PHG4ParametersContainer.h"
 #include "PHG4Parameters.h"
 
+#include <pdbcalbase/PdbBankManager.h>
+#include <pdbcalbase/PdbApplication.h>
+#include <pdbcalbase/PdbBankList.h>
+#include <pdbcalbase/PdbCalBank.h>
+#include <pdbcalbase/PdbParameterMap.h>
+#include <pdbcalbase/PdbParameterMapContainer.h>
+
 #include <phool/phool.h>
 
+#include <TFile.h>
 #include <TSystem.h>
 
+#include <algorithm>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
+
+PHG4ParametersContainer::PHG4ParametersContainer(const string &name):
+  superdetectorname(name)
+{}
 
 PHG4ParametersContainer::~PHG4ParametersContainer()
 {
@@ -55,4 +69,50 @@ PHG4ParametersContainer::GetParametersToModify(const int layer)
       return NULL;
     }
   return iter->second;
+}
+
+int
+PHG4ParametersContainer::WriteToFile(const string &extension, const string &dir)
+{
+  ostringstream fullpath;
+  ostringstream fnamestream;
+  PdbBankID bankID(0); // lets start at zero
+  PHTimeStamp TStart(0);
+  PHTimeStamp TStop(0xffffffff);
+  fullpath << dir;
+  // add / if directory lacks ending /
+  if (*(dir.rbegin()) != '/')
+    {
+      fullpath << "/";
+    }
+  fnamestream << superdetectorname << "_geoparams" << "-" << bankID.getInternalValue()
+      << "-" << TStart.getTics() << "-" << TStop.getTics() << "-" << time(0)
+      << "." << extension;
+  string fname = fnamestream.str();
+  std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
+  fullpath << fname;
+
+  cout <<"PHG4Parameters::WriteToFile - save to "<<fullpath.str()<<endl;
+
+  PdbParameterMapContainer *myparm = new PdbParameterMapContainer();
+  CopyToPdbParameterMapContainer(myparm);
+  TFile *f = TFile::Open(fullpath.str().c_str(), "recreate");
+  myparm->Write();
+  delete f;
+  cout << "sleeping 1 second to prevent duplicate inserttimes" << endl;
+  sleep(1);
+  return 0;
+}
+
+void
+PHG4ParametersContainer::CopyToPdbParameterMapContainer(PdbParameterMapContainer *myparmap)
+{
+  std::map<int, PHG4Parameters *>::const_iterator iter;
+  for (iter = parametermap.begin(); iter != parametermap.end(); ++iter)
+    {
+      PdbParameterMap *myparm = new PdbParameterMap();
+      iter->second->CopyToPdbParameterMap(myparm);
+      myparmap->AddPdbParameterMap(iter->first,myparm);
+    }
+  return;
 }
