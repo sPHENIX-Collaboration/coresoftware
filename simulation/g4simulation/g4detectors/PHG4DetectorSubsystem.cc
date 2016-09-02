@@ -20,6 +20,8 @@ using namespace std;
 PHG4DetectorSubsystem::PHG4DetectorSubsystem(const std::string &name, const int lyr): 
   PHG4Subsystem(name),
   params(new PHG4Parameters(Name())),
+  paramscontainer(NULL),
+  savetopNode(NULL),
   overlapcheck(false),
   layer(lyr),
   usedb(0),
@@ -37,6 +39,7 @@ PHG4DetectorSubsystem::PHG4DetectorSubsystem(const std::string &name, const int 
 int 
 PHG4DetectorSubsystem::Init(PHCompositeNode* topNode)
 {
+  savetopNode = topNode;
   params->set_name(Name());
   int iret = InitSubsystem(topNode);
   return iret;
@@ -51,23 +54,26 @@ PHG4DetectorSubsystem::InitRun( PHCompositeNode* topNode )
 
   string g4geonodename = "G4GEO_";
   string paramnodename = "G4GEOPARAM_";
+  string calibdetname;
   if (superdetector != "NONE")
     {
       g4geonodename += SuperDetector();
-      PHG4ParametersContainer *parcont = findNode::getClass<PHG4ParametersContainer>(parNode,g4geonodename);
-      if (! parcont)
+      paramscontainer = findNode::getClass<PHG4ParametersContainer>(parNode,g4geonodename);
+      if (! paramscontainer)
 	{
-	  parcont = new PHG4ParametersContainer();
-	  parNode->addNode(new PHDataNode<PHG4ParametersContainer>(parcont,g4geonodename));
+	  paramscontainer = new PHG4ParametersContainer(superdetector);
+	  parNode->addNode(new PHDataNode<PHG4ParametersContainer>(paramscontainer,g4geonodename));
 	}
-      parcont->AddPHG4Parameters(layer,params);
+      paramscontainer->AddPHG4Parameters(layer,params);
       paramnodename += superdetector;
+      calibdetname = superdetector;
     }
   else
     {
       g4geonodename += params->Name();
       parNode->addNode(new PHDataNode<PHG4Parameters>(params,g4geonodename));
       paramnodename += params->Name();
+      calibdetname = params->Name();
     }
 
 
@@ -81,11 +87,11 @@ PHG4DetectorSubsystem::InitRun( PHCompositeNode* topNode )
     {
       if (ReadDB())
 	{
-          ReadParamsFromDB();
+          ReadParamsFromDB(calibdetname);
 	}
       if (get_filetype() != PHG4DetectorSubsystem::none)
 	{
-	  ReadParamsFromFile(get_filetype());
+	  ReadParamsFromFile(calibdetname, get_filetype());
 	}
     }
   else
@@ -283,9 +289,9 @@ PHG4DetectorSubsystem::SaveParamsToDB()
 }
 
 int
-PHG4DetectorSubsystem::ReadParamsFromDB()
+PHG4DetectorSubsystem::ReadParamsFromDB(const string &name)
 {
-  int iret = params->ReadFromDB(layer);
+  int iret = params->ReadFromDB(name,layer);
   if (iret)
     {
       cout << "problem reading from DB" << endl;
@@ -309,8 +315,15 @@ PHG4DetectorSubsystem::SaveParamsToFile(const PHG4DetectorSubsystem::FILE_TYPE f
       cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
       exit(1);
     }
-
-  int iret = params->WriteToFile(extension,calibfiledir);
+  int iret = 0;
+  if (paramscontainer)
+    {
+      iret = paramscontainer->WriteToFile(extension,calibfiledir);
+    }
+  else
+    {
+      iret = params->WriteToFile(extension,calibfiledir);
+    }
   if (iret)
     {
       cout << "problem saving to " << extension << " file " << endl;
@@ -319,7 +332,7 @@ PHG4DetectorSubsystem::SaveParamsToFile(const PHG4DetectorSubsystem::FILE_TYPE f
 }
 
 int
-PHG4DetectorSubsystem::ReadParamsFromFile(const PHG4DetectorSubsystem::FILE_TYPE ftyp)
+PHG4DetectorSubsystem::ReadParamsFromFile(const string &name, const PHG4DetectorSubsystem::FILE_TYPE ftyp)
 {
   string extension;
   switch(ftyp)
@@ -334,7 +347,7 @@ PHG4DetectorSubsystem::ReadParamsFromFile(const PHG4DetectorSubsystem::FILE_TYPE
       cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
       exit(1);
     }
-  int iret = params->ReadFromFile(extension, layer, calibfiledir);
+  int iret = params->ReadFromFile(name, extension, layer, calibfiledir);
   if (iret)
     {
       cout << "problem reading from " << extension << " file " << endl;

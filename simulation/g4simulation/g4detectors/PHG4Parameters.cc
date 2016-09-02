@@ -177,7 +177,7 @@ PHG4Parameters::printstring() const
 void
 PHG4Parameters::FillFrom(const PdbParameterMapContainer *saveparamcontainer, const int layer)
 {
-  assert(saveparamcontainer);
+  //  assert(saveparamcontainer != NULL);
 
   const PdbParameterMap *saveparams = saveparamcontainer->GetParameters(layer);
   if (! saveparams)
@@ -297,7 +297,7 @@ PHG4Parameters::WriteToDB()
 }
 
 int
-PHG4Parameters::ReadFromDB(const int layer)
+PHG4Parameters::ReadFromDB(const string &name, const int layer)
 {
   PdbBankManager* bankManager = PdbBankManager::instance();
   PdbApplication *application = bankManager->getApplication();
@@ -312,10 +312,10 @@ PHG4Parameters::ReadFromDB(const int layer)
   PdbBankID bankID(0); // lets start at zero
   PHTimeStamp TSearch(10);
 
-  string tablename = detname + "_geoparams";
+  string tablename = name + "_geoparams";
   std::transform(tablename.begin(), tablename.end(), tablename.begin(),
       ::tolower);
-  PdbCalBank *NewBank = bankManager->fetchBank("PdbParameterMapBank", bankID,
+  PdbCalBank *NewBank = bankManager->fetchBank("PdbParameterMapContainerBank", bankID,
       tablename, TSearch);
   if (NewBank)
     {
@@ -365,12 +365,12 @@ PHG4Parameters::WriteToFile(const string &extension, const string &dir)
 }
 
 int
-PHG4Parameters::ReadFromFile(const string &extension, const int layer, const string &dir)
+PHG4Parameters::ReadFromFile(const string &name, const string &extension, const int layer, const string &dir)
 {
   PHTimeStamp TSearch(10);
   PdbBankID bankID(0);
   ostringstream fnamestream;
-  fnamestream << detname << "_geoparams" << "-" << bankID.getInternalValue();
+  fnamestream << name << "_geoparams" << "-" << bankID.getInternalValue();
   string fileprefix = fnamestream.str();
   std::transform(fileprefix.begin(), fileprefix.end(), fileprefix.begin(),
       ::tolower);

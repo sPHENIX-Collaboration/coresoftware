@@ -45,15 +45,15 @@ class PHG4Parameters: public PHObject
   void FillFrom(const PHG4Parameters *saveparams);
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename, const int layer);
   int WriteToDB();
-  int ReadFromDB(const int layer);
+  int ReadFromDB(const std::string &name, const int layer);
   int WriteToFile(const std::string &extension, const std::string &dir = ".");
-  int ReadFromFile(const std::string &extension, const int layer, const std::string &dir = ".");
+  int ReadFromFile(const std::string &name, const std::string &extension, const int layer, const std::string &dir = ".");
+  void CopyToPdbParameterMap(PdbParameterMap *myparm);
 
  protected:
   void printint() const;
   void printdouble() const;
   void printstring() const;
-  void CopyToPdbParameterMap(PdbParameterMap *myparm);
   unsigned int ConvertStringToUint(const std::string &str) const;
   PdbParameterMap *pdbparam;
   std::string detname;

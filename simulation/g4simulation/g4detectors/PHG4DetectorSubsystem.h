@@ -7,6 +7,7 @@
 #include <string>
 
 class PHG4Parameters;
+class PHG4ParametersContainer;
 
 class PHG4DetectorSubsystem : public PHG4Subsystem
 {
@@ -47,9 +48,9 @@ class PHG4DetectorSubsystem : public PHG4Subsystem
 
   void UseCalibFiles(const FILE_TYPE ftyp) {filetype = ftyp;}
   int SaveParamsToDB();
-  int ReadParamsFromDB();
+  int ReadParamsFromDB(const std::string &name);
   int SaveParamsToFile(const FILE_TYPE ftyp);
-  int ReadParamsFromFile(const FILE_TYPE ftyp);
+  int ReadParamsFromFile(const std::string &name, const FILE_TYPE ftyp);
   void SetCalibrationFileDir(const std::string &calibdir) {calibfiledir = calibdir;}
 
   void UpdateParametersWithMacro();
@@ -76,6 +77,8 @@ class PHG4DetectorSubsystem : public PHG4Subsystem
 
  private:
   PHG4Parameters *params;
+  PHG4ParametersContainer *paramscontainer;
+  PHCompositeNode *savetopNode;
   bool overlapcheck;
   int layer;
   int usedb;
