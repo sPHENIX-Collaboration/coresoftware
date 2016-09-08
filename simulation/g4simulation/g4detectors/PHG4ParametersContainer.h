@@ -19,7 +19,8 @@ class PHG4ParametersContainer: public PHObject
   const PHG4Parameters *GetParameters(const int layer) const;
   PHG4Parameters *GetParametersToModify(const int layer);
   int WriteToFile(const std::string &extension, const std::string &dir);
-
+  int WriteToDB();
+  
   void set_name(const std::string &name) {superdetectorname = name;}
   std::string Name() const {return superdetectorname;}
 

@@ -13,6 +13,7 @@
 #include <phool/PHTimeStamp.h>
 
 #include <TFile.h>
+#include <TSystem.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
@@ -490,8 +491,8 @@ PHG4Parameters::ReadFromFile(const string &name, const string &extension, const 
     }
   if (calibfiles.empty())
     {
-      cout << "No calibration file found" << endl;
-      return -1;
+      cout << "No calibration file like " << dir << "/" << fileprefix << " found" << endl;
+      gSystem->Exit(1);
     }
   cout << "Reading from File: " << (calibfiles.rbegin())->second << endl;
   string fname = (calibfiles.rbegin())->second;

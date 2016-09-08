@@ -282,7 +282,15 @@ PHG4DetectorSubsystem::InitializeParameters()
 int
 PHG4DetectorSubsystem::SaveParamsToDB()
 {
-  int iret = params->WriteToDB();
+  int iret = 0;
+  if (paramscontainer)
+    {
+      iret = paramscontainer->WriteToDB();
+    }
+  else
+    {
+      iret = params->WriteToDB();
+    }
   if (iret)
     {
       cout << "problem committing to DB" << endl;
