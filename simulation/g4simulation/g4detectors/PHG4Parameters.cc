@@ -175,6 +175,39 @@ PHG4Parameters::printstring() const
 }
 
 void
+PHG4Parameters::FillFrom(const PdbParameterMap *saveparams)
+{
+  assert(saveparams);
+
+  pair<std::map<const std::string, double>::const_iterator,
+      std::map<const std::string, double>::const_iterator> begin_end_d =
+      saveparams->get_dparam_iters();
+  for (map<const std::string, double>::const_iterator iter = begin_end_d.first;
+      iter != begin_end_d.second; ++iter)
+    {
+      doubleparams[iter->first] = iter->second;
+    }
+  pair<std::map<const std::string, int>::const_iterator,
+      std::map<const std::string, int>::const_iterator> begin_end_i =
+      saveparams->get_iparam_iters();
+  for (map<const std::string, int>::const_iterator iter = begin_end_i.first;
+      iter != begin_end_i.second; ++iter)
+    {
+      intparams[iter->first] = iter->second;
+    }
+  pair<std::map<const std::string, string>::const_iterator,
+      std::map<const std::string, string>::const_iterator> begin_end_s =
+      saveparams->get_cparam_iters();
+  for (map<const std::string, string>::const_iterator iter = begin_end_s.first;
+      iter != begin_end_s.second; ++iter)
+    {
+      stringparams[iter->first] = iter->second;
+    }
+
+  return;
+}
+
+void
 PHG4Parameters::FillFrom(const PdbParameterMapContainer *saveparamcontainer, const int layer)
 {
   //  assert(saveparamcontainer != NULL);
@@ -332,6 +365,41 @@ PHG4Parameters::ReadFromDB(const string &name, const int layer)
 }
 
 int
+PHG4Parameters::ReadFromDB()
+{
+  PdbBankManager* bankManager = PdbBankManager::instance();
+  PdbApplication *application = bankManager->getApplication();
+  if (!application->startRead())
+    {
+      cout << PHWHERE << " Aborting, Database not readable" << endl;
+      application->abort();
+      exit(1);
+    }
+
+  //  Make a bank ID...
+  PdbBankID bankID(0); // lets start at zero
+  PHTimeStamp TSearch(10);
+
+  string tablename = detname + "_geoparams";
+  std::transform(tablename.begin(), tablename.end(), tablename.begin(),
+      ::tolower);
+  PdbCalBank *NewBank = bankManager->fetchBank("PdbParameterMapBank", bankID,
+      tablename, TSearch);
+  if (NewBank)
+    {
+      PdbParameterMap *myparm = (PdbParameterMap*) &NewBank->getEntry(0);
+      FillFrom(myparm);
+      delete NewBank;
+    }
+  else
+    {
+      cout << PHWHERE " Reading from DB failed" << endl;
+      return -1;
+    }
+  return 0;
+}
+
+int
 PHG4Parameters::WriteToFile(const string &extension, const string &dir)
 {
   ostringstream fullpath;
@@ -365,7 +433,7 @@ PHG4Parameters::WriteToFile(const string &extension, const string &dir)
 }
 
 int
-PHG4Parameters::ReadFromFile(const string &name, const string &extension, const int layer, const string &dir)
+PHG4Parameters::ReadFromFile(const string &name, const string &extension, const int layer, const int issuper, const string &dir)
 {
   PHTimeStamp TSearch(10);
   PdbBankID bankID(0);
@@ -428,10 +496,19 @@ PHG4Parameters::ReadFromFile(const string &name, const string &extension, const 
   cout << "Reading from File: " << (calibfiles.rbegin())->second << endl;
   string fname = (calibfiles.rbegin())->second;
   TFile *f = TFile::Open(fname.c_str());
-  PdbParameterMapContainer *myparm = (PdbParameterMapContainer *) f->Get("PdbParameterMapContainer");
-  FillFrom(myparm, layer);
+  if (issuper)
+    {
+      PdbParameterMapContainer *myparm = (PdbParameterMapContainer *) f->Get("PdbParameterMapContainer");
+      FillFrom(myparm, layer);
+      delete myparm;
+    }
+  else
+    {
+      PdbParameterMap *myparm = (PdbParameterMap *) f->Get("PdbParameterMap");
+      FillFrom(myparm);
+      delete myparm;
+    }
   delete f;
-  delete myparm;
   return 0;
 }
 

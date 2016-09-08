@@ -413,15 +413,17 @@ PHG4Prototype2InnerHcalSubsystem::ReadParamsFromFile(const PHG4Prototype2InnerHc
       exit(1);
     }
   string name;
+  int issuper = 0;
   if (superdetector != "NONE")
     {
       name = superdetector;
+      issuper = 1;
     }
   else
     {
       name = params->Name();
     }
-  int iret = params->ReadFromFile(name, extension, layer, calibfiledir);
+  int iret = params->ReadFromFile(name, extension, layer, issuper, calibfiledir);
   if (iret)
     {
       cout << "problem reading from " << extension << " file " << endl;
