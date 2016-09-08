@@ -55,6 +55,7 @@ PHG4DetectorSubsystem::InitRun( PHCompositeNode* topNode )
   string g4geonodename = "G4GEO_";
   string paramnodename = "G4GEOPARAM_";
   string calibdetname;
+  int isSuperDetector = 0;
   if (superdetector != "NONE")
     {
       g4geonodename += SuperDetector();
@@ -67,6 +68,7 @@ PHG4DetectorSubsystem::InitRun( PHCompositeNode* topNode )
       paramscontainer->AddPHG4Parameters(layer,params);
       paramnodename += superdetector;
       calibdetname = superdetector;
+      isSuperDetector = 1;
     }
   else
     {
@@ -87,11 +89,11 @@ PHG4DetectorSubsystem::InitRun( PHCompositeNode* topNode )
     {
       if (ReadDB())
 	{
-          ReadParamsFromDB(calibdetname);
+	   ReadParamsFromDB(calibdetname,isSuperDetector);
 	}
       if (get_filetype() != PHG4DetectorSubsystem::none)
 	{
-	  ReadParamsFromFile(calibdetname, get_filetype());
+	  ReadParamsFromFile(calibdetname, get_filetype(),isSuperDetector );
 	}
     }
   else
@@ -289,9 +291,17 @@ PHG4DetectorSubsystem::SaveParamsToDB()
 }
 
 int
-PHG4DetectorSubsystem::ReadParamsFromDB(const string &name)
+PHG4DetectorSubsystem::ReadParamsFromDB(const string &name, const int issuper)
 {
-  int iret = params->ReadFromDB(name,layer);
+  int iret = 0;
+  if (issuper)
+    {
+      iret = params->ReadFromDB(name,layer);
+    }
+  else
+    {
+      iret = params->ReadFromDB();
+    }
   if (iret)
     {
       cout << "problem reading from DB" << endl;
@@ -332,7 +342,7 @@ PHG4DetectorSubsystem::SaveParamsToFile(const PHG4DetectorSubsystem::FILE_TYPE f
 }
 
 int
-PHG4DetectorSubsystem::ReadParamsFromFile(const string &name, const PHG4DetectorSubsystem::FILE_TYPE ftyp)
+PHG4DetectorSubsystem::ReadParamsFromFile(const string &name, const PHG4DetectorSubsystem::FILE_TYPE ftyp, const int issuper)
 {
   string extension;
   switch(ftyp)
@@ -347,7 +357,7 @@ PHG4DetectorSubsystem::ReadParamsFromFile(const string &name, const PHG4Detector
       cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
       exit(1);
     }
-  int iret = params->ReadFromFile(name, extension, layer, calibfiledir);
+  int iret = params->ReadFromFile(name, extension, layer, issuper, calibfiledir);
   if (iret)
     {
       cout << "problem reading from " << extension << " file " << endl;

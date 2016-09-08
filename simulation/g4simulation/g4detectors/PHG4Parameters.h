@@ -41,13 +41,15 @@ class PHG4Parameters: public PHObject
   void set_name(const std::string &name) {detname = name;}
   std::string Name() const {return detname;}
 
+  void FillFrom(const PdbParameterMap *saveparams);
   void FillFrom(const PdbParameterMapContainer *saveparamcontainer, const int layer);
   void FillFrom(const PHG4Parameters *saveparams);
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename, const int layer);
   int WriteToDB();
+  int ReadFromDB();
   int ReadFromDB(const std::string &name, const int layer);
   int WriteToFile(const std::string &extension, const std::string &dir = ".");
-  int ReadFromFile(const std::string &name, const std::string &extension, const int layer, const std::string &dir = ".");
+  int ReadFromFile(const std::string &name, const std::string &extension, const int layer, const int issuper, const std::string &dir = ".");
   void CopyToPdbParameterMap(PdbParameterMap *myparm);
 
  protected:
