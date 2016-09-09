@@ -31,6 +31,18 @@ int DumpPdbParameterMap::process_Node(PHNode *myNode)
         {
           *fout << "name: " << diter->first << ": value " << diter->second << endl;
         }
+      PdbParameterMap::iIter iiter;
+      PdbParameterMap::iConstRange ibegin_end = pdbparams->get_iparam_iters();
+      for (iiter=ibegin_end.first; iiter != ibegin_end.second; ++iiter)
+        {
+          *fout << "name: " << iiter->first << ": value " << iiter->second << endl;
+        }
+      PdbParameterMap::strIter striter;
+      PdbParameterMap::strConstRange strbegin_end = pdbparams->get_cparam_iters();
+      for (striter=strbegin_end.first; striter != strbegin_end.second; ++striter)
+        {
+          *fout << "name: " << striter->first << ": value " << striter->second << endl;
+        }
     }
   return 0;
 }
