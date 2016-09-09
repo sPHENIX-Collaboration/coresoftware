@@ -74,6 +74,7 @@ class PHG4DetectorSubsystem : public PHG4Subsystem
   void set_default_double_param( const std::string &name, const double dval);
   void set_default_int_param( const std::string &name, const int ival);
   void set_default_string_param( const std::string &name, const std::string &sval);
+  int BeginRunExecuted() const {return beginrunexecuted;}
 
  private:
   PHG4Parameters *params;
@@ -82,6 +83,7 @@ class PHG4DetectorSubsystem : public PHG4Subsystem
   bool overlapcheck;
   int layer;
   int usedb;
+  int beginrunexecuted;
   FILE_TYPE filetype;
   std::string superdetector;
   std::string calibfiledir;
