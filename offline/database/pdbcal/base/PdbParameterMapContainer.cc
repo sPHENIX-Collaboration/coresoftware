@@ -46,11 +46,11 @@ const PdbParameterMap *
 PdbParameterMapContainer::GetParameters(const int layer) const
 {
   map<int, PdbParameterMap *>::const_iterator iter = parametermap.find(layer);
-if (iter == parametermap.end())
-  {
-    return NULL;
-  }
- return iter->second;
+  if (iter == parametermap.end())
+    {
+      return NULL;
+    }
+  return iter->second;
 }
 
 PdbParameterMap *
