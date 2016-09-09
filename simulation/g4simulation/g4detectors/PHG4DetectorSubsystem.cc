@@ -25,6 +25,7 @@ PHG4DetectorSubsystem::PHG4DetectorSubsystem(const std::string &name, const int 
   overlapcheck(false),
   layer(lyr),
   usedb(0),
+  beginrunexecuted(0),
   filetype(PHG4DetectorSubsystem::none),
   superdetector("NONE"),
   calibfiledir("./")
@@ -110,9 +111,13 @@ PHG4DetectorSubsystem::InitRun( PHCompositeNode* topNode )
   // save updated persistant copy on node tree
   params->SaveToNodeTree(runNode,paramnodename,layer);
   int iret = InitRunSubsystem(topNode);
-PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode,paramnodename);
- cout << Name() << endl;
- nodeparams->print();
+  if (Verbosity() > 0)
+    {
+      PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode,paramnodename);
+      cout << Name() << endl;
+      nodeparams->print();
+    }
+  beginrunexecuted = 1;
   return iret;
 }
 
