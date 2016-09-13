@@ -1,15 +1,5 @@
-// $$Id: PHG4SpacalPrototypeSubsystem.cc,v 1.2 2014/08/12 03:49:12 jinhuang Exp $$
-
-/*!
- * \file ${file_name}
- * \brief
- * \author Jin Huang <jhuang@bnl.gov>
- * \version $$Revision: 1.2 $$
- * \date $$Date: 2014/08/12 03:49:12 $$
- */
 #include "PHG4SpacalPrototypeSubsystem.h"
 
-#include "PHG4ParametersContainer.h"
 
 #include "PHG4SpacalPrototypeDetector.h"
 #include "PHG4ProjSpacalDetector.h"
@@ -18,6 +8,9 @@
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4SpacalPrototypeSteppingAction.h"
 #include "PHG4EventActionClearZeroEdep.h"
+
+#include "PHG4ParametersContainer.h"
+#include "PHG4Parameters.h"
 
 #include <g4main/PHG4Utils.h>
 #include <g4main/PHG4PhenixDetector.h>
@@ -37,97 +30,43 @@
 using namespace std;
 
 //_______________________________________________________________________
-PHG4SpacalPrototypeSubsystem::PHG4SpacalPrototypeSubsystem(
-    const std::string &na) :
-    detector_(NULL), steppingAction_(NULL), eventAction_(NULL), //
-    active(0), absorberactive(0), //
-    detector_type(na), superdetector("NONE"),//
-    useDB(false),Params(na)
+PHG4SpacalPrototypeSubsystem::PHG4SpacalPrototypeSubsystem(const std::string &na) :
+    PHG4DetectorSubsystem(na,0),
+    detector_(NULL), 
+    steppingAction_(NULL), 
+    eventAction_(NULL) //
 {
-  Name(na);
+  InitializeParameters();
 }
 
 //_______________________________________________________________________
 int
-PHG4SpacalPrototypeSubsystem::InitRun(PHCompositeNode* topNode)
+PHG4SpacalPrototypeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
-  // create hit list only for active layers
-  PHNodeIterator iter(topNode);
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
-      "PHCompositeNode", "DST"));
-
-  // update the parameters on the node tree
-  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
-      "PHCompositeNode", "RUN"));
-  string g4geonodename = "G4GEO_";
-  if (superdetector != "NONE")
-    {
-      g4geonodename += superdetector;
-    }
-  parNode->addNode(new PHDataNode<PHG4ParametersContainer>(new PHG4ParametersContainer(), g4geonodename));
-
-  PHG4Parameters *construction_params = findNode::getClass<PHG4Parameters>(
-      parNode, g4geonodename);
-  assert(construction_params);
-
-  // start with default then fill it up.
-  SetDefaultParameters(construction_params);
-
-  // save updated persistant copy on node tree
-  const string paramnodename = "G4GEOPARAM_" + superdetector;
-
-  if (useDB)
-    {
-      // use DB
-
-      int iret = construction_params->ReadFromDB(superdetector,0);
-      if (iret)
-        {
-          cout
-              << "PHG4SpacalPrototypeSubsystem::InitRun - problem reading from DB"
-              << endl;
-
-          return Fun4AllReturnCodes::ABORTRUN;
-        }
-    }
-  else
-    {
-      PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode,
-          paramnodename);
-      if (nodeparams)
-        {
-          construction_params->FillFrom(nodeparams,0);
-        }
-    }
-
-  // additional user set parameters
-  construction_params->FillFrom(&Params);
-
-//   this step is moved to after detector construction
-//   save updated persistant copy on node tree
-  construction_params->SaveToNodeTree(parNode, paramnodename, 0);
+  PHNodeIterator iter( topNode );
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
   if (verbosity > 0)
     cout
         << "PHG4SpacalPrototypeSubsystem::InitRun - use PHG4SpacalPrototypeDetector"
         << endl;
-  detector_ = new PHG4SpacalPrototypeDetector(topNode, Name());
+  detector_ = new PHG4SpacalPrototypeDetector(topNode, GetParams(), Name());
 
-  detector_->SetActive(active);
-  detector_->SetAbsorberActive(absorberactive);
-  detector_->SuperDetector(superdetector);
-  detector_->OverlapCheck(overlapcheck);
+  detector_->SetActive(GetParams()->get_int_param("active"));
+  detector_->SetAbsorberActive(GetParams()->get_int_param("absorberactive"));
+  detector_->SuperDetector(SuperDetector());
+  detector_->OverlapCheck(CheckOverlap());
 
-  if (active)
+  if (GetParams()->get_int_param("active"))
     {
       ostringstream nodename;
-      if (superdetector != "NONE")
+      if (SuperDetector() != "NONE")
         {
-          nodename << "G4HIT_" << superdetector;
+          nodename << "G4HIT_" << SuperDetector();
         }
       else
         {
-          nodename << "G4HIT_" << detector_type;
+          nodename << "G4HIT_" << Name();
         }
       PHG4HitContainer* cylinder_hits = findNode::getClass<PHG4HitContainer>(
           topNode, nodename.str().c_str());
@@ -141,16 +80,16 @@ PHG4SpacalPrototypeSubsystem::InitRun(PHCompositeNode* topNode)
       cylinder_hits->AddLayer(0);
       PHG4EventActionClearZeroEdep *evtac = new PHG4EventActionClearZeroEdep(
           topNode, nodename.str());
-      if (absorberactive)
+      if (GetParams()->get_int_param("absorberactive"))
         {
           nodename.str("");
-          if (superdetector != "NONE")
+          if (SuperDetector() != "NONE")
             {
-              nodename << "G4HIT_ABSORBER_" << superdetector;
+              nodename << "G4HIT_ABSORBER_" << SuperDetector();
             }
           else
             {
-              nodename << "G4HIT_ABSORBER_" << detector_type ;
+              nodename << "G4HIT_ABSORBER_" << Name();
             }
           PHG4HitContainer* cylinder_hits =
               findNode::getClass<PHG4HitContainer>(topNode,
@@ -194,59 +133,31 @@ PHG4SpacalPrototypeSubsystem::GetDetector(void) const
   return detector_;
 }
 
-//_______________________________________________________________________
-PHG4SteppingAction*
-PHG4SpacalPrototypeSubsystem::GetSteppingAction(void) const
-{
-  return steppingAction_;
-}
-
 void
 PHG4SpacalPrototypeSubsystem::Print(const std::string &what) const
 {
   detector_->Print(what);
+  cout << Name() << " Parameters: " << endl;
+  if (! BeginRunExecuted())
+    {
+      cout << "Need to execute BeginRun() before parameter printout is meaningful" << endl;
+      cout << "To do so either run one or more events or on the command line execute: " << endl;
+      cout << "Fun4AllServer *se = Fun4AllServer::instance();" << endl;
+      cout << "PHG4Reco *g4 = (PHG4Reco *) se->getSubsysReco(\"PHG4RECO\");" << endl;
+      cout << "g4->InitRun(se->topNode());" << endl;
+      cout << "PHG4SpacalPrototypeSubsystem *sys = (PHG4SpacalPrototypeSubsystem *) g4->getSubsystem(\"" << Name() << "\");" << endl;
+      cout << "sys->Print()" << endl;
+      return;
+    }
+  GetParams()->Print();
   return;
 }
 
 void
-PHG4SpacalPrototypeSubsystem::SetDefaultParameters(PHG4Parameters * param)
+PHG4SpacalPrototypeSubsystem::SetDefaultParameters()
 {
-  assert(param);
-
-//  param->set_double_param("radius", 95);
-//  param->set_double_param("zmin", -40);
-//  param->set_double_param("zmax", 40);
-//  param->set_double_param("thickness", 16.6);
-//
-//
-//  param->set_string_param("absorber_mat","Spacal_W_Epoxy");
-//  param->set_string_param("fiber_clading_mat","PMMA");
-//  param->set_string_param("fiber_core_mat","G4_POLYSTYRENE");
-//
-//  param->set_double_param("xpos", 0);
-//  param->set_double_param("ypos", 0);
-//  param->set_double_param("zpos", 0);
-//
-//
-//  param->set_double_param("fiber_clading_thickness", 0.003 / 2);
-//  param->set_double_param("fiber_core_diameter", 0.047 - (0.003 / 2) * 2);
-//  param->set_double_param("fiber_distance",  0.1);
-//
-//  param->set_int_param("virualize_fiber",  0);
-//  param->set_int_param("azimuthal_seg_visible",  0);
-//  param->set_int_param("construction_verbose",  verbosity);
-//
-//  param->set_int_param("azimuthal_n_sec", 8);
-//
-//  param->set_double_param("assembly_spacing",  0.0001);
-//
-//  param->set_double_param("sidewall_thickness",  0.075000);
-//  param->set_double_param("sidewall_outer_torr",  0.030000);
-//  param->set_string_param("sidewall_mat",  "SS310");
-
-//  param->set_int_param("max_phi_bin_in_sec", 1);
-//
-//  param->set_int_param("init_default_sector_map", 1);
-
-
+  set_default_double_param("xpos", 0.);
+  set_default_double_param("ypos", 0.);
+  set_default_double_param("zpos", 0.);
+  return;
 }
