@@ -95,6 +95,9 @@ public:
 		if (file)
 			_eval_outname = file;
 	}
+	std::string get_eval_filename() const {
+			return _eval_outname;
+	}
 
 	void fill_eval_tree(PHCompositeNode*);
 	void init_eval_tree();
@@ -206,7 +209,7 @@ private:
 	PHGenFit::Track* ReFitTrack(const SvtxTrack* intrack, const SvtxVertex* invertex = NULL);
 
 	//! Make SvtxTrack from PHGenFit::Track and SvtxTrack
-	SvtxTrack* MakeSvtxTrack(const SvtxTrack*, const PHGenFit::Track*);
+	SvtxTrack* MakeSvtxTrack(const SvtxTrack* svtxtrack, const PHGenFit::Track* genfit_track, const SvtxVertex * vertex = NULL);
 
 	//! Fill SvtxVertexMap from GFRaveVertexes and Tracks
 	bool FillSvtxVertexMap(

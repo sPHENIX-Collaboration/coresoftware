@@ -61,6 +61,9 @@ public:
   virtual float get_dca() const                {return NAN;}
   virtual void  set_dca(float dca)             {}
 
+  virtual float get_dca_error() const                {return NAN;}
+  virtual void  set_dca_error(float dca)             {}
+
   virtual float get_dca2d() const              {return NAN;}  
   virtual void  set_dca2d(float dca2d)         {}
 

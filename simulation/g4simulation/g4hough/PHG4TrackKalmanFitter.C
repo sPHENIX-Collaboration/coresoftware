@@ -37,7 +37,6 @@
 #include <utility>
 #include <vector>
 
-
 #include "TClonesArray.h"
 #include "TMatrixDSym.h"
 #include "TTree.h"
@@ -59,7 +58,6 @@
 #define _DEBUG_MODE_ 0
 
 using namespace std;
-
 
 //Rave
 #include <rave/Version.h>
@@ -90,8 +88,8 @@ public:
 	}
 
 	void findVertices(std::vector<genfit::GFRaveVertex*>* vertices,
-			const std::vector<genfit::Track*>& tracks,
-			const bool use_beamspot = false) {
+			const std::vector<genfit::Track*>& tracks, const bool use_beamspot =
+					false) {
 
 		clearMap();
 
@@ -108,7 +106,7 @@ public:
 
 	void findVertices(std::vector<genfit::GFRaveVertex*>* vertices,
 			const std::vector<genfit::Track*>& tracks,
-			std::vector < genfit::MeasuredStateOnPlane* > & GFStates,
+			std::vector<genfit::MeasuredStateOnPlane*> & GFStates,
 			const bool use_beamspot = false) {
 
 		clearMap();
@@ -139,7 +137,6 @@ private:
 
 };
 
-
 /*
  * Constructor
  */
@@ -147,14 +144,15 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 		SubsysReco(name), _flags(NONE), _output_mode(OverwriteOriginalNode), _fit_primary_tracks(
 				true), _mag_field_file_name(
 				"/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"), _mag_field_re_scaling_factor(
-				1.4 / 1.5), _reverse_mag_field(true), _fitter( NULL), _track_fitting_alg_name("KalmanFitterRefTrack"), _primary_pid_guess(211), _vertex_finder(
-				NULL), _vertexing_method("mvf"), _truth_container(
+				1.4 / 1.5), _reverse_mag_field(true), _fitter( NULL), _track_fitting_alg_name(
+				"KalmanFitterRefTrack"), _primary_pid_guess(211), _vertex_finder(
+		NULL), _vertexing_method("mvf"), _truth_container(
 		NULL), _clustermap(NULL), _trackmap(NULL), _vertexmap(NULL), _trackmap_refit(
 		NULL), _primary_trackmap(NULL), _vertexmap_refit(NULL), _do_eval(false), _eval_outname(
 				"PHG4TrackKalmanFitter_eval.root"), _eval_tree(
 		NULL), _tca_particlemap(NULL), _tca_vtxmap(NULL), _tca_trackmap(NULL), _tca_vertexmap(
 		NULL), _tca_trackmap_refit(NULL), _tca_primtrackmap(NULL), _tca_vertexmap_refit(
-				NULL), _do_evt_display(false) {
+		NULL), _do_evt_display(false) {
 	_event = 0;
 }
 
@@ -166,10 +164,8 @@ int PHG4TrackKalmanFitter::Init(PHCompositeNode *topNode) {
 
 //	CreateNodes(topNode);
 
-
 	return Fun4AllReturnCodes::EVENT_OK;
 }
-
 
 /*
  * Init run
@@ -195,14 +191,12 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
 
 	//LogDebug(genfit::FieldManager::getInstance()->getFieldVal(TVector3(0, 0, 0)).Z());
 
-
 	_vertex_finder = new genfit::GFRaveVertexFactory(verbosity);
 	//_vertex_finder->setMethod("kalman-smoothing:1"); //! kalman-smoothing:1 is the defaul method
 	_vertex_finder->setMethod(_vertexing_method.data());
 	//_vertex_finder->setBeamspot();
 
 	//_vertex_finder = new PHRaveVertexFactory(verbosity);
-
 
 	if (!_vertex_finder) {
 		cerr << PHWHERE << endl;
@@ -238,8 +232,12 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 	//vector<genfit::MeasuredStateOnPlane*> rf_gf_states;
 	rf_gf_tracks.clear();
 
+	vector<PHGenFit::Track*> rf_phgf_tracks;
+	rf_phgf_tracks.clear();
 
-	if(_trackmap_refit)
+	map<unsigned int, unsigned int> svtxtrack_genfittrack_map;
+
+	if (_trackmap_refit)
 		_trackmap_refit->empty();
 
 	for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
@@ -250,26 +248,15 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		//rf_phgf_track->getGenFitTrack()->Print();
 #endif
 		if (rf_phgf_track) {
-			SvtxTrack* rf_track = MakeSvtxTrack(iter->second, rf_phgf_track);
-
+			svtxtrack_genfittrack_map[iter->second->get_id()] =
+					rf_phgf_tracks.size();
+			rf_phgf_tracks.push_back(rf_phgf_track);
 			rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
-
-			if (_output_mode == MakeNewNode || _output_mode == DebugMode)
-				if(_trackmap_refit)
-					_trackmap_refit->insert(rf_track);
-
-			if (_output_mode == OverwriteOriginalNode || _output_mode == DebugMode)
-				*(dynamic_cast<SvtxTrack_v1*>(iter->second)) =
-						*(dynamic_cast<SvtxTrack_v1*>(rf_track));
-		}
-		else {
-			if (_output_mode == OverwriteOriginalNode)
-				_trackmap->erase(iter->first);
 		}
 	}
 
 	//! add tracks to event display
-	if(_do_evt_display)
+	if (_do_evt_display)
 		_fitter->getEventDisplay()->addEvent(rf_gf_tracks);
 
 	//! find vertex using tracks
@@ -280,17 +267,54 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		try {
 			_vertex_finder->findVertices(&rave_vertices, rf_gf_tracks);
 		} catch (...) {
-			std::cout<< PHWHERE << "GFRaveVertexFactory::findVertices failed!";
+			std::cout << PHWHERE << "GFRaveVertexFactory::findVertices failed!";
 		}
 	}
 
-	FillSvtxVertexMap(rave_vertices,rf_gf_tracks);
+	FillSvtxVertexMap(rave_vertices, rf_gf_tracks);
+
+	for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
+			++iter) {
+		PHGenFit::Track* rf_phgf_track = NULL;
+
+		if (svtxtrack_genfittrack_map.find(iter->second->get_id())
+				!= svtxtrack_genfittrack_map.end()) {
+			unsigned int itrack =
+					svtxtrack_genfittrack_map[iter->second->get_id()];
+			rf_phgf_track = rf_phgf_tracks[itrack];
+		}
+
+		if (rf_phgf_track) {
+
+			//FIXME figure out which vertex to use.
+			SvtxVertex* vertex = NULL;
+			if (_vertexmap_refit->size() > 0)
+				vertex = _vertexmap_refit->get(0);
+
+			SvtxTrack* rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
+					vertex);
+
+			rf_phgf_tracks.push_back(rf_phgf_track);
+			rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
+
+			if (_output_mode == MakeNewNode || _output_mode == DebugMode)
+				if (_trackmap_refit)
+					_trackmap_refit->insert(rf_track);
+
+			if (_output_mode == OverwriteOriginalNode
+					|| _output_mode == DebugMode)
+				*(dynamic_cast<SvtxTrack_v1*>(iter->second)) =
+						*(dynamic_cast<SvtxTrack_v1*>(rf_track));
+		} else {
+			if (_output_mode == OverwriteOriginalNode)
+				_trackmap->erase(iter->first);
+		}
+	}
 
 	/*!
 	 * Fit track as primary track, This part need to be called after FillSvtxVertexMap
 	 */
-	if(_fit_primary_tracks && rave_vertices.size() > 0)
-	{
+	if (_fit_primary_tracks && rave_vertices.size() > 0) {
 		_primary_trackmap->empty();
 
 		//FIXME figure out which vertex to use.
@@ -303,9 +327,13 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 				 */
 				PHGenFit::Track* rf_phgf_track = ReFitTrack(iter->second,
 						vertex);
-				if(rf_phgf_track) {
+				if (rf_phgf_track) {
+					//FIXME figure out which vertex to use.
+					SvtxVertex* vertex = NULL;
+					if (_vertexmap_refit->size() > 0)
+						vertex = _vertexmap_refit->get(0);
 					SvtxTrack* rf_track = MakeSvtxTrack(iter->second,
-							rf_phgf_track);
+							rf_phgf_track, vertex);
 					_primary_trackmap->insert(rf_track);
 				}
 			}
@@ -331,7 +359,7 @@ int PHG4TrackKalmanFitter::End(PHCompositeNode *topNode) {
 		_eval_tree->Write();
 	}
 
-	if(_do_evt_display)
+	if (_do_evt_display)
 		_fitter->displayEvent();
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -340,8 +368,7 @@ int PHG4TrackKalmanFitter::End(PHCompositeNode *topNode) {
 /*
  * dtor
  */
-PHG4TrackKalmanFitter::~PHG4TrackKalmanFitter()
-{
+PHG4TrackKalmanFitter::~PHG4TrackKalmanFitter() {
 	delete _fitter;
 	delete _vertex_finder;
 }
@@ -368,15 +395,13 @@ void PHG4TrackKalmanFitter::fill_eval_tree(PHCompositeNode *topNode) {
 				*dynamic_cast<PHG4VtxPointv1*>(itr->second));
 
 	i = 0;
-	for (SvtxTrackMap::ConstIter itr =
-			_trackmap->begin();
+	for (SvtxTrackMap::ConstIter itr = _trackmap->begin();
 			itr != _trackmap->end(); ++itr)
 		new ((*_tca_trackmap)[i++]) (SvtxTrack_v1)(
 				*dynamic_cast<SvtxTrack_v1*>(itr->second));
 
 	i = 0;
-	for (SvtxVertexMap::ConstIter itr =
-			_vertexmap->begin();
+	for (SvtxVertexMap::ConstIter itr = _vertexmap->begin();
 			itr != _vertexmap->end(); ++itr)
 		new ((*_tca_vertexmap)[i++]) (SvtxVertex_v1)(
 				*dynamic_cast<SvtxVertex_v1*>(itr->second));
@@ -413,18 +438,23 @@ void PHG4TrackKalmanFitter::fill_eval_tree(PHCompositeNode *topNode) {
 /*
  * init_eval_tree
  */
-void PHG4TrackKalmanFitter::init_eval_tree()
-{
-	if(!_tca_particlemap) _tca_particlemap = new TClonesArray("PHG4Particlev2");
-	if(!_tca_vtxmap) _tca_vtxmap = new TClonesArray("PHG4VtxPointv1");
+void PHG4TrackKalmanFitter::init_eval_tree() {
+	if (!_tca_particlemap)
+		_tca_particlemap = new TClonesArray("PHG4Particlev2");
+	if (!_tca_vtxmap)
+		_tca_vtxmap = new TClonesArray("PHG4VtxPointv1");
 
-	if(!_tca_trackmap) _tca_trackmap = new TClonesArray("SvtxTrack_v1");
-	if(!_tca_vertexmap) _tca_vertexmap = new TClonesArray("SvtxVertex_v1");
-	if(!_tca_trackmap_refit) _tca_trackmap_refit = new TClonesArray("SvtxTrack_v1");
-	if(_fit_primary_tracks)
-		if(!_tca_primtrackmap) _tca_primtrackmap = new TClonesArray("SvtxTrack_v1");
-	if(!_tca_vertexmap_refit) _tca_vertexmap_refit = new TClonesArray("SvtxVertex_v1");
-
+	if (!_tca_trackmap)
+		_tca_trackmap = new TClonesArray("SvtxTrack_v1");
+	if (!_tca_vertexmap)
+		_tca_vertexmap = new TClonesArray("SvtxVertex_v1");
+	if (!_tca_trackmap_refit)
+		_tca_trackmap_refit = new TClonesArray("SvtxTrack_v1");
+	if (_fit_primary_tracks)
+		if (!_tca_primtrackmap)
+			_tca_primtrackmap = new TClonesArray("SvtxTrack_v1");
+	if (!_tca_vertexmap_refit)
+		_tca_vertexmap_refit = new TClonesArray("SvtxVertex_v1");
 
 	//! create TTree
 	_eval_tree = new TTree("T", "PHG4TrackKalmanFitter Evaluation");
@@ -435,7 +465,7 @@ void PHG4TrackKalmanFitter::init_eval_tree()
 	_eval_tree->Branch("SvtxTrack", _tca_trackmap);
 	_eval_tree->Branch("SvtxVertex", _tca_vertexmap);
 	_eval_tree->Branch("SvtxTrackRefit", _tca_trackmap_refit);
-	if(_fit_primary_tracks)
+	if (_fit_primary_tracks)
 		_eval_tree->Branch("PrimSvtxTrack", _tca_primtrackmap);
 	_eval_tree->Branch("SvtxVertexRefit", _tca_vertexmap_refit);
 
@@ -453,7 +483,7 @@ void PHG4TrackKalmanFitter::reset_eval_variables() {
 	_tca_trackmap->Clear();
 	_tca_vertexmap->Clear();
 	_tca_trackmap_refit->Clear();
-	if(_fit_primary_tracks)
+	if (_fit_primary_tracks)
 		_tca_primtrackmap->Clear();
 	_tca_vertexmap_refit->Clear();
 }
@@ -578,7 +608,6 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 		return Fun4AllReturnCodes::ABORTEVENT;
 	}
 
-
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -587,25 +616,22 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
  * \param intrack Input SvtxTrack
  * \param invertex Input Vertex, if fit track as a primary vertex
  */
-PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, const SvtxVertex* invertex) {
-	if(!intrack){
-		cerr << PHWHERE << " Input SvtxTrack is NULL!"
-						<< endl;
+PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack,
+		const SvtxVertex* invertex) {
+	if (!intrack) {
+		cerr << PHWHERE << " Input SvtxTrack is NULL!" << endl;
 		return NULL;
 	}
 
 	// prepare seed from input SvtxTrack
-	TVector3 seed_mom(intrack->get_px(),intrack->get_py(),intrack->get_pz());
-	TVector3 seed_pos(intrack->get_x(),intrack->get_y(),intrack->get_z());
+	TVector3 seed_mom(intrack->get_px(), intrack->get_py(), intrack->get_pz());
+	TVector3 seed_pos(intrack->get_x(), intrack->get_y(), intrack->get_z());
 	TMatrixDSym seed_cov(6);
-	for(int i=0;i<6;i++)
-	{
-		for(int j=0;j<6;j++)
-		{
-			seed_cov[i][j] = intrack->get_error(i,j);
+	for (int i = 0; i < 6; i++) {
+		for (int j = 0; j < 6; j++) {
+			seed_cov[i][j] = intrack->get_error(i, j);
 		}
 	}
-
 
 	/*!
 	 * mu+:	-13
@@ -618,8 +644,8 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
 	//TODO Add multiple TrackRep choices.
 	//int pid = 211;
 	genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_pid_guess);
-	PHGenFit::Track* track = new PHGenFit::Track(rep, seed_pos,
-			seed_mom, seed_cov);
+	PHGenFit::Track* track = new PHGenFit::Track(rep, seed_pos, seed_mom,
+			seed_cov);
 
 	// Create measurements
 	std::vector<PHGenFit::Measurement*> measurements;
@@ -627,7 +653,6 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
 	/*!
 	 * if fit track as a primary track
 	 */
-
 
 //	if(invertex and verbosity >= 2)
 //	{
@@ -641,17 +666,16 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
 //			}
 //
 //	}
-
 	/*!
 	 *
 	 */
 #if _DEBUG_MODE_ == 1
 	if (invertex
 //			and invertex->size_tracks() == 1
-			) {
+	) {
 		TRandom3 rand(0);
 		double dxy = 0.0007;	//7 um
-		double dz = 0.003;		//30 um
+		double dz = 0.003;//30 um
 
 		TVector3 pos(invertex->get_x(), invertex->get_y(), invertex->get_z());
 		TMatrixDSym cov(3);
@@ -663,8 +687,8 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
 		pos.SetXYZ(x, y, z);
 
 		for (int i = 0; i < 3; i++)
-			for (int j = 0; j < 3; j++)
-				cov[i][j] = 0;
+		for (int j = 0; j < 3; j++)
+		cov[i][j] = 0;
 
 		cov[0][0] = dxy * dxy;
 		cov[1][1] = dxy * dxy;
@@ -716,8 +740,7 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
 			iter != intrack->end_clusters(); ++iter) {
 		unsigned int cluster_id = *iter;
 		SvtxCluster* cluster = _clustermap->get(cluster_id);
-		if(!cluster)
-		{
+		if (!cluster) {
 			LogError("No cluster Found!");
 			continue;
 		}
@@ -744,9 +767,8 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
 	 *  Fit the track
 	 *  ret code 0 means 0 error or good status
 	 */
-	if(_fitter->processTrack(track, false)!=0)
-	{
-		if(verbosity >= 1)
+	if (_fitter->processTrack(track, false) != 0) {
+		if (verbosity >= 1)
 			LogWarning("Track fitting failed");
 		return NULL;
 	}
@@ -758,43 +780,58 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack, con
  * Make SvtxTrack from PHGenFit::Track and SvtxTrack
  */
 SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
-		const PHGenFit::Track* phgf_track) {
+		const PHGenFit::Track* phgf_track, const SvtxVertex* vertex) {
 
 	double chi2 = phgf_track->get_chi2();
 	double ndf = phgf_track->get_ndf();
 
-	genfit::MeasuredStateOnPlane* gf_state = phgf_track->extrapolateToLine(TVector3(0.,0.,0.), TVector3(0.,0.,1.));
+	TVector3 vertex_position(0, 0, 0);
+	double dvr2 = 0;
+	double dvz2 = 0;
+
+	if (vertex) {
+		vertex_position.SetXYZ(vertex->get_x(), vertex->get_y(),
+				vertex->get_z());
+		dvr2 = vertex->get_error(0, 0) + vertex->get_error(1, 1);
+		dvz2 = vertex->get_error(2, 2);
+	}
+
+	genfit::MeasuredStateOnPlane* gf_state = phgf_track->extrapolateToLine(
+			vertex_position, TVector3(0., 0., 1.));
 	TVector3 mom = gf_state->getMom();
 	TVector3 pos = gf_state->getPos();
 	TMatrixDSym cov = gf_state->get6DCov();
 
-
 	//const SvtxTrack_v1* temp_track = static_cast<const SvtxTrack_v1*> (svtx_track);
-	SvtxTrack_v1* out_track = new SvtxTrack_v1(*static_cast<const SvtxTrack_v1*> (svtx_track));
+	SvtxTrack_v1* out_track = new SvtxTrack_v1(
+			*static_cast<const SvtxTrack_v1*>(svtx_track));
 
 	/*!
 	 *  1/p, u'/z', v'/z', u, v
-	 *  u is defined as mom X beam line at POCA
+	 *  u is defined as momentum X beam line at POCA of the beam line
+	 *  v is alone the beam line
 	 *  so u is the dca2d direction
 	 */
-	double dca2d = gf_state->getState()[3];
-	out_track->set_dca2d(dca2d);
-	if(gf_state->getCov()[3][3] > 0)
-		out_track->set_dca2d_error(sqrt(gf_state->getCov()[3][3]));
-	else {
-		out_track->set_dca2d_error(-9999);
-		if(verbosity >= 1)
-			LogWarning("gf_state->getCov()[3][3] <= 0");
-	}
-	double dca3d = sqrt(
-			dca2d*dca2d +
-			gf_state->getState()[4]*gf_state->getState()[4]);
-	out_track->set_dca(dca3d);
+	double u = gf_state->getState()[3];
+	double v = gf_state->getState()[4];
 
+	double du2 = gf_state->getCov()[3][3];
+	double dv2 = gf_state->getCov()[4][4];
+
+	out_track->set_dca2d(u);
+	out_track->set_dca2d_error(sqrt(du2 + dvr2));
+
+	double dca3d = sqrt(u * u + v * v);
+	double dca3d_error = sqrt(sqrt(du2 + dv2 + dvr2 + dvz2));
+
+	out_track->set_dca(dca3d);
+	out_track->set_dca_error(dca3d_error);
 
 	out_track->set_chisq(chi2);
 	out_track->set_ndf(ndf);
-	out_track->set_charge((_reverse_mag_field) ? -1.*phgf_track->get_charge() : phgf_track->get_charge());
+	out_track->set_charge(
+			(_reverse_mag_field) ?
+					-1. * phgf_track->get_charge() : phgf_track->get_charge());
 
 	out_track->set_px(mom.Px());
 	out_track->set_py(mom.Py());
@@ -804,11 +841,9 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 	out_track->set_y(pos.Y());
 	out_track->set_z(pos.Z());
 
-	for(int i=0;i<6;i++)
-	{
-		for(int j=i;j<6;j++)
-		{
-			out_track->set_error(i,j,cov[i][j]);
+	for (int i = 0; i < 6; i++) {
+		for (int j = i; j < 6; j++) {
+			out_track->set_error(i, j, cov[i][j]);
 		}
 	}
 
@@ -816,8 +851,7 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 			iter != svtx_track->end_clusters(); ++iter) {
 		unsigned int cluster_id = *iter;
 		SvtxCluster* cluster = _clustermap->get(cluster_id);
-		if(!cluster)
-		{
+		if (!cluster) {
 			LogError("No cluster Found!");
 			continue;
 		}
@@ -830,7 +864,9 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 		double radius = pos.Pt();
 
 		//TODO add exception handling
-		genfit::MeasuredStateOnPlane* gf_state = phgf_track->extrapolateToCylinder(radius,TVector3(0,0,0),TVector3(0,0,1), 0);
+		genfit::MeasuredStateOnPlane* gf_state =
+				phgf_track->extrapolateToCylinder(radius, TVector3(0, 0, 0),
+						TVector3(0, 0, 1), 0);
 
 		if (!gf_state) {
 			if (verbosity > 1)
@@ -849,11 +885,9 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 
 		//gf_state->getCov().Print();
 
-		for(int i=0;i<6;i++)
-		{
-			for(int j=i;j<6;j++)
-			{
-				out_track->set_error(i,j, gf_state->get6DCov()[i][j]);
+		for (int i = 0; i < 6; i++) {
+			for (int j = i; j < 6; j++) {
+				out_track->set_error(i, j, gf_state->get6DCov()[i][j]);
 			}
 		}
 
@@ -879,11 +913,10 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 		const std::vector<genfit::GFRaveVertex*>& rave_vertices,
 		const std::vector<genfit::Track*>& gf_tracks) {
 
-	for(unsigned int ivtx = 0; ivtx<rave_vertices.size(); ++ivtx) {
+	for (unsigned int ivtx = 0; ivtx < rave_vertices.size(); ++ivtx) {
 		genfit::GFRaveVertex* rave_vtx = rave_vertices[ivtx];
 
-		if(!rave_vtx)
-		{
+		if (!rave_vtx) {
 			cerr << PHWHERE << endl;
 			return false;
 		}
@@ -895,27 +928,25 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 		svtx_vtx->set_position(0, rave_vtx->getPos().X());
 		svtx_vtx->set_position(1, rave_vtx->getPos().Y());
 		svtx_vtx->set_position(2, rave_vtx->getPos().Z());
-		for(int i=0;i<3;i++)
-			for(int j=0;j<3;j++)
-				svtx_vtx->set_error(i,j,rave_vtx->getCov()[i][j]);
+		for (int i = 0; i < 3; i++)
+			for (int j = 0; j < 3; j++)
+				svtx_vtx->set_error(i, j, rave_vtx->getCov()[i][j]);
 
-		for(unsigned int i=0;i<rave_vtx->getNTracks();i++)
-		{
+		for (unsigned int i = 0; i < rave_vtx->getNTracks(); i++) {
 			//TODO Assume id's are sync'ed between _trackmap_refit and gf_tracks, need to change?
-			const genfit::Track* rave_track = rave_vtx->getParameters(i)->getTrack();
-			for(unsigned int j=0;j<gf_tracks.size();j++)
-			{
-				if(rave_track == gf_tracks[j])
+			const genfit::Track* rave_track =
+					rave_vtx->getParameters(i)->getTrack();
+			for (unsigned int j = 0; j < gf_tracks.size(); j++) {
+				if (rave_track == gf_tracks[j])
 					svtx_vtx->insert_track(i);
 			}
 		}
 
-		if(_vertexmap_refit)
+		if (_vertexmap_refit)
 			_vertexmap_refit->insert(svtx_vtx);
 
-		if(verbosity >= 2)
-		{
-			cout << PHWHERE <<endl;
+		if (verbosity >= 2) {
+			cout << PHWHERE << endl;
 			svtx_vtx->Print();
 			_vertexmap_refit->Print();
 		}
@@ -923,19 +954,4 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 
 	return true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

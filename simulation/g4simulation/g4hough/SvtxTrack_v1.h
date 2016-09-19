@@ -50,6 +50,9 @@ public:
   float get_dca() const {return _dca;}
   void  set_dca(float dca) {_dca = dca;}
 
+  float get_dca_error() const {return _dca_error;}
+  void  set_dca_error(float dca_error) {_dca_error = dca_error;}
+
   float get_dca2d() const {return _dca2d;}  
   void  set_dca2d(float dca2d) {_dca2d = dca2d;}
 
@@ -153,6 +156,7 @@ public:
 
   // extended track information (non-primary tracks only)
   float _dca;
+  float _dca_error;
   float _dca2d;
   float _dca2d_error;
 

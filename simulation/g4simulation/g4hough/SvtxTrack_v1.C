@@ -17,6 +17,7 @@ SvtxTrack_v1::SvtxTrack_v1()
     _chisq(NAN),
     _ndf(0),
     _dca(NAN),
+	_dca_error(NAN),
     _dca2d(NAN),
     _dca2d_error(NAN),
     _states(),
@@ -43,6 +44,7 @@ SvtxTrack_v1& SvtxTrack_v1::operator=(const SvtxTrack_v1& track) {
   _chisq = track.get_chisq();
   _ndf = track.get_ndf();
   _dca = track.get_dca();
+  _dca_error = track.get_dca_error();
   _dca2d = track.get_dca2d();
   _dca2d_error = track.get_dca2d_error();
 
