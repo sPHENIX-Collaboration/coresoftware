@@ -822,7 +822,7 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 	out_track->set_dca2d_error(sqrt(du2 + dvr2));
 
 	double dca3d = sqrt(u * u + v * v);
-	double dca3d_error = sqrt(sqrt(du2 + dv2 + dvr2 + dvz2));
+	double dca3d_error = sqrt(du2 + dv2 + dvr2 + dvz2);
 
 	out_track->set_dca(dca3d);
 	out_track->set_dca_error(dca3d_error);
