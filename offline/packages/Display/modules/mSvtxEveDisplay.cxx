@@ -48,7 +48,8 @@ mSvtxEveDisplay::mSvtxEveDisplay(boost::shared_ptr<PHEveDisplay> dispin) :
   _svtx_tracks(NULL)     
 {
 
-  _evemanager = _evedisp->get_eve_instance();
+  verbosity = _evedisp->get_verbosity();
+  _evemanager = _evedisp->get_eve_manager();
   _prop = _evedisp->get_cnt_prop();
   _svtx_tracks = new TEveTrackList("Svtx Tracks");
   _evemanager->AddElement(_svtx_tracks,_evedisp->get_svtx_list());
@@ -72,7 +73,9 @@ mSvtxEveDisplay::init_run(PHCompositeNode* topNode)
 bool
 mSvtxEveDisplay::event(PHCompositeNode* topNode)
 {
-  std::cout<<"mSvtxEveDisplay - event.."<<std::endl;
+  clear();
+  
+  if(verbosity) std::cout<<"mSvtxEveDisplay - event() begins."<<std::endl;
   try
     {
       create_nodes(topNode);
@@ -99,9 +102,13 @@ void
 mSvtxEveDisplay::create_nodes(PHCompositeNode* topNode)
 {
   _vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
+  if(!_vertexmap) std::cout<< "SvtxVertexMap node not found!!"<<std::endl;
   _trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+  if(!_trackmap) std::cout<< "SvtxTrackMap node not found!!" <<std::endl;
   _clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
-  std::cout<<"mSvtxEveDisplay - nodes created.."<<std::endl;
+  if(!_clustermap) std::cout<< "SvtxClusterMap node not found!!"<<std::endl;
+  if(verbosity) std::cout<<"mSvtxEveDisplay - nodes created."<<std::endl;
+
 }
 
 void
@@ -125,7 +132,8 @@ mSvtxEveDisplay::draw_tracks()
               float py = track->get_py();
               float pz = track->get_pz();
 	      int charge = track->get_charge();
- 	      int pid = 1;//place holder
+	      //int  pid = track->get_pid();
+ 	      int pid = 0;//place holder
               TEveRecTrackT<double>* trk_reco = new TEveRecTrackT<double>();
               trk_reco->fV.Set(vx,
                                vy,
@@ -153,29 +161,23 @@ mSvtxEveDisplay::draw_tracks()
 		     float posx = cluster->get_position(0);
 		     float posy = cluster->get_position(1);
 		     float posz = cluster->get_position(2);
+		     if(verbosity>2) std::cout<<"posx= "<<posx <<", posy= "<<posy<<", posz= "<<posz<<std::endl;
                      trk->AddPathMark(TEvePathMarkD(TEvePathMarkD::kDaughter,
                                       TEveVectorD(posx, posy, posz)));
 		     trk->SetRnrPoints(kTRUE);
-         	     trk->SetMarkerStyle(4); 
-		     trk->SetMarkerSize(2);
+         	     trk->SetMarkerStyle(25); 
+		     trk->SetMarkerSize(1);
 		     if(charge > 0)
 		     trk->SetMarkerColor(kYellow);
 		     else
 		     trk->SetMarkerColor(kCyan);
               }///< SvtxTrack: ClusterIter
 	      trk->MakeTrack();
-              std::cout<<"mSvtxEveDisplay - track made.. "<<std::endl; 	     
+              if(verbosity>2) std::cout<<"mSvtxEveDisplay - track made. "<<std::endl; 	     
  	      _svtx_tracks->AddElement(trk);
 	}///< SvtxVertex: TrackIter
   }///< SvtxVertexMAp
 
-}
-
-void
-mSvtxEveDisplay::draw_event()
-{
-  clear();
-  add_elements();
 }
 
 bool 
@@ -183,7 +185,7 @@ mSvtxEveDisplay::pid_cut(int pid)
 {
 if(fabs(pid)==211 || fabs(pid)==321 || fabs(pid)==11 || fabs(pid)==13 || fabs(pid)==15 || fabs(pid)==17) return true;
 
-return true;//always return true
+if (pid == 0) return true;//always return true
 return false;
 }
 

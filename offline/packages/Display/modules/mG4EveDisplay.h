@@ -21,12 +21,15 @@ class PHEveDisplay;
 class TH2F;
 
 class PHG4TruthInfoContainer;
+class SvtxEvalStack;
 class PHG4VtxPoint;
 class JetMap;
 
 class mG4EveDisplay : public mPHEveModuleBase
 {
+
  public:
+
   mG4EveDisplay(boost::shared_ptr<PHEveDisplay>);
   ~mG4EveDisplay();
   
@@ -34,18 +37,19 @@ class mG4EveDisplay : public mPHEveModuleBase
   void init_run(PHCompositeNode* topNode);
   bool event(PHCompositeNode* topNode);
   void end(PHCompositeNode* topNode);
-  void draw_event();
   
   void create_nodes(PHCompositeNode* topNode);
-  void draw_tracks();
+  void draw_ideal_tracks();
+  void draw_g4_tracks();
   void draw_jets();
   void clear();
 
   
-private:
+ private:
 
   boost::shared_ptr<PHEveDisplay> _evedisp;
   PHG4TruthInfoContainer* _truth;
+  SvtxEvalStack* _svtxevalstack;
   JetMap *_jetmap;
 
   TEveTrackPropagator* _prop;
@@ -55,6 +59,7 @@ private:
   float radius;
   float length;
 
+  int verbosity;  
 
 };
 

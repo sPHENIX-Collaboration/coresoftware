@@ -2,7 +2,7 @@
         \file mCaloEveDisplay.h
         \author Sookhyun Lee
         \brief reconstructed energy clusters from cemc/hcalin/hcalout
-        \version $Revision: 1.1 $
+        \version $Revision: 1.2 $
         \date    $Date: 07/26/2016
 */
 
@@ -28,7 +28,9 @@ class RawTowerGeomContainer;
 
 class mCaloEveDisplay : public mPHEveModuleBase
 {
+
  public:
+
   mCaloEveDisplay(boost::shared_ptr<PHEveDisplay>);
   ~mCaloEveDisplay();
   
@@ -36,22 +38,19 @@ class mCaloEveDisplay : public mPHEveModuleBase
   void init_run(PHCompositeNode* topNode);
   bool event(PHCompositeNode* topNode);
   void end(PHCompositeNode* topNode);
-  void draw_event();
   
   void create_nodes(PHCompositeNode* topNode);
   void draw_clusters(bool _is_cemc, bool _is_hcalin, bool _is_hcalout);
   void clear();
 
-private:
+ private:
+
   boost::shared_ptr<PHEveDisplay> _evedisp;
 
   TEveElementList* _cemc_list;
   TEveElementList* _hcalin_list;
   TEveElementList* _hcalout_list;
-  
-  TEveBoxSet* _cemc_boxset;
-  TEveBoxSet* _hcalin_boxset;
-  TEveBoxSet* _hcalout_boxset; 
+
   TEveRGBAPalette *_pal;
 
   RawClusterContainer *_cemc_clusters;
@@ -63,6 +62,8 @@ private:
   RawTowerGeomContainer *_cemc_towergeo;
   RawTowerGeomContainer *_hcalin_towergeo;
   RawTowerGeomContainer *_hcalout_towergeo;
+
+  int verbosity;
 
 
 };

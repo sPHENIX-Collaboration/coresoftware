@@ -47,7 +47,8 @@ mJetEveDisplay::mJetEveDisplay(boost::shared_ptr<PHEveDisplay> dispin) :
   radius(0.3),
   length(300)
 {
-  _evemanager = _evedisp->get_eve_instance();
+  verbosity = _evedisp->get_verbosity();
+  _evemanager = _evedisp->get_eve_manager();
   _reco_jets = new TEveElementList("Reco jets");
   _evemanager->AddElement(_reco_jets,_evedisp->get_jet_list());
 }
@@ -69,7 +70,8 @@ mJetEveDisplay::init_run(PHCompositeNode* topNode)
 bool
 mJetEveDisplay::event(PHCompositeNode* topNode)
 {
-  std::cout<<"mJetEveDisplay - event.."<<std::endl;
+  clear();
+  if (verbosity) std::cout<<"mJetEveDisplay - event() begins."<<std::endl;
   try
     {
       create_nodes(topNode);
@@ -99,14 +101,14 @@ mJetEveDisplay::create_nodes(PHCompositeNode* topNode)
   if (_vtxmap->empty()) std::cout<<"SvtxVertexMap is empty!!! "<<std::endl;
   _jetmap = findNode::getClass<JetMap>(topNode,"AntiKt_Cluster_r03");
   if (!_jetmap) std::cout<<"JetMap node not found!! "<<std::endl;
-//  _jetmap->identify();
+  if (verbosity>2)  _jetmap->identify();
 
 }
 
 void
 mJetEveDisplay::draw_jets()
 {
-  std::cout<<"mJetEveDisplay - draw_jet() begins.."<<std::endl;
+  if (verbosity) std::cout<<"mJetEveDisplay - draw_jet() begins."<<std::endl;
 
 
       SvtxVertex* vertex = (_vtxmap->begin()->second);
@@ -130,7 +132,7 @@ mJetEveDisplay::draw_jets()
       float pt_threshold = _evedisp->get_jet_pt_threshold();     
       if (pt< pt_threshold) continue;
 
-      std::cout<<"Jet "<< id <<" : eta " <<eta << ", phi "<< phi << ", pt " << pt <<std::endl;
+      if (verbosity>2) std::cout<<"Jet "<< id <<" : eta " <<eta << ", phi "<< phi << ", pt " << pt <<std::endl;
 
       TEveStraightLineSet* axis= new TEveStraightLineSet("ConeAxis");
       axis->SetLineColor(kGreen);
@@ -151,14 +153,6 @@ mJetEveDisplay::draw_jets()
   }
 }
 
-
-
-void
-mJetEveDisplay::draw_event()
-{
-  add_elements();
-  clear();    
-}
 
 void 
 mJetEveDisplay::clear()

@@ -16,7 +16,6 @@
 
 // PHENIX includes
 #include <phool/PHCompositeNode.h>
-//#include <PHPoint.h>
 #include <phool/getClass.h>
 
 // ROOT and EVE includes
@@ -35,10 +34,12 @@
 // truth info includes
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
+#include <g4main/PHG4Hit.h>
 #include <g4main/PHG4VtxPointv1.h> // <-> reco  vertex
 #include <g4main/PHG4Showerv1.h>   // <-> reco  cluster
 #include <g4jets/JetMap.h>         // for jets
 #include <g4jets/Jet.h>
+#include <g4eval/SvtxEvalStack.h>
 
 #include <PHEveDisplay.h>
 #include <mG4EveDisplay.h>
@@ -51,6 +52,7 @@ mG4EveDisplay::mG4EveDisplay(boost::shared_ptr<PHEveDisplay> dispin) :
   mPHEveModuleBase(),
   _evedisp(dispin),
   _truth(NULL),   // truth info container
+  _svtxevalstack(NULL),
   _jetmap(NULL),
   _prop(NULL),
   _true_tracks(NULL),
@@ -58,7 +60,8 @@ mG4EveDisplay::mG4EveDisplay(boost::shared_ptr<PHEveDisplay> dispin) :
   radius(0.3),
   length(300)
 {
-  _evemanager = _evedisp->get_eve_instance();
+  verbosity = _evedisp->get_verbosity();
+  _evemanager = _evedisp->get_eve_manager();
   _prop = _evedisp->get_cnt_prop();
   _true_tracks = new TEveTrackList("True tracks");
   _true_jets = new TEveElementList("True jets");
@@ -82,12 +85,14 @@ mG4EveDisplay::init_run(PHCompositeNode* topNode)
 
 bool
 mG4EveDisplay::event(PHCompositeNode* topNode)
-{
-  std::cout<<"mG4EveDisplay - event.."<<std::endl;
+{ 
+ 
+  if (verbosity) std::cout<<"mG4EveDisplay - event() begins."<<std::endl;
+  clear();
   try
     {
       create_nodes(topNode);
-      draw_tracks();      
+      draw_ideal_tracks();      
       draw_jets();
     }
   catch(std::exception& e)
@@ -112,15 +117,20 @@ mG4EveDisplay::create_nodes(PHCompositeNode* topNode)
 {
   _truth = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
   if (!_truth) std::cout<<"TruthInfoContainer node not found!! "<<std::endl;
+  if (!_svtxevalstack){ 
+	_svtxevalstack = new SvtxEvalStack(topNode);
+  } else { 
+	_svtxevalstack->next_event(topNode);
+  }
   _jetmap = findNode::getClass<JetMap>(topNode,"AntiKt_Truth_r03"); 
   if (!_jetmap) std::cout<<"JetMap node not found!! "<<std::endl;
-  std::cout<<"mG4EveDisplay - nodes created.."<<std::endl;
+  if (verbosity) std::cout<<"mG4EveDisplay - nodes created."<<std::endl;
 }
 
 void
-mG4EveDisplay::draw_tracks()
+mG4EveDisplay::draw_ideal_tracks()
 {
-  std::cout<<"mG4EveDisplay - draw_tracks() begins.. "<<std::endl;
+  if (verbosity>1) std::cout<<"mG4EveDisplay - draw_ideal_tracks() begins. "<<std::endl;
 
     // true primary particle tracks
     PHG4TruthInfoContainer::ConstRange range = _truth->GetPrimaryParticleRange();
@@ -137,7 +147,7 @@ mG4EveDisplay::draw_tracks()
 			   particle->get_pz());
 	  int pid = particle->get_pid();
 	  int tid = particle->get_track_id();
-	  std::cout<<"mG4EveDisplay - particle id : "<<pid<<", track id : "<<tid<<std::endl;
+	  if (verbosity>2) std::cout<<"mG4EveDisplay - particle id : "<<pid<<", track id : "<<tid<<std::endl;
 	  if(fabs(pid)==211 || fabs(pid)==321 || fabs(pid)==11 || fabs(pid)==13 || fabs(pid)==15 || fabs(pid)==17){
 	  if(pid>0)
 	  trk_reco->fSign = 1;
@@ -145,27 +155,84 @@ mG4EveDisplay::draw_tracks()
 	  trk_reco->fSign = -1;
 //	  _prop->SetMagField(0.);
 	  TEveTrack* trk = new TEveTrack(trk_reco, _prop);
-	  std::cout<<"mG4EveDisplay - EveTrack instantiated.."<<std::endl;
+	  if (verbosity>1) std::cout<<"mG4EveDisplay - EveTrack instantiated."<<std::endl;
 	  trk->SetSmooth(kTRUE);
 	  // Color coding and 
 	  if(pid>0)
-          trk->SetLineColor(kOrange);
+          trk->SetLineColor(kRed);
 	  else
 	  trk->SetLineColor(kBlue);
           trk->SetLineWidth(2.5);
-	  std::cout<<"mG4EveDisplay - set cosmetices of track"<<std::endl;	
+	  if (verbosity>1) std::cout<<"mG4EveDisplay - set cosmetices of track."<<std::endl;	
+	  SvtxTruthEval*     trutheval = _svtxevalstack->get_truth_eval();
+	  std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits(particle);
+          for(std::set<PHG4Hit*>::iterator jter = g4hits.begin();
+            jter != g4hits.end();
+            ++jter) {
+            	     PHG4Hit *g4hit = *jter;
+		     float posx = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
+		     float posy = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
+		     float posz = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
+                     if(verbosity>2) std::cout<<"posx= "<<posx <<", posy= "<<posy<<", posz= "<<posz<<std::endl;
+                     trk->AddPathMark(TEvePathMarkD(TEvePathMarkD::kDaughter,
+                                      TEveVectorD(posx, posy, posz)));
+                     trk->SetRnrPoints(kTRUE);
+                     trk->SetMarkerStyle(24);
+                     trk->SetMarkerSize(1);
+                     if(pid > 0)
+                     trk->SetMarkerColor(kRed);
+                     else
+                     trk->SetMarkerColor(kBlue);
+		     }
+
 	  trk->MakeTrack();            
-	  std::cout<<"mG4EveDisplay - track made.. "<<std::endl;
+	  if (verbosity>1) std::cout<<"mG4EveDisplay - track made. "<<std::endl;
 	  _true_tracks->AddElement(trk);
 	  }
       }
+}
 
+void 
+mG4EveDisplay::draw_g4_tracks()
+{
+ /*             trk_reco->fSign =charge;
+              if(!pid_cut(pid)) continue;
+              TEveTrack* trk = new TEveTrack(trk_reco, _prop);
+              trk->SetSmooth(kTRUE);
+              if(charge > 0)
+              trk->SetLineColor(kYellow);
+              else
+              trk->SetLineColor(kCyan);
+              trk->SetLineWidth(2.5);
+              for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
+                       iter != track->end_clusters();
+                       ++iter) {
+                     unsigned int cluster_id = *iter;
+                     SvtxCluster* cluster = _clustermap->get(cluster_id);
+                     //unsigned int layer = cluster->get_layer();
+                                            //float cluste = cluster->get_e();
+                                                                   //if(e < 0.1) continue;
+                                                                                          float posx = cluster->get_position(0);
+                     float posy = cluster->get_position(1);
+                     float posz = cluster->get_position(2);
+                     if(verbosity>2) std::cout<<"posx= "<<posx <<", posy= "<<posy<<", posz= "<<posz<<std::endl;
+                     trk->AddPathMark(TEvePathMarkD(TEvePathMarkD::kDaughter,
+                                      TEveVectorD(posx, posy, posz)));
+                     trk->SetRnrPoints(kTRUE);
+                     trk->SetMarkerStyle(4);
+                     trk->SetMarkerSize(2);
+                     if(charge > 0)
+                     trk->SetMarkerColor(kYellow);
+                     else
+                     trk->SetMarkerColor(kCyan);
+              }///< SvtxTrack: ClusterIter
+*/
 }
 
 void 
 mG4EveDisplay::draw_jets()
 {
-  std::cout<<"mG4EveDisplay - draw_jets() begins.."<<std::endl;
+  if (verbosity) std::cout<<"mG4EveDisplay - draw_jets() begins."<<std::endl;
   PHG4VtxPoint* vertex =  _truth->GetPrimaryVtx(_truth->GetPrimaryVertexIndex());
 
     float vx = vertex->get_x();
@@ -186,7 +253,7 @@ mG4EveDisplay::draw_jets()
       float pt    = truejet->get_pt();
       float pt_threshold = _evedisp->get_jet_pt_threshold();
       if (pt< pt_threshold) continue;
-      std::cout<<"Jet "<< id <<" : eta " <<eta << ", phi "<< phi << ", pt "<< pt <<std::endl;
+      if (verbosity>2) std::cout<<"Jet "<< id <<" : eta " <<eta << ", phi "<< phi << ", pt "<< pt <<std::endl;
 
       TEveStraightLineSet* axis= new TEveStraightLineSet("ConeAxis");
       axis->SetLineColor(kGreen);
@@ -206,14 +273,6 @@ mG4EveDisplay::draw_jets()
       _evemanager->AddElement(jetcone,_true_jets);
   }
 }
-
-void
-mG4EveDisplay::draw_event()
-{
-  add_elements();
-  clear();
-}
-
 
 void 
 mG4EveDisplay::clear()

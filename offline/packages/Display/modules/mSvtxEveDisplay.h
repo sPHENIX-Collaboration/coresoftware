@@ -26,7 +26,9 @@ class SvtxClusterMap;
 
 class mSvtxEveDisplay : public mPHEveModuleBase
 {
+
  public:
+
   mSvtxEveDisplay(boost::shared_ptr<PHEveDisplay>);
   ~mSvtxEveDisplay();
   
@@ -34,14 +36,13 @@ class mSvtxEveDisplay : public mPHEveModuleBase
   void init_run(PHCompositeNode* topNode);
   bool event(PHCompositeNode* topNode);
   void end(PHCompositeNode* topNode);
-  void draw_event();
   
   void create_nodes(PHCompositeNode* topNode);
   void draw_tracks();
   bool pid_cut(int pid);
   void clear();
-  
-private:
+    
+ private:
 
   boost::shared_ptr<PHEveDisplay> _evedisp;
   SvtxVertexMap *_vertexmap;
@@ -50,7 +51,8 @@ private:
 
   TEveTrackPropagator* _prop;
   TEveTrackList* _svtx_tracks;
-  
+
+  int verbosity; 
 };
 
 #endif // __MSVTXEVEDISPLAY_H__
