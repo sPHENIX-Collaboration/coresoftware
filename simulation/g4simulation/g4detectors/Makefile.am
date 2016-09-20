@@ -24,10 +24,12 @@ INCLUDES = \
     -I${G4_MAIN}/include/Geant4
 
 libg4detectors_io_la_LIBADD = \
+  -L$(ROOTSYS)/lib \
   -lphool \
   -lboost_filesystem \
   -lboost_system \
-  -lpdbcalBase
+  -lpdbcalBase \
+  -lXMLIO
 
 libg4detectors_la_LIBADD = \
   libg4detectors_io.la \

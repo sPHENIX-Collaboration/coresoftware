@@ -12,6 +12,7 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHTimeStamp.h>
 
+#include <TBufferXML.h>
 #include <TFile.h>
 #include <TSystem.h>
 
@@ -426,8 +427,14 @@ PHG4Parameters::WriteToFile(const string &extension, const string &dir)
   PdbParameterMap *myparm = new PdbParameterMap();
   CopyToPdbParameterMap(myparm);
   TFile *f = TFile::Open(fullpath.str().c_str(), "recreate");
+  // force xml file writing to use extended precision shown experimentally
+  // to not modify input parameters (.15e)
+  string floatformat = TBufferXML::GetFloatFormat();
+  TBufferXML::SetFloatFormat("%.15e");
   myparm->Write();
   delete f;
+  // restore previous xml float format
+  TBufferXML::SetFloatFormat(floatformat.c_str());
   cout << "sleeping 1 second to prevent duplicate inserttimes" << endl;
   sleep(1);
   return 0;
