@@ -506,13 +506,13 @@ PHG4Parameters::ReadFromFile(const string &name, const string &extension, const 
   TFile *f = TFile::Open(fname.c_str());
   if (issuper)
     {
-      PdbParameterMapContainer *myparm = (PdbParameterMapContainer *) f->Get("PdbParameterMapContainer");
+      PdbParameterMapContainer *myparm = static_cast<PdbParameterMapContainer *> (f->Get("PdbParameterMapContainer"));
       FillFrom(myparm, layer);
       delete myparm;
     }
   else
     {
-      PdbParameterMap *myparm = (PdbParameterMap *) f->Get("PdbParameterMap");
+      PdbParameterMap *myparm = static_cast<PdbParameterMap *> (f->Get("PdbParameterMap"));
       FillFrom(myparm);
       delete myparm;
     }
