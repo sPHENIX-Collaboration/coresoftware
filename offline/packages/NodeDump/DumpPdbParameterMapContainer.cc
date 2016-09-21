@@ -30,7 +30,7 @@ int DumpPdbParameterMapContainer::process_Node(PHNode *myNode)
       PdbParameterMapContainer::parConstRange pbegin_end = pdbparams->get_ParameterMaps();
       for (piter=pbegin_end.first; piter != pbegin_end.second; ++piter)
         {
-	  *fout << "PdbParameterMap no " << piter->first << endl;
+	  *fout << "PdbParameterMap # " << piter->first << endl;
           PdbParameterMap::dIter diter;
 	  PdbParameterMap::dConstRange dbegin_end = piter->second->get_dparam_iters();
 	  for (diter=dbegin_end.first; diter != dbegin_end.second; ++diter)
