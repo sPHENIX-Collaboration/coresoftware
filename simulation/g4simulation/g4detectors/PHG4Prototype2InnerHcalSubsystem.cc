@@ -7,6 +7,7 @@
 #include <g4main/PHG4HitContainer.h>
 
 #include <pdbcalbase/PdbParameterMap.h>
+#include <pdbcalbase/PdbParameterMapContainer.h>
 
 #include <phool/getClass.h>
 
@@ -88,17 +89,17 @@ PHG4Prototype2InnerHcalSubsystem::InitRun( PHCompositeNode* topNode )
     }
   else
     {
-      PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,paramnodename);
+      PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode,paramnodename);
       if (nodeparams)
 	{
-	  params->FillFrom(nodeparams);
+	  params->FillFrom(nodeparams, layer);
 	}
     }
   // parameters set in the macro always override whatever is read from
   // the node tree, DB or file
   UpdateParametersWithMacro();
   // save updated persistant copy on node tree
-  params->SaveToNodeTree(parNode,paramnodename);
+  params->SaveToNodeTree(parNode,paramnodename, layer);
   // create detector
   detector_ = new PHG4Prototype2InnerHcalDetector(topNode, params, Name());
   detector_->SuperDetector(superdetector);
@@ -362,7 +363,7 @@ PHG4Prototype2InnerHcalSubsystem::SaveParamsToDB()
 int
 PHG4Prototype2InnerHcalSubsystem::ReadParamsFromDB()
 {
-  int iret = params->ReadFromDB();
+  int iret = params->ReadFromDB(superdetector,layer);
   if (iret)
     {
       cout << "problem reading from DB" << endl;
@@ -411,7 +412,18 @@ PHG4Prototype2InnerHcalSubsystem::ReadParamsFromFile(const PHG4Prototype2InnerHc
       cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
       exit(1);
     }
-  int iret = params->ReadFromFile(extension,calibfiledir);
+  string name;
+  int issuper = 0;
+  if (superdetector != "NONE")
+    {
+      name = superdetector;
+      issuper = 1;
+    }
+  else
+    {
+      name = params->Name();
+    }
+  int iret = params->ReadFromFile(name, extension, layer, issuper, calibfiledir);
   if (iret)
     {
       cout << "problem reading from " << extension << " file " << endl;

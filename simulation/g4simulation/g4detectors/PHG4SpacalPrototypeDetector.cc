@@ -1,12 +1,3 @@
-// $$Id: PHG4SpacalPrototypeDetector.cc,v 1.7 2015/02/10 15:39:26 pinkenbu Exp $$
-
-/*!
- * \file ${file_name}
- * \brief
- * \author Jin Huang <jhuang@bnl.gov>
- * \version $$Revision: 1.7 $$
- * \date $$Date: 2015/02/10 15:39:26 $$
- */
 #include "PHG4SpacalPrototypeDetector.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4Parameters.h"
@@ -52,15 +43,19 @@ using namespace std;
 
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
-PHG4SpacalPrototypeDetector::PHG4SpacalPrototypeDetector(PHCompositeNode *Node,
-    const std::string &dnam) :
-    PHG4Detector(Node, dnam), _region(NULL), //
-    cylinder_solid(NULL), cylinder_logic(NULL), cylinder_physi(NULL), //
-    active(0), absorberactive(0), //
-    step_limits(NULL), clading_step_limits(NULL), fiber_core_step_limits(NULL), //
+PHG4SpacalPrototypeDetector::PHG4SpacalPrototypeDetector(PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam) :
+    PHG4Detector(Node, dnam), 
+    construction_params(parameters),
+    cylinder_solid(NULL), 
+    cylinder_logic(NULL), 
+    cylinder_physi(NULL), //
+    active(0), 
+    absorberactive(0), //
+    step_limits(NULL), 
+    clading_step_limits(NULL), 
+    fiber_core_step_limits(NULL), //
     _geom(NULL)
-{
-}
+{}
 
 PHG4SpacalPrototypeDetector::~PHG4SpacalPrototypeDetector(void)
 {
@@ -111,10 +106,6 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
       "PHCompositeNode", "RUN"));
   assert(parNode);
-  string g4geonodename = "G4GEO_" + superdetector;
-  PHG4Parameters *construction_params = findNode::getClass<PHG4Parameters>(
-      parNode, g4geonodename);
-  assert(construction_params);
 
   if (!_geom)
     {

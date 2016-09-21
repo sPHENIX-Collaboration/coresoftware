@@ -31,15 +31,6 @@ PHG4CylinderSubsystem::PHG4CylinderSubsystem( const std::string &na, const int l
 }
 
 //_______________________________________________________________________
-int
-PHG4CylinderSubsystem::InitSubsystem( PHCompositeNode* topNode )
-{
-  // kludge until the phg4parameters are sorted out (adding layers)
-  GetParams()->set_name(Name());
-  return 0;
-}
-
-//_______________________________________________________________________
 int PHG4CylinderSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 {
   // create hit list only for active layers
@@ -139,6 +130,17 @@ void
 PHG4CylinderSubsystem::Print(const string &what) const
 {
   cout << Name() << " Parameters: " << endl;
+  if (! BeginRunExecuted())
+    {
+      cout << "Need to execute BeginRun() before parameter printout is meaningful" << endl;
+      cout << "To do so either run one or more events or on the command line execute: " << endl;
+      cout << "Fun4AllServer *se = Fun4AllServer::instance();" << endl;
+      cout << "PHG4Reco *g4 = (PHG4Reco *) se->getSubsysReco(\"PHG4RECO\");" << endl;
+      cout << "g4->InitRun(se->topNode());" << endl;
+      cout << "PHG4CylinderSubsystem *cyl = (PHG4CylinderSubsystem *) g4->getSubsystem(\"" << Name() << "\");" << endl;
+      cout << "cyl->Print()" << endl;
+      return;
+    }
   GetParams()->Print();
   return;
 }

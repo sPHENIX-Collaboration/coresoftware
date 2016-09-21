@@ -24,6 +24,7 @@ using namespace std;
 PHG4BlockDetector::PHG4BlockDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam, const int lyr):
   PHG4Detector(Node, dnam),
   params(parameters),
+  block_physi(NULL),
   layer(lyr)
 {}
 
