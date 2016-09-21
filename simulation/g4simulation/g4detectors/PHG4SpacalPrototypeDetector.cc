@@ -106,7 +106,6 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
       "PHCompositeNode", "RUN"));
   assert(parNode);
-  string g4geonodename = "G4GEO_" + superdetector;
 
   if (!_geom)
     {
