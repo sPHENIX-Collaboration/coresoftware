@@ -11,6 +11,9 @@
 #ifndef Prototype2DSTReader_H_
 #define Prototype2DSTReader_H_
 
+#include "RawTower_Prototype2.h"
+#include "RawTower_Temperature.h"
+
 #include <HepMC/GenEvent.h>
 #include <HepMC/SimpleVector.h>
 #include <fun4all/SubsysReco.h>
@@ -18,8 +21,6 @@
 #include <iostream>
 #include <vector>
 #include <TClonesArray.h>
-#include "RawTower_Prototype2.h"
-#include "RawTower_Temperature.h"
 
 class TTree;
 
