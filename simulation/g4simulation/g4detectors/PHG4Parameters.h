@@ -44,6 +44,9 @@ class PHG4Parameters: public PHObject
   void FillFrom(const PdbParameterMap *saveparams);
   void FillFrom(const PdbParameterMapContainer *saveparamcontainer, const int layer);
   void FillFrom(const PHG4Parameters *saveparams);
+  // save parameters on node tree
+  void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename);
+  // save parameters in container on node tree
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename, const int layer);
   int WriteToDB();
   int ReadFromDB();

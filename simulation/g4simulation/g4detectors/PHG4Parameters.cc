@@ -268,6 +268,27 @@ PHG4Parameters::FillFrom(const PHG4Parameters *saveparams)
 }
 
 void
+PHG4Parameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
+{
+  // write itself since this class is fine with saving by root
+  PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,
+      nodename);
+  if (!nodeparams)
+    {
+      nodeparams = new PdbParameterMap();
+      PHIODataNode<PdbParameterMap> *newnode =
+          new PHIODataNode<PdbParameterMap>(nodeparams, nodename);
+      topNode->addNode(newnode);
+    }
+  else
+    {
+      nodeparams->Reset(); // just clear previous content in case variables were deleted
+    }
+  CopyToPdbParameterMap(nodeparams);
+  return;
+}
+
+void
 PHG4Parameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename, const int layer)
 {
   // write itself since this class is fine with saving by root
