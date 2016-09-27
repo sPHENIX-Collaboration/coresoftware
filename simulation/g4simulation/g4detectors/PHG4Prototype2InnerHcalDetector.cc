@@ -195,7 +195,7 @@ PHG4Prototype2InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* 
   distance_to_corner += scinti_t9_front_size + gap_between_tiles;
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,distance_to_corner),scintit10_logic,"InnerScinti_0", scintiboxlogical, false, 0, overlapcheck);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,distance_to_corner),scintit10_logic,"InnerScinti_10", scintiboxlogical, false, 0, overlapcheck);
 
   hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
@@ -207,7 +207,7 @@ PHG4Prototype2InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* 
   distance_to_corner += scinti_t10_front_size + gap_between_tiles;
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,distance_to_corner),scintit11_logic,"InnerScinti_0", scintiboxlogical, false, 0, overlapcheck);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,distance_to_corner),scintit11_logic,"InnerScinti_11", scintiboxlogical, false, 0, overlapcheck);
 
   hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
@@ -219,9 +219,9 @@ PHG4Prototype2InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* 
   distance_to_corner += scinti_t11_front_size + gap_between_tiles;
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,distance_to_corner),scintit12_logic,"InnerScinti_0", scintiboxlogical, false, 0, overlapcheck);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,distance_to_corner),scintit12_logic,"InnerScinti_12", scintiboxlogical, false, 0, overlapcheck);
 
-    DisplayVolume(scintiboxlogical,hcalenvelope);
+  //    DisplayVolume(scintiboxlogical,hcalenvelope);
   return scintiboxlogical;
 }
 
@@ -399,9 +399,9 @@ PHG4Prototype2InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
   Rot->rotateY(params->get_double_param("rot_y")*deg);
   Rot->rotateZ(params->get_double_param("rot_z")*deg);
   //  ConstructScintiTile9(logicWorld);
-    ConstructScintillatorBoxHiEta(logicWorld);
+  //    ConstructScintillatorBoxHiEta(logicWorld);
   //ConstructScintillatorBox(logicWorld);
-  return;
+  //  return;
   innerhcalassembly = new G4AssemblyVolume();
   //ConstructSteelPlate(hcal_envelope_log);
   // return;
@@ -414,7 +414,15 @@ int
 PHG4Prototype2InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
 {
   G4LogicalVolume* steel_plate = ConstructSteelPlate(hcalenvelope); // bottom steel plate
-  G4LogicalVolume* scintibox = ConstructScintillatorBox(hcalenvelope);
+  G4LogicalVolume* scintibox = NULL;
+  if (params->get_int_param("hi_eta"))
+    {
+      scintibox = ConstructScintillatorBoxHiEta(hcalenvelope);
+    }
+  else
+    {
+      scintibox = ConstructScintillatorBox(hcalenvelope);
+    }
   double phi = 0.;
   double phislat = 0.;
   ostringstream name;

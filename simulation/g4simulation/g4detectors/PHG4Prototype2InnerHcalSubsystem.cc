@@ -159,6 +159,7 @@ PHG4Prototype2InnerHcalSubsystem::SetDefaultParameters()
   set_default_double_param("steplimits", NAN);
 
   set_default_int_param("light_scint_model", 1);
+  set_default_int_param("hi_eta", 0);
 
   set_default_string_param("material", "SS310");
 }

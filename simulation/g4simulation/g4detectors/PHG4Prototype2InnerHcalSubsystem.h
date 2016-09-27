@@ -3,24 +3,16 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4String.hh>
-
-#include <map>
-#include <set>
 #include <string>
 
-class PHG4Prototype2InnerHcalDetector;
-class PHG4Parameters;
-class PHG4Prototype2InnerHcalSteppingAction;
 class PHG4EventAction;
+class PHG4Prototype2InnerHcalDetector;
+class PHG4SteppingAction;
 
 class PHG4Prototype2InnerHcalSubsystem: public PHG4DetectorSubsystem
 {
 
   public:
-
-  enum FILE_TYPE {none = 0, xml = 1, root = 2};
 
   //! constructor
   PHG4Prototype2InnerHcalSubsystem( const std::string &name = "HCALIN", const int layer = 0 );
