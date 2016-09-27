@@ -125,7 +125,6 @@ class PHG4Prototype2InnerHcalDetector: public PHG4Detector
   int layer;
   std::string detector_type;
   std::string superdetector;
-  std::string scintilogicnameprefix;
 };
 
 #endif

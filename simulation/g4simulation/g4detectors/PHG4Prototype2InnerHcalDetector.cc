@@ -40,11 +40,13 @@ PHG4Prototype2InnerHcalDetector::PHG4Prototype2InnerHcalDetector( PHCompositeNod
   steel_plate_corner_upper_right(1308.5*mm,-286.96*mm), 
   steel_plate_corner_lower_right(1298.8*mm,-297.39*mm),
   steel_plate_corner_lower_left(1155.8*mm,-163.92*mm),
+
   scinti_u1_front_size(105.9*mm),
   scinti_u1_corner_upper_left(0*mm,0*mm),
   scinti_u1_corner_upper_right(198.1*mm,0*mm),
   scinti_u1_corner_lower_right(198.1*mm,-121.3*mm),
   scinti_u1_corner_lower_left(0*mm,-scinti_u1_front_size),
+
   scinti_u2_corner_upper_left(0*mm,0*mm),
   scinti_u2_corner_upper_right(198.1*mm,-15.4*mm),
   scinti_u2_corner_lower_right(198.1*mm,-141.5*mm),
@@ -92,8 +94,7 @@ PHG4Prototype2InnerHcalDetector::PHG4Prototype2InnerHcalDetector( PHCompositeNod
   n_steel_plates(n_scinti_plates+1),
   active(params->get_int_param("active")),
   absorberactive(params->get_int_param("absorberactive")),
-  layer(0),
-  scintilogicnameprefix("InnerHcalScintiMother")
+  layer(0)
 {
   cout << "upper left: " << scinti_t9_corner_upper_left << endl;
   cout << "upper right: " << scinti_t9_corner_upper_right << endl;
@@ -249,10 +250,6 @@ PHG4Prototype2InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcale
   Rot->rotateX(-90*deg);
   new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-scinti_u1_front_size-gap_between_tiles/2.-gap_between_tiles),scintiu2_logic,"InnerScinti_0", scintiboxlogical, false, 0, overlapcheck);
 
-    DisplayVolume(scintiboxlogical,hcalenvelope);
-    return scintiboxlogical;
-
-
   Rot = new G4RotationMatrix();  
   Rot->rotateX(-90*deg);
   new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-gap_between_tiles/2.),scintiu1_logic,"InnerScinti_1", scintiboxlogical, false, 0, overlapcheck);
@@ -284,7 +281,7 @@ PHG4Prototype2InnerHcalDetector::ConstructScintiTileU1(G4LogicalVolume* hcalenve
 					    zero, 1.0);
 
   G4LogicalVolume *scintiu1_logic = new G4LogicalVolume(scintiu1,G4Material::GetMaterial("G4_POLYSTYRENE"),"InnerHcalScintiU1", NULL, NULL, NULL);
-     DisplayVolume(scintiu1,hcalenvelope);
+  //     DisplayVolume(scintiu1,hcalenvelope);
   return scintiu1_logic;
 }
 
