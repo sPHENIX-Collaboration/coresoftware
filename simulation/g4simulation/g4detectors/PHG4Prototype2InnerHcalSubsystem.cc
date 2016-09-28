@@ -6,9 +6,6 @@
 
 #include <g4main/PHG4HitContainer.h>
 
-#include <pdbcalbase/PdbParameterMap.h>
-#include <pdbcalbase/PdbParameterMapContainer.h>
-
 #include <phool/getClass.h>
 
 #include <Geant4/globals.hh>
