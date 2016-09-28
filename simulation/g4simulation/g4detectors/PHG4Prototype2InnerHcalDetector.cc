@@ -79,7 +79,6 @@ PHG4Prototype2InnerHcalDetector::PHG4Prototype2InnerHcalDetector( PHCompositeNod
   scinti_t12_corner_lower_left(0*mm,-scinti_t12_front_size),
 
   scinti_x(198.1),
-  steel_x(823.*mm),
   steel_z(901.7*mm),
   size_z(steel_z),
   scinti_tile_z(steel_z),
@@ -385,7 +384,9 @@ PHG4Prototype2InnerHcalDetector::ConstructScintiTile12(G4LogicalVolume* hcalenve
 void
 PHG4Prototype2InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
 {
-  G4ThreeVector g4vec(0,0,0);
+  G4ThreeVector g4vec(params->get_double_param("place_x")*cm,
+                      params->get_double_param("place_y")*cm,
+		      params->get_double_param("place_z")*cm);
   G4RotationMatrix *Rot = new G4RotationMatrix();
   Rot->rotateX(params->get_double_param("rot_x")*deg);
   Rot->rotateY(params->get_double_param("rot_y")*deg);

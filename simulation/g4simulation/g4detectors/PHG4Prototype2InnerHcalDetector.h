@@ -104,7 +104,6 @@ class PHG4Prototype2InnerHcalDetector: public PHG4Detector
   G4TwoVector scinti_t12_corner_lower_left;
 
   double scinti_x;
-  double steel_x;
   double steel_z;
   double size_z;
   double scinti_tile_z;
