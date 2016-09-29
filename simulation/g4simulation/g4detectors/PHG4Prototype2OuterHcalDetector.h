@@ -47,13 +47,19 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
 
   G4LogicalVolume* ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
   G4LogicalVolume* ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
+  G4LogicalVolume* ConstructScintillatorBoxHiEta(G4LogicalVolume* hcalenvelope);
   G4LogicalVolume* ConstructScintiTileU1(G4LogicalVolume* hcalenvelope);
   G4LogicalVolume* ConstructScintiTileU2(G4LogicalVolume* hcalenvelope);
-  double GetScintiAngle();
+  G4LogicalVolume* ConstructScintiTile9(G4LogicalVolume* hcalenvelope);
+  G4LogicalVolume* ConstructScintiTile10(G4LogicalVolume* hcalenvelope);
+  G4LogicalVolume* ConstructScintiTile11(G4LogicalVolume* hcalenvelope);
+  G4LogicalVolume* ConstructScintiTile12(G4LogicalVolume* hcalenvelope);
+   double GetScintiAngle();
 
   protected:
   int ConstructOuterHcal(G4LogicalVolume* sandwich);
   int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
+  int DisplayVolume(G4LogicalVolume *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
   PHG4Parameters *params;
   G4LogicalVolume *outerhcalsteelplate;
   G4AssemblyVolume *outerhcalassembly;
@@ -61,19 +67,44 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   G4TwoVector steel_plate_corner_upper_right;
   G4TwoVector steel_plate_corner_lower_right;
   G4TwoVector steel_plate_corner_lower_left;
+
   double scinti_u1_front_size;
   G4TwoVector scinti_u1_corner_upper_left;
   G4TwoVector scinti_u1_corner_upper_right;
   G4TwoVector scinti_u1_corner_lower_right;
   G4TwoVector scinti_u1_corner_lower_left;
+
   G4TwoVector scinti_u2_corner_upper_left;
   G4TwoVector scinti_u2_corner_upper_right;
   G4TwoVector scinti_u2_corner_lower_right;
   G4TwoVector scinti_u2_corner_lower_left;
-  double inner_radius;
-  double outer_radius;
+  double scinti_t9_distance_to_corner;
+  double scinti_t9_front_size;
+  G4TwoVector scinti_t9_corner_upper_left;
+  G4TwoVector scinti_t9_corner_upper_right;
+  G4TwoVector scinti_t9_corner_lower_right;
+  G4TwoVector scinti_t9_corner_lower_left;
+
+  double scinti_t10_front_size;
+  G4TwoVector scinti_t10_corner_upper_left;
+  G4TwoVector scinti_t10_corner_upper_right;
+  G4TwoVector scinti_t10_corner_lower_right;
+  G4TwoVector scinti_t10_corner_lower_left;
+
+  double scinti_t11_front_size;
+  G4TwoVector scinti_t11_corner_upper_left;
+  G4TwoVector scinti_t11_corner_upper_right;
+  G4TwoVector scinti_t11_corner_lower_right;
+  G4TwoVector scinti_t11_corner_lower_left;
+
+  double scinti_t12_front_size;
+  G4TwoVector scinti_t12_corner_upper_left;
+  G4TwoVector scinti_t12_corner_upper_right;
+  G4TwoVector scinti_t12_corner_lower_right;
+  G4TwoVector scinti_t12_corner_lower_left;
+
   double scinti_x;
-  double steel_x;
+  double scinti_x_hi_eta;
   double steel_z;
   double size_z;
   double scinti_tile_z;
@@ -95,7 +126,6 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   int layer;
   std::string detector_type;
   std::string superdetector;
-  std::string scintilogicnameprefix;
 };
 
 #endif
