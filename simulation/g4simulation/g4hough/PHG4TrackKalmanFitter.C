@@ -291,6 +291,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 			if (_vertexmap_refit->size() > 0)
 				vertex = _vertexmap_refit->get(0);
 
+			//vertex = NULL; //DEBUG
 			SvtxTrack* rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
 					vertex);
 
@@ -796,11 +797,11 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 		dvz2 = vertex->get_error(2, 2);
 	}
 
-	genfit::MeasuredStateOnPlane* gf_state = phgf_track->extrapolateToLine(
+	genfit::MeasuredStateOnPlane* gf_state_beam_line_ca = phgf_track->extrapolateToLine(
 			vertex_position, TVector3(0., 0., 1.));
-	TVector3 mom = gf_state->getMom();
-	TVector3 pos = gf_state->getPos();
-	TMatrixDSym cov = gf_state->get6DCov();
+	TVector3 mom = gf_state_beam_line_ca->getMom();
+	TVector3 pos = gf_state_beam_line_ca->getPos();
+	TMatrixDSym cov = gf_state_beam_line_ca->get6DCov();
 
 	//const SvtxTrack_v1* temp_track = static_cast<const SvtxTrack_v1*> (svtx_track);
 	SvtxTrack_v1* out_track = new SvtxTrack_v1(
@@ -812,14 +813,30 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 	 *  v is alone the beam line
 	 *  so u is the dca2d direction
 	 */
-	double u = gf_state->getState()[3];
-	double v = gf_state->getState()[4];
+	double u = gf_state_beam_line_ca->getState()[3];
+	double v = gf_state_beam_line_ca->getState()[4];
 
-	double du2 = gf_state->getCov()[3][3];
-	double dv2 = gf_state->getCov()[4][4];
+	double du2 = gf_state_beam_line_ca->getCov()[3][3];
+	double dv2 = gf_state_beam_line_ca->getCov()[4][4];
+
+	if(gf_state_beam_line_ca) delete gf_state_beam_line_ca;
 
 	out_track->set_dca2d(u);
 	out_track->set_dca2d_error(sqrt(du2 + dvr2));
+
+	genfit::MeasuredStateOnPlane* gf_state_vertex_ca = phgf_track->extrapolateToPoint(
+				vertex_position);
+//
+//	LogDebug("Extrap to Vertex:");
+//	gf_state_vertex_ca->Print();
+
+	u = gf_state_vertex_ca->getState()[3];
+	v = gf_state_vertex_ca->getState()[4];
+
+	du2 = gf_state_vertex_ca->getCov()[3][3];
+	dv2 = gf_state_vertex_ca->getCov()[4][4];
+
+	if(gf_state_vertex_ca) delete gf_state_vertex_ca;
 
 	double dca3d = sqrt(u * u + v * v);
 	double dca3d_error = sqrt(du2 + dv2 + dvr2 + dvz2);
