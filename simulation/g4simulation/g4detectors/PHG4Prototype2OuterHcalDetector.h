@@ -109,7 +109,7 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   double size_z;
   double scinti_tile_z;
   double scinti_tile_thickness;
-  double scinti_box_shift;
+  double scinti_box_smaller;
   double gap_between_tiles;
   double scinti_gap;
   double tilt_angle;

@@ -21,6 +21,8 @@
 
 using namespace std;
 
+double scinti_box_smaller = 0.02*mm;
+
 PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam  ):
   PHG4Detector(Node, dnam),
   params(parameters),
@@ -73,7 +75,7 @@ PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNod
   size_z(steel_z),
   scinti_tile_z(steel_z),
   scinti_tile_thickness(7*mm),
-  scinti_box_shift(1.09*mm), // that was found experimentally by removing overlaps
+scinti_box_smaller(0.02*mm), // blargh - off by 20 microns bc scinti tilt angle, need to revisit at some point
   gap_between_tiles(1*mm),
   scinti_gap(8.5*mm),
   tilt_angle(12*deg),
@@ -154,7 +156,7 @@ PHG4Prototype2OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelo
 G4LogicalVolume*
 PHG4Prototype2OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
 { 
-  G4VSolid* scintiboxsolid = new G4Box("OuterHcalScintiMother",scinti_x/2.,scinti_gap/2.,scinti_tile_z/2.);
+  G4VSolid* scintiboxsolid = new G4Box("OuterHcalScintiMother",scinti_x/2.,(scinti_gap-scinti_box_smaller)/2.,scinti_tile_z/2.);
   //  DisplayVolume(scintiboxsolid,hcalenvelope);
   G4LogicalVolume* scintiboxlogical = new G4LogicalVolume(scintiboxsolid,G4Material::GetMaterial("G4_AIR"),G4String("OuterHcalScintiMother"), 0, 0, 0);
   G4VisAttributes* hcalVisAtt = new G4VisAttributes();
@@ -234,7 +236,7 @@ PHG4Prototype2OuterHcalDetector::ConstructScintiTileU2(G4LogicalVolume* hcalenve
 G4LogicalVolume*
 PHG4Prototype2OuterHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* hcalenvelope)
 { 
-  G4VSolid* scintiboxsolid = new G4Box("OuterHcalScintiMother",scinti_x/2.,scinti_gap/2.,scinti_tile_z/2.);
+  G4VSolid* scintiboxsolid = new G4Box("OuterHcalScintiMother",scinti_x/2.,(scinti_gap-scinti_box_smaller)/2.,scinti_tile_z/2.);
   //  DisplayVolume(scintiboxsolid,hcalenvelope);
   G4LogicalVolume* scintiboxlogical = new G4LogicalVolume(scintiboxsolid,G4Material::GetMaterial("G4_AIR"),G4String("OuterHcalScintiMother"), 0, 0, 0);
 
@@ -429,8 +431,8 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
 	  // the center of the scintillator is not the center of the inner hcal
 	  // but depends on the tilt angle. Therefore we need to shift
 	  // the center from the mid point
-	  ypos += sin((-tilt_angle)/rad - phi)*scinti_box_shift;
-	  xpos -= cos((-tilt_angle)/rad - phi)*scinti_box_shift;
+	  ypos += sin((-tilt_angle)/rad - phi);
+	  xpos -= cos((-tilt_angle)/rad - phi);
 	  name.str("");
 	  name << "OuterHcalScintiBox_" << i;
 	  Rot = new G4RotationMatrix();
