@@ -70,6 +70,7 @@ PHG4HoughTransformTPC::PHG4HoughTransformTPC(unsigned int seed_layers, unsigned 
   _material(),
   _user_material(),
   _magField(1.5), ///< in Tesla
+  _use_bbc(true),
   _reject_ghosts(true), 
   _remove_hits(true), 
   _use_cell_size(false),
@@ -205,14 +206,14 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
   int code = translate_input();
   if (code != Fun4AllReturnCodes::EVENT_OK) return code;  
 
-  if (verbosity>0){
-  fast_vertex_from_bbc();
-  _vertex[2]=0.0;
-  }
-
   //------------------------------------
   // Find an initial z-vertex position
   //------------------------------------
+
+  if (verbosity>0 || _use_bbc){
+    fast_vertex_from_bbc();
+    if(!_use_bbc)  _vertex[2]=0.0;
+  }
 
   code = initial_zvertex_finding();
   if (code != Fun4AllReturnCodes::EVENT_OK) return code;

@@ -127,6 +127,9 @@ public:
   /// radiation length per layer, sequential layer indexes required here
   void set_material(int layer, float value);
 
+  /// set use bbc
+  void set_use_vertex(bool ub){_use_bbc = ub;}  
+
   /// set internal ghost rejection
   void setRejectGhosts(bool rg){_reject_ghosts = rg;}
   /// set for internal hit rejection
@@ -193,7 +196,6 @@ public:
   /// set the minimum pT to try to find during initial vertex finding tracking
   void set_min_pT_init(float PT){_min_pT_init=PT;}
 
-  bool _use_vertex;
   double _chi2_cut_init; ///< fit quality chisq/dof for initial track finding
   int _beta, _lambda; ///< resolution tuning parameters 
   float _min_pT_init;
@@ -283,7 +285,8 @@ public:
 
   float _magField; ///< in Tesla
   static float _cmToGeV;  ///< radius of curvature conversion (radius of curvature for a 1 GeV/c particle in 1 Tesla is 333.6 cm)
-
+  
+  bool _use_bbc;
   bool _reject_ghosts;
   bool _remove_hits;
   bool _use_cell_size;
