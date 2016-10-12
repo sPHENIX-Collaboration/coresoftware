@@ -170,6 +170,14 @@ public:
 		_N_DETECTOR_LAYER = _phg4hits_names.size();
 	}
 
+	void set_state_names(const std::string* stateNames, const int nlayer) {
+		_state_names.clear();
+		for(int i=0;i<nlayer;++i) {
+			_state_names.push_back(stateNames[i]);
+		}
+		_N_STATES = _state_names.size();
+	}
+
 	double get_z_resolution() const {
 		return _z_resolution;
 	}
@@ -342,6 +350,10 @@ private:
 	//!
 	int _N_DETECTOR_LAYER;
 
+	//!
+	int _N_STATES;
+	std::vector<std::string> _state_names;
+	std::vector<double> _state_location;
 
 
 };

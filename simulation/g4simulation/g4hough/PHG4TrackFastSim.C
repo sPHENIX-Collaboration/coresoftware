@@ -27,6 +27,8 @@
 #include <TString.h>
 #include <g4hough/SvtxTrackMap.h>
 #include <g4hough/SvtxTrackMap_v1.h>
+#include <g4hough/SvtxTrackState.h>
+#include <g4hough/SvtxTrackState_v1.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -35,6 +37,8 @@
 #include <phgenfit/Track.h>
 #include <phgeom/PHGeomUtility.h>
 #include <phgenfit/SpacepointMeasurement.h>
+#include <g4cemc/RawTowerGeom.h>
+#include <g4cemc/RawTowerGeomContainer.h>
 #include "SvtxTrack.h"
 #include "SvtxTrack_FastSim.h"
 
@@ -60,14 +64,18 @@ PHG4TrackFastSim::PHG4TrackFastSim(const std::string &name) :
 				"KalmanFitterRefTrack"), _primary_assumption_pid(211), _do_evt_display(
 				false), _use_vertex_in_fitting(true), _vertex_xy_resolution(
 				50E-4), _vertex_z_resolution(50E-4), _phi_resolution(50E-4), _r_resolution(
-				1.), _z_resolution(50E-4), _pat_rec_hit_finding_eff(1.), _pat_rec_noise_prob(
-				0.), _N_DETECTOR_LAYER(5) {
+				1.), _z_resolution(50E-4), _pat_rec_hit_finding_eff(1.), _pat_rec_noise_prob(0.), 
+		                _N_DETECTOR_LAYER(5), _N_STATES(0) {
 
 	_event = -1;
 
 	for (int i = 0; i < _N_DETECTOR_LAYER; i++) {
 		_phg4hits_names.push_back(Form("G4HIT_FGEM_%1d", i));
-	}
+	}	
+
+	_state_names.clear(); 
+	_state_location.clear(); 
+
 }
 
 PHG4TrackFastSim::~PHG4TrackFastSim() {
@@ -104,6 +112,52 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode *topNode) {
 	}
 
 	_fitter->set_verbosity(verbosity);
+
+	// tower geometry for track states
+
+	for (int i = 0; i < _N_STATES; i++) {
+
+	  if( (_state_names[i]=="FHCAL") || (_state_names[i]=="FEMC") ){
+	    
+	    // Get the z-location of the detector plane
+
+	    string towergeonodename = "TOWERGEOM_" + _state_names[i];
+	    RawTowerGeomContainer *towergeo = findNode::getClass<RawTowerGeomContainer>(topNode,towergeonodename.c_str());
+	    if (!towergeo) {
+	      cerr << PHWHERE << " ERROR: Can't find node " << towergeonodename << endl;
+	      return Fun4AllReturnCodes::ABORTEVENT;
+	    }
+
+	    // Grab the first tower, us it to get the 
+	    // location along the beamline 
+	    RawTowerGeomContainer::ConstRange twr_range = towergeo->get_tower_geometries();
+	    RawTowerGeomContainer::ConstIterator twr_iter = twr_range.first; 
+	    RawTowerGeom *temp_geo = twr_iter->second; 
+
+	    _state_location.push_back(temp_geo->get_center_z() - (temp_geo->get_size_z()/2.0)); 
+
+	  } else if( (_state_names[i]=="CEMC") || (_state_names[i]=="IHCAL") || (_state_names[i]=="OHCAL")){
+
+	    // Get the calorimeter radius
+
+	    string nodename = "TOWERGEOM_" + _state_names[i];
+	    RawTowerGeomContainer *geo = findNode::getClass<RawTowerGeomContainer>(topNode,nodename.c_str());
+	    if (geo) {  
+	      _state_location.push_back(geo->get_radius());
+	    }
+	    else{
+	      cerr << PHWHERE << " ERROR: Can't find node " << nodename << endl;
+	      return Fun4AllReturnCodes::ABORTEVENT;
+	    }
+
+	  }
+	  else{
+	    cerr << PHWHERE << " ERROR: Unrecognized detector name for state projection:  " << _state_names[i] << endl;
+	    return Fun4AllReturnCodes::ABORTEVENT;	    
+	  }
+
+	}
+
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -474,6 +528,48 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 		for (int j = i; j < 6; j++) {
 			out_track->set_error(i, j, cov[i][j]);
 		}
+	}
+	
+	// State Projections
+
+	for (int i = 0; i < _N_STATES; i++) {
+
+	  if( (_state_names[i]=="FHCAL") || (_state_names[i]=="FEMC") ){
+	    
+	    // Project to a plane at fixed z	  
+	    gf_state = phgf_track->extrapolateToPlane(TVector3(0., 0., _state_location[i]),
+						      TVector3(1., 0., _state_location[i]));
+
+	  } else if( (_state_names[i]=="CEMC") || (_state_names[i]=="IHCAL") || (_state_names[i]=="OHCAL")){
+	  
+	    // Project to a cylinder at fixed r	  
+	    gf_state = phgf_track->extrapolateToCylinder(_state_location[i], TVector3(0., 0., 0.),
+						      TVector3(0., 0., 1.));
+	  }
+	  else{
+	    LogError("Unrecognized detector name for state projection"); 
+	    continue; 
+	  }
+
+	  SvtxTrackState* state = new SvtxTrackState_v1(_state_location[i]);
+	  state->set_x(gf_state->getPos().x());
+	  state->set_y(gf_state->getPos().y());
+	  state->set_z(gf_state->getPos().z());
+
+	  state->set_px(gf_state->getMom().x());
+	  state->set_py(gf_state->getMom().y());
+	  state->set_pz(gf_state->getMom().z());
+
+	  for(int i=0;i<6;i++)
+	    {
+	      for(int j=i;j<6;j++)
+		{
+		  out_track->set_error(i,j, gf_state->get6DCov()[i][j]);
+		}
+	    }
+
+	  out_track->insert_state(state);
+
 	}
 
 	return out_track;
