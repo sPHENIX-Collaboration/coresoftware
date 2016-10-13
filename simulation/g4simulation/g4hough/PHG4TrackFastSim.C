@@ -272,7 +272,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 		SvtxTrack* svtx_track_out = MakeSvtxTrack(track,
 				particle->get_track_id());
 
-		_trackmap_out->insert(svtx_track_out);
+		if(svtx_track_out) _trackmap_out->insert(svtx_track_out);
 	} // Loop all primary particles
 
 	//! add tracks to event display
@@ -550,6 +550,9 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	    LogError("Unrecognized detector name for state projection"); 
 	    continue; 
 	  }
+	  
+	  // if projection fails, bail out
+	  if(!gf_state) continue;
 
 	  SvtxTrackState* state = new SvtxTrackState_v1(_state_location[i]);
 	  state->set_x(gf_state->getPos().x());
