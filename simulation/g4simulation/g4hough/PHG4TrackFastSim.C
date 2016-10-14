@@ -273,6 +273,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 				particle->get_track_id());
 
 		if(svtx_track_out) _trackmap_out->insert(svtx_track_out);
+
 	} // Loop all primary particles
 
 	//! add tracks to event display
@@ -562,6 +563,8 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	  state->set_px(gf_state->getMom().x());
 	  state->set_py(gf_state->getMom().y());
 	  state->set_pz(gf_state->getMom().z());
+
+	  state->set_name(_state_names[i]); 
 
 	  for(int i=0;i<6;i++)
 	    {

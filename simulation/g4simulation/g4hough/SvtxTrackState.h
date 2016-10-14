@@ -52,6 +52,9 @@ public:
   virtual float get_error(unsigned int i, unsigned int j) const {return NAN;}
   virtual void  set_error(unsigned int i, unsigned int j, float value) {}
 
+  virtual std::string get_name(){return "";}
+  virtual void set_name(std::string name){}
+
 protected:
   SvtxTrackState(float pathlength = 0.0) {}
 };
