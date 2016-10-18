@@ -1,19 +1,18 @@
 #include "CaloCalibration.h"
-
+#include "PROTOTYPE2_FEM.h"
 #include "RawTower_Prototype2.h"
+
 #include <g4cemc/RawTowerContainer.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/phool.h>
 #include <phool/getClass.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include "PROTOTYPE2_FEM.h"
 #include <iostream>
 #include <TString.h>
 #include <cmath>
 #include <string>
 #include <cassert>
 #include <cfloat>
-#include "PROTOTYPE2_FEM.h"
 
 using namespace std;
 

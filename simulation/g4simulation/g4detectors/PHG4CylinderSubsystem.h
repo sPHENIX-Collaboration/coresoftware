@@ -23,9 +23,6 @@ class PHG4CylinderSubsystem: public PHG4DetectorSubsystem
   virtual ~PHG4CylinderSubsystem( void )
   {}
 
-  //! init
-  int InitSubsystem(PHCompositeNode *);
-
   //! init runwise stuff
   /*!
   creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)

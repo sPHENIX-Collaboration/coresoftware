@@ -1,18 +1,9 @@
-// $$Id: PHG4SpacalPrototypeDetector.h,v 1.2 2014/08/12 03:49:12 jinhuang Exp $$
-
-/*!
- * \file ${file_name}
- * \brief
- * \author Jin Huang <jhuang@bnl.gov>
- * \version $$Revision: 1.2 $$
- * \date $$Date: 2014/08/12 03:49:12 $$
- */
-
 #ifndef PHG4SpacalPrototypeDetector_h
 #define PHG4SpacalPrototypeDetector_h
 
-#include "g4main/PHG4Detector.h"
 #include "PHG4CylinderGeom_Spacalv3.h"
+
+#include <g4main/PHG4Detector.h>
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4Region.hh>
@@ -23,11 +14,12 @@
 #include <set>
 #include <utility>
 
-class G4Material;
-class G4VSolid;
 class G4LogicalVolume;
-class G4VPhysicalVolume;
+class G4Material;
 class G4UserLimits;
+class G4VPhysicalVolume;
+class G4VSolid;
+class PHG4Parameters;
 
 class PHG4SpacalPrototypeDetector : public PHG4Detector
 {
@@ -35,7 +27,7 @@ class PHG4SpacalPrototypeDetector : public PHG4Detector
 public:
   typedef PHG4CylinderGeom_Spacalv3 SpacalGeom_t;
 
-  PHG4SpacalPrototypeDetector(PHCompositeNode* Node, const std::string& dnam);
+  PHG4SpacalPrototypeDetector(PHCompositeNode* Node, PHG4Parameters *parameters, const std::string& dnam);
 
   virtual
   ~PHG4SpacalPrototypeDetector(void);
@@ -96,15 +88,6 @@ public:
     return superdetector;
   }
 
-  G4UserSteppingAction*
-  GetSteppingAction()
-  {
-    if (_region)
-      return _region->GetRegionalSteppingAction();
-    else
-      return 0;
-  }
-
   virtual void
   Print(const std::string& what = "ALL") const;
 
@@ -125,7 +108,8 @@ public:
 
 protected:
 
-  G4Region* _region;
+  PHG4Parameters *construction_params;
+
   G4VSolid* cylinder_solid;
   G4LogicalVolume* cylinder_logic;
   G4VPhysicalVolume* cylinder_physi;

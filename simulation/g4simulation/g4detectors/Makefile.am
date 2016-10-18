@@ -25,10 +25,12 @@ INCLUDES = \
 	-I/opt/sphenix/core/stow/xerces-c-3.1.2/include/
 
 libg4detectors_io_la_LIBADD = \
+  -L$(ROOTSYS)/lib \
   -lphool \
   -lboost_filesystem \
   -lboost_system \
-  -lpdbcalBase
+  -lpdbcalBase \
+  -lXMLIO
 
 libg4detectors_la_LIBADD = \
   libg4detectors_io.la \
@@ -39,6 +41,7 @@ libg4detectors_la_LIBADD = \
 
 pkginclude_HEADERS = \
   PHG4Parameters.h \
+  PHG4ParametersContainer.h \
   PHG4BlockGeom.h \
   PHG4BlockGeomContainer.h \
   PHG4CylinderCell.h \
@@ -65,6 +68,8 @@ pkginclude_HEADERS = \
 libg4detectors_io_la_SOURCES = \
   PHG4Parameters.cc \
   PHG4Parameters_Dict.cc \
+  PHG4ParametersContainer.cc \
+  PHG4ParametersContainer_Dict.cc \
   PHG4BlockCellGeom.cc \
   PHG4BlockCellGeom_Dict.cc \
   PHG4BlockCellGeomContainer.cc \

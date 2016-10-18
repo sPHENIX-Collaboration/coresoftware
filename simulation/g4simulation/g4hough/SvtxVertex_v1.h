@@ -56,7 +56,7 @@ public:
   //
   void           clear_tracks()                         {_track_ids.clear();}
   bool           empty_tracks()                         {return _track_ids.empty();}
-  size_t         size_tracks()                          {return _track_ids.size();}
+  size_t         size_tracks() const                          {return _track_ids.size();}
   void           insert_track(unsigned int trackid)     {_track_ids.insert(trackid);}
   size_t         erase_track(unsigned int trackid)      {return _track_ids.erase(trackid);}
   ConstTrackIter begin_tracks() const                   {return _track_ids.begin();}
