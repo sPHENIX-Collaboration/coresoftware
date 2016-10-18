@@ -30,6 +30,7 @@ class PHG4CylinderGeom_MAPS: public PHG4CylinderGeom
   void set_layer(const int i) {layer = i;}
   int get_layer() const {return layer;}
   double get_radius() const {return layer_radius;}
+  double get_stave_phi_tilt() const {return stave_phi_tilt;}
 
   int get_ladder_phi_index(int stave, int half_stave, int chip);
   int get_ladder_z_index(int module, int chip);
