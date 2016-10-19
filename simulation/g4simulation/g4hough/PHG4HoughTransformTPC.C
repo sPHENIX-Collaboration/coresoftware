@@ -64,6 +64,7 @@ using namespace Eigen;
 
 PHG4HoughTransformTPC::PHG4HoughTransformTPC(unsigned int seed_layers, unsigned int req_seed, const string &name) :
   SubsysReco(name),
+  _nlayers(0),
   _seed_layers(seed_layers), 
   _req_seed(req_seed), 
   _radii(),
@@ -115,8 +116,10 @@ PHG4HoughTransformTPC::PHG4HoughTransformTPC(unsigned int seed_layers, unsigned 
   _g4vertexes(NULL),
   _timer(PHTimeServer::get()->insert_new("PHG4HoughTransformTPC")),
   _timer_initial_hough(PHTimeServer::get()->insert_new("PHG4HoughTransformTPC::track finding")),
-  _write_reco_tree(false)
-{
+  _write_reco_tree(false),
+  _reco_tree(NULL),
+  _recoevent(NULL)
+{  
 }
 
 int PHG4HoughTransformTPC::Init(PHCompositeNode *topNode)
