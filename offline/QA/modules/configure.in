@@ -1,6 +1,6 @@
 AC_INIT(configure.in)
 
-AM_INIT_AUTOMAKE(g4eval, 1.00)
+AM_INIT_AUTOMAKE(qa_modules, 1.00)
 
 AC_PROG_CXX(g++)
 AC_ENABLE_STATIC(no)

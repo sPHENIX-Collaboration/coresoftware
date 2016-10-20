@@ -16,6 +16,7 @@
 // PHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
+#include <g4detectors/PHG4CylinderGeom_MAPS.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4main/PHG4InEvent.h>
@@ -445,34 +446,34 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
 
     //cluster->identify();
     
-    float phi = atan2(cluster->get_position(1),cluster->get_position(0));
-    unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
+    //float phi = atan2(cluster->get_position(1),cluster->get_position(0));
+     unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
     
-    float xy_error=0.;float z_error=0.;
-    if (_use_cell_size) {
-      xy_error = _smear_xy_layer[ilayer] * _vote_error_scale[ilayer];
-      z_error  = _smear_z_layer[ilayer] * _vote_error_scale[ilayer];
+    // float xy_error=0.;float z_error=0.;
+    // if (_use_cell_size) {
+    //   xy_error = _smear_xy_layer[ilayer] * _vote_error_scale[ilayer];
+    //   z_error  = _smear_z_layer[ilayer] * _vote_error_scale[ilayer];
       
-    }
-    else {
-      if( cluster->get_phi_size() <= _max_cluster_error*_smear_xy_layer[ilayer] ){xy_error = cluster->get_phi_size() * _vote_error_scale[ilayer];}
-      else{xy_error = _max_cluster_error*_smear_xy_layer[ilayer] * _vote_error_scale[ilayer];}
-      if(cluster->get_z_size() <= _max_cluster_error*_smear_z_layer[ilayer]){z_error  = cluster->get_z_size() * _vote_error_scale[ilayer];}
-      else{z_error  = _max_cluster_error*_smear_z_layer[ilayer] * _vote_error_scale[ilayer];}
-    }
+    // }
+    // else {
+    //   if( cluster->get_phi_size() <= _max_cluster_error*_smear_xy_layer[ilayer] ){xy_error = cluster->get_phi_size() * _vote_error_scale[ilayer];}
+    //   else{xy_error = _max_cluster_error*_smear_xy_layer[ilayer] * _vote_error_scale[ilayer];}
+    //   if(cluster->get_z_size() <= _max_cluster_error*_smear_z_layer[ilayer]){z_error  = cluster->get_z_size() * _vote_error_scale[ilayer];}
+    //   else{z_error  = _max_cluster_error*_smear_z_layer[ilayer] * _vote_error_scale[ilayer];}
+    // }
 
     // cout<<"layer : "<<ilayer<<" , xy_error : "<<xy_error<<" , z_error : "<<z_error<<endl;
 
-    if(ilayer < 3)
-    {
-      xy_error = 0.002;
-      z_error = 0.002;
-    }
-    else
-    {
-      xy_error = 0.011;
-      z_error = 0.03;
-    }
+    // if(ilayer < 3)
+    // {
+    //   xy_error = 0.002;
+    //   z_error = 0.002;
+    // }
+    // else
+    // {
+    //   xy_error = 0.011;
+    //   z_error = 0.03;
+    // }
 
 
     vector<SimpleHit3D>* which_vec = &_clusters;
@@ -487,9 +488,9 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
     hit3d.set_y(cluster->get_y());
     hit3d.set_z(cluster->get_z());
 
-    hit3d.set_ex(fabs(xy_error*sin(phi)));
-    hit3d.set_ey(fabs(xy_error*cos(phi)));
-    hit3d.set_ez(z_error);
+    // hit3d.set_ex(fabs(xy_error*sin(phi)));
+    // hit3d.set_ey(fabs(xy_error*cos(phi)));
+    // hit3d.set_ez(z_error);
     
     // copy covariance over
     for (int i=0; i<3; ++i) {
@@ -863,18 +864,21 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
   
   PHG4CylinderCellGeomContainer* cellgeos = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
   PHG4CylinderGeomContainer* laddergeos = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
+  PHG4CylinderGeomContainer* mapsladdergeos = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
   //PHG4CylinderCellContainer* cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
   
-  if (cellgeos||laddergeos) {
+  if (cellgeos||laddergeos||mapsladdergeos) {
     unsigned int ncelllayers = 0;
     if (cellgeos) ncelllayers += cellgeos->get_NLayers();
     unsigned int nladderlayers = 0;
     if (laddergeos) nladderlayers += laddergeos->get_NLayers();
-    _nlayers = ncelllayers + nladderlayers;
+    unsigned int nmapsladderlayers = 0;
+    if (mapsladdergeos) nmapsladderlayers += mapsladdergeos->get_NLayers();
+    _nlayers = ncelllayers + nladderlayers+nmapsladderlayers;
     default_geo = false;
   } else {
     cerr << PHWHERE
-	 << "Neither CYLINDERCELLGEOM_SVTX nor CYLINDERGEOM_SILICON_TRACKER available, reverting to a default geometry"
+	 << "None of CYLINDERCELLGEOM_SVTX or CYLINDERGEOM_MAPS or CYLINDERGEOM_SILICON_TRACKER available, reverting to a default geometry"
 	 << std::endl;    
     _nlayers = 6;
     default_geo = true;
@@ -950,6 +954,16 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
       }
     }
 
+    if (mapsladdergeos) {
+      PHG4CylinderGeomContainer::ConstRange layerrange = mapsladdergeos->get_begin_end();
+      for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+	  layeriter != layerrange.second;
+	  ++layeriter) {
+	radius_layer_map.insert( make_pair(layeriter->second->get_radius(),
+					   layeriter->second->get_layer()) );
+      }
+    }
+
     // now that the layer ids are sorted by radius, I can create a storage
     // index, ilayer, that is 0..N-1 and sorted by radius
     
@@ -989,7 +1003,21 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
 	_smear_z_layer[_layer_ilayer_map[geo->get_layer()]] = geo->get_strip_z_spacing();     
       }
     }
-  }  
+
+    if (mapsladdergeos) {    
+      PHG4CylinderGeomContainer::ConstRange begin_end = mapsladdergeos->get_begin_end();
+      PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
+      for( ; miter != begin_end.second; miter++) {
+	PHG4CylinderGeom *geo = miter->second;
+	
+	if (verbosity > 1) geo->identify();
+	
+	_radii[_layer_ilayer_map[geo->get_layer()]] = geo->get_radius();      
+	_smear_xy_layer[_layer_ilayer_map[geo->get_layer()]] = geo->get_pixel_x();
+	_smear_z_layer[_layer_ilayer_map[geo->get_layer()]] = geo->get_pixel_z();     
+      }
+    }
+  }
 
   // set material on each layer
   

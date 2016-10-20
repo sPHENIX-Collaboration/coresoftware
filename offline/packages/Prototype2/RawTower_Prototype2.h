@@ -5,7 +5,8 @@
 #include <g4cemc/RawTowerDefs.h>
 #include <map>
 #include <stdint.h>
-#include "PROTOTYPE2_FEM.h"
+
+#include <prototype2/PROTOTYPE2_FEM.h>
 
 class RawTower_Prototype2 : public RawTower {
  public:

@@ -2,6 +2,7 @@
 #include "DumpObject.h"
 
 #include "DumpPdbParameterMap.h"
+#include "DumpPdbParameterMapContainer.h"
 #include "DumpPHG4BlockGeomContainer.h"
 #include "DumpPHG4CylinderCellContainer.h"
 #include "DumpPHG4CylinderCellGeomContainer.h"
@@ -13,6 +14,10 @@
 #include "DumpRawTowerContainer.h"
 #include "DumpRawTowerGeomContainer.h"
 #include "DumpRunHeader.h"
+#include "DumpSvtxClusterMap.h"
+#include "DumpSvtxHitMap.h"
+#include "DumpSvtxTrackMap.h"
+#include "DumpSvtxVertexMap.h"
 #include "DumpSyncObject.h"
 #include "DumpVariableArray.h"
 
@@ -155,6 +160,10 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
             {
               newdump = new DumpPdbParameterMap(NodeName);
             }
+          else if (tmp->InheritsFrom("PdbParameterMapContainer"))
+            {
+              newdump = new DumpPdbParameterMapContainer(NodeName);
+            }
           else if (tmp->InheritsFrom("PHG4BlockGeomContainer"))
             {
               newdump = new DumpPHG4BlockGeomContainer(NodeName);
@@ -198,6 +207,22 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
           else if (tmp->InheritsFrom("RunHeader"))
             {
               newdump = new DumpRunHeader(NodeName);
+            }
+          else if (tmp->InheritsFrom("SvtxClusterMap"))
+            {
+              newdump = new DumpSvtxClusterMap(NodeName);
+            }
+          else if (tmp->InheritsFrom("SvtxHitMap"))
+            {
+              newdump = new DumpSvtxHitMap(NodeName);
+            }
+          else if (tmp->InheritsFrom("SvtxTrackMap"))
+            {
+              newdump = new DumpSvtxTrackMap(NodeName);
+            }
+          else if (tmp->InheritsFrom("SvtxVertexMap"))
+            {
+              newdump = new DumpSvtxVertexMap(NodeName);
             }
           else if (tmp->InheritsFrom("VariableArray"))
             {

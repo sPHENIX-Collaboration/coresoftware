@@ -44,6 +44,9 @@ class PHG4MapsSubsystem: public PHG4Subsystem
   // These are passed on to the detector class, which expects mm and radians
   void set_nominal_layer_radius(const G4double radius){layer_nominal_radius = radius;}
   void set_stave_type(const int stype){stave_type = stype;}
+  void set_pixel_x(const double pixel_x_in) {pixel_x = pixel_x_in;}
+  void set_pixel_z(const double pixel_z_in) {pixel_z = pixel_z_in;}
+  void set_pixel_thickness(const double pixel_thickness_in) {pixel_thickness = pixel_thickness_in;}
   void SetSize(const G4double sizex, const G4double sizey, const G4double sizez)
      {dimension[0] = sizex; dimension[1] = sizey; dimension[2] = sizez;}
   void SetPlaceZ(const G4double dbl) {place_in_z = dbl;}
@@ -87,6 +90,9 @@ class PHG4MapsSubsystem: public PHG4Subsystem
   G4double layer_nominal_radius;
   int layer;
   int stave_type;
+  double pixel_x;
+  double pixel_z;
+  double pixel_thickness;
 
   G4String material;
   int active;

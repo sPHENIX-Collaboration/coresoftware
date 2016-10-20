@@ -29,6 +29,7 @@ class Fitter;
 
 class SvtxTrackMap;
 class SvtxVertexMap;
+class SvtxVertex;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class SvtxClusterMap;
@@ -42,6 +43,14 @@ class PHRaveVertexFactory;
 //! \brief		Refit SvtxTracks with PHGenFit.
 class PHG4TrackKalmanFitter: public SubsysReco {
 public:
+
+	/*!
+	 * OverwriteOriginalNode: default mode, overwrite original node
+	 * MakeNewNode: Output extra new refit nodes
+	 * DebugMode: overwrite original node also make extra new refit nodes
+	 */
+	enum OutPutMode {MakeNewNode, OverwriteOriginalNode, DebugMode};
+
 	//! Default constructor
 	PHG4TrackKalmanFitter(const std::string &name = "PHG4TrackKalmanFitter");
 
@@ -50,6 +59,9 @@ public:
 
 	//!Initialization, called for initialization
 	int Init(PHCompositeNode *);
+
+	//!Initialization Run, called for initialization of a run
+	int InitRun(PHCompositeNode *);
 
 	//!Process Event, called for each event
 	int process_event(PHCompositeNode *);
@@ -128,6 +140,53 @@ public:
 		_vertexing_method = vertexingMethod;
 	}
 
+	bool is_fit_primary_tracks() const {
+		return _fit_primary_tracks;
+	}
+
+	void set_fit_primary_tracks(bool fitPrimaryTracks) {
+		_fit_primary_tracks = fitPrimaryTracks;
+	}
+
+	OutPutMode get_output_mode() const {
+		return _output_mode;
+	}
+
+	/*!
+	 * set output mode, default is OverwriteOriginalNode
+	 */
+	void set_output_mode(OutPutMode outputMode) {
+		_output_mode = outputMode;
+	}
+
+	const std::string& get_mag_field_file_name() const {
+		return _mag_field_file_name;
+	}
+
+	/*!
+	 * default is /phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root
+	 */
+
+	void set_mag_field_file_name(const std::string& magFieldFileName) {
+		_mag_field_file_name = magFieldFileName;
+	}
+
+	const std::string& get_track_fitting_alg_name() const {
+		return _track_fitting_alg_name;
+	}
+
+	void set_track_fitting_alg_name(const std::string& trackFittingAlgName) {
+		_track_fitting_alg_name = trackFittingAlgName;
+	}
+
+	int get_primary_pid_guess() const {
+		return _primary_pid_guess;
+	}
+
+	void set_primary_pid_guess(int primaryPidGuess) {
+		_primary_pid_guess = primaryPidGuess;
+	}
+
 private:
 
 	//! Event counter
@@ -139,8 +198,12 @@ private:
 	//!Create New nodes
 	int CreateNodes(PHCompositeNode *);
 
-	//! Refit SvtxTrack
-	PHGenFit::Track* ReFitTrack(const SvtxTrack*);
+	/*
+	 * fit track with SvtxTrack as input seed.
+	 * \param intrack Input SvtxTrack
+	 * \param invertex Input Vertex, if fit track as a primary vertex
+	 */
+	PHGenFit::Track* ReFitTrack(const SvtxTrack* intrack, const SvtxVertex* invertex = NULL);
 
 	//! Make SvtxTrack from PHGenFit::Track and SvtxTrack
 	SvtxTrack* MakeSvtxTrack(const SvtxTrack*, const PHGenFit::Track*);
@@ -153,13 +216,25 @@ private:
 	//!flags
 	unsigned int _flags;
 
+	//bool _make_separate_nodes;
+	OutPutMode _output_mode;
+
+	bool _fit_primary_tracks;
+
+	//!
+	std::string _mag_field_file_name;
+
 	//! rescale mag field, modify the original mag field read in
 	float _mag_field_re_scaling_factor;
 
 	//! Switch to reverse Magnetic field
 	bool _reverse_mag_field;
 
+
 	PHGenFit::Fitter* _fitter;
+	std::string _track_fitting_alg_name;
+	int _primary_pid_guess;
+
 	genfit::GFRaveVertexFactory* _vertex_finder;
 	std::string _vertexing_method;
 	//PHRaveVertexFactory* _vertex_finder;
@@ -172,6 +247,7 @@ private:
 
 	//! Output Node pointers
 	SvtxTrackMap* _trackmap_refit;
+	SvtxTrackMap* _primary_trackmap;
 	SvtxVertexMap* _vertexmap_refit;
 
 	//! Evaluation
@@ -187,6 +263,7 @@ private:
 	TClonesArray* _tca_trackmap;
 	TClonesArray* _tca_vertexmap;
 	TClonesArray* _tca_trackmap_refit;
+	TClonesArray* _tca_primtrackmap;
 	TClonesArray* _tca_vertexmap_refit;
 
 	bool _do_evt_display;

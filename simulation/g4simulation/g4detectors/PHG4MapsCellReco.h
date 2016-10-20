@@ -30,10 +30,33 @@ class PHG4MapsCellReco : public SubsysReco
   void Detector(const std::string &d) {detector = d;}
   void checkenergy(const int i=1) {chkenergyconservation = i;}
 
-  void set_pixel_x(double pixel_x_in) {pixel_x = pixel_x_in ;} 
-  void set_pixel_y(double pixel_y_in) {pixel_y = pixel_y_in ;} 
-
  protected:
+
+  bool lines_intersect(
+		       double ax,
+		       double ay,
+		       double bx,
+		       double by,
+		       double cx,
+		       double cy,
+		       double dx,
+		       double dy,
+		       double* rx, // intersection point (output)
+		       double* ry
+		       );
+  
+  bool  line_and_rectangle_intersect(
+				     double ax,
+				     double ay,
+				     double bx,
+				     double by,
+				     double cx,
+				     double cy,
+				     double dx,
+				     double dy,
+				     double* rr // length of the line segment inside the rectangle (output)
+				     );
+  
   //void set_size(const int i, const double sizeA, const int sizeB, const int what);
   int CheckEnergy(PHCompositeNode *topNode);
   static std::pair<double, double> get_etaphi(const double x, const double y, const double z);
@@ -52,9 +75,6 @@ class PHG4MapsCellReco : public SubsysReco
   int nslatscombined;
   int chkenergyconservation;
   int layer;
-
-  double pixel_x;
-  double pixel_y;
 
   //std::map<unsigned int, PHG4CylinderCell *> celllist;
   std::map<std::string, PHG4CylinderCell_MAPS*> celllist;  // This map holds the hit cells

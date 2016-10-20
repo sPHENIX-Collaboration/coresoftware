@@ -11,10 +11,10 @@
 #include <vector>
 
 //BOOST
-#include<boost/make_shared.hpp>
-
-#define SMART(expr) boost::shared_ptr<expr>
-#define NEW(expr) boost::make_shared<expr>
+//#include<boost/make_shared.hpp>
+//
+//#define SMART(expr) boost::shared_ptr<expr>
+//#define NEW(expr) boost::make_shared<expr>
 
 //GenFit
 

@@ -25,7 +25,7 @@ using namespace PHG4Sector;
 //note this inactive thickness is ~1.5% of a radiation length
 PHG4SectorDetector::PHG4SectorDetector(PHCompositeNode *Node,
     const std::string &dnam) :
-    PHG4Detector(Node, dnam), PHG4SectorConstructor(dnam), _region(NULL)
+  PHG4Detector(Node, dnam), PHG4SectorConstructor(dnam), _region(NULL)
 {
 }
 

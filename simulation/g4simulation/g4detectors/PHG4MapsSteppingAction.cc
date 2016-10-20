@@ -40,7 +40,7 @@ PHG4MapsSteppingAction::PHG4MapsSteppingAction( PHG4MapsDetector* detector ):
 {
   cout << "PHG4MapsSteppingAction created" << endl;
 
-  verbosity = 3;
+  //verbosity = 3;
 }
 
 //____________________________________________________________________________..
@@ -94,7 +94,7 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
   int module_number = -1;
   int chip_number = -1;
 
-  if(verbosity > 0) cout << endl << "  UaserSteppingAction: layer " << detector_->get_Layer();
+  if(verbosity > 0) cout << endl << "  UserSteppingAction: layer " << detector_->get_Layer();
   boost::char_separator<char> sep("_");
   boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
 

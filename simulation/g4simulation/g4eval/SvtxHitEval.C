@@ -25,8 +25,10 @@ SvtxHitEval::SvtxHitEval(PHCompositeNode* topNode)
     _hitmap(NULL),
     _g4cells_svtx(NULL),
     _g4cells_tracker(NULL),
+    _g4cells_maps(NULL),
     _g4hits_svtx(NULL),
     _g4hits_tracker(NULL),
+   _g4hits_maps(NULL),
     _truthinfo(NULL),
     _strict(false),
     _verbosity(1),
@@ -80,6 +82,7 @@ PHG4CylinderCell* SvtxHitEval::get_cell(SvtxHit* hit) {
   PHG4CylinderCell* cell = NULL;
   if (!cell&&_g4cells_svtx)    cell = _g4cells_svtx->findCylinderCell(hit->get_cellid());
   if (!cell&&_g4cells_tracker) cell = _g4cells_tracker->findCylinderCell(hit->get_cellid());
+  if (!cell&&_g4cells_maps) cell = _g4cells_maps->findCylinderCell(hit->get_cellid());
 
   // only noise hits (cellid left at default value) should not trace
   if ((_strict) && (hit->get_cellid() != 0xFFFFFFFF)) {assert(cell);}
@@ -109,6 +112,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
   PHG4CylinderCell *cell = NULL;
   if (!cell&&_g4cells_svtx)    cell = _g4cells_svtx->findCylinderCell(hit->get_cellid());
   if (!cell&&_g4cells_tracker) cell = _g4cells_tracker->findCylinderCell(hit->get_cellid());
+  if (!cell&&_g4cells_maps) cell = _g4cells_maps->findCylinderCell(hit->get_cellid());
 
   // only noise hits (cellid left at default value) should not trace
   if ((_strict) && (hit->get_cellid() != 0xFFFFFFFF)) assert(cell);
@@ -122,6 +126,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
     PHG4Hit* g4hit = NULL;
     if (!g4hit&&_g4hits_svtx)    g4hit = _g4hits_svtx->findHit(g4iter->first);
     if (!g4hit&&_g4hits_tracker) g4hit = _g4hits_tracker->findHit(g4iter->first);
+    if (!g4hit&&_g4hits_maps) g4hit = _g4hits_maps->findHit(g4iter->first);
 
     if (_strict) assert(g4hit);
     else if (!g4hit) {++_errors; continue;}
@@ -264,7 +269,6 @@ std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Particle* g4particle) {
        ++iter) {
 
     SvtxHit* hit = iter->second;
-
     // loop over all truth particles connected to this hit
     std::set<PHG4Particle*> g4particles = all_truth_particles(hit);
     for (std::set<PHG4Particle*>::iterator jter = g4particles.begin();
@@ -444,9 +448,11 @@ void SvtxHitEval::get_node_pointers(PHCompositeNode* topNode) {
   // need things off of the DST...
   _g4cells_svtx    = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
   _g4cells_tracker = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
-    
+  _g4cells_maps = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_MAPS");
+
   _g4hits_svtx    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SVTX");
   _g4hits_tracker = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SILICON_TRACKER");
+  _g4hits_maps = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_MAPS");
   
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
   
@@ -456,16 +462,27 @@ void SvtxHitEval::get_node_pointers(PHCompositeNode* topNode) {
 bool SvtxHitEval::has_node_pointers() {
 
   if (_strict) assert(_hitmap);
-  else if (!_hitmap) return false;
+  else if (!_hitmap) 
+    {
+      return false;
+    }
 
-  if (_strict) assert(_g4cells_svtx || _g4cells_tracker);
-  else if (!_g4cells_svtx && !_g4cells_tracker) return false;
+  if (_strict) assert(_g4cells_svtx || _g4cells_tracker || _g4cells_maps);
+  else if (!_g4cells_svtx && !_g4cells_tracker && !_g4cells_maps)
+    { 
+      return false;
+    }
 
-  if (_strict) assert(_g4hits_svtx || _g4hits_tracker);
-  else if (!_g4hits_svtx && !_g4hits_tracker) return false;
-
+  if (_strict) assert(_g4hits_svtx || _g4hits_tracker || _g4hits_maps);
+  else if (!_g4hits_svtx && !_g4hits_tracker && !_g4hits_maps) 
+    {
+      return false; 
+    }
   if (_strict) assert(_truthinfo);
-  else if (!_truthinfo) return false;
-  
+  else if (!_truthinfo)
+    {
+      return false;
+    }
+
   return true;
 }

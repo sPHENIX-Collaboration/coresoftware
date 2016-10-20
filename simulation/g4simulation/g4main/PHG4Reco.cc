@@ -22,6 +22,8 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/recoConsts.h>
 
+#include <phgeom/PHGeomUtility.h>
+
 #include <TThread.h>
 
 #include <CLHEP/Random/Random.h>
@@ -55,7 +57,6 @@
 #include <Geant4/G4HadronicProcessStore.hh>
 
 #include <Geant4/globals.hh>
-
 #include <Geant4/G4Version.hh>
 
 // physics lists
@@ -64,6 +65,7 @@
 #include <Geant4/QGSP_BERT.hh>
 #include <Geant4/QGSP_BIC.hh>
 #include <Geant4/QGSP_BIC_HP.hh>
+#include <Geant4/G4GDMLParser.hh>
 
 #if G4VERSION_NUMBER <= 951
 #define HAVE_LHEP
@@ -117,6 +119,7 @@ PHG4Reco::PHG4Reco( const string &name ) :
   active_decayer_(true),
   active_force_decay_(false),
   force_decay_type_(kAll),
+  save_DST_geometry_(false),
   _timer( PHTimeServer::get()->insert_new( name ) )
 {
   for (int i = 0; i < 3; i++)
@@ -414,11 +417,36 @@ PHG4Reco::InitRun( PHCompositeNode* topNode )
     uisession_->Verbosity(1); // let messages after setup come through
   }
 
+  // Geometry export to DST
+  if (save_DST_geometry_)
+    {
+
+      const string filename =
+      PHGeomUtility::
+      GenerateGeometryFileName("gdml");
+      cout <<"PHG4Reco::InitRun - export geometry to DST via tmp file "<<filename<<endl;
+
+      Dump_GDML(filename);
+
+      PHGeomUtility::ImportGeomFile(topNode,filename);
+
+      PHGeomUtility::RemoveGeometryFile(filename);
+    }
+
   if (verbosity > 0) {
     cout << "===========================================================================" << endl;
   }
 
   return 0;
+}
+
+//________________________________________________________________
+//Dump TGeo File
+void PHG4Reco::Dump_GDML(const std::string &filename)
+{
+  G4GDMLParser gdml_parser;
+  gdml_parser.Write(filename,detector_->GetPhysicalVolume());
+  //gGeoManager = TGeoManager::Import(filename);
 }
 
 //_________________________________________________________________

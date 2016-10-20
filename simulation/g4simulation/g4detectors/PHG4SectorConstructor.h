@@ -376,7 +376,15 @@ namespace PHG4Sector
     void
     Construct_Sectors(G4LogicalVolume* WorldLog);
 
+    void
+    OverlapCheck( bool check )
+    {
+      overlapcheck_sector = check;
+    }
+
   protected:
+
+    bool overlapcheck_sector;
 
     G4VSolid *
     Construct_Sectors_Plane( //

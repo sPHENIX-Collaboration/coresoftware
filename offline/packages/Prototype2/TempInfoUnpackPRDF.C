@@ -1,26 +1,27 @@
+#include "RawTower_Temperature.h"
+#include "PROTOTYPE2_FEM.h"
+#include "TempInfoUnpackPRDF.h"
+
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/packetConstants.h>
 #include <Event/packet.h>
 #include <g4cemc/RawTowerContainer.h>
-#include "RawTower_Temperature.h"
 #include <pdbcalbase/PdbParameterMap.h>
 #include <g4detectors/PHG4Parameters.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/phool.h>
 #include <phool/getClass.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include "PROTOTYPE2_FEM.h"
 #include <iostream>
 #include <string>
 #include <cassert>
-#include "TempInfoUnpackPRDF.h"
 
 using namespace std;
 
 //____________________________________
 TempInfoUnpackPRDF::TempInfoUnpackPRDF() :
-  SubsysReco("TempInfoUnpackPRDF")
+  SubsysReco("TempInfoUnpackPRDF"), hcalin_temperature(NULL), hcalout_temperature(NULL), emcal_temperature(NULL)
 {
 }
 
