@@ -467,29 +467,29 @@ PHG4CylinderGeom_MAPS::get_world_from_local_coords(int stave, int half_stave, in
 int PHG4CylinderGeom_MAPS::get_pixel_number_from_xbin_zbin(int xbin, int ybin)
 {
   //NZ = (int)  ( Zsensor / (pixel_z) );
-  NX = (int)  ( Xsensor / (pixel_x) );
+//  NX = (int)  ( Xsensor / (pixel_x) );
   
-  int NXZ = xbin + ybin * NX;
+  int NXZ = xbin + ybin * get_NX();
 
     return NXZ;
 }
 
 int PHG4CylinderGeom_MAPS::get_pixel_X_from_pixel_number(int NXZ)
 {
-  NZ = (int)  ( Zsensor / (pixel_z) );
-  NX = (int)  ( Xsensor / (pixel_x) );
+//  NZ = (int)  ( Zsensor / (pixel_z) );
+//  NX = (int)  ( Xsensor / (pixel_x) );
   
-  int Ngridx = NXZ % NX ;
+  int Ngridx = NXZ % get_NX() ;
 
     return Ngridx;
 }
 
 int PHG4CylinderGeom_MAPS::get_pixel_Z_from_pixel_number( int NXZ)
 {  
-  NZ = (int)  ( Zsensor / (pixel_z) );
-  NX = (int)  ( Xsensor / (pixel_x) );
+//  NZ = (int)  ( Zsensor / (pixel_z) );
+//  NX = (int)  ( Xsensor / (pixel_x) );
 
-  int Ngridz = NXZ / NX;
+  int Ngridz = NXZ / get_NX();
 
     return Ngridz;
 }
@@ -497,8 +497,8 @@ int PHG4CylinderGeom_MAPS::get_pixel_Z_from_pixel_number( int NXZ)
 int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(TVector3 sensor_local)
 {  
 
-  NZ = (int)  ( Zsensor / (pixel_z) );
-  NX = (int)  ( Xsensor / (pixel_x) );
+//  NZ = (int)  ( Zsensor / (pixel_z) );
+//  NX = (int)  ( Xsensor / (pixel_x) );
   
   //cout  << " Pixels in X: NX  " << NX  << " pixels in Z: NZ  " << NZ << endl;
 
@@ -513,8 +513,8 @@ int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(TVector3 sensor_local)
 
   //  Combine the grid locations into a single integer
   // transform to the grid location referenced to top left corner of the chip as (0,0)
-  Ngridx +=  NX/2;
-  Ngridz += NZ/2;
+  Ngridx +=  get_NX()/2;
+  Ngridz += get_NZ()/2;
 
   /*
   cout << "Transformed grid locations: " 
@@ -524,7 +524,7 @@ int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(TVector3 sensor_local)
   */
 
   // numbering starts at zero
-  int NXZ = Ngridx + Ngridz * NX;
+  int NXZ = Ngridx + Ngridz * get_NX();
   //cout << " pixel number is " << NXZ << endl;
 
   return NXZ;
@@ -532,17 +532,17 @@ int PHG4CylinderGeom_MAPS::get_pixel_from_local_coords(TVector3 sensor_local)
 
 TVector3 PHG4CylinderGeom_MAPS::get_local_coords_from_pixel(int NXZ)
 {  
-  NZ = (int)  ( Zsensor / (pixel_z) );
-  NX = (int)  ( Xsensor / (pixel_x) );
+//  NZ = (int)  ( Zsensor / (pixel_z) );
+//  NX = (int)  ( Xsensor / (pixel_x) );
   
   //cout  << " Pixels in X: NX  " << NX  << " pixels in Z: NZ  " << NZ << endl;
 
-  int Ngridz = NXZ / NX;
-  int Ngridx = NXZ % NX;
+  int Ngridz = NXZ / get_NX();
+  int Ngridx = NXZ % get_NX();
 
   // change to a grid centered on the sensor
-  Ngridx -=  NX/2;
-  Ngridz -= NZ/2;
+  Ngridx -=  get_NX()/2;
+  Ngridz -= get_NZ()/2;
 
   double sensor_local_x = (double) Ngridx * pixel_x;
   if(sensor_local_x < 0)

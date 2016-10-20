@@ -53,8 +53,10 @@ protected:
   double Xsensor;
   double Zsensor;
 
-  int NZ;
-  int NX;
+//  int NZ;
+//  int NX;
+  int get_NZ() const {return (int)  ( Zsensor / (pixel_z) );}
+  int get_NX() const {return (int)  ( Xsensor / (pixel_x) );}
 
   // finding the center of a stave
   double layer_radius;
@@ -62,7 +64,7 @@ protected:
   double stave_phi_tilt;
 
   // finding the sensor location
-  double sensor_z_spacing;
+//  double sensor_z_spacing;
 
   // for all layers
   double loc_sensor_in_chip[3];
