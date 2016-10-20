@@ -25,10 +25,6 @@
 #include <TMatrixF.h>
 #include <TRandom.h>
 #include <TString.h>
-#include <g4hough/SvtxTrackMap.h>
-#include <g4hough/SvtxTrackMap_v1.h>
-#include <g4hough/SvtxTrackState.h>
-#include <g4hough/SvtxTrackState_v1.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -39,6 +35,11 @@
 #include <phgenfit/SpacepointMeasurement.h>
 #include <g4cemc/RawTowerGeom.h>
 #include <g4cemc/RawTowerGeomContainer.h>
+
+#include "SvtxTrackMap.h"
+#include "SvtxTrackMap_v1.h"
+#include "SvtxTrackState.h"
+#include "SvtxTrackState_v1.h"
 #include "SvtxTrack.h"
 #include "SvtxTrack_FastSim.h"
 
@@ -471,10 +472,10 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	genfit::MeasuredStateOnPlane* gf_state = NULL;
 
 	if (_detector_type == Vertical_Plane)
-		gf_state = phgf_track->extrapolateToPlane(TVector3(0., 0., 0.),
+		phgf_track->extrapolateToPlane(gf_state, TVector3(0., 0., 0.),
 				TVector3(0., 0., 1.));
 	else if (_detector_type == Cylinder)
-		gf_state = phgf_track->extrapolateToLine(TVector3(0., 0., 0.),
+		phgf_track->extrapolateToLine(gf_state, TVector3(0., 0., 0.),
 				TVector3(0., 0., 1.));
 	else {
 		LogError("Detector Type NOT implemented!");
@@ -533,18 +534,20 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	
 	// State Projections
 
+	double pathlenth = -9999;
+
 	for (int i = 0; i < _N_STATES; i++) {
 
 	  if( (_state_names[i]=="FHCAL") || (_state_names[i]=="FEMC") ){
 	    
 	    // Project to a plane at fixed z	  
-	    gf_state = phgf_track->extrapolateToPlane(TVector3(0., 0., _state_location[i]),
+		  pathlenth = phgf_track->extrapolateToPlane(gf_state, TVector3(0., 0., _state_location[i]),
 						      TVector3(1., 0., _state_location[i]));
 
 	  } else if( (_state_names[i]=="CEMC") || (_state_names[i]=="IHCAL") || (_state_names[i]=="OHCAL")){
 	  
 	    // Project to a cylinder at fixed r	  
-	    gf_state = phgf_track->extrapolateToCylinder(_state_location[i], TVector3(0., 0., 0.),
+		  pathlenth = phgf_track->extrapolateToCylinder(gf_state, _state_location[i], TVector3(0., 0., 0.),
 						      TVector3(0., 0., 1.));
 	  }
 	  else{
@@ -553,9 +556,9 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	  }
 	  
 	  // if projection fails, bail out
-	  if(!gf_state) continue;
+	  if(pathlenth<0 or !gf_state) continue;
 
-	  SvtxTrackState* state = new SvtxTrackState_v1(_state_location[i]);
+	  SvtxTrackState* state = new SvtxTrackState_v1(pathlenth);
 	  state->set_x(gf_state->getPos().x());
 	  state->set_y(gf_state->getPos().y());
 	  state->set_z(gf_state->getPos().z());
