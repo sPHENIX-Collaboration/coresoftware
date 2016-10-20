@@ -48,8 +48,15 @@ PHG4MapsDetector::PHG4MapsDetector( PHCompositeNode *Node, const std::string &dn
   active(0),
   absorberactive(0),
   layer(lyr),
+  blackhole(0),
   stave_type(in_stave_type),
-  layer_nominal_radius(-1)
+  layer_nominal_radius(-1),
+  N_staves(-1),
+  phistep(NAN),
+  phitilt(NAN),
+  pixel_x(NAN),
+  pixel_z(NAN),
+  pixel_thickness(NAN)
 {
   verbosity = 2;
 

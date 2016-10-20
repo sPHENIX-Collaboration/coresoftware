@@ -26,6 +26,7 @@ class PHG4CylinderGeomv4: public PHG4CylinderGeom
 		    const double tck,
 		    const double st) :
     N_sensors_in_layer(lnsensors),
+    layer(-1),
     layer_radius(lr),
     radius_stagger(rs),
     layer_NZ(lnz),

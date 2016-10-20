@@ -28,6 +28,9 @@ PHG4MapsSubsystem::PHG4MapsSubsystem( const std::string &name, const int lyr, in
   rot_in_z(0),
   layer(lyr),
   stave_type(in_stave_type),
+  pixel_x(NAN),
+  pixel_z(NAN),
+  pixel_thickness(NAN),
   material("G4_AIR"),  // default - almost nothing
   active(0),
   absorberactive(0),
