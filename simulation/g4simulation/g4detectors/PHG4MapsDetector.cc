@@ -65,7 +65,9 @@ PHG4MapsDetector::PHG4MapsDetector( PHCompositeNode *Node,  PHG4Parameters *para
   if(verbosity > 0)
     cout << "PHG4MapsDetector constructor called" << endl;
 
-  cout << " cm " << cm << " mm " << mm << endl;
+  if(verbosity > 10)
+    cout << " cm " << cm << " mm " << mm << endl;
+
   ostringstream name;
   name.str("");
   name << "ITSUSensor" << layer;
@@ -280,36 +282,48 @@ void PHG4MapsDetector::SetDisplayProperty( G4LogicalVolume* lv)
       PHG4Utils::SetColour(matVis, "G4_Si");
       matVis->SetVisibility(true);
       matVis->SetForceSolid(true);
+      if (Verbosity() >= 5)
+      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_Si" << endl;
     }
-  if (material_name.find("KAPTON") != std::string::npos)
+  else if (material_name.find("KAPTON") != std::string::npos)
     {
       PHG4Utils::SetColour(matVis, "G4_KAPTON");
       matVis->SetVisibility(true);
       matVis->SetForceSolid(true);
+      if (Verbosity() >= 5)
+      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_KAPTON" << endl;
     }
-  if (material_name.find("ALUMINUM") != std::string::npos)
+  else if (material_name.find("ALUMINUM") != std::string::npos)
     {
       PHG4Utils::SetColour(matVis, "G4_Al");
       matVis->SetVisibility(true);
       matVis->SetForceSolid(true);
+      if (Verbosity() >= 5)
+      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_Al" << endl;
     }
-  if (material_name.find("Carbon") != std::string::npos)
+  else if (material_name.find("Carbon") != std::string::npos)
     {
       matVis->SetColour(0.5,0.5,0.5,.25);
       matVis->SetVisibility(true);
       matVis->SetForceSolid(true);
+      if (Verbosity() >= 5)
+      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with Gray" << endl;
     }
-  if (material_name.find("M60J3K") != std::string::npos)
+  else if (material_name.find("M60J3K") != std::string::npos)
     {
       matVis->SetColour(0.25,0.25,0.25,.25);
       matVis->SetVisibility(true);
       matVis->SetForceSolid(true);
+      if (Verbosity() >= 5)
+      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with Gray" << endl;
     }
-  if (material_name.find("WATER") != std::string::npos)
+  else if (material_name.find("WATER") != std::string::npos)
     {
       matVis->SetColour(0.0,0.5,0.0,.25);
       matVis->SetVisibility(true);
       matVis->SetForceSolid(true);
+      if (Verbosity() >= 5)
+      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with WATER" << endl;
     }
   else
     {
