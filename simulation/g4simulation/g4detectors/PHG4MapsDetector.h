@@ -11,12 +11,13 @@
 #include <map>
 #include <vector>
 #include <set>
+#include <string>
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
-
+class PHG4Parameters;
 
 class PHG4MapsDetector: public PHG4Detector
 {
@@ -24,7 +25,7 @@ class PHG4MapsDetector: public PHG4Detector
   public:
 
   //! constructor
-  PHG4MapsDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK", const int lyr = 0, int stave_type = 0 );
+  PHG4MapsDetector( PHCompositeNode *Node,  PHG4Parameters *parameters, const std::string &dnam="BLOCK" );
 
   //! destructor
   virtual ~PHG4MapsDetector();
@@ -101,8 +102,9 @@ class PHG4MapsDetector: public PHG4Detector
   std::string layer_string;;
   std::string detector_type;
   std::string superdetector;
+  std::string stave_geometry_file;
 
-  int verbosity;
+//  int verbosity;
 };
 
 #endif

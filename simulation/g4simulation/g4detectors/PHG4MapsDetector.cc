@@ -1,6 +1,7 @@
 #include "PHG4MapsDetector.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeom_MAPS.h"
+#include "PHG4Parameters.h"
 
 #include "TMath.h"
 
@@ -34,7 +35,7 @@ using namespace std;
 
 //static double no_overlap = 0.00015 * cm; // added safety margin against overlaps by using same boundary between volumes
 
-PHG4MapsDetector::PHG4MapsDetector( PHCompositeNode *Node, const std::string &dnam, const int lyr, const int in_stave_type  ):
+PHG4MapsDetector::PHG4MapsDetector( PHCompositeNode *Node,  PHG4Parameters *parameters, const std::string &dnam ):
   PHG4Detector(Node, dnam),
   //envelope_inner_radius(26.0*mm),
   //envelope_outer_radius(880*mm),
@@ -45,20 +46,21 @@ PHG4MapsDetector::PHG4MapsDetector( PHCompositeNode *Node, const std::string &dn
   x_rot(0),
   y_rot(0),
   z_rot(0),
-  active(0),
-  absorberactive(0),
-  layer(lyr),
-  blackhole(0),
-  stave_type(in_stave_type),
-  layer_nominal_radius(-1),
+  active(parameters->get_int_param("active")),
+  absorberactive(parameters->get_int_param("absorberactive")),
+  layer(parameters->get_int_param("layer")),
+  blackhole(parameters->get_int_param("blackhole")),
+  stave_type(parameters->get_int_param("stave_type")),
+  layer_nominal_radius(parameters->get_double_param("layer_nominal_radius")),
   N_staves(-1),
   phistep(NAN),
   phitilt(NAN),
-  pixel_x(NAN),
-  pixel_z(NAN),
-  pixel_thickness(NAN)
+  pixel_x(parameters->get_double_param("pixel_x")),
+  pixel_z(parameters->get_double_param("pixel_z")),
+  pixel_thickness(parameters->get_double_param("pixel_thickness")),
+  stave_geometry_file(parameters->get_string_param("stave_geometry_file"))
 {
-  verbosity = 2;
+//  verbosity = 2;
 
   if(verbosity > 0)
     cout << "PHG4MapsDetector constructor called" << endl;
@@ -135,13 +137,14 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
   // import the staves from the gemetry file
   G4GDMLReadStructure * reader = new G4GDMLReadStructure();
   G4GDMLParser gdmlParser(reader);
-  gdmlParser.Read("./ITS.gdml");
+  gdmlParser.Read(stave_geometry_file);
   
   // figure out which assembly we want
   char assemblyname[500];
   sprintf(assemblyname, "ITSUStave%i",layer);
 
-  cout << "Geting the stave assembly named " << assemblyname << endl;
+  if (Verbosity())
+    cout << "Geting the stave assembly named " << assemblyname << endl;
   G4AssemblyVolume* av_ITSUStave = reader->GetAssembly(assemblyname);
 
   //=========================================
@@ -263,14 +266,38 @@ void PHG4MapsDetector::SetDisplayProperty( G4AssemblyVolume* av)
 
 void PHG4MapsDetector::SetDisplayProperty( G4LogicalVolume* lv)
 {
-  
-  //cout <<"SetDisplayProperty - LV "<<lv->GetName()<<endl;
-  
-  
-  G4VisAttributes* matVis = new G4VisAttributes();
-  matVis->SetColour(.2,.2,.7,.25);
-  matVis->SetVisibility(true);
-  matVis->SetForceSolid(true);
+  string material_name(
+  lv->GetMaterial()->GetName());
+
+  if (Verbosity() >= 2)
+    cout << "SetDisplayProperty - LV " << lv->GetName() << " built with "
+        << material_name << endl;
+
+  G4VisAttributes* matVis= new G4VisAttributes();
+  if (material_name.find("Si") != std::string::npos)
+    {
+      PHG4Utils::SetColour(matVis, "G4_Si");
+      matVis->SetVisibility(true);
+      matVis->SetForceSolid(true);
+    }
+  if (material_name.find("TEFLON") != std::string::npos)
+    {
+      PHG4Utils::SetColour(matVis, "G4_TEFLON");
+      matVis->SetVisibility(true);
+      matVis->SetForceSolid(true);
+    }
+  if (material_name.find("Cu") != std::string::npos)
+    {
+      PHG4Utils::SetColour(matVis, "G4_Cu");
+      matVis->SetVisibility(true);
+      matVis->SetForceSolid(true);
+    }
+  else
+    {
+      matVis->SetColour(.2,.2,.7,.25);
+      matVis->SetVisibility(true);
+      matVis->SetForceSolid(true);
+    }
   lv->SetVisAttributes(matVis);
   
   int nDaughters = lv->GetNoDaughters();
