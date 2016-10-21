@@ -61,7 +61,7 @@ Track::~Track()
 	delete _track;
 }
 
-double Track::extrapolateToPlane(genfit::MeasuredStateOnPlane* state, TVector3 O, TVector3 n, const int tr_point_id) const
+double Track::extrapolateToPlane(genfit::MeasuredStateOnPlane& state, TVector3 O, TVector3 n, const int tr_point_id) const
 {
 	double pathlenth = -9999;
 
@@ -74,32 +74,30 @@ double Track::extrapolateToPlane(genfit::MeasuredStateOnPlane* state, TVector3 O
 		std::cout << "Track has no TrackPoint with fitterInfo! \n";
 		return pathlenth;
 	}
-
-	state = new genfit::KalmanFittedStateOnPlane(
+	genfit::KalmanFittedStateOnPlane *kfsop  = new genfit::KalmanFittedStateOnPlane(
 			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getBackwardUpdate()));
 	// extrapolate back to reference plane.
 	try {
-		pathlenth = rep->extrapolateToPlane(*state, destPlane);
+		pathlenth = rep->extrapolateToPlane(*kfsop, destPlane);
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();
 		return -9999;
 	}
+
+	state = *dynamic_cast<genfit::MeasuredStateOnPlane*> (kfsop);
 
 	return pathlenth;
 }
 
 genfit::MeasuredStateOnPlane* Track::extrapolateToPlane(TVector3 O, TVector3 n, const int tr_point_id) const
 {
-	genfit::MeasuredStateOnPlane* state = NULL;
-	double pathlenth = this->extrapolateToPlane(state, O, n, tr_point_id);
-	if (pathlenth > 0)
-		return state;
-	else
-		return NULL;
+	genfit::MeasuredStateOnPlane* state = new genfit::MeasuredStateOnPlane();
+	this->extrapolateToPlane(*state, O, n, tr_point_id);
+	return state;
 }
 
-double Track::extrapolateToLine(genfit::MeasuredStateOnPlane* state, TVector3 line_point, TVector3 line_direction, const int tr_point_id) const
+double Track::extrapolateToLine(genfit::MeasuredStateOnPlane& state, TVector3 line_point, TVector3 line_direction, const int tr_point_id) const
 {
 	double pathlenth = -9999;
 
@@ -110,31 +108,32 @@ double Track::extrapolateToLine(genfit::MeasuredStateOnPlane* state, TVector3 li
 		std::cout << "Track has no TrackPoint with fitterInfo! \n";
 		return -9999;
 	}
-	state = new genfit::KalmanFittedStateOnPlane(
+	genfit::KalmanFittedStateOnPlane *kfsop = new genfit::KalmanFittedStateOnPlane(
 			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getBackwardUpdate()));
 	// extrapolate back to reference plane.
 	try {
-		pathlenth = rep->extrapolateToLine(*state, line_point, line_direction);
+		pathlenth = rep->extrapolateToLine(*kfsop, line_point, line_direction);
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();
 		return -9999;
 	}
+
+	state = *dynamic_cast<genfit::MeasuredStateOnPlane*> (kfsop);
+
 
 	return pathlenth;
 }
 
 genfit::MeasuredStateOnPlane* Track::extrapolateToLine(TVector3 line_point, TVector3 line_direction, const int tr_point_id) const
 {
-	genfit::MeasuredStateOnPlane* state = NULL;
-	double pathlenth = this->extrapolateToLine(state, line_point, line_direction, tr_point_id);
-	if (pathlenth > 0)
-		return state;
-	else
-		return NULL;
+	genfit::MeasuredStateOnPlane* state = new genfit::MeasuredStateOnPlane();
+	this->extrapolateToLine(*state, line_point, line_direction, tr_point_id);
+	return state;
+
 }
 
-double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane* state, double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id) const
+double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id) const
 {
 	double pathlenth = -9999;
 
@@ -145,32 +144,31 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane* state, double 
 		std::cout << "Track has no TrackPoint with fitterInfo! \n";
 		return -9999;
 	}
-	state = new genfit::KalmanFittedStateOnPlane(
+	genfit::KalmanFittedStateOnPlane *kfsop = new genfit::KalmanFittedStateOnPlane(
 			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getForwardUpdate()));
 	// extrapolate back to reference plane.
 	try {
 		//rep->extrapolateToLine(*kfsop, line_point, line_direction);
-		pathlenth = rep->extrapolateToCylinder(*state, radius, line_point, line_direction);
+		pathlenth = rep->extrapolateToCylinder(*kfsop, radius, line_point, line_direction);
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();
 		return -9999;
 	}
+
+	state = *dynamic_cast<genfit::MeasuredStateOnPlane*> (kfsop);
 
 	return pathlenth;
 }
 
 genfit::MeasuredStateOnPlane*  Track::extrapolateToCylinder(double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id) const
 {
-	genfit::MeasuredStateOnPlane* state = NULL;
-	double pathlenth = this->extrapolateToCylinder(state, radius, line_point, line_direction);
-	if (pathlenth > 0)
-		return state;
-	else
-		return NULL;
+	genfit::MeasuredStateOnPlane* state = new genfit::MeasuredStateOnPlane();
+	this->extrapolateToCylinder(*state, radius, line_point, line_direction);
+	return state;
 }
 
-double Track::extrapolateToPoint(genfit::MeasuredStateOnPlane* state, TVector3 P, const int tr_point_id) const
+double Track::extrapolateToPoint(genfit::MeasuredStateOnPlane& state, TVector3 P, const int tr_point_id) const
 {
 	double pathlenth = -9999;
 	genfit::AbsTrackRep* rep = _track->getCardinalRep();
@@ -180,27 +178,26 @@ double Track::extrapolateToPoint(genfit::MeasuredStateOnPlane* state, TVector3 P
 		std::cout << "Track has no TrackPoint with fitterInfo! \n";
 		return -9999;
 	}
-	state = new genfit::KalmanFittedStateOnPlane(
+	genfit::KalmanFittedStateOnPlane *kfsop = new genfit::KalmanFittedStateOnPlane(
 			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getBackwardUpdate()));
 	// extrapolate back to reference plane.
 	try {
-		pathlenth = rep->extrapolateToPoint(*state, P);
+		pathlenth = rep->extrapolateToPoint(*kfsop, P);
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();
 		return -9999;
 	}
 
+	state = *dynamic_cast<genfit::MeasuredStateOnPlane*> (kfsop);
+
 	return pathlenth;
 }
 
 genfit::MeasuredStateOnPlane*  Track::extrapolateToPoint(TVector3 P, const int tr_point_id) const
 {
-	genfit::MeasuredStateOnPlane* state = NULL;
-	double pathlenth = this->extrapolateToPoint(state, P, tr_point_id);
-	if (pathlenth > 0)
-		return state;
-	else
-		return NULL;
+	genfit::MeasuredStateOnPlane* state = new genfit::MeasuredStateOnPlane();
+	this->extrapolateToPoint(*state, P, tr_point_id);
+	return state;
 }
 } //End of PHGenFit namespace

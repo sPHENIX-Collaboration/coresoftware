@@ -469,38 +469,37 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	double chi2 = phgf_track->get_chi2();
 	double ndf = phgf_track->get_ndf();
 
-	genfit::MeasuredStateOnPlane* gf_state = NULL;
+	double pathlenth_from_first_meas = -999999;
+	double pathlenth_orig_from_first_meas = -999999;
+	genfit::MeasuredStateOnPlane* gf_state = new genfit::MeasuredStateOnPlane();
 
-	if (_detector_type == Vertical_Plane)
-		phgf_track->extrapolateToPlane(gf_state, TVector3(0., 0., 0.),
-				TVector3(0., 0., 1.));
+	if (_detector_type == Vertical_Plane) {
+		pathlenth_orig_from_first_meas = phgf_track->extrapolateToPlane(*gf_state, TVector3(0., 0., 0.),
+				TVector3(0., 0., 1.), 0);
+	}
 	else if (_detector_type == Cylinder)
-		phgf_track->extrapolateToLine(gf_state, TVector3(0., 0., 0.),
+		pathlenth_orig_from_first_meas = phgf_track->extrapolateToLine(*gf_state, TVector3(0., 0., 0.),
 				TVector3(0., 0., 1.));
 	else {
 		LogError("Detector Type NOT implemented!");
 		return NULL;
 	}
 
-	if(!gf_state) {
+	if(pathlenth_orig_from_first_meas<-999990) {
 		LogError("Extraction faild!");
 		return NULL;
 	}
 
-
 	TVector3 mom = gf_state->getMom();
 	TVector3 pos = gf_state->getPos();
 	TMatrixDSym cov = gf_state->get6DCov();
-
 //	SvtxTrack_v1* out_track = new SvtxTrack_v1(*static_cast<const SvtxTrack_v1*> (svtx_track));
 //	SvtxTrack_v1* out_track = new SvtxTrack_v1();
 
 	SvtxTrack* out_track = new SvtxTrack_FastSim();
-
 	out_track->set_truth_track_id(truth_track_id);
-
 	/*!
-	 * FIXME: check the definition
+	 * TODO: check the definition
 	 *  1/p, u'/z', v'/z', u, v
 	 *  u is defined as mom X beam line at POCA
 	 *  so u is the dca2d direction
@@ -517,7 +516,6 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	out_track->set_charge(
 			(_reverse_mag_field) ?
 					-1. * phgf_track->get_charge() : phgf_track->get_charge());
-
 	out_track->set_px(mom.Px());
 	out_track->set_py(mom.Py());
 	out_track->set_pz(mom.Pz());
@@ -531,24 +529,19 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 			out_track->set_error(i, j, cov[i][j]);
 		}
 	}
-	
 	// State Projections
-
-	double pathlenth = -9999;
-
 	for (int i = 0; i < _N_STATES; i++) {
 
 	  if( (_state_names[i]=="FHCAL") || (_state_names[i]=="FEMC") ){
 	    
-	    // Project to a plane at fixed z	  
-		  pathlenth = phgf_track->extrapolateToPlane(gf_state, TVector3(0., 0., _state_location[i]),
-						      TVector3(1., 0., _state_location[i]));
-
+	    // Project to a plane at fixed z
+		  pathlenth_from_first_meas = phgf_track->extrapolateToPlane(*gf_state, TVector3(0., 0., _state_location[i]),
+						      TVector3(1., 0., _state_location[i]), 0);
 	  } else if( (_state_names[i]=="CEMC") || (_state_names[i]=="IHCAL") || (_state_names[i]=="OHCAL")){
 	  
 	    // Project to a cylinder at fixed r	  
-		  pathlenth = phgf_track->extrapolateToCylinder(gf_state, _state_location[i], TVector3(0., 0., 0.),
-						      TVector3(0., 0., 1.));
+		  pathlenth_from_first_meas = phgf_track->extrapolateToCylinder(*gf_state, _state_location[i], TVector3(0., 0., 0.),
+						      TVector3(0., 0., 1.), 0);
 	  }
 	  else{
 	    LogError("Unrecognized detector name for state projection"); 
@@ -556,9 +549,9 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	  }
 	  
 	  // if projection fails, bail out
-	  if(pathlenth<0 or !gf_state) continue;
+	  if(pathlenth_from_first_meas<-999990) continue;
 
-	  SvtxTrackState* state = new SvtxTrackState_v1(pathlenth);
+	  SvtxTrackState* state = new SvtxTrackState_v1(pathlenth_from_first_meas-pathlenth_orig_from_first_meas);
 	  state->set_x(gf_state->getPos().x());
 	  state->set_y(gf_state->getPos().y());
 	  state->set_z(gf_state->getPos().z());
@@ -576,9 +569,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 		  out_track->set_error(i,j, gf_state->get6DCov()[i][j]);
 		}
 	    }
-
 	  out_track->insert_state(state);
-
 	}
 
 	return out_track;
