@@ -207,6 +207,7 @@ void PHG4SvtxDigitizer::CalculateMapsLadderCellADCScale(PHCompositeNode *topNode
     if (thickness < minpath) minpath = thickness;
     float mip_e = 0.003876*minpath;  
 
+    if (Verbosity())
     cout << "mip_e = " << mip_e << endl;
 
     if (_max_adc.find(layer) == _max_adc.end()) {
