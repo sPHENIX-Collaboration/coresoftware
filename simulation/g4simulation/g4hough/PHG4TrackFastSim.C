@@ -569,6 +569,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 		  out_track->set_error(i,j, gf_state->get6DCov()[i][j]);
 		}
 	    }
+	  state->identify();
 	  out_track->insert_state(state);
 	}
 
