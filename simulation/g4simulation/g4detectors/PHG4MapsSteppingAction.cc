@@ -38,7 +38,7 @@ PHG4MapsSteppingAction::PHG4MapsSteppingAction( PHG4MapsDetector* detector ):
   absorberhits_(NULL),
   hit(NULL)
 {
-  cout << "PHG4MapsSteppingAction created" << endl;
+//  cout << "PHG4MapsSteppingAction created" << endl;
 
   //verbosity = 3;
 }

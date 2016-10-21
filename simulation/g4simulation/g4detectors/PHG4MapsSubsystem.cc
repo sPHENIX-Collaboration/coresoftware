@@ -109,6 +109,7 @@ int PHG4MapsSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	  dstNode->addNode( new PHIODataNode<PHObject>( block_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject" ));
 
 	}
+      if (Verbosity())
       cout << PHWHERE << "creating hits node " << nodename.str() << endl;
 
       PHG4EventActionClearZeroEdep *eventaction = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
@@ -187,6 +188,7 @@ PHG4MapsSubsystem::SetDefaultParameters()
   set_default_double_param("pixel_x", NAN);
   set_default_double_param("pixel_z", NAN);
   set_default_double_param("pixel_thickness", NAN);
+  set_default_double_param("phitilt",NAN);
 
   set_default_string_param("material", "G4_AIR"); // default - almost nothing
 //  set_default_int_param("active", 1);
