@@ -27,6 +27,7 @@ PHG4Hit::Copy(PHG4Hit const &g4hit)
 	  set_property_nocheck(prop_id,g4hit.get_property_nocheck(prop_id));
 	}
     }
+  set_hit_type(g4hit.get_hit_type()); 
 }
 
 
@@ -46,6 +47,7 @@ PHG4Hit::identify(ostream& os) const
   cout     << "strip_z_index: " << get_strip_z_index() << ", strip_y_index: " << get_strip_y_index() << endl;
   cout     << "ladder_z_index: " << get_ladder_z_index() << ", ladder_phi_index: " << get_ladder_phi_index() << endl;
   cout << "layer id: " << get_layer() << ", scint_id: " << get_scint_id() << endl;
+  cout << "hit type: " << get_hit_type() << endl; 
   return;
 }
 
@@ -112,6 +114,8 @@ PHG4Hit::get_property_info(const PROPERTY prop_id)
     return make_pair("generic index k",PHG4Hit::type_int);
   case   prop_index_l:
     return make_pair("generic index l",PHG4Hit::type_int);
+  case   prop_hit_type:
+    return make_pair("hit type",PHG4Hit::type_int);    
   default:
     cout << "PHG4Hit::get_property_info - Fatal Error - unknown index " << prop_id << endl;
     exit(1);
