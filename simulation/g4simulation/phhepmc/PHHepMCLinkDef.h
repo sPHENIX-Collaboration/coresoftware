@@ -80,4 +80,9 @@ typedef long size_type;
 #pragma link C++ class PHGenEventList+;
 #pragma link C++ class PHGenEventListv1+;
 
+#pragma link C++ class PHHepMCParticleSelectorBase-!;
+#pragma link C++ class PHHepMCParticleSelectorB2Jpsi-!;
+
+
+
 #endif
