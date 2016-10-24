@@ -35,6 +35,8 @@ libphhepmc_la_SOURCES = \
   Fun4AllHepMCInputManager.cc \
   Fun4AllHepMCOutputManager.cc \
   Fun4AllOscarInputManager.cc \
+  PHHepMCParticleSelectorB2Jpsi.cc \
+  PHHepMCParticleSelectorBase.cc \
   PHGenEventv1.cc \
   PHGenEventListv1.cc \
   PHHepMCGenEvent.cc \
@@ -61,6 +63,8 @@ PHHepMC_Dict.cc: \
   Fun4AllHepMCOutputManager.h \
   Fun4AllOscarInputManager.h \
   HepMCFlowAfterBurner.h \
+  PHHepMCParticleSelectorB2Jpsi.h \
+  PHHepMCParticleSelectorBase.h \
   PHGenEvent.h \
   PHGenEventv1.h \
   PHGenEventList.h \
