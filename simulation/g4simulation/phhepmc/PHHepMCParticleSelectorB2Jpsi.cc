@@ -48,7 +48,7 @@ PHHepMCParticleSelectorB2Jpsi::process_event(PHCompositeNode *topNode)
     bool eventok = false;
     for ( HepMC::GenEvent::particle_const_iterator p = event->particles_begin(); p != event->particles_end(); ++p ){
       int pid = (*p)->pdg_id();
-      if(abs(pid)==_theTrigger) eventok=true;
+      if(abs(pid)==_theTrigger || _theTrigger==0) eventok=true;
     }
     if(!eventok) { return -1; }
 
@@ -168,20 +168,20 @@ int partcount=0;
 if(verbosity>0) {
 cout << "FINAL Event " << event->event_number() << " contains " << event->particles_size() << " particles and " << event->vertices_size() << " vertices." << endl;
 cout << "FINAL LIST OF PARTICLES:" << endl;
-    for ( HepMC::GenEvent::particle_const_iterator p = event->particles_begin(); p != event->particles_end(); ++p ){
-      int pid = (*p)->pdg_id();
-      int status = (*p)->status();
-      double px = ((*p)->momentum()).px();
-      double py = ((*p)->momentum()).py();
-      double pz = ((*p)->momentum()).pz();
-      //double pt = ((*p)->momentum()).perp();
-      double mass  = ((*p)->momentum()).m();
-      cout << pid << " " << mass << " " << status << " " << px << " " << py << " " << pz << endl;
-      partcount++;
-    }
 }
+  for ( HepMC::GenEvent::particle_const_iterator p = event->particles_begin(); p != event->particles_end(); ++p ){
+    int pid = (*p)->pdg_id();
+    int status = (*p)->status();
+    double px = ((*p)->momentum()).px();
+    double py = ((*p)->momentum()).py();
+    double pz = ((*p)->momentum()).pz();
+    //double pt = ((*p)->momentum()).perp();
+    double mass  = ((*p)->momentum()).m();
+    if(verbosity>0) { cout << pid << " " << mass << " " << status << " " << px << " " << py << " " << pz << endl; }
+    partcount++;
+  }
 
-  if(partcount==0 && verbosity>0) { cout << "EVENT ABORTED: No particles to write out." << endl; return -1; }
+  if(partcount==0) { if(verbosity>0) {cout << "EVENT ABORTED: No particles to write out." << endl;} return -1; }
   else { return 0; }
 //  if(abortevent) { cout << "EVENT ABORTED." << endl; return -1; }
 //  else { return 0; }

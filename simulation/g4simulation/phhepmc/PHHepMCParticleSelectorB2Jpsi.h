@@ -3,6 +3,9 @@
 
 #include "PHHepMCParticleSelectorBase.h"
 
+/// Particle selector for B -> J/spi -> e+e- process
+/// Will write out B-mason, J/psi from that B-meson deacy and 
+/// electrons/positrons from J/psi decay
 class PHHepMCParticleSelectorB2Jpsi: public PHHepMCParticleSelectorBase
 {
  public:
