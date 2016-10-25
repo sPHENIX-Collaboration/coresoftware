@@ -143,7 +143,7 @@ PHG4Prototype2OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelo
 					 zero, 1.0);
 
       volume_steel = steel_plate->GetCubicVolume()*n_steel_plates;
-      outerhcalsteelplate = new G4LogicalVolume(steel_plate,G4Material::GetMaterial("SS310"),"OuterHcalSteelPlate", 0, 0, 0);
+      outerhcalsteelplate = new G4LogicalVolume(steel_plate,G4Material::GetMaterial("Steel_A36"),"OuterHcalSteelPlate", 0, 0, 0);
       G4VisAttributes* visattchk = new G4VisAttributes();
       visattchk->SetVisibility(true);
       visattchk->SetForceSolid(false);

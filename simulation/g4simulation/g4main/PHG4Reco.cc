@@ -672,6 +672,7 @@ PHG4Reco::DefineMaterials()
   G4Element *C  = nist->FindOrBuildElement("C");
   G4Element *Cr  = nist->FindOrBuildElement("Cr");
   G4Element *Cs  = nist->FindOrBuildElement("Cs");
+  G4Element *Cu  = nist->FindOrBuildElement("Cu");
   G4Element *F  = nist->FindOrBuildElement("F");
   G4Element *Fe  = nist->FindOrBuildElement("Fe");
   G4Element *H  = nist->FindOrBuildElement("H");
@@ -740,6 +741,19 @@ PHG4Reco::DefineMaterials()
   Steel->AddElement(C, 0.0017);
   Steel->AddElement(S, 0.00045);
   Steel->AddElement(P, 0.00045);
+
+  // a36 steel from http://www.matweb.com
+  G4Material *a36 = new G4Material("Steel_A36",density = 7.85*g/cm3,ncomponents = 5);
+  a36->AddElement(Fe, 0.9824);
+  a36->AddElement(Cu,0.002);
+  a36->AddElement(C,0.0025);
+  a36->AddElement(Mn,0.0103);
+  a36->AddElement(Si,0.0028);
+
+  // 1006 steel from http://www.matweb.com
+  G4Material *steel_1006 = new G4Material("Steel_1006",density = 7.872*g/cm3,ncomponents = 2);
+  steel_1006->AddElement(Fe, 0.996);
+  steel_1006->AddElement(Mn,0.004);
 
   // from www.aalco.co.uk
   G4Material *Al5083 = new G4Material("Al5083", density = 2.65*g/cm3, ncomponents = 3);
