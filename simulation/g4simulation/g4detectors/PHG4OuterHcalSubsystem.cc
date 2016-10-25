@@ -191,7 +191,7 @@ PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_int_param("n_scinti_plates", 5*64);
   set_default_int_param("n_scinti_tiles", 12);
 
-  set_default_string_param("material", "G4_Fe");
+  set_default_string_param("material", "Steel_1006");
 }
 
 PHG4TrackingAction*
