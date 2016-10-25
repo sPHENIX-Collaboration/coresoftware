@@ -136,6 +136,15 @@ PROTOTYPE2_FEM::SampleFit_PowerLawExp(//
   fits.SetParLimits(4, pedestal - abs(peakval), pedestal + abs(peakval));
 //  fits.SetParLimits(5, - abs(peakval),  + abs(peakval));
   fits.FixParameter(5, 0);
+
+  //Saturation correction - Abhisek
+   for(int ipoint=0; ipoint<gpulse.GetN(); ipoint++)
+    if((gpulse.GetY())[ipoint]==0)
+     {
+      gpulse.RemovePoint(ipoint);
+      ipoint--;
+     }
+
   gpulse.Fit(&fits, "MQRN0", "goff", 0., (double) NSAMPLES);
 
   if (verbosity)
