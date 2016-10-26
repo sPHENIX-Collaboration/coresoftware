@@ -45,6 +45,7 @@ class PHG4Hit: public PHObject
   virtual int get_index_j() const {return INT_MIN;}
   virtual int get_index_k() const {return INT_MIN;}
   virtual int get_index_l() const {return INT_MIN;}
+  virtual int get_hit_type() const {return INT_MIN;}
 
   virtual void set_x(const int i, const float f) {return;}
   virtual void set_y(const int i, const float f) {return;}
@@ -74,6 +75,7 @@ class PHG4Hit: public PHObject
   virtual void set_index_j(const int i) {return;}
   virtual void set_index_k(const int i) {return;}
   virtual void set_index_l(const int i) {return;}
+  virtual void set_hit_type(const int i) {return;}
 
   virtual float get_avg_x() const;
   virtual float get_avg_y() const;
@@ -138,6 +140,8 @@ class PHG4Hit: public PHObject
     prop_index_k = 123,
     prop_index_l = 124,
 
+    //! hit type
+    prop_hit_type = 125,
 
 
     //! max limit in order to fit into 8 bit unsigned number

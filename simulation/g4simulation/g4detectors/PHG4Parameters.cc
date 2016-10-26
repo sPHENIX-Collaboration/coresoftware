@@ -5,13 +5,16 @@
 #include <pdbcalbase/PdbBankList.h>
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbParameterMap.h>
+#include <pdbcalbase/PdbParameterMapContainer.h>
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHTimeStamp.h>
 
+#include <TBufferXML.h>
 #include <TFile.h>
+#include <TSystem.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
@@ -207,6 +210,44 @@ PHG4Parameters::FillFrom(const PdbParameterMap *saveparams)
 }
 
 void
+PHG4Parameters::FillFrom(const PdbParameterMapContainer *saveparamcontainer, const int layer)
+{
+  //  assert(saveparamcontainer != NULL);
+
+  const PdbParameterMap *saveparams = saveparamcontainer->GetParameters(layer);
+  if (! saveparams)
+    {
+      return;
+    }
+  pair<std::map<const std::string, double>::const_iterator,
+      std::map<const std::string, double>::const_iterator> begin_end_d =
+      saveparams->get_dparam_iters();
+  for (map<const std::string, double>::const_iterator iter = begin_end_d.first;
+      iter != begin_end_d.second; ++iter)
+    {
+      doubleparams[iter->first] = iter->second;
+    }
+  pair<std::map<const std::string, int>::const_iterator,
+      std::map<const std::string, int>::const_iterator> begin_end_i =
+      saveparams->get_iparam_iters();
+  for (map<const std::string, int>::const_iterator iter = begin_end_i.first;
+      iter != begin_end_i.second; ++iter)
+    {
+      intparams[iter->first] = iter->second;
+    }
+  pair<std::map<const std::string, string>::const_iterator,
+      std::map<const std::string, string>::const_iterator> begin_end_s =
+      saveparams->get_cparam_iters();
+  for (map<const std::string, string>::const_iterator iter = begin_end_s.first;
+      iter != begin_end_s.second; ++iter)
+    {
+      stringparams[iter->first] = iter->second;
+    }
+
+  return;
+}
+
+void
 PHG4Parameters::FillFrom(const PHG4Parameters *saveparams)
 {
   assert(saveparams);
@@ -247,6 +288,32 @@ PHG4Parameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
   return;
 }
 
+void
+PHG4Parameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename, const int layer)
+{
+  // write itself since this class is fine with saving by root
+  PdbParameterMapContainer *nodeparamcontainer = findNode::getClass<PdbParameterMapContainer>(topNode, nodename);
+  if (!nodeparamcontainer)
+    {
+      nodeparamcontainer = new PdbParameterMapContainer();
+      PHIODataNode<PdbParameterMapContainer> *newnode =
+          new PHIODataNode<PdbParameterMapContainer>(nodeparamcontainer, nodename);
+      topNode->addNode(newnode);
+    }
+  PdbParameterMap *nodeparams = nodeparamcontainer->GetParametersToModify(layer);
+  if (nodeparams)
+    {
+      nodeparams->Reset();
+    }
+  else
+    {
+      nodeparams = new PdbParameterMap();
+      nodeparamcontainer->AddPdbParameterMap(layer,nodeparams);
+    }
+  CopyToPdbParameterMap(nodeparams);
+  return;
+}
+
 int
 PHG4Parameters::WriteToDB()
 {
@@ -280,6 +347,41 @@ PHG4Parameters::WriteToDB()
   else
     {
       cout << PHWHERE " Committing to DB failed" << endl;
+      return -1;
+    }
+  return 0;
+}
+
+int
+PHG4Parameters::ReadFromDB(const string &name, const int layer)
+{
+  PdbBankManager* bankManager = PdbBankManager::instance();
+  PdbApplication *application = bankManager->getApplication();
+  if (!application->startRead())
+    {
+      cout << PHWHERE << " Aborting, Database not readable" << endl;
+      application->abort();
+      exit(1);
+    }
+
+  //  Make a bank ID...
+  PdbBankID bankID(0); // lets start at zero
+  PHTimeStamp TSearch(10);
+
+  string tablename = name + "_geoparams";
+  std::transform(tablename.begin(), tablename.end(), tablename.begin(),
+      ::tolower);
+  PdbCalBank *NewBank = bankManager->fetchBank("PdbParameterMapContainerBank", bankID,
+      tablename, TSearch);
+  if (NewBank)
+    {
+      PdbParameterMapContainer *myparm = (PdbParameterMapContainer*) &NewBank->getEntry(0);
+      FillFrom(myparm,layer);
+      delete NewBank;
+    }
+  else
+    {
+      cout << PHWHERE " Reading from DB failed" << endl;
       return -1;
     }
   return 0;
@@ -346,20 +448,26 @@ PHG4Parameters::WriteToFile(const string &extension, const string &dir)
   PdbParameterMap *myparm = new PdbParameterMap();
   CopyToPdbParameterMap(myparm);
   TFile *f = TFile::Open(fullpath.str().c_str(), "recreate");
+  // force xml file writing to use extended precision shown experimentally
+  // to not modify input parameters (.15e)
+  string floatformat = TBufferXML::GetFloatFormat();
+  TBufferXML::SetFloatFormat("%.15e");
   myparm->Write();
   delete f;
+  // restore previous xml float format
+  TBufferXML::SetFloatFormat(floatformat.c_str());
   cout << "sleeping 1 second to prevent duplicate inserttimes" << endl;
   sleep(1);
   return 0;
 }
 
 int
-PHG4Parameters::ReadFromFile(const string &extension, const string &dir)
+PHG4Parameters::ReadFromFile(const string &name, const string &extension, const int layer, const int issuper, const string &dir)
 {
   PHTimeStamp TSearch(10);
   PdbBankID bankID(0);
   ostringstream fnamestream;
-  fnamestream << detname << "_geoparams" << "-" << bankID.getInternalValue();
+  fnamestream << name << "_geoparams" << "-" << bankID.getInternalValue();
   string fileprefix = fnamestream.str();
   std::transform(fileprefix.begin(), fileprefix.end(), fileprefix.begin(),
       ::tolower);
@@ -411,16 +519,25 @@ PHG4Parameters::ReadFromFile(const string &extension, const string &dir)
     }
   if (calibfiles.empty())
     {
-      cout << "No calibration file found" << endl;
-      return -1;
+      cout << "No calibration file like " << dir << "/" << fileprefix << " found" << endl;
+      gSystem->Exit(1);
     }
   cout << "Reading from File: " << (calibfiles.rbegin())->second << endl;
   string fname = (calibfiles.rbegin())->second;
   TFile *f = TFile::Open(fname.c_str());
-  PdbParameterMap *myparm = (PdbParameterMap *) f->Get("PdbParameterMap");
-  FillFrom(myparm);
+  if (issuper)
+    {
+      PdbParameterMapContainer *myparm = static_cast<PdbParameterMapContainer *> (f->Get("PdbParameterMapContainer"));
+      FillFrom(myparm, layer);
+      delete myparm;
+    }
+  else
+    {
+      PdbParameterMap *myparm = static_cast<PdbParameterMap *> (f->Get("PdbParameterMap"));
+      FillFrom(myparm);
+      delete myparm;
+    }
   delete f;
-  delete myparm;
   return 0;
 }
 
