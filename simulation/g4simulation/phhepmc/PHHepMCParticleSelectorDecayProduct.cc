@@ -1,10 +1,6 @@
-#include "PHHepMCParticleSelectorBase.h"
+#include "PHHepMCParticleSelectorDecayProduct.h"
 
-//#include "PHG4Particlev1.h"
-
-//#include "PHG4InEvent.h"
-//#include "PHG4VtxPoint.h"
-//#include "PHG4TruthInfoContainer.h"
+#include "PHHepMCGenEvent.h"
 
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
@@ -14,7 +10,7 @@
 
 using namespace std;
 
-PHHepMCParticleSelectorBase::PHHepMCParticleSelectorBase(const string &name):
+PHHepMCParticleSelectorDecayProduct::PHHepMCParticleSelectorDecayProduct(const string &name):
   SubsysReco(name)
 {
   _theTrigger = 0;
@@ -22,18 +18,18 @@ PHHepMCParticleSelectorBase::PHHepMCParticleSelectorBase(const string &name):
   return;
 }
 
-PHHepMCParticleSelectorBase::~PHHepMCParticleSelectorBase()
+PHHepMCParticleSelectorDecayProduct::~PHHepMCParticleSelectorDecayProduct()
 {
   return;
 }
 
 int
-PHHepMCParticleSelectorBase::InitRun(PHCompositeNode *topNode)
+PHHepMCParticleSelectorDecayProduct::InitRun(PHCompositeNode *topNode)
 {
   return 0;
 }
 
-int PHHepMCParticleSelectorBase::process_event(PHCompositeNode *topNode)
+int PHHepMCParticleSelectorDecayProduct::process_event(PHCompositeNode *topNode)
 {
   PHHepMCGenEvent *inEvent = findNode::getClass<PHHepMCGenEvent>(topNode,"PHHepMCGenEvent");
   if(!inEvent) {cerr << "ERROR: PHHepMCGenEvent node not found!" << endl; return -1;}
@@ -63,7 +59,7 @@ int PHHepMCParticleSelectorBase::process_event(PHCompositeNode *topNode)
         bool goodparticle = false;
 
         // if list of daughters is not empty, check that _theParticle decays to requested daughters
-        if(_theDaughters.size()==0) { goodparticle==true; }
+        if(_theDaughters.size()==0) { goodparticle = true; }
         else {
           if ((*p)->end_vertex() ) {
             for ( HepMC::GenVertex::particle_iterator des = (*p)->end_vertex()-> particles_begin(HepMC::descendants);
@@ -129,19 +125,19 @@ int PHHepMCParticleSelectorBase::process_event(PHCompositeNode *topNode)
 
 }
 
-void PHHepMCParticleSelectorBase::SetParticle(const int pid) 
+void PHHepMCParticleSelectorDecayProduct::SetParticle(const int pid) 
 {
   _theParticle = pid;
   return;
 }
 
-void PHHepMCParticleSelectorBase::AddParent(const int pid)
+void PHHepMCParticleSelectorDecayProduct::AddParent(const int pid)
 {
   _theParents.push_back(pid);
   return;
 }
 
-void PHHepMCParticleSelectorBase::AddDaughter(const int pid)
+void PHHepMCParticleSelectorDecayProduct::AddDaughter(const int pid)
 {
   _theDaughters.push_back(pid);
   return;

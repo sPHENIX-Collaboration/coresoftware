@@ -1,5 +1,5 @@
-#ifndef PHHepMCParitcleSelectorBase_H_
-#define PHHepMCParitcleSelectorBase_H_
+#ifndef PHHepMCParitcleSelectorDecayProduct_H_
+#define PHHepMCParitcleSelectorDecayProduct_H_
 
 #include <fun4all/SubsysReco.h>
 
@@ -7,10 +7,10 @@
 
 /// Particle selector class for particle selection in PHHepMC events.
 /// Removes all particles from the event except for _theParticle and _theDaughters (if specified).
-class PHHepMCParticleSelectorBase: public SubsysReco
+class PHHepMCParticleSelectorDecayProduct: public SubsysReco
 {
  public:
-  virtual ~PHHepMCParticleSelectorBase();
+  virtual ~PHHepMCParticleSelectorDecayProduct();
 
   virtual int InitRun(PHCompositeNode *topNode);
   virtual int process_event(PHCompositeNode *topNode);
@@ -28,7 +28,7 @@ class PHHepMCParticleSelectorBase: public SubsysReco
   void SetTriggerParticle(int part) { _theTrigger=part; }
 
  protected:
-  PHHepMCParticleSelectorBase(const std::string &name="PARTICLESELECTORBASE");
+  PHHepMCParticleSelectorDecayProduct(const std::string &name="PARTICLESELECTORDECAYPRODUCT");
 
 /// The particle you want to have in your output
   int _theParticle;

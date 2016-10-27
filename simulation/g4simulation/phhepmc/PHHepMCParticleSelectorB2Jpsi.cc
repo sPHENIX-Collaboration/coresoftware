@@ -11,7 +11,7 @@
 using namespace std;
 
 PHHepMCParticleSelectorB2Jpsi::PHHepMCParticleSelectorB2Jpsi(const string &name):
-  PHHepMCParticleSelectorBase(name)
+  PHHepMCParticleSelectorDecayProduct(name)
 {
   _theTrigger = 511;
   _theParticle = 443;
