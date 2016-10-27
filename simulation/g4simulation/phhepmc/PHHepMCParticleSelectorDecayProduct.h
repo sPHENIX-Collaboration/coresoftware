@@ -5,7 +5,8 @@
 
 #include <vector>
 
-/// Base class for PHHepMC particle selection
+/// Particle selector class for particle selection in PHHepMC events.
+/// Removes all particles from the event except for _theParticle and _theDaughters (if specified).
 class PHHepMCParticleSelectorBase: public SubsysReco
 {
  public:
@@ -31,11 +32,13 @@ class PHHepMCParticleSelectorBase: public SubsysReco
 
 /// The particle you want to have in your output
   int _theParticle;
-/// List of decay products of the particle you want in your output
+/// List of possible decay products of the particle you want in your output
+/// Ignored if empty
   std::vector<int> _theDaughters;
 /// List of possible parents of the particle you want in your output
   std::vector<int> _theParents;
 /// The particle which must be present in the event. Otherwise event is skipped.
+/// Not used by default, unless explicitly set in the macro
   int _theTrigger;
 
 };
