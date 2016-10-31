@@ -190,6 +190,12 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
 	  //set the initial energy deposit
 	  hit->set_edep(0);
 	  hit->set_eion(0); // only implemented for v5 otherwise empty
+
+          hit->set_hit_type(0);
+          if( (aTrack->GetParticleDefinition()->GetParticleName().find("e+") != string::npos) ||
+              (aTrack->GetParticleDefinition()->GetParticleName().find("e-") != string::npos) )
+            hit->set_hit_type(1);
+
           PHG4HitContainer *hitcontainer;
 	  // here we do things which are different between scintillator and absorber hits
 	  if (whichactive > 0) // return of IsInPrototype2OuterHcalDetector, > 0 hit in scintillator, < 0 hit in absorber

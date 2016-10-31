@@ -2,6 +2,7 @@
 #include "DumpObject.h"
 
 #include "DumpPdbParameterMap.h"
+#include "DumpPdbParameterMapContainer.h"
 #include "DumpPHG4BlockGeomContainer.h"
 #include "DumpPHG4CylinderCellContainer.h"
 #include "DumpPHG4CylinderCellGeomContainer.h"
@@ -158,6 +159,10 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
           if (tmp->InheritsFrom("PdbParameterMap"))
             {
               newdump = new DumpPdbParameterMap(NodeName);
+            }
+          else if (tmp->InheritsFrom("PdbParameterMapContainer"))
+            {
+              newdump = new DumpPdbParameterMapContainer(NodeName);
             }
           else if (tmp->InheritsFrom("PHG4BlockGeomContainer"))
             {

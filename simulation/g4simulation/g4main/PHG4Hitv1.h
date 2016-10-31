@@ -67,6 +67,7 @@ class PHG4Hitv1 : public PHG4Hit
   virtual int get_index_j() const {return  get_property_int(prop_index_j);}
   virtual int get_index_k() const {return  get_property_int(prop_index_k);}
   virtual int get_index_l() const {return  get_property_int(prop_index_l);}
+  virtual int get_hit_type() const {return  get_property_int(prop_hit_type);}
 
   virtual void set_px(const int i, const float f);
   virtual void set_py(const int i, const float f);
@@ -88,6 +89,7 @@ class PHG4Hitv1 : public PHG4Hit
   virtual void set_index_j(const int i)  {set_property(prop_index_j,i);}
   virtual void set_index_k(const int i)  {set_property(prop_index_k,i);}
   virtual void set_index_l(const int i)  {set_property(prop_index_l,i);}
+  virtual void set_hit_type(const int i) {set_property(prop_hit_type,i);}
 
  protected:
   unsigned int get_property_nocheck(const PROPERTY prop_id) const;

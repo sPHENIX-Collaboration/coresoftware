@@ -344,7 +344,7 @@ PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
 void
 PHG4CylinderGeom_Spacalv3::subtower_consistency_check() const
 {
-  assert(sector_tower_map.begin() != sector_tower_map.end());
+  if (sector_tower_map.begin() == sector_tower_map.end()) return;
 
   for (tower_map_t::const_iterator it = sector_tower_map.begin();
       it != sector_tower_map.end(); ++it)
@@ -365,6 +365,7 @@ PHG4CylinderGeom_Spacalv3::subtower_consistency_check() const
 int
 PHG4CylinderGeom_Spacalv3::get_n_subtower_eta() const
 {
+  if (sector_tower_map.begin() == sector_tower_map.end()) return 0;
   assert(sector_tower_map.begin() != sector_tower_map.end());
   return sector_tower_map.begin()->second.NSubtowerY;
 }
@@ -372,6 +373,7 @@ PHG4CylinderGeom_Spacalv3::get_n_subtower_eta() const
 int
 PHG4CylinderGeom_Spacalv3::get_n_subtower_phi() const
 {
+  if (sector_tower_map.begin() == sector_tower_map.end()) return 0;
   assert(sector_tower_map.begin() != sector_tower_map.end());
   return sector_tower_map.begin()->second.NSubtowerX;
 }
