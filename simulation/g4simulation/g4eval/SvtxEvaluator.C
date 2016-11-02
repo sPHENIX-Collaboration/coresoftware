@@ -1018,14 +1018,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       
 	if (g4hit) {
 	  g4hitID  = g4hit->get_hit_id();
-	  gx       = g4hit->get_x(0);
-	  gy       = g4hit->get_y(0);
-	  gz       = g4hit->get_z(0);
-	  gt       = g4hit->get_t(0);
-//	  gx       = g4hit->get_avg_x();
-//	  gy       = g4hit->get_avg_y();
-//	  gz       = g4hit->get_avg_z();
-//	  gt       = g4hit->get_avg_t();
+	  gx       = g4hit->get_avg_x();
+	  gy       = g4hit->get_avg_y();
+	  gz       = g4hit->get_avg_z();
+	  gt       = g4hit->get_avg_t();
 
 	  if (g4particle) {
 
