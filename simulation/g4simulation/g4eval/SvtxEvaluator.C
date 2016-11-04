@@ -680,10 +680,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       PHG4Particle *g4particle = trutheval->get_particle(g4hit);
       
       float g4hitID   = g4hit->get_hit_id();
-	  float gx        = g4hit->get_avg_x();
-	  float gy        = g4hit->get_avg_y();
-	  float gz        = g4hit->get_avg_z();
-	  float gt        = g4hit->get_avg_t();
+      float gx        = g4hit->get_avg_x();
+      float gy        = g4hit->get_avg_y();
+      float gz        = g4hit->get_avg_z();
+      float gt        = g4hit->get_avg_t();
       float gedep     = g4hit->get_edep();
       float glayer    = g4hit->get_layer();
   
