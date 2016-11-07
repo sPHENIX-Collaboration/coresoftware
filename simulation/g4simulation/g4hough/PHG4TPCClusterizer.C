@@ -250,7 +250,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
           SvtxCluster_v1 clus;
           clus.set_layer(layer);
           clus.set_e(e);
-          double radius = geo->get_radius();
+          double radius = geo->get_radius() + 0.5*geo->get_thickness();
           clus.set_position(0, radius * cos(phi));
           clus.set_position(1, radius * sin(phi));
           clus.set_position(2, z);

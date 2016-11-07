@@ -205,11 +205,11 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       double z;
       int phibin;
       int zbin;
-      xinout = hiter->second->get_x(0);
-      yinout = hiter->second->get_y(0);
+      xinout = hiter->second->get_avg_x();
+      yinout = hiter->second->get_avg_y();
       double r = sqrt( xinout*xinout + yinout*yinout );
-      phi = atan2(hiter->second->get_y(0), hiter->second->get_x(0));
-      z =  hiter->second->get_z(0);
+      phi = atan2(hiter->second->get_avg_y(), hiter->second->get_avg_x());
+      z =  hiter->second->get_avg_z();
       
       // apply primary charge distortion
       if( (*layer) >= (unsigned int)num_pixel_layers )
@@ -237,7 +237,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       if(phibin < 0 || phibin >= nphibins){continue;}
       double phidisp = phi - geo->get_phicenter(phibin);
       
-      zbin = geo->get_zbin( hiter->second->get_z(0) );
+      zbin = geo->get_zbin( hiter->second->get_avg_z() );
       if(zbin < 0 || zbin >= nzbins){continue;}
       double zdisp = z - geo->get_zcenter(zbin);
       
@@ -268,8 +268,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       {
         double nelec = elec_per_kev*1.0e6*edep;
 
-        double cloud_sig_x = 1.5*sqrt( diffusion*diffusion*(100. - TMath::Abs(hiter->second->get_z(0))) + 0.03*0.03 );
-        double cloud_sig_z = 1.5*sqrt((1.+2.2*2.2)*diffusion*diffusion*(100. - TMath::Abs(hiter->second->get_z(0))) + 0.01*0.01 );
+        double cloud_sig_x = 1.5*sqrt( diffusion*diffusion*(100. - TMath::Abs(hiter->second->get_avg_z())) + 0.03*0.03 );
+        double cloud_sig_z = 1.5*sqrt((1.+2.2*2.2)*diffusion*diffusion*(100. - TMath::Abs(hiter->second->get_avg_z())) + 0.01*0.01 );
         
         int n_phi = (int)(3.*( cloud_sig_x/(r*phistepsize) )) + 3;
         int n_z = (int)(3.*( cloud_sig_z/zstepsize )) + 3;
