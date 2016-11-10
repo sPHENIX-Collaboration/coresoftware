@@ -242,6 +242,10 @@ public:
 		_primary_assumption_pid = primaryAssumptionPid;
 	}
 
+	void set_primary_tracking(int pTrk) {
+	        _primary_tracking = pTrk; 
+	}
+
 private:
 
 	/*!
@@ -346,9 +350,11 @@ private:
 	//!
 	double _pat_rec_noise_prob;
 
-
 	//!
 	int _N_DETECTOR_LAYER;
+
+	//! 
+	int _primary_tracking; 
 
 	//!
 	int _N_STATES;
