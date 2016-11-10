@@ -280,7 +280,8 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 	  }
 
 	  SvtxTrack* svtx_track_out = MakeSvtxTrack(track,
-						    particle->get_track_id());
+						    particle->get_track_id(),
+						    measurements.size());
 
 	  if(svtx_track_out) _trackmap_out->insert(svtx_track_out);
 
@@ -474,7 +475,8 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
 }
 
 SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
-		const unsigned int truth_track_id) {
+					   const unsigned int truth_track_id, 
+					   const unsigned int nmeas) {
 
 	double chi2 = phgf_track->get_chi2();
 	double ndf = phgf_track->get_ndf();
@@ -506,7 +508,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 //	SvtxTrack_v1* out_track = new SvtxTrack_v1(*static_cast<const SvtxTrack_v1*> (svtx_track));
 //	SvtxTrack_v1* out_track = new SvtxTrack_v1();
 
-	SvtxTrack* out_track = new SvtxTrack_FastSim();
+	SvtxTrack_FastSim *out_track = new SvtxTrack_FastSim();
 	out_track->set_truth_track_id(truth_track_id);
 	/*!
 	 * TODO: check the definition
@@ -526,6 +528,9 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	out_track->set_charge(
 			(_reverse_mag_field) ?
 					-1. * phgf_track->get_charge() : phgf_track->get_charge());
+
+	out_track->set_num_measurements(nmeas); 
+
 	out_track->set_px(mom.Px());
 	out_track->set_py(mom.Py());
 	out_track->set_pz(mom.Pz());
@@ -582,7 +587,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	  out_track->insert_state(state);
 	}
 
-	return out_track;
+	return (SvtxTrack *)out_track;
 }
 
 PHGenFit::PlanarMeasurement* PHG4TrackFastSim::PHG4HitToMeasurementVerticalPlane(
