@@ -57,6 +57,13 @@ ostream& operator<<(ostream& stream, const PHG4Hit * hit){
   return stream;
 }
 
+void
+PHG4Hit::Reset()
+{
+  cout << "Reset not implemented by daughter class" << endl;
+  return;
+}
+
 std::pair<const std::string,PHG4Hit::PROPERTY_TYPE> 
 PHG4Hit::get_property_info(const PROPERTY prop_id) 
 {
