@@ -39,6 +39,15 @@ PHG4CylinderSteppingAction::PHG4CylinderSteppingAction( PHG4CylinderDetector* de
   zmax += copysign(zmax,1./1e6*cm);
 }
 
+PHG4CylinderSteppingAction::~PHG4CylinderSteppingAction()
+{
+  // if the last hit was a zero energie deposit hit, it is just reset
+  // and the memory is still allocated, so we need to delete it here
+  // if the last hit was saved, hit is a NULL pointer which are
+  // legal to delete (it results in a no operation)
+  delete hit;
+}
+
 //____________________________________________________________________________..
 bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 {
@@ -190,6 +199,9 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	    }
 	  else
 	    {
+	      // if this hit has no energy deposit, just reset it for reuse
+	      // this means we have to delete it in the dtor. If this was
+	      // the last hit we processed the memory is still allocated
 	      hit->Reset();
 	    }
 	  hit = NULL;
