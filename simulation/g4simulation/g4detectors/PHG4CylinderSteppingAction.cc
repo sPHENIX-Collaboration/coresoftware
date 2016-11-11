@@ -196,6 +196,9 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 		{
 		  saveshower->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
 		}
+	      // ownership has been transferred to container, set to null
+	      // so we will create a new hit for the next track
+	      hit = NULL;
 	    }
 	  else
 	    {
@@ -204,7 +207,6 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	      // the last hit we processed the memory is still allocated
 	      hit->Reset();
 	    }
-	  hit = NULL;
  	}
       // return true to indicate the hit was used
       return true;
