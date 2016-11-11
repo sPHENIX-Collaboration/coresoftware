@@ -70,7 +70,7 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4Paramet
   volume_envelope(NAN),
   volume_steel(NAN),
   volume_scintillator(NAN),
-  n_scinti_plates(params->get_int_param("n_scinti_plates")),
+  n_scinti_plates(params->get_int_param("n_scinti_plates_per_tower")*params->get_int_param("n_towers")),
   n_scinti_tiles(params->get_int_param("n_scinti_tiles")),
   active(params->get_int_param("active")),
   absorberactive(params->get_int_param("absorberactive")),

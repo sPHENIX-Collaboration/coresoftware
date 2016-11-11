@@ -188,7 +188,8 @@ PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_int_param("light_scint_model", 1);
   set_default_int_param("magnet_cutout_first_scinti", 8); // tile start at 0, drawing tile starts at 1
   set_default_int_param("ncross", -4);
-  set_default_int_param("n_scinti_plates", 5*64);
+  set_default_int_param("n_towers", 64);
+  set_default_int_param("n_scinti_plates_per_tower", 5);
   set_default_int_param("n_scinti_tiles", 12);
 
   set_default_string_param("material", "Steel_1006");
