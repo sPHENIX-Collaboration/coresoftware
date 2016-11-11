@@ -19,9 +19,9 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
   //! constructor
   PHG4CylinderSteppingAction( PHG4CylinderDetector*, const PHG4Parameters *parameters );
 
-  //! destroctor
-  virtual ~PHG4CylinderSteppingAction()
-  {}
+  //! destructor
+  virtual ~PHG4CylinderSteppingAction();
+
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
