@@ -57,7 +57,6 @@ PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector*
   params(parameters),
   savehitcontainer(NULL),
   saveshower(NULL),
-  save_layer_id(-1),
   enable_field_checker(0),
   absorbertruth(params->get_int_param("absorbertruth")),
   IsActive(params->get_int_param("active")),
@@ -68,6 +67,15 @@ PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector*
   light_balance_outer_corr(params->get_double_param("light_balance_outer_corr")),
   light_balance_outer_radius(params->get_double_param("light_balance_outer_radius")*cm)
 {}
+
+PHG4OuterHcalSteppingAction::~PHG4OuterHcalSteppingAction()
+{
+  // if the last hit was a zero energie deposit hit, it is just reset
+  // and the memory is still allocated, so we need to delete it here
+  // if the last hit was saved, hit is a NULL pointer which are
+  // legal to delete (it results in a no operation)
+  delete hit;
+}
 
 int
 PHG4OuterHcalSteppingAction::Init()
@@ -180,10 +188,10 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	{
 	case fGeomBoundary:
 	case fUndefined:
-	  // flush out previous hit
-	  save_previous_g4hit();
-          save_layer_id = layer_id;
-	  hit = new PHG4Hitv1();
+	  if (! hit)
+	    {
+	      hit = new PHG4Hitv1();
+	    }
 	  hit->set_layer(motherid);
 	  hit->set_scint_id(tower_id); // the slat id (or steel plate id)
 	  //here we set the entrance values in cm
@@ -328,7 +336,34 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	    }
 	}
 
-      //       hit->identify();
+      // if any of these conditions is true this is the last step in
+      // this volume and we need to save the hit
+      // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
+      // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
+      // (not sure if this will ever be the case)
+      // aTrack->GetTrackStatus() == fStopAndKill: track ends
+      if (postPoint->GetStepStatus() == fGeomBoundary || 
+          postPoint->GetStepStatus() == fWorldBoundary || 
+          aTrack->GetTrackStatus() == fStopAndKill)
+	{
+          // save only hits with energy deposit (or -1 for geantino)
+	  if (hit->get_edep())
+	    {
+	      savehitcontainer->AddHit(layer_id, hit);
+	      if (saveshower)
+		{
+		  saveshower->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		}
+	    }
+	  else
+	    {
+	      // if this hit has no energy deposit, just reset it for reuse
+	      // this means we have to delete it in the dtor. If this was
+	      // the last hit we processed the memory is still allocated
+	      hit->Reset();
+	    }
+	  hit = NULL;
+ 	}
       // return true to indicate the hit was used
       return true;
 
@@ -459,35 +494,4 @@ PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
 	   << "," << globPosVec[1] / cm << " cm"<<endl;
     }
 
-}
-
-void
-PHG4OuterHcalSteppingAction::flush_cached_values()
-{
-  save_previous_g4hit();
-  return;
-}
-
-void
-PHG4OuterHcalSteppingAction::save_previous_g4hit()
-{
-  if (!hit)
-    {
-      return;
-    }
-  // save only hits with non zero energy deposition (remember geantinos edep = -1)
-   if (hit->get_edep())
-    {
-      savehitcontainer->AddHit(save_layer_id, hit);
-      if (saveshower)
-	{
-	  saveshower->add_g4hit_id(savehitcontainer->GetID(),hit->get_hit_id());
-	}
-    }
-  else
-    {
-      delete hit;
-    }
-  hit = NULL;
-  return;
 }
