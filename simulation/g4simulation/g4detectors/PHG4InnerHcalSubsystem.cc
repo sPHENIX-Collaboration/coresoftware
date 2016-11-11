@@ -1,7 +1,6 @@
 #include "PHG4InnerHcalSubsystem.h"
 #include "PHG4InnerHcalDetector.h"
 #include "PHG4EventActionClearZeroEdep.h"
-#include "PHG4FlushStepTrackingAction.h"
 #include "PHG4InnerHcalSteppingAction.h"
 #include "PHG4Parameters.h"
 
@@ -25,7 +24,6 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const i
   PHG4DetectorSubsystem( name, lyr ),
   detector_(NULL),
   steppingAction_( NULL ),
-  trackingAction_(NULL),
   eventAction_(NULL)
 {
   InitializeParameters();
@@ -105,10 +103,6 @@ PHG4InnerHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	{
 	  steppingAction_ = new PHG4InnerHcalSteppingAction(detector_, GetParams());
 	}
-    }
-  if (steppingAction_)
-    {
-      trackingAction_ = new PHG4FlushStepTrackingAction(steppingAction_);
     }
   return 0;
 
