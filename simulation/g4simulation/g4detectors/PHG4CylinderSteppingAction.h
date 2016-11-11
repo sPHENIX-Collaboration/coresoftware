@@ -29,11 +29,7 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
   //! reimplemented from base class
   virtual void SetInterfacePointers( PHCompositeNode* );
 
-  void flush_cached_values();
-
   private:
-
-  void save_previous_g4hit();
 
   //! pointer to the detector
   PHG4CylinderDetector* detector_;
@@ -43,11 +39,9 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
   //! pointer to hit container
   PHG4HitContainer * hits_;
   PHG4Hit *hit;
-  PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
   int active;
   int IsBlackHole;
-  int save_layer_id;
   double zmin;
   double zmax;
   double tmin;
