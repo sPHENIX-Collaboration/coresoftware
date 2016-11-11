@@ -34,9 +34,17 @@ PHG4SpacalSteppingAction::PHG4SpacalSteppingAction(PHG4SpacalDetector* detector)
   absorberhits_(NULL), 
   hit(NULL),
   savehitcontainer(NULL),
-  saveshower(NULL),
-  save_layer_id(-1)
+  saveshower(NULL)
 {}
+
+PHG4SpacalSteppingAction::~PHG4SpacalSteppingAction()
+{
+  // if the last hit was a zero energie deposit hit, it is just reset
+  // and the memory is still allocated, so we need to delete it here
+  // if the last hit was saved, hit is a NULL pointer which are
+  // legal to delete (it results in a no operation)
+  delete hit;
+}
 
 //____________________________________________________________________________..
 bool
@@ -130,12 +138,12 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         {
       case fGeomBoundary:
       case fUndefined:
-	  // flush out previous hit
-	  save_previous_g4hit();
-          save_layer_id = layer_id;
-
-        hit = new PHG4Hitv1();
-
+	  // if previous hit was saved, hit pointer was set to NULL 
+	  // and we have to make a new one
+	  if (! hit)
+	    {
+	      hit = new PHG4Hitv1();
+	    }
         hit->set_layer((unsigned int) layer_id);
         hit->set_scint_id(scint_id); // isactive contains the scintillator slat id
         //here we set the entrance values in cm
@@ -246,9 +254,34 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
                 }
             }
         }
-//      hit->set_path_length(aTrack->GetTrackLength() / cm);
-
-      //       hit->identify();
+      // if any of these conditions is true this is the last step in
+      // this volume and we need to save the hit
+      // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
+      // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
+      // (not sure if this will ever be the case)
+      // aTrack->GetTrackStatus() == fStopAndKill: track ends
+      if (postPoint->GetStepStatus() == fGeomBoundary || 
+          postPoint->GetStepStatus() == fWorldBoundary || 
+          aTrack->GetTrackStatus() == fStopAndKill)
+	{
+          // save only hits with energy deposit (or -1 for geantino)
+	  if (hit->get_edep())
+	    {
+	      savehitcontainer->AddHit(layer_id, hit);
+	      if (saveshower)
+		{
+		  saveshower->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		}
+	    }
+	  else
+	    {
+	      // if this hit has no energy deposit, just reset it for reuse
+	      // this means we have to delete it in the dtor. If this was
+	      // the last hit we processed the memory is still allocated
+	      hit->Reset();
+	    }
+	  hit = NULL;
+ 	}
       // return true to indicate the hit was used
       return true;
 
@@ -313,35 +346,4 @@ PHG4SpacalSteppingAction::get_zmax()
     return 0;
   else
     return detector_->get_geom()->get_zmax() + .0001;
-}
-
-void
-PHG4SpacalSteppingAction::flush_cached_values()
-{
-  save_previous_g4hit();
-  return;
-}
-
-void
-PHG4SpacalSteppingAction::save_previous_g4hit()
-{
-  if (!hit)
-    {
-      return;
-    }
-  // save only hits with non zero energy deposition (remember geantinos edep = -1)
-   if (hit->get_edep())
-    {
-      savehitcontainer->AddHit(save_layer_id, hit);
-      if (saveshower)
-	{
-	  saveshower->add_g4hit_id(savehitcontainer->GetID(),hit->get_hit_id());
-	}
-    }
-  else
-    {
-      delete hit;
-    }
-  hit = NULL;
-  return;
 }
