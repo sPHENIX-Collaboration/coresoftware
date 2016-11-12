@@ -38,11 +38,20 @@ PHG4ForwardHcalSteppingAction::PHG4ForwardHcalSteppingAction( PHG4ForwardHcalDet
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),
+  hitcontainer(NULL),
   hit(NULL),
+  saveshower(NULL),
   absorbertruth(0),
   light_scint_model(1)
-{
+{}
 
+PHG4ForwardHcalSteppingAction::~PHG4ForwardHcalSteppingAction()
+{
+  // if the last hit was a zero energie deposit hit, it is just reset
+  // and the memory is still allocated, so we need to delete it here
+  // if the last hit was saved, hit is a NULL pointer which are
+  // legal to delete (it results in a no operation)
+  delete hit;
 }
 
 
@@ -117,7 +126,10 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 	{
 	case fGeomBoundary:
 	case fUndefined:
-	  hit = new PHG4Hitv1();
+	  if (! hit)
+	    {
+	      hit = new PHG4Hitv1();
+	    }
 	  hit->set_scint_id(tower_id);
 
 	  /* Set hit location (tower index) */
@@ -134,53 +146,29 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 	  hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
 
 	  //set the track ID
-	  {
-            hit->set_trkid(aTrack->GetTrackID());
-            if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	      {
-		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		  {
-		    hit->set_trkid(pp->GetUserTrackId());
-		    hit->set_shower_id(pp->GetShower()->get_id());
-		  }
-	      }
-	  }
-
+	  hit->set_trkid(aTrack->GetTrackID());
 	  /* set intial energy deposit */
 	  hit->set_edep( 0 );
 	  hit->set_eion( 0 );
-	  hit->set_light_yield( 0 );
 
 	  /* Now add the hit to the hit collection */
 	  if (whichactive > 0)
 	    {
-	      // Now add the hit
-	      hits_->AddHit(layer_id, hit);
-
-	      {
-		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		  {
-		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		      {
-			pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
-		      }
-		  }
-	      }
-	      
+	      hitcontainer = hits_;
+	      hit->set_light_yield( 0 );
 	    }
 	  else
 	    {
-	      absorberhits_->AddHit(layer_id, hit);
-
-	      {
-		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		  {
-		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		      {
-			pp->GetShower()->add_g4hit_id(absorberhits_->GetID(),hit->get_hit_id());
-		      }
-		  }
-	      }
+	      hitcontainer = absorberhits_;
+	    }
+	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	    {
+	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		{
+		  hit->set_trkid(pp->GetUserTrackId());
+		  hit->set_shower_id(pp->GetShower()->get_id());
+		  saveshower = pp->GetShower();
+		}
 	    }
 	  break;
 	default:
@@ -239,6 +227,10 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 	{
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
           hit->set_eion(-1);
+	  if (whichactive > 0)
+	    {
+	      hit->set_light_yield(-1);
+	    }
 	}
       if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
 	{
@@ -248,6 +240,34 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 		{
 		  pp->SetKeep(1); // we want to keep the track
 		}
+	    }
+	}
+      // if any of these conditions is true this is the last step in
+      // this volume and we need to save the hit
+      // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
+      // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
+      // (not sure if this will ever be the case)
+      // aTrack->GetTrackStatus() == fStopAndKill: track ends
+      if (postPoint->GetStepStatus() == fGeomBoundary || postPoint->GetStepStatus() == fWorldBoundary|| aTrack->GetTrackStatus() == fStopAndKill)
+	{
+          // save only hits with energy deposit (or -1 for geantino)
+	  if (hit->get_edep())
+	    {
+	      hitcontainer->AddHit(layer_id, hit);
+	      if (saveshower)
+		{
+		  saveshower->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		}
+	      // ownership has been transferred to container, set to null
+	      // so we will create a new hit for the next track
+	      hit = NULL;
+	    }
+	  else
+	    {
+	      // if this hit has no energy deposit, just reset it for reuse
+	      // this means we have to delete it in the dtor. If this was
+	      // the last hit we processed the memory is still allocated
+	      hit->Reset();
 	    }
 	}
 

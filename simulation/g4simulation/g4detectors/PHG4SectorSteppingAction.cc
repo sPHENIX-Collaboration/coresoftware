@@ -142,7 +142,6 @@ PHG4SectorSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           // save only hits with energy deposit (or -1 for geantino)
 	  if (hit->get_edep())
 	    {
-	cout << aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetName() << " Add hit with layer id: " << layer_id << endl; 
 	      hits_->AddHit(layer_id, hit);
 	      if (saveshower)
 		{
