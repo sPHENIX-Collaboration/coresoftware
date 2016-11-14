@@ -12,10 +12,12 @@
 #include <g4main/PHG4HitContainer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
-#include <phool/PHNodeIterator.h>
+
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/PHRandomSeed.h>
 
 #include <TROOT.h>
 #include <TMath.h>
@@ -38,12 +40,15 @@ PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
       tmin_default(0.0),  // ns
       tmax_default(60.0), // ns
       tmin_max(),
-      distortion(NULL) {}
+      distortion(NULL) 
+{
+  memset(nbins,0,sizeof(nbins));
+  rand.SetSeed(PHRandomSeed());
+}
 
 PHG4CylinderCellTPCReco::~PHG4CylinderCellTPCReco()
 {
-  if (distortion)
-    delete distortion;
+  delete distortion;
 }
 
 void PHG4CylinderCellTPCReco::Detector(const std::string &d)
