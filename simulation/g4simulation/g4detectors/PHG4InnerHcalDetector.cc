@@ -446,6 +446,33 @@ PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
   ostringstream name;
   double middlerad = outer_radius - (outer_radius - inner_radius) / 2.;
   double shiftslat = fabs(scinti_tile_x_lower - scinti_tile_x_upper)/2.;
+  // calculate phi offset (copied from code inside following loop): 
+  // first get the center point (phi=0) so it's middlerad/0
+  // then shift the scintillator center as documented in loop
+  // then 
+  // for positive tilt angles we need the lower left corner of the scintillator
+  // for negative tilt angles we nee the upper right corner of the scintillator
+  // as it turns out the code uses the middle of the face of the scintillator
+  // as reference, if this is a problem the code needs to be modified to
+  // actually calculate the corner (but the math of the construction is that 
+  // the middle of the scintillator sits at zero)
+  double xp = cos(phi) * middlerad;
+  double yp = sin(phi) * middlerad;
+  xp -= cos((-tilt_angle)/rad - phi)*shiftslat;
+  yp +=  sin((-tilt_angle)/rad - phi)*shiftslat;
+  if (tilt_angle >0)
+    {
+      double xo = xp - (scinti_tile_x/2.)*cos(tilt_angle/rad);
+      double yo = yp - (scinti_tile_x/2.)*sin(tilt_angle/rad);
+      phi = -atan(yo/xo);
+    }
+  else if (tilt_angle < 0)
+    {
+      double xo = xp + (scinti_tile_x/2.)*cos(tilt_angle/rad);
+      double yo = yp + (scinti_tile_x/2.)*sin(tilt_angle/rad);
+      phi = -atan(yo/xo);
+    }
+  // else (for tilt_angle = 0) phi stays zero
   for (int i = 0; i < n_scinti_plates; i++)
     {
       G4RotationMatrix *Rot = new G4RotationMatrix();
