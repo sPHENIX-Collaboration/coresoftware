@@ -25,16 +25,12 @@
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Colour.hh>
 
-#include <Geant4/G4NistManager.hh>
-
 #include <Geant4/G4Ellipsoid.hh>
 #include <Geant4/G4Sphere.hh>
 #include <Geant4/G4Orb.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4DisplacedSolid.hh>
-#include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4IntersectionSolid.hh>
-#include <Geant4/G4UnionSolid.hh>
 #include <Geant4/G4SubtractionSolid.hh>
 
 #include <Geant4/G4LogicalBorderSurface.hh>
@@ -44,29 +40,18 @@
 #include <cmath>
 #include <iostream>
 #include <sstream>
+
 using namespace std;
 using namespace ePHENIXRICH;
 
-ePHENIXRICHConstruction::~ePHENIXRICHConstruction()
-{
-  // TODO Auto-generated destructor stub
-}
+ePHENIXRICHConstruction::ePHENIXRICHConstruction():
+  overlapcheck_rich(false)
 
-ePHENIXRICHConstruction::ePHENIXRICHConstruction()
-{
-  // TODO Auto-generated constructor stub
-
-  overlapcheck_rich = false;
-}
-ePHENIXRICHConstruction::ePHENIXRICHConstruction(const RICH_Geometry & g)
-{
-  // TODO Auto-generated constructor stub
-
-  geom = g;
-
-  overlapcheck_rich = false;
-
-}
+{}
+ePHENIXRICHConstruction::ePHENIXRICHConstruction(const RICH_Geometry & g):
+  geom(g),
+  overlapcheck_rich(false)
+{}
 
 G4LogicalVolume * ePHENIXRICHConstruction::RegisterLogicalVolume(
                                                                  G4LogicalVolume * v)
