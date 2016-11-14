@@ -50,9 +50,6 @@ public:
   void set_trigger_OR() { _triggersOR = true; } // default true
   void set_trigger_AND() { _triggersAND = true; }
 
-  //! Set Seed of random number generator
-  void SetSeed(const int s) { fSeed = s; }
-
 private:
 
   int ReadConfig(const std::string cfg_file = "");
@@ -90,9 +87,6 @@ private:
   std::vector<PHPy6GenTrigger*> _registeredTriggers;
   bool _triggersOR;
   bool _triggersAND;
-
-  // Seed selection
-  int fSeed; 
  
   /**
    * definition needed to use pythia wrapper headers from HepMC

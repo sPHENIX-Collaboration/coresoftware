@@ -50,8 +50,7 @@ PHPythia6::PHPythia6(const std::string &name):
   _filename_ascii("pythia_hepmc.dat"),
   _registeredTriggers(),
   _triggersOR(true),
-  _triggersAND(false),
-  fSeed(-1){
+  _triggersAND(false){
 
   //RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
 }
@@ -77,39 +76,10 @@ int PHPythia6::Init(PHCompositeNode *topNode) {
   HepMC::HEPEVT_Wrapper::set_max_number_entries(4000);
   HepMC::HEPEVT_Wrapper::set_sizeof_real(8);
 
-  /* set pythia random number seed (mandatory!) */
-
-  if ( fSeed < 0 ){
-    // first try getting seed from /dev/random
-    ifstream devrandom;
-    devrandom.open("/dev/random",ios::binary);
-    devrandom.read((char*)&fSeed,sizeof(fSeed));
-    devrandom.close();
-	    
-    if ( fSeed != -1 )
-      {
-	cout << PHWHERE << " Got seed from /dev/random" << endl;
-	fSeed = abs(fSeed)%900000000;
-      }
-    else
-      {
-	// /dev/random failed, get the random seed from the time of day, to the microsecond
-	//fSeed = (Int_t)(time(NULL)/3);
-	cout << PHWHERE << " Getting seed from gettimeofday()" << endl;
-	timeval xtime;
-	int status = gettimeofday(&xtime,NULL);
-	if ( status==0 )
-	  {
-	    fSeed = ((xtime.tv_sec << 12) + (xtime.tv_usec&0xfff))%900000000;
-	  }
-	else
-	  {
-	    cout << PHWHERE << " something wrong with gettimeofday()" << endl;
-	  }
-      }
-  }
-	  
-	  
+  /* set pythia random number seed (mandatory!) */  
+  int fSeed = PHRandomSeed(); 
+  fSeed = abs(fSeed)%900000000;
+	    	  	  
   if ( (fSeed>=0) && (fSeed<=900000000) ) {
     pydatr.mrpy[0] = fSeed;                   // set seed
     pydatr.mrpy[1] = 0;                       // use new seed
