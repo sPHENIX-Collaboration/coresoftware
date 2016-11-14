@@ -13,18 +13,12 @@ using namespace std;
 
 //__________________________________________________________
 PHPy8JetTrigger::PHPy8JetTrigger(const std::string &name):
-  PHPy8GenTrigger(name) {
-  
-  _verbosity = 0;
-  
-  _theEtaLow = 1.0;
-  _theEtaHigh = 4.0; 
-  
-  _minPt = 10.0; 
-
-  _R = 1.0; 
- 
-}
+  PHPy8GenTrigger(name),
+  _theEtaHigh(4.0),
+  _theEtaLow(1.0),
+  _minPt(10.0),
+  _R(1.0)
+ {}
 
 PHPy8JetTrigger::~PHPy8JetTrigger() {
   if (_verbosity > 0) PrintConfig();
