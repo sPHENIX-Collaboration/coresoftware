@@ -384,8 +384,7 @@ namespace ePHENIXRICH
   class ePHENIXRICHConstruction
   {
   public:
-    virtual
-    ~ePHENIXRICHConstruction();
+    virtual ~ePHENIXRICHConstruction(){}
     ePHENIXRICHConstruction();
     ePHENIXRICHConstruction(const RICH_Geometry & g);
 

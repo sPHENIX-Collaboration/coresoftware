@@ -8,7 +8,9 @@ using namespace std;
 
 //__________________________________________________________
 PHPy8GenTrigger::PHPy8GenTrigger(const std::string &name):
-_name(name) {}
+  _verbosity(0),
+  _name(name)
+ {}
 
 //__________________________________________________________
 PHPy8GenTrigger::~PHPy8GenTrigger() {}
