@@ -275,7 +275,9 @@ private:
 	/*!
 	 * Make SvtxTrack from PHGenFit::Track
 	 */
-	SvtxTrack* MakeSvtxTrack(const PHGenFit::Track* phgf_track_in, const unsigned int truth_track_id = UINT_MAX);
+	SvtxTrack* MakeSvtxTrack(const PHGenFit::Track* phgf_track_in, 
+				 const unsigned int truth_track_id = UINT_MAX,
+				 const unsigned int nmeas = 0);
 
 	//! Event counter
 	int _event;
