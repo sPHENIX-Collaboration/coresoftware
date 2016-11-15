@@ -9,7 +9,8 @@ PHG4Particlev1::PHG4Particlev1():
   fpid(0),
   fpx(0),
   fpy(0),
-  fpz(0)
+  fpz(0),
+  barcode(-1)
 {}
 
 PHG4Particlev1::PHG4Particlev1(const string &name, const int pid, const double px, const double py, const double pz):
@@ -17,7 +18,8 @@ PHG4Particlev1::PHG4Particlev1(const string &name, const int pid, const double p
   fpid(pid),
   fpx(px),
   fpy(py),
-  fpz(pz)
+  fpz(pz),
+  barcode(-1)
 {}
   
 PHG4Particlev1::PHG4Particlev1(const PHG4Particle *in):
@@ -25,7 +27,8 @@ PHG4Particlev1::PHG4Particlev1(const PHG4Particle *in):
   fpid(in->get_pid()),
   fpx(in->get_px()),
   fpy(in->get_py()),
-  fpz(in->get_pz())
+  fpz(in->get_pz()),
+  barcode(in->get_barcode())
 {}
 
 void
@@ -42,6 +45,7 @@ PHG4Particlev1::identify(ostream& os) const
 	os << ", pid: " << fpid
          << ", px: " << fpx 
          << ", py: " << fpy 
-         << ", pz: " << fpz << endl;
+         << ", pz: " << fpz 
+	 << ", barcode: " << barcode << endl;
   return;
 }

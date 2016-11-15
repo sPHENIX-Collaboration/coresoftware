@@ -23,6 +23,8 @@ class PHG4Particle: public PHObject
   virtual int get_parent_id() const {return -9999;}
   virtual int get_primary_id() const {return 0xFFFFFFFF;}
 
+  virtual int get_barcode() const {return 0xFFFFFFFF;}
+
   virtual void set_track_id(const int i) {return;}
   virtual void set_vtx_id(const int i) {return;}
   virtual void set_parent_id(const int i) {return;}
@@ -33,6 +35,8 @@ class PHG4Particle: public PHObject
   virtual void set_py(const double x) {return;}
   virtual void set_pz(const double x) {return;}
   virtual void set_e(const double e) {return;}
+
+  virtual void set_barcode(const int barcode) {return;}
 
   void identify(std::ostream& os = std::cout) const;
 
