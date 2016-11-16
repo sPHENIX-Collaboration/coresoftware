@@ -8,9 +8,9 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = -DCGAL_DISABLE_ROUNDING_MATH_CHECK
 
 # set in configure.in to check if gcc version >= 4.8
-if GCC_GE_48
-  AM_CXXFLAGS = -std=c++11
-endif
+#if GCC_GE_48
+#  AM_CXXFLAGS = -std=c++11
+#endif
 
 AM_LDFLAGS = \
     -L$(libdir) \
@@ -67,6 +67,7 @@ libg4detectors_io_la_SOURCES = \
   PHG4Parameters_Dict.cc \
   PHG4ParametersContainer.cc \
   PHG4ParametersContainer_Dict.cc \
+  PHG4ParameterInterface.cc \
   PHG4BlockCellGeom.cc \
   PHG4BlockCellGeom_Dict.cc \
   PHG4BlockCellGeomContainer.cc \
