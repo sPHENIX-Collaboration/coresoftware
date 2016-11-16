@@ -11,6 +11,8 @@
 
 #include <phool/getClass.h>
 
+#include <TSystem.h>
+
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4MaterialCutsCouple.hh>
 
@@ -79,7 +81,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
     {
       return false;
     }
-  unsigned int motherid = ~0x0; // initialize to 0xFFFFFF using the correct bitness
+  int row_id = -1; // initialize to 0xFFFFFF using the correct bitness
   int tower_id = -1;
   if (whichactive > 0) // scintillator
     {
@@ -108,12 +110,13 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	      ++tokeniter;
 	      if (tokeniter != tok.end())
 		{
-		  motherid = boost::lexical_cast<int>(*tokeniter);
+		  row_id = boost::lexical_cast<int>(*tokeniter);
 		}
 	      else
 		{
 		  cout << PHWHERE << " Error parsing " << volume->GetName()
 		       << " for mother volume number " << endl;
+		  gSystem->Exit(1);
 		}
 	    }
 	  else if (*tokeniter == "pv")
@@ -127,10 +130,11 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 		{
 		  cout << PHWHERE << " Error parsing " << volume->GetName()
 		       << " for mother scinti slat id " << endl;
+	          gSystem->Exit(1);
 		}
 	    }
 	}
-      // cout << "name " << volume->GetName() << ", mid: " << motherid
+      // cout << "name " << volume->GetName() << ", mid: " << row_id
       //  	   << ", twr: " << tower_id << endl;
     }
   else
@@ -180,7 +184,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	    {
 	      hit = new PHG4Hitv1();
 	    }
-	  hit->set_layer(motherid);
+	  hit->set_row(row_id);
 	  hit->set_scint_id(tower_id); // the slat id (or steel plate id)
 	  //here we set the entrance values in cm
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm);
