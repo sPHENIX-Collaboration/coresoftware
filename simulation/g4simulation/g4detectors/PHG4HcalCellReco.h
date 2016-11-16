@@ -1,5 +1,7 @@
-#ifndef PHG4HCALCELLRECO_H
-#define PHG4HCALCELLRECO_H
+#ifndef PHG4HcalCellReco_H
+#define PHG4HcalCellReco_H
+
+#include "PHG4ParameterInterface.h"
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
@@ -10,11 +12,11 @@
 class PHCompositeNode;
 class PHG4CylinderCell;
 
-class PHG4HcalCellReco : public SubsysReco
+class PHG4HcalCellReco : public SubsysReco, public PHG4ParameterInterface
 {
  public:
 
-  PHG4HcalCellReco(const std::string &name = "HCALCELLRECO");
+  PHG4HcalCellReco(const std::string &name = "Prototype2HcalCellReco");
 
   virtual ~PHG4HcalCellReco(){}
   
@@ -27,46 +29,23 @@ class PHG4HcalCellReco : public SubsysReco
   //! end of process
   int End(PHCompositeNode *topNode);
   
-  void Detector(const std::string &d) {detector = d;}
-  void etasize_nslat(const int i, const double deltaeta, const int nslat);
-  void checkenergy(const int i=1) {chkenergyconservation = i;}
-  void set_etabins(const int nbins=24) {netabins = nbins;}
+  void SetDefaultParameters();
 
-  double get_timing_window_min(const int i) {return tmin_max[i].first;}
-  double get_timing_window_max(const int i) {return tmin_max[i].second;}
-  void   set_timing_window(const int i, const double tmin, const double tmax) {
-    tmin_max[i] = std::make_pair(tmin,tmax);
-  }
-  void   set_timing_window_defaults(const double tmin, const double tmax) {
-    tmin_default = tmin; tmax_default = tmax;
-  }
+  void Detector(const std::string &d) {detector = d;}
+  void checkenergy(const int i=1) {chkenergyconservation = i;}
+
+  void   set_timing_window(const double tmi, const double tma) {tmin = tmi; tmax = tma;}
   
  protected:
-  void set_size(const int i, const double sizeA, const int sizeB, const int what);
   int CheckEnergy(PHCompositeNode *topNode);
-  double get_phi_slat_zero_low(const double radius, const double thickness, const double tiltangle);
-  double get_phi_slat_zero_up(const double radius, const double thickness, const double tiltangle);
-  static std::pair<double, double> get_etaphi(const double x, const double y, const double z);
-  static double get_eta(const double radius, const double z);
-  std::map<int, int>  binning;
-  std::map<int, std::pair <double,int> > cell_size; // cell size in eta/nslats
-  std::map<int, std::pair <double,double> > zmin_max; // zmin/zmax for each layer for faster lookup
-  std::map<int, double> etastep;
   std::string detector;
   std::string hitnodename;
   std::string cellnodename;
-  std::string geonodename;
-  std::string seggeonodename;
   PHTimeServer::timer _timer;
-  int nbins[2];
-  int nslatscombined;
-  int netabins;
   int chkenergyconservation;
-  std::map<unsigned int, PHG4CylinderCell *> celllist;
 
-  double tmin_default;
-  double tmax_default;
-  std::map<int, std::pair<double,double> > tmin_max;
+  double tmin;
+  double tmax;
 };
 
 #endif
