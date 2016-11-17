@@ -189,7 +189,8 @@ void PHG4SvtxDigitizer::CalculateMapsLadderCellADCScale(PHCompositeNode *topNode
     
   if (!geom_container || !cells) return;
 
-  cout << "Found CYLINDERGEOM_MAPS node" << endl;
+  if(Verbosity())
+    cout << "Found CYLINDERGEOM_MAPS node" << endl;
   
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -206,6 +207,7 @@ void PHG4SvtxDigitizer::CalculateMapsLadderCellADCScale(PHCompositeNode *topNode
     if (thickness < minpath) minpath = thickness;
     float mip_e = 0.003876*minpath;  
 
+    if (Verbosity())
     cout << "mip_e = " << mip_e << endl;
 
     if (_max_adc.find(layer) == _max_adc.end()) {

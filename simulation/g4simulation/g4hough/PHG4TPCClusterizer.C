@@ -204,8 +204,8 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     if (layer > _max_layer) continue;
     
     PHG4CylinderCellGeom* geo = geom_container->GetLayerCellGeom(layer);
-    nphibins = layeriter->second->get_phibins();
-    nzbins = layeriter->second->get_zbins();
+    const int nphibins = layeriter->second->get_phibins();
+    const int nzbins = layeriter->second->get_zbins();
 
     nhits.clear();
     nhits.assign(nzbins, 0);
