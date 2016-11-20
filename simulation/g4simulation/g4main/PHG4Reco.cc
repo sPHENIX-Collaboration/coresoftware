@@ -139,6 +139,11 @@ PHG4Reco::~PHG4Reco( void )
   delete runManager_;
   delete uisession_;
   delete visManager;
+  while(subsystems_.begin() != subsystems_.end())
+    {
+      delete subsystems_.back();
+      subsystems_.pop_back();
+    }
 }
 
 //_________________________________________________________________
