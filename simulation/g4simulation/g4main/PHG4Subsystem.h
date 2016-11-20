@@ -3,6 +3,7 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <iostream>
 #include <string>
 
 class PHG4Detector;
@@ -21,8 +22,7 @@ overlapcheck(false)
   {}
 
   //! destructor
-  virtual ~PHG4Subsystem( void )
-  {}
+  virtual ~PHG4Subsystem( void ) {}
 
   //! event processing
   virtual int process_after_geant(PHCompositeNode *)

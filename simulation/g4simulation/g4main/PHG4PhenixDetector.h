@@ -20,8 +20,7 @@ class PHG4PhenixDetector: public G4VUserDetectorConstruction
   PHG4PhenixDetector();
 
   //! destructor
-  virtual ~PHG4PhenixDetector()
-  {}
+  virtual ~PHG4PhenixDetector();
 
   void Verbosity(int verb) {verbosity = verb;}
   
