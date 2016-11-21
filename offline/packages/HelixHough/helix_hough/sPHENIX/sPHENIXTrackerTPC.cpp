@@ -209,7 +209,7 @@ sPHENIXTrackerTPC::sPHENIXTrackerTPC(
     is_thread(false),
     ca_chi2_cut(2.0),
     cosang_cut(0.985),
-    require_pixels(false) {
+    require_pixels(false){
   vector<float> detector_material;
 
   for (unsigned int i = 0; i < radius.size(); ++i) {
@@ -229,7 +229,6 @@ sPHENIXTrackerTPC::sPHENIXTrackerTPC(
     total_scatter_2 += detector_scatter[l] * detector_scatter[l];
     integrated_scatter[l] = sqrt(total_scatter_2);
   }
-
   kalman =
     new CylinderKalman(detector_radii, detector_material, detector_B_field);
 
@@ -284,6 +283,15 @@ sPHENIXTrackerTPC::~sPHENIXTrackerTPC() {
   if (pins != NULL) delete pins;
   if (vssp != NULL) delete vssp;
 }
+
+float sPHENIXTrackerTPC::kappaToPt(float kappa) {
+  return detector_B_field / 333.6 / kappa;
+}
+
+float sPHENIXTrackerTPC::ptToKappa(float pt) {
+  return detector_B_field / 333.6 / pt;
+}
+
 
 void sPHENIXTrackerTPC::finalize(vector<SimpleTrack3D>& input,
                                  vector<SimpleTrack3D>& output) {
@@ -519,8 +527,11 @@ void sPHENIXTrackerTPC::findTracks(vector<SimpleHit3D>& hits,
                                    vector<SimpleTrack3D>& tracks,
                                    const HelixRange& range) {
   findtracksiter += 1;
-  findTracksBySegments(hits, tracks, range);
-
+  if( n_layers < 10 ) {
+    findTracksBySegments(hits, tracks, range);
+  } else {
+    findTracksByCombinatorialKalman(hits, tracks, range);
+  }
 }
 
 float sPHENIXTrackerTPC::fitTrack(SimpleTrack3D& track,
@@ -1057,6 +1068,808 @@ void sPHENIXTrackerTPC::findTracksByCombinatorialKalman(
 void sPHENIXTrackerTPC::findTracksBySegments(vector<SimpleHit3D>& hits,
                                              vector<SimpleTrack3D>& tracks,
                                              const HelixRange& range) {
-  findTracksByCombinatorialKalman(hits, tracks, range);
+
+  vector<TrackSegment>* cur_seg = &segments1;
+  vector<TrackSegment>* next_seg = &segments2;
+  unsigned int curseg_size = 0;
+  unsigned int nextseg_size = 0;
+
+  vector<TrackSegment> complete_segments;
+
+  unsigned int allowed_missing = n_layers - req_layers;
+  for (unsigned int l = 0; l < n_layers; ++l) {
+    layer_sorted[l].clear();
+  }
+  for (unsigned int i = 0; i < hits.size(); ++i) {
+    unsigned int min = (hits[i].get_layer() - allowed_missing);
+    if (allowed_missing > hits[i].get_layer()) {
+      min = 0;
+    }
+    for (unsigned int l = min; l <= hits[i].get_layer(); l += 1) {
+      layer_sorted[l].push_back(hits[i]);
+    }
+  }
+  for (unsigned int l = 0; l < n_layers; ++l) {
+    if (layer_sorted[l].size() == 0) {
+      return;
+    }
+  }
+
+  timeval t1, t2;
+  double time1 = 0.;
+  double time2 = 0.;
+
+  gettimeofday(&t1, NULL);
+
+  float cosang_diff = 1. - cosang_cut;
+  float cosang_diff_inv = 1. / cosang_diff;
+  float sinang_cut = sqrt(1. - cosang_cut * cosang_cut);
+  float easy_chi2_cut = ca_chi2_cut;
+
+  vector<float> inv_layer;
+  inv_layer.assign(n_layers, 1.);
+  for (unsigned int l = 3; l < n_layers; ++l) {
+    inv_layer[l] = 1. / (((float)l) - 2.);
+  }
+
+  unsigned int hit_counter = 0;
+  float x1_a[4] __attribute__((aligned(16)));
+  float x2_a[4] __attribute__((aligned(16)));
+  float x3_a[4] __attribute__((aligned(16)));
+  float y1_a[4] __attribute__((aligned(16)));
+  float y2_a[4] __attribute__((aligned(16)));
+  float y3_a[4] __attribute__((aligned(16)));
+  float z1_a[4] __attribute__((aligned(16)));
+  float z2_a[4] __attribute__((aligned(16)));
+  float z3_a[4] __attribute__((aligned(16)));
+  float dx1_a[4] __attribute__((aligned(16)));
+  float dx2_a[4] __attribute__((aligned(16)));
+  float dx3_a[4] __attribute__((aligned(16)));
+  float dy1_a[4] __attribute__((aligned(16)));
+  float dy2_a[4] __attribute__((aligned(16)));
+  float dy3_a[4] __attribute__((aligned(16)));
+  float dz1_a[4] __attribute__((aligned(16)));
+  float dz2_a[4] __attribute__((aligned(16)));
+  float dz3_a[4] __attribute__((aligned(16)));
+
+  float kappa_a[4] __attribute__((aligned(16)));
+  float dkappa_a[4] __attribute__((aligned(16)));
+
+  float ux_mid_a[4] __attribute__((aligned(16)));
+  float uy_mid_a[4] __attribute__((aligned(16)));
+  float ux_end_a[4] __attribute__((aligned(16)));
+  float uy_end_a[4] __attribute__((aligned(16)));
+
+  float dzdl_1_a[4] __attribute__((aligned(16)));
+  float dzdl_2_a[4] __attribute__((aligned(16)));
+  float ddzdl_1_a[4] __attribute__((aligned(16)));
+  float ddzdl_2_a[4] __attribute__((aligned(16)));
+  
+  float cur_kappa_a[4] __attribute__((aligned(16)));
+  float cur_dkappa_a[4] __attribute__((aligned(16)));
+  float cur_ux_a[4] __attribute__((aligned(16)));
+  float cur_uy_a[4] __attribute__((aligned(16)));
+  float cur_chi2_a[4] __attribute__((aligned(16)));
+  float chi2_a[4] __attribute__((aligned(16)));
+
+  unsigned int hit1[4];
+  unsigned int hit2[4];
+  unsigned int hit3[4];
+
+  TrackSegment temp_segment;
+  temp_segment.hits.assign(n_layers, 0);
+  // make segments out of first 3 layers
+       for (unsigned int i = 0, sizei = layer_sorted[0].size(); i < sizei; ++i) {
+    for (unsigned int j = 0, sizej = layer_sorted[1].size(); j < sizej; ++j) {
+      for (unsigned int k = 0, sizek = layer_sorted[2].size(); k < sizek; ++k) {
+        if ((layer_sorted[0][i].get_layer() >= layer_sorted[1][j].get_layer()) ||
+            (layer_sorted[1][j].get_layer() >= layer_sorted[2][k].get_layer())) {
+          continue;
+        }
+
+        x1_a[hit_counter] = layer_sorted[0][i].get_x();
+        y1_a[hit_counter] = layer_sorted[0][i].get_y();
+        z1_a[hit_counter] = layer_sorted[0][i].get_z();
+
+        /// \todo location of a fudge scale factor
+
+        dx1_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[0][i].get_size(0,0));
+        dy1_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[0][i].get_size(1,1));
+        dz1_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[0][i].get_size(2,2));
+
+        x2_a[hit_counter] = layer_sorted[1][j].get_x();
+        y2_a[hit_counter] = layer_sorted[1][j].get_y();
+        z2_a[hit_counter] = layer_sorted[1][j].get_z();
+
+        dx2_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[1][j].get_size(0,0));
+        dy2_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[1][j].get_size(1,1));
+        dz2_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[1][j].get_size(2,2));
+
+        x3_a[hit_counter] = layer_sorted[2][k].get_x();
+        y3_a[hit_counter] = layer_sorted[2][k].get_y();
+        z3_a[hit_counter] = layer_sorted[2][k].get_z();
+        dx3_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[2][k].get_size(0,0));
+        dy3_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[2][k].get_size(1,1));
+        dz3_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[2][k].get_size(2,2));
+
+        hit1[hit_counter] = i;
+        hit2[hit_counter] = j;
+        hit3[hit_counter] = k;
+
+        hit_counter += 1;
+
+        if (hit_counter == 4) {
+          calculateKappaTangents(x1_a, y1_a, z1_a, x2_a, y2_a, z2_a, x3_a, y3_a,
+                                 z3_a, dx1_a, dy1_a, dz1_a, dx2_a, dy2_a, dz2_a,
+                                 dx3_a, dy3_a, dz3_a, kappa_a, dkappa_a,
+                                 ux_mid_a, uy_mid_a, ux_end_a, uy_end_a,
+                                 dzdl_1_a, dzdl_2_a, ddzdl_1_a, ddzdl_2_a);
+
+          for (unsigned int h = 0; h < hit_counter; ++h) {
+            temp_segment.chi2 =
+                (dzdl_1_a[h] - dzdl_2_a[h]) /
+                (ddzdl_1_a[h] + ddzdl_2_a[h] + fabs(dzdl_1_a[h] * sinang_cut));
+            temp_segment.chi2 *= temp_segment.chi2;
+            if (temp_segment.chi2 > 2.0) {
+              continue;
+            }
+            temp_segment.ux = ux_end_a[h];
+            temp_segment.uy = uy_end_a[h];
+            temp_segment.kappa = kappa_a[h];
+            if (temp_segment.kappa > top_range.max_k) {
+              continue;
+            }
+            temp_segment.dkappa = dkappa_a[h];
+            temp_segment.hits[0] = hit1[h];
+            temp_segment.hits[1] = hit2[h];
+            temp_segment.hits[2] = hit3[h];
+            temp_segment.n_hits = 3;
+            unsigned int outer_layer =
+                layer_sorted[2][temp_segment.hits[2]].get_layer();
+            if ((outer_layer - 2) > allowed_missing) {
+              continue;
+            }
+            if ((n_layers - 3) <= allowed_missing) {
+              complete_segments.push_back(temp_segment);
+            }
+            if (next_seg->size() == nextseg_size) {
+              next_seg->push_back(temp_segment);
+              nextseg_size += 1;
+            } else {
+              (*next_seg)[nextseg_size] = temp_segment;
+              nextseg_size += 1;
+            }
+          }
+
+          hit_counter = 0;
+        }
+      }
+    }
+  }
+  if (hit_counter != 0) {
+    calculateKappaTangents(x1_a, y1_a, z1_a, x2_a, y2_a, z2_a, x3_a, y3_a, z3_a,
+                           dx1_a, dy1_a, dz1_a, dx2_a, dy2_a, dz2_a, dx3_a,
+                           dy3_a, dz3_a, kappa_a, dkappa_a, ux_mid_a, uy_mid_a,
+                           ux_end_a, uy_end_a, dzdl_1_a, dzdl_2_a, ddzdl_1_a,
+                           ddzdl_2_a);
+
+    for (unsigned int h = 0; h < hit_counter; ++h) {
+      temp_segment.chi2 =
+          (dzdl_1_a[h] - dzdl_2_a[h]) /
+          (ddzdl_1_a[h] + ddzdl_2_a[h] + fabs(dzdl_1_a[h] * sinang_cut));
+      temp_segment.chi2 *= temp_segment.chi2;
+      if (temp_segment.chi2 > 2.0) {
+        continue;
+      }
+      temp_segment.ux = ux_end_a[h];
+      temp_segment.uy = uy_end_a[h];
+      temp_segment.kappa = kappa_a[h];
+      if (temp_segment.kappa > top_range.max_k) {
+        continue;
+      }
+      temp_segment.dkappa = dkappa_a[h];
+      temp_segment.hits[0] = hit1[h];
+      temp_segment.hits[1] = hit2[h];
+      temp_segment.hits[2] = hit3[h];
+      temp_segment.n_hits = 3;
+      unsigned int outer_layer = layer_sorted[2][temp_segment.hits[2]].get_layer();
+      if ((outer_layer - 2) > allowed_missing) {
+        continue;
+      }
+      if ((n_layers - 3) <= allowed_missing) {
+        complete_segments.push_back(temp_segment);
+      }
+      if (next_seg->size() == nextseg_size) {
+        next_seg->push_back(temp_segment);
+        nextseg_size += 1;
+      } else {
+        (*next_seg)[nextseg_size] = temp_segment;
+        nextseg_size += 1;
+      }
+    }
+
+    hit_counter = 0;
+  }
+
+  swap(cur_seg, next_seg);
+  swap(curseg_size, nextseg_size);
+  // add hits to segments layer-by-layer, cutting out bad segments
+       unsigned int whichseg[4];
+  for (unsigned int l = 3; l < n_layers; ++l) {
+    if (l == (n_layers - 1)) {
+      easy_chi2_cut *= 0.25;
+    }
+    nextseg_size = 0;
+    for (unsigned int i = 0, sizei = curseg_size; i < sizei; ++i) {
+      for (unsigned int j = 0, sizej = layer_sorted[l].size(); j < sizej; ++j) {
+        if ((layer_sorted[l - 1][(*cur_seg)[i].hits[l - 1]].get_layer() >=
+             layer_sorted[l][j].get_layer())) {
+          continue;
+        }
+
+        x1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[i].hits[l - 2]].get_x();
+        y1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[i].hits[l - 2]].get_y();
+        z1_a[hit_counter] = layer_sorted[l - 2][(*cur_seg)[i].hits[l - 2]].get_z();
+        x2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[i].hits[l - 1]].get_x();
+        y2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[i].hits[l - 1]].get_y();
+        z2_a[hit_counter] = layer_sorted[l - 1][(*cur_seg)[i].hits[l - 1]].get_z();
+        x3_a[hit_counter] = layer_sorted[l][j].get_x();
+        y3_a[hit_counter] = layer_sorted[l][j].get_y();
+        z3_a[hit_counter] = layer_sorted[l][j].get_z();
+
+        dx1_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[l - 2][(*cur_seg)[i].hits[l - 2]].get_size(0,0));
+        dy1_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[l - 2][(*cur_seg)[i].hits[l - 2]].get_size(1,1));
+        dz1_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[l - 2][(*cur_seg)[i].hits[l - 2]].get_size(2,2));
+        dx2_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[l - 1][(*cur_seg)[i].hits[l - 1]].get_size(0,0));
+        dy2_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[l - 1][(*cur_seg)[i].hits[l - 1]].get_size(1,1));
+        dz2_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[l - 1][(*cur_seg)[i].hits[l - 1]].get_size(2,2));
+        dx3_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[l][j].get_size(0,0));
+        dy3_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[l][j].get_size(1,1));
+        dz3_a[hit_counter] = 0.5*sqrt(12.0)*sqrt(layer_sorted[l][j].get_size(2,2));
+
+        cur_kappa_a[hit_counter] = (*cur_seg)[i].kappa;
+        cur_dkappa_a[hit_counter] = (*cur_seg)[i].dkappa;
+        cur_ux_a[hit_counter] = (*cur_seg)[i].ux;
+        cur_uy_a[hit_counter] = (*cur_seg)[i].uy;
+        cur_chi2_a[hit_counter] = (*cur_seg)[i].chi2;
+
+        whichseg[hit_counter] = i;
+        hit1[hit_counter] = j;
+
+        hit_counter += 1;
+        if (hit_counter == 4) {
+          calculateKappaTangents(
+              x1_a, y1_a, z1_a, x2_a, y2_a, z2_a, x3_a, y3_a, z3_a, dx1_a,
+              dy1_a, dz1_a, dx2_a, dy2_a, dz2_a, dx3_a, dy3_a, dz3_a, kappa_a,
+              dkappa_a, ux_mid_a, uy_mid_a, ux_end_a, uy_end_a, dzdl_1_a,
+              dzdl_2_a, ddzdl_1_a, ddzdl_2_a, sinang_cut, cosang_diff_inv,
+              cur_kappa_a, cur_dkappa_a, cur_ux_a, cur_uy_a, cur_chi2_a,
+              chi2_a);
+
+          for (unsigned int h = 0; h < hit_counter; ++h) {
+            if ((chi2_a[h]) * inv_layer[l] < easy_chi2_cut) {
+              temp_segment.chi2 = chi2_a[h];
+              temp_segment.ux = ux_end_a[h];
+              temp_segment.uy = uy_end_a[h];
+              temp_segment.kappa = kappa_a[h];
+              if (temp_segment.kappa > top_range.max_k) {
+                continue;
+              }
+              temp_segment.dkappa = dkappa_a[h];
+              for (unsigned int ll = 0; ll < l; ++ll) {
+                temp_segment.hits[ll] = (*cur_seg)[whichseg[h]].hits[ll];
+              }
+              temp_segment.hits[l] = hit1[h];
+              unsigned int outer_layer =
+                  layer_sorted[l][temp_segment.hits[l]].get_layer();
+              temp_segment.n_hits = l + 1;
+              if ((n_layers - (l + 1)) <= allowed_missing) {
+                complete_segments.push_back(temp_segment);
+              }
+              if ((outer_layer - l) > allowed_missing) {
+                continue;
+              }
+              if (next_seg->size() == nextseg_size) {
+                next_seg->push_back(temp_segment);
+                nextseg_size += 1;
+              } else {
+                (*next_seg)[nextseg_size] = temp_segment;
+                nextseg_size += 1;
+              }
+            }
+          }
+          hit_counter = 0;
+        }
+      }
+    }
+    if (hit_counter != 0) {
+      calculateKappaTangents(
+          x1_a, y1_a, z1_a, x2_a, y2_a, z2_a, x3_a, y3_a, z3_a, dx1_a, dy1_a,
+          dz1_a, dx2_a, dy2_a, dz2_a, dx3_a, dy3_a, dz3_a, kappa_a, dkappa_a,
+          ux_mid_a, uy_mid_a, ux_end_a, uy_end_a, dzdl_1_a, dzdl_2_a, ddzdl_1_a,
+          ddzdl_2_a, sinang_cut, cosang_diff_inv, cur_kappa_a, cur_dkappa_a,
+          cur_ux_a, cur_uy_a, cur_chi2_a, chi2_a);
+
+      for (unsigned int h = 0; h < hit_counter; ++h) {
+        if ((chi2_a[h]) * inv_layer[l] < easy_chi2_cut) {
+          temp_segment.chi2 = chi2_a[h];
+          temp_segment.ux = ux_end_a[h];
+          temp_segment.uy = uy_end_a[h];
+          temp_segment.kappa = kappa_a[h];
+          if (temp_segment.kappa > top_range.max_k) {
+            continue;
+          }
+          temp_segment.dkappa = dkappa_a[h];
+          for (unsigned int ll = 0; ll < l; ++ll) {
+            temp_segment.hits[ll] = (*cur_seg)[whichseg[h]].hits[ll];
+          }
+          temp_segment.hits[l] = hit1[h];
+          unsigned int outer_layer =
+              layer_sorted[l][temp_segment.hits[l]].get_layer();
+          temp_segment.n_hits = l + 1;
+          if ((n_layers - (l + 1)) <= allowed_missing) {
+            complete_segments.push_back(temp_segment);
+          }
+          if ((outer_layer - l) > allowed_missing) {
+            continue;
+          }
+          if (next_seg->size() == nextseg_size) {
+            next_seg->push_back(temp_segment);
+            nextseg_size += 1;
+          } else {
+            (*next_seg)[nextseg_size] = temp_segment;
+            nextseg_size += 1;
+          }
+        }
+      }
+      hit_counter = 0;
+    }
+    swap(cur_seg, next_seg);
+    swap(curseg_size, nextseg_size);
+  }
+  for (unsigned int i = 0; i < complete_segments.size(); ++i) {
+    if (cur_seg->size() == curseg_size) {
+      cur_seg->push_back(complete_segments[i]);
+      curseg_size += 1;
+    } else {
+      (*cur_seg)[curseg_size] = complete_segments[i];
+      curseg_size += 1;
+    }
+  }
+
+  gettimeofday(&t2, NULL);
+  time1 = ((double)(t1.tv_sec) + (double)(t1.tv_usec) / 1000000.);
+  time2 = ((double)(t2.tv_sec) + (double)(t2.tv_usec) / 1000000.);
+  CAtime += (time2 - time1);
+  SimpleTrack3D temp_track;
+  temp_track.hits.assign(n_layers, SimpleHit3D());
+  vector<SimpleHit3D> temp_hits;
+  for (unsigned int i = 0, sizei = curseg_size; i < sizei; ++i) {
+    temp_track.hits.assign((*cur_seg)[i].n_hits, SimpleHit3D());
+
+    temp_comb.assign((*cur_seg)[i].n_hits, 0);
+    for (unsigned int l = 0; l < (*cur_seg)[i].n_hits; ++l) {
+      temp_comb[l] = layer_sorted[l][(*cur_seg)[i].hits[l]].get_id();
+    }
+    sort(temp_comb.begin(), temp_comb.end());
+    set<vector<unsigned int> >::iterator it = combos.find(temp_comb);
+    if (it != combos.end()) {
+      continue;
+    }
+    if (combos.size() > 10000) {
+      combos.clear();
+    }
+    combos.insert(temp_comb);
+
+    for (unsigned int l = 0; l < (*cur_seg)[i].n_hits; ++l) {
+      temp_track.hits[l] = layer_sorted[l][(*cur_seg)[i].hits[l]];
+    }
+
+    gettimeofday(&t1, NULL);
+
+    float init_chi2 = fitTrack(temp_track);
+
+    if (init_chi2 > fast_chi2_cut_max) {
+      if (init_chi2 > fast_chi2_cut_par0 +
+                          fast_chi2_cut_par1 / kappaToPt(temp_track.kappa)) {
+        gettimeofday(&t2, NULL);
+        time1 = ((double)(t1.tv_sec) + (double)(t1.tv_usec) / 1000000.);
+        time2 = ((double)(t2.tv_sec) + (double)(t2.tv_usec) / 1000000.);
+        KALtime += (time2 - time1);
+        continue;
+      }
+    }
+    HelixKalmanState state;
+    state.phi = temp_track.phi;
+    if (state.phi < 0.) {
+      state.phi += 2. * M_PI;
+    }
+    state.d = temp_track.d;
+    state.kappa = temp_track.kappa;
+    state.nu = sqrt(state.kappa);
+    state.z0 = temp_track.z0;
+    state.dzdl = temp_track.dzdl;
+    state.C = Matrix<float, 5, 5>::Zero(5, 5);
+    state.C(0, 0) = pow(0.01, 2.);
+    state.C(1, 1) = pow(0.01, 2.);
+    state.C(2, 2) = pow(0.01 * state.nu, 2.);
+    state.C(3, 3) = pow(0.05, 2.);
+    state.C(4, 4) = pow(0.05, 2.);
+    state.chi2 = 0.;
+    state.position = 0;
+    state.x_int = 0.;
+    state.y_int = 0.;
+    state.z_int = 0.;
+    for (unsigned int h = 0; h < temp_track.hits.size(); ++h) {
+      kalman->addHit(temp_track.hits[h], state);
+      nfits += 1;
+    }
+
+    // fudge factor for non-gaussian hit sizes
+           state.C *= 3.;
+    state.chi2 *= 6.;
+
+    gettimeofday(&t2, NULL);
+    time1 = ((double)(t1.tv_sec) + (double)(t1.tv_usec) / 1000000.);
+    time2 = ((double)(t2.tv_sec) + (double)(t2.tv_usec) / 1000000.);
+    KALtime += (time2 - time1);
+
+    if (!(temp_track.kappa == temp_track.kappa)) {
+      continue;
+    }
+    if (temp_track.kappa > top_range.max_k) {
+      continue;
+    }
+    if (!(state.chi2 == state.chi2)) {
+      continue;
+    }
+    if (state.chi2 / (2. * ((float)(temp_track.hits.size())) - 5.) > chi2_cut) {
+      continue;
+    }
+
+    if (cut_on_dca == true) {
+      if (fabs(temp_track.d) > dca_cut) {
+        continue;
+      }
+      if (fabs(temp_track.z0) > dca_cut) {
+        continue;
+      }
+    }
+    tracks.push_back(temp_track);
+    track_states.push_back(state);
+    if ((remove_hits == true) && (state.chi2 < chi2_removal_cut) &&
+        (temp_track.hits.size() >= n_removal_hits)) {
+      for (unsigned int i = 0; i < temp_track.hits.size(); ++i) {
+        (*hit_used)[temp_track.hits[i].get_id()] = true;
+      }
+    }
+  }
+
 }
 
+void sPHENIXTrackerTPC::calculateKappaTangents(
+    float* x1_a, float* y1_a, float* z1_a, float* x2_a, float* y2_a,
+    float* z2_a, float* x3_a, float* y3_a, float* z3_a, float* dx1_a,
+    float* dy1_a, float* dz1_a, float* dx2_a, float* dy2_a, float* dz2_a,
+    float* dx3_a, float* dy3_a, float* dz3_a, float* kappa_a, float* dkappa_a,
+    float* ux_mid_a, float* uy_mid_a, float* ux_end_a, float* uy_end_a,
+    float* dzdl_1_a, float* dzdl_2_a, float* ddzdl_1_a, float* ddzdl_2_a) {
+  static const __m128 two = {2., 2., 2., 2.};
+
+  __m128 x1 = _mm_load_ps(x1_a);
+  __m128 x2 = _mm_load_ps(x2_a);
+  __m128 x3 = _mm_load_ps(x3_a);
+  __m128 y1 = _mm_load_ps(y1_a);
+  __m128 y2 = _mm_load_ps(y2_a);
+  __m128 y3 = _mm_load_ps(y3_a);
+  __m128 z1 = _mm_load_ps(z1_a);
+  __m128 z2 = _mm_load_ps(z2_a);
+  __m128 z3 = _mm_load_ps(z3_a);
+
+  __m128 dx1 = _mm_load_ps(dx1_a);
+  __m128 dx2 = _mm_load_ps(dx2_a);
+  __m128 dx3 = _mm_load_ps(dx3_a);
+  __m128 dy1 = _mm_load_ps(dy1_a);
+  __m128 dy2 = _mm_load_ps(dy2_a);
+  __m128 dy3 = _mm_load_ps(dy3_a);
+  __m128 dz1 = _mm_load_ps(dz1_a);
+  __m128 dz2 = _mm_load_ps(dz2_a);
+  __m128 dz3 = _mm_load_ps(dz3_a);
+
+  __m128 D12 = _mm_sub_ps(x2, x1);
+  D12 = _mm_mul_ps(D12, D12);
+  __m128 tmp1 = _mm_sub_ps(y2, y1);
+  tmp1 = _mm_mul_ps(tmp1, tmp1);
+  D12 = _mm_add_ps(D12, tmp1);
+  D12 = _vec_sqrt_ps(D12);
+
+  __m128 D23 = _mm_sub_ps(x3, x2);
+  D23 = _mm_mul_ps(D23, D23);
+  tmp1 = _mm_sub_ps(y3, y2);
+  tmp1 = _mm_mul_ps(tmp1, tmp1);
+  D23 = _mm_add_ps(D23, tmp1);
+  D23 = _vec_sqrt_ps(D23);
+  __m128 D31 = _mm_sub_ps(x1, x3);
+  D31 = _mm_mul_ps(D31, D31);
+  tmp1 = _mm_sub_ps(y1, y3);
+  tmp1 = _mm_mul_ps(tmp1, tmp1);
+  D31 = _mm_add_ps(D31, tmp1);
+  D31 = _vec_sqrt_ps(D31);
+
+  __m128 k = _mm_mul_ps(D12, D23);
+  k = _mm_mul_ps(k, D31);
+  k = _vec_rec_ps(k);
+  tmp1 = (D12 + D23 + D31) * (D23 + D31 - D12) * (D12 + D31 - D23) *
+         (D12 + D23 - D31);
+  tmp1 = _vec_sqrt_ps(tmp1);
+  k *= tmp1;
+
+  __m128 tmp2 = _mm_cmpgt_ps(tmp1, zero);
+  tmp1 = _mm_and_ps(tmp2, k);
+  tmp2 = _mm_andnot_ps(tmp2, zero);
+  k = _mm_xor_ps(tmp1, tmp2);
+
+  _mm_store_ps(kappa_a, k);
+  __m128 k_inv = _vec_rec_ps(k);
+
+  __m128 D12_inv = _vec_rec_ps(D12);
+  __m128 D23_inv = _vec_rec_ps(D23);
+  __m128 D31_inv = _vec_rec_ps(D31);
+
+  __m128 dr1 = dx1 * dx1 + dy1 * dy1;
+  dr1 = _vec_sqrt_ps(dr1);
+  __m128 dr2 = dx2 * dx2 + dy2 * dy2;
+  dr2 = _vec_sqrt_ps(dr2);
+  __m128 dr3 = dx3 * dx3 + dy3 * dy3;
+  dr3 = _vec_sqrt_ps(dr3);
+
+  __m128 dk1 = (dr1 + dr2) * D12_inv * D12_inv;
+  __m128 dk2 = (dr2 + dr3) * D23_inv * D23_inv;
+  __m128 dk = dk1 + dk2;
+  _mm_store_ps(dkappa_a, dk);
+
+  __m128 ux12 = (x2 - x1) * D12_inv;
+  __m128 uy12 = (y2 - y1) * D12_inv;
+  __m128 ux23 = (x3 - x2) * D23_inv;
+  __m128 uy23 = (y3 - y2) * D23_inv;
+  __m128 ux13 = (x3 - x1) * D31_inv;
+  __m128 uy13 = (y3 - y1) * D31_inv;
+
+  __m128 cosalpha = ux12 * ux13 + uy12 * uy13;
+  __m128 sinalpha = ux13 * uy12 - ux12 * uy13;
+
+  __m128 ux_mid = ux23 * cosalpha - uy23 * sinalpha;
+  __m128 uy_mid = ux23 * sinalpha + uy23 * cosalpha;
+  _mm_store_ps(ux_mid_a, ux_mid);
+  _mm_store_ps(uy_mid_a, uy_mid);
+
+  __m128 ux_end = ux23 * cosalpha + uy23 * sinalpha;
+  __m128 uy_end = uy23 * cosalpha - ux23 * sinalpha;
+
+  _mm_store_ps(ux_end_a, ux_end);
+  _mm_store_ps(uy_end_a, uy_end);
+
+  __m128 v = one - sinalpha * sinalpha;
+  v = _vec_sqrt_ps(v);
+  v += one;
+  v = _vec_rec_ps(v);
+  v *= sinalpha;
+  __m128 s2 = _vec_atan_ps(v);
+  s2 *= two;
+  s2 *= k_inv;
+  tmp1 = _mm_cmpgt_ps(k, zero);
+  tmp2 = _mm_and_ps(tmp1, s2);
+  tmp1 = _mm_andnot_ps(tmp1, D23);
+
+  s2 = _mm_xor_ps(tmp1, tmp2);
+
+  // dz/dl = (dz/ds)/sqrt(1 + (dz/ds)^2)
+  // = dz/sqrt(s^2 + dz^2)
+  __m128 del_z_2 = z3 - z2;
+  __m128 dzdl_2 = s2 * s2 + del_z_2 * del_z_2;
+  dzdl_2 = _vec_rsqrt_ps(dzdl_2);
+  dzdl_2 *= del_z_2;
+  __m128 ddzdl_2 = (dz2 + dz3) * D23_inv;
+  _mm_store_ps(dzdl_2_a, dzdl_2);
+  _mm_store_ps(ddzdl_2_a, ddzdl_2);
+
+  sinalpha = ux13 * uy23 - ux23 * uy13;
+  v = one - sinalpha * sinalpha;
+  v = _vec_sqrt_ps(v);
+  v += one;
+  v = _vec_rec_ps(v);
+  v *= sinalpha;
+  __m128 s1 = _vec_atan_ps(v);
+  s1 *= two;
+  s1 *= k_inv;
+  tmp1 = _mm_cmpgt_ps(k, zero);
+  tmp2 = _mm_and_ps(tmp1, s1);
+  tmp1 = _mm_andnot_ps(tmp1, D12);
+  s1 = _mm_xor_ps(tmp1, tmp2);
+
+  __m128 del_z_1 = z2 - z1;
+  __m128 dzdl_1 = s1 * s1 + del_z_1 * del_z_1;
+  dzdl_1 = _vec_rsqrt_ps(dzdl_1);
+  dzdl_1 *= del_z_1;
+  __m128 ddzdl_1 = (dz1 + dz2) * D12_inv;
+  _mm_store_ps(dzdl_1_a, dzdl_1);
+  _mm_store_ps(ddzdl_1_a, ddzdl_1);
+
+}
+
+
+void sPHENIXTrackerTPC::calculateKappaTangents(
+    float* x1_a, float* y1_a, float* z1_a, float* x2_a, float* y2_a,
+    float* z2_a, float* x3_a, float* y3_a, float* z3_a, float* dx1_a,
+    float* dy1_a, float* dz1_a, float* dx2_a, float* dy2_a, float* dz2_a,
+    float* dx3_a, float* dy3_a, float* dz3_a, float* kappa_a, float* dkappa_a,
+    float* ux_mid_a, float* uy_mid_a, float* ux_end_a, float* uy_end_a,
+    float* dzdl_1_a, float* dzdl_2_a, float* ddzdl_1_a, float* ddzdl_2_a,
+    float sinang_cut, float cosang_diff_inv, float* cur_kappa_a,
+    float* cur_dkappa_a, float* cur_ux_a, float* cur_uy_a, float* cur_chi2_a,
+    float* chi2_a) {
+  static const __m128 two = {2., 2., 2., 2.};
+
+  __m128 x1 = _mm_load_ps(x1_a);
+  __m128 x2 = _mm_load_ps(x2_a);
+  __m128 x3 = _mm_load_ps(x3_a);
+  __m128 y1 = _mm_load_ps(y1_a);
+  __m128 y2 = _mm_load_ps(y2_a);
+  __m128 y3 = _mm_load_ps(y3_a);
+  __m128 z1 = _mm_load_ps(z1_a);
+  __m128 z2 = _mm_load_ps(z2_a);
+  __m128 z3 = _mm_load_ps(z3_a);
+
+  __m128 dx1 = _mm_load_ps(dx1_a);
+  __m128 dx2 = _mm_load_ps(dx2_a);
+  __m128 dx3 = _mm_load_ps(dx3_a);
+  __m128 dy1 = _mm_load_ps(dy1_a);
+  __m128 dy2 = _mm_load_ps(dy2_a);
+  __m128 dy3 = _mm_load_ps(dy3_a);
+  __m128 dz1 = _mm_load_ps(dz1_a);
+  __m128 dz2 = _mm_load_ps(dz2_a);
+  __m128 dz3 = _mm_load_ps(dz3_a);
+
+  __m128 D12 = _mm_sub_ps(x2, x1);
+  D12 = _mm_mul_ps(D12, D12);
+  __m128 tmp1 = _mm_sub_ps(y2, y1);
+  tmp1 = _mm_mul_ps(tmp1, tmp1);
+  D12 = _mm_add_ps(D12, tmp1);
+  D12 = _vec_sqrt_ps(D12);
+
+  __m128 D23 = _mm_sub_ps(x3, x2);
+  D23 = _mm_mul_ps(D23, D23);
+  tmp1 = _mm_sub_ps(y3, y2);
+  tmp1 = _mm_mul_ps(tmp1, tmp1);
+  D23 = _mm_add_ps(D23, tmp1);
+  D23 = _vec_sqrt_ps(D23);
+
+  __m128 D31 = _mm_sub_ps(x1, x3);
+  D31 = _mm_mul_ps(D31, D31);
+  tmp1 = _mm_sub_ps(y1, y3);
+  tmp1 = _mm_mul_ps(tmp1, tmp1);
+  D31 = _mm_add_ps(D31, tmp1);
+  D31 = _vec_sqrt_ps(D31);
+
+  __m128 k = _mm_mul_ps(D12, D23);
+  k = _mm_mul_ps(k, D31);
+  k = _vec_rec_ps(k);
+  tmp1 = (D12 + D23 + D31) * (D23 + D31 - D12) * (D12 + D31 - D23) *
+         (D12 + D23 - D31);
+  tmp1 = _vec_sqrt_ps(tmp1);
+  k *= tmp1;
+
+  __m128 tmp2 = _mm_cmpgt_ps(tmp1, zero);
+  tmp1 = _mm_and_ps(tmp2, k);
+  tmp2 = _mm_andnot_ps(tmp2, zero);
+  k = _mm_xor_ps(tmp1, tmp2);
+
+  _mm_store_ps(kappa_a, k);
+  __m128 k_inv = _vec_rec_ps(k);
+
+  __m128 D12_inv = _vec_rec_ps(D12);
+  __m128 D23_inv = _vec_rec_ps(D23);
+  __m128 D31_inv = _vec_rec_ps(D31);
+
+  __m128 dr1 = dx1 * dx1 + dy1 * dy1;
+  dr1 = _vec_sqrt_ps(dr1);
+  __m128 dr2 = dx2 * dx2 + dy2 * dy2;
+  dr2 = _vec_sqrt_ps(dr2);
+  __m128 dr3 = dx3 * dx3 + dy3 * dy3;
+  dr3 = _vec_sqrt_ps(dr3);
+
+  __m128 dk1 = (dr1 + dr2) * D12_inv * D12_inv;
+  __m128 dk2 = (dr2 + dr3) * D23_inv * D23_inv;
+  __m128 dk = dk1 + dk2;
+  _mm_store_ps(dkappa_a, dk);
+
+  __m128 ux12 = (x2 - x1) * D12_inv;
+  __m128 uy12 = (y2 - y1) * D12_inv;
+  __m128 ux23 = (x3 - x2) * D23_inv;
+  __m128 uy23 = (y3 - y2) * D23_inv;
+  __m128 ux13 = (x3 - x1) * D31_inv;
+  __m128 uy13 = (y3 - y1) * D31_inv;
+
+  __m128 cosalpha = ux12 * ux13 + uy12 * uy13;
+  __m128 sinalpha = ux13 * uy12 - ux12 * uy13;
+
+  __m128 ux_mid = ux23 * cosalpha - uy23 * sinalpha;
+  __m128 uy_mid = ux23 * sinalpha + uy23 * cosalpha;
+  _mm_store_ps(ux_mid_a, ux_mid);
+  _mm_store_ps(uy_mid_a, uy_mid);
+
+  __m128 ux_end = ux23 * cosalpha + uy23 * sinalpha;
+  __m128 uy_end = uy23 * cosalpha - ux23 * sinalpha;
+
+  _mm_store_ps(ux_end_a, ux_end);
+  _mm_store_ps(uy_end_a, uy_end);
+
+  // asin(x) = 2*atan( x/( 1 + sqrt( 1 - x*x ) ) )
+       __m128 v = one - sinalpha * sinalpha;
+  v = _vec_sqrt_ps(v);
+  v += one;
+  v = _vec_rec_ps(v);
+  v *= sinalpha;
+  __m128 s2 = _vec_atan_ps(v);
+  s2 *= two;
+  s2 *= k_inv;
+  tmp1 = _mm_cmpgt_ps(k, zero);
+  tmp2 = _mm_and_ps(tmp1, s2);
+  tmp1 = _mm_andnot_ps(tmp1, D23);
+  s2 = _mm_xor_ps(tmp1, tmp2);
+
+  // dz/dl = (dz/ds)/sqrt(1 + (dz/ds)^2)
+  // = dz/sqrt(s^2 + dz^2)
+  __m128 del_z_2 = z3 - z2;
+  __m128 dzdl_2 = s2 * s2 + del_z_2 * del_z_2;
+  dzdl_2 = _vec_rsqrt_ps(dzdl_2);
+  dzdl_2 *= del_z_2;
+  __m128 ddzdl_2 = (dz2 + dz3) * D23_inv;
+  _mm_store_ps(dzdl_2_a, dzdl_2);
+  _mm_store_ps(ddzdl_2_a, ddzdl_2);
+
+  sinalpha = ux13 * uy23 - ux23 * uy13;
+  v = one - sinalpha * sinalpha;
+  v = _vec_sqrt_ps(v);
+  v += one;
+  v = _vec_rec_ps(v);
+  v *= sinalpha;
+  __m128 s1 = _vec_atan_ps(v);
+  s1 *= two;
+  s1 *= k_inv;
+  tmp1 = _mm_cmpgt_ps(k, zero);
+  tmp2 = _mm_and_ps(tmp1, s1);
+  tmp1 = _mm_andnot_ps(tmp1, D12);
+  s1 = _mm_xor_ps(tmp1, tmp2);
+
+  __m128 del_z_1 = z2 - z1;
+  __m128 dzdl_1 = s1 * s1 + del_z_1 * del_z_1;
+  dzdl_1 = _vec_rsqrt_ps(dzdl_1);
+  dzdl_1 *= del_z_1;
+  __m128 ddzdl_1 = (dz1 + dz2) * D12_inv;
+  _mm_store_ps(dzdl_1_a, dzdl_1);
+  _mm_store_ps(ddzdl_1_a, ddzdl_1);
+  __m128 c_dk = _mm_load_ps(cur_dkappa_a);
+  __m128 c_k = _mm_load_ps(cur_kappa_a);
+  __m128 c_ux = _mm_load_ps(cur_ux_a);
+  __m128 c_uy = _mm_load_ps(cur_uy_a);
+  __m128 c_chi2 = _mm_load_ps(cur_chi2_a);
+  __m128 sinang = _mm_load1_ps(&sinang_cut);
+  __m128 cosdiff = _mm_load1_ps(&cosang_diff_inv);
+
+  __m128 kdiff = c_k - k;
+  __m128 n_dk = c_dk + dk + sinang * k;
+  __m128 chi2_k = kdiff * kdiff / (n_dk * n_dk);
+  __m128 cos_scatter = c_ux * ux_mid + c_uy * uy_mid;
+  __m128 chi2_ang =
+      (one - cos_scatter) * (one - cos_scatter) * cosdiff * cosdiff;
+  tmp1 = dzdl_1 * sinang;
+  _vec_fabs_ps(tmp1);
+  __m128 chi2_dzdl = (dzdl_1 - dzdl_2) / (ddzdl_1 + ddzdl_2 + tmp1);
+  chi2_dzdl *= chi2_dzdl;
+  chi2_dzdl *= one_o_2;
+
+  __m128 n_chi2 = c_chi2 + chi2_ang + chi2_k + chi2_dzdl;
+  _mm_store_ps(chi2_a, n_chi2);
+
+}

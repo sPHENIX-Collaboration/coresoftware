@@ -11,13 +11,14 @@
 #ifndef PHG4RICHDetector_h
 #define PHG4RICHDetector_h
 
-#include "g4main/PHG4Detector.h"
+#include "ePHENIXRICHConstruction.h"
+
+#include <g4main/PHG4Detector.h>
 
 #include <Geant4/G4Region.hh>
 #include <Geant4/G4Types.hh>
 #include <Geant4/globals.hh>
 
-#include "ePHENIXRICHConstruction.h"
 
 #include <map>
 

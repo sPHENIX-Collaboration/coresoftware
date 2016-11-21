@@ -680,10 +680,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       PHG4Particle *g4particle = trutheval->get_particle(g4hit);
       
       float g4hitID   = g4hit->get_hit_id();
-      float gx        = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
-      float gy        = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
-      float gz        = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
-      float gt        = 0.5*(g4hit->get_t(0)+g4hit->get_t(1));
+      float gx        = g4hit->get_avg_x();
+      float gy        = g4hit->get_avg_y();
+      float gz        = g4hit->get_avg_z();
+      float gt        = g4hit->get_avg_t();
       float gedep     = g4hit->get_edep();
       float glayer    = g4hit->get_layer();
   
@@ -871,13 +871,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	if (g4hit) {
 	  g4hitID  = g4hit->get_hit_id();
 	  gedep    = g4hit->get_edep();
-	  gx       = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
-	  gy       = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
-	  gz       = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
-	  gt       = 0.5*(g4hit->get_t(0)+g4hit->get_t(1));
-	  gx       = g4hit->get_x(0);
-	  gy       = g4hit->get_y(0);
-	  gz       = g4hit->get_z(0);
+	  gx       = g4hit->get_avg_x();
+	  gy       = g4hit->get_avg_y();
+	  gz       = g4hit->get_avg_z();
+	  gt       = g4hit->get_avg_t();
 
 	  if (g4particle) {
 
@@ -1021,13 +1018,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       
 	if (g4hit) {
 	  g4hitID  = g4hit->get_hit_id();
-	  gx       = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
-	  gy       = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
-	  gz       = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
-	  gt       = 0.5*(g4hit->get_t(0)+g4hit->get_t(1));
-	  gx       = g4hit->get_x(0);
-	  gy       = g4hit->get_y(0);
-	  gz       = g4hit->get_z(0);
+	  gx       = g4hit->get_avg_x();
+	  gy       = g4hit->get_avg_y();
+	  gz       = g4hit->get_avg_z();
+	  gt       = g4hit->get_avg_t();
 
 	  if (g4particle) {
 
@@ -1183,12 +1177,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       
 	  if (g4hit) {
 	    g4hitID  = g4hit->get_hit_id();
-	    gx       = 0.5*(g4hit->get_x(0)+g4hit->get_x(1));
-	    gy       = 0.5*(g4hit->get_y(0)+g4hit->get_y(1));
-	    gz       = 0.5*(g4hit->get_z(0)+g4hit->get_z(1));
-	    gx       = g4hit->get_x(0);
-	    gy       = g4hit->get_y(0);
-	    gz       = g4hit->get_z(0);
+	    gx       = g4hit->get_avg_x();
+	    gy       = g4hit->get_avg_y();
+	    gz       = g4hit->get_avg_z();
 
 	    if (g4particle) {
 	    

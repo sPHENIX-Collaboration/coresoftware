@@ -8,23 +8,16 @@
 #include <Pythia8/Pythia.h>
 #endif
 
-#include <Rtypes.h>
-
 #ifndef __CINT__
 #include <gsl/gsl_rng.h>
 #endif
 
 #include <iostream>
-#include <fstream>
 #include <string>
-#include <cmath>
 
 class PHCompositeNode;
 class PHHepMCGenEvent;
 class PHHepMCFilter;
-class TTree;
-class TFile;
-class TRandom;
 
 class PHPy8GenTrigger;
 

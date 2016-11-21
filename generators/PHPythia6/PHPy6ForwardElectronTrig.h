@@ -26,7 +26,7 @@ class PHPy6ForwardElectronTrig: public PHPy6GenTrigger
   void set_electrons_required(int n){n_ep_required = n;}
   void set_positrons_required(int n){n_em_required = n;}
   void set_combined_required(int n){n_comb_required = n;}
-  void set_ptot_required(float set_ptot){ptot_required = set_ptot;}
+  void set_pt_required(float set_pt){pt_required = set_pt;}
   void set_eta_range(float set_eta_low, float set_eta_high){eta_low = set_eta_low; eta_high = set_eta_high;}
 
   void PrintConfig(); 
@@ -51,7 +51,7 @@ class PHPy6ForwardElectronTrig: public PHPy6GenTrigger
   unsigned int n_ep_required; 
   unsigned int n_em_required; 
   unsigned int n_comb_required; 
-  float ptot_required; 
+  float pt_required; 
   float eta_low; 
   float eta_high; 
   

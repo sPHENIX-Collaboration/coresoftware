@@ -26,11 +26,9 @@ PHG4CylinderSteppingAction::PHG4CylinderSteppingAction( PHG4CylinderDetector* de
   params(parameters),
   hits_(NULL),
   hit(NULL),
-  savehitcontainer(NULL),
   saveshower(NULL),
   active(params->get_int_param("active")),
   IsBlackHole(params->get_int_param("blackhole")),
-  save_layer_id(-1),
   zmin(params->get_double_param("place_z")*cm-params->get_double_param("length")*cm/2.),
   zmax(params->get_double_param("place_z")*cm+params->get_double_param("length")*cm/2.),
   tmin(params->get_double_param("tmin")*ns),
@@ -39,6 +37,15 @@ PHG4CylinderSteppingAction::PHG4CylinderSteppingAction( PHG4CylinderDetector* de
   // G4 seems to have issues in the um range
   zmin -= copysign(zmin,1./1e6*cm);
   zmax += copysign(zmax,1./1e6*cm);
+}
+
+PHG4CylinderSteppingAction::~PHG4CylinderSteppingAction()
+{
+  // if the last hit was a zero energie deposit hit, it is just reset
+  // and the memory is still allocated, so we need to delete it here
+  // if the last hit was saved, hit is a NULL pointer which are
+  // legal to delete (it results in a no operation)
+  delete hit;
 }
 
 //____________________________________________________________________________..
@@ -95,11 +102,10 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
         {
         case fGeomBoundary:
         case fUndefined:
-	  // flush out previous hit
-	  save_previous_g4hit();
-          save_layer_id = layer_id;
-
-          hit = new PHG4Hitv1();
+	  if (! hit)
+	    {
+              hit = new PHG4Hitv1();
+	    }
 
 	  hit->set_layer((unsigned int)layer_id);
 
@@ -118,7 +124,6 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	  hit->set_trkid(aTrack->GetTrackID());
           //set the initial energy deposit
           hit->set_edep(0);
-	  savehitcontainer = hits_;
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
 	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
@@ -175,7 +180,34 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 		}
 	    }
 	}
-      //    hit->identify();
+      // if any of these conditions is true this is the last step in
+      // this volume and we need to save the hit
+      // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
+      // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
+      // (not sure if this will ever be the case)
+      // aTrack->GetTrackStatus() == fStopAndKill: track ends
+      if (postPoint->GetStepStatus() == fGeomBoundary || postPoint->GetStepStatus() == fWorldBoundary|| aTrack->GetTrackStatus() == fStopAndKill)
+	{
+          // save only hits with energy deposit (or -1 for geantino)
+	  if (hit->get_edep())
+	    {
+	      hits_->AddHit(layer_id, hit);
+	      if (saveshower)
+		{
+		  saveshower->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		}
+	      // ownership has been transferred to container, set to null
+	      // so we will create a new hit for the next track
+	      hit = NULL;
+	    }
+	  else
+	    {
+	      // if this hit has no energy deposit, just reset it for reuse
+	      // this means we have to delete it in the dtor. If this was
+	      // the last hit we processed the memory is still allocated
+	      hit->Reset();
+	    }
+ 	}
       // return true to indicate the hit was used
       return true;
     }
@@ -206,34 +238,4 @@ void PHG4CylinderSteppingAction::SetInterfacePointers( PHCompositeNode* topNode 
   if ( ! hits_  && !IsBlackHole)
     { std::cout << "PHG4CylinderSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl; }
 
-}
-void
-PHG4CylinderSteppingAction::flush_cached_values()
-{
-  save_previous_g4hit();
-  return;
-}
-
-void
-PHG4CylinderSteppingAction::save_previous_g4hit()
-{
-  if (!hit)
-    {
-      return;
-    }
-  // save only hits with non zero energy deposition (remember geantinos edep = -1)
-   if (hit->get_edep())
-    {
-      savehitcontainer->AddHit(save_layer_id, hit);
-      if (saveshower)
-	{
-	  saveshower->add_g4hit_id(savehitcontainer->GetID(),hit->get_hit_id());
-	}
-    }
-  else
-    {
-      delete hit;
-    }
-  hit = NULL;
-  return;
 }

@@ -1,7 +1,6 @@
 #include "PHG4OuterHcalSubsystem.h"
 #include "PHG4OuterHcalDetector.h"
 #include "PHG4EventActionClearZeroEdep.h"
-#include "PHG4FlushStepTrackingAction.h"
 #include "PHG4OuterHcalSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -23,7 +22,6 @@ PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const i
   PHG4DetectorSubsystem( name, lyr ),
   detector_( NULL ),
   steppingAction_( NULL ),
-  trackingAction_(NULL),
   eventAction_(NULL),
   enable_field_checker(0)
 {
@@ -105,10 +103,6 @@ PHG4OuterHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	  steppingAction_->Init();
 	}
     }
-  if (steppingAction_)
-    {
-      trackingAction_ = new PHG4FlushStepTrackingAction(steppingAction_);
-    }
   return 0;
 
 }
@@ -188,14 +182,9 @@ PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_int_param("light_scint_model", 1);
   set_default_int_param("magnet_cutout_first_scinti", 8); // tile start at 0, drawing tile starts at 1
   set_default_int_param("ncross", -4);
-  set_default_int_param("n_scinti_plates", 5*64);
+  set_default_int_param("n_towers", 64);
+  set_default_int_param("n_scinti_plates_per_tower", 5);
   set_default_int_param("n_scinti_tiles", 12);
 
   set_default_string_param("material", "Steel_1006");
-}
-
-PHG4TrackingAction*
-PHG4OuterHcalSubsystem::GetTrackingAction( void ) const
-{
-  return trackingAction_; 
 }

@@ -66,7 +66,7 @@ PHG4TrackFastSim::PHG4TrackFastSim(const std::string &name) :
 				false), _use_vertex_in_fitting(true), _vertex_xy_resolution(
 				50E-4), _vertex_z_resolution(50E-4), _phi_resolution(50E-4), _r_resolution(
 				1.), _z_resolution(50E-4), _pat_rec_hit_finding_eff(1.), _pat_rec_noise_prob(0.), 
-		                _N_DETECTOR_LAYER(5), _N_STATES(0) {
+		                _N_DETECTOR_LAYER(5), _primary_tracking(1), _N_STATES(0) {
 
 	_event = -1;
 
@@ -197,85 +197,96 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 
 	vector<genfit::Track*> rf_gf_tracks;
 
-	for (PHG4TruthInfoContainer::ConstIterator itr =
-			_truth_container->GetPrimaryParticleRange().first;
-			itr != _truth_container->GetPrimaryParticleRange().second; ++itr) {
-		PHG4Particle* particle = itr->second;
+	PHG4TruthInfoContainer::ConstRange itr_range; 
+	if(_primary_tracking){
+	  // Tracking for primaries only
+	  itr_range = _truth_container->GetPrimaryParticleRange();
+	}
+	else{
+	  // Check ALL particles
+	  itr_range = _truth_container->GetParticleRange();
+	}
+	
+	for (PHG4TruthInfoContainer::ConstIterator itr = itr_range.first;
+	     itr != itr_range.second; ++itr) {
+	  PHG4Particle* particle = itr->second;
 
-		TVector3 seed_pos(0, 0, 0);
-		TVector3 seed_mom(0, 0, 0);
-		TMatrixDSym seed_cov(6);
+	  TVector3 seed_pos(0, 0, 0);
+	  TVector3 seed_mom(0, 0, 0);
+	  TMatrixDSym seed_cov(6);
 
-		//! Create measurements
-		std::vector<PHGenFit::Measurement*> measurements;
+	  //! Create measurements
+	  std::vector<PHGenFit::Measurement*> measurements;
 
-//		_use_vertex_in_fitting = true;
+	  //		_use_vertex_in_fitting = true;
 
-		PHGenFit::Measurement* vtx_meas = NULL;
+	  PHGenFit::Measurement* vtx_meas = NULL;
 
-		if (_use_vertex_in_fitting) {
-			vtx_meas = VertexMeasurement(TVector3(0, 0, 0),
-					_vertex_xy_resolution, _vertex_z_resolution);
-			measurements.push_back(vtx_meas);
-		}
+	  if (_use_vertex_in_fitting) {
+	    vtx_meas = VertexMeasurement(TVector3(0, 0, 0),
+					 _vertex_xy_resolution, _vertex_z_resolution);
+	    measurements.push_back(vtx_meas);
+	  }
 
-		PseudoPatternRecognition(particle, measurements, seed_pos, seed_mom,
-				seed_cov);
+	  PseudoPatternRecognition(particle, measurements, seed_pos, seed_mom,
+				   seed_cov);
 
-		if (measurements.size() < 3) {
-			if (verbosity >= 2) {
-				//LogWarning("measurements.size() < 3");
-				std::cout << "event: " << _event << " : measurements.size() < 3"
-						<< "\n";
-			}
-			continue;
-		}
+	  if (measurements.size() < 3) {
+	    if (verbosity >= 2) {
+	      //LogWarning("measurements.size() < 3");
+	      std::cout << "event: " << _event << " : measurements.size() < 3"
+			<< "\n";
+	    }
+	    continue;
+	  }
 
-		//! Build TrackRep from particle assumption
-		/*!
-		 * mu+:	-13
-		 * mu-:	13
-		 * pi+:	211
-		 * pi-:	-211
-		 * e-:	11
-		 * e+:	-11
-		 */
-		//int pid = 13; //
-		//SMART(genfit::AbsTrackRep) rep = NEW(genfit::RKTrackRep)(pid);
-		genfit::AbsTrackRep* rep = new genfit::RKTrackRep(
-				_primary_assumption_pid);
+	  //! Build TrackRep from particle assumption
+	  /*!
+	   * mu+:	-13
+	   * mu-:	13
+	   * pi+:	211
+	   * pi-:	-211
+	   * e-:	11
+	   * e+:	-11
+	   */
+	  //int pid = 13; //
+	  //SMART(genfit::AbsTrackRep) rep = NEW(genfit::RKTrackRep)(pid);
+	  genfit::AbsTrackRep* rep = new genfit::RKTrackRep(
+							    _primary_assumption_pid);
 
-		//rep->setDebugLvl(1); //DEBUG
+	  //rep->setDebugLvl(1); //DEBUG
 
-		//! Initiallize track with seed from pattern recognition
-		PHGenFit::Track* track = new PHGenFit::Track(rep, seed_pos, seed_mom,
-				seed_cov);
+	  //! Initiallize track with seed from pattern recognition
+	  PHGenFit::Track* track = new PHGenFit::Track(rep, seed_pos, seed_mom,
+						       seed_cov);
 
-		rf_gf_tracks.push_back(track->getGenFitTrack());
+	  rf_gf_tracks.push_back(track->getGenFitTrack());
 
-		//LogDEBUG;
-		//! Add measurements to track
-		track->addMeasurements(measurements);
+	  //LogDEBUG;
+	  //! Add measurements to track
+	  track->addMeasurements(measurements);
 
-		//LogDEBUG;
-		//! Fit the track
-		int fitting_err = _fitter->processTrack(track, false);
+	  //LogDEBUG;
+	  //! Fit the track
+	  int fitting_err = _fitter->processTrack(track, false);
 
-		if (fitting_err != 0) {
-			if (verbosity >= 2) {
-				//LogWarning("measurements.size() < 3");
-				std::cout << "event: " << _event
-						<< " : fitting_err != 0, next track." << "\n";
-			}
-			continue;
-		}
+	  if (fitting_err != 0) {
+	    if (verbosity >= 2) {
+	      //LogWarning("measurements.size() < 3");
+	      std::cout << "event: " << _event
+			<< " : fitting_err != 0, next track." << "\n";
+	    }
+	    continue;
+	  }
 
-		SvtxTrack* svtx_track_out = MakeSvtxTrack(track,
-				particle->get_track_id());
+	  SvtxTrack* svtx_track_out = MakeSvtxTrack(track,
+						    particle->get_track_id(),
+						    measurements.size());
 
-		if(svtx_track_out) _trackmap_out->insert(svtx_track_out);
+	  if(svtx_track_out) _trackmap_out->insert(svtx_track_out);
 
 	} // Loop all primary particles
+
 
 	//! add tracks to event display
 	if (_do_evt_display)
@@ -464,7 +475,8 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
 }
 
 SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
-		const unsigned int truth_track_id) {
+					   const unsigned int truth_track_id, 
+					   const unsigned int nmeas) {
 
 	double chi2 = phgf_track->get_chi2();
 	double ndf = phgf_track->get_ndf();
@@ -496,7 +508,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 //	SvtxTrack_v1* out_track = new SvtxTrack_v1(*static_cast<const SvtxTrack_v1*> (svtx_track));
 //	SvtxTrack_v1* out_track = new SvtxTrack_v1();
 
-	SvtxTrack* out_track = new SvtxTrack_FastSim();
+	SvtxTrack_FastSim *out_track = new SvtxTrack_FastSim();
 	out_track->set_truth_track_id(truth_track_id);
 	/*!
 	 * TODO: check the definition
@@ -516,6 +528,9 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	out_track->set_charge(
 			(_reverse_mag_field) ?
 					-1. * phgf_track->get_charge() : phgf_track->get_charge());
+
+	out_track->set_num_measurements(nmeas); 
+
 	out_track->set_px(mom.Px());
 	out_track->set_py(mom.Py());
 	out_track->set_pz(mom.Pz());
@@ -572,7 +587,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	  out_track->insert_state(state);
 	}
 
-	return out_track;
+	return (SvtxTrack *)out_track;
 }
 
 PHGenFit::PlanarMeasurement* PHG4TrackFastSim::PHG4HitToMeasurementVerticalPlane(

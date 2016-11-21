@@ -16,8 +16,20 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4ConeSteppingAction::PHG4ConeSteppingAction( PHG4ConeDetector* detector ):
-  detector_( detector )
+  detector_( detector ),
+  hits_(NULL),
+  hit(NULL),
+  saveshower(NULL)
 {}
+
+PHG4ConeSteppingAction::~PHG4ConeSteppingAction()
+{
+  // if the last hit was a zero energie deposit hit, it is just reset
+  // and the memory is still allocated, so we need to delete it here
+  // if the last hit was saved, hit is a NULL pointer which are
+  // legal to delete (it results in a no operation)
+  delete hit;
+}
 
 //____________________________________________________________________________..
 bool PHG4ConeSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
@@ -31,7 +43,7 @@ bool PHG4ConeSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 
   const G4Track* aTrack = aStep->GetTrack();
 
-  int layer_id = 0;
+  int layer_id =  detector_->get_Layer();
   // make sure we are in a volume
   if ( detector_->IsInConeActive(volume) )
     {
@@ -53,7 +65,10 @@ bool PHG4ConeSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
         {
         case fGeomBoundary:
         case fUndefined:
-          hit = new PHG4Hitv1();
+	  if (! hit)
+	    {
+	      hit = new PHG4Hitv1();
+	    }
           //here we set the entrance values in cm
           hit->set_x( 0, prePoint->GetPosition().x() / cm);
           hit->set_y( 0, prePoint->GetPosition().y() / cm );
@@ -61,32 +76,19 @@ bool PHG4ConeSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	  // time in ns
           hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
  	  //set the track ID
-	  {
-            hit->set_trkid(aTrack->GetTrackID());
-            if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	      {
-		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		  {
-		    hit->set_trkid(pp->GetUserTrackId());
-		  }
-	      }
-	  }
+	  hit->set_trkid(aTrack->GetTrackID());
+	  //set the initial energy deposit
+	  hit->set_edep(0);
 
-          //set the initial energy deposit
-          hit->set_edep(0);
-
-          // Now add the hit
-          hits_->AddHit(layer_id, hit);
-
-	  {
-	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	      {
-		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		  {
-		    pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
-		  }
-	      }
-	  }
+	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	    {
+	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		{
+		  hit->set_trkid(pp->GetUserTrackId());
+		  hit->set_shower_id(pp->GetShower()->get_id());
+		  saveshower = pp->GetShower();
+		}
+	    }
 	  
           break;
         default:
@@ -117,8 +119,35 @@ bool PHG4ConeSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	      }
 	}
 
-      //       hit->identify();
-      // return true to indicate the hit was used
+      // if any of these conditions is true this is the last step in
+      // this volume and we need to save the hit
+      // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
+      // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
+      // (not sure if this will ever be the case)
+      // aTrack->GetTrackStatus() == fStopAndKill: track ends
+      if (postPoint->GetStepStatus() == fGeomBoundary || postPoint->GetStepStatus() == fWorldBoundary|| aTrack->GetTrackStatus() == fStopAndKill)
+	{
+          // save only hits with energy deposit (or -1 for geantino)
+	  if (hit->get_edep())
+	    {
+	      hits_->AddHit(layer_id, hit);
+	      if (saveshower)
+		{
+		  saveshower->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		}
+	      // ownership has been transferred to container, set to null
+	      // so we will create a new hit for the next track
+	      hit = NULL;
+	    }
+	  else
+	    {
+	      // if this hit has no energy deposit, just reset it for reuse
+	      // this means we have to delete it in the dtor. If this was
+	      // the last hit we processed the memory is still allocated
+	      hit->Reset();
+	    }
+ 	}
+       // return true to indicate the hit was used
       return true;
 
     }

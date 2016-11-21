@@ -12,8 +12,6 @@
 #include <phool/getClass.h>
 
 
-#include <boost/tuple/tuple.hpp>
-
 #include <cmath>
 #include <cstdlib>
 #include <iostream>

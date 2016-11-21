@@ -9,7 +9,7 @@
  */
 
 #include "PHG4RICHDetector.h"
-#include <PHG4RICHSteppingAction.h>
+#include "PHG4RICHSteppingAction.h"
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
@@ -29,16 +29,18 @@ using namespace std;
 using namespace ePHENIXRICH;
 
 PHG4RICHDetector::PHG4RICHDetector(PHCompositeNode *Node, const RICH_Geometry & g) :
-    PHG4Detector(Node), ePHENIXRICHConstruction(g)
-{
-
-}
+  PHG4Detector(Node),
+  ePHENIXRICHConstruction(g),
+  stepping_action(NULL),
+  _region(NULL)
+{}
 
 PHG4RICHDetector::PHG4RICHDetector(PHCompositeNode *Node) :
-    PHG4Detector(Node), ePHENIXRICHConstruction()
-{
-
-}
+  PHG4Detector(Node),
+  ePHENIXRICHConstruction(),
+  stepping_action(NULL),
+  _region(NULL)
+{}
 
 void
 PHG4RICHDetector::Construct(G4LogicalVolume* logicWorld)

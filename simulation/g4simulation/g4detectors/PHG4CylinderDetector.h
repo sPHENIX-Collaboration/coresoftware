@@ -5,8 +5,6 @@
 
 #include <string>
 
-class G4Material;
-class G4Tubs;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHG4Parameters;
