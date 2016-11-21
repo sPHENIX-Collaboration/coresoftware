@@ -6,7 +6,7 @@
 namespace PHG4HitDefs
 {
   typedef unsigned long long keytype;
-  static int keybits = 8;
+  static int keybits = 16;
   static int hit_idbits = sizeof(keytype)*8-keybits;
 
   //! convert PHG4HitContainer node names in to ID number for the container.
