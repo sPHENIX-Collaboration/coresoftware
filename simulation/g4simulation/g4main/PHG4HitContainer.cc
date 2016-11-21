@@ -3,6 +3,9 @@
 #include "PHG4Hitv1.h"
 
 #include <phool/phool.h>
+
+#include <TSystem.h>
+
 #include <cstdlib>
 
 using namespace std;
@@ -76,8 +79,8 @@ PHG4HitContainer::genkey(const unsigned int detid)
 {
   if ((detid >> PHG4HitDefs::keybits) > 0)
     {
-      cout << " detector id too large: " << detid << endl;
-      exit(1);
+      cout << PHWHERE << " detector id too large: " << detid << endl;
+      gSystem->Exit(1);
     }
   PHG4HitDefs::keytype detidlong = detid;
   PHG4HitDefs::keytype shiftval = detidlong << PHG4HitDefs::hit_idbits;
