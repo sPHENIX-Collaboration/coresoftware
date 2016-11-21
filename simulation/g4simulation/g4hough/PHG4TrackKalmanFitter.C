@@ -242,13 +242,19 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 	for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
 			++iter) {
+		SvtxTrack* svtx_track = iter->second;
+		if (!svtx_track)
+			continue;
+		if (!(svtx_track->get_pt() > _cut_min_pT))
+			continue;
+
 		//! stands for Refit_PHGenFit_Track
-		PHGenFit::Track* rf_phgf_track = ReFitTrack(iter->second);
+		PHGenFit::Track* rf_phgf_track = ReFitTrack(svtx_track);
 #if _DEBUG_MODE_ == 1
 		//rf_phgf_track->getGenFitTrack()->Print();
 #endif
 		if (rf_phgf_track) {
-			svtxtrack_genfittrack_map[iter->second->get_id()] =
+			svtxtrack_genfittrack_map[svtx_track->get_id()] =
 					rf_phgf_tracks.size();
 			rf_phgf_tracks.push_back(rf_phgf_track);
 			rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
@@ -323,17 +329,22 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		if (vertex) {
 			for (SvtxTrackMap::ConstIter iter = _trackmap->begin();
 					iter != _trackmap->end(); ++iter) {
+				SvtxTrack* svtx_track = iter->second;
+				if (!svtx_track)
+					continue;
+				if (!(svtx_track->get_pt() > _cut_min_pT))
+					continue;
 				/*!
 				 * rf_phgf_track stands for Refit_PHGenFit_Track
 				 */
-				PHGenFit::Track* rf_phgf_track = ReFitTrack(iter->second,
+				PHGenFit::Track* rf_phgf_track = ReFitTrack(svtx_track,
 						vertex);
 				if (rf_phgf_track) {
 					//FIXME figure out which vertex to use.
 					SvtxVertex* vertex = NULL;
 					if (_vertexmap_refit->size() > 0)
 						vertex = _vertexmap_refit->get(0);
-					SvtxTrack* rf_track = MakeSvtxTrack(iter->second,
+					SvtxTrack* rf_track = MakeSvtxTrack(svtx_track,
 							rf_phgf_track, vertex);
 					_primary_trackmap->insert(rf_track);
 				}
