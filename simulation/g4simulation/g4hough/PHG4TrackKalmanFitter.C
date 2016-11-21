@@ -636,8 +636,8 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack,
 	}
 
 	// prepare seed from input SvtxTrack
-	TVector3 seed_mom(intrack->get_px(), intrack->get_py(), intrack->get_pz());
-	TVector3 seed_pos(intrack->get_x(), intrack->get_y(), intrack->get_z());
+	TVector3 seed_mom(100, 0, 0);
+	TVector3 seed_pos(0, 0, 0);
 	TMatrixDSym seed_cov(6);
 	for (int i = 0; i < 6; i++) {
 		for (int j = 0; j < 6; j++) {
