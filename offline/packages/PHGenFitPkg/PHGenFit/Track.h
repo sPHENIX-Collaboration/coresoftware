@@ -78,13 +78,7 @@ public:
 		return ndf;
 	}
 
-	double get_charge() const {
-		genfit::AbsTrackRep* rep = _track->getCardinalRep();
-		genfit::StateOnPlane* state = this->extrapolateToLine(TVector3(0,0,0), TVector3(1,0,0));
-		double charge =  rep->getCharge(*state);
-		delete state;
-		return charge;
-	}
+	double get_charge() const;
 
 	//SMART(genfit::Track) getGenFitTrack() {return _track;}
 

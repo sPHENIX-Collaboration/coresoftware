@@ -145,7 +145,7 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 				true), _mag_field_file_name(
 				"/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"), _mag_field_re_scaling_factor(
 				1.4 / 1.5), _reverse_mag_field(true), _fitter( NULL), _track_fitting_alg_name(
-				"KalmanFitterRefTrack"), _primary_pid_guess(211), _vertex_finder(
+				"KalmanFitterRefTrack"), _primary_pid_guess(211), _cut_min_pT(0.1), _vertex_finder(
 		NULL), _vertexing_method("mvf"), _truth_container(
 		NULL), _clustermap(NULL), _trackmap(NULL), _vertexmap(NULL), _trackmap_refit(
 		NULL), _primary_trackmap(NULL), _vertexmap_refit(NULL), _do_eval(false), _eval_outname(
