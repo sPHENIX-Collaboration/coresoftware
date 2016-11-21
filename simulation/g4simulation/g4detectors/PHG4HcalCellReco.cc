@@ -23,6 +23,7 @@ using namespace std;
 // for hcal dimension
 #define ROWDIM 320
 #define COLUMNDIM 24
+
 static PHG4ScintillatorSlat *slatarray[ROWDIM][COLUMNDIM];
 
 PHG4HcalCellReco::PHG4HcalCellReco(const string &name) :
@@ -101,65 +102,62 @@ PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
       exit(1);
     }
 
-  PHG4HitContainer::LayerIter layer;
-  pair<PHG4HitContainer::LayerIter, PHG4HitContainer::LayerIter> layer_begin_end = g4hit->getLayers();
-  for (layer = layer_begin_end.first; layer != layer_begin_end.second; ++layer)
+  PHG4HitContainer::ConstIterator hiter;
+  PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
+  for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
     {
-      PHG4HitContainer::ConstIterator hiter;
-      PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(*layer);
-      for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
+      if (hiter->second->get_t(0) > tmax) continue;
+      if (hiter->second->get_t(1) < tmin) continue;
+      short icolumn = hiter->second->get_scint_id();
+      int introw = (hiter->second->get_hit_id() >> PHG4HitDefs::hit_idbits);
+      if ( introw >= ROWDIM || introw < 0)
 	{
-	  if (hiter->second->get_t(0)>tmax) continue;
-	  if (hiter->second->get_t(1)<tmin) continue;
-	  short icolumn = hiter->second->get_scint_id();
-	  short irow = hiter->second->get_row();
-	  if ( irow >= ROWDIM || irow < 0)
-	    {
-	      cout << "row " << irow
-		   << " exceed array size: " << ROWDIM
-		   << " adjust ROWDIM and recompile" << endl;
-	      exit(1);
-	    }
-
-	  if (icolumn >= COLUMNDIM || icolumn < 0)
-	    {
-	      cout << "column: " << icolumn
-		   << " exceed array size: " << COLUMNDIM
-		   << " adjust COLUMNDIM and recompile" << endl;
-	      exit(1);
-	    }
-
-
-	  if (!slatarray[irow][icolumn])
-	    {
-	      slatarray[irow][icolumn] = new PHG4ScintillatorSlatv1();
-	    }
-	  slatarray[irow][icolumn]->add_edep(hiter->second->get_edep(),
-					     hiter->second->get_eion(),
-					     hiter->second->get_light_yield());
-	  slatarray[irow][icolumn]->add_hit_key(hiter->first);
-	  // cout << "row: " << hiter->second->get_row() 
-	  // 	   << ", column: " << hiter->second->get_scint_id() << endl;
-	  // checking ADC timing integration window cut
-	} // end loop over g4hits
-      int nslathits = 0;
-      for (int irow = 0; irow<ROWDIM; irow++)
+	  cout << "row " << introw
+	       << " exceed array size: " << ROWDIM
+	       << " adjust ROWDIM and recompile" << endl;
+	  exit(1);
+	}
+      // after checking for size of introw so we do not run into
+      // overflow issues, put this into the short we want later
+      short irow = introw;
+      if (icolumn >= COLUMNDIM || icolumn < 0)
 	{
-	  for (int icolumn = 0; icolumn<COLUMNDIM; icolumn++)
+	  cout << "column: " << icolumn
+	       << " exceed array size: " << COLUMNDIM
+	       << " adjust COLUMNDIM and recompile" << endl;
+	  exit(1);
+	}
+
+
+      if (!slatarray[irow][icolumn])
+	{
+	  slatarray[irow][icolumn] = new PHG4ScintillatorSlatv1();
+	}
+      slatarray[irow][icolumn]->add_edep(hiter->second->get_edep(),
+					 hiter->second->get_eion(),
+					 hiter->second->get_light_yield());
+      slatarray[irow][icolumn]->add_hit_key(hiter->first);
+      // cout << "row: " << irow
+      //  	   << ", column: " << hiter->second->get_scint_id() << endl;
+      // checking ADC timing integration window cut
+    } // end loop over g4hits
+  int nslathits = 0;
+  for (int irow = 0; irow<ROWDIM; irow++)
+    {
+      for (int icolumn = 0; icolumn<COLUMNDIM; icolumn++)
+	{
+	  if (slatarray[irow][icolumn])
 	    {
-	      if (slatarray[irow][icolumn])
-		{
-		  PHG4ScintillatorSlatDefs::keytype key = PHG4ScintillatorSlatDefs::genkey(irow,icolumn);
-		  slats->AddScintillatorSlat(key,slatarray[irow][icolumn]);
-		  slatarray[irow][icolumn] = NULL;
-		  nslathits++;
-		}
+	      PHG4ScintillatorSlatDefs::keytype key = PHG4ScintillatorSlatDefs::genkey(irow,icolumn);
+	      slats->AddScintillatorSlat(key,slatarray[irow][icolumn]);
+	      slatarray[irow][icolumn] = NULL;
+	      nslathits++;
 	    }
 	}
-      if (verbosity > 0)
-	{
-	  cout << Name() << ": found " << nslathits << " slats with energy deposition" << endl;
-	}
+    }
+  if (verbosity > 0)
+    {
+      cout << Name() << ": found " << nslathits << " slats with energy deposition" << endl;
     }
 
   if (chkenergyconservation)
