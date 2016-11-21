@@ -23,6 +23,7 @@
 #include <Geant4/G4MaterialCutsCouple.hh>
 #include <Geant4/G4PropagatorInField.hh>
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4TransportationManager.hh>
 
 // Root headers
