@@ -1,6 +1,7 @@
 #include "PHG4OuterHcalDetector.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeomv3.h"
+#include "PHG4Parameters.h"
 
 #include <g4main/PHG4Utils.h>
 
@@ -53,6 +54,7 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4Paramet
   PHG4Detector(Node, dnam),
   field_setup(NULL),
   params(parames),
+  scinti_mother_assembly(NULL),
   steel_cutout_for_magnet(NULL),
   inner_radius(params->get_double_param("inner_radius")*cm),
   outer_radius(params->get_double_param("outer_radius")*cm),
@@ -83,6 +85,7 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4Paramet
 
 PHG4OuterHcalDetector::~PHG4OuterHcalDetector()
 {
+  delete scinti_mother_assembly;
   delete field_setup;
 }
 
@@ -443,7 +446,7 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
   tilt_angle);/*G4double tiltAngle*/
 
 
-  G4AssemblyVolume *scinti_mother_logical = ConstructHcalScintillatorAssembly(hcalenvelope);
+  scinti_mother_assembly = ConstructHcalScintillatorAssembly(hcalenvelope);
   G4VSolid *steel_plate =  ConstructSteelPlate(hcalenvelope);
   //   DisplayVolume(steel_plate_4 ,hcalenvelope);
   G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(params->get_string_param("material")), "HcalOuterSteelPlate", 0, 0, 0);
@@ -496,7 +499,12 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
       xpos -= cos((-tilt_angle)/rad - phi)*shiftslat;
       Rot->rotateZ(phi * rad + tilt_angle);
       G4ThreeVector g4vec(xpos, ypos, 0);
-      scinti_mother_logical->MakeImprint(hcalenvelope, g4vec, Rot, i, overlapcheck);
+      // great the MakeImprint always adds 1 to the copy number and 0 has a 
+      // special meaning (which then also adds 1). Basically our volume names
+      // will start at 1 instead of 0 and there is nothing short of patching this
+      // method. I'll take care of this in the decoding of the volume name
+      // AAAAAAARHGS 
+      scinti_mother_assembly->MakeImprint(hcalenvelope, g4vec, Rot, i, overlapcheck);
       Rot = new G4RotationMatrix();
       Rot->rotateZ(-phi * rad);
       name.str("");
