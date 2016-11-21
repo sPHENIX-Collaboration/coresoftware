@@ -70,6 +70,18 @@ public:
   virtual float get_dca2d_error() const        {return NAN;}
   virtual void  set_dca2d_error(float error)   {}
 
+  virtual float get_dca3d_xy() const              {return NAN;}
+  virtual void  set_dca3d_xy(float dcaxy)         {}
+
+  virtual float get_dca3d_xy_error() const              {return NAN;}
+  virtual void  set_dca3d_xy_error(float error)         {}
+
+  virtual float get_dca3d_z() const              {return NAN;}
+  virtual void  set_dca3d_z(float dcaz)         {}
+
+  virtual float get_dca3d_z_error() const              {return NAN;}
+  virtual void  set_dca3d_z_error(float error)         {}
+
   virtual float get_x() const                  {return NAN;}
   virtual void  set_x(float x)                 {}
   

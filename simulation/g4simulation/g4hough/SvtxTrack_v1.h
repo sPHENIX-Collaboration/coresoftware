@@ -59,6 +59,18 @@ public:
   float get_dca2d_error() const {return _dca2d_error;}  
   void  set_dca2d_error(float error) {_dca2d_error = error;}
 
+  float get_dca3d_xy() const {return _dca3d_xy;}
+  void  set_dca3d_xy(float dcaxy) {_dca3d_xy = dcaxy;}
+
+  float get_dca3d_xy_error() const {return _dca3d_xy_error;}
+  void  set_dca3d_xy_error(float error) {_dca3d_xy_error = error;}
+
+  float get_dca3d_z() const {return _dca3d_z_error;}
+  void  set_dca3d_z(float error) {_dca3d_z_error = error;}
+
+  float get_dca3d_z_error() const              {return NAN;}
+  void  set_dca3d_z_error(float error)         {}
+
   float get_x() const  {return _states.find(0.0)->second->get_x();}
   void  set_x(float x) {_states[0.0]->set_x(x);}
   
@@ -159,6 +171,10 @@ public:
   float _dca_error;
   float _dca2d;
   float _dca2d_error;
+  float _dca3d_xy;
+  float _dca3d_xy_error;
+  float _dca3d_z;
+  float _dca3d_z_error;
 
   // extended track information (primary tracks only)
   // unsigned int _vertex_id;
