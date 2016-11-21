@@ -55,6 +55,7 @@ static double subtract_from_scinti_x = 0.1*mm;
 PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam  ):
   PHG4Detector(Node, dnam),
   params(parameters),
+  scinti_mother_assembly(NULL),
   inner_radius(params->get_double_param("inner_radius")*cm),
   outer_radius(params->get_double_param("outer_radius")*cm),
   size_z(params->get_double_param("size_z")*cm),
@@ -82,6 +83,11 @@ PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, PHG4Paramet
 
   // allocate memory for scintillator plates
   scinti_tiles_vec.assign(2 * n_scinti_tiles, static_cast<G4VSolid *>(NULL));
+}
+
+PHG4InnerHcalDetector::~PHG4InnerHcalDetector()
+{
+  delete scinti_mother_assembly;
 }
 
 //_______________________________________________________________
@@ -440,7 +446,7 @@ PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
   visattchk->SetForceSolid(true);
   visattchk->SetColour(G4Colour::Grey());
   steel_logical->SetVisAttributes(visattchk);
-  G4AssemblyVolume *scinti_mother_logical = ConstructHcalScintillatorAssembly(hcalenvelope);
+  scinti_mother_assembly = ConstructHcalScintillatorAssembly(hcalenvelope);
   double phi = 0;
   double deltaphi = 2 * M_PI / n_scinti_plates;
   ostringstream name;
@@ -485,7 +491,12 @@ PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
       xpos -= cos((-tilt_angle)/rad - phi)*shiftslat;
       Rot->rotateZ(phi * rad + tilt_angle);
       G4ThreeVector g4vec(xpos, ypos, 0);
-      scinti_mother_logical->MakeImprint(hcalenvelope, g4vec, Rot, i, overlapcheck);
+      // great the MakeImprint always adds 1 to the copy number and 0 has a 
+      // special meaning (which then also adds 1). Basically our volume names
+      // will start at 1 instead of 0 and there is nothing short of patching this
+      // method. I'll take care of this in the decoding of the volume name
+      // AAAAAAARHGS 
+      scinti_mother_assembly->MakeImprint(hcalenvelope, g4vec, Rot, i, overlapcheck);
       Rot = new G4RotationMatrix();
       Rot->rotateZ(-phi * rad);
       name.str("");
