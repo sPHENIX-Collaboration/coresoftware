@@ -147,7 +147,7 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 		SubsysReco(name), _flags(NONE), _output_mode(OverwriteOriginalNode), _fit_primary_tracks(
 				true), _mag_field_file_name(
 				"/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"), _mag_field_re_scaling_factor(
-				1.4 / 1.5), _reverse_mag_field(true), _fitter( NULL), _track_fitting_alg_name("KalmanFitterRefTrack"), _primary_pid_guess(211), _vertex_finder(
+				1.4 / 1.5), _reverse_mag_field(true), _fitter( NULL), _track_fitting_alg_name("KalmanFitterRefTrack"), _primary_pid_guess(211), _cut_min_pT(0.1), _vertex_finder(
 				NULL), _vertexing_method("mvf"), _truth_container(
 		NULL), _clustermap(NULL), _trackmap(NULL), _vertexmap(NULL), _trackmap_refit(
 		NULL), _primary_trackmap(NULL), _vertexmap_refit(NULL), _do_eval(false), _eval_outname(
@@ -224,12 +224,9 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
  */
 int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 	_event++;
-#if _DEBUG_MODE_ == 1
-	cout << PHWHERE << "Events processed: " << _event << endl;
-#else
+
 	if (_event % 1000 == 0)
 		cout << PHWHERE << "Events processed: " << _event << endl;
-#endif
 
 	GetNodes(topNode);
 
@@ -244,11 +241,16 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 	for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
 			++iter) {
+
+		SvtxTrack* svtx_track = iter->second;
+		if (!svtx_track)
+			continue;
+		if (!(svtx_track->get_pt() > _cut_min_pT))
+			continue;
+
 		//! stands for Refit_PHGenFit_Track
 		PHGenFit::Track* rf_phgf_track = ReFitTrack(iter->second);
-#if _DEBUG_MODE_ == 1
-		//rf_phgf_track->getGenFitTrack()->Print();
-#endif
+
 		if (rf_phgf_track) {
 			SvtxTrack* rf_track = MakeSvtxTrack(iter->second, rf_phgf_track);
 
@@ -298,6 +300,13 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		if (vertex) {
 			for (SvtxTrackMap::ConstIter iter = _trackmap->begin();
 					iter != _trackmap->end(); ++iter) {
+
+				SvtxTrack* svtx_track = iter->second;
+				if (!svtx_track)
+					continue;
+				if (!(svtx_track->get_pt() > _cut_min_pT))
+					continue;
+
 				/*!
 				 * rf_phgf_track stands for Refit_PHGenFit_Track
 				 */

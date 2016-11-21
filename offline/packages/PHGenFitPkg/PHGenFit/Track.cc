@@ -213,4 +213,20 @@ genfit::MeasuredStateOnPlane*  Track::extrapolateToPoint(TVector3 P, const int t
 	else
 		return state;
 }
+
+double Track::get_charge() const {
+	double charge =  WILD_DOUBLE;
+
+	genfit::AbsTrackRep* rep = _track->getCardinalRep();
+	if(rep) {
+		genfit::StateOnPlane* state = this->extrapolateToLine(TVector3(0, 0, 0),
+				TVector3(1, 0, 0));
+		if (state)
+			charge = rep->getCharge(*state);
+		delete state;
+	}
+
+	return charge;
+}
+
 } //End of PHGenFit namespace

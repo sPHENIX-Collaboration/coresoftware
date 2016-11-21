@@ -187,6 +187,14 @@ public:
 		_primary_pid_guess = primaryPidGuess;
 	}
 
+	double get_cut_min_p_T() const {
+		return _cut_min_pT;
+	}
+
+	void set_cut_min_p_T(double cutMinPT) {
+		_cut_min_pT = cutMinPT;
+	}
+
 private:
 
 	//! Event counter
@@ -234,6 +242,7 @@ private:
 	PHGenFit::Fitter* _fitter;
 	std::string _track_fitting_alg_name;
 	int _primary_pid_guess;
+	double _cut_min_pT;
 
 	genfit::GFRaveVertexFactory* _vertex_finder;
 	std::string _vertexing_method;
