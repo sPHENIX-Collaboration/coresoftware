@@ -16,7 +16,7 @@ class PHG4HcalCellReco : public SubsysReco, public PHG4ParameterInterface
 {
  public:
 
-  PHG4HcalCellReco(const std::string &name = "Prototype2HcalCellReco");
+  PHG4HcalCellReco(const std::string &name = "HcalCellReco");
 
   virtual ~PHG4HcalCellReco(){}
   
@@ -42,6 +42,7 @@ class PHG4HcalCellReco : public SubsysReco, public PHG4ParameterInterface
   std::string hitnodename;
   std::string cellnodename;
   PHTimeServer::timer _timer;
+
   int chkenergyconservation;
 
   double tmin;
