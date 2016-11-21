@@ -46,6 +46,7 @@ PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector*
   absorbertruth(params->get_int_param("absorbertruth")),
   IsActive(params->get_int_param("active")),
   IsBlackHole(params->get_int_param("blackhole")),
+  n_scinti_plates(params->get_int_param("n_scinti_plates_per_tower")*params->get_int_param("n_towers")),
   light_scint_model(params->get_int_param("light_scint_model")),
   light_balance_inner_corr(params->get_double_param("light_balance_inner_corr")),
   light_balance_inner_radius(params->get_double_param("light_balance_inner_radius")*cm),
@@ -81,7 +82,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
     {
       return false;
     }
-  int row_id = -1; // initialize to 0xFFFFFF using the correct bitness
+  int layer_id = -1;
   int tower_id = -1;
   if (whichactive > 0) // scintillator
     {
@@ -110,7 +111,18 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	      ++tokeniter;
 	      if (tokeniter != tok.end())
 		{
-		  row_id = boost::lexical_cast<int>(*tokeniter);
+		  layer_id = boost::lexical_cast<int>(*tokeniter);
+		  // check detector description, for assemblyvolumes it is not possible
+		  // to give the first volume id=0, so they go from id=1 to id=n. 
+		  // I am not going to start with fortran again - our indices start 
+		  // at zero, id=0 to id=n-1. So subtract one here
+		  layer_id--;
+		  if (layer_id < 0 || layer_id >= n_scinti_plates)
+		    {
+		      cout << "invalid scintillator row " << layer_id
+			   << ", valid range 0 < row < " << n_scinti_plates << endl;
+		      gSystem->Exit(1);
+		    }
 		}
 	      else
 		{
@@ -134,12 +146,12 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 		}
 	    }
 	}
-      // cout << "name " << volume->GetName() << ", mid: " << row_id
+      // cout << "name " << volume->GetName() << ", mid: " << layer_id
       //  	   << ", twr: " << tower_id << endl;
     }
   else
     {
-      tower_id = touch->GetCopyNumber(); // steel plate id
+      layer_id = touch->GetCopyNumber(); // steel plate id
     }
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -154,7 +166,6 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
       G4Track* killtrack = const_cast<G4Track *> (aTrack);
       killtrack->SetTrackStatus(fStopAndKill);
     }
-  int layer_id = detector_->get_Layer();
 
   // make sure we are in a volume
   if ( IsActive )
@@ -184,7 +195,6 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	    {
 	      hit = new PHG4Hitv1();
 	    }
-	  hit->set_row(row_id);
 	  hit->set_scint_id(tower_id); // the slat id (or steel plate id)
 	  //here we set the entrance values in cm
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm);
