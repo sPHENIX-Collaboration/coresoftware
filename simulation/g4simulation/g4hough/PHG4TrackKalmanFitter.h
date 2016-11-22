@@ -224,6 +224,16 @@ private:
 			const std::vector<genfit::GFRaveVertex*> & rave_vertices,
 			const std::vector<genfit::Track*> & gf_tracks);
 
+	bool PosCovUvn2rz(
+			const TVector3 u,
+			const TVector3 v,
+			const TVector3 n,
+			const TMatrixF pos_in,
+			const TMatrixF cov_in,
+			TMatrixF & pos_out,
+			TMatrixF & cov_out
+			) const;
+
 	//!flags
 	unsigned int _flags;
 

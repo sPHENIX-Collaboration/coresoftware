@@ -837,9 +837,9 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 
 	genfit::MeasuredStateOnPlane* gf_state_vertex_ca = phgf_track->extrapolateToPoint(
 				vertex_position);
-//
-//	LogDebug("Extrap to Vertex:");
-//	gf_state_vertex_ca->Print();
+
+	LogDebug("Extrap to Vertex:");
+	gf_state_vertex_ca->Print();
 
 	u = gf_state_vertex_ca->getState()[3];
 	v = gf_state_vertex_ca->getState()[4];
@@ -982,4 +982,102 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 
 	return true;
 }
+
+bool PHG4TrackKalmanFitter::PosCovUvn2rz(const TVector3 u, const TVector3 v,
+		const TVector3 n, const TMatrixF pos_in, const TMatrixF cov_in,
+		TMatrixF& pos_out, TMatrixF& cov_out) const {
+
+	if(pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3) return false;
+	if(cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3) return false;
+
+	TVector3 up = TVector3(0., 0., 1.).Cross(n);
+	if(up.Mag() < 0.00001){
+		if(verbosity > 0) LogWarning("n is parallel to z");
+		return false;
+	}
+
+	TMatrixF R(3, 3);
+	TMatrixF R_inv(3,3);
+	TMatrixF R_inv_T(3,3);
+
+	try {
+		TMatrixF ROT1(3, 3);
+		TMatrixF ROT2(3, 3);
+		TMatrixF ROT3(3, 3);
+
+		// rotate n along z to xz plane
+		float phi = -TMath::ATan2(n.Y(), n.X());
+		ROT1[0][0] = cos(phi);
+		ROT1[0][1] = -sin(phi);
+		ROT1[0][2] = 0;
+		ROT1[1][0] = sin(phi);
+		ROT1[1][1] = cos(phi);
+		ROT1[1][2] = 0;
+		ROT1[2][0] = 0;
+		ROT1[2][1] = 0;
+		ROT1[2][2] = 1;
+
+		// rotate n along y to z
+		TVector3 n1(n);
+		n1.RotateZ(phi);
+		float theta = -TMath::ATan2(n1.X(), n1.Z());
+		ROT2[0][0] = cos(theta);
+		ROT2[0][1] = 0;
+		ROT2[0][2] = sin(theta);
+		ROT2[1][0] = 0;
+		ROT2[1][1] = 1;
+		ROT2[1][2] = 0;
+		ROT2[2][0] = -sin(theta);
+		ROT2[2][1] = 0;
+		ROT2[2][2] = cos(theta);
+
+		// rotate u along z to x
+		TVector3 u2(u);
+		u2.RotateZ(phi);
+		u2.RotateY(theta);
+		float phip = -TMath::ATan2(u2.Y(), u2.X());
+		phip -= -TMath::ATan2(up.Y(), up.X());
+		ROT3[0][0] = cos(phip);
+		ROT3[0][1] = -sin(phip);
+		ROT3[0][2] = 0;
+		ROT3[1][0] = sin(phip);
+		ROT3[1][1] = cos(phip);
+		ROT3[1][2] = 0;
+		ROT3[2][0] = 0;
+		ROT3[2][1] = 0;
+		ROT3[2][2] = 1;
+
+		// R: rotation from u,v,n to (z X n), v', z
+		R = ROT3 * ROT2 * ROT1;
+		R_inv = R.Invert();
+		R_inv_T.Transpose(R_inv);
+
+	} catch (...) {
+		if (verbosity > 0)
+			LogWarning("Can't get rotation matrix");
+
+		return false;
+	}
+
+	pos_out.ResizeTo(3, 1);
+	cov_out.ResizeTo(3, 3);
+
+	pos_out = R_inv * pos_in;
+	cov_out = R_inv * cov_in * R_inv_T;
+
+	return true;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
