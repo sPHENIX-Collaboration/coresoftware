@@ -64,7 +64,7 @@ class PHG4Hitv1 : public PHG4Hit
   virtual int get_row() const {return  get_property_int(prop_row);}
   virtual int get_strip_z_index() const   {return  get_property_int(prop_strip_z_index);}
   virtual int get_strip_y_index() const   {return  get_property_int(prop_strip_y_index);}
-  virtual int get_ladder_z_index() const  {return  get_property_int(prop_ladder_phi_index);}
+  virtual int get_ladder_z_index() const  {return  get_property_int(prop_ladder_z_index);}
   virtual int get_ladder_phi_index() const{return  get_property_int(prop_ladder_phi_index);}
   virtual int get_index_i() const {return  get_property_int(prop_index_i);}
   virtual int get_index_j() const {return  get_property_int(prop_index_j);}
