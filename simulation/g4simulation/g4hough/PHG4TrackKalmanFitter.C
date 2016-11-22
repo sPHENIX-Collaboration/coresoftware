@@ -838,9 +838,6 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 	genfit::MeasuredStateOnPlane* gf_state_vertex_ca = phgf_track->extrapolateToPoint(
 				vertex_position);
 
-	LogDebug("Extrap to Vertex:");
-	gf_state_vertex_ca->Print();
-
 	u = gf_state_vertex_ca->getState()[3];
 	v = gf_state_vertex_ca->getState()[4];
 
@@ -883,10 +880,6 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 	TVector3 vn = vu.Cross(vv);
 
 	PosCovUvn2rz(vu, vv, vn, pos_in, cov_in, pos_out, cov_out);
-
-	LogDebug("Out:");
-	pos_out.Print();
-	cov_out.Print();
 
 	float dca3d_xy = pos_out[0][0];
 	float dca3d_z  = pos_out[2][0];
@@ -1117,10 +1110,6 @@ bool PHG4TrackKalmanFitter::PosCovUvn2rz(const TVector3 u, const TVector3 v,
 
 	pos_out = R_inv * pos_in;
 	cov_out = R_inv * cov_in * R_inv_T;
-
-	LogDebug("1117");
-	pos_out.Print();
-	cov_out.Print();
 
 	return true;
 }
