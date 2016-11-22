@@ -86,7 +86,7 @@ class PHG4Hitv1 : public PHG4Hit
   virtual void set_row(const int i)          {set_property(prop_row,i);}
   virtual void set_strip_z_index(const int i)     {set_property(prop_strip_z_index,i);}
   virtual void set_strip_y_index(const int i)     {set_property(prop_strip_y_index,i);}
-  virtual void set_ladder_z_index(const int i)    {set_property(prop_ladder_phi_index,i);}
+  virtual void set_ladder_z_index(const int i)    {set_property(prop_ladder_z_index,i);}
   virtual void set_ladder_phi_index(const int i)  {set_property(prop_ladder_phi_index,i);}
   virtual void set_index_i(const int i)  {set_property(prop_index_i,i);}
   virtual void set_index_j(const int i)  {set_property(prop_index_j,i);}
