@@ -847,13 +847,59 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 	du2 = gf_state_vertex_ca->getCov()[3][3];
 	dv2 = gf_state_vertex_ca->getCov()[4][4];
 
-	if(gf_state_vertex_ca) delete gf_state_vertex_ca;
 
 	double dca3d = sqrt(u * u + v * v);
 	double dca3d_error = sqrt(du2 + dv2 + dvr2 + dvz2);
 
 	out_track->set_dca(dca3d);
 	out_track->set_dca_error(dca3d_error);
+
+	/*!
+	 * dca3d_xy, dca3d_z
+	 */
+
+	TMatrixF pos_in(3,1);
+	TMatrixF cov_in(3,3);
+
+	pos_in[0][0] = gf_state_vertex_ca->getState()[3];
+	pos_in[1][0] = gf_state_vertex_ca->getState()[4];
+	pos_in[2][0] = 0.;
+
+	cov_in[0][0] = gf_state_vertex_ca->getCov()[3][3];
+	cov_in[0][1] = gf_state_vertex_ca->getCov()[3][4];
+	cov_in[0][2] = 0.;
+	cov_in[1][0] = gf_state_vertex_ca->getCov()[4][3];
+	cov_in[1][1] = gf_state_vertex_ca->getCov()[4][4];
+	cov_in[1][2] = 0.;
+	cov_in[2][0] = 0.;
+	cov_in[2][1] = 0.;
+	cov_in[2][2] = 0.;
+
+	TMatrixF pos_out(3,1);
+	TMatrixF cov_out(3,3);
+
+	TVector3 vu = gf_state_vertex_ca->getPlane().get()->getU();
+	TVector3 vv = gf_state_vertex_ca->getPlane().get()->getV();
+	TVector3 vn = vu.Cross(vv);
+
+	PosCovUvn2rz(vu, vv, vn, pos_in, cov_in, pos_out, cov_out);
+
+	LogDebug("Out:");
+	pos_out.Print();
+	cov_out.Print();
+
+	float dca3d_xy = pos_out[0][0];
+	float dca3d_z  = pos_out[2][0];
+
+	float dca3d_xy_error = sqrt(cov_out[0][0]);
+	float dca3d_z_error  = sqrt(cov_out[2][2]);
+
+	out_track->set_dca3d_xy(dca3d_xy);
+	out_track->set_dca3d_z(dca3d_z);
+	out_track->set_dca3d_xy_error(dca3d_xy_error);
+	out_track->set_dca3d_z_error(dca3d_z_error);
+
+	if(gf_state_vertex_ca) delete gf_state_vertex_ca;
 
 	out_track->set_chisq(chi2);
 	out_track->set_ndf(ndf);
@@ -987,8 +1033,15 @@ bool PHG4TrackKalmanFitter::PosCovUvn2rz(const TVector3 u, const TVector3 v,
 		const TVector3 n, const TMatrixF pos_in, const TMatrixF cov_in,
 		TMatrixF& pos_out, TMatrixF& cov_out) const {
 
-	if(pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3) return false;
-	if(cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3) return false;
+	if(pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3) {
+		if(verbosity > 0) LogWarning("pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3");
+		return false;
+	}
+
+	if(cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3) {
+		if(verbosity > 0) LogWarning("cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3");
+		return false;
+	}
 
 	TVector3 up = TVector3(0., 0., 1.).Cross(n);
 	if(up.Mag() < 0.00001){
@@ -1064,6 +1117,10 @@ bool PHG4TrackKalmanFitter::PosCovUvn2rz(const TVector3 u, const TVector3 v,
 
 	pos_out = R_inv * pos_in;
 	cov_out = R_inv * cov_in * R_inv_T;
+
+	LogDebug("1117");
+	pos_out.Print();
+	cov_out.Print();
 
 	return true;
 }
