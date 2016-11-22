@@ -65,11 +65,11 @@ public:
   float get_dca3d_xy_error() const {return _dca3d_xy_error;}
   void  set_dca3d_xy_error(float error) {_dca3d_xy_error = error;}
 
-  float get_dca3d_z() const {return _dca3d_z_error;}
-  void  set_dca3d_z(float error) {_dca3d_z_error = error;}
+  float get_dca3d_z() const {return _dca3d_z;}
+  void  set_dca3d_z(float dcaz) {_dca3d_z = dcaz;}
 
-  float get_dca3d_z_error() const              {return NAN;}
-  void  set_dca3d_z_error(float error)         {}
+  float get_dca3d_z_error() const {return _dca3d_z_error;}
+  void  set_dca3d_z_error(float error) {_dca3d_z_error = error;}
 
   float get_x() const  {return _states.find(0.0)->second->get_x();}
   void  set_x(float x) {_states[0.0]->set_x(x);}
