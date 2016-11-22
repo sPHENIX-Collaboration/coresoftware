@@ -242,6 +242,10 @@ public:
 		_primary_assumption_pid = primaryAssumptionPid;
 	}
 
+	void set_primary_tracking(int pTrk) {
+	        _primary_tracking = pTrk; 
+	}
+
 private:
 
 	/*!
@@ -271,7 +275,9 @@ private:
 	/*!
 	 * Make SvtxTrack from PHGenFit::Track
 	 */
-	SvtxTrack* MakeSvtxTrack(const PHGenFit::Track* phgf_track_in, const unsigned int truth_track_id = UINT_MAX);
+	SvtxTrack* MakeSvtxTrack(const PHGenFit::Track* phgf_track_in, 
+				 const unsigned int truth_track_id = UINT_MAX,
+				 const unsigned int nmeas = 0);
 
 	//! Event counter
 	int _event;
@@ -346,9 +352,11 @@ private:
 	//!
 	double _pat_rec_noise_prob;
 
-
 	//!
 	int _N_DETECTOR_LAYER;
+
+	//! 
+	int _primary_tracking; 
 
 	//!
 	int _N_STATES;

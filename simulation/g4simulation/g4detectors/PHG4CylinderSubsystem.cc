@@ -4,7 +4,6 @@
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderSteppingAction.h"
 #include "PHG4EventActionClearZeroEdep.h"
-#include "PHG4FlushStepTrackingAction.h"
 #include "PHG4Parameters.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -24,7 +23,6 @@ PHG4CylinderSubsystem::PHG4CylinderSubsystem( const std::string &na, const int l
   PHG4DetectorSubsystem(na,lyr),
   detector_( NULL ),
   steppingAction_( NULL ),
-  trackingAction_(NULL),
   eventAction_(NULL)
 {
   InitializeParameters();
@@ -81,10 +79,6 @@ int PHG4CylinderSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
   if (GetParams()->get_int_param("blackhole"))
     {
       steppingAction_ = new PHG4CylinderSteppingAction(detector_, GetParams());
-    }
-  if (steppingAction_)
-    {
-      trackingAction_ = new PHG4FlushStepTrackingAction(steppingAction_);
     }
   return 0;
 

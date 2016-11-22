@@ -27,6 +27,7 @@ using namespace std;
 PHG4CylinderDetector::PHG4CylinderDetector( PHCompositeNode *Node,  PHG4Parameters *parameters, const std::string &dnam, const int lyr ): 
   PHG4Detector(Node,dnam),
   params(parameters),
+  cylinder_physi(NULL),
   layer(lyr)
 {}
 

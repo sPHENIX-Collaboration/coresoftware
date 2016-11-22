@@ -14,7 +14,7 @@ ClassImp(SvtxTrack_FastSim)
 using namespace std;
 
 SvtxTrack_FastSim::SvtxTrack_FastSim() :
-		_truth_track_id(UINT_MAX) {
+  _truth_track_id(UINT_MAX),_nmeas(0) {
 }
 
 SvtxTrack_FastSim::~SvtxTrack_FastSim() {

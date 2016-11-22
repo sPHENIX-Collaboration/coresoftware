@@ -30,9 +30,13 @@ public:
 	int  isValid() const;
 	SvtxTrack* Clone() const {return new SvtxTrack_FastSim(*this);}
 
+	void set_num_measurements(int nmeas) {_nmeas = nmeas;} 
+	unsigned int get_num_measurements() {return _nmeas;} 
+
 private:
 
 	unsigned int _truth_track_id;
+	unsigned int _nmeas; 
 
 
 	ClassDef(SvtxTrack_FastSim,1)

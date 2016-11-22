@@ -27,10 +27,7 @@ public:
   PHG4SpacalSteppingAction(PHG4SpacalDetector*);
 
   //! destroctor
-  virtual
-  ~PHG4SpacalSteppingAction()
-  {
-  }
+  virtual ~PHG4SpacalSteppingAction();
 
   //! stepping action
   virtual bool
@@ -46,11 +43,7 @@ public:
   double
   get_zmax();
 
-  void flush_cached_values();
-
 private:
-
-  void save_previous_g4hit();
 
   //! pointer to the detector
   PHG4SpacalDetector* detector_;
@@ -61,7 +54,6 @@ private:
   PHG4Hit *hit;
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
-  int save_layer_id;
 
 };
 
