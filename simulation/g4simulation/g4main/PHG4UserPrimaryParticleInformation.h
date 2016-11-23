@@ -10,7 +10,8 @@ public:
   PHG4UserPrimaryParticleInformation(const int emb) : 
     embed(emb),
     usertrackid(0),
-    uservtxid(0) {}
+    uservtxid(0),
+    barcode(-1)   {}
 
   void Print() const 
   {
@@ -25,11 +26,15 @@ public:
 
   void set_user_vtx_id(int val) {uservtxid = val;}
   int get_user_vtx_id() const {return uservtxid;}
+
+  void set_user_barcode(int bcd) {barcode = bcd;}
+  int get_user_barcode() const {return barcode;}
   
 private:
   int embed;
   int usertrackid;
   int uservtxid;
+  int barcode; 
 };
 
 #endif
