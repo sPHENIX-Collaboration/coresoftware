@@ -7,12 +7,15 @@
 
 class PHComposteNode;
 class TChain;
-class TParticle;
-class TClonesArray;
+
+namespace erhic
+{
+  class EventMilou;
+}
 
 class ReadEICFiles: public SubsysReco
 {
-  
+
  public:
 
   ReadEICFiles(const std::string &name="EICReader");
@@ -29,19 +32,18 @@ class ReadEICFiles: public SubsysReco
  protected:
 
   TChain *Tin;
-  TParticle * Particle;
-  TClonesArray *ParticleArray;
+  erhic::EventMilou * GenEvent;
 
   std::string filename;
   ///  Input Tree Variables
   int nEntries;
   int entry;
-  int ProcessID;
-  float Y;
-  float Q2;
-  float X;
-  float W2;
-  float NU;
+//  int ProcessID;
+//  float Y;
+//  float Q2;
+//  float X;
+//  float W2;
+//  float NU;
 };
 
 #endif /* READEICFILES_H__ */
