@@ -16,19 +16,17 @@
 // General Root and C++ classes
 #include <TChain.h>
 
-#include <vector>
-#include <fstream>
-
 using namespace std;
 
 ///////////////////////////////////////////////////////////////////
 
 ReadEICFiles::ReadEICFiles(const string &name):
   SubsysReco(name),
+  filename(""),
   Tin(NULL),
-  GenEvent(NULL),
   nEntries(0),
-  entry(0)
+  entry(0),
+  GenEvent(NULL)
 {
   return;
 }
@@ -63,13 +61,6 @@ void ReadEICFiles::GetTree()
        << Tin->GetBranch("event")->GetClassName() << endl;
 
   Tin->SetBranchAddress("event", &GenEvent);
-//  Tin->SetBranchAddress("process", &ProcessID);
-//  Tin->SetBranchAddress("y", &Y);
-//  Tin->SetBranchAddress("QSquared", &Q2);
-//  Tin->SetBranchAddress("x", &X);
-//  Tin->SetBranchAddress("nu", &NU);
-//  Tin->SetBranchAddress("WSquared", &W2);
-//  Tin->SetBranchAddress("particles", &ParticleArray);
   nEntries = Tin->GetEntries();
 }
 
@@ -95,7 +86,6 @@ int
 ReadEICFiles::process_event(PHCompositeNode *topNode)
 {
 
-  cout << "START PROCESS EVENT EIC READER" << endl;
   /* Check if there is an unused event left in input file */
   if (entry >= nEntries)
     {
@@ -116,7 +106,9 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
   float worldsizey = rc->get_FloatFlag("WorldSizey");
   float worldsizez = rc->get_FloatFlag("WorldSizez");
   string worldshape = rc->get_CharFlag("WorldShape");
+
   enum {ShapeG4Tubs = 0, ShapeG4Box = 1};
+
   int ishape;
   if (worldshape == "G4Tubs")
     {
@@ -146,15 +138,8 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
   for (unsigned ii = 0; ii < GenEvent->GetNTracks(); ii++)
     {
 
+      /* Get particle / track from event recors */
       erhic::VirtualParticle * track_ii = GenEvent->GetTrack(ii);
-
-//      cout << "Track " << ii << ": \t"
-//	   << GenEvent->GetTrack(ii)->GetStatus() << "\t"
-//	   << GenEvent->GetTrack(ii)->Id() << "\t"
-//	   << GenEvent->GetTrack(ii)->GetPx() << "\t"
-//	   << GenEvent->GetTrack(ii)->GetPy() << "\t"
-//	   << GenEvent->GetTrack(ii)->GetPz() << "\t"
-//	   << endl;
 
       /* Check if particle is stable final state particle */
       if ( track_ii->GetStatus()>10 )
@@ -192,31 +177,34 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
               continue;
             }
         }
+      /* if world is of unknown shape */
       else
         {
           cout << PHWHERE << " shape " << ishape << " not implemented. exiting" << endl;
           exit(1);
         }
 
+      /* Add particle to Geant4 event */
       int idvtx = ineve->AddVtx(vx, vy, vz, vt);
+
       PHG4Particle *g4particle = new PHG4Particlev1();
       g4particle->set_pid(track_ii->Id());
       g4particle->set_px(track_ii->GetPx());
       g4particle->set_py(track_ii->GetPy());
       g4particle->set_pz(track_ii->GetPz());
+
       ineve->AddParticle(idvtx, g4particle);
     }
 
-  /* print event if verbosity set */
-  if ( 1 > 0 )
-    //  if (verbosity > 0)
+  /* Print event information if verbosity > 0 */
+  if (verbosity > 0)
     {
       ineve->identify();
     }
 
-  /* Count number of 'used' events from input file up */
+  /* Count up number of 'used' events from input file */
   entry++;
 
-  cout << "END PROCESS EVENT EIC READER" << endl;
+  /* Done */
   return 0;
 }
