@@ -10,7 +10,7 @@ class TChain;
 
 namespace erhic
 {
-  class EventMilou;
+  class EventMC;
 }
 
 class ReadEICFiles: public SubsysReco
@@ -32,7 +32,9 @@ class ReadEICFiles: public SubsysReco
  protected:
 
   TChain *Tin;
-  erhic::EventMilou * GenEvent;
+  /* use 'abstract' EventMC class pointer from which all
+     event types (erhic::EventMilou etc) inherit from */
+  erhic::EventMC * GenEvent;
 
   std::string filename;
   ///  Input Tree Variables

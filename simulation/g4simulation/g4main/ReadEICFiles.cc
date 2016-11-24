@@ -11,7 +11,7 @@
 #include <phool/PHNodeIterator.h>
 
 // eicsmear classes
-#include <eicsmear/erhic/EventMilou.h>
+#include <eicsmear/erhic/EventMC.h>
 
 // General Root and C++ classes
 #include <TChain.h>
@@ -57,6 +57,11 @@ ReadEICFiles::OpenInputFile(const string &name)
 
 void ReadEICFiles::GetTree()
 {
+  /* Print the actual class of the event branch record,
+     i.e. erhic::EventMilou or other */
+  cout << "ReadEICFiles: Input Branch Event Class = "
+       << Tin->GetBranch("event")->GetClassName() << endl;
+
   Tin->SetBranchAddress("event", &GenEvent);
 //  Tin->SetBranchAddress("process", &ProcessID);
 //  Tin->SetBranchAddress("y", &Y);
