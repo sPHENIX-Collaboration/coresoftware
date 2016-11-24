@@ -19,8 +19,8 @@ INCLUDES = \
     -isystem $(ROOTSYS)/include \
     -isystem ${G4_MAIN}/include \
     -I$(OFFLINE_MAIN)/include/eigen3 \
-    -isystem ${G4_MAIN}/include/Geant4
-
+    -isystem ${G4_MAIN}/include/Geant4 \
+    -I/gpfs/mnt/gpfs02/sphenix/user/nfeege/eicsw/eic-smear-1.0.3/install/include
 
 RINCLUDES = \
     -I$(includedir) \
@@ -30,16 +30,19 @@ RINCLUDES = \
     -I${G4_MAIN}/include/Geant4 \
     -I$(XERCESCROOT)/include
 
+
 libphg4hit_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -L$(XERCESCROOT)/lib \
-  `geant4-config --libs`
+  `geant4-config --libs`\
+  -L/gpfs/mnt/gpfs02/sphenix/user/nfeege/eicsw/eic-smear-1.0.3/install/lib
 
 libphg4hit_la_LIBADD = \
   -lphool \
   -lSubsysReco \
-  -lfun4all
+  -lfun4all \
+  -leicsmear
 
 libphg4hit_la_SOURCES = \
     PHG4Hit_Dict.cc \
