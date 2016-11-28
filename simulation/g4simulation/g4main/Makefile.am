@@ -20,7 +20,8 @@ INCLUDES = \
     -isystem ${G4_MAIN}/include \
     -I$(OFFLINE_MAIN)/include/eigen3 \
     -isystem ${G4_MAIN}/include/Geant4 \
-    -I/gpfs/mnt/gpfs02/sphenix/user/nfeege/eicsw/eic-smear-1.0.3/install/include
+    -I$(OPT_SPHENIX)/include
+
 
 RINCLUDES = \
     -I$(includedir) \
@@ -35,8 +36,9 @@ libphg4hit_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -L$(XERCESCROOT)/lib \
-  `geant4-config --libs`\
-  -L/gpfs/mnt/gpfs02/sphenix/user/nfeege/eicsw/eic-smear-1.0.3/install/lib
+  -L$(OPT_SPHENIX)/lib \
+  `geant4-config --libs`
+
 
 libphg4hit_la_LIBADD = \
   -lphool \
