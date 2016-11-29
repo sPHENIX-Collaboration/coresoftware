@@ -80,7 +80,6 @@ typedef long size_type;
 #pragma link C++ class PHGenEventList+;
 #pragma link C++ class PHGenEventListv1+;
 
-#pragma link C++ class PHHepMCParticleSelectorDecayProduct-!;
 #pragma link C++ class PHHepMCParticleSelectorDecayProductChain-!;
 
 
