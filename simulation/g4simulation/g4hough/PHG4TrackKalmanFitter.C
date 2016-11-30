@@ -765,7 +765,7 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(const SvtxTrack* intrack,
 
 		//TODO use u, v explicitly?
 		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
-				cluster->get_phi_size(), cluster->get_z_size());
+				cluster->get_phi_error(), cluster->get_z_error());
 
 		//meas->getMeasurement()->Print();// DEBUG
 
@@ -880,6 +880,16 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 	TVector3 vn = vu.Cross(vv);
 
 	PosCovUvn2rz(vu, vv, vn, pos_in, cov_in, pos_out, cov_out);
+	//Begin DEBUG
+
+//	LogDebug("Rotation Debug: ");
+//	pos_in.Print();
+//	cov_in.Print();
+//	pos_out.Print();
+//	cov_out.Print();
+//	gf_state_vertex_ca->get6DCov().Print();
+//	gf_state_vertex_ca->Print();
+	//End DEBUG
 
 	float dca3d_xy = pos_out[0][0];
 	float dca3d_z  = pos_out[2][0];

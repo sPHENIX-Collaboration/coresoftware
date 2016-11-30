@@ -257,7 +257,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  
           clus.insert_hit(cellids[zbin * nphibins + phibin]);
 
-	  float invsqrt12 = 1.0/sqrt(12.);
+	  //float invsqrt12 = 1.0/sqrt(12.);
       
 	  TMatrixF DIM(3,3);
 	  DIM[0][0] = 0.0;//pow(0.0*0.5*thickness,2);
@@ -275,11 +275,11 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  ERR[0][1] = 0.0;
 	  ERR[0][2] = 0.0;
 	  ERR[1][0] = 0.0;
-	  ERR[1][1] = pow(0.5*0.011*invsqrt12,2);
+	  ERR[1][1] = pow(0.011,2);
 	  ERR[1][2] = 0.0;
 	  ERR[2][0] = 0.0;
 	  ERR[2][1] = 0.0;
-	  ERR[2][2] = pow(0.5*0.03*invsqrt12,2);
+	  ERR[2][2] = pow(0.03,2);
 
 	  TMatrixF ROT(3,3);
 	  ROT[0][0] = cos(phi);

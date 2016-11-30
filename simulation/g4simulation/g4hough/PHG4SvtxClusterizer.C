@@ -419,7 +419,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
 	zbins.insert(cell->get_binz());
       }
       
-      float pitch = geom->get_phistep()*geom->get_radius();
+      float pitch = geom->get_phistep()*(geom->get_radius()+0.5*geom->get_thickness());
       float thickness = geom->get_thickness();
       float length = geom->get_zstep();
       float phisize = phibins.size()*pitch;
@@ -440,7 +440,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
 	clus_adc    += hit->get_adc();
 
 	// compute the hit center
-	double r   = geom->get_radius();
+	double r   = geom->get_radius()+0.5*geom->get_thickness();
         double phi = geom->get_phicenter(cell->get_binphi());
 
 	double x = r*cos(phi);
@@ -496,16 +496,18 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       DIM[2][1] = 0.0;
       DIM[2][2] = pow(0.5*zsize,2);
 
+      const float corr_factor = 2.0;
+
       TMatrixF ERR(3,3);
-      ERR[0][0] = pow(0.0*0.5*thickness*invsqrt12,2);
+      ERR[0][0] = pow(0.0*thickness*invsqrt12*corr_factor,2);
       ERR[0][1] = 0.0;
       ERR[0][2] = 0.0;
       ERR[1][0] = 0.0;
-      ERR[1][1] = pow(0.5*phisize*invsqrt12,2);
+      ERR[1][1] = pow(phisize*invsqrt12*corr_factor,2);
       ERR[1][2] = 0.0;
       ERR[2][0] = 0.0;
       ERR[2][1] = 0.0;
-      ERR[2][2] = pow(0.5*zsize*invsqrt12,2);
+      ERR[2][2] = pow(zsize*invsqrt12*corr_factor,2);
 
       TMatrixF ROT(3,3);
       ROT[0][0] = cos(clusphi);
@@ -777,16 +779,18 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       DIM[2][1] = 0.0;
       DIM[2][2] = pow(0.5*zsize,2);
 
+      const float corr_factor = 2.0;
+
       TMatrixF ERR(3,3);
-      ERR[0][0] = pow(0.5*thickness*invsqrt12,2);
+      ERR[0][0] = pow(thickness*invsqrt12*corr_factor,2);
       ERR[0][1] = 0.0;
       ERR[0][2] = 0.0;
       ERR[1][0] = 0.0;
-      ERR[1][1] = pow(0.5*phisize*invsqrt12,2);
+      ERR[1][1] = pow(phisize*invsqrt12*corr_factor,2);
       ERR[1][2] = 0.0;
       ERR[2][0] = 0.0;
       ERR[2][1] = 0.0;
-      ERR[2][2] = pow(0.5*zsize*invsqrt12,2);
+      ERR[2][2] = pow(zsize*invsqrt12*corr_factor,2);
       
       TMatrixF ROT(3,3);
       ROT[0][0] = cos(ladderphi);
