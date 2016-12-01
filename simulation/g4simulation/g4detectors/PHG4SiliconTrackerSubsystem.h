@@ -6,17 +6,21 @@
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
 
+#include <utility>
+#include <vector>
+
 class PHG4SiliconTrackerDetector;
 class PHG4SiliconTrackerSteppingAction;
 class PHG4EventAction;
 
+typedef std::vector<std::pair<int, int>> vpair;
+
 class PHG4SiliconTrackerSubsystem: public PHG4Subsystem
 {
-
   public:
 
   //! constructor
-  PHG4SiliconTrackerSubsystem( const std::string &name = "BLOCK", const int layer = 0 );
+  PHG4SiliconTrackerSubsystem(const std::string &name = "BLOCK", const vpair &layerconfig=vpair(0));
 
   //! destructor
   virtual ~PHG4SiliconTrackerSubsystem( void )
@@ -102,7 +106,7 @@ class PHG4SiliconTrackerSubsystem: public PHG4Subsystem
   G4String material;
   int active;
   int absorberactive;
-  int layer;
+  std::vector< std::pair<int,int> > layerconfig_;
   int blackhole;
   std::string detector_type;
   std::string superdetector;

@@ -9,24 +9,16 @@ class PHG4HitContainer;
 
 class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
 {
+ public:
+  PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector*);
 
-  public:
+  virtual ~PHG4SiliconTrackerSteppingAction(){}
 
-  //! constructor
-  PHG4SiliconTrackerSteppingAction( PHG4SiliconTrackerDetector* );
-
-  //! destroctor
-  virtual ~PHG4SiliconTrackerSteppingAction()
-  {}
-
-  //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
 
-  //! reimplemented from base class
-  virtual void SetInterfacePointers( PHCompositeNode* );
+  virtual void SetInterfacePointers(PHCompositeNode*);
 
-  private:
-
+ private:
   //! pointer to the detector
   PHG4SiliconTrackerDetector* detector_;
 
@@ -35,6 +27,5 @@ class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
   PHG4HitContainer * absorberhits_;
   PHG4Hit *hit;
 };
-
 
 #endif // PHG4SiliconTrackerSteppingAction_h
