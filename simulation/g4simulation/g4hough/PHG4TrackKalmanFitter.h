@@ -224,7 +224,7 @@ private:
 			const std::vector<genfit::GFRaveVertex*> & rave_vertices,
 			const std::vector<genfit::Track*> & gf_tracks);
 
-	bool PosCovUvn2rz(
+	bool pos_cov_uvn_to_rz(
 			const TVector3 u,
 			const TVector3 v,
 			const TVector3 n,
@@ -232,6 +232,27 @@ private:
 			const TMatrixF cov_in,
 			TMatrixF & pos_out,
 			TMatrixF & cov_out
+			) const;
+
+	bool get_vertex_error_uvn(
+			const TVector3 u,
+			const TVector3 v,
+			const TVector3 n,
+			const TMatrixF cov_in,
+			TMatrixF & cov_out
+			) const;
+
+	/*!
+	 * Get 3D Rotation Matrix that rotates frame (x,y,z) to (x',y',z')
+	 * Default rotate local to global, or rotate vector in global to local representation
+	 */
+	TMatrixF get_rotation_matrix(
+			const TVector3 x,
+			const TVector3 y,
+			const TVector3 z,
+			const TVector3 xp = TVector3(1.,0.,0.),
+			const TVector3 yp = TVector3(0.,1.,0.),
+			const TVector3 zp = TVector3(0.,0.,1.)
 			) const;
 
 	//!flags
