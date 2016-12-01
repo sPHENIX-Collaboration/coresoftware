@@ -209,6 +209,7 @@ class sPHENIXTrackerTPC : public HelixHough {
                             std::vector<SimpleTrack3D>& tracks,
                             const HelixRange& range);  
   void initEvent(std::vector<SimpleHit3D>& hits, unsigned int min_hits) {
+
     int min_layer = 999999;
     int max_layer = 0;
     for (unsigned int i = 0; i < hits.size(); ++i) {
@@ -221,6 +222,7 @@ class sPHENIXTrackerTPC : public HelixHough {
     }
     setSeedLayer(min_layer);
     setNLayers(max_layer + 1);
+
 
     nfits = 0;
     combos.clear();
@@ -277,6 +279,24 @@ class sPHENIXTrackerTPC : public HelixHough {
   void setRejectGhosts(bool rg) { reject_ghosts = rg; }
 
   std::vector<float>& getIsolation() { return isolation_variable; }
+
+  static void calculateKappaTangents(
+      float* x1_a, float* y1_a, float* z1_a, float* x2_a, float* y2_a,
+      float* z2_a, float* x3_a, float* y3_a, float* z3_a, float* dx1_a,
+      float* dy1_a, float* dz1_a, float* dx2_a, float* dy2_a, float* dz2_a,
+      float* dx3_a, float* dy3_a, float* dz3_a, float* kappa_a, float* dkappa_a,
+      float* ux_mid_a, float* uy_mid_a, float* ux_end_a, float* uy_end_a,
+      float* dzdl_1_a, float* dzdl_2_a, float* ddzdl_1_a, float* ddzdl_2_a);
+  void calculateKappaTangents(
+      float* x1_a, float* y1_a, float* z1_a, float* x2_a, float* y2_a,
+      float* z2_a, float* x3_a, float* y3_a, float* z3_a, float* dx1_a,
+      float* dy1_a, float* dz1_a, float* dx2_a, float* dy2_a, float* dz2_a,
+      float* dx3_a, float* dy3_a, float* dz3_a, float* kappa_a, float* dkappa_a,
+      float* ux_mid_a, float* uy_mid_a, float* ux_end_a, float* uy_end_a,
+      float* dzdl_1_a, float* dzdl_2_a, float* ddzdl_1_a, float* ddzdl_2_a,
+      float sinang_cut, float cosang_diff_inv, float* cur_kappa_a,
+      float* cur_dkappa_a, float* cur_ux_a, float* cur_uy_a, float* cur_chi2_a,
+      float* chi2_a);
 
   void pairRejection(std::vector<SimpleTrack3D>& input,
                      std::vector<SimpleTrack3D>& output,
@@ -340,6 +360,15 @@ class sPHENIXTrackerTPC : public HelixHough {
         thread_trackers[i]->setRemoveHits(rh);
       }
     }
+  }
+
+
+  void setStartLayer(int start) {
+    layer_start = start;
+  }
+ 
+  void setEndLayer(int end) {
+    layer_end = end;
   }
 
   void setSeedLayer(int sl) {
@@ -432,7 +461,10 @@ class sPHENIXTrackerTPC : public HelixHough {
 
   void setRequirePixels(bool rp){require_pixels = rp;}
 
+
  private:
+  float kappaToPt(float kappa);
+  float ptToKappa(float pt);
   void findTracksByCombinatorialKalman(std::vector<SimpleHit3D>& hits,
                                        std::vector<SimpleTrack3D>& tracks,
                                        const HelixRange& range);
@@ -510,6 +542,7 @@ class sPHENIXTrackerTPC : public HelixHough {
   std::vector<float> hit_error_scale;
 
   bool require_pixels;
+
 };
 
 

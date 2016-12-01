@@ -15,6 +15,7 @@ class PHG4Hit: public PHObject
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Copy(PHG4Hit const &g4hit);
   friend std::ostream &operator<<(std::ostream & stream, const PHG4Hit * hit);
+  virtual void Reset();
 
   // The indices here represent the entry and exit points of the particle
   virtual float get_x(const int i) const {return NAN;}
@@ -45,6 +46,7 @@ class PHG4Hit: public PHObject
   virtual int get_index_j() const {return INT_MIN;}
   virtual int get_index_k() const {return INT_MIN;}
   virtual int get_index_l() const {return INT_MIN;}
+  virtual int get_hit_type() const {return INT_MIN;}
 
   virtual void set_x(const int i, const float f) {return;}
   virtual void set_y(const int i, const float f) {return;}
@@ -74,6 +76,7 @@ class PHG4Hit: public PHObject
   virtual void set_index_j(const int i) {return;}
   virtual void set_index_k(const int i) {return;}
   virtual void set_index_l(const int i) {return;}
+  virtual void set_hit_type(const int i) {return;}
 
   virtual float get_avg_x() const;
   virtual float get_avg_y() const;
@@ -148,7 +151,10 @@ class PHG4Hit: public PHObject
     prop_index_k = 123,
     prop_index_l = 124,
 
-    prop_local_pos_x_1 = 125,
+    //! hit type
+    prop_hit_type = 125,
+
+    prop_local_pos_x_1 = 128,
     prop_local_pos_y_1 = 126,
     prop_local_pos_z_1 = 127,
 

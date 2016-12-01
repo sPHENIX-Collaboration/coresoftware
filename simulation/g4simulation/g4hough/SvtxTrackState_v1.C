@@ -18,6 +18,7 @@ SvtxTrackState_v1::SvtxTrackState_v1(float pathlength)
       set_error(i,j,0.0);
     }
   } 
+  state_name = "UNKNOWN"; 
 }
 
 void SvtxTrackState_v1::identify(std::ostream &os) const {

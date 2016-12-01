@@ -1,11 +1,12 @@
 #ifndef PHG4VSectorSteppingAction_h
 #define PHG4VSectorSteppingAction_h
 
-#include "g4main/PHG4SteppingAction.h"
+#include <g4main/PHG4SteppingAction.h>
 
-class PHG4SectorDetector;
 class PHG4Hit;
 class PHG4HitContainer;
+class PHG4SectorDetector;
+class PHG4Shower;
 
 class PHG4SectorSteppingAction : public PHG4SteppingAction
 {
@@ -15,9 +16,9 @@ class PHG4SectorSteppingAction : public PHG4SteppingAction
   //! constructor
   PHG4SectorSteppingAction( PHG4SectorDetector* );
 
-  //! destroctor
-  virtual ~PHG4SectorSteppingAction()
-  {}
+  //! destructor
+  virtual ~PHG4SectorSteppingAction();
+
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
@@ -33,6 +34,9 @@ class PHG4SectorSteppingAction : public PHG4SteppingAction
   //! pointer to hit container
   PHG4HitContainer * hits_;
   PHG4Hit *hit;
+  PHG4Shower *saveshower;
+
+  int layer_id;
 };
 
 

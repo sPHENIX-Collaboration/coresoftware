@@ -1,7 +1,6 @@
 #include "PHG4InnerHcalSubsystem.h"
 #include "PHG4InnerHcalDetector.h"
 #include "PHG4EventActionClearZeroEdep.h"
-#include "PHG4FlushStepTrackingAction.h"
 #include "PHG4InnerHcalSteppingAction.h"
 #include "PHG4Parameters.h"
 
@@ -25,7 +24,6 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const i
   PHG4DetectorSubsystem( name, lyr ),
   detector_(NULL),
   steppingAction_( NULL ),
-  trackingAction_(NULL),
   eventAction_(NULL)
 {
   InitializeParameters();
@@ -106,10 +104,6 @@ PHG4InnerHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	  steppingAction_ = new PHG4InnerHcalSteppingAction(detector_, GetParams());
 	}
     }
-  if (steppingAction_)
-    {
-      trackingAction_ = new PHG4FlushStepTrackingAction(steppingAction_);
-    }
   return 0;
 
 }
@@ -172,7 +166,8 @@ PHG4InnerHcalSubsystem::SetDefaultParameters()
 
   set_default_int_param("light_scint_model", 1);
   set_default_int_param("ncross", 4);
-  set_default_int_param("n_scinti_plates", 5*64);
+  set_default_int_param("n_towers", 64);
+  set_default_int_param("n_scinti_plates_per_tower", 4);
   set_default_int_param("n_scinti_tiles", 12);
 
   set_default_string_param("material", "SS310");

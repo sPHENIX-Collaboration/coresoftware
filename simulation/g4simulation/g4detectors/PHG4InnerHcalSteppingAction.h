@@ -17,9 +17,9 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   //! constructor
   PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector*, const PHG4Parameters *parameters );
 
-  //! destroctor
-  virtual ~PHG4InnerHcalSteppingAction()
-  {}
+  //! destructor
+  virtual ~PHG4InnerHcalSteppingAction();
+
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
@@ -29,11 +29,7 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
 
   double GetLightCorrection(const double r) const;
 
-  void flush_cached_values();
-
   private:
-
-  void save_previous_g4hit();
 
   //! pointer to the detector
   PHG4InnerHcalDetector* detector_;
@@ -48,7 +44,6 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   // since getting parameters is a map search we do not want to
   // do this in every step, the parameters used are cached
   // in the following variables
-  int save_layer_id;
   int absorbertruth;
   int IsActive;
   int IsBlackHole;

@@ -3,12 +3,13 @@
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
+
+#include <TRandom3.h>
+
 #include <string>
 #include <map>
-#include "TRandom3.h"
 
 class PHCompositeNode;
-class PHG4CylinderCell;
 class PHG4TPCDistortion;
 
 class PHG4CylinderCellTPCReco : public SubsysReco
@@ -53,12 +54,6 @@ public:
   void setDistortion (PHG4TPCDistortion * d) {distortion = d;}
 
 protected:
-//   void set_size(const int i, const double sizeA, const double sizeB, const int what);
-//   int CheckEnergy(PHCompositeNode *topNode);
-//   static std::pair<double, double> get_etaphi(const double x, const double y, const double z);
-//   static double get_eta(const double radius, const double z);
-//   bool lines_intersect( double ax, double ay, double bx, double by, double cx, double cy, double dx, double dy, double* rx, double* ry);
-//   bool line_and_rectangle_intersect( double ax, double ay, double bx, double by, double cx, double cy, double dx, double dy, double* rr);
   
   std::map<int, int>  binning;
   std::map<int, std::pair <double,double> > cell_size; // cell size in phi/z

@@ -11,7 +11,6 @@ class PHG4InnerHcalDetector;
 class PHG4Parameters;
 class PHG4InnerHcalSteppingAction;
 class PHG4EventAction;
-class PHG4FlushStepTrackingAction;
 
 class PHG4InnerHcalSubsystem: public PHG4DetectorSubsystem
 {
@@ -45,7 +44,6 @@ class PHG4InnerHcalSubsystem: public PHG4DetectorSubsystem
   //! accessors (reimplemented)
   PHG4Detector* GetDetector( void ) const;
   PHG4SteppingAction* GetSteppingAction( void ) const {return steppingAction_;}
-  PHG4TrackingAction* GetTrackingAction( void ) const {return  trackingAction_;}
 
   PHG4EventAction* GetEventAction() const {return eventAction_;}
 
@@ -63,10 +61,6 @@ class PHG4InnerHcalSubsystem: public PHG4DetectorSubsystem
   //! detector "stepping" action, executes after every G4 step
   /*! derives from PHG4SteppingAction */
   PHG4SteppingAction* steppingAction_;
-
-  //! detector "tracking" action, executes before/after every G4 track
-  /*! derives from PHG4TrackingAction */
-  PHG4TrackingAction *trackingAction_;
 
   //! detector event action executes before/after every event
   /*! derives from PHG4EventAction */

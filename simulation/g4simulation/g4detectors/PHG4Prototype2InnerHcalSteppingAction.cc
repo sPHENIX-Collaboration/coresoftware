@@ -87,8 +87,8 @@ bool PHG4Prototype2InnerHcalSteppingAction::UserSteppingAction( const G4Step* aS
       //     XXX - assembly volume imprint number
       //     YYY - the name of the placed logical volume
       //     ZZZ - the logical volume index inside the assembly volume
-      // e.g. av_1_impr_1_InnerHcalScintiMother_pv_11
-      // 82 the number of the scintillator mother volume
+      // e.g. av_1_impr_2_InnerHcalScintiMother_pv_11
+      // 2 the number of the scintillator mother volume
       // InnerHcalScintiMother_11: name of scintillator slat
       // 11: number of scintillator slat logical volume
       // use boost tokenizer to separate the _, then take value
@@ -190,6 +190,12 @@ bool PHG4Prototype2InnerHcalSteppingAction::UserSteppingAction( const G4Step* aS
 	  //set the initial energy deposit
 	  hit->set_edep(0);
 	  hit->set_eion(0); // only implemented for v5 otherwise empty
+
+          hit->set_hit_type(0);
+          if( (aTrack->GetParticleDefinition()->GetParticleName().find("e+") != string::npos) ||
+              (aTrack->GetParticleDefinition()->GetParticleName().find("e-") != string::npos) )
+            hit->set_hit_type(1);
+
           PHG4HitContainer *hitcontainer;
 	  if (whichactive > 0) // return of IsInPrototype2InnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
 	    {
