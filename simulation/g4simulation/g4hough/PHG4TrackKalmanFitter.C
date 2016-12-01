@@ -42,6 +42,7 @@
 #include "TTree.h"
 #include "TVector3.h"
 #include "TRandom3.h"
+#include "TRotation.h"
 
 #include "phgenfit/Track.h"
 #include "SvtxTrack.h"
@@ -798,6 +799,7 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 	double ndf = phgf_track->get_ndf();
 
 	TVector3 vertex_position(0, 0, 0);
+	TMatrixF vertex_cov(3,3);
 	double dvr2 = 0;
 	double dvz2 = 0;
 
@@ -806,6 +808,10 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 				vertex->get_z());
 		dvr2 = vertex->get_error(0, 0) + vertex->get_error(1, 1);
 		dvz2 = vertex->get_error(2, 2);
+
+		for(int i=0;i<3;i++)
+			for(int j=0;j<3;j++)
+				vertex_cov[i][j] = vertex->get_error(i,j);
 	}
 
 	genfit::MeasuredStateOnPlane* gf_state_beam_line_ca = phgf_track->extrapolateToLine(
@@ -880,21 +886,31 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 	TVector3 vn = vu.Cross(vv);
 
 	pos_cov_uvn_to_rz(vu, vv, vn, pos_in, cov_in, pos_out, cov_out);
+
+	//! vertex cov in (u',v',n')
+	TMatrixF vertex_cov_out(3,3);
+
+	get_vertex_error_uvn(vu,vv,vn, vertex_cov, vertex_cov_out);
+
 	//Begin DEBUG
-	LogDebug("Rotation Debug: ");
-	pos_in.Print();
-	cov_in.Print();
-	pos_out.Print();
-	cov_out.Print();
-	gf_state_vertex_ca->get6DCov().Print();
-	gf_state_vertex_ca->Print();
+//	LogDebug("rotation debug---------- ");
+//	gf_state_vertex_ca->Print();
+//	LogDebug("dca rotation---------- ");
+//	pos_in.Print();
+//	cov_in.Print();
+//	pos_out.Print();
+//	cov_out.Print();
+//	gf_state_vertex_ca->get6DCov().Print();
+//	LogDebug("vertex rotation---------- ");
+//	vertex_cov.Print();
+//	vertex_cov_out.Print();
 	//End DEBUG
 
 	float dca3d_xy = pos_out[0][0];
-	float dca3d_z  = pos_out[2][0];
+	float dca3d_z  = pos_out[1][0];
 
-	float dca3d_xy_error = sqrt(cov_out[0][0]);
-	float dca3d_z_error  = sqrt(cov_out[2][2]);
+	float dca3d_xy_error = sqrt(cov_out[0][0] + vertex_cov_out[0][0]);
+	float dca3d_z_error  = sqrt(cov_out[1][1] + vertex_cov_out[1][1]);
 
 	out_track->set_dca3d_xy(dca3d_xy);
 	out_track->set_dca3d_z(dca3d_z);
@@ -1138,7 +1154,6 @@ bool PHG4TrackKalmanFitter::pos_cov_uvn_to_rz(const TVector3 u, const TVector3 v
 	}
 
 	TVector3 Z_uvn(u.Z(),v.Z(),n.Z());
-	Z_uvn.Print();//DEBUG
 	TVector3 up_uvn = TVector3(0., 0., 1.).Cross(Z_uvn); // n_uvn X Z_uvn
 
 	if(up_uvn.Mag() < 0.00001){
@@ -1187,16 +1202,20 @@ bool PHG4TrackKalmanFitter::get_vertex_error_uvn(const TVector3 u,
 
 	/*!
 	 * Get matrix that rotates frame (u,v,n) to (x,y,z)
+	 * or the matrix that rotates vector defined in (x,y,z) to defined (u,v,n)
 	 */
 
 	TMatrixF R = get_rotation_matrix(u, v, n);
+//
+//	LogDebug("PHG4TrackKalmanFitter::get_vertex_error_uvn::R = ");
+//	R.Print();
+//	cout<<"R.Determinant() = "<<R.Determinant()<<"\n";
 
-	if(!(abs(R.Determinant()-1)<0.0001)) {
+	if(!(abs(R.Determinant()-1)<0.01)) {
 		if (verbosity > 0)
 			LogWarning("!(abs(R.Determinant()-1)<0.0001)");
 		return false;
 	}
-
 
 	if (R.GetNcols() != 3 || R.GetNrows() != 3) {
 		if (verbosity > 0)
@@ -1221,6 +1240,10 @@ bool PHG4TrackKalmanFitter::get_vertex_error_uvn(const TVector3 u,
 	return true;
 }
 
+/*!
+ * Get 3D Rotation Matrix that rotates frame (x,y,z) to (x',y',z')
+ * Default rotate local to global, or rotate vector in global to local representation
+ */
 TMatrixF PHG4TrackKalmanFitter::get_rotation_matrix(const TVector3 x,
 		const TVector3 y, const TVector3 z, const TVector3 xp, const TVector3 yp,
 		const TVector3 zp) const {
@@ -1231,9 +1254,15 @@ TMatrixF PHG4TrackKalmanFitter::get_rotation_matrix(const TVector3 x,
 	TVector3 yu = y.Unit();
 	TVector3 zu = z.Unit();
 
-	if(zu!=xu.Cross(yu)) {
+	const float max_diff = 0.01;
+
+	if(!(
+			abs(xu*yu) < max_diff and
+			abs(xu*zu) < max_diff and
+			abs(yu*zu) < max_diff
+			)) {
 		if (verbosity > 0)
-			LogWarning("zu!=xu.Cross(yu)");
+			LogWarning("input frame error!");
 		return R;
 	}
 
@@ -1241,15 +1270,19 @@ TMatrixF PHG4TrackKalmanFitter::get_rotation_matrix(const TVector3 x,
 	TVector3 ypu = yp.Unit();
 	TVector3 zpu = zp.Unit();
 
-	if(zpu!=xpu.Cross(ypu)) {
+	if(!(
+			abs(xpu*ypu) < max_diff and
+			abs(xpu*zpu) < max_diff and
+			abs(ypu*zpu) < max_diff
+			)) {
 		if (verbosity > 0)
-			LogWarning("zpu!=xpu.Cross(ypu)");
+			LogWarning("output frame error!");
 		return R;
 	}
 
 	/*!
 	 * Decompose x',y',z' in x,y,z and call them u,v,n
-	 * Then the question will be rotate u,v,n to the standard X,Y,Z
+	 * Then the question will be rotate the standard X,Y,Z to u,v,n
 	 */
 
 	TVector3 u(xpu.Dot(xu),xpu.Dot(yu),xpu.Dot(zu));
@@ -1258,53 +1291,79 @@ TMatrixF PHG4TrackKalmanFitter::get_rotation_matrix(const TVector3 x,
 
 
 	try {
-		TMatrixF ROT1(3, 3);
-		TMatrixF ROT2(3, 3);
-		TMatrixF ROT3(3, 3);
+		TRotation *rotation = new TRotation();
 
-		// rotate n along z to xz plane
-		float phi = -TMath::ATan2(n.Y(), n.X());
-		ROT1[0][0] = cos(phi);
-		ROT1[0][1] = -sin(phi);
-		ROT1[0][2] = 0;
-		ROT1[1][0] = sin(phi);
-		ROT1[1][1] = cos(phi);
-		ROT1[1][2] = 0;
-		ROT1[2][0] = 0;
-		ROT1[2][1] = 0;
-		ROT1[2][2] = 1;
+		//! Rotation that rotate standard (X, Y, Z) to (u, v, n)
+		rotation->RotateAxes(u, v, n);
 
-		// rotate n along y to z
-		TVector3 n1(n);
-		n1.RotateZ(phi);
-		float theta = -TMath::ATan2(n1.X(), n1.Z());
-		ROT2[0][0] = cos(theta);
-		ROT2[0][1] = 0;
-		ROT2[0][2] = sin(theta);
-		ROT2[1][0] = 0;
-		ROT2[1][1] = 1;
-		ROT2[1][2] = 0;
-		ROT2[2][0] = -sin(theta);
-		ROT2[2][1] = 0;
-		ROT2[2][2] = cos(theta);
+		R[0][0] = rotation->XX();
+		R[0][1] = rotation->XY();
+		R[0][2] = rotation->XZ();
+		R[1][0] = rotation->YX();
+		R[1][1] = rotation->YY();
+		R[1][2] = rotation->YZ();
+		R[2][0] = rotation->ZX();
+		R[2][1] = rotation->ZY();
+		R[2][2] = rotation->ZZ();
+//
+//		LogDebug("PHG4TrackKalmanFitter::get_rotation_matrix: TRotation:");
+//		R.Print();
+//		cout<<"R.Determinant() = "<<R.Determinant()<<"\n";
 
-		// rotate u along z to x
-		TVector3 u2(u);
-		u2.RotateZ(phi);
-		u2.RotateY(theta);
-		float phip = -TMath::ATan2(u2.Y(), u2.X());
-		ROT3[0][0] = cos(phip);
-		ROT3[0][1] = -sin(phip);
-		ROT3[0][2] = 0;
-		ROT3[1][0] = sin(phip);
-		ROT3[1][1] = cos(phip);
-		ROT3[1][2] = 0;
-		ROT3[2][0] = 0;
-		ROT3[2][1] = 0;
-		ROT3[2][2] = 1;
+		delete rotation;
 
-		// R: rotation from u,v,n to (z X n), v', z
-		R = ROT3 * ROT2 * ROT1;
+//		TMatrixF ROT1(3, 3);
+//		TMatrixF ROT2(3, 3);
+//		TMatrixF ROT3(3, 3);
+//
+//		// rotate n along z to xz plane
+//		float phi = -TMath::ATan2(n.Y(), n.X());
+//		ROT1[0][0] = cos(phi);
+//		ROT1[0][1] = -sin(phi);
+//		ROT1[0][2] = 0;
+//		ROT1[1][0] = sin(phi);
+//		ROT1[1][1] = cos(phi);
+//		ROT1[1][2] = 0;
+//		ROT1[2][0] = 0;
+//		ROT1[2][1] = 0;
+//		ROT1[2][2] = 1;
+//
+//		// rotate n along y to z
+//		TVector3 n1(n);
+//		n1.RotateZ(phi);
+//		float theta = -TMath::ATan2(n1.X(), n1.Z());
+//		ROT2[0][0] = cos(theta);
+//		ROT2[0][1] = 0;
+//		ROT2[0][2] = sin(theta);
+//		ROT2[1][0] = 0;
+//		ROT2[1][1] = 1;
+//		ROT2[1][2] = 0;
+//		ROT2[2][0] = -sin(theta);
+//		ROT2[2][1] = 0;
+//		ROT2[2][2] = cos(theta);
+//
+//		// rotate u along z to x
+//		TVector3 u2(u);
+//		u2.RotateZ(phi);
+//		u2.RotateY(theta);
+//		float phip = -TMath::ATan2(u2.Y(), u2.X());
+//		ROT3[0][0] = cos(phip);
+//		ROT3[0][1] = -sin(phip);
+//		ROT3[0][2] = 0;
+//		ROT3[1][0] = sin(phip);
+//		ROT3[1][1] = cos(phip);
+//		ROT3[1][2] = 0;
+//		ROT3[2][0] = 0;
+//		ROT3[2][1] = 0;
+//		ROT3[2][2] = 1;
+//
+//		// R: rotation from u,v,n to (z X n), v', z
+//		R = ROT3 * ROT2 * ROT1;
+//
+//		R.Invert();
+//		LogDebug("PHG4TrackKalmanFitter::get_rotation_matrix: Home Brew:");
+//		R.Print();
+//		cout<<"R.Determinant() = "<<R.Determinant()<<"\n";
 
 	} catch (...) {
 		if (verbosity > 0)
