@@ -69,7 +69,7 @@ class PHG4SvtxDigitizer : public SubsysReco
   
   PHTimeServer::timer _timer;   ///< Timer
 
-  const int nadcbins = 8;
+  const unsigned int nadcbins = 8;
   std::map<int, std::vector< std::pair<double, double> > > _max_fphx_adc;
 };
 

@@ -248,18 +248,21 @@ void PHG4SvtxDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) {
 
     std::vector< std::pair<double, double> > vadcrange = _max_fphx_adc[layer];
 
-    unsigned int adc = -1;
+    int adc = -1;
     for (unsigned int irange=0; irange<vadcrange.size(); ++irange)
       if (cell->get_edep()>=vadcrange[irange].first*(double)mip_e && cell->get_edep()<vadcrange[irange].second*(double)mip_e)
-	adc = irange;
+	adc = (int)irange;
+
+    if (adc<0) // TODO, underflow is temporarily assigned to ADC=0.
+      adc = 0;
 
     float e = 0.0;
-    if (adc>=0 && adc<vadcrange.size()-1)
+    if (adc>=0 && adc<int(vadcrange.size())-1)
       e = 0.5*(vadcrange[adc].second - vadcrange[adc].first)*mip_e;
-    else if (adc==vadcrange.size()-1) // overflow
+    else if (adc==int(vadcrange.size())-1) // overflow
       e = vadcrange[adc].first*mip_e;
     else // underflow
-      e = 0.0;
+      e = 0.5*vadcrange[0].first*mip_e;
     
     hit.set_adc(adc);
     hit.set_e(e);
