@@ -28,6 +28,7 @@ class PHG4Hitv1 : public PHG4Hit
   float get_t(const int i) const {return t[i];}
   float get_edep() const {return edep;}
   PHG4HitDefs::keytype get_hit_id() const {return hitid;}
+  int get_detid() const;
   int get_shower_id() const {return showerid;}
   int get_trkid() const {return trackid;}
   
