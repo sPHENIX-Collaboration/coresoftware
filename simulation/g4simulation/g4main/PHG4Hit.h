@@ -34,6 +34,7 @@ class PHG4Hit: public PHObject
   virtual float get_path_length() const {return NAN;}
   virtual unsigned int get_layer() const {return UINT_MAX;}
   virtual PHG4HitDefs::keytype get_hit_id() const {return ULONG_LONG_MAX;}
+  virtual int get_detid() const {return INT_MIN;}
   virtual int get_shower_id() const {return INT_MIN;}
   virtual int get_scint_id() const {return INT_MIN;}
   virtual int get_row() const {return INT_MIN;}
