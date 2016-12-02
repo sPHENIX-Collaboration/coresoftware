@@ -79,7 +79,7 @@ int PHG4SiliconTrackerCellReco::InitRun(PHCompositeNode *topNode)
   PHG4CylinderGeomContainer *geo =  findNode::getClass<PHG4CylinderGeomContainer>(topNode , geonodename.c_str());
   if (!geo)
     {
-      std::cout << "DEBUG1: Could not locate geometry node " << geonodename << std::endl;
+      std::cout << "Could not locate geometry node " << geonodename << std::endl;
       exit(1);
     }
 

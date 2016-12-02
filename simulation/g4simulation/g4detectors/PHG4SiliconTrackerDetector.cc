@@ -81,9 +81,24 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume* tracker
   G4NistManager *nist = G4NistManager::Instance();
 
   nist->FindOrBuildMaterial("G4_Si");
-  nist->FindOrBuildMaterial("G4_Cu");
-  nist->FindOrBuildMaterial("G4_C");
   nist->FindOrBuildMaterial("G4_AIR");
+
+  G4Element *elH  = new G4Element("Hydrogen","H2",  1.,  1.01*g/mole);
+  G4Element *elC  = new G4Element("Carbon",  "C",   6., 12.01*g/mole);
+  G4Element *elN  = new G4Element("Nitrogen","N2",  7., 14.01*g/mole);
+  G4Element *elO  = new G4Element("Oxygen",  "O2",  8., 16.00*g/mole);
+
+  G4Material *Kapton = new G4Material("Kapton", 1.42*g/cm3, 4);
+  Kapton->AddElement(elH, 0.0273);
+  Kapton->AddElement(elC, 0.7213);
+  Kapton->AddElement(elN, 0.0765);
+  Kapton->AddElement(elO, 0.1749);
+
+  G4Material *Copper = new G4Material("Copper", 29., 63.54*g/mole, 8.96*g/cm3);
+
+  G4Material *FPC = new G4Material("FPC", 2.90*g/cm3, 2);
+  FPC->AddMaterial(Copper, 0.1966);
+  FPC->AddMaterial(Kapton, 0.8034);
 
   double hdi_z_[nlayer_][2];
 
@@ -167,11 +182,11 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume* tracker
         hdi_z_[ilayer][itype] = hdi_z;
 
         G4VSolid *hdi_box = new G4Box(boost::str(boost::format("hdi_box_%d_%d") %sphxlayer %itype).c_str(), hdi_x, hdi_y, hdi_z);
-        G4LogicalVolume *hdi_volume = new G4LogicalVolume(hdi_box, G4Material::GetMaterial("G4_C"), boost::str(boost::format("hdi_box_%d_%d") %sphxlayer %itype).c_str(), 0, 0, 0);
+        G4LogicalVolume *hdi_volume = new G4LogicalVolume(hdi_box, FPC, boost::str(boost::format("hdi_box_%d_%d") %sphxlayer %itype).c_str(), 0, 0, 0);
 
         const G4double hdi_ext_z = (itype==0) ? 0.000001 : arr_halfladder_z[ilayer] - hdi_z_[ilayer][0] - hdi_z; // need to assign nonzero value for itype=0
         G4VSolid *hdi_ext_box = new G4Box(boost::str(boost::format("hdi_ext_box_%d_%s") %sphxlayer %itype).c_str(), hdi_x, hdi_y, hdi_ext_z);
-        G4LogicalVolume *hdi_ext_volume = new G4LogicalVolume(hdi_ext_box, G4Material::GetMaterial("G4_C"), boost::str(boost::format("hdi_ext_box_%d_%s") %sphxlayer %itype).c_str(), 0, 0, 0);
+        G4LogicalVolume *hdi_ext_volume = new G4LogicalVolume(hdi_ext_box, FPC, boost::str(boost::format("hdi_ext_box_%d_%s") %sphxlayer %itype).c_str(), 0, 0, 0);
 
         G4VisAttributes *hdi_vis = new G4VisAttributes();
         hdi_vis->SetVisibility(true);
@@ -223,10 +238,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume* tracker
         const double pgs_z = hdi_z;
 
         G4VSolid *pgs_box = new G4Box(boost::str(boost::format("pgs_box_%d_%d") %sphxlayer %itype).c_str(), pgs_x, pgs_y, pgs_z);
-        G4LogicalVolume *pgs_volume = new G4LogicalVolume(pgs_box, G4Material::GetMaterial("G4_C"), boost::str(boost::format("pgs_volume_%d_%d") %sphxlayer %itype).c_str(), 0, 0, 0);
+        G4LogicalVolume *pgs_volume = new G4LogicalVolume(pgs_box, Copper, boost::str(boost::format("pgs_volume_%d_%d") %sphxlayer %itype).c_str(), 0, 0, 0);
 
         G4VSolid *pgs_ext_box = new G4Box(boost::str(boost::format("pgs_ext_box_%d_%s") %sphxlayer %itype).c_str(), pgs_x, pgs_y, hdi_ext_z);
-        G4LogicalVolume *pgs_ext_volume = new G4LogicalVolume(pgs_ext_box, G4Material::GetMaterial("G4_C"), boost::str(boost::format("pgs_ext_volume_%d_%s") %sphxlayer %itype).c_str(), 0, 0, 0);
+        G4LogicalVolume *pgs_ext_volume = new G4LogicalVolume(pgs_ext_box, Copper, boost::str(boost::format("pgs_ext_volume_%d_%s") %sphxlayer %itype).c_str(), 0, 0, 0);
 
         G4VisAttributes *pgs_vis = new G4VisAttributes();
         pgs_vis->SetVisibility(true);
@@ -241,10 +256,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume* tracker
         const double stave_z = hdi_z;
 
         G4VSolid *stave_box = new G4Box(boost::str(boost::format("stave_box_%d_%d") %sphxlayer %itype).c_str(), stave_x, stave_y, stave_z);
-        G4LogicalVolume *stave_volume = new G4LogicalVolume(stave_box, G4Material::GetMaterial("G4_C"), boost::str(boost::format("stave_volume_%d_%d") %sphxlayer %itype).c_str(), 0, 0, 0);
+        G4LogicalVolume *stave_volume = new G4LogicalVolume(stave_box, Copper, boost::str(boost::format("stave_volume_%d_%d") %sphxlayer %itype).c_str(), 0, 0, 0);
 
         G4VSolid *stave_ext_box = new G4Box(boost::str(boost::format("stave_ext_box_%d_%s") %sphxlayer %itype).c_str(), stave_x, stave_y, hdi_ext_z);
-        G4LogicalVolume *stave_ext_volume = new G4LogicalVolume(stave_ext_box, G4Material::GetMaterial("G4_C"), boost::str(boost::format("stave_ext_volume_%d_%s") %sphxlayer %itype).c_str(), 0, 0, 0);
+        G4LogicalVolume *stave_ext_volume = new G4LogicalVolume(stave_ext_box, Copper, boost::str(boost::format("stave_ext_volume_%d_%s") %sphxlayer %itype).c_str(), 0, 0, 0);
 
         G4VisAttributes *stave_vis = new G4VisAttributes();
         stave_vis->SetVisibility(true);
