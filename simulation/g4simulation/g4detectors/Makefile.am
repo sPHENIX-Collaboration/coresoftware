@@ -39,8 +39,6 @@ libg4detectors_la_LIBADD = \
   -lg4testbench 
 
 pkginclude_HEADERS = \
-  PHG4Parameters.h \
-  PHG4ParametersContainer.h \
   PHG4BlockGeom.h \
   PHG4BlockGeomContainer.h \
   PHG4CylinderCell.h \
@@ -58,6 +56,9 @@ pkginclude_HEADERS = \
   PHG4CylinderCellGeom.h \
   PHG4CylinderCellGeom_Spacalv1.h \
   PHG4CylinderCellGeomContainer.h \
+  PHG4ParameterInterface.h \
+  PHG4Parameters.h \
+  PHG4ParametersContainer.h \
   PHG4ScintillatorSlat.h \
   PHG4ScintillatorSlatContainer.h \
   PHG4ScintillatorSlatDefs.h
