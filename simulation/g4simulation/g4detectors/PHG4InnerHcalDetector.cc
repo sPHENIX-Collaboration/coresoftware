@@ -1,6 +1,4 @@
 #include "PHG4InnerHcalDetector.h"
-#include "PHG4CylinderGeomContainer.h"
-#include "PHG4CylinderGeomv3.h"
 #include "PHG4Parameters.h"
 
 #include <g4main/PHG4Utils.h>
@@ -430,7 +428,6 @@ PHG4InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
   hcal_rotm.rotateZ(params->get_double_param("rot_z")*deg);
   new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(params->get_double_param("place_x")*cm, params->get_double_param("place_y")*cm, params->get_double_param("place_z")*cm)), hcal_envelope_log, "InnerHcalEnvelope", logicWorld, 0, false, overlapcheck);
   ConstructInnerHcal(hcal_envelope_log);
-  AddGeometryNode();
   return;
 }
 
@@ -458,7 +455,7 @@ PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
   // then shift the scintillator center as documented in loop
   // then 
   // for positive tilt angles we need the lower left corner of the scintillator
-  // for negative tilt angles we nee the upper right corner of the scintillator
+  // for negative tilt angles we need the upper right corner of the scintillator
   // as it turns out the code uses the middle of the face of the scintillator
   // as reference, if this is a problem the code needs to be modified to
   // actually calculate the corner (but the math of the construction is that 
@@ -466,7 +463,7 @@ PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
   double xp = cos(phi) * middlerad;
   double yp = sin(phi) * middlerad;
   xp -= cos((-tilt_angle)/rad - phi)*shiftslat;
-  yp +=  sin((-tilt_angle)/rad - phi)*shiftslat;
+  yp += sin((-tilt_angle)/rad - phi)*shiftslat;
   if (tilt_angle >0)
     {
       double xo = xp - (scinti_tile_x/2.)*cos(tilt_angle/rad);
@@ -727,37 +724,6 @@ PHG4InnerHcalDetector::CheckTiltAngle() const
   return 0;
 }
 
-
-void
-PHG4InnerHcalDetector::AddGeometryNode()
-{
-  if (params->get_int_param("active"))
-    {
-      ostringstream geonode;
-      if (superdetector != "NONE")
-	{
-	  geonode << "CYLINDERGEOM_" << superdetector;
-	}
-      else
-	{
-	  geonode << "CYLINDERGEOM_" << detector_type << "_" << layer;
-	}
-      PHG4CylinderGeomContainer *geo =  findNode::getClass<PHG4CylinderGeomContainer>(topNode , geonode.str().c_str());
-      if (!geo)
-	{
-	  geo = new PHG4CylinderGeomContainer();
-	  PHNodeIterator iter( topNode );
-	  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
-	  PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo, geonode.str().c_str(), "PHObject");
-	  runNode->addNode(newNode);
-	}
-      // here in the detector class we have internal units, convert to cm
-      // before putting into the geom object
-      PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv3(inner_radius / cm, (params->get_double_param("place_z")*cm - size_z / 2.) / cm, (params->get_double_param("place_z")*cm + size_z / 2.) / cm, (outer_radius - inner_radius) / cm, n_scinti_plates,  tilt_angle / rad, 0);
-      geo->AddLayerGeom(layer, mygeom);
-      if (verbosity > 0) geo->identify();
-    }
-}
 
 int
 PHG4InnerHcalDetector::ConsistencyCheck() const

@@ -57,7 +57,6 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   void SetTiltViaNcross();
 
   protected:
-  void AddGeometryNode();
   int ConstructInnerHcal(G4LogicalVolume* sandwich);
   int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
   double x_at_y(Point_2 &p0, Point_2 &p1, double yin);

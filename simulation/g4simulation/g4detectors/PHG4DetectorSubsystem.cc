@@ -63,8 +63,15 @@ PHG4DetectorSubsystem::InitRun( PHCompositeNode* topNode )
       paramscontainer = findNode::getClass<PHG4ParametersContainer>(parNode,g4geonodename);
       if (! paramscontainer)
 	{
+	  PHNodeIterator parIter(parNode);
+          PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode",SuperDetector()));
+	  if (! DetNode)
+	    {
+	      DetNode = new PHCompositeNode(SuperDetector());
+	      parNode->addNode(DetNode);
+	    }
 	  paramscontainer = new PHG4ParametersContainer(superdetector);
-	  parNode->addNode(new PHDataNode<PHG4ParametersContainer>(paramscontainer,g4geonodename));
+	  DetNode->addNode(new PHDataNode<PHG4ParametersContainer>(paramscontainer,g4geonodename));
 	}
       paramscontainer->AddPHG4Parameters(layer,params);
       paramnodename += superdetector;
@@ -109,7 +116,18 @@ PHG4DetectorSubsystem::InitRun( PHCompositeNode* topNode )
   // the node tree, DB or file
   UpdateParametersWithMacro();
   // save updated persistant copy on node tree
-  params->SaveToNodeTree(runNode,paramnodename,layer);
+  PHCompositeNode *RunDetNode = runNode;
+  if (superdetector != "NONE")
+    {
+      PHNodeIterator runIter(runNode);
+      RunDetNode = dynamic_cast<PHCompositeNode*>(runIter.findFirst("PHCompositeNode",SuperDetector()));
+      if (! RunDetNode)
+	{
+	  RunDetNode = new PHCompositeNode(SuperDetector());
+	  runNode->addNode(RunDetNode);
+	}
+    }
+  params->SaveToNodeTree(RunDetNode,paramnodename,layer);
   int iret = InitRunSubsystem(topNode);
   if (Verbosity() > 0)
     {
