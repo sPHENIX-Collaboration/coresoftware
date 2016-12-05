@@ -91,7 +91,7 @@ G4SnglNtuple::process_event( PHCompositeNode* topNode )
               layer_edep_map[hit_iter->second->get_layer()] += hit_iter->second->get_edep();
               esum += hit_iter->second->get_edep();
               ntup->Fill(phi,theta,e,detid,
-                         hit_iter->second->get_layer(),
+                         hit_iter->second->get_detid(),
                          hit_iter->second->get_x(0),
                          hit_iter->second->get_y(0),
                          hit_iter->second->get_z(0),
