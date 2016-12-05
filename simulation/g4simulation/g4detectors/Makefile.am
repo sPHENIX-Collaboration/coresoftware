@@ -165,7 +165,6 @@ libg4detectors_la_SOURCES = \
   PHG4FCalSubsystem.cc \
   PHG4FCalSubsystem_Dict.cc \
   PHG4ForwardEcalDetector.cc \
-  PHG4FlushStepTrackingAction.cc \
   PHG4EICForwardEcalDetector.cc \
   PHG4ForwardEcalSteppingAction.cc \
   PHG4ForwardEcalSubsystem.cc \
