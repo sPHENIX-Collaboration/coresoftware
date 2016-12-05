@@ -26,7 +26,7 @@ class PHG4ParameterInterface
 
   void UpdateParametersWithMacro();
   void SaveToNodeTree(PHCompositeNode *runNode, const std::string &nodename);
-
+  void PutOnParNode(PHCompositeNode *parNode, const std::string &nodename);
  protected:
   void set_default_double_param( const std::string &name, const double dval);
   void set_default_int_param( const std::string &name, const int ival);

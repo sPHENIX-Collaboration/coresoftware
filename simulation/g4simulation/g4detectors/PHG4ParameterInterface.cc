@@ -1,6 +1,9 @@
 #include "PHG4ParameterInterface.h"
 #include "PHG4Parameters.h"
 
+#include <phool/PHCompositeNode.h>
+#include <phool/PHDataNode.h>
+
 #include <TSystem.h>
 
 using namespace std;
@@ -151,6 +154,12 @@ PHG4ParameterInterface::SaveToNodeTree(PHCompositeNode *runNode, const string &n
 {
   params->SaveToNodeTree(runNode, nodename);
   return;
+}
+
+void
+PHG4ParameterInterface::PutOnParNode(PHCompositeNode *parNode, const string &nodename)
+{
+  parNode->addNode(new PHDataNode<PHG4Parameters>(params,nodename));
 }
 
 void
