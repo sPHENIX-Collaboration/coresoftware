@@ -90,6 +90,8 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderGeomv3_Dict.cc \
   PHG4CylinderGeomv4.cc \
   PHG4CylinderGeomv4_Dict.cc \
+  PHG4CylinderGeom_Siladders.cc \
+  PHG4CylinderGeom_Siladders_Dict.cc \
   PHG4CylinderGeom_Spacalv1.cc \
   PHG4CylinderGeom_Spacalv1_Dict.cc \
   PHG4CylinderGeom_MAPS.cc \
@@ -163,6 +165,7 @@ libg4detectors_la_SOURCES = \
   PHG4FCalSubsystem.cc \
   PHG4FCalSubsystem_Dict.cc \
   PHG4ForwardEcalDetector.cc \
+  PHG4FlushStepTrackingAction.cc \
   PHG4EICForwardEcalDetector.cc \
   PHG4ForwardEcalSteppingAction.cc \
   PHG4ForwardEcalSubsystem.cc \
@@ -261,7 +264,8 @@ libg4detectors_la_SOURCES = \
   PHG4TPCDistortion.cc \
   PHG4TPCDistortion_Dict.cc\
   PHG4TPCSpaceChargeDistortion.cc \
-  PHG4TPCSpaceChargeDistortion_Dict.cc
+  PHG4TPCSpaceChargeDistortion_Dict.cc \
+  PHG4SiliconTrackerParameterisation.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

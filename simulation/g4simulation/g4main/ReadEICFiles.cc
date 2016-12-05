@@ -10,15 +10,11 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 
+// eicsmear classes
+#include <eicsmear/erhic/EventMC.h>
 
-//  General Root, Pythia and C classes
-#include <TParticle.h>
-#include <TClonesArray.h>
-
+// General Root and C++ classes
 #include <TChain.h>
-
-#include <vector>
-#include <fstream>
 
 using namespace std;
 
@@ -26,17 +22,11 @@ using namespace std;
 
 ReadEICFiles::ReadEICFiles(const string &name):
   SubsysReco(name),
+  filename(""),
   Tin(NULL),
-  Particle(NULL),
-  ParticleArray(NULL),
   nEntries(0),
   entry(0),
-  ProcessID(0),
-  Y(NAN),
-  Q2(NAN),
-  X(NAN),
-  W2(NAN),
-  NU(NAN)
+  GenEvent(NULL)
 {
   return;
 }
@@ -55,7 +45,7 @@ bool
 ReadEICFiles::OpenInputFile(const string &name)
 {
   filename = name;
-  Tin = new TChain("T", "T");
+  Tin = new TChain("EICTree", "EICTree");
   Tin->Add(name.c_str());
   GetTree();
   return true;
@@ -65,13 +55,12 @@ ReadEICFiles::OpenInputFile(const string &name)
 
 void ReadEICFiles::GetTree()
 {
-  Tin->SetBranchAddress("process_id", &ProcessID);
-  Tin->SetBranchAddress("y", &Y);
-  Tin->SetBranchAddress("Q2", &Q2);
-  Tin->SetBranchAddress("x", &X);
-  Tin->SetBranchAddress("nu", &NU);
-  Tin->SetBranchAddress("W2", &W2);
-  Tin->SetBranchAddress("particles", &ParticleArray);
+  /* Print the actual class of the event branch record,
+     i.e. erhic::EventMilou or other */
+  cout << "ReadEICFiles: Input Branch Event Class = "
+       << Tin->GetBranch("event")->GetClassName() << endl;
+
+  Tin->SetBranchAddress("event", &GenEvent);
   nEntries = Tin->GetEntries();
 }
 
@@ -96,6 +85,8 @@ ReadEICFiles::Init(PHCompositeNode *topNode)
 int
 ReadEICFiles::process_event(PHCompositeNode *topNode)
 {
+
+  /* Check if there is an unused event left in input file */
   if (entry >= nEntries)
     {
       if (filename.size() > 0)
@@ -109,12 +100,15 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
+  /* Get information about world geometry */
   recoConsts *rc = recoConsts::instance();
   float worldsizex = rc->get_FloatFlag("WorldSizex");
   float worldsizey = rc->get_FloatFlag("WorldSizey");
   float worldsizez = rc->get_FloatFlag("WorldSizez");
   string worldshape = rc->get_CharFlag("WorldShape");
+
   enum {ShapeG4Tubs = 0, ShapeG4Box = 1};
+
   int ishape;
   if (worldshape == "G4Tubs")
     {
@@ -129,24 +123,37 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
       cout << PHWHERE << " unknown world shape " << worldshape << endl;
       exit(1);
     }
-  PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
 
+  /* Find InEvent node */
+  PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
+  if (!ineve) {
+    cout << PHWHERE << "no PHG4INEVENT node" << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  /* Get event record from tree */
   Tin->GetEntry(entry);
-  for (int ii = 0; ii < ParticleArray->GetEntries(); ii++)
+
+  /* Loop over all particles for this event in input file */
+  for (unsigned ii = 0; ii < GenEvent->GetNTracks(); ii++)
     {
-      Particle = (TParticle *)ParticleArray->At(ii);
-      //skip particles which have daughters
-      //      if (Particle->GetFirstDaughter())
-      if (Particle->GetStatusCode()>10)
+
+      /* Get particle / track from event recors */
+      erhic::VirtualParticle * track_ii = GenEvent->GetTrack(ii);
+
+      /* Check if particle is stable final state particle */
+      if ( track_ii->GetStatus()>10 )
         {
           continue;
         }
-      // get production vertex of particle
-      double vx = Particle->Vx();
-      double vy = Particle->Vy();
-      double vz = Particle->Vz();
-      double vt = Particle->T();
-      // world is a cylinder
+
+      /* get production vertex of particle */
+      double vx = track_ii->GetVertex().X();
+      double vy = track_ii->GetVertex().Y();
+      double vz = track_ii->GetVertex().Z();
+      double vt = 0;
+
+      /* if world is a cylinder */
       if (ishape == ShapeG4Tubs)
         {
           if (sqrt(vx*vx + vy*vy) > worldsizey / 2 || fabs(vz) > worldsizez / 2)
@@ -158,6 +165,7 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
               continue;
             }
         }
+      /* if world is a box */
       else if (ishape == ShapeG4Box)
         {
           if (fabs(vx) > worldsizex / 2 || fabs(vy) > worldsizey / 2 || fabs(vz) > worldsizez / 2)
@@ -169,23 +177,34 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
               continue;
             }
         }
+      /* if world is of unknown shape */
       else
         {
           cout << PHWHERE << " shape " << ishape << " not implemented. exiting" << endl;
           exit(1);
         }
+
+      /* Add particle to Geant4 event */
       int idvtx = ineve->AddVtx(vx, vy, vz, vt);
+
       PHG4Particle *g4particle = new PHG4Particlev1();
-      g4particle->set_pid(Particle->GetPdgCode());
-      g4particle->set_px(Particle->Px());
-      g4particle->set_py(Particle->Py());
-      g4particle->set_pz(Particle->Pz());
+      g4particle->set_pid(track_ii->Id());
+      g4particle->set_px(track_ii->GetPx());
+      g4particle->set_py(track_ii->GetPy());
+      g4particle->set_pz(track_ii->GetPz());
+
       ineve->AddParticle(idvtx, g4particle);
     }
+
+  /* Print event information if verbosity > 0 */
   if (verbosity > 0)
     {
       ineve->identify();
     }
+
+  /* Count up number of 'used' events from input file */
   entry++;
+
+  /* Done */
   return 0;
 }

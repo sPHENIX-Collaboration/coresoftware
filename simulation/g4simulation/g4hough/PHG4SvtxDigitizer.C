@@ -149,7 +149,7 @@ void PHG4SvtxDigitizer::CalculateCylinderCellADCScale(PHCompositeNode *topNode) 
 
 void PHG4SvtxDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode) {
 
-  // defaults to 8-bit ADC, short-axis MIP placed at 1/4 dynamic range
+  // FPHX 3-bit ADC, thresholds are set in "set_fphx_adc_scale".
 
   PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
@@ -162,20 +162,13 @@ void PHG4SvtxDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode) {
       ++layeriter) {
 
     int layer = layeriter->second->get_layer();
-    float thickness = (layeriter->second)->get_thickness();
-    float pitch = (layeriter->second)->get_strip_y_spacing();
-    float length = (layeriter->second)->get_strip_z_spacing();
-   
-    float minpath = pitch;
-    if (length < minpath) minpath = length;
-    if (thickness < minpath) minpath = thickness;
-    float mip_e = 0.003876*minpath;  
+    if (_max_fphx_adc.find(layer)==_max_fphx_adc.end())
+      assert(!"Error: _max_fphx_adc is not available.");
 
-    if (_max_adc.find(layer) == _max_adc.end()) {
-      _max_adc[layer] = 255;
-      _energy_scale[layer] = mip_e / 64;
-    }
-  }    
+    float thickness = (layeriter->second)->get_thickness(); // mm
+    float mip_e     = 0.003876 * 2.*thickness; // GeV
+    _energy_scale.insert(std::make_pair(layer, mip_e));
+  }
 
   return;
 }
@@ -288,12 +281,32 @@ void PHG4SvtxDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) {
     
     SvtxHit_v1 hit;
 
-    hit.set_layer(cell->get_layer());
+    const int layer = cell->get_layer();
+    hit.set_layer(layer);
     hit.set_cellid(cell->get_cell_id());
 
-    unsigned int adc = cell->get_edep() / _energy_scale[hit.get_layer()];
-    if (adc > _max_adc[hit.get_layer()]) adc = _max_adc[hit.get_layer()]; 
-    float e = _energy_scale[hit.get_layer()] * adc;
+    if (_energy_scale.count(layer)>1)
+      assert(!"Error: _energy_scale has two or more keys.");
+
+    const float mip_e = _energy_scale[layer];
+
+    std::vector< std::pair<double, double> > vadcrange = _max_fphx_adc[layer];
+
+    int adc = -1;
+    for (unsigned int irange=0; irange<vadcrange.size(); ++irange)
+      if (cell->get_edep()>=vadcrange[irange].first*(double)mip_e && cell->get_edep()<vadcrange[irange].second*(double)mip_e)
+	adc = (int)irange;
+
+    if (adc<0) // TODO, underflow is temporarily assigned to ADC=0.
+      adc = 0;
+
+    float e = 0.0;
+    if (adc>=0 && adc<int(vadcrange.size())-1)
+      e = 0.5*(vadcrange[adc].second - vadcrange[adc].first)*mip_e;
+    else if (adc==int(vadcrange.size())-1) // overflow
+      e = vadcrange[adc].first*mip_e;
+    else // underflow
+      e = 0.5*vadcrange[0].first*mip_e;
     
     hit.set_adc(adc);
     hit.set_e(e);
