@@ -1173,6 +1173,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  float gx       = NAN;
 	  float gy       = NAN;
 	  float gz       = NAN;
+	  float gt       = NAN;
 	  float gtrackID = NAN;
 	  float gflavor  = NAN;
 	  float gpx      = NAN;
@@ -1196,7 +1197,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	    g4hitID  = g4hit->get_hit_id();
 	    gx       = g4hit->get_avg_x();
 	    gy       = g4hit->get_avg_y();
-	    gz       = g4hit->get_avg_z();
+      gz       = g4hit->get_avg_z();
+      gt       = g4hit->get_avg_t();
 
 	    if (g4particle) {
 	    
@@ -1232,7 +1234,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	    efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
 	  }
 
-	  float cluster_data[37] = {(float) _ievent,
+	  float cluster_data[38] = {(float) _ievent,
 				    hitID,
 				    x,
 				    y,
@@ -1252,6 +1254,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				    gx,
 				    gy,
 				    gz,
+				    gt,
 				    gtrackID,
 				    gflavor,
 				    gpx,
