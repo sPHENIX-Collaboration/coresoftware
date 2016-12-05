@@ -34,7 +34,7 @@ class PHG4HcalCellReco : public SubsysReco, public PHG4ParameterInterface
   void Detector(const std::string &d) {detector = d;}
   void checkenergy(const int i=1) {chkenergyconservation = i;}
 
-  void   set_timing_window(const double tmi, const double tma) {tmin = tmi; tmax = tma;}
+  void   set_timing_window(const double tmi, const double tma);
   
  protected:
   int CheckEnergy(PHCompositeNode *topNode);

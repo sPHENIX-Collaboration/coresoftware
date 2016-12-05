@@ -38,7 +38,8 @@ PHG4HcalCellReco::PHG4HcalCellReco(const string &name) :
   InitializeParameters();
 }
 
-int PHG4HcalCellReco::InitRun(PHCompositeNode *topNode)
+int
+PHG4HcalCellReco::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
@@ -50,9 +51,10 @@ int PHG4HcalCellReco::InitRun(PHCompositeNode *topNode)
       exit(1);
     }
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "PAR" ));
 
   string paramnodename = "G4CELLPARAM_" + detector;
-  // string paramname = detector + "_cell";
+  string geonodename = "G4CELLGEO_" + detector;
   hitnodename = "G4HIT_" + detector;
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
@@ -78,7 +80,24 @@ int PHG4HcalCellReco::InitRun(PHCompositeNode *topNode)
       DetNode->addNode(newNode);
     }
   UpdateParametersWithMacro();
-  SaveToNodeTree(runNode,paramnodename);
+  // save this to the run wise tree to store on DST
+  PHNodeIterator runIter(runNode);
+  PHCompositeNode *RunDetNode =  dynamic_cast<PHCompositeNode*>(runIter.findFirst("PHCompositeNode",detector));
+  if (! RunDetNode)
+    {
+      RunDetNode = new PHCompositeNode(detector);
+      runNode->addNode(RunDetNode);
+    }
+  SaveToNodeTree(RunDetNode,paramnodename);
+  // save this to the parNode for use
+  PHNodeIterator parIter(parNode);
+  PHCompositeNode *ParDetNode =  dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode",detector));
+  if (! ParDetNode)
+    {
+      ParDetNode = new PHCompositeNode(detector);
+      parNode->addNode(ParDetNode);
+    }
+  PutOnParNode(ParDetNode,geonodename);
   tmin = get_double_param("tmin");
   tmax = get_double_param("tmax");
   return Fun4AllReturnCodes::EVENT_OK;
@@ -221,4 +240,11 @@ PHG4HcalCellReco::SetDefaultParameters()
   set_default_double_param("tmax",60.0);
   set_default_double_param("tmin",0.0);
   return;
+}
+
+void
+PHG4HcalCellReco::set_timing_window(const double tmi, const double tma)
+{
+  set_double_param("tmin",tmi);
+  set_double_param("tmax",tma);
 }
