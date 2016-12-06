@@ -47,7 +47,7 @@ RawTowerv1::RawTowerv1(RawTowerDefs::keytype id) :
 }
 
 RawTowerv1::RawTowerv1(const unsigned int ieta, const unsigned int iphi) :
-    towerid(0), energy(0)
+    towerid(0), energy(0), time(NAN)
 {
   towerid = RawTowerDefs::encode_towerid(RawTowerDefs::NONE, ieta, iphi);
 }
