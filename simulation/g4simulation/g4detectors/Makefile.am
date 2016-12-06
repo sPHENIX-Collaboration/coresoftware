@@ -56,6 +56,7 @@ pkginclude_HEADERS = \
   PHG4CylinderCellGeom.h \
   PHG4CylinderCellGeom_Spacalv1.h \
   PHG4CylinderCellGeomContainer.h \
+  PHG4HcalDefs.h \
   PHG4ParameterInterface.h \
   PHG4Parameters.h \
   PHG4ParametersContainer.h \
