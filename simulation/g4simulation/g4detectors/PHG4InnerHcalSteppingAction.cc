@@ -1,5 +1,6 @@
 #include "PHG4InnerHcalSteppingAction.h"
 #include "PHG4InnerHcalDetector.h"
+#include "PHG4HcalDefs.h"
 #include "PHG4Parameters.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -47,7 +48,7 @@ PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector*
   absorbertruth(params->get_int_param("absorbertruth")),
   IsActive(params->get_int_param("active")),
   IsBlackHole(params->get_int_param("blackhole")),
-  n_scinti_plates(params->get_int_param("n_scinti_plates_per_tower")*params->get_int_param("n_towers")),
+  n_scinti_plates(params->get_int_param(PHG4HcalDefs::scipertwr)*params->get_int_param("n_towers")),
   light_scint_model(params->get_int_param("light_scint_model")),
   light_balance_inner_corr(params->get_double_param("light_balance_inner_corr")),
   light_balance_inner_radius(params->get_double_param("light_balance_inner_radius")*cm),

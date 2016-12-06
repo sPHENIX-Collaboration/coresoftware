@@ -2,6 +2,7 @@
 #include "PHG4InnerHcalDetector.h"
 #include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4InnerHcalSteppingAction.h"
+#include "PHG4HcalDefs.h"
 #include "PHG4Parameters.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -168,7 +169,7 @@ PHG4InnerHcalSubsystem::SetDefaultParameters()
   set_default_int_param("light_scint_model", 1);
   set_default_int_param("ncross", 4);
   set_default_int_param("n_towers", 64);
-  set_default_int_param("n_scinti_plates_per_tower", 4);
+  set_default_int_param(PHG4HcalDefs::scipertwr, 4);
   set_default_int_param("n_scinti_tiles", 12);
 
   set_default_string_param("material", "SS310");
