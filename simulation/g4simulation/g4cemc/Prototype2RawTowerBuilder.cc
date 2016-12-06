@@ -6,12 +6,15 @@
 #include <g4detectors/PHG4ScintillatorSlat.h>
 #include <g4detectors/PHG4ScintillatorSlatContainer.h>
 #include <g4detectors/PHG4ScintillatorSlatDefs.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHIODataNode.h>
+
 #include <g4main/PHG4Utils.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>
 
 #include <iostream>
 #include <stdexcept>
@@ -21,7 +24,8 @@ using namespace std;
 
 Prototype2RawTowerBuilder::Prototype2RawTowerBuilder(const std::string& name) :
     SubsysReco(name), 
-    _towers(NULL), 
+    _towers(NULL),
+    rawtowergeom(NULL),
     detector("NONE"), 
     emin(1e-6),
     chkenergyconservation(0), 
