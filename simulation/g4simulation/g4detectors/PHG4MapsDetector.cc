@@ -30,6 +30,7 @@
 
 #include <cmath>
 #include <sstream>
+#include <memory>
 
 using namespace std;
 
@@ -137,8 +138,8 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
   //===================================
 
   // import the staves from the gemetry file
-  G4GDMLReadStructure * reader = new G4GDMLReadStructure();
-  G4GDMLParser gdmlParser(reader);
+  std::unique_ptr<G4GDMLReadStructure>  reader (new G4GDMLReadStructure());
+  G4GDMLParser gdmlParser(reader.get());
   gdmlParser.Read(stave_geometry_file);
   
   // figure out which assembly we want
@@ -148,6 +149,8 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
   if (Verbosity())
     cout << "Geting the stave assembly named " << assemblyname << endl;
   G4AssemblyVolume* av_ITSUStave = reader->GetAssembly(assemblyname);
+
+//  if (reader) delete reader;
 
   //=========================================
   // Now we populate the whole layer with the staves
