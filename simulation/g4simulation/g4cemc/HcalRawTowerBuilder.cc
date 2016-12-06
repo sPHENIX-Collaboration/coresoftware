@@ -35,6 +35,7 @@ HcalRawTowerBuilder::HcalRawTowerBuilder(const std::string& name) :
   SubsysReco(name), 
   PHG4ParameterInterface(name),
   _towers(NULL), 
+  rawtowergeom(NULL),
   detector("NONE"), 
   emin(NAN),
   chkenergyconservation(0), 
