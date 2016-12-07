@@ -232,7 +232,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  vector<int> vxbin;
 	  vector<int> vzbin;
 	  vector<double> vlen;
-	  double trklen;
+	  double trklen = 0.0;
 
 	  // Are they different?
 	  bool test_one_pixel = false;  // normally false!
