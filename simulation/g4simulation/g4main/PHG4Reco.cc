@@ -573,7 +573,7 @@ PHG4Reco::Print(const std::string &what) const
 {
   BOOST_FOREACH(SubsysReco * reco, subsystems_)
     {
-      if (what == "ALL" || reco->Name() == what)
+      if (what.empty() || what=="ALL" || (reco->Name()).find(what) != string::npos)
 	{
 	  cout << "Printing " << reco->Name() << endl;
 	  reco->Print(what);
