@@ -12,6 +12,7 @@
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 
+#include <TSystem.h>
 
 #include <cmath>
 #include <cstdlib>
@@ -59,7 +60,8 @@ PHG4HcalCellReco::InitRun(PHCompositeNode *topNode)
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
     {
-      cout << "Could not locate g4 hit node " << hitnodename << endl;
+      cout << Name() << " Could not locate G4HIT node " << hitnodename << endl;
+      gSystem->Exit(1);
       exit(1);
     }
   cellnodename = "G4CELL_" + detector;
