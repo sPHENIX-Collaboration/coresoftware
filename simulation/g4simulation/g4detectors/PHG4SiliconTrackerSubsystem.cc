@@ -21,7 +21,6 @@ PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &dete
     active(0),
     absorberactive(0),
     layerconfig_(layerconfig),
-    blackhole(0),
     detector_type(detectorname),
     superdetector(detectorname)
 {
@@ -45,7 +44,6 @@ int PHG4SiliconTrackerSubsystem::Init( PHCompositeNode* topNode )
   detector_ = new PHG4SiliconTrackerDetector(topNode, Name(), layerconfig_);
   detector_->SetActive(active);
   detector_->SetAbsorberActive(absorberactive);
-  detector_->BlackHole(blackhole);
   detector_->SuperDetector(superdetector);
   detector_->Detector(detector_type);
   detector_->OverlapCheck(overlapcheck);
@@ -69,7 +67,7 @@ int PHG4SiliconTrackerSubsystem::Init( PHCompositeNode* topNode )
 
           block_hits =  findNode::getClass<PHG4HitContainer>(topNode , nodename.c_str());
           if (!block_hits)
-            dstNode->addNode(new PHIODataNode<PHObject>( block_hits = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
+            dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
 
           eventaction->AddNode(nodename);
         }
@@ -79,9 +77,6 @@ int PHG4SiliconTrackerSubsystem::Init( PHCompositeNode* topNode )
       // create stepping action
       steppingAction_ = new PHG4SiliconTrackerSteppingAction(detector_);
     }
-
-  if (blackhole && !active)
-    steppingAction_ = new PHG4SiliconTrackerSteppingAction(detector_);
 
   return 0;
 }
@@ -96,7 +91,6 @@ int PHG4SiliconTrackerSubsystem::process_event(PHCompositeNode * topNode)
 
   return 0;
 }
-
 
 //_______________________________________________________________________
 PHG4Detector* PHG4SiliconTrackerSubsystem::GetDetector(void) const
