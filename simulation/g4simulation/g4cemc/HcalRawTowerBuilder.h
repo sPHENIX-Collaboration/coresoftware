@@ -1,25 +1,26 @@
-#ifndef Prototype2RawTowerBuilder_H__
-#define Prototype2RawTowerBuilder_H__
+#ifndef HcalRawTowerBuilder_H__
+#define HcalRawTowerBuilder_H__
 
+#include <g4detectors/PHG4ParameterInterface.h>
 #include <fun4all/SubsysReco.h>
-
 #include <phool/PHTimeServer.h>
 
 #include <string>
+
 
 class PHCompositeNode;
 class RawTowerContainer;
 class RawTowerGeomContainer;
 
-class Prototype2RawTowerBuilder : public SubsysReco {
+class HcalRawTowerBuilder : public SubsysReco, public PHG4ParameterInterface
+{
 
  public:
-  Prototype2RawTowerBuilder(const std::string& name="Prototype2RawTowerBuilder");
-  virtual ~Prototype2RawTowerBuilder(){}
+  HcalRawTowerBuilder(const std::string& name="HcalRawTowerBuilder");
+  virtual ~HcalRawTowerBuilder(){}
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
   void Detector(const std::string &d) {detector = d;}
   void EminCut(const double e) {emin = e;}
   void checkenergy(const int i = 1) {chkenergyconservation = i;}
@@ -33,21 +34,16 @@ class Prototype2RawTowerBuilder : public SubsysReco {
     kLightYield,
 
     //! save ionization energy
-    kIonizationEnergy
+    kIonizationEnergy,
+    //! initialization value
+    unknown = -1
   };
 
-  enu_tower_energy_src
+  int
   get_tower_energy_src() const
   {
     return _tower_energy_src;
   }
-
-  void
-  set_tower_energy_src(enu_tower_energy_src towerEnergySrc)
-  {
-    _tower_energy_src = towerEnergySrc;
-  }
-
 
   std::string
   get_sim_tower_node_prefix() const
@@ -63,8 +59,11 @@ class Prototype2RawTowerBuilder : public SubsysReco {
 
   short get_tower_row(const short cellrow) const;
 
+  void SetDefaultParameters();
+
  protected:
   void CreateNodes(PHCompositeNode *topNode);
+  void ReadParamsFromNodeTree(PHCompositeNode *topNode);
 
   RawTowerContainer* _towers;
   RawTowerGeomContainer *rawtowergeom;
@@ -76,10 +75,10 @@ class Prototype2RawTowerBuilder : public SubsysReco {
 
   double emin;	
   int chkenergyconservation;
-  enu_tower_energy_src _tower_energy_src;
+  int _tower_energy_src;
   int ncell_to_tower;
   PHTimeServer::timer _timer;
 
 };
 
-#endif /* Prototype2RawTowerBuilder_H__ */
+#endif /* HcalRawTowerBuilder_H__ */

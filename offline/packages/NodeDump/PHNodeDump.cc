@@ -9,6 +9,7 @@
 #include "DumpPHG4CylinderGeomContainer.h"
 #include "DumpPHG4HitContainer.h"
 #include "DumpPHG4InEvent.h"
+#include "DumpPHG4ScintillatorSlatContainer.h"
 #include "DumpPHG4TruthInfoContainer.h"
 #include "DumpRawClusterContainer.h"
 #include "DumpRawTowerContainer.h"
@@ -187,6 +188,10 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
           else if (tmp->InheritsFrom("PHG4InEvent"))
             {
               newdump = new DumpPHG4InEvent(NodeName);
+            }
+          else if (tmp->InheritsFrom("PHG4ScintillatorSlatContainer"))
+            {
+              newdump = new DumpPHG4ScintillatorSlatContainer(NodeName);
             }
           else if (tmp->InheritsFrom("PHG4TruthInfoContainer"))
             {

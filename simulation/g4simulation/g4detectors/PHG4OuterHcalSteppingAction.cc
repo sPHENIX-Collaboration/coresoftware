@@ -1,6 +1,8 @@
 // local headers in quotes (that is important when using include subdirs!)
 #include "PHG4OuterHcalSteppingAction.h"
 #include "PHG4OuterHcalDetector.h"
+#include "PHG4HcalDefs.h"
+#include "PHG4Parameters.h"
 
 // our own headers in alphabetical order
 
@@ -22,10 +24,12 @@
 #include <Geant4/G4MaterialCutsCouple.hh>
 #include <Geant4/G4PropagatorInField.hh>
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4TransportationManager.hh>
 
 // Root headers
 #include <TH2F.h>
+#include <TSystem.h>
 
 // boost headers
 #include <boost/foreach.hpp>
@@ -61,6 +65,7 @@ PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector*
   absorbertruth(params->get_int_param("absorbertruth")),
   IsActive(params->get_int_param("active")),
   IsBlackHole(params->get_int_param("blackhole")),
+  n_scinti_plates(params->get_int_param(PHG4HcalDefs::scipertwr)*params->get_int_param("n_towers")),
   light_scint_model(params->get_int_param("light_scint_model")),
   light_balance_inner_corr(params->get_double_param("light_balance_inner_corr")),
   light_balance_inner_radius(params->get_double_param("light_balance_inner_radius")*cm),
@@ -110,7 +115,8 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
       FieldChecker(aStep);
     }
 
-  unsigned int motherid = ~0x0; // initialize to 0xFFFFFF using the correct bitness
+
+  int layer_id = -1;
   int tower_id = -1;
   if (whichactive > 0) // scintillator
     {
@@ -137,18 +143,47 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	  if (*tokeniter == "impr")
 	    {
 	      ++tokeniter;
-	      motherid = boost::lexical_cast<int>(*tokeniter);
+	      if (tokeniter != tok.end())
+		{
+		  layer_id = boost::lexical_cast<int>(*tokeniter);
+		  // check detector description, for assemblyvolumes it is not possible
+		  // to give the first volume id=0, so they go from id=1 to id=n. 
+		  // I am not going to start with fortran again - our indices start 
+		  // at zero, id=0 to id=n-1. So subtract one here
+		  layer_id--;
+		  if (layer_id < 0 || layer_id >= n_scinti_plates)
+		    {
+		      cout << "invalid scintillator row " << layer_id
+			   << ", valid range 0 < row < " << n_scinti_plates << endl;
+		      gSystem->Exit(1);
+		    }
+		}
+	      else
+		{
+		  cout << PHWHERE << " Error parsing " << volume->GetName()
+		       << " for mother volume number " << endl;
+		  gSystem->Exit(1);
+		}
 	    }
 	  else if (*tokeniter == "pv")
 	    {
 	      ++tokeniter;
-	      tower_id = boost::lexical_cast<int>(*tokeniter);
+	      if (tokeniter != tok.end())
+		{
+		  tower_id = boost::lexical_cast<int>(*tokeniter);
+		}
+	      else
+		{
+		  cout << PHWHERE << " Error parsing " << volume->GetName()
+		       << " for mother scinti slat id " << endl;
+	          gSystem->Exit(1);
+		}
 	    }
 	}
     }
   else
     {
-      tower_id = touch->GetCopyNumber(); // steel plate id
+      layer_id = touch->GetCopyNumber(); // steel plate id
     }
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -164,7 +199,6 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
       G4Track* killtrack = const_cast<G4Track *> (aTrack);
       killtrack->SetTrackStatus(fStopAndKill);
     }
-  int layer_id = detector_->get_Layer();
 
   // make sure we are in a volume
   if ( IsActive )
@@ -192,7 +226,6 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	    {
 	      hit = new PHG4Hitv1();
 	    }
-	  hit->set_layer(motherid);
 	  hit->set_scint_id(tower_id); // the slat id (or steel plate id)
 	  //here we set the entrance values in cm
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm);

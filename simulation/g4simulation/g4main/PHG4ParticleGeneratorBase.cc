@@ -67,7 +67,8 @@ PHG4ParticleGeneratorBase::get_pdgname(const int pdgcode) const
     {
       return particledef->GetParticleName();
     }
-  return 0;
+  // if we cannot find the particle definition we'll make it ia geantino
+  return "geantino";
 }
 
 double

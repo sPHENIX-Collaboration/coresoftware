@@ -15,8 +15,8 @@ class PHG4PhenixSteppingAction : public G4UserSteppingAction
   PHG4PhenixSteppingAction( void )
   {}
 
-  virtual ~PHG4PhenixSteppingAction()
-  {}
+  virtual ~PHG4PhenixSteppingAction();
+  
 
   //! register an action. This is called in PHG4Reco::Init based on which actions are found on the tree
   void AddAction( PHG4SteppingAction* action )

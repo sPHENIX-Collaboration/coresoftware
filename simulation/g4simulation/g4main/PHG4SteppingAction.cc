@@ -7,6 +7,7 @@
  */
 
 #include "PHG4SteppingAction.h"
+#include "PHG4Hit.h"
 
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4Material.hh>
@@ -20,7 +21,6 @@
 #include <Geant4/G4NavigationHistory.hh>
 
 
-#include "PHG4Hit.h"
 
 #include <iostream>
 #include <cassert>
