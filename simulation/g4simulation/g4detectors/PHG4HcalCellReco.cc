@@ -61,6 +61,7 @@ PHG4HcalCellReco::InitRun(PHCompositeNode *topNode)
   if (!g4hit)
     {
       cout << Name() << " Could not locate G4HIT node " << hitnodename << endl;
+      topNode->print();
       gSystem->Exit(1);
       exit(1);
     }
