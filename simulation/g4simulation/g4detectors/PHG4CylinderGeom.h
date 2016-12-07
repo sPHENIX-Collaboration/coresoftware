@@ -44,6 +44,10 @@ class PHG4CylinderGeom: public PHObject
   virtual int get_N_strips_per_column() const {PHOOL_VIRTUAL_WARN("get_N_strips_per_column"); return -9999;}
   virtual int get_N_sensors_in_layer() const {PHOOL_VIRTUAL_WARN("get_N_sensors_in_layer"); return -9999;}
 
+  virtual double get_pixel_z() const {PHOOL_VIRTUAL_WARN("get_pixel_z"); return NAN;}
+  virtual double get_pixel_x() const {PHOOL_VIRTUAL_WARN("get_pixel_x"); return NAN;}
+  virtual double get_pixel_thickness() const {PHOOL_VIRTUAL_WARN("get_pixel_thickness"); return NAN;}
+
   //! load parameters from PHG4Parameters, which interface to Database/XML/ROOT files
   virtual void ImportParameters(const PHG4Parameters & param) {return ;}
 

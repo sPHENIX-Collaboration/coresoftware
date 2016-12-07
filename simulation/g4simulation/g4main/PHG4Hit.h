@@ -135,6 +135,16 @@ class PHG4Hit: public PHObject
     prop_ladder_z_index = 112,
     prop_ladder_phi_index = 113,
 
+    // MAPS stuff 
+    prop_stave_index = 114,
+    prop_half_stave_index = 115,
+    prop_module_index = 116,
+    prop_chip_index = 117,
+
+    prop_local_pos_x_0 = 118,
+    prop_local_pos_y_0 = 119,
+    prop_local_pos_z_0 = 120,
+
     //! generic indexes
     prop_index_i = 121,
     prop_index_j = 122,
@@ -144,6 +154,9 @@ class PHG4Hit: public PHObject
     //! hit type
     prop_hit_type = 125,
 
+    prop_local_pos_x_1 = 128,
+    prop_local_pos_y_1 = 126,
+    prop_local_pos_z_1 = 127,
 
     //! max limit in order to fit into 8 bit unsigned number
     prop_MAX_NUMBER = UCHAR_MAX

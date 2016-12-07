@@ -24,6 +24,7 @@ SvtxTruthEval::SvtxTruthEval(PHCompositeNode* topNode)
     _truthinfo(NULL),
     _g4hits_svtx(NULL),
     _g4hits_tracker(NULL),
+    _g4hits_maps(NULL),
     _strict(false),
     _verbosity(1),
     _errors(0), 
@@ -95,6 +96,17 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits() {
     }
   }
 
+  // loop over all the g4hits in the maps layers
+  if (_g4hits_maps) {
+    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_maps->getHits().first;
+	 g4iter != _g4hits_maps->getHits().second;
+	 ++g4iter) {
+      
+      PHG4Hit* g4hit = g4iter->second;
+      truth_hits.insert(g4hit);
+    }
+  }
+
   if (_do_cache) _cache_all_truth_hits = truth_hits;
 
   return truth_hits;
@@ -133,6 +145,18 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle) {
   if (_g4hits_tracker) {
     for (PHG4HitContainer::ConstIterator g4iter = _g4hits_tracker->getHits().first;
 	 g4iter != _g4hits_tracker->getHits().second;
+	 ++g4iter) {
+      
+      PHG4Hit* g4hit = g4iter->second;
+      if (!is_g4hit_from_particle(g4hit,particle)) continue;
+      truth_hits.insert(g4hit);
+    }
+  }
+
+  // loop over all the g4hits in the maps ladder layers
+  if (_g4hits_maps) {
+    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_maps->getHits().first;
+	 g4iter != _g4hits_maps->getHits().second;
 	 ++g4iter) {
       
       PHG4Hit* g4hit = g4iter->second;
@@ -263,7 +287,8 @@ void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode) {
 
   _g4hits_svtx    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SVTX");
   _g4hits_tracker = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SILICON_TRACKER");
-  
+  _g4hits_maps = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_MAPS");
+
   return;
 }
 
@@ -272,8 +297,8 @@ bool SvtxTruthEval::has_node_pointers() {
   if (_strict) assert(_truthinfo);
   else if (!_truthinfo) return false;
 
-  if (_strict) assert(_g4hits_svtx || _g4hits_tracker);
-  else if (!_g4hits_svtx && !_g4hits_tracker) return false;
+  if (_strict) assert(_g4hits_svtx || _g4hits_tracker || _g4hits_maps);
+  else if (!_g4hits_svtx && !_g4hits_tracker && !_g4hits_maps) return false;
   
   return true;
 }

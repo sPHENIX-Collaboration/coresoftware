@@ -60,6 +60,7 @@ private:
   PHG4TruthInfoContainer* _truthinfo;
   PHG4HitContainer* _g4hits_svtx;
   PHG4HitContainer* _g4hits_tracker;
+  PHG4HitContainer* _g4hits_maps;
 
   bool _strict;
   int _verbosity;

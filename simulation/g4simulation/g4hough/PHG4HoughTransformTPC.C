@@ -16,6 +16,7 @@
 // PHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
+#include <g4detectors/PHG4CylinderGeom_MAPS.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4main/PHG4InEvent.h>
@@ -510,22 +511,25 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
   PHG4CylinderGeomContainer* laddergeos = 
       findNode::getClass<PHG4CylinderGeomContainer>(
           topNode,"CYLINDERGEOM_SILICON_TRACKER");
-  
-  if (cellgeos||laddergeos) {
+  PHG4CylinderGeomContainer* mapsladdergeos = findNode::getClass<PHG4CylinderGeomContainer>(
+	  topNode,"CYLINDERGEOM_MAPS");
+
+ if (cellgeos||laddergeos||mapsladdergeos) {
     unsigned int ncelllayers = 0;
     if (cellgeos) ncelllayers += cellgeos->get_NLayers();
     unsigned int nladderlayers = 0;
     if (laddergeos) nladderlayers += laddergeos->get_NLayers();
-    _nlayers = ncelllayers + nladderlayers;
+    unsigned int nmapsladderlayers = 0;
+    if (mapsladdergeos) nmapsladderlayers += mapsladdergeos->get_NLayers();
+    _nlayers = ncelllayers + nladderlayers+nmapsladderlayers;
     default_geo = false;
   } else {
     cerr << PHWHERE
-	 << "Neither CYLINDERCELLGEOM_SVTX nor CYLINDERGEOM_SILICON_TRACKER "
-            "available, reverting to a default geometry"
+	 << "None of CYLINDERCELLGEOM_SVTX or CYLINDERGEOM_MAPS or CYLINDERGEOM_SILICON_TRACKER available, reverting to a default geometry"
 	 << std::endl;    
     _nlayers = 6;
     default_geo = true;
-  }
+ }
 
   //=================================================
   //  Initializing HelixHough objects
@@ -597,6 +601,16 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
       }
     }
 
+    if (mapsladdergeos) {
+      PHG4CylinderGeomContainer::ConstRange layerrange = mapsladdergeos->get_begin_end();
+      for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+	  layeriter != layerrange.second;
+	  ++layeriter) {
+	radius_layer_map.insert( make_pair(layeriter->second->get_radius(),
+					   layeriter->second->get_layer()) );
+      }
+    }
+
     // now that the layer ids are sorted by radius, I can create a storage
     // index, ilayer, that is 0..N-1 and sorted by radius
     
@@ -636,6 +650,21 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
 	_smear_z_layer[_layer_ilayer_map[geo->get_layer()]] = geo->get_strip_z_spacing();     
       }
     }
+
+  if (mapsladdergeos) {    
+      PHG4CylinderGeomContainer::ConstRange begin_end = mapsladdergeos->get_begin_end();
+      PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
+      for( ; miter != begin_end.second; miter++) {
+	PHG4CylinderGeom *geo = miter->second;
+	
+	if (verbosity > 1) geo->identify();
+	
+	_radii[_layer_ilayer_map[geo->get_layer()]] = geo->get_radius();      
+	_smear_xy_layer[_layer_ilayer_map[geo->get_layer()]] = geo->get_pixel_x();
+	_smear_z_layer[_layer_ilayer_map[geo->get_layer()]] = geo->get_pixel_z();     
+      }
+    }
+
   }  
 
   // set material on each layer

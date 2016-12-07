@@ -447,12 +447,14 @@ int PHG4HoughTransform::CreateNodes(PHCompositeNode* topNode) {
   tb_node->addNode(vertexes_node);
   if (verbosity > 0) cout << "Svtx/SvtxVertexMap node added" << endl;
 
+  /*
   PHG4CylinderGeomContainer* geoms =
     findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SVTX");
   if (!geoms) {
     cerr << PHWHERE << " ERROR: Can't find CYLINDERGEOM_SVTX Node." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+  */
 
   return InitializeGeometry(topNode);
 }
@@ -469,16 +471,21 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
   PHG4CylinderGeomContainer* laddergeos =
       findNode::getClass<PHG4CylinderGeomContainer>(
           topNode, "CYLINDERGEOM_SILICON_TRACKER");
+  PHG4CylinderGeomContainer* mapsladdergeos =
+      findNode::getClass<PHG4CylinderGeomContainer>(
+          topNode, "CYLINDERGEOM_MAPS");
 
-  if (cellgeos || laddergeos) {
+  if (cellgeos || laddergeos || mapsladdergeos) {
     unsigned int ncelllayers = 0;
     if (cellgeos) ncelllayers += cellgeos->get_NLayers();
     unsigned int nladderlayers = 0;
     if (laddergeos) nladderlayers += laddergeos->get_NLayers();
-    _nlayers = ncelllayers + nladderlayers;
+    unsigned int nmapsladderlayers = 0;
+    if (mapsladdergeos) nmapsladderlayers += mapsladdergeos->get_NLayers();
+    _nlayers = ncelllayers + nladderlayers + nmapsladderlayers;
   } else {
     cerr << PHWHERE
-         << "Neither CYLINDERCELLGEOM_SVTX nor CYLINDERGEOM_SILICON_TRACKER "
+         << "None of  CYLINDERCELLGEOM_SVTX or CYLINDERGEOM_SILICON_TRACKER or CYLINDERGEOM_MAPS"
             "available, bail"
          << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
@@ -519,6 +526,16 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
     }
   }
 
+  if (mapsladdergeos) {
+    PHG4CylinderGeomContainer::ConstRange layerrange = mapsladdergeos->get_begin_end();
+    for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+	layeriter != layerrange.second;
+	++layeriter) {
+      radius_layer_map.insert( make_pair(layeriter->second->get_radius(),
+					 layeriter->second->get_layer()) );
+    }
+  }
+
   // now that the layer ids are sorted by radius, I can create a storage
   // index, ilayer, that is 0..N-1 and sorted by radius
   
@@ -545,6 +562,18 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
 
   if (laddergeos) {    
     PHG4CylinderGeomContainer::ConstRange begin_end = laddergeos->get_begin_end();
+    PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
+    for( ; miter != begin_end.second; miter++) {
+      PHG4CylinderGeom *geo = miter->second;
+      
+      if (verbosity > 1) geo->identify();
+      
+      _radii[_layer_ilayer_map[geo->get_layer()]] = geo->get_radius();      
+    }
+  }
+
+  if (mapsladdergeos) {    
+    PHG4CylinderGeomContainer::ConstRange begin_end = mapsladdergeos->get_begin_end();
     PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
     for( ; miter != begin_end.second; miter++) {
       PHG4CylinderGeom *geo = miter->second;
