@@ -5,8 +5,6 @@
 #include <phool/PHTimeServer.h>
 
 #include <vector>
-#include <assert.h>
-#include <float.h>
 
 class SvtxHitMap;
 
@@ -34,23 +32,6 @@ class PHG4SvtxDigitizer : public SubsysReco
     _energy_scale.insert(std::make_pair(layer,energy_per_adc));
   }
   
-  void set_fphx_adc_scale(const int &layer, const std::vector<double> &userrange)
-  {
-    if (userrange.size()!=nadcbins)
-      assert(!"Error: vector in set_fphx_adc_scale(vector) must have eight elements.");
-
-    //sort(userrange.begin(), userrange.end()); // TODO, causes GLIBC error
-
-    std::vector< std::pair<double, double> > vadcrange;
-    for (unsigned int irange=0; irange<userrange.size(); ++irange)
-      if (irange==userrange.size()-1)
-	vadcrange.push_back(std::make_pair(userrange[irange], FLT_MAX));
-      else
-	vadcrange.push_back(std::make_pair(userrange[irange], userrange[irange+1]));
-
-    _max_fphx_adc.insert(std::make_pair(layer, vadcrange));
-  }
-
  private:
 
   void CalculateCylinderCellADCScale(PHCompositeNode *topNode);
@@ -70,9 +51,6 @@ class PHG4SvtxDigitizer : public SubsysReco
   SvtxHitMap* _hitmap;
   
   PHTimeServer::timer _timer;   ///< Timer
-
-  const unsigned int nadcbins = 8;
-  std::map<int, std::vector< std::pair<double, double> > > _max_fphx_adc;
 };
 
 #endif

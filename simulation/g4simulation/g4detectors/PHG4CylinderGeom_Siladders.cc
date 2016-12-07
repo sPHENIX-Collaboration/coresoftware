@@ -13,6 +13,33 @@
 
 ClassImp(PHG4CylinderGeom_Siladders)
 
+PHG4CylinderGeom_Siladders::PHG4CylinderGeom_Siladders():
+  layer(-1),
+  strip_x(NAN),
+  strip_y(NAN),
+  strip_z0(NAN),
+  strip_z1(NAN),
+  nstrips_z_sensor0(-1),
+  nstrips_z_sensor1(-1),
+  nstrips_phi_cell(-1),
+  nladders_layer(-1),
+  ladder_z0(NAN),
+  ladder_z1(NAN),
+  eff_radius(NAN),
+  strip_x_offset(NAN),
+  offsetphi(NAN),
+  offsetrot(NAN),
+  dphi_(NAN)
+{
+  strip_z_[0]  = NAN;
+  strip_z_[1]  = NAN;
+  ladder_z_[0] = NAN;
+  ladder_z_[1] = NAN;
+  nstrips_z_sensor_[0] = -1;
+  nstrips_z_sensor_[1] = -1;
+  return;
+}
+
 PHG4CylinderGeom_Siladders::~PHG4CylinderGeom_Siladders()
 {}
 

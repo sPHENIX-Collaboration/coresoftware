@@ -10,9 +10,9 @@
 class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
   {
   public:
-    PHG4CylinderGeom_Siladders()
-    {}
+    PHG4CylinderGeom_Siladders();
     PHG4CylinderGeom_Siladders(
+      const int    layer_,
       const double strip_x_,
       const double strip_y_,
       const double strip_z0_,
@@ -27,6 +27,7 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
       const double strip_x_offset_,
       const double offsetphi_,
       const double offsetrot_) :
+        layer(layer_),
         strip_x(strip_x_),
         strip_y(strip_y_),
         strip_z0(strip_z0_),

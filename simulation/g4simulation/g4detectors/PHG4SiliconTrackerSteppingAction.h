@@ -12,7 +12,7 @@ class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
  public:
   PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector*);
 
-  virtual ~PHG4SiliconTrackerSteppingAction(){}
+  virtual ~PHG4SiliconTrackerSteppingAction();
 
   virtual bool UserSteppingAction(const G4Step*, bool);
 

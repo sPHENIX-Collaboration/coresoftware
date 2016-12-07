@@ -444,6 +444,7 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
           const int nstrips_z_sensor1 = (ilayer==0) ? arr_nstrips_z_sensor[0][1] : arr_nstrips_z_sensor[1][1];
 
           PHG4CylinderGeom *mygeom = new PHG4CylinderGeom_Siladders(
+				       sphxlayer,
                                        arr_strip_x[inttlayer],
                                        arr_strip_y[inttlayer],
                                        strip_z0,

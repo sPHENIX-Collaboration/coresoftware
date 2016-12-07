@@ -47,6 +47,11 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
   std::cout << "PHG4SiliconTrackerSteppingAction created" << std::endl;
 }
 
+PHG4SiliconTrackerSteppingAction::~PHG4SiliconTrackerSteppingAction()
+{
+  delete hit;
+}
+
 //____________________________________________________________________________..
 bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 {
@@ -61,13 +66,6 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   const G4Track* aTrack = aStep->GetTrack();
   G4double edep = aStep->GetTotalEnergyDeposit()/CLHEP::GeV;
 
-  // if this cylinder stops everything, just put all kinetic energy into edep
-  if (detector_->IsBlackHole())
-    {
-      edep = aTrack->GetKineticEnergy()/CLHEP::GeV;
-      G4Track* killtrack = const_cast<G4Track *>(aTrack);
-      killtrack->SetTrackStatus(fStopAndKill);
-    }
   if (edep==0.)
     return false;
 
