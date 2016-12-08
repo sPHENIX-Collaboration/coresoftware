@@ -1,12 +1,13 @@
 #ifndef _RAW_TOWER_BUILDER_BY_HIT_INDEX__
 #define _RAW_TOWER_BUILDER_BY_HIT_INDEX__
 
+#include "RawTowerDefs.h"
+
 #include <fun4all/SubsysReco.h>
-#include <string>
 
 #include <phool/PHTimeServer.h>
 
-#include "RawTowerDefs.h"
+#include <string>
 
 class PHCompositeNode;
 class RawTowerContainer;
@@ -37,7 +38,7 @@ public:
 
   /** Specifiy text-file with table for tower mapping
    */
-  void GeometryTableFile( const std::string d )
+  void GeometryTableFile( const std::string &d )
   { mapping_tower_file_ = d; }
 
   /** Define minimum tower energy. After processing an event, towers with lower energy

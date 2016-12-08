@@ -3,6 +3,15 @@
 
 #include <iostream>
 
+PHG4PhenixTrackingAction::~PHG4PhenixTrackingAction()
+{
+  while (actions_.begin() != actions_.end())
+    {
+      delete actions_.back();
+      actions_.pop_back();
+    }
+}
+
 void
 PHG4PhenixTrackingAction::PreUserTrackingAction( const G4Track* track )
 {

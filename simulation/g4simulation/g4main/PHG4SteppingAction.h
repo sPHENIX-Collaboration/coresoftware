@@ -42,8 +42,6 @@ class PHG4SteppingAction
   //! Extract local coordinate of the hit and save to PHG4Hit
   virtual void StoreLocalCoorindate(PHG4Hit * hit, const G4Step* step, bool do_prepoint, bool do_postpoint);
 
-  virtual void flush_cached_values() {return;}
-
   virtual void SetInterfacePointers( PHCompositeNode* ) {return;}
 
   void SetOpt(const std::string &name, const int i) {opt_int[name] = i;}

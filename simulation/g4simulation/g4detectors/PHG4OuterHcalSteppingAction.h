@@ -54,6 +54,7 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   int absorbertruth;
   int IsActive;
   int IsBlackHole;
+  int n_scinti_plates;
   int light_scint_model;
   
   double light_balance_inner_corr;

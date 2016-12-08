@@ -139,6 +139,11 @@ PHG4Reco::~PHG4Reco( void )
   delete runManager_;
   delete uisession_;
   delete visManager;
+  while(subsystems_.begin() != subsystems_.end())
+    {
+      delete subsystems_.back();
+      subsystems_.pop_back();
+    }
 }
 
 //_________________________________________________________________
@@ -568,7 +573,7 @@ PHG4Reco::Print(const std::string &what) const
 {
   BOOST_FOREACH(SubsysReco * reco, subsystems_)
     {
-      if (what == "ALL" || reco->Name() == what)
+      if (what.empty() || what=="ALL" || (reco->Name()).find(what) != string::npos)
 	{
 	  cout << "Printing " << reco->Name() << endl;
 	  reco->Print(what);

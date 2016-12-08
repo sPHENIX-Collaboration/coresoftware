@@ -15,7 +15,7 @@ class PHG4PhenixTrackingAction : public G4UserTrackingAction
 public:
   PHG4PhenixTrackingAction( void ) : verbosity_(0) {}
 
-  virtual ~PHG4PhenixTrackingAction() {}
+  virtual ~PHG4PhenixTrackingAction();
 
   //! register an action. This is called in PHG4Reco::Init based on which actions are found on the tree
   void AddAction( PHG4TrackingAction* action ) { actions_.push_back( action ); }
