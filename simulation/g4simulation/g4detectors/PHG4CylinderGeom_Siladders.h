@@ -4,7 +4,6 @@
 #include "PHG4CylinderGeom.h"
 
 #include <phool/phool.h>
-#include <TMath.h>
 #include <cmath>
 
 class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
@@ -53,7 +52,7 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
       ladder_z_[1]         = ladder_z1;
       nstrips_z_sensor_[1] = nstrips_z_sensor1;
 
-      dphi_ = TMath::TwoPi()/(double)nladders_layer;
+      dphi_ = 2.*M_PI/(double)nladders_layer;
     }
 
     virtual ~PHG4CylinderGeom_Siladders();

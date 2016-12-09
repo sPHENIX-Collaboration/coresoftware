@@ -1,7 +1,7 @@
 #ifndef PHG4VSiliconTrackerSteppingAction_h
 #define PHG4VSiliconTrackerSteppingAction_h
 
-#include "g4main/PHG4SteppingAction.h"
+#include <g4main/PHG4SteppingAction.h>
 
 class PHG4SiliconTrackerDetector;
 class PHG4Hit;
