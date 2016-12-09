@@ -237,20 +237,15 @@ HcalRawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
       TowerGeomNodeName.c_str());
   if (!rawtowergeom)
     {
-
       rawtowergeom = new RawTowerGeomContainer_Cylinderv1(RawTowerDefs::convert_name_to_caloid(detector));
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(rawtowergeom,
           TowerGeomNodeName.c_str(), "PHObject");
       RunDetNode->addNode(newNode);
     }
-  for (int irow = 0; irow < 4; irow++)
-    {
-      for (int icolumn=0; icolumn<4; icolumn++)
-	{
-	  RawTowerGeomv1 * tg = new RawTowerGeomv1(RawTowerDefs::encode_towerid(RawTowerDefs::convert_name_to_caloid(detector), icolumn, irow));
-            rawtowergeom->add_tower_geometry(tg);
-	}
-    }
+  rawtowergeom->set_radius(get_double_param(PHG4HcalDefs::innerrad));
+  rawtowergeom->set_thickness(get_double_param(PHG4HcalDefs::outerrad)-get_double_param(PHG4HcalDefs::innerrad));
+  rawtowergeom->set_phibins(get_int_param(PHG4HcalDefs::n_towers));
+  rawtowergeom->set_etabins(get_int_param("etabins"));
 	     	     
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
       "PHCompositeNode", "DST"));
@@ -298,9 +293,14 @@ HcalRawTowerBuilder::get_tower_row(const short cellrow) const
 void
 HcalRawTowerBuilder::SetDefaultParameters()
 {
-  set_default_double_param("emin",1.e-6);
-  set_default_int_param("n_scinti_plates_per_tower",5);
+  set_default_int_param(PHG4HcalDefs::scipertwr,5);
   set_default_int_param("tower_energy_source",kLightYield);
+  set_default_int_param(PHG4HcalDefs::n_towers,64);
+  set_default_int_param("etabins",24);
+
+  set_default_double_param("emin",1.e-6);
+  set_default_double_param(PHG4HcalDefs::outerrad,NAN);
+  set_default_double_param(PHG4HcalDefs::innerrad,NAN);
 }
 
 void
@@ -318,7 +318,11 @@ HcalRawTowerBuilder::ReadParamsFromNodeTree(PHCompositeNode *topNode)
       return;
     }
   pars->FillFrom(saveparams,0);
-  set_int_param(PHG4HcalDefs::scipertwr,get_int_param(PHG4HcalDefs::scipertwr));
+  set_int_param(PHG4HcalDefs::scipertwr,pars->get_int_param(PHG4HcalDefs::scipertwr));
+  set_int_param(PHG4HcalDefs::n_towers,pars->get_int_param(PHG4HcalDefs::n_towers));
+  set_int_param("etabins",2*pars->get_int_param(PHG4HcalDefs::n_scinti_tiles));
+  set_double_param(PHG4HcalDefs::innerrad,pars->get_double_param(PHG4HcalDefs::innerrad));
+  set_double_param(PHG4HcalDefs::outerrad,pars->get_double_param(PHG4HcalDefs::outerrad));
   delete pars;
   return;
 }
