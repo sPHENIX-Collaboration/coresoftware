@@ -20,7 +20,6 @@
 #include <Geant4/G4VisAttributes.hh>
 
 #include <cmath>
-#include <sstream>
 
 #include <boost/format.hpp>
 
@@ -326,6 +325,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume* tracker
         new G4PVPlacement(0, G4ThreeVector(TVfphx_x, +TVfphx_y, 0.0), fphxcontainer_volume, boost::str(boost::format("fphxcontainerp_%d_%d") %sphxlayer %itype).c_str(), ladder_volume, false, 0, overlapcheck);
 
         new G4PVPlacement(0, G4ThreeVector(TVfphx_x, -TVfphx_y, 0.0), fphxcontainer_volume, boost::str(boost::format("fphxcontainerm_%d_%d") %sphxlayer %itype).c_str(), ladder_volume, false, 0, overlapcheck);
+
         /*----- Step 3 -----
          * We make cylinder volume in each layer and then install the silicon
          ladders
@@ -334,7 +334,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume* tracker
         /*
          * Ladder
          */
-        const double dphi      = TMath::TwoPi()/(double)nladders_layer;
+        const double dphi      = CLHEP::twopi/(double)nladders_layer;
         eff_radius[ilayer]     = radius + ladder_x - 2.*(fphx_x-strip_x);
         posz[ilayer][itype]    = (itype == 0) ? hdi_z : 2. * hdi_z_[ilayer][0] + hdi_z;
         strip_x_offset[ilayer] = ladder_x - 2.*(fphx_x-strip_x) - strip_x;
@@ -342,9 +342,9 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume* tracker
         for (G4int icopy = 0; icopy < nladders_layer; icopy++)
           {
             const double phi  = offsetphi + dphi * (double)icopy;
-            const double posx = eff_radius[ilayer] * TMath::Cos(phi);
-            const double posy = eff_radius[ilayer] * TMath::Sin(phi);
-            const double fRotate = phi + offsetrot + TMath::Pi();
+            const double posx = eff_radius[ilayer] * cos(phi);
+            const double posy = eff_radius[ilayer] * sin(phi);
+            const double fRotate = phi + offsetrot + CLHEP::pi;
 
             G4RotationMatrix *ladderrotation = new G4RotationMatrix();
             ladderrotation->rotateZ(-fRotate);
@@ -461,7 +461,8 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
                                        arr_offsetrot[inttlayer]
                                      );
           geo->AddLayerGeom(sphxlayer, mygeom);
-          geo->identify();
+	  if(verbosity>0)
+	    geo->identify();
         }
     }
 }

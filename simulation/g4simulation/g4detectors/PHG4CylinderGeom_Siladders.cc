@@ -1,15 +1,13 @@
 #include "PHG4CylinderGeom_Siladders.h"
 #include <cmath>
 
-#include "g4main/PHG4Detector.h"
+#include <g4main/PHG4Detector.h>
 
 #include <G4RotationMatrix.hh>
 #include <G4Transform3D.hh>
 
-#include <boost/format.hpp>
-#include <TMath.h>
-#include <TVector3.h>
-#include <TRotation.h>
+#include <CLHEP/Vector/ThreeVector.h>
+#include <CLHEP/Vector/Rotation.h>
 
 ClassImp(PHG4CylinderGeom_Siladders)
 
@@ -57,8 +55,8 @@ void PHG4CylinderGeom_Siladders::find_segment_center(const int segment_z_bin, co
 
   // Ladder
   const double phi  = offsetphi + dphi_ * (double)segment_phi_bin;
-  location[0] = eff_radius * TMath::Cos(phi);
-  location[1] = eff_radius * TMath::Sin(phi);
+  location[0] = eff_radius * cos(phi);
+  location[1] = eff_radius * sin(phi);
   location[2] = ladder_z_[itype];
 }
 
@@ -66,7 +64,7 @@ void PHG4CylinderGeom_Siladders::find_strip_center(const int segment_z_bin, cons
 {
   // Ladder
   find_segment_center(segment_z_bin, segment_phi_bin, location);
-  TVector3 ladder(location[0], location[1], location[2]);
+  CLHEP::Hep3Vector ladder(location[0], location[1], location[2]);
 
   // Strip
   const int itype = (segment_z_bin==1 || segment_z_bin==2) ? 0 : 1;
@@ -76,14 +74,14 @@ void PHG4CylinderGeom_Siladders::find_strip_center(const int segment_z_bin, cons
   const double strip_localpos_z = 2.*strip_z*(double)(strip_column%nstrips_z_sensor) -    strip_z*(double)nstrips_z_sensor + strip_z;
   const double strip_localpos_y = 2.*strip_y*(double)strip_index                     - 2.*strip_y*(double)nstrips_phi_cell + strip_y;
 
-  TVector3 strip_localpos(strip_x_offset, strip_localpos_y, strip_localpos_z);
+  CLHEP::Hep3Vector strip_localpos(strip_x_offset, strip_localpos_y, strip_localpos_z);
 
   // Strip rotation
   const double phi    = offsetphi + dphi_ * (double)segment_phi_bin;
-  const double rotate = phi + offsetrot + TMath::Pi();
+  const double rotate = phi + offsetrot + CLHEP::pi;
 
-  TRotation rot;
-  rot.RotateZ(rotate);
+  CLHEP::HepRotation rot;
+  rot.rotateZ(rotate);
   strip_localpos = rot*strip_localpos + ladder;
 
   location[0] = strip_localpos.x();

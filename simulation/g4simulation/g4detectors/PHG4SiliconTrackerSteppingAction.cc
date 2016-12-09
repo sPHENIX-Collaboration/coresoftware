@@ -31,9 +31,7 @@
 #include <boost/lexical_cast.hpp>
 #endif
 
-#include <TMath.h>
-#include <TVector3.h>
-#include <TRotation.h>
+#include <gsl/gsl_math.h>
 
 #include <iostream>
 
@@ -49,6 +47,10 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
 
 PHG4SiliconTrackerSteppingAction::~PHG4SiliconTrackerSteppingAction()
 {
+  // if the last hit was a zero energie deposit hit, it is just reset
+  // and the memory is still allocated, so we need to delete it here
+  // if the last hit was saved, hit is a NULL pointer which are
+  // legal to delete (it results in a no operation)
   delete hit;
 }
 
@@ -65,9 +67,6 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   // Now we want to collect information about the hit
   const G4Track* aTrack = aStep->GetTrack();
   G4double edep = aStep->GetTotalEnergyDeposit()/CLHEP::GeV;
-
-  if (edep==0.)
-    return false;
 
   const G4double nonionedep = aStep->GetNonIonizingEnergyDeposit();
 
@@ -108,8 +107,9 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   const double strip_y       = detector_->arr_strip_y[inttlayer];
 
   G4ThreeVector strip_pos = strip_volume->GetTranslation();
-  const double epsz = TMath::Sign(TMath::Power(10., -10.), strip_pos.z());
-  const double epsy = TMath::Sign(TMath::Power(10., -10.), strip_pos.y());
+  const double epsz = pow(10., -10.) * GSL_SIGN(strip_pos.z());
+  const double epsy = pow(10., -10.) * GSL_SIGN(strip_pos.y());
+
   const int strip_z_index = (nstrips_z_sensor%2==0) ? int((strip_pos.z()/CLHEP::mm-strip_z+epsz)/(2.*strip_z)) + int(nstrips_z_sensor/2) : int((strip_pos.z()/CLHEP::mm)/(2.*strip_z)) + int(nstrips_z_sensor/2);
   const int strip_y_index = (nstrips_phi_cell%2==0) ? int((strip_pos.y()/CLHEP::mm-strip_y+epsy)/(2.*strip_y)) +     nstrips_phi_cell    : int((strip_pos.y()/CLHEP::mm)/(2.*strip_y)) +     nstrips_phi_cell;
 

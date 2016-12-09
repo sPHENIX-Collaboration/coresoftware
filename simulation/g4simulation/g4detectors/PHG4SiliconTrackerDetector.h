@@ -1,7 +1,7 @@
 #ifndef PHG4SiliconTrackerDetector_h
 #define PHG4SiliconTrackerDetector_h
 
-#include "g4main/PHG4Detector.h"
+#include <g4main/PHG4Detector.h>
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4RotationMatrix.hh>
@@ -10,7 +10,6 @@
 
 #include <utility>
 #include <vector>
-#include <TMath.h>
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
@@ -67,12 +66,12 @@ class PHG4SiliconTrackerDetector: public PHG4Detector
 
     const int arr_nladders_layer[4] = {20, 26, 32, 38};
     const G4double arr_radius[4]    = {60.0*mm, 80.0*mm, 100.0*mm, 120.0*mm};
-    const G4double arr_offsetphi[4] = { 0.0/180.*TMath::Pi(),  0.0/180.*TMath::Pi(),  0.0/180.*TMath::Pi(),  0.0/180.*TMath::Pi()};
-    const G4double arr_offsetrot[4] = {14.0/180.*TMath::Pi(), 14.0/180.*TMath::Pi(), 12.0/180.*TMath::Pi(), 11.5/180.*TMath::Pi()};
+    const G4double arr_offsetphi[4] = { 0.0/180.*CLHEP::pi,  0.0/180.*CLHEP::pi,  0.0/180.*CLHEP::pi,  0.0/180.*CLHEP::pi};
+    const G4double arr_offsetrot[4] = {14.0/180.*CLHEP::pi, 14.0/180.*CLHEP::pi, 12.0/180.*CLHEP::pi, 11.5/180.*CLHEP::pi};
     const int arr_nstrips_z_sensor[2][2] = {/*Layer0*/{5, 5}, /*Layer1-3*/{8, 5}};
     const int arr_nstrips_phi_cell[4] = {128, 128, 128, 128};
     const G4double arr_strip_x[4] = {0.240*mm*0.5, 0.240*mm*0.5, 0.240*mm*0.5, 0.240*mm*0.5}; // 240 micron
-    //const G4double arr_strip_x[4] = {0.320*mm*0.5, 0.320*mm*0.5, 0.320*mm*0.5, 0.320*mm*0.5}; // 320micron
+    //const G4double arr_strip_x[4] = {0.320*mm*0.5, 0.320*mm*0.5, 0.320*mm*0.5, 0.320*mm*0.5}; // 320 micron
     const G4double arr_strip_y[4] = {0.078*mm*0.5, 0.086*mm*0.5, 0.086*mm*0.5, 0.086*mm*0.5};
     const G4double arr_strip_z[2][2] = {/*Layer0*/{18.0*mm*0.5, 18.0*mm*0.5}, /*Layer1-3*/{16.0*mm*0.5, 20.0*mm*0.5}};
 
