@@ -214,7 +214,7 @@ private:
 	 * \param intrack Input SvtxTrack
 	 * \param invertex Input Vertex, if fit track as a primary vertex
 	 */
-	PHGenFit::Track* ReFitTrack(const SvtxTrack* intrack, const SvtxVertex* invertex = NULL);
+	PHGenFit::Track* ReFitTrack(PHCompositeNode *, const SvtxTrack* intrack, const SvtxVertex* invertex = NULL);
 
 	//! Make SvtxTrack from PHGenFit::Track and SvtxTrack
 	SvtxTrack* MakeSvtxTrack(const SvtxTrack* svtxtrack, const PHGenFit::Track* genfit_track, const SvtxVertex * vertex = NULL);
@@ -308,6 +308,14 @@ private:
 	TClonesArray* _tca_trackmap_refit;
 	TClonesArray* _tca_primtrackmap;
 	TClonesArray* _tca_vertexmap_refit;
+
+	TTree* _cluster_eval_tree;
+	float _cluster_eval_tree_x;
+	float _cluster_eval_tree_y;
+	float _cluster_eval_tree_z;
+	float _cluster_eval_tree_gx;
+	float _cluster_eval_tree_gy;
+	float _cluster_eval_tree_gz;
 
 	bool _do_evt_display;
 
