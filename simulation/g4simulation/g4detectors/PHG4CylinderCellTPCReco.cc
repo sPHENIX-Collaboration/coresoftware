@@ -234,8 +234,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
               z += dz;
             }
 
-	  if ( z >= 0.0 ) z -= driftv * hiter->second->get_t(0);
-	  else z += driftv * hiter->second->get_t(0);
+	  if ( z >= 0.0 ) z -= 0*driftv * hiter->second->get_t(0);
+	  else z += 0*driftv * hiter->second->get_t(0);
         }
 
       phibin = geo->get_phibin( phi );
