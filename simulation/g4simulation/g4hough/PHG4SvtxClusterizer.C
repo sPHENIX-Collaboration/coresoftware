@@ -188,10 +188,11 @@ int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
     cout << PHWHERE << "DST Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  PHNodeIterator iter_dst(dstNode);
     
   // Create the SVX node if required
   PHCompositeNode* svxNode 
-    = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","SVTX"));
+    = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode","SVTX"));
   if (!svxNode) {
     svxNode = new PHCompositeNode("SVTX");
     dstNode->addNode(svxNode);
@@ -199,7 +200,7 @@ int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
   
   // Create the Cluster node if required
   SvtxClusterMap *svxclusters 
-    = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
+    = findNode::getClass<SvtxClusterMap>(dstNode,"SvtxClusterMap");
   if (!svxclusters) {
     svxclusters = new SvtxClusterMap_v1();
     PHIODataNode<PHObject> *SvtxClusterMapNode =
