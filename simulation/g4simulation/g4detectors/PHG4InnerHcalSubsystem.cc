@@ -145,12 +145,12 @@ PHG4Detector* PHG4InnerHcalSubsystem::GetDetector( void ) const
 void
 PHG4InnerHcalSubsystem::SetDefaultParameters()
 {
-  set_default_double_param("inner_radius",116.);
+  set_default_double_param(PHG4HcalDefs::innerrad,116.);
   set_default_double_param("light_balance_inner_corr", NAN);
   set_default_double_param("light_balance_inner_radius", NAN);
   set_default_double_param("light_balance_outer_corr", NAN);
   set_default_double_param("light_balance_outer_radius", NAN);
-  set_default_double_param("outer_radius", 136.);
+  set_default_double_param(PHG4HcalDefs::outerrad, 136.);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
@@ -168,9 +168,9 @@ PHG4InnerHcalSubsystem::SetDefaultParameters()
 
   set_default_int_param("light_scint_model", 1);
   set_default_int_param("ncross", 4);
-  set_default_int_param("n_towers", 64);
+  set_default_int_param(PHG4HcalDefs::n_towers, 64);
   set_default_int_param(PHG4HcalDefs::scipertwr, 4);
-  set_default_int_param("n_scinti_tiles", 12);
+  set_default_int_param(PHG4HcalDefs::n_scinti_tiles, 12);
 
   set_default_string_param("material", "SS310");
 }
