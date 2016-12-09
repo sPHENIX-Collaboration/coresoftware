@@ -425,10 +425,11 @@ int PHG4HoughTransform::CreateNodes(PHCompositeNode* topNode) {
     cerr << PHWHERE << "DST Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+  PHNodeIterator iter_dst(dstNode);
 
   // Create the SVTX node
   PHCompositeNode* tb_node =
-    dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "SVTX"));
+    dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", "SVTX"));
   if (!tb_node) {
     tb_node = new PHCompositeNode("SVTX");
     dstNode->addNode(tb_node);

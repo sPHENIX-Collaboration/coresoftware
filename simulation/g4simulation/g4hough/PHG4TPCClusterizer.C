@@ -134,7 +134,7 @@ int PHG4TPCClusterizer::InitRun(PHCompositeNode* topNode) {
 void PHG4TPCClusterizer::reset() {}
 
 int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
-  
+
   PHNodeIterator iter(topNode);
 
   PHCompositeNode* dstNode =
@@ -143,22 +143,23 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     cout << PHWHERE << "DST Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  PHNodeIterator iter_dst(dstNode);
 
-  SvtxHitMap* hits = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+  SvtxHitMap* hits = findNode::getClass<SvtxHitMap>(dstNode, "SvtxHitMap");
   if (!hits) {
     cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
   PHCompositeNode* svxNode =
-      dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "SVTX"));
+      dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", "SVTX"));
   if (!svxNode) {
     svxNode = new PHCompositeNode("SVTX");
     dstNode->addNode(svxNode);
   }
 
   SvtxClusterMap* svxclusters =
-      findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
+      findNode::getClass<SvtxClusterMap>(dstNode, "SvtxClusterMap");
   if (!svxclusters) {
     svxclusters = new SvtxClusterMap_v1();
     PHIODataNode<PHObject>* SvtxClusterMapNode =
@@ -170,7 +171,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
   if (!geom_container) return Fun4AllReturnCodes::ABORTRUN;
 
-  PHG4CylinderCellContainer* cells =  findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
+  PHG4CylinderCellContainer* cells =  findNode::getClass<PHG4CylinderCellContainer>(dstNode,"G4CELL_SVTX");
   if (!cells) return Fun4AllReturnCodes::ABORTRUN;
 
   std::vector<std::vector<const SvtxHit*> > layer_sorted;

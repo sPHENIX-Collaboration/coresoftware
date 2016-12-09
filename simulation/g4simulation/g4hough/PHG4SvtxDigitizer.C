@@ -36,7 +36,6 @@ int PHG4SvtxDigitizer::InitRun(PHCompositeNode* topNode) {
   //-------------
   // Add Hit Node
   //-------------
-
   PHNodeIterator iter(topNode);
 
   // Looking for the DST node
@@ -46,17 +45,18 @@ int PHG4SvtxDigitizer::InitRun(PHCompositeNode* topNode) {
     cout << PHWHERE << "DST Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  PHNodeIterator iter_dst(dstNode);
     
   // Create the SVX node if required
   PHCompositeNode* svxNode 
-    = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","SVTX"));
+    = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode","SVTX"));
   if (!svxNode) {
     svxNode = new PHCompositeNode("SVTX");
     dstNode->addNode(svxNode);
   }
   
   // Create the Hit node if required
-  SvtxHitMap *svxhits = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
+  SvtxHitMap *svxhits = findNode::getClass<SvtxHitMap>(dstNode,"SvtxHitMap");
   if (!svxhits) {
     svxhits = new SvtxHitMap_v1();
     PHIODataNode<PHObject> *SvtxHitMapNode =
