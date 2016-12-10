@@ -4,13 +4,15 @@
 #include <g4main/PHG4SteppingAction.h>
 
 class PHG4SiliconTrackerDetector;
+class PHG4Parameters;
 class PHG4Hit;
 class PHG4HitContainer;
+class PHG4Shower;
 
 class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
 {
  public:
-  PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector*);
+  PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector*/*, const PHG4Parameters *parameters*/);
 
   virtual ~PHG4SiliconTrackerSteppingAction();
 
@@ -25,7 +27,13 @@ class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
   //! pointer to hit container
   PHG4HitContainer * hits_;
   PHG4HitContainer * absorberhits_;
-  PHG4Hit *hit;
+  PHG4Hit          *hit;
+  PHG4HitContainer *savehitcontainer;
+  PHG4Shower       *saveshower;
+  /* const PHG4Parameters *params; */
+
+  /* int IsActive; */
+  /* int IsBlackHole; */
 };
 
 #endif // PHG4SiliconTrackerSteppingAction_h

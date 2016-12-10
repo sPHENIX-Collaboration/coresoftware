@@ -26,7 +26,8 @@
 PHG4SiliconTrackerDetector::PHG4SiliconTrackerDetector(PHCompositeNode *Node, const std::string &dnam, const vpair &layerconfig):
     PHG4Detector(Node, dnam),
     active(0),
-    absorberactive(0)
+    absorberactive(0),
+    blackhole(0)
 {
   layerconfig_ = layerconfig;
 
@@ -50,12 +51,27 @@ PHG4SiliconTrackerDetector::~PHG4SiliconTrackerDetector()
 int PHG4SiliconTrackerDetector::IsInSiliconTracker(G4VPhysicalVolume * volume) const
   {
     // Is this volume one of the sensor strips?
-    if (volume->GetName().find("siactive") != std::string::npos)
+
+    if (absorberactive)
       {
-        // Check to see if this strip is in the layer belonging to this instance of SiliconTrackerDetector
-        // layer_string contains "layer_n", where n = the layer number for this instance
-        // if (volume->GetName().find(layer_string.c_str()) != std::string::npos)
-        return 1;
+	// inactive strip strip and other parts
+        if ((volume->GetName().find("siinactive") != std::string::npos) ||
+	    (volume->GetName().find("hdi")        != std::string::npos) ||
+	    (volume->GetName().find("fphx")       != std::string::npos) ||
+	    (volume->GetName().find("pgs")        != std::string::npos) ||
+	    (volume->GetName().find("stave")      != std::string::npos) ||
+	    (volume->GetName().find("ladder")     != std::string::npos))
+          {
+            return -1;
+          }
+      }
+    if (active)
+      {
+	// active strip strip
+	if (volume->GetName().find("siactive") != std::string::npos)
+	  {
+	    return 1;
+	  }
       }
 
     return 0;

@@ -44,6 +44,7 @@ class PHG4SiliconTrackerSubsystem: public PHG4Subsystem
   //! accessors (reimplemented)
   virtual PHG4Detector* GetDetector( void ) const;
   virtual PHG4SteppingAction* GetSteppingAction( void ) const;
+  PHG4EventAction* GetEventAction() const {return eventAction_;}
 
   void SetActive(const int i = 1) {active = i;}
   void SetAbsorberActive(const int i = 1) {absorberactive = i;}
