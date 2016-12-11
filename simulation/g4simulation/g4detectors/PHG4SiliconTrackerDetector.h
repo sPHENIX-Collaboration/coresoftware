@@ -64,6 +64,9 @@ class PHG4SiliconTrackerDetector: public PHG4Detector
         return detector_type;
       }
 
+    void BlackHole(const int i=1) {blackhole = i;}
+    int IsBlackHole() const {return blackhole;}
+
     const int arr_nladders_layer[4] = {20, 26, 32, 38};
     const G4double arr_radius[4]    = {60.0*mm, 80.0*mm, 100.0*mm, 120.0*mm};
     const G4double arr_offsetphi[4] = { 0.0/180.*CLHEP::pi,  0.0/180.*CLHEP::pi,  0.0/180.*CLHEP::pi,  0.0/180.*CLHEP::pi};
@@ -80,10 +83,12 @@ class PHG4SiliconTrackerDetector: public PHG4Detector
     int ConstructSiliconTracker(G4LogicalVolume* sandwich);
     int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
 
-    vpair layerconfig_;
-    unsigned int nlayer_;
     int active;
     int absorberactive;
+    int blackhole;
+
+    vpair layerconfig_;
+    unsigned int nlayer_;
     int layermin_;
     int layermax_;
 
