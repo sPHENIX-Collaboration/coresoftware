@@ -18,7 +18,8 @@ class PHG4Particlev2: public PHG4Particlev1
   int get_primary_id() const {return primaryid;}
   double get_e() const {return fe;}
 
-  int get_barcode() const {return barcode;}
+  // this function was implimented in PHG4Particlev1
+//  int get_barcode() const {return barcode;}
 
   void set_track_id(const int i) {trkid = i;}
   void set_vtx_id(const int i) {vtxid = i;}
@@ -26,7 +27,8 @@ class PHG4Particlev2: public PHG4Particlev1
   void set_primary_id(const int i) {primaryid = i;}
   void set_e(const double e) {fe = e;}
 
-  void set_barcode(const int bcd) {barcode = bcd;}
+  // this function was implimented in PHG4Particlev1
+//  void set_barcode(const int bcd) {barcode = bcd;}
 
   void identify(std::ostream& os = std::cout) const;
 
@@ -36,9 +38,10 @@ class PHG4Particlev2: public PHG4Particlev1
   int parentid;
   int primaryid;
   double fe;
-  int barcode; 
+  // this variable was implimented in PHG4Particlev1
+//  int barcode;
 
-  ClassDef(PHG4Particlev2,1)
+  ClassDef(PHG4Particlev2,2)
 };
 
 

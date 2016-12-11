@@ -50,6 +50,7 @@ PHG4EnvelopeDetector::PHG4EnvelopeDetector(  PHCompositeNode *Node, const std::s
 	_dPhi(2*M_PI),
 	_materialCrystal( "G4_PbWO4" ),
 	_active(1),
+	_layer(0),
 	_superdetector("NONE")
 {
 	

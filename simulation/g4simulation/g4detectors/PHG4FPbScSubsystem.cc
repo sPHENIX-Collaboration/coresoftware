@@ -16,7 +16,7 @@ using namespace std;
 //_______________________________________________________________________
 PHG4FPbScSubsystem::PHG4FPbScSubsystem( const string &name ):
 PHG4Subsystem( name ),
-detector_( NULL )
+detector_( NULL ), steppingAction_(NULL), eventAction_(NULL), x_position(0), y_position(0), z_position(0)
 {
 }
 
