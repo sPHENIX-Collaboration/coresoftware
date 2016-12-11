@@ -48,6 +48,7 @@ pkginclude_HEADERS = \
   PHG4SvtxAddConnectedCells.h \
   PHG4SvtxDigitizer.h \
   PHG4SvtxClusterizer.h \
+  PHG4SiliconTrackerDigitizer.h \
   SvtxHit.h \
   SvtxHit_v1.h \
   SvtxHitMap.h \
@@ -128,6 +129,8 @@ libg4hough_la_SOURCES = \
   PHG4SvtxDigitizer_Dict.C \
   PHG4SvtxClusterizer.C \
   PHG4SvtxClusterizer_Dict.C \
+  PHG4SiliconTrackerDigitizer.C \
+  PHG4SiliconTrackerDigitizer_Dict.C \
   PHG4TPCClusterizer.C \
   PHG4TPCClusterizer_Dict.C \
   PHG4HoughTransform.C \
