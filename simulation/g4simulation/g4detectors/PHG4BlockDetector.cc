@@ -12,7 +12,7 @@
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4PVPlacement.hh>
-
+#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Colour.hh>
 
