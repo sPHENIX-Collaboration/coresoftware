@@ -1,5 +1,6 @@
 #include "PHG4BlockSubsystem.h"
 #include "PHG4BlockDetector.h"
+#include "PHG4Parameters.h"
 #include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4BlockSteppingAction.h"
 #include "PHG4BlockGeomv1.h"
