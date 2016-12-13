@@ -108,59 +108,62 @@ RawTowerDigitizer::process_event(PHCompositeNode *topNode)
       it != all_towers.second; ++it)
     {
       const RawTowerDefs::keytype key = it->second->get_id();
-      if(_tower_type>=0){
-	// Skip towers that don't match the type we are supposed to digitize
-	if(_tower_type != it->second->get_tower_type()) continue; 
-      }
+      if(_tower_type>=0)
+	{
+	  // Skip towers that don't match the type we are supposed to digitize
+	  if(_tower_type != it->second->get_tower_type()) 
+	    {
+	      continue; 
+	    }
+	}
 
       RawTower *sim_tower = _sim_towers->getTower(key);
 
-      RawTower *digi_tower = NULL;
 
-      if (_digi_algorithm == kNo_digitization)
-        {
-          if (sim_tower)
-	    {
-            digi_tower = new RawTowerv1(*sim_tower);
-	    }
-        }
-      else if (_digi_algorithm == kSimple_photon_digitization)
+      if (sim_tower)
 	{
-        digi_tower = simple_photon_digitization(sim_tower);
+	  RawTower *digi_tower = NULL;
+	  if (_digi_algorithm == kNo_digitization)
+	    {
+              digi_tower = new RawTowerv1(*sim_tower);
+	    }
+	  else if (_digi_algorithm == kSimple_photon_digitization)
+	    {
+	      digi_tower = simple_photon_digitization(sim_tower);
+	    }
+	  else
+	    {
+
+	      std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+			<< " invalid digitization algorithm #" << _digi_algorithm
+			<< std::endl;
+
+	      return Fun4AllReturnCodes::ABORTRUN;
+	    }
+	  if (digi_tower)
+	    {
+	      //	digi_tower->set_tower_type(_tower_type);
+	      _raw_towers->AddTower(key, digi_tower);
+
+	      if (verbosity)
+		{
+		  std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+			    << " output tower:"
+			    << std::endl;
+		  digi_tower->identify();
+		}
+	    }
+
 	}
-      else
-        {
-
-          std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
-              << " invalid digitization algorithm #" << _digi_algorithm
-              << std::endl;
-
-          return Fun4AllReturnCodes::ABORTRUN;
-        }
-
-      if (digi_tower){
-//	digi_tower->set_tower_type(_tower_type);
-        _raw_towers->AddTower(key, digi_tower);
-      }
-
-      if (verbosity)
-        {
-          std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
-              << " output tower:"
-              << std::endl;
-          digi_tower->identify();
-        }
 
     }
-
   if (verbosity)
     {
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
-          << "input sum energy = " << _sim_towers->getTotalEdep()
-          << ", output sum digitalized value = " << _raw_towers->getTotalEdep()
-          << std::endl;
+		<< "input sum energy = " << _sim_towers->getTotalEdep()
+		<< ", output sum digitalized value = " << _raw_towers->getTotalEdep()
+		<< std::endl;
     }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
