@@ -109,6 +109,37 @@ HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
 	  cout << "unknown energy source" << endl;
 	}
     }
+  TowerGeomNodeName = "TOWERGEOM_" + detector;
+  rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode,
+      TowerGeomNodeName.c_str());
+  if (!rawtowergeom)
+    {
+      rawtowergeom = new RawTowerGeomContainer_Cylinderv1(RawTowerDefs::convert_name_to_caloid(detector));
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(rawtowergeom,
+          TowerGeomNodeName.c_str(), "PHObject");
+      RunDetNode->addNode(newNode);
+    }
+  rawtowergeom->set_radius(get_double_param(PHG4HcalDefs::innerrad));
+  rawtowergeom->set_thickness(get_double_param(PHG4HcalDefs::outerrad)-get_double_param(PHG4HcalDefs::innerrad));
+  rawtowergeom->set_phibins(get_int_param(PHG4HcalDefs::n_towers));
+  rawtowergeom->set_etabins(get_int_param("etabins"));
+  for (int i=0; i<get_int_param(PHG4HcalDefs::n_towers); i++)
+    {
+      pair<double, double> range = make_pair(i*360./get_int_param(PHG4HcalDefs::n_towers),(i+1)*360./get_int_param(PHG4HcalDefs::n_towers));
+      rawtowergeom->set_phibounds(i,range);
+    }
+  double etalowbound = -1.1;
+  for (int i = 0; i < get_int_param("etabins"); i++)
+    {
+      double etahibound = etalowbound + 2.2 / get_int_param("etabins");
+      pair<double, double> range = make_pair(etalowbound, etahibound);
+      rawtowergeom->set_etabounds(i, range);
+      etalowbound = etahibound;
+    }
+	 //  if (verbosity > 0)
+    {
+      rawtowergeom->identify();
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -225,28 +256,6 @@ HcalRawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
       throw std::runtime_error(
           "Failed to find Run node in HcalRawTowerBuilder::CreateNodes");
     }
-  PHNodeIterator runIter(runNode);
-  PHCompositeNode *RunDetNode =  dynamic_cast<PHCompositeNode*>(runIter.findFirst("PHCompositeNode",detector));
-  if (! RunDetNode)
-    {
-      RunDetNode = new PHCompositeNode(detector);
-      runNode->addNode(RunDetNode);
-    }
-  TowerGeomNodeName = "TOWERGEOM_" + detector;
-  rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode,
-      TowerGeomNodeName.c_str());
-  if (!rawtowergeom)
-    {
-      rawtowergeom = new RawTowerGeomContainer_Cylinderv1(RawTowerDefs::convert_name_to_caloid(detector));
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(rawtowergeom,
-          TowerGeomNodeName.c_str(), "PHObject");
-      RunDetNode->addNode(newNode);
-    }
-  rawtowergeom->set_radius(get_double_param(PHG4HcalDefs::innerrad));
-  rawtowergeom->set_thickness(get_double_param(PHG4HcalDefs::outerrad)-get_double_param(PHG4HcalDefs::innerrad));
-  rawtowergeom->set_phibins(get_int_param(PHG4HcalDefs::n_towers));
-  rawtowergeom->set_etabins(get_int_param("etabins"));
-	     	     
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
       "PHCompositeNode", "DST"));
   if (!dstNode)
@@ -279,7 +288,6 @@ HcalRawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
   PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_towers,
       TowerNodeName.c_str(), "PHObject");
   DetNode->addNode(towerNode);
-
   return;
 }
 
