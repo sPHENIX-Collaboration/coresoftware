@@ -123,20 +123,20 @@ HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   rawtowergeom->set_thickness(get_double_param(PHG4HcalDefs::outerrad)-get_double_param(PHG4HcalDefs::innerrad));
   rawtowergeom->set_phibins(get_int_param(PHG4HcalDefs::n_towers));
   rawtowergeom->set_etabins(get_int_param("etabins"));
-  for (int i=0; i<64; i++)
+  for (int i=0; i<get_int_param(PHG4HcalDefs::n_towers); i++)
     {
-      pair<double, double> range = make_pair(i*360./64.,(i+1)*360./64.);
+      pair<double, double> range = make_pair(i*360./get_int_param(PHG4HcalDefs::n_towers),(i+1)*360./get_int_param(PHG4HcalDefs::n_towers));
       rawtowergeom->set_phibounds(i,range);
     }
   double etalowbound = -1.1;
-  for (int i = 0; i < 24; i++)
+  for (int i = 0; i < get_int_param("etabins"); i++)
     {
-      double etahibound = etalowbound + 2.2 / 24.;
+      double etahibound = etalowbound + 2.2 / get_int_param("etabins");
       pair<double, double> range = make_pair(etalowbound, etahibound);
       rawtowergeom->set_etabounds(i, range);
       etalowbound = etahibound;
     }
-  if (verbosity > 0)
+	 //  if (verbosity > 0)
     {
       rawtowergeom->identify();
     }
