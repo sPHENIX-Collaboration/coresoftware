@@ -119,10 +119,13 @@ HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
           TowerGeomNodeName.c_str(), "PHObject");
       RunDetNode->addNode(newNode);
     }
-  rawtowergeom->set_radius(get_double_param(PHG4HcalDefs::innerrad));
-  rawtowergeom->set_thickness(get_double_param(PHG4HcalDefs::outerrad)-get_double_param(PHG4HcalDefs::innerrad));
+  double innerrad = get_double_param(PHG4HcalDefs::innerrad);
+  double thickness = get_double_param(PHG4HcalDefs::outerrad)-innerrad;
+  rawtowergeom->set_radius(innerrad);
+  rawtowergeom->set_thickness(thickness);
   rawtowergeom->set_phibins(get_int_param(PHG4HcalDefs::n_towers));
   rawtowergeom->set_etabins(get_int_param("etabins"));
+  double geom_ref_radius = innerrad + thickness/2.;
   for (int i=0; i<get_int_param(PHG4HcalDefs::n_towers); i++)
     {
       pair<double, double> range = make_pair(i*360./get_int_param(PHG4HcalDefs::n_towers),(i+1)*360./get_int_param(PHG4HcalDefs::n_towers));
@@ -136,7 +139,19 @@ HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
       rawtowergeom->set_etabounds(i, range);
       etalowbound = etahibound;
     }
-	 //  if (verbosity > 0)
+  for (int iphi = 0; iphi < rawtowergeom->get_phibins(); iphi++)
+    {
+      for (int ieta = 0; ieta < rawtowergeom->get_etabins(); ieta++)
+	{
+	  RawTowerGeomv1 * tg = new RawTowerGeomv1(RawTowerDefs::encode_towerid(RawTowerDefs::convert_name_to_caloid(detector), ieta, iphi));
+
+	  tg->set_center_x(geom_ref_radius * cos(rawtowergeom->get_phicenter(iphi)));
+	  tg->set_center_y(geom_ref_radius * sin(rawtowergeom->get_phicenter(iphi)));
+	  tg->set_center_z(geom_ref_radius / tan(PHG4Utils::get_theta(rawtowergeom->get_etacenter(ieta))));
+	  rawtowergeom->add_tower_geometry(tg);
+	}
+    }
+  if (verbosity > 0)
     {
       rawtowergeom->identify();
     }
