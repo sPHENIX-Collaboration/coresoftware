@@ -126,7 +126,7 @@ HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   rawtowergeom->set_phibins(get_int_param(PHG4HcalDefs::n_towers));
   rawtowergeom->set_etabins(get_int_param("etabins"));
   double geom_ref_radius = innerrad + thickness/2.;
-  double phistart = -M_PI;
+  double phistart = 0;
   for (int i=0; i<get_int_param(PHG4HcalDefs::n_towers); i++)
     {
       double phiend = phistart+2.*M_PI/get_int_param(PHG4HcalDefs::n_towers);
