@@ -496,7 +496,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       DIM[2][1] = 0.0;
       DIM[2][2] = pow(0.5*zsize,2);
 
-      const float corr_factor = 2.0;
+      const float corr_factor = 1.0; // cylinder
 
       TMatrixF ERR(3,3);
       ERR[0][0] = pow(0.0*thickness*invsqrt12*corr_factor,2);
@@ -779,7 +779,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       DIM[2][1] = 0.0;
       DIM[2][2] = pow(0.5*zsize,2);
 
-      const float corr_factor = 2.0;
+      const float corr_factor = 1.0; // ladder
 
       TMatrixF ERR(3,3);
       ERR[0][0] = pow(thickness*invsqrt12*corr_factor,2);
