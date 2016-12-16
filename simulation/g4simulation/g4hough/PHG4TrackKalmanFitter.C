@@ -317,28 +317,31 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 			//BEGIN DEBUG
 			//vertex = NULL;
-			PHG4VtxPoint *truth_vtx = _truth_container->GetVtx(
-					_truth_container->GetPrimaryVertexIndex());
-			if(!truth_vtx) {
-				LogDebug("!truth_vtx");
-				return Fun4AllReturnCodes::ABORTEVENT;
-			}
+
+//			PHG4VtxPoint *truth_vtx = _truth_container->GetVtx(
+//					_truth_container->GetPrimaryVertexIndex());
+//			if(!truth_vtx) {
+//				LogDebug("!truth_vtx");
+//				return Fun4AllReturnCodes::ABORTEVENT;
+//			}
+
 //			LogDebug("");
 //			truth_vtx->identify();
-			vertex = new SvtxVertex_v1();
-			vertex->set_x(truth_vtx->get_x());
-			vertex->set_y(truth_vtx->get_y());
-			vertex->set_z(truth_vtx->get_z());
 
-			for(int i=0;i<3;i++)
-				for(int j=0;j<3;j++)
-					vertex->set_error(i,j,0);
+//			vertex = new SvtxVertex_v1();
+//			vertex->set_x(truth_vtx->get_x());
+//			vertex->set_y(truth_vtx->get_y());
+//			vertex->set_z(truth_vtx->get_z());
+//
+//			for(int i=0;i<3;i++)
+//				for(int j=0;j<3;j++)
+//					vertex->set_error(i,j,0);
 			//END DEBUG
 
 			SvtxTrack* rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
 					vertex);
 
-			delete vertex;//DEBUG
+//			delete vertex;//DEBUG
 
 			rf_phgf_tracks.push_back(rf_phgf_track);
 			rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
@@ -836,29 +839,31 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 		}
 		//cluster->identify(); //DEBUG
 
+		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
+
 		// DEBUG: BEGIN
 		SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
 		PHG4CylinderCell* cell = (PHG4CylinderCell*) cells->findCylinderCell(svtxhit->get_cellid());
 		PHG4Hit *phg4hit = phg4hitcontainer->findHit(cell->get_g4hits().first->first);
 
 		if(!phg4hit) continue;
-		if(phg4hit->get_trkid()!=1) {
-			LogDebug("phg4hit->get_trkid()!=1");
-			continue;
-		}
+//		if(phg4hit->get_trkid()!=1) {
+//			LogDebug("phg4hit->get_trkid()!=1");
+//			continue;
+//		}
 
 		TVector3 phg4hit_position(phg4hit->get_avg_x(),phg4hit->get_avg_y(),phg4hit->get_avg_z());
 		//cluster->identify(); //DEBUG
 		TVector3 cluster_position(cluster->get_x(),cluster->get_y(),cluster->get_z());
 
-		LogDebug("PHG4Hit vs Cluster:");
-		cout << "hit: \t (" << phg4hit_position.X() << ","
-				<< phg4hit_position.Y() << "," << phg4hit_position.Z()
-				<< "), r = " << phg4hit_position.Perp() << endl;
-		cout << "cluster: \t (" << cluster_position.X() << ","
-				<< cluster_position.Y() << "," << cluster_position.Z()
-				<< "), r = " << cluster_position.Perp() << "; size_hits: "
-				<< cluster->size_hits() << endl;
+//		LogDebug("PHG4Hit vs Cluster:");
+//		cout << "hit: \t (" << phg4hit_position.X() << ","
+//				<< phg4hit_position.Y() << "," << phg4hit_position.Z()
+//				<< "), r = " << phg4hit_position.Perp() << endl;
+//		cout << "cluster: \t (" << cluster_position.X() << ","
+//				<< cluster_position.Y() << "," << cluster_position.Z()
+//				<< "), r = " << cluster_position.Perp() << "; size_hits: "
+//				<< cluster->size_hits() << endl;
 
 		_cluster_eval_tree_x = cluster_position.X();
 		_cluster_eval_tree_y = cluster_position.Y();
@@ -868,13 +873,17 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 		_cluster_eval_tree_gz = phg4hit_position.Z();
 		_cluster_eval_tree->Fill();
 
-		// DEBUG: END
-
-		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
-//		if (phg4hit_position.Perp() < 10) {
-//			pos.SetXYZ(phg4hit_position.X(), phg4hit_position.Y(),
-//					phg4hit_position.Z()); //DEBUG
+//		if (phg4hit_position.Perp() > 30.) {
+//			pos.SetXYZ(phg4hit_position.X(), phg4hit_position.Y(),phg4hit_position.Z()); //DEBUG
+//			//pos.SetPerp(phg4hit_position.Perp());
+//			//pos.SetPhi(TMath::ATan2(phg4hit_position.Y(),phg4hit_position.X()));
 //		}
+
+//		if(phg4hit->get_trkid()!=1) {
+//			continue;
+//		}
+
+		// DEBUG: END
 
 		seed_mom.SetPhi(pos.Phi());
 		seed_mom.SetTheta(pos.Theta());
@@ -883,12 +892,6 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 		TVector3 n(cluster->get_x(), cluster->get_y(), 0);
 		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
 				cluster->get_phi_error(), cluster->get_z_error());
-
-
-		if(pos.Perp() < 4) {
-			LogDebug("Cluster Pos:");
-			pos.Print();
-		}
 
 //		TMatrixF cov_uvn(3,3);
 //		TMatrixF cov_xyz(3,3);
@@ -1079,22 +1082,22 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 	//Begin DEBUG
 //	LogDebug("rotation debug---------- ");
 //	gf_state_vertex_ca->Print();
-	LogDebug("dca rotation---------- ");
-	pos_out = pos_in;
-	cov_out = cov_in;
-	pos_in.Print();
-	cov_in.Print();
-	pos_out.Print();
-	cov_out.Print();
-	cout
-		<<"dca3d_xy: "<<dca3d_xy <<" +- "<<dca3d_xy_error*dca3d_xy_error
-		<<"; dca3d_z: "<<dca3d_z<<" +- "<< dca3d_z_error*dca3d_z_error
-		<<"\n";
-	gf_state_vertex_ca->get6DCov().Print();
-	LogDebug("vertex rotation---------- ");
-	vertex_position.Print();
-	vertex_cov.Print();
-	vertex_cov_out.Print();
+//	LogDebug("dca rotation---------- ");
+//	pos_out = pos_in;
+//	cov_out = cov_in;
+//	pos_in.Print();
+//	cov_in.Print();
+//	pos_out.Print();
+//	cov_out.Print();
+//	cout
+//		<<"dca3d_xy: "<<dca3d_xy <<" +- "<<dca3d_xy_error*dca3d_xy_error
+//		<<"; dca3d_z: "<<dca3d_z<<" +- "<< dca3d_z_error*dca3d_z_error
+//		<<"\n";
+//	gf_state_vertex_ca->get6DCov().Print();
+//	LogDebug("vertex rotation---------- ");
+//	vertex_position.Print();
+//	vertex_cov.Print();
+//	vertex_cov_out.Print();
 	//End DEBUG
 
 	out_track->set_dca3d_xy(dca3d_xy);
@@ -1180,14 +1183,14 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 //		//out_track->get_state(radius)->identify();
 	}
 
-	LogDebug("genfit::TrackPoint::Print:");
-	PHGenFit::Track phgf_track_copy(*phgf_track);
-	genfit::Track gftrack(*(phgf_track_copy.getGenFitTrack()));
-
-	for(unsigned int id = 0; id< gftrack.getNumPointsWithMeasurement();++id) {
-		genfit::TrackPoint *trpoint = gftrack.getPointWithMeasurementAndFitterInfo(id, gftrack.getCardinalRep());
-		trpoint->Print();
-	}
+//	LogDebug("genfit::TrackPoint::Print:");
+//	PHGenFit::Track phgf_track_copy(*phgf_track);
+//	genfit::Track gftrack(*(phgf_track_copy.getGenFitTrack()));
+//
+//	for(unsigned int id = 0; id< gftrack.getNumPointsWithMeasurement();++id) {
+//		genfit::TrackPoint *trpoint = gftrack.getPointWithMeasurementAndFitterInfo(id, gftrack.getCardinalRep());
+//		trpoint->Print();
+//	}
 
 	return out_track;
 }
