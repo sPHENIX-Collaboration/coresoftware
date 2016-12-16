@@ -275,11 +275,11 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  ERR[0][1] = 0.0;
 	  ERR[0][2] = 0.0;
 	  ERR[1][0] = 0.0;
-	  ERR[1][1] = pow(0.011,2);
+	  ERR[1][1] = pow(0.012,2);
 	  ERR[1][2] = 0.0;
 	  ERR[2][0] = 0.0;
 	  ERR[2][1] = 0.0;
-	  ERR[2][2] = pow(0.03,2);
+	  ERR[2][2] = pow(0.026,2);
 
 	  TMatrixF ROT(3,3);
 	  ROT[0][0] = cos(phi);
