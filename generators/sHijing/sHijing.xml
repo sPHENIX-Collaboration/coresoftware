@@ -9,6 +9,8 @@
   <IAT>197</IAT>
   <IZT>79</IZT>
   <N>20</N>
+  <BMIN>0</BMIN>
+  <BMAX>4</BMAX>
   <KEEP_SPECTATORS>1</KEEP_SPECTATORS>
   <OUTPUT>sHijing.dat</OUTPUT>
   <RANDOM>
