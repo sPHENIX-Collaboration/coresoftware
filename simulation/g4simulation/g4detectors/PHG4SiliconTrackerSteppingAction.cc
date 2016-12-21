@@ -103,7 +103,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 	  if (index==4)
 	    ladderphi = boost::lexical_cast<int>(*tokeniter);
 	}
-      if (inttlayer < 0 || inttlayer >= 5)
+      if (inttlayer < 0 || inttlayer >= 4)
 	assert(!"PHG4SiliconTrackerSteppingAction: check INTT ladder layer.");
 
       // convert ladder type [0-3] to silicon sensor type [0-1]
