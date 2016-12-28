@@ -1227,7 +1227,7 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 					rave_vtx->getParameters(i)->getTrack();
 			for (unsigned int j = 0; j < gf_tracks.size(); j++) {
 				if (rave_track == gf_tracks[j])
-					svtx_vtx->insert_track(i);
+					svtx_vtx->insert_track(j);
 			}
 		}
 
