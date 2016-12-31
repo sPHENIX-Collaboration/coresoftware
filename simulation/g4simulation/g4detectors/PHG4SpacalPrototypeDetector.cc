@@ -888,10 +888,10 @@ PHG4SpacalPrototypeDetector::Construct_LightGuide(
   assert(weight_x2 >=0 and weight_x2<=1);
   assert(weight_xcenter >=0 and weight_xcenter<=1);
 
-  const double lg_pDx1 = g_tower.pDx1 * weight_x1 //
-  + g_tower.pDx2 * (1 - weight_x1) / g_tower.NSubtowerX;
-  const double lg_pDx2 = g_tower.pDx1 * weight_x2 //
-  + g_tower.pDx2 * (1 - weight_x2) / g_tower.NSubtowerX;
+  const double lg_pDx1 =( g_tower.pDx1 * weight_x1 //
+  + g_tower.pDx2 * (1 - weight_x1) )/ g_tower.NSubtowerX;
+  const double lg_pDx2 =( g_tower.pDx1 * weight_x2 //
+  + g_tower.pDx2 * (1 - weight_x2) )/ g_tower.NSubtowerX;
   const double lg_pDy1 = g_tower.pDy1 / g_tower.NSubtowerY;
   const double lg_Alp1 = atan(
       (g_tower.pDx2 - g_tower.pDx1) * (-g_tower.NSubtowerX + 1. + 2 * index_x)
