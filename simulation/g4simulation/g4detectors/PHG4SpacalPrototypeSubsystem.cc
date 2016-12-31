@@ -156,8 +156,9 @@ PHG4SpacalPrototypeSubsystem::Print(const std::string &what) const
 void
 PHG4SpacalPrototypeSubsystem::SetDefaultParameters()
 {
-  set_default_double_param("xpos", 0.);
-  set_default_double_param("ypos", 0.);
-  set_default_double_param("zpos", 0.);
+  set_default_double_param("xpos", 0.); // translation in 3D
+  set_default_double_param("ypos", 0.); // translation in 3D
+  set_default_double_param("zpos", 0.); // translation in 3D
+  set_default_double_param("z_rotation_degree", 0.); // roation in the vertical plane
   return;
 }
