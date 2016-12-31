@@ -15,6 +15,7 @@
 #include <TBufferXML.h>
 #include <TFile.h>
 #include <TSystem.h>
+#include <TBufferFile.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
@@ -116,11 +117,24 @@ PHG4Parameters::exist_double_param(const std::string &name) const
 void
 PHG4Parameters::Print() const
 {
-  cout << "Parameters for " << detname << endl;
+  cout << "Parameters for " << detname << " (Hash = 0x"<< std::hex << get_hash() << std::dec <<")" << endl;
   printint();
   printdouble();
   printstring();
   return;
+}
+
+unsigned long
+PHG4Parameters::get_hash() const
+{
+
+  const TObject *ptr = dynamic_cast<const TObject *>(this);
+  assert(ptr);
+  std::unique_ptr<TBuffer> b(new TBufferFile(TBuffer::kWrite));
+
+  b->WriteObject(ptr);
+
+  return TString::Hash(b->Buffer(), b->Length());
 }
 
 void
