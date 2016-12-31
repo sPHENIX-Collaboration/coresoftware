@@ -160,5 +160,6 @@ PHG4SpacalPrototypeSubsystem::SetDefaultParameters()
   set_default_double_param("ypos", 0.); // translation in 3D
   set_default_double_param("zpos", 0.); // translation in 3D
   set_default_double_param("z_rotation_degree", 0.); // roation in the vertical plane
+  set_default_int_param("construction_verbose", 0.); // roation in the vertical plane
   return;
 }

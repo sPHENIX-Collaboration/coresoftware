@@ -116,7 +116,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
   _geom->set_config(
       SpacalGeom_t::kFullProjective_2DTaper_SameLengthFiberPerTower);
 //  _geom->load_demo_sector_tower_map4();
-  //  _geom->set_construction_verbose(2);
+//    _geom->set_construction_verbose(2);
   _geom->ImportParameters(*construction_params);
 
   _geom->subtower_consistency_check();
@@ -142,6 +142,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
 
   const G4double box_x_shift = (_geom->get_radius()
       + 0.5 * _geom->get_thickness()) * cm + enclosure_x_shift;
+  const G4double box_z_shift = 0.5*(_geom->get_zmin() + _geom->get_zmax())* cm;
 
 //  G4Tubs* _cylinder_solid = new G4Tubs(G4String(GetName().c_str()),
 //      _geom->get_radius() * cm, _geom->get_max_radius() * cm,
@@ -158,7 +159,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
 
   cylinder_solid = new G4DisplacedSolid(G4String(GetName() + "_displaced"),
       cylinder_solid, 0, //
-      G4ThreeVector(box_x_shift, 0, 0));
+      G4ThreeVector(box_x_shift, 0, box_z_shift));
 
   G4Material * cylinder_mat = G4Material::GetMaterial("G4_AIR");
   assert(cylinder_mat);
@@ -228,7 +229,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
               twopi / _geom->get_azimuthal_n_sec()
                   * _geom->get_sector_map().size() / 2)
               * (_geom->get_radius() - _geom->get_max_lightguide_height()) * cm
-              - electronics_thickness, 0, 0));
+              - electronics_thickness, 0, box_z_shift));
 
   G4Material * electronics_mat = G4Material::GetMaterial(electronics_material);
   assert(electronics_mat);
@@ -265,7 +266,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
       outer_enclosur_solid, inner_enclosur_solid);
   enclosure_solid = new G4DisplacedSolid(
       G4String(GetName() + "_enclosure_solid_displaced"), enclosure_solid, 0, //
-      G4ThreeVector(box_x_shift, 0, 0));
+      G4ThreeVector(box_x_shift, 0, box_z_shift));
 
   G4Material * enclosure_mat = G4Material::GetMaterial(enclosure_material);
   assert(enclosure_mat);
@@ -362,6 +363,8 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
       cout << "PHG4SpacalPrototypeDetector::Construct::" << GetName()
           << " - Completed. Print G4 Geometry:" << endl;
       Print();
+      cout <<"box_x_shift = "  <<box_x_shift<<endl;
+      cout <<"box_z_shift = "  <<box_z_shift<<endl;
     }
 }
 
@@ -371,11 +374,18 @@ PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg()
   assert(_geom);
   assert(_geom->get_azimuthal_n_sec()>4);
 
-  G4Tubs* sec_solid = new G4Tubs(G4String(GetName() + string("_sec")),
+  G4VSolid* sec_solid = new G4Tubs(G4String(GetName() + string("_sec")),
       (_geom->get_radius() - _geom->get_max_lightguide_height()) * cm,
       _geom->get_max_radius() * cm, _geom->get_length() * cm / 2.0,
       halfpi - pi / _geom->get_azimuthal_n_sec(),
       twopi / _geom->get_azimuthal_n_sec());
+
+
+  const G4double box_z_shift = 0.5*(_geom->get_zmin() + _geom->get_zmax())* cm;
+  sec_solid = new G4DisplacedSolid(G4String(GetName() + "_displaced"+ string("_sec")),
+      sec_solid, 0, //
+      G4ThreeVector(0, 0, box_z_shift));
+
 
   G4Material * cylinder_mat = G4Material::GetMaterial("G4_AIR");
   assert(cylinder_mat);
@@ -800,6 +810,14 @@ PHG4SpacalPrototypeDetector::Construct_Tower(
     const PHG4SpacalPrototypeDetector::SpacalGeom_t::geom_tower & g_tower)
 {
   assert(_geom);
+
+  if (_geom->get_construction_verbose() >= 2)
+    {
+      cout << "PHG4SpacalPrototypeDetector::Construct_Tower::" << GetName()
+          << " - constructed tower ID " << g_tower.id
+          << " with geometry parameter: ";
+      g_tower.identify(cout);
+    }
 
   std::stringstream sout;
   sout << "_" << g_tower.id;
