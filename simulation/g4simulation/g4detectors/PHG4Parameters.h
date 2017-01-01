@@ -30,7 +30,7 @@ class PHG4Parameters: public PHObject
   void Print() const;
 
   //! hash of binary information for checking purpose
-  unsigned long get_hash() const;
+  size_t get_hash() const;
 
   void set_int_param(const std::string &name, const int ival);
   int get_int_param(const std::string &name) const;
