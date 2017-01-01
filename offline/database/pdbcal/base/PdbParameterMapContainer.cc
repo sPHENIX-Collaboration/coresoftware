@@ -113,7 +113,7 @@ PdbParameterMapContainer::WriteToFile(const std::string &detector_name,
   // force xml file writing to use extended precision shown experimentally
   // to not modify input parameters (.15e)
   string floatformat = TBufferXML::GetFloatFormat();
-  TBufferXML::SetFloatFormat("%.15e");
+  TBufferXML::SetFloatFormat("%.17g"); // for IEEE 754 double
   container->Write("PdbParameterMapContainer");
   delete f;
   // restore previous xml float format
