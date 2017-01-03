@@ -384,6 +384,11 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
           // EM visible energy that is only associated with electron energy deposition
           PHG4Particle* particle = _truth_container->GetParticle(
               this_hit->get_trkid());
+          if (!particle)
+            {
+              cout <<__PRETTY_FUNCTION__<<" - Error - this PHG4hit missing particle: "; this_hit -> identify();
+            }
+          assert(particle);
           if (abs(particle->get_pid()) == 11)
             ev_calo_em += this_hit->get_light_yield();
 
