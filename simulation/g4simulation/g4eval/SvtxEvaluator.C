@@ -564,6 +564,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //-----------------------
 
   if (_ntp_vertex) {
+    //cout << "Filling ntp_vertex " << endl;
     SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
     if (vertexmap && truthinfo) {
@@ -607,6 +608,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				 nfromtruth
 	};
 
+	/*
+	cout << "vertex: " 
+	     << " ievent " << vertex_data[0]
+	     << " vx " << vertex_data[1]
+	     << " vy " << vertex_data[2]
+	     << " vz " << vertex_data[3]
+	     << endl;
+	*/
+
 	_ntp_vertex->Fill(vertex_data);      
       }
     }
@@ -617,7 +627,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //-----------------------
   
   if (_ntp_gpoint) {
-    
+    //cout << "Filling ntp_gpoint " << endl;    
     SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
 
@@ -671,6 +681,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //---------------------
 
   if (_ntp_g4hit) {
+    //cout << "Filling ntp_g4hit " << endl;
     std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits();
     for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
 	 iter != g4hits.end();
@@ -822,6 +833,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //--------------------
 
   if (_ntp_hit) {
+    //cout << "Filling ntp_hit " << endl;
     // need things off of the DST...
     SvtxHitMap* hitmap = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
     if (hitmap) {
@@ -956,7 +968,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   // fill the Cluster NTuple
   //------------------------
 
+  //cout << "check for ntp_cluster" << endl;
+
   if (_ntp_cluster && !_scan_for_embedded) {
+    //cout << "Filling ntp_cluster 1 " << endl;
     // need things off of the DST...
     SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
     if (clustermap) {
@@ -1102,6 +1117,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     
   } else if (_ntp_cluster && _scan_for_embedded) {
 
+    //cout << "Filling ntp_cluster 2 " << endl;
+
     // if only scanning embedded signals, loop over all the tracks from
     // embedded particles and report all of their clusters, including those
     // from other sources (noise hits on the embedded track)
@@ -1156,6 +1173,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  float gx       = NAN;
 	  float gy       = NAN;
 	  float gz       = NAN;
+	  float gt       = NAN;
 	  float gtrackID = NAN;
 	  float gflavor  = NAN;
 	  float gpx      = NAN;
@@ -1179,7 +1197,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	    g4hitID  = g4hit->get_hit_id();
 	    gx       = g4hit->get_avg_x();
 	    gy       = g4hit->get_avg_y();
-	    gz       = g4hit->get_avg_z();
+      gz       = g4hit->get_avg_z();
+      gt       = g4hit->get_avg_t();
 
 	    if (g4particle) {
 	    
@@ -1215,7 +1234,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	    efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
 	  }
 
-	  float cluster_data[37] = {(float) _ievent,
+	  float cluster_data[38] = {(float) _ievent,
 				    hitID,
 				    x,
 				    y,
@@ -1235,6 +1254,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				    gx,
 				    gy,
 				    gz,
+				    gt,
 				    gtrackID,
 				    gflavor,
 				    gpx,
@@ -1265,7 +1285,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
   // need things off of the DST...
 
+  //cout << "check for ntp_gtrack" << endl;
+
   if (_ntp_gtrack) {
+    //cout << "Filling ntp_gtrack " << endl;
+
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");   
     SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
     if (truthinfo) {
@@ -1405,7 +1429,16 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				 layersfromtruth
 	};
 
+	/*
+	cout << " ievent " << _ievent
+	     << " gtrackID " << gtrackID
+	     << " gflavor " << gflavor
+	     << " ng4hits " << ng4hits
+	     << endl;
+	*/
+
 	_ntp_gtrack->Fill(gtrack_data);
+
       }	     
     }
   }
@@ -1414,7 +1447,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   // fill the Track NTuple
   //------------------------
 
+
+
   if (_ntp_track) {
+    //cout << "Filling ntp_track " << endl;
+
     // need things off of the DST...
     SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
     SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
@@ -1586,7 +1623,18 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				nfromtruth,
 				layersfromtruth
 	};
-      
+
+	/*
+	cout << "ievent " << _ievent
+	     << " trackID " << trackID
+	     << " nhits " << nhits
+	     << " px " << px
+	     << " py " << py
+	     << " pz " << pz
+	     << " gembed " << gembed
+	     << " gprimary " << gprimary 
+	     << endl;
+	*/
 	_ntp_track->Fill(track_data);
       }
     }

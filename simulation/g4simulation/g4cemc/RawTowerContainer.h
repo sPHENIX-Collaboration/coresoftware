@@ -20,10 +20,10 @@ class RawTowerContainer : public PHObject
   typedef std::pair<Iterator, Iterator> Range;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
-  RawTowerContainer( RawTowerDefs::CalorimeterId caloid = RawTowerDefs::NONE )
-  {
-    _caloid = caloid;
-  }
+ RawTowerContainer( RawTowerDefs::CalorimeterId caloid = RawTowerDefs::NONE ):
+  _caloid(caloid)
+  {}
+
   virtual ~RawTowerContainer() {}
 
   void Reset();

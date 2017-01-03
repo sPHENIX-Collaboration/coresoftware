@@ -8,12 +8,17 @@
   <IZP>79</IZP>
   <IAT>197</IAT>
   <IZT>79</IZT>
+  <!-- number of events -->
   <N>20</N>
+  <BMIN>0</BMIN>
+  <BMAX>4</BMAX>
   <KEEP_SPECTATORS>1</KEEP_SPECTATORS>
   <OUTPUT>sHijing.dat</OUTPUT>
+<!-- random number seed if we want to fix it, default is random
   <RANDOM>
     <SEED>11793</SEED>
   </RANDOM>
+-->
   <HIPR1>
     <5>5.0</5>
   </HIPR1>

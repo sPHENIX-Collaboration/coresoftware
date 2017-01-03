@@ -19,7 +19,7 @@ using namespace std;
 //____________________________________________________________________________..
 PHG4BlockSteppingAction::PHG4BlockSteppingAction( PHG4BlockDetector* detector, const PHG4Parameters *parameters ):
   detector_( detector ),
-  params(parameters),
+  params(parameters), hits_(NULL), hit(NULL),
   active(params->get_int_param("active")),
   IsBlackHole(params->get_int_param("blackhole")),
   use_g4_steps(params->get_int_param("use_g4steps"))

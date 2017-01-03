@@ -53,6 +53,7 @@ int PHG4SvtxDeadArea::InitRun(PHCompositeNode* topNode) {
 
   FillCylinderDeadAreaMap(topNode);
   FillLadderDeadAreaMap(topNode);
+  FillMapsLadderDeadAreaMap(topNode);
   
   if (verbosity > 0) {
     cout << "====================== PHG4SvtxDeadArea::InitRun() ========================" << endl;
@@ -69,7 +70,7 @@ int PHG4SvtxDeadArea::InitRun(PHCompositeNode* topNode) {
 }
 
 int PHG4SvtxDeadArea::process_event(PHCompositeNode *topNode) {
-  
+
   _timer.get()->restart();
  
   std::vector<unsigned int> remove_hits;
@@ -81,6 +82,8 @@ int PHG4SvtxDeadArea::process_event(PHCompositeNode *topNode) {
 
     if (gsl_rng_uniform_pos(RandomGenerator) > get_hit_efficiency(hit->get_layer())) {
       remove_hits.push_back(hit->get_id());
+      if(verbosity > 5)
+	cout << "removing hit" << hit->get_id() << endl;
     }
   }
 
@@ -124,6 +127,30 @@ void PHG4SvtxDeadArea::FillLadderDeadAreaMap(PHCompositeNode* topNode) {
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
     
   if (!geom_container || !cells) return;
+
+  PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
+  for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+      layeriter != layerrange.second;
+      ++layeriter) {
+    int layer = layeriter->second->get_layer();
+
+    if (_eff_by_layer.find(layer) == _eff_by_layer.end()) {
+      _eff_by_layer.insert(std::make_pair(layer,1.0));
+    }    
+  }
+  
+  return;
+}
+
+void PHG4SvtxDeadArea::FillMapsLadderDeadAreaMap(PHCompositeNode* topNode) {
+
+  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_MAPS");
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
+    
+  if (!geom_container || !cells) return;
+
+  if(verbosity > 0)
+    cout << "Found CylinderGeom_MAPS" << endl;
 
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;

@@ -152,6 +152,7 @@ PHG4CylinderGeom_Spacalv3::geom_tower::geom_tower() :
     pAlp1(numeric_limits<double>::signaling_NaN()), //
     pAlp2(numeric_limits<double>::signaling_NaN()), //
     pRotationAngleX(numeric_limits<double>::signaling_NaN()), //
+    centralX(numeric_limits<double>::signaling_NaN()), //
     centralY(numeric_limits<double>::signaling_NaN()), //
     centralZ(numeric_limits<double>::signaling_NaN()), //
     ModuleSkinThickness(numeric_limits<double>::signaling_NaN()), //

@@ -22,7 +22,7 @@ public:
   void setData(T* d) {data.data = d;}
   virtual void prune() {}
   virtual void forgetMe(PHNode*) {}
-  void print(const std::string&);
+  virtual void print(const std::string&);
   virtual bool write(PHIOManager *, const std::string& = "") 
     { 
       return true; 
@@ -79,7 +79,24 @@ PHDataNode<T>::~PHDataNode()
 template <class T> 
 void PHDataNode<T>::print(const std::string& path)
 {
-  std::cout << path << name << " (" << type << ")" << std::endl;
+  std::cout << path << name << " (";
+  if (! this->objectclass.empty())
+    {
+      if (type.find("IO") != std::string::npos)
+	{
+	  std::cout << "IO";
+	}
+      else
+	{
+	  std::cout << "Data";
+	}
+      std::cout << "," << this->objectclass;
+    }
+  else
+    {
+      std::cout << type;
+    }
+  std::cout << ")" << std::endl;
 }
 
 #endif /* __PHDATANODE_H__ */

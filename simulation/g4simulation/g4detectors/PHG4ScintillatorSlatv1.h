@@ -29,7 +29,7 @@ class PHG4ScintillatorSlatv1 : public PHG4ScintillatorSlat
   double get_edep() const {return edep;}
   double get_eion() const {return eion;}
   double get_light_yield() const {return light_yield;}
-
+  std::pair<std::set<PHG4HitDefs::keytype>::const_iterator, std::set<PHG4HitDefs::keytype>::const_iterator> get_hit_ids() const {return std::make_pair(hit_id.begin(),hit_id.end());}
 
 
  protected:

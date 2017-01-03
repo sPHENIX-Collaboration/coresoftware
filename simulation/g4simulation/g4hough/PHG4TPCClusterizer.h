@@ -33,8 +33,8 @@ class PHG4TPCClusterizer : public SubsysReco {
   std::vector<int> nhits;
   std::vector<float> amps;
   std::vector<int> cellids;
-  int nphibins;
-  int nzbins;
+//  int nphibins;
+//  int nzbins;
 
   void reset();
 

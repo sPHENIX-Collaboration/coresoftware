@@ -18,8 +18,7 @@ class PHG4PhenixEventAction : public G4UserEventAction
   public:
   PHG4PhenixEventAction( void );
 
-  virtual ~PHG4PhenixEventAction()
-  {}
+  virtual ~PHG4PhenixEventAction();
 
   //! register an action. This is called in PHG4Reco::Init based on which actions are found on the tree
   void AddAction( PHG4EventAction* action )

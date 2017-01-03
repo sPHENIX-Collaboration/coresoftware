@@ -7,13 +7,10 @@
 
 using namespace std;
 
-/* to keep backward compatibility, default type of stored object is PHTable */
 PHNode::PHNode() : 
   parent(NULL),
   persistent(true),
   type("PHNode"),
-  objecttype("PHTable"),
-  name(""),
   reset_able(true)
 {
   return;
@@ -23,7 +20,6 @@ PHNode::PHNode(const string& n) :
   parent(NULL),
   persistent(true),
   type("PHNode"),
-  objecttype("PHTable"),
   reset_able(true)
 {
   if (n.find(".") != string::npos)
@@ -36,11 +32,11 @@ PHNode::PHNode(const string& n) :
   return;
 }
 
-PHNode::PHNode(const string &n, const string &objtype ) : 
+PHNode::PHNode(const string& n, const string& typ) : 
   parent(NULL),
   persistent(true),
   type("PHNode"),
-  objecttype(objtype),
+  objecttype(typ),
   reset_able(true)
 {
   if (n.find(".") != string::npos)
@@ -67,6 +63,7 @@ PHNode::PHNode(const PHNode &phn):
   type(phn.type),
   objecttype(phn.objecttype),
   name(phn.name),
+  objectclass(phn.objectclass),
   reset_able(phn.reset_able)
 {
   cout << "copy ctor not implemented because of pointer to parent" << endl;
@@ -98,7 +95,7 @@ PHNode::getResetFlag() const
 std::ostream & 
 operator << (std::ostream & stream, const PHNode & node)
 {
-   stream << node.getType() << " : " << node.getName();
+  stream << node.getType() << " : " << node.getName() << " class " << node.getClass();
 
    return stream;
 }

@@ -46,6 +46,8 @@ PHG4Hit::identify(ostream& os) const
   cout     << "trackid: " << get_trkid() << ", edep: " << get_edep() << endl;
   cout     << "strip_z_index: " << get_strip_z_index() << ", strip_y_index: " << get_strip_y_index() << endl;
   cout     << "ladder_z_index: " << get_ladder_z_index() << ", ladder_phi_index: " << get_ladder_phi_index() << endl;
+  cout     << "stave_index: " << get_property_int(prop_stave_index) << " half_stave_index " << get_property_int(prop_half_stave_index) << endl;
+  cout     << "module_index: " << get_property_int(prop_module_index) << " chip_index " << get_property_int(prop_chip_index) << endl;
   cout << "layer id: " << get_layer() << ", scint_id: " << get_scint_id() << endl;
   cout << "hit type: " << get_hit_type() << endl; 
   return;
@@ -121,8 +123,29 @@ PHG4Hit::get_property_info(const PROPERTY prop_id)
     return make_pair("generic index k",PHG4Hit::type_int);
   case   prop_index_l:
     return make_pair("generic index l",PHG4Hit::type_int);
+  case  prop_stave_index:
+    return make_pair("stave index",PHG4Hit::type_int);
+  case  prop_half_stave_index:
+    return make_pair("half stave index",PHG4Hit::type_int);
+  case  prop_module_index:
+    return make_pair("module index",PHG4Hit::type_int);
+  case  prop_chip_index:
+    return make_pair("chip index",PHG4Hit::type_int);
+  case  prop_local_pos_x_0:
+    return make_pair("local x pos in",PHG4Hit::type_float);
+  case  prop_local_pos_y_0:
+    return make_pair("local y pos in",PHG4Hit::type_float);
+  case  prop_local_pos_z_0:
+    return make_pair("local z pos in",PHG4Hit::type_float);
   case   prop_hit_type:
     return make_pair("hit type",PHG4Hit::type_int);    
+  case  prop_local_pos_x_1:
+    return make_pair("local x pos out",PHG4Hit::type_float);
+  case  prop_local_pos_y_1:
+    return make_pair("local y pos out",PHG4Hit::type_float);
+  case  prop_local_pos_z_1:
+    return make_pair("local z pos out",PHG4Hit::type_float);
+
   default:
     cout << "PHG4Hit::get_property_info - Fatal Error - unknown index " << prop_id << endl;
     exit(1);

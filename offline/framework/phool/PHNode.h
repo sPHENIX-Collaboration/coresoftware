@@ -17,7 +17,7 @@ public:
 
   // Note that the constructor makes a node transient by default.
   PHNode(const std::string &); 
-  PHNode(const std::string &, const std::string &);
+  PHNode(const std::string &, const std::string&); 
   virtual ~PHNode(); 
 
 public:
@@ -30,6 +30,7 @@ public:
   const std::string getObjectType() const { return objecttype; }
   const std::string getType() const { return type; }
   const std::string getName() const { return name; }
+  const std::string getClass() const {return objectclass;}
 
   void setParent(PHNode *p) { parent = p; }
   void setName(const std::string &n) {name = n;}
@@ -51,9 +52,10 @@ protected:
   
   PHNode*   parent;
   bool persistent;
-  std::string  type;
-  std::string  objecttype;
-  std::string  name;
+  std::string type;
+  std::string objecttype;
+  std::string name;
+  std::string objectclass;
   bool reset_able;
 };
 

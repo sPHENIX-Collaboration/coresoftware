@@ -36,6 +36,8 @@ PHIODataNode<T>::PHIODataNode(T* d, const std::string& name)
   : PHDataNode<T>(d, name)
 {
   this->type = "PHIODataNode";
+  TObject *TO = static_cast<TObject *> (d);
+  this->objectclass = TO->GetName();
 }
 
 template <class T>
@@ -44,6 +46,8 @@ PHIODataNode<T>::PHIODataNode(T* d, const std::string& name,
   : PHDataNode<T>(d, name, objtype)
 {
   this->type = "PHIODataNode";
+  TObject *TO = static_cast<TObject *> (d);
+  this->objectclass = TO->GetName();
 }
 
 template <class T>

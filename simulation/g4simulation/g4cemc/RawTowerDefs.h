@@ -158,7 +158,7 @@ namespace RawTowerDefs
   /*! Convert name string to calorimeter ID
    */
   inline RawTowerDefs::CalorimeterId
-  convert_name_to_caloid(const std::string caloname)
+  convert_name_to_caloid(const std::string &caloname)
   {
     if (caloname == "NONE")
       return NONE;

@@ -37,6 +37,15 @@ PHG4PhenixDetector::PHG4PhenixDetector( void ):
 {
 }
 
+PHG4PhenixDetector::~PHG4PhenixDetector()
+{
+  while (detectors_.begin() != detectors_.end())
+    {
+      delete detectors_.back();
+      detectors_.pop_back();
+    }
+}
+
 
 //_______________________________________________________________________________________________
 G4VPhysicalVolume* PHG4PhenixDetector::Construct()

@@ -74,6 +74,18 @@ class PHG4CylinderCell : public PHObject
   virtual void set_k_index(const int i) {return;}
   virtual int get_l_index() const {return -9999;}
   virtual void set_l_index(const int i) {return;}
+
+  virtual int get_pixel_index() const {return -9999;}
+  virtual int get_chip_index() const {return -9999;}
+  virtual int get_module_index() const {return -9999;}
+  virtual int get_half_stave_index() const {return -9999;}
+  virtual int get_stave_index() const {return -9999;}
+
+  virtual void set_stave_index(const  int si) {return;}
+  virtual void set_half_stave_index(const int i) {return;}
+  virtual void set_module_index(const int i) {return;}
+  virtual void set_chip_index(const int i) {return;}
+  virtual void set_pixel_index(const int i) {return;}
   
  protected:
 
