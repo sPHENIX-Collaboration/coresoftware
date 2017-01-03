@@ -994,9 +994,10 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 
 	genfit::MeasuredStateOnPlane* gf_state_beam_line_ca = phgf_track->extrapolateToLine(
 			vertex_position, TVector3(0., 0., 1.));
-	TVector3 mom = gf_state_beam_line_ca->getMom();
-	TVector3 pos = gf_state_beam_line_ca->getPos();
-	TMatrixDSym cov = gf_state_beam_line_ca->get6DCov();
+
+//	TVector3 mom = gf_state_beam_line_ca->getMom();
+//	TVector3 pos = gf_state_beam_line_ca->getPos();
+//	TMatrixDSym cov = gf_state_beam_line_ca->get6DCov();
 
 	//const SvtxTrack_v1* temp_track = static_cast<const SvtxTrack_v1*> (svtx_track);
 	SvtxTrack_v1* out_track = new SvtxTrack_v1(
@@ -1021,6 +1022,10 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 
 	genfit::MeasuredStateOnPlane* gf_state_vertex_ca =
 			phgf_track->extrapolateToPoint(vertex_position);
+
+	TVector3 mom = gf_state_vertex_ca->getMom();
+	TVector3 pos = gf_state_vertex_ca->getPos();
+	TMatrixDSym cov = gf_state_vertex_ca->get6DCov();
 
 //	genfit::MeasuredStateOnPlane* gf_state_vertex_ca =
 //			phgf_track->extrapolateToLine(vertex_position,
