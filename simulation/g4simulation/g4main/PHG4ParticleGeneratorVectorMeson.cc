@@ -152,10 +152,14 @@ PHG4ParticleGeneratorVectorMeson::InitRun(PHCompositeNode *topNode)
   cout << "PHG4ParticleGeneratorVectorMeson::InitRun started." << endl;
 
   trand = new TRandom3();
-  trand->SetSeed(PHRandomSeed()); // fixed seed handles in PHRandomSeed()
+  unsigned int iseed = PHRandomSeed(); // fixed seed handles in PHRandomSeed()
+  cout << Name() << " random seed: " << iseed << endl;
+  trand->SetSeed(iseed);
   if (_histrand_init)
     {
-      gRandom->SetSeed(PHRandomSeed());
+      iseed = PHRandomSeed();
+      cout << Name() << " histrand random seed: " << iseed << endl;
+      gRandom->SetSeed(iseed);
     }
 
   fsin = new TF1("fsin","sin(x)",0,M_PI);
