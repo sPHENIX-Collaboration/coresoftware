@@ -50,9 +50,11 @@ HepMCNodeReader::HepMCNodeReader(const std::string &name)
       vertex_t0(0.0),
       width_vx(0.0),
       width_vy(0.0),
-      width_vz(0.0) {
+      width_vz(0.0) 
+{
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
+  cout << Name() << " random seed: " << seed << endl;
   gsl_rng_set(RandomGenerator, seed);
   return;
 }

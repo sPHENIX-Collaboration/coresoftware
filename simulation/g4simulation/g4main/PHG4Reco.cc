@@ -152,8 +152,9 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
   if (verbosity > 0) {
     cout << "========================= PHG4Reco::Init() ================================" << endl;
   }
-
-  G4Seed(PHRandomSeed()); // fixed seed handled in PHRandomSeed()
+  unsigned int iseed = PHRandomSeed();
+  cout << Name() << " G4 Random Seed: " << iseed << endl;
+  G4Seed(iseed); // fixed seed handled in PHRandomSeed()
   
   // create GEANT run manager
   if (verbosity > 1) cout << "PHG4Reco::Init - create run manager" << endl;
