@@ -30,6 +30,7 @@ PHG4ParticleGeneratorBase::PHG4ParticleGeneratorBase(const string &name):
 {
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   seed = PHRandomSeed(); // fixed seed is handled in this funtcion
+  cout << Name() << " random seed: " << seed << endl;
   gsl_rng_set(RandomGenerator,seed);
   return;
 }
@@ -206,6 +207,7 @@ void
 PHG4ParticleGeneratorBase::set_seed(const unsigned int iseed)
 {
   seed = iseed;
+  cout << Name() << " random seed: " << seed << endl;
   gsl_rng_set(RandomGenerator,seed);
 }
 
