@@ -4,8 +4,6 @@
 #include <cstdlib>
 #include <iostream>
 
-ClassImp(RawClusterContainer)
-
 using namespace std;
 
 RawClusterContainer::ConstRange
