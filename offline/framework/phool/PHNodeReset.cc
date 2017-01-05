@@ -15,14 +15,14 @@ PHNodeReset::perform(PHNode* node)
      {  
        if (node->getObjectType() == "PHObject")
 	 {
-	  (((PHDataNode<PHObject>*)node)->getData())->Reset();
+	   (static_cast<PHDataNode<PHObject>*>(node))->getData()->Reset();
          }
      }
    else if (node->getType() == "PHIODataNode")
      {
        if (node->getObjectType() == "PHObject")
 	 {
-	   (((PHDataNode<PHObject>*)node)->getData())->Reset();
+	   (static_cast<PHIODataNode<PHObject>*>(node))->getData()->Reset();
 	 }
      }
 }

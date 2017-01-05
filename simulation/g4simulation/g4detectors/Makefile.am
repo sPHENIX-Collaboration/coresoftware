@@ -8,9 +8,9 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = -DCGAL_DISABLE_ROUNDING_MATH_CHECK
 
 # set in configure.in to check if gcc version >= 4.8
-if GCC_GE_48
-  AM_CXXFLAGS = -std=c++11
-endif
+#if GCC_GE_48
+#  AM_CXXFLAGS = -std=c++11
+#endif
 
 AM_LDFLAGS = \
     -L$(libdir) \
@@ -21,7 +21,8 @@ INCLUDES = \
     -I$(OFFLINE_MAIN)/include \
     -I$(ROOTSYS)/include \
     -I${G4_MAIN}/include \
-    -I${G4_MAIN}/include/Geant4
+    -I${G4_MAIN}/include/Geant4 \
+	-I/opt/sphenix/core/stow/xerces-c-3.1.2/include/
 
 libg4detectors_io_la_LIBADD = \
   -L$(ROOTSYS)/lib \
@@ -39,18 +40,18 @@ libg4detectors_la_LIBADD = \
   -lg4testbench 
 
 pkginclude_HEADERS = \
-  PHG4Parameters.h \
-  PHG4ParametersContainer.h \
   PHG4BlockGeom.h \
   PHG4BlockGeomContainer.h \
   PHG4CylinderCell.h \
   PHG4CylinderCellv1.h \
   PHG4CylinderCell_Spacalv1.h \
+  PHG4CylinderCell_MAPS.h \
   PHG4CylinderCellv2.h \
   PHG4CylinderCellv3.h \
   PHG4CylinderCellContainer.h \
   PHG4CylinderGeom.h \
   PHG4CylinderGeom_Spacalv1.h \
+  PHG4CylinderGeom_MAPS.h \
   PHG4CylinderGeom_Spacalv2.h \
   PHG4CylinderGeom_Spacalv3.h \
   PHG4CylinderGeomContainer.h \
@@ -58,6 +59,10 @@ pkginclude_HEADERS = \
   PHG4CylinderCellGeom.h \
   PHG4CylinderCellGeom_Spacalv1.h \
   PHG4CylinderCellGeomContainer.h \
+  PHG4HcalDefs.h \
+  PHG4ParameterInterface.h \
+  PHG4Parameters.h \
+  PHG4ParametersContainer.h \
   PHG4ScintillatorSlat.h \
   PHG4ScintillatorSlatContainer.h \
   PHG4ScintillatorSlatDefs.h
@@ -67,6 +72,7 @@ libg4detectors_io_la_SOURCES = \
   PHG4Parameters_Dict.cc \
   PHG4ParametersContainer.cc \
   PHG4ParametersContainer_Dict.cc \
+  PHG4ParameterInterface.cc \
   PHG4BlockCellGeom.cc \
   PHG4BlockCellGeom_Dict.cc \
   PHG4BlockCellGeomContainer.cc \
@@ -87,8 +93,12 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderGeomv3_Dict.cc \
   PHG4CylinderGeomv4.cc \
   PHG4CylinderGeomv4_Dict.cc \
+  PHG4CylinderGeom_Siladders.cc \
+  PHG4CylinderGeom_Siladders_Dict.cc \
   PHG4CylinderGeom_Spacalv1.cc \
   PHG4CylinderGeom_Spacalv1_Dict.cc \
+  PHG4CylinderGeom_MAPS.cc \
+  PHG4CylinderGeom_MAPS_Dict.cc \
   PHG4CylinderGeom_Spacalv2.cc \
   PHG4CylinderGeom_Spacalv2_Dict.cc \
   PHG4CylinderGeom_Spacalv3.cc \
@@ -101,6 +111,8 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCellv1_Dict.cc \
   PHG4CylinderCell_Spacalv1.cc \
   PHG4CylinderCell_Spacalv1_Dict.cc \
+  PHG4CylinderCell_MAPS.cc \
+  PHG4CylinderCell_MAPS_Dict.cc \
   PHG4CylinderCellv2.cc \
   PHG4CylinderCellv2_Dict.cc \
   PHG4CylinderCellv3.cc \
@@ -231,6 +243,12 @@ libg4detectors_la_SOURCES = \
   PHG4SiliconTrackerSteppingAction.cc \
   PHG4SiliconTrackerSubsystem.cc \
   PHG4SiliconTrackerSubsystem_Dict.cc \
+  PHG4MapsCellReco.cc \
+  PHG4MapsCellReco_Dict.cc \
+  PHG4MapsDetector.cc \
+  PHG4MapsSteppingAction.cc \
+  PHG4MapsSubsystem.cc \
+  PHG4MapsSubsystem_Dict.cc \
   PHG4SpacalDetector.cc \
   PHG4ProjSpacalDetector.cc \
   PHG4FullProjSpacalDetector.cc \
@@ -248,7 +266,8 @@ libg4detectors_la_SOURCES = \
   PHG4TPCDistortion.cc \
   PHG4TPCDistortion_Dict.cc\
   PHG4TPCSpaceChargeDistortion.cc \
-  PHG4TPCSpaceChargeDistortion_Dict.cc
+  PHG4TPCSpaceChargeDistortion_Dict.cc \
+  PHG4SiliconTrackerParameterisation.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

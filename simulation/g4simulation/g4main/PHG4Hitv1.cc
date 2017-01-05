@@ -45,6 +45,15 @@ PHG4Hitv1::Reset()
   prop_map.clear();
 }
 
+int
+PHG4Hitv1::get_detid() const
+{
+  // a compile time check if the hit_idbits are within range (1-32)
+  static_assert (PHG4HitDefs::hit_idbits <= sizeof(unsigned int)*8,"hit_idbits < 32, fix in PHG4HitDefs.h");
+  int detid = (hitid>>PHG4HitDefs::hit_idbits);
+  return detid;
+}
+
 void
 PHG4Hitv1::print() const {
   std::cout<<"New Hitv1  0x"<< hex << hitid 

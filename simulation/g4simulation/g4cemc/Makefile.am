@@ -47,6 +47,8 @@ libcemc_io_la_SOURCES = \
   RawTowerGeomContainer_Cylinderv1_Dict.cc
 
 libcemc_la_SOURCES = \
+  HcalRawTowerBuilder.cc \
+  HcalRawTowerBuilder_Dict.cc \
   Prototype2RawTowerBuilder.cc \
   Prototype2RawTowerBuilder_Dict.cc \
   RawClusterBuilder.cc \

@@ -17,6 +17,8 @@ class PHG4Particlev1: public PHG4Particle
   double get_px() const {return fpx;}
   double get_py() const {return fpy;}
   double get_pz() const {return fpz;}
+  
+  int get_barcode() const {return barcode;}
 
   void set_name(const std::string &name) {fname=name;}
   void set_pid(const int i) {fpid=i;}
@@ -24,12 +26,16 @@ class PHG4Particlev1: public PHG4Particle
   void set_py(const double x) {fpy = x;}
   void set_pz(const double x) {fpz = x;}
 
+  void set_barcode(const int bcd) {barcode = bcd;}
+
   void identify(std::ostream& os = std::cout) const;
 
  protected:
   std::string fname;
   int fpid;
   double fpx,fpy,fpz;
+  int barcode; 
+
   ClassDef(PHG4Particlev1,1)
 };
 

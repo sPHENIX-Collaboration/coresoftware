@@ -54,15 +54,6 @@ PHG4ParticleGenerator::set_phi_range(const double min, const double max)
 }
 
 void
-PHG4ParticleGenerator::set_vtx(const double x, const double y, const double z)
-{
-  vtx_x = x;
-  vtx_y = y;
-  vtx_z = z;
-  return;
-}
-
-void
 PHG4ParticleGenerator::set_mom_range(const double min, const double max)
 {
   mom_min = min;

@@ -16,7 +16,7 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4ConeRegionSteppingAction::PHG4ConeRegionSteppingAction( PHG4ConeDetector* detector ):
-  detector_( detector )
+  detector_( detector ), hits_(NULL), hit(NULL)
 {}
 
 //____________________________________________________________________________..

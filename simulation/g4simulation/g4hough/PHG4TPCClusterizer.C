@@ -134,7 +134,7 @@ int PHG4TPCClusterizer::InitRun(PHCompositeNode* topNode) {
 void PHG4TPCClusterizer::reset() {}
 
 int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
-  
+
   PHNodeIterator iter(topNode);
 
   PHCompositeNode* dstNode =
@@ -143,22 +143,23 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     cout << PHWHERE << "DST Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  PHNodeIterator iter_dst(dstNode);
 
-  SvtxHitMap* hits = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+  SvtxHitMap* hits = findNode::getClass<SvtxHitMap>(dstNode, "SvtxHitMap");
   if (!hits) {
     cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
   PHCompositeNode* svxNode =
-      dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "SVTX"));
+      dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", "SVTX"));
   if (!svxNode) {
     svxNode = new PHCompositeNode("SVTX");
     dstNode->addNode(svxNode);
   }
 
   SvtxClusterMap* svxclusters =
-      findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
+      findNode::getClass<SvtxClusterMap>(dstNode, "SvtxClusterMap");
   if (!svxclusters) {
     svxclusters = new SvtxClusterMap_v1();
     PHIODataNode<PHObject>* SvtxClusterMapNode =
@@ -170,7 +171,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
   if (!geom_container) return Fun4AllReturnCodes::ABORTRUN;
 
-  PHG4CylinderCellContainer* cells =  findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
+  PHG4CylinderCellContainer* cells =  findNode::getClass<PHG4CylinderCellContainer>(dstNode,"G4CELL_SVTX");
   if (!cells) return Fun4AllReturnCodes::ABORTRUN;
 
   std::vector<std::vector<const SvtxHit*> > layer_sorted;
@@ -178,13 +179,20 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
   for (PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
        layeriter != layerrange.second;
        ++layeriter) {
+    // We only need TPC layers here, so skip the layers below _min_layer
+    // This if statement is needed because although the maps ladder layers are not included in the cylinder cell geom container, 
+    // the cylinder Svx layers are, so they have to be dropped here if they are present
+    if( (unsigned int) layeriter->second->get_layer() < _min_layer)
+      continue;
     layer_sorted.push_back(std::vector<const SvtxHit*>());
   }
   for (SvtxHitMap::Iter iter = hits->begin(); iter != hits->end(); ++iter) {
     SvtxHit* hit = iter->second;
-    layer_sorted[hit->get_layer()].push_back(hit);
+    if( (unsigned int) hit->get_layer() < _min_layer)
+      continue;
+    layer_sorted[hit->get_layer() - _min_layer].push_back(hit);
   }
-
+  
   for (PHG4CylinderCellGeomContainer::ConstIterator layeriter =
            layerrange.first;
        layeriter != layerrange.second; ++layeriter) {
@@ -192,12 +200,13 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     unsigned int layer = (unsigned int)layeriter->second->get_layer();
     
     // exit on the MAPS layers...
+    // needed in case cylinder svtx layers are present      
     if (layer < _min_layer) continue;
     if (layer > _max_layer) continue;
     
     PHG4CylinderCellGeom* geo = geom_container->GetLayerCellGeom(layer);
-    nphibins = layeriter->second->get_phibins();
-    nzbins = layeriter->second->get_zbins();
+    const int nphibins = layeriter->second->get_phibins();
+    const int nzbins = layeriter->second->get_zbins();
 
     nhits.clear();
     nhits.assign(nzbins, 0);
@@ -206,9 +215,9 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     cellids.clear();
     cellids.assign(nphibins * nzbins, 0);
 
-    for (unsigned int i = 0; i < layer_sorted[layer].size(); ++i) {
+    for (unsigned int i = 0; i < layer_sorted[layer - _min_layer].size(); ++i) {
 
-      const SvtxHit* hit = layer_sorted[layer][i];
+      const SvtxHit* hit = layer_sorted[layer - _min_layer][i];
       if (hit->get_e() <= 0.) continue;
       
       PHG4CylinderCell* cell = cells->findCylinderCell(hit->get_cellid());

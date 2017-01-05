@@ -2,10 +2,8 @@
 
 using namespace std;
 
-ClassImp(RawClusterv1)
-
-RawClusterv1::RawClusterv1()
-: RawCluster(),
+RawClusterv1::RawClusterv1():
+  RawCluster(),
   clusterid(0),
   _eta(0.0),
   _phi(0.0),

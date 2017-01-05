@@ -2,9 +2,10 @@
 #define Prototype2RawTowerBuilder_H__
 
 #include <fun4all/SubsysReco.h>
-#include <string>
 
 #include <phool/PHTimeServer.h>
+
+#include <string>
 
 class PHCompositeNode;
 class RawTowerContainer;

@@ -7,6 +7,7 @@
 #include <phool/PHObject.h>
 #include <cmath>
 #include <map>
+#include <set>
 
 class PHG4ScintillatorSlat : public PHObject
 {
@@ -30,7 +31,7 @@ class PHG4ScintillatorSlat : public PHObject
   virtual double get_edep() const {return NAN;}
   virtual double get_eion() const {return NAN;}
   virtual double get_light_yield() const  {return NAN;}
-
+  virtual std::pair<std::set<PHG4HitDefs::keytype>::const_iterator, std::set<PHG4HitDefs::keytype>::const_iterator> get_hit_ids() const = 0;
 
   
  protected:

@@ -139,6 +139,11 @@ PHG4Reco::~PHG4Reco( void )
   delete runManager_;
   delete uisession_;
   delete visManager;
+  while(subsystems_.begin() != subsystems_.end())
+    {
+      delete subsystems_.back();
+      subsystems_.pop_back();
+    }
 }
 
 //_________________________________________________________________
@@ -147,8 +152,9 @@ int PHG4Reco::Init( PHCompositeNode* topNode )
   if (verbosity > 0) {
     cout << "========================= PHG4Reco::Init() ================================" << endl;
   }
-
-  G4Seed(PHRandomSeed()); // fixed seed handled in PHRandomSeed()
+  unsigned int iseed = PHRandomSeed();
+  cout << Name() << " G4 Random Seed: " << iseed << endl;
+  G4Seed(iseed); // fixed seed handled in PHRandomSeed()
   
   // create GEANT run manager
   if (verbosity > 1) cout << "PHG4Reco::Init - create run manager" << endl;
@@ -568,7 +574,7 @@ PHG4Reco::Print(const std::string &what) const
 {
   BOOST_FOREACH(SubsysReco * reco, subsystems_)
     {
-      if (what == "ALL" || reco->Name() == what)
+      if (what.empty() || what=="ALL" || (reco->Name()).find(what) != string::npos)
 	{
 	  cout << "Printing " << reco->Name() << endl;
 	  reco->Print(what);

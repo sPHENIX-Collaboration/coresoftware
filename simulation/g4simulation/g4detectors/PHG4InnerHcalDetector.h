@@ -3,9 +3,7 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/globals.hh>
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4SystemOfUnits.hh>
+// cannot fwd declare G4RotationMatrix, it is a typedef pointing to clhep
 #include <Geant4/G4RotationMatrix.hh>
 
 #include <CGAL/Exact_circular_kernel_2.h>
@@ -32,7 +30,7 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
  PHG4InnerHcalDetector( PHCompositeNode *Node,  PHG4Parameters *parameters, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4InnerHcalDetector(){}
+ virtual ~PHG4InnerHcalDetector();
 
   //! construct
   virtual void Construct( G4LogicalVolume* world );
@@ -59,11 +57,11 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   void SetTiltViaNcross();
 
   protected:
-  void AddGeometryNode();
   int ConstructInnerHcal(G4LogicalVolume* sandwich);
   int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
   double x_at_y(Point_2 &p0, Point_2 &p1, double yin);
   PHG4Parameters *params;
+  G4AssemblyVolume *scinti_mother_assembly;
   double inner_radius;
   double outer_radius;
   double size_z;

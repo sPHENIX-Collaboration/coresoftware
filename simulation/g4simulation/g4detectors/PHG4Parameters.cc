@@ -15,10 +15,12 @@
 #include <TBufferXML.h>
 #include <TFile.h>
 #include <TSystem.h>
+#include <TBufferFile.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
+#include  <boost/functional/hash.hpp>
 
 // this is an ugly hack, the gcc optimizer has a bug which
 // triggers the uninitialized variable warning which
@@ -116,11 +118,48 @@ PHG4Parameters::exist_double_param(const std::string &name) const
 void
 PHG4Parameters::Print() const
 {
-  cout << "Parameters for " << detname << endl;
+  cout << "Parameters for " << detname  << endl;
   printint();
   printdouble();
   printstring();
   return;
+}
+
+size_t
+PHG4Parameters::get_hash() const
+{
+  size_t seed = 0;
+
+  for (dMap::const_iterator iter = doubleparams.begin();
+      iter != doubleparams.end(); ++iter)
+    {
+//      size_t seed = 0;
+      boost::hash_combine(seed, iter->first );
+      boost::hash_combine(seed, iter->second );
+//      cout << iter->first << ": " << iter->second <<" -> "<<seed<< endl;
+    }
+
+  for (iMap::const_iterator iter = intparams.begin();
+      iter != intparams.end(); ++iter)
+    {
+//      size_t seed = 0;
+      boost::hash_combine(seed, iter->first );
+      boost::hash_combine(seed, iter->second );
+//      cout << iter->first << ": " << iter->second <<" -> "<<seed<< endl;
+    }
+
+  for (strMap::const_iterator iter = stringparams.begin();
+      iter != stringparams.end(); ++iter)
+    {
+//      size_t seed = 0;
+      boost::hash_combine(seed, iter->first );
+      boost::hash_combine(seed, iter->second );
+//      cout << iter->first << ": " << iter->second <<" -> "<<seed<< endl;
+    }
+
+
+  return seed;
+
 }
 
 void
@@ -449,9 +488,9 @@ PHG4Parameters::WriteToFile(const string &extension, const string &dir)
   CopyToPdbParameterMap(myparm);
   TFile *f = TFile::Open(fullpath.str().c_str(), "recreate");
   // force xml file writing to use extended precision shown experimentally
-  // to not modify input parameters (.15e)
+  // to not modify input parameters (.17g)
   string floatformat = TBufferXML::GetFloatFormat();
-  TBufferXML::SetFloatFormat("%.15e");
+  TBufferXML::SetFloatFormat("%.17g"); // for IEEE 754 double
   myparm->Write();
   delete f;
   // restore previous xml float format
@@ -522,22 +561,31 @@ PHG4Parameters::ReadFromFile(const string &name, const string &extension, const 
       cout << "No calibration file like " << dir << "/" << fileprefix << " found" << endl;
       gSystem->Exit(1);
     }
-  cout << "Reading from File: " << (calibfiles.rbegin())->second << endl;
+  cout << "PHG4Parameters::ReadFromFile - Reading from File: " << (calibfiles.rbegin())->second << " ... ";
   string fname = (calibfiles.rbegin())->second;
   TFile *f = TFile::Open(fname.c_str());
   if (issuper)
     {
       PdbParameterMapContainer *myparm = static_cast<PdbParameterMapContainer *> (f->Get("PdbParameterMapContainer"));
+      assert (myparm);
+      assert (myparm->GetParameters(layer));
+      cout << "Received PdbParameterMapContainer layer #"<< layer <<" with (Hash = 0x"<< std::hex << myparm->GetParameters(layer)->get_hash() << std::dec <<")" << endl;
+
       FillFrom(myparm, layer);
       delete myparm;
     }
   else
     {
       PdbParameterMap *myparm = static_cast<PdbParameterMap *> (f->Get("PdbParameterMap"));
+      assert (myparm);
+      cout << "Received PdbParameterMap with (Hash = 0x"<< std::hex << myparm->get_hash() << std::dec <<")" << endl;
+
       FillFrom(myparm);
       delete myparm;
     }
   delete f;
+
+
   return 0;
 }
 

@@ -223,9 +223,9 @@ public:
     int tower_ID;
     int fiber_ID;
 
-    static const int kfiber_bit = 12;
-    static const int ktower_bit = 12;
-    static const int ksector_bit = 8;
+    static const int kfiber_bit = 13; // max 8192 fiber per tower
+    static const int ktower_bit = 11; // max 2048 towers per sector
+    static const int ksector_bit = 8; // max 256 sectors
 
   ClassDef(PHG4CylinderGeom_Spacalv3::scint_id_coder,1)
   };

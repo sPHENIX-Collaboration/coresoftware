@@ -28,6 +28,7 @@ class PHG4Hitv1 : public PHG4Hit
   float get_t(const int i) const {return t[i];}
   float get_edep() const {return edep;}
   PHG4HitDefs::keytype get_hit_id() const {return hitid;}
+  int get_detid() const;
   int get_shower_id() const {return showerid;}
   int get_trkid() const {return trackid;}
   
@@ -64,7 +65,7 @@ class PHG4Hitv1 : public PHG4Hit
   virtual int get_row() const {return  get_property_int(prop_row);}
   virtual int get_strip_z_index() const   {return  get_property_int(prop_strip_z_index);}
   virtual int get_strip_y_index() const   {return  get_property_int(prop_strip_y_index);}
-  virtual int get_ladder_z_index() const  {return  get_property_int(prop_ladder_phi_index);}
+  virtual int get_ladder_z_index() const  {return  get_property_int(prop_ladder_z_index);}
   virtual int get_ladder_phi_index() const{return  get_property_int(prop_ladder_phi_index);}
   virtual int get_index_i() const {return  get_property_int(prop_index_i);}
   virtual int get_index_j() const {return  get_property_int(prop_index_j);}
@@ -86,7 +87,7 @@ class PHG4Hitv1 : public PHG4Hit
   virtual void set_row(const int i)          {set_property(prop_row,i);}
   virtual void set_strip_z_index(const int i)     {set_property(prop_strip_z_index,i);}
   virtual void set_strip_y_index(const int i)     {set_property(prop_strip_y_index,i);}
-  virtual void set_ladder_z_index(const int i)    {set_property(prop_ladder_phi_index,i);}
+  virtual void set_ladder_z_index(const int i)    {set_property(prop_ladder_z_index,i);}
   virtual void set_ladder_phi_index(const int i)  {set_property(prop_ladder_phi_index,i);}
   virtual void set_index_i(const int i)  {set_property(prop_index_i,i);}
   virtual void set_index_j(const int i)  {set_property(prop_index_j,i);}

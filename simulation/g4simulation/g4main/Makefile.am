@@ -19,7 +19,8 @@ INCLUDES = \
     -isystem $(ROOTSYS)/include \
     -isystem ${G4_MAIN}/include \
     -I$(OFFLINE_MAIN)/include/eigen3 \
-    -isystem ${G4_MAIN}/include/Geant4
+    -isystem ${G4_MAIN}/include/Geant4 \
+    -I$(OPT_SPHENIX)/include
 
 
 RINCLUDES = \
@@ -30,16 +31,20 @@ RINCLUDES = \
     -I${G4_MAIN}/include/Geant4 \
     -I$(XERCESCROOT)/include
 
+
 libphg4hit_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -L$(XERCESCROOT)/lib \
+  -L$(OPT_SPHENIX)/lib \
   `geant4-config --libs`
+
 
 libphg4hit_la_LIBADD = \
   -lphool \
   -lSubsysReco \
-  -lfun4all
+  -lfun4all \
+  -leicsmear
 
 libphg4hit_la_SOURCES = \
     PHG4Hit_Dict.cc \

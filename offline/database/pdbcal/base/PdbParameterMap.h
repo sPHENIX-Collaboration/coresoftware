@@ -25,6 +25,9 @@ class PdbParameterMap: public PdbCalChan
   void print() const;
   void Reset(); // from PHObject - clear content
 
+  //! hash of binary information for checking purpose
+  size_t get_hash() const;
+
   dConstRange get_dparam_iters() const 
     {return make_pair(dparams.begin(),dparams.end());}
 

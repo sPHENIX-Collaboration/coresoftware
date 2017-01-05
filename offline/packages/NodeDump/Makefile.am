@@ -20,6 +20,7 @@ libphnodedump_la_SOURCES = \
   DumpPHG4CylinderCellGeomContainer.cc \
   DumpPHG4CylinderGeomContainer.cc \
   DumpPHG4HitContainer.cc \
+  DumpPHG4ScintillatorSlatContainer.cc \
   DumpPHG4TruthInfoContainer.cc \
   DumpPHG4InEvent.cc \
   DumpRawClusterContainer.cc \

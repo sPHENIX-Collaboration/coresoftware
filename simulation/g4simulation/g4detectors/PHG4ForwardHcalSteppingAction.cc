@@ -342,11 +342,13 @@ PHG4ForwardHcalSteppingAction::ParseG4VolumeName( G4VPhysicalVolume* volume, int
 		if (*tokeniter == "j")
 		{
 			++tokeniter;
+      if ( tokeniter == tok.end()) break;
 			j = boost::lexical_cast<int>(*tokeniter);
 		}
 		else if (*tokeniter == "k")
 		{
 			++tokeniter;
+      if ( tokeniter == tok.end()) break;
 			k = boost::lexical_cast<int>(*tokeniter);
 		}
 	}
