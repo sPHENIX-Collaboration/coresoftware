@@ -51,6 +51,8 @@ public:
 	 */
 	enum OutPutMode {MakeNewNode, OverwriteOriginalNode, DebugMode};
 
+	enum DetectorType {MAPS_LADDERS_TPC, MAPS_TPC, MAPS_IT_TPC, MIE};
+
 	//! Default constructor
 	PHG4TrackKalmanFitter(const std::string &name = "PHG4TrackKalmanFitter");
 
@@ -190,6 +192,14 @@ public:
 		_primary_pid_guess = primaryPidGuess;
 	}
 
+	DetectorType get_detector_type() const {
+		return _detector_type;
+	}
+
+	void set_detector_type(DetectorType detectorType) {
+		_detector_type = detectorType;
+	}
+
 	double get_cut_min_p_T() const {
 		return _cut_min_pT;
 	}
@@ -257,6 +267,9 @@ private:
 
 	//!flags
 	unsigned int _flags;
+
+	//!Detector Type
+	DetectorType _detector_type;
 
 	//bool _make_separate_nodes;
 	OutPutMode _output_mode;

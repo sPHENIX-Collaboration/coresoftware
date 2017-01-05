@@ -11,6 +11,8 @@
 #include <fun4all/PHTFileServer.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4detectors/PHG4CylinderCell_MAPS.h>
+#include <g4detectors/PHG4CylinderGeom_MAPS.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -151,7 +153,7 @@ private:
  * Constructor
  */
 PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
-		SubsysReco(name), _flags(NONE), _output_mode(OverwriteOriginalNode), _fit_primary_tracks(
+		SubsysReco(name), _flags(NONE), _detector_type(MAPS_LADDERS_TPC), _output_mode(OverwriteOriginalNode), _fit_primary_tracks(
 				true), _mag_field_file_name(
 				"/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"), _mag_field_re_scaling_factor(
 				1.4 / 1.5), _reverse_mag_field(true), _fitter( NULL), _track_fitting_alg_name(
@@ -701,12 +703,17 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 	}
 
 	// DEBUG: BEGIN
-	SvtxHitMap* hitsmap = NULL;
-
-	PHG4CylinderCellContainer* cells = NULL;
-
 	PHG4HitContainer* phg4hitcontainer = NULL;
+	phg4hitcontainer = findNode::getClass<PHG4HitContainer>(
+			topNode, "G4HIT_SVTX");
+	if (!phg4hitcontainer && _event < 2) {
+		cout << PHWHERE << "G4HIT_SVTX"
+				<< " node not found on node tree" << endl;
+		return NULL;
+	}
+	// DEBUG: END
 
+	SvtxHitMap* hitsmap = NULL;
 	// get node containing the digitized hits
 	hitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
 	if (!hitsmap) {
@@ -714,22 +721,32 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 		return NULL;
 	}
 
-	cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,
-			"G4CELL_SVTX");
-	if (!cells) {
-		cout << PHWHERE << "ERROR: Can't find node G4CELL_SVTX" << endl;
-		return NULL;
-	}
+	PHG4CylinderCellContainer* cells = NULL;
+	PHG4CylinderGeomContainer* geom_container = NULL;
 
-	phg4hitcontainer = findNode::getClass<PHG4HitContainer>(
-			topNode, "G4HIT_SVTX");
+	if (_detector_type == MAPS_LADDERS_TPC) {
+		geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,
+				"CYLINDERGEOM_MAPS");
+		if (!geom_container) {
+			cout << PHWHERE << "ERROR: Can't find node CYLINDERGEOM_MAPS"
+					<< endl;
+			return NULL;
+		}
 
-	if (!phg4hitcontainer && _event < 2) {
-		cout << PHWHERE << "G4HIT_SVTX"
-				<< " node not found on node tree" << endl;
-		return NULL;
+		cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,
+				"G4CELL_MAPS");
+		if (!cells) {
+			cout << PHWHERE << "ERROR: Can't find node G4CELL_MAPS" << endl;
+			return NULL;
+		}
+	} else {
+		cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,
+				"G4CELL_SVTX");
+		if (!cells) {
+			cout << PHWHERE << "ERROR: Can't find node G4CELL_SVTX" << endl;
+			return NULL;
+		}
 	}
-	// DEBUG: END
 
 	// prepare seed
 	TVector3 seed_mom(100, 0, 0);
@@ -891,6 +908,35 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 
 		//TODO use u, v explicitly?
 		TVector3 n(cluster->get_x(), cluster->get_y(), 0);
+
+		unsigned int layer = cluster->get_layer();
+		//std::cout << "cluster layer: " << layer << std::endl;
+		if (_detector_type == MAPS_LADDERS_TPC and layer < 3) {
+
+			unsigned int begin_hit_id = *(cluster->begin_hits());
+			//LogDebug(begin_hit_id);
+			SvtxHit* hit = hitsmap->find(begin_hit_id)->second;
+			//LogDebug(hit->get_cellid());
+			PHG4CylinderCell_MAPS* cell = (PHG4CylinderCell_MAPS*) cells->findCylinderCell(hit->get_cellid());
+		    int stave_index = cell->get_stave_index();
+		    int half_stave_index = cell->get_half_stave_index();
+		    int module_index = cell->get_module_index();
+		    int chip_index = cell->get_chip_index();
+
+			double ladder_location[3] = { 0.0, 0.0, 0.0 };
+			PHG4CylinderGeom_MAPS *geom =
+					(PHG4CylinderGeom_MAPS*) geom_container->GetLayerGeom(
+							layer);
+			// returns the center of the sensor in world coordinates - used to get the ladder phi location
+			geom->find_sensor_center(stave_index, half_stave_index,
+					module_index, chip_index, ladder_location);
+			//n.Print();
+			n.SetXYZ(ladder_location[0],ladder_location[1],0);
+			double phitilt = 0.304;   // radians, equivalent to 17.4 degrees
+			n.RotateZ(phitilt);
+			//n.Print();
+		}
+
 		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
 				cluster->get_phi_error(), cluster->get_z_error());
 
