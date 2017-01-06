@@ -725,7 +725,7 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 	PHG4CylinderCellContainer* cells = NULL;
 	cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,
 			"G4CELL_SVTX");
-	if (!cells_maps) {
+	if (!cells) {
 		cout << PHWHERE << "ERROR: Can't find node G4CELL_SVTX" << endl;
 		return NULL;
 	}
@@ -885,7 +885,7 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 
 		// DEBUG: BEGIN
 		SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
-		PHG4CylinderCell* cell = (PHG4CylinderCell*) cells_maps->findCylinderCell(svtxhit->get_cellid());
+		PHG4CylinderCell* cell = (PHG4CylinderCell*) cells->findCylinderCell(svtxhit->get_cellid());
 		PHG4Hit *phg4hit = phg4hitcontainer->findHit(cell->get_g4hits().first->first);
 
 		if(!phg4hit) continue;
@@ -925,8 +925,6 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 //			continue;
 //		}
 
-		// DEBUG: END
-
 		seed_mom.SetPhi(pos.Phi());
 		seed_mom.SetTheta(pos.Theta());
 
@@ -940,17 +938,20 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 		//std::cout << "cluster layer: " << layer << std::endl;
 		if ((_detector_type == LADDER_MAPS_TPC
 				|| _detector_type == LADDER_MAPS_IT_TPC
-				|| _detector_type == LADDER_MAPS_LADDER_IT_TPC) and layer < 3) {
+				|| _detector_type == LADDER_MAPS_LADDER_IT_TPC)
+				and pos.Perp() < 4.) {
 
 			unsigned int begin_hit_id = *(cluster->begin_hits());
 			//LogDebug(begin_hit_id);
 			SvtxHit* hit = hitsmap->find(begin_hit_id)->second;
 			//LogDebug(hit->get_cellid());
-			PHG4CylinderCell_MAPS* cell = (PHG4CylinderCell_MAPS*) cells_maps->findCylinderCell(hit->get_cellid());
-		    int stave_index = cell->get_stave_index();
-		    int half_stave_index = cell->get_half_stave_index();
-		    int module_index = cell->get_module_index();
-		    int chip_index = cell->get_chip_index();
+			PHG4CylinderCell_MAPS* cell =
+					(PHG4CylinderCell_MAPS*) cells_maps->findCylinderCell(
+							hit->get_cellid());
+			int stave_index = cell->get_stave_index();
+			int half_stave_index = cell->get_half_stave_index();
+			int module_index = cell->get_module_index();
+			int chip_index = cell->get_chip_index();
 
 			double ladder_location[3] = { 0.0, 0.0, 0.0 };
 			PHG4CylinderGeom_MAPS *geom =
@@ -960,27 +961,28 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 			geom->find_sensor_center(stave_index, half_stave_index,
 					module_index, chip_index, ladder_location);
 			//n.Print();
-			n.SetXYZ(ladder_location[0],ladder_location[1],0);
+			n.SetXYZ(ladder_location[0], ladder_location[1], 0);
 			n.RotateZ(phi_tilt[layer]);
 			//n.Print();
-		}
-
-		if ((_detector_type == LADDER_MAPS_LADDER_IT_TPC) and (layer >= 3 and layer <= 6)) {
+		} else if ((_detector_type == LADDER_MAPS_LADDER_IT_TPC)
+				and pos.Perp() < 30. and false) {
 
 			unsigned int begin_hit_id = *(cluster->begin_hits());
 			//LogDebug(begin_hit_id);
 			SvtxHit* hit = hitsmap->find(begin_hit_id)->second;
 			//LogDebug(hit->get_cellid());
-			PHG4CylinderCell* cell = (PHG4CylinderCell*) cells_intt->findCylinderCell(hit->get_cellid());
-			PHG4CylinderGeom_Siladders* geom = (PHG4CylinderGeom_Siladders*)geom_container_intt->GetLayerGeom(layer);
-			double hit_location[3] = {0.0,0.0,0.0};
+			PHG4CylinderCell* cell =
+					(PHG4CylinderCell*) cells_intt->findCylinderCell(
+							hit->get_cellid());
+			PHG4CylinderGeom_Siladders* geom =
+					(PHG4CylinderGeom_Siladders*) geom_container_intt->GetLayerGeom(
+							layer);
+			double hit_location[3] = { 0.0, 0.0, 0.0 };
 			geom->find_strip_center(cell->get_ladder_z_index(),
-						cell->get_ladder_phi_index(),
-						cell->get_binz(),
-						cell->get_binphi(),
-						hit_location);
+					cell->get_ladder_phi_index(), cell->get_binz(),
+					cell->get_binphi(), hit_location);
 
-			n.SetXYZ(hit_location[0],hit_location[1],0);
+			n.SetXYZ(hit_location[0], hit_location[1], 0);
 			n.RotateZ(phi_tilt[layer]);
 		}
 
