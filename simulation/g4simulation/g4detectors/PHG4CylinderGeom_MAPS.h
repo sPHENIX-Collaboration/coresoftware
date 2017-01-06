@@ -43,6 +43,20 @@ class PHG4CylinderGeom_MAPS: public PHG4CylinderGeom
 
 protected:
 
+  //! default ctor to allow ROOT stream of this class. Implemented using c++11 feature of delegating constructors
+  PHG4CylinderGeom_MAPS():
+    PHG4CylinderGeom_MAPS(
+        /*int layer*/0,
+        /*int stave_type*/0,
+        /*int in_Nstaves*/0,
+        /*double in_layer_nominal_radius*/3,
+        /*double in_phistep*/0,
+        /*double in_phitilt*/0,
+        /*double in_pixel_x*/20e-4,
+        /*double in_pixel_z*/20e-4,
+        /*double in_pixel_thickness*/18e-4)
+  {  }
+
   int layer;
   int stave_type;
   int N_staves;
