@@ -52,6 +52,7 @@ pkginclude_HEADERS = \
   PHG4CylinderGeom.h \
   PHG4CylinderGeom_Spacalv1.h \
   PHG4CylinderGeom_MAPS.h \
+  PHG4CylinderGeom_Siladders.h \
   PHG4CylinderGeom_Spacalv2.h \
   PHG4CylinderGeom_Spacalv3.h \
   PHG4CylinderGeomContainer.h \
