@@ -25,6 +25,9 @@ class PdbParameterMapContainer: public PdbCalChan
   PdbParameterMap *GetParametersToModify(const int layer);
   parConstRange get_ParameterMaps() const {return make_pair(parametermap.begin(), parametermap.end());}
 
+  //! write PdbParameterMapContainer to an external file with root or xml extension.
+  int WriteToFile(const std::string &detector_name, const std::string &extension, const std::string &dir = ".");
+
  protected:
   std::map<int, PdbParameterMap *> parametermap;
 

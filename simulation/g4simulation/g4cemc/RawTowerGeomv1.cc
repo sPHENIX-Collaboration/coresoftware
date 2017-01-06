@@ -1,15 +1,9 @@
 #include "RawTowerGeomv1.h"
 
-
 #include <iostream>
-#include <algorithm>
-
 #include <cmath>
-#include <map>
 
 using namespace std;
-
-ClassImp(RawTowerGeomv1)
 
 RawTowerGeomv1::RawTowerGeomv1() :
   _towerid(~0),
@@ -24,10 +18,6 @@ RawTowerGeomv1::RawTowerGeomv1(RawTowerDefs::keytype id) :
   _center_y(0),
   _center_z(0)
 {}
-
-RawTowerGeomv1::~RawTowerGeomv1()
-{}
-
 
 double RawTowerGeomv1::get_center_radius() const
 {

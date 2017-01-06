@@ -97,7 +97,9 @@ PHG4ParticleGeneratorD0::set_mass(const double mass_in)
 int
 PHG4ParticleGeneratorD0::InitRun(PHCompositeNode *topNode)
 {
-  gRandom->SetSeed(PHRandomSeed()); // fixed seed handled in PHRandomSeed()
+  unsigned int iseed = PHRandomSeed(); // fixed seed handled in PHRandomSeed()
+  cout << Name() << " random seed: " << iseed << endl;
+  gRandom->SetSeed(iseed);
 
   fsin = new TF1("fsin","sin(x)",0,M_PI);
 

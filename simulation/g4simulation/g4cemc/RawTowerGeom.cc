@@ -3,8 +3,6 @@
 #include <cmath>
 #include <cstdlib>
 
-ClassImp(RawTowerGeom)
-
 using namespace std;
 
 void
