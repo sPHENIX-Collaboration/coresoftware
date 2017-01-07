@@ -879,41 +879,35 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 			LogError("No cluster Found!");
 			continue;
 		}
-		//cluster->identify(); //DEBUG
 
 		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
 
 		// DEBUG: BEGIN
-		SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
-		PHG4CylinderCell* cell = (PHG4CylinderCell*) cells->findCylinderCell(svtxhit->get_cellid());
-		PHG4Hit *phg4hit = phg4hitcontainer->findHit(cell->get_g4hits().first->first);
-
-		if(!phg4hit) continue;
-//		if(phg4hit->get_trkid()!=1) {
-//			LogDebug("phg4hit->get_trkid()!=1");
-//			continue;
+//		if (_do_eval) {
+//			SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
+//			PHG4CylinderCell* cell =
+//					(PHG4CylinderCell*) cells->findCylinderCell(
+//							svtxhit->get_cellid());
+//			PHG4Hit *phg4hit = phg4hitcontainer->findHit(
+//					cell->get_g4hits().first->first);
+//
+//			if (!phg4hit)
+//				continue;
+//
+//			TVector3 phg4hit_position(phg4hit->get_avg_x(),
+//					phg4hit->get_avg_y(), phg4hit->get_avg_z());
+//			TVector3 cluster_position(cluster->get_x(), cluster->get_y(),
+//					cluster->get_z());
+//
+//			_cluster_eval_tree_x = cluster_position.X();
+//			_cluster_eval_tree_y = cluster_position.Y();
+//			_cluster_eval_tree_z = cluster_position.Z();
+//			_cluster_eval_tree_gx = phg4hit_position.X();
+//			_cluster_eval_tree_gy = phg4hit_position.Y();
+//			_cluster_eval_tree_gz = phg4hit_position.Z();
+//
+//			_cluster_eval_tree->Fill();
 //		}
-
-		TVector3 phg4hit_position(phg4hit->get_avg_x(),phg4hit->get_avg_y(),phg4hit->get_avg_z());
-		//cluster->identify(); //DEBUG
-		TVector3 cluster_position(cluster->get_x(),cluster->get_y(),cluster->get_z());
-
-//		LogDebug("PHG4Hit vs Cluster:");
-//		cout << "hit: \t (" << phg4hit_position.X() << ","
-//				<< phg4hit_position.Y() << "," << phg4hit_position.Z()
-//				<< "), r = " << phg4hit_position.Perp() << endl;
-//		cout << "cluster: \t (" << cluster_position.X() << ","
-//				<< cluster_position.Y() << "," << cluster_position.Z()
-//				<< "), r = " << cluster_position.Perp() << "; size_hits: "
-//				<< cluster->size_hits() << endl;
-
-		_cluster_eval_tree_x = cluster_position.X();
-		_cluster_eval_tree_y = cluster_position.Y();
-		_cluster_eval_tree_z = cluster_position.Z();
-		_cluster_eval_tree_gx = phg4hit_position.X();
-		_cluster_eval_tree_gy = phg4hit_position.Y();
-		_cluster_eval_tree_gz = phg4hit_position.Z();
-		_cluster_eval_tree->Fill();
 
 //		if (phg4hit_position.Perp() > 30.) {
 //			pos.SetXYZ(phg4hit_position.X(), phg4hit_position.Y(),phg4hit_position.Z()); //DEBUG
@@ -924,6 +918,7 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 //		if(phg4hit->get_trkid()!=1) {
 //			continue;
 //		}
+		// DEBUG: END
 
 		seed_mom.SetPhi(pos.Phi());
 		seed_mom.SetTheta(pos.Theta());
@@ -939,7 +934,7 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 		if ((_detector_type == LADDER_MAPS_TPC
 				|| _detector_type == LADDER_MAPS_IT_TPC
 				|| _detector_type == LADDER_MAPS_LADDER_IT_TPC)
-				and pos.Perp() < 4.) {
+				and layer < 3) {
 
 			unsigned int begin_hit_id = *(cluster->begin_hits());
 			//LogDebug(begin_hit_id);
@@ -965,7 +960,7 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 			n.RotateZ(phi_tilt[layer]);
 			//n.Print();
 		} else if ((_detector_type == LADDER_MAPS_LADDER_IT_TPC)
-				and pos.Perp() < 30. and false) {
+				and pos.Perp() < 30.) {
 
 			unsigned int begin_hit_id = *(cluster->begin_hits());
 			//LogDebug(begin_hit_id);
