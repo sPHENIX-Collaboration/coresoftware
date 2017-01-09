@@ -126,11 +126,11 @@ bool PHPy6ParticleTrigger::Apply( const HepMC::GenEvent* evt )
         // loop over all partents to this particle
         for (int k = 0; k < int(_theParents.size()); k++) {
           // check Mothers
-	  for ( HepMC::GenVertex::particles_out_const_iterator p_mom = (*p)->end_vertex()->particles_out_const_begin();
-		p_mom != (*p)->end_vertex()->particles_out_const_end();
-		++p_mom )
+	  for ( HepMC::GenVertex::particles_in_const_iterator p_parent = (*p)->production_vertex()->particles_in_const_begin();
+		p_parent != (*p)->production_vertex()->particles_in_const_end();
+		++p_parent )
 	    {
-	      if (abs( (*p_mom)->pdg_id() ) == abs(_theParents[k]))
+	      if (abs( (*p_parent)->pdg_id() ) == abs(_theParents[k]))
 		{
 		  passedParents = true;
 		  if (_verbosity > 5) cout << "found parent!" << endl;
