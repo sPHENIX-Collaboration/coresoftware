@@ -6,7 +6,8 @@ using namespace std;
 
 //__________________________________________________________
 PHPy6GenTrigger::PHPy6GenTrigger(const std::string &name):
-_name(name) {}
+  _verbosity(0),
+  _name(name) {}
 
 //__________________________________________________________
 PHPy6GenTrigger::~PHPy6GenTrigger() {}
