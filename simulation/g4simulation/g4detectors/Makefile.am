@@ -131,6 +131,9 @@ libg4detectors_io_la_SOURCES = \
   PHG4ScintillatorSlatContainer_Dict.cc
 
 libg4detectors_la_SOURCES = \
+  PHG4BeamlineMagnetDetector.cc \
+  PHG4BeamlineMagnetSubsystem.cc \
+  PHG4BeamlineMagnetSubsystem_Dict.cc \
   PHG4BlockCellReco.cc \
   PHG4BlockCellReco_Dict.cc \
   PHG4BlockDetector.cc \
