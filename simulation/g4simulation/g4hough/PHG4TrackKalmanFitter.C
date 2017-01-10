@@ -154,18 +154,39 @@ private:
  * Constructor
  */
 PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
-		SubsysReco(name), _flags(NONE), _detector_type(MIE), _output_mode(OverwriteOriginalNode), _fit_primary_tracks(
-				true), _mag_field_file_name(
-				"/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"), _mag_field_re_scaling_factor(
-				1.4 / 1.5), _reverse_mag_field(true), _fitter( NULL), _track_fitting_alg_name(
-				"KalmanFitterRefTrack"), _primary_pid_guess(211), _cut_min_pT(0.1), _vertex_finder(
-		NULL), _vertexing_method("mvf"), _truth_container(
-		NULL), _clustermap(NULL), _trackmap(NULL), _vertexmap(NULL), _trackmap_refit(
-		NULL), _primary_trackmap(NULL), _vertexmap_refit(NULL), _do_eval(false), _eval_outname(
-				"PHG4TrackKalmanFitter_eval.root"), _eval_tree(
-		NULL), _tca_particlemap(NULL), _tca_vtxmap(NULL), _tca_trackmap(NULL), _tca_vertexmap(
-		NULL), _tca_trackmap_refit(NULL), _tca_primtrackmap(NULL), _tca_vertexmap_refit(
-		NULL), _do_evt_display(false) {
+		SubsysReco(name),
+		_flags(NONE),
+		_detector_type(PHG4TrackKalmanFitter::MAPS_IT_TPC),
+		_output_mode(PHG4TrackKalmanFitter::MakeNewNode),
+		_fit_primary_tracks(false),
+		_mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
+		_mag_field_re_scaling_factor(1.4 / 1.5),
+		_reverse_mag_field(true),
+		_fitter( NULL),
+		_track_fitting_alg_name("DafRef"),
+		_primary_pid_guess(211),
+		_cut_min_pT(0.1),
+		_vertex_finder(NULL),
+		_vertexing_method("avf-smoothing:1"),
+		_truth_container(NULL),
+		_clustermap(NULL),
+		_trackmap(NULL),
+		_vertexmap(NULL),
+		_trackmap_refit(NULL),
+		_primary_trackmap(NULL),
+		_vertexmap_refit(NULL),
+		_do_eval(false),
+		_eval_outname("PHG4TrackKalmanFitter_eval.root"),
+		_eval_tree(NULL),
+		_tca_particlemap(NULL),
+		_tca_vtxmap(NULL),
+		_tca_trackmap(NULL),
+		_tca_vertexmap(NULL),
+		_tca_trackmap_refit(NULL),
+		_tca_primtrackmap(NULL),
+		_tca_vertexmap_refit(NULL),
+		_do_evt_display(false) {
+
 	_event = 0;
 
 	_cluster_eval_tree = NULL;
@@ -181,7 +202,7 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
  * Init
  */
 int PHG4TrackKalmanFitter::Init(PHCompositeNode *topNode) {
-	cout << PHWHERE << " Openning file " << _eval_outname << endl;
+
 
 //	CreateNodes(topNode);
 
@@ -225,6 +246,8 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
 	}
 
 	if (_do_eval) {
+		if(verbosity >= 1)
+			cout << PHWHERE << " Openning file: " << _eval_outname << endl;
 		PHTFileServer::get().open(_eval_outname, "RECREATE");
 		init_eval_tree();
 	}
@@ -412,6 +435,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 int PHG4TrackKalmanFitter::End(PHCompositeNode *topNode) {
 
 	if (_do_eval) {
+		if(verbosity >= 1)
+			cout << PHWHERE << " Writing to file: " << _eval_outname << endl;
 		PHTFileServer::get().cd(_eval_outname);
 		_eval_tree->Write();
 		_cluster_eval_tree->Write();

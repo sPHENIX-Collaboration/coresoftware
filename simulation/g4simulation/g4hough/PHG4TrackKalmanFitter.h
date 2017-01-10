@@ -287,12 +287,18 @@ private:
 
 
 	PHGenFit::Fitter* _fitter;
+
+	//! KalmanFitterRefTrack, KalmanFitter, DafSimple, DafRef
 	std::string _track_fitting_alg_name;
+
 	int _primary_pid_guess;
 	double _cut_min_pT;
 
 	genfit::GFRaveVertexFactory* _vertex_finder;
+
+	//! https://rave.hepforge.org/trac/wiki/RaveMethods
 	std::string _vertexing_method;
+
 	//PHRaveVertexFactory* _vertex_finder;
 
 	//! Input Node pointers
