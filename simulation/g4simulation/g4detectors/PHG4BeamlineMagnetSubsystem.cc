@@ -115,6 +115,9 @@ PHG4BeamlineMagnetSubsystem::SetDefaultParameters()
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
+  set_default_double_param("rot_x", 0.);
+  set_default_double_param("rot_y", 0.);
+  set_default_double_param("rot_z", 0.);
   set_default_double_param("radius", 100);
   set_default_double_param("thickness",100);
   set_default_double_param("tmin",NAN);

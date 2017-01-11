@@ -17,6 +17,7 @@
 #include <Geant4/G4QuadrupoleMagField.hh>
 #include <Geant4/G4PhysicalConstants.hh>
 #include <Geant4/G4PVPlacement.hh>
+//#include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4VisAttributes.hh>
@@ -125,10 +126,16 @@ void PHG4BeamlineMagnetDetector::Construct( G4LogicalVolume* logicWorld )
   G4bool allLocal = false;
   magnet_logic->SetFieldManager(fieldMgr,allLocal);
 
-  magnet_physi = new G4PVPlacement(0, G4ThreeVector(params->get_double_param("place_x")*cm,
-                                                    params->get_double_param("place_y")*cm,
-                                                    params->get_double_param("place_z")*cm),
-                                   magnet_logic,
+  G4RotationMatrix rotm;
+  rotm.rotateX(params->get_double_param("rot_x")*deg);
+  rotm.rotateY(params->get_double_param("rot_y")*deg);
+  rotm.rotateZ(params->get_double_param("rot_z")*deg);
+
+  magnet_physi = new G4PVPlacement(G4Transform3D(rotm,
+						 G4ThreeVector(params->get_double_param("place_x")*cm,
+							       params->get_double_param("place_y")*cm,
+							       params->get_double_param("place_z")*cm) ),
+				   magnet_logic,
                                    G4String(GetName().c_str()),
                                    logicWorld, 0, false, overlapcheck);
 
