@@ -84,14 +84,14 @@ void PHG4BeamlineMagnetDetector::Construct( G4LogicalVolume* logicWorld )
   string magnettype = params->get_string_param("magtype");
   if ( magnettype == "dipole" )
     {
-      double fieldValue = params->get_double_param("field_y");
+      G4double fieldValue = params->get_double_param("field_y")*tesla;
       magField = new G4UniformMagField(G4ThreeVector(0.,fieldValue,0.));
       //  magField = new G4UniformMagField (G4double vField, G4double vTheta, G4double vPhi);
       cout << "Creating DIPOLE with field " << fieldValue << " and name " << GetName() << endl;
     }
   else if ( magnettype == "quadrupole" )
     {
-      double fieldGradient = params->get_double_param("fieldgradient");
+      G4double fieldGradient = params->get_double_param("fieldgradient")*tesla/meter;
       magField = new G4QuadrupoleMagField (fieldGradient);
       //  magField = new G4QuadrupoleMagField (G4double pGradient, G4ThreeVector pOrigin, G4RotationMatrix *pMatrix);
       cout << "Creating QUADRUPOLE with gradient " << fieldGradient << " and name " << GetName() << endl;
