@@ -13,7 +13,8 @@ ROOTIFY  = perl $(srcdir)/PdbRootify.pl
 libpdbcalBase_la_LDFLAGS = \
   `root-config --evelibs`
 libpdbcalBase_la_LIBADD = \
-  -L$(libdir) -L$(OFFLINE_MAIN)/lib -lphool 
+  -L$(libdir) -L$(OFFLINE_MAIN)/lib -lphool \
+  -lXMLIO
 
 #please add new classes sorted according to the roman alphabet
 libpdbcalBase_la_SOURCES = \
@@ -43,6 +44,8 @@ libpdbcalBase_la_SOURCES = \
   PdbParameterError_dict.C \
   PdbParameterMap.cc \
   PdbParameterMap_dict.C \
+  PdbParameterMapContainer.cc \
+  PdbParameterMapContainer_dict.C \
   PHGenericFactoryT.C \
   RunToTime.cc \
   RunToTime_dict.C
@@ -65,6 +68,7 @@ pkginclude_HEADERS = \
   PdbParameter.h \
   PdbParameterError.h \
   PdbParameterMap.h \
+  PdbParameterMapContainer.h \
   PHGenericFactoryT.h \
   RunToTime.h
 

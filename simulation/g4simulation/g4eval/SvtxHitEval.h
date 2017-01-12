@@ -71,8 +71,10 @@ private:
   SvtxHitMap* _hitmap;
   PHG4CylinderCellContainer* _g4cells_svtx;
   PHG4CylinderCellContainer* _g4cells_tracker;
+  PHG4CylinderCellContainer* _g4cells_maps;
   PHG4HitContainer* _g4hits_svtx;
   PHG4HitContainer* _g4hits_tracker;
+  PHG4HitContainer* _g4hits_maps;
   PHG4TruthInfoContainer* _truthinfo;
 
   bool _strict;

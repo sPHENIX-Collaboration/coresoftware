@@ -76,8 +76,17 @@ int PHPythia6::Init(PHCompositeNode *topNode) {
   HepMC::HEPEVT_Wrapper::set_max_number_entries(4000);
   HepMC::HEPEVT_Wrapper::set_sizeof_real(8);
 
-  /* set pythia random number seed (mandatory!) */
-  pydatr.mrpy[0]=55122 ;
+  /* set pythia random number seed (mandatory!) */  
+  int fSeed = PHRandomSeed(); 
+  fSeed = abs(fSeed)%900000000;
+	    	  	  
+  if ( (fSeed>=0) && (fSeed<=900000000) ) {
+    pydatr.mrpy[0] = fSeed;                   // set seed
+    pydatr.mrpy[1] = 0;                       // use new seed
+  } else {
+    cout << PHWHERE << " ERROR: seed " << fSeed << " is not valid" << endl;
+    exit(2); 
+  }
 
   /* read pythia configuration and initialize */
   if (!_configFile.empty()) ReadConfig( _configFile );

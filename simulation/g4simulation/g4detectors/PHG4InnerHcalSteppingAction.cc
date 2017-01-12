@@ -1,5 +1,6 @@
 #include "PHG4InnerHcalSteppingAction.h"
 #include "PHG4InnerHcalDetector.h"
+#include "PHG4HcalDefs.h"
 #include "PHG4Parameters.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -11,8 +12,11 @@
 
 #include <phool/getClass.h>
 
+#include <TSystem.h>
+
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4MaterialCutsCouple.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
@@ -41,10 +45,10 @@ PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector*
   params(parameters),
   savehitcontainer(NULL),
   saveshower(NULL),
-  save_layer_id(-1),
   absorbertruth(params->get_int_param("absorbertruth")),
   IsActive(params->get_int_param("active")),
   IsBlackHole(params->get_int_param("blackhole")),
+  n_scinti_plates(params->get_int_param(PHG4HcalDefs::scipertwr)*params->get_int_param("n_towers")),
   light_scint_model(params->get_int_param("light_scint_model")),
   light_balance_inner_corr(params->get_double_param("light_balance_inner_corr")),
   light_balance_inner_radius(params->get_double_param("light_balance_inner_radius")*cm),
@@ -52,6 +56,14 @@ PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector*
   light_balance_outer_radius(params->get_double_param("light_balance_outer_radius")*cm)
 {}
 
+PHG4InnerHcalSteppingAction::~PHG4InnerHcalSteppingAction()
+{
+  // if the last hit was a zero energie deposit hit, it is just reset
+  // and the memory is still allocated, so we need to delete it here
+  // if the last hit was saved, hit is a NULL pointer which are
+  // legal to delete (it results in a no operation)
+  delete hit;
+}
 //____________________________________________________________________________..
 bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 {
@@ -72,7 +84,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
     {
       return false;
     }
-  unsigned int motherid = ~0x0; // initialize to 0xFFFFFF using the correct bitness
+  int layer_id = -1;
   int tower_id = -1;
   if (whichactive > 0) // scintillator
     {
@@ -101,12 +113,24 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	      ++tokeniter;
 	      if (tokeniter != tok.end())
 		{
-		  motherid = boost::lexical_cast<int>(*tokeniter);
+		  layer_id = boost::lexical_cast<int>(*tokeniter);
+		  // check detector description, for assemblyvolumes it is not possible
+		  // to give the first volume id=0, so they go from id=1 to id=n. 
+		  // I am not going to start with fortran again - our indices start 
+		  // at zero, id=0 to id=n-1. So subtract one here
+		  layer_id--;
+		  if (layer_id < 0 || layer_id >= n_scinti_plates)
+		    {
+		      cout << "invalid scintillator row " << layer_id
+			   << ", valid range 0 < row < " << n_scinti_plates << endl;
+		      gSystem->Exit(1);
+		    }
 		}
 	      else
 		{
 		  cout << PHWHERE << " Error parsing " << volume->GetName()
 		       << " for mother volume number " << endl;
+		  gSystem->Exit(1);
 		}
 	    }
 	  else if (*tokeniter == "pv")
@@ -120,15 +144,16 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 		{
 		  cout << PHWHERE << " Error parsing " << volume->GetName()
 		       << " for mother scinti slat id " << endl;
+	          gSystem->Exit(1);
 		}
 	    }
 	}
-      // cout << "name " << volume->GetName() << ", mid: " << motherid
+      // cout << "name " << volume->GetName() << ", mid: " << layer_id
       //  	   << ", twr: " << tower_id << endl;
     }
   else
     {
-      tower_id = touch->GetCopyNumber(); // steel plate id
+      layer_id = touch->GetCopyNumber(); // steel plate id
     }
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -143,7 +168,6 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
       G4Track* killtrack = const_cast<G4Track *> (aTrack);
       killtrack->SetTrackStatus(fStopAndKill);
     }
-  int layer_id = detector_->get_Layer();
 
   // make sure we are in a volume
   if ( IsActive )
@@ -167,11 +191,12 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	{
 	case fGeomBoundary:
 	case fUndefined:
-	  // flush out previous hit
-	  save_previous_g4hit();
-          save_layer_id = layer_id;
-	  hit = new PHG4Hitv1();
-	  hit->set_layer(motherid);
+	  // if previous hit was saved, hit pointer was set to NULL 
+	  // and we have to make a new one
+	  if (! hit)
+	    {
+	      hit = new PHG4Hitv1();
+	    }
 	  hit->set_scint_id(tower_id); // the slat id (or steel plate id)
 	  //here we set the entrance values in cm
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm);
@@ -303,10 +328,36 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	    }
 	}
 
-      //       hit->identify();
+      // if any of these conditions is true this is the last step in
+      // this volume and we need to save the hit
+      // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
+      // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
+      // (not sure if this will ever be the case)
+      // aTrack->GetTrackStatus() == fStopAndKill: track ends
+      if (postPoint->GetStepStatus() == fGeomBoundary || postPoint->GetStepStatus() == fWorldBoundary|| aTrack->GetTrackStatus() == fStopAndKill)
+	{
+          // save only hits with energy deposit (or -1 for geantino)
+	  if (hit->get_edep())
+	    {
+	      savehitcontainer->AddHit(layer_id, hit);
+	      if (saveshower)
+		{
+		  saveshower->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		}
+	      // ownership has been transferred to container, set to null
+	      // so we will create a new hit for the next track
+	      hit = NULL;
+	    }
+	  else
+	    {
+	      // if this hit has no energy deposit, just reset it for reuse
+	      // this means we have to delete it in the dtor. If this was
+	      // the last hit we processed the memory is still allocated
+	      hit->Reset();
+	    }
+ 	}
       // return true to indicate the hit was used
       return true;
-
     }
   else
     {
@@ -359,35 +410,4 @@ PHG4InnerHcalSteppingAction::GetLightCorrection(const double r) const
   if (value < 0.0) return 0.0;
 
   return value;
-}
-
-void
-PHG4InnerHcalSteppingAction::flush_cached_values()
-{
-  save_previous_g4hit();
-  return;
-}
-
-void
-PHG4InnerHcalSteppingAction::save_previous_g4hit()
-{
-  if (!hit)
-    {
-      return;
-    }
-  // save only hits with non zero energy deposition (remember geantinos edep = -1)
-   if (hit->get_edep())
-    {
-      savehitcontainer->AddHit(save_layer_id, hit);
-      if (saveshower)
-	{
-	  saveshower->add_g4hit_id(savehitcontainer->GetID(),hit->get_hit_id());
-	}
-    }
-  else
-    {
-      delete hit;
-    }
-  hit = NULL;
-  return;
 }

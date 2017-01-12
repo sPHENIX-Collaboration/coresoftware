@@ -79,6 +79,13 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
   ti->set_name(def->GetParticleName());
   ti->set_e(track->GetTotalEnergy() / GeV);
 
+  if (!track->GetParentID()) {
+    // primary track - propagate the barcode information
+    PHG4UserPrimaryParticleInformation* userdata = (PHG4UserPrimaryParticleInformation*)track->GetDynamicParticle()->GetPrimaryParticle()->GetUserInformation();
+    if(userdata) ti->set_barcode( userdata->get_user_barcode() );
+  }
+
+
   // create a new vertex object ------------------------------------------------
   G4ThreeVector v = track->GetVertexPosition();
   map<G4ThreeVector, int>::const_iterator viter = VertexMap.find(v);

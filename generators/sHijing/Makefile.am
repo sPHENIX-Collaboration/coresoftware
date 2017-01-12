@@ -3,16 +3,22 @@ AUTOMAKE_OPTIONS = foreign
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-   `geant4-config --libs-without-gui` \
-  -lHepMC -lhijing -lhijing_dummy -lfastjet -lCGAL -lgfortran -lpthread
+  `geant4-config --libs-without-gui` \
+  -lHepMC \
+  -lhijing \
+  -lhijing_dummy \
+  -lfastjet \
+  -lCGAL \
+  -lgfortran \
+  -lpthread
 
 INCLUDES = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
-  `geant4-config --cflags-without-gui`
+  -isystem$(OFFLINE_MAIN)/include 
 
 AM_FFLAGS="-DFVOIDP=INTEGER*8"
-
+# turn off warnings about unused functions in cfortran.h
+AM_CXXFLAGS=-Wno-unused-function -Wall -Werror
 noinst_HEADERS = \
   HijCrdn.h \
   HijJet1.h \

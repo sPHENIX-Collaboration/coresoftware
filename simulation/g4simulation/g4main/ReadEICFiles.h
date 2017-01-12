@@ -7,12 +7,15 @@
 
 class PHComposteNode;
 class TChain;
-class TParticle;
-class TClonesArray;
+
+namespace erhic
+{
+  class EventMC;
+}
 
 class ReadEICFiles: public SubsysReco
 {
-  
+
  public:
 
   ReadEICFiles(const std::string &name="EICReader");
@@ -21,27 +24,34 @@ class ReadEICFiles: public SubsysReco
   int Init(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
 
+  /** Specify name of input file to open */
   bool OpenInputFile(const std::string &name);
-  void GetTree();
 
+  /** Set first entry from input tree to be used */
   void SetFirstEntry(int e) {entry = e;}
 
  protected:
 
-  TChain *Tin;
-  TParticle * Particle;
-  TClonesArray *ParticleArray;
+  /** Get tree from input file */
+  void GetTree();
 
+  /** Name of file containing input tree */
   std::string filename;
-  ///  Input Tree Variables
+
+  /** Input tree created with eic-smear tree builder */
+  TChain *Tin;
+
+  /** Number of events in input tree */
   int nEntries;
+
+  /** Number of current event being used from input tree */
   int entry;
-  int ProcessID;
-  float Y;
-  float Q2;
-  float X;
-  float W2;
-  float NU;
+
+  /** Pinter to event record in tree (= branch).
+      Use 'abstract' EventMC class pointer from which all
+      event types (erhic::EventMilou etc) inherit from. */
+  erhic::EventMC * GenEvent;
+
 };
 
 #endif /* READEICFILES_H__ */

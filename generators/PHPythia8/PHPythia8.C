@@ -5,25 +5,11 @@
 #include <phhepmc/PHHepMCGenEvent.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/getClass.h>
-#include <phool/recoConsts.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHDataNode.h>
-#include <phool/PHObject.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
-#include <phool/PHNodeReset.h>
-#include <phool/PHTimeStamp.h>
 #include <phool/PHRandomSeed.h>
 
-#include <TMCParticle.h>
-#include <TClonesArray.h>
-#include <TFile.h>
-#include <TTree.h>
-#include <TDirectory.h>
-#include <TObjArray.h>
-#include <TParticle.h>
-#include <TRandom.h>
 
 #include <Pythia8/Pythia.h>
 #include <Pythia8Plugins/HepMC2.h>
@@ -31,16 +17,7 @@
 
 #include <gsl/gsl_randist.h>
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <sstream>
-#include <cstdlib>
-#include <stdlib.h>
-#include <ctime>
-#include <sys/time.h>
-#include <algorithm>
-#include <cctype>
+#include <TString.h> // needed for Form()
 
 using namespace std;
 
@@ -88,7 +65,7 @@ PHPythia8::PHPythia8(const std::string &name):
 
 PHPythia8::~PHPythia8() {
   gsl_rng_free (RandomGenerator);
-  if (_pythia) delete _pythia;  
+  delete _pythia;  
 }
 
 int PHPythia8::Init(PHCompositeNode *topNode) {
@@ -107,13 +84,7 @@ int PHPythia8::Init(PHCompositeNode *topNode) {
   // I map the designated unique seed from recoconst into something
   // acceptable for PYTHIA8
 
-  recoConsts *rc = recoConsts::instance();
-  unsigned int seed = 0;
-  if (rc->FlagExist("RANDOMSEED")) {
-    seed = std::abs(rc->get_IntFlag("RANDOMSEED"));
-  } else {
-    seed = PHRandomSeed();
-  }
+  unsigned int seed = PHRandomSeed();
 
   if (seed > 900000000) {
     seed = seed % 900000000;
@@ -180,7 +151,6 @@ int PHPythia8::process_event(PHCompositeNode *topNode) {
   
   bool passedGen = false;
   bool passedTrigger = false;
-  std::vector<bool> theTriggerResults;
   int genCounter = 0;
 
   while (!passedTrigger) {

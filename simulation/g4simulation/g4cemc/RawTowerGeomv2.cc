@@ -1,16 +1,9 @@
 #include "RawTowerGeomv2.h"
 
-#include <g4main/PHG4Utils.h>
-
 #include <iostream>
-#include <algorithm>
-
 #include <cmath>
-#include <map>
 
 using namespace std;
-
-ClassImp(RawTowerGeomv2)
 
 RawTowerGeomv2::RawTowerGeomv2() :
   _towerid(~0),
@@ -31,10 +24,6 @@ RawTowerGeomv2::RawTowerGeomv2(RawTowerDefs::keytype id) :
   _size_z(0)
 {}
 
-RawTowerGeomv2::~RawTowerGeomv2()
-{}
-
-
 double RawTowerGeomv2::get_center_radius() const
 {
   return sqrt( _center_x * _center_x +
@@ -43,8 +32,6 @@ double RawTowerGeomv2::get_center_radius() const
 
 double RawTowerGeomv2::get_eta() const
 {
-
-
   double eta;
   double radius;
   double theta;

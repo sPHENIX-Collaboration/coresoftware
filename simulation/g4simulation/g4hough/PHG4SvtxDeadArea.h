@@ -45,6 +45,7 @@ public:
 
   void FillCylinderDeadAreaMap(PHCompositeNode *topNode);
   void FillLadderDeadAreaMap(PHCompositeNode *topNode);
+  void FillMapsLadderDeadAreaMap(PHCompositeNode *topNode);
 
   // settings
   std::map<int,float> _eff_by_layer;

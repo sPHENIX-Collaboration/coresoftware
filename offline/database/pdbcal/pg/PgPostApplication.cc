@@ -56,11 +56,10 @@ int PgPostApplication::releaseConnection()
   return 0;
 }
 
-PgPostApplication::PgPostApplication(const string &dbname)
-{
-  dsn = dbname;
-  readOnly = 1;
-}
+PgPostApplication::PgPostApplication(const string &dbname):
+  readOnly(1),
+  dsn(dbname)
+{}
 
 PgPostApplication::~PgPostApplication()
 {

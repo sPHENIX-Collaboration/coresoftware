@@ -26,6 +26,9 @@ PHG4SvtxDigitizer::PHG4SvtxDigitizer(const string &name) :
   SubsysReco(name),
   _hitmap(NULL),
   _timer(PHTimeServer::get()->insert_new(name)) {
+
+  if(verbosity > 0)
+    cout << "Creating PHG4SvtxDigitizer with name = " << name << endl;
 }
 
 int PHG4SvtxDigitizer::InitRun(PHCompositeNode* topNode) {
@@ -33,7 +36,6 @@ int PHG4SvtxDigitizer::InitRun(PHCompositeNode* topNode) {
   //-------------
   // Add Hit Node
   //-------------
-
   PHNodeIterator iter(topNode);
 
   // Looking for the DST node
@@ -43,17 +45,18 @@ int PHG4SvtxDigitizer::InitRun(PHCompositeNode* topNode) {
     cout << PHWHERE << "DST Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  PHNodeIterator iter_dst(dstNode);
     
   // Create the SVX node if required
   PHCompositeNode* svxNode 
-    = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","SVTX"));
+    = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode","SVTX"));
   if (!svxNode) {
     svxNode = new PHCompositeNode("SVTX");
     dstNode->addNode(svxNode);
   }
   
   // Create the Hit node if required
-  SvtxHitMap *svxhits = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
+  SvtxHitMap *svxhits = findNode::getClass<SvtxHitMap>(dstNode,"SvtxHitMap");
   if (!svxhits) {
     svxhits = new SvtxHitMap_v1();
     PHIODataNode<PHObject> *SvtxHitMapNode =
@@ -63,6 +66,7 @@ int PHG4SvtxDigitizer::InitRun(PHCompositeNode* topNode) {
 
   CalculateCylinderCellADCScale(topNode);
   CalculateLadderCellADCScale(topNode);
+  CalculateMapsLadderCellADCScale(topNode);
   
   //----------------
   // Report Settings
@@ -101,6 +105,7 @@ int PHG4SvtxDigitizer::process_event(PHCompositeNode *topNode) {
   
   DigitizeCylinderCells(topNode);
   DigitizeLadderCells(topNode);
+  DigitizeMapsLadderCells(topNode);
 
   PrintHits(topNode);
   
@@ -175,6 +180,45 @@ void PHG4SvtxDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode) {
   return;
 }
 
+void PHG4SvtxDigitizer::CalculateMapsLadderCellADCScale(PHCompositeNode *topNode) {
+
+  // defaults to 8-bit ADC, short-axis MIP placed at 1/4 dynamic range
+
+  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_MAPS");
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
+    
+  if (!geom_container || !cells) return;
+
+  if(Verbosity())
+    cout << "Found CYLINDERGEOM_MAPS node" << endl;
+  
+  PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
+  for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+      layeriter != layerrange.second;
+      ++layeriter) {
+
+    int layer = layeriter->second->get_layer();
+    float thickness = (layeriter->second)->get_pixel_thickness();
+    float pitch = (layeriter->second)->get_pixel_x();
+    float length = (layeriter->second)->get_pixel_z();
+   
+    float minpath = pitch;
+    if (length < minpath) minpath = length;
+    if (thickness < minpath) minpath = thickness;
+    float mip_e = 0.003876*minpath;  
+
+    if (Verbosity())
+    cout << "mip_e = " << mip_e << endl;
+
+    if (_max_adc.find(layer) == _max_adc.end()) {
+      _max_adc[layer] = 255;
+      _energy_scale[layer] = mip_e / 64;
+    }
+  }    
+
+  return;
+}
+
 void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 
   //----------
@@ -228,6 +272,53 @@ void PHG4SvtxDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) {
   //----------
  
   PHG4CylinderCellContainer* cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
+  if (!cells) return; 
+  
+  //-------------
+  // Digitization
+  //-------------
+
+  vector<PHG4CylinderCell*> cell_list;
+  PHG4CylinderCellContainer::ConstRange cellrange = cells->getCylinderCells();
+  for(PHG4CylinderCellContainer::ConstIterator celliter = cellrange.first;
+      celliter != cellrange.second;
+      ++celliter) {
+    
+    PHG4CylinderCell* cell = celliter->second;
+    
+    SvtxHit_v1 hit;
+
+    hit.set_layer(cell->get_layer());
+    hit.set_cellid(cell->get_cell_id());
+
+    unsigned int adc = cell->get_edep() / _energy_scale[hit.get_layer()];
+    if (adc > _max_adc[hit.get_layer()]) adc = _max_adc[hit.get_layer()]; 
+    float e = _energy_scale[hit.get_layer()] * adc;
+    
+    hit.set_adc(adc);
+    hit.set_e(e);
+        
+    SvtxHit* ptr = _hitmap->insert(&hit);      
+    if (!ptr->isValid()) {
+      static bool first = true;
+      if (first) {
+	cout << PHWHERE << "ERROR: Incomplete SvtxHits are being created" << endl;
+	ptr->identify();
+	first = false;
+      }
+    }
+  }
+  
+  return;
+}
+
+void PHG4SvtxDigitizer::DigitizeMapsLadderCells(PHCompositeNode *topNode) {
+
+  //----------
+  // Get Nodes
+  //----------
+ 
+  PHG4CylinderCellContainer* cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_MAPS");
   if (!cells) return; 
   
   //-------------

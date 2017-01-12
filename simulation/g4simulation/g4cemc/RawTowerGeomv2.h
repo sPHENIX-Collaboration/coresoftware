@@ -1,16 +1,14 @@
-#ifndef NEWGEOMV2_H_
-#define NEWGEOMV2_H_
+#ifndef RawTowerGeomv2_h_
+#define RawTowerGeomv2_h_
 
 #include "RawTowerGeom.h"
-
-#include <map>
 
 class RawTowerGeomv2 : public RawTowerGeom {
 
  public:
   RawTowerGeomv2();
   RawTowerGeomv2(RawTowerDefs::keytype id);
-  virtual ~RawTowerGeomv2();
+  virtual ~RawTowerGeomv2(){}
 
   void identify(std::ostream& os=std::cout) const;
 

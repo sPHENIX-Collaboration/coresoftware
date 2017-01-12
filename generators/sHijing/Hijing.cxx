@@ -96,22 +96,26 @@ int iap;
 int iat;
 int izp;
 int izt;
-int events;
 int spec;
 double m_vertexOffsetCut = 1.0E-7;
 bool keepSpectators;
 
 int
-main ()
+main (int argc, char **argv)
 {
+  string config_filename = "sHijing.xml";
+  if (argc > 1)
+    {
+      config_filename = argv[1];
+    }
+  cout << "using config file: " << config_filename << endl;
   char frame[] = "        ";
   char proj[]  = "        ";
   char targ[]  = "        ";
 
   using boost::property_tree::ptree;
   iptree pt, null;
-
-  std::ifstream config_file("sHijing.xml");
+  std::ifstream config_file(config_filename);
 
   if (config_file)
     {
@@ -133,7 +137,8 @@ main ()
   keepSpectators = pt.get("HIJING.KEEP_SPECTATORS", 1);
   std::string output = pt.get("HIJING.OUTPUT", "sHijing.dat");
 
-  long randomSeed = pt.get ("HIJING.RANDOM.SEED", 11793);
+  std::random_device rdev;
+  long randomSeed = pt.get ("HIJING.RANDOM.SEED", rdev());
   engine = new CLHEP::MTwistEngine (randomSeed);
 
   // See if there are any sections for HIPR1, IHPR2
@@ -176,7 +181,7 @@ main ()
 
   HIJSET (efrm, frame, proj, targ, iap, izp, iat, izt);
 
-  int status;
+  //  int status;
   HepMC::IO_GenEvent ascii_io (output.c_str(), std::ios::out);
   int events = 0;
   do 

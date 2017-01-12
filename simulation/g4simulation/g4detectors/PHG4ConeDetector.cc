@@ -25,6 +25,11 @@ using namespace std;
 //note this inactive thickness is ~1.5% of a radiation length
 PHG4ConeDetector::PHG4ConeDetector( PHCompositeNode *Node, const std::string &dnam,const int lyr  ):
   PHG4Detector(Node, dnam),
+  TrackerMaterial(NULL),
+  InactiveMaterial(NULL),
+  block_solid(NULL),
+  block_logic(NULL),
+  block_physi(NULL),
   place_in_x(0*cm),
   place_in_y(0*cm),
   place_in_z(300*cm),

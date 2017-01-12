@@ -12,7 +12,7 @@
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4PVPlacement.hh>
-
+#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Colour.hh>
 
@@ -24,6 +24,7 @@ using namespace std;
 PHG4BlockDetector::PHG4BlockDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam, const int lyr):
   PHG4Detector(Node, dnam),
   params(parameters),
+  block_physi(NULL),
   layer(lyr)
 {}
 

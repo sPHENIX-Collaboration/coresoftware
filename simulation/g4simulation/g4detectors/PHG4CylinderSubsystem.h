@@ -9,7 +9,6 @@
 class PHG4CylinderDetector;
 class PHG4SteppingAction;
 class PHG4EventAction;
-class PHG4TrackingAction;
 
 class PHG4CylinderSubsystem: public PHG4DetectorSubsystem
 {
@@ -22,9 +21,6 @@ class PHG4CylinderSubsystem: public PHG4DetectorSubsystem
   //! destructor
   virtual ~PHG4CylinderSubsystem( void )
   {}
-
-  //! init
-  int InitSubsystem(PHCompositeNode *);
 
   //! init runwise stuff
   /*!
@@ -47,7 +43,6 @@ class PHG4CylinderSubsystem: public PHG4DetectorSubsystem
   //! accessors (reimplemented)
   PHG4Detector* GetDetector( void ) const;
   PHG4SteppingAction* GetSteppingAction( void ) const {return steppingAction_;}
-  PHG4TrackingAction* GetTrackingAction( void ) const {return trackingAction_;}
   PHG4EventAction* GetEventAction() const {return eventAction_;}
 
  private:
@@ -60,8 +55,6 @@ class PHG4CylinderSubsystem: public PHG4DetectorSubsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* steppingAction_;
-
-  PHG4TrackingAction *trackingAction_;
 
   PHG4EventAction *eventAction_;
 };

@@ -2,13 +2,10 @@
 #define PHG4OuterHcalDetector_h
 
 #include "PHG4OuterHcalFieldSetup.h"
-#include "PHG4Parameters.h"
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/globals.hh>
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4SystemOfUnits.hh>
+// cannot fwd declare G4RotationMatrix, it is a typedef pointing to clhep
 #include <Geant4/G4RotationMatrix.hh>
 
 #include <CGAL/Exact_circular_kernel_2.h>
@@ -22,6 +19,7 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHG4Parameters;
 
 class PHG4OuterHcalDetector: public PHG4Detector
 {
@@ -57,7 +55,6 @@ class PHG4OuterHcalDetector: public PHG4Detector
   G4VSolid *ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
 
   protected:
-  void AddGeometryNode();
   int ConstructOuterHcal(G4LogicalVolume* hcalenvelope);
   G4VSolid *ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
@@ -65,6 +62,7 @@ class PHG4OuterHcalDetector: public PHG4Detector
   G4double x_at_y(Point_2 &p0, Point_2 &p1, G4double yin);
   PHG4OuterHcalFieldSetup * field_setup;
   PHG4Parameters *params;
+  G4AssemblyVolume *scinti_mother_assembly;
   G4VSolid *steel_cutout_for_magnet;
   double inner_radius;
   double outer_radius;

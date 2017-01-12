@@ -87,7 +87,7 @@ static inline void setClusterRange(HelixRange& range1, HelixRange& range2,
   range2.max_z0 = range1.min_z0 + z0_size * ((float)(prange.max_z0 + 1));
 }
 
-void HelixHough::findHelices(vector<SimpleHit3D>& hits, unsigned int min_hits,
+void HelixHough::findHelices(vector<SimpleHit3D>& hits_init, unsigned int min_hits,
                              unsigned int max_hits,
                              vector<SimpleTrack3D>& tracks,
                              unsigned int maxtracks) {
@@ -95,6 +95,30 @@ void HelixHough::findHelices(vector<SimpleHit3D>& hits, unsigned int min_hits,
   xy_vote_time = 0.;
   z_vote_time = 0.;
   cluster_time = 0.;
+
+  vector<SimpleHit3D> hits;
+
+  if (layer_end > 0 && layer_start > 0){
+    for (unsigned int in = 0; in < hits_init.size(); in++) {
+    if(hits_init[in].get_layer() > layer_start-1 && hits_init[in].get_layer() < layer_end+1 )
+    hits.push_back(hits_init[in]);
+    }
+  } else if ( layer_end < 0 && layer_start > 0) {
+    for (unsigned int in = 0; in < hits_init.size(); in++) {
+    if(hits_init[in].get_layer() > layer_start-1)
+    hits.push_back(hits_init[in]);
+    }
+  } else if ( layer_end > 0 && layer_start < 0) {
+    for (unsigned int in = 0; in < hits_init.size(); in++) {
+    if( hits_init[in].get_layer() < layer_end+1 )
+    hits.push_back(hits_init[in]);
+    }
+  } else {
+    for (unsigned int in = 0; in < hits_init.size(); in++) {
+    hits.push_back(hits_init[in]);
+    }
+  }
+
 
   index_mapping.clear();
   index_mapping.resize(hits.size(), 0);

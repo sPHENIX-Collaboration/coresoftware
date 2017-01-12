@@ -4,7 +4,6 @@
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderSteppingAction.h"
 #include "PHG4EventActionClearZeroEdep.h"
-#include "PHG4FlushStepTrackingAction.h"
 #include "PHG4Parameters.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -24,19 +23,9 @@ PHG4CylinderSubsystem::PHG4CylinderSubsystem( const std::string &na, const int l
   PHG4DetectorSubsystem(na,lyr),
   detector_( NULL ),
   steppingAction_( NULL ),
-  trackingAction_(NULL),
   eventAction_(NULL)
 {
   InitializeParameters();
-}
-
-//_______________________________________________________________________
-int
-PHG4CylinderSubsystem::InitSubsystem( PHCompositeNode* topNode )
-{
-  // kludge until the phg4parameters are sorted out (adding layers)
-  GetParams()->set_name(Name());
-  return 0;
 }
 
 //_______________________________________________________________________
@@ -91,10 +80,6 @@ int PHG4CylinderSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
     {
       steppingAction_ = new PHG4CylinderSteppingAction(detector_, GetParams());
     }
-  if (steppingAction_)
-    {
-      trackingAction_ = new PHG4FlushStepTrackingAction(steppingAction_);
-    }
   return 0;
 
 }
@@ -139,6 +124,17 @@ void
 PHG4CylinderSubsystem::Print(const string &what) const
 {
   cout << Name() << " Parameters: " << endl;
+  if (! BeginRunExecuted())
+    {
+      cout << "Need to execute BeginRun() before parameter printout is meaningful" << endl;
+      cout << "To do so either run one or more events or on the command line execute: " << endl;
+      cout << "Fun4AllServer *se = Fun4AllServer::instance();" << endl;
+      cout << "PHG4Reco *g4 = (PHG4Reco *) se->getSubsysReco(\"PHG4RECO\");" << endl;
+      cout << "g4->InitRun(se->topNode());" << endl;
+      cout << "PHG4CylinderSubsystem *cyl = (PHG4CylinderSubsystem *) g4->getSubsystem(\"" << Name() << "\");" << endl;
+      cout << "cyl->Print()" << endl;
+      return;
+    }
   GetParams()->Print();
   return;
 }

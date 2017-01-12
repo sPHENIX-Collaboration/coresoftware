@@ -1,13 +1,18 @@
 #include "PHNodeDump.h"
 #include "DumpObject.h"
 
+#include "DumpBbcVertexMap.h"
+#include "DumpGlobalVertexMap.h"
+#include "DumpJetMap.h"
 #include "DumpPdbParameterMap.h"
+#include "DumpPdbParameterMapContainer.h"
 #include "DumpPHG4BlockGeomContainer.h"
 #include "DumpPHG4CylinderCellContainer.h"
 #include "DumpPHG4CylinderCellGeomContainer.h"
 #include "DumpPHG4CylinderGeomContainer.h"
 #include "DumpPHG4HitContainer.h"
 #include "DumpPHG4InEvent.h"
+#include "DumpPHG4ScintillatorSlatContainer.h"
 #include "DumpPHG4TruthInfoContainer.h"
 #include "DumpRawClusterContainer.h"
 #include "DumpRawTowerContainer.h"
@@ -155,9 +160,25 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
           // need a static cast since only from DST these guys are of type PHIODataNode<TObject*>
           // when created they are normally  PHIODataNode<PHObject*> but can be anything else as well
           TObject *tmp = (TObject *)(static_cast <PHIODataNode<TObject> *>(node))->getData();
-          if (tmp->InheritsFrom("PdbParameterMap"))
+          if (tmp->InheritsFrom("BbcVertexMap"))
+            {
+              newdump = new DumpBbcVertexMap(NodeName);
+            }
+          else if (tmp->InheritsFrom("GlobalVertexMap"))
+            {
+              newdump = new DumpGlobalVertexMap(NodeName);
+            }
+          else if (tmp->InheritsFrom("JetMap"))
+            {
+              newdump = new DumpJetMap(NodeName);
+            }
+          else if (tmp->InheritsFrom("PdbParameterMap"))
             {
               newdump = new DumpPdbParameterMap(NodeName);
+            }
+          else if (tmp->InheritsFrom("PdbParameterMapContainer"))
+            {
+              newdump = new DumpPdbParameterMapContainer(NodeName);
             }
           else if (tmp->InheritsFrom("PHG4BlockGeomContainer"))
             {
@@ -182,6 +203,10 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
           else if (tmp->InheritsFrom("PHG4InEvent"))
             {
               newdump = new DumpPHG4InEvent(NodeName);
+            }
+          else if (tmp->InheritsFrom("PHG4ScintillatorSlatContainer"))
+            {
+              newdump = new DumpPHG4ScintillatorSlatContainer(NodeName);
             }
           else if (tmp->InheritsFrom("PHG4TruthInfoContainer"))
             {

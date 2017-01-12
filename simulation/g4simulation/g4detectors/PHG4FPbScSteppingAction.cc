@@ -13,7 +13,8 @@
 using namespace std;
 
 
-PHG4FPbScSteppingAction::PHG4FPbScSteppingAction( PHG4FPbScDetector* detector) : detector_( detector )
+PHG4FPbScSteppingAction::PHG4FPbScSteppingAction( PHG4FPbScDetector* detector) :
+    detector_( detector ), hits_(NULL), hit(NULL)
 {
 }
 

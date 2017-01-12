@@ -16,7 +16,7 @@ class TempInfoUnpackPRDF : public SubsysReco
 {
 public:
   TempInfoUnpackPRDF();
-  ~TempInfoUnpackPRDF() {};
+  virtual ~TempInfoUnpackPRDF() {};
 
   int
   Init(PHCompositeNode *topNode);

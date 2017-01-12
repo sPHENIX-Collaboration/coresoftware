@@ -6,39 +6,36 @@ using namespace std;
 
 //__________________________________________________________
 PHPy8ParticleTrigger::PHPy8ParticleTrigger(const std::string &name):
-  PHPy8GenTrigger(name) {
-  
-  _verbosity = 0;
-  
-  _theEtaHigh = 999.9;
-  _theEtaLow = -999.9;
-  _thePtHigh = 999.9;
-  _thePtLow = -999.9;
-  _thePHigh = 999.9;
-  _thePLow = -999.9;
-  _thePzHigh = 999.9;
-  _thePzLow = -999.9;
-  
-  _doEtaHighCut = false;
-  _doEtaLowCut = false;
-  _doBothEtaCut = false;
+  PHPy8GenTrigger(name),
+  _theEtaHigh(-999.9),
+  _theEtaLow(-999.9),
+  _thePtHigh(999.9),
+  _thePtLow(-999.9),
+  _thePHigh(999.9),
+  _thePLow(-999.9),
+  _thePzHigh(999.9),
+  _thePzLow(-999.9),
 
-  _doAbsEtaHighCut = false;
-  _doAbsEtaLowCut = false;
-  _doBothAbsEtaCut = false;
+  _doEtaHighCut(false),
+  _doEtaLowCut(false),
+  _doBothEtaCut(false),
 
-  _doPtHighCut = false;
-  _doPtLowCut = false;
-  _doBothPtCut = false;
+  _doAbsEtaHighCut(false),
+  _doAbsEtaLowCut(false),
+  _doBothAbsEtaCut(false),
 
-  _doPHighCut = false;
-  _doPLowCut = false;
-  _doBothPCut = false;
+  _doPtHighCut(false),
+  _doPtLowCut(false),
+  _doBothPtCut(false),
 
-  _doPzHighCut = false;
-  _doPzLowCut = false;
-  _doBothPzCut = false;
-}
+  _doPHighCut(false),
+  _doPLowCut(false),
+  _doBothPCut(false),
+
+  _doPzHighCut(false),
+  _doPzLowCut(false),
+  _doBothPzCut(false)
+{}
 
 PHPy8ParticleTrigger::~PHPy8ParticleTrigger() {
   if (_verbosity > 0) PrintConfig();

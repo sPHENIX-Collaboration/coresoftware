@@ -1,22 +1,10 @@
 #ifndef PHG4BlockDetector_h
 #define PHG4BlockDetector_h
 
-#include "PHG4Parameters.h"
-
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/globals.hh>
-#include <Geant4/G4Region.hh>
-#include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4Types.hh>
-
-#include <map>
-
-
-class G4Material;
-class G4Box;
 class G4LogicalVolume;
-class G4Region;
+class PHG4Parameters;
 class G4VPhysicalVolume;
 
 class PHG4BlockDetector: public PHG4Detector

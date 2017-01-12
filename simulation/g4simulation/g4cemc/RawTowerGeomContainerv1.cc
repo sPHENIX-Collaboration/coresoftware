@@ -1,19 +1,15 @@
 #include "RawTowerGeomContainerv1.h"
 #include "RawTowerGeom.h"
 
+#include <cassert>
 #include <cstdlib>
 #include <iostream>
-#include <cassert>
-
-ClassImp(RawTowerGeomContainerv1)
 
 using namespace std;
 
-RawTowerGeomContainerv1::RawTowerGeomContainerv1(
-    RawTowerDefs::CalorimeterId caloid)
-{
-  _caloid = caloid;
-}
+RawTowerGeomContainerv1::RawTowerGeomContainerv1(RawTowerDefs::CalorimeterId caloid):
+  _caloid(caloid)
+{}
 
 RawTowerGeomContainerv1::~RawTowerGeomContainerv1()
 {

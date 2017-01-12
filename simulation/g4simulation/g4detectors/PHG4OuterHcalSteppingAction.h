@@ -18,8 +18,7 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* , const PHG4Parameters *parameters);
 
   //! destructor
-  virtual ~PHG4OuterHcalSteppingAction()
-  {}
+  virtual ~PHG4OuterHcalSteppingAction();
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
@@ -34,11 +33,7 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   void FieldChecker (const G4Step*);
   void EnableFieldChecker(const int i=1) {enable_field_checker = i;}
 
-  void flush_cached_values();
-
   private:
-
-  void save_previous_g4hit();
 
   //! pointer to the detector
   PHG4OuterHcalDetector* detector_;
@@ -51,7 +46,6 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
 
-  int save_layer_id;
   int enable_field_checker;
 
   // since getting parameters is a map search we do not want to
@@ -60,6 +54,7 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   int absorbertruth;
   int IsActive;
   int IsBlackHole;
+  int n_scinti_plates;
   int light_scint_model;
   
   double light_balance_inner_corr;

@@ -1,8 +1,8 @@
 #include "PHG4InnerHcalSubsystem.h"
 #include "PHG4InnerHcalDetector.h"
 #include "PHG4EventActionClearZeroEdep.h"
-#include "PHG4FlushStepTrackingAction.h"
 #include "PHG4InnerHcalSteppingAction.h"
+#include "PHG4HcalDefs.h"
 #include "PHG4Parameters.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -25,7 +25,6 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem( const std::string &name, const i
   PHG4DetectorSubsystem( name, lyr ),
   detector_(NULL),
   steppingAction_( NULL ),
-  trackingAction_(NULL),
   eventAction_(NULL)
 {
   InitializeParameters();
@@ -45,7 +44,8 @@ PHG4InnerHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
   set<string> nodes;
   if (GetParams()->get_int_param("active"))
     {
-      PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",SuperDetector()));
+      PHNodeIterator dstIter( dstNode );
+      PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode",SuperDetector()));
       if (! DetNode)
 	{
           DetNode = new PHCompositeNode(SuperDetector());
@@ -106,10 +106,6 @@ PHG4InnerHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	  steppingAction_ = new PHG4InnerHcalSteppingAction(detector_, GetParams());
 	}
     }
-  if (steppingAction_)
-    {
-      trackingAction_ = new PHG4FlushStepTrackingAction(steppingAction_);
-    }
   return 0;
 
 }
@@ -149,12 +145,12 @@ PHG4Detector* PHG4InnerHcalSubsystem::GetDetector( void ) const
 void
 PHG4InnerHcalSubsystem::SetDefaultParameters()
 {
-  set_default_double_param("inner_radius",116.);
+  set_default_double_param(PHG4HcalDefs::innerrad,116.);
   set_default_double_param("light_balance_inner_corr", NAN);
   set_default_double_param("light_balance_inner_radius", NAN);
   set_default_double_param("light_balance_outer_corr", NAN);
   set_default_double_param("light_balance_outer_radius", NAN);
-  set_default_double_param("outer_radius", 136.);
+  set_default_double_param(PHG4HcalDefs::outerrad, 136.);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
@@ -172,8 +168,9 @@ PHG4InnerHcalSubsystem::SetDefaultParameters()
 
   set_default_int_param("light_scint_model", 1);
   set_default_int_param("ncross", 4);
-  set_default_int_param("n_scinti_plates", 5*64);
-  set_default_int_param("n_scinti_tiles", 12);
+  set_default_int_param(PHG4HcalDefs::n_towers, 64);
+  set_default_int_param(PHG4HcalDefs::scipertwr, 4);
+  set_default_int_param(PHG4HcalDefs::n_scinti_tiles, 12);
 
   set_default_string_param("material", "SS310");
 }

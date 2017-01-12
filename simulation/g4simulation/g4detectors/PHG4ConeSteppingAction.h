@@ -1,11 +1,12 @@
 #ifndef PHG4VConeSteppingAction_h
 #define PHG4VConeSteppingAction_h
 
-#include "g4main/PHG4SteppingAction.h"
+#include <g4main/PHG4SteppingAction.h>
 
 class PHG4ConeDetector;
 class PHG4Hit;
 class PHG4HitContainer;
+class PHG4Shower;
 
 class PHG4ConeSteppingAction : public PHG4SteppingAction
 {
@@ -15,9 +16,9 @@ class PHG4ConeSteppingAction : public PHG4SteppingAction
   //! constructor
   PHG4ConeSteppingAction( PHG4ConeDetector* );
 
-  //! destroctor
-  virtual ~PHG4ConeSteppingAction()
-  {}
+  //! destructor
+  virtual ~PHG4ConeSteppingAction();
+
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
@@ -31,8 +32,9 @@ class PHG4ConeSteppingAction : public PHG4SteppingAction
   PHG4ConeDetector* detector_;
 
   //! pointer to hit container
-  PHG4HitContainer * hits_;
+  PHG4HitContainer *hits_;
   PHG4Hit *hit;
+  PHG4Shower *saveshower;
 };
 
 

@@ -1,6 +1,6 @@
 #include "PHG4OuterHcalDetector.h"
-#include "PHG4CylinderGeomContainer.h"
-#include "PHG4CylinderGeomv3.h"
+#include "PHG4HcalDefs.h"
+#include "PHG4Parameters.h"
 
 #include <g4main/PHG4Utils.h>
 
@@ -17,6 +17,7 @@
 #include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4PVPlacement.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4Trap.hh>
 #include <Geant4/G4Tubs.hh>
@@ -53,6 +54,7 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4Paramet
   PHG4Detector(Node, dnam),
   field_setup(NULL),
   params(parames),
+  scinti_mother_assembly(NULL),
   steel_cutout_for_magnet(NULL),
   inner_radius(params->get_double_param("inner_radius")*cm),
   outer_radius(params->get_double_param("outer_radius")*cm),
@@ -70,7 +72,7 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4Paramet
   volume_envelope(NAN),
   volume_steel(NAN),
   volume_scintillator(NAN),
-  n_scinti_plates(params->get_int_param("n_scinti_plates")),
+  n_scinti_plates(params->get_int_param(PHG4HcalDefs::scipertwr)*params->get_int_param("n_towers")),
   n_scinti_tiles(params->get_int_param("n_scinti_tiles")),
   active(params->get_int_param("active")),
   absorberactive(params->get_int_param("absorberactive")),
@@ -83,6 +85,7 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4Paramet
 
 PHG4OuterHcalDetector::~PHG4OuterHcalDetector()
 {
+  delete scinti_mother_assembly;
   delete field_setup;
 }
 
@@ -422,7 +425,6 @@ PHG4OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
   new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(params->get_double_param("place_x")*cm, params->get_double_param("place_y")*cm, params->get_double_param("place_z")*cm)), hcal_envelope_log, "OuterHcal", logicWorld, 0, false, overlapcheck);
   ConstructOuterHcal(hcal_envelope_log);
 
-  AddGeometryNode();
   return;
 }
 
@@ -443,7 +445,7 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
   tilt_angle);/*G4double tiltAngle*/
 
 
-  G4AssemblyVolume *scinti_mother_logical = ConstructHcalScintillatorAssembly(hcalenvelope);
+  scinti_mother_assembly = ConstructHcalScintillatorAssembly(hcalenvelope);
   G4VSolid *steel_plate =  ConstructSteelPlate(hcalenvelope);
   //   DisplayVolume(steel_plate_4 ,hcalenvelope);
   G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(params->get_string_param("material")), "HcalOuterSteelPlate", 0, 0, 0);
@@ -457,8 +459,34 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
   ostringstream name;
   double middlerad = outer_radius - (outer_radius - inner_radius) / 2.;
   double shiftslat = fabs(scinti_tile_x_lower - scinti_tile_x_upper)/2.;
+  // calculate phi offset (copied from code inside following loop): 
+  // first get the center point (phi=0) so it's middlerad/0
+  // then shift the scintillator center as documented in loop
+  // then 
+  // for positive tilt angles we need the lower left corner of the scintillator
+  // for negative tilt angles we nee the upper right corner of the scintillator
+  // as it turns out the code uses the middle of the face of the scintillator
+  // as reference, if this is a problem the code needs to be modified to
+  // actually calculate the corner (but the math of the construction is that 
+  // the middle of the scintillator sits at zero)
+  double xp = cos(phi) * middlerad;
+  double yp = sin(phi) * middlerad;
+  xp -= cos((-tilt_angle)/rad - phi)*shiftslat;
+  yp +=  sin((-tilt_angle)/rad - phi)*shiftslat;
+  if (tilt_angle >0)
+    {
+      double xo = xp - (scinti_tile_x/2.)*cos(tilt_angle/rad);
+      double yo = yp - (scinti_tile_x/2.)*sin(tilt_angle/rad);
+      phi = -atan(yo/xo);
+    }
+  else if (tilt_angle < 0)
+    {
+      double xo = xp + (scinti_tile_x/2.)*cos(tilt_angle/rad);
+      double yo = yp + (scinti_tile_x/2.)*sin(tilt_angle/rad);
+      phi = -atan(yo/xo);
+    }
+  // else (for tilt_angle = 0) phi stays zero
   for (int i = 0; i < n_scinti_plates; i++)
-    //  for (int i = 0; i < 1; i++)
     {
       G4RotationMatrix *Rot = new G4RotationMatrix();
       double ypos = sin(phi) * middlerad;
@@ -470,7 +498,12 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
       xpos -= cos((-tilt_angle)/rad - phi)*shiftslat;
       Rot->rotateZ(phi * rad + tilt_angle);
       G4ThreeVector g4vec(xpos, ypos, 0);
-      scinti_mother_logical->MakeImprint(hcalenvelope, g4vec, Rot, i, overlapcheck);
+      // great the MakeImprint always adds 1 to the copy number and 0 has a 
+      // special meaning (which then also adds 1). Basically our volume names
+      // will start at 1 instead of 0 and there is nothing short of patching this
+      // method. I'll take care of this in the decoding of the volume name
+      // AAAAAAARHGS 
+      scinti_mother_assembly->MakeImprint(hcalenvelope, g4vec, Rot, i, overlapcheck);
       Rot = new G4RotationMatrix();
       Rot->rotateZ(-phi * rad);
       name.str("");
@@ -724,37 +757,6 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalen
 
     }
   return assmeblyvol;
-}
-
-void
-PHG4OuterHcalDetector::AddGeometryNode()
-{
-  if (active)
-    {
-      ostringstream geonode;
-      if (superdetector != "NONE")
-	{
-           geonode << "CYLINDERGEOM_" << superdetector;
-        }
-      else
-        {
-          geonode << "CYLINDERGEOM_" << detector_type << "_" << layer;
-        }
-      PHG4CylinderGeomContainer *geo =  findNode::getClass<PHG4CylinderGeomContainer>(topNode , geonode.str().c_str());
-      if (!geo)
-        {
-          geo = new PHG4CylinderGeomContainer();
-          PHNodeIterator iter( topNode );
-          PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
-          PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo, geonode.str().c_str(), "PHObject");
-          runNode->addNode(newNode);
-        }
-      // here in the detector class we have internal units, convert to cm
-      // before putting into the geom object
-      PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv3(envelope_inner_radius / cm, ( params->get_double_param("place_z")*cm - size_z / 2.) / cm, ( params->get_double_param("place_z")*cm + size_z / 2.) / cm, (envelope_outer_radius-envelope_inner_radius) / cm, n_scinti_plates,  tilt_angle/rad, 0);
-      geo->AddLayerGeom(layer, mygeom);
-      if (verbosity > 0) geo->identify();
-    }
 }
 
 int

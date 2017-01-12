@@ -50,9 +50,11 @@ HepMCNodeReader::HepMCNodeReader(const std::string &name)
       vertex_t0(0.0),
       width_vx(0.0),
       width_vy(0.0),
-      width_vz(0.0) {
+      width_vz(0.0) 
+{
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
+  cout << Name() << " random seed: " << seed << endl;
   gsl_rng_set(RandomGenerator, seed);
   return;
 }
@@ -199,6 +201,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode) {
         particle->set_px((*fiter)->momentum().px() * mom_factor);
         particle->set_py((*fiter)->momentum().py() * mom_factor);
         particle->set_pz((*fiter)->momentum().pz() * mom_factor);
+	particle->set_barcode((*fiter)->barcode()); 
         ineve->AddParticle((*v)->barcode(), particle);
 
         if (_embed_flag != 0) ineve->AddEmbeddedParticle(particle, _embed_flag);

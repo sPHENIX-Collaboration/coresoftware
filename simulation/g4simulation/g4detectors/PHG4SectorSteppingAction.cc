@@ -17,8 +17,20 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4SectorSteppingAction::PHG4SectorSteppingAction(PHG4SectorDetector* detector) :
-    detector_(detector)
+  detector_(detector),
+  hits_(NULL),
+  hit(NULL),
+  saveshower(NULL),
+  layer_id(-1)
+{}
+
+PHG4SectorSteppingAction::~PHG4SectorSteppingAction()
 {
+  // if the last hit was a zero energie deposit hit, it is just reset
+  // and the memory is still allocated, so we need to delete it here
+  // if the last hit was saved, hit is a NULL pointer which are
+  // legal to delete (it results in a no operation)
+  delete hit;
 }
 
 //____________________________________________________________________________..
@@ -28,7 +40,7 @@ PHG4SectorSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
   // get volume of the current step
   G4VPhysicalVolume* volume =
-      aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
+    aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
 
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -36,7 +48,6 @@ PHG4SectorSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
   const G4Track* aTrack = aStep->GetTrack();
 
-  int layer_id = 0;
   // make sure we are in a volume
   if (detector_->IsInSectorActive(volume))
     {
@@ -46,28 +57,31 @@ PHG4SectorSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       // geantino or chargedgeantino has pid=0
       if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0
           && aTrack->GetParticleDefinition()->GetParticleName().find("geantino")
-              != string::npos)
+	  != string::npos)
         {
           geantino = true;
         }
       G4StepPoint * prePoint = aStep->GetPreStepPoint();
       G4StepPoint * postPoint = aStep->GetPostStepPoint();
-//       cout << "track id " << aTrack->GetTrackID() << endl;
-//       cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
-//       cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
+      //       cout << "track id " << aTrack->GetTrackID() << endl;
+      //       cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
+      //       cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
+	  //layer_id is sector number
       switch (prePoint->GetStepStatus())
         {
-      case fGeomBoundary:
-      case fUndefined:
-        hit = new PHG4Hitv1();
-        //here we set the entrance values in cm
-        hit->set_x(0, prePoint->GetPosition().x() / cm);
-        hit->set_y(0, prePoint->GetPosition().y() / cm);
-        hit->set_z(0, prePoint->GetPosition().z() / cm);
-        // time in ns
-        hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
-	//set the track ID
-	{
+	case fGeomBoundary:
+	case fUndefined:
+	  if (! hit)
+	    {
+	      hit = new PHG4Hitv1();
+	    }
+	  //here we set the entrance values in cm
+	  hit->set_x(0, prePoint->GetPosition().x() / cm);
+	  hit->set_y(0, prePoint->GetPosition().y() / cm);
+	  hit->set_z(0, prePoint->GetPosition().z() / cm);
+	  // time in ns
+	  hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
+	  //set the track ID
 	  hit->set_trkid(aTrack->GetTrackID());
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
@@ -75,33 +89,20 @@ PHG4SectorSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 		{
 		  hit->set_trkid(pp->GetUserTrackId());
 		  hit->set_shower_id(pp->GetShower()->get_id());
+		  saveshower = pp->GetShower();
 		}
 	    }
-	}
 
-        //set the initial energy deposit
-        hit->set_edep(0);
-        hit->set_eion(0); // only implemented for v5 otherwise empty
-//        hit->set_light_yield(0);
+	  //set the initial energy deposit
+	  hit->set_edep(0);
+	  hit->set_eion(0); // only implemented for v5 otherwise empty
+          layer_id = aStep->GetPreStepPoint()->GetTouchable()->GetReplicaNumber(1);
+	  //        hit->set_light_yield(0);
 
-        //layer_id is sector number
-        layer_id = aStep->GetPreStepPoint()->GetTouchable()->GetReplicaNumber(1);
 
-        // Now add the hit
-        hits_->AddHit(layer_id, hit);
-
-	{
-	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	    {
-	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		{
-		  pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
-		}
-	    }
-	}
-        break;
-      default:
-        break;
+	  break;
+	default:
+	  break;
         }
       // here we just update the exit values, it will be overwritten
       // for every step until we leave the volume or the particle
@@ -114,6 +115,7 @@ PHG4SectorSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       //sum up the energy to get total deposited
       hit->set_edep(hit->get_edep() + edep);
       hit->set_eion(hit->get_eion() + eion);
+      hit->set_path_length(aTrack->GetTrackLength()/cm);
       if (geantino)
         {
           hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
@@ -129,7 +131,34 @@ PHG4SectorSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
                 }
             }
         }
-      hit->set_path_length(aTrack->GetTrackLength()/cm);
+      // if any of these conditions is true this is the last step in
+      // this volume and we need to save the hit
+      // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
+      // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
+      // (not sure if this will ever be the case)
+      // aTrack->GetTrackStatus() == fStopAndKill: track ends
+      if (postPoint->GetStepStatus() == fGeomBoundary || postPoint->GetStepStatus() == fWorldBoundary|| aTrack->GetTrackStatus() == fStopAndKill)
+	{
+          // save only hits with energy deposit (or -1 for geantino)
+	  if (hit->get_edep())
+	    {
+	      hits_->AddHit(layer_id, hit);
+	      if (saveshower)
+		{
+		  saveshower->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		}
+	      // ownership has been transferred to container, set to null
+	      // so we will create a new hit for the next track
+	      hit = NULL;
+	    }
+	  else
+	    {
+	      // if this hit has no energy deposit, just reset it for reuse
+	      // this means we have to delete it in the dtor. If this was
+	      // the last hit we processed the memory is still allocated
+	      hit->Reset();
+	    }
+ 	}
 
       //       hit->identify();
       // return true to indicate the hit was used
@@ -164,7 +193,7 @@ PHG4SectorSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   if (!hits_)
     {
       std::cout << "PHG4SectorSteppingAction::SetTopNode - unable to find "
-          << hitnodename << std::endl;
+		<< hitnodename << std::endl;
     }
 
 }
