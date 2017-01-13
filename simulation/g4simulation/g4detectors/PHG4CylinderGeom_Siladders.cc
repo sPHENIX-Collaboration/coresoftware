@@ -55,9 +55,9 @@ void PHG4CylinderGeom_Siladders::find_segment_center(const int segment_z_bin, co
 
   // Ladder
   const double phi  = offsetphi + dphi_ * (double)segment_phi_bin;
-  location[0] = eff_radius * cos(phi);
-  location[1] = eff_radius * sin(phi);
-  location[2] = ladder_z_[itype];
+  location[0] = eff_radius  * cos(phi);
+  location[1] = eff_radius  * sin(phi);
+  location[2] = ladder_z_[itype] ;
 }
 
 void PHG4CylinderGeom_Siladders::find_strip_center(const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])

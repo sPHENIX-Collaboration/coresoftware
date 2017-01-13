@@ -86,17 +86,19 @@ int PHG4SiliconTrackerCellReco::InitRun(PHCompositeNode *topNode)
   if (verbosity > 0)
     geo->identify();
 
-  binning.insert(std::make_pair(2, 0));
-  binning.insert(std::make_pair(3, 1));
-  binning.insert(std::make_pair(4, 2));
-  binning.insert(std::make_pair(5, 3));
-  for (std::map<int,int>::iterator iter = binning.begin(); iter != binning.end(); ++iter)
-    {
-      // if the user doesn't set an integration window, set the default
-      tmin_max.insert(std::make_pair(/*layer*/iter->first, std::make_pair(tmin_default, tmax_default)));
-    }
+  // ADF: removed this because it hard-codes the layer numbers!
+  // binning.insert(std::make_pair(2, 0));
+  // binning.insert(std::make_pair(3, 1));
+  // binning.insert(std::make_pair(4, 2));
+  // binning.insert(std::make_pair(5, 3));
+  // for (std::map<int,int>::iterator iter = binning.begin(); iter != binning.end(); ++iter)
+  //   {
+  //     // if the user doesn't set an integration window, set the default
+  //     tmin_max.insert(std::make_pair(/*layer*/iter->first, std::make_pair(tmin_default, tmax_default)));
+  //   }
 
-  return Fun4AllReturnCodes::EVENT_OK;
+
+return Fun4AllReturnCodes::EVENT_OK;
 }
 
 
@@ -132,13 +134,14 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
   for (PHG4HitContainer::ConstIterator hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
     {
       const int sphxlayer = hiter->second->get_layer();
-
       PHG4CylinderGeom *layergeom = geo->GetLayerGeom(sphxlayer);
 
       // checking ADC timing integration window cut
-      if (hiter->second->get_t(0)>tmin_max[sphxlayer].second)
+      // uses default values for now
+      // these should depend on layer radius
+      if (hiter->second->get_t(0)>tmax_default)
         continue;
-      if (hiter->second->get_t(1)<tmin_max[sphxlayer].first)
+      if (hiter->second->get_t(1)<tmin_default)
         continue;
 
       const int ladder_z_index   = hiter->second->get_ladder_z_index();
@@ -151,7 +154,6 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
       layergeom->find_strip_center(ladder_z_index, ladder_phi_index, strip_z_index, strip_y_index, location);
 
       std::string key = boost::str(boost::format("%d-%d_%d_%d") %ladder_z_index %ladder_phi_index %strip_z_index %strip_y_index).c_str();
-
       if (celllist.count(key) > 0)
         {
           celllist[key]->add_edep(hiter->first, hiter->second->get_edep());
