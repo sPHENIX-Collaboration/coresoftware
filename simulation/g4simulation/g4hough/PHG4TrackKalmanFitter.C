@@ -1003,9 +1003,8 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 					(PHG4CylinderGeom_Siladders*) geom_container_intt->GetLayerGeom(
 							layer);
 			double hit_location[3] = { 0.0, 0.0, 0.0 };
-			geom->find_strip_center(cell->get_ladder_z_index(),
-					cell->get_ladder_phi_index(), cell->get_binz(),
-					cell->get_binphi(), hit_location);
+			geom->find_segment_center(cell->get_ladder_z_index(),
+					cell->get_ladder_phi_index(), hit_location);
 
 			n.SetXYZ(hit_location[0], hit_location[1], 0);
 			n.RotateZ(phi_tilt[layer]);
