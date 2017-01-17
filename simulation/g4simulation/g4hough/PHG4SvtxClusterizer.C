@@ -671,7 +671,12 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
     SvtxHit* hit = iter->second;
     layer_hits_mmap.insert(make_pair(hit->get_layer(),hit));
   }
-  
+   for (std::multimap<int,SvtxHit*>::iterator it=layer_hits_mmap.begin(); it!=layer_hits_mmap.end(); ++it)
+     {
+       if( (*it).first < (int) _min_layer || (*it).first > (int) _max_layer) 
+     continue;
+     }
+
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
       layeriter != layerrange.second;
@@ -681,7 +686,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 
     if ((unsigned int)layer < _min_layer) continue;
     if ((unsigned int)layer > _max_layer) continue;
-    
+
     std::map<PHG4CylinderCell*,SvtxHit*> cell_hit_map;
     vector<PHG4CylinderCell*> cell_list;
     for (std::multimap<int,SvtxHit*>::iterator hiter = layer_hits_mmap.lower_bound(layer);
@@ -692,7 +697,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       cell_list.push_back(cell);
       cell_hit_map.insert(make_pair(cell,hit));
     }
-    
+
     if (cell_list.size() == 0) continue; // if no cells, go to the next layer
     
     // i'm not sure this sorting is ever really used
