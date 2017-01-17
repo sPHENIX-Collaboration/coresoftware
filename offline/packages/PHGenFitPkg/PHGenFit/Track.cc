@@ -84,6 +84,7 @@ double Track::extrapolateToPlane(genfit::MeasuredStateOnPlane& state, TVector3 O
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();
+		delete kfsop;
 		return WILD_DOUBLE;
 	}
 
@@ -123,6 +124,7 @@ double Track::extrapolateToLine(genfit::MeasuredStateOnPlane& state, TVector3 li
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();
+		delete kfsop;
 		return WILD_DOUBLE;
 	}
 
@@ -164,6 +166,7 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();
+		delete kfsop;
 		return WILD_DOUBLE;
 	}
 
@@ -202,6 +205,7 @@ double Track::extrapolateToPoint(genfit::MeasuredStateOnPlane& state, TVector3 P
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();
+		delete kfsop;
 		return WILD_DOUBLE;
 	}
 

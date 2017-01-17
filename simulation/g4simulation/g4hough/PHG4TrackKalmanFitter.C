@@ -273,7 +273,6 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 	//! stands for Refit_GenFit_Tracks
 	vector<genfit::Track*> rf_gf_tracks;
-	//vector<genfit::MeasuredStateOnPlane*> rf_gf_states;
 	rf_gf_tracks.clear();
 
 	vector<PHGenFit::Track*> rf_phgf_tracks;
@@ -294,9 +293,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 		//! stands for Refit_PHGenFit_Track
 		PHGenFit::Track* rf_phgf_track = ReFitTrack(topNode, svtx_track);
-#if _DEBUG_MODE_ == 1
-		//rf_phgf_track->getGenFitTrack()->Print();
-#endif
+
 		if (rf_phgf_track) {
 			svtxtrack_genfittrack_map[svtx_track->get_id()] =
 					rf_phgf_tracks.size();
@@ -342,18 +339,18 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 				vertex = _vertexmap_refit->get(0);
 
 			//BEGIN DEBUG
-			//vertex = NULL;
-
+//			vertex = NULL;
+//
 //			PHG4VtxPoint *truth_vtx = _truth_container->GetVtx(
 //					_truth_container->GetPrimaryVertexIndex());
 //			if(!truth_vtx) {
 //				LogDebug("!truth_vtx");
 //				return Fun4AllReturnCodes::ABORTEVENT;
 //			}
-
+//
 //			LogDebug("");
 //			truth_vtx->identify();
-
+//
 //			vertex = new SvtxVertex_v1();
 //			vertex->set_x(truth_vtx->get_x());
 //			vertex->set_y(truth_vtx->get_y());
@@ -369,8 +366,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 //			delete vertex;//DEBUG
 
-			rf_phgf_tracks.push_back(rf_phgf_track);
-			rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
+//			rf_phgf_tracks.push_back(rf_phgf_track);
+//			rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
 
 			if (_output_mode == MakeNewNode || _output_mode == DebugMode)
 				if (_trackmap_refit)
@@ -385,6 +382,11 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 				_trackmap->erase(iter->first);
 		}
 	}
+
+
+	// Need to keep tracks if _do_evt_display
+	if(!_do_evt_display)
+		rf_phgf_tracks.clear();
 
 	/*!
 	 * Fit track as primary track, This part need to be called after FillSvtxVertexMap
@@ -414,6 +416,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 						vertex = _vertexmap_refit->get(0);
 					SvtxTrack* rf_track = MakeSvtxTrack(svtx_track,
 							rf_phgf_track, vertex);
+					delete rf_phgf_track;
 					_primary_trackmap->insert(rf_track);
 				}
 			}
@@ -421,6 +424,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 			LogError("No vertex in SvtxVertexMapRefit!");
 		}
 	}
+
+	rave_vertices.clear();
 
 	if (_do_eval) {
 		fill_eval_tree(topNode);
@@ -1077,6 +1082,7 @@ PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, con
 	if (_fitter->processTrack(track, false) != 0) {
 		if (verbosity >= 1)
 			LogWarning("Track fitting failed");
+		delete track;
 		return NULL;
 	}
 
@@ -1108,16 +1114,15 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 				vertex_cov[i][j] = vertex->get_error(i,j);
 	}
 
-	genfit::MeasuredStateOnPlane* gf_state_beam_line_ca = phgf_track->extrapolateToLine(
-			vertex_position, TVector3(0., 0., 1.));
-
-//	TVector3 mom = gf_state_beam_line_ca->getMom();
-//	TVector3 pos = gf_state_beam_line_ca->getPos();
-//	TMatrixDSym cov = gf_state_beam_line_ca->get6DCov();
-
-	//const SvtxTrack_v1* temp_track = static_cast<const SvtxTrack_v1*> (svtx_track);
-	SvtxTrack_v1* out_track = new SvtxTrack_v1(
-			*static_cast<const SvtxTrack_v1*>(svtx_track));
+	genfit::MeasuredStateOnPlane* gf_state_beam_line_ca = NULL;
+	try {
+		gf_state_beam_line_ca = phgf_track->extrapolateToLine(vertex_position,
+				TVector3(0., 0., 1.));
+	} catch (...) {
+		if (verbosity >= 2)
+			LogWarning("extrapolateToLine failed!");
+	}
+	if(!gf_state_beam_line_ca) return NULL;
 
 	/*!
 	 *  1/p, u'/z', v'/z', u, v
@@ -1125,19 +1130,33 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 	 *  v is alone the beam line
 	 *  so u is the dca2d direction
 	 */
+
 	double u = gf_state_beam_line_ca->getState()[3];
 	double v = gf_state_beam_line_ca->getState()[4];
 
 	double du2 = gf_state_beam_line_ca->getCov()[3][3];
 	double dv2 = gf_state_beam_line_ca->getCov()[4][4];
 
-	if(gf_state_beam_line_ca) delete gf_state_beam_line_ca;
+	delete gf_state_beam_line_ca;
+
+	//const SvtxTrack_v1* temp_track = static_cast<const SvtxTrack_v1*> (svtx_track);
+	SvtxTrack_v1* out_track = new SvtxTrack_v1(
+			*static_cast<const SvtxTrack_v1*>(svtx_track));
 
 	out_track->set_dca2d(u);
 	out_track->set_dca2d_error(sqrt(du2 + dvr2));
 
-	genfit::MeasuredStateOnPlane* gf_state_vertex_ca =
-			phgf_track->extrapolateToPoint(vertex_position);
+	genfit::MeasuredStateOnPlane* gf_state_vertex_ca = NULL;
+	try {
+		gf_state_vertex_ca = phgf_track->extrapolateToPoint(vertex_position);
+	} catch (...) {
+		if (verbosity >= 2)
+			LogWarning("extrapolateToPoint failed!");
+	}
+	if(!gf_state_vertex_ca) {
+		delete out_track;
+		return NULL;
+	}
 
 	TVector3 mom = gf_state_vertex_ca->getMom();
 	TVector3 pos = gf_state_vertex_ca->getPos();
@@ -1264,11 +1283,14 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 
 		double radius = pos.Pt();
 
-		//TODO add exception handling
-		genfit::MeasuredStateOnPlane* gf_state =
-				phgf_track->extrapolateToCylinder(radius, TVector3(0, 0, 0),
-						TVector3(0, 0, 1), 0);
-
+		genfit::MeasuredStateOnPlane* gf_state = NULL;
+		try {
+			gf_state = phgf_track->extrapolateToCylinder(radius, TVector3(0, 0, 0),
+									TVector3(0, 0, 1), 0);
+		} catch (...) {
+			if (verbosity >= 2)
+				LogWarning("Exrapolation failed!");
+		}
 		if (!gf_state) {
 			if (verbosity > 1)
 				LogWarning("Exrapolation failed!");
@@ -1291,6 +1313,8 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 				out_track->set_error(i, j, gf_state->get6DCov()[i][j]);
 			}
 		}
+
+		delete gf_state;
 
 		out_track->insert_state(state);
 
