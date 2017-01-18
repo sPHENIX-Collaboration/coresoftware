@@ -22,6 +22,9 @@
 #include <TROOT.h>
 #include <TMath.h>
 
+#include <CLHEP/Units/PhysicalConstants.h>
+#include <CLHEP/Units/SystemOfUnits.h>
+
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
@@ -234,9 +237,18 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
               z += dz;
             }
 
-	  if ( z >= 0.0 ) z -= 0*driftv * hiter->second->get_t(0);
-	  else z += 0*driftv * hiter->second->get_t(0);
-        }
+      //TODO: this is an approximation of average track propagation time correction on a cluster's hit time or z-position.
+      // Full simulation require implement this correction in PHG4TPCClusterizer::process_event
+      const double approximate_cluster_path_length = sqrt(
+		hiter->second->get_avg_x() * hiter->second->get_avg_x()
+		+ hiter->second->get_avg_y() * hiter->second->get_avg_y()
+		+ hiter->second->get_avg_z() * hiter->second->get_avg_z());
+	  const double speed_of_light_cm_ns = CLHEP::c_light / (CLHEP::centimeter / CLHEP::nanosecond);
+	  if (z >= 0.0)
+		z -= driftv * ( hiter->second->get_avg_t() - approximate_cluster_path_length / speed_of_light_cm_ns);
+	  else
+		z += driftv * ( hiter->second->get_avg_t() - approximate_cluster_path_length / speed_of_light_cm_ns);
+      }
 
       phibin = geo->get_phibin( phi );
       if(phibin < 0 || phibin >= nphibins){continue;}
