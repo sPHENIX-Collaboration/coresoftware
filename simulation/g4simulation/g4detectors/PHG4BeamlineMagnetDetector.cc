@@ -5,8 +5,6 @@
 #include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
 
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>
@@ -17,18 +15,14 @@
 #include <Geant4/G4QuadrupoleMagField.hh>
 #include <Geant4/G4PhysicalConstants.hh>
 #include <Geant4/G4PVPlacement.hh>
-//#include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4VisAttributes.hh>
 
-#include <cmath>
-#include <sstream>
 
 using namespace std;
 
 //_______________________________________________________________
-//note this inactive thickness is ~1.5% of a radiation length
 PHG4BeamlineMagnetDetector::PHG4BeamlineMagnetDetector( PHCompositeNode *Node,  PHG4Parameters *parameters, const std::string &dnam, const int lyr ):
   PHG4Detector(Node,dnam),
   params(parameters),
@@ -87,14 +81,16 @@ void PHG4BeamlineMagnetDetector::Construct( G4LogicalVolume* logicWorld )
       G4double fieldValue = params->get_double_param("field_y")*tesla;
       magField = new G4UniformMagField(G4ThreeVector(0.,fieldValue,0.));
       //  magField = new G4UniformMagField (G4double vField, G4double vTheta, G4double vPhi);
-      cout << "Creating DIPOLE with field " << fieldValue << " and name " << GetName() << endl;
+      if ( verbosity > 0 )
+	cout << "Creating DIPOLE with field " << fieldValue << " and name " << GetName() << endl;
     }
   else if ( magnettype == "quadrupole" )
     {
       G4double fieldGradient = params->get_double_param("fieldgradient")*tesla/meter;
       magField = new G4QuadrupoleMagField (fieldGradient);
       //  magField = new G4QuadrupoleMagField (G4double pGradient, G4ThreeVector pOrigin, G4RotationMatrix *pMatrix);
-      cout << "Creating QUADRUPOLE with gradient " << fieldGradient << " and name " << GetName() << endl;
+      if ( verbosity > 0 )
+	cout << "Creating QUADRUPOLE with gradient " << fieldGradient << " and name " << GetName() << endl;
     }
 
   if ( !magField )
