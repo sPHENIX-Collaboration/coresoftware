@@ -3,12 +3,7 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4String.hh>
-
 class PHG4BeamlineMagnetDetector;
-class PHG4SteppingAction;
-class PHG4EventAction;
 
 class PHG4BeamlineMagnetSubsystem: public PHG4DetectorSubsystem
 {
@@ -42,8 +37,6 @@ class PHG4BeamlineMagnetSubsystem: public PHG4DetectorSubsystem
 
   //! accessors (reimplemented)
   PHG4Detector* GetDetector( void ) const;
-  PHG4SteppingAction* GetSteppingAction( void ) const {return steppingAction_;}
-  PHG4EventAction* GetEventAction() const {return eventAction_;}
 
  private:
   void SetDefaultParameters();
@@ -52,11 +45,6 @@ class PHG4BeamlineMagnetSubsystem: public PHG4DetectorSubsystem
   /*! defives from PHG4Detector */
   PHG4BeamlineMagnetDetector* detector_;
 
-  //! particle tracking "stepping" action
-  /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* steppingAction_;
-
-  PHG4EventAction *eventAction_;
 };
 
 #endif
