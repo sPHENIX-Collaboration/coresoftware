@@ -38,6 +38,7 @@ PHG4SiliconTrackerDetector::PHG4SiliconTrackerDetector(PHCompositeNode *Node, co
   for (unsigned int ilayer=0; ilayer<nlayer_; ++ilayer)
     {
       const int inttlayer = layerconfig_[ilayer].second;
+      std::cout << " PHG4SiliconTrackerDetector constructor: ilayer " << ilayer << " inttlayer " << inttlayer << std::endl;
       if (inttlayer < 0 || inttlayer >= 5)
         assert(!"PHG4SiliconTrackerDetector: check INTT ladder layer.");
     }
@@ -125,6 +126,8 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume* tracker
 
         const int sphxlayer = layerconfig_[ilayer].first;
         const int inttlayer = layerconfig_[ilayer].second;
+
+	std::cout << " PHG4SiliconTrackerDetector::ConstrctSiliconTracker:  sphxlayer " << sphxlayer << " inttlayer " << inttlayer << std::endl;
 
         const G4double strip_x = arr_strip_x[inttlayer];
         const G4double strip_y = arr_strip_y[inttlayer];
@@ -253,10 +256,12 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume* tracker
         const double pgs_z = hdi_z;
 
         G4VSolid *pgs_box = new G4Box(boost::str(boost::format("pgs_box_%d_%d") %sphxlayer %itype).c_str(), pgs_x, pgs_y, pgs_z);
-        G4LogicalVolume *pgs_volume = new G4LogicalVolume(pgs_box, Copper, boost::str(boost::format("pgs_volume_%d_%d") %sphxlayer %itype).c_str(), 0, 0, 0);
+        //G4LogicalVolume *pgs_volume = new G4LogicalVolume(pgs_box, Copper, boost::str(boost::format("pgs_volume_%d_%d") %sphxlayer %itype).c_str(), 0, 0, 0);
+	G4LogicalVolume *pgs_volume = new G4LogicalVolume(pgs_box,  G4Material::GetMaterial("G4_C"), boost::str(boost::format("pgs_volume_%d_%d") %sphxlayer %itype).c_str(), 0, 0, 0);
 
         G4VSolid *pgs_ext_box = new G4Box(boost::str(boost::format("pgs_ext_box_%d_%s") %sphxlayer %itype).c_str(), pgs_x, pgs_y, hdi_ext_z);
-        G4LogicalVolume *pgs_ext_volume = new G4LogicalVolume(pgs_ext_box, Copper, boost::str(boost::format("pgs_ext_volume_%d_%s") %sphxlayer %itype).c_str(), 0, 0, 0);
+        //G4LogicalVolume *pgs_ext_volume = new G4LogicalVolume(pgs_ext_box, Copper, boost::str(boost::format("pgs_ext_volume_%d_%s") %sphxlayer %itype).c_str(), 0, 0, 0);
+	G4LogicalVolume *pgs_ext_volume = new G4LogicalVolume(pgs_ext_box, G4Material::GetMaterial("G4_C"), boost::str(boost::format("pgs_ext_volume_%d_%s") %sphxlayer %itype).c_str(), 0, 0, 0);
 
         G4VisAttributes *pgs_vis = new G4VisAttributes();
         pgs_vis->SetVisibility(true);
@@ -271,10 +276,12 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume* tracker
         const double stave_z = hdi_z;
 
         G4VSolid *stave_box = new G4Box(boost::str(boost::format("stave_box_%d_%d") %sphxlayer %itype).c_str(), stave_x, stave_y, stave_z);
-        G4LogicalVolume *stave_volume = new G4LogicalVolume(stave_box, Copper, boost::str(boost::format("stave_volume_%d_%d") %sphxlayer %itype).c_str(), 0, 0, 0);
+        //G4LogicalVolume *stave_volume = new G4LogicalVolume(stave_box, Copper, boost::str(boost::format("stave_volume_%d_%d") %sphxlayer %itype).c_str(), 0, 0, 0);
+	G4LogicalVolume *stave_volume = new G4LogicalVolume(stave_box,  G4Material::GetMaterial("G4_C"), boost::str(boost::format("stave_volume_%d_%d") %sphxlayer %itype).c_str(), 0, 0, 0);
 
         G4VSolid *stave_ext_box = new G4Box(boost::str(boost::format("stave_ext_box_%d_%s") %sphxlayer %itype).c_str(), stave_x, stave_y, hdi_ext_z);
-        G4LogicalVolume *stave_ext_volume = new G4LogicalVolume(stave_ext_box, Copper, boost::str(boost::format("stave_ext_volume_%d_%s") %sphxlayer %itype).c_str(), 0, 0, 0);
+        //G4LogicalVolume *stave_ext_volume = new G4LogicalVolume(stave_ext_box,  Copper, boost::str(boost::format("stave_ext_volume_%d_%s") %sphxlayer %itype).c_str(), 0, 0, 0);
+        G4LogicalVolume *stave_ext_volume = new G4LogicalVolume(stave_ext_box,  G4Material::GetMaterial("G4_C"), boost::str(boost::format("stave_ext_volume_%d_%s") %sphxlayer %itype).c_str(), 0, 0, 0);
 
         G4VisAttributes *stave_vis = new G4VisAttributes();
         stave_vis->SetVisibility(true);
@@ -461,20 +468,20 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
 
           PHG4CylinderGeom *mygeom = new PHG4CylinderGeom_Siladders(
 				       sphxlayer,
-                                       arr_strip_x[inttlayer],
-                                       arr_strip_y[inttlayer],
-                                       strip_z0,
-                                       strip_z1,
+                                       arr_strip_x[inttlayer]/cm,
+                                       arr_strip_y[inttlayer]/cm,
+                                       strip_z0/cm,
+                                       strip_z1/cm,
                                        nstrips_z_sensor0,
                                        nstrips_z_sensor1,
-                                       arr_nstrips_phi_cell[inttlayer],
+                                       arr_nstrips_phi_cell[inttlayer]/rad,
                                        arr_nladders_layer[inttlayer],
-                                       posz[ilayer][0],
-                                       posz[ilayer][1],
-                                       eff_radius[ilayer],
-                                       strip_x_offset[ilayer],
-                                       arr_offsetphi[inttlayer],
-                                       arr_offsetrot[inttlayer]
+                                       posz[ilayer][0]/cm,
+                                       posz[ilayer][1]/cm,
+                                       eff_radius[ilayer]/cm,
+                                       strip_x_offset[ilayer]/cm,
+                                       arr_offsetphi[inttlayer]/rad,
+                                       arr_offsetrot[inttlayer]/rad
                                      );
           geo->AddLayerGeom(sphxlayer, mygeom);
 	  if(verbosity>0)

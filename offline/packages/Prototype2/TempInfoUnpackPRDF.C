@@ -169,7 +169,9 @@ int  TempInfoUnpackPRDF::addPacketInfo(Packet *p, PHCompositeNode *topNode, cons
 		  tower = new RawTower_Temperature();
 		  emcal_temperature->AddTower(ibinz,ibinphi,tower);
 		}
-	      tower->add_entry( evtnr, etime, p->iValue(ibinz*PROTOTYPE2_FEM::NCH_EMCAL_COLUMNS + ibinphi)/1000. ); 
+	      // this takes care of the newly found "reverse" mapping. (0,0) is module 7, (0,7) is module 0, and 
+	      // the 63 - (...) takes care of the reversed vector.  
+	      tower->add_entry( evtnr, etime, p->iValue( 63- (ibinz*PROTOTYPE2_FEM::NCH_EMCAL_COLUMNS + (7-ibinphi) ) /1000. ) ); 
 	    }
 	}
     }

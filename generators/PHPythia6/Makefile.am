@@ -10,7 +10,8 @@ lib_LTLIBRARIES = libPHPythia6.la
 pkginclude_HEADERS = \
   PHPythia6.h \
   PHPy6GenTrigger.h \
-  PHPy6ForwardElectronTrig.h 
+  PHPy6ForwardElectronTrig.h \
+  PHPy6ParticleTrigger.h
 
 libPHPythia6_la_LDFLAGS = ${AM_LDFLAGS} `root-config --libs`
 
@@ -24,7 +25,10 @@ libPHPythia6_la_SOURCES = \
   PHPy6GenTrigger.C \
   PHPy6GenTrigger.h \
   PHPy6ForwardElectronTrig.C \
-  PHPy6ForwardElectronTrig.h 
+  PHPy6ForwardElectronTrig.h \
+  PHPy6ParticleTrigger.C \
+  PHPy6ParticleTrigger.h
+
 
 BUILT_SOURCES = \
   testexternals.C
@@ -46,6 +50,7 @@ PHPythia6_Dict.C: \
   PHPythia6.h \
   PHPy6GenTrigger.h \
   PHPy6ForwardElectronTrig.h \
+  PHPy6ParticleTrigger.h \
   PHPythia6LinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
