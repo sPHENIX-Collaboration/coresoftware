@@ -79,7 +79,7 @@ PROTOTYPE3_FEM::GetHBDCh(std::string caloname, int i_column, int i_row)
       assert(i_row >= 0);
       assert(i_row < NCH_EMCAL_ROWS);
 
-      static int canmap[NCH_EMCAL_ROWS * NCH_EMCAL_COLUMNS] =
+      static int canmap[] =
         {
 //            > https://docdb.sphenix.bnl.gov/0000/000034/001/T1044-2017a-2.xlsx
 //            Sean and John spot checked a number of these towers at BNL.  There could be mistakes, but cosmics look reasonable.

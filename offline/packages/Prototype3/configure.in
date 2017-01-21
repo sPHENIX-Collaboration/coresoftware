@@ -1,4 +1,4 @@
-AC_INIT(prototype2,[1.00])
+AC_INIT(prototype3,[1.00])
 AC_CONFIG_SRCDIR([configure.in])
 AM_INIT_AUTOMAKE
 
