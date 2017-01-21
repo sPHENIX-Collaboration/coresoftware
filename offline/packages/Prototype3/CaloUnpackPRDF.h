@@ -13,27 +13,31 @@ class Packet_hbd_fpgashort;
 class RawTowerContainer;
 class RawTower;
 
-
 class CaloUnpackPRDF : public SubsysReco
 {
- public:
+public:
   CaloUnpackPRDF();
 
-  int Init(PHCompositeNode *topNode);
+  int
+  Init(PHCompositeNode *topNode);
 
-  int InitRun(PHCompositeNode *topNode);
+  int
+  InitRun(PHCompositeNode *topNode);
 
-  int process_event(PHCompositeNode *topNode);
+  int
+  process_event(PHCompositeNode *topNode);
 
-  int End(PHCompositeNode *topNode);
-  
-  void CreateNodeTree(PHCompositeNode *topNode);
+  int
+  End(PHCompositeNode *topNode);
 
- private:
+  void
+  CreateNodeTree(PHCompositeNode *topNode);
+
+private:
 
   Event* _event;
   Packet_hbd_fpgashort* _packet;
-  int _nevents; 
+  int _nevents;
 
   // HCAL node
   PHCompositeNode * dst_node;
@@ -48,6 +52,5 @@ class CaloUnpackPRDF : public SubsysReco
 
   RawTowerContainer* emcal_towers;
 };
-
 
 #endif //**CaloUnpackPRDFF**//
