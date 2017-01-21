@@ -12,6 +12,9 @@
 #include <phool/phool.h>
 #include <phool/getClass.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <pdbcalbase/PdbParameterMap.h>
+#include <g4detectors/PHG4Parameters.h>
+
 #include <iostream>
 #include <string>
 #include <cassert>
@@ -58,6 +61,19 @@ int CaloUnpackPRDF::process_event(PHCompositeNode *topNode)
   return -1;
  }
 
+ PdbParameterMap *info = findNode::getClass<PdbParameterMap>(topNode,
+     "RUN_INFO");
+
+ if(not info)
+   {
+     cout << "CaloUnpackPRDF::Process_Event - missing run info. Please run RunInfoUnpackPRDF first" << endl;
+     return -1;
+   }
+
+ PHG4Parameters run_info_copy("RunInfo");
+ run_info_copy.FillFrom(info);
+ const int emcal_is_higheta = run_info_copy.get_int_param("EMCAL_Is_HighEta");
+
  if(verbosity)
  {
   cout << PHWHERE << "Process event entered" << std::endl;
@@ -69,7 +85,7 @@ int CaloUnpackPRDF::process_event(PHCompositeNode *topNode)
  if(!_packet)
  {
   //They could be special events at the beginning or end of run
-  if(_event->getEvtType()==1)
+  if(_event->getEvtType()==DATAEVENT)
   {
    cout << "CaloUnpackPRDF::Process_Event - Packet not found" << endl;
    _event->identify();
@@ -160,7 +176,8 @@ int CaloUnpackPRDF::process_event(PHCompositeNode *topNode)
     tower->set_energy(NAN);
     emcal_towers->AddTower(ibinz,ibinphi,tower);
    }
-   int ich = PROTOTYPE3_FEM::GetHBDCh("EMCAL",ibinz,ibinphi);
+
+   int ich = PROTOTYPE3_FEM::GetHBDCh(emcal_is_higheta?"EMCAL_HIGHETA":"EMCAL_PROTOTYPE2",ibinz,ibinphi);
    tower->set_HBD_channel_number(ich);
    for(int isamp=0; isamp<PROTOTYPE3_FEM::NSAMPLES; isamp++)
    {

@@ -49,6 +49,12 @@ namespace PROTOTYPE3_FEM
   double
   SignalShape_PowerLawExp(double *x, double *par);
 
+
+  //! special treatment for EMCal tagging packet
+  //! See also https://wiki.bnl.gov/sPHENIX/index.php/2017_calorimeter_beam_test#What_is_new_in_the_data_structures_in_2017
+  //! Result stored in RUN_INFO node under variable EMCAL_Is_HighEta
+  const int PACKET_EMCAL_HIGHETA_FLAG = 905;
+
 }
 
 #endif

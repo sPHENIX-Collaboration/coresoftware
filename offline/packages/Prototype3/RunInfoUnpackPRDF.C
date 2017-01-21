@@ -85,6 +85,22 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
 
       PHG4Parameters Params("RunInfo");
 
+      // special treatment for EMCal tagging packet
+      // https://wiki.bnl.gov/sPHENIX/index.php/2017_calorimeter_beam_test#What_is_new_in_the_data_structures_in_2017
+        {
+          int has_new_EMCal = 0;
+
+          if (event->existPacket(PROTOTYPE3_FEM::PACKET_EMCAL_HIGHETA_FLAG))
+            {
+              // react properly - new emcal!
+              has_new_EMCal = 1;
+            }
+
+          Params.set_double_param("EMCAL_Is_HighEta", has_new_EMCal);
+          Params.set_int_param("EMCAL_Is_HighEta", has_new_EMCal);
+        }
+
+        // generic packets
       for (typ_channel_map::const_iterator it = channel_map.begin();
           it != channel_map.end(); ++it)
         {
