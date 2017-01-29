@@ -37,7 +37,9 @@ public:
 //   void etaphisize(const int i, const double deltaeta, const double deltaphi);
   void OutputDetector(const std::string &d) {outdetector = d;}
 
-  void setDiffusion( double diff ){diffusion = diff;}
+  void setHalfLength( double hz ){fHalfLength = hz;}
+  void setDiffusionL( double diff ){fDiffusionL = diff;}
+  void setDiffusionT( double diff ){fDiffusionT = diff;}
   void setElectronsPerKeV( double epk ){elec_per_kev = epk;}
   void set_drift_velocity( const double cm_per_ns) { driftv = cm_per_ns;}
   
@@ -72,7 +74,9 @@ protected:
   
   TRandom3 rand;
 
-  double diffusion;
+  double fHalfLength;
+  double fDiffusionT;
+  double fDiffusionL;
   double elec_per_kev;
   double driftv;
 

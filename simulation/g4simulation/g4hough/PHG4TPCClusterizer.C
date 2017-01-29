@@ -86,8 +86,8 @@ static bool is_local_maximum(const std::vector<float>& amps, int nphibins,
 
 static void fit_cluster(std::vector<float>& amps, int nphibins, int nzbins,
                         int& nhits_tot, std::vector<int>& nhits, int phibin,
-                        int zbin, PHG4CylinderCellGeom* geo, float& phi,
-                        float& z, float& e) {
+                        int zbin, PHG4CylinderCellGeom* geo,
+			float& phi, float& z, float& e) {
   e = 0.;
   phi = 0.;
   z = 0.;
@@ -134,6 +134,7 @@ int PHG4TPCClusterizer::InitRun(PHCompositeNode* topNode) {
 void PHG4TPCClusterizer::reset() {}
 
 int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
+  if(verbosity>1000) std::cout << "PHG4TPCClusterizer::Process_Event" << std::endl;
 
   PHNodeIterator iter(topNode);
 
@@ -151,15 +152,13 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHCompositeNode* svxNode =
-      dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", "SVTX"));
+  PHCompositeNode* svxNode = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", "SVTX"));
   if (!svxNode) {
     svxNode = new PHCompositeNode("SVTX");
     dstNode->addNode(svxNode);
   }
 
-  SvtxClusterMap* svxclusters =
-      findNode::getClass<SvtxClusterMap>(dstNode, "SvtxClusterMap");
+  SvtxClusterMap* svxclusters = findNode::getClass<SvtxClusterMap>(dstNode, "SvtxClusterMap");
   if (!svxclusters) {
     svxclusters = new SvtxClusterMap_v1();
     PHIODataNode<PHObject>* SvtxClusterMapNode =
@@ -182,23 +181,21 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     // We only need TPC layers here, so skip the layers below _min_layer
     // This if statement is needed because although the maps ladder layers are not included in the cylinder cell geom container, 
     // the cylinder Svx layers are, so they have to be dropped here if they are present
-    if( (unsigned int) layeriter->second->get_layer() < _min_layer)
+    if( (unsigned int) layeriter->second->get_layer() < _min_layer) {
+      if(verbosity>1000) std::cout << "Skipping layer " << layeriter->second->get_layer() << std::endl;
       continue;
+    }
     layer_sorted.push_back(std::vector<const SvtxHit*>());
   }
   for (SvtxHitMap::Iter iter = hits->begin(); iter != hits->end(); ++iter) {
     SvtxHit* hit = iter->second;
-    if( (unsigned int) hit->get_layer() < _min_layer)
-      continue;
+    if( (unsigned int) hit->get_layer() < _min_layer) continue;
     layer_sorted[hit->get_layer() - _min_layer].push_back(hit);
   }
   
-  for (PHG4CylinderCellGeomContainer::ConstIterator layeriter =
-           layerrange.first;
+  for (PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
        layeriter != layerrange.second; ++layeriter) {
-
     unsigned int layer = (unsigned int)layeriter->second->get_layer();
-    
     // exit on the MAPS layers...
     // needed in case cylinder svtx layers are present      
     if (layer < _min_layer) continue;
@@ -207,7 +204,12 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     PHG4CylinderCellGeom* geo = geom_container->GetLayerCellGeom(layer);
     const int nphibins = layeriter->second->get_phibins();
     const int nzbins = layeriter->second->get_zbins();
-
+    if(verbosity>1000) {
+      std::cout << "Layer " << layer;
+      std::cout << " nphibins " << nphibins;
+      std::cout << " nzbins " << nzbins;
+      std::cout << std::endl;
+    }
     nhits.clear();
     nhits.assign(nzbins, 0);
     amps.clear();
@@ -216,13 +218,13 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     cellids.assign(nphibins * nzbins, 0);
 
     for (unsigned int i = 0; i < layer_sorted[layer - _min_layer].size(); ++i) {
-
       const SvtxHit* hit = layer_sorted[layer - _min_layer][i];
       if (hit->get_e() <= 0.) continue;
-      
+      if(verbosity>1000) std::cout << hit->get_cellid();
       PHG4CylinderCell* cell = cells->findCylinderCell(hit->get_cellid());
       int phibin = cell->get_binphi();
       int zbin = cell->get_binz();
+      if(verbosity>1000) std::cout << " phibin " << phibin << " zbin " << zbin << std::endl;
       nhits[zbin] += 1;
       amps[zbin * nphibins + phibin] += hit->get_e();
       cellids[zbin * nphibins + phibin] = hit->get_id();
@@ -232,30 +234,23 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     for (int zbin = 0; zbin < nzbins; ++zbin) {
       nhits_tot += nhits[zbin];
     }
-
+    if(verbosity>1000) std::cout << " nhits_tot " << nhits_tot << std::endl;
     while (nhits_tot > 0) {
-
-      for (int zbin = 0; zbin < nzbins; ++zbin) {
-
+      if(verbosity>1000) std::cout << " => nhits_tot " << nhits_tot << std::endl;
+      for (int zbin = 0; zbin!=nzbins; ++zbin) {
         if (nhits[zbin] <= 0) continue;
-
-        for (int phibin = 0; phibin < nphibins; ++phibin) {
-
-          if (is_local_maximum(amps, nphibins, nzbins, phibin, zbin) == false) {
-            continue;
-          }
-
+        for (int phibin = 0; phibin!=nphibins; ++phibin) {
+          if (is_local_maximum(amps, nphibins, nzbins, phibin, zbin) == false) continue;
           float phi = 0.;
           float z = 0.;
           float e = 0.;
-
-          fit_cluster(amps, nphibins, nzbins, nhits_tot, nhits, phibin, zbin,
-                      geo, phi, z, e);
-
+	  if(verbosity>1000) std::cout << " maxima found " << std::endl;
+          fit_cluster(amps, nphibins, nzbins, nhits_tot, nhits, phibin, zbin, geo,
+		      phi, z, e);
           if ((layer > 2) && (e < energy_cut)) {
             continue;
           }
-
+	  if(verbosity>1000) std::cout << " cluster fitted " << std::endl;
           SvtxCluster_v1 clus;
           clus.set_layer(layer);
           clus.set_e(e);
@@ -331,11 +326,12 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  clus.set_error( 2 , 2 , COVAR_ERR[2][2] );
       
           svxclusters->insert(&clus);
+	  if(verbosity>1000) std::cout << " inserted " << std::endl;
         }
       }
     }
   }
-
   reset();
+  if(verbosity>1000) std::cout << "PHG4TPCClusterizer::Process_Event DONE" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -36,7 +36,9 @@ using namespace std;
 PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
                                                  const string &name)
     : SubsysReco(name),
-      diffusion(0.0057),
+      fHalfLength(100),
+      fDiffusionT(0.0057),
+      fDiffusionL(0.0057),
       elec_per_kev(38.),
       driftv(6.0/1000.0), // cm per ns
       num_pixel_layers(n_pixel),
@@ -89,7 +91,6 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
   geonodename = "CYLINDERGEOM_" + detector;
   PHG4CylinderGeomContainer *geo =  findNode::getClass<PHG4CylinderGeomContainer>(topNode , geonodename.c_str());
   if (!geo){cout << "Could not locate geometry node " << geonodename << endl;exit(1);}
-  
   seggeonodename = "CYLINDERCELLGEOM_" + outdetector;
   PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode , seggeonodename.c_str());
   if (!seggeo){seggeo = new PHG4CylinderCellGeomContainer();PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str() , "PHObject");runNode->addNode(newNode);}
@@ -190,10 +191,21 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
   
   for(layer = layer_begin_end.first; layer != layer_begin_end.second; layer++)
   {
-    std::map<std::string, PHG4CylinderCell*> cellptmap;
+    std::map<unsigned long, PHG4CylinderCell*> cellptmap; // key will fail if numbins per layer > 4.2 billion
     PHG4HitContainer::ConstIterator hiter;
     PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(*layer);
     PHG4CylinderCellGeom *geo = seggeo->GetLayerCellGeom(*layer);
+    if(verbosity>1000) {
+      std::cout << "Layer " << (*layer);
+      std::cout << " Radius " << geo->get_radius();
+      std::cout << " Thickness " << geo->get_thickness();
+      std::cout << " zmin " << geo->get_zmin();
+      std::cout << " nbinsz " << geo->get_zbins();
+      std::cout << " phimin " << geo->get_phimin();
+      std::cout << " nbinsphi " << geo->get_phibins();
+      std::cout << std::endl;
+    }
+
     int nphibins = n_phi_z_bins[*layer].first;
     int nzbins = n_phi_z_bins[*layer].second;
 
@@ -225,7 +237,6 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
           if (distortion)
             {
               // do TPC distortion
-
               const double dz = distortion ->get_z_distortion(r,phi,z);
               const double drphi = distortion ->get_rphi_distortion(r,phi,z);
               //TODO: radial distortion is not applied at the moment,
@@ -260,93 +271,80 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       
       double edep = hiter->second->get_edep();
       
-      if( (*layer) < (unsigned int)num_pixel_layers )
-      {
-        char inkey[1024];
-        sprintf(inkey,"%i-%i",phibin,zbin);
-        std::string key(inkey);
-        if(cellptmap.count(key) > 0)
-        {
-          cellptmap.find(key)->second->add_edep(hiter->first, edep);
-          cellptmap.find(key)->second->add_shower_edep(hiter->second->get_shower_id(), edep);
-        }
-        else
-        {
-          cellptmap[key] = new PHG4CylinderCellv1();
-          std::map<std::string, PHG4CylinderCell*>::iterator it = cellptmap.find(key);
-          it->second->set_layer(*layer);
-          it->second->set_phibin(phibin);
-          it->second->set_zbin(zbin);
-          it->second->add_edep(hiter->first, edep);
-          it->second->add_shower_edep(hiter->second->get_shower_id(), edep);
-        }
-      }
-      else
-      {
-        double nelec = elec_per_kev*1.0e6*edep;
-
-        double cloud_sig_x = 1.5*sqrt( diffusion*diffusion*(100. - TMath::Abs(hiter->second->get_avg_z())) + 0.03*0.03 );
-        double cloud_sig_z = 1.5*sqrt((1.+2.2*2.2)*diffusion*diffusion*(100. - TMath::Abs(hiter->second->get_avg_z())) + 0.01*0.01 );
-        
-        int n_phi = (int)(3.*( cloud_sig_x/(r*phistepsize) )) + 3;
-        int n_z = (int)(3.*( cloud_sig_z/zstepsize )) + 3;
-        
-        double cloud_sig_x_inv = 1./cloud_sig_x;
-        double cloud_sig_z_inv = 1./cloud_sig_z;
-        
-        // we will store effective number of electrons instead of edep
-        for( int iphi = -n_phi; iphi <= n_phi; ++iphi )
-        {
+      if( (*layer) < (unsigned int)num_pixel_layers ) { // MAPS + ITT
+        unsigned long key = zbin*nphibins + phibin;
+	std::map<unsigned long, PHG4CylinderCell*>::iterator it = cellptmap.find(key);
+	PHG4CylinderCell *cell;
+	if(it != cellptmap.end()) {
+	  cell = it->second;
+	} else {
+          cell = new PHG4CylinderCellv1();
+	  cell->set_layer(*layer);
+	  cell->set_phibin(phibin);
+	  cell->set_zbin(zbin);
+	  cellptmap[key] = cell;
+	}
+	cell->add_edep(hiter->first, edep);
+	cell->add_shower_edep(hiter->second->get_shower_id(), edep);
+      } else { // TPC
+        double nelec = elec_per_kev*1e6*edep;
+	double sigmaT = 0.03;
+	double sigmaL = 0.01;
+        double cloud_sig_rp = sqrt( fDiffusionT*fDiffusionT*(fHalfLength - TMath::Abs(hiter->second->get_avg_z())) + sigmaT*sigmaT );
+        double cloud_sig_zz = sqrt( fDiffusionL*fDiffusionL*(fHalfLength - TMath::Abs(hiter->second->get_avg_z())) + sigmaL*sigmaL );
+	int n_rp = (int)(3.*( cloud_sig_rp/(r*phistepsize) )) + 3;
+        int n_zz = (int)(3.*( cloud_sig_zz/zstepsize )) + 3;
+	double cloud_sig_rp_inv = 1./cloud_sig_rp;
+        double cloud_sig_zz_inv = 1./cloud_sig_zz;
+	// converting Edep to Effective Number Of Electrons
+        for( int iphi = -n_rp; iphi <= n_rp; ++iphi ) {
           int cur_phi_bin = phibin + iphi;
-          if( cur_phi_bin < 0 ){cur_phi_bin += nphibins;}
-          else if( cur_phi_bin >= nphibins ){cur_phi_bin -= nphibins;}
-          
-          if( (cur_phi_bin < 0) || (cur_phi_bin >= nphibins) ){continue;}
-        
-          
-          double phi_integral = 0.5*erf(-0.5*sqrt(2.)*phidisp*r*cloud_sig_x_inv + 0.5*sqrt(2.)*( (0.5 + (double)iphi)*phistepsize*r )*cloud_sig_x_inv) - 0.5*erf(-0.5*sqrt(2.)*phidisp*r*cloud_sig_x_inv + 0.5*sqrt(2.)*( (-0.5 + (double)iphi)*phistepsize*r )*cloud_sig_x_inv);
-          
-          for( int iz = -n_z; iz <= n_z; ++iz )
-          {
-            int cur_z_bin = zbin + iz;if( (cur_z_bin < 0) || (cur_z_bin >= nzbins) ){continue;}
-            
-            double z_integral = 0.5*erf(-0.5*sqrt(2.)*zdisp*cloud_sig_z_inv + 0.5*sqrt(2.)*( (0.5 + (double)iz)*zstepsize )*cloud_sig_z_inv) - 0.5*erf(-0.5*sqrt(2.)*zdisp*cloud_sig_z_inv + 0.5*sqrt(2.)*( (-0.5 + (double)iz)*zstepsize )*cloud_sig_z_inv);
-
-            double total_weight = rand.Poisson( nelec*( phi_integral * z_integral ) );
-            
-            if( !(total_weight == total_weight) ){continue;}
-            if(total_weight == 0.){continue;}
-            
-            char inkey[1024];
-            sprintf(inkey,"%i-%i",cur_phi_bin,cur_z_bin);
-            std::string key(inkey);
-            if(cellptmap.count(key) > 0)
-            {
-              cellptmap.find(key)->second->add_edep(hiter->first, total_weight);
-              cellptmap.find(key)->second->add_shower_edep(hiter->second->get_shower_id(), total_weight);
-            }
-            else
-            {
-              cellptmap[key] = new PHG4CylinderCellv1();
-              std::map<std::string, PHG4CylinderCell*>::iterator it = cellptmap.find(key);
-              it->second->set_layer(*layer);
-              it->second->set_phibin(cur_phi_bin);
-              it->second->set_zbin(cur_z_bin);
-              it->second->add_edep(hiter->first, total_weight);
-              it->second->add_shower_edep(hiter->second->get_shower_id(), total_weight);
-            }
-          }
-        }
+	  // correcting for continuity in phi
+          if( cur_phi_bin < 0 ) cur_phi_bin += nphibins;
+          else if( cur_phi_bin >= nphibins ) cur_phi_bin -= nphibins;
+	  if( (cur_phi_bin < 0) || (cur_phi_bin >= nphibins) ) {
+	    std::cout << "PHG4CylinderCellTPCReco => error in phi continuity. Skipping" << std::endl;
+	    continue;
+	  }
+	  double sqrt2 = sqrt(2.);
+	  double phiLim1 = 0.5*sqrt2*( (iphi+0.5)*phistepsize*r - phidisp*r )*cloud_sig_rp_inv;
+	  double phiLim2 = 0.5*sqrt2*( (iphi-0.5)*phistepsize*r - phidisp*r )*cloud_sig_rp_inv;
+          double phi_integral = 0.5*( erf(phiLim1) - erf(phiLim2) );
+          for( int iz = -n_zz; iz <= n_zz; ++iz ) {
+            int cur_z_bin = zbin + iz;
+	    if( (cur_z_bin < 0) || (cur_z_bin >= nzbins) ) continue;
+	    double zLim1 = 0.5*sqrt2*( (iz+0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
+	    double zLim2 = 0.5*sqrt2*( (iz-0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
+            double z_integral = 0.5*( erf(zLim1) - erf(zLim2) );
+            double neffelectrons = rand.Poisson( nelec*( phi_integral * z_integral ) );
+            if(neffelectrons == 0.) continue; // skip no signals
+	    unsigned long key = cur_z_bin*nphibins + cur_phi_bin;
+	    std::map<unsigned long, PHG4CylinderCell*>::iterator it = cellptmap.find(key);
+	    PHG4CylinderCell *cell;
+	    if(it != cellptmap.end()) {
+	      cell = it->second;
+	    } else {
+	      cell = new PHG4CylinderCellv1();
+	      cell->set_layer(*layer);
+	      cell->set_phibin(cur_phi_bin);
+	      cell->set_zbin(cur_z_bin);
+	      cellptmap[key] = cell;
+	    }
+	    cell->add_edep(hiter->first, neffelectrons );
+	    cell->add_shower_edep(hiter->second->get_shower_id(), neffelectrons );
+          } //iz
+        } //iphi
       }
     }
     int count = 0;
-    for(std::map<std::string, PHG4CylinderCell*>::iterator it = cellptmap.begin(); it != cellptmap.end(); ++it)
-    {
+    for(std::map<unsigned long, PHG4CylinderCell*>::iterator it = cellptmap.begin(); it != cellptmap.end(); ++it) {
       cells->AddCylinderCell((unsigned int)(*layer), it->second);
+      if(verbosity>1000) std::cout << " Adding phibin" << it->second->get_binphi() << " zbin " << it->second->get_binz() << std::endl;
       count += 1;
     }
+    if(verbosity>1000) std::cout << " || Number of cells hit " << count<< std::endl;
   }
-  // cout<<"PHG4CylinderCellTPCReco end"<<endl;
+  if(verbosity>1000) std::cout<<"PHG4CylinderCellTPCReco end" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
