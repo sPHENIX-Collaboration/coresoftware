@@ -4,6 +4,7 @@
 #include "PHG4CylinderCellGeomContainer.h"
 #include "PHG4CylinderCellGeom.h"
 #include "PHG4CylinderCellv1.h"
+#include "PHG4Cellv1.h"
 #include "PHG4CylinderCellContainer.h"
 #include "PHG4CylinderCellDefs.h"
 
@@ -23,6 +24,8 @@
 #include <iostream>
 #include <sstream>
 #include <limits>       // std::numeric_limits
+
+#include </opt/sphenix/utils/include/valgrind/callgrind.h>
 
 using namespace std;
 
@@ -288,6 +291,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
 int
 PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 {
+  CALLGRIND_START_INSTRUMENTATION;
   _timer.get()->restart();
 
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
@@ -454,17 +458,19 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 		  // This is the key for cellptmap
 		  // It is constructed using the phi and z (or eta) bin index values
 		  // It will be unique for a given phi and z (or eta) bin combination
-		  char inkey[1024];
-		  sprintf(inkey,"%i-%i",iphibin,ietabin);
-		  std::string key(inkey);
-
+		  unsigned long long tmp = iphibin;
+		  unsigned long long key = tmp << 32;
+		  key += ietabin;
 		  if(verbosity > 1)
-		    cout << " iphibin " << iphibin << " ietabin " << ietabin << " key " << key << endl;
-
+		    {
+		      cout << " iphibin " << iphibin << " ietabin " << ietabin << " key 0x" << hex << key << dec << endl;
+		    }
 		  if(cellptmap.count(key) > 0)
 		    {
 		      if(verbosity > 1)
+			{
 			cout << "  add energy to existing cell " << endl;
+			}
 
 		      cellptmap.find(key)->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
 		      cellptmap.find(key)->second->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep()*vdedx[i1]);
@@ -472,7 +478,9 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 		  else
 		    {
 		      if(verbosity > 1)
-			cout << "    did not find a previous entry for key = " << key << " add a new one" << endl;
+			{	
+		cout << "    did not find a previous entry for key = " << key << " add a new one" << endl;
+			}
 
 		      cellptmap[key] = new PHG4CylinderCellv1();
 		      it = cellptmap.find(key);
@@ -620,19 +628,22 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
               // which leads to a 0/0 and an NaN in edep later on
               // this code does for particles in the same cell a trklen/trklen (vdedx[ii]/trklen)
               // so setting this to any non zero number will do just fine
-              // I just pick -1 here to flag those strange hits in case I want t oanalyze them
+              // I just pick -1 here to flag those strange hits in case I want to analyze them
               // later on
               if (trklen == 0)
-          {
-            trklen = -1.;
-          }
+		{
+		  trklen = -1.;
+		}
               vector<int> vphi;
               vector<int> vz;
               vector<double> vdedx;
 
               if (intphibin == intphibinout && intzbin == intzbinout)   // single cell fired
                 {
-                  if (verbosity > 0) cout << "SINGLE CELL FIRED: " << intphibin << " " << intzbin << endl;
+                  if (verbosity > 0) 
+		    {
+                      cout << "SINGLE CELL FIRED: " << intphibin << " " << intzbin << endl;
+		    }
                   vphi.push_back(intphibin);
                   vz.push_back(intzbin);
                   vdedx.push_back(trklen);
@@ -677,12 +688,11 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
                   int iphibin = vphi[i1];
                   int izbin = vz[i1];
 
-		  char inkey[1024];
-		  sprintf(inkey,"%i-%i",iphibin,izbin);
-		  std::string key(inkey);
-
+		  unsigned long long tmp = iphibin;
+		  unsigned long long key = tmp << 32;
+		  key += izbin;
 		  if(verbosity > 1)
-		    cout << " iphibin " << iphibin << " izbin " << izbin << " key " << key << endl;
+		    cout << " iphibin " << iphibin << " izbin " << izbin << " key 0x" << hex << key << dec << endl;
 	
 		  // check to see if there is already an entry for this cell
 		  if(cellptmap.count(key) > 0)
@@ -769,6 +779,7 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
       CheckEnergy(topNode);
     }
   _timer.get()->stop();
+  CALLGRIND_STOP_INSTRUMENTATION;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
