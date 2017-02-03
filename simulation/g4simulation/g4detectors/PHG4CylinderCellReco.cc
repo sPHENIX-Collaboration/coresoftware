@@ -25,13 +25,11 @@
 #include <sstream>
 #include <limits>       // std::numeric_limits
 
-#include </opt/sphenix/utils/include/valgrind/callgrind.h>
-
 using namespace std;
 
 PHG4CylinderCellReco::PHG4CylinderCellReco(const string &name) :
   SubsysReco(name),
-  _timer(PHTimeServer::get()->insert_new("PHG4CylinderCellReco")),
+  _timer(PHTimeServer::get()->insert_new(name)),
   chkenergyconservation(0),
   tmin_default(0.0),  // ns
   tmax_default(60.0), // ns
@@ -297,7 +295,6 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
 int
 PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 {
-  CALLGRIND_START_INSTRUMENTATION;
   _timer.get()->restart();
 
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
@@ -422,14 +419,16 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 		}
 	      else
 		{
+                  double phistep_half = geo->get_phistep() / 2.;
+		  double etastep_half = geo->get_etastep() / 2.;
 		  for (int ibp = intphibin; ibp <= intphibinout; ibp++)
 		    {
+		      double cx = geo->get_phicenter(ibp) - phistep_half;
+		      double dx = geo->get_phicenter(ibp) + phistep_half;
 		      for (int ibz = intetabin; ibz <= intetabinout; ibz++)
 			{
-			  double cx = geo->get_phicenter(ibp) - geo->get_phistep() / 2.;
-			  double dx = geo->get_phicenter(ibp) + geo->get_phistep() / 2.;
-			  double cy = geo->get_etacenter(ibz) - geo->get_etastep() / 2.;
-			  double dy = geo->get_etacenter(ibz) + geo->get_etastep() / 2.;
+			  double cy = geo->get_etacenter(ibz) - etastep_half;
+			  double dy = geo->get_etacenter(ibz) + etastep_half;
 			  double rr = 0.;
 			  //cout << "##### line: " << ax << " " << ay << " " << bx << " " << by << endl;
 			  //cout << "####### cell: " << cx << " " << cy << " " << dx << " " << dy << endl;
@@ -471,32 +470,22 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 		    {
 		      cout << " iphibin " << iphibin << " ietabin " << ietabin << " key 0x" << hex << key << dec << endl;
 		    }
-		  if(cellptmap.count(key) > 0)
+		  PHG4CylinderCell *cell = nullptr;
+		  it = cellptmap.find(key);
+		  if (it != cellptmap.end())
 		    {
-		      if(verbosity > 1)
-			{
-			  cout << "  add energy to existing cell " << endl;
-			}
-
-		      cellptmap.find(key)->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
-		      cellptmap.find(key)->second->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep()*vdedx[i1]);
+		      cell = it->second;
 		    }
 		  else
 		    {
-		      if(verbosity > 1)
-			{
-			  cout << "    did not find a previous entry for key = " << key << " add a new one" << endl;
-			}
-
-		      cellptmap[key] = new PHG4CylinderCellv1();
-		      it = cellptmap.find(key);
-		      it->second->set_layer(*layer);
-		      it->second->set_phibin(iphibin);
-		      it->second->set_etabin(ietabin);
-		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
-		      it->second->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep()*vdedx[i1]);
+		      cell = new PHG4CylinderCellv1();
+		      cellptmap[key] = cell;
+		      cell->set_layer(*layer);
+		      cell->set_phibin(iphibin);
+		      cell->set_etabin(ietabin);
 		    }
-
+		  cell->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
+		  cell->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep()*vdedx[i1]);
 		  // just a sanity check - we don't want to mess up by having Nan's or Infs in our energy deposition
 		  if (! isfinite(hiter->second->get_edep()*vdedx[i1]))
 		    {
@@ -656,14 +645,16 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 		}
 	      else
 		{
+                  double phistep_half = geo->get_phistep() / 2.;
+		  double zstep_half = geo->get_zstep() / 2.;
 		  for (int ibp = intphibin; ibp <= intphibinout; ibp++)
 		    {
+		      double cx = geo->get_phicenter(ibp) - phistep_half;
+		      double dx = geo->get_phicenter(ibp) + phistep_half;
 		      for (int ibz = intzbin; ibz <= intzbinout; ibz++)
 			{
-			  double cx = geo->get_phicenter(ibp) - geo->get_phistep() / 2.;
-			  double dx = geo->get_phicenter(ibp) + geo->get_phistep() / 2.;
-			  double cy = geo->get_zcenter(ibz) - geo->get_zstep() / 2.;
-			  double dy = geo->get_zcenter(ibz) + geo->get_zstep() / 2.;
+			  double cy = geo->get_zcenter(ibz) - zstep_half;
+			  double dy = geo->get_zcenter(ibz) + zstep_half;
 			  double rr = 0.;
 			  //cout << "##### line: " << ax << " " << ay << " " << bx << " " << by << endl;
 			  //cout << "####### cell: " << cx << " " << cy << " " << dx << " " << dy << endl;
@@ -698,16 +689,20 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 		  unsigned long long key = tmp << 32;
 		  key += izbin;
 		  if(verbosity > 1)
-		    cout << " iphibin " << iphibin << " izbin " << izbin << " key 0x" << hex << key << dec << endl;
-
-		  // check to see if there is already an entry for this cell
-		  if(cellptmap.count(key) > 0)
 		    {
-		      if(verbosity > 1)
-			cout << "  add energy to existing cell for key = " << cellptmap.find(key)->first << endl;
+		      cout << " iphibin " << iphibin << " izbin " << izbin << " key 0x" << hex << key << dec << endl;
+		    }
+		  // check to see if there is already an entry for this cell
+		  PHG4CylinderCell *cell = nullptr;
+		  it = cellptmap.find(key);
 
-		      cellptmap.find(key)->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
-		      cellptmap.find(key)->second->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep()*vdedx[i1]);
+		  if(it != cellptmap.end())
+		    {
+		      cell = it->second;
+		      if(verbosity > 1)
+			{
+			  cout << "  add energy to existing cell for key = " << cellptmap.find(key)->first << endl;
+			}
 
 		      if(verbosity > 1 && std::isnan(hiter->second->get_light_yield()*vdedx[i1]))
 			{
@@ -720,24 +715,22 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 		  else
 		    {
 		      if(verbosity > 1)
-			cout << "    did not find a previous entry for key = " << key << " create a new one" << endl;
-
-		      cellptmap[key] = new PHG4CylinderCellv1();
-		      it = cellptmap.find(key);
-		      it->second->set_layer(*layer);
-		      it->second->set_phibin(iphibin);
-		      it->second->set_zbin(izbin);
-		      it->second->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
-		      it->second->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep()*vdedx[i1]);
-
-		      if(verbosity > 1 && std::isnan(hiter->second->get_light_yield()*vdedx[i1]))
 			{
-
-			  cout << "    NAN lighy yield with vdedx[i1] = " << vdedx[i1]
-			       << " and hiter->second->get_light_yield() = " << hiter->second->get_light_yield() << endl;
-
+			  cout << "    did not find a previous entry for key = " << key << " create a new one" << endl;
 			}
+		      cell = new PHG4CylinderCellv1();
+		      cellptmap[key] = cell;
+		      cell->set_layer(*layer);
+		      cell->set_phibin(iphibin);
+		      cell->set_zbin(izbin);
+		    }
+		  cell->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
+		  cell->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep()*vdedx[i1]);
 
+		  if(verbosity > 1 && std::isnan(hiter->second->get_light_yield()*vdedx[i1]))
+		    {
+		      cout << "    NAN lighy yield with vdedx[i1] = " << vdedx[i1]
+			   << " and hiter->second->get_light_yield() = " << hiter->second->get_light_yield() << endl;
 		    }
 		}
 	      vphi.clear();
@@ -771,21 +764,25 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
       //==========================================================
       // now reset the cell map before moving on to the next layer
       if(verbosity > 1)
-	cout << "cellptmap for layer " << *layer << " has final length " << cellptmap.size();
+	{
+	  cout << "cellptmap for layer " << *layer << " has final length " << cellptmap.size();
+	}
       while(cellptmap.begin() != cellptmap.end())
 	{
-	  // Assumes that mmmory is freed by the cylinder cell container when it is destroyed
+	  // Assumes that memmory is freed by the cylinder cell container when it is destroyed
 	  cellptmap.erase(cellptmap.begin());
 	}
       if(verbosity > 1)
-	cout << " reset it to " << cellptmap.size() << endl;
+	{
+	  cout << " reset it to " << cellptmap.size() << endl;
+	}
     }
   if (chkenergyconservation)
     {
       CheckEnergy(topNode);
     }
   _timer.get()->stop();
-  CALLGRIND_STOP_INSTRUMENTATION;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

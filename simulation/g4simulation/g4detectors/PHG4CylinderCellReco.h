@@ -13,7 +13,7 @@ class PHG4CylinderCellReco : public SubsysReco
 {
  public:
 
-  PHG4CylinderCellReco(const std::string &name = "CYLINDERRECO");
+  explicit PHG4CylinderCellReco(const std::string &name = "CYLINDERRECO");
 
   virtual ~PHG4CylinderCellReco(){}
   
