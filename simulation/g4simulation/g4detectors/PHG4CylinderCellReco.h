@@ -20,9 +20,6 @@ class PHG4CylinderCellReco : public SubsysReco
   //! module initialization
   int InitRun(PHCompositeNode *topNode);
   
-  //! run initialization
-  int Init(PHCompositeNode *topNode) {return 0;}
-  
     //! event processing
   int process_event(PHCompositeNode *topNode);
   
@@ -64,8 +61,8 @@ class PHG4CylinderCellReco : public SubsysReco
   std::string geonodename;
   std::string seggeonodename;
   std::map<int, std::pair<int, int> > n_phi_z_bins;
-  std::map<std::string, PHG4CylinderCell*> cellptmap;  // This map holds the hit cells
-  std::map<std::string, PHG4CylinderCell*>::iterator it;
+  std::map<unsigned long long, PHG4CylinderCell*> cellptmap;  // This map holds the hit cells
+  std::map<unsigned long long, PHG4CylinderCell*>::iterator it;
 
   PHTimeServer::timer _timer;
   int nbins[2];
