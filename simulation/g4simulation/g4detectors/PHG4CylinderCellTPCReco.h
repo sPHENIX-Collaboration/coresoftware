@@ -37,7 +37,7 @@ public:
   void setHalfLength( double hz ){fHalfLength = hz;}
   void setDiffusionL( double diff ){fDiffusionL = diff;}
   void setDiffusionT( double diff ){fDiffusionT = diff;}
-  void setDiffusion( double diff ){SetDifussionL(diff); setDisffusionT(diff);} //deprecated
+  void setDiffusion( double diff ){setDiffusionL(diff); setDiffusionT(diff);} //deprecated
   void setElectronsPerKeV( double epk ){elec_per_kev = epk;}
   void set_drift_velocity( const double cm_per_ns) { driftv = cm_per_ns;}
   
