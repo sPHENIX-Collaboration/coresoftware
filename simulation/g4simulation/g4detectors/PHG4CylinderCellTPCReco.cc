@@ -19,9 +19,6 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
 
-#include <TROOT.h>
-#include <TMath.h>
-
 #include <CLHEP/Units/PhysicalConstants.h>
 #include <CLHEP/Units/SystemOfUnits.h>
 
@@ -39,6 +36,7 @@ PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
       fHalfLength(100),
       fDiffusionT(0.0057),
       fDiffusionL(0.0057),
+      _timer(PHTimeServer::get()->insert_new(name)),
       elec_per_kev(38.),
       driftv(6.0/1000.0), // cm per ns
       num_pixel_layers(n_pixel),
@@ -178,6 +176,7 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
 
 int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 {
+  _timer.get()->restart();
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit){cout << "Could not locate g4 hit node " << hitnodename << endl;exit(1);}
   PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode, cellnodename);
@@ -345,6 +344,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
     if(verbosity>1000) std::cout << " || Number of cells hit " << count<< std::endl;
   }
   if(verbosity>1000) std::cout<<"PHG4CylinderCellTPCReco end" << std::endl;
+  _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

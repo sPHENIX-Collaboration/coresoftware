@@ -23,9 +23,6 @@ public:
   //! module initialization
   int InitRun(PHCompositeNode *topNode);
   
-  //! run initialization
-  int Init(PHCompositeNode *topNode) {return 0;}
-  
   //! event processing
   int process_event(PHCompositeNode *topNode);
   
@@ -40,6 +37,7 @@ public:
   void setHalfLength( double hz ){fHalfLength = hz;}
   void setDiffusionL( double diff ){fDiffusionL = diff;}
   void setDiffusionT( double diff ){fDiffusionT = diff;}
+  void setDiffusion( double diff ){SetDifussionL(diff); setDisffusionT(diff);} //deprecated
   void setElectronsPerKeV( double epk ){elec_per_kev = epk;}
   void set_drift_velocity( const double cm_per_ns) { driftv = cm_per_ns;}
   
@@ -69,7 +67,7 @@ protected:
   std::string geonodename;
   std::string seggeonodename;
   std::map<int, std::pair<int, int> > n_phi_z_bins;
-  
+  PHTimeServer::timer _timer;
   int nbins[2];
   
   TRandom3 rand;
