@@ -19,9 +19,6 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
 
-#include <TROOT.h>
-#include <TMath.h>
-
 #include <CLHEP/Units/PhysicalConstants.h>
 #include <CLHEP/Units/SystemOfUnits.h>
 
@@ -36,6 +33,7 @@ using namespace std;
 PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
                                                  const string &name)
     : SubsysReco(name),
+      _timer(PHTimeServer::get()->insert_new(name)),
       diffusion(0.0057),
       elec_per_kev(38.),
       driftv(6.0/1000.0), // cm per ns
@@ -177,6 +175,7 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
 
 int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 {
+  _timer.get()->restart();
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit){cout << "Could not locate g4 hit node " << hitnodename << endl;exit(1);}
   PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode, cellnodename);
@@ -287,8 +286,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       {
         double nelec = elec_per_kev*1.0e6*edep;
 
-        double cloud_sig_x = 1.5*sqrt( diffusion*diffusion*(100. - TMath::Abs(hiter->second->get_avg_z())) + 0.03*0.03 );
-        double cloud_sig_z = 1.5*sqrt((1.+2.2*2.2)*diffusion*diffusion*(100. - TMath::Abs(hiter->second->get_avg_z())) + 0.01*0.01 );
+        double cloud_sig_x = 1.5*sqrt( diffusion*diffusion*(100. - fabs(hiter->second->get_avg_z())) + 0.03*0.03 );
+        double cloud_sig_z = 1.5*sqrt((1.+2.2*2.2)*diffusion*diffusion*(100. - fabs(hiter->second->get_avg_z())) + 0.01*0.01 );
         
         int n_phi = (int)(3.*( cloud_sig_x/(r*phistepsize) )) + 3;
         int n_z = (int)(3.*( cloud_sig_z/zstepsize )) + 3;
@@ -350,6 +349,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
     }
   }
   // cout<<"PHG4CylinderCellTPCReco end"<<endl;
+  _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

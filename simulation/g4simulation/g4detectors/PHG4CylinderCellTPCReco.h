@@ -23,9 +23,6 @@ public:
   //! module initialization
   int InitRun(PHCompositeNode *topNode);
   
-  //! run initialization
-  int Init(PHCompositeNode *topNode) {return 0;}
-  
   //! event processing
   int process_event(PHCompositeNode *topNode);
   
@@ -37,8 +34,8 @@ public:
 //   void etaphisize(const int i, const double deltaeta, const double deltaphi);
   void OutputDetector(const std::string &d) {outdetector = d;}
 
-  void setDiffusion( double diff ){diffusion = diff;}
-  void setElectronsPerKeV( double epk ){elec_per_kev = epk;}
+  void setDiffusion( const double diff ){diffusion = diff;}
+  void setElectronsPerKeV( const double epk ){elec_per_kev = epk;}
   void set_drift_velocity( const double cm_per_ns) { driftv = cm_per_ns;}
   
   double get_timing_window_min(const int i) {return tmin_max[i].first;}
@@ -67,7 +64,7 @@ protected:
   std::string geonodename;
   std::string seggeonodename;
   std::map<int, std::pair<int, int> > n_phi_z_bins;
-  
+  PHTimeServer::timer _timer;
   int nbins[2];
   
   TRandom3 rand;
