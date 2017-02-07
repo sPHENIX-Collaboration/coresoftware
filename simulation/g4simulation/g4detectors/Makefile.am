@@ -42,6 +42,8 @@ libg4detectors_la_LIBADD = \
 pkginclude_HEADERS = \
   PHG4BlockGeom.h \
   PHG4BlockGeomContainer.h \
+  PHG4Cell.h \
+  PHG4CellDefs.h \
   PHG4CylinderCell.h \
   PHG4CylinderCellv1.h \
   PHG4CylinderCell_Spacalv1.h \
@@ -84,6 +86,10 @@ libg4detectors_io_la_SOURCES = \
   PHG4BlockGeomv1_Dict.cc \
   PHG4BlockGeomContainer.cc \
   PHG4BlockGeomContainer_Dict.cc \
+  PHG4Cell.cc \
+  PHG4Cell_Dict.cc \
+  PHG4Cellv1.cc \
+  PHG4Cellv1_Dict.cc \
   PHG4CylinderGeom.cc \
   PHG4CylinderGeom_Dict.cc \
   PHG4CylinderGeomv1.cc \
