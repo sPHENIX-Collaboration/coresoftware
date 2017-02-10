@@ -4,8 +4,6 @@
 #include <cmath>
 #include <cstdlib>
 
-ClassImp(PHG4BlockCellGeom)
-
 using namespace std;
 
 PHG4BlockCellGeom::PHG4BlockCellGeom():
