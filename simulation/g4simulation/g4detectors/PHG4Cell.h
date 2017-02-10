@@ -30,32 +30,29 @@ class PHG4Cell: public PHObject
   virtual void Copy(PHG4Cell const &g4cell);
   friend std::ostream &operator<<(std::ostream & stream, const PHG4Cell * cell);
   virtual void Reset();
+
+  // all methods connected to the cell id (encoding/decoding
+  virtual void set_cell_id(const PHG4CellDefs::keytype i) {return;}
+
   virtual PHG4CellDefs::keytype get_cell_id() const {return UINT_MAX;}
   virtual bool has_binning(const PHG4CellDefs::CellBinning) const {return false;}
   virtual int get_row() const {return -1;}
   virtual int get_column() const {return -1;}
-  // The indices here represent the entry and exit points of the particle
-  virtual unsigned int get_layer() const {return UINT_MAX;}
+
+  virtual void add_edep(const float f) {return;}
   virtual double get_edep() const {return NAN;}
+
+  virtual void add_eion(const float f) {return;}
   virtual double get_eion() const {return NAN;}
+
+  virtual void add_light_yield(const float lightYield){return;}
   virtual float get_light_yield() const {return NAN;}
-  virtual double get_path_length() const {return NAN;}
 
   virtual void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep) {return;}
   virtual void add_shower_edep(const int g4showerid, const float edep) {return;}
 
-  virtual void add_edep(const float f) {return;}
-  virtual void add_eion(const float f) {return;}
-  virtual void add_light_yield(const float lightYield){return;}
 
-
-  virtual void set_edep(const float f) {return;}
-  virtual void set_eion(const float f) {return;}
-  virtual void set_light_yield(const float lightYield){return;}
-  virtual void set_layer(const unsigned int i) {return;}
-  virtual void set_cell_id(const PHG4CellDefs::keytype i) {return;}
-
-  virtual void print() const {std::cout<<"PHG4Cell base class - print() not implemented"<<std::endl;}
+  virtual void print() const {std::cout<<"PHG4Cellv1"<<std::endl;}
 
   virtual EdepConstRange get_g4hits() {
     std::map <PHG4HitDefs::keytype, float> dummy;

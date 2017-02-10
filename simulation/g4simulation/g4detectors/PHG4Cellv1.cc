@@ -18,6 +18,7 @@ void
 PHG4Cellv1::add_edep(const PHG4HitDefs::keytype g4hitid, const float edep)
 {
   hitedeps[g4hitid] = edep;
+  return;
 }
 
 void
@@ -36,14 +37,12 @@ PHG4Cellv1::has_binning(const PHG4CellDefs::CellBinning binning) const
 int
 PHG4Cellv1::get_row() const
 {
-  int row = PHG4CellDefs::get_row(get_cell_id());
   return PHG4CellDefs::get_row(get_cell_id());
 }
 
 int
 PHG4Cellv1::get_column() const
 {
-  int column = PHG4CellDefs::get_column(get_cell_id());
   return PHG4CellDefs::get_column(get_cell_id());
 }
 
