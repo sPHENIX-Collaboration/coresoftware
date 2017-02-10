@@ -116,7 +116,6 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderGeom_Spacalv3_Dict.cc \
   PHG4CylinderGeomContainer.cc \
   PHG4CylinderGeomContainer_Dict.cc \
-  PHG4CylinderCell.cc \
   PHG4CylinderCell_Dict.cc \
   PHG4CylinderCellv1.cc \
   PHG4CylinderCellv1_Dict.cc \
@@ -136,7 +135,6 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCellGeom_Spacalv1_Dict.cc \
   PHG4CylinderCellGeomContainer.cc \
   PHG4CylinderCellGeomContainer_Dict.cc \
-  PHG4ScintillatorSlat.cc \
   PHG4ScintillatorSlat_Dict.cc \
   PHG4ScintillatorSlatContainer.cc \
   PHG4ScintillatorSlatContainer_Dict.cc
