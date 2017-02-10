@@ -6,9 +6,9 @@
 
 #include <g4detectors/PHG4HcalDefs.h>
 #include <g4detectors/PHG4Parameters.h>
-#include <g4detectors/PHG4ScintillatorSlat.h>
-#include <g4detectors/PHG4ScintillatorSlatContainer.h>
-#include <g4detectors/PHG4ScintillatorSlatDefs.h>
+#include <g4detectors/PHG4Cell.h>
+#include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4CellDefs.h>
 
 #include <g4main/PHG4Utils.h>
 
@@ -171,7 +171,7 @@ HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
 
   // get cells
   std::string cellnodename = "G4CELL_" + detector;
-  PHG4ScintillatorSlatContainer* slats = findNode::getClass<PHG4ScintillatorSlatContainer>(topNode, cellnodename.c_str());
+  PHG4CellContainer* slats = findNode::getClass<PHG4CellContainer>(topNode, cellnodename.c_str());
   if (!slats)
     {
       std::cerr << PHWHERE << " " << cellnodename
@@ -180,12 +180,12 @@ HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
     }
 
   // loop over all slats in an event
-  PHG4ScintillatorSlatContainer::ConstIterator cell_iter;
-  PHG4ScintillatorSlatContainer::ConstRange cell_range = slats->getScintillatorSlats();
+  PHG4CellContainer::ConstIterator cell_iter;
+  PHG4CellContainer::ConstRange cell_range = slats->getCells();
   for (cell_iter = cell_range.first; cell_iter != cell_range.second;
       ++cell_iter)
     {
-      PHG4ScintillatorSlat *cell = cell_iter->second;
+      PHG4Cell *cell = cell_iter->second;
 
       if (verbosity > 2)
         {
@@ -222,7 +222,7 @@ HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
 	  gSystem->Exit(1);
 	}
 
-      tower->add_ecell(cell->get_key(), cell_weight);
+      tower->add_ecell(cell->get_cell_id(), cell_weight);
 
       tower->set_energy(tower->get_energy() + cell_weight);
 
