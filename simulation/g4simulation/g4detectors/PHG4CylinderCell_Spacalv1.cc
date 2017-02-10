@@ -14,9 +14,6 @@
 #include <cmath>
 #include <cstdlib>
 
-
-ClassImp(PHG4CylinderCell_Spacalv1);
-
 using namespace std;
 
 PHG4CylinderCell_Spacalv1::PHG4CylinderCell_Spacalv1():

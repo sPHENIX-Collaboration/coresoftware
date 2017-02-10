@@ -2,8 +2,6 @@
 #include "PHG4CylinderCellGeom.h"
 #include <cmath>
 
-ClassImp(PHG4CylinderCellGeomContainer)
-
 using namespace std;
 
 PHG4CylinderCellGeomContainer::PHG4CylinderCellGeomContainer()

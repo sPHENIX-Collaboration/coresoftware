@@ -2,8 +2,6 @@
 
 using namespace std;
 
-ClassImp(PHG4CylinderCell_MAPS)
-
 PHG4CylinderCell_MAPS::PHG4CylinderCell_MAPS()
 : PHG4CylinderCellv2()
 {}

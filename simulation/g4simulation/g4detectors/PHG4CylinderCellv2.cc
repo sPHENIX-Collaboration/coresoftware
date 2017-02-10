@@ -2,8 +2,6 @@
 
 using namespace std;
 
-ClassImp(PHG4CylinderCellv2)
-
 PHG4CylinderCellv2::PHG4CylinderCellv2()
 : PHG4CylinderCellv1(),
   ladder_phi_index(-9999),
