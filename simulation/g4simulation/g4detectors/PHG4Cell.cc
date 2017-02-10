@@ -45,6 +45,8 @@ PHG4Cell::get_property_info(const PROPERTY prop_id)
   {
   case   prop_layer:
     return make_pair("layer ID",PHG4Cell::type_uint);
+  case  prop_edep:
+    return make_pair("energy deposition",PHG4Cell::type_float);
   case  prop_eion:
     return make_pair("ionizing energy loss",PHG4Cell::type_float);
   case   prop_light_yield:
