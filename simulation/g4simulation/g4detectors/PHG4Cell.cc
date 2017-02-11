@@ -7,7 +7,7 @@ using namespace std;
 void
 PHG4Cell::Copy(PHG4Cell const &g4cell)
 {
-  set_cell_id(g4cell.get_cell_id());
+  set_cellid(g4cell.get_cellid());
   for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
     {
       PROPERTY prop_id = static_cast<PHG4Cell::PROPERTY> (ic);

@@ -37,13 +37,13 @@ PHG4Cellv1::has_binning(const PHG4CellDefs::CellBinning binning) const
 int
 PHG4Cellv1::get_row() const
 {
-  return PHG4CellDefs::get_row(get_cell_id());
+  return PHG4CellDefs::get_row(cellid);
 }
 
 int
 PHG4Cellv1::get_column() const
 {
-  return PHG4CellDefs::get_column(get_cell_id());
+  return PHG4CellDefs::get_column(cellid);
 }
 
 bool
@@ -162,6 +162,48 @@ PHG4Cellv1::add_property(const PROPERTY prop_id, const unsigned int value)
       val += get_property_uint(prop_id);
     }
   prop_map[prop_id] += u_property(val).get_storage();
+}
+
+void
+PHG4Cellv1::set_property(const PROPERTY prop_id, const float value)
+{
+  if (!check_property(prop_id,type_float))
+    {
+      pair<const string,PROPERTY_TYPE> property_info = get_property_info(prop_id); 
+      cout << PHWHERE << " Property " << property_info.first << " with id "
+           << prop_id << " is of type " << get_property_type(property_info.second) 
+	   << " not " << get_property_type(type_float) << endl; 
+      exit(1);
+    }
+  prop_map[prop_id] = u_property(value).get_storage();
+}
+
+void
+PHG4Cellv1::set_property(const PROPERTY prop_id, const int value)
+{
+  if (!check_property(prop_id,type_int))
+    {
+      pair<const string,PROPERTY_TYPE> property_info = get_property_info(prop_id); 
+      cout << PHWHERE << " Property " << property_info.first << " with id "
+           << prop_id << " is of type " << get_property_type(property_info.second) 
+	   << " not " << get_property_type(type_int) << endl; 
+      exit(1);
+    }
+  prop_map[prop_id] += u_property(value).get_storage();
+}
+
+void
+PHG4Cellv1::set_property(const PROPERTY prop_id, const unsigned int value)
+{
+  if (!check_property(prop_id,type_uint))
+    {
+      pair<const string,PROPERTY_TYPE> property_info = get_property_info(prop_id); 
+      cout << PHWHERE << " Property " << property_info.first << " with id "
+           << prop_id << " is of type " << get_property_type(property_info.second) 
+	   << " not " << get_property_type(type_uint) << endl; 
+      exit(1);
+    }
+  prop_map[prop_id] += u_property(value).get_storage();
 }
 
 unsigned int

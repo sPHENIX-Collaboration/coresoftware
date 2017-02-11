@@ -18,13 +18,14 @@ class PHG4Cellv1: public PHG4Cell
   PHG4Cellv1(const PHG4CellDefs::keytype g4cellid);
   virtual ~PHG4Cellv1() {}
 
-  void set_cell_id(const PHG4CellDefs::keytype i) {cellid = i;}
+  void set_cellid(const PHG4CellDefs::keytype i) {cellid = i;}
 
-  PHG4CellDefs::keytype get_cell_id() const {return cellid;}
+  PHG4CellDefs::keytype get_cellid() const {return cellid;}
   bool has_binning(const PHG4CellDefs::CellBinning binning) const;
   int get_row() const;
   int get_column() const;
 
+  void set_layer(const int i) {set_property(prop_layer,i);}
   void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep);
   void add_shower_edep(const int g4showerid, const float edep);
 
@@ -55,6 +56,9 @@ class PHG4Cellv1: public PHG4Cell
   void  add_property(const PROPERTY prop_id, const float value);
   void  add_property(const PROPERTY prop_id, const int value);
   void  add_property(const PROPERTY prop_id, const unsigned int value);
+  void  set_property(const PROPERTY prop_id, const float value);
+  void  set_property(const PROPERTY prop_id, const int value);
+  void  set_property(const PROPERTY prop_id, const unsigned int value);
 
 
  protected:

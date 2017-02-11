@@ -32,12 +32,14 @@ class PHG4Cell: public PHObject
   virtual void Reset();
 
   // all methods connected to the cell id (encoding/decoding
-  virtual void set_cell_id(const PHG4CellDefs::keytype i) {return;}
+  virtual void set_cellid(const PHG4CellDefs::keytype i) {return;}
 
-  virtual PHG4CellDefs::keytype get_cell_id() const {return UINT_MAX;}
+  virtual PHG4CellDefs::keytype get_cellid() const {return ~0x0;}
   virtual bool has_binning(const PHG4CellDefs::CellBinning) const {return false;}
   virtual int get_row() const {return -1;}
   virtual int get_column() const {return -1;}
+
+  virtual void set_layer(const int i) {return;}
 
   virtual void add_edep(const float f) {return;}
   virtual double get_edep() const {return NAN;}

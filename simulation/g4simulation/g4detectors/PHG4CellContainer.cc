@@ -23,7 +23,7 @@ PHG4CellContainer::Reset()
 void
 PHG4CellContainer::identify(ostream& os) const
 {
-   map<unsigned int,PHG4Cell *>::const_iterator iter;
+   ConstIterator iter;
    os << "Number of cells: " << size() << endl;
    for (iter = cellmap.begin(); iter != cellmap.end(); ++iter)
      {
@@ -57,7 +57,7 @@ PHG4CellContainer::genkey(const unsigned int detid)
 PHG4CellContainer::ConstIterator
 PHG4CellContainer::AddCell(PHG4Cell *newcell)
 {
-  PHG4CellDefs::keytype key = newcell->get_cell_id();
+  PHG4CellDefs::keytype key = newcell->get_cellid();
   cellmap[key] = newcell;
   return cellmap.find(key);
 }
@@ -70,7 +70,7 @@ PHG4CellContainer::AddCellSpecifyKey(const PHG4CellDefs::keytype key, PHG4Cell *
      cout << "PHG4CellContainer::AddCellSpecifyKey: duplicate key: " << key << " exiting now" << endl;
      exit(1);
    }
-  newcell->set_cell_id(key);
+  newcell->set_cellid(key);
   cellmap[key] = newcell;
   return cellmap.find(key);
 }
@@ -108,7 +108,7 @@ PHG4CellContainer::findOrAddCell(PHG4CellDefs::keytype key)
     cellmap[key] = new PHG4Cellv1();
     it = cellmap.find(key);
     PHG4Cell* mcell = it->second;
-    mcell->set_cell_id(key);
+    mcell->set_cellid(key);
   }
   return it;
 }
