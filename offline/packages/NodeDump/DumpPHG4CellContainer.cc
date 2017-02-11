@@ -32,7 +32,7 @@ int DumpPHG4CellContainer::process_Node(PHNode *myNode)
       *fout << "size: " << phg4cellcontainer->size() << endl;
       for (celler = cell_begin_end.first; celler != cell_begin_end.second; celler++)
         {
-	  *fout << "id: 0x" << hex << celler->second->get_cell_id() << dec << endl;
+	  *fout << "id: 0x" << hex << celler->second->get_cellid() << dec << endl;
 	  if (celler->second->has_binning(PHG4CellDefs::scintillatorslatbinning))
 	    {
 	      *fout << "get_column: " << celler->second->get_column() << endl;

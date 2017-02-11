@@ -222,7 +222,7 @@ HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
 	  gSystem->Exit(1);
 	}
 
-      tower->add_ecell(cell->get_cell_id(), cell_weight);
+      tower->add_ecell(cell->get_cellid(), cell_weight);
 
       tower->set_energy(tower->get_energy() + cell_weight);
 
