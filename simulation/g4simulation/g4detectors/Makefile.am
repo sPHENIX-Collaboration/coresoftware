@@ -40,6 +40,8 @@ libg4detectors_la_LIBADD = \
   -lg4testbench 
 
 pkginclude_HEADERS = \
+  PHG4BlockCellGeom.h \
+  PHG4BlockCellGeomContainer.h \
   PHG4BlockGeom.h \
   PHG4BlockGeomContainer.h \
   PHG4Cell.h \
