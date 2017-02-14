@@ -43,7 +43,7 @@ PHG4CellDefs::get_column(PHG4CellDefs::keytype key)
  if ((key & tmp) == tmp)
    {
      key = key >> scintillatorslat_bits;
-     unsigned short int column = (key & 0x1FFF);
+     unsigned short int column = (key & 0xFFFF);
      return column;
    }
  cout << "col could not decode 0x" << hex << keysave << dec << endl; 
@@ -53,22 +53,43 @@ PHG4CellDefs::get_column(PHG4CellDefs::keytype key)
 PHG4CellDefs::keytype
 PHG4CellDefs::genkey_eta_phi(const unsigned short layer, const unsigned short eta, const unsigned short phi)
 {
-  if (eta > 0x1FFF)
-    {
-      cout << "etabin " << eta << " exceeds range of " << 0x1FFF << endl;
-      exit(1);
-    }
-  if (phi > 0x1FFF)
-    {
-      cout << "phibin " << phi << " exceeds range of " << 0x1FFF << endl;
-      exit(1);
-    }
   keytype tmp = etaphibinning;
   keytype key = tmp << cell_idbits; // binning method used to decode the key
   key |= (phi << scintillatorslat_bits); // upper bits used by column, so we can easily extract 
                                   // slats by column which are combined to towers
   key += eta;
   return key;
+}
+unsigned short int
+PHG4CellDefs::get_etabin(PHG4CellDefs::keytype key)
+{
+  // check correct binning first
+ keytype tmp = etaphibinning;
+ tmp = (tmp << cell_idbits);
+ if ((key & tmp) == tmp)
+   {
+     unsigned short int eta = (key & 0xFFFF);
+     return eta;
+   }
+ cout << "row could not decode 0x" << hex << key << dec << endl; 
+ exit(1);
+}
+
+unsigned short int
+PHG4CellDefs::get_phibin(PHG4CellDefs::keytype key)
+{
+  // check correct binning first
+ keytype tmp = etaphibinning;
+ keytype keysave = key; 
+ tmp = (tmp << cell_idbits);
+ if ((key & tmp) == tmp)
+   {
+     key = key >> etaphi_bits;
+     unsigned short int phi = (key & 0xFFFF);
+     return phi;
+   }
+ cout << "col could not decode 0x" << hex << keysave << dec << endl; 
+ exit(1);
 }
 
 bool

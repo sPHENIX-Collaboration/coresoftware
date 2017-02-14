@@ -22,8 +22,10 @@ class PHG4Cellv1: public PHG4Cell
 
   PHG4CellDefs::keytype get_cellid() const {return cellid;}
   bool has_binning(const PHG4CellDefs::CellBinning binning) const;
-  int get_row() const;
-  int get_column() const;
+  unsigned short int get_row() const;
+  unsigned short int get_column() const;
+  unsigned short int get_etabin() const;
+  unsigned short int get_phibin() const;
 
   void set_layer(const int i) {set_property(prop_layer,i);}
   void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep);

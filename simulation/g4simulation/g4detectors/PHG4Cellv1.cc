@@ -34,17 +34,30 @@ PHG4Cellv1::has_binning(const PHG4CellDefs::CellBinning binning) const
   return PHG4CellDefs::has_binning(cellid, binning);
 }
 
-int
+unsigned short int
 PHG4Cellv1::get_row() const
 {
   return PHG4CellDefs::get_row(cellid);
 }
 
-int
+unsigned short int
 PHG4Cellv1::get_column() const
 {
   return PHG4CellDefs::get_column(cellid);
 }
+
+unsigned short int
+PHG4Cellv1::get_etabin() const
+{
+  return PHG4CellDefs::get_etabin(cellid);
+}
+
+unsigned short int
+PHG4Cellv1::get_phibin() const
+{
+  return PHG4CellDefs::get_phibin(cellid);
+}
+
 
 bool
 PHG4Cellv1::has_property(const PROPERTY prop_id) const

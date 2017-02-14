@@ -12,6 +12,7 @@ namespace PHG4CellDefs
 #ifndef __CINT__
   static unsigned int scintillatorslat_bits __attribute__((unused)) = 16;
   static unsigned int scintillatorslat_mask __attribute__((unused)) = 0xFFFF;
+  static unsigned int etaphi_bits __attribute__((unused)) = 16;
 #endif
 
   enum CellBinning {undefined = 0, sizebinning = 1, etaphibinning = 2, etaslatbinning = 3, spacalbinning = 4,
@@ -21,6 +22,8 @@ namespace PHG4CellDefs
   unsigned short int get_row(PHG4CellDefs::keytype key);
   unsigned short int get_column(PHG4CellDefs::keytype key);
   keytype genkey_eta_phi(const unsigned short layer, const unsigned short etabin, const unsigned short phibin);
+  unsigned short int get_etabin(PHG4CellDefs::keytype key);
+  unsigned short int get_phibin(PHG4CellDefs::keytype key);
 }
 
 #endif
