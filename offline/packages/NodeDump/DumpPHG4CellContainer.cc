@@ -38,6 +38,11 @@ int DumpPHG4CellContainer::process_Node(PHNode *myNode)
 	      *fout << "get_column: " << celler->second->get_column() << endl;
 	      *fout << "get_row: " << celler->second->get_row() << endl;
 	    }
+	  if (celler->second->has_binning(PHG4CellDefs::etaphibinning))
+	    {
+	      *fout << "get_etabin: " << celler->second->get_etabin() << endl;
+	      *fout << "get_phibin: " << celler->second->get_phibin() << endl;
+	    }
 	   for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
 	     {
 	       PHG4Cell::PROPERTY prop_id = static_cast<PHG4Cell::PROPERTY> (ic);

@@ -19,6 +19,7 @@ libphnodedump_la_SOURCES = \
   DumpPdbParameterMap.cc \
   DumpPdbParameterMapContainer.cc \
   DumpPHG4BlockGeomContainer.cc \
+  DumpPHG4BlockCellGeomContainer.cc \
   DumpPHG4CellContainer.cc \
   DumpPHG4CylinderCellContainer.cc \
   DumpPHG4CylinderCellGeomContainer.cc \
