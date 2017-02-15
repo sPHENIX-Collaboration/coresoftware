@@ -462,12 +462,6 @@ PHG4BlockCellReco::End(PHCompositeNode *topNode)
 }
 
 void
-PHG4BlockCellReco::cellsize(const int i, const double sr, const double sz)
-{
-  set_size(i, sr, sz, PHG4CellDefs::sizebinning);
-}
-
-void
 PHG4BlockCellReco::etaxsize(const int i, const double deltaeta, const double deltax)
 {
   set_size(i, deltaeta, deltax, PHG4CellDefs::etaphibinning);

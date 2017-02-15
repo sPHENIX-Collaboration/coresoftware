@@ -20,9 +20,6 @@ class PHG4BlockCellReco : public SubsysReco
   //! module initialization
   int InitRun(PHCompositeNode *topNode);
   
-  //! run initialization
-  int Init(PHCompositeNode *topNode) {return 0;}
-  
     //! event processing
   int process_event(PHCompositeNode *topNode);
   
@@ -30,7 +27,6 @@ class PHG4BlockCellReco : public SubsysReco
   int End(PHCompositeNode *topNode);
   
   void Detector(const std::string &d) {detector = d;}
-  void cellsize(const int i, const double sr, const double sz);
   void etaxsize(const int i, const double deltaeta, const double deltax);
   void checkenergy(const int i=1) {chkenergyconservation = i;}
   
