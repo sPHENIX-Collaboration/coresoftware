@@ -11,6 +11,8 @@
 
 class PHCompositeNode;
 class PHG4TPCDistortion;
+class TH1F;
+class TProfile2D;
 
 class PHG4CylinderCellTPCReco : public SubsysReco
 {
@@ -21,6 +23,7 @@ public:
   virtual ~PHG4CylinderCellTPCReco();
   
   //! module initialization
+  int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   
   //! event processing
@@ -86,6 +89,9 @@ protected:
   
   //! distortion to the primary ionization if not NULL
   PHG4TPCDistortion * distortion;
+  TH1F *fHElectrons;
+  TProfile2D *fHMeanEDepPerCell;
+  TProfile2D *fHMeanElectronsPerCell;
 };
 
 #endif

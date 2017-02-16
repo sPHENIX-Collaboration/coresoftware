@@ -28,6 +28,9 @@
 #include <sstream>
 #include <limits>
 
+#include "TH1F.h"
+#include "TProfile2D.h"
+
 using namespace std;
 
 PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
@@ -43,7 +46,10 @@ PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
       tmin_default(0.0),  // ns
       tmax_default(60.0), // ns
       tmin_max(),
-      distortion(NULL) 
+      distortion(NULL),
+      fHElectrons(NULL),
+      fHMeanEDepPerCell(NULL),
+      fHMeanElectronsPerCell(NULL)
 {
   memset(nbins,0,sizeof(nbins));
   rand.SetSeed(PHRandomSeed());
@@ -72,6 +78,19 @@ void PHG4CylinderCellTPCReco::cellsize(const int i, const double sr, const doubl
   cell_size[i] = std::make_pair(sr, sz);
 }
 
+int PHG4CylinderCellTPCReco::Init(PHCompositeNode* top_node)
+{
+  if(verbosity>1) {
+    Fun4AllServer *se = Fun4AllServer::instance();
+    fHElectrons = new TH1F("fHElectrons","GeneratedElectronsPerCell",100,0,200);
+    se->registerHisto( fHElectrons );
+    fHMeanEDepPerCell = new TProfile2D("fHMeanEDepPerCell","MeanEDepPerCell",50,-0.5,49.5,220,-110,+110);
+    se->registerHisto( fHMeanEDepPerCell );
+    fHMeanElectronsPerCell = new TProfile2D("fHMeanElectronsPerCell","MeanElectronsPerCell",50,-0.5,49.5,220,-110,+110);
+    se->registerHisto( fHMeanElectronsPerCell );
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 
 int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
 {
@@ -269,7 +288,10 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       double zdisp = z - geo->get_zcenter(zbin);
       
       double edep = hiter->second->get_edep();
-      
+      if(verbosity>1) {
+	fHMeanEDepPerCell->Fill( float(*layer), z, edep );
+      }
+      double sqrt2 = sqrt(2.);
       if( (*layer) < (unsigned int)num_pixel_layers ) { // MAPS + ITT
         unsigned long key = zbin*nphibins + phibin;
 	std::map<unsigned long, PHG4CylinderCell*>::iterator it = cellptmap.find(key);
@@ -286,16 +308,23 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	cell->add_edep(hiter->first, edep);
 	cell->add_shower_edep(hiter->second->get_shower_id(), edep);
       } else { // TPC
-        double nelec = elec_per_kev*1e6*edep;
-	double sigmaT = 0.03;
-	double sigmaL = 0.01;
+	// converting Edep to Effective Number Of Electrons
+        double nelec = rand.PoissonD( elec_per_kev*1e6*edep );
+	if(verbosity>1) {
+	  fHElectrons->Fill( nelec );
+	}
+	double sigmaT = 0.009; //90um
+	double sigmaL = 0.010; //100um
         double cloud_sig_rp = sqrt( fDiffusionT*fDiffusionT*(fHalfLength - TMath::Abs(hiter->second->get_avg_z())) + sigmaT*sigmaT );
         double cloud_sig_zz = sqrt( fDiffusionL*fDiffusionL*(fHalfLength - TMath::Abs(hiter->second->get_avg_z())) + sigmaL*sigmaL );
-	int n_rp = (int)(3.*( cloud_sig_rp/(r*phistepsize) )) + 3;
-        int n_zz = (int)(3.*( cloud_sig_zz/zstepsize )) + 3;
+	int n_rp = int(3*cloud_sig_rp/(r*phistepsize)+1);
+        int n_zz = int(3*cloud_sig_zz/zstepsize+1);
 	double cloud_sig_rp_inv = 1./cloud_sig_rp;
         double cloud_sig_zz_inv = 1./cloud_sig_zz;
-	// converting Edep to Effective Number Of Electrons
+	if(verbosity>1000) {
+	  std::cout << " fDiffusionT" << fDiffusionT << " || edep " << edep*1e6 << " | nelec " << nelec << " | cloud_sig_rp zz " << cloud_sig_rp*1e4 << " " << cloud_sig_zz*1e4;
+	  std::cout << " nrp nzz " << n_rp << " " << n_zz << std::endl;
+	}
         for( int iphi = -n_rp; iphi <= n_rp; ++iphi ) {
           int cur_phi_bin = phibin + iphi;
 	  // correcting for continuity in phi
@@ -305,7 +334,6 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	    std::cout << "PHG4CylinderCellTPCReco => error in phi continuity. Skipping" << std::endl;
 	    continue;
 	  }
-	  double sqrt2 = sqrt(2.);
 	  double phiLim1 = 0.5*sqrt2*( (iphi+0.5)*phistepsize*r - phidisp*r )*cloud_sig_rp_inv;
 	  double phiLim2 = 0.5*sqrt2*( (iphi-0.5)*phistepsize*r - phidisp*r )*cloud_sig_rp_inv;
           double phi_integral = 0.5*( erf(phiLim1) - erf(phiLim2) );
@@ -315,8 +343,12 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	    double zLim1 = 0.5*sqrt2*( (iz+0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
 	    double zLim2 = 0.5*sqrt2*( (iz-0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
             double z_integral = 0.5*( erf(zLim1) - erf(zLim2) );
-            double neffelectrons = rand.Poisson( nelec*( phi_integral * z_integral ) );
-            if(neffelectrons == 0.) continue; // skip no signals
+            float neffelectrons = nelec*( phi_integral * z_integral );//rand.PoissonD( nelec*( phi_integral * z_integral ) );
+	    if(verbosity>1000) {
+	      std::cout << Form("%.3f",neffelectrons) << " ";
+	      if( iz == n_zz ) std::cout << std::endl;
+	    }
+            if(neffelectrons < 0) continue; // skip no signals
 	    unsigned long key = cur_z_bin*nphibins + cur_phi_bin;
 	    std::map<unsigned long, PHG4CylinderCell*>::iterator it = cellptmap.find(key);
 	    PHG4CylinderCell *cell;
@@ -338,7 +370,11 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
     int count = 0;
     for(std::map<unsigned long, PHG4CylinderCell*>::iterator it = cellptmap.begin(); it != cellptmap.end(); ++it) {
       cells->AddCylinderCell((unsigned int)(*layer), it->second);
-      if(verbosity>1000) std::cout << " Adding phibin" << it->second->get_binphi() << " zbin " << it->second->get_binz() << std::endl;
+      if(verbosity>1) {
+	float zthis = geo->get_zcenter( it->second->get_binz() );
+	fHMeanElectronsPerCell->Fill( float(*layer), zthis,  it->second->get_edep() );
+      }
+      if(verbosity>2000) std::cout << " Adding phibin" << it->second->get_binphi() << " zbin " << it->second->get_binz() << std::endl;
       count += 1;
     }
     if(verbosity>1000) std::cout << " || Number of cells hit " << count<< std::endl;
