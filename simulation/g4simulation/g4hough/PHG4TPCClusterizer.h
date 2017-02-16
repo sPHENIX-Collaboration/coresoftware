@@ -25,7 +25,7 @@ class PHG4TPCClusterizer : public SubsysReco {
  private:
   void reset();
   int wrap_phibin(int bin);
-  bool is_local_maximum(int phi, int z, int eps=32);
+  bool is_local_maximum(int phi, int z);
   void fit(int pbin, int zbin, int& nhits_tot);
   float fit_p_mean() {return fFitSumP/fFitW+fFitP0;}
   float fit_z_mean() {return fFitSumZ/fFitW+fFitZ0;}

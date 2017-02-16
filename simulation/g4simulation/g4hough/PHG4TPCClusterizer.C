@@ -71,15 +71,15 @@ int PHG4TPCClusterizer::wrap_phibin(int bin) {
   return bin;
 }
 //===================
-bool PHG4TPCClusterizer::is_local_maximum(int phi, int z, int eps) {
+bool PHG4TPCClusterizer::is_local_maximum(int phi, int z) {
   if(fAmps[z * fNPhiBins + phi] <= 0.) return false;
   float cent_val = fAmps[z*fNPhiBins + phi];
   bool is_max = true;
-  for(int iz = -eps; iz != eps; ++iz) {
+  for(int iz=-fFitRangeZ; iz!=fFitRangeZ; ++iz) {
     int cz = z + iz;
     if(cz < 0) continue; // skip edge
     if(cz >= fNZBins) continue; // skip edge
-    for(int ip = -eps; ip != eps; ++ip) {
+    for(int ip=-fFitRangeP; ip!=fFitRangeP; ++ip) {
       if((iz == 0) && (ip == 0)) continue; // skip center
       int cp = wrap_phibin(phi + ip);
       if(fAmps[cz*fNPhiBins + cp] > cent_val) {
@@ -103,14 +103,19 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
   fFitSumZ2 = 0;
   fFitSizeP = 0;
   fFitSizeZ = 0;
-  for(int iz=-fFitRangeZ; iz!=fFitRangeZ; ++iz) {
+  if(verbosity>1000) std::cout << "max " << fAmps[zbin*fNPhiBins+pbin] << std::endl;
+  for(int iz=-fFitRangeZ; iz!=fFitRangeZ+1; ++iz) {
     int cz = zbin + iz;
     if(cz < 0) continue; // truncate edge
     if(cz >= fNZBins) continue; // truncate edge
     bool used = false;
-    for(int ip=-fFitRangeP; ip!=fFitRangeP; ++ip) {
+    for(int ip=-fFitRangeP; ip!=fFitRangeP+1; ++ip) {
       int cp = wrap_phibin(pbin + ip);
       int bin = cz * fNPhiBins + cp;
+      if(verbosity>1000) {
+	std::cout << Form("%.2f | ",fAmps[bin]);
+	if(ip==fFitRangeP) std::cout << std::endl;
+      }
       if(fAmps[bin] < fFitEnergyThreshold*peak) continue; // skip small (include empty)
       used = true;
       fFitSizeP += 1.0;
@@ -239,104 +244,53 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
           SvtxCluster_v1 clus;
           clus.set_layer(layer);
           clus.set_e( fFitW );
-	  float pp = fit_p_mean();
-	  float zz = fit_z_mean();
           float radius = fGeoLayer->get_radius() + 0.5*fGeoLayer->get_thickness();
+	  float phi = fit_p_mean();
+	  float pp = radius*phi;
+	  float zz = fit_z_mean();
 	  float pp_err = radius * fGeoLayer->get_phistep() * _inv_sqrt12;
 	  float zz_err = fGeoLayer->get_zstep() * _inv_sqrt12;
-	  if(fFitSizeP>1) pp_err = TMath::Sqrt( fit_p_cov() );
+	  float xx_err = pp_err*TMath::Sin(phi);
+	  float yy_err = pp_err*TMath::Cos(phi);
+	  if(fFitSizeP>1) pp_err = radius*TMath::Sqrt( fit_p_cov() );
 	  if(fFitSizeZ>1) zz_err = TMath::Sqrt( fit_z_cov() );
+	  float pp_size = radius*fFitSizeP*fGeoLayer->get_phistep();
+	  float zz_size = fFitSizeZ*fGeoLayer->get_zstep();
+	  float xx_size = pp_size*TMath::Sin(phi); // linearization
+	  float yy_size = pp_size*TMath::Cos(phi); // linearization
 	  if(verbosity>2000)
 	    std::cout << " cluster fitted " << std::endl;
 	  if(verbosity>1000) {
 	    std::cout << " | rad " << radius;
-	    std::cout << " | size rp z " << fFitSizeP << " " << fFitSizeZ;
+	    std::cout << " | size rp z " << pp_size << " " << zz_size;
 	    std::cout << " | error_rphi error_z " << pp_err << " " << zz_err << std::endl;
 	    std::cout << " | sgn " << fFitW;
 	    std::cout << " | rphi z " << pp << " " << zz;
-	    std::cout << " | rphi_sig z_sig rphiz_cov " << TMath::Sqrt(fit_p_cov()) << " " << TMath::Sqrt(fit_z_cov()) << " " << fit_pz_cov();
+	    std::cout << " | phi_sig z_sig phiz_cov " << TMath::Sqrt(fit_p_cov()) << " " << TMath::Sqrt(fit_z_cov()) << " " << fit_pz_cov();
 	    std::cout << std::endl;
 	  }
-          clus.set_position(0, radius * cos(pp));
-          clus.set_position(1, radius * sin(pp));
+          clus.set_position(0, radius*TMath::Cos( phi ) );
+          clus.set_position(1, radius*TMath::Sin( phi ) );
           clus.set_position(2, zz);
 	  clus.insert_hit( fCellIDs[zbin * fNPhiBins + phibin] );
-
-	  TMatrixF DIM(3,3);
-	  DIM[0][0] = 0.0;//pow(0.0*0.5*thickness,2);
-	  DIM[0][1] = 0.0;
-	  DIM[0][2] = 0.0;
-	  DIM[1][0] = 0.0;
-	  DIM[1][1] = pow(0.5*0.011,2);
-	  DIM[1][2] = 0.0;
-	  DIM[2][0] = 0.0;
-	  DIM[2][1] = 0.0;
-	  DIM[2][2] = pow(0.5*0.03,2);
-	  TMatrixF ERR(3,3);
-	  ERR[0][0] = 0.0;//pow(0.0*0.5*thickness*invsqrt12,2);
-	  ERR[0][1] = 0.0;
-	  ERR[0][2] = 0.0;
-	  ERR[1][0] = 0.0;
-	  ERR[1][1] = pow(0.012,2);
-	  ERR[1][2] = 0.0;
-	  ERR[2][0] = 0.0;
-	  ERR[2][1] = 0.0;
-	  ERR[2][2] = pow(0.026,2);
-	  TMatrixF ROT(3,3);
-	  ROT[0][0] = cos(pp);
-	  ROT[0][1] = -sin(pp);
-	  ROT[0][2] = 0.0;
-	  ROT[1][0] = sin(pp);
-	  ROT[1][1] = cos(pp);
-	  ROT[1][2] = 0.0;
-	  ROT[2][0] = 0.0;
-	  ROT[2][1] = 0.0;
-	  ROT[2][2] = 1.0;
-	  TMatrixF ROT_T(3,3);
-	  ROT_T.Transpose(ROT);
-      	  TMatrixF COVAR_DIM(3,3);
-	  COVAR_DIM = ROT * DIM * ROT_T;
-	  clus.set_size( 0 , 0 , COVAR_DIM[0][0] );
-	  clus.set_size( 0 , 1 , COVAR_DIM[0][1] );
-	  clus.set_size( 0 , 2 , COVAR_DIM[0][2] );
-	  clus.set_size( 1 , 0 , COVAR_DIM[1][0] );
-	  clus.set_size( 1 , 1 , COVAR_DIM[1][1] );
-	  clus.set_size( 1 , 2 , COVAR_DIM[1][2] );
-	  clus.set_size( 2 , 0 , COVAR_DIM[2][0] );
-	  clus.set_size( 2 , 1 , COVAR_DIM[2][1] );
-	  clus.set_size( 2 , 2 , COVAR_DIM[2][2] );
-	  TMatrixF COVAR_ERR(3,3);
-	  COVAR_ERR = ROT * ERR * ROT_T;
-	  clus.set_error( 0 , 0 , COVAR_ERR[0][0] );
-	  clus.set_error( 0 , 1 , COVAR_ERR[0][1] );
-	  clus.set_error( 0 , 2 , COVAR_ERR[0][2] );
-	  clus.set_error( 1 , 0 , COVAR_ERR[1][0] );
-	  clus.set_error( 1 , 1 , COVAR_ERR[1][1] );
-	  clus.set_error( 1 , 2 , COVAR_ERR[1][2] );
-	  clus.set_error( 2 , 0 , COVAR_ERR[2][0] );
-	  clus.set_error( 2 , 1 , COVAR_ERR[2][1] );
-	  clus.set_error( 2 , 2 , COVAR_ERR[2][2] );
-
-	  /*
-	  clus.set_size( 0 , 0 , 0.0 );
+	  clus.set_size( 0 , 0 , xx_size );
 	  clus.set_size( 0 , 1 , 0.0 );
 	  clus.set_size( 0 , 2 , 0.0 );
 	  clus.set_size( 1 , 0 , 0.0 );
-	  clus.set_size( 1 , 1 , 0.0 );
+	  clus.set_size( 1 , 1 , yy_size );
 	  clus.set_size( 1 , 2 , 0.0 );
 	  clus.set_size( 2 , 0 , 0.0 );
 	  clus.set_size( 2 , 1 , 0.0 );
-	  clus.set_size( 2 , 2 , 0.0 );
-	  clus.set_error( 0 , 0 , 0.0 );
+	  clus.set_size( 2 , 2 , zz_size );
+	  clus.set_error( 0 , 0 , xx_err );
 	  clus.set_error( 0 , 1 , 0.0 );
 	  clus.set_error( 0 , 2 , 0.0 );
 	  clus.set_error( 1 , 0 , 0.0 );
-	  clus.set_error( 1 , 1 , 0.0 );
+	  clus.set_error( 1 , 1 , yy_err );
 	  clus.set_error( 1 , 2 , 0.0 );
 	  clus.set_error( 2 , 0 , 0.0 );
 	  clus.set_error( 2 , 1 , 0.0 );
-	  clus.set_error( 2 , 2 , 0.0 );
-	  */
+	  clus.set_error( 2 , 2 , zz_err );
 	  svxclusters->insert(&clus);
 	  if(verbosity>1000) std::cout << " inserted " << std::endl;
         }
