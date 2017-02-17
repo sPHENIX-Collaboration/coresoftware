@@ -82,6 +82,23 @@ Prototype3DSTReader::Init(PHCompositeNode*)
 
       nblocks++;
     }
+  for (vector<string>::const_iterator it = _eventinfo_list.begin();
+      it != _eventinfo_list.end(); ++it)
+    {
+      const string & nodenam = *it;
+
+      record rec;
+      rec._cnt = 0;
+      rec._name = nodenam;
+      rec._arr = NULL;
+      rec._arr_ptr = NULL;
+      rec._dvalue = 0;
+      rec._type = record::typ_eventinfo;
+
+      _records.push_back(rec);
+
+      nblocks++;
+    }
 
   for (vector<string>::const_iterator it = _tower_postfix.begin();
       it != _tower_postfix.end(); ++it)
@@ -158,6 +175,14 @@ Prototype3DSTReader::build_tree()
       cout << "Prototype3DSTReader::build_tree - Add " << rec._name << endl;
 
       if (rec._type == record::typ_runinfo)
+        {
+
+          const string name_cnt = rec._name;
+          const string name_cnt_desc = name_cnt + "/D";
+          _T->Branch(name_cnt.c_str(), &(rec._dvalue), name_cnt_desc.c_str(),
+              BUFFER_SIZE);
+        }
+      if (rec._type == record::typ_eventinfo)
         {
 
           const string name_cnt = rec._name;
@@ -347,6 +372,20 @@ Prototype3DSTReader::process_event(PHCompositeNode* topNode)
           run_info_copy.FillFrom(info);
 
           rec._dvalue = run_info_copy.get_double_param(rec._name);
+
+        } //
+      else if (rec._type == record::typ_eventinfo)
+        {
+
+          PdbParameterMap *info = findNode::getClass<PdbParameterMap>(topNode,
+              "EVENT_INFO");
+
+          assert(info);
+
+          PHG4Parameters event_info_copy("EVENT_INFO");
+          event_info_copy.FillFrom(info);
+
+          rec._dvalue = event_info_copy.get_double_param(rec._name);
 
         } //      if (rec._type == record::typ_hit)
       else if (rec._type == record::typ_part)
