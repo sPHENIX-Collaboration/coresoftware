@@ -69,6 +69,11 @@ public:
   {
     _runinfo_list.push_back(name);
   }
+  void
+  AddEventInfo(const std::string &name)
+  {
+    _eventinfo_list.push_back(name);
+  }
 
   //! zero suppression for all calorimeters
   double
@@ -93,6 +98,7 @@ protected:
 //  std::vector<std::string> _jet_postfix;
 //  std::vector<std::string> _node_name;
   std::vector<std::string> _runinfo_list;
+  std::vector<std::string> _eventinfo_list;
 
   int nblocks;
 
@@ -110,7 +116,7 @@ protected:
 
     enum enu_type
     {
-      typ_hit, typ_part, typ_vertex, typ_tower, typ_jets, typ_runinfo, typ_towertemp
+      typ_hit, typ_part, typ_vertex, typ_tower, typ_jets, typ_runinfo, typ_eventinfo, typ_towertemp
     };
     enu_type _type;
   };
