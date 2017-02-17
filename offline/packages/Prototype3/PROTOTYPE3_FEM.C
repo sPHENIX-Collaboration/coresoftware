@@ -178,7 +178,7 @@ PROTOTYPE3_FEM::SampleFit_PowerLawExp(//
 
   //Saturation correction - Abhisek
    for(int ipoint=0; ipoint<gpulse.GetN(); ipoint++)
-    if((gpulse.GetY())[ipoint]==0)
+    if((gpulse.GetY())[ipoint]==0 or (gpulse.GetY())[ipoint]>=4090) // drop point if touching max or low limit on ADCs
      {
       gpulse.RemovePoint(ipoint);
       ipoint--;

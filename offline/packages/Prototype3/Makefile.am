@@ -30,6 +30,8 @@ libPrototype3_la_SOURCES = \
   TempInfoUnpackPRDFDict.C \
   RunInfoUnpackPRDF.C \
   RunInfoUnpackPRDFDict.C \
+  EventInfoSummary.C \
+  EventInfoSummaryDict.C \
   CaloCalibration.C \
   CaloCalibrationDict.C \
   GenericUnpackPRDF.C \
