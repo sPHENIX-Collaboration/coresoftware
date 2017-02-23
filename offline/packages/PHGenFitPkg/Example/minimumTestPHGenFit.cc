@@ -44,7 +44,7 @@ std::vector<TVector3> get_raw_measurements()
 
 int main(int argc, char**argv) {
 	//! Initiallize Geometry, Field, Fitter
-	PHGenFit::Fitter* fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5,"KalmanFitter","RKTrackRep",true);
+	PHGenFit::Fitter* fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5,"KalmanFitter","RKTrackRep",false);
 
 	//! Build TrackRep from particle assumption
 	int pid = -13; //mu+
@@ -75,16 +75,28 @@ int main(int argc, char**argv) {
 	track->addMeasurements(measurements);
 
 	//! Fit the track
-	fitter->processTrack(track, true);
+	fitter->processTrack(track, false);
+
+	for(int i=0;i<measurements.size();i++) {
+		delete measurements[i];
+		measurements[i] = NULL;
+	}
+	measurements.clear();
 
 	//! Extrapolate to beam line
-	genfit::MeasuredStateOnPlane* state_at_beam_line = track->extrapolateToLine(TVector3(0, 0, 0), TVector3(0, 0, 1));
-	state_at_beam_line->Print();
+	//genfit::MeasuredStateOnPlane* state = track->extrapolateToLine(TVector3(0, 0, 0), TVector3(0, 0, 1));
+	//genfit::MeasuredStateOnPlane* state = track->extrapolateToPoint(TVector3(0, 0, 0));
+	genfit::MeasuredStateOnPlane* state = track->extrapolateToCylinder(1.,TVector3(0, 0, 0), TVector3(0, 0, 1));
+	state->Print();
+	delete state;
 
 	//! Event display, uncomment to use
 	//fitter->displayEvent();
 
 	//! Comment off if want to keep event display.
+
+	delete track;
+
 	delete fitter;
 
 	return 0;
