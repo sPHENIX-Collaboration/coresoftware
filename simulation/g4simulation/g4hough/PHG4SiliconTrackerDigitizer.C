@@ -155,6 +155,7 @@ void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) 
     SvtxHit_v1 hit;
 
     const int layer = cell->get_layer();
+
     hit.set_layer(layer);
     hit.set_cellid(cell->get_cell_id());
 

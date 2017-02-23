@@ -52,6 +52,7 @@ pkginclude_HEADERS = \
   PHG4CylinderGeom.h \
   PHG4CylinderGeom_Spacalv1.h \
   PHG4CylinderGeom_MAPS.h \
+  PHG4CylinderGeom_Siladders.h \
   PHG4CylinderGeom_Spacalv2.h \
   PHG4CylinderGeom_Spacalv3.h \
   PHG4CylinderGeomContainer.h \
@@ -131,6 +132,9 @@ libg4detectors_io_la_SOURCES = \
   PHG4ScintillatorSlatContainer_Dict.cc
 
 libg4detectors_la_SOURCES = \
+  PHG4BeamlineMagnetDetector.cc \
+  PHG4BeamlineMagnetSubsystem.cc \
+  PHG4BeamlineMagnetSubsystem_Dict.cc \
   PHG4BlockCellReco.cc \
   PHG4BlockCellReco_Dict.cc \
   PHG4BlockDetector.cc \

@@ -84,6 +84,7 @@ double Track::extrapolateToPlane(genfit::MeasuredStateOnPlane& state, TVector3 O
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();
+		delete kfsop;
 		return WILD_DOUBLE;
 	}
 
@@ -96,8 +97,10 @@ genfit::MeasuredStateOnPlane* Track::extrapolateToPlane(TVector3 O, TVector3 n, 
 {
 	genfit::MeasuredStateOnPlane* state = new genfit::MeasuredStateOnPlane();
 	double pathlenth = this->extrapolateToPlane(*state, O, n, tr_point_id);
-	if(pathlenth <= WILD_DOUBLE)
+	if(pathlenth <= WILD_DOUBLE) {
+		delete state;
 		return NULL;
+	}
 	else
 		return state;
 }
@@ -121,6 +124,7 @@ double Track::extrapolateToLine(genfit::MeasuredStateOnPlane& state, TVector3 li
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();
+		delete kfsop;
 		return WILD_DOUBLE;
 	}
 
@@ -134,8 +138,10 @@ genfit::MeasuredStateOnPlane* Track::extrapolateToLine(TVector3 line_point, TVec
 {
 	genfit::MeasuredStateOnPlane* state = new genfit::MeasuredStateOnPlane();
 	double pathlenth = this->extrapolateToLine(*state, line_point, line_direction, tr_point_id);
-	if(pathlenth <= WILD_DOUBLE)
+	if(pathlenth <= WILD_DOUBLE) {
+		delete state;
 		return NULL;
+	}
 	else
 		return state;
 }
@@ -160,6 +166,7 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();
+		delete kfsop;
 		return WILD_DOUBLE;
 	}
 
@@ -172,8 +179,10 @@ genfit::MeasuredStateOnPlane*  Track::extrapolateToCylinder(double radius, TVect
 {
 	genfit::MeasuredStateOnPlane* state = new genfit::MeasuredStateOnPlane();
 	double pathlenth = this->extrapolateToCylinder(*state, radius, line_point, line_direction);
-	if(pathlenth <= WILD_DOUBLE)
+	if(pathlenth <= WILD_DOUBLE) {
+		delete state;
 		return NULL;
+	}
 	else
 		return state;
 }
@@ -196,6 +205,7 @@ double Track::extrapolateToPoint(genfit::MeasuredStateOnPlane& state, TVector3 P
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();
+		delete kfsop;
 		return WILD_DOUBLE;
 	}
 
@@ -208,9 +218,27 @@ genfit::MeasuredStateOnPlane*  Track::extrapolateToPoint(TVector3 P, const int t
 {
 	genfit::MeasuredStateOnPlane* state = new genfit::MeasuredStateOnPlane();
 	double pathlenth = this->extrapolateToPoint(*state, P, tr_point_id);
-	if(pathlenth <= WILD_DOUBLE)
+	if(pathlenth <= WILD_DOUBLE) {
+		delete state;
 		return NULL;
+	}
 	else
 		return state;
 }
+
+double Track::get_charge() const {
+	double charge =  WILD_DOUBLE;
+
+	genfit::AbsTrackRep* rep = _track->getCardinalRep();
+	if(rep) {
+		genfit::StateOnPlane* state = this->extrapolateToLine(TVector3(0, 0, 0),
+				TVector3(1, 0, 0));
+		if (state)
+			charge = rep->getCharge(*state);
+		delete state;
+	}
+
+	return charge;
+}
+
 } //End of PHGenFit namespace

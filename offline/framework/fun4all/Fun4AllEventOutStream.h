@@ -9,7 +9,7 @@
 
 #ifndef __CINT__
 #include <boost/version.hpp> // to get BOOST_VERSION
-#if (__GNUC__ == 4 && __GNUC_MINOR__ == 8 && (BOOST_VERSION == 105700 || BOOST_VERSION == 106000) )
+#if (__GNUC__ == 4 && __GNUC_MINOR__ == 8 && (BOOST_VERSION == 105700 || BOOST_VERSION == 106000 || BOOST_VERSION == 106300) )
 #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #include <boost/numeric/interval.hpp>
 #pragma GCC diagnostic warning "-Wunused-local-typedefs"

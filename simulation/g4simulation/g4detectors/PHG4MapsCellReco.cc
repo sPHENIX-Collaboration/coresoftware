@@ -3,7 +3,6 @@
 #include "PHG4CylinderGeom_MAPS.h"
 #include "PHG4CylinderCell_MAPS.h"
 #include "PHG4CylinderCellContainer.h"
-//#include "PHG4CylinderCellDefs.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
@@ -15,6 +14,7 @@
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 
+#include <TSystem.h>
 
 #include <cmath>
 #include <cstdlib>
@@ -25,11 +25,11 @@ using namespace std;
 
 PHG4MapsCellReco::PHG4MapsCellReco(const string &name) :
   SubsysReco(name),
-  _timer(PHTimeServer::get()->insert_new(name.c_str())),
+  detector(name),
+  _timer(PHTimeServer::get()->insert_new(name)),
   chkenergyconservation(0)
 {
   memset(nbins, 0, sizeof(nbins));
-  Detector(name);
 
   if(verbosity > 0)  
     cout << "Creating PHG4MapsCellReco for name = " << name << endl;
@@ -351,60 +351,96 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	      int pixel_number = vpixel[i1];
 
 	      // combine ladder index and pixel values to get a single unique key for this pixel
-	      char inkey[1024];	      
-	      sprintf(inkey,"%i_%i_%i_%i_%i",stave_number, half_stave_number, module_number, chip_number, pixel_number);
-	      std::string key(inkey);
+	      // layers:     0 - 2
+	      // Stave index:   0 - 47   = 6 bits
+	      // Half stave index:  0 - 1 2 bits
+	      // Module index: 0 - 6 3 bits
+	      // Chip index:  0 - 13
+	      // Pixel index:   0 - 1.14E+06  // yes, that is 1.14 million
+	      // check validity (if values are within their assigned number of bits)
+	      unsigned long long tmp = pixel_number;
+	      unsigned long long inkey = tmp << 32;
+	      static unsigned int stave_number_bits = 0x8;
+	      static unsigned int stave_number_max = pow(2,stave_number_bits);
+	      static unsigned int half_stave_number_bits = 0x2;
+	      static unsigned int half_stave_number_max = pow(2,half_stave_number_bits);
+	      static unsigned int module_number_bits = 0x2;
+	      static unsigned int module_number_max = pow(2,module_number_bits);
+	      static unsigned int chip_number_bits = 0x4;
+	      static unsigned int chip_number_max = pow(2,chip_number_bits);
 
-	      if (celllist.count(key) > 0) 
+	      if (static_cast<unsigned int> (stave_number) > stave_number_max)
 		{
-
-		  // key exists, just add this energy deposit to it
-		  // this can happen if the pixel was already hit by another g4 track
-
-		  double edep;
-		  if(trklen > 0.0)
-		    edep = hiter->second->get_edep() * vlen[i1] / trklen;
-		  else
-		    edep = hiter->second->get_edep();
-
-		  if(verbosity > 2)
-		    cout << "Found key " << inkey << " already exists! , adding edep = " << edep << " to it, cell_length " << vlen[i1] <<  " xbin " << vxbin[i1] << " zbin " << vzbin[i1] << endl;
-		  
-		  celllist[key]->add_edep(hiter->first, edep);
-		} 
-	      else 
+		  cout << "stave number " << stave_number << " exceeds valid value " << stave_number_max << endl;
+		  gSystem->Exit(1);
+		  exit(1); // make coverity happy which does not know about gSystem->Exit()
+		}
+	      if (static_cast<unsigned int> (half_stave_number) > half_stave_number_max)
 		{
-		  celllist[key] = new PHG4CylinderCell_MAPS();
-		  celllist[key]->set_layer(*layer);
-		  
-		  // This encodes the z and phi position of the sensor, and pixel number within the sensor
-		  celllist[key]->set_stave_index(stave_number);
-		  celllist[key]->set_half_stave_index(half_stave_number);
-		  celllist[key]->set_module_index(module_number);
-		  celllist[key]->set_chip_index(chip_number);
-		  celllist[key]->set_pixel_index(pixel_number);
-		  
-		  celllist[key]->set_phibin(vxbin[i1]);
-		  celllist[key]->set_zbin(vzbin[i1]);
-		  
-		  double edep;
-		  if(trklen > 0.0)
-		    edep = hiter->second->get_edep() * vlen[i1] / trklen;
-		  else
-		    edep = hiter->second->get_edep();
+		  cout << "half stave number " << half_stave_number << " exceeds valid value " << half_stave_number_max << endl;
+		  gSystem->Exit(1);
+		  exit(1); // make coverity happy which does not know about gSystem->Exit()
+		}
+	      if (static_cast<unsigned int> (module_number) > module_number_max)
+		{
+		  cout << "module_number " << module_number << " exceeds valid value " << module_number_max << endl;
+		  gSystem->Exit(1);
+		  exit(1); // make coverity happy which does not know about gSystem->Exit()
+		}
+	      if (static_cast<unsigned int> (chip_number) > chip_number_max)
+		{
+		  cout << "chip_number " << chip_number << " exceeds valid value " << chip_number_max << endl;
+		  gSystem->Exit(1);
+		  exit(1); // make coverity happy which does not know about gSystem->Exit()
+		}
+	      inkey += stave_number;
+	      inkey += (half_stave_number << stave_number_bits);
+	      inkey += (module_number << (stave_number_bits+half_stave_number_bits));
+	      inkey += (chip_number << (stave_number_bits+half_stave_number_bits+module_number_bits));
+	      PHG4CylinderCell *cell = nullptr;
+	      map<unsigned long long, PHG4CylinderCell*>::iterator it;
+	      it = celllist.find(inkey);
+	      if (it != celllist.end())
+		{
+		  cell = it->second;
+		}
+	      else
+		{
+		  cell = new PHG4CylinderCell_MAPS();
+		  celllist[inkey] = cell;
+		  cell->set_layer(*layer);
+		  cell->set_stave_index(stave_number);
+		  cell->set_half_stave_index(half_stave_number);
+		  cell->set_module_index(module_number);
+		  cell->set_chip_index(chip_number);
+		  cell->set_pixel_index(pixel_number);
+		  cell->set_phibin(vxbin[i1]);
+		  cell->set_zbin(vzbin[i1]);
+		}
+	      double edep;
+	      if(trklen > 0.0)
+		{
+		  edep = hiter->second->get_edep() * vlen[i1] / trklen;
+		}
+	      else
+		{
+		  edep = hiter->second->get_edep();
+		}
+              cell->add_edep(hiter->first, edep);
 
-		  celllist[key]->add_edep(hiter->first, edep);
 		  
-		  if(verbosity > 1)
-		    cout << " looping over fired cells: cell " << i1 << " inkey " << inkey 
-			 << " cell length " << vlen[i1] << " trklen " << trklen
-			 << " cell edep " << edep << " total edep " << hiter->second->get_edep() << endl;
+	      if(verbosity > 1)
+		{
+		  cout << " looping over fired cells: cell " << i1 << " inkey 0x" << hex << inkey << dec 
+		       << " cell length " << vlen[i1] << " trklen " << trklen
+		       << " cell edep " << edep << " total edep " << hiter->second->get_edep() << endl;
+	
 		}
 	    }
 	} // end loop over g4hits
       
       int numcells = 0;
-      for (map<std::string, PHG4CylinderCell_MAPS *>::const_iterator mapiter = celllist.begin();mapiter != celllist.end() ; ++mapiter)
+      for (map<unsigned long long, PHG4CylinderCell *>::const_iterator mapiter = celllist.begin();mapiter != celllist.end() ; ++mapiter)
 	{	  
 	  cells->AddCylinderCell(*layer, mapiter->second);
 	  numcells++;

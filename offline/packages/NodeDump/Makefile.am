@@ -13,6 +13,9 @@ pkginclude_HEADERS = \
 
 libphnodedump_la_SOURCES = \
   Dumper.cc \
+  DumpBbcVertexMap.cc \
+  DumpGlobalVertexMap.cc \
+  DumpJetMap.cc \
   DumpPdbParameterMap.cc \
   DumpPdbParameterMapContainer.cc \
   DumpPHG4BlockGeomContainer.cc \
@@ -40,10 +43,12 @@ libphnodedump_la_SOURCES = \
 AM_LDFLAGS = -L$(libdir) -L$(OFFLINE_MAIN)/lib
 
 libphnodedump_la_LIBADD = \
+  -lg4bbc_io \
   -lcemc \
   -lffaobjects \
   -lg4detectors \
   -lg4hough_io \
+  -lg4jets_io \
   -lg4testbench \
   -lphg4hit \
   -lvararray
