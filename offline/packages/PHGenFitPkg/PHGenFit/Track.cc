@@ -90,6 +90,8 @@ double Track::extrapolateToPlane(genfit::MeasuredStateOnPlane& state, TVector3 O
 
 	state = *dynamic_cast<genfit::MeasuredStateOnPlane*> (kfsop);
 
+	delete kfsop;
+
 	return pathlenth;
 }
 
@@ -130,6 +132,7 @@ double Track::extrapolateToLine(genfit::MeasuredStateOnPlane& state, TVector3 li
 
 	state = *dynamic_cast<genfit::MeasuredStateOnPlane*> (kfsop);
 
+	delete kfsop;
 
 	return pathlenth;
 }
@@ -172,6 +175,8 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 
 	state = *dynamic_cast<genfit::MeasuredStateOnPlane*> (kfsop);
 
+	delete kfsop;
+
 	return pathlenth;
 }
 
@@ -210,6 +215,8 @@ double Track::extrapolateToPoint(genfit::MeasuredStateOnPlane& state, TVector3 P
 	}
 
 	state = *dynamic_cast<genfit::MeasuredStateOnPlane*> (kfsop);
+
+	delete kfsop;
 
 	return pathlenth;
 }
