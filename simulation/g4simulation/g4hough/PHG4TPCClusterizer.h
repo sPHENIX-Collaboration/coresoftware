@@ -6,6 +6,8 @@
 #include <limits.h>
 
 class PHG4CylinderCellGeom;
+class TH1F;
+class TProfile2D;
 
 class PHG4TPCClusterizer : public SubsysReco {
  public:
@@ -18,7 +20,7 @@ class PHG4TPCClusterizer : public SubsysReco {
   int End(PHCompositeNode *topNode) { return 0; }
 
   void setEnergyCut(float val) { fEnergyCut = val; }
-  void setFitWindow(int rp, int rz) { fFitRangeP = rp; fFitRangeZ = rz; }
+  void setFitWindow(int rp, int rz) { fFitRangeMP = rp; fFitRangeMZ = rz; }
   void setRangeLayers(unsigned int minLayer, unsigned int maxLayer) {fMinLayer=minLayer; fMaxLayer=maxLayer;}
   void setFitEnergyThreshold(float val) { fFitEnergyThreshold = val; }
 
@@ -51,6 +53,8 @@ class PHG4TPCClusterizer : public SubsysReco {
   float fFitZ0;
   int fFitRangeP;
   int fFitRangeZ;
+  int fFitRangeMP;
+  int fFitRangeMZ;
   float fFitEnergyThreshold;
   float fFitSizeP;
   int fFitSizeZ;
@@ -60,6 +64,19 @@ class PHG4TPCClusterizer : public SubsysReco {
   float fEnergyCut;
 
   float _inv_sqrt12;
+  float _twopi;
+
+  TH1F *fHClusterEnergy;
+  TProfile2D *fHClusterSizePP;
+  TProfile2D *fHClusterSizeZZ;
+  TProfile2D *fHClusterErrorPP;
+  TProfile2D *fHClusterErrorZZ;
+  TProfile2D *fHClusterDensity;
+  TProfile2D *fHClusterSizePP2;
+  TProfile2D *fHClusterSizeZZ2;
+  TProfile2D *fHClusterErrorPP2;
+  TProfile2D *fHClusterErrorZZ2;
+  TProfile2D *fHClusterDensity2;
 };
 
 #endif

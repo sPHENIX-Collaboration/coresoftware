@@ -49,6 +49,8 @@ class PHG4SvtxDigitizer : public SubsysReco
 
   // storage
   SvtxHitMap* _hitmap;
+  int fMinLayTPC;
+  int fMaxLayTPC;
   
   PHTimeServer::timer _timer;   ///< Timer
 };

@@ -25,6 +25,8 @@ using namespace std;
 PHG4SvtxDigitizer::PHG4SvtxDigitizer(const string &name) :
   SubsysReco(name),
   _hitmap(NULL),
+  fMinLayTPC(7),
+  fMaxLayTPC(50),
   _timer(PHTimeServer::get()->insert_new(name)) {
 
   if(verbosity > 0)
@@ -241,13 +243,16 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
     
     SvtxHit_v1 hit;
 
+    int layer = cell->get_layer();
     hit.set_layer(cell->get_layer());
     hit.set_cellid(cell->get_cell_id());
 
     unsigned int adc = cell->get_edep() / _energy_scale[hit.get_layer()];
     if (adc > _max_adc[hit.get_layer()]) adc = _max_adc[hit.get_layer()]; 
     float e = _energy_scale[hit.get_layer()] * adc;
-
+    if(layer>=fMinLayTPC && layer<=fMaxLayTPC) {
+      //
+    }
     hit.set_adc(adc);
     hit.set_e(e);
 
