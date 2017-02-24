@@ -45,7 +45,7 @@ Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMa
 	//_track = NEW(genfit::Track)(rep, seedState, seedCov);
 }
 
-int Track::addMeasurements(std::vector<PHGenFit::Measurement*> measurements)
+int Track::addMeasurements(std::vector<PHGenFit::Measurement*> &measurements)
 {
 	BOOST_FOREACH(PHGenFit::Measurement* measurement, measurements)
 	{
@@ -53,7 +53,11 @@ int Track::addMeasurements(std::vector<PHGenFit::Measurement*> measurements)
 		msmts.push_back(measurement->getMeasurement());
 		_track->insertPoint(
 				new genfit::TrackPoint(msmts, _track));
+
+		_measurements.push_back(measurement);
 	}
+
+	//measurements.clear();
 
 	return 0;
 }
@@ -61,6 +65,12 @@ int Track::addMeasurements(std::vector<PHGenFit::Measurement*> measurements)
 Track::~Track()
 {
 	delete _track;
+
+	BOOST_FOREACH(PHGenFit::Measurement* measurement, _measurements)
+	{
+		delete measurement;
+	}
+	_measurements.clear();
 }
 
 double Track::extrapolateToPlane(genfit::MeasuredStateOnPlane& state, TVector3 O, TVector3 n, const int tr_point_id) const
