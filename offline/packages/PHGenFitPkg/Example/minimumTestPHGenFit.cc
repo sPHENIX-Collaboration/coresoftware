@@ -77,12 +77,6 @@ int main(int argc, char**argv) {
 	//! Fit the track
 	fitter->processTrack(track, false);
 
-	for(int i=0;i<measurements.size();i++) {
-		delete measurements[i];
-		measurements[i] = NULL;
-	}
-	measurements.clear();
-
 	//! Extrapolate to beam line
 	//genfit::MeasuredStateOnPlane* state = track->extrapolateToLine(TVector3(0, 0, 0), TVector3(0, 0, 1));
 	//genfit::MeasuredStateOnPlane* state = track->extrapolateToPoint(TVector3(0, 0, 0));
