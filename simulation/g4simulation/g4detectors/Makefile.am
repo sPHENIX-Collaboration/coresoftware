@@ -66,6 +66,7 @@ pkginclude_HEADERS = \
   PHG4CylinderCellGeom_Spacalv1.h \
   PHG4CylinderCellGeomContainer.h \
   PHG4HcalDefs.h \
+  PHG4ParameterContainerInterface.h \
   PHG4ParameterInterface.h \
   PHG4Parameters.h \
   PHG4ParametersContainer.h \
@@ -78,6 +79,7 @@ libg4detectors_io_la_SOURCES = \
   PHG4Parameters_Dict.cc \
   PHG4ParametersContainer.cc \
   PHG4ParametersContainer_Dict.cc \
+  PHG4ParameterContainerInterface.cc \
   PHG4ParameterInterface.cc \
   PHG4BlockCellGeom.cc \
   PHG4BlockCellGeom_Dict.cc \

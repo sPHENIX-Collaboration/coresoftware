@@ -6,6 +6,8 @@
 #include "PHG4Cellv1.h"
 #include "PHG4CellContainer.h"
 #include "PHG4CellDefs.h"
+#include "PHG4ParametersContainer.h"
+#include "PHG4Parameters.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -30,14 +32,10 @@ static vector<PHG4Cell*> cellptarray;
 
 PHG4BlockCellReco::PHG4BlockCellReco(const string &name) :
   SubsysReco(name),
+  PHG4ParameterContainerInterface(name),
   _timer(PHTimeServer::get()->insert_new(name)),
-  chkenergyconservation(0),
-  tmin_default(0.0),  // ns
-  tmax_default(60.0), // ns
-  tmin_max()
-{
-  memset(nbins, 0, sizeof(nbins));
-}
+  chkenergyconservation(0)
+{}
 
 int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
 {
@@ -207,7 +205,8 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
        iter != binning.end(); ++iter) {
     int layer = iter->first;
     // if the user doesn't set an integration window, set the default
-    tmin_max.insert(std::make_pair(layer,std::make_pair(tmin_default,tmax_default)));    
+    //    tmin_max.insert(std::make_pair(layer,std::make_pair(get_double_param(layer,"tmin"),get_double_param(layer,"tmax"))));    
+    tmin_max.insert(std::make_pair(layer,std::make_pair(0,60.0)));    
   }
   
   return Fun4AllReturnCodes::EVENT_OK;
@@ -455,16 +454,40 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int
-PHG4BlockCellReco::End(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 void
-PHG4BlockCellReco::etaxsize(const int i, const double deltaeta, const double deltax)
+PHG4BlockCellReco::etaxsize(const int detid, const double deltaeta, const double deltax)
 {
-  set_size(i, deltaeta, deltax, PHG4CellDefs::etaphibinning);
+  set_size(detid, deltaeta, deltax, PHG4CellDefs::etaphibinning);
+  PHG4Parameters *params = nullptr;
+  map<int, PHG4Parameters *>::const_iterator iter = params_detid(detid);
+  if (iter != params_end())
+    {
+      params = iter->second;
+    }
+  else
+    {
+      ostringstream paramname;
+      paramname << GetParamsContainer()->Name() << "_" << detid;
+      params = new PHG4Parameters(paramname.str());
+      pair<PHG4Parameters::dIter, PHG4Parameters::dIter> double_begin_end = params->get_all_double_params();
+      for (PHG4Parameters::dIter diter = double_begin_end.first; diter != double_begin_end.second; ++diter)
+	{
+	  params->set_double_param(diter->first,diter->second);
+	}
+      std::pair< PHG4Parameters::iIter, PHG4Parameters::iIter> int_begin_end = params->get_all_int_params();
+      for (PHG4Parameters::iIter iiter = int_begin_end.first; iiter != int_begin_end.second; ++iiter)
+	{
+	  params->set_int_param(iiter->first,iiter->second);
+	}
+
+      std::pair< PHG4Parameters::strIter, PHG4Parameters::strIter> string_begin_end = params->get_all_string_params();
+      for (PHG4Parameters::strIter striter = string_begin_end.first; striter != string_begin_end.second; ++striter)
+	{
+	  params->set_string_param(striter->first,striter->second);
+	}
+    }
+  params->set_double_param("deltaeta",deltaeta);
+  params->set_double_param("deltax",deltax);
   return;
 }
 
@@ -705,4 +728,14 @@ PHG4BlockCellReco::CheckEnergy(PHCompositeNode *topNode)
   }
 
   return 0;
+}
+
+void
+PHG4BlockCellReco::SetDefaultParameters()
+{
+  set_default_double_param("deltaeta",NAN);
+  set_default_double_param("deltax",NAN);
+  set_default_double_param("tmax",60.0);
+  set_default_double_param("tmin",0.0);
+  return;
 }
