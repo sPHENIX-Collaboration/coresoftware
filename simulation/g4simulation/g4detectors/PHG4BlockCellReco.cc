@@ -35,7 +35,9 @@ PHG4BlockCellReco::PHG4BlockCellReco(const string &name) :
   PHG4ParameterContainerInterface(name),
   _timer(PHTimeServer::get()->insert_new(name)),
   chkenergyconservation(0)
-{}
+{
+  SetDefaultParameters();
+}
 
 int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
 {
@@ -100,6 +102,7 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str() , "PHObject");
     runNode->addNode(newNode);
   }
+  UpdateParametersWithMacro();
 
   map<int, PHG4BlockGeom *>::const_iterator miter;
   pair <map<int, PHG4BlockGeom *>::const_iterator, map<int, PHG4BlockGeom *>::const_iterator> begin_end = geo->get_begin_end();
@@ -113,7 +116,7 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
     double length_in_z = layergeom->get_size_z();
     double zmin = layergeom->get_center_z() - length_in_z/2.;
     double zmax = zmin + length_in_z;
-
+    set_size(layer,get_double_param(layer,"deltaeta"),get_double_param(layer,"deltax"),PHG4CellDefs::etaphibinning);
     sizeiter = cell_size.find(layer);
     if (sizeiter == cell_size.end())
     {
@@ -201,13 +204,13 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  for (std::map<int,int>::iterator iter = binning.begin(); 
-       iter != binning.end(); ++iter) {
-    int layer = iter->first;
-    // if the user doesn't set an integration window, set the default
-    //    tmin_max.insert(std::make_pair(layer,std::make_pair(get_double_param(layer,"tmin"),get_double_param(layer,"tmax"))));    
-    tmin_max.insert(std::make_pair(layer,std::make_pair(0,60.0)));    
-  }
+  for (map<int, int>::iterator iter = binning.begin();
+       iter != binning.end(); ++iter)
+    {
+      int layer = iter->first;
+      // if the user doesn't set an integration window, set the default
+      tmin_max.insert(std::make_pair(layer, std::make_pair(get_double_param(layer, "tmin"), get_double_param(layer, "tmax"))));
+    }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -457,37 +460,9 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
 void
 PHG4BlockCellReco::etaxsize(const int detid, const double deltaeta, const double deltax)
 {
-  set_size(detid, deltaeta, deltax, PHG4CellDefs::etaphibinning);
-  PHG4Parameters *params = nullptr;
-  map<int, PHG4Parameters *>::const_iterator iter = params_detid(detid);
-  if (iter != params_end())
-    {
-      params = iter->second;
-    }
-  else
-    {
-      ostringstream paramname;
-      paramname << GetParamsContainer()->Name() << "_" << detid;
-      params = new PHG4Parameters(paramname.str());
-      pair<PHG4Parameters::dIter, PHG4Parameters::dIter> double_begin_end = params->get_all_double_params();
-      for (PHG4Parameters::dIter diter = double_begin_end.first; diter != double_begin_end.second; ++diter)
-	{
-	  params->set_double_param(diter->first,diter->second);
-	}
-      std::pair< PHG4Parameters::iIter, PHG4Parameters::iIter> int_begin_end = params->get_all_int_params();
-      for (PHG4Parameters::iIter iiter = int_begin_end.first; iiter != int_begin_end.second; ++iiter)
-	{
-	  params->set_int_param(iiter->first,iiter->second);
-	}
-
-      std::pair< PHG4Parameters::strIter, PHG4Parameters::strIter> string_begin_end = params->get_all_string_params();
-      for (PHG4Parameters::strIter striter = string_begin_end.first; striter != string_begin_end.second; ++striter)
-	{
-	  params->set_string_param(striter->first,striter->second);
-	}
-    }
-  params->set_double_param("deltaeta",deltaeta);
-  params->set_double_param("deltax",deltax);
+  //  set_size(detid, deltaeta, deltax, PHG4CellDefs::etaphibinning);
+  set_double_param(detid,"deltaeta",deltaeta);
+  set_double_param(detid,"deltax",deltax);
   return;
 }
 
