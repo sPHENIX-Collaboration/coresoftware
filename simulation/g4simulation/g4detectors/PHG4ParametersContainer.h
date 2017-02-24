@@ -24,6 +24,8 @@ class PHG4ParametersContainer: public PHObject
   void set_name(const std::string &name) {superdetectorname = name;}
   std::string Name() const {return superdetectorname;}
   std::pair<std::map<int, PHG4Parameters *>::const_iterator,  std::map<int, PHG4Parameters *>::const_iterator> GetAllParameters() {return std::make_pair(parametermap.begin(),parametermap.end());}
+  void Print() const;
+
  protected:
   void CopyToPdbParameterMapContainer(PdbParameterMapContainer *myparm);
   std::string superdetectorname;
