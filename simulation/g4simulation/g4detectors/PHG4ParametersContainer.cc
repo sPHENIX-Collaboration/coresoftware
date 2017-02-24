@@ -65,8 +65,6 @@ PHG4ParametersContainer::GetParametersToModify(const int layer)
   map<int, PHG4Parameters *>::iterator iter = parametermap.find(layer);
   if (iter == parametermap.end())
     {
-      cout << "could not find parameters for layer " << layer
-	   << endl;
       return NULL;
     }
   return iter->second;

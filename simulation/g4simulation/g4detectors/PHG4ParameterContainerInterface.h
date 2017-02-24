@@ -1,0 +1,53 @@
+#ifndef PHG4ParameterContainerInterface__H
+#define PHG4ParameterContainerInterface__H
+
+#include <map>
+#include <string>
+
+class PHCompositeNode;
+class PHG4Parameters;
+class PHG4ParametersContainer;
+
+class PHG4ParameterContainerInterface
+{
+ public:
+  PHG4ParameterContainerInterface(const std::string &name);
+  virtual ~PHG4ParameterContainerInterface() {}
+
+  void set_name(const std::string &name);
+  virtual void  SetDefaultParameters() = 0;
+
+ // Get/Set parameters from macro
+  void set_double_param(const int id, const std::string &name, const double dval);
+  double get_double_param(const int id, const std::string &name) const;
+  void set_int_param(const int id, const std::string &name, const int ival);
+  int get_int_param(const int id, const std::string &name) const;
+  void set_string_param(const int id, const std::string &name, const std::string &sval);
+  std::string get_string_param(const int id, const std::string &name) const;
+
+  void UpdateParametersWithMacro();
+  void CreateInitialize(const int detid);
+  void SaveToNodeTree(PHCompositeNode *runNode, const std::string &nodename);
+  void PutOnParNode(PHCompositeNode *parNode, const std::string &nodename);
+ protected:
+  void set_default_double_param( const std::string &name, const double dval);
+  void set_default_int_param( const std::string &name, const int ival);
+  void set_default_string_param( const std::string &name, const std::string &sval);
+  void InitializeParameters();
+  std::map<int, PHG4Parameters *>::const_iterator params_detid(const int detid)
+    {return macroparams.find(detid);}
+  std::map<int, PHG4Parameters *>::const_iterator params_end() {return macroparams.end();}
+  const PHG4ParametersContainer *GetParamsContainer() {return paramscontainer;}
+  PHG4ParametersContainer *GetParamsContainerModify() {return paramscontainer;}
+
+ private:
+  PHG4ParametersContainer *paramscontainer;
+
+  std::map<int, PHG4Parameters *> macroparams;
+  std::map<const std::string, double> default_double;
+  std::map<const std::string, int> default_int;
+  std::map<const std::string, std::string> default_string;
+
+};
+
+#endif

@@ -1,6 +1,8 @@
 #ifndef PHG4BLOCKCELLRECO_H
 #define PHG4BLOCKCELLRECO_H
 
+#include "PHG4ParameterContainerInterface.h"
+
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
 #include <string>
@@ -9,7 +11,7 @@
 class PHCompositeNode;
 class PHG4BlockCell;
 
-class PHG4BlockCellReco : public SubsysReco
+class PHG4BlockCellReco : public SubsysReco, public PHG4ParameterContainerInterface
 {
  public:
 
@@ -23,9 +25,8 @@ class PHG4BlockCellReco : public SubsysReco
     //! event processing
   int process_event(PHCompositeNode *topNode);
   
-  //! end of process
-  int End(PHCompositeNode *topNode);
-  
+  void SetDefaultParameters();
+
   void Detector(const std::string &d) {detector = d;}
   void etaxsize(const int i, const double deltaeta, const double deltax);
   void checkenergy(const int i=1) {chkenergyconservation = i;}
@@ -34,9 +35,6 @@ class PHG4BlockCellReco : public SubsysReco
   double get_timing_window_max(const int i) {return tmin_max[i].second;}
   void   set_timing_window(const int i, const double tmin, const double tmax) {
     tmin_max[i] = std::make_pair(tmin,tmax);
-  }
-  void   set_timing_window_defaults(const double tmin, const double tmax) {
-    tmin_default = tmin; tmax_default = tmax;
   }
   
  protected:
@@ -59,12 +57,9 @@ class PHG4BlockCellReco : public SubsysReco
   std::string seggeonodename;
   std::map<int, std::pair<int, int> > n_x_z_bins;
   PHTimeServer::timer _timer;
-  int nbins[2];
   int chkenergyconservation;
 
   //! timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
-  double tmin_default;
-  double tmax_default;
   std::map<int, std::pair<double,double> > tmin_max;
 };
 
