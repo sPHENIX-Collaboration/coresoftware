@@ -364,19 +364,28 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 			SvtxTrack* rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
 					vertex);
 
+			if(!rf_track) {
+				if (_output_mode == OverwriteOriginalNode)
+					_trackmap->erase(iter->first);
+			}
+
 //			delete vertex;//DEBUG
 
 //			rf_phgf_tracks.push_back(rf_phgf_track);
 //			rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
 
 			if (_output_mode == MakeNewNode || _output_mode == DebugMode)
-				if (_trackmap_refit)
+				if (_trackmap_refit) {
 					_trackmap_refit->insert(rf_track);
+					delete rf_track;
+				}
 
 			if (_output_mode == OverwriteOriginalNode
-					|| _output_mode == DebugMode)
+					|| _output_mode == DebugMode) {
 				*(dynamic_cast<SvtxTrack_v1*>(iter->second)) =
 						*(dynamic_cast<SvtxTrack_v1*>(rf_track));
+				delete rf_track;
+			}
 		} else {
 			if (_output_mode == OverwriteOriginalNode)
 				_trackmap->erase(iter->first);
@@ -385,8 +394,12 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 
 	// Need to keep tracks if _do_evt_display
-	if(!_do_evt_display)
+	if(!_do_evt_display) {
+		for(PHGenFit::Track *rf_phgf_track : rf_phgf_tracks) {
+			delete rf_phgf_track;
+		}
 		rf_phgf_tracks.clear();
+	}
 
 	/*!
 	 * Fit track as primary track, This part need to be called after FillSvtxVertexMap
@@ -1313,9 +1326,11 @@ SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 			}
 		}
 
+		out_track->insert_state(state);
+
 		delete gf_state;
 
-		out_track->insert_state(state);
+		delete state;
 
 //		std::cout<<"===============\n";
 //		LogDebug(radius);
