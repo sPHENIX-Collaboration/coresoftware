@@ -159,3 +159,16 @@ PHG4ParametersContainer::CopyToPdbParameterMapContainer(PdbParameterMapContainer
     }
   return;
 }
+
+void
+PHG4ParametersContainer::Print() const
+{
+  cout << "Name: " << Name() << endl;
+  map<int, PHG4Parameters *>::const_iterator iter;
+  for (iter = parametermap.begin(); iter != parametermap.end(); ++iter)
+    {
+      cout << "parameter detid: " << iter->first << endl;
+      iter->second->Print();
+    }
+  return;
+}
