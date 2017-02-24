@@ -12,7 +12,7 @@ class PHG4ParameterContainerInterface
 {
  public:
   PHG4ParameterContainerInterface(const std::string &name);
-  virtual ~PHG4ParameterContainerInterface() {}
+  virtual ~PHG4ParameterContainerInterface();
 
   void set_name(const std::string &name);
   virtual void  SetDefaultParameters() = 0;
@@ -29,25 +29,23 @@ class PHG4ParameterContainerInterface
   void CreateInitialize(const int detid);
   void SaveToNodeTree(PHCompositeNode *runNode, const std::string &nodename);
   void PutOnParNode(PHCompositeNode *parNode, const std::string &nodename);
+
  protected:
   void set_default_double_param( const std::string &name, const double dval);
   void set_default_int_param( const std::string &name, const int ival);
   void set_default_string_param( const std::string &name, const std::string &sval);
   void InitializeParameters();
-  std::map<int, PHG4Parameters *>::const_iterator params_detid(const int detid)
-    {return macroparams.find(detid);}
-  std::map<int, PHG4Parameters *>::const_iterator params_end() {return macroparams.end();}
+  /* std::map<int, PHG4Parameters *>::const_iterator params_detid(const int detid) */
+  /*   {return macroparams.find(detid);} */
+  /* std::map<int, PHG4Parameters *>::const_iterator params_end() {return macroparams.end();} */
   const PHG4ParametersContainer *GetParamsContainer() {return paramscontainer;}
   PHG4ParametersContainer *GetParamsContainerModify() {return paramscontainer;}
+  const PHG4Parameters *GetDefaultParameters() {return defaultparams;}
 
  private:
   PHG4ParametersContainer *paramscontainer;
-
+  PHG4Parameters *defaultparams;
   std::map<int, PHG4Parameters *> macroparams;
-  std::map<const std::string, double> default_double;
-  std::map<const std::string, int> default_int;
-  std::map<const std::string, std::string> default_string;
-
 };
 
 #endif
