@@ -28,6 +28,8 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
+#include <g4main/PHG4VtxPointv1.h>
 #include <phgenfit/Fitter.h>
 #include <phgenfit/PlanarMeasurement.h>
 #include <phgenfit/Track.h>
@@ -197,6 +199,8 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 
 	vector<genfit::Track*> rf_gf_tracks;
 
+	PHG4VtxPoint *vtxPoint = _truth_container->GetPrimaryVtx(_truth_container->GetPrimaryVertexIndex());
+
 	PHG4TruthInfoContainer::ConstRange itr_range; 
 	if(_primary_tracking){
 	  // Tracking for primaries only
@@ -206,12 +210,14 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 	  // Check ALL particles
 	  itr_range = _truth_container->GetParticleRange();
 	}
-	
+	  
+	// Now we can loop over the particles
+
 	for (PHG4TruthInfoContainer::ConstIterator itr = itr_range.first;
 	     itr != itr_range.second; ++itr) {
 	  PHG4Particle* particle = itr->second;
 
-	  TVector3 seed_pos(0, 0, 0);
+	  TVector3 seed_pos(vtxPoint->get_x(), vtxPoint->get_y(), vtxPoint->get_z());
 	  TVector3 seed_mom(0, 0, 0);
 	  TMatrixDSym seed_cov(6);
 
@@ -223,7 +229,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 	  PHGenFit::Measurement* vtx_meas = NULL;
 
 	  if (_use_vertex_in_fitting) {
-	    vtx_meas = VertexMeasurement(TVector3(0, 0, 0),
+	    vtx_meas = VertexMeasurement(TVector3(vtxPoint->get_x(), vtxPoint->get_y(), vtxPoint->get_z()),
 					 _vertex_xy_resolution, _vertex_z_resolution);
 	    measurements.push_back(vtx_meas);
 	  }
@@ -385,7 +391,7 @@ int PHG4TrackFastSim::GetNodes(PHCompositeNode * topNode) {
 				<< " node not found on node tree" << endl;
 		return Fun4AllReturnCodes::ABORTEVENT;
 	}
-
+	
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
