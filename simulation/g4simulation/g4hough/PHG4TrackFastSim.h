@@ -269,15 +269,14 @@ private:
 
 	PHGenFit::PlanarMeasurement* PHG4HitToMeasurementCylinder(const PHG4Hit* g4hit, const double phi_resolution, const double z_resolution);
 
-	PHGenFit::Measurement* VertexMeasurement(const TVector3 &vtx, const double dxy,
-			const double dz);
+	PHGenFit::Measurement* VertexMeasurement(const TVector3 &vtx, double dxy, double dz);
 
 	/*!
 	 * Make SvtxTrack from PHGenFit::Track
 	 */
 	SvtxTrack* MakeSvtxTrack(const PHGenFit::Track* phgf_track_in, 
 				 const unsigned int truth_track_id = UINT_MAX,
-				 const unsigned int nmeas = 0);
+				 const unsigned int nmeas = 0, const TVector3 &vtx = TVector3(0.0,0.0,0.0));
 
 	//! Event counter
 	int _event;
