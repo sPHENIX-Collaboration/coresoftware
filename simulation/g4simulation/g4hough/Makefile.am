@@ -69,6 +69,7 @@ pkginclude_HEADERS = \
   PHG4HoughTransformTPC.h \
   PHG4TrackGhostRejection.h \
   PHG4TrackKalmanFitter.h \
+  PHG4TruthPatRec.h \
   PHG4TrackFastSim.h \
   PHG4SvtxMomentumRecal.h \
   PHG4SvtxTrackProjection.h \
@@ -140,6 +141,7 @@ libg4hough_la_SOURCES = \
   PHG4TrackGhostRejection.C \
   PHG4TrackGhostRejection_Dict.C \
   PHG4TrackKalmanFitter.C \
+  PHG4TruthPatRec.C \
   PHG4TrackFastSim.C \
   PHG4TrackKalmanFitter_Dict.C \
   PHG4TrackFastSim_Dict.C \
