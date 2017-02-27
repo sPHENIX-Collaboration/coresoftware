@@ -438,6 +438,9 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		}
 	}
 
+	for(genfit::GFRaveVertex *vertex: rave_vertices) {
+		delete vertex;
+	}
 	rave_vertices.clear();
 
 	if (_do_eval) {
@@ -1390,14 +1393,17 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 			}
 		}
 
-		if (_vertexmap_refit)
+		if (_vertexmap_refit) {
 			_vertexmap_refit->insert(svtx_vtx);
+		}
 
 		if (verbosity >= 2) {
 			cout << PHWHERE << endl;
 			svtx_vtx->Print();
 			_vertexmap_refit->Print();
 		}
+
+		delete svtx_vtx;
 	}
 
 	return true;
