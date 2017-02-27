@@ -504,11 +504,13 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 				TVector3(0., 0., 1.));
 	else {
 		LogError("Detector Type NOT implemented!");
+		delete gf_state; 
 		return NULL;
 	}
 
 	if(pathlenth_orig_from_first_meas<-999990) {
 		LogError("Extraction faild!");
+		delete gf_state; 
 		return NULL;
 	}
 
