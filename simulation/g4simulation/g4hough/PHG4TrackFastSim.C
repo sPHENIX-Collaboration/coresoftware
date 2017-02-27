@@ -493,7 +493,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 
 	double pathlenth_from_first_meas = -999999;
 	double pathlenth_orig_from_first_meas = -999999;
-	genfit::MeasuredStateOnPlane* gf_state = new genfit::MeasuredStateOnPlane();
+	unique_ptr<genfit::MeasuredStateOnPlane> gf_state(new genfit::MeasuredStateOnPlane());
 
 	if (_detector_type == Vertical_Plane) {
 		pathlenth_orig_from_first_meas = phgf_track->extrapolateToPlane(*gf_state, TVector3(0., 0., 0.),
@@ -504,13 +504,11 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 				TVector3(0., 0., 1.));
 	else {
 		LogError("Detector Type NOT implemented!");
-		delete gf_state; 
 		return NULL;
 	}
 
 	if(pathlenth_orig_from_first_meas<-999990) {
 		LogError("Extraction faild!");
-		delete gf_state; 
 		return NULL;
 	}
 
@@ -598,8 +596,6 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	    }
 	  out_track->insert_state(state);
 	}
-
-	delete gf_state; 
 
 	return (SvtxTrack *)out_track;
 }
