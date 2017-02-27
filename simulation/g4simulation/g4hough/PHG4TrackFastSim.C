@@ -493,7 +493,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 
 	double pathlenth_from_first_meas = -999999;
 	double pathlenth_orig_from_first_meas = -999999;
-	genfit::MeasuredStateOnPlane* gf_state = new genfit::MeasuredStateOnPlane();
+	unique_ptr<genfit::MeasuredStateOnPlane> gf_state(new genfit::MeasuredStateOnPlane());
 
 	if (_detector_type == Vertical_Plane) {
 		pathlenth_orig_from_first_meas = phgf_track->extrapolateToPlane(*gf_state, TVector3(0., 0., 0.),
