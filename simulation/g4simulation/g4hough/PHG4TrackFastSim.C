@@ -597,6 +597,8 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	  out_track->insert_state(state);
 	}
 
+	delete gf_state; 
+
 	return (SvtxTrack *)out_track;
 }
 
