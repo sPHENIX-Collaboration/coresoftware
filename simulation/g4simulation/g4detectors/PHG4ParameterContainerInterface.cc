@@ -23,6 +23,12 @@ PHG4ParameterContainerInterface::PHG4ParameterContainerInterface(const std::stri
 PHG4ParameterContainerInterface::~PHG4ParameterContainerInterface()
 {
   delete defaultparams;
+  while(macroparams.begin() != macroparams.end())
+    {
+      delete macroparams.begin()->second;
+      macroparams.erase(macroparams.begin());
+    }
+  return;
 }
 
 
@@ -205,7 +211,6 @@ PHG4ParameterContainerInterface::UpdateParametersWithMacro()
       std::pair< PHG4Parameters::dIter, PHG4Parameters::dIter> double_begin_end = iter->second->get_all_double_params();
       for (PHG4Parameters::dIter diter = double_begin_end.first; diter != double_begin_end.second; ++diter)
 	{
-	  cout << "setting " << diter->first << " to " << diter->second << endl;
 	  params->set_double_param(diter->first,diter->second);
 	}
 
@@ -227,7 +232,7 @@ PHG4ParameterContainerInterface::UpdateParametersWithMacro()
 void
 PHG4ParameterContainerInterface::SaveToNodeTree(PHCompositeNode *runNode, const string &nodename)
 {
-  //  paramscontainer->SaveToNodeTree(runNode, nodename);
+  paramscontainer->SaveToNodeTree(runNode, nodename);
   return;
 }
 
