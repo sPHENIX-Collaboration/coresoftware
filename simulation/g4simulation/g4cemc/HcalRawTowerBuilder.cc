@@ -192,15 +192,15 @@ HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
           std::cout << PHWHERE << " print out the cell:" << std::endl;
           cell->identify();
         }
-      short twrrow = get_tower_row(cell->get_row());
+      short twrrow = get_tower_row(PHG4CellDefs::ScintillatorSlatBinning::get_row(cell->get_cellid()));
       // add the energy to the corresponding tower
       // towers are addressed column/row to make the mapping more intuitive
-      RawTower *tower = _towers->getTower(cell->get_column(), twrrow);
+      RawTower *tower = _towers->getTower(PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid()), twrrow);
       if (!tower)
         {
           tower = new RawTowerv1();
           tower->set_energy(0);
-          _towers->AddTower(cell->get_column(), twrrow, tower);
+          _towers->AddTower(PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid()), twrrow, tower);
         }
       double cell_weight = 0;
       if (_tower_energy_src == kEnergyDeposition)

@@ -4,6 +4,7 @@
 
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4Cell.h>
+#include <g4detectors/PHG4CellDefs.h>
 
 #include <string>
 #include <stdint.h>
@@ -35,13 +36,18 @@ int DumpPHG4CellContainer::process_Node(PHNode *myNode)
 	  *fout << "id: 0x" << hex << celler->second->get_cellid() << dec << endl;
 	  if (celler->second->has_binning(PHG4CellDefs::scintillatorslatbinning))
 	    {
-	      *fout << "get_column: " << celler->second->get_column() << endl;
-	      *fout << "get_row: " << celler->second->get_row() << endl;
+	      *fout << "get_column: " << PHG4CellDefs::ScintillatorSlatBinning::get_column(celler->second->get_cellid()) << endl;
+	      *fout << "get_row: " << PHG4CellDefs::ScintillatorSlatBinning::get_row(celler->second->get_cellid()) << endl;
 	    }
-	  if (celler->second->has_binning(PHG4CellDefs::etaphibinning))
+	  else if (celler->second->has_binning(PHG4CellDefs::etaphibinning))
 	    {
-	      *fout << "get_etabin: " << celler->second->get_etabin() << endl;
-	      *fout << "get_phibin: " << celler->second->get_phibin() << endl;
+	      *fout << "get_etabin: " << PHG4CellDefs::EtaPhiBinning::get_etabin(celler->second->get_cellid()) << endl;
+	      *fout << "get_phibin: " << PHG4CellDefs::EtaPhiBinning::get_phibin(celler->second->get_cellid()) << endl;
+	    }
+	  else if (celler->second->has_binning(PHG4CellDefs::etaxsizebinning))
+	    {
+	      *fout << "get_etabin: " << PHG4CellDefs::EtaXsizeBinning::get_etabin(celler->second->get_cellid()) << endl;
+	      *fout << "get_xsizebin: " << PHG4CellDefs::EtaXsizeBinning::get_xsizebin(celler->second->get_cellid()) << endl;
 	    }
 	   for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
 	     {
