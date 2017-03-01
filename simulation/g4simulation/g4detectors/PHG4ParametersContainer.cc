@@ -9,6 +9,8 @@
 #include <pdbcalbase/PdbParameterMapContainer.h>
 
 #include <phool/phool.h>
+#include <phool/getClass.h>
+
 
 #include <TBufferXML.h>
 #include <TFile.h>
@@ -170,5 +172,24 @@ PHG4ParametersContainer::Print() const
       cout << "parameter detid: " << iter->first << endl;
       iter->second->Print();
     }
+  return;
+}
+
+void
+PHG4ParametersContainer::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
+{
+  PdbParameterMapContainer *myparmap = findNode::getClass<PdbParameterMapContainer>(topNode, nodename);
+  if (! myparmap)
+    {
+      myparmap = new PdbParameterMapContainer();
+      PHIODataNode<PdbParameterMapContainer> *newnode =
+          new PHIODataNode<PdbParameterMapContainer>(myparmap, nodename);
+      topNode->addNode(newnode);
+    }
+  else
+    {
+       myparmap->Reset();
+    }
+  CopyToPdbParameterMapContainer(myparmap);
   return;
 }

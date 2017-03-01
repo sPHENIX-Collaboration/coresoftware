@@ -8,6 +8,7 @@
 
 class PHG4Parameters;
 class PdbParameterMapContainer;
+class PHCompositeNode;
 
 class PHG4ParametersContainer: public PHObject
 {
@@ -25,6 +26,7 @@ class PHG4ParametersContainer: public PHObject
   std::string Name() const {return superdetectorname;}
   std::pair<std::map<int, PHG4Parameters *>::const_iterator,  std::map<int, PHG4Parameters *>::const_iterator> GetAllParameters() {return std::make_pair(parametermap.begin(),parametermap.end());}
   void Print() const;
+  void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename);
 
  protected:
   void CopyToPdbParameterMapContainer(PdbParameterMapContainer *myparm);
