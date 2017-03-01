@@ -98,6 +98,7 @@ libg4detectors_io_la_SOURCES = \
   PHG4CellContainer.cc \
   PHG4CellContainer_Dict.cc \
   PHG4CellDefs.cc \
+  PHG4CellDefs_Dict.cc \
   PHG4CylinderGeom.cc \
   PHG4CylinderGeom_Dict.cc \
   PHG4CylinderGeomv1.cc \
