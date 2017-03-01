@@ -38,6 +38,8 @@
 #include <map>
 #include <utility>
 #include <vector>
+#include <map>
+#include <memory>
 
 #include "TClonesArray.h"
 #include "TMatrixDSym.h"
@@ -52,7 +54,7 @@
 #include "SvtxHit_v1.h"
 #include "SvtxHitMap.h"
 #include "SvtxTrack.h"
-#include "SvtxTrack_v1.h"
+#include "SvtxTrack_FastSim.h"
 #include "SvtxVertex_v1.h"
 #include "SvtxTrackMap.h"
 #include "SvtxTrackMap_v1.h"
@@ -67,3 +69,184 @@
 
 using namespace std;
 
+PHG4TruthPatRec::PHG4TruthPatRec(const std::string& name) :
+	SubsysReco(name),
+	_min_clusters_per_track(10),
+	_truth_container(NULL),
+	_clustermap(NULL),
+	_trackmap(NULL)
+{
+	_event = 0;
+}
+
+PHG4TruthPatRec::~PHG4TruthPatRec() {
+}
+
+int PHG4TruthPatRec::Init(PHCompositeNode* topNode) {
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4TruthPatRec::InitRun(PHCompositeNode* topNode) {
+
+	CreateNodes(topNode);
+
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
+
+	GetNodes(topNode);
+
+	PHG4HitContainer* phg4hitcontainer = NULL;
+	phg4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode,
+			"G4HIT_SVTX");
+	if (!phg4hitcontainer && _event < 2) {
+		cout << PHWHERE << "G4HIT_SVTX" << " node not found on node tree"
+				<< endl;
+		return Fun4AllReturnCodes::ABORTRUN;
+	}
+
+	SvtxHitMap* hitsmap = NULL;
+	// get node containing the digitized hits
+	hitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+	if (!hitsmap) {
+		cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
+		return Fun4AllReturnCodes::ABORTRUN;
+	}
+
+	PHG4CylinderCellContainer* cells = NULL;
+	cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,
+			"G4CELL_SVTX");
+	if (!cells) {
+		cout << PHWHERE << "ERROR: Can't find node G4CELL_SVTX" << endl;
+		return Fun4AllReturnCodes::ABORTRUN;
+	}
+
+	typedef std::map< int, std::set<SvtxCluster*> > TrkClustersMap;
+	TrkClustersMap m_trackID_clusters;
+
+	for (SvtxClusterMap::ConstIter cluster_itr = _clustermap->begin();
+			cluster_itr != _clustermap->end(); cluster_itr++) {
+		SvtxCluster *cluster = cluster_itr->second;
+		SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
+		PHG4CylinderCell* cell = (PHG4CylinderCell*) cells->findCylinderCell(
+				svtxhit->get_cellid());
+		PHG4Hit *phg4hit = phg4hitcontainer->findHit(
+				cell->get_g4hits().first->first);
+		int particle_id = phg4hit->get_trkid();
+
+		TrkClustersMap::iterator it = m_trackID_clusters.find(particle_id);
+
+		if(it != m_trackID_clusters.end()){
+			it->second.insert(cluster);
+		} else {
+			std::set<SvtxCluster*> clusters;
+			clusters.insert(cluster);
+			m_trackID_clusters.insert(std::pair< int, std::set<SvtxCluster*> >(particle_id,clusters));
+		}
+	}
+
+	for (TrkClustersMap::const_iterator trk_clusers_itr = m_trackID_clusters.begin();
+			trk_clusers_itr!=m_trackID_clusters.end(); trk_clusers_itr++) {
+		if(trk_clusers_itr->second.size() > _min_clusters_per_track) {
+			std::unique_ptr<SvtxTrack_FastSim> svtx_track(new SvtxTrack_FastSim());
+			//SvtxTrack_FastSim* svtx_track = new SvtxTrack_FastSim();
+			svtx_track->set_truth_track_id(trk_clusers_itr->first);
+			svtx_track->set_px(10.);//to make through minimum pT cut
+			svtx_track->set_py(0.);//to make through minimum pT cut
+			svtx_track->set_pz(0.);//to make through minimum pT cut
+			for(SvtxCluster *cluster : trk_clusers_itr->second) {
+				svtx_track->insert_cluster(cluster->get_id());
+			}
+			_trackmap->insert(svtx_track.get());
+		}
+	}
+
+	for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
+			++iter) {
+		SvtxTrack* svtx_track = iter->second;
+		for (SvtxTrack::ConstClusterIter iter = svtx_track->begin_clusters();
+				iter != svtx_track->end_clusters(); ++iter) {
+			unsigned int cluster_id = *iter;
+			SvtxCluster* cluster = _clustermap->get(cluster_id);
+			float radius = sqrt(
+					cluster->get_x() * cluster->get_x()
+							+ cluster->get_y() * cluster->get_y());
+			cout << "Track ID: " << svtx_track->get_id() << ", Track pT: "
+					<< svtx_track->get_pt() << ", Particle ID: "
+					<< svtx_track->get_truth_track_id() << ", cluster ID: "
+					<< cluster->get_id() << ", cluster radius: " << radius
+					<< endl;
+		}
+	}
+
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4TruthPatRec::End(PHCompositeNode* topNode) {
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4TruthPatRec::GetNodes(PHCompositeNode* topNode) {
+	//DST objects
+	//Truth container
+	_truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode,
+			"G4TruthInfo");
+	if (!_truth_container && _event < 2) {
+		cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree"
+				<< endl;
+		return Fun4AllReturnCodes::ABORTEVENT;
+	}
+
+	// Input Svtx Clusters
+	_clustermap = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
+	if (!_clustermap && _event < 2) {
+		cout << PHWHERE << " SvtxClusterMap node not found on node tree"
+				<< endl;
+		return Fun4AllReturnCodes::ABORTEVENT;
+	}
+
+	// Input Svtx Tracks
+	_trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+	if (!_trackmap && _event < 2) {
+		cout << PHWHERE << " SvtxTrackMap node not found on node tree"
+				<< endl;
+		return Fun4AllReturnCodes::ABORTEVENT;
+	}
+
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4TruthPatRec::CreateNodes(PHCompositeNode* topNode) {
+
+	// create nodes...
+	PHNodeIterator iter(topNode);
+
+	PHCompositeNode *dstNode = static_cast<PHCompositeNode*>(iter.findFirst(
+			"PHCompositeNode", "DST"));
+	if (!dstNode) {
+		cerr << PHWHERE << "DST Node missing, doing nothing." << endl;
+		return Fun4AllReturnCodes::ABORTEVENT;
+	}
+	PHNodeIterator iter_dst(dstNode);
+
+	// Create the SVTX node
+	PHCompositeNode* tb_node =
+			dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode",
+					"SVTX"));
+	if (!tb_node) {
+		tb_node = new PHCompositeNode("SVTX");
+		dstNode->addNode(tb_node);
+		if (verbosity > 0)
+			cout << "SVTX node added" << endl;
+	}
+
+	_trackmap = new SvtxTrackMap_v1;
+	PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(_trackmap,
+			"SvtxTrackMap", "PHObject");
+	tb_node->addNode(tracks_node);
+	if (verbosity > 0)
+		cout << "Svtx/SvtxTrackMap node added" << endl;
+
+	return Fun4AllReturnCodes::EVENT_OK;
+}

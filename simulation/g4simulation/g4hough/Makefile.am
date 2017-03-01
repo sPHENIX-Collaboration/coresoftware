@@ -144,6 +144,7 @@ libg4hough_la_SOURCES = \
   PHG4TruthPatRec.C \
   PHG4TrackFastSim.C \
   PHG4TrackKalmanFitter_Dict.C \
+  PHG4TruthPatRec_Dict.C \
   PHG4TrackFastSim_Dict.C \
   PHG4SvtxMomentumRecal.C \
   PHG4SvtxMomentumRecal_Dict.C \

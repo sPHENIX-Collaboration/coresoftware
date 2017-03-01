@@ -27,7 +27,7 @@ class TFile;
 class TTree;
 
 
-//! \brief		Refit SvtxTracks with PHGenFit.
+//! \brief		Truth Pattern Recognition.
 class PHG4TruthPatRec: public SubsysReco {
 public:
 
@@ -38,16 +38,16 @@ public:
 	~PHG4TruthPatRec();
 
 	//!Initialization, called for initialization
-	int Init(PHCompositeNode *);
+	int Init(PHCompositeNode *topNode);
 
 	//!Initialization Run, called for initialization of a run
-	int InitRun(PHCompositeNode *);
+	int InitRun(PHCompositeNode *topNode);
 
 	//!Process Event, called for each event
-	int process_event(PHCompositeNode *);
+	int process_event(PHCompositeNode *topNode);
 
 	//!End, write and close files
-	int End(PHCompositeNode *);
+	int End(PHCompositeNode *topNode);
 
 	/// set verbosity
 	void Verbosity(int verb) {
@@ -61,10 +61,12 @@ private:
 	int _event;
 
 	//! Get all the nodes
-	int GetNodes(PHCompositeNode *);
+	int GetNodes(PHCompositeNode *topNode);
 
 	//!Create New nodes
-	int CreateNodes(PHCompositeNode *);
+	int CreateNodes(PHCompositeNode *topNode);
+
+	unsigned int _min_clusters_per_track;
 
 	//! Input Node pointers
 	PHG4TruthInfoContainer* _truth_container;
