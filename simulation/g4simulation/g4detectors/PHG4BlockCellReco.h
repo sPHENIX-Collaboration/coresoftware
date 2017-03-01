@@ -25,17 +25,15 @@ class PHG4BlockCellReco : public SubsysReco, public PHG4ParameterContainerInterf
     //! event processing
   int process_event(PHCompositeNode *topNode);
   
+  int ResetEvent(PHCompositeNode *topNode);
+
   void SetDefaultParameters();
 
   void Detector(const std::string &d) {detector = d;}
   void etaxsize(const int i, const double deltaeta, const double deltax);
   void checkenergy(const int i=1) {chkenergyconservation = i;}
   
-  double get_timing_window_min(const int i) {return tmin_max[i].first;}
-  double get_timing_window_max(const int i) {return tmin_max[i].second;}
-  void   set_timing_window(const int i, const double tmin, const double tmax) {
-    tmin_max[i] = std::make_pair(tmin,tmax);
-  }
+  void   set_timing_window(const int detid, const double tmin, const double tmax);
   
  protected:
   void set_size(const int i, const double sizeA, const double sizeB, const int what);
@@ -45,6 +43,7 @@ class PHG4BlockCellReco : public SubsysReco, public PHG4ParameterContainerInterf
   bool lines_intersect( double ax, double ay, double bx, double by, double cx, double cy, double dx, double dy, double* rx, double* ry);
   bool line_and_rectangle_intersect( double ax, double ay, double bx, double by, double cx, double cy, double dx, double dy, double* rr);
 
+  double sum_energy_g4hit;
   std::map<int, int>  binning;
   std::map<int, std::pair <double,double> > cell_size; // cell size in x/z
   std::map<int, std::pair <double,double> > zmin_max; // zmin/zmax for each layer for faster lookup
