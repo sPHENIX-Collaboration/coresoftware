@@ -3,103 +3,141 @@
 #include <cmath>
 #include <iostream>
 
+unsigned short
+generic_lower_16bit_key(const PHG4CellDefs::keytype key, const PHG4CellDefs::CellBinning binning);
+
+unsigned short
+generic_upper_16bit_key(const PHG4CellDefs::keytype key, const PHG4CellDefs::CellBinning binning);
+
+PHG4CellDefs::keytype
+generic_16bit_genkey(const unsigned short detid, const PHG4CellDefs::CellBinning binning, const unsigned short upper16bits, const unsigned short lower16bits);
+
 using namespace std;
 
 PHG4CellDefs::keytype
-PHG4CellDefs::genkey_scintillator_slat(const unsigned short layer, const unsigned short irow, const unsigned short icolumn)
+PHG4CellDefs::ScintillatorSlatBinning::genkey(const unsigned short detid, const unsigned short icolumn, const unsigned short irow)
 {
-  keytype tmp = layer;
-  keytype key = tmp << (cell_idbits+keybits); // binning method used to decode the key
-  tmp = scintillatorslatbinning;
-  key |= (tmp << cell_idbits); // binning method used to decode the key
-  key |= (icolumn << scintillatorslat_bits); // upper bits used by column, so we can easily extract 
-                                  // slats by column which are combined to towers
-  key += irow;
+  PHG4CellDefs::keytype key = generic_16bit_genkey(detid, scintillatorslatbinning, icolumn, irow);
   return key;
 }
 
 unsigned short int
-PHG4CellDefs::get_row(PHG4CellDefs::keytype key)
+PHG4CellDefs::ScintillatorSlatBinning::get_row(PHG4CellDefs::keytype key)
 {
-  // check correct binning first
- keytype tmp = scintillatorslatbinning;
- tmp = (tmp << cell_idbits);
- if ((key & tmp) == tmp)
-   {
-     unsigned short int row = (key & 0xFFFF);
-     return row;
-   }
- cout << "row could not decode 0x" << hex << key << dec << endl; 
- exit(1);
+  unsigned short int rowbin = generic_lower_16bit_key(key, scintillatorslatbinning);
+  return rowbin;
 }
 
 unsigned short int
-PHG4CellDefs::get_column(PHG4CellDefs::keytype key)
+PHG4CellDefs::ScintillatorSlatBinning::get_column(PHG4CellDefs::keytype key)
 {
-  // check correct binning first
- keytype tmp = scintillatorslatbinning;
- keytype keysave = key; 
- tmp = (tmp << cell_idbits);
- if ((key & tmp) == tmp)
-   {
-     key = key >> scintillatorslat_bits;
-     unsigned short int column = (key & 0xFFFF);
-     return column;
-   }
- cout << "col could not decode 0x" << hex << keysave << dec << endl; 
- exit(1);
+  unsigned short int columnbin = generic_upper_16bit_key(key, scintillatorslatbinning);
+  return columnbin;
 }
 
 PHG4CellDefs::keytype
-PHG4CellDefs::genkey_eta_phi(const unsigned short layer, const unsigned short eta, const unsigned short phi)
+PHG4CellDefs::EtaPhiBinning::genkey(const unsigned short detid, const unsigned short iphi, const unsigned short ieta)
 {
-  keytype tmp = etaphibinning;
-  keytype key = tmp << cell_idbits; // binning method used to decode the key
-  key |= (phi << scintillatorslat_bits); // upper bits used by column, so we can easily extract 
-                                  // slats by column which are combined to towers
-  key += eta;
+  PHG4CellDefs::keytype key = generic_16bit_genkey(detid, etaphibinning, iphi, ieta);
   return key;
-}
-unsigned short int
-PHG4CellDefs::get_etabin(PHG4CellDefs::keytype key)
-{
-  // check correct binning first
- keytype tmp = etaphibinning;
- tmp = (tmp << cell_idbits);
- if ((key & tmp) == tmp)
-   {
-     unsigned short int eta = (key & 0xFFFF);
-     return eta;
-   }
- cout << "row could not decode 0x" << hex << key << dec << endl; 
- exit(1);
 }
 
 unsigned short int
-PHG4CellDefs::get_phibin(PHG4CellDefs::keytype key)
+PHG4CellDefs::EtaPhiBinning::get_etabin(const PHG4CellDefs::keytype key)
 {
-  // check correct binning first
- keytype tmp = etaphibinning;
- keytype keysave = key; 
- tmp = (tmp << cell_idbits);
- if ((key & tmp) == tmp)
-   {
-     key = key >> etaphi_bits;
-     unsigned short int phi = (key & 0xFFFF);
-     return phi;
-   }
- cout << "col could not decode 0x" << hex << keysave << dec << endl; 
- exit(1);
+  unsigned short int etabin = generic_lower_16bit_key(key, etaphibinning);
+  return etabin;
 }
+
+unsigned short int
+PHG4CellDefs::EtaPhiBinning::get_phibin(const PHG4CellDefs::keytype key)
+{
+  unsigned short int phibin = generic_upper_16bit_key(key, etaphibinning);
+  return phibin;
+}
+
+PHG4CellDefs::keytype
+PHG4CellDefs::EtaXsizeBinning::genkey(const unsigned short detid, const unsigned short ixbin, const unsigned short ieta)
+{
+  PHG4CellDefs::keytype key = generic_16bit_genkey(detid, etaxsizebinning, ixbin, ieta);
+  return key;
+}
+
+unsigned short int
+PHG4CellDefs::EtaXsizeBinning::get_etabin(const PHG4CellDefs::keytype key)
+{
+  unsigned short int etabin = generic_lower_16bit_key(key, etaxsizebinning);
+  return etabin;
+}
+
+unsigned short int
+PHG4CellDefs::EtaXsizeBinning::get_xsizebin(const PHG4CellDefs::keytype key)
+{
+  unsigned short int etabin = generic_upper_16bit_key(key, etaxsizebinning);
+  return etabin;
+}
+
 
 bool
 PHG4CellDefs::has_binning(PHG4CellDefs::keytype key, PHG4CellDefs::CellBinning binning)
 {
  keytype tmp = binning;
- tmp = (tmp << cell_idbits);
+ tmp = (tmp << bitshift_binning);
  if ( (key & tmp) == tmp)
    {
      return true;
    }
  return false;
+}
+
+short int
+PHG4CellDefs::get_detid(const PHG4CellDefs::keytype key)
+{
+  keytype tmp = (key >> bitshift_layer);
+  return tmp;
+}
+
+unsigned short 
+generic_lower_16bit_key(const PHG4CellDefs::keytype key, const PHG4CellDefs::CellBinning binning)
+{
+  // check correct binning first
+ PHG4CellDefs::keytype tmp = binning;
+ tmp = (tmp << PHG4CellDefs::bitshift_binning);
+ if ((key & tmp) == tmp)
+   {
+     unsigned short int low16bitkey = (key & 0xFFFF);
+     return low16bitkey;
+   }
+ cout << "could not decode 0x" << hex <<  key << dec << endl; 
+ exit(1);
+}
+
+unsigned short 
+generic_upper_16bit_key(const PHG4CellDefs::keytype key, const PHG4CellDefs::CellBinning binning)
+{
+  // check correct binning first
+ PHG4CellDefs::keytype tmp = binning;
+ tmp = (tmp << PHG4CellDefs::bitshift_binning);
+ if ((key & tmp) == tmp)
+   {
+     PHG4CellDefs::keytype keytmp = key >> PHG4CellDefs::bitshift_upperkey;
+     unsigned short int hi16bitkey = (keytmp & 0xFFFF);
+     return hi16bitkey;
+   }
+ cout << "could not decode 0x" << hex <<  key << dec << endl; 
+ exit(1);
+}
+
+PHG4CellDefs::keytype
+generic_16bit_genkey(const unsigned short detid, const PHG4CellDefs::CellBinning binning, const unsigned short upper16bits, const unsigned short lower16bits)
+{
+  PHG4CellDefs::keytype tmp = detid;
+  PHG4CellDefs::keytype key = tmp << PHG4CellDefs::bitshift_layer; // layer/detector id used by extrating ranges
+  tmp = binning;
+  key |= (tmp << PHG4CellDefs::bitshift_binning); // binning method used to decode the key
+  tmp = upper16bits;
+  key |= (tmp << PHG4CellDefs::bitshift_upperkey); // upper bits used by column, so we can easily extract 
+                                  // slats by column which are combined to towers
+  key |= lower16bits;
+  return key;
 }
