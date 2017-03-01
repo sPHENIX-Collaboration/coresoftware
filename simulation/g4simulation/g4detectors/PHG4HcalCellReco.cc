@@ -157,7 +157,7 @@ PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
 	{
 	  // hcal has no layers so far, I do not want to make an expensive 
 	  // call to the g4hits to find that out use 0 as layer number
-	  PHG4CellDefs::keytype key = PHG4CellDefs::genkey_scintillator_slat(0,irow,icolumn);
+	  PHG4CellDefs::keytype key = PHG4CellDefs::ScintillatorSlatBinning::genkey(0,icolumn,irow);
 	  slatarray[irow][icolumn] = new PHG4Cellv1(key);
 	}
       slatarray[irow][icolumn]->add_edep(hiter->second->get_edep());
