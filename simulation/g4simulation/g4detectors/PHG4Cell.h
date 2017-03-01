@@ -36,12 +36,9 @@ class PHG4Cell: public PHObject
 
   virtual PHG4CellDefs::keytype get_cellid() const {return ~0x0;}
   virtual bool has_binning(const PHG4CellDefs::CellBinning) const {return false;}
-  virtual unsigned short int get_row() const {return -1;}
-  virtual unsigned short int get_column() const {return -1;}
 
-  virtual unsigned short int get_etabin() const {return -1;}
-  virtual unsigned short int get_phibin() const {return -1;}
-
+  virtual short int get_detid() const {return -1;}
+  
   virtual void set_layer(const int i) {return;}
 
   virtual void add_edep(const float f) {return;}

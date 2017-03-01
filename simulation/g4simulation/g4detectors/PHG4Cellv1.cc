@@ -14,6 +14,14 @@ PHG4Cellv1::PHG4Cellv1(const PHG4CellDefs::keytype g4cellid):
   cellid(g4cellid)
 {}
 
+PHG4Cellv1::~PHG4Cellv1()
+{
+  hitedeps.clear();
+  showeredeps.clear();
+  prop_map.clear();
+  return;
+}
+
 void
 PHG4Cellv1::add_edep(const PHG4HitDefs::keytype g4hitid, const float edep)
 {
@@ -34,30 +42,11 @@ PHG4Cellv1::has_binning(const PHG4CellDefs::CellBinning binning) const
   return PHG4CellDefs::has_binning(cellid, binning);
 }
 
-unsigned short int
-PHG4Cellv1::get_row() const
+short int
+PHG4Cellv1::get_detid() const
 {
-  return PHG4CellDefs::get_row(cellid);
+  return PHG4CellDefs::get_detid(cellid);
 }
-
-unsigned short int
-PHG4Cellv1::get_column() const
-{
-  return PHG4CellDefs::get_column(cellid);
-}
-
-unsigned short int
-PHG4Cellv1::get_etabin() const
-{
-  return PHG4CellDefs::get_etabin(cellid);
-}
-
-unsigned short int
-PHG4Cellv1::get_phibin() const
-{
-  return PHG4CellDefs::get_phibin(cellid);
-}
-
 
 bool
 PHG4Cellv1::has_property(const PROPERTY prop_id) const
@@ -254,4 +243,13 @@ PHG4Cellv1::print() const {
 	}
       cout <<endl;
     }
+}
+
+void
+PHG4Cellv1::Reset()
+{
+  hitedeps.clear();
+  showeredeps.clear();
+  prop_map.clear();
+  return;
 }

@@ -33,27 +33,6 @@ PHG4CellContainer::identify(ostream& os) const
   return;
 }
 
-
-PHG4CellDefs::keytype
-PHG4CellContainer::genkey(const unsigned int detid)
-{
-  if ((detid >> PHG4CellDefs::keybits) > 0)
-    {
-      cout << " detector id too large: " << detid << endl;
-      exit(1);
-    }
-  unsigned int shiftval = detid << PHG4CellDefs::cell_idbits;
-  unsigned int cellid = cellmap.size();
-  cellid++;
-  PHG4CellDefs::keytype newkey = cellid | shiftval;
-  if (cellmap.find(newkey) != cellmap.end())
-    {
-      cout << " duplicate key: " << newkey << " exiting now" << endl;
-      exit(1);
-    }
-  return newkey;
-}
-
 PHG4CellContainer::ConstIterator
 PHG4CellContainer::AddCell(PHG4Cell *newcell)
 {
@@ -76,16 +55,11 @@ PHG4CellContainer::AddCellSpecifyKey(const PHG4CellDefs::keytype key, PHG4Cell *
 }
 
 PHG4CellContainer::ConstRange 
-PHG4CellContainer::getCells(const unsigned int detid) const
+PHG4CellContainer::getCells(const unsigned short int detid) const
 {
-  if ((detid >> PHG4CellDefs::keybits) > 0)
-    {
-      cout << " detector id too large: " << detid << endl;
-      exit(1);
-    }
-  //  unsigned int shiftval = detid << cell_idbits;
-  PHG4CellDefs::keytype keylow = detid << PHG4CellDefs::cell_idbits;
-  PHG4CellDefs::keytype keyup = ((detid + 1)<< PHG4CellDefs::cell_idbits) -1 ;
+  PHG4CellDefs::keytype tmp = detid;
+  PHG4CellDefs::keytype keylow = tmp << PHG4CellDefs::bitshift_layer;
+  PHG4CellDefs::keytype keyup = ((tmp + 1)<< PHG4CellDefs::bitshift_layer) -1 ;
 //   cout << "keylow: 0x" << hex << keylow << dec << endl;
 //   cout << "keyup: 0x" << hex << keyup << dec << endl;
   ConstRange retpair;

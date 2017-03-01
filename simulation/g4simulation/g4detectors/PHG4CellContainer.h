@@ -55,10 +55,8 @@ class PHG4CellContainer: public PHObject
 
   Iterator findOrAddCell(PHG4CellDefs::keytype key);
 
-  PHG4CellDefs::keytype genkey(const unsigned int detid);
-
   //! return all Cells matching a given detid
-  ConstRange getCells(const unsigned int detid) const;
+  ConstRange getCells(const unsigned short int detid) const;
 
   //! return all hist
   ConstRange getCells( void ) const;
