@@ -137,6 +137,13 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
   {
     PHG4BlockGeom *layergeom = miter->second;
     int layer = layergeom->get_layer();
+    if (!ExistDetid(layer))
+      {
+	cout << Name() << ": No parameters for detid/layer " << layer 
+	     << ", hits from this detid/layer will not be accumulated into cells" << endl;
+	continue;
+      }
+    implemented_detid.insert(layer);
     double radius = sqrt(pow(layergeom->get_center_x(),2) + pow(layergeom->get_center_y(),2));
     double width = layergeom->get_size_x();
     double length_in_z = layergeom->get_size_z();
@@ -272,6 +279,11 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
 
   for (layer = layer_begin_end.first; layer != layer_begin_end.second; layer++)
   {
+    // only handle layers/detector ids which have parameters set
+    if (implemented_detid.find(*layer) == implemented_detid.end())
+      {
+	continue;
+      }
     PHG4HitContainer::ConstIterator hiter;
     PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(*layer);
     PHG4BlockCellGeom *geo = seggeo->GetLayerCellGeom(*layer);

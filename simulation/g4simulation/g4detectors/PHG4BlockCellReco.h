@@ -5,8 +5,10 @@
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
-#include <string>
+
 #include <map>
+#include <set>
+#include <string>
 
 class PHCompositeNode;
 class PHG4BlockCell;
@@ -49,6 +51,8 @@ class PHG4BlockCellReco : public SubsysReco, public PHG4ParameterContainerInterf
   std::map<int, std::pair <double,double> > zmin_max; // zmin/zmax for each layer for faster lookup
   std::map<int, double> xstep;
   std::map<int, double> etastep;
+  std::map<int, std::pair<double,double> > tmin_max;
+  std::set<int> implemented_detid;
   std::string detector;
   std::string hitnodename;
   std::string cellnodename;
@@ -58,8 +62,6 @@ class PHG4BlockCellReco : public SubsysReco, public PHG4ParameterContainerInterf
   PHTimeServer::timer _timer;
   int chkenergyconservation;
 
-  //! timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
-  std::map<int, std::pair<double,double> > tmin_max;
 };
 
 #endif
