@@ -1,5 +1,5 @@
-#ifndef __CALOEVALUATOR_H__
-#define __CALOEVALUATOR_H__
+#ifndef CALOEVALUATOR_H__
+#define CALOEVALUATOR_H__
 
 //===============================================
 /// \file CaloEvaluator.h
@@ -10,13 +10,13 @@
 #include "CaloEvalStack.h"
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHCompositeNode.h>
-
-#include <TNtuple.h>
-#include <TFile.h>
 
 #include <set>
 #include <string>
+
+class PHCompositeNode;
+class TFile;
+class TNtuple;
 
 /// \class CaloEvaluator
 ///
