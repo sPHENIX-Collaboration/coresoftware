@@ -1,29 +1,29 @@
+#ifndef CALORAWCLUSTEREVAL_H__
+#define CALORAWCLUSTEREVAL_H__
 
-#ifndef __CALORAWCLUSTEREVAL_H__
-#define __CALORAWCLUSTEREVAL_H__
-
-#include "CaloTruthEval.h"
 #include "CaloRawTowerEval.h"
-
-#include <phool/PHCompositeNode.h>
-#include <g4cemc/RawClusterContainer.h>
-#include <g4cemc/RawCluster.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4Shower.h>
 
 #include <string>
 #include <set>
 #include <map>
+
+class CaloTruthEval;
+
+class PHCompositeNode;
+class PHG4Hit;
+class PHG4Particle;
+class PHG4Shower;
+class RawClusterContainer;
+class RawCluster;
+class RawTowerContainer;
+
 
 class CaloRawClusterEval {
 
 public:
 
   /// example caloname: CEMC, HCALIN, HCALOUT
-  CaloRawClusterEval(PHCompositeNode *topNode, std::string caloname);
+  CaloRawClusterEval(PHCompositeNode *topNode, const std::string &caloname);
   virtual ~CaloRawClusterEval();
 
   /// get the hash id for this calorimeter volume
