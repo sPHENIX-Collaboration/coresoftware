@@ -14,7 +14,6 @@ class PHG4HitContainer;
 class PHG4TruthInfoContainer;
 class Fun4AllHistoManager;
 class TH1F;
-class TTree;
 class PHG4Particle;
 class RawTowerGeom;
 class RawTowerContainer;
@@ -33,7 +32,7 @@ public:
     kDefaultFlag = kProcessG4Hit | kProcessTower | kProcessCluster
   };
 
-  QAG4SimulationCalorimeter(std::string calo_name, enu_flags flags =
+  QAG4SimulationCalorimeter(const std::string &calo_name, enu_flags flags =
       kDefaultFlag);
   virtual
   ~QAG4SimulationCalorimeter();
