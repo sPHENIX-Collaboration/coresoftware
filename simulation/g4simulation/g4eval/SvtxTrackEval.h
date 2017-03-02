@@ -99,4 +99,4 @@ private:
   std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int> _cache_get_nclusters_contribution_by_layer;
 };
 
-#endif // __SVTXTRACKEVAL_H__
+#endif // SVTXTRACKEVAL_H__
