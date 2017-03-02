@@ -1,6 +1,5 @@
 #include "PHG4CellDefs.h"
 
-#include <cmath>
 #include <iostream>
 
 unsigned short

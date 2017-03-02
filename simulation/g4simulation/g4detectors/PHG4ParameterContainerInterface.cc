@@ -22,6 +22,7 @@ PHG4ParameterContainerInterface::PHG4ParameterContainerInterface(const std::stri
 
 PHG4ParameterContainerInterface::~PHG4ParameterContainerInterface()
 {
+  delete paramscontainer;
   delete defaultparams;
   while(macroparams.begin() != macroparams.end())
     {
