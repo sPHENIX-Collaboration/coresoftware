@@ -8,8 +8,6 @@
 #include <g4cemc/RawCluster.h>
 #include <g4cemc/RawTowerContainer.h>
 #include <g4cemc/RawTower.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -20,12 +18,11 @@
 #include <set>
 #include <map>
 #include <float.h>
-#include <algorithm>
 #include <cassert>
 
 using namespace std;
 
-CaloRawClusterEval::CaloRawClusterEval(PHCompositeNode* topNode, std::string caloname)
+CaloRawClusterEval::CaloRawClusterEval(PHCompositeNode* topNode, const std::string &caloname)
   : _caloname(caloname),
     _towereval(topNode,caloname),
     _clusters(NULL),
