@@ -1,15 +1,15 @@
-
-#ifndef __SVTXTRUTHEVAL_H__
-#define __SVTXTRUTHEVAL_H__
+#ifndef SVTXTRUTHEVAL_H__
+#define SVTXTRUTHEVAL_H__
 
 #include "BaseTruthEval.h"
 
-#include <phool/PHCompositeNode.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4VtxPoint.h>
+class PHCompositeNode;
+
+class PHG4Hit;
+class PHG4HitContainer;
+class PHG4Particle;
+class PHG4TruthInfoContainer;
+class PHG4VtxPoint;
 
 #include <set>
 #include <map>
