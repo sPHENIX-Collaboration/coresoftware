@@ -1,15 +1,17 @@
 #include "MomentumEvaluator.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/getClass.h>
+
+#include <g4hough/SvtxTrackMap.h>
+#include <g4hough/SvtxTrack.h>
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4VtxPoint.h>
 #include <g4main/PHG4TruthInfoContainer.h>
-#include <g4hough/SvtxTrackMap.h>
-#include <g4hough/SvtxTrack.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <phool/getClass.h>
 
 #include <TNtuple.h>
 #include <TFile.h>

@@ -1,10 +1,11 @@
-#ifndef __MOMENTUM_EVALUATOR__
-#define __MOMENTUM_EVALUATOR__
+#ifndef MOMENTUM_EVALUATOR__
+#define MOMENTUM_EVALUATOR__
 
-#include <string>
-#include <phool/PHCompositeNode.h>
 #include <fun4all/SubsysReco.h>
 
+#include <string>
+
+class PHCompositeNode;
 class TNtuple;
 
 class MomentumEvaluator : public SubsysReco
@@ -34,4 +35,3 @@ class MomentumEvaluator : public SubsysReco
 
 
 #endif
-
