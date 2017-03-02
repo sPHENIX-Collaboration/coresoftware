@@ -1,4 +1,5 @@
 #include "QAG4SimulationJet.h"
+#include "QAHistManagerDef.h"
 
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllServer.h>
@@ -12,20 +13,20 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 #include <g4main/PHG4Particle.h>
-#include <g4main/PHG4HitDefs.h>
+#include <g4main/PHG4Shower.h>
 
 #include <g4eval/JetEvalStack.h>
 #include <g4eval/JetTruthEval.h>
 
+#include <g4jets/JetMap.h>
+
 #include <TString.h>
 #include <TFile.h>
-#include <TMath.h>
 #include <TH1F.h>
 #include <TH2F.h>
 #include <TVector3.h>
 #include <TLorentzVector.h>
 
-#include <exception>
 #include <stdexcept>
 #include <iostream>
 #include <vector>
@@ -34,7 +35,6 @@
 #include <cassert>
 #include <cmath>
 
-#include "QAHistManagerDef.h"
 
 using namespace std;
 
@@ -392,7 +392,7 @@ QAG4SimulationJet::process_Spectrum(PHCompositeNode *topNode,
           ));
   assert(iphi);
 
-  Jet* leading_jet = NULL;
+  Jet* leading_jet = nullptr;
   double max_et = 0;
   for (JetMap::Iter iter = jets->begin(); iter != jets->end(); ++iter)
     {
@@ -650,7 +650,7 @@ QAG4SimulationJet::process_TruthMatching(PHCompositeNode *topNode,
     }
 
   // search for leading truth
-  Jet* truthjet = NULL;
+  Jet* truthjet = nullptr;
   double max_et = 0;
   for (JetMap::Iter iter = truthjets->begin(); iter != truthjets->end(); ++iter)
     {
@@ -779,7 +779,7 @@ QAG4SimulationJet::process_TruthMatching(PHCompositeNode *topNode,
     }
 
   // search for leading reco jet
-  Jet* recojet = NULL;
+  Jet* recojet = nullptr;
   max_et = 0;
   for (JetMap::Iter iter = recojets->begin(); iter != recojets->end(); ++iter)
     {
