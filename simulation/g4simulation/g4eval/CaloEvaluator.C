@@ -44,12 +44,12 @@ CaloEvaluator::CaloEvaluator(const string &name, const string &caloname, const s
     _do_gshower_eval(true),
     _do_tower_eval(true),
     _do_cluster_eval(true),
-    _ntp_gpoint(NULL),
-    _ntp_gshower(NULL),
-    _ntp_tower(NULL),
-    _ntp_cluster(NULL),
+    _ntp_gpoint(nullptr),
+    _ntp_gshower(nullptr),
+    _ntp_tower(nullptr),
+    _ntp_cluster(nullptr),
     _filename(filename),
-    _tfile(NULL) {
+    _tfile(nullptr) {
   verbosity = 0;
 }
 

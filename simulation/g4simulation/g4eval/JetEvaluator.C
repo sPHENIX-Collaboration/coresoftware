@@ -27,15 +27,15 @@ JetEvaluator::JetEvaluator(const string &name,
     _recojetname(recojetname),
     _truthjetname(truthjetname),
     _ievent(0),
-    _jetevalstack(NULL),
+    _jetevalstack(nullptr),
     _strict(false),
     _errors(0),
     _do_recojet_eval(true),
     _do_truthjet_eval(true),
-    _ntp_recojet(NULL),
-    _ntp_truthjet(NULL),
+    _ntp_recojet(nullptr),
+    _ntp_truthjet(nullptr),
     _filename(filename),
-    _tfile(NULL) {
+    _tfile(nullptr) {
   verbosity = 0;
 }
 
