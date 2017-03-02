@@ -1,24 +1,25 @@
-
-#ifndef __JETRECOEVAL_H__
-#define __JETRECOEVAL_H__
+#ifndef JETRECOEVAL_H__
+#define JETRECOEVAL_H__
 
 #include "JetTruthEval.h"
 
-#include "CaloTruthEval.h"
-#include "CaloRawTowerEval.h"
-
-#include <phool/PHCompositeNode.h>
-#include <g4jets/JetMap.h>
-#include <g4jets/Jet.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Particle.h>
-#include <g4hough/SvtxTrackMap.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawClusterContainer.h>
-
-#include <string>
-#include <set>
 #include <map>
+#include <set>
+#include <string>
+
+class Jet;
+class JetMap;
+
+class PHCompositeNode;
+
+class PHG4Hit;
+class PHG4Particle;
+class PHG4Shower;
+
+class RawClusterContainer;
+class RawTowerContainer;
+
+class SvtxTrackMap;
 
 class JetRecoEval {
 
@@ -27,8 +28,8 @@ public:
   /// example recojetname:  AntiKt_Tower_r03
   /// example truthjetname: AntiKt_Truth_r03
   JetRecoEval(PHCompositeNode *topNode,
-	      std::string recojetname,
-	      std::string truthjetname);
+	      const std::string &recojetname,
+	      const std::string &truthjetname);
   virtual ~JetRecoEval();
 
   /// reinitialize the eval for a new event
