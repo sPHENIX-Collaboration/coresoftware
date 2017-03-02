@@ -33,7 +33,7 @@ CaloEvaluator::CaloEvaluator(const string &name, const string &caloname, const s
     _truth_trace_embed_flags(),
     _truth_e_threshold(0.0), // 0 GeV before reco is traced
     _reco_e_threshold(0.0), // 0 GeV before reco is traced
-    _caloevalstack(NULL),
+    _caloevalstack(nullptr),
     _strict(false),
     _errors(0),
     _do_gpoint_eval(true),
