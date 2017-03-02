@@ -1,14 +1,12 @@
-
-#ifndef __JETEVALSTACK_H__
-#define __JETEVALSTACK_H__
+#ifndef JETEVALSTACK_H__
+#define JETEVALSTACK_H__
 
 #include "JetRecoEval.h"
-#include "JetTruthEval.h"
 
-#include "SvtxEvalStack.h"
-#include "CaloEvalStack.h"
-
-#include <phool/PHCompositeNode.h>
+class CaloEvalStack;
+class JetTruthEval;
+class SvtxEvalStack;
+class PHCompositeNode;
 
 // This user class provides pointers to the
 // full set of jet evaluators and
@@ -44,4 +42,4 @@ private:
   JetRecoEval _recoeval; 
 };
 
-#endif // __JETEVALSTACK_H__
+#endif // JETEVALSTACK_H__
