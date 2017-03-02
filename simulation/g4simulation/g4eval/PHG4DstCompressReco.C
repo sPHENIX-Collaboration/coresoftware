@@ -27,7 +27,7 @@ using namespace std;
 
 PHG4DstCompressReco::PHG4DstCompressReco(const string &name)
     : SubsysReco(name),
-      _truth_info(NULL),
+      _truth_info(nullptr),
       _compress_g4hit_names(),
       _compress_g4cell_names(),
       _g4cells(),
