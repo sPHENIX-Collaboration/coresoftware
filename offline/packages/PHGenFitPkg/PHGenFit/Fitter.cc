@@ -37,11 +37,11 @@
 namespace PHGenFit {
 
 Fitter::Fitter(
-		const std::string tgeo_file_name,
-		const std::string field_file_name,
+		const std::string &tgeo_file_name,
+		const std::string &field_file_name,
 		const double field_scaling_factor,
-		const std::string fitter_choice,
-		const std::string track_rep_choice,
+		const std::string &fitter_choice,
+		const std::string &track_rep_choice,
 		const bool doEventDisplay
 ) : verbosity(0), _doEventDisplay(doEventDisplay)
 {
@@ -123,9 +123,9 @@ int Fitter::processTrack(PHGenFit::Track* track, const bool save_to_evt_disp) {
 	return 0;
 }
 
-Fitter* Fitter::getInstance(const std::string tgeo_file_name,
-		const std::string field_file_name, const double field_scaling_factor,
-		const std::string fitter_choice, const std::string track_rep_choice,
+Fitter* Fitter::getInstance(const std::string &tgeo_file_name,
+		const std::string &field_file_name, const double field_scaling_factor,
+		const std::string &fitter_choice, const std::string &track_rep_choice,
 		const bool doEventDisplay) {
 
 	TGeoManager* tgeo_manager = TGeoManager::Import(tgeo_file_name.data(), "Default");
@@ -148,8 +148,8 @@ Fitter* Fitter::getInstance(const std::string tgeo_file_name,
 }
 
 Fitter* Fitter::getInstance(TGeoManager* tgeo_manager,
-		const std::string field_file_name, const double field_scaling_factor,
-		const std::string fitter_choice, const std::string track_rep_choice,
+		const std::string &field_file_name, const double field_scaling_factor,
+		const std::string &fitter_choice, const std::string &track_rep_choice,
 		const bool doEventDisplay) {
 
 	if(!tgeo_manager)
@@ -171,7 +171,7 @@ Fitter* Fitter::getInstance(TGeoManager* tgeo_manager,
 }
 
 Fitter::Fitter(TGeoManager* tgeo_manager, genfit::AbsBField* fieldMap,
-		const std::string fitter_choice, const std::string track_rep_choice,
+		const std::string &fitter_choice, const std::string &track_rep_choice,
 		const bool doEventDisplay): verbosity(0), _tgeo_manager(tgeo_manager), _doEventDisplay(doEventDisplay)
 {
 

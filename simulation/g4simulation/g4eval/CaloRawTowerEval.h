@@ -1,30 +1,29 @@
-
-#ifndef __CALORAWTOWEREVAL_H__
-#define __CALORAWTOWEREVAL_H__
+#ifndef CALORAWTOWEREVAL_H__
+#define CALORAWTOWEREVAL_H__
 
 #include "CaloTruthEval.h"
-
-#include <phool/PHCompositeNode.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTower.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4Shower.h>
 
 #include <string>
 #include <set>
 #include <map>
+
+class PHCompositeNode;
+
+class PHG4CylinderCellContainer;
+class PHG4HitContainer;
+class PHG4Particle;
+class PHG4Shower;
+class PHG4TruthInfoContainer;
+
+class RawTower;
+class RawTowerContainer;
 
 class CaloRawTowerEval {
 
 public:
 
   /// example caloname: CEMC, HCALIN, HCALOUT
-  CaloRawTowerEval(PHCompositeNode *topNode, std::string caloname);
+  CaloRawTowerEval(PHCompositeNode *topNode, const std::string &caloname);
   virtual ~CaloRawTowerEval();
 
   /// get the hash id for this calorimeter volume
@@ -137,4 +136,4 @@ private:
   std::map<RawTower*,std::set<PHG4Hit*> >            _cache_all_truth_hits;
 };
 
-#endif // __SVTXHITEVAL_H__
+#endif // CALORAWTOWEREVAL_H__

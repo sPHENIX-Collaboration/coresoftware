@@ -3,19 +3,23 @@
 
 #include "CaloEvalStack.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/getClass.h>
-#include <fun4all/SubsysReco.h>
-#include <phool/PHCompositeNode.h>
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4Shower.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
-#include <g4main/PHG4Particle.h>
+
 #include <g4hough/SvtxVertexMap.h>
+
 #include <g4cemc/RawTowerContainer.h>
 #include <g4cemc/RawTowerGeomContainer.h>
 #include <g4cemc/RawTower.h>
 #include <g4cemc/RawClusterContainer.h>
 #include <g4cemc/RawCluster.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
+#include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
 
 #include <TNtuple.h>
 #include <TFile.h>
@@ -33,19 +37,19 @@ CaloEvaluator::CaloEvaluator(const string &name, const string &caloname, const s
     _truth_trace_embed_flags(),
     _truth_e_threshold(0.0), // 0 GeV before reco is traced
     _reco_e_threshold(0.0), // 0 GeV before reco is traced
-    _caloevalstack(NULL),
+    _caloevalstack(nullptr),
     _strict(false),
     _errors(0),
     _do_gpoint_eval(true),
     _do_gshower_eval(true),
     _do_tower_eval(true),
     _do_cluster_eval(true),
-    _ntp_gpoint(NULL),
-    _ntp_gshower(NULL),
-    _ntp_tower(NULL),
-    _ntp_cluster(NULL),
+    _ntp_gpoint(nullptr),
+    _ntp_gshower(nullptr),
+    _ntp_tower(nullptr),
+    _ntp_cluster(nullptr),
     _filename(filename),
-    _tfile(NULL) {
+    _tfile(nullptr) {
   verbosity = 0;
 }
 

@@ -1,20 +1,23 @@
-
-#ifndef __JETTRUTHEVAL_H__
-#define __JETTRUTHEVAL_H__
+#ifndef JETTRUTHEVAL_H__
+#define JETTRUTHEVAL_H__
 
 #include "SvtxEvalStack.h"
 #include "CaloEvalStack.h"
-
-#include <phool/PHCompositeNode.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4Shower.h>
-#include <g4main/PHG4Hit.h>
-#include <g4jets/JetMap.h>
 #include <g4jets/Jet.h>
 
 #include <map>
 #include <string>
+
+class Jet;
+class JetMap;
+
+class PHCompositeNode;
+
+class PHG4Hit;
+class PHG4Particle;
+class PHG4Shower;
+class PHG4TruthInfoContainer;
+
 
 class JetTruthEval {
 
@@ -22,7 +25,7 @@ public:
 
   /// example truthjetname: AntiKt_Truth_r03
   JetTruthEval(PHCompositeNode* topNode,
-	       std::string truthjetname);
+	       const std::string &truthjetname);
   virtual ~JetTruthEval();
 
   /// reinitialize the eval for a new event
@@ -133,4 +136,4 @@ private:
   std::map<PHG4Particle*,Jet*>            _cache_get_truth_jet;  
 };
 
-#endif // __JETTRUTHEVAL_H__
+#endif // JETTRUTHEVAL_H__

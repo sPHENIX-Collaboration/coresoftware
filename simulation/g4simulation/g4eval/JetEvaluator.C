@@ -1,15 +1,15 @@
-
 #include "JetEvaluator.h"
 
 #include "JetEvalStack.h"
 #include "JetRecoEval.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/getClass.h>
-#include <fun4all/SubsysReco.h>
-#include <phool/PHCompositeNode.h>
 #include <g4jets/JetMap.h>
 #include <g4jets/Jet.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
+#include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
 
 #include <TNtuple.h>
 #include <TFile.h>
@@ -27,15 +27,15 @@ JetEvaluator::JetEvaluator(const string &name,
     _recojetname(recojetname),
     _truthjetname(truthjetname),
     _ievent(0),
-    _jetevalstack(NULL),
+    _jetevalstack(nullptr),
     _strict(false),
     _errors(0),
     _do_recojet_eval(true),
     _do_truthjet_eval(true),
-    _ntp_recojet(NULL),
-    _ntp_truthjet(NULL),
+    _ntp_recojet(nullptr),
+    _ntp_truthjet(nullptr),
     _filename(filename),
-    _tfile(NULL) {
+    _tfile(nullptr) {
   verbosity = 0;
 }
 

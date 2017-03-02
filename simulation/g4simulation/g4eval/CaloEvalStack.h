@@ -1,14 +1,13 @@
-
-#ifndef __CALOEVALSTACK_H__
-#define __CALOEVALSTACK_H__
+#ifndef CALOEVALSTACK_H__
+#define CALOEVALSTACK_H__
 
 #include "CaloRawClusterEval.h"
 #include "CaloRawTowerEval.h"
 #include "CaloTruthEval.h"
 
-#include <phool/PHCompositeNode.h>
-
 #include <string>
+
+class PHCompositeNode;
 
 // This user class provides pointers to the
 // full set of calorimeter evaluators and
@@ -20,7 +19,7 @@ class CaloEvalStack {
 
 public:
 
-  CaloEvalStack(PHCompositeNode *topNode, std::string caloname);
+  CaloEvalStack(PHCompositeNode *topNode, const std::string &caloname);
   virtual ~CaloEvalStack() {}
 
   int get_caloid() {return get_truth_eval()->get_caloid();}

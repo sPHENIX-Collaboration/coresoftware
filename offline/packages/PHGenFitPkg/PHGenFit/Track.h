@@ -42,7 +42,7 @@ public:
 	~Track();
 
 	//! Add measurement
-	int addMeasurements(std::vector<PHGenFit::Measurement*> measurements);
+	int addMeasurements(std::vector<PHGenFit::Measurement*> &measurements);
 
 	/*!
 	 * track_point 0 is the first one, and -1 is the last one
@@ -85,6 +85,7 @@ public:
 private:
 
 	genfit::Track* _track;
+	std::vector<PHGenFit::Measurement*> _measurements;
 	//SMART(genfit::Track) _track;
 };
 } //End of PHGenFit namespace

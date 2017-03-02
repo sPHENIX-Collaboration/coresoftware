@@ -1,14 +1,13 @@
-
 #ifndef __SVTXEVALSTACK_H__
 #define __SVTXEVALSTACK_H__
 
 #include "SvtxVertexEval.h"
-#include "SvtxTrackEval.h"
-#include "SvtxClusterEval.h"
-#include "SvtxHitEval.h"
-#include "SvtxTruthEval.h"
 
-#include <phool/PHCompositeNode.h>
+class PHCompositeNode;
+class SvtxClusterEval;
+class SvtxHitEval;
+class SvtxTrackEval;
+class SvtxTruthEval;
 
 // This user class provides pointers to the
 // full set of tracking evaluators and

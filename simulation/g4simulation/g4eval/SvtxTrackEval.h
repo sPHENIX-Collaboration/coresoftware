@@ -1,8 +1,8 @@
-
-#ifndef __SVTXTRACKEVAL_H__
-#define __SVTXTRACKEVAL_H__
+#ifndef SVTXTRACKEVAL_H__
+#define SVTXTRACKEVAL_H__
 
 #include "SvtxClusterEval.h"
+/*
 #include "SvtxHitEval.h"
 #include "SvtxTruthEval.h"
 
@@ -12,9 +12,20 @@
 #include <g4hough/SvtxClusterMap.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
+*/
 
 #include <set>
 #include <map>
+
+class PHCompositeNode;
+
+class PHG4Hit;
+class PHG4Particle;
+
+class SvtxCluster;
+class SvtxClusterMap;
+class SvtxTrack;
+class SvtxTrackMap;
 
 class SvtxTrackEval {
 
@@ -88,4 +99,4 @@ private:
   std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int> _cache_get_nclusters_contribution_by_layer;
 };
 
-#endif // __SVTXTRACKEVAL_H__
+#endif // SVTXTRACKEVAL_H__
