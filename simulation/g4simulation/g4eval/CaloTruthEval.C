@@ -246,10 +246,10 @@ PHG4Particle* CaloTruthEval::get_parent_particle(PHG4Hit* g4hit) {
 
 PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Hit* g4hit) {
 
-  if (!has_full_node_pointers()) {++_errors; return NULL;}
+  if (!has_full_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(g4hit);}
-  else if (!g4hit) {++_errors; return NULL;}
+  else if (!g4hit) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<PHG4Hit*,PHG4Particle*>::iterator iter =

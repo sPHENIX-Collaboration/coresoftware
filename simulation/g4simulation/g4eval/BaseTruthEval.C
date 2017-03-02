@@ -15,7 +15,7 @@
 using namespace std;
 
 BaseTruthEval::BaseTruthEval(PHCompositeNode* topNode)
-  : _truthinfo(NULL),
+  : _truthinfo(nullptr),
     _strict(false),
     _verbosity(1),
     _errors(0) {
@@ -52,10 +52,10 @@ int BaseTruthEval::get_embed(PHG4Particle* particle) {
 
 PHG4VtxPoint* BaseTruthEval::get_vertex(PHG4Particle* particle) {
 
-  if (!has_reduced_node_pointers()) {++_errors; return NULL;} 
+  if (!has_reduced_node_pointers()) {++_errors; return nullptr;} 
   
   if (_strict) {assert(particle);}
-  else if (!particle) {++_errors; return NULL;}
+  else if (!particle) {++_errors; return nullptr;}
 
   PHG4VtxPoint* vtx = _truthinfo->GetVtx( particle->get_vtx_id() );
   if (_strict) {assert(vtx);}
@@ -96,10 +96,10 @@ bool BaseTruthEval::is_primary(PHG4Particle* particle) {
 
 PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Shower* shower) {
 
-  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(shower);}
-  else if (!shower) {++_errors; return NULL;}
+  else if (!shower) {++_errors; return nullptr;}
 
   if (is_primary(shower)) return shower;
 
@@ -115,14 +115,14 @@ PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Shower* shower) {
 
 PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Particle* particle) {
 
-  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(particle);}
-  else if (!particle) {++_errors; return NULL;}
+  else if (!particle) {++_errors; return nullptr;}
 
   if (!is_primary(particle)) particle = get_primary_particle(particle);
   
-  PHG4Shower* returnval = NULL;
+  PHG4Shower* returnval = nullptr;
   
   PHG4TruthInfoContainer::ShowerRange range = _truthinfo->GetPrimaryShowerRange();
   for (PHG4TruthInfoContainer::ShowerIterator iter = range.first;
@@ -140,10 +140,10 @@ PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Particle* particle) {
 
 PHG4Particle* BaseTruthEval::get_primary_particle(PHG4Particle* particle) {
 
-  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(particle);}
-  else if (!particle) {++_errors; return NULL;}
+  else if (!particle) {++_errors; return nullptr;}
 
   if (is_primary(particle)) return particle;
   
@@ -157,20 +157,20 @@ PHG4Particle* BaseTruthEval::get_primary_particle(PHG4Particle* particle) {
 
 PHG4Particle* BaseTruthEval::get_primary_particle(PHG4Shower* shower) {
 
-  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(shower);}
-  else if (!shower) {++_errors; return NULL;}
+  else if (!shower) {++_errors; return nullptr;}
 
   PHG4Particle* parent_particle = _truthinfo->GetParticle( shower->get_parent_particle_id() );
 
   if (_strict) {assert(parent_particle);}
-  else if (!parent_particle) {++_errors; return NULL;}
+  else if (!parent_particle) {++_errors; return nullptr;}
   
   PHG4Particle* primary_particle = get_primary_particle(parent_particle);
 
   if (_strict) {assert(primary_particle);}
-  else if (!primary_particle) {++_errors; return NULL;}
+  else if (!primary_particle) {++_errors; return nullptr;}
     
   return primary_particle;
 }
@@ -253,10 +253,10 @@ bool BaseTruthEval::are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2) {
 
 PHG4Particle* BaseTruthEval::get_particle(PHG4Hit* g4hit) {
 
-  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(g4hit);}
-  else if (!g4hit) {++_errors; return NULL;}
+  else if (!g4hit) {++_errors; return nullptr;}
   
   PHG4Particle* particle = _truthinfo->GetParticle( g4hit->get_trkid() );
   if (_strict) {assert(particle);}
@@ -267,10 +267,10 @@ PHG4Particle* BaseTruthEval::get_particle(PHG4Hit* g4hit) {
 
 PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Hit* g4hit) {
 
-  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(g4hit);}
-  else if (!g4hit) {++_errors; return NULL;}
+  else if (!g4hit) {++_errors; return nullptr;}
   
   PHG4Shower* shower = _truthinfo->GetShower( g4hit->get_shower_id() );
   if (_strict) {assert(shower);}
@@ -281,10 +281,10 @@ PHG4Shower* BaseTruthEval::get_primary_shower(PHG4Hit* g4hit) {
 
 PHG4Particle* BaseTruthEval::get_primary_particle(PHG4Hit* g4hit) {
 
-  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(g4hit);}
-  else if (!g4hit) {++_errors; return NULL;}
+  else if (!g4hit) {++_errors; return nullptr;}
 
   PHG4Particle* particle = get_particle(g4hit);
   PHG4Particle* primary = get_primary_particle(particle);
