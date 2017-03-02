@@ -1,28 +1,27 @@
-
-#ifndef __CALOTRUTHEVAL_H__
-#define __CALOTRUTHEVAL_H__
+#ifndef CALOTRUTHEVAL_H__
+#define CALOTRUTHEVAL_H__
 
 #include "BaseTruthEval.h"
-
-#include <phool/PHCompositeNode.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4VtxPoint.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Shower.h>
 
 #include <string>
 #include <set>
 #include <map>
+
+class PHCompositeNode;
+
+class PHG4Hit;
+class PHG4HitContainer;
+class PHG4Particle;
+class PHG4TruthInfoContainer;
+class PHG4Shower;
+class PHG4VtxPoint;
 
 class CaloTruthEval {
 
 public:
 
   /// example caloname: CEMC, HCALIN, HCALOUT
-  CaloTruthEval(PHCompositeNode *topNode, std::string caloname);
+  CaloTruthEval(PHCompositeNode *topNode, const std::string &caloname);
   virtual ~CaloTruthEval();
 
   /// get the hash id for this calorimeter volume
