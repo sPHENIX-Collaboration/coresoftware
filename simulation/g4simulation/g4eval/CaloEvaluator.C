@@ -3,19 +3,23 @@
 
 #include "CaloEvalStack.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/getClass.h>
-#include <fun4all/SubsysReco.h>
-#include <phool/PHCompositeNode.h>
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4Shower.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
-#include <g4main/PHG4Particle.h>
+
 #include <g4hough/SvtxVertexMap.h>
+
 #include <g4cemc/RawTowerContainer.h>
 #include <g4cemc/RawTowerGeomContainer.h>
 #include <g4cemc/RawTower.h>
 #include <g4cemc/RawClusterContainer.h>
 #include <g4cemc/RawCluster.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
+#include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
 
 #include <TNtuple.h>
 #include <TFile.h>

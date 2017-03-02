@@ -7,13 +7,12 @@
 /// \author Michael P. McCumber (revised sPHENIX version)
 //===============================================
 
-#include "CaloEvalStack.h"
-
 #include <fun4all/SubsysReco.h>
 
 #include <set>
 #include <string>
 
+class CaloEvalStack;
 class PHCompositeNode;
 class TFile;
 class TNtuple;
@@ -114,4 +113,4 @@ class CaloEvaluator : public SubsysReco {
   void printOutputInfo(PHCompositeNode *topNode);   ///< print out the ancestry information for detailed diagnosis
 };
 
-#endif // __CALOEVALUATOR_H__
+#endif // CALOEVALUATOR_H__
