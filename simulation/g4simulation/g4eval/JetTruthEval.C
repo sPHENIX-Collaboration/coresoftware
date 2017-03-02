@@ -1,8 +1,5 @@
-
 #include "JetTruthEval.h"
 
-#include <phool/getClass.h>
-#include <phool/PHCompositeNode.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4HitContainer.h>
@@ -10,16 +7,16 @@
 #include <g4jets/JetMap.h>
 #include <g4jets/Jet.h>
 
-#include <cstdlib>
+#include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+
 #include <map>
-#include <float.h>
-#include <algorithm>
 #include <cassert>
 
 using namespace std;
 
 JetTruthEval::JetTruthEval(PHCompositeNode* topNode,
-			   std::string truthjetname)
+			   const std::string &truthjetname)
   : _truthjetname(truthjetname),
     _svtxevalstack(topNode),   
     _cemcevalstack(topNode,"CEMC"),
@@ -27,8 +24,8 @@ JetTruthEval::JetTruthEval(PHCompositeNode* topNode,
     _hcaloutevalstack(topNode,"HCALOUT"),
     _femcevalstack(topNode,"FEMC"),
     _fhcalevalstack(topNode,"FHCAL"),
-    _truthinfo(NULL),
-    _truthjets(NULL),
+    _truthinfo(nullptr),
+    _truthjets(nullptr),
     _strict(false),
     _verbosity(1),
     _errors(0),
@@ -194,7 +191,7 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet) {
 Jet* JetTruthEval::get_truth_jet(PHG4Particle* particle) {
 
   if (_strict) {assert(particle);}
-  else if (!particle) {++_errors; return NULL;}
+  else if (!particle) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<PHG4Particle*,Jet*>::iterator iter =
@@ -204,7 +201,7 @@ Jet* JetTruthEval::get_truth_jet(PHG4Particle* particle) {
     }
   }
 
-  Jet* truth_jet = NULL;
+  Jet* truth_jet = nullptr;
   
   // loop over all jets and look for this particle...
   for (JetMap::Iter iter = _truthjets->begin();
