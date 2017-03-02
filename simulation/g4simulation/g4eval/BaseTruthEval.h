@@ -1,13 +1,14 @@
+#ifndef BASETRUTHEVAL_H__
+#define BASETRUTHEVAL_H__
 
-#ifndef __BASETRUTHEVAL_H__
-#define __BASETRUTHEVAL_H__
+#include <set>
 
-#include <phool/PHCompositeNode.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4VtxPoint.h>
-#include <g4main/PHG4Shower.h>
+class PHCompositeNode;
+class PHG4Hit;
+class PHG4Particle;
+class PHG4Shower;
+class PHG4TruthInfoContainer;
+class PHG4VtxPoint;
 
 class BaseTruthEval {
 

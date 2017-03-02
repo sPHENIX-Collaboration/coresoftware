@@ -1,14 +1,14 @@
-
 #include "BaseTruthEval.h"
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4Hit.h>
 
-#include <cstdlib>
-#include <float.h>
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4Shower.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
+
 #include <cassert>
 #include <iostream>
 
