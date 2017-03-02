@@ -29,15 +29,13 @@ class PHG4ParameterContainerInterface
   void CreateInitialize(const int detid);
   void SaveToNodeTree(PHCompositeNode *runNode, const std::string &nodename);
   void PutOnParNode(PHCompositeNode *parNode, const std::string &nodename);
+  int ExistDetid(const int detid) const;
 
  protected:
   void set_default_double_param( const std::string &name, const double dval);
   void set_default_int_param( const std::string &name, const int ival);
   void set_default_string_param( const std::string &name, const std::string &sval);
   void InitializeParameters();
-  /* std::map<int, PHG4Parameters *>::const_iterator params_detid(const int detid) */
-  /*   {return macroparams.find(detid);} */
-  /* std::map<int, PHG4Parameters *>::const_iterator params_end() {return macroparams.end();} */
   const PHG4ParametersContainer *GetParamsContainer() {return paramscontainer;}
   PHG4ParametersContainer *GetParamsContainerModify() {return paramscontainer;}
   const PHG4Parameters *GetDefaultParameters() {return defaultparams;}

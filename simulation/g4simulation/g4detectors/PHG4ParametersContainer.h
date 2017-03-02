@@ -27,6 +27,7 @@ class PHG4ParametersContainer: public PHObject
   std::pair<std::map<int, PHG4Parameters *>::const_iterator,  std::map<int, PHG4Parameters *>::const_iterator> GetAllParameters() {return std::make_pair(parametermap.begin(),parametermap.end());}
   void Print() const;
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename);
+  int ExistDetid(const int detid) const;
 
  protected:
   void CopyToPdbParameterMapContainer(PdbParameterMapContainer *myparm);

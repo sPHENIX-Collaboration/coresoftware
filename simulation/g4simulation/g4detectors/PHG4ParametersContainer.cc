@@ -193,3 +193,13 @@ PHG4ParametersContainer::SaveToNodeTree(PHCompositeNode *topNode, const string &
   CopyToPdbParameterMapContainer(myparmap);
   return;
 }
+
+int
+PHG4ParametersContainer::ExistDetid(const int detid) const
+{
+  if (parametermap.find(detid) != parametermap.end())
+    {
+      return 1;
+    }
+  return 0;
+}

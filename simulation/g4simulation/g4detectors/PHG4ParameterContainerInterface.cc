@@ -203,7 +203,6 @@ void
 PHG4ParameterContainerInterface::UpdateParametersWithMacro()
 {
   map<int, PHG4Parameters *>::const_iterator iter;
-  cout << "size of macroparams: " <<  macroparams.size() << endl;
  for (iter = macroparams.begin(); iter != macroparams.end(); ++iter)
     {
       CreateInitialize(iter->first);
@@ -263,3 +262,8 @@ PHG4ParameterContainerInterface::CreateInitialize(const int detid)
   return;
 }
 
+int
+PHG4ParameterContainerInterface::ExistDetid(const int detid) const
+{
+  return paramscontainer->ExistDetid(detid);
+}
