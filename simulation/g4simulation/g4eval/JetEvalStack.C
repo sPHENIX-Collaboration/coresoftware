@@ -1,13 +1,4 @@
-
 #include "JetEvalStack.h"
-
-#include "JetRecoEval.h"
-
-#include <phool/PHCompositeNode.h>
-
-#include <string>
-
-using namespace std;
 
 JetEvalStack::JetEvalStack(PHCompositeNode* topNode,
 			   std::string recojetname,

@@ -1,15 +1,15 @@
-
 #include "JetEvaluator.h"
 
 #include "JetEvalStack.h"
 #include "JetRecoEval.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/getClass.h>
-#include <fun4all/SubsysReco.h>
-#include <phool/PHCompositeNode.h>
 #include <g4jets/JetMap.h>
 #include <g4jets/Jet.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
+#include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
 
 #include <TNtuple.h>
 #include <TFile.h>
