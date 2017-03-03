@@ -79,6 +79,12 @@ int DumpPHG4CellContainer::process_Node(PHNode *myNode)
 	     {
 	       *fout << "hit 0x" << hex << iter->first << dec << " edep: " << iter->second << endl;
 	     }
+	   PHG4Cell::ShowerEdepConstRange shower_begin_end = celler->second->get_g4showers();
+	   for (PHG4Cell::ShowerEdepConstIterator iter = shower_begin_end.first; iter != shower_begin_end.second; ++iter)
+	     {
+	       *fout << "shower " << iter->first  << " edep: " << iter->second << endl;
+	     }
+
 	}
     }
   return 0;
