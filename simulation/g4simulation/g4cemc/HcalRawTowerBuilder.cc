@@ -224,8 +224,14 @@ HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
 
       tower->add_ecell(cell->get_cellid(), cell_weight);
 
+      PHG4Cell::ShowerEdepConstRange range = cell->get_g4showers();
+      for (PHG4Cell::ShowerEdepConstIterator shower_iter = range.first;
+	   shower_iter != range.second;
+	   ++shower_iter) 
+	{
+	  tower->add_eshower(shower_iter->first,shower_iter->second);
+	}
       tower->set_energy(tower->get_energy() + cell_weight);
-
     }
   double towerE = 0;
   if (chkenergyconservation)
