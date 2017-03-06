@@ -222,8 +222,6 @@ libg4detectors_la_SOURCES = \
   PHG4ScintillatorSlatDefs_Dict.cc \
   PHG4ScintillatorSlatv1.cc \
   PHG4ScintillatorSlatv1_Dict.cc \
-  PHG4SlatCellReco.cc \
-  PHG4SlatCellReco_Dict.cc \
   PHG4OuterHcalDetector.cc \
   PHG4OuterHcalField.cc \
   PHG4OuterHcalFieldSetup.cc \
