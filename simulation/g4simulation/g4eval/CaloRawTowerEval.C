@@ -499,11 +499,9 @@ std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(RawTower* tower) {
   }
 
   std::set<PHG4Hit*> truth_hits;
-
   // loop over all the towered cells
-  std::pair< std::map<unsigned int,float>::const_iterator,
-	     std::map<unsigned int,float>::const_iterator > cell_range = tower->get_g4cells();
-  for (std::map<unsigned int, float>::const_iterator cell_iter = cell_range.first;
+  RawTower::CellConstRange cell_range = tower->get_g4cells();
+  for (RawTower::CellConstIterator cell_iter = cell_range.first;
        cell_iter != cell_range.second; ++cell_iter) {
     unsigned int cell_id = cell_iter->first;
     PHG4CylinderCell *cell = _g4cells->findCylinderCell(cell_id);
