@@ -39,6 +39,11 @@ int DumpPHG4CellContainer::process_Node(PHNode *myNode)
 	      *fout << "get_column: " << PHG4CellDefs::ScintillatorSlatBinning::get_column(celler->second->get_cellid()) << endl;
 	      *fout << "get_row: " << PHG4CellDefs::ScintillatorSlatBinning::get_row(celler->second->get_cellid()) << endl;
 	    }
+	  else if (celler->second->has_binning(PHG4CellDefs::sizebinning))
+	    {
+	      *fout << "get_phibin: " << PHG4CellDefs::SizeBinning::get_phibin(celler->second->get_cellid()) << endl;
+	      *fout << "get_zbin: " << PHG4CellDefs::SizeBinning::get_zbin(celler->second->get_cellid()) << endl;
+	    }
 	  else if (celler->second->has_binning(PHG4CellDefs::etaphibinning))
 	    {
 	      *fout << "get_etabin: " << PHG4CellDefs::EtaPhiBinning::get_etabin(celler->second->get_cellid()) << endl;
