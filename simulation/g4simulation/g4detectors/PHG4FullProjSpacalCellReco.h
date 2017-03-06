@@ -26,9 +26,6 @@ class PHG4FullProjSpacalCellReco : public SubsysReco
     //! event processing
   int process_event(PHCompositeNode *topNode);
   
-  //! end of process
-  int End(PHCompositeNode *topNode);
-  
   void Detector(const std::string &d) {detector = d;}
 
   void checkenergy(const int i=1) {chkenergyconservation = i;}
