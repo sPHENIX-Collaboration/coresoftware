@@ -7,7 +7,7 @@
 #include <map>
 
 class PHCompositeNode;
-class PHG4CylinderCell;
+class PHG4Cell;
 
 class PHG4CylinderCellReco : public SubsysReco
 {
@@ -22,10 +22,9 @@ class PHG4CylinderCellReco : public SubsysReco
   
     //! event processing
   int process_event(PHCompositeNode *topNode);
-  
-  //! end of process
-  int End(PHCompositeNode *topNode);
-  
+
+  int   ResetEvent(PHCompositeNode *topNode);
+
   void Detector(const std::string &d);
   void cellsize(const int i, const double sr, const double sz);
   void etaphisize(const int i, const double deltaeta, const double deltaphi);
@@ -61,8 +60,9 @@ class PHG4CylinderCellReco : public SubsysReco
   std::string geonodename;
   std::string seggeonodename;
   std::map<int, std::pair<int, int> > n_phi_z_bins;
-  std::map<unsigned long long, PHG4CylinderCell*> cellptmap;  // This map holds the hit cells
-  std::map<unsigned long long, PHG4CylinderCell*>::iterator it;
+  std::map<unsigned long long, PHG4Cell*> cellptmap;  // This map holds the hit cells
+  std::map<unsigned long long, PHG4Cell*>::iterator it;
+  std::map<int, std::pair<double,double> > tmin_max;
 
   PHTimeServer::timer _timer;
   int nbins[2];
@@ -71,7 +71,8 @@ class PHG4CylinderCellReco : public SubsysReco
   //! timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
   double tmin_default;
   double tmax_default;
-  std::map<int, std::pair<double,double> > tmin_max;
+  double sum_energy_before_cuts;
+  double sum_energy_g4hit;
 };
 
 #endif
