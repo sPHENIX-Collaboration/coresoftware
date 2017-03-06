@@ -44,6 +44,7 @@ int
 PHG4BlockCellReco::ResetEvent(PHCompositeNode *topNode)
 {
   sum_energy_g4hit = 0.;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
@@ -424,7 +425,6 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
           int ixbin = vx[i1];
           int ietabin = veta[i1];
           int ibin = ixbin*nzbins+ietabin;
-
           if (!cellptarray[ibin])
           {
             PHG4CellDefs::keytype key = PHG4CellDefs::EtaXsizeBinning::genkey(*layer, ixbin, ietabin);
@@ -432,7 +432,10 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
           }
           cellptarray[ibin]->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1]);
 	  cellptarray[ibin]->add_edep(hiter->second->get_edep()*vdedx[i1]);
-	  //, hiter->second->get_light_yield()*vdedx[i1]);
+	  if (hiter->second->has_property(PHG4Hit::prop_light_yield))
+	    {
+	      cellptarray[ibin]->add_light_yield(hiter->second->get_light_yield()*vdedx[i1]);
+	    }
           cellptarray[ibin]->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep()*vdedx[i1]);
 
           // just a sanity check - we don't want to mess up by having Nan's or Infs in our energy deposition
@@ -757,12 +760,15 @@ PHG4BlockCellReco::CheckEnergy(PHCompositeNode *topNode)
   }
 
   else
-  {
-    if (verbosity > 0)
     {
-      cout << Name() << ":total energy for this event: " << sum_energy_g4hit << " GeV" << endl;
+      if (verbosity > 0)
+	{
+	  cout << Name() << ": sum hit energy: " << sum_energy_g4hit << " GeV" << endl;
+	  cout << Name() << ": sum cell energy: " << sum_energy_cells << " GeV" << endl;
+	  cout << Name() << ": sum shower energy: " << sum_energy_stored_showers << " GeV" << endl;
+	  cout << Name() << ": sum stored hit energy: " << sum_energy_stored_hits << " GeV" << endl;
+	}
     }
-  }
 
   return 0;
 }
