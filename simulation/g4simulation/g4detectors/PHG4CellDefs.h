@@ -32,9 +32,13 @@ namespace PHG4CellDefs
   bool has_binning(PHG4CellDefs::keytype key, PHG4CellDefs::CellBinning binning);
   short int get_detid(const PHG4CellDefs::keytype key);
 
-  /* namespace sizebinning */
-  /*   { */
-  /*   }; */
+  namespace SizeBinning
+  {
+    keytype genkey(const unsigned short layer, const unsigned short zbin, const unsigned short iphibin);
+    unsigned short int get_zbin(const PHG4CellDefs::keytype key);
+    unsigned short int get_phibin(const PHG4CellDefs::keytype key);
+  };
+
   namespace EtaPhiBinning
   {
     keytype genkey(const unsigned short layer, const unsigned short etabin, const unsigned short phibin);

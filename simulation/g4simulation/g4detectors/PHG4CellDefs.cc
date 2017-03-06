@@ -56,6 +56,27 @@ PHG4CellDefs::EtaPhiBinning::get_phibin(const PHG4CellDefs::keytype key)
 }
 
 PHG4CellDefs::keytype
+PHG4CellDefs::SizeBinning::genkey(const unsigned short detid, const unsigned short zbin, const unsigned short iphi)
+{
+  PHG4CellDefs::keytype key = generic_16bit_genkey(detid, sizebinning, zbin, iphi);
+  return key;
+}
+
+unsigned short int
+PHG4CellDefs::SizeBinning::get_phibin(const PHG4CellDefs::keytype key)
+{
+  unsigned short int etabin = generic_lower_16bit_key(key, sizebinning);
+  return etabin;
+}
+
+unsigned short int
+PHG4CellDefs::SizeBinning::get_zbin(const PHG4CellDefs::keytype key)
+{
+  unsigned short int phibin = generic_upper_16bit_key(key, sizebinning);
+  return phibin;
+}
+
+PHG4CellDefs::keytype
 PHG4CellDefs::EtaXsizeBinning::genkey(const unsigned short detid, const unsigned short ixbin, const unsigned short ieta)
 {
   PHG4CellDefs::keytype key = generic_16bit_genkey(detid, etaxsizebinning, ixbin, ieta);
