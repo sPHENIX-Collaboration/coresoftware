@@ -1,15 +1,20 @@
 #ifndef PHG4CYLINDERCELLRECO_H
 #define PHG4CYLINDERCELLRECO_H
 
+
+#include "PHG4ParameterContainerInterface.h"
+
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
-#include <string>
+
 #include <map>
+#include <set>
+#include <string>
 
 class PHCompositeNode;
 class PHG4Cell;
 
-class PHG4CylinderCellReco : public SubsysReco
+class PHG4CylinderCellReco : public SubsysReco, public PHG4ParameterContainerInterface
 {
  public:
 
@@ -23,7 +28,9 @@ class PHG4CylinderCellReco : public SubsysReco
     //! event processing
   int process_event(PHCompositeNode *topNode);
 
-  int   ResetEvent(PHCompositeNode *topNode);
+  int ResetEvent(PHCompositeNode *topNode);
+
+  void SetDefaultParameters();
 
   void Detector(const std::string &d);
   void cellsize(const int i, const double sr, const double sz);
@@ -33,15 +40,10 @@ class PHG4CylinderCellReco : public SubsysReco
 
   double get_timing_window_min(const int i) {return tmin_max[i].first;}
   double get_timing_window_max(const int i) {return tmin_max[i].second;}
-  void   set_timing_window(const int i, const double tmin, const double tmax) {
-    tmin_max[i] = std::make_pair(tmin,tmax);
-  }
-  void   set_timing_window_defaults(const double tmin, const double tmax) {
-    tmin_default = tmin; tmax_default = tmax;
-  }
+  void   set_timing_window(const int detid, const double tmin, const double tmax);
 
  protected:
-  void set_size(const int i, const double sizeA, const double sizeB, const int what);
+  void set_size(const int i, const double sizeA, const double sizeB);
   int CheckEnergy(PHCompositeNode *topNode);
   static std::pair<double, double> get_etaphi(const double x, const double y, const double z);
   static double get_eta(const double radius, const double z);
@@ -53,6 +55,7 @@ class PHG4CylinderCellReco : public SubsysReco
   std::map<int, std::pair <double,double> > zmin_max; // zmin/zmax for each layer for faster lookup
   std::map<int, double> phistep;
   std::map<int, double> etastep;
+  std::set<int> implemented_detid;
   std::string detector;
   std::string outdetector;
   std::string hitnodename;
@@ -68,9 +71,6 @@ class PHG4CylinderCellReco : public SubsysReco
   int nbins[2];
   int chkenergyconservation;
 
-  //! timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
-  double tmin_default;
-  double tmax_default;
   double sum_energy_before_cuts;
   double sum_energy_g4hit;
 };

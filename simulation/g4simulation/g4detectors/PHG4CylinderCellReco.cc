@@ -8,6 +8,8 @@
 #include "PHG4CellContainer.h"
 #include "PHG4CellDefs.h"
 
+#include "PHG4ParametersContainer.h"
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -29,13 +31,13 @@ using namespace std;
 
 PHG4CylinderCellReco::PHG4CylinderCellReco(const string &name) :
   SubsysReco(name),
+  PHG4ParameterContainerInterface(name),
   _timer(PHTimeServer::get()->insert_new(name)),
   chkenergyconservation(0),
-  tmin_default(0.0),  // ns
-  tmax_default(60.0), // ns
   sum_energy_before_cuts(0.),
   sum_energy_g4hit(0.)
 {
+  SetDefaultParameters();
   memset(nbins, 0, sizeof(nbins));
 }
 
@@ -59,6 +61,23 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
       exit(1);
     }
+  PHCompositeNode *runNode;
+  runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
+  if (!runNode)
+    {
+      cout << Name() << "DST Node missing, doing nothing." << endl;
+      exit(1);
+    }
+  PHNodeIterator runiter(runNode);
+  PHCompositeNode *RunDetNode =
+    dynamic_cast<PHCompositeNode*>(runiter.findFirst("PHCompositeNode",
+						     detector));
+  if (!RunDetNode)
+    {
+      RunDetNode = new PHCompositeNode(detector);
+      runNode->addNode(RunDetNode);
+    }
+
   hitnodename = "G4HIT_" + detector;
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
@@ -106,6 +125,10 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       runNode->addNode(newNode);
     }
 
+  GetParamsContainerModify()->set_name(detector);
+
+  UpdateParametersWithMacro();
+
   map<int, PHG4CylinderGeom *>::const_iterator miter;
   pair <map<int, PHG4CylinderGeom *>::const_iterator, map<int, PHG4CylinderGeom *>::const_iterator> begin_end = geo->get_begin_end();
   map<int, std::pair <double, double> >::iterator sizeiter;
@@ -113,6 +136,15 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
     {
       PHG4CylinderGeom *layergeom = miter->second;
       int layer = layergeom->get_layer();
+      if (!ExistDetid(layer))
+	{
+	  cout << Name() << ": No parameters for detid/layer " << layer 
+	       << ", hits from this detid/layer will not be accumulated into cells" << endl;
+	  continue;
+	}
+      implemented_detid.insert(layer);
+      set_size(layer,get_double_param(layer,"size_long"),get_double_param(layer,"size_perp"));
+      tmin_max.insert(std::make_pair(layer, std::make_pair(get_double_param(layer, "tmin"), get_double_param(layer, "tmax"))));
       double circumference = layergeom->get_radius() * 2 * M_PI;
       double length_in_z = layergeom->get_zmax() - layergeom->get_zmin();
       sizeiter = cell_size.find(layer);
@@ -260,14 +292,6 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
 	}
     }
 
-  for (std::map<int, int>::iterator iter = binning.begin();
-       iter != binning.end(); ++iter)
-    {
-      int layer = iter->first;
-      // if the user doesn't set an integration window, set the default
-      tmin_max.insert(std::make_pair(layer, std::make_pair(tmin_default, tmax_default)));
-    }
-
   // print out settings
   if (verbosity > 0)
     {
@@ -296,7 +320,8 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
 	}
       cout << "===========================================================================" << endl;
     }
-
+  string nodename = "G4CELLPARAM_" + GetParamsContainer()->Name();
+  SaveToNodeTree(RunDetNode,nodename);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -337,6 +362,11 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
   //     }
   for (layer = layer_begin_end.first; layer != layer_begin_end.second; layer++)
     {
+      // only handle layers/detector ids which have parameters set
+      if (implemented_detid.find(*layer) == implemented_detid.end())
+	{
+	  continue;
+	}
       PHG4HitContainer::ConstIterator hiter;
       PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(*layer);
       PHG4CylinderCellGeom *geo = seggeo->GetLayerCellGeom(*layer);
@@ -815,28 +845,44 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 }
 
 void
-PHG4CylinderCellReco::cellsize(const int i, const double sr, const double sz)
+PHG4CylinderCellReco::cellsize(const int detid, const double sr, const double sz)
 {
-  set_size(i, sr, sz, PHG4CellDefs::sizebinning);
+  if (binning.find(detid) != binning.end())
+    {
+      cout << "size for layer " << detid << " already set" << endl;
+      return;
+    }
+  binning[detid] = PHG4CellDefs::sizebinning;
+  set_double_param(detid,"size_long",sz);
+  set_double_param(detid,"size_perp",sr);
 }
 
 void
-PHG4CylinderCellReco::etaphisize(const int i, const double deltaeta, const double deltaphi)
+PHG4CylinderCellReco::etaphisize(const int detid, const double deltaeta, const double deltaphi)
 {
-  set_size(i, deltaeta, deltaphi, PHG4CellDefs::etaphibinning);
+  if (binning.find(detid) != binning.end())
+    {
+      cout << "size for layer " << detid << " already set" << endl;
+      return;
+    }
+  binning[detid] = PHG4CellDefs::etaphibinning;
+  set_double_param(detid,"size_long",deltaeta);
+  set_double_param(detid,"size_perp",deltaphi);
   return;
 }
 
 void
-PHG4CylinderCellReco::set_size(const int i, const double sizeA, const double sizeB, const int what)
+PHG4CylinderCellReco::set_size(const int i, const double sizeA, const double sizeB)
 {
-  if (binning.find(i) != binning.end())
-    {
-      cout << "size for layer " << i << " already set" << endl;
-      return;
-    }
-  binning[i] = what;
   cell_size[i] = std::make_pair(sizeA, sizeB);
+  return;
+}
+
+void
+PHG4CylinderCellReco::set_timing_window(const int detid, const double tmin, const double tmax)
+{
+  set_double_param(detid,"tmin",tmin);
+  set_double_param(detid,"tmax",tmax);
   return;
 }
 
@@ -1028,7 +1074,6 @@ bool  PHG4CylinderCellReco::line_and_rectangle_intersect(
 int
 PHG4CylinderCellReco::CheckEnergy(PHCompositeNode *topNode)
 {
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   double sum_energy_cells = 0.;
   double sum_energy_stored_hits = 0.;
@@ -1106,5 +1151,15 @@ PHG4CylinderCellReco::Detector(const std::string &d)
     {
       OutputDetector(d);
     }
+  return;
+}
+
+void
+PHG4CylinderCellReco::SetDefaultParameters()
+{
+  set_default_double_param("size_long",NAN);
+  set_default_double_param("size_perp",NAN);
+  set_default_double_param("tmax",60.0);
+  set_default_double_param("tmin",0.0);
   return;
 }
