@@ -3,16 +3,24 @@
 #include "RawTowerGeomContainer_Cylinderv1.h"
 #include "RawTowerGeomv1.h"
 #include "RawTowerv1.h"
+
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderCell.h>
 #include <g4detectors/PHG4CylinderCellDefs.h>
+
+#include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4Cell.h>
+#include <g4detectors/PHG4CellDefs.h>
+
+#include <g4main/PHG4Utils.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHIODataNode.h>
-#include <g4main/PHG4Utils.h>
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
 
 #include <iostream>
@@ -22,13 +30,23 @@
 using namespace std;
 
 RawTowerBuilder::RawTowerBuilder(const std::string& name) :
-    SubsysReco(name), _towers(NULL), rawtowergeom(NULL), detector("NONE"), _cell_binning(
-        PHG4CylinderCellDefs::undefined), emin(1e-6), chkenergyconservation(0), _nlayers(
-        -1), _nphibins(-1), _netabins(-1), _etamin(NAN), _phimin(NAN), _etastep(
-        NAN), _phistep(NAN), _tower_energy_src(kLightYield), _timer(
-        PHTimeServer::get()->insert_new(name))
-{
-}
+  SubsysReco(name),
+  _towers(nullptr),
+  rawtowergeom(nullptr),
+  detector("NONE"),
+  _cell_binning(PHG4CellDefs::undefined),
+  emin(1e-6),
+  chkenergyconservation(0),
+  _nlayers(-1),
+  _nphibins(-1),
+  _netabins(-1),
+  _etamin(NAN),
+  _phimin(NAN),
+  _etastep(NAN),
+  _phistep(NAN),
+  _tower_energy_src(kLightYield),
+  _timer(PHTimeServer::get()->insert_new(name))
+{}
 
 int
 RawTowerBuilder::InitRun(PHCompositeNode *topNode)
@@ -38,7 +56,7 @@ RawTowerBuilder::InitRun(PHCompositeNode *topNode)
       PHG4CylinderCellGeomContainer>(topNode, geonodename.c_str());
   if (!cellgeos)
     {
-      std::cerr << PHWHERE << " " << geonodename
+      cout << PHWHERE << " " << geonodename
           << " Node missing, doing nothing." << std::endl;
       throw std::runtime_error(
           "Failed to find " + geonodename
@@ -52,8 +70,7 @@ RawTowerBuilder::InitRun(PHCompositeNode *topNode)
 
   // Looking for the DST node
   PHCompositeNode *dstNode;
-  dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",
-      "DST"));
+  dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
   if (!dstNode)
     {
       std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
@@ -93,8 +110,7 @@ RawTowerBuilder::process_event(PHCompositeNode *topNode)
 
   // get cells
   std::string cellnodename = "G4CELL_" + detector;
-  PHG4CylinderCellContainer* cells = findNode::getClass<
-      PHG4CylinderCellContainer>(topNode, cellnodename.c_str());
+  PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename.c_str());
   if (!cells)
     {
       std::cerr << PHWHERE << " " << cellnodename
@@ -103,12 +119,12 @@ RawTowerBuilder::process_event(PHCompositeNode *topNode)
     }
 
   // loop over all cells in an event
-  PHG4CylinderCellContainer::ConstIterator cell_iter;
-  PHG4CylinderCellContainer::ConstRange cell_range = cells->getCylinderCells();
+  PHG4CellContainer::ConstIterator cell_iter;
+  PHG4CellContainer::ConstRange cell_range = cells->getCells();
   for (cell_iter = cell_range.first; cell_iter != cell_range.second;
       ++cell_iter)
     {
-      PHG4CylinderCell *cell = cell_iter->second;
+      PHG4Cell *cell = cell_iter->second;
 
       if (verbosity > 2)
         {
@@ -117,25 +133,30 @@ RawTowerBuilder::process_event(PHCompositeNode *topNode)
         }
 
       // add the energy to the corresponding tower
-      RawTower *tower = _towers->getTower(cell->get_binz(), cell->get_binphi());
+      RawTower *tower = _towers->getTower(PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid()), PHG4CellDefs::SizeBinning::get_phibin(cell->get_cellid()));
       if (!tower)
         {
           tower = new RawTowerv1();
           tower->set_energy(0);
-          _towers->AddTower(cell->get_binz(), cell->get_binphi(), tower);
+          _towers->AddTower(PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid()), PHG4CellDefs::SizeBinning::get_phibin(cell->get_cellid()), tower);
         }
       float cell_weight = 0;
       if (_tower_energy_src == kEnergyDeposition)
+	{
         cell_weight = cell->get_edep();
+	}
       else if (_tower_energy_src == kLightYield)
+	{
         cell_weight = cell->get_light_yield();
+	}
 
-      tower->add_ecell(cell->get_cell_id(), cell_weight);
+      tower->add_ecell(cell->get_cellid(), cell_weight);
 
-      PHG4CylinderCell::ShowerEdepConstRange range = cell->get_g4showers();
-      for (PHG4CylinderCell::ShowerEdepConstIterator shower_iter = range.first;
+      PHG4Cell::ShowerEdepConstRange range = cell->get_g4showers();
+      for (PHG4Cell::ShowerEdepConstIterator shower_iter = range.first;
 	   shower_iter != range.second;
-	   ++shower_iter) {
+	   ++shower_iter) 
+{
 	tower->add_eshower(shower_iter->first,shower_iter->second);
       }
       
@@ -143,8 +164,7 @@ RawTowerBuilder::process_event(PHCompositeNode *topNode)
 
       if (verbosity > 2)
         {
-          rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode,
-              TowerGeomNodeName.c_str());
+          rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode, TowerGeomNodeName.c_str());
           tower->identify();
         }
     }
@@ -182,12 +202,6 @@ RawTowerBuilder::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int
-RawTowerBuilder::End(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 void
 RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 {
@@ -218,11 +232,9 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
               + " node in RawTowerBuilder::CreateNodes");
     }
   TowerGeomNodeName = "TOWERGEOM_" + detector;
-  rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode,
-      TowerGeomNodeName.c_str());
+  rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode, TowerGeomNodeName.c_str());
   if (!rawtowergeom)
     {
-
       rawtowergeom = new RawTowerGeomContainer_Cylinderv1(caloid);
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(rawtowergeom,
           TowerGeomNodeName.c_str(), "PHObject");
@@ -238,7 +250,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
       cellgeos->get_begin_end();
   int ifirst = 1;
   int first_layer = -1;
-  PHG4CylinderCellGeom * first_cellgeo = NULL;
+  PHG4CylinderCellGeom * first_cellgeo = nullptr;
   double inner_radius = 0;
   double thickness = 0;
   for (miter = begin_end.first; miter != begin_end.second; ++miter)
@@ -257,18 +269,18 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
           _nphibins = cellgeo->get_phibins();
           _phimin = cellgeo->get_phimin();
           _phistep = cellgeo->get_phistep();
-          if (_cell_binning == PHG4CylinderCellDefs::etaphibinning
-              or _cell_binning == PHG4CylinderCellDefs::etaslatbinning)
+          if (_cell_binning == PHG4CellDefs::etaphibinning
+              || _cell_binning == PHG4CellDefs::etaslatbinning)
             {
               _netabins = cellgeo->get_etabins();
               _etamin = cellgeo->get_etamin();
               _etastep = cellgeo->get_etastep();
             }
-          else if (_cell_binning == PHG4CylinderCellDefs::sizebinning)
+          else if (_cell_binning == PHG4CellDefs::sizebinning)
             {
               _netabins = cellgeo->get_zbins(); // bin eta in the same number of z bins
             }
-          else if (_cell_binning == PHG4CylinderCellDefs::spacalbinning)
+          else if (_cell_binning == PHG4CellDefs::spacalbinning)
             {
               // use eta definiton for each row of towers
               _netabins = cellgeo->get_etabins();
@@ -320,8 +332,8 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
                   << " diff: " << _phistep - cellgeo->get_phistep() << endl;
               exit(1);
             }
-          if (_cell_binning == PHG4CylinderCellDefs::etaphibinning
-              or _cell_binning == PHG4CylinderCellDefs::etaslatbinning)
+          if (_cell_binning == PHG4CellDefs::etaphibinning
+              || _cell_binning == PHG4CellDefs::etaslatbinning)
             {
               if (_netabins != cellgeo->get_etabins())
                 {
@@ -347,7 +359,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
                 }
             }
 
-          else if (_cell_binning == PHG4CylinderCellDefs::sizebinning)
+          else if (_cell_binning == PHG4CellDefs::sizebinning)
             {
 
               if (_netabins != cellgeo->get_zbins())
@@ -367,7 +379,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 //  rawtowergeom->set_phimin(_phimin);
   rawtowergeom->set_etabins(_netabins);
 
-  if (first_cellgeo == NULL)
+  if (!first_cellgeo)
     {
       cout
           << "RawTowerBuilder::CreateNodes - ERROR - can not find first layer of cells "
@@ -384,9 +396,9 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
       rawtowergeom->set_phibounds(ibin, range);
     }
 
-  if (_cell_binning == PHG4CylinderCellDefs::etaphibinning
-      or _cell_binning == PHG4CylinderCellDefs::etaslatbinning
-      or _cell_binning == PHG4CylinderCellDefs::spacalbinning)
+  if (_cell_binning == PHG4CellDefs::etaphibinning
+      || _cell_binning == PHG4CellDefs::etaslatbinning
+      || _cell_binning == PHG4CellDefs::spacalbinning)
     {
       const double r = inner_radius + thickness / 2.;
 
@@ -400,6 +412,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 
       // setup location of all towers
       for (int iphi = 0; iphi < rawtowergeom->get_phibins(); iphi++)
+	{
         for (int ieta = 0; ieta < rawtowergeom->get_etabins(); ieta++)
           {
             RawTowerGeomv1 * tg = new RawTowerGeomv1(
@@ -410,9 +423,9 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
             tg->set_center_z(r / tan(PHG4Utils::get_theta(rawtowergeom->get_etacenter(ieta))));
             rawtowergeom->add_tower_geometry(tg);
           }
-
+	}
     }
-  else if (_cell_binning == PHG4CylinderCellDefs::sizebinning)
+  else if (_cell_binning == PHG4CellDefs::sizebinning)
     {
       const double r = inner_radius + thickness / 2.;
 
@@ -428,6 +441,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 
       // setup location of all towers
       for (int iphi = 0; iphi < rawtowergeom->get_phibins(); iphi++)
+	{
         for (int ibin = 0; ibin < first_cellgeo->get_zbins(); ibin++)
           {
             RawTowerGeomv1 * tg = new RawTowerGeomv1(
@@ -439,12 +453,12 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 
             rawtowergeom->add_tower_geometry(tg);
           }
+	}
     }
   else
     {
-      cout
-          << "RawTowerBuilder::CreateNodes - ERROR - unsupported cell geometry "
-          << _cell_binning << endl;
+      cout << "RawTowerBuilder::CreateNodes - ERROR - unsupported cell geometry "
+           << _cell_binning << endl;
       exit(1);
     }
 
@@ -453,8 +467,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
       rawtowergeom->identify();
     }
 
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
-      "PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
     {
       std::cerr << PHWHERE << "DST Node missing, doing nothing." << std::endl;
