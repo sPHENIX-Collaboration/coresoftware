@@ -49,6 +49,12 @@ int DumpPHG4CellContainer::process_Node(PHNode *myNode)
 	      *fout << "get_etabin: " << PHG4CellDefs::EtaPhiBinning::get_etabin(celler->second->get_cellid()) << endl;
 	      *fout << "get_phibin: " << PHG4CellDefs::EtaPhiBinning::get_phibin(celler->second->get_cellid()) << endl;
 	    }
+	  else if (celler->second->has_binning(PHG4CellDefs::spacalbinning))
+	    {
+	      *fout << "get_etabin: " << PHG4CellDefs::SpacalBinning::get_etabin(celler->second->get_cellid()) << endl;
+	      *fout << "get_phibin: " << PHG4CellDefs::SpacalBinning::get_phibin(celler->second->get_cellid()) << endl;
+	      *fout << "get_fiberid: " << PHG4CellDefs::SpacalBinning::get_fiberid(celler->second->get_cellid()) << endl;
+	    }
 	  else if (celler->second->has_binning(PHG4CellDefs::etaxsizebinning))
 	    {
 	      *fout << "get_etabin: " << PHG4CellDefs::EtaXsizeBinning::get_etabin(celler->second->get_cellid()) << endl;
