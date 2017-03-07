@@ -26,7 +26,9 @@ class PHG4Cellv1: public PHG4Cell
   bool has_binning(const PHG4CellDefs::CellBinning binning) const;
   short int get_detid() const;
 
-  void set_layer(const int i) {set_property(prop_layer,i);}
+  void set_fiber_ID(const int i) {set_property(prop_fiber_ID,i);}
+  int get_fiber_ID() const {return get_property_int(prop_fiber_ID);}
+
   void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep);
   void add_shower_edep(const int g4showerid, const float edep);
 

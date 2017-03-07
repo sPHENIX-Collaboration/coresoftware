@@ -8,7 +8,7 @@
 #include <vector>
 
 class PHCompositeNode;
-class PHG4CylinderCell;
+class PHG4Cell;
 class TH2;
 class TH1;
 
@@ -86,7 +86,7 @@ class PHG4FullProjSpacalCellReco : public SubsysReco
 
   PHTimeServer::timer _timer;
   int chkenergyconservation;
-  std::map<unsigned int, PHG4CylinderCell *> celllist;
+  std::map<unsigned int, PHG4Cell *> celllist;
 
   //! timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
   double tmin_default;

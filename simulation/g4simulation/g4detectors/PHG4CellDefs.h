@@ -30,6 +30,7 @@ namespace PHG4CellDefs
 
   enum CellBinning {undefined = 0, sizebinning = 1, etaphibinning = 2, etaslatbinning = 3, spacalbinning = 4, scintillatorslatbinning = 5, etaxsizebinning = 6};
   bool has_binning(PHG4CellDefs::keytype key, PHG4CellDefs::CellBinning binning);
+  short get_binning(PHG4CellDefs::keytype key);
   short int get_detid(const PHG4CellDefs::keytype key);
 
   namespace SizeBinning
@@ -44,6 +45,14 @@ namespace PHG4CellDefs
     keytype genkey(const unsigned short layer, const unsigned short etabin, const unsigned short phibin);
     unsigned short int get_etabin(const PHG4CellDefs::keytype key);
     unsigned short int get_phibin(const PHG4CellDefs::keytype key);
+  };
+
+  namespace SpacalBinning
+  {
+    keytype genkey(const unsigned short etabin, const unsigned short phibin, const unsigned short fiberid);
+    unsigned short get_etabin(PHG4CellDefs::keytype key);
+    unsigned short get_phibin(PHG4CellDefs::keytype key);
+    unsigned short get_fiberid(PHG4CellDefs::keytype key);
   };
 
   namespace ScintillatorSlatBinning 

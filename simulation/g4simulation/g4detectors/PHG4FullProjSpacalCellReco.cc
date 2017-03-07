@@ -2,14 +2,18 @@
 
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeom_Spacalv3.h"
-#include "PHG4CylinderCell_Spacalv1.h"
+//#include "PHG4CylinderCell_Spacalv1.h"
 #include "PHG4CylinderCellGeomContainer.h"
 #include "PHG4CylinderCellGeom.h"
 #include "PHG4CylinderCellGeom_Spacalv1.h"
-#include "PHG4CylinderCellContainer.h"
-#include "PHG4CylinderCellDefs.h"
+//#include "PHG4CylinderCellContainer.h"
+//#include "PHG4CylinderCellDefs.h"
+
 #include "PHG4CellContainer.h"
 #include "PHG4CellDefs.h"
+#include "PHG4Cellv1.h"
+
+
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -71,7 +75,7 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       exit(1);
     }
   cellnodename = "G4CELL_" + detector;
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode, cellnodename);
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   if (!cells)
     {
       PHNodeIterator dstiter(dstNode);
@@ -82,7 +86,7 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
           DetNode = new PHCompositeNode(detector);
           dstNode->addNode(DetNode);
         }
-      cells = new PHG4CylinderCellContainer();
+      cells = new PHG4CellContainer();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str(), "PHObject");
       DetNode->addNode(newNode);
     }
@@ -151,7 +155,7 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       layerseggeo->set_layer(layergeom->get_layer());
       layerseggeo->set_radius(layergeom->get_radius());
       layerseggeo->set_thickness(layergeom->get_thickness());
-      layerseggeo->set_binning(PHG4CylinderCellDefs::spacalbinning);
+      layerseggeo->set_binning(PHG4CellDefs::spacalbinning);
 
       // construct a map to convert tower_ID into the older eta bins.
 
@@ -282,7 +286,7 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
            << hitnodename << endl;
       exit(1);
     }
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode, cellnodename);
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   if (!cells)
     {
       cout << "PHG4FullProjSpacalCellReco::process_event - Fatal Error - could not locate cell node "
@@ -348,7 +352,13 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
           assert(it_tower != layergeom->get_sector_tower_map().end());
 
           unsigned int key = static_cast<unsigned int>(scint_id);
-          if (celllist.find(key) == celllist.end())
+	  PHG4Cell *cell = nullptr;
+	  map<unsigned int, PHG4Cell *>::iterator it = celllist.find(key);
+	  if (it != celllist.end())
+	    {
+	      cell = it->second;
+	    }
+          else
             {
 
               // convert tower_ID_z to to eta bin number
@@ -372,12 +382,12 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
 
               const int sub_tower_ID_x = it_tower->second.get_sub_tower_ID_x(decoder.fiber_ID);
               const int sub_tower_ID_y = it_tower->second.get_sub_tower_ID_y(decoder.fiber_ID);
-
-              celllist[key] = new PHG4CylinderCell_Spacalv1();
-              celllist[key]->set_layer(*layer);
-              celllist[key]->set_phibin(tower_ID_phi * layergeom->get_n_subtower_phi() + sub_tower_ID_x);
-              celllist[key]->set_etabin(etabin * layergeom->get_n_subtower_eta() + sub_tower_ID_y);
-              celllist[key]->set_fiber_ID(decoder.fiber_ID);
+	      unsigned short fiber_ID = decoder.fiber_ID;
+	      unsigned short etabinshort  =  etabin * layergeom->get_n_subtower_eta() + sub_tower_ID_y;
+	      unsigned short phibin = tower_ID_phi * layergeom->get_n_subtower_phi() + sub_tower_ID_x;
+	      PHG4CellDefs::keytype cellkey = PHG4CellDefs::SpacalBinning::genkey(etabinshort,phibin,fiber_ID);
+	      cell = new PHG4Cellv1(cellkey);
+              celllist[key] = cell;
             }
 
           double light_yield = hiter->second->get_light_yield();
@@ -402,25 +412,30 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
               light_yield *= light_collection_model.get_light_guide_efficiency(x, y);
             }
 
-          celllist[key]->add_edep(hiter->first, hiter->second->get_edep(), light_yield);
-          celllist[key]->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep());
+          cell->add_edep(hiter->first, hiter->second->get_edep());
+          cell->add_edep(hiter->second->get_edep());
+	  cell->add_light_yield(light_yield);
+          cell->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep());
 
         } // end loop over g4hits
       int numcells = 0;
-      for (map<unsigned int, PHG4CylinderCell *>::const_iterator mapiter =
+      for (map<unsigned int, PHG4Cell *>::const_iterator mapiter =
           celllist.begin(); mapiter != celllist.end(); ++mapiter)
         {
-          cells->AddCylinderCell(*layer, mapiter->second);
+          cells->AddCell(mapiter->second);
           numcells++;
           if (verbosity > 1)
             {
               cout << "PHG4FullProjSpacalCellReco::process_event::" << Name()
-                  << " - " << "Adding cell in bin eta "
-                  << (mapiter->second->get_bineta()) << " phi "
-                  << (mapiter->second->get_binphi()) << " fiber "
-                  << (mapiter->second->get_fiber_ID()) << ", energy dep: "
-                  << mapiter->second->get_edep() << ", light yield: "
-                  << mapiter->second->get_light_yield() << endl;
+                   << " - " << "Adding cell in bin eta "
+		   << PHG4CellDefs::SpacalBinning::get_etabin(mapiter->second->get_cellid()) 
+                   << " phi "
+                   << PHG4CellDefs::SpacalBinning::get_phibin(mapiter->second->get_cellid()) 
+                   << " fiber "
+                   << PHG4CellDefs::SpacalBinning::get_fiberid(mapiter->second->get_cellid()) 
+                   << ", energy dep: "
+                   << mapiter->second->get_edep() << ", light yield: "
+                   << mapiter->second->get_light_yield() << endl;
             }
         }
       celllist.clear();
@@ -445,8 +460,8 @@ PHG4FullProjSpacalCellReco::CheckEnergy(PHCompositeNode *topNode)
 {
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode,
       hitnodename.c_str());
-  PHG4CylinderCellContainer *cells = findNode::getClass<
-      PHG4CylinderCellContainer>(topNode, cellnodename);
+  PHG4CellContainer *cells = findNode::getClass<
+      PHG4CellContainer>(topNode, cellnodename);
   double sum_energy_g4hit = 0.;
   double sum_energy_cells = 0.;
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
@@ -455,9 +470,9 @@ PHG4FullProjSpacalCellReco::CheckEnergy(PHCompositeNode *topNode)
     {
       sum_energy_g4hit += hiter->second->get_edep();
     }
-  PHG4CylinderCellContainer::ConstRange cell_begin_end =
-      cells->getCylinderCells();
-  PHG4CylinderCellContainer::ConstIterator citer;
+  PHG4CellContainer::ConstRange cell_begin_end =
+      cells->getCells();
+  PHG4CellContainer::ConstIterator citer;
   for (citer = cell_begin_end.first; citer != cell_begin_end.second; ++citer)
     {
       sum_energy_cells += citer->second->get_edep();
@@ -486,8 +501,8 @@ PHG4FullProjSpacalCellReco::CheckEnergy(PHCompositeNode *topNode)
 }
 
 PHG4FullProjSpacalCellReco::LightCollectionModel::LightCollectionModel() :
-    data_grid_light_guide_efficiency(NULL), 
-    data_grid_fiber_trans(NULL)
+    data_grid_light_guide_efficiency(nullptr), 
+    data_grid_fiber_trans(nullptr)
 {
 
   data_grid_light_guide_efficiency_verify = new TH2F("data_grid_light_guide_efficiency_verify",
@@ -525,11 +540,11 @@ PHG4FullProjSpacalCellReco::LightCollectionModel::load_data_file(
 
   data_grid_light_guide_efficiency = dynamic_cast<TH2 *>(fin->Get(histogram_light_guide_model.c_str()));
   assert(data_grid_light_guide_efficiency);
-  data_grid_light_guide_efficiency->SetDirectory(NULL);
+  data_grid_light_guide_efficiency->SetDirectory(nullptr);
 
   data_grid_fiber_trans = dynamic_cast<TH1 *>(fin->Get(histogram_fiber_model.c_str()));
   assert(data_grid_fiber_trans);
-  data_grid_fiber_trans->SetDirectory(NULL);
+  data_grid_fiber_trans->SetDirectory(nullptr);
 
   delete fin;
 }

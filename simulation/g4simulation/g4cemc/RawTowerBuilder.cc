@@ -6,9 +6,6 @@
 
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
-#include <g4detectors/PHG4CylinderCellDefs.h>
 
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4Cell.h>
@@ -136,12 +133,30 @@ RawTowerBuilder::process_event(PHCompositeNode *topNode)
 	}
 
       // add the energy to the corresponding tower
-      RawTower *tower = _towers->getTower(PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid()), PHG4CellDefs::SizeBinning::get_phibin(cell->get_cellid()));
+      RawTower *tower = nullptr;
+      short int firstpar;
+      short int secondpar;
+      if (cell->has_binning(PHG4CellDefs::sizebinning))
+	{
+	  firstpar = PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid());
+	  secondpar = PHG4CellDefs::SizeBinning::get_phibin(cell->get_cellid());
+	}
+      else if (cell->has_binning(PHG4CellDefs::spacalbinning))
+	{
+	  firstpar = PHG4CellDefs::SpacalBinning::get_etabin(cell->get_cellid());
+	  secondpar =  PHG4CellDefs::SpacalBinning::get_phibin(cell->get_cellid());
+	}
+      else
+	{
+	  cout << "unknown cell binning, implement 0x" << hex << PHG4CellDefs::get_binning(cell->get_cellid()) << endl;
+	  exit(1);
+	}
+      tower = _towers->getTower(firstpar,secondpar);
       if (!tower)
 	{
 	  tower = new RawTowerv1();
 	  tower->set_energy(0);
-	  _towers->AddTower(PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid()), PHG4CellDefs::SizeBinning::get_phibin(cell->get_cellid()), tower);
+	  _towers->AddTower(firstpar,secondpar, tower);
 	}
       float cell_weight = 0;
       if (_tower_energy_src == kEnergyDeposition)

@@ -1,5 +1,7 @@
 #include "PHG4CellDefs.h"
 
+#include <phool/phool.h>
+
 #include <iostream>
 
 unsigned short
@@ -14,24 +16,24 @@ generic_16bit_genkey(const unsigned short detid, const PHG4CellDefs::CellBinning
 using namespace std;
 
 PHG4CellDefs::keytype
-PHG4CellDefs::ScintillatorSlatBinning::genkey(const unsigned short detid, const unsigned short icolumn, const unsigned short irow)
+PHG4CellDefs::SizeBinning::genkey(const unsigned short detid, const unsigned short zbin, const unsigned short iphi)
 {
-  PHG4CellDefs::keytype key = generic_16bit_genkey(detid, scintillatorslatbinning, icolumn, irow);
+  PHG4CellDefs::keytype key = generic_16bit_genkey(detid, sizebinning, zbin, iphi);
   return key;
 }
 
 unsigned short int
-PHG4CellDefs::ScintillatorSlatBinning::get_row(PHG4CellDefs::keytype key)
+PHG4CellDefs::SizeBinning::get_phibin(const PHG4CellDefs::keytype key)
 {
-  unsigned short int rowbin = generic_lower_16bit_key(key, scintillatorslatbinning);
-  return rowbin;
+  unsigned short int etabin = generic_lower_16bit_key(key, sizebinning);
+  return etabin;
 }
 
 unsigned short int
-PHG4CellDefs::ScintillatorSlatBinning::get_column(PHG4CellDefs::keytype key)
+PHG4CellDefs::SizeBinning::get_zbin(const PHG4CellDefs::keytype key)
 {
-  unsigned short int columnbin = generic_upper_16bit_key(key, scintillatorslatbinning);
-  return columnbin;
+  unsigned short int phibin = generic_upper_16bit_key(key, sizebinning);
+  return phibin;
 }
 
 PHG4CellDefs::keytype
@@ -56,26 +58,55 @@ PHG4CellDefs::EtaPhiBinning::get_phibin(const PHG4CellDefs::keytype key)
 }
 
 PHG4CellDefs::keytype
-PHG4CellDefs::SizeBinning::genkey(const unsigned short detid, const unsigned short zbin, const unsigned short iphi)
+PHG4CellDefs::SpacalBinning::genkey(const unsigned short etabin, const unsigned short phibin, const unsigned short fiberid)
 {
-  PHG4CellDefs::keytype key = generic_16bit_genkey(detid, sizebinning, zbin, iphi);
+  PHG4CellDefs::keytype key = generic_16bit_genkey(etabin, spacalbinning, phibin, fiberid);
   return key;
 }
 
 unsigned short int
-PHG4CellDefs::SizeBinning::get_phibin(const PHG4CellDefs::keytype key)
+PHG4CellDefs::SpacalBinning::get_etabin(const PHG4CellDefs::keytype key)
 {
-  unsigned short int etabin = generic_lower_16bit_key(key, sizebinning);
+  unsigned long long tmp = key >> 48;
+  unsigned short int etabin = tmp;
   return etabin;
 }
 
 unsigned short int
-PHG4CellDefs::SizeBinning::get_zbin(const PHG4CellDefs::keytype key)
+PHG4CellDefs::SpacalBinning::get_phibin(const PHG4CellDefs::keytype key)
 {
-  unsigned short int phibin = generic_upper_16bit_key(key, sizebinning);
+  unsigned short int phibin = generic_upper_16bit_key(key, spacalbinning);
   return phibin;
 }
 
+unsigned short int
+PHG4CellDefs::SpacalBinning::get_fiberid(const PHG4CellDefs::keytype key)
+{
+  unsigned short int fiberid = generic_lower_16bit_key(key, spacalbinning);
+  return fiberid;
+}
+
+
+PHG4CellDefs::keytype
+PHG4CellDefs::ScintillatorSlatBinning::genkey(const unsigned short detid, const unsigned short icolumn, const unsigned short irow)
+{
+  PHG4CellDefs::keytype key = generic_16bit_genkey(detid, scintillatorslatbinning, icolumn, irow);
+  return key;
+}
+
+unsigned short int
+PHG4CellDefs::ScintillatorSlatBinning::get_row(PHG4CellDefs::keytype key)
+{
+  unsigned short int rowbin = generic_lower_16bit_key(key, scintillatorslatbinning);
+  return rowbin;
+}
+
+unsigned short int
+PHG4CellDefs::ScintillatorSlatBinning::get_column(PHG4CellDefs::keytype key)
+{
+  unsigned short int columnbin = generic_upper_16bit_key(key, scintillatorslatbinning);
+  return columnbin;
+}
 PHG4CellDefs::keytype
 PHG4CellDefs::EtaXsizeBinning::genkey(const unsigned short detid, const unsigned short ixbin, const unsigned short ieta)
 {
@@ -98,6 +129,7 @@ PHG4CellDefs::EtaXsizeBinning::get_xsizebin(const PHG4CellDefs::keytype key)
 }
 
 
+
 bool
 PHG4CellDefs::has_binning(PHG4CellDefs::keytype key, PHG4CellDefs::CellBinning binning)
 {
@@ -108,6 +140,14 @@ PHG4CellDefs::has_binning(PHG4CellDefs::keytype key, PHG4CellDefs::CellBinning b
      return true;
    }
  return false;
+}
+
+short
+PHG4CellDefs::get_binning(PHG4CellDefs::keytype key)
+{
+  keytype tmp = (key >> bitshift_binning) & 0xFFFF;
+  short int i = tmp;
+  return i;
 }
 
 short int
@@ -128,7 +168,9 @@ generic_lower_16bit_key(const PHG4CellDefs::keytype key, const PHG4CellDefs::Cel
      unsigned short int low16bitkey = (key & 0xFFFF);
      return low16bitkey;
    }
- cout << "could not decode 0x" << hex <<  key << dec << endl; 
+ cout << PHWHERE << " could not decode 0x" << hex <<  key << dec << endl; 
+ cout << "key 0x" << hex << key << ", binning: 0x" << tmp
+      << " and: " <<  (key & tmp) << dec << endl;
  exit(1);
 }
 
@@ -144,7 +186,7 @@ generic_upper_16bit_key(const PHG4CellDefs::keytype key, const PHG4CellDefs::Cel
      unsigned short int hi16bitkey = (keytmp & 0xFFFF);
      return hi16bitkey;
    }
- cout << "could not decode 0x" << hex <<  key << dec << endl; 
+ cout << PHWHERE << " could not decode 0x" << hex <<  key << dec << endl; 
  exit(1);
 }
 
