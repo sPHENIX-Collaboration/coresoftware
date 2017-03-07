@@ -508,10 +508,11 @@ void PHG4TrackKalmanFitter::fill_eval_tree(PHCompositeNode *topNode) {
 				*dynamic_cast<SvtxTrack_v1*>(itr->second));
 
 	i = 0;
-	for (SvtxVertexMap::ConstIter itr = _vertexmap->begin();
-			itr != _vertexmap->end(); ++itr)
-		new ((*_tca_vertexmap)[i++]) (SvtxVertex_v1)(
-				*dynamic_cast<SvtxVertex_v1*>(itr->second));
+	if (_vertexmap)
+		for (SvtxVertexMap::ConstIter itr = _vertexmap->begin();
+				itr != _vertexmap->end(); ++itr)
+			new ((*_tca_vertexmap)[i++]) (SvtxVertex_v1)(
+					*dynamic_cast<SvtxVertex_v1*>(itr->second));
 
 	if (_trackmap_refit) {
 		i = 0;
@@ -693,10 +694,10 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 
 	// Input Svtx Vertices
 	_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-	if (!_vertexmap && _event < 2) {
-		cout << PHWHERE << " SvtxVertexrMap node not found on node tree"
+	if (!_vertexmap && _event < 2 && verbosity >= 1) {
+		cout << PHWHERE << " SvtxVertexrMap node not found on node tree, NOT critical"
 				<< endl;
-		return Fun4AllReturnCodes::ABORTEVENT;
+		//return Fun4AllReturnCodes::ABORTEVENT;
 	}
 
 	// Output Svtx Tracks
