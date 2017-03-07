@@ -31,6 +31,8 @@ class TTree;
 class PHG4TruthPatRec: public SubsysReco {
 public:
 
+//	enum DetectorType {MIE, MAPS_TPC, MAPS_IT_TPC, LADDER_MAPS_TPC, LADDER_MAPS_IT_TPC, LADDER_MAPS_LADDER_IT_TPC, MAPS_LADDER_IT_TPC};
+
 	//! Default constructor
 	PHG4TruthPatRec(const std::string &name = "PHG4TruthPatRec");
 
@@ -54,11 +56,42 @@ public:
 		verbosity = verb; // SubsysReco verbosity
 	}
 
+	bool is_use_ladder_intt() const {
+		return _use_ladder_intt;
+	}
+
+	void set_use_ladder_intt(bool useLadderIntt) {
+		_use_ladder_intt = useLadderIntt;
+	}
+
+	bool is_use_ladder_maps() const {
+		return _use_ladder_maps;
+	}
+
+	void set_use_ladder_maps(bool useLadderMaps) {
+		_use_ladder_maps = useLadderMaps;
+	}
+
+//
+//	DetectorType get_detector_type() const {
+//		return _detector_type;
+//	}
+//
+//	void set_detector_type(DetectorType detectorType) {
+//		_detector_type = detectorType;
+//	}
 
 private:
 
 	//! Event counter
 	int _event;
+
+	//!Detector Type
+//	DetectorType _detector_type;
+
+	bool _use_ladder_maps;
+	bool _use_ladder_intt;
+
 
 	//! Get all the nodes
 	int GetNodes(PHCompositeNode *topNode);
