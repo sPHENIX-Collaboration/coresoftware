@@ -56,21 +56,21 @@ public:
 		verbosity = verb; // SubsysReco verbosity
 	}
 
-	bool is_use_ladder_intt() const {
-		return _use_ladder_intt;
-	}
-
-	void set_use_ladder_intt(bool useLadderIntt) {
-		_use_ladder_intt = useLadderIntt;
-	}
-
-	bool is_use_ladder_maps() const {
-		return _use_ladder_maps;
-	}
-
-	void set_use_ladder_maps(bool useLadderMaps) {
-		_use_ladder_maps = useLadderMaps;
-	}
+//	bool is_use_ladder_intt() const {
+//		return _use_ladder_intt;
+//	}
+//
+//	void set_use_ladder_intt(bool useLadderIntt) {
+//		_use_ladder_intt = useLadderIntt;
+//	}
+//
+//	bool is_use_ladder_maps() const {
+//		return _use_ladder_maps;
+//	}
+//
+//	void set_use_ladder_maps(bool useLadderMaps) {
+//		_use_ladder_maps = useLadderMaps;
+//	}
 
 //
 //	DetectorType get_detector_type() const {
@@ -89,8 +89,8 @@ private:
 	//!Detector Type
 //	DetectorType _detector_type;
 
-	bool _use_ladder_maps;
-	bool _use_ladder_intt;
+//	bool _use_ladder_maps;
+//	bool _use_ladder_intt;
 
 
 	//! Get all the nodes

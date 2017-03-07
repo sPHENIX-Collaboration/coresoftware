@@ -72,8 +72,8 @@ using namespace std;
 PHG4TruthPatRec::PHG4TruthPatRec(const std::string& name) :
 	SubsysReco(name),
 //	_detector_type(MAPS_IT_TPC),
-	_use_ladder_maps(false),
-	_use_ladder_intt(false),
+//	_use_ladder_maps(false),
+//	_use_ladder_intt(false),
 	_min_clusters_per_track(10),
 	_truth_container(NULL),
 	_clustermap(NULL),
@@ -100,35 +100,20 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 
 	GetNodes(topNode);
 
-	PHG4HitContainer* phg4hits_svtx = NULL;
-	phg4hits_svtx = findNode::getClass<PHG4HitContainer>(topNode,
-			"G4HIT_SVTX");
-	if (!phg4hits_svtx && _event < 2) {
-		cout << PHWHERE << "G4HIT_SVTX" << " node not found on node tree"
-				<< endl;
+	PHG4HitContainer* phg4hits_svtx = findNode::getClass<PHG4HitContainer>(
+			topNode, "G4HIT_SVTX");
+
+	PHG4HitContainer* phg4hits_maps = findNode::getClass<PHG4HitContainer>(
+			topNode, "G4HIT_MAPS");
+
+	PHG4HitContainer* phg4hits_intt = findNode::getClass<PHG4HitContainer>(
+			topNode, "G4HIT_SILICON_TRACKER");
+
+	if (!phg4hits_svtx and !phg4hits_maps and !phg4hits_intt) {
+		if (verbosity >= 0) {
+			LogError("!phg4hits_svtx and !phg4hits_maps and !phg4hits_intt");
+		}
 		return Fun4AllReturnCodes::ABORTRUN;
-	}
-
-	PHG4HitContainer* phg4hits_maps = NULL;
-	if (_use_ladder_maps) {
-		phg4hits_maps = findNode::getClass<PHG4HitContainer>(topNode,
-				"G4HIT_MAPS");
-		if (!phg4hits_maps && _event < 2) {
-			cout << PHWHERE << "G4HIT_MAPS" << " node not found on node tree"
-					<< endl;
-			return Fun4AllReturnCodes::ABORTRUN;
-		}
-	}
-
-	PHG4HitContainer* phg4hits_intt = NULL;
-	if (_use_ladder_intt) {
-		phg4hits_intt = findNode::getClass<PHG4HitContainer>(topNode,
-				"G4HIT_SILICON_TRACKER");
-		if (!phg4hits_intt && _event < 2) {
-			cout << PHWHERE << "G4HIT_SILICON_TRACKER" << " node not found on node tree"
-					<< endl;
-			return Fun4AllReturnCodes::ABORTRUN;
-		}
 	}
 
 	SvtxHitMap* hitsmap = NULL;
@@ -139,52 +124,20 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
 
-	PHG4CylinderCellContainer* cells_svtx = NULL;
-	cells_svtx = findNode::getClass<PHG4CylinderCellContainer>(topNode,
-			"G4CELL_SVTX");
-	if (!cells_svtx) {
-		cout << PHWHERE << "ERROR: Can't find node G4CELL_SVTX" << endl;
+	PHG4CylinderCellContainer* cells_svtx = findNode::getClass<
+			PHG4CylinderCellContainer>(topNode, "G4CELL_SVTX");
+
+	PHG4CylinderCellContainer* cells_maps = findNode::getClass<
+			PHG4CylinderCellContainer>(topNode, "G4CELL_MAPS");
+
+	PHG4CylinderCellContainer* cells_intt = findNode::getClass<
+			PHG4CylinderCellContainer>(topNode, "G4CELL_SILICON_TRACKER");
+
+	if (!cells_svtx and !cells_maps and !cells_intt) {
+		if (verbosity >= 0) {
+			LogError("!cells_svtx and !cells_maps and !cells_intt");
+		}
 		return Fun4AllReturnCodes::ABORTRUN;
-	}
-
-	PHG4CylinderCellContainer* cells_maps = NULL;
-//	PHG4CylinderGeomContainer* geom_container_maps = NULL;
-
-	if (_use_ladder_maps) {
-//		geom_container_maps = findNode::getClass<PHG4CylinderGeomContainer>(
-//				topNode, "CYLINDERGEOM_MAPS");
-//		if (!geom_container_maps) {
-//			cout << PHWHERE << "ERROR: Can't find node CYLINDERGEOM_MAPS"
-//					<< endl;
-//			return Fun4AllReturnCodes::ABORTRUN;
-//		}
-
-		cells_maps = findNode::getClass<PHG4CylinderCellContainer>(topNode,
-				"G4CELL_MAPS");
-		if (!cells_maps) {
-			cout << PHWHERE << "ERROR: Can't find node G4CELL_MAPS" << endl;
-			return Fun4AllReturnCodes::ABORTRUN;
-		}
-	}
-
-	PHG4CylinderCellContainer* cells_intt = NULL;
-//	PHG4CylinderGeomContainer* geom_container_intt = NULL;
-
-	if (_use_ladder_intt) {
-//		geom_container_intt = findNode::getClass<PHG4CylinderGeomContainer>(
-//				topNode, "CYLINDERGEOM_SILICON_TRACKER");
-//		if (!geom_container_intt) {
-//			cout << PHWHERE << "ERROR: Can't find node CYLINDERGEOM_SILICON_TRACKER"
-//					<< endl;
-//			return Fun4AllReturnCodes::ABORTRUN;
-//		}
-
-		cells_intt = findNode::getClass<PHG4CylinderCellContainer>(topNode,
-				"G4CELL_SILICON_TRACKER");
-		if (!cells_intt) {
-			cout << PHWHERE << "ERROR: Can't find node G4CELL_SILICON_TRACKER" << endl;
-			return Fun4AllReturnCodes::ABORTRUN;
-		}
 	}
 
 	typedef std::map< int, std::set<SvtxCluster*> > TrkClustersMap;
@@ -195,17 +148,6 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 		SvtxCluster *cluster = cluster_itr->second;
 		SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
 		PHG4CylinderCell* cell = NULL;
-
-//		if(_use_ladder_maps && cluster->get_layer() < 3) {
-//			cell = (PHG4CylinderCell*) cells_maps->findCylinderCell(
-//								svtxhit->get_cellid());
-//		} else if(_use_ladder_intt && cluster->get_layer() > 2 && cluster->get_layer() < 7) {
-//			cell = (PHG4CylinderCell*) cells_intt->findCylinderCell(
-//								svtxhit->get_cellid());
-//		} else {
-//			cell = (PHG4CylinderCell*) cells->findCylinderCell(
-//					svtxhit->get_cellid());
-//		}
 
 		if(!cell and cells_svtx) cell = cells_svtx->findCylinderCell(svtxhit->get_cellid());
 		if(!cell and cells_intt) cell = cells_intt->findCylinderCell(svtxhit->get_cellid());
@@ -222,7 +164,6 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 
 		for(PHG4CylinderCell::EdepConstIterator hits_it = cell->get_g4hits().first;
 				hits_it != cell->get_g4hits().second; hits_it++){
-			cout<<"PHG4HitDefs::keytype: "<< hits_it->first <<endl;
 
 			PHG4Hit *phg4hit = NULL;
 			if(!phg4hit and phg4hits_svtx) phg4hit = phg4hits_svtx->findHit(hits_it->first);
@@ -250,28 +191,6 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 				m_trackID_clusters.insert(std::pair< int, std::set<SvtxCluster*> >(particle_id,clusters));
 			}
 		}
-
-//		PHG4Hit *phg4hit = phg4hitcontainer->findHit(
-//				cell->get_g4hits().first->first);
-//
-//		if(!phg4hit){
-//			if(verbosity >= 1) {
-//				LogError("!phg4hit");
-//			}
-//			continue;
-//		}
-//
-//		int particle_id = phg4hit->get_trkid();
-//
-//		TrkClustersMap::iterator it = m_trackID_clusters.find(particle_id);
-//
-//		if(it != m_trackID_clusters.end()){
-//			it->second.insert(cluster);
-//		} else {
-//			std::set<SvtxCluster*> clusters;
-//			clusters.insert(cluster);
-//			m_trackID_clusters.insert(std::pair< int, std::set<SvtxCluster*> >(particle_id,clusters));
-//		}
 	}
 
 	for (TrkClustersMap::const_iterator trk_clusers_itr = m_trackID_clusters.begin();
@@ -280,9 +199,10 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 			std::unique_ptr<SvtxTrack_FastSim> svtx_track(new SvtxTrack_FastSim());
 			//SvtxTrack_FastSim* svtx_track = new SvtxTrack_FastSim();
 			svtx_track->set_truth_track_id(trk_clusers_itr->first);
-			svtx_track->set_px(10.);//to make through minimum pT cut
-			svtx_track->set_py(0.);//to make through minimum pT cut
-			svtx_track->set_pz(0.);//to make through minimum pT cut
+			//to make through minimum pT cut
+			svtx_track->set_px(10.);
+			svtx_track->set_py(0.);
+			svtx_track->set_pz(0.);
 			for(SvtxCluster *cluster : trk_clusers_itr->second) {
 				svtx_track->insert_cluster(cluster->get_id());
 			}
@@ -290,21 +210,27 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 		}
 	}
 
-	for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
-			++iter) {
-		SvtxTrack* svtx_track = iter->second;
-		for (SvtxTrack::ConstClusterIter iter = svtx_track->begin_clusters();
-				iter != svtx_track->end_clusters(); ++iter) {
-			unsigned int cluster_id = *iter;
-			SvtxCluster* cluster = _clustermap->get(cluster_id);
-			float radius = sqrt(
-					cluster->get_x() * cluster->get_x()
-							+ cluster->get_y() * cluster->get_y());
-			cout << "Track ID: " << svtx_track->get_id() << ", Track pT: "
-					<< svtx_track->get_pt() << ", Particle ID: "
-					<< svtx_track->get_truth_track_id() << ", cluster ID: "
-					<< cluster->get_id() << ", cluster radius: " << radius
-					<< endl;
+	if (verbosity >= 2) {
+		for (SvtxTrackMap::Iter iter = _trackmap->begin();
+				iter != _trackmap->end(); ++iter) {
+			SvtxTrack* svtx_track = iter->second;
+			svtx_track->identify();
+			continue;
+			//Print associated clusters;
+			for (SvtxTrack::ConstClusterIter iter =
+					svtx_track->begin_clusters();
+					iter != svtx_track->end_clusters(); ++iter) {
+				unsigned int cluster_id = *iter;
+				SvtxCluster* cluster = _clustermap->get(cluster_id);
+				float radius = sqrt(
+						cluster->get_x() * cluster->get_x()
+								+ cluster->get_y() * cluster->get_y());
+				cout << "Track ID: " << svtx_track->get_id() << ", Track pT: "
+						<< svtx_track->get_pt() << ", Particle ID: "
+						<< svtx_track->get_truth_track_id() << ", cluster ID: "
+						<< cluster->get_id() << ", cluster radius: " << radius
+						<< endl;
+			}
 		}
 	}
 
