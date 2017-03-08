@@ -12,11 +12,6 @@ PHG4ParameterInterface::PHG4ParameterInterface(const std::string &name):
 params(new PHG4Parameters(name))
 {}
 
-PHG4ParameterInterface::~PHG4ParameterInterface()
-{
-  delete params;
-}
-
 void
 PHG4ParameterInterface::set_paramname(const string &name)
 {
