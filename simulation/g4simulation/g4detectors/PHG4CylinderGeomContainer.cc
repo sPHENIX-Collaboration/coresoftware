@@ -4,11 +4,9 @@
 
 using namespace std;
 
-PHG4CylinderGeomContainer::PHG4CylinderGeomContainer()
-{
-  magfield = NAN;
-  return;
-}
+PHG4CylinderGeomContainer::PHG4CylinderGeomContainer():
+  magfield(NAN)
+{}
 
 PHG4CylinderGeomContainer::~PHG4CylinderGeomContainer()
 {
@@ -69,6 +67,16 @@ PHG4CylinderGeomContainer::GetLayerGeom(const int i)
       return iter->second;
     }
   cout << "Could not locate layer " << i << " in PHG4CylinderGeomContainer" << endl;
-  return NULL;
+  return nullptr;
+}
+
+PHG4CylinderGeom *
+PHG4CylinderGeomContainer::GetFirstLayerGeom()
+{
+  if (layergeoms.empty())
+    {
+      return nullptr;
+    }
+  return layergeoms.begin()->second;
 }
 
