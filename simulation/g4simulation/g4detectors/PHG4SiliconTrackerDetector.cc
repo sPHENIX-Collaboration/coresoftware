@@ -112,9 +112,9 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume* tracker
 
   G4Material *Copper = new G4Material("Copper", 29., 63.54*g/mole, 8.96*g/cm3);
 
-  G4Material *FPC = new G4Material("FPC", 2.90*g/cm3, 2);
-  FPC->AddMaterial(Copper, 0.1966);
-  FPC->AddMaterial(Kapton, 0.8034);
+  G4Material *FPC = new G4Material("FPC", 1.542*g/cm3, 2);
+  FPC->AddMaterial(Copper, 0.0162);
+  FPC->AddMaterial(Kapton, 0.9838);
 
   double hdi_z_[nlayer_][2];
 
@@ -474,7 +474,7 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
                                        strip_z1/cm,
                                        nstrips_z_sensor0,
                                        nstrips_z_sensor1,
-                                       arr_nstrips_phi_cell[inttlayer]/rad,
+                                       arr_nstrips_phi_cell[inttlayer],
                                        arr_nladders_layer[inttlayer],
                                        posz[ilayer][0]/cm,
                                        posz[ilayer][1]/cm,

@@ -114,11 +114,24 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       const double strip_y       = detector_->arr_strip_y[inttlayer];
 
       G4ThreeVector strip_pos = volume->GetTranslation();
-      const double epsz = pow(10., -10.) * GSL_SIGN(strip_pos.z());
-      const double epsy = pow(10., -10.) * GSL_SIGN(strip_pos.y());
 
-      strip_z_index = (nstrips_z_sensor%2==0) ? int((strip_pos.z()/CLHEP::mm-strip_z+epsz)/(2.*strip_z)) + int(nstrips_z_sensor/2) : int((strip_pos.z()/CLHEP::mm)/(2.*strip_z)) + int(nstrips_z_sensor/2);
-      strip_y_index = (nstrips_phi_cell%2==0) ? int((strip_pos.y()/CLHEP::mm-strip_y+epsy)/(2.*strip_y)) +     nstrips_phi_cell    : int((strip_pos.y()/CLHEP::mm)/(2.*strip_y)) +     nstrips_phi_cell;
+      strip_z_index = 0;
+      for (int i=0; i<nstrips_z_sensor; ++i)
+        {
+          const double zmin = 2.*strip_z*(double)(i)   - strip_z*(double)nstrips_z_sensor;
+          const double zmax = 2.*strip_z*(double)(i+1) - strip_z*(double)nstrips_z_sensor;
+          if (strip_pos.z()/CLHEP::mm>zmin && strip_pos.z()/CLHEP::mm<=zmax)
+            strip_z_index = i;
+        }
+
+      strip_y_index = 0;
+      for (int i=0; i<2*nstrips_phi_cell; ++i)
+        {
+          const double ymin = 2.*strip_y*(double)(i)   - 2.*strip_y*(double)nstrips_phi_cell;
+          const double ymax = 2.*strip_y*(double)(i+1) - 2.*strip_y*(double)nstrips_phi_cell;
+          if (strip_pos.y()/CLHEP::mm>ymin && strip_pos.y()/CLHEP::mm<=ymax)
+            strip_y_index = i;
+        }
     }
   else // silicon inactive area, FPHX, stabe etc. as absorbers
     {
