@@ -49,7 +49,6 @@ pkginclude_HEADERS = \
   PHG4CellDefs.h \
   PHG4CylinderCell.h \
   PHG4CylinderCellv1.h \
-  PHG4CylinderCell_Spacalv1.h \
   PHG4CylinderCell_MAPS.h \
   PHG4CylinderCellv2.h \
   PHG4CylinderCellv3.h \
@@ -124,8 +123,6 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCell_Dict.cc \
   PHG4CylinderCellv1.cc \
   PHG4CylinderCellv1_Dict.cc \
-  PHG4CylinderCell_Spacalv1.cc \
-  PHG4CylinderCell_Spacalv1_Dict.cc \
   PHG4CylinderCell_MAPS.cc \
   PHG4CylinderCell_MAPS_Dict.cc \
   PHG4CylinderCellv2.cc \
