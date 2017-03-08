@@ -86,6 +86,17 @@ HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
       runNode->addNode(RunDetNode);
     }
   SaveToNodeTree(RunDetNode,paramnodename);
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "PAR" ));
+  string geonodename = "TOWERGEO_" + detector;
+
+  PHNodeIterator parIter(parNode);
+  PHCompositeNode *ParDetNode =  dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode",detector));
+  if (! ParDetNode)
+    {
+      ParDetNode = new PHCompositeNode(detector);
+      parNode->addNode(ParDetNode);
+    }
+  PutOnParNode(ParDetNode,geonodename);
   _tower_energy_src = get_int_param("tower_energy_source");
   emin = get_double_param("emin");
   ncell_to_tower = get_int_param("n_scinti_plates_per_tower");
