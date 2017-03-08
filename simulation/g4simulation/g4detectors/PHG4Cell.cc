@@ -43,8 +43,6 @@ PHG4Cell::get_property_info(const PROPERTY prop_id)
 {
   switch (prop_id)
   {
-  case   prop_fiber_ID:
-    return make_pair("fiber ID",PHG4Cell::type_int);
   case  prop_edep:
     return make_pair("energy deposition",PHG4Cell::type_float);
   case  prop_eion:

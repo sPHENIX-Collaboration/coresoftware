@@ -39,9 +39,6 @@ class PHG4Cell: public PHObject
 
   virtual short int get_detid() const {return -1;}
 
-  virtual void set_fiber_ID(const int i) {return;}
-  virtual int get_fiber_ID() const {return -1;}
-
   virtual void add_edep(const float f) {return;}
   virtual double get_edep() const {return NAN;}
 
@@ -73,8 +70,6 @@ class PHG4Cell: public PHObject
   enum PROPERTY 
   {//
     // first various coordinates 1-20
-    //! fiber ID (spacal)
-    prop_fiber_ID = 1,
     //-- summed energy:  - 20-30  --
     //! deposited energy
     prop_edep = 21,
