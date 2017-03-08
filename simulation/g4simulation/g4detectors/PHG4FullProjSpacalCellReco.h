@@ -1,10 +1,14 @@
 #ifndef PHG4FullProjSpacalCellReco_H
 #define PHG4FullProjSpacalCellReco_H
 
+#include "PHG4ParameterInterface.h"
+
 #include <fun4all/SubsysReco.h>
+
 #include <phool/PHTimeServer.h>
-#include <string>
+
 #include <map>
+#include <string>
 #include <vector>
 
 class PHCompositeNode;
@@ -12,7 +16,7 @@ class PHG4Cell;
 class TH2;
 class TH1;
 
-class PHG4FullProjSpacalCellReco : public SubsysReco
+class PHG4FullProjSpacalCellReco : public SubsysReco,  public PHG4ParameterInterface
 {
  public:
 
@@ -25,19 +29,17 @@ class PHG4FullProjSpacalCellReco : public SubsysReco
   
     //! event processing
   int process_event(PHCompositeNode *topNode);
-  
+
+  //! reset after event processing  
+  int ResetEvent(PHCompositeNode *topNode);
+
+  void SetDefaultParameters();
+
   void Detector(const std::string &d) {detector = d;}
 
   void checkenergy(const int i=1) {chkenergyconservation = i;}
 
-  double get_timing_window_min(const int i) {return tmin_default;}
-  double get_timing_window_max(const int i) {return tmax_default;}
-  void   set_timing_window(const int i, const double tmin, const double tmax) {
-    tmin_default = tmin; tmax_default = tmax;
-  }
-  void   set_timing_window_defaults(const double tmin, const double tmax) {
-    tmin_default = tmin; tmax_default = tmax;
-  }
+  void   set_timing_window(const double tmin, const double tmax);
 
   class LightCollectionModel
   {
@@ -49,10 +51,10 @@ class PHG4FullProjSpacalCellReco : public SubsysReco
     void load_data_file(const std::string & input_file, const std::string & histogram_light_guide_model, const std::string & histogram_fiber_model);
 
     //! Whether use light collection model
-    bool use_light_guide_model() {return data_grid_light_guide_efficiency != NULL;}
+    bool use_light_guide_model() const {return data_grid_light_guide_efficiency != NULL;}
 
     //! Whether use Light Transmission Efficiency model for the fiber
-    bool use_fiber_model() {return data_grid_fiber_trans != NULL;}
+    bool use_fiber_model() const {return data_grid_fiber_trans != NULL;}
 
     //! get Light Collection Efficiency for the light guide as function of x,y position in fraction of tower width
     double get_light_guide_efficiency(const double x_fraction, const double y_fraction);
@@ -72,7 +74,7 @@ class PHG4FullProjSpacalCellReco : public SubsysReco
 
   };
 
-  LightCollectionModel & get_light_collection_model () {return light_collection_model;}
+  LightCollectionModel & get_light_collection_model() {return light_collection_model;}
 
  protected:
 
@@ -85,13 +87,13 @@ class PHG4FullProjSpacalCellReco : public SubsysReco
   std::string seggeonodename;
 
   PHTimeServer::timer _timer;
+  double sum_energy_g4hit;
   int chkenergyconservation;
   std::map<unsigned int, PHG4Cell *> celllist;
 
   //! timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
-  double tmin_default;
-  double tmax_default;
-  std::map<int, std::pair<double,double> > tmin_max;
+  double tmin;
+  double tmax;
 
   LightCollectionModel light_collection_model;
 
