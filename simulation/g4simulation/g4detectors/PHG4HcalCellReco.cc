@@ -27,7 +27,6 @@ using namespace std;
 #define ROWDIM 320
 #define COLUMNDIM 24
 
-//static PHG4Cell *slatarray[ROWDIM][COLUMNDIM];
 static array< array< PHG4Cell *, COLUMNDIM>, ROWDIM> slatarray = {nullptr};
 
 PHG4HcalCellReco::PHG4HcalCellReco(const string &name) :
@@ -38,8 +37,6 @@ PHG4HcalCellReco::PHG4HcalCellReco(const string &name) :
   tmin(NAN),  // ns
   tmax(NAN) // ns
 {
-  //  slatarray.fill(nullptr);
-  //memset(slatarray, nullptr, sizeof(slatarray));
   InitializeParameters();
 }
 
