@@ -234,6 +234,82 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  vector<double> vlen;
 	  double trklen = 0.0;
 
+	  //===================================================
+	  // OK, now we have found which sensor the hit is in, extracted the hit
+	  // position in local sensor coordinates,  and found the pixel numbers of the 
+	  // entry point and exit point
+	  // 
+	  // Here is where we want to implement charge sharing so that we can make
+	  // a list of cells pixels) that share energy from that hit
+	  //===================================================
+
+	  // Need a model of the charge distribution
+
+	  // Need to apportion energy between the neighboring cells
+	  // There are two things:
+	  //     The track can pass through the sensor at an angle different from normal
+	  //     The charge diffuses
+
+	  // Approach:
+	  //    Find tracklet line
+	  //    Divide tracklet line into n (vary n until answer stabilizes) segments
+	  //    Find centroid of each segment
+	  //    Diffuse charge at each centroid
+	  //    Apportion charge between neighboring pixels
+	  //    Add the pixel energy contributions from different track segments together
+
+	  TVector3 pathvec = local_in - local_out;
+	  trklen = sqrt( pow( pathvec.X(), 2 ) + pow( pathvec.Z(), 2) );     // only the length in x and z plane, used later
+
+	  double diffusion_width = 1.50e-03;   // maximum diffusion radius in cm
+	  double zdrift_max = pathvec.Y();
+	  int nsegments = 4;
+	  for(int i=0;i<nsegments;i++)
+	    {
+	      // Find the tracklet segment location
+	      double frac = (double) i / (double) nsegments;
+	      TVector3 segvec(pathvec.X() * frac, pathvec.Y() * frac, pathvec.Z() * frac);
+	      segvec = segvec + local_in;
+
+	      //  Find the distance to the back of the sensor from the segment location
+	      // This projection changes only the value of y
+	      double zdrift = segvec.Y()  - local_out.Y();
+
+	      // Caculate the charge diffusion over this drift distance
+	      // Assume for now charge diffusion is proportional to zdrift
+	      // How do we scale it? See ALICE slides pointed to by Christof, made something up for now
+	      double zdiffusion_radius = diffusion_width * zdrift / zdrift_max;
+
+	      // identify pixels that are included in this diffusion circle
+	      // This depends only on the x and z coordinates of the segment (circle center) and the circle radius
+	      // Take advantage of the fact that this is a rectangular grid to see which pixels are involved
+
+	      // Check the two boundaries in x
+
+
+	      // Check the two boundaries in z
+
+
+
+	      // Check the four adjacent pixels
+
+
+	      // Now we have the involved pixels, how do we apportion energy?
+
+
+	    }
+
+
+	  // Add the pixels that receive some energy from this hit to the cell list
+
+
+
+
+	  //===================================
+	  // End of charge sharing implementation
+	  //===================================
+
+
 	  // Are they different?
 	  bool test_one_pixel = false;  // normally false!
 
