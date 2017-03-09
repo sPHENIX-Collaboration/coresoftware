@@ -51,13 +51,14 @@ bool PHG4CylinderGeom_Siladders::load_geometry()
 
 void PHG4CylinderGeom_Siladders::find_segment_center(const int segment_z_bin, const int segment_phi_bin, double location[])
 {
-  const int itype = (segment_z_bin==1 || segment_z_bin==2) ? 0 : 1;
+  const int itype    = (segment_z_bin==1 || segment_z_bin==2) ? 0 : 1;
+  const double signz = (segment_z_bin<=1) ? -1. : 1.;
 
   // Ladder
   const double phi  = offsetphi + dphi_ * (double)segment_phi_bin;
   location[0] = eff_radius  * cos(phi);
   location[1] = eff_radius  * sin(phi);
-  location[2] = ladder_z_[itype] ;
+  location[2] = signz * ladder_z_[itype];
 }
 
 void PHG4CylinderGeom_Siladders::find_strip_center(const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
