@@ -37,22 +37,10 @@ class PHG4Cell: public PHObject
   virtual PHG4CellDefs::keytype get_cellid() const {return ~0x0;}
   virtual bool has_binning(const PHG4CellDefs::CellBinning) const {return false;}
 
-  virtual short int get_detid() const {return -1;}
-
-  virtual void add_edep(const float f) {return;}
-  virtual double get_edep() const {return NAN;}
-
-  virtual void add_eion(const float f) {return;}
-  virtual double get_eion() const {return NAN;}
-
-  virtual void add_light_yield(const float lightYield){return;}
-  virtual float get_light_yield() const {return NAN;}
-
+  // this adds hits to the g4 hit list map
   virtual void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep) {return;}
+  // this adds showers to the shower map
   virtual void add_shower_edep(const int g4showerid, const float edep) {return;}
-
-
-  virtual void print() const {std::cout<<"PHG4Cellv1"<<std::endl;}
 
   virtual EdepConstRange get_g4hits() {
     std::map <PHG4HitDefs::keytype, float> dummy;
@@ -64,6 +52,39 @@ class PHG4Cell: public PHObject
     return std::make_pair(dummy.begin(), dummy.end());
   }
 
+  virtual short int get_detid() const {return -1;}
+  // for backward compatibility, layers and detector ids are identical
+  short int get_layer() const {return get_detid();}
+
+  virtual void add_edep(const float f) {return;}
+  virtual double get_edep() const {return NAN;}
+
+  virtual void add_eion(const float f) {return;}
+  virtual double get_eion() const {return NAN;}
+
+  virtual void add_light_yield(const float lightYield){return;}
+  virtual float get_light_yield() const {return NAN;}
+
+  // get/set methodes - PLEASE add those ALPHABETICALLY
+
+  virtual void set_chip_index(const int i) {return;}
+  virtual int get_chip_index() const {return ~0x0;}
+
+  virtual void set_half_stave_index(const int i) {return;}
+  virtual int get_half_stave_index() const {return ~0x0;}
+
+  virtual void set_module_index(const int i) {return;}
+  virtual int get_module_index() const {return ~0x0;}
+
+  virtual void set_pixel_index(const int i) {return;}
+  virtual int get_pixel_index() const {return ~0x0;}
+
+  virtual void set_stave_index(const int i) {return;}
+  virtual int get_stave_index() const {return ~0x0;}
+
+
+  virtual void print() const {std::cout<<"PHG4Cellv1"<<std::endl;}
+
   //! Procedure to add a new PROPERTY tag:
   //! 1.add new tag below with unique value,
   //! 2.add a short name to PHG4Cell::get_property_info
@@ -71,6 +92,12 @@ class PHG4Cell: public PHObject
   {//
     // first various coordinates 1-20
     //-- summed energy:  - 20-30  --
+    //! Maps coordinates
+    prop_stave_index = 1,
+    prop_half_stave_index = 2,
+    prop_module_index = 3,
+    prop_chip_index = 4,
+    prop_pixel_index = 5,
     //! deposited energy
     prop_edep = 21,
     //! ionizing energy loss

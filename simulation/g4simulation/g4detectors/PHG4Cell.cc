@@ -43,6 +43,16 @@ PHG4Cell::get_property_info(const PROPERTY prop_id)
 {
   switch (prop_id)
   {
+  case prop_stave_index:
+    return make_pair("stave index",PHG4Cell::type_int);
+  case prop_half_stave_index:
+    return make_pair("half stave index",PHG4Cell::type_int);
+  case prop_module_index:
+    return make_pair("module index",PHG4Cell::type_int);
+  case prop_chip_index:
+    return make_pair("chip index",PHG4Cell::type_int);
+  case prop_pixel_index:
+    return make_pair("pixel index",PHG4Cell::type_int);
   case  prop_edep:
     return make_pair("energy deposition",PHG4Cell::type_float);
   case  prop_eion:

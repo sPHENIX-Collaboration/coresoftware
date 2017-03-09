@@ -29,6 +29,14 @@ class PHG4Cellv1: public PHG4Cell
   void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep);
   void add_shower_edep(const int g4showerid, const float edep);
 
+  EdepConstRange get_g4hits() {
+    return std::make_pair(hitedeps.begin(), hitedeps.end());
+  }
+  
+  ShowerEdepConstRange get_g4showers() {
+    return std::make_pair(showeredeps.begin(),showeredeps.end());
+  } 
+
 
   void add_edep(const float f) {add_property(prop_edep,f);}
   double get_edep() const {return get_property_float(prop_edep);}
@@ -39,13 +47,21 @@ class PHG4Cellv1: public PHG4Cell
   void add_light_yield(const float f) {add_property(prop_light_yield,f);}
   float get_light_yield() const {return get_property_float(prop_light_yield);}
 
-  EdepConstRange get_g4hits() {
-    return std::make_pair(hitedeps.begin(), hitedeps.end());
-  }
-  
-  ShowerEdepConstRange get_g4showers() {
-    return std::make_pair(showeredeps.begin(),showeredeps.end());
-  } 
+  void set_chip_index(const int i) {set_property(prop_chip_index,i);}
+  int get_chip_index() const {return get_property_int(prop_chip_index);}
+
+  void set_half_stave_index(const int i) {set_property(prop_half_stave_index,i);}
+  int get_half_stave_index() const {return get_property_int(prop_half_stave_index);}
+
+  void set_module_index(const int i) {set_property(prop_module_index,i);}
+  int get_module_index() const {return get_property_int(prop_module_index);}
+
+  void set_pixel_index(const int i) {set_property(prop_pixel_index,i);}
+  int get_pixel_index() const {return get_property_int(prop_pixel_index);}
+
+  void set_stave_index(const int i) {set_property(prop_stave_index,i);}
+  int get_stave_index() const {return get_property_int(prop_stave_index);}
+
 
   void print() const;
 
