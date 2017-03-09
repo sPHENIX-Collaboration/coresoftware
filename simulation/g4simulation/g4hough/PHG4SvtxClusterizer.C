@@ -7,8 +7,6 @@
 #include "SvtxCluster.h"
 #include "SvtxCluster_v1.h"
 
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -377,9 +375,6 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
   PHG4CylinderCellGeomContainer* geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
   if (!geom_container) return;
   
-  PHG4HitContainer* g4hits = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SVTX");
-  if (!g4hits) return;
-  
   PHG4CylinderCellContainer* cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
   if (!cells) return; 
   
@@ -652,9 +647,6 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
   // get the SVX geometry object
   PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
   if (!geom_container) return;
-  
-  PHG4HitContainer* g4hits =  findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SILICON_TRACKER");
-  if (!g4hits) return;
   
   PHG4CylinderCellContainer* cells =  findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
   if (!cells) return; 
@@ -958,9 +950,6 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
   // get the SVX geometry object
   PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
   if (!geom_container) return;
-  
-  PHG4HitContainer* g4hits =  findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_MAPS");
-  if (!g4hits) return;
   
   PHG4CylinderCellContainer* cells =  findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_MAPS");
   if (!cells) return; 
