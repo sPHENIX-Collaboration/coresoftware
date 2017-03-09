@@ -3,6 +3,7 @@
 #include <phool/PHIODataNode.h>
 
 #include <g4cemc/RawTowerGeomContainer.h>
+#include <g4cemc/RawTowerGeom.h>
 
 #include <string>
 
@@ -28,6 +29,13 @@ int DumpRawTowerGeomContainer::process_Node(PHNode *myNode)
       *fout << "Calorimeter ID: " << rawtowergeom->get_calorimeter_id() << endl;
       *fout << "size: " << rawtowergeom->size() << endl;
       rawtowergeom->identify(*fout);
+      RawTowerGeomContainer::ConstRange all_towers = rawtowergeom->get_tower_geometries();
+  for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
+       it != all_towers.second; ++it)
+    {
+       it->second->identify(*fout);
+    }
+
     }
   return 0;
 }
