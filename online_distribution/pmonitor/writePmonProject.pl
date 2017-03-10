@@ -75,6 +75,7 @@ print HH "_H__\n";
 print HH <<EOF;
 
 #include <Event/Event.h>
+#include <Event/EventTypes.h>
 
 int process_event (Event *e); //++CINT 
 
