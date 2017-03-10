@@ -1,5 +1,5 @@
-#ifndef __CALOEVALUATOR_H__
-#define __CALOEVALUATOR_H__
+#ifndef CALOEVALUATOR_H__
+#define CALOEVALUATOR_H__
 
 //===============================================
 /// \file CaloEvaluator.h
@@ -7,16 +7,15 @@
 /// \author Michael P. McCumber (revised sPHENIX version)
 //===============================================
 
-#include "CaloEvalStack.h"
-
 #include <fun4all/SubsysReco.h>
-#include <phool/PHCompositeNode.h>
-
-#include <TNtuple.h>
-#include <TFile.h>
 
 #include <set>
 #include <string>
+
+class CaloEvalStack;
+class PHCompositeNode;
+class TFile;
+class TNtuple;
 
 /// \class CaloEvaluator
 ///
@@ -114,4 +113,4 @@ class CaloEvaluator : public SubsysReco {
   void printOutputInfo(PHCompositeNode *topNode);   ///< print out the ancestry information for detailed diagnosis
 };
 
-#endif // __CALOEVALUATOR_H__
+#endif // CALOEVALUATOR_H__

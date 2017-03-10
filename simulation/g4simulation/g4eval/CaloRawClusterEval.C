@@ -8,28 +8,24 @@
 #include <g4cemc/RawCluster.h>
 #include <g4cemc/RawTowerContainer.h>
 #include <g4cemc/RawTower.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 
-#include <string>
-#include <cstdlib>
-#include <set>
-#include <map>
-#include <float.h>
-#include <algorithm>
 #include <cassert>
+#include <float.h>
+#include <map>
+#include <set>
+#include <string>
 
 using namespace std;
 
-CaloRawClusterEval::CaloRawClusterEval(PHCompositeNode* topNode, std::string caloname)
+CaloRawClusterEval::CaloRawClusterEval(PHCompositeNode* topNode, const std::string &caloname)
   : _caloname(caloname),
     _towereval(topNode,caloname),
-    _clusters(NULL),
-    _towers(NULL),
+    _clusters(nullptr),
+    _towers(nullptr),
     _strict(false),
     _verbosity(1),
     _errors(0),
@@ -139,10 +135,10 @@ std::set<PHG4Shower*> CaloRawClusterEval::all_truth_primary_showers(RawCluster* 
 
 PHG4Shower* CaloRawClusterEval::max_truth_primary_shower_by_energy(RawCluster* cluster) {
 
-  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(cluster);}
-  else if (!cluster) {++_errors; return NULL;}
+  else if (!cluster) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<RawCluster*,PHG4Shower*>::iterator iter =
@@ -154,7 +150,7 @@ PHG4Shower* CaloRawClusterEval::max_truth_primary_shower_by_energy(RawCluster* c
   
   // loop over all primaries associated with this cluster and
   // get the energy contribution for each one, record the max
-  PHG4Shower* max_primary = NULL;
+  PHG4Shower* max_primary = nullptr;
   float max_e = FLT_MAX*-1.0;
   std::set<PHG4Shower*> primary_showers = all_truth_primary_showers(cluster);
   for (std::set<PHG4Shower*>::iterator iter = primary_showers.begin();
@@ -232,17 +228,17 @@ std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Shower* primary)
 
 RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Shower* primary) {
 
-  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(primary);}
-  else if (!primary) {++_errors; return NULL;}
+  else if (!primary) {++_errors; return nullptr;}
   
-  if (!get_truth_eval()->is_primary(primary)) return NULL;
+  if (!get_truth_eval()->is_primary(primary)) return nullptr;
 
   primary = get_truth_eval()->get_primary_shower(primary);
 
   if (_strict) {assert(primary);}
-  else if (!primary) {++_errors; return NULL;}
+  else if (!primary) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<PHG4Shower*,RawCluster*>::iterator iter =
@@ -252,7 +248,7 @@ RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Shower* primary) {
     }
   }
   
-  RawCluster* best_cluster = NULL;
+  RawCluster* best_cluster = nullptr;
   float best_energy = FLT_MAX*-1.0;  
   std::set<RawCluster*> clusters = all_clusters_from(primary);
   for (std::set<RawCluster*>::iterator iter = clusters.begin();
@@ -369,10 +365,10 @@ std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primary_particles(RawClust
 
 PHG4Particle* CaloRawClusterEval::max_truth_primary_particle_by_energy(RawCluster* cluster) {
 
-  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(cluster);}
-  else if (!cluster) {++_errors; return NULL;}
+  else if (!cluster) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<RawCluster*,PHG4Particle*>::iterator iter =
@@ -382,7 +378,7 @@ PHG4Particle* CaloRawClusterEval::max_truth_primary_particle_by_energy(RawCluste
     }
   }
 
-  PHG4Particle* max_primary = NULL;
+  PHG4Particle* max_primary = nullptr;
   PHG4Shower* max_shower = max_truth_primary_shower_by_energy(cluster);
 
   if (max_shower) {
@@ -429,17 +425,17 @@ std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primar
 
 RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Particle* primary) {
 
-  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(primary);}
-  else if (!primary) {++_errors; return NULL;}
+  else if (!primary) {++_errors; return nullptr;}
   
-  if (!get_truth_eval()->is_primary(primary)) return NULL;
+  if (!get_truth_eval()->is_primary(primary)) return nullptr;
 
   primary = get_truth_eval()->get_primary_particle(primary);
 
   if (_strict) {assert(primary);}
-  else if (!primary) {++_errors; return NULL;}
+  else if (!primary) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<PHG4Particle*,RawCluster*>::iterator iter =
@@ -449,7 +445,7 @@ RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Particle* primary) {
     }
   }
   
-  RawCluster* best_cluster = NULL;
+  RawCluster* best_cluster = nullptr;
 
   PHG4Shower* shower = get_truth_eval()->get_primary_shower(primary);
   if (shower) best_cluster = best_cluster_from(shower);

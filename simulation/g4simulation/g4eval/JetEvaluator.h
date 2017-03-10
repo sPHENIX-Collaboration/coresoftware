@@ -10,12 +10,12 @@
 #include "JetEvalStack.h"
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHCompositeNode.h>
-
-#include <TNtuple.h>
-#include <TFile.h>
 
 #include <string>
+
+class PHCompositeNode;
+class TFile;
+class TNtuple;
 
 /// \class JetEvaluator
 ///

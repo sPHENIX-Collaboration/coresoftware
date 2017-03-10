@@ -1,31 +1,30 @@
-
 #include "SvtxVertexEval.h"
 
 #include "SvtxTrackEval.h"
 
-#include <phool/getClass.h>
-#include <phool/PHCompositeNode.h>
 #include <g4hough/SvtxTrackMap.h>
 #include <g4hough/SvtxTrack.h>
 #include <g4hough/SvtxVertexMap.h>
 #include <g4hough/SvtxVertex.h>
+
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4VtxPoint.h>
 
-#include <cstdlib>
-#include <set>
-#include <float.h>
-#include <algorithm>
+#include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+
 #include <cassert>
+#include <float.h>
+#include <set>
 
 using namespace std;
 
 SvtxVertexEval::SvtxVertexEval(PHCompositeNode* topNode)
   : _trackeval(topNode),
-    _vertexmap(NULL),
-    _trackmap(NULL),
-    _truthinfo(NULL),
+    _vertexmap(nullptr),
+    _trackmap(nullptr),
+    _truthinfo(nullptr),
     _strict(false),
     _verbosity(1),
     _errors(0), 
@@ -138,10 +137,10 @@ std::set<PHG4VtxPoint*> SvtxVertexEval::all_truth_points(SvtxVertex* vertex) {
 
 PHG4VtxPoint* SvtxVertexEval::max_truth_point_by_ntracks(SvtxVertex* vertex) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(vertex);}
-  else if (!vertex) {++_errors; return NULL;}
+  else if (!vertex) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<SvtxVertex*,PHG4VtxPoint*>::iterator iter =
@@ -153,7 +152,7 @@ PHG4VtxPoint* SvtxVertexEval::max_truth_point_by_ntracks(SvtxVertex* vertex) {
   
   std::set<PHG4VtxPoint*> points = all_truth_points(vertex);
 
-  PHG4VtxPoint* max_point = NULL;
+  PHG4VtxPoint* max_point = nullptr;
   unsigned int max_ntracks = 0;
   
   for (std::set<PHG4VtxPoint*>::iterator iter = points.begin();
@@ -212,10 +211,10 @@ std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint
 
 SvtxVertex* SvtxVertexEval::best_vertex_from(PHG4VtxPoint* truthpoint) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(truthpoint);}
-  else if (!truthpoint) {++_errors; return NULL;}
+  else if (!truthpoint) {++_errors; return nullptr;}
 
   if (_do_cache) {
     std::map<PHG4VtxPoint*,SvtxVertex*>::iterator iter =
@@ -225,7 +224,7 @@ SvtxVertex* SvtxVertexEval::best_vertex_from(PHG4VtxPoint* truthpoint) {
     }
   }
 
-  SvtxVertex* best_vertex = NULL;
+  SvtxVertex* best_vertex = nullptr;
   unsigned int best_count = 0;
   std::set<SvtxVertex*> tracks = all_vertexes_from(truthpoint);
   for (std::set<SvtxVertex*>::iterator iter = tracks.begin();

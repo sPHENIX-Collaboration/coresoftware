@@ -42,7 +42,7 @@ public:
 	~Track();
 
 	//! Add measurement
-	int addMeasurements(std::vector<PHGenFit::Measurement*> measurements);
+	int addMeasurements(std::vector<PHGenFit::Measurement*> &measurements);
 
 	/*!
 	 * track_point 0 is the first one, and -1 is the last one
@@ -78,19 +78,14 @@ public:
 		return ndf;
 	}
 
-	double get_charge() const {
-		genfit::AbsTrackRep* rep = _track->getCardinalRep();
-		genfit::StateOnPlane* state = this->extrapolateToLine(TVector3(0,0,0), TVector3(1,0,0));
-		double charge =  rep->getCharge(*state);
-		delete state;
-		return charge;
-	}
+	double get_charge() const;
 
 	//SMART(genfit::Track) getGenFitTrack() {return _track;}
 
 private:
 
 	genfit::Track* _track;
+	std::vector<PHGenFit::Measurement*> _measurements;
 	//SMART(genfit::Track) _track;
 };
 } //End of PHGenFit namespace

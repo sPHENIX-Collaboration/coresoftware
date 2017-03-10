@@ -8,7 +8,7 @@
 #include <vector>
 
 class PHCompositeNode;
-class PHG4CylinderCell_MAPS;
+class PHG4CylinderCell;
 
 class PHG4MapsCellReco : public SubsysReco
 {
@@ -72,12 +72,9 @@ class PHG4MapsCellReco : public SubsysReco
   std::string seggeonodename;
   PHTimeServer::timer _timer;
   int nbins[2];
-//  int nslatscombined;
   int chkenergyconservation;
-//  int layer;
 
-  //std::map<unsigned int, PHG4CylinderCell *> celllist;
-  std::map<std::string, PHG4CylinderCell_MAPS*> celllist;  // This map holds the hit cells
+  std::map<unsigned long long, PHG4CylinderCell*> celllist;  // This map holds the hit cells
 };
 
 #endif

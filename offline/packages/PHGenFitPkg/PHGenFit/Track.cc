@@ -45,7 +45,7 @@ Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMa
 	//_track = NEW(genfit::Track)(rep, seedState, seedCov);
 }
 
-int Track::addMeasurements(std::vector<PHGenFit::Measurement*> measurements)
+int Track::addMeasurements(std::vector<PHGenFit::Measurement*> &measurements)
 {
 	BOOST_FOREACH(PHGenFit::Measurement* measurement, measurements)
 	{
@@ -53,7 +53,11 @@ int Track::addMeasurements(std::vector<PHGenFit::Measurement*> measurements)
 		msmts.push_back(measurement->getMeasurement());
 		_track->insertPoint(
 				new genfit::TrackPoint(msmts, _track));
+
+		_measurements.push_back(measurement);
 	}
+
+	//measurements.clear();
 
 	return 0;
 }
@@ -61,6 +65,12 @@ int Track::addMeasurements(std::vector<PHGenFit::Measurement*> measurements)
 Track::~Track()
 {
 	delete _track;
+
+	BOOST_FOREACH(PHGenFit::Measurement* measurement, _measurements)
+	{
+		delete measurement;
+	}
+	_measurements.clear();
 }
 
 double Track::extrapolateToPlane(genfit::MeasuredStateOnPlane& state, TVector3 O, TVector3 n, const int tr_point_id) const
@@ -76,18 +86,21 @@ double Track::extrapolateToPlane(genfit::MeasuredStateOnPlane& state, TVector3 O
 		std::cout << "Track has no TrackPoint with fitterInfo! \n";
 		return WILD_DOUBLE;
 	}
-	genfit::KalmanFittedStateOnPlane *kfsop  = new genfit::KalmanFittedStateOnPlane(
-			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getBackwardUpdate()));
+	std::unique_ptr<genfit::KalmanFittedStateOnPlane> kfsop (new genfit::KalmanFittedStateOnPlane(
+			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getBackwardUpdate())));
 	// extrapolate back to reference plane.
 	try {
 		pathlenth = rep->extrapolateToPlane(*kfsop, destPlane);
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();
+		//delete kfsop;
 		return WILD_DOUBLE;
 	}
 
-	state = *dynamic_cast<genfit::MeasuredStateOnPlane*> (kfsop);
+	state = *dynamic_cast<genfit::MeasuredStateOnPlane*> (kfsop.get());
+
+	//delete kfsop;
 
 	return pathlenth;
 }
@@ -96,8 +109,10 @@ genfit::MeasuredStateOnPlane* Track::extrapolateToPlane(TVector3 O, TVector3 n, 
 {
 	genfit::MeasuredStateOnPlane* state = new genfit::MeasuredStateOnPlane();
 	double pathlenth = this->extrapolateToPlane(*state, O, n, tr_point_id);
-	if(pathlenth <= WILD_DOUBLE)
+	if(pathlenth <= WILD_DOUBLE) {
+		delete state;
 		return NULL;
+	}
 	else
 		return state;
 }
@@ -113,19 +128,21 @@ double Track::extrapolateToLine(genfit::MeasuredStateOnPlane& state, TVector3 li
 		std::cout << "Track has no TrackPoint with fitterInfo! \n";
 		return WILD_DOUBLE;
 	}
-	genfit::KalmanFittedStateOnPlane *kfsop = new genfit::KalmanFittedStateOnPlane(
-			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getBackwardUpdate()));
+	std::unique_ptr<genfit::KalmanFittedStateOnPlane> kfsop (new genfit::KalmanFittedStateOnPlane(
+			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getBackwardUpdate())));
 	// extrapolate back to reference plane.
 	try {
 		pathlenth = rep->extrapolateToLine(*kfsop, line_point, line_direction);
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();
+		//delete kfsop;
 		return WILD_DOUBLE;
 	}
 
-	state = *dynamic_cast<genfit::MeasuredStateOnPlane*> (kfsop);
+	state = *dynamic_cast<genfit::MeasuredStateOnPlane*> (kfsop.get());
 
+	//delete kfsop;
 
 	return pathlenth;
 }
@@ -134,8 +151,10 @@ genfit::MeasuredStateOnPlane* Track::extrapolateToLine(TVector3 line_point, TVec
 {
 	genfit::MeasuredStateOnPlane* state = new genfit::MeasuredStateOnPlane();
 	double pathlenth = this->extrapolateToLine(*state, line_point, line_direction, tr_point_id);
-	if(pathlenth <= WILD_DOUBLE)
+	if(pathlenth <= WILD_DOUBLE) {
+		delete state;
 		return NULL;
+	}
 	else
 		return state;
 }
@@ -151,8 +170,8 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 		std::cout << "Track has no TrackPoint with fitterInfo! \n";
 		return WILD_DOUBLE;
 	}
-	genfit::KalmanFittedStateOnPlane *kfsop = new genfit::KalmanFittedStateOnPlane(
-			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getForwardUpdate()));
+	std::unique_ptr<genfit::KalmanFittedStateOnPlane> kfsop (new genfit::KalmanFittedStateOnPlane(
+			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getBackwardUpdate())));
 	// extrapolate back to reference plane.
 	try {
 		//rep->extrapolateToLine(*kfsop, line_point, line_direction);
@@ -160,10 +179,13 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();
+		//delete kfsop;
 		return WILD_DOUBLE;
 	}
 
-	state = *dynamic_cast<genfit::MeasuredStateOnPlane*> (kfsop);
+	state = *dynamic_cast<genfit::MeasuredStateOnPlane*> (kfsop.get());
+
+	//delete kfsop;
 
 	return pathlenth;
 }
@@ -172,8 +194,10 @@ genfit::MeasuredStateOnPlane*  Track::extrapolateToCylinder(double radius, TVect
 {
 	genfit::MeasuredStateOnPlane* state = new genfit::MeasuredStateOnPlane();
 	double pathlenth = this->extrapolateToCylinder(*state, radius, line_point, line_direction);
-	if(pathlenth <= WILD_DOUBLE)
+	if(pathlenth <= WILD_DOUBLE) {
+		delete state;
 		return NULL;
+	}
 	else
 		return state;
 }
@@ -188,18 +212,21 @@ double Track::extrapolateToPoint(genfit::MeasuredStateOnPlane& state, TVector3 P
 		std::cout << "Track has no TrackPoint with fitterInfo! \n";
 		return WILD_DOUBLE;
 	}
-	genfit::KalmanFittedStateOnPlane *kfsop = new genfit::KalmanFittedStateOnPlane(
-			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getBackwardUpdate()));
+	std::unique_ptr<genfit::KalmanFittedStateOnPlane> kfsop (new genfit::KalmanFittedStateOnPlane(
+			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getBackwardUpdate())));
 	// extrapolate back to reference plane.
 	try {
 		pathlenth = rep->extrapolateToPoint(*kfsop, P);
 	} catch (genfit::Exception& e) {
 		std::cerr << "Exception, next track" << std::endl;
 		std::cerr << e.what();
+		//delete kfsop;
 		return WILD_DOUBLE;
 	}
 
-	state = *dynamic_cast<genfit::MeasuredStateOnPlane*> (kfsop);
+	state = *dynamic_cast<genfit::MeasuredStateOnPlane*> (kfsop.get());
+
+	//delete kfsop;
 
 	return pathlenth;
 }
@@ -208,9 +235,27 @@ genfit::MeasuredStateOnPlane*  Track::extrapolateToPoint(TVector3 P, const int t
 {
 	genfit::MeasuredStateOnPlane* state = new genfit::MeasuredStateOnPlane();
 	double pathlenth = this->extrapolateToPoint(*state, P, tr_point_id);
-	if(pathlenth <= WILD_DOUBLE)
+	if(pathlenth <= WILD_DOUBLE) {
+		delete state;
 		return NULL;
+	}
 	else
 		return state;
 }
+
+double Track::get_charge() const {
+	double charge =  WILD_DOUBLE;
+
+	genfit::AbsTrackRep* rep = _track->getCardinalRep();
+	if(rep) {
+		std::unique_ptr<genfit::StateOnPlane> state (this->extrapolateToLine(TVector3(0, 0, 0),
+				TVector3(1, 0, 0)));
+		if (state)
+			charge = rep->getCharge(*state);
+		//delete state;
+	}
+
+	return charge;
+}
+
 } //End of PHGenFit namespace

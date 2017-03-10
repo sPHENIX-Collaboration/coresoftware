@@ -1,8 +1,5 @@
-
 #include "SvtxHitEval.h"
 
-#include <phool/getClass.h>
-#include <phool/PHCompositeNode.h>
 #include <g4hough/SvtxHitMap.h>
 #include <g4hough/SvtxHit.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
@@ -12,7 +9,9 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 
-#include <cstdlib>
+#include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+
 #include <set>
 #include <map>
 #include <float.h>
@@ -22,14 +21,14 @@ using namespace std;
 
 SvtxHitEval::SvtxHitEval(PHCompositeNode* topNode)
   : _trutheval(topNode),
-    _hitmap(NULL),
-    _g4cells_svtx(NULL),
-    _g4cells_tracker(NULL),
-    _g4cells_maps(NULL),
-    _g4hits_svtx(NULL),
-    _g4hits_tracker(NULL),
-   _g4hits_maps(NULL),
-    _truthinfo(NULL),
+    _hitmap(nullptr),
+    _g4cells_svtx(nullptr),
+    _g4cells_tracker(nullptr),
+    _g4cells_maps(nullptr),
+    _g4hits_svtx(nullptr),
+    _g4hits_tracker(nullptr),
+   _g4hits_maps(nullptr),
+    _truthinfo(nullptr),
     _strict(false),
     _verbosity(1),
     _errors(0), 
@@ -73,13 +72,13 @@ void SvtxHitEval::next_event(PHCompositeNode* topNode) {
 
 PHG4CylinderCell* SvtxHitEval::get_cell(SvtxHit* hit) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(hit);}
-  else if (!hit) {++_errors; return NULL;}
+  else if (!hit) {++_errors; return nullptr;}
   
   // hop from reco hit to g4cell
-  PHG4CylinderCell* cell = NULL;
+  PHG4CylinderCell* cell = nullptr;
   if (!cell&&_g4cells_svtx)    cell = _g4cells_svtx->findCylinderCell(hit->get_cellid());
   if (!cell&&_g4cells_tracker) cell = _g4cells_tracker->findCylinderCell(hit->get_cellid());
   if (!cell&&_g4cells_maps) cell = _g4cells_maps->findCylinderCell(hit->get_cellid());
@@ -109,7 +108,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
   std::set<PHG4Hit*> truth_hits;
   
   // hop from reco hit to g4cell
-  PHG4CylinderCell *cell = NULL;
+  PHG4CylinderCell *cell = nullptr;
   if (!cell&&_g4cells_svtx)    cell = _g4cells_svtx->findCylinderCell(hit->get_cellid());
   if (!cell&&_g4cells_tracker) cell = _g4cells_tracker->findCylinderCell(hit->get_cellid());
   if (!cell&&_g4cells_maps) cell = _g4cells_maps->findCylinderCell(hit->get_cellid());
@@ -123,7 +122,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
        g4iter != cell->get_g4hits().second;
        ++g4iter) {
       
-    PHG4Hit* g4hit = NULL;
+    PHG4Hit* g4hit = nullptr;
     if (!g4hit&&_g4hits_svtx)    g4hit = _g4hits_svtx->findHit(g4iter->first);
     if (!g4hit&&_g4hits_tracker) g4hit = _g4hits_tracker->findHit(g4iter->first);
     if (!g4hit&&_g4hits_maps) g4hit = _g4hits_maps->findHit(g4iter->first);
@@ -142,10 +141,10 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
 
 PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(SvtxHit* hit) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(hit);}
-  else if (!hit) {++_errors; return NULL;}
+  else if (!hit) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<SvtxHit*,PHG4Hit*>::iterator iter =
@@ -156,7 +155,7 @@ PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(SvtxHit* hit) {
   }
   
   std::set<PHG4Hit*> hits = all_truth_hits(hit);
-  PHG4Hit* max_hit = NULL;
+  PHG4Hit* max_hit = nullptr;
   float max_e = FLT_MAX*-1.0;
   for (std::set<PHG4Hit*>::iterator iter = hits.begin();
        iter != hits.end();
@@ -211,10 +210,10 @@ std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(SvtxHit* hit) {
 
 PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(SvtxHit* hit) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(hit);}
-  else if (!hit) {++_errors; return NULL;}
+  else if (!hit) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<SvtxHit*,PHG4Particle*>::iterator iter =
@@ -226,7 +225,7 @@ PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(SvtxHit* hit) {
   
   // loop over all particles associated with this hit and
   // get the energy contribution for each one, record the max
-  PHG4Particle* max_particle = NULL;
+  PHG4Particle* max_particle = nullptr;
   float max_e = FLT_MAX*-1.0;
   std::set<PHG4Particle*> particles = all_truth_particles(hit);
   for (std::set<PHG4Particle*>::iterator iter = particles.begin();
@@ -333,10 +332,10 @@ std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Hit* g4hit) {
 
 SvtxHit* SvtxHitEval::best_hit_from(PHG4Hit* g4hit) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(g4hit);}
-  else if (!g4hit) {++_errors; return NULL;}
+  else if (!g4hit) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<PHG4Hit*,SvtxHit*>::iterator iter =
@@ -346,7 +345,7 @@ SvtxHit* SvtxHitEval::best_hit_from(PHG4Hit* g4hit) {
     }
   }
 
-  SvtxHit* best_hit = NULL;
+  SvtxHit* best_hit = nullptr;
   float best_energy = 0.0;  
   std::set<SvtxHit*> hits = all_hits_from(g4hit);
   for (std::set<SvtxHit*>::iterator iter = hits.begin();

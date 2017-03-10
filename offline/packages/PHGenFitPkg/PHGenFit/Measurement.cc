@@ -10,7 +10,8 @@ namespace PHGenFit {
 
 Measurement::~Measurement()
 {
-	delete _measurement;
-	_measurement = NULL;
+//	if(_measurement) {
+//		delete _measurement;
+//	}
 }
 } //End of PHGenFit namespace

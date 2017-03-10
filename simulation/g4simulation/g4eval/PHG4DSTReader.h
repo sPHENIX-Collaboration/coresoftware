@@ -7,25 +7,11 @@
  * \version $Revision: 1.7 $
  * \date $Date: 2015/02/27 23:42:23 $
  */
-
 #ifndef PHG4DSTREADER_H_
 #define PHG4DSTREADER_H_
 
-#include <HepMC/GenEvent.h>
-#include <HepMC/SimpleVector.h>
 #include <fun4all/SubsysReco.h>
-#include <string>
-#include <iostream>
-#include <vector>
-#include <TClonesArray.h>
-#include <g4main/PHG4HitEval.h>
-#include <g4main/PHG4Particlev2.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4VtxPointv1.h>
-#include <g4cemc/RawTowerv1.h>
-#include <g4jets/JetV1.h>
 
-class TTree;
 
 #ifndef __CINT__
 
@@ -33,9 +19,23 @@ class TTree;
 
 #endif
 
+#include <iostream>
+#include <string>
+#include <set>
+#include <vector>
+
+class PHCompositeNode;
+
+class PHG4Particle;
+
+class TClonesArray;
+class TTree;
+
+
 /*!
  * \brief PHG4DSTReader save information from DST to an evaluator, which could include hit. particle, vertex, towers and jet (to be activated)
  */
+
 class PHG4DSTReader : public SubsysReco
 {
 public:
@@ -149,13 +149,13 @@ protected:
   };
   typedef std::vector<record> records_t;
   records_t _records;
-
+  /*
   typedef PHG4Particlev2 part_type;
   typedef PHG4HitEval hit_type;
   typedef PHG4VtxPointv1 vertex_type;
   typedef RawTowerv1 RawTower_type;
   typedef JetV1 PHPyJet_type;
-
+  */
 #endif
 
   int _event;

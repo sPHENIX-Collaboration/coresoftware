@@ -484,7 +484,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
 	zbins.insert(cell->get_binz());
       }
       
-      float pitch = geom->get_phistep()*geom->get_radius();
+      float pitch = geom->get_phistep()*(geom->get_radius()+0.5*geom->get_thickness());
       float thickness = geom->get_thickness();
       float length = geom->get_zstep();
       float phisize = phibins.size()*pitch;
@@ -505,7 +505,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
 	clus_adc    += hit->get_adc();
 
 	// compute the hit center
-	double r   = geom->get_radius();
+	double r   = geom->get_radius()+0.5*geom->get_thickness();
         double phi = geom->get_phicenter(cell->get_binphi());
 
 	double x = r*cos(phi);
@@ -561,16 +561,18 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       DIM[2][1] = 0.0;
       DIM[2][2] = pow(0.5*zsize,2);
 
+      const float corr_factor = 1.0; // cylinder
+
       TMatrixF ERR(3,3);
-      ERR[0][0] = pow(0.0*0.5*thickness*invsqrt12,2);
+      ERR[0][0] = pow(0.0*thickness*invsqrt12*corr_factor,2);
       ERR[0][1] = 0.0;
       ERR[0][2] = 0.0;
       ERR[1][0] = 0.0;
-      ERR[1][1] = pow(0.5*phisize*invsqrt12,2);
+      ERR[1][1] = pow(phisize*invsqrt12*corr_factor,2);
       ERR[1][2] = 0.0;
       ERR[2][0] = 0.0;
       ERR[2][1] = 0.0;
-      ERR[2][2] = pow(0.5*zsize*invsqrt12,2);
+      ERR[2][2] = pow(zsize*invsqrt12*corr_factor,2);
 
       TMatrixF ROT(3,3);
       ROT[0][0] = cos(clusphi);
@@ -669,7 +671,12 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
     SvtxHit* hit = iter->second;
     layer_hits_mmap.insert(make_pair(hit->get_layer(),hit));
   }
-  
+   for (std::multimap<int,SvtxHit*>::iterator it=layer_hits_mmap.begin(); it!=layer_hits_mmap.end(); ++it)
+     {
+       if( (*it).first < (int) _min_layer || (*it).first > (int) _max_layer) 
+     continue;
+     }
+
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
       layeriter != layerrange.second;
@@ -679,7 +686,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 
     if ((unsigned int)layer < _min_layer) continue;
     if ((unsigned int)layer > _max_layer) continue;
-    
+
     std::map<PHG4CylinderCell*,SvtxHit*> cell_hit_map;
     vector<PHG4CylinderCell*> cell_list;
     for (std::multimap<int,SvtxHit*>::iterator hiter = layer_hits_mmap.lower_bound(layer);
@@ -690,7 +697,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       cell_list.push_back(cell);
       cell_hit_map.insert(make_pair(cell,hit));
     }
-    
+
     if (cell_list.size() == 0) continue; // if no cells, go to the next layer
     
     // i'm not sure this sorting is ever really used
@@ -842,16 +849,18 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       DIM[2][1] = 0.0;
       DIM[2][2] = pow(0.5*zsize,2);
 
+      const float corr_factor = 1.0; // ladder
+
       TMatrixF ERR(3,3);
-      ERR[0][0] = pow(0.5*thickness*invsqrt12,2);
+      ERR[0][0] = pow(thickness*invsqrt12*corr_factor,2);
       ERR[0][1] = 0.0;
       ERR[0][2] = 0.0;
       ERR[1][0] = 0.0;
-      ERR[1][1] = pow(0.5*phisize*invsqrt12,2);
+      ERR[1][1] = pow(phisize*invsqrt12*corr_factor,2);
       ERR[1][2] = 0.0;
       ERR[2][0] = 0.0;
       ERR[2][1] = 0.0;
-      ERR[2][2] = pow(0.5*zsize*invsqrt12,2);
+      ERR[2][2] = pow(zsize*invsqrt12*corr_factor,2);
       
       TMatrixF ROT(3,3);
       ROT[0][0] = cos(ladderphi);
