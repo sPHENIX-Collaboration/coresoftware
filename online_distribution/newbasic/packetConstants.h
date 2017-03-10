@@ -295,6 +295,8 @@
 #define IDCDEVDESCR         2017
 #define IDSTARSCALER        2098
 
+#define IDDIGITIZERV2       93
+
 
 // EMC data header and trailer length
 
