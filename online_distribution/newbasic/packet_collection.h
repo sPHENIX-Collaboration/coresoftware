@@ -11,6 +11,7 @@
 #include "packet_gl1_evclocks.h"
 
 #include "packet_id4scaler.h"
+#include "packet_iddigitizerv2.h"
 
 #include "packet_cdevpolarimeter.h"
 #include "packet_cdevir.h"
