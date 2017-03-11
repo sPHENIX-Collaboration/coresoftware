@@ -56,6 +56,9 @@ class PHG4MapsCellReco : public SubsysReco
 				     double dy,
 				     double* rr // length of the line segment inside the rectangle (output)
 				     );
+
+  double  PHG4MapsCellReco::circle_square_intersection(double x1, double y1,  double x2,  double y2,  double mx, double my,  double r);
+  double  PHG4MapsCellReco::sA(double r, double x, double y) ;
   
   //void set_size(const int i, const double sizeA, const int sizeB, const int what);
   int CheckEnergy(PHCompositeNode *topNode);
