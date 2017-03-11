@@ -317,10 +317,10 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		  // note that (x1,z1) is the top left corner, (x2,z2) is the bottom right corner of the pixel
 		  double x1 = tmp.X() - xpixw_half;
 		  double z1 = tmp.Z() + zpixw_half;
-		  double z2 = tmp.X() + xpixw_half;
+		  double x2 = tmp.X() + xpixw_half;
 		  double z2 = tmp.Z() - zpixw_half;
 
-		  double pixarea_frac = circle_square_intersection(x1, z1, x2, z2, segvec.X(), segvec.Z(), diffusion_radius) / (2.0 * M_PI * pow(diffusion_radius,2) );
+		  double pixarea_frac = circle_square_intersection(x1, z1, x2, z2, segvec.X(), segvec.Z(), ydiffusion_radius) / (2.0 * M_PI * pow(ydiffusion_radius,2) );
 		  // assume that the energy is deposited uniformly along the tracklet length, so that this segment gets the fraction 1/nsegments of it
 		  pixenergy[i] += pixarea_frac * hiter->second->get_edep() / (float) nsegments;
 
@@ -331,9 +331,9 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  // now we have the energy deposited in each pixel, we make a vector of those pixels with non-zero energy deposited
 	  for(int i=0;i<9;i++)
 	    {
-	      if(pixenergy > 0.0)
+	      if(pixenergy[i] > 0.0)
 		{	      
-		  vpixel.push_back(pixnumber[i]);
+		  vpixel.push_back(pixnum[i]);
 		  vxbin.push_back(xbin[i]);
 		  vzbin.push_back(zbin[i]);
 		  venergy.push_back(pixenergy[i]);  	  
@@ -345,6 +345,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  // End of charge sharing implementation
 	  //===================================
 
+	  bool old_way = false;
 	  if(old_way)
 	    {
 	      
@@ -549,7 +550,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		}
 	      else
 		{
-		  cell->add_edep(venergy[i1]);
+		  cell->add_edep(hiter->first, venergy[i1]);
 		}
 	      
 	      if(verbosity > 1)
