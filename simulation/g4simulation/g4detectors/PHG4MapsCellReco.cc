@@ -92,6 +92,8 @@ int PHG4MapsCellReco::InitRun(PHCompositeNode *topNode)
 int
 PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 {
+  //cout << PHWHERE << "Entering process_event for PHG4MapsCellreco" << endl;
+
   _timer.get()->restart();
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
@@ -232,8 +234,6 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  int pixel_number_in = layergeom->get_pixel_from_local_coords(local_in);
 	  // Get the pixel number of the exit location
 	  int pixel_number_out = layergeom->get_pixel_from_local_coords(local_out);
-	  // Get the pixel number of the midpoint of the tracklet
-	  int pixel_number_mid = layergeom->get_pixel_from_local_coords(midpoint);
 
 	  if(verbosity > 0)
 	    cout << "entry pixel number " << pixel_number_in << " exit pixel number " << pixel_number_out << endl;
@@ -250,12 +250,11 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  // position in local sensor coordinates,  and found the pixel numbers of the 
 	  // entry point and exit point
 
+	  bool charge_sharing = true;   // default = true 
+	  if(charge_sharing)
+	    {
 	  //====================================================
-	  // Here is where we want to implement charge sharing so that we can make
-	  // a list of cells pixels) that share energy from that hit
-	  //====================================================
-
-	  // Need to apportion energy between the neighboring cells
+	  // Beginning of charge sharing implementation
 	  // Approach:
 	  //    Find tracklet line
 	  //    Divide tracklet line into n segments (vary n until answer stabilizes) 
@@ -263,91 +262,163 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  //    Diffuse charge at each centroid
 	  //    Apportion charge between neighboring pixels
 	  //    Add the pixel energy contributions from different track segments together
+	  //====================================================
 
 	  TVector3 pathvec = local_in - local_out;
 
-	  double diffusion_width = 1.50e-03;   // maximum diffusion radius in cm
+	  double diffusion_width = 15.0e-04;   // maximum diffusion radius 15 microns in cm
 	  double ydrift_max = pathvec.Y();
 	  int nsegments = 4;
 
-	  // we assume for now that we only need to consider all 1st neighbors of the pixel containing the track midpoint
-	  double pixenergy[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-	  int pixnum[9];
-	  int xbin[9];
-	  int zbin[9];
-	  // start with the x and z locations in the pixel array of the midpoint of the tracklet
-	  xbin[0] = layergeom->get_pixel_X_from_pixel_number(pixel_number_mid);
-	  zbin[0] = layergeom->get_pixel_Z_from_pixel_number(pixel_number_mid);
-	  // now get the array positions of the neighboring pixels
-	  xbin[1] = xbin[0] + 1;    zbin[1] = zbin[0];
-	  xbin[2] = xbin[0] - 1;     zbin[2] = zbin[0];
-	  xbin[3] = xbin[0] ;         zbin[3] = zbin[0] + 1;
-	  xbin[4] = xbin[0] ;         zbin[4] = zbin[0] -1;
-	  xbin[5] = xbin[0]  + 1;   zbin[5] = zbin[0] + 1;
-	  xbin[6] = xbin[0]  + 1;   zbin[6] = zbin[0] -1;       
-	  xbin[7] = xbin[0]  - 1;    zbin[7] = zbin[0] + 1;
-	  xbin[8] = xbin[0]  - 1;    zbin[8] = zbin[0] - 1;
+	  // we want to make a list of all pixels possibly affected by this hit
+	  // wetake the entry and exit locations in local coordinates, and build
+	  // a rectangular array of pixels that encompasses bot, with 1 pixel added all around
+
+	  int xbin_in = layergeom->get_pixel_X_from_pixel_number(pixel_number_in);
+	  int zbin_in = layergeom->get_pixel_Z_from_pixel_number(pixel_number_in);
+	  int xbin_out = layergeom->get_pixel_X_from_pixel_number(pixel_number_out);
+	  int zbin_out = layergeom->get_pixel_Z_from_pixel_number(pixel_number_out);
 	  
+	  int xbin_max, xbin_min;
+	  if(xbin_in > xbin_out)
+	    {
+	      xbin_max = xbin_in + 1;
+	      xbin_min = xbin_out -1;
+	    }
+	  else
+	    {
+	      xbin_max = xbin_out + 1;
+	      xbin_min = xbin_in -1;
+	    }
+
+	  int zbin_max, zbin_min;
+	  if(zbin_in > zbin_out)
+	    {
+	      zbin_max = zbin_in + 1;
+	      zbin_min = zbin_out -1;
+	    }
+	  else
+	    {
+	      zbin_max = zbin_out + 1;
+	      zbin_min = zbin_in -1;
+	    }
+
+	  if(verbosity > 1)
+	    {
+	      cout << " xbin_in " << xbin_in << " xbin_out " << xbin_out << " xbin_min " << xbin_min << " xbin_max " << xbin_max << endl;
+	      cout << " zbin_in " << zbin_in << " zbin_out " << zbin_out << " zbin_min " << zbin_min << " zbin_max " << zbin_max << endl;
+	    }
+
+	  // skip this hit if it involves an unreasonable  number of pixels
+	  // this skips it if either the xbin or ybin range traversed is greater than 8 (remember, for 8 adding one pixel at each end makes max-min = 10) 
+	  if(xbin_max - xbin_min > 10 || zbin_max - zbin_min > 10)
+	    continue;
+
+	  // this hit is skipped earlier if this dimensioning would be exceeded
+	  double pixenergy[10][10] = {
+	    0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0  };
+
 	  // Loop over track segments and diffuse charge at each segment location, collect energy in pixels
-	  // At present this assumes the entry and exit points are not far apart, so we czn just use the 1st neighbor pixels  - needs to be fixed later!
 	  for(int i=0;i<nsegments;i++)
 	    {
 	      // Find the tracklet segment location
-	      double frac = (double) i / (double) nsegments;
+	      // If there are n segments of equal length, we want 2*n intervals
+	      // The 1st segment is centered at interval 1, the 2nd at interval 3, the nth at interval 2n -1
+	      double interval = 2 * (double ) i  + 1;
+	      double frac = interval / (double) (2 * nsegments);
 	      TVector3 segvec(pathvec.X() * frac, pathvec.Y() * frac, pathvec.Z() * frac);
-	      segvec = segvec + local_in;
-
+	      segvec = segvec + local_out;
+	      
 	      //  Find the distance to the back of the sensor from the segment location
-	      // This projection changes only the value of y
+	      // That projection changes only the value of y
 	      double ydrift = segvec.Y()  - local_out.Y();
-
+	      
 	      // Caculate the charge diffusion over this drift distance
 	      // How do we scale it? See ALICE slides pointed to by Christof
 	      // Assume for now charge diffusion is proportional to zdrift
 	      double ydiffusion_radius = diffusion_width * ydrift / ydrift_max;
-
+	      
+	      if(verbosity > 5)
+		cout << " segment " << i 
+		     << " interval " << interval
+		     << " frac " << frac
+		     << " local_in.X " << local_in.X()
+		     << " local_in.Z " << local_in.Z()
+		     << " local_in.Y " << local_in.Y()
+		     << " pathvec.X " << pathvec.X()
+		     << " pathvec.Z " << pathvec.Z()
+		     << " pathvec.Y " << pathvec.Y()
+		     << " segvec.X " << segvec.X()
+		     << " segvec.Z " << segvec.Z()
+		     << " segvec.Y " << segvec.Y()
+		     << " ydrift " << ydrift
+		     << " ydrift_max " << ydrift_max
+		     << " ydiffusion_radius " << ydiffusion_radius
+		     << endl;
+	      
 	      // Now find the area of overlap of the diffusion circle with each pixel and apportion the energy
-
-	      for(int i=0;i<9;i++)
+	      for(int ix = xbin_min;ix<=xbin_max;ix++)
 		{
-		  // Find the pixel corners for this pixel number
-
-		  pixnum[i] = layergeom->get_pixel_number_from_xbin_zbin( xbin[i], zbin[i] );		  
-		  TVector3 tmp = layergeom->get_local_coords_from_pixel( pixnum[i] );
-		  // note that (x1,z1) is the top left corner, (x2,z2) is the bottom right corner of the pixel
-		  double x1 = tmp.X() - xpixw_half;
-		  double z1 = tmp.Z() + zpixw_half;
-		  double x2 = tmp.X() + xpixw_half;
-		  double z2 = tmp.Z() - zpixw_half;
-
-		  double pixarea_frac = circle_square_intersection(x1, z1, x2, z2, segvec.X(), segvec.Z(), ydiffusion_radius) / (2.0 * M_PI * pow(ydiffusion_radius,2) );
-		  // assume that the energy is deposited uniformly along the tracklet length, so that this segment gets the fraction 1/nsegments of it
-		  pixenergy[i] += pixarea_frac * hiter->second->get_edep() / (float) nsegments;
-
-		} // end of loop over neighboring pixels
-
-	    }  // end of loop over tracklet segments
-
-	  // now we have the energy deposited in each pixel, we make a vector of those pixels with non-zero energy deposited
-	  for(int i=0;i<9;i++)
-	    {
-	      if(pixenergy[i] > 0.0)
-		{	      
-		  vpixel.push_back(pixnum[i]);
-		  vxbin.push_back(xbin[i]);
-		  vzbin.push_back(zbin[i]);
-		  venergy.push_back(pixenergy[i]);  	  
+		  for(int iz = zbin_min;iz<=zbin_max;iz++)
+		    {
+		      // Find the pixel corners for this pixel number
+		      int pixnum = layergeom->get_pixel_number_from_xbin_zbin( ix, iz );		  
+		      TVector3 tmp = layergeom->get_local_coords_from_pixel( pixnum );
+		      // note that (x1,z1) is the top left corner, (x2,z2) is the bottom right corner of the pixel - circle_rectangle_intersection expects this ordering
+		      double x1 = tmp.X() - xpixw_half;
+		      double z1 = tmp.Z() + zpixw_half;
+		      double x2 = tmp.X() + xpixw_half;
+		      double z2 = tmp.Z() - zpixw_half;
+		      
+		      // here segvec.X and segvec.Z are the center of the circle, and diffusion_radius is the circle radius
+		      // circle_rectangle_intersection returns the overlap area of the circle and the pixel. It is very fast if there is no overlap.
+		      double pixarea_frac = circle_rectangle_intersection(x1, z1, x2, z2, segvec.X(), segvec.Z(), ydiffusion_radius) / (M_PI * pow(ydiffusion_radius,2) );
+		      // assume that the energy is deposited uniformly along the tracklet length, so that this segment gets the fraction 1/nsegments of the energy
+		      pixenergy[ix-xbin_min][iz-zbin_min] += pixarea_frac * hiter->second->get_edep() / (float) nsegments;
+		      if(verbosity > 5)
+			{
+			  cout << "    pixnum " << pixnum << " xbin " << ix << " zbin " << iz
+			       << " pixel_area fraction of circle " << pixarea_frac << " accumulated pixel energy " << pixenergy[ix-xbin_min][iz-zbin_min]
+			       << endl;
+			}
+		    }
 		}
+	    }  // end loop over segments
 
+	  // now we have the energy deposited in each pixel, summed over all tracklet segments. We make a vector of all pixels with non-zero energy deposited
+	  for(int ix=xbin_min;ix<=xbin_max;ix++)
+	    {
+	      for(int iz=zbin_min;iz<=zbin_max;iz++)
+		{
+		  if( pixenergy[ix-xbin_min][iz-zbin_min] > 0.0 )
+		    {	      
+		      int pixnum = layergeom->get_pixel_number_from_xbin_zbin( ix, iz ); 
+		      vpixel.push_back(pixnum);
+		      vxbin.push_back(ix);
+		      vzbin.push_back(iz);
+		      venergy.push_back( pixenergy[ix-xbin_min][iz-zbin_min] );  	  
+		      if(verbosity > 1)
+			cout << " Added pixel number " << pixnum << " xbin " << ix << " zbin " << iz << " to vectors with energy " << pixenergy[ix-xbin_min][iz-zbin_min] << endl;
+		    }		    	
+		}
 	    }
 
 	  //===================================
 	  // End of charge sharing implementation
 	  //===================================
-
-	  bool old_way = false;
-	  if(old_way)
+	    }
+	  else
 	    {
+	      // This is the old way before charge sharing
 	      
 	      // Are they different?
 	      bool test_one_pixel = false;  // normally false!
@@ -466,7 +537,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  for (unsigned int i1 = 0; i1 < vpixel.size(); i1++)   // loop over all fired cells
 	    {
 	      int pixel_number = vpixel[i1];
-	      
+
 	      // combine ladder index and pixel values to get a single unique key for this pixel
 	      // layers:     0 - 2
 	      // Stave index:   0 - 47   = 6 bits
@@ -536,7 +607,18 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		}
 	      double edep;
 
-	      if(old_way)
+	      if(charge_sharing)
+		{
+		  cell->add_edep(hiter->first, venergy[i1]);
+		  
+		  if(verbosity > 1)
+		    {
+		      cout << " looping over fired cells: cell " << i1 << " inkey 0x" << hex << inkey << dec 
+			   << " cell energy " << venergy[i1]
+			   << " cell edep " << edep << " total edep " << hiter->second->get_edep() << endl;
+		    }
+		}
+	      else
 		{
 		  if(trklen > 0.0)
 		    {
@@ -547,19 +629,15 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		      edep = hiter->second->get_edep();
 		    }
 		  cell->add_edep(hiter->first, edep);
+
+		  if(verbosity > 1)
+		    {
+		      cout << " looping over fired cells: cell " << i1 << " inkey 0x" << hex << inkey << dec 
+			   << " cell length " << vlen[i1] << " trklen " << trklen
+			   << " cell edep " << edep << " total edep " << hiter->second->get_edep() << endl;
+		    }
 		}
-	      else
-		{
-		  cell->add_edep(hiter->first, venergy[i1]);
-		}
-	      
-	      if(verbosity > 1)
-		{
-		  cout << " looping over fired cells: cell " << i1 << " inkey 0x" << hex << inkey << dec 
-		       << " cell length " << vlen[i1] << " trklen " << trklen
-		       << " cell edep " << edep << " total edep " << hiter->second->get_edep() << endl;
-		  
-		}
+
 	    }
 	} // end loop over g4hits
       
@@ -792,21 +870,24 @@ bool  PHG4MapsCellReco::line_and_rectangle_intersect(
   return false;
 }
 
-double  PHG4MapsCellReco::circle_square_intersection( double x1, double y1,  double x2,  double y2,  double mx,  double my,  double r )
+double  PHG4MapsCellReco::circle_rectangle_intersection( double x1, double y1,  double x2,  double y2,  double mx,  double my,  double r )
 {
+  // Find the area of overlap of a circle and rectangle 
+  // Calls sA, which uses an analytic formula to determine the integral of the circle between limits set by the corners of the rectangle
+
   // move the rectangle to the frame where the circle is at (0,0)
   x1 -= mx; 
   x2 -= mx; 
   y1 -= my; 
   y2 -= my;
 
-  cout << " mx " << mx << " my " << my << " r " << r << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << endl;
+  //cout << " mx " << mx << " my " << my << " r " << r << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << endl;
   
-  cout << " sA21 " << sA(r,x2,y1)
-       << " sA11 " << sA(r,x1,y1)
-       << " sA22 " << sA(r,x2,y2)
-       << " sA12 " << sA(r,x1,y2)
-       << endl;
+  //cout << " sA21 " << sA(r,x2,y1)
+  //   << " sA11 " << sA(r,x1,y1)
+  //   << " sA22 " << sA(r,x2,y2)
+  //   << " sA12 " << sA(r,x1,y2)
+  //   << endl;
 
   return sA(r, x2, y1) - sA(r, x1, y1) - sA(r, x2, y2) + sA(r, x1, y2);
   
@@ -814,6 +895,12 @@ double  PHG4MapsCellReco::circle_square_intersection( double x1, double y1,  dou
 
 double  PHG4MapsCellReco::sA(double r, double x, double y) 
 {
+  // Uses analytic formula for the integral of a circle between limits set by the corner of a rectangle
+  // It is called repeatedly to find the overlap area between the circle and rectangle
+  // I found this code implementing the integral on a web forum called "ars technica",
+  // https://arstechnica.com/civis/viewtopic.php?t=306492
+  // posted by "memp"
+
   double a;
 
   if (x < 0) 

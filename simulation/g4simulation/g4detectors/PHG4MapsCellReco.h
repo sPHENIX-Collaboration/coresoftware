@@ -57,7 +57,7 @@ class PHG4MapsCellReco : public SubsysReco
 				     double* rr // length of the line segment inside the rectangle (output)
 				     );
 
-  double circle_square_intersection(double x1, double y1,  double x2,  double y2,  double mx, double my,  double r);
+  double circle_rectangle_intersection(double x1, double y1,  double x2,  double y2,  double mx, double my,  double r);
   double sA(double r, double x, double y) ;
   
   //void set_size(const int i, const double sizeA, const int sizeB, const int what);
