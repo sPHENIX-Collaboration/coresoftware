@@ -266,7 +266,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 
 	  TVector3 pathvec = local_in - local_out;
 
-	  // See figure 7.4 of the thesis by  Lucasz Maczewski (arXiv:10053.3710) for diffusion simulations in a MAPS epitaxial layer
+	  // See figure 7.3 of the thesis by  Lucasz Maczewski (arXiv:10053.3710) for diffusion simulations in a MAPS epitaxial layer
 	  // The diffusion widths below were inspired by those plots, corresponding to where the probability drops off to 1/3 of the peak value
 	  // However note that we make the simplifying assumption that the probability distribution is flat within this diffusion width,
 	  // while in the simulation it is not
@@ -352,7 +352,6 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	      double ydrift = segvec.Y()  - local_out.Y();
 	      
 	      // Caculate the charge diffusion over this drift distance
-	      // How do we scale it? See ALICE slides pointed to by Christof
 	      // increases from diffusion width_min to diffusion_width_max 
 	      double ydiffusion_radius = diffusion_width_min + (ydrift / ydrift_max) * (diffusion_width_max - diffusion_width_min);  
 	      
