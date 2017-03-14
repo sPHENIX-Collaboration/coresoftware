@@ -256,7 +256,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  //====================================================
 	  // Beginning of charge sharing implementation
 	  // Approach:
-	  //    Find tracklet line
+	  //    Find tracklet line inside sensor
 	  //    Divide tracklet line into n segments (vary n until answer stabilizes) 
 	  //    Find centroid of each segment
 	  //    Diffuse charge at each centroid
@@ -266,13 +266,19 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 
 	  TVector3 pathvec = local_in - local_out;
 
-	  double diffusion_width = 15.0e-04;   // maximum diffusion radius 15 microns in cm
+	  // See figure 7.4 of the thesis by  Lucasz Maczewski (arXiv:10053.3710) for diffusion simulations in a MAPS epitaxial layer
+	  // The diffusion widths below were inspired by those plots, corresponding to where the probability drops off to 1/3 of the peak value
+	  // However note that we make the simplifying assumption that the probability distribution is flat within this diffusion width,
+	  // while in the simulation it is not
+	  double diffusion_width_max = 35.0e-04;   // maximum diffusion radius 35 microns, in cm
+	  double diffusion_width_min = 12.0e-04;   // minimum diffusion radius 12 microns, in cm
+
 	  double ydrift_max = pathvec.Y();
 	  int nsegments = 4;
 
 	  // we want to make a list of all pixels possibly affected by this hit
-	  // wetake the entry and exit locations in local coordinates, and build
-	  // a rectangular array of pixels that encompasses bot, with 1 pixel added all around
+	  // we take the entry and exit locations in local coordinates, and build
+	  // a rectangular array of pixels that encompasses both, with "nadd" pixels added all around
 
 	  int xbin_in = layergeom->get_pixel_X_from_pixel_number(pixel_number_in);
 	  int zbin_in = layergeom->get_pixel_Z_from_pixel_number(pixel_number_in);
@@ -280,27 +286,28 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  int zbin_out = layergeom->get_pixel_Z_from_pixel_number(pixel_number_out);
 	  
 	  int xbin_max, xbin_min;
+	  int nadd = 2;
 	  if(xbin_in > xbin_out)
 	    {
-	      xbin_max = xbin_in + 1;
-	      xbin_min = xbin_out -1;
+	      xbin_max = xbin_in + nadd;
+	      xbin_min = xbin_out -nadd;
 	    }
 	  else
 	    {
-	      xbin_max = xbin_out + 1;
-	      xbin_min = xbin_in -1;
+	      xbin_max = xbin_out + nadd;
+	      xbin_min = xbin_in - nadd;
 	    }
 
 	  int zbin_max, zbin_min;
 	  if(zbin_in > zbin_out)
 	    {
-	      zbin_max = zbin_in + 1;
-	      zbin_min = zbin_out -1;
+	      zbin_max = zbin_in + nadd;
+	      zbin_min = zbin_out -nadd;
 	    }
 	  else
 	    {
-	      zbin_max = zbin_out + 1;
-	      zbin_min = zbin_in -1;
+	      zbin_max = zbin_out + nadd;
+	      zbin_min = zbin_in -nadd;
 	    }
 
 	  if(verbosity > 1)
@@ -310,22 +317,24 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	    }
 
 	  // skip this hit if it involves an unreasonable  number of pixels
-	  // this skips it if either the xbin or ybin range traversed is greater than 8 (remember, for 8 adding one pixel at each end makes max-min = 10) 
-	  if(xbin_max - xbin_min > 10 || zbin_max - zbin_min > 10)
+	  // this skips it if either the xbin or ybin range traversed is greater than 8 (for 8 adding two pixels at each end makes the range 12) 
+	  if(xbin_max - xbin_min > 12 || zbin_max - zbin_min > 12)
 	    continue;
 
 	  // this hit is skipped earlier if this dimensioning would be exceeded
-	  double pixenergy[10][10] = {
-	    0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0  };
+	  double pixenergy[12][12] = {
+	    0,0,0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,0,0,
+	    0,0,0,0,0,0,0,0,0,0,0,0 };
 
 	  // Loop over track segments and diffuse charge at each segment location, collect energy in pixels
 	  for(int i=0;i<nsegments;i++)
@@ -344,8 +353,8 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	      
 	      // Caculate the charge diffusion over this drift distance
 	      // How do we scale it? See ALICE slides pointed to by Christof
-	      // Assume for now charge diffusion is proportional to zdrift
-	      double ydiffusion_radius = diffusion_width * ydrift / ydrift_max;
+	      // increases from diffusion width_min to diffusion_width_max 
+	      double ydiffusion_radius = diffusion_width_min + (ydrift / ydrift_max) * (diffusion_width_max - diffusion_width_min);  
 	      
 	      if(verbosity > 5)
 		cout << " segment " << i 
@@ -881,13 +890,15 @@ double  PHG4MapsCellReco::circle_rectangle_intersection( double x1, double y1,  
   y1 -= my; 
   y2 -= my;
 
-  //cout << " mx " << mx << " my " << my << " r " << r << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << endl;
-  
-  //cout << " sA21 " << sA(r,x2,y1)
-  //   << " sA11 " << sA(r,x1,y1)
-  //   << " sA22 " << sA(r,x2,y2)
-  //   << " sA12 " << sA(r,x1,y2)
-  //   << endl;
+  if(verbosity > 7)
+    {
+      cout << " mx " << mx << " my " << my << " r " << r << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << endl;
+      cout << " sA21 " << sA(r,x2,y1)
+	   << " sA11 " << sA(r,x1,y1)
+	   << " sA22 " << sA(r,x2,y2)
+	   << " sA12 " << sA(r,x1,y2)
+	   << endl;
+    }
 
   return sA(r, x2, y1) - sA(r, x1, y1) - sA(r, x2, y2) + sA(r, x1, y2);
   
