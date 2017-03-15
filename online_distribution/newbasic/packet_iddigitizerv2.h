@@ -34,6 +34,14 @@ protected:
   int _nsamples;
   int _nr_modules;
 
+  int _even_checksum;
+  int _odd_checksum;
+
+  int _calculated_even_checksum;
+  int _calculated_odd_checksum;
+
+  int _even_checksum_ok;
+  int _odd_checksum_ok;
 
   int _nchannels;
   int _is_decoded;
