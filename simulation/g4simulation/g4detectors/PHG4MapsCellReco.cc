@@ -4,6 +4,10 @@
 #include "PHG4CylinderCell_MAPS.h"
 #include "PHG4CylinderCellContainer.h"
 
+#include "PHG4Cellv1.h"
+#include "PHG4CellContainer.h"
+#include "PHG4CellDefs.h"
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4HitContainer.h>
@@ -55,7 +59,7 @@ int PHG4MapsCellReco::InitRun(PHCompositeNode *topNode)
       exit(1);
     }
   cellnodename = "G4CELL_" + detector;
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode , cellnodename);
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode , cellnodename);
   if (!cells)
     {
       PHNodeIterator dstiter(dstNode);
@@ -67,7 +71,7 @@ int PHG4MapsCellReco::InitRun(PHCompositeNode *topNode)
           DetNode = new PHCompositeNode(detector);
           dstNode->addNode(DetNode);
         }
-      cells = new PHG4CylinderCellContainer();
+      cells = new PHG4CellContainer();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str() , "PHObject");
       DetNode->addNode(newNode);
     
@@ -101,7 +105,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
       cout << "Could not locate g4 hit node " << hitnodename << endl;
       exit(1);
     }
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode, cellnodename);
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   if (! cells)
     {
       cout << "could not locate cell node " << cellnodename << endl;
@@ -254,7 +258,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  vector<int> vxbin;
 	  vector<int> vzbin;
 	  vector<double> vlen;
-	  vector<double> venergy;
+	  vector< pair <double, double> > venergy;
 	  //double trklen = 0.0;
 
 	  //===================================================
@@ -339,19 +343,8 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	    continue;
 
 	  // this hit is skipped earlier if this dimensioning would be exceeded
-	  double pixenergy[12][12] = {
-	    0,0,0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,0,0,
-	    0,0,0,0,0,0,0,0,0,0,0,0 };
+	  double pixenergy[12][12] = {}; // init to 0
+	  double pixeion[12][12] = {}; // init to 0
 
 	  // Loop over track segments and diffuse charge at each segment location, collect energy in pixels
 	  for(int i=0;i<nsegments;i++)
@@ -421,6 +414,10 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		      double pixarea_frac = circle_rectangle_intersection(x1, z1, x2, z2, segvec.X(), segvec.Z(), ydiffusion_radius) / (M_PI * pow(ydiffusion_radius,2) );
 		      // assume that the energy is deposited uniformly along the tracklet length, so that this segment gets the fraction 1/nsegments of the energy
 		      pixenergy[ix-xbin_min][iz-zbin_min] += pixarea_frac * hiter->second->get_edep() / (float) nsegments;
+		      if (hiter->second->has_property(PHG4Hit::prop_eion))
+			{
+                          pixeion[ix-xbin_min][iz-zbin_min] += pixarea_frac * hiter->second->get_eion() / (float) nsegments;
+			}
 		      if(verbosity > 5)
 			{
 			  cout << "    pixnum " << pixnum << " xbin " << ix << " zbin " << iz
@@ -442,7 +439,8 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		      vpixel.push_back(pixnum);
 		      vxbin.push_back(ix);
 		      vzbin.push_back(iz);
-		      venergy.push_back( pixenergy[ix-xbin_min][iz-zbin_min] );  	  
+		      pair <double,double> tmppair = make_pair(pixenergy[ix-xbin_min][iz-zbin_min],pixeion[ix-xbin_min][iz-zbin_min]);
+		      venergy.push_back(tmppair);  	  
 		      if(verbosity > 1)
 			cout << " Added pixel number " << pixnum << " xbin " << ix << " zbin " << iz << " to vectors with energy " << pixenergy[ix-xbin_min][iz-zbin_min] << endl;
 		    }		    	
@@ -506,8 +504,8 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	      inkey += (half_stave_number << stave_number_bits);
 	      inkey += (module_number << (stave_number_bits+half_stave_number_bits));
 	      inkey += (chip_number << (stave_number_bits+half_stave_number_bits+module_number_bits));
-	      PHG4CylinderCell *cell = nullptr;
-	      map<unsigned long long, PHG4CylinderCell*>::iterator it;
+	      PHG4Cell *cell = nullptr;
+	      map<unsigned long long, PHG4Cell*>::iterator it;
 	      it = celllist.find(inkey);
 	      if (it != celllist.end())
 		{
@@ -515,9 +513,12 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		}
 	      else
 		{
-		  cell = new PHG4CylinderCell_MAPS();
+
+		  unsigned int index = celllist.size();
+		  index++;
+		  PHG4CellDefs::keytype key = PHG4CellDefs::MapsBinning::genkey(*layer,index);
+		  cell = new PHG4Cellv1(key);
 		  celllist[inkey] = cell;
-		  cell->set_layer(*layer);
 		  cell->set_stave_index(stave_number);
 		  cell->set_half_stave_index(half_stave_number);
 		  cell->set_module_index(module_number);
@@ -526,26 +527,27 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		  cell->set_phibin(vxbin[i1]);
 		  cell->set_zbin(vzbin[i1]);
 		}
-	      double edep;
-
-	      //	      if(charge_sharing)
-	      //{
-	      cell->add_edep(hiter->first, venergy[i1]);
+	      cell->add_edep(hiter->first, venergy[i1].first);
+	      if (venergy[i1].second > 0)
+		{
+                  cell->add_eion(venergy[i1].second);
+		}
+	      cell->add_edep( venergy[i1].first);
 	      
 	      if(verbosity > 1)
 		{
 		  cout << " looping over fired cells: cell " << i1 << " inkey 0x" << hex << inkey << dec 
-		       << " cell energy " << venergy[i1]
-		       << " cell edep " << edep << " total edep " << hiter->second->get_edep() << endl;
+		       << " cell energy " << venergy[i1].first
+		       << " cell edep " << cell->get_edep() << " total edep " << hiter->second->get_edep() << endl;
 		}
 	      
 	    }
 	} // end loop over g4hits
       
       int numcells = 0;
-      for (map<unsigned long long, PHG4CylinderCell *>::const_iterator mapiter = celllist.begin();mapiter != celllist.end() ; ++mapiter)
+      for (map<unsigned long long, PHG4Cell *>::const_iterator mapiter = celllist.begin();mapiter != celllist.end() ; ++mapiter)
 	{	  
-	  cells->AddCylinderCell(*layer, mapiter->second);
+	  cells->AddCell(mapiter->second);
 	  numcells++;
 	  
 	  if (verbosity > 0)
@@ -584,7 +586,7 @@ int
 PHG4MapsCellReco::CheckEnergy(PHCompositeNode *topNode)
 {
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode, cellnodename);
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   double sum_energy_g4hit = 0.;
   double sum_energy_cells = 0.;
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
@@ -593,8 +595,8 @@ PHG4MapsCellReco::CheckEnergy(PHCompositeNode *topNode)
     {
       sum_energy_g4hit += hiter->second->get_edep();
     }
-  PHG4CylinderCellContainer::ConstRange cell_begin_end = cells->getCylinderCells();
-  PHG4CylinderCellContainer::ConstIterator citer;
+  PHG4CellContainer::ConstRange cell_begin_end = cells->getCells();
+  PHG4CellContainer::ConstIterator citer;
   for (citer = cell_begin_end.first; citer != cell_begin_end.second; ++citer)
     {
       sum_energy_cells += citer->second->get_edep();

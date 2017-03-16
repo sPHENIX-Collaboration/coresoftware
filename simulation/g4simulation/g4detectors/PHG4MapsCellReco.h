@@ -8,7 +8,7 @@
 #include <vector>
 
 class PHCompositeNode;
-class PHG4CylinderCell;
+class PHG4Cell;
 
 class PHG4MapsCellReco : public SubsysReco
 {
@@ -77,7 +77,7 @@ class PHG4MapsCellReco : public SubsysReco
   int nbins[2];
   int chkenergyconservation;
 
-  std::map<unsigned long long, PHG4CylinderCell*> celllist;  // This map holds the hit cells
+  std::map<unsigned long long, PHG4Cell*> celllist;  // This map holds the hit cells
 };
 
 #endif
