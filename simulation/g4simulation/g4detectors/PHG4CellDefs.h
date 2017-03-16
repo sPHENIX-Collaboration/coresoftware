@@ -71,9 +71,7 @@ namespace PHG4CellDefs
 
   namespace MapsBinning
   {
-    keytype genkey(const unsigned short layer, const unsigned short zbin, const unsigned short iphibin);
-    unsigned short int get_zbin(const PHG4CellDefs::keytype key);
-    unsigned short int get_phibin(const PHG4CellDefs::keytype key);
+    keytype genkey(const unsigned short layer, const unsigned int bit32_index);
   };
 
 }

@@ -76,11 +76,17 @@ class PHG4Cell: public PHObject
   virtual void set_module_index(const int i) {return;}
   virtual int get_module_index() const {return ~0x0;}
 
+  virtual void set_phibin(const int i) {return;}
+  virtual int get_phibin() const {return ~0x0;}
+
   virtual void set_pixel_index(const int i) {return;}
   virtual int get_pixel_index() const {return ~0x0;}
 
   virtual void set_stave_index(const int i) {return;}
   virtual int get_stave_index() const {return ~0x0;}
+
+  virtual void set_zbin(const int i) {return;}
+  virtual int get_zbin() const {return ~0x0;}
 
 
   virtual void print() const {std::cout<<"PHG4Cellv1"<<std::endl;}
@@ -91,13 +97,15 @@ class PHG4Cell: public PHObject
   enum PROPERTY 
   {//
     // first various coordinates 1-20
-    //-- summed energy:  - 20-30  --
     //! Maps coordinates
     prop_stave_index = 1,
     prop_half_stave_index = 2,
     prop_module_index = 3,
     prop_chip_index = 4,
     prop_pixel_index = 5,
+    prop_phibin = 6,
+    prop_zbin = 7,
+    //-- summed energy:  - 20-30  --
     //! deposited energy
     prop_edep = 21,
     //! ionizing energy loss

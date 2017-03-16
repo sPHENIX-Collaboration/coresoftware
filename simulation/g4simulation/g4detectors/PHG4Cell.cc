@@ -53,6 +53,10 @@ PHG4Cell::get_property_info(const PROPERTY prop_id)
     return make_pair("chip index",PHG4Cell::type_int);
   case prop_pixel_index:
     return make_pair("pixel index",PHG4Cell::type_int);
+  case prop_phibin:
+    return make_pair("phibin",PHG4Cell::type_int);
+  case prop_zbin:
+    return make_pair("zbin",PHG4Cell::type_int);
   case  prop_edep:
     return make_pair("energy deposition",PHG4Cell::type_float);
   case  prop_eion:

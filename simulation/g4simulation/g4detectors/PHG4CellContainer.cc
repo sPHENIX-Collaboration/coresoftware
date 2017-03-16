@@ -37,6 +37,11 @@ PHG4CellContainer::ConstIterator
 PHG4CellContainer::AddCell(PHG4Cell *newcell)
 {
   PHG4CellDefs::keytype key = newcell->get_cellid();
+  if (cellmap.find(key) != cellmap.end())
+    {
+      cout << "overwriting cell 0x" << hex << key << dec << endl;
+      cout << "layer: " << PHG4CellDefs::get_detid(key) << endl;
+    }
   cellmap[key] = newcell;
   return cellmap.find(key);
 }

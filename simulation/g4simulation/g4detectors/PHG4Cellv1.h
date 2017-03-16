@@ -56,11 +56,18 @@ class PHG4Cellv1: public PHG4Cell
   void set_module_index(const int i) {set_property(prop_module_index,i);}
   int get_module_index() const {return get_property_int(prop_module_index);}
 
+  void set_phibin(const int i) {set_property(prop_phibin,i);}
+  int get_phibin() const {return get_property_int(prop_phibin);}
+
   void set_pixel_index(const int i) {set_property(prop_pixel_index,i);}
   int get_pixel_index() const {return get_property_int(prop_pixel_index);}
 
   void set_stave_index(const int i) {set_property(prop_stave_index,i);}
   int get_stave_index() const {return get_property_int(prop_stave_index);}
+
+  void set_zbin(const int i) {set_property(prop_zbin,i);}
+  int get_zbin() const {return get_property_int(prop_zbin);}
+
 
 
   void print() const;
