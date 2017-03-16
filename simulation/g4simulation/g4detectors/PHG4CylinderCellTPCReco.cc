@@ -3,10 +3,11 @@
 #include "PHG4CylinderGeom.h"
 #include "PHG4CylinderCellGeomContainer.h"
 #include "PHG4CylinderCellGeom.h"
-#include "PHG4CylinderCellv1.h"
-#include "PHG4CylinderCellContainer.h"
-#include "PHG4CylinderCellDefs.h"
 #include "PHG4TPCDistortion.h"
+
+#include "PHG4Cellv1.h"
+#include "PHG4CellContainer.h"
+#include "PHG4CellDefs.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -71,26 +72,50 @@ void PHG4CylinderCellTPCReco::cellsize(const int i, const double sr, const doubl
 }
 
 
-int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
+int
+PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
-  
+
   PHCompositeNode *dstNode;
   dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode){std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;exit(1);}
+  if (!dstNode)
+    {
+      std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+      exit(1);
+    }
   hitnodename = "G4HIT_" + detector;
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  if (!g4hit){cout << "Could not locate g4 hit node " << hitnodename << endl;exit(1);}
+  if (!g4hit)
+    {
+      cout << "Could not locate g4 hit node " << hitnodename << endl;
+      exit(1);
+    }
   cellnodename = "G4CELL_" + outdetector;
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode , cellnodename);
-  if (!cells){cells = new PHG4CylinderCellContainer();PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str() , "PHObject");dstNode->addNode(newNode);}
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode , cellnodename);
+  if (!cells)
+    {
+      cells = new PHG4CellContainer();
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str() , "PHObject");
+      dstNode->addNode(newNode);
+    }
   geonodename = "CYLINDERGEOM_" + detector;
   PHG4CylinderGeomContainer *geo =  findNode::getClass<PHG4CylinderGeomContainer>(topNode , geonodename.c_str());
-  if (!geo){cout << "Could not locate geometry node " << geonodename << endl;exit(1);}
-  
+  if (!geo)
+    {
+      cout << "Could not locate geometry node " << geonodename << endl;
+      exit(1);
+    }
+
   seggeonodename = "CYLINDERCELLGEOM_" + outdetector;
   PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode , seggeonodename.c_str());
-  if (!seggeo){seggeo = new PHG4CylinderCellGeomContainer();PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str() , "PHObject");runNode->addNode(newNode);}
+  if (!seggeo)
+    {
+      seggeo = new PHG4CylinderCellGeomContainer();
+      PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str() , "PHObject");
+      runNode->addNode(newNode);
+    }
   
   map<int, PHG4CylinderGeom *>::const_iterator miter;
   pair <map<int, PHG4CylinderGeom *>::const_iterator, map<int, PHG4CylinderGeom *>::const_iterator> begin_end = geo->get_begin_end();
@@ -151,7 +176,7 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
     {
       zhigh += size_z;
     }
-    layerseggeo->set_binning(PHG4CylinderCellDefs::sizebinning);
+    layerseggeo->set_binning(PHG4CellDefs::sizebinning);
     layerseggeo->set_zbins(nbins[1]);
     layerseggeo->set_zmin(layergeom->get_zmin());
     layerseggeo->set_zstep(size_z);
@@ -173,15 +198,28 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
 
 
 
-int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
+int
+PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 {
   _timer.get()->restart();
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  if (!g4hit){cout << "Could not locate g4 hit node " << hitnodename << endl;exit(1);}
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode, cellnodename);
-  if (! cells){cout << "could not locate cell node " << cellnodename << endl;exit(1);}
+  if (!g4hit)
+    {
+      cout << "Could not locate g4 hit node " << hitnodename << endl;
+      exit(1);
+    }
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
+  if (! cells)
+    {
+      cout << "could not locate cell node " << cellnodename << endl;
+      exit(1);
+    }
   PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode , seggeonodename.c_str());
-  if (! seggeo){cout << "could not locate geo node " << seggeonodename << endl;exit(1);}
+  if (! seggeo)
+    {
+      cout << "could not locate geo node " << seggeonodename << endl;
+      exit(1);
+    }
   
   map<int, std::pair <double, double> >::iterator sizeiter;
   PHG4HitContainer::LayerIter layer;
@@ -189,7 +227,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
   
   for(layer = layer_begin_end.first; layer != layer_begin_end.second; layer++)
   {
-    std::map<unsigned long long, PHG4CylinderCell*> cellptmap;
+    map<unsigned long long, PHG4Cell*> cellptmap;
     PHG4HitContainer::ConstIterator hiter;
     PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(*layer);
     PHG4CylinderCellGeom *geo = seggeo->GetLayerCellGeom(*layer);
@@ -264,8 +302,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	  unsigned long long tmp = phibin;
 	  unsigned long long inkey = tmp << 32;
 	  inkey += zbin;
-	  PHG4CylinderCell *cell = nullptr;
-	  map<unsigned long long, PHG4CylinderCell*>::iterator it;
+	  PHG4Cell *cell = nullptr;
+	  map<unsigned long long, PHG4Cell*>::iterator it;
 	  it = cellptmap.find(inkey);
 	  if (it != cellptmap.end())
 	    {
@@ -273,14 +311,17 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	    }
 	  else
 	    {
-	      cell = new PHG4CylinderCellv1();
+	      PHG4CellDefs::keytype key = PHG4CellDefs::SizeBinning::genkey(*layer,zbin,phibin);
+	      cell = new PHG4Cellv1(key);
 	      cellptmap[inkey] = cell;
-	      cell->set_layer(*layer);
-	      cell->set_phibin(phibin);
-	      cell->set_zbin(zbin);
 	    }
           cell->add_edep(hiter->first, edep);
+	  cell->add_edep(edep);
           cell->add_shower_edep(hiter->second->get_shower_id(), edep);
+	  if (hiter->second->has_property(PHG4Hit::prop_eion))
+	    {
+              cell->add_eion(hiter->second->get_eion());
+	    }
         }
       else
       {
@@ -313,15 +354,16 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
             
             double z_integral = 0.5*erf(-0.5*sqrt(2.)*zdisp*cloud_sig_z_inv + 0.5*sqrt(2.)*( (0.5 + (double)iz)*zstepsize )*cloud_sig_z_inv) - 0.5*erf(-0.5*sqrt(2.)*zdisp*cloud_sig_z_inv + 0.5*sqrt(2.)*( (-0.5 + (double)iz)*zstepsize )*cloud_sig_z_inv);
 
-            double total_weight = rand.Poisson( nelec*( phi_integral * z_integral ) );
+	    //            double total_weight = rand.Poisson( nelec*( phi_integral * z_integral ) );
+            double total_weight = 0.9*( nelec*( phi_integral * z_integral ) );
             
             if( !(total_weight == total_weight) ){continue;}
             if(total_weight == 0.){continue;}
 	    unsigned long long tmp = cur_phi_bin;
 	    unsigned long long inkey = tmp << 32;
 	    inkey += cur_z_bin;
-	    PHG4CylinderCell *cell = nullptr;
-	    map<unsigned long long, PHG4CylinderCell*>::iterator it;
+	    PHG4Cell *cell = nullptr;
+	    map<unsigned long long, PHG4Cell*>::iterator it;
 	    it = cellptmap.find(inkey);
 	    if (it != cellptmap.end())
 	      {
@@ -329,22 +371,25 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	      }
 	    else
 	      {
-		cell = new PHG4CylinderCellv1();
+ 	        PHG4CellDefs::keytype key = PHG4CellDefs::SizeBinning::genkey(*layer,cur_z_bin,cur_phi_bin);
+		cell = new PHG4Cellv1(key);
 		cellptmap[inkey] = cell;
-		cell->set_layer(*layer);
-		cell->set_phibin(cur_phi_bin);
-		cell->set_zbin(cur_z_bin);
 	      }
 	    cell->add_edep(hiter->first, total_weight);
+	    cell->add_edep(total_weight);
 	    cell->add_shower_edep(hiter->second->get_shower_id(), total_weight);
+	    if (hiter->second->has_property(PHG4Hit::prop_eion))
+	      {
+		cell->add_eion(hiter->second->get_eion());
+	      }
 	  }
 	}
       }
     }
     int count = 0;
-    for(std::map<unsigned long long, PHG4CylinderCell*>::iterator it = cellptmap.begin(); it != cellptmap.end(); ++it)
+    for(std::map<unsigned long long, PHG4Cell*>::iterator it = cellptmap.begin(); it != cellptmap.end(); ++it)
     {
-      cells->AddCylinderCell((unsigned int)(*layer), it->second);
+      cells->AddCell(it->second);
       count += 1;
     }
   }
@@ -352,11 +397,3 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
   _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-
-int PHG4CylinderCellTPCReco::End(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-
