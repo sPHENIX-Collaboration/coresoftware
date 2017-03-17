@@ -44,7 +44,6 @@ public:
  private:
 
   void FillCylinderDeadAreaMap(PHCompositeNode *topNode);
-  void FillLadderDeadAreaMap(PHCompositeNode *topNode);
   void FillMapsLadderDeadAreaMap(PHCompositeNode *topNode);
 
   // settings
