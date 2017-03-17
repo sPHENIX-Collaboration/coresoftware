@@ -5,26 +5,17 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __PHG4TruthPatRec_H__
-#define __PHG4TruthPatRec_H__
+#ifndef PHG4TruthPatRec_H__
+#define PHG4TruthPatRec_H__
 
 #include <fun4all/SubsysReco.h>
 
 #include <string>
-#include <vector>
 
-
-class SvtxTrack;
-
-class SvtxTrackMap;
-class SvtxVertexMap;
-class SvtxVertex;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
+class SvtxTrackMap;
 class SvtxClusterMap;
-class SvtxEvalStack;
-class TFile;
-class TTree;
 
 
 //! \brief		Truth Pattern Recognition.
@@ -37,10 +28,7 @@ public:
 	PHG4TruthPatRec(const std::string &name = "PHG4TruthPatRec");
 
 	//! dtor
-	~PHG4TruthPatRec();
-
-	//!Initialization, called for initialization
-	int Init(PHCompositeNode *topNode);
+	~PHG4TruthPatRec(){}
 
 	//!Initialization Run, called for initialization of a run
 	int InitRun(PHCompositeNode *topNode);
@@ -50,11 +38,6 @@ public:
 
 	//!End, write and close files
 	int End(PHCompositeNode *topNode);
-
-	/// set verbosity
-	void Verbosity(int verb) {
-		verbosity = verb; // SubsysReco verbosity
-	}
 
 //	bool is_use_ladder_intt() const {
 //		return _use_ladder_intt;
