@@ -45,7 +45,6 @@ pkginclude_HEADERS = \
   SvtxVertexMap_v1.h \
   PHG4SvtxDeadArea.h \
   PHG4SvtxThresholds.h \
-  PHG4SvtxAddConnectedCells.h \
   PHG4SvtxDigitizer.h \
   PHG4SvtxClusterizer.h \
   SvtxHit.h \
@@ -123,8 +122,6 @@ libg4hough_la_SOURCES = \
   PHG4SvtxDeadArea_Dict.C \
   PHG4SvtxThresholds.C \
   PHG4SvtxThresholds_Dict.C \
-  PHG4SvtxAddConnectedCells.C \
-  PHG4SvtxAddConnectedCells_Dict.C \
   PHG4SvtxDigitizer.C \
   PHG4SvtxDigitizer_Dict.C \
   PHG4SvtxClusterizer.C \
