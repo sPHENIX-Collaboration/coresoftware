@@ -2,8 +2,8 @@
 
 #include <g4hough/SvtxHitMap.h>
 #include <g4hough/SvtxHit.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
+#include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4Cell.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -70,32 +70,32 @@ void SvtxHitEval::next_event(PHCompositeNode* topNode) {
   get_node_pointers(topNode);
 }
 
-PHG4CylinderCell* SvtxHitEval::get_cell(SvtxHit* hit) {
+PHG4Cell* SvtxHitEval::get_cell(SvtxHit* hit) {
 
-  if (!has_node_pointers()) {++_errors; return nullptr;}
+  if (!has_node_pointers()) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return nullptr;}
   
   if (_strict) {assert(hit);}
-  else if (!hit) {++_errors; return nullptr;}
+  else if (!hit) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return nullptr;}
   
   // hop from reco hit to g4cell
-  PHG4CylinderCell* cell = nullptr;
-  if (!cell&&_g4cells_svtx)    cell = _g4cells_svtx->findCylinderCell(hit->get_cellid());
-  if (!cell&&_g4cells_tracker) cell = _g4cells_tracker->findCylinderCell(hit->get_cellid());
-  if (!cell&&_g4cells_maps) cell = _g4cells_maps->findCylinderCell(hit->get_cellid());
+  PHG4Cell* cell = nullptr;
+  if (!cell&&_g4cells_svtx)    cell = _g4cells_svtx->findCell(hit->get_cellid());
+  if (!cell&&_g4cells_tracker) cell = _g4cells_tracker->findCell(hit->get_cellid());
+  if (!cell&&_g4cells_maps) cell = _g4cells_maps->findCell(hit->get_cellid());
 
   // only noise hits (cellid left at default value) should not trace
   if ((_strict) && (hit->get_cellid() != 0xFFFFFFFF)) {assert(cell);}
-  else if (!cell) {++_errors;}
+  else if (!cell) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl;}
   
   return cell;
 }
 
 std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
 
-  if (!has_node_pointers()) {++_errors; return std::set<PHG4Hit*>();}
+  if (!has_node_pointers()) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return std::set<PHG4Hit*>();}
   
   if (_strict) {assert(hit);}
-  else if (!hit) {++_errors; return std::set<PHG4Hit*>();}
+  else if (!hit) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return std::set<PHG4Hit*>();}
   
   if (_do_cache) {
     std::map<SvtxHit*,std::set<PHG4Hit*> >::iterator iter =
@@ -108,17 +108,17 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
   std::set<PHG4Hit*> truth_hits;
   
   // hop from reco hit to g4cell
-  PHG4CylinderCell *cell = nullptr;
-  if (!cell&&_g4cells_svtx)    cell = _g4cells_svtx->findCylinderCell(hit->get_cellid());
-  if (!cell&&_g4cells_tracker) cell = _g4cells_tracker->findCylinderCell(hit->get_cellid());
-  if (!cell&&_g4cells_maps) cell = _g4cells_maps->findCylinderCell(hit->get_cellid());
+  PHG4Cell *cell = nullptr;
+  if (!cell&&_g4cells_svtx)    cell = _g4cells_svtx->findCell(hit->get_cellid());
+  if (!cell&&_g4cells_tracker) cell = _g4cells_tracker->findCell(hit->get_cellid());
+  if (!cell&&_g4cells_maps) cell = _g4cells_maps->findCell(hit->get_cellid());
 
   // only noise hits (cellid left at default value) should not trace
   if ((_strict) && (hit->get_cellid() != 0xFFFFFFFF)) assert(cell);
-  else if (!cell) {++_errors; return truth_hits;}
+  else if (!cell) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return truth_hits;}
 
   // loop over all the g4hits in this cell
-  for (PHG4CylinderCell::EdepConstIterator g4iter = cell->get_g4hits().first;
+  for (PHG4Cell::EdepConstIterator g4iter = cell->get_g4hits().first;
        g4iter != cell->get_g4hits().second;
        ++g4iter) {
       
@@ -128,7 +128,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
     if (!g4hit&&_g4hits_maps) g4hit = _g4hits_maps->findHit(g4iter->first);
 
     if (_strict) assert(g4hit);
-    else if (!g4hit) {++_errors; continue;}
+    else if (!g4hit) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; continue;}
     
     // fill output set
     truth_hits.insert(g4hit);
@@ -141,10 +141,10 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
 
 PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(SvtxHit* hit) {
 
-  if (!has_node_pointers()) {++_errors; return nullptr;}
+  if (!has_node_pointers()) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return nullptr;}
   
   if (_strict) {assert(hit);}
-  else if (!hit) {++_errors; return nullptr;}
+  else if (!hit) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return nullptr;}
   
   if (_do_cache) {
     std::map<SvtxHit*,PHG4Hit*>::iterator iter =
@@ -174,10 +174,10 @@ PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(SvtxHit* hit) {
   
 std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(SvtxHit* hit) {
 
-  if (!has_node_pointers()) {++_errors; return std::set<PHG4Particle*>();}
+  if (!has_node_pointers()) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return std::set<PHG4Particle*>();}
   
   if (_strict) {assert(hit);}
-  else if (!hit) {++_errors; return std::set<PHG4Particle*>();}
+  else if (!hit) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return std::set<PHG4Particle*>();}
   
   if (_do_cache) {
     std::map<SvtxHit*,std::set<PHG4Particle*> >::iterator iter =
@@ -198,7 +198,7 @@ std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(SvtxHit* hit) {
     PHG4Particle* particle = get_truth_eval()->get_particle( g4hit );
 
     if (_strict) assert(particle);
-    else if (!particle) {++_errors; continue;}
+    else if (!particle) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; continue;}
 
     truth_particles.insert(particle);
   }
@@ -210,10 +210,10 @@ std::set<PHG4Particle*> SvtxHitEval::all_truth_particles(SvtxHit* hit) {
 
 PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(SvtxHit* hit) {
 
-  if (!has_node_pointers()) {++_errors; return nullptr;}
+  if (!has_node_pointers()) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return nullptr;}
   
   if (_strict) {assert(hit);}
-  else if (!hit) {++_errors; return nullptr;}
+  else if (!hit) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return nullptr;}
   
   if (_do_cache) {
     std::map<SvtxHit*,PHG4Particle*>::iterator iter =
@@ -247,10 +247,10 @@ PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(SvtxHit* hit) {
 
 std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Particle* g4particle) { 
 
-  if (!has_node_pointers()) {++_errors; return std::set<SvtxHit*>();}
+  if (!has_node_pointers()) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return std::set<SvtxHit*>();}
   
   if (_strict) {assert(g4particle);}
-  else if (!g4particle) {++_errors; return std::set<SvtxHit*>();}
+  else if (!g4particle) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return std::set<SvtxHit*>();}
   
   if (_do_cache) {
     std::map<PHG4Particle*,std::set<SvtxHit*> >::iterator iter =
@@ -287,10 +287,10 @@ std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Particle* g4particle) {
 
 std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Hit* g4hit) {
 
-  if (!has_node_pointers()) {++_errors; return std::set<SvtxHit*>();}
+  if (!has_node_pointers()) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return std::set<SvtxHit*>();}
   
   if (_strict) {assert(g4hit);}
-  else if (!g4hit) {++_errors; return std::set<SvtxHit*>();}
+  else if (!g4hit) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return std::set<SvtxHit*>();}
   
   if (_do_cache) {
     std::map<PHG4Hit*,std::set<SvtxHit*> >::iterator iter =
@@ -332,10 +332,10 @@ std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Hit* g4hit) {
 
 SvtxHit* SvtxHitEval::best_hit_from(PHG4Hit* g4hit) {
 
-  if (!has_node_pointers()) {++_errors; return nullptr;}
+  if (!has_node_pointers()) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return nullptr;}
   
   if (_strict) {assert(g4hit);}
-  else if (!g4hit) {++_errors; return nullptr;}
+  else if (!g4hit) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return nullptr;}
   
   if (_do_cache) {
     std::map<PHG4Hit*,SvtxHit*>::iterator iter =
@@ -367,13 +367,13 @@ SvtxHit* SvtxHitEval::best_hit_from(PHG4Hit* g4hit) {
 // overlap calculations
 float SvtxHitEval::get_energy_contribution(SvtxHit* hit, PHG4Particle* particle) {
 
-  if (!has_node_pointers()) {++_errors; return NAN;}
+  if (!has_node_pointers()) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return NAN;}
   
   if (_strict) {
     assert(hit);
     assert(particle);
   } else if (!hit||!particle) {
-    ++_errors;
+    ++_errors; cout << PHWHERE << " nerr: " << _errors << endl;
     return NAN;
   }
   
@@ -403,13 +403,13 @@ float SvtxHitEval::get_energy_contribution(SvtxHit* hit, PHG4Particle* particle)
 
 float SvtxHitEval::get_energy_contribution(SvtxHit* hit, PHG4Hit* g4hit) {
 
-  if (!has_node_pointers()) {++_errors; return NAN;}
+  if (!has_node_pointers()) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return NAN;}
   
   if (_strict) {
     assert(hit);
     assert(g4hit);
   } else if (!hit||!g4hit) {
-    ++_errors;
+    ++_errors; cout << PHWHERE << " nerr: " << _errors << endl;
     return NAN;
   }
   
@@ -445,9 +445,9 @@ void SvtxHitEval::get_node_pointers(PHCompositeNode* topNode) {
   _hitmap = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
 
   // need things off of the DST...
-  _g4cells_svtx    = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
-  _g4cells_tracker = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
-  _g4cells_maps = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_MAPS");
+  _g4cells_svtx    = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SVTX");
+  _g4cells_tracker = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SILICON_TRACKER");
+  _g4cells_maps = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MAPS");
 
   _g4hits_svtx    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SVTX");
   _g4hits_tracker = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SILICON_TRACKER");
@@ -469,17 +469,20 @@ bool SvtxHitEval::has_node_pointers() {
   if (_strict) assert(_g4cells_svtx || _g4cells_tracker || _g4cells_maps);
   else if (!_g4cells_svtx && !_g4cells_tracker && !_g4cells_maps)
     { 
+      cout << "no cells" << endl;
       return false;
     }
 
   if (_strict) assert(_g4hits_svtx || _g4hits_tracker || _g4hits_maps);
   else if (!_g4hits_svtx && !_g4hits_tracker && !_g4hits_maps) 
     {
+      cout << "no hits" << endl;
       return false; 
     }
   if (_strict) assert(_truthinfo);
   else if (!_truthinfo)
     {
+      cout << " no truth" << endl;
       return false;
     }
 
