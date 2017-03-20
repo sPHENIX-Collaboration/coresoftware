@@ -2,12 +2,13 @@
 #define PHG4CYLINDERCELL_H
 
 #include "PHG4CylinderCellDefs.h"
+#include "PHG4Cell.h"
 #include <g4main/PHG4HitDefs.h>
 #include <phool/PHObject.h>
 #include <cmath>
 #include <map>
 
-class PHG4CylinderCell : public PHObject
+class PHG4CylinderCell : public PHG4Cell
 {
  public:
   typedef std::map<PHG4HitDefs::keytype, float> EdepMap;
@@ -90,7 +91,7 @@ class PHG4CylinderCell : public PHObject
  protected:
 
   PHG4CylinderCell() {}
-  ClassDef(PHG4CylinderCell,1)
+  ClassDef(PHG4CylinderCell,2)
 };
 
 #endif

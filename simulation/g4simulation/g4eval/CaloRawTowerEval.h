@@ -9,7 +9,7 @@
 
 class PHCompositeNode;
 
-class PHG4CylinderCellContainer;
+class PHG4CellContainer;
 class PHG4HitContainer;
 class PHG4Particle;
 class PHG4Shower;
@@ -111,7 +111,7 @@ private:
   std::string _caloname;
   CaloTruthEval _trutheval;  
   RawTowerContainer* _towers;
-  PHG4CylinderCellContainer* _g4cells;
+  PHG4CellContainer* _g4cells;
   PHG4HitContainer* _g4hits;
   PHG4TruthInfoContainer* _truthinfo;
 

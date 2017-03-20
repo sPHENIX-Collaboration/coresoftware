@@ -6,8 +6,6 @@
 #include <g4hough/SvtxHit.h>
 #include <g4hough/SvtxClusterMap.h>
 #include <g4hough/SvtxCluster.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4TruthInfoContainer.h>

@@ -8,8 +8,8 @@
 
 class PHCompositeNode;
 
-class PHG4CylinderCell;
-class PHG4CylinderCellContainer;
+class PHG4Cell;
+class PHG4CellContainer;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Particle;
@@ -42,7 +42,7 @@ public:
   // access the clustereval (and its cached values)
   SvtxTruthEval* get_truth_eval() {return &_trutheval;}
   
-  PHG4CylinderCell* get_cell(SvtxHit* hit);
+  PHG4Cell* get_cell(SvtxHit* hit);
   
   // backtrace through to PHG4Hits
   std::set<PHG4Hit*> all_truth_hits          (SvtxHit* hit);
@@ -70,9 +70,9 @@ private:
 
   SvtxTruthEval _trutheval;
   SvtxHitMap* _hitmap;
-  PHG4CylinderCellContainer* _g4cells_svtx;
-  PHG4CylinderCellContainer* _g4cells_tracker;
-  PHG4CylinderCellContainer* _g4cells_maps;
+  PHG4CellContainer* _g4cells_svtx;
+  PHG4CellContainer* _g4cells_tracker;
+  PHG4CellContainer* _g4cells_maps;
   PHG4HitContainer* _g4hits_svtx;
   PHG4HitContainer* _g4hits_tracker;
   PHG4HitContainer* _g4hits_maps;

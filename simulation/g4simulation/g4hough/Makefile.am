@@ -45,10 +45,8 @@ pkginclude_HEADERS = \
   SvtxVertexMap_v1.h \
   PHG4SvtxDeadArea.h \
   PHG4SvtxThresholds.h \
-  PHG4SvtxAddConnectedCells.h \
   PHG4SvtxDigitizer.h \
   PHG4SvtxClusterizer.h \
-  PHG4SiliconTrackerDigitizer.h \
   SvtxHit.h \
   SvtxHit_v1.h \
   SvtxHitMap.h \
@@ -124,14 +122,10 @@ libg4hough_la_SOURCES = \
   PHG4SvtxDeadArea_Dict.C \
   PHG4SvtxThresholds.C \
   PHG4SvtxThresholds_Dict.C \
-  PHG4SvtxAddConnectedCells.C \
-  PHG4SvtxAddConnectedCells_Dict.C \
   PHG4SvtxDigitizer.C \
   PHG4SvtxDigitizer_Dict.C \
   PHG4SvtxClusterizer.C \
   PHG4SvtxClusterizer_Dict.C \
-  PHG4SiliconTrackerDigitizer.C \
-  PHG4SiliconTrackerDigitizer_Dict.C \
   PHG4TPCClusterizer.C \
   PHG4TPCClusterizer_Dict.C \
   PHG4HoughTransform.C \
@@ -157,11 +151,6 @@ libg4hough_la_SOURCES = \
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
-
-%_Dict.cpp: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
-
-
 
 ################################################
 # linking tests

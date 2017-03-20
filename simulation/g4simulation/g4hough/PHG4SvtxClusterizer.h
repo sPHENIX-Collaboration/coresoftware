@@ -1,14 +1,14 @@
-#ifndef __PHG4SVTXCLUSTERIZER_H__
-#define __PHG4SVTXCLUSTERIZER_H__
+#ifndef PHG4SVTXCLUSTERIZER_H__
+#define PHG4SVTXCLUSTERIZER_H__
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
 #include <map>
 #include <limits.h>
 
+class PHG4Cell;
 class SvtxHitMap;
 class SvtxClusterMap;
-class PHG4CylinderCell;
 
 class PHG4SvtxClusterizer : public SubsysReco {
 
@@ -18,17 +18,11 @@ public:
 		      unsigned int min_layer = 0, unsigned int max_layer = UINT_MAX);
   virtual ~PHG4SvtxClusterizer(){}
   
-  //! module initialization
-  int Init(PHCompositeNode *topNode){return 0;}
-  
   //! run initialization
   int InitRun(PHCompositeNode *topNode);
   
   //! event processing
   int process_event(PHCompositeNode *topNode);
-  
-  //! end of process
-  int End(PHCompositeNode *topNode){return 0;}
   
   //! set an energy requirement relative to the thickness MIP expectation
   void set_threshold(const float fraction_of_mip) {
@@ -59,24 +53,22 @@ public:
 
 private:
 
-  static bool lessthan(const PHG4CylinderCell*, 
-		       const PHG4CylinderCell*);
-  static bool ladder_lessthan(const PHG4CylinderCell*, 
-			      const PHG4CylinderCell*);
-  bool are_adjacent(const PHG4CylinderCell*, 
-		    const PHG4CylinderCell*, 
+  static bool ladder_lessthan(const PHG4Cell*, 
+			      const PHG4Cell*);
+  static bool maps_ladder_lessthan(const PHG4Cell*, 
+			      const PHG4Cell*);
+  bool ladder_are_adjacent(const PHG4Cell*, 
+		    const PHG4Cell*, 
 		    const int &);
-  bool ladder_are_adjacent(const PHG4CylinderCell*, 
-			   const PHG4CylinderCell*);
-  bool maps_ladder_are_adjacent(const PHG4CylinderCell*,
-				const PHG4CylinderCell*);
+  bool ladder_are_adjacent(const PHG4Cell*, 
+			   const PHG4Cell*);
+  bool maps_ladder_are_adjacent(const PHG4Cell*,
+				const PHG4Cell*);
 
   void CalculateCylinderThresholds(PHCompositeNode *topNode);
-  void CalculateLadderThresholds(PHCompositeNode *topNode);
   void CalculateMapsLadderThresholds(PHCompositeNode *topNode);
   
   void ClusterCylinderCells(PHCompositeNode *topNode);
-  void ClusterLadderCells(PHCompositeNode *topNode);
   void ClusterMapsLadderCells(PHCompositeNode *topNode);
 
   void PrintClusters(PHCompositeNode *topNode);

@@ -22,10 +22,6 @@
 #include <limits>       // std::numeric_limits
 #include <map>
 
-ClassImp(PHG4CylinderGeom_Spacalv3)
-ClassImp(PHG4CylinderGeom_Spacalv3::geom_tower)
-ClassImp(PHG4CylinderGeom_Spacalv3::scint_id_coder)
-
 using namespace std;
 using std::make_pair;
 

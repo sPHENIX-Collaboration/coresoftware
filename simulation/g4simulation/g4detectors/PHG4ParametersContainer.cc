@@ -9,6 +9,8 @@
 #include <pdbcalbase/PdbParameterMapContainer.h>
 
 #include <phool/phool.h>
+#include <phool/getClass.h>
+
 
 #include <TBufferXML.h>
 #include <TFile.h>
@@ -65,8 +67,6 @@ PHG4ParametersContainer::GetParametersToModify(const int layer)
   map<int, PHG4Parameters *>::iterator iter = parametermap.find(layer);
   if (iter == parametermap.end())
     {
-      cout << "could not find parameters for layer " << layer
-	   << endl;
       return NULL;
     }
   return iter->second;
@@ -160,4 +160,46 @@ PHG4ParametersContainer::CopyToPdbParameterMapContainer(PdbParameterMapContainer
       myparmap->AddPdbParameterMap(iter->first,myparm);
     }
   return;
+}
+
+void
+PHG4ParametersContainer::Print() const
+{
+  cout << "Name: " << Name() << endl;
+  map<int, PHG4Parameters *>::const_iterator iter;
+  for (iter = parametermap.begin(); iter != parametermap.end(); ++iter)
+    {
+      cout << "parameter detid: " << iter->first << endl;
+      iter->second->Print();
+    }
+  return;
+}
+
+void
+PHG4ParametersContainer::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
+{
+  PdbParameterMapContainer *myparmap = findNode::getClass<PdbParameterMapContainer>(topNode, nodename);
+  if (! myparmap)
+    {
+      myparmap = new PdbParameterMapContainer();
+      PHIODataNode<PdbParameterMapContainer> *newnode =
+          new PHIODataNode<PdbParameterMapContainer>(myparmap, nodename);
+      topNode->addNode(newnode);
+    }
+  else
+    {
+       myparmap->Reset();
+    }
+  CopyToPdbParameterMapContainer(myparmap);
+  return;
+}
+
+int
+PHG4ParametersContainer::ExistDetid(const int detid) const
+{
+  if (parametermap.find(detid) != parametermap.end())
+    {
+      return 1;
+    }
+  return 0;
 }

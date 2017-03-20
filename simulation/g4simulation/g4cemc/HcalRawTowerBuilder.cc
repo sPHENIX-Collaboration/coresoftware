@@ -6,9 +6,9 @@
 
 #include <g4detectors/PHG4HcalDefs.h>
 #include <g4detectors/PHG4Parameters.h>
-#include <g4detectors/PHG4ScintillatorSlat.h>
-#include <g4detectors/PHG4ScintillatorSlatContainer.h>
-#include <g4detectors/PHG4ScintillatorSlatDefs.h>
+#include <g4detectors/PHG4Cell.h>
+#include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4CellDefs.h>
 
 #include <g4main/PHG4Utils.h>
 
@@ -86,6 +86,17 @@ HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
       runNode->addNode(RunDetNode);
     }
   SaveToNodeTree(RunDetNode,paramnodename);
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "PAR" ));
+  string geonodename = "TOWERGEO_" + detector;
+
+  PHNodeIterator parIter(parNode);
+  PHCompositeNode *ParDetNode =  dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode",detector));
+  if (! ParDetNode)
+    {
+      ParDetNode = new PHCompositeNode(detector);
+      parNode->addNode(ParDetNode);
+    }
+  PutOnParNode(ParDetNode,geonodename);
   _tower_energy_src = get_int_param("tower_energy_source");
   emin = get_double_param("emin");
   ncell_to_tower = get_int_param("n_scinti_plates_per_tower");
@@ -171,7 +182,7 @@ HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
 
   // get cells
   std::string cellnodename = "G4CELL_" + detector;
-  PHG4ScintillatorSlatContainer* slats = findNode::getClass<PHG4ScintillatorSlatContainer>(topNode, cellnodename.c_str());
+  PHG4CellContainer* slats = findNode::getClass<PHG4CellContainer>(topNode, cellnodename.c_str());
   if (!slats)
     {
       std::cerr << PHWHERE << " " << cellnodename
@@ -180,27 +191,27 @@ HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
     }
 
   // loop over all slats in an event
-  PHG4ScintillatorSlatContainer::ConstIterator cell_iter;
-  PHG4ScintillatorSlatContainer::ConstRange cell_range = slats->getScintillatorSlats();
+  PHG4CellContainer::ConstIterator cell_iter;
+  PHG4CellContainer::ConstRange cell_range = slats->getCells();
   for (cell_iter = cell_range.first; cell_iter != cell_range.second;
       ++cell_iter)
     {
-      PHG4ScintillatorSlat *cell = cell_iter->second;
+      PHG4Cell *cell = cell_iter->second;
 
       if (verbosity > 2)
         {
           std::cout << PHWHERE << " print out the cell:" << std::endl;
           cell->identify();
         }
-      short twrrow = get_tower_row(cell->get_row());
+      short twrrow = get_tower_row(PHG4CellDefs::ScintillatorSlatBinning::get_row(cell->get_cellid()));
       // add the energy to the corresponding tower
       // towers are addressed column/row to make the mapping more intuitive
-      RawTower *tower = _towers->getTower(cell->get_column(), twrrow);
+      RawTower *tower = _towers->getTower(PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid()), twrrow);
       if (!tower)
         {
           tower = new RawTowerv1();
           tower->set_energy(0);
-          _towers->AddTower(cell->get_column(), twrrow, tower);
+          _towers->AddTower(PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid()), twrrow, tower);
         }
       double cell_weight = 0;
       if (_tower_energy_src == kEnergyDeposition)
@@ -222,10 +233,16 @@ HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
 	  gSystem->Exit(1);
 	}
 
-      tower->add_ecell(cell->get_key(), cell_weight);
+      tower->add_ecell(cell->get_cellid(), cell_weight);
 
+      PHG4Cell::ShowerEdepConstRange range = cell->get_g4showers();
+      for (PHG4Cell::ShowerEdepConstIterator shower_iter = range.first;
+	   shower_iter != range.second;
+	   ++shower_iter) 
+	{
+	  tower->add_eshower(shower_iter->first,shower_iter->second);
+	}
       tower->set_energy(tower->get_energy() + cell_weight);
-
     }
   double towerE = 0;
   if (chkenergyconservation)

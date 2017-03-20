@@ -4,15 +4,11 @@
 #include <cmath>
 #include <cstdlib>
 
-ClassImp(PHG4BlockCellGeom)
-
 using namespace std;
 
 PHG4BlockCellGeom::PHG4BlockCellGeom():
   _layer(-9999),
   _binning(0),
-  _radius(NAN),
-  _thickness(NAN),
   _nzbins(-1),
   _zmin(NAN),
   _zstep(NAN),
@@ -151,9 +147,7 @@ PHG4BlockCellGeom::set_etabins(const int i)
 void
 PHG4BlockCellGeom::identify(std::ostream& os) const
 {
-  os << "layer: " << _layer
-     << ", radius: " << _radius
-     << ", thickness: " << _thickness;
+  os << "layer: " << _layer;
   switch (_binning)
   {
   case PHG4CylinderCellDefs::sizebinning:

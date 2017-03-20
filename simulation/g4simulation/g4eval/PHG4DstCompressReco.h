@@ -8,7 +8,7 @@
 
 class PHCompositeNode;
 
-class PHG4CylinderCellContainer;
+class PHG4CellContainer;
 class PHG4HitContainer;
 class PHG4TruthInfoContainer;
 
@@ -40,7 +40,7 @@ private:
   std::set<std::string> _compress_g4cell_names;
   std::set<std::string> _compress_tower_names;
 
-  std::set<PHG4CylinderCellContainer*> _g4cells;
+  std::set<PHG4CellContainer*> _g4cells;
   std::set<PHG4HitContainer*> _g4hits;  
   std::set<PHG4HitContainer*> _keep_g4hits;
 

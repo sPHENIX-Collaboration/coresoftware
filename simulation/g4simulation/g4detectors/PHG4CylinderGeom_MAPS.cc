@@ -7,8 +7,6 @@
 #include "Math/Rotation3D.h"
 #include <cmath>
 
-ClassImp(PHG4CylinderGeom_MAPS)
-
 using namespace ROOT::Math;
 using namespace std;
 
