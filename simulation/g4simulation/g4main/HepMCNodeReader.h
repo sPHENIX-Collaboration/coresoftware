@@ -27,11 +27,15 @@ class HepMCNodeReader : public SubsysReco
 
   void SmearVertex(const double s_x, const double s_y, const double s_z);
   void SetT0(const double t0) {vertex_t0 = t0;}
+  
+  void SetSeed(const unsigned int i) {seed = i; use_seed = 1;}
 
 private:
   double smeargauss(const double width);
   double smearflat(const double width);
   int _embed_flag;
+  int use_seed;
+  unsigned int seed;
   double vertex_pos_x;
   double vertex_pos_y;
   double vertex_pos_z;
