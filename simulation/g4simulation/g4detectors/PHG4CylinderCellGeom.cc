@@ -5,8 +5,6 @@
 #include <cmath>
 #include <cstdlib>
 
-ClassImp(PHG4CylinderCellGeom)
-
 using namespace std;
 
 PHG4CylinderCellGeom::PHG4CylinderCellGeom():

@@ -3,9 +3,9 @@
 #include "PHG4CylinderGeom.h"
 #include "PHG4CylinderCellGeomContainer.h"
 #include "PHG4CylinderCellGeom.h"
-#include "PHG4CylinderCellv1.h"
-#include "PHG4CylinderCellContainer.h"
-#include "PHG4CylinderCellDefs.h"
+#include "PHG4Cellv1.h"
+#include "PHG4CellContainer.h"
+#include "PHG4CellDefs.h"
 #include "PHG4TPCDistortion.h"
 
 #include <g4main/PHG4Hit.h>
@@ -30,6 +30,7 @@
 
 #include "TH1F.h"
 #include "TProfile2D.h"
+#include "TStopwatch.h"
 
 using namespace std;
 
@@ -48,8 +49,14 @@ PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
       tmin_max(),
       distortion(NULL),
       fHElectrons(NULL),
+      fHWindowP(NULL),
+      fHWindowZ(NULL),
       fHMeanEDepPerCell(NULL),
-      fHMeanElectronsPerCell(NULL)
+      fHMeanElectronsPerCell(NULL),
+      fHErrorRPhi(NULL),
+      fHErrorZ(NULL),
+      fSW(NULL),
+      fHTime(NULL)
 {
   memset(nbins,0,sizeof(nbins));
   rand.SetSeed(PHRandomSeed());
@@ -82,12 +89,23 @@ int PHG4CylinderCellTPCReco::Init(PHCompositeNode* top_node)
 {
   if(verbosity>1) {
     Fun4AllServer *se = Fun4AllServer::instance();
-    fHElectrons = new TH1F("fHElectrons","GeneratedElectronsPerCell",100,0,200);
+    fHWindowP = new TProfile2D("TPCGEO_WindowP","TPCGEO_WindowP",50,-0.5,49.5,220,-110,+110);
+    se->registerHisto( fHWindowP );
+    fHWindowZ = new TProfile2D("TPCGEO_WindowZ","TPCGEO_WindowZ",50,-0.5,49.5,220,-110,+110);
+    se->registerHisto( fHWindowZ );
+    fHElectrons = new TH1F("TPCGEO_GeneratedElectrons","TPCGEO_GeneratedElectrons",100,0,200);
     se->registerHisto( fHElectrons );
-    fHMeanEDepPerCell = new TProfile2D("fHMeanEDepPerCell","MeanEDepPerCell",50,-0.5,49.5,220,-110,+110);
+    fHMeanEDepPerCell = new TProfile2D("TPCGEO_Edep","TPCGEO_Edep",50,-0.5,49.5,220,-110,+110);
     se->registerHisto( fHMeanEDepPerCell );
-    fHMeanElectronsPerCell = new TProfile2D("fHMeanElectronsPerCell","MeanElectronsPerCell",50,-0.5,49.5,220,-110,+110);
+    fHMeanElectronsPerCell = new TProfile2D("TPCGEO_Electrons","TPCGEO_Electrons",50,-0.5,49.5,220,-110,+110);
     se->registerHisto( fHMeanElectronsPerCell );
+    fHErrorRPhi = new TProfile2D("TPCGEO_CloudSizeRPhi","TPCGEO_CloudSizeRPhi",50,-0.5,49.5,220,-110,+110);
+    se->registerHisto( fHErrorRPhi );
+    fHErrorZ = new TProfile2D("TPCGEO_CloudSizeZ","TPCGEO_CloudSizeZ",50,-0.5,49.5,220,-110,+110);
+    se->registerHisto( fHErrorZ );
+    fSW = new TStopwatch();
+    fHTime = new TH1F("TIME_TPCGEO","TPCGEO_TIME;sec per event",1000,0,60);
+    se->registerHisto( fHTime );
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -103,13 +121,13 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit){cout << "Could not locate g4 hit node " << hitnodename << endl;exit(1);}
   cellnodename = "G4CELL_" + outdetector;
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode , cellnodename);
-  if (!cells){cells = new PHG4CylinderCellContainer();PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str() , "PHObject");dstNode->addNode(newNode);}
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode , cellnodename);
+  if (!cells){cells = new PHG4CellContainer();PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str() , "PHObject");dstNode->addNode(newNode);}
   geonodename = "CYLINDERGEOM_" + detector;
   PHG4CylinderGeomContainer *geo =  findNode::getClass<PHG4CylinderGeomContainer>(topNode , geonodename.c_str());
   if (!geo){cout << "Could not locate geometry node " << geonodename << endl;exit(1);}
   seggeonodename = "CYLINDERCELLGEOM_" + outdetector;
-  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode , seggeonodename.c_str());
+  PHG4CyllinderCellGeomContainer *seggeo = findNode::getClass<PHG4CyllinderCellGeomContainer>(topNode , seggeonodename.c_str());
   if (!seggeo){seggeo = new PHG4CylinderCellGeomContainer();PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str() , "PHObject");runNode->addNode(newNode);}
   
   map<int, PHG4CylinderGeom *>::const_iterator miter;
@@ -171,7 +189,7 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
     {
       zhigh += size_z;
     }
-    layerseggeo->set_binning(PHG4CylinderCellDefs::sizebinning);
+    layerseggeo->set_binning(PHG4CellDefs::sizebinning);
     layerseggeo->set_zbins(nbins[1]);
     layerseggeo->set_zmin(layergeom->get_zmin());
     layerseggeo->set_zstep(size_z);
@@ -195,10 +213,14 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
 
 int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 {
+  if(verbosity>1) {
+    fSW->Reset();
+    fSW->Start();
+  }
   _timer.get()->restart();
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit){cout << "Could not locate g4 hit node " << hitnodename << endl;exit(1);}
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode, cellnodename);
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   if (! cells){cout << "could not locate cell node " << cellnodename << endl;exit(1);}
   PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode , seggeonodename.c_str());
   if (! seggeo){cout << "could not locate geo node " << seggeonodename << endl;exit(1);}
@@ -209,7 +231,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
   
   for(layer = layer_begin_end.first; layer != layer_begin_end.second; layer++)
   {
-    std::map<unsigned long, PHG4CylinderCell*> cellptmap; // key will fail if numbins per layer > 4.2 billion
+    std::map<unsigned long, PHG4Cell*> cellptmap; // key will fail if numbins per layer > 4.2 billion
     PHG4HitContainer::ConstIterator hiter;
     PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(*layer);
     PHG4CylinderCellGeom *geo = seggeo->GetLayerCellGeom(*layer);
@@ -294,38 +316,48 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       double sqrt2 = sqrt(2.);
       if( (*layer) < (unsigned int)num_pixel_layers ) { // MAPS + ITT
         unsigned long key = zbin*nphibins + phibin;
-	std::map<unsigned long, PHG4CylinderCell*>::iterator it = cellptmap.find(key);
-	PHG4CylinderCell *cell;
+	std::map<unsigned long, PHG4Cell*>::iterator it = cellptmap.find(key);
+	PHG4Cell *cell;
 	if(it != cellptmap.end()) {
 	  cell = it->second;
 	} else {
-          cell = new PHG4CylinderCellv1();
-	  cell->set_layer(*layer);
-	  cell->set_phibin(phibin);
-	  cell->set_zbin(zbin);
+	  PHG4CellDefs::keytype akey = PHG4CellDefs::SizeBinning::genkey(*layer,zbin,phibin);
+	  cell = new PHG4Cellv1(akey);
+          cell = new PHG4Cellv1(akey);
+	  //cell->set_layer(*layer);
+	  //cell->set_phibin(phibin);
+	  //cell->set_zbin(zbin);
 	  cellptmap[key] = cell;
 	}
 	cell->add_edep(hiter->first, edep);
+	cell->add_edep(edep);
 	cell->add_shower_edep(hiter->second->get_shower_id(), edep);
+	if(hiter->second->has_property(PHG4Hit::prop_eion)) cell->add_eion(hiter->second->get_eion());
       } else { // TPC
-	// converting Edep to Effective Number Of Electrons
+	// converting Edep to Total Number Of Electrons
         double nelec = rand.PoissonD( elec_per_kev*1e6*edep );
 	if(verbosity>1) {
 	  fHElectrons->Fill( nelec );
 	}
-	double sigmaT = 0.009; //90um
+	double sigmaT = 0.010; //100um
 	double sigmaL = 0.010; //100um
         double cloud_sig_rp = sqrt( fDiffusionT*fDiffusionT*(fHalfLength - TMath::Abs(hiter->second->get_avg_z())) + sigmaT*sigmaT );
         double cloud_sig_zz = sqrt( fDiffusionL*fDiffusionL*(fHalfLength - TMath::Abs(hiter->second->get_avg_z())) + sigmaL*sigmaL );
 	int n_rp = int(3*cloud_sig_rp/(r*phistepsize)+1);
         int n_zz = int(3*cloud_sig_zz/zstepsize+1);
+	if(verbosity>1) {
+	  fHErrorRPhi->Fill( float(*layer), z, cloud_sig_rp );
+	  fHErrorZ->Fill( float(*layer), z, cloud_sig_zz );
+	  fHWindowP->Fill( float(*layer), z, n_rp );
+	  fHWindowZ->Fill( float(*layer), z, n_zz );
+	}
 	double cloud_sig_rp_inv = 1./cloud_sig_rp;
         double cloud_sig_zz_inv = 1./cloud_sig_zz;
 	if(verbosity>1000) {
-	  std::cout << " fDiffusionT" << fDiffusionT << " || edep " << edep*1e6 << " | nelec " << nelec << " | cloud_sig_rp zz " << cloud_sig_rp*1e4 << " " << cloud_sig_zz*1e4;
+	  std::cout << " Z PHI " << z << " " << phi << " || edep " << edep*1e6 << " | nelec " << nelec << " | cloud_sig_rp zz " << cloud_sig_rp << " " << cloud_sig_zz;
 	  std::cout << " nrp nzz " << n_rp << " " << n_zz << std::endl;
 	}
-        for( int iphi = -n_rp; iphi <= n_rp; ++iphi ) {
+        for( int iphi = -n_rp; iphi != n_rp+1; ++iphi ) {
           int cur_phi_bin = phibin + iphi;
 	  // correcting for continuity in phi
           if( cur_phi_bin < 0 ) cur_phi_bin += nphibins;
@@ -337,7 +369,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	  double phiLim1 = 0.5*sqrt2*( (iphi+0.5)*phistepsize*r - phidisp*r )*cloud_sig_rp_inv;
 	  double phiLim2 = 0.5*sqrt2*( (iphi-0.5)*phistepsize*r - phidisp*r )*cloud_sig_rp_inv;
           double phi_integral = 0.5*( erf(phiLim1) - erf(phiLim2) );
-          for( int iz = -n_zz; iz <= n_zz; ++iz ) {
+          for( int iz = -n_zz; iz != n_zz+1; ++iz ) {
             int cur_z_bin = zbin + iz;
 	    if( (cur_z_bin < 0) || (cur_z_bin >= nzbins) ) continue;
 	    double zLim1 = 0.5*sqrt2*( (iz+0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
@@ -350,26 +382,29 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	    }
             if(neffelectrons < 0) continue; // skip no signals
 	    unsigned long key = cur_z_bin*nphibins + cur_phi_bin;
-	    std::map<unsigned long, PHG4CylinderCell*>::iterator it = cellptmap.find(key);
-	    PHG4CylinderCell *cell;
+	    std::map<unsigned long, PHG4Cell*>::iterator it = cellptmap.find(key);
+	    PHG4Cell *cell;
 	    if(it != cellptmap.end()) {
 	      cell = it->second;
 	    } else {
-	      cell = new PHG4CylinderCellv1();
-	      cell->set_layer(*layer);
-	      cell->set_phibin(cur_phi_bin);
-	      cell->set_zbin(cur_z_bin);
+	      PHG4CellDefs::keytype akey = PHG4CellDefs::SizeBinning::genkey(*layer,cur_z_bin,cur_phi_bin);
+	      cell = new PHG4Cellv1(akey);
+	      //cell->set_layer(*layer);
+	      //cell->set_phibin(cur_phi_bin);
+	      //cell->set_zbin(cur_z_bin);
 	      cellptmap[key] = cell;
 	    }
 	    cell->add_edep(hiter->first, neffelectrons );
+	    cell->add_edep(neffelectrons);
 	    cell->add_shower_edep(hiter->second->get_shower_id(), neffelectrons );
+	    if(hiter->second->has_property(PHG4Hit::prop_eion)) cell->add_eion(hiter->second->get_eion());
           } //iz
         } //iphi
       }
     }
     int count = 0;
-    for(std::map<unsigned long, PHG4CylinderCell*>::iterator it = cellptmap.begin(); it != cellptmap.end(); ++it) {
-      cells->AddCylinderCell((unsigned int)(*layer), it->second);
+    for(std::map<unsigned long, PHG4Cell*>::iterator it = cellptmap.begin(); it != cellptmap.end(); ++it) {
+      cells->AddCell((unsigned int)(*layer), it->second);
       if(verbosity>1) {
 	float zthis = geo->get_zcenter( it->second->get_binz() );
 	fHMeanElectronsPerCell->Fill( float(*layer), zthis,  it->second->get_edep() );
@@ -381,6 +416,9 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
   }
   if(verbosity>1000) std::cout<<"PHG4CylinderCellTPCReco end" << std::endl;
   _timer.get()->stop();
+  if(verbosity>1) {
+    fHTime->Fill( fSW->RealTime() );
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

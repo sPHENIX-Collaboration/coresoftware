@@ -2,8 +2,6 @@
 #include "PHG4BlockGeom.h"
 #include <cmath>
 
-ClassImp(PHG4BlockGeomContainer)
-
 using namespace std;
 
 PHG4BlockGeomContainer::PHG4BlockGeomContainer()

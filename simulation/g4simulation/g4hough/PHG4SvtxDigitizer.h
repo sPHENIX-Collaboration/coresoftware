@@ -1,5 +1,5 @@
-#ifndef __PHG4SVTXDIGITIZER__
-#define __PHG4SVTXDIGITIZER__
+#ifndef __PHG4SVTXDIGITIZER_H__
+#define __PHG4SVTXDIGITIZER_H__
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
@@ -31,6 +31,9 @@ class PHG4SvtxDigitizer : public SubsysReco
     _max_adc.insert(std::make_pair(layer,max_adc));
     _energy_scale.insert(std::make_pair(layer,energy_per_adc));
   }
+
+  void SetTPCLayersRange(int a, int b) {fMinLayTPC=a;fMaxLayTPC=b;}
+  void SetTPCNeffReduction(float v) {fNeffReduction=v;}
   
  private:
 
@@ -51,6 +54,7 @@ class PHG4SvtxDigitizer : public SubsysReco
   SvtxHitMap* _hitmap;
   int fMinLayTPC;
   int fMaxLayTPC;
+  float fNeffReduction;
   
   PHTimeServer::timer _timer;   ///< Timer
 };

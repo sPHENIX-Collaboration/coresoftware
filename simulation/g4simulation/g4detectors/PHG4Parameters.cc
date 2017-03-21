@@ -20,7 +20,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
-#include  <boost/functional/hash.hpp>
+#include <boost/functional/hash.hpp>
 
 // this is an ugly hack, the gcc optimizer has a bug which
 // triggers the uninitialized variable warning which
@@ -43,6 +43,12 @@
 #include <sstream>
 
 using namespace std;
+
+PHG4Parameters::PHG4Parameters(const PHG4Parameters &params, const std::string &name)
+{
+  set_name(name);
+  FillFrom(&params);
+}
 
 void
 PHG4Parameters::set_int_param(const std::string &name, const int ival)

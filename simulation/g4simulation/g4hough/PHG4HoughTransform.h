@@ -1,5 +1,5 @@
-#ifndef __PHG4HOUGHTRANSFORM_H__
-#define __PHG4HOUGHTRANSFORM_H__
+#ifndef PHG4HOUGHTRANSFORM_H__
+#define PHG4HOUGHTRANSFORM_H__
 
 //===========================================================
 /// \file PHG4HoughTransform.h
@@ -16,31 +16,28 @@
 
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHTimeServer.h>
-#include <g4bbc/BbcVertexMap.h>
 
 // Helix Hough includes
 #ifndef __CINT__
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/VertexFinder.h> 
-#include <HelixHough/sPHENIXTracker.h>
 #endif
 
 // standard includes
-#include <vector>
-#include <map>
 #include <float.h>
-
-// g4hough includes
-#include "SvtxTrackState.h"
+#include <map>
+#include <set>
+#include <vector>
 
 // forward declarations
+class BbcVertexMap;
 class PHCompositeNode;
+class sPHENIXTracker;
 class SvtxClusterMap;
-class SvtxTrackMap;
 class SvtxTrack;
+class SvtxTrackMap;
+class SvtxTrackState;
 class SvtxVertexMap;
 class PHG4HitContainer;
 

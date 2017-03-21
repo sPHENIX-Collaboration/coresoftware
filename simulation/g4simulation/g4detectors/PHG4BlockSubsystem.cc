@@ -20,20 +20,11 @@ using namespace std;
 //_______________________________________________________________________
 PHG4BlockSubsystem::PHG4BlockSubsystem( const std::string &name, const int lyr ):
   PHG4DetectorSubsystem( name, lyr ),
-  _detector( NULL ),
-  _steppingAction(NULL),
-  _eventAction(NULL)
+  _detector( nullptr ),
+  _steppingAction(nullptr),
+  _eventAction(nullptr)
 {
   InitializeParameters();
-}
-
-//_______________________________________________________________________
-int
-PHG4BlockSubsystem::InitSubsystem( PHCompositeNode* topNode )
-{
-  // kludge until the phg4parameters are sorted out (adding layers)
-  GetParams()->set_name(Name());
-  return 0;
 }
 
 //_______________________________________________________________________

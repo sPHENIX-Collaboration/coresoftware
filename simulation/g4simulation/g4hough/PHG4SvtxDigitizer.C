@@ -10,12 +10,14 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
+
+#include <g4detectors/PHG4Cell.h>
+#include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4CellDefs.h>
 
 #include <iostream>
 #include <cmath>
@@ -119,11 +121,10 @@ void PHG4SvtxDigitizer::CalculateCylinderCellADCScale(PHCompositeNode *topNode) 
 
   // defaults to 8-bit ADC, short-axis MIP placed at 1/4 dynamic range
 
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
   PHG4CylinderCellGeomContainer *geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
     
 
-  if (!geom_container || !cells) return;
+  if (!geom_container) return;
   
   PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -153,10 +154,9 @@ void PHG4SvtxDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode) {
 
   // defaults to 8-bit ADC, short-axis MIP placed at 1/4 dynamic range
 
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
     
-  if (!geom_container || !cells) return;
+  if (!geom_container) return;
   
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -186,10 +186,9 @@ void PHG4SvtxDigitizer::CalculateMapsLadderCellADCScale(PHCompositeNode *topNode
 
   // defaults to 8-bit ADC, short-axis MIP placed at 1/4 dynamic range
 
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_MAPS");
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
     
-  if (!geom_container || !cells) return;
+  if (!geom_container) return;
 
   if(Verbosity())
     cout << "Found CYLINDERGEOM_MAPS node" << endl;
@@ -227,25 +226,25 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
   // Get Nodes
   //----------
  
-  PHG4CylinderCellContainer* cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
+  PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SVTX");
   if (!cells) return; 
   
   //-------------
   // Digitization
   //-------------
 
-  PHG4CylinderCellContainer::ConstRange cellrange = cells->getCylinderCells();
-  for(PHG4CylinderCellContainer::ConstIterator celliter = cellrange.first;
+  PHG4CellContainer::ConstRange cellrange = cells->getCells();
+  for(PHG4CellContainer::ConstIterator celliter = cellrange.first;
       celliter != cellrange.second;
       ++celliter) {
     
-    PHG4CylinderCell* cell = celliter->second;
+    PHG4Cell* cell = celliter->second;
     
     SvtxHit_v1 hit;
 
     int layer = cell->get_layer();
     hit.set_layer(cell->get_layer());
-    hit.set_cellid(cell->get_cell_id());
+    hit.set_cellid(cell->get_cellid());
 
     unsigned int adc = cell->get_edep() / _energy_scale[hit.get_layer()];
     if (adc > _max_adc[hit.get_layer()]) adc = _max_adc[hit.get_layer()]; 
@@ -276,25 +275,25 @@ void PHG4SvtxDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) {
   // Get Nodes
   //----------
  
-  PHG4CylinderCellContainer* cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
+  PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SILICON_TRACKER");
   if (!cells) return; 
   
   //-------------
   // Digitization
   //-------------
 
-  vector<PHG4CylinderCell*> cell_list;
-  PHG4CylinderCellContainer::ConstRange cellrange = cells->getCylinderCells();
-  for(PHG4CylinderCellContainer::ConstIterator celliter = cellrange.first;
+  vector<PHG4Cell*> cell_list;
+  PHG4CellContainer::ConstRange cellrange = cells->getCells();
+  for(PHG4CellContainer::ConstIterator celliter = cellrange.first;
       celliter != cellrange.second;
       ++celliter) {
     
-    PHG4CylinderCell* cell = celliter->second;
+    PHG4Cell* cell = celliter->second;
     
     SvtxHit_v1 hit;
 
     hit.set_layer(cell->get_layer());
-    hit.set_cellid(cell->get_cell_id());
+    hit.set_cellid(cell->get_cellid());
 
     unsigned int adc = cell->get_edep() / _energy_scale[hit.get_layer()];
     if (adc > _max_adc[hit.get_layer()]) adc = _max_adc[hit.get_layer()]; 
@@ -323,25 +322,25 @@ void PHG4SvtxDigitizer::DigitizeMapsLadderCells(PHCompositeNode *topNode) {
   // Get Nodes
   //----------
  
-  PHG4CylinderCellContainer* cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_MAPS");
+  PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MAPS");
   if (!cells) return; 
   
   //-------------
   // Digitization
   //-------------
 
-  vector<PHG4CylinderCell*> cell_list;
-  PHG4CylinderCellContainer::ConstRange cellrange = cells->getCylinderCells();
-  for(PHG4CylinderCellContainer::ConstIterator celliter = cellrange.first;
+  vector<PHG4Cell*> cell_list;
+  PHG4CellContainer::ConstRange cellrange = cells->getCells();
+  for(PHG4CellContainer::ConstIterator celliter = cellrange.first;
       celliter != cellrange.second;
       ++celliter) {
     
-    PHG4CylinderCell* cell = celliter->second;
+    PHG4Cell* cell = celliter->second;
     
     SvtxHit_v1 hit;
 
     hit.set_layer(cell->get_layer());
-    hit.set_cellid(cell->get_cell_id());
+    hit.set_cellid(cell->get_cellid());
 
     unsigned int adc = cell->get_edep() / _energy_scale[hit.get_layer()];
     if (adc > _max_adc[hit.get_layer()]) adc = _max_adc[hit.get_layer()]; 

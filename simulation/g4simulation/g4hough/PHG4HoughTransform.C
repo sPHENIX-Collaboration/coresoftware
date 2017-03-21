@@ -1,5 +1,7 @@
 #include "PHG4HoughTransform.h"
 
+#include "SvtxTrackState.h"
+
 // g4hough includes
 #include "SvtxVertexMap.h"
 #include "SvtxVertexMap_v1.h"
@@ -18,7 +20,7 @@
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
+
 #include <g4bbc/BbcVertexMap.h>
 #include <g4bbc/BbcVertex.h>
 
@@ -29,17 +31,13 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 
-// sGeant4 includes
-#include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4TransportationManager.hh>
-#include <Geant4/G4FieldManager.hh>
-
 // Helix Hough includes
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/HelixResolution.h>
 #include <HelixHough/HelixRange.h>
 #include <HelixHough/HelixHough.h>
+#include <HelixHough/sPHENIXTracker.h>
 #include <HelixHough/VertexFinder.h>
 
 // standard includes

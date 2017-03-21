@@ -95,6 +95,7 @@ allheaders = \
   oncsSub_idfnalmwpc.h \
   oncsSub_idfnalmwpcv2.h \
   oncsSub_iddrs4v1.h \
+  oncsSub_iddigitizerv1.h \
   oncsSubevent.h \
   packet.h \
   packetConstants.h \
@@ -108,6 +109,7 @@ allheaders = \
   packet_id2evt.h \
   packet_id4evt.h \
   packet_id4scaler.h \
+  packet_iddigitizerv2.h \
   packet_w124.h \
   packet_cdevpolarimeter.h \
   packet_cdevir.h \
@@ -177,6 +179,7 @@ allsources = \
   oncsSub_idfnalmwpc.cc \
   oncsSub_idfnalmwpcv2.cc \
   oncsSub_iddrs4v1.cc \
+  oncsSub_iddigitizerv1.cc \
   oncsSubevent.cc \
   oncs_mnemonic.cc \
   packet_A.cc \
@@ -188,6 +191,7 @@ allsources = \
   packet_id2evt.cc \
   packet_id4evt.cc \
   packet_id4scaler.cc \
+  packet_iddigitizerv2.cc \
   packet_mnemonic.cc \
   packet_w124.cc \
   packet_cdevpolarimeter.cc \

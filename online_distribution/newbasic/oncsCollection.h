@@ -14,4 +14,5 @@
 #include "oncsSub_idfnalmwpc.h"
 #include "oncsSub_idfnalmwpcv2.h"
 #include "oncsSub_iddrs4v1.h"
+#include "oncsSub_iddigitizerv1.h"
 

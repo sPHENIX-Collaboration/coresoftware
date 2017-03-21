@@ -16,8 +16,6 @@
 
 #include <cmath>
 
-ClassImp(PHG4CylinderGeom_Spacalv1)
-
 using namespace std;
 
 PHG4CylinderGeom_Spacalv1::PHG4CylinderGeom_Spacalv1()

@@ -13,6 +13,7 @@ class PHCompositeNode;
 class PHG4TPCDistortion;
 class TH1F;
 class TProfile2D;
+class TStopwatch;
 
 class PHG4CylinderCellTPCReco : public SubsysReco
 {
@@ -57,7 +58,6 @@ public:
   void setDistortion (PHG4TPCDistortion * d) {distortion = d;}
 
 protected:
-  
   std::map<int, int>  binning;
   std::map<int, std::pair <double,double> > cell_size; // cell size in phi/z
   std::map<int, std::pair <double,double> > zmin_max; // zmin/zmax for each layer for faster lookup
@@ -90,8 +90,14 @@ protected:
   //! distortion to the primary ionization if not NULL
   PHG4TPCDistortion * distortion;
   TH1F *fHElectrons;
+  TProfile2D *fHWindowP;
+  TProfile2D *fHWindowZ;
   TProfile2D *fHMeanEDepPerCell;
   TProfile2D *fHMeanElectronsPerCell;
+  TProfile2D *fHErrorRPhi;
+  TProfile2D *fHErrorZ;
+  TStopwatch *fSW;
+  TH1F *fHTime;
 };
 
 #endif

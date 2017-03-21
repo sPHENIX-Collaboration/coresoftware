@@ -3,9 +3,6 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>
-#include <set>
-#include <map>
 #include <cmath>
 
 class SvtxTrackState : public PHObject {

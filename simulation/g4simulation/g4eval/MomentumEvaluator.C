@@ -1,15 +1,17 @@
 #include "MomentumEvaluator.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/getClass.h>
+
+#include <g4hough/SvtxTrackMap.h>
+#include <g4hough/SvtxTrack.h>
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4VtxPoint.h>
 #include <g4main/PHG4TruthInfoContainer.h>
-#include <g4hough/SvtxTrackMap.h>
-#include <g4hough/SvtxTrack.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <phool/getClass.h>
 
 #include <TNtuple.h>
 #include <TFile.h>
@@ -49,14 +51,14 @@ class RecursiveMomentumContainer
 		{
 			for(unsigned int i=0;i<2;++i){
 				for(unsigned int j=0;j<2;++j){
-					for(unsigned int k=0;k<2;++k){containers[i][j][k]=NULL;}}}
+					for(unsigned int k=0;k<2;++k){containers[i][j][k]=nullptr;}}}
 		}
 		virtual ~RecursiveMomentumContainer()
 		{
 			for(unsigned int i=0;i<2;++i){
 				for(unsigned int j=0;j<2;++j){
 					for(unsigned int k=0;k<2;++k){
-						if(containers[i][j][k]!=NULL)
+						if(containers[i][j][k]!=nullptr)
 						{
 							delete containers[i][j][k];
 						}
@@ -70,7 +72,7 @@ class RecursiveMomentumContainer
 			x_pos = 0;y_pos = 0;z_pos = 0;
 			while(true)
 			{
-				if( containers[x_pos][y_pos][z_pos] == NULL )
+				if( containers[x_pos][y_pos][z_pos] == nullptr )
 				{
 					if(z_pos==0){z_pos=1;continue;}
 					else
@@ -79,7 +81,7 @@ class RecursiveMomentumContainer
 						else
 						{
 							if(x_pos==0){z_pos=0;y_pos=0;x_pos=1;continue;}
-							else{return NULL;}
+							else{return nullptr;}
 						}
 					}
 				}
@@ -95,7 +97,7 @@ class RecursiveMomentumContainer
 			bool block_changed = false;
 			while(true)
 			{
-				if( containers[x_pos][y_pos][z_pos] == NULL )
+				if( containers[x_pos][y_pos][z_pos] == nullptr )
 				{
 					block_changed = true;
 					if(z_pos==0){z_pos=1;continue;}
@@ -105,11 +107,11 @@ class RecursiveMomentumContainer
 						else
 						{
 							if(x_pos==0){z_pos=0;y_pos=0;x_pos=1;continue;}
-							else{return NULL;}
+							else{return nullptr;}
 						}
 					}
 				}
-				TrivialTrack* val = NULL;
+				TrivialTrack* val = nullptr;
 				if(block_changed == true)
 				{
 					val = containers[x_pos][y_pos][z_pos]->begin();	
@@ -119,7 +121,7 @@ class RecursiveMomentumContainer
 					val = containers[x_pos][y_pos][z_pos]->next();
 				}
 				
-				if(val == NULL)
+				if(val == nullptr)
 				{
 					block_changed = true;
 					if(z_pos==0){z_pos=1;continue;}
@@ -129,7 +131,7 @@ class RecursiveMomentumContainer
 						else
 						{
 							if(x_pos==0){z_pos=0;y_pos=0;x_pos=1;continue;}
-							else{return NULL;}
+							else{return nullptr;}
 						}
 					}
 				}
@@ -142,7 +144,7 @@ class RecursiveMomentumContainer
 			for(unsigned int i=0;i<2;++i){
 				for(unsigned int j=0;j<2;++j){
 					for(unsigned int k=0;k<2;++k){
-						if(containers[i][j][k]==NULL){continue;}
+						if(containers[i][j][k]==nullptr){continue;}
 						
 						if( (containers[i][j][k]->px_hi<PX_LO) || (containers[i][j][k]->px_lo>PX_HI) || (containers[i][j][k]->py_hi<PY_LO) || (containers[i][j][k]->py_lo>PY_HI) || (containers[i][j][k]->pz_hi<PZ_LO) || (containers[i][j][k]->pz_lo>PZ_HI) )
 						{
@@ -181,7 +183,7 @@ class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
 
 		virtual TrivialTrack* next()
 		{
-			if( x_pos >= (tracks.size()-1) ){return NULL;}
+			if( x_pos >= (tracks.size()-1) ){return nullptr;}
 			else
 			{
 				x_pos += 1;
@@ -217,7 +219,7 @@ bool RecursiveMomentumContainer::insert( TrivialTrack& track )
 	int z_ind = 0;
 	if(track.pz > (pz_lo + 0.5*(pz_hi-pz_lo))){z_ind=1;}
 
-	if( containers[x_ind][y_ind][z_ind] == NULL )
+	if( containers[x_ind][y_ind][z_ind] == nullptr )
 	{
 		float px_lo_new = px_lo + (float(x_ind))*0.5*(px_hi-px_lo);
 		float px_hi_new = px_lo_new + 0.5*(px_hi-px_lo);
@@ -241,17 +243,17 @@ bool RecursiveMomentumContainer::insert( TrivialTrack& track )
 }
 
 
-MomentumEvaluator::MomentumEvaluator( std::string fname, float pt_s, float pz_s, unsigned int n_l, unsigned int n_i, unsigned int n_r, float i_z, float o_z ) : ntp_true(NULL), ntp_reco(NULL), pt_search_scale(pt_s), pz_search_scale(pz_s), event_counter(0), file_name(fname), n_layers(n_l), n_inner_layers(n_i), n_required_layers(n_r), inner_z_length(i_z), outer_z_length(o_z) {}
+MomentumEvaluator::MomentumEvaluator( std::string fname, float pt_s, float pz_s, unsigned int n_l, unsigned int n_i, unsigned int n_r, float i_z, float o_z ) : ntp_true(nullptr), ntp_reco(nullptr), pt_search_scale(pt_s), pz_search_scale(pz_s), event_counter(0), file_name(fname), n_layers(n_l), n_inner_layers(n_i), n_required_layers(n_r), inner_z_length(i_z), outer_z_length(o_z) {}
 MomentumEvaluator::~MomentumEvaluator()
 {
-	if(ntp_true != NULL){delete ntp_true;}
-	if(ntp_reco != NULL){delete ntp_reco;}
+	if(ntp_true != nullptr){delete ntp_true;}
+	if(ntp_reco != nullptr){delete ntp_reco;}
 }
 
 int MomentumEvaluator::Init( PHCompositeNode *topNode )
 {
-	if(ntp_true != NULL){delete ntp_true;}
-	if(ntp_reco != NULL){delete ntp_reco;}
+	if(ntp_true != nullptr){delete ntp_true;}
+	if(ntp_reco != nullptr){delete ntp_reco;}
 
 	ntp_true = new TNtuple( "ntp_true", "true simulated tracks", "event:px:py:pz:dcax:dcay:dcaz:r_px:r_py:r_pz:r_dcax:r_dcay:r_dcaz:quality" );
 	ntp_reco = new TNtuple( "ntp_reco", "reconstructed tracks", "event:px:py:pz:dcax:dcay:dcaz:t_px:t_py:t_pz:t_dcax:t_dcay:t_dcaz:quality" );
@@ -265,7 +267,7 @@ int MomentumEvaluator::process_event( PHCompositeNode *topNode )
 	PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
 
 	PHG4HitContainer* g4hits = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SVTX");
-	if(g4hits == NULL){cout<<"can't find PHG4HitContainer"<<endl;exit(1);}
+	if(g4hits == nullptr){cout<<"can't find PHG4HitContainer"<<endl;exit(1);}
 	PHG4HitContainer::ConstRange g4range = g4hits->getHits();
 
 	// set<int> trkids;
@@ -353,7 +355,7 @@ int MomentumEvaluator::process_event( PHCompositeNode *topNode )
 
    TrivialTrack* t_track = true_sorted.begin();
    vector<TrivialTrack*> pointer_list;
-   while(t_track != NULL)
+   while(t_track != nullptr)
    {
    	pointer_list.clear();
 
@@ -398,7 +400,7 @@ int MomentumEvaluator::process_event( PHCompositeNode *topNode )
    }
 
    TrivialTrack* r_track = reco_sorted.begin();
-   while(r_track != NULL)
+   while(r_track != nullptr)
    {
    	pointer_list.clear();
 

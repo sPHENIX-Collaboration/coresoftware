@@ -1,23 +1,20 @@
-
-#ifndef __SVTXVERTEXEVAL_H__
-#define __SVTXVERTEXEVAL_H__
+#ifndef SVTXVERTEXEVAL_H__
+#define SVTXVERTEXEVAL_H__
 
 #include "SvtxTrackEval.h"
-#include "SvtxClusterEval.h"
-#include "SvtxHitEval.h"
-#include "SvtxTruthEval.h"
-
-#include <phool/PHCompositeNode.h>
-#include <g4hough/SvtxVertexMap.h>
-#include <g4hough/SvtxVertex.h>
-#include <g4hough/SvtxTrackMap.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4VtxPoint.h>
 
 #include <set>
 #include <map>
+
+class PHCompositeNode;
+
+class PHG4Particle;
+class PHG4TruthInfoContainer;
+class PHG4VtxPoint;
+
+class SvtxTrackMap;
+class SvtxVertex;
+class SvtxVertexMap;
 
 class SvtxVertexEval {
 
@@ -85,4 +82,4 @@ private:
   std::map<std::pair<SvtxVertex*,PHG4VtxPoint*>, unsigned int> _cache_get_ntracks_contribution;
 };
 
-#endif // __SVTXVERTEXEVAL_H__
+#endif // SVTXVERTEXEVAL_H__
