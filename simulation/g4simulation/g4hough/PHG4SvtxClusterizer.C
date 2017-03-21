@@ -14,12 +14,12 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
+#include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeom_MAPS.h>
-#include <g4detectors/PHG4CylinderCell.h>
+#include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
 #include <boost/tuple/tuple.hpp>
@@ -42,57 +42,80 @@ using namespace std;
 
 static const float twopi = 2.0*M_PI;
 
-bool PHG4SvtxClusterizer::lessthan(const PHG4CylinderCell* lhs, 
-				   const PHG4CylinderCell* rhs) {
+bool PHG4SvtxClusterizer::lessthan(const PHG4Cell* lhs, 
+				   const PHG4Cell* rhs) {
+  int lhsphibin = PHG4CellDefs::SizeBinning::get_phibin(lhs->get_cellid());
+  int rhsphibin =  PHG4CellDefs::SizeBinning::get_phibin(rhs->get_cellid());
+  int lhszbin = PHG4CellDefs::SizeBinning::get_zbin(lhs->get_cellid());
+  int rhszbin = PHG4CellDefs::SizeBinning::get_zbin(rhs->get_cellid());
 
-  if( lhs->get_binphi() < rhs->get_binphi() ) return true;
-  else if( lhs->get_binphi() == rhs->get_binphi() ){
-    if( lhs->get_binz() < rhs->get_binz() ) return true;
+  if( lhsphibin < rhsphibin ) return true;
+  else if( lhsphibin == rhsphibin ){
+    if( lhszbin < rhszbin ) return true;
   }
 
   return false;
 }
 
-bool PHG4SvtxClusterizer::ladder_lessthan(const PHG4CylinderCell* lhs, 
-					  const PHG4CylinderCell* rhs) {
+bool PHG4SvtxClusterizer::ladder_lessthan(const PHG4Cell* lhs, 
+					  const PHG4Cell* rhs) {
 
-  if ( lhs->get_sensor_index() == rhs->get_sensor_index() ) { 
+  if ( lhs->get_ladder_z_index() == rhs->get_ladder_z_index() &&
+       lhs->get_ladder_phi_index() == rhs->get_ladder_phi_index())
+ { 
 
-    if( lhs->get_binphi() < rhs->get_binphi() ) return true;
-    else if( lhs->get_binphi() == rhs->get_binphi() ){
-      if( lhs->get_binz() < rhs->get_binz() ) return true;
+    if( lhs->get_phibin() < rhs->get_phibin() ) return true;
+    else if( lhs->get_phibin() == rhs->get_phibin() ){
+      if( lhs->get_zbin() < rhs->get_zbin() ) return true;
     }
     
   } else {
-    if ( lhs->get_sensor_index() < rhs->get_sensor_index() ) return true;   
+    if ( lhs->get_zbin() < rhs->get_zbin() ) return true;   
   }
     
   return false;
 }
 
-bool PHG4SvtxClusterizer::are_adjacent(const PHG4CylinderCell* lhs, 
-				       const PHG4CylinderCell* rhs,
+bool PHG4SvtxClusterizer::maps_ladder_lessthan(const PHG4Cell* lhs, 
+					  const PHG4Cell* rhs) {
+
+
+    if( lhs->get_phibin() < rhs->get_phibin() ) return true;
+    else if( lhs->get_phibin() == rhs->get_phibin() ){
+      if( lhs->get_zbin() < rhs->get_zbin() ) return true;
+    }
+    
+    
+  return false;
+}
+
+bool PHG4SvtxClusterizer::are_adjacent(const PHG4Cell* lhs, 
+				       const PHG4Cell* rhs,
                                        const int &nphibins) {
 
   int lhs_layer = lhs->get_layer();
   int rhs_layer = rhs->get_layer();
   if (lhs_layer != rhs_layer) return false;
 
+  int lhsphibin = PHG4CellDefs::SizeBinning::get_phibin(lhs->get_cellid());
+  int rhsphibin =  PHG4CellDefs::SizeBinning::get_phibin(rhs->get_cellid());
+  int lhszbin = PHG4CellDefs::SizeBinning::get_zbin(lhs->get_cellid());
+  int rhszbin = PHG4CellDefs::SizeBinning::get_zbin(rhs->get_cellid());
   if (get_z_clustering(lhs_layer)) {
-    if( fabs(lhs->get_binz() - rhs->get_binz()) <= 1 ) {
-      if( fabs(lhs->get_binphi() - rhs->get_binphi()) <= 1 ){
+    if( fabs(lhszbin - rhszbin) <= 1 ) {
+      if( fabs(lhsphibin - rhsphibin) <= 1 ){
 	return true;
-      } else if(lhs->get_binphi() == 0 || rhs->get_binphi() == 0) {
-	if(fabs(lhs->get_binphi() - rhs->get_binphi()) == (nphibins-1))
+      } else if(lhsphibin == 0 || rhsphibin == 0) {
+	if(fabs(lhsphibin - rhsphibin) == (nphibins-1))
 	  return true;
       }
     }
   } else {
-    if( fabs(lhs->get_binz() - rhs->get_binz()) == 0 ) {
-      if( fabs(lhs->get_binphi() - rhs->get_binphi()) <= 1 ){
+    if( fabs(lhszbin - rhszbin) == 0 ) {
+      if( fabs(lhsphibin - rhsphibin) <= 1 ){
 	return true;
-      } else if(lhs->get_binphi() == 0 || rhs->get_binphi() == 0) {
-	if(fabs(lhs->get_binphi() - rhs->get_binphi()) == (nphibins-1))
+      } else if(lhsphibin == 0 || rhsphibin == 0) {
+	if(fabs(lhsphibin - rhsphibin) == (nphibins-1))
 	  return true;
       }
     }
@@ -101,24 +124,22 @@ bool PHG4SvtxClusterizer::are_adjacent(const PHG4CylinderCell* lhs,
   return false;
 }
 
-bool PHG4SvtxClusterizer::maps_ladder_are_adjacent(const PHG4CylinderCell* lhs, 
-					      const PHG4CylinderCell* rhs) {
+bool PHG4SvtxClusterizer::maps_ladder_are_adjacent(const PHG4Cell* lhs, 
+					      const PHG4Cell* rhs) {
   int lhs_layer = lhs->get_layer();
   int rhs_layer = rhs->get_layer();
   if (lhs_layer != rhs_layer) return false;
 
-  // i.e. do not cluster across sensor boundaries
-  if (lhs->get_sensor_index() != rhs->get_sensor_index()) return false;
   
   if (get_z_clustering(lhs_layer)) {
-    if( fabs(lhs->get_binz() - rhs->get_binz()) <= 1 ) {
-      if( fabs(lhs->get_binphi() - rhs->get_binphi()) <= 1 ){
+    if( fabs(lhs->get_zbin() - rhs->get_zbin()) <= 1 ) {
+      if( fabs(lhs->get_phibin() - rhs->get_phibin()) <= 1 ){
 	return true;
       }
     }
   } else {
-    if( fabs(lhs->get_binz() - rhs->get_binz()) == 0 ) {
-      if( fabs(lhs->get_binphi() - rhs->get_binphi()) <= 1 ){
+    if( fabs(lhs->get_zbin() - rhs->get_zbin()) == 0 ) {
+      if( fabs(lhs->get_phibin() - rhs->get_phibin()) <= 1 ){
 	return true;
       } 
     }
@@ -127,23 +148,24 @@ bool PHG4SvtxClusterizer::maps_ladder_are_adjacent(const PHG4CylinderCell* lhs,
   return false;
 }
 
-bool PHG4SvtxClusterizer::ladder_are_adjacent(const PHG4CylinderCell* lhs, 
-					      const PHG4CylinderCell* rhs) {
+bool PHG4SvtxClusterizer::ladder_are_adjacent(const PHG4Cell* lhs, 
+					      const PHG4Cell* rhs) {
   int lhs_layer = lhs->get_layer();
   int rhs_layer = rhs->get_layer();
   if (lhs_layer != rhs_layer) return false;
 
-  if (lhs->get_sensor_index() != rhs->get_sensor_index()) return false;
+  if ( lhs->get_ladder_z_index() == rhs->get_ladder_z_index() &&
+       lhs->get_ladder_phi_index() == rhs->get_ladder_phi_index()) return false;
   
   if (get_z_clustering(lhs_layer)) {
-    if( fabs(lhs->get_binz() - rhs->get_binz()) <= 1 ) {
-      if( fabs(lhs->get_binphi() - rhs->get_binphi()) <= 1 ){
+    if( fabs(lhs->get_zbin() - rhs->get_zbin()) <= 1 ) {
+      if( fabs(lhs->get_phibin() - rhs->get_phibin()) <= 1 ){
 	return true;
       }
     }
   } else {
-    if( fabs(lhs->get_binz() - rhs->get_binz()) == 0 ) {
-      if( fabs(lhs->get_binphi() - rhs->get_binphi()) <= 1 ){
+    if( fabs(lhs->get_zbin() - rhs->get_zbin()) == 0 ) {
+      if( fabs(lhs->get_phibin() - rhs->get_phibin()) <= 1 ){
 	return true;
       } 
     }
@@ -301,7 +323,7 @@ void PHG4SvtxClusterizer::CalculateCylinderThresholds(PHCompositeNode *topNode) 
 
 void PHG4SvtxClusterizer::CalculateLadderThresholds(PHCompositeNode *topNode) {
 
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SILICON_TRACKER");
   if (!cells) return;
 
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
@@ -335,7 +357,7 @@ void PHG4SvtxClusterizer::CalculateLadderThresholds(PHCompositeNode *topNode) {
 
 void PHG4SvtxClusterizer::CalculateMapsLadderThresholds(PHCompositeNode *topNode) {
 
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_MAPS");
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MAPS");
   if (!cells) return;
 
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
@@ -380,7 +402,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
   PHG4HitContainer* g4hits = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SVTX");
   if (!g4hits) return;
   
-  PHG4CylinderCellContainer* cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
+  PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SVTX");
   if (!cells) return; 
   
   //-----------
@@ -410,13 +432,13 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
     int nphibins = layeriter->second->get_phibins();
 
     // loop over all hits/cells in this layer
-    std::map<PHG4CylinderCell*,SvtxHit*> cell_hit_map;
-    std::vector<PHG4CylinderCell*> cell_list;   
+    std::map<PHG4Cell*,SvtxHit*> cell_hit_map;
+    std::vector<PHG4Cell*> cell_list;   
     for (std::multimap<int,SvtxHit*>::iterator hiter = layer_hits_mmap.lower_bound(layer);
 	 hiter != layer_hits_mmap.upper_bound(layer);
 	 ++hiter) {
       SvtxHit* hit = hiter->second;
-      PHG4CylinderCell* cell = cells->findCylinderCell(hit->get_cellid());
+      PHG4Cell* cell = cells->findCell(hit->get_cellid());
       cell_list.push_back(cell);
       cell_hit_map.insert(make_pair(cell,hit));
     }
@@ -447,13 +469,13 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
     // Loop over the components(hit cells) compiling a list of the
     // unique connected groups (ie. clusters).
     set<int> cluster_ids; // unique components       
-    multimap<int, PHG4CylinderCell*> clusters;
+    multimap<int, PHG4Cell*> clusters;
     for (unsigned int i=0; i<component.size(); i++) {
       cluster_ids.insert( component[i] );
       clusters.insert( make_pair(component[i], cell_list[i]) );
     }
     
-    typedef multimap<int, PHG4CylinderCell*>::iterator mapiterator;
+    typedef multimap<int, PHG4Cell*>::iterator mapiterator;
     
     for (set<int>::iterator clusiter = cluster_ids.begin(); 
 	 clusiter != cluster_ids.end(); 
@@ -478,10 +500,10 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       set<int> phibins;
       set<int> zbins;
       for (mapiter = clusrange.first; mapiter != clusrange.second; mapiter++ ) {
-	PHG4CylinderCell* cell = mapiter->second;     
+	PHG4Cell* cell = mapiter->second;     
 	
-	phibins.insert(cell->get_binphi());
-	zbins.insert(cell->get_binz());
+	phibins.insert(PHG4CellDefs::SizeBinning::get_phibin(cell->get_cellid()));
+	zbins.insert(PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid()));
       }
       
       float pitch = geom->get_phistep()*(geom->get_radius()+0.5*geom->get_thickness());
@@ -496,7 +518,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
       unsigned int nhits = 0;
 
       for(mapiter = clusrange.first; mapiter != clusrange.second; mapiter++ ) {
-        PHG4CylinderCell* cell = mapiter->second;
+        PHG4Cell* cell = mapiter->second;
 	SvtxHit* hit = cell_hit_map[cell];
 	
 	clus.insert_hit(hit->get_id());
@@ -506,11 +528,11 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
 
 	// compute the hit center
 	double r   = geom->get_radius()+0.5*geom->get_thickness();
-        double phi = geom->get_phicenter(cell->get_binphi());
+        double phi = geom->get_phicenter(PHG4CellDefs::SizeBinning::get_phibin(cell->get_cellid()));
 
 	double x = r*cos(phi);
 	double y = r*sin(phi);
-        double z = geom->get_zcenter(cell->get_binz());
+        double z = geom->get_zcenter(PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid()));
 
 	if (_make_e_weights[layer]) {
 	  xsum += x * hit->get_adc();
@@ -656,7 +678,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
   PHG4HitContainer* g4hits =  findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SILICON_TRACKER");
   if (!g4hits) return;
   
-  PHG4CylinderCellContainer* cells =  findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
+  PHG4CellContainer* cells =  findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SILICON_TRACKER");
   if (!cells) return; 
  
   //-----------
@@ -687,13 +709,13 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
     if ((unsigned int)layer < _min_layer) continue;
     if ((unsigned int)layer > _max_layer) continue;
 
-    std::map<PHG4CylinderCell*,SvtxHit*> cell_hit_map;
-    vector<PHG4CylinderCell*> cell_list;
+    std::map<PHG4Cell*,SvtxHit*> cell_hit_map;
+    vector<PHG4Cell*> cell_list;
     for (std::multimap<int,SvtxHit*>::iterator hiter = layer_hits_mmap.lower_bound(layer);
 	 hiter != layer_hits_mmap.upper_bound(layer);
 	 ++hiter) {
       SvtxHit* hit = hiter->second;
-      PHG4CylinderCell* cell = cells->findCylinderCell(hit->get_cellid());
+      PHG4Cell* cell = cells->findCell(hit->get_cellid());
       cell_list.push_back(cell);
       cell_hit_map.insert(make_pair(cell,hit));
     }
@@ -725,7 +747,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
     // Loop over the components(hit cells) compiling a list of the
     // unique connected groups (ie. clusters).
     set<int> cluster_ids; // unique components
-    multimap<int, PHG4CylinderCell*> clusters;
+    multimap<int, PHG4Cell*> clusters;
     for (unsigned int i=0; i<component.size(); i++) {
       cluster_ids.insert( component[i] );
       clusters.insert( make_pair(component[i], cell_list[i]) );
@@ -737,10 +759,10 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 	 clusiter++ ) {
       
       int clusid = *clusiter;
-      pair<multimap<int, PHG4CylinderCell*>::iterator,
-	   multimap<int, PHG4CylinderCell*>::iterator> clusrange = clusters.equal_range(clusid);
+      pair<multimap<int, PHG4Cell*>::iterator,
+	   multimap<int, PHG4Cell*>::iterator> clusrange = clusters.equal_range(clusid);
       
-      multimap<int, PHG4CylinderCell*>::iterator mapiter = clusrange.first;
+      multimap<int, PHG4Cell*>::iterator mapiter = clusrange.first;
       
       int layer = mapiter->second->get_layer();
       PHG4CylinderGeom* geom = geom_container->GetLayerGeom(layer);
@@ -756,10 +778,10 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       set<int> phibins;
       set<int> zbins;
       for (mapiter = clusrange.first; mapiter != clusrange.second; mapiter++ ) {
-	PHG4CylinderCell* cell = mapiter->second;     
+	PHG4Cell* cell = mapiter->second;     
 	
-	phibins.insert(cell->get_binphi());
-	zbins.insert(cell->get_binz());
+	phibins.insert(cell->get_phibin());
+	zbins.insert(cell->get_zbin());
       }
 
       float thickness = geom->get_thickness();
@@ -779,7 +801,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       int ladder_phi_index = -1;
       
       for(mapiter = clusrange.first; mapiter != clusrange.second; mapiter++ ) {
-        PHG4CylinderCell* cell = mapiter->second;
+        PHG4Cell* cell = mapiter->second;
 	SvtxHit* hit = cell_hit_map[cell];
 	
 	clus.insert_hit(hit->get_id());
@@ -790,8 +812,8 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 	double hit_location[3] = {0.0,0.0,0.0};
 	geom->find_strip_center(cell->get_ladder_z_index(),
 				cell->get_ladder_phi_index(),
-				cell->get_binz(),
-				cell->get_binphi(),
+				cell->get_zbin(),
+				cell->get_phibin(),
 				hit_location);
 
 	ladder_z_index = cell->get_ladder_z_index();
@@ -962,7 +984,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
   PHG4HitContainer* g4hits =  findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_MAPS");
   if (!g4hits) return;
   
-  PHG4CylinderCellContainer* cells =  findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_MAPS");
+  PHG4CellContainer* cells =  findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MAPS");
   if (!cells) return; 
  
   //-----------
@@ -988,13 +1010,13 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
     if ((unsigned int)layer < _min_layer) continue;
     if ((unsigned int)layer > _max_layer) continue;
     
-    std::map<PHG4CylinderCell*,SvtxHit*> cell_hit_map;
-    vector<PHG4CylinderCell*> cell_list;
+    std::map<PHG4Cell*,SvtxHit*> cell_hit_map;
+    vector<PHG4Cell*> cell_list;
     for (std::multimap<int,SvtxHit*>::iterator hiter = layer_hits_mmap.lower_bound(layer);
 	 hiter != layer_hits_mmap.upper_bound(layer);
 	 ++hiter) {
       SvtxHit* hit = hiter->second;
-      PHG4CylinderCell* cell = cells->findCylinderCell(hit->get_cellid());
+      PHG4Cell* cell = cells->findCell(hit->get_cellid());
       cell_list.push_back(cell);
       cell_hit_map.insert(make_pair(cell,hit));
     }
@@ -1002,7 +1024,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
     if (cell_list.size() == 0) continue; // if no cells, go to the next layer
     
     // i'm not sure this sorting is ever really used
-    sort(cell_list.begin(), cell_list.end(), PHG4SvtxClusterizer::ladder_lessthan);
+    sort(cell_list.begin(), cell_list.end(), PHG4SvtxClusterizer::maps_ladder_lessthan);
 
     typedef adjacency_list <vecS, vecS, undirectedS> Graph;
     Graph G;
@@ -1027,7 +1049,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
     // Loop over the components(hit cells) compiling a list of the
     // unique connected groups (ie. clusters).
     set<int> cluster_ids; // unique components
-    multimap<int, PHG4CylinderCell*> clusters;
+    multimap<int, PHG4Cell*> clusters;
     for (unsigned int i=0; i<component.size(); i++) {
       cluster_ids.insert( component[i] );
       clusters.insert( make_pair(component[i], cell_list[i]) );
@@ -1039,10 +1061,10 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 	 clusiter++ ) {
       
       int clusid = *clusiter;
-      pair<multimap<int, PHG4CylinderCell*>::iterator,
-	   multimap<int, PHG4CylinderCell*>::iterator> clusrange = clusters.equal_range(clusid);
+      pair<multimap<int, PHG4Cell*>::iterator,
+	   multimap<int, PHG4Cell*>::iterator> clusrange = clusters.equal_range(clusid);
       
-      multimap<int, PHG4CylinderCell*>::iterator mapiter = clusrange.first;
+      multimap<int, PHG4Cell*>::iterator mapiter = clusrange.first;
       
       int layer = mapiter->second->get_layer();
       PHG4CylinderGeom_MAPS *geom = (PHG4CylinderGeom_MAPS*) geom_container->GetLayerGeom(layer);
@@ -1061,7 +1083,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
       set<int> phibins;
       set<int> zbins;
       for (mapiter = clusrange.first; mapiter != clusrange.second; mapiter++ ) {
-	PHG4CylinderCell* cell = mapiter->second;     
+	PHG4Cell* cell = mapiter->second;     
 
 	int pixel_number = cell->get_pixel_index();
 	// binphi is the cell index in the phi direction in the sensor
@@ -1095,7 +1117,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
       int chip_index = -1;
 
       for(mapiter = clusrange.first; mapiter != clusrange.second; mapiter++ ) {
-        PHG4CylinderCell* cell = mapiter->second;
+        PHG4Cell* cell = mapiter->second;
 
 	if(verbosity > 2)	
 	  cell->identify();

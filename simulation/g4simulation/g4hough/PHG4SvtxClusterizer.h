@@ -8,7 +8,7 @@
 
 class SvtxHitMap;
 class SvtxClusterMap;
-class PHG4CylinderCell;
+class PHG4Cell;
 
 class PHG4SvtxClusterizer : public SubsysReco {
 
@@ -59,17 +59,19 @@ public:
 
 private:
 
-  static bool lessthan(const PHG4CylinderCell*, 
-		       const PHG4CylinderCell*);
-  static bool ladder_lessthan(const PHG4CylinderCell*, 
-			      const PHG4CylinderCell*);
-  bool are_adjacent(const PHG4CylinderCell*, 
-		    const PHG4CylinderCell*, 
+  static bool lessthan(const PHG4Cell*, 
+		       const PHG4Cell*);
+  static bool ladder_lessthan(const PHG4Cell*, 
+			      const PHG4Cell*);
+  static bool maps_ladder_lessthan(const PHG4Cell*, 
+			      const PHG4Cell*);
+  bool are_adjacent(const PHG4Cell*, 
+		    const PHG4Cell*, 
 		    const int &);
-  bool ladder_are_adjacent(const PHG4CylinderCell*, 
-			   const PHG4CylinderCell*);
-  bool maps_ladder_are_adjacent(const PHG4CylinderCell*,
-				const PHG4CylinderCell*);
+  bool ladder_are_adjacent(const PHG4Cell*, 
+			   const PHG4Cell*);
+  bool maps_ladder_are_adjacent(const PHG4Cell*,
+				const PHG4Cell*);
 
   void CalculateCylinderThresholds(PHCompositeNode *topNode);
   void CalculateLadderThresholds(PHCompositeNode *topNode);
