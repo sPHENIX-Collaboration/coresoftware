@@ -127,8 +127,12 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
   PHG4CylinderGeomContainer *geo =  findNode::getClass<PHG4CylinderGeomContainer>(topNode , geonodename.c_str());
   if (!geo){cout << "Could not locate geometry node " << geonodename << endl;exit(1);}
   seggeonodename = "CYLINDERCELLGEOM_" + outdetector;
-  PHG4CyllinderCellGeomContainer *seggeo = findNode::getClass<PHG4CyllinderCellGeomContainer>(topNode , seggeonodename.c_str());
-  if (!seggeo){seggeo = new PHG4CylinderCellGeomContainer();PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str() , "PHObject");runNode->addNode(newNode);}
+  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode , seggeonodename.c_str());
+  if (!seggeo){
+    seggeo = new PHG4CylinderCellGeomContainer();
+    PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str() , "PHObject");runNode->addNode(newNode);
+  }
   
   map<int, PHG4CylinderGeom *>::const_iterator miter;
   pair <map<int, PHG4CylinderGeom *>::const_iterator, map<int, PHG4CylinderGeom *>::const_iterator> begin_end = geo->get_begin_end();
@@ -404,12 +408,12 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
     }
     int count = 0;
     for(std::map<unsigned long, PHG4Cell*>::iterator it = cellptmap.begin(); it != cellptmap.end(); ++it) {
-      cells->AddCell((unsigned int)(*layer), it->second);
+      cells->AddCell(it->second);
       if(verbosity>1) {
-	float zthis = geo->get_zcenter( it->second->get_binz() );
+	float zthis = geo->get_zcenter( it->second->get_zbin() );
 	fHMeanElectronsPerCell->Fill( float(*layer), zthis,  it->second->get_edep() );
       }
-      if(verbosity>2000) std::cout << " Adding phibin" << it->second->get_binphi() << " zbin " << it->second->get_binz() << std::endl;
+      if(verbosity>2000) std::cout << " Adding phibin" << it->second->get_phibin() << " zbin " << it->second->get_zbin() << std::endl;
       count += 1;
     }
     if(verbosity>1000) std::cout << " || Number of cells hit " << count<< std::endl;
