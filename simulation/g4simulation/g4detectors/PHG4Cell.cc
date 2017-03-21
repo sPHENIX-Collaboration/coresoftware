@@ -57,6 +57,10 @@ PHG4Cell::get_property_info(const PROPERTY prop_id)
     return make_pair("phibin",PHG4Cell::type_int);
   case prop_zbin:
     return make_pair("zbin",PHG4Cell::type_int);
+  case prop_ladder_z_index:
+    return make_pair("ladder z index",PHG4Cell::type_int);
+  case prop_ladder_phi_index:
+    return make_pair("ladder phi index",PHG4Cell::type_int);
   case  prop_edep:
     return make_pair("energy deposition",PHG4Cell::type_float);
   case  prop_eion:

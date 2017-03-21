@@ -53,6 +53,12 @@ class PHG4Cellv1: public PHG4Cell
   void set_half_stave_index(const int i) {set_property(prop_half_stave_index,i);}
   int get_half_stave_index() const {return get_property_int(prop_half_stave_index);}
 
+  void set_ladder_phi_index(const int i) {set_property(prop_ladder_phi_index,i);}
+  int get_ladder_phi_index() const {return get_property_int(prop_ladder_phi_index);}
+
+  void set_ladder_z_index(const int i) {set_property(prop_ladder_z_index,i);}
+  int get_ladder_z_index() const {return get_property_int(prop_ladder_z_index);}
+
   void set_module_index(const int i) {set_property(prop_module_index,i);}
   int get_module_index() const {return get_property_int(prop_module_index);}
 

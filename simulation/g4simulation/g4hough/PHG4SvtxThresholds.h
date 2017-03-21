@@ -60,8 +60,7 @@ class PHG4SvtxThresholds : public SubsysReco
 
  private:
 
-  void CalculateCylinderThresholds(PHCompositeNode *topNode);
-  void CalculateMapsLadderThresholds(PHCompositeNode *topNode);
+  void CalculateGenericThresholds(PHCompositeNode *topNode, const std::string &detector);
 
   // settings
   std::map<int,float> _fraction_of_mip;
