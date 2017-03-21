@@ -118,6 +118,8 @@ libg4hough_io_la_SOURCES = \
   SvtxVertexMap_v1_Dict.C
 
 libg4hough_la_SOURCES = \
+  PHG4SiliconTrackerDigitizer.C \
+  PHG4SiliconTrackerDigitizer_Dict.C \
   PHG4SvtxDeadArea.C \
   PHG4SvtxDeadArea_Dict.C \
   PHG4SvtxThresholds.C \
