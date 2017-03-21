@@ -49,9 +49,10 @@ int PHG4SvtxDeadArea::InitRun(PHCompositeNode* topNode) {
   unsigned int seed = PHRandomSeed(); // fixed seed handled in PHRandomSeed()
   gsl_rng_set(RandomGenerator,seed);
 
-  FillCylinderDeadAreaMap(topNode);
-  FillMapsLadderDeadAreaMap(topNode);
-  
+  GenericFillDeadAreaMap(topNode,"MAPS");
+  GenericFillDeadAreaMap(topNode,"SVTX");
+  GenericFillDeadAreaMap(topNode,"SILICON_TRACKER");
+
   if (verbosity > 0) {
     cout << "====================== PHG4SvtxDeadArea::InitRun() ========================" << endl;
     cout << " Random number seed = " << seed << endl;    
@@ -92,41 +93,16 @@ int PHG4SvtxDeadArea::process_event(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4SvtxDeadArea::End(PHCompositeNode* topNode) {
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-void PHG4SvtxDeadArea::FillCylinderDeadAreaMap(PHCompositeNode* topNode) {
-
-  PHG4CylinderCellGeomContainer *geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
-    
-
-  if (!geom_container) return;
-  
-  PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
-  for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
-      layeriter != layerrange.second;
-      ++layeriter) {
-    int layer = layeriter->second->get_layer();
- 
-    if (_eff_by_layer.find(layer) == _eff_by_layer.end()) {
-      _eff_by_layer.insert(std::make_pair(layer,1.0));
-    }    
-  }
-  
-  return;
-}
-
-
 void
-PHG4SvtxDeadArea::FillMapsLadderDeadAreaMap(PHCompositeNode* topNode) {
-
-  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
+PHG4SvtxDeadArea::GenericFillDeadAreaMap(PHCompositeNode *topNode, const std::string &detectorname)
+{
+  string nodename = "CYLINDERGEOM_" + detectorname;
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,nodename);
     
   if (!geom_container) return;
 
   if(verbosity > 0)
-    cout << "Found CylinderGeom_MAPS" << endl;
+    cout << "Found " << nodename << endl;
 
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -141,3 +117,4 @@ PHG4SvtxDeadArea::FillMapsLadderDeadAreaMap(PHCompositeNode* topNode) {
   
   return;
 }
+
