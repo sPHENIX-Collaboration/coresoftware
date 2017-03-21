@@ -183,6 +183,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 
         }
           cell->add_edep(hiter->first, hiter->second->get_edep());
+          cell->add_edep(hiter->second->get_edep());
     } // end loop over g4hits
 
   int numcells = 0;
