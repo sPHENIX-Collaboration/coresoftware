@@ -28,6 +28,7 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
+#include <phgeom/PHGeomUtility.h>
 
 // sGeant4 includes
 #include <Geant4/G4MagneticField.hh>
@@ -41,6 +42,19 @@
 #include <HelixHough/HelixRange.h>
 #include <HelixHough/HelixHough.h>
 #include <HelixHough/VertexFinder.h>
+
+// GenFit
+#include <GenFit/FieldManager.h>
+#include <GenFit/GFRaveVertex.h>
+#include <GenFit/GFRaveVertexFactory.h>
+#include <GenFit/MeasuredStateOnPlane.h>
+#include <GenFit/RKTrackRep.h>
+#include <GenFit/StateOnPlane.h>
+#include <GenFit/Track.h>
+#include <phgenfit/Fitter.h>
+#include <phgenfit/Track.h>
+#include <phgenfit/PlanarMeasurement.h>
+#include <phgenfit/SpacepointMeasurement.h>
 
 // standard includes
 #include <cmath>
@@ -100,7 +114,23 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
       _bbc_vertexes(NULL),
       _g4clusters(NULL),
       _g4tracks(NULL),
-      _g4vertexes(NULL) {
+      _g4vertexes(NULL),
+	  _mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
+	  _mag_field_re_scaling_factor(1.4/1.5),
+	  _reverse_mag_field(true),
+	  _fitter(NULL),
+	  _track_fitting_alg_name("DafRef"),
+	  _primary_pid_guess(211),
+	  _cut_min_pT(0.1),
+	  _nlayers_all(67),
+	  _radii_all(),
+	  _search_win_multiplier(5),
+	  _layer_zID_phiID_cluserID(),
+	  _layer_zID_phiID_cluserID_phiSize(0.12),
+	  _layer_zID_phiID_cluserID_zSize(0.17),
+	  _trackID_PHGenFitTrack(),
+	  _trackID_clusterID(),
+	  _max_incr_chi2(5){
 }
 
 int PHG4KalmanPatRec::Init(PHCompositeNode* topNode) {
@@ -109,7 +139,15 @@ int PHG4KalmanPatRec::Init(PHCompositeNode* topNode) {
 
 int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 
-	int code = CreateNodes(topNode);
+	int code = Fun4AllReturnCodes::ABORTRUN;
+
+	code = CreateNodes(topNode);
+	if(code != Fun4AllReturnCodes::EVENT_OK)
+		return code;
+
+	code = InitializeGeometry(topNode);;
+	if(code != Fun4AllReturnCodes::EVENT_OK)
+		return code;
 
 	if (verbosity > 0) {
 		cout
@@ -202,10 +240,17 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	// here expect vertex to be better than +/- 500 um
 
 	//-----------------------------------
-	// Preform the track finding
+	// Seeding
 	//-----------------------------------
+	//TODO simplify this function
+	code = full_track_seeding();
+	if (code != Fun4AllReturnCodes::EVENT_OK)
+		return code;
 
-	code = full_tracking_and_vertexing();
+	//-----------------------------------
+	// Kalman cluster accociation
+	//-----------------------------------
+	code = FullTrackFitting();
 	if (code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 
@@ -213,7 +258,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	// Translate back into SVTX objects
 	//-----------------------------------
 
-	code = export_output();
+	code = ExportOutput();
 	if (code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 
@@ -491,7 +536,7 @@ int PHG4KalmanPatRec::CreateNodes(PHCompositeNode* topNode) {
 	 }
 	 */
 
-	return InitializeGeometry(topNode);
+	return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
@@ -604,6 +649,9 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 			if (verbosity > 1)
 				cellgeo->identify();
 
+			_radii_all[_layer_ilayer_map[cellgeo->get_layer()]] =
+					cellgeo->get_radius();
+
 			if (_layer_ilayer_map.find(cellgeo->get_layer())
 					!= _layer_ilayer_map.end()) {
 				_radii[_layer_ilayer_map[cellgeo->get_layer()]] =
@@ -624,6 +672,9 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 			if (verbosity > 1)
 				geo->identify();
 
+			_radii_all[_layer_ilayer_map[geo->get_layer()]] =
+					geo->get_radius();
+
 			if (_layer_ilayer_map.find(geo->get_layer())
 					!= _layer_ilayer_map.end()) {
 				_radii[_layer_ilayer_map[geo->get_layer()]] = geo->get_radius();
@@ -642,6 +693,9 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 
 			if (verbosity > 1)
 				geo->identify();
+
+			_radii_all[_layer_ilayer_map[geo->get_layer()]] =
+					geo->get_radius();
 
 			if (_layer_ilayer_map.find(geo->get_layer())
 					!= _layer_ilayer_map.end()) {
@@ -667,6 +721,27 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 	setup_tracker_object();
 	setup_initial_tracker_object();
 	setup_seed_tracker_objects();
+
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+int PHG4KalmanPatRec::InitializePHGenFit(PHCompositeNode* topNode) {
+
+	TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
+
+	//_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
+	_fitter = PHGenFit::Fitter::getInstance(tgeo_manager,
+			_mag_field_file_name.data(),
+			(_reverse_mag_field) ?
+					-1. * _mag_field_re_scaling_factor :
+					_mag_field_re_scaling_factor, _track_fitting_alg_name,
+			"RKTrackRep", false);
+
+	if (!_fitter) {
+		cerr << PHWHERE << endl;
+		return Fun4AllReturnCodes::ABORTRUN;
+	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1214,7 +1289,7 @@ int PHG4KalmanPatRec::initial_vertex_finding() {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4KalmanPatRec::full_tracking_and_vertexing() {
+int PHG4KalmanPatRec::full_track_seeding() {
 
 	float shift_dx = -_vertex[0];
 	float shift_dy = -_vertex[1];
@@ -1567,6 +1642,218 @@ bool PHG4KalmanPatRec::circle_line_intersections(double x0, double y0,
 	points->insert(p3);
 
 	return true;
+}
+
+int PHG4KalmanPatRec::FullTrackFitting() {
+
+	BuildLayerZPhiHitMap();
+
+	for(unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
+		TrackPropPatRec(itrack);
+	}
+
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+int PHG4KalmanPatRec::ExportOutput() {
+
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4KalmanPatRec::TrackPropPatRec(
+		const unsigned int itrack) {
+
+	float kappa = _tracks.at(itrack).kappa;
+	float d = _tracks.at(itrack).d;
+	float phi = _tracks.at(itrack).phi;
+	float dzdl = _tracks.at(itrack).dzdl;
+	float z0 = _tracks.at(itrack).z0;
+
+	float pT = kappaToPt(kappa);
+
+	float x_center = cos(phi) * (d + 1 / kappa); // x coordinate of circle center
+	float y_center = sin(phi) * (d + 1 / kappa);  // y    "      "     " "
+
+	vector<SimpleHit3D> track_hits = _tracks.at(itrack).hits;
+
+	// find helicity from cross product sign
+	short int helicity;
+	if ((track_hits[0].get_x() - x_center)
+			* (track_hits[track_hits.size() - 1].get_y() - y_center)
+			- (track_hits[0].get_y() - y_center)
+					* (track_hits[track_hits.size() - 1].get_x() - x_center)
+			> 0) {
+		helicity = 1;
+	} else {
+		helicity = -1;
+	}
+	float pZ = 0;
+	if (dzdl != 1) {
+		pZ = pT * dzdl / sqrt(1.0 - dzdl * dzdl);
+	}
+
+	TVector3 seed_mom(
+			pT * cos(phi - helicity * M_PI / 2),
+			pT * sin(phi - helicity * M_PI / 2),
+			pZ
+	);
+
+	TVector3 seed_pos(
+			_vertex[0] + d * cos(phi),
+			_vertex[1] + d * sin(phi),
+			_vertex[2] + z0
+			);
+
+
+	Eigen::Matrix<float, 6, 6> euclidean_cov =
+			Eigen::Matrix<float, 6, 6>::Zero(6, 6);
+	convertHelixCovarianceToEuclideanCovariance(_magField, phi, d, kappa,
+			z0, dzdl, _track_covars[itrack], euclidean_cov);
+
+	TMatrixDSym seed_cov(6);
+	for (int i = 0; i < 6; i++) {
+		for (int j = 0; j < 6; j++) {
+			seed_cov[i][j] = euclidean_cov(i, j);
+		}
+	}
+
+	genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_pid_guess);
+	std::unique_ptr<PHGenFit::Track> track(
+			new PHGenFit::Track(rep, seed_pos, seed_mom, seed_cov));
+
+	for (int layer = _nlayers; layer < _nlayers_all; ++layer) {
+		float layer_r = _radii_all[_layer_ilayer_map[layer]];
+		std::unique_ptr<genfit::MeasuredStateOnPlane> state = std::unique_ptr
+				< genfit::MeasuredStateOnPlane
+				> (track->extrapolateToCylinder(layer_r, TVector3(0, 0, 0),
+						TVector3(0, 0, 1), -1));
+//		genfit::MeasuredStateOnPlane *state = track->extrapolateToCylinder(
+//				layer_r, TVector3(0, 0, 0), TVector3(0, 0, 1), -1);
+
+		TVector3 pos = state->getPos();
+
+		float phi_center = pos.Phi() * pos.Perp();
+		float z_center = pos.Z();
+
+		TMatrixDSym cov = state->get6DCov();
+
+		float phi_window = _search_win_multiplier * sqrt(cov[0][0] + cov[1][1]);
+		float z_window = _search_win_multiplier * sqrt(cov[2][2]);
+
+		//TODO
+
+		std::vector<unsigned int> new_cluster_IDs = SearchHitsNearBy(layer,
+				z_center, phi_center, z_window, phi_window);
+
+		std::vector<PHGenFit::Measurement*> measurements;
+
+		for (unsigned int cluster_ID : new_cluster_IDs) {
+			SvtxCluster* cluster = _g4clusters->get(cluster_ID);
+			if (!cluster) {
+				LogError("No cluster Found!");
+				continue;
+			}
+			TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
+
+			seed_mom.SetPhi(pos.Phi());
+			seed_mom.SetTheta(pos.Theta());
+
+			//TODO use u, v explicitly?
+			TVector3 n(cluster->get_x(), cluster->get_y(), 0);
+
+			PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,
+					n, cluster->get_phi_error(), cluster->get_z_error());
+
+			measurements.push_back(meas);
+		}
+
+		std::map<double, PHGenFit::Track*> incr_chi2s_new_tracks;
+
+		track->testMeasurements(measurements, incr_chi2s_new_tracks);
+
+		LogDebug("testMeasurements: \n");
+		std::cout<<"itrack: "<<itrack
+				<<", layer: "<<layer
+				<<", #meas: "<<measurements.size()
+				<<", #tracks: "<<incr_chi2s_new_tracks.size()
+				<<std::endl;
+	}
+
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
+
+	for(SimpleHit3D cluster : _clusters){
+		float phi = atan2(cluster.get_y(),cluster.get_x());
+		float r = sqrt(cluster.get_x()*cluster.get_x() + cluster.get_y()*cluster.get_y());
+		float rphi = r*phi;
+		float z = cluster.get_z();
+
+		int iphi = (int) rphi/_layer_zID_phiID_cluserID_phiSize;
+		int iz = (int) z/_layer_zID_phiID_cluserID_zSize;
+
+
+		std::map<int, std::multimap<int, unsigned int>> zID_phiID_cluserID;
+
+		if(_layer_zID_phiID_cluserID.find(cluster.get_layer())!=_layer_zID_phiID_cluserID.end()){
+			zID_phiID_cluserID = _layer_zID_phiID_cluserID.find(cluster.get_layer())->second;
+
+			if(zID_phiID_cluserID.find(iz)!=zID_phiID_cluserID.end())
+				zID_phiID_cluserID[iz].insert(std::make_pair(iphi, cluster.get_id()));
+			else {
+				std::multimap<int, unsigned int> phiID_cluserID;
+				phiID_cluserID.insert(std::make_pair(iphi, cluster.get_id()));
+				zID_phiID_cluserID[iz] = phiID_cluserID;
+			}
+		} else {
+			std::multimap<int, unsigned int> phiID_cluserID;
+			phiID_cluserID.insert(std::make_pair(iphi, cluster.get_id()));
+
+			zID_phiID_cluserID[iz] = phiID_cluserID;
+
+			_layer_zID_phiID_cluserID[cluster.get_layer()] = zID_phiID_cluserID;
+		}
+
+	}
+
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int layer,
+		const float z_center, const float phi_center, const float z_window,
+		const float phi_window) {
+
+	std::vector<unsigned int> cluster_IDs;
+
+	int min_z_bin = (int)(z_center-z_window)/_layer_zID_phiID_cluserID_zSize;
+	int max_z_bin = (int)(z_center+z_window)/_layer_zID_phiID_cluserID_zSize+1;
+	int min_phi_bin = (int)(phi_center-phi_window)/_layer_zID_phiID_cluserID_phiSize;
+	int max_phi_bin = (int)(phi_center+phi_window)/_layer_zID_phiID_cluserID_phiSize+1;
+
+
+	std::map<int, std::multimap<int, unsigned int>> zID_phiID_cluserID = _layer_zID_phiID_cluserID[layer];
+
+	for(std::map<int, std::multimap<int, unsigned int>>::const_iterator iter_z = zID_phiID_cluserID.lower_bound(min_z_bin);
+			iter_z!=zID_phiID_cluserID.upper_bound(max_z_bin); ++iter_z){
+		std::multimap<int, unsigned int> phiID_cluserID = iter_z->second;
+		for(std::multimap<int, unsigned int>::const_iterator iter_phi = phiID_cluserID.lower_bound(min_phi_bin);
+				iter_phi!=phiID_cluserID.upper_bound(max_phi_bin);++iter_phi){
+			cluster_IDs.push_back(iter_phi->second);
+		}
+	}
+
+	return cluster_IDs;
+}
+
+std::shared_ptr<SvtxTrack> PHG4KalmanPatRec::MakeSvtxTrack(
+		const int genfit_track_ID, const SvtxVertex* vertex) {
+
+	std::shared_ptr<SvtxTrack> svtxtrack(new SvtxTrack_v1());
+
+	return svtxtrack;
 }
 
 bool PHG4KalmanPatRec::circle_circle_intersections(double x0, double y0,
