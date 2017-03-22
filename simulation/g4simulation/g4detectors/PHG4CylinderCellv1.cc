@@ -3,8 +3,6 @@
 
 using namespace std;
 
-ClassImp(PHG4CylinderCellv1)
-
 PHG4CylinderCellv1::PHG4CylinderCellv1():
   layer(0xFFFFFFFF),
   cellid(0xFFFFFFFF),

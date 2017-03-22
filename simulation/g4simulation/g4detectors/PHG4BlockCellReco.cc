@@ -3,9 +3,11 @@
 #include "PHG4BlockGeom.h"
 #include "PHG4BlockCellGeomContainer.h"
 #include "PHG4BlockCellGeom.h"
-#include "PHG4CylinderCellv1.h"
-#include "PHG4CylinderCellContainer.h"
-#include "PHG4CylinderCellDefs.h"
+#include "PHG4Cellv1.h"
+#include "PHG4CellContainer.h"
+#include "PHG4CellDefs.h"
+#include "PHG4ParametersContainer.h"
+#include "PHG4Parameters.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -26,20 +28,23 @@
 
 using namespace std;
 
-#define ARRAYDIM1 100000
-#define ARRAYDIM2 2000
-
-static vector<PHG4CylinderCell*> cellptarray;
+static vector<PHG4Cell*> cellptarray;
 
 PHG4BlockCellReco::PHG4BlockCellReco(const string &name) :
   SubsysReco(name),
-  _timer(PHTimeServer::get()->insert_new("PHG4BlockCellReco")),
-  chkenergyconservation(0),
-  tmin_default(0.0),  // ns
-  tmax_default(60.0), // ns
-  tmin_max()
+  PHG4ParameterContainerInterface(name),
+  sum_energy_g4hit(0),
+  _timer(PHTimeServer::get()->insert_new(name)),
+  chkenergyconservation(0)
 {
-  memset(nbins, 0, sizeof(nbins));
+  SetDefaultParameters();
+}
+
+int
+PHG4BlockCellReco::ResetEvent(PHCompositeNode *topNode)
+{
+  sum_energy_g4hit = 0.;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
@@ -50,34 +55,51 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
   PHCompositeNode *dstNode;
   dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
-  {
-    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
-    exit(1);
-  }
+    {
+      cout << Name() << " DST Node missing, doing nothing." << std::endl;
+      exit(1);
+    }
+  PHNodeIterator dstiter(dstNode);
+  PHCompositeNode *DetNode =
+    dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",
+						     detector));
+  if (!DetNode)
+    {
+      DetNode = new PHCompositeNode(detector);
+      dstNode->addNode(DetNode);
+    }
+
+  PHCompositeNode *runNode;
+  runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
+  if (!runNode)
+    {
+      cout << Name() << "DST Node missing, doing nothing." << endl;
+      exit(1);
+    }
+  PHNodeIterator runiter(runNode);
+  PHCompositeNode *RunDetNode =
+    dynamic_cast<PHCompositeNode*>(runiter.findFirst("PHCompositeNode",
+						     detector));
+  if (!RunDetNode)
+    {
+      RunDetNode = new PHCompositeNode(detector);
+      runNode->addNode(RunDetNode);
+    }
+
 
   hitnodename = "G4HIT_" + detector;
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
   {
-    cout << "Could not locate g4 hit node " << hitnodename << endl;
+    cout << Name() << " Could not locate g4 hit node " << hitnodename << endl;
     exit(1);
   }
 
   cellnodename = "G4CELL_" + detector;
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode , cellnodename);
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode , cellnodename);
   if (!cells)
     {
-      PHNodeIterator dstiter(dstNode);
-      PHCompositeNode *DetNode =
-          dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",
-              detector));
-      if (!DetNode)
-        {
-          DetNode = new PHCompositeNode(detector);
-          dstNode->addNode(DetNode);
-        }
-
-    cells = new PHG4CylinderCellContainer();
+    cells = new PHG4CellContainer();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str() , "PHObject");
     DetNode->addNode(newNode);
   }
@@ -86,7 +108,7 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
   PHG4BlockGeomContainer *geo =  findNode::getClass<PHG4BlockGeomContainer>(topNode , geonodename.c_str());
   if (!geo)
   {
-    cout << "Could not locate geometry node " << geonodename << endl;
+    cout << Name() << " Could not locate geometry node " << geonodename << endl;
     exit(1);
 
   }
@@ -105,6 +127,9 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str() , "PHObject");
     runNode->addNode(newNode);
   }
+  GetParamsContainerModify()->set_name(detector);
+
+  UpdateParametersWithMacro();
 
   map<int, PHG4BlockGeom *>::const_iterator miter;
   pair <map<int, PHG4BlockGeom *>::const_iterator, map<int, PHG4BlockGeom *>::const_iterator> begin_end = geo->get_begin_end();
@@ -113,16 +138,24 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
   {
     PHG4BlockGeom *layergeom = miter->second;
     int layer = layergeom->get_layer();
+    if (!ExistDetid(layer))
+      {
+	cout << Name() << ": No parameters for detid/layer " << layer 
+	     << ", hits from this detid/layer will not be accumulated into cells" << endl;
+	continue;
+      }
+    implemented_detid.insert(layer);
     double radius = sqrt(pow(layergeom->get_center_x(),2) + pow(layergeom->get_center_y(),2));
     double width = layergeom->get_size_x();
     double length_in_z = layergeom->get_size_z();
     double zmin = layergeom->get_center_z() - length_in_z/2.;
     double zmax = zmin + length_in_z;
-
+    set_size(layer,get_double_param(layer,"deltaeta"),get_double_param(layer,"deltax"),PHG4CellDefs::etaphibinning);
+    tmin_max.insert(std::make_pair(layer, std::make_pair(get_double_param(layer, "tmin"), get_double_param(layer, "tmax"))));
     sizeiter = cell_size.find(layer);
     if (sizeiter == cell_size.end())
     {
-      cout << "no cell sizes for layer " << layer << endl;
+      cout << Name() << "no cell sizes for layer " << layer << endl;
       exit(1);
     }
     
@@ -132,7 +165,7 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
     // layerseggeo->set_radius(layergeom->get_radius());
     // layerseggeo->set_thickness(layergeom->get_thickness());
 
-    if (binning[layer] == PHG4CylinderCellDefs::etaphibinning)
+    if (binning[layer] == PHG4CellDefs::etaphibinning)
     {
       // calculate eta at radius+ thickness (outer radius)
       // length via eta coverage is calculated using the outer radius
@@ -187,7 +220,7 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
 
       pair<int, int> x_z_bin = make_pair(xbins, etabins);
       n_x_z_bins[layer] = x_z_bin;
-      layerseggeo->set_binning(PHG4CylinderCellDefs::etaphibinning);
+      layerseggeo->set_binning(PHG4CellDefs::etaphibinning);
       layerseggeo->set_etabins(etabins);
       layerseggeo->set_etamin(etamin);
       layerseggeo->set_etastep(etastepsize);
@@ -205,14 +238,8 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
       layerseggeo->identify();
     }
   }
-
-  for (std::map<int,int>::iterator iter = binning.begin(); 
-       iter != binning.end(); ++iter) {
-    int layer = iter->first;
-    // if the user doesn't set an integration window, set the default
-    tmin_max.insert(std::make_pair(layer,std::make_pair(tmin_default,tmax_default)));    
-  }
-  
+  string nodename = "G4CELLPARAM_" + GetParamsContainer()->Name();
+  SaveToNodeTree(RunDetNode,nodename);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -228,7 +255,7 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
     cout << "Could not locate g4 hit node " << hitnodename << endl;
     exit(1);
   }
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode, cellnodename);
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   if (! cells)
   {
     cout << "could not locate cell node " << cellnodename << endl;
@@ -253,6 +280,11 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
 
   for (layer = layer_begin_end.first; layer != layer_begin_end.second; layer++)
   {
+    // only handle layers/detector ids which have parameters set
+    if (implemented_detid.find(*layer) == implemented_detid.end())
+      {
+	continue;
+      }
     PHG4HitContainer::ConstIterator hiter;
     PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(*layer);
     PHG4BlockCellGeom *geo = seggeo->GetLayerCellGeom(*layer);
@@ -261,25 +293,12 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
     unsigned int nbins = nxbins*nzbins;
 
     if(cellptarray.size() < nbins)
-      cellptarray.resize(nbins, 0);
-
-    if ( nxbins > ARRAYDIM1)
-    {
-      cout << "too many bins in x: " << nxbins
-           << " change and recompile" << endl;
-      exit(1);
-    }
-
-    if (nzbins > ARRAYDIM2)
-    {
-      cout << "too many bins in z: " << nzbins
-           << " change and recompile" << endl;
-      exit(1);
-    }
-
+      {
+        cellptarray.resize(nbins, 0);
+      }
 
     // ------- eta/x binning ------------------------------------------------------------------------
-    if (binning[*layer] == PHG4CylinderCellDefs::etaphibinning)
+    if (binning[*layer] == PHG4CellDefs::etaphibinning)
     {
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
       {
@@ -316,6 +335,7 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
           continue;
         }
 
+	sum_energy_g4hit += hiter->second->get_edep();
         int intxbin = xbin[0];
         int intetabin = etabin[0];
         int intxbinout = xbin[1];
@@ -405,15 +425,17 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
           int ixbin = vx[i1];
           int ietabin = veta[i1];
           int ibin = ixbin*nzbins+ietabin;
-
           if (!cellptarray[ibin])
           {
-            cellptarray[ibin] = new PHG4CylinderCellv1();
-            cellptarray[ibin]->set_layer(*layer);
-            cellptarray[ibin]->set_phibin(ixbin);
-            cellptarray[ibin]->set_etabin(ietabin);
+            PHG4CellDefs::keytype key = PHG4CellDefs::EtaXsizeBinning::genkey(*layer, ixbin, ietabin);
+            cellptarray[ibin] = new PHG4Cellv1(key);
           }
-          cellptarray[ibin]->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1], hiter->second->get_light_yield()*vdedx[i1]);
+          cellptarray[ibin]->add_edep(hiter->first, hiter->second->get_edep()*vdedx[i1]);
+	  cellptarray[ibin]->add_edep(hiter->second->get_edep()*vdedx[i1]);
+	  if (hiter->second->has_property(PHG4Hit::prop_light_yield))
+	    {
+	      cellptarray[ibin]->add_light_yield(hiter->second->get_light_yield()*vdedx[i1]);
+	    }
           cellptarray[ibin]->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep()*vdedx[i1]);
 
           // just a sanity check - we don't want to mess up by having Nan's or Infs in our energy deposition
@@ -437,7 +459,7 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
 
           if (cellptarray[ibin])
           {
-            cells->AddCylinderCell(*layer, cellptarray[ibin]);
+            cells->AddCell(cellptarray[ibin]);
             numcells++;
             if (verbosity > 1)
             {
@@ -449,7 +471,7 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
                    << endl;
             }
 
-            cellptarray[ibin] = 0;
+            cellptarray[ibin] = nullptr;
           }
         }
       }
@@ -471,22 +493,19 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int
-PHG4BlockCellReco::End(PHCompositeNode *topNode)
+void
+PHG4BlockCellReco::etaxsize(const int detid, const double deltaeta, const double deltax)
 {
-  return Fun4AllReturnCodes::EVENT_OK;
+  set_double_param(detid,"deltaeta",deltaeta);
+  set_double_param(detid,"deltax",deltax);
+  return;
 }
 
 void
-PHG4BlockCellReco::cellsize(const int i, const double sr, const double sz)
+PHG4BlockCellReco::set_timing_window(const int detid, const double tmin, const double tmax)
 {
-  set_size(i, sr, sz, PHG4CylinderCellDefs::sizebinning);
-}
-
-void
-PHG4BlockCellReco::etaxsize(const int i, const double deltaeta, const double deltax)
-{
-  set_size(i, deltaeta, deltax, PHG4CylinderCellDefs::etaphibinning);
+  set_double_param(detid,"tmin",tmin);
+  set_double_param(detid,"tmax",tmax);
   return;
 }
 
@@ -689,26 +708,48 @@ bool  PHG4BlockCellReco::line_and_rectangle_intersect( double ax,
 int
 PHG4BlockCellReco::CheckEnergy(PHCompositeNode *topNode)
 {
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode, cellnodename);
-  double sum_energy_g4hit = 0.;
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   double sum_energy_cells = 0.;
+  double sum_energy_stored_hits = 0.;
+  double sum_energy_stored_showers = 0.;
 
-  PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
-  PHG4HitContainer::ConstIterator hiter;
-  for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
-  {
-    sum_energy_g4hit += hiter->second->get_edep();
-  }
-
-  PHG4CylinderCellContainer::ConstRange cell_begin_end = cells->getCylinderCells();
-  PHG4CylinderCellContainer::ConstIterator citer;
+  PHG4CellContainer::ConstRange cell_begin_end = cells->getCells();
+  PHG4CellContainer::ConstIterator citer;
   for (citer = cell_begin_end.first; citer != cell_begin_end.second; ++citer)
   {
     sum_energy_cells += citer->second->get_edep();
+    PHG4Cell::EdepConstRange cellrange = citer->second->get_g4hits();
+    for (PHG4Cell::EdepConstIterator iter = cellrange.first; iter != cellrange.second; ++iter)
+      {
+	sum_energy_stored_hits += iter->second;
+      }
+    PHG4Cell::ShowerEdepConstRange shwrrange = citer->second->get_g4showers();
+    for (PHG4Cell::ShowerEdepConstIterator iter = shwrrange.first; iter != shwrrange.second; ++iter)
+      {
+        sum_energy_stored_showers += iter->second;
+      }
   }
 
   // the fractional eloss for particles traversing eta bins leads to minute rounding errors
+  if (sum_energy_stored_hits > 0)
+    {
+      if (fabs(sum_energy_cells-sum_energy_stored_hits)/sum_energy_cells > 1e-6)
+	{
+	  cout << "energy mismatch between cell energy " << sum_energy_cells
+	       << " and stored hit energies " << sum_energy_stored_hits
+	       << endl;
+	}
+    }
+  if (sum_energy_stored_showers > 0)
+    {
+      if (fabs(sum_energy_cells-sum_energy_stored_showers)/sum_energy_cells > 1e-6)
+	{
+	  cout << "energy mismatch between cell energy " << sum_energy_cells
+	       << " and stored shower energies " << sum_energy_stored_showers
+	       << endl;
+	}
+    }
+
   if (fabs(sum_energy_cells - sum_energy_g4hit)/sum_energy_g4hit > 1e-6) 
   {
     cout << "energy mismatch between cells: " << sum_energy_cells
@@ -719,12 +760,25 @@ PHG4BlockCellReco::CheckEnergy(PHCompositeNode *topNode)
   }
 
   else
-  {
-    if (verbosity > 0)
     {
-      cout << Name() << ":total energy for this event: " << sum_energy_g4hit << " GeV" << endl;
+      if (verbosity > 0)
+	{
+	  cout << Name() << ": sum hit energy: " << sum_energy_g4hit << " GeV" << endl;
+	  cout << Name() << ": sum cell energy: " << sum_energy_cells << " GeV" << endl;
+	  cout << Name() << ": sum shower energy: " << sum_energy_stored_showers << " GeV" << endl;
+	  cout << Name() << ": sum stored hit energy: " << sum_energy_stored_hits << " GeV" << endl;
+	}
     }
-  }
 
   return 0;
+}
+
+void
+PHG4BlockCellReco::SetDefaultParameters()
+{
+  set_default_double_param("deltaeta",NAN);
+  set_default_double_param("deltax",NAN);
+  set_default_double_param("tmax",60.0);
+  set_default_double_param("tmin",0.0);
+  return;
 }

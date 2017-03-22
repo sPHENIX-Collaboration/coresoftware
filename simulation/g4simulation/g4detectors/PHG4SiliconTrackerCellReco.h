@@ -8,7 +8,7 @@
 #include <vector>
 
 class PHCompositeNode;
-class PHG4CylinderCell;
+class PHG4Cell;
 
 class PHG4SiliconTrackerCellReco : public SubsysReco
 {
@@ -49,7 +49,7 @@ class PHG4SiliconTrackerCellReco : public SubsysReco
   PHTimeServer::timer _timer;
   int nbins[2];
   int chkenergyconservation;
-  std::map<std::string, PHG4CylinderCell*> celllist;  // This map holds the hit cells
+  std::map<std::string, PHG4Cell*> celllist;  // This map holds the hit cells
 
   double tmin_default;
   double tmax_default;

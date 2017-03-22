@@ -10,8 +10,6 @@
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
@@ -102,10 +100,9 @@ int PHG4SvtxThresholds::End(PHCompositeNode* topNode) {
 
 void PHG4SvtxThresholds::CalculateCylinderThresholds(PHCompositeNode* topNode) {
 
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
   PHG4CylinderCellGeomContainer *geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
     
-  if (!geom_container || !cells) return;
+  if (!geom_container) return;
   
   PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -147,10 +144,9 @@ void PHG4SvtxThresholds::CalculateCylinderThresholds(PHCompositeNode* topNode) {
 
 void PHG4SvtxThresholds::CalculateLadderThresholds(PHCompositeNode* topNode) {
 
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
 
-  if (!geom_container || !cells) return;
+  if (!geom_container) return;
   
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -188,10 +184,9 @@ void PHG4SvtxThresholds::CalculateLadderThresholds(PHCompositeNode* topNode) {
 
 void PHG4SvtxThresholds::CalculateMapsLadderThresholds(PHCompositeNode* topNode) {
 
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_MAPS");
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
 
-  if (!geom_container || !cells) return;
+  if (!geom_container) return;
   
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;

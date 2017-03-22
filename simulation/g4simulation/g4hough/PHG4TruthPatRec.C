@@ -5,61 +5,32 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/PHTFileServer.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/PHG4CylinderCell_MAPS.h>
-#include <g4detectors/PHG4CylinderGeom_MAPS.h>
-#include <g4detectors/PHG4CylinderGeom_Siladders.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4Particlev2.h>
-#include <g4main/PHG4VtxPointv1.h>
-#include <GenFit/FieldManager.h>
-#include <GenFit/GFRaveVertex.h>
-#include <GenFit/GFRaveVertexFactory.h>
-#include <GenFit/MeasuredStateOnPlane.h>
-#include <GenFit/RKTrackRep.h>
-#include <GenFit/StateOnPlane.h>
-#include <GenFit/Track.h>
-#include <phgenfit/Fitter.h>
-#include <phgenfit/PlanarMeasurement.h>
-#include <phgenfit/SpacepointMeasurement.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phgeom/PHGeomUtility.h>
-#include <iostream>
-#include <map>
-#include <utility>
-#include <vector>
-#include <map>
-#include <memory>
-
-#include "TClonesArray.h"
-#include "TMatrixDSym.h"
-#include "TTree.h"
-#include "TVector3.h"
-#include "TRandom3.h"
-#include "TRotation.h"
-
+#include "PHG4TruthPatRec.h"
 #include "SvtxCluster.h"
 #include "SvtxClusterMap.h"
-#include "SvtxTrackState_v1.h"
-#include "SvtxHit_v1.h"
+#include "SvtxHit.h"
 #include "SvtxHitMap.h"
 #include "SvtxTrack.h"
 #include "SvtxTrack_FastSim.h"
-#include "SvtxVertex_v1.h"
-#include "SvtxTrackMap.h"
 #include "SvtxTrackMap_v1.h"
-#include "SvtxVertexMap_v1.h"
-#include "PHG4TruthPatRec.h"
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <g4detectors/PHG4Cell.h>
+#include <g4detectors/PHG4CellContainer.h>
+
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+
+#include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+
+#include <iostream>
+#include <map>
+#include <memory>
+#include <set>
+
 
 #define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
@@ -71,23 +42,13 @@ using namespace std;
 
 PHG4TruthPatRec::PHG4TruthPatRec(const std::string& name) :
 	SubsysReco(name),
-//	_detector_type(MAPS_IT_TPC),
-//	_use_ladder_maps(false),
-//	_use_ladder_intt(false),
+	_event(0),
 	_min_clusters_per_track(10),
-	_truth_container(NULL),
-	_clustermap(NULL),
-	_trackmap(NULL)
-{
-	_event = 0;
-}
+	_truth_container(nullptr),
+	_clustermap(nullptr),
+	_trackmap(nullptr)
+{}
 
-PHG4TruthPatRec::~PHG4TruthPatRec() {
-}
-
-int PHG4TruthPatRec::Init(PHCompositeNode* topNode) {
-	return Fun4AllReturnCodes::EVENT_OK;
-}
 
 int PHG4TruthPatRec::InitRun(PHCompositeNode* topNode) {
 
@@ -106,17 +67,14 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 	PHG4HitContainer* phg4hits_maps = findNode::getClass<PHG4HitContainer>(
 			topNode, "G4HIT_MAPS");
 
-	PHG4HitContainer* phg4hits_intt = findNode::getClass<PHG4HitContainer>(
-			topNode, "G4HIT_SILICON_TRACKER");
-
-	if (!phg4hits_svtx and !phg4hits_maps and !phg4hits_intt) {
+	if (!phg4hits_svtx and !phg4hits_maps) {
 		if (verbosity >= 0) {
-			LogError("!phg4hits_svtx and !phg4hits_maps and !phg4hits_intt");
+			LogError("!phg4hits_svtx and !phg4hits_maps");
 		}
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
 
-	SvtxHitMap* hitsmap = NULL;
+	SvtxHitMap* hitsmap = nullptr;
 	// get node containing the digitized hits
 	hitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
 	if (!hitsmap) {
@@ -124,18 +82,15 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
 
-	PHG4CylinderCellContainer* cells_svtx = findNode::getClass<
-			PHG4CylinderCellContainer>(topNode, "G4CELL_SVTX");
+	PHG4CellContainer* cells_svtx = findNode::getClass<
+			PHG4CellContainer>(topNode, "G4CELL_SVTX");
 
-	PHG4CylinderCellContainer* cells_maps = findNode::getClass<
-			PHG4CylinderCellContainer>(topNode, "G4CELL_MAPS");
+	PHG4CellContainer* cells_maps = findNode::getClass<
+			PHG4CellContainer>(topNode, "G4CELL_MAPS");
 
-	PHG4CylinderCellContainer* cells_intt = findNode::getClass<
-			PHG4CylinderCellContainer>(topNode, "G4CELL_SILICON_TRACKER");
-
-	if (!cells_svtx and !cells_maps and !cells_intt) {
+	if (!cells_svtx and !cells_maps) {
 		if (verbosity >= 0) {
-			LogError("!cells_svtx and !cells_maps and !cells_intt");
+			LogError("!cells_svtx and !cells_maps");
 		}
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
@@ -147,11 +102,10 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 			cluster_itr != _clustermap->end(); cluster_itr++) {
 		SvtxCluster *cluster = cluster_itr->second;
 		SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
-		PHG4CylinderCell* cell = NULL;
+		PHG4Cell* cell = nullptr;
 
-		if(!cell and cells_svtx) cell = cells_svtx->findCylinderCell(svtxhit->get_cellid());
-		if(!cell and cells_intt) cell = cells_intt->findCylinderCell(svtxhit->get_cellid());
-		if(!cell and cells_maps) cell = cells_maps->findCylinderCell(svtxhit->get_cellid());
+		if(!cell and cells_svtx) cell = cells_svtx->findCell(svtxhit->get_cellid());
+		if(!cell and cells_maps) cell = cells_maps->findCell(svtxhit->get_cellid());
 
 		if(!cell){
 			if(verbosity >= 1) {
@@ -162,12 +116,11 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 
 		//cell->identify();
 
-		for(PHG4CylinderCell::EdepConstIterator hits_it = cell->get_g4hits().first;
+		for(PHG4Cell::EdepConstIterator hits_it = cell->get_g4hits().first;
 				hits_it != cell->get_g4hits().second; hits_it++){
 
-			PHG4Hit *phg4hit = NULL;
+			PHG4Hit *phg4hit = nullptr;
 			if(!phg4hit and phg4hits_svtx) phg4hit = phg4hits_svtx->findHit(hits_it->first);
-			if(!phg4hit and phg4hits_intt) phg4hit = phg4hits_intt->findHit(hits_it->first);
 			if(!phg4hit and phg4hits_maps) phg4hit = phg4hits_maps->findHit(hits_it->first);
 
 			if(!phg4hit){

@@ -6,8 +6,8 @@
 #include <phool/PHCompositeNode.h>
 #include <g4cemc/RawTowerContainer.h>
 #include <g4cemc/RawTower.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
+#include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4Cell.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -499,20 +499,18 @@ std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(RawTower* tower) {
   }
 
   std::set<PHG4Hit*> truth_hits;
-
   // loop over all the towered cells
-  std::pair< std::map<unsigned int,float>::const_iterator,
-	     std::map<unsigned int,float>::const_iterator > cell_range = tower->get_g4cells();
-  for (std::map<unsigned int, float>::const_iterator cell_iter = cell_range.first;
+  RawTower::CellConstRange cell_range = tower->get_g4cells();
+  for (RawTower::CellConstIterator cell_iter = cell_range.first;
        cell_iter != cell_range.second; ++cell_iter) {
     unsigned int cell_id = cell_iter->first;
-    PHG4CylinderCell *cell = _g4cells->findCylinderCell(cell_id);
+    PHG4Cell *cell = _g4cells->findCell(cell_id);
 
     if (_strict) {assert(cell);}
     else if (!cell) {++_errors; continue;}
     
     // loop over all the g4hits in this cell
-    for (PHG4CylinderCell::EdepConstIterator hit_iter = cell->get_g4hits().first;
+    for (PHG4Cell::EdepConstIterator hit_iter = cell->get_g4hits().first;
 	 hit_iter != cell->get_g4hits().second;
 	 ++hit_iter) {      
       PHG4Hit* g4hit = _g4hits->findHit(hit_iter->first);
@@ -538,7 +536,7 @@ void CaloRawTowerEval::get_node_pointers(PHCompositeNode *topNode) {
   _towers = findNode::getClass<RawTowerContainer>(topNode,towername.c_str());
   
   std::string cellname = "G4CELL_" + _caloname;
-  _g4cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,cellname.c_str());
+  _g4cells = findNode::getClass<PHG4CellContainer>(topNode,cellname.c_str());
 
   std::string hitname = "G4HIT_" + _caloname;  
   _g4hits = findNode::getClass<PHG4HitContainer>(topNode,hitname.c_str());

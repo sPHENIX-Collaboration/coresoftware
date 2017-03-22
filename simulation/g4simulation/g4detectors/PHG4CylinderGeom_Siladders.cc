@@ -9,8 +9,6 @@
 #include <CLHEP/Vector/ThreeVector.h>
 #include <CLHEP/Vector/Rotation.h>
 
-ClassImp(PHG4CylinderGeom_Siladders)
-
 PHG4CylinderGeom_Siladders::PHG4CylinderGeom_Siladders():
   layer(-1),
   strip_x(NAN),

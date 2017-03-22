@@ -11,7 +11,7 @@ class PHG4ParameterInterface
 {
  public:
   PHG4ParameterInterface(const std::string &name);
-  virtual ~PHG4ParameterInterface() {}
+  virtual ~PHG4ParameterInterface(){}
 
   void set_paramname(const std::string &name);
   virtual void  SetDefaultParameters() = 0;

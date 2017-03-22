@@ -26,9 +26,6 @@ public:
   //! event processing
   int process_event(PHCompositeNode *topNode);
   
-  //! end of process
-  int End(PHCompositeNode *topNode);
-  
   void Detector(const std::string &d);
   void cellsize(const int i, const double sr, const double sz);
 //   void etaphisize(const int i, const double deltaeta, const double deltaphi);

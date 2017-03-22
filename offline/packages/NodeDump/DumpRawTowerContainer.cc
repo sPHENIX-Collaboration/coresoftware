@@ -31,9 +31,22 @@ int DumpRawTowerContainer::process_Node(PHNode *myNode)
       *fout << "size: " << rawtowercontainer->size() << endl;
       for (hiter = begin_end.first; hiter != begin_end.second; ++hiter)
         {
-          *fout << "bineta: " << hiter->second->get_bineta() << endl;
-          *fout << "binphi: " << hiter->second->get_binphi() << endl;
-          *fout << "energy: " << hiter->second->get_energy() << endl;
+	  RawTower *rawtwr = hiter->second;
+          *fout << "bineta: " << rawtwr->get_bineta() << endl;
+          *fout << "binphi: " << rawtwr->get_binphi() << endl;
+          *fout << "energy: " << rawtwr->get_energy() << endl;
+	  RawTower::CellConstRange cbegin_end = rawtwr->get_g4cells();
+	  for (RawTower::CellConstIterator iter = cbegin_end.first; iter != cbegin_end.second;++iter)
+	    {
+	      *fout << "cell key: 0x" << hex << iter->first 
+                    << dec << " edep: " << iter->second << endl;
+	    }
+	  RawTower::ShowerConstRange sbegin_end = rawtwr->get_g4showers();
+	  for (RawTower::ShowerConstIterator iter = sbegin_end.first; iter != sbegin_end.second; ++iter)
+	    {
+	      *fout << "shower id: " << iter->first 
+                    << " edep: " << iter->second << endl;
+	    }
         }
     }
   return 0;

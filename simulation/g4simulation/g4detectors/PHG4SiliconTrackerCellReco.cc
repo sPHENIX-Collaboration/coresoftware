@@ -2,8 +2,8 @@
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderCellGeomContainer.h"
 #include "PHG4CylinderCellGeom.h"
-#include "PHG4CylinderCellv2.h"
-#include "PHG4CylinderCellContainer.h"
+#include "PHG4Cellv1.h"
+#include "PHG4CellContainer.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
@@ -21,6 +21,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+
+using namespace std;
 
 PHG4SiliconTrackerCellReco::PHG4SiliconTrackerCellReco(const std::string &name) :
     SubsysReco(name),
@@ -58,7 +60,7 @@ int PHG4SiliconTrackerCellReco::InitRun(PHCompositeNode *topNode)
       exit(1);
     }
 
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode , cellnodename);
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode , cellnodename);
   if (!cells)
     {
       PHNodeIterator dstiter(dstNode);
@@ -71,7 +73,7 @@ int PHG4SiliconTrackerCellReco::InitRun(PHCompositeNode *topNode)
           dstNode->addNode(DetNode);
         }
 
-      cells = new PHG4CylinderCellContainer();
+      cells = new PHG4CellContainer();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str(), "PHObject");
       DetNode->addNode(newNode);
     }
@@ -113,7 +115,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
       exit(1);
     }
 
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode, cellnodename);
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   if (! cells)
     {
       std::cout << "could not locate cell node " << cellnodename << std::endl;
@@ -154,40 +156,47 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
       layergeom->find_strip_center(ladder_z_index, ladder_phi_index, strip_z_index, strip_y_index, location);
 
       std::string key = boost::str(boost::format("%d-%d_%d_%d") %ladder_z_index %ladder_phi_index %strip_z_index %strip_y_index).c_str();
-      if (celllist.count(key) > 0)
+      PHG4Cell *cell = nullptr;
+      map<string, PHG4Cell*>::iterator it;
+      it = celllist.find(key);
+
+      if (it != celllist.end())
         {
-          celllist[key]->add_edep(hiter->first, hiter->second->get_edep());
+	  cell = it->second;
         }
       else
         {
-          celllist[key] = new PHG4CylinderCellv2();
-          celllist[key]->set_layer(sphxlayer);
-
+	  unsigned int index = celllist.size();
+	  index++;
+          PHG4CellDefs::keytype cellkey = PHG4CellDefs::MapsBinning::genkey(sphxlayer,index);
+	  cell = new PHG4Cellv1(cellkey);
+	  celllist[key] = cell;
           // This encodes the z and phi position of the sensor
-          celllist[key]->set_sensor_index(boost::str(boost::format("%d_%d") %ladder_z_index %ladder_phi_index).c_str());
+	  //          celllist[key]->set_sensor_index(boost::str(boost::format("%d_%d") %ladder_z_index %ladder_phi_index).c_str());
 
-          celllist[key]->set_ladder_z_index(ladder_z_index);
-          celllist[key]->set_ladder_phi_index(ladder_phi_index);
+          cell->set_ladder_z_index(ladder_z_index);
+          cell->set_ladder_phi_index(ladder_phi_index);
 
           // The z and phi position of the hit strip within the sensor
-          celllist[key]->set_zbin(strip_z_index);
-          celllist[key]->set_phibin(strip_y_index);
+          cell->set_zbin(strip_z_index);
+          cell->set_phibin(strip_y_index);
 
-          celllist[key]->add_edep(hiter->first, hiter->second->get_edep());
         }
+          cell->add_edep(hiter->first, hiter->second->get_edep());
+          cell->add_edep(hiter->second->get_edep());
     } // end loop over g4hits
 
   int numcells = 0;
-  for (std::map<std::string, PHG4CylinderCell *>::const_iterator mapiter = celllist.begin(); mapiter != celllist.end(); ++mapiter)
+  for (std::map<std::string, PHG4Cell *>::const_iterator mapiter = celllist.begin(); mapiter != celllist.end(); ++mapiter)
     {
-      cells->AddCylinderCell(mapiter->second->get_layer(), mapiter->second);
+      cells->AddCell(mapiter->second);
       numcells++;
 
       if (verbosity > 0)
         {
-          std::cout << "Adding cell for sensor_index: " << mapiter->second->get_sensor_index()
-          << ", srip z index: " << mapiter->second->get_binz()
-          << ", strip y index: " << mapiter->second->get_binphi()
+          std::cout //<< "Adding cell for sensor_index: " << mapiter->second->get_sensor_index()
+          << ", srip z index: " << mapiter->second->get_zbin()
+          << ", strip y index: " << mapiter->second->get_phibin()
           << ", energy dep: " << mapiter->second->get_edep()
           << std::endl;
         }
@@ -215,7 +224,7 @@ int PHG4SiliconTrackerCellReco::End(PHCompositeNode *topNode)
 int PHG4SiliconTrackerCellReco::CheckEnergy(PHCompositeNode *topNode)
 {
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode, cellnodename);
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   double sum_energy_g4hit = 0.;
   double sum_energy_cells = 0.;
 
@@ -224,8 +233,8 @@ int PHG4SiliconTrackerCellReco::CheckEnergy(PHCompositeNode *topNode)
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
     sum_energy_g4hit += hiter->second->get_edep();
 
-  PHG4CylinderCellContainer::ConstRange cell_begin_end = cells->getCylinderCells();
-  PHG4CylinderCellContainer::ConstIterator citer;
+  PHG4CellContainer::ConstRange cell_begin_end = cells->getCells();
+  PHG4CellContainer::ConstIterator citer;
   for (citer = cell_begin_end.first; citer != cell_begin_end.second; ++citer)
     sum_energy_cells += citer->second->get_edep();
 

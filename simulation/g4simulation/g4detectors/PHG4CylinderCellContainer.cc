@@ -6,8 +6,6 @@
 
 using namespace std;
 
-ClassImp(PHG4CylinderCellContainer)
-
 PHG4CylinderCellContainer::PHG4CylinderCellContainer()
 {
 }

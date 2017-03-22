@@ -7,21 +7,17 @@
 #include "SvtxHitMap.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <g4detectors/PHG4CylinderCell.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
+#include <g4detectors/PHG4Cell.h>
+#include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHTypedNodeIterator.h>
 #include <phool/getClass.h>
-
-#include <TMath.h>
 
 #include <TF1.h>
 #include <TFitResult.h>
@@ -171,7 +167,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
   if (!geom_container) return Fun4AllReturnCodes::ABORTRUN;
 
-  PHG4CylinderCellContainer* cells =  findNode::getClass<PHG4CylinderCellContainer>(dstNode,"G4CELL_SVTX");
+  PHG4CellContainer* cells =  findNode::getClass<PHG4CellContainer>(dstNode,"G4CELL_SVTX");
   if (!cells) return Fun4AllReturnCodes::ABORTRUN;
 
   std::vector<std::vector<const SvtxHit*> > layer_sorted;
@@ -220,9 +216,9 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
       const SvtxHit* hit = layer_sorted[layer - _min_layer][i];
       if (hit->get_e() <= 0.) continue;
       
-      PHG4CylinderCell* cell = cells->findCylinderCell(hit->get_cellid());
-      int phibin = cell->get_binphi();
-      int zbin = cell->get_binz();
+      PHG4Cell* cell = cells->findCell(hit->get_cellid());
+      int phibin = PHG4CellDefs::SizeBinning::get_phibin(cell->get_cellid());
+      int zbin = PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid());
       nhits[zbin] += 1;
       amps[zbin * nphibins + phibin] += hit->get_e();
       cellids[zbin * nphibins + phibin] = hit->get_id();

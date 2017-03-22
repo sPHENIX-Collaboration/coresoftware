@@ -20,7 +20,7 @@
 #include <g4main/PHG4VtxPoint.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
-#include <g4detectors/PHG4CylinderCell.h>
+#include <g4detectors/PHG4Cell.h>
 
 #include <TFile.h>
 #include <TNtuple.h>
@@ -841,7 +841,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	SvtxHit* hit             = iter->second;
 	PHG4Hit* g4hit           = hiteval->max_truth_hit_by_energy(hit);
-	PHG4CylinderCell* g4cell = hiteval->get_cell(hit);
+	PHG4Cell* g4cell = hiteval->get_cell(hit);
 	PHG4Particle* g4particle = trutheval->get_particle(g4hit);
 
 	float event  = _ievent;

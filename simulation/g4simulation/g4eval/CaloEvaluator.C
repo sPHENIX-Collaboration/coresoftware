@@ -133,7 +133,7 @@ int CaloEvaluator::End(PHCompositeNode *topNode) {
   delete _tfile;
 
   if (verbosity > 0) {
-    cout << "========================= CaloEvaluator::End() ============================" << endl;
+    cout << "========================= " << Name() << "::End() ============================" << endl;
     cout << " " << _ievent << " events of output written to: " << _filename << endl;
     cout << "===========================================================================" << endl;
   }
@@ -162,7 +162,7 @@ void CaloEvaluator::printInputInfo(PHCompositeNode *topNode) {
       exit(-1);
     }
     
-    cout << "PHG4TruthInfoContainer contents: " << endl; 
+    cout << Name() << ": PHG4TruthInfoContainer contents: " << endl; 
 
     PHG4TruthInfoContainer::Range truthrange = truthinfo->GetParticleRange();
     for(PHG4TruthInfoContainer::Iterator truthiter = truthrange.first;
@@ -371,7 +371,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   
   if (_ntp_gshower) {
 
-    if (verbosity > 1) cout << "CaloEvaluator::filling gshower ntuple..." << endl;
+    if (verbosity > 1) cout << Name() << " CaloEvaluator::filling gshower ntuple..." << endl;
     
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");   
     if (!truthinfo) {

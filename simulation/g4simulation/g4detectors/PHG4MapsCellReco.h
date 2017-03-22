@@ -8,7 +8,7 @@
 #include <vector>
 
 class PHCompositeNode;
-class PHG4CylinderCell;
+class PHG4Cell;
 
 class PHG4MapsCellReco : public SubsysReco
 {
@@ -56,6 +56,9 @@ class PHG4MapsCellReco : public SubsysReco
 				     double dy,
 				     double* rr // length of the line segment inside the rectangle (output)
 				     );
+
+  double circle_rectangle_intersection(double x1, double y1,  double x2,  double y2,  double mx, double my,  double r);
+  double sA(double r, double x, double y) ;
   
   //void set_size(const int i, const double sizeA, const int sizeB, const int what);
   int CheckEnergy(PHCompositeNode *topNode);
@@ -74,7 +77,7 @@ class PHG4MapsCellReco : public SubsysReco
   int nbins[2];
   int chkenergyconservation;
 
-  std::map<unsigned long long, PHG4CylinderCell*> celllist;  // This map holds the hit cells
+  std::map<unsigned long long, PHG4Cell*> celllist;  // This map holds the hit cells
 };
 
 #endif

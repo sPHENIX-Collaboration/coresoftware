@@ -55,6 +55,9 @@ class PHG4CylinderGeom_MAPS: public PHG4CylinderGeom
   //int get_N_modules() const {return N_modules;}
   //int get_N_chips() const {return N_chips;}
 
+  int get_NZ() const {return (int)  ( Zsensor / (pixel_z) );}
+  int get_NX() const {return (int)  ( Xsensor / (pixel_x) );}
+
 protected:
 
 
@@ -62,16 +65,9 @@ protected:
   int stave_type;
   int N_staves;
   int N_half_staves;
-  //int N_modules;
-  //int N_chips;
 
   double Xsensor;
   double Zsensor;
-
-//  int NZ;
-//  int NX;
-  int get_NZ() const {return (int)  ( Zsensor / (pixel_z) );}
-  int get_NX() const {return (int)  ( Xsensor / (pixel_x) );}
 
   // finding the center of a stave
   double layer_radius;

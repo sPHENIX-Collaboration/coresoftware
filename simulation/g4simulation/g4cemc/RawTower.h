@@ -2,7 +2,7 @@
 #define RAWTOWER_H_
 
 #include "RawTowerDefs.h"
-#include <g4detectors/PHG4CylinderCellDefs.h>
+#include <g4detectors/PHG4CellDefs.h>
 #include <phool/phool.h>
 #include <phool/PHObject.h>
 #include <iostream>
@@ -12,7 +12,7 @@
 class RawTower : public PHObject {
 
  public:
-  typedef std::map<PHG4CylinderCellDefs::keytype, float> CellMap;
+  typedef std::map<PHG4CellDefs::keytype, float> CellMap;
   typedef CellMap::iterator CellIterator;
   typedef CellMap::const_iterator CellConstIterator;
   typedef std::pair<CellIterator, CellIterator> CellRange;
@@ -59,9 +59,9 @@ class RawTower : public PHObject {
     CellMap dummy;
     return make_pair(dummy.begin(), dummy.end());
   }
-  virtual CellIterator find_g4cell(PHG4CylinderCellDefs::keytype id) {return CellMap().end();}
-  virtual CellConstIterator find_g4cell(PHG4CylinderCellDefs::keytype id) const {return CellMap().end();}
-  virtual void add_ecell(const PHG4CylinderCellDefs::keytype  g4cellid, const float ecell) {PHOOL_VIRTUAL_WARN("add_ecell(const PHG4CylinderCellDefs::keytype g4cellid, const float ecell)"); return;}
+  virtual CellIterator find_g4cell(PHG4CellDefs::keytype id) {return CellMap().end();}
+  virtual CellConstIterator find_g4cell(PHG4CellDefs::keytype id) const {return CellMap().end();}
+  virtual void add_ecell(const PHG4CellDefs::keytype  g4cellid, const float ecell) {PHOOL_VIRTUAL_WARN("add_ecell(const PHG4CellDefs::keytype g4cellid, const float ecell)"); return;}
   virtual void clear_g4cells() {}
 
   virtual bool empty_g4showers() const {return true;}

@@ -40,11 +40,15 @@ libg4detectors_la_LIBADD = \
   -lg4testbench 
 
 pkginclude_HEADERS = \
+  PHG4BlockCellGeom.h \
+  PHG4BlockCellGeomContainer.h \
   PHG4BlockGeom.h \
   PHG4BlockGeomContainer.h \
+  PHG4Cell.h \
+  PHG4CellContainer.h \
+  PHG4CellDefs.h \
   PHG4CylinderCell.h \
   PHG4CylinderCellv1.h \
-  PHG4CylinderCell_Spacalv1.h \
   PHG4CylinderCell_MAPS.h \
   PHG4CylinderCellv2.h \
   PHG4CylinderCellv3.h \
@@ -61,6 +65,7 @@ pkginclude_HEADERS = \
   PHG4CylinderCellGeom_Spacalv1.h \
   PHG4CylinderCellGeomContainer.h \
   PHG4HcalDefs.h \
+  PHG4ParameterContainerInterface.h \
   PHG4ParameterInterface.h \
   PHG4Parameters.h \
   PHG4ParametersContainer.h \
@@ -73,7 +78,10 @@ libg4detectors_io_la_SOURCES = \
   PHG4Parameters_Dict.cc \
   PHG4ParametersContainer.cc \
   PHG4ParametersContainer_Dict.cc \
+  PHG4ParameterContainerInterface.cc \
+  PHG4ParameterContainerInterface_Dict.cc \
   PHG4ParameterInterface.cc \
+  PHG4ParameterInterface_Dict.cc \
   PHG4BlockCellGeom.cc \
   PHG4BlockCellGeom_Dict.cc \
   PHG4BlockCellGeomContainer.cc \
@@ -84,6 +92,14 @@ libg4detectors_io_la_SOURCES = \
   PHG4BlockGeomv1_Dict.cc \
   PHG4BlockGeomContainer.cc \
   PHG4BlockGeomContainer_Dict.cc \
+  PHG4Cell.cc \
+  PHG4Cell_Dict.cc \
+  PHG4Cellv1.cc \
+  PHG4Cellv1_Dict.cc \
+  PHG4CellContainer.cc \
+  PHG4CellContainer_Dict.cc \
+  PHG4CellDefs.cc \
+  PHG4CellDefs_Dict.cc \
   PHG4CylinderGeom.cc \
   PHG4CylinderGeom_Dict.cc \
   PHG4CylinderGeomv1.cc \
@@ -106,12 +122,9 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderGeom_Spacalv3_Dict.cc \
   PHG4CylinderGeomContainer.cc \
   PHG4CylinderGeomContainer_Dict.cc \
-  PHG4CylinderCell.cc \
   PHG4CylinderCell_Dict.cc \
   PHG4CylinderCellv1.cc \
   PHG4CylinderCellv1_Dict.cc \
-  PHG4CylinderCell_Spacalv1.cc \
-  PHG4CylinderCell_Spacalv1_Dict.cc \
   PHG4CylinderCell_MAPS.cc \
   PHG4CylinderCell_MAPS_Dict.cc \
   PHG4CylinderCellv2.cc \
@@ -126,7 +139,6 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCellGeom_Spacalv1_Dict.cc \
   PHG4CylinderCellGeomContainer.cc \
   PHG4CylinderCellGeomContainer_Dict.cc \
-  PHG4ScintillatorSlat.cc \
   PHG4ScintillatorSlat_Dict.cc \
   PHG4ScintillatorSlatContainer.cc \
   PHG4ScintillatorSlatContainer_Dict.cc
@@ -204,14 +216,11 @@ libg4detectors_la_SOURCES = \
   PHG4InnerHcalSteppingAction.cc \
   PHG4InnerHcalSubsystem.cc \
   PHG4InnerHcal_Dict.C \
-  PHG4ScintillatorSlat.cc \
   PHG4ScintillatorSlat_Dict.cc \
   PHG4ScintillatorSlatDefs.cc \
   PHG4ScintillatorSlatDefs_Dict.cc \
   PHG4ScintillatorSlatv1.cc \
   PHG4ScintillatorSlatv1_Dict.cc \
-  PHG4SlatCellReco.cc \
-  PHG4SlatCellReco_Dict.cc \
   PHG4OuterHcalDetector.cc \
   PHG4OuterHcalField.cc \
   PHG4OuterHcalFieldSetup.cc \
