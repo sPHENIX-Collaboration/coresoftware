@@ -431,7 +431,7 @@ void sPHENIXSeedFinder::finalize(vector<SimpleTrack3D>& input,
 	vector<float> next_best_chi2;
 	next_best_chi2.assign(input.size(), 99999.);
 
-	LogDebug("input size: ")<<input.size()<<endl;
+	//LogDebug("input size: ")<<input.size()<<endl;
 
 	if (reject_ghosts == true) {
 		tripletRejection(input, output, usetrack, next_best_chi2);
@@ -452,8 +452,7 @@ void sPHENIXSeedFinder::finalize(vector<SimpleTrack3D>& input,
 		}
 	}
 
-
-	LogDebug("input size: ")<<input.size()<<endl;
+	//LogDebug("output size: ")<<output.size()<<endl;
 
 	track_states = states_new;
 	if (smooth_back == true) {
