@@ -32,6 +32,7 @@ namespace genfit{
 
 namespace PHGenFit {
 class Track;
+class Measurement;
 
 class Fitter
 {

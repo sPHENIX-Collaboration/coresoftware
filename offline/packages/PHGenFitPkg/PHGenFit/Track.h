@@ -9,6 +9,7 @@
 
 //STL
 #include <vector>
+#include <memory>
 
 //BOOST
 //#include<boost/make_shared.hpp>
@@ -43,6 +44,10 @@ public:
 
 	//! Add measurement
 	int addMeasurements(std::vector<PHGenFit::Measurement*> &measurements);
+
+	//!
+	int updateOneMeasurementKalman(const std::vector<PHGenFit::Measurement*>& measurements,
+			std::map<double, PHGenFit::Track*>& incr_chi2s_new_tracks) const;
 
 	/*!
 	 * track_point 0 is the first one, and -1 is the last one
