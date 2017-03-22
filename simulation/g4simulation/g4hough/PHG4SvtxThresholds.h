@@ -1,12 +1,11 @@
-#ifndef PHG4SVTXTHRESHOLDS__H
-#define PHG4SVTXTHRESHOLDS__H
-
-
-#include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
+#ifndef __PHG4SVTXTHRESHOLDS__
+#define __PHG4SVTXTHRESHOLDS__
 
 #include <map>
 #include <iostream>
+
+#include <fun4all/SubsysReco.h>
+#include <phool/PHTimeServer.h>
 
 class SvtxHitMap;
 
@@ -18,12 +17,18 @@ class PHG4SvtxThresholds : public SubsysReco
 
   virtual ~PHG4SvtxThresholds(){}
   
+  //! module initialization
+  int Init(PHCompositeNode *topNode){return 0;}
+  
   //! run initialization
   int InitRun(PHCompositeNode *topNode);
   
     //! event processing
   int process_event(PHCompositeNode *topNode);
   
+  //! end of process
+  int End(PHCompositeNode *topNode);
+
   void set_threshold(const float fraction_of_mip) {
     std::cout << "PHG4SvtxThresholds use is out of date. "
 	      << "Continuing with assumption of tracker with <9 layers. "
@@ -60,7 +65,9 @@ class PHG4SvtxThresholds : public SubsysReco
 
  private:
 
-  void CalculateGenericThresholds(PHCompositeNode *topNode, const std::string &detector);
+  void CalculateCylinderThresholds(PHCompositeNode *topNode);
+  void CalculateLadderThresholds(PHCompositeNode *topNode);
+  void CalculateMapsLadderThresholds(PHCompositeNode *topNode);
 
   // settings
   std::map<int,float> _fraction_of_mip;
