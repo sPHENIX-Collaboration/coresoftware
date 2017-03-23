@@ -232,6 +232,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
   map<int, std::pair <double, double> >::iterator sizeiter;
   PHG4HitContainer::LayerIter layer;
   pair<PHG4HitContainer::LayerIter, PHG4HitContainer::LayerIter> layer_begin_end = g4hit->getLayers();
+  double sqrt2 = sqrt(2.);
   
   for(layer = layer_begin_end.first; layer != layer_begin_end.second; layer++)
   {
@@ -317,7 +318,6 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       if(verbosity>1) {
 	fHMeanEDepPerCell->Fill( float(*layer), z, edep );
       }
-      double sqrt2 = sqrt(2.);
       if( (*layer) < (unsigned int)num_pixel_layers ) { // MAPS + ITT
         unsigned long key = zbin*nphibins + phibin;
 	std::map<unsigned long, PHG4Cell*>::iterator it = cellptmap.find(key);
@@ -327,10 +327,6 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	} else {
 	  PHG4CellDefs::keytype akey = PHG4CellDefs::SizeBinning::genkey(*layer,zbin,phibin);
 	  cell = new PHG4Cellv1(akey);
-          cell = new PHG4Cellv1(akey);
-	  //cell->set_layer(*layer);
-	  //cell->set_phibin(phibin);
-	  //cell->set_zbin(zbin);
 	  cellptmap[key] = cell;
 	}
 	cell->add_edep(hiter->first, edep);
@@ -393,9 +389,6 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	    } else {
 	      PHG4CellDefs::keytype akey = PHG4CellDefs::SizeBinning::genkey(*layer,cur_z_bin,cur_phi_bin);
 	      cell = new PHG4Cellv1(akey);
-	      //cell->set_layer(*layer);
-	      //cell->set_phibin(cur_phi_bin);
-	      //cell->set_zbin(cur_z_bin);
 	      cellptmap[key] = cell;
 	    }
 	    cell->add_edep(hiter->first, neffelectrons );
@@ -409,11 +402,13 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
     int count = 0;
     for(std::map<unsigned long, PHG4Cell*>::iterator it = cellptmap.begin(); it != cellptmap.end(); ++it) {
       cells->AddCell(it->second);
+      int phibin = PHG4CellDefs::SizeBinning::get_phibin(it->second->get_cellid());
+      int zbin = PHG4CellDefs::SizeBinning::get_zbin(it->second->get_cellid());
       if(verbosity>1) {
-	float zthis = geo->get_zcenter( it->second->get_zbin() );
+	float zthis = geo->get_zcenter( zbin );
 	fHMeanElectronsPerCell->Fill( float(*layer), zthis,  it->second->get_edep() );
       }
-      if(verbosity>2000) std::cout << " Adding phibin" << it->second->get_phibin() << " zbin " << it->second->get_zbin() << std::endl;
+      if(verbosity>2000) std::cout << " Adding phibin" << phibin << " zbin " << zbin << std::endl;
       count += 1;
     }
     if(verbosity>1000) std::cout << " || Number of cells hit " << count<< std::endl;
