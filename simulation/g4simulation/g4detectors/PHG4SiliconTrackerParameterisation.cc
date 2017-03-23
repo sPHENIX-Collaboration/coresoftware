@@ -17,6 +17,17 @@ PHG4SiliconTrackerStripParameterisation::PHG4SiliconTrackerStripParameterisation
         fYStrip[icopy] = ((double)iy+0.5) * dy - offsety;
         fZStrip[icopy] = ((double)iz+0.5) * dz - offsetz;
 
+	/*
+	std::cout << "      icopy " << icopy
+		  << " iy " << iy << " iz " << iz
+		  << " offsety " << offsety
+		  << " offsetz " << offsetz
+		  << " fXStrip[icopy] " << fXStrip[icopy]
+		  << " fYStrip[icopy] " << fYStrip[icopy]
+		  << " fZStrip[icopy] " << fZStrip[icopy]
+		  << std::endl;
+	*/
+
         icopy++;
       }
 }

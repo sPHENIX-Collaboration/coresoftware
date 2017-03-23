@@ -195,6 +195,8 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
       if (verbosity > 0)
         {
           std::cout //<< "Adding cell for sensor_index: " << mapiter->second->get_sensor_index()
+          << ", ladder z index: " << mapiter->second->get_ladder_z_index()
+          << ", ladder phi index: " << mapiter->second->get_ladder_phi_index()
           << ", srip z index: " << mapiter->second->get_zbin()
           << ", strip y index: " << mapiter->second->get_phibin()
           << ", energy dep: " << mapiter->second->get_edep()
