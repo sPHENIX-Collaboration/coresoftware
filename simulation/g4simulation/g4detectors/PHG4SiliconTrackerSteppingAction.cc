@@ -98,7 +98,10 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 		     << std::endl;
 	  std::cout << " IsFirstStepinVolume = " << aStep->IsFirstStepInVolume() << " IsLastStepInVolume = " << aStep->IsLastStepInVolume() << std::endl;
 	}
-      
+
+      // Get the layer and ladder information
+      // thi is the same for all strips in the sensor
+
       boost::char_separator<char> sep("_");
       boost::tokenizer<boost::char_separator<char> > tok(touch->GetVolume(2)->GetName(), sep);
       boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
@@ -129,7 +132,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       const int nstrips_phi_cell = detector_->arr_nstrips_phi_cell[inttlayer];
       const double strip_y       = detector_->arr_strip_y[inttlayer];
 
-      // Find the strip y and z index values
+      // Find the strip y and z index values using the strip volume pointer
       // This just regurgitates the values set in PHG4SiliconTrackerParameterization
       // when the G4PVParameterized was defined 
       G4ThreeVector strip_pos = volume->GetTranslation();
@@ -156,11 +159,12 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 	    }
         }
 
-      // The following is a hack to get around what seems to be a bug that causes the prestep to point to the wrong strip
+      // The following is a hack to get around what seems to be a bug that causes the prestep to point to the next strip volume
       // The symptom of this is that this is the first and last step in the volume, AND the prestep and posttsep both have the same strip copy no.
       // There is no legitimate way for this to happen
-
-      if( aStep->IsFirstStepInVolume() == 1 &&  aStep->IsLastStepInVolume() == 1)
+      // In case of this, the following will find the correct strip using the position of the hit in sensor coordinates and replace the incorrect strip found above
+ 
+     if( aStep->IsFirstStepInVolume() == 1 &&  aStep->IsLastStepInVolume() == 1)
 	{
 	  G4TouchableHandle touch_post = aStep->GetPostStepPoint()->GetTouchableHandle();
 	  G4VPhysicalVolume* volume_post = touch_post->GetVolume();
@@ -199,25 +203,11 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 		  if (strip_pos.y()/CLHEP::mm>ymin && strip_pos.y()/CLHEP::mm<=ymax)
 		    {
 		      strip_y_index = i;
-		      //std::cout << " found strip y index = " << i << std::endl;
-		      //std::cout << " i " << i << " ymin " << ymin << " ymax " << ymax << std::endl;
 		    }
 		}    
 	      
 	    }	  
 	}
-      /*
-      std::cout << " sphxlayer " << sphxlayer
-		<< " inttlayer " << inttlayer
-		<< " ladderz " << ladderz
-		<< " ladderphi " << ladderphi
-		<< " strip_z_index " << strip_z_index 
-		<< " strip_y_index " << strip_y_index
-		<< " strip_pos.x " << strip_pos.x()
-		<< " strip_pos.y " << strip_pos.y()
-		<< " strip_pos.z " << strip_pos.z()
-		<< std::endl;
-      */
     }
   else // silicon inactive area, FPHX, stabe etc. as absorbers
     {

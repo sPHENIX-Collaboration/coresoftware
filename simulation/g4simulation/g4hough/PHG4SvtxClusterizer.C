@@ -149,17 +149,6 @@ bool PHG4SvtxClusterizer::maps_ladder_are_adjacent(const PHG4Cell* lhs,
 }
 
 bool PHG4SvtxClusterizer::ladder_are_adjacent(const PHG4Cell* lhs, const PHG4Cell* rhs) {
-  if(verbosity > 2)
-    {
-      cout << "entering ladder_are_adjacent " << endl;
-      cout << "lhs->get_phibin() " << lhs->get_phibin() 
-	   << " rhs->get_phibin() " << rhs->get_phibin()
-	   << " lhs->get_zbin() " << lhs->get_zbin()
-	   << " rhs-> get_zbin() " << rhs->get_zbin()
-	   << " lhs->get_layer() " << lhs->get_layer()
-	   << " rhs->get_layer() " << rhs->get_layer()
-	   << endl;
-    }
 
   int lhs_layer = lhs->get_layer();
   int rhs_layer = rhs->get_layer();
@@ -177,7 +166,6 @@ bool PHG4SvtxClusterizer::ladder_are_adjacent(const PHG4Cell* lhs, const PHG4Cel
   } else {
     if( fabs(lhs->get_zbin() - rhs->get_zbin()) == 0 ) {
       if( fabs(lhs->get_phibin() - rhs->get_phibin()) <= 1 ){
-	if(verbosity > 2) cout << "Found match " << endl;
 	return true;
       } 
     }
