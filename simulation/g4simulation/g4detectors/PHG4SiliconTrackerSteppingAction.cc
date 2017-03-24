@@ -97,6 +97,9 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 		     << " volume->GetCopyNo() " << volume_post->GetCopyNo() 
 		     << std::endl;
 	  std::cout << " IsFirstStepinVolume = " << aStep->IsFirstStepInVolume() << " IsLastStepInVolume = " << aStep->IsLastStepInVolume() << std::endl;
+	  G4StepPoint * prePoint = aStep->GetPreStepPoint();
+	  G4StepPoint * postPoint = aStep->GetPostStepPoint();
+	  std::cout << " pre-point step status " << prePoint->GetStepStatus() << " post-point step status " << postPoint->GetStepStatus() << std::endl; 	    
 	}
 
       // Get the layer and ladder information
@@ -154,8 +157,11 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
           if (strip_pos.y()/CLHEP::mm>ymin && strip_pos.y()/CLHEP::mm<=ymax)
             {
 	      strip_y_index = i;
-	      //std::cout << " found strip y index = " << i << std::endl;
-	      //std::cout << " i " << i << " ymin " << ymin << " ymax " << ymax << std::endl;
+	      if(verbosity > 1)
+		{
+		  std::cout << " found strip y index = " << i << std::endl;
+		  std::cout << " i " << i << " ymin " << ymin << " ymax " << ymax << std::endl;
+		}
 	    }
         }
 
@@ -164,7 +170,9 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       // There is no legitimate way for this to happen
       // In case of this, the following will find the correct strip using the position of the hit in sensor coordinates and replace the incorrect strip found above
  
-     if( aStep->IsFirstStepInVolume() == 1 &&  aStep->IsLastStepInVolume() == 1)
+      G4StepPoint * prePoint = aStep->GetPreStepPoint();
+      G4StepPoint * postPoint = aStep->GetPostStepPoint();
+      if (prePoint->GetStepStatus() == fGeomBoundary && postPoint->GetStepStatus() == fGeomBoundary)
 	{
 	  G4TouchableHandle touch_post = aStep->GetPostStepPoint()->GetTouchableHandle();
 	  G4VPhysicalVolume* volume_post = touch_post->GetVolume();
@@ -182,7 +190,6 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 	      // we need a hack to replace the values above with the correct strip index values 
 	      // the transform of the world coordinates into the sensor frame will work correctly, so we determine the strip indices from the hit position
 
-	      G4StepPoint * prePoint = aStep->GetPreStepPoint();
 	      G4ThreeVector preworldPos = prePoint->GetPosition();
 	      G4ThreeVector strip_pos =  touch->GetHistory()->GetTransform(touch->GetHistory()->GetDepth() - 1).TransformPoint(preworldPos);
 	  
@@ -203,6 +210,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 		  if (strip_pos.y()/CLHEP::mm>ymin && strip_pos.y()/CLHEP::mm<=ymax)
 		    {
 		      strip_y_index = i;
+		      if(verbosity > 1) std::cout << "                            revised strip y position = " << strip_y_index << std::endl;
 		    }
 		}    
 	      
