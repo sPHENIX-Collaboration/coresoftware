@@ -73,6 +73,12 @@ class PHG4Cell: public PHObject
   virtual void set_half_stave_index(const int i) {return;}
   virtual int get_half_stave_index() const {return ~0x0;}
 
+  virtual void set_ladder_phi_index(const int i) {return;}
+  virtual int get_ladder_phi_index() const {return ~0x0;}
+
+  virtual void set_ladder_z_index(const int i) {return;}
+  virtual int get_ladder_z_index() const {return ~0x0;}
+
   virtual void set_module_index(const int i) {return;}
   virtual int get_module_index() const {return ~0x0;}
 
@@ -105,6 +111,8 @@ class PHG4Cell: public PHObject
     prop_pixel_index = 5,
     prop_phibin = 6,
     prop_zbin = 7,
+    prop_ladder_z_index = 8,
+    prop_ladder_phi_index = 9,
     //-- summed energy:  - 20-30  --
     //! deposited energy
     prop_edep = 21,
