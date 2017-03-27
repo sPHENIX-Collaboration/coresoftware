@@ -174,19 +174,22 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 //		std::cout << "Track has no TrackPoint with fitterInfo! \n";
 //		return WILD_DOUBLE;
 //	}
-	genfit::TrackPoint* tp = _track->getPointWithMeasurement(tr_point_id);
-	if (tp == NULL) {
-		std::cout << "tp == NULL! \n";
-		return WILD_DOUBLE;
-	}
-
 	std::unique_ptr<genfit::MeasuredStateOnPlane> kfsop = NULL;
-	if (dynamic_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))) {
-		kfsop =
-				std::unique_ptr < genfit::MeasuredStateOnPlane
-						> (new genfit::KalmanFittedStateOnPlane(
-								*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(
-										rep))->getBackwardUpdate())));
+	if (_track->getNumPointsWithMeasurement() > 0) {
+		genfit::TrackPoint* tp = _track->getPointWithMeasurement(tr_point_id);
+		if (tp == NULL) {
+			LogError("tp == NULL!");
+			return WILD_DOUBLE;
+		}
+
+
+		if (dynamic_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))) {
+			kfsop =
+					std::unique_ptr < genfit::MeasuredStateOnPlane
+							> (new genfit::KalmanFittedStateOnPlane(
+									*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(
+											rep))->getBackwardUpdate())));
+		}
 	} else {
 		kfsop = std::unique_ptr < genfit::MeasuredStateOnPlane
 				> (new genfit::MeasuredStateOnPlane(rep));
