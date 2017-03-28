@@ -123,8 +123,9 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _primary_pid_guess(211),
 	  _cut_min_pT(0.1),
 	  _nlayers_all(67),
+	  _layer_ilayer_map_all(),
 	  _radii_all(),
-	  _search_win_multiplier(5),
+	  _search_win_multiplier(50),
 	  _layer_zID_phiID_cluserID(),
 	  _layer_zID_phiID_cluserID_phiSize(0.12),
 	  _layer_zID_phiID_cluserID_zSize(0.17),
@@ -145,7 +146,11 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 	if(code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 
-	code = InitializeGeometry(topNode);;
+	code = InitializeGeometry(topNode);
+	if(code != Fun4AllReturnCodes::EVENT_OK)
+		return code;
+
+	code = InitializePHGenFit(topNode);
 	if(code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 
@@ -198,7 +203,6 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 		cout << "PHG4KalmanPatRec::process_event -- entered" << endl;
 
 	// start fresh
-	_clusters.clear();
 	_clusters.clear();
 	_tracks.clear();
 	_track_errors.clear();
@@ -258,7 +262,8 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	// Translate back into SVTX objects
 	//-----------------------------------
 
-	code = ExportOutput();
+	//code = ExportOutput();
+	code = export_output();
 	if (code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 
@@ -589,6 +594,8 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 	_radii.assign(_nlayers, 0.0);
 	map<float, int> radius_layer_map;
 
+	_radii_all.assign(_nlayers_all, 0.0);
+
 	if (cellgeos) {
 		PHG4CylinderCellGeomContainer::ConstRange layerrange =
 				cellgeos->get_begin_end();
@@ -622,18 +629,37 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 		}
 	}
 
+//	if (verbosity >= 2) {
+//		for (map<float, int>::const_iterator iter = radius_layer_map.begin();
+//				iter != radius_layer_map.end(); iter++) {
+//			cout << "radius_layer_map: first: " << iter->first << "; second: "
+//					<< iter->second << endl;
+//		}
+//	}
+
 	// now that the layer ids are sorted by radius, I can create a storage
 	// index, ilayer, that is 0..N-1 and sorted by radius
 
 	int ilayer = 0;
 	for (map<float, int>::iterator iter = radius_layer_map.begin();
 			iter != radius_layer_map.end(); ++iter) {
+
+		_layer_ilayer_map_all.insert(make_pair(iter->second, _layer_ilayer_map_all.size()));
+
 		if (std::find(_seeding_layer.begin(), _seeding_layer.end(),
 				iter->second) != _seeding_layer.end()) {
 			_layer_ilayer_map.insert(make_pair(iter->second, ilayer));
 			++ilayer;
 		}
 		//if(ilayer >= (int) _radii.size()) break; //yuhw
+	}
+
+	if (verbosity >= 2) {
+		for (map<int, unsigned int>::const_iterator iter = _layer_ilayer_map_all.begin();
+				iter != _layer_ilayer_map_all.end(); iter++) {
+			cout << "_layer_ilayer_map_all: first: " << iter->first << "; second: "
+					<< iter->second << endl;
+		}
 	}
 
 	// now we extract the information from the cellgeos first
@@ -649,7 +675,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 			if (verbosity > 1)
 				cellgeo->identify();
 
-			_radii_all[_layer_ilayer_map[cellgeo->get_layer()]] =
+			_radii_all[_layer_ilayer_map_all[cellgeo->get_layer()]] =
 					cellgeo->get_radius();
 
 			if (_layer_ilayer_map.find(cellgeo->get_layer())
@@ -672,7 +698,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 			if (verbosity > 1)
 				geo->identify();
 
-			_radii_all[_layer_ilayer_map[geo->get_layer()]] =
+			_radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
 					geo->get_radius();
 
 			if (_layer_ilayer_map.find(geo->get_layer())
@@ -694,7 +720,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 			if (verbosity > 1)
 				geo->identify();
 
-			_radii_all[_layer_ilayer_map[geo->get_layer()]] =
+			_radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
 					geo->get_radius();
 
 			if (_layer_ilayer_map.find(geo->get_layer())
@@ -1053,7 +1079,9 @@ int PHG4KalmanPatRec::translate_input() {
 			iter != _g4clusters->end(); ++iter) {
 		SvtxCluster* cluster = iter->second;
 
-		unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
+		//unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
+		unsigned int ilayer = _layer_ilayer_map_all[cluster->get_layer()];
+		if(ilayer >= _nlayers) continue;
 
 		SimpleHit3D hit3d;
 
@@ -1676,6 +1704,8 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 	float y_center = sin(phi) * (d + 1 / kappa);  // y    "      "     " "
 
 	vector<SimpleHit3D> track_hits = _tracks.at(itrack).hits;
+	LogDebug("track_hits.size(): ")<<track_hits.size()<<"\n";
+
 
 	// find helicity from cross product sign
 	short int helicity;
@@ -1705,7 +1735,6 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 			_vertex[2] + z0
 			);
 
-
 	Eigen::Matrix<float, 6, 6> euclidean_cov =
 			Eigen::Matrix<float, 6, 6>::Zero(6, 6);
 	convertHelixCovarianceToEuclideanCovariance(_magField, phi, d, kappa,
@@ -1719,17 +1748,63 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 	}
 
 	genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_pid_guess);
-	std::unique_ptr<PHGenFit::Track> track(
+	std::shared_ptr<PHGenFit::Track> track(
 			new PHGenFit::Track(rep, seed_pos, seed_mom, seed_cov));
+//	PHGenFit::Track* track =
+//			new PHGenFit::Track(rep, seed_pos, seed_mom, seed_cov);
+
+	LogDebug("seed_mom phi: ")<< seed_mom.Phi() <<std::endl;
+	std::vector<PHGenFit::Measurement*> measurements;
+	for (SimpleHit3D hit : track_hits) {
+		unsigned int cluster_ID = hit.get_id();
+		//LogDebug("cluster_ID: ")<<cluster_ID<<endl;
+		SvtxCluster* cluster = _g4clusters->get(cluster_ID);
+
+		if (!cluster) {
+			LogError("No cluster Found!\n");
+			continue;
+		}
+		//cluster->identify();
+
+		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
+		TVector3 n(cluster->get_x(), cluster->get_y(), 0);
+
+		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,
+				n, cluster->get_phi_error(), cluster->get_z_error());
+
+		measurements.push_back(meas);
+	}
+	track->addMeasurements(measurements);
+
+	/*!
+	 *  Fit the track
+	 *  ret code 0 means 0 error or good status
+	 */
+	if (_fitter->processTrack(track.get(), false) != 0) {
+		if (verbosity >= 1)
+			LogWarning("Track fitting failed")<<std::endl;
+		//delete track;
+		return -1;
+	}
+
+	//initial track ID from this seed
+	int initial_trackID = _trackID_PHGenFitTrack.size();
+	_trackID_PHGenFitTrack.insert(std::make_pair(initial_trackID, track));
 
 	for (int layer = _nlayers; layer < _nlayers_all; ++layer) {
-		float layer_r = _radii_all[_layer_ilayer_map[layer]];
-		std::unique_ptr<genfit::MeasuredStateOnPlane> state = std::unique_ptr
-				< genfit::MeasuredStateOnPlane
-				> (track->extrapolateToCylinder(layer_r, TVector3(0, 0, 0),
-						TVector3(0, 0, 1), -1));
-//		genfit::MeasuredStateOnPlane *state = track->extrapolateToCylinder(
-//				layer_r, TVector3(0, 0, 0), TVector3(0, 0, 1), -1);
+
+		float layer_r = _radii_all[_layer_ilayer_map_all[layer]];
+
+		std::cout<<"========================="<<std::endl;
+		std::cout<<"layer: "<<layer<<std::endl;
+		std::cout<<"========================="<<std::endl;
+
+//		std::unique_ptr<genfit::MeasuredStateOnPlane> state = std::unique_ptr
+//				< genfit::MeasuredStateOnPlane
+//				> (track->extrapolateToCylinder(layer_r, TVector3(0, 0, 0),
+//						TVector3(0, 0, 1), -1));
+		genfit::MeasuredStateOnPlane *state = track->extrapolateToCylinder(
+				layer_r, TVector3(0, 0, 0), TVector3(0, 0, 1), 0);
 
 		TVector3 pos = state->getPos();
 
@@ -1741,42 +1816,66 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		float phi_window = _search_win_multiplier * sqrt(cov[0][0] + cov[1][1]);
 		float z_window = _search_win_multiplier * sqrt(cov[2][2]);
 
-		//TODO
+		std::cout<<"itrack: "<<itrack
+				<<", layer: "<<layer
+				<<", layer_r: "<<layer_r
+				<<", z_center: "<<z_center
+				<<", phi_center: "<<phi_center
+				<<", z_window: "<<z_window
+				<<", phi_window: "<<phi_window
+				<<std::endl;
 
 		std::vector<unsigned int> new_cluster_IDs = SearchHitsNearBy(layer,
 				z_center, phi_center, z_window, phi_window);
 
-		std::vector<PHGenFit::Measurement*> measurements;
+		LogDebug("new_cluster_IDs size: ") << new_cluster_IDs.size() << std::endl;
 
+
+		std::vector<PHGenFit::Measurement*> measurements;
 		for (unsigned int cluster_ID : new_cluster_IDs) {
+			LogDebug("cluster_ID: ")<<cluster_ID<<endl;
 			SvtxCluster* cluster = _g4clusters->get(cluster_ID);
 			if (!cluster) {
-				LogError("No cluster Found!");
+				LogError("No cluster Found!\n");
 				continue;
 			}
+			cluster->identify();
 			TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
-
-			seed_mom.SetPhi(pos.Phi());
-			seed_mom.SetTheta(pos.Theta());
-
-			//TODO use u, v explicitly?
 			TVector3 n(cluster->get_x(), cluster->get_y(), 0);
-
 			PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,
 					n, cluster->get_phi_error(), cluster->get_z_error());
-
+			meas->getMeasurement()->Print();
 			measurements.push_back(meas);
 		}
-
 		std::map<double, PHGenFit::Track*> incr_chi2s_new_tracks;
+		LogDebug("measurements.size(): ")<<measurements.size()<<endl;
+		track->updateOneMeasurementKalman(measurements, incr_chi2s_new_tracks);
+		LogDebug("incr_chi2s_new_tracks.size(): ")<<incr_chi2s_new_tracks.size()<<endl;
 
-		track->testMeasurements(measurements, incr_chi2s_new_tracks);
+		//the first one is aleady registered
+		if (incr_chi2s_new_tracks.size() > 1) {
+			for (std::map<double, PHGenFit::Track*>::iterator iter =
+					incr_chi2s_new_tracks.begin();
+					iter != incr_chi2s_new_tracks.end(); iter++) {
+				//TODO make some cuts?
+				if (iter->first > _max_incr_chi2)
+					break;
+				if (track.get() == iter->second)
+					continue;
 
-		LogDebug("testMeasurements: \n");
+				_trackID_PHGenFitTrack.insert(
+						std::make_pair(_trackID_PHGenFitTrack.size(),
+								std::shared_ptr < PHGenFit::Track
+										> (iter->second)));
+			}
+		}
+
+		LogDebug("updateOneMeasurementKalman:")<<endl;
 		std::cout<<"itrack: "<<itrack
 				<<", layer: "<<layer
 				<<", #meas: "<<measurements.size()
 				<<", #tracks: "<<incr_chi2s_new_tracks.size()
+				<<", #totoal tracks: "<<_trackID_PHGenFitTrack.size()
 				<<std::endl;
 	}
 
@@ -1786,35 +1885,50 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 
 int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 
-	for(SimpleHit3D cluster : _clusters){
-		float phi = atan2(cluster.get_y(),cluster.get_x());
-		float r = sqrt(cluster.get_x()*cluster.get_x() + cluster.get_y()*cluster.get_y());
+	//for(SimpleHit3D cluster : _clusters){
+	for (SvtxClusterMap::Iter iter = _g4clusters->begin();
+			iter != _g4clusters->end(); ++iter) {
+		SvtxCluster* cluster = iter->second;
+
+		float phi = atan2(cluster->get_y(),cluster->get_x());
+		float r = sqrt(cluster->get_x()*cluster->get_x() + cluster->get_y()*cluster->get_y());
 		float rphi = r*phi;
-		float z = cluster.get_z();
+		float z = cluster->get_z();
 
 		int iphi = (int) rphi/_layer_zID_phiID_cluserID_phiSize;
 		int iz = (int) z/_layer_zID_phiID_cluserID_zSize;
 
+		if(verbosity > 2) {
+			LogDebug("\n");
+			std::cout<<" layer: "<<cluster->get_layer()
+					<<", ID: "<<cluster->get_id()
+					<<", r: "<<r
+					<<", rphi: "<<rphi
+					<<", z: "<<z
+					<<", iphi: "<<iphi
+					<<", iz: "<<iz
+					<<endl;
+		}
 
 		std::map<int, std::multimap<int, unsigned int>> zID_phiID_cluserID;
 
-		if(_layer_zID_phiID_cluserID.find(cluster.get_layer())!=_layer_zID_phiID_cluserID.end()){
-			zID_phiID_cluserID = _layer_zID_phiID_cluserID.find(cluster.get_layer())->second;
+		if(_layer_zID_phiID_cluserID.find(cluster->get_layer())!=_layer_zID_phiID_cluserID.end()){
+			zID_phiID_cluserID = _layer_zID_phiID_cluserID.find(cluster->get_layer())->second;
 
 			if(zID_phiID_cluserID.find(iz)!=zID_phiID_cluserID.end())
-				zID_phiID_cluserID[iz].insert(std::make_pair(iphi, cluster.get_id()));
+				zID_phiID_cluserID[iz].insert(std::make_pair(iphi, cluster->get_id()));
 			else {
 				std::multimap<int, unsigned int> phiID_cluserID;
-				phiID_cluserID.insert(std::make_pair(iphi, cluster.get_id()));
+				phiID_cluserID.insert(std::make_pair(iphi, cluster->get_id()));
 				zID_phiID_cluserID[iz] = phiID_cluserID;
 			}
 		} else {
 			std::multimap<int, unsigned int> phiID_cluserID;
-			phiID_cluserID.insert(std::make_pair(iphi, cluster.get_id()));
+			phiID_cluserID.insert(std::make_pair(iphi, cluster->get_id()));
 
 			zID_phiID_cluserID[iz] = phiID_cluserID;
 
-			_layer_zID_phiID_cluserID[cluster.get_layer()] = zID_phiID_cluserID;
+			_layer_zID_phiID_cluserID[cluster->get_layer()] = zID_phiID_cluserID;
 		}
 
 	}
@@ -1833,6 +1947,15 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 	int min_phi_bin = (int)(phi_center-phi_window)/_layer_zID_phiID_cluserID_phiSize;
 	int max_phi_bin = (int)(phi_center+phi_window)/_layer_zID_phiID_cluserID_phiSize+1;
 
+	if(verbosity > 2) {
+		LogDebug("\n");
+		std::cout<<" layer: "<<layer
+				<<", min_z_bin: "<<min_z_bin
+				<<", max_z_bin: "<<max_z_bin
+				<<", min_phi_bin: "<<min_phi_bin
+				<<", max_phi_bin: "<<max_phi_bin
+				<<endl;
+	}
 
 	std::map<int, std::multimap<int, unsigned int>> zID_phiID_cluserID = _layer_zID_phiID_cluserID[layer];
 

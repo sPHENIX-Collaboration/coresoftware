@@ -243,6 +243,15 @@ public:
 		_seeding_layer.assign(seedingLayer, seedingLayer + n);
 	}
 
+	float get_search_win_multiplier() const {
+		return _search_win_multiplier;
+	}
+
+	void set_search_win_multiplier(float searchWinMultiplier) {
+		_search_win_multiplier = searchWinMultiplier;
+	}
+
+
 #ifndef __CINT__
 
 private:
@@ -430,6 +439,7 @@ private:
 	double _cut_min_pT;
 
 	int _nlayers_all;
+	std::map<int, unsigned int> _layer_ilayer_map_all;
 	std::vector<float> _radii_all;
 	float _search_win_multiplier;
 
