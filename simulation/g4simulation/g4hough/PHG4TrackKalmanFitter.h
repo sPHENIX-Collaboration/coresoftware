@@ -71,11 +71,6 @@ public:
 	//!End, write and close files
 	int End(PHCompositeNode *);
 
-	/// set verbosity
-	void Verbosity(int verb) {
-		verbosity = verb; // SubsysReco verbosity
-	}
-
 	//Flags of different kinds of outputs
 	enum Flag {
 		//all disabled
