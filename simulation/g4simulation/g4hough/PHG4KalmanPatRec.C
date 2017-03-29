@@ -130,7 +130,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _layer_zID_phiID_cluserID_phiSize(0.12),
 	  _layer_zID_phiID_cluserID_zSize(0.17),
 	  _trackID_PHGenFitTrack(),
-	  _trackID_clusterID(),
+	  //_trackID_clusterID(),
 	  _max_incr_chi2(5){
 }
 
@@ -262,8 +262,8 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	// Translate back into SVTX objects
 	//-----------------------------------
 
-	//code = ExportOutput();
-	code = export_output();
+	code = ExportOutput();
+	//code = export_output();
 	if (code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 
@@ -1674,7 +1674,12 @@ bool PHG4KalmanPatRec::circle_line_intersections(double x0, double y0,
 
 int PHG4KalmanPatRec::FullTrackFitting() {
 
+	// sort clusters
 	BuildLayerZPhiHitMap();
+
+	// clean up working array for each event
+	_trackID_PHGenFitTrack.clear();
+	//_trackID_clusterID.clear();
 
 	for(unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
 		TrackPropPatRec(itrack);
@@ -1685,6 +1690,69 @@ int PHG4KalmanPatRec::FullTrackFitting() {
 
 
 int PHG4KalmanPatRec::ExportOutput() {
+
+	std::cout << "=========================" << std::endl;
+	std::cout << "PHG4KalmanPatRec::FullTrackFitting: " << std::endl;
+	std::cout << "=========================" << std::endl;
+
+	for (std::map<int, std::shared_ptr<PHGenFit::Track>>::iterator iter =
+			_trackID_PHGenFitTrack.begin();
+			iter != _trackID_PHGenFitTrack.end(); iter++) {
+
+		_fitter->processTrack(iter->second.get(), false);
+
+		std::cout << "=========================" << std::endl;
+		std::cout << "trackID: " << iter->first << std::endl;
+		std::cout << "=========================" << std::endl;
+
+		iter->second->getGenFitTrack()->Print();
+
+		SvtxTrack_v1 track;
+		track.set_id(iter->first);
+
+		track.set_chisq(iter->second->get_chi2());
+		track.set_ndf(iter->second->get_ndf());
+
+		//FIXME use fitted vertex
+		TVector3 vertex_position(0, 0, 0);
+		std::unique_ptr<genfit::MeasuredStateOnPlane> gf_state_vertex_ca = NULL;
+		try {
+			gf_state_vertex_ca = std::unique_ptr < genfit::MeasuredStateOnPlane
+					> (iter->second->extrapolateToPoint(vertex_position));
+		} catch (...) {
+			if (verbosity >= 2)
+				LogWarning("extrapolateToPoint failed!");
+		}
+		if (!gf_state_vertex_ca) {
+			//delete out_track;
+			continue;
+		}
+
+		TVector3 mom = gf_state_vertex_ca->getMom();
+		TVector3 pos = gf_state_vertex_ca->getPos();
+		TMatrixDSym cov = gf_state_vertex_ca->get6DCov();
+
+		track.set_px(mom.Px());
+		track.set_py(mom.Py());
+		track.set_pz(mom.Pz());
+
+		track.set_x(pos.X());
+		track.set_y(pos.Y());
+		track.set_z(pos.Z());
+
+		for(unsigned int cluster_ID : iter->second->get_cluster_IDs()){
+			track.insert_cluster(cluster_ID);
+		}
+
+		_g4tracks->insert(&track);
+
+		if (verbosity > 5) {
+			cout << "track " << iter->first << " quality = " << track.get_quality()
+					<< endl;
+			cout << "px = " << track.get_px() << " py = " << track.get_py()
+					<< " pz = " << track.get_pz() << endl;
+		}
+	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1755,6 +1823,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 
 	LogDebug("seed_mom phi: ")<< seed_mom.Phi() <<std::endl;
 	std::vector<PHGenFit::Measurement*> measurements;
+	std::vector<unsigned int> hitIDs;
 	for (SimpleHit3D hit : track_hits) {
 		unsigned int cluster_ID = hit.get_id();
 		//LogDebug("cluster_ID: ")<<cluster_ID<<endl;
@@ -1772,7 +1841,10 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,
 				n, cluster->get_phi_error(), cluster->get_z_error());
 
+		meas->set_cluster_ID(cluster_ID);
+
 		measurements.push_back(meas);
+		hitIDs.push_back(cluster_ID);
 	}
 	track->addMeasurements(measurements);
 
@@ -1790,6 +1862,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 	//initial track ID from this seed
 	int initial_trackID = _trackID_PHGenFitTrack.size();
 	_trackID_PHGenFitTrack.insert(std::make_pair(initial_trackID, track));
+	//_trackID_clusterID.insert(std::make_pair(initial_trackID, hitIDs));
 
 	for (int layer = _nlayers; layer < _nlayers_all; ++layer) {
 
@@ -1844,6 +1917,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 			TVector3 n(cluster->get_x(), cluster->get_y(), 0);
 			PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,
 					n, cluster->get_phi_error(), cluster->get_z_error());
+			meas->set_cluster_ID(cluster_ID);
 			meas->getMeasurement()->Print();
 			measurements.push_back(meas);
 		}
@@ -1860,8 +1934,11 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 				//TODO make some cuts?
 				if (iter->first > _max_incr_chi2)
 					break;
-				if (track.get() == iter->second)
+
+				if (track.get() == iter->second) {
+					//_trackID_clusterID[initial_trackID].push_back();
 					continue;
+				}
 
 				_trackID_PHGenFitTrack.insert(
 						std::make_pair(_trackID_PHGenFitTrack.size(),
@@ -1877,7 +1954,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 				<<", #tracks: "<<incr_chi2s_new_tracks.size()
 				<<", #totoal tracks: "<<_trackID_PHGenFitTrack.size()
 				<<std::endl;
-	}
+	} // layer loop
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -449,7 +449,7 @@ private:
 
 
 	std::map<int, std::shared_ptr<PHGenFit::Track>> _trackID_PHGenFitTrack;
-	std::map<int, std::set<unsigned int>> _trackID_clusterID;
+	//std::map<int, std::vector<unsigned int>> _trackID_clusterID;
 
 	double _max_incr_chi2;
 
