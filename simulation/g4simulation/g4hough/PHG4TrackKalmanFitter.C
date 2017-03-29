@@ -6,51 +6,6 @@
  */
 
 #include "PHG4TrackKalmanFitter.h"
-
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/PHTFileServer.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/PHG4CylinderCell_MAPS.h>
-#include <g4detectors/PHG4CylinderGeom_MAPS.h>
-#include <g4detectors/PHG4CylinderGeom_Siladders.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4Particlev2.h>
-#include <g4main/PHG4VtxPointv1.h>
-#include <GenFit/FieldManager.h>
-#include <GenFit/GFRaveVertex.h>
-#include <GenFit/GFRaveVertexFactory.h>
-#include <GenFit/MeasuredStateOnPlane.h>
-#include <GenFit/RKTrackRep.h>
-#include <GenFit/StateOnPlane.h>
-#include <GenFit/Track.h>
-#include <phgenfit/Fitter.h>
-#include <phgenfit/PlanarMeasurement.h>
-#include <phgenfit/SpacepointMeasurement.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phgeom/PHGeomUtility.h>
-#include <iostream>
-#include <map>
-#include <utility>
-#include <vector>
-#include <memory>
-
-#include "TClonesArray.h"
-#include "TMatrixDSym.h"
-#include "TTree.h"
-#include "TVector3.h"
-#include "TRandom3.h"
-#include "TRotation.h"
-
-#include "phgenfit/Track.h"
-
 #include "SvtxCluster.h"
 #include "SvtxClusterMap.h"
 #include "SvtxTrackState_v1.h"
@@ -62,6 +17,59 @@
 #include "SvtxTrackMap.h"
 #include "SvtxTrackMap_v1.h"
 #include "SvtxVertexMap_v1.h"
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/PHTFileServer.h>
+
+#include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4detectors/PHG4Cell.h>
+#include <g4detectors/PHG4CylinderGeom_MAPS.h>
+#include <g4detectors/PHG4CylinderGeom_Siladders.h>
+
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4Particlev2.h>
+#include <g4main/PHG4VtxPointv1.h>
+
+#include <phgenfit/Fitter.h>
+#include <phgenfit/PlanarMeasurement.h>
+#include <phgenfit/Track.h>
+#include <phgenfit/SpacepointMeasurement.h>
+
+#include <phool/getClass.h>
+#include <phool/phool.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>
+
+#include <phgeom/PHGeomUtility.h>
+
+#include <GenFit/FieldManager.h>
+#include <GenFit/GFRaveVertex.h>
+#include <GenFit/GFRaveVertexFactory.h>
+#include <GenFit/MeasuredStateOnPlane.h>
+#include <GenFit/RKTrackRep.h>
+#include <GenFit/StateOnPlane.h>
+#include <GenFit/Track.h>
+
+#include <TClonesArray.h>
+#include <TMatrixDSym.h>
+#include <TTree.h>
+#include <TVector3.h>
+#include <TRandom3.h>
+#include <TRotation.h>
+
+
+
+#include <iostream>
+#include <map>
+#include <utility>
+#include <vector>
+#include <memory>
+
 
 #define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
@@ -776,15 +784,15 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		return NULL;
 	}
 
-	PHG4CylinderCellContainer* cells = NULL;
-	cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,
+	PHG4CellContainer* cells = NULL;
+	cells = findNode::getClass<PHG4CellContainer>(topNode,
 			"G4CELL_SVTX");
 	if (!cells) {
 		cout << PHWHERE << "ERROR: Can't find node G4CELL_SVTX" << endl;
 		return NULL;
 	}
 
-	PHG4CylinderCellContainer* cells_maps = NULL;
+	PHG4CellContainer* cells_maps = NULL;
 	PHG4CylinderGeomContainer* geom_container_maps = NULL;
 
 	if (_detector_type == LADDER_MAPS_TPC
@@ -798,7 +806,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			return NULL;
 		}
 
-		cells_maps = findNode::getClass<PHG4CylinderCellContainer>(topNode,
+		cells_maps = findNode::getClass<PHG4CellContainer>(topNode,
 				"G4CELL_MAPS");
 		if (!cells_maps) {
 			cout << PHWHERE << "ERROR: Can't find node G4CELL_MAPS" << endl;
@@ -806,7 +814,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		}
 	}
 
-	PHG4CylinderCellContainer* cells_intt = NULL;
+	PHG4CellContainer* cells_intt = NULL;
 	PHG4CylinderGeomContainer* geom_container_intt = NULL;
 
 	if (_detector_type == LADDER_MAPS_LADDER_IT_TPC) {
@@ -818,7 +826,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			return NULL;
 		}
 
-		cells_intt = findNode::getClass<PHG4CylinderCellContainer>(topNode,
+		cells_intt = findNode::getClass<PHG4CellContainer>(topNode,
 				"G4CELL_SILICON_TRACKER");
 		if (!cells_intt) {
 			cout << PHWHERE << "ERROR: Can't find node G4CELL_SILICON_TRACKER" << endl;
@@ -939,8 +947,8 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		// DEBUG: BEGIN
 //		if (_do_eval) {
 //			SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
-//			PHG4CylinderCell* cell =
-//					(PHG4CylinderCell*) cells->findCylinderCell(
+//			PHG4Cell* cell =
+//					(PHG4Cell*) cells->findCell(
 //							svtxhit->get_cellid());
 //			PHG4Hit *phg4hit = phg4hitcontainer->findHit(
 //					cell->get_g4hits().first->first);
@@ -994,9 +1002,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			//LogDebug(begin_hit_id);
 			SvtxHit* hit = hitsmap->find(begin_hit_id)->second;
 			//LogDebug(hit->get_cellid());
-			PHG4CylinderCell_MAPS* cell =
-					(PHG4CylinderCell_MAPS*) cells_maps->findCylinderCell(
-							hit->get_cellid());
+			PHG4Cell* cell = cells_maps->findCell(hit->get_cellid());
 			int stave_index = cell->get_stave_index();
 			int half_stave_index = cell->get_half_stave_index();
 			int module_index = cell->get_module_index();
@@ -1020,9 +1026,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			//LogDebug(begin_hit_id);
 			SvtxHit* hit = hitsmap->find(begin_hit_id)->second;
 			//LogDebug(hit->get_cellid());
-			PHG4CylinderCell* cell =
-					(PHG4CylinderCell*) cells_intt->findCylinderCell(
-							hit->get_cellid());
+			PHG4Cell* cell = cells_intt->findCell(hit->get_cellid());
 			PHG4CylinderGeom_Siladders* geom =
 					(PHG4CylinderGeom_Siladders*) geom_container_intt->GetLayerGeom(
 							layer);
