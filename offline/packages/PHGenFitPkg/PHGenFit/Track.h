@@ -43,6 +43,7 @@ public:
 	~Track();
 
 	//! Add measurement
+	int addMeasurement(PHGenFit::Measurement* measurement);
 	int addMeasurements(std::vector<PHGenFit::Measurement*> &measurements);
 
 	//!
@@ -85,12 +86,22 @@ public:
 
 	double get_charge() const;
 
+	const std::vector<unsigned int>& get_cluster_IDs() const {
+		return _clusterIDs;
+	}
+
+	void set_cluster_IDs(const std::vector<unsigned int>& clusterIDs) {
+		_clusterIDs = clusterIDs;
+	}
+
 	//SMART(genfit::Track) getGenFitTrack() {return _track;}
 
 private:
 
 	genfit::Track* _track;
-	std::vector<PHGenFit::Measurement*> _measurements;
+	//std::vector<PHGenFit::Measurement*> _measurements;
+	std::vector<unsigned int> _clusterIDs;
+
 	//SMART(genfit::Track) _track;
 };
 } //End of PHGenFit namespace

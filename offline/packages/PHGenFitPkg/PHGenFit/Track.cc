@@ -48,6 +48,17 @@ Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMa
 	//_track = NEW(genfit::Track)(rep, seedState, seedCov);
 }
 
+int Track::addMeasurement(PHGenFit::Measurement*measurement) {
+
+	std::vector<genfit::AbsMeasurement*> msmts;
+	msmts.push_back(measurement->getMeasurement());
+	_track->insertPoint(new genfit::TrackPoint(msmts, _track));
+
+	_clusterIDs.push_back(measurement->get_cluster_ID());
+
+	return 0;
+}
+
 int Track::addMeasurements(std::vector<PHGenFit::Measurement*> &measurements)
 {
 	for(PHGenFit::Measurement* measurement : measurements)
@@ -57,7 +68,8 @@ int Track::addMeasurements(std::vector<PHGenFit::Measurement*> &measurements)
 		_track->insertPoint(
 				new genfit::TrackPoint(msmts, _track));
 
-		_measurements.push_back(measurement);
+		//_measurements.push_back(measurement);
+		_clusterIDs.push_back(measurement->get_cluster_ID());
 	}
 
 	//measurements.clear();
@@ -69,11 +81,13 @@ Track::~Track()
 {
 	delete _track;
 
-	for(PHGenFit::Measurement* measurement : _measurements)
-	{
-		delete measurement;
-	}
-	_measurements.clear();
+//	for(PHGenFit::Measurement* measurement : _measurements)
+//	{
+//		delete measurement;
+//	}
+//	_measurements.clear();
+
+	_clusterIDs.clear();
 }
 
 double Track::extrapolateToPlane(genfit::MeasuredStateOnPlane& state, TVector3 O, TVector3 n, const int tr_point_id) const
@@ -283,7 +297,11 @@ int Track::updateOneMeasurementKalman(
 		std::vector<genfit::AbsMeasurement*> msmts;
 		msmts.push_back(measurement->getMeasurement());
 		genfit::TrackPoint *tp = new genfit::TrackPoint(msmts, track);
-		track->insertPoint(tp);
+
+		//track->insertPoint(tp); // genfit
+
+		new_track->addMeasurement(measurement); // PHGenFit: clusterID also registerd
+
 		genfit::KalmanFitterInfo* fi = new genfit::KalmanFitterInfo(tp, rep);
 		tp->setFitterInfo(fi);
 
