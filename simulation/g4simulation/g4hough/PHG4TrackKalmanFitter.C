@@ -800,17 +800,6 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		return NULL;
 	}
 
-	// DEBUG: BEGIN
-	PHG4HitContainer* phg4hitcontainer = NULL;
-	phg4hitcontainer = findNode::getClass<PHG4HitContainer>(
-			topNode, "G4HIT_SVTX");
-	if (!phg4hitcontainer && _event < 2) {
-		cout << PHWHERE << "G4HIT_SVTX"
-				<< " node not found on node tree" << endl;
-		return NULL;
-	}
-	// DEBUG: END
-
 	SvtxHitMap* hitsmap = NULL;
 	// get node containing the digitized hits
 	hitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
@@ -819,22 +808,29 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		return NULL;
 	}
 
-	PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,
+	PHG4CellContainer* cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
 			"G4CELL_SVTX");
-
-	PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
-			topNode, "G4CELL_MAPS");
-
-	PHG4CylinderGeomContainer* geom_container_maps = findNode::getClass<
-			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
 
 	PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
 			topNode, "G4CELL_SILICON_TRACKER");
 
+	PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
+			topNode, "G4CELL_MAPS");
+
+	if (!cells_svtx and !cells_intt and !cells_maps) {
+		if (verbosity >= 0) {
+			LogError("No PHG4CellContainer found!");
+		}
+		return nullptr;
+	}
+
 	PHG4CylinderGeomContainer* geom_container_intt = findNode::getClass<
 			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
 
-	if (!cells && !cells_maps && !cells_intt) {
+	PHG4CylinderGeomContainer* geom_container_maps = findNode::getClass<
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+
+	if (!cells_svtx && !cells_maps && !cells_intt) {
 		cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
 		return NULL;
 	}
@@ -950,38 +946,67 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
 
 		// DEBUG: BEGIN
-//		if (_do_eval) {
-//			SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
-//			PHG4Cell* cell =
-//					(PHG4Cell*) cells->findCell(
-//							svtxhit->get_cellid());
-//			PHG4Hit *phg4hit = phg4hitcontainer->findHit(
-//					cell->get_g4hits().first->first);
-//
-//			if (!phg4hit)
-//				continue;
-//
-//			TVector3 phg4hit_position(phg4hit->get_avg_x(),
-//					phg4hit->get_avg_y(), phg4hit->get_avg_z());
-//			TVector3 cluster_position(cluster->get_x(), cluster->get_y(),
-//					cluster->get_z());
-//
-//			_cluster_eval_tree_x = cluster_position.X();
-//			_cluster_eval_tree_y = cluster_position.Y();
-//			_cluster_eval_tree_z = cluster_position.Z();
-//			_cluster_eval_tree_gx = phg4hit_position.X();
-//			_cluster_eval_tree_gy = phg4hit_position.Y();
-//			_cluster_eval_tree_gz = phg4hit_position.Z();
-//
-//			_cluster_eval_tree->Fill();
-//		}
+		if (_do_eval) {
+			PHG4HitContainer* phg4hits_svtx = findNode::getClass<
+					PHG4HitContainer>(topNode, "G4HIT_SVTX");
+
+			PHG4HitContainer* phg4hits_intt = findNode::getClass<
+					PHG4HitContainer>(topNode, "G4HIT_SILICON_TRACKER");
+
+			PHG4HitContainer* phg4hits_maps = findNode::getClass<
+					PHG4HitContainer>(topNode, "G4HIT_MAPS");
+
+			if (!phg4hits_svtx and !phg4hits_intt and !phg4hits_maps) {
+				if (verbosity >= 0) {
+					LogError("No PHG4HitContainer found!");
+				}
+				continue;
+			}
+
+			SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
+
+			PHG4Cell* cell = nullptr;
+			if(cells_svtx) cell = cells_svtx->findCell(svtxhit->get_cellid());
+			if(!cell && cells_intt) cell = cells_intt->findCell(svtxhit->get_cellid());
+			if(!cell && cells_maps) cell = cells_maps->findCell(svtxhit->get_cellid());
+			if(!cell){
+				if(verbosity>=0)
+					LogError("!cell");
+				continue;
+			}
+
+			PHG4Hit *phg4hit = nullptr;
+			if(phg4hits_svtx) phg4hit = phg4hits_svtx->findHit(cell->get_g4hits().first->first);
+			if(!phg4hit and phg4hits_intt) phg4hit = phg4hits_intt->findHit(cell->get_g4hits().first->first);
+			if(!phg4hit and phg4hits_maps) phg4hit = phg4hits_maps->findHit(cell->get_g4hits().first->first);
+
+			if (!phg4hit) {
+				if (verbosity >= 0)
+					LogError("!phg4hit");
+				continue;
+			}
+
+			TVector3 phg4hit_position(phg4hit->get_avg_x(),
+					phg4hit->get_avg_y(), phg4hit->get_avg_z());
+			TVector3 cluster_position(cluster->get_x(), cluster->get_y(),
+					cluster->get_z());
+
+			_cluster_eval_tree_x = cluster_position.X();
+			_cluster_eval_tree_y = cluster_position.Y();
+			_cluster_eval_tree_z = cluster_position.Z();
+			_cluster_eval_tree_gx = phg4hit_position.X();
+			_cluster_eval_tree_gy = phg4hit_position.Y();
+			_cluster_eval_tree_gz = phg4hit_position.Z();
+
+			_cluster_eval_tree->Fill();
+		}
 
 //		if (phg4hit_position.Perp() > 30.) {
 //			pos.SetXYZ(phg4hit_position.X(), phg4hit_position.Y(),phg4hit_position.Z()); //DEBUG
 //			//pos.SetPerp(phg4hit_position.Perp());
 //			//pos.SetPhi(TMath::ATan2(phg4hit_position.Y(),phg4hit_position.X()));
 //		}
-
+//
 //		if(phg4hit->get_trkid()!=1) {
 //			continue;
 //		}
@@ -1348,7 +1373,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 
 		for (int i = 0; i < 6; i++) {
 			for (int j = i; j < 6; j++) {
-				out_track->set_error(i, j, gf_state->get6DCov()[i][j]);
+				state->set_error(i, j, gf_state->get6DCov()[i][j]);
 			}
 		}
 
@@ -1434,14 +1459,14 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 			}
 		}
 
-		if (verbosity >= 2) {
-			cout << PHWHERE << endl;
-			svtx_vtx->Print();
-			_vertexmap_refit->Print();
-		}
+//		if (verbosity >= 2) {
+//			cout << PHWHERE << endl;
+//			svtx_vtx->Print();
+//			_vertexmap_refit->Print();
+//		}
 
 		//delete svtx_vtx;
-	}
+	} //loop over RAVE vertices
 
 	return true;
 }
