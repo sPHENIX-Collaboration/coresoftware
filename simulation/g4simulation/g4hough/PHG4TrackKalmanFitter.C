@@ -165,7 +165,6 @@ private:
 PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 		SubsysReco(name),
 		_flags(NONE),
-		_detector_type(PHG4TrackKalmanFitter::MAPS_IT_TPC),
 		_output_mode(PHG4TrackKalmanFitter::MakeNewNode),
 		_over_write_svtxtrackmap(true),
 		_over_write_svtxvertexmap(true),
@@ -813,54 +812,24 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		return NULL;
 	}
 
-	PHG4CellContainer* cells = NULL;
-	cells = findNode::getClass<PHG4CellContainer>(topNode,
+	PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,
 			"G4CELL_SVTX");
-	if (!cells) {
-		cout << PHWHERE << "ERROR: Can't find node G4CELL_SVTX" << endl;
+
+	PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
+			topNode, "G4CELL_MAPS");
+
+	PHG4CylinderGeomContainer* geom_container_maps = findNode::getClass<
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+
+	PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
+			topNode, "G4CELL_SILICON_TRACKER");
+
+	PHG4CylinderGeomContainer* geom_container_intt = findNode::getClass<
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
+
+	if (!cells && !cells_maps && !cells_intt) {
+		cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
 		return NULL;
-	}
-
-	PHG4CellContainer* cells_maps = NULL;
-	PHG4CylinderGeomContainer* geom_container_maps = NULL;
-
-	if (_detector_type == LADDER_MAPS_TPC
-			|| _detector_type == LADDER_MAPS_IT_TPC
-			|| _detector_type == LADDER_MAPS_LADDER_IT_TPC) {
-		geom_container_maps = findNode::getClass<PHG4CylinderGeomContainer>(
-				topNode, "CYLINDERGEOM_MAPS");
-		if (!geom_container_maps) {
-			cout << PHWHERE << "ERROR: Can't find node CYLINDERGEOM_MAPS"
-					<< endl;
-			return NULL;
-		}
-
-		cells_maps = findNode::getClass<PHG4CellContainer>(topNode,
-				"G4CELL_MAPS");
-		if (!cells_maps) {
-			cout << PHWHERE << "ERROR: Can't find node G4CELL_MAPS" << endl;
-			return NULL;
-		}
-	}
-
-	PHG4CellContainer* cells_intt = NULL;
-	PHG4CylinderGeomContainer* geom_container_intt = NULL;
-
-	if (_detector_type == LADDER_MAPS_LADDER_IT_TPC) {
-		geom_container_intt = findNode::getClass<PHG4CylinderGeomContainer>(
-				topNode, "CYLINDERGEOM_SILICON_TRACKER");
-		if (!geom_container_intt) {
-			cout << PHWHERE << "ERROR: Can't find node CYLINDERGEOM_SILICON_TRACKER"
-					<< endl;
-			return NULL;
-		}
-
-		cells_intt = findNode::getClass<PHG4CellContainer>(topNode,
-				"G4CELL_SILICON_TRACKER");
-		if (!cells_intt) {
-			cout << PHWHERE << "ERROR: Can't find node G4CELL_SILICON_TRACKER" << endl;
-			return NULL;
-		}
 	}
 
 	// prepare seed
@@ -1022,9 +991,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 
 		unsigned int layer = cluster->get_layer();
 		//std::cout << "cluster layer: " << layer << std::endl;
-		if ((_detector_type == LADDER_MAPS_TPC
-				|| _detector_type == LADDER_MAPS_IT_TPC
-				|| _detector_type == LADDER_MAPS_LADDER_IT_TPC)
+		if ((cells_maps and geom_container_maps)
 				and layer < 3) {
 
 			unsigned int begin_hit_id = *(cluster->begin_hits());
@@ -1048,7 +1015,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			n.SetXYZ(ladder_location[0], ladder_location[1], 0);
 			n.RotateZ(phi_tilt[layer]);
 			//n.Print();
-		} else if ((_detector_type == LADDER_MAPS_LADDER_IT_TPC)
+		} else if ((cells_intt and geom_container_intt)
 				and pos.Perp() < 30.) {
 
 			unsigned int begin_hit_id = *(cluster->begin_hits());
