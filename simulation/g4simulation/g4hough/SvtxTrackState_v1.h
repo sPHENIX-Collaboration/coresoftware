@@ -56,7 +56,7 @@ public:
   void  set_error(unsigned int i, unsigned int j, float value);
 
   std::string get_name(){return state_name;}
-  void set_name(std::string name){state_name = name;}
+  void set_name(std::string &name){state_name = name;}
   
 private:
 
