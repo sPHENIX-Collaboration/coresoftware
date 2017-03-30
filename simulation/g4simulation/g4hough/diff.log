@@ -1,0 +1,69 @@
+2c2
+<  *  \file		PHG4TrackKalmanFitter.h
+---
+>  *  \file		PHG4CombinatorialTrackFinder.h
+8,9c8,9
+< #ifndef __PHG4TrackKalmanFitter_H__
+< #define __PHG4TrackKalmanFitter_H__
+---
+> #ifndef __PHG4CombinatorialTrackFinder_H__
+> #define __PHG4CombinatorialTrackFinder_H__
+12a13
+> #include <GenFit/KalmanFitterInfo.h>
+42a44,51
+> struct ltint
+> {
+>   bool operator()(const int i1, const int i2) const
+>   {
+>     return i1 < i2;
+>   }
+> };
+> 
+44c53
+< class PHG4TrackKalmanFitter: public SubsysReco {
+---
+> class PHG4CombinatorialTrackFinder: public SubsysReco {
+57c66
+< 	PHG4TrackKalmanFitter(const std::string &name = "PHG4TrackKalmanFitter");
+---
+> 	PHG4CombinatorialTrackFinder(const std::string &name = "PHG4CombinatorialTrackFinder");
+60c69
+< 	~PHG4TrackKalmanFitter();
+---
+> 	~PHG4CombinatorialTrackFinder();
+73a83,87
+> 	/// set verbosity
+> 	void Verbosity(int verb) {
+> 		verbosity = verb; // SubsysReco verbosity
+> 	}
+> 
+81c95
+< 	//Flags should be set like set_flag(PHG4TrackKalmanFitter::TRUTH, true) from macro
+---
+> 	//Flags should be set like set_flag(PHG4CombinatorialTrackFinder::TRUTH, true) from macro
+216a231,233
+> 	/// scan tracker geometry objects
+> 	int InitializeGeometry(PHCompositeNode *topNode);
+> 
+221a239,240
+> 	//int InitiatizeHitsPerLayer(PHCompositeNode *topNode);
+> 
+222a242
+> 	std::shared_ptr<PHGenFit::Track> ExtendTrack(PHCompositeNode *, std::shared_ptr<PHGenFit::Track>& seed_track, SvtxTrack* intrack );
+334a355,366
+> 	int _nlayers;
+> 	unsigned int _seed_layers, _req_seed;
+> 	std::vector<float> _radii;          // radial distance of each layer (cm) 
+> 	std::vector<float> _smear_xy_layer; // detector hit resolution in phi (cm)
+> 	std::vector<float> _smear_z_layer;  // detector hit resolution in z (cm)                 
+> 	std::vector<float> _material;       // material at each layer in rad. lengths
+> 	std::map<int, float> _user_material;
+> 
+> 	std::multimap<int, unsigned int, ltint> _hits_per_layer; // hits sorted and accessible by layer
+> 	
+> 	// recorded layer indexes to internal sequential indexes
+> 	std::map<int,unsigned int> _layer_ilayer_map;
+338c370
+< #endif //* __PHG4TrackKalmanFitter_H__ *//
+---
+> #endif //* __PHG4CombinatorialTrackFinder_H__ *//
