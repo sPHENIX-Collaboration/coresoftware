@@ -103,7 +103,7 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 	TrkClustersMap m_trackID_clusters;
 
 	for (SvtxClusterMap::ConstIter cluster_itr = _clustermap->begin();
-			cluster_itr != _clustermap->end(); cluster_itr++) {
+			cluster_itr != _clustermap->end(); ++cluster_itr) {
 		SvtxCluster *cluster = cluster_itr->second;
 		SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
 		PHG4Cell* cell = nullptr;
@@ -153,7 +153,7 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 	}
 
 	for (TrkClustersMap::const_iterator trk_clusers_itr = m_trackID_clusters.begin();
-			trk_clusers_itr!=m_trackID_clusters.end(); trk_clusers_itr++) {
+			trk_clusers_itr!=m_trackID_clusters.end(); ++trk_clusers_itr) {
 		if(trk_clusers_itr->second.size() > _min_clusters_per_track) {
 			std::unique_ptr<SvtxTrack_FastSim> svtx_track(new SvtxTrack_FastSim());
 			//SvtxTrack_FastSim* svtx_track = new SvtxTrack_FastSim();
