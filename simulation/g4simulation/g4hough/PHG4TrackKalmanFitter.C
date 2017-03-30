@@ -690,6 +690,13 @@ int PHG4TrackKalmanFitter::CreateNodes(PHCompositeNode *topNode) {
 		tb_node->addNode(vertexes_node);
 		if (verbosity > 0)
 			cout << "Svtx/SvtxVertexMapRefit node added" << endl;
+	} else if (!findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap")) {
+		_vertexmap = new SvtxVertexMap_v1;
+		PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
+				_vertexmap, "SvtxVertexMap", "PHObject");
+		tb_node->addNode(vertexes_node);
+		if (verbosity > 0)
+			cout << "Svtx/SvtxVertexMap node added" << endl;
 	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -728,10 +735,10 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 
 	// Input Svtx Vertices
 	_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-	if (!_vertexmap && _event < 2 && verbosity >= 1) {
-		cout << PHWHERE << " SvtxVertexrMap node not found on node tree, NOT critical"
+	if (!_vertexmap && _event < 2) {
+		cout << PHWHERE << " SvtxVertexrMap node not found on node tree"
 				<< endl;
-		//return Fun4AllReturnCodes::ABORTEVENT;
+		return Fun4AllReturnCodes::ABORTEVENT;
 	}
 
 	// Output Svtx Tracks
