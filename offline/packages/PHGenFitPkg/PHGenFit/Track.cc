@@ -197,11 +197,9 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 			LogError("tp == NULL!");
 			return WILD_DOUBLE;
 		}
-		LogDebug("");
 		if (dynamic_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))) {
 			if (static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getForwardUpdate()) {
 				have_tp_with_fit_info = true;
-				LogDebug("");
 				kfsop =
 						std::unique_ptr < genfit::MeasuredStateOnPlane
 								> (new genfit::KalmanFittedStateOnPlane(
