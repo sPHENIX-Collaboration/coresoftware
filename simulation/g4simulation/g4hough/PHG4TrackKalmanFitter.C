@@ -71,9 +71,9 @@
 #include <memory>
 
 
-#define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
-#define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
-#define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
+#define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
+#define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
+#define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
 
 #define WILD_FLOAT -9999.
 
@@ -167,6 +167,8 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 		_flags(NONE),
 		_detector_type(PHG4TrackKalmanFitter::MAPS_IT_TPC),
 		_output_mode(PHG4TrackKalmanFitter::MakeNewNode),
+		_over_write_svtxtrackmap(true),
+		_over_write_svtxvertexmap(true),
 		_fit_primary_tracks(false),
 		_mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
 		_mag_field_re_scaling_factor(1.4 / 1.5),
@@ -311,9 +313,18 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		}
 	}
 
-	//! add tracks to event display
-	if (_do_evt_display)
-		_fitter->getEventDisplay()->addEvent(rf_gf_tracks);
+	/*
+	 * add tracks to event display
+	 * needs to make copied for smart ptrs will be destroied even
+	 * there are still references in TGeo::EventView
+	 */
+	if (_do_evt_display) {
+		vector<genfit::Track*> copy;
+		for(genfit::Track* t : rf_gf_tracks){
+			copy.push_back(new genfit::Track(*t));
+		}
+		_fitter->getEventDisplay()->addEvent(copy);
+	}
 
 	//! find vertex using tracks
 	std::vector<genfit::GFRaveVertex*> rave_vertices;
@@ -344,8 +355,13 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 			//FIXME figure out which vertex to use.
 			SvtxVertex* vertex = NULL;
-			if (_vertexmap_refit->size() > 0)
-				vertex = _vertexmap_refit->get(0);
+			if (_over_write_svtxvertexmap) {
+				if (_vertexmap->size() > 0)
+					vertex = _vertexmap->get(0);
+			} else {
+				if (_vertexmap_refit->size() > 0)
+					vertex = _vertexmap_refit->get(0);
+			}
 
 			//BEGIN DEBUG
 //			vertex = NULL;
@@ -376,7 +392,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 					vertex);
 
 			if(!rf_track) {
-				if (_output_mode == OverwriteOriginalNode)
+				//if (_output_mode == OverwriteOriginalNode)
+				if (_over_write_svtxtrackmap)
 					_trackmap->erase(iter->first);
 			}
 
@@ -385,20 +402,20 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 //			rf_phgf_tracks.push_back(rf_phgf_track);
 //			rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
 
-			if (_output_mode == MakeNewNode || _output_mode == DebugMode)
+			if (!(_over_write_svtxtrackmap) || _output_mode == DebugMode)
 				if (_trackmap_refit) {
 					_trackmap_refit->insert(rf_track.get());
 //					delete rf_track;
 				}
 
-			if (_output_mode == OverwriteOriginalNode
+			if (_over_write_svtxtrackmap
 					|| _output_mode == DebugMode) {
 				*(dynamic_cast<SvtxTrack_v1*>(iter->second)) =
 						*(dynamic_cast<SvtxTrack_v1*>(rf_track.get()));
 //				delete rf_track;
 			}
 		} else {
-			if (_output_mode == OverwriteOriginalNode)
+			if (_over_write_svtxtrackmap)
 				_trackmap->erase(iter->first);
 		}
 	}
@@ -419,7 +436,15 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		_primary_trackmap->empty();
 
 		//FIXME figure out which vertex to use.
-		SvtxVertex* vertex = _vertexmap_refit->get(0);
+		SvtxVertex* vertex = NULL;
+		if (_over_write_svtxvertexmap) {
+			if (_vertexmap->size() > 0)
+				vertex = _vertexmap->get(0);
+		} else {
+			if (_vertexmap_refit->size() > 0)
+				vertex = _vertexmap_refit->get(0);
+		}
+
 		if (vertex) {
 			for (SvtxTrackMap::ConstIter iter = _trackmap->begin();
 					iter != _trackmap->end(); ++iter) {
@@ -434,10 +459,10 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 				std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track,
 						vertex);
 				if (rf_phgf_track) {
-					//FIXME figure out which vertex to use.
-					SvtxVertex* vertex = NULL;
-					if (_vertexmap_refit->size() > 0)
-						vertex = _vertexmap_refit->get(0);
+//					//FIXME figure out which vertex to use.
+//					SvtxVertex* vertex = NULL;
+//					if (_vertexmap_refit->size() > 0)
+//						vertex = _vertexmap_refit->get(0);
 					std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(svtx_track,
 							rf_phgf_track, vertex);
 					//delete rf_phgf_track;
@@ -640,7 +665,7 @@ int PHG4TrackKalmanFitter::CreateNodes(PHCompositeNode *topNode) {
 			cout << "SVTX node added" << endl;
 	}
 
-	if (_output_mode == MakeNewNode || _output_mode == DebugMode) {
+	if (!(_over_write_svtxtrackmap) || _output_mode == DebugMode) {
 		_trackmap_refit = new SvtxTrackMap_v1;
 		PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
 				_trackmap_refit, "SvtxTrackMapRefit", "PHObject");
@@ -659,12 +684,14 @@ int PHG4TrackKalmanFitter::CreateNodes(PHCompositeNode *topNode) {
 			cout << "Svtx/PrimaryTrackMap node added" << endl;
 	}
 
-	_vertexmap_refit = new SvtxVertexMap_v1;
-	PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
-			_vertexmap_refit, "SvtxVertexMapRefit", "PHObject");
-	tb_node->addNode(vertexes_node);
-	if (verbosity > 0)
-		cout << "Svtx/SvtxVertexMapRefit node added" << endl;
+	if (!(_over_write_svtxvertexmap)) {
+		_vertexmap_refit = new SvtxVertexMap_v1;
+		PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
+				_vertexmap_refit, "SvtxVertexMapRefit", "PHObject");
+		tb_node->addNode(vertexes_node);
+		if (verbosity > 0)
+			cout << "Svtx/SvtxVertexMapRefit node added" << endl;
+	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -709,7 +736,7 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 	}
 
 	// Output Svtx Tracks
-	if (_output_mode == MakeNewNode || _output_mode == DebugMode) {
+	if (!(_over_write_svtxtrackmap) || _output_mode == DebugMode) {
 		_trackmap_refit = findNode::getClass<SvtxTrackMap>(topNode,
 				"SvtxTrackMapRefit");
 		if (!_trackmap_refit && _event < 2) {
@@ -731,12 +758,14 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 	}
 
 	// Output Svtx Vertices
-	_vertexmap_refit = findNode::getClass<SvtxVertexMap>(topNode,
-			"SvtxVertexMapRefit");
-	if (!_vertexmap_refit && _event < 2) {
-		cout << PHWHERE << " SvtxVertexMapRefit node not found on node tree"
-				<< endl;
-		return Fun4AllReturnCodes::ABORTEVENT;
+	if (!(_over_write_svtxvertexmap)) {
+		_vertexmap_refit = findNode::getClass<SvtxVertexMap>(topNode,
+				"SvtxVertexMapRefit");
+		if (!_vertexmap_refit && _event < 2) {
+			cout << PHWHERE << " SvtxVertexMapRefit node not found on node tree"
+					<< endl;
+			return Fun4AllReturnCodes::ABORTEVENT;
+		}
 	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -1384,6 +1413,10 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 		const std::vector<genfit::GFRaveVertex*>& rave_vertices,
 		const std::vector<genfit::Track*>& gf_tracks) {
 
+	if(_over_write_svtxvertexmap){
+		_vertexmap->clear();
+	}
+
 	for (unsigned int ivtx = 0; ivtx < rave_vertices.size(); ++ivtx) {
 		genfit::GFRaveVertex* rave_vtx = rave_vertices[ivtx];
 
@@ -1413,8 +1446,18 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 			}
 		}
 
-		if (_vertexmap_refit) {
-			_vertexmap_refit->insert(svtx_vtx.get());
+		if (_over_write_svtxvertexmap) {
+			if (_vertexmap) {
+				_vertexmap->insert(svtx_vtx.get());
+			} else {
+				LogError("!_vertexmap");
+			}
+		} else {
+			if (_vertexmap_refit) {
+				_vertexmap_refit->insert(svtx_vtx.get());
+			} else {
+				LogError("!_vertexmap_refit");
+			}
 		}
 
 		if (verbosity >= 2) {

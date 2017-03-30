@@ -203,6 +203,22 @@ public:
 		_cut_min_pT = cutMinPT;
 	}
 
+	bool is_over_write_svtxtrackmap() const {
+		return _over_write_svtxtrackmap;
+	}
+
+	void set_over_write_svtxtrackmap(bool overWriteSvtxtrackmap) {
+		_over_write_svtxtrackmap = overWriteSvtxtrackmap;
+	}
+
+	bool is_over_write_svtxvertexmap() const {
+		return _over_write_svtxvertexmap;
+	}
+
+	void set_over_write_svtxvertexmap(bool overWriteSvtxvertexmap) {
+		_over_write_svtxvertexmap = overWriteSvtxvertexmap;
+	}
+
 private:
 
 	//! Event counter
@@ -268,6 +284,9 @@ private:
 
 	//bool _make_separate_nodes;
 	OutPutMode _output_mode;
+
+	bool _over_write_svtxtrackmap;
+	bool _over_write_svtxvertexmap;
 
 	bool _fit_primary_tracks;
 
