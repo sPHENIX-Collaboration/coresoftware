@@ -62,12 +62,15 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 	PHG4HitContainer* phg4hits_svtx = findNode::getClass<PHG4HitContainer>(
 			topNode, "G4HIT_SVTX");
 
+	PHG4HitContainer* phg4hits_intt = findNode::getClass<PHG4HitContainer>(
+			topNode, "G4HIT_SILICON_TRACKER");
+
 	PHG4HitContainer* phg4hits_maps = findNode::getClass<PHG4HitContainer>(
 			topNode, "G4HIT_MAPS");
 
-	if (!phg4hits_svtx and !phg4hits_maps) {
+	if (!phg4hits_svtx and phg4hits_intt and !phg4hits_maps) {
 		if (verbosity >= 0) {
-			LogError("!phg4hits_svtx and !phg4hits_maps");
+			LogError("No PHG4HitContainer found!");
 		}
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
@@ -80,15 +83,18 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
 
-	PHG4CellContainer* cells_svtx = findNode::getClass<
-			PHG4CellContainer>(topNode, "G4CELL_SVTX");
+	PHG4CellContainer* cells_svtx = findNode::getClass<PHG4CellContainer>(
+			topNode, "G4CELL_SVTX");
 
-	PHG4CellContainer* cells_maps = findNode::getClass<
-			PHG4CellContainer>(topNode, "G4CELL_MAPS");
+	PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
+			topNode, "G4CELL_SILICON_TRACKER");
 
-	if (!cells_svtx and !cells_maps) {
+	PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
+			topNode, "G4CELL_MAPS");
+
+	if (!cells_svtx and !cells_intt and !cells_maps) {
 		if (verbosity >= 0) {
-			LogError("!cells_svtx and !cells_maps");
+			LogError("No PHG4CellContainer found!");
 		}
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
@@ -103,6 +109,7 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 		PHG4Cell* cell = nullptr;
 
 		if(!cell and cells_svtx) cell = cells_svtx->findCell(svtxhit->get_cellid());
+		if(!cell and cells_intt) cell = cells_intt->findCell(svtxhit->get_cellid());
 		if(!cell and cells_maps) cell = cells_maps->findCell(svtxhit->get_cellid());
 
 		if(!cell){
@@ -119,6 +126,7 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 
 			PHG4Hit *phg4hit = nullptr;
 			if(!phg4hit and phg4hits_svtx) phg4hit = phg4hits_svtx->findHit(hits_it->first);
+			if(!phg4hit and phg4hits_intt) phg4hit = phg4hits_intt->findHit(hits_it->first);
 			if(!phg4hit and phg4hits_maps) phg4hit = phg4hits_maps->findHit(hits_it->first);
 
 			if(!phg4hit){
