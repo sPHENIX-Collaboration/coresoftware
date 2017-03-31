@@ -221,7 +221,7 @@ PHG4Cellv1::get_property_nocheck(const PROPERTY prop_id) const
 
 void
 PHG4Cellv1::print() const {
-  std::cout<<"New Hitv1  0x"<< hex << cellid << endl;
+  std::cout<<"New Hitv1  0x"<< hex << cellid << dec << endl;
   for (prop_map_t::const_iterator i = prop_map.begin(); i!= prop_map.end(); ++i)
     {
       PROPERTY prop_id = static_cast<PROPERTY>(i->first);
