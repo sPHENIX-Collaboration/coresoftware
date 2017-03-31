@@ -184,6 +184,7 @@ class PHG4mRICHDetector: public PHG4Detector
   void build_sensor(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
 
   void build_mRICH_wall(G4LogicalVolume* space, G4LogicalVolume* a_mRICH, G4double* bowlPar);
+  G4double eta2polarAngle(G4double eta);
 
   int layer;
   //int blackhole;

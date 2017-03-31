@@ -25,6 +25,7 @@
 #include <Geant4/G4VPhysicalVolume.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4SubtractionSolid.hh>
+#include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4VisAttributes.hh>
@@ -60,15 +61,15 @@ bool PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume * volume) const
 //______________________________________________________________
 void PHG4mRICHDetector::Construct( G4LogicalVolume* logicWorld )
 {
-  int single_mRICH=1;
+  int single_mRICH=0;
   G4double bowlPar[4];
   
   if (single_mRICH) Construct_a_mRICH(logicWorld);
   else {
-    build_Space(logicWorld,bowlPar);
-    //G4LogicalVolume* space = build_Space(logicWorld,bowlPar);
-    //G4LogicalVolume* a_mRICH=Construct_a_mRICH(0);
-    //build_mRICH_wall(space,a_mRICH,bowlPar);
+    //build_Space(logicWorld,bowlPar);
+    G4LogicalVolume* space = build_Space(logicWorld,bowlPar);
+    G4LogicalVolume* a_mRICH=Construct_a_mRICH(0);
+    build_mRICH_wall(space,a_mRICH,bowlPar);
   }
 }
 //_______________________________________________________________
@@ -80,10 +81,10 @@ G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWor
   /*holder box and hollow volume*/ G4VPhysicalVolume* hollowVol=build_holderBox(parameters,logicWorld);
   /*foam holder for aerogel     */ build_foamHolder(parameters,hollowVol->GetLogicalVolume());
   /*aerogel                     */ build_aerogel(parameters,hollowVol);
-  /*lens                        */ build_lens(parameters->GetLensPar("fresnelLens"), hollowVol->GetLogicalVolume());
-  /*mirror                      */ build_mirror(parameters,hollowVol);
-  /*sensor plane                */ build_sensor(parameters,hollowVol->GetLogicalVolume());
-  /*readout electronics         */ build_polyhedra(parameters->GetPolyPar("readout"),hollowVol->GetLogicalVolume());
+  /*lens                        */ //build_lens(parameters->GetLensPar("fresnelLens"), hollowVol->GetLogicalVolume());
+  /*mirror                      */ //build_mirror(parameters,hollowVol);
+  /*sensor plane                */ //build_sensor(parameters,hollowVol->GetLogicalVolume());
+  /*readout electronics         */ //build_polyhedra(parameters->GetPolyPar("readout"),hollowVol->GetLogicalVolume());
 
   return hollowVol->GetMotherLogical();  //return detector holder box.
                                          //you have more than 1 daugthers,
@@ -1010,56 +1011,59 @@ void PHG4mRICHDetector::build_lens(LensPar* par, G4LogicalVolume* motherLV)
 //________________________________________________________________________//
 G4LogicalVolume* PHG4mRICHDetector::build_Space(G4LogicalVolume* logicWorld, G4double (&bowlPar)[4])
 {
+  int i;
+
   G4Material* Air = G4Material::GetMaterial("G4_AIR");
   G4double r_inner=5*m;
   G4double r_outer=5.7*m;
-  G4double dZ=0.4*r_outer;   //shifting to the -ve z direction
-  G4double r_tub=110*mm;     //copied from Forward Ecal 
+  G4double phi[2];          //0=min, 1=max
+  G4double hin[2],hout[2];    //0=min, 1=max
+  G4double cone_l[3];         //0=l_in, 1=l_out, 2=l_out-l_in
 
+  phi[0]=eta2polarAngle(1.9);
+  phi[1]=eta2polarAngle(1.1);
+
+  cone_l[0]=0.1*r_outer;
+  cone_l[1]=r_outer;
+  cone_l[2]=cone_l[1]-cone_l[0];  //=0.9*r_outer
+
+  for (i=0;i<2;i++) {
+    hin[i]=cone_l[0]*tan(phi[i]);
+    hout[i]=cone_l[1]*tan(phi[i]);
+  }
+  
   //copy dimension back to Construct()
   bowlPar[0]=r_inner;
   bowlPar[1]=r_outer;
-  bowlPar[2]=r_outer-dZ;
-  bowlPar[3]=r_tub;
+  bowlPar[2]=phi[0];
+  bowlPar[3]=phi[1];
 
-  G4VSolid* sphere_solid =new G4Sphere("sphere",
-				       r_inner,r_outer,
-				       0,twopi,
-				       0,twopi);
+  G4VSolid* sphere =new G4Sphere("sphere",
+                                       r_inner,r_outer,
+                                       0,twopi,
+                                       0,twopi);
   
-  G4VSolid* box_solid =new G4Box("box",r_outer,r_outer,r_outer);
-  /*
-  G4VSolid* tube_solid=new G4Tubs("beamPipe",0,r_tub,r_outer,0,twopi); 
+  G4VSolid* cone=new G4Cons("cone",
+			    hin[0], hin[1],
+			    hout[0],hout[1],
+			    cone_l[2]/2.0,0,twopi);
 
-  // bowl_solid = sphere_solid - box_solid - tube_solid
+  G4IntersectionSolid* bowl_solid=new G4IntersectionSolid("bowl",sphere,cone,
+							  0,G4ThreeVector(0.00*m, 0.00*m, r_outer-cone_l[2]/2.0));
   
-  G4SubtractionSolid* tmp= new G4SubtractionSolid("tmp", sphere_solid, tube_solid,
-						  0,G4ThreeVector(0*m, 0*m, 0*mm));
-  G4SubtractionSolid* bowl_solid = new G4SubtractionSolid("bowl",tmp, box_solid,
-							  0, G4ThreeVector(0.00*m, 0.00*m, -dZ));
-  */							  
-
-  G4SubtractionSolid* bowl_solid = new G4SubtractionSolid("bowl",
-							  sphere_solid,
-							  box_solid,
-							  0,
-							  G4ThreeVector(0.00*m, 0.00*m, -dZ) );
-
   G4LogicalVolume* bowl_log =  new G4LogicalVolume(bowl_solid, Air, "bowl", 0, 0, 0);
-
-  /* Define visualization attributes for envelope cone */
+  
   G4VisAttributes* visAtt = new G4VisAttributes();
   visAtt->SetVisibility(true);
-  visAtt->SetForceSolid(true);
-  visAtt->SetColour(G4Colour::Magenta());
+  visAtt->SetForceSolid(false);
+  visAtt->SetColour(G4Color(1.0,0.0,1.0,1.0));    //R,G,B,alpha
   bowl_log->SetVisAttributes(visAtt);
-
+  
   new G4PVPlacement( 0,G4ThreeVector(0, 0, 0),
                      bowl_log, "bowl", logicWorld, 0, false, 1);
-
+  
   return bowl_log;
 }
-
 //________________________________________________________________________//
 void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*a_mRICH, G4double* bowlPar)
 {
@@ -1075,8 +1079,9 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*
   // space (bowl shape) dimension
   G4double rinner=bowlPar[0];
   G4double router=bowlPar[1];
-  G4double d=bowlPar[2];
-  G4double r_tub=bowlPar[3];
+  G4double phi_min=bowlPar[2];
+  G4double phi_max=bowlPar[3];
+
   if ((router-rinner)<(2*halfLength)) {
     G4cout<<"PHG4mRICHDetector::build_mRICH_wall ::::::::::: ERROR! Not enough space for mRICH"<<G4endl;
     return;
@@ -1089,18 +1094,22 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*
   G4double c;  // circumference of each ring on the bowl
   int N;       // num. of mRICH on each ring on the bowl
 
-  G4double minAngle=atan(sqrt(pow(r_tub,2)-pow(d,2))/d);
-  printf("minAngle=%f\n",minAngle);
-  G4double maxAngle=atan(sqrt(pow(rinner,2)-pow(d,2))/d);
   G4double theta,phi,deltaTheta, deltaPhi;
   deltaPhi=2*atan(halfHeight/rinner);
   phi=0;
 
   i=0;
-  for (phi=0;phi<maxAngle;phi=phi+deltaPhi) {
+  for (phi=phi_min+deltaPhi;phi<phi_max;phi=phi+deltaPhi) {  //add extra space to avoid overlap
     c=twopi*(rinner)*sin(phi);
     N=floor(c/(2*halfWidth));
     deltaTheta=2*pi/N;
+    
+    if (1) {
+      printf("-----------------------------------------------------------------------------\n");
+      printf("ring %d",i+1);
+      printf("(minPhi, maxPhi, delPhi)=(%.2lf,%.2lf,%.2f) deg ",phi_min*180/pi,phi_max*180/pi,deltaPhi*180/pi);
+      printf("phi=%.2f deg \n",phi*180/pi);
+    }
   
     j=0;
     for (theta=0;theta<=twopi;theta=theta+deltaTheta) {
@@ -1108,14 +1117,13 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*
       y=(rinner+halfLength)*sin(theta)*sin(phi);
       z=(rinner+halfLength)*cos(phi);
       
+      if (0) printf("x,y,z= %.2lf, %0.2lf, %0.2lf\n",x,y,z);
       G4RotationMatrix* rot=new G4RotationMatrix(); 
       //rot->rotateX(phi*180*deg/pi);
       //rot->rotateY(phi*180*deg/pi);
-      
+       
       sprintf(name,"mRICH_%d_%d",i+1,j+1);
-      printf("::::::::: %s (x,y,z)=(%.2f,%.2f,%.2f) (maxAngle,theta,phi,deltaTheta,deltaPhi)=(%.2f,%.2f,%.2f,%.2f,%.2f)deg\n",
-	     name,x,y,z,maxAngle*180/pi,theta*180/pi,phi*180/pi,deltaTheta*180/pi,deltaPhi*180/pi);
-
+      
       new G4PVPlacement(rot, G4ThreeVector(x, y, z),
 			a_mRICH,name,space,
 			0, 0, 1);    //last digit for checking overlapping 
@@ -1124,4 +1132,10 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*
     }
     i++;
   }
+}
+//________________________________________________________________________//
+G4double PHG4mRICHDetector::eta2polarAngle(G4double eta)
+{
+  return 2*atan(exp(-eta));
+
 }
