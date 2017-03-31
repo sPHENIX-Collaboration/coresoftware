@@ -1014,8 +1014,8 @@ G4LogicalVolume* PHG4mRICHDetector::build_Space(G4LogicalVolume* logicWorld, G4d
   int i;
 
   G4Material* Air = G4Material::GetMaterial("G4_AIR");
-  G4double r_inner=5*m;
-  G4double r_outer=5.7*m;
+  G4double r_inner=3*m;
+  G4double r_outer=3.7*m;
   G4double phi[2];          //0=min, 1=max
   G4double hin[2],hout[2];    //0=min, 1=max
   G4double cone_l[3];         //0=l_in, 1=l_out, 2=l_out-l_in
@@ -1070,7 +1070,7 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*
   int i,j;
   
   // mRICH half width, height, and length + air gap
-  G4double gap=10*cm;         //large gap to avoid overlap. temporary solution
+  G4double gap=6*cm;         //large gap to avoid overlap. temporary solution
   G4Box* mRICH_box=dynamic_cast<G4Box*>(a_mRICH->GetSolid());
   G4double halfWidth=mRICH_box->GetXHalfLength() + gap;
   G4double halfHeight=halfWidth;
