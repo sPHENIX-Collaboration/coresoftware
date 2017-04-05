@@ -211,22 +211,6 @@ public:
 		_over_write_svtxvertexmap = overWriteSvtxvertexmap;
 	}
 
-	bool is_over_write_svtxtrackmap() const {
-		return _over_write_svtxtrackmap;
-	}
-
-	void set_over_write_svtxtrackmap(bool overWriteSvtxtrackmap) {
-		_over_write_svtxtrackmap = overWriteSvtxtrackmap;
-	}
-
-	bool is_over_write_svtxvertexmap() const {
-		return _over_write_svtxvertexmap;
-	}
-
-	void set_over_write_svtxvertexmap(bool overWriteSvtxvertexmap) {
-		_over_write_svtxvertexmap = overWriteSvtxvertexmap;
-	}
-
 private:
 
 	//! Event counter

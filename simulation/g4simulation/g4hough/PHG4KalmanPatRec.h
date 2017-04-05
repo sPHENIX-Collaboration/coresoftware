@@ -358,6 +358,8 @@ private:
 			double x1, double y1, double r1,
 			std::set<std::vector<double> >* points);
 
+	int _event;
+
 	std::vector<int> _seeding_layer; //layer numbers that are used for seeding
 
 	unsigned int _nlayers;               ///< number of detector layers
@@ -437,6 +439,8 @@ private:
 
 	int _primary_pid_guess;
 	double _cut_min_pT;
+
+	bool _do_evt_display;
 
 	int _nlayers_all;
 	std::map<int, unsigned int> _layer_ilayer_map_all;

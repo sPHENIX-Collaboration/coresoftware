@@ -122,6 +122,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _track_fitting_alg_name("DafRef"),
 	  _primary_pid_guess(211),
 	  _cut_min_pT(0.1),
+	  _do_evt_display(true),
 	  _nlayers_all(67),
 	  _layer_ilayer_map_all(),
 	  _radii_all(),
@@ -132,6 +133,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _trackID_PHGenFitTrack(),
 	  //_trackID_clusterID(),
 	  _max_incr_chi2(5){
+	_event = 0;
 }
 
 int PHG4KalmanPatRec::Init(PHCompositeNode* topNode) {
@@ -271,6 +273,9 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 }
 
 int PHG4KalmanPatRec::End(PHCompositeNode *topNode) {
+
+	if (_do_evt_display)
+		_fitter->displayEvent();
 
 	if(verbosity >= 1)
 		LogDebug("Enter End \n");
@@ -654,13 +659,13 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 		//if(ilayer >= (int) _radii.size()) break; //yuhw
 	}
 
-	if (verbosity >= 2) {
-		for (map<int, unsigned int>::const_iterator iter = _layer_ilayer_map_all.begin();
-				iter != _layer_ilayer_map_all.end(); iter++) {
-			cout << "_layer_ilayer_map_all: first: " << iter->first << "; second: "
-					<< iter->second << endl;
-		}
-	}
+//	if (verbosity >= 10) {
+//		for (map<int, unsigned int>::const_iterator iter = _layer_ilayer_map_all.begin();
+//				iter != _layer_ilayer_map_all.end(); iter++) {
+//			cout << "_layer_ilayer_map_all: first: " << iter->first << "; second: "
+//					<< iter->second << endl;
+//		}
+//	}
 
 	// now we extract the information from the cellgeos first
 	if (cellgeos) {
@@ -672,8 +677,8 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 
 			//if(cellgeo->get_layer() > (int) _radii.size() ) continue;
 
-			if (verbosity > 1)
-				cellgeo->identify();
+//			if (verbosity >= 2)
+//				cellgeo->identify();
 
 			_radii_all[_layer_ilayer_map_all[cellgeo->get_layer()]] =
 					cellgeo->get_radius();
@@ -695,8 +700,8 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 
 			//if(geo->get_layer() > (int) _radii.size() ) continue;
 
-			if (verbosity > 1)
-				geo->identify();
+//			if (verbosity >= 2)
+//				geo->identify();
 
 			_radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
 					geo->get_radius();
@@ -717,8 +722,8 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 
 			//if(geo->get_layer() > (int) _radii.size() ) continue;
 
-			if (verbosity > 1)
-				geo->identify();
+//			if (verbosity >= 2)
+//				geo->identify();
 
 			_radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
 					geo->get_radius();
@@ -762,7 +767,7 @@ int PHG4KalmanPatRec::InitializePHGenFit(PHCompositeNode* topNode) {
 			(_reverse_mag_field) ?
 					-1. * _mag_field_re_scaling_factor :
 					_mag_field_re_scaling_factor, _track_fitting_alg_name,
-			"RKTrackRep", false);
+			"RKTrackRep", _do_evt_display);
 
 	if (!_fitter) {
 		cerr << PHWHERE << endl;
@@ -1692,20 +1697,25 @@ int PHG4KalmanPatRec::FullTrackFitting() {
 int PHG4KalmanPatRec::ExportOutput() {
 
 	std::cout << "=========================" << std::endl;
-	std::cout << "PHG4KalmanPatRec::FullTrackFitting: " << std::endl;
+	std::cout << "PHG4KalmanPatRec::FullTrackFitting: Event: "<< ++_event << std::endl;
 	std::cout << "=========================" << std::endl;
 
 	for (std::map<int, std::shared_ptr<PHGenFit::Track>>::iterator iter =
 			_trackID_PHGenFitTrack.begin();
 			iter != _trackID_PHGenFitTrack.end(); iter++) {
 
-		_fitter->processTrack(iter->second.get(), false);
+		if (_fitter->processTrack(iter->second.get(), false) != 0) {
+			if (verbosity >= 1)
+				LogWarning("Track fitting failed");
+			//delete track;
+			continue;
+		}
 
 		std::cout << "=========================" << std::endl;
 		std::cout << "trackID: " << iter->first << std::endl;
 		std::cout << "=========================" << std::endl;
 
-		iter->second->getGenFitTrack()->Print();
+//		iter->second->getGenFitTrack()->Print();
 
 		SvtxTrack_v1 track;
 		track.set_id(iter->first);
@@ -1752,6 +1762,17 @@ int PHG4KalmanPatRec::ExportOutput() {
 			cout << "px = " << track.get_px() << " py = " << track.get_py()
 					<< " pz = " << track.get_pz() << endl;
 		}
+	}
+
+	if (_do_evt_display) {
+		vector<genfit::Track*> copy;
+		for(std::map<int, std::shared_ptr<PHGenFit::Track>>::iterator iter =
+				_trackID_PHGenFitTrack.begin();
+				iter != _trackID_PHGenFitTrack.end(); iter++){
+
+			copy.push_back(new genfit::Track(*iter->second->getGenFitTrack()));
+		}
+		_fitter->getEventDisplay()->addEvent(copy);
 	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -1869,7 +1890,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		float layer_r = _radii_all[_layer_ilayer_map_all[layer]];
 
 		std::cout<<"========================="<<std::endl;
-		std::cout<<"layer: "<<layer<<std::endl;
+		std::cout<<__LINE__<<":layer: "<<layer<<std::endl;
 		std::cout<<"========================="<<std::endl;
 
 //		std::unique_ptr<genfit::MeasuredStateOnPlane> state = std::unique_ptr
@@ -1912,13 +1933,13 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 				LogError("No cluster Found!\n");
 				continue;
 			}
-			cluster->identify();
+//			cluster->identify();
 			TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
 			TVector3 n(cluster->get_x(), cluster->get_y(), 0);
 			PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,
 					n, cluster->get_phi_error(), cluster->get_z_error());
 			meas->set_cluster_ID(cluster_ID);
-			meas->getMeasurement()->Print();
+//			meas->getMeasurement()->Print();
 			measurements.push_back(meas);
 		}
 		std::map<double, PHGenFit::Track*> incr_chi2s_new_tracks;
@@ -1961,6 +1982,8 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 
 
 int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
+
+	_layer_zID_phiID_cluserID.clear();
 
 	//for(SimpleHit3D cluster : _clusters){
 	for (SvtxClusterMap::Iter iter = _g4clusters->begin();
@@ -2025,8 +2048,9 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 	int max_phi_bin = (int)(phi_center+phi_window)/_layer_zID_phiID_cluserID_phiSize+1;
 
 	if(verbosity > 2) {
-		LogDebug("\n");
-		std::cout<<" layer: "<<layer
+		std::cout
+				<<__LINE__<<": "
+				<<" layer: "<<layer
 				<<", min_z_bin: "<<min_z_bin
 				<<", max_z_bin: "<<max_z_bin
 				<<", min_phi_bin: "<<min_phi_bin
