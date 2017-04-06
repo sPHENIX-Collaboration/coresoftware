@@ -39,6 +39,9 @@ public:
 	//! Default ctor
 	Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMatrixDSym seed_cov);
 
+	//! Copy constructor
+	Track(const PHGenFit::Track &t);
+
 	//! Default dtor
 	~Track();
 
@@ -71,6 +74,8 @@ public:
 	genfit::MeasuredStateOnPlane* extrapolateToPoint(TVector3 P, const int tr_point_id = 0) const;
 	//!
 	genfit::Track* getGenFitTrack() {return _track;}
+
+	genfit::Track* getGenFitTrack() const {return _track;}
 
 	double get_chi2() const {
 		genfit::AbsTrackRep* rep = _track->getCardinalRep();

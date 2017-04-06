@@ -48,6 +48,11 @@ Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMa
 	//_track = NEW(genfit::Track)(rep, seedState, seedCov);
 }
 
+Track::Track(const PHGenFit::Track &t) {
+	_track = new genfit::Track(*(t.getGenFitTrack()));
+	_clusterIDs = t.get_cluster_IDs();
+}
+
 int Track::addMeasurement(PHGenFit::Measurement*measurement) {
 
 	std::vector<genfit::AbsMeasurement*> msmts;
@@ -256,10 +261,13 @@ int Track::updateOneMeasurementKalman(
 	for (PHGenFit::Measurement* measurement : measurements) {
 
 		PHGenFit::Track* new_track = NULL;
-		if(incr_chi2s_new_tracks.size() == 0)
-			new_track = const_cast<PHGenFit::Track*>(this);
-		else
-			new_track = new PHGenFit::Track(*this);
+
+		new_track = new PHGenFit::Track(*this);
+
+//		if(incr_chi2s_new_tracks.size() == 0)
+//			new_track = const_cast<PHGenFit::Track*>(this);
+//		else
+//			new_track = new PHGenFit::Track(*this);
 
 		genfit::Track *track = new_track->getGenFitTrack();
 		genfit::AbsTrackRep* rep = track->getCardinalRep();
@@ -270,15 +278,15 @@ int Track::updateOneMeasurementKalman(
 		genfit::SharedPlanePtr plane = NULL;
 
 
-		std::cout<<"track->getPointWithMeasurement(): "<<track->getPointWithMeasurement(-1)<<std::endl;
+		std::cout << __LINE__ << ": " << "track->getPointWithMeasurement(): " << track->getPointWithMeasurement(-1) << std::endl;
 
 		if(track->getNumPointsWithMeasurement() > 0) {
 			tp_base = track->getPointWithMeasurement(-1);
 			newFi = !(tp_base->hasFitterInfo(rep));
-			tp_base->Print();
+			//tp_base->Print();
 		}
 
-		std::cout<<"newFi: "<<newFi<<std::endl;
+		std::cout << __LINE__ << ": " <<"newFi: "<<newFi<<std::endl;
 		if (newFi) {
 			state = std::unique_ptr < genfit::MeasuredStateOnPlane
 					> (new genfit::MeasuredStateOnPlane(rep));
@@ -303,7 +311,7 @@ int Track::updateOneMeasurementKalman(
 		genfit::KalmanFitterInfo* fi = new genfit::KalmanFitterInfo(tp, rep);
 		tp->setFitterInfo(fi);
 
-		std::cout <<"track->getPointWithMeasurement(): "<<track->getPointWithMeasurement(-1)<<std::endl;
+		std::cout<< __LINE__ << ": " <<"track->getPointWithMeasurement(): "<<track->getPointWithMeasurement(-1)<<std::endl;
 //		if (track->getNumPointsWithMeasurement() > 0) {
 //			tp_base = track->getPointWithMeasurement(-1);
 //			if (tp_base->hasFitterInfo(rep)) {
@@ -317,7 +325,13 @@ int Track::updateOneMeasurementKalman(
 		plane = rawMeasurements[0]->constructPlane(*state);
 
 		//double extLen = rep->extrapolateToPlane(*state, plane);
-		rep->extrapolateToPlane(*state, plane);
+
+		try {
+			rep->extrapolateToPlane(*state, plane);
+		} catch (...) {
+			LogWarning("Can not extrapolate track!")<<std::endl;
+			return -1;
+		}
 
 		fi->setPrediction(state->clone(), direction);
 		//MeasuredStateOnPlane *state = fi->getPrediction(direction);
@@ -371,7 +385,7 @@ int Track::updateOneMeasurementKalman(
 
 			TVectorD resNew(measurement - H->Hv(stateVector));
 
-			// Calculate chi²
+			// Calculate chi2
 			TMatrixDSym HCHt(cov);
 			H->HMHt(HCHt);
 			HCHt -= V;
