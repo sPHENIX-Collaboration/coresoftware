@@ -60,10 +60,13 @@
 #include <cmath>
 #include <float.h>
 #include <iostream>
+#include <bitset>
 
 #define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp
+
+#define _DEBUG_
 
 using namespace std;
 
@@ -128,6 +131,8 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _radii_all(),
 	  _search_win_multiplier(50),
 	  _layer_zID_phiID_cluserID(),
+	  _half_max_z(160),
+	  _half_max_rphi(252), //80cm * Pi
 	  _layer_zID_phiID_cluserID_phiSize(0.12),
 	  _layer_zID_phiID_cluserID_zSize(0.17),
 	  _trackID_PHGenFitTrack(),
@@ -1698,22 +1703,23 @@ int PHG4KalmanPatRec::ExportOutput() {
 
 	std::cout << "=========================" << std::endl;
 	std::cout << "PHG4KalmanPatRec::FullTrackFitting: Event: "<< ++_event << std::endl;
+	std::cout << "Total Raw Tracks: " << _trackID_PHGenFitTrack.size() << std::endl;
 	std::cout << "=========================" << std::endl;
 
 	for (std::map<int, std::shared_ptr<PHGenFit::Track>>::iterator iter =
 			_trackID_PHGenFitTrack.begin();
 			iter != _trackID_PHGenFitTrack.end(); iter++) {
 
+		std::cout << "=========================" << std::endl;
+		std::cout << __LINE__ << "trackID: " << iter->first << std::endl;
+		std::cout << "=========================" << std::endl;
+
 		if (_fitter->processTrack(iter->second.get(), false) != 0) {
 			if (verbosity >= 1)
-				LogWarning("Track fitting failed");
+				LogWarning("Track fitting failed\n");
 			//delete track;
 			continue;
 		}
-
-		std::cout << "=========================" << std::endl;
-		std::cout << "trackID: " << iter->first << std::endl;
-		std::cout << "=========================" << std::endl;
 
 //		iter->second->getGenFitTrack()->Print();
 
@@ -1893,12 +1899,19 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		std::cout<<__LINE__<<":layer: "<<layer<<std::endl;
 		std::cout<<"========================="<<std::endl;
 
-//		std::unique_ptr<genfit::MeasuredStateOnPlane> state = std::unique_ptr
-//				< genfit::MeasuredStateOnPlane
-//				> (track->extrapolateToCylinder(layer_r, TVector3(0, 0, 0),
-//						TVector3(0, 0, 1), -1));
-		genfit::MeasuredStateOnPlane *state = track->extrapolateToCylinder(
-				layer_r, TVector3(0, 0, 0), TVector3(0, 0, 1), 0);
+		std::unique_ptr<genfit::MeasuredStateOnPlane> state = nullptr;
+		try {
+			state = std::unique_ptr < genfit::MeasuredStateOnPlane
+					> (track->extrapolateToCylinder(layer_r, TVector3(0, 0, 0),
+							TVector3(0, 0, 1), -1));
+//		genfit::MeasuredStateOnPlane *state = track->extrapolateToCylinder(
+//				layer_r, TVector3(0, 0, 0), TVector3(0, 0, 1), 0);
+		} catch (...) {
+			if (verbosity > 1) {
+				LogWarning("Can not extrapolate to Cylinder!")<<std::endl;
+			}
+			continue;
+		}
 
 		TVector3 pos = state->getPos();
 
@@ -1943,23 +1956,57 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 			measurements.push_back(meas);
 		}
 		std::map<double, PHGenFit::Track*> incr_chi2s_new_tracks;
+
+#ifdef _DEBUG_
 		LogDebug("measurements.size(): ")<<measurements.size()<<endl;
+//		LogDebug("\n");
+//		track->getGenFitTrack()->Print();
+#endif
+
 		track->updateOneMeasurementKalman(measurements, incr_chi2s_new_tracks);
+#ifdef _DEBUG_
+//		LogDebug("\n");
+//		track->getGenFitTrack()->Print();
 		LogDebug("incr_chi2s_new_tracks.size(): ")<<incr_chi2s_new_tracks.size()<<endl;
 
-		//the first one is aleady registered
+#endif
+
+		// Update first track candidate
+		if (incr_chi2s_new_tracks.size() > 0) {
+			std::map<double, PHGenFit::Track*>::iterator iter =
+					incr_chi2s_new_tracks.begin();
+
+#ifdef _DEBUG_
+			std::cout << __LINE__ << ": " << "First candidate: " << "IncrChi2: "
+					<< iter->first << std::endl;
+//			LogDebug("\n");
+//			_trackID_PHGenFitTrack[initial_trackID]->getGenFitTrack()->Print();
+#endif
+
+			//if (iter->first < _max_incr_chi2)
+			_trackID_PHGenFitTrack[initial_trackID] = std::shared_ptr<PHGenFit::Track> (iter->second);
+			track = _trackID_PHGenFitTrack[initial_trackID];
+//			track = std::shared_ptr<PHGenFit::Track> (iter->second);
+
+#ifdef _DEBUG_
+//			LogDebug("\n");
+//			_trackID_PHGenFitTrack[initial_trackID]->getGenFitTrack()->Print();
+#endif
+
+		}
+
+		// Update other candidates
 		if (incr_chi2s_new_tracks.size() > 1) {
 			for (std::map<double, PHGenFit::Track*>::iterator iter =
-					incr_chi2s_new_tracks.begin();
-					iter != incr_chi2s_new_tracks.end(); iter++) {
-				//TODO make some cuts?
+					(++incr_chi2s_new_tracks.begin());
+					iter != incr_chi2s_new_tracks.end(); ++iter) {
+
 				if (iter->first > _max_incr_chi2)
 					break;
 
-				if (track.get() == iter->second) {
-					//_trackID_clusterID[initial_trackID].push_back();
-					continue;
-				}
+#ifdef _DEBUG_
+				std::cout <<__LINE__<<": "<< "Track Spliting with "<< "IncrChi2: "<< iter->first << std::endl;
+#endif
 
 				_trackID_PHGenFitTrack.insert(
 						std::make_pair(_trackID_PHGenFitTrack.size(),
@@ -1968,6 +2015,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 			}
 		}
 
+#ifdef _DEBUG_
 		LogDebug("updateOneMeasurementKalman:")<<endl;
 		std::cout<<"itrack: "<<itrack
 				<<", layer: "<<layer
@@ -1975,6 +2023,14 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 				<<", #tracks: "<<incr_chi2s_new_tracks.size()
 				<<", #totoal tracks: "<<_trackID_PHGenFitTrack.size()
 				<<std::endl;
+
+		for (std::map<double, PHGenFit::Track*>::iterator iter =
+				incr_chi2s_new_tracks.begin();
+				iter != incr_chi2s_new_tracks.end(); iter++) {
+			std::cout << "IncrChi2: "<< iter->first << std::endl;
+		}
+#endif
+
 	} // layer loop
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -1990,47 +2046,24 @@ int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 			iter != _g4clusters->end(); ++iter) {
 		SvtxCluster* cluster = iter->second;
 
+		unsigned int layer = cluster->get_layer();
+
 		float phi = atan2(cluster->get_y(),cluster->get_x());
 		float r = sqrt(cluster->get_x()*cluster->get_x() + cluster->get_y()*cluster->get_y());
 		float rphi = r*phi;
 		float z = cluster->get_z();
 
-		int iphi = (int) rphi/_layer_zID_phiID_cluserID_phiSize;
-		int iz = (int) z/_layer_zID_phiID_cluserID_zSize;
-
 		if(verbosity > 2) {
-			LogDebug("\n");
-			std::cout<<" layer: "<<cluster->get_layer()
+			std::cout<<__LINE__<<": "
 					<<", ID: "<<cluster->get_id()
 					<<", r: "<<r
 					<<", rphi: "<<rphi
 					<<", z: "<<z
-					<<", iphi: "<<iphi
-					<<", iz: "<<iz
 					<<endl;
 		}
 
-		std::map<int, std::multimap<int, unsigned int>> zID_phiID_cluserID;
-
-		if(_layer_zID_phiID_cluserID.find(cluster->get_layer())!=_layer_zID_phiID_cluserID.end()){
-			zID_phiID_cluserID = _layer_zID_phiID_cluserID.find(cluster->get_layer())->second;
-
-			if(zID_phiID_cluserID.find(iz)!=zID_phiID_cluserID.end())
-				zID_phiID_cluserID[iz].insert(std::make_pair(iphi, cluster->get_id()));
-			else {
-				std::multimap<int, unsigned int> phiID_cluserID;
-				phiID_cluserID.insert(std::make_pair(iphi, cluster->get_id()));
-				zID_phiID_cluserID[iz] = phiID_cluserID;
-			}
-		} else {
-			std::multimap<int, unsigned int> phiID_cluserID;
-			phiID_cluserID.insert(std::make_pair(iphi, cluster->get_id()));
-
-			zID_phiID_cluserID[iz] = phiID_cluserID;
-
-			_layer_zID_phiID_cluserID[cluster->get_layer()] = zID_phiID_cluserID;
-		}
-
+		unsigned int idx = encode_cluster_index(layer, z, rphi);
+		_layer_zID_phiID_cluserID.insert(std::make_pair(idx, cluster->get_id()));
 	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -2042,10 +2075,23 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 
 	std::vector<unsigned int> cluster_IDs;
 
-	int min_z_bin = (int)(z_center-z_window)/_layer_zID_phiID_cluserID_zSize;
-	int max_z_bin = (int)(z_center+z_window)/_layer_zID_phiID_cluserID_zSize+1;
-	int min_phi_bin = (int)(phi_center-phi_window)/_layer_zID_phiID_cluserID_phiSize;
-	int max_phi_bin = (int)(phi_center+phi_window)/_layer_zID_phiID_cluserID_phiSize+1;
+	unsigned int min_z_bin = (unsigned int)(z_center-z_window + _half_max_z)/_layer_zID_phiID_cluserID_zSize;
+	unsigned int max_z_bin = (unsigned int)(z_center+z_window + _half_max_z)/_layer_zID_phiID_cluserID_zSize;
+	unsigned int min_rphi_bin = (unsigned int)(phi_center-phi_window + _half_max_rphi)/_layer_zID_phiID_cluserID_phiSize;
+	unsigned int max_rphi_bin = (unsigned int)(phi_center+phi_window + _half_max_rphi)/_layer_zID_phiID_cluserID_phiSize;
+
+	for (unsigned int iz = min_z_bin; iz <= max_z_bin; ++iz) {
+		for (unsigned int irphi = min_rphi_bin; irphi <= max_rphi_bin;
+				++irphi) {
+			unsigned int idx = encode_cluster_index(layer, iz, irphi);
+			for (std::multimap<unsigned int, unsigned int>::const_iterator iter =
+					_layer_zID_phiID_cluserID.lower_bound(idx);
+					iter != _layer_zID_phiID_cluserID.upper_bound(idx);
+					++iter) {
+				cluster_IDs.push_back(iter->second);
+			}
+		}
+	}
 
 	if(verbosity > 2) {
 		std::cout
@@ -2053,20 +2099,10 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 				<<" layer: "<<layer
 				<<", min_z_bin: "<<min_z_bin
 				<<", max_z_bin: "<<max_z_bin
-				<<", min_phi_bin: "<<min_phi_bin
-				<<", max_phi_bin: "<<max_phi_bin
+				<<", min_rphi_bin: "<<min_rphi_bin
+				<<", max_rphi_bin: "<<max_rphi_bin
+				<<", found #clusters: "<<cluster_IDs.size()
 				<<endl;
-	}
-
-	std::map<int, std::multimap<int, unsigned int>> zID_phiID_cluserID = _layer_zID_phiID_cluserID[layer];
-
-	for(std::map<int, std::multimap<int, unsigned int>>::const_iterator iter_z = zID_phiID_cluserID.lower_bound(min_z_bin);
-			iter_z!=zID_phiID_cluserID.upper_bound(max_z_bin); ++iter_z){
-		std::multimap<int, unsigned int> phiID_cluserID = iter_z->second;
-		for(std::multimap<int, unsigned int>::const_iterator iter_phi = phiID_cluserID.lower_bound(min_phi_bin);
-				iter_phi!=phiID_cluserID.upper_bound(max_phi_bin);++iter_phi){
-			cluster_IDs.push_back(iter_phi->second);
-		}
 	}
 
 	return cluster_IDs;
@@ -2078,6 +2114,59 @@ std::shared_ptr<SvtxTrack> PHG4KalmanPatRec::MakeSvtxTrack(
 	std::shared_ptr<SvtxTrack> svtxtrack(new SvtxTrack_v1());
 
 	return svtxtrack;
+}
+
+unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
+		const float z, const float rphi) {
+
+	unsigned int idx = UINT_MAX;
+
+	if(layer >= 128) {
+		LogError("layer >= 128\n");
+		return idx;
+	}
+
+	if( (z + _half_max_z) < 0 ) {
+		LogError("(z + _half_max_z) < 0 \n");
+		return idx;
+	}
+	unsigned int iz = (z + _half_max_z) / _layer_zID_phiID_cluserID_zSize;
+
+	if( (rphi + _half_max_rphi) < 0 ) {
+		LogError("(rphi + _half_max_rphi) < 0 \n");
+		return idx;
+	}
+	unsigned int irphi = (rphi + _half_max_rphi) / _layer_zID_phiID_cluserID_phiSize;
+
+	if(verbosity > 2) {
+		std::cout<<__LINE__<<": "
+				<<" layer: "<<layer
+				<<", irphi: "<<irphi
+				<<", iz: "<<iz
+				<<endl;
+	}
+
+	return encode_cluster_index(layer, iz, irphi);
+}
+
+unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
+		const unsigned int iz, const unsigned int irphi) {
+
+	std::bitset<7> layer_bits(layer);
+	std::bitset<11> z_bits(iz);
+	std::bitset<14> rphi_bits(irphi);
+	std::bitset<32> idx_bits(0);
+
+	for(unsigned int i=0;i<idx_bits.size();++i){
+		if(i < 14)
+			idx_bits[i] = rphi_bits[i];
+		else if(i < 25)
+			idx_bits[i] = z_bits[i-14];
+		else
+			idx_bits[i] = layer_bits[i-25];
+	}
+
+	return (unsigned int) idx_bits.to_ulong();
 }
 
 bool PHG4KalmanPatRec::circle_circle_intersections(double x0, double y0,

@@ -252,6 +252,14 @@ public:
 	}
 
 
+	bool is_do_evt_display() const {
+		return _do_evt_display;
+	}
+
+	void set_do_evt_display(bool doEvtDisplay) {
+		_do_evt_display = doEvtDisplay;
+	}
+
 #ifndef __CINT__
 
 private:
@@ -318,6 +326,11 @@ private:
 
 	//! FullTrackFitting Call.
 	int BuildLayerZPhiHitMap();
+
+	//! layer: 7 bits, z: 11 bits, phi: 14 bits
+	unsigned int encode_cluster_index(const unsigned int layer, const float z, const float rphi);
+
+	unsigned int encode_cluster_index(const unsigned int layer, const unsigned int iz, const unsigned int irphi);
 
 	//! FullTrackFitting Call.
 	int TrackPropPatRec(const unsigned int itrack);
@@ -447,7 +460,11 @@ private:
 	std::vector<float> _radii_all;
 	float _search_win_multiplier;
 
-	std::map<unsigned int, std::map<int, std::multimap<int, unsigned int>>> _layer_zID_phiID_cluserID;
+	//std::map<unsigned int, std::map<int, std::multimap<int, unsigned int>>> _layer_zID_phiID_cluserID;
+	std::multimap<unsigned int,  unsigned int> _layer_zID_phiID_cluserID;
+
+	float _half_max_z;
+	float _half_max_rphi;
 	float _layer_zID_phiID_cluserID_phiSize;
 	float _layer_zID_phiID_cluserID_zSize;
 
