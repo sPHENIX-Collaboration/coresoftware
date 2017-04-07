@@ -122,7 +122,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _mag_field_re_scaling_factor(1.4/1.5),
 	  _reverse_mag_field(true),
 	  _fitter(NULL),
-	  _track_fitting_alg_name("DafRef"),
+	  _track_fitting_alg_name("DafSimple"),
 	  _primary_pid_guess(211),
 	  _cut_min_pT(0.1),
 	  _do_evt_display(true),
@@ -772,7 +772,7 @@ int PHG4KalmanPatRec::InitializePHGenFit(PHCompositeNode* topNode) {
 			(_reverse_mag_field) ?
 					-1. * _mag_field_re_scaling_factor :
 					_mag_field_re_scaling_factor, _track_fitting_alg_name,
-			"RKTrackRep", _do_evt_display);
+					"RKTrackRep", _do_evt_display);
 
 	if (!_fitter) {
 		cerr << PHWHERE << endl;
@@ -1712,6 +1712,7 @@ int PHG4KalmanPatRec::ExportOutput() {
 
 		std::cout << "=========================" << std::endl;
 		std::cout << __LINE__ << "trackID: " << iter->first << std::endl;
+		std::cout << "Contains: " << iter->second->get_cluster_IDs().size() << " clusters." <<std::endl;
 		std::cout << "=========================" << std::endl;
 
 		if (_fitter->processTrack(iter->second.get(), false) != 0) {
@@ -1795,6 +1796,9 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 
 	float pT = kappaToPt(kappa);
 
+	//FIXME
+	if(pT < _cut_min_pT) return 1;
+
 	float x_center = cos(phi) * (d + 1 / kappa); // x coordinate of circle center
 	float y_center = sin(phi) * (d + 1 / kappa);  // y    "      "     " "
 
@@ -1848,7 +1852,10 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 //	PHGenFit::Track* track =
 //			new PHGenFit::Track(rep, seed_pos, seed_mom, seed_cov);
 
+#ifdef _DEBUG_
 	LogDebug("seed_mom phi: ")<< seed_mom.Phi() <<std::endl;
+#endif
+
 	std::vector<PHGenFit::Measurement*> measurements;
 	std::vector<unsigned int> hitIDs;
 	for (SimpleHit3D hit : track_hits) {

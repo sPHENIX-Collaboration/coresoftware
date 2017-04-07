@@ -34,6 +34,9 @@
 #include <memory>
 #include <float.h>
 
+// PHGenFit
+#include <phgenfit/Fitter.h>
+
 // g4hough includes
 #include "SvtxTrackState.h"
 
@@ -260,6 +263,14 @@ public:
 		_do_evt_display = doEvtDisplay;
 	}
 
+	const std::string& get_track_fitting_alg_name() const {
+		return _track_fitting_alg_name;
+	}
+
+	void set_track_fitting_alg_name(const std::string& trackFittingAlgName) {
+		_track_fitting_alg_name = trackFittingAlgName;
+	}
+
 #ifndef __CINT__
 
 private:
@@ -448,6 +459,7 @@ private:
 	PHGenFit::Fitter* _fitter;
 
 	//! KalmanFitterRefTrack, KalmanFitter, DafSimple, DafRef
+	//PHGenFit::Fitter::FitterType _track_fitting_alg_name;
 	std::string _track_fitting_alg_name;
 
 	int _primary_pid_guess;
