@@ -37,6 +37,10 @@ class Measurement;
 class Fitter
 {
 public:
+
+	enum FitterType {KalmanFitter, KalmanFitterRefTrack, DafSimple, DafRef};
+	enum TrackRepType {RKTrackRep};
+
 	//! Default constructor
 	Fitter(const std::string &tgeo_file_name,
 			const std::string &field_file_name,
@@ -49,6 +53,12 @@ public:
 			genfit::AbsBField* fieldMap,
 			const std::string &fitter_choice = "KalmanFitterRefTrack",
 			const std::string &track_rep_choice = "RKTrackRep",
+			const bool doEventDisplay = false);
+
+	Fitter(TGeoManager* tgeo_manager,
+			genfit::AbsBField* fieldMap,
+			const PHGenFit::Fitter::FitterType &fitter_choice = PHGenFit::Fitter::KalmanFitter,
+			const PHGenFit::Fitter::TrackRepType &track_rep_choice = PHGenFit::Fitter::RKTrackRep,
 			const bool doEventDisplay = false);
 
 	//! Default destructor
@@ -66,6 +76,13 @@ public:
 			const double field_scaling_factor = 1.4/1.5,
 			const std::string &fitter_choice = "KalmanFitterRefTrack",
 			const std::string &track_rep_choice = "RKTrackRep",
+			const bool doEventDisplay = false);
+
+	static Fitter* getInstance(TGeoManager* tgeo_manager,
+			const std::string &field_file_name,
+			const double field_scaling_factor = 1.4/1.5,
+			const PHGenFit::Fitter::FitterType &fitter_choice = PHGenFit::Fitter::KalmanFitter,
+			const PHGenFit::Fitter::TrackRepType &track_rep_choice = PHGenFit::Fitter::RKTrackRep,
 			const bool doEventDisplay = false);
 
 	int processTrack(PHGenFit::Track* track, const bool save_to_evt_disp = false);
