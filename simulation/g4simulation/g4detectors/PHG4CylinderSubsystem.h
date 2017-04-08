@@ -8,7 +8,6 @@
 
 class PHG4CylinderDetector;
 class PHG4SteppingAction;
-class PHG4EventAction;
 
 class PHG4CylinderSubsystem: public PHG4DetectorSubsystem
 {
@@ -43,7 +42,6 @@ class PHG4CylinderSubsystem: public PHG4DetectorSubsystem
   //! accessors (reimplemented)
   PHG4Detector* GetDetector( void ) const;
   PHG4SteppingAction* GetSteppingAction( void ) const {return steppingAction_;}
-  PHG4EventAction* GetEventAction() const {return eventAction_;}
 
  private:
   void SetDefaultParameters();
@@ -56,7 +54,6 @@ class PHG4CylinderSubsystem: public PHG4DetectorSubsystem
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* steppingAction_;
 
-  PHG4EventAction *eventAction_;
 };
 
 #endif

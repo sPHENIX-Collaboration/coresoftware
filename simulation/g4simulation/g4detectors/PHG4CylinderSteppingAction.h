@@ -24,10 +24,12 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
 
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  bool UserSteppingAction(const G4Step*, bool);
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers( PHCompositeNode* );
+  void SetInterfacePointers( PHCompositeNode* );
+
+  void SaveLightYield(const int i = 1) {save_light_yield = i;}
 
   private:
 
@@ -40,6 +42,9 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
   PHG4HitContainer * hits_;
   PHG4Hit *hit;
   PHG4Shower *saveshower;
+  int save_light_yield;
+  int savetrackid;
+  int savepoststepstatus;
   int active;
   int IsBlackHole;
   double zmin;

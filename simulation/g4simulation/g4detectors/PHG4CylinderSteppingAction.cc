@@ -14,8 +14,6 @@
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 
-#include <boost/math/special_functions/sign.hpp>
-
 #include <iomanip>
 #include <iostream>
 
@@ -24,9 +22,12 @@ using namespace std;
 PHG4CylinderSteppingAction::PHG4CylinderSteppingAction( PHG4CylinderDetector* detector, const PHG4Parameters *parameters ):
   detector_( detector ),
   params(parameters),
-  hits_(NULL),
-  hit(NULL),
-  saveshower(NULL),
+  hits_(nullptr),
+  hit(nullptr),
+  saveshower(nullptr),
+  save_light_yield(params->get_int_param("lightyield")),
+  savetrackid(-1),
+  savepoststepstatus(-1),
   active(params->get_int_param("active")),
   IsBlackHole(params->get_int_param("blackhole")),
   zmin(params->get_double_param("place_z")*cm-params->get_double_param("length")*cm/2.),
@@ -43,7 +44,7 @@ PHG4CylinderSteppingAction::~PHG4CylinderSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
-  // if the last hit was saved, hit is a NULL pointer which are
+  // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete hit;
 }
@@ -100,6 +101,7 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       //       cout << "Particle: " << def->GetParticleName() << endl;
       switch (prePoint->GetStepStatus())
         {
+	case fWorldBoundary:
         case fGeomBoundary:
         case fUndefined:
 	  if (! hit)
@@ -120,10 +122,19 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 
 	  // time in ns
           hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
-	  //set the track ID
+	  //set and save the track ID
 	  hit->set_trkid(aTrack->GetTrackID());
+	  savetrackid = aTrack->GetTrackID();
           //set the initial energy deposit
           hit->set_edep(0);
+	  if (!geantino)
+	    {
+	      hit->set_eion(0);
+	    }
+	  if (save_light_yield)
+	    {
+	      hit->set_light_yield(0);
+	    }
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
 	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
@@ -148,6 +159,25 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       // here we just update the exit values, it will be overwritten
       // for every step until we leave the volume or the particle
       // ceases to exist
+      // some sanity checks for inconsistencies
+      // check if this hit was created, if not print out last post step status
+      if (! hit || ! isfinite(hit->get_x(0)))
+	{
+	  cout << "hit was not created" << endl;
+	  cout << "prestep status: " << prePoint->GetStepStatus()
+	       << ", last post step status: " << savepoststepstatus << endl;
+	  exit(1);
+	}
+      savepoststepstatus = postPoint->GetStepStatus();
+      // check if track id matches the initial one when the hit was created
+      if (aTrack->GetTrackID() != savetrackid)
+	{
+	  cout << "hits do not belong to the same track" << endl;
+	  cout << "saved track: " << savetrackid
+	       << ", current trackid: " << aTrack->GetTrackID()
+	       << endl;
+	  exit(1);
+	}
       hit->set_x( 1, postPoint->GetPosition().x() / cm );
       hit->set_y( 1, postPoint->GetPosition().y() / cm );
       hit->set_z( 1, postPoint->GetPosition().z() / cm );
@@ -170,6 +200,16 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	{
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
 	}
+      else
+	{
+	  double eion = edep - aStep->GetNonIonizingEnergyDeposit()/GeV;
+	  hit->set_eion(hit->get_eion() + eion);
+	}
+	  if (save_light_yield)
+	    {
+double light_yield = GetVisibleEnergyDeposition(aStep);
+	      hit->set_light_yield(hit->get_light_yield() + light_yield);
+	    }
       if (edep > 0)
 	{
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
@@ -184,9 +224,14 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       // this volume and we need to save the hit
       // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
       // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
-      // (not sure if this will ever be the case)
+      // (happens when your detector goes outside world volume)
+      // postPoint->GetStepStatus() == fAtRestDoItProc: track stops (typically
+      // aTrack->GetTrackStatus() == fStopAndKill is also set)
       // aTrack->GetTrackStatus() == fStopAndKill: track ends
-      if (postPoint->GetStepStatus() == fGeomBoundary || postPoint->GetStepStatus() == fWorldBoundary|| aTrack->GetTrackStatus() == fStopAndKill)
+      if (postPoint->GetStepStatus() == fGeomBoundary || 
+          postPoint->GetStepStatus() == fWorldBoundary || 
+          postPoint->GetStepStatus() == fAtRestDoItProc ||
+          aTrack->GetTrackStatus() == fStopAndKill)
 	{
           // save only hits with energy deposit (or -1 for geantino)
 	  if (hit->get_edep())
@@ -198,7 +243,7 @@ bool PHG4CylinderSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 		}
 	      // ownership has been transferred to container, set to null
 	      // so we will create a new hit for the next track
-	      hit = NULL;
+	      hit = nullptr;
 	    }
 	  else
 	    {
