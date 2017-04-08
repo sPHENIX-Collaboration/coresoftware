@@ -39,12 +39,14 @@ using namespace std;
 //____________________________________________________________________________..
 PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector* detector, const PHG4Parameters *parameters):
   detector_( detector ),
-  hits_(NULL),
-  absorberhits_(NULL),
-  hit(NULL),
+  hits_(nullptr),
+  absorberhits_(nullptr),
+  hit(nullptr),
   params(parameters),
-  savehitcontainer(NULL),
-  saveshower(NULL),
+  savehitcontainer(nullptr),
+  saveshower(nullptr),
+  savetrackid(-1),
+  savepoststepstatus(-1),
   absorbertruth(params->get_int_param("absorbertruth")),
   IsActive(params->get_int_param("active")),
   IsBlackHole(params->get_int_param("blackhole")),
@@ -60,7 +62,7 @@ PHG4InnerHcalSteppingAction::~PHG4InnerHcalSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
-  // if the last hit was saved, hit is a NULL pointer which are
+  // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete hit;
 }
@@ -191,7 +193,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	{
 	case fGeomBoundary:
 	case fUndefined:
-	  // if previous hit was saved, hit pointer was set to NULL 
+	  // if previous hit was saved, hit pointer was set to nullptr 
 	  // and we have to make a new one
 	  if (! hit)
 	    {
@@ -232,6 +234,25 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	default:
 	  break;
 	}
+      // some sanity checks for inconsistencies
+      // check if this hit was created, if not print out last post step status
+      if (! hit || ! isfinite(hit->get_x(0)))
+	{
+	  cout << GetName() << ": hit was not created" << endl;
+	  cout << "prestep status: " << prePoint->GetStepStatus()
+	       << ", last post step status: " << savepoststepstatus << endl;
+	  exit(1);
+	}
+      savepoststepstatus = postPoint->GetStepStatus();
+      // check if track id matches the initial one when the hit was created
+      if (aTrack->GetTrackID() != savetrackid)
+	{
+	  cout << GetName() << ": hits do not belong to the same track" << endl;
+	  cout << "saved track: " << savetrackid
+	       << ", current trackid: " << aTrack->GetTrackID()
+	       << endl;
+	  exit(1);
+	}
       // here we just update the exit values, it will be overwritten
       // for every step until we leave the volume or the particle
       // ceases to exist
@@ -246,25 +267,6 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
           if (light_scint_model)
             {
               light_yield = GetVisibleEnergyDeposition(aStep); // for scintillator only, calculate light yields
-	      static bool once = true;
-	      if (once && edep > 0)
-		{
-		  once = false;
-
-		  if (verbosity > 0) 
-		    {
-		      cout << "PHG4InnerHcalSteppingAction::UserSteppingAction::"
-			//
-			   << detector_->GetName() << " - "
-			   << " use scintillating light model at each Geant4 steps. "
-			   << "First step: " << "Material = "
-			   << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
-			   << ", " << "Birk Constant = "
-			   << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
-			   << "," << "edep = " << edep << ", " << "eion = " << eion
-			   << ", " << "light_yield = " << light_yield << endl;
-		    }
-		}
 	    }
 	  else
             {
@@ -275,30 +277,10 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 	      isfinite(light_balance_outer_corr) &&
 	      isfinite(light_balance_inner_corr))
             {
-              double r = sqrt(
-			      postPoint->GetPosition().x()*postPoint->GetPosition().x()
-			      + postPoint->GetPosition().y()*postPoint->GetPosition().y());
+              double r = sqrt(postPoint->GetPosition().x()*postPoint->GetPosition().x()
+			    + postPoint->GetPosition().y()*postPoint->GetPosition().y());
               double cor =  GetLightCorrection(r);
               light_yield = light_yield * cor;
-
-              static bool once = true;
-              if (once && light_yield>0)
-                {
-                  once = false;
-
-		  if (verbosity > 1) 
-		    {
-		      cout << "PHG4InnerHcalSteppingAction::UserSteppingAction::"
-			//
-			   << detector_->GetName() << " - "
-			   << " use a simple light collection model with linear radial dependence. "
-			   <<"First step: "
-			   <<"r = " <<r/cm<<", "
-			   <<"correction ratio = " <<cor<<", "
-			   <<"light_yield after cor. = " <<light_yield
-			   << endl;
-		    }
-                }
 
             }
         }
@@ -331,10 +313,14 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
       // if any of these conditions is true this is the last step in
       // this volume and we need to save the hit
       // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
-      // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
-      // (not sure if this will ever be the case)
+      // (happens when your detector goes outside world volume)
+      // postPoint->GetStepStatus() == fAtRestDoItProc: track stops (typically
+      // aTrack->GetTrackStatus() == fStopAndKill is also set)
       // aTrack->GetTrackStatus() == fStopAndKill: track ends
-      if (postPoint->GetStepStatus() == fGeomBoundary || postPoint->GetStepStatus() == fWorldBoundary|| aTrack->GetTrackStatus() == fStopAndKill)
+      if (postPoint->GetStepStatus() == fGeomBoundary || 
+          postPoint->GetStepStatus() == fWorldBoundary || 
+          postPoint->GetStepStatus() == fAtRestDoItProc ||
+          aTrack->GetTrackStatus() == fStopAndKill)
 	{
           // save only hits with energy deposit (or -1 for geantino)
 	  if (hit->get_edep())
@@ -346,7 +332,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool 
 		}
 	      // ownership has been transferred to container, set to null
 	      // so we will create a new hit for the next track
-	      hit = NULL;
+	      hit = nullptr;
 	    }
 	  else
 	    {
