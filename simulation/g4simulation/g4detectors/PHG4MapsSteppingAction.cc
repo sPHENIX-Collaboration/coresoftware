@@ -209,8 +209,7 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	  */
 
 	  // Store the local coordinates for the entry point 
-	  // Note the typo in Coordinate is needed!
-	  StoreLocalCoorindate(hit, aStep, true, false);
+	  StoreLocalCoordinate(hit, aStep, true, false);
 	  
 	  // Store the entrance values in cm in world coordinates
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm );
@@ -296,7 +295,7 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       */
 
       // Store the local coordinates for the exit point
-      StoreLocalCoorindate(hit, aStep, false, true);
+      StoreLocalCoordinate(hit, aStep, false, true);
 
        // Store world coordinates for the exit point
       hit->set_x( 1, postPoint->GetPosition().x() / cm );
