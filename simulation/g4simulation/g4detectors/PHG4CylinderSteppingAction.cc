@@ -126,7 +126,7 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       savetrackid = aTrack->GetTrackID();
       //set the initial energy deposit
       hit->set_edep(0);
-      if (!geantino)
+      if (!geantino && !IsBlackHole)
       {
         hit->set_eion(0);
       }
@@ -201,8 +201,11 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     }
     else
     {
-      double eion = edep - aStep->GetNonIonizingEnergyDeposit() / GeV;
-      hit->set_eion(hit->get_eion() + eion);
+      if (!IsBlackHole)
+      {
+        double eion = edep - aStep->GetNonIonizingEnergyDeposit() / GeV;
+        hit->set_eion(hit->get_eion() + eion);
+      }
     }
     if (save_light_yield)
     {
