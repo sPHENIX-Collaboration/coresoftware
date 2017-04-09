@@ -11,36 +11,32 @@ class PHG4Shower;
 
 class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4OuterHcalSteppingAction( PHG4OuterHcalDetector* , const PHG4Parameters *parameters);
+  PHG4OuterHcalSteppingAction(PHG4OuterHcalDetector *, const PHG4Parameters *parameters);
 
   //! destructor
   virtual ~PHG4OuterHcalSteppingAction();
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  virtual bool UserSteppingAction(const G4Step *, bool);
 
   virtual int Init();
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers( PHCompositeNode* );
+  virtual void SetInterfacePointers(PHCompositeNode *);
 
   double GetLightCorrection(const double r) const;
 
-  void FieldChecker (const G4Step*);
-  void EnableFieldChecker(const int i=1) {enable_field_checker = i;}
-
-  private:
-
+  void FieldChecker(const G4Step *);
+  void EnableFieldChecker(const int i = 1) { enable_field_checker = i; }
+ private:
   //! pointer to the detector
-  PHG4OuterHcalDetector* detector_;
+  PHG4OuterHcalDetector *detector_;
 
   //! pointer to hit container
-  PHG4HitContainer * hits_;
-  PHG4HitContainer * absorberhits_;
+  PHG4HitContainer *hits_;
+  PHG4HitContainer *absorberhits_;
   PHG4Hit *hit;
   const PHG4Parameters *params;
   PHG4HitContainer *savehitcontainer;
@@ -57,12 +53,11 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   int IsBlackHole;
   int n_scinti_plates;
   int light_scint_model;
-  
+
   double light_balance_inner_corr;
   double light_balance_inner_radius;
   double light_balance_outer_corr;
   double light_balance_outer_radius;
 };
 
-
-#endif // PHG4OuterHcalSteppingAction_h
+#endif  // PHG4OuterHcalSteppingAction_h
