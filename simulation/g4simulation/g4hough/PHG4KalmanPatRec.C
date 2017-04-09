@@ -118,6 +118,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
       _g4clusters(NULL),
       _g4tracks(NULL),
       _g4vertexes(NULL),
+	  _seeding_only_mode(true),
 	  _mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
 	  _mag_field_re_scaling_factor(1.4/1.5),
 	  _reverse_mag_field(true),
@@ -261,16 +262,20 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	//-----------------------------------
 	// Kalman cluster accociation
 	//-----------------------------------
-	code = FullTrackFitting();
-	if (code != Fun4AllReturnCodes::EVENT_OK)
-		return code;
+	if (!_seeding_only_mode) {
+		code = FullTrackFitting();
+		if (code != Fun4AllReturnCodes::EVENT_OK)
+			return code;
+	}
 
 	//-----------------------------------
 	// Translate back into SVTX objects
 	//-----------------------------------
 
-	code = ExportOutput();
-	//code = export_output();
+	if(!_seeding_only_mode)
+		code = ExportOutput();
+	else
+		code = export_output();
 	if (code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 

@@ -271,6 +271,14 @@ public:
 		_track_fitting_alg_name = trackFittingAlgName;
 	}
 
+	bool is_seeding_only_mode() const {
+		return _seeding_only_mode;
+	}
+
+	void set_seeding_only_mode(bool seedingOnlyMode) {
+		_seeding_only_mode = seedingOnlyMode;
+	}
+
 #ifndef __CINT__
 
 private:
@@ -445,6 +453,9 @@ private:
 	SvtxClusterMap* _g4clusters;
 	SvtxTrackMap* _g4tracks;
 	SvtxVertexMap* _g4vertexes;
+
+
+	bool _seeding_only_mode;
 
 	//GenFit Related Part
 	//!
