@@ -8,15 +8,16 @@
  * \date $$Date: 2014/03/24 01:36:44 $$
  */
 
-#ifndef PHG4VHcalSteppingAction_h
-#define PHG4VHcalSteppingAction_h
+#ifndef PHG4SpacalPrototypeSteppingAction_h
+#define PHG4SpacalPrototypeSteppingAction_h
 
-#include "g4main/PHG4SteppingAction.h"
+#include <g4main/PHG4SteppingAction.h>
 #include <string>
 
-class PHG4SpacalPrototypeDetector;
 class PHG4Hit;
 class PHG4HitContainer;
+class PHG4Shower;
+class PHG4SpacalPrototypeDetector;
 
 class PHG4SpacalPrototypeSteppingAction : public PHG4SteppingAction
 {
@@ -54,6 +55,8 @@ private:
   PHG4HitContainer * hits_;
   PHG4HitContainer * absorberhits_;
   PHG4Hit *hit;
+  PHG4HitContainer *savehitcontainer;
+  PHG4Shower *saveshower;
 };
 
-#endif // PHG4VHcalSteppingAction_h
+#endif // PHG4SpacalPrototypeSteppingAction_h
