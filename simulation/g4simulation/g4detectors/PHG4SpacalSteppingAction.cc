@@ -30,18 +30,20 @@ using namespace std;
 PHG4SpacalSteppingAction::PHG4SpacalSteppingAction(PHG4SpacalDetector* detector) :
   PHG4SteppingAction(0), 
   detector_(detector), 
-  hits_(NULL), 
-  absorberhits_(NULL), 
-  hit(NULL),
-  savehitcontainer(NULL),
-  saveshower(NULL)
+  hits_(nullptr), 
+  absorberhits_(nullptr), 
+  hit(nullptr),
+  savehitcontainer(nullptr),
+  saveshower(nullptr),
+savetrackid(-1),
+savepoststepstatus(-1)
 {}
 
 PHG4SpacalSteppingAction::~PHG4SpacalSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
-  // if the last hit was saved, hit is a NULL pointer which are
+  // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete hit;
 }
@@ -138,7 +140,7 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         {
       case fGeomBoundary:
       case fUndefined:
-	  // if previous hit was saved, hit pointer was set to NULL 
+	  // if previous hit was saved, hit pointer was set to nullptr 
 	  // and we have to make a new one
 	  if (! hit)
 	    {
@@ -155,17 +157,14 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
 	//set the track ID
 	hit->set_trkid(aTrack->GetTrackID());
+           savetrackid = aTrack->GetTrackID();
         //set the initial energy deposit
         hit->set_edep(0);
-        if (isactive == PHG4SpacalDetector::FIBER_CORE) // only for active areas
-          {
-            hit->set_eion(0); // only implemented for v5 otherwise empty
-            hit->set_light_yield(0);
-          }
-        //	  hit->print();
         // Now add the hit
         if (isactive == PHG4SpacalDetector::FIBER_CORE) // the slat ids start with zero
           {
+            hit->set_eion(0); // only implemented for v5 otherwise empty
+            hit->set_light_yield(0);
 	    savehitcontainer = hits_;	    
           }
         else
@@ -192,7 +191,26 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       default:
         break;
         }
-      // here we just update the exit values, it will be overwritten
+    // some sanity checks for inconsistencies
+    // check if this hit was created, if not print out last post step status
+    if (!hit || !isfinite(hit->get_x(0)))
+    {
+      cout << GetName() << ": hit was not created" << endl;
+      cout << "prestep status: " << prePoint->GetStepStatus()
+           << ", last post step status: " << savepoststepstatus << endl;
+      exit(1);
+    }
+    savepoststepstatus = postPoint->GetStepStatus();
+    // check if track id matches the initial one when the hit was created
+    if (aTrack->GetTrackID() != savetrackid)
+    {
+      cout << GetName() << ": hits do not belong to the same track" << endl;
+      cout << "saved track: " << savetrackid
+           << ", current trackid: " << aTrack->GetTrackID()
+           << endl;
+      exit(1);
+    }
+       // here we just update the exit values, it will be overwritten
       // for every step until we leave the volume or the particle
       // ceases to exist
       hit->set_x(1, postPoint->GetPosition().x() / cm);
@@ -257,11 +275,12 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       // if any of these conditions is true this is the last step in
       // this volume and we need to save the hit
       // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
-      // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
-      // (not sure if this will ever be the case)
+    // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
+    // (happens when your detector goes outside world volume)
       // aTrack->GetTrackStatus() == fStopAndKill: track ends
       if (postPoint->GetStepStatus() == fGeomBoundary || 
           postPoint->GetStepStatus() == fWorldBoundary || 
+          postPoint->GetStepStatus() == fAtRestDoItProc ||
           aTrack->GetTrackStatus() == fStopAndKill)
 	{
           // save only hits with energy deposit (or -1 for geantino)
@@ -274,7 +293,7 @@ PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 		}
 	      // ownership has been transferred to container, set to null
 	      // so we will create a new hit for the next track
-	      hit = NULL;
+	      hit = nullptr;
 	    }
 	  else
 	    {

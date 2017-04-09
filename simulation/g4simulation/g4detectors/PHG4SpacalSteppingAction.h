@@ -54,6 +54,8 @@ private:
   PHG4Hit *hit;
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
+  int savetrackid;
+  int savepoststepstatus;
 
 };
 
