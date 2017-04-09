@@ -819,22 +819,6 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   CF4->AddElement(C, natoms = 1);
   CF4->AddElement(F, natoms = 4);
 
-  // radiation length Al = 8.897cm, magnet diameter 20cm
-  // this is 1 radlen of al spread over the magnet by
-  // weighting its density
-  G4double z;
-  G4double a;
-  G4Material *almag =
-    new G4Material("AL_MAG", z = 13., a = 26.98 * g / mole, density = (2.7 * g / cm3) * 8.897 / 20);
-  // Babar magnet thickness, still 1X0
-  G4Material *albabarmag =
-    new G4Material("AL_BABAR_MAG", z = 13., a = 26.98 * g / mole, density = (2.7 * g / cm3) * 8.897 / 33);
-  if (verbosity > 1)
-    {
-      cout << "adding " << almag->GetName() << endl;
-      cout << "adding " << albabarmag->GetName() << endl;
-    }
-
     {
       //! ePHENIX TPC - Jin Huang <jhuang@bnl.gov>
       //! Ref: B. Yu et al. A gem based tpc for the legs experiment. In Nuclear Science Symposium

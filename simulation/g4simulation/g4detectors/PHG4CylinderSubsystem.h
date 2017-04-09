@@ -3,24 +3,22 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
+#include <Geant4/G4Types.hh>
 
 class PHG4CylinderDetector;
 class PHG4SteppingAction;
-class PHG4EventAction;
 
-class PHG4CylinderSubsystem: public PHG4DetectorSubsystem
+class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4CylinderSubsystem( const std::string &name = "CYLINDER", const int layer = 0 );
+  PHG4CylinderSubsystem(const std::string& name = "CYLINDER", const int layer = 0);
 
   //! destructor
-  virtual ~PHG4CylinderSubsystem( void )
-  {}
+  virtual ~PHG4CylinderSubsystem(void)
+  {
+  }
 
   //! init runwise stuff
   /*!
@@ -28,23 +26,21 @@ class PHG4CylinderSubsystem: public PHG4DetectorSubsystem
   reates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int InitRunSubsystem(PHCompositeNode *);
+  int InitRunSubsystem(PHCompositeNode*);
 
   //! event processing
   /*!
   get all relevant nodes from top nodes (namely hit list)
   and pass that to the stepping action
   */
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode*);
 
   //! Print info (from SubsysReco)
-  void Print(const std::string &what = "ALL") const;
+  void Print(const std::string& what = "ALL") const;
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector( void ) const;
-  PHG4SteppingAction* GetSteppingAction( void ) const {return steppingAction_;}
-  PHG4EventAction* GetEventAction() const {return eventAction_;}
-
+  PHG4Detector* GetDetector(void) const;
+  PHG4SteppingAction* GetSteppingAction(void) const { return steppingAction_; }
  private:
   void SetDefaultParameters();
 
@@ -55,8 +51,6 @@ class PHG4CylinderSubsystem: public PHG4DetectorSubsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* steppingAction_;
-
-  PHG4EventAction *eventAction_;
 };
 
 #endif

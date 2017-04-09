@@ -14,7 +14,8 @@ class PHG4SteppingAction
 
   public:
   PHG4SteppingAction( const int i = 0 ):
-    verbosity(i)
+    verbosity(i),
+    name("NONAME")
   {}
 
   virtual ~PHG4SteppingAction()
@@ -40,7 +41,7 @@ class PHG4SteppingAction
   virtual double GetVisibleEnergyDeposition(const G4Step* step);
 
   //! Extract local coordinate of the hit and save to PHG4Hit
-  virtual void StoreLocalCoorindate(PHG4Hit * hit, const G4Step* step, bool do_prepoint, bool do_postpoint);
+  virtual void StoreLocalCoordinate(PHG4Hit * hit, const G4Step* step, const bool do_prepoint, const bool do_postpoint);
 
   virtual void SetInterfacePointers( PHCompositeNode* ) {return;}
 
@@ -49,11 +50,12 @@ class PHG4SteppingAction
   void SetOpt(const std::string &name, const int i) {opt_int[name] = i;}
   bool IntOptExist(const std::string &name);
   int GetIntOpt(const std::string &name);
+  std::string GetName() const {return name;}
  protected:
   int verbosity;
+  std::string name;
 
  private:
-
   std::set<std::string> _ScintLightYieldMissingMaterial;
   std::map<std::string, int> opt_int;
 

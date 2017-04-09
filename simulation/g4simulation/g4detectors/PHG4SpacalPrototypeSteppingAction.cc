@@ -28,10 +28,14 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4SpacalPrototypeSteppingAction::PHG4SpacalPrototypeSteppingAction(PHG4SpacalPrototypeDetector* detector) :
-    PHG4SteppingAction(0), detector_(detector), hits_(NULL), absorberhits_(
-        NULL), hit(NULL)
-{
-}
+  PHG4SteppingAction(0), 
+  detector_(detector), 
+  hits_(nullptr), 
+  absorberhits_(nullptr),
+  hit(nullptr),
+  savehitcontainer(nullptr),
+  saveshower(nullptr)
+{}
 
 //____________________________________________________________________________..
 bool
@@ -111,11 +115,17 @@ PHG4SpacalPrototypeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         {
           // other configuraitons
           if (isactive == PHG4SpacalPrototypeDetector::FIBER_CORE)
-            scint_id = prePoint->GetTouchable()->GetReplicaNumber(2);
+	    {
+	      scint_id = prePoint->GetTouchable()->GetReplicaNumber(2);
+	    }
           else if (isactive == PHG4SpacalPrototypeDetector::FIBER_CLADING)
-            scint_id = prePoint->GetTouchable()->GetReplicaNumber(1);
+	    {
+	      scint_id = prePoint->GetTouchable()->GetReplicaNumber(1);
+	    }
           else
-            scint_id = prePoint->GetTouchable()->GetReplicaNumber(0);
+	    {
+	      scint_id = prePoint->GetTouchable()->GetReplicaNumber(0);
+	    }
         }
 
       //       cout << "track id " << aTrack->GetTrackID() << endl;
@@ -123,12 +133,15 @@ PHG4SpacalPrototypeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       //        cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
       switch (prePoint->GetStepStatus())
         {
-      case fGeomBoundary:
-      case fUndefined:
+        case fGeomBoundary:
+        case fUndefined:
+	  //	case fPostStepDoItProc: // from point like interaction (compton,decay,hard rad)
 
-        hit = new PHG4Hitv1();
-
-        hit->set_layer((unsigned int) layer_id);
+	if (! hit)
+	  {
+	    hit = new PHG4Hitv1();
+	  }
+	hit->set_layer((unsigned int) layer_id);
         hit->set_scint_id(scint_id); // isactive contains the scintillator slat id
         //here we set the entrance values in cm
         hit->set_x(0, prePoint->GetPosition().x() / cm);
@@ -141,11 +154,10 @@ PHG4SpacalPrototypeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         if (isactive == PHG4SpacalPrototypeDetector::FIBER_CORE) // only for active areas
           {
             // store all pre local coordinates
-            StoreLocalCoorindate(hit, aStep, true, false);
+            StoreLocalCoordinate(hit, aStep, true, false);
           }
 
 	//set the track ID
-	{
 	  hit->set_trkid(aTrack->GetTrackID());
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
@@ -155,45 +167,28 @@ PHG4SpacalPrototypeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 		  hit->set_shower_id(pp->GetShower()->get_id());
 		}
 	    }
-	}
         //set the initial energy deposit
         hit->set_edep(0);
         if (isactive == PHG4SpacalPrototypeDetector::FIBER_CORE) // only for active areas
           {
-            hit->set_eion(0); // only implemented for v5 otherwise empty
+            hit->set_eion(0); // only for fiber core hits
             hit->set_light_yield(0);
+	    savehitcontainer = hits_;
           }
-        //	  hit->print();
-        // Now add the hit
-        if (isactive == PHG4SpacalPrototypeDetector::FIBER_CORE) // the slat ids start with zero
-          {
-            //	      unsigned int shift_layer_id = layer_id << (phg4hitdefs::keybits - 3);
-            hits_->AddHit(layer_id, hit); // scintillator id is coded into layer number
-	    
-	    {
-	      if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		{
-		  if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		    {
-		      pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
-		    }
-		}
-	    }
+	else
+	  {
+	    savehitcontainer = absorberhits_;
           }
-        else
-          {
-            absorberhits_->AddHit(layer_id, hit);
-	    
-	    {
-	      if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		{
-		  if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		    {
-		      pp->GetShower()->add_g4hit_id(absorberhits_->GetID(),hit->get_hit_id());
-		    }
-		}
-	    }
-          }
+
+	if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	  {
+	    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+	      {
+		hit->set_trkid(pp->GetUserTrackId());
+		hit->set_shower_id(pp->GetShower()->get_id());
+		saveshower =  pp->GetShower();
+	      }
+	  }
 
 //        if (hit->get_z(0) > get_zmax() || hit->get_z(0) < get_zmin())
 //          {
@@ -214,17 +209,14 @@ PHG4SpacalPrototypeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
       hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
-      if (isactive == PHG4SpacalPrototypeDetector::FIBER_CORE) // only for active areas
-        {
-          // store all pre local coordinates
-          StoreLocalCoorindate(hit, aStep, false, true);
-        }
 
       //sum up the energy to get total deposited
       hit->set_edep(hit->get_edep() + edep);
 
       if (isactive == PHG4SpacalPrototypeDetector::FIBER_CORE) // only for active areas
         {
+          // store all pre local coordinates
+          StoreLocalCoordinate(hit, aStep, false, true);
           hit->set_eion(hit->get_eion() + eion);
 
           double light_yield = GetVisibleEnergyDeposition(aStep);
@@ -267,16 +259,44 @@ PHG4SpacalPrototypeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         {
           if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
             {
-              if (PHG4TrackUserInfoV1* pp =
-                  dynamic_cast<PHG4TrackUserInfoV1*>(p))
+              if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
                 {
                   pp->SetKeep(1); // we want to keep the track
                 }
             }
         }
-//      hit->set_path_length(aTrack->GetTrackLength() / cm);
 
-      //       hit->identify();
+      // if any of these conditions is true this is the last step in
+      // this volume and we need to save the hit
+      // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
+      // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
+      // (not sure if this will ever be the case)
+      // aTrack->GetTrackStatus() == fStopAndKill: track ends
+      if (postPoint->GetStepStatus() == fGeomBoundary || 
+          postPoint->GetStepStatus() == fWorldBoundary|| 
+          aTrack->GetTrackStatus() == fStopAndKill)
+	{
+          // save only hits with energy deposit (or -1 for geantino)
+	  if (hit->get_edep())
+	    {
+	      savehitcontainer->AddHit(layer_id, hit);
+	      if (saveshower)
+		{
+		  // save shower under container id of active volume (for running without absorber hit container to save space)
+		  saveshower->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		}
+	      // ownership has been transferred to container, set to null
+	      // so we will create a new hit for the next track
+	      hit = nullptr;
+	    }
+	  else
+	    {
+	      // if this hit has no energy deposit, just reset it for reuse
+	      // this means we have to delete it in the dtor. If this was
+	      // the last hit we processed the memory is still allocated
+	      hit->Reset();
+	    }
+ 	}
       // return true to indicate the hit was used
       return true;
 

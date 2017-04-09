@@ -9,32 +9,28 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHG4Parameters;
 
-class PHG4CylinderDetector: public PHG4Detector
+class PHG4CylinderDetector : public PHG4Detector
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4CylinderDetector( PHCompositeNode *Node,  PHG4Parameters *parameters, const std::string &dnam, const int layer = 0 );
+  PHG4CylinderDetector(PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam, const int layer = 0);
 
   //! destructor
-  virtual ~PHG4CylinderDetector( void )
-  {}
+  virtual ~PHG4CylinderDetector(void)
+  {
+  }
 
   //! construct
-  void Construct( G4LogicalVolume* world );
+  void Construct(G4LogicalVolume *world);
 
-  bool IsInCylinder(const G4VPhysicalVolume*) const;
-  void SuperDetector(const std::string &name) {superdetector = name;}
-  const std::string SuperDetector() const {return superdetector;}
-  int get_Layer() const {return layer;}
-
-  private:
-
+  bool IsInCylinder(const G4VPhysicalVolume *) const;
+  void SuperDetector(const std::string &name) { superdetector = name; }
+  const std::string SuperDetector() const { return superdetector; }
+  int get_Layer() const { return layer; }
+ private:
   PHG4Parameters *params;
 
-  G4VPhysicalVolume* cylinder_physi;
-
+  G4VPhysicalVolume *cylinder_physi;
 
   int layer;
   std::string superdetector;
