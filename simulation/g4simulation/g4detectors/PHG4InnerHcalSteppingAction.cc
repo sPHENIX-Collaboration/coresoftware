@@ -56,6 +56,7 @@ PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* 
                                                                                                                               light_balance_outer_corr(params->get_double_param("light_balance_outer_corr")),
                                                                                                                               light_balance_outer_radius(params->get_double_param("light_balance_outer_radius") * cm)
 {
+  name = detector_->GetName();
 }
 
 PHG4InnerHcalSteppingAction::~PHG4InnerHcalSteppingAction()
@@ -205,8 +206,9 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       hit->set_z(0, prePoint->GetPosition().z() / cm);
       // time in ns
       hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
-      //set the track ID
+      //set and save the track ID
       hit->set_trkid(aTrack->GetTrackID());
+      savetrackid = aTrack->GetTrackID();
       //set the initial energy deposit
       hit->set_edep(0);
       hit->set_eion(0);     // only implemented for v5 otherwise empty
@@ -242,16 +244,19 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
            << ", last post step status: " << savepoststepstatus << endl;
       exit(1);
     }
-    savepoststepstatus = postPoint->GetStepStatus();
     // check if track id matches the initial one when the hit was created
     if (aTrack->GetTrackID() != savetrackid)
     {
       cout << GetName() << ": hits do not belong to the same track" << endl;
       cout << "saved track: " << savetrackid
            << ", current trackid: " << aTrack->GetTrackID()
+           << ", prestep status: " << prePoint->GetStepStatus()
+           << ", previous post step status: " << savepoststepstatus
            << endl;
+
       exit(1);
     }
+    savepoststepstatus = postPoint->GetStepStatus();
     // here we just update the exit values, it will be overwritten
     // for every step until we leave the volume or the particle
     // ceases to exist
@@ -308,6 +313,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     // if any of these conditions is true this is the last step in
     // this volume and we need to save the hit
     // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
+    // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
     // (happens when your detector goes outside world volume)
     // postPoint->GetStepStatus() == fAtRestDoItProc: track stops (typically
     // aTrack->GetTrackStatus() == fStopAndKill is also set)
