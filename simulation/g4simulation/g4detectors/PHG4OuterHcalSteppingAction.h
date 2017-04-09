@@ -1,5 +1,5 @@
-#ifndef PHG4VOuterHcalSteppingAction_h
-#define PHG4VOuterHcalSteppingAction_h
+#ifndef PHG4OuterHcalSteppingAction_h
+#define PHG4OuterHcalSteppingAction_h
 
 #include <g4main/PHG4SteppingAction.h>
 
@@ -45,7 +45,8 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   const PHG4Parameters *params;
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
-
+  int savetrackid;
+  int savepoststepstatus;
   int enable_field_checker;
 
   // since getting parameters is a map search we do not want to
