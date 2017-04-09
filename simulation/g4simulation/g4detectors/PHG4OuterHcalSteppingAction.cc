@@ -238,9 +238,9 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       savetrackid = aTrack->GetTrackID();
       //set the initial energy deposit
       hit->set_edep(0);
-      hit->set_eion(0);
       if (whichactive > 0)  // return of IsInOuterHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
+        hit->set_eion(0);
         hit->set_light_yield(0);  //  for scintillator only, initialize light yields
         // Now save the container we want to add this hit to
         savehitcontainer = hits_;
@@ -314,9 +314,9 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     //sum up the energy to get total deposited
     hit->set_edep(hit->get_edep() + edep);
-    hit->set_eion(hit->get_eion() + eion);
     if (whichactive > 0)
     {
+      hit->set_eion(hit->get_eion() + eion);
       hit->set_light_yield(hit->get_light_yield() + light_yield);
     }
     if (geantino)
