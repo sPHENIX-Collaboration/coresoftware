@@ -1055,8 +1055,8 @@ G4LogicalVolume* PHG4mRICHDetector::build_Space(G4LogicalVolume* logicWorld, G4d
   
   G4VisAttributes* visAtt = new G4VisAttributes();
   visAtt->SetVisibility(true);
-  visAtt->SetForceSolid(false);
-  visAtt->SetColour(G4Color(1.0,0.0,1.0,1.0));    //R,G,B,alpha
+  visAtt->SetForceSolid(true);
+  visAtt->SetColour(G4Color(1.0,0.0,1.0,0.1));    //R,G,B,alpha
   bowl_log->SetVisAttributes(visAtt);
   
   new G4PVPlacement( 0,G4ThreeVector(0, 0, 0),
@@ -1074,7 +1074,7 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*
   G4Box* mRICH_box=dynamic_cast<G4Box*>(a_mRICH->GetSolid());
   G4double halfWidth=mRICH_box->GetXHalfLength() + gap;
   G4double halfHeight=halfWidth;
-  G4double halfLength=mRICH_box->GetZHalfLength() + gap;
+  G4double halfLength=mRICH_box->GetZHalfLength();
 
   // space (bowl shape) dimension
   G4double rinner=bowlPar[0];
@@ -1095,13 +1095,13 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*
   int N;       // num. of mRICH on each ring on the bowl
 
   G4double theta,phi,deltaTheta, deltaPhi;
-  deltaPhi=2*atan(halfHeight/rinner);
+  deltaPhi=2*atan(halfHeight/rinner);//+pi/180;
   phi=0;
 
   i=0;
-  for (phi=phi_min+deltaPhi;phi<phi_max;phi=phi+deltaPhi) {  //add extra space to avoid overlap
+  for (phi=phi_min+deltaPhi;phi<phi_max/*-deltaPhi*/;phi=phi+deltaPhi) {  //add extra space to avoid overlap
     c=twopi*(rinner)*sin(phi);
-    N=floor(c/(2*halfWidth));
+    N=floor(c/(2/*sqrt(2)*/*halfWidth));
     deltaTheta=2*pi/N;
     
     if (1) {
@@ -1118,19 +1118,20 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*
       z=(rinner+halfLength)*cos(phi);
       
       if (0) printf("x,y,z= %.2lf, %0.2lf, %0.2lf\n",x,y,z);
-      G4RotationMatrix* rot=new G4RotationMatrix(); 
-      //rot->rotateX(phi*180*deg/pi);
-      //rot->rotateY(phi*180*deg/pi);
+      G4RotationMatrix rot= G4RotationMatrix(); 
+      rot.rotateX(phi*(-1)*sin(theta)*180*deg/pi);
+      rot.rotateY(phi*cos(theta)*180*deg/pi);
        
       sprintf(name,"mRICH_%d_%d",i+1,j+1);
       
-      new G4PVPlacement(rot, G4ThreeVector(x, y, z),
+      new G4PVPlacement(G4Transform3D(rot, G4ThreeVector(x, y, z)),
 			a_mRICH,name,space,
 			0, 0, 1);    //last digit for checking overlapping 
       
       j++;
     }
     i++;
+    //if (i>0) break;
   }
 }
 //________________________________________________________________________//
