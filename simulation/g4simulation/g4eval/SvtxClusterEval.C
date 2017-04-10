@@ -1,35 +1,31 @@
-
 #include "SvtxClusterEval.h"
 
 #include "SvtxHitEval.h"
 
-#include <phool/getClass.h>
-#include <phool/PHCompositeNode.h>
 #include <g4hough/SvtxHitMap.h>
 #include <g4hough/SvtxHit.h>
 #include <g4hough/SvtxClusterMap.h>
 #include <g4hough/SvtxCluster.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 
-#include <cstdlib>
-#include <set>
-#include <map>
-#include <float.h>
-#include <algorithm>
+#include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+
 #include <cassert>
+#include <float.h>
+#include <map>
+#include <set>
 
 using namespace std;
 
 SvtxClusterEval::SvtxClusterEval(PHCompositeNode* topNode)
   : _hiteval(topNode),
-    _clustermap(NULL),
-    _hitmap(NULL),
-    _truthinfo(NULL),
+    _clustermap(nullptr),
+    _hitmap(nullptr),
+    _truthinfo(nullptr),
     _strict(false),
     _verbosity(1),
     _errors(0), 
@@ -114,10 +110,10 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(SvtxCluster* cluster) {
 
 PHG4Hit* SvtxClusterEval::max_truth_hit_by_energy(SvtxCluster* cluster) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(cluster);}
-  else if (!cluster) {++_errors; return NULL;}
+  else if (!cluster) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<SvtxCluster*,PHG4Hit*>::iterator iter =
@@ -128,7 +124,7 @@ PHG4Hit* SvtxClusterEval::max_truth_hit_by_energy(SvtxCluster* cluster) {
   }
   
   std::set<PHG4Hit*> hits = all_truth_hits(cluster);
-  PHG4Hit* max_hit = NULL;
+  PHG4Hit* max_hit = nullptr;
   float max_e = FLT_MAX*-1.0;
   for (std::set<PHG4Hit*>::iterator iter = hits.begin();
        iter != hits.end();
@@ -183,10 +179,10 @@ std::set<PHG4Particle*> SvtxClusterEval::all_truth_particles(SvtxCluster* cluste
 
 PHG4Particle* SvtxClusterEval::max_truth_particle_by_energy(SvtxCluster* cluster) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(cluster);}
-  else if (!cluster) {++_errors; return NULL;}
+  else if (!cluster) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<SvtxCluster*,PHG4Particle*>::iterator iter =
@@ -198,7 +194,7 @@ PHG4Particle* SvtxClusterEval::max_truth_particle_by_energy(SvtxCluster* cluster
 
   // loop over all particles associated with this cluster and
   // get the energy contribution for each one, record the max
-  PHG4Particle* max_particle = NULL;
+  PHG4Particle* max_particle = nullptr;
   float max_e = FLT_MAX*-1.0;
   std::set<PHG4Particle*> particles = all_truth_particles(cluster);
   for (std::set<PHG4Particle*>::iterator iter = particles.begin();
@@ -306,10 +302,10 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit) {
 
 SvtxCluster* SvtxClusterEval::best_cluster_from(PHG4Hit* truthhit) {
 
-  if (!has_node_pointers()) {++_errors; return NULL;}
+  if (!has_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(truthhit);}
-  else if (!truthhit) {++_errors; return NULL;}
+  else if (!truthhit) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<PHG4Hit*,SvtxCluster*>::iterator iter =
@@ -319,7 +315,7 @@ SvtxCluster* SvtxClusterEval::best_cluster_from(PHG4Hit* truthhit) {
     }
   }
 
-  SvtxCluster* best_cluster = NULL;
+  SvtxCluster* best_cluster = nullptr;
   float best_energy = 0.0;  
   std::set<SvtxCluster*> clusters = all_clusters_from(truthhit);
   for (std::set<SvtxCluster*>::iterator iter = clusters.begin();

@@ -41,7 +41,8 @@ PHG4Prototype2OuterHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
   set<string> nodes;
   if (GetParams()->get_int_param("active"))
     {
-      PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",SuperDetector()));
+      PHNodeIterator dstiter(dstNode);
+      PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",SuperDetector()));
       if (! DetNode)
 	{
           DetNode = new PHCompositeNode(SuperDetector());

@@ -1,4 +1,3 @@
-
 #include "SvtxEvaluator.h"
 
 #include "SvtxEvalStack.h"
@@ -16,16 +15,14 @@
 #include <g4hough/SvtxHitMap.h>
 #include <g4hough/SvtxHit.h>
 
-#include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4VtxPoint.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
-#include <g4detectors/PHG4CylinderCellDefs.h>
+#include <g4detectors/PHG4Cell.h>
 
+#include <TFile.h>
 #include <TNtuple.h>
 
 #include <iostream>
@@ -38,7 +35,7 @@ using namespace std;
 SvtxEvaluator::SvtxEvaluator(const string &name, const string &filename) :
   SubsysReco("SvtxEvaluator"),
   _ievent(0),
-  _svtxevalstack(NULL),
+  _svtxevalstack(nullptr),
   _strict(false),
   _errors(0),
   _do_vertex_eval(true),
@@ -49,15 +46,15 @@ SvtxEvaluator::SvtxEvaluator(const string &name, const string &filename) :
   _do_gtrack_eval(true),
   _do_track_eval(true),
   _scan_for_embedded(false),
-  _ntp_vertex(NULL),
-  _ntp_gpoint(NULL),
-  _ntp_g4hit(NULL),
-  _ntp_hit(NULL),
-  _ntp_cluster(NULL),
-  _ntp_gtrack(NULL),
-  _ntp_track(NULL),
+  _ntp_vertex(nullptr),
+  _ntp_gpoint(nullptr),
+  _ntp_g4hit(nullptr),
+  _ntp_hit(nullptr),
+  _ntp_cluster(nullptr),
+  _ntp_gtrack(nullptr),
+  _ntp_track(nullptr),
   _filename(filename),
-  _tfile(NULL) {
+  _tfile(nullptr) {
   verbosity = 0;
 }
 
@@ -844,7 +841,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	SvtxHit* hit             = iter->second;
 	PHG4Hit* g4hit           = hiteval->max_truth_hit_by_energy(hit);
-	PHG4CylinderCell* g4cell = hiteval->get_cell(hit);
+	PHG4Cell* g4cell = hiteval->get_cell(hit);
 	PHG4Particle* g4particle = trutheval->get_particle(g4hit);
 
 	float event  = _ievent;

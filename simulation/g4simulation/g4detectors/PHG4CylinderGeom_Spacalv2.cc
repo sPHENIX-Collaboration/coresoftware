@@ -18,8 +18,6 @@
 
 #include <iostream>
 
-ClassImp(PHG4CylinderGeom_Spacalv2)
-
 using namespace std;
 
 PHG4CylinderGeom_Spacalv2::PHG4CylinderGeom_Spacalv2()

@@ -49,6 +49,7 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
     // IsBlackHole(params->get_int_param("blackhole"))
 {
   std::cout << "PHG4SiliconTrackerSteppingAction created" << std::endl;
+  verbosity = 0;
 }
 
 PHG4SiliconTrackerSteppingAction::~PHG4SiliconTrackerSteppingAction()
@@ -83,6 +84,27 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
   if (whichactive > 0) // silicon acrive sensor
     {
+      if(verbosity > 1)
+	{
+	  std::cout << std::endl << "PHG4SilicoTrackerSteppingAction::UserSteppingAction for volume name (pre) " <<  touch->GetVolume()->GetName() 
+		    << " volume->GetTranslation " << touch->GetVolume()->GetTranslation()
+		    << " volume->GetCopyNo() " << volume->GetCopyNo() 
+		    << std::endl;
+	  G4TouchableHandle touch_post = aStep->GetPostStepPoint()->GetTouchableHandle();
+	  G4VPhysicalVolume* volume_post = touch_post->GetVolume();
+	  std::cout  << "PHG4SilicoTrackerSteppingAction::UserSteppingAction for volume name (post) " <<  touch_post->GetVolume()->GetName() 
+		     << " volume->GetTranslation " << touch_post->GetVolume()->GetTranslation()
+		     << " volume->GetCopyNo() " << volume_post->GetCopyNo() 
+		     << std::endl;
+	  std::cout << " IsFirstStepinVolume = " << aStep->IsFirstStepInVolume() << " IsLastStepInVolume = " << aStep->IsLastStepInVolume() << std::endl;
+	  G4StepPoint * prePoint = aStep->GetPreStepPoint();
+	  G4StepPoint * postPoint = aStep->GetPostStepPoint();
+	  std::cout << " pre-point step status " << prePoint->GetStepStatus() << " post-point step status " << postPoint->GetStepStatus() << std::endl; 	    
+	}
+
+      // Get the layer and ladder information
+      // thi is the same for all strips in the sensor
+
       boost::char_separator<char> sep("_");
       boost::tokenizer<boost::char_separator<char> > tok(touch->GetVolume(2)->GetName(), sep);
       boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
@@ -113,12 +135,87 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       const int nstrips_phi_cell = detector_->arr_nstrips_phi_cell[inttlayer];
       const double strip_y       = detector_->arr_strip_y[inttlayer];
 
+      // Find the strip y and z index values using the strip volume pointer
+      // This just regurgitates the values set in PHG4SiliconTrackerParameterization
+      // when the G4PVParameterized was defined 
       G4ThreeVector strip_pos = volume->GetTranslation();
-      const double epsz = pow(10., -10.) * GSL_SIGN(strip_pos.z());
-      const double epsy = pow(10., -10.) * GSL_SIGN(strip_pos.y());
 
-      strip_z_index = (nstrips_z_sensor%2==0) ? int((strip_pos.z()/CLHEP::mm-strip_z+epsz)/(2.*strip_z)) + int(nstrips_z_sensor/2) : int((strip_pos.z()/CLHEP::mm)/(2.*strip_z)) + int(nstrips_z_sensor/2);
-      strip_y_index = (nstrips_phi_cell%2==0) ? int((strip_pos.y()/CLHEP::mm-strip_y+epsy)/(2.*strip_y)) +     nstrips_phi_cell    : int((strip_pos.y()/CLHEP::mm)/(2.*strip_y)) +     nstrips_phi_cell;
+      strip_z_index = 0;
+      for (int i=0; i<nstrips_z_sensor; ++i)
+        {
+          const double zmin = 2.*strip_z*(double)(i)   - strip_z*(double)nstrips_z_sensor;
+          const double zmax = 2.*strip_z*(double)(i+1) - strip_z*(double)nstrips_z_sensor;
+          if (strip_pos.z()/CLHEP::mm>zmin && strip_pos.z()/CLHEP::mm<=zmax)
+            strip_z_index = i;
+        }
+
+      strip_y_index = 0;
+      for (int i=0; i<2*nstrips_phi_cell; ++i)
+        {
+          const double ymin = 2.*strip_y*(double)(i)   - 2.*strip_y*(double)nstrips_phi_cell;
+          const double ymax = 2.*strip_y*(double)(i+1) - 2.*strip_y*(double)nstrips_phi_cell;
+          if (strip_pos.y()/CLHEP::mm>ymin && strip_pos.y()/CLHEP::mm<=ymax)
+            {
+	      strip_y_index = i;
+	      if(verbosity > 1)
+		{
+		  std::cout << " found strip y index = " << i << std::endl;
+		  std::cout << " i " << i << " ymin " << ymin << " ymax " << ymax << std::endl;
+		}
+	    }
+        }
+
+      // The following is a hack to get around what seems to be a bug that causes the prestep to point to the next strip volume
+      // The symptom of this is that this is the first and last step in the volume, AND the prestep and posttsep both have the same strip copy no.
+      // There is no legitimate way for this to happen
+      // In case of this, the following will find the correct strip using the position of the hit in sensor coordinates and replace the incorrect strip found above
+ 
+      G4StepPoint * prePoint = aStep->GetPreStepPoint();
+      G4StepPoint * postPoint = aStep->GetPostStepPoint();
+      if (prePoint->GetStepStatus() == fGeomBoundary && postPoint->GetStepStatus() == fGeomBoundary)
+	{
+	  G4TouchableHandle touch_post = aStep->GetPostStepPoint()->GetTouchableHandle();
+	  G4VPhysicalVolume* volume_post = touch_post->GetVolume();
+	  
+	  if(verbosity > 1)
+	    {
+	      std::cout << " ******** First and last step in this volume " << std::endl;
+	      std::cout << "    volume_pre " <<  volume->GetName() << " volume_post " << volume_post->GetName() << std::endl;
+	    }
+	  if(volume->GetCopyNo() == volume_post->GetCopyNo())
+	    {
+	      if(verbosity > 1)
+		std::cout <<        "     ************** Bogus! SAME COPY NUMBER FOR PRE AND POST VOLUMES MUST BE WRONG"  << std::endl;
+	      
+	      // we need a hack to replace the values above with the correct strip index values 
+	      // the transform of the world coordinates into the sensor frame will work correctly, so we determine the strip indices from the hit position
+
+	      G4ThreeVector preworldPos = prePoint->GetPosition();
+	      G4ThreeVector strip_pos =  touch->GetHistory()->GetTransform(touch->GetHistory()->GetDepth() - 1).TransformPoint(preworldPos);
+	  
+	      strip_z_index = 0;
+	      for (int i=0; i<nstrips_z_sensor; ++i)
+		{
+		  const double zmin = 2.*strip_z*(double)(i)   - strip_z*(double)nstrips_z_sensor;
+		  const double zmax = 2.*strip_z*(double)(i+1) - strip_z*(double)nstrips_z_sensor;
+		  if (strip_pos.z()/CLHEP::mm>zmin && strip_pos.z()/CLHEP::mm<=zmax)
+		    strip_z_index = i;
+		}
+	      
+	      strip_y_index = 0;
+	      for (int i=0; i<2*nstrips_phi_cell; ++i)
+		{
+		  const double ymin = 2.*strip_y*(double)(i)   - 2.*strip_y*(double)nstrips_phi_cell;
+		  const double ymax = 2.*strip_y*(double)(i+1) - 2.*strip_y*(double)nstrips_phi_cell;
+		  if (strip_pos.y()/CLHEP::mm>ymin && strip_pos.y()/CLHEP::mm<=ymax)
+		    {
+		      strip_y_index = i;
+		      if(verbosity > 1) std::cout << "                            revised strip y position = " << strip_y_index << std::endl;
+		    }
+		}    
+	      
+	    }	  
+	}
     }
   else // silicon inactive area, FPHX, stabe etc. as absorbers
     {
@@ -129,7 +226,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       strip_z_index = -1;
       strip_y_index = -1;
     }
-
+  
   // collect energy and track length step by step
   G4double edep =  aStep->GetTotalEnergyDeposit()/CLHEP::GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit())/CLHEP::GeV;
@@ -156,10 +253,13 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
       G4StepPoint * prePoint = aStep->GetPreStepPoint();
       G4StepPoint * postPoint = aStep->GetPostStepPoint();
+      if(verbosity > 1)
+	std::cout << "prePoint step status = " << prePoint->GetStepStatus() << " postPoint step status = " << postPoint->GetStepStatus() << std::endl;
       switch (prePoint->GetStepStatus())
         {
         case fGeomBoundary:
         case fUndefined:
+
           // if previous hit was saved, hit pointer was set to NULL
           // and we have to make a new one
           if (! hit)
@@ -256,6 +356,9 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       // aTrack->GetTrackStatus() == fStopAndKill: track ends
       if (postPoint->GetStepStatus() == fGeomBoundary || postPoint->GetStepStatus() == fWorldBoundary|| aTrack->GetTrackStatus() == fStopAndKill)
         {
+	  if(verbosity > 1)
+	    std::cout << " postPoint step status changed, save hit and delete it" << std::endl;
+
           // save only hits with energy deposit (or -1 for geantino)
           if (hit->get_edep())
             {
@@ -264,6 +367,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
                 {
                   saveshower->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
                 }
+	      if(verbosity > 1)
+		hit->print();
               // ownership has been transferred to container, set to null
               // so we will create a new hit for the next track
               hit = NULL;
@@ -276,6 +381,34 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
               hit->Reset();
             }
         }
+
+      if(verbosity > 1)
+	{
+          G4StepPoint * prePoint = aStep->GetPreStepPoint();
+          G4StepPoint * postPoint = aStep->GetPostStepPoint();
+	  G4ThreeVector preworldPos = prePoint->GetPosition();
+	  G4ThreeVector postworldPos = postPoint->GetPosition();
+
+	  std::cout <<  " entry point world pos " <<  prePoint->GetPosition().x() << "  " <<  prePoint->GetPosition().y()  << "  " <<  prePoint->GetPosition().z() << std::endl; 
+	  std::cout << " exit point world pos " << postPoint->GetPosition().x() << "  " <<  postPoint->GetPosition().y()  << "  " <<  postPoint->GetPosition().z() << std::endl; 
+
+	  // The exit point transforms do not work here because the particle has already entered the next volume 
+	  // - go back and find Jin's fix for this
+
+	  // strip local pos
+	  G4TouchableHistory* theTouchable = (G4TouchableHistory*)(prePoint->GetTouchable());
+	  G4ThreeVector prelocalPos = theTouchable->GetHistory()->GetTopTransform().TransformPoint(preworldPos);
+	  std::cout << " entry point strip local pos: " << " is " << prelocalPos.x() << " " << prelocalPos.y() << " " << prelocalPos.z() << std::endl;
+	  G4TouchableHistory* postTouchable = (G4TouchableHistory*)(postPoint->GetTouchable());
+	  G4ThreeVector postlocalPos = postTouchable->GetHistory()->GetTopTransform().TransformPoint(postworldPos);
+	  std::cout << " exit point strip local pos: " <<postlocalPos.x() << " " << postlocalPos.y() << " " << postlocalPos.z() << std::endl;
+
+	  // sensor local pos
+	  G4ThreeVector presensorLocalPos = theTouchable->GetHistory()->GetTransform(theTouchable->GetHistory()->GetDepth() - 1).TransformPoint(preworldPos);
+	  std::cout << " entry point sensor local pos: " << presensorLocalPos.x() << " " << presensorLocalPos.y() << " " << presensorLocalPos.z() << std::endl;
+	  G4ThreeVector postsensorLocalPos = postTouchable->GetHistory()->GetTransform(postTouchable->GetHistory()->GetDepth() - 1).TransformPoint(postworldPos);
+	  std::cout << " exit point sensor local pos: " << postsensorLocalPos.x() << " " << postsensorLocalPos.y() << " " << postsensorLocalPos.z() << std::endl;
+	}
 
       if (whichactive>0 && verbosity>0) // return of IsInSiliconTracker, > 0 hit in si-strip, < 0 hit in absorber
         {

@@ -25,6 +25,8 @@ class PHG4Parameters: public PHObject
   typedef std::map<const std::string, std::string>::const_iterator strIter;
 
   PHG4Parameters(const std::string &name): pdbparam(NULL),detname(name) {}
+  PHG4Parameters(const PHG4Parameters &params, const std::string &name);
+
   virtual ~PHG4Parameters() {}
 
   void Print() const;
@@ -64,10 +66,12 @@ class PHG4Parameters: public PHObject
   int ReadFromFile(const std::string &name, const std::string &extension, const int layer, const int issuper, const std::string &dir = ".");
   void CopyToPdbParameterMap(PdbParameterMap *myparm);
 
- protected:
   void printint() const;
   void printdouble() const;
   void printstring() const;
+
+ protected:
+
   unsigned int ConvertStringToUint(const std::string &str) const;
   PdbParameterMap *pdbparam;
   std::string detname;

@@ -1,8 +1,6 @@
 #include "PHG4CylinderGeomv4.h"
 #include <cmath>
 
-ClassImp(PHG4CylinderGeomv4)
-
 using namespace std;
 
 PHG4CylinderGeomv4::PHG4CylinderGeomv4():

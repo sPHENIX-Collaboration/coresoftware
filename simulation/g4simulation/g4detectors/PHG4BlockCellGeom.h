@@ -64,8 +64,6 @@ class PHG4BlockCellGeom: public PHObject
 
   int _layer;
   int _binning;
-  double _radius;
-  double _thickness;
 
   int _nzbins;
   double _zmin;

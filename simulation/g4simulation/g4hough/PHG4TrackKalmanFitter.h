@@ -71,11 +71,6 @@ public:
 	//!End, write and close files
 	int End(PHCompositeNode *);
 
-	/// set verbosity
-	void Verbosity(int verb) {
-		verbosity = verb; // SubsysReco verbosity
-	}
-
 	//Flags of different kinds of outputs
 	enum Flag {
 		//all disabled
@@ -192,20 +187,28 @@ public:
 		_primary_pid_guess = primaryPidGuess;
 	}
 
-	DetectorType get_detector_type() const {
-		return _detector_type;
-	}
-
-	void set_detector_type(DetectorType detectorType) {
-		_detector_type = detectorType;
-	}
-
 	double get_cut_min_p_T() const {
 		return _cut_min_pT;
 	}
 
 	void set_cut_min_p_T(double cutMinPT) {
 		_cut_min_pT = cutMinPT;
+	}
+
+	bool is_over_write_svtxtrackmap() const {
+		return _over_write_svtxtrackmap;
+	}
+
+	void set_over_write_svtxtrackmap(bool overWriteSvtxtrackmap) {
+		_over_write_svtxtrackmap = overWriteSvtxtrackmap;
+	}
+
+	bool is_over_write_svtxvertexmap() const {
+		return _over_write_svtxvertexmap;
+	}
+
+	void set_over_write_svtxvertexmap(bool overWriteSvtxvertexmap) {
+		_over_write_svtxvertexmap = overWriteSvtxvertexmap;
 	}
 
 private:
@@ -224,10 +227,10 @@ private:
 	 * \param intrack Input SvtxTrack
 	 * \param invertex Input Vertex, if fit track as a primary vertex
 	 */
-	PHGenFit::Track* ReFitTrack(PHCompositeNode *, const SvtxTrack* intrack, const SvtxVertex* invertex = NULL);
+	std::shared_ptr<PHGenFit::Track> ReFitTrack(PHCompositeNode *, const SvtxTrack* intrack, const SvtxVertex* invertex = NULL);
 
 	//! Make SvtxTrack from PHGenFit::Track and SvtxTrack
-	SvtxTrack* MakeSvtxTrack(const SvtxTrack* svtxtrack, const PHGenFit::Track* genfit_track, const SvtxVertex * vertex = NULL);
+	std::shared_ptr<SvtxTrack> MakeSvtxTrack(const SvtxTrack* svtxtrack, const std::shared_ptr<PHGenFit::Track>& genfit_track, const SvtxVertex * vertex = NULL);
 
 	//! Fill SvtxVertexMap from GFRaveVertexes and Tracks
 	bool FillSvtxVertexMap(
@@ -268,11 +271,11 @@ private:
 	//!flags
 	unsigned int _flags;
 
-	//!Detector Type
-	DetectorType _detector_type;
-
 	//bool _make_separate_nodes;
 	OutPutMode _output_mode;
+
+	bool _over_write_svtxtrackmap;
+	bool _over_write_svtxvertexmap;
 
 	bool _fit_primary_tracks;
 

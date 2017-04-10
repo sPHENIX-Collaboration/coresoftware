@@ -1,5 +1,7 @@
 #include "PHG4HoughTransformTPC.h"
 
+#include "SvtxTrackState.h"
+
 // g4hough includes
 #include "SvtxVertexMap.h"
 #include "SvtxVertexMap_v1.h"
@@ -16,14 +18,9 @@
 // PHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
-#include <g4detectors/PHG4CylinderGeom_MAPS.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
-#include <g4main/PHG4InEvent.h>
 #include <g4main/PHG4VtxPoint.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Hit.h>
 #include <g4bbc/BbcVertexMap.h>
 #include <g4bbc/BbcVertex.h>
 
@@ -34,17 +31,13 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 
-// Geant4 includes
-#include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4TransportationManager.hh>
-#include <Geant4/G4FieldManager.hh>
-
 // Helix Hough includes
-#include <HelixHough/SimpleHit3D.h>
-#include <HelixHough/SimpleTrack3D.h>
+#include <HelixHough/HelixHough.h>
 #include <HelixHough/HelixResolution.h>
 #include <HelixHough/HelixRange.h>
-#include <HelixHough/HelixHough.h>
+#include <HelixHough/SimpleHit3D.h>
+#include <HelixHough/SimpleTrack3D.h>
+#include <HelixHough/sPHENIXTrackerTPC.h>
 #include <HelixHough/VertexFinder.h>
 
 // ROOT includes

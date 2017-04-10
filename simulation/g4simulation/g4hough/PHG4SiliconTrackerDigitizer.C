@@ -10,8 +10,8 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
+#include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -110,7 +110,7 @@ void PHG4SiliconTrackerDigitizer::CalculateLadderCellADCScale(PHCompositeNode *t
 
   // FPHX 3-bit ADC, thresholds are set in "set_fphx_adc_scale".
 
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SILICON_TRACKER");
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
     
   if (!geom_container || !cells) return;
@@ -138,26 +138,26 @@ void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) 
   // Get Nodes
   //----------
  
-  PHG4CylinderCellContainer* cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
+  PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SILICON_TRACKER");
   if (!cells) return; 
   
   //-------------
   // Digitization
   //-------------
 
-  PHG4CylinderCellContainer::ConstRange cellrange = cells->getCylinderCells();
-  for(PHG4CylinderCellContainer::ConstIterator celliter = cellrange.first;
+  PHG4CellContainer::ConstRange cellrange = cells->getCells();
+  for(PHG4CellContainer::ConstIterator celliter = cellrange.first;
       celliter != cellrange.second;
       ++celliter) {
     
-    PHG4CylinderCell* cell = celliter->second;
+    PHG4Cell* cell = celliter->second;
     
     SvtxHit_v1 hit;
 
     const int layer = cell->get_layer();
 
     hit.set_layer(layer);
-    hit.set_cellid(cell->get_cell_id());
+    hit.set_cellid(cell->get_cellid());
 
     if (_energy_scale.count(layer)>1)
       assert(!"Error: _energy_scale has two or more keys.");

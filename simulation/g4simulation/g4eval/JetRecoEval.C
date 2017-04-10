@@ -24,34 +24,34 @@
 #include <g4cemc/RawCluster.h>
 
 #include <string>
-#include <cstdlib>
+//#include <cstdlib>
 #include <set>
 #include <map>
 #include <float.h>
-#include <algorithm>
+//#include <algorithm>
 #include <cassert>
 
 using namespace std;
 
 JetRecoEval::JetRecoEval(PHCompositeNode* topNode,
-			 std::string recojetname,
-			 std::string truthjetname)
+			 const std::string &recojetname,
+			 const std::string &truthjetname)
   : _jettrutheval(topNode,truthjetname),
     _recojetname(recojetname),
     _truthjetname(truthjetname),
-    _recojets(NULL),
-    _truthjets(NULL),
-    _trackmap(NULL),
-    _cemctowers(NULL),
-    _cemcclusters(NULL),
-    _hcalintowers(NULL),
-    _hcalinclusters(NULL),
-    _hcalouttowers(NULL),
-    _hcaloutclusters(NULL),
-    _femctowers(NULL),
-    _femcclusters(NULL),
-    _fhcaltowers(NULL),
-    _fhcalclusters(NULL),
+    _recojets(nullptr),
+    _truthjets(nullptr),
+    _trackmap(nullptr),
+    _cemctowers(nullptr),
+    _cemcclusters(nullptr),
+    _hcalintowers(nullptr),
+    _hcalinclusters(nullptr),
+    _hcalouttowers(nullptr),
+    _hcaloutclusters(nullptr),
+    _femctowers(nullptr),
+    _femcclusters(nullptr),
+    _fhcaltowers(nullptr),
+    _fhcalclusters(nullptr),
     _strict(false),
     _verbosity(1),
     _errors(0),
@@ -522,7 +522,7 @@ std::set<Jet*> JetRecoEval::all_truth_jets(Jet* recojet) {
 Jet* JetRecoEval::max_truth_jet_by_energy(Jet* recojet) {
 
   if (_strict) {assert(recojet);}
-  else if (!recojet) {++_errors; return NULL;}
+  else if (!recojet) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<Jet*,Jet*>::iterator iter =
@@ -532,7 +532,7 @@ Jet* JetRecoEval::max_truth_jet_by_energy(Jet* recojet) {
     }
   }
 
-  Jet* truthjet = NULL;
+  Jet* truthjet = nullptr;
   float max_energy = FLT_MAX*-1.0;
 
   std::set<Jet*> truthjets = all_truth_jets(recojet);  
@@ -601,7 +601,7 @@ std::set<Jet*> JetRecoEval::all_jets_from(Jet* truthjet) {
 Jet* JetRecoEval::best_jet_from(Jet* truthjet) {
 
   if (_strict) {assert(truthjet);}
-  else if (!truthjet) {++_errors; return NULL;}
+  else if (!truthjet) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<Jet*,Jet*>::iterator iter =
@@ -611,7 +611,7 @@ Jet* JetRecoEval::best_jet_from(Jet* truthjet) {
     }
   }
 
-  Jet* bestrecojet = NULL;
+  Jet* bestrecojet = nullptr;
   float max_energy = FLT_MAX*-1.0;
 
   std::set<Jet*> recojets = all_jets_from(truthjet);
@@ -646,7 +646,7 @@ JetRecoEval::unique_reco_jet_from_truth(Jet* truthjet)
   else if (!truthjet)
     {
       ++_errors;
-      return NULL;
+      return nullptr;
     }
 
   Jet* recojet = best_jet_from(truthjet);
@@ -658,11 +658,11 @@ JetRecoEval::unique_reco_jet_from_truth(Jet* truthjet)
       if (back_matching->get_id() == truthjet->get_id())
         return recojet; // uniquely matched
       else
-        return NULL;
+        return nullptr;
 
     }
   else
-    return NULL;
+    return nullptr;
 }
 
 Jet*
@@ -676,7 +676,7 @@ JetRecoEval::unique_truth_jet_from_reco(Jet* recojet)
   else if (!recojet)
     {
       ++_errors;
-      return NULL;
+      return nullptr;
     }
 
   Jet* truthjet =   max_truth_jet_by_energy(recojet);
@@ -688,11 +688,11 @@ JetRecoEval::unique_truth_jet_from_reco(Jet* recojet)
       if (back_matching ->get_id() == recojet->get_id())
         return truthjet; // uniquely matched
       else
-        return NULL;
+        return nullptr;
 
     }
   else
-    return NULL;
+    return nullptr;
 }
 
 // overlap calculations

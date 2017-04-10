@@ -33,13 +33,13 @@ class PHG4CylinderCellv1 : public PHG4CylinderCell
   int get_binz() const {return binz;}
   int get_binphi() const {return binphi;}
   int get_bineta() const {return get_binz();}
-  float  get_light_yield() const  {    return light_yield;  }
+  float get_light_yield() const  {return light_yield;}
 
 
   void set_zbin(const int i) {binz = i;}
   void set_etabin(const int i) {set_zbin(i);}
   void set_phibin(const int i) {binphi = i;}
-  void  set_light_yield(float lightYield)  {    light_yield = lightYield;  }
+  void set_light_yield(const float lightYield)  {    light_yield = lightYield;  }
 
  protected:
 

@@ -8,23 +8,30 @@
  * \date $Date: 2015/01/06 02:52:07 $
  */
 
+#include "PHG4DSTReader.h"
+
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4TruthInfoContainer.h>
+
+#include <g4cemc/RawTowerv1.h>
 #include <g4cemc/RawTowerContainer.h>
 
 #include <g4main/PHG4InEvent.h>
-#include <g4main/PHG4Particle.h>
-//#include <PHG4Particlev2.h>
+//#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4HitEval.h>
+#include <g4main/PHG4Particlev2.h>
+#include <g4main/PHG4VtxPointv1.h>
+
+#include <g4jets/JetV1.h>
 #include <g4jets/JetMap.h>
 
 #include <fun4all/PHTFileServer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-//#include <PHGeometry.h>
 
 #include <phool/getClass.h>
 
+#include <TClonesArray.h>
 #include <TTree.h>
-#include <TMath.h>
 
 #include <boost/foreach.hpp>
 #include <map>
@@ -33,13 +40,18 @@
 
 #include<sstream>
 
-#include "PHG4DSTReader.h"
 
 using namespace std;
 
+typedef PHG4Particlev2 part_type;
+typedef PHG4HitEval hit_type;
+typedef PHG4VtxPointv1 vertex_type;
+typedef RawTowerv1 RawTower_type;
+typedef JetV1 PHPyJet_type;
+
 PHG4DSTReader::PHG4DSTReader(const string &filename) :
     SubsysReco("PHG4DSTReader"), nblocks(0), _event(0), //
-    _out_file_name(filename), /*_file(NULL), */_T(NULL), //
+    _out_file_name(filename), /*_file(nullptr), */_T(nullptr), //
     _save_particle(true), _load_all_particle(false), _load_active_particle(
         true), _save_vertex(true), _tower_zero_sup(.0)
 {

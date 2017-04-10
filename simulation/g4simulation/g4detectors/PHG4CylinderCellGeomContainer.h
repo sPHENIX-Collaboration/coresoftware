@@ -24,6 +24,7 @@ class PHG4CylinderCellGeomContainer: public PHObject
   int AddLayerCellGeom(const int i, PHG4CylinderCellGeom *mygeom);
   int AddLayerCellGeom(PHG4CylinderCellGeom *mygeom);
   PHG4CylinderCellGeom *GetLayerCellGeom(const int i);
+  PHG4CylinderCellGeom *GetFirstLayerCellGeom();
   int get_NLayers() const {return layergeoms.size();}
   std::pair<std::map<int,PHG4CylinderCellGeom *>::const_iterator, std::map<int,PHG4CylinderCellGeom *>::const_iterator> get_begin_end() const {return std::make_pair(layergeoms.begin(), layergeoms.end());}
 

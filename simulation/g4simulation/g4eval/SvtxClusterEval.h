@@ -1,20 +1,21 @@
-
-#ifndef __SVTXCLUSTEREVAL_H__
-#define __SVTXCLUSTEREVAL_H__
+#ifndef SVTXCLUSTEREVAL_H__
+#define SVTXCLUSTEREVAL_H__
 
 #include "SvtxHitEval.h"
-#include "SvtxTruthEval.h"
-
-#include <phool/PHCompositeNode.h>
-#include <g4hough/SvtxClusterMap.h>
-#include <g4hough/SvtxCluster.h>
-#include <g4hough/SvtxHitMap.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4Particle.h>
 
 #include <set>
 #include <map>
+
+class PHCompositeNode;
+
+class PHG4Hit;
+class PHG4Particle;
+class PHG4TruthInfoContainer;
+
+class SvtxCluster;
+class SvtxClusterMap;
+class SvtxHitMap;
+class SvtxTruthEval;
 
 class SvtxClusterEval {
 
@@ -86,4 +87,4 @@ private:
   std::map<std::pair<SvtxCluster*,PHG4Hit*>,float>      _cache_get_energy_contribution_g4hit;
 };
 
-#endif // __SVTXCLUSTEREVAL_H__
+#endif // SVTXCLUSTEREVAL_H__

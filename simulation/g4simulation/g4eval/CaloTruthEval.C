@@ -1,31 +1,28 @@
-
 #include "CaloTruthEval.h"
-
-#include "BaseTruthEval.h"
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
+
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Shower.h>
 
-#include <cstdlib>
-#include <set>
-#include <map>
-#include <float.h>
-#include <iostream>
 #include <cassert>
+#include <cmath>
+#include <iostream>
+#include <map>
+#include <set>
 
 using namespace std;
 
-CaloTruthEval::CaloTruthEval(PHCompositeNode* topNode,std::string caloname)
+CaloTruthEval::CaloTruthEval(PHCompositeNode* topNode, const std::string &caloname)
   : _basetrutheval(topNode),
     _caloname(caloname),
     _caloid(PHG4HitDefs::get_volume_id(caloname)),
-    _truthinfo(NULL),
-    _g4hits(NULL),
+    _truthinfo(nullptr),
+    _g4hits(nullptr),
     _strict(false),
     _verbosity(1),
     _errors(0),
@@ -249,10 +246,10 @@ PHG4Particle* CaloTruthEval::get_parent_particle(PHG4Hit* g4hit) {
 
 PHG4Particle* CaloTruthEval::get_primary_particle(PHG4Hit* g4hit) {
 
-  if (!has_full_node_pointers()) {++_errors; return NULL;}
+  if (!has_full_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(g4hit);}
-  else if (!g4hit) {++_errors; return NULL;}
+  else if (!g4hit) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<PHG4Hit*,PHG4Particle*>::iterator iter =

@@ -3,9 +3,6 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>
-#include <set>
-#include <map>
 #include <cmath>
 
 class SvtxTrackState : public PHObject {
@@ -53,7 +50,7 @@ public:
   virtual void  set_error(unsigned int i, unsigned int j, float value) {}
 
   virtual std::string get_name(){return "";}
-  virtual void set_name(std::string name){}
+  virtual void set_name(std::string &name){}
 
 protected:
   SvtxTrackState(float pathlength = 0.0) {}

@@ -18,8 +18,6 @@ class PHG4BlockSubsystem: public PHG4DetectorSubsystem
   virtual ~PHG4BlockSubsystem( void )
   {}
 
-  int InitSubsystem(PHCompositeNode *);
-
   //! InitRunSubsystem
   /*!
   creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
