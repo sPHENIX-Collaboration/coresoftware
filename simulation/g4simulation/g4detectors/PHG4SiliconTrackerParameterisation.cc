@@ -3,8 +3,7 @@
 #include <G4VPhysicalVolume.hh>
 #include <G4ThreeVector.hh>
 
-PHG4SiliconTrackerStripParameterisation::PHG4SiliconTrackerStripParameterisation(const unsigned int &ny, const unsigned int &nz, const double &dy, const double &dz)
-    : G4VPVParameterisation()
+PHG4SiliconTrackerStripParameterisation::PHG4SiliconTrackerStripParameterisation(const unsigned int ny, const unsigned int nz, const double dy, const double dz)
 {
   const double offsety = (double)ny * dy * 0.5;
   const double offsetz = (double)nz * dz * 0.5;
@@ -32,9 +31,6 @@ PHG4SiliconTrackerStripParameterisation::PHG4SiliconTrackerStripParameterisation
       }
 }
 
-PHG4SiliconTrackerStripParameterisation::~PHG4SiliconTrackerStripParameterisation()
-{}
-
 void PHG4SiliconTrackerStripParameterisation::ComputeTransformation(const G4int icopy, G4VPhysicalVolume *physVol) const
   {
     physVol->SetTranslation(G4ThreeVector(fXStrip[icopy], fYStrip[icopy], fZStrip[icopy]));
@@ -42,8 +38,7 @@ void PHG4SiliconTrackerStripParameterisation::ComputeTransformation(const G4int 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PHG4SiliconTrackerFPHXParameterisation::PHG4SiliconTrackerFPHXParameterisation(const double &offsetx, const double &offsety, const double &offsetz, const double &dz, const int &ncopy)
-    : G4VPVParameterisation()
+PHG4SiliconTrackerFPHXParameterisation::PHG4SiliconTrackerFPHXParameterisation(const double offsetx, const double offsety, const double offsetz, const double dz, const int ncopy)
 {
   for (G4int icopy=0; icopy<ncopy; icopy++)
     {
@@ -52,9 +47,6 @@ PHG4SiliconTrackerFPHXParameterisation::PHG4SiliconTrackerFPHXParameterisation(c
       fZFPHX[icopy] = offsetz + (double)icopy*dz;
     }
 }
-
-PHG4SiliconTrackerFPHXParameterisation::~PHG4SiliconTrackerFPHXParameterisation()
-{}
 
 void PHG4SiliconTrackerFPHXParameterisation::ComputeTransformation(const G4int icopy, G4VPhysicalVolume *physVol) const
   {
