@@ -1094,8 +1094,16 @@ int PHG4KalmanPatRec::translate_input() {
 			iter != _g4clusters->end(); ++iter) {
 		SvtxCluster* cluster = iter->second;
 
+
 		//unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
-		unsigned int ilayer = _layer_ilayer_map_all[cluster->get_layer()];
+
+//		unsigned int ilayer = _layer_ilayer_map_all[cluster->get_layer()];
+//		if(ilayer >= _nlayers) continue;
+
+		unsigned int ilayer = UINT_MAX;
+		std::map<int, unsigned int>::const_iterator it = _layer_ilayer_map.find(cluster->get_layer());
+		if(it != _layer_ilayer_map.end())
+			ilayer = it->second;
 		if(ilayer >= _nlayers) continue;
 
 		SimpleHit3D hit3d;
@@ -1446,7 +1454,6 @@ int PHG4KalmanPatRec::export_output() {
 
 	vector<SimpleHit3D> track_hits;
 	int clusterID;
-	int clusterLayer;
 
 	for (unsigned int itrack = 0; itrack < _tracks.size(); itrack++) {
 		SvtxTrack_v1 track;
@@ -1461,10 +1468,12 @@ int PHG4KalmanPatRec::export_output() {
 			SvtxCluster* cluster = _g4clusters->get(
 					track_hits.at(ihit).get_id());
 			clusterID = cluster->get_id();
-			clusterLayer = cluster->get_layer();
-			if ((clusterLayer < (int) _nlayers) && (clusterLayer >= 0)) {
-				track.insert_cluster(clusterID);
-			}
+
+			//TODO verify this change
+			//int clusterLayer = cluster->get_layer();
+			//if ((clusterLayer < (int) _nlayers) && (clusterLayer >= 0)) {
+			track.insert_cluster(clusterID);
+			//}
 		}
 
 		float kappa = _tracks.at(itrack).kappa;
