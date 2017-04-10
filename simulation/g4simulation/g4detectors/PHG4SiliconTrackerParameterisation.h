@@ -1,8 +1,8 @@
 #ifndef PHG4SiliconTrackerParameterisation_H
 #define PHG4SiliconTrackerParameterisation_H 1
 
-#include <globals.hh>
-#include <G4VPVParameterisation.hh>
+#include <Geant4/globals.hh>
+#include <Geant4/G4VPVParameterisation.hh>
 
 class G4VPhysicalVolume;
 

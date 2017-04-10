@@ -20,9 +20,8 @@ INCLUDES = \
     -I$(includedir) \
     -I$(OFFLINE_MAIN)/include \
     -I$(ROOTSYS)/include \
-    -I${G4_MAIN}/include \
-    -I${G4_MAIN}/include/Geant4 \
-	-I/opt/sphenix/core/stow/xerces-c-3.1.2/include/
+    -I$(G4_MAIN)/include \
+    -I$(OPT_SPHENIX)/include 
 
 libg4detectors_io_la_LIBADD = \
   -L$(ROOTSYS)/lib \

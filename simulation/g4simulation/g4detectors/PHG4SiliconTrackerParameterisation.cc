@@ -1,7 +1,7 @@
 #include "PHG4SiliconTrackerParameterisation.h"
 
-#include <G4VPhysicalVolume.hh>
-#include <G4ThreeVector.hh>
+#include <Geant4/G4VPhysicalVolume.hh>
+#include <Geant4/G4ThreeVector.hh>
 
 PHG4SiliconTrackerStripParameterisation::PHG4SiliconTrackerStripParameterisation(const unsigned int ny, const unsigned int nz, const double dy, const double dz)
 {
