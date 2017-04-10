@@ -11,28 +11,24 @@ class PHG4Shower;
 
 class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector*, const PHG4Parameters *parameters );
+  PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector *, const PHG4Parameters *parameters);
 
   //! destructor
   virtual ~PHG4InnerHcalSteppingAction();
 
-
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  virtual bool UserSteppingAction(const G4Step *, bool);
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers( PHCompositeNode* );
+  virtual void SetInterfacePointers(PHCompositeNode *);
 
   double GetLightCorrection(const double r) const;
 
-  private:
-
+ private:
   //! pointer to the detector
-  PHG4InnerHcalDetector* detector_;
+  PHG4InnerHcalDetector *detector_;
 
   //! pointer to hit container
   PHG4HitContainer *hits_;
@@ -41,6 +37,8 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   const PHG4Parameters *params;
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
+  int savetrackid;
+  int savepoststepstatus;
   // since getting parameters is a map search we do not want to
   // do this in every step, the parameters used are cached
   // in the following variables
@@ -49,12 +47,11 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   int IsBlackHole;
   int n_scinti_plates;
   int light_scint_model;
-  
+
   double light_balance_inner_corr;
   double light_balance_inner_radius;
   double light_balance_outer_corr;
   double light_balance_outer_radius;
 };
 
-
-#endif // PHG4InnerHcalSteppingAction_h
+#endif  // PHG4InnerHcalSteppingAction_h
