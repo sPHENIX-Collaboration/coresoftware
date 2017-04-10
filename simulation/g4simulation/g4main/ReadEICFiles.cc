@@ -13,6 +13,7 @@
 #include <phool/PHNodeIterator.h>
 
 #include <HepMC/GenEvent.h>
+#include <HepMC/GenVertex.h>
 
 
 // eicsmear classes
@@ -77,7 +78,6 @@ ReadEICFiles::Init(PHCompositeNode *topNode)
 {
   /* Create node tree */
   CreateNodeTree(topNode);
-
   return 0;
 }
 
@@ -85,7 +85,6 @@ ReadEICFiles::Init(PHCompositeNode *topNode)
 int
 ReadEICFiles::process_event(PHCompositeNode *topNode)
 {
-
   /* Check if there is an unused event left in input file */
   if (entry >= nEntries)
     {
@@ -124,6 +123,40 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
       exit(1);
     }
 
+
+  /* Create GenEvent */
+  HepMC::GenEvent* evt = new HepMC::GenEvent();
+  //    call_pyhepc( 1 );
+    //    evt = hepevtio.read_next_event();
+
+
+  // define the units (Pythia uses GeV and mm)
+  evt->use_units(HepMC::Units::GEV, HepMC::Units::MM);
+
+    // add some information to the event
+  evt->set_event_number(entry);
+
+    /* process ID from pythia */
+    //    evt->set_signal_process_id(pypars.msti[1-1]);
+
+    // set number of multi parton interactions
+    //    evt->set_mpi( pypars.msti[31-1] );
+
+    // set cross section information
+    //    evt->set_cross_section( HepMC::getPythiaCrossSection() );
+
+    // Set the PDF information
+//    HepMC::PdfInfo pdfinfo;
+//    pdfinfo.set_x1(pypars.pari[33-1]);
+//    pdfinfo.set_x2(pypars.pari[34-1]);
+//    pdfinfo.set_scalePDF(pypars.pari[22-1]);
+//    pdfinfo.set_id1(pypars.msti[15-1]);
+//    pdfinfo.set_id2(pypars.msti[16-1]);
+//    evt->set_pdf_info(pdfinfo);
+
+  /* END add GenEvent */
+
+
   /* Find InEvent node */
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   if (!ineve) {
@@ -133,6 +166,10 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
 
   /* Get event record from tree */
   Tin->GetEntry(entry);
+
+  /* Create dummy vertex at 0 for HepMC event */
+  HepMC::GenVertex* hepmcvtx = new HepMC::GenVertex(HepMC::FourVector(0,0,0,0));
+
 
   /* Loop over all particles for this event in input file */
   for (unsigned ii = 0; ii < GenEvent->GetNTracks(); ii++)
@@ -184,6 +221,14 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
           exit(1);
         }
 
+      /* Add particle to HepMC event vertex */
+      HepMC::GenParticle *hepmcpart = new HepMC::GenParticle( HepMC::FourVector(track_ii->GetPx(),
+										track_ii->GetPy(),
+										track_ii->GetPz(),
+										0),
+							      track_ii->Id());
+      hepmcvtx->add_particle_out(hepmcpart);
+
       /* Add particle to Geant4 event */
       int idvtx = ineve->AddVtx(vx, vy, vz, vt);
 
@@ -195,6 +240,17 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
 
       ineve->AddParticle(idvtx, g4particle);
     }
+
+  /* Add HepMC dummy vertex to event */
+  evt->add_vertex(hepmcvtx);
+
+  /* pass HepMC to PHNode*/
+  bool success = _phhepmcevt->addEvent(evt);
+  if (!success) {
+    cout << "ReadEICFiles::process_event - Failed to add event to HepMC record!" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  /* END pass event to HepMC node */
 
   /* Print event information if verbosity > 0 */
   if (verbosity > 0)
