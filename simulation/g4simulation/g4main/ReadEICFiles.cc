@@ -3,12 +3,17 @@
 #include "PHG4InEvent.h"
 #include "PHG4Particlev1.h"
 
+#include <phhepmc/PHHepMCGenEvent.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/recoConsts.h>
 #include <phool/getClass.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
+
+#include <HepMC/GenEvent.h>
+
 
 // eicsmear classes
 #include <eicsmear/erhic/EventMC.h>
@@ -18,6 +23,8 @@
 
 using namespace std;
 
+typedef PHIODataNode<PHObject> PHObjectNode_t;
+
 ///////////////////////////////////////////////////////////////////
 
 ReadEICFiles::ReadEICFiles(const string &name):
@@ -26,7 +33,8 @@ ReadEICFiles::ReadEICFiles(const string &name):
   Tin(NULL),
   nEntries(0),
   entry(0),
-  GenEvent(NULL)
+  GenEvent(NULL),
+  _node_name("PHHepMCGenEvent")
 {
   return;
 }
@@ -67,17 +75,9 @@ void ReadEICFiles::GetTree()
 int
 ReadEICFiles::Init(PHCompositeNode *topNode)
 {
-  PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
-  if (!ineve)
-    {
-      PHNodeIterator iter( topNode );
-      PHCompositeNode *dstNode;
-      dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
+  /* Create node tree */
+  CreateNodeTree(topNode);
 
-      ineve = new PHG4InEvent();
-      PHDataNode<PHObject> *newNode = new PHDataNode<PHObject>(ineve, "PHG4INEVENT", "PHObject");
-      dstNode->addNode(newNode);
-    }
   return 0;
 }
 
@@ -207,4 +207,36 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
 
   /* Done */
   return 0;
+}
+
+int ReadEICFiles::CreateNodeTree(PHCompositeNode *topNode) {
+
+  /* InEvent node */
+  PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
+  if (!ineve)
+    {
+      PHNodeIterator iter( topNode );
+      PHCompositeNode *dstNode;
+      dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
+
+      ineve = new PHG4InEvent();
+      PHDataNode<PHObject> *newNode = new PHDataNode<PHObject>(ineve, "PHG4INEVENT", "PHObject");
+      dstNode->addNode(newNode);
+    }
+
+  /* HepMC node */
+  PHCompositeNode *dstNode;
+  PHNodeIterator iter(topNode);
+
+  dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode) {
+    cout << PHWHERE << "DST Node missing doing nothing" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  _phhepmcevt = new PHHepMCGenEvent();
+  PHObjectNode_t *newNode = new PHObjectNode_t(_phhepmcevt,_node_name.c_str(),"PHObject");
+  dstNode->addNode(newNode);
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
