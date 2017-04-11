@@ -683,20 +683,21 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 				cellgeos->get_begin_end();
 		PHG4CylinderCellGeomContainer::ConstIterator miter = begin_end.first;
 		for (; miter != begin_end.second; miter++) {
-			PHG4CylinderCellGeom *cellgeo = miter->second;
+			PHG4CylinderCellGeom *geo = miter->second;
 
 			//if(cellgeo->get_layer() > (int) _radii.size() ) continue;
 
 //			if (verbosity >= 2)
 //				cellgeo->identify();
 
-			_radii_all[_layer_ilayer_map_all[cellgeo->get_layer()]] =
-					cellgeo->get_radius();
+			//TODO
+			_radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
+					geo->get_radius() + 0.5*geo->get_thickness();
 
-			if (_layer_ilayer_map.find(cellgeo->get_layer())
+			if (_layer_ilayer_map.find(geo->get_layer())
 					!= _layer_ilayer_map.end()) {
-				_radii[_layer_ilayer_map[cellgeo->get_layer()]] =
-						cellgeo->get_radius();
+				_radii[_layer_ilayer_map[geo->get_layer()]] =
+						geo->get_radius();
 			}
 		}
 	}
@@ -714,7 +715,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 //				geo->identify();
 
 			_radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
-					geo->get_radius();
+					geo->get_radius() + 0.5*geo->get_thickness();
 
 			if (_layer_ilayer_map.find(geo->get_layer())
 					!= _layer_ilayer_map.end()) {
@@ -736,7 +737,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 //				geo->identify();
 
 			_radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
-					geo->get_radius();
+					geo->get_radius() + 0.5*geo->get_thickness();
 
 			if (_layer_ilayer_map.find(geo->get_layer())
 					!= _layer_ilayer_map.end()) {
@@ -1853,12 +1854,16 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 	convertHelixCovarianceToEuclideanCovariance(_magField, phi, d, kappa,
 			z0, dzdl, _track_covars[itrack], euclidean_cov);
 
+	//TODO optimize
+	const float blowup_factor = 1.;
+
 	TMatrixDSym seed_cov(6);
 	for (int i = 0; i < 6; i++) {
 		for (int j = 0; j < 6; j++) {
-			seed_cov[i][j] = euclidean_cov(i, j);
+			seed_cov[i][j] = blowup_factor*euclidean_cov(i, j);
 		}
 	}
+
 
 	genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_pid_guess);
 	std::shared_ptr<PHGenFit::Track> track(
