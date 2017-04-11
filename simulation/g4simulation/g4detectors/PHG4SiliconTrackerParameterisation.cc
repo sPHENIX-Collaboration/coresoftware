@@ -5,16 +5,16 @@
 
 PHG4SiliconTrackerStripParameterisation::PHG4SiliconTrackerStripParameterisation(const unsigned int ny, const unsigned int nz, const double dy, const double dz)
 {
-  const double offsety = (double)ny * dy * 0.5;
-  const double offsetz = (double)nz * dz * 0.5;
+  const double offsety = ny * dy * 0.5;
+  const double offsetz = nz * dz * 0.5;
 
   int icopy = 0;
   for (unsigned int iy=0; iy<ny; iy++)
     for (unsigned int iz=0; iz<nz; iz++)
       {
         fXStrip[icopy] = 0.0;
-        fYStrip[icopy] = ((double)iy+0.5) * dy - offsety;
-        fZStrip[icopy] = ((double)iz+0.5) * dz - offsetz;
+        fYStrip[icopy] = (iy+0.5) * dy - offsety;
+        fZStrip[icopy] = (iz+0.5) * dz - offsetz;
 
 	/*
 	std::cout << "      icopy " << icopy
@@ -44,7 +44,7 @@ PHG4SiliconTrackerFPHXParameterisation::PHG4SiliconTrackerFPHXParameterisation(c
     {
       fXFPHX[icopy] = offsetx;
       fYFPHX[icopy] = offsety;
-      fZFPHX[icopy] = offsetz + (double)icopy*dz;
+      fZFPHX[icopy] = offsetz + icopy*dz;
     }
 }
 
