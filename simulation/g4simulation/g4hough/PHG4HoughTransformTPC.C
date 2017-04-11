@@ -178,6 +178,7 @@ int PHG4HoughTransformTPC::InitRun(PHCompositeNode *topNode)
 
 int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
 {
+  if(verbosity>1000) std::cout << "PHG4HoughTransformTPC::Process_Event" << std::endl;
   _timer.get()->restart();
   if(_write_reco_tree==true){ _recoevent->tracks.clear();}
 
@@ -234,6 +235,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
   }
 
   _timer.get()->stop();
+  if(verbosity>1000) std::cout << "PHG4HoughTransformTPC::Process_Event DONE" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

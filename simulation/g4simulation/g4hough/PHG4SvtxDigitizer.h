@@ -1,5 +1,5 @@
-#ifndef __PHG4SVTXDIGITIZER__
-#define __PHG4SVTXDIGITIZER__
+#ifndef __PHG4SVTXDIGITIZER_H__
+#define __PHG4SVTXDIGITIZER_H__
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>

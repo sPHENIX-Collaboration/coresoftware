@@ -246,7 +246,6 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
     unsigned int adc = cell->get_edep() / _energy_scale[hit.get_layer()];
     if (adc > _max_adc[hit.get_layer()]) adc = _max_adc[hit.get_layer()]; 
     float e = _energy_scale[hit.get_layer()] * adc;
-
     hit.set_adc(adc);
     hit.set_e(e);
 
