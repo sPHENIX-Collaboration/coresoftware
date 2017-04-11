@@ -230,7 +230,7 @@ libg4detectors_la_SOURCES = \
   PHG4Prototype2InnerHcalDetector.cc \
   PHG4Prototype2InnerHcalSteppingAction.cc \
   PHG4Prototype2InnerHcalSubsystem.cc \
-  PHG4Prototype2InnerHcalSubsystem_Dict.C \
+  PHG4Prototype2InnerHcalSubsystem_Dict.cc \
   PHG4Prototype2HcalCellReco.cc \
   PHG4Prototype2HcalCellReco_Dict.cc \
   PHG4Prototype2OuterHcalDetector.cc \
@@ -283,11 +283,6 @@ libg4detectors_la_SOURCES = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
-
-PHG4InnerHcal_Dict.C: \
-  PHG4InnerHcalSubsystem.h \
-  PHG4InnerHcalLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
 ################################################
