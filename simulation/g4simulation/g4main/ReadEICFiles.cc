@@ -1,19 +1,15 @@
 #include "ReadEICFiles.h"
 
-#include "PHG4Particlev1.h"
-
 #include <phhepmc/PHHepMCGenEvent.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phool/recoConsts.h>
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 
 #include <HepMC/GenEvent.h>
 #include <HepMC/GenVertex.h>
-
 
 // eicsmear classes
 #include <eicsmear/erhic/EventMC.h>
@@ -98,18 +94,21 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
+  /* Get event record from input file */
+  Tin->GetEntry(entry);
+
   /* Create GenEvent */
   HepMC::GenEvent* evt = new HepMC::GenEvent();
 
-  // define the units (Pythia uses GeV and mm)
+  /* define the units (Pythia uses GeV and mm) */
   evt->use_units(HepMC::Units::GEV, HepMC::Units::MM);
 
-  // add some information to the event
+  /* add global information to the event */
   evt->set_event_number(entry);
-  /* END add GenEvent */
 
-  /* Get event record from tree */
-  Tin->GetEntry(entry);
+  // -----------------
+
+
 
   /* Create dummy vertex at 0 for HepMC event */
   HepMC::GenVertex* hepmcvtx = new HepMC::GenVertex(HepMC::FourVector(0,0,0,0));
@@ -117,7 +116,6 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
   /* Loop over all particles for this event in input file */
   for (unsigned ii = 0; ii < GenEvent->GetNTracks(); ii++)
     {
-
       /* Get particle / track from event records.
        * Class documentation for erhic::VirtualParticle at
        * http://www.star.bnl.gov/~tpb/eic-smear/classerhic_1_1_virtual_particle.html */
