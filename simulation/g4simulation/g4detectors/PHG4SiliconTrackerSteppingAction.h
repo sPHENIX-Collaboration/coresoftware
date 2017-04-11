@@ -12,7 +12,7 @@ class PHG4Shower;
 class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
 {
  public:
-  PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector*/*, const PHG4Parameters *parameters*/);
+  PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector*, const PHG4Parameters *parameters);
 
   virtual ~PHG4SiliconTrackerSteppingAction();
 
@@ -30,10 +30,10 @@ class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
   PHG4Hit          *hit;
   PHG4HitContainer *savehitcontainer;
   PHG4Shower       *saveshower;
-  /* const PHG4Parameters *params; */
+  const PHG4Parameters *params;
 
-  /* int IsActive; */
-  /* int IsBlackHole; */
+  int IsActive;
+  int IsBlackHole;
 };
 
 #endif // PHG4SiliconTrackerSteppingAction_h

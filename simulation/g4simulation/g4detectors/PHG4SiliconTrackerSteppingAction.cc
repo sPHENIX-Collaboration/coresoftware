@@ -36,17 +36,19 @@
 
 #include <iostream>
 
+using namespace std;
+
 //____________________________________________________________________________..
-PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector* detector/*, const PHG4Parameters *parameters*/):
+PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector* detector, const PHG4Parameters *parameters):
     detector_( detector ),
-    hits_(NULL),
-    absorberhits_(NULL),
-    hit(NULL),
-    // params(parameters),
-    savehitcontainer(NULL),
-    saveshower(NULL)
-    // IsActive(params->get_int_param("active")),
-    // IsBlackHole(params->get_int_param("blackhole"))
+    hits_(nullptr),
+    absorberhits_(nullptr),
+    hit(nullptr),
+    savehitcontainer(nullptr),
+    saveshower(nullptr),
+    params(parameters),
+    IsActive(params->get_int_param("active")),
+    IsBlackHole(params->get_int_param("blackhole"))
 {
   std::cout << "PHG4SiliconTrackerSteppingAction created" << std::endl;
   verbosity = 0;
@@ -56,7 +58,7 @@ PHG4SiliconTrackerSteppingAction::~PHG4SiliconTrackerSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
-  // if the last hit was saved, hit is a NULL pointer which are
+  // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete hit;
 }
@@ -260,7 +262,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
         case fGeomBoundary:
         case fUndefined:
 
-          // if previous hit was saved, hit pointer was set to NULL
+          // if previous hit was saved, hit pointer was set to nullptr
           // and we have to make a new one
           if (! hit)
             {
@@ -371,7 +373,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 		hit->print();
               // ownership has been transferred to container, set to null
               // so we will create a new hit for the next track
-              hit = NULL;
+              hit = nullptr;
             }
           else
             {
