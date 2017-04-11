@@ -12,27 +12,29 @@
 
 #include <boost/format.hpp>
 
+using namespace std;
+
 //_______________________________________________________________________
 PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &detectorname, const vpair &layerconfig):
-    PHG4Subsystem(detectorname),
+    PHG4DetectorSubsystem(detectorname),
     detector_(0),
-    steppingAction_(NULL),
-    eventAction_(NULL),
+    steppingAction_(nullptr),
+    eventAction_(nullptr),
     active(0),
     absorberactive(0),
     layerconfig_(layerconfig),
     detector_type(detectorname),
     superdetector(detectorname)
 {
+
+  InitializeParameters();
   // put the layer into the name so we get unique names
   // for multiple layers
   Name(detectorname);
-  for (int i = 0; i < 3; i++)
-    dimension[i] = 100.0 * cm;
 }
 
 //_______________________________________________________________________
-int PHG4SiliconTrackerSubsystem::Init( PHCompositeNode* topNode )
+int PHG4SiliconTrackerSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 {
   if(verbosity>0)
     std::cout << "PHG4SiliconTrackerSubsystem::Init started" << std::endl;
@@ -46,7 +48,7 @@ int PHG4SiliconTrackerSubsystem::Init( PHCompositeNode* topNode )
   detector_->SetAbsorberActive(absorberactive);
   detector_->SuperDetector(superdetector);
   detector_->Detector(detector_type);
-  detector_->OverlapCheck(overlapcheck);
+  detector_->OverlapCheck(CheckOverlap());
 
   if (active)
     {
@@ -98,9 +100,8 @@ PHG4Detector* PHG4SiliconTrackerSubsystem::GetDetector(void) const
     return detector_;
   }
 
-//_______________________________________________________________________
-PHG4SteppingAction* PHG4SiliconTrackerSubsystem::GetSteppingAction(void) const
-  {
-    return steppingAction_;
-  }
-
+void
+PHG4SiliconTrackerSubsystem::SetDefaultParameters()
+{
+  return;
+}
