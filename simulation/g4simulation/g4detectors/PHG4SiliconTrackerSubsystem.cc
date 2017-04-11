@@ -1,6 +1,6 @@
 #include "PHG4SiliconTrackerSubsystem.h"
-#include "PHG4SiliconTrackerDetector.h"
 #include "PHG4EventActionClearZeroEdep.h"
+#include "PHG4SiliconTrackerDetector.h"
 #include "PHG4SiliconTrackerSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -15,18 +15,16 @@
 using namespace std;
 
 //_______________________________________________________________________
-PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &detectorname, const vpair &layerconfig):
-    PHG4DetectorSubsystem(detectorname),
-    detector_(0),
-    steppingAction_(nullptr),
-    eventAction_(nullptr),
-    active(0),
-    absorberactive(0),
-    layerconfig_(layerconfig),
-    detector_type(detectorname),
-    superdetector(detectorname)
+PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &detectorname, const vpair &layerconfig) : PHG4DetectorSubsystem(detectorname),
+                                                                                                                      detector_(0),
+                                                                                                                      steppingAction_(nullptr),
+                                                                                                                      eventAction_(nullptr),
+                                                                                                                      active(0),
+                                                                                                                      absorberactive(0),
+                                                                                                                      layerconfig_(layerconfig),
+                                                                                                                      detector_type(detectorname),
+                                                                                                                      superdetector(detectorname)
 {
-
   InitializeParameters();
   // put the layer into the name so we get unique names
   // for multiple layers
@@ -34,13 +32,13 @@ PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &dete
 }
 
 //_______________________________________________________________________
-int PHG4SiliconTrackerSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
+int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
-  if(verbosity>0)
+  if (verbosity > 0)
     std::cout << "PHG4SiliconTrackerSubsystem::Init started" << std::endl;
 
   PHNodeIterator iter(topNode);
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create detector
   detector_ = new PHG4SiliconTrackerDetector(topNode, Name(), layerconfig_);
@@ -51,40 +49,40 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
   detector_->OverlapCheck(CheckOverlap());
 
   if (active)
+  {
+    const int sphxlayermin = layerconfig_.front().first;
+    const int sphxlayermax = layerconfig_.back().first;
+
+    std::string nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_%s") % superdetector) : boost::str(boost::format("G4HIT_%s_%d_%d") % detector_type % sphxlayermin % sphxlayermax);
+
+    // create hit list
+    PHG4HitContainer *block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.c_str());
+    if (!block_hits)
+      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
+
+    PHG4EventActionClearZeroEdep *eventaction = new PHG4EventActionClearZeroEdep(topNode, nodename);
+    if (absorberactive)
     {
-      const int sphxlayermin = layerconfig_.front().first;
-      const int sphxlayermax = layerconfig_.back().first;
+      nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_ABSORBER_%s") % superdetector) : boost::str(boost::format("G4HIT_ABSORBER_%s_%d_%d") % detector_type % sphxlayermin % sphxlayermax);
 
-      std::string nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_%s") %superdetector) : boost::str(boost::format("G4HIT_%s_%d_%d") %detector_type %sphxlayermin %sphxlayermax);
-
-      // create hit list
-      PHG4HitContainer* block_hits =  findNode::getClass<PHG4HitContainer>(topNode, nodename.c_str());
-      if ( !block_hits )
+      block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.c_str());
+      if (!block_hits)
         dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
 
-      PHG4EventActionClearZeroEdep *eventaction = new PHG4EventActionClearZeroEdep(topNode, nodename);
-      if (absorberactive)
-        {
-          nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_ABSORBER_%s") %superdetector) : boost::str(boost::format("G4HIT_ABSORBER_%s_%d_%d") %detector_type %sphxlayermin %sphxlayermax);
-
-          block_hits =  findNode::getClass<PHG4HitContainer>(topNode , nodename.c_str());
-          if (!block_hits)
-            dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
-
-          eventaction->AddNode(nodename);
-        }
-
-      eventAction_ = dynamic_cast<PHG4EventAction *> (eventaction);
-
-      // create stepping action
-      steppingAction_ = new PHG4SiliconTrackerSteppingAction(detector_);
+      eventaction->AddNode(nodename);
     }
+
+    eventAction_ = dynamic_cast<PHG4EventAction *>(eventaction);
+
+    // create stepping action
+    steppingAction_ = new PHG4SiliconTrackerSteppingAction(detector_, GetParams());
+  }
 
   return 0;
 }
 
 //_______________________________________________________________________
-int PHG4SiliconTrackerSubsystem::process_event(PHCompositeNode * topNode)
+int PHG4SiliconTrackerSubsystem::process_event(PHCompositeNode *topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
@@ -95,13 +93,12 @@ int PHG4SiliconTrackerSubsystem::process_event(PHCompositeNode * topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector* PHG4SiliconTrackerSubsystem::GetDetector(void) const
-  {
-    return detector_;
-  }
+PHG4Detector *PHG4SiliconTrackerSubsystem::GetDetector(void) const
+{
+  return detector_;
+}
 
-void
-PHG4SiliconTrackerSubsystem::SetDefaultParameters()
+void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
 {
   return;
 }
