@@ -6,7 +6,6 @@
 
 #include <string>
 
-class PHComposteNode;
 class PHHepMCGenEvent;
 class TChain;
 
