@@ -1070,7 +1070,7 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*
   int i,j;
   
   // mRICH half width, height, and length + air gap
-  G4double gap=6*cm;         //large gap to avoid overlap. temporary solution
+  G4double gap=3*cm;         //large gap to avoid overlap. temporary solution
   G4Box* mRICH_box=dynamic_cast<G4Box*>(a_mRICH->GetSolid());
   G4double halfWidth=mRICH_box->GetXHalfLength();// + gap;
   G4double halfHeight=halfWidth;
@@ -1098,6 +1098,7 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*
   deltaPhi=2*atan(halfHeight/rinner);//+pi/180;
   phi=0;
 
+  int count=0;
   i=0;
   for (phi=phi_min+deltaPhi;phi<phi_max-deltaPhi;phi=phi+deltaPhi) {  //add extra space to avoid overlap
     c=twopi*(rinner)*sin(phi);
@@ -1129,10 +1130,14 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*
 			0, 0, 1);    //last digit for checking overlapping 
       
       j++;
+      count++;
     }
     i++;
     //if (i>0) break;
   }
+
+  printf("-----------------------------------------------------------------------------\n");
+  printf("%d detectors are built\n",count);
 }
 //________________________________________________________________________//
 G4double PHG4mRICHDetector::eta2polarAngle(G4double eta)
