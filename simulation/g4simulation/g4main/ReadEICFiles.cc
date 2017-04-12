@@ -106,22 +106,17 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
   /* add global information to the event */
   evt->set_event_number(entry);
 
-  // -----------------
 
+  /* Loop over all particles for this event in input file and fill
+   * vector with HepMC particles */
+  vector< HepMC::GenParticle* > hepmc_particles;
 
-
-  /* Create dummy vertex at 0 for HepMC event */
-  HepMC::GenVertex* hepmcvtx = new HepMC::GenVertex(HepMC::FourVector(0,0,0,0));
-
-  /* Loop over all particles for this event in input file */
   for (unsigned ii = 0; ii < GenEvent->GetNTracks(); ii++)
     {
       /* Get particle / track from event records.
        * Class documentation for erhic::VirtualParticle at
        * http://www.star.bnl.gov/~tpb/eic-smear/classerhic_1_1_virtual_particle.html */
       erhic::VirtualParticle * track_ii = GenEvent->GetTrack(ii);
-
-      cout << "index: " << ii <<" , ID: " << track_ii->Id() << " , parent index: " << track_ii->GetParentIndex() << " , vertex: (" << track_ii->GetVertex()[0] << ", " <<  track_ii->GetVertex()[1] << ", " <<  track_ii->GetVertex()[2] << ") , status:" << track_ii->GetStatus() << endl;
 
       /* Create HepMC particle record */
       HepMC::GenParticle *hepmcpart = new HepMC::GenParticle( HepMC::FourVector(track_ii->GetPx(),
@@ -137,19 +132,73 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
 
 	case 21: hepmcpart->set_status( 3 ); break; // 'documentation line'
 
-	default: hepmcpart->set_status( 0 ); break; // 'null entry'
+	default: hepmcpart->set_status( track_ii->GetStatus() ); break; // 'null entry'
 	}
 
       /* if ParentIndex == 0, then this is a beam particle (which gets HepMC status 4)*/
       if ( track_ii->GetParentIndex() == 0 )
 	hepmcpart->set_status( 4 );
 
-      /* add particle to Hep MC vertex */
-      hepmcvtx->add_particle_out(hepmcpart);
+      /* add particle information */
+      hepmcpart->setGeneratedMass( track_ii->GetM() );
+      hepmcpart->suggest_barcode( ii );
+
+      /* append particle to vector */
+      hepmc_particles.push_back(hepmcpart);
     }
 
-  /* Add HepMC dummy vertex to event */
-  evt->add_vertex(hepmcvtx);
+  /* add HepMC particles to Hep MC vertices; skip first two particles
+   * in loop, assuming that they are the beam particles */
+  vector< HepMC::GenVertex* > hepmc_vertices;
+
+  for ( unsigned p = 2; p < hepmc_particles.size(); p++ )
+    {
+      HepMC::GenParticle *pp = hepmc_particles.at(p);
+
+      /* continue if vertices for particle are already set */
+      if ( pp->production_vertex() && pp->end_vertex() )
+	continue;
+
+      /* access mother particle vertex */
+      erhic::VirtualParticle * track_pp = GenEvent->GetTrack(p);
+
+      HepMC::GenParticle *pmother = hepmc_particles.at( track_pp->GetParentIndex() );
+      if ( pmother->end_vertex() )
+	pmother->end_vertex()->add_particle_out(pp);
+      /* create new vertex if end vertex of mother particle is missing */
+      else
+	{
+	  HepMC::GenVertex* hepmcvtx = new HepMC::GenVertex( HepMC::FourVector( track_pp->GetVertex()[0],
+										track_pp->GetVertex()[1],
+										track_pp->GetVertex()[2],
+										0 )
+							     );
+	  hepmc_vertices.push_back( hepmcvtx );
+	  hepmcvtx->add_particle_in(pmother);
+	  pmother->end_vertex()->add_particle_out(pp);
+	}
+    }
+
+  /* Check that both beam particles have an end vertex */
+  if ( ! hepmc_particles.at(0)->end_vertex() ||  ! hepmc_particles.at(1)->end_vertex() )
+    {
+      cout << "ReadEICFiles::process_event - Missing end vertex for one or more beam particles!" << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+  /* Check that all particles (except beam particles) have a production vertex */
+  for ( unsigned p = 2; p < hepmc_particles.size(); p++ )
+    {
+      if ( ! hepmc_particles.at(p)->production_vertex() )
+	{
+	  cout << "ReadEICFiles::process_event - Missing production vertex for one or more non-beam particles!" << endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}
+    }
+
+  /* Add HepMC vertices to event */
+  for ( unsigned v = 0; v < hepmc_vertices.size(); v++ )
+    evt->add_vertex( hepmc_vertices.at(v) );
 
   /* pass HepMC to PHNode*/
   bool success = _phhepmcevt->addEvent(evt);
