@@ -88,10 +88,10 @@
 
 using namespace std;
 
-static TThread *gui_thread = NULL;
+static TThread *gui_thread = nullptr;
 
 // for the G4 cmd line interface
-G4UImanager *UImanager = NULL;
+G4UImanager *UImanager = nullptr;
 
 // the gui thread
 void g4guithread(void *ptr);
@@ -100,15 +100,15 @@ void g4guithread(void *ptr);
 PHG4Reco::PHG4Reco(const string &name) : SubsysReco(name),
                                          magfield(2),
                                          magfield_rescale(1.0),
-                                         field_(NULL),
-                                         runManager_(NULL),
-                                         uisession_(NULL),
-                                         detector_(NULL),
-                                         eventAction_(NULL),
-                                         steppingAction_(NULL),
-                                         trackingAction_(NULL),
-                                         generatorAction_(NULL),
-                                         visManager(NULL),
+                                         field_(nullptr),
+                                         runManager_(nullptr),
+                                         uisession_(nullptr),
+                                         detector_(nullptr),
+                                         eventAction_(nullptr),
+                                         steppingAction_(nullptr),
+                                         trackingAction_(nullptr),
+                                         generatorAction_(nullptr),
+                                         visManager(nullptr),
                                          _eta_coverage(1.0),
                                          mapdim(0),
                                          fieldmapfile("NONE"),
@@ -189,7 +189,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   }
 
   // create physics processes
-  G4VModularPhysicsList *myphysicslist = NULL;
+  G4VModularPhysicsList *myphysicslist = nullptr;
   if (physicslist == "FTFP_BERT")
   {
     myphysicslist = new FTFP_BERT(verbosity);
@@ -623,7 +623,7 @@ void PHG4Reco::G4Seed(const unsigned int i)
 void g4guithread(void *ptr)
 {
   TThread::Lock();
-  G4UIExecutive *ui = new G4UIExecutive(0, NULL);
+  G4UIExecutive *ui = new G4UIExecutive(0, nullptr);
   if (ui->IsGUI() && boost::filesystem::exists("gui.mac"))
   {
     UImanager->ApplyCommand("/control/execute gui.mac");
@@ -633,7 +633,7 @@ void g4guithread(void *ptr)
   TThread::Lock();
   delete ui;
   TThread::UnLock();
-  gui_thread = NULL;
+  gui_thread = nullptr;
   return;
 }
 
@@ -1004,5 +1004,5 @@ PHG4Reco::getSubsystem(const string &name)
     }
   }
   cout << "Could not find Subsystem " << name << endl;
-  return NULL;
+  return nullptr;
 }
