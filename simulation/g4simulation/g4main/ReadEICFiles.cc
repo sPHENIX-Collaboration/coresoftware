@@ -132,7 +132,7 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
 
 	case 21: hepmcpart->set_status( 3 ); break; // 'documentation line'
 
-	default: hepmcpart->set_status( track_ii->GetStatus() ); break; // 'null entry'
+	default: hepmcpart->set_status( 0 ); break; // 'null entry'
 	}
 
       /* if ParentIndex == 0, then this is a beam particle (which gets HepMC status 4)*/
