@@ -672,107 +672,102 @@ PHG4Reco::DefineMaterials()
        matnames.pop_back();
      }
   // home made compounds
-  //Elements needed
-  G4Element *Al  = nist->FindOrBuildElement("Al");
-  G4Element *Ar  = nist->FindOrBuildElement("Ar");
-  G4Element *C  = nist->FindOrBuildElement("C");
-  G4Element *Cr  = nist->FindOrBuildElement("Cr");
-  G4Element *Cs  = nist->FindOrBuildElement("Cs");
-  G4Element *Cu  = nist->FindOrBuildElement("Cu");
-  G4Element *F  = nist->FindOrBuildElement("F");
-  G4Element *Fe  = nist->FindOrBuildElement("Fe");
-  G4Element *H  = nist->FindOrBuildElement("H");
-  G4Element *I  = nist->FindOrBuildElement("I");
-  G4Element *Li  = nist->FindOrBuildElement("Li");
-  G4Element *Mg  = nist->FindOrBuildElement("Mg");
-  G4Element *Mn  = nist->FindOrBuildElement("Mn");
-  G4Element *Ni  = nist->FindOrBuildElement("Ni");
-  G4Element *O  = nist->FindOrBuildElement("O");
-  G4Element *P  = nist->FindOrBuildElement("P");
-  G4Element *S  = nist->FindOrBuildElement("S");
-  G4Element *Si  = nist->FindOrBuildElement("Si");
  // making quartz
-  G4Material* quartz = new G4Material
-    ("Quartz", density=2.200*g/cm3, ncomponents=2);
-  quartz->AddElement(Si, 1);
-  quartz->AddElement(O , 2);
+  G4Material* quartz = new G4Material("Quartz", density=2.200*g/cm3, ncomponents=2);
+  quartz->AddElement(G4Element::GetElement("Si"), 1);
+  quartz->AddElement(G4Element::GetElement("O") , 2);
 
   // gas mixture for the MuID in fsPHENIX. CLS 02-25-14
-  G4Material* IsoButane = 
-    new G4Material("Isobutane", 0.00265*g/cm3, 2);
-  IsoButane->AddElement( C, 4);
-  IsoButane->AddElement( H, 10);
-
-  G4Material* CO2 = new G4Material("CO2", density = 1.977e-3 * g / cm3, ncomponents=2);
-  CO2->AddElement(C, natoms=1);
-  CO2->AddElement(O, natoms=2);
+  G4Material* IsoButane = new G4Material("Isobutane", 0.00265*g/cm3, 2);
+  IsoButane->AddElement(G4Element::GetElement("C"), 4);
+  IsoButane->AddElement( G4Element::GetElement("H"), 10);
 
   G4Material* MuIDgas = new G4Material("MuIDgas", density = (1.977e-3*0.92+0.00265*0.08) * g/cm3, ncomponents=2);
   MuIDgas->AddMaterial(IsoButane, fractionmass=0.08);
-  MuIDgas->AddMaterial(CO2, fractionmass=0.92);
+  MuIDgas->AddMaterial(G4Material::GetMaterial("G4_CARBON_DIOXIDE"), fractionmass=0.92);
   //----
 
-  G4Material* Sci =
-    new G4Material("Scintillator", density = 1.032 * g / cm3, ncomponents = 2);
-  Sci->AddElement(C, natoms = 9);
-  Sci->AddElement(H, natoms = 10);
+  // G4Material* Sci =
+  //   new G4Material("Scintillator", density = 1.032 * g / cm3, ncomponents = 2);
+  // Sci->AddElement(C, natoms = 9);
+  // Sci->AddElement(H, natoms = 10);
 
   // that seems to be the composition of 304 Stainless steel
   G4Material * StainlessSteel =
     new G4Material("SS304", density = 7.9 * g / cm3, ncomponents = 8);
-  StainlessSteel->AddElement(Fe, 0.70105);
-  StainlessSteel->AddElement(Cr, 0.18);
-  StainlessSteel->AddElement(Ni, 0.09);
-  StainlessSteel->AddElement(Mn, 0.02);
-  StainlessSteel->AddElement(C, 0.0007);
-  StainlessSteel->AddElement(S, 0.0003);
-  StainlessSteel->AddElement(Si, 0.0075);
-  StainlessSteel->AddElement(P, 0.00045);
+  StainlessSteel->AddElement(G4Element::GetElement("Fe"), 0.70105);
+  StainlessSteel->AddElement(G4Element::GetElement("Cr"), 0.18);
+  StainlessSteel->AddElement(G4Element::GetElement("Ni"), 0.09);
+  StainlessSteel->AddElement(G4Element::GetElement("Mn"), 0.02);
+  StainlessSteel->AddElement(G4Element::GetElement("C"), 0.0007);
+  StainlessSteel->AddElement(G4Element::GetElement("S"), 0.0003);
+  StainlessSteel->AddElement(G4Element::GetElement("Si"), 0.0075);
+  StainlessSteel->AddElement(G4Element::GetElement("P"), 0.00045);
 
   G4Material * SS310 =
     new G4Material("SS310", density = 8.0 * g / cm3, ncomponents = 8);
-  SS310->AddElement(Fe, 0.50455);
-  SS310->AddElement(Cr, 0.25);
-  SS310->AddElement(Ni, 0.20);
-  SS310->AddElement(Mn, 0.02);
-  SS310->AddElement(C, 0.0025);
-  SS310->AddElement(S, 0.015);
-  SS310->AddElement(Si, 0.0075);
-  SS310->AddElement(P, 0.00045);
+  SS310->AddElement(G4Element::GetElement("Fe"), 0.50455);
+  SS310->AddElement(G4Element::GetElement("Cr"), 0.25);
+  SS310->AddElement(G4Element::GetElement("Ni"), 0.20);
+  SS310->AddElement(G4Element::GetElement("Mn"), 0.02);
+  SS310->AddElement(G4Element::GetElement("C"), 0.0025);
+  SS310->AddElement(G4Element::GetElement("S"), 0.015);
+  SS310->AddElement(G4Element::GetElement("Si"), 0.0075);
+  SS310->AddElement(G4Element::GetElement("P"), 0.00045);
 
   G4Material * Steel =
     new G4Material("Steel", density = 7.86 * g / cm3, ncomponents = 5);
-  Steel->AddElement(Fe, 0.9834);
-  Steel->AddElement(Mn, 0.014);
-  Steel->AddElement(C, 0.0017);
-  Steel->AddElement(S, 0.00045);
-  Steel->AddElement(P, 0.00045);
+  Steel->AddElement(G4Element::GetElement("Fe"), 0.9834);
+  Steel->AddElement(G4Element::GetElement("Mn"), 0.014);
+  Steel->AddElement(G4Element::GetElement("C"), 0.0017);
+  Steel->AddElement(G4Element::GetElement("S"), 0.00045);
+  Steel->AddElement(G4Element::GetElement("P"), 0.00045);
 
   // a36 steel from http://www.matweb.com
   G4Material *a36 = new G4Material("Steel_A36",density = 7.85*g/cm3,ncomponents = 5);
-  a36->AddElement(Fe, 0.9824);
-  a36->AddElement(Cu,0.002);
-  a36->AddElement(C,0.0025);
-  a36->AddElement(Mn,0.0103);
-  a36->AddElement(Si,0.0028);
+  a36->AddElement(G4Element::GetElement("Fe"), 0.9824);
+  a36->AddElement(G4Element::GetElement("Cu"),0.002);
+  a36->AddElement(G4Element::GetElement("C"),0.0025);
+  a36->AddElement(G4Element::GetElement("Mn"),0.0103);
+  a36->AddElement(G4Element::GetElement("Si"),0.0028);
 
   // 1006 steel from http://www.matweb.com
   G4Material *steel_1006 = new G4Material("Steel_1006",density = 7.872*g/cm3,ncomponents = 2);
-  steel_1006->AddElement(Fe, 0.996);
-  steel_1006->AddElement(Mn,0.004);
+  steel_1006->AddElement(G4Element::GetElement("Fe"), 0.996);
+  steel_1006->AddElement(G4Element::GetElement("Mn"),0.004);
 
   // from www.aalco.co.uk
   G4Material *Al5083 = new G4Material("Al5083", density = 2.65*g/cm3, ncomponents = 3);
-    Al5083->AddElement(Mn,0.004);
-    Al5083->AddElement(Mg,0.04);
-    Al5083->AddElement(Al,0.956);
+  Al5083->AddElement(G4Element::GetElement("Mn"),0.004);
+  Al5083->AddElement(G4Element::GetElement("Mg"),0.04);
+  Al5083->AddElement(G4Element::GetElement("Al"),0.956);
+
+    // Kapton
+  G4Element *elH  = new G4Element("Hydrogen","H2",  1.,  1.01*g/mole);
+  G4Element *elC  = new G4Element("Carbon",  "C",   6., 12.01*g/mole);
+  G4Element *elN  = new G4Element("Nitrogen","N2",  7., 14.01*g/mole);
+  G4Element *elO  = new G4Element("Oxygen",  "O2",  8., 16.00*g/mole);
+  G4Material *Copper = new G4Material("Copper", 29., 63.54*g/mole, 8.96*g/cm3);
+
+  G4Material *Kapton = new G4Material("Kapton", 1.42*g/cm3, 4);
+  Kapton->AddElement(elH, 0.0273);
+  //  Kapton->AddElement(G4Element::GetElement("H"), 0.0273);
+  Kapton->AddElement(elC, 0.7213);
+  Kapton->AddElement(elN, 0.0765);
+  Kapton->AddElement(elO, 0.1749);
+
+  G4Material *FPC = new G4Material("FPC", 1.542*g/cm3, 2);
+  FPC->AddMaterial(Copper, 0.0162);
+  FPC->AddMaterial(Kapton, 0.9838);
+
+  // G4Material *FPC = new G4Material("FPC", 1.542*g/cm3, 2);
+  // FPC->AddMaterial(G4Material::GetMaterial("G4_Cu"), 0.0162);
+  // FPC->AddMaterial(G4Material::GetMaterial("G4_KAPTON"), 0.9838);
+
   // This is an approximation for the W saturated epoxy of the EMCal.
-  G4Material *W = nist->FindOrBuildMaterial("G4_W");
-  G4Material *Epoxy = nist->FindOrBuildMaterial("G4_POLYSTYRENE");
-  G4Material *W_Epoxy =
-    new G4Material("W_Epoxy", density = 10.2 * g / cm3, ncomponents = 2);
-  W_Epoxy->AddMaterial(W, fractionmass = 0.5);
-  W_Epoxy->AddMaterial(Epoxy, fractionmass = 0.5);
+  G4Material *W_Epoxy = new G4Material("W_Epoxy", density = 10.2 * g / cm3, ncomponents = 2);
+  W_Epoxy->AddMaterial(G4Material::GetMaterial("G4_W"), fractionmass = 0.5);
+  W_Epoxy->AddMaterial(G4Material::GetMaterial("G4_POLYSTYRENE"), fractionmass = 0.5);
 
   // spacal material. Source : EICROOT/A. Kiselev
   /*
@@ -782,9 +777,9 @@ PHG4Reco::DefineMaterials()
                      */
   G4Material *Spacal_W_Epoxy =
     new G4Material("Spacal_W_Epoxy", density = 12.18 * g / cm3, ncomponents = 3);
-  Spacal_W_Epoxy->AddElement(nist->FindOrBuildElement("C"), 0.029);
-  Spacal_W_Epoxy->AddElement(nist->FindOrBuildElement("H"), 0.002);
-  Spacal_W_Epoxy->AddElement(nist->FindOrBuildElement("W"), 0.969);
+  Spacal_W_Epoxy->AddElement(G4Element::GetElement("C"), 0.029);
+  Spacal_W_Epoxy->AddElement(G4Element::GetElement("H"), 0.002);
+  Spacal_W_Epoxy->AddElement(G4Element::GetElement("W"), 0.969);
   /*
 PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
        1  1  20.  .00001
@@ -792,55 +787,47 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
                      */
   G4Material *PMMA =
     new G4Material("PMMA", density = 1.19 * g / cm3, ncomponents = 3);
-  PMMA->AddElement(nist->FindOrBuildElement("C"), 3.6/(3.6+5.7+1.4));
-  PMMA->AddElement(nist->FindOrBuildElement("H"), 5.7/(3.6+5.7+1.4));
-  PMMA->AddElement(nist->FindOrBuildElement("O"), 1.4/(3.6+5.7+1.4));
+  PMMA->AddElement(G4Element::GetElement("C"), 3.6/(3.6+5.7+1.4));
+  PMMA->AddElement(G4Element::GetElement("H"), 5.7/(3.6+5.7+1.4));
+  PMMA->AddElement(G4Element::GetElement("O"), 1.4/(3.6+5.7+1.4));
 
 
   G4Material* G10 =
     new G4Material("G10", density = 1.700 * g / cm3, ncomponents = 4);
-  G10->AddElement(Si, natoms = 1);
-  G10->AddElement(O , natoms = 2);
-  G10->AddElement(C , natoms = 3);
-  G10->AddElement(H , natoms = 3);
+  G10->AddElement(G4Element::GetElement("Si"), natoms = 1);
+  G10->AddElement(G4Element::GetElement("O") , natoms = 2);
+  G10->AddElement(G4Element::GetElement("C") , natoms = 3);
+  G10->AddElement(G4Element::GetElement("H") , natoms = 3);
 
   G4Material* CsI =
     new G4Material("CsI", density = 4.534 * g / cm3, ncomponents = 2);
-  CsI->AddElement(Cs, natoms = 1);
-  CsI->AddElement(I , natoms = 1);
+  CsI->AddElement(G4Element::GetElement("Cs"), natoms = 1);
+  CsI->AddElement(G4Element::GetElement("I") , natoms = 1);
   CsI->GetIonisation()->SetMeanExcitationEnergy(553.1*eV);
 
   G4Material *C4F10 =
     new G4Material("C4F10", density = 0.00973 * g / cm3, ncomponents = 2);
-  C4F10->AddElement(C , natoms = 4);
-  C4F10->AddElement(F , natoms = 10);
+  C4F10->AddElement(G4Element::GetElement("C") , natoms = 4);
+  C4F10->AddElement(G4Element::GetElement("F") , natoms = 10);
 
   G4Material *CF4 = new G4Material("CF4", density = 3.72 * mg / cm3, ncomponents = 2, kStateGas, 288.15 * kelvin, 1 * atmosphere);
-  CF4->AddElement(C, natoms = 1);
-  CF4->AddElement(F, natoms = 4);
+  CF4->AddElement(G4Element::GetElement("C"), natoms = 1);
+  CF4->AddElement(G4Element::GetElement("F"), natoms = 4);
 
-    {
       //! ePHENIX TPC - Jin Huang <jhuang@bnl.gov>
       //! Ref: B. Yu et al. A gem based tpc for the legs experiment. In Nuclear Science Symposium
       //! Conference Record, 2005 IEEE, volume 2, pages 924-928, 2005. doi:10.1109/NSSMIC.2005.1596405.
-      G4Material * G4_Ar = nist->FindOrBuildMaterial("G4_Ar");
-      G4Material * G4_CARBON_DIOXIDE = nist->FindOrBuildMaterial(
-      "G4_CARBON_DIOXIDE");
 
-      assert(G4_Ar);
-      assert(G4_CARBON_DIOXIDE);
-      assert(CF4);
-      
       const double den_CF4 = CF4->GetDensity() * .1;
-      const double den_G4_Ar = G4_Ar->GetDensity() * .8;
-      const double den_G4_CARBON_DIOXIDE = G4_CARBON_DIOXIDE->GetDensity() * .1;
+      const double den_G4_Ar = G4Material::GetMaterial("G4_Ar")->GetDensity() * .8;
+      const double den_G4_CARBON_DIOXIDE = G4Material::GetMaterial("G4_CARBON_DIOXIDE")->GetDensity() * .1;
       const double den = den_CF4 + den_G4_Ar + den_G4_CARBON_DIOXIDE;
       
       G4Material *ePHEINX_TPC_Gas = new G4Material("ePHEINX_TPC_Gas", den,
 						   ncomponents = 3, kStateGas);
       ePHEINX_TPC_Gas->AddMaterial(CF4, den_CF4 / den);
-      ePHEINX_TPC_Gas->AddMaterial(G4_Ar, den_G4_Ar / den);
-      ePHEINX_TPC_Gas->AddMaterial(G4_CARBON_DIOXIDE,
+      ePHEINX_TPC_Gas->AddMaterial(G4Material::GetMaterial("G4_Ar"), den_G4_Ar / den);
+      ePHEINX_TPC_Gas->AddMaterial(G4Material::GetMaterial("G4_CARBON_DIOXIDE"),
 				   den_G4_CARBON_DIOXIDE / den);
 
       //
@@ -898,8 +885,8 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
       //
       G4Material *g4_lif = nist->FindOrBuildMaterial("G4_LITHIUM_FLUORIDE");
       G4Material *LiF = new G4Material("LiF", density = 2.635 * g / cm3, ncomponents = 2);
-      LiF->AddElement(Li, natoms = 1);
-      LiF->AddElement(F, natoms = 1);
+      LiF->AddElement(G4Element::GetElement("Li"), natoms = 1);
+      LiF->AddElement(G4Element::GetElement("F"), natoms = 1);
 
       if (verbosity > 1)
 	{
@@ -1004,14 +991,13 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
 
       CsI->SetMaterialPropertiesTable(MPT_CsI);
 
-    }
 
     // define P10 Gas which will be used for TPC Benchmarking
     G4Material* P10 = 
     new G4Material("P10", density= 1.74*mg/cm3, ncomponents=3); // @ 0K, 1atm
-    P10->AddElement(Ar, fractionmass=0.9222);
-    P10->AddElement(C,  fractionmass=0.0623);
-    P10->AddElement(H,  fractionmass=0.0155);
+    P10->AddElement(G4Element::GetElement("Ar"), fractionmass=0.9222);
+    P10->AddElement(G4Element::GetElement("C"),  fractionmass=0.0623);
+    P10->AddElement(G4Element::GetElement("H"),  fractionmass=0.0155);
 }
 
 PHG4Subsystem *
