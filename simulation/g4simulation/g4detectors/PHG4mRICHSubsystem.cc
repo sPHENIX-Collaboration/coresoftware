@@ -17,7 +17,6 @@
 #include <phool/getClass.h>
 
 #include <Geant4/globals.hh>
-
 #include <sstream>
 #include <boost/foreach.hpp>
 //#include <string>
@@ -25,8 +24,9 @@
 using namespace std;
 
 //_______________________________________________________________________
-PHG4mRICHSubsystem::PHG4mRICHSubsystem( const std::string &name, const int lyr ):
+PHG4mRICHSubsystem::PHG4mRICHSubsystem( const std::string &name, const int lyr, int single_mRICH ):
   PHG4DetectorSubsystem( name, lyr ),
+  _single_mRICH(single_mRICH),
   _detector( NULL ),
   _detectorName(name),
   _steppingAction(NULL),
@@ -58,7 +58,7 @@ int PHG4mRICHSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
   //---------------------------------
   // create detector
   //---------------------------------
-  _detector = new PHG4mRICHDetector(topNode, GetParams(), Name(), GetLayer());
+  _detector = new PHG4mRICHDetector(topNode, GetParams(), Name(), GetLayer(), _single_mRICH);
   _detector->SuperDetector(SuperDetector());
   _detector->OverlapCheck(CheckOverlap());
   

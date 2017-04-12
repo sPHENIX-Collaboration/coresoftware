@@ -147,7 +147,7 @@ class PHG4mRICHDetector: public PHG4Detector
  public:
   
   //! constructor
-  PHG4mRICHDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam="BLOCK", const int lyr = 0 );
+  PHG4mRICHDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam="BLOCK", const int lyr = 0,int _single_mRICH=0 );
   
   //! destructor
   virtual ~PHG4mRICHDetector( void ) {}
@@ -186,6 +186,7 @@ class PHG4mRICHDetector: public PHG4Detector
   void build_mRICH_wall(G4LogicalVolume* space, G4LogicalVolume* a_mRICH, G4double* bowlPar);
   G4double eta2polarAngle(G4double eta);
 
+  int single_mRICH;
   int layer;
   //int blackhole;
   std::string superdetector;

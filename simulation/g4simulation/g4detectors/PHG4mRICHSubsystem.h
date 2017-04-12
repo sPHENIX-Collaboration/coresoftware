@@ -21,7 +21,7 @@ class PHG4mRICHSubsystem: public PHG4DetectorSubsystem
 
   //! constructor
   //PHG4mRICHSubsystem( const std::string &name = "BLOCK", const int layer = 0 );
-  PHG4mRICHSubsystem( const std::string &name = "mRICH", const int layer = 0 );  
+  PHG4mRICHSubsystem( const std::string &name = "mRICH", const int layer = 0, int single_mRICH=0 );  
 
   //! destructor
   virtual ~PHG4mRICHSubsystem( void )
@@ -56,6 +56,7 @@ class PHG4mRICHSubsystem: public PHG4DetectorSubsystem
   //! detector geometry
   /*! defives from PHG4Detector */
   //PHG4BlockDetector* _detector;
+  int _single_mRICH;
   PHG4mRICHDetector* _detector;
   std::string _detectorName;
   int layer;

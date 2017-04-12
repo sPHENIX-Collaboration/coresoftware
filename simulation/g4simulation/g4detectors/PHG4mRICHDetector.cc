@@ -42,10 +42,11 @@ using namespace std;
 using namespace CLHEP;
 
 //_______________________________________________________________
-PHG4mRICHDetector::PHG4mRICHDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam, const int lyr):
+PHG4mRICHDetector::PHG4mRICHDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam, const int lyr, int _single_mRICH):
   PHG4Detector(Node, dnam),
   params(parameters),
   //block_physi(NULL),
+  single_mRICH(_single_mRICH),
   layer(lyr)
 {}
 
@@ -59,9 +60,9 @@ bool PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume * volume) const
   return false;
 }
 //______________________________________________________________
-void PHG4mRICHDetector::Construct( G4LogicalVolume* logicWorld )
+void PHG4mRICHDetector::Construct( G4LogicalVolume* logicWorld)
 {
-  int single_mRICH=0;
+  //int single_mRICH=0;
   G4double bowlPar[4];
   
   if (single_mRICH) Construct_a_mRICH(logicWorld);
@@ -81,10 +82,10 @@ G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWor
   /*holder box and hollow volume*/ G4VPhysicalVolume* hollowVol=build_holderBox(parameters,logicWorld);
   /*foam holder for aerogel     */ build_foamHolder(parameters,hollowVol->GetLogicalVolume());
   /*aerogel                     */ build_aerogel(parameters,hollowVol);
-  /*lens                        */ //build_lens(parameters->GetLensPar("fresnelLens"), hollowVol->GetLogicalVolume());
-  /*mirror                      */ //build_mirror(parameters,hollowVol);
-  /*sensor plane                */ //build_sensor(parameters,hollowVol->GetLogicalVolume());
-  /*readout electronics         */ //build_polyhedra(parameters->GetPolyPar("readout"),hollowVol->GetLogicalVolume());
+  /*lens                        */ build_lens(parameters->GetLensPar("fresnelLens"), hollowVol->GetLogicalVolume());
+  /*mirror                      */ build_mirror(parameters,hollowVol);
+  /*sensor plane                */ build_sensor(parameters,hollowVol->GetLogicalVolume());
+  /*readout electronics         */ build_polyhedra(parameters->GetPolyPar("readout"),hollowVol->GetLogicalVolume());
 
   return hollowVol->GetMotherLogical();  //return detector holder box.
                                          //you have more than 1 daugthers,
