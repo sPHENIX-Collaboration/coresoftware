@@ -8,21 +8,23 @@
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Types.hh>
 
+#include <set>
 #include <utility>
 #include <vector>
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHG4Parameters;
 
-typedef std::vector<std::pair<int, int>> vpair;
 
 class PHG4SiliconTrackerDetector: public PHG4Detector
   {
   public:
+    typedef std::vector<std::pair<int, int>> vpair;
 
     //! constructor
-    PHG4SiliconTrackerDetector(PHCompositeNode *Node, const std::string &dnam="BLOCK", const vpair &layerconfig=vpair(0));
+    PHG4SiliconTrackerDetector(PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam="BLOCK", const vpair &layerconfig=vpair(0));
 
     //! destructor
     virtual ~PHG4SiliconTrackerDetector();
@@ -84,6 +86,7 @@ class PHG4SiliconTrackerDetector: public PHG4Detector
     int ConstructSiliconTracker(G4LogicalVolume* sandwich);
     int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
 
+    PHG4Parameters *params;
     int active;
     int absorberactive;
     int blackhole;
@@ -118,6 +121,8 @@ class PHG4SiliconTrackerDetector: public PHG4Detector
 
     const G4double arr_hdi_y[4] = {38.*mm*0.5, 43.*mm*0.5, 43.*mm*0.5, 43.*mm*0.5};
     const G4double arr_halfladder_z[4] = {220.*mm*0.5, 268.*mm*0.5, 268.*mm*0.5, 268.*mm*0.5};
+    std::set<G4LogicalVolume *> absorberlogvols;
+    std::set<G4LogicalVolume *> activelogvols;
   };
 
 #endif

@@ -84,7 +84,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
   if (whichactive > 0)  // silicon acrive sensor
   {
-    if (verbosity > 1)
+        if (verbosity > 1)
     {
       std::cout << std::endl
                 << "PHG4SilicoTrackerSteppingAction::UserSteppingAction for volume name (pre) " << touch->GetVolume()->GetName()
@@ -105,27 +105,29 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
     // Get the layer and ladder information
     // thi is the same for all strips in the sensor
-
+	if (whichactive > 1)
+	  {
+	cout << "vol(0) name: " << touch->GetVolume(0)->GetName() << endl;
+	cout << "vol(1) name: " << touch->GetVolume(1)->GetName() << endl;
+	cout << "vol(2) name: " << touch->GetVolume(2)->GetName() << endl;
+	  }
     boost::char_separator<char> sep("_");
     boost::tokenizer<boost::char_separator<char> > tok(touch->GetVolume(2)->GetName(), sep);
     boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
-    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
-    {
-      const int index = std::distance(tok.begin(), tokeniter);
-      // skip index=0 for preamble
-
-      if (index == 1)
-        sphxlayer = boost::lexical_cast<int>(*tokeniter);
-
-      if (index == 2)
-        inttlayer = boost::lexical_cast<int>(*tokeniter);
-
-      if (index == 3)
-        ladderz = boost::lexical_cast<int>(*tokeniter);
-
-      if (index == 4)
-        ladderphi = boost::lexical_cast<int>(*tokeniter);
-    }
+    tokeniter = tok.begin();
+    if (*tokeniter == "ladder")
+      {
+	// advance the tokeniter and then cast it if first token is "ladder"
+        sphxlayer = boost::lexical_cast<int>(*(++tokeniter));
+        inttlayer = boost::lexical_cast<int>(*(++tokeniter));
+	ladderz = boost::lexical_cast<int>(*(++tokeniter));
+        ladderphi = boost::lexical_cast<int>(*(++tokeniter));
+      }
+    else
+      {
+	cout << GetName() << "parsing of " << touch->GetVolume(2)->GetName() << " failed" << endl;
+	exit(1);
+      }
     if (inttlayer < 0 || inttlayer >= 4)
       assert(!"PHG4SiliconTrackerSteppingAction: check INTT ladder layer.");
 

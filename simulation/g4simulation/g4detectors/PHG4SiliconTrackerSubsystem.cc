@@ -41,7 +41,7 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create detector
-  detector_ = new PHG4SiliconTrackerDetector(topNode, Name(), layerconfig_);
+  detector_ = new PHG4SiliconTrackerDetector(topNode, GetParams(), Name(), layerconfig_);
   detector_->SetActive(active);
   detector_->SetAbsorberActive(absorberactive);
   detector_->SuperDetector(superdetector);
