@@ -1072,9 +1072,9 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*
   // mRICH half width, height, and length + air gap
   G4double gap=6*cm;         //large gap to avoid overlap. temporary solution
   G4Box* mRICH_box=dynamic_cast<G4Box*>(a_mRICH->GetSolid());
-  G4double halfWidth=mRICH_box->GetXHalfLength() + gap;
+  G4double halfWidth=mRICH_box->GetXHalfLength();// + gap;
   G4double halfHeight=halfWidth;
-  G4double halfLength=mRICH_box->GetZHalfLength();
+  G4double halfLength=mRICH_box->GetZHalfLength()+gap;
 
   // space (bowl shape) dimension
   G4double rinner=bowlPar[0];
@@ -1099,9 +1099,9 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*
   phi=0;
 
   i=0;
-  for (phi=phi_min+deltaPhi;phi<phi_max/*-deltaPhi*/;phi=phi+deltaPhi) {  //add extra space to avoid overlap
+  for (phi=phi_min+deltaPhi;phi<phi_max-deltaPhi;phi=phi+deltaPhi) {  //add extra space to avoid overlap
     c=twopi*(rinner)*sin(phi);
-    N=floor(c/(2/*sqrt(2)*/*halfWidth));
+    N=floor(c/(2*sqrt(2)*halfWidth));
     deltaTheta=2*pi/N;
     
     if (1) {
