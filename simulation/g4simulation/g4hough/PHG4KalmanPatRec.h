@@ -18,6 +18,7 @@
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHTimeServer.h>
+#include <phool/PHTimer.h>
 #include <g4bbc/BbcVertexMap.h>
 
 // Helix Hough includes
@@ -391,6 +392,12 @@ private:
 			std::set<std::vector<double> >* points);
 
 	int _event;
+	PHTimer *_t_seeding;
+	PHTimer *_t_kalman_pat_rec;
+	PHTimer *_t_search_clusters;
+	PHTimer *_t_track_propergation;
+	PHTimer *_t_full_fitting;
+	PHTimer *_t_output_io;
 
 	std::vector<int> _seeding_layer; //layer numbers that are used for seeding
 

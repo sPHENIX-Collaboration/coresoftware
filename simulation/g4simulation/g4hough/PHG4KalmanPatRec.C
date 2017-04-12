@@ -74,6 +74,12 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
                                        unsigned int min_nlayers,
                                        const string& name)
     : SubsysReco(name),
+	  _t_seeding(nullptr),
+	  _t_kalman_pat_rec(nullptr),
+	  _t_search_clusters(nullptr),
+	  _t_track_propergation(nullptr),
+	  _t_full_fitting(nullptr),
+	  _t_output_io(nullptr),
 	  _seeding_layer(),
       _nlayers(nlayers),
       _min_nlayers(min_nlayers),
@@ -162,6 +168,26 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 	if(code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 
+	_t_seeding = new PHTimer("_t_seeding");
+	_t_seeding->stop();
+
+	_t_kalman_pat_rec = new PHTimer("_t_kalman_pat_rec");
+	_t_kalman_pat_rec->stop();
+
+
+	_t_search_clusters = new PHTimer("_t_search_clusters");
+	_t_search_clusters->stop();
+
+	_t_track_propergation = new PHTimer("_t_track_propergation");
+	_t_track_propergation->stop();
+
+	_t_full_fitting = new PHTimer("_t_full_fitting");
+	_t_full_fitting->stop();
+
+
+	_t_output_io = new PHTimer("_t_output_io");
+	_t_output_io->stop();
+
 	if (verbosity > 0) {
 		cout
 				<< "====================== PHG4KalmanPatRec::InitRun() ======================"
@@ -223,6 +249,8 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 
 	GetNodes(topNode);
 
+	if(verbosity >= 1) _t_seeding->restart();
+
 	//-----------------------------------
 	// Translate into Helix_Hough objects
 	//-----------------------------------
@@ -259,6 +287,10 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	if (code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 
+	if(verbosity >= 1) _t_seeding->stop();
+
+
+	if(verbosity >= 1) _t_kalman_pat_rec->restart();
 	//-----------------------------------
 	// Kalman cluster accociation
 	//-----------------------------------
@@ -267,6 +299,8 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 		if (code != Fun4AllReturnCodes::EVENT_OK)
 			return code;
 	}
+	if(verbosity >= 1) _t_kalman_pat_rec->stop();
+
 
 	//-----------------------------------
 	// Translate back into SVTX objects
@@ -289,6 +323,13 @@ int PHG4KalmanPatRec::End(PHCompositeNode *topNode) {
 
 	if(verbosity >= 1)
 		LogDebug("Enter End \n");
+
+	delete _t_seeding;
+	delete _t_kalman_pat_rec;
+	delete _t_full_fitting;
+	delete _t_search_clusters;
+	delete _t_track_propergation;
+	delete _t_output_io;
 
 	delete _tracker_etap_seed;
 	_tracker_etap_seed = NULL;
@@ -1730,13 +1771,16 @@ int PHG4KalmanPatRec::ExportOutput() {
 		std::cout << "Contains: " << iter->second->get_cluster_IDs().size() << " clusters." <<std::endl;
 		std::cout << "=========================" << std::endl;
 
+		if(verbosity >= 1) _t_full_fitting->restart();
 		if (_fitter->processTrack(iter->second.get(), false) != 0) {
 			if (verbosity >= 1)
 				LogWarning("Track fitting failed\n");
 			//delete track;
 			continue;
 		}
+		if(verbosity >= 1) _t_full_fitting->stop();
 
+		if(verbosity >= 1) _t_output_io->restart();
 //		iter->second->getGenFitTrack()->Print();
 
 		SvtxTrack_v1 track;
@@ -1784,6 +1828,8 @@ int PHG4KalmanPatRec::ExportOutput() {
 			cout << "px = " << track.get_px() << " py = " << track.get_py()
 					<< " pz = " << track.get_pz() << endl;
 		}
+
+		if(verbosity >= 1) _t_output_io->stop();
 	}
 
 	if (_do_evt_display) {
@@ -1796,6 +1842,15 @@ int PHG4KalmanPatRec::ExportOutput() {
 		}
 		_fitter->getEventDisplay()->addEvent(copy);
 	}
+
+	std::cout << "=============== Timers: ===============" << std::endl;
+	std::cout << "Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "\t - Cluster searching time: "<<_t_search_clusters->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "\t - Kalman updater time:    "<<_t_track_propergation->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "Full fitting time:           "<<_t_full_fitting->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "Output IO time:              "<<_t_output_io->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "=======================================" << std::endl;
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1958,8 +2013,10 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 				<<", phi_window: "<<phi_window
 				<<std::endl;
 
+		if(verbosity >= 1) _t_search_clusters->restart();
 		std::vector<unsigned int> new_cluster_IDs = SearchHitsNearBy(layer,
 				z_center, phi_center, z_window, phi_window);
+		if(verbosity >= 1) _t_search_clusters->stop();
 
 		LogDebug("new_cluster_IDs size: ") << new_cluster_IDs.size() << std::endl;
 
@@ -1985,16 +2042,14 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 
 #ifdef _DEBUG_
 		LogDebug("measurements.size(): ")<<measurements.size()<<endl;
-//		LogDebug("\n");
-//		track->getGenFitTrack()->Print();
 #endif
 
+		if(verbosity >= 1) _t_track_propergation->restart();
 		track->updateOneMeasurementKalman(measurements, incr_chi2s_new_tracks);
-#ifdef _DEBUG_
-//		LogDebug("\n");
-//		track->getGenFitTrack()->Print();
-		LogDebug("incr_chi2s_new_tracks.size(): ")<<incr_chi2s_new_tracks.size()<<endl;
+		if(verbosity >= 1) _t_track_propergation->stop();
 
+#ifdef _DEBUG_
+		LogDebug("incr_chi2s_new_tracks.size(): ")<<incr_chi2s_new_tracks.size()<<endl;
 #endif
 
 		// Update first track candidate
