@@ -110,6 +110,7 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
   /* Loop over all particles for this event in input file and fill
    * vector with HepMC particles */
   vector< HepMC::GenParticle* > hepmc_particles;
+  vector< unsigned > origin_index;
 
   for (unsigned ii = 0; ii < GenEvent->GetNTracks(); ii++)
     {
@@ -135,16 +136,16 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
 	default: hepmcpart->set_status( 0 ); break; // 'null entry'
 	}
 
-      /* if ParentIndex == 0, then this is a beam particle (which gets HepMC status 4)*/
-      if ( track_ii->GetParentIndex() == 0 )
+      /* assume the first two particles are the beam particles (which getsHepMC status 4)*/
+      if ( ii < 2 )
 	hepmcpart->set_status( 4 );
 
       /* add particle information */
       hepmcpart->setGeneratedMass( track_ii->GetM() );
-      hepmcpart->suggest_barcode( track_ii->GetIndex() );
 
       /* append particle to vector */
       hepmc_particles.push_back(hepmcpart);
+      origin_index.push_back( track_ii->GetIndex() );
     }
 
   /* add HepMC particles to Hep MC vertices; skip first two particles
@@ -155,6 +156,8 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
     {
       HepMC::GenParticle *pp = hepmc_particles.at(p);
 
+      cout << "Particle " << pp->pdg_id() << " with " << pp->status() << endl;
+
       /* continue if vertices for particle are already set */
       if ( pp->production_vertex() && pp->end_vertex() )
 	continue;
@@ -162,10 +165,37 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
       /* access mother particle vertex */
       erhic::ParticleMC * track_pp = GenEvent->GetTrack(p);
 
-      HepMC::GenParticle *pmother = hepmc_particles.at( track_pp->GetParentIndex() );
-      if ( pmother->end_vertex() )
-	pmother->end_vertex()->add_particle_out(pp);
-      /* create new vertex if end vertex of mother particle is missing */
+      unsigned parent_index = track_pp->GetParentIndex();
+
+      HepMC::GenParticle *pmother = NULL;
+      for ( unsigned m = 0; m < hepmc_particles.size(); m++ )
+	{
+	  if ( origin_index.at( m ) == parent_index )
+	    {
+	      pmother = hepmc_particles.at( m );
+	      cout << "Found a parent" << endl;
+	      break;
+	    }
+	}
+
+      /* if mother does not exist: create new vertex and add this particle as outgoing to vertex */
+      if ( !pmother )
+	{
+	  HepMC::GenVertex* hepmcvtx = new HepMC::GenVertex( HepMC::FourVector( track_pp->GetVertex()[0],
+										track_pp->GetVertex()[1],
+										track_pp->GetVertex()[2],
+										0 )
+							     );
+	  hepmc_vertices.push_back( hepmcvtx );
+	  hepmcvtx->add_particle_out(pp);
+	  continue;
+      	}
+      /* if mother exists and has end vertex: add this particle as outgoing to the mother's end vertex */
+      else if ( pmother->end_vertex() )
+	{
+	  pmother->end_vertex()->add_particle_out(pp);
+	}
+      /* if mother exists and has no end vertex: create new vertex */
       else
 	{
 	  HepMC::GenVertex* hepmcvtx = new HepMC::GenVertex( HepMC::FourVector( track_pp->GetVertex()[0],
