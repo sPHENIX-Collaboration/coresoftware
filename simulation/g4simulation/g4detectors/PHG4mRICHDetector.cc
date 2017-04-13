@@ -1157,7 +1157,6 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*
   G4double gap=3*cm;         //large gap to avoid overlap. temporary solution
   G4Box* mRICH_box=dynamic_cast<G4Box*>(a_mRICH->GetSolid());
   G4double halfWidth=mRICH_box->GetXHalfLength();// + gap;
-  //G4double halfHeight=halfWidth;
   G4double halfLength=mRICH_box->GetZHalfLength()+gap;
 
   // space (bowl shape) dimension
@@ -1172,71 +1171,39 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*
   }
 
   //position and name of each copy of mRICH
-  G4double x, y , z, theta, phi, deltaPhi, phi_x, phi_y;
-  //G4double x_min, x_max;
-  //G4double y_min, y_max;
-  //G4int n_x, n_y, n_max;
+  G4double x, y , z;
+  G4double theta, phi, deltaPhi;
+  G4double phi_x, phi_y, angle_max;
+  G4int n;
   char name[50];
   int count=0;
 
-  //G4double c;  // circumference of each ring on the bowl
-  /*
-  n_x=floor(2*(rinner+halfLength)*sin(phi_max)/(2*halfWidth));   // num. of mRICH on each ring on the bowl
-  if (n_x%2==0) x_max=(n_x/2)*(2*halfWidth)-halfWidth;               //wrote explicitly to avoid confusion
-  else x_max=((n_x-1)/2)*(2*halfWidth);
-  x_min=-x_max;
-  */
-
-  //n_max=floor(2*(rinner+halfLength)*sin(phi_max)/(2*halfWidth));
-  //G4double theta,phi,deltaTheta, deltaPhi;
   deltaPhi=2*atan(halfWidth/rinner);//+pi/180; 
-  //phi=0;
+  n=floor(2*phi_max/deltaPhi);
+  if (n%2==0) angle_max=(n/2)*deltaPhi-deltaPhi/2;
+  else angle_max=((n-1)/2)*deltaPhi;
 
   i=0;
-  //for (x=x_min;x<x_max;x=x+2*halfWidth) {
-  for (phi_x=-phi_max;phi_x<phi_max;phi_x=phi_x+deltaPhi) {
-    j=0;
-    
+  for (phi_x=-angle_max;phi_x<angle_max;phi_x=phi_x+deltaPhi) {
     x=(rinner+halfLength)*sin(phi_x);
     /*
-    G4double d=2*sqrt(pow((rinner+halfLength)*sin(phi_max),2)-pow(x,2));
-    n_y=floor(d/(2*halfWidth));
-
-    //set y_max and y_min
-    if (n_max%2==0 && n_y%2==0) y_max=(n_y/2)*(2*halfWidth)-halfWidth;
-    else if (n_max%2==0 && n_y%2!=0) y_max=((n_y-1)/2)*(2*halfWidth)-halfWidth;
-    else if (n_max%2!=0 && n_y%2==0) y_max=((n_y-2)/2)*(2*halfWidth);
-    else y_max=((n_y-1)/2)*(2*halfWidth);
-    y_min=-y_max;
+    printf("------------------------------------------------------\n");
+    printf("phi_min=%.4lf / phi_max=%.4lf / angle_max=%.4lf / phi_x=%.4lf\n",phi_min,phi_max,angle_max,phi_x);
+    printf("------------------------------------------------------\n");
     */
-
-    //for (y=y_min;y<y_max;y=y+2*halfWidth) {
-    for (phi_y=-phi_max;phi_y<phi_max;phi_y=phi_y+deltaPhi) {
+    j=0;
+    for (phi_y=-angle_max;phi_y<angle_max;phi_y=phi_y+deltaPhi) {
       
       y=(rinner+halfLength)*sin(phi_y);
       z=sqrt(pow(rinner+halfLength,2)-pow(x,2)-pow(y,2));
 
-      /*
-      theta=atan(y/x);                                   //in radian
-      if (y>=0 && x<0) theta=theta+pi/2;
-      else if (y<0 && x<0) theta=theta-pi/2;
-      else if (y<0 && x==0) theta=-halfpi;
-      else if 
-      */
       phi=acos(z/sqrt(pow(x,2)+pow(y,2)+pow(z,2)));      //in radian
       if (phi<=(phi_min+deltaPhi) || phi>=phi_max-deltaPhi) {
         //printf("phi_min=%.4lf / phi_max=%.4lf /phi=%.4lf\n",phi_min, phi_max, phi);
         continue;
       }
       theta=atan2(y,x);                                  //in radian
-      /*      
-      phi=acos(z/sqrt(pow(x,2)+pow(y,2)+pow(z,2)));      //in radian
-      //printf("phi_min=%.4lf / phi_max=%.4lf /phi=%.4lf\n",phi_min, phi_max, phi);
-      if (phi<=phi_min || phi>=phi_max) {
-	//printf("phi_min=%.4lf / phi_max=%.4lf /phi=%.4lf\n",phi_min, phi_max, phi);
-	continue;
-      }
-      */       
+
       // for G4Transform3D
       G4RotationMatrix rot= G4RotationMatrix();
       if (x!=0 || y!=0) {
@@ -1244,25 +1211,17 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*
 	rot.rotateY(phi*cos(theta)*180*deg/pi);
       }
 
-      /*
-      G4RotationMatrix* rot=new G4RotationMatrix();
-      rot->rotateX(phi*sin(theta)*180*deg/pi);
-      rot->rotateY(phi*(-1)*cos(theta)*180*deg/pi);
-      */
-
       sprintf(name,"mRICH_%d_%d",i+1,j+1);
       new G4PVPlacement(G4Transform3D(rot, G4ThreeVector(x, y, z)),
-			//new G4PVPlacement(rot, G4ThreeVector(x, y, z),
 			a_mRICH,name,space,
                         0, 0, 1);    //last digit for checking overlapping                                                                                                                               
 
       j++;
       count++;
-      //if (j>=1) break;
     }
     i++;
-    //if (i>1) break;                                                                                                                                                                                    
   }
+
   printf("-----------------------------------------------------------------------------\n");
   printf("%d detectors are built\n",count);
   printf("-----------------------------------------------------------------------------\n");
