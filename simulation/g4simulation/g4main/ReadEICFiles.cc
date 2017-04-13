@@ -116,7 +116,7 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
       /* Get particle / track from event records.
        * Class documentation for erhic::VirtualParticle at
        * http://www.star.bnl.gov/~tpb/eic-smear/classerhic_1_1_virtual_particle.html */
-      erhic::VirtualParticle * track_ii = GenEvent->GetTrack(ii);
+      erhic::ParticleMC * track_ii = GenEvent->GetTrack(ii);
 
       /* Create HepMC particle record */
       HepMC::GenParticle *hepmcpart = new HepMC::GenParticle( HepMC::FourVector(track_ii->GetPx(),
@@ -141,7 +141,7 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
 
       /* add particle information */
       hepmcpart->setGeneratedMass( track_ii->GetM() );
-      hepmcpart->suggest_barcode( ii );
+      hepmcpart->suggest_barcode( track_ii->GetIndex() );
 
       /* append particle to vector */
       hepmc_particles.push_back(hepmcpart);
@@ -160,7 +160,7 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
 	continue;
 
       /* access mother particle vertex */
-      erhic::VirtualParticle * track_pp = GenEvent->GetTrack(p);
+      erhic::ParticleMC * track_pp = GenEvent->GetTrack(p);
 
       HepMC::GenParticle *pmother = hepmc_particles.at( track_pp->GetParentIndex() );
       if ( pmother->end_vertex() )
