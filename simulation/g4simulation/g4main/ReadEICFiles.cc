@@ -148,6 +148,13 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
       origin_index.push_back( track_ii->GetIndex() );
     }
 
+  /* Check if hepmc_particles and origin_index vectors are the same size */
+  if ( hepmc_particles.size() != origin_index.size() )
+    {
+      cout << "ReadEICFiles::process_event - Lengths of HepMC particles and Origin index vectors do not match!" << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
   /* add HepMC particles to Hep MC vertices; skip first two particles
    * in loop, assuming that they are the beam particles */
   vector< HepMC::GenVertex* > hepmc_vertices;
@@ -155,8 +162,6 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
   for ( unsigned p = 2; p < hepmc_particles.size(); p++ )
     {
       HepMC::GenParticle *pp = hepmc_particles.at(p);
-
-      cout << "Particle " << pp->pdg_id() << " with " << pp->status() << endl;
 
       /* continue if vertices for particle are already set */
       if ( pp->production_vertex() && pp->end_vertex() )
@@ -173,7 +178,6 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
 	  if ( origin_index.at( m ) == parent_index )
 	    {
 	      pmother = hepmc_particles.at( m );
-	      cout << "Found a parent" << endl;
 	      break;
 	    }
 	}
