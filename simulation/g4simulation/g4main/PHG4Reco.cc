@@ -733,27 +733,9 @@ void PHG4Reco::DefineMaterials()
   Al5083->AddElement(G4Element::GetElement("Mg"), 0.04);
   Al5083->AddElement(G4Element::GetElement("Al"), 0.956);
 
-  // Kapton
-  G4Element *elH = new G4Element("Hydrogen", "H2", 1., 1.01 * g / mole);
-  G4Element *elC = new G4Element("Carbon", "C", 6., 12.01 * g / mole);
-  G4Element *elN = new G4Element("Nitrogen", "N2", 7., 14.01 * g / mole);
-  G4Element *elO = new G4Element("Oxygen", "O2", 8., 16.00 * g / mole);
-  G4Material *Copper = new G4Material("Copper", 29., 63.54 * g / mole, 8.96 * g / cm3);
-
-  G4Material *Kapton = new G4Material("Kapton", 1.42 * g / cm3, 4);
-  Kapton->AddElement(elH, 0.0273);
-  //  Kapton->AddElement(G4Element::GetElement("H"), 0.0273);
-  Kapton->AddElement(elC, 0.7213);
-  Kapton->AddElement(elN, 0.0765);
-  Kapton->AddElement(elO, 0.1749);
-
-  G4Material *FPC = new G4Material("FPC", 1.542 * g / cm3, 2);
-  FPC->AddMaterial(Copper, 0.0162);
-  FPC->AddMaterial(Kapton, 0.9838);
-
-  // G4Material *FPC = new G4Material("FPC", 1.542*g/cm3, 2);
-  // FPC->AddMaterial(G4Material::GetMaterial("G4_Cu"), 0.0162);
-  // FPC->AddMaterial(G4Material::GetMaterial("G4_KAPTON"), 0.9838);
+  G4Material *FPC = new G4Material("FPC", 1.542*g/cm3, 2);
+  FPC->AddMaterial(G4Material::GetMaterial("G4_Cu"), 0.0162);
+  FPC->AddMaterial(G4Material::GetMaterial("G4_KAPTON"), 0.9838);
 
   // This is an approximation for the W saturated epoxy of the EMCal.
   G4Material *W_Epoxy = new G4Material("W_Epoxy", density = 10.2 * g / cm3, ncomponents = 2);
