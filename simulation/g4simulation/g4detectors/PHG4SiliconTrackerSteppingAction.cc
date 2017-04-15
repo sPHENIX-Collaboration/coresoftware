@@ -1,8 +1,6 @@
 #include "PHG4SiliconTrackerSteppingAction.h"
 #include "PHG4Parameters.h"
 #include "PHG4SiliconTrackerDetector.h"
-#include "PHG4StepStatusDecode.h"
-#include "PHG4TrackStatusDecode.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -17,10 +15,6 @@
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4TouchableHandle.hh>
 #include <Geant4/G4TouchableHistory.hh>
-
-#include <TNtuple.h>
-#include <TSystem.h>
-#include <TROOT.h>
 
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
@@ -44,7 +38,6 @@
 
 using namespace std;
 
-TNtuple *ntup;
 //____________________________________________________________________________..
 PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector* detector, const PHG4Parameters* parameters)
   : detector_(detector)
@@ -56,12 +49,7 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
   , params(parameters)
   , IsActive(params->get_int_param("active"))
   , IsBlackHole(params->get_int_param("blackhole"))
-{
-  cout << "PHG4SiliconTrackerSteppingAction created" << endl;
-  verbosity = 0;
-  gROOT->cd();
-  ntup = new TNtuple("sili","sili","x:y:z:sy:sz:sla:intt:lz:lphi");
-}
+{}
 
 PHG4SiliconTrackerSteppingAction::~PHG4SiliconTrackerSteppingAction()
 {
@@ -139,29 +127,14 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     // This just regurgitates the values set in PHG4SiliconTrackerParameterization
     // when the G4PVParameterized was defined
     G4ThreeVector strip_pos = volume->GetTranslation();
-    cout << endl;
-    cout << "posx : " << strip_pos.x()
-	 << ", posy: " << strip_pos.y()
-	 << ", posz: " << strip_pos.z() 
-	 << endl;
 G4ThreeVector prepos = prePoint->GetPosition();
-    cout << "prepoint " 
-         << "posx : " << prepos.x()
-	 << ", posy: " << prepos.y()
-	 << ", posz: " << prepos.z() 
-	 << endl;
 G4ThreeVector postpos = postPoint->GetPosition();
-    cout << "postpoint " 
-         << "posx : " << postpos.x()
-	 << ", posy: " << postpos.y()
-	 << ", posz: " << postpos.z() 
-	 << endl;
     strip_z_index = 0;
     for (int i = 0; i < nstrips_z_sensor; ++i)
     {
       const double zmin = 2. * strip_z * (double) (i) -strip_z * (double) nstrips_z_sensor;
       const double zmax = 2. * strip_z * (double) (i + 1) - strip_z * (double) nstrips_z_sensor;
-      if (strip_pos.z() / CLHEP::mm > zmin && strip_pos.z() / CLHEP::mm <= zmax)
+      if (strip_pos.z() / mm > zmin && strip_pos.z() / mm <= zmax)
         strip_z_index = i;
     }
 
@@ -170,83 +143,29 @@ G4ThreeVector postpos = postPoint->GetPosition();
     {
       const double ymin = 2. * strip_y * (double) (i) -2. * strip_y * (double) nstrips_phi_cell;
       const double ymax = 2. * strip_y * (double) (i + 1) - 2. * strip_y * (double) nstrips_phi_cell;
-      if (strip_pos.y() / CLHEP::mm > ymin && strip_pos.y() / CLHEP::mm <= ymax)
+      if (strip_pos.y() / mm > ymin && strip_pos.y() / mm <= ymax)
       {
         strip_y_index = i;
         if (verbosity > 1)
         {
           cout << " found strip y index = " << i << endl;
-          cout << " strip_pos.y() " << (strip_pos.y()/CLHEP::mm) << " ymin " << ymin << " ymax " << ymax << endl;
+          cout << " strip_pos.y() " << (strip_pos.y()/mm) << " ymin " << ymin << " ymax " << ymax << endl;
         }
       }
     }
-
-    // The following is a hack to get around what seems to be a bug that causes the prestep to point to the next strip volume
-    // The symptom of this is that this is the first and last step in the volume, AND the prestep and posttsep both have the same strip copy no.
-    // There is no legitimate way for this to happen
-    // In case of this, the following will find the correct strip using the position of the hit in sensor coordinates and replace the incorrect strip found above
-
-     G4LogicalVolume *logvol = volume->GetLogicalVolume();
-    cout << "ladder " << touch->GetVolume(2)->GetName() 
-	 << " logical vol " << logvol->GetName() << endl;
-    cout << "prestep logvol : " << prePoint->GetPhysicalVolume()->GetLogicalVolume()->GetName() 
-	 << ", poststep logvol : " << postPoint->GetPhysicalVolume()->GetLogicalVolume()->GetName()
-	 << endl;
-    cout << "prestep status " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus()) << ", post: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus()) 
-	 << " track id " << aTrack->GetTrackID()
-	 << " track status: " << PHG4TrackStatusDecode::GetTrackStatus(aTrack->GetTrackStatus())
-<< endl;
-    cout << "strip_y_index: " << strip_y_index << ", strip_z_index: " << strip_z_index << endl;
 
     if (prePoint->GetStepStatus() == fGeomBoundary && postPoint->GetStepStatus() == fGeomBoundary)
     {
-      G4TouchableHandle touch_post = aStep->GetPostStepPoint()->GetTouchableHandle();
-      G4VPhysicalVolume* volume_post = touch_post->GetVolume();
+      G4VPhysicalVolume* volume_post = postPoint->GetTouchableHandle()->GetVolume();
 
-//      if (verbosity > 1)
-      {
-        cout << " ******** First and last step in this volume " << endl;
-        cout << "    volume_pre " << volume->GetName() << " volume_post " << volume_post->GetName() << endl;
-      }
       if (volume->GetCopyNo() == volume_post->GetCopyNo())
       {
-	//       if (verbosity > 1)
-          cout << "     ************** Bogus! SAME COPY NUMBER FOR PRE AND POST VOLUMES MUST BE WRONG" << endl;
-
-        // we need a hack to replace the values above with the correct strip index values
-        // the transform of the world coordinates into the sensor frame will work correctly, so we determine the strip indices from the hit position
-
-        G4ThreeVector preworldPos = prePoint->GetPosition();
-        G4ThreeVector strip_pos = touch->GetHistory()->GetTransform(touch->GetHistory()->GetDepth() - 1).TransformPoint(preworldPos);
-    cout << "new posx : " << strip_pos.x()
-	 << ", posy: " << strip_pos.y()
-	 << ", posz: " << strip_pos.z() 
-	 << endl;
-
-        strip_z_index = 0;
-        for (int i = 0; i < nstrips_z_sensor; ++i)
-        {
-          const double zmin = 2. * strip_z * (double) (i) -strip_z * (double) nstrips_z_sensor;
-          const double zmax = 2. * strip_z * (double) (i + 1) - strip_z * (double) nstrips_z_sensor;
-          if (strip_pos.z() / CLHEP::mm > zmin && strip_pos.z() / CLHEP::mm <= zmax)
-            strip_z_index = i;
-        }
-
-        strip_y_index = 0;
-        for (int i = 0; i < 2 * nstrips_phi_cell; ++i)
-        {
-          const double ymin = 2. * strip_y * (double) (i) -2. * strip_y * (double) nstrips_phi_cell;
-          const double ymax = 2. * strip_y * (double) (i + 1) - 2. * strip_y * (double) nstrips_phi_cell;
-          if (strip_pos.y() / CLHEP::mm > ymin && strip_pos.y() / CLHEP::mm <= ymax)
-          {
-            strip_y_index = i;
-            if (verbosity > 1) cout << "                            revised strip y position = " << strip_y_index << endl;
-          }
-        }
+	cout << "Overlap detected in volume " << volume->GetName() 
+	     << "pre and post step point ot same volume for step status fGeomBoundary" << endl;
+	exit(1);
       }
+
     }
-    cout << "final strip_y_index: " << strip_y_index << ", strip_z_index: " << strip_z_index << endl;
-    ntup->Fill(strip_pos.x(),strip_pos.y(),strip_pos.z(),strip_y_index,strip_z_index,sphxlayer,inttlayer,ladderz,ladderphi);
   }
   else  // silicon inactive area, FPHX, stabe etc. as absorbers
   {
@@ -259,13 +178,13 @@ G4ThreeVector postpos = postPoint->GetPosition();
   }
 
   // collect energy and track length step by step
-  G4double edep = aStep->GetTotalEnergyDeposit() / CLHEP::GeV;
-  G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / CLHEP::GeV;
+  G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
+  G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
 
   // if this block stops everything, just put all kinetic energy into edep
   if (IsBlackHole)
   {
-    edep = aTrack->GetKineticEnergy() / CLHEP::GeV;
+    edep = aTrack->GetKineticEnergy() / GeV;
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
     killtrack->SetTrackStatus(fStopAndKill);
   }
@@ -306,16 +225,16 @@ G4ThreeVector postpos = postPoint->GetPosition();
       hit->set_ladder_phi_index(ladderphi);
 
       //here we set the entrance values in cm
-      hit->set_x(0, prePoint->GetPosition().x() / CLHEP::cm);
-      hit->set_y(0, prePoint->GetPosition().y() / CLHEP::cm);
-      hit->set_z(0, prePoint->GetPosition().z() / CLHEP::cm);
+      hit->set_x(0, prePoint->GetPosition().x() / cm);
+      hit->set_y(0, prePoint->GetPosition().y() / cm);
+      hit->set_z(0, prePoint->GetPosition().z() / cm);
 
-      hit->set_px(0, prePoint->GetMomentum().x() / CLHEP::GeV);
-      hit->set_py(0, prePoint->GetMomentum().y() / CLHEP::GeV);
-      hit->set_pz(0, prePoint->GetMomentum().z() / CLHEP::GeV);
+      hit->set_px(0, prePoint->GetMomentum().x() / GeV);
+      hit->set_py(0, prePoint->GetMomentum().y() / GeV);
+      hit->set_pz(0, prePoint->GetMomentum().z() / GeV);
 
       // time in ns
-      hit->set_t(0, prePoint->GetGlobalTime() / CLHEP::nanosecond);
+      hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
 
       //set the track ID
       hit->set_trkid(aTrack->GetTrackID());
@@ -353,15 +272,15 @@ G4ThreeVector postpos = postPoint->GetPosition();
     // here we just update the exit values, it will be overwritten
     // for every step until we leave the volume or the particle
     // ceases to exist
-    hit->set_x(1, postPoint->GetPosition().x() / CLHEP::cm);
-    hit->set_y(1, postPoint->GetPosition().y() / CLHEP::cm);
-    hit->set_z(1, postPoint->GetPosition().z() / CLHEP::cm);
+    hit->set_x(1, postPoint->GetPosition().x() / cm);
+    hit->set_y(1, postPoint->GetPosition().y() / cm);
+    hit->set_z(1, postPoint->GetPosition().z() / cm);
 
-    hit->set_px(1, postPoint->GetMomentum().x() / CLHEP::GeV);
-    hit->set_py(1, postPoint->GetMomentum().y() / CLHEP::GeV);
-    hit->set_pz(1, postPoint->GetMomentum().z() / CLHEP::GeV);
+    hit->set_px(1, postPoint->GetMomentum().x() / GeV);
+    hit->set_py(1, postPoint->GetMomentum().y() / GeV);
+    hit->set_pz(1, postPoint->GetMomentum().z() / GeV);
 
-    hit->set_t(1, postPoint->GetGlobalTime() / CLHEP::nanosecond);
+    hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
     //sum up the energy to get total deposited
     hit->set_edep(hit->get_edep() + edep);
@@ -382,9 +301,14 @@ G4ThreeVector postpos = postPoint->GetPosition();
     // this volume and we need to save the hit
     // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
     // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
-    // (not sure if this will ever be the case)
+    // (happens when your detector goes outside world volume)
+    // postPoint->GetStepStatus() == fAtRestDoItProc: track stops (typically
+    // aTrack->GetTrackStatus() == fStopAndKill is also set)
     // aTrack->GetTrackStatus() == fStopAndKill: track ends
-    if (postPoint->GetStepStatus() == fGeomBoundary || postPoint->GetStepStatus() == fWorldBoundary || aTrack->GetTrackStatus() == fStopAndKill)
+    if (postPoint->GetStepStatus() == fGeomBoundary ||
+        postPoint->GetStepStatus() == fWorldBoundary ||
+        postPoint->GetStepStatus() == fAtRestDoItProc ||
+        aTrack->GetTrackStatus() == fStopAndKill)
     {
       if (verbosity > 1)
         cout << " postPoint step status changed, save hit and delete it" << endl;
@@ -447,12 +371,12 @@ G4ThreeVector postpos = postPoint->GetPosition();
       G4StepPoint* postPoint = aStep->GetPostStepPoint();
       cout << "----- PHg4SiliconTrackerSteppingAction::UserSteppingAction - active volume = " << volume->GetName() << endl;
       cout << "       strip_z_index = " << strip_z_index << " strip_y_index = " << strip_y_index << endl;
-      cout << "       prepoint x position " << prePoint->GetPosition().x() / CLHEP::cm << endl;
-      cout << "       prepoint y position " << prePoint->GetPosition().y() / CLHEP::cm << endl;
-      cout << "       prepoint z position " << prePoint->GetPosition().z() / CLHEP::cm << endl;
-      cout << "       postpoint x position " << postPoint->GetPosition().x() / CLHEP::cm << endl;
-      cout << "       postpoint y position " << postPoint->GetPosition().y() / CLHEP::cm << endl;
-      cout << "       postpoint z position " << postPoint->GetPosition().z() / CLHEP::cm << endl;
+      cout << "       prepoint x position " << prePoint->GetPosition().x() / cm << endl;
+      cout << "       prepoint y position " << prePoint->GetPosition().y() / cm << endl;
+      cout << "       prepoint z position " << prePoint->GetPosition().z() / cm << endl;
+      cout << "       postpoint x position " << postPoint->GetPosition().x() / cm << endl;
+      cout << "       postpoint y position " << postPoint->GetPosition().y() / cm << endl;
+      cout << "       postpoint z position " << postPoint->GetPosition().z() / cm << endl;
       cout << "       edep " << edep << endl;
       cout << "       eion " << eion << endl;
     }
