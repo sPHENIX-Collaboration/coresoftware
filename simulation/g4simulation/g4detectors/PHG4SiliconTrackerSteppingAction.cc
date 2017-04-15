@@ -49,7 +49,8 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
   , params(parameters)
   , IsActive(params->get_int_param("active"))
   , IsBlackHole(params->get_int_param("blackhole"))
-{}
+{
+}
 
 PHG4SiliconTrackerSteppingAction::~PHG4SiliconTrackerSteppingAction()
 {
@@ -67,8 +68,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   // get volume of the current step
   G4VPhysicalVolume* volume = touch->GetVolume();
   const G4Track* aTrack = aStep->GetTrack();
-    G4StepPoint* prePoint = aStep->GetPreStepPoint();
-    G4StepPoint* postPoint = aStep->GetPostStepPoint();
+  G4StepPoint* prePoint = aStep->GetPreStepPoint();
+  G4StepPoint* postPoint = aStep->GetPostStepPoint();
 
   const int whichactive = detector_->IsInSiliconTracker(volume);
 
@@ -88,10 +89,10 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     if (verbosity > 1)
     {
       cout << endl
-                << "PHG4SilicoTrackerSteppingAction::UserSteppingAction for volume name (pre) " << touch->GetVolume()->GetName()
-                << " volume->GetTranslation " << touch->GetVolume()->GetTranslation()
-                << " volume->GetCopyNo() " << volume->GetCopyNo()
-                << endl;
+           << "PHG4SilicoTrackerSteppingAction::UserSteppingAction for volume name (pre) " << touch->GetVolume()->GetName()
+           << " volume->GetTranslation " << touch->GetVolume()->GetTranslation()
+           << " volume->GetCopyNo() " << volume->GetCopyNo()
+           << endl;
     }
 
     // Get the layer and ladder information
@@ -127,8 +128,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     // This just regurgitates the values set in PHG4SiliconTrackerParameterization
     // when the G4PVParameterized was defined
     G4ThreeVector strip_pos = volume->GetTranslation();
-G4ThreeVector prepos = prePoint->GetPosition();
-G4ThreeVector postpos = postPoint->GetPosition();
+    G4ThreeVector prepos = prePoint->GetPosition();
+    G4ThreeVector postpos = postPoint->GetPosition();
     strip_z_index = 0;
     for (int i = 0; i < nstrips_z_sensor; ++i)
     {
@@ -149,7 +150,7 @@ G4ThreeVector postpos = postPoint->GetPosition();
         if (verbosity > 1)
         {
           cout << " found strip y index = " << i << endl;
-          cout << " strip_pos.y() " << (strip_pos.y()/mm) << " ymin " << ymin << " ymax " << ymax << endl;
+          cout << " strip_pos.y() " << (strip_pos.y() / mm) << " ymin " << ymin << " ymax " << ymax << endl;
         }
       }
     }
@@ -160,11 +161,10 @@ G4ThreeVector postpos = postPoint->GetPosition();
 
       if (volume->GetCopyNo() == volume_post->GetCopyNo())
       {
-	cout << "Overlap detected in volume " << volume->GetName() 
-	     << "pre and post step point ot same volume for step status fGeomBoundary" << endl;
-	exit(1);
+        cout << "Overlap detected in volume " << volume->GetName()
+             << "pre and post step point ot same volume for step status fGeomBoundary" << endl;
+        exit(1);
       }
-
     }
   }
   else  // silicon inactive area, FPHX, stabe etc. as absorbers
@@ -353,7 +353,7 @@ G4ThreeVector postpos = postPoint->GetPosition();
       G4TouchableHistory* theTouchable = (G4TouchableHistory*) (prePoint->GetTouchable());
       G4ThreeVector prelocalPos = theTouchable->GetHistory()->GetTopTransform().TransformPoint(preworldPos);
       cout << " entry point strip local pos: "
-                << " is " << prelocalPos.x() << " " << prelocalPos.y() << " " << prelocalPos.z() << endl;
+           << " is " << prelocalPos.x() << " " << prelocalPos.y() << " " << prelocalPos.z() << endl;
       G4TouchableHistory* postTouchable = (G4TouchableHistory*) (postPoint->GetTouchable());
       G4ThreeVector postlocalPos = postTouchable->GetHistory()->GetTopTransform().TransformPoint(postworldPos);
       cout << " exit point strip local pos: " << postlocalPos.x() << " " << postlocalPos.y() << " " << postlocalPos.z() << endl;

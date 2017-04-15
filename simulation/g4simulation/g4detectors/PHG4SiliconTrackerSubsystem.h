@@ -3,8 +3,8 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
+#include <Geant4/G4Types.hh>
 
 #include <utility>
 #include <vector>
@@ -13,19 +13,18 @@ class PHG4SiliconTrackerDetector;
 class PHG4SiliconTrackerSteppingAction;
 class PHG4EventAction;
 
-
-class PHG4SiliconTrackerSubsystem: public PHG4DetectorSubsystem
+class PHG4SiliconTrackerSubsystem : public PHG4DetectorSubsystem
 {
-  public:
-
+ public:
   typedef std::vector<std::pair<int, int>> vpair;
 
   //! constructor
-  PHG4SiliconTrackerSubsystem(const std::string &name = "SILICONTRACKER", const vpair &layerconfig=vpair(0));
+  PHG4SiliconTrackerSubsystem(const std::string &name = "SILICONTRACKER", const vpair &layerconfig = vpair(0));
 
   //! destructor
-  virtual ~PHG4SiliconTrackerSubsystem( void )
-  {}
+  virtual ~PHG4SiliconTrackerSubsystem(void)
+  {
+  }
 
   //! init
   /*!
@@ -43,27 +42,24 @@ class PHG4SiliconTrackerSubsystem: public PHG4DetectorSubsystem
   int process_event(PHCompositeNode *);
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector( void ) const;
-  PHG4SteppingAction* GetSteppingAction( void ) const {return steppingAction_;}
-  PHG4EventAction* GetEventAction() const {return eventAction_;}
-
-  void SuperDetector(const std::string &name) {superdetector = name;}
-  const std::string SuperDetector() {return superdetector;}
-
-  private:
-
+  PHG4Detector *GetDetector(void) const;
+  PHG4SteppingAction *GetSteppingAction(void) const { return steppingAction_; }
+  PHG4EventAction *GetEventAction() const { return eventAction_; }
+  void SuperDetector(const std::string &name) { superdetector = name; }
+  const std::string SuperDetector() { return superdetector; }
+ private:
   void SetDefaultParameters();
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4SiliconTrackerDetector* detector_;
+  PHG4SiliconTrackerDetector *detector_;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* steppingAction_;
+  PHG4SteppingAction *steppingAction_;
   PHG4EventAction *eventAction_;
 
-  std::vector< std::pair<int,int> > layerconfig_;
+  std::vector<std::pair<int, int>> layerconfig_;
 
   std::string detector_type;
   std::string superdetector;
