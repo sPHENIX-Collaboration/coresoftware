@@ -1,5 +1,6 @@
 #include "PHG4SiliconTrackerSubsystem.h"
 #include "PHG4EventActionClearZeroEdep.h"
+#include "PHG4Parameters.h"
 #include "PHG4SiliconTrackerDetector.h"
 #include "PHG4SiliconTrackerSteppingAction.h"
 
@@ -15,15 +16,14 @@
 using namespace std;
 
 //_______________________________________________________________________
-PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &detectorname, const vpair &layerconfig) : PHG4DetectorSubsystem(detectorname),
-                                                                                                                      detector_(0),
-                                                                                                                      steppingAction_(nullptr),
-                                                                                                                      eventAction_(nullptr),
-                                                                                                                      active(0),
-                                                                                                                      absorberactive(0),
-                                                                                                                      layerconfig_(layerconfig),
-                                                                                                                      detector_type(detectorname),
-                                                                                                                      superdetector(detectorname)
+PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &detectorname, const vpair &layerconfig)
+  : PHG4DetectorSubsystem(detectorname)
+  , detector_(0)
+  , steppingAction_(nullptr)
+  , eventAction_(nullptr)
+  , layerconfig_(layerconfig)
+  , detector_type(detectorname)
+  , superdetector(detectorname)
 {
   InitializeParameters();
   // put the layer into the name so we get unique names
@@ -42,13 +42,11 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 
   // create detector
   detector_ = new PHG4SiliconTrackerDetector(topNode, GetParams(), Name(), layerconfig_);
-  detector_->SetActive(active);
-  detector_->SetAbsorberActive(absorberactive);
   detector_->SuperDetector(superdetector);
   detector_->Detector(detector_type);
   detector_->OverlapCheck(CheckOverlap());
 
-  if (active)
+  if (GetParams()->get_int_param("active"))
   {
     const int sphxlayermin = layerconfig_.front().first;
     const int sphxlayermax = layerconfig_.back().first;
@@ -61,7 +59,7 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
 
     PHG4EventActionClearZeroEdep *eventaction = new PHG4EventActionClearZeroEdep(topNode, nodename);
-    if (absorberactive)
+    if (GetParams()->get_int_param("absorberactive"))
     {
       nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_ABSORBER_%s") % superdetector) : boost::str(boost::format("G4HIT_ABSORBER_%s_%d_%d") % detector_type % sphxlayermin % sphxlayermax);
 
@@ -76,6 +74,13 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 
     // create stepping action
     steppingAction_ = new PHG4SiliconTrackerSteppingAction(detector_, GetParams());
+  }
+  else
+  {
+    if (GetParams()->get_int_param("blackhole"))
+    {
+      steppingAction_ = new PHG4SiliconTrackerSteppingAction(detector_, GetParams());
+    }
   }
 
   return 0;

@@ -47,8 +47,6 @@ class PHG4SiliconTrackerSubsystem: public PHG4DetectorSubsystem
   PHG4SteppingAction* GetSteppingAction( void ) const {return steppingAction_;}
   PHG4EventAction* GetEventAction() const {return eventAction_;}
 
-  void SetActive(const int i = 1) {active = i;}
-  void SetAbsorberActive(const int i = 1) {absorberactive = i;}
   void SuperDetector(const std::string &name) {superdetector = name;}
   const std::string SuperDetector() {return superdetector;}
 
@@ -64,9 +62,6 @@ class PHG4SiliconTrackerSubsystem: public PHG4DetectorSubsystem
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* steppingAction_;
   PHG4EventAction *eventAction_;
-
-  int active;
-  int absorberactive;
 
   std::vector< std::pair<int,int> > layerconfig_;
 

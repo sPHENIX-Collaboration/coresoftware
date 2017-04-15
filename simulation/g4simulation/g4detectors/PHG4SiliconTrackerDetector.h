@@ -37,18 +37,6 @@ class PHG4SiliconTrackerDetector: public PHG4Detector
     int IsInSiliconTracker(G4VPhysicalVolume*) const;
     //@}
 
-    void SetActive(const int i = 1)
-    {
-      active = i;
-    }
-    void SetAbsorberActive(const int i = 1)
-    {
-      absorberactive = i;
-    }
-    int IsActive() const
-      {
-        return active;
-      }
     void SuperDetector(const std::string &name)
     {
       superdetector = name;
@@ -65,9 +53,6 @@ class PHG4SiliconTrackerDetector: public PHG4Detector
       {
         return detector_type;
       }
-
-    void BlackHole(const int i=1) {blackhole = i;}
-    int IsBlackHole() const {return blackhole;}
 
     const int arr_nladders_layer[4] = {20, 26, 32, 38};
     const G4double arr_radius[4]    = {60.0*mm, 80.0*mm, 100.0*mm, 120.0*mm};
