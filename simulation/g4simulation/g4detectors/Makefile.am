@@ -214,7 +214,7 @@ libg4detectors_la_SOURCES = \
   PHG4InnerHcalDetector.cc \
   PHG4InnerHcalSteppingAction.cc \
   PHG4InnerHcalSubsystem.cc \
-  PHG4InnerHcal_Dict.C \
+  PHG4InnerHcalSubsystem_Dict.cc \
   PHG4ScintillatorSlat_Dict.cc \
   PHG4ScintillatorSlatDefs.cc \
   PHG4ScintillatorSlatDefs_Dict.cc \
