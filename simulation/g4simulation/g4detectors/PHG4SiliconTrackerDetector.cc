@@ -86,31 +86,14 @@ int PHG4SiliconTrackerDetector::IsInSiliconTracker(G4VPhysicalVolume * volume) c
       }
     if (active)
       {
-	int foundit = 0;
+	// just checking if the pointer to the logical volume is in the set
+	// of our active ones makes sure we are in an active volume
+	// name parsing is a bad idea since this is called for all steps
+	// and we would have to trust that people give different names
+	// to their volumes
 	if (activelogvols.find(logvol) != activelogvols.end())
 	  {
-	    foundit = 1;
 	    return 1;
-	    //	    cout << "found active logvol " << logvol->GetName() << endl;
-	  }
-	// active strip strip
-	if (volume->GetName().find("siactive") != std::string::npos)
-	  {
-	if (activelogvols.find(logvol) == activelogvols.end())
-	  {
-	    cout << "volume name " << volume->GetName() << endl;
-        G4LogicalVolume *logv = volume->GetLogicalVolume();
-	cout << "logv: " << logv << " name " << logv->GetName() << endl;
-	    BOOST_FOREACH(G4LogicalVolume *lvol, activelogvols)
-	      {
-		cout << "logvol " << lvol << " name: " << lvol->GetName() << endl;
-	      }
-	  }
-	    return 2;
-	  }
-	if (foundit)
-	  {
-	    cout << "active logvol not assigned" << endl;
 	  }
       }
 
@@ -179,14 +162,14 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume* tracker
          * Si-sensor active area
          */
         const double siactive_x = strip_x; // 0.24mm/2
-        const double siactive_y = strip_y * 2.*(double)nstrips_phi_cell; // (0.078mm * 2*128)/2 = 0.078mm * 128
-        const double siactive_z = strip_z *    (double)nstrips_z_sensor; // (20mm * 5or8)/2 = 10mm * 5or8
+        const double siactive_y = (strip_y+strip_y/10000.) * 2. * nstrips_phi_cell; // (0.078mm * 2*128)/2 = 0.078mm * 128
+        const double siactive_z = (strip_z+strip_z/10000.) * nstrips_z_sensor; // (20mm * 5or8)/2 = 10mm * 5or8
 
         G4VSolid *siactive_box = new G4Box(boost::str(boost::format("siactive_box_%d_%d") %sphxlayer %itype).c_str(), siactive_x, siactive_y, siactive_z);
-        G4LogicalVolume *siactive_volume = new G4LogicalVolume(siactive_box, G4Material::GetMaterial("G4_AIR"), boost::str(boost::format("siactive_volume_%d_%d") %sphxlayer %itype).c_str(), 0, 0, 0);
+        G4LogicalVolume *siactive_volume = new G4LogicalVolume(siactive_box, G4Material::GetMaterial("G4_Si"), boost::str(boost::format("siactive_volume_%d_%d") %sphxlayer %itype).c_str(), 0, 0, 0);
 	//	activelogvols.insert(siactive_volume);
 
-        G4VPVParameterisation *stripparam = new PHG4SiliconTrackerStripParameterisation(nstrips_phi_cell * 2, nstrips_z_sensor, strip_y * 2., strip_z * 2.);
+        G4VPVParameterisation *stripparam = new PHG4SiliconTrackerStripParameterisation(nstrips_phi_cell * 2, nstrips_z_sensor, (strip_y+strip_y/10000.) * 2., (strip_z+strip_z/10000.) * 2.);
         new G4PVParameterised(boost::str(boost::format("siactive_%d_%d") %sphxlayer %itype).c_str(), strip_volume, siactive_volume, kZAxis, nstrips_phi_cell * 2 * nstrips_z_sensor, stripparam, false); // overlap check too long.
 
         /*
