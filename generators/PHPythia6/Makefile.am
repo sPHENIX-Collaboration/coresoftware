@@ -17,13 +17,17 @@ libPHPythia6_la_LDFLAGS = ${AM_LDFLAGS} `root-config --libs`
 
 libPHPythia6_la_LIBADD = \
   -lphool -lSubsysReco -lfun4all -lPythia6 -lEG -lEGPythia6 \
-  -lphhepmc -lHepMC -lHepMCfio -lgsl -lgslcblas
+  -lphhepmc -lHepMC -lHepMCfio -lgsl -lgslcblas -lfastjet \
+  -lCGAL
+
 
 libPHPythia6_la_SOURCES = \
   PHPythia6.C \
   PHPythia6_Dict.C \
   PHPy6GenTrigger.C \
   PHPy6GenTrigger.h \
+  PHPy6JetTrigger.C \
+  PHPy6JetTrigger.h \
   PHPy6ForwardElectronTrig.C \
   PHPy6ForwardElectronTrig.h \
   PHPy6ParticleTrigger.C \
@@ -49,6 +53,7 @@ testexternals.C:
 PHPythia6_Dict.C: \
   PHPythia6.h \
   PHPy6GenTrigger.h \
+  PHPy6JetTrigger.h \
   PHPy6ForwardElectronTrig.h \
   PHPy6ParticleTrigger.h \
   PHPythia6LinkDef.h
