@@ -82,10 +82,10 @@ G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWor
   /*holder box and hollow volume*/ G4VPhysicalVolume* hollowVol=build_holderBox(parameters,logicWorld);
   /*foam holder for aerogel     */ build_foamHolder(parameters,hollowVol->GetLogicalVolume());
   /*aerogel                     */ build_aerogel(parameters,hollowVol);
-  /*lens                        */ //build_lens(parameters->GetLensPar("fresnelLens"), hollowVol->GetLogicalVolume());
-  /*mirror                      */ //build_mirror(parameters,hollowVol);
+  /*lens                        */ build_lens(parameters->GetLensPar("fresnelLens"), hollowVol->GetLogicalVolume());
+  /*mirror                      */ build_mirror(parameters,hollowVol);
   /*sensor plane                */ build_sensor(parameters,hollowVol->GetLogicalVolume());
-  /*readout electronics         */ //build_polyhedra(parameters->GetPolyPar("readout"),hollowVol->GetLogicalVolume());
+  /*readout electronics         */ build_polyhedra(parameters->GetPolyPar("readout"),hollowVol->GetLogicalVolume());
 
   return hollowVol->GetMotherLogical();  //return detector holder box.
                                          //you have more than 1 daugthers,
@@ -1065,83 +1065,6 @@ G4LogicalVolume* PHG4mRICHDetector::build_Space(G4LogicalVolume* logicWorld, G4d
   
   return bowl_log;
 }
-//________________________________________________________________________//
-/*
-void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume*space, G4LogicalVolume*a_mRICH, G4double* bowlPar)
-{
-  int i,j;
-  
-  // mRICH half width, height, and length + air gap
-  G4double gap=3*cm;         //large gap to avoid overlap. temporary solution
-  G4Box* mRICH_box=dynamic_cast<G4Box*>(a_mRICH->GetSolid());
-  G4double halfWidth=mRICH_box->GetXHalfLength();// + gap;
-  G4double halfHeight=halfWidth;
-  G4double halfLength=mRICH_box->GetZHalfLength()+gap;
-
-  // space (bowl shape) dimension
-  G4double rinner=bowlPar[0];
-  G4double router=bowlPar[1];
-  G4double phi_min=bowlPar[2];
-  G4double phi_max=bowlPar[3];
-
-  if ((router-rinner)<(2*halfLength)) {
-    G4cout<<"PHG4mRICHDetector::build_mRICH_wall ::::::::::: ERROR! Not enough space for mRICH"<<G4endl;
-    return;
-  }
-
-  //position and name of each copy of mRICH
-  G4double x,y,z;
-  char name[50];
-
-  G4double c;  // circumference of each ring on the bowl
-  int N;       // num. of mRICH on each ring on the bowl
-
-  G4double theta,phi,deltaTheta, deltaPhi;
-  deltaPhi=2*atan(halfHeight/rinner);//+pi/180;
-  phi=0;
-
-  int count=0;
-  i=0;
-  for (phi=phi_min+deltaPhi;phi<phi_max-deltaPhi;phi=phi+deltaPhi) {  //add extra space to avoid overlap
-    c=twopi*(rinner)*sin(phi);
-    N=floor(c/(2*sqrt(2)*halfWidth));
-    deltaTheta=2*pi/N;
-    
-    if (1) {
-      printf("-----------------------------------------------------------------------------\n");
-      printf("ring %d",i+1);
-      printf("(minPhi, maxPhi, delPhi)=(%.2lf,%.2lf,%.2f) deg ",phi_min*180/pi,phi_max*180/pi,deltaPhi*180/pi);
-      printf("phi=%.2f deg \n",phi*180/pi);
-    }
-  
-    j=0;
-    for (theta=0;theta<=twopi;theta=theta+deltaTheta) {
-      x=(rinner+halfLength)*cos(theta)*sin(phi);
-      y=(rinner+halfLength)*sin(theta)*sin(phi);
-      z=(rinner+halfLength)*cos(phi);
-      
-      if (0) printf("x,y,z= %.2lf, %0.2lf, %0.2lf\n",x,y,z);
-      G4RotationMatrix rot= G4RotationMatrix(); 
-      rot.rotateX(phi*(-1)*sin(theta)*180*deg/pi);
-      rot.rotateY(phi*cos(theta)*180*deg/pi);
-       
-      sprintf(name,"mRICH_%d_%d",i+1,j+1);
-      
-      new G4PVPlacement(G4Transform3D(rot, G4ThreeVector(x, y, z)),
-			a_mRICH,name,space,
-			0, 0, 1);    //last digit for checking overlapping 
-      
-      j++;
-      count++;
-    }
-    i++;
-    //if (i>0) break;
-  }
-
-  printf("-----------------------------------------------------------------------------\n");
-  printf("%d detectors are built\n",count);
-}
-*/
 //________________________________________________________________________//
 G4double PHG4mRICHDetector::eta2polarAngle(G4double eta)
 {
