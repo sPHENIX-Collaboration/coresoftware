@@ -61,6 +61,7 @@
 #include <float.h>
 #include <iostream>
 #include <bitset>
+#include <tuple>
 
 #define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
@@ -125,6 +126,10 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
       _g4tracks(NULL),
       _g4vertexes(NULL),
 	  _seeding_only_mode(true),
+	  _max_merging_dphi(0.0120/10.),
+	  _max_merging_deta(0.0170/10.),
+	  _max_merging_dr(0.0500),
+	  _max_merging_dz(0.0500),
 	  _mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
 	  _mag_field_re_scaling_factor(1.4/1.5),
 	  _reverse_mag_field(true),
@@ -287,6 +292,12 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	if (code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 
+
+	// Cleanup Seeds
+	code = CleanupSeeds();
+	if (code != Fun4AllReturnCodes::EVENT_OK)
+		return code;
+
 	if(verbosity >= 1) _t_seeding->stop();
 
 
@@ -312,6 +323,8 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 		code = export_output();
 	if (code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
+
+	++_event;
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1738,6 +1751,96 @@ bool PHG4KalmanPatRec::circle_line_intersections(double x0, double y0,
 	return true;
 }
 
+int PHG4KalmanPatRec::CleanupSeeds() {
+
+	std::vector<SimpleTrack3D> _tracks_cleanup;
+	_tracks_cleanup.clear();
+
+	typedef std::tuple<int, int, int, int> KeyType;
+	typedef std::multimap< KeyType, int > MapKeyTrkID;
+
+	std::set<KeyType> keys;
+	MapKeyTrkID m_key_itrack;
+
+#ifdef _DEBUG_
+	cout<<__LINE__<<": CleanupSeeds: Event: "<<_event<<endl;
+#endif
+
+	int itrack = 0;
+	for (SimpleTrack3D track : _tracks) {
+		int id = track.d / _max_merging_dr;
+		int iz = track.z0 / _max_merging_dz;
+		int iphi = track.phi / _max_merging_dphi;
+		int idzdl = track.dzdl / _max_merging_deta;
+
+#ifdef _DEBUG_
+		cout<<"itrack: " << itrack
+				<< ": " << track.d <<": " << track.z0 << ": "<<track.phi<<": "<<track.dzdl
+				<< ": " << id <<": " << iz << ": "<< iphi <<": "<< idzdl
+				<<endl;
+#endif
+
+		KeyType key = std::make_tuple(id, iz, iphi, idzdl);
+
+		keys.insert(key);
+		m_key_itrack.insert(
+				std::make_pair(key,
+						itrack));
+		++itrack;
+	}
+
+	for(KeyType key : keys) {
+
+		std::pair<MapKeyTrkID::iterator, MapKeyTrkID::iterator> range;
+		range = m_key_itrack.equal_range(key);
+
+		if(++(range.first) == range.second) {
+			_tracks_cleanup.push_back(_tracks[range.first->second]);
+		} else {
+
+			_tracks_cleanup.push_back(_tracks[range.first->second]);
+
+			_tracks_cleanup.back().hits.clear();
+
+#ifdef _DEBUG_
+			int n_merge_track = 1;
+#endif
+
+			std::set<unsigned int> hitIDs;
+			for(MapKeyTrkID::iterator it = range.first;
+					it != range.second;
+					++it) {
+#ifdef _DEBUG_
+				++n_merge_track;
+#endif
+				SimpleTrack3D track = _tracks[it->second];
+				for(SimpleHit3D hit : track.hits) {
+					hitIDs.insert(hit.get_id());
+				}
+			}
+
+#ifdef _DEBUG_
+			cout<<__LINE__<<": # tracks merged: "<< n_merge_track <<endl;
+#endif
+			for(unsigned int hitID : hitIDs) {
+				SimpleHit3D hit;
+				hit.set_id(hitID);
+				_tracks_cleanup.back().hits.push_back(hit);
+			}
+		}
+	}
+
+#ifdef _DEBUG_
+	cout<<__LINE__<< ": Event: "<< _event <<endl;
+	cout << ": # tracks before cleanup: "<< _tracks.size() <<endl;
+	cout << ": # tracks after  cleanup: "<< _tracks_cleanup.size() <<endl;
+#endif
+	_tracks.clear();
+	_tracks = _tracks_cleanup;
+
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
 int PHG4KalmanPatRec::FullTrackFitting() {
 
 	// sort clusters
@@ -1758,7 +1861,7 @@ int PHG4KalmanPatRec::FullTrackFitting() {
 int PHG4KalmanPatRec::ExportOutput() {
 
 	std::cout << "=========================" << std::endl;
-	std::cout << "PHG4KalmanPatRec::FullTrackFitting: Event: "<< ++_event << std::endl;
+	std::cout << "PHG4KalmanPatRec::FullTrackFitting: Event: "<< _event << std::endl;
 	std::cout << "Total Raw Tracks: " << _trackID_PHGenFitTrack.size() << std::endl;
 	std::cout << "=========================" << std::endl;
 
@@ -1854,6 +1957,8 @@ int PHG4KalmanPatRec::ExportOutput() {
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
+
+#undef _DEBUG_
 
 int PHG4KalmanPatRec::TrackPropPatRec(
 		const unsigned int itrack) {
@@ -1976,10 +2081,11 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 
 		float layer_r = _radii_all[_layer_ilayer_map_all[layer]];
 
+#ifdef _DEBUG_
 		std::cout<<"========================="<<std::endl;
 		std::cout<<__LINE__<<":layer: "<<layer<<std::endl;
 		std::cout<<"========================="<<std::endl;
-
+#endif
 		std::unique_ptr<genfit::MeasuredStateOnPlane> state = nullptr;
 		try {
 			state = std::unique_ptr < genfit::MeasuredStateOnPlane
@@ -2004,6 +2110,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		float phi_window = _search_win_multiplier * sqrt(cov[0][0] + cov[1][1]);
 		float z_window = _search_win_multiplier * sqrt(cov[2][2]);
 
+#ifdef _DEBUG_
 		std::cout<<"itrack: "<<itrack
 				<<", layer: "<<layer
 				<<", layer_r: "<<layer_r
@@ -2012,18 +2119,20 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 				<<", z_window: "<<z_window
 				<<", phi_window: "<<phi_window
 				<<std::endl;
+#endif
 
 		if(verbosity >= 1) _t_search_clusters->restart();
 		std::vector<unsigned int> new_cluster_IDs = SearchHitsNearBy(layer,
 				z_center, phi_center, z_window, phi_window);
 		if(verbosity >= 1) _t_search_clusters->stop();
 
-		LogDebug("new_cluster_IDs size: ") << new_cluster_IDs.size() << std::endl;
-
+#ifdef _DEBUG_
+		cout<<__LINE__<< ": new_cluster_IDs size: " << new_cluster_IDs.size() << std::endl;
+#endif
 
 		std::vector<PHGenFit::Measurement*> measurements;
 		for (unsigned int cluster_ID : new_cluster_IDs) {
-			LogDebug("cluster_ID: ")<<cluster_ID<<endl;
+			//LogDebug("cluster_ID: ")<<cluster_ID<<endl;
 			SvtxCluster* cluster = _g4clusters->get(cluster_ID);
 			if (!cluster) {
 				LogError("No cluster Found!\n");
@@ -2041,7 +2150,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		std::map<double, PHGenFit::Track*> incr_chi2s_new_tracks;
 
 #ifdef _DEBUG_
-		LogDebug("measurements.size(): ")<<measurements.size()<<endl;
+		cout<<__LINE__<<": measurements.size(): "<<measurements.size()<<endl;
 #endif
 
 		if(verbosity >= 1) _t_track_propergation->restart();
@@ -2097,7 +2206,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		}
 
 #ifdef _DEBUG_
-		LogDebug("updateOneMeasurementKalman:")<<endl;
+		cout<<__LINE__<<": updateOneMeasurementKalman:"<<endl;
 		std::cout<<"itrack: "<<itrack
 				<<", layer: "<<layer
 				<<", #meas: "<<measurements.size()
@@ -2117,7 +2226,6 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-
 int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 
 	_layer_zID_phiID_cluserID.clear();
@@ -2134,6 +2242,7 @@ int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 		float rphi = r*phi;
 		float z = cluster->get_z();
 
+#ifdef _DEBUG_
 		if(verbosity > 2) {
 			std::cout<<__LINE__<<": "
 					<<", ID: "<<cluster->get_id()
@@ -2142,6 +2251,7 @@ int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 					<<", z: "<<z
 					<<endl;
 		}
+#endif
 
 		unsigned int idx = encode_cluster_index(layer, z, rphi);
 		_layer_zID_phiID_cluserID.insert(std::make_pair(idx, cluster->get_id()));
@@ -2174,6 +2284,7 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 		}
 	}
 
+#ifdef _DEBUG_
 	if(verbosity > 2) {
 		std::cout
 				<<__LINE__<<": "
@@ -2185,6 +2296,7 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 				<<", found #clusters: "<<cluster_IDs.size()
 				<<endl;
 	}
+#endif
 
 	return cluster_IDs;
 }

@@ -280,6 +280,38 @@ public:
 		_seeding_only_mode = seedingOnlyMode;
 	}
 
+	float get_max_merging_deta() const {
+		return _max_merging_deta;
+	}
+
+	void set_max_merging_deta(float maxMergingDeta) {
+		_max_merging_deta = maxMergingDeta;
+	}
+
+	float get_max_merging_dphi() const {
+		return _max_merging_dphi;
+	}
+
+	void set_max_merging_dphi(float maxMergingDphi) {
+		_max_merging_dphi = maxMergingDphi;
+	}
+
+	float get_max_merging_dr() const {
+		return _max_merging_dr;
+	}
+
+	void set_max_merging_dr(float maxMergingDr) {
+		_max_merging_dr = maxMergingDr;
+	}
+
+	float get_max_merging_dz() const {
+		return _max_merging_dz;
+	}
+
+	void set_max_merging_dz(float maxMergingDz) {
+		_max_merging_dz = maxMergingDz;
+	}
+
 #ifndef __CINT__
 
 private:
@@ -333,6 +365,9 @@ private:
 
 	/// code to translate back to the SVTX universe
 	int export_output();
+
+	//!
+	int CleanupSeeds();
 
 	//!
 	int FullTrackFitting();
@@ -463,6 +498,12 @@ private:
 
 
 	bool _seeding_only_mode;
+
+	//! Cleanup Seeds
+	float _max_merging_dphi;
+	float _max_merging_deta;
+	float _max_merging_dr;
+	float _max_merging_dz;
 
 	//GenFit Related Part
 	//!
