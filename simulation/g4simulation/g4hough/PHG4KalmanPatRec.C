@@ -1807,7 +1807,7 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 		std::pair<MapKeyTrkID::iterator, MapKeyTrkID::iterator> range;
 		range = m_key_itrack.equal_range(key);
 
-		if(++(range.first) == range.second) {
+		if(m_key_itrack.count(key) == 1) {
 			_tracks_cleanup.push_back(_tracks[range.first->second]);
 		} else {
 
