@@ -277,16 +277,17 @@ int Track::updateOneMeasurementKalman(
 		std::unique_ptr<genfit::MeasuredStateOnPlane> state = NULL;
 		genfit::SharedPlanePtr plane = NULL;
 
-
+#ifdef _DEBUG_
 		std::cout << __LINE__ << ": " << "track->getPointWithMeasurement(): " << track->getPointWithMeasurement(-1) << std::endl;
-
+#endif
 		if(track->getNumPointsWithMeasurement() > 0) {
 			tp_base = track->getPointWithMeasurement(-1);
 			newFi = !(tp_base->hasFitterInfo(rep));
 			//tp_base->Print();
 		}
-
+#ifdef _DEBUG_
 		std::cout << __LINE__ << ": " <<"newFi: "<<newFi<<std::endl;
+#endif
 		if (newFi) {
 			state = std::unique_ptr < genfit::MeasuredStateOnPlane
 					> (new genfit::MeasuredStateOnPlane(rep));
@@ -310,8 +311,9 @@ int Track::updateOneMeasurementKalman(
 
 		genfit::KalmanFitterInfo* fi = new genfit::KalmanFitterInfo(tp, rep);
 		tp->setFitterInfo(fi);
-
+#ifdef _DEBUG_
 		std::cout<< __LINE__ << ": " <<"track->getPointWithMeasurement(): "<<track->getPointWithMeasurement(-1)<<std::endl;
+#endif
 //		if (track->getNumPointsWithMeasurement() > 0) {
 //			tp_base = track->getPointWithMeasurement(-1);
 //			if (tp_base->hasFitterInfo(rep)) {
