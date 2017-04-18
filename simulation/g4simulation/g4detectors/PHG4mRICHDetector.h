@@ -1,9 +1,6 @@
 /*===============================================================*
  *                        March 2nd 2017                         *
  *         mRICH Detector created by Cheuk-Ping Wong @GSU        *
- *===============================================================*
- * March 2nd 2017. Modified from PHG4BlockDetector.h. This code  *
- *                 still need some small modifications for mRICH *
  *===============================================================*/
 #ifndef PHG4mRICHDetector_h
 #define PHG4mRICHDetector_h

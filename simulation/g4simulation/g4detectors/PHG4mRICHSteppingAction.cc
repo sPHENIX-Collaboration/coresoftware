@@ -5,7 +5,7 @@
  *                       March 19th 2017                         * 
  *---------------------------------------------------------------*
  * Modified from PHG4ForwardEcalSteppingAction.cc This code still*
- * need some polishing                                           *
+ * need polishing                                                *
  *===============================================================*/
 #include "PHG4mRICHSteppingAction.h"
 #include "PHG4mRICHDetector.h"

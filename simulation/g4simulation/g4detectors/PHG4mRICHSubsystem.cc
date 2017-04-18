@@ -1,9 +1,6 @@
 /*===============================================================*
  *                        March 2nd 2017                         *
- *         mRICH Subsystem created by Cheuk-Ping Wong @GSU        *
- *===============================================================*
- * March 2nd 2017. Modified from PHG4BlockSubsystem.cc. This code*
- *                 still need some small modifications for mRICH *
+ *         mRICH Subsystem created by Cheuk-Ping Wong @GSU       *
  *===============================================================*/
 #include "PHG4mRICHSubsystem.h"
 #include "PHG4mRICHDetector.h"

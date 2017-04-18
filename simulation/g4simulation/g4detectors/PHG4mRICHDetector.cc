@@ -2,8 +2,17 @@
  *                        March 2nd 2017                         *
  *         mRICH Detector created by Cheuk-Ping Wong @GSU        *
  *===============================================================*
- * March 2nd 2017. Modified from PHG4BlockDetector.cc. This code *
- *                 still need some small modifications for mRICH *
+ * Even mRICH is a tiny detector, it has nine logical volumes per*
+ * modules. To make the code easy to manage, material definition *
+ * and components dimensions are written in different functions  *
+ * which are not supposed for frequent modification.             *
+ *                                                               * 
+ * While Construct() and Construct_a_mRIHC(), are two            *
+ * handy and simple functions for user to control detector       *
+ * construction.                                                 *
+ *---------------------------------------------------------------*
+ * to ignore a particular component of a single mRICH, comment   *
+ * out the build_xxx() function correspond to the component.     *
  *===============================================================*/
 #include "PHG4mRICHDetector.h"
 #include "PHG4Parameters.h"
@@ -62,7 +71,6 @@ bool PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume * volume) const
 //______________________________________________________________
 void PHG4mRICHDetector::Construct( G4LogicalVolume* logicWorld)
 {
-  //int single_mRICH=0;
   G4double bowlPar[4];
   
   if (single_mRICH) Construct_a_mRICH(logicWorld);
