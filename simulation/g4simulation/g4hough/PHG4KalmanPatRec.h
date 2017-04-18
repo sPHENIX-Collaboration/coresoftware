@@ -370,7 +370,7 @@ private:
 	int CleanupSeeds();
 
 	//!
-	int FullTrackFitting();
+	int FullTrackFitting(PHCompositeNode* topNode);
 
 	//!
 	int ExportOutput();
@@ -388,7 +388,7 @@ private:
 	unsigned int encode_cluster_index(const unsigned int layer, const unsigned int iz, const unsigned int irphi);
 
 	//! FullTrackFitting Call.
-	int TrackPropPatRec(const unsigned int itrack);
+	int TrackPropPatRec(PHCompositeNode* topNode, const unsigned int itrack);
 
 	//! TrackPropPatRec Call.
 	std::vector<unsigned int> SearchHitsNearBy (const unsigned int layer, const float z_center, const float phi_center, const float z_window, const float phi_window);

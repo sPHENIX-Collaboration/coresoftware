@@ -12,6 +12,8 @@
 #include "SvtxTrackState.h"
 #include "SvtxClusterMap.h"
 #include "SvtxCluster.h"
+#include "SvtxHit_v1.h"
+#include "SvtxHitMap.h"
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -19,6 +21,12 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
+#include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4detectors/PHG4Cell.h>
+#include <g4detectors/PHG4CylinderGeom_MAPS.h>
+#include <g4detectors/PHG4CylinderGeom_Siladders.h>
+
 #include <g4bbc/BbcVertexMap.h>
 #include <g4bbc/BbcVertex.h>
 
@@ -306,7 +314,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	// Kalman cluster accociation
 	//-----------------------------------
 	if (!_seeding_only_mode) {
-		code = FullTrackFitting();
+		code = FullTrackFitting(topNode);
 		if (code != Fun4AllReturnCodes::EVENT_OK)
 			return code;
 	}
@@ -1774,10 +1782,15 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 		int idzdl = track.dzdl / _max_merging_deta;
 
 #ifdef _DEBUG_
-		cout<<"itrack: " << itrack
-				<< ": " << track.d <<": " << track.z0 << ": "<<track.phi<<": "<<track.dzdl
-				<< ": " << id <<": " << iz << ": "<< iphi <<": "<< idzdl
-				<<endl;
+//		cout<<"itrack: " << itrack
+//				<< ": " << track.d <<": " << track.z0 << ": "<<track.phi<<": "<<track.dzdl
+//				<< ": " << id <<": " << iz << ": "<< iphi <<": "<< idzdl
+//				<<endl;
+		printf("itrack: %d: \t%e, \t%e, \t%e, \t%e, %5d, %5d, %5d, %5d \n",
+				itrack,
+				track.d, track.z0, track.phi, track.dzdl,
+				id, iz, iphi, idzdl
+		);
 #endif
 
 		KeyType key = std::make_tuple(id, iz, iphi, idzdl);
@@ -1821,12 +1834,16 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 
 #ifdef _DEBUG_
 			cout<<__LINE__<<": # tracks merged: "<< n_merge_track <<endl;
+			cout<<__LINE__<<": nclusters before merge: "<< _tracks[range.first->second].hits.size() <<endl;
 #endif
 			for(unsigned int hitID : hitIDs) {
 				SimpleHit3D hit;
 				hit.set_id(hitID);
 				_tracks_cleanup.back().hits.push_back(hit);
 			}
+#ifdef _DEBUG_
+			cout<<__LINE__<<": nclusters after merge:  "<< _tracks_cleanup.back().hits.size() <<endl;
+#endif
 		}
 	}
 
@@ -1841,7 +1858,7 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4KalmanPatRec::FullTrackFitting() {
+int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 
 	// sort clusters
 	BuildLayerZPhiHitMap();
@@ -1851,7 +1868,7 @@ int PHG4KalmanPatRec::FullTrackFitting() {
 	//_trackID_clusterID.clear();
 
 	for(unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
-		TrackPropPatRec(itrack);
+		TrackPropPatRec(topNode, itrack);
 	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -1960,7 +1977,7 @@ int PHG4KalmanPatRec::ExportOutput() {
 
 #undef _DEBUG_
 
-int PHG4KalmanPatRec::TrackPropPatRec(
+int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 		const unsigned int itrack) {
 
 	float kappa = _tracks.at(itrack).kappa;
@@ -1978,20 +1995,27 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 	float y_center = sin(phi) * (d + 1 / kappa);  // y    "      "     " "
 
 	vector<SimpleHit3D> track_hits = _tracks.at(itrack).hits;
-	LogDebug("track_hits.size(): ")<<track_hits.size()<<"\n";
-
+#ifdef _DEBUG_
+	cout<<__LINE__<<": track_hits.size(): "<<track_hits.size()<<"\n";
+#endif
 
 	// find helicity from cross product sign
 	short int helicity;
-	if ((track_hits[0].get_x() - x_center)
-			* (track_hits[track_hits.size() - 1].get_y() - y_center)
-			- (track_hits[0].get_y() - y_center)
-					* (track_hits[track_hits.size() - 1].get_x() - x_center)
-			> 0) {
-		helicity = 1;
-	} else {
-		helicity = -1;
+	{
+		unsigned int hitID0 = track_hits.front().get_id();
+		unsigned int hitID1 = track_hits.back().get_id();
+		SvtxCluster* cluster0 = _g4clusters->get(hitID0);
+		SvtxCluster* cluster1 = _g4clusters->get(hitID1);
+
+		if ((cluster0->get_x() - x_center) * (cluster1->get_y() - y_center)
+				- (cluster0->get_y() - y_center)
+						* (cluster1->get_x() - x_center) > 0) {
+			helicity = 1;
+		} else {
+			helicity = -1;
+		}
 	}
+
 	float pZ = 0;
 	if (dzdl != 1) {
 		pZ = pT * dzdl / sqrt(1.0 - dzdl * dzdl);
@@ -2024,6 +2048,44 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		}
 	}
 
+	/*!
+	 * Now have to load geometry nodes to get norm vector
+	 */
+
+	SvtxHitMap* hitsmap = NULL;
+	// get node containing the digitized hits
+	hitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+	if (!hitsmap) {
+		cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
+		return Fun4AllReturnCodes::ABORTRUN;
+	}
+
+	PHG4CellContainer* cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
+			"G4CELL_SVTX");
+
+	PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
+			topNode, "G4CELL_SILICON_TRACKER");
+
+	PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
+			topNode, "G4CELL_MAPS");
+
+	if (!cells_svtx and !cells_intt and !cells_maps) {
+		if (verbosity >= 0) {
+			LogError("No PHG4CellContainer found!");
+		}
+		return Fun4AllReturnCodes::ABORTRUN;
+	}
+
+	PHG4CylinderGeomContainer* geom_container_intt = findNode::getClass<
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
+
+	PHG4CylinderGeomContainer* geom_container_maps = findNode::getClass<
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+
+	if (!cells_svtx && !cells_maps && !cells_intt) {
+		cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
+		return Fun4AllReturnCodes::ABORTRUN;
+	}
 
 	genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_pid_guess);
 	std::shared_ptr<PHGenFit::Track> track(
@@ -2050,6 +2112,55 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 
 		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
 		TVector3 n(cluster->get_x(), cluster->get_y(), 0);
+
+
+		//17.4, 17.4, 17.4, 14.0, 14.0, 12.0, 11.5
+		float phi_tilt[7] = {0.304, 0.304, 0.304, 0.244, 0.244, 0.209, 0.201};
+
+		unsigned int layer = cluster->get_layer();
+		//std::cout << "cluster layer: " << layer << std::endl;
+		if ((cells_maps and geom_container_maps)
+				and layer < 3) {
+
+			unsigned int begin_hit_id = *(cluster->begin_hits());
+			//LogDebug(begin_hit_id);
+			SvtxHit* hit = hitsmap->find(begin_hit_id)->second;
+			//LogDebug(hit->get_cellid());
+			PHG4Cell* cell = cells_maps->findCell(hit->get_cellid());
+			int stave_index = cell->get_stave_index();
+			int half_stave_index = cell->get_half_stave_index();
+			int module_index = cell->get_module_index();
+			int chip_index = cell->get_chip_index();
+
+			double ladder_location[3] = { 0.0, 0.0, 0.0 };
+			PHG4CylinderGeom_MAPS *geom =
+					(PHG4CylinderGeom_MAPS*) geom_container_maps->GetLayerGeom(
+							layer);
+			// returns the center of the sensor in world coordinates - used to get the ladder phi location
+			geom->find_sensor_center(stave_index, half_stave_index,
+					module_index, chip_index, ladder_location);
+			//n.Print();
+			n.SetXYZ(ladder_location[0], ladder_location[1], 0);
+			n.RotateZ(phi_tilt[layer]);
+			//n.Print();
+		} else if ((cells_intt and geom_container_intt)
+				and pos.Perp() < 30.) {
+
+			unsigned int begin_hit_id = *(cluster->begin_hits());
+			//LogDebug(begin_hit_id);
+			SvtxHit* hit = hitsmap->find(begin_hit_id)->second;
+			//LogDebug(hit->get_cellid());
+			PHG4Cell* cell = cells_intt->findCell(hit->get_cellid());
+			PHG4CylinderGeom_Siladders* geom =
+					(PHG4CylinderGeom_Siladders*) geom_container_intt->GetLayerGeom(
+							layer);
+			double hit_location[3] = { 0.0, 0.0, 0.0 };
+			geom->find_segment_center(cell->get_ladder_z_index(),
+					cell->get_ladder_phi_index(), hit_location);
+
+			n.SetXYZ(hit_location[0], hit_location[1], 0);
+			n.RotateZ(phi_tilt[layer]);
+		}
 
 		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,
 				n, cluster->get_phi_error(), cluster->get_z_error());
@@ -2331,6 +2442,7 @@ unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
 	}
 	unsigned int irphi = (rphi + _half_max_rphi) / _layer_zID_phiID_cluserID_phiSize;
 
+#ifdef _DEBUG_
 	if(verbosity > 2) {
 		std::cout<<__LINE__<<": "
 				<<" layer: "<<layer
@@ -2338,6 +2450,7 @@ unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
 				<<", iz: "<<iz
 				<<endl;
 	}
+#endif
 
 	return encode_cluster_index(layer, iz, irphi);
 }
