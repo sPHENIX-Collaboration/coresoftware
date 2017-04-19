@@ -153,8 +153,8 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _layer_zID_phiID_cluserID(),
 	  _half_max_z(160),
 	  _half_max_rphi(252), //80cm * Pi
-	  _layer_zID_phiID_cluserID_phiSize(0.12),
-	  _layer_zID_phiID_cluserID_zSize(0.17),
+	  _layer_zID_phiID_cluserID_phiSize(0.1200),
+	  _layer_zID_phiID_cluserID_zSize(0.1700),
 	  _trackID_PHGenFitTrack(),
 	  //_trackID_clusterID(),
 	  _max_incr_chi2(5){
@@ -1774,32 +1774,30 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 	_tracks_cleanup.clear();
 
 	typedef std::tuple<int, int, int, int> KeyType;
-	typedef std::multimap< KeyType, int > MapKeyTrkID;
+	typedef std::multimap< KeyType, unsigned int > MapKeyTrkID;
 
 	std::set<KeyType> keys;
+	std::vector<bool> v_track_used;
 	MapKeyTrkID m_key_itrack;
 
 #ifdef _DEBUG_
 	cout<<__LINE__<<": CleanupSeeds: Event: "<<_event<<endl;
 #endif
 
-	int itrack = 0;
-	for (SimpleTrack3D track : _tracks) {
+	for (unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
+		SimpleTrack3D track = _tracks[itrack];
+
 		int id = track.d / _max_merging_dr;
 		int iz = track.z0 / _max_merging_dz;
 		int iphi = track.phi / _max_merging_dphi;
 		int idzdl = track.dzdl / _max_merging_deta;
 
 #ifdef _DEBUG_
-//		cout<<"itrack: " << itrack
-//				<< ": " << track.d <<": " << track.z0 << ": "<<track.phi<<": "<<track.dzdl
-//				<< ": " << id <<": " << iz << ": "<< iphi <<": "<< idzdl
-//				<<endl;
-		printf("itrack: %d: \t%e, \t%e, \t%e, \t%e, %5d, %5d, %5d, %5d \n",
-				itrack,
-				track.d, track.z0, track.phi, track.dzdl,
-				id, iz, iphi, idzdl
-		);
+//		printf("itrack: %d: \t%e, \t%e, \t%e, \t%e, %5d, %5d, %5d, %5d \n",
+//				itrack,
+//				track.d, track.z0, track.phi, track.dzdl,
+//				id, iz, iphi, idzdl
+//		);
 #endif
 
 		KeyType key = std::make_tuple(id, iz, iphi, idzdl);
@@ -1808,19 +1806,82 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 		m_key_itrack.insert(
 				std::make_pair(key,
 						itrack));
-		++itrack;
+
+		v_track_used.push_back(false);
 	}
+
+#ifdef _DEBUG_
+	for(auto it = m_key_itrack.begin();
+						it != m_key_itrack.end();
+						++it) {
+
+		KeyType key = it->first;
+		unsigned int itrack = it->second;
+
+		int id = std::get < 0 > (key);
+		int iz = std::get < 1 > (key);
+		int iphi = std::get < 2 > (key);
+		int idzdl = std::get < 3 > (key);
+
+		SimpleTrack3D track = _tracks[itrack];
+
+		printf("itrack: %5d => {%5d, %5d, %5d, %5d} \n",
+				itrack,
+				id, iz, iphi, idzdl);
+	}
+#endif
 
 	for(KeyType key : keys) {
 
-		std::pair<MapKeyTrkID::iterator, MapKeyTrkID::iterator> range;
-		range = m_key_itrack.equal_range(key);
+		unsigned int itrack = m_key_itrack.equal_range(key).first->second;
 
-		if(m_key_itrack.count(key) == 1) {
-			_tracks_cleanup.push_back(_tracks[range.first->second]);
+		std::vector<unsigned int> v_related_tracks;
+
+#ifdef _DEBUG_
+		cout<<"---------------------------------------------------\n";
+		cout<<__LINE__<< ": processing: "<<itrack<<endl;
+		cout<<"---------------------------------------------------\n";
+#endif
+
+		if (v_track_used[itrack] == true)
+			continue;
+
+		for (int id = std::get < 0 > (key) - 1; id <= std::get < 0 > (key) + 1;
+				++id) {
+			for (int iz = std::get < 1 > (key) - 1;
+					iz <= std::get < 1 > (key) + 1; ++iz) {
+				for (int iphi = std::get < 2 > (key) - 1;
+						iphi <= std::get < 2 > (key) + 1; ++iphi) {
+					for (int idzdl = std::get < 3 > (key) - 1;
+							idzdl <= std::get < 3 > (key) + 1; ++idzdl) {
+						KeyType key_temp = std::make_tuple(id, iz, iphi, idzdl);
+
+						if (m_key_itrack.find(key_temp) != m_key_itrack.end()) {
+							for (auto it =
+									m_key_itrack.equal_range(key_temp).first;
+									it
+											!= m_key_itrack.equal_range(
+													key_temp).second; ++it) {
+								v_related_tracks.push_back(it->second);
+							}
+#ifdef _DEBUG_
+							cout << __LINE__ << ": ";
+							printf("{%5d, %5d, %5d, %5d} => {%d, %d} \n", id,
+									iz, iphi, idzdl,
+									m_key_itrack.equal_range(key_temp).first->second,
+									m_key_itrack.equal_range(key_temp).second->second);
+#endif
+						}
+					}
+				}
+			}
+		}
+
+		if(v_related_tracks.size() == 1) {
+			_tracks_cleanup.push_back(_tracks[itrack]);
 		} else {
 
-			_tracks_cleanup.push_back(_tracks[range.first->second]);
+			_tracks_cleanup.push_back(_tracks[itrack]);
 
 			_tracks_cleanup.back().hits.clear();
 
@@ -1829,21 +1890,23 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 #endif
 
 			std::set<unsigned int> hitIDs;
-			for(MapKeyTrkID::iterator it = range.first;
-					it != range.second;
-					++it) {
+			for(unsigned int irel : v_related_tracks) {
+
+				if(v_track_used[irel] == true) continue;
 #ifdef _DEBUG_
 				++n_merge_track;
 #endif
-				SimpleTrack3D track = _tracks[it->second];
+				SimpleTrack3D track = _tracks[irel];
 				for(SimpleHit3D hit : track.hits) {
 					hitIDs.insert(hit.get_id());
 				}
+
+				v_track_used[irel] = true;
 			}
 
 #ifdef _DEBUG_
 			cout<<__LINE__<<": # tracks merged: "<< n_merge_track <<endl;
-			cout<<__LINE__<<": nclusters before merge: "<< _tracks[range.first->second].hits.size() <<endl;
+			cout<<__LINE__<<": nclusters before merge: "<< v_related_tracks.size() <<endl;
 #endif
 			for(unsigned int hitID : hitIDs) {
 				SimpleHit3D hit;
@@ -1854,6 +1917,8 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 			cout<<__LINE__<<": nclusters after merge:  "<< _tracks_cleanup.back().hits.size() <<endl;
 #endif
 		}
+
+		v_track_used[itrack] = true;
 	}
 
 #ifdef _DEBUG_
@@ -2222,14 +2287,12 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 		float z_window = _search_win_multiplier * sqrt(cov[2][2]);
 
 #ifdef _DEBUG_
-		std::cout<<"itrack: "<<itrack
-				<<", layer: "<<layer
-				<<", layer_r: "<<layer_r
-				<<", z_center: "<<z_center
-				<<", phi_center: "<<phi_center
-				<<", z_window: "<<z_window
-				<<", phi_window: "<<phi_window
-				<<std::endl;
+		cout<<__LINE__<<": ";
+		printf("layer: %d: z: %f +- %f; phi: %f +- %f\n",
+				layer,
+				phi_center, phi_window,
+				z_center, z_window
+				);
 #endif
 
 		if(verbosity >= 1) _t_search_clusters->restart();
@@ -2354,14 +2417,12 @@ int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 		float z = cluster->get_z();
 
 #ifdef _DEBUG_
-		if(verbosity > 2) {
-			std::cout<<__LINE__<<": "
-					<<", ID: "<<cluster->get_id()
-					<<", r: "<<r
-					<<", rphi: "<<rphi
-					<<", z: "<<z
-					<<endl;
-		}
+		std::cout<<__LINE__<<": "
+				<<": layer: "<<cluster->get_layer()
+				<<", r: "<<r
+				<<", rphi: "<<rphi
+				<<", z: "<<z
+				<<endl;
 #endif
 
 		unsigned int idx = encode_cluster_index(layer, z, rphi);
@@ -2396,17 +2457,15 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 	}
 
 #ifdef _DEBUG_
-	if(verbosity > 2) {
-		std::cout
-				<<__LINE__<<": "
-				<<" layer: "<<layer
-				<<", min_z_bin: "<<min_z_bin
-				<<", max_z_bin: "<<max_z_bin
-				<<", min_rphi_bin: "<<min_rphi_bin
-				<<", max_rphi_bin: "<<max_rphi_bin
-				<<", found #clusters: "<<cluster_IDs.size()
-				<<endl;
-	}
+	std::cout
+			<<__LINE__<<": "
+			<<" layer: "<<layer
+			<<", zbin: {"<<min_z_bin
+			<<", "<<max_z_bin
+			<<"}, phibin: {"<<min_rphi_bin
+			<<", "<<max_rphi_bin
+			<<"}, found #clusters: "<<cluster_IDs.size()
+			<<endl;
 #endif
 
 	return cluster_IDs;
@@ -2443,13 +2502,11 @@ unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
 	unsigned int irphi = (rphi + _half_max_rphi) / _layer_zID_phiID_cluserID_phiSize;
 
 #ifdef _DEBUG_
-	if(verbosity > 2) {
-		std::cout<<__LINE__<<": "
-				<<" layer: "<<layer
-				<<", irphi: "<<irphi
-				<<", iz: "<<iz
-				<<endl;
-	}
+	std::cout<<__LINE__<<": "
+			<<": layer: "<<layer
+			<<", irphi: "<<irphi
+			<<", iz: "<<iz
+			<<endl;
 #endif
 
 	return encode_cluster_index(layer, iz, irphi);
