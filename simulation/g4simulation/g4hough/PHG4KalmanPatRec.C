@@ -332,6 +332,15 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	if (code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 
+	std::cout << "=============== Timers: ===============" << std::endl;
+	std::cout << "Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "\t - Cluster searching time: "<<_t_search_clusters->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "\t - Kalman updater time:    "<<_t_track_propergation->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "Full fitting time:           "<<_t_full_fitting->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "Output IO time:              "<<_t_output_io->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "=======================================" << std::endl;
+
 	++_event;
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -1887,7 +1896,7 @@ int PHG4KalmanPatRec::ExportOutput() {
 			iter != _trackID_PHGenFitTrack.end(); iter++) {
 
 		std::cout << "=========================" << std::endl;
-		std::cout << __LINE__ << "trackID: " << iter->first << std::endl;
+		std::cout << __LINE__ << ": trackID: " << iter->first << std::endl;
 		std::cout << "Contains: " << iter->second->get_cluster_IDs().size() << " clusters." <<std::endl;
 		std::cout << "=========================" << std::endl;
 
@@ -1963,19 +1972,10 @@ int PHG4KalmanPatRec::ExportOutput() {
 		_fitter->getEventDisplay()->addEvent(copy);
 	}
 
-	std::cout << "=============== Timers: ===============" << std::endl;
-	std::cout << "Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "\t - Cluster searching time: "<<_t_search_clusters->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "\t - Kalman updater time:    "<<_t_track_propergation->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "Full fitting time:           "<<_t_full_fitting->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "Output IO time:              "<<_t_output_io->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "=======================================" << std::endl;
-
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-#undef _DEBUG_
+//#undef _DEBUG_
 
 int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 		const unsigned int itrack) {
@@ -2194,7 +2194,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 
 #ifdef _DEBUG_
 		std::cout<<"========================="<<std::endl;
-		std::cout<<__LINE__<<":layer: "<<layer<<std::endl;
+		std::cout<<__LINE__<<": Event: "<< _event <<": itrack: "<<itrack <<": layer: "<<layer<<std::endl;
 		std::cout<<"========================="<<std::endl;
 #endif
 		std::unique_ptr<genfit::MeasuredStateOnPlane> state = nullptr;
@@ -2218,7 +2218,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 
 		TMatrixDSym cov = state->get6DCov();
 
-		float phi_window = _search_win_multiplier * sqrt(cov[0][0] + cov[1][1]);
+		float phi_window = _search_win_multiplier * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]);
 		float z_window = _search_win_multiplier * sqrt(cov[2][2]);
 
 #ifdef _DEBUG_
@@ -2269,7 +2269,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 		if(verbosity >= 1) _t_track_propergation->stop();
 
 #ifdef _DEBUG_
-		LogDebug("incr_chi2s_new_tracks.size(): ")<<incr_chi2s_new_tracks.size()<<endl;
+		cout<<__LINE__<<": incr_chi2s_new_tracks.size(): "<<incr_chi2s_new_tracks.size()<<endl;
 #endif
 
 		// Update first track candidate
