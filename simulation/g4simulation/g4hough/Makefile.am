@@ -67,6 +67,7 @@ pkginclude_HEADERS = \
   PHG4KalmanPatRec.h \
   PHG4TrackGhostRejection.h \
   PHG4TrackKalmanFitter.h \
+  PHG4CombinatorialTrackFinder.h \
   PHG4TruthPatRec.h \
   PHG4TrackFastSim.h \
   PHG4SvtxMomentumRecal.h \
@@ -139,6 +140,8 @@ libg4hough_la_SOURCES = \
   PHG4TrackGhostRejection.C \
   PHG4TrackGhostRejection_Dict.C \
   PHG4TrackKalmanFitter.C \
+  PHG4CombinatorialTrackFinder.C \
+  PHG4CombinatorialTrackFinder_Dict.C \
   PHG4TruthPatRec.C \
   PHG4TrackFastSim.C \
   PHG4TrackKalmanFitter_Dict.C \
