@@ -1,6 +1,7 @@
 #include "PHG4SiliconTrackerSteppingAction.h"
 #include "PHG4Parameters.h"
 #include "PHG4SiliconTrackerDetector.h"
+#include "PHG4StepStatusDecode.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -47,8 +48,9 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
   , savehitcontainer(nullptr)
   , saveshower(nullptr)
   , params(parameters)
-  , IsActive(params->get_int_param("active"))
-  , IsBlackHole(params->get_int_param("blackhole"))
+  , IsActive(1)
+  , IsBlackHole(0)
+  , toggle(0)
 {
 }
 
@@ -154,17 +156,48 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
         }
       }
     }
-
+    if (toggle==1)
+    {
+      toggle = 0;
+      cout << "pre status: " 
+<< PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+	   << ", post step: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+	   << endl;
+      G4VPhysicalVolume* volume_post = postPoint->GetTouchableHandle()->GetVolume();
+      cout << "vol name " << volume->GetName()
+	   << ", postvolname: " << volume_post->GetName()
+	   << " copy " << volume->GetCopyNo()
+	   << ", copypost: " << volume_post->GetCopyNo()
+	   << endl;
+	G4LogicalVolume *logvol = volume->GetLogicalVolume();
+	cout << "logical volumes, pre: " << logvol->GetName();
+	logvol = volume_post->GetLogicalVolume();
+	cout << ", post: " << logvol->GetName() << endl;
+    }
     if (prePoint->GetStepStatus() == fGeomBoundary && postPoint->GetStepStatus() == fGeomBoundary)
     {
       G4VPhysicalVolume* volume_post = postPoint->GetTouchableHandle()->GetVolume();
-
+	G4LogicalVolume *logvolpre = volume->GetLogicalVolume();
+	G4LogicalVolume *logvolpost = volume_post->GetLogicalVolume();
+	if (logvolpre == logvolpost)
+	{
+	  cout << "log volumes identical" << endl;
       if (volume->GetCopyNo() == volume_post->GetCopyNo())
       {
         cout << "Overlap detected in volume " << volume->GetName()
-             << "pre and post step point ot same volume for step status fGeomBoundary" << endl;
-        exit(1);
+             << " pre and post step point of same volume for step status fGeomBoundary" << endl;
+	cout << "copy no pre: " << volume->GetCopyNo() << ", post: " << volume_post->GetCopyNo() << ", inttlayer: " << inttlayer << endl;
+	G4LogicalVolume *logvol = volume->GetLogicalVolume();
+	cout << "logical volumes, pre: " << logvol->GetName();
+	logvol = volume_post->GetLogicalVolume();
+	cout << ", post: " << logvol->GetName() << endl;
+	// cout << "checking overlaps" << endl;
+	// volume->CheckOverlaps();
+	// cout << "checked for overlaps" << endl;
+	toggle = 1;
+//        exit(1);
       }
+    }
     }
   }
   else  // silicon inactive area, FPHX, stabe etc. as absorbers

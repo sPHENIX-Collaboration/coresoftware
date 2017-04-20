@@ -15,7 +15,7 @@
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
-class PHG4Parameters;
+class PHG4ParametersContainer;
 
 class PHG4SiliconTrackerDetector : public PHG4Detector
 {
@@ -23,7 +23,7 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   typedef std::vector<std::pair<int, int>> vpair;
 
   //! constructor
-  PHG4SiliconTrackerDetector(PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam = "BLOCK", const vpair &layerconfig = vpair(0));
+  PHG4SiliconTrackerDetector(PHCompositeNode *Node, PHG4ParametersContainer *parameters, const std::string &dnam = "SILICON_TRACKER", const vpair &layerconfig = vpair(0));
 
   //! destructor
   virtual ~PHG4SiliconTrackerDetector();
@@ -70,7 +70,7 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   int ConstructSiliconTracker(G4LogicalVolume *sandwich);
   int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm = NULL);
 
-  PHG4Parameters *params;
+  PHG4ParametersContainer *paramscontainer;
   int active;
   int absorberactive;
   int blackhole;

@@ -1,7 +1,7 @@
 #ifndef PHG4SiliconTrackerSubsystem_h
 #define PHG4SiliconTrackerSubsystem_h
 
-#include "PHG4DetectorSubsystem.h"
+#include "PHG4DetectorGroupSubsystem.h"
 
 #include <Geant4/G4String.hh>
 #include <Geant4/G4Types.hh>
@@ -13,7 +13,7 @@ class PHG4SiliconTrackerDetector;
 class PHG4SiliconTrackerSteppingAction;
 class PHG4EventAction;
 
-class PHG4SiliconTrackerSubsystem : public PHG4DetectorSubsystem
+class PHG4SiliconTrackerSubsystem : public PHG4DetectorGroupSubsystem
 {
  public:
   typedef std::vector<std::pair<int, int>> vpair;
@@ -47,6 +47,8 @@ class PHG4SiliconTrackerSubsystem : public PHG4DetectorSubsystem
   PHG4EventAction *GetEventAction() const { return eventAction_; }
   void SuperDetector(const std::string &name) { superdetector = name; }
   const std::string SuperDetector() { return superdetector; }
+  void Print(const std::string &what = "ALL") const;
+
  private:
   void SetDefaultParameters();
 
