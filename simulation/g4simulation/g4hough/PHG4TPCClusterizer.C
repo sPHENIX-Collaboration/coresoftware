@@ -403,7 +403,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  ERR[0][1] = 0.0;
 	  ERR[0][2] = 0.0;
 	  ERR[1][0] = 0.0;
-	  ERR[1][1] = pp_err/radius*pp_err/radius; //cluster_v1 expects polar coordinates covariance
+	  ERR[1][1] = pp_err*pp_err; //cluster_v1 expects rad, arc, z as elementsof covariance
 	  ERR[1][2] = 0.0;
 	  ERR[2][0] = 0.0;
 	  ERR[2][1] = 0.0;

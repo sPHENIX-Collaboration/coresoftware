@@ -80,6 +80,7 @@ public:
   virtual float        get_z_size() const {return NAN;}
 
   virtual float        get_phi_error() const {return NAN;}
+  virtual float        get_rphi_error() const {return NAN;}
   virtual float        get_z_error() const {return NAN;}
 
 protected:
