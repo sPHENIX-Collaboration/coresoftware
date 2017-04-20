@@ -2288,7 +2288,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 
 #ifdef _DEBUG_
 		cout<<__LINE__<<": ";
-		printf("layer: %d: z: %f +- %f; phi: %f +- %f\n",
+		printf("layer: %d: phi: %f +- %f; z: %f +- %f\n",
 				layer,
 				phi_center, phi_window,
 				z_center, z_window
@@ -2460,10 +2460,10 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 	std::cout
 			<<__LINE__<<": "
 			<<" layer: "<<layer
-			<<", zbin: {"<<min_z_bin
-			<<", "<<max_z_bin
-			<<"}, phibin: {"<<min_rphi_bin
+			<<", rphi: {"<<min_rphi_bin
 			<<", "<<max_rphi_bin
+			<<"}, z: {"<<min_z_bin
+			<<", "<<max_z_bin
 			<<"}, found #clusters: "<<cluster_IDs.size()
 			<<endl;
 #endif
