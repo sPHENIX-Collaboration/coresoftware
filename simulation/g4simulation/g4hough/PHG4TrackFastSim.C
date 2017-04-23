@@ -482,6 +482,8 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
 						meas_out.push_back(meas);
 						//meas->getMeasurement()->Print(); //DEBUG
 					}
+					else
+					  delete meas; 
 				}
 			}
 		} /*Loop layers within one detector layer*/
