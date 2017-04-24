@@ -248,6 +248,12 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 	      std::cout << "event: " << _event << " : measurements.size() < 3"
 			<< "\n";
 	    }
+	    // Delete the measurements
+	    // We need to also delete the underlying genfit::AbsMeasurement object
+	    for(unsigned int im=0; im<measurements.size(); im++) {
+	      delete measurements[im]->getMeasurement(); 
+	      delete measurements[im]; 
+	    }
 	    continue;
 	  }
 
@@ -262,12 +268,11 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 	   */
 	  //int pid = 13; //
 	  //SMART(genfit::AbsTrackRep) rep = NEW(genfit::RKTrackRep)(pid);
-	  genfit::AbsTrackRep* rep = new genfit::RKTrackRep(
-							    _primary_assumption_pid);
+	  genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_assumption_pid);
 
 	  //rep->setDebugLvl(1); //DEBUG
 
-	  //! Initiallize track with seed from pattern recognition
+	  //! Initialize track with seed from pattern recognition
  
 	  PHGenFit::Track* track = new PHGenFit::Track(rep, seed_pos, seed_mom, seed_cov);
 
@@ -286,7 +291,11 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 	      //LogWarning("measurements.size() < 3");
 	      std::cout << "event: " << _event
 			<< " : fitting_err != 0, next track." << "\n";
-	    }
+	    } 
+	    // Delete the measurements
+	    // GenFit owns the underlying genfit::AbsMeasurement* pointer and will delete it; 
+	    // however, we still need to delete the wrapper objects
+	    for(unsigned int im=0; im<measurements.size(); im++) delete measurements[im]; 
 	    continue;
 	  }
 
@@ -295,7 +304,16 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 						    particle->get_track_id(),
 						    measurements.size(), vtx);
 
-	  if(svtx_track_out) _trackmap_out->insert(svtx_track_out);
+	  if(svtx_track_out) {
+	    _trackmap_out->insert(svtx_track_out);
+	    delete svtx_track_out; // insert makes a clone
+	  }
+
+	  // Delete the measurements
+	  // GenFit owns the underlying genfit::AbsMeasurement* pointer and will delete it; 
+	  // however, we still need to delete the wrapper objects
+	  for(unsigned int im=0; im<measurements.size(); im++) delete measurements[im]; 
+
 
 	} // Loop all primary particles
 
@@ -467,23 +485,23 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
 				if (hit->get_trkid() == particle->get_track_id()
 						|| gRandom->Uniform(0, 1) < _pat_rec_noise_prob) {
 
-					PHGenFit::Measurement* meas = NULL;
-					if (_detector_type == Vertical_Plane)
-						meas = PHG4HitToMeasurementVerticalPlane(hit,
-								_phi_resolution, _r_resolution);
-					else if (_detector_type == Cylinder)
-						meas = PHG4HitToMeasurementCylinder(hit,
-								_phi_resolution, _z_resolution);
-					else {
-						LogError("Type not implemented!");
-						return Fun4AllReturnCodes::ABORTEVENT;
-					}
 					if (gRandom->Uniform(0, 1) <= _pat_rec_hit_finding_eff) {
-						meas_out.push_back(meas);
-						//meas->getMeasurement()->Print(); //DEBUG
+					  PHGenFit::Measurement* meas = NULL;
+					  if (_detector_type == Vertical_Plane){
+					    meas = PHG4HitToMeasurementVerticalPlane(hit,
+										     _phi_resolution, _r_resolution);
+					  }
+					  else if (_detector_type == Cylinder){
+					    meas = PHG4HitToMeasurementCylinder(hit,
+										_phi_resolution, _z_resolution);
+					  }
+					  else {
+					    LogError("Type not implemented!");
+					    return Fun4AllReturnCodes::ABORTEVENT;
+					  }
+					  meas_out.push_back(meas);
+					  //meas->getMeasurement()->Print(); //DEBUG
 					}
-					else
-					  delete meas; 
 				}
 			}
 		} /*Loop layers within one detector layer*/
