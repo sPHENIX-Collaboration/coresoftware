@@ -34,7 +34,6 @@ class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
 
   int IsActive;
   int IsBlackHole;
-  int toggle;
 };
 
 #endif  // PHG4SiliconTrackerSteppingAction_h

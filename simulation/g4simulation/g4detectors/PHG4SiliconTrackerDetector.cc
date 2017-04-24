@@ -163,15 +163,18 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
          * Si-sensor active area
          */
       const double siactive_x = (strip_x);                                               // 0.24mm/2
-      const double siactive_y = (strip_y + strip_y / 10000.) * 2. * nstrips_phi_cell;  // (0.078mm * 2*128)/2 = 0.078mm * 128
-      const double siactive_z = (strip_z + strip_z / 10000.) * nstrips_z_sensor;       // (20mm * 5or8)/2 = 10mm * 5or8
+//      const double siactive_y = (strip_y + strip_y / 10000.) * 2. * nstrips_phi_cell;  // (0.078mm * 2*128)/2 = 0.078mm * 128
+//      const double siactive_z = (strip_z + strip_z / 10000.) * nstrips_z_sensor;       // (20mm * 5or8)/2 = 10mm * 5or8
+      const double siactive_y = strip_y * 2. * nstrips_phi_cell;  // (0.078mm * 2*128)/2 = 0.078mm * 128
+      const double siactive_z = strip_z * nstrips_z_sensor;       // (20mm * 5or8)/2 = 10mm * 5or8
 
       G4VSolid *siactive_box = new G4Box(boost::str(boost::format("siactive_box_%d_%d") % sphxlayer % itype).c_str(), siactive_x, siactive_y, siactive_z);
       G4LogicalVolume *siactive_volume = new G4LogicalVolume(siactive_box, G4Material::GetMaterial("G4_Si"), boost::str(boost::format("siactive_volume_%d_%d") % sphxlayer % itype).c_str(), 0, 0, 0);
       //	activelogvols.insert(siactive_volume);
 
-      G4VPVParameterisation *stripparam = new PHG4SiliconTrackerStripParameterisation(nstrips_phi_cell * 2, nstrips_z_sensor, (strip_y + strip_y / 10000.) * 2., (strip_z + strip_z / 10000.) * 2.);
-      new G4PVParameterised(boost::str(boost::format("siactive_%d_%d") % sphxlayer % itype).c_str(), strip_volume, siactive_volume, kZAxis, nstrips_phi_cell * 2 * nstrips_z_sensor, stripparam, false);  // overlap check too long.
+//      G4VPVParameterisation *stripparam = new PHG4SiliconTrackerStripParameterisation(nstrips_phi_cell * 2, nstrips_z_sensor, (strip_y + strip_y / 10000.) * 2., (strip_z + strip_z / 10000.) * 2.);
+      G4VPVParameterisation *stripparam = new PHG4SiliconTrackerStripParameterisation(nstrips_phi_cell * 2, nstrips_z_sensor, (strip_y) * 2., (strip_z) * 2.); 
+     new G4PVParameterised(boost::str(boost::format("siactive_%d_%d") % sphxlayer % itype).c_str(), strip_volume, siactive_volume, kZAxis, nstrips_phi_cell * 2 * nstrips_z_sensor, stripparam, false);  // overlap check too long.
 
       /*
          * Si-sensor full (active+inactive) area
