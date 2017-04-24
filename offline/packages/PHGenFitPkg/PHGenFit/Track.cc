@@ -362,7 +362,7 @@ int Track::updateOneMeasurementKalman(
 			const TVectorD& measurement(mOnPlane.getState());
 			const genfit::AbsHMatrix* H(mOnPlane.getHMatrix());
 			// (weighted) cov
-			const TMatrixDSym& V(mOnPlane.getCov());
+			const TMatrixDSym& V(mOnPlane.getCov()); //Covariance of measurement noise v_{k}
 
 			TVectorD res(measurement - H->Hv(stateVector));
 
@@ -380,15 +380,15 @@ int Track::updateOneMeasurementKalman(
 						TMatrixD(CHt, TMatrixD::kMult, covSumInv) * res);
 				//TMatrixD(CHt, TMatrixD::kMult, covSumInv).Print();
 
-				stateVector += update;
+				stateVector += update; // x_{k|k} = x_{k|k-1} + K_{k} r_{k|k-1}
 				covSumInv.Similarity(CHt); // with (C H^T)^T = H C^T = H C  (C is symmetric)
-				cov -= covSumInv;
+				cov -= covSumInv; //C_{k|k}
 			}
 
 			TVectorD resNew(measurement - H->Hv(stateVector));
 
 			// Calculate chi2
-			TMatrixDSym HCHt(cov);
+			TMatrixDSym HCHt(cov); //C_{k|k}
 			H->HMHt(HCHt);
 			HCHt -= V;
 			HCHt *= -1;
