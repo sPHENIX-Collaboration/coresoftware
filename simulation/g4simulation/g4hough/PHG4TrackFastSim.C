@@ -318,9 +318,9 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 	  _fitter->getEventDisplay()->addEvent(rf_gf_tracks);
 	}
 	else{
-	  //for (std::vector<PHGenFit::Track*>::iterator it = rf_tracks.begin() ; it != rf_tracks.end(); ++it)
-	  //  delete (*it);
-	  //rf_tracks.clear();
+	  for (std::vector<PHGenFit::Track*>::iterator it = rf_tracks.begin() ; it != rf_tracks.end(); ++it)
+	    delete (*it);
+	  rf_tracks.clear();
 	}
 
 //	if(_trackmap_out->get(0)) {
