@@ -137,14 +137,18 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       G4VPhysicalVolume* volume_post = postPoint->GetTouchableHandle()->GetVolume();
       G4LogicalVolume* logvolpre = volume->GetLogicalVolume();
       G4LogicalVolume* logvolpost = volume_post->GetLogicalVolume();
+// this is just failsafe - I tested with 1000000 pions and did not hit this once
       if (logvolpre == logvolpost)
       {
         if (volume->GetCopyNo() == volume_post->GetCopyNo())
         {
-//          cout << "Overlap detected in volume " << volume->GetName() << " where post volume " << volume_post->GetName() << " has same copy no."
-//               << "- pre and post step point of same volume for step status fGeomBoundary" << endl;
+          cout << "Overlap detected in volume " << volume->GetName() << " where post volume " 
+               << volume_post->GetName() << " has same copy no." << volume->GetCopyNo() 
+               << " pre and post step point of same volume for step status fGeomBoundary" << endl;
+	  cout << "logvol name " << logvolpre->GetName() << ", post: " << logvolpost->GetName() << endl;
           // we need a hack to replace the values above with the correct strip index values
           // the transform of the world coordinates into the sensor frame will work correctly, so we determine the strip indices from the hit position
+	  cout << "strip y bef: " << strip_y_index << ", strip z: " << strip_z_index;
 
           G4ThreeVector preworldPos = prePoint->GetPosition();
           G4ThreeVector strip_pos = touch->GetHistory()->GetTransform(touch->GetHistory()->GetDepth() - 1).TransformPoint(preworldPos);
@@ -168,9 +172,11 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
               strip_y_index = i;
               if (verbosity > 1) std::cout << "                            revised strip y position = " << strip_y_index << std::endl;
             }
+
           }
+	  cout << " strip y aft: " << strip_y_index << ", strip z: " << strip_z_index << endl;
+
         }
-        // cout << "copy no " << volume->GetCopyNo() << ", strip_y_index: " << strip_y_index << " div.quot: " << copydiv.quot << ", strip_z_index: " << strip_z_index  << ", div.rem: " << copydiv.rem << endl;
       }
     }
   }
