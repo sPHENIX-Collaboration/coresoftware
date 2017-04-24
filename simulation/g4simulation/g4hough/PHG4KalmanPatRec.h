@@ -247,12 +247,12 @@ public:
 		_seeding_layer.assign(seedingLayer, seedingLayer + n);
 	}
 
-	float get_search_win_multiplier() const {
-		return _search_win_multiplier;
+	float get_search_win_rphi() const {
+		return _search_win_rphi;
 	}
 
-	void set_search_win_multiplier(float searchWinMultiplier) {
-		_search_win_multiplier = searchWinMultiplier;
+	void set_search_win_rphi(float searchWinMultiplier) {
+		_search_win_rphi = searchWinMultiplier;
 	}
 
 
@@ -310,6 +310,15 @@ public:
 
 	void set_max_merging_dz(float maxMergingDz) {
 		_max_merging_dz = maxMergingDz;
+	}
+
+
+	float get_search_win_z() const {
+		return _search_win_z;
+	}
+
+	void set_search_win_z(float searchWinZ) {
+		_search_win_z = searchWinZ;
 	}
 
 #ifndef __CINT__
@@ -395,7 +404,7 @@ private:
 
 
 	//! ExportOutput Call. Make SvtxTrack from PHGenFit::Track and set of clusters
-	std::shared_ptr<SvtxTrack> MakeSvtxTrack(const int genfit_track_ID, const SvtxVertex * vertex = NULL);
+	//std::shared_ptr<SvtxTrack> MakeSvtxTrack(const int genfit_track_ID, const SvtxVertex * vertex = NULL);
 
 	//------------------
 	// Subfunction Calls
@@ -529,7 +538,8 @@ private:
 	int _nlayers_all;
 	std::map<int, unsigned int> _layer_ilayer_map_all;
 	std::vector<float> _radii_all;
-	float _search_win_multiplier;
+	float _search_win_rphi;
+	float _search_win_z;
 
 	//std::map<unsigned int, std::map<int, std::multimap<int, unsigned int>>> _layer_zID_phiID_cluserID;
 	std::multimap<unsigned int,  unsigned int> _layer_zID_phiID_cluserID;

@@ -77,6 +77,8 @@
 
 #define _DEBUG_
 
+//#define _GET_RPHI_ERROR_
+
 using namespace std;
 
 PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
@@ -149,7 +151,8 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _nlayers_all(67),
 	  _layer_ilayer_map_all(),
 	  _radii_all(),
-	  _search_win_multiplier(50),
+	  _search_win_rphi(20),
+	  _search_win_z(5),
 	  _layer_zID_phiID_cluserID(),
 	  _half_max_z(160),
 	  _half_max_rphi(252), //80cm * Pi
@@ -2042,9 +2045,34 @@ int PHG4KalmanPatRec::ExportOutput() {
 
 //#undef _DEBUG_
 
+//#define _USE_ZERO_SEED_
+
 int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 		const unsigned int itrack) {
 
+	vector<SimpleHit3D> track_hits = _tracks.at(itrack).hits;
+
+#ifdef _USE_ZERO_SEED_
+	// prepare seed
+	TVector3 seed_mom(100, 0, 0);
+	TVector3 seed_pos(0, 0, 0);
+	TMatrixDSym seed_cov(6);
+	for (int i = 0; i < 6; i++) {
+		for (int j = 0; j < 6; j++) {
+			seed_cov[i][j] = 100.;
+		}
+	}
+
+	TVector3 last_hit(
+			track_hits.back().get_x(),
+			track_hits.back().get_y(),
+			track_hits.back().get_z()
+	);
+
+	seed_mom.SetPhi(last_hit.Phi());
+	seed_mom.SetTheta(last_hit.Theta());
+
+#else
 	float kappa = _tracks.at(itrack).kappa;
 	float d = _tracks.at(itrack).d;
 	float phi = _tracks.at(itrack).phi;
@@ -2059,7 +2087,6 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 	float x_center = cos(phi) * (d + 1 / kappa); // x coordinate of circle center
 	float y_center = sin(phi) * (d + 1 / kappa);  // y    "      "     " "
 
-	vector<SimpleHit3D> track_hits = _tracks.at(itrack).hits;
 #ifdef _DEBUG_
 	cout<<__LINE__<<": track_hits.size(): "<<track_hits.size()<<"\n";
 #endif
@@ -2112,6 +2139,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 			seed_cov[i][j] = blowup_factor*euclidean_cov(i, j);
 		}
 	}
+#endif
 
 	/*!
 	 * Now have to load geometry nodes to get norm vector
@@ -2159,7 +2187,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 //			new PHGenFit::Track(rep, seed_pos, seed_mom, seed_cov);
 
 #ifdef _DEBUG_
-	LogDebug("seed_mom phi: ")<< seed_mom.Phi() <<std::endl;
+	cout<<__LINE__<<": seed_mom: "<< seed_mom.Phi() <<", "<< seed_mom.Theta() <<endl;
 #endif
 
 	std::vector<PHGenFit::Measurement*> measurements;
@@ -2173,7 +2201,9 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 			LogError("No cluster Found!\n");
 			continue;
 		}
-		//cluster->identify();
+#ifdef _DEBUG_
+	cout<<__LINE__<<": cluster: "<< cluster_ID <<": layer: "<< cluster->get_layer() <<endl;
+#endif
 
 		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
 		TVector3 n(cluster->get_x(), cluster->get_y(), 0);
@@ -2227,9 +2257,13 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 			n.RotateZ(phi_tilt[layer]);
 		}
 
+#ifdef _GET_RPHI_ERROR_
+		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,
+				n, cluster->get_rphi_error(), cluster->get_z_error());
+#else
 		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,
 				n, cluster->get_phi_error(), cluster->get_z_error());
-
+#endif
 		meas->set_cluster_ID(cluster_ID);
 
 		measurements.push_back(meas);
@@ -2253,8 +2287,13 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 	_trackID_PHGenFitTrack.insert(std::make_pair(initial_trackID, track));
 	//_trackID_clusterID.insert(std::make_pair(initial_trackID, hitIDs));
 
-	for (int layer = _nlayers; layer < _nlayers_all; ++layer) {
+#define _START_FROM_FIXED_LAYER_
 
+#ifdef _START_FROM_FIXED_LAYER_
+	for (int layer = 8; layer < _nlayers_all; ++layer) {
+#else
+	for (int layer = _nlayers; layer < _nlayers_all; ++layer) {
+#endif
 		float layer_r = _radii_all[_layer_ilayer_map_all[layer]];
 
 #ifdef _DEBUG_
@@ -2283,12 +2322,12 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 
 		TMatrixDSym cov = state->get6DCov();
 
-		float phi_window = _search_win_multiplier * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]);
-		float z_window = _search_win_multiplier * sqrt(cov[2][2]);
+		float phi_window = _search_win_rphi * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]);
+		float z_window = _search_win_z * sqrt(cov[2][2]);
 
 #ifdef _DEBUG_
 		cout<<__LINE__<<": ";
-		printf("layer: %d: phi: %f +- %f; z: %f +- %f\n",
+		printf("layer: %d: rphi: %f +- %f; z: %f +- %f\n",
 				layer,
 				phi_center, phi_window,
 				z_center, z_window
@@ -2315,8 +2354,13 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 //			cluster->identify();
 			TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
 			TVector3 n(cluster->get_x(), cluster->get_y(), 0);
+#ifdef _GET_RPHI_ERROR_
+			PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,
+					n, cluster->get_rphi_error(), cluster->get_z_error());
+#else
 			PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,
 					n, cluster->get_phi_error(), cluster->get_z_error());
+#endif
 			meas->set_cluster_ID(cluster_ID);
 //			meas->getMeasurement()->Print();
 			measurements.push_back(meas);
@@ -2438,13 +2482,27 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 
 	std::vector<unsigned int> cluster_IDs;
 
-	unsigned int min_z_bin = (unsigned int)(z_center-z_window + _half_max_z)/_layer_zID_phiID_cluserID_zSize;
-	unsigned int max_z_bin = (unsigned int)(z_center+z_window + _half_max_z)/_layer_zID_phiID_cluserID_zSize;
-	unsigned int min_rphi_bin = (unsigned int)(phi_center-phi_window + _half_max_rphi)/_layer_zID_phiID_cluserID_phiSize;
-	unsigned int max_rphi_bin = (unsigned int)(phi_center+phi_window + _half_max_rphi)/_layer_zID_phiID_cluserID_phiSize;
+	const unsigned int max_rphi_bin = 16384; //2^14
+	const unsigned int max_z_bin = 2048; // 2^11
 
-	for (unsigned int iz = min_z_bin; iz <= max_z_bin; ++iz) {
-		for (unsigned int irphi = min_rphi_bin; irphi <= max_rphi_bin;
+	float lower_rphi = phi_center-phi_window + _half_max_rphi;
+	float upper_rphi = phi_center+phi_window + _half_max_rphi;
+	float lower_z = z_center-z_window + _half_max_z;
+	float upper_z = z_center+z_window + _half_max_z;
+
+	unsigned int lower_rphi_bin = (unsigned int)(lower_rphi)/_layer_zID_phiID_cluserID_phiSize;
+	unsigned int upper_rphi_bin = (unsigned int)(upper_rphi)/_layer_zID_phiID_cluserID_phiSize;
+	unsigned int lower_z_bin = (unsigned int)(lower_z)/_layer_zID_phiID_cluserID_zSize;
+	unsigned int upper_z_bin = (unsigned int)(upper_z)/_layer_zID_phiID_cluserID_zSize;
+
+	if(lower_rphi < 0) lower_rphi_bin= 0;
+	if(upper_rphi_bin > max_rphi_bin) upper_rphi_bin = max_rphi_bin;
+
+	if(lower_z < 0) lower_z_bin = 0;
+	if(upper_z_bin > max_z_bin) upper_z_bin = max_z_bin;
+
+	for (unsigned int iz = lower_z_bin; iz <= upper_z_bin; ++iz) {
+		for (unsigned int irphi = lower_rphi_bin; irphi <= upper_rphi_bin;
 				++irphi) {
 			unsigned int idx = encode_cluster_index(layer, iz, irphi);
 			for (std::multimap<unsigned int, unsigned int>::const_iterator iter =
@@ -2459,11 +2517,17 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 #ifdef _DEBUG_
 	std::cout
 			<<__LINE__<<": "
-			<<" layer: "<<layer
-			<<", rphi: {"<<min_rphi_bin
-			<<", "<<max_rphi_bin
-			<<"}, z: {"<<min_z_bin
-			<<", "<<max_z_bin
+			<<"layer: "<<layer
+			<<": "<<phi_center <<" +- "<<phi_window
+			<<": "<<z_center <<" +- "<<z_window
+			<<endl;
+	std::cout
+			<<__LINE__<<": "
+			<<"layer: "<<layer
+			<<", rphi: {"<<lower_rphi_bin
+			<<", "<<upper_rphi_bin
+			<<"}, z: {"<<lower_z_bin
+			<<", "<<upper_z_bin
 			<<"}, found #clusters: "<<cluster_IDs.size()
 			<<endl;
 #endif
@@ -2471,13 +2535,13 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 	return cluster_IDs;
 }
 
-std::shared_ptr<SvtxTrack> PHG4KalmanPatRec::MakeSvtxTrack(
-		const int genfit_track_ID, const SvtxVertex* vertex) {
-
-	std::shared_ptr<SvtxTrack> svtxtrack(new SvtxTrack_v1());
-
-	return svtxtrack;
-}
+//std::shared_ptr<SvtxTrack> PHG4KalmanPatRec::MakeSvtxTrack(
+//		const int genfit_track_ID, const SvtxVertex* vertex) {
+//
+//	std::shared_ptr<SvtxTrack> svtxtrack(new SvtxTrack_v1());
+//
+//	return svtxtrack;
+//}
 
 unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
 		const float z, const float rphi) {
