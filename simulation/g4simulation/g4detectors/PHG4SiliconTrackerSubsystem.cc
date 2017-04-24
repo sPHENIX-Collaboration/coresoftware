@@ -17,7 +17,7 @@ using namespace std;
 
 //_______________________________________________________________________
 PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &detectorname, const vpair &layerconfig)
-  : PHG4DetectorSubsystem(detectorname)
+  : PHG4DetectorGroupSubsystem(detectorname)
   , detector_(0)
   , steppingAction_(nullptr)
   , eventAction_(nullptr)
@@ -25,6 +25,10 @@ PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &dete
   , detector_type(detectorname)
   , superdetector(detectorname)
 {
+  for (vector<pair<int, int>>::const_iterator piter = layerconfig.begin(); piter != layerconfig.end(); ++piter)
+  {
+    AddDetId((*piter).second);
+  }
   InitializeParameters();
   // put the layer into the name so we get unique names
   // for multiple layers
@@ -41,7 +45,7 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create detector
-  detector_ = new PHG4SiliconTrackerDetector(topNode, GetParams(), Name(), layerconfig_);
+  detector_ = new PHG4SiliconTrackerDetector(topNode, GetParamsContainer(), Name(), layerconfig_);
   detector_->SuperDetector(superdetector);
   detector_->Detector(detector_type);
   detector_->OverlapCheck(CheckOverlap());
@@ -59,7 +63,8 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
 
     PHG4EventActionClearZeroEdep *eventaction = new PHG4EventActionClearZeroEdep(topNode, nodename);
-    if (GetParams()->get_int_param("absorberactive"))
+//    if (GetParams()->get_int_param("absorberactive"))
+    if (0)
     {
       nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_ABSORBER_%s") % superdetector) : boost::str(boost::format("G4HIT_ABSORBER_%s_%d_%d") % detector_type % sphxlayermin % sphxlayermax);
 
@@ -105,5 +110,14 @@ PHG4Detector *PHG4SiliconTrackerSubsystem::GetDetector(void) const
 
 void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
 {
+  set_default_double_param(0,"Radius",6.);
+  set_default_double_param(1,"Radius",8.);
+  set_default_double_param(2,"Radius",10.);
+  set_default_double_param(3,"Radius",12.);
   return;
+}
+
+void PHG4SiliconTrackerSubsystem::Print(const string &what) const
+{
+  PrintDefaultParams();
 }

@@ -1,6 +1,7 @@
 #include "PHG4SiliconTrackerSteppingAction.h"
 #include "PHG4Parameters.h"
 #include "PHG4SiliconTrackerDetector.h"
+#include "PHG4StepStatusDecode.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -47,8 +48,8 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
   , savehitcontainer(nullptr)
   , saveshower(nullptr)
   , params(parameters)
-  , IsActive(params->get_int_param("active"))
-  , IsBlackHole(params->get_int_param("blackhole"))
+  , IsActive(1)
+  , IsBlackHole(0)
 {
 }
 
@@ -124,46 +125,52 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     const int nstrips_phi_cell = detector_->arr_nstrips_phi_cell[inttlayer];
     const double strip_y = detector_->arr_strip_y[inttlayer];
 
-    // Find the strip y and z index values using the strip volume pointer
-    // This just regurgitates the values set in PHG4SiliconTrackerParameterization
-    // when the G4PVParameterized was defined
+    // Find the strip y and z index values from the copy number (integer division, quotient is strip_y, remainder is strip_z)
+    div_t copydiv = div(volume->GetCopyNo(), nstrips_z_sensor);
+    strip_y_index = copydiv.quot;
+    strip_z_index = copydiv.rem;
     G4ThreeVector strip_pos = volume->GetTranslation();
     G4ThreeVector prepos = prePoint->GetPosition();
     G4ThreeVector postpos = postPoint->GetPosition();
-    strip_z_index = 0;
-    for (int i = 0; i < nstrips_z_sensor; ++i)
-    {
-      const double zmin = 2. * strip_z * (double) (i) -strip_z * (double) nstrips_z_sensor;
-      const double zmax = 2. * strip_z * (double) (i + 1) - strip_z * (double) nstrips_z_sensor;
-      if (strip_pos.z() / mm > zmin && strip_pos.z() / mm <= zmax)
-        strip_z_index = i;
-    }
-
-    strip_y_index = 0;
-    for (int i = 0; i < 2 * nstrips_phi_cell; ++i)
-    {
-      const double ymin = 2. * strip_y * (double) (i) -2. * strip_y * (double) nstrips_phi_cell;
-      const double ymax = 2. * strip_y * (double) (i + 1) - 2. * strip_y * (double) nstrips_phi_cell;
-      if (strip_pos.y() / mm > ymin && strip_pos.y() / mm <= ymax)
-      {
-        strip_y_index = i;
-        if (verbosity > 1)
-        {
-          cout << " found strip y index = " << i << endl;
-          cout << " strip_pos.y() " << (strip_pos.y() / mm) << " ymin " << ymin << " ymax " << ymax << endl;
-        }
-      }
-    }
-
     if (prePoint->GetStepStatus() == fGeomBoundary && postPoint->GetStepStatus() == fGeomBoundary)
     {
       G4VPhysicalVolume* volume_post = postPoint->GetTouchableHandle()->GetVolume();
-
-      if (volume->GetCopyNo() == volume_post->GetCopyNo())
+      G4LogicalVolume* logvolpre = volume->GetLogicalVolume();
+      G4LogicalVolume* logvolpost = volume_post->GetLogicalVolume();
+      if (logvolpre == logvolpost)
       {
-        cout << "Overlap detected in volume " << volume->GetName()
-             << "pre and post step point ot same volume for step status fGeomBoundary" << endl;
-        exit(1);
+        if (volume->GetCopyNo() == volume_post->GetCopyNo())
+        {
+//          cout << "Overlap detected in volume " << volume->GetName() << " where post volume " << volume_post->GetName() << " has same copy no."
+//               << "- pre and post step point of same volume for step status fGeomBoundary" << endl;
+          // we need a hack to replace the values above with the correct strip index values
+          // the transform of the world coordinates into the sensor frame will work correctly, so we determine the strip indices from the hit position
+
+          G4ThreeVector preworldPos = prePoint->GetPosition();
+          G4ThreeVector strip_pos = touch->GetHistory()->GetTransform(touch->GetHistory()->GetDepth() - 1).TransformPoint(preworldPos);
+
+          strip_z_index = 0;
+          for (int i = 0; i < nstrips_z_sensor; ++i)
+          {
+            const double zmin = 2. * strip_z * (double) (i) -strip_z * (double) nstrips_z_sensor;
+            const double zmax = 2. * strip_z * (double) (i + 1) - strip_z * (double) nstrips_z_sensor;
+            if (strip_pos.z() / mm > zmin && strip_pos.z() / mm <= zmax)
+              strip_z_index = i;
+          }
+
+          strip_y_index = 0;
+          for (int i = 0; i < 2 * nstrips_phi_cell; ++i)
+          {
+            const double ymin = 2. * strip_y * (double) (i) -2. * strip_y * (double) nstrips_phi_cell;
+            const double ymax = 2. * strip_y * (double) (i + 1) - 2. * strip_y * (double) nstrips_phi_cell;
+            if (strip_pos.y() / mm > ymin && strip_pos.y() / mm <= ymax)
+            {
+              strip_y_index = i;
+              if (verbosity > 1) std::cout << "                            revised strip y position = " << strip_y_index << std::endl;
+            }
+          }
+        }
+        // cout << "copy no " << volume->GetCopyNo() << ", strip_y_index: " << strip_y_index << " div.quot: " << copydiv.quot << ", strip_z_index: " << strip_z_index  << ", div.rem: " << copydiv.rem << endl;
       }
     }
   }
