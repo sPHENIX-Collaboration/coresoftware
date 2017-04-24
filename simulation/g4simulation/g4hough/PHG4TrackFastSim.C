@@ -197,7 +197,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
 
-	vector<genfit::Track*> rf_gf_tracks;
+	vector<PHGenFit::Track*> rf_tracks;
 
 	PHG4VtxPoint *vtxPoint = _truth_container->GetPrimaryVtx(_truth_container->GetPrimaryVertexIndex());
 	// Smear the vertex ONCE for all particles in the event
@@ -276,7 +276,9 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
  
 	  PHGenFit::Track* track = new PHGenFit::Track(rep, seed_pos, seed_mom, seed_cov);
 
-	  rf_gf_tracks.push_back(track->getGenFitTrack());
+	  // NOTE: We need to keep a list of tracks so they can 
+	  // all be cleanly deleted at the end
+	  rf_tracks.push_back(track);
 
 	  //LogDEBUG;
 	  //! Add measurements to track
@@ -292,11 +294,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 	      std::cout << "event: " << _event
 			<< " : fitting_err != 0, next track." << "\n";
 	    } 
-	    // Delete the measurements
-	    // GenFit owns the underlying genfit::AbsMeasurement* pointer and will delete it; 
-	    // however, we still need to delete the wrapper objects
-	    for(unsigned int im=0; im<measurements.size(); im++) delete measurements[im]; 
-	    continue;
+	    continue; 
 	  }
 
 	  TVector3 vtx(vtxPoint->get_x(), vtxPoint->get_y(), vtxPoint->get_z()); 
@@ -309,22 +307,20 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 	    delete svtx_track_out; // insert makes a clone
 	  }
 
-	  // Delete the measurements
-	  // GenFit owns the underlying genfit::AbsMeasurement* pointer and will delete it; 
-	  // however, we still need to delete the wrapper objects
-	  for(unsigned int im=0; im<measurements.size(); im++) delete measurements[im]; 
-
-
 	} // Loop all primary particles
 
 
 	//! add tracks to event display
-	if (_do_evt_display)
-		_fitter->getEventDisplay()->addEvent(rf_gf_tracks);
+	if (_do_evt_display){
+	  vector<genfit::Track*> rf_gf_tracks;
+	  for (std::vector<PHGenFit::Track*>::iterator it = rf_tracks.begin() ; it != rf_tracks.end(); ++it) 
+	    rf_gf_tracks.push_back((*it)->getGenFitTrack()); 	  
+	  _fitter->getEventDisplay()->addEvent(rf_gf_tracks);
+	}
 	else{
-	  for (std::vector<genfit::Track*>::iterator it = rf_gf_tracks.begin() ; it != rf_gf_tracks.end(); ++it)
-	    delete (*it);
-	  rf_gf_tracks.clear();
+	  //for (std::vector<PHGenFit::Track*>::iterator it = rf_tracks.begin() ; it != rf_tracks.end(); ++it)
+	  //  delete (*it);
+	  //rf_tracks.clear();
 	}
 
 //	if(_trackmap_out->get(0)) {
