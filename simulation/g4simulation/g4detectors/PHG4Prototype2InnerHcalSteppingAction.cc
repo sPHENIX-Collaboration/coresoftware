@@ -52,6 +52,15 @@ PHG4Prototype2InnerHcalSteppingAction::PHG4Prototype2InnerHcalSteppingAction(PHG
 {
 }
 
+PHG4Prototype2InnerHcalSteppingAction::~PHG4Prototype2InnerHcalSteppingAction()
+{
+  // if the last hit was a zero energie deposit hit, it is just reset
+  // and the memory is still allocated, so we need to delete it here
+  // if the last hit was saved, hit is a nullptr pointer which are
+  // legal to delete (it results in a no operation)
+  delete hit;
+}
+
 //____________________________________________________________________________..
 bool PHG4Prototype2InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 {
