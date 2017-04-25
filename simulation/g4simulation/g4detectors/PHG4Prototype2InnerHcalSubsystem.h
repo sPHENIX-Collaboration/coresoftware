@@ -5,7 +5,6 @@
 
 #include <string>
 
-class PHG4EventAction;
 class PHG4Prototype2InnerHcalDetector;
 class PHG4SteppingAction;
 
@@ -42,8 +41,6 @@ class PHG4Prototype2InnerHcalSubsystem: public PHG4DetectorSubsystem
   virtual PHG4Detector* GetDetector( void ) const;
   virtual PHG4SteppingAction* GetSteppingAction( void ) const {return steppingAction_;}
 
-  PHG4EventAction* GetEventAction() const {return eventAction_;}
-
   void SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr);
   protected:
 
@@ -56,10 +53,6 @@ class PHG4Prototype2InnerHcalSubsystem: public PHG4DetectorSubsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingAction */
   PHG4SteppingAction* steppingAction_;
-
-  //! particle tracking "stepping" action
-  /*! derives from PHG4EventAction */
-  PHG4EventAction *eventAction_;
 
 };
 

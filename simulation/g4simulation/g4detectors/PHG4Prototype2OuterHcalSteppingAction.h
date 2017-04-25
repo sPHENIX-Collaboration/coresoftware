@@ -7,6 +7,7 @@ class PHG4Prototype2OuterHcalDetector;
 class PHG4Parameters;
 class PHG4Hit;
 class PHG4HitContainer;
+class PHG4Shower;
 
 class PHG4Prototype2OuterHcalSteppingAction : public PHG4SteppingAction
 {
@@ -38,6 +39,8 @@ class PHG4Prototype2OuterHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer * absorberhits_;
   PHG4Hit *hit;
   PHG4Parameters *params;
+  PHG4HitContainer *savehitcontainer;
+  PHG4Shower *saveshower;
   // since getting parameters is a map search we do not want to
   // do this in every step, the parameters used are cached
   // in the following variables

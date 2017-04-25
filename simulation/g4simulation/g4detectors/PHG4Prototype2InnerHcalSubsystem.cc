@@ -1,6 +1,5 @@
 #include "PHG4Prototype2InnerHcalSubsystem.h"
 #include "PHG4Prototype2InnerHcalDetector.h"
-#include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4Prototype2InnerHcalSteppingAction.h"
 #include "PHG4Parameters.h"
 
@@ -20,9 +19,8 @@ using namespace std;
 //_______________________________________________________________________
 PHG4Prototype2InnerHcalSubsystem::PHG4Prototype2InnerHcalSubsystem( const std::string &name, const int lyr ):
   PHG4DetectorSubsystem( name, lyr ),
-  detector_(NULL),
-  steppingAction_( NULL ),
-  eventAction_(NULL)
+  detector_(nullptr),
+  steppingAction_( nullptr )
 {
   InitializeParameters();
 }
@@ -80,16 +78,6 @@ PHG4Prototype2InnerHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	      g4_hits = new PHG4HitContainer(node);
               DetNode->addNode( new PHIODataNode<PHObject>( g4_hits, node.c_str(), "PHObject" ));
 	    }
-	  if (! eventAction_)
-	    {
-	      eventAction_ = new PHG4EventActionClearZeroEdep(topNode, node);
-	    }
-	  else
-	    {
-	      PHG4EventActionClearZeroEdep *evtact = dynamic_cast<PHG4EventActionClearZeroEdep *>(eventAction_);
-
-	      evtact->AddNode(node);
-	    }
 	}
 
       // create stepping action
@@ -130,6 +118,10 @@ PHG4Prototype2InnerHcalSubsystem::Print(const string &what) const
   if (detector_)
     {
       detector_->Print(what);
+    }
+  if (steppingAction_)
+    {
+      steppingAction_->Print(what);
     }
   return;
 }

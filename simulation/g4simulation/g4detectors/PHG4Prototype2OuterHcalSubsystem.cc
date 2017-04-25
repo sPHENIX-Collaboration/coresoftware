@@ -1,6 +1,5 @@
 #include "PHG4Prototype2OuterHcalSubsystem.h"
 #include "PHG4Prototype2OuterHcalDetector.h"
-#include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4Prototype2OuterHcalSteppingAction.h"
 #include "PHG4Parameters.h"
 
@@ -20,9 +19,8 @@ using namespace std;
 //_______________________________________________________________________
 PHG4Prototype2OuterHcalSubsystem::PHG4Prototype2OuterHcalSubsystem( const std::string &name, const int lyr ):
   PHG4DetectorSubsystem( name, lyr ),
-  detector_(NULL),
-  steppingAction_( NULL ),
-  eventAction_(NULL)
+  detector_(nullptr),
+  steppingAction_( nullptr )
 {
   InitializeParameters();
 }
@@ -79,16 +77,6 @@ PHG4Prototype2OuterHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	    {
 	      g4_hits = new PHG4HitContainer(node);
               DetNode->addNode( new PHIODataNode<PHObject>( g4_hits, node.c_str(), "PHObject" ));
-	    }
-	  if (! eventAction_)
-	    {
-	      eventAction_ = new PHG4EventActionClearZeroEdep(topNode, node);
-	    }
-	  else
-	    {
-	      PHG4EventActionClearZeroEdep *evtact = dynamic_cast<PHG4EventActionClearZeroEdep *>(eventAction_);
-
-	      evtact->AddNode(node);
 	    }
 	}
 

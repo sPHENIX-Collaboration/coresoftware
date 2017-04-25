@@ -35,10 +35,12 @@ using namespace std;
 //____________________________________________________________________________..
 PHG4Prototype2OuterHcalSteppingAction::PHG4Prototype2OuterHcalSteppingAction( PHG4Prototype2OuterHcalDetector* detector, PHG4Parameters *parameters):
   detector_( detector ),
-  hits_(NULL),
-  absorberhits_(NULL),
-  hit(NULL),
+  hits_(nullptr),
+  absorberhits_(nullptr),
+  hit(nullptr),
   params(parameters),
+  savehitcontainer(nullptr),
+  saveshower(nullptr),
   absorbertruth(params->get_int_param("absorbertruth")),
   IsActive(params->get_int_param("active")),
   IsBlackHole(params->get_int_param("blackhole")),
@@ -164,7 +166,10 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
 	{
 	case fGeomBoundary:
 	case fUndefined:
-	  hit = new PHG4Hitv1();
+	if (! hit)
+	  {
+	    hit = new PHG4Hitv1();
+	  }
 	  hit->set_row(row_id); // this is the row
 	  if (whichactive > 0) // only for scintillators
 	    {
@@ -189,31 +194,30 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
 
 	  //set the initial energy deposit
 	  hit->set_edep(0);
-	  hit->set_eion(0); // only implemented for v5 otherwise empty
 
           hit->set_hit_type(0);
           if( (aTrack->GetParticleDefinition()->GetParticleName().find("e+") != string::npos) ||
               (aTrack->GetParticleDefinition()->GetParticleName().find("e-") != string::npos) )
             hit->set_hit_type(1);
 
-          PHG4HitContainer *hitcontainer;
 	  // here we do things which are different between scintillator and absorber hits
 	  if (whichactive > 0) // return of IsInPrototype2OuterHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
 	    {
-              hitcontainer = hits_;
+              savehitcontainer = hits_;
 	      hit->set_light_yield(0); // for scintillator only, initialize light yields
+	      hit->set_eion(0);
 	    }
 	  else
 	    {
-	      hitcontainer = absorberhits_;
+	      savehitcontainer = absorberhits_;
 	    }
-	  // here we set what is common for scintillator and absorber hits
-	  hitcontainer->AddHit(layer_id, hit);
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
 	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 		{
-		  pp->GetShower()->add_g4hit_id(hitcontainer->GetID(),hit->get_hit_id());
+		  hit->set_trkid(pp->GetUserTrackId());
+		  hit->set_shower_id(pp->GetShower()->get_id());
+		  saveshower =  pp->GetShower();
 		}
 	    }
 	  break;
@@ -231,6 +235,7 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
 
       if (whichactive > 0) // return of IsInPrototype2OuterHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
         {
+          hit->set_eion(hit->get_eion() + eion);
           light_yield = eion;
           if (light_scint_model)
             {
@@ -251,14 +256,13 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
 
       //sum up the energy to get total deposited
       hit->set_edep(hit->get_edep() + edep);
-      hit->set_eion(hit->get_eion() + eion);
       if (geantino)
 	{
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-          hit->set_eion(-1);
 	  if (whichactive > 0)
 	    {
 	      hit->set_light_yield(-1);
+              hit->set_eion(-1);
 	    }
 	}
       if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
@@ -274,6 +278,39 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction( const G4Step* aS
 	    }
 	}
 
+      // if any of these conditions is true this is the last step in
+      // this volume and we need to save the hit
+      // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
+      // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
+      // (happens when your detector goes outside world volume)
+      // postPoint->GetStepStatus() == fAtRestDoItProc: track stops (typically
+      // aTrack->GetTrackStatus() == fStopAndKill is also set)
+      // aTrack->GetTrackStatus() == fStopAndKill: track ends
+      if (postPoint->GetStepStatus() == fGeomBoundary || 
+          postPoint->GetStepStatus() == fWorldBoundary || 
+	  postPoint->GetStepStatus() == fAtRestDoItProc ||
+          aTrack->GetTrackStatus() == fStopAndKill)
+	{
+          // save only hits with energy deposit (or -1 for geantino)
+	  if (hit->get_edep())
+	    {
+	      savehitcontainer->AddHit(layer_id, hit);
+	      if (saveshower)
+		{
+		  saveshower->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		}
+	      // ownership has been transferred to container, set to null
+	      // so we will create a new hit for the next track
+	      hit = nullptr;
+	    }
+	  else
+	    {
+	      // if this hit has no energy deposit, just reset it for reuse
+	      // this means we have to delete it in the dtor. If this was
+	      // the last hit we processed the memory is still allocated
+	      hit->Reset();
+	    }
+ 	}
       //       hit->identify();
       // return true to indicate the hit was used
       return true;
