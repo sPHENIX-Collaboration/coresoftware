@@ -15,10 +15,8 @@ class PHG4Prototype2OuterHcalSteppingAction : public PHG4SteppingAction
   //! constructor
   PHG4Prototype2OuterHcalSteppingAction(PHG4Prototype2OuterHcalDetector *, PHG4Parameters *parameters);
 
-  //! destroctor
-  virtual ~PHG4Prototype2OuterHcalSteppingAction()
-  {
-  }
+  //! dtor
+  virtual ~PHG4Prototype2OuterHcalSteppingAction();
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step *, bool);
