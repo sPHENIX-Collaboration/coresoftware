@@ -439,6 +439,8 @@ private:
 	PHTimer *_t_seeding;
 	PHTimer *_t_kalman_pat_rec;
 	PHTimer *_t_search_clusters;
+	PHTimer *_t_search_clusters_encoding;
+	PHTimer *_t_search_clusters_map_iter;
 	PHTimer *_t_track_propergation;
 	PHTimer *_t_full_fitting;
 	PHTimer *_t_output_io;

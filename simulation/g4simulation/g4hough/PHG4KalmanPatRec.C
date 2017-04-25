@@ -68,6 +68,7 @@
 #include <cmath>
 #include <float.h>
 #include <iostream>
+#include <fstream>
 #include <bitset>
 #include <tuple>
 
@@ -81,6 +82,10 @@
 
 using namespace std;
 
+#ifdef _DEBUG_
+ofstream fout("fout.txt");
+#endif
+
 PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
                                        unsigned int min_nlayers,
                                        const string& name)
@@ -88,6 +93,8 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _t_seeding(nullptr),
 	  _t_kalman_pat_rec(nullptr),
 	  _t_search_clusters(nullptr),
+	  _t_search_clusters_encoding(nullptr),
+	  _t_search_clusters_map_iter(nullptr),
 	  _t_track_propergation(nullptr),
 	  _t_full_fitting(nullptr),
 	  _t_output_io(nullptr),
@@ -193,6 +200,12 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 
 	_t_search_clusters = new PHTimer("_t_search_clusters");
 	_t_search_clusters->stop();
+
+	_t_search_clusters_encoding = new PHTimer("_t_search_clusters_encoding");
+	_t_search_clusters_encoding->stop();
+
+	_t_search_clusters_map_iter = new PHTimer("_t_search_clusters_map_iter");
+	_t_search_clusters_map_iter->stop();
 
 	_t_track_propergation = new PHTimer("_t_track_propergation");
 	_t_track_propergation->stop();
@@ -339,6 +352,8 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	std::cout << "Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "\t - Cluster searching time: "<<_t_search_clusters->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "\t\t - Encoding time:        "<<_t_search_clusters_encoding->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "\t\t - Map iteration:        "<<_t_search_clusters_map_iter->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "\t - Kalman updater time:    "<<_t_track_propergation->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "Full fitting time:           "<<_t_full_fitting->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "Output IO time:              "<<_t_output_io->get_accumulated_time()/1000. << " sec" <<std::endl;
@@ -375,6 +390,10 @@ int PHG4KalmanPatRec::End(PHCompositeNode *topNode) {
 
 	if(verbosity >= 1)
 		LogDebug("Leaving End \n");
+
+#ifdef _DEBUG_
+	fout.close();
+#endif
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -2498,6 +2517,19 @@ int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 #endif
 
 		unsigned int idx = encode_cluster_index(layer, z, rphi);
+
+//#ifdef _DEBUG_
+//			cout
+//			<<__LINE__<<": "
+//			<<"{ "
+//			<<layer <<", "
+//			<<z <<", "
+//			<<rphi << "} =>"
+//			<<idx << ": size: "
+//			<<_layer_zID_phiID_cluserID.count(idx)
+//			<<endl;
+//#endif
+
 		_layer_zID_phiID_cluserID.insert(std::make_pair(idx, cluster->get_id()));
 	}
 
@@ -2510,8 +2542,8 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 
 	std::vector<unsigned int> cluster_IDs;
 
-	const unsigned int max_rphi_bin = 16384; //2^14
-	const unsigned int max_z_bin = 2048; // 2^11
+	const unsigned int max_rphi_bin = 16383; //2^14 - 1
+	const unsigned int max_z_bin = 2047; // 2^11 - 1
 
 	float lower_rphi = phi_center-phi_window + _half_max_rphi;
 	float upper_rphi = phi_center+phi_window + _half_max_rphi;
@@ -2532,13 +2564,42 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 	for (unsigned int iz = lower_z_bin; iz <= upper_z_bin; ++iz) {
 		for (unsigned int irphi = lower_rphi_bin; irphi <= upper_rphi_bin;
 				++irphi) {
+			if(verbosity >= 2) _t_search_clusters_encoding->restart();
 			unsigned int idx = encode_cluster_index(layer, iz, irphi);
-			for (std::multimap<unsigned int, unsigned int>::const_iterator iter =
-					_layer_zID_phiID_cluserID.lower_bound(idx);
+			if(verbosity >= 2) _t_search_clusters_encoding->stop();
+
+//#ifdef _DEBUG_
+//			cout
+//			<<__LINE__<<": "
+//			<<"{ "
+//			<<layer <<", "
+//			<<iz <<", "
+//			<<irphi << "} =>"
+//			<<idx << ": size: "
+//			<<_layer_zID_phiID_cluserID.count(idx)
+//			<<endl;
+//#endif
+			if(verbosity >= 2) _t_search_clusters_map_iter->restart();
+			for (auto iter = _layer_zID_phiID_cluserID.lower_bound(idx);
 					iter != _layer_zID_phiID_cluserID.upper_bound(idx);
 					++iter) {
 				cluster_IDs.push_back(iter->second);
+#ifdef _DEBUG_
+				SvtxCluster* cluster = _g4clusters->get(iter->second);
+				TVector3 v(cluster->get_x(),cluster->get_y(),cluster->get_z());
+				float rphi_cluster = v.Phi()*v.Perp();
+				fout
+				<< _event << "\t"
+				<< layer << "\t "
+				<< phi_center - rphi_cluster << "\t"
+				<< z_center - cluster->get_z() << "\t"
+				<< phi_window/_search_win_rphi << "\t"
+				<< z_window/_search_win_z << "\t"
+				<< (phi_center - rphi_cluster)/phi_window*_search_win_rphi <<"\t "
+				<< (z_center - cluster->get_z())/z_window*_search_win_z <<endl;
+#endif
 			}
+			if(verbosity >= 2) _t_search_clusters_map_iter->stop();
 		}
 	}
 
@@ -2604,24 +2665,41 @@ unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
 	return encode_cluster_index(layer, iz, irphi);
 }
 
+//unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
+//		const unsigned int iz, const unsigned int irphi) {
+//
+//	std::bitset<7> layer_bits(layer);
+//	std::bitset<11> z_bits(iz);
+//	std::bitset<14> rphi_bits(irphi);
+//	std::bitset<32> idx_bits(0);
+//
+//	for(unsigned int i=0;i<idx_bits.size();++i){
+//		if(i < 14)
+//			idx_bits[i] = rphi_bits[i];
+//		else if(i < 25)
+//			idx_bits[i] = z_bits[i-14];
+//		else
+//			idx_bits[i] = layer_bits[i-25];
+//	}
+//
+//	return (unsigned int) idx_bits.to_ulong();
+//}
+
 unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
 		const unsigned int iz, const unsigned int irphi) {
 
-	std::bitset<7> layer_bits(layer);
-	std::bitset<11> z_bits(iz);
-	std::bitset<14> rphi_bits(irphi);
-	std::bitset<32> idx_bits(0);
-
-	for(unsigned int i=0;i<idx_bits.size();++i){
-		if(i < 14)
-			idx_bits[i] = rphi_bits[i];
-		else if(i < 25)
-			idx_bits[i] = z_bits[i-14];
-		else
-			idx_bits[i] = layer_bits[i-25];
+	if(layer >= 128 || iz >= 2048 || irphi >= 16384) {
+		LogError("layer >= 128 || iz >= 2048 || irphi >= 16384\n");
+		return UINT_MAX;
 	}
 
-	return (unsigned int) idx_bits.to_ulong();
+	unsigned int index = 0;
+
+	index |= (layer<<25);
+	index |= (iz<<14);
+	index |= (irphi);
+
+	return index;
 }
 
 bool PHG4KalmanPatRec::circle_circle_intersections(double x0, double y0,
