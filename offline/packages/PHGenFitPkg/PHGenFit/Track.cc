@@ -28,6 +28,7 @@
 
 #define WILD_DOUBLE -999999
 
+//#define _DEBUG_
 
 namespace PHGenFit {
 
@@ -197,13 +198,22 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 	bool have_tp_with_fit_info = false;
 	std::unique_ptr<genfit::MeasuredStateOnPlane> kfsop = NULL;
 	if (_track->getNumPointsWithMeasurement() > 0) {
+#ifdef _DEBUG_
+		std::cout<<__LINE__ <<std::endl;
+#endif
 		genfit::TrackPoint* tp = _track->getPointWithMeasurement(tr_point_id);
 		if (tp == NULL) {
 			LogError("tp == NULL!");
 			return WILD_DOUBLE;
 		}
 		if (dynamic_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))) {
+#ifdef _DEBUG_
+		std::cout<<__LINE__ <<std::endl;
+#endif
 			if (static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getForwardUpdate()) {
+#ifdef _DEBUG_
+		std::cout<<__LINE__ <<std::endl;
+#endif
 				have_tp_with_fit_info = true;
 				kfsop =
 						std::unique_ptr < genfit::MeasuredStateOnPlane
@@ -215,6 +225,9 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 	}
 
 	if (!have_tp_with_fit_info) {
+#ifdef _DEBUG_
+		std::cout<<__LINE__<< ": !have_tp_with_fit_info" <<std::endl;
+#endif
 		kfsop = std::unique_ptr < genfit::MeasuredStateOnPlane
 				> (new genfit::MeasuredStateOnPlane(rep));
 		rep->setPosMomCov(*kfsop, _track->getStateSeed(), _track->getCovSeed());
@@ -242,7 +255,7 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 genfit::MeasuredStateOnPlane*  Track::extrapolateToCylinder(double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id) const
 {
 	genfit::MeasuredStateOnPlane* state = new genfit::MeasuredStateOnPlane();
-	double pathlenth = this->extrapolateToCylinder(*state, radius, line_point, line_direction);
+	double pathlenth = this->extrapolateToCylinder(*state, radius, line_point, line_direction, tr_point_id);
 	if(pathlenth <= WILD_DOUBLE) {
 		delete state;
 		return NULL;
@@ -303,11 +316,18 @@ int Track::updateOneMeasurementKalman(
 
 		std::vector<genfit::AbsMeasurement*> msmts;
 		msmts.push_back(measurement->getMeasurement());
-		genfit::TrackPoint *tp = new genfit::TrackPoint(msmts, track);
 
+		//genfit::TrackPoint *tp = new genfit::TrackPoint(msmts, track);
 		//track->insertPoint(tp); // genfit
 
-		new_track->addMeasurement(measurement); // PHGenFit: clusterID also registerd
+		/*!
+		 * A new TrackPoint created in addMeasurement
+		 * PHGenFit: clusterID also registerd
+		 */
+		new_track->addMeasurement(measurement);
+
+		//! Get the pointer of the TrackPoint just created
+		genfit::TrackPoint *tp = new_track->getGenFitTrack()->getPoint(-1);
 
 		genfit::KalmanFitterInfo* fi = new genfit::KalmanFitterInfo(tp, rep);
 		tp->setFitterInfo(fi);
