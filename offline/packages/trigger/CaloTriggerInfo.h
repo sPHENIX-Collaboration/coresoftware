@@ -2,8 +2,6 @@
 #define __CALOTRIGGERINFO_H__
 
 #include <phool/PHObject.h>
-#include <iostream>
-#include <map>
 
 class CaloTriggerInfo : public PHObject
 {
