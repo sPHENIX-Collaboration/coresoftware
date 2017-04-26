@@ -10,7 +10,7 @@
 #define __TPCCLUSTERSCONTAINER_H__
 
 #include <vector.h>
-#include "PHObject.h"
+#include <phool/PHObject.h>
 #include "TPCCluster.h"
 
 class TPCClustersContainer : public PHObject {
@@ -25,6 +25,7 @@ class TPCClustersContainer : public PHObject {
  protected:
   UShort_t fNClusters[48][12][7];
   std::vector<vCluster*> fClusters[7][48][7];
+  ClassDef(TPCClustersContainer,1);
 };
 
 #endif

@@ -22,6 +22,8 @@ class TPCHitsContainer : public PHObject {
  protected:
   UInt_t fNHits[2];
   std::vector<TPCHit*> fHits[2];
+
+  ClassDef(TPCHitsContainer,1);
 };
 
 #endif

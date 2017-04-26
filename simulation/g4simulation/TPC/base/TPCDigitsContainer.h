@@ -28,6 +28,8 @@ class TPCDigitsContainer : public PHObject {
  protected:
   Int_t fNDigits[72];
   std::map<Pad_t,TPCDigit*> fDigits[72];
+
+  ClassDef(TPCDigitsContainer,1);
 };
 
 #endif
