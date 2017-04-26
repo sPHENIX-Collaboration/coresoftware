@@ -392,6 +392,7 @@ PHG4KalmanPatRec.lo: PHG4KalmanPatRec.C PHG4KalmanPatRec.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/boost/type_traits/is_rvalue_reference.hpp \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/boost/smart_ptr/detail/sp_if_array.hpp \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/boost/smart_ptr/allocate_shared_array.hpp \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/phool/PHTimer.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4bbc/BbcVertexMap.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4bbc/BbcVertex.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/phool/PHObject.h \
@@ -592,9 +593,123 @@ PHG4KalmanPatRec.lo: PHG4KalmanPatRec.C PHG4KalmanPatRec.h \
  /phenix/u/workarea/bogui/install/include/HelixHough/Seamstress.h \
  /phenix/u/workarea/bogui/install/include/HelixHough/Needle.h \
  /opt/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/float.h \
+ /phenix/u/workarea/bogui/install/include/phgenfit/Fitter.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/EventDisplay.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/Track.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsTrackRep.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/SharedPlanePtr.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/DetPlane.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsFinitePlane.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/Rtypes.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVector3.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TError.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVector2.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TObject.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrix.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixF.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixT.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixTBase.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TNamed.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TString.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMathBase.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixFBasefwd.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDBasefwd.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVectorFfwd.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVectorDfwd.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixTUtils.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixFfwd.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixFUtils.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixFUtilsfwd.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MaterialProperties.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVectorD.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVectorT.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixTSym.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixTSparse.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixD.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDfwd.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDUtils.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDUtilsfwd.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSym.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSymfwd.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSparse.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSparsefwd.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixD.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSym.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/FitStatus.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/Math/ProbFuncMathCore.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MeasurementFactory.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MeasurementProducer.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/Exception.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/TrackCand.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/TrackCandHit.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TDatabasePDG.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TParticlePDG.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TObjArray.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TSeqCollection.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TCollection.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TIterator.h \
+ /opt/gcc/4.8.2/include/c++/4.8.2/iterator \
+ /opt/gcc/4.8.2/include/c++/4.8.2/bits/stream_iterator.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TParticleClassPDG.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TClonesArray.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/TrackPoint.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsMeasurement.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MeasurementOnPlane.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MeasuredStateOnPlane.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/StateOnPlane.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsHMatrix.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsFitterInfo.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/ThinScatterer.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsKalmanFitter.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsFitter.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveBox.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveShape.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveElement.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveUtil.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/GuiTypes.h \
+ /opt/gcc/4.8.2/include/c++/4.8.2/list \
+ /opt/gcc/4.8.2/include/c++/4.8.2/bits/stl_list.h \
+ /opt/gcc/4.8.2/include/c++/4.8.2/bits/list.tcc \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveProjectionBases.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TRef.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveVector.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMath.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAtt3D.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttBBox.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TColor.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TArrayI.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TArray.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGButton.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGFrame.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGWindow.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGObject.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGClient.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TQObject.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVirtualX.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttLine.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttFill.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttText.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttMarker.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGDimension.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGGC.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TRefCnt.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGFont.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGLayout.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGString.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TList.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGWidget.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/WidgetMessageTypes.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGNumberEntry.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGTextEntry.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGTextBuffer.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGButtonGroup.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMap.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/THashTable.h \
  SvtxTrackState.h SvtxVertexMap.h SvtxVertex.h SvtxVertexMap_v1.h \
  SvtxVertex_v1.h SvtxTrackMap.h SvtxTrack.h SvtxTrackMap_v1.h \
- SvtxTrack_v1.h SvtxClusterMap.h SvtxCluster.h \
+ SvtxTrack_v1.h SvtxClusterMap.h SvtxCluster.h SvtxHit_v1.h SvtxHit.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4detectors/PHG4CellDefs.h \
+ SvtxHitMap.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4detectors/PHG4CylinderGeomContainer.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4detectors/PHG4CylinderGeom.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/phool/phool.h \
@@ -608,6 +723,11 @@ PHG4KalmanPatRec.lo: PHG4KalmanPatRec.C PHG4KalmanPatRec.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4main/PHG4Hit.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4main/PHG4HitDefs.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4main/PHG4HitDefs.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4detectors/PHG4CellContainer.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4detectors/PHG4Cell.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4detectors/PHG4CylinderGeom_MAPS.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4detectors/PHG4CylinderGeom.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4detectors/PHG4CylinderGeom_Siladders.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4bbc/BbcVertex.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/phool/PHCompositeNode.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/phool/phool.h \
@@ -736,73 +856,8 @@ PHG4KalmanPatRec.lo: PHG4KalmanPatRec.C PHG4KalmanPatRec.h \
  /phenix/u/workarea/bogui/install/include/HelixHough/HelixHough.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/FieldManager.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsBField.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVector3.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TError.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVector2.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TObject.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrix.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixF.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixT.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixTBase.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TNamed.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TString.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMathBase.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixFBasefwd.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDBasefwd.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVectorFfwd.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVectorDfwd.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixTUtils.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixFfwd.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixFUtils.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixFUtilsfwd.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/IO.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/GFRaveVertex.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsTrackRep.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/SharedPlanePtr.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/DetPlane.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsFinitePlane.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/Rtypes.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MaterialProperties.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVectorD.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVectorT.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixTSym.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixTSparse.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixD.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDfwd.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDUtils.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDUtilsfwd.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSym.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSymfwd.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSparse.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSparsefwd.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixD.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSym.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/Track.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/FitStatus.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/Math/ProbFuncMathCore.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MeasurementFactory.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MeasurementProducer.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/Exception.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/TrackCand.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/TrackCandHit.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TDatabasePDG.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TParticlePDG.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TObjArray.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TSeqCollection.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TCollection.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TIterator.h \
- /opt/gcc/4.8.2/include/c++/4.8.2/iterator \
- /opt/gcc/4.8.2/include/c++/4.8.2/bits/stream_iterator.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TParticleClassPDG.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TClonesArray.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/TrackPoint.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsMeasurement.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MeasurementOnPlane.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MeasuredStateOnPlane.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/StateOnPlane.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsHMatrix.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsFitterInfo.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/ThinScatterer.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/GFRaveTrackParameters.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TRef.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/GFRaveVertexFactory.h \
@@ -813,58 +868,12 @@ PHG4KalmanPatRec.lo: PHG4KalmanPatRec.C PHG4KalmanPatRec.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/StepLimits.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/StateOnPlane.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/Track.h \
- /phenix/u/workarea/bogui/install/include/phgenfit/Fitter.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/EventDisplay.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsKalmanFitter.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsFitter.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveBox.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveShape.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveElement.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveUtil.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/GuiTypes.h \
- /opt/gcc/4.8.2/include/c++/4.8.2/list \
- /opt/gcc/4.8.2/include/c++/4.8.2/bits/stl_list.h \
- /opt/gcc/4.8.2/include/c++/4.8.2/bits/list.tcc \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveProjectionBases.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TRef.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveVector.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMath.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAtt3D.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttBBox.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TColor.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TArrayI.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TArray.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGButton.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGFrame.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGWindow.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGObject.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGClient.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TQObject.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVirtualX.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttLine.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttFill.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttText.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttMarker.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGDimension.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGGC.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TRefCnt.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGFont.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGLayout.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGString.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TList.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGWidget.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/WidgetMessageTypes.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGNumberEntry.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGTextEntry.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGTextBuffer.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGButtonGroup.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMap.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/THashTable.h \
  /phenix/u/workarea/bogui/install/include/phgenfit/Track.h \
  /phenix/u/workarea/bogui/install/include/phgenfit/PlanarMeasurement.h \
  /phenix/u/workarea/bogui/install/include/phgenfit/Measurement.h \
  /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsMeasurement.h \
- /phenix/u/workarea/bogui/install/include/phgenfit/SpacepointMeasurement.h
+ /phenix/u/workarea/bogui/install/include/phgenfit/SpacepointMeasurement.h \
+ /opt/gcc/4.8.2/include/c++/4.8.2/bitset
 
 PHG4KalmanPatRec.h:
 
@@ -1728,6 +1737,8 @@ PHG4KalmanPatRec.h:
 
 /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/boost/smart_ptr/allocate_shared_array.hpp:
 
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/phool/PHTimer.h:
+
 /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4bbc/BbcVertexMap.h:
 
 /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4bbc/BbcVertex.h:
@@ -2128,6 +2139,230 @@ PHG4KalmanPatRec.h:
 
 /opt/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/float.h:
 
+/phenix/u/workarea/bogui/install/include/phgenfit/Fitter.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/EventDisplay.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/Track.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsTrackRep.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/SharedPlanePtr.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/DetPlane.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsFinitePlane.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/Rtypes.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVector3.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TError.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVector2.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TObject.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrix.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixF.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixT.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixTBase.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TNamed.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TString.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMathBase.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixFBasefwd.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDBasefwd.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVectorFfwd.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVectorDfwd.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixTUtils.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixFfwd.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixFUtils.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixFUtilsfwd.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MaterialProperties.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVectorD.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVectorT.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixTSym.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixTSparse.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixD.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDfwd.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDUtils.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDUtilsfwd.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSym.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSymfwd.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSparse.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSparsefwd.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixD.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSym.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/FitStatus.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/Math/ProbFuncMathCore.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MeasurementFactory.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MeasurementProducer.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/Exception.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/TrackCand.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/TrackCandHit.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TDatabasePDG.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TParticlePDG.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TObjArray.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TSeqCollection.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TCollection.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TIterator.h:
+
+/opt/gcc/4.8.2/include/c++/4.8.2/iterator:
+
+/opt/gcc/4.8.2/include/c++/4.8.2/bits/stream_iterator.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TParticleClassPDG.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TClonesArray.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/TrackPoint.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsMeasurement.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MeasurementOnPlane.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MeasuredStateOnPlane.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/StateOnPlane.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsHMatrix.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsFitterInfo.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/ThinScatterer.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsKalmanFitter.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsFitter.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveBox.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveShape.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveElement.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveUtil.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/GuiTypes.h:
+
+/opt/gcc/4.8.2/include/c++/4.8.2/list:
+
+/opt/gcc/4.8.2/include/c++/4.8.2/bits/stl_list.h:
+
+/opt/gcc/4.8.2/include/c++/4.8.2/bits/list.tcc:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveProjectionBases.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TRef.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveVector.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMath.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAtt3D.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttBBox.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TColor.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TArrayI.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TArray.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGButton.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGFrame.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGWindow.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGObject.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGClient.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TQObject.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVirtualX.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttLine.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttFill.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttText.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttMarker.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGDimension.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGGC.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TRefCnt.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGFont.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGLayout.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGString.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TList.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGWidget.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/WidgetMessageTypes.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGNumberEntry.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGTextEntry.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGTextBuffer.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGButtonGroup.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMap.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/THashTable.h:
+
 SvtxTrackState.h:
 
 SvtxVertexMap.h:
@@ -2149,6 +2384,14 @@ SvtxTrack_v1.h:
 SvtxClusterMap.h:
 
 SvtxCluster.h:
+
+SvtxHit_v1.h:
+
+SvtxHit.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4detectors/PHG4CellDefs.h:
+
+SvtxHitMap.h:
 
 /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4detectors/PHG4CylinderGeomContainer.h:
 
@@ -2175,6 +2418,16 @@ SvtxCluster.h:
 /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4main/PHG4HitDefs.h:
 
 /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4main/PHG4HitDefs.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4detectors/PHG4CellContainer.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4detectors/PHG4Cell.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4detectors/PHG4CylinderGeom_MAPS.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4detectors/PHG4CylinderGeom.h:
+
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4detectors/PHG4CylinderGeom_Siladders.h:
 
 /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/g4bbc/BbcVertex.h:
 
@@ -2434,139 +2687,9 @@ SvtxCluster.h:
 
 /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsBField.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVector3.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TError.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVector2.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TObject.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrix.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixF.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixT.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixTBase.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TNamed.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TString.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMathBase.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixFBasefwd.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDBasefwd.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVectorFfwd.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVectorDfwd.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixTUtils.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixFfwd.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixFUtils.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixFUtilsfwd.h:
-
 /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/IO.h:
 
 /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/GFRaveVertex.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsTrackRep.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/SharedPlanePtr.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/DetPlane.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsFinitePlane.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/Rtypes.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MaterialProperties.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVectorD.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVectorT.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixTSym.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixTSparse.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixD.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDfwd.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDUtils.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDUtilsfwd.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSym.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSymfwd.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSparse.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSparsefwd.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixD.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMatrixDSym.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/Track.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/FitStatus.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/Math/ProbFuncMathCore.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MeasurementFactory.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MeasurementProducer.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/Exception.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/TrackCand.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/TrackCandHit.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TDatabasePDG.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TParticlePDG.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TObjArray.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TSeqCollection.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TCollection.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TIterator.h:
-
-/opt/gcc/4.8.2/include/c++/4.8.2/iterator:
-
-/opt/gcc/4.8.2/include/c++/4.8.2/bits/stream_iterator.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TParticleClassPDG.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TClonesArray.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/TrackPoint.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsMeasurement.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MeasurementOnPlane.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/MeasuredStateOnPlane.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/StateOnPlane.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsHMatrix.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsFitterInfo.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/ThinScatterer.h:
 
 /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/GFRaveTrackParameters.h:
 
@@ -2588,100 +2711,6 @@ SvtxCluster.h:
 
 /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/Track.h:
 
-/phenix/u/workarea/bogui/install/include/phgenfit/Fitter.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/EventDisplay.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsKalmanFitter.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsFitter.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveBox.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveShape.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveElement.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveUtil.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/GuiTypes.h:
-
-/opt/gcc/4.8.2/include/c++/4.8.2/list:
-
-/opt/gcc/4.8.2/include/c++/4.8.2/bits/stl_list.h:
-
-/opt/gcc/4.8.2/include/c++/4.8.2/bits/list.tcc:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveProjectionBases.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TRef.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TEveVector.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMath.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAtt3D.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttBBox.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TColor.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TArrayI.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TArray.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGButton.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGFrame.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGWindow.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGObject.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGClient.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TQObject.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVirtualX.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttLine.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttFill.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttText.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TAttMarker.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGDimension.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGGC.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TRefCnt.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGFont.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGLayout.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGString.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TList.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGWidget.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/WidgetMessageTypes.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGNumberEntry.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGTextEntry.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGTextBuffer.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGButtonGroup.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMap.h:
-
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/THashTable.h:
-
 /phenix/u/workarea/bogui/install/include/phgenfit/Track.h:
 
 /phenix/u/workarea/bogui/install/include/phgenfit/PlanarMeasurement.h:
@@ -2691,3 +2720,5 @@ SvtxCluster.h:
 /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/GenFit/AbsMeasurement.h:
 
 /phenix/u/workarea/bogui/install/include/phgenfit/SpacepointMeasurement.h:
+
+/opt/gcc/4.8.2/include/c++/4.8.2/bitset:

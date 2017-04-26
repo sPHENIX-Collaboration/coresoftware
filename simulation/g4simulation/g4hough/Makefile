@@ -86,12 +86,14 @@ am_libg4hough_la_OBJECTS = PHG4SiliconTrackerDigitizer.lo \
 	PHG4HoughTransformTPC_Dict.lo PHG4KalmanPatRec.lo \
 	PHG4KalmanPatRec_Dict.lo PHG4TrackGhostRejection.lo \
 	PHG4TrackGhostRejection_Dict.lo PHG4TrackKalmanFitter.lo \
-	PHG4TruthPatRec.lo PHG4TrackFastSim.lo \
-	PHG4TrackKalmanFitter_Dict.lo PHG4TruthPatRec_Dict.lo \
-	PHG4TrackFastSim_Dict.lo PHG4SvtxMomentumRecal.lo \
-	PHG4SvtxMomentumRecal_Dict.lo PHG4SvtxTrackProjection.lo \
-	PHG4SvtxTrackProjection_Dict.lo PHG4SvtxBeamSpotReco.lo \
-	PHG4SvtxBeamSpotReco_Dict.lo SimpleTrack_Dict.lo
+	PHG4CombinatorialTrackFinder.lo \
+	PHG4CombinatorialTrackFinder_Dict.lo PHG4TruthPatRec.lo \
+	PHG4TrackFastSim.lo PHG4TrackKalmanFitter_Dict.lo \
+	PHG4TruthPatRec_Dict.lo PHG4TrackFastSim_Dict.lo \
+	PHG4SvtxMomentumRecal.lo PHG4SvtxMomentumRecal_Dict.lo \
+	PHG4SvtxTrackProjection.lo PHG4SvtxTrackProjection_Dict.lo \
+	PHG4SvtxBeamSpotReco.lo PHG4SvtxBeamSpotReco_Dict.lo \
+	SimpleTrack_Dict.lo
 libg4hough_la_OBJECTS = $(am_libg4hough_la_OBJECTS)
 libg4hough_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -341,6 +343,7 @@ pkginclude_HEADERS = \
   PHG4KalmanPatRec.h \
   PHG4TrackGhostRejection.h \
   PHG4TrackKalmanFitter.h \
+  PHG4CombinatorialTrackFinder.h \
   PHG4TruthPatRec.h \
   PHG4TrackFastSim.h \
   PHG4SvtxMomentumRecal.h \
@@ -413,6 +416,8 @@ libg4hough_la_SOURCES = \
   PHG4TrackGhostRejection.C \
   PHG4TrackGhostRejection_Dict.C \
   PHG4TrackKalmanFitter.C \
+  PHG4CombinatorialTrackFinder.C \
+  PHG4CombinatorialTrackFinder_Dict.C \
   PHG4TruthPatRec.C \
   PHG4TrackFastSim.C \
   PHG4TrackKalmanFitter_Dict.C \
@@ -526,6 +531,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+include ./$(DEPDIR)/PHG4CombinatorialTrackFinder.Plo
+include ./$(DEPDIR)/PHG4CombinatorialTrackFinder_Dict.Plo
 include ./$(DEPDIR)/PHG4HoughTransform.Plo
 include ./$(DEPDIR)/PHG4HoughTransformTPC.Plo
 include ./$(DEPDIR)/PHG4HoughTransformTPC_Dict.Plo

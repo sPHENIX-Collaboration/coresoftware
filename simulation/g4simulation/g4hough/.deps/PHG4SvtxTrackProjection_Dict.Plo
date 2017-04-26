@@ -1,6 +1,6 @@
 PHG4SvtxTrackProjection_Dict.lo: PHG4SvtxTrackProjection_Dict.C \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/RConfig.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/RVersion.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/RConfig.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/RVersion.h \
  /usr/include/features.h /usr/include/sys/cdefs.h \
  /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
  /usr/include/gnu/stubs-64.h PHG4SvtxTrackProjection_Dict.h \
@@ -23,7 +23,7 @@ PHG4SvtxTrackProjection_Dict.lo: PHG4SvtxTrackProjection_Dict.C \
  /usr/include/bits/inf.h /usr/include/bits/nan.h \
  /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h \
  /usr/include/bits/mathinline.h /usr/include/string.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/G__ci.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/G__ci.h \
  /usr/include/signal.h /usr/include/bits/signum.h \
  /usr/include/bits/siginfo.h /usr/include/bits/sigaction.h \
  /usr/include/bits/sigcontext.h /usr/include/bits/sigstack.h \
@@ -39,13 +39,13 @@ PHG4SvtxTrackProjection_Dict.lo: PHG4SvtxTrackProjection_Dict.C \
  /usr/include/bits/stat.h /usr/include/unistd.h \
  /usr/include/bits/posix_opt.h /usr/include/bits/environments.h \
  /usr/include/bits/confname.h /usr/include/getopt.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/G__ci_fproto.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/FastAllocString.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/G__ci.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TObject.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/Rtypes.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/DllImport.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/Rtypeinfo.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/G__ci_fproto.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/FastAllocString.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/G__ci.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TObject.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/Rtypes.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/DllImport.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/Rtypeinfo.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/typeinfo \
  /opt/gcc/4.8.2/include/c++/4.8.2/exception \
  /opt/gcc/4.8.2/include/c++/4.8.2/x86_64-redhat-linux7E/bits/c++config.h \
@@ -56,14 +56,14 @@ PHG4SvtxTrackProjection_Dict.lo: PHG4SvtxTrackProjection_Dict.C \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/exception_defines.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/nested_exception.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/hash_bytes.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/snprintf.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/strlcpy.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/snprintf.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/strlcpy.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/atomic \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/atomic_base.h \
  /opt/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/stdbool.h \
  /opt/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/stdint.h \
  /usr/include/stdint.h /usr/include/bits/wchar.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TGenericClassInfo.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGenericClassInfo.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/vector \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/stl_algobase.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/functexcept.h \
@@ -94,7 +94,7 @@ PHG4SvtxTrackProjection_Dict.lo: PHG4SvtxTrackProjection_Dict.C \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/functional_hash.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/range_access.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/vector.tcc \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TSchemaHelper.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TSchemaHelper.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/string \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/stringfwd.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/char_traits.h \
@@ -124,14 +124,14 @@ PHG4SvtxTrackProjection_Dict.lo: PHG4SvtxTrackProjection_Dict.C \
  /usr/include/asm/errno.h /usr/include/asm-generic/errno.h \
  /usr/include/asm-generic/errno-base.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/basic_string.tcc \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TStorage.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TVersionCheck.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/Riosfwd.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TBuffer.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TMemberInspector.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TStorage.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVersionCheck.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/Riosfwd.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TBuffer.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMemberInspector.h \
  PHG4SvtxTrackProjection.h PHG4HoughTransform.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/fun4all/SubsysReco.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/fun4all/Fun4AllBase.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/fun4all/SubsysReco.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/fun4all/Fun4AllBase.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/climits \
  /phenix/u/workarea/bogui/install/include/HelixHough/SimpleHit3D.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/iostream \
@@ -158,13 +158,13 @@ PHG4SvtxTrackProjection_Dict.lo: PHG4SvtxTrackProjection_Dict.C \
  /phenix/u/workarea/bogui/install/include/HelixHough/SimpleHit3D.h \
  /phenix/u/workarea/bogui/install/include/HelixHough/VertexFinder.h \
  /phenix/u/workarea/bogui/install/include/HelixHough/SimpleTrack3D.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/Core \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/Macros.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/Core \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/Macros.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/complex \
  /opt/gcc/4.8.2/include/c++/4.8.2/sstream \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/sstream.tcc \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/MKL_support.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/MKL_support.h \
  /opt/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/emmintrin.h \
  /opt/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/xmmintrin.h \
  /opt/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/mmintrin.h \
@@ -196,159 +196,159 @@ PHG4SvtxTrackProjection_Dict.lo: PHG4SvtxTrackProjection_Dict.C \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/random.tcc \
  /opt/gcc/4.8.2/include/c++/4.8.2/numeric \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/stl_numeric.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/Constants.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/ForwardDeclarations.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/Meta.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/StaticAssert.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/XprHelper.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/Memory.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/NumTraits.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/MathFunctions.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/GenericPacketMath.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/arch/SSE/PacketMath.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/arch/SSE/MathFunctions.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/arch/SSE/Complex.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/arch/Default/Settings.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Functors.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/DenseCoeffsBase.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/DenseBase.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/../plugins/BlockMethods.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/MatrixBase.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/../plugins/CommonCwiseUnaryOps.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/../plugins/CommonCwiseBinaryOps.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/../plugins/MatrixCwiseUnaryOps.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/../plugins/MatrixCwiseBinaryOps.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/EigenBase.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Assign.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/BlasUtil.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/DenseStorage.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/NestByValue.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/ForceAlignedAccess.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/ReturnByValue.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/NoAlias.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/PlainObjectBase.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Matrix.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Array.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/CwiseBinaryOp.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/CwiseUnaryOp.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/CwiseNullaryOp.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/CwiseUnaryView.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/SelfCwiseBinaryOp.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Dot.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/StableNorm.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/MapBase.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Stride.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Map.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Block.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/VectorBlock.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Ref.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Transpose.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/DiagonalMatrix.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Diagonal.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/DiagonalProduct.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/PermutationMatrix.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Transpositions.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Redux.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Visitor.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Fuzzy.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/IO.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Swap.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/CommaInitializer.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Flagged.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/ProductBase.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/GeneralProduct.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/TriangularMatrix.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/SelfAdjointView.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/Parallelizer.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/CoeffBasedProduct.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrix.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/SolveTriangular.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixVector.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/SelfadjointProduct.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/SelfadjointRank2Update.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/TriangularMatrixVector.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/TriangularMatrixMatrix.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/TriangularSolverMatrix.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/TriangularSolverVector.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/BandMatrix.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/CoreIterators.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/BooleanRedux.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Select.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/VectorwiseOp.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Random.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Replicate.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Reverse.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/ArrayBase.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/../plugins/ArrayCwiseUnaryOps.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/../plugins/ArrayCwiseBinaryOps.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/ArrayWrapper.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/GlobalFunctions.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/ReenableStupidWarnings.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/Dense \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/Core \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/LU \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/misc/Solve.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/misc/Kernel.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/misc/Image.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/LU/FullPivLU.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/LU/PartialPivLU.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/LU/Determinant.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/LU/Inverse.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/LU/arch/Inverse_SSE.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/Cholesky \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Cholesky/LLT.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Cholesky/LDLT.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/QR \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/Jacobi \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Jacobi/Jacobi.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/Householder \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Householder/Householder.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Householder/HouseholderSequence.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Householder/BlockHouseholder.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/QR/HouseholderQR.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/QR/FullPivHouseholderQR.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/QR/ColPivHouseholderQR.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/SVD \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/SVD/JacobiSVD.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/Geometry \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/OrthoMethods.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/EulerAngles.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/Homogeneous.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/RotationBase.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/Rotation2D.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/Quaternion.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/AngleAxis.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/Transform.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/Translation.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/Scaling.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/Hyperplane.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/ParametrizedLine.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/AlignedBox.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/Umeyama.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/arch/Geometry_SSE.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/Eigenvalues \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/RealSchur.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/./HessenbergDecomposition.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/EigenSolver.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/./RealSchur.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/./Tridiagonalization.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/HessenbergDecomposition.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/ComplexEigenSolver.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/./ComplexSchur.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/./RealQZ.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/LU \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/Constants.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/ForwardDeclarations.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/Meta.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/StaticAssert.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/XprHelper.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/Memory.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/NumTraits.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/MathFunctions.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/GenericPacketMath.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/arch/SSE/PacketMath.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/arch/SSE/MathFunctions.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/arch/SSE/Complex.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/arch/Default/Settings.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Functors.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/DenseCoeffsBase.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/DenseBase.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/../plugins/BlockMethods.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/MatrixBase.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/../plugins/CommonCwiseUnaryOps.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/../plugins/CommonCwiseBinaryOps.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/../plugins/MatrixCwiseUnaryOps.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/../plugins/MatrixCwiseBinaryOps.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/EigenBase.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Assign.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/BlasUtil.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/DenseStorage.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/NestByValue.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/ForceAlignedAccess.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/ReturnByValue.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/NoAlias.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/PlainObjectBase.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Matrix.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Array.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/CwiseBinaryOp.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/CwiseUnaryOp.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/CwiseNullaryOp.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/CwiseUnaryView.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/SelfCwiseBinaryOp.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Dot.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/StableNorm.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/MapBase.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Stride.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Map.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Block.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/VectorBlock.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Ref.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Transpose.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/DiagonalMatrix.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Diagonal.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/DiagonalProduct.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/PermutationMatrix.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Transpositions.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Redux.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Visitor.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Fuzzy.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/IO.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Swap.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/CommaInitializer.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Flagged.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/ProductBase.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/GeneralProduct.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/TriangularMatrix.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/SelfAdjointView.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/Parallelizer.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/CoeffBasedProduct.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrix.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/SolveTriangular.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixVector.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/SelfadjointProduct.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/SelfadjointRank2Update.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/TriangularMatrixVector.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/TriangularMatrixMatrix.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/TriangularSolverMatrix.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/TriangularSolverVector.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/BandMatrix.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/CoreIterators.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/BooleanRedux.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Select.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/VectorwiseOp.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Random.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Replicate.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Reverse.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/ArrayBase.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/../plugins/ArrayCwiseUnaryOps.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/../plugins/ArrayCwiseBinaryOps.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/ArrayWrapper.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/GlobalFunctions.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/ReenableStupidWarnings.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/Dense \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/Core \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/LU \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/misc/Solve.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/misc/Kernel.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/misc/Image.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/LU/FullPivLU.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/LU/PartialPivLU.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/LU/Determinant.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/LU/Inverse.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/LU/arch/Inverse_SSE.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/Cholesky \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Cholesky/LLT.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Cholesky/LDLT.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/QR \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/Jacobi \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Jacobi/Jacobi.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/Householder \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Householder/Householder.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Householder/HouseholderSequence.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Householder/BlockHouseholder.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/QR/HouseholderQR.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/QR/FullPivHouseholderQR.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/QR/ColPivHouseholderQR.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/SVD \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/SVD/JacobiSVD.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/Geometry \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/OrthoMethods.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/EulerAngles.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/Homogeneous.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/RotationBase.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/Rotation2D.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/Quaternion.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/AngleAxis.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/Transform.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/Translation.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/Scaling.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/Hyperplane.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/ParametrizedLine.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/AlignedBox.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/Umeyama.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/arch/Geometry_SSE.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/Eigenvalues \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/RealSchur.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/./HessenbergDecomposition.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/EigenSolver.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/./RealSchur.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/./Tridiagonalization.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/HessenbergDecomposition.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/ComplexEigenSolver.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/./ComplexSchur.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/./RealQZ.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/LU \
  /opt/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/float.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/map \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/stl_tree.h \
@@ -358,37 +358,37 @@ PHG4SvtxTrackProjection_Dict.lo: PHG4SvtxTrackProjection_Dict.C \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/stl_set.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/stl_multiset.h SvtxTrack.h \
  SvtxTrackState.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/phool/PHObject.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TClass.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TDictionary.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TNamed.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TString.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TMathBase.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/Property.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/ESTLType.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TObjArray.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TSeqCollection.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TCollection.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TIterator.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/phool/PHObject.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TClass.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TDictionary.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TNamed.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TString.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMathBase.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/Property.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/ESTLType.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TObjArray.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TSeqCollection.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TCollection.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TIterator.h \
  /opt/gcc/4.8.2/include/c++/4.8.2/iterator \
  /opt/gcc/4.8.2/include/c++/4.8.2/bits/stream_iterator.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TObjString.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/ThreadLocalStorage.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/RConfigure.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TBuffer.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TInterpreter.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TVirtualMutex.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TError.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/RtypesImp.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TMemberInspector.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TError.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TIsAProxy.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TVirtualIsAProxy.h \
- /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TFileMergeInfo.h
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TObjString.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/ThreadLocalStorage.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/RConfigure.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TBuffer.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TInterpreter.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVirtualMutex.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TError.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/RtypesImp.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMemberInspector.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TError.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TIsAProxy.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVirtualIsAProxy.h \
+ /afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TFileMergeInfo.h
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/RConfig.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/RConfig.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/RVersion.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/RVersion.h:
 
 /usr/include/features.h:
 
@@ -476,7 +476,7 @@ PHG4SvtxTrackProjection_Dict.h:
 
 /usr/include/string.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/G__ci.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/G__ci.h:
 
 /usr/include/signal.h:
 
@@ -536,19 +536,19 @@ PHG4SvtxTrackProjection_Dict.h:
 
 /usr/include/getopt.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/G__ci_fproto.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/G__ci_fproto.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/FastAllocString.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/FastAllocString.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/G__ci.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/G__ci.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TObject.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TObject.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/Rtypes.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/Rtypes.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/DllImport.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/DllImport.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/Rtypeinfo.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/Rtypeinfo.h:
 
 /opt/gcc/4.8.2/include/c++/4.8.2/typeinfo:
 
@@ -570,9 +570,9 @@ PHG4SvtxTrackProjection_Dict.h:
 
 /opt/gcc/4.8.2/include/c++/4.8.2/bits/hash_bytes.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/snprintf.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/snprintf.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/strlcpy.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/strlcpy.h:
 
 /opt/gcc/4.8.2/include/c++/4.8.2/atomic:
 
@@ -586,7 +586,7 @@ PHG4SvtxTrackProjection_Dict.h:
 
 /usr/include/bits/wchar.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TGenericClassInfo.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TGenericClassInfo.h:
 
 /opt/gcc/4.8.2/include/c++/4.8.2/vector:
 
@@ -648,7 +648,7 @@ PHG4SvtxTrackProjection_Dict.h:
 
 /opt/gcc/4.8.2/include/c++/4.8.2/bits/vector.tcc:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TSchemaHelper.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TSchemaHelper.h:
 
 /opt/gcc/4.8.2/include/c++/4.8.2/string:
 
@@ -722,23 +722,23 @@ PHG4SvtxTrackProjection_Dict.h:
 
 /opt/gcc/4.8.2/include/c++/4.8.2/bits/basic_string.tcc:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TStorage.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TStorage.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TVersionCheck.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVersionCheck.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/Riosfwd.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/Riosfwd.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TBuffer.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TBuffer.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TMemberInspector.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMemberInspector.h:
 
 PHG4SvtxTrackProjection.h:
 
 PHG4HoughTransform.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/fun4all/SubsysReco.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/fun4all/SubsysReco.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/fun4all/Fun4AllBase.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/fun4all/Fun4AllBase.h:
 
 /opt/gcc/4.8.2/include/c++/4.8.2/climits:
 
@@ -794,11 +794,11 @@ PHG4HoughTransform.h:
 
 /phenix/u/workarea/bogui/install/include/HelixHough/SimpleTrack3D.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/Core:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/Core:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/Macros.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/Macros.h:
 
 /opt/gcc/4.8.2/include/c++/4.8.2/complex:
 
@@ -806,7 +806,7 @@ PHG4HoughTransform.h:
 
 /opt/gcc/4.8.2/include/c++/4.8.2/bits/sstream.tcc:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/MKL_support.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/MKL_support.h:
 
 /opt/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/emmintrin.h:
 
@@ -870,311 +870,311 @@ PHG4HoughTransform.h:
 
 /opt/gcc/4.8.2/include/c++/4.8.2/bits/stl_numeric.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/Constants.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/Constants.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/ForwardDeclarations.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/ForwardDeclarations.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/Meta.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/Meta.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/StaticAssert.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/StaticAssert.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/XprHelper.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/XprHelper.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/Memory.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/Memory.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/NumTraits.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/NumTraits.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/MathFunctions.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/MathFunctions.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/GenericPacketMath.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/GenericPacketMath.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/arch/SSE/PacketMath.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/arch/SSE/PacketMath.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/arch/SSE/MathFunctions.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/arch/SSE/MathFunctions.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/arch/SSE/Complex.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/arch/SSE/Complex.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/arch/Default/Settings.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/arch/Default/Settings.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Functors.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Functors.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/DenseCoeffsBase.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/DenseCoeffsBase.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/DenseBase.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/DenseBase.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/../plugins/BlockMethods.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/../plugins/BlockMethods.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/MatrixBase.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/MatrixBase.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/../plugins/CommonCwiseUnaryOps.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/../plugins/CommonCwiseUnaryOps.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/../plugins/CommonCwiseBinaryOps.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/../plugins/CommonCwiseBinaryOps.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/../plugins/MatrixCwiseUnaryOps.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/../plugins/MatrixCwiseUnaryOps.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/../plugins/MatrixCwiseBinaryOps.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/../plugins/MatrixCwiseBinaryOps.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/EigenBase.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/EigenBase.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Assign.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Assign.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/BlasUtil.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/BlasUtil.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/DenseStorage.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/DenseStorage.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/NestByValue.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/NestByValue.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/ForceAlignedAccess.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/ForceAlignedAccess.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/ReturnByValue.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/ReturnByValue.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/NoAlias.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/NoAlias.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/PlainObjectBase.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/PlainObjectBase.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Matrix.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Matrix.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Array.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Array.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/CwiseBinaryOp.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/CwiseBinaryOp.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/CwiseUnaryOp.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/CwiseUnaryOp.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/CwiseNullaryOp.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/CwiseNullaryOp.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/CwiseUnaryView.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/CwiseUnaryView.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/SelfCwiseBinaryOp.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/SelfCwiseBinaryOp.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Dot.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Dot.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/StableNorm.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/StableNorm.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/MapBase.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/MapBase.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Stride.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Stride.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Map.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Map.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Block.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Block.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/VectorBlock.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/VectorBlock.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Ref.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Ref.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Transpose.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Transpose.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/DiagonalMatrix.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/DiagonalMatrix.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Diagonal.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Diagonal.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/DiagonalProduct.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/DiagonalProduct.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/PermutationMatrix.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/PermutationMatrix.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Transpositions.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Transpositions.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Redux.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Redux.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Visitor.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Visitor.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Fuzzy.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Fuzzy.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/IO.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/IO.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Swap.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Swap.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/CommaInitializer.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/CommaInitializer.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Flagged.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Flagged.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/ProductBase.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/ProductBase.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/GeneralProduct.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/GeneralProduct.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/TriangularMatrix.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/TriangularMatrix.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/SelfAdjointView.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/SelfAdjointView.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/Parallelizer.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/Parallelizer.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/CoeffBasedProduct.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/CoeffBasedProduct.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrix.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrix.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/SolveTriangular.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/SolveTriangular.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixVector.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixVector.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/SelfadjointProduct.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/SelfadjointProduct.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/SelfadjointRank2Update.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/SelfadjointRank2Update.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/TriangularMatrixVector.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/TriangularMatrixVector.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/TriangularMatrixMatrix.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/TriangularMatrixMatrix.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/TriangularSolverMatrix.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/TriangularSolverMatrix.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/products/TriangularSolverVector.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/products/TriangularSolverVector.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/BandMatrix.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/BandMatrix.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/CoreIterators.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/CoreIterators.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/BooleanRedux.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/BooleanRedux.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Select.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Select.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/VectorwiseOp.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/VectorwiseOp.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Random.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Random.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Replicate.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Replicate.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/Reverse.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/Reverse.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/ArrayBase.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/ArrayBase.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/../plugins/ArrayCwiseUnaryOps.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/../plugins/ArrayCwiseUnaryOps.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/../plugins/ArrayCwiseBinaryOps.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/../plugins/ArrayCwiseBinaryOps.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/ArrayWrapper.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/ArrayWrapper.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/GlobalFunctions.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/GlobalFunctions.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Core/util/ReenableStupidWarnings.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Core/util/ReenableStupidWarnings.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/Dense:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/Dense:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/Core:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/Core:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/LU:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/LU:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/misc/Solve.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/misc/Solve.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/misc/Kernel.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/misc/Kernel.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/misc/Image.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/misc/Image.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/LU/FullPivLU.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/LU/FullPivLU.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/LU/PartialPivLU.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/LU/PartialPivLU.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/LU/Determinant.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/LU/Determinant.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/LU/Inverse.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/LU/Inverse.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/LU/arch/Inverse_SSE.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/LU/arch/Inverse_SSE.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/Cholesky:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/Cholesky:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Cholesky/LLT.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Cholesky/LLT.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Cholesky/LDLT.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Cholesky/LDLT.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/QR:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/QR:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/Jacobi:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/Jacobi:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Jacobi/Jacobi.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Jacobi/Jacobi.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/Householder:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/Householder:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Householder/Householder.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Householder/Householder.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Householder/HouseholderSequence.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Householder/HouseholderSequence.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Householder/BlockHouseholder.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Householder/BlockHouseholder.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/QR/HouseholderQR.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/QR/HouseholderQR.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/QR/FullPivHouseholderQR.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/QR/FullPivHouseholderQR.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/QR/ColPivHouseholderQR.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/QR/ColPivHouseholderQR.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/SVD:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/SVD:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/SVD/JacobiSVD.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/SVD/JacobiSVD.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/Geometry:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/Geometry:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/OrthoMethods.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/OrthoMethods.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/EulerAngles.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/EulerAngles.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/Homogeneous.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/Homogeneous.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/RotationBase.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/RotationBase.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/Rotation2D.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/Rotation2D.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/Quaternion.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/Quaternion.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/AngleAxis.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/AngleAxis.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/Transform.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/Transform.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/Translation.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/Translation.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/Scaling.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/Scaling.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/Hyperplane.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/Hyperplane.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/ParametrizedLine.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/ParametrizedLine.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/AlignedBox.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/AlignedBox.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/Umeyama.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/Umeyama.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Geometry/arch/Geometry_SSE.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Geometry/arch/Geometry_SSE.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/Eigenvalues:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/Eigenvalues:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/RealSchur.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/RealSchur.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/./HessenbergDecomposition.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/./HessenbergDecomposition.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/EigenSolver.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/EigenSolver.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/./RealSchur.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/./RealSchur.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/./Tridiagonalization.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/./Tridiagonalization.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/HessenbergDecomposition.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/HessenbergDecomposition.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/ComplexEigenSolver.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/ComplexEigenSolver.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/./ComplexSchur.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/./ComplexSchur.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/./RealQZ.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/./RealQZ.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/eigen3/Eigen/LU:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/eigen3/Eigen/LU:
 
 /opt/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/float.h:
 
@@ -1196,56 +1196,56 @@ SvtxTrack.h:
 
 SvtxTrackState.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/include/phool/PHObject.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/include/phool/PHObject.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TClass.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TClass.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TDictionary.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TDictionary.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TNamed.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TNamed.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TString.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TString.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TMathBase.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMathBase.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/Property.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/Property.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/ESTLType.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/ESTLType.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TObjArray.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TObjArray.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TSeqCollection.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TSeqCollection.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TCollection.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TCollection.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TIterator.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TIterator.h:
 
 /opt/gcc/4.8.2/include/c++/4.8.2/iterator:
 
 /opt/gcc/4.8.2/include/c++/4.8.2/bits/stream_iterator.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TObjString.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TObjString.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/ThreadLocalStorage.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/ThreadLocalStorage.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/RConfigure.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/RConfigure.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TBuffer.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TBuffer.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TInterpreter.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TInterpreter.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TVirtualMutex.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVirtualMutex.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TError.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TError.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/RtypesImp.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/RtypesImp.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TMemberInspector.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TMemberInspector.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TError.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TError.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TIsAProxy.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TIsAProxy.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TVirtualIsAProxy.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TVirtualIsAProxy.h:
 
-/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.3/root/include/TFileMergeInfo.h:
+/afs/rhic.bnl.gov/sphenix/sys/x8664_sl6/new.4/root/include/TFileMergeInfo.h:
