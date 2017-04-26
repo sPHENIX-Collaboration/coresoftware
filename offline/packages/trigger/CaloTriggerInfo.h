@@ -6,32 +6,28 @@
 class CaloTriggerInfo : public PHObject
 {
  public:
-  CaloTriggerInfo();
-  virtual ~CaloTriggerInfo();
+  virtual ~CaloTriggerInfo() {};
 
-  void identify(std::ostream &os = std::cout) const;
-  void Reset() {}
-  int isValid() const { return 1; }
-  void set_best_2x2_E(float E) { _EMCAL_2x2_BEST_E = E; }
-  void set_best_2x2_eta(float eta) { _EMCAL_2x2_BEST_ETA = eta; }
-  void set_best_2x2_phi(float phi) { _EMCAL_2x2_BEST_PHI = phi; }
-  float get_best_2x2_E() { return _EMCAL_2x2_BEST_E; }
-  float get_best_2x2_eta() { return _EMCAL_2x2_BEST_ETA; }
-  float get_best_2x2_phi() { return _EMCAL_2x2_BEST_PHI; }
-  void set_best_4x4_E(float E) { _EMCAL_4x4_BEST_E = E; }
-  void set_best_4x4_eta(float eta) { _EMCAL_4x4_BEST_ETA = eta; }
-  void set_best_4x4_phi(float phi) { _EMCAL_4x4_BEST_PHI = phi; }
-  float get_best_4x4_E() { return _EMCAL_4x4_BEST_E; }
-  float get_best_4x4_eta() { return _EMCAL_4x4_BEST_ETA; }
-  float get_best_4x4_phi() { return _EMCAL_4x4_BEST_PHI; }
+  virtual void identify(std::ostream &os = std::cout) const { os << "CaloTriggerInfo base class" << std::endl; };
+  virtual void Reset() {}
+  virtual int isValid() const { return 0; }
+  virtual void set_best_2x2_E(float E) {}
+  virtual void set_best_2x2_eta(float eta) {}
+  virtual void set_best_2x2_phi(float phi) {}
+  virtual float get_best_2x2_E() { return 0; }
+  virtual float get_best_2x2_eta() { return 0; }
+  virtual float get_best_2x2_phi() { return 0; }
+  virtual void set_best_4x4_E(float E) {}
+  virtual void set_best_4x4_eta(float eta) {}
+  virtual void set_best_4x4_phi(float phi) {}
+  virtual float get_best_4x4_E() { return 0; }
+  virtual float get_best_4x4_eta() { return 0; }
+  virtual float get_best_4x4_phi() { return 0; }
+
+ protected:
+  CaloTriggerInfo() {}
+
  private:
-  float _EMCAL_2x2_BEST_E;
-  float _EMCAL_2x2_BEST_ETA;
-  float _EMCAL_2x2_BEST_PHI;
-
-  float _EMCAL_4x4_BEST_E;
-  float _EMCAL_4x4_BEST_ETA;
-  float _EMCAL_4x4_BEST_PHI;
 
   ClassDef(CaloTriggerInfo, 1);
 };

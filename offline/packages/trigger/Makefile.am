@@ -30,13 +30,16 @@ libcalotrigger_la_LIBADD = \
 
 pkginclude_HEADERS = \
   CaloTriggerSim.h \
-  CaloTriggerInfo.h
+  CaloTriggerInfo.h \
+  CaloTriggerInfo_v1.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
 libcalotrigger_io_la_SOURCES = \
   CaloTriggerInfo.C \
-  CaloTriggerInfo_Dict.C
+  CaloTriggerInfo_Dict.C \
+  CaloTriggerInfo_v1.C \
+  CaloTriggerInfo_v1_Dict.C
 
 libcalotrigger_la_SOURCES = \
   CaloTriggerSim.C \

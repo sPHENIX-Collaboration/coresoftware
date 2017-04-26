@@ -14,7 +14,7 @@
 #include <g4cemc/RawTowerGeom.h>
 #include <g4cemc/RawTowerGeomContainer_Cylinderv1.h>
 
-#include "CaloTriggerInfo.h"
+#include "CaloTriggerInfo_v1.h"
 
 // standard includes
 #include <iomanip>
@@ -297,7 +297,7 @@ int CaloTriggerSim::CreateNode(PHCompositeNode *topNode)
   CaloTriggerInfo *triggerinfo = findNode::getClass<CaloTriggerInfo>(topNode, "CaloTriggerInfo");
   if (!triggerinfo)
   {
-    triggerinfo = new CaloTriggerInfo();
+    triggerinfo = new CaloTriggerInfo_v1();
     PHIODataNode<PHObject> *TriggerNode = new PHIODataNode<PHObject>(triggerinfo, "CaloTriggerInfo", "PHObject");
     trigNode->addNode(TriggerNode);
   }
