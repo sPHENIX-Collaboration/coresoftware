@@ -2073,6 +2073,14 @@ int PHG4KalmanPatRec::ExportOutput() {
 int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 		const unsigned int itrack) {
 
+#ifdef _DEBUG_
+	cout
+	<<__LINE__
+	<< ": PHG4KalmanPatRec::TrackPropPatRec: "<< itrack
+	<<", nhits: " << _tracks.at(itrack).hits.size()
+	<<endl;
+#endif
+
 	vector<SimpleHit3D> track_hits = _tracks.at(itrack).hits;
 
 #ifdef _USE_ZERO_SEED_
@@ -2101,6 +2109,31 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 	float phi = _tracks.at(itrack).phi;
 	float dzdl = _tracks.at(itrack).dzdl;
 	float z0 = _tracks.at(itrack).z0;
+
+#ifdef _DEBUG_
+	cout
+	<<__LINE__
+	<< ": itrack: "<< itrack
+	<< ": {" << kappa
+	<<", " << d
+	<<", " << phi
+	<<", " << dzdl
+	<<", " << z0
+	<<"}; nhits: " << _tracks.at(itrack).hits.size()
+	<<endl;
+#endif
+
+	if(_tracks.at(itrack).hits.size() == 0) {
+		return 1;
+	}
+
+	if(!(kappa==kappa && d==d && phi==phi && dzdl==dzdl && z0==z0)) {
+		return 1;
+	}
+
+	if(kappa == 0) {
+		return 1;
+	}
 
 	float pT = kappaToPt(kappa);
 
@@ -2350,6 +2383,13 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 //		genfit::MeasuredStateOnPlane *state = track->extrapolateToCylinder(
 //				layer_r, TVector3(0, 0, 0), TVector3(0, 0, 1), 0);
 		} catch (...) {
+			if (verbosity > 1) {
+				LogWarning("Can not extrapolate to Cylinder!")<<std::endl;
+			}
+			continue;
+		}
+
+		if(!state) {
 			if (verbosity > 1) {
 				LogWarning("Can not extrapolate to Cylinder!")<<std::endl;
 			}
