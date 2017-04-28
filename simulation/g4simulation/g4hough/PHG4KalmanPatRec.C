@@ -80,6 +80,8 @@
 
 //#define _GET_RPHI_ERROR_
 
+//#define _DO_FULL_FITTING_
+
 using namespace std;
 
 #ifdef _DEBUG_
@@ -91,6 +93,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
                                        const string& name)
     : SubsysReco(name),
 	  _t_seeding(nullptr),
+	  _t_seeds_cleanup(nullptr),
 	  _t_kalman_pat_rec(nullptr),
 	  _t_search_clusters(nullptr),
 	  _t_search_clusters_encoding(nullptr),
@@ -147,6 +150,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _max_merging_deta(0.0170/10.),
 	  _max_merging_dr(0.0500),
 	  _max_merging_dz(0.0500),
+	  _max_share_hits(2),
 	  _mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
 	  _mag_field_re_scaling_factor(1.4/1.5),
 	  _reverse_mag_field(true),
@@ -193,6 +197,9 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 
 	_t_seeding = new PHTimer("_t_seeding");
 	_t_seeding->stop();
+
+	_t_seeds_cleanup = new PHTimer("_t_seeds_cleanup");
+	_t_seeds_cleanup->stop();
 
 	_t_kalman_pat_rec = new PHTimer("_t_kalman_pat_rec");
 	_t_kalman_pat_rec->stop();
@@ -318,9 +325,11 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 
 
 	// Cleanup Seeds
+	if(verbosity >= 1) _t_seeds_cleanup->restart();
 	code = CleanupSeeds();
 	if (code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
+	if(verbosity >= 1) _t_seeds_cleanup->stop();
 
 	if(verbosity >= 1) _t_seeding->stop();
 
@@ -350,6 +359,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 
 	std::cout << "=============== Timers: ===============" << std::endl;
 	std::cout << "Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "\t - Seeds Cleanup:          "<<_t_seeds_cleanup->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "\t - Cluster searching time: "<<_t_search_clusters->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "\t\t - Encoding time:        "<<_t_search_clusters_encoding->get_accumulated_time()/1000. << " sec" <<std::endl;
@@ -373,6 +383,7 @@ int PHG4KalmanPatRec::End(PHCompositeNode *topNode) {
 		LogDebug("Enter End \n");
 
 	delete _t_seeding;
+	delete _t_seeds_cleanup;
 	delete _t_kalman_pat_rec;
 	delete _t_full_fitting;
 	delete _t_search_clusters;
@@ -1861,8 +1872,6 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 
 		unsigned int itrack = m_key_itrack.equal_range(key).first->second;
 
-		std::vector<unsigned int> v_related_tracks;
-
 #ifdef _DEBUG_
 		cout<<"---------------------------------------------------\n";
 		cout<<__LINE__<< ": processing: "<<itrack<<endl;
@@ -1872,6 +1881,13 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 		if (v_track_used[itrack] == true)
 			continue;
 
+		std::set<unsigned int> hitIDs;
+		for( SimpleHit3D hit : _tracks[itrack].hits) {
+			hitIDs.insert(hit.get_id());
+		}
+
+		//! find tracks winthin neighbor bins
+		std::vector<unsigned int> v_related_tracks;
 		for (int id = std::get < 0 > (key) - 1; id <= std::get < 0 > (key) + 1;
 				++id) {
 			for (int iz = std::get < 1 > (key) - 1;
@@ -1888,7 +1904,22 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 									it
 											!= m_key_itrack.equal_range(
 													key_temp).second; ++it) {
-								v_related_tracks.push_back(it->second);
+
+								unsigned int share_hits = 0;
+								for(SimpleHit3D hit : _tracks[it->second].hits) {
+									unsigned int hitID = hit.get_id();
+									if(std::find(
+											hitIDs.begin(),
+											hitIDs.end(),
+											hitID) != hitIDs.end()) {
+										++share_hits;
+										if(share_hits > _max_share_hits) {
+											v_related_tracks.push_back(it->second);
+											break;
+										}
+									}
+								} //loop to find common hits
+
 							}
 #ifdef _DEBUG_
 							cout << __LINE__ << ": ";
@@ -1915,10 +1946,15 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 			int n_merge_track = 1;
 #endif
 
-			std::set<unsigned int> hitIDs;
+			//! Add hits from other related tracks
+			//std::set<unsigned int> hitIDs;
 			for(unsigned int irel : v_related_tracks) {
 
 				if(v_track_used[irel] == true) continue;
+
+				//! hits from itrack already registered
+				if(irel == itrack) continue;
+
 #ifdef _DEBUG_
 				++n_merge_track;
 #endif
@@ -1991,6 +2027,10 @@ int PHG4KalmanPatRec::ExportOutput() {
 		std::cout << "Contains: " << iter->second->get_cluster_IDs().size() << " clusters." <<std::endl;
 		std::cout << "=========================" << std::endl;
 
+		SvtxTrack_v1 track;
+		track.set_id(iter->first);
+
+#ifdef _DO_FULL_FITTING_
 		if(verbosity >= 1) _t_full_fitting->restart();
 		if (_fitter->processTrack(iter->second.get(), false) != 0) {
 			if (verbosity >= 1)
@@ -2002,9 +2042,6 @@ int PHG4KalmanPatRec::ExportOutput() {
 
 		if(verbosity >= 1) _t_output_io->restart();
 //		iter->second->getGenFitTrack()->Print();
-
-		SvtxTrack_v1 track;
-		track.set_id(iter->first);
 
 		track.set_chisq(iter->second->get_chi2());
 		track.set_ndf(iter->second->get_ndf());
@@ -2027,7 +2064,11 @@ int PHG4KalmanPatRec::ExportOutput() {
 		TVector3 mom = gf_state_vertex_ca->getMom();
 		TVector3 pos = gf_state_vertex_ca->getPos();
 		TMatrixDSym cov = gf_state_vertex_ca->get6DCov();
-
+#else
+		TVectorD state = iter->second->getGenFitTrack()->getStateSeed();
+		TVector3 pos(state(0),state(1),state(2));
+		TVector3 mom(state(3),state(4),state(5));
+#endif
 		track.set_px(mom.Px());
 		track.set_py(mom.Py());
 		track.set_pz(mom.Pz());

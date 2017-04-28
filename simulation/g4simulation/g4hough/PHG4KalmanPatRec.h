@@ -437,6 +437,7 @@ private:
 
 	int _event;
 	PHTimer *_t_seeding;
+	PHTimer *_t_seeds_cleanup;
 	PHTimer *_t_kalman_pat_rec;
 	PHTimer *_t_search_clusters;
 	PHTimer *_t_search_clusters_encoding;
@@ -515,6 +516,9 @@ private:
 	float _max_merging_deta;
 	float _max_merging_dr;
 	float _max_merging_dz;
+
+	//! if two seeds have common hits more than this number, merge them
+	unsigned int _max_share_hits;
 
 	//GenFit Related Part
 	//!
