@@ -94,6 +94,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
     : SubsysReco(name),
 	  _t_seeding(nullptr),
 	  _t_seeds_cleanup(nullptr),
+	  _t_translate_to_PHGenFitTrack(nullptr),
 	  _t_kalman_pat_rec(nullptr),
 	  _t_search_clusters(nullptr),
 	  _t_search_clusters_encoding(nullptr),
@@ -200,6 +201,9 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 
 	_t_seeds_cleanup = new PHTimer("_t_seeds_cleanup");
 	_t_seeds_cleanup->stop();
+
+	_t_translate_to_PHGenFitTrack = new PHTimer("_t_translate_to_PHGenFitTrack");
+	_t_translate_to_PHGenFitTrack->stop();
 
 	_t_kalman_pat_rec = new PHTimer("_t_kalman_pat_rec");
 	_t_kalman_pat_rec->stop();
@@ -361,6 +365,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	std::cout << "Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "\t - Seeds Cleanup:          "<<_t_seeds_cleanup->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "\t - Track Translation time: "<<_t_translate_to_PHGenFitTrack->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "\t - Cluster searching time: "<<_t_search_clusters->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "\t\t - Encoding time:        "<<_t_search_clusters_encoding->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "\t\t - Map iteration:        "<<_t_search_clusters_map_iter->get_accumulated_time()/1000. << " sec" <<std::endl;
@@ -379,11 +384,13 @@ int PHG4KalmanPatRec::End(PHCompositeNode *topNode) {
 	if (_do_evt_display)
 		_fitter->displayEvent();
 
-	if(verbosity >= 1)
+#ifdef _DEBUG_
 		LogDebug("Enter End \n");
+#endif
 
 	delete _t_seeding;
 	delete _t_seeds_cleanup;
+	delete _t_translate_to_PHGenFitTrack;
 	delete _t_kalman_pat_rec;
 	delete _t_full_fitting;
 	delete _t_search_clusters;
@@ -399,8 +406,9 @@ int PHG4KalmanPatRec::End(PHCompositeNode *topNode) {
 	delete _tracker;
 	_tracker = NULL;
 
-	if(verbosity >= 1)
+#ifdef _DEBUG_
 		LogDebug("Leaving End \n");
+#endif
 
 #ifdef _DEBUG_
 	fout.close();
@@ -2028,8 +2036,12 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 	_trackID_PHGenFitTrack.clear();
 	//_trackID_clusterID.clear();
 
-	for(unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
-		TrackPropPatRec(topNode, itrack);
+	_t_translate_to_PHGenFitTrack->restart();
+	SimpleTrack3DToPHGenFitTracks(topNode);
+	_t_translate_to_PHGenFitTrack->stop();
+
+	for(auto iter = _trackID_PHGenFitTrack.begin(); iter != _trackID_PHGenFitTrack.end(); ++iter) {
+		TrackPropPatRec(topNode, iter->first, iter->second);
 	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -2038,19 +2050,23 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 
 int PHG4KalmanPatRec::ExportOutput() {
 
+#ifdef _DEBUG_
 	std::cout << "=========================" << std::endl;
 	std::cout << "PHG4KalmanPatRec::FullTrackFitting: Event: "<< _event << std::endl;
 	std::cout << "Total Raw Tracks: " << _trackID_PHGenFitTrack.size() << std::endl;
 	std::cout << "=========================" << std::endl;
+#endif
 
 	for (std::map<int, std::shared_ptr<PHGenFit::Track>>::iterator iter =
 			_trackID_PHGenFitTrack.begin();
 			iter != _trackID_PHGenFitTrack.end(); iter++) {
 
+#ifdef _DEBUG_
 		std::cout << "=========================" << std::endl;
-		std::cout << __LINE__ << ": trackID: " << iter->first << std::endl;
+		std::cout << __LINE__ << ": iPHGenFitTrack: " << iter->first << std::endl;
 		std::cout << "Contains: " << iter->second->get_cluster_IDs().size() << " clusters." <<std::endl;
 		std::cout << "=========================" << std::endl;
+#endif
 
 		SvtxTrack_v1 track;
 		track.set_id(iter->first);
@@ -2132,12 +2148,10 @@ int PHG4KalmanPatRec::ExportOutput() {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//#undef _DEBUG_
 
-//#define _USE_ZERO_SEED_
+int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode) {
 
-int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
-		const unsigned int itrack) {
+	for(unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
 
 #ifdef _DEBUG_
 	cout
@@ -2286,8 +2300,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 
 	if (!cells_svtx and !cells_intt and !cells_maps) {
 		if (verbosity >= 0) {
-			LogError("No PHG4CellContainer found!");
-		}
+			LogError("No PHG4CellContainer found!");}
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
 
@@ -2338,8 +2351,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 		SvtxCluster* cluster = _g4clusters->get(cluster_ID);
 
 		if (!cluster) {
-			LogError("No cluster Found!\n");
-			continue;
+			LogError("No cluster Found!\n");continue;
 		}
 
 		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
@@ -2418,27 +2430,38 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 	if (_fitter->processTrack(track.get(), false) != 0) {
 		if (verbosity >= 1)
 			LogWarning("Track fitting failed")<<std::endl;
-		//delete track;
+			//delete track;
 		return -1;
 	}
 
-	//initial track ID from this seed
-	int initial_trackID = _trackID_PHGenFitTrack.size();
-	_trackID_PHGenFitTrack.insert(std::make_pair(initial_trackID, track));
-	//_trackID_clusterID.insert(std::make_pair(initial_trackID, hitIDs));
+	//insert fitted track to PHGenFit working map
+	_trackID_PHGenFitTrack.insert(std::make_pair(_trackID_PHGenFitTrack.size(), track));
+	}
 
-#define _START_FROM_FIXED_LAYER_
+	return 0;
+}
+
+//#undef _DEBUG_
+
+//#define _USE_ZERO_SEED_
+
+int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> track) {
+
+//#define _START_FROM_FIXED_LAYER_
+
+	unsigned int last_seeding_cluster_ID = track->get_cluster_IDs().back();
+	unsigned int last_seeding_cluster_layer = _g4clusters->get(last_seeding_cluster_ID)->get_layer();
 
 #ifdef _START_FROM_FIXED_LAYER_
 	for (int layer = 8; layer < _nlayers_all; ++layer) {
 #else
-	for (int layer = _nlayers; layer < _nlayers_all; ++layer) {
+	for (int layer = last_seeding_cluster_layer + 1; layer < _nlayers_all; ++layer) {
 #endif
 		float layer_r = _radii_all[_layer_ilayer_map_all[layer]];
 
 #ifdef _DEBUG_
 		std::cout<<"========================="<<std::endl;
-		std::cout<<__LINE__<<": Event: "<< _event <<": itrack: "<<itrack <<": layer: "<<layer<<std::endl;
+		std::cout<<__LINE__<<": Event: "<< _event <<": iPHGenFitTrack: "<<iPHGenFitTrack <<": layer: "<<layer<<std::endl;
 		std::cout<<"========================="<<std::endl;
 #endif
 		std::unique_ptr<genfit::MeasuredStateOnPlane> state = nullptr;
@@ -2541,17 +2564,17 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 			std::cout << __LINE__ << ": " << "First candidate: " << "IncrChi2: "
 					<< iter->first << std::endl;
 //			LogDebug("\n");
-//			_trackID_PHGenFitTrack[initial_trackID]->getGenFitTrack()->Print();
+//			_trackID_PHGenFitTrack[iPHGenFitTrack]->getGenFitTrack()->Print();
 #endif
 
 			//if (iter->first < _max_incr_chi2)
-			_trackID_PHGenFitTrack[initial_trackID] = std::shared_ptr<PHGenFit::Track> (iter->second);
-			track = _trackID_PHGenFitTrack[initial_trackID];
+			_trackID_PHGenFitTrack[iPHGenFitTrack] = std::shared_ptr<PHGenFit::Track> (iter->second);
+			track = _trackID_PHGenFitTrack[iPHGenFitTrack];
 //			track = std::shared_ptr<PHGenFit::Track> (iter->second);
 
 #ifdef _DEBUG_
 //			LogDebug("\n");
-//			_trackID_PHGenFitTrack[initial_trackID]->getGenFitTrack()->Print();
+//			_trackID_PHGenFitTrack[iPHGenFitTrack]->getGenFitTrack()->Print();
 #endif
 
 		}
@@ -2578,7 +2601,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 
 #ifdef _DEBUG_
 		cout<<__LINE__<<": updateOneMeasurementKalman:"<<endl;
-		std::cout<<"itrack: "<<itrack
+		std::cout<<"iPHGenFitTrack: "<<iPHGenFitTrack
 				<<", layer: "<<layer
 				<<", #meas: "<<measurements.size()
 				<<", #tracks: "<<incr_chi2s_new_tracks.size()
@@ -2588,7 +2611,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode,
 		for (std::map<double, PHGenFit::Track*>::iterator iter =
 				incr_chi2s_new_tracks.begin();
 				iter != incr_chi2s_new_tracks.end(); iter++) {
-			std::cout << "IncrChi2: "<< iter->first << std::endl;
+			std::cout << __LINE__ << ": IncrChi2: "<< iter->first << std::endl;
 		}
 #endif
 

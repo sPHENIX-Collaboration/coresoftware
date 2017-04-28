@@ -397,7 +397,8 @@ private:
 	unsigned int encode_cluster_index(const unsigned int layer, const unsigned int iz, const unsigned int irphi);
 
 	//! FullTrackFitting Call.
-	int TrackPropPatRec(PHCompositeNode* topNode, const unsigned int itrack);
+	int SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode);
+	int TrackPropPatRec(PHCompositeNode* topNode, const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> track);
 
 	//! TrackPropPatRec Call.
 	std::vector<unsigned int> SearchHitsNearBy (const unsigned int layer, const float z_center, const float phi_center, const float z_window, const float phi_window);
@@ -438,6 +439,7 @@ private:
 	int _event;
 	PHTimer *_t_seeding;
 	PHTimer *_t_seeds_cleanup;
+	PHTimer *_t_translate_to_PHGenFitTrack;
 	PHTimer *_t_kalman_pat_rec;
 	PHTimer *_t_search_clusters;
 	PHTimer *_t_search_clusters_encoding;
