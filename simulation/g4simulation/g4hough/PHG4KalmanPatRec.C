@@ -331,6 +331,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	// Cleanup Seeds
 	if(verbosity >= 1) _t_seeds_cleanup->restart();
 	code = CleanupSeeds();
+	_clusters.clear();
 	if (code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 	if(verbosity >= 1) _t_seeds_cleanup->stop();
@@ -343,6 +344,15 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	// Kalman cluster accociation
 	//-----------------------------------
 	if (!_seeding_only_mode) {
+
+		// sort clusters
+		BuildLayerZPhiHitMap();
+
+		_t_translate_to_PHGenFitTrack->restart();
+		SimpleTrack3DToPHGenFitTracks(topNode);
+		_tracks.clear();
+		_t_translate_to_PHGenFitTrack->stop();
+
 		code = FullTrackFitting(topNode);
 		if (code != Fun4AllReturnCodes::EVENT_OK)
 			return code;
@@ -2029,17 +2039,6 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 
 int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 
-	// sort clusters
-	BuildLayerZPhiHitMap();
-
-	// clean up working array for each event
-	_trackID_PHGenFitTrack.clear();
-	//_trackID_clusterID.clear();
-
-	_t_translate_to_PHGenFitTrack->restart();
-	SimpleTrack3DToPHGenFitTracks(topNode);
-	_t_translate_to_PHGenFitTrack->stop();
-
 	for(auto iter = _trackID_PHGenFitTrack.begin(); iter != _trackID_PHGenFitTrack.end(); ++iter) {
 		TrackPropPatRec(topNode, iter->first, iter->second);
 	}
@@ -2150,6 +2149,9 @@ int PHG4KalmanPatRec::ExportOutput() {
 
 
 int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode) {
+
+	// clean up working array for each event
+	_trackID_PHGenFitTrack.clear();
 
 	for(unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
 
