@@ -1880,11 +1880,19 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 
 		if (v_track_used[itrack] == true)
 			continue;
-
+#ifdef _DEBUG_
+		cout<<__LINE__<<":    itrack: "<< itrack <<": {";
+#endif
 		std::set<unsigned int> hitIDs;
 		for( SimpleHit3D hit : _tracks[itrack].hits) {
 			hitIDs.insert(hit.get_id());
+#ifdef _DEBUG_
+			cout<<hit.get_id() <<", ";
+#endif
 		}
+#ifdef _DEBUG_
+		cout<<"}"<<endl;
+#endif
 
 		//! find tracks winthin neighbor bins
 		std::vector<unsigned int> v_related_tracks;
@@ -1905,6 +1913,9 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 											!= m_key_itrack.equal_range(
 													key_temp).second; ++it) {
 
+								if(it->second == itrack)
+									continue;
+
 								unsigned int share_hits = 0;
 								for(SimpleHit3D hit : _tracks[it->second].hits) {
 									unsigned int hitID = hit.get_id();
@@ -1912,29 +1923,37 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 											hitIDs.begin(),
 											hitIDs.end(),
 											hitID) != hitIDs.end()) {
+
 										++share_hits;
 										if(share_hits > _max_share_hits) {
 											v_related_tracks.push_back(it->second);
+#ifdef _DEBUG_
+											cout<<__LINE__<<": rel track: "<<it->second <<": {";
+											for(SimpleHit3D hit : _tracks[it->second].hits) {
+												cout<< hit.get_id() <<", ";
+											}
+											cout<<"}"<<endl;
+#endif
 											break;
 										}
 									}
 								} //loop to find common hits
 
 							}
-#ifdef _DEBUG_
-							cout << __LINE__ << ": ";
-							printf("{%5d, %5d, %5d, %5d} => {%d, %d} \n", id,
-									iz, iphi, idzdl,
-									m_key_itrack.equal_range(key_temp).first->second,
-									m_key_itrack.equal_range(key_temp).second->second);
-#endif
+//#ifdef _DEBUG_
+//							cout << __LINE__ << ": ";
+//							printf("{%5d, %5d, %5d, %5d} => {%d, %d} \n", id,
+//									iz, iphi, idzdl,
+//									m_key_itrack.equal_range(key_temp).first->second,
+//									m_key_itrack.equal_range(key_temp).second->second);
+//#endif
 						}
 					}
 				}
 			}
 		}
 
-		if(v_related_tracks.size() == 1) {
+		if(v_related_tracks.size() == 0) {
 			_tracks_cleanup.push_back(_tracks[itrack]);
 		} else {
 
@@ -1944,6 +1963,7 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 
 #ifdef _DEBUG_
 			int n_merge_track = 1;
+			cout<<__LINE__<<": nclusters before merge: "<< hitIDs.size() <<endl;
 #endif
 
 			//! Add hits from other related tracks
@@ -1953,7 +1973,7 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 				if(v_track_used[irel] == true) continue;
 
 				//! hits from itrack already registered
-				if(irel == itrack) continue;
+				//if(irel == itrack) continue;
 
 #ifdef _DEBUG_
 				++n_merge_track;
@@ -1968,14 +1988,19 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 
 #ifdef _DEBUG_
 			cout<<__LINE__<<": # tracks merged: "<< n_merge_track <<endl;
-			cout<<__LINE__<<": nclusters before merge: "<< v_related_tracks.size() <<endl;
+			cout<<"{ ";
 #endif
 			for(unsigned int hitID : hitIDs) {
 				SimpleHit3D hit;
 				hit.set_id(hitID);
+#ifdef _DEBUG_
+				cout<<hitID <<", ";
+#endif
 				_tracks_cleanup.back().hits.push_back(hit);
 			}
 #ifdef _DEBUG_
+			cout<<"}"<<endl;
+			cout<<__LINE__<<": nclusters after merge:  "<< hitIDs.size() <<endl;
 			cout<<__LINE__<<": nclusters after merge:  "<< _tracks_cleanup.back().hits.size() <<endl;
 #endif
 		}
