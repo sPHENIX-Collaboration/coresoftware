@@ -75,10 +75,10 @@ PHG4DetectorGroupSubsystem::InitRun( PHCompositeNode* topNode )
 	      DetNode = new PHCompositeNode(SuperDetector());
 	      parNode->addNode(DetNode);
 	    }
-	  paramscontainer = new PHG4ParametersContainer(superdetector);
+//	  paramscontainer = new PHG4ParametersContainer(superdetector);
 	  DetNode->addNode(new PHDataNode<PHG4ParametersContainer>(paramscontainer,g4geonodename));
 	}
-      paramscontainer->AddPHG4Parameters(layer,params);
+//      paramscontainer->AddPHG4Parameters(layer,params);
       paramnodename += superdetector;
       calibdetname = superdetector;
       isSuperDetector = 1;
@@ -177,93 +177,164 @@ PHG4DetectorGroupSubsystem::set_double_param(const int detid, const std::string 
   }
 // here we know we have entries for the detector id and the variable name exists
 // in the defaults, so now lets set it
-//  iter->second[name] = dval;
+  map<int, map<const std::string, double>>::iterator dmapiter = dparams.find(detid);
+  if (dmapiter == dparams.end())
+  {
+    map<const std::string, double> newdmap;
+    newdmap[name] = dval;
+    dparams[detid] = newdmap;
+  }
+  else
+  {
+    dmapiter->second[name] = dval;
+  }
   return;
 }
-/*
-  if (default_double.find(name) == default_double.end())
-    {
-      cout << "double parameter " << name << " not implemented" << endl;
-      cout << "implemented double parameters are:" << endl;
-      for (map<const string, double>::const_iterator iter = default_double.begin(); iter != default_double.end(); ++iter)
-	{
-	  cout << iter->first << endl;
-	}
-      return;
-    }
-  dparams[name] = dval;
-*/
 
 
 double
 PHG4DetectorGroupSubsystem::get_double_param(const int detid, const std::string &name) const
 {
-  return params->get_double_param(name);
+  return paramscontainer->GetParameters(detid)->get_double_param(name);
 }
 
 void
-PHG4DetectorGroupSubsystem::set_int_param(const std::string &name, const int ival)
+PHG4DetectorGroupSubsystem::set_int_param(const int detid, const std::string &name, const int ival)
 {
-/*
-  if (default_int.find(name) == default_int.end())
+  map<int, map<const std::string, int>>::const_iterator iter = default_int.find(detid);
+  if (iter == default_int.end())
+  {
+    cout << "detid " << detid << " not implemented" << endl;
+    cout << "implemented detector ids: " << endl;
+    for (map<int, map<const std::string, int>>::const_iterator iter2 = default_int.begin(); iter2 != default_int.end(); ++iter2)
     {
-      cout << "integer parameter " << name << " not implemented" << endl;
-      cout << "implemented integer parameters are:" << endl;
-      for (map<const string, int>::const_iterator iter = default_int.begin(); iter != default_int.end(); ++iter)
-	{
-	  cout << iter->first << endl;
-	}
-      return;
+      cout << "detid: " << iter2->first << endl;
     }
-  iparams[name] = ival;
-*/
+    return;
+  }
+  if (iter->second.find(name) == iter->second.end())
+  {
+      cout << "int parameter " << name << " not implemented" << endl;
+      cout << "implemented int parameters are:" << endl;
+      for (map<const string, int>::const_iterator iter3 = iter->second.begin(); iter3 != iter->second.end(); ++iter3)
+      {
+	cout << iter3->first << endl;
+      }
+      return;
+  }
+// here we know we have entries for the detector id and the variable name exists
+// in the defaults, so now lets set it
+  map<int, map<const std::string, int>>::iterator imapiter = iparams.find(detid);
+  if (imapiter == iparams.end())
+  {
+    map<const std::string, int> newdmap;
+    newdmap[name] = ival;
+    iparams[detid] = newdmap;
+  }
+  else
+  {
+    imapiter->second[name] = ival;
+  }
 }
 
 int
-PHG4DetectorGroupSubsystem::get_int_param(const std::string &name) const
+PHG4DetectorGroupSubsystem::get_int_param(const int detid, const std::string &name) const
 {
-  return params->get_int_param(name);
+  return paramscontainer->GetParameters(detid)->get_int_param(name);
 }
 
 void
-PHG4DetectorGroupSubsystem::set_string_param(const std::string &name, const string &sval)
+PHG4DetectorGroupSubsystem::set_string_param(const int detid, const std::string &name, const string &sval)
 {
-/*
-  if (default_string.find(name) == default_string.end())
+  map<int, map<const std::string, string>>::const_iterator iter = default_string.find(detid);
+  if (iter == default_string.end())
+  {
+    cout << "detid " << detid << " not implemented" << endl;
+    cout << "implemented detector ids: " << endl;
+    for (map<int, map<const std::string, string>>::const_iterator iter2 = default_string.begin(); iter2 != default_string.end(); ++iter2)
     {
+      cout << "detid: " << iter2->first << endl;
+    }
+    return;
+  }
+  if (iter->second.find(name) == iter->second.end())
+  {
       cout << "string parameter " << name << " not implemented" << endl;
       cout << "implemented string parameters are:" << endl;
-      for (map<const string, string>::const_iterator iter = default_string.begin(); iter != default_string.end(); ++iter)
-	{
-	  cout << iter->first << endl;
-	}
+      for (map<const string, string>::const_iterator iter3 = iter->second.begin(); iter3 != iter->second.end(); ++iter3)
+      {
+	cout << iter3->first << endl;
+      }
       return;
-    }
-  cparams[name] = sval;
-*/
+  }
+// here we know we have entries for the detector id and the variable name exists
+// in the defaults, so now lets set it
+  map<int, map<const std::string, string>>::iterator smapiter = cparams.find(detid);
+  if (smapiter == cparams.end())
+  {
+    map<const std::string, string> newdmap;
+    newdmap[name] = sval;
+    cparams[detid] = newdmap;
+  }
+  else
+  {
+    smapiter->second[name] = sval;
+  }
+  return;
 }
 
 string
-PHG4DetectorGroupSubsystem::get_string_param(const std::string &name) const
+PHG4DetectorGroupSubsystem::get_string_param(const int detid, const std::string &name) const
 {
-  return params->get_string_param(name);
+  return paramscontainer->GetParameters(detid)->get_string_param(name);
 }
 
 void
 PHG4DetectorGroupSubsystem::UpdateParametersWithMacro()
 {
-  for (map<const string,double>::const_iterator iter = dparams.begin(); iter != dparams.end(); ++iter)
+  map<int, map<const std::string, double>>::const_iterator iter;
+  for (iter = dparams.begin(); iter != dparams.end(); ++iter)
+  {
+    map<const std::string, double>::const_iterator diter;
+    for (diter=iter->second.begin(); diter != iter->second.end(); ++diter)
     {
-      params->set_double_param(iter->first,iter->second);
+      set_double_param(iter->first,diter->first, diter->second);
     }
-  for (map<const string,int>::const_iterator iter = iparams.begin(); iter != iparams.end(); ++iter)
+  }
+  map<int, map<const std::string, int>>::const_iterator iiter;
+  for (iiter = iparams.begin(); iiter != iparams.end(); ++iiter)
+  {
+    PHG4Parameters *params = GetParamsContainer()->GetParametersToModify(iiter->first);
+
+    map<const std::string, int>::const_iterator iiter2;
+    for (iiter2=iiter->second.begin(); iiter2 != iiter->second.end(); ++iiter2)
     {
-      params->set_int_param(iter->first,iter->second);
+      cout << "updating detector " << iiter->first << ", name "  << iiter2->first
+	   << ", value " << iiter2->second << endl;
+      params->set_int_param(iiter2->first, iiter2->second);
     }
-  for (map<const string,string>::const_iterator iter = cparams.begin(); iter != cparams.end(); ++iter)
+  }
+  map<int, map<const std::string, string>>::const_iterator siter;
+  for (siter = cparams.begin(); siter != cparams.end(); ++siter)
+  {
+    map<const std::string, string>::const_iterator siter2;
+    for (siter2=siter->second.begin(); siter2 != siter->second.end(); ++siter2)
     {
-      params->set_string_param(iter->first,iter->second);
+      set_string_param(siter->first,siter2->first, siter2->second);
     }
+  }
+  // for (map<const string,double>::const_iterator iter = dparams.begin(); iter != dparams.end(); ++iter)
+  //    {
+  //      params->set_double_param(iter->first,iter->second);
+  //    }
+  // for (map<const string,int>::const_iterator iter = iparams.begin(); iter != iparams.end(); ++iter)
+  //   {
+  //     params->set_int_param(iter->first,iter->second);
+  //   }
+  // for (map<const string,string>::const_iterator iter = cparams.begin(); iter != cparams.end(); ++iter)
+  //   {
+  //     params->set_string_param(iter->first,iter->second);
+  //   }
   return;
 }
 
@@ -503,29 +574,31 @@ PHG4DetectorGroupSubsystem::ReadParamsFromFile(const string &name, const PHG4Det
 void
 PHG4DetectorGroupSubsystem::SetActive(const int detid, const int i)
 {
-  iparams["active"] = i;
+  cout << "setting detector " << detid << " active to " << i << endl;
+  set_int_param(detid,"active", i);
 }
 
 void
 PHG4DetectorGroupSubsystem::SetAbsorberActive(const int detid, const int i)
 {
-  iparams["absorberactive"] = i;
+  set_int_param(detid,"absorberactive", i);
 }
 
 void
 PHG4DetectorGroupSubsystem::BlackHole(const int detid, const int i)
 {
-  iparams["blackhole"] = i;
+  set_int_param(detid,"blackhole",i);
 }
 
 void
 PHG4DetectorGroupSubsystem::SetAbsorberTruth(const int detid, const int i)
 {
-  iparams["absorbertruth"] = i;
+  set_int_param(detid,"absorbertruth",i);
 }
 
 void PHG4DetectorGroupSubsystem::PrintDefaultParams() const
 {
+  cout << "Default Parameters: " << endl;
   cout << "int values: " << endl;
   map<int, map<const std::string, int>>::const_iterator iiter;
   for (iiter = default_int.begin(); iiter != default_int.end(); ++iiter)
@@ -551,6 +624,45 @@ void PHG4DetectorGroupSubsystem::PrintDefaultParams() const
   cout << "string values: " << endl;
   map<int, map<const std::string, string>>::const_iterator siter;
   for (siter = default_string.begin(); siter != default_string.end(); ++siter)
+  {
+    cout << "Detector id: " << siter->first << endl;
+    map<const string, string>::const_iterator siter2;
+    for (siter2 = siter->second.begin(); siter2 != siter->second.end(); ++siter2)
+    {
+      cout << siter2->first << ": " << siter2->second << endl;
+    }
+  }
+  return;
+}
+
+void PHG4DetectorGroupSubsystem::PrintMacroParams() const
+{
+  cout << "Macro Parameters: " << endl;
+  cout << "int values: " << endl;
+  map<int, map<const std::string, int>>::const_iterator iiter;
+  for (iiter = iparams.begin(); iiter != iparams.end(); ++iiter)
+  {
+    cout << "Detector id: " << iiter->first << endl;
+    map<const string, int>::const_iterator iiter2;
+    for (iiter2 = iiter->second.begin(); iiter2 != iiter->second.end(); ++iiter2)
+    {
+      cout << iiter2->first << ": " << iiter2->second << endl;
+    }
+  }
+  cout << "double values: " << endl;
+  map<int, map<const std::string, double>>::const_iterator diter;
+  for (diter = dparams.begin(); diter != dparams.end(); ++diter)
+  {
+    cout << "Detector id: " << diter->first << endl;
+    map<const string, double>::const_iterator diter2;
+    for (diter2 = diter->second.begin(); diter2 != diter->second.end(); ++diter2)
+    {
+      cout << diter2->first << ": " << diter2->second << endl;
+    }
+  }
+  cout << "string values: " << endl;
+  map<int, map<const std::string, string>>::const_iterator siter;
+  for (siter = cparams.begin(); siter != cparams.end(); ++siter)
   {
     cout << "Detector id: " << siter->first << endl;
     map<const string, string>::const_iterator siter2;

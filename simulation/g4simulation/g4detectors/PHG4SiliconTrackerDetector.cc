@@ -446,7 +446,7 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
 {
   if (active)
   {
-    std::string geonode = (superdetector != "NONE") ? boost::str(boost::format("CYLINDERGEOM_%s") % superdetector) : boost::str(boost::format("CYLINDERGEOM_%s") % detector_type % nlayer_);
+    std::string geonode = (superdetector != "NONE") ? boost::str(boost::format("CYLINDERGEOM_%s") % superdetector) : boost::str(boost::format("CYLINDERGEOM_%s") % detector_type);
 
     PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonode.c_str());
     if (!geo)

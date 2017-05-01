@@ -39,10 +39,10 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
  // Get/Set parameters from macro
   void set_double_param(const int detid, const std::string &name, const double dval);
   double get_double_param(const int detid, const std::string &name) const;
-  void set_int_param(const std::string &name, const int ival);
-  int get_int_param(const std::string &name) const;
-  void set_string_param(const std::string &name, const std::string &sval);
-  std::string get_string_param(const std::string &name) const;
+  void set_int_param(const int detid, const std::string &name, const int ival);
+  int get_int_param(const int detid, const std::string &name) const;
+  void set_string_param(const int detid, const std::string &name, const std::string &sval);
+  std::string get_string_param(const int detid, const std::string &name) const;
 
   void UseDB(const int i = 1) {usedb = i;}
   int ReadDB() const {return usedb;}
@@ -74,14 +74,14 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
   // prevent abuse (this makes the list of possible parameters deterministic)
   void InitializeParameters();
   void AddDetId(const int i) {layers.insert(i);}
-
+  std::pair<std::set<int>::const_iterator, std::set<int>::const_iterator> GetDetIds() const
+  {return std::make_pair(layers.begin(),layers.end());}
   void set_default_double_param(const int detid,  const std::string &name, const double dval);
   void set_default_int_param(const int detid, const std::string &name, const int ival); 
   void set_default_string_param(const int detid, const std::string &name, const std::string &sval);
-  //void set_default_int_param(const std::string &name, const int ival);
-  //void set_default_string_param(const std::string &name, const std::string &sval);
   int BeginRunExecuted() const {return beginrunexecuted;}
   void PrintDefaultParams() const;
+  void PrintMacroParams() const;
 
  private:
   PHG4Parameters *params;
@@ -99,13 +99,9 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
 
   std::map<int, PHG4Parameters *> paramsmap;
 
-  /* std::map<int, std::map<const std::string, double>> dparams; */
-  /* std::map<int, std::map<const std::string, int>> iparams; */
-  /* std::map<int, std::map<const std::string, std::string>> cparams; */
-
-  std::map<const std::string, double> dparams;
-  std::map<const std::string, int> iparams;
-  std::map<const std::string, std::string> cparams;
+  std::map<int, std::map<const std::string, double>> dparams;
+  std::map<int, std::map<const std::string, int>> iparams;
+  std::map<int, std::map<const std::string, std::string>> cparams;
 
    std::map<int, std::map<const std::string, double>> default_double;
    std::map<int, std::map<const std::string, int>> default_int;
