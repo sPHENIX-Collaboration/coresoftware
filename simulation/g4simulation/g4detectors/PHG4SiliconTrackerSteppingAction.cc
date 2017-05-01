@@ -148,10 +148,13 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 	  cout << "logvol name " << logvolpre->GetName() << ", post: " << logvolpost->GetName() << endl;
           // we need a hack to replace the values above with the correct strip index values
           // the transform of the world coordinates into the sensor frame will work correctly, so we determine the strip indices from the hit position
-	  cout << "strip y bef: " << strip_y_index << ", strip z: " << strip_z_index;
+	  cout << "strip y bef: " << strip_y_index << ", strip z: " << strip_z_index << endl;
 
           G4ThreeVector preworldPos = prePoint->GetPosition();
           G4ThreeVector strip_pos = touch->GetHistory()->GetTransform(touch->GetHistory()->GetDepth() - 1).TransformPoint(preworldPos);
+          G4ThreeVector postworldPos = postPoint->GetPosition();
+          G4ThreeVector poststrip_pos = touch->GetHistory()->GetTransform(touch->GetHistory()->GetDepth() - 1).TransformPoint(postworldPos);
+
 
           strip_z_index = 0;
           for (int i = 0; i < nstrips_z_sensor; ++i)
@@ -159,7 +162,11 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
             const double zmin = 2. * strip_z * (double) (i) -strip_z * (double) nstrips_z_sensor;
             const double zmax = 2. * strip_z * (double) (i + 1) - strip_z * (double) nstrips_z_sensor;
             if (strip_pos.z() / mm > zmin && strip_pos.z() / mm <= zmax)
+	    {
+	      cout << "zmin: " << zmin << ", zmax: " << zmax << endl;
               strip_z_index = i;
+	      break;
+	    }
           }
 
           strip_y_index = 0;
@@ -169,13 +176,19 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
             const double ymax = 2. * strip_y * (double) (i + 1) - 2. * strip_y * (double) nstrips_phi_cell;
             if (strip_pos.y() / mm > ymin && strip_pos.y() / mm <= ymax)
             {
+	      cout << "ymin: " << ymin << ", ymax: " << ymax << endl;
               strip_y_index = i;
               if (verbosity > 1) std::cout << "                            revised strip y position = " << strip_y_index << std::endl;
+	      break;
             }
 
           }
 	  cout << " strip y aft: " << strip_y_index << ", strip z: " << strip_z_index << endl;
-
+	  cout << "pre hitpos x: " << strip_pos.x() << ", y: " << strip_pos.y() << ", z: " 
+	       <<  strip_pos.z() << endl;
+	  cout << "posthitpos x: " << poststrip_pos.x() << ", y: " << poststrip_pos.y() << ", z: " 
+	       << poststrip_pos.z() << endl;
+	  cout << "eloss: " << aStep->GetTotalEnergyDeposit() / GeV << " GeV" << endl;
         }
       }
     }
