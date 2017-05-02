@@ -86,6 +86,7 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
  private:
   PHG4Parameters *params;
   PHG4ParametersContainer *paramscontainer;
+  PHG4ParametersContainer *paramscontainer_default;
   PHCompositeNode *savetopNode;
   bool overlapcheck;
   int layer;
@@ -96,8 +97,6 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
   std::string calibfiledir;
 
   std::set<int> layers;
-
-  std::map<int, PHG4Parameters *> paramsmap;
 
   std::map<int, std::map<const std::string, double>> dparams;
   std::map<int, std::map<const std::string, int>> iparams;

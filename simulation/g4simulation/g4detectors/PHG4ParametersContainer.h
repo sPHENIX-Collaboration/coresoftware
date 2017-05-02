@@ -13,6 +13,12 @@ class PHCompositeNode;
 class PHG4ParametersContainer: public PHObject
 {
  public:
+  typedef std::map<int, PHG4Parameters *> Map;
+  typedef Map::iterator Iterator;
+  typedef Map::const_iterator ConstIterator;
+  typedef std::pair<Iterator, Iterator> Range;
+  typedef std::pair<ConstIterator, ConstIterator> ConstRange;
+
   PHG4ParametersContainer(const std::string &name = "NONE");
   virtual ~PHG4ParametersContainer();
 
