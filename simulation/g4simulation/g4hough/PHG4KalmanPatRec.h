@@ -338,6 +338,14 @@ public:
 		_max_consecutive_missing_layer = maxConsecutiveMissingLayer;
 	}
 
+	unsigned int get_min_good_track_hits() const {
+		return _min_good_track_hits;
+	}
+
+	void set_min_good_track_hits(unsigned int minGoodTrackHits) {
+		_min_good_track_hits = minGoodTrackHits;
+	}
+
 #ifndef __CINT__
 
 private:
@@ -414,7 +422,7 @@ private:
 	unsigned int encode_cluster_index(const unsigned int layer, const unsigned int iz, const unsigned int irphi);
 
 	//! FullTrackFitting Call.
-	int SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode);
+	int SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, unsigned int itrack);
 	int TrackPropPatRec(PHCompositeNode* topNode, const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> track);
 
 	//! TrackPropPatRec Call.
@@ -423,6 +431,7 @@ private:
 
 	//! ExportOutput Call. Make SvtxTrack from PHGenFit::Track and set of clusters
 	//std::shared_ptr<SvtxTrack> MakeSvtxTrack(const int genfit_track_ID, const SvtxVertex * vertex = NULL);
+	int OutputPHGenFitTrack(PHCompositeNode* topNode, std::map<int, std::shared_ptr<PHGenFit::Track>>::iterator);
 
 	//------------------
 	// Subfunction Calls
@@ -461,7 +470,7 @@ private:
 	PHTimer *_t_search_clusters;
 	PHTimer *_t_search_clusters_encoding;
 	PHTimer *_t_search_clusters_map_iter;
-	PHTimer *_t_track_propergation;
+	PHTimer *_t_track_propagation;
 	PHTimer *_t_full_fitting;
 	PHTimer *_t_output_io;
 
@@ -580,6 +589,8 @@ private:
 
 	unsigned int _max_consecutive_missing_layer;
 	double _max_incr_chi2;
+
+	unsigned int _min_good_track_hits;
 
 #endif // __CINT__
 };

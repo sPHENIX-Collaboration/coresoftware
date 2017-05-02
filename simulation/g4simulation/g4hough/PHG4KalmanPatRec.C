@@ -100,7 +100,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _t_search_clusters(nullptr),
 	  _t_search_clusters_encoding(nullptr),
 	  _t_search_clusters_map_iter(nullptr),
-	  _t_track_propergation(nullptr),
+	  _t_track_propagation(nullptr),
 	  _t_full_fitting(nullptr),
 	  _t_output_io(nullptr),
 	  _seeding_layer(),
@@ -174,7 +174,9 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _trackID_PHGenFitTrack(),
 	  //_trackID_clusterID(),
 	  _max_consecutive_missing_layer(10),
-	  _max_incr_chi2(5.){
+	  _max_incr_chi2(5.),
+	  _min_good_track_hits(30)
+	  {
 	_event = 0;
 }
 
@@ -220,8 +222,8 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 	_t_search_clusters_map_iter = new PHTimer("_t_search_clusters_map_iter");
 	_t_search_clusters_map_iter->stop();
 
-	_t_track_propergation = new PHTimer("_t_track_propergation");
-	_t_track_propergation->stop();
+	_t_track_propagation = new PHTimer("_t_track_propergation");
+	_t_track_propagation->stop();
 
 	_t_full_fitting = new PHTimer("_t_full_fitting");
 	_t_full_fitting->stop();
@@ -347,14 +349,6 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	//-----------------------------------
 	if (!_seeding_only_mode) {
 
-		// sort clusters
-		BuildLayerZPhiHitMap();
-
-		_t_translate_to_PHGenFitTrack->restart();
-		SimpleTrack3DToPHGenFitTracks(topNode);
-		_tracks.clear();
-		_t_translate_to_PHGenFitTrack->stop();
-
 		code = FullTrackFitting(topNode);
 		if (code != Fun4AllReturnCodes::EVENT_OK)
 			return code;
@@ -381,7 +375,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	std::cout << "\t - Cluster searching time: "<<_t_search_clusters->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "\t\t - Encoding time:        "<<_t_search_clusters_encoding->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "\t\t - Map iteration:        "<<_t_search_clusters_map_iter->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "\t - Kalman updater time:    "<<_t_track_propergation->get_accumulated_time()/1000. << " sec" <<std::endl;
+	std::cout << "\t - Kalman updater time:    "<<_t_track_propagation->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "Full fitting time:           "<<_t_full_fitting->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "Output IO time:              "<<_t_output_io->get_accumulated_time()/1000. << " sec" <<std::endl;
 	std::cout << "=======================================" << std::endl;
@@ -406,7 +400,7 @@ int PHG4KalmanPatRec::End(PHCompositeNode *topNode) {
 	delete _t_kalman_pat_rec;
 	delete _t_full_fitting;
 	delete _t_search_clusters;
-	delete _t_track_propergation;
+	delete _t_track_propagation;
 	delete _t_output_io;
 
 	delete _tracker_etap_seed;
@@ -2042,35 +2036,92 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 
 int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 
-	for(auto iter = _trackID_PHGenFitTrack.begin(); iter != _trackID_PHGenFitTrack.end(); ++iter) {
 #ifdef _DEBUG_
-		cout
+	std::cout << "=========================" << std::endl;
+	std::cout << "PHG4KalmanPatRec::FullTrackFitting: Event: "<< _event << std::endl;
+	std::cout << "Total Raw Tracks: " << _tracks.size() << std::endl;
+	std::cout << "=========================" << std::endl;
+#endif
+
+	/*!
+	 *   sort clusters
+	 */
+	BuildLayerZPhiHitMap();
+
+
+	vector<genfit::Track*> evt_disp_copy;
+
+	_trackID_PHGenFitTrack.clear();
+
+	//	for(unsigned int itrack = 0; itrack < ( (_tracks.size() < 100) ? _tracks.size() : 100); ++itrack) {
+	for (unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
+#ifdef _DEBUG_
+		std::cout
 		<< __LINE__
-		<< ": _trackID_PHGenFitTrack.size(): " << _trackID_PHGenFitTrack.size()
-		<< ": iPHGenFitTrack: " << iter->first
+		<< ": Processing itrack: " << itrack
+		<< ": Total tracks: " << _g4tracks->size()
 		<<endl;
 #endif
-		if(TrackPropPatRec(topNode, iter->first, iter->second) != 0) {
-			_trackID_PHGenFitTrack.erase(iter);
+
+		/*!
+		 * Translate SimpleTrack3D To PHGenFitTracks
+		 */
+		_t_translate_to_PHGenFitTrack->restart();
+		SimpleTrack3DToPHGenFitTracks(topNode, itrack);
+		_t_translate_to_PHGenFitTrack->stop();
+
+		/*!
+		 * Handle track propagation, termination, output and evt disp.
+		 */
+		for (std::map<int, std::shared_ptr<PHGenFit::Track>>::iterator iter = _trackID_PHGenFitTrack.begin();
+				iter != _trackID_PHGenFitTrack.end(); ++iter) {
+#ifdef _DEBUG_
+//			cout << __LINE__ << ": _trackID_PHGenFitTrack.size(): "
+//					<< _trackID_PHGenFitTrack.size() << ": iPHGenFitTrack: "
+//					<< iter->first << endl;
+#endif
+			if (TrackPropPatRec(topNode, iter->first, iter->second) == 0) {
+				OutputPHGenFitTrack(topNode, iter);
+
+				if (_do_evt_display) {
+					evt_disp_copy.push_back(
+							new genfit::Track(*iter->second->getGenFitTrack()));
+				}
+
+				_trackID_PHGenFitTrack.erase(iter);
+			} else {
+				_trackID_PHGenFitTrack.erase(iter);
+			}
 		}
 	}
+
+	if (_do_evt_display) {
+		_fitter->getEventDisplay()->addEvent(evt_disp_copy);
+	} else {
+		evt_disp_copy.clear();
+	}
+
+	_trackID_PHGenFitTrack.clear();
+	_tracks.clear();
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
 
-int PHG4KalmanPatRec::ExportOutput() {
+int PHG4KalmanPatRec::ExportOutput() { return 0;}
 
-#ifdef _DEBUG_
-	std::cout << "=========================" << std::endl;
-	std::cout << "PHG4KalmanPatRec::FullTrackFitting: Event: "<< _event << std::endl;
-	std::cout << "Total Raw Tracks: " << _trackID_PHGenFitTrack.size() << std::endl;
-	std::cout << "=========================" << std::endl;
-#endif
+int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, std::map<int, std::shared_ptr<PHGenFit::Track>>::iterator iter) {
 
-	for (std::map<int, std::shared_ptr<PHGenFit::Track>>::iterator iter =
-			_trackID_PHGenFitTrack.begin();
-			iter != _trackID_PHGenFitTrack.end(); iter++) {
+//#ifdef _DEBUG_
+//	std::cout << "=========================" << std::endl;
+//	std::cout << "PHG4KalmanPatRec::FullTrackFitting: Event: "<< _event << std::endl;
+//	std::cout << "Total Raw Tracks: " << _trackID_PHGenFitTrack.size() << std::endl;
+//	std::cout << "=========================" << std::endl;
+//#endif
+
+//	for (std::map<int, std::shared_ptr<PHGenFit::Track>>::iterator iter =
+//			_trackID_PHGenFitTrack.begin();
+//			iter != _trackID_PHGenFitTrack.end(); iter++) {
 
 #ifdef _DEBUG_
 		std::cout << "=========================" << std::endl;
@@ -2143,30 +2194,19 @@ int PHG4KalmanPatRec::ExportOutput() {
 		}
 
 		if(verbosity >= 1) _t_output_io->stop();
-	}
+//	}
 
-	if (_do_evt_display) {
-		vector<genfit::Track*> copy;
-		for(std::map<int, std::shared_ptr<PHGenFit::Track>>::iterator iter =
-				_trackID_PHGenFitTrack.begin();
-				iter != _trackID_PHGenFitTrack.end(); iter++){
 
-			copy.push_back(new genfit::Track(*iter->second->getGenFitTrack()));
-		}
-		_fitter->getEventDisplay()->addEvent(copy);
-	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
 
-int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode) {
+int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, unsigned int itrack) {
 
 	// clean up working array for each event
 	_trackID_PHGenFitTrack.clear();
 
-	for(unsigned int itrack = 0; itrack < ( (_tracks.size() < 100) ? _tracks.size() : 100); ++itrack) {
-//	for(unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
 
 #ifdef _DEBUG_
 	cout
@@ -2447,12 +2487,11 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode) {
 		if (verbosity >= 1)
 			LogWarning("Track fitting failed")<<std::endl;
 			//delete track;
-		continue;
+		return -1;
 	}
 
 	//insert fitted track to PHGenFit working map
 	_trackID_PHGenFitTrack.insert(std::make_pair(_trackID_PHGenFitTrack.size(), track));
-	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -2482,7 +2521,10 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 			if(verbosity > 1) {
 				LogWarning ("consecutive_missing_layer > ") << _max_consecutive_missing_layer << endl;
 			}
-			return -1;
+			if(track->get_cluster_IDs().size() >= _min_good_track_hits)
+				return 0;
+			else
+				return -1;
 		}
 
 		bool layer_updated = false;
@@ -2577,9 +2619,9 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 		cout<<__LINE__<<": measurements.size(): "<<measurements.size()<<endl;
 #endif
 
-		if(verbosity >= 1) _t_track_propergation->restart();
+		if(verbosity >= 1) _t_track_propagation->restart();
 		track->updateOneMeasurementKalman(measurements, incr_chi2s_new_tracks);
-		if(verbosity >= 1) _t_track_propergation->stop();
+		if(verbosity >= 1) _t_track_propagation->stop();
 
 #ifdef _DEBUG_
 		cout<<__LINE__<<": incr_chi2s_new_tracks.size(): "<<incr_chi2s_new_tracks.size()<<endl;
