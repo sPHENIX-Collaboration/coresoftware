@@ -130,5 +130,5 @@ void TPCSteppingAction::SteppingActionPHG4( const G4Step *aStep) {
 //=====
 void TPCSteppingAction::SetInterfacePointers( PHCompositeNode* node ) {
   fHits =  findNode::getClass<TPCHitsContainer>( node , "TPCHits" );
-  fPHHits =  findNode::getClass<PHG4HitContainer>( node , "G4HIT_SVTX" );
+  fPHHits =  findNode::getClass<PHG4HitContainer>( node , "G4HIT_TPC" );
 }
