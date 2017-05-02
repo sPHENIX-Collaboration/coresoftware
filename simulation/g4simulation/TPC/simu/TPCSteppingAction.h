@@ -6,6 +6,7 @@
 class TPCDetector;
 class TPCHitsContainer;
 class TPCHit;
+class PHG4HitContainer;
 
 class TPCSteppingAction : public PHG4SteppingAction {
  public:
@@ -16,10 +17,14 @@ class TPCSteppingAction : public PHG4SteppingAction {
   void SetVerbosity(int v) {fVerbosity=v;}
 
  private:
+  bool SteppingActionTPC(const G4Step*);
+  void SteppingActionPHG4(const G4Step*);
+
   int fVerbosity;
   TPCDetector *fDetector;
   TPCHitsContainer *fHits;
   TPCHit *fHit;
+  PHG4HitContainer *fPHHits;
 };
 
 #endif

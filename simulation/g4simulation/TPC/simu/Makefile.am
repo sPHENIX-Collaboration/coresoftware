@@ -26,6 +26,7 @@ libTPCsimu_la_LIBADD = \
   -lCGAL \
   -lSubsysReco \
   -lg4testbench \
+  -lphg4hit \
   -lg4detectors \
   -lTPCbase
 
