@@ -18,6 +18,8 @@ class TPCDigit {
   void Reset() {fTrainOfDigits.clear();}
  protected:
   std::map<Time_t,Adc_t> fTrainOfDigits; // train of adc
+
+  ClassDef(TPCDigit,1);
 };
 
 #endif

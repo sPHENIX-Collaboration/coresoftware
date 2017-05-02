@@ -27,6 +27,8 @@ class vCluster : public PHObject {
   Float_t fX[3]; // X0 X1 X2
   Float_t fCov[6]; // X0X0 X1X1 X2X2 X0X1 X0X2 X1X2
   UChar_t fSize[3]; // S0 S1 S2
+
+  ClassDef(vCluster,1);
 };
 
 #endif

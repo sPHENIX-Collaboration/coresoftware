@@ -44,7 +44,7 @@ libTPCbase_la_SOURCES = \
   TPCbase_Dict.cc
 
 # Rule for generating table CINT dictionaries.
-TPCbase_Dict.cc: TPCPadMap.h TPCHitsContainer.h TPCDigitsContainer.h TPCbaseLinkDef.h
+TPCbase_Dict.cc: vHit.h vCluster.h TPCPadMap.h TPCHit.h TPCDigit.h TPCHitsContainer.h TPCDigitsContainer.h TPCbaseLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
 ################################################

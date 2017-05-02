@@ -22,6 +22,8 @@ class vHit : public PHObject {
  protected:
   Int_t fTrack; // geant track id
   Float_t fX[4]; // X0 X1 X2 L
+
+  ClassDef(vHit,1);
 };
 
 #endif

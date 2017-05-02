@@ -30,6 +30,8 @@ class TPCHit : public vHit {
 
  protected:
   Float_t fDEnergy; // Ionizing energy from step in keV
+
+  ClassDef(TPCHit,1);
 };
 
 #endif
