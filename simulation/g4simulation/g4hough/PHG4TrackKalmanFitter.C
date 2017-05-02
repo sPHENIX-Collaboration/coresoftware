@@ -79,6 +79,8 @@
 
 #define _DEBUG_MODE_ 0
 
+#define _GET_RPHI_ERROR_
+
 using namespace std;
 
 //Rave

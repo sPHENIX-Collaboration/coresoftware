@@ -85,7 +85,8 @@
 using namespace std;
 
 #ifdef _DEBUG_
-ofstream fout("fout.txt");
+ofstream fout_kalman_pull("kalman_pull.txt");
+ofstream fout_chi2("chi2.txt");
 #endif
 
 PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
@@ -172,7 +173,8 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _layer_zID_phiID_cluserID_zSize(0.1700),
 	  _trackID_PHGenFitTrack(),
 	  //_trackID_clusterID(),
-	  _max_incr_chi2(5){
+	  _max_consecutive_missing_layer(10),
+	  _max_incr_chi2(5.){
 	_event = 0;
 }
 
@@ -421,7 +423,8 @@ int PHG4KalmanPatRec::End(PHCompositeNode *topNode) {
 #endif
 
 #ifdef _DEBUG_
-	fout.close();
+	fout_kalman_pull.close();
+	fout_chi2.close();
 #endif
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -2040,7 +2043,16 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 
 	for(auto iter = _trackID_PHGenFitTrack.begin(); iter != _trackID_PHGenFitTrack.end(); ++iter) {
-		TrackPropPatRec(topNode, iter->first, iter->second);
+#ifdef _DEBUG_
+		cout
+		<< __LINE__
+		<< ": _trackID_PHGenFitTrack.size(): " << _trackID_PHGenFitTrack.size()
+		<< ": iPHGenFitTrack: " << iter->first
+		<<endl;
+#endif
+		if(TrackPropPatRec(topNode, iter->first, iter->second) != 0) {
+			_trackID_PHGenFitTrack.erase(iter);
+		}
 	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -2153,13 +2165,15 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode) {
 	// clean up working array for each event
 	_trackID_PHGenFitTrack.clear();
 
-	for(unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
+	for(unsigned int itrack = 0; itrack < ( (_tracks.size() < 100) ? _tracks.size() : 100); ++itrack) {
+//	for(unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
 
 #ifdef _DEBUG_
 	cout
 	<<__LINE__
+	<< ": _tracks.size(): " << _tracks.size()
 	<< ": PHG4KalmanPatRec::TrackPropPatRec: "<< itrack
-	<<", nhits: " << _tracks.at(itrack).hits.size()
+	<< ", nhits: " << _tracks.at(itrack).hits.size()
 	<<endl;
 #endif
 
@@ -2433,14 +2447,14 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode) {
 		if (verbosity >= 1)
 			LogWarning("Track fitting failed")<<std::endl;
 			//delete track;
-		return -1;
+		continue;
 	}
 
 	//insert fitted track to PHGenFit working map
 	_trackID_PHGenFitTrack.insert(std::make_pair(_trackID_PHGenFitTrack.size(), track));
 	}
 
-	return 0;
+	return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //#undef _DEBUG_
@@ -2454,11 +2468,25 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 	unsigned int last_seeding_cluster_ID = track->get_cluster_IDs().back();
 	unsigned int last_seeding_cluster_layer = _g4clusters->get(last_seeding_cluster_ID)->get_layer();
 
+	unsigned int consecutive_missing_layer = 0;
+
 #ifdef _START_FROM_FIXED_LAYER_
 	for (int layer = 8; layer < _nlayers_all; ++layer) {
 #else
 	for (int layer = last_seeding_cluster_layer + 1; layer < _nlayers_all; ++layer) {
 #endif
+		/*!
+		 * if miss too many layers terminate track propagating
+		 */
+		if(consecutive_missing_layer > _max_consecutive_missing_layer) {
+			if(verbosity > 1) {
+				LogWarning ("consecutive_missing_layer > ") << _max_consecutive_missing_layer << endl;
+			}
+			return -1;
+		}
+
+		bool layer_updated = false;
+
 		float layer_r = _radii_all[_layer_ilayer_map_all[layer]];
 
 #ifdef _DEBUG_
@@ -2562,16 +2590,35 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 			std::map<double, PHGenFit::Track*>::iterator iter =
 					incr_chi2s_new_tracks.begin();
 
-#ifdef _DEBUG_
-			std::cout << __LINE__ << ": " << "First candidate: " << "IncrChi2: "
-					<< iter->first << std::endl;
-//			LogDebug("\n");
-//			_trackID_PHGenFitTrack[iPHGenFitTrack]->getGenFitTrack()->Print();
-#endif
+			if (iter->first < _max_incr_chi2 and iter->first > 0) {
 
-			//if (iter->first < _max_incr_chi2)
-			_trackID_PHGenFitTrack[iPHGenFitTrack] = std::shared_ptr<PHGenFit::Track> (iter->second);
-			track = _trackID_PHGenFitTrack[iPHGenFitTrack];
+#ifdef _DEBUG_
+				cout
+				<< __LINE__
+				<< ": iPHGenFitTrack: " << iPHGenFitTrack << endl
+				<< ": First accepted IncrChi2: " << iter->first << endl
+				<< "; before update: " << track->get_cluster_IDs().back()
+				<< endl;
+#endif
+				_trackID_PHGenFitTrack[iPHGenFitTrack] = std::shared_ptr
+						< PHGenFit::Track > (iter->second);
+				track = _trackID_PHGenFitTrack[iPHGenFitTrack];
+				consecutive_missing_layer = 0;
+				layer_updated = true;
+#ifdef _DEBUG_
+				cout
+				<< __LINE__
+				<< ": after update: " << track->get_cluster_IDs().back()
+				<< endl;
+
+				fout_chi2
+				<< _event << "\t"
+				<< iPHGenFitTrack << "\t"
+				<< layer << "\t "
+				<< iter->first
+				<<endl;
+#endif
+			}
 //			track = std::shared_ptr<PHGenFit::Track> (iter->second);
 
 #ifdef _DEBUG_
@@ -2587,7 +2634,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 					(++incr_chi2s_new_tracks.begin());
 					iter != incr_chi2s_new_tracks.end(); ++iter) {
 
-				if (iter->first > _max_incr_chi2)
+				if (!(iter->first < _max_incr_chi2 and iter->first > 0))
 					break;
 
 #ifdef _DEBUG_
@@ -2617,9 +2664,12 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 		}
 #endif
 
+		if(!layer_updated)
+			++consecutive_missing_layer;
 	} // layer loop
 
-	return Fun4AllReturnCodes::EVENT_OK;
+	//! Track succesfully propagated and return 0
+	return 0;
 }
 
 int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
@@ -2639,12 +2689,12 @@ int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 		float z = cluster->get_z();
 
 #ifdef _DEBUG_
-		std::cout<<__LINE__<<": "
-				<<": layer: "<<cluster->get_layer()
-				<<", r: "<<r
-				<<", rphi: "<<rphi
-				<<", z: "<<z
-				<<endl;
+//		std::cout<<__LINE__<<": "
+//				<<": layer: "<<cluster->get_layer()
+//				<<", r: "<<r
+//				<<", rphi: "<<rphi
+//				<<", z: "<<z
+//				<<endl;
 #endif
 
 		unsigned int idx = encode_cluster_index(layer, z, rphi);
@@ -2719,7 +2769,7 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 				SvtxCluster* cluster = _g4clusters->get(iter->second);
 				TVector3 v(cluster->get_x(),cluster->get_y(),cluster->get_z());
 				float rphi_cluster = v.Phi()*v.Perp();
-				fout
+				fout_kalman_pull
 				<< _event << "\t"
 				<< layer << "\t "
 				<< phi_center - rphi_cluster << "\t"
@@ -2786,11 +2836,11 @@ unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
 	unsigned int irphi = (rphi + _half_max_rphi) / _layer_zID_phiID_cluserID_phiSize;
 
 #ifdef _DEBUG_
-	std::cout<<__LINE__<<": "
-			<<": layer: "<<layer
-			<<", irphi: "<<irphi
-			<<", iz: "<<iz
-			<<endl;
+//	std::cout<<__LINE__<<": "
+//			<<": layer: "<<layer
+//			<<", irphi: "<<irphi
+//			<<", iz: "<<iz
+//			<<endl;
 #endif
 
 	return encode_cluster_index(layer, iz, irphi);

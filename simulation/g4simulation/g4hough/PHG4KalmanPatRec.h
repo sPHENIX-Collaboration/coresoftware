@@ -321,6 +321,23 @@ public:
 		_search_win_z = searchWinZ;
 	}
 
+	double get_max_incr_chi2() const {
+		return _max_incr_chi2;
+	}
+
+	void set_max_incr_chi2(double maxIncrChi2) {
+		_max_incr_chi2 = maxIncrChi2;
+	}
+
+	unsigned int get_max_consecutive_missing_layer() const {
+		return _max_consecutive_missing_layer;
+	}
+
+	void set_max_consecutive_missing_layer(
+			unsigned int maxConsecutiveMissingLayer) {
+		_max_consecutive_missing_layer = maxConsecutiveMissingLayer;
+	}
+
 #ifndef __CINT__
 
 private:
@@ -561,6 +578,7 @@ private:
 	std::map<int, std::shared_ptr<PHGenFit::Track>> _trackID_PHGenFitTrack;
 	//std::map<int, std::vector<unsigned int>> _trackID_clusterID;
 
+	unsigned int _max_consecutive_missing_layer;
 	double _max_incr_chi2;
 
 #endif // __CINT__

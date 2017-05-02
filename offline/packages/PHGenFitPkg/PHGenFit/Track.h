@@ -99,9 +99,19 @@ public:
 		_clusterIDs = clusterIDs;
 	}
 
+	int get_verbosity() const {
+		return verbosity;
+	}
+
+	void set_verbosity(int verbosity) {
+		this->verbosity = verbosity;
+	}
+
 	//SMART(genfit::Track) getGenFitTrack() {return _track;}
 
 private:
+
+	int verbosity;
 
 	genfit::Track* _track;
 	//std::vector<PHGenFit::Measurement*> _measurements;

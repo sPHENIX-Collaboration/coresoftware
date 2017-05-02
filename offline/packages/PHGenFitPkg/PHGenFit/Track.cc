@@ -29,12 +29,15 @@
 #define WILD_DOUBLE -999999
 
 //#define _DEBUG_
+//#define _PRINT_MATRIX_
 
 namespace PHGenFit {
 
 Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMatrixDSym seed_cov)
 {
-//TODO Add input param check
+	//TODO Add input param check
+
+	verbosity = 2;
 
 	genfit::MeasuredStateOnPlane seedMSoP(rep);
 	seedMSoP.setPosMomCov(seed_pos, seed_mom, seed_cov);
@@ -351,8 +354,10 @@ int Track::updateOneMeasurementKalman(
 		try {
 			rep->extrapolateToPlane(*state, plane);
 		} catch (...) {
-			LogWarning("Can not extrapolate track!")<<std::endl;
-			return -1;
+			if(verbosity > 1) {
+				LogWarning("Can not extrapolate to measuremnt: ") << measurement->get_cluster_ID() <<std::endl;
+			}
+			continue;
 		}
 
 		fi->setPrediction(state->clone(), direction);
@@ -396,6 +401,21 @@ int Track::updateOneMeasurementKalman(
 				genfit::tools::invertMatrix(covSumInv);
 
 				TMatrixD CHt(H->MHt(cov));
+#ifdef _PRINT_MATRIX_
+				std::cout <<__LINE__ <<": V_{k}:" << std::endl;
+				V.Print();
+				std::cout <<__LINE__ <<": R_{k}^{-1}:" << std::endl;
+				covSumInv.Print();
+				std::cout <<__LINE__ <<": C_{k|k-1}:" << std::endl;
+				cov.Print();
+				std::cout <<__LINE__ <<": C_{k|k-1} H_{k}^{T} :" << std::endl;
+				CHt.Print();
+				std::cout <<__LINE__ <<": K_{k} :" << std::endl;
+				TMatrixD Kk(CHt, TMatrixD::kMult, covSumInv);
+				Kk.Print();
+				std::cout <<__LINE__ <<": res:" << std::endl;
+				res.Print();
+#endif
 				TVectorD update(
 						TMatrixD(CHt, TMatrixD::kMult, covSumInv) * res);
 				//TMatrixD(CHt, TMatrixD::kMult, covSumInv).Print();
@@ -418,13 +438,21 @@ int Track::updateOneMeasurementKalman(
 			chi2inc += HCHt.Similarity(resNew);
 
 			ndfInc += measurement.GetNrows();
-
+#ifdef _PRINT_MATRIX_
+				std::cout <<__LINE__ <<": V - HCHt:" << std::endl;
+				HCHt.Print();
+				std::cout <<__LINE__ <<": resNew:" << std::endl;
+				resNew.Print();
+				std::cout <<__LINE__ <<": chi2inc: " << chi2inc << std::endl;
+#endif
 			genfit::KalmanFittedStateOnPlane* updatedSOP = new genfit::KalmanFittedStateOnPlane(
 					*state, chi2inc, ndfInc);
 			fi->setUpdate(updatedSOP, direction);
 		} //loop measurements_on_plane
 
-		incr_chi2s_new_tracks.insert(std::make_pair(chi2inc,new_track));
+		//FIXME why chi2 could be smaller than 0?
+		if (chi2inc > 0)
+			incr_chi2s_new_tracks.insert(std::make_pair(chi2inc,new_track));
 
 	}//loop measurments
 
