@@ -36,6 +36,14 @@ public:
     if ( cfg_file ) _datacardFile = cfg_file;
   }
 
+  void set_momentum_electron( double emom ) {
+    _p_electron_lab = emom;
+  }
+
+  void set_momentum_hadron( double hmom ) {
+    _p_hadron_lab = hmom;
+  }
+
   void set_debug_mode( bool yesno ) {
     _detailed_debug = yesno;
   }
