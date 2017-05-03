@@ -29,6 +29,7 @@ class Fitter;
 
 class SvtxTrackMap;
 class SvtxVertexMap;
+class SvtxVertex;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class SvtxClusterMap;
@@ -42,6 +43,16 @@ class PHRaveVertexFactory;
 //! \brief		Refit SvtxTracks with PHGenFit.
 class PHG4TrackKalmanFitter: public SubsysReco {
 public:
+
+	/*!
+	 * OverwriteOriginalNode: default mode, overwrite original node
+	 * MakeNewNode: Output extra new refit nodes
+	 * DebugMode: overwrite original node also make extra new refit nodes
+	 */
+	enum OutPutMode {MakeNewNode, OverwriteOriginalNode, DebugMode};
+
+	enum DetectorType {MIE, MAPS_TPC, MAPS_IT_TPC, LADDER_MAPS_TPC, LADDER_MAPS_IT_TPC, LADDER_MAPS_LADDER_IT_TPC, MAPS_LADDER_IT_TPC};
+
 	//! Default constructor
 	PHG4TrackKalmanFitter(const std::string &name = "PHG4TrackKalmanFitter");
 
@@ -51,16 +62,14 @@ public:
 	//!Initialization, called for initialization
 	int Init(PHCompositeNode *);
 
+	//!Initialization Run, called for initialization of a run
+	int InitRun(PHCompositeNode *);
+
 	//!Process Event, called for each event
 	int process_event(PHCompositeNode *);
 
 	//!End, write and close files
 	int End(PHCompositeNode *);
-
-	/// set verbosity
-	void Verbosity(int verb) {
-		verbosity = verb; // SubsysReco verbosity
-	}
 
 	//Flags of different kinds of outputs
 	enum Flag {
@@ -82,6 +91,9 @@ public:
 	void set_eval_filename(const char* file) {
 		if (file)
 			_eval_outname = file;
+	}
+	std::string get_eval_filename() const {
+			return _eval_outname;
 	}
 
 	void fill_eval_tree(PHCompositeNode*);
@@ -128,6 +140,77 @@ public:
 		_vertexing_method = vertexingMethod;
 	}
 
+	bool is_fit_primary_tracks() const {
+		return _fit_primary_tracks;
+	}
+
+	void set_fit_primary_tracks(bool fitPrimaryTracks) {
+		_fit_primary_tracks = fitPrimaryTracks;
+	}
+
+	OutPutMode get_output_mode() const {
+		return _output_mode;
+	}
+
+	/*!
+	 * set output mode, default is OverwriteOriginalNode
+	 */
+	void set_output_mode(OutPutMode outputMode) {
+		_output_mode = outputMode;
+	}
+
+	const std::string& get_mag_field_file_name() const {
+		return _mag_field_file_name;
+	}
+
+	/*!
+	 * default is /phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root
+	 */
+
+	void set_mag_field_file_name(const std::string& magFieldFileName) {
+		_mag_field_file_name = magFieldFileName;
+	}
+
+	const std::string& get_track_fitting_alg_name() const {
+		return _track_fitting_alg_name;
+	}
+
+	void set_track_fitting_alg_name(const std::string& trackFittingAlgName) {
+		_track_fitting_alg_name = trackFittingAlgName;
+	}
+
+	int get_primary_pid_guess() const {
+		return _primary_pid_guess;
+	}
+
+	void set_primary_pid_guess(int primaryPidGuess) {
+		_primary_pid_guess = primaryPidGuess;
+	}
+
+	double get_cut_min_p_T() const {
+		return _cut_min_pT;
+	}
+
+	void set_cut_min_p_T(double cutMinPT) {
+		_cut_min_pT = cutMinPT;
+	}
+
+	bool is_over_write_svtxtrackmap() const {
+		return _over_write_svtxtrackmap;
+	}
+
+	void set_over_write_svtxtrackmap(bool overWriteSvtxtrackmap) {
+		_over_write_svtxtrackmap = overWriteSvtxtrackmap;
+	}
+
+	bool is_over_write_svtxvertexmap() const {
+		return _over_write_svtxvertexmap;
+	}
+
+	void set_over_write_svtxvertexmap(bool overWriteSvtxvertexmap) {
+		_over_write_svtxvertexmap = overWriteSvtxvertexmap;
+	}
+
 private:
 
 	//! Event counter
@@ -139,19 +222,65 @@ private:
 	//!Create New nodes
 	int CreateNodes(PHCompositeNode *);
 
-	//! Refit SvtxTrack
-	PHGenFit::Track* ReFitTrack(const SvtxTrack*);
+	/*
+	 * fit track with SvtxTrack as input seed.
+	 * \param intrack Input SvtxTrack
+	 * \param invertex Input Vertex, if fit track as a primary vertex
+	 */
+	std::shared_ptr<PHGenFit::Track> ReFitTrack(PHCompositeNode *, const SvtxTrack* intrack, const SvtxVertex* invertex = NULL);
 
 	//! Make SvtxTrack from PHGenFit::Track and SvtxTrack
-	SvtxTrack* MakeSvtxTrack(const SvtxTrack*, const PHGenFit::Track*);
+	std::shared_ptr<SvtxTrack> MakeSvtxTrack(const SvtxTrack* svtxtrack, const std::shared_ptr<PHGenFit::Track>& genfit_track, const SvtxVertex * vertex = NULL);
 
 	//! Fill SvtxVertexMap from GFRaveVertexes and Tracks
 	bool FillSvtxVertexMap(
 			const std::vector<genfit::GFRaveVertex*> & rave_vertices,
 			const std::vector<genfit::Track*> & gf_tracks);
 
+	bool pos_cov_uvn_to_rz(
+			const TVector3 u,
+			const TVector3 v,
+			const TVector3 n,
+			const TMatrixF pos_in,
+			const TMatrixF cov_in,
+			TMatrixF & pos_out,
+			TMatrixF & cov_out
+			) const;
+
+	bool get_vertex_error_uvn(
+			const TVector3 u,
+			const TVector3 v,
+			const TVector3 n,
+			const TMatrixF cov_in,
+			TMatrixF & cov_out
+			) const;
+
+	/*!
+	 * Get 3D Rotation Matrix that rotates frame (x,y,z) to (x',y',z')
+	 * Default rotate local to global, or rotate vector in global to local representation
+	 */
+	TMatrixF get_rotation_matrix(
+			const TVector3 x,
+			const TVector3 y,
+			const TVector3 z,
+			const TVector3 xp = TVector3(1.,0.,0.),
+			const TVector3 yp = TVector3(0.,1.,0.),
+			const TVector3 zp = TVector3(0.,0.,1.)
+			) const;
+
 	//!flags
 	unsigned int _flags;
+
+	//bool _make_separate_nodes;
+	OutPutMode _output_mode;
+
+	bool _over_write_svtxtrackmap;
+	bool _over_write_svtxvertexmap;
+
+	bool _fit_primary_tracks;
+
+	//!
+	std::string _mag_field_file_name;
 
 	//! rescale mag field, modify the original mag field read in
 	float _mag_field_re_scaling_factor;
@@ -159,9 +288,20 @@ private:
 	//! Switch to reverse Magnetic field
 	bool _reverse_mag_field;
 
+
 	PHGenFit::Fitter* _fitter;
+
+	//! KalmanFitterRefTrack, KalmanFitter, DafSimple, DafRef
+	std::string _track_fitting_alg_name;
+
+	int _primary_pid_guess;
+	double _cut_min_pT;
+
 	genfit::GFRaveVertexFactory* _vertex_finder;
+
+	//! https://rave.hepforge.org/trac/wiki/RaveMethods
 	std::string _vertexing_method;
+
 	//PHRaveVertexFactory* _vertex_finder;
 
 	//! Input Node pointers
@@ -172,6 +312,7 @@ private:
 
 	//! Output Node pointers
 	SvtxTrackMap* _trackmap_refit;
+	SvtxTrackMap* _primary_trackmap;
 	SvtxVertexMap* _vertexmap_refit;
 
 	//! Evaluation
@@ -187,7 +328,16 @@ private:
 	TClonesArray* _tca_trackmap;
 	TClonesArray* _tca_vertexmap;
 	TClonesArray* _tca_trackmap_refit;
+	TClonesArray* _tca_primtrackmap;
 	TClonesArray* _tca_vertexmap_refit;
+
+	TTree* _cluster_eval_tree;
+	float _cluster_eval_tree_x;
+	float _cluster_eval_tree_y;
+	float _cluster_eval_tree_z;
+	float _cluster_eval_tree_gx;
+	float _cluster_eval_tree_gy;
+	float _cluster_eval_tree_gz;
 
 	bool _do_evt_display;
 

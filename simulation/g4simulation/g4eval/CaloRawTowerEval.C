@@ -6,8 +6,8 @@
 #include <phool/PHCompositeNode.h>
 #include <g4cemc/RawTowerContainer.h>
 #include <g4cemc/RawTower.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
+#include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4Cell.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -23,13 +23,13 @@
 
 using namespace std;
 
-CaloRawTowerEval::CaloRawTowerEval(PHCompositeNode* topNode, std::string caloname)
+CaloRawTowerEval::CaloRawTowerEval(PHCompositeNode* topNode, const std::string &caloname)
   : _caloname(caloname),
     _trutheval(topNode,caloname),
-    _towers(NULL),
-    _g4cells(NULL),
-    _g4hits(NULL),
-    _truthinfo(NULL),
+    _towers(nullptr),
+    _g4cells(nullptr),
+    _g4hits(nullptr),
+    _truthinfo(nullptr),
     _strict(false),
     _verbosity(1),
     _errors(0),
@@ -127,10 +127,10 @@ std::set<PHG4Shower*> CaloRawTowerEval::all_truth_primary_showers(RawTower* towe
 
 PHG4Shower* CaloRawTowerEval::max_truth_primary_shower_by_energy(RawTower* tower) {
 
-  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(tower);}
-  else if (!tower) {++_errors; return NULL;}
+  else if (!tower) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<RawTower*,PHG4Shower*>::iterator iter =
@@ -140,7 +140,7 @@ PHG4Shower* CaloRawTowerEval::max_truth_primary_shower_by_energy(RawTower* tower
     }
   }
   
-  PHG4Shower* max_shower = NULL;
+  PHG4Shower* max_shower = nullptr;
   float max_e = FLT_MAX*-1.0;
   std::set<PHG4Shower*> showers = all_truth_primary_showers(tower);
 
@@ -168,12 +168,12 @@ PHG4Shower* CaloRawTowerEval::max_truth_primary_shower_by_energy(RawTower* tower
 
 RawTower* CaloRawTowerEval::best_tower_from(PHG4Shower* shower) {
 
-  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(shower);}
-  else if (!shower) {++_errors; return NULL;}
+  else if (!shower) {++_errors; return nullptr;}
   
-  if (!_trutheval.is_primary(shower)) return NULL;
+  if (!_trutheval.is_primary(shower)) return nullptr;
   
   if (_do_cache) {
     std::map<PHG4Shower*,RawTower*>::iterator iter =
@@ -183,7 +183,7 @@ RawTower* CaloRawTowerEval::best_tower_from(PHG4Shower* shower) {
     }
   }
   
-  RawTower* best_tower = NULL;
+  RawTower* best_tower = nullptr;
   float best_energy = FLT_MAX*-1.0;  
   std::set<RawTower*> towers = all_towers_from(shower);
   for (std::set<RawTower*>::iterator iter = towers.begin();
@@ -328,10 +328,10 @@ std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primary_particles(RawTower* 
 
 PHG4Particle* CaloRawTowerEval::max_truth_primary_particle_by_energy(RawTower* tower) {
 
-  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(tower);}
-  else if (!tower) {++_errors; return NULL;}
+  else if (!tower) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<RawTower*,PHG4Particle*>::iterator iter =
@@ -341,7 +341,7 @@ PHG4Particle* CaloRawTowerEval::max_truth_primary_particle_by_energy(RawTower* t
     }
   }
 
-  PHG4Particle* max_primary = NULL;
+  PHG4Particle* max_primary = nullptr;
   PHG4Shower* max_shower = max_truth_primary_shower_by_energy(tower);
 
   if (max_shower) {
@@ -391,17 +391,17 @@ std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Particle* primary) {
 
 RawTower* CaloRawTowerEval::best_tower_from(PHG4Particle* primary) {
 
-  if (!has_reduced_node_pointers()) {++_errors; return NULL;}
+  if (!has_reduced_node_pointers()) {++_errors; return nullptr;}
   
   if (_strict) {assert(primary);}
-  else if (!primary) {++_errors; return NULL;}
+  else if (!primary) {++_errors; return nullptr;}
   
-  if (!_trutheval.is_primary(primary)) return NULL;
+  if (!_trutheval.is_primary(primary)) return nullptr;
 
   primary = get_truth_eval()->get_primary_particle(primary);
 
   if (_strict) {assert(primary);}
-  else if (!primary) {++_errors; return NULL;}
+  else if (!primary) {++_errors; return nullptr;}
   
   if (_do_cache) {
     std::map<PHG4Particle*,RawTower*>::iterator iter =
@@ -411,7 +411,7 @@ RawTower* CaloRawTowerEval::best_tower_from(PHG4Particle* primary) {
     }
   }
   
-  RawTower* best_tower = NULL;
+  RawTower* best_tower = nullptr;
   PHG4Shower* shower = get_truth_eval()->get_primary_shower(primary);
   if (shower) {
     best_tower = best_tower_from(shower);
@@ -499,20 +499,18 @@ std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(RawTower* tower) {
   }
 
   std::set<PHG4Hit*> truth_hits;
-
   // loop over all the towered cells
-  std::pair< std::map<unsigned int,float>::const_iterator,
-	     std::map<unsigned int,float>::const_iterator > cell_range = tower->get_g4cells();
-  for (std::map<unsigned int, float>::const_iterator cell_iter = cell_range.first;
+  RawTower::CellConstRange cell_range = tower->get_g4cells();
+  for (RawTower::CellConstIterator cell_iter = cell_range.first;
        cell_iter != cell_range.second; ++cell_iter) {
     unsigned int cell_id = cell_iter->first;
-    PHG4CylinderCell *cell = _g4cells->findCylinderCell(cell_id);
+    PHG4Cell *cell = _g4cells->findCell(cell_id);
 
     if (_strict) {assert(cell);}
     else if (!cell) {++_errors; continue;}
     
     // loop over all the g4hits in this cell
-    for (PHG4CylinderCell::EdepConstIterator hit_iter = cell->get_g4hits().first;
+    for (PHG4Cell::EdepConstIterator hit_iter = cell->get_g4hits().first;
 	 hit_iter != cell->get_g4hits().second;
 	 ++hit_iter) {      
       PHG4Hit* g4hit = _g4hits->findHit(hit_iter->first);
@@ -538,7 +536,7 @@ void CaloRawTowerEval::get_node_pointers(PHCompositeNode *topNode) {
   _towers = findNode::getClass<RawTowerContainer>(topNode,towername.c_str());
   
   std::string cellname = "G4CELL_" + _caloname;
-  _g4cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,cellname.c_str());
+  _g4cells = findNode::getClass<PHG4CellContainer>(topNode,cellname.c_str());
 
   std::string hitname = "G4HIT_" + _caloname;  
   _g4hits = findNode::getClass<PHG4HitContainer>(topNode,hitname.c_str());

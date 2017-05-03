@@ -30,6 +30,31 @@ PHG4Hitv1::PHG4Hitv1(PHG4Hit const &g4hit)
 }
 
 void
+PHG4Hitv1::Reset()
+{
+  hitid = ULONG_LONG_MAX;
+  trackid = INT_MIN;
+  edep = NAN;
+  for (int i = 0; i<2;i++)
+    {
+      set_x(i,NAN);
+      set_y(i,NAN);
+      set_z(i,NAN);
+      set_t(i,NAN);
+    }
+  prop_map.clear();
+}
+
+int
+PHG4Hitv1::get_detid() const
+{
+  // a compile time check if the hit_idbits are within range (1-32)
+  static_assert (PHG4HitDefs::hit_idbits <= sizeof(unsigned int)*8,"hit_idbits < 32, fix in PHG4HitDefs.h");
+  int detid = (hitid>>PHG4HitDefs::hit_idbits);
+  return detid;
+}
+
+void
 PHG4Hitv1::print() const {
   std::cout<<"New Hitv1  0x"<< hex << hitid 
 	   << dec << "  on track "<<trackid<<" EDep "<<edep<<std::endl;
@@ -363,5 +388,43 @@ PHG4Hitv1::set_local_z(const int i, const float f)
     default:
       cout << "Invalid index in set_local_z: " << i << endl;
       exit(1);
+    }
+}
+
+void
+PHG4Hitv1::identify(ostream& os) const
+{
+  cout << "Class " << this->ClassName() << endl;
+  cout << "hitid: 0x" << hex << hitid << dec << endl; 
+  cout << "x0: " << get_x(0)
+       << ", y0: " << get_y(0)
+       << ", z0: " << get_z(0)
+       << ", t0: " << get_t(0) << endl;
+  cout << "x1: " << get_x(1)
+       << ", y1: " << get_y(1)
+       << ", z1: " << get_z(1)
+       << ", t1: " << get_t(1) << endl;
+  cout << "trackid: " << trackid << ", showerid: " << showerid
+       << ", edep: " << edep << endl;
+  for (prop_map_t::const_iterator i = prop_map.begin(); i!= prop_map.end(); ++i)
+    {
+      PROPERTY prop_id = static_cast<PROPERTY>(i->first);
+      pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+      cout << "\t" << prop_id << ":\t" << property_info.first << " = \t";
+      switch(property_info.second)
+	{
+	case type_int:
+	  cout << get_property_int(prop_id);
+	  break;
+	case type_uint:
+	  cout << get_property_uint(prop_id);
+	  break;
+	case type_float:
+	  cout << get_property_float(prop_id);
+	  break;
+	default:
+	  cout << " unknown type ";
+	}
+      cout <<endl;
     }
 }

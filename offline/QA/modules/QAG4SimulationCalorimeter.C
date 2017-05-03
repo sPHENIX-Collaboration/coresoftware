@@ -1,20 +1,11 @@
 #include "QAG4SimulationCalorimeter.h"
+#include "QAHistManagerDef.h"
 
-#include <fun4all/SubsysReco.h>
-#include <fun4all/Fun4AllServer.h>
-#include <fun4all/PHTFileServer.h>
-#include <phool/PHCompositeNode.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/getClass.h>
-
-#include <phool/PHCompositeNode.h>
-
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
-#include <g4main/PHG4Particle.h>
-
-//#include <g4hough/SvtxVertexMap.h>
-//#include <g4hough/PHG4HoughTransform.h>
 
 #include <g4cemc/RawTowerContainer.h>
 #include <g4cemc/RawTowerGeomContainer.h>
@@ -27,6 +18,14 @@
 #include <g4eval/CaloRawTowerEval.h>
 #include <g4eval/CaloTruthEval.h>
 #include <g4eval/SvtxEvalStack.h>
+
+#include <fun4all/SubsysReco.h>
+#include <fun4all/Fun4AllServer.h>
+#include <fun4all/PHTFileServer.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
 
 #include <TString.h>
 #include <TFile.h>
@@ -44,16 +43,15 @@
 #include <cassert>
 #include <cmath>
 
-#include "QAHistManagerDef.h"
 
 using namespace std;
 
-QAG4SimulationCalorimeter::QAG4SimulationCalorimeter(string calo_name,
+QAG4SimulationCalorimeter::QAG4SimulationCalorimeter(const string &calo_name,
     QAG4SimulationCalorimeter::enu_flags flags) :
     SubsysReco("QAG4SimulationCalorimeter_" + calo_name), //
     _calo_name(calo_name), _flags(flags), //
-    _calo_hit_container(NULL), _calo_abs_hit_container(NULL), _truth_container(
-        NULL)
+    _calo_hit_container(nullptr), _calo_abs_hit_container(nullptr), _truth_container(
+        nullptr)
 {
 
 }
@@ -281,7 +279,7 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
   if (verbosity > 2)
     cout << "QAG4SimulationCalorimeter::process_event_G4Hit() entered" << endl;
 
-  TH1F* h = NULL;
+  TH1F* h = nullptr;
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -384,6 +382,11 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
           // EM visible energy that is only associated with electron energy deposition
           PHG4Particle* particle = _truth_container->GetParticle(
               this_hit->get_trkid());
+          if (!particle)
+            {
+              cout <<__PRETTY_FUNCTION__<<" - Error - this PHG4hit missing particle: "; this_hit -> identify();
+            }
+          assert(particle);
           if (abs(particle->get_pid()) == 11)
             ev_calo_em += this_hit->get_light_yield();
 
@@ -463,9 +466,7 @@ QAG4SimulationCalorimeter::Init_Tower(PHCompositeNode *topNode)
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  TH1F * h = NULL;
-
-  h = new TH1F(TString(get_histo_prefix()) + "_Tower_1x1", //
+  TH1F *h = new TH1F(TString(get_histo_prefix()) + "_Tower_1x1", //
   TString(_calo_name) + " 1x1 tower;1x1 TOWER Energy (GeV)", 100, 9e-4, 100);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
@@ -568,9 +569,8 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
     {
       max_energy[size] = 0;
 
-      TH1F* h = NULL;
 
-      h = dynamic_cast<TH1F*>(hm->getHisto(
+      TH1F* h = dynamic_cast<TH1F*>(hm->getHisto(
           get_histo_prefix() + "_Tower_" + size_label[size]));
       assert(h);
       energy_hist_list[size] = h;

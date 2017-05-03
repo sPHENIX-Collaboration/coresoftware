@@ -1,17 +1,6 @@
-
 #include "CaloEvalStack.h"
 
-#include "CaloRawClusterEval.h"
-#include "CaloTruthEval.h"
-
-#include <phool/getClass.h>
-#include <phool/PHCompositeNode.h>
-
-#include <string>
-
-using namespace std;
-
-CaloEvalStack::CaloEvalStack(PHCompositeNode* topNode, std::string caloname)
+CaloEvalStack::CaloEvalStack(PHCompositeNode* topNode, const std::string &caloname)
   : _clustereval(topNode,caloname) {
 }
 

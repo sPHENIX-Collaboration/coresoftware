@@ -110,11 +110,14 @@ PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
                                              (*particle_iter->second).get_py()*GeV,
                                              (*particle_iter->second).get_pz()*GeV);
             }
-          if (inEvent->isEmbeded(particle_iter->second))
-            {
+          //if (inEvent->isEmbeded(particle_iter->second))
+	  // Do this for all primaries, not just the embedded particle, so that 
+	  // we can carry the barcode information forward. 
+          //  {
               PHG4UserPrimaryParticleInformation *userdata = new PHG4UserPrimaryParticleInformation(inEvent->isEmbeded(particle_iter->second));
+	      userdata->set_user_barcode((*particle_iter->second).get_barcode()); 
               g4part->SetUserInformation(userdata);
-            }
+	  //  }
           vertex->SetPrimary(g4part);
         }
       //      vertex->Print();

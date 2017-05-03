@@ -165,7 +165,7 @@ private:
 
   //! fetch tower around track and histogram energy distributions
   bool
-  eval_trk_proj(std::string detector, SvtxTrack * track,
+  eval_trk_proj(const std::string &detector, SvtxTrack * track,
       PHCompositeNode *topNode);
 
   //! central magnetic field strength in T

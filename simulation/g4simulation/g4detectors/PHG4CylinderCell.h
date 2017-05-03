@@ -2,12 +2,13 @@
 #define PHG4CYLINDERCELL_H
 
 #include "PHG4CylinderCellDefs.h"
+#include "PHG4Cell.h"
 #include <g4main/PHG4HitDefs.h>
 #include <phool/PHObject.h>
 #include <cmath>
 #include <map>
 
-class PHG4CylinderCell : public PHObject
+class PHG4CylinderCell : public PHG4Cell
 {
  public:
   typedef std::map<PHG4HitDefs::keytype, float> EdepMap;
@@ -74,11 +75,23 @@ class PHG4CylinderCell : public PHObject
   virtual void set_k_index(const int i) {return;}
   virtual int get_l_index() const {return -9999;}
   virtual void set_l_index(const int i) {return;}
+
+  virtual int get_pixel_index() const {return -9999;}
+  virtual int get_chip_index() const {return -9999;}
+  virtual int get_module_index() const {return -9999;}
+  virtual int get_half_stave_index() const {return -9999;}
+  virtual int get_stave_index() const {return -9999;}
+
+  virtual void set_stave_index(const  int si) {return;}
+  virtual void set_half_stave_index(const int i) {return;}
+  virtual void set_module_index(const int i) {return;}
+  virtual void set_chip_index(const int i) {return;}
+  virtual void set_pixel_index(const int i) {return;}
   
  protected:
 
   PHG4CylinderCell() {}
-  ClassDef(PHG4CylinderCell,1)
+  ClassDef(PHG4CylinderCell,2)
 };
 
 #endif

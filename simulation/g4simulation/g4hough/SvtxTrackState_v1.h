@@ -54,6 +54,9 @@ public:
   
   float get_error(unsigned int i, unsigned int j) const;
   void  set_error(unsigned int i, unsigned int j, float value);
+
+  std::string get_name(){return state_name;}
+  void set_name(std::string &name){state_name = name;}
   
 private:
 
@@ -63,6 +66,8 @@ private:
   float _pos[3];
   float _mom[3];
   float _covar[21]; //  6x6 triangular packed storage
+  
+  std::string state_name; 
 
   ClassDef(SvtxTrackState_v1,1)
 };

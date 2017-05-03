@@ -7,6 +7,7 @@
  */
 
 #include "PHG4SteppingAction.h"
+#include "PHG4Hit.h"
 
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4Material.hh>
@@ -20,7 +21,6 @@
 #include <Geant4/G4NavigationHistory.hh>
 
 
-#include "PHG4Hit.h"
 
 #include <iostream>
 #include <cassert>
@@ -116,8 +116,8 @@ PHG4SteppingAction::GetVisibleEnergyDeposition(const G4Step* step)
 }
 
 void
-PHG4SteppingAction::StoreLocalCoorindate(PHG4Hit * hit, const G4Step* aStep,
-    bool do_prepoint, bool do_postpoint)
+PHG4SteppingAction::StoreLocalCoordinate(PHG4Hit * hit, const G4Step* aStep,
+    const bool do_prepoint, const bool do_postpoint)
 {
   assert(hit);
   assert(aStep);

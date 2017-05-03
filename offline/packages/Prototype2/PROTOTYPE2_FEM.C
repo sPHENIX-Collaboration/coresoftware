@@ -136,6 +136,15 @@ PROTOTYPE2_FEM::SampleFit_PowerLawExp(//
   fits.SetParLimits(4, pedestal - abs(peakval), pedestal + abs(peakval));
 //  fits.SetParLimits(5, - abs(peakval),  + abs(peakval));
   fits.FixParameter(5, 0);
+
+  //Saturation correction - Abhisek
+   for(int ipoint=0; ipoint<gpulse.GetN(); ipoint++)
+    if((gpulse.GetY())[ipoint]==0)
+     {
+      gpulse.RemovePoint(ipoint);
+      ipoint--;
+     }
+
   gpulse.Fit(&fits, "MQRN0", "goff", 0., (double) NSAMPLES);
 
   if (verbosity)
@@ -148,8 +157,14 @@ PROTOTYPE2_FEM::SampleFit_PowerLawExp(//
       sleep(1);
     }
 
-  peak = fits.GetParameter(0);
-  peak_sample = fits.GetParameter(1);
+//  peak = fits.GetParameter(0); // not exactly peak height
+  peak = (fits.GetParameter(0)*pow(fits.GetParameter(2)/fits.GetParameter(3),fits.GetParameter(2)))/exp(fits.GetParameter(2));// exact peak height is (p0*Power(p2/p3,p2))/Power(E,p2)
+
+//  peak_sample = fits.GetParameter(1); // signal start time
+  peak_sample = fits.GetParameter(1) + fits.GetParameter(2)/fits.GetParameter(3); // signal peak time
+
+  // peak integral = p0*Power(p3,-1 - p2)*Gamma(1 + p2). Note yet used in output
+
   pedstal = fits.GetParameter(4);
 
   return true;

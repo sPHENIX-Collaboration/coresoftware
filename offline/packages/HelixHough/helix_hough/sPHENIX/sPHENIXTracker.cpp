@@ -462,9 +462,6 @@ void sPHENIXTracker::finalize(vector<SimpleTrack3D>& input,
 
 	// \todo location of a rescale fudge factor    
 	  
-	hit.set_ex( (0.5*sqrt(12.0)*sqrt(hit.get_size(0,0))) * err_scale);
-	hit.set_ey( (0.5*sqrt(12.0)*sqrt(hit.get_size(1,1))) * err_scale);
-	hit.set_ez( (0.5*sqrt(12.0)*sqrt(hit.get_size(2,2))) * err_scale);
 	kalman->addHit(hit, track_states[i]);
 	track_states[i].position = h;
       }
@@ -653,7 +650,7 @@ float sPHENIXTracker::fitTrack(SimpleTrack3D& track, vector<float>& chi2_hit) {
     xyres.push_back(sqrt((0.5*sqrt(12.)*sqrt(track.hits[i].get_size(0,0))) * (0.5*sqrt(12.)*sqrt(track.hits[i].get_size(0,0))) +
                          (0.5*sqrt(12.)*sqrt(track.hits[i].get_size(1,1))) * (0.5*sqrt(12.)*sqrt(track.hits[i].get_size(1,1)))));
     xyres_inv.push_back(1. / xyres.back());
-    zres.push_back(track.hits[i].get_ez());
+    zres.push_back((0.5*sqrt(12.)*sqrt(track.hits[i].get_size(2,2))));
     zres_inv.push_back(1. / zres.back());
   }
 
@@ -1165,11 +1162,8 @@ void sPHENIXTracker::initDummyHits(vector<SimpleHit3D>& dummies,
     float x, y, z;
     projectToLayer(dummy_track, i, x, y, z);
     dummies[i].set_x(x);
-    dummies[i].set_ex(5.);
     dummies[i].set_y(x);
-    dummies[i].set_ey(5.);
     dummies[i].set_z(x);
-    dummies[i].set_ez(5.);
     dummies[i].set_layer(i);
   }
 }
@@ -1269,18 +1263,6 @@ void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits,
     }
     for (unsigned int l = min; l <= hits[i].get_layer(); l += 1) {
       layer_sorted[l].push_back(hits[i]);
-      SimpleHit3D& hit = layer_sorted[l].back();
-      float err_scale = 1.;
-      int layer = hit.get_layer();
-      if ((layer >= 0) && (layer < (int)(hit_error_scale.size()))) {
-        err_scale *= 3. * hit_error_scale[layer];
-      }
-
-      /// \todo location of a fudge factor
-      
-      hit.set_ex( 2.0*sqrt(hit.get_size(0,0)) * err_scale);
-      hit.set_ey( 2.0*sqrt(hit.get_size(1,1)) * err_scale);
-      hit.set_ez( 2.0*sqrt(hit.get_size(2,2)) * err_scale);
     }
   }
   for (unsigned int l = 0; l < n_layers; ++l) {

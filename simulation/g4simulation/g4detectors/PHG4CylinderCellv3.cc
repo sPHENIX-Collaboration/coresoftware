@@ -2,8 +2,6 @@
 
 using namespace std;
 
-ClassImp(PHG4CylinderCellv3)
-
 PHG4CylinderCellv3::PHG4CylinderCellv3()
 : PHG4CylinderCellv1(),
   j_index(-9999),

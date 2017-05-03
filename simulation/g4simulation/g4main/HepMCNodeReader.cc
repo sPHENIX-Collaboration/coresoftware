@@ -44,35 +44,48 @@ static IsStateFinal isfinal;
 HepMCNodeReader::HepMCNodeReader(const std::string &name)
     : SubsysReco(name),
       _embed_flag(0),
+      use_seed(0),
+      seed(0),
       vertex_pos_x(0.0),
       vertex_pos_y(0.0),
       vertex_pos_z(0.0),
       vertex_t0(0.0),
       width_vx(0.0),
       width_vy(0.0),
-      width_vz(0.0) {
+      width_vz(0.0) 
+{
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
-  unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
-  gsl_rng_set(RandomGenerator, seed);
   return;
 }
 
-HepMCNodeReader::~HepMCNodeReader() { gsl_rng_free(RandomGenerator); }
+HepMCNodeReader::~HepMCNodeReader()
+{
+  gsl_rng_free(RandomGenerator);
+}
 
-int HepMCNodeReader::Init(PHCompositeNode *topNode) {
-  
+int
+HepMCNodeReader::Init(PHCompositeNode *topNode)
+{
+
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
-  if (!ineve) {
-    PHNodeIterator iter(topNode);
-    PHCompositeNode *dstNode;
-    dstNode = dynamic_cast<PHCompositeNode *>(
-        iter.findFirst("PHCompositeNode", "DST"));
+  if (!ineve)
+    {
+      PHNodeIterator iter(topNode);
+      PHCompositeNode *dstNode;
+      dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
-    ineve = new PHG4InEvent();
-    PHDataNode<PHObject> *newNode =
-        new PHDataNode<PHObject>(ineve, "PHG4INEVENT", "PHObject");
-    dstNode->addNode(newNode);
-  }
+      ineve = new PHG4InEvent();
+      PHDataNode<PHObject> *newNode =
+	new PHDataNode<PHObject>(ineve, "PHG4INEVENT", "PHObject");
+      dstNode->addNode(newNode);
+    }
+  unsigned int phseed = PHRandomSeed();  // fixed seed is handled in this funtcion, need to call it to preserve random numbder order even if we override it
+  if (use_seed)
+    {
+      phseed = seed;
+    }
+  cout << Name() << " random seed: " << phseed << endl;
+  gsl_rng_set(RandomGenerator, phseed);
   return 0;
 }
 
@@ -199,6 +212,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode) {
         particle->set_px((*fiter)->momentum().px() * mom_factor);
         particle->set_py((*fiter)->momentum().py() * mom_factor);
         particle->set_pz((*fiter)->momentum().pz() * mom_factor);
+	particle->set_barcode((*fiter)->barcode()); 
         ineve->AddParticle((*v)->barcode(), particle);
 
         if (_embed_flag != 0) ineve->AddEmbeddedParticle(particle, _embed_flag);

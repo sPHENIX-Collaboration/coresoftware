@@ -15,7 +15,7 @@ class RawTowerv1 : public RawTower {
   RawTowerv1(const unsigned int ieta, const unsigned int iphi);
   RawTowerv1(const RawTowerDefs::CalorimeterId caloid, const unsigned int ieta,
              const unsigned int iphi);
-  virtual ~RawTowerv1();
+  virtual ~RawTowerv1(){}
 
   void Reset();
   int isValid() const;
@@ -39,7 +39,7 @@ class RawTowerv1 : public RawTower {
   }
   RawTower::CellIterator find_g4cell(int id) { return ecells.find(id); }
   RawTower::CellConstIterator find_g4cell(int id) const {return ecells.find(id);}
-  void add_ecell(const PHG4CylinderCellDefs::keytype g4cellid,
+  void add_ecell(const PHG4CellDefs::keytype g4cellid,
                  const float ecell);
   void clear_g4cells() { ecells.clear(); }
 

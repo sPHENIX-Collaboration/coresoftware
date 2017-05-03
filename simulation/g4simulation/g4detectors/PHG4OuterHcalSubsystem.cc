@@ -1,8 +1,9 @@
 #include "PHG4OuterHcalSubsystem.h"
 #include "PHG4OuterHcalDetector.h"
 #include "PHG4EventActionClearZeroEdep.h"
-#include "PHG4FlushStepTrackingAction.h"
 #include "PHG4OuterHcalSteppingAction.h"
+#include "PHG4HcalDefs.h"
+#include "PHG4Parameters.h"
 
 #include <g4main/PHG4HitContainer.h>
 
@@ -23,7 +24,6 @@ PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const i
   PHG4DetectorSubsystem( name, lyr ),
   detector_( NULL ),
   steppingAction_( NULL ),
-  trackingAction_(NULL),
   eventAction_(NULL),
   enable_field_checker(0)
 {
@@ -44,7 +44,8 @@ PHG4OuterHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
   set<string> nodes;
   if (GetParams()->get_int_param("active"))
     {
-      PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",SuperDetector()));
+      PHNodeIterator dstIter( dstNode );
+      PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode",SuperDetector()));
       if (! DetNode)
 	{
           DetNode = new PHCompositeNode(SuperDetector());
@@ -104,10 +105,6 @@ PHG4OuterHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	  steppingAction_->SetOpt("FieldChecker",enable_field_checker);
 	  steppingAction_->Init();
 	}
-    }
-  if (steppingAction_)
-    {
-      trackingAction_ = new PHG4FlushStepTrackingAction(steppingAction_);
     }
   return 0;
 
@@ -188,14 +185,9 @@ PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_int_param("light_scint_model", 1);
   set_default_int_param("magnet_cutout_first_scinti", 8); // tile start at 0, drawing tile starts at 1
   set_default_int_param("ncross", -4);
-  set_default_int_param("n_scinti_plates", 5*64);
+  set_default_int_param("n_towers", 64);
+  set_default_int_param(PHG4HcalDefs::scipertwr, 5);
   set_default_int_param("n_scinti_tiles", 12);
 
-  set_default_string_param("material", "G4_Fe");
-}
-
-PHG4TrackingAction*
-PHG4OuterHcalSubsystem::GetTrackingAction( void ) const
-{
-  return trackingAction_; 
+  set_default_string_param("material", "Steel_1006");
 }

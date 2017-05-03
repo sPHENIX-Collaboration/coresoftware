@@ -18,8 +18,6 @@
 
 class PHG4SpacalDetector;
 class PHG4SpacalSteppingAction;
-class PHG4EventAction;
-class PHG4FlushStepTrackingAction;
 
 class PHG4SpacalSubsystem : public PHG4Subsystem
 {
@@ -58,13 +56,7 @@ public:
   GetDetector(void) const;
   virtual PHG4SteppingAction*
   GetSteppingAction(void) const;
-  PHG4TrackingAction* GetTrackingAction( void ) const;
 
-  PHG4EventAction*
-  GetEventAction() const
-  {
-    return eventAction_;
-  }
   void
   SetLengthViaRapidityCoverage(const G4bool bl)
   {
@@ -125,10 +117,6 @@ private:
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4SpacalSteppingAction* steppingAction_;
-
-  PHG4FlushStepTrackingAction *trackingAction_;
-
-  PHG4EventAction *eventAction_;
 
   int active;
   int absorberactive;

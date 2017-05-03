@@ -38,13 +38,21 @@ PHG4ForwardEcalSteppingAction::PHG4ForwardEcalSteppingAction( PHG4ForwardEcalDet
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),
+  hitcontainer(NULL),
   hit(NULL),
+  saveshower(NULL),
   absorbertruth(0),
   light_scint_model(1)
+{}
+
+PHG4ForwardEcalSteppingAction::~PHG4ForwardEcalSteppingAction()
 {
-
+  // if the last hit was a zero energie deposit hit, it is just reset
+  // and the memory is still allocated, so we need to delete it here
+  // if the last hit was saved, hit is a NULL pointer which are
+  // legal to delete (it results in a no operation)
+  delete hit;
 }
-
 
 //____________________________________________________________________________..
 bool PHG4ForwardEcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
@@ -117,7 +125,10 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 	{
 	case fGeomBoundary:
 	case fUndefined:
-	  hit = new PHG4Hitv1();
+	  if (! hit)
+	    {
+	      hit = new PHG4Hitv1();
+	    }	
 	  hit->set_scint_id(tower_id);
 
 	  /* Set hit location (tower index) */
@@ -135,21 +146,11 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 
 	  //set the track ID
 	  hit->set_trkid(aTrack->GetTrackID());
-	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	    {
-	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		{
-		  hit->set_trkid(pp->GetUserTrackId());
-		  hit->set_shower_id(pp->GetShower()->get_id());
-		}
-	    }
-
 	  /* set intial energy deposit */
 	  hit->set_edep( 0 );
 	  hit->set_eion( 0 );
 
 	  /* Now add the hit to the hit collection */
-          PHG4HitContainer *hitcontainer;
 	  // here we do things which are different between scintillator and absorber hits
 	  if (whichactive > 0)
 	    {
@@ -161,12 +162,13 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 	      hitcontainer = absorberhits_;
 	    }
 	  // here we set what is common for scintillator and absorber hits
-	  hitcontainer->AddHit(layer_id, hit);
 	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	    {
 	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 		{
-		  pp->GetShower()->add_g4hit_id(hitcontainer->GetID(),hit->get_hit_id());
+		  hit->set_trkid(pp->GetUserTrackId());
+		  hit->set_shower_id(pp->GetShower()->get_id());
+		  saveshower = pp->GetShower();
 		}
 	    }
 	  break;
@@ -238,7 +240,34 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 		}
 	    }
 	}
-
+      // if any of these conditions is true this is the last step in
+      // this volume and we need to save the hit
+      // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
+      // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
+      // (not sure if this will ever be the case)
+      // aTrack->GetTrackStatus() == fStopAndKill: track ends
+      if (postPoint->GetStepStatus() == fGeomBoundary || postPoint->GetStepStatus() == fWorldBoundary|| aTrack->GetTrackStatus() == fStopAndKill)
+	{
+          // save only hits with energy deposit (or -1 for geantino)
+	  if (hit->get_edep())
+	    {
+	      hitcontainer->AddHit(layer_id, hit);
+	      if (saveshower)
+		{
+		  saveshower->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		}
+	      // ownership has been transferred to container, set to null
+	      // so we will create a new hit for the next track
+	      hit = NULL;
+	    }
+	  else
+	    {
+	      // if this hit has no energy deposit, just reset it for reuse
+	      // this means we have to delete it in the dtor. If this was
+	      // the last hit we processed the memory is still allocated
+	      hit->Reset();
+	    }
+	}
       return true;
 
     }
@@ -310,11 +339,13 @@ PHG4ForwardEcalSteppingAction::ParseG4VolumeName( G4VPhysicalVolume* volume, int
 		if (*tokeniter == "j")
 		{
 			++tokeniter;
+			if ( tokeniter == tok.end()) break;
 			j = boost::lexical_cast<int>(*tokeniter);
 		}
 		else if (*tokeniter == "k")
 		{
 			++tokeniter;
+      if ( tokeniter == tok.end()) break;
 			k = boost::lexical_cast<int>(*tokeniter);
 		}
 	}

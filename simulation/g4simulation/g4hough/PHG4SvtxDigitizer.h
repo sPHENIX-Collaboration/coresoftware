@@ -1,5 +1,5 @@
-#ifndef __PHG4SVTXDIGITIZER__
-#define __PHG4SVTXDIGITIZER__
+#ifndef __PHG4SVTXDIGITIZER_H__
+#define __PHG4SVTXDIGITIZER_H__
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
@@ -36,9 +36,11 @@ class PHG4SvtxDigitizer : public SubsysReco
 
   void CalculateCylinderCellADCScale(PHCompositeNode *topNode);
   void CalculateLadderCellADCScale(PHCompositeNode *topNode);
-  
+  void CalculateMapsLadderCellADCScale(PHCompositeNode *topNode);
+
   void DigitizeCylinderCells(PHCompositeNode *topNode);
   void DigitizeLadderCells(PHCompositeNode *topNode);
+  void DigitizeMapsLadderCells(PHCompositeNode *topNode);
   void PrintHits(PHCompositeNode *topNode);
   
   // settings

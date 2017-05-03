@@ -24,6 +24,7 @@ class PHG4CylinderGeomContainer: public PHObject
   int AddLayerGeom(const int i, PHG4CylinderGeom *mygeom);
   int AddLayerGeom(PHG4CylinderGeom *mygeom);
   PHG4CylinderGeom *GetLayerGeom(const int i);
+  PHG4CylinderGeom *GetFirstLayerGeom();
   int get_NLayers() const {return layergeoms.size();}
   std::pair<std::map<int,PHG4CylinderGeom *>::const_iterator, std::map<int,PHG4CylinderGeom *>::const_iterator> get_begin_end() const {return std::make_pair(layergeoms.begin(), layergeoms.end());}
 

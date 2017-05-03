@@ -13,8 +13,6 @@
 #include "PHG4CylinderGeom.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4SpacalSteppingAction.h"
-#include "PHG4EventActionClearZeroEdep.h"
-#include "PHG4FlushStepTrackingAction.h"
 
 #include <g4main/PHG4Utils.h>
 #include <g4main/PHG4PhenixDetector.h>
@@ -30,10 +28,8 @@ using namespace std;
 
 //_______________________________________________________________________
 PHG4SpacalSubsystem::PHG4SpacalSubsystem( const std::string &na, const int lyr):
-  detector_( NULL ),
-  steppingAction_( NULL ),
-  trackingAction_(NULL),
-  eventAction_(NULL),
+  detector_( nullptr ),
+  steppingAction_( nullptr ),
   active(0),
   absorberactive(0),
   layer(lyr),
@@ -113,7 +109,6 @@ int PHG4SpacalSubsystem::InitRun( PHCompositeNode* topNode )
           dstNode->addNode( new PHIODataNode<PHObject>( cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject" ));
         }
       cylinder_hits->AddLayer(layer);
-      PHG4EventActionClearZeroEdep *evtac = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
       if (absorberactive)
         {
           nodename.str("");
@@ -131,14 +126,8 @@ int PHG4SpacalSubsystem::InitRun( PHCompositeNode* topNode )
               dstNode->addNode( new PHIODataNode<PHObject>( cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject" ));
             }
           cylinder_hits->AddLayer(layer);
-          evtac->AddNode(nodename.str());
         }
-      eventAction_ = evtac;
       steppingAction_ = new PHG4SpacalSteppingAction(detector_);
-    }
-  if (steppingAction_)
-    {
-      trackingAction_ = new PHG4FlushStepTrackingAction(steppingAction_);
     }
    return 0;
 
@@ -177,8 +166,3 @@ PHG4SpacalSubsystem::Print(const std::string &what) const
   return;
 }
 
-PHG4TrackingAction*
-PHG4SpacalSubsystem::GetTrackingAction( void ) const
-{
-  return trackingAction_; 
-}

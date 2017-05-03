@@ -1,22 +1,15 @@
 #include "RawTowerv1.h"
 
-#include "RawTowerDefs.h"
-
-#include <iostream>
-#include <algorithm>
-
 #include <cmath>
-#include <map>
+#include <iostream>
 
 using namespace std;
 
-ClassImp(RawTowerv1)
-
 RawTowerv1::RawTowerv1() :
-    towerid(~0), // initialize all bits on
-    energy(0), time(NAN)
-{
-}
+  towerid(~0), // initialize all bits on
+  energy(0),
+  time(NAN)
+{}
 
 RawTowerv1::RawTowerv1(const RawTower & tower)
 {
@@ -42,25 +35,26 @@ RawTowerv1::RawTowerv1(const RawTower & tower)
 }
 
 RawTowerv1::RawTowerv1(RawTowerDefs::keytype id) :
-    towerid(id), energy(0), time(NAN)
-{
-}
+  towerid(id),
+  energy(0),
+  time(NAN)
+{}
 
 RawTowerv1::RawTowerv1(const unsigned int ieta, const unsigned int iphi) :
-    towerid(0), energy(0)
+  towerid(0),
+  energy(0),
+  time(NAN)
 {
   towerid = RawTowerDefs::encode_towerid(RawTowerDefs::NONE, ieta, iphi);
 }
 
 RawTowerv1::RawTowerv1(const RawTowerDefs::CalorimeterId caloid,
-    const unsigned int ieta, const unsigned int iphi) :
-    towerid(0), energy(0), time(NAN)
+                       const unsigned int ieta, const unsigned int iphi) :
+  towerid(0),
+  energy(0),
+  time(NAN)
 {
   towerid = RawTowerDefs::encode_towerid(caloid, ieta, iphi);
-}
-
-RawTowerv1::~RawTowerv1()
-{
 }
 
 void
@@ -86,7 +80,7 @@ RawTowerv1::identify(std::ostream& os) const
 }
 
 void
-RawTowerv1::add_ecell(const PHG4CylinderCellDefs::keytype g4cellid,
+RawTowerv1::add_ecell(const PHG4CellDefs::keytype g4cellid,
     const float ecell)
 {
   if (ecells.find(g4cellid) == ecells.end())

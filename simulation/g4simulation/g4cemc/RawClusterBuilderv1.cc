@@ -115,15 +115,11 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 
   bemc->SetModules(&HitList);
 
-  // Find clusters (as a set of towers with common edge)
-  int ncl = bemc->FindClusters();
-
   // Get pointer to clusters
   std::vector<EmcCluster> *ClusterList = bemc->GetClusters();
   std::vector<EmcCluster>::iterator pc;
 
   float ecl, xcg, ycg, xx, xy, yy;
-  int npk;
   EmcPeakarea pPList[MaxNofPeaks];
   EmcPeakarea *pp;
   EmcModule peaks[MaxNofPeaks];
@@ -134,17 +130,16 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
   float phi, eta;
   float dphi, phistep, deta, etastep;
 
-  std::pair<double, double> beta;
   vector<EmcModule>::iterator ph;
   vector<EmcModule> hlist;
 
-  ncl = 0;
-  for( pc=ClusterList->begin(); pc!=ClusterList->end(); pc++){
+  int ncl = 0;
+  for( pc=ClusterList->begin(); pc!=ClusterList->end(); ++pc){
 
     //    ecl = pc->GetTotalEnergy();
     //    pc->GetMoments( &xcg, &ycg, &xx, &xy, &yy );
     //    printf("Cl: %f %f\n",xcg,ycg);
-    npk = pc->GetPeaks(pPList, peaks);
+    int npk = pc->GetPeaks(pPList, peaks);
     pp = pPList;
 
     //    printf("  iCl=%d  NPeaks=%d: E=%f  x=%f  y=%f\n",iCl,npk,ecl,xcg,ycg);
@@ -196,7 +191,7 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 	// the id is the tower id
 	RawTowerDefs::keytype twrkey = RawTowerDefs::encode_towerid( RawTowerDefs::NONE , ieta , iphi );
 	cluster->addTower(twrkey,(*ph).amp/fEnergyNorm);
-	ph++;
+	++ph;
       }
 
       _clusters->AddCluster(cluster);

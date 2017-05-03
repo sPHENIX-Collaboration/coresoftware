@@ -22,10 +22,6 @@
 #include <limits>       // std::numeric_limits
 #include <map>
 
-ClassImp(PHG4CylinderGeom_Spacalv3)
-ClassImp(PHG4CylinderGeom_Spacalv3::geom_tower)
-ClassImp(PHG4CylinderGeom_Spacalv3::scint_id_coder)
-
 using namespace std;
 using std::make_pair;
 
@@ -152,6 +148,7 @@ PHG4CylinderGeom_Spacalv3::geom_tower::geom_tower() :
     pAlp1(numeric_limits<double>::signaling_NaN()), //
     pAlp2(numeric_limits<double>::signaling_NaN()), //
     pRotationAngleX(numeric_limits<double>::signaling_NaN()), //
+    centralX(numeric_limits<double>::signaling_NaN()), //
     centralY(numeric_limits<double>::signaling_NaN()), //
     centralZ(numeric_limits<double>::signaling_NaN()), //
     ModuleSkinThickness(numeric_limits<double>::signaling_NaN()), //
@@ -344,7 +341,7 @@ PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
 void
 PHG4CylinderGeom_Spacalv3::subtower_consistency_check() const
 {
-  assert(sector_tower_map.begin() != sector_tower_map.end());
+  if (sector_tower_map.begin() == sector_tower_map.end()) return;
 
   for (tower_map_t::const_iterator it = sector_tower_map.begin();
       it != sector_tower_map.end(); ++it)
@@ -365,6 +362,7 @@ PHG4CylinderGeom_Spacalv3::subtower_consistency_check() const
 int
 PHG4CylinderGeom_Spacalv3::get_n_subtower_eta() const
 {
+  if (sector_tower_map.begin() == sector_tower_map.end()) return 0;
   assert(sector_tower_map.begin() != sector_tower_map.end());
   return sector_tower_map.begin()->second.NSubtowerY;
 }
@@ -372,6 +370,7 @@ PHG4CylinderGeom_Spacalv3::get_n_subtower_eta() const
 int
 PHG4CylinderGeom_Spacalv3::get_n_subtower_phi() const
 {
+  if (sector_tower_map.begin() == sector_tower_map.end()) return 0;
   assert(sector_tower_map.begin() != sector_tower_map.end());
   return sector_tower_map.begin()->second.NSubtowerX;
 }

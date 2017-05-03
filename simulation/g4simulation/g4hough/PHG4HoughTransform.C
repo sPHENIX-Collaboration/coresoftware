@@ -1,5 +1,7 @@
 #include "PHG4HoughTransform.h"
 
+#include "SvtxTrackState.h"
+
 // g4hough includes
 #include "SvtxVertexMap.h"
 #include "SvtxVertexMap_v1.h"
@@ -18,7 +20,7 @@
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
+
 #include <g4bbc/BbcVertexMap.h>
 #include <g4bbc/BbcVertex.h>
 
@@ -29,17 +31,13 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 
-// sGeant4 includes
-#include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4TransportationManager.hh>
-#include <Geant4/G4FieldManager.hh>
-
 // Helix Hough includes
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/HelixResolution.h>
 #include <HelixHough/HelixRange.h>
 #include <HelixHough/HelixHough.h>
+#include <HelixHough/sPHENIXTracker.h>
 #include <HelixHough/VertexFinder.h>
 
 // standard includes
@@ -425,10 +423,11 @@ int PHG4HoughTransform::CreateNodes(PHCompositeNode* topNode) {
     cerr << PHWHERE << "DST Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+  PHNodeIterator iter_dst(dstNode);
 
   // Create the SVTX node
   PHCompositeNode* tb_node =
-    dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "SVTX"));
+    dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", "SVTX"));
   if (!tb_node) {
     tb_node = new PHCompositeNode("SVTX");
     dstNode->addNode(tb_node);
@@ -447,12 +446,14 @@ int PHG4HoughTransform::CreateNodes(PHCompositeNode* topNode) {
   tb_node->addNode(vertexes_node);
   if (verbosity > 0) cout << "Svtx/SvtxVertexMap node added" << endl;
 
+  /*
   PHG4CylinderGeomContainer* geoms =
     findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SVTX");
   if (!geoms) {
     cerr << PHWHERE << " ERROR: Can't find CYLINDERGEOM_SVTX Node." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+  */
 
   return InitializeGeometry(topNode);
 }
@@ -469,16 +470,21 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
   PHG4CylinderGeomContainer* laddergeos =
       findNode::getClass<PHG4CylinderGeomContainer>(
           topNode, "CYLINDERGEOM_SILICON_TRACKER");
+  PHG4CylinderGeomContainer* mapsladdergeos =
+      findNode::getClass<PHG4CylinderGeomContainer>(
+          topNode, "CYLINDERGEOM_MAPS");
 
-  if (cellgeos || laddergeos) {
+  if (cellgeos || laddergeos || mapsladdergeos) {
     unsigned int ncelllayers = 0;
     if (cellgeos) ncelllayers += cellgeos->get_NLayers();
     unsigned int nladderlayers = 0;
     if (laddergeos) nladderlayers += laddergeos->get_NLayers();
-    _nlayers = ncelllayers + nladderlayers;
+    unsigned int nmapsladderlayers = 0;
+    if (mapsladdergeos) nmapsladderlayers += mapsladdergeos->get_NLayers();
+    _nlayers = ncelllayers + nladderlayers + nmapsladderlayers;
   } else {
     cerr << PHWHERE
-         << "Neither CYLINDERCELLGEOM_SVTX nor CYLINDERGEOM_SILICON_TRACKER "
+         << "None of  CYLINDERCELLGEOM_SVTX or CYLINDERGEOM_SILICON_TRACKER or CYLINDERGEOM_MAPS"
             "available, bail"
          << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
@@ -519,6 +525,16 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
     }
   }
 
+  if (mapsladdergeos) {
+    PHG4CylinderGeomContainer::ConstRange layerrange = mapsladdergeos->get_begin_end();
+    for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+	layeriter != layerrange.second;
+	++layeriter) {
+      radius_layer_map.insert( make_pair(layeriter->second->get_radius(),
+					 layeriter->second->get_layer()) );
+    }
+  }
+
   // now that the layer ids are sorted by radius, I can create a storage
   // index, ilayer, that is 0..N-1 and sorted by radius
   
@@ -545,6 +561,18 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
 
   if (laddergeos) {    
     PHG4CylinderGeomContainer::ConstRange begin_end = laddergeos->get_begin_end();
+    PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
+    for( ; miter != begin_end.second; miter++) {
+      PHG4CylinderGeom *geo = miter->second;
+      
+      if (verbosity > 1) geo->identify();
+      
+      _radii[_layer_ilayer_map[geo->get_layer()]] = geo->get_radius();      
+    }
+  }
+
+  if (mapsladdergeos) {    
+    PHG4CylinderGeomContainer::ConstRange begin_end = mapsladdergeos->get_begin_end();
     PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
     for( ; miter != begin_end.second; miter++) {
       PHG4CylinderGeom *geo = miter->second;
@@ -891,9 +919,9 @@ int PHG4HoughTransform::translate_input() {
     hit3d.set_y(cluster->get_y());
     hit3d.set_z(cluster->get_z());
 
-    hit3d.set_ex(2.0*sqrt(cluster->get_size(0,0)));
-    hit3d.set_ey(2.0*sqrt(cluster->get_size(1,1)));
-    hit3d.set_ez(2.0*sqrt(cluster->get_size(2,2)));
+    // hit3d.set_ex(2.0*sqrt(cluster->get_size(0,0)));
+    // hit3d.set_ey(2.0*sqrt(cluster->get_size(1,1)));
+    // hit3d.set_ez(2.0*sqrt(cluster->get_size(2,2)));
 
     // copy covariance over
     for (int i = 0; i < 3; ++i) {

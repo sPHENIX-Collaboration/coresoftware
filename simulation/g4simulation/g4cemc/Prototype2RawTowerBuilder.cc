@@ -6,12 +6,15 @@
 #include <g4detectors/PHG4ScintillatorSlat.h>
 #include <g4detectors/PHG4ScintillatorSlatContainer.h>
 #include <g4detectors/PHG4ScintillatorSlatDefs.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHIODataNode.h>
+
 #include <g4main/PHG4Utils.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>
 
 #include <iostream>
 #include <stdexcept>
@@ -21,7 +24,8 @@ using namespace std;
 
 Prototype2RawTowerBuilder::Prototype2RawTowerBuilder(const std::string& name) :
     SubsysReco(name), 
-    _towers(NULL), 
+    _towers(NULL),
+    rawtowergeom(NULL),
     detector("NONE"), 
     emin(1e-6),
     chkenergyconservation(0), 
@@ -193,15 +197,21 @@ Prototype2RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
           TowerGeomNodeName.c_str(), "PHObject");
       runNode->addNode(newNode);
     }
-  for (int irow = 0; irow < 4; irow++)
+  rawtowergeom->set_phibins(4);
+  rawtowergeom->set_etabins(4);
+  for (int irow = 0; irow < rawtowergeom->get_phibins(); irow++)
     {
-      for (int icolumn=0; icolumn<4; icolumn++)
+      for (int icolumn=0; icolumn<rawtowergeom->get_etabins(); icolumn++)
 	{
 	  RawTowerGeomv1 * tg = new RawTowerGeomv1(RawTowerDefs::encode_towerid(RawTowerDefs::convert_name_to_caloid(detector), icolumn, irow));
+            tg->set_center_x(irow*10+icolumn);
+            tg->set_center_y(irow*10+icolumn);
+            tg->set_center_z(irow*10+icolumn);
+
             rawtowergeom->add_tower_geometry(tg);
 	}
     }
-	     	     
+
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
       "PHCompositeNode", "DST"));
   if (!dstNode)

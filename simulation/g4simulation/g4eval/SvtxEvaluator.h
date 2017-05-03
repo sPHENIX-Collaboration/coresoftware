@@ -1,5 +1,5 @@
-#ifndef __SVTXEVALUATOR_H__
-#define __SVTXEVALUATOR_H__
+#ifndef SVTXEVALUATOR_H__
+#define SVTXEVALUATOR_H__
 
 //===============================================
 /// \file SvtxEvaluator.h
@@ -7,17 +7,16 @@
 /// \author Michael P. McCumber (revised SVTX version)
 //===============================================
 
-#include "SvtxEvalStack.h"
 
-// PHENIX includes
 #include <fun4all/SubsysReco.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-
-#include <TNtuple.h>
-#include <TFile.h>
 
 #include <string>
+
+class PHCompositeNode;
+
+class SvtxEvalStack;
+class TFile;
+class TNtuple;
 
 /// \class SvtxEvaluator
 ///

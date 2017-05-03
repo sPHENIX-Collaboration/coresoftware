@@ -32,12 +32,11 @@ class G4VisManager;
   \ingroup supermodules
   \brief   Runs G4 as a subsystem
 */
-class PHG4Reco: public SubsysReco
+class PHG4Reco : public SubsysReco
 {
  public:
-
   //! constructor
-  PHG4Reco( const std::string & name = "PHG4RECO" );
+  PHG4Reco(const std::string &name = "PHG4RECO");
 
   //! destructor
   virtual ~PHG4Reco();
@@ -45,7 +44,7 @@ class PHG4Reco: public SubsysReco
   //! full initialization
   int Init(PHCompositeNode *);
 
-  int InitRun( PHCompositeNode* topNode );
+  int InitRun(PHCompositeNode *topNode);
 
   //! event processing method
   int process_event(PHCompositeNode *);
@@ -57,11 +56,13 @@ class PHG4Reco: public SubsysReco
   int End(PHCompositeNode *);
 
   //! print info
-  void  Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = std::string()) const;
 
   //! register subsystem
-  void registerSubsystem( PHG4Subsystem* subsystem )
-  { subsystems_.push_back( subsystem ); }
+  void registerSubsystem(PHG4Subsystem *subsystem)
+  {
+    subsystems_.push_back(subsystem);
+  }
 
   //! interface to G4 cmd interpreter
   int ApplyCommand(const std::string &cmd);
@@ -71,35 +72,36 @@ class PHG4Reco: public SubsysReco
 
   //! set magnetic field
   void set_field(const float tesla)
-  { magfield = tesla;}
+  {
+    magfield = tesla;
+  }
 
   void set_field_map(const std::string &fmap, const int dim)
-  { fieldmapfile = fmap; mapdim = dim;}
+  {
+    fieldmapfile = fmap;
+    mapdim = dim;
+  }
 
-  void set_field_rescale(const float rescale) {magfield_rescale = rescale;}
-  
-  void set_decayer_active(bool b) {active_decayer_ = b;}
-  void set_force_decay(EDecayType force_decay_type) {
+  void set_field_rescale(const float rescale) { magfield_rescale = rescale; }
+  void set_decayer_active(bool b) { active_decayer_ = b; }
+  void set_force_decay(EDecayType force_decay_type)
+  {
     active_decayer_ = true;
     active_force_decay_ = true;
     force_decay_type_ = force_decay_type;
   }
-  
+
   //! Save geometry from Geant4 to DST
-  void save_DST_geometry(bool b) {save_DST_geometry_ = b;}
-
-  void SetWorldSizeX(const double sx) {WorldSize[0] = sx;}
-  void SetWorldSizeY(const double sy) {WorldSize[1] = sy;}
-  void SetWorldSizeZ(const double sz) {WorldSize[2] = sz;}
-
-  double GetWorldSizeX() const {return WorldSize[0];}
-  double GetWorldSizeY() const {return WorldSize[1];}
-  double GetWorldSizeZ() const {return WorldSize[2];}
-
-  void SetWorldShape(const std::string &s) {worldshape = s;}
-  void SetWorldMaterial(const std::string &s) {worldmaterial = s;}
-  void SetPhysicsList(const std::string &s) {physicslist = s;}
-
+  void save_DST_geometry(bool b) { save_DST_geometry_ = b; }
+  void SetWorldSizeX(const double sx) { WorldSize[0] = sx; }
+  void SetWorldSizeY(const double sy) { WorldSize[1] = sy; }
+  void SetWorldSizeZ(const double sz) { WorldSize[2] = sz; }
+  double GetWorldSizeX() const { return WorldSize[0]; }
+  double GetWorldSizeY() const { return WorldSize[1]; }
+  double GetWorldSizeZ() const { return WorldSize[2]; }
+  void SetWorldShape(const std::string &s) { worldshape = s; }
+  void SetWorldMaterial(const std::string &s) { worldmaterial = s; }
+  void SetPhysicsList(const std::string &s) { physicslist = s; }
   void set_rapidity_coverage(const double eta);
 
   int setupInputEventNodeReader(PHCompositeNode *);
@@ -117,8 +119,7 @@ class PHG4Reco: public SubsysReco
 
   void Dump_GDML(const std::string &filename);
 
-  protected:
-  
+ protected:
   int InitUImanager();
   void DefineMaterials();
   float magfield;
@@ -126,35 +127,35 @@ class PHG4Reco: public SubsysReco
   double WorldSize[3];
 
   //! magnetic field
-  G4TBMagneticFieldSetup* field_;
+  G4TBMagneticFieldSetup *field_;
 
   //! pointer to geant run manager
-  G4RunManager* runManager_;
+  G4RunManager *runManager_;
 
   //! pointer to geant ui session
-  PHG4UIsession* uisession_;
+  PHG4UIsession *uisession_;
 
   //! pointer to detector
-  PHG4PhenixDetector* detector_;
+  PHG4PhenixDetector *detector_;
 
   //! pointer to main event action
-  PHG4PhenixEventAction* eventAction_;
+  PHG4PhenixEventAction *eventAction_;
 
   //! pointer to main stepping action
-  PHG4PhenixSteppingAction* steppingAction_;
+  PHG4PhenixSteppingAction *steppingAction_;
 
   //! pointer to main tracking action
-  PHG4PhenixTrackingAction* trackingAction_;
+  PHG4PhenixTrackingAction *trackingAction_;
 
   //! event generator (read from PHG4INEVENT node)
-  PHG4PrimaryGeneratorAction* generatorAction_;
+  PHG4PrimaryGeneratorAction *generatorAction_;
 
   //! list of subsystems
-  typedef std::list<PHG4Subsystem*> SubsystemList;
+  typedef std::list<PHG4Subsystem *> SubsystemList;
   SubsystemList subsystems_;
 
   // visualization
-  G4VisManager* visManager;
+  G4VisManager *visManager;
 
   double _eta_coverage;
   int mapdim;
@@ -164,15 +165,14 @@ class PHG4Reco: public SubsysReco
   std::string physicslist;
 
   // settings for the external Pythia6 decayer
-  bool active_decayer_;     //< turn on/off decayer
-  bool active_force_decay_; //< turn on/off force decay channels
+  bool active_decayer_;          //< turn on/off decayer
+  bool active_force_decay_;      //< turn on/off force decay channels
   EDecayType force_decay_type_;  //< forced decay channel setting
-  
+
   bool save_DST_geometry_;
 
   //! module timer.
   PHTimeServer::timer _timer;
-
 };
 
 #endif

@@ -3,6 +3,9 @@
 #include "PHG4Hitv1.h"
 
 #include <phool/phool.h>
+
+#include <TSystem.h>
+
 #include <cstdlib>
 
 using namespace std;
@@ -74,12 +77,12 @@ PHG4HitContainer::getmaxkey(const unsigned int detid)
 PHG4HitDefs::keytype
 PHG4HitContainer::genkey(const unsigned int detid)
 {
-  if ((detid >> PHG4HitDefs::keybits) > 0)
-    {
-      cout << " detector id too large: " << detid << endl;
-      exit(1);
-    }
   PHG4HitDefs::keytype detidlong = detid;
+  if ((detidlong >> PHG4HitDefs::keybits) > 0)
+    {
+      cout << PHWHERE << " detector id too large: " << detid << endl;
+      gSystem->Exit(1);
+    }
   PHG4HitDefs::keytype shiftval = detidlong << PHG4HitDefs::hit_idbits;
   //  cout << "max index: " << (detminmax->second)->first << endl;
   // after removing hits with no energy deposition, we have holes
@@ -128,12 +131,12 @@ PHG4HitContainer::AddHit(const unsigned int detid, PHG4Hit *newhit)
 
 PHG4HitContainer::ConstRange PHG4HitContainer::getHits(const unsigned int detid) const
 {
-  if ((detid >> PHG4HitDefs::keybits) > 0)
+  PHG4HitDefs::keytype detidlong = detid;
+  if ((detidlong >> PHG4HitDefs::keybits) > 0)
     {
       cout << " detector id too large: " << detid << endl;
       exit(1);
     }
-  PHG4HitDefs::keytype detidlong = detid;
   PHG4HitDefs::keytype keylow = detidlong << PHG4HitDefs::hit_idbits;
   PHG4HitDefs::keytype keyup = ((detidlong + 1) << PHG4HitDefs::hit_idbits) -1 ;
   ConstRange retpair;

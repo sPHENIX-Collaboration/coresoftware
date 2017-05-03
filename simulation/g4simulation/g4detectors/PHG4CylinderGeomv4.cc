@@ -1,8 +1,6 @@
 #include "PHG4CylinderGeomv4.h"
 #include <cmath>
 
-ClassImp(PHG4CylinderGeomv4)
-
 using namespace std;
 
 PHG4CylinderGeomv4::PHG4CylinderGeomv4():
@@ -58,8 +56,7 @@ void PHG4CylinderGeomv4::find_segment_center(int segment_z_bin, int segment_phi_
   
   // We need to stagger the radii at alternate phi values by radius_stagger, since the ladders overlap in phi
   // The number of staggers is an input number, since it has to be the same for both parts of a double layer!
-  double R_layer = 0.0;
-  R_layer = layer_radius + (double) istagger * radius_stagger;
+  double R_layer = layer_radius + (double) istagger * radius_stagger;
   
   // Place the ladder segment envelopes at the correct z and phi
   double phi  = (double) segment_phi_bin * segment_phi_step;

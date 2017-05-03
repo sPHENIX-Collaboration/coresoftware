@@ -52,6 +52,12 @@ class PHG4SectorDetector: public PHG4Detector, public PHG4Sector::PHG4SectorCons
   const std::string SuperDetector() const {return superdetector;}
 
 
+  virtual void OverlapCheck(const bool chk = true)
+  {
+    PHG4Detector::OverlapCheck(chk);
+    PHG4SectorConstructor::OverlapCheck(chk);
+  }
+
   private:
 
 

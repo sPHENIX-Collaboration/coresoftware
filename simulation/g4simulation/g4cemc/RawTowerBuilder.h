@@ -2,9 +2,10 @@
 #define RAWTOWERBUILDER_H__
 
 #include <fun4all/SubsysReco.h>
-#include <string>
+
 
 #include <phool/PHTimeServer.h>
+#include <string>
 
 class PHCompositeNode;
 class RawTowerContainer;
@@ -18,7 +19,6 @@ class RawTowerBuilder : public SubsysReco {
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
   void Detector(const std::string &d) {detector = d;}
   void EminCut(const double e) {emin = e;}
   void checkenergy(const int i = 1) {chkenergyconservation = i;}

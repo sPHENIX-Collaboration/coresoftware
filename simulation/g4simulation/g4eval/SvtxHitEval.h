@@ -1,21 +1,22 @@
-
-#ifndef __SVTXHITEVAL_H__
-#define __SVTXHITEVAL_H__
+#ifndef SVTXHITEVAL_H__
+#define SVTXHITEVAL_H__
 
 #include "SvtxTruthEval.h"
 
-#include <phool/PHCompositeNode.h>
-#include <g4hough/SvtxHitMap.h>
-#include <g4hough/SvtxHit.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4Particle.h>
-
 #include <set>
 #include <map>
+
+class PHCompositeNode;
+
+class PHG4Cell;
+class PHG4CellContainer;
+class PHG4Hit;
+class PHG4HitContainer;
+class PHG4Particle;
+class PHG4TruthInfoContainer;
+
+class SvtxHit;
+class SvtxHitMap;
 
 class SvtxHitEval {
 
@@ -41,7 +42,7 @@ public:
   // access the clustereval (and its cached values)
   SvtxTruthEval* get_truth_eval() {return &_trutheval;}
   
-  PHG4CylinderCell* get_cell(SvtxHit* hit);
+  PHG4Cell* get_cell(SvtxHit* hit);
   
   // backtrace through to PHG4Hits
   std::set<PHG4Hit*> all_truth_hits          (SvtxHit* hit);
@@ -69,10 +70,12 @@ private:
 
   SvtxTruthEval _trutheval;
   SvtxHitMap* _hitmap;
-  PHG4CylinderCellContainer* _g4cells_svtx;
-  PHG4CylinderCellContainer* _g4cells_tracker;
+  PHG4CellContainer* _g4cells_svtx;
+  PHG4CellContainer* _g4cells_tracker;
+  PHG4CellContainer* _g4cells_maps;
   PHG4HitContainer* _g4hits_svtx;
   PHG4HitContainer* _g4hits_tracker;
+  PHG4HitContainer* _g4hits_maps;
   PHG4TruthInfoContainer* _truthinfo;
 
   bool _strict;
@@ -91,4 +94,4 @@ private:
   std::map<std::pair<SvtxHit*,PHG4Hit*>,float>      _cache_get_energy_contribution_g4hit;
 };
 
-#endif // __SVTXHITEVAL_H__
+#endif // SVTXHITEVAL_H__

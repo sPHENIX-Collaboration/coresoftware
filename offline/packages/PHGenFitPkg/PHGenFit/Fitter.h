@@ -37,27 +37,34 @@ class Fitter
 {
 public:
 	//! Default constructor
-	Fitter(const std::string tgeo_file_name,
-			const std::string field_file_name,
+	Fitter(const std::string &tgeo_file_name,
+			const std::string &field_file_name,
 			const double field_scaling_factor = 1.4/1.5,
-			const std::string fitter_choice = "KalmanFitterRefTrack",
-			const std::string track_rep_choice = "RKTrackRep",
+			const std::string &fitter_choice = "KalmanFitterRefTrack",
+			const std::string &track_rep_choice = "RKTrackRep",
 			const bool doEventDisplay = false);
 
 	Fitter(TGeoManager* tgeo_manager,
 			genfit::AbsBField* fieldMap,
-			const std::string fitter_choice = "KalmanFitterRefTrack",
-			const std::string track_rep_choice = "RKTrackRep",
+			const std::string &fitter_choice = "KalmanFitterRefTrack",
+			const std::string &track_rep_choice = "RKTrackRep",
 			const bool doEventDisplay = false);
 
 	//! Default destructor
 	~Fitter();
 
-	static Fitter* getInstance(const std::string tgeo_file_name,
-			const std::string field_file_name,
+	static Fitter* getInstance(const std::string &tgeo_file_name,
+			const std::string &field_file_name,
 			const double field_scaling_factor = 1.4/1.5,
-			const std::string fitter_choice = "KalmanFitterRefTrack",
-			const std::string track_rep_choice = "RKTrackRep",
+			const std::string &fitter_choice = "KalmanFitterRefTrack",
+			const std::string &track_rep_choice = "RKTrackRep",
+			const bool doEventDisplay = false);
+
+	static Fitter* getInstance(TGeoManager* tgeo_manager,
+			const std::string &field_file_name,
+			const double field_scaling_factor = 1.4/1.5,
+			const std::string &fitter_choice = "KalmanFitterRefTrack",
+			const std::string &track_rep_choice = "RKTrackRep",
 			const bool doEventDisplay = false);
 
 	int processTrack(PHGenFit::Track* track, const bool save_to_evt_disp = false);
@@ -85,6 +92,8 @@ public:
 
 	void set_verbosity(int verbosity) {
 		this->verbosity = verbosity;
+		if(verbosity>=1) genfit::Exception::quiet(false);
+		else genfit::Exception::quiet(true);
 	}
 
 private:
@@ -92,11 +101,11 @@ private:
 	/*!
 	 * Verbose control:
 	 * -1: Silient
-	 * 0: Only Error
-	 * 1: Error + Warning
-	 * 2: DEBUG info
+	 * 0: Minimum
+	 * 1: Errors only
+	 * 2: Errors and Warnings
+	 * 3: Verbose mode, long term debugging
 	 */
-
 	int verbosity;
 
 	TGeoManager* _tgeo_manager;

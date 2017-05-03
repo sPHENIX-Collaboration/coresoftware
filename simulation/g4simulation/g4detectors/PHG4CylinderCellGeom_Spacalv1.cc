@@ -11,15 +11,14 @@
 #include "PHG4CylinderCellGeom_Spacalv1.h"
 #include "PHG4CylinderCellDefs.h"
 
-#include <stdexcept>
-#include <sstream>
-#include <cassert>
 #include <boost/foreach.hpp>
+
+#include <cassert>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 #include <sstream>
-ClassImp(PHG4CylinderCellGeom_Spacalv1);
 
 using namespace std;
 

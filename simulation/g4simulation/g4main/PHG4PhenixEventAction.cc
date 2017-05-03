@@ -7,6 +7,15 @@ PHG4PhenixEventAction::PHG4PhenixEventAction() :
   _timer( PHTimeServer::get()->insert_new( "PHG4PhenixEventAction" ) )
 {}
 
+PHG4PhenixEventAction::~PHG4PhenixEventAction()
+{
+  while (actions_.begin() != actions_.end())
+    {
+      delete actions_.back();
+      actions_.pop_back();
+    }
+}
+
 //_________________________________________________________________
 void PHG4PhenixEventAction::BeginOfEventAction( const G4Event* event )
 {

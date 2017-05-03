@@ -19,7 +19,7 @@ using namespace std;
 //____________________________________________________________________________..
 PHG4BlockSteppingAction::PHG4BlockSteppingAction( PHG4BlockDetector* detector, const PHG4Parameters *parameters ):
   detector_( detector ),
-  params(parameters),
+  params(parameters), hits_(NULL), hit(NULL),
   active(params->get_int_param("active")),
   IsBlackHole(params->get_int_param("blackhole")),
   use_g4_steps(params->get_int_param("use_g4steps"))
@@ -71,6 +71,7 @@ bool PHG4BlockSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       if (use_g4_steps)
 	{
 	  hit = new PHG4Hitv1();
+	  hit->set_layer(layer_id);
 	  //here we set the entrance values in cm
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm);
 	  hit->set_y( 0, prePoint->GetPosition().y() / cm );
@@ -114,6 +115,7 @@ bool PHG4BlockSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
             case fGeomBoundary:
             case fUndefined:
 	      hit = new PHG4Hitv1();
+	      hit->set_layer(layer_id);
 	      //here we set the entrance values in cm
 	      hit->set_x( 0, prePoint->GetPosition().x() / cm);
 	      hit->set_y( 0, prePoint->GetPosition().y() / cm );

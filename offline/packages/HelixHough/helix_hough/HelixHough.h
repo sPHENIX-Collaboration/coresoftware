@@ -291,6 +291,8 @@ class HelixHough
     std::vector<HelixKalmanState> seed_states;
     
     unsigned int n_layers;
+    int layer_start;
+    int layer_end;
     bool smooth_back;
     bool cull_input_hits;
     bool iterate_clustering;

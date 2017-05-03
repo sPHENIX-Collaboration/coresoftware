@@ -1,16 +1,16 @@
 #include "RawTowerGeomContainer_Cylinderv1.h"
 
+#include <cassert>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <cassert>
-
-ClassImp(RawTowerGeomContainer_Cylinderv1)
 
 using namespace std;
 
-RawTowerGeomContainer_Cylinderv1::RawTowerGeomContainer_Cylinderv1(
-    RawTowerDefs::CalorimeterId caloid) :
-    RawTowerGeomContainerv1(caloid), radius(NAN), thickness(NAN)
+RawTowerGeomContainer_Cylinderv1::RawTowerGeomContainer_Cylinderv1(RawTowerDefs::CalorimeterId caloid) :
+  RawTowerGeomContainerv1(caloid),
+  radius(NAN),
+  thickness(NAN)
 {
   return;
 }
@@ -35,6 +35,7 @@ RawTowerGeomContainer_Cylinderv1::set_etabins(const int i)
   bound_t invalid_bound(NAN, NAN);
   eta_bound_map.resize(i, invalid_bound);
 }
+
 void
 RawTowerGeomContainer_Cylinderv1::set_phibins(const int i)
 {

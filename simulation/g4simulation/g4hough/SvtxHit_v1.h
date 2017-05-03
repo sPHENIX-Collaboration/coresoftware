@@ -34,8 +34,8 @@ public:
   float        get_e() const                         {return _e;}
   void         set_e(float e)                        {_e = e;}
   
-  unsigned int get_cellid() const                    {return _cellid;}
-  void         set_cellid(unsigned int cellid)       {_cellid = cellid;}
+  PHG4CellDefs::keytype get_cellid() const                    {return _cellid;}
+  void         set_cellid(PHG4CellDefs::keytype cellid)       {_cellid = cellid;}
   
 private:
   
@@ -43,7 +43,7 @@ private:
   unsigned int _layer;             //< detector layer id
   unsigned int _adc;               //< digitized adc value
   float        _e;                 //< digitized energy value
-  unsigned int _cellid;            //< geant4 cell object
+  PHG4CellDefs::keytype _cellid;            //< geant4 cell object
   
   ClassDef(SvtxHit_v1, 1);
 };

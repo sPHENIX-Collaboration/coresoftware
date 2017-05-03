@@ -14,7 +14,8 @@
 using namespace std;
 
 
-PHG4FCalSteppingAction::PHG4FCalSteppingAction( PHG4FCalDetector* detector ) : detector_( detector )
+PHG4FCalSteppingAction::PHG4FCalSteppingAction( PHG4FCalDetector* detector ) :
+    detector_( detector ), hits_(NULL), hit(NULL)
 {
   
 }

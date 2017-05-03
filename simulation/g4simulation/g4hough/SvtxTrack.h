@@ -41,6 +41,9 @@ public:
   virtual unsigned int get_id() const          {return UINT_MAX;}
   virtual void         set_id(unsigned int id) {}
 
+  virtual unsigned int get_truth_track_id() const {return UINT_MAX;}
+  virtual void set_truth_track_id(unsigned int truthTrackId) {}
+
   virtual bool get_positive_charge() const     {return false;}
   virtual void set_positive_charge(bool ispos) {}
 
@@ -58,11 +61,26 @@ public:
   virtual float get_dca() const                {return NAN;}
   virtual void  set_dca(float dca)             {}
 
+  virtual float get_dca_error() const                {return NAN;}
+  virtual void  set_dca_error(float dca)             {}
+
   virtual float get_dca2d() const              {return NAN;}  
   virtual void  set_dca2d(float dca2d)         {}
 
   virtual float get_dca2d_error() const        {return NAN;}
   virtual void  set_dca2d_error(float error)   {}
+
+  virtual float get_dca3d_xy() const              {return NAN;}
+  virtual void  set_dca3d_xy(float dcaxy)         {}
+
+  virtual float get_dca3d_xy_error() const              {return NAN;}
+  virtual void  set_dca3d_xy_error(float error)         {}
+
+  virtual float get_dca3d_z() const              {return NAN;}
+  virtual void  set_dca3d_z(float dcaz)         {}
+
+  virtual float get_dca3d_z_error() const              {return NAN;}
+  virtual void  set_dca3d_z_error(float error)         {}
 
   virtual float get_x() const                  {return NAN;}
   virtual void  set_x(float x)                 {}

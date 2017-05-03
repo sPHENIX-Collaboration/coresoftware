@@ -205,12 +205,11 @@ class sPHENIXTrackerTPC : public HelixHough {
   void findTracks(std::vector<SimpleHit3D>& hits,
                   std::vector<SimpleTrack3D>& tracks,
 		  const HelixRange& range);
-  
   void findTracksBySegments(std::vector<SimpleHit3D>& hits,
                             std::vector<SimpleTrack3D>& tracks,
-                            const HelixRange& range);
-
+                            const HelixRange& range);  
   void initEvent(std::vector<SimpleHit3D>& hits, unsigned int min_hits) {
+
     int min_layer = 999999;
     int max_layer = 0;
     for (unsigned int i = 0; i < hits.size(); ++i) {
@@ -223,6 +222,7 @@ class sPHENIXTrackerTPC : public HelixHough {
     }
     setSeedLayer(min_layer);
     setNLayers(max_layer + 1);
+
 
     nfits = 0;
     combos.clear();
@@ -251,31 +251,8 @@ class sPHENIXTrackerTPC : public HelixHough {
     isolation_variable.clear();
   }
 
-  void findHelicesParallel(std::vector<SimpleHit3D>& hits,
-                           unsigned int min_hits, unsigned int max_hits,
-                           std::vector<SimpleTrack3D>& tracks);
-  void findHelicesParallelOneHelicity(std::vector<SimpleHit3D>& hits,
-                                      unsigned int min_hits,
-                                      unsigned int max_hits,
-                                      std::vector<SimpleTrack3D>& tracks);
-
-  void findSeededTracks(std::vector<SimpleTrack3D>& seeds,
-                        std::vector<SimpleHit3D>& hits,
-                        std::vector<SimpleTrack3D>& tracks,
-                        const HelixRange& range);
-  void findSeededTracksbySegments(std::vector<SimpleTrack3D>& seeds,
-                                  std::vector<SimpleHit3D>& hits,
-                                  std::vector<SimpleTrack3D>& tracks,
-                                  const HelixRange& range);
-  void findSeededTracksbySegments_run(std::vector<SimpleTrack3D>& seeds,
-                                      std::vector<SimpleHit3D>& hits,
-                                      std::vector<SimpleTrack3D>& tracks);
-
-  float dcaToVertexXY(SimpleTrack3D& track, float vx, float vy);
-
   bool breakRecursion(const std::vector<SimpleHit3D>& hits,
                       const HelixRange& range);
-
   float phiError(SimpleHit3D& hit, float min_k, float max_k, float min_d,
                  float max_d, float min_z0, float max_z0, float min_dzdl,
                  float max_dzdl, bool pairvoting = false);
@@ -283,9 +260,11 @@ class sPHENIXTrackerTPC : public HelixHough {
                   float max_d, float min_z0, float max_z0, float min_dzdl,
                   float max_dzdl, bool pairvoting = false);
 
-  static float fitTrack(SimpleTrack3D& track);
-  static float fitTrack_3(SimpleTrack3D& track);
-  static float fitTrack(SimpleTrack3D& track, std::vector<float>& chi2_hit);
+  static float fitTrack(SimpleTrack3D& track,
+			float scale = 1.0);
+  static float fitTrack(SimpleTrack3D& track,
+			std::vector<float>& chi2_hit,
+			float scale = 1.0);
 
   void setVerbosity(int v) { verbosity = v; }
 
@@ -318,14 +297,6 @@ class sPHENIXTrackerTPC : public HelixHough {
       float sinang_cut, float cosang_diff_inv, float* cur_kappa_a,
       float* cur_dkappa_a, float* cur_ux_a, float* cur_uy_a, float* cur_chi2_a,
       float* chi2_a);
-  void projectToLayer(SimpleTrack3D& seed, unsigned int layer, float& x,
-                      float& y, float& z);
-  void findSeededTracksByProjection(std::vector<SimpleTrack3D>& seeds,
-                                    std::vector<SimpleHit3D>& hits,
-                                    std::vector<SimpleTrack3D>& tracks,
-                                    const HelixRange& range);
-
-  void setRangeFromSeed(HelixRange& range, SimpleTrack3D& seed);
 
   void pairRejection(std::vector<SimpleTrack3D>& input,
                      std::vector<SimpleTrack3D>& output,
@@ -389,6 +360,15 @@ class sPHENIXTrackerTPC : public HelixHough {
         thread_trackers[i]->setRemoveHits(rh);
       }
     }
+  }
+
+
+  void setStartLayer(int start) {
+    layer_start = start;
+  }
+ 
+  void setEndLayer(int end) {
+    layer_end = end;
   }
 
   void setSeedLayer(int sl) {
@@ -481,15 +461,10 @@ class sPHENIXTrackerTPC : public HelixHough {
 
   void setRequirePixels(bool rp){require_pixels = rp;}
 
+
  private:
   float kappaToPt(float kappa);
   float ptToKappa(float pt);
-
-  void findHelicesParallelThread(void* arg);
-  void splitHitsParallelThread(void* arg);
-
-  void initDummyHits(std::vector<SimpleHit3D>& dummies, const HelixRange& range,
-                     HelixKalmanState& init_state);
   void findTracksByCombinatorialKalman(std::vector<SimpleHit3D>& hits,
                                        std::vector<SimpleTrack3D>& tracks,
                                        const HelixRange& range);
@@ -567,6 +542,7 @@ class sPHENIXTrackerTPC : public HelixHough {
   std::vector<float> hit_error_scale;
 
   bool require_pixels;
+
 };
 
 

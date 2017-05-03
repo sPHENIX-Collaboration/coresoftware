@@ -20,7 +20,7 @@ PHPy6ForwardElectronTrig::PHPy6ForwardElectronTrig(const std::string &name): PHP
   n_em_required = 1; 
   n_ep_required = 1; 
   n_comb_required = 1; 
-  ptot_required = 1.0; 
+  pt_required = 0.5; 
   eta_low = 1.0; 
   eta_high = 5.0; 
 
@@ -37,9 +37,9 @@ void PHPy6ForwardElectronTrig::PrintConfig()
   cout << endl; 
   cout << "PHPy6ForwardElectronTrig Configuration: " << endl; 
   cout << " >=" << n_ep_required << " e+ required" << endl; 
-  cout << " >=" << n_em_required << " em required" << endl; 
+  cout << " >=" << n_em_required << " e- required" << endl; 
   cout << " >=" << n_comb_required << " combined required" << endl; 
-  cout << " Electron total momentum > " << ptot_required << " GeV required" << endl; 
+  cout << " Electron transverse momentum > " << pt_required << " GeV required" << endl; 
   cout << " " << eta_low << " < eta < " << eta_high << endl; 
 
   if(RequireElectron) cout << " RequireElectron is set" << endl;
@@ -74,7 +74,7 @@ bool PHPy6ForwardElectronTrig::Apply( const HepMC::GenEvent* evt )
 	  = evt->particles_begin(); p != evt->particles_end(); ++p ){
     if ( (abs((*p)->pdg_id()) == 11) && ((*p)->status()==1) && 
 	 ((*p)->momentum().pseudoRapidity() > eta_low) && ((*p)->momentum().pseudoRapidity() < eta_high) && 
-	 (sqrt(pow((*p)->momentum().px(),2) + pow((*p)->momentum().py(),2) + pow((*p)->momentum().pz(),2))>ptot_required) ) {
+	 (sqrt(pow((*p)->momentum().px(),2) + pow((*p)->momentum().py(),2))>pt_required) ) {
       if(((*p)->pdg_id()) == 11) n_em_found++;
       if(((*p)->pdg_id()) == -11) n_ep_found++;
     }

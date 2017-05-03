@@ -2,6 +2,7 @@
 #define __SVTXHIT_H__
 
 #include <phool/PHObject.h>
+#include <g4detectors/PHG4CellDefs.h>
 #include <iostream>
 #include <limits.h>
 
@@ -34,8 +35,8 @@ public:
   virtual float        get_e() const                         {return UINT_MAX;}
   virtual void         set_e(float e)                        {}
   
-  virtual unsigned int get_cellid() const                    {return UINT_MAX;}
-  virtual void         set_cellid(unsigned int cellid)       {}
+  virtual PHG4CellDefs::keytype get_cellid() const                    {return UINT_MAX;}
+  virtual void         set_cellid(PHG4CellDefs::keytype cellid)       {}
 
 protected:
   SvtxHit() {}

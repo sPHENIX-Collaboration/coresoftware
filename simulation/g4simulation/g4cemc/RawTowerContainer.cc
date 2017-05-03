@@ -4,8 +4,6 @@
 #include <cstdlib>
 #include <iostream>
 
-ClassImp(RawTowerContainer)
-
 using namespace std;
 
 void 

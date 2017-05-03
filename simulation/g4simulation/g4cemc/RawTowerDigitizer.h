@@ -2,9 +2,9 @@
 #define RawTowerDigitizer_H__
 
 #include <fun4all/SubsysReco.h>
-#include <string>
-
 #include <phool/PHTimeServer.h>
+
+#include <string>
 
 class PHCompositeNode;
 class RawTowerContainer;
@@ -25,33 +25,16 @@ class RawTowerDigitizer : public SubsysReco
 
 public:
   RawTowerDigitizer(const std::string& name = "RawTowerDigitizer");
-  virtual
-  ~RawTowerDigitizer();
+  virtual ~RawTowerDigitizer();
 
-  int
-  InitRun(PHCompositeNode *topNode);
-  int
-  process_event(PHCompositeNode *topNode);
-  int
-  End(PHCompositeNode *topNode);
-  void
-  Detector(const std::string &d)
-  {
-    detector = d;
-  }
-  void
-  TowerType(const int type)
-  {
-    _tower_type = type; 
-  } 
+  int InitRun(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode);
+  void Detector(const std::string &d) {detector = d;}
 
-  void
-  set_seed(const unsigned int iseed);
-  unsigned int
-  get_seed() const
-  {
-    return seed;
-  }
+  void TowerType(const int type) {_tower_type = type;} 
+
+  void set_seed(const unsigned int iseed);
+  unsigned int get_seed() const {return seed;}
 
   enum enu_digi_algorithm
   {
@@ -85,7 +68,7 @@ public:
   }
 
   void
-  set_pedstal_central_ADC(double pedstalCentralAdc)
+  set_pedstal_central_ADC(const double pedstalCentralAdc)
   {
     _pedstal_central_ADC = pedstalCentralAdc;
   }
@@ -97,7 +80,7 @@ public:
   }
 
   void
-  set_pedstal_width_ADC(double pedstalWidthAdc)
+  set_pedstal_width_ADC(const double pedstalWidthAdc)
   {
     _pedstal_width_ADC = pedstalWidthAdc;
   }
@@ -109,7 +92,7 @@ public:
   }
 
   void
-  set_photonelec_ADC(double photonelecAdc)
+  set_photonelec_ADC(const double photonelecAdc)
   {
     _photonelec_ADC = photonelecAdc;
   }
@@ -121,7 +104,7 @@ public:
   }
 
   void
-  set_photonelec_yield_visible_GeV(double photonelecYieldVisibleGeV)
+  set_photonelec_yield_visible_GeV(const double photonelecYieldVisibleGeV)
   {
     _photonelec_yield_visible_GeV = photonelecYieldVisibleGeV;
   }
@@ -133,7 +116,7 @@ public:
   }
 
   void
-  set_zero_suppression_ADC(double zeroSuppressionAdc)
+  set_zero_suppression_ADC(const double zeroSuppressionAdc)
   {
     _zero_suppression_ADC = zeroSuppressionAdc;
   }
@@ -145,7 +128,7 @@ public:
   }
 
   void
-  set_raw_tower_node_prefix(std::string rawTowerNodePrefix)
+  set_raw_tower_node_prefix(const std::string &rawTowerNodePrefix)
   {
     _raw_tower_node_prefix = rawTowerNodePrefix;
   }
@@ -157,21 +140,19 @@ public:
   }
 
   void
-  set_sim_tower_node_prefix(std::string simTowerNodePrefix)
+  set_sim_tower_node_prefix(const std::string &simTowerNodePrefix)
   {
     _sim_tower_node_prefix = simTowerNodePrefix;
   }
 protected:
-  void
-  CreateNodes(PHCompositeNode *topNode);
+  void CreateNodes(PHCompositeNode *topNode);
 
   enu_digi_algorithm _digi_algorithm;
 
   //! simple digitization with photon statistics, ADC conversion and pedstal
   //! \param  sim_tower simulation tower input
   //! \return a new RawTower object contain digitalized value of ADC output in RawTower::get_energy()
-  RawTower *
-  simple_photon_digitization(RawTower * sim_tower);
+  RawTower *simple_photon_digitization(RawTower * sim_tower);
 
   RawTowerContainer* _sim_towers;
   RawTowerContainer* _raw_towers;

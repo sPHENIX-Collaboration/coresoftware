@@ -11,10 +11,10 @@
 #include <vector>
 
 //BOOST
-#include<boost/make_shared.hpp>
-
-#define SMART(expr) boost::shared_ptr<expr>
-#define NEW(expr) boost::make_shared<expr>
+//#include<boost/make_shared.hpp>
+//
+//#define SMART(expr) boost::shared_ptr<expr>
+//#define NEW(expr) boost::make_shared<expr>
 
 //GenFit
 
@@ -42,20 +42,27 @@ public:
 	~Track();
 
 	//! Add measurement
-	int addMeasurements(std::vector<PHGenFit::Measurement*> measurements);
+	int addMeasurements(std::vector<PHGenFit::Measurement*> &measurements);
+
+	/*!
+	 * track_point 0 is the first one, and -1 is the last one
+	 */
+	double extrapolateToPlane(genfit::MeasuredStateOnPlane& state, TVector3 O, TVector3 n, const int tr_point_id = 0) const;
+	//!
+	double extrapolateToLine(genfit::MeasuredStateOnPlane& state, TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0) const;
+	//!
+	double extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0) const;
+	//!
+	double extrapolateToPoint(genfit::MeasuredStateOnPlane& state, TVector3 P, const int tr_point_id = 0) const;
 
 	//!
-	genfit::MeasuredStateOnPlane* extrapolateToPlane(TVector3 O, TVector3 n, const int tr_point_id = -1) const;
-
+	genfit::MeasuredStateOnPlane* extrapolateToPlane(TVector3 O, TVector3 n, const int tr_point_id = 0) const;
 	//!
 	genfit::MeasuredStateOnPlane* extrapolateToLine(TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0) const;
-
 	//!
-	genfit::MeasuredStateOnPlane* extrapolateToCylinder(double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id = -1) const;
-
+	genfit::MeasuredStateOnPlane* extrapolateToCylinder(double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0) const;
 	//!
 	genfit::MeasuredStateOnPlane* extrapolateToPoint(TVector3 P, const int tr_point_id = 0) const;
-
 	//!
 	genfit::Track* getGenFitTrack() {return _track;}
 
@@ -71,19 +78,14 @@ public:
 		return ndf;
 	}
 
-	double get_charge() const {
-		genfit::AbsTrackRep* rep = _track->getCardinalRep();
-		genfit::StateOnPlane* state = this->extrapolateToLine(TVector3(0,0,0), TVector3(1,0,0));
-		double charge =  rep->getCharge(*state);
-		delete state;
-		return charge;
-	}
+	double get_charge() const;
 
 	//SMART(genfit::Track) getGenFitTrack() {return _track;}
 
 private:
 
 	genfit::Track* _track;
+	std::vector<PHGenFit::Measurement*> _measurements;
 	//SMART(genfit::Track) _track;
 };
 } //End of PHGenFit namespace

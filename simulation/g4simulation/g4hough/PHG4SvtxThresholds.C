@@ -10,8 +10,6 @@
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
@@ -39,6 +37,7 @@ int PHG4SvtxThresholds::InitRun(PHCompositeNode* topNode) {
   
   CalculateCylinderThresholds(topNode);
   CalculateLadderThresholds(topNode);
+  CalculateMapsLadderThresholds(topNode);
 
   if (verbosity > 0) {
     cout << "====================== PHG4SvtxThresholds::InitRun() ======================" << endl;
@@ -80,6 +79,8 @@ int PHG4SvtxThresholds::process_event(PHCompositeNode *topNode)
     SvtxHit* hit = iter->second;
    
     if (hit->get_e() < get_threshold_by_layer(hit->get_layer())) {
+      if(verbosity > 2)
+	cout << "Removing hit with energy " << hit->get_e() <<  " in layer " << hit->get_layer() << " threshold = " << get_threshold_by_layer(hit->get_layer()) << endl;
       remove_hits.push_back(hit->get_id());
     }
   }
@@ -99,10 +100,9 @@ int PHG4SvtxThresholds::End(PHCompositeNode* topNode) {
 
 void PHG4SvtxThresholds::CalculateCylinderThresholds(PHCompositeNode* topNode) {
 
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SVTX");
   PHG4CylinderCellGeomContainer *geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
     
-  if (!geom_container || !cells) return;
+  if (!geom_container) return;
   
   PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -119,6 +119,8 @@ void PHG4SvtxThresholds::CalculateCylinderThresholds(PHCompositeNode* topNode) {
       float threshold = 0.0;      
       if (_fraction_of_mip.find(layer) != _fraction_of_mip.end()) {	
 	threshold = _fraction_of_mip[layer]*0.003876*thickness;
+	if(verbosity >2) 
+	  cout << " using thickness: threshold = " << threshold << " thickness = " << thickness << " fraction of mip = " << _fraction_of_mip[layer] << " layer " << layer << endl;
       }	  
       _thresholds_by_layer.insert(std::make_pair(layer,threshold));
     } else {
@@ -132,6 +134,8 @@ void PHG4SvtxThresholds::CalculateCylinderThresholds(PHCompositeNode* topNode) {
 	threshold = _fraction_of_mip[layer]*0.003876*minpath;  
       }	      
       _thresholds_by_layer.insert(std::make_pair(layer,threshold));
+      if(verbosity >2) 
+	cout << " not using thickness: threshold = " << threshold << " thickness = " << thickness << " fraction of mip = " << _fraction_of_mip[layer] << " layer " << layer << endl;
     }
   }
   
@@ -140,10 +144,9 @@ void PHG4SvtxThresholds::CalculateCylinderThresholds(PHCompositeNode* topNode) {
 
 void PHG4SvtxThresholds::CalculateLadderThresholds(PHCompositeNode* topNode) {
 
-  PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode,"G4CELL_SILICON_TRACKER");
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
 
-  if (!geom_container || !cells) return;
+  if (!geom_container) return;
   
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -173,6 +176,50 @@ void PHG4SvtxThresholds::CalculateLadderThresholds(PHCompositeNode* topNode) {
 	threshold = _fraction_of_mip[layer]*0.003876*minpath;
       }
       _thresholds_by_layer.insert(std::make_pair(layer,threshold));
+    }
+  }
+  
+  return;
+}
+
+void PHG4SvtxThresholds::CalculateMapsLadderThresholds(PHCompositeNode* topNode) {
+
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
+
+  if (!geom_container) return;
+  
+  PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
+  for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+      layeriter != layerrange.second;
+      ++layeriter) {
+
+    int layer = layeriter->second->get_layer();
+    float thickness = (layeriter->second)->get_pixel_thickness();
+    float pitch = (layeriter->second)->get_pixel_x();
+    float length = (layeriter->second)->get_pixel_z();
+
+    if (get_use_thickness_mip(layer)) {
+      // Si MIP energy = 3.876 MeV / cm
+      float threshold = 0.0;
+      if (_fraction_of_mip.find(layer) != _fraction_of_mip.end()) {
+	threshold = _fraction_of_mip[layer]*0.003876*thickness;
+	if(verbosity >2) 
+	  cout << " using thickness: threshold = " << threshold << " thickness = " << thickness << " fraction of mip = " << _fraction_of_mip[layer] << " layer " << layer << endl;
+      }
+      _thresholds_by_layer.insert(std::make_pair(layer,threshold));
+    } else {
+      float minpath = pitch;
+      if (length < minpath) minpath = length;
+      if (thickness < minpath) minpath = thickness;
+      
+      // Si MIP energy = 3.876 MeV / cm
+      float threshold = 0.0;
+      if (_fraction_of_mip.find(layer) != _fraction_of_mip.end()) {
+	threshold = _fraction_of_mip[layer]*0.003876*minpath;
+      }
+      _thresholds_by_layer.insert(std::make_pair(layer,threshold));
+	if(verbosity >2) 
+	  cout << " not using thickness: threshold = " << threshold << " thickness = " << thickness << " fraction of mip = " << _fraction_of_mip[layer] << " layer " << layer << endl;
     }
   }
   

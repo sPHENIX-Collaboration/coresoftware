@@ -339,6 +339,7 @@ namespace ePHENIXRICH
     ///@}
     
   private:
+
     int N_RICH_Sector;
 
     double min_eta;
@@ -383,10 +384,15 @@ namespace ePHENIXRICH
   class ePHENIXRICHConstruction
   {
   public:
-    virtual
-    ~ePHENIXRICHConstruction();
+    virtual ~ePHENIXRICHConstruction(){}
     ePHENIXRICHConstruction();
     ePHENIXRICHConstruction(const RICH_Geometry & g);
+
+    virtual void
+    OverlapCheck( bool check )
+    {
+      overlapcheck_rich = check;
+    }
 
     G4LogicalVolume*
     Construct_RICH(G4LogicalVolume*);
@@ -415,6 +421,7 @@ namespace ePHENIXRICH
     typedef std::map<phy_vol_idx_t, G4PVPlacement*> map_phy_vol_t;
     map_phy_vol_t map_phy_vol;
 
+    bool overlapcheck_rich;
   };
 
 #endif

@@ -13,41 +13,35 @@ class PHG4Parameters;
 
 class PHG4CylinderSteppingAction : public PHG4SteppingAction
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4CylinderSteppingAction( PHG4CylinderDetector*, const PHG4Parameters *parameters );
+  PHG4CylinderSteppingAction(PHG4CylinderDetector *, const PHG4Parameters *parameters);
 
-  //! destroctor
-  virtual ~PHG4CylinderSteppingAction()
-  {}
+  //! destructor
+  virtual ~PHG4CylinderSteppingAction();
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  bool UserSteppingAction(const G4Step *, bool);
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers( PHCompositeNode* );
+  void SetInterfacePointers(PHCompositeNode *);
 
-  void flush_cached_values();
-
-  private:
-
-  void save_previous_g4hit();
-
+  void SaveLightYield(const int i = 1) { save_light_yield = i; }
+ private:
   //! pointer to the detector
-  PHG4CylinderDetector* detector_;
+  PHG4CylinderDetector *detector_;
 
   const PHG4Parameters *params;
 
   //! pointer to hit container
-  PHG4HitContainer * hits_;
+  PHG4HitContainer *hits_;
   PHG4Hit *hit;
-  PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
+  int save_light_yield;
+  int savetrackid;
+  int savepoststepstatus;
   int active;
   int IsBlackHole;
-  int save_layer_id;
   double zmin;
   double zmax;
   double tmin;

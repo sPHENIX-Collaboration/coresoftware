@@ -133,7 +133,7 @@ RunToTimePg::getTime(const int runNumber, const string &what)
           // this picks the last run
           map<const int, PHTimeStamp *>::reverse_iterator iter = beginruntimes.rbegin();
           // go to the run before
-          iter++;
+          ++iter;
           int delrun = iter->first;
           delete iter->second;
           beginruntimes.erase(delrun);

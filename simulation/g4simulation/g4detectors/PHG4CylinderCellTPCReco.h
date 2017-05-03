@@ -3,13 +3,17 @@
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
+
+#include <TRandom3.h>
+
 #include <string>
 #include <map>
-#include "TRandom3.h"
 
 class PHCompositeNode;
-class PHG4CylinderCell;
 class PHG4TPCDistortion;
+class TH1F;
+class TProfile2D;
+class TStopwatch;
 
 class PHG4CylinderCellTPCReco : public SubsysReco
 {
@@ -20,10 +24,8 @@ public:
   virtual ~PHG4CylinderCellTPCReco();
   
   //! module initialization
+  int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
-  
-  //! run initialization
-  int Init(PHCompositeNode *topNode) {return 0;}
   
   //! event processing
   int process_event(PHCompositeNode *topNode);
@@ -36,7 +38,10 @@ public:
 //   void etaphisize(const int i, const double deltaeta, const double deltaphi);
   void OutputDetector(const std::string &d) {outdetector = d;}
 
-  void setDiffusion( double diff ){diffusion = diff;}
+  void setHalfLength( double hz ){fHalfLength = hz;}
+  void setDiffusionL( double diff ){fDiffusionL = diff;}
+  void setDiffusionT( double diff ){fDiffusionT = diff;}
+  void setDiffusion( double diff ){setDiffusionL(diff); setDiffusionT(diff);} //deprecated
   void setElectronsPerKeV( double epk ){elec_per_kev = epk;}
   void set_drift_velocity( const double cm_per_ns) { driftv = cm_per_ns;}
   
@@ -53,13 +58,6 @@ public:
   void setDistortion (PHG4TPCDistortion * d) {distortion = d;}
 
 protected:
-//   void set_size(const int i, const double sizeA, const double sizeB, const int what);
-//   int CheckEnergy(PHCompositeNode *topNode);
-//   static std::pair<double, double> get_etaphi(const double x, const double y, const double z);
-//   static double get_eta(const double radius, const double z);
-//   bool lines_intersect( double ax, double ay, double bx, double by, double cx, double cy, double dx, double dy, double* rx, double* ry);
-//   bool line_and_rectangle_intersect( double ax, double ay, double bx, double by, double cx, double cy, double dx, double dy, double* rr);
-  
   std::map<int, int>  binning;
   std::map<int, std::pair <double,double> > cell_size; // cell size in phi/z
   std::map<int, std::pair <double,double> > zmin_max; // zmin/zmax for each layer for faster lookup
@@ -72,12 +70,14 @@ protected:
   std::string geonodename;
   std::string seggeonodename;
   std::map<int, std::pair<int, int> > n_phi_z_bins;
-  
+  PHTimeServer::timer _timer;
   int nbins[2];
   
   TRandom3 rand;
 
-  double diffusion;
+  double fHalfLength;
+  double fDiffusionT;
+  double fDiffusionL;
   double elec_per_kev;
   double driftv;
 
@@ -89,6 +89,15 @@ protected:
   
   //! distortion to the primary ionization if not NULL
   PHG4TPCDistortion * distortion;
+  TH1F *fHElectrons;
+  TProfile2D *fHWindowP;
+  TProfile2D *fHWindowZ;
+  TProfile2D *fHMeanEDepPerCell;
+  TProfile2D *fHMeanElectronsPerCell;
+  TProfile2D *fHErrorRPhi;
+  TProfile2D *fHErrorZ;
+  TStopwatch *fSW;
+  TH1F *fHTime;
 };
 
 #endif

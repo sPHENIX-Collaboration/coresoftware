@@ -20,25 +20,20 @@ class PHG4Shower;
 
 class PHG4SpacalSteppingAction : public PHG4SteppingAction
 {
-
-public:
-
+ public:
   //! constructor
-  PHG4SpacalSteppingAction(PHG4SpacalDetector*);
+  PHG4SpacalSteppingAction(PHG4SpacalDetector *);
 
   //! destroctor
-  virtual
-  ~PHG4SpacalSteppingAction()
-  {
-  }
+  virtual ~PHG4SpacalSteppingAction();
 
   //! stepping action
   virtual bool
-  UserSteppingAction(const G4Step*, bool);
+  UserSteppingAction(const G4Step *, bool);
 
   //! reimplemented from base class
   virtual void
-  SetInterfacePointers(PHCompositeNode*);
+  SetInterfacePointers(PHCompositeNode *);
 
   double
   get_zmin();
@@ -46,23 +41,18 @@ public:
   double
   get_zmax();
 
-  void flush_cached_values();
-
-private:
-
-  void save_previous_g4hit();
-
+ private:
   //! pointer to the detector
-  PHG4SpacalDetector* detector_;
+  PHG4SpacalDetector *detector_;
 
-//! pointer to hit container
-  PHG4HitContainer * hits_;
-  PHG4HitContainer * absorberhits_;
+  //! pointer to hit container
+  PHG4HitContainer *hits_;
+  PHG4HitContainer *absorberhits_;
   PHG4Hit *hit;
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
-  int save_layer_id;
-
+  int savetrackid;
+  int savepoststepstatus;
 };
 
-#endif // PHG4VHcalSteppingAction_h
+#endif  // PHG4VHcalSteppingAction_h

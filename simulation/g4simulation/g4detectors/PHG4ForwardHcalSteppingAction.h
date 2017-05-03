@@ -8,6 +8,7 @@
 class PHG4ForwardHcalDetector;
 class PHG4Hit;
 class PHG4HitContainer;
+class PHG4Shower;
 
 class PHG4ForwardHcalSteppingAction : public PHG4SteppingAction
 {
@@ -17,9 +18,9 @@ public:
   //! constructor
   PHG4ForwardHcalSteppingAction( PHG4ForwardHcalDetector* );
 
-  //! destroctor
-  virtual ~PHG4ForwardHcalSteppingAction()
-  {}
+  //! destructor
+  virtual ~PHG4ForwardHcalSteppingAction();
+
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
@@ -37,9 +38,11 @@ private:
   PHG4ForwardHcalDetector* detector_;
 
   //! pointer to hit container
-  PHG4HitContainer * hits_;
-  PHG4HitContainer * absorberhits_;
+  PHG4HitContainer *hits_;
+  PHG4HitContainer *absorberhits_;
+  PHG4HitContainer *hitcontainer;
   PHG4Hit *hit;
+  PHG4Shower *saveshower;
 
   int absorbertruth; 
   int light_scint_model; 

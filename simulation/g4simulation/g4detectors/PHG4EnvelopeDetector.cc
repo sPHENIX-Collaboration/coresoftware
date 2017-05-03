@@ -9,30 +9,24 @@
 #include <phool/getClass.h>
 
 #include <Geant4/G4AssemblyVolume.hh>
-#include <Geant4/G4IntersectionSolid.hh>
-#include <Geant4/G4SubtractionSolid.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4ExtrudedSolid.hh>
-#include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4TwoVector.hh>
-#include <Geant4/G4Trap.hh>
-#include <Geant4/G4GenericTrap.hh>
+#include <Geant4/G4Colour.hh>
 #include <Geant4/G4Cons.hh>
-#include <Geant4/G4Box.hh>
+#include <Geant4/G4ExtrudedSolid.hh>
+#include <Geant4/G4GenericTrap.hh>
+#include <Geant4/G4IntersectionSolid.hh>
+#include <Geant4/G4LogicalVolume.hh>
+#include <Geant4/G4Material.hh>
+#include <Geant4/G4PVPlacement.hh>
+#include <Geant4/G4SubtractionSolid.hh>
+#include <Geant4/G4Trap.hh>
 #include <Geant4/G4Trd.hh>
 #include <Geant4/G4Tubs.hh>
-
+#include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4VisAttributes.hh>
-#include <Geant4/G4Colour.hh>
 
-#include <cmath>
-#include <sstream>
 
 #include <iostream>
-#include <fstream>
-#include <cstdlib>
 
 using namespace std;
 
@@ -50,6 +44,7 @@ PHG4EnvelopeDetector::PHG4EnvelopeDetector(  PHCompositeNode *Node, const std::s
 	_dPhi(2*M_PI),
 	_materialCrystal( "G4_PbWO4" ),
 	_active(1),
+	_layer(0),
 	_superdetector("NONE")
 {
 	
@@ -169,5 +164,3 @@ PHG4EnvelopeDetector::Construct( G4LogicalVolume* logicWorld )
 		overlapcheck);
 	
 }
-
-

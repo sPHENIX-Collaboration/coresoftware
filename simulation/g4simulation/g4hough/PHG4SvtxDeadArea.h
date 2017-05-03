@@ -20,17 +20,11 @@ public:
   PHG4SvtxDeadArea(const std::string &name = "PHG4SvtxDeadArea");
   virtual ~PHG4SvtxDeadArea();
   
-  //! module initialization
-  int Init(PHCompositeNode *topNode){return 0;}
-  
   //! run initialization
   int InitRun(PHCompositeNode *topNode);
   
     //! event processing
   int process_event(PHCompositeNode *topNode);
-  
-  //! end of process
-  int End(PHCompositeNode *topNode);
   
   //! kill random hits in this layer with fractional eff efficiency
   void set_hit_efficiency(const int ilayer, const float eff) {
@@ -43,8 +37,7 @@ public:
 
  private:
 
-  void FillCylinderDeadAreaMap(PHCompositeNode *topNode);
-  void FillLadderDeadAreaMap(PHCompositeNode *topNode);
+  void GenericFillDeadAreaMap(PHCompositeNode *topNode, const std::string &detectorname);
 
   // settings
   std::map<int,float> _eff_by_layer;

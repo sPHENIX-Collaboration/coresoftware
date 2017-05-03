@@ -35,6 +35,9 @@
 #include <algorithm>
 #include <cctype>
 
+#define pytune pytune_
+extern "C" int  pytune(int *itune);
+
 using namespace std;
 
 typedef PHIODataNode<PHObject> PHObjectNode_t;
@@ -76,8 +79,17 @@ int PHPythia6::Init(PHCompositeNode *topNode) {
   HepMC::HEPEVT_Wrapper::set_max_number_entries(4000);
   HepMC::HEPEVT_Wrapper::set_sizeof_real(8);
 
-  /* set pythia random number seed (mandatory!) */
-  pydatr.mrpy[0]=55122 ;
+  /* set pythia random number seed (mandatory!) */  
+  int fSeed = PHRandomSeed(); 
+  fSeed = abs(fSeed)%900000000;
+	    	  	  
+  if ( (fSeed>=0) && (fSeed<=900000000) ) {
+    pydatr.mrpy[0] = fSeed;                   // set seed
+    pydatr.mrpy[1] = 0;                       // use new seed
+  } else {
+    cout << PHWHERE << " ERROR: seed " << fSeed << " is not valid" << endl;
+    exit(2); 
+  }
 
   /* read pythia configuration and initialize */
   if (!_configFile.empty()) ReadConfig( _configFile );
@@ -299,6 +311,13 @@ int PHPythia6::ReadConfig(const string cfg_file) {
       pydat2.pmas[index-1][idc-1] = value; 
       cout << "pmas\t" << idc << " " << index << " " << value << endl;
     }
+    else if ( label == "pytune" )
+    {
+      int ivalue; 
+      line >> ivalue;
+      pytune(&ivalue);
+      cout << "pytune\t" << ivalue << endl;
+    }
      else
       {
 	// label was not understood
@@ -363,6 +382,15 @@ int PHPythia6::process_event(PHCompositeNode *topNode) {
 
     // set cross section information
     evt->set_cross_section( HepMC::getPythiaCrossSection() );
+
+    // Set the PDF information
+    HepMC::PdfInfo pdfinfo;
+    pdfinfo.set_x1(pypars.pari[33-1]); 
+    pdfinfo.set_x2(pypars.pari[34-1]); 
+    pdfinfo.set_scalePDF(pypars.pari[22-1]);
+    pdfinfo.set_id1(pypars.msti[15-1]); 
+    pdfinfo.set_id2(pypars.msti[16-1]);  
+    evt->set_pdf_info(pdfinfo); 
 
     // test trigger logic
     
