@@ -10,11 +10,6 @@
 
 /* HEPGen includes */
 #include <hgenmanager.h>
-//#include "hvector.h"
-//#include "config.h"
-//#include "hlorentzvector.h"
-//#include "hcardparser.h"
-//#include "hpionicdata.h"
 
 /* HepMC includes */
 #include <HepMC/GenEvent.h>
@@ -88,47 +83,131 @@ int sHEPGen::End(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//__________________________________________________________
-//int sHEPGen::read_config(const char *cfg_file) {
-//
-//  if ( cfg_file ) _configFile = cfg_file;
-//  cout << "sHEPGen::read_config - Reading " << _configFile << endl;
-//
-//  ifstream infile( _configFile.c_str() );
-//  if (infile.fail ()) {
-//    cout << "sHEPGen::read_config - Failed to open file " << _configFile << endl;
-//    exit(2);
-//  }
-//
-//  _pythia->readFile(_configFile.c_str());
-//
-//  return Fun4AllReturnCodes::EVENT_OK;
-//}
-//
-////-* print pythia config info
-//void sHEPGen::print_config() const {
-//  //_pythia->info.list();
-//}
 
 int sHEPGen::process_event(PHCompositeNode *topNode) {
 
   if (verbosity > 1) cout << "sHEPGen::process_event - event: " << _eventcount << endl;
 
   _hgenManager->oneShot();
-//  _hgenManager->getEvent()->printDebug();
 
+  if ( _detailed_debug )
+  _hgenManager->getEvent()->printDebug();
 
-  // fill HepMC object with event & pass to
-  //  HepMC::GenEvent *genevent = new HepMC::GenEvent(HepMC::Units::GEV, HepMC::Units::MM);
+  HEvent *evt_mc = _hgenManager->getEvent();
 
-  // pass HepMC to PHNode
-  //  bool success = _phhepmcevt->addEvent(genevent);
-  //  if (!success) {
-  //    cout << "sHEPGen::process_event - Failed to add event to HepMC record!" << endl;
-  //    return Fun4AllReturnCodes::ABORTRUN;
-  //  }
+  /* Create HepMC GenEvent */
+  HepMC::GenEvent* evt = new HepMC::GenEvent();
 
-  // print outs
+  /* define the units (Pythia uses GeV and mm) */
+  evt->use_units(HepMC::Units::GEV, HepMC::Units::MM);
+
+  /* add global information to the event */
+  evt->set_event_number(_eventcount);
+
+  /* Create single HepMC vertex for event - TODO: Allow for multiple vertices e.g. for decay particles */
+  HepMC::GenVertex* hepmcvtx = new HepMC::GenVertex( HepMC::FourVector( 0,
+									0,
+									0,
+									0 )
+						     );
+
+  /* Create HepMC particle records */
+  /* --> beam particle */
+  HLorentzVector v4_beam = evt_mc->getBeam().getVector();
+  int type_beam = evt_mc->getBeam().getParticleType();
+  HepMC::GenParticle *particle_beam = new HepMC::GenParticle( HepMC::FourVector(v4_beam.getVector().X(),
+										v4_beam.getVector().Y(),
+										v4_beam.getVector().Z(),
+										v4_beam.getEnergy()),
+							      type_beam );
+  particle_beam->set_status( 4 ); // status 4 = beam particle
+  hepmcvtx->add_particle_in( particle_beam );
+
+  /* --> target particle */
+  int type_target = evt_mc->getRecoil().getParticleType();
+  HepMC::GenParticle *particle_target = new HepMC::GenParticle( HepMC::FourVector(0,
+										  0,
+										  0,
+										  evt_mc->getRecoil().getMass()),
+								type_target );
+  particle_target->set_status( 4 ); // status 4 = beam particle
+  hepmcvtx->add_particle_in( particle_target );
+
+  /* --> scattered beam particle */
+  HLorentzVector v4_scat = evt_mc->getScat().getVector();
+  int type_scat = evt_mc->getScat().getParticleType();
+  HepMC::GenParticle *particle_scat = new HepMC::GenParticle( HepMC::FourVector(v4_scat.getVector().X(),
+										v4_scat.getVector().Y(),
+										v4_scat.getVector().Z(),
+										v4_scat.getEnergy()),
+							      type_scat );
+  particle_scat->set_status( evt_mc->getScat().getParticleAuxFlag() );
+  hepmcvtx->add_particle_out( particle_scat );
+
+  /* --> recoil target particle */
+  HLorentzVector v4_recoil = evt_mc->getRecoil().getVector();
+  int type_recoil = evt_mc->getRecoil().getParticleType();
+  HepMC::GenParticle *particle_recoil = new HepMC::GenParticle( HepMC::FourVector(v4_recoil.getVector().X(),
+										v4_recoil.getVector().Y(),
+										v4_recoil.getVector().Z(),
+										v4_recoil.getEnergy()),
+							      type_recoil );
+  particle_recoil->set_status( evt_mc->getRecoil().getParticleAuxFlag() );
+  hepmcvtx->add_particle_out( particle_recoil );
+
+  /* --> output particle 1 */
+  HLorentzVector v4_OutPart1 = evt_mc->getOutPart1().getVector();
+  int type_OutPart1 = evt_mc->getOutPart1().getParticleType();
+  if ( type_OutPart1 != 0 )
+    {
+      HepMC::GenParticle *particle_OutPart1 = new HepMC::GenParticle( HepMC::FourVector(v4_OutPart1.getVector().X(),
+											v4_OutPart1.getVector().Y(),
+											v4_OutPart1.getVector().Z(),
+											v4_OutPart1.getEnergy()),
+								      type_OutPart1 );
+      particle_OutPart1->set_status( evt_mc->getOutPart1().getParticleAuxFlag() );
+      hepmcvtx->add_particle_out( particle_OutPart1 );
+    }
+
+  /* --> output particle 2 */
+  HLorentzVector v4_OutPart2 = evt_mc->getOutPart2().getVector();
+  int type_OutPart2 = evt_mc->getOutPart2().getParticleType();
+  if ( type_OutPart2 != 0 )
+    {
+      HepMC::GenParticle *particle_OutPart2 = new HepMC::GenParticle( HepMC::FourVector(v4_OutPart2.getVector().X(),
+											v4_OutPart2.getVector().Y(),
+											v4_OutPart2.getVector().Z(),
+											v4_OutPart2.getEnergy()),
+								      type_OutPart2 );
+      particle_OutPart2->set_status( evt_mc->getOutPart2().getParticleAuxFlag() );
+      hepmcvtx->add_particle_out( particle_OutPart2 );
+    }
+
+  /* --> output particle 3 */
+  HLorentzVector v4_OutPart3 = evt_mc->getOutPart3().getVector();
+  int type_OutPart3 = evt_mc->getOutPart3().getParticleType();
+  if ( type_OutPart3 != 0 )
+    {
+      HepMC::GenParticle *particle_OutPart3 = new HepMC::GenParticle( HepMC::FourVector(v4_OutPart3.getVector().X(),
+											v4_OutPart3.getVector().Y(),
+											v4_OutPart3.getVector().Z(),
+											v4_OutPart3.getEnergy()),
+								      type_OutPart3 );
+      particle_OutPart3->set_status( evt_mc->getOutPart3().getParticleAuxFlag() );
+      hepmcvtx->add_particle_out( particle_OutPart3 );
+    }
+
+  /* Add vertex to event */
+  evt->add_vertex( hepmcvtx );
+
+  /* pass HepMC to PHNode */
+  bool success = _phhepmcevt->addEvent(evt);
+  if (!success) {
+    cout << "sHEPGen::process_event - Failed to add event to HepMC record!" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  /* print outs */
   if (verbosity > 2) cout << "sHEPGen::process_event - FINISHED WHOLE EVENT" << endl;
 
   ++_eventcount;
