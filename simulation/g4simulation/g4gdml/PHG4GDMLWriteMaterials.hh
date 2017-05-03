@@ -37,8 +37,8 @@
 // - Created.                                  Zoltan Torzsok, November 2007
 // -------------------------------------------------------------------------
 
-#ifndef _G4GDMLWRITEMATERIALS_INCLUDED_
-#define _G4GDMLWRITEMATERIALS_INCLUDED_
+#ifndef _PHG4GDMLWRITEMATERIALS_INCLUDED_
+#define _PHG4GDMLWRITEMATERIALS_INCLUDED_
 
 #include "G4Types.hh"
 #include <vector>

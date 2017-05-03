@@ -37,8 +37,8 @@
 // - Created.                                  Zoltan Torzsok, November 2007
 // -------------------------------------------------------------------------
 
-#ifndef _G4GDMLWRITEDEFINE_INCLUDED_
-#define _G4GDMLWRITEDEFINE_INCLUDED_
+#ifndef _PHG4GDMLWRITEDEFINE_INCLUDED_
+#define _PHG4GDMLWRITEDEFINE_INCLUDED_
 
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4ThreeVector.hh>

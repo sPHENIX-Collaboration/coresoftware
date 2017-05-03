@@ -37,8 +37,8 @@
 // - Created.                                  Zoltan Torzsok, November 2007
 // -------------------------------------------------------------------------
 
-#ifndef _G4GDMLWRITEPARAMVOL_INCLUDED_
-#define _G4GDMLWRITEPARAMVOL_INCLUDED_
+#ifndef _PHG4GDMLWRITEPARAMVOL_INCLUDED_
+#define _PHG4GDMLWRITEPARAMVOL_INCLUDED_
 
 #include "PHG4GDMLWriteSetup.hh"
 

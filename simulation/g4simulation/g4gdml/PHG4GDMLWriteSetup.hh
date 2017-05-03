@@ -37,8 +37,8 @@
 // - Created.                                  Zoltan Torzsok, November 2007
 // -------------------------------------------------------------------------
 
-#ifndef _G4GDMLWRITESETUP_INCLUDED_
-#define _G4GDMLWRITESETUP_INCLUDED_
+#ifndef _PHG4GDMLWRITESETUP_INCLUDED_
+#define _PHG4GDMLWRITESETUP_INCLUDED_
 
 #include "PHG4GDMLWriteSolids.hh"
 

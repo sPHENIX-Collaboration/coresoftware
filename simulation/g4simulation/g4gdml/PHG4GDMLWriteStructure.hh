@@ -37,8 +37,8 @@
 // - Created.                                  Zoltan Torzsok, November 2007
 // -------------------------------------------------------------------------
 
-#ifndef _G4GDMLWRITESTRUCTURE_INCLUDED_
-#define _G4GDMLWRITESTRUCTURE_INCLUDED_
+#ifndef _PHG4GDMLWRITESTRUCTURE_INCLUDED_
+#define _PHG4GDMLWRITESTRUCTURE_INCLUDED_
 
 #include "G4Types.hh"
 #include "G4Transform3D.hh"

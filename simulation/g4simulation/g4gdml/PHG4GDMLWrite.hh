@@ -37,8 +37,8 @@
 // - Created.                                  Zoltan Torzsok, November 2007
 // -------------------------------------------------------------------------
 
-#ifndef _G4GDMLWRITE_INCLUDED_
-#define _G4GDMLWRITE_INCLUDED_
+#ifndef _PHG4GDMLWRITE_INCLUDED_
+#define _PHG4GDMLWRITE_INCLUDED_
 
 #include <map>
 
