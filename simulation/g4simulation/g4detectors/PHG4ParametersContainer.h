@@ -10,7 +10,7 @@ class PHG4Parameters;
 class PdbParameterMapContainer;
 class PHCompositeNode;
 
-class PHG4ParametersContainer: public PHObject
+class PHG4ParametersContainer : public PHObject
 {
  public:
   typedef std::map<int, PHG4Parameters *> Map;
@@ -27,21 +27,19 @@ class PHG4ParametersContainer: public PHObject
   PHG4Parameters *GetParametersToModify(const int layer);
   int WriteToFile(const std::string &extension, const std::string &dir);
   int WriteToDB();
-  
-  void set_name(const std::string &name) {superdetectorname = name;}
-  std::string Name() const {return superdetectorname;}
-//  std::pair<std::map<int, PHG4Parameters *>::const_iterator,  std::map<int, PHG4Parameters *>::const_iterator> GetAllParameters() {return std::make_pair(parametermap.begin(),parametermap.end());}
-  ConstRange GetAllParameters() const {return std::make_pair(parametermap.begin(),parametermap.end());}
+
+  void set_name(const std::string &name) { superdetectorname = name; }
+  std::string Name() const { return superdetectorname; }
+  //  std::pair<std::map<int, PHG4Parameters *>::const_iterator,  std::map<int, PHG4Parameters *>::const_iterator> GetAllParameters() {return std::make_pair(parametermap.begin(),parametermap.end());}
+  ConstRange GetAllParameters() const { return std::make_pair(parametermap.begin(), parametermap.end()); }
   void Print() const;
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename);
   int ExistDetid(const int detid) const;
-  void clear() {parametermap.clear();}
-
+  void clear() { parametermap.clear(); }
  protected:
   void CopyToPdbParameterMapContainer(PdbParameterMapContainer *myparm);
   std::string superdetectorname;
   std::map<int, PHG4Parameters *> parametermap;
-
 };
 
-#endif //PHG4ParametersContainer__h
+#endif  //PHG4ParametersContainer__h

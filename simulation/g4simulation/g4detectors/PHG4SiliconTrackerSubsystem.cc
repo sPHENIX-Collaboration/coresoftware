@@ -54,7 +54,6 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   int blackhole = 0;
   for (set<int>::const_iterator parcontaineriter = GetDetIds().first; parcontaineriter != GetDetIds().second; ++parcontaineriter)
   {
-
     if (active || GetParamsContainer()->GetParameters(*parcontaineriter)->get_int_param("active"))
     {
       active = 1;
@@ -69,9 +68,9 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     }
   }
   if (active)
-   {
-     cout << "detector: " << detector_type << endl;
-     cout << "superdetector: " << superdetector << endl;
+  {
+    cout << "detector: " << detector_type << endl;
+    cout << "superdetector: " << superdetector << endl;
     std::string nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_%s") % superdetector) : boost::str(boost::format("G4HIT_%s") % detector_type);
 
     // create hit list
@@ -81,7 +80,7 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 
     if (absorberactive)
     {
-//      nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_ABSORBER_%s") % superdetector) : boost::str(boost::format("G4HIT_ABSORBER_%s") % detector_type);
+      //      nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_ABSORBER_%s") % superdetector) : boost::str(boost::format("G4HIT_ABSORBER_%s") % detector_type);
 
       hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, nodename.c_str());
       if (!hitcontainer)
@@ -123,10 +122,10 @@ PHG4Detector *PHG4SiliconTrackerSubsystem::GetDetector(void) const
 
 void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
 {
-  set_default_double_param(0,"Radius",6.);
-  set_default_double_param(1,"Radius",8.);
-  set_default_double_param(2,"Radius",10.);
-  set_default_double_param(3,"Radius",12.);
+  set_default_double_param(0, "Radius", 6.);
+  set_default_double_param(1, "Radius", 8.);
+  set_default_double_param(2, "Radius", 10.);
+  set_default_double_param(3, "Radius", 12.);
   return;
 }
 

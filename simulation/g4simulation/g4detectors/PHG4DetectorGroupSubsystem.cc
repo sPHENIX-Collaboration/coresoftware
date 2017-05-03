@@ -5,12 +5,12 @@
 #include <pdbcalbase/PdbParameterMap.h>
 #include <pdbcalbase/PdbParameterMapContainer.h>
 
-#include <phool/getClass.h>
-#include <phool/phool.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <boost/format.hpp>
 
@@ -19,18 +19,18 @@
 
 using namespace std;
 
-PHG4DetectorGroupSubsystem::PHG4DetectorGroupSubsystem(const std::string &name, const int lyr): 
-  PHG4Subsystem(name),
-  paramscontainer(nullptr),
-  paramscontainer_default(new PHG4ParametersContainer(Name())),
-  savetopNode(NULL),
-  overlapcheck(false),
-  layer(lyr),
-  usedb(0),
-  beginrunexecuted(0),
-  filetype(PHG4DetectorGroupSubsystem::none),
-  superdetector("NONE"),
-  calibfiledir("./")
+PHG4DetectorGroupSubsystem::PHG4DetectorGroupSubsystem(const std::string &name, const int lyr)
+  : PHG4Subsystem(name)
+  , paramscontainer(nullptr)
+  , paramscontainer_default(new PHG4ParametersContainer(Name()))
+  , savetopNode(NULL)
+  , overlapcheck(false)
+  , layer(lyr)
+  , usedb(0)
+  , beginrunexecuted(0)
+  , filetype(PHG4DetectorGroupSubsystem::none)
+  , superdetector("NONE")
+  , calibfiledir("./")
 {
   // put the layer into the name so we get unique names
   // for multiple layers
@@ -39,8 +39,7 @@ PHG4DetectorGroupSubsystem::PHG4DetectorGroupSubsystem(const std::string &name, 
   Name(nam.str().c_str());
 }
 
-int 
-PHG4DetectorGroupSubsystem::Init(PHCompositeNode* topNode)
+int PHG4DetectorGroupSubsystem::Init(PHCompositeNode *topNode)
 {
   savetopNode = topNode;
   paramscontainer_default->set_name(Name());
@@ -48,118 +47,115 @@ PHG4DetectorGroupSubsystem::Init(PHCompositeNode* topNode)
   return iret;
 }
 
-int 
-PHG4DetectorGroupSubsystem::InitRun( PHCompositeNode* topNode )
+int PHG4DetectorGroupSubsystem::InitRun(PHCompositeNode *topNode)
 {
-  PHNodeIterator iter( topNode );
-  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "PAR" ));
-  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
+  PHNodeIterator iter(topNode);
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
 
   string g4geonodename = "G4GEO_";
   string paramnodename = "G4GEOPARAM_";
   string calibdetname;
   int isSuperDetector = 0;
   if (superdetector != "NONE")
+  {
+    g4geonodename += SuperDetector();
+    paramscontainer = findNode::getClass<PHG4ParametersContainer>(parNode, g4geonodename);
+    if (!paramscontainer)
     {
-      g4geonodename += SuperDetector();
-      paramscontainer = findNode::getClass<PHG4ParametersContainer>(parNode,g4geonodename);
-      if (! paramscontainer)
-	{
-	  PHNodeIterator parIter(parNode);
-          PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode",SuperDetector()));
-	  if (! DetNode)
-	    {
-	      DetNode = new PHCompositeNode(SuperDetector());
-	      parNode->addNode(DetNode);
-	    }
-	  paramscontainer = new PHG4ParametersContainer(superdetector);
-	  DetNode->addNode(new PHDataNode<PHG4ParametersContainer>(paramscontainer,g4geonodename));
-	}
-      paramnodename += superdetector;
-      calibdetname = superdetector;
-      isSuperDetector = 1;
-    }
-  else
-    {
-      paramscontainer = new PHG4ParametersContainer(Name());
-      g4geonodename += paramscontainer->Name();
-      parNode->addNode(new PHDataNode<PHG4ParametersContainer>(paramscontainer,g4geonodename));
-      paramnodename += paramscontainer->Name();
-      calibdetname = paramscontainer->Name();
-    }
-
-      PHG4ParametersContainer::ConstRange begin_end = paramscontainer_default->GetAllParameters();
-      for (PHG4ParametersContainer::ConstIterator iter = begin_end.first; iter != begin_end.second; ++iter)
+      PHNodeIterator parIter(parNode);
+      PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(parIter.findFirst("PHCompositeNode", SuperDetector()));
+      if (!DetNode)
       {
-        paramscontainer->AddPHG4Parameters(iter->first,iter->second);
+        DetNode = new PHCompositeNode(SuperDetector());
+        parNode->addNode(DetNode);
       }
-// the content has been handed off to the param container on the node tree
-// clear our internal map of parameters and delete it to avoid it being used accidentally
-     paramscontainer_default->clear();
-     delete paramscontainer_default;
-     paramscontainer_default = nullptr;
+      paramscontainer = new PHG4ParametersContainer(superdetector);
+      DetNode->addNode(new PHDataNode<PHG4ParametersContainer>(paramscontainer, g4geonodename));
+    }
+    paramnodename += superdetector;
+    calibdetname = superdetector;
+    isSuperDetector = 1;
+  }
+  else
+  {
+    paramscontainer = new PHG4ParametersContainer(Name());
+    g4geonodename += paramscontainer->Name();
+    parNode->addNode(new PHDataNode<PHG4ParametersContainer>(paramscontainer, g4geonodename));
+    paramnodename += paramscontainer->Name();
+    calibdetname = paramscontainer->Name();
+  }
+
+  PHG4ParametersContainer::ConstRange begin_end = paramscontainer_default->GetAllParameters();
+  for (PHG4ParametersContainer::ConstIterator iter = begin_end.first; iter != begin_end.second; ++iter)
+  {
+    paramscontainer->AddPHG4Parameters(iter->first, iter->second);
+  }
+  // the content has been handed off to the param container on the node tree
+  // clear our internal map of parameters and delete it to avoid it being used accidentally
+  paramscontainer_default->clear();
+  delete paramscontainer_default;
+  paramscontainer_default = nullptr;
   // ASSUMPTION: if we read from DB and/or file we don't want the stuff from
   // the node tree
   // We leave the defaults intact in case there is no entry for
   // those in the object read from the DB or file
   // Order: read first DB, then calib file if both are enabled
   if (ReadDB() || get_filetype() != PHG4DetectorGroupSubsystem::none)
+  {
+    if (ReadDB())
     {
-      if (ReadDB())
-	{
-	   ReadParamsFromDB(calibdetname,isSuperDetector);
-	}
-      if (get_filetype() != PHG4DetectorGroupSubsystem::none)
-	{
-	  ReadParamsFromFile(calibdetname, get_filetype(),isSuperDetector );
-	}
+      ReadParamsFromDB(calibdetname, isSuperDetector);
     }
+    if (get_filetype() != PHG4DetectorGroupSubsystem::none)
+    {
+      ReadParamsFromFile(calibdetname, get_filetype(), isSuperDetector);
+    }
+  }
   else
+  {
+    // if not filled from file or DB, check if we have a node containing those calibrations
+    // on the node tree and load them (unlikely - this code is for future use)
+    PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, paramnodename);
+    if (nodeparams)
     {
-// if not filled from file or DB, check if we have a node containing those calibrations
-// on the node tree and load them (unlikely - this code is for future use)
-      PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode,paramnodename);
-      if (nodeparams)
-	{
-//	  params->FillFrom(nodeparams, layer);
-	}
+      //	  params->FillFrom(nodeparams, layer);
     }
+  }
   // parameters set in the macro always override whatever is read from
   // the node tree, DB or file
   UpdateParametersWithMacro();
   // save updated persistant copy on node tree
   PHCompositeNode *RunDetNode = runNode;
   if (superdetector != "NONE")
+  {
+    PHNodeIterator runIter(runNode);
+    RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", SuperDetector()));
+    if (!RunDetNode)
     {
-      PHNodeIterator runIter(runNode);
-      RunDetNode = dynamic_cast<PHCompositeNode*>(runIter.findFirst("PHCompositeNode",SuperDetector()));
-      if (! RunDetNode)
-	{
-	  RunDetNode = new PHCompositeNode(SuperDetector());
-	  runNode->addNode(RunDetNode);
-	}
+      RunDetNode = new PHCompositeNode(SuperDetector());
+      runNode->addNode(RunDetNode);
     }
-  paramscontainer->SaveToNodeTree(RunDetNode,paramnodename);
+  }
+  paramscontainer->SaveToNodeTree(RunDetNode, paramnodename);
   int iret = InitRunSubsystem(topNode);
   if (Verbosity() > 0)
-    {
-      PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode,paramnodename);
-      cout << Name() << endl;
-      nodeparams->print();
-    }
+  {
+    PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, paramnodename);
+    cout << Name() << endl;
+    nodeparams->print();
+  }
   beginrunexecuted = 1;
   return iret;
 }
 
-void
-PHG4DetectorGroupSubsystem::SuperDetector(const std::string &name)
+void PHG4DetectorGroupSubsystem::SuperDetector(const std::string &name)
 {
   superdetector = name;
   return;
 }
 
-void
-PHG4DetectorGroupSubsystem::set_double_param(const int detid, const std::string &name, const double dval)
+void PHG4DetectorGroupSubsystem::set_double_param(const int detid, const std::string &name, const double dval)
 {
   map<int, map<const std::string, double>>::const_iterator iter = default_double.find(detid);
   if (iter == default_double.end())
@@ -174,16 +170,16 @@ PHG4DetectorGroupSubsystem::set_double_param(const int detid, const std::string 
   }
   if (iter->second.find(name) == iter->second.end())
   {
-      cout << "double parameter " << name << " not implemented" << endl;
-      cout << "implemented double parameters are:" << endl;
-      for (map<const string, double>::const_iterator iter3 = iter->second.begin(); iter3 != iter->second.end(); ++iter3)
-      {
-	cout << iter3->first << endl;
-      }
-      return;
+    cout << "double parameter " << name << " not implemented" << endl;
+    cout << "implemented double parameters are:" << endl;
+    for (map<const string, double>::const_iterator iter3 = iter->second.begin(); iter3 != iter->second.end(); ++iter3)
+    {
+      cout << iter3->first << endl;
+    }
+    return;
   }
-// here we know we have entries for the detector id and the variable name exists
-// in the defaults, so now lets set it
+  // here we know we have entries for the detector id and the variable name exists
+  // in the defaults, so now lets set it
   map<int, map<const std::string, double>>::iterator dmapiter = dparams.find(detid);
   if (dmapiter == dparams.end())
   {
@@ -198,15 +194,13 @@ PHG4DetectorGroupSubsystem::set_double_param(const int detid, const std::string 
   return;
 }
 
-
 double
 PHG4DetectorGroupSubsystem::get_double_param(const int detid, const std::string &name) const
 {
   return paramscontainer->GetParameters(detid)->get_double_param(name);
 }
 
-void
-PHG4DetectorGroupSubsystem::set_int_param(const int detid, const std::string &name, const int ival)
+void PHG4DetectorGroupSubsystem::set_int_param(const int detid, const std::string &name, const int ival)
 {
   map<int, map<const std::string, int>>::const_iterator iter = default_int.find(detid);
   if (iter == default_int.end())
@@ -221,16 +215,16 @@ PHG4DetectorGroupSubsystem::set_int_param(const int detid, const std::string &na
   }
   if (iter->second.find(name) == iter->second.end())
   {
-      cout << "int parameter " << name << " not implemented" << endl;
-      cout << "implemented int parameters are:" << endl;
-      for (map<const string, int>::const_iterator iter3 = iter->second.begin(); iter3 != iter->second.end(); ++iter3)
-      {
-	cout << iter3->first << endl;
-      }
-      return;
+    cout << "int parameter " << name << " not implemented" << endl;
+    cout << "implemented int parameters are:" << endl;
+    for (map<const string, int>::const_iterator iter3 = iter->second.begin(); iter3 != iter->second.end(); ++iter3)
+    {
+      cout << iter3->first << endl;
+    }
+    return;
   }
-// here we know we have entries for the detector id and the variable name exists
-// in the defaults, so now lets set it
+  // here we know we have entries for the detector id and the variable name exists
+  // in the defaults, so now lets set it
   map<int, map<const std::string, int>>::iterator imapiter = iparams.find(detid);
   if (imapiter == iparams.end())
   {
@@ -244,14 +238,12 @@ PHG4DetectorGroupSubsystem::set_int_param(const int detid, const std::string &na
   }
 }
 
-int
-PHG4DetectorGroupSubsystem::get_int_param(const int detid, const std::string &name) const
+int PHG4DetectorGroupSubsystem::get_int_param(const int detid, const std::string &name) const
 {
   return paramscontainer->GetParameters(detid)->get_int_param(name);
 }
 
-void
-PHG4DetectorGroupSubsystem::set_string_param(const int detid, const std::string &name, const string &sval)
+void PHG4DetectorGroupSubsystem::set_string_param(const int detid, const std::string &name, const string &sval)
 {
   map<int, map<const std::string, string>>::const_iterator iter = default_string.find(detid);
   if (iter == default_string.end())
@@ -266,16 +258,16 @@ PHG4DetectorGroupSubsystem::set_string_param(const int detid, const std::string 
   }
   if (iter->second.find(name) == iter->second.end())
   {
-      cout << "string parameter " << name << " not implemented" << endl;
-      cout << "implemented string parameters are:" << endl;
-      for (map<const string, string>::const_iterator iter3 = iter->second.begin(); iter3 != iter->second.end(); ++iter3)
-      {
-	cout << iter3->first << endl;
-      }
-      return;
+    cout << "string parameter " << name << " not implemented" << endl;
+    cout << "implemented string parameters are:" << endl;
+    for (map<const string, string>::const_iterator iter3 = iter->second.begin(); iter3 != iter->second.end(); ++iter3)
+    {
+      cout << iter3->first << endl;
+    }
+    return;
   }
-// here we know we have entries for the detector id and the variable name exists
-// in the defaults, so now lets set it
+  // here we know we have entries for the detector id and the variable name exists
+  // in the defaults, so now lets set it
   map<int, map<const std::string, string>>::iterator smapiter = cparams.find(detid);
   if (smapiter == cparams.end())
   {
@@ -296,16 +288,15 @@ PHG4DetectorGroupSubsystem::get_string_param(const int detid, const std::string 
   return paramscontainer->GetParameters(detid)->get_string_param(name);
 }
 
-void
-PHG4DetectorGroupSubsystem::UpdateParametersWithMacro()
+void PHG4DetectorGroupSubsystem::UpdateParametersWithMacro()
 {
   map<int, map<const std::string, double>>::const_iterator iter;
   for (iter = dparams.begin(); iter != dparams.end(); ++iter)
   {
     map<const std::string, double>::const_iterator diter;
-    for (diter=iter->second.begin(); diter != iter->second.end(); ++diter)
+    for (diter = iter->second.begin(); diter != iter->second.end(); ++diter)
     {
-      set_double_param(iter->first,diter->first, diter->second);
+      set_double_param(iter->first, diter->first, diter->second);
     }
   }
   map<int, map<const std::string, int>>::const_iterator iiter;
@@ -314,7 +305,7 @@ PHG4DetectorGroupSubsystem::UpdateParametersWithMacro()
     PHG4Parameters *params = GetParamsContainer()->GetParametersToModify(iiter->first);
 
     map<const std::string, int>::const_iterator iiter2;
-    for (iiter2=iiter->second.begin(); iiter2 != iiter->second.end(); ++iiter2)
+    for (iiter2 = iiter->second.begin(); iiter2 != iiter->second.end(); ++iiter2)
     {
       params->set_int_param(iiter2->first, iiter2->second);
     }
@@ -323,16 +314,15 @@ PHG4DetectorGroupSubsystem::UpdateParametersWithMacro()
   for (siter = cparams.begin(); siter != cparams.end(); ++siter)
   {
     map<const std::string, string>::const_iterator siter2;
-    for (siter2=siter->second.begin(); siter2 != siter->second.end(); ++siter2)
+    for (siter2 = siter->second.begin(); siter2 != siter->second.end(); ++siter2)
     {
-      set_string_param(siter->first,siter2->first, siter2->second);
+      set_string_param(siter->first, siter2->first, siter2->second);
     }
   }
   return;
 }
 
-void
-PHG4DetectorGroupSubsystem::set_default_double_param(const int detid, const std::string &name, const double dval)
+void PHG4DetectorGroupSubsystem::set_default_double_param(const int detid, const std::string &name, const double dval)
 {
   map<int, map<const std::string, double>>::iterator dmapiter = default_double.find(detid);
   if (dmapiter == default_double.end())
@@ -345,8 +335,8 @@ PHG4DetectorGroupSubsystem::set_default_double_param(const int detid, const std:
   {
     if (dmapiter->second.find(name) != dmapiter->second.end())
     {
-      cout << "trying to overwrite default double " << name << " " 
-	   << dmapiter->second.find(name)->second << " with " << dval << endl;
+      cout << "trying to overwrite default double " << name << " "
+           << dmapiter->second.find(name)->second << " with " << dval << endl;
       exit(1);
     }
     else
@@ -357,8 +347,7 @@ PHG4DetectorGroupSubsystem::set_default_double_param(const int detid, const std:
   return;
 }
 
-void
-PHG4DetectorGroupSubsystem::set_default_int_param(const int detid, const std::string &name, const int ival)
+void PHG4DetectorGroupSubsystem::set_default_int_param(const int detid, const std::string &name, const int ival)
 {
   map<int, map<const std::string, int>>::iterator imapiter = default_int.find(detid);
   if (imapiter == default_int.end())
@@ -371,8 +360,8 @@ PHG4DetectorGroupSubsystem::set_default_int_param(const int detid, const std::st
   {
     if (imapiter->second.find(name) != imapiter->second.end())
     {
-      cout << "trying to overwrite default int " << name << " " 
-	   << imapiter->second.find(name)->second << " with " << ival << endl;
+      cout << "trying to overwrite default int " << name << " "
+           << imapiter->second.find(name)->second << " with " << ival << endl;
       exit(1);
     }
     else
@@ -383,8 +372,7 @@ PHG4DetectorGroupSubsystem::set_default_int_param(const int detid, const std::st
   return;
 }
 
-void
-PHG4DetectorGroupSubsystem::set_default_string_param(const int detid, const std::string &name, const string &sval)
+void PHG4DetectorGroupSubsystem::set_default_string_param(const int detid, const std::string &name, const string &sval)
 {
   map<int, map<const std::string, string>>::iterator smapiter = default_string.find(detid);
   if (smapiter == default_string.end())
@@ -397,8 +385,8 @@ PHG4DetectorGroupSubsystem::set_default_string_param(const int detid, const std:
   {
     if (smapiter->second.find(name) != smapiter->second.end())
     {
-      cout << "trying to overwrite default string " << name << " " 
-	   << smapiter->second.find(name)->second << " with " << sval << endl;
+      cout << "trying to overwrite default string " << name << " "
+           << smapiter->second.find(name)->second << " with " << sval << endl;
       exit(1);
     }
     else
@@ -409,17 +397,16 @@ PHG4DetectorGroupSubsystem::set_default_string_param(const int detid, const std:
   return;
 }
 
-void
-PHG4DetectorGroupSubsystem::InitializeParameters()
+void PHG4DetectorGroupSubsystem::InitializeParameters()
 {
-  for (set<int>::const_iterator iter=layers.begin(); iter != layers.end(); ++iter)
+  for (set<int>::const_iterator iter = layers.begin(); iter != layers.end(); ++iter)
   {
     set_default_int_param(*iter, "absorberactive", 0);
-  set_default_int_param(*iter, "absorbertruth", 0);
-  set_default_int_param(*iter, "active", 0);
-  set_default_int_param(*iter, "blackhole", 0);
+    set_default_int_param(*iter, "absorbertruth", 0);
+    set_default_int_param(*iter, "active", 0);
+    set_default_int_param(*iter, "blackhole", 0);
   }
-  SetDefaultParameters(); // call method from specific subsystem
+  SetDefaultParameters();  // call method from specific subsystem
   // now load those parameters to our params class
   map<int, map<const string, double>>::const_iterator diter;
   for (diter = default_double.begin(); diter != default_double.end(); ++diter)
@@ -427,8 +414,8 @@ PHG4DetectorGroupSubsystem::InitializeParameters()
     PHG4Parameters *detidparams = paramscontainer_default->GetParametersToModify(diter->first);
     if (!detidparams)
     {
-      detidparams = new PHG4Parameters(boost::str(boost::format("%s_%d") %Name() %diter->first));
-      paramscontainer_default->AddPHG4Parameters(diter->first,detidparams);
+      detidparams = new PHG4Parameters(boost::str(boost::format("%s_%d") % Name() % diter->first));
+      paramscontainer_default->AddPHG4Parameters(diter->first, detidparams);
     }
     map<const string, double>::const_iterator diter2;
     for (diter2 = diter->second.begin(); diter2 != diter->second.end(); ++diter2)
@@ -443,8 +430,8 @@ PHG4DetectorGroupSubsystem::InitializeParameters()
     PHG4Parameters *detidparams = paramscontainer_default->GetParametersToModify(iiter->first);
     if (!detidparams)
     {
-      detidparams = new PHG4Parameters(boost::str(boost::format("%s_%d") %Name() %iiter->first));
-      paramscontainer_default->AddPHG4Parameters(iiter->first,detidparams);
+      detidparams = new PHG4Parameters(boost::str(boost::format("%s_%d") % Name() % iiter->first));
+      paramscontainer_default->AddPHG4Parameters(iiter->first, detidparams);
     }
     map<const string, int>::const_iterator iiter2;
     for (iiter2 = iiter->second.begin(); iiter2 != iiter->second.end(); ++iiter2)
@@ -459,8 +446,8 @@ PHG4DetectorGroupSubsystem::InitializeParameters()
     PHG4Parameters *detidparams = paramscontainer_default->GetParametersToModify(siter->first);
     if (!detidparams)
     {
-      detidparams = new PHG4Parameters(boost::str(boost::format("%s_%d") %Name() %siter->first));
-      paramscontainer_default->AddPHG4Parameters(siter->first,detidparams);
+      detidparams = new PHG4Parameters(boost::str(boost::format("%s_%d") % Name() % siter->first));
+      paramscontainer_default->AddPHG4Parameters(siter->first, detidparams);
     }
     map<const string, string>::const_iterator siter2;
     for (siter2 = siter->second.begin(); siter2 != siter->second.end(); ++siter2)
@@ -470,21 +457,19 @@ PHG4DetectorGroupSubsystem::InitializeParameters()
   }
 }
 
-int
-PHG4DetectorGroupSubsystem::SaveParamsToDB()
+int PHG4DetectorGroupSubsystem::SaveParamsToDB()
 {
   int iret = 0;
   assert(paramscontainer);
   iret = paramscontainer->WriteToDB();
   if (iret)
-    {
-      cout << "problem committing to DB" << endl;
-    }
+  {
+    cout << "problem committing to DB" << endl;
+  }
   return iret;
 }
 
-int
-PHG4DetectorGroupSubsystem::ReadParamsFromDB(const string &name, const int issuper)
+int PHG4DetectorGroupSubsystem::ReadParamsFromDB(const string &name, const int issuper)
 {
   int iret = 0;
   // if (issuper)
@@ -496,85 +481,79 @@ PHG4DetectorGroupSubsystem::ReadParamsFromDB(const string &name, const int issup
   //     iret = params->ReadFromDB();
   //   }
   if (iret)
-    {
-      cout << "problem reading from DB" << endl;
-    }
+  {
+    cout << "problem reading from DB" << endl;
+  }
   return iret;
 }
 
-int
-PHG4DetectorGroupSubsystem::SaveParamsToFile(const PHG4DetectorGroupSubsystem::FILE_TYPE ftyp)
+int PHG4DetectorGroupSubsystem::SaveParamsToFile(const PHG4DetectorGroupSubsystem::FILE_TYPE ftyp)
 {
   string extension;
-  switch(ftyp)
-    {
-    case xml:
-      extension = "xml";
-      break;
-    case root:
-      extension = "root";
-      break;
-    default:
-      cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
-      exit(1);
-    }
+  switch (ftyp)
+  {
+  case xml:
+    extension = "xml";
+    break;
+  case root:
+    extension = "root";
+    break;
+  default:
+    cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
+    exit(1);
+  }
   int iret = 0;
   assert(paramscontainer);
-  iret = paramscontainer->WriteToFile(extension,calibfiledir);
+  iret = paramscontainer->WriteToFile(extension, calibfiledir);
   if (iret)
-    {
-      cout << "problem saving to " << extension << " file " << endl;
-    }
+  {
+    cout << "problem saving to " << extension << " file " << endl;
+  }
   return iret;
 }
 
-int
-PHG4DetectorGroupSubsystem::ReadParamsFromFile(const string &name, const PHG4DetectorGroupSubsystem::FILE_TYPE ftyp, const int issuper)
+int PHG4DetectorGroupSubsystem::ReadParamsFromFile(const string &name, const PHG4DetectorGroupSubsystem::FILE_TYPE ftyp, const int issuper)
 {
   string extension;
-  switch(ftyp)
-    {
-    case xml:
-      extension = "xml";
-      break;
-    case root:
-      extension = "root";
-      break;
-    default:
-      cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
-      exit(1);
-    }
+  switch (ftyp)
+  {
+  case xml:
+    extension = "xml";
+    break;
+  case root:
+    extension = "root";
+    break;
+  default:
+    cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
+    exit(1);
+  }
   int iret = 1;
-//  int iret = params->ReadFromFile(name, extension, layer, issuper, calibfiledir);
+  //  int iret = params->ReadFromFile(name, extension, layer, issuper, calibfiledir);
   if (iret)
-    {
-      cout << "problem reading from " << extension << " file " << endl;
-    }
+  {
+    cout << "problem reading from " << extension << " file " << endl;
+  }
   return iret;
 }
 
-void
-PHG4DetectorGroupSubsystem::SetActive(const int detid, const int i)
+void PHG4DetectorGroupSubsystem::SetActive(const int detid, const int i)
 {
-  set_int_param(detid,"active", i);
+  set_int_param(detid, "active", i);
 }
 
-void
-PHG4DetectorGroupSubsystem::SetAbsorberActive(const int detid, const int i)
+void PHG4DetectorGroupSubsystem::SetAbsorberActive(const int detid, const int i)
 {
-  set_int_param(detid,"absorberactive", i);
+  set_int_param(detid, "absorberactive", i);
 }
 
-void
-PHG4DetectorGroupSubsystem::BlackHole(const int detid, const int i)
+void PHG4DetectorGroupSubsystem::BlackHole(const int detid, const int i)
 {
-  set_int_param(detid,"blackhole",i);
+  set_int_param(detid, "blackhole", i);
 }
 
-void
-PHG4DetectorGroupSubsystem::SetAbsorberTruth(const int detid, const int i)
+void PHG4DetectorGroupSubsystem::SetAbsorberTruth(const int detid, const int i)
 {
-  set_int_param(detid,"absorbertruth",i);
+  set_int_param(detid, "absorbertruth", i);
 }
 
 void PHG4DetectorGroupSubsystem::PrintDefaultParams() const
