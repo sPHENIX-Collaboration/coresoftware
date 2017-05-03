@@ -1069,7 +1069,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		}
 
 		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
-				cluster->get_phi_error(), cluster->get_z_error());
+				cluster->get_rphi_error(), cluster->get_z_error());
 
 //		TMatrixF cov_uvn(3,3);
 //		TMatrixF cov_xyz(3,3);
@@ -1083,7 +1083,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 //		cov_uvn[0][2] = 0.;
 //
 //		cov_uvn[1][0] = 0.;
-//		cov_uvn[1][1] = cluster->get_phi_error()*cluster->get_phi_error();
+//		cov_uvn[1][1] = cluster->get_rphi_error()*cluster->get_rphi_error();
 //		cov_uvn[1][2] = 0.;
 //
 //		cov_uvn[2][0] = 0.;

@@ -20,9 +20,8 @@ INCLUDES = \
     -I$(includedir) \
     -I$(OFFLINE_MAIN)/include \
     -I$(ROOTSYS)/include \
-    -I${G4_MAIN}/include \
-    -I${G4_MAIN}/include/Geant4 \
-	-I/opt/sphenix/core/stow/xerces-c-3.1.2/include/
+    -I$(G4_MAIN)/include \
+    -I$(OPT_SPHENIX)/include 
 
 libg4detectors_io_la_LIBADD = \
   -L$(ROOTSYS)/lib \
@@ -172,6 +171,8 @@ libg4detectors_la_SOURCES = \
   PHG4CylinderCellReco.cc \
   PHG4CylinderCellReco_Dict.cc \
   PHG4CylinderSteppingAction.cc \
+  PHG4DetectorGroupSubsystem.cc \
+  PHG4DetectorGroupSubsystem_Dict.cc \
   PHG4DetectorSubsystem.cc \
   PHG4DetectorSubsystem_Dict.cc \
   PHG4EnvelopeDetector.cc \
@@ -215,7 +216,7 @@ libg4detectors_la_SOURCES = \
   PHG4InnerHcalDetector.cc \
   PHG4InnerHcalSteppingAction.cc \
   PHG4InnerHcalSubsystem.cc \
-  PHG4InnerHcal_Dict.C \
+  PHG4InnerHcalSubsystem_Dict.cc \
   PHG4ScintillatorSlat_Dict.cc \
   PHG4ScintillatorSlatDefs.cc \
   PHG4ScintillatorSlatDefs_Dict.cc \
@@ -231,7 +232,7 @@ libg4detectors_la_SOURCES = \
   PHG4Prototype2InnerHcalDetector.cc \
   PHG4Prototype2InnerHcalSteppingAction.cc \
   PHG4Prototype2InnerHcalSubsystem.cc \
-  PHG4Prototype2InnerHcalSubsystem_Dict.C \
+  PHG4Prototype2InnerHcalSubsystem_Dict.cc \
   PHG4Prototype2HcalCellReco.cc \
   PHG4Prototype2HcalCellReco_Dict.cc \
   PHG4Prototype2OuterHcalDetector.cc \
@@ -256,6 +257,8 @@ libg4detectors_la_SOURCES = \
   PHG4SiliconTrackerSteppingAction.cc \
   PHG4SiliconTrackerSubsystem.cc \
   PHG4SiliconTrackerSubsystem_Dict.cc \
+  PHG4StepStatusDecode.cc \
+  PHG4TrackStatusDecode.cc \
   PHG4MapsCellReco.cc \
   PHG4MapsCellReco_Dict.cc \
   PHG4MapsDetector.cc \
@@ -284,11 +287,6 @@ libg4detectors_la_SOURCES = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
-
-PHG4InnerHcal_Dict.C: \
-  PHG4InnerHcalSubsystem.h \
-  PHG4InnerHcalLinkDef.h
 	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
 ################################################

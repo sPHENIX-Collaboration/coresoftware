@@ -133,6 +133,11 @@ PHG4InnerHcalSubsystem::Print(const string &what) const
     {
       detector_->Print(what);
     }
+  if (steppingAction_)
+    {
+      steppingAction_->Print(what);
+    }
+
   return;
 }
 

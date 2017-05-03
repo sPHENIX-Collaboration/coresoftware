@@ -7,7 +7,6 @@
 #include "PHG4CylinderGeom.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4SpacalPrototypeSteppingAction.h"
-#include "PHG4EventActionClearZeroEdep.h"
 
 #include "PHG4ParametersContainer.h"
 #include "PHG4Parameters.h"
@@ -32,9 +31,8 @@ using namespace std;
 //_______________________________________________________________________
 PHG4SpacalPrototypeSubsystem::PHG4SpacalPrototypeSubsystem(const std::string &na) :
     PHG4DetectorSubsystem(na,0),
-    detector_(NULL), 
-    steppingAction_(NULL), 
-    eventAction_(NULL) //
+    detector_(nullptr), 
+    steppingAction_(nullptr)
 {
   InitializeParameters();
 }
@@ -78,8 +76,6 @@ PHG4SpacalPrototypeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
                   nodename.str().c_str(), "PHObject"));
         }
       cylinder_hits->AddLayer(0);
-      PHG4EventActionClearZeroEdep *evtac = new PHG4EventActionClearZeroEdep(
-          topNode, nodename.str());
       if (GetParams()->get_int_param("absorberactive"))
         {
           nodename.str("");
@@ -102,9 +98,7 @@ PHG4SpacalPrototypeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
                       nodename.str().c_str(), "PHObject"));
             }
           cylinder_hits->AddLayer(0);
-          evtac->AddNode(nodename.str());
         }
-      eventAction_ = evtac;
       steppingAction_ = new PHG4SpacalPrototypeSteppingAction(detector_);
     }
 
