@@ -1,6 +1,6 @@
 #include "PHG4SiliconTrackerSubsystem.h"
-#include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4Parameters.h"
+#include "PHG4ParametersContainer.h"
 #include "PHG4SiliconTrackerDetector.h"
 #include "PHG4SiliconTrackerSteppingAction.h"
 
@@ -20,10 +20,9 @@ PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &dete
   : PHG4DetectorGroupSubsystem(detectorname)
   , detector_(0)
   , steppingAction_(nullptr)
-  , eventAction_(nullptr)
   , layerconfig_(layerconfig)
   , detector_type(detectorname)
-  , superdetector(detectorname)
+  , superdetector("NONE")
 {
   for (vector<pair<int, int>>::const_iterator piter = layerconfig.begin(); piter != layerconfig.end(); ++piter)
   {
@@ -50,41 +49,54 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   detector_->Detector(detector_type);
   detector_->OverlapCheck(CheckOverlap());
 
-  if (GetParams()->get_int_param("active"))
+  int active = 0;
+  int absorberactive = 0;
+  int blackhole = 0;
+  for (set<int>::const_iterator parcontaineriter = GetDetIds().first; parcontaineriter != GetDetIds().second; ++parcontaineriter)
   {
-    const int sphxlayermin = layerconfig_.front().first;
-    const int sphxlayermax = layerconfig_.back().first;
-
-    std::string nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_%s") % superdetector) : boost::str(boost::format("G4HIT_%s_%d_%d") % detector_type % sphxlayermin % sphxlayermax);
+    if (active || GetParamsContainer()->GetParameters(*parcontaineriter)->get_int_param("active"))
+    {
+      active = 1;
+    }
+    if (absorberactive || GetParamsContainer()->GetParameters(*parcontaineriter)->get_int_param("absorberactive"))
+    {
+      absorberactive = 1;
+    }
+    if (blackhole || GetParamsContainer()->GetParameters(*parcontaineriter)->get_int_param("blackhole"))
+    {
+      blackhole = 1;
+    }
+  }
+  if (active)
+  {
+    cout << "detector: " << detector_type << endl;
+    cout << "superdetector: " << superdetector << endl;
+    std::string nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_%s") % superdetector) : boost::str(boost::format("G4HIT_%s") % detector_type);
 
     // create hit list
-    PHG4HitContainer *block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.c_str());
-    if (!block_hits)
-      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
+    PHG4HitContainer *hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, nodename.c_str());
+    if (!hitcontainer)
+      dstNode->addNode(new PHIODataNode<PHObject>(hitcontainer = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
 
-    PHG4EventActionClearZeroEdep *eventaction = new PHG4EventActionClearZeroEdep(topNode, nodename);
-//    if (GetParams()->get_int_param("absorberactive"))
-    if (0)
+    if (absorberactive)
     {
-      nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_ABSORBER_%s") % superdetector) : boost::str(boost::format("G4HIT_ABSORBER_%s_%d_%d") % detector_type % sphxlayermin % sphxlayermax);
+      //      nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_ABSORBER_%s") % superdetector) : boost::str(boost::format("G4HIT_ABSORBER_%s") % detector_type);
 
-      block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.c_str());
-      if (!block_hits)
-        dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
-
-      eventaction->AddNode(nodename);
+      hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, nodename.c_str());
+      if (!hitcontainer)
+      {
+        dstNode->addNode(new PHIODataNode<PHObject>(hitcontainer = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
+      }
     }
 
-    eventAction_ = dynamic_cast<PHG4EventAction *>(eventaction);
-
     // create stepping action
-    steppingAction_ = new PHG4SiliconTrackerSteppingAction(detector_, GetParams());
+    steppingAction_ = new PHG4SiliconTrackerSteppingAction(detector_, GetParamsContainer());
   }
   else
   {
-    if (GetParams()->get_int_param("blackhole"))
+    if (blackhole)
     {
-      steppingAction_ = new PHG4SiliconTrackerSteppingAction(detector_, GetParams());
+      steppingAction_ = new PHG4SiliconTrackerSteppingAction(detector_, GetParamsContainer());
     }
   }
 
@@ -110,14 +122,17 @@ PHG4Detector *PHG4SiliconTrackerSubsystem::GetDetector(void) const
 
 void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
 {
-  set_default_double_param(0,"Radius",6.);
-  set_default_double_param(1,"Radius",8.);
-  set_default_double_param(2,"Radius",10.);
-  set_default_double_param(3,"Radius",12.);
+  set_default_double_param(0, "Radius", 6.);
+  set_default_double_param(1, "Radius", 8.);
+  set_default_double_param(2, "Radius", 10.);
+  set_default_double_param(3, "Radius", 12.);
   return;
 }
 
 void PHG4SiliconTrackerSubsystem::Print(const string &what) const
 {
   PrintDefaultParams();
+  PrintMacroParams();
+  cout << "Print Resulting Parameters:" << endl;
+  GetParamsContainer()->Print();
 }

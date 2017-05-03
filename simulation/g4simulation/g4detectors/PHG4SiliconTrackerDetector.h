@@ -8,6 +8,7 @@
 #include <Geant4/G4Types.hh>
 #include <Geant4/globals.hh>
 
+#include <map>
 #include <set>
 #include <utility>
 #include <vector>
@@ -71,9 +72,7 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm = NULL);
 
   PHG4ParametersContainer *paramscontainer;
-  int active;
   int absorberactive;
-  int blackhole;
 
   vpair layerconfig_;
   unsigned int nlayer_;
@@ -107,6 +106,7 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   const G4double arr_halfladder_z[4] = {220. * mm * 0.5, 268. * mm * 0.5, 268. * mm * 0.5, 268. * mm * 0.5};
   std::set<G4LogicalVolume *> absorberlogvols;
   std::set<G4LogicalVolume *> activelogvols;
+  std::map<int, int> IsActive;
 };
 
 #endif
