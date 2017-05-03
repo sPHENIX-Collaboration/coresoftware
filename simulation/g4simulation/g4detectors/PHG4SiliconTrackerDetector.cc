@@ -1,6 +1,7 @@
 #include "PHG4SiliconTrackerDetector.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeom_Siladders.h"
+#include "PHG4Parameters.h"
 #include "PHG4ParametersContainer.h"
 #include "PHG4SiliconTrackerParameterisation.h"
 
@@ -30,9 +31,7 @@ using namespace std;
 PHG4SiliconTrackerDetector::PHG4SiliconTrackerDetector(PHCompositeNode *Node, PHG4ParametersContainer *parameters, const std::string &dnam, const vpair &layerconfig)
   : PHG4Detector(Node, dnam)
   , paramscontainer(parameters)
-  , active(1)
   , absorberactive(0)
-  , blackhole(0)
 {
   layerconfig_ = layerconfig;
 
@@ -47,6 +46,13 @@ PHG4SiliconTrackerDetector::PHG4SiliconTrackerDetector(PHCompositeNode *Node, PH
     if (inttlayer < 0 || inttlayer >= 5)
       assert(!"PHG4SiliconTrackerDetector: check INTT ladder layer.");
   }
+  PHG4ParametersContainer::ConstRange begin_end = paramscontainer->GetAllParameters();
+  for (PHG4ParametersContainer::ConstIterator iter = begin_end.first; iter != begin_end.second; ++iter)
+  {
+    PHG4Parameters *par = iter->second;
+    IsActive[iter->first] = par->get_int_param("active");
+  }
+
 }
 
 PHG4SiliconTrackerDetector::~PHG4SiliconTrackerDetector()
@@ -85,8 +91,6 @@ int PHG4SiliconTrackerDetector::IsInSiliconTracker(G4VPhysicalVolume *volume) co
       cout << "absorber logvol not assigned" << endl;
     }
   }
-  if (active)
-  {
     // just checking if the pointer to the logical volume is in the set
     // of our active ones makes sure we are in an active volume
     // name parsing is a bad idea since this is called for all steps
@@ -96,7 +100,6 @@ int PHG4SiliconTrackerDetector::IsInSiliconTracker(G4VPhysicalVolume *volume) co
     {
       return 1;
     }
-  }
 
   return 0;
 }
@@ -152,7 +155,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
          */
       G4VSolid *strip_box = new G4Box(boost::str(boost::format("strip_box_%d_%d") % sphxlayer % itype).c_str(), strip_x, strip_y-strip_y/10000., strip_z-strip_z/10000.);
       G4LogicalVolume *strip_volume = new G4LogicalVolume(strip_box, G4Material::GetMaterial("G4_Si"), boost::str(boost::format("strip_volume_%d_%d") % sphxlayer % itype).c_str(), 0, 0, 0);
-      activelogvols.insert(strip_volume);
+      if ((IsActive.find(inttlayer))->second > 0)
+      {
+        activelogvols.insert(strip_volume);
+      }
       G4VisAttributes *strip_vis = new G4VisAttributes();
       strip_vis->SetVisibility(false);
       strip_vis->SetForceSolid(false);
@@ -168,7 +174,6 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
       G4VSolid *siactive_box = new G4Box(boost::str(boost::format("siactive_box_%d_%d") % sphxlayer % itype).c_str(), siactive_x, siactive_y, siactive_z);
       G4LogicalVolume *siactive_volume = new G4LogicalVolume(siactive_box, G4Material::GetMaterial("G4_Si"), boost::str(boost::format("siactive_volume_%d_%d") % sphxlayer % itype).c_str(), 0, 0, 0);
-      //	activelogvols.insert(siactive_volume);
 
       G4VPVParameterisation *stripparam = new PHG4SiliconTrackerStripParameterisation(nstrips_phi_cell * 2, nstrips_z_sensor, (strip_y) * 2., (strip_z) * 2.); 
      new G4PVParameterised(boost::str(boost::format("siactive_%d_%d") % sphxlayer % itype).c_str(), strip_volume, siactive_volume, kZAxis, nstrips_phi_cell * 2 * nstrips_z_sensor, stripparam, false);  // overlap check too long.
@@ -444,6 +449,16 @@ int PHG4SiliconTrackerDetector::DisplayVolume(G4VSolid *volume, G4LogicalVolume 
 
 void PHG4SiliconTrackerDetector::AddGeometryNode()
 {
+  int active = 0;
+  map<int, int>::const_iterator iter;
+  for (iter = IsActive.begin(); iter != IsActive.end(); ++iter)
+  {
+    if (iter->second > 0)
+    {
+      active = 1;
+      break;
+    }
+  }
   if (active)
   {
     std::string geonode = (superdetector != "NONE") ? boost::str(boost::format("CYLINDERGEOM_%s") % superdetector) : boost::str(boost::format("CYLINDERGEOM_%s") % detector_type);
