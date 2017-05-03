@@ -15,7 +15,6 @@ class PHCompositeNode;
 class PHHepMCGenEvent;
 
 class HGenManager;
-class HParamManager;
 
 namespace HepMC {
   class GenEvent;
@@ -37,7 +36,11 @@ public:
     if ( cfg_file ) _datacardFile = cfg_file;
   }
 
-void set_node_name(std::string s) {_node_name = s;}
+  void set_debug_mode( bool yesno ) {
+    _detailed_debug = yesno;
+  }
+
+  void set_node_name(std::string s) {_node_name = s;}
 
 private:
 
@@ -51,21 +54,22 @@ private:
 
   int _eventcount;
 
+  double _p_electron_lab;
+  double _p_hadron_lab;
+
+  bool _detailed_debug;
+
   // output
   std::string _node_name;
 
   // HEPGen++
   HGenManager* _hgenManager;
-  HParamManager* _hgenParManager;
 
   std::string _datacardFile;
 
   // HepMC
   PHHepMCGenEvent *_phhepmcevt;
 
-//#ifndef __CINT__
-//  gsl_rng *RandomGenerator;
-//#endif
 };
 
 #endif  /* __SHEPGEN_H__ */

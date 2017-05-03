@@ -8,21 +8,13 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
 
-#include <gsl/gsl_randist.h>
-
 /* HEPGen includes */
 #include <hgenmanager.h>
-#include <hparammanager.h>
 //#include "hvector.h"
 //#include "config.h"
 //#include "hlorentzvector.h"
 //#include "hcardparser.h"
 //#include "hpionicdata.h"
-//#include "hbooker.h"
-//#include "hbookbackendASCII.h"
-//#ifdef USE_ROOT
-//#include "hbookbackendROOT.h"
-//#endif
 
 /* HepMC includes */
 #include <HepMC/GenEvent.h>
@@ -38,39 +30,47 @@ typedef PHIODataNode<PHObject> PHObjectNode_t;
 sHEPGen::sHEPGen(const std::string &name):
   SubsysReco(name),
   _eventcount(0),
+  _p_electron_lab(20),
+  _p_hadron_lab(250),
+  _detailed_debug(false),
   _node_name("PHHepMCGenEvent"),
   _hgenManager(NULL),
-  _hgenParManager(NULL),
   _datacardFile("hepgen_dvcs.data"),
-  _phhepmcevt(NULL) {
+  _phhepmcevt(NULL)
+{
 
-  //  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
 }
 
 sHEPGen::~sHEPGen() {
-  //  gsl_rng_free (RandomGenerator);
-  delete _hgenParManager;
+
 }
 
 int sHEPGen::Init(PHCompositeNode *topNode) {
 
   printlogo();
 
-  cout << "Create manager:" << endl;
+  /* get instance of HepGenManager */
   _hgenManager = HGenManager::getInstance();
-  cout << _hgenManager << endl;
+  _hgenManager->loadSettings( _datacardFile );
+  _hgenManager->setupGenerator();
 
-  cout << "Create parameter manager:" << endl;
-  _hgenParManager = new HParamManager( _datacardFile );
-  cout << _hgenParManager << endl;
+  /* set beam parameters */
+  double beamE = 165.47143;
+  cout << "----ELEPT: " << beamE << endl;
+  _hgenManager->getParamManager()->getStruct()->ELEPT = beamE;
+  _hgenManager->getParamManager()->getStruct()->PARL.at(2) = beamE;
+
+  /* set random seed */
+  unsigned int seed = PHRandomSeed();
+  _hgenManager->setSeed ( seed );
+
+  /* enable detailed event record printput for debugging */
+  if ( _detailed_debug )
+    _hgenManager->enableDebug();
 
   create_node_tree(topNode);
 
   _eventcount = 0;
-
-  /* set random seed */
-  //  unsigned int seed = PHRandomSeed();
-  //  _hgenManager->setSeed ( seed );
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -114,14 +114,8 @@ int sHEPGen::process_event(PHCompositeNode *topNode) {
 
   if (verbosity > 1) cout << "sHEPGen::process_event - event: " << _eventcount << endl;
 
-  double beamE = 165.47143;
-  cout << "----ELEPT: " << beamE << endl;
-//  ParamManager.getStruct()->ELEPT = beamE;
-//  ParamManager.getStruct()->PARL.at(2) = beamE;
-//
-//  tmp.oneShot();
-//
-//  tmp.getEvent()->printDebug();
+  _hgenManager->oneShot();
+//  _hgenManager->getEvent()->printDebug();
 
 
   // fill HepMC object with event & pass to
