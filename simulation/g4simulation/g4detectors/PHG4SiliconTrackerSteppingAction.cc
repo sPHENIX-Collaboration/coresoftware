@@ -1,5 +1,6 @@
 #include "PHG4SiliconTrackerSteppingAction.h"
 #include "PHG4Parameters.h"
+#include "PHG4ParametersContainer.h"
 #include "PHG4SiliconTrackerDetector.h"
 #include "PHG4StepStatusDecode.h"
 
@@ -40,14 +41,14 @@
 using namespace std;
 
 //____________________________________________________________________________..
-PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector* detector, const PHG4Parameters* parameters)
+PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector* detector, const PHG4ParametersContainer* parameters)
   : detector_(detector)
   , hits_(nullptr)
   , absorberhits_(nullptr)
   , hit(nullptr)
   , savehitcontainer(nullptr)
   , saveshower(nullptr)
-  , params(parameters)
+  , paramscontainer(parameters)
   , IsActive(1)
   , IsBlackHole(0)
 {

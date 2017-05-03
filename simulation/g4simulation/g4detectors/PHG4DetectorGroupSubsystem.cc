@@ -21,7 +21,6 @@ using namespace std;
 
 PHG4DetectorGroupSubsystem::PHG4DetectorGroupSubsystem(const std::string &name, const int lyr): 
   PHG4Subsystem(name),
-  params(new PHG4Parameters(Name())),
   paramscontainer(nullptr),
   paramscontainer_default(new PHG4ParametersContainer(Name())),
   savetopNode(NULL),
@@ -51,7 +50,6 @@ PHG4DetectorGroupSubsystem::Init(PHCompositeNode* topNode)
 
   savetopNode = topNode;
   cout << "setting param name to " << Name() << endl;
-  params->set_name(Name());
   paramscontainer_default->set_name(Name());
   int iret = InitSubsystem(topNode);
   return iret;
@@ -130,7 +128,7 @@ PHG4DetectorGroupSubsystem::InitRun( PHCompositeNode* topNode )
       PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode,paramnodename);
       if (nodeparams)
 	{
-	  params->FillFrom(nodeparams, layer);
+//	  params->FillFrom(nodeparams, layer);
 	}
     }
   // parameters set in the macro always override whatever is read from
@@ -483,14 +481,8 @@ int
 PHG4DetectorGroupSubsystem::SaveParamsToDB()
 {
   int iret = 0;
-  if (paramscontainer)
-    {
-      iret = paramscontainer->WriteToDB();
-    }
-  else
-    {
-      iret = params->WriteToDB();
-    }
+  assert(paramscontainer);
+  iret = paramscontainer->WriteToDB();
   if (iret)
     {
       cout << "problem committing to DB" << endl;
@@ -502,14 +494,14 @@ int
 PHG4DetectorGroupSubsystem::ReadParamsFromDB(const string &name, const int issuper)
 {
   int iret = 0;
-  if (issuper)
-    {
-      iret = params->ReadFromDB(name,layer);
-    }
-  else
-    {
-      iret = params->ReadFromDB();
-    }
+  // if (issuper)
+  //   {
+  //     iret = params->ReadFromDB(name,layer);
+  //   }
+  // else
+  //   {
+  //     iret = params->ReadFromDB();
+  //   }
   if (iret)
     {
       cout << "problem reading from DB" << endl;
@@ -534,14 +526,8 @@ PHG4DetectorGroupSubsystem::SaveParamsToFile(const PHG4DetectorGroupSubsystem::F
       exit(1);
     }
   int iret = 0;
-  if (paramscontainer)
-    {
-      iret = paramscontainer->WriteToFile(extension,calibfiledir);
-    }
-  else
-    {
-      iret = params->WriteToFile(extension,calibfiledir);
-    }
+  assert(paramscontainer);
+  iret = paramscontainer->WriteToFile(extension,calibfiledir);
   if (iret)
     {
       cout << "problem saving to " << extension << " file " << endl;
@@ -565,7 +551,8 @@ PHG4DetectorGroupSubsystem::ReadParamsFromFile(const string &name, const PHG4Det
       cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
       exit(1);
     }
-  int iret = params->ReadFromFile(name, extension, layer, issuper, calibfiledir);
+  int iret = 1;
+//  int iret = params->ReadFromFile(name, extension, layer, issuper, calibfiledir);
   if (iret)
     {
       cout << "problem reading from " << extension << " file " << endl;

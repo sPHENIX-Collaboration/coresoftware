@@ -91,13 +91,13 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     }
 
     // create stepping action
-    steppingAction_ = new PHG4SiliconTrackerSteppingAction(detector_, GetParams());
+    steppingAction_ = new PHG4SiliconTrackerSteppingAction(detector_, GetParamsContainer());
   }
   else
   {
     if (blackhole)
     {
-      steppingAction_ = new PHG4SiliconTrackerSteppingAction(detector_, GetParams());
+      steppingAction_ = new PHG4SiliconTrackerSteppingAction(detector_, GetParamsContainer());
     }
   }
 

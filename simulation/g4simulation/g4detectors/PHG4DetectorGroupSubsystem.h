@@ -7,7 +7,6 @@
 #include <string>
 #include <set>
 
-class PHG4Parameters;
 class PHG4ParametersContainer;
 
 class PHG4DetectorGroupSubsystem : public PHG4Subsystem
@@ -33,7 +32,6 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
   void OverlapCheck(const bool chk = true) {overlapcheck = chk;}
   bool CheckOverlap() const {return overlapcheck;}
 
-  PHG4Parameters *GetParams() const {return params;} 
   PHG4ParametersContainer *GetParamsContainer() const {return paramscontainer;} 
 
  // Get/Set parameters from macro
@@ -84,7 +82,6 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
   void PrintMacroParams() const;
 
  private:
-  PHG4Parameters *params;
   PHG4ParametersContainer *paramscontainer;
   PHG4ParametersContainer *paramscontainer_default;
   PHCompositeNode *savetopNode;
