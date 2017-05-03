@@ -40,9 +40,9 @@
 #ifndef _G4GDMLWRITEDEFINE_INCLUDED_
 #define _G4GDMLWRITEDEFINE_INCLUDED_
 
-#include "G4Types.hh"
-#include "G4ThreeVector.hh"
-#include "G4RotationMatrix.hh"
+#include <Geant4/G4Types.hh>
+#include <Geant4/G4ThreeVector.hh>
+#include <Geant4/G4RotationMatrix.hh>
 
 #include "PHG4GDMLWrite.hh"
 

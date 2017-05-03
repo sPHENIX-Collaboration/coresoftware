@@ -42,7 +42,8 @@ libphg4gdml_la_LIBADD = \
   -lfun4all 
 
 libphg4gdml_la_SOURCES = \
-  PHG4GDMLWrite.cc
+  PHG4GDMLWrite.cc \
+  PHG4GDMLWriteDefine.cc
 
 ##############################################
 # please add new classes in alphabetical order

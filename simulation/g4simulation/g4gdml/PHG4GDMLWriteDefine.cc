@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------
 
 #include "PHG4GDMLWriteDefine.hh"
-#include "G4SystemOfUnits.hh"
+#include <Geant4/G4SystemOfUnits.hh>
 
 const G4double PHG4GDMLWriteDefine::kRelativePrecision = DBL_EPSILON;
 const G4double PHG4GDMLWriteDefine::kAngularPrecision = DBL_EPSILON;
