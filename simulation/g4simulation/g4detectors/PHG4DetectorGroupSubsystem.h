@@ -15,7 +15,7 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
 
   enum FILE_TYPE {none = 0, xml = 1, root = 2};
 
-  virtual ~PHG4DetectorGroupSubsystem();
+  virtual ~PHG4DetectorGroupSubsystem() {}
 
   // stupid rootcint does not support final keyword
 #ifndef __CINT__

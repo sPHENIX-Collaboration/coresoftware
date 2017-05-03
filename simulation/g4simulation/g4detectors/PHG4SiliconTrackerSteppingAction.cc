@@ -13,6 +13,8 @@
 
 #include <phool/getClass.h>
 
+#include <TSystem.h>
+
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4TouchableHandle.hh>
@@ -49,9 +51,14 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
   , savehitcontainer(nullptr)
   , saveshower(nullptr)
   , paramscontainer(parameters)
-  , IsActive(1)
-  , IsBlackHole(0)
 {
+  PHG4ParametersContainer::ConstRange begin_end = paramscontainer->GetAllParameters();
+  for (PHG4ParametersContainer::ConstIterator iter = begin_end.first; iter != begin_end.second; ++iter)
+  {
+    PHG4Parameters *par = iter->second;
+    IsActive[iter->first] = par->get_int_param("active");
+    IsBlackHole[iter->first] = par->get_int_param("blackhole");
+  }
 }
 
 PHG4SiliconTrackerSteppingAction::~PHG4SiliconTrackerSteppingAction()
@@ -118,7 +125,16 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     }
     if (inttlayer < 0 || inttlayer >= 4)
       assert(!"PHG4SiliconTrackerSteppingAction: check INTT ladder layer.");
-
+    map<int,int>::const_iterator activeiter = IsActive.find(inttlayer);
+    if (activeiter == IsActive.end())
+    {
+      cout << "PHG4SiliconTrackerSteppingAction: could not find active flag for layer " << inttlayer << endl;
+      gSystem->Exit(1);
+    }
+    if (activeiter->second == 0)
+    {
+      return false;
+    }
     // convert ladder type [0-3] to silicon sensor type [0-1]
     const int laddertype = (ladderz == 1 || ladderz == 2) ? 0 : 1;
     const double strip_z = (inttlayer == 0) ? detector_->arr_strip_z[0][laddertype] : detector_->arr_strip_z[1][laddertype];
@@ -209,16 +225,13 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
 
   // if this block stops everything, just put all kinetic energy into edep
-  if (IsBlackHole)
+  if ((IsBlackHole.find(inttlayer))->second == 1)
   {
     edep = aTrack->GetKineticEnergy() / GeV;
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
     killtrack->SetTrackStatus(fStopAndKill);
   }
 
-  // make sure we are in a volume
-  if (IsActive)
-  {
     bool geantino = false;
 
     // the check for the pdg code speeds things up, I do not want to make
@@ -227,8 +240,6 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 && aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
       geantino = true;
 
-    G4StepPoint* prePoint = aStep->GetPreStepPoint();
-    G4StepPoint* postPoint = aStep->GetPostStepPoint();
     if (verbosity > 1)
       cout << "prePoint step status = " << prePoint->GetStepStatus() << " postPoint step status = " << postPoint->GetStepStatus() << endl;
     switch (prePoint->GetStepStatus())
@@ -409,11 +420,6 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     }
 
     return true;
-  }
-  else
-  {
-    return false;
-  }
 }
 
 //____________________________________________________________________________..

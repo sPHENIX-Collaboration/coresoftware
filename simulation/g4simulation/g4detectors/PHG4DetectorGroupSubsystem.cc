@@ -39,17 +39,10 @@ PHG4DetectorGroupSubsystem::PHG4DetectorGroupSubsystem(const std::string &name, 
   Name(nam.str().c_str());
 }
 
-PHG4DetectorGroupSubsystem::~PHG4DetectorGroupSubsystem()
-{
-  delete paramscontainer_default;
-}
-
 int 
 PHG4DetectorGroupSubsystem::Init(PHCompositeNode* topNode)
 {
-
   savetopNode = topNode;
-  cout << "setting param name to " << Name() << endl;
   paramscontainer_default->set_name(Name());
   int iret = InitSubsystem(topNode);
   return iret;
