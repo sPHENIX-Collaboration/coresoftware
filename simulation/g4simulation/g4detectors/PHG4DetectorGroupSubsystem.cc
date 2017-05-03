@@ -40,6 +40,11 @@ PHG4DetectorGroupSubsystem::PHG4DetectorGroupSubsystem(const std::string &name, 
   Name(nam.str().c_str());
 }
 
+PHG4DetectorGroupSubsystem::~PHG4DetectorGroupSubsystem()
+{
+  delete paramscontainer_default;
+}
+
 int 
 PHG4DetectorGroupSubsystem::Init(PHCompositeNode* topNode)
 {
@@ -96,8 +101,9 @@ PHG4DetectorGroupSubsystem::InitRun( PHCompositeNode* topNode )
       {
         paramscontainer->AddPHG4Parameters(iter->first,iter->second);
       }
-
-
+// the content has been handed off to the param container on the node tree
+// clear our internal map of parameters so this can be deleted in the dtor
+     paramscontainer_default->clear();
   // ASSUMPTION: if we read from DB and/or file we don't want the stuff from
   // the node tree
   // We leave the defaults intact in case there is no entry for
@@ -565,7 +571,6 @@ PHG4DetectorGroupSubsystem::ReadParamsFromFile(const string &name, const PHG4Det
 void
 PHG4DetectorGroupSubsystem::SetActive(const int detid, const int i)
 {
-  cout << "setting detector " << detid << " active to " << i << endl;
   set_int_param(detid,"active", i);
 }
 

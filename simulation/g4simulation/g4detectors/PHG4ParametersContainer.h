@@ -34,6 +34,7 @@ class PHG4ParametersContainer: public PHObject
   void Print() const;
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename);
   int ExistDetid(const int detid) const;
+  void clear() {parametermap.clear();}
 
  protected:
   void CopyToPdbParameterMapContainer(PdbParameterMapContainer *myparm);
