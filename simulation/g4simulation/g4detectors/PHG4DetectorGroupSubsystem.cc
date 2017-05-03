@@ -52,6 +52,7 @@ PHG4DetectorGroupSubsystem::Init(PHCompositeNode* topNode)
   savetopNode = topNode;
   cout << "setting param name to " << Name() << endl;
   params->set_name(Name());
+  paramscontainer_default->set_name(Name());
   int iret = InitSubsystem(topNode);
   return iret;
 }
@@ -102,8 +103,10 @@ PHG4DetectorGroupSubsystem::InitRun( PHCompositeNode* topNode )
         paramscontainer->AddPHG4Parameters(iter->first,iter->second);
       }
 // the content has been handed off to the param container on the node tree
-// clear our internal map of parameters so this can be deleted in the dtor
+// clear our internal map of parameters and delete it to avoid it being used accidentally
      paramscontainer_default->clear();
+     delete paramscontainer_default;
+     paramscontainer_default = nullptr;
   // ASSUMPTION: if we read from DB and/or file we don't want the stuff from
   // the node tree
   // We leave the defaults intact in case there is no entry for
@@ -122,6 +125,8 @@ PHG4DetectorGroupSubsystem::InitRun( PHCompositeNode* topNode )
     }
   else
     {
+// if not filled from file or DB, check if we have a node containing those calibrations
+// on the node tree and load them (unlikely - this code is for future use)
       PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode,paramnodename);
       if (nodeparams)
 	{
@@ -143,7 +148,7 @@ PHG4DetectorGroupSubsystem::InitRun( PHCompositeNode* topNode )
 	  runNode->addNode(RunDetNode);
 	}
     }
-  params->SaveToNodeTree(RunDetNode,paramnodename,layer);
+  paramscontainer->SaveToNodeTree(RunDetNode,paramnodename);
   int iret = InitRunSubsystem(topNode);
   if (Verbosity() > 0)
     {
