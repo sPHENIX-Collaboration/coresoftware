@@ -118,6 +118,7 @@ void PHG4CylinderSubsystem::SetDefaultParameters()
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
   set_default_double_param("radius", 100);
+  set_default_double_param("steplimits",NAN);
   set_default_double_param("thickness", 100);
   set_default_double_param("tmin", NAN);
   set_default_double_param("tmax", NAN);

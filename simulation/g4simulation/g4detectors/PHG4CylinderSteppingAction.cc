@@ -13,6 +13,7 @@
 
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4UserLimits.hh>
 
 #include <iomanip>
 #include <iostream>
@@ -99,13 +100,11 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     //        cout << "kinetic energy: " <<  aTrack->GetKineticEnergy()/GeV << endl;
     //       G4ParticleDefinition* def = aTrack->GetDefinition();
     //       cout << "Particle: " << def->GetParticleName() << endl;
-    cout << "in stepping action" << endl;
     int prepointstatus = prePoint->GetStepStatus();
     if (prepointstatus == fGeomBoundary ||
 	prepointstatus == fUndefined ||
         use_g4_steps > 0)
     {
-      cout << "Creating new hit" << endl;
       if (!hit)
       {
         hit = new PHG4Hitv1();
@@ -236,7 +235,6 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         aTrack->GetTrackStatus() == fStopAndKill ||
         use_g4_steps > 0)
     {
-      cout << "terminating hit" << endl;
       // save only hits with energy deposit (or -1 for geantino)
       if (hit->get_edep())
       {

@@ -15,6 +15,7 @@
 #include <Geant4/G4PhysicalConstants.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4UserLimits.hh>
 #include <Geant4/G4VisAttributes.hh>
 
 #include <cmath>
@@ -72,10 +73,17 @@ void PHG4CylinderDetector::Construct(G4LogicalVolume *logicWorld)
                                         radius,
                                         radius + thickness,
                                         params->get_double_param("length") * cm / 2., 0, twopi);
+  double steplimits = params->get_double_param("steplimits")*cm;
+  G4UserLimits *g4userlimits = nullptr;
+  if (isfinite(steplimits))
+  {
+    g4userlimits = new G4UserLimits(steplimits);
+  }
+  
   G4LogicalVolume *cylinder_logic = new G4LogicalVolume(cylinder_solid,
                                                         TrackerMaterial,
                                                         G4String(GetName().c_str()),
-                                                        0, 0, 0);
+                                                        nullptr, nullptr, g4userlimits);
   cylinder_logic->SetVisAttributes(siliconVis);
   cylinder_physi = new G4PVPlacement(0, G4ThreeVector(params->get_double_param("place_x") * cm,
                                                       params->get_double_param("place_y") * cm,
