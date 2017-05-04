@@ -124,6 +124,7 @@ void PHG4CylinderSubsystem::SetDefaultParameters()
 
   set_default_int_param("lengthviarapidity", 1);
   set_default_int_param("lightyield", 0);
+  set_default_int_param("use_g4steps",0);
 
   set_default_string_param("material", "G4_Galactic");
 }

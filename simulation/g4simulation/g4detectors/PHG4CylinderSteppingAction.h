@@ -42,6 +42,7 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
   int savepoststepstatus;
   int active;
   int IsBlackHole;
+  int use_g4_steps;
   double zmin;
   double zmax;
   double tmin;

@@ -29,6 +29,7 @@ PHG4CylinderSteppingAction::PHG4CylinderSteppingAction(PHG4CylinderDetector* det
                                                                                                                            savepoststepstatus(-1),
                                                                                                                            active(params->get_int_param("active")),
                                                                                                                            IsBlackHole(params->get_int_param("blackhole")),
+															   use_g4_steps(params->get_int_param("use_g4steps")),
                                                                                                                            zmin(params->get_double_param("place_z") * cm - params->get_double_param("length") * cm / 2.),
                                                                                                                            zmax(params->get_double_param("place_z") * cm + params->get_double_param("length") * cm / 2.),
                                                                                                                            tmin(params->get_double_param("tmin") * ns),
@@ -98,11 +99,13 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     //        cout << "kinetic energy: " <<  aTrack->GetKineticEnergy()/GeV << endl;
     //       G4ParticleDefinition* def = aTrack->GetDefinition();
     //       cout << "Particle: " << def->GetParticleName() << endl;
-    switch (prePoint->GetStepStatus())
+    cout << "in stepping action" << endl;
+    int prepointstatus = prePoint->GetStepStatus();
+    if (prepointstatus == fGeomBoundary ||
+	prepointstatus == fUndefined ||
+        use_g4_steps > 0)
     {
-    case fWorldBoundary:
-    case fGeomBoundary:
-    case fUndefined:
+      cout << "Creating new hit" << endl;
       if (!hit)
       {
         hit = new PHG4Hitv1();
@@ -151,9 +154,6 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
              << " outside acceptance,  zmin " << zmin
              << ", zmax " << zmax << ", layer: " << layer_id << endl;
       }
-      break;
-    default:
-      break;
     }
     // here we just update the exit values, it will be overwritten
     // for every step until we leave the volume or the particle
@@ -233,8 +233,10 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     if (postPoint->GetStepStatus() == fGeomBoundary ||
         postPoint->GetStepStatus() == fWorldBoundary ||
         postPoint->GetStepStatus() == fAtRestDoItProc ||
-        aTrack->GetTrackStatus() == fStopAndKill)
+        aTrack->GetTrackStatus() == fStopAndKill ||
+        use_g4_steps > 0)
     {
+      cout << "terminating hit" << endl;
       // save only hits with energy deposit (or -1 for geantino)
       if (hit->get_edep())
       {
