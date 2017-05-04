@@ -676,12 +676,7 @@ void PHG4Reco::DefineMaterials()
   G4Material *MuIDgas = new G4Material("MuIDgas", density = (1.977e-3 * 0.92 + 0.00265 * 0.08) * g / cm3, ncomponents = 2);
   MuIDgas->AddMaterial(IsoButane, fractionmass = 0.08);
   MuIDgas->AddMaterial(G4Material::GetMaterial("G4_CARBON_DIOXIDE"), fractionmass = 0.92);
-  //----
 
-  // G4Material* Sci =
-  //   new G4Material("Scintillator", density = 1.032 * g / cm3, ncomponents = 2);
-  // Sci->AddElement(C, natoms = 9);
-  // Sci->AddElement(H, natoms = 10);
 
   // that seems to be the composition of 304 Stainless steel
   G4Material *StainlessSteel =
@@ -801,7 +796,16 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   ePHEINX_TPC_Gas->AddMaterial(G4Material::GetMaterial("G4_Ar"), den_G4_Ar / den);
   ePHEINX_TPC_Gas->AddMaterial(G4Material::GetMaterial("G4_CARBON_DIOXIDE"),
                                den_G4_CARBON_DIOXIDE / den);
-
+// cross checked with original implementation made up of Ne,C,F
+// this here is very close but makes more sense since it uses Ne and CF4
+  double G4_Ne_frac = 0.9;
+  double CF4_frac = 0.1;
+  const double den_G4_Ne =  G4Material::GetMaterial("G4_Ne")->GetDensity();
+  const double den_CF4_2 = CF4->GetDensity();
+  const double den_sphenix_tpc_gas = den_G4_Ne * G4_Ne_frac + den_CF4_2 * CF4_frac;
+  G4Material *sPHENIX_tpc_gas = new G4Material("sPHENIX_TPC_Gas", den_sphenix_tpc_gas, ncomponents = 2, kStateGas);
+  sPHENIX_tpc_gas->AddMaterial(CF4,den_CF4_2*CF4_frac/den_sphenix_tpc_gas);
+  sPHENIX_tpc_gas->AddMaterial(G4Material::GetMaterial("G4_Ne"), den_G4_Ne*G4_Ne_frac/den_sphenix_tpc_gas);
   //
   // CF4
   //
