@@ -33,6 +33,7 @@
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4NistManager.hh>
 #include <Geant4/G4OpenGLImmediateX.hh>
+#include <Geant4/G4StepLimiterPhysics.hh>
 #include <Geant4/G4UIExecutive.hh>
 #include <Geant4/G4UImanager.hh>
 #include <Geant4/G4VisExecutive.hh>
@@ -239,6 +240,8 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     if (active_force_decay_) decayer->SetForceDecay(force_decay_type_);
     myphysicslist->RegisterPhysics(decayer);
   }
+
+  myphysicslist->RegisterPhysics(new G4StepLimiterPhysics());
   runManager_->SetUserInitialization(myphysicslist);
 
   // initialize registered subsystems
