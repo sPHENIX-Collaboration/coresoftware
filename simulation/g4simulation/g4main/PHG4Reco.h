@@ -119,6 +119,7 @@ class PHG4Reco : public SubsysReco
 
   void Dump_GDML(const std::string &filename);
 
+  void G4Verbosity(const int i);
  protected:
   int InitUImanager();
   void DefineMaterials();

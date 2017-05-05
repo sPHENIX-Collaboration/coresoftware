@@ -5,18 +5,17 @@
 
 class PHG4BlockDetector;
 class PHG4BlockSteppingAction;
-class PHG4EventAction;
 
-class PHG4BlockSubsystem: public PHG4DetectorSubsystem
+class PHG4BlockSubsystem : public PHG4DetectorSubsystem
 {
  public:
-
   //! constructor
-  PHG4BlockSubsystem( const std::string &name = "BLOCK", const int layer = 0 );
+  PHG4BlockSubsystem(const std::string& name = "BLOCK", const int layer = 0);
 
   //! destructor
-  virtual ~PHG4BlockSubsystem( void )
-  {}
+  virtual ~PHG4BlockSubsystem(void)
+  {
+  }
 
   //! InitRunSubsystem
   /*!
@@ -24,21 +23,18 @@ class PHG4BlockSubsystem: public PHG4DetectorSubsystem
   reates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int InitRunSubsystem(PHCompositeNode *);
+  int InitRunSubsystem(PHCompositeNode*);
 
   //! event processing
   /*!
   get all relevant nodes from top nodes (namely hit list)
   and pass that to the stepping action
   */
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode*);
 
   //! accessors (reimplemented)
-  virtual PHG4Detector* GetDetector( void ) const;
-  virtual PHG4SteppingAction* GetSteppingAction( void ) const {return  _steppingAction;}
-
-  PHG4EventAction* GetEventAction() const {return _eventAction;}
-
+  PHG4Detector* GetDetector(void) const;
+  PHG4SteppingAction* GetSteppingAction(void) const { return _steppingAction; }
  private:
   void SetDefaultParameters();
 
@@ -49,8 +45,6 @@ class PHG4BlockSubsystem: public PHG4DetectorSubsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* _steppingAction;
-  PHG4EventAction *_eventAction;
-
 };
 
 #endif
