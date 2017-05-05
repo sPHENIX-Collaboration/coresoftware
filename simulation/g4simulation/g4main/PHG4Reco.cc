@@ -33,6 +33,7 @@
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4NistManager.hh>
 #include <Geant4/G4OpenGLImmediateX.hh>
+#include <Geant4/G4StepLimiterPhysics.hh>
 #include <Geant4/G4UIExecutive.hh>
 #include <Geant4/G4UImanager.hh>
 #include <Geant4/G4VisExecutive.hh>
@@ -97,29 +98,30 @@ G4UImanager *UImanager = nullptr;
 void g4guithread(void *ptr);
 
 //_________________________________________________________________
-PHG4Reco::PHG4Reco(const string &name) : SubsysReco(name),
-                                         magfield(2),
-                                         magfield_rescale(1.0),
-                                         field_(nullptr),
-                                         runManager_(nullptr),
-                                         uisession_(nullptr),
-                                         detector_(nullptr),
-                                         eventAction_(nullptr),
-                                         steppingAction_(nullptr),
-                                         trackingAction_(nullptr),
-                                         generatorAction_(nullptr),
-                                         visManager(nullptr),
-                                         _eta_coverage(1.0),
-                                         mapdim(0),
-                                         fieldmapfile("NONE"),
-                                         worldshape("G4Tubs"),
-                                         worldmaterial("G4_AIR"),
-                                         physicslist("QGSP_BERT"),
-                                         active_decayer_(true),
-                                         active_force_decay_(false),
-                                         force_decay_type_(kAll),
-                                         save_DST_geometry_(false),
-                                         _timer(PHTimeServer::get()->insert_new(name))
+PHG4Reco::PHG4Reco(const string &name)
+  : SubsysReco(name)
+  , magfield(2)
+  , magfield_rescale(1.0)
+  , field_(nullptr)
+  , runManager_(nullptr)
+  , uisession_(nullptr)
+  , detector_(nullptr)
+  , eventAction_(nullptr)
+  , steppingAction_(nullptr)
+  , trackingAction_(nullptr)
+  , generatorAction_(nullptr)
+  , visManager(nullptr)
+  , _eta_coverage(1.0)
+  , mapdim(0)
+  , fieldmapfile("NONE")
+  , worldshape("G4Tubs")
+  , worldmaterial("G4_AIR")
+  , physicslist("QGSP_BERT")
+  , active_decayer_(true)
+  , active_force_decay_(false)
+  , force_decay_type_(kAll)
+  , save_DST_geometry_(false)
+  , _timer(PHTimeServer::get()->insert_new(name))
 {
   for (int i = 0; i < 3; i++)
   {
@@ -239,6 +241,8 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     if (active_force_decay_) decayer->SetForceDecay(force_decay_type_);
     myphysicslist->RegisterPhysics(decayer);
   }
+
+  myphysicslist->RegisterPhysics(new G4StepLimiterPhysics());
   runManager_->SetUserInitialization(myphysicslist);
 
   // initialize registered subsystems
@@ -676,12 +680,6 @@ void PHG4Reco::DefineMaterials()
   G4Material *MuIDgas = new G4Material("MuIDgas", density = (1.977e-3 * 0.92 + 0.00265 * 0.08) * g / cm3, ncomponents = 2);
   MuIDgas->AddMaterial(IsoButane, fractionmass = 0.08);
   MuIDgas->AddMaterial(G4Material::GetMaterial("G4_CARBON_DIOXIDE"), fractionmass = 0.92);
-  //----
-
-  // G4Material* Sci =
-  //   new G4Material("Scintillator", density = 1.032 * g / cm3, ncomponents = 2);
-  // Sci->AddElement(C, natoms = 9);
-  // Sci->AddElement(H, natoms = 10);
 
   // that seems to be the composition of 304 Stainless steel
   G4Material *StainlessSteel =
@@ -733,7 +731,7 @@ void PHG4Reco::DefineMaterials()
   Al5083->AddElement(G4Element::GetElement("Mg"), 0.04);
   Al5083->AddElement(G4Element::GetElement("Al"), 0.956);
 
-  G4Material *FPC = new G4Material("FPC", 1.542*g/cm3, 2);
+  G4Material *FPC = new G4Material("FPC", 1.542 * g / cm3, 2);
   FPC->AddMaterial(G4Material::GetMaterial("G4_Cu"), 0.0162);
   FPC->AddMaterial(G4Material::GetMaterial("G4_KAPTON"), 0.9838);
 
@@ -742,6 +740,18 @@ void PHG4Reco::DefineMaterials()
   W_Epoxy->AddMaterial(G4Material::GetMaterial("G4_W"), fractionmass = 0.5);
   W_Epoxy->AddMaterial(G4Material::GetMaterial("G4_POLYSTYRENE"), fractionmass = 0.5);
 
+  //from http://www.physi.uni-heidelberg.de/~adler/TRD/TRDunterlagen/RadiatonLength/tgc2.htm
+  //Epoxy (for FR4 )
+  //density = 1.2*g/cm3;
+  G4Material *Epoxy = new G4Material("Epoxy", 1.2 * g / cm3, ncomponents = 2);
+  Epoxy->AddElement(G4Element::GetElement("H"), natoms = 2);
+  Epoxy->AddElement(G4Element::GetElement("C"), natoms = 2);
+
+  //FR4 (Glass + Epoxy)
+  density = 1.86 * g / cm3;
+  G4Material *FR4 = new G4Material("FR4", density, ncomponents = 2);
+  FR4->AddMaterial(quartz, fractionmass = 0.528);
+  FR4->AddMaterial(Epoxy, fractionmass = 0.472);
   // spacal material. Source : EICROOT/A. Kiselev
   /*
   WEpoxyMix          3  12.011 1.008 183.85  6.  1.  74.  12.18  0.029 0.002 0.969
@@ -801,7 +811,16 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   ePHEINX_TPC_Gas->AddMaterial(G4Material::GetMaterial("G4_Ar"), den_G4_Ar / den);
   ePHEINX_TPC_Gas->AddMaterial(G4Material::GetMaterial("G4_CARBON_DIOXIDE"),
                                den_G4_CARBON_DIOXIDE / den);
-
+  // cross checked with original implementation made up of Ne,C,F
+  // this here is very close but makes more sense since it uses Ne and CF4
+  double G4_Ne_frac = 0.9;
+  double CF4_frac = 0.1;
+  const double den_G4_Ne = G4Material::GetMaterial("G4_Ne")->GetDensity();
+  const double den_CF4_2 = CF4->GetDensity();
+  const double den_sphenix_tpc_gas = den_G4_Ne * G4_Ne_frac + den_CF4_2 * CF4_frac;
+  G4Material *sPHENIX_tpc_gas = new G4Material("sPHENIX_TPC_Gas", den_sphenix_tpc_gas, ncomponents = 2, kStateGas);
+  sPHENIX_tpc_gas->AddMaterial(CF4, den_CF4_2 * CF4_frac / den_sphenix_tpc_gas);
+  sPHENIX_tpc_gas->AddMaterial(G4Material::GetMaterial("G4_Ne"), den_G4_Ne * G4_Ne_frac / den_sphenix_tpc_gas);
   //
   // CF4
   //
