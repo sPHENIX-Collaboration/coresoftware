@@ -149,7 +149,10 @@ bool PHG4BlockSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
     //sum up the energy to get total deposited
     hit->set_edep(hit->get_edep() + edep);
-    if (active)
+    // update ionization energy only for active volumes, not for black holes or geantinos
+    // if the hit is created without eion, get_eion() returns NAN
+    // if you see NANs check the creation of the hit
+    if (active && !IsBlackHole && !geantino)
     {
       hit->set_eion(hit->get_eion() + eion);
     }
