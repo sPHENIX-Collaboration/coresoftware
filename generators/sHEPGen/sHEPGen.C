@@ -112,89 +112,28 @@ int sHEPGen::process_event(PHCompositeNode *topNode) {
 						     );
 
   /* Create HepMC particle records */
-  /* --> beam particle */
-  HLorentzVector v4_beam = evt_mc->getBeam().getVector();
-  int type_beam = evt_mc->getBeam().getParticleType();
-  HepMC::GenParticle *particle_beam = new HepMC::GenParticle( HepMC::FourVector(v4_beam.getVector().X(),
-										v4_beam.getVector().Y(),
-										v4_beam.getVector().Z(),
-										v4_beam.getEnergy()),
-							      type_beam );
-  particle_beam->set_status( 4 ); // status 4 = beam particle
-  hepmcvtx->add_particle_in( particle_beam );
-
-  /* --> target particle */
-  int type_target = evt_mc->getRecoil().getParticleType();
-  HepMC::GenParticle *particle_target = new HepMC::GenParticle( HepMC::FourVector(0,
-										  0,
-										  0,
-										  evt_mc->getRecoil().getMass()),
-								type_target );
-  particle_target->set_status( 4 ); // status 4 = beam particle
-  hepmcvtx->add_particle_in( particle_target );
-
-  /* --> scattered beam particle */
-  HLorentzVector v4_scat = evt_mc->getScat().getVector();
-  int type_scat = evt_mc->getScat().getParticleType();
-  HepMC::GenParticle *particle_scat = new HepMC::GenParticle( HepMC::FourVector(v4_scat.getVector().X(),
-										v4_scat.getVector().Y(),
-										v4_scat.getVector().Z(),
-										v4_scat.getEnergy()),
-							      type_scat );
-  particle_scat->set_status( evt_mc->getScat().getParticleAuxFlag() );
-  hepmcvtx->add_particle_out( particle_scat );
-
-  /* --> recoil target particle */
-  HLorentzVector v4_recoil = evt_mc->getRecoil().getVector();
-  int type_recoil = evt_mc->getRecoil().getParticleType();
-  HepMC::GenParticle *particle_recoil = new HepMC::GenParticle( HepMC::FourVector(v4_recoil.getVector().X(),
-										v4_recoil.getVector().Y(),
-										v4_recoil.getVector().Z(),
-										v4_recoil.getEnergy()),
-							      type_recoil );
-  particle_recoil->set_status( evt_mc->getRecoil().getParticleAuxFlag() );
-  hepmcvtx->add_particle_out( particle_recoil );
-
-  /* --> output particle 1 */
-  HLorentzVector v4_OutPart1 = evt_mc->getOutPart1().getVector();
-  int type_OutPart1 = evt_mc->getOutPart1().getParticleType();
-  if ( type_OutPart1 != 0 )
+  HEventData* edata = evt_mc->getStruct();
+  for ( unsigned p = 0; p < edata->listOfParticles.size(); p++ )
     {
-      HepMC::GenParticle *particle_OutPart1 = new HepMC::GenParticle( HepMC::FourVector(v4_OutPart1.getVector().X(),
-											v4_OutPart1.getVector().Y(),
-											v4_OutPart1.getVector().Z(),
-											v4_OutPart1.getEnergy()),
-								      type_OutPart1 );
-      particle_OutPart1->set_status( evt_mc->getOutPart1().getParticleAuxFlag() );
-      hepmcvtx->add_particle_out( particle_OutPart1 );
-    }
+      if (verbosity > 4)
+	{
+	  cout << "______new particle_______" << endl;
+	  cout << "Index:  " << p+1 << endl;
+	  cout << "PID: " << edata->listOfParticles.at(p)->getParticleType() << " -- " << (edata->listOfParticles.at(p) == &(edata->incBeamParticle)) << endl;
+	  cout << "Particle aux flag: " << edata->listOfParticles.at(p)->getParticleAuxFlag() << endl;
+	  cout << "Particle origin: " << edata->listOfParticles.at(p)->getParticleOrigin() << endl;
+	  cout << "Particle daughter1: " << edata->listOfParticles.at(p)->getParticleDaughter1() << endl;
+	  cout << "Particle daughter2: " << edata->listOfParticles.at(p)->getParticleDaughter2() << endl;
+	}
 
-  /* --> output particle 2 */
-  HLorentzVector v4_OutPart2 = evt_mc->getOutPart2().getVector();
-  int type_OutPart2 = evt_mc->getOutPart2().getParticleType();
-  if ( type_OutPart2 != 0 )
-    {
-      HepMC::GenParticle *particle_OutPart2 = new HepMC::GenParticle( HepMC::FourVector(v4_OutPart2.getVector().X(),
-											v4_OutPart2.getVector().Y(),
-											v4_OutPart2.getVector().Z(),
-											v4_OutPart2.getEnergy()),
-								      type_OutPart2 );
-      particle_OutPart2->set_status( evt_mc->getOutPart2().getParticleAuxFlag() );
-      hepmcvtx->add_particle_out( particle_OutPart2 );
-    }
-
-  /* --> output particle 3 */
-  HLorentzVector v4_OutPart3 = evt_mc->getOutPart3().getVector();
-  int type_OutPart3 = evt_mc->getOutPart3().getParticleType();
-  if ( type_OutPart3 != 0 )
-    {
-      HepMC::GenParticle *particle_OutPart3 = new HepMC::GenParticle( HepMC::FourVector(v4_OutPart3.getVector().X(),
-											v4_OutPart3.getVector().Y(),
-											v4_OutPart3.getVector().Z(),
-											v4_OutPart3.getEnergy()),
-								      type_OutPart3 );
-      particle_OutPart3->set_status( evt_mc->getOutPart3().getParticleAuxFlag() );
-      hepmcvtx->add_particle_out( particle_OutPart3 );
+      HLorentzVector v4_particle_p = edata->listOfParticles.at(p)->getVector();
+      HepMC::GenParticle *particle_hepmc = new HepMC::GenParticle( HepMC::FourVector(v4_particle_p.getVector().X(),
+										     v4_particle_p.getVector().Y(),
+										     v4_particle_p.getVector().Z(),
+										     v4_particle_p.getEnergy()),
+								   edata->listOfParticles.at(p)->getParticleType() );
+      particle_hepmc->set_status( edata->listOfParticles.at(p)->getParticleAuxFlag() );
+      hepmcvtx->add_particle_out( particle_hepmc );
     }
 
   /* Add vertex to event */
