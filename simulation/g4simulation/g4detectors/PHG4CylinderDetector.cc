@@ -24,10 +24,11 @@
 using namespace std;
 
 //_______________________________________________________________
-PHG4CylinderDetector::PHG4CylinderDetector(PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam, const int lyr) : PHG4Detector(Node, dnam),
-                                                                                                                                        params(parameters),
-                                                                                                                                        cylinder_physi(nullptr),
-                                                                                                                                        layer(lyr)
+PHG4CylinderDetector::PHG4CylinderDetector(PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam, const int lyr)
+  : PHG4Detector(Node, dnam)
+  , params(parameters)
+  , cylinder_physi(nullptr)
+  , layer(lyr)
 {
 }
 
@@ -73,13 +74,13 @@ void PHG4CylinderDetector::Construct(G4LogicalVolume *logicWorld)
                                         radius,
                                         radius + thickness,
                                         params->get_double_param("length") * cm / 2., 0, twopi);
-  double steplimits = params->get_double_param("steplimits")*cm;
+  double steplimits = params->get_double_param("steplimits") * cm;
   G4UserLimits *g4userlimits = nullptr;
   if (isfinite(steplimits))
   {
     g4userlimits = new G4UserLimits(steplimits);
   }
-  
+
   G4LogicalVolume *cylinder_logic = new G4LogicalVolume(cylinder_solid,
                                                         TrackerMaterial,
                                                         G4String(GetName().c_str()),
