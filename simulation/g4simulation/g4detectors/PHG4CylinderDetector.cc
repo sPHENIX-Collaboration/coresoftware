@@ -1,7 +1,6 @@
 #include "PHG4CylinderDetector.h"
 #include "PHG4Parameters.h"
 
-#include <g4main/PHG4PhenixDetector.h>
 #include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>
