@@ -19,7 +19,7 @@ using namespace std;
 //____________________________________________________________________________..
 PHG4BlockSteppingAction::PHG4BlockSteppingAction( PHG4BlockDetector* detector, const PHG4Parameters *parameters ):
   detector_( detector ),
-  params(parameters), hits_(NULL), hit(NULL),
+  params(parameters), hits_(nullptr), hit(nullptr),
   active(params->get_int_param("active")),
   IsBlackHole(params->get_int_param("blackhole")),
   use_g4_steps(params->get_int_param("use_g4steps"))
@@ -68,52 +68,11 @@ bool PHG4BlockSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       //       cout << "track id " << aTrack->GetTrackID() << endl;
       //       cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
       //       cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
-      if (use_g4_steps)
-	{
-	  hit = new PHG4Hitv1();
-	  hit->set_layer(layer_id);
-	  //here we set the entrance values in cm
-	  hit->set_x( 0, prePoint->GetPosition().x() / cm);
-	  hit->set_y( 0, prePoint->GetPosition().y() / cm );
-	  hit->set_z( 0, prePoint->GetPosition().z() / cm );
-	  // time in ns
-	  hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
-	  //set the track ID
-	  {
-            hit->set_trkid(aTrack->GetTrackID());
-            if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	      {
-		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		  {
-		    hit->set_trkid(pp->GetUserTrackId());
-		    hit->set_shower_id(pp->GetShower()->get_id());
-		  }
-	      }
-	  }
-
-	  //set the initial energy deposit
-	  hit->set_edep(0);
-	  hit->set_eion(0); 
-
-	  // Now add the hit
-	  hits_->AddHit(layer_id, hit);
-	  {
-	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	      {
-		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		  {
-		    pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
-		  }
-	      }
-	  }
-	  
-	}
-      else // aggregate G4 steps inside volumes
-	{
-	  switch (prePoint->GetStepStatus())
+          int prepointstatus = prePoint->GetStepStatus();
+    if (prepointstatus == fGeomBoundary ||
+        prepointstatus == fUndefined ||
+        use_g4_steps > 0)
             {
-            case fGeomBoundary:
-            case fUndefined:
 	      hit = new PHG4Hitv1();
 	      hit->set_layer(layer_id);
 	      //here we set the entrance values in cm
@@ -152,12 +111,8 @@ bool PHG4BlockSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 		  }
 	      }
 	      
-	      break;
-
-            default:
-	      break;
             }
-	}
+    
 
       // here we just update the exit values, it will be overwritten
       // for every step until we leave the volume or the particle
