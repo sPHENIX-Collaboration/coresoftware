@@ -1,18 +1,12 @@
+/*!
+ *  \file PHG4KalmanPatRec.h
+ *  \brief Progressive pattern recgnition based on GenFit Kalman filter
+ *  \detail using Alan Dion's HelixHough for seeding, GenFit Kalman filter to do track propagation
+ *  \author Christof Roland & Haiwang Yu
+ */
+
 #ifndef __PHG4KALMANPATREC_H__
 #define __PHG4KALMANPATREC_H__
-
-//===========================================================
-/// \file PHG4KalmanPatRec.h
-/// \brief A fun4all implementation of Alan's Hough Transform
-/// \author Matt Wysocki (copied from SvxHoughTransform)
-/// go to
-/// https://www.phenix.bnl.gov/WWW/offline/wikioffline/index.php/SvxHoughTransform
-/// \edited by Theo Koblesky to conform to new changes in HelixHough (1/10/2012)
-
-// edited week of 11/14/2012 by Alan Dion to use new HelixHough
-// classes
-
-//===========================================================
 
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
@@ -321,11 +315,11 @@ public:
 		_search_win_z = searchWinZ;
 	}
 
-	double get_max_incr_chi2() const {
+	float get_max_incr_chi2() const {
 		return _max_incr_chi2;
 	}
 
-	void set_max_incr_chi2(double maxIncrChi2) {
+	void set_max_incr_chi2(float maxIncrChi2) {
 		_max_incr_chi2 = maxIncrChi2;
 	}
 
@@ -344,6 +338,22 @@ public:
 
 	void set_min_good_track_hits(unsigned int minGoodTrackHits) {
 		_min_good_track_hits = minGoodTrackHits;
+	}
+
+	unsigned int get_max_share_hits() const {
+		return _max_share_hits;
+	}
+
+	void set_max_share_hits(unsigned int maxShareHits) {
+		_max_share_hits = maxShareHits;
+	}
+
+	float get_max_splitting_chi2() const {
+		return _max_splitting_chi2;
+	}
+
+	void set_max_splitting_chi2(float maxSplittingChi2) {
+		_max_splitting_chi2 = maxSplittingChi2;
 	}
 
 #ifndef __CINT__
@@ -574,6 +584,8 @@ private:
 	std::vector<float> _radii_all;
 	float _search_win_rphi;
 	float _search_win_z;
+	std::map<int, float> _search_wins_rphi;
+	std::map<int, float> _search_wins_z;
 
 	//std::map<unsigned int, std::map<int, std::multimap<int, unsigned int>>> _layer_zID_phiID_cluserID;
 	std::multimap<unsigned int,  unsigned int> _layer_zID_phiID_cluserID;
@@ -588,7 +600,10 @@ private:
 	//std::map<int, std::vector<unsigned int>> _trackID_clusterID;
 
 	unsigned int _max_consecutive_missing_layer;
-	double _max_incr_chi2;
+	float _max_incr_chi2;
+	std::map<int, float> _max_incr_chi2s;
+
+	float _max_splitting_chi2;
 
 	unsigned int _min_good_track_hits;
 

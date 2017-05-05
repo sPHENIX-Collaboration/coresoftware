@@ -1,3 +1,10 @@
+/*!
+ *  \file PHG4KalmanPatRec.C
+ *  \brief Progressive pattern recgnition based on GenFit Kalman filter
+ *  \detail using Alan Dion's HelixHough for seeding, GenFit Kalman filter to do track propagation
+ *  \author Christof Roland & Haiwang Yu
+ */
+
 #include "PHG4KalmanPatRec.h"
 
 // g4hough includes
@@ -147,7 +154,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
       _g4clusters(NULL),
       _g4tracks(NULL),
       _g4vertexes(NULL),
-	  _seeding_only_mode(true),
+	  _seeding_only_mode(false),
 	  _max_merging_dphi(0.0120/10.),
 	  _max_merging_deta(0.0170/10.),
 	  _max_merging_dr(0.0500),
@@ -174,7 +181,8 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _trackID_PHGenFitTrack(),
 	  //_trackID_clusterID(),
 	  _max_consecutive_missing_layer(10),
-	  _max_incr_chi2(5.),
+	  _max_incr_chi2(30.),
+	  _max_splitting_chi2(3.),
 	  _min_good_track_hits(30)
 	  {
 	_event = 0;
@@ -199,6 +207,56 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 	code = InitializePHGenFit(topNode);
 	if(code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
+
+	/*!
+	 * Initilize parameters
+	 */
+	for(int layer = 0; layer < _nlayers_all; ++layer) {
+		_search_wins_rphi.insert(std::make_pair(layer, _search_win_rphi));
+		_search_wins_z.insert(std::make_pair(layer, _search_win_z));
+		_max_incr_chi2s.insert(std::make_pair(layer, _max_incr_chi2));
+	}
+
+	// nightly build 2017-05-04
+	_search_wins_rphi[8]  = 50.;
+	_search_wins_rphi[9]  = 45.;
+	_search_wins_rphi[10] = 40.;
+	_search_wins_rphi[11] = 30.;
+	_search_wins_rphi[12] = 30.;
+	_search_wins_rphi[13] = 30.;
+	_search_wins_rphi[14] = 30.;
+	_search_wins_rphi[15] = 30.;
+	_search_wins_rphi[16] = 30.;
+	_search_wins_rphi[17] = 30.;
+	_search_wins_rphi[18] = 30.;
+	_search_wins_rphi[19] = 30.;
+	_search_wins_rphi[20] = 30.;
+
+	_max_incr_chi2s[8]  = _max_incr_chi2s[8] < 1000. ? 1000 : _max_incr_chi2s[8];
+	_max_incr_chi2s[9]  = _max_incr_chi2s[9] < 500.  ? 500  : _max_incr_chi2s[9];
+	_max_incr_chi2s[10] = _max_incr_chi2s[10]< 500.  ? 500  : _max_incr_chi2s[10];
+	_max_incr_chi2s[11] = _max_incr_chi2s[11]< 200.  ? 200  : _max_incr_chi2s[11];
+	_max_incr_chi2s[12] = _max_incr_chi2s[12]< 200.  ? 200  : _max_incr_chi2s[12];
+	_max_incr_chi2s[13] = _max_incr_chi2s[13]< 100.  ? 100  : _max_incr_chi2s[13];
+	_max_incr_chi2s[14] = _max_incr_chi2s[14]< 100.  ? 100  : _max_incr_chi2s[14];
+	_max_incr_chi2s[15] = _max_incr_chi2s[15]< 100.  ? 100  : _max_incr_chi2s[15];
+	_max_incr_chi2s[16] = _max_incr_chi2s[16]< 100.  ? 100  : _max_incr_chi2s[16];
+	_max_incr_chi2s[17] = _max_incr_chi2s[17]< 100.  ? 100  : _max_incr_chi2s[17];
+	_max_incr_chi2s[18] = _max_incr_chi2s[18]< 50.   ? 50   : _max_incr_chi2s[18];
+	_max_incr_chi2s[19] = _max_incr_chi2s[19]< 50.   ? 50   : _max_incr_chi2s[19];
+	_max_incr_chi2s[20] = _max_incr_chi2s[20]< 50.   ? 50   : _max_incr_chi2s[20];
+
+#ifdef _DEBUG_
+	for(int layer = 0; layer < _nlayers_all; ++layer) {
+		cout
+		<<__LINE__
+		<<": layer: "<< layer
+		<<": search_wins_rphi: " << _search_wins_rphi[layer]
+		<<": search_wins_z: " << _search_wins_z[layer]
+		<<": max_incr_chi2: " << _max_incr_chi2s[layer]
+		<<endl;
+	}
+#endif
 
 	_t_seeding = new PHTimer("_t_seeding");
 	_t_seeding->stop();
@@ -348,7 +406,6 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	// Kalman cluster accociation
 	//-----------------------------------
 	if (!_seeding_only_mode) {
-
 		code = FullTrackFitting(topNode);
 		if (code != Fun4AllReturnCodes::EVENT_OK)
 			return code;
@@ -1592,6 +1649,15 @@ int PHG4KalmanPatRec::export_output() {
 			SvtxCluster* cluster = _g4clusters->get(
 					track_hits.at(ihit).get_id());
 			clusterID = cluster->get_id();
+#ifdef _DEBUG_
+			cout
+			<<__LINE__
+			<<": itrack: " << itrack
+			<<": nhits: " << track_hits.size()
+			<<": hitID: " << clusterID
+			<<": layer: " << cluster->get_layer()
+			<<endl;
+#endif
 
 			//TODO verify this change
 			//int clusterLayer = cluster->get_layer();
@@ -2038,7 +2104,7 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 
 #ifdef _DEBUG_
 	std::cout << "=========================" << std::endl;
-	std::cout << "PHG4KalmanPatRec::FullTrackFitting: Event: "<< _event << std::endl;
+	std::cout << "PHG4KalmanPatRec::FullTrackFitting: Start: Event: "<< _event << std::endl;
 	std::cout << "Total Raw Tracks: " << _tracks.size() << std::endl;
 	std::cout << "=========================" << std::endl;
 #endif
@@ -2047,7 +2113,6 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 	 *   sort clusters
 	 */
 	BuildLayerZPhiHitMap();
-
 
 	vector<genfit::Track*> evt_disp_copy;
 
@@ -2094,6 +2159,13 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 			}
 		}
 	}
+
+#ifdef _DEBUG_
+	std::cout << "=========================" << std::endl;
+	std::cout << "PHG4KalmanPatRec::FullTrackFitting: End: Event: "<< _event << std::endl;
+	std::cout << "Total Final Tracks: " << _g4tracks->size() << std::endl;
+	std::cout << "=========================" << std::endl;
+#endif
 
 	if (_do_evt_display) {
 		_fitter->getEventDisplay()->addEvent(evt_disp_copy);
@@ -2564,8 +2636,8 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 
 		TMatrixDSym cov = state->get6DCov();
 
-		float phi_window = _search_win_rphi * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]);
-		float z_window = _search_win_z * sqrt(cov[2][2]);
+		float phi_window = _search_wins_rphi[layer] * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]);
+		float z_window   = _search_wins_z[layer]    * sqrt(cov[2][2]);
 
 #ifdef _DEBUG_
 		cout<<__LINE__<<": ";
@@ -2632,7 +2704,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 			std::map<double, PHGenFit::Track*>::iterator iter =
 					incr_chi2s_new_tracks.begin();
 
-			if (iter->first < _max_incr_chi2 and iter->first > 0) {
+			if (iter->first < _max_incr_chi2s[layer] and iter->first > 0) {
 
 #ifdef _DEBUG_
 				cout
@@ -2676,7 +2748,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 					(++incr_chi2s_new_tracks.begin());
 					iter != incr_chi2s_new_tracks.end(); ++iter) {
 
-				if (!(iter->first < _max_incr_chi2 and iter->first > 0))
+				if (!(iter->first < _max_splitting_chi2 and iter->first > 0))
 					break;
 
 #ifdef _DEBUG_
