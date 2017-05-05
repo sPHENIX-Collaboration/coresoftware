@@ -1007,3 +1007,12 @@ PHG4Reco::getSubsystem(const string &name)
   cout << "Could not find Subsystem " << name << endl;
   return nullptr;
 }
+
+void
+PHG4Reco::G4Verbosity(const int i)
+{
+  if (runManager_) 
+  {
+    runManager_->SetVerboseLevel(i);
+  }
+}
