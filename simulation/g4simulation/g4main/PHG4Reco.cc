@@ -740,6 +740,18 @@ void PHG4Reco::DefineMaterials()
   W_Epoxy->AddMaterial(G4Material::GetMaterial("G4_W"), fractionmass = 0.5);
   W_Epoxy->AddMaterial(G4Material::GetMaterial("G4_POLYSTYRENE"), fractionmass = 0.5);
 
+//from http://www.physi.uni-heidelberg.de/~adler/TRD/TRDunterlagen/RadiatonLength/tgc2.htm
+//Epoxy (for FR4 )
+//density = 1.2*g/cm3;
+G4Material* Epoxy = new G4Material("Epoxy" , 1.2*g/cm3, ncomponents=2);
+Epoxy->AddElement(G4Element::GetElement("H"), natoms=2);
+Epoxy->AddElement(G4Element::GetElement("C"), natoms=2);
+  
+//FR4 (Glass + Epoxy)
+density = 1.86*g/cm3;
+G4Material* FR4 = new G4Material("FR4"  , density, ncomponents=2);
+FR4->AddMaterial(quartz, fractionmass=0.528);
+FR4->AddMaterial(Epoxy, fractionmass=0.472);
   // spacal material. Source : EICROOT/A. Kiselev
   /*
   WEpoxyMix          3  12.011 1.008 183.85  6.  1.  74.  12.18  0.029 0.002 0.969
