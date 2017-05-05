@@ -5,7 +5,6 @@
 
 class PHG4BlockDetector;
 class PHG4BlockSteppingAction;
-class PHG4EventAction;
 
 class PHG4BlockSubsystem: public PHG4DetectorSubsystem
 {
@@ -34,10 +33,8 @@ class PHG4BlockSubsystem: public PHG4DetectorSubsystem
   int process_event(PHCompositeNode *);
 
   //! accessors (reimplemented)
-  virtual PHG4Detector* GetDetector( void ) const;
-  virtual PHG4SteppingAction* GetSteppingAction( void ) const {return  _steppingAction;}
-
-  PHG4EventAction* GetEventAction() const {return _eventAction;}
+  PHG4Detector* GetDetector( void ) const;
+  PHG4SteppingAction* GetSteppingAction( void ) const {return  _steppingAction;}
 
  private:
   void SetDefaultParameters();
@@ -49,7 +46,6 @@ class PHG4BlockSubsystem: public PHG4DetectorSubsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* _steppingAction;
-  PHG4EventAction *_eventAction;
 
 };
 

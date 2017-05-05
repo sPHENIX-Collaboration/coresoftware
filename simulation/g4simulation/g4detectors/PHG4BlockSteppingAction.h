@@ -16,9 +16,7 @@ class PHG4BlockSteppingAction : public PHG4SteppingAction
   PHG4BlockSteppingAction(PHG4BlockDetector *, const PHG4Parameters *parameters);
 
   //! destructor
-  virtual ~PHG4BlockSteppingAction()
-  {
-  }
+  virtual ~PHG4BlockSteppingAction();
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step *, bool);

@@ -1,7 +1,6 @@
 #include "PHG4BlockSubsystem.h"
 #include "PHG4BlockDetector.h"
 #include "PHG4Parameters.h"
-#include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4BlockSteppingAction.h"
 #include "PHG4BlockGeomv1.h"
 #include "PHG4BlockGeomContainer.h"
@@ -21,8 +20,7 @@ using namespace std;
 PHG4BlockSubsystem::PHG4BlockSubsystem( const std::string &name, const int lyr ):
   PHG4DetectorSubsystem( name, lyr ),
   _detector( nullptr ),
-  _steppingAction(nullptr),
-  _eventAction(nullptr)
+  _steppingAction(nullptr)
 {
   InitializeParameters();
 }
@@ -82,7 +80,6 @@ int PHG4BlockSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
       geocont->AddLayerGeom(GetLayer(), geom);
 
       _steppingAction = new PHG4BlockSteppingAction(_detector, GetParams());
-      _eventAction = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
 
     }
   else if(GetParams()->get_int_param("blackhole"))

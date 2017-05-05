@@ -31,6 +31,15 @@ PHG4BlockSteppingAction::PHG4BlockSteppingAction(PHG4BlockDetector* detector, co
 {
 }
 
+PHG4BlockSteppingAction::~PHG4BlockSteppingAction()
+{
+  // if the last hit was a zero energie deposit hit, it is just reset
+  // and the memory is still allocated, so we need to delete it here
+  // if the last hit was saved, hit is a nullptr pointer which are
+  // legal to delete (it results in a no operation)
+  delete hit;
+}
+
 //____________________________________________________________________________..
 bool PHG4BlockSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 {
@@ -78,7 +87,10 @@ bool PHG4BlockSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         prepointstatus == fUndefined ||
         use_g4_steps > 0)
     {
-      hit = new PHG4Hitv1();
+      if (! hit)
+      {
+        hit = new PHG4Hitv1();
+      }
       hit->set_layer(layer_id);
       //here we set the entrance values in cm
       hit->set_x(0, prePoint->GetPosition().x() / cm);
@@ -96,14 +108,11 @@ bool PHG4BlockSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         hit->set_eion(0);
       }
-      // Now add the hit
-      //      hits_->AddHit(layer_id, hit);
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
         if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
         {
           hit->set_trkid(pp->GetUserTrackId());
-          //	  pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
           hit->set_shower_id(pp->GetShower()->get_id());
           saveshower = pp->GetShower();
         }
@@ -192,8 +201,6 @@ bool PHG4BlockSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         hit->Reset();
       }
     }
-
-    //      hit->print();
     // return true to indicate the hit was used
     return true;
   }
