@@ -87,7 +87,7 @@ bool PHG4BlockSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         prepointstatus == fUndefined ||
         use_g4_steps > 0)
     {
-      if (! hit)
+      if (!hit)
       {
         hit = new PHG4Hitv1();
       }
