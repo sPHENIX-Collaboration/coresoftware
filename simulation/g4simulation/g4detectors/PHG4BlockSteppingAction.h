@@ -1,45 +1,45 @@
 #ifndef PHG4VBlockSteppingAction_h
 #define PHG4VBlockSteppingAction_h
 
-#include "g4main/PHG4SteppingAction.h"
+#include <g4main/PHG4SteppingAction.h>
 
 class PHG4BlockDetector;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Parameters;
+class PHG4Shower;
 
 class PHG4BlockSteppingAction : public PHG4SteppingAction
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4BlockSteppingAction( PHG4BlockDetector*, const PHG4Parameters *parameters );
+  PHG4BlockSteppingAction(PHG4BlockDetector *, const PHG4Parameters *parameters);
 
-  //! destroctor
+  //! destructor
   virtual ~PHG4BlockSteppingAction()
-  {}
+  {
+  }
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  virtual bool UserSteppingAction(const G4Step *, bool);
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers( PHCompositeNode* );
+  virtual void SetInterfacePointers(PHCompositeNode *);
 
-  private:
-
+ private:
   //! pointer to the detector
-  PHG4BlockDetector* detector_;
+  PHG4BlockDetector *detector_;
   const PHG4Parameters *params;
   //! pointer to hit container
-  PHG4HitContainer * hits_;
+  PHG4HitContainer *hits_;
   PHG4Hit *hit;
-
+  PHG4Shower *saveshower;
+  int savetrackid;
+  int savepoststepstatus;
   int active;
   int IsBlackHole;
-  
+
   int use_g4_steps;
 };
 
-
-#endif //__G4PHPHYTHIAREADER_H__
+#endif  //__G4PHPHYTHIAREADER_H__
