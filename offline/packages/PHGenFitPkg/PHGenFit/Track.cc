@@ -28,7 +28,7 @@
 
 #define WILD_DOUBLE -999999
 
-//#define _DEBUG_
+#define _DEBUG_
 //#define _PRINT_MATRIX_
 
 namespace PHGenFit {
@@ -211,11 +211,11 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 		}
 		if (dynamic_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))) {
 #ifdef _DEBUG_
-		std::cout<<__LINE__ <<std::endl;
+//		std::cout<<__LINE__ <<std::endl;
 #endif
 			if (static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getForwardUpdate()) {
 #ifdef _DEBUG_
-		std::cout<<__LINE__ <<std::endl;
+//		std::cout<<__LINE__ <<std::endl;
 #endif
 				have_tp_with_fit_info = true;
 				kfsop =
@@ -229,7 +229,7 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 
 	if (!have_tp_with_fit_info) {
 #ifdef _DEBUG_
-		std::cout<<__LINE__<< ": !have_tp_with_fit_info" <<std::endl;
+//		std::cout<<__LINE__<< ": !have_tp_with_fit_info" <<std::endl;
 #endif
 		kfsop = std::unique_ptr < genfit::MeasuredStateOnPlane
 				> (new genfit::MeasuredStateOnPlane(rep));
@@ -443,6 +443,10 @@ int Track::updateOneMeasurementKalman(
 				HCHt.Print();
 				std::cout <<__LINE__ <<": resNew:" << std::endl;
 				resNew.Print();
+#endif
+
+#ifdef _DEBUG_
+				std::cout <<__LINE__ <<": ndfInc:  " << ndfInc << std::endl;
 				std::cout <<__LINE__ <<": chi2inc: " << chi2inc << std::endl;
 #endif
 			genfit::KalmanFittedStateOnPlane* updatedSOP = new genfit::KalmanFittedStateOnPlane(
