@@ -85,7 +85,7 @@
 
 #define _DEBUG_
 
-//#define _GET_RPHI_ERROR_
+#define _GET_RPHI_ERROR_
 
 //#define _DO_FULL_FITTING_
 
@@ -218,33 +218,33 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 	}
 
 	// nightly build 2017-05-04
-	_search_wins_rphi[8]  = 50.;
-	_search_wins_rphi[9]  = 45.;
-	_search_wins_rphi[10] = 40.;
-	_search_wins_rphi[11] = 30.;
-	_search_wins_rphi[12] = 30.;
-	_search_wins_rphi[13] = 30.;
-	_search_wins_rphi[14] = 30.;
-	_search_wins_rphi[15] = 30.;
-	_search_wins_rphi[16] = 30.;
-	_search_wins_rphi[17] = 30.;
-	_search_wins_rphi[18] = 30.;
-	_search_wins_rphi[19] = 30.;
-	_search_wins_rphi[20] = 30.;
-
-	_max_incr_chi2s[8]  = _max_incr_chi2s[8] < 1000. ? 1000 : _max_incr_chi2s[8];
-	_max_incr_chi2s[9]  = _max_incr_chi2s[9] < 500.  ? 500  : _max_incr_chi2s[9];
-	_max_incr_chi2s[10] = _max_incr_chi2s[10]< 500.  ? 500  : _max_incr_chi2s[10];
-	_max_incr_chi2s[11] = _max_incr_chi2s[11]< 200.  ? 200  : _max_incr_chi2s[11];
-	_max_incr_chi2s[12] = _max_incr_chi2s[12]< 200.  ? 200  : _max_incr_chi2s[12];
-	_max_incr_chi2s[13] = _max_incr_chi2s[13]< 100.  ? 100  : _max_incr_chi2s[13];
-	_max_incr_chi2s[14] = _max_incr_chi2s[14]< 100.  ? 100  : _max_incr_chi2s[14];
-	_max_incr_chi2s[15] = _max_incr_chi2s[15]< 100.  ? 100  : _max_incr_chi2s[15];
-	_max_incr_chi2s[16] = _max_incr_chi2s[16]< 100.  ? 100  : _max_incr_chi2s[16];
-	_max_incr_chi2s[17] = _max_incr_chi2s[17]< 100.  ? 100  : _max_incr_chi2s[17];
-	_max_incr_chi2s[18] = _max_incr_chi2s[18]< 50.   ? 50   : _max_incr_chi2s[18];
-	_max_incr_chi2s[19] = _max_incr_chi2s[19]< 50.   ? 50   : _max_incr_chi2s[19];
-	_max_incr_chi2s[20] = _max_incr_chi2s[20]< 50.   ? 50   : _max_incr_chi2s[20];
+//	_search_wins_rphi[8]  = 50.;
+//	_search_wins_rphi[9]  = 45.;
+//	_search_wins_rphi[10] = 40.;
+//	_search_wins_rphi[11] = 30.;
+//	_search_wins_rphi[12] = 30.;
+//	_search_wins_rphi[13] = 30.;
+//	_search_wins_rphi[14] = 30.;
+//	_search_wins_rphi[15] = 30.;
+//	_search_wins_rphi[16] = 30.;
+//	_search_wins_rphi[17] = 30.;
+//	_search_wins_rphi[18] = 30.;
+//	_search_wins_rphi[19] = 30.;
+//	_search_wins_rphi[20] = 30.;
+//
+//	_max_incr_chi2s[8]  = _max_incr_chi2s[8] < 1000. ? 1000 : _max_incr_chi2s[8];
+//	_max_incr_chi2s[9]  = _max_incr_chi2s[9] < 500.  ? 500  : _max_incr_chi2s[9];
+//	_max_incr_chi2s[10] = _max_incr_chi2s[10]< 500.  ? 500  : _max_incr_chi2s[10];
+//	_max_incr_chi2s[11] = _max_incr_chi2s[11]< 200.  ? 200  : _max_incr_chi2s[11];
+//	_max_incr_chi2s[12] = _max_incr_chi2s[12]< 200.  ? 200  : _max_incr_chi2s[12];
+//	_max_incr_chi2s[13] = _max_incr_chi2s[13]< 100.  ? 100  : _max_incr_chi2s[13];
+//	_max_incr_chi2s[14] = _max_incr_chi2s[14]< 100.  ? 100  : _max_incr_chi2s[14];
+//	_max_incr_chi2s[15] = _max_incr_chi2s[15]< 100.  ? 100  : _max_incr_chi2s[15];
+//	_max_incr_chi2s[16] = _max_incr_chi2s[16]< 100.  ? 100  : _max_incr_chi2s[16];
+//	_max_incr_chi2s[17] = _max_incr_chi2s[17]< 100.  ? 100  : _max_incr_chi2s[17];
+//	_max_incr_chi2s[18] = _max_incr_chi2s[18]< 50.   ? 50   : _max_incr_chi2s[18];
+//	_max_incr_chi2s[19] = _max_incr_chi2s[19]< 50.   ? 50   : _max_incr_chi2s[19];
+//	_max_incr_chi2s[20] = _max_incr_chi2s[20]< 50.   ? 50   : _max_incr_chi2s[20];
 
 #ifdef _DEBUG_
 	for(int layer = 0; layer < _nlayers_all; ++layer) {
@@ -1943,6 +1943,7 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 
 		SimpleTrack3D track = _tracks[itrack];
 
+		cout << __LINE__ << endl;
 		printf("itrack: %5d => {%5d, %5d, %5d, %5d} \n",
 				itrack,
 				id, iz, iphi, idzdl);
@@ -2273,7 +2274,7 @@ int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, std::map<int
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-
+//#define _USE_ZERO_SEED_
 int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, unsigned int itrack) {
 
 	// clean up working array for each event
@@ -2296,20 +2297,23 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	TVector3 seed_mom(100, 0, 0);
 	TVector3 seed_pos(0, 0, 0);
 	TMatrixDSym seed_cov(6);
-	for (int i = 0; i < 6; i++) {
-		for (int j = 0; j < 6; j++) {
-			seed_cov[i][j] = 100.;
+
+	{
+		for (int i = 0; i < 6; i++) {
+			for (int j = 0; j < 6; j++) {
+				seed_cov[i][j] = 100.;
+			}
 		}
+
+		SvtxCluster* last_claster = _g4clusters->get(
+				track_hits.back().get_id());
+
+		TVector3 last_hit(last_claster->get_x(), last_claster->get_y(),
+				last_claster->get_z());
+
+		seed_mom.SetPhi(last_hit.Phi());
+		seed_mom.SetTheta(last_hit.Theta());
 	}
-
-	TVector3 last_hit(
-			track_hits.back().get_x(),
-			track_hits.back().get_y(),
-			track_hits.back().get_z()
-	);
-
-	seed_mom.SetPhi(last_hit.Phi());
-	seed_mom.SetTheta(last_hit.Theta());
 
 #else
 	float kappa = _tracks.at(itrack).kappa;
@@ -2450,7 +2454,11 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 //			new PHGenFit::Track(rep, seed_pos, seed_mom, seed_cov);
 
 #ifdef _DEBUG_
-	cout<<__LINE__<<": seed_mom: "<< seed_mom.Phi() <<", "<< seed_mom.Theta() <<endl;
+	cout
+	<<__LINE__<<": seed_mom: "
+	<<": theta: "<< seed_mom.Theta()
+	<<": phi: "<< seed_mom.Phi()
+	<<endl;
 #endif
 
 	std::multimap<float, unsigned int> m_r_clusterID;
@@ -2545,7 +2553,17 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 				n, cluster->get_phi_error(), cluster->get_z_error());
 #endif
 		meas->set_cluster_ID(cluster_ID);
-
+#ifdef _DEBUG_
+		cout
+		<<__LINE__
+		<<": ID: " << cluster_ID
+		<<": layer: " << cluster->get_layer()
+		<<": rphi_error: " << cluster->get_rphi_error()
+		<<": phi_error: " << cluster->get_phi_error()
+		<<endl;
+		pos.Print();
+		n.Print();
+#endif
 		measurements.push_back(meas);
 		hitIDs.push_back(cluster_ID);
 	}
@@ -2558,7 +2576,6 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	if (_fitter->processTrack(track.get(), false) != 0) {
 		if (verbosity >= 1)
 			LogWarning("Track fitting failed")<<std::endl;
-			//delete track;
 		return -1;
 	}
 
@@ -2567,10 +2584,6 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
-
-//#undef _DEBUG_
-
-//#define _USE_ZERO_SEED_
 
 int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> track) {
 
@@ -2638,6 +2651,9 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 
 		float phi_window = _search_wins_rphi[layer] * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]);
 		float z_window   = _search_wins_z[layer]    * sqrt(cov[2][2]);
+
+		if(phi_window > 1.0) phi_window = 1.0;
+		if(z_window > 1.0) z_window = 1.0;
 
 #ifdef _DEBUG_
 		cout<<__LINE__<<": ";
@@ -2803,27 +2819,27 @@ int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 		float z = cluster->get_z();
 
 #ifdef _DEBUG_
-//		std::cout<<__LINE__<<": "
-//				<<": layer: "<<cluster->get_layer()
-//				<<", r: "<<r
-//				<<", rphi: "<<rphi
-//				<<", z: "<<z
-//				<<endl;
+		std::cout<<__LINE__<<": "
+				<<": layer: "<<cluster->get_layer()
+				<<", r: "<<r
+				<<", rphi: "<<rphi
+				<<", z: "<<z
+				<<endl;
 #endif
 
 		unsigned int idx = encode_cluster_index(layer, z, rphi);
 
-//#ifdef _DEBUG_
-//			cout
-//			<<__LINE__<<": "
-//			<<"{ "
-//			<<layer <<", "
-//			<<z <<", "
-//			<<rphi << "} =>"
-//			<<idx << ": size: "
-//			<<_layer_zID_phiID_cluserID.count(idx)
-//			<<endl;
-//#endif
+#ifdef _DEBUG_
+			cout
+			<<__LINE__<<": "
+			<<"{ "
+			<<layer <<", "
+			<<z <<", "
+			<<rphi << "} =>"
+			<<idx << ": size: "
+			<<_layer_zID_phiID_cluserID.count(idx)
+			<<endl;
+#endif
 
 		_layer_zID_phiID_cluserID.insert(std::make_pair(idx, cluster->get_id()));
 	}
@@ -2888,10 +2904,10 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 				<< layer << "\t "
 				<< phi_center - rphi_cluster << "\t"
 				<< z_center - cluster->get_z() << "\t"
-				<< phi_window/_search_win_rphi << "\t"
-				<< z_window/_search_win_z << "\t"
-				<< (phi_center - rphi_cluster)/phi_window*_search_win_rphi <<"\t "
-				<< (z_center - cluster->get_z())/z_window*_search_win_z <<endl;
+				<< phi_window/_search_wins_rphi[layer] << "\t"
+				<< z_window/_search_wins_z[layer] << "\t"
+				<< (phi_center - rphi_cluster)/phi_window*_search_wins_rphi[layer] <<"\t "
+				<< (z_center - cluster->get_z())/z_window*_search_wins_z[layer] <<endl;
 #endif
 			}
 			if(verbosity >= 2) _t_search_clusters_map_iter->stop();
