@@ -202,7 +202,7 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 	std::unique_ptr<genfit::MeasuredStateOnPlane> kfsop = NULL;
 	if (_track->getNumPointsWithMeasurement() > 0) {
 #ifdef _DEBUG_
-		std::cout<<__LINE__ <<std::endl;
+//		std::cout<<__LINE__ <<std::endl;
 #endif
 		genfit::TrackPoint* tp = _track->getPointWithMeasurement(tr_point_id);
 		if (tp == NULL) {
