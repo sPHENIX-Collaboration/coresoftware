@@ -122,15 +122,29 @@ PHG4Detector *PHG4SiliconTrackerSubsystem::GetDetector(void) const
 
 void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
 {
+// all values in cm!
+  set_default_int_param(0,"nladder",20);
+  set_default_int_param(1,"nladder",26);
+  set_default_int_param(2,"nladder",32);
+  set_default_int_param(3,"nladder",38);
+
   set_default_double_param(0, "Radius", 6.);
   set_default_double_param(1, "Radius", 8.);
   set_default_double_param(2, "Radius", 10.);
   set_default_double_param(3, "Radius", 12.);
+
+  set_default_double_param(0, "strip_y",0.0078);
+  set_default_double_param(1, "strip_y",0.0086);
+  set_default_double_param(2, "strip_y",0.0086);
+  set_default_double_param(3, "strip_y",0.0086);
+
   std::pair<std::set<int>::const_iterator, std::set<int>::const_iterator> begin_end = GetDetIds();
   for (set<int>::const_iterator it = begin_end.first; it != begin_end.second; ++it)
   {
+    set_default_double_param(*it,"strip_x",0.02);
     set_int_param(*it,"active",1);
   }
+
   return;
 }
 

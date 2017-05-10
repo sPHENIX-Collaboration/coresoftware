@@ -58,6 +58,7 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
     PHG4Parameters* par = iter->second;
     IsActive[iter->first] = par->get_int_param("active");
     IsBlackHole[iter->first] = par->get_int_param("blackhole");
+    strip_y[iter->first] =  par->get_double_param("strip_y")*cm;
   }
 }
 
@@ -140,7 +141,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     const double strip_z = (inttlayer == 0) ? detector_->arr_strip_z[0][laddertype] : detector_->arr_strip_z[1][laddertype];
     const int nstrips_z_sensor = (inttlayer == 0) ? detector_->arr_nstrips_z_sensor[0][laddertype] : detector_->arr_nstrips_z_sensor[1][laddertype];
     const int nstrips_phi_cell = detector_->arr_nstrips_phi_cell[inttlayer];
-    const double strip_y = detector_->arr_strip_y[inttlayer];
+//    const double strip_y = detector_->arr_strip_y[inttlayer];
 
     // Find the strip y and z index values from the copy number (integer division, quotient is strip_y, remainder is strip_z)
     div_t copydiv = div(volume->GetCopyNo(), nstrips_z_sensor);
@@ -188,8 +189,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
           strip_y_index = 0;
           for (int i = 0; i < 2 * nstrips_phi_cell; ++i)
           {
-            const double ymin = 2. * strip_y * (double) (i) -2. * strip_y * (double) nstrips_phi_cell;
-            const double ymax = 2. * strip_y * (double) (i + 1) - 2. * strip_y * (double) nstrips_phi_cell;
+            const double ymin = strip_y[inttlayer] * (double) (i) - strip_y[inttlayer] * (double) nstrips_phi_cell;
+            const double ymax = strip_y[inttlayer] * (double) (i + 1) - strip_y[inttlayer] * (double) nstrips_phi_cell;
             if (strip_pos.y() / mm > ymin && strip_pos.y() / mm <= ymax)
             {
               cout << "ymin: " << ymin << ", ymax: " << ymax << endl;
