@@ -239,7 +239,7 @@ libg4detectors_la_SOURCES = \
   PHG4Prototype2OuterHcalDetector.cc \
   PHG4Prototype2OuterHcalSteppingAction.cc \
   PHG4Prototype2OuterHcalSubsystem.cc \
-  PHG4Prototype2OuterHcalSubsystem_Dict.C \
+  PHG4Prototype2OuterHcalSubsystem_Dict.cc \
   PHG4RICHDetector.cc \
   PHG4RICHSteppingAction.cc \
   PHG4RICHSubsystem.cc \

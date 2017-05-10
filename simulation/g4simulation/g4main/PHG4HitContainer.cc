@@ -15,7 +15,7 @@ PHG4HitContainer::PHG4HitContainer()
 {
 }
 
-PHG4HitContainer::PHG4HitContainer(std::string nodename)
+PHG4HitContainer::PHG4HitContainer(const std::string &nodename)
   : id(PHG4HitDefs::get_volume_id(nodename)), hitmap(), layers()
 {
 }
