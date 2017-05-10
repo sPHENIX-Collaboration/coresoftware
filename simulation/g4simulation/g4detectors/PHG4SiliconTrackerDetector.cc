@@ -129,8 +129,8 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
     const G4double strip_y =  params->get_double_param("strip_y")*cm;
     const int nstrips_phi_cell = arr_nstrips_phi_cell[inttlayer];
 
-    const int nladders_layer = arr_nladders_layer[inttlayer];
-    const G4double radius = arr_radius[inttlayer];
+    const int nladders_layer = params->get_int_param("nladder");
+    const G4double radius = params->get_double_param("radius")*cm;
     const G4double offsetphi = arr_offsetphi[inttlayer];
     const G4double offsetrot = arr_offsetrot[inttlayer];
     const G4double hdi_y = arr_hdi_y[inttlayer];
@@ -143,18 +143,30 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
       std::cout << " PHG4SiliconTrackerDetector::ConstrctSiliconTracker:  sphxlayer " << sphxlayer << " inttlayer " << inttlayer << std::endl;
 
-      const G4double strip_z = (inttlayer == 0) ? arr_strip_z[0][itype] : arr_strip_z[1][itype];
+      G4double strip_z;
+      switch(itype)
+      {
+      case 0:
+	strip_z =  params->get_double_param("strip_z_0")*cm;
+	break;
+      case 1:
+	strip_z =  params->get_double_param("strip_z_1")*cm;
+	break;
+      default:
+	cout << "invalid itype " << itype << endl;
+	exit(1);
+      }
       const int nstrips_z_sensor = (inttlayer == 0) ? arr_nstrips_z_sensor[0][itype] : arr_nstrips_z_sensor[1][itype];
 
       /*----- Step 1 -----
-         * We make volume for Si-sensor, FPHX, HDI, PGS sheet, and stave.
+       * We make volume for Si-sensor, FPHX, HDI, PGS sheet, and stave.
          * Then we make ladder volume large enough to enclose the above volume.
          */
 
       /*
          * Si-strip
          */
-      G4VSolid *strip_box = new G4Box(boost::str(boost::format("strip_box_%d_%d") % sphxlayer % itype).c_str(), strip_x/2., strip_y/2. - strip_y/ 20000., strip_z - strip_z / 10000.);
+      G4VSolid *strip_box = new G4Box(boost::str(boost::format("strip_box_%d_%d") % sphxlayer % itype).c_str(), strip_x/2., strip_y/2. - strip_y/ 20000., strip_z/2. - strip_z/2. / 10000.);
       G4LogicalVolume *strip_volume = new G4LogicalVolume(strip_box, G4Material::GetMaterial("G4_Si"), boost::str(boost::format("strip_volume_%d_%d") % sphxlayer % itype).c_str(), 0, 0, 0);
       if ((IsActive.find(inttlayer))->second > 0)
       {
@@ -171,12 +183,12 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
          */
       const double siactive_x = (strip_x/2.);                        // 0.24mm/2
       const double siactive_y = strip_y/2. * 2. * nstrips_phi_cell;  // (0.078mm * 2*128)/2 = 0.078mm * 128
-      const double siactive_z = strip_z * nstrips_z_sensor;       // (20mm * 5or8)/2 = 10mm * 5or8
+      const double siactive_z = strip_z/2. * nstrips_z_sensor;       // (20mm * 5or8)/2 = 10mm * 5or8
 
       G4VSolid *siactive_box = new G4Box(boost::str(boost::format("siactive_box_%d_%d") % sphxlayer % itype).c_str(), siactive_x, siactive_y, siactive_z);
       G4LogicalVolume *siactive_volume = new G4LogicalVolume(siactive_box, G4Material::GetMaterial("G4_Si"), boost::str(boost::format("siactive_volume_%d_%d") % sphxlayer % itype).c_str(), 0, 0, 0);
 
-      G4VPVParameterisation *stripparam = new PHG4SiliconTrackerStripParameterisation(nstrips_phi_cell * 2, nstrips_z_sensor, (strip_y/2.) *2., (strip_z) *2.);
+      G4VPVParameterisation *stripparam = new PHG4SiliconTrackerStripParameterisation(nstrips_phi_cell * 2, nstrips_z_sensor, (strip_y/2.) *2., (strip_z/2.) *2.);
       new G4PVParameterised(boost::str(boost::format("siactive_%d_%d") % sphxlayer % itype).c_str(), strip_volume, siactive_volume, kZAxis, nstrips_phi_cell * 2 * nstrips_z_sensor, stripparam, false);  // overlap check too long.
 
       /*
@@ -253,9 +265,9 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       const int ncopy = nstrips_z_sensor;
       const double offsetx = 0.;
       const double offsety = 0.;
-      const double offsetz = (ncopy % 2 == 0) ? -2. * strip_z * double(ncopy / 2) + strip_z : -2. * strip_z * double(ncopy / 2);
+      const double offsetz = (ncopy % 2 == 0) ? -2. * strip_z/2. * double(ncopy / 2) + strip_z/2. : -2. * strip_z/2. * double(ncopy / 2);
 
-      G4VPVParameterisation *fphxparam = new PHG4SiliconTrackerFPHXParameterisation(offsetx, +offsety, offsetz, 2. * strip_z, ncopy);
+      G4VPVParameterisation *fphxparam = new PHG4SiliconTrackerFPHXParameterisation(offsetx, +offsety, offsetz, 2. * strip_z/2., ncopy);
       new G4PVParameterised(boost::str(boost::format("fphxcontainer_%d_%d") % sphxlayer % itype).c_str(), fphx_volume, fphxcontainer_volume, kZAxis, ncopy, fphxparam, overlapcheck);
 
       /*
@@ -480,8 +492,6 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
       const int sphxlayer = layerconfig_[ilayer].first;
       const int inttlayer = layerconfig_[ilayer].second;
 
-      const double strip_z0 = (ilayer == 0) ? arr_strip_z[0][0] : arr_strip_z[1][0];
-      const double strip_z1 = (ilayer == 0) ? arr_strip_z[0][1] : arr_strip_z[1][1];
       const int nstrips_z_sensor0 = (ilayer == 0) ? arr_nstrips_z_sensor[0][0] : arr_nstrips_z_sensor[1][0];
       const int nstrips_z_sensor1 = (ilayer == 0) ? arr_nstrips_z_sensor[0][1] : arr_nstrips_z_sensor[1][1];
 
@@ -491,12 +501,12 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
           sphxlayer,
 	  params->get_double_param("strip_x"),
           params->get_double_param("strip_y"),
-          strip_z0 / cm,
-          strip_z1 / cm,
+          params->get_double_param("strip_z_0"),
+          params->get_double_param("strip_z_1"),
           nstrips_z_sensor0,
           nstrips_z_sensor1,
           arr_nstrips_phi_cell[inttlayer],
-          arr_nladders_layer[inttlayer],
+          params->get_int_param("nladder"),
           posz[ilayer][0] / cm,
           posz[ilayer][1] / cm,
           eff_radius[ilayer] / cm,

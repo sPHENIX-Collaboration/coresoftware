@@ -33,6 +33,7 @@ class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
   const PHG4ParametersContainer *paramscontainer;
 
   double strip_y[4];
+  double strip_z[4][2];
   std::map<int, int> IsActive;
   std::map<int, int> IsBlackHole;
 };

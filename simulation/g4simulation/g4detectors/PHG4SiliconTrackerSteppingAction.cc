@@ -59,6 +59,8 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
     IsActive[iter->first] = par->get_int_param("active");
     IsBlackHole[iter->first] = par->get_int_param("blackhole");
     strip_y[iter->first] =  par->get_double_param("strip_y")*cm;
+    strip_z[iter->first][0] = par->get_double_param("strip_z_0")*cm;
+    strip_z[iter->first][1] = par->get_double_param("strip_z_1")*cm;
   }
 }
 
@@ -138,7 +140,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     }
     // convert ladder type [0-3] to silicon sensor type [0-1]
     const int laddertype = (ladderz == 1 || ladderz == 2) ? 0 : 1;
-    const double strip_z = (inttlayer == 0) ? detector_->arr_strip_z[0][laddertype] : detector_->arr_strip_z[1][laddertype];
+//    const double strip_z = (inttlayer == 0) ? detector_->arr_strip_z[0][laddertype] : detector_->arr_strip_z[1][laddertype];
     const int nstrips_z_sensor = (inttlayer == 0) ? detector_->arr_nstrips_z_sensor[0][laddertype] : detector_->arr_nstrips_z_sensor[1][laddertype];
     const int nstrips_phi_cell = detector_->arr_nstrips_phi_cell[inttlayer];
 //    const double strip_y = detector_->arr_strip_y[inttlayer];
@@ -176,8 +178,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
           strip_z_index = 0;
           for (int i = 0; i < nstrips_z_sensor; ++i)
           {
-            const double zmin = 2. * strip_z * (double) (i) -strip_z * (double) nstrips_z_sensor;
-            const double zmax = 2. * strip_z * (double) (i + 1) - strip_z * (double) nstrips_z_sensor;
+            const double zmin = strip_z[inttlayer][laddertype] * (double) (i) -strip_z[inttlayer][laddertype]/2. * (double) nstrips_z_sensor;
+            const double zmax = strip_z[inttlayer][laddertype] * (double) (i + 1) - strip_z[inttlayer][laddertype]/2. * (double) nstrips_z_sensor;
             if (strip_pos.z() / mm > zmin && strip_pos.z() / mm <= zmax)
             {
               cout << "zmin: " << zmin << ", zmax: " << zmax << endl;
