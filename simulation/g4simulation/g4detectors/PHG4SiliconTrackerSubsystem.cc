@@ -128,6 +128,31 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
   set_default_int_param(2,"nladder",32);
   set_default_int_param(3,"nladder",38);
 
+  set_default_int_param(0,"nstrips_phi_cell",128);
+  set_default_int_param(1,"nstrips_phi_cell",128);
+  set_default_int_param(2,"nstrips_phi_cell",128);
+  set_default_int_param(3,"nstrips_phi_cell",128);
+
+  set_default_int_param(0,"nstrips_z_sensor_0",5);
+  set_default_int_param(1,"nstrips_z_sensor_0",8);
+  set_default_int_param(2,"nstrips_z_sensor_0",8);
+  set_default_int_param(3,"nstrips_z_sensor_0",8);
+
+  set_default_int_param(0,"nstrips_z_sensor_1",5);
+  set_default_int_param(1,"nstrips_z_sensor_1",5);
+  set_default_int_param(2,"nstrips_z_sensor_1",5);
+  set_default_int_param(3,"nstrips_z_sensor_1",5);
+
+  set_default_double_param(0, "offsetphi",0.);
+  set_default_double_param(1, "offsetphi",0.);
+  set_default_double_param(2, "offsetphi",0.);
+  set_default_double_param(3, "offsetphi",0.);
+
+  set_default_double_param(0, "offsetrot",14.0);
+  set_default_double_param(1, "offsetrot",14.0);
+  set_default_double_param(2, "offsetrot",12.0);
+  set_default_double_param(3, "offsetrot",11.5);
+
   set_default_double_param(0, "radius", 6.);
   set_default_double_param(1, "radius", 8.);
   set_default_double_param(2, "radius", 10.);

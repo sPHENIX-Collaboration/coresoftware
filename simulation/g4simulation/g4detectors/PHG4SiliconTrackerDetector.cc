@@ -127,12 +127,12 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
     const PHG4Parameters *params = paramscontainer->GetParameters(inttlayer);
   const G4double strip_x = params->get_double_param("strip_x")*cm;
     const G4double strip_y =  params->get_double_param("strip_y")*cm;
-    const int nstrips_phi_cell = arr_nstrips_phi_cell[inttlayer];
+    const int nstrips_phi_cell = params->get_int_param("nstrips_phi_cell");
 
     const int nladders_layer = params->get_int_param("nladder");
     const G4double radius = params->get_double_param("radius")*cm;
-    const G4double offsetphi = arr_offsetphi[inttlayer];
-    const G4double offsetrot = arr_offsetrot[inttlayer];
+    const G4double offsetphi = params->get_double_param("offsetphi")*deg;
+    const G4double offsetrot =  params->get_double_param("offsetrot")*deg;
     const G4double hdi_y = arr_hdi_y[inttlayer];
 
 
@@ -144,19 +144,21 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       std::cout << " PHG4SiliconTrackerDetector::ConstrctSiliconTracker:  sphxlayer " << sphxlayer << " inttlayer " << inttlayer << std::endl;
 
       G4double strip_z;
+      int nstrips_z_sensor;
       switch(itype)
       {
       case 0:
 	strip_z =  params->get_double_param("strip_z_0")*cm;
+	nstrips_z_sensor = params->get_int_param("nstrips_z_sensor_0");
 	break;
       case 1:
 	strip_z =  params->get_double_param("strip_z_1")*cm;
+	nstrips_z_sensor = params->get_int_param("nstrips_z_sensor_1");
 	break;
       default:
 	cout << "invalid itype " << itype << endl;
 	exit(1);
       }
-      const int nstrips_z_sensor = (inttlayer == 0) ? arr_nstrips_z_sensor[0][itype] : arr_nstrips_z_sensor[1][itype];
 
       /*----- Step 1 -----
        * We make volume for Si-sensor, FPHX, HDI, PGS sheet, and stave.
@@ -492,9 +494,6 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
       const int sphxlayer = layerconfig_[ilayer].first;
       const int inttlayer = layerconfig_[ilayer].second;
 
-      const int nstrips_z_sensor0 = (ilayer == 0) ? arr_nstrips_z_sensor[0][0] : arr_nstrips_z_sensor[1][0];
-      const int nstrips_z_sensor1 = (ilayer == 0) ? arr_nstrips_z_sensor[0][1] : arr_nstrips_z_sensor[1][1];
-
       const PHG4Parameters *params = paramscontainer->GetParameters(inttlayer);
 // parameters are in cm, so no conversion needed here to get to cm (*cm/cm)
       PHG4CylinderGeom *mygeom = new PHG4CylinderGeom_Siladders(
@@ -503,16 +502,16 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
           params->get_double_param("strip_y"),
           params->get_double_param("strip_z_0"),
           params->get_double_param("strip_z_1"),
-          nstrips_z_sensor0,
-          nstrips_z_sensor1,
-          arr_nstrips_phi_cell[inttlayer],
+	  params->get_int_param("nstrips_z_sensor_0"),//nstrips_z_sensor0,
+          params->get_int_param("nstrips_z_sensor_1"),//nstrips_z_sensor1,
+	  params->get_int_param("nstrips_phi_cell"),
           params->get_int_param("nladder"),
           posz[ilayer][0] / cm,
           posz[ilayer][1] / cm,
           eff_radius[ilayer] / cm,
           strip_x_offset[ilayer] / cm,
-          arr_offsetphi[inttlayer] / rad,
-          arr_offsetrot[inttlayer] / rad);
+          params->get_double_param("offsetphi")*deg/rad,//arr_offsetphi[inttlayer] / rad,
+          params->get_double_param("offsetrot")*deg/rad);//arr_offsetrot[inttlayer] / rad);
       geo->AddLayerGeom(sphxlayer, mygeom);
       if (verbosity > 0)
         geo->identify();

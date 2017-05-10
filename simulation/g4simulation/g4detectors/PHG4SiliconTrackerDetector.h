@@ -54,10 +54,8 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
     return detector_type;
   }
 
-  const G4double arr_offsetphi[4] = {0.0 / 180. * CLHEP::pi, 0.0 / 180. * CLHEP::pi, 0.0 / 180. * CLHEP::pi, 0.0 / 180. * CLHEP::pi};
-  const G4double arr_offsetrot[4] = {14.0 / 180. * CLHEP::pi, 14.0 / 180. * CLHEP::pi, 12.0 / 180. * CLHEP::pi, 11.5 / 180. * CLHEP::pi};
-  const int arr_nstrips_z_sensor[2][2] = {/*Layer0*/ {5, 5}, /*Layer1-3*/ {8, 5}};
-  const int arr_nstrips_phi_cell[4] = {128, 128, 128, 128};
+  /* const int arr_nstrips_z_sensor[2][2] = {/\*Layer0*\/ {5, 5}, /\*Layer1-3*\/ {8, 5}}; */
+  /* const int arr_nstrips_phi_cell[4] = {128, 128, 128, 128}; */
 
  private:
   void AddGeometryNode();
