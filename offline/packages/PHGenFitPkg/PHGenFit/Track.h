@@ -49,6 +49,8 @@ public:
 	int addMeasurement(PHGenFit::Measurement* measurement);
 	int addMeasurements(std::vector<PHGenFit::Measurement*> &measurements);
 
+	int deleteLastMeasurement();
+
 	//!
 	int updateOneMeasurementKalman(const std::vector<PHGenFit::Measurement*>& measurements,
 			std::map<double, PHGenFit::Track*>& incr_chi2s_new_tracks) const;

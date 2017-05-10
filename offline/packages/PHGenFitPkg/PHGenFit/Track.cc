@@ -28,7 +28,7 @@
 
 #define WILD_DOUBLE -999999
 
-#define _DEBUG_
+//#define _DEBUG_
 //#define _PRINT_MATRIX_
 
 namespace PHGenFit {
@@ -82,6 +82,15 @@ int Track::addMeasurements(std::vector<PHGenFit::Measurement*> &measurements)
 	}
 
 	//measurements.clear();
+
+	return 0;
+}
+
+int Track::deleteLastMeasurement() {
+
+	_track->deletePoint(-1);
+
+	_clusterIDs.pop_back();
 
 	return 0;
 }
