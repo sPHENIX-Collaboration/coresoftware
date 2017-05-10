@@ -79,7 +79,7 @@
 
 #define _DEBUG_MODE_ 0
 
-#define _GET_RPHI_ERROR_
+//#define _DEBUG_
 
 using namespace std;
 
@@ -944,6 +944,14 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			LogError("No cluster Found!");
 			continue;
 		}
+
+#ifdef _DEBUG_
+		cout
+		<< __LINE__
+		<<": ID: " << cluster_id
+		<<": layer: " << cluster->get_layer()
+		<<endl;
+#endif
 
 		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
 
