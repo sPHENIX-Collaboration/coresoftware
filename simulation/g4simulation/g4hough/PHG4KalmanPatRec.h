@@ -597,7 +597,7 @@ private:
 
 
 	std::map<int, std::shared_ptr<PHGenFit::Track>> _trackID_PHGenFitTrack;
-	//std::map<int, std::vector<unsigned int>> _trackID_clusterID;
+	float _first_extrapolate_target_layer;
 
 	unsigned int _max_consecutive_missing_layer;
 	float _max_incr_chi2;
