@@ -119,7 +119,6 @@ void PHG4SiliconTrackerDetector::Construct(G4LogicalVolume *logicWorld)
 int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *trackerenvelope)
 {
   double hdi_z_[nlayer_][2];
-
   for (unsigned int ilayer = 0; ilayer < nlayer_; ++ilayer)
   {
     const int sphxlayer = layerconfig_[ilayer].first;
@@ -197,8 +196,8 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
          * Si-sensor full (active+inactive) area
          */
       const double sifull_x = siactive_x;                    // 0.24mm/2
-      const double sifull_y = siactive_y + sensor_edge_phi;  // (1.305mm  + 0.078mm * 2*128 + 1.305mm)/2 = 0.078mm * 128 + 1.305mm
-      const double sifull_z = siactive_z + sensor_edge_z;    // (0.98mm + 20mm * 5 + 0.98mm)/2 = 10mm * 5 + 0.98mm
+      const double sifull_y = siactive_y + params->get_double_param("sensor_edge_phi")*cm;  // (1.305mm  + 0.078mm * 2*128 + 1.305mm)/2 = 0.078mm * 128 + 1.305mm
+      const double sifull_z = siactive_z + params->get_double_param("sensor_edge_z")*cm;    // (0.98mm + 20mm * 5 + 0.98mm)/2 = 10mm * 5 + 0.98mm
 
       G4VSolid *sifull_box = new G4Box(boost::str(boost::format("sifull_box_%d_%d") % sphxlayer % itype).c_str(), sifull_x, sifull_y, sifull_z);
 
@@ -218,7 +217,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       /*
          * HDI
          */
-      const G4double hdi_z = sifull_z + hdi_edge_z;  // hdi_edge_z = 100micron
+      const G4double hdi_z = sifull_z + params->get_double_param("hdi_edge_z")*cm;  // hdi_edge_z = 100micron
       hdi_z_[ilayer][itype] = hdi_z;
 
       G4VSolid *hdi_box = new G4Box(boost::str(boost::format("hdi_box_%d_%d") % sphxlayer % itype).c_str(), hdi_x, hdi_y, hdi_z);

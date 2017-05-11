@@ -54,9 +54,6 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
     return detector_type;
   }
 
-  /* const int arr_nstrips_z_sensor[2][2] = {/\*Layer0*\/ {5, 5}, /\*Layer1-3*\/ {8, 5}}; */
-  /* const int arr_nstrips_phi_cell[4] = {128, 128, 128, 128}; */
-
  private:
   void AddGeometryNode();
   int ConstructSiliconTracker(G4LogicalVolume *sandwich);
@@ -74,10 +71,6 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
 
   std::string detector_type;
   std::string superdetector;
-
-  const G4double sensor_edge_phi = 1.305 * mm;
-  const G4double sensor_edge_z = 0.98 * mm;
-  const G4double hdi_edge_z = 0.10 * mm;
 
   G4double eff_radius[4];
   G4double posz[4][2];

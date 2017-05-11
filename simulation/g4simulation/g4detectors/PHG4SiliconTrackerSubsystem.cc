@@ -177,6 +177,9 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
   for (set<int>::const_iterator it = begin_end.first; it != begin_end.second; ++it)
   {
     set_default_double_param(*it,"strip_x",0.02);
+    set_default_double_param(*it,"sensor_edge_phi",0.1305);
+    set_default_double_param(*it,"sensor_edge_z",0.098);
+    set_default_double_param(*it,"hdi_edge_z",0.01);
     set_int_param(*it,"active",1);
   }
 
