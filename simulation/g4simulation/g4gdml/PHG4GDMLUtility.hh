@@ -16,7 +16,7 @@
 class G4VPhysicalVolume;
 
 /*!
- * \brief PHG4GDMLUtility
+ * \brief PHG4GDMLUtility is utility class that drive the PHG4GDMLWriteStructure
  */
 class PHG4GDMLUtility
 {
