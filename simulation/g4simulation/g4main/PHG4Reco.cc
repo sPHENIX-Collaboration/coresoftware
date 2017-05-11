@@ -23,6 +23,7 @@
 #include <phool/recoConsts.h>
 
 #include <phgeom/PHGeomUtility.h>
+#include <g4gdml/PHG4GDMLUtility.hh>
 
 #include <TThread.h>
 
@@ -61,7 +62,6 @@
 
 // physics lists
 #include <Geant4/FTFP_BERT.hh>
-#include <Geant4/G4GDMLParser.hh>
 #include <Geant4/LBE.hh>
 #include <Geant4/QGSP_BERT.hh>
 #include <Geant4/QGSP_BIC.hh>
@@ -453,9 +453,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 //Dump TGeo File
 void PHG4Reco::Dump_GDML(const std::string &filename)
 {
-  G4GDMLParser gdml_parser;
-  gdml_parser.Write(filename, detector_->GetPhysicalVolume());
-  //gGeoManager = TGeoManager::Import(filename);
+  PHG4GDMLUtility :: Dump_GDML(filename , detector_->GetPhysicalVolume());
 }
 
 //_________________________________________________________________
