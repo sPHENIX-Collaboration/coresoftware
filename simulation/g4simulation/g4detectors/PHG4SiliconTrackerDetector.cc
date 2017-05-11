@@ -132,7 +132,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
     const G4double radius = params->get_double_param("radius")*cm;
     const G4double offsetphi = params->get_double_param("offsetphi")*deg;
     const G4double offsetrot =  params->get_double_param("offsetrot")*deg;
-    const G4double hdi_y = arr_hdi_y[inttlayer];
+    const G4double hdi_y = params->get_double_param("hdi_y")*cm;
 
 
     for (int itype = 0; itype < 2; ++itype)
@@ -220,12 +220,12 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       const G4double hdi_z = sifull_z + params->get_double_param("hdi_edge_z")*cm;  // hdi_edge_z = 100micron
       hdi_z_[ilayer][itype] = hdi_z;
 
-      G4VSolid *hdi_box = new G4Box(boost::str(boost::format("hdi_box_%d_%d") % sphxlayer % itype).c_str(), hdi_x, hdi_y, hdi_z);
+      G4VSolid *hdi_box = new G4Box(boost::str(boost::format("hdi_box_%d_%d") % sphxlayer % itype).c_str(), hdi_x, hdi_y/2., hdi_z);
       G4LogicalVolume *hdi_volume = new G4LogicalVolume(hdi_box, G4Material::GetMaterial("FPC"), boost::str(boost::format("hdi_box_%d_%d") % sphxlayer % itype).c_str(), 0, 0, 0);
       absorberlogvols.insert(hdi_volume);
 
       const G4double hdi_ext_z = (itype == 0) ? 0.000001 : arr_halfladder_z[ilayer] - hdi_z_[ilayer][0] - hdi_z;  // need to assign nonzero value for itype=0
-      G4VSolid *hdi_ext_box = new G4Box(boost::str(boost::format("hdi_ext_box_%d_%s") % sphxlayer % itype).c_str(), hdi_x, hdi_y, hdi_ext_z);
+      G4VSolid *hdi_ext_box = new G4Box(boost::str(boost::format("hdi_ext_box_%d_%s") % sphxlayer % itype).c_str(), hdi_x, hdi_y/2., hdi_ext_z);
       G4LogicalVolume *hdi_ext_volume = new G4LogicalVolume(hdi_ext_box, G4Material::GetMaterial("FPC"), boost::str(boost::format("hdi_ext_box_%d_%s") % sphxlayer % itype).c_str(), 0, 0, 0);
       absorberlogvols.insert(hdi_ext_volume);
       G4VisAttributes *hdi_vis = new G4VisAttributes();
@@ -315,7 +315,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
          * Ladder
          */
       const double ladder_x = stave_x + pgs_x + hdi_x + fphx_x;
-      const double ladder_y = hdi_y;
+      const double ladder_y = hdi_y/2.;
       const double ladder_z = hdi_z;
       G4VSolid *ladder_box = new G4Box(boost::str(boost::format("ladder_box_%d_%d") % sphxlayer % itype).c_str(), ladder_x, ladder_y, ladder_z);
       G4LogicalVolume *ladder_volume = new G4LogicalVolume(ladder_box, G4Material::GetMaterial("G4_AIR"), boost::str(boost::format("ladder_volume_%d_%d") % sphxlayer % itype).c_str(), 0, 0, 0);

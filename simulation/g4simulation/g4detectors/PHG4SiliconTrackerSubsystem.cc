@@ -143,6 +143,11 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
   set_default_int_param(2,"nstrips_z_sensor_1",5);
   set_default_int_param(3,"nstrips_z_sensor_1",5);
 
+  set_default_double_param(0, "hdi_y",3.8);
+  set_default_double_param(1, "hdi_y",4.3);
+  set_default_double_param(2, "hdi_y",4.3);
+  set_default_double_param(3, "hdi_y",4.3);
+
   set_default_double_param(0, "offsetphi",0.);
   set_default_double_param(1, "offsetphi",0.);
   set_default_double_param(2, "offsetphi",0.);
