@@ -44,7 +44,12 @@ libphg4gdml_la_LIBADD = \
 libphg4gdml_la_SOURCES = \
   PHG4GDMLWrite.cc \
   PHG4GDMLWriteDefine.cc \
-  PHG4GDMLWriteMaterials.cc
+  PHG4GDMLWriteMaterials.cc \
+  PHG4GDMLWriteSolids.cc \
+  PHG4GDMLWriteSetup.cc \
+  PHG4GDMLWriteParamvol.cc \
+  PHG4GDMLWriteStructure.cc
+  
 
 ##############################################
 # please add new classes in alphabetical order

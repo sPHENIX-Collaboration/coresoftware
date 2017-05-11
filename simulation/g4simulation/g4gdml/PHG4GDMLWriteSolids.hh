@@ -40,7 +40,7 @@
 #ifndef _PHG4GDMLWRITESOLIDS_INCLUDED_
 #define _PHG4GDMLWRITESOLIDS_INCLUDED_
 
-#include "G4Types.hh"
+#include <Geant4/G4Types.hh>
 
 #include "PHG4GDMLWriteMaterials.hh"
 

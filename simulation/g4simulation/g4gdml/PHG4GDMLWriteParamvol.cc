@@ -35,24 +35,24 @@
 #include "PHG4GDMLWriteParamvol.hh"
 #include "PHG4GDMLWriteSolids.hh"
 
-#include "G4SystemOfUnits.hh"
-#include "G4Box.hh"
-#include "G4Trd.hh"
-#include "G4Trap.hh"
-#include "G4Tubs.hh"
-#include "G4Cons.hh"
-#include "G4Sphere.hh"
-#include "G4Orb.hh"
-#include "G4Torus.hh"
-#include "G4Ellipsoid.hh"
-#include "G4Para.hh"
-#include "G4Hype.hh"
-#include "G4Polycone.hh"
-#include "G4Polyhedra.hh"
-#include "G4LogicalVolume.hh"
-#include "G4VPhysicalVolume.hh"
-#include "G4PVParameterised.hh"
-#include "G4VPVParameterisation.hh"
+#include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4Box.hh>
+#include <Geant4/G4Trd.hh>
+#include <Geant4/G4Trap.hh>
+#include <Geant4/G4Tubs.hh>
+#include <Geant4/G4Cons.hh>
+#include <Geant4/G4Sphere.hh>
+#include <Geant4/G4Orb.hh>
+#include <Geant4/G4Torus.hh>
+#include <Geant4/G4Ellipsoid.hh>
+#include <Geant4/G4Para.hh>
+#include <Geant4/G4Hype.hh>
+#include <Geant4/G4Polycone.hh>
+#include <Geant4/G4Polyhedra.hh>
+#include <Geant4/G4LogicalVolume.hh>
+#include <Geant4/G4VPhysicalVolume.hh>
+#include <Geant4/G4PVParameterised.hh>
+#include <Geant4/G4VPVParameterisation.hh>
 
 PHG4GDMLWriteParamvol::
 PHG4GDMLWriteParamvol() : PHG4GDMLWriteSetup()

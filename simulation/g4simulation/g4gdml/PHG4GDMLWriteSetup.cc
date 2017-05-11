@@ -34,7 +34,7 @@
 
 #include "PHG4GDMLWriteSetup.hh"
 
-#include "G4LogicalVolume.hh"
+#include <Geant4/G4LogicalVolume.hh>
 
 PHG4GDMLWriteSetup::PHG4GDMLWriteSetup() : PHG4GDMLWriteSolids()
 {

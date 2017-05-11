@@ -34,19 +34,19 @@
 
 #include "PHG4GDMLWriteStructure.hh"
 
-#include "G4Material.hh"
-#include "G4ReflectedSolid.hh"
-#include "G4DisplacedSolid.hh"
-#include "G4LogicalVolumeStore.hh"
-#include "G4PhysicalVolumeStore.hh"
-#include "G4PVDivision.hh"
-#include "G4PVReplica.hh"
-#include "G4OpticalSurface.hh"
-#include "G4LogicalSkinSurface.hh"
-#include "G4LogicalBorderSurface.hh"
+#include <Geant4/G4Material.hh>
+#include <Geant4/G4ReflectedSolid.hh>
+#include <Geant4/G4DisplacedSolid.hh>
+#include <Geant4/G4LogicalVolumeStore.hh>
+#include <Geant4/G4PhysicalVolumeStore.hh>
+#include <Geant4/G4PVDivision.hh>
+#include <Geant4/G4PVReplica.hh>
+#include <Geant4/G4OpticalSurface.hh>
+#include <Geant4/G4LogicalSkinSurface.hh>
+#include <Geant4/G4LogicalBorderSurface.hh>
 
 PHG4GDMLWriteStructure::PHG4GDMLWriteStructure()
-  : PHG4GDMLWriteParamvol()
+  : PHG4GDMLWriteParamvol(), structureElement(nullptr)
 {
 }
 

@@ -40,8 +40,8 @@
 #ifndef _PHG4GDMLWRITESTRUCTURE_INCLUDED_
 #define _PHG4GDMLWRITESTRUCTURE_INCLUDED_
 
-#include "G4Types.hh"
-#include "G4Transform3D.hh"
+#include <Geant4/G4Types.hh>
+#include <Geant4/G4Transform3D.hh>
 
 #include "PHG4GDMLWriteParamvol.hh"
 
