@@ -118,7 +118,7 @@ PHG4Reco::PHG4Reco(const string &name) : SubsysReco(name),
                                          active_decayer_(true),
                                          active_force_decay_(false),
                                          force_decay_type_(kAll),
-                                         save_DST_geometry_(false),
+                                         save_DST_geometry_(true),
                                          _timer(PHTimeServer::get()->insert_new(name))
 {
   for (int i = 0; i < 3; i++)
