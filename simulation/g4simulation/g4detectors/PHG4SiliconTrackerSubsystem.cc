@@ -122,78 +122,78 @@ PHG4Detector *PHG4SiliconTrackerSubsystem::GetDetector(void) const
 
 void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
 {
-// all values in cm!
-  for (int i=0; i<4; i++)
+  // all values in cm!
+  for (int i = 0; i < 4; i++)
   {
-    set_default_int_param(i,"nstrips_phi_cell",128);
-    set_default_double_param(i,"fphx_x",0.032);
-    set_default_double_param(i,"fphx_y",0.27);
-    set_default_double_param(i,"fphx_z",0.9);
-    set_default_double_param(i,"gap_sensor_fphx",0.1);
-    set_default_double_param(i, "hdi_x",0.038626);
-    set_default_double_param(i,"hdi_edge_z",0.01);
-    set_default_double_param(i, "offsetphi",0.);
-    set_default_double_param(i, "pgs_x",0.21);
-    set_default_double_param(i,"sensor_edge_phi",0.1305);
-    set_default_double_param(i,"sensor_edge_z",0.098);
-    set_default_double_param(i,"stave_x",0.23);
-    set_default_double_param(i,"strip_x",0.02);
+    set_default_int_param(i, "nstrips_phi_cell", 128);
+    set_default_double_param(i, "fphx_x", 0.032);
+    set_default_double_param(i, "fphx_y", 0.27);
+    set_default_double_param(i, "fphx_z", 0.9);
+    set_default_double_param(i, "gap_sensor_fphx", 0.1);
+    set_default_double_param(i, "hdi_x", 0.038626);
+    set_default_double_param(i, "hdi_edge_z", 0.01);
+    set_default_double_param(i, "offsetphi", 0.);
+    set_default_double_param(i, "pgs_x", 0.21);
+    set_default_double_param(i, "sensor_edge_phi", 0.1305);
+    set_default_double_param(i, "sensor_edge_z", 0.098);
+    set_default_double_param(i, "stave_x", 0.23);
+    set_default_double_param(i, "strip_x", 0.02);
   }
 
-  set_default_int_param(0,"nladder",20);
-  set_default_int_param(1,"nladder",26);
-  set_default_int_param(2,"nladder",32);
-  set_default_int_param(3,"nladder",38);
+  set_default_int_param(0, "nladder", 20);
+  set_default_int_param(1, "nladder", 26);
+  set_default_int_param(2, "nladder", 32);
+  set_default_int_param(3, "nladder", 38);
 
-  set_default_int_param(0,"nstrips_z_sensor_0",5);
-  set_default_int_param(1,"nstrips_z_sensor_0",8);
-  set_default_int_param(2,"nstrips_z_sensor_0",8);
-  set_default_int_param(3,"nstrips_z_sensor_0",8);
+  set_default_int_param(0, "nstrips_z_sensor_0", 5);
+  set_default_int_param(1, "nstrips_z_sensor_0", 8);
+  set_default_int_param(2, "nstrips_z_sensor_0", 8);
+  set_default_int_param(3, "nstrips_z_sensor_0", 8);
 
-  set_default_int_param(0,"nstrips_z_sensor_1",5);
-  set_default_int_param(1,"nstrips_z_sensor_1",5);
-  set_default_int_param(2,"nstrips_z_sensor_1",5);
-  set_default_int_param(3,"nstrips_z_sensor_1",5);
+  set_default_int_param(0, "nstrips_z_sensor_1", 5);
+  set_default_int_param(1, "nstrips_z_sensor_1", 5);
+  set_default_int_param(2, "nstrips_z_sensor_1", 5);
+  set_default_int_param(3, "nstrips_z_sensor_1", 5);
 
-  set_default_double_param(0, "halfladder_z",22.);
-  set_default_double_param(1, "halfladder_z",26.8);
-  set_default_double_param(2, "halfladder_z",26.8);
-  set_default_double_param(3, "halfladder_z",26.8);
+  set_default_double_param(0, "halfladder_z", 22.);
+  set_default_double_param(1, "halfladder_z", 26.8);
+  set_default_double_param(2, "halfladder_z", 26.8);
+  set_default_double_param(3, "halfladder_z", 26.8);
 
-  set_default_double_param(0, "hdi_y",3.8);
-  set_default_double_param(1, "hdi_y",4.3);
-  set_default_double_param(2, "hdi_y",4.3);
-  set_default_double_param(3, "hdi_y",4.3);
+  set_default_double_param(0, "hdi_y", 3.8);
+  set_default_double_param(1, "hdi_y", 4.3);
+  set_default_double_param(2, "hdi_y", 4.3);
+  set_default_double_param(3, "hdi_y", 4.3);
 
-  set_default_double_param(0, "offsetrot",14.0);
-  set_default_double_param(1, "offsetrot",14.0);
-  set_default_double_param(2, "offsetrot",12.0);
-  set_default_double_param(3, "offsetrot",11.5);
+  set_default_double_param(0, "offsetrot", 14.0);
+  set_default_double_param(1, "offsetrot", 14.0);
+  set_default_double_param(2, "offsetrot", 12.0);
+  set_default_double_param(3, "offsetrot", 11.5);
 
   set_default_double_param(0, "radius", 6.);
   set_default_double_param(1, "radius", 8.);
   set_default_double_param(2, "radius", 10.);
   set_default_double_param(3, "radius", 12.);
 
-  set_default_double_param(0, "strip_y",0.0078);
-  set_default_double_param(1, "strip_y",0.0086);
-  set_default_double_param(2, "strip_y",0.0086);
-  set_default_double_param(3, "strip_y",0.0086);
+  set_default_double_param(0, "strip_y", 0.0078);
+  set_default_double_param(1, "strip_y", 0.0086);
+  set_default_double_param(2, "strip_y", 0.0086);
+  set_default_double_param(3, "strip_y", 0.0086);
 
-  set_default_double_param(0, "strip_z_0",1.8);
-  set_default_double_param(1, "strip_z_0",1.6);
-  set_default_double_param(2, "strip_z_0",1.6);
-  set_default_double_param(3, "strip_z_0",1.6);
+  set_default_double_param(0, "strip_z_0", 1.8);
+  set_default_double_param(1, "strip_z_0", 1.6);
+  set_default_double_param(2, "strip_z_0", 1.6);
+  set_default_double_param(3, "strip_z_0", 1.6);
 
-  set_default_double_param(0, "strip_z_1",1.8);
-  set_default_double_param(1, "strip_z_1",2.0);
-  set_default_double_param(2, "strip_z_1",2.0);
-  set_default_double_param(3, "strip_z_1",2.0);
+  set_default_double_param(0, "strip_z_1", 1.8);
+  set_default_double_param(1, "strip_z_1", 2.0);
+  set_default_double_param(2, "strip_z_1", 2.0);
+  set_default_double_param(3, "strip_z_1", 2.0);
 
   std::pair<std::set<int>::const_iterator, std::set<int>::const_iterator> begin_end = GetDetIds();
   for (set<int>::const_iterator it = begin_end.first; it != begin_end.second; ++it)
-  { 
-    set_int_param(*it,"active",1);
+  {
+    set_int_param(*it, "active", 1);
   }
 
   return;

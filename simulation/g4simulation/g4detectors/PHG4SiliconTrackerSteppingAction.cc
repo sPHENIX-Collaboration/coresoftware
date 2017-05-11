@@ -58,9 +58,9 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
     PHG4Parameters* par = iter->second;
     IsActive[iter->first] = par->get_int_param("active");
     IsBlackHole[iter->first] = par->get_int_param("blackhole");
-    strip_y[iter->first] =  par->get_double_param("strip_y")*cm;
-    strip_z[iter->first][0] = par->get_double_param("strip_z_0")*cm;
-    strip_z[iter->first][1] = par->get_double_param("strip_z_1")*cm;
+    strip_y[iter->first] = par->get_double_param("strip_y") * cm;
+    strip_z[iter->first][0] = par->get_double_param("strip_z_0") * cm;
+    strip_z[iter->first][1] = par->get_double_param("strip_z_1") * cm;
     nstrips_z_sensor[iter->first][0] = par->get_int_param("nstrips_z_sensor_0");
     nstrips_z_sensor[iter->first][1] = par->get_int_param("nstrips_z_sensor_1");
     nstrips_phi_cell[iter->first] = par->get_int_param("nstrips_phi_cell");
@@ -177,8 +177,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
           strip_z_index = 0;
           for (int i = 0; i < nstrips_z_sensor[inttlayer][laddertype]; ++i)
           {
-            const double zmin = strip_z[inttlayer][laddertype] * (double) (i) -strip_z[inttlayer][laddertype]/2. * (double) nstrips_z_sensor[inttlayer][laddertype];
-            const double zmax = strip_z[inttlayer][laddertype] * (double) (i + 1) - strip_z[inttlayer][laddertype]/2. * (double) nstrips_z_sensor[inttlayer][laddertype];
+            const double zmin = strip_z[inttlayer][laddertype] * (double) (i) -strip_z[inttlayer][laddertype] / 2. * (double) nstrips_z_sensor[inttlayer][laddertype];
+            const double zmax = strip_z[inttlayer][laddertype] * (double) (i + 1) - strip_z[inttlayer][laddertype] / 2. * (double) nstrips_z_sensor[inttlayer][laddertype];
             if (strip_pos.z() / mm > zmin && strip_pos.z() / mm <= zmax)
             {
               cout << "zmin: " << zmin << ", zmax: " << zmax << endl;
@@ -190,7 +190,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
           strip_y_index = 0;
           for (int i = 0; i < 2 * nstrips_phi_cell[inttlayer]; ++i)
           {
-            const double ymin = strip_y[inttlayer] * (double) (i) - strip_y[inttlayer] * (double) nstrips_phi_cell[inttlayer];
+            const double ymin = strip_y[inttlayer] * (double) (i) -strip_y[inttlayer] * (double) nstrips_phi_cell[inttlayer];
             const double ymax = strip_y[inttlayer] * (double) (i + 1) - strip_y[inttlayer] * (double) nstrips_phi_cell[inttlayer];
             if (strip_pos.y() / mm > ymin && strip_pos.y() / mm <= ymax)
             {
