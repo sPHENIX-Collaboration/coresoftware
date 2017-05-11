@@ -194,17 +194,17 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       G4VSolid *siactive_box = new G4Box(boost::str(boost::format("siactive_box_%d_%d") % sphxlayer % itype).c_str(), siactive_x/2., siactive_y, siactive_z);
       G4LogicalVolume *siactive_volume = new G4LogicalVolume(siactive_box, G4Material::GetMaterial("G4_Si"), boost::str(boost::format("siactive_volume_%d_%d") % sphxlayer % itype).c_str(), 0, 0, 0);
 
-      G4VPVParameterisation *stripparam = new PHG4SiliconTrackerStripParameterisation(nstrips_phi_cell * 2, nstrips_z_sensor, (strip_y/2.) *2., (strip_z/2.) *2.);
+      G4VPVParameterisation *stripparam = new PHG4SiliconTrackerStripParameterisation(nstrips_phi_cell * 2, nstrips_z_sensor, strip_y, strip_z);
       new G4PVParameterised(boost::str(boost::format("siactive_%d_%d") % sphxlayer % itype).c_str(), strip_volume, siactive_volume, kZAxis, nstrips_phi_cell * 2 * nstrips_z_sensor, stripparam, false);  // overlap check too long.
 
       /*
          * Si-sensor full (active+inactive) area
          */
-      const double sifull_x = siactive_x/2.;                    // 0.24mm/2
+      const double sifull_x = siactive_x;                    // 0.24mm/2
       const double sifull_y = siactive_y + params->get_double_param("sensor_edge_phi")*cm;  // (1.305mm  + 0.078mm * 2*128 + 1.305mm)/2 = 0.078mm * 128 + 1.305mm
       const double sifull_z = siactive_z + params->get_double_param("sensor_edge_z")*cm;    // (0.98mm + 20mm * 5 + 0.98mm)/2 = 10mm * 5 + 0.98mm
 
-      G4VSolid *sifull_box = new G4Box(boost::str(boost::format("sifull_box_%d_%d") % sphxlayer % itype).c_str(), sifull_x, sifull_y, sifull_z);
+      G4VSolid *sifull_box = new G4Box(boost::str(boost::format("sifull_box_%d_%d") % sphxlayer % itype).c_str(), sifull_x/2., sifull_y, sifull_z);
 
       /*
          * Si-sensor inactive area
@@ -251,7 +251,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       fphx_vis->SetColour(G4Colour::Gray());
       fphx_volume->SetVisAttributes(fphx_vis);
 
-      const double gap_sensor_fphx = 1.0 * mm;
+      const double gap_sensor_fphx = params->get_double_param("gap_sensor_fphx")*cm;
 
       /*
          * FPHX Container
@@ -384,7 +384,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       /*
          * Ladder
          */
-      const double dphi = CLHEP::twopi / (double) nladders_layer;
+      const double dphi = 2*M_PI / nladders_layer;
       eff_radius[ilayer] = radius + ladder_x - 2. * (fphx_x/2. - strip_x/2.);
       posz[ilayer][itype] = (itype == 0) ? hdi_z : 2. * hdi_z_[ilayer][0] + hdi_z;
       strip_x_offset[ilayer] = ladder_x - 2. * (fphx_x/2. - strip_x/2.) - strip_x/2.;
@@ -394,7 +394,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
         const double phi = offsetphi + dphi * (double) icopy;
         const double posx = eff_radius[ilayer] * cos(phi);
         const double posy = eff_radius[ilayer] * sin(phi);
-        const double fRotate = phi + offsetrot + CLHEP::pi;
+        const double fRotate = phi + offsetrot + M_PI;
 
         G4RotationMatrix *ladderrotation = new G4RotationMatrix();
         ladderrotation->rotateZ(-fRotate);

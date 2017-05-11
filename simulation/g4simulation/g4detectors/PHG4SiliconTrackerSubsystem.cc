@@ -129,6 +129,7 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
     set_default_double_param(i,"fphx_x",0.032);
     set_default_double_param(i,"fphx_y",0.27);
     set_default_double_param(i,"fphx_z",0.9);
+    set_default_double_param(i,"gap_sensor_fphx",0.1);
     set_default_double_param(i, "hdi_x",0.038626);
     set_default_double_param(i,"hdi_edge_z",0.01);
     set_default_double_param(i, "offsetphi",0.);
