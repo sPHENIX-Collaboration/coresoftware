@@ -57,7 +57,7 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
  private:
   void AddGeometryNode();
   int ConstructSiliconTracker(G4LogicalVolume *sandwich);
-  int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm = NULL);
+  int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
 
   PHG4ParametersContainer *paramscontainer;
   int absorberactive;
@@ -76,17 +76,10 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   G4double posz[4][2];
   G4double strip_x_offset[4];
 
-  //const double hdi_x  = 0.473*mm * 0.5;
-  const double hdi_x = 0.38626 * mm * 0.5;  // updated design
-  const double fphx_x = 0.32 * mm * 0.5;
-  const double fphx_y = 2.7 * mm * 0.5;
-  const double fphx_z = 9.0 * mm * 0.5;
-
   //const double pgs_x = 0.35*mm * 0.5; // 70micron * 5layers
-  const double pgs_x = 0.21 * mm * 0.5;    // 70micron * 3layers
-  const double stave_x = 0.23 * mm * 0.5;  // too thick? TODO
+//  const double pgs_x = 0.21 * mm * 0.5;    // 70micron * 3layers 
+  const double stave_x = 0.23 * mm * 0.5;  // too thick? TODO 
 
-//  const G4double arr_hdi_y[4] = {38. * mm * 0.5, 43. * mm * 0.5, 43. * mm * 0.5, 43. * mm * 0.5};
   const G4double arr_halfladder_z[4] = {220. * mm * 0.5, 268. * mm * 0.5, 268. * mm * 0.5, 268. * mm * 0.5};
   std::set<G4LogicalVolume *> absorberlogvols;
   std::set<G4LogicalVolume *> activelogvols;

@@ -133,8 +133,12 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
     const G4double offsetphi = params->get_double_param("offsetphi")*deg;
     const G4double offsetrot =  params->get_double_param("offsetrot")*deg;
     const G4double hdi_y = params->get_double_param("hdi_y")*cm;
-
-
+    double hdi_x = params->get_double_param("hdi_x")*cm;
+    double fphx_x  = params->get_double_param("fphx_x")*cm;
+    double fphx_y  = params->get_double_param("fphx_y")*cm;
+    double fphx_z  = params->get_double_param("fphx_z")*cm;
+ double pgs_x = params->get_double_param("pgs_x")*mm;
+//    double stave_x = params->get_double_param("stave_x")*cm;
     for (int itype = 0; itype < 2; ++itype)
     {
       if (!(itype >= 0 && itype <= 1))
@@ -220,12 +224,12 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       const G4double hdi_z = sifull_z + params->get_double_param("hdi_edge_z")*cm;  // hdi_edge_z = 100micron
       hdi_z_[ilayer][itype] = hdi_z;
 
-      G4VSolid *hdi_box = new G4Box(boost::str(boost::format("hdi_box_%d_%d") % sphxlayer % itype).c_str(), hdi_x, hdi_y/2., hdi_z);
+      G4VSolid *hdi_box = new G4Box(boost::str(boost::format("hdi_box_%d_%d") % sphxlayer % itype).c_str(), hdi_x/2., hdi_y/2., hdi_z);
       G4LogicalVolume *hdi_volume = new G4LogicalVolume(hdi_box, G4Material::GetMaterial("FPC"), boost::str(boost::format("hdi_box_%d_%d") % sphxlayer % itype).c_str(), 0, 0, 0);
       absorberlogvols.insert(hdi_volume);
 
       const G4double hdi_ext_z = (itype == 0) ? 0.000001 : arr_halfladder_z[ilayer] - hdi_z_[ilayer][0] - hdi_z;  // need to assign nonzero value for itype=0
-      G4VSolid *hdi_ext_box = new G4Box(boost::str(boost::format("hdi_ext_box_%d_%s") % sphxlayer % itype).c_str(), hdi_x, hdi_y/2., hdi_ext_z);
+      G4VSolid *hdi_ext_box = new G4Box(boost::str(boost::format("hdi_ext_box_%d_%s") % sphxlayer % itype).c_str(), hdi_x/2., hdi_y/2., hdi_ext_z);
       G4LogicalVolume *hdi_ext_volume = new G4LogicalVolume(hdi_ext_box, G4Material::GetMaterial("FPC"), boost::str(boost::format("hdi_ext_box_%d_%s") % sphxlayer % itype).c_str(), 0, 0, 0);
       absorberlogvols.insert(hdi_ext_volume);
       G4VisAttributes *hdi_vis = new G4VisAttributes();
@@ -237,7 +241,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       /*
          * FPHX
          */
-      G4VSolid *fphx_box = new G4Box(boost::str(boost::format("fphx_box_%d_%d") % sphxlayer % itype).c_str(), fphx_x, fphx_y, fphx_z);
+      G4VSolid *fphx_box = new G4Box(boost::str(boost::format("fphx_box_%d_%d") % sphxlayer % itype).c_str(), fphx_x/2., fphx_y/2., fphx_z/2.);
       G4LogicalVolume *fphx_volume = new G4LogicalVolume(fphx_box, G4Material::GetMaterial("G4_Si"), boost::str(boost::format("fphx_volume_%d_%d") % sphxlayer % itype).c_str(), 0, 0, 0);
       absorberlogvols.insert(fphx_volume);
       G4VisAttributes *fphx_vis = new G4VisAttributes();
@@ -251,8 +255,8 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       /*
          * FPHX Container
          */
-      const double fphxcontainer_x = fphx_x;
-      const double fphxcontainer_y = fphx_y;
+      const double fphxcontainer_x = fphx_x/2.;
+      const double fphxcontainer_y = fphx_y/2.;
       const double fphxcontainer_z = hdi_z;
 
       G4VSolid *fphxcontainer_box = new G4Box(boost::str(boost::format("fphxcontainer_box_%d_%d") % sphxlayer % itype).c_str(), fphxcontainer_x, fphxcontainer_y, fphxcontainer_z);
@@ -274,14 +278,14 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       /*
          * PGS
          */
-      const double pgs_y = sifull_y + gap_sensor_fphx + 2. * fphx_y;  // between FPHX's outer edges
+      const double pgs_y = sifull_y + gap_sensor_fphx + 2. * fphx_y/2.;  // between FPHX's outer edges
       const double pgs_z = hdi_z;
 
-      G4VSolid *pgs_box = new G4Box(boost::str(boost::format("pgs_box_%d_%d") % sphxlayer % itype).c_str(), pgs_x, pgs_y, pgs_z);
+      G4VSolid *pgs_box = new G4Box(boost::str(boost::format("pgs_box_%d_%d") % sphxlayer % itype).c_str(), pgs_x/2., pgs_y, pgs_z);
       //G4LogicalVolume *pgs_volume = new G4LogicalVolume(pgs_box, Copper, boost::str(boost::format("pgs_volume_%d_%d") %sphxlayer %itype).c_str(), 0, 0, 0);
       G4LogicalVolume *pgs_volume = new G4LogicalVolume(pgs_box, G4Material::GetMaterial("G4_C"), boost::str(boost::format("pgs_volume_%d_%d") % sphxlayer % itype).c_str(), 0, 0, 0);
       absorberlogvols.insert(pgs_volume);
-      G4VSolid *pgs_ext_box = new G4Box(boost::str(boost::format("pgs_ext_box_%d_%s") % sphxlayer % itype).c_str(), pgs_x, pgs_y, hdi_ext_z);
+      G4VSolid *pgs_ext_box = new G4Box(boost::str(boost::format("pgs_ext_box_%d_%s") % sphxlayer % itype).c_str(), pgs_x/2., pgs_y, hdi_ext_z);
       //G4LogicalVolume *pgs_ext_volume = new G4LogicalVolume(pgs_ext_box, Copper, boost::str(boost::format("pgs_ext_volume_%d_%s") %sphxlayer %itype).c_str(), 0, 0, 0);
       G4LogicalVolume *pgs_ext_volume = new G4LogicalVolume(pgs_ext_box, G4Material::GetMaterial("G4_C"), boost::str(boost::format("pgs_ext_volume_%d_%s") % sphxlayer % itype).c_str(), 0, 0, 0);
 
@@ -314,13 +318,13 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       /*
          * Ladder
          */
-      const double ladder_x = stave_x + pgs_x + hdi_x + fphx_x;
-      const double ladder_y = hdi_y/2.;
+      const double ladder_x = stave_x + pgs_x/2. + hdi_x/2. + fphx_x/2.;
+      const double ladder_y = hdi_y;
       const double ladder_z = hdi_z;
-      G4VSolid *ladder_box = new G4Box(boost::str(boost::format("ladder_box_%d_%d") % sphxlayer % itype).c_str(), ladder_x, ladder_y, ladder_z);
+      G4VSolid *ladder_box = new G4Box(boost::str(boost::format("ladder_box_%d_%d") % sphxlayer % itype).c_str(), ladder_x, ladder_y/2., ladder_z);
       G4LogicalVolume *ladder_volume = new G4LogicalVolume(ladder_box, G4Material::GetMaterial("G4_AIR"), boost::str(boost::format("ladder_volume_%d_%d") % sphxlayer % itype).c_str(), 0, 0, 0);
       absorberlogvols.insert(ladder_volume);
-      G4VSolid *ladder_ext_box = new G4Box(boost::str(boost::format("ladder_ext_box_%d_%s") % sphxlayer % itype).c_str(), ladder_x, ladder_y, hdi_ext_z);
+      G4VSolid *ladder_ext_box = new G4Box(boost::str(boost::format("ladder_ext_box_%d_%s") % sphxlayer % itype).c_str(), ladder_x, ladder_y/2., hdi_ext_z);
       G4LogicalVolume *ladder_ext_volume = new G4LogicalVolume(ladder_ext_box, G4Material::GetMaterial("G4_AIR"), boost::str(boost::format("ladder_ext_volume_%d_%s") % sphxlayer % itype).c_str(), 0, 0, 0);
       absorberlogvols.insert(ladder_ext_volume);
       G4VisAttributes *ladder_vis = new G4VisAttributes();
@@ -344,29 +348,29 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       /*
          * PGS
          */
-      const double TVpgs_x = TVstave_x + stave_x + pgs_x;
+      const double TVpgs_x = TVstave_x + stave_x + pgs_x/2.;
       new G4PVPlacement(0, G4ThreeVector(TVpgs_x, 0.0, 0.0), pgs_volume, boost::str(boost::format("pgs_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, overlapcheck);
       new G4PVPlacement(0, G4ThreeVector(TVpgs_x, 0.0, 0.0), pgs_ext_volume, boost::str(boost::format("pgs_ext_%d_%s") % sphxlayer % itype).c_str(), ladder_ext_volume, false, 0, overlapcheck);
 
       /*
          * HDI
          */
-      const double TVhdi_x = TVpgs_x + pgs_x + hdi_x;
+      const double TVhdi_x = TVpgs_x + pgs_x/2. + hdi_x/2.;
       new G4PVPlacement(0, G4ThreeVector(TVhdi_x, 0.0, 0.0), hdi_volume, boost::str(boost::format("hdi_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, overlapcheck);
       new G4PVPlacement(0, G4ThreeVector(TVhdi_x, 0.0, 0.0), hdi_ext_volume, boost::str(boost::format("hdi_ext_%d_%s") % sphxlayer % itype).c_str(), ladder_ext_volume, false, 0, overlapcheck);
 
       /*
          * Si-sensor
          */
-      const double TVSi_x = TVhdi_x + hdi_x + siactive_x;
+      const double TVSi_x = TVhdi_x + hdi_x/2. + siactive_x;
       new G4PVPlacement(0, G4ThreeVector(TVSi_x, 0.0, 0.0), siinactive_volume, boost::str(boost::format("siinactive_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, overlapcheck);
       new G4PVPlacement(0, G4ThreeVector(TVSi_x, 0.0, 0.0), siactive_volume, boost::str(boost::format("siactive_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, overlapcheck);
 
       /*
          * FPHX
          */
-      const double TVfphx_x = TVhdi_x + hdi_x + fphx_x;
-      const double TVfphx_y = sifull_y + gap_sensor_fphx + fphx_y;
+      const double TVfphx_x = TVhdi_x + hdi_x/2. + fphx_x/2.;
+      const double TVfphx_y = sifull_y + gap_sensor_fphx + fphx_y/2.;
       new G4PVPlacement(0, G4ThreeVector(TVfphx_x, +TVfphx_y, 0.0), fphxcontainer_volume, boost::str(boost::format("fphxcontainerp_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, overlapcheck);
 
       new G4PVPlacement(0, G4ThreeVector(TVfphx_x, -TVfphx_y, 0.0), fphxcontainer_volume, boost::str(boost::format("fphxcontainerm_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, overlapcheck);
@@ -380,9 +384,9 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
          * Ladder
          */
       const double dphi = CLHEP::twopi / (double) nladders_layer;
-      eff_radius[ilayer] = radius + ladder_x - 2. * (fphx_x - strip_x/2.);
+      eff_radius[ilayer] = radius + ladder_x - 2. * (fphx_x/2. - strip_x/2.);
       posz[ilayer][itype] = (itype == 0) ? hdi_z : 2. * hdi_z_[ilayer][0] + hdi_z;
-      strip_x_offset[ilayer] = ladder_x - 2. * (fphx_x - strip_x/2.) - strip_x/2.;
+      strip_x_offset[ilayer] = ladder_x - 2. * (fphx_x/2. - strip_x/2.) - strip_x/2.;
 
       for (G4int icopy = 0; icopy < nladders_layer; icopy++)
       {
