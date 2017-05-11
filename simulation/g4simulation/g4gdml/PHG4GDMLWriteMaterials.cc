@@ -32,15 +32,16 @@
 //
 // --------------------------------------------------------------------
 
-#include <sstream>
-
 #include "PHG4GDMLWriteMaterials.hh"
 
-#include "G4PhysicalConstants.hh"
-#include "G4SystemOfUnits.hh"
-#include "G4Element.hh"
-#include "G4Isotope.hh"
-#include "G4Material.hh"
+#include <Geant4/G4PhysicalConstants.hh>
+#include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4Element.hh>
+#include <Geant4/G4Isotope.hh>
+#include <Geant4/G4Material.hh>
+
+#include <sstream>
+
 
 PHG4GDMLWriteMaterials::PHG4GDMLWriteMaterials()
   : PHG4GDMLWriteDefine(), materialsElement(0)

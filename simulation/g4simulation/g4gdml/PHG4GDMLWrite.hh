@@ -47,7 +47,7 @@
 #include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/util/XMLString.hpp>
 
-#include <G4Transform3D.hh>
+#include <Geant4/G4Transform3D.hh>
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
