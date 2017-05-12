@@ -49,13 +49,16 @@ libphg4gdml_la_SOURCES = \
   PHG4GDMLWriteSetup.cc \
   PHG4GDMLWriteParamvol.cc \
   PHG4GDMLWriteStructure.cc \
-  PHG4GDMLUtility.cc
+  PHG4GDMLUtility.cc \
+  PHG4GDMLConfig.cc
   
 
 ##############################################
 # please add new classes in alphabetical order
 
-pkginclude_HEADERS = PHG4GDMLUtility.hh
+pkginclude_HEADERS = \
+  PHG4GDMLUtility.hh \
+  PHG4GDMLConfig.hh
 
 ################################################
 # linking tests

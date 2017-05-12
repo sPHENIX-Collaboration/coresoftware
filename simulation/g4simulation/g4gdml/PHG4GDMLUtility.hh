@@ -14,6 +14,8 @@
 #include <string>
 
 class G4VPhysicalVolume;
+class PHG4GDMLConfig;
+class PHCompositeNode;
 
 /*!
  * \brief PHG4GDMLUtility is utility class that drive the PHG4GDMLWriteStructure
@@ -23,11 +25,19 @@ class PHG4GDMLUtility
  public:
   virtual ~PHG4GDMLUtility();
 
-  static void Dump_GDML(const std::string &filename, G4VPhysicalVolume * vol);
+  static void Dump_GDML(const std::string &filename, G4VPhysicalVolume * vol, PHCompositeNode *topNode);
 
   static constexpr const char * get_PHG4GDML_Schema()
   {
     return "http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd";
+  }
+
+  //! Get or make the parameter node PHG4GDMLConfig from DST nodes. If not found, make a new one
+  static PHG4GDMLConfig * GetOrMakeConfigNode(PHCompositeNode *topNode, bool build_new = true);
+
+  static constexpr const char * getDSTNodeName()
+  {
+    return "G4GDML_CONFIG";
   }
 
  private:
