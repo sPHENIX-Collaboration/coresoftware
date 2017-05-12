@@ -329,11 +329,18 @@ int Track::updateOneMeasurementKalman(
 			rep->setPosMomCov(*currentState, track->getStateSeed(),
 					track->getCovSeed());
 		} else {
-			currentState =
-					std::unique_ptr < genfit::MeasuredStateOnPlane
-							> (new genfit::MeasuredStateOnPlane(
-									static_cast<genfit::KalmanFitterInfo*>(tp_base->getFitterInfo(
-											rep))->getFittedState(true)));
+			try {
+				currentState =
+						std::unique_ptr < genfit::MeasuredStateOnPlane
+								> (new genfit::MeasuredStateOnPlane(
+										static_cast<genfit::KalmanFitterInfo*>(tp_base->getFitterInfo(
+												rep))->getFittedState(true)));
+			} catch (...) {
+				currentState = std::unique_ptr < genfit::MeasuredStateOnPlane
+						> (new genfit::MeasuredStateOnPlane(rep));
+				rep->setPosMomCov(*currentState, track->getStateSeed(),
+						track->getCovSeed());
+			}
 		}
 #ifdef _DEBUG_
 		std::cout<< __LINE__ <<std::endl;

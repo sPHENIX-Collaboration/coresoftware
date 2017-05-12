@@ -2952,11 +2952,11 @@ int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 		unsigned int layer = cluster->get_layer();
 
 		float phi = atan2(cluster->get_y(),cluster->get_x());
-		float r = sqrt(cluster->get_x()*cluster->get_x() + cluster->get_y()*cluster->get_y());
-		//float rphi = r*phi;
 		float z = cluster->get_z();
 
 #ifdef _DEBUG_
+		float r = sqrt(cluster->get_x()*cluster->get_x() + cluster->get_y()*cluster->get_y());
+		//float rphi = r*phi;
 		std::cout
 		<< __LINE__
 		<<": ID: " << cluster->get_id()
