@@ -27,8 +27,7 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   PHG4SiliconTrackerDetector(PHCompositeNode *Node, PHG4ParametersContainer *parameters, const std::string &dnam = "SILICON_TRACKER", const vpair &layerconfig = vpair(0));
 
   //! destructor
-  virtual ~PHG4SiliconTrackerDetector(){}
-
+  virtual ~PHG4SiliconTrackerDetector() {}
   //! construct
   virtual void Construct(G4LogicalVolume *world);
 

@@ -85,7 +85,7 @@ PHG4SiliconTrackerSteppingAction::~PHG4SiliconTrackerSteppingAction()
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete hit;
-  BOOST_FOREACH(string absname, missingabsorbers)
+  BOOST_FOREACH (string absname, missingabsorbers)
   {
     cout << "PHG4SiliconTrackerSteppingAction: need to implement absorber " << absname << endl;
   }
@@ -174,17 +174,17 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       // this is just failsafe - we still have those impossible hits where pre and poststep
       // are in the same volume with status fGeomBoundary
       // but the extraction of the strip index above works for those
-      // my assumption is that the end of a physics step coincides with the boundary and 
+      // my assumption is that the end of a physics step coincides with the boundary and
       // the physics step size is taken rather the geometric step size
       if (logvolpre == logvolpost)
       {
         if (volume->GetCopyNo() == volume_post->GetCopyNo())
         {
-	  int strip_y_index_old = strip_y_index;
-	  int strip_z_index_old = strip_z_index;
+          int strip_y_index_old = strip_y_index;
+          int strip_z_index_old = strip_z_index;
 
           // we need a hack to compare the values above with the correct strip index values
-          // the transform of the world coordinates into the sensor frame will work correctly, 
+          // the transform of the world coordinates into the sensor frame will work correctly,
           // so we determine the strip indices from the hit position
           G4ThreeVector preworldPos = prePoint->GetPosition();
           G4ThreeVector strip_pos = touch->GetHistory()->GetTransform(touch->GetHistory()->GetDepth() - 1).TransformPoint(preworldPos);
@@ -215,54 +215,54 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
               break;
             }
           }
-	  if (strip_y_index_old != strip_y_index || strip_z_index_old != strip_z_index)
-	  {
-          cout << "Overlap detected in volume " << volume->GetName() << " where post volume "
-               << volume_post->GetName() << " has same copy no." << volume->GetCopyNo()
-               << " pre and post step point of same volume for step status fGeomBoundary" << endl;
-          cout << "logvol name " << logvolpre->GetName() << ", post: " << logvolpost->GetName() << endl;
-          cout << "strip y bef: " << strip_y_index_old << ", strip z: " << strip_z_index_old << endl;
-          cout << " strip y aft: " << strip_y_index << ", strip z: " << strip_z_index << endl;
-          cout << "pre hitpos x: " << strip_pos.x() << ", y: " << strip_pos.y() << ", z: "
-               << strip_pos.z() << endl;
-          cout << "posthitpos x: " << poststrip_pos.x() << ", y: " << poststrip_pos.y() << ", z: "
-               << poststrip_pos.z() << endl;
-          cout << "eloss: " << aStep->GetTotalEnergyDeposit() / GeV << " GeV" << endl;
-	  cout << "safety prestep: " << prePoint->GetSafety() 
-	       << ", poststep: " << postPoint->GetSafety() << endl;
-	  }
+          if (strip_y_index_old != strip_y_index || strip_z_index_old != strip_z_index)
+          {
+            cout << "Overlap detected in volume " << volume->GetName() << " where post volume "
+                 << volume_post->GetName() << " has same copy no." << volume->GetCopyNo()
+                 << " pre and post step point of same volume for step status fGeomBoundary" << endl;
+            cout << "logvol name " << logvolpre->GetName() << ", post: " << logvolpost->GetName() << endl;
+            cout << "strip y bef: " << strip_y_index_old << ", strip z: " << strip_z_index_old << endl;
+            cout << " strip y aft: " << strip_y_index << ", strip z: " << strip_z_index << endl;
+            cout << "pre hitpos x: " << strip_pos.x() << ", y: " << strip_pos.y() << ", z: "
+                 << strip_pos.z() << endl;
+            cout << "posthitpos x: " << poststrip_pos.x() << ", y: " << poststrip_pos.y() << ", z: "
+                 << poststrip_pos.z() << endl;
+            cout << "eloss: " << aStep->GetTotalEnergyDeposit() / GeV << " GeV" << endl;
+            cout << "safety prestep: " << prePoint->GetSafety()
+                 << ", poststep: " << postPoint->GetSafety() << endl;
+          }
         }
       }
     }
   }
   else  // silicon inactive area, FPHX, stabe etc. as absorbers
   {
-try
-{
-    boost::char_separator<char> sep("_");
-    boost::tokenizer<boost::char_separator<char> > tok(touch->GetVolume(0)->GetName(), sep);
-    boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
-    tokeniter = tok.begin();
-    map<string, int>::const_iterator iter = AbsorberIndex.find(*tokeniter);
-    if (iter == AbsorberIndex.end())
+    try
     {
-      cout << "Absorber " << *tokeniter << " not in list" << endl;
-      missingabsorbers.insert(*tokeniter);
-      ladderz = -AbsorberIndex.size();
-      AbsorberIndex[*tokeniter] = ladderz;
-    }
-    else
-    {
-      ladderz = iter->second;
-    }
+      boost::char_separator<char> sep("_");
+      boost::tokenizer<boost::char_separator<char> > tok(touch->GetVolume(0)->GetName(), sep);
+      boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
+      tokeniter = tok.begin();
+      map<string, int>::const_iterator iter = AbsorberIndex.find(*tokeniter);
+      if (iter == AbsorberIndex.end())
+      {
+        cout << "Absorber " << *tokeniter << " not in list" << endl;
+        missingabsorbers.insert(*tokeniter);
+        ladderz = -AbsorberIndex.size();
+        AbsorberIndex[*tokeniter] = ladderz;
+      }
+      else
+      {
+        ladderz = iter->second;
+      }
       sphxlayer = boost::lexical_cast<int>(*(++tokeniter));
       inttlayer = boost::lexical_cast<int>(*(++tokeniter));
-}
-catch (...)
-{
-  cout << " that did not work for " << touch->GetVolume(0)->GetName() << endl;
-  missingabsorbers.insert(touch->GetVolume(0)->GetName());
-}
+    }
+    catch (...)
+    {
+      cout << " that did not work for " << touch->GetVolume(0)->GetName() << endl;
+      missingabsorbers.insert(touch->GetVolume(0)->GetName());
+    }
   }
 
   // collect energy and track length step by step
@@ -305,9 +305,9 @@ catch (...)
     hit->set_ladder_z_index(ladderz);
     if (whichactive > 0)
     {
-    hit->set_strip_z_index(strip_z_index);
-    hit->set_strip_y_index(strip_y_index);
-    hit->set_ladder_phi_index(ladderphi);
+      hit->set_strip_z_index(strip_z_index);
+      hit->set_strip_y_index(strip_y_index);
+      hit->set_ladder_phi_index(ladderphi);
     }
 
     //here we set the entrance values in cm

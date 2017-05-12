@@ -69,13 +69,13 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   }
   if (active)
   {
-      PHNodeIterator dstIter( dstNode );
-      PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode",SuperDetector()));
-      if (! DetNode)
-	{
-          DetNode = new PHCompositeNode(SuperDetector());
-          dstNode->addNode(DetNode);
-        } 
+    PHNodeIterator dstIter(dstNode);
+    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode(SuperDetector());
+      dstNode->addNode(DetNode);
+    }
     std::string nodename = (SuperDetector() != "NONE") ? boost::str(boost::format("G4HIT_%s") % SuperDetector()) : boost::str(boost::format("G4HIT_%s") % detector_type);
 
     // create hit list
