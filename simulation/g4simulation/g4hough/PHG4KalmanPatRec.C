@@ -178,18 +178,23 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _nlayers_all(67),
 	  _layer_ilayer_map_all(),
 	  _radii_all(),
-	  _search_win_rphi(20),
-	  _search_win_z(5),
+	  _max_search_win_phi(1./30),
+	  _max_search_win_z(1.),
+	  _search_win_phi(10),
+	  _search_win_z(10),
 	  _layer_zID_phiID_cluserID(),
 	  _half_max_z(160),
-	  _half_max_rphi(252), //80cm * Pi
-	  _layer_zID_phiID_cluserID_phiSize(0.1200),
+	  //_half_max_phi(252), //80cm * Pi
+	  _half_max_phi(3.1416),
+	  //_layer_zID_phiID_cluserID_phiSize(0.1200),
+	  _layer_zID_phiID_cluserID_phiSize(0.1200/80), //rad
 	  _layer_zID_phiID_cluserID_zSize(0.1700),
 	  _trackID_PHGenFitTrack(),
 	  _first_extrapolate_target_layer(3),
-	  _max_consecutive_missing_layer(10),
-	  _max_incr_chi2(30.),
-	  _max_splitting_chi2(3.),
+	  _extrapolate_direction(1),
+	  _max_consecutive_missing_layer(20),
+	  _max_incr_chi2(20.),
+	  _max_splitting_chi2(0.),
 	  _min_good_track_hits(30)
 	  {
 	_event = 0;
@@ -219,7 +224,7 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 	 * Initilize parameters
 	 */
 	for(int layer = 0; layer < _nlayers_all; ++layer) {
-		_search_wins_rphi.insert(std::make_pair(layer, _search_win_rphi));
+		_search_wins_rphi.insert(std::make_pair(layer, _search_win_phi));
 		_search_wins_z.insert(std::make_pair(layer, _search_win_z));
 		_max_incr_chi2s.insert(std::make_pair(layer, _max_incr_chi2));
 	}
@@ -1562,7 +1567,7 @@ int PHG4KalmanPatRec::full_track_seeding() {
 
 	if (verbosity > 0)
 		cout << " final track count: " << _tracks.size() << endl;
-#ifdef _USE_ALAN_VERTEXING_
+#ifdef _USE_ALAN_FULL_VERTEXING_
 	if (!_tracks.empty()) {
 
 		if (verbosity > 0) {
@@ -1586,7 +1591,7 @@ int PHG4KalmanPatRec::full_track_seeding() {
 	// shift back to global coordinates
 	shift_coordinate_system(-shift_dx, -shift_dy, -shift_dz);
 
-#ifdef _USE_ALAN_TRACK_FITTING_
+#ifdef _USE_ALAN_TRACK_REFITTING_
 	// we still need to update the track fields for DCA and PCA
 	// we can do that from the final vertex position
 
@@ -2588,6 +2593,20 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	}
 	track->addMeasurements(measurements);
 
+#ifdef _DEBUG_
+	{
+		std::vector<unsigned int> clusterIDs = track->get_cluster_IDs();
+		for (unsigned int i = 0; i< clusterIDs.size(); ++i) {
+			cout
+			<< __LINE__
+			<<": Num: " << i
+			<<": layer: " << _g4clusters->get(clusterIDs[i])->get_layer()
+			<<": ID: " << clusterIDs[i]
+			<<endl;
+		}
+	}
+#endif
+
 	/*!
 	 *  Fit the track
 	 *  ret code 0 means 0 error or good status
@@ -2632,13 +2651,23 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 	 * and cluster IDs are syncronized with the TP IDs
 	 */
 	{
+		assert(_extrapolate_direction == 1 or _extrapolate_direction == -1);
 		std::vector<unsigned int> clusterIDs = track->get_cluster_IDs();
-		for (unsigned int i = clusterIDs.size() - 1; i >= 0; --i) {
-			if (_g4clusters->get(clusterIDs[i])->get_layer()
-					< _first_extrapolate_target_layer) {
-
+		if (_extrapolate_direction == 1) {
+			for (unsigned int i = clusterIDs.size() - 1; i >= 0; --i) {
 				first_extrapolate_base_TP_id = i;
-				break;
+				if (_g4clusters->get(clusterIDs[i])->get_layer()
+						< _first_extrapolate_target_layer) {
+					break;
+				}
+			}
+		} else {
+			for (unsigned int i = 0; i < clusterIDs.size() ; ++i) {
+				first_extrapolate_base_TP_id = i;
+				if (_g4clusters->get(clusterIDs[i])->get_layer()
+						> _first_extrapolate_target_layer) {
+					break;
+				}
 			}
 		}
 	}
@@ -2646,7 +2675,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 #define _START_FROM_FIXED_LAYER_
 
 #ifdef _START_FROM_FIXED_LAYER_
-	for (int layer = _first_extrapolate_target_layer; layer < _nlayers_all; ++layer) {
+	for (int layer = _first_extrapolate_target_layer;;) {
 #else
 	unsigned int last_seeding_cluster_ID = track->get_cluster_IDs().back();
 	unsigned int last_seeding_cluster_layer = _g4clusters->get(last_seeding_cluster_ID)->get_layer();
@@ -2682,7 +2711,25 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 			extrapolate_base_TP_id = first_extrapolate_base_TP_id;
 			first_extrapolate = false;
 		}
-
+#ifdef _DEBUG_
+		{
+			unsigned int tempIdx = extrapolate_base_TP_id > 0 ? extrapolate_base_TP_id : extrapolate_base_TP_id + track->get_cluster_IDs().size();
+			cout
+			<< __LINE__
+			<<" tempIdx: " <<tempIdx
+			<<endl;
+			if(tempIdx>0 and tempIdx < track->get_cluster_IDs().size()) {
+				unsigned int extrapolate_base_cluster_id = track->get_cluster_IDs()[tempIdx];
+				SvtxCluster* extrapolate_base_cluster = _g4clusters->get(extrapolate_base_cluster_id);
+				cout
+				<<__LINE__
+				<<": Target layer: " << layer
+				<<": From layer: " << extrapolate_base_cluster->get_layer()
+				<<": ID: " << extrapolate_base_cluster_id
+				<<endl;
+			}
+		}
+#endif
 
 //		bool have_tp_with_fit_info = false;
 //		std::vector<unsigned int> clusterIDs = track->get_cluster_IDs();
@@ -2706,7 +2753,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 		try {
 			state = std::unique_ptr < genfit::MeasuredStateOnPlane
 					> (track->extrapolateToCylinder(layer_r, TVector3(0, 0, 0),
-							TVector3(0, 0, 1), extrapolate_base_TP_id));
+							TVector3(0, 0, 1), extrapolate_base_TP_id, _extrapolate_direction));
 //		genfit::MeasuredStateOnPlane *state = track->extrapolateToCylinder(
 //				layer_r, TVector3(0, 0, 0), TVector3(0, 0, 1), 0);
 		} catch (...) {
@@ -2725,20 +2772,22 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 
 		TVector3 pos = state->getPos();
 
-		float phi_center = pos.Phi() * pos.Perp();
+		float phi_center = pos.Phi();
 		float z_center = pos.Z();
 
 		TMatrixDSym cov = state->get6DCov();
 
-		float phi_window = _search_wins_rphi[layer] * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]);
+		float phi_window = _search_wins_rphi[layer] * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]) / pos.Perp();
 		float z_window   = _search_wins_z[layer]    * sqrt(cov[2][2]);
 
-		if(phi_window > 1.0) phi_window = 1.0;
-		if(z_window > 1.0) z_window = 1.0;
+		if(phi_window > _max_search_win_phi) phi_window = _max_search_win_phi;
+		if(z_window > _max_search_win_z) z_window = _max_search_win_z;
+
+		if(layer>2 and layer<7) z_window += 1.2;
 
 #ifdef _DEBUG_
 		cout<<__LINE__<<": ";
-		printf("layer: %d: r: %f: rphi: %f +- %f; z: %f +- %f\n",
+		printf("layer: %d: r: %f: phi: %f +- %f; z: %f +- %f\n",
 				layer, pos.Perp(),
 				phi_center, phi_window,
 				z_center, z_window
@@ -2747,7 +2796,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 		cout<<__LINE__<<": ";
 		printf("layer: %d:  phi: %f +- %f\n",
 				layer,
-				pos.Phi(), phi_window / pos.Perp()
+				pos.Phi(), phi_window
 				);
 #endif
 
@@ -2789,7 +2838,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 #endif
 
 		if(verbosity >= 1) _t_track_propagation->restart();
-		track->updateOneMeasurementKalman(measurements, incr_chi2s_new_tracks);
+		track->updateOneMeasurementKalman(measurements, incr_chi2s_new_tracks,_extrapolate_direction);
 		if(verbosity >= 1) _t_track_propagation->stop();
 
 #ifdef _DEBUG_
@@ -2877,6 +2926,14 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 
 		if(!layer_updated)
 			++consecutive_missing_layer;
+
+		if(_extrapolate_direction == 1) {
+			++layer;
+			if(layer >= _nlayers_all) break;
+		} else {
+			--layer;
+			if(layer <= 0) break;
+		}
 	} // layer loop
 
 	//! Track succesfully propagated and return 0
@@ -2896,7 +2953,7 @@ int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 
 		float phi = atan2(cluster->get_y(),cluster->get_x());
 		float r = sqrt(cluster->get_x()*cluster->get_x() + cluster->get_y()*cluster->get_y());
-		float rphi = r*phi;
+		//float rphi = r*phi;
 		float z = cluster->get_z();
 
 #ifdef _DEBUG_
@@ -2905,12 +2962,12 @@ int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 		<<": ID: " << cluster->get_id()
 		<<": layer: "<<cluster->get_layer()
 		<<", r: "<<r
-		<<", rphi: "<<rphi
+		<<", phi: "<<phi
 		<<", z: "<<z
 		<<endl;
 #endif
 
-		unsigned int idx = encode_cluster_index(layer, z, rphi);
+		unsigned int idx = encode_cluster_index(layer, z, phi);
 
 #ifdef _DEBUG_
 			cout
@@ -2918,7 +2975,7 @@ int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 			<<"{ "
 			<<layer <<", "
 			<<z <<", "
-			<<rphi << "} =>"
+			<<phi << "} =>"
 			<<idx << ": size: "
 			<<_layer_zID_phiID_cluserID.count(idx)
 			<<endl;
@@ -2936,27 +2993,27 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 
 	std::vector<unsigned int> cluster_IDs;
 
-	const unsigned int max_rphi_bin = 16383; //2^14 - 1
+	const unsigned int max_phi_bin = 16383; //2^14 - 1
 	const unsigned int max_z_bin = 2047; // 2^11 - 1
 
-	float lower_rphi = phi_center-phi_window + _half_max_rphi;
-	float upper_rphi = phi_center+phi_window + _half_max_rphi;
+	float lower_phi = phi_center-phi_window + _half_max_phi;
+	float upper_phi = phi_center+phi_window + _half_max_phi;
 	float lower_z = z_center-z_window + _half_max_z;
 	float upper_z = z_center+z_window + _half_max_z;
 
-	unsigned int lower_rphi_bin = (unsigned int)((lower_rphi)/_layer_zID_phiID_cluserID_phiSize);
-	unsigned int upper_rphi_bin = (unsigned int)((upper_rphi)/_layer_zID_phiID_cluserID_phiSize);
+	unsigned int lower_phi_bin = (unsigned int)((lower_phi)/_layer_zID_phiID_cluserID_phiSize);
+	unsigned int upper_phi_bin = (unsigned int)((upper_phi)/_layer_zID_phiID_cluserID_phiSize);
 	unsigned int lower_z_bin    = (unsigned int)(   (lower_z)/_layer_zID_phiID_cluserID_zSize);
 	unsigned int upper_z_bin    = (unsigned int)(   (upper_z)/_layer_zID_phiID_cluserID_zSize);
 
-	if(lower_rphi < 0) lower_rphi_bin= 0;
-	if(upper_rphi_bin > max_rphi_bin) upper_rphi_bin = max_rphi_bin;
+	if(lower_phi < 0) lower_phi_bin= 0;
+	if(upper_phi_bin > max_phi_bin) upper_phi_bin = max_phi_bin;
 
 	if(lower_z < 0) lower_z_bin = 0;
 	if(upper_z_bin > max_z_bin) upper_z_bin = max_z_bin;
 
 	for (unsigned int iz = lower_z_bin; iz <= upper_z_bin; ++iz) {
-		for (unsigned int irphi = lower_rphi_bin; irphi <= upper_rphi_bin;
+		for (unsigned int irphi = lower_phi_bin; irphi <= upper_phi_bin;
 				++irphi) {
 			if(verbosity >= 2) _t_search_clusters_encoding->restart();
 			unsigned int idx = encode_cluster_index(layer, iz, irphi);
@@ -2981,15 +3038,15 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 #ifdef _DEBUG_
 				SvtxCluster* cluster = _g4clusters->get(iter->second);
 				TVector3 v(cluster->get_x(),cluster->get_y(),cluster->get_z());
-				float rphi_cluster = v.Phi()*v.Perp();
+				float phi_cluster = v.Phi();
 				fout_kalman_pull
 				<< _event << "\t"
 				<< layer << "\t "
-				<< phi_center - rphi_cluster << "\t"
+				<< phi_center - phi_cluster << "\t"
 				<< z_center - cluster->get_z() << "\t"
 				<< phi_window/_search_wins_rphi[layer] << "\t"
 				<< z_window/_search_wins_z[layer] << "\t"
-				<< (phi_center - rphi_cluster)/phi_window*_search_wins_rphi[layer] <<"\t "
+				<< (phi_center - phi_cluster)/phi_window*_search_wins_rphi[layer] <<"\t "
 				<< (z_center - cluster->get_z())/z_window*_search_wins_z[layer] <<endl;
 #endif
 			}
@@ -3007,8 +3064,8 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 	std::cout
 			<<__LINE__<<": "
 			<<"layer: "<<layer
-			<<", rphi: {"<<lower_rphi_bin
-			<<", "<<upper_rphi_bin
+			<<", rphi: {"<<lower_phi_bin
+			<<", "<<upper_phi_bin
 			<<"}, z: {"<<lower_z_bin
 			<<", "<<upper_z_bin
 			<<"}, found #clusters: "<<cluster_IDs.size()
@@ -3027,7 +3084,7 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 //}
 
 unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
-		const float z, const float rphi) {
+		const float z, const float phi) {
 
 	unsigned int idx = UINT_MAX;
 
@@ -3042,11 +3099,11 @@ unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
 	}
 	unsigned int iz = (z + _half_max_z) / _layer_zID_phiID_cluserID_zSize;
 
-	if( (rphi + _half_max_rphi) < 0 ) {
+	if( (phi + _half_max_phi) < 0 ) {
 		LogError("(rphi + _half_max_rphi) < 0 \n");
 		return idx;
 	}
-	unsigned int irphi = (rphi + _half_max_rphi) / _layer_zID_phiID_cluserID_phiSize;
+	unsigned int irphi = (phi + _half_max_phi) / _layer_zID_phiID_cluserID_phiSize;
 
 #ifdef _DEBUG_
 //	std::cout<<__LINE__<<": "

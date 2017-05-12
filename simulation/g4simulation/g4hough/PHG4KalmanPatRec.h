@@ -241,12 +241,12 @@ public:
 		_seeding_layer.assign(seedingLayer, seedingLayer + n);
 	}
 
-	float get_search_win_rphi() const {
-		return _search_win_rphi;
+	float get_search_win_phi() const {
+		return _search_win_phi;
 	}
 
-	void set_search_win_rphi(float searchWinMultiplier) {
-		_search_win_rphi = searchWinMultiplier;
+	void set_search_win_phi(float searchWinMultiplier) {
+		_search_win_phi = searchWinMultiplier;
 	}
 
 
@@ -582,7 +582,9 @@ private:
 	int _nlayers_all;
 	std::map<int, unsigned int> _layer_ilayer_map_all;
 	std::vector<float> _radii_all;
-	float _search_win_rphi;
+	float _max_search_win_phi;
+	float _max_search_win_z;
+	float _search_win_phi;
 	float _search_win_z;
 	std::map<int, float> _search_wins_rphi;
 	std::map<int, float> _search_wins_z;
@@ -591,13 +593,15 @@ private:
 	std::multimap<unsigned int,  unsigned int> _layer_zID_phiID_cluserID;
 
 	float _half_max_z;
-	float _half_max_rphi;
+	float _half_max_phi;
 	float _layer_zID_phiID_cluserID_phiSize;
 	float _layer_zID_phiID_cluserID_zSize;
 
 
 	std::map<int, std::shared_ptr<PHGenFit::Track>> _trackID_PHGenFitTrack;
 	float _first_extrapolate_target_layer;
+	//! +1: inside out; -1: outside in
+	int _extrapolate_direction;
 
 	unsigned int _max_consecutive_missing_layer;
 	float _max_incr_chi2;

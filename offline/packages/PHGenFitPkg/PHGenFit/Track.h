@@ -53,7 +53,7 @@ public:
 
 	//!
 	int updateOneMeasurementKalman(const std::vector<PHGenFit::Measurement*>& measurements,
-			std::map<double, PHGenFit::Track*>& incr_chi2s_new_tracks) const;
+			std::map<double, PHGenFit::Track*>& incr_chi2s_new_tracks, const int direction = 1) const;
 
 	/*!
 	 * track_point 0 is the first one, and -1 is the last one
@@ -62,7 +62,7 @@ public:
 	//!
 	double extrapolateToLine(genfit::MeasuredStateOnPlane& state, TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0) const;
 	//!
-	double extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0) const;
+	double extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0, const int direction = 1) const;
 	//!
 	double extrapolateToPoint(genfit::MeasuredStateOnPlane& state, TVector3 P, const int tr_point_id = 0) const;
 
@@ -71,7 +71,7 @@ public:
 	//!
 	genfit::MeasuredStateOnPlane* extrapolateToLine(TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0) const;
 	//!
-	genfit::MeasuredStateOnPlane* extrapolateToCylinder(double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0) const;
+	genfit::MeasuredStateOnPlane* extrapolateToCylinder(double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0, const int direction = 1) const;
 	//!
 	genfit::MeasuredStateOnPlane* extrapolateToPoint(TVector3 P, const int tr_point_id = 0) const;
 	//!
