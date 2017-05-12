@@ -83,7 +83,7 @@
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp
 
-#define _DEBUG_
+//#define _DEBUG_
 
 #define _GET_RPHI_ERROR_
 
@@ -91,7 +91,7 @@
 //#define _USE_ALAN_TRACK_REFITTING_
 
 //#define _MEARGE_SEED_CLUSTER_
-//#define _START_FROM_FIXED_LAYER_
+#define _START_FROM_FIXED_LAYER_
 //#define _USE_ZERO_SEED_
 
 //#define _DO_FULL_FITTING_
@@ -2644,6 +2644,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 
 	bool first_extrapolate = true;
 	int first_extrapolate_base_TP_id = -1;
+	int extrapolate_base_TP_id = -1;
 
 	/*!
 	 * Find the last layer of with TrackPoint (TP)
@@ -2671,8 +2672,6 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 			}
 		}
 	}
-
-#define _START_FROM_FIXED_LAYER_
 
 #ifdef _START_FROM_FIXED_LAYER_
 	for (int layer = _first_extrapolate_target_layer;;) {
@@ -2706,7 +2705,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 		std::cout<<__LINE__<<": Event: "<< _event <<": iPHGenFitTrack: "<<iPHGenFitTrack <<": layer: "<<layer<<std::endl;
 		std::cout<<"========================="<<std::endl;
 #endif
-		int extrapolate_base_TP_id = -1;
+
 		if(first_extrapolate) {
 			extrapolate_base_TP_id = first_extrapolate_base_TP_id;
 			first_extrapolate = false;
@@ -2865,6 +2864,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 				track = _trackID_PHGenFitTrack[iPHGenFitTrack];
 				consecutive_missing_layer = 0;
 				layer_updated = true;
+				extrapolate_base_TP_id = -1;
 #ifdef _DEBUG_
 				cout
 				<< __LINE__
