@@ -112,8 +112,8 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
     double fphx_x = params->get_double_param("fphx_x") * cm;
     double fphx_y = params->get_double_param("fphx_y") * cm;
     double fphx_z = params->get_double_param("fphx_z") * cm;
-    double pgs_x = params->get_double_param("pgs_x") * mm;
-    double stave_x = params->get_double_param("stave_x") * mm;
+    double pgs_x = params->get_double_param("pgs_x") * cm;
+    double stave_x = params->get_double_param("stave_x") * cm;
     double halfladder_z = params->get_double_param("halfladder_z") * cm;
     for (int itype = 0; itype < 2; ++itype)
     {
