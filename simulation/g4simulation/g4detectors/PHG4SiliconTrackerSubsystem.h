@@ -43,8 +43,6 @@ class PHG4SiliconTrackerSubsystem : public PHG4DetectorGroupSubsystem
   //! accessors (reimplemented)
   PHG4Detector *GetDetector(void) const;
   PHG4SteppingAction *GetSteppingAction(void) const { return steppingAction_; }
-  void SuperDetector(const std::string &name) { superdetector = name; }
-  const std::string SuperDetector() { return superdetector; }
   void Print(const std::string &what = "ALL") const;
 
  private:
@@ -61,7 +59,6 @@ class PHG4SiliconTrackerSubsystem : public PHG4DetectorGroupSubsystem
   std::vector<std::pair<int, int>> layerconfig_;
 
   std::string detector_type;
-  std::string superdetector;
 };
 
 #endif
