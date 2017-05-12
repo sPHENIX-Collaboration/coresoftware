@@ -27,7 +27,7 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   PHG4SiliconTrackerDetector(PHCompositeNode *Node, PHG4ParametersContainer *parameters, const std::string &dnam = "SILICON_TRACKER", const vpair &layerconfig = vpair(0));
 
   //! destructor
-  virtual ~PHG4SiliconTrackerDetector();
+  virtual ~PHG4SiliconTrackerDetector(){}
 
   //! construct
   virtual void Construct(G4LogicalVolume *world);
@@ -60,8 +60,6 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
 
   PHG4ParametersContainer *paramscontainer;
-  int absorberactive;
-
   vpair layerconfig_;
   unsigned int nlayer_;
   int layermin_;
@@ -76,14 +74,10 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   G4double posz[4][2];
   G4double strip_x_offset[4];
 
-  //const double pgs_x = 0.35*mm * 0.5; // 70micron * 5layers
-  //  const double pgs_x = 0.21 * mm * 0.5;    // 70micron * 3layers
-  //  const double stave_x = 0.23 * mm * 0.5;  // too thick? TODO
-
-  const G4double arr_halfladder_z[4] = {220. * mm * 0.5, 268. * mm * 0.5, 268. * mm * 0.5, 268. * mm * 0.5};
   std::set<G4LogicalVolume *> absorberlogvols;
   std::set<G4LogicalVolume *> activelogvols;
   std::map<int, int> IsActive;
+  std::map<int, int> IsAbsorberActive;
 };
 
 #endif

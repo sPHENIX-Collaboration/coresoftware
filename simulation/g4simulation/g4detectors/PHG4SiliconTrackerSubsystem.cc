@@ -22,7 +22,7 @@ PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &dete
   , steppingAction_(nullptr)
   , layerconfig_(layerconfig)
   , detector_type(detectorname)
-  , superdetector("NONE")
+  , superdetector(detectorname)
 {
   for (vector<pair<int, int>>::const_iterator piter = layerconfig.begin(); piter != layerconfig.end(); ++piter)
   {
@@ -69,23 +69,30 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   }
   if (active)
   {
-    cout << "detector: " << detector_type << endl;
+      PHNodeIterator dstIter( dstNode );
+      PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode",SuperDetector()));
+      if (! DetNode)
+	{
+          DetNode = new PHCompositeNode(SuperDetector());
+          dstNode->addNode(DetNode);
+        } 
+   cout << "detector: " << detector_type << endl;
     cout << "superdetector: " << superdetector << endl;
     std::string nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_%s") % superdetector) : boost::str(boost::format("G4HIT_%s") % detector_type);
 
     // create hit list
     PHG4HitContainer *hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, nodename.c_str());
     if (!hitcontainer)
-      dstNode->addNode(new PHIODataNode<PHObject>(hitcontainer = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
+      DetNode->addNode(new PHIODataNode<PHObject>(hitcontainer = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
 
     if (absorberactive)
     {
-      //      nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_ABSORBER_%s") % superdetector) : boost::str(boost::format("G4HIT_ABSORBER_%s") % detector_type);
+      nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_ABSORBER_%s") % superdetector) : boost::str(boost::format("G4HIT_ABSORBER_%s") % detector_type);
 
       hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, nodename.c_str());
       if (!hitcontainer)
       {
-        dstNode->addNode(new PHIODataNode<PHObject>(hitcontainer = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
+        DetNode->addNode(new PHIODataNode<PHObject>(hitcontainer = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
       }
     }
 
