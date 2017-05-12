@@ -43,7 +43,7 @@
 
 G4bool PHG4GDMLWrite::addPointerToName = true;
 
-PHG4GDMLWrite::PHG4GDMLWrite() : doc(0), extElement(0)
+PHG4GDMLWrite::PHG4GDMLWrite() : doc(nullptr), extElement(nullptr), userinfoElement(nullptr)
 {
 }
 
