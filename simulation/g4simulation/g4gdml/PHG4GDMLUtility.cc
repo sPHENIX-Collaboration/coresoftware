@@ -17,6 +17,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/getClass.h>
+#include <fun4all/Fun4AllServer.h>
 
 #include <Geant4/G4VPhysicalVolume.hh>
 
@@ -37,6 +38,14 @@ PHG4GDMLUtility::PHG4GDMLUtility()
 
 void PHG4GDMLUtility::Dump_GDML(const std::string &filename, G4VPhysicalVolume * vol, PHCompositeNode *topNode)
 {
+  if (topNode == nullptr)
+    {
+
+      Fun4AllServer *se = Fun4AllServer::instance();
+      topNode = se->topNode();
+
+    }
+
   const PHG4GDMLConfig * config =
   GetOrMakeConfigNode(topNode);
   assert(config);

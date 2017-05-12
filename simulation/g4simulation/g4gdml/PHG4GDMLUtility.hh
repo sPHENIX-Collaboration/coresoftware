@@ -25,7 +25,7 @@ class PHG4GDMLUtility
  public:
   virtual ~PHG4GDMLUtility();
 
-  static void Dump_GDML(const std::string &filename, G4VPhysicalVolume * vol, PHCompositeNode *topNode);
+  static void Dump_GDML(const std::string &filename, G4VPhysicalVolume * vol, PHCompositeNode *topNode = nullptr);
 
   static constexpr const char * get_PHG4GDML_Schema()
   {

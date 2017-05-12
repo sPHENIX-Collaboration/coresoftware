@@ -41,6 +41,7 @@
 #define _PHG4GDMLWRITESOLIDS_INCLUDED_
 
 #include <Geant4/G4Types.hh>
+#include <Geant4/G4MultiUnion.hh>
 
 #include "PHG4GDMLWriteMaterials.hh"
 
@@ -105,6 +106,7 @@ class PHG4GDMLWriteSolids : public PHG4GDMLWriteMaterials
    PHG4GDMLWriteSolids();
    virtual ~PHG4GDMLWriteSolids();
 
+   void MultiUnionWrite(xercesc::DOMElement* solElement, const G4MultiUnion* const);
    void BooleanWrite(xercesc::DOMElement*, const G4BooleanSolid* const);
    void BoxWrite(xercesc::DOMElement*, const G4Box* const);
    void ConeWrite(xercesc::DOMElement*, const G4Cons* const);
