@@ -28,6 +28,7 @@ class G4Tubs;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4UserLimits;
+class PHG4GDMLConfig;
 
 class PHG4SpacalDetector : public PHG4Detector
 {
@@ -164,6 +165,8 @@ protected:
   G4UserLimits * clading_step_limits;
   G4UserLimits * fiber_core_step_limits;
 
+  //! registry for volumes that should not be exported, i.e. fibers
+  PHG4GDMLConfig * gdml_config;
 private:
 
   SpacalGeom_t * _geom;
