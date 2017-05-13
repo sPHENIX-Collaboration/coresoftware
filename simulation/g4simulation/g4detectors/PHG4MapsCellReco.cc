@@ -8,6 +8,10 @@
 #include "PHG4CellContainer.h"
 #include "PHG4CellDefs.h"
 
+#include "PHG4ParametersContainer.h"
+#include "PHG4ParameterContainerInterface.h"
+
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4HitContainer.h>
@@ -29,10 +33,12 @@ using namespace std;
 
 PHG4MapsCellReco::PHG4MapsCellReco(const string &name) :
   SubsysReco(name),
+  PHG4ParameterContainerInterface(name),
   detector(name),
   _timer(PHTimeServer::get()->insert_new(name)),
   chkenergyconservation(0)
 {
+  SetDefaultParameters();   // sets default timing window
   memset(nbins, 0, sizeof(nbins));
 
   if(verbosity > 0)  
@@ -88,7 +94,7 @@ int PHG4MapsCellReco::InitRun(PHCompositeNode *topNode)
     {
       geo->identify();
     }
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -154,6 +160,19 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  //cout << "From PHG4MapsCellReco: Call hit print method: " << endl;
 	  if(verbosity >4)
 	    hiter->second->print();
+
+	  // checking ADC timing integration window cut
+	  if(*layer > 2)
+	    {
+	      cout  << PHWHERE << "Maps layers only go up to three! Quit." << endl;
+	      exit(1);
+	    }
+	  if(verbosity > 1)
+	    cout << " layer " << *layer << " t0 " << hiter->second->get_t(0) << " t1 " << hiter->second->get_t(1)
+		 << " tmin " <<  tmin_max[*layer].first << " tmax " <<  tmin_max[*layer].second
+		 << endl;
+	  if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
+	  if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
 
 	  // get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
 	  int stave_number = hiter->second->get_property_int(PHG4Hit::prop_stave_index);
@@ -842,4 +861,23 @@ double  PHG4MapsCellReco::sA(double r, double x, double y)
 	  }
 	
 	return a;
+}
+
+void
+PHG4MapsCellReco::set_timing_window(const int detid, const double tmin, const double tmax)
+{
+  cout << "PHG4MapsCellReco: Setting MAPS timing window parameters from macro for detid = " << detid << " to tmin = " << tmin << " tmax = " << tmax << endl;
+  tmin_max.insert(std::make_pair(detid, std::make_pair(tmin, tmax)));
+
+  return;
+}
+
+void
+PHG4MapsCellReco::SetDefaultParameters()
+{
+  cout << "PHG4MapsCellReco: Setting MAPS timing window defaults to tmin = -2000 and  tmax = 2000 " << endl;
+  for(int ilayer = 0;ilayer<3;ilayer++)
+    tmin_max.insert(std::make_pair(ilayer, std::make_pair(-2000, 2000)));
+
+  return;
 }
