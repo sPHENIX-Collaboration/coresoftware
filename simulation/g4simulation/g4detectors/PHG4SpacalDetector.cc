@@ -15,6 +15,10 @@
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 
+
+#include <g4gdml/PHG4GDMLConfig.hh>
+#include <g4gdml/PHG4GDMLUtility.hh>
+
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4Cons.hh>
@@ -62,6 +66,9 @@ PHG4SpacalDetector::PHG4SpacalDetector(PHCompositeNode *Node,
       _geom->get_fiber_core_step_size() * cm);
 
   Verbosity(_geom->get_construction_verbose());
+
+  gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
+  assert (gdml_config);
 }
 
 PHG4SpacalDetector::~PHG4SpacalDetector(void)
@@ -285,6 +292,8 @@ PHG4SpacalDetector::Construct_AzimuthalSeg()
           G4String(name.str().c_str()), sec_logic, false, fiber_count,
           overlapcheck);
       fiber_vol[fiber_physi] = fiber_count;
+      assert(gdml_config);
+      gdml_config->exclude_physical_vol(fiber_physi);
 
       z += z_step;
       fiber_count++;

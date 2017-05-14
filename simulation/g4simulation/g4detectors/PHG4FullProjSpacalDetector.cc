@@ -17,6 +17,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
+#include <g4gdml/PHG4GDMLConfig.hh>
 
 #include <Geant4/G4Trd.hh>
 #include <Geant4/G4Trap.hh>
@@ -423,6 +424,8 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
           G4String(name.str().c_str()), LV_tower, false, fiber_ID,
           overlapcheck_fiber);
       fiber_vol[fiber_physi] = fiber_ID;
+      assert(gdml_config);
+      gdml_config->exclude_physical_vol(fiber_physi);
 
       fiber_count++;
 
@@ -545,6 +548,8 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
               fiber_logic, G4String(name.str().c_str()), LV_tower, false,
               fiber_ID, overlapcheck_fiber);
           fiber_vol[fiber_physi] = fiber_ID;
+          assert(gdml_config);
+          gdml_config->exclude_physical_vol(fiber_physi);
 
           ++fiber_cnt;
         }

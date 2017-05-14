@@ -114,7 +114,8 @@ libg4testbench_la_LDFLAGS = \
     -lphhepmc \
     -lxerces-c \
     `geant4-config --libs` \
-    -lphgeom
+    -lphgeom \
+    -lphg4gdml
 
 libg4testbench_la_LIBADD = \
     libphg4hit.la
