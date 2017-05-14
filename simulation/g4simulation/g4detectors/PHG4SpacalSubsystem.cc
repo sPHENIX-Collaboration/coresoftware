@@ -10,6 +10,7 @@
 #include "PHG4SpacalDetector.h"
 #include "PHG4ProjSpacalDetector.h"
 #include "PHG4FullProjSpacalDetector.h"
+#include "PHG4FullProjTiltedSpacalDetector.h"
 #include "PHG4CylinderGeom.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4SpacalSteppingAction.h"
@@ -79,6 +80,14 @@ int PHG4SpacalSubsystem::InitRun( PHCompositeNode* topNode )
     if (verbosity > 0) cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjSpacalDetector" << endl;
     detector_ = new PHG4FullProjSpacalDetector(topNode, Name(),
         dynamic_cast<PHG4FullProjSpacalDetector::SpacalGeom_t *>(&_geom), layer);
+    break;
+
+
+  case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_Tilted:
+  case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower:
+    if (verbosity > 0) cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjSpacalDetector" << endl;
+    detector_ = new PHG4FullProjTiltedSpacalDetector(topNode, Name(),
+        dynamic_cast<PHG4FullProjTiltedSpacalDetector::SpacalGeom_t *>(&_geom), layer);
     break;
 
   default:

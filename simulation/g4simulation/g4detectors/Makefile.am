@@ -268,6 +268,7 @@ libg4detectors_la_SOURCES = \
   PHG4SpacalDetector.cc \
   PHG4ProjSpacalDetector.cc \
   PHG4FullProjSpacalDetector.cc \
+  PHG4FullProjTiltedSpacalDetector.cc \
   PHG4FullProjSpacalCellReco.cc \
   PHG4FullProjSpacalCellReco_Dict.cc \
   PHG4SpacalPrototypeDetector.cc \
