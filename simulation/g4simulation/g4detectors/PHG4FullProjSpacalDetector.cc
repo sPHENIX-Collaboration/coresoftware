@@ -53,12 +53,11 @@ using namespace std;
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
 PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHCompositeNode *Node,
-    const std::string &dnam, SpacalGeom_t * geom, const int lyr) :
-    PHG4SpacalDetector(Node, dnam,
-        dynamic_cast<PHG4SpacalDetector::SpacalGeom_t *>(geom), lyr), //
-    _geom(geom) //
+    const std::string& dnam, PHG4Parameters* parameters, const int lyr)
+: PHG4SpacalDetector(Node, dnam, parameters, lyr)
 {
 
+  _geom = new SpacalGeom_t();
   if (_geom == NULL)
     {
       cout
@@ -66,14 +65,16 @@ PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHCompositeNode *Node,
           << endl;
       exit(1);
     }
-
-  step_limits = new G4UserLimits(_geom->get_calo_step_size() * cm);
-
-  clading_step_limits = new G4UserLimits(
-      _geom->get_fiber_clading_step_size() * cm);
-
-  fiber_core_step_limits = new G4UserLimits(
-      _geom->get_fiber_core_step_size() * cm);
+  assert(parameters);
+  _geom->ImportParameters(*parameters);
+//
+//  step_limits = new G4UserLimits(_geom->get_calo_step_size() * cm);
+//
+//  clading_step_limits = new G4UserLimits(
+//      _geom->get_fiber_clading_step_size() * cm);
+//
+//  fiber_core_step_limits = new G4UserLimits(
+//      _geom->get_fiber_core_step_size() * cm);
 }
 
 //_______________________________________________________________

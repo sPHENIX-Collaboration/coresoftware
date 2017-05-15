@@ -45,17 +45,20 @@ using namespace std;
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
 PHG4SpacalDetector::PHG4SpacalDetector(PHCompositeNode *Node,
-    const std::string &dnam, SpacalGeom_t * geom, const int lyr) :
+    const std::string &dnam, PHG4Parameters *parameters,  const int lyr) :
     PHG4Detector(Node, dnam), _region(NULL), cylinder_solid(NULL), cylinder_logic(
         NULL), cylinder_physi(NULL), active(0), absorberactive(0), layer(
-        lyr), _geom(geom)
+        lyr)
 {
-
+  _geom = new SpacalGeom_t();
   if (_geom == NULL)
     {
       cout <<"PHG4SpacalDetector::Constructor - Fatal Error - invalid geometry object!"<<endl;
       exit(1);
     }
+  assert(parameters);
+  _geom->ImportParameters(*parameters);
+
 
   step_limits = new G4UserLimits(_geom->get_calo_step_size() * cm);
 
