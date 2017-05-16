@@ -55,7 +55,7 @@ void PHG4GDMLUtility::Dump_GDML(const std::string &filename, G4VPhysicalVolume *
   assert(vol->GetLogicalVolume());
 
   xercesc::XMLPlatformUtils::Initialize();
-  gdml_parser.Write(filename, vol->GetLogicalVolume(),get_PHG4GDML_Schema(), 0, false);
+  gdml_parser.Write(filename, vol->GetLogicalVolume(),get_PHG4GDML_Schema(), 0, true);
   xercesc::XMLPlatformUtils::Terminate();
 }
 
