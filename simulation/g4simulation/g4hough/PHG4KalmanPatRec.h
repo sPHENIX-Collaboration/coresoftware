@@ -356,6 +356,14 @@ public:
 		_max_splitting_chi2 = maxSplittingChi2;
 	}
 
+	int get_init_direction() const {
+		return _init_direction;
+	}
+
+	void set_init_direction(int initDirection) {
+		_init_direction = initDirection;
+	}
+
 #ifndef __CINT__
 
 private:
@@ -433,7 +441,7 @@ private:
 
 	//! FullTrackFitting Call.
 	int SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, unsigned int itrack);
-	int TrackPropPatRec(PHCompositeNode* topNode, const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> track);
+	int TrackPropPatRec(PHCompositeNode* topNode, const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> track, unsigned int init_layer = 3, unsigned int end_layer = 66);
 
 	//! TrackPropPatRec Call.
 	std::vector<unsigned int> SearchHitsNearBy (const unsigned int layer, const float z_center, const float phi_center, const float z_window, const float phi_window);
@@ -599,9 +607,9 @@ private:
 
 
 	std::map<int, std::shared_ptr<PHGenFit::Track>> _trackID_PHGenFitTrack;
-	float _first_extrapolate_target_layer;
 	//! +1: inside out; -1: outside in
-	int _extrapolate_direction;
+	int _init_direction;
+	float _blowup_factor;
 
 	unsigned int _max_consecutive_missing_layer;
 	float _max_incr_chi2;

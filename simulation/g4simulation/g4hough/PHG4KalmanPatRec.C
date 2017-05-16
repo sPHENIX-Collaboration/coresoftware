@@ -83,7 +83,7 @@
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp
 
-//#define _DEBUG_
+#define _DEBUG_
 
 #define _GET_RPHI_ERROR_
 
@@ -190,8 +190,8 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _layer_zID_phiID_cluserID_phiSize(0.1200/80), //rad
 	  _layer_zID_phiID_cluserID_zSize(0.1700),
 	  _trackID_PHGenFitTrack(),
-	  _first_extrapolate_target_layer(3),
-	  _extrapolate_direction(1),
+	  _init_direction(-1),
+	  _blowup_factor(1000),
 	  _max_consecutive_missing_layer(20),
 	  _max_incr_chi2(20.),
 	  _max_splitting_chi2(0.),
@@ -871,7 +871,8 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 
 			//TODO
 			_radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
-					geo->get_radius() + 0.5*geo->get_thickness();
+					geo->get_radius() + 0.5 * geo->get_thickness();
+
 
 			if (_layer_ilayer_map.find(geo->get_layer())
 					!= _layer_ilayer_map.end()) {
@@ -915,8 +916,9 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 //			if (verbosity >= 2)
 //				geo->identify();
 
+			//TODO
 			_radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
-					geo->get_radius() + 0.5*geo->get_thickness();
+					geo->get_radius();
 
 			if (_layer_ilayer_map.find(geo->get_layer())
 					!= _layer_ilayer_map.end()) {
@@ -2167,22 +2169,46 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 		for (std::map<int, std::shared_ptr<PHGenFit::Track>>::iterator iter = _trackID_PHGenFitTrack.begin();
 				iter != _trackID_PHGenFitTrack.end(); ++iter) {
 #ifdef _DEBUG_
-//			cout << __LINE__ << ": _trackID_PHGenFitTrack.size(): "
-//					<< _trackID_PHGenFitTrack.size() << ": iPHGenFitTrack: "
-//					<< iter->first << endl;
+			cout
+			<< __LINE__
+			<< ": _trackID_PHGenFitTrack.size(): " << _trackID_PHGenFitTrack.size()
+			<< ": iPHGenFitTrack: " << iter->first
+			<< endl;
 #endif
-			if (TrackPropPatRec(topNode, iter->first, iter->second) == 0) {
-				OutputPHGenFitTrack(topNode, iter);
 
+			std::shared_ptr<PHGenFit::Track> track = iter->second;
+			std::vector<unsigned int> clusterIDs = track->get_cluster_IDs();
+
+			unsigned int init_layer = UINT_MAX;
+			unsigned int end_layer = UINT_MAX;
+			if(_init_direction == 1) {
+				init_layer = _g4clusters->get(clusterIDs.front())->get_layer();
+				end_layer = 66;
+			} else {
+				init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
+				end_layer = 0;
+			}
+
+#ifdef _DEBUG_
+			cout
+			<< __LINE__
+			<< ": TrackPropPatRec from: " << init_layer
+			<< " to " << end_layer
+			<< endl;
+#endif
+
+			if (TrackPropPatRec(topNode, iter->first, track, init_layer, end_layer) == 0) {
+				OutputPHGenFitTrack(topNode, iter);
+#ifdef _DEBUG_
+				cout << __LINE__ << endl;
+#endif
 				if (_do_evt_display) {
 					evt_disp_copy.push_back(
 							new genfit::Track(*iter->second->getGenFitTrack()));
 				}
-
-				_trackID_PHGenFitTrack.erase(iter);
-			} else {
-				_trackID_PHGenFitTrack.erase(iter);
 			}
+
+			//_trackID_PHGenFitTrack.erase(iter);
 		}
 	}
 
@@ -2617,34 +2643,18 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 		return -1;
 	}
 
-	/*!
-	 * Remove TrackPoints after inital propagating layer
-	 * Asumming measuremnts are sorted by radius
-	 */
-//	{
-//		std::vector<unsigned int> clusterIDs = track->get_cluster_IDs();
-//		for(unsigned int i = clusterIDs.size()-1; i>=0; --i) {
-//			if(_g4clusters->get(clusterIDs[i])->get_layer() >= _first_extrapolate_target_layer) {
-//				track->deleteLastMeasurement();
-//			} else {
-//				break;
-//			}
-//		}
-//	}
-
 	//insert fitted track to PHGenFit working map
 	_trackID_PHGenFitTrack.insert(std::make_pair(_trackID_PHGenFitTrack.size(), track));
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> track) {
+int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> track, unsigned int init_layer, unsigned int end_layer) {
 
-	unsigned int consecutive_missing_layer = 0;
+	int direction = end_layer >= init_layer ? 1 : -1;
+	assert(direction==1 or direction==-1);
 
-	bool first_extrapolate = true;
 	int first_extrapolate_base_TP_id = -1;
-	int extrapolate_base_TP_id = -1;
 
 	/*!
 	 * Find the last layer of with TrackPoint (TP)
@@ -2652,37 +2662,35 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 	 * and cluster IDs are syncronized with the TP IDs
 	 */
 	{
-		assert(_extrapolate_direction == 1 or _extrapolate_direction == -1);
 		std::vector<unsigned int> clusterIDs = track->get_cluster_IDs();
-		if (_extrapolate_direction == 1) {
-			for (unsigned int i = clusterIDs.size() - 1; i >= 0; --i) {
+
+		for (unsigned int i = clusterIDs.size() - 1; i >= 0; --i) {
+			if (_g4clusters->get(clusterIDs[i])->get_layer() == init_layer) {
 				first_extrapolate_base_TP_id = i;
-				if (_g4clusters->get(clusterIDs[i])->get_layer()
-						< _first_extrapolate_target_layer) {
-					break;
-				}
-			}
-		} else {
-			for (unsigned int i = 0; i < clusterIDs.size() ; ++i) {
-				first_extrapolate_base_TP_id = i;
-				if (_g4clusters->get(clusterIDs[i])->get_layer()
-						> _first_extrapolate_target_layer) {
-					break;
-				}
+				break;
 			}
 		}
 	}
 
-#ifdef _START_FROM_FIXED_LAYER_
-	for (int layer = _first_extrapolate_target_layer;;) {
-#else
-	unsigned int last_seeding_cluster_ID = track->get_cluster_IDs().back();
-	unsigned int last_seeding_cluster_layer = _g4clusters->get(last_seeding_cluster_ID)->get_layer();
-#ifdef _DEBUG_
-	cout << __LINE__ << ": last cluster layer: " << last_seeding_cluster_layer << endl;
-#endif
-	for (int layer = last_seeding_cluster_layer + 1; layer < _nlayers_all; ++layer) {
-#endif
+	if(first_extrapolate_base_TP_id < 0) {
+		if(verbosity > 0)
+			LogError("first_extrapolate_base_TP_id < 0");
+		return -1;
+	}
+
+
+	int extrapolate_base_TP_id = first_extrapolate_base_TP_id ;
+
+	unsigned int consecutive_missing_layer = 0;
+
+//	unsigned int layer = init_layer + direction;
+//	while (layer>=0 and layer < (unsigned int)_nlayers_all and layer!=end_layer) {
+
+	for(unsigned int layer = init_layer + direction;
+			layer!=end_layer;
+			layer += direction) {
+		if(!(layer>=0 and layer < (unsigned int)_nlayers_all)) break;
+
 		/*!
 		 * if miss too many layers terminate track propagating
 		 */
@@ -2706,25 +2714,23 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 		std::cout<<"========================="<<std::endl;
 #endif
 
-		if(first_extrapolate) {
-			extrapolate_base_TP_id = first_extrapolate_base_TP_id;
-			first_extrapolate = false;
-		}
 #ifdef _DEBUG_
 		{
-			unsigned int tempIdx = extrapolate_base_TP_id > 0 ? extrapolate_base_TP_id : extrapolate_base_TP_id + track->get_cluster_IDs().size();
+			unsigned int tempIdx = extrapolate_base_TP_id >= 0 ? extrapolate_base_TP_id : extrapolate_base_TP_id + track->get_cluster_IDs().size();
 			cout
 			<< __LINE__
 			<<" tempIdx: " <<tempIdx
 			<<endl;
-			if(tempIdx>0 and tempIdx < track->get_cluster_IDs().size()) {
+			if(tempIdx>=0 and tempIdx < track->get_cluster_IDs().size()) {
 				unsigned int extrapolate_base_cluster_id = track->get_cluster_IDs()[tempIdx];
 				SvtxCluster* extrapolate_base_cluster = _g4clusters->get(extrapolate_base_cluster_id);
 				cout
 				<<__LINE__
-				<<": Target layer: " << layer
-				<<": From layer: " << extrapolate_base_cluster->get_layer()
-				<<": ID: " << extrapolate_base_cluster_id
+				<<": Target layer: { " << layer
+				<<", " << layer_r
+				<<"} : From layer: { " << extrapolate_base_cluster->get_layer()
+				<<", " << sqrt(extrapolate_base_cluster->get_x()*extrapolate_base_cluster->get_x() + extrapolate_base_cluster->get_y()*extrapolate_base_cluster->get_y())
+				<<"} : ID: " << extrapolate_base_cluster_id
 				<<endl;
 			}
 		}
@@ -2752,7 +2758,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 		try {
 			state = std::unique_ptr < genfit::MeasuredStateOnPlane
 					> (track->extrapolateToCylinder(layer_r, TVector3(0, 0, 0),
-							TVector3(0, 0, 1), extrapolate_base_TP_id, _extrapolate_direction));
+							TVector3(0, 0, 1), extrapolate_base_TP_id, direction));
 //		genfit::MeasuredStateOnPlane *state = track->extrapolateToCylinder(
 //				layer_r, TVector3(0, 0, 0), TVector3(0, 0, 1), 0);
 		} catch (...) {
@@ -2836,8 +2842,10 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 		cout<<__LINE__<<": measurements.size(): "<<measurements.size()<<endl;
 #endif
 
+		//float blowup_factor = (layer==0 or layer==(unsigned int) _nlayers_all) ? _blowup_factor : 1.;
+		float blowup_factor = 1.;
 		if(verbosity >= 1) _t_track_propagation->restart();
-		track->updateOneMeasurementKalman(measurements, incr_chi2s_new_tracks,_extrapolate_direction);
+		track->updateOneMeasurementKalman(measurements, incr_chi2s_new_tracks, extrapolate_base_TP_id, direction, blowup_factor);
 		if(verbosity >= 1) _t_track_propagation->stop();
 
 #ifdef _DEBUG_
@@ -2927,13 +2935,6 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 		if(!layer_updated)
 			++consecutive_missing_layer;
 
-		if(_extrapolate_direction == 1) {
-			++layer;
-			if(layer >= _nlayers_all) break;
-		} else {
-			--layer;
-			if(layer <= 0) break;
-		}
 	} // layer loop
 
 	//! Track succesfully propagated and return 0
