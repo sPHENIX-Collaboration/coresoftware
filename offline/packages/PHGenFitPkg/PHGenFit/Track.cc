@@ -374,8 +374,8 @@ int Track::updateOneMeasurementKalman(
 #ifdef _DEBUG_
 		std::cout<< __LINE__ <<std::endl;
 #endif
-		std::vector<genfit::AbsMeasurement*> msmts;
-		msmts.push_back(measurement->getMeasurement());
+		//std::vector<genfit::AbsMeasurement*> msmts;
+		//msmts.push_back(measurement->getMeasurement());
 
 		//genfit::TrackPoint *tp = new genfit::TrackPoint(msmts, track);
 		//track->insertPoint(tp); // genfit
@@ -385,6 +385,10 @@ int Track::updateOneMeasurementKalman(
 		 * PHGenFit: clusterID also registerd
 		 */
 		new_track->addMeasurement(measurement);
+
+#ifdef _DEBUG_
+		std::cout<< __LINE__ <<": clusterIDs size: "<< new_track->get_cluster_IDs().size() <<std::endl;
+#endif
 
 		//! Get the pointer of the TrackPoint just created
 		genfit::TrackPoint *tp = new_track->getGenFitTrack()->getPoint(-1);

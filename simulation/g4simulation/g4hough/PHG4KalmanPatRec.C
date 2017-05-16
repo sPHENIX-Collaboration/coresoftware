@@ -2180,24 +2180,26 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 			std::vector<unsigned int> clusterIDs = track->get_cluster_IDs();
 
 			unsigned int init_layer = UINT_MAX;
-			unsigned int end_layer = UINT_MAX;
+//			unsigned int end_layer = UINT_MAX;
+			int err_code = -1;
 			if(_init_direction == 1) {
 				init_layer = _g4clusters->get(clusterIDs.front())->get_layer();
-				end_layer = 66;
+				err_code = TrackPropPatRec(topNode, iter->first, track, init_layer, _nlayers_all);
+				TrackPropPatRec(topNode, iter->first, track, init_layer, 0);
 			} else {
 				init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
-				end_layer = 0;
+				err_code = TrackPropPatRec(topNode, iter->first, track, init_layer, 0);
+				TrackPropPatRec(topNode, iter->first, track, init_layer, _nlayers_all);
 			}
 
 #ifdef _DEBUG_
 			cout
 			<< __LINE__
-			<< ": TrackPropPatRec from: " << init_layer
-			<< " to " << end_layer
+			<< ": clusterIDs size:  " << track->get_cluster_IDs().size()
 			<< endl;
 #endif
 
-			if (TrackPropPatRec(topNode, iter->first, track, init_layer, end_layer) == 0) {
+			if (err_code == 0) {
 				OutputPHGenFitTrack(topNode, iter);
 #ifdef _DEBUG_
 				cout << __LINE__ << endl;
