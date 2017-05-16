@@ -162,8 +162,8 @@ void PHG4SpacalSubsystem::SetDefaultParameters()
   set_default_double_param("ypos", 0.);  // translation in 3D
   set_default_double_param("zpos", 0.);  // translation in 3D
 
-  set_default_double_param("thickness", 21.00000);  // translation in 3D
-  set_default_double_param("radius", 90.);  // translation in 3D
+  set_default_double_param("thickness", 21.00000);
+  set_default_double_param("radius", 90.);
 
   set_default_int_param("construction_verbose", 0.);
   set_default_int_param("config", static_cast<int>(PHG4CylinderGeom_Spacalv1::kNonProjective));
