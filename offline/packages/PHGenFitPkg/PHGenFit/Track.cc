@@ -28,7 +28,7 @@
 
 #define WILD_DOUBLE -999999
 
-//#define _DEBUG_
+#define _DEBUG_
 //#define _PRINT_MATRIX_
 
 namespace PHGenFit {
@@ -213,7 +213,7 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 	std::unique_ptr<genfit::MeasuredStateOnPlane> kfsop = NULL;
 	if (_track->getNumPointsWithMeasurement() > 0) {
 #ifdef _DEBUG_
-//		std::cout<<__LINE__ <<std::endl;
+		std::cout<<__LINE__ <<std::endl;
 #endif
 		genfit::TrackPoint* tp = _track->getPointWithMeasurement(tr_point_id);
 		if (tp == NULL) {
@@ -248,7 +248,7 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 
 	if (!have_tp_with_fit_info) {
 #ifdef _DEBUG_
-//		std::cout<<__LINE__<< ": !have_tp_with_fit_info" <<std::endl;
+		std::cout<<__LINE__<< ": !have_tp_with_fit_info" <<std::endl;
 #endif
 		kfsop = std::unique_ptr < genfit::MeasuredStateOnPlane
 				> (new genfit::MeasuredStateOnPlane(rep));
@@ -261,9 +261,10 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 		//rep->extrapolateToLine(*kfsop, line_point, line_direction);
 		pathlenth = rep->extrapolateToCylinder(*kfsop, radius, line_point, line_direction);
 	} catch (genfit::Exception& e) {
-		std::cerr << "Exception, next track" << std::endl;
-		std::cerr << e.what();
-		//delete kfsop;
+		if(verbosity > 1) {
+			LogWarning("Can't extrapolate to cylinder!");
+			std::cerr << e.what();
+		}
 		return WILD_DOUBLE;
 	}
 
@@ -289,7 +290,19 @@ genfit::MeasuredStateOnPlane*  Track::extrapolateToCylinder(double radius, TVect
 
 int Track::updateOneMeasurementKalman(
 		const std::vector<PHGenFit::Measurement*>& measurements,
-		std::map<double, PHGenFit::Track*>& incr_chi2s_new_tracks, const int direction) const {
+		std::map<double, PHGenFit::Track*>& incr_chi2s_new_tracks,
+		const int base_tp_idx,
+		const int direction,
+		const float blowup_factor) const {
+
+#ifdef _DEBUG_
+	std::cout
+	<< __LINE__
+	<<" : base_tp_idx: " << base_tp_idx
+	<<" : direction: " << direction
+	<<" : blowup_factor: " << blowup_factor
+	<< std::endl;
+#endif
 
 	if(measurements.size()==0) return -1;
 
@@ -312,11 +325,8 @@ int Track::updateOneMeasurementKalman(
 		std::unique_ptr<genfit::MeasuredStateOnPlane> currentState = NULL;
 		genfit::SharedPlanePtr plane = NULL;
 
-#ifdef _DEBUG_
-		std::cout << __LINE__ << ": " << "track->getPointWithMeasurement(): " << track->getPointWithMeasurement(-1) << std::endl;
-#endif
 		if(track->getNumPointsWithMeasurement() > 0) {
-			tp_base = track->getPointWithMeasurement(-1);
+			tp_base = track->getPointWithMeasurement(base_tp_idx);
 			newFi = !(tp_base->hasFitterInfo(rep));
 			//tp_base->Print();
 		}
@@ -330,12 +340,31 @@ int Track::updateOneMeasurementKalman(
 					track->getCovSeed());
 		} else {
 			try {
+//				currentState =
+//						std::unique_ptr < genfit::MeasuredStateOnPlane> (
+//								new genfit::MeasuredStateOnPlane(
+//										static_cast<genfit::KalmanFitterInfo*>(tp_base->getFitterInfo(rep))->getFittedState(true)
+//										)
+//				);
+
+				genfit::MeasuredStateOnPlane* tempMSOP = static_cast<genfit::KalmanFitterInfo*>(tp_base->getFitterInfo(rep))->getUpdate(direction);
 				currentState =
-						std::unique_ptr < genfit::MeasuredStateOnPlane
-								> (new genfit::MeasuredStateOnPlane(
-										static_cast<genfit::KalmanFitterInfo*>(tp_base->getFitterInfo(
-												rep))->getFittedState(true)));
-			} catch (...) {
+						std::unique_ptr < genfit::MeasuredStateOnPlane> (
+								new genfit::MeasuredStateOnPlane(*tempMSOP)
+				);
+
+
+				if(blowup_factor > 1) {
+					currentState->blowUpCov(blowup_factor, true, 1e6);
+				}
+			} catch (genfit::Exception e) {
+#ifdef _DEBUG_
+		std::cout
+		<< __LINE__
+		<< ": Fitted state not found!"
+		<< std::endl;
+		std::cerr<<e.what()<<std::endl;
+#endif
 				currentState = std::unique_ptr < genfit::MeasuredStateOnPlane
 						> (new genfit::MeasuredStateOnPlane(rep));
 				rep->setPosMomCov(*currentState, track->getStateSeed(),
@@ -365,7 +394,10 @@ int Track::updateOneMeasurementKalman(
 		genfit::KalmanFitterInfo* fi = new genfit::KalmanFitterInfo(tp, rep);
 		tp->setFitterInfo(fi);
 #ifdef _DEBUG_
-		std::cout<< __LINE__ << ": " <<"track->getPointWithMeasurement(): "<<track->getPointWithMeasurement(-1)<<std::endl;
+		std::cout
+		<< __LINE__
+		<<": track->getPointWithMeasurement(): " << track->getPointWithMeasurement(-1)
+		<< std::endl;
 #endif
 //		if (track->getNumPointsWithMeasurement() > 0) {
 //			tp_base = track->getPointWithMeasurement(-1);
@@ -416,8 +448,13 @@ int Track::updateOneMeasurementKalman(
 		std::cout<< __LINE__ <<std::endl;
 #endif
 		// update(s)
-		const std::vector<genfit::MeasurementOnPlane *>& measurements_on_plane =
-				fi->getMeasurementsOnPlane();
+		const std::vector<genfit::MeasurementOnPlane *>& measurements_on_plane = fi->getMeasurementsOnPlane();
+#ifdef _DEBUG_
+		std::cout
+		<< __LINE__
+		<< ": size of fi's MeasurementsOnPlane: " << measurements_on_plane.size()
+		<<std::endl;
+#endif
 		for (std::vector<genfit::MeasurementOnPlane *>::const_iterator it =
 				measurements_on_plane.begin();
 				it != measurements_on_plane.end(); ++it) {
