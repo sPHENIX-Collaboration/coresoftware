@@ -13,6 +13,7 @@
 
 #include <g4main/PHG4PhenixDetector.h>
 #include <g4main/PHG4Utils.h>
+#include <g4gdml/PHG4GDMLConfig.hh>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -310,6 +311,8 @@ PHG4ProjSpacalDetector::Construct_Block()
               fiber_logic, G4String(name.str().c_str()), block_logic, false,
               fiber_count, overlapcheck);
           fiber_vol[fiber_physi] = fiber_count;
+          assert(gdml_config);
+          gdml_config->exclude_physical_vol(fiber_physi);
 
           fiber_count++;
         }
