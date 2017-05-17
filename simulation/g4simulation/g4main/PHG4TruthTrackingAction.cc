@@ -81,7 +81,7 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
 
   if (!track->GetParentID()) {
     // primary track - propagate the barcode information
-    PHG4UserPrimaryParticleInformation* userdata = (PHG4UserPrimaryParticleInformation*)track->GetDynamicParticle()->GetPrimaryParticle()->GetUserInformation();
+    PHG4UserPrimaryParticleInformation* userdata = static_cast<PHG4UserPrimaryParticleInformation*> (track->GetDynamicParticle()->GetPrimaryParticle()->GetUserInformation());
     if(userdata) ti->set_barcode( userdata->get_user_barcode() );
   }
 
@@ -136,7 +136,7 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
     
   // tell the primary particle copy in G4 where this output will be stored
   if (!track->GetParentID()) {
-    PHG4UserPrimaryParticleInformation* userdata = (PHG4UserPrimaryParticleInformation*)track->GetDynamicParticle()->GetPrimaryParticle()->GetUserInformation();
+    PHG4UserPrimaryParticleInformation* userdata = static_cast<PHG4UserPrimaryParticleInformation*>(track->GetDynamicParticle()->GetPrimaryParticle()->GetUserInformation());
     if (userdata) {
       userdata->set_user_track_id(trackid);
       userdata->set_user_vtx_id(vtxindex);

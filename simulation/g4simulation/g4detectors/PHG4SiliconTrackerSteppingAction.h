@@ -4,7 +4,7 @@
 #include <g4main/PHG4SteppingAction.h>
 
 class PHG4SiliconTrackerDetector;
-class PHG4Parameters;
+class PHG4ParametersContainer;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
@@ -12,28 +12,34 @@ class PHG4Shower;
 class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
 {
  public:
-  PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector*/*, const PHG4Parameters *parameters*/);
+  PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector *, const PHG4ParametersContainer *parameters);
 
   virtual ~PHG4SiliconTrackerSteppingAction();
 
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  virtual bool UserSteppingAction(const G4Step *, bool);
 
-  virtual void SetInterfacePointers(PHCompositeNode*);
+  virtual void SetInterfacePointers(PHCompositeNode *);
 
  private:
   //! pointer to the detector
-  PHG4SiliconTrackerDetector* detector_;
+  PHG4SiliconTrackerDetector *detector_;
 
   //! pointer to hit container
-  PHG4HitContainer * hits_;
-  PHG4HitContainer * absorberhits_;
-  PHG4Hit          *hit;
+  PHG4HitContainer *hits_;
+  PHG4HitContainer *absorberhits_;
+  PHG4Hit *hit;
   PHG4HitContainer *savehitcontainer;
-  PHG4Shower       *saveshower;
-  /* const PHG4Parameters *params; */
+  PHG4Shower *saveshower;
+  const PHG4ParametersContainer *paramscontainer;
 
-  /* int IsActive; */
-  /* int IsBlackHole; */
+  double strip_y[4];
+  double strip_z[4][2];
+  int nstrips_z_sensor[4][2];
+  int nstrips_phi_cell[4];
+  std::map<int, int> IsActive;
+  std::map<int, int> IsBlackHole;
+  std::map<std::string, int> AbsorberIndex;
+  std::set<std::string> missingabsorbers;
 };
 
-#endif // PHG4SiliconTrackerSteppingAction_h
+#endif  // PHG4SiliconTrackerSteppingAction_h

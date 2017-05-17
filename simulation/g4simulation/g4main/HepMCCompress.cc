@@ -74,10 +74,8 @@ HepMCCompress::process_event(PHCompositeNode *topNode)
     }
 
   vector<short> shepmcvtxvec;
-  vector<short> shepmcparticlevec;
 
   std::list<HepMC::GenParticle*> finalstateparticles;
-  std::list<HepMC::GenParticle*>::const_iterator  fiter;
   // units in G4 interface are GeV and CM
   //  const double mom_factor = HepMC::Units::conversion_factor( evt->momentum_unit(), HepMC::Units::GEV );
   const double length_factor = HepMC::Units::conversion_factor( evt->length_unit(), HepMC::Units::CM );

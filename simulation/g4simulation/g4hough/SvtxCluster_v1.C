@@ -151,6 +151,12 @@ float SvtxCluster_v1::get_z_size() const {
 }
 
 float SvtxCluster_v1::get_phi_error() const {
+  float rad = sqrt(_pos[0]*_pos[0] + _pos[1]*_pos[1]);
+  if(rad>0) return get_rphi_error()/rad;
+  return 0;
+}
+
+float SvtxCluster_v1::get_rphi_error() const {
 
   TMatrixF COVAR(3,3);
   for (unsigned int i=0; i<3; ++i) {

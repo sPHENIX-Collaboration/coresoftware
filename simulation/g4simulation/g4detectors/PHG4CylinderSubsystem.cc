@@ -18,9 +18,10 @@
 using namespace std;
 
 //_______________________________________________________________________
-PHG4CylinderSubsystem::PHG4CylinderSubsystem(const std::string &na, const int lyr) : PHG4DetectorSubsystem(na, lyr),
-                                                                                     detector_(nullptr),
-                                                                                     steppingAction_(nullptr)
+PHG4CylinderSubsystem::PHG4CylinderSubsystem(const std::string &na, const int lyr)
+  : PHG4DetectorSubsystem(na, lyr)
+  , detector_(nullptr)
+  , steppingAction_(nullptr)
 {
   InitializeParameters();
 }
@@ -118,12 +119,14 @@ void PHG4CylinderSubsystem::SetDefaultParameters()
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
   set_default_double_param("radius", 100);
+  set_default_double_param("steplimits", NAN);
   set_default_double_param("thickness", 100);
   set_default_double_param("tmin", NAN);
   set_default_double_param("tmax", NAN);
 
   set_default_int_param("lengthviarapidity", 1);
   set_default_int_param("lightyield", 0);
+  set_default_int_param("use_g4steps", 0);
 
   set_default_string_param("material", "G4_Galactic");
 }
