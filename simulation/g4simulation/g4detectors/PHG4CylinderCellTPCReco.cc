@@ -28,7 +28,6 @@
 #include <sstream>
 #include <limits>
 
-//#include <TMath.h>
 #include "TH1F.h"
 #include "TProfile2D.h"
 #include "TStopwatch.h"
