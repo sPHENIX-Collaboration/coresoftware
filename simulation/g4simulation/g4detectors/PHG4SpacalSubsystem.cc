@@ -30,7 +30,8 @@ using namespace std;
 
 //_______________________________________________________________________
 PHG4SpacalSubsystem::PHG4SpacalSubsystem(const std::string& na, const int lyr)
-  : detector_(nullptr)
+  : PHG4DetectorSubsystem(na, lyr)
+  , detector_(nullptr)
   , steppingAction_(nullptr)
 {
   InitializeParameters();
