@@ -28,7 +28,7 @@
 #include <sstream>
 #include <limits>
 
-#include <TMath.h>
+//#include <TMath.h>
 #include "TH1F.h"
 #include "TProfile2D.h"
 #include "TStopwatch.h"
@@ -296,7 +296,6 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
               phi += drphi/r;
               z += dz;
             }
-	  /*
 	  //TODO: this is an approximation of average track propagation time correction on a cluster's hit time or z-position.
 	  // Full simulation require implement this correction in PHG4TPCClusterizer::process_event
 	  const double approximate_cluster_path_length = sqrt(
@@ -308,7 +307,6 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	    z -= driftv * ( hiter->second->get_avg_t() - approximate_cluster_path_length / speed_of_light_cm_ns);
 	  else
 	    z += driftv * ( hiter->second->get_avg_t() - approximate_cluster_path_length / speed_of_light_cm_ns);
-	  */
 	}
       phibin = geo->get_phibin( phi );
       if(phibin < 0 || phibin >= nphibins){continue;}
