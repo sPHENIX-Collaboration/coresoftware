@@ -44,6 +44,9 @@ public:
   void setDiffusion( double diff ){setDiffusionL(diff); setDiffusionT(diff);} //deprecated
   void setElectronsPerKeV( double epk ){elec_per_kev = epk;}
   void set_drift_velocity( const double cm_per_ns) { driftv = cm_per_ns;}
+
+  void setSmearRPhi( double v ) {fFractRPsm=v;}
+  void setSmearZ( double v ) {fFractZZsm=v;}
   
   double get_timing_window_min(const int i) {return tmin_max[i].first;}
   double get_timing_window_max(const int i) {return tmin_max[i].second;}
@@ -96,6 +99,8 @@ protected:
   TProfile2D *fHMeanElectronsPerCell;
   TProfile2D *fHErrorRPhi;
   TProfile2D *fHErrorZ;
+  double fFractRPsm;
+  double fFractZZsm;
   TStopwatch *fSW;
   TH1F *fHTime;
 };
