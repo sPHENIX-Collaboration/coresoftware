@@ -364,6 +364,22 @@ public:
 		_init_direction = initDirection;
 	}
 
+	float get_max_search_win_phi() const {
+		return _max_search_win_phi;
+	}
+
+	void set_max_search_win_phi(float maxSearchWinPhi) {
+		_max_search_win_phi = maxSearchWinPhi;
+	}
+
+	float get_max_search_win_z() const {
+		return _max_search_win_z;
+	}
+
+	void set_max_search_win_z(float maxSearchWinZ) {
+		_max_search_win_z = maxSearchWinZ;
+	}
+
 #ifndef __CINT__
 
 private:

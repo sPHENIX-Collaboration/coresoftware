@@ -178,7 +178,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _nlayers_all(67),
 	  _layer_ilayer_map_all(),
 	  _radii_all(),
-	  _max_search_win_phi(1./30),
+	  _max_search_win_phi(1.),
 	  _max_search_win_z(1.),
 	  _search_win_phi(10),
 	  _search_win_z(10),
@@ -2181,15 +2181,18 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 
 			unsigned int init_layer = UINT_MAX;
 //			unsigned int end_layer = UINT_MAX;
-			int err_code = -1;
 			if(_init_direction == 1) {
-				init_layer = _g4clusters->get(clusterIDs.front())->get_layer();
-				err_code = TrackPropPatRec(topNode, iter->first, track, init_layer, _nlayers_all);
-				TrackPropPatRec(topNode, iter->first, track, init_layer, 0);
+				init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
+				TrackPropPatRec(topNode, iter->first, track, init_layer, _nlayers_all);
+				track = _trackID_PHGenFitTrack[iter->first];
+//				TrackPropPatRec(topNode, iter->first, track, init_layer, 0);
+//				track = _trackID_PHGenFitTrack[iter->first];
 			} else {
 				init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
-				err_code = TrackPropPatRec(topNode, iter->first, track, init_layer, 0);
+				TrackPropPatRec(topNode, iter->first, track, init_layer, 0);
+				track = _trackID_PHGenFitTrack[iter->first];
 				TrackPropPatRec(topNode, iter->first, track, init_layer, _nlayers_all);
+				track = _trackID_PHGenFitTrack[iter->first];
 			}
 
 #ifdef _DEBUG_
@@ -2199,7 +2202,7 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 			<< endl;
 #endif
 
-			if (err_code == 0) {
+			if (track->track->get_cluster_IDs().size() >= _min_good_track_hits) {
 				OutputPHGenFitTrack(topNode, iter);
 #ifdef _DEBUG_
 				cout << __LINE__ << endl;
@@ -2656,6 +2659,8 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 	int direction = end_layer >= init_layer ? 1 : -1;
 	assert(direction==1 or direction==-1);
 
+	float blowup_factor = (direction == -1? 1. : 1.);
+
 	int first_extrapolate_base_TP_id = -1;
 
 	/*!
@@ -2790,7 +2795,8 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 		if(phi_window > _max_search_win_phi) phi_window = _max_search_win_phi;
 		if(z_window > _max_search_win_z) z_window = _max_search_win_z;
 
-		if(layer>2 and layer<7) z_window += 1.2;
+		//FIXME do we need special treatment for INTT or not?
+//		if(layer>2 and layer<7) z_window += 1.2;
 
 #ifdef _DEBUG_
 		cout<<__LINE__<<": ";
@@ -2844,10 +2850,9 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 		cout<<__LINE__<<": measurements.size(): "<<measurements.size()<<endl;
 #endif
 
-		//float blowup_factor = (layer==0 or layer==(unsigned int) _nlayers_all) ? _blowup_factor : 1.;
-		float blowup_factor = 1.;
 		if(verbosity >= 1) _t_track_propagation->restart();
 		track->updateOneMeasurementKalman(measurements, incr_chi2s_new_tracks, extrapolate_base_TP_id, direction, blowup_factor);
+		blowup_factor = 1.;
 		if(verbosity >= 1) _t_track_propagation->stop();
 
 #ifdef _DEBUG_
@@ -2919,13 +2924,13 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 		}
 
 #ifdef _DEBUG_
-		cout<<__LINE__<<": updateOneMeasurementKalman:"<<endl;
-		std::cout<<"iPHGenFitTrack: "<<iPHGenFitTrack
-				<<", layer: "<<layer
-				<<", #meas: "<<measurements.size()
-				<<", #tracks: "<<incr_chi2s_new_tracks.size()
-				<<", #totoal tracks: "<<_trackID_PHGenFitTrack.size()
-				<<std::endl;
+//		cout<<__LINE__<<": updateOneMeasurementKalman:"<<endl;
+//		std::cout<<"iPHGenFitTrack: "<<iPHGenFitTrack
+//				<<", layer: "<<layer
+//				<<", #meas: "<<measurements.size()
+//				<<", #tracks: "<<incr_chi2s_new_tracks.size()
+//				<<", #totoal tracks: "<<_trackID_PHGenFitTrack.size()
+//				<<std::endl;
 
 		for (std::map<double, PHGenFit::Track*>::iterator iter =
 				incr_chi2s_new_tracks.begin();
@@ -2938,6 +2943,13 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 			++consecutive_missing_layer;
 
 	} // layer loop
+
+#ifdef _DEBUG_
+	cout
+	<< __LINE__
+	<< ": clusterIDs size:  " << track->get_cluster_IDs().size()
+	<< endl;
+#endif
 
 	//! Track succesfully propagated and return 0
 	return 0;
