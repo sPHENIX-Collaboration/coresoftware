@@ -500,9 +500,9 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
       // parameters are in cm, so no conversion needed here to get to cm (*cm/cm)
       PHG4CylinderGeom *mygeom = new PHG4CylinderGeom_Siladders(
           sphxlayer,
-          params->get_double_param("strip_x"),
-          params->get_double_param("strip_y"),
-          params->get_double_param("strip_z_0"),
+          params->get_double_param("strip_x")/2.,
+          params->get_double_param("strip_y")/2.,
+          params->get_double_param("strip_z_0")/2.,
           params->get_double_param("strip_z_1"),
           params->get_int_param("nstrips_z_sensor_0"),
           params->get_int_param("nstrips_z_sensor_1"),
