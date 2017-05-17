@@ -12,4 +12,5 @@ if test $ac_cv_prog_gxx = yes; then
    CXXFLAGS="$CXXFLAGS -Wall -Werror"
 fi
 
-AC_OUTPUT(Makefile)
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
