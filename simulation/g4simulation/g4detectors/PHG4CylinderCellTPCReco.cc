@@ -55,6 +55,8 @@ PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
       fHMeanElectronsPerCell(NULL),
       fHErrorRPhi(NULL),
       fHErrorZ(NULL),
+      fFractRPsm(0.0),
+      fFractZZsm(0.0),
       fSW(NULL),
       fHTime(NULL)
 {
@@ -233,6 +235,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
   PHG4HitContainer::LayerIter layer;
   pair<PHG4HitContainer::LayerIter, PHG4HitContainer::LayerIter> layer_begin_end = g4hit->getLayers();
   double sqrt2 = sqrt(2.);
+  double pi = 2*acos(0);
   
   for(layer = layer_begin_end.first; layer != layer_begin_end.second; layer++)
   {
@@ -292,20 +295,18 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
               phi += drphi/r;
               z += dz;
             }
-
-      //TODO: this is an approximation of average track propagation time correction on a cluster's hit time or z-position.
-      // Full simulation require implement this correction in PHG4TPCClusterizer::process_event
-      const double approximate_cluster_path_length = sqrt(
-		hiter->second->get_avg_x() * hiter->second->get_avg_x()
-		+ hiter->second->get_avg_y() * hiter->second->get_avg_y()
-		+ hiter->second->get_avg_z() * hiter->second->get_avg_z());
+	  //TODO: this is an approximation of average track propagation time correction on a cluster's hit time or z-position.
+	  // Full simulation require implement this correction in PHG4TPCClusterizer::process_event
+	  const double approximate_cluster_path_length = sqrt(
+							      hiter->second->get_avg_x() * hiter->second->get_avg_x()
+							      + hiter->second->get_avg_y() * hiter->second->get_avg_y()
+							      + hiter->second->get_avg_z() * hiter->second->get_avg_z());
 	  const double speed_of_light_cm_ns = CLHEP::c_light / (CLHEP::centimeter / CLHEP::nanosecond);
 	  if (z >= 0.0)
-		z -= driftv * ( hiter->second->get_avg_t() - approximate_cluster_path_length / speed_of_light_cm_ns);
+	    z -= driftv * ( hiter->second->get_avg_t() - approximate_cluster_path_length / speed_of_light_cm_ns);
 	  else
-		z += driftv * ( hiter->second->get_avg_t() - approximate_cluster_path_length / speed_of_light_cm_ns);
-      }
-
+	    z += driftv * ( hiter->second->get_avg_t() - approximate_cluster_path_length / speed_of_light_cm_ns);
+	}
       phibin = geo->get_phibin( phi );
       if(phibin < 0 || phibin >= nphibins){continue;}
       double phidisp = phi - geo->get_phicenter(phibin);
@@ -343,6 +344,27 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	double sigmaL = 0.010; //100um
         double cloud_sig_rp = sqrt( fDiffusionT*fDiffusionT*(fHalfLength - TMath::Abs(hiter->second->get_avg_z())) + sigmaT*sigmaT );
         double cloud_sig_zz = sqrt( fDiffusionL*fDiffusionL*(fHalfLength - TMath::Abs(hiter->second->get_avg_z())) + sigmaL*sigmaL );
+
+	//===============
+	// adding a random displacement to effectively deal with cellularisation
+	phi += fFractRPsm*rand.Gaus(0,cloud_sig_rp)/r;
+	if(phi>+pi) phi -= 2*pi;
+	if(phi<-pi) phi += 2*pi;
+	z += fFractZZsm*rand.Gaus(0,cloud_sig_zz);
+	// moving center
+	phibin = geo->get_phibin( phi );
+	zbin = geo->get_zbin( z );
+	// bin protection
+	if(phibin < 0 || phibin >= nphibins){continue;}
+	if(zbin < 0 || zbin >= nzbins){continue;}
+	// bincenter correction
+	phidisp = phi - geo->get_phicenter(phibin);
+	zdisp = z - geo->get_zcenter(zbin);
+	// increase cloud sigma too
+	cloud_sig_rp *= (1+fFractRPsm);
+	cloud_sig_zz *= (1+fFractZZsm);
+	//=====
+
 	int n_rp = int(3*cloud_sig_rp/(r*phistepsize)+1);
         int n_zz = int(3*cloud_sig_zz/zstepsize+1);
 	if(verbosity>1) {
