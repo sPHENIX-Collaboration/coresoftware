@@ -1,5 +1,5 @@
 AC_INIT(PHGenFit,[1.00])
-AC_CONFIG_SRCDIR([configure.in])
+AC_CONFIG_SRCDIR([configure.ac])
 AM_INIT_AUTOMAKE
 
 AC_PROG_CXX(g++)
