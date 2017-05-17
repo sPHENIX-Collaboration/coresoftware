@@ -1,5 +1,4 @@
 #include "PHG4CylinderGeom_Siladders.h"
-#include <cmath>
 
 #include <g4main/PHG4Detector.h>
 
@@ -8,6 +7,8 @@
 
 #include <CLHEP/Vector/ThreeVector.h>
 #include <CLHEP/Vector/Rotation.h>
+
+#include <cmath>
 
 PHG4CylinderGeom_Siladders::PHG4CylinderGeom_Siladders():
   layer(-1),
@@ -53,7 +54,7 @@ void PHG4CylinderGeom_Siladders::find_segment_center(const int segment_z_bin, co
   const double signz = (segment_z_bin<=1) ? -1. : 1.;
 
   // Ladder
-  const double phi  = offsetphi + dphi_ * (double)segment_phi_bin;
+  const double phi  = offsetphi + dphi_ * segment_phi_bin;
   location[0] = eff_radius  * cos(phi);
   location[1] = eff_radius  * sin(phi);
   location[2] = signz * ladder_z_[itype];
@@ -70,14 +71,14 @@ void PHG4CylinderGeom_Siladders::find_strip_center(const int segment_z_bin, cons
   const double strip_z       = strip_z_[itype];
   const int nstrips_z_sensor = nstrips_z_sensor_[itype];
 
-  const double strip_localpos_z = strip_z*(double)(strip_column%nstrips_z_sensor) -    strip_z/2.*(double)nstrips_z_sensor + strip_z/2.;
-  const double strip_localpos_y = strip_y*(double)strip_index                     - strip_y*(double)nstrips_phi_cell + strip_y/2.;
+  const double strip_localpos_z = strip_z*(strip_column%nstrips_z_sensor) -    strip_z/2.*nstrips_z_sensor + strip_z/2.;
+  const double strip_localpos_y = strip_y*strip_index                     - strip_y*nstrips_phi_cell + strip_y/2.;
 
   CLHEP::Hep3Vector strip_localpos(strip_x_offset, strip_localpos_y, strip_localpos_z);
 
   // Strip rotation
-  const double phi    = offsetphi + dphi_ * (double)segment_phi_bin;
-  const double rotate = phi + offsetrot + CLHEP::pi;
+  const double phi    = offsetphi + dphi_ * segment_phi_bin;
+  const double rotate = phi + offsetrot + M_PI;
 
   CLHEP::HepRotation rot;
   rot.rotateZ(rotate);
