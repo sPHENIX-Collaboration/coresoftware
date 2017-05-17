@@ -70,8 +70,8 @@ void PHG4CylinderGeom_Siladders::find_strip_center(const int segment_z_bin, cons
   const double strip_z       = strip_z_[itype];
   const int nstrips_z_sensor = nstrips_z_sensor_[itype];
 
-  const double strip_localpos_z = 2.*strip_z*(double)(strip_column%nstrips_z_sensor) -    strip_z*(double)nstrips_z_sensor + strip_z;
-  const double strip_localpos_y = 2.*strip_y*(double)strip_index                     - 2.*strip_y*(double)nstrips_phi_cell + strip_y;
+  const double strip_localpos_z = strip_z*(double)(strip_column%nstrips_z_sensor) -    strip_z/2.*(double)nstrips_z_sensor + strip_z/2.;
+  const double strip_localpos_y = strip_y*(double)strip_index                     - strip_y*(double)nstrips_phi_cell + strip_y/2.;
 
   CLHEP::Hep3Vector strip_localpos(strip_x_offset, strip_localpos_y, strip_localpos_z);
 
