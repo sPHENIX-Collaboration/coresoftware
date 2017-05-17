@@ -236,6 +236,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
   PHG4HitContainer::LayerIter layer;
   pair<PHG4HitContainer::LayerIter, PHG4HitContainer::LayerIter> layer_begin_end = g4hit->getLayers();
   double sqrt2 = sqrt(2.);
+  double pi = 2*acos(0);
   
   for(layer = layer_begin_end.first; layer != layer_begin_end.second; layer++)
   {
@@ -350,8 +351,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	//===============
 	// adding a random displacement to effectively deal with cellularisation
 	phi += fFractRPsm*rand.Gaus(0,cloud_sig_rp)/r;
-	if(phi>+TMath::Pi()) phi -= TMath::TwoPi();
-	if(phi<-TMath::Pi()) phi += TMath::TwoPi();
+	if(phi>+pi) phi -= 2*pi;
+	if(phi<-pi) phi += 2*pi;
 	z += fFractZZsm*rand.Gaus(0,cloud_sig_zz);
 	// moving center
 	phibin = geo->get_phibin( phi );
