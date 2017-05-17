@@ -21,9 +21,9 @@ pkginclude_HEADERS = \
 
 libPrototype2_la_SOURCES = \
   RawTower_Prototype2.cc \
-  RawTower_Prototype2Dict.cc \
+  RawTower_Prototype2Dict.C \
   Prototype2DSTReader.cc \
-  Prototype2DSTReaderDict.cc \
+  Prototype2DSTReaderDict.C \
   CaloUnpackPRDF.C \
   CaloUnpackPRDFDict.C \
   TempInfoUnpackPRDF.C \
@@ -35,9 +35,9 @@ libPrototype2_la_SOURCES = \
   GenericUnpackPRDF.C \
   GenericUnpackPRDFDict.C \
   PROTOTYPE2_FEM.C \
-  PROTOTYPE2_FEMDict.cc \
+  PROTOTYPE2_FEMDict.C \
   RawTower_Temperature.cc \
-  RawTower_TemperatureDict.cc
+  RawTower_TemperatureDict.C
 
 libPrototype2_la_LIBADD = \
   -lSubsysReco \
