@@ -1,14 +1,13 @@
 AUTOMAKE_OPTIONS = foreign 
 
-lib_LTLIBRARIES = libPgCal.la libPgCalInstance.la
-
-BUILT_SOURCES = \
-  testexternals.C
+lib_LTLIBRARIES = \
+  libPgCal.la \
+  libPgCalInstance.la
 
 BANKOMAT = perl $(srcdir)/PgBankomat.pl
 ROOTIFY =  perl $(srcdir)/PgRootify.pl
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
   -I$(OPT_SPHENIX)/include \
@@ -66,13 +65,17 @@ pkginclude_HEADERS = \
   PgPostCalBank.h \
   RunToTimePg.h
 
-noinst_PROGRAMS = \
-  testexternals
+BUILT_SOURCES = testexternals.C
 
-testexternals_SOURCES = testexternals.C
-testexternals_LDADD = \
-  libPgCal.la \
-  libPgCalInstance.la
+noinst_PROGRAMS = \
+  testexternals_PgCal \
+  testexternals_PgCalInstance
+
+testexternals_PgCal_SOURCES = testexternals.C
+testexternals_PgCal_LDADD = libPgCal.la 
+
+testexternals_PgCalInstance_SOURCES = testexternals.C
+testexternals_PgCalInstance_LDADD = libPgCalInstance.la
 
 testexternals.C:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
@@ -94,7 +97,7 @@ PgPost%Bank.h PgPost%Bank.cc:
 
 # this generates the standard dictionaries
 %_dict.C : %.h %_LinkDef.h
-	 rootcint -f $@ -c $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	 rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -rf *_dict*
