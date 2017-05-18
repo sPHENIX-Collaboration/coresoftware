@@ -2,7 +2,7 @@ AC_INIT(PHPythia8,[1.00])
 AC_CONFIG_SRCDIR([configure.ac])
 AM_INIT_AUTOMAKE
 
-AC_PROG_CXX(g++)
+AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
 dnl   no point in suppressing warnings people should
@@ -12,4 +12,5 @@ if test $ac_cv_prog_gxx = yes; then
    CXXFLAGS="$CXXFLAGS -Wall"
 fi
 
-AC_OUTPUT(Makefile)
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
