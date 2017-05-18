@@ -1,30 +1,42 @@
 //
 // Inspired by code from ATLAS.  Thanks!
 //
+
+#include "flowAfterburner.h"
+
+#include <HepMC/GenEvent.h>
+#include <HepMC/GenVertex.h>
+#include <HepMC/GenParticle.h>
+#include <HepMC/GenRanges.h>
+#include <HepMC/IO_AsciiParticles.h>
+#include <HepMC/IO_GenEvent.h>
+
+#include <CLHEP/Random/RandomEngine.h>
+#include <CLHEP/Random/MTwistEngine.h>
+#include <CLHEP/Random/RandFlat.h>
+#include <CLHEP/Vector/LorentzVector.h>
+#include <CLHEP/Geometry/Point3D.h>
+
+#include <boost/version.hpp> // to get BOOST_VERSION
+#if (__GNUC__ == 4 && __GNUC_MINOR__ == 8 && BOOST_VERSION == 106000 )
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma message "ignoring bogus gcc warning in boost header ptree.hpp"
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#pragma GCC diagnostic warning "-Wshadow"
+#else
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#endif
+
+#include <boost/foreach.hpp>
+#include <boost/lexical_cast.hpp>
+
+
 #include <iostream>
 #include <cstdlib>
 #include <string>
 #include <memory>
-
-#include "HepMC/GenEvent.h"
-#include "HepMC/GenVertex.h"
-#include "HepMC/GenParticle.h"
-#include "HepMC/GenRanges.h"
-#include "HepMC/IO_AsciiParticles.h"
-#include "HepMC/IO_GenEvent.h"
-
-#include "CLHEP/Random/RandomEngine.h"
-#include "CLHEP/Random/MTwistEngine.h"
-#include "CLHEP/Random/RandFlat.h"
-#include "CLHEP/Vector/LorentzVector.h"
-#include "CLHEP/Geometry/Point3D.h"
-
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
-#include <boost/foreach.hpp>
-#include <boost/lexical_cast.hpp>
-
-#include "flowAfterburner.h"
 
 CLHEP::HepRandomEngine * engine;
 
