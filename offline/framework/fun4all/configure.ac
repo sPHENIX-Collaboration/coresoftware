@@ -1,9 +1,10 @@
-AC_INIT(configure.in)
+AC_INIT(fun4all,[1.00])
+AC_CONFIG_SRCDIR([configure.ac])
 
-AM_INIT_AUTOMAKE(fun4all, 1.00)
+AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
-AC_ENABLE_STATIC(no)
-LT_INIT
+
+LT_INIT([disable-static])
 
 dnl   no point in suppressing warnings people should 
 dnl   at least see them, so here we go for g++: -Wall
