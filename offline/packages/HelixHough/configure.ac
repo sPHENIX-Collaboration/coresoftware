@@ -1,7 +1,7 @@
-AC_INIT(HelixHough, [1.00])
+AC_INIT([HelixHough], [1.00])
 AC_CONFIG_SRCDIR([configure.ac])
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE(HelixHough, 1.00)
 
 AC_PROG_CXX(CC g++)
 AC_ENABLE_STATIC(no)
