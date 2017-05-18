@@ -213,7 +213,7 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 	std::unique_ptr<genfit::MeasuredStateOnPlane> kfsop = NULL;
 	if (_track->getNumPointsWithMeasurement() > 0) {
 #ifdef _DEBUG_
-		std::cout<<__LINE__ <<std::endl;
+//		std::cout<<__LINE__ <<std::endl;
 #endif
 		genfit::TrackPoint* tp = _track->getPointWithMeasurement(tr_point_id);
 		if (tp == NULL) {
@@ -340,23 +340,29 @@ int Track::updateOneMeasurementKalman(
 					track->getCovSeed());
 		} else {
 			try {
-//				currentState =
-//						std::unique_ptr < genfit::MeasuredStateOnPlane> (
-//								new genfit::MeasuredStateOnPlane(
-//										static_cast<genfit::KalmanFitterInfo*>(tp_base->getFitterInfo(rep))->getFittedState(true)
-//										)
-//				);
+				genfit::KalmanFitterInfo* kfi = static_cast<genfit::KalmanFitterInfo*>(tp_base->getFitterInfo(rep));
 
-				genfit::MeasuredStateOnPlane* tempMSOP = static_cast<genfit::KalmanFitterInfo*>(tp_base->getFitterInfo(rep))->getUpdate(direction);
-				currentState =
-						std::unique_ptr < genfit::MeasuredStateOnPlane> (
-								new genfit::MeasuredStateOnPlane(*tempMSOP)
-				);
-
-
-				if(blowup_factor > 1) {
-					currentState->blowUpCov(blowup_factor, true, 1e6);
+				if(blowup_factor > 1.) {
+					const genfit::MeasuredStateOnPlane* tempFS = &(kfi->getFittedState(true));
+					currentState = std::unique_ptr < genfit::MeasuredStateOnPlane> (new genfit::MeasuredStateOnPlane(*tempFS));
+				} else {
+					genfit::MeasuredStateOnPlane* tempUpdate =  kfi->getUpdate(direction);
+					currentState = std::unique_ptr < genfit::MeasuredStateOnPlane> (new genfit::MeasuredStateOnPlane(*tempUpdate));
 				}
+
+#ifdef _DEBUG_
+//				std::cout << __LINE__ << "\n ###################################################################"<<std::endl;
+//				kfi->Print();
+//				std::cout << __LINE__ << "\n ###################################################################"<<std::endl;
+//				tempFS->Print();
+//				std::cout << __LINE__ << "\n ###################################################################"<<std::endl;
+//				tempUpdate->Print();
+//				std::cout << __LINE__ << "\n ###################################################################"<<std::endl;
+#endif
+//				if(blowup_factor > 1) {
+//					currentState->blowUpCov(blowup_factor, true, 1e6);
+//				}
+
 			} catch (genfit::Exception e) {
 #ifdef _DEBUG_
 		std::cout
