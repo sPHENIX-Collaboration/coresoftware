@@ -1,5 +1,5 @@
-AC_CONFIG_SRCDIR([configure.ac])
 AC_INIT(pdbcalbase,[1.00])
+AC_CONFIG_SRCDIR([configure.ac])
 
 AM_INIT_AUTOMAKE
 
