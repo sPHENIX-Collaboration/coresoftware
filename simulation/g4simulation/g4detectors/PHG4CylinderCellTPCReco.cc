@@ -233,12 +233,9 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
   map<int, std::pair <double, double> >::iterator sizeiter;
   PHG4HitContainer::LayerIter layer;
   pair<PHG4HitContainer::LayerIter, PHG4HitContainer::LayerIter> layer_begin_end = g4hit->getLayers();
-  double sqrt2 = sqrt(2.);
-  double pi = 2*acos(0);
-  
   for(layer = layer_begin_end.first; layer != layer_begin_end.second; layer++)
   {
-    std::map<unsigned long, PHG4Cell*> cellptmap; // key will fail if numbins per layer > 4.2 billion
+    std::map<unsigned long long, PHG4Cell*> cellptmap;
     PHG4HitContainer::ConstIterator hiter;
     PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(*layer);
     PHG4CylinderCellGeom *geo = seggeo->GetLayerCellGeom(*layer);
@@ -319,8 +316,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	fHMeanEDepPerCell->Fill( float(*layer), z, edep );
       }
       if( (*layer) < (unsigned int)num_pixel_layers ) { // MAPS + ITT
-        unsigned long key = zbin*nphibins + phibin;
-	std::map<unsigned long, PHG4Cell*>::iterator it = cellptmap.find(key);
+        unsigned long long key = zbin*nphibins + phibin;
+	std::map<unsigned long long, PHG4Cell*>::iterator it = cellptmap.find(key);
 	PHG4Cell *cell;
 	if(it != cellptmap.end()) {
 	  cell = it->second;
@@ -347,8 +344,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	//===============
 	// adding a random displacement to effectively deal with cellularisation
 	phi += fFractRPsm*gsl_ran_gaussian(RandomGenerator, cloud_sig_rp)/r;
-	if(phi>+pi) phi -= 2*pi;
-	if(phi<-pi) phi += 2*pi;
+	if(phi>+M_PI) phi -= 2*M_PI;
+	if(phi<-M_PI) phi += 2*M_PI;
 	z += fFractZZsm*gsl_ran_gaussian(RandomGenerator, cloud_sig_zz);
 	// moving center
 	phibin = geo->get_phibin( phi );
@@ -387,14 +384,14 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	    std::cout << "PHG4CylinderCellTPCReco => error in phi continuity. Skipping" << std::endl;
 	    continue;
 	  }
-	  double phiLim1 = 0.5*sqrt2*( (iphi+0.5)*phistepsize*r - phidisp*r )*cloud_sig_rp_inv;
-	  double phiLim2 = 0.5*sqrt2*( (iphi-0.5)*phistepsize*r - phidisp*r )*cloud_sig_rp_inv;
+	  double phiLim1 = 0.5*M_SQRT2*( (iphi+0.5)*phistepsize*r - phidisp*r )*cloud_sig_rp_inv;
+	  double phiLim2 = 0.5*M_SQRT2*( (iphi-0.5)*phistepsize*r - phidisp*r )*cloud_sig_rp_inv;
           double phi_integral = 0.5*( erf(phiLim1) - erf(phiLim2) );
           for( int iz = -n_zz; iz != n_zz+1; ++iz ) {
             int cur_z_bin = zbin + iz;
 	    if( (cur_z_bin < 0) || (cur_z_bin >= nzbins) ) continue;
-	    double zLim1 = 0.5*sqrt2*( (iz+0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
-	    double zLim2 = 0.5*sqrt2*( (iz-0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
+	    double zLim1 = 0.5*M_SQRT2*( (iz+0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
+	    double zLim2 = 0.5*M_SQRT2*( (iz-0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
             double z_integral = 0.5*( erf(zLim1) - erf(zLim2) );
             float neffelectrons = nelec*( phi_integral * z_integral );//rand.PoissonD( nelec*( phi_integral * z_integral ) );
 	    if(verbosity>1000) {
@@ -403,7 +400,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	    }
             if(neffelectrons < 0) continue; // skip no signals
 	    unsigned long key = cur_z_bin*nphibins + cur_phi_bin;
-	    std::map<unsigned long, PHG4Cell*>::iterator it = cellptmap.find(key);
+	    std::map<unsigned long long, PHG4Cell*>::iterator it = cellptmap.find(key);
 	    PHG4Cell *cell;
 	    if(it != cellptmap.end()) {
 	      cell = it->second;
@@ -421,7 +418,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       }
     }
     int count = 0;
-    for(std::map<unsigned long, PHG4Cell*>::iterator it = cellptmap.begin(); it != cellptmap.end(); ++it) {
+    for(std::map<unsigned long long, PHG4Cell*>::iterator it = cellptmap.begin(); it != cellptmap.end(); ++it) {
       cells->AddCell(it->second);
       int phibin = PHG4CellDefs::SizeBinning::get_phibin(it->second->get_cellid());
       int zbin = PHG4CellDefs::SizeBinning::get_zbin(it->second->get_cellid());
@@ -438,11 +435,3 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
   _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-
-int PHG4CylinderCellTPCReco::End(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-
