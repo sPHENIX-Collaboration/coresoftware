@@ -1,9 +1,10 @@
-AC_INIT(configure.in)
-AM_INIT_AUTOMAKE(g4decayer, 1.00)
+AC_INIT(g4decayer, [1.00])
+AC_CONFIG_SRCDIR([configure.ac])
 
-AC_PROG_CXX(g++)
-AC_ENABLE_STATIC(no)
-LT_INIT
+AM_INIT_AUTOMAKE
+
+AC_PROG_CXX(CC g++)
+LT_INIT([disable-static])
 
 dnl   no point in suppressing warnings people should 
 dnl   at least see them, so here we go for g++: -Wall
@@ -12,5 +13,7 @@ if test $ac_cv_prog_gxx = yes; then
    AM_CONDITIONAL(GCC_GE_48, test `g++ -dumpversion | gawk '{print $1>=4.8?"1":"0"}'` = 1)
 fi
 
-AC_OUTPUT(Makefile)
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+
 

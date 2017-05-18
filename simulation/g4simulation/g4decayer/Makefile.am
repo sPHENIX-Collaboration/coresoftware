@@ -4,15 +4,16 @@ lib_LTLIBRARIES = \
   libg4decayer.la
 
 # set in configure.in to check if gcc version >= 4.8
-if GCC_GE_48
-  AM_CXXFLAGS = -std=c++11
-endif
+# leave this here to show how it can be done, -std=c++11 is now
+# enabled by default in our config.site
+#if GCC_GE_48
+#  AM_CXXFLAGS = -std=c++11
+#endif
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I${G4_MAIN}/include \
-  -I${G4_MAIN}/include/Geant4
+  -I${G4_MAIN}/include
 
 libg4decayer_la_LDFLAGS = \
   -L$(libdir) \
