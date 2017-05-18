@@ -1,13 +1,11 @@
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include
 
 lib_LTLIBRARIES = \
    libg4dst.la
-
-AM_CXXFLAGS = -Wall -Werror -msse2
 
 libg4dst_la_LDFLAGS = \
   -L$(libdir) \
@@ -19,17 +17,8 @@ libg4dst_la_LDFLAGS = \
   -lg4vertex_io \
   -lg4jets_io
 
-#pkginclude_HEADERS = $(include_HEADERS)
-
 libg4dst_la_SOURCES = \
    g4dst.C
-
-# Rule for generating table CINT dictionaries.
-%_Dict.C: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
-
-%_Dict.cpp: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
 
 ################################################
 # linking tests
