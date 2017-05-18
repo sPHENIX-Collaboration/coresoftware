@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 BUILT_SOURCES = \
   testexternals.cc
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I$(ROOTSYS)/include \
@@ -57,7 +57,7 @@ testexternals.cc:
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 
 clean-local:
