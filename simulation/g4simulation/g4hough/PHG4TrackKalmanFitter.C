@@ -274,12 +274,11 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
  */
 int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 	_event++;
-#if _DEBUG_MODE_ == 1
-	cout << PHWHERE << "Events processed: " << _event << endl;
-#else
-	if (_event % 1000 == 0)
-		cout << PHWHERE << "Events processed: " << _event << endl;
-#endif
+
+	if(verbosity > 1)
+		std::cout << PHWHERE << "Events processed: " << _event << std::endl;
+//	if (_event % 1000 == 0)
+//		cout << PHWHERE << "Events processed: " << _event << endl;
 
 	GetNodes(topNode);
 
