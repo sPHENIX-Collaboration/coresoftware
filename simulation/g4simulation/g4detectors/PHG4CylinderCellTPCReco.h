@@ -4,16 +4,19 @@
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
 
-#include <TRandom3.h>
+// rootcint barfs with this header so we need to hide it
+#ifndef __CINT__
+#include <gsl/gsl_rng.h>
+#endif
+
 
 #include <string>
 #include <map>
 
 class PHCompositeNode;
 class PHG4TPCDistortion;
-class TH1F;
+class TH1;
 class TProfile2D;
-class TStopwatch;
 
 class PHG4CylinderCellTPCReco : public SubsysReco
 {
@@ -63,7 +66,6 @@ public:
 protected:
   std::map<int, int>  binning;
   std::map<int, std::pair <double,double> > cell_size; // cell size in phi/z
-  std::map<int, std::pair <double,double> > zmin_max; // zmin/zmax for each layer for faster lookup
   std::map<int, double> phistep;
   std::map<int, double> etastep;
   std::string detector;
@@ -76,8 +78,6 @@ protected:
   PHTimeServer::timer _timer;
   int nbins[2];
   
-  TRandom3 rand;
-
   double fHalfLength;
   double fDiffusionT;
   double fDiffusionL;
@@ -92,7 +92,7 @@ protected:
   
   //! distortion to the primary ionization if not NULL
   PHG4TPCDistortion * distortion;
-  TH1F *fHElectrons;
+  TH1 *fHElectrons;
   TProfile2D *fHWindowP;
   TProfile2D *fHWindowZ;
   TProfile2D *fHMeanEDepPerCell;
@@ -101,8 +101,11 @@ protected:
   TProfile2D *fHErrorZ;
   double fFractRPsm;
   double fFractZZsm;
-  TStopwatch *fSW;
-  TH1F *fHTime;
+#ifndef __CINT__
+  //! random generator that conform with sPHENIX standard
+  gsl_rng *RandomGenerator;
+#endif
+
 };
 
 #endif
