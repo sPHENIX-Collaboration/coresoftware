@@ -14,12 +14,12 @@ lib_LTLIBRARIES = \
    libphgeom.la
 
 pkginclude_HEADERS = \
-	PHGeomTGeo.h \
-	PHGeomIOTGeo.h \
-	PHGeomUtility.h
+  PHGeomTGeo.h \
+  PHGeomIOTGeo.h \
+  PHGeomUtility.h
 
 noinst_HEADERS = \
-	PHGeomFileImport.h
+  PHGeomFileImport.h
 
 libphgeom_la_SOURCES = \
   PHGeomTGeo.cc \
@@ -30,17 +30,17 @@ libphgeom_la_SOURCES = \
   PHGeomFileImport_Dict.cc  \
   PHGeomUtility.cc \
   PHGeomUtility_Dict.cc 
-  
+
 libphgeom_la_LDFLAGS = \
   `root-config --evelibs`
-  
+
 libphgeom_la_LIBADD = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -lphool \
   -lfun4all \
   -lGeom
-  
+
 noinst_PROGRAMS = \
   testexternals
 
