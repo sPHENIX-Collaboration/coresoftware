@@ -866,7 +866,8 @@ double  PHG4MapsCellReco::sA(double r, double x, double y)
 void
 PHG4MapsCellReco::set_timing_window(const int detid, const double tmin, const double tmax)
 {
-  cout << "PHG4MapsCellReco: Setting MAPS timing window parameters from macro for detid = " << detid << " to tmin = " << tmin << " tmax = " << tmax << endl;
+  if (Verbosity())
+    cout << "PHG4MapsCellReco: Setting MAPS timing window parameters from macro for detid = " << detid << " to tmin = " << tmin << " tmax = " << tmax << endl;
   tmin_max.insert(std::make_pair(detid, std::make_pair(tmin, tmax)));
 
   return;
