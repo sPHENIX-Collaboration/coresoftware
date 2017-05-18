@@ -2182,11 +2182,11 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 			unsigned int init_layer = UINT_MAX;
 //			unsigned int end_layer = UINT_MAX;
 			if(_init_direction == 1) {
-				init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
+				init_layer = _g4clusters->get(clusterIDs.front())->get_layer();
 				TrackPropPatRec(topNode, iter->first, track, init_layer, _nlayers_all);
 				track = _trackID_PHGenFitTrack[iter->first];
-//				TrackPropPatRec(topNode, iter->first, track, init_layer, 0);
-//				track = _trackID_PHGenFitTrack[iter->first];
+				TrackPropPatRec(topNode, iter->first, track, init_layer, 0);
+				track = _trackID_PHGenFitTrack[iter->first];
 			} else {
 				init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
 				TrackPropPatRec(topNode, iter->first, track, init_layer, 0);
@@ -2202,7 +2202,7 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 			<< endl;
 #endif
 
-			if (track->track->get_cluster_IDs().size() >= _min_good_track_hits) {
+			if (track->get_cluster_IDs().size() >= _min_good_track_hits) {
 				OutputPHGenFitTrack(topNode, iter);
 #ifdef _DEBUG_
 				cout << __LINE__ << endl;
@@ -2550,7 +2550,7 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 		TVector3 n(cluster->get_x(), cluster->get_y(), 0);
 
 #ifdef _DEBUG_
-	cout<<__LINE__<<": cluster: "<< cluster_ID <<": layer: "<< cluster->get_layer() <<": r idx: "<< iter->first <<": r real: "<< pos.Perp()<<endl;
+//	cout<<__LINE__<<": cluster: "<< cluster_ID <<": layer: "<< cluster->get_layer() <<": r idx: "<< iter->first <<": r real: "<< pos.Perp()<<endl;
 #endif
 
 		//17.4, 17.4, 17.4, 14.0, 14.0, 12.0, 11.5
@@ -2609,15 +2609,15 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 #endif
 		meas->set_cluster_ID(cluster_ID);
 #ifdef _DEBUG_
-		cout
-		<<__LINE__
-		<<": ID: " << cluster_ID
-		<<": layer: " << cluster->get_layer()
-		<<": rphi_error: " << cluster->get_rphi_error()
-		<<": phi_error: " << cluster->get_phi_error()
-		<<endl;
-		pos.Print();
-		n.Print();
+//		cout
+//		<<__LINE__
+//		<<": ID: " << cluster_ID
+//		<<": layer: " << cluster->get_layer()
+//		<<": rphi_error: " << cluster->get_rphi_error()
+//		<<": phi_error: " << cluster->get_phi_error()
+//		<<endl;
+//		pos.Print();
+//		n.Print();
 #endif
 		measurements.push_back(meas);
 		hitIDs.push_back(cluster_ID);
@@ -2644,7 +2644,7 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	 */
 	if (_fitter->processTrack(track.get(), false) != 0) {
 		if (verbosity >= 1)
-			LogWarning("Track fitting failed")<<std::endl;
+			LogWarning("Seed fitting failed")<<std::endl;
 		return -1;
 	}
 
@@ -2659,7 +2659,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 	int direction = end_layer >= init_layer ? 1 : -1;
 	assert(direction==1 or direction==-1);
 
-	float blowup_factor = (direction == -1? 1. : 1.);
+	float blowup_factor = _blowup_factor;
 
 	int first_extrapolate_base_TP_id = -1;
 
@@ -2671,7 +2671,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 	{
 		std::vector<unsigned int> clusterIDs = track->get_cluster_IDs();
 
-		for (unsigned int i = clusterIDs.size() - 1; i >= 0; --i) {
+		for (unsigned int i = 0; i < clusterIDs.size(); ++i) {
 			if (_g4clusters->get(clusterIDs[i])->get_layer() == init_layer) {
 				first_extrapolate_base_TP_id = i;
 				break;
@@ -2694,7 +2694,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 //	while (layer>=0 and layer < (unsigned int)_nlayers_all and layer!=end_layer) {
 
 	for(unsigned int layer = init_layer + direction;
-			layer!=end_layer;
+			layer != end_layer+direction;
 			layer += direction) {
 		if(!(layer>=0 and layer < (unsigned int)_nlayers_all)) break;
 
@@ -2796,7 +2796,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 		if(z_window > _max_search_win_z) z_window = _max_search_win_z;
 
 		//FIXME do we need special treatment for INTT or not?
-//		if(layer>2 and layer<7) z_window += 1.2;
+		if(layer>2 and layer<7) z_window += 1.2;
 
 #ifdef _DEBUG_
 		cout<<__LINE__<<": ";
@@ -2941,7 +2941,6 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 
 		if(!layer_updated)
 			++consecutive_missing_layer;
-
 	} // layer loop
 
 #ifdef _DEBUG_
@@ -3062,7 +3061,9 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 				<< phi_window/_search_wins_rphi[layer] << "\t"
 				<< z_window/_search_wins_z[layer] << "\t"
 				<< (phi_center - phi_cluster)/phi_window*_search_wins_rphi[layer] <<"\t "
-				<< (z_center - cluster->get_z())/z_window*_search_wins_z[layer] <<endl;
+				<< (z_center - cluster->get_z())/z_window*_search_wins_z[layer] <<"\t"
+				<< v.Perp()
+				<<endl;
 #endif
 			}
 			if(verbosity >= 2) _t_search_clusters_map_iter->stop();

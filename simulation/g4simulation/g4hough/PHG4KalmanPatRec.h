@@ -380,6 +380,14 @@ public:
 		_max_search_win_z = maxSearchWinZ;
 	}
 
+	float get_blowup_factor() const {
+		return _blowup_factor;
+	}
+
+	void set_blowup_factor(float blowupFactor) {
+		_blowup_factor = blowupFactor;
+	}
+
 #ifndef __CINT__
 
 private:
