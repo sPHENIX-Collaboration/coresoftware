@@ -485,7 +485,14 @@ int Track::updateOneMeasurementKalman(
 				TMatrixDSym covSumInv(cov);
 				H->HMHt(covSumInv);
 				covSumInv += V;
-				genfit::tools::invertMatrix(covSumInv);
+				try{
+					genfit::tools::invertMatrix(covSumInv);
+				} catch (genfit::Exception e) {
+#ifdef _DEBUG_
+					LogDebug("cannot invert matrix.");
+#endif
+					continue;
+				}
 
 				TMatrixD CHt(H->MHt(cov));
 #ifdef _PRINT_MATRIX_
@@ -520,8 +527,14 @@ int Track::updateOneMeasurementKalman(
 			HCHt -= V;
 			HCHt *= -1;
 
-			genfit::tools::invertMatrix(HCHt);
-
+			try{
+				genfit::tools::invertMatrix(HCHt);
+			} catch (genfit::Exception e) {
+#ifdef _DEBUG_
+				LogDebug("cannot invert matrix.");
+#endif
+				continue;
+			}
 			chi2inc += HCHt.Similarity(resNew);
 
 			ndfInc += measurement.GetNrows();
