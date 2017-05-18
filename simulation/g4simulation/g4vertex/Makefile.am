@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
   -I`root-config --incdir`
@@ -10,13 +10,10 @@ lib_LTLIBRARIES = \
    libg4vertex.la
 
 AM_CXXFLAGS = \
- -Wall -Werror -msse2
+ -Werror -msse2
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
-
-libg4vertex_io_la_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libg4vertex_io_la_LIBADD = \
@@ -54,22 +51,20 @@ libg4vertex_la_SOURCES = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
-
-%_Dict.cpp: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
 # linking tests
 
-noinst_PROGRAMS = testexternals
+noinst_PROGRAMS = \
+  testexternals_g4vertex_io \
+  testexternals_g4vertex
 
-BUILT_SOURCES = \
-  testexternals.C
+testexternals_g4vertex_io_SOURCES = testexternals.C
+testexternals_g4vertex_io_LDADD = libg4vertex_io.la
 
-testexternals_LDADD = \
-  libg4vertex_io.la \
-  libg4vertex.la
+testexternals_g4vertex_SOURCES = testexternals.C
+testexternals_g4vertex_LDADD = libg4vertex.la
 
 testexternals.C:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
