@@ -237,6 +237,7 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
 					-1. * _mag_field_re_scaling_factor :
 					_mag_field_re_scaling_factor, _track_fitting_alg_name,
 			"RKTrackRep", _do_evt_display);
+	_fitter->set_verbosity(verbosity);
 
 	if (!_fitter) {
 		cerr << PHWHERE << endl;
@@ -393,8 +394,13 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 			if(!rf_track) {
 				//if (_output_mode == OverwriteOriginalNode)
+#ifdef _DEBUG_
+						LogDebug("!rf_track, continue.");
+#endif
 				if (_over_write_svtxtrackmap)
 					_trackmap->erase(iter->first);
+
+				continue;
 			}
 
 //			delete vertex;//DEBUG
@@ -466,6 +472,12 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 					std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(svtx_track,
 							rf_phgf_track, vertex);
 					//delete rf_phgf_track;
+					if(!rf_track) {
+#ifdef _DEBUG_
+						LogDebug("!rf_track, continue.");
+#endif
+						continue;
+					}
 					_primary_trackmap->insert(rf_track.get());
 				}
 			}
