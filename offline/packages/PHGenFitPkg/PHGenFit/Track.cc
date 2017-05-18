@@ -7,21 +7,24 @@
 //STL
 
 //BOOST
-#include <boost/foreach.hpp>
+//#include <boost/foreach.hpp>
 
 //GenFit
 #include <GenFit/Track.h>
+#include <GenFit/MeasurementOnPlane.h>
 #include <GenFit/KalmanFittedStateOnPlane.h>
 #include <GenFit/KalmanFitterInfo.h>
 #include <GenFit/KalmanFitter.h>
+#include <GenFit/Tools.h>
+#include <GenFit/AbsHMatrix.h>
 
 //PHGenFit
 #include "Track.h"
 #include "Measurement.h"
 
-#define LogDebug(exp)		std::cout<<"DEBUG: "<<__FILE__<<": "<<__LINE__<<": "<< #exp <<" : "<< exp <<"\n"
-#define LogError(exp)		std::cout<<"ERROR: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
-#define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
+#define LogDebug(exp)		std::cout<<"DEBUG: "	<<__FILE__<<": "<<__LINE__<<": "<< exp << std::endl
+#define LogError(exp)		std::cout<<"ERROR: "	<<__FILE__<<": "<<__LINE__<<": "<< exp << std::endl
+#define LogWarning(exp)	std::cout<<"WARNING: "	<<__FILE__<<": "<<__LINE__<<": "<< exp << std::endl
 
 #define WILD_DOUBLE -999999
 
@@ -45,16 +48,33 @@ Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMa
 	//_track = NEW(genfit::Track)(rep, seedState, seedCov);
 }
 
+Track::Track(const PHGenFit::Track &t) {
+	_track = new genfit::Track(*(t.getGenFitTrack()));
+	_clusterIDs = t.get_cluster_IDs();
+}
+
+int Track::addMeasurement(PHGenFit::Measurement*measurement) {
+
+	std::vector<genfit::AbsMeasurement*> msmts;
+	msmts.push_back(measurement->getMeasurement());
+	_track->insertPoint(new genfit::TrackPoint(msmts, _track));
+
+	_clusterIDs.push_back(measurement->get_cluster_ID());
+
+	return 0;
+}
+
 int Track::addMeasurements(std::vector<PHGenFit::Measurement*> &measurements)
 {
-	BOOST_FOREACH(PHGenFit::Measurement* measurement, measurements)
+	for(PHGenFit::Measurement* measurement : measurements)
 	{
 		std::vector<genfit::AbsMeasurement*> msmts;
 		msmts.push_back(measurement->getMeasurement());
 		_track->insertPoint(
 				new genfit::TrackPoint(msmts, _track));
 
-		_measurements.push_back(measurement);
+		//_measurements.push_back(measurement);
+		_clusterIDs.push_back(measurement->get_cluster_ID());
 	}
 
 	//measurements.clear();
@@ -66,11 +86,13 @@ Track::~Track()
 {
 	delete _track;
 
-	BOOST_FOREACH(PHGenFit::Measurement* measurement, _measurements)
-	{
-		delete measurement;
-	}
-	_measurements.clear();
+//	for(PHGenFit::Measurement* measurement : _measurements)
+//	{
+//		delete measurement;
+//	}
+//	_measurements.clear();
+
+	_clusterIDs.clear();
 }
 
 double Track::extrapolateToPlane(genfit::MeasuredStateOnPlane& state, TVector3 O, TVector3 n, const int tr_point_id) const
@@ -164,14 +186,41 @@ double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double 
 	double pathlenth = WILD_DOUBLE;
 
 	genfit::AbsTrackRep* rep = _track->getCardinalRep();
-	genfit::TrackPoint* tp = _track->getPointWithMeasurementAndFitterInfo(
-			tr_point_id, rep);
-	if (tp == NULL) {
-		std::cout << "Track has no TrackPoint with fitterInfo! \n";
-		return WILD_DOUBLE;
+
+//	genfit::TrackPoint* tp = _track->getPointWithMeasurementAndFitterInfo(
+//			tr_point_id, rep);
+//	if (tp == NULL) {
+//		std::cout << "Track has no TrackPoint with fitterInfo! \n";
+//		return WILD_DOUBLE;
+//	}
+
+	bool have_tp_with_fit_info = false;
+	std::unique_ptr<genfit::MeasuredStateOnPlane> kfsop = NULL;
+	if (_track->getNumPointsWithMeasurement() > 0) {
+		genfit::TrackPoint* tp = _track->getPointWithMeasurement(tr_point_id);
+		if (tp == NULL) {
+			LogError("tp == NULL!");
+			return WILD_DOUBLE;
+		}
+		if (dynamic_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))) {
+			if (static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getForwardUpdate()) {
+				have_tp_with_fit_info = true;
+				kfsop =
+						std::unique_ptr < genfit::MeasuredStateOnPlane
+								> (new genfit::KalmanFittedStateOnPlane(
+										*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(
+												rep))->getForwardUpdate())));
+			}
+		}
 	}
-	std::unique_ptr<genfit::KalmanFittedStateOnPlane> kfsop (new genfit::KalmanFittedStateOnPlane(
-			*(static_cast<genfit::KalmanFitterInfo*>(tp->getFitterInfo(rep))->getBackwardUpdate())));
+
+	if (!have_tp_with_fit_info) {
+		kfsop = std::unique_ptr < genfit::MeasuredStateOnPlane
+				> (new genfit::MeasuredStateOnPlane(rep));
+		rep->setPosMomCov(*kfsop, _track->getStateSeed(), _track->getCovSeed());
+	}
+
+	if(!kfsop) return pathlenth;
 	// extrapolate back to reference plane.
 	try {
 		//rep->extrapolateToLine(*kfsop, line_point, line_direction);
@@ -200,6 +249,166 @@ genfit::MeasuredStateOnPlane*  Track::extrapolateToCylinder(double radius, TVect
 	}
 	else
 		return state;
+}
+
+int Track::updateOneMeasurementKalman(
+		const std::vector<PHGenFit::Measurement*>& measurements,
+		std::map<double, PHGenFit::Track*>& incr_chi2s_new_tracks) const {
+
+	if(measurements.size()==0) return -1;
+
+	const int direction = 1;
+	for (PHGenFit::Measurement* measurement : measurements) {
+
+		PHGenFit::Track* new_track = NULL;
+
+		new_track = new PHGenFit::Track(*this);
+
+//		if(incr_chi2s_new_tracks.size() == 0)
+//			new_track = const_cast<PHGenFit::Track*>(this);
+//		else
+//			new_track = new PHGenFit::Track(*this);
+
+		genfit::Track *track = new_track->getGenFitTrack();
+		genfit::AbsTrackRep* rep = track->getCardinalRep();
+
+		bool newFi(true);
+		genfit::TrackPoint *tp_base = NULL;
+		std::unique_ptr<genfit::MeasuredStateOnPlane> state = NULL;
+		genfit::SharedPlanePtr plane = NULL;
+
+#ifdef _DEBUG_
+		std::cout << __LINE__ << ": " << "track->getPointWithMeasurement(): " << track->getPointWithMeasurement(-1) << std::endl;
+#endif
+		if(track->getNumPointsWithMeasurement() > 0) {
+			tp_base = track->getPointWithMeasurement(-1);
+			newFi = !(tp_base->hasFitterInfo(rep));
+			//tp_base->Print();
+		}
+#ifdef _DEBUG_
+		std::cout << __LINE__ << ": " <<"newFi: "<<newFi<<std::endl;
+#endif
+		if (newFi) {
+			state = std::unique_ptr < genfit::MeasuredStateOnPlane
+					> (new genfit::MeasuredStateOnPlane(rep));
+			rep->setPosMomCov(*state, track->getStateSeed(),
+					track->getCovSeed());
+		} else {
+			state =
+					std::unique_ptr < genfit::MeasuredStateOnPlane
+							> (new genfit::MeasuredStateOnPlane(
+									static_cast<genfit::KalmanFitterInfo*>(tp_base->getFitterInfo(
+											rep))->getFittedState(true)));
+		}
+
+		std::vector<genfit::AbsMeasurement*> msmts;
+		msmts.push_back(measurement->getMeasurement());
+		genfit::TrackPoint *tp = new genfit::TrackPoint(msmts, track);
+
+		//track->insertPoint(tp); // genfit
+
+		new_track->addMeasurement(measurement); // PHGenFit: clusterID also registerd
+
+		genfit::KalmanFitterInfo* fi = new genfit::KalmanFitterInfo(tp, rep);
+		tp->setFitterInfo(fi);
+#ifdef _DEBUG_
+		std::cout<< __LINE__ << ": " <<"track->getPointWithMeasurement(): "<<track->getPointWithMeasurement(-1)<<std::endl;
+#endif
+//		if (track->getNumPointsWithMeasurement() > 0) {
+//			tp_base = track->getPointWithMeasurement(-1);
+//			if (tp_base->hasFitterInfo(rep)) {
+//				std::cout << "TP has FI!" << std::endl;
+//			}
+//		}
+
+		const std::vector<genfit::AbsMeasurement*>& rawMeasurements =
+				tp->getRawMeasurements();
+		// construct plane with first measurement
+		plane = rawMeasurements[0]->constructPlane(*state);
+
+		//double extLen = rep->extrapolateToPlane(*state, plane);
+
+		try {
+			rep->extrapolateToPlane(*state, plane);
+		} catch (...) {
+			LogWarning("Can not extrapolate track!")<<std::endl;
+			return -1;
+		}
+
+		fi->setPrediction(state->clone(), direction);
+		//MeasuredStateOnPlane *state = fi->getPrediction(direction);
+
+		TVectorD stateVector(state->getState());
+		TMatrixDSym cov(state->getCov());
+
+		for (std::vector<genfit::AbsMeasurement*>::const_iterator it =
+				rawMeasurements.begin(); it != rawMeasurements.end(); ++it) {
+			fi->addMeasurementsOnPlane(
+					(*it)->constructMeasurementsOnPlane(*state));
+		}
+
+		double chi2inc = 0;
+		double ndfInc = 0;
+
+		// update(s)
+		const std::vector<genfit::MeasurementOnPlane *>& measurements_on_plane =
+				fi->getMeasurementsOnPlane();
+		for (std::vector<genfit::MeasurementOnPlane *>::const_iterator it =
+				measurements_on_plane.begin();
+				it != measurements_on_plane.end(); ++it) {
+			const genfit::MeasurementOnPlane& mOnPlane = **it;
+			//const double weight = mOnPlane.getWeight();
+
+			const TVectorD& measurement(mOnPlane.getState());
+			const genfit::AbsHMatrix* H(mOnPlane.getHMatrix());
+			// (weighted) cov
+			const TMatrixDSym& V(mOnPlane.getCov());
+
+			TVectorD res(measurement - H->Hv(stateVector));
+
+			// If hit, do Kalman algebra.
+			{
+				// calculate kalman gain ------------------------------
+				// calculate covsum (V + HCH^T) and invert
+				TMatrixDSym covSumInv(cov);
+				H->HMHt(covSumInv);
+				covSumInv += V;
+				genfit::tools::invertMatrix(covSumInv);
+
+				TMatrixD CHt(H->MHt(cov));
+				TVectorD update(
+						TMatrixD(CHt, TMatrixD::kMult, covSumInv) * res);
+				//TMatrixD(CHt, TMatrixD::kMult, covSumInv).Print();
+
+				stateVector += update;
+				covSumInv.Similarity(CHt); // with (C H^T)^T = H C^T = H C  (C is symmetric)
+				cov -= covSumInv;
+			}
+
+			TVectorD resNew(measurement - H->Hv(stateVector));
+
+			// Calculate chi2
+			TMatrixDSym HCHt(cov);
+			H->HMHt(HCHt);
+			HCHt -= V;
+			HCHt *= -1;
+
+			genfit::tools::invertMatrix(HCHt);
+
+			chi2inc += HCHt.Similarity(resNew);
+
+			ndfInc += measurement.GetNrows();
+
+			genfit::KalmanFittedStateOnPlane* updatedSOP = new genfit::KalmanFittedStateOnPlane(
+					*state, chi2inc, ndfInc);
+			fi->setUpdate(updatedSOP, direction);
+		} //loop measurements_on_plane
+
+		incr_chi2s_new_tracks.insert(std::make_pair(chi2inc,new_track));
+
+	}//loop measurments
+
+	return 0;
 }
 
 double Track::extrapolateToPoint(genfit::MeasuredStateOnPlane& state, TVector3 P, const int tr_point_id) const

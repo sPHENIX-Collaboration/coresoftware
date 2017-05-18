@@ -65,6 +65,7 @@ pkginclude_HEADERS = \
   SvtxBeamSpot.h \
   PHG4HoughTransform.h \
   PHG4HoughTransformTPC.h \
+  PHG4KalmanPatRec.h \
   PHG4TrackGhostRejection.h \
   PHG4TrackKalmanFitter.h \
   PHG4TruthPatRec.h \
@@ -134,6 +135,8 @@ libg4hough_la_SOURCES = \
   PHG4HoughTransform_Dict.C \
   PHG4HoughTransformTPC.C \
   PHG4HoughTransformTPC_Dict.C \
+  PHG4KalmanPatRec.C \
+  PHG4KalmanPatRec_Dict.C \
   PHG4TrackGhostRejection.C \
   PHG4TrackGhostRejection_Dict.C \
   PHG4TrackKalmanFitter.C \
