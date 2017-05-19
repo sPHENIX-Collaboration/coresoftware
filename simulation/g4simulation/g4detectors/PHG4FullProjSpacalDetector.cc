@@ -115,7 +115,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
   assert(cylinder_mat);
 
   G4LogicalVolume * sec_logic = new G4LogicalVolume(sec_solid, cylinder_mat,
-      G4String(G4String(GetName() + string("_sec"))), 0, 0, step_limits);
+      G4String(G4String(GetName() + string("_sec"))), 0, 0);
 
   G4VisAttributes* VisAtt = new G4VisAttributes();
   VisAtt->SetColor(.5, .9, .5, .5);
@@ -153,7 +153,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
 
       G4LogicalVolume * wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
           G4String(G4String(GetName() + string("_EndWall"))), 0, 0,
-          step_limits);
+          nullptr);
       wall_logic->SetVisAttributes(wall_VisAtt);
 
       typedef map<int, double> z_locations_t;
@@ -205,7 +205,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
 
       G4LogicalVolume * wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
           G4String(G4String(GetName() + string("_SideWall"))), 0, 0,
-          step_limits);
+          nullptr);
       wall_logic->SetVisAttributes(wall_VisAtt);
 
       typedef map<int, pair<int, int> > sign_t;
@@ -593,7 +593,7 @@ PHG4FullProjSpacalDetector::Construct_Tower(
 
   G4LogicalVolume * block_logic = new G4LogicalVolume(block_solid, cylinder_mat,
       G4String(G4String(GetName()) + string("_Tower") + sTowerID), 0, 0,
-      step_limits);
+      nullptr);
 
   G4VisAttributes* VisAtt = new G4VisAttributes();
 //  PHG4Utils::SetColour(VisAtt, "W_Epoxy");

@@ -118,7 +118,7 @@ PHG4ProjSpacalDetector::Construct_AzimuthalSeg()
   assert(cylinder_mat);
 
   G4LogicalVolume * sec_logic = new G4LogicalVolume(sec_solid, cylinder_mat,
-      G4String(G4String(GetName() + string("_sec"))), 0, 0, step_limits);
+      G4String(G4String(GetName() + string("_sec"))), 0, 0, nullptr);
 
   G4VisAttributes* VisAtt = new G4VisAttributes();
   PHG4Utils::SetColour(VisAtt, "W_Epoxy");
@@ -246,7 +246,7 @@ PHG4ProjSpacalDetector::Construct_Block()
   assert(cylinder_mat);
 
   G4LogicalVolume * block_logic = new G4LogicalVolume(block_solid, cylinder_mat,
-      G4String(G4String(GetName() + string("_sec"))), 0, 0, step_limits);
+      G4String(G4String(GetName() + string("_sec"))), 0, 0, nullptr);
 
   G4VisAttributes* VisAtt = new G4VisAttributes();
 //  PHG4Utils::SetColour(VisAtt, "W_Epoxy");

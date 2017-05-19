@@ -145,7 +145,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   assert(cylinder_mat);
 
   G4LogicalVolume* sec_logic = new G4LogicalVolume(sec_solid_place, cylinder_mat,
-                                                   G4String(G4String(GetName() + string("_sec"))), 0, 0, step_limits);
+                                                   G4String(G4String(GetName() + string("_sec"))), 0, 0, nullptr);
 
   G4VisAttributes* VisAtt = new G4VisAttributes();
   VisAtt->SetColor(.5, .9, .5, .5);
@@ -282,25 +282,25 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
 
   //  // construct towers
   //
-  //  BOOST_FOREACH(const SpacalGeom_t::tower_map_t::value_type& val, _geom->get_sector_tower_map())
-  //    {
-  //      const SpacalGeom_t::geom_tower & g_tower = val.second;
-  //      G4LogicalVolume* LV_tower = Construct_Tower(g_tower);
-  //
-  //      G4Transform3D block_trans = G4TranslateX3D(g_tower.centralX * cm)
-  //          * G4TranslateY3D(g_tower.centralY * cm)
-  //          * G4TranslateZ3D(g_tower.centralZ * cm)
-  //          * G4RotateX3D(g_tower.pRotationAngleX * rad);
-  //
-  //      const bool overlapcheck_block = overlapcheck
-  //          and (_geom->get_construction_verbose() >= 2);
-  //
-  //      G4PVPlacement * block_phys = new G4PVPlacement(block_trans, LV_tower,
-  //          G4String(GetName().c_str()) + G4String("_Tower"), sec_logic, false,
-  //          g_tower.id, overlapcheck_block);
-  //      block_vol[block_phys] = g_tower.id;
-  //
-  //    }
+    BOOST_FOREACH(const SpacalGeom_t::tower_map_t::value_type& val, _geom->get_sector_tower_map())
+      {
+        const SpacalGeom_t::geom_tower & g_tower = val.second;
+        G4LogicalVolume* LV_tower = Construct_Tower(g_tower);
+
+        G4Transform3D block_trans = G4TranslateX3D(g_tower.centralX * cm)
+            * G4TranslateY3D(g_tower.centralY * cm)
+            * G4TranslateZ3D(g_tower.centralZ * cm)
+            * G4RotateX3D(g_tower.pRotationAngleX * rad);
+
+        const bool overlapcheck_block = overlapcheck
+            and (_geom->get_construction_verbose() >= 2);
+
+        G4PVPlacement * block_phys = new G4PVPlacement(block_trans, LV_tower,
+            G4String(GetName().c_str()) + G4String("_Tower"), sec_logic, false,
+            g_tower.id, overlapcheck_block);
+        block_vol[block_phys] = g_tower.id;
+
+      }
 
   cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg::" << GetName()
        << " - constructed " << _geom->get_sector_tower_map().size()
@@ -578,7 +578,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_Tower(
 
   G4LogicalVolume* block_logic = new G4LogicalVolume(block_solid, cylinder_mat,
                                                      G4String(G4String(GetName()) + string("_Tower") + sTowerID), 0, 0,
-                                                     step_limits);
+                                                     nullptr);
 
   G4VisAttributes* VisAtt = new G4VisAttributes();
   //  PHG4Utils::SetColour(VisAtt, "W_Epoxy");

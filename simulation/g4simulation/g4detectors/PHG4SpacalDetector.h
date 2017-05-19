@@ -162,8 +162,8 @@ protected:
   std::string detector_type;
   std::string superdetector;
 
-  G4UserLimits * step_limits;
-  G4UserLimits * clading_step_limits;
+//  G4UserLimits * step_limits;
+//  G4UserLimits * clading_step_limits;
   G4UserLimits * fiber_core_step_limits;
 
   //! registry for volumes that should not be exported, i.e. fibers

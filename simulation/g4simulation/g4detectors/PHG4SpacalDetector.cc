@@ -60,10 +60,10 @@ PHG4SpacalDetector::PHG4SpacalDetector(PHCompositeNode *Node,
   _geom->ImportParameters(*parameters);
 
 
-  step_limits = new G4UserLimits(_geom->get_calo_step_size() * cm);
-
-  clading_step_limits = new G4UserLimits(
-      _geom->get_fiber_clading_step_size() * cm);
+//  step_limits = new G4UserLimits(_geom->get_calo_step_size() * cm);
+//
+//  clading_step_limits = new G4UserLimits(
+//      _geom->get_fiber_clading_step_size() * cm);
 
   fiber_core_step_limits = new G4UserLimits(
       _geom->get_fiber_core_step_size() * cm);
@@ -78,8 +78,8 @@ PHG4SpacalDetector::~PHG4SpacalDetector(void)
 {
   // deleting NULL pointers is allowed (results in NOOP) 
   // so checking for not null before deleting is not needed
-    delete step_limits;
-    delete clading_step_limits;
+//    delete step_limits;
+//    delete clading_step_limits;
     delete fiber_core_step_limits;
 }
 
@@ -261,7 +261,7 @@ PHG4SpacalDetector::Construct_AzimuthalSeg()
   assert(cylinder_mat);
 
   G4LogicalVolume * sec_logic = new G4LogicalVolume(sec_solid, cylinder_mat,
-      G4String(G4String(GetName() + string("_sec"))), 0, 0, step_limits);
+      G4String(G4String(GetName() + string("_sec"))), 0, 0, nullptr);
 
   G4VisAttributes* VisAtt = new G4VisAttributes();
   VisAtt->SetColor(.1, .1, .1, .5);
@@ -334,7 +334,7 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const string & id)
 
   G4LogicalVolume * fiber_logic = new G4LogicalVolume(fiber_solid, clading_mat,
       G4String(G4String(GetName() + string("_fiber") + id)), 0, 0,
-      clading_step_limits);
+      nullptr);
 
     {
       G4VisAttributes* VisAtt = new G4VisAttributes();

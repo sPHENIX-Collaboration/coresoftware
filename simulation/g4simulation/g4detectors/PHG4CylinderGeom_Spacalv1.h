@@ -235,17 +235,19 @@ public:
   /** @name General options
    */
   ///@{
-  double
-  get_calo_step_size() const
-  {
-    return get_fiber_distance() / 10.;
-  }
-
-  double
-  get_fiber_clading_step_size() const
-  {
-    return get_fiber_clading_thickness() / 10.;
-  }
+  //! obsolete as there is no need to limit steps in insentive volumne
+//  double
+//  get_calo_step_size() const
+//  {
+//    return get_fiber_distance() / 10.;
+//  }
+//
+  //! obsolete as there is no need to limit steps in insentive volumne
+//  double
+//  get_fiber_clading_step_size() const
+//  {
+//    return get_fiber_clading_thickness() / 10.;
+//  }
 
   double
   get_fiber_core_step_size() const
