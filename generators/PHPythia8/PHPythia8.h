@@ -50,8 +50,8 @@ public:
 
   /// set event selection criteria
   void register_trigger(PHPy8GenTrigger *theTrigger);
-  void set_trigger_OR() { _triggersOR = true; } // default true
-  void set_trigger_AND() { _triggersAND = true; }
+  void set_trigger_OR() { _triggersOR = true; _triggersAND = false; } // default true
+  void set_trigger_AND() { _triggersAND = true; _triggersOR = false; }
 
   /// pass commands directly to PYTHIA8
   void process_string(std::string s) {_commands.push_back(s);}
