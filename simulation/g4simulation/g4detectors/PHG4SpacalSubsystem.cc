@@ -167,6 +167,8 @@ void PHG4SpacalSubsystem::SetDefaultParameters()
   set_default_double_param("radius", 90.);
 
   set_default_int_param("construction_verbose", 0.);
+  set_default_int_param("azimuthal_seg_visible", 0.);
+  set_default_int_param("virualize_fiber", 0.);
   set_default_int_param("config", static_cast<int>(PHG4CylinderGeom_Spacalv1::kNonProjective));
   return;
 }
