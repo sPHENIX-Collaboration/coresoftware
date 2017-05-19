@@ -45,7 +45,7 @@ PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
       fHalfLength(100),
       fDiffusionT(0.0057),
       fDiffusionL(0.0057),
-      elec_per_kev(38.),
+      elec_per_gev(38.*1e6),
       driftv(6.0/1000.0), // cm per ns
       num_pixel_layers(n_pixel),
       tmin_default(0.0),  // ns
@@ -332,7 +332,16 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	if(hiter->second->has_property(PHG4Hit::prop_eion)) cell->add_eion(hiter->second->get_eion());
       } else { // TPC
 	// converting Edep to Total Number Of Electrons
-        double nelec = gsl_ran_poisson(RandomGenerator,elec_per_kev*1e6*edep);
+	float eion = hiter->second->get_eion();
+	if (!isfinite(eion))
+	{
+	  eion = edep;
+	}
+	if (eion <= 0) // no ionization energy - skip to next hit
+	{
+	  continue;
+	}
+        double nelec = gsl_ran_poisson(RandomGenerator,elec_per_gev*eion);
 	if(verbosity>1) {
 	  fHElectrons->Fill( nelec );
 	}
@@ -393,7 +402,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	    double zLim1 = 0.5*M_SQRT2*( (iz+0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
 	    double zLim2 = 0.5*M_SQRT2*( (iz-0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
             double z_integral = 0.5*( erf(zLim1) - erf(zLim2) );
-            float neffelectrons = nelec*( phi_integral * z_integral );//rand.PoissonD( nelec*( phi_integral * z_integral ) );
+            float neffelectrons = nelec*( phi_integral * z_integral );
 	    if(verbosity>1000) {
 	      std::cout << Form("%.3f",neffelectrons) << " ";
 	      if( iz == n_zz ) std::cout << std::endl;

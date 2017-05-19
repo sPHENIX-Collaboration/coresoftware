@@ -40,7 +40,7 @@ public:
   void setHalfLength(const double hz){fHalfLength = hz;}
   void setDiffusionL(const double diff){fDiffusionL = diff;}
   void setDiffusionT(const double diff){fDiffusionT = diff;}
-  void setElectronsPerKeV(const double epk){elec_per_kev = epk;}
+  void setElectronsPerKeV(const double epk){elec_per_gev = epk*1e6;}
   void set_drift_velocity(const double cm_per_ns) { driftv = cm_per_ns;}
 
   void setSmearRPhi(const double v) {fFractRPsm=v;}
@@ -76,7 +76,7 @@ protected:
   double fHalfLength;
   double fDiffusionT;
   double fDiffusionL;
-  double elec_per_kev;
+  double elec_per_gev;
   double driftv;
 
   int num_pixel_layers;
