@@ -67,14 +67,6 @@ PHG4FullProjTiltedSpacalDetector::PHG4FullProjTiltedSpacalDetector(PHCompositeNo
   }
   assert(parameters);
   _geom->ImportParameters(*parameters);
-
-//  step_limits = new G4UserLimits(_geom->get_calo_step_size() * cm);
-//
-//  clading_step_limits = new G4UserLimits(
-//      _geom->get_fiber_clading_step_size() * cm);
-//
-//  fiber_core_step_limits = new G4UserLimits(
-//      _geom->get_fiber_core_step_size() * cm);
 }
 
 //_______________________________________________________________
@@ -183,7 +175,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   //
   //      G4LogicalVolume * wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
   //          G4String(G4String(GetName() + string("_EndWall"))), 0, 0,
-  //          step_limits);
+  //          nullptr);
   //      wall_logic->SetVisAttributes(wall_VisAtt);
   //
   //      typedef map<int, double> z_locations_t;
@@ -235,7 +227,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   //
   //      G4LogicalVolume * wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
   //          G4String(G4String(GetName() + string("_SideWall"))), 0, 0,
-  //          step_limits);
+  //          nullptr);
   //      wall_logic->SetVisAttributes(wall_VisAtt);
   //
   //      typedef map<int, pair<int, int> > sign_t;
