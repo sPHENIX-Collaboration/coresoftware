@@ -7,7 +7,7 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I$(ROOTSYS)/include \
@@ -76,8 +76,6 @@ testexternals.C:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-CLEANFILES = G4Analysis_Dict.h G4Analysis_Dict.C
-
 # rules to make root dictionaries
 G4Analysis_Dict.C: \
   G4CellNtuple.h \
@@ -99,5 +97,7 @@ G4Analysis_Dict.C: \
   G4SnglTree.h \
   G4TowerNtuple.h \
   G4AnalysisLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
+clean-local:
+	rm -f *Dict* $(BUILT_SOURCES)

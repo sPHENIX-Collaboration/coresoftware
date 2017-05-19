@@ -9,9 +9,11 @@ lib_LTLIBRARIES = \
 # this is detected, if this goes away after the next compiler upgrade, this flag can be
 # removed
 AM_CXXFLAGS = \
-  `geant4-config --cflags` -fno-inline
+  `geant4-config --cflags`
+#AM_CXXFLAGS = \
+#  `geant4-config --cflags` -fno-inline
 
-INCLUDES = \
+AM_CPPFLAGS = \
     -I$(includedir) \
     -I$(OFFLINE_MAIN)/include \
     -I`root-config --incdir` \
@@ -34,9 +36,6 @@ G4LIBLIST = \
     -lG4track \
     -lG4geometry \
     -lG4global
-
-CLHEPLIST := \
-    `clhep-config --libs`
 
 libg4field_la_LDFLAGS = \
     -L$(libdir) \
@@ -83,5 +82,5 @@ PHG4Field_Dict.C: \
   PHG4Field2D.h \
   PHG4Field3D.h \
   PHG4FieldLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 

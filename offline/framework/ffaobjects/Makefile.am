@@ -5,10 +5,15 @@ BUILT_SOURCES = \
 
 lib_LTLIBRARIES = libffaobjects.la
 
-INCLUDES = -I$(includedir) -I$(OFFLINE_MAIN)/include -I$(ROOTSYS)/include
+AM_CPPFLAGS = \
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include \
+  -I$(ROOTSYS)/include
 
 AM_CXXFLAGS = -Wall -Werror
-AM_LDFLAGS = -L$(libdir) -L$(OFFLINE_MAIN)/lib
+AM_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib
 
 libffaobjects_la_LIBADD = \
   -lphool
@@ -65,7 +70,7 @@ libffaobjects_Dict.cc: \
   EventHeader.h \
   EventHeaderv1.h \
   libffaobjects_LinkDef.h
-	rootcint -f $@ -c $(INCLUDES) $^
+	rootcint -f $@ -c  $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict.*

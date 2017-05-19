@@ -3,30 +3,21 @@ AUTOMAKE_OPTIONS = foreign
 AM_CXXFLAGS = -DG4INTY_USE_XT -DG4VIS_USE_OPENGL -DG4UI_USE_TCSH -DG4UI_USE_XM -DG4VIS_USE_OPENGLXM -DG4VIS_USE_RAYTRACERX -DG4VIS_USE_OPENGLX
 
 # set in configure.in to check if gcc version >= 4.8
-if GCC_GE_48
-  AM_CXXFLAGS += -std=c++11
-endif
+#if GCC_GE_48
+#  AM_CXXFLAGS += -std=c++11
+#endif
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
     libphg4gdml.la 
-    
-INCLUDES = \
+
+AM_CPPFLAGS = \
     -I$(includedir) \
     -I$(XERCESCROOT)/include \
     -isystem $(OFFLINE_MAIN)/include \
     -isystem $(ROOTSYS)/include \
     -isystem ${G4_MAIN}/include \
-    -isystem ${G4_MAIN}/include/Geant4 \
     -I$(OPT_SPHENIX)/include
-
-RINCLUDES = \
-    -I$(includedir) \
-    -I$(OFFLINE_MAIN)/include \
-    -I$(ROOTSYS)/include \
-    -I${G4_MAIN}/include \
-    -I$(XERCESCROOT)/include
-
 
 libphg4gdml_la_LDFLAGS = \
   -L$(libdir) \
@@ -51,7 +42,7 @@ libphg4gdml_la_SOURCES = \
   PHG4GDMLWriteStructure.cc \
   PHG4GDMLUtility.cc \
   PHG4GDMLConfig.cc
-  
+
 
 ##############################################
 # please add new classes in alphabetical order
