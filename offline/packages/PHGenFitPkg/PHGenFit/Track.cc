@@ -293,7 +293,8 @@ int Track::updateOneMeasurementKalman(
 		std::map<double, PHGenFit::Track*>& incr_chi2s_new_tracks,
 		const int base_tp_idx,
 		const int direction,
-		const float blowup_factor) const {
+		const float blowup_factor,
+		const bool use_fitted_state) const {
 
 #ifdef _DEBUG_
 	std::cout
@@ -301,6 +302,7 @@ int Track::updateOneMeasurementKalman(
 	<<" : base_tp_idx: " << base_tp_idx
 	<<" : direction: " << direction
 	<<" : blowup_factor: " << blowup_factor
+	<<" : use_fitted_state: " << use_fitted_state
 	<< std::endl;
 #endif
 
@@ -341,12 +343,34 @@ int Track::updateOneMeasurementKalman(
 		} else {
 			try {
 				genfit::KalmanFitterInfo* kfi = static_cast<genfit::KalmanFitterInfo*>(tp_base->getFitterInfo(rep));
-
-				if(blowup_factor > 1.) {
+				if(!kfi) {
+#ifdef _DEBUG_
+					LogDebug("!kfi");
+#endif
+					continue;
+				}
+//#ifdef _DEBUG_
+//				std::cout << __LINE__ << "\n ###################################################################"<<std::endl;
+//				kfi->Print();
+//				std::cout << __LINE__ << "\n ###################################################################"<<std::endl;
+//#endif
+				if(use_fitted_state) {
 					const genfit::MeasuredStateOnPlane* tempFS = &(kfi->getFittedState(true));
+					if(!tempFS) {
+#ifdef _DEBUG_
+						LogDebug("!tempFS");
+#endif
+						continue;
+					}
 					currentState = std::unique_ptr < genfit::MeasuredStateOnPlane> (new genfit::MeasuredStateOnPlane(*tempFS));
 				} else {
 					genfit::MeasuredStateOnPlane* tempUpdate =  kfi->getUpdate(direction);
+					if(!tempUpdate) {
+#ifdef _DEBUG_
+						LogDebug("!tempUpdate");
+#endif
+						continue;
+					}
 					currentState = std::unique_ptr < genfit::MeasuredStateOnPlane> (new genfit::MeasuredStateOnPlane(*tempUpdate));
 				}
 
@@ -359,9 +383,10 @@ int Track::updateOneMeasurementKalman(
 //				tempUpdate->Print();
 //				std::cout << __LINE__ << "\n ###################################################################"<<std::endl;
 #endif
-//				if(blowup_factor > 1) {
-//					currentState->blowUpCov(blowup_factor, true, 1e6);
-//				}
+
+				if(blowup_factor > 1) {
+					currentState->blowUpCov(blowup_factor, true, 1e6);
+				}
 
 			} catch (genfit::Exception e) {
 #ifdef _DEBUG_

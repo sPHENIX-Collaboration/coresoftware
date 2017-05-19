@@ -53,7 +53,7 @@ public:
 
 	//!
 	int updateOneMeasurementKalman(const std::vector<PHGenFit::Measurement*>& measurements,
-			std::map<double, PHGenFit::Track*>& incr_chi2s_new_tracks, const int base_tp_idx = -1, const int direction = 1, const float blowup_factor = 1.) const;
+			std::map<double, PHGenFit::Track*>& incr_chi2s_new_tracks, const int base_tp_idx = -1, const int direction = 1, const float blowup_factor = 1., const bool use_fitted_state = false) const;
 
 	/*!
 	 * track_point 0 is the first one, and -1 is the last one

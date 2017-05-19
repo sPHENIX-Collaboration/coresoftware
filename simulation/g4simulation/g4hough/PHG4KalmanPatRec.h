@@ -364,20 +364,20 @@ public:
 		_init_direction = initDirection;
 	}
 
-	float get_max_search_win_phi() const {
-		return _max_search_win_phi;
+	float get_max_search_win_phi_tpc() const {
+		return _max_search_win_phi_tpc;
 	}
 
-	void set_max_search_win_phi(float maxSearchWinPhi) {
-		_max_search_win_phi = maxSearchWinPhi;
+	void set_max_search_win_phi_tpc(float maxSearchWinPhi) {
+		_max_search_win_phi_tpc = maxSearchWinPhi;
 	}
 
-	float get_max_search_win_z() const {
-		return _max_search_win_z;
+	float get_max_search_win_z_tpc() const {
+		return _max_search_win_z_tpc;
 	}
 
-	void set_max_search_win_z(float maxSearchWinZ) {
-		_max_search_win_z = maxSearchWinZ;
+	void set_max_search_win_z_tpc(float maxSearchWinZ) {
+		_max_search_win_z_tpc = maxSearchWinZ;
 	}
 
 	float get_blowup_factor() const {
@@ -465,7 +465,10 @@ private:
 
 	//! FullTrackFitting Call.
 	int SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, unsigned int itrack);
-	int TrackPropPatRec(PHCompositeNode* topNode, const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> track, unsigned int init_layer = 3, unsigned int end_layer = 66);
+	int TrackPropPatRec(PHCompositeNode* topNode,
+			const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> &track,
+			const unsigned int init_layer = 0, const unsigned int end_layer = 66,
+			const bool use_fitted_state_once = false);
 
 	//! TrackPropPatRec Call.
 	std::vector<unsigned int> SearchHitsNearBy (const unsigned int layer, const float z_center, const float phi_center, const float z_window, const float phi_window);
@@ -614,8 +617,22 @@ private:
 	int _nlayers_all;
 	std::map<int, unsigned int> _layer_ilayer_map_all;
 	std::vector<float> _radii_all;
-	float _max_search_win_phi;
-	float _max_search_win_z;
+
+	float _max_search_win_phi_tpc;
+	float _min_search_win_phi_tpc;
+	float _max_search_win_z_tpc;
+	float _min_search_win_z_tpc;
+
+	float _max_search_win_phi_intt;
+	float _min_search_win_phi_intt;
+	float _max_search_win_z_intt;
+	float _min_search_win_z_intt;
+
+	float _max_search_win_phi_maps;
+	float _min_search_win_phi_maps;
+	float _max_search_win_z_maps;
+	float _min_search_win_z_maps;
+
 	float _search_win_phi;
 	float _search_win_z;
 	std::map<int, float> _search_wins_rphi;

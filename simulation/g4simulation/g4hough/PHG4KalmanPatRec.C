@@ -91,8 +91,9 @@
 //#define _USE_ALAN_TRACK_REFITTING_
 
 //#define _MEARGE_SEED_CLUSTER_
-#define _START_FROM_FIXED_LAYER_
 //#define _USE_ZERO_SEED_
+
+//#define _USE_CONSTANT_SEARCH_WIN_
 
 //#define _DO_FULL_FITTING_
 
@@ -178,8 +179,22 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _nlayers_all(67),
 	  _layer_ilayer_map_all(),
 	  _radii_all(),
-	  _max_search_win_phi(1.),
-	  _max_search_win_z(1.),
+
+	  _max_search_win_phi_tpc(0.01),
+	  _min_search_win_phi_tpc(0.0050),
+	  _max_search_win_z_tpc(1.),
+	  _min_search_win_z_tpc(0.0150),
+
+	  _max_search_win_phi_intt(0.01),
+	  _min_search_win_phi_intt(0.0010),
+	  _max_search_win_z_intt(2.4),
+	  _min_search_win_z_intt(1.2),
+
+	  _max_search_win_phi_maps(0.01),
+	  _min_search_win_phi_maps(0.0005),
+	  _max_search_win_z_maps(0.5),
+	  _min_search_win_z_maps(0.1),
+
 	  _search_win_phi(10),
 	  _search_win_z(10),
 	  _layer_zID_phiID_cluserID(),
@@ -2183,16 +2198,12 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 //			unsigned int end_layer = UINT_MAX;
 			if(_init_direction == 1) {
 				init_layer = _g4clusters->get(clusterIDs.front())->get_layer();
-				TrackPropPatRec(topNode, iter->first, track, init_layer, _nlayers_all);
-				track = _trackID_PHGenFitTrack[iter->first];
-				TrackPropPatRec(topNode, iter->first, track, init_layer, 0);
-				track = _trackID_PHGenFitTrack[iter->first];
+				TrackPropPatRec(topNode, iter->first, track, init_layer, _nlayers_all, true);
+				TrackPropPatRec(topNode, iter->first, track, init_layer, 0, false);
 			} else {
 				init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
-				TrackPropPatRec(topNode, iter->first, track, init_layer, 0);
-				track = _trackID_PHGenFitTrack[iter->first];
-				TrackPropPatRec(topNode, iter->first, track, init_layer, _nlayers_all);
-				track = _trackID_PHGenFitTrack[iter->first];
+				TrackPropPatRec(topNode, iter->first, track, init_layer, 0, true);
+				TrackPropPatRec(topNode, iter->first, track, init_layer, _nlayers_all, false);
 			}
 
 #ifdef _DEBUG_
@@ -2654,14 +2665,19 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> track, unsigned int init_layer, unsigned int end_layer) {
+int PHG4KalmanPatRec::TrackPropPatRec(
+		PHCompositeNode* topNode,
+		const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> &track,
+		unsigned int init_layer, unsigned int end_layer,
+		const bool use_fitted_state_once) {
 
 	int direction = end_layer >= init_layer ? 1 : -1;
 	assert(direction==1 or direction==-1);
 
-	float blowup_factor = _blowup_factor;
-
 	int first_extrapolate_base_TP_id = -1;
+
+	bool use_fitted_state = use_fitted_state_once;
+	float blowup_factor = use_fitted_state? _blowup_factor : 1.;
 
 	/*!
 	 * Find the last layer of with TrackPoint (TP)
@@ -2787,16 +2803,37 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 		float phi_center = pos.Phi();
 		float z_center = pos.Z();
 
+#ifdef _USE_CONSTANT_SEARCH_WIN_
+		float phi_window = 0.001;
+		float z_window   = 0.1;
+
+		if(layer >=3 and layer <=6) z_window = 1.2;
+#else
 		TMatrixDSym cov = state->get6DCov();
 
 		float phi_window = _search_wins_rphi[layer] * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]) / pos.Perp();
 		float z_window   = _search_wins_z[layer]    * sqrt(cov[2][2]);
 
-		if(phi_window > _max_search_win_phi) phi_window = _max_search_win_phi;
-		if(z_window > _max_search_win_z) z_window = _max_search_win_z;
+		if(phi_window > _max_search_win_phi_tpc) phi_window = _max_search_win_phi_tpc;
+		if(z_window > _max_search_win_z_tpc) z_window = _max_search_win_z_tpc;
 
-		//FIXME do we need special treatment for INTT or not?
-		if(layer>2 and layer<7) z_window += 1.2;
+		if(layer >= 7) {
+			if (phi_window > _max_search_win_phi_tpc) phi_window = _max_search_win_phi_tpc;
+			if (phi_window < _min_search_win_phi_tpc) phi_window = _min_search_win_phi_tpc;
+			if (z_window   > _max_search_win_z_tpc)   z_window   = _max_search_win_z_tpc;
+			if (z_window   < _min_search_win_z_tpc)   z_window   = _min_search_win_z_tpc;
+		} else if(layer >= 3) {
+			if (phi_window > _max_search_win_phi_intt) phi_window = _max_search_win_phi_intt;
+			if (phi_window < _min_search_win_phi_intt) phi_window = _min_search_win_phi_intt;
+			if (z_window   > _max_search_win_z_intt)   z_window   = _max_search_win_z_intt;
+			if (z_window   < _min_search_win_z_intt)   z_window   = _min_search_win_z_intt;
+		} else {
+			if (phi_window > _max_search_win_phi_maps) phi_window = _max_search_win_phi_maps;
+			if (phi_window < _min_search_win_phi_maps) phi_window = _min_search_win_phi_maps;
+			if (z_window   > _max_search_win_z_maps)   z_window   = _max_search_win_z_maps;
+			if (z_window   < _min_search_win_z_maps)   z_window   = _min_search_win_z_maps;
+		}
+#endif
 
 #ifdef _DEBUG_
 		cout<<__LINE__<<": ";
@@ -2851,7 +2888,8 @@ int PHG4KalmanPatRec::TrackPropPatRec(PHCompositeNode* topNode, const int iPHGen
 #endif
 
 		if(verbosity >= 1) _t_track_propagation->restart();
-		track->updateOneMeasurementKalman(measurements, incr_chi2s_new_tracks, extrapolate_base_TP_id, direction, blowup_factor);
+		track->updateOneMeasurementKalman(measurements, incr_chi2s_new_tracks, extrapolate_base_TP_id, direction, blowup_factor, use_fitted_state);
+		use_fitted_state = false;
 		blowup_factor = 1.;
 		if(verbosity >= 1) _t_track_propagation->stop();
 
