@@ -1,10 +1,9 @@
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
   -I${G4_MAIN}/include \
-  -I${G4_MAIN}/include/Geant4 \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
@@ -12,7 +11,7 @@ lib_LTLIBRARIES = \
    libcalotrigger.la
 
 AM_CXXFLAGS = \
- -Wall -Werror -msse2
+ -Werror -msse2
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -33,8 +32,6 @@ pkginclude_HEADERS = \
   CaloTriggerInfo.h \
   CaloTriggerInfo_v1.h
 
-#pkginclude_HEADERS = $(include_HEADERS)
-
 libcalotrigger_io_la_SOURCES = \
   CaloTriggerInfo.C \
   CaloTriggerInfo_Dict.C \
@@ -47,22 +44,22 @@ libcalotrigger_la_SOURCES = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
-
-%_Dict.cpp: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
 # linking tests
+BUILT_SOURCES = testexternals.C
 
-noinst_PROGRAMS = testexternals
+noinst_PROGRAMS = \
+  testexternals_calotrigger_io \
+  testexternals_calotrigger
 
-BUILT_SOURCES = \
-  testexternals.C
 
-testexternals_LDADD = \
-  libcalotrigger_io.la \
-  libcalotrigger.la
+testexternals_calotrigger_io_SOURCES = testexternals.C
+testexternals_calotrigger_io_LDADD = libcalotrigger_io.la
+
+testexternals_calotrigger_SOURCES = testexternals.C
+testexternals_calotrigger_LDADD = libcalotrigger.la
 
 testexternals.C:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
@@ -72,4 +69,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict* testexternals.C
+	rm -f *Dict* $(BUILT_SOURCES)

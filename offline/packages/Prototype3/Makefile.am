@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir`
@@ -21,9 +21,9 @@ pkginclude_HEADERS = \
 
 libPrototype3_la_SOURCES = \
   RawTower_Prototype3.cc \
-  RawTower_Prototype3Dict.cc \
+  RawTower_Prototype3Dict.C \
   Prototype3DSTReader.cc \
-  Prototype3DSTReaderDict.cc \
+  Prototype3DSTReaderDict.C \
   CaloUnpackPRDF.C \
   CaloUnpackPRDFDict.C \
   TempInfoUnpackPRDF.C \
@@ -37,9 +37,9 @@ libPrototype3_la_SOURCES = \
   GenericUnpackPRDF.C \
   GenericUnpackPRDFDict.C \
   PROTOTYPE3_FEM.C \
-  PROTOTYPE3_FEMDict.cc \
+  PROTOTYPE3_FEMDict.C \
   RawTower_Temperature.cc \
-  RawTower_TemperatureDict.cc
+  RawTower_TemperatureDict.C
 
 libPrototype3_la_LIBADD = \
   -lSubsysReco \
@@ -67,7 +67,7 @@ testexternals.C:
 # please add new classes in alphabetical order
 # Rule for generating CINT dictionaries from class headers.
 %Dict.C: %.h %LinkDef.h
-	rootcint -f $@ -c $(CINTFLAGS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict*

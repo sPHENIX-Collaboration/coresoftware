@@ -12,7 +12,7 @@ AM_LDFLAGS = \
   -lgfortran \
   -lpthread
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -isystem$(OFFLINE_MAIN)/include 
 

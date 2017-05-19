@@ -1,10 +1,9 @@
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
   -I${G4_MAIN}/include \
-  -I${G4_MAIN}/include/Geant4 \
   -I`root-config --incdir` \
   -I$(OFFLINE_MAIN)/include/eigen3
 
@@ -13,7 +12,7 @@ lib_LTLIBRARIES = \
    libg4hough.la
 
 AM_CXXFLAGS = \
- -Wall -Werror -msse2 -DRAVE -DRaveDllExport=
+ -Werror -msse2 -DRAVE -DRaveDllExport=
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -152,19 +151,20 @@ libg4hough_la_SOURCES = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
 # linking tests
 
-noinst_PROGRAMS = testexternals
+noinst_PROGRAMS = \
+  testexternals_g4hough_io \
+  testexternals_g4hough
 
-BUILT_SOURCES = \
-  testexternals.C
+testexternals_g4hough_io_SOURCES = testexternals.C
+testexternals_g4hough_io_LDADD = libg4hough_io.la
 
-testexternals_LDADD = \
-  libg4hough_io.la \
-  libg4hough.la
+testexternals_g4hough_SOURCES = testexternals.C
+testexternals_g4hough_LDADD = libg4hough.la
 
 testexternals.C:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

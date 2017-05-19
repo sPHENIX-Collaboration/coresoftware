@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
   -I`root-config --incdir`
@@ -10,13 +10,10 @@ lib_LTLIBRARIES = \
    libg4bbc.la
 
 AM_CXXFLAGS = \
- -Wall -Werror -msse2
+ -Werror -msse2
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
-
-libg4bbc_io_la_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libg4bbc_io_la_LIBADD = \
@@ -50,22 +47,20 @@ libg4bbc_la_SOURCES = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
-
-%_Dict.cpp: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
 # linking tests
 
-noinst_PROGRAMS = testexternals
+noinst_PROGRAMS = \
+  testexternalsg4bbc_io \
+  testexternalsg4bbc
 
-BUILT_SOURCES = \
-  testexternals.C
+testexternalsg4bbc_io_SOURCES = testexternals.C
+testexternalsg4bbc_io_LDADD = libg4bbc_io.la
 
-testexternals_LDADD = \
-  libg4bbc_io.la \
-  libg4bbc.la
+testexternalsg4bbc_SOURCES = testexternals.C
+testexternalsg4bbc_LDADD = libg4bbc_io.la
 
 testexternals.C:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
