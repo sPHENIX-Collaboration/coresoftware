@@ -190,10 +190,10 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _max_search_win_z_intt(2.4),
 	  _min_search_win_z_intt(1.2),
 
-	  _max_search_win_phi_maps(0.01),
-	  _min_search_win_phi_maps(0.0005),
-	  _max_search_win_z_maps(0.5),
-	  _min_search_win_z_maps(0.1),
+	  _max_search_win_phi_maps(0.010),
+	  _min_search_win_phi_maps(0.000),
+	  _max_search_win_z_maps(0.2),
+	  _min_search_win_z_maps(0.0),
 
 	  _search_win_phi(10),
 	  _search_win_z(10),
@@ -2713,6 +2713,8 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 			layer != end_layer+direction;
 			layer += direction) {
 		if(!(layer>=0 and layer < (unsigned int)_nlayers_all)) break;
+
+		if(layer >= 3 and layer <=6) continue;
 
 		/*!
 		 * if miss too many layers terminate track propagating
