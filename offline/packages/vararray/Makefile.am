@@ -11,7 +11,7 @@ pkginclude_HEADERS = \
   VariableArrayIds.h \
   VariableArrayUtils.h
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
   -I$(ROOTSYS)/include 
@@ -47,7 +47,7 @@ VariableArrayDict.cc: \
   VariableArray.h \
   VariableArrayContainer.h \
   VariableArrayLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 
 clean-local:

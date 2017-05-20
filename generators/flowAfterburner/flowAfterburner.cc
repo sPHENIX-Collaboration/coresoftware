@@ -11,18 +11,19 @@
 // need for it.  Pass in a pointer to a random generator, algorithm
 // selection and an event.
 
-#include <set>
-#include <cmath>
+#include "flowAfterburner.h"
 
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_roots.h>
      
-#include "HepMC/GenEvent.h"
-#include "HepMC/GenRanges.h"
-#include "CLHEP/Random/RandFlat.h"
-#include "CLHEP/Vector/LorentzVector.h"
-#include "flowAfterburner.h"
+#include <HepMC/GenEvent.h>
+#include <HepMC/GenRanges.h>
+#include <CLHEP/Random/RandFlat.h>
+#include <CLHEP/Vector/LorentzVector.h>
+
+#include <set>
+#include <cmath>
 
 flowAfterburnerAlgorithm algorithm;
 std::map<std::string, flowAfterburnerAlgorithm> algorithms;
@@ -42,7 +43,6 @@ struct loaderObj
 
 loaderObj loader;
 
-float psi_n[6],v1,v2,v3,v4,v5,v6;
 
 double
 vn_func (double x, void *params)
@@ -76,6 +76,8 @@ vn_func_derivative (double x, void *params)
 	     vn[5] * cos (6 * (x - psi_n[5])) / 6.0);
   return val;
 }
+
+float psi_n[6],v1,v2,v3,v4,v5,v6;
 
 void
 MoveDescendantsToParent (HepMC::GenParticle * parent,

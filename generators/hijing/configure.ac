@@ -4,7 +4,8 @@ AM_INIT_AUTOMAKE
 
 AC_PROG_CXX
 AC_PROG_F77(gfortran)
-AC_ENABLE_STATIC(no)
-AC_PROG_LIBTOOL
+LT_INIT([disable-static])
 
-AC_OUTPUT(Makefile)
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+

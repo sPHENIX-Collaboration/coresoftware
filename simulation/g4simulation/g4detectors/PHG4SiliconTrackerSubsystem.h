@@ -11,7 +11,6 @@
 
 class PHG4SiliconTrackerDetector;
 class PHG4SiliconTrackerSteppingAction;
-class PHG4EventAction;
 
 class PHG4SiliconTrackerSubsystem : public PHG4DetectorGroupSubsystem
 {
@@ -44,9 +43,6 @@ class PHG4SiliconTrackerSubsystem : public PHG4DetectorGroupSubsystem
   //! accessors (reimplemented)
   PHG4Detector *GetDetector(void) const;
   PHG4SteppingAction *GetSteppingAction(void) const { return steppingAction_; }
-  PHG4EventAction *GetEventAction() const { return eventAction_; }
-  void SuperDetector(const std::string &name) { superdetector = name; }
-  const std::string SuperDetector() { return superdetector; }
   void Print(const std::string &what = "ALL") const;
 
  private:
@@ -59,12 +55,10 @@ class PHG4SiliconTrackerSubsystem : public PHG4DetectorGroupSubsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction *steppingAction_;
-  PHG4EventAction *eventAction_;
 
   std::vector<std::pair<int, int>> layerconfig_;
 
   std::string detector_type;
-  std::string superdetector;
 };
 
 #endif

@@ -734,9 +734,10 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
       float this_sum = 0;
 
       this_sum += _FULLCALO_0p2x0p2_MAP[ieta][iphi];
-      this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 1][iphi];  // ieta + 1 is safe, since _FULLCALO_1p0x1p0_NETA = _FULLCALO_0p2x0p2_NETA - 3
-      this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 2][iphi];  // ieta + 2 is safe, since _FULLCALO_1p0x1p0_NETA = _FULLCALO_0p2x0p2_NETA - 3
-      this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 3][iphi];  // ieta + 3 is safe, since _FULLCALO_1p0x1p0_NETA = _FULLCALO_0p2x0p2_NETA - 3
+      this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 1][iphi];  // ieta + 1 is safe, since _FULLCALO_1p0x1p0_NETA = _FULLCALO_0p2x0p2_NETA - 4
+      this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 2][iphi];  // ieta + 2 is safe, since _FULLCALO_1p0x1p0_NETA = _FULLCALO_0p2x0p2_NETA - 4
+      this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 3][iphi];  // ieta + 3 is safe, since _FULLCALO_1p0x1p0_NETA = _FULLCALO_0p2x0p2_NETA - 4
+      this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 4][iphi];  // ieta + 4 is safe, since _FULLCALO_1p0x1p0_NETA = _FULLCALO_0p2x0p2_NETA - 4
 
       // add 1 to phi, but take modulus w.r.t. _FULLCALO_0p2x0p2_NPHI
       // in case we have wrapped back around
@@ -744,18 +745,28 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
       this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 1][ ( iphi + 1 ) % _FULLCALO_0p2x0p2_NPHI ];
       this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 2][ ( iphi + 1 ) % _FULLCALO_0p2x0p2_NPHI ];
       this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 3][ ( iphi + 1 ) % _FULLCALO_0p2x0p2_NPHI ];
+      this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 4][ ( iphi + 1 ) % _FULLCALO_0p2x0p2_NPHI ];
       // add 2 to phi, but take modulus w.r.t. _FULLCALO_0p2x0p2_NPHI
       // in case we have wrapped back around
       this_sum += _FULLCALO_0p2x0p2_MAP[ieta][ ( iphi + 2 ) % _FULLCALO_0p2x0p2_NPHI ];
       this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 1][ ( iphi + 2 ) % _FULLCALO_0p2x0p2_NPHI ];
       this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 2][ ( iphi + 2 ) % _FULLCALO_0p2x0p2_NPHI ];
       this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 3][ ( iphi + 2 ) % _FULLCALO_0p2x0p2_NPHI ];
+      this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 4][ ( iphi + 2 ) % _FULLCALO_0p2x0p2_NPHI ];
       // add 3 to phi, but take modulus w.r.t. _FULLCALO_0p2x0p2_NPHI
       // in case we have wrapped back around
       this_sum += _FULLCALO_0p2x0p2_MAP[ieta][ ( iphi + 3 ) % _FULLCALO_0p2x0p2_NPHI ];
       this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 1][ ( iphi + 3 ) % _FULLCALO_0p2x0p2_NPHI ];
       this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 2][ ( iphi + 3 ) % _FULLCALO_0p2x0p2_NPHI ];
       this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 3][ ( iphi + 3 ) % _FULLCALO_0p2x0p2_NPHI ];
+      this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 4][ ( iphi + 3 ) % _FULLCALO_0p2x0p2_NPHI ];
+      // add 4 to phi, but take modulus w.r.t. _FULLCALO_0p2x0p2_NPHI
+      // in case we have wrapped back around
+      this_sum += _FULLCALO_0p2x0p2_MAP[ieta][ ( iphi + 4 ) % _FULLCALO_0p2x0p2_NPHI ];
+      this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 1][ ( iphi + 4 ) % _FULLCALO_0p2x0p2_NPHI ];
+      this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 2][ ( iphi + 4 ) % _FULLCALO_0p2x0p2_NPHI ];
+      this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 3][ ( iphi + 4 ) % _FULLCALO_0p2x0p2_NPHI ];
+      this_sum += _FULLCALO_0p2x0p2_MAP[ieta + 4][ ( iphi + 4 ) % _FULLCALO_0p2x0p2_NPHI ];
 
       _FULLCALO_1p0x1p0_MAP[ieta][iphi] = this_sum;
 

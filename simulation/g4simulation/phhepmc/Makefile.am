@@ -4,7 +4,6 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir`
-#  `geant4-config --cflags-without-gui`
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -41,11 +40,11 @@ libphhepmc_la_SOURCES = \
   PHHepMCGenEvent.cc \
   PHHepMC_Dict.cc
 
-BUILT_SOURCES = \
-  testexternals.cc
-
 noinst_PROGRAMS = \
   testexternals
+
+testexternals_SOURCES = \
+  testexternals.cc
 
 testexternals_LDADD = \
   libphhepmc.la
