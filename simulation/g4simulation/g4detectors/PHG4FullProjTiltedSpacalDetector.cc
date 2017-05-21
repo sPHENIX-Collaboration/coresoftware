@@ -137,8 +137,9 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   assert(phi_bin_in_sec >=1);
   const G4double block_azimuth_angle  = (edge2_tilt_angle - edge1_tilt_angle)/phi_bin_in_sec;
   assert(block_azimuth_angle > 0);
-  const G4double block_edge1_half_width = enclosure_half_height_half_width - (get_geom_v3()->get_sidewall_thickness() * cm  + 2.0* get_geom_v3()->get_assembly_spacing() * cm)/ cos(edge1_tilt_angle);
-  const G4double block_edge2_half_width = enclosure_half_height_half_width - (get_geom_v3()->get_sidewall_thickness() * cm  + 2.0* get_geom_v3()->get_assembly_spacing() * cm)/ cos(edge2_tilt_angle);
+  assert(fabs(block_azimuth_angle - M_PI * 2 / get_geom_v3()->get_azimuthal_n_sec()/phi_bin_in_sec) < M_PI*numeric_limits<G4double>::epsilon());
+  const G4double block_edge1_half_width = enclosure_half_height_half_width - (get_geom_v3()->get_sidewall_thickness() * cm + get_geom_v3()->get_sidewall_outer_torr() * cm + 2.0* get_geom_v3()->get_assembly_spacing() * cm)/ cos(edge1_tilt_angle);
+  const G4double block_edge2_half_width = enclosure_half_height_half_width - (get_geom_v3()->get_sidewall_thickness() * cm + get_geom_v3()->get_sidewall_outer_torr() * cm + 2.0* get_geom_v3()->get_assembly_spacing() * cm)/ cos(edge2_tilt_angle);
   G4double block_width_ratio = 0;
   for (int s = 0; s<phi_bin_in_sec; ++s)
     {
@@ -371,10 +372,22 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   //
   BOOST_FOREACH (const SpacalGeom_t::tower_map_t::value_type& val, get_geom_v3()->get_sector_tower_map())
   {
-    const SpacalGeom_t::geom_tower& g_tower = val.second;
+    SpacalGeom_t::geom_tower g_tower = val.second;
+
+    const int tower_id = g_tower.id;
+    const int tower_phi_id_in_sec = tower_id % 10;
+    assert(tower_phi_id_in_sec >=0);
+    assert(tower_phi_id_in_sec <phi_bin_in_sec);
+
+    const auto & block_azimuth_geom = block_azimuth_geoms.at(tower_phi_id_in_sec);
+
     G4LogicalVolume* LV_tower = Construct_Tower(g_tower);
 
-    G4Transform3D block_trans = G4TranslateX3D(g_tower.centralX * cm) *
+    G4Transform3D block_trans =
+        G4TranslateX3D(block_azimuth_geom.projection_center_x) *
+        G4TranslateY3D(block_azimuth_geom.projection_center_y) *
+        G4RotateZ3D(block_azimuth_geom.angle)*
+        G4TranslateX3D(g_tower.centralX * cm) *
         G4TranslateY3D(g_tower.centralY * cm) *
         G4TranslateZ3D(g_tower.centralZ * cm) *
         G4RotateX3D(g_tower.pRotationAngleX * rad);
@@ -382,7 +395,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     const bool overlapcheck_block = overlapcheck and (get_geom_v3()->get_construction_verbose() >= 2);
 
     G4PVPlacement* block_phys = new G4PVPlacement(block_trans, LV_tower,
-                                                  G4String(GetName().c_str()) + G4String("_Tower"), sec_logic, false,
+                                                  G4String(GetName().c_str()) + G4String("_Tower_")+to_string(g_tower.id), sec_logic, false,
                                                   g_tower.id, overlapcheck_block);
     block_vol[block_phys] = g_tower.id;
   }
