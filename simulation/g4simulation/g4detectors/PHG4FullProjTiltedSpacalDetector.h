@@ -48,6 +48,9 @@ class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
   //! a block along z axis built with G4Trd that is slightly tapered in x dimension
   virtual G4LogicalVolume*
   Construct_Tower(const SpacalGeom_t::geom_tower& tower);
+  //! a block for the light guide along z axis that fit to the tower
+  virtual G4LogicalVolume*
+  Construct_LightGuide(const SpacalGeom_t::geom_tower & tower, const int index_x, const int index_y);
 
   //! a block along z axis built with G4Trd that is slightly tapered in x dimension
   virtual int

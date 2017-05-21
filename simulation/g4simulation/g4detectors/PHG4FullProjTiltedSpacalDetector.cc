@@ -45,10 +45,10 @@
 #include <cassert>
 #include <cmath>
 #include <functional>
+#include <limits>
 #include <numeric>  // std::accumulate
 #include <sstream>
 #include <string>  // std::string, std::to_string
-#include <limits>
 
 using namespace std;
 
@@ -134,60 +134,60 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
 
   // blocks azimuthal segmentation
   const int phi_bin_in_sec = get_geom_v3()->get_max_phi_bin_in_sec();
-  assert(phi_bin_in_sec >=1);
-  const G4double block_azimuth_angle  = (edge2_tilt_angle - edge1_tilt_angle)/phi_bin_in_sec;
+  assert(phi_bin_in_sec >= 1);
+  const G4double block_azimuth_angle = (edge2_tilt_angle - edge1_tilt_angle) / phi_bin_in_sec;
   assert(block_azimuth_angle > 0);
-  assert(fabs(block_azimuth_angle - M_PI * 2 / get_geom_v3()->get_azimuthal_n_sec()/phi_bin_in_sec) < M_PI*numeric_limits<G4double>::epsilon());
-  const G4double block_edge1_half_width = enclosure_half_height_half_width - (get_geom_v3()->get_sidewall_thickness() * cm + get_geom_v3()->get_sidewall_outer_torr() * cm + 2.0* get_geom_v3()->get_assembly_spacing() * cm)/ cos(edge1_tilt_angle);
-  const G4double block_edge2_half_width = enclosure_half_height_half_width - (get_geom_v3()->get_sidewall_thickness() * cm + get_geom_v3()->get_sidewall_outer_torr() * cm + 2.0* get_geom_v3()->get_assembly_spacing() * cm)/ cos(edge2_tilt_angle);
+  assert(fabs(block_azimuth_angle - M_PI * 2 / get_geom_v3()->get_azimuthal_n_sec() / phi_bin_in_sec) < M_PI * numeric_limits<G4double>::epsilon());
+  const G4double block_edge1_half_width = enclosure_half_height_half_width - (get_geom_v3()->get_sidewall_thickness() * cm + get_geom_v3()->get_sidewall_outer_torr() * cm + 2.0 * get_geom_v3()->get_assembly_spacing() * cm) / cos(edge1_tilt_angle);
+  const G4double block_edge2_half_width = enclosure_half_height_half_width - (get_geom_v3()->get_sidewall_thickness() * cm + get_geom_v3()->get_sidewall_outer_torr() * cm + 2.0 * get_geom_v3()->get_assembly_spacing() * cm) / cos(edge2_tilt_angle);
   G4double block_width_ratio = 0;
-  for (int s = 0; s<phi_bin_in_sec; ++s)
-    {
-      block_width_ratio += 1/cos( block_azimuth_angle * (0.5 + s) + edge1_tilt_angle );
-    }
-  const G4double block_half_height_width = (block_edge1_half_width + block_edge2_half_width)/block_width_ratio;
+  for (int s = 0; s < phi_bin_in_sec; ++s)
+  {
+    block_width_ratio += 1 / cos(block_azimuth_angle * (0.5 + s) + edge1_tilt_angle);
+  }
+  const G4double block_half_height_width = (block_edge1_half_width + block_edge2_half_width) / block_width_ratio;
   assert(block_half_height_width > 0);
 
   // write out the azimuthal block geometry
   // block azimuth geometry records
-  struct block_azimuth_geom{
+  struct block_azimuth_geom
+  {
     G4double angle;
     G4double projection_center_y;
     G4double projection_center_x;
   };
   vector<block_azimuth_geom> block_azimuth_geoms(phi_bin_in_sec,
-      block_azimuth_geom{numeric_limits<double>::signaling_NaN(),numeric_limits<double>::signaling_NaN(),numeric_limits<double>::signaling_NaN()} ); // [phi-bin in sector] -> azimuth geometry
+                                                 block_azimuth_geom{numeric_limits<double>::signaling_NaN(), numeric_limits<double>::signaling_NaN(), numeric_limits<double>::signaling_NaN()});  // [phi-bin in sector] -> azimuth geometry
   G4double block_x_edge1 = block_edge1_half_width;
-  for (int s = 0; s<phi_bin_in_sec; ++s)
-    {
-      const G4double angle =  block_azimuth_angle * (0.5 + s) + edge1_tilt_angle ;
-      const G4double block_x_size = block_half_height_width/cos(angle);
-      assert(block_x_size > 0);
-      const G4double x_center = block_x_edge1 - 0.5*block_x_size;
+  for (int s = 0; s < phi_bin_in_sec; ++s)
+  {
+    const G4double angle = block_azimuth_angle * (0.5 + s) + edge1_tilt_angle;
+    const G4double block_x_size = block_half_height_width / cos(angle);
+    assert(block_x_size > 0);
+    const G4double x_center = block_x_edge1 - 0.5 * block_x_size;
 
-      // projection center per block
-      const G4double projection_length = block_half_height_width / 2. / tan( block_azimuth_angle / 2. );
-      assert(projection_length > 0);
-      const G4double projection_center_y = enclosure_center - projection_length*cos(angle);
-      const G4double projection_center_x = x_center + projection_length*sin(angle);
+    // projection center per block
+    const G4double projection_length = block_half_height_width / 2. / tan(block_azimuth_angle / 2.);
+    assert(projection_length > 0);
+    const G4double projection_center_y = enclosure_center - projection_length * cos(angle);
+    const G4double projection_center_x = x_center + projection_length * sin(angle);
 
-      //save
-      block_azimuth_geom geom {angle, projection_center_y, projection_center_x};
-      block_azimuth_geoms.at(s) = geom;
+    //save
+    block_azimuth_geom geom{angle, projection_center_y, projection_center_x};
+    block_azimuth_geoms.at(s) = geom;
 
-      // next step
-      block_x_edge1 -= block_x_size;
-    }
+    // next step
+    block_x_edge1 -= block_x_size;
+  }
   if (fabs(block_x_edge1 - (-block_edge2_half_width)) > get_geom_v3()->get_assembly_spacing() * cm)
-    {
-      cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg - ERROR - " << endl
-          << "\t block_x_edge1 = " << block_x_edge1 << endl
-          << "\t block_edge2_half_width = " << block_edge2_half_width << endl
-          << "\t fabs(block_x_edge1 - (-block_edge2_half_width)) = " << fabs(block_x_edge1 - (-block_edge2_half_width)) << endl
-          << "\t get_geom_v3()->get_assembly_spacing() * cm = " << get_geom_v3()->get_assembly_spacing() * cm << endl;
-    }
-  assert(fabs(block_x_edge1 - (-block_edge2_half_width)) < get_geom_v3()->get_assembly_spacing() * cm); // closure check
-
+  {
+    cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg - ERROR - " << endl
+         << "\t block_x_edge1 = " << block_x_edge1 << endl
+         << "\t block_edge2_half_width = " << block_edge2_half_width << endl
+         << "\t fabs(block_x_edge1 - (-block_edge2_half_width)) = " << fabs(block_x_edge1 - (-block_edge2_half_width)) << endl
+         << "\t get_geom_v3()->get_assembly_spacing() * cm = " << get_geom_v3()->get_assembly_spacing() * cm << endl;
+  }
+  assert(fabs(block_x_edge1 - (-block_edge2_half_width)) < get_geom_v3()->get_assembly_spacing() * cm);  // closure check
 
   if (Verbosity())
   {
@@ -202,13 +202,12 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
          << "\t block_width_ratio = " << block_width_ratio << endl
          << "\t block_half_height_width = " << block_half_height_width << endl;
 
-    for (int s = 0; s<phi_bin_in_sec; ++s)
-      {
-        cout <<"\t block["<<s<<"].angle = "<<block_azimuth_geoms[s].angle<<endl;
-        cout <<"\t block["<<s<<"].projection_center_y = "<<block_azimuth_geoms[s].projection_center_y<<endl;
-        cout <<"\t block["<<s<<"].projection_center_x = "<<block_azimuth_geoms[s].projection_center_x<<endl;
-      }
-
+    for (int s = 0; s < phi_bin_in_sec; ++s)
+    {
+      cout << "\t block[" << s << "].angle = " << block_azimuth_geoms[s].angle << endl;
+      cout << "\t block[" << s << "].projection_center_y = " << block_azimuth_geoms[s].projection_center_y << endl;
+      cout << "\t block[" << s << "].projection_center_x = " << block_azimuth_geoms[s].projection_center_x << endl;
+    }
   }
 
   assert(enclosure_depth > 10 * cm);
@@ -376,17 +375,17 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
 
     const int tower_id = g_tower.id;
     const int tower_phi_id_in_sec = tower_id % 10;
-    assert(tower_phi_id_in_sec >=0);
-    assert(tower_phi_id_in_sec <phi_bin_in_sec);
+    assert(tower_phi_id_in_sec >= 0);
+    assert(tower_phi_id_in_sec < phi_bin_in_sec);
 
-    const auto & block_azimuth_geom = block_azimuth_geoms.at(tower_phi_id_in_sec);
+    const auto& block_azimuth_geom = block_azimuth_geoms.at(tower_phi_id_in_sec);
 
     G4LogicalVolume* LV_tower = Construct_Tower(g_tower);
 
     G4Transform3D block_trans =
         G4TranslateX3D(block_azimuth_geom.projection_center_x) *
         G4TranslateY3D(block_azimuth_geom.projection_center_y) *
-        G4RotateZ3D(block_azimuth_geom.angle)*
+        G4RotateZ3D(block_azimuth_geom.angle) *
         G4TranslateX3D(g_tower.centralX * cm) *
         G4TranslateY3D(g_tower.centralY * cm) *
         G4TranslateZ3D(g_tower.centralZ * cm) *
@@ -395,9 +394,30 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     const bool overlapcheck_block = overlapcheck and (get_geom_v3()->get_construction_verbose() >= 2);
 
     G4PVPlacement* block_phys = new G4PVPlacement(block_trans, LV_tower,
-                                                  G4String(GetName().c_str()) + G4String("_Tower_")+to_string(g_tower.id), sec_logic, false,
+                                                  G4String(GetName().c_str()) + G4String("_Tower_") + to_string(g_tower.id), sec_logic, false,
                                                   g_tower.id, overlapcheck_block);
     block_vol[block_phys] = g_tower.id;
+
+    if (g_tower.LightguideHeight > 0)
+    {
+      // also build a light guide
+
+      for (int ix = 0; ix < g_tower.NSubtowerX; ix++)
+      //  int ix = 0;
+      {
+        for (int iy = 0; iy < g_tower.NSubtowerY; iy++)
+        //        int iy = 0;
+        {
+          G4LogicalVolume* LV_lg = Construct_LightGuide(g_tower, ix,
+                                                        iy);
+
+          G4PVPlacement* lg_phys = new G4PVPlacement(block_trans, LV_lg, LV_lg->GetName(),
+                                                     sec_logic, false, g_tower.id, overlapcheck_block);
+
+          block_vol[lg_phys] = g_tower.id * 100 + ix * 10 + iy;
+        }
+      }
+    }
   }
 
   cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg::" << GetName()
@@ -718,6 +738,89 @@ PHG4FullProjTiltedSpacalDetector::Construct_Tower(
     G4Exception("PHG4FullProjTiltedSpacalDetector::Construct_Tower", "Wrong",
                 FatalException, message, "");
   }
+
+  return block_logic;
+}
+
+G4LogicalVolume*
+PHG4FullProjTiltedSpacalDetector::Construct_LightGuide(
+    const PHG4FullProjTiltedSpacalDetector::SpacalGeom_t::geom_tower& g_tower,
+    const int index_x, const int index_y)
+{
+  assert(_geom);
+
+  std::stringstream sout;
+  sout << "_Lightguide_" << g_tower.id << "_" << index_x << "_" << index_y;
+  const G4String sTowerID(sout.str());
+
+  assert(g_tower.LightguideHeight > 0);
+
+  // light guide parameters in PHENIX units
+  const double weight_x1 = 1 - (double) index_y / g_tower.NSubtowerY;
+  const double weight_x2 = 1 - (double) (index_y + 1) / g_tower.NSubtowerY;
+  const double weight_xcenter = 1 - (double) (index_y + 0.5) / g_tower.NSubtowerY;
+
+  assert(weight_x1 >= 0 and weight_x1 <= 1);
+  assert(weight_x2 >= 0 and weight_x2 <= 1);
+  assert(weight_xcenter >= 0 and weight_xcenter <= 1);
+
+  const double lg_pDx1 = (g_tower.pDx1 * weight_x1  //
+                          + g_tower.pDx2 * (1 - weight_x1)) /
+                         g_tower.NSubtowerX;
+  const double lg_pDx2 = (g_tower.pDx1 * weight_x2  //
+                          + g_tower.pDx2 * (1 - weight_x2)) /
+                         g_tower.NSubtowerX;
+  const double lg_pDy1 = g_tower.pDy1 / g_tower.NSubtowerY;
+  const double lg_Alp1 = atan(
+      (g_tower.pDx2 - g_tower.pDx1) * (-g_tower.NSubtowerX + 1. + 2 * index_x) / (double) (g_tower.NSubtowerX) / (2. * g_tower.pDy1) + tan(g_tower.pAlp1));
+
+  const double shift_xcenter = (g_tower.pDx1 * weight_xcenter           //
+                                + g_tower.pDx2 * (1 - weight_xcenter))  //
+                               *                                        //
+                               (-g_tower.NSubtowerX + 1. + 2 * index_x) / (double) (g_tower.NSubtowerX);
+  const double shift_ycenter = g_tower.pDy1  //
+                               *             //
+                               (-g_tower.NSubtowerY + 1. + 2 * index_y) / (double) (g_tower.NSubtowerY);
+
+  G4VSolid* block_solid = new G4Trap(
+      /*const G4String& pName*/ G4String(GetName().c_str()) + sTowerID,
+      0.5 * g_tower.LightguideHeight * cm,  // G4double pDz,
+      0 * rad, 0 * rad,                     // G4double pTheta, G4double pPhi,
+      g_tower.LightguideTaperRatio * lg_pDy1 * cm,
+      g_tower.LightguideTaperRatio * lg_pDx1 * cm,
+      g_tower.LightguideTaperRatio * lg_pDx2 * cm,  // G4double pDy1, G4double pDx1, G4double pDx2,
+      lg_Alp1 * rad,                                // G4double pAlp1,
+      lg_pDy1 * cm, lg_pDx1 * cm, lg_pDx2 * cm,     // G4double pDy2, G4double pDx3, G4double pDx4,
+      lg_Alp1 * rad                                 // G4double pAlp2 //
+      );
+
+  block_solid = new G4DisplacedSolid(G4String(GetName() + "_displaced"),
+                                     block_solid, 0,                                           //
+                                     G4ThreeVector(                                            //
+                                         tan(g_tower.pTheta * rad) * cos(g_tower.pPhi * rad),  //
+                                         tan(g_tower.pTheta * rad) * sin(g_tower.pPhi * rad),  //
+                                         1) *                                                  // G4ThreeVector
+                                             -(g_tower.pDz) *
+                                             cm                                                       //
+                                         + G4ThreeVector(shift_xcenter * cm, shift_ycenter * cm, 0)   // shit in subtower direction
+                                         + G4ThreeVector(0, 0, -0.5 * g_tower.LightguideHeight * cm)  //shift in the light guide height
+                                     );
+
+  G4Material* cylinder_mat = G4Material::GetMaterial(
+      g_tower.LightguideMaterial);
+  assert(cylinder_mat);
+
+  G4LogicalVolume* block_logic = new G4LogicalVolume(block_solid, cylinder_mat,
+                                                     G4String(G4String(GetName()) + string("_Tower") + sTowerID), 0, 0,
+                                                     nullptr);
+
+  G4VisAttributes* VisAtt = new G4VisAttributes();
+  PHG4Utils::SetColour(VisAtt, g_tower.LightguideMaterial);
+  //  VisAtt->SetColor(.3, .3, .3, .3);
+  VisAtt->SetVisibility(
+      _geom->is_azimuthal_seg_visible() or _geom->is_virualize_fiber());
+  VisAtt->SetForceSolid(not _geom->is_virualize_fiber());
+  block_logic->SetVisAttributes(VisAtt);
 
   return block_logic;
 }
