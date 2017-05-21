@@ -45,30 +45,34 @@ using namespace std;
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
 PHG4SpacalDetector::PHG4SpacalDetector(PHCompositeNode *Node,
-    const std::string &dnam, PHG4Parameters *parameters,  const int lyr) :
-    PHG4Detector(Node, dnam), _region(NULL), cylinder_solid(NULL), cylinder_logic(
-        NULL), cylinder_physi(NULL), active(0), absorberactive(0), layer(
-        lyr)
+                                       const std::string &dnam, PHG4Parameters *parameters, const int lyr, bool init_geom)
+  : PHG4Detector(Node, dnam)
+  , _region(NULL)
+  , cylinder_solid(NULL)
+  , cylinder_logic(NULL)
+  , cylinder_physi(NULL)
+  , active(0)
+  , absorberactive(0)
+  , layer(lyr)
+  , _geom(nullptr)
 {
-  _geom = new SpacalGeom_t();
-  if (_geom == NULL)
+  if (init_geom)
+  {
+    _geom = new SpacalGeom_t();
+    if (_geom == NULL)
     {
-      cout <<"PHG4SpacalDetector::Constructor - Fatal Error - invalid geometry object!"<<endl;
+      cout << "PHG4SpacalDetector::Constructor - Fatal Error - invalid geometry object!" << endl;
       exit(1);
     }
-  assert(parameters);
-  _geom->ImportParameters(*parameters);
+    assert(parameters);
+    _geom->ImportParameters(*parameters);
 
-
-//  step_limits = new G4UserLimits(_geom->get_calo_step_size() * cm);
-//
-//  clading_step_limits = new G4UserLimits(
-//      _geom->get_fiber_clading_step_size() * cm);
-
-  fiber_core_step_limits = new G4UserLimits(
-      _geom->get_fiber_core_step_size() * cm);
-
-  Verbosity(_geom->get_construction_verbose());
+    //  _geom->Print();
+  }
+  //  step_limits = new G4UserLimits(_geom->get_calo_step_size() * cm);
+  //
+  //  clading_step_limits = new G4UserLimits(
+  //      _geom->get_fiber_clading_step_size() * cm);
 
   gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
   assert (gdml_config);
@@ -114,6 +118,18 @@ PHG4SpacalDetector::Construct(G4LogicalVolume* logicWorld)
 {
   assert(_geom);
 
+  fiber_core_step_limits = new G4UserLimits(
+      _geom->get_fiber_core_step_size() * cm);
+
+  Verbosity(_geom->get_construction_verbose());
+
+  if ((verbosity > 0))
+    {
+      cout << "PHG4SpacalDetector::Construct::" << GetName()
+          << " - Start. Print Geometry:" << endl;
+      Print();
+    }
+
   if ((_geom->get_zmin() * cm + _geom->get_zmax() * cm) / 2
       != _geom->get_zpos() * cm)
     {
@@ -156,6 +172,13 @@ PHG4SpacalDetector::Construct(G4LogicalVolume* logicWorld)
   // install sectors
   if (_geom->get_sector_map().size() == 0)
     _geom->init_default_sector_map();
+
+  if ((verbosity > 0))
+    {
+      cout << "PHG4SpacalDetector::Construct::" << GetName()
+          << " - start constructing "<<_geom->get_sector_map().size()<<" sectors in total. " << endl;
+      Print();
+    }
 
   std::pair<G4LogicalVolume *,G4Transform3D> psec = Construct_AzimuthalSeg();
   G4LogicalVolume *sec_logic = psec.first;

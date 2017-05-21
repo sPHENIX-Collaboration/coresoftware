@@ -167,7 +167,7 @@ public:
   void
   load_demo_sector_tower_map2();
   void
-  load_demo_sector_tower_map3();
+  load_demo_sector_tower_map_2015_Chris_Cullen_2D_spacal();
   void
   load_demo_sector_tower_map4();
 

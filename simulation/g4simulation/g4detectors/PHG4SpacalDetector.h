@@ -38,7 +38,7 @@ public:
   typedef PHG4CylinderGeom_Spacalv1 SpacalGeom_t;
 
   PHG4SpacalDetector(PHCompositeNode* Node, const std::string& dnam,
-      PHG4Parameters *parameters,  const int layer = 0);
+      PHG4Parameters *parameters,  const int layer = 0, bool init_geom = true);
 
   virtual
   ~PHG4SpacalDetector(void);
@@ -168,7 +168,7 @@ protected:
 
   //! registry for volumes that should not be exported, i.e. fibers
   PHG4GDMLConfig * gdml_config;
-private:
+//private:
 
   SpacalGeom_t * _geom;
 

@@ -28,6 +28,7 @@ class G4VPhysicalVolume;
 class G4UserLimits;
 class PHG4Parameters;
 
+//! This class is obsolete and for comparison study only. Use PHG4FullProjTiltedSpacalDetector instead.
 class PHG4ProjSpacalDetector : public PHG4SpacalDetector
 {
  public:

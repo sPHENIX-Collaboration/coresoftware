@@ -28,7 +28,9 @@ class G4VPhysicalVolume;
 class G4UserLimits;
 class PHG4Parameters;
 
-//! Fully projective SPACAL built from 2D tapered modules
+//! Fully projective SPACAL built from 2D tapered modules.
+//! This class is obsolete and for comparison study only. Use PHG4FullProjTiltedSpacalDetector instead.
+//! It loads Chris Cullen 2D spacal design July 2015 by default.
 class PHG4FullProjSpacalDetector : public PHG4SpacalDetector
 {
  public:
@@ -60,19 +62,28 @@ class PHG4FullProjSpacalDetector : public PHG4SpacalDetector
   virtual void
   Print(const std::string& what = "ALL") const;
 
-  const SpacalGeom_t*
-  get_geom() const
-  {
-    return _geom;
-  }
-
   virtual PHG4CylinderGeom* clone_geom() const
   {
-    return new SpacalGeom_t(*_geom);
+    return new SpacalGeom_t(*get_geom_v3());
   }
 
  private:
-  SpacalGeom_t* _geom;
+//  SpacalGeom_t* _geom;
+
+  //! get the v3 cast of the geometry object
+  SpacalGeom_t *
+  get_geom_v3()
+  {
+    return dynamic_cast<SpacalGeom_t *> (_geom);
+  }
+
+  const SpacalGeom_t *
+  get_geom_v3() const
+  {
+    return dynamic_cast<const SpacalGeom_t *> (_geom);
+  }
+
+
 };
 
 #endif

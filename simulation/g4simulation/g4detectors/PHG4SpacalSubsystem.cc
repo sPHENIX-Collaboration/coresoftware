@@ -165,6 +165,9 @@ void PHG4SpacalSubsystem::SetDefaultParameters()
 
   set_default_double_param("thickness", 21.00000);
   set_default_double_param("radius", 90.);
+  set_default_double_param("zmin", -149.470000);
+  set_default_double_param("zmax", 149.470000);
+  set_default_int_param("azimuthal_n_sec", 256);
 
   set_default_int_param("construction_verbose", 0.);
   set_default_int_param("azimuthal_seg_visible", 0.);
