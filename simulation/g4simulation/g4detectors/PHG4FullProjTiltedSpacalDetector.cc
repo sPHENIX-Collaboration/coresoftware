@@ -128,10 +128,42 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   const G4double inner_half_width = enclosure_half_height_half_width + 0.5 * (width_adj1 - width_adj2);
   const G4double outter_half_width = enclosure_half_height_half_width + 0.5 * (-width_adj1 + width_adj2);
 
+  // enclosure walls
   const G4double edge1_tilt_angle = atan2(width_adj1, enclosure_depth * 0.5);
   const G4double edge2_tilt_angle = atan2(width_adj2, enclosure_depth * 0.5);
-  const G4double edge1_half_depth =  sqrt(width_adj1 * width_adj1 + enclosure_depth * enclosure_depth *.25);
-  const G4double edge2_half_depth = sqrt(width_adj2 * width_adj2 + enclosure_depth * enclosure_depth*.25);
+  const G4double edge1_half_depth = sqrt(width_adj1 * width_adj1 + enclosure_depth * enclosure_depth * .25);
+  const G4double edge2_half_depth = sqrt(width_adj2 * width_adj2 + enclosure_depth * enclosure_depth * .25);
+
+  // projective center
+  const G4double half_projection_ratio = 0.5 * (-width_adj1 + width_adj2) / enclosure_half_height_half_width;
+  const G4double projection_center_y = enclosure_center - ((enclosure_depth * 0.5) / half_projection_ratio);
+  const G4double projection_center_x = center_adj / half_projection_ratio;
+
+  // blocks azimuthal segmentation
+  const int phi_bin_in_sec = get_geom_v3()->get_max_phi_bin_in_sec();
+  const G4double block_azimuth_angle  = (edge2_tilt_angle - edge1_tilt_angle)/phi_bin_in_sec;
+  const G4double block_edge1_half_width = enclosure_half_height_half_width - (get_geom_v3()->get_sidewall_thickness() * cm  + 2.0* get_geom_v3()->get_assembly_spacing() * cm)/ cos(edge1_tilt_angle);
+  const G4double block_edge2_half_width = enclosure_half_height_half_width - (get_geom_v3()->get_sidewall_thickness() * cm  + 2.0* get_geom_v3()->get_assembly_spacing() * cm)/ cos(edge2_tilt_angle);
+  G4double block_width_ratio = 0;
+  for (int s = 0; s<phi_bin_in_sec; ++s)
+    {
+      block_width_ratio += 1/cos( block_azimuth_angle * (0.5 + s) + edge1_tilt_angle );
+    }
+  const G4double block_half_height_width = (block_edge1_half_width + block_edge2_half_width)/block_width_ratio;
+
+  if (Verbosity())
+  {
+    cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg - " << endl
+         << "\t edge1_tilt_angle = " << edge1_tilt_angle << endl
+         << "\t edge2_tilt_angle = " << edge2_tilt_angle << endl
+         << "\t projection_center_y = " << projection_center_y << endl
+         << "\t projection_center_x = " << projection_center_x << endl
+         << "\t block_azimuth_angle = " << block_azimuth_angle << endl
+         << "\t block_edge1_half_width = " << block_edge1_half_width << endl
+         << "\t block_edge2_half_width = " << block_edge2_half_width << endl
+         << "\t block_width_ratio = " << block_width_ratio << endl
+         << "\t block_half_height_width = " << block_half_height_width << endl;
+  }
 
   assert(enclosure_depth > 10 * cm);
 
@@ -169,7 +201,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   assert(wall_mat);
 
   G4VisAttributes* wall_VisAtt = new G4VisAttributes();
-  wall_VisAtt->SetColor(.5, .9, .5, .2);
+  wall_VisAtt->SetColor(.5, .9, .5, .1);
   wall_VisAtt->SetVisibility(get_geom_v3()->is_azimuthal_seg_visible());
   wall_VisAtt->SetForceSolid(true);
 
@@ -297,7 +329,10 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     const SpacalGeom_t::geom_tower& g_tower = val.second;
     G4LogicalVolume* LV_tower = Construct_Tower(g_tower);
 
-    G4Transform3D block_trans = G4TranslateX3D(g_tower.centralX * cm) * G4TranslateY3D(g_tower.centralY * cm) * G4TranslateZ3D(g_tower.centralZ * cm) * G4RotateX3D(g_tower.pRotationAngleX * rad);
+    G4Transform3D block_trans = G4TranslateX3D(g_tower.centralX * cm) *
+        G4TranslateY3D(g_tower.centralY * cm) *
+        G4TranslateZ3D(g_tower.centralZ * cm) *
+        G4RotateX3D(g_tower.pRotationAngleX * rad);
 
     const bool overlapcheck_block = overlapcheck and (get_geom_v3()->get_construction_verbose() >= 2);
 
