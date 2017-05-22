@@ -88,7 +88,7 @@
 #define _GET_RPHI_ERROR_
 
 //#define _USE_ALAN_FULL_VERTEXING_
-//#define _USE_ALAN_TRACK_REFITTING_
+#define _USE_ALAN_TRACK_REFITTING_
 
 //#define _MEARGE_SEED_CLUSTER_
 //#define _USE_ZERO_SEED_
@@ -1571,10 +1571,12 @@ int PHG4KalmanPatRec::full_track_seeding() {
 	_tracker->findHelices(_clusters, _min_combo_hits, _max_combo_hits, _tracks);
 
 	// Cleanup Seeds
+#ifdef _USE_ALAN_TRACK_REFITTING_
+#else
 	if(verbosity >= 1) _t_seeds_cleanup->restart();
 	CleanupSeeds();
 	if(verbosity >= 1) _t_seeds_cleanup->stop();
-
+#endif
 	for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
 		_track_covars.push_back((_tracker->getKalmanStates())[tt].C);
 		_track_errors.push_back(_tracker->getKalmanStates()[tt].chi2);
@@ -1610,6 +1612,7 @@ int PHG4KalmanPatRec::full_track_seeding() {
 	shift_coordinate_system(-shift_dx, -shift_dy, -shift_dz);
 
 #ifdef _USE_ALAN_TRACK_REFITTING_
+	if(verbosity >= 1) _t_seeds_cleanup->restart();
 	// we still need to update the track fields for DCA and PCA
 	// we can do that from the final vertex position
 
@@ -1639,6 +1642,7 @@ int PHG4KalmanPatRec::full_track_seeding() {
 
 	// shift back to global coordinates
 	shift_coordinate_system(-shift_dx, -shift_dy, -shift_dz);
+	if(verbosity >= 1) _t_seeds_cleanup->stop();
 #endif
 
 	// okay now we are done with the tracker
@@ -1925,6 +1929,184 @@ bool PHG4KalmanPatRec::circle_line_intersections(double x0, double y0,
 	points->insert(p3);
 
 	return true;
+}
+
+int PHG4KalmanPatRec::CleanupSeedsByHitPattern() {
+
+        std::vector<SimpleTrack3D> _tracks_cleanup;
+        _tracks_cleanup.clear();
+
+	if(verbosity >= 1){
+	  cout<<__LINE__<< ": Event: "<< _event << ": # tracks before cleanup: "<< _tracks.size() <<endl;
+	}
+
+	/*
+	  std::vector<double> _track_errors_cleanup;
+	  _track_errors_cleanup.clear();	  
+	  std::vector<Eigen::Matrix<float, 5, 5> > _track_covars_cleanup;
+	  _track_covars_cleanup.clear();
+	  
+	  std::vector<HelixKalmanState> _kalman_states_cleanup;
+	  _kalman_states_cleanup.clear();
+	*/
+       
+	typedef std::tuple<int, int, int, int> KeyType;
+	typedef std::multimap< KeyType, unsigned int > MapKeyTrkID;
+	
+	std::set<KeyType> keys;
+	std::vector<bool> v_track_used;
+	MapKeyTrkID m_key_itrack;
+
+
+	typedef std::set<unsigned int> TrackList;
+
+	std::set<unsigned int> OutputList;
+	std::multimap<int, unsigned int > hitIdTrackList;
+
+	unsigned int max_hit_id = 0;
+	//For each hit make list of all associated tracks
+
+	std::vector<bool> good_track;
+	//	printf("build hit track map\n");
+	for (unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
+	  good_track.push_back(true);
+	  SimpleTrack3D track = _tracks[itrack];
+	  for( SimpleHit3D hit : track.hits) {
+	    hitIdTrackList.insert(std::make_pair(hit.get_id(),itrack));
+	    if(hit.get_id()>max_hit_id) max_hit_id = hit.get_id();
+	  }
+	}
+	//	printf("build track duplicate map\n");
+	//Check Tracks for duplicates by looking for hits shared
+	for (unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
+	  if(good_track[itrack]==false) continue;//already checked this one
+	  if(OutputList.count(itrack)>0)continue;//already got this one
+	  
+	  SimpleTrack3D track = _tracks[itrack];
+
+	  int trackid_max_nhit = itrack;
+	  unsigned int max_nhit = track.hits.size();
+	  int onhit = track.hits.size();
+
+	  TrackList tList;
+	  for( SimpleHit3D hit : track.hits) {
+	    int nmatch = hitIdTrackList.count(hit.get_id());
+	    if(nmatch>1){
+	      multimap<int, unsigned int >::iterator it = hitIdTrackList.find(hit.get_id());
+	      //Loop over track matches and add them to the list, select longest in the process
+	      for(; it != hitIdTrackList.end();++it) {
+		unsigned int match_trackid = (*it).second;
+		if(match_trackid == itrack) continue;//original track
+		if(good_track[match_trackid]==false)continue;
+		tList.insert(match_trackid);
+		SimpleTrack3D mtrack = _tracks[match_trackid];
+	      }
+	    }
+	  }
+	  //	  int tlsize = tList.size();
+
+	  //	  cout << "remove bad matches " << tList.size() << "itrk: " << itrack << endl;
+	  //loop over matches and remove matches with too few shared hits  
+	  TrackList mergeList;
+	  for( unsigned int match : tList) {
+	    //	    cout << "processing " << match << " of " << tList.size() << " itrk " << itrack << endl;
+	    if(match==itrack)continue;
+	    if(good_track[match]==false)continue;
+
+	    SimpleTrack3D mtrack = _tracks[match]; //matched track
+	    int mnhit = mtrack.hits.size();
+ 	    std::set<unsigned int> HitList;
+	    //put hits from both tracks in a set
+	    for( SimpleHit3D hit : track.hits) HitList.insert(hit.get_id());
+	    for( SimpleHit3D hit : mtrack.hits) HitList.insert(hit.get_id());
+	    //set stores only unique hits, tracks overlap if:
+	    int sumnhit = HitList.size();
+	    if(sumnhit<(onhit+mnhit-3)){// more than 3 overlaps 
+	      //not enough overlap, drop track from list
+	      //tList.erase(match);
+	      //good_track[match] = false;
+	      if(sumnhit != onhit){//no subset
+		mergeList.insert(match);
+	      }
+	    }
+
+	  }
+
+	  tList.clear();
+	  //	  cout << "flag bad matches done " << mergeList.size() << " itrk " << itrack << endl;
+	  //loop over matches and flag all tracks bad except the longest 
+	  std::set<unsigned int> MergedHitList;
+	  if(mergeList.size()==0){
+	    for( SimpleHit3D hit : track.hits) MergedHitList.insert(hit.get_id());
+	  }
+	  //	  cout << "merge good matches itrk " << itrack << " #" << mergeList.size() << endl;
+	  for( unsigned int match : mergeList) {
+	    if(match==itrack)continue;
+	    if(good_track[match]==false)continue;
+	    //	    cout << "  adding " << match << endl;
+	    //check number of shared hits
+	    //get tracks
+
+	    SimpleTrack3D mtrack = _tracks[match]; //matched track
+	    if(mtrack.hits.size()>max_nhit){
+	      max_nhit = mtrack.hits.size();
+	      trackid_max_nhit = match;
+	      good_track[itrack] = false;
+	    }else{
+	      good_track[match] = false;
+	    }
+	    for( SimpleHit3D hit : track.hits) MergedHitList.insert(hit.get_id());
+	    for( SimpleHit3D hit : mtrack.hits) MergedHitList.insert(hit.get_id());
+	  }
+
+	  //	  int ntracks = _tracks.size();
+	  //int outtracks = OutputList.size();
+	  //	  printf("CLEANUP: itrack: %5d(%d) => %5d matches max %d(%d) tracks kept: %d\n",
+	  //	 itrack, ntracks,tlsize, max_nhit, trackid_max_nhit, outtracks);
+
+	  //	  printf("keep track %d\n",trackid_max_nhit);
+	  //add merged hit list to merged track 
+	  if(OutputList.count(trackid_max_nhit)==0){
+	    _tracks_cleanup.push_back(_tracks[trackid_max_nhit]);
+	
+	    /*  _kalman_states_cleanup.push_back((_tracker->getKalmanStates())[trackid_max_nhit]);
+		_track_covars_cleanup.push_back((_tracker->getKalmanStates())[trackid_max_nhit].C);
+		_track_errors_cleanup.push_back(_tracker->getKalmanStates()[trackid_max_nhit].chi2);
+	    */
+	  }
+	  OutputList.insert(trackid_max_nhit);
+	  
+	  _tracks_cleanup.back().hits.clear();
+	  
+	  for(unsigned int hitID : MergedHitList) {
+	    SimpleHit3D hit;
+	    hit.set_id(hitID);
+	    _tracks_cleanup.back().hits.push_back(hit);
+	  }
+	  
+				    
+	}
+
+	_tracks.clear();
+	_tracks = _tracks_cleanup;
+
+	/*	_track_errors.clear();
+	  _track_errors = _track_errors_cleanup;
+	  _track_covars.clear();
+	  _track_covars = _track_covars_cleanup;
+	  _tracker->getKalmanStates().clear();
+	  for(auto &kstate :  _kalman_states_cleanup){
+	  _tracker->getKalmanStates().push_back(kstate);
+	  }
+	*/
+		
+	if(verbosity >= 1){
+	  cout<<__LINE__<< ": Event: "<< _event <<endl;
+	  cout << ": # tracks after cleanup: "<< _tracks.size() << " ol:" <<OutputList.size()  <<endl;
+	}
+
+	
+	return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4KalmanPatRec::CleanupSeeds() {

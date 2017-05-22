@@ -523,6 +523,9 @@ private:
 	int export_output();
 
 	//!
+	int CleanupSeedsByHitPattern();
+
+	//!
 	int CleanupSeeds();
 
 	//!
