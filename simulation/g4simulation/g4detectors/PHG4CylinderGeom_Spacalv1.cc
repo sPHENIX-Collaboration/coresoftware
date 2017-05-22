@@ -62,6 +62,14 @@ PHG4CylinderGeom_Spacalv1::Print(Option_t *) const
         << "Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower"
         << endl;
     break;
+  case kFullProjective_2DTaper_Tilted:
+    cout << "Fully projective spacal with 2D tapered modules and  allow azimuthal tilts" << endl;
+    break;
+  case kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower:
+    cout
+        << "Fully projective spacal with 2D tapered modules and  allow azimuthal tilts. To speed up construction, same-length fiber is used cross one tower"
+        << endl;
+    break;
   default:
     cout << "PHG4CylinderGeom_Spacalv1::Print - ERROR - unknown configuration #"
         << get_config() << endl;
@@ -91,9 +99,9 @@ PHG4CylinderGeom_Spacalv1::Print(Option_t *) const
   cout << "\t" << "get_fiber_clading_mat() = " << get_fiber_clading_mat()
       << endl;
   cout << "\t" << "get_fiber_core_mat() = " << get_fiber_core_mat() << endl;
-  cout << "\t" << "get_calo_step_size() = " << get_calo_step_size() << endl;
-  cout << "\t" << "get_fiber_clading_step_size() = "
-      << get_fiber_clading_step_size() << endl;
+//  cout << "\t" << "get_calo_step_size() = " << get_calo_step_size() << endl;
+//  cout << "\t" << "get_fiber_clading_step_size() = "
+//      << get_fiber_clading_step_size() << endl;
   cout << "\t" << "get_fiber_core_step_size() = " << get_fiber_core_step_size()
       << endl;
 

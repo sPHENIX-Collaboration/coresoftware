@@ -24,7 +24,7 @@ class PHG4Parameters: public PHObject
   typedef std::map<const std::string, std::string> strMap;
   typedef std::map<const std::string, std::string>::const_iterator strIter;
 
-  PHG4Parameters(const std::string &name): pdbparam(NULL),detname(name) {}
+  explicit PHG4Parameters(const std::string &name): pdbparam(NULL),detname(name) {}
   PHG4Parameters(const PHG4Parameters &params, const std::string &name);
 
   virtual ~PHG4Parameters() {}
