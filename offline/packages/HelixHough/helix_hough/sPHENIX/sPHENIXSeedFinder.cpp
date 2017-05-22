@@ -76,7 +76,8 @@ void sPHENIXSeedFinder::tripletRejection(vector<SimpleTrack3D>& input,
 		for (unsigned int h1 = 0; h1 < input[i].hits.size(); ++h1) {
 			for (unsigned int h2 = (h1 + 1); h2 < input[i].hits.size(); ++h2) {
 				for (unsigned int h3 = (h2 + 1); h3 < input[i].hits.size(); ++h3) {
-					if (cut_on_dca == false) {
+					//if (cut_on_dca == false)
+					{
 						trips.push_back(hitTriplet(
 										input[i].hits[h1].get_id(), input[i].hits[h2].get_id(),
 										input[i].hits[h3].get_id(), i, track_states[i].chi2));
