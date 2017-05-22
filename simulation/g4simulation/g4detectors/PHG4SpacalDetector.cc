@@ -73,6 +73,8 @@ PHG4SpacalDetector::PHG4SpacalDetector(PHCompositeNode *Node,
   //
   //  clading_step_limits = new G4UserLimits(
   //      _geom->get_fiber_clading_step_size() * cm);
+  fiber_core_step_limits = new G4UserLimits(
+      _geom->get_fiber_core_step_size() * cm);
 
   gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
   assert (gdml_config);
