@@ -11,7 +11,7 @@
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4FullProjSpacalDetector.h"
 #include "PHG4FullProjTiltedSpacalDetector.h"
-#include "PHG4ProjSpacalDetector.h"
+//#include "PHG4ProjSpacalDetector.h"
 #include "PHG4SpacalDetector.h"
 #include "PHG4SpacalSteppingAction.h"
 #include "PHG4Parameters.h"
@@ -60,8 +60,9 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     break;
 
   case PHG4CylinderGeom_Spacalv1::kProjective_PolarTaper:
-    if (verbosity > 0) cout << "PHG4SpacalSubsystem::InitRun - use PHG4ProjSpacalDetector" << endl;
-    detector_ = new PHG4ProjSpacalDetector(topNode, Name(), GetParams(), GetLayer());
+    cout << "PHG4SpacalSubsystem::InitRun - PHG4ProjSpacalDetector is obsolete" << endl;
+    exit(10);
+//    detector_ = new PHG4ProjSpacalDetector(topNode, Name(), GetParams(), GetLayer());
     break;
 
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper:
