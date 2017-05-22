@@ -185,7 +185,7 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       if (tower_ID_phi == 0)
 	{
 	  //assign phi min according phi bin 0
-	  phi_min = M_PI_2 - deltaphi *(layergeom->get_max_phi_bin_in_sec()* layergeom->get_n_subtower_phi()/2 - 0.5) // shift of first tower in sector
+	  phi_min = M_PI_2 - deltaphi *(layergeom->get_max_phi_bin_in_sec()* layergeom->get_n_subtower_phi()/2) // shift of first tower in sector
 	    + sector_map.begin()->second;
 	}
 
