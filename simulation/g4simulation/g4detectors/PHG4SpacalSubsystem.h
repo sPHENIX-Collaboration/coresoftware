@@ -21,7 +21,7 @@ class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
 {
  public:
   //! constructor
-  explicit PHG4SpacalSubsystem(const std::string &name = "PHG4SpacalSubsystem",
+  PHG4SpacalSubsystem(const std::string &name = "PHG4SpacalSubsystem",
                       const int layer = 0);
 
   //! destructor

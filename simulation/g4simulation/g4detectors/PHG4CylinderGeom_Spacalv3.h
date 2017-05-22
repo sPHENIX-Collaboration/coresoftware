@@ -203,7 +203,7 @@ public:
 
   public:
 
-    scint_id_coder(int scint_id);
+    explicit scint_id_coder(int scint_id);
     scint_id_coder(int sector_id, int tower_id, int fiber_id);
     virtual
     ~scint_id_coder()
