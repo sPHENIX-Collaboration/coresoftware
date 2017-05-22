@@ -342,6 +342,46 @@ PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
   return make_pair(z_bin, phi_bin);
 }
 
+//! get approximate radial position of tower
+double PHG4CylinderGeom_Spacalv3::
+get_tower_radial_position(const PHG4CylinderGeom_Spacalv3::geom_tower & tower) const
+{
+  if (get_config() == kFullProjective_2DTaper_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper)
+    return tower.centralY;
+  else if (get_config() == kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper_Tilted)
+    {
+      const double outter_wall_shift = get_sidewall_thickness() + get_sidewall_outer_torr() + get_assembly_spacing();
+      assert(outter_wall_shift>=0);
+      const double tilted_radial_shift = outter_wall_shift / sin(M_PI / get_azimuthal_n_sec());
+      assert(tilted_radial_shift>=0);
+      const double tower_radial = //
+          tilted_radial_shift * cos(get_azimuthal_tilt()) +
+          get_half_radius() * sin(get_azimuthal_tilt()) * sin(get_azimuthal_tilt()) +
+          tower.centralY * cos(get_azimuthal_tilt());
+
+
+      if (get_construction_verbose()>=2)
+        {
+          cout
+              << "PHG4CylinderGeom_Spacalv3::get_tower_radial_position - tower radial adjustment: "
+              "from "<<tower.centralY<<" to "<<tower_radial
+              << endl;
+        }
+
+      return tower_radial;
+    }
+  else
+    {
+      cout
+          << "PHG4CylinderGeom_Spacalv3::get_tower_radial_position - ERROR - "
+          "unsupported configuration!"
+          << endl;
+      Print();
+      exit(10);
+    }
+  return NAN;
+}
+
 //! check that all towers has consistent sub-tower divider
 void
 PHG4CylinderGeom_Spacalv3::subtower_consistency_check() const

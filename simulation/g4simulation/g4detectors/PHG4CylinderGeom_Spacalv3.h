@@ -84,6 +84,7 @@ public:
     max_phi_bin_in_sec = maxPhiBinInSec;
   }
 
+
   class geom_tower
   {
   public:
@@ -176,6 +177,10 @@ public:
   {
     return sector_tower_map;
   }
+
+  //! get approximate radial position of tower
+  double
+  get_tower_radial_position(const geom_tower & tower) const;
 
   //! check that all towers has consistent sub-tower divider
   void

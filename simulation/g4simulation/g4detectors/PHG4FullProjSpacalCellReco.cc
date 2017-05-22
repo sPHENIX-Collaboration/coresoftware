@@ -185,8 +185,7 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       if (tower_ID_phi == 0)
 	{
 	  //assign phi min according phi bin 0
-	  phi_min = atan2(tower.centralY, tower.centralX + 0.25
-			  *(tower.pDx1 + tower.pDx2 + tower.pDx3 + tower.pDx4))
+	  phi_min = M_PI_2 - deltaphi *(layergeom->get_max_phi_bin_in_sec()* layergeom->get_n_subtower_phi()/2 - 0.5) // shift of first tower in sector
 	    + sector_map.begin()->second;
 	}
 
@@ -233,10 +232,11 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
 	{
 	  // half z-range
 	  const double dz = fabs(0.5 * (tower.pDy1 + tower.pDy2) * sin(tower.pRotationAngleX));
+	  const double tower_radial = layergeom->get_tower_radial_position(tower);
 
-	  const double eta_central = -log(tan(0.5 * atan2(tower.centralY, tower.centralZ)));
+	  const double eta_central = -log(tan(0.5 * atan2(tower_radial, tower.centralZ)));
 	  // half eta-range
-	  const double deta = fabs(eta_central - (-log(tan(0.5 * atan2(tower.centralY, tower.centralZ + dz)))));
+	  const double deta = fabs(eta_central - (-log(tan(0.5 * atan2(tower_radial, tower.centralZ + dz)))));
 
 	  for (int sub_tower_ID_y = 0; sub_tower_ID_y < tower.NSubtowerY;
 	       ++sub_tower_ID_y)
