@@ -307,12 +307,12 @@ public:
 	}
 
 
-	float get_search_win_z() const {
-		return _search_win_z;
+	float get_search_win_theta() const {
+		return _search_win_theta;
 	}
 
-	void set_search_win_z(float searchWinZ) {
-		_search_win_z = searchWinZ;
+	void set_search_win_theta(float searchWinZ) {
+		_search_win_theta = searchWinZ;
 	}
 
 	float get_max_incr_chi2() const {
@@ -372,12 +372,12 @@ public:
 		_max_search_win_phi_tpc = maxSearchWinPhi;
 	}
 
-	float get_max_search_win_z_tpc() const {
-		return _max_search_win_z_tpc;
+	float get_max_search_win_theta_tpc() const {
+		return _max_search_win_theta_tpc;
 	}
 
-	void set_max_search_win_z_tpc(float maxSearchWinZ) {
-		_max_search_win_z_tpc = maxSearchWinZ;
+	void set_max_search_win_theta_tpc(float maxSearchWinZ) {
+		_max_search_win_theta_tpc = maxSearchWinZ;
 	}
 
 	float get_blowup_factor() const {
@@ -386,6 +386,86 @@ public:
 
 	void set_blowup_factor(float blowupFactor) {
 		_blowup_factor = blowupFactor;
+	}
+
+	float get_max_search_win_phi_intt() const {
+		return _max_search_win_phi_intt;
+	}
+
+	void set_max_search_win_phi_intt(float maxSearchWinPhiIntt) {
+		_max_search_win_phi_intt = maxSearchWinPhiIntt;
+	}
+
+	float get_max_search_win_phi_maps() const {
+		return _max_search_win_phi_maps;
+	}
+
+	void set_max_search_win_phi_maps(float maxSearchWinPhiMaps) {
+		_max_search_win_phi_maps = maxSearchWinPhiMaps;
+	}
+
+	float get_max_search_win_theta_intt() const {
+		return _max_search_win_theta_intt;
+	}
+
+	void set_max_search_win_theta_intt(float maxSearchWinThetaIntt) {
+		_max_search_win_theta_intt = maxSearchWinThetaIntt;
+	}
+
+	float get_max_search_win_theta_maps() const {
+		return _max_search_win_theta_maps;
+	}
+
+	void set_max_search_win_theta_maps(float maxSearchWinThetaMaps) {
+		_max_search_win_theta_maps = maxSearchWinThetaMaps;
+	}
+
+	float get_min_search_win_phi_intt() const {
+		return _min_search_win_phi_intt;
+	}
+
+	void set_min_search_win_phi_intt(float minSearchWinPhiIntt) {
+		_min_search_win_phi_intt = minSearchWinPhiIntt;
+	}
+
+	float get_min_search_win_phi_maps() const {
+		return _min_search_win_phi_maps;
+	}
+
+	void set_min_search_win_phi_maps(float minSearchWinPhiMaps) {
+		_min_search_win_phi_maps = minSearchWinPhiMaps;
+	}
+
+	float get_min_search_win_phi_tpc() const {
+		return _min_search_win_phi_tpc;
+	}
+
+	void set_min_search_win_phi_tpc(float minSearchWinPhiTpc) {
+		_min_search_win_phi_tpc = minSearchWinPhiTpc;
+	}
+
+	float get_min_search_win_theta_intt() const {
+		return _min_search_win_theta_intt;
+	}
+
+	void set_min_search_win_theta_intt(float minSearchWinThetaIntt) {
+		_min_search_win_theta_intt = minSearchWinThetaIntt;
+	}
+
+	float get_min_search_win_theta_maps() const {
+		return _min_search_win_theta_maps;
+	}
+
+	void set_min_search_win_theta_maps(float minSearchWinThetaMaps) {
+		_min_search_win_theta_maps = minSearchWinThetaMaps;
+	}
+
+	float get_min_search_win_theta_tpc() const {
+		return _min_search_win_theta_tpc;
+	}
+
+	void set_min_search_win_theta_tpc(float minSearchWinThetaTpc) {
+		_min_search_win_theta_tpc = minSearchWinThetaTpc;
 	}
 
 #ifndef __CINT__
@@ -620,31 +700,31 @@ private:
 
 	float _max_search_win_phi_tpc;
 	float _min_search_win_phi_tpc;
-	float _max_search_win_z_tpc;
-	float _min_search_win_z_tpc;
+	float _max_search_win_theta_tpc;
+	float _min_search_win_theta_tpc;
 
 	float _max_search_win_phi_intt;
 	float _min_search_win_phi_intt;
-	float _max_search_win_z_intt;
-	float _min_search_win_z_intt;
+	float _max_search_win_theta_intt;
+	float _min_search_win_theta_intt;
 
 	float _max_search_win_phi_maps;
 	float _min_search_win_phi_maps;
-	float _max_search_win_z_maps;
-	float _min_search_win_z_maps;
+	float _max_search_win_theta_maps;
+	float _min_search_win_theta_maps;
 
 	float _search_win_phi;
-	float _search_win_z;
+	float _search_win_theta;
 	std::map<int, float> _search_wins_rphi;
-	std::map<int, float> _search_wins_z;
+	std::map<int, float> _search_wins_theta;
 
-	//std::map<unsigned int, std::map<int, std::multimap<int, unsigned int>>> _layer_zID_phiID_cluserID;
-	std::multimap<unsigned int,  unsigned int> _layer_zID_phiID_cluserID;
+	//std::map<unsigned int, std::map<int, std::multimap<int, unsigned int>>> _layer_thetaID_phiID_cluserID;
+	std::multimap<unsigned int,  unsigned int> _layer_thetaID_phiID_cluserID;
 
-	float _half_max_z;
+	float _half_max_theta;
 	float _half_max_phi;
-	float _layer_zID_phiID_cluserID_phiSize;
-	float _layer_zID_phiID_cluserID_zSize;
+	float _layer_thetaID_phiID_cluserID_phiSize;
+	float _layer_thetaID_phiID_cluserID_zSize;
 
 
 	std::map<int, std::shared_ptr<PHGenFit::Track>> _trackID_PHGenFitTrack;

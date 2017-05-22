@@ -31,6 +31,12 @@
 #define _DEBUG_
 //#define _PRINT_MATRIX_
 
+#ifdef _DEBUG_
+#include <iostream>
+#include <fstream>
+ofstream fout_matrix("matrix.txt");
+#endif
+
 namespace PHGenFit {
 
 Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMatrixDSym seed_cov)
@@ -469,7 +475,14 @@ int Track::updateOneMeasurementKalman(
 		TVectorD stateVector(state->getState());
 		TMatrixDSym cov(state->getCov());
 #ifdef _DEBUG_
-		std::cout<< __LINE__ <<std::endl;
+		{
+			std::cout<< __LINE__ <<std::endl;
+//			TMatrixDSym cov6d = state->get6DCov();
+//			float err_rphi = sqrt(
+//					cov6d[0][0] + cov6d[1][1] + cov6d[0][1] + cov6d[1][0]);
+//			float err_z = sqrt(cov6d[2][2]);
+//			std::cout << err_phi << "\t" << err_z << "\t";
+		}
 #endif
 		for (std::vector<genfit::AbsMeasurement*>::const_iterator it =
 				rawMeasurements.begin(); it != rawMeasurements.end(); ++it) {
@@ -502,7 +515,14 @@ int Track::updateOneMeasurementKalman(
 			const TMatrixDSym& V(mOnPlane.getCov()); //Covariance of measurement noise v_{k}
 
 			TVectorD res(measurement - H->Hv(stateVector));
-
+#ifdef _DEBUG_
+		{
+			std::cout<< __LINE__ <<std::endl;
+//			std::cout
+//			<<res(0) <<"\t"
+//			<<res(1) <<"\t";
+		}
+#endif
 			// If hit, do Kalman algebra.
 			{
 				// calculate kalman gain ------------------------------
@@ -542,6 +562,17 @@ int Track::updateOneMeasurementKalman(
 				stateVector += update; // x_{k|k} = x_{k|k-1} + K_{k} r_{k|k-1}
 				covSumInv.Similarity(CHt); // with (C H^T)^T = H C^T = H C  (C is symmetric)
 				cov -= covSumInv; //C_{k|k}
+#ifdef _DEBUG_
+		{
+			std::cout<< __LINE__ <<std::endl;
+//			TMatrixDSym cov6d = state->get6DCov();
+//			float err_rphi     = sqrt(cov6d[0][0] + cov6d[1][1] + cov6d[0][1] + cov6d[1][0]);
+//			float err_z   = sqrt(cov6d[2][2]);
+//			std::cout
+//			<<err_phi <<"\t"
+//			<<err_z <<"\t";
+		}
+#endif
 			}
 
 			TVectorD resNew(measurement - H->Hv(stateVector));
@@ -563,19 +594,25 @@ int Track::updateOneMeasurementKalman(
 			chi2inc += HCHt.Similarity(resNew);
 
 			ndfInc += measurement.GetNrows();
+
 #ifdef _PRINT_MATRIX_
-				std::cout <<__LINE__ <<": V - HCHt:" << std::endl;
-				HCHt.Print();
-				std::cout <<__LINE__ <<": resNew:" << std::endl;
-				resNew.Print();
+			std::cout <<__LINE__ <<": V - HCHt:" << std::endl;
+			HCHt.Print();
+			std::cout <<__LINE__ <<": resNew:" << std::endl;
+			resNew.Print();
 #endif
 
 #ifdef _DEBUG_
-				std::cout <<__LINE__ <<": ndfInc:  " << ndfInc << std::endl;
-				std::cout <<__LINE__ <<": chi2inc: " << chi2inc << std::endl;
+			std::cout << __LINE__ << ": ndfInc:  " << ndfInc << std::endl;
+			std::cout << __LINE__ << ": chi2inc: " << chi2inc << std::endl;
 #endif
-			genfit::KalmanFittedStateOnPlane* updatedSOP = new genfit::KalmanFittedStateOnPlane(
-					*state, chi2inc, ndfInc);
+
+			currentState->setStateCovPlane(stateVector, cov, plane);
+			currentState->setAuxInfo(state->getAuxInfo());
+
+			genfit::KalmanFittedStateOnPlane* updatedSOP =
+					new genfit::KalmanFittedStateOnPlane(*currentState, chi2inc,
+							ndfInc);
 			fi->setUpdate(updatedSOP, direction);
 		} //loop measurements_on_plane
 

@@ -180,30 +180,31 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _layer_ilayer_map_all(),
 	  _radii_all(),
 
-	  _max_search_win_phi_tpc(0.01),
-	  _min_search_win_phi_tpc(0.0050),
-	  _max_search_win_z_tpc(1.),
-	  _min_search_win_z_tpc(0.0150),
+	  _max_search_win_phi_tpc(    0.0400),
+	  _min_search_win_phi_tpc(    0.0000),
+	  _max_search_win_theta_tpc(  0.0400),
+	  _min_search_win_theta_tpc(  0.0000),
 
-	  _max_search_win_phi_intt(0.01),
-	  _min_search_win_phi_intt(0.0010),
-	  _max_search_win_z_intt(2.4),
-	  _min_search_win_z_intt(1.2),
+	  _max_search_win_phi_intt(   0.4000),
+	  _min_search_win_phi_intt(   0.0000),
+	  _max_search_win_theta_intt( 1.0000),
+	  _min_search_win_theta_intt( 0.2000),
 
-	  _max_search_win_phi_maps(0.010),
-	  _min_search_win_phi_maps(0.000),
-	  _max_search_win_z_maps(0.2),
-	  _min_search_win_z_maps(0.0),
+	  _max_search_win_phi_maps(   0.2000),
+	  _min_search_win_phi_maps(   0.0000),
+	  _max_search_win_theta_maps( 0.2000),
+	  _min_search_win_theta_maps( 0.0000),
 
 	  _search_win_phi(10),
-	  _search_win_z(10),
-	  _layer_zID_phiID_cluserID(),
-	  _half_max_z(160),
+	  _search_win_theta(10),
+	  _layer_thetaID_phiID_cluserID(),
+	  //_half_max_theta(160),
+	  _half_max_theta(3.1416/2.),
 	  //_half_max_phi(252), //80cm * Pi
 	  _half_max_phi(3.1416),
-	  //_layer_zID_phiID_cluserID_phiSize(0.1200),
-	  _layer_zID_phiID_cluserID_phiSize(0.1200/80), //rad
-	  _layer_zID_phiID_cluserID_zSize(0.1700),
+	  //_layer_thetaID_phiID_cluserID_phiSize(0.1200),
+	  _layer_thetaID_phiID_cluserID_phiSize(0.1200/80), //rad
+	  _layer_thetaID_phiID_cluserID_zSize(0.1700),
 	  _trackID_PHGenFitTrack(),
 	  _init_direction(-1),
 	  _blowup_factor(1000),
@@ -240,7 +241,7 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 	 */
 	for(int layer = 0; layer < _nlayers_all; ++layer) {
 		_search_wins_rphi.insert(std::make_pair(layer, _search_win_phi));
-		_search_wins_z.insert(std::make_pair(layer, _search_win_z));
+		_search_wins_theta.insert(std::make_pair(layer, _search_win_theta));
 		_max_incr_chi2s.insert(std::make_pair(layer, _max_incr_chi2));
 	}
 
@@ -279,7 +280,7 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 		<<__LINE__
 		<<": layer: "<< layer
 		<<": search_wins_rphi: " << _search_wins_rphi[layer]
-		<<": search_wins_z: " << _search_wins_z[layer]
+		<<": search_wins_z: " << _search_wins_theta[layer]
 		<<": max_incr_chi2: " << _max_incr_chi2s[layer]
 		<<endl;
 	}
@@ -2352,7 +2353,7 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	cout
 	<<__LINE__
 	<< ": _tracks.size(): " << _tracks.size()
-	<< ": PHG4KalmanPatRec::TrackPropPatRec: "<< itrack
+	<< ": PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks: "<< itrack
 	<< ", nhits: " << _tracks.at(itrack).hits.size()
 	<<endl;
 #endif
@@ -2803,58 +2804,68 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		TVector3 pos = state->getPos();
 
 		float phi_center = pos.Phi();
-		float z_center = pos.Z();
+		float theta_center = pos.Theta();
 
 #ifdef _USE_CONSTANT_SEARCH_WIN_
-		float phi_window = 0.001;
-		float z_window   = 0.1;
 
-		if(layer >=3 and layer <=6) z_window = 1.2;
+		float phi_window     = 25e-4;
+		float theta_window   = 25e-4;
+
+		if(layer >= 3 and layer <=6) {
+			phi_window     = 300e-4;
+			theta_window   = 0.2;
+		}
+
+		if(layer <=2 ){
+			phi_window     = 3000e-4;
+			theta_window   = 3000e-4;
+		}
 #else
 		TMatrixDSym cov = state->get6DCov();
 
-		float phi_window = _search_wins_rphi[layer] * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]) / pos.Perp();
-		float z_window   = _search_wins_z[layer]    * sqrt(cov[2][2]);
-
-		if(phi_window > _max_search_win_phi_tpc) phi_window = _max_search_win_phi_tpc;
-		if(z_window > _max_search_win_z_tpc) z_window = _max_search_win_z_tpc;
+		float phi_window     = _search_wins_rphi[layer] * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]) / pos.Perp();
+		float theta_window   = _search_wins_theta[layer]    * sqrt(cov[2][2]) / pos.Perp();
 
 		if(layer >= 7) {
 			if (phi_window > _max_search_win_phi_tpc) phi_window = _max_search_win_phi_tpc;
 			if (phi_window < _min_search_win_phi_tpc) phi_window = _min_search_win_phi_tpc;
-			if (z_window   > _max_search_win_z_tpc)   z_window   = _max_search_win_z_tpc;
-			if (z_window   < _min_search_win_z_tpc)   z_window   = _min_search_win_z_tpc;
-		} else if(layer >= 3) {
+			if (theta_window   > _max_search_win_theta_tpc)   theta_window   = _max_search_win_theta_tpc;
+			if (theta_window   < _min_search_win_theta_tpc)   theta_window   = _min_search_win_theta_tpc;
+		}
+
+		if(layer >= 3 and layer <=6) {
 			if (phi_window > _max_search_win_phi_intt) phi_window = _max_search_win_phi_intt;
 			if (phi_window < _min_search_win_phi_intt) phi_window = _min_search_win_phi_intt;
-			if (z_window   > _max_search_win_z_intt)   z_window   = _max_search_win_z_intt;
-			if (z_window   < _min_search_win_z_intt)   z_window   = _min_search_win_z_intt;
-		} else {
+			if (theta_window   > _max_search_win_theta_intt)   theta_window   = _max_search_win_theta_intt;
+			if (theta_window   < _min_search_win_theta_intt)   theta_window   = _min_search_win_theta_intt;
+		}
+
+		if(layer <=2 ){
 			if (phi_window > _max_search_win_phi_maps) phi_window = _max_search_win_phi_maps;
 			if (phi_window < _min_search_win_phi_maps) phi_window = _min_search_win_phi_maps;
-			if (z_window   > _max_search_win_z_maps)   z_window   = _max_search_win_z_maps;
-			if (z_window   < _min_search_win_z_maps)   z_window   = _min_search_win_z_maps;
+			if (theta_window   > _max_search_win_theta_maps)   theta_window   = _max_search_win_theta_maps;
+			if (theta_window   < _min_search_win_theta_maps)   theta_window   = _min_search_win_theta_maps;
 		}
 #endif
 
 #ifdef _DEBUG_
 		cout<<__LINE__<<": ";
-		printf("layer: %d: r: %f: phi: %f +- %f; z: %f +- %f\n",
+		printf("layer: %d: r: %f: phi: %f +- %f; theta: %f +- %f\n",
 				layer, pos.Perp(),
 				phi_center, phi_window,
-				z_center, z_window
+				theta_center, theta_window
 				);
 
-		cout<<__LINE__<<": ";
-		printf("layer: %d:  phi: %f +- %f\n",
-				layer,
-				pos.Phi(), phi_window
-				);
+//		cout<<__LINE__<<": ";
+//		printf("layer: %d:  phi: %f +- %f\n",
+//				layer,
+//				pos.Phi(), phi_window
+//				);
 #endif
 
 		if(verbosity >= 1) _t_search_clusters->restart();
 		std::vector<unsigned int> new_cluster_IDs = SearchHitsNearBy(layer,
-				z_center, phi_center, z_window, phi_window);
+				theta_center, phi_center, theta_window, phi_window);
 		if(verbosity >= 1) _t_search_clusters->stop();
 
 #ifdef _DEBUG_
@@ -2996,7 +3007,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 
 int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 
-	_layer_zID_phiID_cluserID.clear();
+	_layer_thetaID_phiID_cluserID.clear();
 
 	//for(SimpleHit3D cluster : _clusters){
 	for (SvtxClusterMap::Iter iter = _g4clusters->begin();
@@ -3006,22 +3017,24 @@ int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 		unsigned int layer = cluster->get_layer();
 
 		float phi = atan2(cluster->get_y(),cluster->get_x());
+		float r = sqrt(cluster->get_x()*cluster->get_x() + cluster->get_y()*cluster->get_y());
 		float z = cluster->get_z();
+		float theta = atan2(r,z);
 
 #ifdef _DEBUG_
-		float r = sqrt(cluster->get_x()*cluster->get_x() + cluster->get_y()*cluster->get_y());
 		//float rphi = r*phi;
 		std::cout
 		<< __LINE__
 		<<": ID: " << cluster->get_id()
 		<<": layer: "<<cluster->get_layer()
 		<<", r: "<<r
-		<<", phi: "<<phi
 		<<", z: "<<z
+		<<", phi: "<<phi
+		<<", theta: "<<theta
 		<<endl;
 #endif
 
-		unsigned int idx = encode_cluster_index(layer, z, phi);
+		unsigned int idx = encode_cluster_index(layer, theta, phi);
 
 #ifdef _DEBUG_
 			cout
@@ -3031,18 +3044,18 @@ int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 			<<z <<", "
 			<<phi << "} =>"
 			<<idx << ": size: "
-			<<_layer_zID_phiID_cluserID.count(idx)
+			<<_layer_thetaID_phiID_cluserID.count(idx)
 			<<endl;
 #endif
 
-		_layer_zID_phiID_cluserID.insert(std::make_pair(idx, cluster->get_id()));
+		_layer_thetaID_phiID_cluserID.insert(std::make_pair(idx, cluster->get_id()));
 	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
 std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int layer,
-		const float z_center, const float phi_center, const float z_window,
+		const float theta_center, const float phi_center, const float theta_window,
 		const float phi_window) {
 
 	std::vector<unsigned int> cluster_IDs;
@@ -3052,13 +3065,13 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 
 	float lower_phi = phi_center-phi_window + _half_max_phi;
 	float upper_phi = phi_center+phi_window + _half_max_phi;
-	float lower_z = z_center-z_window + _half_max_z;
-	float upper_z = z_center+z_window + _half_max_z;
+	float lower_z = theta_center-theta_window + _half_max_theta;
+	float upper_z = theta_center+theta_window + _half_max_theta;
 
-	unsigned int lower_phi_bin = (unsigned int)((lower_phi)/_layer_zID_phiID_cluserID_phiSize);
-	unsigned int upper_phi_bin = (unsigned int)((upper_phi)/_layer_zID_phiID_cluserID_phiSize);
-	unsigned int lower_z_bin    = (unsigned int)(   (lower_z)/_layer_zID_phiID_cluserID_zSize);
-	unsigned int upper_z_bin    = (unsigned int)(   (upper_z)/_layer_zID_phiID_cluserID_zSize);
+	unsigned int lower_phi_bin = (unsigned int)((lower_phi)/_layer_thetaID_phiID_cluserID_phiSize);
+	unsigned int upper_phi_bin = (unsigned int)((upper_phi)/_layer_thetaID_phiID_cluserID_phiSize);
+	unsigned int lower_z_bin    = (unsigned int)(   (lower_z)/_layer_thetaID_phiID_cluserID_zSize);
+	unsigned int upper_z_bin    = (unsigned int)(   (upper_z)/_layer_thetaID_phiID_cluserID_zSize);
 
 	if(lower_phi < 0) lower_phi_bin= 0;
 	if(upper_phi_bin > max_phi_bin) upper_phi_bin = max_phi_bin;
@@ -3081,12 +3094,12 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 //			<<iz <<", "
 //			<<irphi << "} =>"
 //			<<idx << ": size: "
-//			<<_layer_zID_phiID_cluserID.count(idx)
+//			<<_layer_thetaID_phiID_cluserID.count(idx)
 //			<<endl;
 //#endif
 			if(verbosity >= 2) _t_search_clusters_map_iter->restart();
-			for (auto iter = _layer_zID_phiID_cluserID.lower_bound(idx);
-					iter != _layer_zID_phiID_cluserID.upper_bound(idx);
+			for (auto iter = _layer_thetaID_phiID_cluserID.lower_bound(idx);
+					iter != _layer_thetaID_phiID_cluserID.upper_bound(idx);
 					++iter) {
 				cluster_IDs.push_back(iter->second);
 #ifdef _DEBUG_
@@ -3097,11 +3110,11 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 				<< _event << "\t"
 				<< layer << "\t "
 				<< phi_center - phi_cluster << "\t"
-				<< z_center - cluster->get_z() << "\t"
+				<< theta_center - v.Theta() << "\t"
 				<< phi_window/_search_wins_rphi[layer] << "\t"
-				<< z_window/_search_wins_z[layer] << "\t"
+				<< theta_window/_search_wins_theta[layer] << "\t"
 				<< (phi_center - phi_cluster)/phi_window*_search_wins_rphi[layer] <<"\t "
-				<< (z_center - cluster->get_z())/z_window*_search_wins_z[layer] <<"\t"
+				<< (theta_center - v.Theta())/theta_window*_search_wins_theta[layer] <<"\t"
 				<< v.Perp()
 				<<endl;
 #endif
@@ -3115,7 +3128,7 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 //			<<__LINE__<<": "
 //			<<"layer: "<<layer
 //			<<": "<<phi_center <<" +- "<<phi_window
-//			<<": "<<z_center <<" +- "<<z_window
+//			<<": "<<theta_center <<" +- "<<theta_window
 //			<<endl;
 	std::cout
 			<<__LINE__<<": "
@@ -3140,7 +3153,7 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 //}
 
 unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
-		const float z, const float phi) {
+		const float theta, const float phi) {
 
 	unsigned int idx = UINT_MAX;
 
@@ -3149,17 +3162,17 @@ unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
 		return idx;
 	}
 
-	if( (z + _half_max_z) < 0 ) {
-		LogError("(z + _half_max_z) < 0 \n");
+	if( (theta + _half_max_theta) < 0 ) {
+		LogError("(theta + _half_max_theta) < 0 \n");
 		return idx;
 	}
-	unsigned int iz = (z + _half_max_z) / _layer_zID_phiID_cluserID_zSize;
+	unsigned int itheta = (theta + _half_max_theta) / _layer_thetaID_phiID_cluserID_zSize;
 
 	if( (phi + _half_max_phi) < 0 ) {
 		LogError("(rphi + _half_max_rphi) < 0 \n");
 		return idx;
 	}
-	unsigned int irphi = (phi + _half_max_phi) / _layer_zID_phiID_cluserID_phiSize;
+	unsigned int irphi = (phi + _half_max_phi) / _layer_thetaID_phiID_cluserID_phiSize;
 
 #ifdef _DEBUG_
 //	std::cout<<__LINE__<<": "
@@ -3169,7 +3182,7 @@ unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
 //			<<endl;
 #endif
 
-	return encode_cluster_index(layer, iz, irphi);
+	return encode_cluster_index(layer, itheta, irphi);
 }
 
 //unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
