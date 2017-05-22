@@ -167,7 +167,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _max_merging_deta(0.0170/10.),
 	  _max_merging_dr(0.0500),
 	  _max_merging_dz(0.0500),
-	  _max_share_hits(2),
+	  _max_share_hits(3),
 	  _mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
 	  _mag_field_re_scaling_factor(1.4/1.5),
 	  _reverse_mag_field(true),
@@ -180,23 +180,23 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _layer_ilayer_map_all(),
 	  _radii_all(),
 
-	  _max_search_win_phi_tpc(    0.0400),
-	  _min_search_win_phi_tpc(    0.0000),
-	  _max_search_win_theta_tpc(  0.0400),
-	  _min_search_win_theta_tpc(  0.0000),
+		_max_search_win_phi_tpc(    0.0040),
+		_min_search_win_phi_tpc(    0.0000),
+		_max_search_win_theta_tpc(  0.0040),
+		_min_search_win_theta_tpc(  0.0000),
 
-	  _max_search_win_phi_intt(   0.4000),
-	  _min_search_win_phi_intt(   0.0000),
-	  _max_search_win_theta_intt( 1.0000),
-	  _min_search_win_theta_intt( 0.2000),
+		_max_search_win_phi_intt(   0.0100),
+		_min_search_win_phi_intt(   0.0000),
+		_max_search_win_theta_intt( 1.0000),
+		_min_search_win_theta_intt( 0.1000),
 
-	  _max_search_win_phi_maps(   0.2000),
-	  _min_search_win_phi_maps(   0.0000),
-	  _max_search_win_theta_maps( 0.2000),
-	  _min_search_win_theta_maps( 0.0000),
+		_max_search_win_phi_maps(   0.0030),
+		_min_search_win_phi_maps(   0.0000),
+		_max_search_win_theta_maps( 0.0030),
+		_min_search_win_theta_maps( 0.0000),
 
-	  _search_win_phi(10),
-	  _search_win_theta(10),
+	  _search_win_phi(5),
+	  _search_win_theta(5),
 	  _layer_thetaID_phiID_cluserID(),
 	  //_half_max_theta(160),
 	  _half_max_theta(3.1416/2.),
@@ -207,7 +207,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _layer_thetaID_phiID_cluserID_zSize(0.1700),
 	  _trackID_PHGenFitTrack(),
 	  _init_direction(-1),
-	  _blowup_factor(1000),
+	  _blowup_factor(1.),
 	  _max_consecutive_missing_layer(20),
 	  _max_incr_chi2(20.),
 	  _max_splitting_chi2(0.),
@@ -2715,7 +2715,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 			layer += direction) {
 		if(!(layer>=0 and layer < (unsigned int)_nlayers_all)) break;
 
-		if(layer >= 3 and layer <=6) continue;
+//		if(layer >= 3 and layer <=6) continue;
 
 		/*!
 		 * if miss too many layers terminate track propagating
