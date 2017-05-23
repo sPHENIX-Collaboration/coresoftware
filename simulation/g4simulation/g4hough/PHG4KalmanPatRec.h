@@ -65,8 +65,7 @@ class PHG4KalmanPatRec: public SubsysReco {
 
 public:
 
-	PHG4KalmanPatRec(unsigned int nlayers = 7, unsigned int min_nlayers = 7,
-			const std::string &name = "PHG4KalmanPatRec");
+	PHG4KalmanPatRec(const std::string &name = "PHG4KalmanPatRec", unsigned int seeding_nlayer = 7, unsigned int min_seeding_nlayer = 5);
 	virtual ~PHG4KalmanPatRec() {
 	}
 
@@ -238,6 +237,7 @@ public:
 //	}
 
 	void set_seeding_layer(const int* seedingLayer, const int n) {
+		_seeding_layer.clear();
 		_seeding_layer.assign(seedingLayer, seedingLayer + n);
 	}
 
@@ -468,6 +468,11 @@ public:
 		_min_search_win_theta_tpc = minSearchWinThetaTpc;
 	}
 
+	void set_vertex_error(const float a) {
+		_vertex_error.clear();
+		_vertex_error.assign(3, a);
+	}
+
 #ifndef __CINT__
 
 private:
@@ -515,6 +520,9 @@ private:
 
 	/// code to produce an initial track vertex from the seed
 	int initial_vertex_finding();
+
+
+	int vertexing();
 
 	/// code to perform the final tracking and vertexing
 	int full_track_seeding();
@@ -650,6 +658,7 @@ private:
 	std::vector<double> _track_errors;     ///< working array of track chisq
 	std::vector<Eigen::Matrix<float, 5, 5> > _track_covars; ///< working array of track covariances
 	std::vector<float> _vertex;          ///< working array for collision vertex
+	std::vector<float> _vertex_error;
 
 	// track finding routines
 	sPHENIXSeedFinder *_tracker;           ///< finds full tracks

@@ -43,6 +43,7 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
+#include <phool/PHRandomSeed.h>
 #include <phgeom/PHGeomUtility.h>
 
 // sGeant4 includes
@@ -71,6 +72,10 @@
 #include <phgenfit/PlanarMeasurement.h>
 #include <phgenfit/SpacepointMeasurement.h>
 
+// gsl
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+
 // standard includes
 #include <cmath>
 #include <float.h>
@@ -83,7 +88,7 @@
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp
 
-#define _DEBUG_
+//#define _DEBUG_
 
 #define _GET_RPHI_ERROR_
 
@@ -104,9 +109,11 @@ ofstream fout_kalman_pull("kalman_pull.txt");
 ofstream fout_chi2("chi2.txt");
 #endif
 
-PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
-                                       unsigned int min_nlayers,
-                                       const string& name)
+PHG4KalmanPatRec::PHG4KalmanPatRec(
+		const string& name,
+		unsigned int nlayers,
+		unsigned int min_nlayers
+		)
     : SubsysReco(name),
 	  _t_seeding(nullptr),
 	  _t_seeds_cleanup(nullptr),
@@ -125,26 +132,26 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
       _material(),
       _user_material(),
       _magField(1.4),
-      _reject_ghosts(false),
+      _reject_ghosts(true),
       _remove_hits(false),
       _min_pt(0.2),
       _min_z0(-14.0),
       _max_z0(+14.0),
       _max_r(1.0),
-      _cut_on_dca(false),
+      _cut_on_dca(true),
       _dcaxy_cut(0.2),
       _dcaz_cut(0.2),
-      _chi2_cut_fast_par0(16.0),
-      _chi2_cut_fast_par1(0.0),
-      _chi2_cut_fast_max(FLT_MAX),
-      _chi2_cut_full(4.0),
-      _ca_chi2_cut(4.0),
+      _chi2_cut_fast_par0(10.0),
+      _chi2_cut_fast_par1(50.0),
+      _chi2_cut_fast_max(75.0),
+      _chi2_cut_full(5.0),
+      _ca_chi2_cut(5.0),
       _cos_angle_cut(0.985),
       _bin_scale(0.8),
       _z_bin_scale(0.8),
       _min_combo_hits(min_nlayers),
       _max_combo_hits(nlayers*4),
-      _pt_rescale(1.0),
+      _pt_rescale(0.9972 / 1.00117), // 1.0
       _fit_error_scale(_nlayers,1.0/sqrt(12.0)),
       _vote_error_scale(_nlayers,1.0),
       _layer_ilayer_map(),
@@ -163,32 +170,32 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
       _g4tracks(NULL),
       _g4vertexes(NULL),
 	  _seeding_only_mode(false),
-	  _max_merging_dphi(0.0120/10.),
-	  _max_merging_deta(0.0170/10.),
-	  _max_merging_dr(0.0500),
-	  _max_merging_dz(0.0500),
+	  _max_merging_dphi(0.1),
+	  _max_merging_deta(0.1),
+	  _max_merging_dr(0.1),
+	  _max_merging_dz(0.1),
 	  _max_share_hits(3),
 	  _mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
 	  _mag_field_re_scaling_factor(1.4/1.5),
 	  _reverse_mag_field(true),
 	  _fitter(NULL),
-	  _track_fitting_alg_name("DafSimple"),
+	  _track_fitting_alg_name("DafRef"),
 	  _primary_pid_guess(211),
-	  _cut_min_pT(0.1),
-	  _do_evt_display(true),
+	  _cut_min_pT(0.2),
+	  _do_evt_display(false),
 	  _nlayers_all(67),
 	  _layer_ilayer_map_all(),
 	  _radii_all(),
 
-		_max_search_win_phi_tpc(    0.0040),
+		_max_search_win_phi_tpc(    0.0030),
 		_min_search_win_phi_tpc(    0.0000),
-		_max_search_win_theta_tpc(  0.0040),
+		_max_search_win_theta_tpc(  0.0030),
 		_min_search_win_theta_tpc(  0.0000),
 
-		_max_search_win_phi_intt(   0.0100),
+		_max_search_win_phi_intt(   0.0050),
 		_min_search_win_phi_intt(   0.0000),
-		_max_search_win_theta_intt( 1.0000),
-		_min_search_win_theta_intt( 0.1000),
+		_max_search_win_theta_intt( 0.2000),
+		_min_search_win_theta_intt( 0.2000),
 
 		_max_search_win_phi_maps(   0.0030),
 		_min_search_win_phi_maps(   0.0000),
@@ -214,6 +221,21 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(unsigned int nlayers,
 	  _min_good_track_hits(30)
 	  {
 	_event = 0;
+
+	_user_material.clear();
+	_user_material[0] = 0.003;
+	_user_material[1] = 0.003;
+	_user_material[2] = 0.003;
+	_user_material[3] = 0.008;
+	_user_material[4] = 0.008;
+	_user_material[5] = 0.008;
+	_user_material[6] = 0.008;
+
+	int seeding_layers[] = {7,15,25,35,45,55,66};
+	this->set_seeding_layer(seeding_layers, 7);
+
+	_vertex_error.clear();
+	_vertex_error.assign(3, 0.0500);
 }
 
 int PHG4KalmanPatRec::Init(PHCompositeNode* topNode) {
@@ -407,6 +429,9 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 //	if (code != Fun4AllReturnCodes::EVENT_OK)
 //		return code;
 
+	code = vertexing();
+	if (code != Fun4AllReturnCodes::EVENT_OK)
+		return code;
 	// here expect vertex to be better than +/- 500 um
 
 	//-----------------------------------
@@ -443,19 +468,20 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	if (code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 
-	std::cout << "=============== Timers: ===============" << std::endl;
-	std::cout << "Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "\t - Seeds Cleanup:          "<<_t_seeds_cleanup->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "\t - Track Translation time: "<<_t_translate_to_PHGenFitTrack->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "\t - Cluster searching time: "<<_t_search_clusters->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "\t\t - Encoding time:        "<<_t_search_clusters_encoding->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "\t\t - Map iteration:        "<<_t_search_clusters_map_iter->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "\t - Kalman updater time:    "<<_t_track_propagation->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "Full fitting time:           "<<_t_full_fitting->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "Output IO time:              "<<_t_output_io->get_accumulated_time()/1000. << " sec" <<std::endl;
-	std::cout << "=======================================" << std::endl;
-
+	if(verbosity > 1) {
+		std::cout << "=============== Timers: ===============" << std::endl;
+		std::cout << "Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
+		std::cout << "\t - Seeds Cleanup:          "<<_t_seeds_cleanup->get_accumulated_time()/1000. << " sec" <<std::endl;
+		std::cout << "Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
+		std::cout << "\t - Track Translation time: "<<_t_translate_to_PHGenFitTrack->get_accumulated_time()/1000. << " sec" <<std::endl;
+		std::cout << "\t - Cluster searching time: "<<_t_search_clusters->get_accumulated_time()/1000. << " sec" <<std::endl;
+		std::cout << "\t\t - Encoding time:        "<<_t_search_clusters_encoding->get_accumulated_time()/1000. << " sec" <<std::endl;
+		std::cout << "\t\t - Map iteration:        "<<_t_search_clusters_map_iter->get_accumulated_time()/1000. << " sec" <<std::endl;
+		std::cout << "\t - Kalman updater time:    "<<_t_track_propagation->get_accumulated_time()/1000. << " sec" <<std::endl;
+		std::cout << "Full fitting time:           "<<_t_full_fitting->get_accumulated_time()/1000. << " sec" <<std::endl;
+		std::cout << "Output IO time:              "<<_t_output_io->get_accumulated_time()/1000. << " sec" <<std::endl;
+		std::cout << "=======================================" << std::endl;
+	}
 	++_event;
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -487,6 +513,7 @@ int PHG4KalmanPatRec::End(PHCompositeNode *topNode) {
 	_tracker_vertex = NULL;
 	delete _tracker;
 	_tracker = NULL;
+
 
 #ifdef _DEBUG_
 		LogDebug("Leaving End \n");
@@ -1538,14 +1565,37 @@ int PHG4KalmanPatRec::initial_vertex_finding() {
 	// shift back to the global coordinates
 	shift_coordinate_system(-shift_dx, -shift_dy, -shift_dz);
 
-	//FIXME yuhw
-	_vertex[0] = 0;
-	_vertex[1] = 0;
-	_vertex[2] = 0;
-
 	if (verbosity > 0) {
 		cout << " initial track vertex post-fit: " << _vertex[0] << " "
 				<< _vertex[1] << " " << _vertex[2] << endl;
+	}
+
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//FIXME this is now a simulator
+int PHG4KalmanPatRec::vertexing() {
+	_vertex.clear();
+	_vertex.assign(3, 0.0);
+
+#ifndef __CINT__
+	gsl_rng *RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+	unsigned int seed = PHRandomSeed(); // fixed seed is handled in this funtcion
+//  cout << Name() << " random seed: " << seed << endl;
+	gsl_rng_set(RandomGenerator, seed);
+
+	_vertex[0] = _vertex_error[0] * gsl_ran_ugaussian(RandomGenerator);
+	_vertex[1] = _vertex_error[1] * gsl_ran_ugaussian(RandomGenerator);
+	_vertex[2] = _vertex_error[2] * gsl_ran_ugaussian(RandomGenerator);
+
+	gsl_rng_free(RandomGenerator);
+#endif
+
+	if (verbosity > 1) {
+		cout << __LINE__ << " PHG4KalmanPatRec::vertexing: {" << _vertex[0]
+				<< ", " << _vertex[1] << ", " << _vertex[2] << "} +- {"
+				<< _vertex_error[0] << ", " << _vertex_error[1] << ", "
+				<< _vertex_error[2] << "}" << endl;
 	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -2357,9 +2407,9 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 		/*!
 		 * Translate SimpleTrack3D To PHGenFitTracks
 		 */
-		_t_translate_to_PHGenFitTrack->restart();
+		if(verbosity > 1) _t_translate_to_PHGenFitTrack->restart();
 		SimpleTrack3DToPHGenFitTracks(topNode, itrack);
-		_t_translate_to_PHGenFitTrack->stop();
+		if(verbosity > 1) _t_translate_to_PHGenFitTrack->stop();
 
 		/*!
 		 * Handle track propagation, termination, output and evt disp.
@@ -2725,7 +2775,23 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	}
 
 	std::vector<PHGenFit::Measurement*> measurements;
-	std::vector<unsigned int> hitIDs;
+	{
+		TVector3 v(_vertex[0],_vertex[1],_vertex[2]);
+		TMatrixDSym cov(3);
+		cov.Zero();
+		cov(0, 0) = _vertex_error[0]*_vertex_error[0];
+		cov(1, 1) = _vertex_error[1]*_vertex_error[1];
+		cov(2, 2) = _vertex_error[2]*_vertex_error[2];
+		PHGenFit::Measurement* meas = new PHGenFit::SpacepointMeasurement(v, cov);
+		meas->set_cluster_ID(0);
+		measurements.push_back(meas);
+	}
+
+#ifdef _DEBUG_
+	cout<<__LINE__<<": "<<measurements.front()->get_cluster_ID()<<endl;
+#endif
+
+	//std::vector<unsigned int> hitIDs;
 	//for (SimpleHit3D hit : track_hits) {
 	//unsigned int cluster_ID = hit.get_id();
 	for (auto iter = m_r_clusterID.begin();
@@ -2744,7 +2810,7 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 		TVector3 n(cluster->get_x(), cluster->get_y(), 0);
 
 #ifdef _DEBUG_
-//	cout<<__LINE__<<": cluster: "<< cluster_ID <<": layer: "<< cluster->get_layer() <<": r idx: "<< iter->first <<": r real: "<< pos.Perp()<<endl;
+	cout<<__LINE__<<": cluster: "<< cluster_ID <<": layer: "<< cluster->get_layer() <<": r idx: "<< iter->first <<": r real: "<< pos.Perp()<<endl;
 #endif
 
 		//17.4, 17.4, 17.4, 14.0, 14.0, 12.0, 11.5
@@ -2803,18 +2869,18 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 #endif
 		meas->set_cluster_ID(cluster_ID);
 #ifdef _DEBUG_
-//		cout
-//		<<__LINE__
-//		<<": ID: " << cluster_ID
-//		<<": layer: " << cluster->get_layer()
-//		<<": rphi_error: " << cluster->get_rphi_error()
-//		<<": phi_error: " << cluster->get_phi_error()
-//		<<endl;
+		cout
+		<<__LINE__
+		<<": ID: " << cluster_ID
+		<<": layer: " << cluster->get_layer()
+		<<": rphi_error: " << cluster->get_rphi_error()
+		<<": phi_error: " << cluster->get_phi_error()
+		<<endl;
 //		pos.Print();
 //		n.Print();
 #endif
 		measurements.push_back(meas);
-		hitIDs.push_back(cluster_ID);
+		//hitIDs.push_back(cluster_ID);
 	}
 	track->addMeasurements(measurements);
 
