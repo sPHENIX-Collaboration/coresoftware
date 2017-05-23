@@ -9,6 +9,7 @@
 
 //STL
 #include <vector>
+#include <memory>
 
 //BOOST
 //#include<boost/make_shared.hpp>
@@ -38,11 +39,19 @@ public:
 	//! Default ctor
 	Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMatrixDSym seed_cov);
 
+	//! Copy constructor
+	Track(const PHGenFit::Track &t);
+
 	//! Default dtor
 	~Track();
 
 	//! Add measurement
+	int addMeasurement(PHGenFit::Measurement* measurement);
 	int addMeasurements(std::vector<PHGenFit::Measurement*> &measurements);
+
+	//!
+	int updateOneMeasurementKalman(const std::vector<PHGenFit::Measurement*>& measurements,
+			std::map<double, PHGenFit::Track*>& incr_chi2s_new_tracks) const;
 
 	/*!
 	 * track_point 0 is the first one, and -1 is the last one
@@ -66,6 +75,8 @@ public:
 	//!
 	genfit::Track* getGenFitTrack() {return _track;}
 
+	genfit::Track* getGenFitTrack() const {return _track;}
+
 	double get_chi2() const {
 		genfit::AbsTrackRep* rep = _track->getCardinalRep();
 		double chi2 = _track->getFitStatus(rep)->getChi2();
@@ -80,12 +91,22 @@ public:
 
 	double get_charge() const;
 
+	const std::vector<unsigned int>& get_cluster_IDs() const {
+		return _clusterIDs;
+	}
+
+	void set_cluster_IDs(const std::vector<unsigned int>& clusterIDs) {
+		_clusterIDs = clusterIDs;
+	}
+
 	//SMART(genfit::Track) getGenFitTrack() {return _track;}
 
 private:
 
 	genfit::Track* _track;
-	std::vector<PHGenFit::Measurement*> _measurements;
+	//std::vector<PHGenFit::Measurement*> _measurements;
+	std::vector<unsigned int> _clusterIDs;
+
 	//SMART(genfit::Track) _track;
 };
 } //End of PHGenFit namespace
