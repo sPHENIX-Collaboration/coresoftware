@@ -79,6 +79,8 @@
 
 #define _DEBUG_MODE_ 0
 
+//#define _DEBUG_
+
 using namespace std;
 
 //Rave
@@ -235,6 +237,7 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
 					-1. * _mag_field_re_scaling_factor :
 					_mag_field_re_scaling_factor, _track_fitting_alg_name,
 			"RKTrackRep", _do_evt_display);
+	_fitter->set_verbosity(verbosity);
 
 	if (!_fitter) {
 		cerr << PHWHERE << endl;
@@ -272,12 +275,11 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
  */
 int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 	_event++;
-#if _DEBUG_MODE_ == 1
-	cout << PHWHERE << "Events processed: " << _event << endl;
-#else
-	if (_event % 1000 == 0)
-		cout << PHWHERE << "Events processed: " << _event << endl;
-#endif
+
+	if(verbosity > 1)
+		std::cout << PHWHERE << "Events processed: " << _event << std::endl;
+//	if (_event % 1000 == 0)
+//		cout << PHWHERE << "Events processed: " << _event << endl;
 
 	GetNodes(topNode);
 
@@ -392,8 +394,13 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 			if(!rf_track) {
 				//if (_output_mode == OverwriteOriginalNode)
+#ifdef _DEBUG_
+						LogDebug("!rf_track, continue.");
+#endif
 				if (_over_write_svtxtrackmap)
 					_trackmap->erase(iter->first);
+
+				continue;
 			}
 
 //			delete vertex;//DEBUG
@@ -465,6 +472,12 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 					std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(svtx_track,
 							rf_phgf_track, vertex);
 					//delete rf_phgf_track;
+					if(!rf_track) {
+#ifdef _DEBUG_
+						LogDebug("!rf_track, continue.");
+#endif
+						continue;
+					}
 					_primary_trackmap->insert(rf_track.get());
 				}
 			}
@@ -942,6 +955,14 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			LogError("No cluster Found!");
 			continue;
 		}
+
+#ifdef _DEBUG_
+		cout
+		<< __LINE__
+		<<": ID: " << cluster_id
+		<<": layer: " << cluster->get_layer()
+		<<endl;
+#endif
 
 		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
 
