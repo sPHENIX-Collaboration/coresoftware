@@ -41,7 +41,9 @@ bool Field2D::initialize(std::string inname) {
 
 
 	field_map_r_ = new TH2D("field_map_r_","B_{r} [kGauss]; z [cm]; r [cm]", 401, -401, 401, 151, -1, 301);
+	field_map_r_->SetDirectory(0);
 	field_map_z_ = new TH2D("field_map_z_","B_{z} [kGauss]; z [cm]; r [cm]", 401, -401, 401, 151, -1, 301);
+	field_map_z_->SetDirectory(0);
 	TFile *fin = TFile::Open(inname.data(),"READ");
 	if(!fin)
 	{
