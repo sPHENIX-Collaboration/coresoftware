@@ -90,8 +90,6 @@
 
 //#define _DEBUG_
 
-#define _GET_RPHI_ERROR_
-
 //#define _USE_ALAN_FULL_VERTEXING_
 #define _USE_ALAN_TRACK_REFITTING_
 
@@ -169,6 +167,12 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
       _g4clusters(NULL),
       _g4tracks(NULL),
       _g4vertexes(NULL),
+	  _svtxhitsmap(nullptr),
+	  _cells_svtx(nullptr),
+	  _cells_intt(nullptr),
+	  _cells_maps(nullptr),
+	  _geom_container_intt(nullptr),
+	  _geom_container_maps(nullptr),
 	  _seeding_only_mode(false),
 	  _max_merging_dphi(0.1),
 	  _max_merging_deta(0.1),
@@ -987,6 +991,44 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 	setup_tracker_object();
 	setup_initial_tracker_object();
 	setup_seed_tracker_objects();
+
+
+	/*!
+	 * Now have to load geometry nodes to get norm vector
+	 */
+
+	// get node containing the digitized hits
+	_svtxhitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+	if (!_svtxhitsmap) {
+		cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
+		return Fun4AllReturnCodes::ABORTRUN;
+	}
+
+	_cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
+			"G4CELL_SVTX");
+
+	_cells_intt = findNode::getClass<PHG4CellContainer>(
+			topNode, "G4CELL_SILICON_TRACKER");
+
+	_cells_maps = findNode::getClass<PHG4CellContainer>(
+			topNode, "G4CELL_MAPS");
+
+	if (!_cells_svtx and !_cells_intt and !_cells_maps) {
+		if (verbosity >= 0) {
+			LogError("No PHG4CellContainer found!");}
+		return Fun4AllReturnCodes::ABORTRUN;
+	}
+
+	_geom_container_intt = findNode::getClass<
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
+
+	_geom_container_maps = findNode::getClass<
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+
+	if (!_cells_svtx && !_cells_maps && !_cells_intt) {
+		cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
+		return Fun4AllReturnCodes::ABORTRUN;
+	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -2709,44 +2751,6 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	}
 #endif
 
-	/*!
-	 * Now have to load geometry nodes to get norm vector
-	 */
-
-	SvtxHitMap* hitsmap = NULL;
-	// get node containing the digitized hits
-	hitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
-	if (!hitsmap) {
-		cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
-		return Fun4AllReturnCodes::ABORTRUN;
-	}
-
-	PHG4CellContainer* cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
-			"G4CELL_SVTX");
-
-	PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
-			topNode, "G4CELL_SILICON_TRACKER");
-
-	PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
-			topNode, "G4CELL_MAPS");
-
-	if (!cells_svtx and !cells_intt and !cells_maps) {
-		if (verbosity >= 0) {
-			LogError("No PHG4CellContainer found!");}
-		return Fun4AllReturnCodes::ABORTRUN;
-	}
-
-	PHG4CylinderGeomContainer* geom_container_intt = findNode::getClass<
-			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
-
-	PHG4CylinderGeomContainer* geom_container_maps = findNode::getClass<
-			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
-
-	if (!cells_svtx && !cells_maps && !cells_intt) {
-		cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
-		return Fun4AllReturnCodes::ABORTRUN;
-	}
-
 	genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_pid_guess);
 	std::shared_ptr<PHGenFit::Track> track(
 			new PHGenFit::Track(rep, seed_pos, seed_mom, seed_cov));
@@ -2808,81 +2812,10 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 			LogError("No cluster Found!\n");continue;
 		}
 
-		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
-		TVector3 n(cluster->get_x(), cluster->get_y(), 0);
+		PHGenFit::Measurement *meas = SvtxClusterToPHGenFitMeasurement(cluster);
 
-#ifdef _DEBUG_
-	cout<<__LINE__<<": cluster: "<< cluster_ID <<": layer: "<< cluster->get_layer() <<": r idx: "<< iter->first <<": r real: "<< pos.Perp()<<endl;
-#endif
-
-		//17.4, 17.4, 17.4, 14.0, 14.0, 12.0, 11.5
-		float phi_tilt[7] = {0.304, 0.304, 0.304, 0.244, 0.244, 0.209, 0.201};
-
-		unsigned int layer = cluster->get_layer();
-		//std::cout << "cluster layer: " << layer << std::endl;
-		if ((cells_maps and geom_container_maps)
-				and layer < 3) {
-
-			unsigned int begin_hit_id = *(cluster->begin_hits());
-			//LogDebug(begin_hit_id);
-			SvtxHit* hit = hitsmap->find(begin_hit_id)->second;
-			//LogDebug(hit->get_cellid());
-			PHG4Cell* cell = cells_maps->findCell(hit->get_cellid());
-			int stave_index = cell->get_stave_index();
-			int half_stave_index = cell->get_half_stave_index();
-			int module_index = cell->get_module_index();
-			int chip_index = cell->get_chip_index();
-
-			double ladder_location[3] = { 0.0, 0.0, 0.0 };
-			PHG4CylinderGeom_MAPS *geom =
-					(PHG4CylinderGeom_MAPS*) geom_container_maps->GetLayerGeom(
-							layer);
-			// returns the center of the sensor in world coordinates - used to get the ladder phi location
-			geom->find_sensor_center(stave_index, half_stave_index,
-					module_index, chip_index, ladder_location);
-			//n.Print();
-			n.SetXYZ(ladder_location[0], ladder_location[1], 0);
-			n.RotateZ(phi_tilt[layer]);
-			//n.Print();
-		} else if ((cells_intt and geom_container_intt)
-				and pos.Perp() < 30.) {
-
-			unsigned int begin_hit_id = *(cluster->begin_hits());
-			//LogDebug(begin_hit_id);
-			SvtxHit* hit = hitsmap->find(begin_hit_id)->second;
-			//LogDebug(hit->get_cellid());
-			PHG4Cell* cell = cells_intt->findCell(hit->get_cellid());
-			PHG4CylinderGeom_Siladders* geom =
-					(PHG4CylinderGeom_Siladders*) geom_container_intt->GetLayerGeom(
-							layer);
-			double hit_location[3] = { 0.0, 0.0, 0.0 };
-			geom->find_segment_center(cell->get_ladder_z_index(),
-					cell->get_ladder_phi_index(), hit_location);
-
-			n.SetXYZ(hit_location[0], hit_location[1], 0);
-			n.RotateZ(phi_tilt[layer]);
-		}
-#ifdef _GET_RPHI_ERROR_
-		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,
-				n, cluster->get_rphi_error(), cluster->get_z_error());
-#else
-		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,
-				n, cluster->get_phi_error(), cluster->get_z_error());
-#endif
-		meas->set_cluster_ID(cluster_ID);
-#ifdef _DEBUG_
-		cout
-		<<__LINE__
-		<<": ID: " << cluster_ID
-		<<": layer: " << cluster->get_layer()
-		<<": rphi_error: " << cluster->get_rphi_error()
-		<<": phi_error: " << cluster->get_phi_error()
-		<<endl;
-//		pos.Print();
-//		n.Print();
-#endif
-		measurements.push_back(meas);
-		//hitIDs.push_back(cluster_ID);
+		if(meas)
+			measurements.push_back(meas);
 	}
 	track->addMeasurements(measurements);
 
@@ -3130,19 +3063,11 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 				LogError("No cluster Found!\n");
 				continue;
 			}
-//			cluster->identify();
-			TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
-			TVector3 n(cluster->get_x(), cluster->get_y(), 0);
-#ifdef _GET_RPHI_ERROR_
-			PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,
-					n, cluster->get_rphi_error(), cluster->get_z_error());
-#else
-			PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos,
-					n, cluster->get_phi_error(), cluster->get_z_error());
-#endif
-			meas->set_cluster_ID(cluster_ID);
-//			meas->getMeasurement()->Print();
-			measurements.push_back(meas);
+
+			PHGenFit::Measurement *meas = SvtxClusterToPHGenFitMeasurement(cluster);
+
+			if(meas)
+				measurements.push_back(meas);
 		}
 		std::map<double, PHGenFit::Track*> incr_chi2s_new_tracks;
 
@@ -3253,6 +3178,80 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 
 	//! Track succesfully propagated and return 0
 	return 0;
+}
+
+PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
+		const SvtxCluster* cluster) {
+
+	if(!cluster) return nullptr;
+
+	TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
+	TVector3 n(cluster->get_x(), cluster->get_y(), 0);
+
+	//17.4, 17.4, 17.4, 14.0, 14.0, 12.0, 11.5
+	float phi_tilt[7] = { 0.304, 0.304, 0.304, 0.244, 0.244, 0.209, 0.201 };
+
+	unsigned int layer = cluster->get_layer();
+	//std::cout << "cluster layer: " << layer << std::endl;
+	if ((_cells_maps and _geom_container_maps) and layer < 3) {
+
+		unsigned int begin_hit_id = *(cluster->begin_hits());
+		//LogDebug(begin_hit_id);
+		SvtxHit* hit = _svtxhitsmap->find(begin_hit_id)->second;
+		//LogDebug(hit->get_cellid());
+		PHG4Cell* cell = _cells_maps->findCell(hit->get_cellid());
+		int stave_index = cell->get_stave_index();
+		int half_stave_index = cell->get_half_stave_index();
+		int module_index = cell->get_module_index();
+		int chip_index = cell->get_chip_index();
+
+		double ladder_location[3] = { 0.0, 0.0, 0.0 };
+		PHG4CylinderGeom_MAPS *geom =
+				(PHG4CylinderGeom_MAPS*) _geom_container_maps->GetLayerGeom(
+						layer);
+		// returns the center of the sensor in world coordinates - used to get the ladder phi location
+		geom->find_sensor_center(stave_index, half_stave_index, module_index,
+				chip_index, ladder_location);
+		//n.Print();
+		n.SetXYZ(ladder_location[0], ladder_location[1], 0);
+		n.RotateZ(phi_tilt[layer]);
+		//n.Print();
+	} else if ((_cells_intt and _geom_container_intt) and pos.Perp() < 30.) {
+
+		unsigned int begin_hit_id = *(cluster->begin_hits());
+		//LogDebug(begin_hit_id);
+		SvtxHit* hit = _svtxhitsmap->find(begin_hit_id)->second;
+		//LogDebug(hit->get_cellid());
+		PHG4Cell* cell = _cells_intt->findCell(hit->get_cellid());
+		PHG4CylinderGeom_Siladders* geom =
+				(PHG4CylinderGeom_Siladders*) _geom_container_intt->GetLayerGeom(
+						layer);
+		double hit_location[3] = { 0.0, 0.0, 0.0 };
+		geom->find_segment_center(cell->get_ladder_z_index(),
+				cell->get_ladder_phi_index(), hit_location);
+
+		n.SetXYZ(hit_location[0], hit_location[1], 0);
+		n.RotateZ(phi_tilt[layer]);
+	}
+
+	PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
+			cluster->get_rphi_error(), cluster->get_z_error());
+
+	meas->set_cluster_ID(cluster->get_id());
+
+#ifdef _DEBUG_
+	cout
+	<<__LINE__
+	<<": ID: " <<cluster->get_id()
+	<<": layer: " << cluster->get_layer()
+	<<": rphi_error: " << cluster->get_rphi_error()
+	<<": phi_error: " << cluster->get_phi_error()
+	<<endl;
+//		pos.Print();
+//		n.Print();
+#endif
+
+	return meas;
 }
 
 int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
