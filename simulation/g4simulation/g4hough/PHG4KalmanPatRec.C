@@ -2783,7 +2783,9 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 		cov(1, 1) = _vertex_error[1]*_vertex_error[1];
 		cov(2, 2) = _vertex_error[2]*_vertex_error[2];
 		PHGenFit::Measurement* meas = new PHGenFit::SpacepointMeasurement(v, cov);
-		meas->set_cluster_ID(0);
+		//FIXME re-use the first cluster id
+		unsigned int id = m_r_clusterID.begin()->second;
+		meas->set_cluster_ID(id);
 		measurements.push_back(meas);
 	}
 
