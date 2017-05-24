@@ -31,6 +31,7 @@
 
 // PHGenFit
 #include <phgenfit/Fitter.h>
+//#include <phgenfit/Measurement.h>
 
 // g4hough includes
 #include "SvtxTrackState.h"
@@ -38,15 +39,21 @@
 // forward declarations
 class PHCompositeNode;
 class SvtxClusterMap;
+class SvtxCluster;
 class SvtxTrackMap;
 class SvtxTrack;
 class SvtxVertexMap;
 class SvtxVertex;
+class SvtxHitMap;
+class PHG4CellContainer;
+class PHG4CylinderGeomContainer;
+
 class PHG4HitContainer;
 
 namespace PHGenFit {
 class Fitter;
 class Track;
+class Measurement;
 } /* namespace PHGenFit */
 
 namespace genfit {
@@ -561,6 +568,9 @@ private:
 			const unsigned int init_layer = 0, const unsigned int end_layer = 66,
 			const bool use_fitted_state_once = false);
 
+	//!
+	PHGenFit::Measurement* SvtxClusterToPHGenFitMeasurement(const SvtxCluster* cluster);
+
 	//! TrackPropPatRec Call.
 	std::vector<unsigned int> SearchHitsNearBy (const unsigned int layer, const float z_center, const float phi_center, const float z_window, const float phi_window);
 
@@ -672,6 +682,16 @@ private:
 	SvtxClusterMap* _g4clusters;
 	SvtxTrackMap* _g4tracks;
 	SvtxVertexMap* _g4vertexes;
+
+	//nodes to get norm vector
+	SvtxHitMap* _svtxhitsmap;
+
+	PHG4CellContainer* _cells_svtx;
+	PHG4CellContainer* _cells_intt;
+	PHG4CellContainer* _cells_maps;
+
+	PHG4CylinderGeomContainer* _geom_container_intt;
+	PHG4CylinderGeomContainer* _geom_container_maps;
 
 
 	bool _seeding_only_mode;
