@@ -1,6 +1,7 @@
 #include "CaloTriggerInfo_v1.h"
 
-ClassImp(CaloTriggerInfo_v1)
+
+using namespace std;
 
 CaloTriggerInfo_v1::CaloTriggerInfo_v1()
 {

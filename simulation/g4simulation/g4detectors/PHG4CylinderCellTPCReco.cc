@@ -316,7 +316,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	fHMeanEDepPerCell->Fill( float(*layer), z, edep );
       }
       if( (*layer) < (unsigned int)num_pixel_layers ) { // MAPS + ITT
-        unsigned long long key = zbin*nphibins + phibin;
+	unsigned long long longphibins = nphibins;
+        unsigned long long key = zbin*longphibins + phibin;
 	std::map<unsigned long long, PHG4Cell*>::iterator it = cellptmap.find(key);
 	PHG4Cell *cell;
 	if(it != cellptmap.end()) {
