@@ -69,6 +69,8 @@ public:
   
   // overlap calculations
   unsigned int get_nclusters_contribution(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);  
+  unsigned int get_nmaps_contribution(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);  
+  unsigned int get_ntpc_contribution(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);  
   unsigned int get_nclusters_contribution_by_layer(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);  
   
   unsigned int get_errors() {return _errors + _clustereval.get_errors();}

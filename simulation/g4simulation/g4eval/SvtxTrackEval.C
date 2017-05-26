@@ -500,6 +500,88 @@ unsigned int SvtxTrackEval::get_nclusters_contribution_by_layer(SvtxTrack* track
   return nclusters_by_layer;
 }
 
+unsigned int SvtxTrackEval::get_nmaps_contribution(SvtxTrack* track, PHG4Particle* particle) {
+
+  if (!has_node_pointers()) {++_errors; return 0;}
+  
+  if (_strict) {
+    assert(track);
+    assert(particle);
+  } else if (!track||!particle) {
+    ++_errors;
+    return 0;
+  }
+  
+  unsigned int nclusters_maps = 0; 
+
+  // loop over all clusters
+  for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
+       iter != track->end_clusters();
+       ++iter) {
+    unsigned int cluster_id = *iter;
+    SvtxCluster* cluster = _clustermap->get(cluster_id);
+    unsigned int cluster_layer = cluster->get_layer();
+    if(cluster_layer>=3) continue;
+    
+    if (_strict) {assert(cluster);}
+    else if (!cluster) {++_errors; continue;}
+    
+    // loop over all particles
+    std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster);
+    for (std::set<PHG4Particle*>::iterator jter = particles.begin();
+	 jter != particles.end();
+	 ++jter) {
+      PHG4Particle* candidate = *jter;
+      if (get_truth_eval()->are_same_particle(candidate,particle)) {
+	nclusters_maps |= (0x3FFFFFFF & (0x1 << cluster_layer));	
+      }
+    }
+  }
+  
+  return nclusters_maps;
+}
+
+unsigned int SvtxTrackEval::get_ntpc_contribution(SvtxTrack* track, PHG4Particle* particle) {
+
+  if (!has_node_pointers()) {++_errors; return 0;}
+  
+  if (_strict) {
+    assert(track);
+    assert(particle);
+  } else if (!track||!particle) {
+    ++_errors;
+    return 0;
+  }
+  
+  unsigned int nclusters_tpc = 0; 
+
+  // loop over all clusters
+  for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
+       iter != track->end_clusters();
+       ++iter) {
+    unsigned int cluster_id = *iter;
+    SvtxCluster* cluster = _clustermap->get(cluster_id);
+    unsigned int cluster_layer = cluster->get_layer();
+    if(cluster_layer<7) continue;
+
+    if (_strict) {assert(cluster);}
+    else if (!cluster) {++_errors; continue;}
+    
+    // loop over all particles
+    std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster);
+    for (std::set<PHG4Particle*>::iterator jter = particles.begin();
+	 jter != particles.end();
+	 ++jter) {
+      PHG4Particle* candidate = *jter;
+      if (get_truth_eval()->are_same_particle(candidate,particle)) {
+	nclusters_tpc |= (0x3FFFFFFF & (0x1 << cluster_layer));	
+      }
+    }
+  }
+
+  return nclusters_tpc;
+}
+
 void SvtxTrackEval::get_node_pointers(PHCompositeNode *topNode) {
 
   // need things off of the DST...
