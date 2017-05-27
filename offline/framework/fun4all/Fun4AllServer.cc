@@ -58,7 +58,7 @@ Fun4AllServer::Fun4AllServer(const std::string &name)
   , unregistersubsystem(0)
   , runnumber(0)
   , eventnumber(0)
-  , beginruntimestamp(NULL)
+  , beginruntimestamp(nullptr)
   , keep_db_connected(0)
 {
   InitAll();
@@ -118,7 +118,7 @@ Fun4AllServer::~Fun4AllServer()
   }
   recoConsts *rc = recoConsts::instance();
   delete rc;
-  __instance = NULL;
+  __instance = nullptr;
   return;
 }
 
@@ -1586,7 +1586,7 @@ int Fun4AllServer::setRun(const int runno)
 {
   recoConsts *rc = recoConsts::instance();
   rc->set_IntFlag("RUNNUMBER", runno);
-  PHTimeStamp *tstamp = NULL;
+  PHTimeStamp *tstamp = nullptr;
   if (!tstamp)
   {
     tstamp = new PHTimeStamp(0);
