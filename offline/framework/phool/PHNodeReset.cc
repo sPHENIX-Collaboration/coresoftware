@@ -6,11 +6,18 @@
 #include "PHIODataNode.h" 
 #include "PHObject.h"
 
+#include <iostream>
+
+using namespace std;
+
 void
 PHNodeReset::perform(PHNode* node)
 {
   if ( node->getResetFlag() != True ) return;
-
+  if (verbosity > 0)
+  {
+    cout << "PHNodeReset: Resetting " << node->getName() << endl;
+  }
    if (node->getType() == "PHDataNode")
      {  
        if (node->getObjectType() == "PHObject")

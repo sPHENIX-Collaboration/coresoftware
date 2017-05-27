@@ -1,5 +1,5 @@
-#ifndef __PHNODEOPERATION_H__
-#define __PHNODEOPERATION_H__
+#ifndef PHNodeOperation_h
+#define PHNodeOperation_h
 
 //  Declaration of class PHNodeOperation
 //  Purpose: abstract strategy base class which operates on PHNodes
@@ -10,7 +10,7 @@ class PHNode;
 class PHNodeOperation 
 { 
 public: 
-  PHNodeOperation(){} 
+PHNodeOperation(): verbosity(0) {} 
   virtual ~PHNodeOperation(){}
   
   void 
@@ -23,9 +23,14 @@ public:
   { 
     perform(o); 
   }
-  
+
+  virtual void Verbosity(const int i) {verbosity = i;}
+  virtual int Verbosity() const {return verbosity;}  
+
 protected: 
   virtual void perform(PHNode*) = 0;
+  int verbosity;
+
 }; 
 
-#endif /* __PHNODEOPERATION_H__ */
+#endif /* PHNodeOperation_h */

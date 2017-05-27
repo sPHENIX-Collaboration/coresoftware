@@ -1,5 +1,5 @@
-#ifndef PHNODERESET_H__
-#define PHNODERESET_H__
+#ifndef PHNodeReset_h
+#define PHNodeReset_h
 
 //  Declaration of class PHNodeReset
 //  Purpose: strategy which calls reset() on a PHNode 
@@ -20,4 +20,4 @@ protected:
 
 }; 
 
-#endif /* PHNODERESET_H__ */
+#endif /* PHNodeReset_h */
