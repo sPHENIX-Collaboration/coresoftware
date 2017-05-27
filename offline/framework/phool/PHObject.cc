@@ -3,8 +3,6 @@
 #include <iostream>
 #include <cstdlib>
 
-ClassImp(PHObject)
-
   PHObject::PHObject():
   split(99),
   bufSize(32000)
@@ -29,10 +27,10 @@ PHObject::identify(std::ostream& out) const
 void 
 PHObject::Reset()
 {
-  
   // This is bad, previous events are not cleared
   std::cout << PHWHERE 
-	    << " Reset() not implemented PREVIOUS EVENT IS NOT CLEARED" 
+	    << " Reset() not implemented for " << this->GetName() 
+            << " PREVIOUS EVENT IS NOT CLEARED" 
 	    << std::endl;
   std::cout << "You most probably miss a library, if so there are one or more messages at startup like:"
 	    << std::endl << std::endl;
