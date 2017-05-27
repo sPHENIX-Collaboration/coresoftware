@@ -39,6 +39,15 @@ PdbParameterMapContainer::print() const
     }
   return;
 }
+void PdbParameterMapContainer::Reset()
+{
+  while(parametermap.begin() != parametermap.end())
+    {
+      delete parametermap.begin()->second;
+      parametermap.erase(parametermap.begin());
+    }
+  return;
+}
 
 void
 PdbParameterMapContainer::AddPdbParameterMap(const int layer, PdbParameterMap *params)
