@@ -7,30 +7,30 @@
 
 class PHNode;
 
-class PHNodeOperation 
-{ 
-public: 
-PHNodeOperation(): verbosity(0) {} 
-  virtual ~PHNodeOperation(){}
-  
-  void 
-  operator () (PHNode& o) 
-  { 
-    perform(&o); 
+class PHNodeOperation
+{
+ public:
+  PHNodeOperation()
+    : verbosity(0)
+  {
   }
-  void 
-  operator () (PHNode* o) 
-  { 
-    perform(o); 
+  virtual ~PHNodeOperation() {}
+  void
+  operator()(PHNode& o)
+  {
+    perform(&o);
+  }
+  void
+  operator()(PHNode* o)
+  {
+    perform(o);
   }
 
-  virtual void Verbosity(const int i) {verbosity = i;}
-  virtual int Verbosity() const {return verbosity;}  
-
-protected: 
+  virtual void Verbosity(const int i) { verbosity = i; }
+  virtual int Verbosity() const { return verbosity; }
+ protected:
   virtual void perform(PHNode*) = 0;
   int verbosity;
-
-}; 
+};
 
 #endif /* PHNodeOperation_h */
