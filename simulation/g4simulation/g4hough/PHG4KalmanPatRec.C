@@ -45,6 +45,9 @@
 #include <phool/getClass.h>
 #include <phool/PHRandomSeed.h>
 #include <phgeom/PHGeomUtility.h>
+ //FIXME remove includes below after having real vertxing
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
 
 // sGeant4 includes
 #include <Geant4/G4MagneticField.hh>
@@ -88,7 +91,7 @@
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp
 
-//#define _DEBUG_
+#define _DEBUG_
 
 //#define _USE_ALAN_FULL_VERTEXING_
 #define _USE_ALAN_TRACK_REFITTING_
@@ -234,6 +237,12 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 	_user_material[4] = 0.008;
 	_user_material[5] = 0.008;
 	_user_material[6] = 0.008;
+
+	unsigned int maps_layers[] = {0, 1, 2};
+	this->set_maps_layers(maps_layers, 3);
+
+	unsigned int intt_layers[] = {3, 4, 5, 6};
+	this->set_intt_layers(intt_layers, 4);
 
 	int seeding_layers[] = {7,15,25,35,45,55,66};
 	this->set_seeding_layer(seeding_layers, 7);
@@ -433,7 +442,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 //	if (code != Fun4AllReturnCodes::EVENT_OK)
 //		return code;
 
-	code = vertexing();
+	code = vertexing(topNode);
 	if (code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 	// here expect vertex to be better than +/- 500 um
@@ -1616,9 +1625,17 @@ int PHG4KalmanPatRec::initial_vertex_finding() {
 }
 
 //FIXME this is now a simulator
-int PHG4KalmanPatRec::vertexing() {
+int PHG4KalmanPatRec::vertexing(PHCompositeNode* topNode) {
+	PHG4TruthInfoContainer* g4truth = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+	PHG4VtxPoint* first_point = g4truth->GetPrimaryVtx(
+			g4truth->GetPrimaryVertexIndex());
+
 	_vertex.clear();
 	_vertex.assign(3, 0.0);
+
+	_vertex[0] = first_point->get_x();
+	_vertex[1] = first_point->get_y();
+	_vertex[2] = first_point->get_z();
 
 #ifndef __CINT__
 	gsl_rng *RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
@@ -1626,9 +1643,9 @@ int PHG4KalmanPatRec::vertexing() {
 //  cout << Name() << " random seed: " << seed << endl;
 	gsl_rng_set(RandomGenerator, seed);
 
-	_vertex[0] = _vertex_error[0] * gsl_ran_ugaussian(RandomGenerator);
-	_vertex[1] = _vertex_error[1] * gsl_ran_ugaussian(RandomGenerator);
-	_vertex[2] = _vertex_error[2] * gsl_ran_ugaussian(RandomGenerator);
+	_vertex[0] += _vertex_error[0] * gsl_ran_ugaussian(RandomGenerator);
+	_vertex[1] += _vertex_error[1] * gsl_ran_ugaussian(RandomGenerator);
+	_vertex[2] += _vertex_error[2] * gsl_ran_ugaussian(RandomGenerator);
 
 	gsl_rng_free(RandomGenerator);
 #endif
@@ -2985,6 +3002,11 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		}
 
 		TVector3 pos = state->getPos();
+		pos.SetXYZ(
+				pos.X()-_vertex[0],
+				pos.Y()-_vertex[1],
+				pos.Z()-_vertex[2]
+				);
 
 		float phi_center = pos.Phi();
 		float theta_center = pos.Theta();
@@ -3009,25 +3031,21 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		float phi_window     = _search_wins_rphi[layer] * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]) / pos.Perp();
 		float theta_window   = _search_wins_theta[layer]    * sqrt(cov[2][2]) / pos.Perp();
 
-		if(layer >= 7) {
-			if (phi_window > _max_search_win_phi_tpc) phi_window = _max_search_win_phi_tpc;
-			if (phi_window < _min_search_win_phi_tpc) phi_window = _min_search_win_phi_tpc;
-			if (theta_window   > _max_search_win_theta_tpc)   theta_window   = _max_search_win_theta_tpc;
-			if (theta_window   < _min_search_win_theta_tpc)   theta_window   = _min_search_win_theta_tpc;
-		}
-
-		if(layer >= 3 and layer <=6) {
-			if (phi_window > _max_search_win_phi_intt) phi_window = _max_search_win_phi_intt;
-			if (phi_window < _min_search_win_phi_intt) phi_window = _min_search_win_phi_intt;
-			if (theta_window   > _max_search_win_theta_intt)   theta_window   = _max_search_win_theta_intt;
-			if (theta_window   < _min_search_win_theta_intt)   theta_window   = _min_search_win_theta_intt;
-		}
-
-		if(layer <=2 ){
+		if((std::find(_maps_layers.begin(), _maps_layers.end(), layer)!=_maps_layers.end())){
 			if (phi_window > _max_search_win_phi_maps) phi_window = _max_search_win_phi_maps;
 			if (phi_window < _min_search_win_phi_maps) phi_window = _min_search_win_phi_maps;
 			if (theta_window   > _max_search_win_theta_maps)   theta_window   = _max_search_win_theta_maps;
 			if (theta_window   < _min_search_win_theta_maps)   theta_window   = _min_search_win_theta_maps;
+		} else if(std::find(_intt_layers.begin(), _intt_layers.end(), layer)!=_intt_layers.end()) {
+			if (phi_window > _max_search_win_phi_intt) phi_window = _max_search_win_phi_intt;
+			if (phi_window < _min_search_win_phi_intt) phi_window = _min_search_win_phi_intt;
+			if (theta_window   > _max_search_win_theta_intt)   theta_window   = _max_search_win_theta_intt;
+			if (theta_window   < _min_search_win_theta_intt)   theta_window   = _min_search_win_theta_intt;
+		} else {
+			if (phi_window > _max_search_win_phi_tpc) phi_window = _max_search_win_phi_tpc;
+			if (phi_window < _min_search_win_phi_tpc) phi_window = _min_search_win_phi_tpc;
+			if (theta_window   > _max_search_win_theta_tpc)   theta_window   = _max_search_win_theta_tpc;
+			if (theta_window   < _min_search_win_theta_tpc)   theta_window   = _min_search_win_theta_tpc;
 		}
 #endif
 
@@ -3189,11 +3207,13 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
 	TVector3 n(cluster->get_x(), cluster->get_y(), 0);
 
 	//17.4, 17.4, 17.4, 14.0, 14.0, 12.0, 11.5
-	float phi_tilt[7] = { 0.304, 0.304, 0.304, 0.244, 0.244, 0.209, 0.201 };
+	//float phi_tilt[7] = { 0.304, 0.304, 0.304, 0.244, 0.244, 0.209, 0.201 };
 
 	unsigned int layer = cluster->get_layer();
 	//std::cout << "cluster layer: " << layer << std::endl;
-	if ((_cells_maps and _geom_container_maps) and layer < 3) {
+	if ((_cells_maps and _geom_container_maps) and
+			(std::find(_maps_layers.begin(), _maps_layers.end(), layer)!=_maps_layers.end())
+			) {
 
 		unsigned int begin_hit_id = *(cluster->begin_hits());
 		//LogDebug(begin_hit_id);
@@ -3214,9 +3234,11 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
 				chip_index, ladder_location);
 		//n.Print();
 		n.SetXYZ(ladder_location[0], ladder_location[1], 0);
-		n.RotateZ(phi_tilt[layer]);
+		n.RotateZ(geom->get_stave_phi_tilt());
 		//n.Print();
-	} else if ((_cells_intt and _geom_container_intt) and pos.Perp() < 30.) {
+	} else if ((_cells_intt and _geom_container_intt) and
+			(std::find(_intt_layers.begin(), _intt_layers.end(), layer)!=_intt_layers.end())
+		) {
 
 		unsigned int begin_hit_id = *(cluster->begin_hits());
 		//LogDebug(begin_hit_id);
@@ -3231,7 +3253,7 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
 				cell->get_ladder_phi_index(), hit_location);
 
 		n.SetXYZ(hit_location[0], hit_location[1], 0);
-		n.RotateZ(phi_tilt[layer]);
+		n.RotateZ(geom->get_strip_tilt());
 	}
 
 	PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
@@ -3265,9 +3287,12 @@ int PHG4KalmanPatRec::BuildLayerZPhiHitMap() {
 
 		unsigned int layer = cluster->get_layer();
 
-		float phi = atan2(cluster->get_y(),cluster->get_x());
-		float r = sqrt(cluster->get_x()*cluster->get_x() + cluster->get_y()*cluster->get_y());
-		float z = cluster->get_z();
+		float x = cluster->get_x()-_vertex[0];
+		float y = cluster->get_y()-_vertex[1];
+		float z = cluster->get_z()-_vertex[2];
+
+		float phi = atan2(y,x);
+		float r = sqrt(x*x + y*y);
 		float theta = atan2(r,z);
 
 #ifdef _DEBUG_

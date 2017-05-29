@@ -480,6 +480,32 @@ public:
 		_vertex_error.assign(3, a);
 	}
 
+	const std::vector<unsigned int>& get_intt_layers() const {
+		return _intt_layers;
+	}
+
+	void set_intt_layers(const unsigned int * layers, const unsigned int n) {
+		_intt_layers.clear();
+		_intt_layers.assign(layers, layers+n);
+	}
+
+	const std::vector<unsigned int>& get_maps_layers() const {
+		return _maps_layers;
+	}
+
+	void set_maps_layers(const unsigned int * layers, const unsigned int n) {
+		_maps_layers.clear();
+		_maps_layers.assign(layers, layers+n);
+	}
+
+	int get_nlayers_all() const {
+		return _nlayers_all;
+	}
+
+	void set_nlayers_all(int nlayersAll) {
+		_nlayers_all = nlayersAll;
+	}
+
 #ifndef __CINT__
 
 private:
@@ -529,7 +555,7 @@ private:
 	int initial_vertex_finding();
 
 
-	int vertexing();
+	int vertexing(PHCompositeNode* topNode);
 
 	/// code to perform the final tracking and vertexing
 	int full_track_seeding();
@@ -727,6 +753,9 @@ private:
 	bool _do_evt_display;
 
 	int _nlayers_all;
+	std::vector<unsigned int> _intt_layers;
+	std::vector<unsigned int> _maps_layers;
+
 	std::map<int, unsigned int> _layer_ilayer_map_all;
 	std::vector<float> _radii_all;
 
