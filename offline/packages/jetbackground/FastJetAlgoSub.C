@@ -1,9 +1,9 @@
 
 #include "FastJetAlgoSub.h"
 
-#include "JetInput.h"
-#include "Jet.h"
-#include "JetV1.h"
+#include <g4jets/JetInput.h>
+#include <g4jets/Jet.h>
+#include <g4jets/JetV1.h>
 
 
 // fastjet includes

@@ -24,6 +24,7 @@ libjetbackground_io_la_LIBADD = \
 libjetbackground_la_LIBADD = \
   -lfun4all \
   -lcemc_io \
+  -lg4jets \
   -lg4jets_io \
   -lCGAL \
   libjetbackground_io.la
@@ -32,6 +33,7 @@ pkginclude_HEADERS = \
   DetermineTowerBackground.h \
   SubtractTowers.h \
   RetowerCEMC.h \
+  FastJetAlgoSub.h \
   TowerBackground.h \
   TowerBackground_v1.h
 
@@ -43,6 +45,8 @@ libjetbackground_io_la_SOURCES = \
 libjetbackground_la_SOURCES = \
   DetermineTowerBackground.C \
   DetermineTowerBackground_Dict.C \
+  FastJetAlgoSub.C \
+  FastJetAlgoSub_Dict.C \
   SubtractTowers.C \
   SubtractTowers_Dict.C \
   RetowerCEMC.C \

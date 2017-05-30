@@ -3,8 +3,8 @@
 
 #include <phool/PHCompositeNode.h>
 
-#include "Jet.h"
-#include "JetAlgo.h"
+#include <g4jets/Jet.h>
+#include <g4jets/JetAlgo.h>
 
 class FastJetAlgoSub : public JetAlgo {
   
