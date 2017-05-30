@@ -22,7 +22,7 @@
 #include <vector>
 
 RetowerCEMC::RetowerCEMC(const std::string &name)
-  : SubsysReco(name)
+  : SubsysReco(name), _emcal_retower(nullptr)
 {
 
 
