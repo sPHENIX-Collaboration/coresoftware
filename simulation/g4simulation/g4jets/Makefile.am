@@ -43,7 +43,8 @@ pkginclude_HEADERS = \
   TrackJetInput.h \
   TowerJetInput.h \
   ClusterJetInput.h \
-  FastJetAlgo.h
+  FastJetAlgo.h \
+  FastJetAlgoSub.h
 
 #pkginclude_HEADERS = $(include_HEADERS)
 
@@ -69,7 +70,9 @@ libg4jets_la_SOURCES = \
   ClusterJetInput.C \
   ClusterJetInput_Dict.C \
   FastJetAlgo.C \
-  FastJetAlgo_Dict.C
+  FastJetAlgo_Dict.C \
+  FastJetAlgoSub.C \
+  FastJetAlgoSub_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
