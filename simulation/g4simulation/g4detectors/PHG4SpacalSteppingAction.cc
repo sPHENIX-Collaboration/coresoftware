@@ -84,6 +84,10 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         detector_->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper                          //
         or                                                                                                                        //
         detector_->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_SameLengthFiberPerTower  //
+        or                                                                                                                        //
+        detector_->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_Tilted  //
+        or                                                                                                                        //
+        detector_->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower  //
         )
     {
       //SPACAL ID that is associated with towers
@@ -155,6 +159,8 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       // Now add the hit
       if (isactive == PHG4SpacalDetector::FIBER_CORE)  // the slat ids start with zero
       {
+          // store all pre local coordinates
+          StoreLocalCoordinate(hit, aStep, true, false);
         hit->set_eion(0);  // only implemented for v5 otherwise empty
         hit->set_light_yield(0);
         savehitcontainer = hits_;
@@ -215,6 +221,9 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     if (isactive == PHG4SpacalDetector::FIBER_CORE)  // only for active areas
     {
+        // store all pre local coordinates
+        StoreLocalCoordinate(hit, aStep, false, true);
+
       hit->set_eion(hit->get_eion() + eion);
 
       double light_yield = GetVisibleEnergyDeposition(aStep);

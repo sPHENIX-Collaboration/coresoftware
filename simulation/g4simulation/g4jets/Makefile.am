@@ -1,10 +1,9 @@
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
   -I${G4_MAIN}/include \
-  -I${G4_MAIN}/include/Geant4 \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
@@ -74,22 +73,20 @@ libg4jets_la_SOURCES = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
-
-%_Dict.cpp: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
 # linking tests
 
-noinst_PROGRAMS = testexternals
+noinst_PROGRAMS = \
+  testexternals_g4jets_io \
+  testexternals_g4jets
 
-BUILT_SOURCES = \
-  testexternals.C
+testexternals_g4jets_io_SOURCES = testexternals.C
+testexternals_g4jets_io_LDADD = libg4jets_io.la
 
-testexternals_LDADD = \
-  libg4jets_io.la \
-  libg4jets.la
+testexternals_g4jets_SOURCES = testexternals.C
+testexternals_g4jets_LDADD = libg4jets.la
 
 testexternals.C:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

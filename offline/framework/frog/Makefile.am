@@ -1,6 +1,10 @@
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = -I$(includedir) -I$(OPT_SPHENIX)/include  -I$(OFFLINE_MAIN)/include -I`root-config --incdir`
+AM_CPPFLAGS = \
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include \
+  -I$(OPT_SPHENIX)/include \
+  -I`root-config --incdir`
 
 lib_LTLIBRARIES = libFROG.la
 
@@ -8,6 +12,7 @@ libFROG_la_LDFLAGS = \
   `root-config --libs`
 
 libFROG_la_LIBADD = \
+  -L$(libdir) \
   -L$(OPT_SPHENIX)/lib \
   -lodbc++
 
@@ -42,7 +47,7 @@ FROG_Dict.cc:   \
   pgsearch.h   \
   FROG.h       \
   FROGLinkDef.h
-	rootcint -f $@ -c  $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c  $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 
 clean-local:

@@ -1,37 +1,50 @@
 //
 // Inspired by code from ATLAS.  Thanks!
 //
+#include <HepMC/GenEvent.h>
+#include <HepMC/GenVertex.h>
+#include <HepMC/GenParticle.h>
+#include <HepMC/GenRanges.h>
+#include <HepMC/IO_AsciiParticles.h>
+#include <HepMC/IO_GenEvent.h>
+
+// this is an ugly hack, the gcc optimizer has a bug which
+// triggers the uninitialized variable warning which
+// stops compilation because of our -Werror 
+#include <boost/version.hpp> // to get BOOST_VERSION
+#if (__GNUC__ == 4 && __GNUC_MINOR__ == 8 && BOOST_VERSION == 106000 )
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma message "ignoring bogus gcc warning in boost header ptree.hpp"
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#pragma GCC diagnostic warning "-Wshadow"
+#else
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#endif
+
+
+#include <gsl/gsl_histogram.h>
+
 #include <iostream>
 #include <cstdlib>
 #include <string>
-
-#include "HepMC/GenEvent.h"
-#include "HepMC/GenVertex.h"
-#include "HepMC/GenParticle.h"
-#include "HepMC/GenRanges.h"
-#include "HepMC/IO_AsciiParticles.h"
-#include "HepMC/IO_GenEvent.h"
-
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
-
-#include "gsl/gsl_histogram.h"
 
 int
 main ()
 {
   using boost::property_tree::ptree;
-  ptree pt;
+  ptree proptree;
 
   std::ifstream config_file("test.xml");
 
   if (config_file)
     {
       // Read XML configuration file.
-      read_xml (config_file, pt);
+      read_xml (config_file, proptree);
     }
 
-  std::string input = pt.get("TEST.INPUT", "test.dat");
+  std::string input = proptree.get("TEST.INPUT", "test.dat");
 
   // Try to open input file.
   std::ifstream istr(input.c_str());

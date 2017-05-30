@@ -74,6 +74,7 @@ public:
   float        get_phi_size() const;
   float        get_z_size() const;
 
+  float        get_rphi_error() const;
   float        get_phi_error() const;
   float        get_z_error() const;
   
@@ -87,7 +88,7 @@ private:
   float _e;                        //< cluster energy
   unsigned int _adc;               //< cluster sum adc
   float _size[6];                  //< size covariance matrix (packed storage) (+/- cm^2)
-  float _err[6];                   //< size covariance matrix (packed storage) (+/- cm^2)
+  float _err[6];                   //< covariance matrix: rad, arc and z
   std::set<unsigned int> _hit_ids; //< list of cell hit ids 
   
   ClassDef(SvtxCluster_v1, 1);

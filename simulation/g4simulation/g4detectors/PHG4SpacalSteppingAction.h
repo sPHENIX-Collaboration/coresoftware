@@ -22,7 +22,7 @@ class PHG4SpacalSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4SpacalSteppingAction(PHG4SpacalDetector *);
+  explicit PHG4SpacalSteppingAction(PHG4SpacalDetector *);
 
   //! destroctor
   virtual ~PHG4SpacalSteppingAction();
