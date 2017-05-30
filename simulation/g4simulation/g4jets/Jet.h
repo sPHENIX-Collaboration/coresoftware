@@ -23,6 +23,7 @@ public:
     HCALOUT_TOWER=7, HCALOUT_CLUSTER=8,
     FEMC_TOWER=9, FEMC_CLUSTER=10,
     FHCAL_TOWER=11, FHCAL_CLUSTER=12,
+    CEMC_TOWER_SUB1=13, HCALIN_TOWER_SUB1=14, HCALOUT_TOWER_SUB1=15, /* needed for HI jet reco */
   };
 
   enum PROPERTY {prop_JetCharge = 1,prop_BFrac = 2};
