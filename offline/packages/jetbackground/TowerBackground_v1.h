@@ -15,7 +15,7 @@ class TowerBackground_v1 : public TowerBackground
   void Reset() {}
   int isValid() const { return 1; }
 
-  virtual void set_UE( int layer, std::vector<float> UE ) { _UE[layer] = UE; }
+  virtual void set_UE( int layer, const std::vector<float> & UE ) { _UE[layer] = UE; }
   virtual void set_v2( int layer, float v2 ) { _v2[layer] = v2; }
   virtual void set_Psi2( int layer, float Psi2 ) { _Psi2[layer] = Psi2; }
   
