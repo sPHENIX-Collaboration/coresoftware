@@ -27,9 +27,8 @@
 #include <vector>
 
 SubtractTowers::SubtractTowers(const std::string &name)
-  : SubsysReco(name)
+  : SubsysReco(name), _emcal_towers(nullptr), _ihcal_towers(nullptr), _ohcal_towers(nullptr)
 {
-
   _background_iteration = 0;
 }
 
