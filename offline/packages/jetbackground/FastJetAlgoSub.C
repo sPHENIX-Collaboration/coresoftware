@@ -36,8 +36,8 @@ FastJetAlgoSub::FastJetAlgoSub(Jet::ALGO algo, float par, float verbosity)
 void FastJetAlgoSub::identify(std::ostream& os) {
   os << "   FastJetAlgoSub: ";
   if (_algo == Jet::ANTIKT)      os << "ANTIKT r=" << _par;
-  else if (_algo == Jet::ANTIKT) os << "KT r=" << _par;
-  else if (_algo == Jet::ANTIKT) os << "CAMBRIDGE r=" << _par;
+  else if (_algo == Jet::KT) os << "KT r=" << _par;
+  else if (_algo == Jet::CAMBRIDGE) os << "CAMBRIDGE r=" << _par;
   os << endl;
 }
   
