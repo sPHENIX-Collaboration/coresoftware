@@ -41,7 +41,8 @@ class RetowerCEMC : public SubsysReco
  private:
   int CreateNode(PHCompositeNode *topNode);
 
-  RawTowerContainer* _emcal_retower;
+  int _NETA;
+  int _NPHI;
   std::vector< std::vector<float> > _EMCAL_RETOWER_E;
 
 };

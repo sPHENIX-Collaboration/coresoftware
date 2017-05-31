@@ -43,10 +43,6 @@ class SubtractTowers : public SubsysReco
   int CreateNode(PHCompositeNode *topNode);
 
   int _background_iteration;
-  
-  RawTowerContainer* _emcal_towers;
-  RawTowerContainer* _ihcal_towers;
-  RawTowerContainer* _ohcal_towers;
 
 };
 
