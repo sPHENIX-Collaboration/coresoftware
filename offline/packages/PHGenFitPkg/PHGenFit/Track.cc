@@ -39,11 +39,11 @@ ofstream fout_matrix("matrix.txt");
 
 namespace PHGenFit {
 
-Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMatrixDSym seed_cov)
+Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMatrixDSym seed_cov, const int v)
 {
 	//TODO Add input param check
 
-	verbosity = 2;
+	verbosity = v;
 
 	genfit::MeasuredStateOnPlane seedMSoP(rep);
 	seedMSoP.setPosMomCov(seed_pos, seed_mom, seed_cov);

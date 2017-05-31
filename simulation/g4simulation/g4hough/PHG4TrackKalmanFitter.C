@@ -199,6 +199,8 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 		_tca_vertexmap_refit(NULL),
 		_do_evt_display(false) {
 
+	Verbosity(0);
+
 	_event = 0;
 
 	_cluster_eval_tree = NULL;
