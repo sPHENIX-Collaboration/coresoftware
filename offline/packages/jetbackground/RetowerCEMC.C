@@ -22,7 +22,7 @@
 #include <vector>
 
 RetowerCEMC::RetowerCEMC(const std::string &name)
-  : SubsysReco(name), _emcal_retower(nullptr)
+  : SubsysReco(name), _NETA(-1), _NPHI(-1)
 {
 
 
@@ -42,6 +42,8 @@ int RetowerCEMC::Init(PHCompositeNode *topNode)
 
 int RetowerCEMC::InitRun(PHCompositeNode *topNode)
 {
+
+  CreateNode(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -64,10 +66,12 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
 
   // setup grid
 
-  int NETA = geomIH->get_etabins();
-  int NPHI = geomIH->get_phibins();
-  
-  _EMCAL_RETOWER_E.resize( NETA, std::vector<float>(NPHI, 0));
+  if (_NETA < 0) {
+    _NETA = geomIH->get_etabins();
+    _NPHI = geomIH->get_phibins();
+  }
+
+  _EMCAL_RETOWER_E.resize( _NETA, std::vector<float>(_NPHI, 0));
 
   // partition existing CEMC energies among grid
 
@@ -84,24 +88,23 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
     
   }
 
+  RawTowerContainer* emcal_retower = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_CEMC_RETOWER");
+  
+  if (verbosity > 0) std::cout << "RetowerCEMC::process_event: filling TOWER_CALIB_CEMC_RETOWER node, with initial size = " << emcal_retower->size() << std::endl;
+
   // create new towers
-
-  _emcal_retower = new RawTowerContainer( RawTowerDefs::CalorimeterId::HCALIN );
-
-  for (int eta = 0; eta < NETA; eta++) {
-    for (int phi = 0; phi < NPHI; phi++) {
+  for (int eta = 0; eta < _NETA; eta++) {
+    for (int phi = 0; phi < _NPHI; phi++) {
 
       RawTower *new_tower = new RawTowerv1();
 
       new_tower->set_energy( _EMCAL_RETOWER_E[ eta ][ phi ] );
-      _emcal_retower->AddTower( eta, phi, new_tower );
+      emcal_retower->AddTower( eta, phi, new_tower );
       
     }
   }
 
-  // write out to node
-
-  CreateNode(topNode);
+  if (verbosity > 0) std::cout << "RetowerCEMC::process_event: finished filling TOWER_CALIB_CEMC_RETOWER node, with final size = " << emcal_retower->size() << std::endl;
 
   if (verbosity > 0) std::cout << "RetowerCEMC::process_event: exiting" << std::endl;
 
@@ -129,9 +132,19 @@ int RetowerCEMC::CreateNode(PHCompositeNode *topNode)
   if (!emcalNode) {
     std::cout << PHWHERE << "EMCal Node note found, doing nothing." << std::endl;
   }
-  
-  PHIODataNode<PHObject> *emcalTowerNode = new PHIODataNode<PHObject>(_emcal_retower, "TOWER_CALIB_CEMC_RETOWER", "PHObject");
-  emcalNode->addNode(emcalTowerNode);
-  
+
+  RawTowerContainer* test_emcal_retower = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_CEMC_RETOWER");
+  if ( !test_emcal_retower ) {
+
+    if (verbosity > 0) std::cout << "RetowerCEMC::CreateNode : creating TOWER_CALIB_CEMC_RETOWER node " << std::endl;
+
+    RawTowerContainer *emcal_retower = new RawTowerContainer( RawTowerDefs::CalorimeterId::HCALIN );
+    PHIODataNode<PHObject> *emcalTowerNode = new PHIODataNode<PHObject>( emcal_retower, "TOWER_CALIB_CEMC_RETOWER", "PHObject");
+    emcalNode->addNode(emcalTowerNode);
+    
+  } else {
+    std::cout << "RetowerCEMC::CreateNode : TOWER_CALIB_CEMC_RETOWER already exists! " << std::endl;
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
