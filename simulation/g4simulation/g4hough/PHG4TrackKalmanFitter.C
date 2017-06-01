@@ -949,9 +949,26 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 	}
 #endif
 
-	for (SvtxTrack::ConstClusterIter iter = intrack->begin_clusters();
+	std::map<float, unsigned int> m_r_cluster_id;
+
+	for (auto iter = intrack->begin_clusters();
 			iter != intrack->end_clusters(); ++iter) {
 		unsigned int cluster_id = *iter;
+		SvtxCluster* cluster = _clustermap->get(cluster_id);
+		float x = cluster->get_x();
+		float y = cluster->get_y();
+		float r = sqrt(x*x+y*y);
+		m_r_cluster_id.insert(std::pair<float, unsigned int>(r, cluster_id));
+	}
+
+//	for (SvtxTrack::ConstClusterIter iter = intrack->begin_clusters();
+//			iter != intrack->end_clusters(); ++iter) {
+
+	for (auto iter = m_r_cluster_id.begin();
+			iter != m_r_cluster_id.end();
+			++iter) {
+
+		unsigned int cluster_id = iter->second;
 		SvtxCluster* cluster = _clustermap->get(cluster_id);
 		if (!cluster) {
 			LogError("No cluster Found!");
