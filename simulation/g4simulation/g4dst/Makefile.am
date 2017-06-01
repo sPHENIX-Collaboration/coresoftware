@@ -20,13 +20,17 @@ libg4dst_la_LDFLAGS = \
 libg4dst_la_SOURCES = \
    g4dst.C
 
+g4dst.C:
+	echo "//*** this is a generated empty file. Do not commit, do not edit" > $@
+
 ################################################
 # linking tests
 
 noinst_PROGRAMS = testexternals
 
 BUILT_SOURCES = \
-  testexternals.C
+  testexternals.C \
+  g4dst.C
 
 testexternals_LDADD = \
   libg4dst.la
@@ -39,4 +43,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict*
+	rm -f *Dict* $(BUILT_SOURCES)
