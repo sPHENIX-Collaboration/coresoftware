@@ -257,7 +257,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 			ninner_layer+incr_layer*3,
 			ninner_layer+incr_layer*4,
 			ninner_layer+incr_layer*5,
-			_nlayers_all};
+			_nlayers_all-1};
 	this->set_seeding_layer(seeding_layers, 7);
 
 	_vertex_error.clear();
