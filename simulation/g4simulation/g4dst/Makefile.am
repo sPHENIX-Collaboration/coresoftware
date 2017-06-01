@@ -15,10 +15,14 @@ libg4dst_la_LDFLAGS = \
   -lg4hough_io \
   -lcemc_io \
   -lg4vertex_io \
-  -lg4jets_io
+  -lg4jets_io \
+  -lphgeom_io
 
 libg4dst_la_SOURCES = \
    g4dst.C
+
+g4dst.C:
+	echo "//*** this is a generated empty file. Do not commit, do not edit" > $@
 
 ################################################
 # linking tests
@@ -26,7 +30,8 @@ libg4dst_la_SOURCES = \
 noinst_PROGRAMS = testexternals
 
 BUILT_SOURCES = \
-  testexternals.C
+  testexternals.C \
+  g4dst.C
 
 testexternals_LDADD = \
   libg4dst.la
@@ -39,4 +44,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict*
+	rm -f *Dict* $(BUILT_SOURCES)
