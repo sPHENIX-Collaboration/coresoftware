@@ -112,8 +112,11 @@ ofstream fout_chi2("chi2.txt");
 
 PHG4KalmanPatRec::PHG4KalmanPatRec(
 		const string& name,
-		unsigned int nlayers,
-		unsigned int min_nlayers
+		unsigned int nlayers_maps,
+		unsigned int nlayers_intt,
+		unsigned int nlayers_tpc,
+		unsigned int nlayers_seeding,
+		unsigned int min_nlayers_seeding
 		)
     : SubsysReco(name),
 	  _t_seeding(nullptr),
@@ -127,8 +130,8 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 	  _t_full_fitting(nullptr),
 	  _t_output_io(nullptr),
 	  _seeding_layer(),
-      _nlayers(nlayers),
-      _min_nlayers(min_nlayers),
+      _nlayers_seeding(nlayers_seeding),
+      _min_nlayers_seeding(min_nlayers_seeding),
       _radii(),
       _material(),
       _user_material(),
@@ -150,11 +153,11 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
       _cos_angle_cut(0.985),
       _bin_scale(0.8),
       _z_bin_scale(0.8),
-      _min_combo_hits(min_nlayers),
-      _max_combo_hits(nlayers*4),
+      _min_combo_hits(min_nlayers_seeding),
+      _max_combo_hits(nlayers_seeding*4),
       _pt_rescale(0.9972 / 1.00117), // 1.0
-      _fit_error_scale(_nlayers,1.0/sqrt(12.0)),
-      _vote_error_scale(_nlayers,1.0),
+      _fit_error_scale(_nlayers_seeding,1.0/sqrt(12.0)),
+      _vote_error_scale(_nlayers_seeding,1.0),
       _layer_ilayer_map(),
       _clusters(),
       _tracks(),
@@ -190,7 +193,10 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 	  _primary_pid_guess(211),
 	  _cut_min_pT(0.2),
 	  _do_evt_display(false),
-	  _nlayers_all(67),
+	  _nlayers_maps(nlayers_maps),
+	  _nlayers_intt(nlayers_intt),
+	  _nlayers_tpc(nlayers_tpc),
+	  _nlayers_all(_nlayers_maps+_nlayers_intt+_nlayers_tpc),
 	  _layer_ilayer_map_all(),
 	  _radii_all(),
 
@@ -230,21 +236,28 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 	_event = 0;
 
 	_user_material.clear();
-	_user_material[0] = 0.003;
-	_user_material[1] = 0.003;
-	_user_material[2] = 0.003;
-	_user_material[3] = 0.008;
-	_user_material[4] = 0.008;
-	_user_material[5] = 0.008;
-	_user_material[6] = 0.008;
+	for(unsigned int i=0;i<_nlayers_maps;++i)
+		_user_material[i] = 0.003;
+	for(unsigned int i=_nlayers_maps;i<_nlayers_maps+_nlayers_intt;++i)
+		_user_material[i] = 0.008;
 
-	unsigned int maps_layers[] = {0, 1, 2};
-	this->set_maps_layers(maps_layers, 3);
+//	unsigned int maps_layers[] = {0, 1, 2};
+//	this->set_maps_layers(maps_layers, 3);
+//
+//	unsigned int intt_layers[] = {3, 4, 5, 6};
+//	this->set_intt_layers(intt_layers, 4);
 
-	unsigned int intt_layers[] = {3, 4, 5, 6};
-	this->set_intt_layers(intt_layers, 4);
-
-	int seeding_layers[] = {7,15,25,35,45,55,66};
+	//int seeding_layers[] = {7,15,25,35,45,55,66};
+	int ninner_layer = _nlayers_maps+_nlayers_intt;
+	int incr_layer = floor(_nlayers_tpc / 6.);
+	int seeding_layers[] = {
+			ninner_layer,
+			ninner_layer+incr_layer*1,
+			ninner_layer+incr_layer*2,
+			ninner_layer+incr_layer*3,
+			ninner_layer+incr_layer*4,
+			ninner_layer+incr_layer*5,
+			_nlayers_all};
 	this->set_seeding_layer(seeding_layers, 7);
 
 	_vertex_error.clear();
@@ -358,8 +371,8 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 				<< "====================== PHG4KalmanPatRec::InitRun() ======================"
 				<< endl;
 		cout << " Magnetic field set to: " << _magField << " Tesla" << endl;
-		cout << " Number of tracking layers: " << _nlayers << endl;
-		for (unsigned int i = 0; i < _nlayers; ++i) {
+		cout << " Number of tracking layers: " << _nlayers_seeding << endl;
+		for (unsigned int i = 0; i < _nlayers_seeding; ++i) {
 			cout << "   Tracking layer #" << i << " " << "radius = "
 					<< _radii[i] << " cm, " << "material = " << _material[i]
 					<< endl;
@@ -367,7 +380,7 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 					<< _vote_error_scale[i] << ", " << "fit error scale = "
 					<< _fit_error_scale[i] << endl;
 		}
-		cout << " Required hits: " << _min_nlayers << endl;
+		cout << " Required hits: " << _min_nlayers_seeding << endl;
 		cout << " Minimum pT: " << _min_pt << endl;
 		cout << " Fast fit chisq cut min(par0+par1/pt,max): min( "
 				<< _chi2_cut_fast_par0 << " + " << _chi2_cut_fast_par1
@@ -814,7 +827,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 //    if (laddergeos) nladderlayers += laddergeos->get_NLayers();
 //    unsigned int nmapsladderlayers = 0;
 //    if (mapsladdergeos) nmapsladderlayers += mapsladdergeos->get_NLayers();
-//    _nlayers = ncelllayers + nladderlayers + nmapsladderlayers;
+//    _nlayers_seeding = ncelllayers + nladderlayers + nmapsladderlayers;
 //  } else {
 //    cerr << PHWHERE
 //         << "None of  CYLINDERCELLGEOM_SVTX or CYLINDERGEOM_SILICON_TRACKER or CYLINDERGEOM_MAPS"
@@ -823,11 +836,11 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 //    return Fun4AllReturnCodes::ABORTRUN;
 //  }
 
-//  _nlayers = 7;
+//  _nlayers_seeding = 7;
 //  int seeding_layer_array[] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
 //  _seeding_layer.assign(seeding_layer_array, seeding_layer_array+9 );
 
-	_nlayers = _seeding_layer.size();
+	_nlayers_seeding = _seeding_layer.size();
 
 	//=================================================//
 	//  Initializing HelixHough objects                //
@@ -841,7 +854,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 	// Now that we have two kinds of layers, I won't know in principle
 	// which type is in what order, so I figure that out now...
 
-	_radii.assign(_nlayers, 0.0);
+	_radii.assign(_nlayers_seeding, 0.0);
 	map<float, int> radius_layer_map;
 
 	_radii_all.assign(_nlayers_all, 0.0);
@@ -1111,8 +1124,8 @@ int PHG4KalmanPatRec::setup_seed_tracker_objects() {
 
 	_tracker_etap_seed = new sPHENIXSeedFinder(zoomprofile, 1, pos_range,
 			_material, _radii, _magField);
-	_tracker_etap_seed->setNLayers(_nlayers);
-	_tracker_etap_seed->requireLayers(_min_nlayers);
+	_tracker_etap_seed->setNLayers(_nlayers_seeding);
+	_tracker_etap_seed->requireLayers(_min_nlayers_seeding);
 	_tracker_etap_seed->setClusterStartBin(1);
 	_tracker_etap_seed->setRejectGhosts(_reject_ghosts);
 	_tracker_etap_seed->setFastChi2Cut(_chi2_cut_fast_par0, _chi2_cut_fast_par1,
@@ -1148,8 +1161,8 @@ int PHG4KalmanPatRec::setup_seed_tracker_objects() {
 
 	_tracker_etam_seed = new sPHENIXSeedFinder(zoomprofile, 1, neg_range,
 			_material, _radii, _magField);
-	_tracker_etam_seed->setNLayers(_nlayers);
-	_tracker_etam_seed->requireLayers(_min_nlayers);
+	_tracker_etam_seed->setNLayers(_nlayers_seeding);
+	_tracker_etam_seed->requireLayers(_min_nlayers_seeding);
 	_tracker_etam_seed->setClusterStartBin(1);
 	_tracker_etam_seed->setRejectGhosts(_reject_ghosts);
 	_tracker_etam_seed->setFastChi2Cut(_chi2_cut_fast_par0, _chi2_cut_fast_par1,
@@ -1228,8 +1241,8 @@ int PHG4KalmanPatRec::setup_initial_tracker_object() {
 
 	_tracker_vertex = new sPHENIXSeedFinder(zoomprofile, 1, top_range,
 			_material, _radii, _magField);
-	_tracker_vertex->setNLayers(_nlayers);
-	_tracker_vertex->requireLayers(_min_nlayers);
+	_tracker_vertex->setNLayers(_nlayers_seeding);
+	_tracker_vertex->requireLayers(_min_nlayers_seeding);
 	_tracker_vertex->setClusterStartBin(1);
 	_tracker_vertex->setRejectGhosts(_reject_ghosts);
 	_tracker_vertex->setFastChi2Cut(_chi2_cut_fast_par0, _chi2_cut_fast_par1,
@@ -1303,8 +1316,8 @@ int PHG4KalmanPatRec::setup_tracker_object() {
 
 	_tracker = new sPHENIXSeedFinder(zoomprofile, 1, top_range, _material,
 			_radii, _magField);
-	_tracker->setNLayers(_nlayers);
-	_tracker->requireLayers(_min_nlayers);
+	_tracker->setNLayers(_nlayers_seeding);
+	_tracker->requireLayers(_min_nlayers_seeding);
 	_tracker->setClusterStartBin(1);
 	_tracker->setRejectGhosts(_reject_ghosts);
 	_tracker->setFastChi2Cut(_chi2_cut_fast_par0, _chi2_cut_fast_par1,
@@ -1378,13 +1391,13 @@ int PHG4KalmanPatRec::translate_input() {
 		//unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
 
 //		unsigned int ilayer = _layer_ilayer_map_all[cluster->get_layer()];
-//		if(ilayer >= _nlayers) continue;
+//		if(ilayer >= _nlayers_seeding) continue;
 
 		unsigned int ilayer = UINT_MAX;
 		std::map<int, unsigned int>::const_iterator it = _layer_ilayer_map.find(cluster->get_layer());
 		if(it != _layer_ilayer_map.end())
 			ilayer = it->second;
-		if(ilayer >= _nlayers) continue;
+		if(ilayer >= _nlayers_seeding) continue;
 
 		SimpleHit3D hit3d;
 
@@ -1815,7 +1828,7 @@ int PHG4KalmanPatRec::export_output() {
 
 			//TODO verify this change
 			//int clusterLayer = cluster->get_layer();
-			//if ((clusterLayer < (int) _nlayers) && (clusterLayer >= 0)) {
+			//if ((clusterLayer < (int) _nlayers_seeding) && (clusterLayer >= 0)) {
 			track.insert_cluster(clusterID);
 			//}
 		}
@@ -3031,12 +3044,12 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		float phi_window     = _search_wins_rphi[layer] * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]) / pos.Perp();
 		float theta_window   = _search_wins_theta[layer]    * sqrt(cov[2][2]) / pos.Perp();
 
-		if((std::find(_maps_layers.begin(), _maps_layers.end(), layer)!=_maps_layers.end())){
+		if(layer < _nlayers_maps){
 			if (phi_window > _max_search_win_phi_maps) phi_window = _max_search_win_phi_maps;
 			if (phi_window < _min_search_win_phi_maps) phi_window = _min_search_win_phi_maps;
 			if (theta_window   > _max_search_win_theta_maps)   theta_window   = _max_search_win_theta_maps;
 			if (theta_window   < _min_search_win_theta_maps)   theta_window   = _min_search_win_theta_maps;
-		} else if(std::find(_intt_layers.begin(), _intt_layers.end(), layer)!=_intt_layers.end()) {
+		} else if(layer < _nlayers_maps + _nlayers_intt) {
 			if (phi_window > _max_search_win_phi_intt) phi_window = _max_search_win_phi_intt;
 			if (phi_window < _min_search_win_phi_intt) phi_window = _min_search_win_phi_intt;
 			if (theta_window   > _max_search_win_theta_intt)   theta_window   = _max_search_win_theta_intt;
@@ -3047,6 +3060,23 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 			if (theta_window   > _max_search_win_theta_tpc)   theta_window   = _max_search_win_theta_tpc;
 			if (theta_window   < _min_search_win_theta_tpc)   theta_window   = _min_search_win_theta_tpc;
 		}
+
+//		if((std::find(_maps_layers.begin(), _maps_layers.end(), layer)!=_maps_layers.end())){
+//			if (phi_window > _max_search_win_phi_maps) phi_window = _max_search_win_phi_maps;
+//			if (phi_window < _min_search_win_phi_maps) phi_window = _min_search_win_phi_maps;
+//			if (theta_window   > _max_search_win_theta_maps)   theta_window   = _max_search_win_theta_maps;
+//			if (theta_window   < _min_search_win_theta_maps)   theta_window   = _min_search_win_theta_maps;
+//		} else if(std::find(_intt_layers.begin(), _intt_layers.end(), layer)!=_intt_layers.end()) {
+//			if (phi_window > _max_search_win_phi_intt) phi_window = _max_search_win_phi_intt;
+//			if (phi_window < _min_search_win_phi_intt) phi_window = _min_search_win_phi_intt;
+//			if (theta_window   > _max_search_win_theta_intt)   theta_window   = _max_search_win_theta_intt;
+//			if (theta_window   < _min_search_win_theta_intt)   theta_window   = _min_search_win_theta_intt;
+//		} else {
+//			if (phi_window > _max_search_win_phi_tpc) phi_window = _max_search_win_phi_tpc;
+//			if (phi_window < _min_search_win_phi_tpc) phi_window = _min_search_win_phi_tpc;
+//			if (theta_window   > _max_search_win_theta_tpc)   theta_window   = _max_search_win_theta_tpc;
+//			if (theta_window   < _min_search_win_theta_tpc)   theta_window   = _min_search_win_theta_tpc;
+//		}
 #endif
 
 #ifdef _DEBUG_

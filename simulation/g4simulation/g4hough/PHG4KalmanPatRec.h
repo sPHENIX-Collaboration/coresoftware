@@ -72,7 +72,14 @@ class PHG4KalmanPatRec: public SubsysReco {
 
 public:
 
-	PHG4KalmanPatRec(const std::string &name = "PHG4KalmanPatRec", unsigned int seeding_nlayer = 7, unsigned int min_seeding_nlayer = 5);
+	PHG4KalmanPatRec(
+			const std::string &name = "PHG4KalmanPatRec",
+			unsigned int nlayers_maps = 3,
+			unsigned int nlayers_intt = 4,
+			unsigned int nlayers_tpc = 60,
+			unsigned int seeding_nlayer = 7,
+			unsigned int min_seeding_nlayer = 5);
+
 	virtual ~PHG4KalmanPatRec() {
 	}
 
@@ -480,31 +487,32 @@ public:
 		_vertex_error.assign(3, a);
 	}
 
-	const std::vector<unsigned int>& get_intt_layers() const {
-		return _intt_layers;
-	}
-
-	void set_intt_layers(const unsigned int * layers, const unsigned int n) {
-		_intt_layers.clear();
-		_intt_layers.assign(layers, layers+n);
-	}
-
-	const std::vector<unsigned int>& get_maps_layers() const {
-		return _maps_layers;
-	}
-
-	void set_maps_layers(const unsigned int * layers, const unsigned int n) {
-		_maps_layers.clear();
-		_maps_layers.assign(layers, layers+n);
-	}
-
-	int get_nlayers_all() const {
-		return _nlayers_all;
-	}
-
-	void set_nlayers_all(int nlayersAll) {
-		_nlayers_all = nlayersAll;
-	}
+//
+//	const std::vector<unsigned int>& get_intt_layers() const {
+//		return _intt_layers;
+//	}
+//
+//	void set_intt_layers(const unsigned int * layers, const unsigned int n) {
+//		_intt_layers.clear();
+//		_intt_layers.assign(layers, layers+n);
+//	}
+//
+//	const std::vector<unsigned int>& get_maps_layers() const {
+//		return _maps_layers;
+//	}
+//
+//	void set_maps_layers(const unsigned int * layers, const unsigned int n) {
+//		_maps_layers.clear();
+//		_maps_layers.assign(layers, layers+n);
+//	}
+//
+//	int get_nlayers_all() const {
+//		return _nlayers_all;
+//	}
+//
+//	void set_nlayers_all(int nlayersAll) {
+//		_nlayers_all = nlayersAll;
+//	}
 
 #ifndef __CINT__
 
@@ -648,8 +656,8 @@ private:
 
 	std::vector<int> _seeding_layer; //layer numbers that are used for seeding
 
-	unsigned int _nlayers;               ///< number of detector layers
-	unsigned int _min_nlayers;     ///< minimum number of layers to make a track
+	unsigned int _nlayers_seeding;               ///< number of detector layers
+	unsigned int _min_nlayers_seeding;     ///< minimum number of layers to make a track
 	std::vector<float> _radii;           ///< radial distance of each layer (cm)
 	std::vector<float> _material;    ///< material at each layer in rad. lengths
 	std::map<int, float> _user_material; ///< material in user ladder indexes
@@ -752,9 +760,14 @@ private:
 
 	bool _do_evt_display;
 
+	unsigned int _nlayers_maps;
+	unsigned int _nlayers_intt;
+	unsigned int _nlayers_tpc;
+
 	int _nlayers_all;
-	std::vector<unsigned int> _intt_layers;
-	std::vector<unsigned int> _maps_layers;
+
+//	std::vector<unsigned int> _intt_layers;
+//	std::vector<unsigned int> _maps_layers;
 
 	std::map<int, unsigned int> _layer_ilayer_map_all;
 	std::vector<float> _radii_all;
