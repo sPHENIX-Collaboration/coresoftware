@@ -680,7 +680,7 @@ int Fun4AllServer::ResetNodeTree()
   vector<string> ResetNodeList;
   ResetNodeList.push_back("DST");
   PHNodeReset reset;
-  reset.Verbosity(verbosity);
+  reset.Verbosity(verbosity>0 ? verbosity-1: 0); // one lower verbosity level than Fun4AllServer
   map<string, PHCompositeNode *>::const_iterator iter;
   for (iter = topnodemap.begin(); iter != topnodemap.end(); ++iter)
   {
