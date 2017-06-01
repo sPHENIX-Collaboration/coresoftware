@@ -94,7 +94,7 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
 
     double get_strip_tilt() const
       {
-        return 0.;
+        return offsetrot;
       }
 
   protected:
