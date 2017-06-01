@@ -34,17 +34,14 @@ libphgeom_io_la_SOURCES = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  `root-config --evelibs`
+  -L$(ROOTSYS)/lib
 
 libphgeom_la_LIBADD = \
-  -lphool \
-  -lfun4all \
-  -lGeom \
+  -lSubsysReco \
   libphgeom_io.la
 
 libphgeom_io_la_LIBADD = \
   -lphool \
-  -lfun4all \
   -lGeom
 
 BUILT_SOURCES = \
