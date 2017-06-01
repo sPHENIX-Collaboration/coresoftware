@@ -3206,20 +3206,32 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
 	TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
 	TVector3 n(cluster->get_x(), cluster->get_y(), 0);
 
+	unsigned int begin_hit_id = *(cluster->begin_hits());
+	//LogDebug(begin_hit_id);
+	SvtxHit* svtxhit = _svtxhitsmap->find(begin_hit_id)->second;
+	//LogDebug(svtxhit->get_cellid());
+
+	PHG4Cell* cell_svtx = nullptr;
+	PHG4Cell* cell_intt = nullptr;
+	PHG4Cell* cell_maps = nullptr;
+
+	if(_cells_svtx) cell_svtx = _cells_svtx->findCell(svtxhit->get_cellid());
+	if(_cells_intt) cell_intt = _cells_intt->findCell(svtxhit->get_cellid());
+	if(_cells_maps) cell_maps = _cells_maps->findCell(svtxhit->get_cellid());
+	if(!(cell_svtx or cell_intt or cell_maps)){
+		if(verbosity>=0)
+			LogError("!(cell_svtx or cell_intt or cell_maps)");
+		return nullptr;
+	}
+
 	//17.4, 17.4, 17.4, 14.0, 14.0, 12.0, 11.5
-	//float phi_tilt[7] = { 0.304, 0.304, 0.304, 0.244, 0.244, 0.209, 0.201 };
+	//float phi_tilt[7] = {0.304, 0.304, 0.304, 0.244, 0.244, 0.209, 0.201};
 
 	unsigned int layer = cluster->get_layer();
 	//std::cout << "cluster layer: " << layer << std::endl;
-	if ((_cells_maps and _geom_container_maps) and
-			(std::find(_maps_layers.begin(), _maps_layers.end(), layer)!=_maps_layers.end())
-			) {
+	if (cell_maps) {
+		PHG4Cell* cell = cell_maps;
 
-		unsigned int begin_hit_id = *(cluster->begin_hits());
-		//LogDebug(begin_hit_id);
-		SvtxHit* hit = _svtxhitsmap->find(begin_hit_id)->second;
-		//LogDebug(hit->get_cellid());
-		PHG4Cell* cell = _cells_maps->findCell(hit->get_cellid());
 		int stave_index = cell->get_stave_index();
 		int half_stave_index = cell->get_half_stave_index();
 		int module_index = cell->get_module_index();
@@ -3230,21 +3242,14 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
 				(PHG4CylinderGeom_MAPS*) _geom_container_maps->GetLayerGeom(
 						layer);
 		// returns the center of the sensor in world coordinates - used to get the ladder phi location
-		geom->find_sensor_center(stave_index, half_stave_index, module_index,
-				chip_index, ladder_location);
+		geom->find_sensor_center(stave_index, half_stave_index,
+				module_index, chip_index, ladder_location);
 		//n.Print();
 		n.SetXYZ(ladder_location[0], ladder_location[1], 0);
 		n.RotateZ(geom->get_stave_phi_tilt());
 		//n.Print();
-	} else if ((_cells_intt and _geom_container_intt) and
-			(std::find(_intt_layers.begin(), _intt_layers.end(), layer)!=_intt_layers.end())
-		) {
-
-		unsigned int begin_hit_id = *(cluster->begin_hits());
-		//LogDebug(begin_hit_id);
-		SvtxHit* hit = _svtxhitsmap->find(begin_hit_id)->second;
-		//LogDebug(hit->get_cellid());
-		PHG4Cell* cell = _cells_intt->findCell(hit->get_cellid());
+	} else if (cell_intt) {
+		PHG4Cell* cell = cell_intt;
 		PHG4CylinderGeom_Siladders* geom =
 				(PHG4CylinderGeom_Siladders*) _geom_container_intt->GetLayerGeom(
 						layer);
