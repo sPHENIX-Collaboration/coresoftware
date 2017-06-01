@@ -1,8 +1,5 @@
 AUTOMAKE_OPTIONS = foreign
 
-BUILT_SOURCES = \
-  testexternals.cc
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
@@ -11,6 +8,7 @@ AM_CPPFLAGS = \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
+   libphgeom_io.la \
    libphgeom.la
 
 pkginclude_HEADERS = \
@@ -24,28 +22,43 @@ noinst_HEADERS = \
 libphgeom_la_SOURCES = \
   PHGeomTGeo.cc \
   PHGeomTGeo_Dict.cc \
-  PHGeomIOTGeo.cc \
-  PHGeomIOTGeo_Dict.cc \
   PHGeomFileImport.cc \
   PHGeomFileImport_Dict.cc  \
   PHGeomUtility.cc \
   PHGeomUtility_Dict.cc 
 
-libphgeom_la_LDFLAGS = \
+libphgeom_io_la_SOURCES = \
+  PHGeomIOTGeo.cc \
+  PHGeomIOTGeo_Dict.cc
+
+AM_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
   `root-config --evelibs`
 
 libphgeom_la_LIBADD = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
+  -lphool \
+  -lfun4all \
+  -lGeom \
+  libphgeom_io.la
+
+libphgeom_io_la_LIBADD = \
   -lphool \
   -lfun4all \
   -lGeom
 
-noinst_PROGRAMS = \
-  testexternals
+BUILT_SOURCES = \
+  testexternals.cc
 
-testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libphgeom.la
+noinst_PROGRAMS = \
+  testexternals_libphgeom \
+  testexternals_libphgeom_io
+
+testexternals_libphgeom_SOURCES = testexternals.cc
+testexternals_libphgeom_LDADD   = libphgeom.la
+
+testexternals_libphgeom_io_SOURCES = testexternals.cc
+testexternals_libphgeom_io_LDADD   = libphgeom_io.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
@@ -61,4 +74,4 @@ testexternals.cc:
 
 
 clean-local:
-	rm -f *Dict*
+	rm -f *Dict* $(BUILT_SOURCES)
