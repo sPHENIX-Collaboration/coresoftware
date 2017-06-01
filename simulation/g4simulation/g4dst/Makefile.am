@@ -15,7 +15,8 @@ libg4dst_la_LDFLAGS = \
   -lg4hough_io \
   -lcemc_io \
   -lg4vertex_io \
-  -lg4jets_io
+  -lg4jets_io \
+  -lphgeom_io
 
 libg4dst_la_SOURCES = \
    g4dst.C
