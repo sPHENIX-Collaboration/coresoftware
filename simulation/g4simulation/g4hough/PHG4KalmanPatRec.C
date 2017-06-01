@@ -3288,7 +3288,7 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
 				cell->get_ladder_phi_index(), hit_location);
 
 		n.SetXYZ(hit_location[0], hit_location[1], 0);
-		n.RotateZ(geom->get_strip_tilt());
+		n.RotateZ(geom->get_strip_phi_tilt());
 	}
 
 	PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
