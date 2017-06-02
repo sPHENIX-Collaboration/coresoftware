@@ -119,6 +119,7 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderGeom_Spacalv2.cc \
   PHG4CylinderGeom_Spacalv2_Dict.cc \
   PHG4CylinderGeom_Spacalv3.cc \
+  PHG4CylinderGeom_Spacalv3_2015.cc \
   PHG4CylinderGeom_Spacalv3_Dict.cc \
   PHG4CylinderGeomContainer.cc \
   PHG4CylinderGeomContainer_Dict.cc \
@@ -266,8 +267,8 @@ libg4detectors_la_SOURCES = \
   PHG4MapsSubsystem.cc \
   PHG4MapsSubsystem_Dict.cc \
   PHG4SpacalDetector.cc \
-  PHG4ProjSpacalDetector.cc \
   PHG4FullProjSpacalDetector.cc \
+  PHG4FullProjTiltedSpacalDetector.cc \
   PHG4FullProjSpacalCellReco.cc \
   PHG4FullProjSpacalCellReco_Dict.cc \
   PHG4SpacalPrototypeDetector.cc \

@@ -33,7 +33,6 @@ pkginclude_HEADERS = \
   CaloTriggerInfo_v1.h
 
 libcalotrigger_io_la_SOURCES = \
-  CaloTriggerInfo.C \
   CaloTriggerInfo_Dict.C \
   CaloTriggerInfo_v1.C \
   CaloTriggerInfo_v1_Dict.C

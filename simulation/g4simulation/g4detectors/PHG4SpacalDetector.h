@@ -29,6 +29,7 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4UserLimits;
 class PHG4GDMLConfig;
+class PHG4Parameters;
 
 class PHG4SpacalDetector : public PHG4Detector
 {
@@ -37,7 +38,7 @@ public:
   typedef PHG4CylinderGeom_Spacalv1 SpacalGeom_t;
 
   PHG4SpacalDetector(PHCompositeNode* Node, const std::string& dnam,
-      SpacalGeom_t * geom, const int layer = 0);
+      PHG4Parameters *parameters,  const int layer = 0, bool init_geom = true);
 
   virtual
   ~PHG4SpacalDetector(void);
@@ -161,13 +162,13 @@ protected:
   std::string detector_type;
   std::string superdetector;
 
-  G4UserLimits * step_limits;
-  G4UserLimits * clading_step_limits;
+//  G4UserLimits * step_limits;
+//  G4UserLimits * clading_step_limits;
   G4UserLimits * fiber_core_step_limits;
 
   //! registry for volumes that should not be exported, i.e. fibers
   PHG4GDMLConfig * gdml_config;
-private:
+//private:
 
   SpacalGeom_t * _geom;
 

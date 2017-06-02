@@ -121,10 +121,12 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
 
   _geom->subtower_consistency_check();
 
-  step_limits = new G4UserLimits(_geom->get_calo_step_size() * cm);
-
-  clading_step_limits = new G4UserLimits(
-      _geom->get_fiber_clading_step_size() * cm);
+//  step_limits = new G4UserLimits(_geom->get_calo_step_size() * cm);
+//
+//  clading_step_limits = new G4UserLimits(
+//      _geom->get_fiber_clading_step_size() * cm);
+  step_limits = nullptr;
+  clading_step_limits = nullptr;
 
   fiber_core_step_limits = new G4UserLimits(
       _geom->get_fiber_core_step_size() * cm);
