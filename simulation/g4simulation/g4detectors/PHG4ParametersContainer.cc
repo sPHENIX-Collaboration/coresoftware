@@ -37,6 +37,24 @@ PHG4ParametersContainer::~PHG4ParametersContainer()
 }
 
 void
+PHG4ParametersContainer::FillFrom(const PdbParameterMapContainer *saveparamcontainer)
+{
+// this fill only existing detids - no new ones are created (if the PdbParameterMapContainer contains
+// entries from another detector)
+  PdbParameterMapContainer::parConstRange begin_end =  saveparamcontainer->get_ParameterMaps();
+  for (PdbParameterMapContainer::parIter iter = begin_end.first; iter != begin_end.second; ++iter)
+  {
+    Iterator pariter = parametermap.find(iter->first);
+    if (pariter != parametermap.end())
+    {
+      PHG4Parameters *params = pariter->second;
+      params->FillFrom(iter->second);
+    }
+  }
+  return;
+}
+
+void
 PHG4ParametersContainer::AddPHG4Parameters(const int layer, PHG4Parameters *params)
 {
   if (parametermap.find(layer) != parametermap.end())

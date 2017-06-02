@@ -115,11 +115,12 @@ int PHG4DetectorGroupSubsystem::InitRun(PHCompositeNode *topNode)
   else
   {
     // if not filled from file or DB, check if we have a node containing those calibrations
-    // on the node tree and load them (unlikely - this code is for future use)
+    // on the node tree and load them (the embedding wants to use the 
+    // parameters saved on the previous pass)
     PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, paramnodename);
     if (nodeparams)
     {
-      //	  params->FillFrom(nodeparams, layer);
+      paramscontainer->FillFrom(nodeparams);
     }
   }
   // parameters set in the macro always override whatever is read from
@@ -403,7 +404,6 @@ void PHG4DetectorGroupSubsystem::InitializeParameters()
   {
     set_default_int_param(*iter, "absorberactive", 0);
     set_default_int_param(*iter, "absorbertruth", 0);
-    set_default_int_param(*iter, "active", 0);
     set_default_int_param(*iter, "blackhole", 0);
   }
   SetDefaultParameters();  // call method from specific subsystem

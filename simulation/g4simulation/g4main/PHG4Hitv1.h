@@ -18,7 +18,7 @@ class PHG4Hitv1 : public PHG4Hit
   PHG4Hitv1();
   explicit PHG4Hitv1(const PHG4Hit &g4hit);
   virtual ~PHG4Hitv1() {}
-  void identify(ostream& os) const;
+  void identify(std::ostream& os  = std::cout) const;
   void Reset();
 
   // The indices here represent the entry and exit points of the particle
