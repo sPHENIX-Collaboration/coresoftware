@@ -49,8 +49,8 @@ libcemc_la_SOURCES = \
   RawClusterBuilderv1_Dict.cc \
   RawClusterBuilderFwd.cc \
   RawClusterBuilderFwd_Dict.cc \
-  RawClusterRecalibrator.cc \
-  RawClusterRecalibrator_Dict.cc \
+  RawClusterPositionCorrection.cc \
+  RawClusterPositionCorrection_Dict.cc \
   RawTowerBuilder.cc \
   RawTowerBuilder_Dict.cc \
   RawTowerCombiner.cc \
@@ -95,7 +95,7 @@ pkginclude_HEADERS = \
   RawClusterv1.h \
   RawClusterDefs.h \
   RawClusterContainer.h \
-  RawClusterRecalibrator.h \
+  RawClusterPositionCorrection.h \
   RawTower.h \
   RawTowerDefs.h \
   RawTowerv1.h \
