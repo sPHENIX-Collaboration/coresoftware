@@ -36,8 +36,6 @@ class PHG4PSTOFSteppingAction : public PHG4SteppingAction
   PHG4Hit *hit;
 
   int active;
-  int IsBlackHole;
-  
   int use_g4_steps;
 };
 
