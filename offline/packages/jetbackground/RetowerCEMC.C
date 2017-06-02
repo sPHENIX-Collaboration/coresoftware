@@ -69,9 +69,15 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
   if (_NETA < 0) {
     _NETA = geomIH->get_etabins();
     _NPHI = geomIH->get_phibins();
+
+    _EMCAL_RETOWER_E.resize( _NETA, std::vector<float>(_NPHI, 0));
   }
 
-  _EMCAL_RETOWER_E.resize( _NETA, std::vector<float>(_NPHI, 0));
+  for (int eta = 0; eta < _NETA; eta++) {
+    for (int phi = 0; phi < _NPHI; phi++) {
+      _EMCAL_RETOWER_E[ eta ][ phi ] = 0;
+    }
+  }
 
   // partition existing CEMC energies among grid
 
