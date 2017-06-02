@@ -183,10 +183,7 @@ int RawClusterRecalibrator::process_event(PHCompositeNode *topNode)
     recalibcluster->set_energy(clus_energy/recalib_val);
     recalibcluster->set_eta(cluster->get_eta());
     recalibcluster->set_phi(cluster->get_phi());
-    /*
-      RawCluster::TowerConstRange towers = cluster->get_towers();
-      RawCluster::TowerConstIterator toweriter;
-    */
+ 
     //add the towers also
     RawCluster::TowerConstRange towers2 = cluster->get_towers();
     RawCluster::TowerConstIterator titer;

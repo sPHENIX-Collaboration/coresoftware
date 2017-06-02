@@ -12,9 +12,9 @@ class RawTowerContainer;
 class RawTower;
 class RawClusterv1;
 
+
 class RawClusterRecalibrator: public SubsysReco
 {
-
 public:
   RawClusterRecalibrator(const std::string& name);
   
@@ -39,6 +39,8 @@ public:
     _calib_params = calib_params;
   }
   
+
+
 private:
 
   PHG4Parameters _calib_params;
