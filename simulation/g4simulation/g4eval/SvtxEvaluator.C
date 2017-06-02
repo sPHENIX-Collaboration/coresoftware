@@ -33,7 +33,10 @@
 
 using namespace std;
 
-SvtxEvaluator::SvtxEvaluator(const string &name, const string &filename) :
+SvtxEvaluator::SvtxEvaluator(const string &name, const string &filename,
+		unsigned int nlayers_maps,
+		unsigned int nlayers_intt,
+		unsigned int nlayers_tpc) :
   SubsysReco("SvtxEvaluator"),
   _ievent(0),
   _svtxevalstack(nullptr),
@@ -47,6 +50,9 @@ SvtxEvaluator::SvtxEvaluator(const string &name, const string &filename) :
   _do_gtrack_eval(true),
   _do_track_eval(true),
   _scan_for_embedded(false),
+  _nlayers_maps(nlayers_maps),
+  _nlayers_intt(nlayers_intt),
+  _nlayers_tpc(nlayers_tpc),
   _ntp_vertex(nullptr),
   _ntp_gpoint(nullptr),
   _ntp_g4hit(nullptr),
@@ -1317,17 +1323,22 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	unsigned int nglmaps  = 0;
 	unsigned int nglintt  = 0;
 
-	int lmaps[3]; for(int i = 0; i<3;i++)lmaps[i] = 0;
-	int lintt[4]; for(int i = 0; i<4;i++)lintt[i] = 0;
+	int lmaps[_nlayers_maps+1]; 
+	if(_nlayers_maps>0) for(unsigned int i = 0;i<_nlayers_maps;i++) lmaps[i] = 0;
+
+	int lintt[_nlayers_intt+1];
+	if(_nlayers_intt>0) for(unsigned int i = 0;i<_nlayers_intt;i++) lintt[i] = 0; 
 
 	for( const PHG4Hit* g4hit : g4hits){
 	  unsigned int layer = g4hit->get_layer();
-	  if(layer<3) { lmaps[layer] = 1; ngmaps++; }
-	  if(layer>=3&&layer<7) { lintt[layer-3] = 1; ngintt++; }
-	  if(layer==7) ngtpc1++;
+	  if(_nlayers_maps>0&&layer<_nlayers_maps) { lmaps[layer] = 1; ngmaps++; }
+	  if(_nlayers_intt>0&&layer>=_nlayers_maps&&layer<_nlayers_maps+_nlayers_intt){ 
+	    lintt[layer-_nlayers_maps] = 1; ngintt++; 
+	  }
+	  if(layer==_nlayers_maps+_nlayers_intt) ngtpc1++;
 	}
-	nglmaps = lmaps[0]+lmaps[1]+lmaps[2]; 
-	nglintt	= lintt[0]+lintt[1]+lintt[2]+lintt[3]; 
+	if(_nlayers_maps>0) for(unsigned int i = 0;i<_nlayers_maps;i++) nglmaps+=lmaps[i];
+	if(_nlayers_intt>0) for(unsigned int i = 0;i<_nlayers_intt;i++) nglintt+=lintt[i];
 
 	float gpx      = g4particle->get_px();
 	float gpy      = g4particle->get_py();
@@ -1401,10 +1412,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  chisq     = track->get_chisq();
 	  ndf       = track->get_ndf();
 	  nhits     = track->size_clusters();
-	  int maps[3];
-	  for(int i = 0;i<3;i++) maps[i] = 0; 
-	  int intt[4];
-	  for(int i = 0;i<4;i++) intt[i] = 0; 
+	  int maps[_nlayers_maps];
+	  int intt[_nlayers_intt];
+	  if(_nlayers_maps>0){
+	    for(unsigned int i = 0;i<_nlayers_maps;i++) maps[i] = 0;
+	  }
+	  if(_nlayers_intt>0){
+	    for(unsigned int i = 0;i<_nlayers_intt;i++) intt[i] = 0; 
+	  }
 	  int tpc1  = 0;
 
 	  for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
@@ -1414,12 +1429,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	    SvtxCluster* cluster = clustermap->get(cluster_id);
 	    unsigned int layer = cluster->get_layer();
 	    if (layer < 32) layers |= (0x1 << layer);
-	    if(layer<3){ maps[layer] = 1; nmaps++;}
-	    if(layer>=3&&layer<7){ intt[layer-3] = 1;nintt++;}
-	    if(layer==7)tpc1 = 1;
+	    if(_nlayers_maps>0&&layer<_nlayers_maps){ maps[layer] = 1; nmaps++;}
+	    if(_nlayers_intt>0&&layer>=_nlayers_maps&&layer<_nlayers_maps+_nlayers_intt){ intt[layer-_nlayers_maps] = 1;nintt++;}
+	    if(layer==_nlayers_intt+_nlayers_maps)tpc1 = 1;
 	  }
-	  nlmaps = maps[0]+maps[1]+maps[2];
-	  nlintt = intt[0]+intt[1]+intt[2]+intt[3];
+	  if(_nlayers_maps>0) for(unsigned int i = 0;i<_nlayers_maps;i++) nlmaps+=maps[i];
+	  if(_nlayers_intt>0) for(unsigned int i = 0;i<_nlayers_intt;i++) nlintt+=intt[i];
 	  ntpc1 = tpc1;
 
 	  dca2d     = track->get_dca2d();
@@ -1538,9 +1553,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float ndf       = track->get_ndf();
 	float nhits     = track->size_clusters();
 	unsigned int layers = 0x0;
-
-	int maps[3]; for(int i = 0;i<3;i++) maps[i] = 0;
-	int intt[4]; for(int i = 0;i<4;i++) intt[i] = 0;
+	int maps[_nlayers_maps];
+	int intt[_nlayers_intt];
+	if(_nlayers_maps>0){
+	  for(unsigned int i = 0;i<_nlayers_maps;i++) maps[i] = 0;
+	}
+	if(_nlayers_intt>0){
+	  for(unsigned int i = 0;i<_nlayers_intt;i++) intt[i] = 0; 
+	}
 	int tpc1  = 0;
 
 	float nmaps = 0;
@@ -1556,12 +1576,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  SvtxCluster* cluster = clustermap->get(cluster_id);
 	  unsigned int layer = cluster->get_layer();
 	  //	  if (layer < 32) layers |= (0x1 << layer);
-	  if(layer<3) { maps[layer] = 1; nmaps++;}
-	  if(layer>=3&&layer<7){ intt[layer-3] = 1; nintt++;}
-	  if(layer==7)tpc1 = 1;
+	  if(_nlayers_maps>0&&layer<_nlayers_maps){ maps[layer] = 1; nmaps++;}
+	  if(_nlayers_intt>0&&layer>=_nlayers_maps&&layer<_nlayers_maps+_nlayers_intt){ intt[layer-_nlayers_maps] = 1;nintt++;}
+	  if(layer==_nlayers_maps+_nlayers_intt)tpc1 = 1;
 	}
-	nlmaps = maps[0]+maps[1]+maps[2];
-	nlintt = intt[0]+intt[1]+intt[2]+intt[3];
+	if(_nlayers_maps>0) for(unsigned int i = 0;i<_nlayers_maps;i++) nlmaps+=maps[i];
+	if(_nlayers_intt>0) for(unsigned int i = 0;i<_nlayers_intt;i++) nlintt+=intt[i];
 	ntpc1 = tpc1;
      
 	float dca2d     = track->get_dca2d();
@@ -1646,18 +1666,23 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  gpy      = g4particle->get_py();
 	  gpz      = g4particle->get_pz();
 
-	  int lmaps[3]; for(int i = 0;i<3;i++) lmaps[i] = 0;
-	  int lintt[4]; for(int i = 0;i<4;i++) lintt[i] = 0;
- 
+	  int lmaps[_nlayers_maps+1]; 
+	  if(_nlayers_maps>0) for(unsigned int i = 0;i<_nlayers_maps;i++) lmaps[i] = 0;
+	  
+	  int lintt[_nlayers_intt+1];
+	  if(_nlayers_intt>0) for(unsigned int i = 0;i<_nlayers_intt;i++) lintt[i] = 0; 
+	  
 	  for( const PHG4Hit* g4hit : g4hits){
 	    unsigned int layer = g4hit->get_layer();
-	    if(layer<3) { lmaps[layer] = 1; ngmaps++; }
-	    if(layer>=3&&layer<7) { lintt[layer-3] = 1; ngintt++;}
-	    if(layer==7) ngtpc1++;
+	    if(_nlayers_maps>0&&layer<_nlayers_maps) { lmaps[layer] = 1; ngmaps++; }
+	    if(_nlayers_intt>0&&layer>=_nlayers_maps&&layer<_nlayers_maps+_nlayers_intt){ 
+	      lintt[layer-_nlayers_maps] = 1; ngintt++; 
+	    }
+	    if(layer==_nlayers_maps+_nlayers_intt) ngtpc1++;
 	  }
-	  nglmaps = lmaps[0] +lmaps[1] +lmaps[2];
-	  nglintt = lintt[0] + lintt[1] + lintt[2] + lintt[3];
-
+	  if(_nlayers_maps>0) for(unsigned int i = 0;i<_nlayers_maps;i++) nglmaps+=lmaps[i];
+	  if(_nlayers_intt>0) for(unsigned int i = 0;i<_nlayers_intt;i++) nglintt+=lintt[i];
+	  
 	  TVector3 gv(gpx,gpy,gpz);
 	  gpt      = gv.Pt();
 	  geta     = gv.Eta();
