@@ -60,6 +60,7 @@ Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMa
 
 Track::Track(const PHGenFit::Track &t) {
 	_track = new genfit::Track(*(t.getGenFitTrack()));
+	verbosity = t.verbosity;
 	_clusterIDs = t.get_cluster_IDs();
 }
 
