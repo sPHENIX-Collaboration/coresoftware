@@ -16,7 +16,7 @@ class RawClusterv1;
 class RawClusterPositionCorrection: public SubsysReco
 {
 public:
-  RawClusterPositionCorrection(const std::string& name);
+  explicit RawClusterPositionCorrection(const std::string& name);
   
   int Init(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
