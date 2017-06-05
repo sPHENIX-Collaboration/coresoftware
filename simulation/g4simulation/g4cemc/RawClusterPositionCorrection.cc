@@ -24,7 +24,7 @@ using namespace std;
 
 RawClusterPositionCorrection::RawClusterPositionCorrection(const std::string &name):
   SubsysReco(string("RawClusterPositionCorrection_")+name),
-  _calib_params(name)
+  _calib_params(name),_det_name(name)
 {
   //default bins to be 17 to set default recalib parameters to 1 
   bins = 17;
@@ -83,15 +83,15 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     std::cout<<"Processing a NEW EVENT"<<std::endl;
   }
 
-  RawClusterContainer *rawclusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_CEMC");
+  RawClusterContainer *rawclusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_"+_det_name);
   if(!rawclusters){
-    std::cout<<"No CEMC Cluster Container found while in RawClusterPositionCorrection, can't proceed!!!"<<std::endl;
+    std::cout<<"No "<<_det_name<<" Cluster Container found while in RawClusterPositionCorrection, can't proceed!!!"<<std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  RawTowerContainer *_towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_CEMC");
+  RawTowerContainer *_towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_"+_det_name);
   if(!_towers){
-    std::cout<<"No calibrated CEMC tower info found while in RawClusterPositionCorrection, can't proceed!!!"<<std::endl;
+    std::cout<<"No calibrated "<<_det_name<<" tower info found while in RawClusterPositionCorrection, can't proceed!!!"<<std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -230,29 +230,29 @@ void RawClusterPositionCorrection::CreateNodeTree(PHCompositeNode *topNode)
     throw std::runtime_error("failed to find DST node in RawClusterPositionCorrection::CreateNodeTree");
   }
 
-  //Get the CEMC subnode
-  PHCompositeNode *cemcNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","CEMC"));
+  //Get the _det_name subnode
+  PHCompositeNode *cemcNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",_det_name));
 
   //Check that it is there
   if(!cemcNode){
-    cemcNode = new PHCompositeNode("CEMC");
+    cemcNode = new PHCompositeNode(_det_name);
     dstNode->addNode(cemcNode);
   }
 
   //Check to see if the cluster recalib node is on the nodetree
-  _recalib_clusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_RECALIB_CEMC");
+  _recalib_clusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_RECALIB_" + _det_name);
 
-  //If not, make it and add it to the CEMC subnode
+  //If not, make it and add it to the _det_name subnode
   if(!_recalib_clusters){
     _recalib_clusters = new RawClusterContainer();
-    PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_recalib_clusters,"CLUSTER_POS_COR_CEMC","PHObject");
+    PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_recalib_clusters,"CLUSTER_POS_COR_"+_det_name,"PHObject");
     cemcNode->addNode(clusterNode);
   }
 
   //put the recalib parameters on the node tree
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
   assert(parNode);
-  const string paramNodeName = string("Recalibration_CEMC");
+  const string paramNodeName = string("Recalibration_"+_det_name);
   _calib_params.SaveToNodeTree(parNode,paramNodeName);
   
 }

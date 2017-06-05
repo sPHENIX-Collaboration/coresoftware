@@ -48,6 +48,8 @@ private:
   void SetDefaultParameters(PHG4Parameters & param);
   RawClusterContainer *_recalib_clusters;
 
+  std::string _det_name;
+
   int bins;
   std::vector<float> binvals;
   std::vector<std::vector<double> > calib_constants;
