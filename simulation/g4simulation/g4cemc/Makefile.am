@@ -95,7 +95,6 @@ pkginclude_HEADERS = \
   RawClusterv1.h \
   RawClusterDefs.h \
   RawClusterContainer.h \
-  RawClusterPositionCorrection.h \
   RawTower.h \
   RawTowerDefs.h \
   RawTowerv1.h \
