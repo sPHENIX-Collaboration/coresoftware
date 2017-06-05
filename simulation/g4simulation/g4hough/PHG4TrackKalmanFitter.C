@@ -199,6 +199,8 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 		_tca_vertexmap_refit(NULL),
 		_do_evt_display(false) {
 
+	Verbosity(0);
+
 	_event = 0;
 
 	_cluster_eval_tree = NULL;
@@ -947,9 +949,26 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 	}
 #endif
 
-	for (SvtxTrack::ConstClusterIter iter = intrack->begin_clusters();
+	std::map<float, unsigned int> m_r_cluster_id;
+
+	for (auto iter = intrack->begin_clusters();
 			iter != intrack->end_clusters(); ++iter) {
 		unsigned int cluster_id = *iter;
+		SvtxCluster* cluster = _clustermap->get(cluster_id);
+		float x = cluster->get_x();
+		float y = cluster->get_y();
+		float r = sqrt(x*x+y*y);
+		m_r_cluster_id.insert(std::pair<float, unsigned int>(r, cluster_id));
+	}
+
+//	for (SvtxTrack::ConstClusterIter iter = intrack->begin_clusters();
+//			iter != intrack->end_clusters(); ++iter) {
+
+	for (auto iter = m_r_cluster_id.begin();
+			iter != m_r_cluster_id.end();
+			++iter) {
+
+		unsigned int cluster_id = iter->second;
 		SvtxCluster* cluster = _clustermap->get(cluster_id);
 		if (!cluster) {
 			LogError("No cluster Found!");
@@ -1039,19 +1058,32 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		//TODO use u, v explicitly?
 		TVector3 n(cluster->get_x(), cluster->get_y(), 0);
 
+		unsigned int begin_hit_id = *(cluster->begin_hits());
+		//LogDebug(begin_hit_id);
+		SvtxHit* svtxhit = hitsmap->find(begin_hit_id)->second;
+		//LogDebug(svtxhit->get_cellid());
+
+		PHG4Cell* cell_svtx = nullptr;
+		PHG4Cell* cell_intt = nullptr;
+		PHG4Cell* cell_maps = nullptr;
+
+		if(cells_svtx) cell_svtx = cells_svtx->findCell(svtxhit->get_cellid());
+		if(cells_intt) cell_intt = cells_intt->findCell(svtxhit->get_cellid());
+		if(cells_maps) cell_maps = cells_maps->findCell(svtxhit->get_cellid());
+		if(!(cell_svtx or cell_intt or cell_maps)){
+			if(verbosity>=0)
+				LogError("!(cell_svtx or cell_intt or cell_maps)");
+			continue;
+		}
+
 		//17.4, 17.4, 17.4, 14.0, 14.0, 12.0, 11.5
-		float phi_tilt[7] = {0.304, 0.304, 0.304, 0.244, 0.244, 0.209, 0.201};
+		//float phi_tilt[7] = {0.304, 0.304, 0.304, 0.244, 0.244, 0.209, 0.201};
 
 		unsigned int layer = cluster->get_layer();
 		//std::cout << "cluster layer: " << layer << std::endl;
-		if ((cells_maps and geom_container_maps)
-				and layer < 3) {
+		if (cell_maps) {
+			PHG4Cell* cell = cell_maps;
 
-			unsigned int begin_hit_id = *(cluster->begin_hits());
-			//LogDebug(begin_hit_id);
-			SvtxHit* hit = hitsmap->find(begin_hit_id)->second;
-			//LogDebug(hit->get_cellid());
-			PHG4Cell* cell = cells_maps->findCell(hit->get_cellid());
 			int stave_index = cell->get_stave_index();
 			int half_stave_index = cell->get_half_stave_index();
 			int module_index = cell->get_module_index();
@@ -1066,16 +1098,10 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 					module_index, chip_index, ladder_location);
 			//n.Print();
 			n.SetXYZ(ladder_location[0], ladder_location[1], 0);
-			n.RotateZ(phi_tilt[layer]);
+			n.RotateZ(geom->get_stave_phi_tilt());
 			//n.Print();
-		} else if ((cells_intt and geom_container_intt)
-				and pos.Perp() < 30.) {
-
-			unsigned int begin_hit_id = *(cluster->begin_hits());
-			//LogDebug(begin_hit_id);
-			SvtxHit* hit = hitsmap->find(begin_hit_id)->second;
-			//LogDebug(hit->get_cellid());
-			PHG4Cell* cell = cells_intt->findCell(hit->get_cellid());
+		} else if (cell_intt) {
+			PHG4Cell* cell = cell_intt;
 			PHG4CylinderGeom_Siladders* geom =
 					(PHG4CylinderGeom_Siladders*) geom_container_intt->GetLayerGeom(
 							layer);
@@ -1084,7 +1110,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 					cell->get_ladder_phi_index(), hit_location);
 
 			n.SetXYZ(hit_location[0], hit_location[1], 0);
-			n.RotateZ(phi_tilt[layer]);
+			n.RotateZ(geom->get_strip_phi_tilt());
 		}
 
 		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
