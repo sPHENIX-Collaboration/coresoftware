@@ -19,6 +19,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeom_MAPS.h>
+#include <g4detectors/PHG4CylinderGeom_Siladders.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
@@ -794,7 +795,8 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       multimap<int, PHG4Cell*>::iterator mapiter = clusrange.first;
       
       int layer = mapiter->second->get_layer();
-      PHG4CylinderGeom* geom = geom_container->GetLayerGeom(layer);
+      //PHG4CylinderGeom* geom = geom_container->GetLayerGeom(layer);
+      PHG4CylinderGeom_Siladders* geom = (PHG4CylinderGeom_Siladders*) geom_container->GetLayerGeom(layer);
       
       SvtxCluster_v1 clus;
       clus.set_layer( layer );
@@ -818,7 +820,9 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       float length = geom->get_strip_z_spacing();
       float phisize = phibins.size()*pitch;
       float zsize = zbins.size()*length;
-      float tilt = geom->get_strip_tilt();
+
+      // tilt refers to a rotation around the radial vector from the origin, and this is zero for the INTT ladders
+      float tilt = 0; //geom->get_strip_tilt();
 
       // determine the cluster position...
       double xsum = 0.0;
@@ -886,6 +890,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 				ladder_phi_index,
 				ladder_location);
       double ladderphi = atan2( ladder_location[1], ladder_location[0] );
+      ladderphi += geom->get_strip_phi_tilt();
       
       clus.set_position(0, clusx);
       clus.set_position(1, clusy);
@@ -944,6 +949,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 
       TMatrixF R(3,3);
       R = ROT * TILT;
+      R = ROT;
       
       TMatrixF R_T(3,3);
       R_T.Transpose(R);
@@ -1213,6 +1219,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
       // returns the center of the sensor in world coordinates - used to get the ladder phi location
       geom->find_sensor_center(stave_index, half_stave_index, module_index, chip_index, ladder_location);
       double ladderphi = atan2( ladder_location[1], ladder_location[0] );
+      ladderphi += geom->get_stave_phi_tilt();
 
       //cout << "sensor center = " << ladder_location[0] << " " << ladder_location[1] << " " << ladder_location[2] << endl;            
 

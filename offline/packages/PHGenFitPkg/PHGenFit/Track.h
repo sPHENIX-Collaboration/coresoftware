@@ -37,7 +37,7 @@ class Track
 public:
 
 	//! Default ctor
-	Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMatrixDSym seed_cov);
+	Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMatrixDSym seed_cov, const int v = 0);
 
 	//! Copy constructor
 	Track(const PHGenFit::Track &t);
