@@ -36,6 +36,8 @@ class PHG4ParametersContainer : public PHObject
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename);
   int ExistDetid(const int detid) const;
   void clear() { parametermap.clear(); }
+  void FillFrom(const PdbParameterMapContainer *saveparamcontainer);
+
  protected:
   void CopyToPdbParameterMapContainer(PdbParameterMapContainer *myparm);
   std::string superdetectorname;

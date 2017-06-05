@@ -30,9 +30,9 @@
 #include "Fitter.h"
 #include "Track.h"
 
-#define LogDEBUG(exp)		std::cout<<"DEBUG: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
-#define LogERROR(exp)		std::cout<<"ERROR: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
-#define LogWARNING(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
+#define LogDEBUG(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp << std::endl
+#define LogERROR(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp << std::endl
+#define LogWARNING(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp << std::endl
 
 namespace PHGenFit {
 
@@ -99,7 +99,7 @@ int Fitter::processTrack(PHGenFit::Track* track, const bool save_to_evt_disp) {
 		_fitter->processTrack(fitTrack);
 	} catch (genfit::Exception& e) {
 		if (verbosity >= 1) {
-			std::cerr << "PHGenFit::Exception: \n";
+			std::cerr << "PHGenFit::Fitter::processTrack::Exception: \n";
 			std::cerr << e.what();
 			std::cerr << "Exception, next track" << std::endl;
 		}
@@ -150,7 +150,7 @@ Fitter* Fitter::getInstance(const std::string &tgeo_file_name,
 Fitter::Fitter(TGeoManager* tgeo_manager, genfit::AbsBField* fieldMap,
 		const PHGenFit::Fitter::FitterType& fitter_choice,
 		const PHGenFit::Fitter::TrackRepType& track_rep_choice,
-		const bool doEventDisplay) : verbosity(0), _doEventDisplay(doEventDisplay)
+		const bool doEventDisplay) : verbosity(0), _tgeo_manager(tgeo_manager), _doEventDisplay(doEventDisplay)
 {
 
 	genfit::FieldManager::getInstance()->init(
