@@ -5,6 +5,7 @@
 #include <g4cemc/RawClusterv1.h>
 #include <g4cemc/RawTower.h>
 #include <g4cemc/RawTowerContainer.h>
+#include <g4cemc/RawTowerGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -96,6 +97,15 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  string towergeomnodename = "TOWERGEOM_" + _det_name;
+  RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename.c_str());
+  if (! towergeom)
+   {
+     cout << PHWHERE << ": Could not find node " << towergeomnodename.c_str() << endl;
+     return Fun4AllReturnCodes::ABORTEVENT;
+   }
+  const int nphibin = towergeom->get_phibins();
+
   //loop over the clusters
   RawClusterContainer::ConstRange begin_end = rawclusters->getClusters();
   RawClusterContainer::ConstIterator iter;
@@ -132,6 +142,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     }
 
     int ntowers = toweretas.size();
+    assert(ntowers >= 1);
 
     //loop over the towers to determine the energy
     //weighted eta and phi position of the cluster
@@ -147,13 +158,23 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
       etamult += energymult;
       etasum += towerenergies.at(j);
 
-      energymult = towerenergies.at(j) * towerphis.at(j);
+      int phibin = towerphis.at(j);
+
+      if (phibin - towerphis[0] < -nphibin / 2)
+        phibin += nphibin;
+      else if (phibin - towerphis[0] > +nphibin / 2)
+        phibin -= nphibin;
+      assert(abs(phibin - towerphis[0]) <= nphibin / 2);
+
+      energymult = towerenergies.at(j) * phibin;
       phimult += energymult;
       phisum += towerenergies.at(j);
     }
 
     float avgphi = phimult / phisum;
     float avgeta = etamult / etasum;
+
+    if (avgphi<0) avgphi += nphibin;
 
     //this determines the position of the cluster in the 2x2 block
     float fmodphi = fmod(avgphi, 2.);
