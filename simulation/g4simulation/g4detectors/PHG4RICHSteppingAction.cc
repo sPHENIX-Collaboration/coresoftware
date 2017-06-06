@@ -151,6 +151,8 @@ bool PHG4RICHSteppingAction::MakeHit(const G4Step* aStep){
 	  {
 	    hit->set_trkid(pp->GetUserTrackId());
 	    hit->set_shower_id(pp->GetShower()->get_id());
+
+	    pp->SetKeep(true); // we want to keep the track
 	  }
       }
   }
