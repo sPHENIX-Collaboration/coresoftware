@@ -80,7 +80,7 @@ PHGeom_DSTInspection(string DST_file_name = "sPHENIX.root_DST.root",
   v->SetGuideState(TGLUtil::kAxesEdge, kTRUE, kFALSE, 0);
   v->RefreshPadEditor(v);
 
-  v->CurrentCamera().RotateRad(-1.6.,0.);
+  v->CurrentCamera().RotateRad(-1.6,0.);
   v->DoDraw();
 
 }

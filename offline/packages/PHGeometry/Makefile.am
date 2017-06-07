@@ -1,9 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-BUILT_SOURCES = \
-  testexternals.cc
-
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I$(ROOTSYS)/include \
@@ -11,41 +8,54 @@ INCLUDES = \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
+   libphgeom_io.la \
    libphgeom.la
 
 pkginclude_HEADERS = \
-	PHGeomTGeo.h \
-	PHGeomIOTGeo.h \
-	PHGeomUtility.h
+  PHGeomTGeo.h \
+  PHGeomIOTGeo.h \
+  PHGeomUtility.h
 
 noinst_HEADERS = \
-	PHGeomFileImport.h
+  PHGeomFileImport.h
 
 libphgeom_la_SOURCES = \
   PHGeomTGeo.cc \
   PHGeomTGeo_Dict.cc \
-  PHGeomIOTGeo.cc \
-  PHGeomIOTGeo_Dict.cc \
   PHGeomFileImport.cc \
   PHGeomFileImport_Dict.cc  \
   PHGeomUtility.cc \
   PHGeomUtility_Dict.cc 
-  
-libphgeom_la_LDFLAGS = \
-  `root-config --evelibs`
-  
-libphgeom_la_LIBADD = \
+
+libphgeom_io_la_SOURCES = \
+  PHGeomIOTGeo.cc \
+  PHGeomIOTGeo_Dict.cc
+
+AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -lphool \
-  -lfun4all \
-  -lGeom
-  
-noinst_PROGRAMS = \
-  testexternals
+  -L$(ROOTSYS)/lib
 
-testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libphgeom.la
+libphgeom_la_LIBADD = \
+  -lSubsysReco \
+  libphgeom_io.la
+
+libphgeom_io_la_LIBADD = \
+  -lphool \
+  -lGeom
+
+BUILT_SOURCES = \
+  testexternals.cc
+
+noinst_PROGRAMS = \
+  testexternals_libphgeom \
+  testexternals_libphgeom_io
+
+testexternals_libphgeom_SOURCES = testexternals.cc
+testexternals_libphgeom_LDADD   = libphgeom.la
+
+testexternals_libphgeom_io_SOURCES = testexternals.cc
+testexternals_libphgeom_io_LDADD   = libphgeom_io.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
@@ -57,8 +67,8 @@ testexternals.cc:
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 
 clean-local:
-	rm -f *Dict*
+	rm -f *Dict* $(BUILT_SOURCES)

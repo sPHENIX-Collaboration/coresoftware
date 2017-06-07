@@ -124,10 +124,10 @@ void PHG4SiliconTrackerDigitizer::CalculateLadderCellADCScale(PHCompositeNode *t
     if (_max_fphx_adc.find(layer)==_max_fphx_adc.end())
       assert(!"Error: _max_fphx_adc is not available.");
 
-    float thickness = (layeriter->second)->get_thickness(); // mm
-    float mip_e     = 0.003876 * 2.*thickness; // GeV
+    float thickness = (layeriter->second)->get_thickness(); // cm
+    float mip_e     = 0.003876 *thickness; // GeV
     _energy_scale.insert(std::make_pair(layer, mip_e));
-  }
+ } 
 
   return;
 }

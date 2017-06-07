@@ -992,7 +992,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float ey       = sqrt(cluster->get_error(1,1));
 	float ez       = cluster->get_z_error();
 
-	float ephi     = cluster->get_phi_error();
+	float ephi     = cluster->get_rphi_error();
 	
 	float e        = cluster->get_e();
 	float adc      = cluster->get_adc();
@@ -1154,7 +1154,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  float ey       = sqrt(cluster->get_error(1,1));
 	  float ez       = cluster->get_z_error();
 
-	  float ephi     = cluster->get_phi_error();
+	  float ephi     = cluster->get_rphi_error();
 	  
 	  float e        = cluster->get_e();
 	  float adc      = cluster->get_adc();

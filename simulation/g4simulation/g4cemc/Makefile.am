@@ -5,19 +5,11 @@ lib_LTLIBRARIES = \
   libcemc_io.la \
   libcemc.la
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I$(ROOTSYS)/include \
-  -I${G4_MAIN}/include \
-  -I${G4_MAIN}/include/Geant4
-
-RINCLUDES = \
-  -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
-  -I${G4_MAIN}/include \
-  -I${G4_MAIN}/include/Geant4
+  -I${G4_MAIN}/include
 
 libcemc_io_la_SOURCES = \
   RawCluster_Dict.cc \
@@ -57,6 +49,8 @@ libcemc_la_SOURCES = \
   RawClusterBuilderv1_Dict.cc \
   RawClusterBuilderFwd.cc \
   RawClusterBuilderFwd_Dict.cc \
+  RawClusterPositionCorrection.cc \
+  RawClusterPositionCorrection_Dict.cc \
   RawTowerBuilder.cc \
   RawTowerBuilder_Dict.cc \
   RawTowerCombiner.cc \
@@ -91,13 +85,14 @@ libcemc_la_LIBADD = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ##############################################
 # please add new classes in alphabetical order
 
 pkginclude_HEADERS = \
   RawCluster.h \
+  RawClusterv1.h \
   RawClusterDefs.h \
   RawClusterContainer.h \
   RawTower.h \
@@ -111,15 +106,19 @@ pkginclude_HEADERS = \
   RawTowerGeomContainer.h \
   RawTowerGeomContainerv1.h \
   RawTowerGeomContainer_Cylinderv1.h
-
 ################################################
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals_cemc 
+  testexternals_cemc \
+  testexternals_cemc_io
+
 
 testexternals_cemc_SOURCES = testexternals.C
-testexternals_cemc_LDADD = libcemc_io.la libcemc.la
+testexternals_cemc_LDADD = libcemc.la
+
+testexternals_cemc_io_SOURCES = testexternals.C
+testexternals_cemc_io_LDADD = libcemc_io.la
 
 
 testexternals.C:

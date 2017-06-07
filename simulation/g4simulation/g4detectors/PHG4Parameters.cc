@@ -574,7 +574,11 @@ PHG4Parameters::ReadFromFile(const string &name, const string &extension, const 
     {
       PdbParameterMapContainer *myparm = static_cast<PdbParameterMapContainer *> (f->Get("PdbParameterMapContainer"));
       assert (myparm);
+
+      if (myparm->GetParameters(layer) == nullptr)
+        cout << "Missing PdbParameterMapContainer layer #"<< layer  << endl;
       assert (myparm->GetParameters(layer));
+
       cout << "Received PdbParameterMapContainer layer #"<< layer <<" with (Hash = 0x"<< std::hex << myparm->GetParameters(layer)->get_hash() << std::dec <<")" << endl;
 
       FillFrom(myparm, layer);

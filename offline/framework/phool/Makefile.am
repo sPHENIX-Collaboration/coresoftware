@@ -5,7 +5,7 @@ lib_LTLIBRARIES = libphool.la
 BUILT_SOURCES = \
   testexternals.cc
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir`
@@ -90,7 +90,7 @@ PHBase_dict.cc : \
   PHTimeStamp.h \
   recoConsts.h \
   PHBase_LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *_dict*

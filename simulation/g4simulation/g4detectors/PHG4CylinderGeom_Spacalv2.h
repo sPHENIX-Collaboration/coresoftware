@@ -42,12 +42,14 @@ public:
   void
   set_azimuthal_n_sec(int azimuthalNSec);
 
+  //! azimuthal tilt in rad
   double
   get_azimuthal_tilt() const
   {
     return azimuthal_tilt;
   }
 
+  //! azimuthal tilt in rad
   void
   set_azimuthal_tilt(double azimuthalTilt)
   {
@@ -128,6 +130,8 @@ public:
 protected:
 
   int azimuthal_n_sec;
+
+  //! azimuthal tilt in rad
   double azimuthal_tilt;
   bool azimuthal_seg_visible;
   double polar_taper_ratio;

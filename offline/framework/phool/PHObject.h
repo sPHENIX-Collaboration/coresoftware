@@ -11,13 +11,12 @@
 
 class PHObject : public TObject
 {
- public: 
+ public:
   /// ctor
-  PHObject(); 
+  PHObject();
 
   /// dtor
-  virtual ~PHObject() {} 
-
+  virtual ~PHObject() {}
   /// Virtual copy constructor.
   virtual PHObject* clone() const;
 
@@ -40,17 +39,15 @@ class PHObject : public TObject
   virtual int isImplemented(const double f) const;
   virtual int isImplemented(const int i) const;
   virtual int isImplemented(const unsigned int i) const;
-  void SplitLevel(const int i) {split = i;}
-  int SplitLevel() const {return split;}
-  void BufferSize(const int i) {bufSize = i;}
-  int BufferSize() const {return bufSize;}
-
+  void SplitLevel(const int i) { split = i; }
+  int SplitLevel() const { return split; }
+  void BufferSize(const int i) { bufSize = i; }
+  int BufferSize() const { return bufSize; }
  private:
+  int split;    //! not saved, it is set to change the split level for this object
+  int bufSize;  //! not saved, it is set to change the buffer size for this object
 
-  int split; //! not saved, it is set to change the split level for this object
-  int bufSize; //! not saved, it is set to change the buffer size for this object
-
-  ClassDef(PHObject,0) // no I/O
-}; 
+  ClassDef(PHObject, 0)  // no I/O
+};
 
 #endif /* PHOBJECT_H__ */
