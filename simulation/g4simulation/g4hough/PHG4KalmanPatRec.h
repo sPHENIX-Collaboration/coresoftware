@@ -50,6 +50,9 @@ class PHG4CylinderGeomContainer;
 
 class PHG4HitContainer;
 
+class TNtuple;
+class TFile;
+
 namespace PHGenFit {
 class Fitter;
 class Track;
@@ -286,6 +289,10 @@ public:
 
 	void set_seeding_only_mode(bool seedingOnlyMode) {
 		_seeding_only_mode = seedingOnlyMode;
+	}
+
+	void set_analyzing_mode(bool analyzingMode) {
+		_analyzing_mode = analyzingMode;
 	}
 
 	float get_max_merging_deta() const {
@@ -729,6 +736,9 @@ private:
 
 
 	bool _seeding_only_mode;
+	bool _analyzing_mode;
+	TFile* _analyzing_file;
+	TNtuple* _analyzing_ntuple;
 
 	//! Cleanup Seeds
 	float _max_merging_dphi;

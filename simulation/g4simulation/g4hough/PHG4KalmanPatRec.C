@@ -87,6 +87,10 @@
 #include <bitset>
 #include <tuple>
 
+//ROOT includes for debugging
+#include <TFile.h>
+#include <TNtuple.h>
+
 #define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp
@@ -180,6 +184,9 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 	  _geom_container_intt(nullptr),
 	  _geom_container_maps(nullptr),
 	  _seeding_only_mode(false),
+	  _analyzing_mode(false),
+      _analyzing_file(NULL),
+      _analyzing_ntuple(NULL),
 	  _max_merging_dphi(0.1),
 	  _max_merging_deta(0.1),
 	  _max_merging_dr(0.1),
@@ -265,6 +272,13 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 }
 
 int PHG4KalmanPatRec::Init(PHCompositeNode* topNode) {
+	if(_analyzing_mode){
+	  cout << "Ana Mode, creating ntuples! " << endl;
+	  _analyzing_file = new TFile("./PatRecAnalysis.root","RECREATE");
+	  _analyzing_ntuple = new TNtuple("ana_nt","ana_nt","spt:seta:sphi:pt:eta:phi:layer:ncand:nmeas");
+	  cout << "Done" << endl;
+	  
+	}
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -405,7 +419,7 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 				<< "==========================================================================="
 				<< endl;
 	}
-
+	
 	return code;
 }
 
@@ -549,6 +563,15 @@ int PHG4KalmanPatRec::End(PHCompositeNode *topNode) {
 	fout_kalman_pull.close();
 	fout_chi2.close();
 #endif
+
+	if(_analyzing_mode){
+	  cout << " cleaning up " << endl;
+	  _analyzing_file->cd();
+	  _analyzing_ntuple->Write();
+	  _analyzing_file->Close();
+	  //	  delete _analyzing_ntuple;
+	  // delete _analyzing_file;
+	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -2885,6 +2908,11 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		unsigned int init_layer, unsigned int end_layer,
 		const bool use_fitted_state_once) {
 
+        //some debug info
+  float init_pt = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom().Pt();
+  float init_phi = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom().Phi();
+  float init_eta = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom().Eta();
+	
 	int direction = end_layer >= init_layer ? 1 : -1;
 	assert(direction==1 or direction==-1);
 
@@ -3132,7 +3160,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 #ifdef _DEBUG_
 		cout<<__LINE__<<": incr_chi2s_new_tracks.size(): "<<incr_chi2s_new_tracks.size()<<endl;
 #endif
-
+		
 		// Update first track candidate
 		if (incr_chi2s_new_tracks.size() > 0) {
 			std::map<double, PHGenFit::Track*>::iterator iter =
@@ -3212,7 +3240,20 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 			std::cout << __LINE__ << ": IncrChi2: "<< iter->first << std::endl;
 		}
 #endif
+		if(_analyzing_mode){
+		  int ncand = 0;
+		  for (std::map<double, PHGenFit::Track*>::iterator iter =
+			 incr_chi2s_new_tracks.begin();
+		       iter != incr_chi2s_new_tracks.end(); iter++) {
+		    if(iter->first<_max_incr_chi2s[layer] and iter->first > 0) ncand++;
+		  }
 
+		  float this_pt = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom(state).Pt();
+		  float this_phi = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom(state).Phi();
+		  float this_eta = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom(state).Eta();
+		  //"spt:seta:sphi:pt:eta:phi:layer:ncand:nmeas"
+		  _analyzing_ntuple->Fill(init_pt,init_eta,init_phi,this_pt,this_eta,this_phi,layer,ncand,measurements.size());
+		}
 		if(!layer_updated)
 			++consecutive_missing_layer;
 	} // layer loop
