@@ -24,6 +24,11 @@ sHEPGen::sHEPGen(const std::string &name):
   _eventcount(0),
   _p_electron_lab(-20),
   _p_hadron_lab(250),
+  _p4_electron_lab(nullptr),
+  _p4_hadron_lab(nullptr),
+  _p4_hadron_lab_invert(nullptr),
+  _p4_electron_prest(nullptr),
+  _p4_hadron_prest(nullptr),
   _detailed_debug(false),
   _node_name("PHHepMCGenEvent"),
   _hgenManager(NULL),
@@ -46,40 +51,40 @@ int sHEPGen::Init(PHCompositeNode *topNode) {
   double mass_p = 9.382720e-1;
 
   /* 4-Vectors of colliding electron and proton in laboratory frame */
-  HLorentzVector *p4_electron_lab = new HLorentzVector( 0.,
-                                                        0.,
-                                                        _p_electron_lab,
-                                                        sqrt(_p_electron_lab*_p_electron_lab+mass_e*mass_e) );
+  _p4_electron_lab = new HLorentzVector( 0.,
+                                         0.,
+                                         _p_electron_lab,
+                                         sqrt(_p_electron_lab*_p_electron_lab+mass_e*mass_e) );
 
-  HLorentzVector *p4_hadron_lab = new HLorentzVector( 0.,
-                                                      0.,
-                                                      _p_hadron_lab,
-                                                      sqrt(_p_hadron_lab*_p_hadron_lab+mass_p*mass_p) );
+  _p4_hadron_lab = new HLorentzVector( 0.,
+                                       0.,
+                                       _p_hadron_lab,
+                                       sqrt(_p_hadron_lab*_p_hadron_lab+mass_p*mass_p) );
 
   /* The current version of HEPGen supports only a "Fixed Target" mode, i.e.
      the target (proton) is assumed at rest. Therefore, need to boost collision
      from the laboratory frame to the proton-at-rest frame. */
-  HLorentzVector *p4_hadron_lab_invert = new HLorentzVector( 0.,
-                                                             0.,
-                                                             -1 * _p_hadron_lab,
-                                                             sqrt(_p_hadron_lab*_p_hadron_lab+mass_p*mass_p) );
+  _p4_hadron_lab_invert = new HLorentzVector( 0.,
+                                              0.,
+                                              -1 * _p_hadron_lab,
+                                              sqrt(_p_hadron_lab*_p_hadron_lab+mass_p*mass_p) );
 
   /* 4-Vectors of colliding electron and proton in proton-at-rest frame */
-  HLorentzVector *p4_electron_prest = new HLorentzVector( *p4_electron_lab );
-  p4_electron_prest->boost(sqrt(p4_hadron_lab_invert->getQuare()),*p4_hadron_lab_invert);
+  _p4_electron_prest = new HLorentzVector( *_p4_electron_lab );
+  _p4_electron_prest->boost(sqrt(_p4_hadron_lab_invert->getQuare()),*_p4_hadron_lab_invert);
 
-  HLorentzVector *p4_hadron_prest = new HLorentzVector( *p4_hadron_lab );
-  p4_hadron_prest->boost(sqrt(p4_hadron_lab_invert->getQuare()),*p4_hadron_lab_invert);
+  _p4_hadron_prest = new HLorentzVector( *_p4_hadron_lab );
+  _p4_hadron_prest->boost(sqrt(_p4_hadron_lab_invert->getQuare()),*_p4_hadron_lab_invert);
 
   if ( verbosity > -1 )
     {
       cout << "Electron and proton in laboratory frame:" << endl;
-      p4_electron_lab->print();
-      p4_hadron_lab->print();
+      _p4_electron_lab->print();
+      _p4_hadron_lab->print();
 
       cout << "Electron and proton in proton-at-rest frame:" << endl;
-      p4_electron_prest->print();
-      p4_hadron_prest->print();
+      _p4_electron_prest->print();
+      _p4_hadron_prest->print();
     }
 
   /* get instance of HepGenManager */
@@ -88,10 +93,10 @@ int sHEPGen::Init(PHCompositeNode *topNode) {
   _hgenManager->setupGenerator();
 
   /* set beam parameters */
-  cout << "Colliding " << p4_electron_lab->getEnergy() << " GeV electron with " << p4_hadron_lab->getEnergy() << " GeV proton (laboratory frame)" << endl;
-  cout << "----ELEPT (proton-at-rest): " << p4_electron_prest->getEnergy() << endl;
-  _hgenManager->getParamManager()->getStruct()->ELEPT = p4_electron_prest->getEnergy();
-  _hgenManager->getParamManager()->getStruct()->PARL.at(2) = p4_electron_prest->getEnergy();
+  cout << "Colliding " << _p4_electron_lab->getEnergy() << " GeV electron with " << _p4_hadron_lab->getEnergy() << " GeV proton (laboratory frame)" << endl;
+  cout << "----ELEPT (proton-at-rest): " << _p4_electron_prest->getEnergy() << endl;
+  _hgenManager->getParamManager()->getStruct()->ELEPT = _p4_electron_prest->getEnergy();
+  _hgenManager->getParamManager()->getStruct()->PARL.at(2) = _p4_electron_prest->getEnergy();
 
   /* set random seed */
   unsigned int seed = PHRandomSeed();

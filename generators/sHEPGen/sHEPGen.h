@@ -15,6 +15,7 @@ class PHCompositeNode;
 class PHHepMCGenEvent;
 
 class HGenManager;
+class HLorentzVector;
 
 namespace HepMC {
   class GenEvent;
@@ -64,6 +65,12 @@ private:
 
   double _p_electron_lab;
   double _p_hadron_lab;
+
+  HLorentzVector *_p4_electron_lab;
+  HLorentzVector *_p4_hadron_lab;
+  HLorentzVector *_p4_hadron_lab_invert;
+  HLorentzVector *_p4_electron_prest;
+  HLorentzVector *_p4_hadron_prest;
 
   bool _detailed_debug;
 
