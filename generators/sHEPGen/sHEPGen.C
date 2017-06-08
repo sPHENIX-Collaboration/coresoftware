@@ -14,10 +14,6 @@
 /* HepMC includes */
 #include <HepMC/GenEvent.h>
 
-/* ROOT includes */
-#include <TString.h> // needed for Form()
-#include <TLorentzVector.h>
-
 using namespace std;
 
 typedef PHIODataNode<PHObject> PHObjectNode_t;
@@ -50,45 +46,40 @@ int sHEPGen::Init(PHCompositeNode *topNode) {
   double mass_p = 9.382720e-1;
 
   /* 4-Vectors of colliding electron and proton in laboratory frame */
-  TLorentzVector *p4_electron_lab = new TLorentzVector(0.,0.,0.,0.);
-  p4_electron_lab->SetPxPyPzE( 0.,
-			       0.,
-			       _p_electron_lab,
-			       sqrt(_p_electron_lab*_p_electron_lab+mass_e*mass_e) );
+  HLorentzVector *p4_electron_lab = new HLorentzVector( 0.,
+                                                        0.,
+                                                        _p_electron_lab,
+                                                        sqrt(_p_electron_lab*_p_electron_lab+mass_e*mass_e) );
 
-  TLorentzVector *p4_hadron_lab = new TLorentzVector(0.,0.,0.,0.);
-  p4_hadron_lab->SetPxPyPzE( 0.,
-			     0.,
-			     _p_hadron_lab,
-			     sqrt(_p_hadron_lab*_p_hadron_lab+mass_p*mass_p) );
+  HLorentzVector *p4_hadron_lab = new HLorentzVector( 0.,
+                                                      0.,
+                                                      _p_hadron_lab,
+                                                      sqrt(_p_hadron_lab*_p_hadron_lab+mass_p*mass_p) );
 
   /* The current version of HEPGen supports only a "Fixed Target" mode, i.e.
      the target (proton) is assumed at rest. Therefore, need to boost collision
      from the laboratory frame to the proton-at-rest frame. */
+  HLorentzVector *p4_hadron_lab_invert = new HLorentzVector( 0.,
+                                                             0.,
+                                                             -1 * _p_hadron_lab,
+                                                             sqrt(_p_hadron_lab*_p_hadron_lab+mass_p*mass_p) );
 
-  /* calculate beta to go from lab frame to proton-at-rest frame */
-  TVector3 beta_lab_prest = p4_hadron_lab->Vect();
-  beta_lab_prest *= -1./p4_hadron_lab->E();
+  /* 4-Vectors of colliding electron and proton in proton-at-rest frame */
+  HLorentzVector *p4_electron_prest = new HLorentzVector( *p4_electron_lab );
+  p4_electron_prest->boost(sqrt(p4_hadron_lab_invert->getQuare()),*p4_hadron_lab_invert);
 
-  /* 4-Vectors of colliding electorn and proton in proton-at-rest frame */
-  TLorentzVector *p4_electron_prest = (TLorentzVector*)p4_electron_lab->Clone();
-  p4_electron_prest->Boost(beta_lab_prest);
+  HLorentzVector *p4_hadron_prest = new HLorentzVector( *p4_hadron_lab );
+  p4_hadron_prest->boost(sqrt(p4_hadron_lab_invert->getQuare()),*p4_hadron_lab_invert);
 
-  TLorentzVector *p4_hadron_prest = (TLorentzVector*)p4_hadron_lab->Clone();
-  p4_hadron_prest->Boost(beta_lab_prest);
-
-  /* p4_hadron_prest->Vect().Mag() may give very small but non-0 number (rounding etc.), so force momentum to 0 */
-  p4_hadron_prest->SetPxPyPzE(0.,0.,0.,mass_p);
-
-  if ( verbosity > 1 )
+  if ( verbosity > -1 )
     {
       cout << "Electron and proton in laboratory frame:" << endl;
-      p4_electron_lab->Print();
-      p4_hadron_lab->Print();
+      p4_electron_lab->print();
+      p4_hadron_lab->print();
 
       cout << "Electron and proton in proton-at-rest frame:" << endl;
-      p4_electron_prest->Print();
-      p4_hadron_prest->Print();
+      p4_electron_prest->print();
+      p4_hadron_prest->print();
     }
 
   /* get instance of HepGenManager */
@@ -97,10 +88,10 @@ int sHEPGen::Init(PHCompositeNode *topNode) {
   _hgenManager->setupGenerator();
 
   /* set beam parameters */
-  cout << "Colliding " << p4_electron_lab->E() << " GeV electron with " << p4_hadron_lab->E() << " GeV proton (laboratory frame)" << endl;
-  cout << "----ELEPT (proton-at-rest): " << p4_electron_prest->E() << endl;
-  _hgenManager->getParamManager()->getStruct()->ELEPT = p4_electron_prest->E();
-  _hgenManager->getParamManager()->getStruct()->PARL.at(2) = p4_electron_prest->E();
+  cout << "Colliding " << p4_electron_lab->getEnergy() << " GeV electron with " << p4_hadron_lab->getEnergy() << " GeV proton (laboratory frame)" << endl;
+  cout << "----ELEPT (proton-at-rest): " << p4_electron_prest->getEnergy() << endl;
+  _hgenManager->getParamManager()->getStruct()->ELEPT = p4_electron_prest->getEnergy();
+  _hgenManager->getParamManager()->getStruct()->PARL.at(2) = p4_electron_prest->getEnergy();
 
   /* set random seed */
   unsigned int seed = PHRandomSeed();
@@ -138,7 +129,7 @@ int sHEPGen::process_event(PHCompositeNode *topNode) {
   _hgenManager->oneShot();
 
   if ( _detailed_debug )
-  _hgenManager->getEvent()->printDebug();
+    _hgenManager->getEvent()->printDebug();
 
   HEvent *evt_mc = _hgenManager->getEvent();
 
@@ -153,32 +144,32 @@ int sHEPGen::process_event(PHCompositeNode *topNode) {
 
   /* Create single HepMC vertex for event - TODO: Allow for multiple vertices e.g. for decay particles */
   HepMC::GenVertex* hepmcvtx = new HepMC::GenVertex( HepMC::FourVector( 0,
-									0,
-									0,
-									0 )
-						     );
+                                                                        0,
+                                                                        0,
+                                                                        0 )
+                                                     );
 
   /* Create HepMC particle records */
   HEventData* edata = evt_mc->getStruct();
   for ( unsigned p = 0; p < edata->listOfParticles.size(); p++ )
     {
       if (verbosity > 4)
-	{
-	  cout << "______new particle_______" << endl;
-	  cout << "Index:  " << p+1 << endl;
-	  cout << "PID: " << edata->listOfParticles.at(p)->getParticleType() << " -- " << (edata->listOfParticles.at(p) == &(edata->incBeamParticle)) << endl;
-	  cout << "Particle aux flag: " << edata->listOfParticles.at(p)->getParticleAuxFlag() << endl;
-	  cout << "Particle origin: " << edata->listOfParticles.at(p)->getParticleOrigin() << endl;
-	  cout << "Particle daughter1: " << edata->listOfParticles.at(p)->getParticleDaughter1() << endl;
-	  cout << "Particle daughter2: " << edata->listOfParticles.at(p)->getParticleDaughter2() << endl;
-	}
+        {
+          cout << "______new particle_______" << endl;
+          cout << "Index:  " << p+1 << endl;
+          cout << "PID: " << edata->listOfParticles.at(p)->getParticleType() << " -- " << (edata->listOfParticles.at(p) == &(edata->incBeamParticle)) << endl;
+          cout << "Particle aux flag: " << edata->listOfParticles.at(p)->getParticleAuxFlag() << endl;
+          cout << "Particle origin: " << edata->listOfParticles.at(p)->getParticleOrigin() << endl;
+          cout << "Particle daughter1: " << edata->listOfParticles.at(p)->getParticleDaughter1() << endl;
+          cout << "Particle daughter2: " << edata->listOfParticles.at(p)->getParticleDaughter2() << endl;
+        }
 
       HLorentzVector v4_particle_p = edata->listOfParticles.at(p)->getVector();
       HepMC::GenParticle *particle_hepmc = new HepMC::GenParticle( HepMC::FourVector(v4_particle_p.getVector().X(),
-										     v4_particle_p.getVector().Y(),
-										     v4_particle_p.getVector().Z(),
-										     v4_particle_p.getEnergy()),
-								   edata->listOfParticles.at(p)->getParticleType() );
+                                                                                     v4_particle_p.getVector().Y(),
+                                                                                     v4_particle_p.getVector().Z(),
+                                                                                     v4_particle_p.getEnergy()),
+                                                                   edata->listOfParticles.at(p)->getParticleType() );
       particle_hepmc->set_status( edata->listOfParticles.at(p)->getParticleAuxFlag() );
       hepmcvtx->add_particle_out( particle_hepmc );
     }
