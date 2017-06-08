@@ -196,7 +196,12 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
       float e = rawtower->get_energy();
       energy[clusterid] += e;
       eta[clusterid] += e * towergeom->get_etacenter(rawtower->get_bineta());
-      phi[clusterid] += e * towergeom->get_phicenter(rawtower->get_binphi());
+
+      float phicenter = towergeom->get_phicenter(rawtower->get_binphi());
+      if (phicenter>M_PI)
+	phicenter -= 2. * M_PI;
+   
+      phi[clusterid] += e * phicenter;
 
       cluster->addTower(rawtower->get_id(), rawtower->get_energy());
 
@@ -224,8 +229,9 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
           eta[icluster] = 0.0;
           phi[icluster] = 0.0;
         }
-
+    
       if(phi[icluster] > M_PI)  phi[icluster] = phi[icluster] - 2.*M_PI; // convert [0,2pi] to [-pi,pi] for slat geometry(L. Xue)
+   
       RawCluster *cluster = _clusters->getCluster(icluster);
       cluster->set_energy(energy[icluster]);
       cluster->set_eta(eta[icluster]);
@@ -249,7 +255,7 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
       float oldphi = cluster->get_phi();
       bool corr = CorrectPhi(cluster, towers,towergeom);
       if (corr && verbosity)
-        {
+      {
           std::cout << PHWHERE << " Cluster Phi corrected: " << oldphi << " " << cluster->get_phi() << std::endl;
         }
     }
