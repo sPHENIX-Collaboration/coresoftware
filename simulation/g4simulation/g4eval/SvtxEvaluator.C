@@ -1451,8 +1451,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  pcaz      = track->get_z();
 
 	  nfromtruth = trackeval->get_nclusters_contribution(track,g4particle);
-	  ntrumaps   = trackeval->get_nmaps_contribution(track,g4particle);
-	  ntrutpc    = trackeval->get_ntpc_contribution(track,g4particle);
+	  if(_nlayers_maps==0){
+	    ntrumaps   = 0;
+	  }else{
+	    ntrumaps   = trackeval->get_layer_range_contribution(track,g4particle,0,_nlayers_maps);
+	  }
+	  ntrutpc    = trackeval->get_layer_range_contribution(track,g4particle,_nlayers_maps+_nlayers_intt,_nlayers_maps+_nlayers_intt+_nlayers_tpc);
 	  layersfromtruth = trackeval->get_nclusters_contribution_by_layer(track,g4particle);
 	}
       
@@ -1706,8 +1710,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  gprimary = trutheval->is_primary(g4particle);
 
 	  nfromtruth = trackeval->get_nclusters_contribution(track,g4particle);
-	  ntrumaps   = trackeval->get_nmaps_contribution(track,g4particle);
-	  ntrutpc    = trackeval->get_ntpc_contribution(track,g4particle);
+	  if(_nlayers_maps==0){
+	    ntrumaps   = 0;
+	  }else{
+	    ntrumaps   = trackeval->get_layer_range_contribution(track,g4particle,0,_nlayers_maps);
+	  }
+	  ntrutpc    = trackeval->get_layer_range_contribution(track,g4particle,_nlayers_maps+_nlayers_intt,_nlayers_maps+_nlayers_intt+_nlayers_tpc);
 	  layersfromtruth = trackeval->get_nclusters_contribution_by_layer(track,g4particle);
 	}
       
