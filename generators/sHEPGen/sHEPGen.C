@@ -76,7 +76,7 @@ int sHEPGen::Init(PHCompositeNode *topNode) {
   _p4_hadron_prest = new HLorentzVector( *_p4_hadron_lab );
   _p4_hadron_prest->boost(sqrt(_p4_hadron_lab_invert->getQuare()),*_p4_hadron_lab_invert);
 
-  if ( verbosity > -1 )
+  if ( _detailed_debug )
     {
       cout << "Electron and proton in laboratory frame:" << endl;
       _p4_electron_lab->print();
@@ -87,6 +87,11 @@ int sHEPGen::Init(PHCompositeNode *topNode) {
       _p4_hadron_prest->print();
     }
 
+  /* flip sign of electron momentum z-component for HEPGen */
+  HVector3 flip_pz( _p4_electron_prest->getVector() );
+  flip_pz.setZ( flip_pz.Z() * -1 );
+  _p4_electron_prest->setVector( flip_pz );
+
   /* get instance of HepGenManager */
   _hgenManager = HGenManager::getInstance();
   _hgenManager->loadSettings( _datacardFile );
@@ -94,9 +99,9 @@ int sHEPGen::Init(PHCompositeNode *topNode) {
 
   /* set beam parameters */
   cout << "Colliding " << _p4_electron_lab->getEnergy() << " GeV electron with " << _p4_hadron_lab->getEnergy() << " GeV proton (laboratory frame)" << endl;
-  cout << "----ELEPT (proton-at-rest): " << _p4_electron_prest->getEnergy() << endl;
-  _hgenManager->getParamManager()->getStruct()->ELEPT = _p4_electron_prest->getEnergy();
-  _hgenManager->getParamManager()->getStruct()->PARL.at(2) = _p4_electron_prest->getEnergy();
+  cout << "----ELEPT (proton-at-rest): " << _p4_electron_prest->getVector().Z() << endl;
+  _hgenManager->getParamManager()->getStruct()->ELEPT = _p4_electron_prest->getVector().Z();
+  _hgenManager->getParamManager()->getStruct()->PARL.at(2) = _p4_electron_prest->getVector().Z();
 
   /* set random seed */
   unsigned int seed = PHRandomSeed();
@@ -170,10 +175,30 @@ int sHEPGen::process_event(PHCompositeNode *topNode) {
         }
 
       HLorentzVector v4_particle_p = edata->listOfParticles.at(p)->getVector();
-      HepMC::GenParticle *particle_hepmc = new HepMC::GenParticle( HepMC::FourVector(v4_particle_p.getVector().X(),
-                                                                                     v4_particle_p.getVector().Y(),
-                                                                                     v4_particle_p.getVector().Z(),
-                                                                                     v4_particle_p.getEnergy()),
+
+      /* flip z axis component of particle momentum: sPHENIX EIC detector coordinate system uses
+         electron flying in 'negative z' direction */
+      HVector3 flip_pz( v4_particle_p.getVector() );
+      flip_pz.setZ( flip_pz.Z() * -1 );
+      v4_particle_p.setVector( flip_pz );
+
+      /* Boost particle from proton-at-rest frame to laboratory frame */
+      HLorentzVector v4_particle_p_lab( v4_particle_p );
+
+      v4_particle_p_lab.boost(sqrt(_p4_hadron_lab->getQuare()),*_p4_hadron_lab);
+
+      if ( _detailed_debug )
+        {
+          cout << "EVENT RECORD particle: " << edata->listOfParticles.at(p)->getParticleType()
+	       << " (status: " << edata->listOfParticles.at(p)->getParticleAuxFlag() << ")" << endl;
+          cout << " --> PROTON REST frame: "; v4_particle_p.print();
+          cout << " --> LABORATORY  frame: "; v4_particle_p_lab.print();
+        }
+
+      HepMC::GenParticle *particle_hepmc = new HepMC::GenParticle( HepMC::FourVector(v4_particle_p_lab.getVector().X(),
+                                                                                     v4_particle_p_lab.getVector().Y(),
+                                                                                     v4_particle_p_lab.getVector().Z(),
+                                                                                     v4_particle_p_lab.getEnergy()),
                                                                    edata->listOfParticles.at(p)->getParticleType() );
       particle_hepmc->set_status( edata->listOfParticles.at(p)->getParticleAuxFlag() );
       hepmcvtx->add_particle_out( particle_hepmc );
