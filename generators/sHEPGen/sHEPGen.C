@@ -152,7 +152,28 @@ int sHEPGen::process_event(PHCompositeNode *topNode) {
   /* add global information to the event */
   evt->set_event_number(_eventcount);
 
-  /* Create single HepMC vertex for event - TODO: Allow for multiple vertices e.g. for decay particles */
+  /* Set the PDF information */
+  HepMC::PdfInfo pdfinfo;
+  pdfinfo.set_scalePDF( evt_mc->getQsq() );
+  pdfinfo.set_x2( evt_mc->getXbj() );
+  evt->set_pdf_info( pdfinfo );
+
+  /* Set additional event parameters */
+  evt->set_event_scale( evt_mc->getQsq() );
+
+  /* Event kinematics */
+  /* @TODO How can we store this information in HepMC record? */
+  //evt_mc->getNu();
+  //evt_mc->getY();
+  //evt_mc->getWsq();
+  //evt_mc->getXbj();
+  //evt_mc->getT();
+  //evt_mc->getQsq();
+  //evt_mc->getS();
+  //evt_mc->getEmiss();
+
+  /* Create single HepMC vertex for event */
+  /* @TODO: Implement multiple vertices e.g. for decay particles */
   HepMC::GenVertex* hepmcvtx = new HepMC::GenVertex( HepMC::FourVector( 0,
                                                                         0,
                                                                         0,
@@ -190,7 +211,7 @@ int sHEPGen::process_event(PHCompositeNode *topNode) {
       if ( _detailed_debug )
         {
           cout << "EVENT RECORD particle: " << edata->listOfParticles.at(p)->getParticleType()
-	       << " (status: " << edata->listOfParticles.at(p)->getParticleAuxFlag() << ")" << endl;
+               << " (status: " << edata->listOfParticles.at(p)->getParticleAuxFlag() << ")" << endl;
           cout << " --> PROTON REST frame: "; v4_particle_p.print();
           cout << " --> LABORATORY  frame: "; v4_particle_p_lab.print();
         }
