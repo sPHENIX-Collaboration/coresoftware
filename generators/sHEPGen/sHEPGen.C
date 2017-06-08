@@ -29,7 +29,6 @@ sHEPGen::sHEPGen(const std::string &name):
   _p4_hadron_lab_invert(nullptr),
   _p4_electron_prest(nullptr),
   _p4_hadron_prest(nullptr),
-  _detailed_debug(false),
   _node_name("PHHepMCGenEvent"),
   _hgenManager(NULL),
   _datacardFile("hepgen_dvcs.data"),
@@ -76,7 +75,7 @@ int sHEPGen::Init(PHCompositeNode *topNode) {
   _p4_hadron_prest = new HLorentzVector( *_p4_hadron_lab );
   _p4_hadron_prest->boost(sqrt(_p4_hadron_lab_invert->getQuare()),*_p4_hadron_lab_invert);
 
-  if ( _detailed_debug )
+  if ( verbosity > 2 )
     {
       cout << "Electron and proton in laboratory frame:" << endl;
       _p4_electron_lab->print();
@@ -98,8 +97,8 @@ int sHEPGen::Init(PHCompositeNode *topNode) {
   _hgenManager->setupGenerator();
 
   /* set beam parameters */
-  cout << "Colliding " << _p4_electron_lab->getEnergy() << " GeV electron with " << _p4_hadron_lab->getEnergy() << " GeV proton (laboratory frame)" << endl;
-  cout << "----ELEPT (proton-at-rest): " << _p4_electron_prest->getVector().Z() << endl;
+  cout << "Colliding " << _p4_electron_lab->getVector().Z() << " GeV electron with " << _p4_hadron_lab->getVector().Z() << " GeV proton (laboratory frame)" << endl;
+  cout << "----ELEPT (proton-at-rest): " << _p4_electron_prest->getVector().Z() << " GeV" << endl;
   _hgenManager->getParamManager()->getStruct()->ELEPT = _p4_electron_prest->getVector().Z();
   _hgenManager->getParamManager()->getStruct()->PARL.at(2) = _p4_electron_prest->getVector().Z();
 
@@ -108,7 +107,7 @@ int sHEPGen::Init(PHCompositeNode *topNode) {
   _hgenManager->setSeed ( seed );
 
   /* enable detailed event record printput for debugging */
-  if ( _detailed_debug )
+  if ( verbosity > 2 )
     _hgenManager->enableDebug();
 
   create_node_tree(topNode);
@@ -138,7 +137,7 @@ int sHEPGen::process_event(PHCompositeNode *topNode) {
 
   _hgenManager->oneShot();
 
-  if ( _detailed_debug )
+  if ( verbosity > 2 )
     _hgenManager->getEvent()->printDebug();
 
   HEvent *evt_mc = _hgenManager->getEvent();
@@ -208,7 +207,7 @@ int sHEPGen::process_event(PHCompositeNode *topNode) {
 
       v4_particle_p_lab.boost(sqrt(_p4_hadron_lab->getQuare()),*_p4_hadron_lab);
 
-      if ( _detailed_debug )
+      if ( verbosity > 2 )
         {
           cout << "EVENT RECORD particle: " << edata->listOfParticles.at(p)->getParticleType()
                << " (status: " << edata->listOfParticles.at(p)->getParticleAuxFlag() << ")" << endl;

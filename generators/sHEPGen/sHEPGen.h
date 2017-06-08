@@ -45,10 +45,6 @@ public:
     _p_hadron_lab = hmom;
   }
 
-  void set_debug_mode( bool yesno ) {
-    _detailed_debug = yesno;
-  }
-
   void set_node_name(std::string s) {_node_name = s;}
 
 private:
@@ -71,8 +67,6 @@ private:
   HLorentzVector *_p4_hadron_lab_invert;
   HLorentzVector *_p4_electron_prest;
   HLorentzVector *_p4_hadron_prest;
-
-  bool _detailed_debug;
 
   // output
   std::string _node_name;
