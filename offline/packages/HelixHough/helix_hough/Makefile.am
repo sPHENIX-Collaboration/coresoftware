@@ -17,11 +17,13 @@ VertexFitFunc.h \
 Kalman/HelixKalman.h \
 Kalman/HelixKalmanState.h \
 Kalman/CylinderKalman.h \
+sPHENIX/sPHENIXSeedFinder.h \
 sPHENIX/sPHENIXTracker.h \
 sPHENIX/sPHENIXTrackerTPC.h
 
 libHelixHough_la_SOURCES = \
 SimpleHit3D.cpp \
+sPHENIX/sPHENIXSeedFinder.cpp \
 sPHENIX/sPHENIXTracker.cpp \
 sPHENIX/sPHENIXTrackerTPC.cpp \
 HelixHough_findHelices.cpp \

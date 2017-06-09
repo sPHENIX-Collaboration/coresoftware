@@ -12,7 +12,7 @@ class PHG4SpacalPrototypeSubsystem : public PHG4DetectorSubsystem
 public:
 
   //! constructor
-  PHG4SpacalPrototypeSubsystem(const std::string &name = "CEMC");
+  explicit PHG4SpacalPrototypeSubsystem(const std::string &name = "CEMC");
 
   //! destructor
   virtual ~PHG4SpacalPrototypeSubsystem(void) {}

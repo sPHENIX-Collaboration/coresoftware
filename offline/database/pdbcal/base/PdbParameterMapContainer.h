@@ -20,6 +20,8 @@ class PdbParameterMapContainer: public PdbCalChan
 
   void print() const;
 
+  void Reset();
+
   void AddPdbParameterMap(const int layer, PdbParameterMap *params);
   const PdbParameterMap *GetParameters(const int layer) const;
   PdbParameterMap *GetParametersToModify(const int layer);

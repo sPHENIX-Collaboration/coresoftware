@@ -1,8 +1,7 @@
 #include "PHG4Prototype2InnerHcalSubsystem.h"
-#include "PHG4Prototype2InnerHcalDetector.h"
-#include "PHG4EventActionClearZeroEdep.h"
-#include "PHG4Prototype2InnerHcalSteppingAction.h"
 #include "PHG4Parameters.h"
+#include "PHG4Prototype2InnerHcalDetector.h"
+#include "PHG4Prototype2InnerHcalSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
 
@@ -18,21 +17,19 @@
 using namespace std;
 
 //_______________________________________________________________________
-PHG4Prototype2InnerHcalSubsystem::PHG4Prototype2InnerHcalSubsystem( const std::string &name, const int lyr ):
-  PHG4DetectorSubsystem( name, lyr ),
-  detector_(NULL),
-  steppingAction_( NULL ),
-  eventAction_(NULL)
+PHG4Prototype2InnerHcalSubsystem::PHG4Prototype2InnerHcalSubsystem(const std::string &name, const int lyr)
+  : PHG4DetectorSubsystem(name, lyr)
+  , detector_(nullptr)
+  , steppingAction_(nullptr)
 {
   InitializeParameters();
 }
 
 //_______________________________________________________________________
-int 
-PHG4Prototype2InnerHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
+int PHG4Prototype2InnerHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
-  PHNodeIterator iter( topNode );
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
+  PHNodeIterator iter(topNode);
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create detector
   detector_ = new PHG4Prototype2InnerHcalDetector(topNode, GetParams(), Name());
@@ -40,108 +37,96 @@ PHG4Prototype2InnerHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
   detector_->OverlapCheck(CheckOverlap());
   set<string> nodes;
   if (GetParams()->get_int_param("active"))
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", SuperDetector()));
+    if (!DetNode)
     {
-      PHNodeIterator dstiter( dstNode );
-      PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",SuperDetector()));
-      if (! DetNode)
-	{
-          DetNode = new PHCompositeNode(SuperDetector());
-          dstNode->addNode(DetNode);
-        }
+      DetNode = new PHCompositeNode(SuperDetector());
+      dstNode->addNode(DetNode);
+    }
 
-      ostringstream nodename;
+    ostringstream nodename;
+    if (SuperDetector() != "NONE")
+    {
+      nodename << "G4HIT_" << SuperDetector();
+    }
+    else
+    {
+      nodename << "G4HIT_" << Name();
+    }
+    nodes.insert(nodename.str());
+    if (GetParams()->get_int_param("absorberactive"))
+    {
+      nodename.str("");
       if (SuperDetector() != "NONE")
-	{
-	  nodename <<  "G4HIT_" << SuperDetector();
-	}
+      {
+        nodename << "G4HIT_ABSORBER_" << SuperDetector();
+      }
       else
-	{
-	  nodename <<  "G4HIT_" <<  Name();
-	}
+      {
+        nodename << "G4HIT_ABSORBER_" << Name();
+      }
       nodes.insert(nodename.str());
-      if (GetParams()->get_int_param("absorberactive"))
-	{
-	  nodename.str("");
-	  if (SuperDetector() != "NONE")
-	    {
-	      nodename <<  "G4HIT_ABSORBER_" << SuperDetector();
-	    }
-	  else
-	    {
-	      nodename <<  "G4HIT_ABSORBER_" <<  Name();
-	    }
-          nodes.insert(nodename.str());
-	}
-      BOOST_FOREACH(string node, nodes)
-	{
-	  PHG4HitContainer* g4_hits =  findNode::getClass<PHG4HitContainer>( topNode , node.c_str());
-	  if ( !g4_hits )
-	    {
-	      g4_hits = new PHG4HitContainer(node);
-              DetNode->addNode( new PHIODataNode<PHObject>( g4_hits, node.c_str(), "PHObject" ));
-	    }
-	  if (! eventAction_)
-	    {
-	      eventAction_ = new PHG4EventActionClearZeroEdep(topNode, node);
-	    }
-	  else
-	    {
-	      PHG4EventActionClearZeroEdep *evtact = dynamic_cast<PHG4EventActionClearZeroEdep *>(eventAction_);
-
-	      evtact->AddNode(node);
-	    }
-	}
-
-      // create stepping action
-      steppingAction_ = new PHG4Prototype2InnerHcalSteppingAction(detector_, GetParams());
-
     }
-  else
+    BOOST_FOREACH (string node, nodes)
     {
-      // if this is a black hole it does not have to be active
-      if (GetParams()->get_int_param("blackhole"))
-	{
-	  steppingAction_ = new PHG4Prototype2InnerHcalSteppingAction(detector_, GetParams());
-	}
+      PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node.c_str());
+      if (!g4_hits)
+      {
+        g4_hits = new PHG4HitContainer(node);
+        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, node.c_str(), "PHObject"));
+      }
     }
-  return 0;
 
+    // create stepping action
+    steppingAction_ = new PHG4Prototype2InnerHcalSteppingAction(detector_, GetParams());
+  }
+  else
+  {
+    // if this is a black hole it does not have to be active
+    if (GetParams()->get_int_param("blackhole"))
+    {
+      steppingAction_ = new PHG4Prototype2InnerHcalSteppingAction(detector_, GetParams());
+    }
+  }
+  return 0;
 }
 
 //_______________________________________________________________________
-int
-PHG4Prototype2InnerHcalSubsystem::process_event( PHCompositeNode * topNode )
+int PHG4Prototype2InnerHcalSubsystem::process_event(PHCompositeNode *topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
   if (steppingAction_)
-    {
-      steppingAction_->SetInterfacePointers( topNode );
-    }
+  {
+    steppingAction_->SetInterfacePointers(topNode);
+  }
   return 0;
 }
 
-
-void
-PHG4Prototype2InnerHcalSubsystem::Print(const string &what) const
+void PHG4Prototype2InnerHcalSubsystem::Print(const string &what) const
 {
   cout << Name() << " Parameters: " << endl;
   GetParams()->Print();
   if (detector_)
-    {
-      detector_->Print(what);
-    }
+  {
+    detector_->Print(what);
+  }
+  if (steppingAction_)
+  {
+    steppingAction_->Print(what);
+  }
   return;
 }
 
 //_______________________________________________________________________
-PHG4Detector* PHG4Prototype2InnerHcalSubsystem::GetDetector( void ) const
+PHG4Detector *PHG4Prototype2InnerHcalSubsystem::GetDetector(void) const
 {
   return detector_;
 }
 
-void
-PHG4Prototype2InnerHcalSubsystem::SetDefaultParameters()
+void PHG4Prototype2InnerHcalSubsystem::SetDefaultParameters()
 {
   // all in cm
   set_default_double_param("light_balance_inner_corr", NAN);
@@ -162,9 +147,7 @@ PHG4Prototype2InnerHcalSubsystem::SetDefaultParameters()
   set_default_string_param("material", "SS310");
 }
 
-
-void
-PHG4Prototype2InnerHcalSubsystem::SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr)
+void PHG4Prototype2InnerHcalSubsystem::SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr)
 {
   set_double_param("light_balance_inner_corr", inner_corr);
   set_double_param("light_balance_inner_radius", inner_radius);

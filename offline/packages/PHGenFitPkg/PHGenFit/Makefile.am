@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir` \
@@ -49,12 +49,5 @@ testexternals.C:
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
-
-# Rule for generating CINT dictionaries from class headers.
-#%Dict.C: %.h %LinkDef.h
-#	rootcint -f $@ -c $(CINTFLAGS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $^
-
-#clean-local:
-#	rm -f *Dict*
 
 testexternals_SOURCES = testexternals.C

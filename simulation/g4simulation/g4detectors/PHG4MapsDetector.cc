@@ -3,8 +3,6 @@
 #include "PHG4CylinderGeom_MAPS.h"
 #include "PHG4Parameters.h"
 
-#include "TMath.h"
-
 #include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>

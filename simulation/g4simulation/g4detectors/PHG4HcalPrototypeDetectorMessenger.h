@@ -4,8 +4,8 @@
 #ifndef PHG4HcalPrototypeDetectorMessenger_h
 #define PHG4HcalPrototypeDetectorMessenger_h 1
 
-#include "globals.hh"
-#include "G4UImessenger.hh"
+#include <Geant4/globals.hh>
+#include <Geant4/G4UImessenger.hh>
 
 class PHG4HcalPrototypeDetector;
 class G4UIdirectory;

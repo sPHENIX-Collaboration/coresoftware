@@ -1,23 +1,21 @@
-#ifndef PHNODERESET_H__
-#define PHNODERESET_H__
+#ifndef PHNodeReset_h
+#define PHNodeReset_h
 
 //  Declaration of class PHNodeReset
-//  Purpose: strategy which calls reset() on a PHNode 
+//  Purpose: strategy which calls reset() on a PHNode
 //  Author: Matthias Messer
 
 #include "PHNodeOperation.h"
 
 class PHNode;
 
-class PHNodeReset : public PHNodeOperation 
-{ 
-public: 
-  PHNodeReset(){} 
-   virtual ~PHNodeReset(){} 
+class PHNodeReset : public PHNodeOperation
+{
+ public:
+  PHNodeReset() {}
+  virtual ~PHNodeReset() {}
+ protected:
+  virtual void perform(PHNode*);
+};
 
-protected: 
-   virtual void perform(PHNode*);
-
-}; 
-
-#endif /* PHNODERESET_H__ */
+#endif /* PHNodeReset_h */

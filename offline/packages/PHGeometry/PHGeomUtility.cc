@@ -116,12 +116,12 @@ PHGeomUtility::GetGeomTGeoNode(PHCompositeNode *topNode, bool build_new)
   PHNodeIterator iter(topNode);
 
   // Looking for the RUN node
-  PHCompositeNode *runNode = static_cast<PHCompositeNode*>(iter.findFirst(
-      "PHCompositeNode", "RUN"));
-  if (!runNode)
+  PHCompositeNode *parNode = static_cast<PHCompositeNode*>(iter.findFirst(
+      "PHCompositeNode", "PAR"));
+  if (!parNode)
     {
       stringstream serr;
-      serr << __PRETTY_FUNCTION__ << ": RUN Node missing, request aborting.";
+      serr << __PRETTY_FUNCTION__ << ": PAR Node missing, request aborting.";
       cout << serr.str() << endl;
 
       throw runtime_error(serr.str());
@@ -129,14 +129,14 @@ PHGeomUtility::GetGeomTGeoNode(PHCompositeNode *topNode, bool build_new)
       return NULL;
     }
 
-  PHGeomTGeo *dst_geom = findNode::getClass<PHGeomTGeo>(runNode,
+  PHGeomTGeo *dst_geom = findNode::getClass<PHGeomTGeo>(parNode,
       GetDSTNodeName());
   if (!dst_geom and build_new)
     {
       dst_geom = new PHGeomTGeo();
       PHDataNode<PHObject> *GeomNode = new PHDataNode<PHObject>(dst_geom,
           GetDSTNodeName(), "PHObject");
-      runNode->addNode(GeomNode);
+      parNode->addNode(GeomNode);
     }
 
   return dst_geom;
