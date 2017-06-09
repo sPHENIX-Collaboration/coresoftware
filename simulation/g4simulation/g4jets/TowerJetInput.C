@@ -81,6 +81,24 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
     if (!towers||!geom) {
       return std::vector<Jet*>();
     }
+  } else if (_input == Jet::CEMC_TOWER_SUB1) {
+    towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_CEMC_RETOWER_SUB1");
+    geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_HCALIN");
+    if (!towers||!geom) {
+      return std::vector<Jet*>();
+    }
+  } else if (_input == Jet::HCALIN_TOWER_SUB1) {
+    towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_HCALIN_SUB1");
+    geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_HCALIN");
+    if (!towers||!geom) {
+      return std::vector<Jet*>();
+    }
+  } else if (_input == Jet::HCALOUT_TOWER_SUB1) {
+    towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_HCALOUT_SUB1");
+    geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_HCALOUT");
+    if (!towers||!geom) {
+      return std::vector<Jet*>();
+    }
   } else {
     return std::vector<Jet*>();
   }
@@ -121,7 +139,7 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
     double z = z0 - vtxz;
     
     double eta = asinh(z/r); // eta after shift from vertex
-    
+
     double pt = tower->get_energy() / cosh(eta);
     double px = pt * cos(phi);
     double py = pt * sin(phi);

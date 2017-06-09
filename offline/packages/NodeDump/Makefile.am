@@ -5,7 +5,10 @@ BUILT_SOURCES = \
 
 lib_LTLIBRARIES = libphnodedump.la
 
-INCLUDES = -I$(includedir) -I$(OFFLINE_MAIN)/include -I$(ROOTSYS)/include
+AM_CPPFLAGS = \
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include \
+  -I$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
   PHNodeDump.h \
@@ -58,6 +61,8 @@ libphnodedump_la_LIBADD = \
 noinst_PROGRAMS = \
   testexternals
 
+testexternals_SOURCES = testexternals.cc
+
 testexternals_LDADD = \
   libphnodedump.la
 
@@ -72,9 +77,7 @@ PHNodeDumpDict.cc : \
   PHNodeDump.h \
   Dumper.h \
   PHNodeDumpLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict*
-
-testexternals_SOURCES = testexternals.cc

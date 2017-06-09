@@ -35,6 +35,9 @@
 #include <algorithm>
 #include <cctype>
 
+#define pytune pytune_
+extern "C" int  pytune(int *itune);
+
 using namespace std;
 
 typedef PHIODataNode<PHObject> PHObjectNode_t;
@@ -307,6 +310,13 @@ int PHPythia6::ReadConfig(const string cfg_file) {
       
       pydat2.pmas[index-1][idc-1] = value; 
       cout << "pmas\t" << idc << " " << index << " " << value << endl;
+    }
+    else if ( label == "pytune" )
+    {
+      int ivalue; 
+      line >> ivalue;
+      pytune(&ivalue);
+      cout << "pytune\t" << ivalue << endl;
     }
      else
       {

@@ -84,6 +84,7 @@ public:
     max_phi_bin_in_sec = maxPhiBinInSec;
   }
 
+
   class geom_tower
   {
   public:
@@ -167,7 +168,7 @@ public:
   void
   load_demo_sector_tower_map2();
   void
-  load_demo_sector_tower_map3();
+  load_demo_sector_tower_map_2015_Chris_Cullen_2D_spacal();
   void
   load_demo_sector_tower_map4();
 
@@ -176,6 +177,10 @@ public:
   {
     return sector_tower_map;
   }
+
+  //! get approximate radial position of tower
+  double
+  get_tower_radial_position(const geom_tower & tower) const;
 
   //! check that all towers has consistent sub-tower divider
   void
@@ -203,7 +208,7 @@ public:
 
   public:
 
-    scint_id_coder(int scint_id);
+    explicit scint_id_coder(int scint_id);
     scint_id_coder(int sector_id, int tower_id, int fiber_id);
     virtual
     ~scint_id_coder()

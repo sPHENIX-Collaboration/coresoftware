@@ -1,8 +1,11 @@
 #ifndef PHG4MAPSCELLRECO_H
 #define PHG4MAPSCELLRECO_H
 
+#include "PHG4ParameterContainerInterface.h"
+
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
+
 #include <string>
 #include <map>
 #include <vector>
@@ -10,11 +13,11 @@
 class PHCompositeNode;
 class PHG4Cell;
 
-class PHG4MapsCellReco : public SubsysReco
+class PHG4MapsCellReco : public SubsysReco, public PHG4ParameterContainerInterface
 {
  public:
 
-  PHG4MapsCellReco(const std::string &name);
+  explicit PHG4MapsCellReco(const std::string &name = "MAPSRECO");
 
   virtual ~PHG4MapsCellReco(){}
   
@@ -29,6 +32,12 @@ class PHG4MapsCellReco : public SubsysReco
   
   void Detector(const std::string &d) {detector = d;}
   void checkenergy(const int i=1) {chkenergyconservation = i;}
+
+  double get_timing_window_min(const int i) {return tmin_max[i].first;}
+  double get_timing_window_max(const int i) {return tmin_max[i].second;}
+ void   set_timing_window(const int detid, const double tmin, const double tmax);
+
+  void SetDefaultParameters();
 
  protected:
 
@@ -76,7 +85,7 @@ class PHG4MapsCellReco : public SubsysReco
   PHTimeServer::timer _timer;
   int nbins[2];
   int chkenergyconservation;
-
+  std::map<int, std::pair<double,double> > tmin_max;
   std::map<unsigned long long, PHG4Cell*> celllist;  // This map holds the hit cells
 };
 

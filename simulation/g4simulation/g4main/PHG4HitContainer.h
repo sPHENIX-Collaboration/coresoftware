@@ -21,7 +21,7 @@ class PHG4HitContainer: public PHObject
   typedef std::set<unsigned int>::const_iterator LayerIter;
 
   PHG4HitContainer(); //< used only by ROOT for DST readback
-  PHG4HitContainer(std::string nodename);
+  PHG4HitContainer(const std::string &nodename);
 
   virtual ~PHG4HitContainer() {}
 
