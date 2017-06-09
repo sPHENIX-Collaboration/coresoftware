@@ -5,7 +5,13 @@ lib_LTLIBRARIES = \
     libg4detectors_io.la \
     libg4detectors.la
 
-AM_CPPFLAGS = -DCGAL_DISABLE_ROUNDING_MATH_CHECK
+AM_CPPFLAGS = \
+    -DCGAL_DISABLE_ROUNDING_MATH_CHECK \
+    -I$(includedir) \
+    -I$(OFFLINE_MAIN)/include \
+    -I$(ROOTSYS)/include \
+    -I$(G4_MAIN)/include \
+    -I$(OPT_SPHENIX)/include 
 
 # set in configure.in to check if gcc version >= 4.8
 #if GCC_GE_48
@@ -16,15 +22,9 @@ AM_LDFLAGS = \
     -L$(libdir) \
     -L$(OFFLINE_MAIN)/lib
 
-INCLUDES = \
-    -I$(includedir) \
-    -I$(OFFLINE_MAIN)/include \
-    -I$(ROOTSYS)/include \
-    -I$(G4_MAIN)/include \
-    -I$(OPT_SPHENIX)/include 
-
 libg4detectors_io_la_LIBADD = \
   -L$(ROOTSYS)/lib \
+  -lCLHEP \
   -lphool \
   -lboost_filesystem \
   -lboost_system \
@@ -33,6 +33,7 @@ libg4detectors_io_la_LIBADD = \
 
 libg4detectors_la_LIBADD = \
   libg4detectors_io.la \
+  -lphg4gdml \
   -lphool  \
   -lCGAL \
   -lSubsysReco \
@@ -119,6 +120,7 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderGeom_Spacalv2.cc \
   PHG4CylinderGeom_Spacalv2_Dict.cc \
   PHG4CylinderGeom_Spacalv3.cc \
+  PHG4CylinderGeom_Spacalv3_2015.cc \
   PHG4CylinderGeom_Spacalv3_Dict.cc \
   PHG4CylinderGeomContainer.cc \
   PHG4CylinderGeomContainer_Dict.cc \
@@ -140,6 +142,10 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCellGeomContainer.cc \
   PHG4CylinderCellGeomContainer_Dict.cc \
   PHG4ScintillatorSlat_Dict.cc \
+  PHG4ScintillatorSlatDefs.cc \
+  PHG4ScintillatorSlatDefs_Dict.cc \
+  PHG4ScintillatorSlatv1.cc \
+  PHG4ScintillatorSlatv1_Dict.cc \
   PHG4ScintillatorSlatContainer.cc \
   PHG4ScintillatorSlatContainer_Dict.cc
 
@@ -218,11 +224,6 @@ libg4detectors_la_SOURCES = \
   PHG4InnerHcalSteppingAction.cc \
   PHG4InnerHcalSubsystem.cc \
   PHG4InnerHcalSubsystem_Dict.cc \
-  PHG4ScintillatorSlat_Dict.cc \
-  PHG4ScintillatorSlatDefs.cc \
-  PHG4ScintillatorSlatDefs_Dict.cc \
-  PHG4ScintillatorSlatv1.cc \
-  PHG4ScintillatorSlatv1_Dict.cc \
   PHG4OuterHcalDetector.cc \
   PHG4OuterHcalField.cc \
   PHG4OuterHcalFieldSetup.cc \
@@ -267,8 +268,8 @@ libg4detectors_la_SOURCES = \
   PHG4MapsSubsystem.cc \
   PHG4MapsSubsystem_Dict.cc \
   PHG4SpacalDetector.cc \
-  PHG4ProjSpacalDetector.cc \
   PHG4FullProjSpacalDetector.cc \
+  PHG4FullProjTiltedSpacalDetector.cc \
   PHG4FullProjSpacalCellReco.cc \
   PHG4FullProjSpacalCellReco_Dict.cc \
   PHG4SpacalPrototypeDetector.cc \
@@ -288,16 +289,20 @@ libg4detectors_la_SOURCES = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals_g4detectors
+  testexternals_g4detectors \
+  testexternals_g4detectors_io
 
 testexternals_g4detectors_SOURCES = testexternals.cc
 testexternals_g4detectors_LDADD = libg4detectors.la
+
+testexternals_g4detectors_io_SOURCES = testexternals.cc
+testexternals_g4detectors_io_LDADD = libg4detectors_io.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

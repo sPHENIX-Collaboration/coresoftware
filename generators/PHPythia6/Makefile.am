@@ -1,9 +1,8 @@
 AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = -I$(includedir) -I$(OFFLINE_MAIN)/include -I`root-config --incdir`
-AM_LDFLAGS = -L$(libdir) -L$(OFFLINE_MAIN)/lib -L$(OPT_SPHENIX)/lib
 
-AM_CXXFLAGS = -Wall -Werror
+AM_CXXFLAGS = -Werror
 
 lib_LTLIBRARIES = libPHPythia6.la
 
@@ -13,7 +12,11 @@ pkginclude_HEADERS = \
   PHPy6ForwardElectronTrig.h \
   PHPy6ParticleTrigger.h
 
-libPHPythia6_la_LDFLAGS = ${AM_LDFLAGS} `root-config --libs`
+libPHPythia6_la_LDFLAGS =  \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OPT_SPHENIX)/lib \
+  `root-config --libs`
 
 libPHPythia6_la_LIBADD = \
   -lphool -lSubsysReco -lfun4all -lPythia6 -lEG -lEGPythia6 \

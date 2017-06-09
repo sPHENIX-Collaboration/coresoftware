@@ -10,6 +10,7 @@
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 
@@ -19,8 +20,14 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
 
+#include <TH1F.h>
+#include <TProfile2D.h>
+#include <TROOT.h>
+
 #include <CLHEP/Units/PhysicalConstants.h>
 #include <CLHEP/Units/SystemOfUnits.h>
+
+#include <gsl/gsl_randist.h>
 
 #include <cmath>
 #include <cstdlib>
@@ -28,10 +35,6 @@
 #include <sstream>
 #include <limits>
 
-#include <TMath.h>
-#include "TH1F.h"
-#include "TProfile2D.h"
-#include "TStopwatch.h"
 
 using namespace std;
 
@@ -42,7 +45,7 @@ PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
       fHalfLength(100),
       fDiffusionT(0.0057),
       fDiffusionL(0.0057),
-      elec_per_kev(38.),
+      elec_per_gev(38.*1e6),
       driftv(6.0/1000.0), // cm per ns
       num_pixel_layers(n_pixel),
       tmin_default(0.0),  // ns
@@ -57,16 +60,18 @@ PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
       fHErrorRPhi(NULL),
       fHErrorZ(NULL),
       fFractRPsm(0.0),
-      fFractZZsm(0.0),
-      fSW(NULL),
-      fHTime(NULL)
+      fFractZZsm(0.0)
 {
   memset(nbins,0,sizeof(nbins));
-  rand.SetSeed(PHRandomSeed());
+  unsigned int seed = PHRandomSeed(); // fixed seed is handled in this funtcion
+  cout << Name() << " random seed: " << seed << endl;
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  gsl_rng_set(RandomGenerator, seed);
 }
 
 PHG4CylinderCellTPCReco::~PHG4CylinderCellTPCReco()
 {
+  gsl_rng_free(RandomGenerator);
   delete distortion;
 }
 
@@ -106,10 +111,8 @@ int PHG4CylinderCellTPCReco::Init(PHCompositeNode* top_node)
     se->registerHisto( fHErrorRPhi );
     fHErrorZ = new TProfile2D("TPCGEO_CloudSizeZ","TPCGEO_CloudSizeZ",50,-0.5,49.5,220,-110,+110);
     se->registerHisto( fHErrorZ );
-    fSW = new TStopwatch();
-    fHTime = new TH1F("TIME_TPCGEO","TPCGEO_TIME;sec per event",1000,0,60);
-    se->registerHisto( fHTime );
   }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -153,7 +156,6 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
     layerseggeo->set_radius(layergeom->get_radius());
     layerseggeo->set_thickness(layergeom->get_thickness());
     
-    zmin_max[layer] = make_pair(layergeom->get_zmin(), layergeom->get_zmax());
     double size_z = (sizeiter->second).second;
     double size_r = (sizeiter->second).first;
     double bins_r;
@@ -220,10 +222,6 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
 
 int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 {
-  if(verbosity>1) {
-    fSW->Reset();
-    fSW->Start();
-  }
   _timer.get()->restart();
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit){cout << "Could not locate g4 hit node " << hitnodename << endl;exit(1);}
@@ -235,11 +233,9 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
   map<int, std::pair <double, double> >::iterator sizeiter;
   PHG4HitContainer::LayerIter layer;
   pair<PHG4HitContainer::LayerIter, PHG4HitContainer::LayerIter> layer_begin_end = g4hit->getLayers();
-  double sqrt2 = sqrt(2.);
-  
   for(layer = layer_begin_end.first; layer != layer_begin_end.second; layer++)
   {
-    std::map<unsigned long, PHG4Cell*> cellptmap; // key will fail if numbins per layer > 4.2 billion
+    std::map<unsigned long long, PHG4Cell*> cellptmap;
     PHG4HitContainer::ConstIterator hiter;
     PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(*layer);
     PHG4CylinderCellGeom *geo = seggeo->GetLayerCellGeom(*layer);
@@ -295,7 +291,6 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
               phi += drphi/r;
               z += dz;
             }
-	  /*
 	  //TODO: this is an approximation of average track propagation time correction on a cluster's hit time or z-position.
 	  // Full simulation require implement this correction in PHG4TPCClusterizer::process_event
 	  const double approximate_cluster_path_length = sqrt(
@@ -307,7 +302,6 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	    z -= driftv * ( hiter->second->get_avg_t() - approximate_cluster_path_length / speed_of_light_cm_ns);
 	  else
 	    z += driftv * ( hiter->second->get_avg_t() - approximate_cluster_path_length / speed_of_light_cm_ns);
-	  */
 	}
       phibin = geo->get_phibin( phi );
       if(phibin < 0 || phibin >= nphibins){continue;}
@@ -322,8 +316,9 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	fHMeanEDepPerCell->Fill( float(*layer), z, edep );
       }
       if( (*layer) < (unsigned int)num_pixel_layers ) { // MAPS + ITT
-        unsigned long key = zbin*nphibins + phibin;
-	std::map<unsigned long, PHG4Cell*>::iterator it = cellptmap.find(key);
+	unsigned long long longphibins = nphibins;
+        unsigned long long key = zbin*longphibins + phibin;
+	std::map<unsigned long long, PHG4Cell*>::iterator it = cellptmap.find(key);
 	PHG4Cell *cell;
 	if(it != cellptmap.end()) {
 	  cell = it->second;
@@ -338,21 +333,30 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	if(hiter->second->has_property(PHG4Hit::prop_eion)) cell->add_eion(hiter->second->get_eion());
       } else { // TPC
 	// converting Edep to Total Number Of Electrons
-        double nelec = rand.PoissonD( elec_per_kev*1e6*edep );
+	float eion = hiter->second->get_eion();
+	if (!isfinite(eion))
+	{
+	  eion = edep;
+	}
+	if (eion <= 0) // no ionization energy - skip to next hit
+	{
+	  continue;
+	}
+        double nelec = gsl_ran_poisson(RandomGenerator,elec_per_gev*eion);
 	if(verbosity>1) {
 	  fHElectrons->Fill( nelec );
 	}
 	double sigmaT = 0.010; //100um
 	double sigmaL = 0.010; //100um
-        double cloud_sig_rp = sqrt( fDiffusionT*fDiffusionT*(fHalfLength - TMath::Abs(hiter->second->get_avg_z())) + sigmaT*sigmaT );
-        double cloud_sig_zz = sqrt( fDiffusionL*fDiffusionL*(fHalfLength - TMath::Abs(hiter->second->get_avg_z())) + sigmaL*sigmaL );
+        double cloud_sig_rp = sqrt( fDiffusionT*fDiffusionT*(fHalfLength - fabs(hiter->second->get_avg_z())) + sigmaT*sigmaT );
+        double cloud_sig_zz = sqrt( fDiffusionL*fDiffusionL*(fHalfLength - fabs(hiter->second->get_avg_z())) + sigmaL*sigmaL );
 
 	//===============
 	// adding a random displacement to effectively deal with cellularisation
-	phi += fFractRPsm*rand.Gaus(0,cloud_sig_rp)/r;
-	if(phi>+TMath::Pi()) phi -= TMath::TwoPi();
-	if(phi<-TMath::Pi()) phi += TMath::TwoPi();
-	z += fFractZZsm*rand.Gaus(0,cloud_sig_zz);
+	phi += fFractRPsm*gsl_ran_gaussian(RandomGenerator, cloud_sig_rp)/r;
+	if(phi>+M_PI) phi -= 2*M_PI;
+	if(phi<-M_PI) phi += 2*M_PI;
+	z += fFractZZsm*gsl_ran_gaussian(RandomGenerator, cloud_sig_zz);
 	// moving center
 	phibin = geo->get_phibin( phi );
 	zbin = geo->get_zbin( z );
@@ -390,23 +394,23 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	    std::cout << "PHG4CylinderCellTPCReco => error in phi continuity. Skipping" << std::endl;
 	    continue;
 	  }
-	  double phiLim1 = 0.5*sqrt2*( (iphi+0.5)*phistepsize*r - phidisp*r )*cloud_sig_rp_inv;
-	  double phiLim2 = 0.5*sqrt2*( (iphi-0.5)*phistepsize*r - phidisp*r )*cloud_sig_rp_inv;
+	  double phiLim1 = 0.5*M_SQRT2*( (iphi+0.5)*phistepsize*r - phidisp*r )*cloud_sig_rp_inv;
+	  double phiLim2 = 0.5*M_SQRT2*( (iphi-0.5)*phistepsize*r - phidisp*r )*cloud_sig_rp_inv;
           double phi_integral = 0.5*( erf(phiLim1) - erf(phiLim2) );
           for( int iz = -n_zz; iz != n_zz+1; ++iz ) {
             int cur_z_bin = zbin + iz;
 	    if( (cur_z_bin < 0) || (cur_z_bin >= nzbins) ) continue;
-	    double zLim1 = 0.5*sqrt2*( (iz+0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
-	    double zLim2 = 0.5*sqrt2*( (iz-0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
+	    double zLim1 = 0.5*M_SQRT2*( (iz+0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
+	    double zLim2 = 0.5*M_SQRT2*( (iz-0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
             double z_integral = 0.5*( erf(zLim1) - erf(zLim2) );
-            float neffelectrons = nelec*( phi_integral * z_integral );//rand.PoissonD( nelec*( phi_integral * z_integral ) );
+            float neffelectrons = nelec*( phi_integral * z_integral );
 	    if(verbosity>1000) {
 	      std::cout << Form("%.3f",neffelectrons) << " ";
 	      if( iz == n_zz ) std::cout << std::endl;
 	    }
             if(neffelectrons < 0) continue; // skip no signals
 	    unsigned long key = cur_z_bin*nphibins + cur_phi_bin;
-	    std::map<unsigned long, PHG4Cell*>::iterator it = cellptmap.find(key);
+	    std::map<unsigned long long, PHG4Cell*>::iterator it = cellptmap.find(key);
 	    PHG4Cell *cell;
 	    if(it != cellptmap.end()) {
 	      cell = it->second;
@@ -424,7 +428,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       }
     }
     int count = 0;
-    for(std::map<unsigned long, PHG4Cell*>::iterator it = cellptmap.begin(); it != cellptmap.end(); ++it) {
+    for(std::map<unsigned long long, PHG4Cell*>::iterator it = cellptmap.begin(); it != cellptmap.end(); ++it) {
       cells->AddCell(it->second);
       int phibin = PHG4CellDefs::SizeBinning::get_phibin(it->second->get_cellid());
       int zbin = PHG4CellDefs::SizeBinning::get_zbin(it->second->get_cellid());
@@ -439,16 +443,5 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
   }
   if(verbosity>1000) std::cout<<"PHG4CylinderCellTPCReco end" << std::endl;
   _timer.get()->stop();
-  if(verbosity>1) {
-    fHTime->Fill( fSW->RealTime() );
-  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-
-int PHG4CylinderCellTPCReco::End(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-

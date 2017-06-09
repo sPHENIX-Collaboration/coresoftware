@@ -120,6 +120,8 @@ PHG4RICHSteppingAction::UserSteppingAction(const G4Step* aStep)
 
 bool PHG4RICHSteppingAction::MakeHit(const G4Step* aStep){
 
+  // collect energy and track
+  G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   const G4Track* aTrack = aStep->GetTrack();
   G4StepPoint* postPoint = aStep->GetPostStepPoint();
 
@@ -151,12 +153,14 @@ bool PHG4RICHSteppingAction::MakeHit(const G4Step* aStep){
 	  {
 	    hit->set_trkid(pp->GetUserTrackId());
 	    hit->set_shower_id(pp->GetShower()->get_id());
+
+	    pp->SetKeep(true); // we want to keep the track
 	  }
       }
   }
 
-  // set optical photon energy deposition to 0
-  hit->set_edep(0);
+  // set optical photon energy deposition
+  hit->set_edep(edep);
 
   // Now add the hit
   hits_->AddHit(layer_id, hit);

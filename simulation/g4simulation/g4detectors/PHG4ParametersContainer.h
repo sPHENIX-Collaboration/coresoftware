@@ -19,7 +19,7 @@ class PHG4ParametersContainer : public PHObject
   typedef std::pair<Iterator, Iterator> Range;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
-  PHG4ParametersContainer(const std::string &name = "NONE");
+  explicit PHG4ParametersContainer(const std::string &name = "NONE");
   virtual ~PHG4ParametersContainer();
 
   void AddPHG4Parameters(const int layer, PHG4Parameters *params);
@@ -36,6 +36,8 @@ class PHG4ParametersContainer : public PHObject
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename);
   int ExistDetid(const int detid) const;
   void clear() { parametermap.clear(); }
+  void FillFrom(const PdbParameterMapContainer *saveparamcontainer);
+
  protected:
   void CopyToPdbParameterMapContainer(PdbParameterMapContainer *myparm);
   std::string superdetectorname;

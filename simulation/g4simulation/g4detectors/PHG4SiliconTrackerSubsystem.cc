@@ -22,7 +22,6 @@ PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &dete
   , steppingAction_(nullptr)
   , layerconfig_(layerconfig)
   , detector_type(detectorname)
-  , superdetector("NONE")
 {
   for (vector<pair<int, int>>::const_iterator piter = layerconfig.begin(); piter != layerconfig.end(); ++piter)
   {
@@ -32,6 +31,7 @@ PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &dete
   // put the layer into the name so we get unique names
   // for multiple layers
   Name(detectorname);
+  SuperDetector(detectorname);
 }
 
 //_______________________________________________________________________
@@ -45,7 +45,7 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 
   // create detector
   detector_ = new PHG4SiliconTrackerDetector(topNode, GetParamsContainer(), Name(), layerconfig_);
-  detector_->SuperDetector(superdetector);
+  detector_->SuperDetector(SuperDetector());
   detector_->Detector(detector_type);
   detector_->OverlapCheck(CheckOverlap());
 
@@ -69,23 +69,28 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   }
   if (active)
   {
-    cout << "detector: " << detector_type << endl;
-    cout << "superdetector: " << superdetector << endl;
-    std::string nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_%s") % superdetector) : boost::str(boost::format("G4HIT_%s") % detector_type);
+    PHNodeIterator dstIter(dstNode);
+    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode(SuperDetector());
+      dstNode->addNode(DetNode);
+    }
+    std::string nodename = (SuperDetector() != "NONE") ? boost::str(boost::format("G4HIT_%s") % SuperDetector()) : boost::str(boost::format("G4HIT_%s") % detector_type);
 
     // create hit list
     PHG4HitContainer *hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, nodename.c_str());
     if (!hitcontainer)
-      dstNode->addNode(new PHIODataNode<PHObject>(hitcontainer = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
+      DetNode->addNode(new PHIODataNode<PHObject>(hitcontainer = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
 
     if (absorberactive)
     {
-      //      nodename = (superdetector != "NONE") ? boost::str(boost::format("G4HIT_ABSORBER_%s") % superdetector) : boost::str(boost::format("G4HIT_ABSORBER_%s") % detector_type);
+      nodename = (SuperDetector() != "NONE") ? boost::str(boost::format("G4HIT_ABSORBER_%s") % SuperDetector()) : boost::str(boost::format("G4HIT_ABSORBER_%s") % detector_type);
 
       hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, nodename.c_str());
       if (!hitcontainer)
       {
-        dstNode->addNode(new PHIODataNode<PHObject>(hitcontainer = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
+        DetNode->addNode(new PHIODataNode<PHObject>(hitcontainer = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
       }
     }
 
@@ -122,10 +127,80 @@ PHG4Detector *PHG4SiliconTrackerSubsystem::GetDetector(void) const
 
 void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
 {
-  set_default_double_param(0, "Radius", 6.);
-  set_default_double_param(1, "Radius", 8.);
-  set_default_double_param(2, "Radius", 10.);
-  set_default_double_param(3, "Radius", 12.);
+  // all values in cm!
+  for (int i = 0; i < 4; i++)
+  {
+    set_default_int_param(i, "nstrips_phi_cell", 128);
+    set_default_double_param(i, "fphx_x", 0.032);
+    set_default_double_param(i, "fphx_y", 0.27);
+    set_default_double_param(i, "fphx_z", 0.9);
+    set_default_double_param(i, "gap_sensor_fphx", 0.1);
+    set_default_double_param(i, "hdi_x", 0.038626);
+    set_default_double_param(i, "hdi_edge_z", 0.01);
+    set_default_double_param(i, "offsetphi", 0.);
+    set_default_double_param(i, "pgs_x", 0.021);
+    set_default_double_param(i, "sensor_edge_phi", 0.1305);
+    set_default_double_param(i, "sensor_edge_z", 0.098);
+    set_default_double_param(i, "stave_x", 0.023);
+    set_default_double_param(i, "strip_x", 0.02);
+  }
+
+  set_default_int_param(0, "nladder", 20);
+  set_default_int_param(1, "nladder", 26);
+  set_default_int_param(2, "nladder", 32);
+  set_default_int_param(3, "nladder", 38);
+
+  set_default_int_param(0, "nstrips_z_sensor_0", 5);
+  set_default_int_param(1, "nstrips_z_sensor_0", 8);
+  set_default_int_param(2, "nstrips_z_sensor_0", 8);
+  set_default_int_param(3, "nstrips_z_sensor_0", 8);
+
+  set_default_int_param(0, "nstrips_z_sensor_1", 5);
+  set_default_int_param(1, "nstrips_z_sensor_1", 5);
+  set_default_int_param(2, "nstrips_z_sensor_1", 5);
+  set_default_int_param(3, "nstrips_z_sensor_1", 5);
+
+  set_default_double_param(0, "halfladder_z", 22.);
+  set_default_double_param(1, "halfladder_z", 26.8);
+  set_default_double_param(2, "halfladder_z", 26.8);
+  set_default_double_param(3, "halfladder_z", 26.8);
+
+  set_default_double_param(0, "hdi_y", 3.8);
+  set_default_double_param(1, "hdi_y", 4.3);
+  set_default_double_param(2, "hdi_y", 4.3);
+  set_default_double_param(3, "hdi_y", 4.3);
+
+  set_default_double_param(0, "offsetrot", 14.0);
+  set_default_double_param(1, "offsetrot", 14.0);
+  set_default_double_param(2, "offsetrot", 12.0);
+  set_default_double_param(3, "offsetrot", 11.5);
+
+  set_default_double_param(0, "radius", 6.);
+  set_default_double_param(1, "radius", 8.);
+  set_default_double_param(2, "radius", 10.);
+  set_default_double_param(3, "radius", 12.);
+
+  set_default_double_param(0, "strip_y", 0.0078);
+  set_default_double_param(1, "strip_y", 0.0086);
+  set_default_double_param(2, "strip_y", 0.0086);
+  set_default_double_param(3, "strip_y", 0.0086);
+
+  set_default_double_param(0, "strip_z_0", 1.8);
+  set_default_double_param(1, "strip_z_0", 1.6);
+  set_default_double_param(2, "strip_z_0", 1.6);
+  set_default_double_param(3, "strip_z_0", 1.6);
+
+  set_default_double_param(0, "strip_z_1", 1.8);
+  set_default_double_param(1, "strip_z_1", 2.0);
+  set_default_double_param(2, "strip_z_1", 2.0);
+  set_default_double_param(3, "strip_z_1", 2.0);
+
+  std::pair<std::set<int>::const_iterator, std::set<int>::const_iterator> begin_end = GetDetIds();
+  for (set<int>::const_iterator it = begin_end.first; it != begin_end.second; ++it)
+  {
+    set_default_int_param(*it, "active", 1);
+  }
+
   return;
 }
 

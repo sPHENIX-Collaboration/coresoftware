@@ -1,3 +1,6 @@
+#include <HepMC/GenEvent.h>
+#include <CLHEP/Random/RandFlat.h>
+
 #include <string>
 
 enum flowAfterburnerAlgorithm 
