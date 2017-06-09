@@ -26,11 +26,12 @@ typedef PHIODataNode<PHObject> PHObjectNode_t;
 ReadEICFiles::ReadEICFiles(const string &name):
   SubsysReco(name),
   filename(""),
-  Tin(NULL),
+  Tin(nullptr),
   nEntries(0),
   entry(0),
-  GenEvent(NULL),
-  _node_name("PHHepMCGenEvent")
+  GenEvent(nullptr),
+  _node_name("PHHepMCGenEvent"),
+  _phhepmcevt(nullptr)
 {
   return;
 }
@@ -210,6 +211,24 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
 	  hepmc_vertices.push_back( hepmcvtx );
 	  hepmcvtx->add_particle_in(pmother);
 	  pmother->end_vertex()->add_particle_out(pp);
+	}
+    }
+
+  /* Add end vertex to beam particles if they don't have one yet */
+  for ( unsigned p = 0; p < 2; p++ )
+    {
+      HepMC::GenParticle *pp = hepmc_particles.at(p);
+
+      if ( ! pp->end_vertex() )
+	{
+	  /* create collision vertex */
+	  HepMC::GenVertex* hepmcvtx = new HepMC::GenVertex( HepMC::FourVector( 0,
+										0,
+										0,
+										0 )
+							     );
+	  hepmc_vertices.push_back( hepmcvtx );
+	  hepmcvtx->add_particle_in( pp );
 	}
     }
 
