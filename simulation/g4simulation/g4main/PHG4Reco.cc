@@ -52,6 +52,9 @@
 #include <Geant4/G4OpticalPhoton.hh>
 #include <Geant4/G4OpticalPhysics.hh>
 #include <Geant4/G4PEEffectFluoModel.hh>
+#include <Geant4/G4EmProcessOptions.hh>
+#include <Geant4/G4HadronicProcessStore.hh>
+#include <Geant4/G4StepLimiterPhysics.hh>
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ParticleTable.hh>
 #include <Geant4/G4ParticleTypes.hh>
@@ -241,7 +244,6 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     if (active_force_decay_) decayer->SetForceDecay(force_decay_type_);
     myphysicslist->RegisterPhysics(decayer);
   }
-
   myphysicslist->RegisterPhysics(new G4StepLimiterPhysics());
   runManager_->SetUserInitialization(myphysicslist);
 

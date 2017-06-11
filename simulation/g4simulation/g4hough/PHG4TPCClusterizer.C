@@ -153,7 +153,8 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
 	std::cout << Form("%.2f | ",fAmps[bin]);
 	if(ip==fFitRangeP) std::cout << std::endl;
       }
-      if(fAmps[bin] < fFitEnergyThreshold*peak) continue; // skip small (include empty)
+      //if(fAmps[bin] < fFitEnergyThreshold*peak) continue; // skip small (include empty)
+      if(fAmps[bin] < fFitEnergyThreshold) continue; // skip small (include empty)
       used = true;
       nphis++;
       float ee = fAmps[bin];
@@ -250,9 +251,15 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
   }
   PHG4CylinderCellGeomContainer* geom_container =
     findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
-  if (!geom_container) return Fun4AllReturnCodes::ABORTRUN;
+  if (!geom_container) {
+    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
   PHG4CellContainer* cells =  findNode::getClass<PHG4CellContainer>(dstNode,"G4CELL_SVTX");
-  if (!cells) return Fun4AllReturnCodes::ABORTRUN;
+  if (!cells) {
+    std::cout << PHWHERE << "ERROR: Can't find node G4CELL_SVTX" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   // ==> making layer_sorted
   std::vector<std::vector<const SvtxHit*> > layer_sorted;
