@@ -3457,7 +3457,7 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 				cluster_IDs.push_back(iter->second);
 #ifdef _DEBUG_
 				SvtxCluster* cluster = _g4clusters->get(iter->second);
-				TVector3 v(cluster->get_x(),cluster->get_y(),cluster->get_z());
+				TVector3 v(cluster->get_x()-_vertex[0],cluster->get_y()-_vertex[1],cluster->get_z()-_vertex[2]);
 				float phi_cluster = v.Phi();
 				fout_kalman_pull
 				<< _event << "\t"
