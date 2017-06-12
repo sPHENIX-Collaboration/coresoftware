@@ -48,6 +48,7 @@ PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string 
   _vertex_size_func_r(Uniform),
   _vertex_size_mean(0.0),
   _vertex_size_width(0.0),
+  read_vtx_from_hepmc(true),
   y_min(0.),
   y_max(0.),
   eta_min(-1.0),
@@ -66,7 +67,8 @@ PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string 
   fsin(NULL),
   frap(NULL),
   fpt(NULL),
-  trand(NULL)
+  trand(NULL),
+  ineve(NULL)
 {
 
   // From PDG:
@@ -272,6 +274,18 @@ PHG4ParticleGeneratorVectorMeson::InitRun(PHCompositeNode *topNode)
   fpt->SetParameter(1,26.516);
   fpt->SetParameter(2,10.6834);
 
+  ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
+  if (!ineve) {
+    PHNodeIterator iter( topNode );
+    PHCompositeNode *dstNode;
+    dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+
+    ineve = new PHG4InEvent();
+    PHDataNode<PHObject> *newNode = new PHDataNode<PHObject>(ineve, "PHG4INEVENT", "PHObject");
+    dstNode->addNode(newNode);
+  }
+
+
   cout << "PHG4ParticleGeneratorVectorMeson::InitRun endeded." << endl;
   return 0;
 }
@@ -281,23 +295,7 @@ PHG4ParticleGeneratorVectorMeson::InitRun(PHCompositeNode *topNode)
 int
 PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 {
-  PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode,"PHG4INEVENT");
-
-  // If not reusing existing vertex Randomly generate vertex position in z 
-/*
-  if (! ReuseExistingVertex(topNode))
-    {
-      if (vtx_zmax != vtx_zmin)
-        {
-          vtx_z = (vtx_zmax - vtx_zmin) * gsl_rng_uniform_pos(RandomGenerator) + vtx_zmin;
-        }
-      else
-        {
-          vtx_z = vtx_zmin;
-        }
-    }
-  int vtxindex = ineve->AddVtx(vtx_x,vtx_y,vtx_z,t0);
-*/
+  if (!ineve) cout<<" G4InEvent not found "<<endl;
 
   // Generate a new set of vectors for the vector meson for each event
   // These are the momentum and direction vectors for the pre-decay vector meson
@@ -340,8 +338,6 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 
   TLorentzVector vm;
   vm.SetPtEtaPhiM(pt,eta,phi,mnow);
-  // For reuse existing vertex
-  set_vertex_distribution_mean(vtx_x, vtx_y, vtx_z);
 
   for (std::map<unsigned int, std::string>::iterator it=decay1_names.begin(); it !=decay1_names.end() ; it++){
 
@@ -352,6 +348,7 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     std::map<unsigned int, double>::iterator xt = decay_vtx_offset_x.find(decay_id);
     std::map<unsigned int, double>::iterator yt = decay_vtx_offset_y.find(decay_id);
     std::map<unsigned int, double>::iterator zt = decay_vtx_offset_z.find(decay_id);
+    
 
     if (jt != decay2_names.end() && xt != decay_vtx_offset_x.end() && yt != decay_vtx_offset_y.end() && zt != decay_vtx_offset_z.end()){
     decay2_name = jt->second;
@@ -365,18 +362,27 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 
   int vtxindex = -9;
 
-  if (! ReuseExistingVertex(topNode))
-    {                   // mean   width
+  if (!ReuseExistingVertex(topNode))
+    { // If not reusing existing vertex Randomly generate vertex position in z
+      // 		   mean   width
       vtx_x = smearvtx(_vertex_x,_vertex_width_x,_vertex_func_x);
       vtx_y = smearvtx(_vertex_y,_vertex_width_y,_vertex_func_y);
       vtx_z = smearvtx(_vertex_z,_vertex_width_z,_vertex_func_z);
     }
+  else if (ReuseExistingVertex(topNode)==2 && read_vtx_from_hepmc)
+    {
+      cout << PHWHERE << "::Error - PHG4ParticleGeneratorVectorMeson expects an existing vertex in PHG4InEvent, but none exists" << endl;
+    }
   else 
     {
-        // Fixed vertex
-        vtx_x = _vertex_x + _vertex_offset_x;
-        vtx_y = _vertex_y + _vertex_offset_y;
-        vtx_z = _vertex_z + _vertex_offset_z;
+
+        // Fixed vertex if non-zero vertex offset
+//        vtx_x = _vertex_x + _vertex_offset_x;
+//        vtx_y = _vertex_y + _vertex_offset_y;
+//        vtx_z = _vertex_z + _vertex_offset_z;
+	vtx_x += _vertex_offset_x;
+	vtx_y += _vertex_offset_y;
+	vtx_z += _vertex_offset_z;
 
 	// 3D Randomized vertex
       if ((_vertex_size_width > 0.0)||(_vertex_size_mean != 0.0)) {
@@ -445,7 +451,6 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
       ineve->AddParticle(vtxindex, particle);
       if(embedflag!=0) { ineve->AddEmbeddedParticle(particle,embedflag); }
     }
-    particlelist.clear();
     // List what has been put into ineve for this event
 
     if(verbosity > 0)
