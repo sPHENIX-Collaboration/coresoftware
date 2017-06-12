@@ -28,7 +28,7 @@
 
 #define WILD_DOUBLE -999999
 
-#define _DEBUG_
+//#define _DEBUG_
 //#define _PRINT_MATRIX_
 
 #ifdef _DEBUG_
