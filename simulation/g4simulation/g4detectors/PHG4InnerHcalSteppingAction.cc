@@ -38,27 +38,28 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* detector, const PHG4Parameters* parameters) : detector_(detector),
-                                                                                                                              hits_(nullptr),
-                                                                                                                              absorberhits_(nullptr),
-                                                                                                                              hit(nullptr),
-                                                                                                                              params(parameters),
-                                                                                                                              savehitcontainer(nullptr),
-                                                                                                                              saveshower(nullptr),
-															      savevolpre(nullptr),
-															      savevolpost(nullptr),
-                                                                                                                              savetrackid(-1),
-                                                                                                                              saveprestepstatus(-1),
-                                                                                                                              savepoststepstatus(-1),
-                                                                                                                              absorbertruth(params->get_int_param("absorbertruth")),
-                                                                                                                              IsActive(params->get_int_param("active")),
-                                                                                                                              IsBlackHole(params->get_int_param("blackhole")),
-                                                                                                                              n_scinti_plates(params->get_int_param(PHG4HcalDefs::scipertwr) * params->get_int_param("n_towers")),
-                                                                                                                              light_scint_model(params->get_int_param("light_scint_model")),
-                                                                                                                              light_balance_inner_corr(params->get_double_param("light_balance_inner_corr")),
-                                                                                                                              light_balance_inner_radius(params->get_double_param("light_balance_inner_radius") * cm),
-                                                                                                                              light_balance_outer_corr(params->get_double_param("light_balance_outer_corr")),
-                                                                                                                              light_balance_outer_radius(params->get_double_param("light_balance_outer_radius") * cm)
+PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* detector, const PHG4Parameters* parameters)
+  : detector_(detector)
+  , hits_(nullptr)
+  , absorberhits_(nullptr)
+  , hit(nullptr)
+  , params(parameters)
+  , savehitcontainer(nullptr)
+  , saveshower(nullptr)
+  , savevolpre(nullptr)
+  , savevolpost(nullptr)
+  , savetrackid(-1)
+  , saveprestepstatus(-1)
+  , savepoststepstatus(-1)
+  , absorbertruth(params->get_int_param("absorbertruth"))
+  , IsActive(params->get_int_param("active"))
+  , IsBlackHole(params->get_int_param("blackhole"))
+  , n_scinti_plates(params->get_int_param(PHG4HcalDefs::scipertwr) * params->get_int_param("n_towers"))
+  , light_scint_model(params->get_int_param("light_scint_model"))
+  , light_balance_inner_corr(params->get_double_param("light_balance_inner_corr"))
+  , light_balance_inner_radius(params->get_double_param("light_balance_inner_radius") * cm)
+  , light_balance_outer_corr(params->get_double_param("light_balance_outer_corr"))
+  , light_balance_outer_radius(params->get_double_param("light_balance_outer_radius") * cm)
 {
   name = detector_->GetName();
 }
@@ -199,7 +200,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     case fPostStepDoItProc:
       if (savepoststepstatus != fGeomBoundary)
       {
-	break;
+        break;
       }
     case fGeomBoundary:
     case fUndefined:
@@ -223,7 +224,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       hit->set_edep(0);
       if (whichactive > 0)  // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
-        hit->set_eion(0);     // only implemented for v5 otherwise empty
+        hit->set_eion(0);         // only implemented for v5 otherwise empty
         hit->set_light_yield(0);  // for scintillator only, initialize light yields
         // Now save the container we want to add this hit to
         savehitcontainer = hits_;
@@ -256,11 +257,11 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
            << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << endl;
       cout << "last track: " << savetrackid
            << ", current trackid: " << aTrack->GetTrackID() << endl;
-      cout << "phys pre vol: " << volume->GetName() 
-	   << " post vol : " << touchpost->GetVolume()->GetName() << endl;
+      cout << "phys pre vol: " << volume->GetName()
+           << " post vol : " << touchpost->GetVolume()->GetName() << endl;
       cout << " previous phys pre vol: " << savevolpre->GetName()
            << " previous phys post vol: " << savevolpost->GetName() << endl;
-     exit(1);
+      exit(1);
     }
     // check if track id matches the initial one when the hit was created
     if (aTrack->GetTrackID() != savetrackid)

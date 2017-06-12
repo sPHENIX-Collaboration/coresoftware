@@ -54,28 +54,29 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction(PHG4OuterHcalDetector* detector, const PHG4Parameters* parameters) : detector_(detector),
-                                                                                                                              hits_(nullptr),
-                                                                                                                              absorberhits_(nullptr),
-                                                                                                                              hit(nullptr),
-                                                                                                                              params(parameters),
-                                                                                                                              savehitcontainer(nullptr),
-                                                                                                                              saveshower(nullptr),
-															      savevolpre(nullptr),
-															      savevolpost(nullptr),
-                                                                                                                              savetrackid(-1),
-                                                                                                                              saveprestepstatus(-1),
-                                                                                                                              savepoststepstatus(-1),
-                                                                                                                              enable_field_checker(0),
-                                                                                                                              absorbertruth(params->get_int_param("absorbertruth")),
-                                                                                                                              IsActive(params->get_int_param("active")),
-                                                                                                                              IsBlackHole(params->get_int_param("blackhole")),
-                                                                                                                              n_scinti_plates(params->get_int_param(PHG4HcalDefs::scipertwr) * params->get_int_param("n_towers")),
-                                                                                                                              light_scint_model(params->get_int_param("light_scint_model")),
-                                                                                                                              light_balance_inner_corr(params->get_double_param("light_balance_inner_corr")),
-                                                                                                                              light_balance_inner_radius(params->get_double_param("light_balance_inner_radius") * cm),
-                                                                                                                              light_balance_outer_corr(params->get_double_param("light_balance_outer_corr")),
-                                                                                                                              light_balance_outer_radius(params->get_double_param("light_balance_outer_radius") * cm)
+PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction(PHG4OuterHcalDetector* detector, const PHG4Parameters* parameters)
+  : detector_(detector)
+  , hits_(nullptr)
+  , absorberhits_(nullptr)
+  , hit(nullptr)
+  , params(parameters)
+  , savehitcontainer(nullptr)
+  , saveshower(nullptr)
+  , savevolpre(nullptr)
+  , savevolpost(nullptr)
+  , savetrackid(-1)
+  , saveprestepstatus(-1)
+  , savepoststepstatus(-1)
+  , enable_field_checker(0)
+  , absorbertruth(params->get_int_param("absorbertruth"))
+  , IsActive(params->get_int_param("active"))
+  , IsBlackHole(params->get_int_param("blackhole"))
+  , n_scinti_plates(params->get_int_param(PHG4HcalDefs::scipertwr) * params->get_int_param("n_towers"))
+  , light_scint_model(params->get_int_param("light_scint_model"))
+  , light_balance_inner_corr(params->get_double_param("light_balance_inner_corr"))
+  , light_balance_inner_radius(params->get_double_param("light_balance_inner_radius") * cm)
+  , light_balance_outer_corr(params->get_double_param("light_balance_outer_corr"))
+  , light_balance_outer_radius(params->get_double_param("light_balance_outer_radius") * cm)
 {
   name = detector_->GetName();
 }
@@ -228,7 +229,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     case fPostStepDoItProc:
       if (savepoststepstatus != fGeomBoundary)
       {
-	break;
+        break;
       }
     case fGeomBoundary:
     case fUndefined:
@@ -283,8 +284,8 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
            << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << endl;
       cout << "last track: " << savetrackid
            << ", current trackid: " << aTrack->GetTrackID() << endl;
-      cout << "phys pre vol: " << volume->GetName() 
-	   << " post vol : " << touchpost->GetVolume()->GetName() << endl;
+      cout << "phys pre vol: " << volume->GetName()
+           << " post vol : " << touchpost->GetVolume()->GetName() << endl;
       cout << " previous phys pre vol: " << savevolpre->GetName()
            << " previous phys post vol: " << savevolpost->GetName() << endl;
       exit(1);
@@ -303,7 +304,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     savepoststepstatus = postPoint->GetStepStatus();
     savevolpre = volume;
     savevolpost = touchpost->GetVolume();
-     // here we just update the exit values, it will be overwritten
+    // here we just update the exit values, it will be overwritten
     // for every step until we leave the volume or the particle
     // ceases to exist
     hit->set_x(1, postPoint->GetPosition().x() / cm);
