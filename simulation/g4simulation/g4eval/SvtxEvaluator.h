@@ -32,6 +32,7 @@ public:
  
   SvtxEvaluator(const std::string &name = "SVTXEVALUATOR",
                 const std::string &filename = "g4eval.root",
+                const std::string &trackmapname = "SvtxTrackMap",
 		unsigned int nlayers_maps = 3,
 		unsigned int nlayers_intt = 4,
 		unsigned int nlayers_tpc = 60);
@@ -93,6 +94,8 @@ public:
 
   // evaluator output file
   std::string _filename;
+  //Track map name
+  std::string _trackmapname;
   TFile *_tfile;
 
   // output subroutines

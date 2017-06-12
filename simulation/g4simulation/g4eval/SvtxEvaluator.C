@@ -33,7 +33,7 @@
 
 using namespace std;
 
-SvtxEvaluator::SvtxEvaluator(const string &name, const string &filename,
+SvtxEvaluator::SvtxEvaluator(const string &name, const string &filename, const string &trackmapname,
 		unsigned int nlayers_maps,
 		unsigned int nlayers_intt,
 		unsigned int nlayers_tpc) :
@@ -62,6 +62,7 @@ SvtxEvaluator::SvtxEvaluator(const string &name, const string &filename,
   _ntp_gtrack(nullptr),
   _ntp_track(nullptr),
   _filename(filename),
+  _trackmapname(trackmapname),
   _tfile(nullptr) {
   verbosity = 0;
 }
@@ -253,7 +254,7 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode *topNode) {
     }
 
     cout << "---SVXTRACKS-------------" << endl;
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,_trackmapname.c_str());
     if (trackmap) {
       unsigned int itrack = 0;
       for (SvtxTrackMap::Iter iter = trackmap->begin();
@@ -369,7 +370,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 	   << " => nClusters = " << nclusters[ilayer] << endl;
     }
 
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,_trackmapname.c_str());
     
     cout << "nGtracks = " << std::distance(truthinfo->GetPrimaryParticleRange().first,
 					  truthinfo->GetPrimaryParticleRange().second);
@@ -1131,7 +1132,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     // from other sources (noise hits on the embedded track)
     
     // need things off of the DST...
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,_trackmapname.c_str());
     SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
     if (trackmap) {
       
@@ -1573,7 +1574,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     //cout << "Filling ntp_track " << endl;
 
     // need things off of the DST...
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,_trackmapname.c_str());
     SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
     if (trackmap) {
 
