@@ -2,6 +2,7 @@
 #define PHG4ParticleGeneratorVectorMeson_H__
 
 #include "PHG4ParticleGeneratorBase.h"
+#include <map>
 
 class TRandom;
 class TF1;
@@ -18,6 +19,13 @@ class PHG4ParticleGeneratorVectorMeson: public PHG4ParticleGeneratorBase
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
 
+  //! interface for adding particles by name
+  void add_decay_particles(const std::string &name1, const std::string &name2, const unsigned int decay_id);
+
+  //! interface for adding particle by pid
+  void add_decay_particles(const int pid1, const int pid2, const unsigned int decay_id);
+
+  void set_decay_vertex_offset(double dx, double dy, double dz, const unsigned int decay_id);
   void set_eta_range(const double eta_min, const double eta_max);
   void set_rapidity_range(const double y_min, const double y_max);
   void set_mom_range(const double mom_min, const double mom_max);
@@ -49,23 +57,31 @@ class PHG4ParticleGeneratorVectorMeson: public PHG4ParticleGeneratorBase
  private:
 
   double smearvtx(const double position, const double width, FUNCTION dist) const;
-
- protected:
   double vtx_zmin;
   double vtx_zmax;
+  std::map<unsigned int, int> decay1_codes; // <pdgcode, count>
+  std::map<unsigned int, std::string> decay1_names; // <names, count>
+  std::map<unsigned int, int> decay2_codes; // <pdgcode, count>
+  std::map<unsigned int, std::string> decay2_names; // <names, count>
+  std::map<unsigned int, double> decay_vtx_offset_x;
+  std::map<unsigned int, double> decay_vtx_offset_y;
+  std::map<unsigned int, double> decay_vtx_offset_z;
+
+  protected:
+
   FUNCTION _vertex_func_x;
   FUNCTION _vertex_func_y;
   FUNCTION _vertex_func_z;
   double _t0;
-  double _vertex_x;
-  double _vertex_y;
-  double _vertex_z;
-  double _vertex_width_x;
-  double _vertex_width_y;
-  double _vertex_width_z;
-  double _vertex_offset_x;
-  double _vertex_offset_y;
-  double _vertex_offset_z;
+  double _vertex_x;// primary vertex (or mean) x component, cf. vtx_x = track-by-track vertex x component
+  double _vertex_y;// primary vertex (or mean) y component, cf. vtx_y = track-by-track vertex y component
+  double _vertex_z;// primary vertex (or mean)z component, cf. vtx_z = track-by-track vertex z component
+  double _vertex_width_x; // sigma x if not use existing vtx
+  double _vertex_width_y; // sigma y if not use existing vtx
+  double _vertex_width_z; // sigma z if not use existing vtx
+  double _vertex_offset_x; // track-by-track decay vertex offset if use existing vtx
+  double _vertex_offset_y; // track-by-track decay vertex offset if use existing vtx
+  double _vertex_offset_z; // track-by-track decay vertex offset if use existing vtx
   FUNCTION _vertex_size_func_r;
   double _vertex_size_mean;
   double _vertex_size_width;
