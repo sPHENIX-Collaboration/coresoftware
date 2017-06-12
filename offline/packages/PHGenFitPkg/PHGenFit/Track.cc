@@ -28,7 +28,7 @@
 
 #define WILD_DOUBLE -999999
 
-//#define _DEBUG_
+#define _DEBUG_
 //#define _PRINT_MATRIX_
 
 #ifdef _DEBUG_
@@ -203,6 +203,14 @@ genfit::MeasuredStateOnPlane* Track::extrapolateToLine(TVector3 line_point, TVec
 
 double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id, const int direction) const
 {
+#ifdef _DEBUG_
+		std::cout<<__LINE__ <<std::endl;
+		std::cout
+		<<__LINE__
+		<<": tr_point_id: "<<tr_point_id
+		<<": direction: "<<direction
+		<<std::endl;
+#endif
 	assert(direction == 1 or direction == -1);
 
 	double pathlenth = WILD_DOUBLE;

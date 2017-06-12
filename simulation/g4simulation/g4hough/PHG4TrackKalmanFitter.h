@@ -211,6 +211,14 @@ public:
 		_over_write_svtxvertexmap = overWriteSvtxvertexmap;
 	}
 
+	bool is_use_truth_vertex() const {
+		return _use_truth_vertex;
+	}
+
+	void set_use_truth_vertex(bool useTruthVertex) {
+		_use_truth_vertex = useTruthVertex;
+	}
+
 private:
 
 	//! Event counter
@@ -287,6 +295,9 @@ private:
 
 	//! Switch to reverse Magnetic field
 	bool _reverse_mag_field;
+
+	//!
+	bool _use_truth_vertex;
 
 
 	PHGenFit::Fitter* _fitter;

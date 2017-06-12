@@ -799,7 +799,7 @@ private:
 
 	float _search_win_phi;
 	float _search_win_theta;
-	std::map<int, float> _search_wins_rphi;
+	std::map<int, float> _search_wins_phi;
 	std::map<int, float> _search_wins_theta;
 
 	//std::map<unsigned int, std::map<int, std::multimap<int, unsigned int>>> _layer_thetaID_phiID_cluserID;

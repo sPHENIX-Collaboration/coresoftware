@@ -95,7 +95,7 @@
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp
 
-//#define _DEBUG_
+#define _DEBUG_
 
 //#define _USE_ALAN_FULL_VERTEXING_
 #define _USE_ALAN_TRACK_REFITTING_
@@ -231,7 +231,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 	  _half_max_phi(3.1416),
 	  //_layer_thetaID_phiID_cluserID_phiSize(0.1200),
 	  _layer_thetaID_phiID_cluserID_phiSize(0.1200/80), //rad
-	  _layer_thetaID_phiID_cluserID_zSize(0.1700),
+	  _layer_thetaID_phiID_cluserID_zSize(0.1700/80),
 	  _trackID_PHGenFitTrack(),
 	  _init_direction(-1),
 	  _blowup_factor(1.),
@@ -302,25 +302,25 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 	 * Initilize parameters
 	 */
 	for(int layer = 0; layer < _nlayers_all; ++layer) {
-		_search_wins_rphi.insert(std::make_pair(layer, _search_win_phi));
+		_search_wins_phi.insert(std::make_pair(layer, _search_win_phi));
 		_search_wins_theta.insert(std::make_pair(layer, _search_win_theta));
 		_max_incr_chi2s.insert(std::make_pair(layer, _max_incr_chi2));
 	}
 
 	// nightly build 2017-05-04
-//	_search_wins_rphi[8]  = 50.;
-//	_search_wins_rphi[9]  = 45.;
-//	_search_wins_rphi[10] = 40.;
-//	_search_wins_rphi[11] = 30.;
-//	_search_wins_rphi[12] = 30.;
-//	_search_wins_rphi[13] = 30.;
-//	_search_wins_rphi[14] = 30.;
-//	_search_wins_rphi[15] = 30.;
-//	_search_wins_rphi[16] = 30.;
-//	_search_wins_rphi[17] = 30.;
-//	_search_wins_rphi[18] = 30.;
-//	_search_wins_rphi[19] = 30.;
-//	_search_wins_rphi[20] = 30.;
+//	_search_wins_phi[8]  = 50.;
+//	_search_wins_phi[9]  = 45.;
+//	_search_wins_phi[10] = 40.;
+//	_search_wins_phi[11] = 30.;
+//	_search_wins_phi[12] = 30.;
+//	_search_wins_phi[13] = 30.;
+//	_search_wins_phi[14] = 30.;
+//	_search_wins_phi[15] = 30.;
+//	_search_wins_phi[16] = 30.;
+//	_search_wins_phi[17] = 30.;
+//	_search_wins_phi[18] = 30.;
+//	_search_wins_phi[19] = 30.;
+//	_search_wins_phi[20] = 30.;
 //
 //	_max_incr_chi2s[8]  = _max_incr_chi2s[8] < 1000. ? 1000 : _max_incr_chi2s[8];
 //	_max_incr_chi2s[9]  = _max_incr_chi2s[9] < 500.  ? 500  : _max_incr_chi2s[9];
@@ -341,7 +341,7 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 		cout
 		<<__LINE__
 		<<": layer: "<< layer
-		<<": search_wins_rphi: " << _search_wins_rphi[layer]
+		<<": search_wins_rphi: " << _search_wins_phi[layer]
 		<<": search_wins_z: " << _search_wins_theta[layer]
 		<<": max_incr_chi2: " << _max_incr_chi2s[layer]
 		<<endl;
@@ -2844,11 +2844,11 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 		unsigned int id = m_r_clusterID.begin()->second;
 		meas->set_cluster_ID(id);
 		measurements.push_back(meas);
+#ifdef _DEBUG_
+	//cout<<__LINE__<<": "<<measurements.front()->get_cluster_ID()<<endl;
+#endif
 	}
 
-#ifdef _DEBUG_
-	cout<<__LINE__<<": "<<measurements.front()->get_cluster_ID()<<endl;
-#endif
 
 	//std::vector<unsigned int> hitIDs;
 	//for (SimpleHit3D hit : track_hits) {
@@ -3069,7 +3069,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 #else
 		TMatrixDSym cov = state->get6DCov();
 
-		float phi_window     = _search_wins_rphi[layer] * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]) / pos.Perp();
+		float phi_window     = _search_wins_phi[layer] * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]) / pos.Perp();
 		float theta_window   = _search_wins_theta[layer]    * sqrt(cov[2][2]) / pos.Perp();
 
 		if(layer < _nlayers_maps){
@@ -3342,8 +3342,11 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
 	<<__LINE__
 	<<": ID: " <<cluster->get_id()
 	<<": layer: " << cluster->get_layer()
-	<<": rphi_error: " << cluster->get_rphi_error()
+	<<": pos: {" << pos.X() <<", " << pos.Y() <<", " << pos.Z() << "}"
+	<<": n: {" << n.X() <<", " << n.Y() <<", " <<n.Z() <<"}"
+	//<<": rphi_error: " << cluster->get_rphi_error()
 	<<": phi_error: " << cluster->get_phi_error()
+	<<": theta error: " << cluster->get_z_error()/pos.Perp()
 	<<endl;
 //		pos.Print();
 //		n.Print();
@@ -3461,9 +3464,9 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 				<< layer << "\t "
 				<< phi_center - phi_cluster << "\t"
 				<< theta_center - v.Theta() << "\t"
-				<< phi_window/_search_wins_rphi[layer] << "\t"
+				<< phi_window/_search_wins_phi[layer] << "\t"
 				<< theta_window/_search_wins_theta[layer] << "\t"
-				<< (phi_center - phi_cluster)/phi_window*_search_wins_rphi[layer] <<"\t "
+				<< (phi_center - phi_cluster)/phi_window*_search_wins_phi[layer] <<"\t "
 				<< (theta_center - v.Theta())/theta_window*_search_wins_theta[layer] <<"\t"
 				<< v.Perp()
 				<<endl;
@@ -3525,11 +3528,11 @@ unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
 	unsigned int irphi = (phi + _half_max_phi) / _layer_thetaID_phiID_cluserID_phiSize;
 
 #ifdef _DEBUG_
-//	std::cout<<__LINE__<<": "
-//			<<": layer: "<<layer
-//			<<", irphi: "<<irphi
-//			<<", iz: "<<iz
-//			<<endl;
+	std::cout<<__LINE__<<": "
+			<<": layer: "<<layer
+			<<", irphi: "<<irphi
+			<<", itheta: "<<itheta
+			<<endl;
 #endif
 
 	return encode_cluster_index(layer, itheta, irphi);

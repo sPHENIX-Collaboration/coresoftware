@@ -175,6 +175,7 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 		_mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
 		_mag_field_re_scaling_factor(1.4 / 1.5),
 		_reverse_mag_field(true),
+		_use_truth_vertex(false),
 		_fitter( NULL),
 		_track_fitting_alg_name("DafRef"),
 		_primary_pid_guess(211),
@@ -1219,7 +1220,13 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 	double dvr2 = 0;
 	double dvz2 = 0;
 
-	if (vertex) {
+	if(_use_truth_vertex) {
+		PHG4VtxPoint* first_point = _truth_container->GetPrimaryVtx(_truth_container->GetPrimaryVertexIndex());
+		vertex_position.SetXYZ(first_point->get_x(), first_point->get_y(), first_point->get_z());
+		if(verbosity > 1) {
+			cout<<"Using: truth vertex: {" << vertex_position.X() << ", " << vertex_position.Y() << ", " << vertex_position.Z() << "} " <<endl;
+		}
+	} else if (vertex) {
 		vertex_position.SetXYZ(vertex->get_x(), vertex->get_y(),
 				vertex->get_z());
 		dvr2 = vertex->get_error(0, 0) + vertex->get_error(1, 1);
@@ -1544,6 +1551,7 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 		svtx_vtx->set_position(0, rave_vtx->getPos().X());
 		svtx_vtx->set_position(1, rave_vtx->getPos().Y());
 		svtx_vtx->set_position(2, rave_vtx->getPos().Z());
+
 		for (int i = 0; i < 3; i++)
 			for (int j = 0; j < 3; j++)
 				svtx_vtx->set_error(i, j, rave_vtx->getCov()[i][j]);
