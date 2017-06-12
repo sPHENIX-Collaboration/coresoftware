@@ -4,6 +4,7 @@
 #include "PHG4ParticleGeneratorBase.h"
 #include <map>
 
+class PHG4InEvent;
 class TRandom;
 class TF1;
 
@@ -49,6 +50,8 @@ class PHG4ParticleGeneratorVectorMeson: public PHG4ParticleGeneratorBase
   //! set the dimensions of the distribution of particles about the vertex
   void set_vertex_size_parameters(const double mean, const double width);
 
+  void set_read_vtx_from_hepmc(bool read_vtx) { read_vtx_from_hepmc = read_vtx;}
+
   void set_mass(const double mass);
   void set_width(const double width);
   void set_decay_types(const std::string &decay1, const std::string &decay2);
@@ -85,6 +88,7 @@ class PHG4ParticleGeneratorVectorMeson: public PHG4ParticleGeneratorBase
   FUNCTION _vertex_size_func_r;
   double _vertex_size_mean;
   double _vertex_size_width;
+  bool   read_vtx_from_hepmc;
 
   double y_min;
   double y_max;
@@ -106,6 +110,8 @@ class PHG4ParticleGeneratorVectorMeson: public PHG4ParticleGeneratorBase
   TF1 *frap;
   TF1 *fpt;
   TRandom *trand;
+
+  PHG4InEvent* ineve;
 
 };
 
