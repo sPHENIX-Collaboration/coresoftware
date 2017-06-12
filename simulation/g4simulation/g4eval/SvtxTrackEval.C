@@ -35,7 +35,8 @@ SvtxTrackEval::SvtxTrackEval(PHCompositeNode* topNode)
     _cache_all_tracks_from_cluster(),
     _cache_best_track_from_cluster(),
     _cache_get_nclusters_contribution(),
-    _cache_get_nclusters_contribution_by_layer() {
+    _cache_get_nclusters_contribution_by_layer(),
+    _cache_get_nwrongclusters_contribution() {
   get_node_pointers(topNode);
 }
 
@@ -59,7 +60,7 @@ void SvtxTrackEval::next_event(PHCompositeNode* topNode) {
   _cache_best_track_from_cluster.clear();
   _cache_get_nclusters_contribution.clear();
   _cache_get_nclusters_contribution_by_layer.clear();
-  
+  _cache_get_nwrongclusters_contribution.clear();
   _clustereval.next_event(topNode);
   
   get_node_pointers(topNode);
@@ -413,16 +414,64 @@ unsigned int SvtxTrackEval::get_nclusters_contribution(SvtxTrack* track, PHG4Par
     return 0;
   }
   
-  if (_do_cache) {
-    std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int>::iterator iter =
-      _cache_get_nclusters_contribution.find(make_pair(track,particle));
-    if (iter !=	_cache_get_nclusters_contribution.end()) {
-      return iter->second;
-    }
+  calc_cluster_contribution(track,particle);
+
+  std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int>::iterator iter =
+    _cache_get_nclusters_contribution.find(make_pair(track,particle));
+  if (iter !=	_cache_get_nclusters_contribution.end()) {
+    return iter->second;
+  }
+
+  return 0;
+}
+unsigned int SvtxTrackEval::get_nwrongclusters_contribution(SvtxTrack* track, PHG4Particle* particle) {
+
+  if (!has_node_pointers()) {++_errors; return 0;}
+  
+  if (_strict) {
+    assert(track);
+    assert(particle);
+  } else if (!track||!particle) {
+    ++_errors;
+    return 0;
   }
   
-  unsigned int nclusters = 0; 
+  calc_cluster_contribution(track,particle);
 
+  std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int>::iterator iter =
+    _cache_get_nwrongclusters_contribution.find(make_pair(track,particle));
+  if (iter !=	_cache_get_nwrongclusters_contribution.end()) {
+    return iter->second;
+  }
+  
+  return 0;
+}
+
+// overlap calculations
+void SvtxTrackEval::calc_cluster_contribution(SvtxTrack* track, PHG4Particle* particle) {
+
+  if (!has_node_pointers()) {++_errors; return;}
+  
+  if (_strict) {
+    assert(track);
+    assert(particle);
+  } else if (!track||!particle) {
+    ++_errors;
+    return;
+  }
+  
+  std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int>::iterator iter =
+    _cache_get_nclusters_contribution.find(make_pair(track,particle));
+  std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int>::iterator witer =
+    _cache_get_nwrongclusters_contribution.find(make_pair(track,particle));
+
+  if (iter !=	_cache_get_nclusters_contribution.end() &&
+      witer !=	_cache_get_nwrongclusters_contribution.end()) {
+    return;
+  }
+
+  unsigned int nclusters = 0; 
+  unsigned int nwrong = 0;
   // loop over all clusters
   for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
        iter != track->end_clusters();
@@ -432,7 +481,7 @@ unsigned int SvtxTrackEval::get_nclusters_contribution(SvtxTrack* track, PHG4Par
 
     if (_strict) {assert(cluster);}
     else if (!cluster) {++_errors; continue;}
-    
+    int matched = 0;
     // loop over all particles
     std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster);
     for (std::set<PHG4Particle*>::iterator jter = particles.begin();
@@ -441,13 +490,16 @@ unsigned int SvtxTrackEval::get_nclusters_contribution(SvtxTrack* track, PHG4Par
       PHG4Particle* candidate = *jter;
       if (get_truth_eval()->are_same_particle(candidate,particle)) {
 	++nclusters;
+	matched = 1;
       }
     }
+    if(matched == 0) nwrong++;
   }
+
+  _cache_get_nclusters_contribution.insert(make_pair(make_pair(track,particle),nclusters));
+  _cache_get_nwrongclusters_contribution.insert(make_pair(make_pair(track,particle),nwrong));
   
-  if (_do_cache) _cache_get_nclusters_contribution.insert(make_pair(make_pair(track,particle),nclusters));
-  
-  return nclusters;
+  return;
 }
 
 unsigned int SvtxTrackEval::get_nclusters_contribution_by_layer(SvtxTrack* track, PHG4Particle* particle) {
