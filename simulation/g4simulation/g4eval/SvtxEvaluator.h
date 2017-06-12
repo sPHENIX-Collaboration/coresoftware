@@ -52,6 +52,7 @@ public:
   void do_gtrack_eval(bool b) {_do_gtrack_eval = b;}
   void do_track_eval(bool b) {_do_track_eval = b;}
 
+  void do_track_match(bool b) {_do_track_match = b;}
   void scan_for_embedded(bool b) {_scan_for_embedded = b;}
   
  private:
@@ -75,6 +76,7 @@ public:
   bool _do_gtrack_eval;
   bool _do_track_eval;
 
+  bool _do_track_match;
   bool _scan_for_embedded;
 
   unsigned int _nlayers_maps = 3;
