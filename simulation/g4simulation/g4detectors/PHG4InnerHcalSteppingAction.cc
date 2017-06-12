@@ -2,6 +2,7 @@
 #include "PHG4HcalDefs.h"
 #include "PHG4InnerHcalDetector.h"
 #include "PHG4Parameters.h"
+#include "PHG4StepStatusDecode.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -44,7 +45,10 @@ PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* 
                                                                                                                               params(parameters),
                                                                                                                               savehitcontainer(nullptr),
                                                                                                                               saveshower(nullptr),
+															      savevolpre(nullptr),
+															      savevolpost(nullptr),
                                                                                                                               savetrackid(-1),
+                                                                                                                              saveprestepstatus(-1),
                                                                                                                               savepoststepstatus(-1),
                                                                                                                               absorbertruth(params->get_int_param("absorbertruth")),
                                                                                                                               IsActive(params->get_int_param("active")),
@@ -71,6 +75,7 @@ PHG4InnerHcalSteppingAction::~PHG4InnerHcalSteppingAction()
 bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
+  G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
   // get volume of the current step
   G4VPhysicalVolume* volume = touch->GetVolume();
 
@@ -191,6 +196,11 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     //       cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
     switch (prePoint->GetStepStatus())
     {
+    case fPostStepDoItProc:
+      if (savepoststepstatus != fGeomBoundary)
+      {
+	break;
+      }
     case fGeomBoundary:
     case fUndefined:
       // if previous hit was saved, hit pointer was set to nullptr
@@ -240,9 +250,17 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     if (!hit || !isfinite(hit->get_x(0)))
     {
       cout << GetName() << ": hit was not created" << endl;
-      cout << "prestep status: " << prePoint->GetStepStatus()
-           << ", last post step status: " << savepoststepstatus << endl;
-      exit(1);
+      cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+           << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+           << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
+           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << endl;
+      cout << "last track: " << savetrackid
+           << ", current trackid: " << aTrack->GetTrackID() << endl;
+      cout << "phys pre vol: " << volume->GetName() 
+	   << " post vol : " << touchpost->GetVolume()->GetName() << endl;
+      cout << " previous phys pre vol: " << savevolpre->GetName()
+           << " previous phys post vol: " << savevolpost->GetName() << endl;
+     exit(1);
     }
     // check if track id matches the initial one when the hit was created
     if (aTrack->GetTrackID() != savetrackid)
@@ -256,7 +274,10 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
       exit(1);
     }
+    saveprestepstatus = prePoint->GetStepStatus();
     savepoststepstatus = postPoint->GetStepStatus();
+    savevolpre = volume;
+    savevolpost = touchpost->GetVolume();
     // here we just update the exit values, it will be overwritten
     // for every step until we leave the volume or the particle
     // ceases to exist
