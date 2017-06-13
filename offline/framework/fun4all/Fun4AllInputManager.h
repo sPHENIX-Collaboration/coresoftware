@@ -35,7 +35,7 @@ class Fun4AllInputManager: public Fun4AllBase
   virtual int skip(const int nevt) {return PushBackEvents(-nevt);}
   virtual int NoSyncPushBackEvents(const int /*nevt*/) {return -1;}
   int AddFile(const std::string &filename);
-  int AddListFile(const std::string &filename);
+  int AddListFile(const std::string &filename, const int do_it = 0);
   int registerSubsystem(SubsysReco *subsystem);
   virtual int RejectEvent();
   void Repeat(const int i=-1) {repeat = i;}

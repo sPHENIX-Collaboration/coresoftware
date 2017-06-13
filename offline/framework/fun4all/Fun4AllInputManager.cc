@@ -3,6 +3,8 @@
 #include "SubsysReco.h"
 #include <phool/phool.h>
 
+#include <boost/filesystem.hpp>
+
 #include <fstream>
 #include <iostream>
 
@@ -47,8 +49,36 @@ Fun4AllInputManager::AddFile(const string &filename)
 }
 
 int
-Fun4AllInputManager::AddListFile(const string &filename)
+Fun4AllInputManager::AddListFile(const string &filename, const int do_it)
 {
+// checking filesize to see if we have a text file
+  if (boost::filesystem::exists(filename.c_str()))
+  {
+    if (boost::filesystem::is_regular_file(filename.c_str()))
+    {
+      uintmax_t fsize = boost::filesystem::file_size(filename.c_str());
+      if (fsize > 1000000 && !do_it)
+      {
+	cout << "size of " << filename
+             << " is suspiciously large for a text file: "
+             << fsize << " bytes" << endl;
+      cout << "if you really want to use " << filename
+           << " as list file (it will be used as a text file containing a list of input files), use AddListFile(\""
+           << filename << "\",1)" << endl;
+      return -1;
+      }
+    }
+    else
+    {
+      cout << filename << " is not a regular file" << endl;
+      return -1;
+    }
+  }
+  else
+  {
+cout << PHWHERE << "Could not open " << filename << endl;
+return -1;
+  }
   ifstream infile;
   infile.open(filename.c_str(), ios_base::in);
   if (!infile)
