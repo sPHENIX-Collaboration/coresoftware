@@ -1,1 +1,0 @@
-testexternals.o: testexternals.C
