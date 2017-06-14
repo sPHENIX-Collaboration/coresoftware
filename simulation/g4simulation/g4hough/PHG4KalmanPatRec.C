@@ -95,7 +95,7 @@
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp
 
-//#define _DEBUG_
+#define _DEBUG_
 
 //#define _USE_ALAN_FULL_VERTEXING_
 #define _USE_ALAN_TRACK_REFITTING_
@@ -207,9 +207,9 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 	  _layer_ilayer_map_all(),
 	  _radii_all(),
 
-		_max_search_win_phi_tpc(    0.0030),
+		_max_search_win_phi_tpc(    0.0040),
 		_min_search_win_phi_tpc(    0.0000),
-		_max_search_win_theta_tpc(  0.0030),
+		_max_search_win_theta_tpc(  0.0040),
 		_min_search_win_theta_tpc(  0.0000),
 
 		_max_search_win_phi_intt(   0.0050),
@@ -217,13 +217,13 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 		_max_search_win_theta_intt( 0.2000),
 		_min_search_win_theta_intt( 0.2000),
 
-		_max_search_win_phi_maps(   0.0030),
+		_max_search_win_phi_maps(   0.0050),
 		_min_search_win_phi_maps(   0.0000),
-		_max_search_win_theta_maps( 0.0030),
+		_max_search_win_theta_maps( 0.0200),
 		_min_search_win_theta_maps( 0.0000),
 
-	  _search_win_phi(5),
-	  _search_win_theta(5),
+	  _search_win_phi(10),
+	  _search_win_theta(10),
 	  _layer_thetaID_phiID_cluserID(),
 	  //_half_max_theta(160),
 	  _half_max_theta(3.1416/2.),
@@ -1773,7 +1773,15 @@ int PHG4KalmanPatRec::full_track_seeding() {
 	std::vector<double> refit_errors;
 	std::vector<Eigen::Matrix<float, 5, 5> > refit_covars;
 
+	if(verbosity >= 1){
+	  cout<<__LINE__<< ": Event: "<< _event << ": # tracks before cleanup: "<< _tracks.size() <<endl;
+	}
+
 	_tracker->finalize(_tracks, refit_tracks);
+
+	if(verbosity >= 1){
+	  cout<<__LINE__<< ": Event: "<< _event << ": # tracks after cleanup: "<< _tracks.size()  <<endl;
+	}
 
 	for (unsigned int tt = 0; tt < refit_tracks.size(); ++tt) {
 		refit_errors.push_back(_tracker->getKalmanStates()[tt].chi2);
@@ -2956,7 +2964,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 			layer += direction) {
 		if(!(layer>=0 and layer < (unsigned int)_nlayers_all)) break;
 
-//		if(layer >= 3 and layer <=6) continue;
+//		if(layer >= _nlayers_maps and layer < _nlayers_maps+_nlayers_intt) continue;
 
 		/*!
 		 * if miss too many layers terminate track propagating
@@ -3089,22 +3097,10 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 			if (theta_window   < _min_search_win_theta_tpc)   theta_window   = _min_search_win_theta_tpc;
 		}
 
-//		if((std::find(_maps_layers.begin(), _maps_layers.end(), layer)!=_maps_layers.end())){
-//			if (phi_window > _max_search_win_phi_maps) phi_window = _max_search_win_phi_maps;
-//			if (phi_window < _min_search_win_phi_maps) phi_window = _min_search_win_phi_maps;
-//			if (theta_window   > _max_search_win_theta_maps)   theta_window   = _max_search_win_theta_maps;
-//			if (theta_window   < _min_search_win_theta_maps)   theta_window   = _min_search_win_theta_maps;
-//		} else if(std::find(_intt_layers.begin(), _intt_layers.end(), layer)!=_intt_layers.end()) {
-//			if (phi_window > _max_search_win_phi_intt) phi_window = _max_search_win_phi_intt;
-//			if (phi_window < _min_search_win_phi_intt) phi_window = _min_search_win_phi_intt;
-//			if (theta_window   > _max_search_win_theta_intt)   theta_window   = _max_search_win_theta_intt;
-//			if (theta_window   < _min_search_win_theta_intt)   theta_window   = _min_search_win_theta_intt;
-//		} else {
-//			if (phi_window > _max_search_win_phi_tpc) phi_window = _max_search_win_phi_tpc;
-//			if (phi_window < _min_search_win_phi_tpc) phi_window = _min_search_win_phi_tpc;
-//			if (theta_window   > _max_search_win_theta_tpc)   theta_window   = _max_search_win_theta_tpc;
-//			if (theta_window   < _min_search_win_theta_tpc)   theta_window   = _min_search_win_theta_tpc;
+//		if(layer == _nlayers_maps-1) {
+//			theta_window = 0.02;
 //		}
+
 #endif
 
 #ifdef _DEBUG_
@@ -3206,7 +3202,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		}
 
 		// Update other candidates
-		if (incr_chi2s_new_tracks.size() > 1) {
+		if (incr_chi2s_new_tracks.size() > 1 && layer == _nlayers_maps + _nlayers_intt - 1) {
 			for (std::map<double, PHGenFit::Track*>::iterator iter =
 					(++incr_chi2s_new_tracks.begin());
 					iter != incr_chi2s_new_tracks.end(); ++iter) {

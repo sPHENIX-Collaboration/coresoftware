@@ -521,6 +521,15 @@ public:
 //		_nlayers_all = nlayersAll;
 //	}
 
+	unsigned int get_min_nlayers_seeding() const {
+		return _min_nlayers_seeding;
+	}
+
+	void set_min_nlayers_seeding(unsigned int minNlayersSeeding) {
+		_min_nlayers_seeding = minNlayersSeeding;
+		_min_combo_hits = minNlayersSeeding;
+	}
+
 #ifndef __CINT__
 
 private:
