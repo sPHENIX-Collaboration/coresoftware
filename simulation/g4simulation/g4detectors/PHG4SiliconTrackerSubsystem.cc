@@ -198,7 +198,7 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
   std::pair<std::set<int>::const_iterator, std::set<int>::const_iterator> begin_end = GetDetIds();
   for (set<int>::const_iterator it = begin_end.first; it != begin_end.second; ++it)
   {
-    set_int_param(*it, "active", 1);
+    set_default_int_param(*it, "active", 1);
   }
 
   return;

@@ -1,7 +1,7 @@
 #ifndef __PHG4UISESSION_H__
 #define __PHG4UISESSION_H__
 
-#include <G4UIsession.hh>
+#include <Geant4/G4UIsession.hh>
 
 class PHG4UIsession : public G4UIsession {
 

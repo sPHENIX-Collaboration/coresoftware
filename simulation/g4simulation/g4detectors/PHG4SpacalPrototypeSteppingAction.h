@@ -25,7 +25,7 @@ class PHG4SpacalPrototypeSteppingAction : public PHG4SteppingAction
 public:
 
   //! constructor
-  PHG4SpacalPrototypeSteppingAction(PHG4SpacalPrototypeDetector*);
+  explicit PHG4SpacalPrototypeSteppingAction(PHG4SpacalPrototypeDetector*);
 
   //! destroctor
   virtual

@@ -2,7 +2,6 @@
 
 
 #include "PHG4SpacalPrototypeDetector.h"
-#include "PHG4ProjSpacalDetector.h"
 #include "PHG4FullProjSpacalDetector.h"
 #include "PHG4CylinderGeom.h"
 #include "PHG4CylinderGeomContainer.h"

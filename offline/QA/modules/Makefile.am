@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I$(OFFLINE_MAIN)/include/eigen3 \
@@ -25,10 +25,6 @@ libqa_modules_la_LIBADD = \
   -lg4jets_io \
   -lg4eval
 
-pkginclude_HEADERS = 
-
-#pkginclude_HEADERS = $(include_HEADERS)
-
 libqa_modules_la_SOURCES = \
   QAHistManagerDef.C \
   QAHistManagerDef_Dict.C \
@@ -41,10 +37,7 @@ libqa_modules_la_SOURCES = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
-
-%_Dict.cpp: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
 # linking tests

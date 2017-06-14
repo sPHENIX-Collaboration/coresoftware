@@ -1,13 +1,11 @@
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include
 
 lib_LTLIBRARIES = \
    libg4dst.la
-
-AM_CXXFLAGS = -Wall -Werror -msse2
 
 libg4dst_la_LDFLAGS = \
   -L$(libdir) \
@@ -17,19 +15,15 @@ libg4dst_la_LDFLAGS = \
   -lg4hough_io \
   -lcemc_io \
   -lg4vertex_io \
-  -lg4jets_io
-
-#pkginclude_HEADERS = $(include_HEADERS)
+  -lg4jets_io \
+  -lphgeom_io \
+  -lphhepmc_io
 
 libg4dst_la_SOURCES = \
    g4dst.C
 
-# Rule for generating table CINT dictionaries.
-%_Dict.C: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
-
-%_Dict.cpp: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+g4dst.C:
+	echo "//*** this is a generated empty file. Do not commit, do not edit" > $@
 
 ################################################
 # linking tests
@@ -37,7 +31,8 @@ libg4dst_la_SOURCES = \
 noinst_PROGRAMS = testexternals
 
 BUILT_SOURCES = \
-  testexternals.C
+  testexternals.C \
+  g4dst.C
 
 testexternals_LDADD = \
   libg4dst.la
@@ -50,4 +45,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict*
+	rm -f *Dict* $(BUILT_SOURCES)

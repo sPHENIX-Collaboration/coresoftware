@@ -53,36 +53,38 @@ using namespace std;
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
 PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHCompositeNode *Node,
-    const std::string &dnam, SpacalGeom_t * geom, const int lyr) :
-    PHG4SpacalDetector(Node, dnam,
-        dynamic_cast<PHG4SpacalDetector::SpacalGeom_t *>(geom), lyr), //
-    _geom(geom) //
+    const std::string& dnam, PHG4Parameters* parameters, const int lyr)
+: PHG4SpacalDetector(Node, dnam, parameters, lyr, false)
 {
+  assert(_geom == nullptr);
 
+  _geom = new SpacalGeom_t();
   if (_geom == NULL)
     {
       cout
-          << "PHG4SpacalDetector::Constructor - Fatal Error - invalid geometry object!"
+          << "PHG4FullProjSpacalDetector::Constructor - Fatal Error - invalid geometry object!"
           << endl;
       exit(1);
     }
+  assert(get_geom_v3()); // conversion check
 
-  step_limits = new G4UserLimits(_geom->get_calo_step_size() * cm);
+  //this class loads Chris Cullen 2D spacal design July 2015 by default.
+  get_geom_v3() -> load_demo_sector_tower_map_2015_Chris_Cullen_2D_spacal();
 
-  clading_step_limits = new G4UserLimits(
-      _geom->get_fiber_clading_step_size() * cm);
+  assert(parameters);
+  get_geom_v3()->ImportParameters(*parameters);
 
-  fiber_core_step_limits = new G4UserLimits(
-      _geom->get_fiber_core_step_size() * cm);
+//  cout <<"PHG4FullProjSpacalDetector::Constructor -  get_geom_v3()->Print();"<<endl;
+//  get_geom_v3()->Print();
 }
 
 //_______________________________________________________________
 void
 PHG4FullProjSpacalDetector::Construct(G4LogicalVolume* logicWorld)
 {
-  assert(_geom);
+  assert(get_geom_v3());
 
-  if (_geom->get_construction_verbose() >= 1)
+  if (get_geom_v3()->get_construction_verbose() >= 1)
     {
       cout << "PHG4FullProjSpacalDetector::Construct::" << GetName()
           << " - start with PHG4SpacalDetector::Construct()." << endl;
@@ -90,7 +92,7 @@ PHG4FullProjSpacalDetector::Construct(G4LogicalVolume* logicWorld)
 
   PHG4SpacalDetector::Construct(logicWorld);
 
-  if (_geom->get_construction_verbose() >= 1)
+  if (get_geom_v3()->get_construction_verbose() >= 1)
     {
       cout << "PHG4FullProjSpacalDetector::Construct::" << GetName()
           << " - Completed." << endl;
@@ -101,76 +103,76 @@ PHG4FullProjSpacalDetector::Construct(G4LogicalVolume* logicWorld)
 std::pair<G4LogicalVolume *, G4Transform3D>
 PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
 {
-  assert(_geom);
-  assert(_geom->get_azimuthal_n_sec()>4);
+  assert(get_geom_v3());
+  assert(get_geom_v3()->get_azimuthal_n_sec()>4);
 
   G4Tubs* sec_solid = new G4Tubs(G4String(GetName() + string("_sec")),
-      _geom->get_radius() * cm, _geom->get_max_radius() * cm,
-      _geom->get_length() * cm / 2.0,
-      halfpi - pi / _geom->get_azimuthal_n_sec(),
-      twopi / _geom->get_azimuthal_n_sec());
+      get_geom_v3()->get_radius() * cm, get_geom_v3()->get_max_radius() * cm,
+      get_geom_v3()->get_length() * cm / 2.0,
+      halfpi - pi / get_geom_v3()->get_azimuthal_n_sec(),
+      twopi / get_geom_v3()->get_azimuthal_n_sec());
 
   G4Material * cylinder_mat = G4Material::GetMaterial("G4_AIR");
   assert(cylinder_mat);
 
   G4LogicalVolume * sec_logic = new G4LogicalVolume(sec_solid, cylinder_mat,
-      G4String(G4String(GetName() + string("_sec"))), 0, 0, step_limits);
+      G4String(G4String(GetName() + string("_sec"))), 0, 0);
 
   G4VisAttributes* VisAtt = new G4VisAttributes();
   VisAtt->SetColor(.5, .9, .5, .5);
   VisAtt->SetVisibility(
-      _geom->is_azimuthal_seg_visible() or _geom->is_virualize_fiber());
+      get_geom_v3()->is_azimuthal_seg_visible() or get_geom_v3()->is_virualize_fiber());
   VisAtt->SetForceSolid(false);
   VisAtt->SetForceWireframe(true);
   sec_logic->SetVisAttributes(VisAtt);
 
   // construct walls
 
-  G4Material * wall_mat = G4Material::GetMaterial(_geom->get_sidewall_mat());
+  G4Material * wall_mat = G4Material::GetMaterial(get_geom_v3()->get_sidewall_mat());
   assert(wall_mat);
 
   G4VisAttributes* wall_VisAtt = new G4VisAttributes();
   wall_VisAtt->SetColor(.5, .9, .5, .2);
   wall_VisAtt->SetVisibility(
-      _geom->is_azimuthal_seg_visible() and (not _geom->is_virualize_fiber()));
+      get_geom_v3()->is_azimuthal_seg_visible() and (not get_geom_v3()->is_virualize_fiber()));
   wall_VisAtt->SetForceSolid(true);
 
-  if (_geom->get_sidewall_thickness()>0)
+  if (get_geom_v3()->get_sidewall_thickness()>0)
     {
       // end walls
-      if (_geom->get_construction_verbose() >= 1)
+      if (get_geom_v3()->get_construction_verbose() >= 1)
         {
           cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::" << GetName()
               << " - construct end walls." << endl;
         }
       G4Tubs* wall_solid = new G4Tubs(G4String(GetName() + string("_EndWall")),
-          _geom->get_radius() * cm + _geom->get_sidewall_outer_torr() * cm,
-          _geom->get_max_radius() * cm - _geom->get_sidewall_outer_torr() * cm,
-          _geom->get_sidewall_thickness() * cm / 2.0,
-          halfpi - pi / _geom->get_azimuthal_n_sec(),
-          twopi / _geom->get_azimuthal_n_sec());
+          get_geom_v3()->get_radius() * cm + get_geom_v3()->get_sidewall_outer_torr() * cm,
+          get_geom_v3()->get_max_radius() * cm - get_geom_v3()->get_sidewall_outer_torr() * cm,
+          get_geom_v3()->get_sidewall_thickness() * cm / 2.0,
+          halfpi - pi / get_geom_v3()->get_azimuthal_n_sec(),
+          twopi / get_geom_v3()->get_azimuthal_n_sec());
 
       G4LogicalVolume * wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
           G4String(G4String(GetName() + string("_EndWall"))), 0, 0,
-          step_limits);
+          nullptr);
       wall_logic->SetVisAttributes(wall_VisAtt);
 
       typedef map<int, double> z_locations_t;
       z_locations_t z_locations;
-      z_locations[1000] = _geom->get_sidewall_thickness() * cm / 2.0
-          + _geom->get_assembly_spacing() * cm;
-      z_locations[1001] = _geom->get_length() * cm / 2.0
-          - (_geom->get_sidewall_thickness() * cm / 2.0
-              + _geom->get_assembly_spacing() * cm);
-      z_locations[1100] = -(_geom->get_sidewall_thickness() * cm / 2.0
-          + _geom->get_assembly_spacing() * cm);
-      z_locations[1101] = -(_geom->get_length() * cm / 2.0
-          - (_geom->get_sidewall_thickness() * cm / 2.0
-              + _geom->get_assembly_spacing() * cm));
+      z_locations[1000] = get_geom_v3()->get_sidewall_thickness() * cm / 2.0
+          + get_geom_v3()->get_assembly_spacing() * cm;
+      z_locations[1001] = get_geom_v3()->get_length() * cm / 2.0
+          - (get_geom_v3()->get_sidewall_thickness() * cm / 2.0
+              + get_geom_v3()->get_assembly_spacing() * cm);
+      z_locations[1100] = -(get_geom_v3()->get_sidewall_thickness() * cm / 2.0
+          + get_geom_v3()->get_assembly_spacing() * cm);
+      z_locations[1101] = -(get_geom_v3()->get_length() * cm / 2.0
+          - (get_geom_v3()->get_sidewall_thickness() * cm / 2.0
+              + get_geom_v3()->get_assembly_spacing() * cm));
 
       BOOST_FOREACH(z_locations_t::value_type& val, z_locations)
         {
-          if (_geom->get_construction_verbose() >= 2)
+          if (get_geom_v3()->get_construction_verbose() >= 2)
             cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::"
                 << GetName() << " - constructed End Wall ID " << val.first
                 << " @ Z = " << val.second << endl;
@@ -185,26 +187,26 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
         }
     }
 
-  if (_geom->get_sidewall_thickness()>0)
+  if (get_geom_v3()->get_sidewall_thickness()>0)
     {
       // side walls
-      if (_geom->get_construction_verbose() >= 1)
+      if (get_geom_v3()->get_construction_verbose() >= 1)
         {
           cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::" << GetName()
               << " - construct side walls." << endl;
         }
       G4Box* wall_solid = new G4Box(G4String(GetName() + string("_SideWall")),
-          _geom->get_sidewall_thickness() * cm / 2.0,
-          _geom->get_thickness() * cm / 2.
-              - 2 * _geom->get_sidewall_outer_torr() * cm,
-          (_geom->get_length() / 2.
+          get_geom_v3()->get_sidewall_thickness() * cm / 2.0,
+          get_geom_v3()->get_thickness() * cm / 2.
+              - 2 * get_geom_v3()->get_sidewall_outer_torr() * cm,
+          (get_geom_v3()->get_length() / 2.
               - 2
-                  * (_geom->get_sidewall_thickness()
-                      + 2. * _geom->get_assembly_spacing())) * cm * .5);
+                  * (get_geom_v3()->get_sidewall_thickness()
+                      + 2. * get_geom_v3()->get_assembly_spacing())) * cm * .5);
 
       G4LogicalVolume * wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
           G4String(G4String(GetName() + string("_SideWall"))), 0, 0,
-          step_limits);
+          nullptr);
       wall_logic->SetVisAttributes(wall_VisAtt);
 
       typedef map<int, pair<int, int> > sign_t;
@@ -219,27 +221,27 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
           const int sign_z = val.second.first;
           const int sign_azimuth = val.second.second;
 
-          if (_geom->get_construction_verbose() >= 2)
+          if (get_geom_v3()->get_construction_verbose() >= 2)
             cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::"
                 << GetName() << " - constructed Side Wall ID " << val.first
                 << " with" << " Shift X = "
                 << sign_azimuth
-                    * (_geom->get_sidewall_thickness() * cm / 2.0
-                        + _geom->get_sidewall_outer_torr() * cm)
+                    * (get_geom_v3()->get_sidewall_thickness() * cm / 2.0
+                        + get_geom_v3()->get_sidewall_outer_torr() * cm)
                 << " Rotation Z = "
-                << sign_azimuth * pi / _geom->get_azimuthal_n_sec()
-                << " Shift Z = " << sign_z * (_geom->get_length() * cm / 4)
+                << sign_azimuth * pi / get_geom_v3()->get_azimuthal_n_sec()
+                << " Shift Z = " << sign_z * (get_geom_v3()->get_length() * cm / 4)
                 << endl;
 
           G4Transform3D wall_trans = G4RotateZ3D(
-              sign_azimuth * pi / _geom->get_azimuthal_n_sec())
-              * G4TranslateZ3D(sign_z * (_geom->get_length() * cm / 4))
+              sign_azimuth * pi / get_geom_v3()->get_azimuthal_n_sec())
+              * G4TranslateZ3D(sign_z * (get_geom_v3()->get_length() * cm / 4))
               * G4TranslateY3D(
-                  _geom->get_radius() * cm + _geom->get_thickness() * cm / 2.)
+                  get_geom_v3()->get_radius() * cm + get_geom_v3()->get_thickness() * cm / 2.)
               * G4TranslateX3D(
                   sign_azimuth
-                      * (_geom->get_sidewall_thickness() * cm / 2.0
-                          + _geom->get_sidewall_outer_torr() * cm));
+                      * (get_geom_v3()->get_sidewall_thickness() * cm / 2.0
+                          + get_geom_v3()->get_sidewall_outer_torr() * cm));
 
           G4PVPlacement * wall_phys = new G4PVPlacement(wall_trans, wall_logic,
               G4String(GetName().c_str()) + G4String("_EndWall"), sec_logic,
@@ -251,7 +253,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
 
   // construct towers
 
-  BOOST_FOREACH(const SpacalGeom_t::tower_map_t::value_type& val, _geom->get_sector_tower_map())
+  BOOST_FOREACH(const SpacalGeom_t::tower_map_t::value_type& val, get_geom_v3()->get_sector_tower_map())
     {
       const SpacalGeom_t::geom_tower & g_tower = val.second;
       G4LogicalVolume* LV_tower = Construct_Tower(g_tower);
@@ -262,7 +264,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
           * G4RotateX3D(g_tower.pRotationAngleX * rad);
 
       const bool overlapcheck_block = overlapcheck
-          and (_geom->get_construction_verbose() >= 2);
+          and (get_geom_v3()->get_construction_verbose() >= 2);
 
       G4PVPlacement * block_phys = new G4PVPlacement(block_trans, LV_tower,
           G4String(GetName().c_str()) + G4String("_Tower"), sec_logic, false,
@@ -272,7 +274,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
     }
 
   cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::" << GetName()
-      << " - constructed " << _geom->get_sector_tower_map().size()
+      << " - constructed " << get_geom_v3()->get_sector_tower_map().size()
       << " unique towers" << endl;
 
   return make_pair(sec_logic, G4Transform3D::Identity);
@@ -284,7 +286,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
     const PHG4FullProjSpacalDetector::SpacalGeom_t::geom_tower & g_tower,
     G4LogicalVolume* LV_tower)
 {
-  assert(_geom);
+  assert(get_geom_v3());
 
   // construct fibers
 
@@ -304,14 +306,14 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
           / (g_tower.NFiberX - 1.);
 
       const double weighted_pDx1 = (g_tower.pDx1 - g_tower.ModuleSkinThickness
-          - _geom->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
+          - get_geom_v3()->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
       const double weighted_pDx2 = (g_tower.pDx2 - g_tower.ModuleSkinThickness
-          - _geom->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
+          - get_geom_v3()->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
 
       const double weighted_pDx3 = (g_tower.pDx3 - g_tower.ModuleSkinThickness
-          - _geom->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
+          - get_geom_v3()->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
       const double weighted_pDx4 = (g_tower.pDx4 - g_tower.ModuleSkinThickness
-          - _geom->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
+          - get_geom_v3()->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
 
       for (int iy = 0; iy < g_tower.NFiberY; iy++)
 //        int iy = 0;
@@ -324,10 +326,10 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
               / (g_tower.NFiberY - 1.);
 
           const double weighted_pDy1 = (g_tower.pDy1
-              - g_tower.ModuleSkinThickness - _geom->get_fiber_outer_r())
+              - g_tower.ModuleSkinThickness - get_geom_v3()->get_fiber_outer_r())
               * (weighted_iy * 2 - 1);
           const double weighted_pDy2 = (g_tower.pDy2
-              - g_tower.ModuleSkinThickness - _geom->get_fiber_outer_r())
+              - g_tower.ModuleSkinThickness - get_geom_v3()->get_fiber_outer_r())
               * (weighted_iy * 2 - 1);
 
           const double weighted_pDx12 = weighted_pDx1 * (1-weighted_iy)
@@ -343,7 +345,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
               + v_zshift;
 
           G4Vector3D vector_fiber = (v2 - v1);
-          vector_fiber *= (vector_fiber.mag() - _geom->get_fiber_outer_r())
+          vector_fiber *= (vector_fiber.mag() - get_geom_v3()->get_fiber_outer_r())
               / vector_fiber.mag(); // shrink by fiber boundary protection
           G4Vector3D center_fiber = (v2 + v1) / 2;
 
@@ -392,7 +394,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
 
 //      const G4Vector3D v1_new = center_fiber - 0.5 *vector_fiber;
 
-      if (_geom->get_construction_verbose() >= 3)
+      if (get_geom_v3()->get_construction_verbose() >= 3)
         cout << "PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower::" << GetName()
             << " - constructed fiber " << fiber_ID << ss.str()            //
             << ", Length = " << optimal_fiber_length << "-"
@@ -419,7 +421,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
           << ss.str();
 
       const bool overlapcheck_fiber = overlapcheck
-          and (_geom->get_construction_verbose() >= 3);
+          and (get_geom_v3()->get_construction_verbose() >= 3);
       G4PVPlacement * fiber_physi = new G4PVPlacement(fiber_place, fiber_logic,
           G4String(name.str().c_str()), LV_tower, false, fiber_ID,
           overlapcheck_fiber);
@@ -431,7 +433,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
 
     }
 
-  if (_geom->get_construction_verbose() >= 2)
+  if (get_geom_v3()->get_construction_verbose() >= 2)
     cout
         << "PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower::"
         << GetName() << " - constructed tower ID " << g_tower.id << " with "
@@ -448,7 +450,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
     const PHG4FullProjSpacalDetector::SpacalGeom_t::geom_tower & g_tower,
     G4LogicalVolume* LV_tower)
 {
-  assert(_geom);
+  assert(get_geom_v3());
 
   G4Vector3D v_zshift = G4Vector3D(tan(g_tower.pTheta) * cos(g_tower.pPhi),
       tan(g_tower.pTheta) * sin(g_tower.pPhi), 1) * g_tower.pDz;
@@ -459,14 +461,14 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
           / (g_tower.NFiberX - 1.);
 
       const double weighted_pDx1 = (g_tower.pDx1 - g_tower.ModuleSkinThickness
-          - _geom->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
+          - get_geom_v3()->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
       const double weighted_pDx2 = (g_tower.pDx2 - g_tower.ModuleSkinThickness
-          - _geom->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
+          - get_geom_v3()->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
 
       const double weighted_pDx3 = (g_tower.pDx3 - g_tower.ModuleSkinThickness
-          - _geom->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
+          - get_geom_v3()->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
       const double weighted_pDx4 = (g_tower.pDx4 - g_tower.ModuleSkinThickness
-          - _geom->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
+          - get_geom_v3()->get_fiber_outer_r()) * (weighted_ix * 2 - 1);
 
       for (int iy = 0; iy < g_tower.NFiberY; iy++)
         {
@@ -479,10 +481,10 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
               / (g_tower.NFiberY - 1.);
 
           const double weighted_pDy1 = (g_tower.pDy1
-              - g_tower.ModuleSkinThickness - _geom->get_fiber_outer_r())
+              - g_tower.ModuleSkinThickness - get_geom_v3()->get_fiber_outer_r())
               * (weighted_iy * 2 - 1);
           const double weighted_pDy2 = (g_tower.pDy2
-              - g_tower.ModuleSkinThickness - _geom->get_fiber_outer_r())
+              - g_tower.ModuleSkinThickness - get_geom_v3()->get_fiber_outer_r())
               * (weighted_iy * 2 - 1);
 
           const double weighted_pDx12 = weighted_pDx1 * (1-weighted_iy)
@@ -498,7 +500,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
               + v_zshift;
 
           G4Vector3D vector_fiber = (v2 - v1);
-          vector_fiber *= (vector_fiber.mag() - _geom->get_fiber_outer_r())
+          vector_fiber *= (vector_fiber.mag() - get_geom_v3()->get_fiber_outer_r())
               / vector_fiber.mag(); // shrink by fiber boundary protection
           G4Vector3D center_fiber = (v2 + v1) / 2;
 
@@ -515,7 +517,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
           G4LogicalVolume *fiber_logic = Construct_Fiber(fiber_length,
               ss.str());
 
-          if (_geom->get_construction_verbose() >= 3)
+          if (get_geom_v3()->get_construction_verbose() >= 3)
             cout << "PHG4FullProjSpacalDetector::Construct_Fibers::" << GetName()
             << " - constructed fiber " << fiber_ID << ss.str()            //
                 << ", Length = " << fiber_length << "mm, " //
@@ -543,7 +545,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
               << ss.str();
 
           const bool overlapcheck_fiber = overlapcheck
-              and (_geom->get_construction_verbose() >= 3);
+              and (get_geom_v3()->get_construction_verbose() >= 3);
           G4PVPlacement * fiber_physi = new G4PVPlacement(fiber_place,
               fiber_logic, G4String(name.str().c_str()), LV_tower, false,
               fiber_ID, overlapcheck_fiber);
@@ -555,7 +557,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
         }
     }
 
-  if (_geom->get_construction_verbose() >= 3)
+  if (get_geom_v3()->get_construction_verbose() >= 3)
     cout << "PHG4FullProjSpacalDetector::Construct_Fibers::" << GetName()
         << " - constructed tower ID " << g_tower.id << " with " << fiber_cnt
         << " fibers" << endl;
@@ -568,7 +570,7 @@ G4LogicalVolume*
 PHG4FullProjSpacalDetector::Construct_Tower(
     const PHG4FullProjSpacalDetector::SpacalGeom_t::geom_tower & g_tower)
 {
-  assert(_geom);
+  assert(get_geom_v3());
 
   std::stringstream sout;
   sout << "_" << g_tower.id;
@@ -587,41 +589,41 @@ PHG4FullProjSpacalDetector::Construct_Tower(
           );
 
   G4Material * cylinder_mat = G4Material::GetMaterial(
-      _geom->get_absorber_mat());
+      get_geom_v3()->get_absorber_mat());
   assert(cylinder_mat);
 
   G4LogicalVolume * block_logic = new G4LogicalVolume(block_solid, cylinder_mat,
       G4String(G4String(GetName()) + string("_Tower") + sTowerID), 0, 0,
-      step_limits);
+      nullptr);
 
   G4VisAttributes* VisAtt = new G4VisAttributes();
 //  PHG4Utils::SetColour(VisAtt, "W_Epoxy");
   VisAtt->SetColor(.3, .3, .3, .3);
   VisAtt->SetVisibility(
-      _geom->is_azimuthal_seg_visible() or _geom->is_virualize_fiber());
-  VisAtt->SetForceSolid(not _geom->is_virualize_fiber());
+      get_geom_v3()->is_azimuthal_seg_visible() or get_geom_v3()->is_virualize_fiber());
+  VisAtt->SetForceSolid(not get_geom_v3()->is_virualize_fiber());
   block_logic->SetVisAttributes(VisAtt);
 
   // construct fibers
 
   int fiber_count = 0;
 
-  if (_geom->get_config() == SpacalGeom_t::kFullProjective_2DTaper)
+  if (get_geom_v3()->get_config() == SpacalGeom_t::kFullProjective_2DTaper)
     {
       fiber_count = Construct_Fibers(g_tower, block_logic);
 
-      if (_geom->get_construction_verbose() >= 2)
+      if (get_geom_v3()->get_construction_verbose() >= 2)
         cout << "PHG4FullProjSpacalDetector::Construct_Tower::" << GetName()
             << " - constructed tower ID " << g_tower.id << " with "
             << fiber_count << " fibers using Construct_Fibers" << endl;
     }
-  else if (_geom->get_config()
+  else if (get_geom_v3()->get_config()
       == SpacalGeom_t::kFullProjective_2DTaper_SameLengthFiberPerTower)
     {
       fiber_count = Construct_Fibers_SameLengthFiberPerTower(g_tower,
           block_logic);
 
-      if (_geom->get_construction_verbose() >= 2)
+      if (get_geom_v3()->get_construction_verbose() >= 2)
         cout << "PHG4FullProjSpacalDetector::Construct_Tower::" << GetName()
             << " - constructed tower ID " << g_tower.id << " with "
             << fiber_count
@@ -631,7 +633,7 @@ PHG4FullProjSpacalDetector::Construct_Tower(
     {
 
       G4ExceptionDescription message;
-      message << "can not recognize configuration type " << _geom->get_config();
+      message << "can not recognize configuration type " << get_geom_v3()->get_config();
 
       G4Exception("PHG4FullProjSpacalDetector::Construct_Tower", "Wrong",
           FatalException, message, "");
@@ -645,7 +647,7 @@ PHG4FullProjSpacalDetector::Print(const std::string &what) const
 {
   cout << "PHG4FullProjSpacalDetector::Print::" << GetName()
       << " - Print Geometry:" << endl;
-  _geom->Print();
+  get_geom_v3()->Print();
 
   return;
 }

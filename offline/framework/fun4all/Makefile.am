@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 BUILT_SOURCES = \
   testexternals.cc
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I$(ROOTSYS)/include \
@@ -72,6 +72,7 @@ libfun4all_la_LIBADD = \
   -L$(OFFLINE_MAIN)/lib \
   libSubsysReco.la \
   libTDirectoryHelper.la \
+  -lboost_filesystem \
   -lEvent \
   -lFROG \
   -lffaobjects \
@@ -114,7 +115,7 @@ Fun4All_Dict.cc: \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllServer.h \
   Fun4AllLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 
 SubsysReco_Dict.cc: \
@@ -122,7 +123,7 @@ SubsysReco_Dict.cc: \
   SubsysReco.h \
   SubsysRecoStack.h \
   SubsysRecoLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict*

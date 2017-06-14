@@ -1,6 +1,8 @@
 AUTOMAKE_OPTIONS = foreign
 
-AM_CXXFLAGS = -I$(OFFLINE_MAIN)/include
+AM_CXXFLAGS = \
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include
 
 AM_FFLAGS = -fno-second-underscore
 
