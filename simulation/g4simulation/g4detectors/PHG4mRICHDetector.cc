@@ -155,6 +155,7 @@ void mRichMaterialList::SetAir()
 //________________________________________________________________________//
 void mRichMaterialList::SetAir_Opt()
 {
+/*
   const int nEntries_Air_Opt=2;
 
   G4Element* N = new G4Element("Nitrogen", "N",  7 , 14.01*g/mole);
@@ -170,6 +171,7 @@ void mRichMaterialList::SetAir_Opt()
   Air_Opt->AddElement(N, 70.*perCent);
   Air_Opt->AddElement(O, 30.*perCent);
   Air_Opt->SetMaterialPropertiesTable(myMPT);
+*/
 }
 //________________________________________________________________________//
 void mRichMaterialList::SetAcrylic()
@@ -286,6 +288,7 @@ void mRichMaterialList::SetAerogel1()
 //________________________________________________________________________//
 void mRichMaterialList::SetAerogel2()
 {
+/*
   const int nEntries2=50;
 
   G4Element* O = new G4Element("Oxygen"  , "O",  8 , 16.00*g/mole);
@@ -351,6 +354,7 @@ void mRichMaterialList::SetAerogel2()
   Aerogel2->AddElement(Si, 1);
   Aerogel2->AddElement(O, 2);
   Aerogel2->SetMaterialPropertiesTable(myMPT);
+*/
 }
 //________________________________________________________________________//
 void mRichMaterialList::SetBorosilicate()
@@ -605,7 +609,8 @@ mRichParameter::mRichParameter(mRichMaterialList* materialList)
   sprintf(hollowVolume->name,"HollowVolume");
   for (i=0;i<3;i++) hollowVolume->halfXYZ[i]=hollow_halfXYZ[i];
   hollowVolume->posXYZ=hollow_posXYZ;
-  hollowVolume->material=materialList->GetmRichMaterial("Air_Opt");
+  //hollowVolume->material=materialList->GetmRichMaterial("mRICH_Air_Opt");
+  hollowVolume->material=G4Material::GetMaterial("mRICH_Air_Opt");
   hollowVolume->sensitivity=0;
 
   hollowVolume->color=G4Colour(1.0,1.0,1.0);
@@ -619,7 +624,7 @@ mRichParameter::mRichParameter(mRichMaterialList* materialList)
   sprintf(foamHolderBox->name,"FoamHolder");
   for (i=0;i<3;i++) foamHolderBox->halfXYZ[i]=foamHolder_halfXYZ[i];
   foamHolderBox->posXYZ=G4ThreeVector(0.0*cm,0.0*cm,foamHolder_posz);
-  foamHolderBox->material=materialList->GetmRichMaterial("Air_Opt");
+  foamHolderBox->material=G4Material::GetMaterial("mRICH_Air_Opt");
   foamHolderBox->sensitivity=0;
 
   foamHolderBox->color=G4Colour(0.2,0.498,0.369);
@@ -646,7 +651,7 @@ mRichParameter::mRichParameter(mRichMaterialList* materialList)
   foamHolderPoly->router[0]=foamHolderPoly->rinner[0]+foamHolderThicknessXYZ[0];
   foamHolderPoly->router[1]=foamHolderPoly->rinner[1]+foamHolderThicknessXYZ[0];
 
-  foamHolderPoly->material=materialList->GetmRichMaterial("Air_Opt");
+  foamHolderPoly->material=G4Material::GetMaterial("mRICH_Air_Opt");
   foamHolderPoly->sensitivity=0;
 
   foamHolderPoly->color=G4Colour(0.298,0.6,0.471);
@@ -660,14 +665,17 @@ mRichParameter::mRichParameter(mRichMaterialList* materialList)
   sprintf(aerogel->name,"Aerogel");
   for (i=0;i<3;i++) aerogel->halfXYZ[i]=agel_halfXYZ[i];
   aerogel->posXYZ=G4ThreeVector(0,0,agel_posz);
-  aerogel->material=materialList->GetmRichMaterial("Aerogel2");
+  //aerogel->material=materialList->GetmRichMaterial("Aerogel2");
+  //aerogel->material=G4Material::GetMaterial("G10");
+  aerogel->material=G4Material::GetMaterial("mRICH_Aerogel2");
+  G4cout<<"========== aerogel mat= "<<aerogel->material->GetName()<<G4endl;
   //aerogel->material=Air_Opt;
   aerogel->sensitivity=0;
 
   aerogel->color=G4Colour(1.0,0.65,0.0);
   aerogel->visibility=true;
   aerogel->wireframe=true;
-  aerogel->surface=true;
+  aerogel->surface=false;
 
   //----------
   // set Fresnel lens
@@ -729,7 +737,7 @@ mRichParameter::mRichParameter(mRichMaterialList* materialList)
   sprintf(sensor->name, "sensor");
   for (i=0;i<3;i++) sensor->halfXYZ[i]=phodet_halfXYZ[i];
   sensor->posXYZ=G4ThreeVector(0,0,phodet_z);      //temporary. will be set in another func.
-  sensor->material=materialList->GetmRichMaterial("Air_Opt");
+  sensor->material=G4Material::GetMaterial("mRICH_Air_Opt");
   sensor->sensitivity=0;
 
   sensor->color=G4Colour(0.0,0.0,0.63);
