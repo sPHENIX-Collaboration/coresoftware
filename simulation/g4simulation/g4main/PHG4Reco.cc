@@ -1005,6 +1005,96 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   mRICH_Air_Opt->AddElement(G4Element::GetElement("O"), fractionmass=30.*perCent);
   mRICH_Air_Opt->SetMaterialPropertiesTable(mRICH_Air_Opt_MPT);
 
+  // mRICH_Acrylic ---------------
+  const int mRICH_nEntries1=32;
+
+  //same photon energy array as aerogel 1
+  G4double mRICH_PhotonEnergy[mRICH_nEntries1] =
+    { 2.034*eV, 2.068*eV, 2.103*eV, 2.139*eV,     // 610, 600, 590, 580, (nm)
+      2.177*eV, 2.216*eV, 2.256*eV, 2.298*eV,     // 570, 560, 550, 540,
+      2.341*eV, 2.386*eV, 2.433*eV, 2.481*eV,     // 530, 520, 510, 500,  
+      2.532*eV, 2.585*eV, 2.640*eV, 2.697*eV,     // 490, 480, 470, 460,
+      2.757*eV, 2.820*eV, 2.885*eV, 2.954*eV,     // 450, 440, 430, 420,  
+      3.026*eV, 3.102*eV, 3.181*eV, 3.265*eV,     // 410, 400, 390, 380,
+      3.353*eV, 3.446*eV, 3.545*eV, 3.649*eV,     // 370, 360, 350, 340,  
+      3.760*eV, 3.877*eV, 4.002*eV, 4.136*eV };   // 330, 320, 310, 300.
+
+  G4double mRICH_AcRefractiveIndex[mRICH_nEntries1] =
+    { 1.4902, 1.4907, 1.4913, 1.4918, 1.4924,   // 610, 600, 590, 580, 570,
+      1.4930, 1.4936, 1.4942, 1.4948, 1.4954,   // 560, 550, 540, 530, 520,  (this line is interpolated)
+      1.4960, 1.4965, 1.4971, 1.4977, 1.4983,   // 510, 500, 490, 480, 470,
+      1.4991, 1.5002, 1.5017, 1.5017, 1.5017,   // 460, 450, 440, 430, 420,
+      1.5017, 1.5017, 1.5017, 1.5017, 1.5017,   // 410,  
+      1.5017, 1.5017, 1.5017, 1.5017, 1.5017,   // 360,     look up values below 435 
+      1.5017, 1.5017};
+
+  G4double mRICH_AcAbsorption[mRICH_nEntries1] =
+    {25.25*cm, 25.25*cm, 25.25*cm, 25.25*cm,
+     25.25*cm, 25.25*cm, 25.25*cm, 25.25*cm,
+     25.25*cm, 25.25*cm, 25.25*cm, 25.25*cm,
+     25.25*cm, 25.25*cm, 25.25*cm, 25.25*cm,
+     25.25*cm, 25.25*cm, 25.25*cm, 25.25*cm,
+     25.25*cm, 00.667*cm, 00.037*cm, 00.333*cm,
+     00.001*cm, 00.001*cm, 00.001*cm, 00.001*cm,
+     00.001*cm, 00.001*cm, 00.001*cm, 00.001*cm};
+
+  G4MaterialPropertiesTable* mRICH_Ac_myMPT = new G4MaterialPropertiesTable();
+  mRICH_Ac_myMPT->AddProperty("RINDEX" ,mRICH_PhotonEnergy, mRICH_AcRefractiveIndex,mRICH_nEntries1);
+  mRICH_Ac_myMPT->AddProperty("ABSLENGTH", mRICH_PhotonEnergy, mRICH_AcAbsorption,mRICH_nEntries1);
+
+  G4Material* mRICH_Acrylic=new G4Material("mRICH_Acrylic", density=1.19*g/cm3, ncomponents=3);
+  mRICH_Acrylic->AddElement(G4Element::GetElement("C"), natoms=5);
+  mRICH_Acrylic->AddElement(G4Element::GetElement("H"), natoms=8);     // molecular ratios
+  mRICH_Acrylic->AddElement(G4Element::GetElement("O"), natoms=2);
+  mRICH_Acrylic->SetMaterialPropertiesTable(mRICH_Ac_myMPT);
+
+  // mRICH_Agel1 -----------------
+  // using same photon energy array as mRICH_Acrylic
+
+  G4double mRICH_Agel1RefractiveIndex[mRICH_nEntries1] =
+    { 1.02435, 1.0244,  1.02445, 1.0245,  1.02455,
+      1.0246,  1.02465, 1.0247,  1.02475, 1.0248,
+      1.02485, 1.02492, 1.025,   1.02505, 1.0251,
+      1.02518, 1.02522, 1.02530, 1.02535, 1.0254,
+      1.02545, 1.0255,  1.02555, 1.0256,  1.02568,
+      1.02572, 1.0258,  1.02585, 1.0259,  1.02595,
+      1.026,   1.02608};
+
+  G4double mRICH_Agel1Absorption[mRICH_nEntries1] =    //from Hubert                                               
+    { 3.448*m,  4.082*m,  6.329*m,  9.174*m, 12.346*m, 13.889*m,
+      15.152*m, 17.241*m, 18.868*m, 20.000*m, 26.316*m, 35.714*m,
+      45.455*m, 47.619*m, 52.632*m, 52.632*m, 55.556*m, 52.632*m,
+      52.632*m, 47.619*m, 45.455*m, 41.667*m, 37.037*m, 33.333*m,
+      30.000*m, 28.500*m, 27.000*m, 24.500*m, 22.000*m, 19.500*m,
+      17.500*m, 14.500*m };
+
+  G4double mRICH_Agel1Rayleigh[mRICH_nEntries1];
+  //const G4double AerogelTypeAClarity = 0.00719*micrometer*micrometer*micrometer*micrometer/cm;
+  const G4double AerogelTypeAClarity = 0.0020*micrometer*micrometer*micrometer*micrometer/cm;
+  G4double Cparam    =  AerogelTypeAClarity*cm/(micrometer*micrometer*micrometer*micrometer);
+  G4double PhotMomWaveConv = 1239*eV*nm;
+
+  if(Cparam != 0.0 ) {
+    for(int i=0; i<mRICH_nEntries1; i++ ){
+      G4double ephoton = mRICH_PhotonEnergy[i];
+      //In the following the 1000 is to convert form nm to micrometer
+      G4double wphoton=(PhotMomWaveConv/ephoton)/(1000.0*nm);
+      mRICH_Agel1Rayleigh[i]=(std::pow(wphoton,4))/Cparam;
+    }
+  }
+
+  G4MaterialPropertiesTable* mRICH_Agel1_myMPT = new G4MaterialPropertiesTable();
+  mRICH_Agel1_myMPT->AddProperty("RINDEX", mRICH_PhotonEnergy, mRICH_Agel1RefractiveIndex, mRICH_nEntries1);
+  mRICH_Agel1_myMPT->AddProperty("ABSLENGTH", mRICH_PhotonEnergy, mRICH_Agel1Absorption,mRICH_nEntries1);
+  mRICH_Agel1_myMPT->AddProperty("RAYLEIGH", mRICH_PhotonEnergy, mRICH_Agel1Rayleigh, mRICH_nEntries1);  //Need table of rayleigh Scattering!!!
+  mRICH_Agel1_myMPT->AddConstProperty("SCINTILLATIONYIELD",0./MeV);
+  mRICH_Agel1_myMPT->AddConstProperty("RESOLUTIONSCALE",1.0);
+
+  G4Material* mRICH_Aerogel1 = new G4Material("mRICH_Aerogel1", density=0.02*g/cm3, ncomponents=2);
+  mRICH_Aerogel1->AddElement(G4Element::GetElement("Si"), natoms=1);
+  mRICH_Aerogel1->AddElement(G4Element::GetElement("O"), natoms=2);
+  mRICH_Aerogel1->SetMaterialPropertiesTable(mRICH_Agel1_myMPT);
+
   // mRICH_Agel2 -----------------
   const int mRICH_nEntries2=50;
 
@@ -1067,6 +1157,55 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   mRICH_Aerogel2->AddElement(G4Element::GetElement("Si"), natoms=1);
   mRICH_Aerogel2->AddElement(G4Element::GetElement("O"), natoms=2);
   mRICH_Aerogel2->SetMaterialPropertiesTable(mRICH_Agel2MPT);
+
+  // mRICH_Borosilicate ----------                                                                                                           
+  //using the same photon energy array as mRICH_Acrylic
+
+  G4double mRICH_glassRefractiveIndex[mRICH_nEntries1] =
+    { 1.47, 1.47,  1.47, 1.47,  1.47,
+      1.47, 1.47,  1.47, 1.47,  1.47,
+      1.47, 1.47,  1.47, 1.47,  1.47,
+      1.47, 1.47,  1.47, 1.47,  1.47,
+      1.47, 1.47,  1.47, 1.47,  1.47,
+      1.47, 1.47,  1.47, 1.47,  1.47,
+      1.47, 1.47};
+
+  G4double mRICH_glassAbsorption[mRICH_nEntries1] =
+    {4.25*cm, 4.25*cm, 4.25*cm, 4.25*cm,
+     4.25*cm, 4.25*cm, 4.25*cm, 4.25*cm,
+     4.25*cm, 4.25*cm, 4.25*cm, 4.25*cm,
+     4.25*cm, 4.25*cm, 4.25*cm, 4.25*cm,
+     4.25*cm, 4.25*cm, 4.25*cm, 4.25*cm,
+     4.25*cm, 00.667*cm, 00.037*cm, 00.333*cm,
+     00.001*cm, 00.001*cm, 00.001*cm, 00.001*cm,
+     00.001*cm, 00.001*cm, 00.001*cm, 00.001*cm};
+
+  G4MaterialPropertiesTable* mRICH_glass_myMPT = new G4MaterialPropertiesTable();
+  //same photon energy array as aerogel 1                                                                                                    
+  mRICH_glass_myMPT->AddProperty("RINDEX", mRICH_PhotonEnergy, mRICH_glassRefractiveIndex, mRICH_nEntries1);
+  mRICH_glass_myMPT->AddProperty("ABSLENGTH", mRICH_PhotonEnergy, mRICH_glassAbsorption, mRICH_nEntries1);
+
+  //G4NistManager * nist = G4NistManager::Instance();
+  G4Material* mRICH_Borosilicate = nist->FindOrBuildMaterial("G4_Pyrex_Glass");
+  mRICH_Borosilicate->SetName("mRICH_Borosilicate");
+  mRICH_Borosilicate->SetMaterialPropertiesTable(mRICH_glass_myMPT);
+
+  // mRICH_Air ------------------
+  //using same photon energy array as mRICH_Acrylic
+
+  G4double mRICH_AirRefractiveIndex[mRICH_nEntries1] =
+    { 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00,
+      1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00,
+      1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00,
+      1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00,
+      1.00, 1.00, 1.00, 1.00 };
+
+  G4MaterialPropertiesTable* mRICH_Air_myMPT = new G4MaterialPropertiesTable();
+  mRICH_Air_myMPT->AddProperty("RINDEX", mRICH_PhotonEnergy, mRICH_AirRefractiveIndex , mRICH_nEntries1);
+  
+  mRICH_Air= nist->FindOrBuildMaterial("G4_AIR");
+  mRICH_Air->SetName("mRICH_Air");
+  mRICH_Air->SetMaterialPropertiesTable(mRICH_Air_myMPT);
 }
 
 PHG4Subsystem *

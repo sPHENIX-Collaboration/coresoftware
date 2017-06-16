@@ -14,32 +14,6 @@ class PHG4Parameters;
 class G4VPhysicalVolume;
 class G4Material;
 
-class mRichMaterialList
-{
- private:
-  G4Material* Water;
-  G4Material* Aluminum;
-  G4Material* Air;
-  G4Material* Air_Opt;
-  G4Material* Acrylic;
-  G4Material* Aerogel1;
-  G4Material* Aerogel2;
-  G4Material* Borosilicate;
-  
-  void SetAir();
-  void SetAir_Opt();
-  void SetAcrylic();
-  void SetAerogel1();
-  void SetAerogel2();
-  void SetBorosilicate();
-  
-
- public:
-  mRichMaterialList();
-  ~mRichMaterialList();
-  G4Material* GetmRichMaterial(const char* matName);
-};
-
 //___________________________________________________________________________
 class BoxPar
 {
@@ -127,7 +101,7 @@ class mRichParameter
   PolyPar* readout;
 
  public:
-  mRichParameter(mRichMaterialList* materialList);
+  mRichParameter();
   ~mRichParameter();
 
   void SetPar_glassWindow(G4double x, G4double y);
