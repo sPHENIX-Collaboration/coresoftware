@@ -15,103 +15,6 @@ class G4VPhysicalVolume;
 class G4Material;
 
 //___________________________________________________________________________
-class BoxPar
-{
- public:
-  char name[50];
-  G4double halfXYZ[3];
-  G4ThreeVector posXYZ;
-  G4Material* material;
-  int sensitivity;
-
-  G4Colour color;
-  bool visibility;
-  bool wireframe;
-  bool surface;
-
-  BoxPar();
-  ~BoxPar();
-};
-//___________________________________________________________________________
-class PolyPar
-{
- public:
-  char name[50];
-  G4ThreeVector pos;
-  G4double start;
-  G4double theta;
-  G4int numSide;
-  G4int num_zLayer;
-  G4double z[4];                      //max. layer is 4
-  G4double rinner[4];
-  G4double router[4];
-  G4Material* material;
-  int sensitivity;
-
-  G4Colour color;
-  bool visibility;
-  bool wireframe;
-  bool surface;
-
-  PolyPar();
-  ~PolyPar();
-};
-//___________________________________________________________________________
-class LensPar
-{
- public:
-  G4double n;
-  G4double f;
-  G4double diameter;
-  G4double eff_diameter;
-  G4double centerThickness;
-  G4double grooveWidth;
-
-  char name[50];
-  G4double halfXYZ[3];
-  G4ThreeVector pos;
-  G4Material* material;
-  int sensitivity;
-
-  G4Colour color;
-  bool visibility;
-  bool wireframe;
-  bool surface;
-
-  LensPar();
-  ~LensPar();
-
-  void Set_halfXYZ(G4double halfX,G4double grooveDensity);
-  G4double GetSagita(G4double r);
-
-};
-//___________________________________________________________________________
-class mRichParameter
-{
- private:
-  BoxPar* holderBox;
-  BoxPar* hollowVolume;
-  BoxPar* foamHolderBox;
-  PolyPar* foamHolderPoly;
-  BoxPar* aerogel;
-  LensPar* fresnelLens;
-  PolyPar* mirror;
-  BoxPar* glassWindow;
-  BoxPar* sensor;
-  PolyPar* readout;
-
- public:
-  mRichParameter();
-  ~mRichParameter();
-
-  void SetPar_glassWindow(G4double x, G4double y);
-  void SetPar_sensor(G4double x, G4double y);
-  BoxPar* GetBoxPar(const char* componentName);
-  LensPar* GetLensPar(const char* componentName);
-  PolyPar* GetPolyPar(const char* componentName);
-
-};
-//___________________________________________________________________________
 class PHG4mRICHDetector: public PHG4Detector
 {
 
@@ -138,6 +41,10 @@ class PHG4mRICHDetector: public PHG4Detector
   int get_Layer() const {return layer;}
 
  private:
+  class mRichParameter;
+  class BoxPar;
+  class PolyPar;
+  class LensPar;
 
   PHG4Parameters *params;
   
@@ -163,5 +70,102 @@ class PHG4mRICHDetector: public PHG4Detector
   std::string superdetector;
   
 };
+//___________________________________________________________________________
+class PHG4mRICHDetector::mRichParameter
+{
+ private:
+  BoxPar* holderBox;
+  BoxPar* hollowVolume;
+  BoxPar* foamHolderBox;
+  PolyPar* foamHolderPoly;
+  BoxPar* aerogel;
+  LensPar* fresnelLens;
+  PolyPar* mirror;
+  BoxPar* glassWindow;
+  BoxPar* sensor;
+  PolyPar* readout;
 
+ public:
+  mRichParameter();
+  ~mRichParameter();
+
+  void SetPar_glassWindow(G4double x, G4double y);
+  void SetPar_sensor(G4double x, G4double y);
+  BoxPar* GetBoxPar(const char* componentName);
+  LensPar* GetLensPar(const char* componentName);
+  PolyPar* GetPolyPar(const char* componentName);
+
+};
+//___________________________________________________________________________
+class PHG4mRICHDetector::BoxPar
+{
+ public:
+  char name[50];
+  G4double halfXYZ[3];
+  G4ThreeVector posXYZ;
+  G4Material* material;
+  int sensitivity;
+
+  G4Colour color;
+  bool visibility;
+  bool wireframe;
+  bool surface;
+
+  BoxPar();
+  ~BoxPar();
+};
+//___________________________________________________________________________
+class PHG4mRICHDetector::PolyPar
+{
+ public:
+  char name[50];
+  G4ThreeVector pos;
+  G4double start;
+  G4double theta;
+  G4int numSide;
+  G4int num_zLayer;
+  G4double z[4];                      //max. layer is 4                                                                                                     
+  G4double rinner[4];
+  G4double router[4];
+  G4Material* material;
+  int sensitivity;
+
+  G4Colour color;
+  bool visibility;
+  bool wireframe;
+  bool surface;
+
+  PolyPar();
+  ~PolyPar();
+};
+//___________________________________________________________________________
+class PHG4mRICHDetector::LensPar
+{
+ public:
+  G4double n;
+  G4double f;
+  G4double diameter;
+  G4double eff_diameter;
+  G4double centerThickness;
+  G4double grooveWidth;
+
+  char name[50];
+  G4double halfXYZ[3];
+  G4ThreeVector pos;
+  G4Material* material;
+  int sensitivity;
+
+  G4Colour color;
+  bool visibility;
+  bool wireframe;
+  bool surface;
+  
+  LensPar();
+  ~LensPar();
+
+  void Set_halfXYZ(G4double halfX,G4double grooveDensity);
+  G4double GetSagita(G4double r);
+
+};
+//___________________________________________________________________________
 #endif

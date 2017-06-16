@@ -107,15 +107,15 @@ G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWor
 }
 
 //________________________________________________________________________//
-BoxPar::BoxPar() {;}
+PHG4mRICHDetector::BoxPar::BoxPar() {;}
 //________________________________________________________________________//
-BoxPar::~BoxPar() {;}
+PHG4mRICHDetector::BoxPar::~BoxPar() {;}
 //________________________________________________________________________//
-PolyPar::PolyPar() {;}
+PHG4mRICHDetector::PolyPar::PolyPar() {;}
 //________________________________________________________________________//
-PolyPar::~PolyPar() {;}
+PHG4mRICHDetector::PolyPar::~PolyPar() {;}
 //________________________________________________________________________//
-LensPar::LensPar()
+PHG4mRICHDetector::LensPar::LensPar()
 {
   n=0;
   f=0;
@@ -125,9 +125,9 @@ LensPar::LensPar()
   grooveWidth=0;
 }
 //________________________________________________________________________//
-LensPar::~LensPar() {;}
+PHG4mRICHDetector::LensPar::~LensPar() {;}
 //________________________________________________________________________//
-void LensPar::Set_halfXYZ(G4double halfX, G4double grooveDensity)
+void PHG4mRICHDetector::LensPar::Set_halfXYZ(G4double halfX, G4double grooveDensity)
 {
   halfXYZ[0]=halfX;
   halfXYZ[1]=halfXYZ[0];
@@ -138,7 +138,7 @@ void LensPar::Set_halfXYZ(G4double halfX, G4double grooveDensity)
   halfXYZ[2] = (GetSagita(Rmax1)-GetSagita(Rmin1)+centerThickness)/2.0;
 }
 //________________________________________________________________________//
-G4double LensPar::GetSagita(G4double r)
+G4double PHG4mRICHDetector::LensPar::GetSagita(G4double r)
 {
   G4double Conic = -1.0;    // original:
   //G4int lens_type = 3; 
@@ -189,7 +189,7 @@ G4double LensPar::GetSagita(G4double r)
 }
 
 //________________________________________________________________________//
-mRichParameter::mRichParameter()
+PHG4mRICHDetector::mRichParameter::mRichParameter()
 {
   int i;
   //----------
@@ -291,7 +291,7 @@ mRichParameter::mRichParameter()
   holderBox->material=G4Material::GetMaterial("G4_Al");
   holderBox->sensitivity=0;
 
-  holderBox->color=G4Colour(1.0,1.0,1.0);
+  holderBox->color=G4Colour(0.0,0.0,0.0);
   holderBox->visibility=true;
   holderBox->wireframe=true;
   holderBox->surface=false;
@@ -305,7 +305,7 @@ mRichParameter::mRichParameter()
   hollowVolume->material=G4Material::GetMaterial("mRICH_Air_Opt");
   hollowVolume->sensitivity=0;
 
-  hollowVolume->color=G4Colour(1.0,1.0,1.0);
+  hollowVolume->color=G4Colour(0.0,0.0,0.0);
   hollowVolume->visibility=true;
   hollowVolume->wireframe=true;
   hollowVolume->surface=false;
@@ -463,21 +463,21 @@ mRichParameter::mRichParameter()
 
 }
 //________________________________________________________________________//
-mRichParameter::~mRichParameter(){;}
+PHG4mRICHDetector::mRichParameter::~mRichParameter(){;}
 //________________________________________________________________________//
-void mRichParameter::SetPar_glassWindow(G4double x, G4double y)
+void PHG4mRICHDetector::mRichParameter::SetPar_glassWindow(G4double x, G4double y)
 {
   glassWindow->posXYZ.setX(x);
   glassWindow->posXYZ.setY(y);
 }
 //________________________________________________________________________//
-void mRichParameter::SetPar_sensor(G4double x, G4double y)
+void PHG4mRICHDetector::mRichParameter::SetPar_sensor(G4double x, G4double y)
 {
   sensor->posXYZ.setX(x);
   sensor->posXYZ.setY(y);
 }
 //________________________________________________________________________//
-BoxPar* mRichParameter::GetBoxPar(const char* componentName)
+PHG4mRICHDetector::BoxPar* PHG4mRICHDetector::mRichParameter::GetBoxPar(const char* componentName)
 {
   if (strcmp(componentName,"holderBox")==0) return holderBox;
   else if (strcmp(componentName,"hollowVolume")==0) return hollowVolume;
@@ -491,7 +491,7 @@ BoxPar* mRichParameter::GetBoxPar(const char* componentName)
   return aerogel;
 }
 //________________________________________________________________________//
-LensPar* mRichParameter::GetLensPar(const char* componentName)
+PHG4mRICHDetector::LensPar* PHG4mRICHDetector::mRichParameter::GetLensPar(const char* componentName)
 {
   if (strcmp(componentName,"fresnelLens")==0) return fresnelLens;
   else printf("mRichParameter::GetLensPar() ----- ERROR: cannot find parameter=%s\n",componentName);
@@ -499,7 +499,7 @@ LensPar* mRichParameter::GetLensPar(const char* componentName)
   return 0;
 }
 //________________________________________________________________________//
-PolyPar* mRichParameter::GetPolyPar(const char* componentName)
+PHG4mRICHDetector::PolyPar* PHG4mRICHDetector::mRichParameter::GetPolyPar(const char* componentName)
 {
   if (strcmp(componentName,"foamHolderPoly")==0) return foamHolderPoly;
   else if (strcmp(componentName,"mirror")==0) return mirror;
