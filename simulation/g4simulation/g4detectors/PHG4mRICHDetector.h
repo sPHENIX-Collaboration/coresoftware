@@ -5,6 +5,8 @@
 #ifndef PHG4mRICHDetector_h
 #define PHG4mRICHDetector_h
 
+#include <string>
+
 #include <g4main/PHG4Detector.h>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4Colour.hh>
@@ -14,6 +16,7 @@ class PHG4Parameters;
 class G4VPhysicalVolume;
 class G4Material;
 
+using namespace std;
 //___________________________________________________________________________
 class PHG4mRICHDetector: public PHG4Detector
 {
@@ -91,18 +94,18 @@ class PHG4mRICHDetector::mRichParameter
 
   void SetPar_glassWindow(G4double x, G4double y);
   void SetPar_sensor(G4double x, G4double y);
-  BoxPar* GetBoxPar(const char* componentName);
-  LensPar* GetLensPar(const char* componentName);
-  PolyPar* GetPolyPar(const char* componentName);
+  BoxPar* GetBoxPar(std::string componentName);
+  LensPar* GetLensPar(std::string componentName);
+  PolyPar* GetPolyPar(std::string componentName);
 
 };
 //___________________________________________________________________________
 class PHG4mRICHDetector::BoxPar
 {
  public:
-  char name[50];
+  string name;
   G4double halfXYZ[3];
-  G4ThreeVector posXYZ;
+  G4ThreeVector pos;
   G4Material* material;
   int sensitivity;
 
@@ -118,7 +121,7 @@ class PHG4mRICHDetector::BoxPar
 class PHG4mRICHDetector::PolyPar
 {
  public:
-  char name[50];
+  string name;
   G4ThreeVector pos;
   G4double start;
   G4double theta;
@@ -149,7 +152,7 @@ class PHG4mRICHDetector::LensPar
   G4double centerThickness;
   G4double grooveWidth;
 
-  char name[50];
+  string name;
   G4double halfXYZ[3];
   G4ThreeVector pos;
   G4Material* material;

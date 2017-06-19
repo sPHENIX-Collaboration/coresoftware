@@ -47,7 +47,7 @@
 
 #include <sstream>
 #include <string>
-
+#include <array>
 
 using namespace std;
 using namespace CLHEP;
@@ -86,7 +86,6 @@ void PHG4mRICHDetector::Construct( G4LogicalVolume* logicWorld)
 //_______________________________________________________________
 G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWorld )
 {
-  //mRichMaterialList* materialList=new mRichMaterialList();
   mRichParameter* parameters=new mRichParameter();
 
   /*holder box and hollow volume*/ G4VPhysicalVolume* hollowVol=build_holderBox(parameters,logicWorld);
@@ -97,21 +96,50 @@ G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWor
   /*sensor plane                */ build_sensor(parameters,hollowVol->GetLogicalVolume());
   /*readout electronics         */ build_polyhedra(parameters->GetPolyPar("readout"),hollowVol->GetLogicalVolume());
 
+  printf("============== detector built ================\n");
+
   return hollowVol->GetMotherLogical();  //return detector holder box.
                                          //you have more than 1 daugthers,
                                          //but you can only have one mother.
-
-  printf("============== detector built ================\n");
-  
-  
 }
 
 //________________________________________________________________________//
-PHG4mRICHDetector::BoxPar::BoxPar() {;}
+PHG4mRICHDetector::BoxPar::BoxPar()
+{
+  name="";
+  fill(begin(halfXYZ),end(halfXYZ),(G4double) 0*mm);
+  pos=G4ThreeVector(0*mm,0*mm,0*mm);
+  material=G4Material::GetMaterial("G4_AIR");
+  sensitivity=0;
+
+  color=G4Colour(0,0,0,0);
+  visibility=false;
+  wireframe=false;
+  surface=false;
+ 
+}
 //________________________________________________________________________//
 PHG4mRICHDetector::BoxPar::~BoxPar() {;}
 //________________________________________________________________________//
-PHG4mRICHDetector::PolyPar::PolyPar() {;}
+PHG4mRICHDetector::PolyPar::PolyPar()
+{
+  name="";
+  pos=G4ThreeVector(0*mm,0*mm,0*mm);
+  start=(G4double) 0;
+  theta=(G4double) 0;
+  numSide=0;
+  num_zLayer=0;
+  fill(begin(z),end(z), (G4double) 0*mm);
+  fill(begin(rinner),end(rinner), (G4double) 0*mm);
+  fill(begin(router),end(router), (G4double) 0*mm);
+  material=G4Material::GetMaterial("G4_AIR");
+  sensitivity=0;
+
+  color=G4Colour(0,0,0,0);
+  visibility=false;
+  wireframe=false;
+  surface=false;
+}
 //________________________________________________________________________//
 PHG4mRICHDetector::PolyPar::~PolyPar() {;}
 //________________________________________________________________________//
@@ -123,6 +151,17 @@ PHG4mRICHDetector::LensPar::LensPar()
   eff_diameter=0;
   centerThickness=0;
   grooveWidth=0;
+
+  name="";
+  fill(begin(halfXYZ),end(halfXYZ),(G4double) 0*mm);
+  pos=G4ThreeVector(0*mm,0*mm,0*mm);;
+  material=G4Material::GetMaterial("G4_AIR");;
+  sensitivity=0;
+
+  color=G4Colour(0,0,0,0);
+  visibility=false;
+  wireframe=false;
+  surface=false;
 }
 //________________________________________________________________________//
 PHG4mRICHDetector::LensPar::~LensPar() {;}
@@ -175,7 +214,6 @@ G4double PHG4mRICHDetector::LensPar::GetSagita(G4double r)
   }
 
   G4double TotAspher = 0.0*mm ;
-
   for(G4int k=1;k<9;k++){ TotAspher += Aspher[k-1]*std::pow(r,2*k); }
 
   G4double ArgSqrt = 1.0-(1.0+Conic)*std::pow(Curvature,2)*std::pow(r,2) ; // note conic=-1, so ArgSqrt = 1.0
@@ -183,8 +221,8 @@ G4double PHG4mRICHDetector::LensPar::GetSagita(G4double r)
   if (ArgSqrt < 0.0){
     G4cout << "UltraFresnelLensParameterisation::Sagita: Square Root of <0 !" << G4endl;
   }
-  G4double Sagita_value = Curvature*std::pow(r,2)/(1.0+std::sqrt(ArgSqrt)) + TotAspher;
 
+  G4double Sagita_value = Curvature*std::pow(r,2)/(1.0+std::sqrt(ArgSqrt)) + TotAspher;
   return Sagita_value ;
 }
 
@@ -268,7 +306,7 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
   hollow_halfXYZ[1]=hollow_halfXYZ[0];
   hollow_halfXYZ[2]=(2*acrylicBox_halfXYZ[2]-box_thicknessXYZ[2]-box_thicknessXYZ[3])/2.0;
 
-  G4ThreeVector hollow_posXYZ=G4ThreeVector(0.0*cm,0.0*cm,-acrylicBox_halfXYZ[2]+hollow_halfXYZ[2]+box_thicknessXYZ[2]);
+  G4ThreeVector hollow_pos=G4ThreeVector(0.0*cm,0.0*cm,-acrylicBox_halfXYZ[2]+hollow_halfXYZ[2]+box_thicknessXYZ[2]);
 
   G4double foamHolder_posz=-hollow_halfXYZ[2]+BoxDelz+foamHolder_halfXYZ[2];
   G4double agel_posz=foamHolder_posz+foamHolder_halfXYZ[2]+agel_halfXYZ[2];
@@ -285,9 +323,9 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
   //----------
   // set holderBox
   //----------
-  sprintf(holderBox->name,"HolderBox");
+  holderBox->name="HolderBox";
   for (i=0;i<3;i++) holderBox->halfXYZ[i]=acrylicBox_halfXYZ[i];
-  holderBox->posXYZ=G4ThreeVector(0*cm,0*cm,0*cm);
+  holderBox->pos=G4ThreeVector(0*cm,0*cm,0*cm);
   holderBox->material=G4Material::GetMaterial("G4_Al");
   holderBox->sensitivity=0;
 
@@ -299,9 +337,9 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
   //----------
   // set HollowVolume
   //----------
-  sprintf(hollowVolume->name,"HollowVolume");
+  hollowVolume->name="HollowVolume";
   for (i=0;i<3;i++) hollowVolume->halfXYZ[i]=hollow_halfXYZ[i];
-  hollowVolume->posXYZ=hollow_posXYZ;
+  hollowVolume->pos=hollow_pos;
   hollowVolume->material=G4Material::GetMaterial("mRICH_Air_Opt");
   hollowVolume->sensitivity=0;
 
@@ -313,9 +351,9 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
   //----------
   // set FoamHolder_box
   //----------
-  sprintf(foamHolderBox->name,"FoamHolder");
+  foamHolderBox->name="FoamHolder";
   for (i=0;i<3;i++) foamHolderBox->halfXYZ[i]=foamHolder_halfXYZ[i];
-  foamHolderBox->posXYZ=G4ThreeVector(0.0*cm,0.0*cm,foamHolder_posz);
+  foamHolderBox->pos=G4ThreeVector(0.0*cm,0.0*cm,foamHolder_posz);
   foamHolderBox->material=G4Material::GetMaterial("mRICH_Air_Opt");
   foamHolderBox->sensitivity=0;
 
@@ -327,7 +365,7 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
   //----------
   // set FoamHolder_polyhedra
   //----------
-  sprintf(foamHolderPoly->name,"FoamHolder");
+  foamHolderPoly->name="FoamHolder";
   foamHolderPoly->pos=G4ThreeVector(0,0,0);
   foamHolderPoly->start=45.0*myPI/180.0;
   foamHolderPoly->theta=2*myPI;
@@ -354,9 +392,9 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
   //----------
   // set aerogel
   //----------
-  sprintf(aerogel->name,"Aerogel");
+  aerogel->name="Aerogel";
   for (i=0;i<3;i++) aerogel->halfXYZ[i]=agel_halfXYZ[i];
-  aerogel->posXYZ=G4ThreeVector(0,0,agel_posz);
+  aerogel->pos=G4ThreeVector(0,0,agel_posz);
   aerogel->material=G4Material::GetMaterial("mRICH_Aerogel2");
   //aerogel->material=Air_Opt;
   aerogel->sensitivity=0;
@@ -369,7 +407,7 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
   //----------
   // set Fresnel lens
   //----------
-  sprintf(fresnelLens->name,"FresnelLens");
+  fresnelLens->name="FresnelLens";
   fresnelLens->pos=G4ThreeVector(0,0,lens_z);
   fresnelLens->material=G4Material::GetMaterial("mRICH_Acrylic");
   fresnelLens->sensitivity=0;
@@ -381,7 +419,7 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
   //----------
   // set mirror
   //----------
-  sprintf(mirror->name,"mirror");
+  mirror->name="mirror";
   mirror->pos=G4ThreeVector(0,0,0);
   mirror->start=45.0*myPI/180.0;
   mirror->theta=2*myPI;
@@ -407,11 +445,11 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
   //----------
   // set glass window
   //----------
-  sprintf(glassWindow->name, "glassWindow");
+  glassWindow->name="glassWindow";
   for (i=0;i<3;i++) glassWindow->halfXYZ[i]=glassWindow_halfXYZ[i];
-  glassWindow->posXYZ=G4ThreeVector(glassWindow_halfXYZ[0]+sensorGap,  //the position of the first sensor module.  
-                                    glassWindow_halfXYZ[0]+sensorGap,  //the position of other sensor module will
-                                    glassWindow_z);                    //be set glass window position in another func.
+  glassWindow->pos=G4ThreeVector(glassWindow_halfXYZ[0]+sensorGap,  //the position of the first sensor module.  
+				 glassWindow_halfXYZ[0]+sensorGap,  //the position of other sensor module will
+				 glassWindow_z);                    //be set glass window position in another func.
   glassWindow->material=G4Material::GetMaterial("mRICH_Borosilicate");
   glassWindow->sensitivity=0;
 
@@ -423,9 +461,9 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
   //----------
   // set sensor
   //----------
-  sprintf(sensor->name, "sensor");
+  sensor->name="sensor";
   for (i=0;i<3;i++) sensor->halfXYZ[i]=phodet_halfXYZ[i];
-  sensor->posXYZ=G4ThreeVector(0,0,phodet_z);      //temporary. will be set in another func.
+  sensor->pos=G4ThreeVector(0,0,phodet_z);      //temporary. will be set in another func.
   sensor->material=G4Material::GetMaterial("mRICH_Air_Opt");
   sensor->sensitivity=0;
 
@@ -437,7 +475,7 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
   //----------
   // set readout
   //----------
-  sprintf(readout->name,"readout");
+  readout->name="readout";
   readout->pos=G4ThreeVector(0,0,0);
   readout->start=45.0*myPI/180.0;
   readout->theta=2*myPI;
@@ -467,53 +505,51 @@ PHG4mRICHDetector::mRichParameter::~mRichParameter(){;}
 //________________________________________________________________________//
 void PHG4mRICHDetector::mRichParameter::SetPar_glassWindow(G4double x, G4double y)
 {
-  glassWindow->posXYZ.setX(x);
-  glassWindow->posXYZ.setY(y);
+  glassWindow->pos.setX(x);
+  glassWindow->pos.setY(y);
 }
 //________________________________________________________________________//
 void PHG4mRICHDetector::mRichParameter::SetPar_sensor(G4double x, G4double y)
 {
-  sensor->posXYZ.setX(x);
-  sensor->posXYZ.setY(y);
+  sensor->pos.setX(x);
+  sensor->pos.setY(y);
 }
 //________________________________________________________________________//
-PHG4mRICHDetector::BoxPar* PHG4mRICHDetector::mRichParameter::GetBoxPar(const char* componentName)
+PHG4mRICHDetector::BoxPar* PHG4mRICHDetector::mRichParameter::GetBoxPar(string componentName)
 {
-  if (strcmp(componentName,"holderBox")==0) return holderBox;
-  else if (strcmp(componentName,"hollowVolume")==0) return hollowVolume;
-  else if (strcmp(componentName,"foamHolderBox")==0) return foamHolderBox;
-  else if (strcmp(componentName,"aerogel")==0) return aerogel;
-  else if (strcmp(componentName,"glassWindow")==0) return glassWindow;
-  else if (strcmp(componentName,"sensor")==0) return sensor;
-  else printf("mRichParameter::GetBoxPar() ----- ERROR: cannot find parameter=%s\n",componentName);
-
-  //return 0;
-  return aerogel;
-}
-//________________________________________________________________________//
-PHG4mRICHDetector::LensPar* PHG4mRICHDetector::mRichParameter::GetLensPar(const char* componentName)
-{
-  if (strcmp(componentName,"fresnelLens")==0) return fresnelLens;
-  else printf("mRichParameter::GetLensPar() ----- ERROR: cannot find parameter=%s\n",componentName);
+  if (componentName.compare("holderBox")==0) return holderBox;
+  else if (componentName.compare("hollowVolume")==0) return hollowVolume;
+  else if (componentName.compare("foamHolderBox")==0) return foamHolderBox;
+  else if (componentName.compare("aerogel")==0) return aerogel;
+  else if (componentName.compare("glassWindow")==0) return glassWindow;
+  else if (componentName.compare("sensor")==0) return sensor;
+  else printf("mRichParameter::GetBoxPar() ----- ERROR: cannot find parameter=%s\n",componentName.c_str());
 
   return 0;
 }
 //________________________________________________________________________//
-PHG4mRICHDetector::PolyPar* PHG4mRICHDetector::mRichParameter::GetPolyPar(const char* componentName)
+PHG4mRICHDetector::LensPar* PHG4mRICHDetector::mRichParameter::GetLensPar(string componentName)
 {
-  if (strcmp(componentName,"foamHolderPoly")==0) return foamHolderPoly;
-  else if (strcmp(componentName,"mirror")==0) return mirror;
-  else if (strcmp(componentName,"readout")==0) return readout;
-  else printf("mRichParameter::GetPolyPar() ----- ERROR: cannot find parameter=%s\n",componentName);
-
+  if (componentName.compare("fresnelLens")==0) return fresnelLens;
+  else printf("mRichParameter::GetLensPar() ----- ERROR: cannot find parameter=%s\n",componentName.c_str());
+  return 0;
+}
+//________________________________________________________________________//
+PHG4mRICHDetector::PolyPar* PHG4mRICHDetector::mRichParameter::GetPolyPar(string componentName)
+{
+  if (componentName.compare("foamHolderPoly")==0) return foamHolderPoly;
+  else if (componentName.compare("mirror")==0) return mirror;
+  else if (componentName.compare("readout")==0) return readout;
+  else printf("mRichParameter::GetPolyPar() ----- ERROR: cannot find parameter=%s\n",componentName.c_str());
+  
   return 0;
 }
 //________________________________________________________________________//
 G4VPhysicalVolume* PHG4mRICHDetector::build_box(BoxPar* par, G4LogicalVolume* motherLV)
 {
-  G4Box* box = new G4Box(par->name,par->halfXYZ[0],par->halfXYZ[1],par->halfXYZ[2]);
-  G4LogicalVolume* log = new G4LogicalVolume(box,par->material,par->name,0,0,0);
-  G4VPhysicalVolume* phy=new G4PVPlacement(0,par->posXYZ,log,par->name,motherLV,false,0);
+  G4Box* box = new G4Box(par->name.c_str(),par->halfXYZ[0],par->halfXYZ[1],par->halfXYZ[2]);
+  G4LogicalVolume* log = new G4LogicalVolume(box,par->material,par->name.c_str(),0,0,0);
+  G4VPhysicalVolume* phy=new G4PVPlacement(0,par->pos,log,par->name.c_str(),motherLV,false,0);
 
   G4VisAttributes* visAtt = new G4VisAttributes(par->color);
   visAtt->SetVisibility(par->visibility);
@@ -526,10 +562,10 @@ G4VPhysicalVolume* PHG4mRICHDetector::build_box(BoxPar* par, G4LogicalVolume* mo
 //________________________________________________________________________//
 G4VPhysicalVolume* PHG4mRICHDetector::build_polyhedra(PolyPar* par, G4LogicalVolume* motherLV)
 {
-  G4Polyhedra* polyhedra=new G4Polyhedra(par->name, par->start,par->theta, par->numSide,
+  G4Polyhedra* polyhedra=new G4Polyhedra(par->name.c_str(), par->start,par->theta, par->numSide,
                                          par->num_zLayer,par->z, par->rinner, par->router);
-  G4LogicalVolume* log = new G4LogicalVolume(polyhedra,par->material,par->name,0,0,0);
-  G4VPhysicalVolume* phy = new G4PVPlacement(0,par->pos,log,par->name,motherLV,false,0);
+  G4LogicalVolume* log = new G4LogicalVolume(polyhedra,par->material,par->name.c_str(),0,0,0);
+  G4VPhysicalVolume* phy = new G4PVPlacement(0,par->pos,log,par->name.c_str(),motherLV,false,0);
 
   G4VisAttributes* visAtt = new G4VisAttributes(par->color);
   visAtt->SetVisibility(par->visibility);
@@ -609,7 +645,7 @@ void PHG4mRICHDetector::build_mirror(mRichParameter* detectorParameter,G4VPhysic
 void PHG4mRICHDetector::build_sensor(mRichParameter* detectorParameter,G4LogicalVolume* motherLV)
 {
   //position of the first sensor module
-  G4double last_x=detectorParameter->GetBoxPar("glassWindow")->posXYZ.getX();
+  G4double last_x=detectorParameter->GetBoxPar("glassWindow")->pos.getX();
   G4double last_y=last_x;
 
   G4double x,y;
@@ -704,9 +740,9 @@ void PHG4mRICHDetector::build_lens(LensPar* par, G4LogicalVolume* motherLV)
     int repeat=1;
     if (iRmax1>= par->halfXYZ[0]) { repeat=4; }   //4 edges
     for (int i=0;i<repeat;i++) {
-      Groove_poly[i]=new G4Polycone(par->name,phi1,deltaPhi, numOfLayer, lens_poly_z, lens_poly_rmin, lens_poly_rmax);
-      Groove_log[i]=new G4LogicalVolume(Groove_poly[i],par->material,par->name,0,0,0);
-      new G4PVPlacement(0,par->pos,Groove_log[i],par->name,motherLV,false,0);
+      Groove_poly[i]=new G4Polycone(par->name.c_str(),phi1,deltaPhi, numOfLayer, lens_poly_z, lens_poly_rmin, lens_poly_rmax);
+      Groove_log[i]=new G4LogicalVolume(Groove_poly[i],par->material,par->name.c_str(),0,0,0);
+      new G4PVPlacement(0,par->pos,Groove_log[i],par->name.c_str(),motherLV,false,0);
 
       Groove_log[i]->SetVisAttributes(SurfaceVisAtt);
       phi1=phi1+halfpi;   //g4 pre-defined: halfpi=pi/2
@@ -745,9 +781,9 @@ G4LogicalVolume* PHG4mRICHDetector::build_Space(G4LogicalVolume* logicWorld, G4d
   bowlPar[3]=phi[1];
 
   G4VSolid* sphere =new G4Sphere("sphere",
-                                       r_inner,r_outer,
-                                       0,twopi,
-                                       0,twopi);
+				 r_inner,r_outer,
+				 0,twopi,
+				 0,twopi);
   
   G4VSolid* cone=new G4Cons("cone",
 			    hin[0], hin[1],
