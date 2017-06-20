@@ -53,11 +53,10 @@ using namespace std;
 using namespace CLHEP;
 
 //_______________________________________________________________
-PHG4mRICHDetector::PHG4mRICHDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam, const int lyr, int _single_mRICH):
+PHG4mRICHDetector::PHG4mRICHDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam, const int lyr):
   PHG4Detector(Node, dnam),
   params(parameters),
   //block_physi(NULL),
-  single_mRICH(_single_mRICH),
   layer(lyr)
 {}
 
@@ -74,10 +73,11 @@ bool PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume * volume) const
 void PHG4mRICHDetector::Construct( G4LogicalVolume* logicWorld)
 {
   G4double bowlPar[4];
-  
-  if (single_mRICH) Construct_a_mRICH(logicWorld);
+  int single_mRICH =params->get_int_param("single_mRICH");
+
+  if (single_mRICH==1) Construct_a_mRICH(logicWorld);
   else {
-    //build_Space(logicWorld,bowlPar);
+    build_Space(logicWorld,bowlPar);
     G4LogicalVolume* space = build_Space(logicWorld,bowlPar);
     G4LogicalVolume* a_mRICH=Construct_a_mRICH(0);
     build_mRICH_wall(space,a_mRICH,bowlPar);

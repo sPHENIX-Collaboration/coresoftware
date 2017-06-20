@@ -8,7 +8,6 @@
 #include "PHG4DetectorSubsystem.h"
 
 class PHG4mRICHDetector;
-//class PHG4BlockDetector;
 class PHG4BlockSteppingAction;
 class PHG4EventAction;
 
@@ -17,8 +16,7 @@ class PHG4mRICHSubsystem: public PHG4DetectorSubsystem
  public:
 
   //! constructor
-  //PHG4mRICHSubsystem( const std::string &name = "BLOCK", const int layer = 0 );
-  PHG4mRICHSubsystem( const std::string &name = "mRICH", const int layer = 0, int single_mRICH=0 );  
+  PHG4mRICHSubsystem( const std::string &name = "BLOCK", const int layer = 0 );
 
   //! destructor
   virtual ~PHG4mRICHSubsystem( void )
@@ -48,12 +46,12 @@ class PHG4mRICHSubsystem: public PHG4DetectorSubsystem
   PHG4EventAction* GetEventAction() const {return _eventAction;}
 
  private:
-  void SetDefaultParameters();
+  void SetDefaultParameters();       //set external parameter
 
   //! detector geometry
   /*! defives from PHG4Detector */
   //PHG4BlockDetector* _detector;
-  int _single_mRICH;
+  //int _single_mRICH;
   PHG4mRICHDetector* _detector;
   std::string _detectorName;
   int layer;

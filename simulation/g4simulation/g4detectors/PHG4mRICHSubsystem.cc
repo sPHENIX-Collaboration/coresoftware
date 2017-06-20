@@ -21,9 +21,8 @@
 using namespace std;
 
 //_______________________________________________________________________
-PHG4mRICHSubsystem::PHG4mRICHSubsystem( const std::string &name, const int lyr, int single_mRICH ):
+PHG4mRICHSubsystem::PHG4mRICHSubsystem( const std::string &name, const int lyr):
   PHG4DetectorSubsystem( name, lyr ),
-  _single_mRICH(single_mRICH),
   _detector( NULL ),
   _detectorName(name),
   _steppingAction(NULL),
@@ -55,7 +54,7 @@ int PHG4mRICHSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
   //---------------------------------
   // create detector
   //---------------------------------
-  _detector = new PHG4mRICHDetector(topNode, GetParams(), Name(), GetLayer(), _single_mRICH);
+  _detector = new PHG4mRICHDetector(topNode, GetParams(), Name(), GetLayer());
   _detector->SuperDetector(SuperDetector());
   _detector->OverlapCheck(CheckOverlap());
   
@@ -122,20 +121,10 @@ PHG4mRICHSubsystem::GetDetector( void ) const
   return _detector;
 }
 //_______________________________________________________________________
-void
-PHG4mRICHSubsystem::SetDefaultParameters()
+void PHG4mRICHSubsystem::SetDefaultParameters()
 {
-  set_default_double_param("place_x", 0.);
-  set_default_double_param("place_y", 0.);
-  set_default_double_param("place_z", 0.);
-  set_default_double_param("rot_x", 0.);
-  set_default_double_param("rot_y", 0.);
-  set_default_double_param("rot_z", 0.);
-  set_default_double_param("size_x", 10.);
-  set_default_double_param("size_y", 10.);
-  set_default_double_param("size_z", 10.);
+  set_default_int_param("single_mRICH", 1);    //1 for single mRICH
+                                               //0 for mRICH wall
 
-  set_default_int_param("use_g4steps",0);
-  
-  set_default_string_param("material", "G4_Galactic");
+  set_default_int_param("use_g4steps",0);        //for stepping function
 }
