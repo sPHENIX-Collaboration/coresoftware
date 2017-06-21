@@ -65,13 +65,10 @@ PHG4mRICHDetector::PHG4mRICHDetector( PHCompositeNode *Node, PHG4Parameters *par
 bool PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume * volume) const
 {
   int i=0;
-  //if (volume==mRICH_PV->GetLogicalVolume()->GetDaughter(
-  //if ( strcmp(volume->GetName(),"sensor")==0 ) return true;
   for (i=0;i<4;i++) {
     if (volume==sensor_PV[i]) return true;
   }
-  return false;
-//if (volume==mRICH_PV) return true;
+  //if (volume==mRICH_PV) return true;
   //else if (volume->GetLogicalVolume()->IsAncestor(mRICH_PV)) return true; 
   //else if (mRICH_PV->GetLogicalVolume()->IsAncestor(volume)) return true;
   return false;
