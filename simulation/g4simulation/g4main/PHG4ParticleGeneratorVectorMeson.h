@@ -23,15 +23,11 @@ class PHG4ParticleGeneratorVectorMeson: public PHG4ParticleGeneratorBase
   //! interface for adding particles by name
   void add_decay_particles(const std::string &name1, const std::string &name2, const unsigned int decay_id);
 
-  //! interface for adding particle by pid
-  void add_decay_particles(const int pid1, const int pid2, const unsigned int decay_id);
-
   void set_decay_vertex_offset(double dx, double dy, double dz, const unsigned int decay_id);
   void set_eta_range(const double eta_min, const double eta_max);
   void set_rapidity_range(const double y_min, const double y_max);
   void set_mom_range(const double mom_min, const double mom_max);
   void set_pt_range(const double pt_min, const double pt_max);
-  void set_vtx_zrange(const double zmin, const double zmax);
   //! toss a new vertex according to a Uniform or Gaus distribution
   void set_vertex_distribution_function(FUNCTION x, FUNCTION y, FUNCTION z);
 
@@ -60,8 +56,6 @@ class PHG4ParticleGeneratorVectorMeson: public PHG4ParticleGeneratorBase
  private:
 
   double smearvtx(const double position, const double width, FUNCTION dist) const;
-  double vtx_zmin;
-  double vtx_zmax;
   std::map<unsigned int, int> decay1_codes; // <pdgcode, count>
   std::map<unsigned int, std::string> decay1_names; // <names, count>
   std::map<unsigned int, int> decay2_codes; // <pdgcode, count>

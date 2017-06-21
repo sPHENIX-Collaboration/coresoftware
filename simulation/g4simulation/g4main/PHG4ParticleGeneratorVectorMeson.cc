@@ -23,11 +23,7 @@ using namespace std;
 
 PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string &name): 
   PHG4ParticleGeneratorBase(name),
-  vtx_zmin(-10.),
-  vtx_zmax(10),
-  decay1_codes(),
   decay1_names(),
-  decay2_codes(),
   decay2_names(),
   decay_vtx_offset_x(),
   decay_vtx_offset_y(),
@@ -83,23 +79,18 @@ PHG4ParticleGeneratorVectorMeson::add_decay_particles(const std::string &name1, 
 {
   decay1_names.insert(std::pair<unsigned int, std::string>(decay_id, name1));
   decay2_names.insert(std::pair<unsigned int, std::string>(decay_id, name2));
-  return;
-}
-
-void
-PHG4ParticleGeneratorVectorMeson::add_decay_particles(const int pid1, const int pid2, const unsigned int decay_id)
-{
-  decay1_codes.insert(std::pair<unsigned int, int>(decay_id, pid1));
-  decay2_codes.insert(std::pair<unsigned int, int>(decay_id, pid2));
+  decay_vtx_offset_x.insert(std::pair<unsigned int, double>(decay_id, 0.));
+  decay_vtx_offset_y.insert(std::pair<unsigned int, double>(decay_id, 0.));
+  decay_vtx_offset_z.insert(std::pair<unsigned int, double>(decay_id, 0.));
   return;
 }
 
 void
 PHG4ParticleGeneratorVectorMeson::set_decay_vertex_offset(double dx, double dy, double dz, const unsigned int decay_id)
 {
-  decay_vtx_offset_x.insert(std::pair<unsigned int, double>(decay_id, dx));
-  decay_vtx_offset_y.insert(std::pair<unsigned int, double>(decay_id, dy));
-  decay_vtx_offset_z.insert(std::pair<unsigned int, double>(decay_id, dz));
+  decay_vtx_offset_x.find(decay_id)->second = dx;
+  decay_vtx_offset_y.find(decay_id)->second = dy;
+  decay_vtx_offset_z.find(decay_id)->second = dz;
   return;
 }
 
@@ -134,15 +125,6 @@ PHG4ParticleGeneratorVectorMeson::set_pt_range(const double min, const double ma
 {
   pt_min = min;
   pt_max = max;
-  return;
-}
-
-void
-PHG4ParticleGeneratorVectorMeson::set_vtx_zrange(const double zmin, const double zmax)
-{
-  vtx_zmin = zmin;
-  vtx_zmax = zmax;
-
   return;
 }
 
@@ -356,22 +338,20 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     set_existing_vertex_offset_vector(xt->second, yt->second, zt->second);
 
     } else{
-      cout << PHWHERE << "No complete decay particle && vertex info found !!" << endl;
+      cout << PHWHERE << "Decay particles && vertex info can't be found !!" << endl;
       exit(1);
     }
 
   int vtxindex = -9;
 
   if (!ReuseExistingVertex(topNode))
-    { // If not reusing existing vertex Randomly generate vertex position in z
+    { 
+      // If not reusing existing vertex Randomly generate vertex position in z
+      
       // 		   mean   width
       vtx_x = smearvtx(_vertex_x,_vertex_width_x,_vertex_func_x);
       vtx_y = smearvtx(_vertex_y,_vertex_width_y,_vertex_func_y);
       vtx_z = smearvtx(_vertex_z,_vertex_width_z,_vertex_func_z);
-    }
-  else if (ReuseExistingVertex(topNode)==2 && read_vtx_from_hepmc)
-    {
-      cout << PHWHERE << "::Error - PHG4ParticleGeneratorVectorMeson expects an existing vertex in PHG4InEvent, but none exists" << endl;
     }
   else 
     {
