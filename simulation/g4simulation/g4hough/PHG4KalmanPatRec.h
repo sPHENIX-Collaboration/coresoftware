@@ -86,6 +86,22 @@ public:
 	virtual ~PHG4KalmanPatRec() {
 	}
 
+	struct TrackQuality {
+		int nhits;
+		float chi2;
+		int ndf;
+
+		TrackQuality(int nhits_, float chi2_, int ndf_) : nhits(nhits_), chi2(chi2_), ndf(ndf_) {}
+
+		bool operator < (const TrackQuality& b) const {
+			if(nhits != b.nhits) return nhits > b.nhits;
+			else return chi2/ndf < b.chi2/b.ndf;
+		}
+	};
+	//typedef std::map<float, std::shared_ptr<PHGenFit::Track> > MapPHGenFitTrack;
+	//typedef std::vector< std::pair<float, std::shared_ptr<PHGenFit::Track> > > MapPHGenFitTrack;
+	typedef std::vector< std::pair<TrackQuality, std::shared_ptr<PHGenFit::Track> > > MapPHGenFitTrack;
+
 	int Init(PHCompositeNode *topNode);
 	int InitRun(PHCompositeNode *topNode);
 	int process_event(PHCompositeNode *topNode);
@@ -614,7 +630,8 @@ private:
 	//! FullTrackFitting Call.
 	int SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, unsigned int itrack);
 	int TrackPropPatRec(PHCompositeNode* topNode,
-			const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> &track,
+			//const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> &track,
+			MapPHGenFitTrack::iterator &track_iter,
 			const unsigned int init_layer = 0, const unsigned int end_layer = 66,
 			const bool use_fitted_state_once = false);
 
@@ -627,7 +644,7 @@ private:
 
 	//! ExportOutput Call. Make SvtxTrack from PHGenFit::Track and set of clusters
 	//std::shared_ptr<SvtxTrack> MakeSvtxTrack(const int genfit_track_ID, const SvtxVertex * vertex = NULL);
-	int OutputPHGenFitTrack(PHCompositeNode* topNode, std::map<int, std::shared_ptr<PHGenFit::Track>>::iterator);
+	int OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitTrack::iterator);
 
 	//------------------
 	// Subfunction Calls
@@ -820,7 +837,7 @@ private:
 	float _layer_thetaID_phiID_cluserID_zSize;
 
 
-	std::map<int, std::shared_ptr<PHGenFit::Track>> _trackID_PHGenFitTrack;
+	MapPHGenFitTrack _chi2_PHGenFitTrack;
 	//! +1: inside out; -1: outside in
 	int _init_direction;
 	float _blowup_factor;
