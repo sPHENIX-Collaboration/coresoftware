@@ -70,7 +70,8 @@ class PHG4mRICHDetector: public PHG4Detector
   int layer;
   //int blackhole;
   std::string superdetector;
-  
+  G4VPhysicalVolume *mRICH_PV;         //physical volume of detector box of single module  
+  G4VPhysicalVolume *sensor_PV[4];     //physical volume of sensors
 };
 //___________________________________________________________________________
 class PHG4mRICHDetector::mRichParameter

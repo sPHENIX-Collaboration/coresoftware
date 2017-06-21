@@ -68,9 +68,9 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
   //  1 is inside scintillator
   // -1 is inside absorber (dead material)
 
-  int whichactive = detector_->IsInmRICH(volume);
-
+  bool whichactive = detector_->IsInmRICH(volume);
   if ( !whichactive  ) return false;
+  //if ( whichactive  ) return false;
 
   /* Get energy deposited by this step */
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;

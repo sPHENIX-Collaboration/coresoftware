@@ -57,16 +57,23 @@ PHG4mRICHDetector::PHG4mRICHDetector( PHCompositeNode *Node, PHG4Parameters *par
   PHG4Detector(Node, dnam),
   params(parameters),
   //block_physi(NULL),
-  layer(lyr)
+  layer(lyr),
+  mRICH_PV(nullptr)
 {}
 
 //_______________________________________________________________
 bool PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume * volume) const
 {
-  if ( strcmp(volume->GetName(),"sensor")==0 ) 
-  {
-    return true;
+  int i=0;
+  //if (volume==mRICH_PV->GetLogicalVolume()->GetDaughter(
+  //if ( strcmp(volume->GetName(),"sensor")==0 ) return true;
+  for (i=0;i<4;i++) {
+    if (volume==sensor_PV[i]) return true;
   }
+  return false;
+//if (volume==mRICH_PV) return true;
+  //else if (volume->GetLogicalVolume()->IsAncestor(mRICH_PV)) return true; 
+  //else if (mRICH_PV->GetLogicalVolume()->IsAncestor(volume)) return true;
   return false;
 }
 //______________________________________________________________
@@ -326,7 +333,8 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
   holderBox->name="HolderBox";
   for (i=0;i<3;i++) holderBox->halfXYZ[i]=acrylicBox_halfXYZ[i];
   holderBox->pos=G4ThreeVector(0*cm,0*cm,0*cm);
-  holderBox->material=G4Material::GetMaterial("G4_Al");
+  //holderBox->material=G4Material::GetMaterial("G4_Al");
+  holderBox->material=G4Material::GetMaterial("G4_AIR");  //testing
   holderBox->sensitivity=0;
 
   holderBox->color=G4Colour(0.0,0.0,0.0);
@@ -578,8 +586,8 @@ G4VPhysicalVolume* PHG4mRICHDetector::build_polyhedra(PolyPar* par, G4LogicalVol
 //________________________________________________________________________//
 G4VPhysicalVolume* PHG4mRICHDetector::build_holderBox(mRichParameter* detectorParameter, G4LogicalVolume* motherLV)
 {
-  G4VPhysicalVolume* holderBox=build_box(detectorParameter->GetBoxPar("holderBox"),motherLV);
-  return build_box(detectorParameter->GetBoxPar("hollowVolume"),holderBox->GetLogicalVolume());
+  mRICH_PV=build_box(detectorParameter->GetBoxPar("holderBox"),motherLV);
+  return build_box(detectorParameter->GetBoxPar("hollowVolume"),mRICH_PV->GetLogicalVolume());
 }
 //________________________________________________________________________//
 void PHG4mRICHDetector::build_foamHolder(mRichParameter* detectorParameter,G4LogicalVolume* motherLV)
