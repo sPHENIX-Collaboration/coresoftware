@@ -14,7 +14,7 @@ class PHG4ParticleGeneratorVectorMeson: public PHG4ParticleGeneratorBase
   //! supported function distributions
       enum FUNCTION {Uniform,Gaus};
 
-  PHG4ParticleGeneratorVectorMeson(const std::string &name="PGUN");
+  explicit PHG4ParticleGeneratorVectorMeson(const std::string &name="PGUN");
   virtual ~PHG4ParticleGeneratorVectorMeson() {}
 
   int InitRun(PHCompositeNode *topNode);
