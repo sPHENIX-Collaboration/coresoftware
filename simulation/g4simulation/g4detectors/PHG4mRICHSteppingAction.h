@@ -18,8 +18,7 @@ class PHG4mRICHSteppingAction : public PHG4SteppingAction
   PHG4mRICHSteppingAction(PHG4mRICHDetector* detector,PHG4Parameters* params );
 
   //! destroctor
-  virtual ~PHG4mRICHSteppingAction()
-  {}
+  virtual ~PHG4mRICHSteppingAction();
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);

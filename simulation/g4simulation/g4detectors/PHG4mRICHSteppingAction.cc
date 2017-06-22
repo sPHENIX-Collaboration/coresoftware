@@ -55,18 +55,16 @@ PHG4mRICHSteppingAction::PHG4mRICHSteppingAction( PHG4mRICHDetector* detector,PH
   absorberhits_(NULL),
   hit(NULL)
 {}
-
+//____________________________________________________________________________..
+PHG4mRICHSteppingAction::~PHG4mRICHSteppingAction()
+{
+  delete hit;
+}
 //____________________________________________________________________________..
 bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4VPhysicalVolume* volume = touch->GetVolume();
-
-  // detector_->IsInForwardEcal(volume)
-  // returns
-  //  0 is outside of Forward ECAL
-  //  1 is inside scintillator
-  // -1 is inside absorber (dead material)
 
   bool whichactive = detector_->IsInmRICH(volume);
   if ( !whichactive  ) return false;
