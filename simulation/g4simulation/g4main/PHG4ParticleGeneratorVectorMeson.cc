@@ -321,6 +321,23 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
   TLorentzVector vm;
   vm.SetPtEtaPhiM(pt,eta,phi,mnow);
 
+  int vtxindex = -9;
+
+  if (!ReuseExistingVertex(topNode))
+    {
+      // If not reusing existing vertex Randomly generate vertex position in z
+
+      //                   mean   width
+      vtx_x = smearvtx(_vertex_x,_vertex_width_x,_vertex_func_x);
+      vtx_y = smearvtx(_vertex_y,_vertex_width_y,_vertex_func_y);
+      vtx_z = smearvtx(_vertex_z,_vertex_width_z,_vertex_func_z);
+    }
+        vtx_x += _vertex_offset_x;
+        vtx_y += _vertex_offset_y;
+        vtx_z += _vertex_offset_z;
+
+
+
   for (std::map<unsigned int, std::string>::iterator it=decay1_names.begin(); it !=decay1_names.end() ; it++){
 
     unsigned int decay_id = it->first;
@@ -342,28 +359,6 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
       exit(1);
     }
 
-  int vtxindex = -9;
-
-  if (!ReuseExistingVertex(topNode))
-    { 
-      // If not reusing existing vertex Randomly generate vertex position in z
-      
-      // 		   mean   width
-      vtx_x = smearvtx(_vertex_x,_vertex_width_x,_vertex_func_x);
-      vtx_y = smearvtx(_vertex_y,_vertex_width_y,_vertex_func_y);
-      vtx_z = smearvtx(_vertex_z,_vertex_width_z,_vertex_func_z);
-    }
-  else 
-    {
-
-        // Fixed vertex if non-zero vertex offset
-//        vtx_x = _vertex_x + _vertex_offset_x;
-//        vtx_y = _vertex_y + _vertex_offset_y;
-//        vtx_z = _vertex_z + _vertex_offset_z;
-	vtx_x += _vertex_offset_x;
-	vtx_y += _vertex_offset_y;
-	vtx_z += _vertex_offset_z;
-
 	// 3D Randomized vertex
       if ((_vertex_size_width > 0.0)||(_vertex_size_mean != 0.0)) {
 	_vertex_size_mean = sqrt(pow(vtx_x,2)+pow(vtx_y,2)+pow(vtx_z,2));
@@ -375,12 +370,13 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
         x *= r;
         y *= r;
         z *= r;
-	vtx_x += x;
-	vtx_y += y;
-	vtx_z += z;
+	vtxindex = ineve->AddVtx(vtx_x+x,vtx_y+y,vtx_z+z,t0);
       }
-    }
-	vtxindex = ineve->AddVtx(vtx_x, vtx_y, vtx_z, t0);
+      else if (decay_id==0)
+      {
+	vtxindex = ineve->AddVtx(vtx_x,vtx_y,vtx_z,t0);
+      }
+	
 
     // Now decay it 
     // Get the decay energy and momentum in the frame of the vector meson - this correctly handles decay particles of any mass.
