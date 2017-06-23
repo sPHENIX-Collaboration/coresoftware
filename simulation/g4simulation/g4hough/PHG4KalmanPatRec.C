@@ -221,7 +221,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 
 		_max_search_win_phi_maps(   0.0050),
 		_min_search_win_phi_maps(   0.0000),
-		_max_search_win_theta_maps( 0.0200),
+		_max_search_win_theta_maps( 0.0400),
 		_min_search_win_theta_maps( 0.0000),
 
 	  _search_win_phi(10),
@@ -234,7 +234,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 	  //_layer_thetaID_phiID_cluserID_phiSize(0.1200),
 	  _layer_thetaID_phiID_cluserID_phiSize(0.1200/80), //rad
 	  _layer_thetaID_phiID_cluserID_zSize(0.1700/80),
-	  _chi2_PHGenFitTrack(),
+	  _PHGenFitTracks(),
 	  _init_direction(-1),
 	  _blowup_factor(1.),
 	  _max_consecutive_missing_layer(20),
@@ -270,7 +270,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 	this->set_seeding_layer(seeding_layers, 7);
 
 	_vertex_error.clear();
-	_vertex_error.assign(3, 0.0500);
+	_vertex_error.assign(3, 0.0100);
 }
 
 int PHG4KalmanPatRec::Init(PHCompositeNode* topNode) {
@@ -1681,9 +1681,9 @@ int PHG4KalmanPatRec::vertexing(PHCompositeNode* topNode) {
 //  cout << Name() << " random seed: " << seed << endl;
 	gsl_rng_set(RandomGenerator, seed);
 
-	_vertex[0] += _vertex_error[0] * gsl_ran_ugaussian(RandomGenerator);
-	_vertex[1] += _vertex_error[1] * gsl_ran_ugaussian(RandomGenerator);
-	_vertex[2] += _vertex_error[2] * gsl_ran_ugaussian(RandomGenerator);
+//	_vertex[0] += _vertex_error[0] * gsl_ran_ugaussian(RandomGenerator);
+//	_vertex[1] += _vertex_error[1] * gsl_ran_ugaussian(RandomGenerator);
+//	_vertex[2] += _vertex_error[2] * gsl_ran_ugaussian(RandomGenerator);
 
 	gsl_rng_free(RandomGenerator);
 #endif
@@ -2497,7 +2497,7 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 
 	vector<genfit::Track*> evt_disp_copy;
 
-	_chi2_PHGenFitTrack.clear();
+	_PHGenFitTracks.clear();
 
 	//	for(unsigned int itrack = 0; itrack < ( (_tracks.size() < 100) ? _tracks.size() : 100); ++itrack) {
 	for (unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
@@ -2519,13 +2519,16 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 		/*!
 		 * Handle track propagation, termination, output and evt disp.
 		 */
-		for (auto iter = _chi2_PHGenFitTrack.begin();
-				iter != _chi2_PHGenFitTrack.end(); ++iter) {
+		bool is_splitting_track = false;
+#ifdef _DEBUG_
+		int i = 0;
+#endif
+		for (auto iter = _PHGenFitTracks.begin();
+				iter != _PHGenFitTracks.end(); ++iter) {
 #ifdef _DEBUG_
 			cout
 			<< __LINE__
-			<< ": _trackID_PHGenFitTrack.size(): " << _chi2_PHGenFitTrack.size()
-			<< ": iPHGenFitTrack: " << _g4tracks->size()
+			<< ": propergating: " << i <<"/" << itrack
 			<< endl;
 #endif
 
@@ -2534,29 +2537,71 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 
 			unsigned int init_layer = UINT_MAX;
 //			unsigned int end_layer = UINT_MAX;
-			if(_init_direction == 1) {
-				init_layer = _g4clusters->get(clusterIDs.front())->get_layer();
-				TrackPropPatRec(topNode, iter, init_layer, _nlayers_all, true);
-				TrackPropPatRec(topNode, iter, init_layer, 0, false);
+
+			if(!is_splitting_track) {
+				if(_init_direction == 1) {
+					init_layer = _g4clusters->get(clusterIDs.front())->get_layer();
+					TrackPropPatRec(topNode, iter, init_layer, _nlayers_all, true);
+					TrackPropPatRec(topNode, iter, init_layer, 0, false);
+				} else {
+					init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
+					TrackPropPatRec(topNode, iter, init_layer, 0, true);
+					TrackPropPatRec(topNode, iter, init_layer, _nlayers_all, false);
+				}
+				is_splitting_track = true;
 			} else {
-				init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
-				TrackPropPatRec(topNode, iter, init_layer, 0, true);
-				TrackPropPatRec(topNode, iter, init_layer, _nlayers_all, false);
+				if(_init_direction == 1) {
+					init_layer = _g4clusters->get(clusterIDs.front())->get_layer();
+					TrackPropPatRec(topNode, iter, init_layer, _nlayers_all, false);
+				} else {
+					init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
+					TrackPropPatRec(topNode, iter, init_layer, 0, false);
+				}
 			}
 
 #ifdef _DEBUG_
 			cout
 			<< __LINE__
-			<< ": clusterIDs size:  " << track->get_cluster_IDs().size()
+			<< ": tracki: " << i
+			<< ": clusterIDs size:  " << iter->second->get_cluster_IDs().size()
+			<< ": quality: " << iter->first
 			<< endl;
+			++i;
 #endif
 
 			//_trackID_PHGenFitTrack.erase(iter);
-		}// loop _chi2_PHGenFitTrack
+		}// loop _PHGenFitTracks
 
-		std::sort(_chi2_PHGenFitTrack.begin(), _chi2_PHGenFitTrack.end());
+		if(_PHGenFitTracks.size()==0) continue;
 
-		auto iter = _chi2_PHGenFitTrack.begin();
+#ifdef _DEBUG_
+		i = 0;
+		for (auto iter = _PHGenFitTracks.begin();
+				iter != _PHGenFitTracks.end(); ++iter) {
+			cout
+			<< __LINE__
+			<< ": track: " << i++
+			<< ": clusterIDs size:  " << iter->second->get_cluster_IDs().size()
+			<< ": quality: " << iter->first
+			<< endl;
+		}
+#endif
+
+		//std::sort(_PHGenFitTracks.begin(), _PHGenFitTracks.end());
+		_PHGenFitTracks.sort();
+
+#ifdef _DEBUG_
+		for (auto iter = _PHGenFitTracks.begin();
+				iter != _PHGenFitTracks.end(); ++iter) {
+			cout
+			<< __LINE__
+			<< ": clusterIDs size:  " << iter->second->get_cluster_IDs().size()
+			<< ": quality: " << iter->first
+			<< endl;
+		}
+#endif
+
+		auto iter = _PHGenFitTracks.begin();
 
 		std::shared_ptr<PHGenFit::Track> track = iter->second;
 
@@ -2586,7 +2631,7 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 		evt_disp_copy.clear();
 	}
 
-	_chi2_PHGenFitTrack.clear();
+	_PHGenFitTracks.clear();
 	_tracks.clear();
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -2692,7 +2737,7 @@ int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitT
 int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, unsigned int itrack) {
 
 	// clean up working array for each event
-	_chi2_PHGenFitTrack.clear();
+	_PHGenFitTracks.clear();
 
 
 #ifdef _DEBUG_
@@ -2917,15 +2962,15 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 
 	//insert fitted track to PHGenFit working map
 
-	//_chi2_PHGenFitTrack.insert(std::make_pair(0.0, track));
+	//_PHGenFitTracks.insert(std::make_pair(0.0, track));
 	int nhits = track->get_cluster_IDs().size();
 	float chi2 = track->get_chi2();
 	float ndf  = track->get_ndf();
 
 	if(nhits > 0 and chi2 > 0 and ndf > 0) {
-		_chi2_PHGenFitTrack.push_back(
+		_PHGenFitTracks.push_back(
 				MapPHGenFitTrack::value_type(
-						PHG4KalmanPatRec::TrackQuality(nhits, chi2, ndf), track)
+						PHG4KalmanPatRec::TrackQuality(nhits, chi2, ndf, nhits, 0, 0), track)
 		);
 	}
 
@@ -2939,7 +2984,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		unsigned int init_layer, unsigned int end_layer,
 		const bool use_fitted_state_once) {
 
-	const int iPHGenFitTrack = _chi2_PHGenFitTrack.size();
+	const int iPHGenFitTrack = _PHGenFitTracks.size();
 
 	std::shared_ptr<PHGenFit::Track> &track = track_iter->second;
 
@@ -3012,7 +3057,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 
 #ifdef _DEBUG_
 		std::cout<<"========================="<<std::endl;
-		std::cout<<__LINE__<<": Event: "<< _event <<": iPHGenFitTrack: "<<iPHGenFitTrack <<": layer: "<<layer<<std::endl;
+		std::cout<<__LINE__<<": Event: "<< _event <<": _PHGenFitTracks.size(): "<<_PHGenFitTracks.size() <<": layer: "<<layer<<std::endl;
 		std::cout<<"========================="<<std::endl;
 #endif
 
@@ -3184,6 +3229,8 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		cout<<__LINE__<<": incr_chi2s_new_tracks.size(): "<<incr_chi2s_new_tracks.size()<<endl;
 #endif
 		
+		PHG4KalmanPatRec::TrackQuality tq(track_iter->first);
+
 		// Update first track candidate
 		if (incr_chi2s_new_tracks.size() > 0) {
 			auto iter = incr_chi2s_new_tracks.begin();
@@ -3198,15 +3245,19 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 				<< "; before update: " << track->get_cluster_IDs().back()
 				<< endl;
 #endif
-//				_chi2_PHGenFitTrack[iPHGenFitTrack] = std::shared_ptr
+//				_PHGenFitTracks[iPHGenFitTrack] = std::shared_ptr
 //						< PHGenFit::Track > (iter->second);
-//				track = _chi2_PHGenFitTrack[iPHGenFitTrack];
+//				track = _PHGenFitTracks[iPHGenFitTrack];
 
 //				track_iter->first += iter->first;
 
-				track_iter->first.nhits += 1;
-				track_iter->first.chi2  += iter->first;
-				track_iter->first.ndf   += 2;
+				track_iter->first.nhits = tq.nhits + 1;
+				track_iter->first.chi2  = tq.chi2  + iter->first;
+				track_iter->first.ndf   = tq.ndf   + 2;
+				track_iter->first.ntpc  = tq.ntpc  + ((layer >= _nlayers_maps + _nlayers_intt) ? 1 : 0);
+				track_iter->first.nintt = tq.nintt + ((layer >= _nlayers_maps and layer < _nlayers_maps + _nlayers_intt) ? 1 : 0);
+				track_iter->first.nmaps = tq.nmaps + ((layer < _nlayers_maps) ? 1 : 0);
+
 				track_iter->second = std::shared_ptr<PHGenFit::Track> (iter->second);
 
 				consecutive_missing_layer = 0;
@@ -3226,17 +3277,11 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 				<<endl;
 #endif
 			}
-//			track = std::shared_ptr<PHGenFit::Track> (iter->second);
-
-#ifdef _DEBUG_
-//			LogDebug("\n");
-//			_trackID_PHGenFitTrack[iPHGenFitTrack]->getGenFitTrack()->Print();
-#endif
-
 		}
 
 		// Update other candidates
-		if (incr_chi2s_new_tracks.size() > 1 && layer == _nlayers_maps + _nlayers_intt - 1) {
+		if (incr_chi2s_new_tracks.size() > 1 and
+				(layer >= _nlayers_maps and layer < _nlayers_maps + _nlayers_intt)) {
 			for (auto iter = (++incr_chi2s_new_tracks.begin());
 					iter != incr_chi2s_new_tracks.end(); ++iter) {
 
@@ -3247,19 +3292,27 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 				std::cout <<__LINE__<<": "<< "Track Spliting with "<< "IncrChi2: "<< iter->first << std::endl;
 #endif
 
-//				_chi2_PHGenFitTrack.insert(
+//				_PHGenFitTracks.insert(
 //						MapPHGenFitTrack::value_type(track_iter->first + iter->first,
 //								std::shared_ptr < PHGenFit::Track> (iter->second)));
 
-				_chi2_PHGenFitTrack.push_back(
+				_PHGenFitTracks.push_back(
 						MapPHGenFitTrack::value_type(
 								PHG4KalmanPatRec::TrackQuality(
-										track_iter->first.nhits+1,
-										track_iter->first.chi2 + iter->first,
-										track_iter->first.ndf  + 2
+										tq.nhits + 1,
+										tq.chi2  + iter->first,
+										tq.ndf   + 2,
+										tq.ntpc  + ((layer >= _nlayers_maps + _nlayers_intt) ? 1 : 0),
+										tq.nintt + ((layer >= _nlayers_maps and layer < _nlayers_maps + _nlayers_intt) ? 1 : 0),
+										tq.nmaps + ((layer < _nlayers_maps) ? 1 : 0)
 										),
 								std::shared_ptr < PHGenFit::Track> (iter->second)));
 			}
+
+#ifdef _DEBUG_
+			std::cout <<__LINE__<<": "<< "_PHGenFitTracksSize: "<< _PHGenFitTracks.size() << std::endl;
+			std::cout <<__LINE__<<": "<<track_iter->second->get_cluster_IDs().back() <<std::endl;
+#endif
 		}
 
 #ifdef _DEBUG_
@@ -3385,8 +3438,6 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
 	<<": phi_error: " << cluster->get_phi_error()
 	<<": theta error: " << cluster->get_z_error()/pos.Perp()
 	<<endl;
-//		pos.Print();
-//		n.Print();
 #endif
 
 	return meas;

@@ -25,6 +25,7 @@
 
 // standard includes
 #include <vector>
+#include <list>
 #include <map>
 #include <memory>
 #include <float.h>
@@ -81,7 +82,7 @@ public:
 			unsigned int nlayers_intt = 4,
 			unsigned int nlayers_tpc = 60,
 			unsigned int seeding_nlayer = 7,
-			unsigned int min_seeding_nlayer = 5);
+			unsigned int min_seeding_nlayer = 4);
 
 	virtual ~PHG4KalmanPatRec() {
 	}
@@ -91,16 +92,38 @@ public:
 		float chi2;
 		int ndf;
 
-		TrackQuality(int nhits_, float chi2_, int ndf_) : nhits(nhits_), chi2(chi2_), ndf(ndf_) {}
+		int ntpc;
+		int nintt;
+		int nmaps;
+
+		TrackQuality(int nhits_, float chi2_, int ndf_) :
+			nhits(nhits_), chi2(chi2_), ndf(ndf_), ntpc(0), nintt(0), nmaps(0) {}
+
+		TrackQuality(int nhits_, float chi2_, int ndf_, int ntpc_, int nintt_, int nmaps_) :
+			nhits(nhits_), chi2(chi2_), ndf(ndf_), ntpc(ntpc_), nintt(nintt_), nmaps(nmaps_) {}
 
 		bool operator < (const TrackQuality& b) const {
 			if(nhits != b.nhits) return nhits > b.nhits;
 			else return chi2/ndf < b.chi2/b.ndf;
 		}
+
+		friend std::ostream& operator<<(std::ostream& os, const PHG4KalmanPatRec::TrackQuality& tq) {
+			os
+			<< tq.nhits <<", "
+			<< tq.chi2 <<", "<<tq.ndf <<", "
+			<<tq.ntpc <<", "<<tq.nintt<<", " <<tq.nmaps
+			<<std::endl;
+
+			return os;
+		}
 	};
+
+#ifndef __CINT__
 	//typedef std::map<float, std::shared_ptr<PHGenFit::Track> > MapPHGenFitTrack;
 	//typedef std::vector< std::pair<float, std::shared_ptr<PHGenFit::Track> > > MapPHGenFitTrack;
-	typedef std::vector< std::pair<TrackQuality, std::shared_ptr<PHGenFit::Track> > > MapPHGenFitTrack;
+	//typedef std::vector< std::pair<TrackQuality, std::shared_ptr<PHGenFit::Track> > > MapPHGenFitTrack;
+	typedef std::list< std::pair<TrackQuality, std::shared_ptr<PHGenFit::Track> > > MapPHGenFitTrack;
+#endif
 
 	int Init(PHCompositeNode *topNode);
 	int InitRun(PHCompositeNode *topNode);
@@ -837,7 +860,7 @@ private:
 	float _layer_thetaID_phiID_cluserID_zSize;
 
 
-	MapPHGenFitTrack _chi2_PHGenFitTrack;
+	MapPHGenFitTrack _PHGenFitTracks;
 	//! +1: inside out; -1: outside in
 	int _init_direction;
 	float _blowup_factor;
