@@ -175,7 +175,7 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 		_mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
 		_mag_field_re_scaling_factor(1.4 / 1.5),
 		_reverse_mag_field(true),
-		_use_truth_vertex(false),
+		_use_truth_vertex(true),
 		_fitter( NULL),
 		_track_fitting_alg_name("DafRef"),
 		_primary_pid_guess(211),
