@@ -49,6 +49,8 @@ libcemc_la_SOURCES = \
   RawClusterBuilderv1_Dict.cc \
   RawClusterBuilderFwd.cc \
   RawClusterBuilderFwd_Dict.cc \
+  RawClusterPositionCorrection.cc \
+  RawClusterPositionCorrection_Dict.cc \
   RawTowerBuilder.cc \
   RawTowerBuilder_Dict.cc \
   RawTowerCombiner.cc \
@@ -90,6 +92,7 @@ libcemc_la_LIBADD = \
 
 pkginclude_HEADERS = \
   RawCluster.h \
+  RawClusterv1.h \
   RawClusterDefs.h \
   RawClusterContainer.h \
   RawTower.h \
@@ -103,7 +106,6 @@ pkginclude_HEADERS = \
   RawTowerGeomContainer.h \
   RawTowerGeomContainerv1.h \
   RawTowerGeomContainer_Cylinderv1.h
-
 ################################################
 # linking tests
 

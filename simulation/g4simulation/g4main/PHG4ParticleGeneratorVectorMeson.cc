@@ -23,8 +23,28 @@ using namespace std;
 
 PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string &name): 
   PHG4ParticleGeneratorBase(name),
-  vtx_zmin(-10.),
-  vtx_zmax(10),
+  decay1_names(),
+  decay2_names(),
+  decay_vtx_offset_x(),
+  decay_vtx_offset_y(),
+  decay_vtx_offset_z(),
+  _vertex_func_x(Uniform),
+  _vertex_func_y(Uniform),
+  _vertex_func_z(Uniform),
+  _t0(0.0),
+  _vertex_x(0.0),
+  _vertex_y(0.0),
+  _vertex_z(0.0),
+  _vertex_width_x(0.0),
+  _vertex_width_y(0.0),
+  _vertex_width_z(0.0),
+  _vertex_offset_x(0.0),
+  _vertex_offset_y(0.0),
+  _vertex_offset_z(0.0),
+  _vertex_size_func_r(Uniform),
+  _vertex_size_mean(0.0),
+  _vertex_size_width(0.0),
+  read_vtx_from_hepmc(true),
   y_min(0.),
   y_max(0.),
   eta_min(-1.0),
@@ -43,7 +63,8 @@ PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string 
   fsin(NULL),
   frap(NULL),
   fpt(NULL),
-  trand(NULL)
+  trand(NULL),
+  ineve(NULL)
 {
 
   // From PDG:
@@ -53,6 +74,25 @@ PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string 
   return;
 }
 
+void 
+PHG4ParticleGeneratorVectorMeson::add_decay_particles(const std::string &name1, const std::string &name2, const unsigned int decay_id)
+{
+  decay1_names.insert(std::pair<unsigned int, std::string>(decay_id, name1));
+  decay2_names.insert(std::pair<unsigned int, std::string>(decay_id, name2));
+  decay_vtx_offset_x.insert(std::pair<unsigned int, double>(decay_id, 0.));
+  decay_vtx_offset_y.insert(std::pair<unsigned int, double>(decay_id, 0.));
+  decay_vtx_offset_z.insert(std::pair<unsigned int, double>(decay_id, 0.));
+  return;
+}
+
+void
+PHG4ParticleGeneratorVectorMeson::set_decay_vertex_offset(double dx, double dy, double dz, const unsigned int decay_id)
+{
+  decay_vtx_offset_x.find(decay_id)->second = dx;
+  decay_vtx_offset_y.find(decay_id)->second = dy;
+  decay_vtx_offset_z.find(decay_id)->second = dz;
+  return;
+}
 
 void
 PHG4ParticleGeneratorVectorMeson::set_eta_range(const double min, const double max)
@@ -88,14 +128,53 @@ PHG4ParticleGeneratorVectorMeson::set_pt_range(const double min, const double ma
   return;
 }
 
-void
-PHG4ParticleGeneratorVectorMeson::set_vtx_zrange(const double zmin, const double zmax)
-{
-  vtx_zmin = zmin;
-  vtx_zmax = zmax;
-
+void 
+PHG4ParticleGeneratorVectorMeson::set_vertex_distribution_function(FUNCTION x, FUNCTION y, FUNCTION z) {
+  _vertex_func_x = x;
+  _vertex_func_y = y;
+  _vertex_func_z = z;
   return;
 }
+
+
+void 
+PHG4ParticleGeneratorVectorMeson::set_vertex_distribution_mean(const double x, const double y, const double z) {
+  _vertex_x = x;
+  _vertex_y = y;
+  _vertex_z = z;
+  return;
+}
+
+
+void 
+PHG4ParticleGeneratorVectorMeson::set_vertex_distribution_width(const double x, const double y, const double z) {
+  _vertex_width_x = x;
+  _vertex_width_y = y;
+  _vertex_width_z = z;
+  return;
+}
+
+void 
+PHG4ParticleGeneratorVectorMeson::set_existing_vertex_offset_vector(const double x, const double y, const double z) {
+  _vertex_offset_x = x;
+  _vertex_offset_y = y;
+  _vertex_offset_z = z;
+  return;
+}
+
+void 
+PHG4ParticleGeneratorVectorMeson::set_vertex_size_function(FUNCTION r) {
+  _vertex_size_func_r = r;
+  return;
+}
+
+void 
+PHG4ParticleGeneratorVectorMeson::set_vertex_size_parameters(const double mean, const double width) {
+  _vertex_size_mean = mean;
+  _vertex_size_width = width;
+  return;
+}
+
 
 void
 PHG4ParticleGeneratorVectorMeson::set_mass(const double mass_in)
@@ -146,6 +225,7 @@ PHG4ParticleGeneratorVectorMeson::set_decay_types(const std::string &name1, cons
  return;
 }
 
+
 int
 PHG4ParticleGeneratorVectorMeson::InitRun(PHCompositeNode *topNode)
 {
@@ -176,6 +256,18 @@ PHG4ParticleGeneratorVectorMeson::InitRun(PHCompositeNode *topNode)
   fpt->SetParameter(1,26.516);
   fpt->SetParameter(2,10.6834);
 
+  ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
+  if (!ineve) {
+    PHNodeIterator iter( topNode );
+    PHCompositeNode *dstNode;
+    dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+
+    ineve = new PHG4InEvent();
+    PHDataNode<PHObject> *newNode = new PHDataNode<PHObject>(ineve, "PHG4INEVENT", "PHObject");
+    dstNode->addNode(newNode);
+  }
+
+
   cout << "PHG4ParticleGeneratorVectorMeson::InitRun endeded." << endl;
   return 0;
 }
@@ -185,21 +277,7 @@ PHG4ParticleGeneratorVectorMeson::InitRun(PHCompositeNode *topNode)
 int
 PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 {
-  PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode,"PHG4INEVENT");
-
-  // If not reusing existing vertex Randomly generate vertex position in z 
-  if (! ReuseExistingVertex(topNode))
-    {
-      if (vtx_zmax != vtx_zmin)
-	{
-	  vtx_z = (vtx_zmax - vtx_zmin) * gsl_rng_uniform_pos(RandomGenerator) + vtx_zmin;
-	}
-      else
-	{
-	  vtx_z = vtx_zmin;
-	}
-    }
-  int vtxindex = ineve->AddVtx(vtx_x,vtx_y,vtx_z,t0);
+  if (!ineve) cout<<" G4InEvent not found "<<endl;
 
   // Generate a new set of vectors for the vector meson for each event
   // These are the momentum and direction vectors for the pre-decay vector meson
@@ -242,61 +320,117 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 
   TLorentzVector vm;
   vm.SetPtEtaPhiM(pt,eta,phi,mnow);
+
+  int vtxindex = -9;
+
+  if (!ReuseExistingVertex(topNode))
+    {
+      // If not reusing existing vertex Randomly generate vertex position in z
+
+      //                   mean   width
+      vtx_x = smearvtx(_vertex_x,_vertex_width_x,_vertex_func_x);
+      vtx_y = smearvtx(_vertex_y,_vertex_width_y,_vertex_func_y);
+      vtx_z = smearvtx(_vertex_z,_vertex_width_z,_vertex_func_z);
+    }
+        vtx_x += _vertex_offset_x;
+        vtx_y += _vertex_offset_y;
+        vtx_z += _vertex_offset_z;
+
+
+
+  for (std::map<unsigned int, std::string>::iterator it=decay1_names.begin(); it !=decay1_names.end() ; ++it){
+
+    unsigned int decay_id = it->first;
+    std::string decay1_name = it->second;
+    std::string decay2_name;
+    std::map<unsigned int, std::string>::iterator jt = decay2_names.find(decay_id);
+    std::map<unsigned int, double>::iterator xt = decay_vtx_offset_x.find(decay_id);
+    std::map<unsigned int, double>::iterator yt = decay_vtx_offset_y.find(decay_id);
+    std::map<unsigned int, double>::iterator zt = decay_vtx_offset_z.find(decay_id);
+    
+
+    if (jt != decay2_names.end() && xt != decay_vtx_offset_x.end() && yt != decay_vtx_offset_y.end() && zt != decay_vtx_offset_z.end()){
+    decay2_name = jt->second;
+    set_decay_types(decay1_name, decay2_name);
+    set_existing_vertex_offset_vector(xt->second, yt->second, zt->second);
+
+    } else{
+      cout << PHWHERE << "Decay particles && vertex info can't be found !!" << endl;
+      exit(1);
+    }
+
+	// 3D Randomized vertex
+      if ((_vertex_size_width > 0.0)||(_vertex_size_mean != 0.0)) {
+	_vertex_size_mean = sqrt(pow(vtx_x,2)+pow(vtx_y,2)+pow(vtx_z,2));
+        double r = smearvtx(_vertex_size_mean,_vertex_size_width,_vertex_size_func_r);
+        double x = 0.0;
+        double y = 0.0;
+        double z = 0.0;
+        gsl_ran_dir_3d(RandomGenerator,&x,&y,&z);
+        x *= r;
+        y *= r;
+        z *= r;
+	vtxindex = ineve->AddVtx(vtx_x+x,vtx_y+y,vtx_z+z,t0);
+      }
+      else if (decay_id==0)
+      {
+	vtxindex = ineve->AddVtx(vtx_x,vtx_y,vtx_z,t0);
+      }
+	
+
+    // Now decay it 
+    // Get the decay energy and momentum in the frame of the vector meson - this correctly handles decay particles of any mass.
+
+    double E1 = (pow(mnow,2) - pow(m2,2) + pow(m1,2)) / (2.0 * mnow);
+    double p1 = sqrt( ( pow(mnow,2) - pow(m1+m2,2) )*( pow(mnow,2) - pow(m1-m2,2) ) ) / (2.0 * mnow);
   
-  // Now decay it 
-  // Get the decay energy and momentum in the frame of the vector meson - this correctly handles decay particles of any mass.
+    // In the frame of the vector meson, get a random theta and phi angle for particle 1
+    // Assume angular distribution in the frame of the decaying meson that is uniform in phi and goes as sin(theta) in theta 
+    // particle 2 has particle 1 momentum reflected through the origin
 
-  double E1 = (pow(mnow,2) - pow(m2,2) + pow(m1,2)) / (2.0 * mnow);
-  double p1 = sqrt( ( pow(mnow,2) - pow(m1+m2,2) )*( pow(mnow,2) - pow(m1-m2,2) ) ) / (2.0 * mnow);
-  
-  // In the frame of the vector meson, get a random theta and phi angle for particle 1
-  // Assume angular distribution in the frame of the decaying meson that is uniform in phi and goes as sin(theta) in theta 
-  // particle 2 has particle 1 momentum reflected through the origin
+    double th1 = fsin->GetRandom();
+    // 0 and 2*M_PI identical, so use gsl_rng_uniform which excludes 1.0
+    double phi1 = 2.0*M_PI*gsl_rng_uniform(RandomGenerator);
 
-  double th1 = fsin->GetRandom();
-  // 0 and 2*M_PI identical, so use gsl_rng_uniform which excludes 1.0
-  double phi1 = 2.0*M_PI*gsl_rng_uniform(RandomGenerator);
+    // Put particle 1 into a TLorentzVector
 
-  // Put particle 1 into a TLorentzVector
+    double px1 = p1*sin(th1)*cos(phi1);
+    double py1 = p1*sin(th1)*sin(phi1);
+    double pz1 = p1*cos(th1);
+    TLorentzVector v1;
+    v1.SetPxPyPzE(px1,py1,pz1,E1);
 
-  double px1 = p1*sin(th1)*cos(phi1);
-  double py1 = p1*sin(th1)*sin(phi1);
-  double pz1 = p1*cos(th1);
-  TLorentzVector v1;
-  v1.SetPxPyPzE(px1,py1,pz1,E1);
+    // now boost the decay product v1 into the lab using a vector consisting of the beta values of the vector meson
+    // where p/E is v/c if we use GeV/c for p and GeV for E
 
-  // now boost the decay product v1 into the lab using a vector consisting of the beta values of the vector meson
-  // where p/E is v/c if we use GeV/c for p and GeV for E
+    double betax = vm.Px()/vm.E();
+    double betay = vm.Py()/vm.E();
+    double betaz = vm.Pz()/vm.E();
+    v1.Boost(betax,betay,betaz);
 
-  double betax = vm.Px()/vm.E();
-  double betay = vm.Py()/vm.E();
-  double betaz = vm.Pz()/vm.E();
-  v1.Boost(betax,betay,betaz);
+    // The second decay product's lab vector is the difference between the original meson and the boosted decay product 1
 
-  // The second decay product's lab vector is the difference between the original meson and the boosted decay product 1
+    TLorentzVector v2 = vm - v1;
 
-  TLorentzVector v2 = vm - v1;
+    // Add the boosted decay particles to the particle list for the event
 
-  // Add the boosted decay particles to the particle list for the event
+    AddParticle(decay1_name,v1.Px(),v1.Py(),v1.Pz());
+    AddParticle(decay2_name,v2.Px(),v2.Py(),v2.Pz());
 
-  AddParticle("e+",v1.Px(),v1.Py(),v1.Pz());
-  AddParticle("e-",v2.Px(),v2.Py(),v2.Pz());
+    // Now output the list of boosted decay particles to the node tree
 
-  // Now output the list of boosted decay particles to the node tree
-
-  vector<PHG4Particle *>::const_iterator iter;
-  for (iter = particlelist.begin(); iter != particlelist.end(); ++iter)
+    vector<PHG4Particle *>::const_iterator iter;
+    for (iter = particlelist.begin(); iter != particlelist.end(); ++iter)
     {
       PHG4Particle *particle = new PHG4Particlev1(*iter);
       SetParticleId(particle,ineve);
       ineve->AddParticle(vtxindex, particle);
       if(embedflag!=0) { ineve->AddEmbeddedParticle(particle,embedflag); }
     }
+    // List what has been put into ineve for this event
 
-  // List what has been put into ineve for this event
-
-  if(verbosity > 0)
-    {  
+    if(verbosity > 0)
+      {  
       ineve->identify();
 
       // Print some check output 
@@ -355,7 +489,8 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 	   << endl;
 
 
-    }
+      }
+  } // decay particles
 
   // Reset particlelist for the next event
   while(particlelist.begin() != particlelist.end())
@@ -365,5 +500,20 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     }
 
   return 0;
+}
+
+double
+PHG4ParticleGeneratorVectorMeson::smearvtx(const double position, const double width, FUNCTION dist) const
+{
+  double res = position;
+  if (dist == Uniform)
+    {
+      res = (position-width) + 2*gsl_rng_uniform_pos(RandomGenerator)*width;
+    }
+  else if (dist == Gaus)
+    {
+      res = position + gsl_ran_gaussian(RandomGenerator,width);
+    }
+  return res;
 }
 

@@ -3,6 +3,7 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
+class G4VPhysicalVolume;
 class PHG4InnerHcalDetector;
 class PHG4Parameters;
 class PHG4Hit;
@@ -37,7 +38,10 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   const PHG4Parameters *params;
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
+  G4VPhysicalVolume *savevolpre;
+  G4VPhysicalVolume *savevolpost;
   int savetrackid;
+  int saveprestepstatus;
   int savepoststepstatus;
   // since getting parameters is a map search we do not want to
   // do this in every step, the parameters used are cached
