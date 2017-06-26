@@ -285,7 +285,11 @@ libg4detectors_la_SOURCES = \
   PHG4TPCDistortion_Dict.cc\
   PHG4TPCSpaceChargeDistortion.cc \
   PHG4TPCSpaceChargeDistortion_Dict.cc \
-  PHG4SiliconTrackerParameterisation.cc
+  PHG4SiliconTrackerParameterisation.cc\
+  PHG4mRICHDetector.cc \
+  PHG4mRICHSteppingAction.cc \
+  PHG4mRICHSubsystem.cc \
+  PHG4mRICHSubsystem_Dict.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
