@@ -137,10 +137,12 @@ pkginclude_HEADERS = \
   PHG4Particle.h \
   PHG4Particlev1.h \
   PHG4Particlev2.h \
+  PHG4ParticleGeneratorBase.h \
+  PHG4PhenixDetector.h \
+  PHG4Reco.h \
+  PHG4RegionInformation.h \
   PHG4Shower.h \
   PHG4Showerv1.h \
-  PHG4PhenixDetector.h \
-  PHG4RegionInformation.h \
   PHG4SteppingAction.h \
   PHG4Subsystem.h \
   PHG4TrackingAction.h \
@@ -157,6 +159,8 @@ noinst_PROGRAMS = \
   testexternals_g4hits \
   testexternals_g4tb
 
+BUILT_SOURCES = testexternals.cc
+
 testexternals_g4hits_SOURCES = testexternals.cc
 testexternals_g4hits_LDADD = libphg4hit.la
 
@@ -172,9 +176,6 @@ testexternals.cc:
 
 ##############################################
 # please add new classes in alphabetical order
-
-clean-local:
-	rm -f *Dict* $(BUILT_SOURCES)
 
 PHG4_Dict.cc: \
   HepMCNodeReader.h \
@@ -198,7 +199,7 @@ PHG4_Dict.cc: \
   PHG4TruthSubsystem.h \
   ReadEICFiles.h \
   PHG4LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
 
 PHG4Hit_Dict.cc: \
   PHG4HitReadBack.h \
@@ -216,4 +217,7 @@ PHG4Hit_Dict.cc: \
   PHG4VtxPoint.h \
   PHG4VtxPointv1.h \
   PHG4HitLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
+
+clean-local:
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm 
