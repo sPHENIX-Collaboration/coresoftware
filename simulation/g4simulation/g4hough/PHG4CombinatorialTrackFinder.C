@@ -1,11 +1,11 @@
 /*!
- *  \file		PHG4TrackKalmanFitter.C
+ *  \file		PHG4CombinatorialTrackFinder.C
  *  \brief		Refit SvtxTracks with PHGenFit.
  *  \details	Refit SvtxTracks with PHGenFit.
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#include "PHG4TrackKalmanFitter.h"
+#include "PHG4CombinatorialTrackFinder.h"
 #include "SvtxCluster.h"
 #include "SvtxClusterMap.h"
 #include "SvtxTrackState_v1.h"
@@ -23,6 +23,8 @@
 
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CylinderGeom_MAPS.h>
 #include <g4detectors/PHG4CylinderGeom_Siladders.h>
@@ -64,26 +66,6 @@
 #include <TRotation.h>
 
 
-
-#include <iostream>
-#include <map>
-#include <utility>
-#include <vector>
-#include <memory>
-
-
-#define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
-#define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
-#define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
-
-#define WILD_FLOAT -9999.
-
-#define _DEBUG_MODE_ 0
-
-//#define _DEBUG_
-
-using namespace std;
-
 //Rave
 #include <rave/Version.h>
 #include <rave/Track.h>
@@ -92,6 +74,24 @@ using namespace std;
 
 //GenFit
 #include <GenFit/GFRaveConverters.h>
+#include <GenFit/KalmanFittedStateOnPlane.h>
+
+
+#include <iostream>
+#include <map>
+#include <utility>
+#include <vector>
+#include <memory>
+
+#define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
+#define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
+#define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<"\n"
+
+#define WILD_FLOAT -9999.
+
+#define _DEBUG_MODE_ 1
+
+using namespace std;
 
 class PHRaveVertexFactory {
 
@@ -165,17 +165,15 @@ private:
 /*
  * Constructor
  */
-PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
+PHG4CombinatorialTrackFinder::PHG4CombinatorialTrackFinder(const string &name) :
 		SubsysReco(name),
 		_flags(NONE),
-		_output_mode(PHG4TrackKalmanFitter::MakeNewNode),
-		_over_write_svtxtrackmap(true),
-		_over_write_svtxvertexmap(true),
+		_detector_type(PHG4CombinatorialTrackFinder::MAPS_IT_TPC),
+		_output_mode(PHG4CombinatorialTrackFinder::MakeNewNode),
 		_fit_primary_tracks(false),
 		_mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
 		_mag_field_re_scaling_factor(1.4 / 1.5),
 		_reverse_mag_field(true),
-		_use_truth_vertex(true),
 		_fitter( NULL),
 		_track_fitting_alg_name("DafRef"),
 		_primary_pid_guess(211),
@@ -190,7 +188,7 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 		_primary_trackmap(NULL),
 		_vertexmap_refit(NULL),
 		_do_eval(false),
-		_eval_outname("PHG4TrackKalmanFitter_eval.root"),
+		_eval_outname("PHG4CombinatorialTrackFinder_eval.root"),
 		_eval_tree(NULL),
 		_tca_particlemap(NULL),
 		_tca_vtxmap(NULL),
@@ -199,9 +197,9 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 		_tca_trackmap_refit(NULL),
 		_tca_primtrackmap(NULL),
 		_tca_vertexmap_refit(NULL),
-		_do_evt_display(false) {
-
-	Verbosity(0);
+		_do_evt_display(false),
+		_nlayers(-1)
+{
 
 	_event = 0;
 
@@ -217,7 +215,7 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 /*
  * Init
  */
-int PHG4TrackKalmanFitter::Init(PHCompositeNode *topNode) {
+int PHG4CombinatorialTrackFinder::Init(PHCompositeNode *topNode) {
 
 
 //	CreateNodes(topNode);
@@ -228,7 +226,7 @@ int PHG4TrackKalmanFitter::Init(PHCompositeNode *topNode) {
 /*
  * Init run
  */
-int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
+int PHG4CombinatorialTrackFinder::InitRun(PHCompositeNode *topNode) {
 
 	CreateNodes(topNode);
 
@@ -241,7 +239,6 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
 					-1. * _mag_field_re_scaling_factor :
 					_mag_field_re_scaling_factor, _track_fitting_alg_name,
 			"RKTrackRep", _do_evt_display);
-	_fitter->set_verbosity(verbosity);
 
 	if (!_fitter) {
 		cerr << PHWHERE << endl;
@@ -277,16 +274,32 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
  *  This function contains the analysis structure.
  *
  */
-int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
+int PHG4CombinatorialTrackFinder::process_event(PHCompositeNode *topNode) {
 	_event++;
+	cout << PHWHERE << "Events processed: " << _event << endl;
+#if _DEBUG_MODE_ == 1
 
-	if(verbosity > 1)
-		std::cout << PHWHERE << "Events processed: " << _event << std::endl;
-//	if (_event % 1000 == 0)
-//		cout << PHWHERE << "Events processed: " << _event << endl;
+#else
+	if (_event % 1000 == 0)
+		cout << PHWHERE << "Events processed: " << _event << endl;
+#endif
 
 	GetNodes(topNode);
+	// Input Svtx Clusters
 
+	_clustermap = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
+	_hits_per_layer.clear();
+	for (SvtxClusterMap::Iter iter = _clustermap->begin();iter != _clustermap->end();++iter) {
+	  SvtxCluster* cluster = iter->second;
+	  unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
+	  _hits_per_layer.insert(pair<const int, const unsigned int>(ilayer,cluster->get_id()));
+#if _DEBUG_MODE_ == 1
+	  TVector3 hit(cluster->get_x(),cluster->get_y(),cluster->get_z());
+	  cout << PHWHERE << "Start Hit " << " r phi eta path layer " << hit.Perp() << " " << hit.Phi() << " " << hit.Eta() << " " << ilayer << " id: " << cluster->get_id() << endl;
+#endif  
+	}
+
+	//InitiatizeHitsPerLayer(topNode);
 	//! stands for Refit_GenFit_Tracks
 	vector<genfit::Track*> rf_gf_tracks;
 	rf_gf_tracks.clear();
@@ -298,38 +311,37 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 	if (_trackmap_refit)
 		_trackmap_refit->empty();
-
-	for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
-			++iter) {
-		SvtxTrack* svtx_track = iter->second;
-		if (!svtx_track)
-			continue;
-		if (!(svtx_track->get_pt() > _cut_min_pT))
-			continue;
-
-		//! stands for Refit_PHGenFit_Track
-		std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track);
-
-		if (rf_phgf_track) {
-			svtxtrack_genfittrack_map[svtx_track->get_id()] =
-					rf_phgf_tracks.size();
-			rf_phgf_tracks.push_back(rf_phgf_track);
-			rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
-		}
+	int ntrk =  0;
+	for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();++iter) {
+	  ntrk++;
+	  SvtxTrack* svtx_track = iter->second;
+	  if (!svtx_track)
+	    continue;
+	  if (!(svtx_track->get_pt() > _cut_min_pT))
+	    continue;
+#if _DEBUG_MODE_ == 1
+	  cout << PHWHERE << "   Process Track: " << ntrk << " " << _trackmap->size() << " " << endl;
+#endif
+	  //! stands for Refit_PHGenFit_Track
+	  std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track);
+	  if (rf_phgf_track && svtx_track->get_pt()>0.4 &&svtx_track->size_clusters() >3  ) {
+	    cout << PHWHERE << " pT " << svtx_track->get_pt() << " eta " << svtx_track->get_eta() << " phi " << svtx_track->get_phi() << " nhit " << svtx_track->size_clusters() <<  endl;
+	    ExtendTrack(topNode, rf_phgf_track,svtx_track);
+	    // add refit track to map
+	    svtxtrack_genfittrack_map[svtx_track->get_id()] = rf_phgf_tracks.size();
+	    rf_phgf_tracks.push_back(rf_phgf_track);
+	    rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
+	  }
 	}
+#if _DEBUG_MODE_ == 1
+	cout << PHWHERE << "Track loop done! " << ntrk << endl;
+	return Fun4AllReturnCodes::EVENT_OK;
+#endif
 
-	/*
-	 * add tracks to event display
-	 * needs to make copied for smart ptrs will be destroied even
-	 * there are still references in TGeo::EventView
-	 */
-	if (_do_evt_display) {
-		vector<genfit::Track*> copy;
-		for(genfit::Track* t : rf_gf_tracks){
-			copy.push_back(new genfit::Track(*t));
-		}
-		_fitter->getEventDisplay()->addEvent(copy);
-	}
+#ifdef HEINZ
+	//! add tracks to event display
+	if (_do_evt_display)
+		_fitter->getEventDisplay()->addEvent(rf_gf_tracks);
 
 	//! find vertex using tracks
 	std::vector<genfit::GFRaveVertex*> rave_vertices;
@@ -339,11 +351,11 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		try {
 			_vertex_finder->findVertices(&rave_vertices, rf_gf_tracks);
 		} catch (...) {
-			if(verbosity > 1)
-				std::cout << PHWHERE << "GFRaveVertexFactory::findVertices failed!";
+			std::cout << PHWHERE << "GFRaveVertexFactory::findVertices failed!";
 		}
 	}
-
+	*/
+	
 	FillSvtxVertexMap(rave_vertices, rf_gf_tracks);
 
 	for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
@@ -361,13 +373,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 			//FIXME figure out which vertex to use.
 			SvtxVertex* vertex = NULL;
-			if (_over_write_svtxvertexmap) {
-				if (_vertexmap->size() > 0)
-					vertex = _vertexmap->get(0);
-			} else {
-				if (_vertexmap_refit->size() > 0)
-					vertex = _vertexmap_refit->get(0);
-			}
+			if (_vertexmap_refit->size() > 0)
+				vertex = _vertexmap_refit->get(0);
 
 			//BEGIN DEBUG
 //			vertex = NULL;
@@ -396,18 +403,10 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 //					vertex);
 			std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
 					vertex);
-#ifdef _DEBUG_
-		cout<<__LINE__<<endl;
-#endif
-			if(!rf_track) {
-				//if (_output_mode == OverwriteOriginalNode)
-#ifdef _DEBUG_
-						LogDebug("!rf_track, continue.");
-#endif
-				if (_over_write_svtxtrackmap)
-					_trackmap->erase(iter->first);
 
-				continue;
+			if(!rf_track) {
+				if (_output_mode == OverwriteOriginalNode)
+					_trackmap->erase(iter->first);
 			}
 
 //			delete vertex;//DEBUG
@@ -415,39 +414,35 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 //			rf_phgf_tracks.push_back(rf_phgf_track);
 //			rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
 
-			if (!(_over_write_svtxtrackmap) || _output_mode == DebugMode)
+			if (_output_mode == MakeNewNode || _output_mode == DebugMode)
 				if (_trackmap_refit) {
 					_trackmap_refit->insert(rf_track.get());
 //					delete rf_track;
 				}
 
-			if (_over_write_svtxtrackmap
+			if (_output_mode == OverwriteOriginalNode
 					|| _output_mode == DebugMode) {
 				*(dynamic_cast<SvtxTrack_v1*>(iter->second)) =
 						*(dynamic_cast<SvtxTrack_v1*>(rf_track.get()));
 //				delete rf_track;
-#ifdef _DEBUG_
-		cout<<__LINE__<<endl;
-#endif
 			}
 		} else {
-			if (_over_write_svtxtrackmap)
+			if (_output_mode == OverwriteOriginalNode)
 				_trackmap->erase(iter->first);
 		}
 	}
 
-#ifdef _DEBUG_
-		cout<<__LINE__<<endl;
+#if _DEBUG_MODE_ == 1
+	cout << PHWHERE << "Vertexing done! " << ntrk << endl;
 #endif
-
 	// Need to keep tracks if _do_evt_display
 	if(!_do_evt_display) {
+//		for(std::shared_ptr<PHGenFit::Track> rf_phgf_track : rf_phgf_tracks) {
+//			delete rf_phgf_track;
+//		}
 		rf_phgf_tracks.clear();
 	}
-
-#ifdef _DEBUG_
-		cout<<__LINE__<<endl;
-#endif
+	
 	/*!
 	 * Fit track as primary track, This part need to be called after FillSvtxVertexMap
 	 */
@@ -455,15 +450,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		_primary_trackmap->empty();
 
 		//FIXME figure out which vertex to use.
-		SvtxVertex* vertex = NULL;
-		if (_over_write_svtxvertexmap) {
-			if (_vertexmap->size() > 0)
-				vertex = _vertexmap->get(0);
-		} else {
-			if (_vertexmap_refit->size() > 0)
-				vertex = _vertexmap_refit->get(0);
-		}
-
+		SvtxVertex* vertex = _vertexmap_refit->get(0);
 		if (vertex) {
 			for (SvtxTrackMap::ConstIter iter = _trackmap->begin();
 					iter != _trackmap->end(); ++iter) {
@@ -478,19 +465,13 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 				std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track,
 						vertex);
 				if (rf_phgf_track) {
-//					//FIXME figure out which vertex to use.
-//					SvtxVertex* vertex = NULL;
-//					if (_vertexmap_refit->size() > 0)
-//						vertex = _vertexmap_refit->get(0);
+					//FIXME figure out which vertex to use.
+					SvtxVertex* vertex = NULL;
+					if (_vertexmap_refit->size() > 0)
+						vertex = _vertexmap_refit->get(0);
 					std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(svtx_track,
 							rf_phgf_track, vertex);
 					//delete rf_phgf_track;
-					if(!rf_track) {
-#ifdef _DEBUG_
-						LogDebug("!rf_track, continue.");
-#endif
-						continue;
-					}
 					_primary_trackmap->insert(rf_track.get());
 				}
 			}
@@ -498,8 +479,9 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 			LogError("No vertex in SvtxVertexMapRefit!");
 		}
 	}
-#ifdef _DEBUG_
-		cout<<__LINE__<<endl;
+
+#if _DEBUG_MODE_ == 1
+	cout << PHWHERE << "Refit done! " << ntrk << endl;
 #endif
 	for(genfit::GFRaveVertex *vertex: rave_vertices) {
 		delete vertex;
@@ -509,16 +491,17 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 	if (_do_eval) {
 		fill_eval_tree(topNode);
 	}
-#ifdef _DEBUG_
-		cout<<__LINE__<<endl;
+#if _DEBUG_MODE_ == 1
+	cout << PHWHERE << "All done! " << ntrk << endl;
 #endif
 	return Fun4AllReturnCodes::EVENT_OK;
+#endif
 }
 
 /*
  * End
  */
-int PHG4TrackKalmanFitter::End(PHCompositeNode *topNode) {
+int PHG4CombinatorialTrackFinder::End(PHCompositeNode *topNode) {
 
 	if (_do_eval) {
 		if(verbosity >= 1)
@@ -537,7 +520,7 @@ int PHG4TrackKalmanFitter::End(PHCompositeNode *topNode) {
 /*
  * dtor
  */
-PHG4TrackKalmanFitter::~PHG4TrackKalmanFitter() {
+PHG4CombinatorialTrackFinder::~PHG4CombinatorialTrackFinder() {
 	delete _fitter;
 	delete _vertex_finder;
 }
@@ -545,7 +528,7 @@ PHG4TrackKalmanFitter::~PHG4TrackKalmanFitter() {
 /*
  * fill_eval_tree():
  */
-void PHG4TrackKalmanFitter::fill_eval_tree(PHCompositeNode *topNode) {
+void PHG4CombinatorialTrackFinder::fill_eval_tree(PHCompositeNode *topNode) {
 	//! Make sure to reset all the TTree variables before trying to set them.
 	reset_eval_variables();
 
@@ -608,7 +591,7 @@ void PHG4TrackKalmanFitter::fill_eval_tree(PHCompositeNode *topNode) {
 /*
  * init_eval_tree
  */
-void PHG4TrackKalmanFitter::init_eval_tree() {
+void PHG4CombinatorialTrackFinder::init_eval_tree() {
 	if (!_tca_particlemap)
 		_tca_particlemap = new TClonesArray("PHG4Particlev2");
 	if (!_tca_vtxmap)
@@ -627,7 +610,7 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 		_tca_vertexmap_refit = new TClonesArray("SvtxVertex_v1");
 
 	//! create TTree
-	_eval_tree = new TTree("T", "PHG4TrackKalmanFitter Evaluation");
+	_eval_tree = new TTree("T", "PHG4CombinatorialTrackFinder Evaluation");
 
 	_eval_tree->Branch("PrimaryParticle", _tca_particlemap);
 	_eval_tree->Branch("TruthVtx", _tca_vtxmap);
@@ -653,7 +636,7 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
  *  Reset all the tree variables to their default values.
  *  Needs to be called at the start of every event
  */
-void PHG4TrackKalmanFitter::reset_eval_variables() {
+void PHG4CombinatorialTrackFinder::reset_eval_variables() {
 	_tca_particlemap->Clear();
 	_tca_vtxmap->Clear();
 
@@ -672,7 +655,7 @@ void PHG4TrackKalmanFitter::reset_eval_variables() {
 	_cluster_eval_tree_gz = WILD_FLOAT;
 }
 
-int PHG4TrackKalmanFitter::CreateNodes(PHCompositeNode *topNode) {
+int PHG4CombinatorialTrackFinder::CreateNodes(PHCompositeNode *topNode) {
 	// create nodes...
 	PHNodeIterator iter(topNode);
 
@@ -694,7 +677,7 @@ int PHG4TrackKalmanFitter::CreateNodes(PHCompositeNode *topNode) {
 			cout << "SVTX node added" << endl;
 	}
 
-	if (!(_over_write_svtxtrackmap) || _output_mode == DebugMode) {
+	if (_output_mode == MakeNewNode || _output_mode == DebugMode) {
 		_trackmap_refit = new SvtxTrackMap_v1;
 		PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
 				_trackmap_refit, "SvtxTrackMapRefit", "PHObject");
@@ -713,30 +696,213 @@ int PHG4TrackKalmanFitter::CreateNodes(PHCompositeNode *topNode) {
 			cout << "Svtx/PrimaryTrackMap node added" << endl;
 	}
 
-	if (!(_over_write_svtxvertexmap)) {
-		_vertexmap_refit = new SvtxVertexMap_v1;
-		PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
-				_vertexmap_refit, "SvtxVertexMapRefit", "PHObject");
-		tb_node->addNode(vertexes_node);
-		if (verbosity > 0)
-			cout << "Svtx/SvtxVertexMapRefit node added" << endl;
-	} else if (!findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap")) {
-		_vertexmap = new SvtxVertexMap_v1;
-		PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
-				_vertexmap, "SvtxVertexMap", "PHObject");
-		tb_node->addNode(vertexes_node);
-		if (verbosity > 0)
-			cout << "Svtx/SvtxVertexMap node added" << endl;
-	}
+	_vertexmap_refit = new SvtxVertexMap_v1;
+	PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
+			_vertexmap_refit, "SvtxVertexMapRefit", "PHObject");
+	tb_node->addNode(vertexes_node);
+	if (verbosity > 0)
+		cout << "Svtx/SvtxVertexMapRefit node added" << endl;
+
+	InitializeGeometry(topNode);
 
 	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4CombinatorialTrackFinder::InitializeGeometry(PHCompositeNode *topNode) {
+
+  //---------------------------------------------------------
+  // Grab Run-Dependent Detector Geometry and hit containers per layer
+  //---------------------------------------------------------
+  
+  bool default_geo = false;
+  
+  PHG4CylinderCellGeomContainer* cellgeos = 
+    findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
+						      
+  PHG4CylinderGeomContainer* laddergeos = 
+    findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
+  PHG4CylinderGeomContainer* mapsladdergeos = findNode::getClass<PHG4CylinderGeomContainer>(
+	  topNode,"CYLINDERGEOM_MAPS");
+  
+  if (cellgeos||laddergeos||mapsladdergeos) {
+    unsigned int ncelllayers = 0;
+    if (cellgeos) ncelllayers += cellgeos->get_NLayers();
+    unsigned int nladderlayers = 0;
+    if (laddergeos) nladderlayers += laddergeos->get_NLayers();
+    unsigned int nmapsladderlayers = 0;
+    if (mapsladdergeos) nmapsladderlayers += mapsladdergeos->get_NLayers();
+    _nlayers = ncelllayers + nladderlayers+nmapsladderlayers;
+    default_geo = false;
+  } else {
+    cerr << PHWHERE
+	 << "None of CYLINDERCELLGEOM_SVTX or CYLINDERGEOM_MAPS or CYLINDERGEOM_SILICON_TRACKER available, reverting to a default geometry"
+	 << std::endl;    
+    _nlayers = 6;
+    default_geo = true;
+  }
+#if _DEBUG_MODE_ == 1
+  cout << PHWHERE << "Found " << _nlayers << " Layers; default_geo: " << default_geo <<  endl;
+#endif
+
+  //=================================================
+  //  Initializing hit containers
+  //=================================================//                                                                              
+
+  _radii.assign(_nlayers, 0.0);
+  _smear_xy_layer.assign(_nlayers, 0.0);
+  _smear_z_layer.assign(_nlayers, 0.0);
+  float sqrt_12 = sqrt(12.);
+	
+  if (default_geo) {
+
+    // default geometry
+    _radii[0] = 2.5;
+    _radii[1] = 5.0;
+    _radii[2] = 10.0;
+    _radii[3] = 14.0;
+    _radii[4] = 40.0;
+    _radii[5] = 60.0;
+    
+    _smear_xy_layer[0] = (50.0e-4/sqrt_12);
+    _smear_z_layer[0] = (425.0e-4/sqrt_12);
+    _smear_xy_layer[1] = (50.0e-4/sqrt_12);
+    _smear_z_layer[1] = (425.0e-4/sqrt_12);
+    _smear_xy_layer[2] = (80.0e-4/sqrt_12);
+    _smear_z_layer[2] = (1000.0e-4/sqrt_12);
+    _smear_xy_layer[3] = (80.0e-4/sqrt_12);
+    _smear_z_layer[3] = (1000.0e-4/sqrt_12);
+    
+    for(int il=4; il<_nlayers; ++il) {
+      _smear_xy_layer[il] = (80.0e-4/sqrt_12);
+      _smear_z_layer[il] = (30000.0e-4/sqrt_12);
+    }
+
+    _layer_ilayer_map.clear();
+    for (int ilayer = 0; ilayer < _nlayers; ++ilayer) {
+      _layer_ilayer_map.insert(make_pair(ilayer,ilayer));
+    }
+    
+  } else {
+
+    // Since the G4 layers don't necessarily correspond to the
+    // silicon layers, and don't necessarily start from zero (argh),
+    // we create our own layers numbers that are consecutive
+    // starting from zero.
+
+    // Now that we have two kinds of layers, I won't know in principle
+    // which type is in what order, so I figure that out now...
+    
+    map<float,int> radius_layer_map;
+
+    if (cellgeos) {
+      PHG4CylinderCellGeomContainer::ConstRange layerrange = cellgeos->get_begin_end();
+      for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
+	  layeriter != layerrange.second;
+	  ++layeriter) {
+	radius_layer_map.insert( make_pair(layeriter->second->get_radius(),
+					   layeriter->second->get_layer()) );
+      }
+    }
+
+    if (laddergeos) {
+      PHG4CylinderGeomContainer::ConstRange layerrange = laddergeos->get_begin_end();
+      for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+	  layeriter != layerrange.second;
+	  ++layeriter) {
+	radius_layer_map.insert( make_pair(layeriter->second->get_radius(),
+					   layeriter->second->get_layer()) );
+      }
+    }
+
+    if (mapsladdergeos) {
+      PHG4CylinderGeomContainer::ConstRange layerrange = mapsladdergeos->get_begin_end();
+      for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+	  layeriter != layerrange.second;
+	  ++layeriter) {
+	radius_layer_map.insert( make_pair(layeriter->second->get_radius(),
+					   layeriter->second->get_layer()) );
+      }
+    }
+
+    // now that the layer ids are sorted by radius, I can create a storage
+    // index, ilayer, that is 0..N-1 and sorted by radius
+    
+    int ilayer = 0;
+    for(map<float,int>::iterator iter = radius_layer_map.begin();
+	iter != radius_layer_map.end();
+	++iter) {
+      _layer_ilayer_map.insert( make_pair(iter->second,ilayer) );
+      ++ilayer;
+    }   
+
+    // now we extract the information from the cellgeos first
+    if (cellgeos) {    
+      PHG4CylinderCellGeomContainer::ConstRange begin_end = cellgeos->get_begin_end();
+      PHG4CylinderCellGeomContainer::ConstIterator miter = begin_end.first;
+      for( ; miter != begin_end.second; miter++) {
+	PHG4CylinderCellGeom *cellgeo = miter->second;
+      
+	if (verbosity > 1) cellgeo->identify();
+
+	_radii[_layer_ilayer_map[cellgeo->get_layer()]] = cellgeo->get_radius();      
+	_smear_xy_layer[_layer_ilayer_map[cellgeo->get_layer()]] = cellgeo->get_radius()*cellgeo->get_phistep();
+	_smear_z_layer[_layer_ilayer_map[cellgeo->get_layer()]] = cellgeo->get_zstep();     
+      }
+    }
+
+    if (laddergeos) {    
+      PHG4CylinderGeomContainer::ConstRange begin_end = laddergeos->get_begin_end();
+      PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
+      for( ; miter != begin_end.second; miter++) {
+	PHG4CylinderGeom *geo = miter->second;
+	
+	if (verbosity > 1) geo->identify();
+	
+	_radii[_layer_ilayer_map[geo->get_layer()]] = geo->get_radius();      
+	_smear_xy_layer[_layer_ilayer_map[geo->get_layer()]] = geo->get_strip_y_spacing();
+	_smear_z_layer[_layer_ilayer_map[geo->get_layer()]] = geo->get_strip_z_spacing();     
+      }
+    }
+
+  if (mapsladdergeos) {    
+      PHG4CylinderGeomContainer::ConstRange begin_end = mapsladdergeos->get_begin_end();
+      PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
+      for( ; miter != begin_end.second; miter++) {
+	PHG4CylinderGeom *geo = miter->second;
+	
+	if (verbosity > 1) geo->identify();
+	
+	_radii[_layer_ilayer_map[geo->get_layer()]] = geo->get_radius();      
+	_smear_xy_layer[_layer_ilayer_map[geo->get_layer()]] = geo->get_pixel_x();
+	_smear_z_layer[_layer_ilayer_map[geo->get_layer()]] = geo->get_pixel_z();     
+      }
+    }
+
+  }  
+
+  // set material on each layer
+  
+  _material.assign(_radii.size(), 0.03);
+
+  map<int, float>::iterator mat_it;
+  for (map<int, float>::iterator iter = _user_material.begin();
+       iter != _user_material.end();
+       ++iter) {
+    _material[_layer_ilayer_map[iter->first]] = iter->second;
+  }
+
+  // initialize the pattern recognition tools
+  // setup_seed_tracker_objects();
+  // setup_tracker_object();
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 /*
  * GetNodes():
  *  Get all the all the required nodes off the node tree
  */
-int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
+int PHG4CombinatorialTrackFinder::GetNodes(PHCompositeNode * topNode) {
 	//DST objects
 	//Truth container
 	_truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode,
@@ -765,14 +931,14 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 
 	// Input Svtx Vertices
 	_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-	if (!_vertexmap && _event < 2) {
-		cout << PHWHERE << " SvtxVertexrMap node not found on node tree"
+	if (!_vertexmap && _event < 2 && verbosity >= 1) {
+		cout << PHWHERE << " SvtxVertexrMap node not found on node tree, NOT critical"
 				<< endl;
-		return Fun4AllReturnCodes::ABORTEVENT;
+		//return Fun4AllReturnCodes::ABORTEVENT;
 	}
 
 	// Output Svtx Tracks
-	if (!(_over_write_svtxtrackmap) || _output_mode == DebugMode) {
+	if (_output_mode == MakeNewNode || _output_mode == DebugMode) {
 		_trackmap_refit = findNode::getClass<SvtxTrackMap>(topNode,
 				"SvtxTrackMapRefit");
 		if (!_trackmap_refit && _event < 2) {
@@ -794,14 +960,12 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 	}
 
 	// Output Svtx Vertices
-	if (!(_over_write_svtxvertexmap)) {
-		_vertexmap_refit = findNode::getClass<SvtxVertexMap>(topNode,
-				"SvtxVertexMapRefit");
-		if (!_vertexmap_refit && _event < 2) {
-			cout << PHWHERE << " SvtxVertexMapRefit node not found on node tree"
-					<< endl;
-			return Fun4AllReturnCodes::ABORTEVENT;
-		}
+	_vertexmap_refit = findNode::getClass<SvtxVertexMap>(topNode,
+			"SvtxVertexMapRefit");
+	if (!_vertexmap_refit && _event < 2) {
+		cout << PHWHERE << " SvtxVertexMapRefit node not found on node tree"
+				<< endl;
+		return Fun4AllReturnCodes::ABORTEVENT;
 	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -819,8 +983,8 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
  * \param intrack Input SvtxTrack
  * \param invertex Input Vertex, if fit track as a primary vertex
  */
-//PHGenFit::Track* PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, const SvtxTrack* intrack,
-std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, const SvtxTrack* intrack,
+//PHGenFit::Track* PHG4CombinatorialTrackFinder::ReFitTrack(PHCompositeNode *topNode, const SvtxTrack* intrack,
+std::shared_ptr<PHGenFit::Track> PHG4CombinatorialTrackFinder::ReFitTrack(PHCompositeNode *topNode, const SvtxTrack* intrack,
 		const SvtxVertex* invertex) {
 
 	//std::shared_ptr<PHGenFit::Track> empty_track(NULL);
@@ -830,6 +994,17 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		return NULL;
 	}
 
+	// DEBUG: BEGIN
+	PHG4HitContainer* phg4hitcontainer = NULL;
+	phg4hitcontainer = findNode::getClass<PHG4HitContainer>(
+			topNode, "G4HIT_SVTX");
+	if (!phg4hitcontainer && _event < 2) {
+		cout << PHWHERE << "G4HIT_SVTX"
+				<< " node not found on node tree" << endl;
+		return NULL;
+	}
+	// DEBUG: END
+
 	SvtxHitMap* hitsmap = NULL;
 	// get node containing the digitized hits
 	hitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
@@ -837,32 +1012,55 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
 		return NULL;
 	}
-
-	PHG4CellContainer* cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
+	
+	PHG4CellContainer* cells = NULL;
+	cells = findNode::getClass<PHG4CellContainer>(topNode,
 			"G4CELL_SVTX");
+	if (!cells) {
+	  cout << PHWHERE << "ERROR: Can't find node G4CELL_SVTX" << endl;
+	  return NULL;
+	}
+	
+	PHG4CellContainer* cells_maps = NULL;
+	PHG4CylinderGeomContainer* geom_container_maps = NULL;
 
-	PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
-			topNode, "G4CELL_SILICON_TRACKER");
-
-	PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
-			topNode, "G4CELL_MAPS");
-
-	if (!cells_svtx and !cells_intt and !cells_maps) {
-		if (verbosity >= 0) {
-			LogError("No PHG4CellContainer found!");
+	if (_detector_type == LADDER_MAPS_TPC
+			|| _detector_type == LADDER_MAPS_IT_TPC
+			|| _detector_type == LADDER_MAPS_LADDER_IT_TPC) {
+		geom_container_maps = findNode::getClass<PHG4CylinderGeomContainer>(
+				topNode, "CYLINDERGEOM_MAPS");
+		if (!geom_container_maps) {
+			cout << PHWHERE << "ERROR: Can't find node CYLINDERGEOM_MAPS"
+					<< endl;
+			return NULL;
 		}
-		return nullptr;
+
+		cells_maps = findNode::getClass<PHG4CellContainer>(topNode,
+				"G4CELL_MAPS");
+		if (!cells_maps) {
+			cout << PHWHERE << "ERROR: Can't find node G4CELL_MAPS" << endl;
+			return NULL;
+		}
 	}
 
-	PHG4CylinderGeomContainer* geom_container_intt = findNode::getClass<
-			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
+	PHG4CellContainer* cells_intt = NULL;
+	PHG4CylinderGeomContainer* geom_container_intt = NULL;
 
-	PHG4CylinderGeomContainer* geom_container_maps = findNode::getClass<
-			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+	if (_detector_type == LADDER_MAPS_LADDER_IT_TPC) {
+		geom_container_intt = findNode::getClass<PHG4CylinderGeomContainer>(
+				topNode, "CYLINDERGEOM_SILICON_TRACKER");
+		if (!geom_container_intt) {
+			cout << PHWHERE << "ERROR: Can't find node CYLINDERGEOM_SILICON_TRACKER"
+					<< endl;
+			return NULL;
+		}
 
-	if (!cells_svtx && !cells_maps && !cells_intt) {
-		cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
-		return NULL;
+		cells_intt = findNode::getClass<PHG4CellContainer>(topNode,
+				"G4CELL_SILICON_TRACKER");
+		if (!cells_intt) {
+			cout << PHWHERE << "ERROR: Can't find node G4CELL_SILICON_TRACKER" << endl;
+			return NULL;
+		}
 	}
 
 	// prepare seed
@@ -964,106 +1162,16 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 	}
 #endif
 
-	// sort clusters with radius before fitting
-
-	std::map<float, unsigned int> m_r_cluster_id;
-	for (auto iter = intrack->begin_clusters();
+	for (SvtxTrack::ConstClusterIter iter = intrack->begin_clusters();
 			iter != intrack->end_clusters(); ++iter) {
 		unsigned int cluster_id = *iter;
-		SvtxCluster* cluster = _clustermap->get(cluster_id);
-		float x = cluster->get_x();
-		float y = cluster->get_y();
-		float r = sqrt(x*x+y*y);
-		m_r_cluster_id.insert(std::pair<float, unsigned int>(r, cluster_id));
-	}
-
-	for (auto iter = m_r_cluster_id.begin();
-			iter != m_r_cluster_id.end();
-			++iter) {
-
-		unsigned int cluster_id = iter->second;
 		SvtxCluster* cluster = _clustermap->get(cluster_id);
 		if (!cluster) {
 			LogError("No cluster Found!");
 			continue;
 		}
 
-#ifdef _DEBUG_
-		cout
-		<< __LINE__
-		<<": ID: " << cluster_id
-		<<": layer: " << cluster->get_layer()
-		<<endl;
-#endif
-
 		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
-
-		// DEBUG: BEGIN
-		if (_do_eval) {
-			PHG4HitContainer* phg4hits_svtx = findNode::getClass<
-					PHG4HitContainer>(topNode, "G4HIT_SVTX");
-
-			PHG4HitContainer* phg4hits_intt = findNode::getClass<
-					PHG4HitContainer>(topNode, "G4HIT_SILICON_TRACKER");
-
-			PHG4HitContainer* phg4hits_maps = findNode::getClass<
-					PHG4HitContainer>(topNode, "G4HIT_MAPS");
-
-			if (!phg4hits_svtx and !phg4hits_intt and !phg4hits_maps) {
-				if (verbosity >= 0) {
-					LogError("No PHG4HitContainer found!");
-				}
-				continue;
-			}
-
-			SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
-
-			PHG4Cell* cell = nullptr;
-			if(cells_svtx) cell = cells_svtx->findCell(svtxhit->get_cellid());
-			if(!cell && cells_intt) cell = cells_intt->findCell(svtxhit->get_cellid());
-			if(!cell && cells_maps) cell = cells_maps->findCell(svtxhit->get_cellid());
-			if(!cell){
-				if(verbosity>=0)
-					LogError("!cell");
-				continue;
-			}
-
-			PHG4Hit *phg4hit = nullptr;
-			if(phg4hits_svtx) phg4hit = phg4hits_svtx->findHit(cell->get_g4hits().first->first);
-			if(!phg4hit and phg4hits_intt) phg4hit = phg4hits_intt->findHit(cell->get_g4hits().first->first);
-			if(!phg4hit and phg4hits_maps) phg4hit = phg4hits_maps->findHit(cell->get_g4hits().first->first);
-
-			if (!phg4hit) {
-				if (verbosity >= 0)
-					LogError("!phg4hit");
-				continue;
-			}
-
-			TVector3 phg4hit_position(phg4hit->get_avg_x(),
-					phg4hit->get_avg_y(), phg4hit->get_avg_z());
-			TVector3 cluster_position(cluster->get_x(), cluster->get_y(),
-					cluster->get_z());
-
-			_cluster_eval_tree_x = cluster_position.X();
-			_cluster_eval_tree_y = cluster_position.Y();
-			_cluster_eval_tree_z = cluster_position.Z();
-			_cluster_eval_tree_gx = phg4hit_position.X();
-			_cluster_eval_tree_gy = phg4hit_position.Y();
-			_cluster_eval_tree_gz = phg4hit_position.Z();
-
-			_cluster_eval_tree->Fill();
-		}
-
-//		if (phg4hit_position.Perp() > 30.) {
-//			pos.SetXYZ(phg4hit_position.X(), phg4hit_position.Y(),phg4hit_position.Z()); //DEBUG
-//			//pos.SetPerp(phg4hit_position.Perp());
-//			//pos.SetPhi(TMath::ATan2(phg4hit_position.Y(),phg4hit_position.X()));
-//		}
-//
-//		if(phg4hit->get_trkid()!=1) {
-//			continue;
-//		}
-		// DEBUG: END
 
 		seed_mom.SetPhi(pos.Phi());
 		seed_mom.SetTheta(pos.Theta());
@@ -1071,32 +1179,21 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		//TODO use u, v explicitly?
 		TVector3 n(cluster->get_x(), cluster->get_y(), 0);
 
-		unsigned int begin_hit_id = *(cluster->begin_hits());
-		//LogDebug(begin_hit_id);
-		SvtxHit* svtxhit = hitsmap->find(begin_hit_id)->second;
-		//LogDebug(svtxhit->get_cellid());
-
-		PHG4Cell* cell_svtx = nullptr;
-		PHG4Cell* cell_intt = nullptr;
-		PHG4Cell* cell_maps = nullptr;
-
-		if(cells_svtx) cell_svtx = cells_svtx->findCell(svtxhit->get_cellid());
-		if(cells_intt) cell_intt = cells_intt->findCell(svtxhit->get_cellid());
-		if(cells_maps) cell_maps = cells_maps->findCell(svtxhit->get_cellid());
-		if(!(cell_svtx or cell_intt or cell_maps)){
-			if(verbosity>=0)
-				LogError("!(cell_svtx or cell_intt or cell_maps)");
-			continue;
-		}
-
 		//17.4, 17.4, 17.4, 14.0, 14.0, 12.0, 11.5
-		//float phi_tilt[7] = {0.304, 0.304, 0.304, 0.244, 0.244, 0.209, 0.201};
+		float phi_tilt[7] = {0.304, 0.304, 0.304, 0.244, 0.244, 0.209, 0.201};
 
 		unsigned int layer = cluster->get_layer();
 		//std::cout << "cluster layer: " << layer << std::endl;
-		if (cell_maps) {
-			PHG4Cell* cell = cell_maps;
+		if ((_detector_type == LADDER_MAPS_TPC
+				|| _detector_type == LADDER_MAPS_IT_TPC
+				|| _detector_type == LADDER_MAPS_LADDER_IT_TPC)
+				and layer < 3) {
 
+			unsigned int begin_hit_id = *(cluster->begin_hits());
+			//LogDebug(begin_hit_id);
+			SvtxHit* hit = hitsmap->find(begin_hit_id)->second;
+			//LogDebug(hit->get_cellid());
+			PHG4Cell* cell = cells_maps->findCell(hit->get_cellid());
 			int stave_index = cell->get_stave_index();
 			int half_stave_index = cell->get_half_stave_index();
 			int module_index = cell->get_module_index();
@@ -1111,10 +1208,16 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 					module_index, chip_index, ladder_location);
 			//n.Print();
 			n.SetXYZ(ladder_location[0], ladder_location[1], 0);
-			n.RotateZ(geom->get_stave_phi_tilt());
+			n.RotateZ(phi_tilt[layer]);
 			//n.Print();
-		} else if (cell_intt) {
-			PHG4Cell* cell = cell_intt;
+		} else if ((_detector_type == LADDER_MAPS_LADDER_IT_TPC)
+				and pos.Perp() < 30.) {
+
+			unsigned int begin_hit_id = *(cluster->begin_hits());
+			//LogDebug(begin_hit_id);
+			SvtxHit* hit = hitsmap->find(begin_hit_id)->second;
+			//LogDebug(hit->get_cellid());
+			PHG4Cell* cell = cells_intt->findCell(hit->get_cellid());
 			PHG4CylinderGeom_Siladders* geom =
 					(PHG4CylinderGeom_Siladders*) geom_container_intt->GetLayerGeom(
 							layer);
@@ -1123,11 +1226,11 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 					cell->get_ladder_phi_index(), hit_location);
 
 			n.SetXYZ(hit_location[0], hit_location[1], 0);
-			n.RotateZ(geom->get_strip_phi_tilt());
+			n.RotateZ(phi_tilt[layer]);
 		}
 
 		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
-				cluster->get_rphi_error(), cluster->get_z_error());
+				cluster->get_phi_error(), cluster->get_z_error());
 
 //		TMatrixF cov_uvn(3,3);
 //		TMatrixF cov_xyz(3,3);
@@ -1141,7 +1244,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 //		cov_uvn[0][2] = 0.;
 //
 //		cov_uvn[1][0] = 0.;
-//		cov_uvn[1][1] = cluster->get_rphi_error()*cluster->get_rphi_error();
+//		cov_uvn[1][1] = cluster->get_phi_error()*cluster->get_phi_error();
 //		cov_uvn[1][2] = 0.;
 //
 //		cov_uvn[2][0] = 0.;
@@ -1204,11 +1307,277 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 	return track;
 }
 
+std::shared_ptr<PHGenFit::Track> PHG4CombinatorialTrackFinder::ExtendTrack(PHCompositeNode *topNode, std::shared_ptr<PHGenFit::Track>& seed_track, SvtxTrack* intrack) {
+
+	if (!seed_track) {
+		cerr << PHWHERE << " Input SeedTrack is NULL!" << endl;
+		return NULL;
+	}
+
+	// DEBUG: BEGIN
+	PHG4HitContainer* phg4hitcontainer = NULL;
+	phg4hitcontainer = findNode::getClass<PHG4HitContainer>(
+			topNode, "G4HIT_SVTX");
+	if (!phg4hitcontainer && _event < 2) {
+		cout << PHWHERE << "G4HIT_SVTX"
+				<< " node not found on node tree" << endl;
+		return NULL;
+	}
+	// DEBUG: END
+
+	SvtxHitMap* hitsmap = NULL;
+	// get node containing the digitized hits
+	hitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+	if (!hitsmap) {
+		cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
+		return NULL;
+	}
+	
+	PHG4CellContainer* cells = NULL;
+	cells = findNode::getClass<PHG4CellContainer>(topNode,
+			"G4CELL_SVTX");
+	if (!cells) {
+		cout << PHWHERE << "ERROR: Can't find node G4CELL_SVTX" << endl;
+		return NULL;
+	}
+	
+	PHG4CellContainer* cells_maps = NULL;
+	PHG4CylinderGeomContainer* geom_container_maps = NULL;
+
+	if (_detector_type == LADDER_MAPS_TPC
+			|| _detector_type == LADDER_MAPS_IT_TPC
+			|| _detector_type == LADDER_MAPS_LADDER_IT_TPC) {
+		geom_container_maps = findNode::getClass<PHG4CylinderGeomContainer>(
+				topNode, "CYLINDERGEOM_MAPS");
+		if (!geom_container_maps) {
+			cout << PHWHERE << "ERROR: Can't find node CYLINDERGEOM_MAPS"
+					<< endl;
+			return NULL;
+		}
+
+		cells_maps = findNode::getClass<PHG4CellContainer>(topNode,
+				"G4CELL_MAPS");
+		if (!cells_maps) {
+			cout << PHWHERE << "ERROR: Can't find node G4CELL_MAPS" << endl;
+			return NULL;
+		}
+	}
+
+	PHG4CellContainer* cells_intt = NULL;
+	PHG4CylinderGeomContainer* geom_container_intt = NULL;
+
+	if (_detector_type == LADDER_MAPS_LADDER_IT_TPC) {
+		geom_container_intt = findNode::getClass<PHG4CylinderGeomContainer>(
+				topNode, "CYLINDERGEOM_SILICON_TRACKER");
+		if (!geom_container_intt) {
+			cout << PHWHERE << "ERROR: Can't find node CYLINDERGEOM_SILICON_TRACKER"
+					<< endl;
+			return NULL;
+		}
+
+		cells_intt = findNode::getClass<PHG4CellContainer>(topNode,
+				"G4CELL_SILICON_TRACKER");
+		if (!cells_intt) {
+			cout << PHWHERE << "ERROR: Can't find node G4CELL_SILICON_TRACKER" << endl;
+			return NULL;
+		}
+	}
+
+
+	//Start Layer loop here
+
+	for ( int layer = 7; layer < _nlayers ; layer++){//Loop over TPC layers
+	  //Find Radius of Layer
+	  float radius = _radii[layer];
+
+	  // extrapolate track to layer
+	  genfit::MeasuredStateOnPlane SoCyl;
+	  TVector3 line_point(0,0,0);
+	  TVector3 line_direction(0,0,1);
+	  // double path = 
+	  seed_track->extrapolateToCylinder(SoCyl,radius,line_point,line_direction);
+	  TVector3 pos; 
+	  TVector3 mom; 
+	  TMatrixDSym cov;
+	  SoCyl.getPosMomCov(pos,mom,cov);
+	  //	  cout << PHWHERE << "Layer " << radius << " r phi eta path " << pos.Perp() << " " << pos.Phi() << " " << pos.Eta() << " " << path << endl;
+
+	  //Find matching hit
+	  int nhits_thislayer = _hits_per_layer.count(layer);
+	  // cout << PHWHERE << "nHits " << nhits_thislayer << endl;
+	  multimap<int, unsigned int, ltint>::iterator liter = _hits_per_layer.find(layer);
+
+	  unsigned int min_dist_id = -1;
+	  float        min_dist    = 10;
+
+	  for(int ihit = 0; ihit < nhits_thislayer;ihit++){
+	    unsigned int cluster_id = (*liter).second;
+	    SvtxCluster* cluster = _clustermap->get(cluster_id);
+	    TVector3 hit(cluster->get_x(),cluster->get_y(),cluster->get_z());
+	    TVector3 n(cluster->get_x(), cluster->get_y(), 0);
+
+#if _DEBUG_MODE_ == 1
+	    cout << PHWHERE << " Hit (" << cluster_id << ")" << radius << " r phi eta path " << hit.Perp() << " " << hit.Phi() << " " << hit.Eta() << " " << endl;
+#endif
+	    float deltaR = pos.DeltaR(hit);
+	    if(deltaR<min_dist){
+	      min_dist_id = cluster_id;
+	      min_dist = deltaR;
+	    }
+	    liter++;
+	  }
+	  if(min_dist_id>0&&min_dist<0.05){
+	    SvtxCluster* cluster = _clustermap->get(min_dist_id);
+	    TVector3 hit(cluster->get_x(),cluster->get_y(),cluster->get_z());
+	    TVector3 n(cluster->get_x(), cluster->get_y(), 0);
+
+	    std::vector<PHGenFit::Measurement*> measurements;
+	    PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(hit, n,
+				  cluster->get_phi_error(), cluster->get_z_error());
+	    measurements.push_back(meas);
+	    /*
+	    seed_track->addMeasurements(measurements);
+	    intrack->insert_cluster(min_dist_id);
+	    _fitter->processTrack(seed_track.get(), false);
+	    */
+
+	    std::map<double, PHGenFit::Track*> incr_chi2s_new_tracks;
+	    seed_track->updateOneMeasurementKalman(measurements, incr_chi2s_new_tracks);
+	    if(incr_chi2s_new_tracks.begin()->first < 20)
+	      intrack->insert_cluster(min_dist_id);
+	    //the first one is aleady registered
+	    /*
+	    if (incr_chi2s_new_tracks.size() > 1) {
+	      for (std::map<double, PHGenFit::Track*>::iterator iter =
+		     incr_chi2s_new_tracks.begin();
+		   iter != incr_chi2s_new_tracks.end(); iter++) {
+		//TODO make some cuts?
+		if (iter->first > _max_incr_chi2)
+		  break;
+		if (seed_track.get() == iter->second)
+		  continue;
+		
+		_trackID_PHGenFitTrack.insert(
+					      std::make_pair(_trackID_PHGenFitTrack.size(),
+							     std::shared_ptr < PHGenFit::Track
+							     > (iter->second)));
+	      }
+	    }
+	    */
+	    LogDebug("updateOneMeasurementKalman:")<<endl;
+	    std::cout<<", layer: "<<layer
+		     <<", Chi2inc: "<<incr_chi2s_new_tracks.begin()->first
+		     <<std::endl;
+	  }
+	  
+	}
+#ifdef HEINZ
+
+	for (SvtxTrack::ConstClusterIter iter = intrack->begin_clusters();
+			iter != intrack->end_clusters(); ++iter) {
+	  unsigned int cluster_id = (*iter).second;
+	  SvtxCluster* cluster = _clustermap->get(cluster_id);
+	  if (!cluster) {
+	    LogError("No cluster Found!");
+	    continue;
+		}
+
+		std::vector<PHGenFit::Measurement*> measurements;
+
+
+		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
+		seed_mom.SetPhi(pos.Phi());
+		seed_mom.SetTheta(pos.Theta());
+
+		//TODO use u, v explicitly?
+		TVector3 n(cluster->get_x(), cluster->get_y(), 0);
+
+		//17.4, 17.4, 17.4, 14.0, 14.0, 12.0, 11.5
+		float phi_tilt[7] = {0.304, 0.304, 0.304, 0.244, 0.244, 0.209, 0.201};
+
+		unsigned int layer = cluster->get_layer();
+		//std::cout << "cluster layer: " << layer << std::endl;
+		if ((_detector_type == LADDER_MAPS_TPC
+				|| _detector_type == LADDER_MAPS_IT_TPC
+				|| _detector_type == LADDER_MAPS_LADDER_IT_TPC)
+				and layer < 3) {
+
+			unsigned int begin_hit_id = *(cluster->begin_hits());
+			//LogDebug(begin_hit_id);
+			SvtxHit* hit = hitsmap->find(begin_hit_id)->second;
+			//LogDebug(hit->get_cellid());
+			PHG4CylinderCell_MAPS* cell =
+					(PHG4CylinderCell_MAPS*) cells_maps->findCylinderCell(
+							hit->get_cellid());
+			int stave_index = cell->get_stave_index();
+			int half_stave_index = cell->get_half_stave_index();
+			int module_index = cell->get_module_index();
+			int chip_index = cell->get_chip_index();
+
+			double ladder_location[3] = { 0.0, 0.0, 0.0 };
+			PHG4CylinderGeom_MAPS *geom =
+					(PHG4CylinderGeom_MAPS*) geom_container_maps->GetLayerGeom(
+							layer);
+			// returns the center of the sensor in world coordinates - used to get the ladder phi location
+			geom->find_sensor_center(stave_index, half_stave_index,
+					module_index, chip_index, ladder_location);
+			//n.Print();
+			n.SetXYZ(ladder_location[0], ladder_location[1], 0);
+			n.RotateZ(phi_tilt[layer]);
+			//n.Print();
+		} 
+
+		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
+				cluster->get_phi_error(), cluster->get_z_error());
+
+
+		measurements.push_back(meas);
+	}
+
+	/*!
+	 * mu+:	-13
+	 * mu-:	13
+	 * pi+:	211
+	 * pi-:	-211
+	 * e-:	11
+	 * e+:	-11
+	 */
+	//TODO Add multiple TrackRep choices.
+	//int pid = 211;
+	genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_pid_guess);
+	std::shared_ptr<PHGenFit::Track> track(new PHGenFit::Track(rep, seed_pos, seed_mom,
+			seed_cov));
+
+	//TODO unsorted measurements, should use sorted ones?
+	track->addMeasurements(measurements);
+
+	/*!
+	 *  Fit the track
+	 *  ret code 0 means 0 error or good status
+	 */
+	if (_fitter->processTrack(track.get(), false) != 0) {
+		if (verbosity >= 1)
+			LogWarning("Track fitting failed");
+		//delete track;
+		return NULL;
+	}
+#endif
+	std::cout << "Done Extending " << std::endl;
+	_fitter->processTrack(seed_track.get(), false);
+	return seed_track;
+}//End ExtendTrack
+
+//int InitiatizeHitsPerLayer(PHCompositeNode *topNode){
+//
+//  return 0;
+//
+//}//end InitiatizeHitsPerLayer
+
 /*
  * Make SvtxTrack from PHGenFit::Track and SvtxTrack
  */
-//SvtxTrack* PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
-std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
+//SvtxTrack* PHG4CombinatorialTrackFinder::MakeSvtxTrack(const SvtxTrack* svtx_track,
+std::shared_ptr<SvtxTrack> PHG4CombinatorialTrackFinder::MakeSvtxTrack(const SvtxTrack* svtx_track,
 		const std::shared_ptr<PHGenFit::Track>& phgf_track, const SvtxVertex* vertex) {
 
 
@@ -1220,13 +1589,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 	double dvr2 = 0;
 	double dvz2 = 0;
 
-	if(_use_truth_vertex) {
-		PHG4VtxPoint* first_point = _truth_container->GetPrimaryVtx(_truth_container->GetPrimaryVertexIndex());
-		vertex_position.SetXYZ(first_point->get_x(), first_point->get_y(), first_point->get_z());
-		if(verbosity > 1) {
-			cout<<"Using: truth vertex: {" << vertex_position.X() << ", " << vertex_position.Y() << ", " << vertex_position.Z() << "} " <<endl;
-		}
-	} else if (vertex) {
+	if (vertex) {
 		vertex_position.SetXYZ(vertex->get_x(), vertex->get_y(),
 				vertex->get_z());
 		dvr2 = vertex->get_error(0, 0) + vertex->get_error(1, 1);
@@ -1394,95 +1757,29 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 		}
 	}
 
-//	for (SvtxTrack::ConstClusterIter iter = svtx_track->begin_clusters();
-//			iter != svtx_track->end_clusters(); ++iter) {
-//		unsigned int cluster_id = *iter;
-//		SvtxCluster* cluster = _clustermap->get(cluster_id);
-//		if (!cluster) {
-//			LogError("No cluster Found!");
-//			continue;
-//		}
-//		//cluster->identify(); //DEBUG
-//
-//		//unsigned int l = cluster->get_layer();
-//
-//		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
-//
-//		double radius = pos.Pt();
-//
-//		std::shared_ptr<genfit::MeasuredStateOnPlane> gf_state = NULL;
-//		try {
-//			gf_state = std::shared_ptr < genfit::MeasuredStateOnPlane
-//					> (phgf_track->extrapolateToCylinder(radius,
-//							TVector3(0, 0, 0), TVector3(0, 0, 1), 0));
-//		} catch (...) {
-//			if (verbosity >= 2)
-//				LogWarning("Exrapolation failed!");
-//		}
-//		if (!gf_state) {
-//			if (verbosity > 1)
-//				LogWarning("Exrapolation failed!");
-//			continue;
-//		}
-//
-//		//SvtxTrackState* state = new SvtxTrackState_v1(radius);
-//		std::shared_ptr<SvtxTrackState> state = std::shared_ptr<SvtxTrackState> (new SvtxTrackState_v1(radius));
-//		state->set_x(gf_state->getPos().x());
-//		state->set_y(gf_state->getPos().y());
-//		state->set_z(gf_state->getPos().z());
-//
-//		state->set_px(gf_state->getMom().x());
-//		state->set_py(gf_state->getMom().y());
-//		state->set_pz(gf_state->getMom().z());
-//
-//		//gf_state->getCov().Print();
-//
-//		for (int i = 0; i < 6; i++) {
-//			for (int j = i; j < 6; j++) {
-//				state->set_error(i, j, gf_state->get6DCov()[i][j]);
-//			}
-//		}
-//
-//		out_track->insert_state(state.get());
-//
-//#ifdef _DEBUG_
-//		cout
-//		<<__LINE__
-//		<<": " << radius <<" => "
-//		<<sqrt(state->get_x()*state->get_x() + state->get_y()*state->get_y())
-//		<<endl;
-//#endif
-//	}
-
-#ifdef _DEBUG_
-	cout << __LINE__ << endl;
-#endif
-
-	const genfit::Track *gftrack = phgf_track->getGenFitTrack();
-	const genfit::AbsTrackRep *rep = gftrack->getCardinalRep();
-	for(unsigned int id = 0; id< gftrack->getNumPointsWithMeasurement();++id) {
-		genfit::TrackPoint *trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, gftrack->getCardinalRep());
-
-		if(!trpoint) {
-			if (verbosity > 1)
-				LogWarning("!trpoint");
+	for (SvtxTrack::ConstClusterIter iter = svtx_track->begin_clusters();
+			iter != svtx_track->end_clusters(); ++iter) {
+		unsigned int cluster_id = *iter;
+		SvtxCluster* cluster = _clustermap->get(cluster_id);
+		if (!cluster) {
+			LogError("No cluster Found!");
 			continue;
 		}
+		//cluster->identify(); //DEBUG
 
-		genfit::KalmanFitterInfo* kfi = static_cast<genfit::KalmanFitterInfo*>( trpoint->getFitterInfo(rep) );
-		if(!kfi) {
-			if (verbosity > 1)
-				LogWarning("!kfi");
-			continue;
-		}
+		//unsigned int l = cluster->get_layer();
 
-		std::shared_ptr<const genfit::MeasuredStateOnPlane> gf_state = NULL;
+		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
+
+		double radius = pos.Pt();
+
+		std::shared_ptr<genfit::MeasuredStateOnPlane> gf_state = NULL;
 		try {
-			//gf_state = std::shared_ptr <genfit::MeasuredStateOnPlane> (const_cast<genfit::MeasuredStateOnPlane*> (&(kfi->getFittedState(true))));
-			const genfit::MeasuredStateOnPlane* temp_state = &(kfi->getFittedState(true));
-			gf_state = std::shared_ptr <genfit::MeasuredStateOnPlane> (new genfit::MeasuredStateOnPlane(*temp_state));
+			gf_state = std::shared_ptr < genfit::MeasuredStateOnPlane
+					> (phgf_track->extrapolateToCylinder(radius,
+							TVector3(0, 0, 0), TVector3(0, 0, 1), 0));
 		} catch (...) {
-			if (verbosity > 1)
+			if (verbosity >= 2)
 				LogWarning("Exrapolation failed!");
 		}
 		if (!gf_state) {
@@ -1490,10 +1787,9 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 				LogWarning("Exrapolation failed!");
 			continue;
 		}
-		genfit::MeasuredStateOnPlane temp;
-		float pathlength = -phgf_track->extrapolateToPoint(temp,vertex_position,id);
 
-		std::shared_ptr<SvtxTrackState> state = std::shared_ptr<SvtxTrackState> (new SvtxTrackState_v1(pathlength));
+		//SvtxTrackState* state = new SvtxTrackState_v1(radius);
+		std::shared_ptr<SvtxTrackState> state = std::shared_ptr<SvtxTrackState> (new SvtxTrackState_v1(radius));
 		state->set_x(gf_state->getPos().x());
 		state->set_y(gf_state->getPos().y());
 		state->set_z(gf_state->getPos().z());
@@ -1506,21 +1802,34 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 
 		for (int i = 0; i < 6; i++) {
 			for (int j = i; j < 6; j++) {
-				state->set_error(i, j, gf_state->get6DCov()[i][j]);
+				out_track->set_error(i, j, gf_state->get6DCov()[i][j]);
 			}
 		}
 
 		out_track->insert_state(state.get());
 
-#ifdef _DEBUG_
-		cout
-		<<__LINE__
-		<<": " << id
-		<<": " << pathlength <<" => "
-		<<sqrt(state->get_x()*state->get_x() + state->get_y()*state->get_y())
-		<<endl;
-#endif
+		//delete gf_state;
+
+		//delete state;
+
+//		std::cout<<"===============\n";
+//		LogDebug(radius);
+//		std::cout<<"---------------\n";
+//		TVector3 temp_vec(state->get_x(),state->get_y(),state->get_z());
+//		LogDebug(temp_vec.Pt());
+//		//state->identify();
+//		std::cout<<"---------------\n";
+//		//out_track->get_state(radius)->identify();
 	}
+
+//	LogDebug("genfit::TrackPoint::Print:");
+//	PHGenFit::Track phgf_track_copy(*phgf_track);
+//	genfit::Track gftrack(*(phgf_track_copy.getGenFitTrack()));
+//
+//	for(unsigned int id = 0; id< gftrack.getNumPointsWithMeasurement();++id) {
+//		genfit::TrackPoint *trpoint = gftrack.getPointWithMeasurementAndFitterInfo(id, gftrack.getCardinalRep());
+//		trpoint->Print();
+//	}
 
 	return out_track;
 }
@@ -1528,13 +1837,9 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 /*
  * Fill SvtxVertexMap from GFRaveVertexes and Tracks
  */
-bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
+bool PHG4CombinatorialTrackFinder::FillSvtxVertexMap(
 		const std::vector<genfit::GFRaveVertex*>& rave_vertices,
 		const std::vector<genfit::Track*>& gf_tracks) {
-
-	if(_over_write_svtxvertexmap){
-		_vertexmap->clear();
-	}
 
 	for (unsigned int ivtx = 0; ivtx < rave_vertices.size(); ++ivtx) {
 		genfit::GFRaveVertex* rave_vtx = rave_vertices[ivtx];
@@ -1551,7 +1856,6 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 		svtx_vtx->set_position(0, rave_vtx->getPos().X());
 		svtx_vtx->set_position(1, rave_vtx->getPos().Y());
 		svtx_vtx->set_position(2, rave_vtx->getPos().Z());
-
 		for (int i = 0; i < 3; i++)
 			for (int j = 0; j < 3; j++)
 				svtx_vtx->set_error(i, j, rave_vtx->getCov()[i][j]);
@@ -1566,33 +1870,23 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 			}
 		}
 
-		if (_over_write_svtxvertexmap) {
-			if (_vertexmap) {
-				_vertexmap->insert(svtx_vtx.get());
-			} else {
-				LogError("!_vertexmap");
-			}
-		} else {
-			if (_vertexmap_refit) {
-				_vertexmap_refit->insert(svtx_vtx.get());
-			} else {
-				LogError("!_vertexmap_refit");
-			}
+		if (_vertexmap_refit) {
+			_vertexmap_refit->insert(svtx_vtx.get());
 		}
 
-//		if (verbosity >= 2) {
-//			cout << PHWHERE << endl;
-//			svtx_vtx->Print();
-//			_vertexmap_refit->Print();
-//		}
+		if (verbosity >= 2) {
+			cout << PHWHERE << endl;
+			svtx_vtx->Print();
+			_vertexmap_refit->Print();
+		}
 
 		//delete svtx_vtx;
-	} //loop over RAVE vertices
+	}
 
 	return true;
 }
 
-//bool PHG4TrackKalmanFitter::pos_cov_uvn_to_rz(const TVector3 u, const TVector3 v,
+//bool PHG4CombinatorialTrackFinder::pos_cov_uvn_to_rz(const TVector3 u, const TVector3 v,
 //		const TVector3 n, const TMatrixF pos_in, const TMatrixF cov_in,
 //		TMatrixF& pos_out, TMatrixF& cov_out) const {
 //
@@ -1684,7 +1978,7 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 //	return true;
 //}
 
-bool PHG4TrackKalmanFitter::pos_cov_uvn_to_rz(const TVector3 u, const TVector3 v,
+bool PHG4CombinatorialTrackFinder::pos_cov_uvn_to_rz(const TVector3 u, const TVector3 v,
 		const TVector3 n, const TMatrixF pos_in, const TMatrixF cov_in,
 		TMatrixF& pos_out, TMatrixF& cov_out) const {
 
@@ -1741,7 +2035,7 @@ bool PHG4TrackKalmanFitter::pos_cov_uvn_to_rz(const TVector3 u, const TVector3 v
 	return true;
 }
 
-bool PHG4TrackKalmanFitter::get_vertex_error_uvn(const TVector3 u,
+bool PHG4CombinatorialTrackFinder::get_vertex_error_uvn(const TVector3 u,
 		const TVector3 v, const TVector3 n, const TMatrixF cov_in,
 		TMatrixF& cov_out) const {
 
@@ -1752,7 +2046,7 @@ bool PHG4TrackKalmanFitter::get_vertex_error_uvn(const TVector3 u,
 
 	TMatrixF R = get_rotation_matrix(u, v, n);
 //
-//	LogDebug("PHG4TrackKalmanFitter::get_vertex_error_uvn::R = ");
+//	LogDebug("PHG4CombinatorialTrackFinder::get_vertex_error_uvn::R = ");
 //	R.Print();
 //	cout<<"R.Determinant() = "<<R.Determinant()<<"\n";
 
@@ -1789,7 +2083,7 @@ bool PHG4TrackKalmanFitter::get_vertex_error_uvn(const TVector3 u,
  * Get 3D Rotation Matrix that rotates frame (x,y,z) to (x',y',z')
  * Default rotate local to global, or rotate vector in global to local representation
  */
-TMatrixF PHG4TrackKalmanFitter::get_rotation_matrix(const TVector3 x,
+TMatrixF PHG4CombinatorialTrackFinder::get_rotation_matrix(const TVector3 x,
 		const TVector3 y, const TVector3 z, const TVector3 xp, const TVector3 yp,
 		const TVector3 zp) const {
 
@@ -1852,7 +2146,7 @@ TMatrixF PHG4TrackKalmanFitter::get_rotation_matrix(const TVector3 x,
 		R[2][1] = rotation->ZY();
 		R[2][2] = rotation->ZZ();
 //
-//		LogDebug("PHG4TrackKalmanFitter::get_rotation_matrix: TRotation:");
+//		LogDebug("PHG4CombinatorialTrackFinder::get_rotation_matrix: TRotation:");
 //		R.Print();
 //		cout<<"R.Determinant() = "<<R.Determinant()<<"\n";
 
@@ -1907,7 +2201,7 @@ TMatrixF PHG4TrackKalmanFitter::get_rotation_matrix(const TVector3 x,
 //		R = ROT3 * ROT2 * ROT1;
 //
 //		R.Invert();
-//		LogDebug("PHG4TrackKalmanFitter::get_rotation_matrix: Home Brew:");
+//		LogDebug("PHG4CombinatorialTrackFinder::get_rotation_matrix: Home Brew:");
 //		R.Print();
 //		cout<<"R.Determinant() = "<<R.Determinant()<<"\n";
 
