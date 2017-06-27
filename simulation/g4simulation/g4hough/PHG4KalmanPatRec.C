@@ -97,7 +97,7 @@
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp
 
-#define _DEBUG_
+//#define _DEBUG_
 
 //#define _USE_ALAN_FULL_VERTEXING_
 #define _USE_ALAN_TRACK_REFITTING_
@@ -2984,8 +2984,6 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		unsigned int init_layer, unsigned int end_layer,
 		const bool use_fitted_state_once) {
 
-	const int iPHGenFitTrack = _PHGenFitTracks.size();
-
 	std::shared_ptr<PHGenFit::Track> &track = track_iter->second;
 
         //some debug info
@@ -3056,6 +3054,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		float layer_r = _radii_all[_layer_ilayer_map_all[layer]];
 
 #ifdef _DEBUG_
+		const int iPHGenFitTrack = _PHGenFitTracks.size();
 		std::cout<<"========================="<<std::endl;
 		std::cout<<__LINE__<<": Event: "<< _event <<": _PHGenFitTracks.size(): "<<_PHGenFitTracks.size() <<": layer: "<<layer<<std::endl;
 		std::cout<<"========================="<<std::endl;
