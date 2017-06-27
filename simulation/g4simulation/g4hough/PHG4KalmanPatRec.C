@@ -224,8 +224,8 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 		_max_search_win_theta_maps( 0.0400),
 		_min_search_win_theta_maps( 0.0000),
 
-	  _search_win_phi(10),
-	  _search_win_theta(10),
+	  _search_win_phi(20),
+	  _search_win_theta(20),
 	  _layer_thetaID_phiID_cluserID(),
 	  //_half_max_theta(160),
 	  _half_max_theta(3.1416/2.),
@@ -3169,8 +3169,10 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 			if (theta_window   < _min_search_win_theta_tpc)   theta_window   = _min_search_win_theta_tpc;
 		}
 
-//		if(layer == _nlayers_maps-1) {
-//			theta_window = 0.02;
+		//FIXME optimize this
+//		if(layer == _nlayers_maps + _nlayers_intt -1) {
+//			phi_window = 0.02;
+//			theta_window = 0.04;
 //		}
 
 #endif
