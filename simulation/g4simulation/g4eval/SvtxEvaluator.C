@@ -1346,7 +1346,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	for(const SvtxCluster* g4cluster : g4clusters){
 	  unsigned int layer = g4cluster->get_layer();
-	  cout<<__LINE__<<": " << _ievent <<": " <<gtrackID << ": " << layer <<": " <<g4cluster->get_id() <<endl;
+	  //cout<<__LINE__<<": " << _ievent <<": " <<gtrackID << ": " << layer <<": " <<g4cluster->get_id() <<endl;
 	  if(_nlayers_maps>0&&layer<_nlayers_maps) {
 		  lmaps[layer] = 1;
 		  ngmaps++;
