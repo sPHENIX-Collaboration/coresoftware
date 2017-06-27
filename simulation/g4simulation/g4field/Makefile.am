@@ -61,6 +61,8 @@ pkginclude_HEADERS = \
 noinst_PROGRAMS = \
   testexternals
 
+BUILT_SOURCES = testexternals.C
+
 testexternals_SOURCES = testexternals.C
 testexternals_LDADD = libg4field.la
 
@@ -75,12 +77,12 @@ testexternals.C:
 # please add new classes in alphabetical order
 
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES)
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm
 
 # rules to make root dictionaries
 PHG4Field_Dict.C: \
   PHG4Field2D.h \
   PHG4Field3D.h \
   PHG4FieldLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
