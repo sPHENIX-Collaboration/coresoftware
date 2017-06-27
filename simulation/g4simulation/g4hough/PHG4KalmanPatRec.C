@@ -239,7 +239,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 	  _blowup_factor(1.),
 	  _max_consecutive_missing_layer(20),
 	  _max_incr_chi2(20.),
-	  _max_splitting_chi2(0.),
+	  _max_splitting_chi2(20.),
 	  _min_good_track_hits(30)
 	  {
 	_event = 0;
