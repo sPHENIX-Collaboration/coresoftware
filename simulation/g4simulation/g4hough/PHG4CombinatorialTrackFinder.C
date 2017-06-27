@@ -66,6 +66,16 @@
 #include <TRotation.h>
 
 
+//Rave
+#include <rave/Version.h>
+#include <rave/Track.h>
+#include <rave/VertexFactory.h>
+#include <rave/ConstantMagneticField.h>
+
+//GenFit
+#include <GenFit/GFRaveConverters.h>
+#include <GenFit/KalmanFittedStateOnPlane.h>
+
 
 #include <iostream>
 #include <map>
@@ -82,16 +92,6 @@
 #define _DEBUG_MODE_ 1
 
 using namespace std;
-
-//Rave
-#include <rave/Version.h>
-#include <rave/Track.h>
-#include <rave/VertexFactory.h>
-#include <rave/ConstantMagneticField.h>
-
-//GenFit
-#include <GenFit/GFRaveConverters.h>
-#include <GenFit/KalmanFittedStateOnPlane.h>
 
 class PHRaveVertexFactory {
 
