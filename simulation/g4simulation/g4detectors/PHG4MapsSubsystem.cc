@@ -182,6 +182,7 @@ PHG4MapsSubsystem::SetDefaultParameters()
 //  set_default_double_param("rot_in_z",0);
   set_default_int_param("layer", layer);
   set_default_int_param("stave_type", stave_type);
+  set_default_int_param("N_staves", -1);
 
   set_default_double_param("layer_nominal_radius", NAN);
 
