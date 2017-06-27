@@ -197,7 +197,9 @@ PHG4CombinatorialTrackFinder::PHG4CombinatorialTrackFinder(const string &name) :
 		_tca_trackmap_refit(NULL),
 		_tca_primtrackmap(NULL),
 		_tca_vertexmap_refit(NULL),
-		_do_evt_display(false) {
+		_do_evt_display(false),
+		_nlayers(-1)
+{
 
 	_event = 0;
 

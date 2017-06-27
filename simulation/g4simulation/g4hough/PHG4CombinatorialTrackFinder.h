@@ -353,7 +353,6 @@ private:
 
 	bool _do_evt_display;
 	int _nlayers;
-	unsigned int _seed_layers, _req_seed;
 	std::vector<float> _radii;          // radial distance of each layer (cm) 
 	std::vector<float> _smear_xy_layer; // detector hit resolution in phi (cm)
 	std::vector<float> _smear_z_layer;  // detector hit resolution in z (cm)                 
