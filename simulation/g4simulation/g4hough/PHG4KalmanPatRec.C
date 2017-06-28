@@ -232,8 +232,8 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 	  //_half_max_phi(252), //80cm * Pi
 	  _half_max_phi(3.1416),
 	  //_layer_thetaID_phiID_cluserID_phiSize(0.1200),
-	  _layer_thetaID_phiID_cluserID_phiSize(0.1200/80), //rad
-	  _layer_thetaID_phiID_cluserID_zSize(0.1700/80),
+	  _layer_thetaID_phiID_cluserID_phiSize(0.1200/30), //rad
+	  _layer_thetaID_phiID_cluserID_zSize(0.1700/30),
 	  _PHGenFitTracks(),
 	  _init_direction(-1),
 	  _blowup_factor(1.),
@@ -3650,8 +3650,18 @@ unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
 unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
 		const unsigned int iz, const unsigned int irphi) {
 
-	if(layer >= 128 || iz >= 2048 || irphi >= 16384) {
-		LogError("layer >= 128 || iz >= 2048 || irphi >= 16384\n");
+	if(layer >= 128) {
+		LogError("layer >= 128: ") << layer <<endl;;
+		return UINT_MAX;
+	}
+
+	if(iz >= 2048) {
+		LogError("iz >= 2048: ") << iz << endl;
+		return UINT_MAX;
+	}
+
+	if(irphi >= 16384) {
+		LogError("irphi >= 16384: ") << irphi <<endl;
 		return UINT_MAX;
 	}
 
