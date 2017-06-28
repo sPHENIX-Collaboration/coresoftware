@@ -403,7 +403,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	    double zLim1 = 0.5*M_SQRT2*( (iz+0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
 	    double zLim2 = 0.5*M_SQRT2*( (iz-0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
             double z_integral = 0.5*( erf(zLim1) - erf(zLim2) );
-            float neffelectrons = 1000*nelec*( phi_integral * z_integral ); // adding constant electron avalanche (value chosen so that digitizer will not trip)
+            float neffelectrons = 2000*nelec*( phi_integral * z_integral ); // adding constant electron avalanche (value chosen so that digitizer will not trip)
 	    if(verbosity>1000) {
 	      std::cout << Form("%.3f",neffelectrons) << " ";
 	      if( iz == n_zz ) std::cout << std::endl;
