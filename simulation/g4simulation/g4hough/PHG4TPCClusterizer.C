@@ -153,8 +153,7 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
 	std::cout << Form("%.2f | ",fAmps[bin]);
 	if(ip==fFitRangeP) std::cout << std::endl;
       }
-      //if(fAmps[bin] < fFitEnergyThreshold*peak) continue; // skip small (include empty)
-      if(fAmps[bin] < fFitEnergyThreshold) continue; // skip small (include empty)
+      if(fAmps[bin] < fFitEnergyThreshold*peak) continue; // skip small (include empty)
       used = true;
       nphis++;
       float ee = fAmps[bin];
@@ -183,7 +182,7 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
 //===================
 int PHG4TPCClusterizer::InitRun(PHCompositeNode* topNode) {
   if(verbosity>1) {
-    fHClusterEnergy = new TH1F("CLUSTER_Energy","CLUSTER_Energy",1000,0,1000);
+    fHClusterEnergy = new TH1F("CLUSTER_Energy","CLUSTER_Energy",1000,0,1000000);
     fHClusterDensity = new TProfile2D("CLUSTER_Density","CLUSTER_Density;LayerNo;ZZ;<E>",50,-0.5,49.5,220,-110,+110);
     fHClusterSizePP = new TProfile2D("CLUSTER_SizePP","CLUSTER_SizePP;LayerNo;ZZ;<rphisize>",50,-0.5,49.5,220,-110,+110);
     fHClusterSizeZZ = new TProfile2D("CLUSTER_SizeZZ","CLUSTER_SizeZZ;LayerNo;ZZ;<zsize>",50,-0.5,49.5,220,-110,+110);
