@@ -5,6 +5,7 @@
  */
 
 //STL
+#include <limits>
 
 //BOOST
 //#include <boost/foreach.hpp>
@@ -203,6 +204,14 @@ genfit::MeasuredStateOnPlane* Track::extrapolateToLine(TVector3 line_point, TVec
 
 double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id, const int direction) const
 {
+#ifdef _DEBUG_
+		std::cout<<__LINE__ <<std::endl;
+		std::cout
+		<<__LINE__
+		<<": tr_point_id: "<<tr_point_id
+		<<": direction: "<<direction
+		<<std::endl;
+#endif
 	assert(direction == 1 or direction == -1);
 
 	double pathlenth = WILD_DOUBLE;
@@ -667,16 +676,56 @@ genfit::MeasuredStateOnPlane*  Track::extrapolateToPoint(TVector3 P, const int t
 		return state;
 }
 
-double Track::get_charge() const {
-	double charge =  WILD_DOUBLE;
+double Track::get_chi2() const {
+	double chi2 = std::numeric_limits<double>::quiet_NaN();
 
 	genfit::AbsTrackRep* rep = _track->getCardinalRep();
 	if(rep) {
-		std::unique_ptr<genfit::StateOnPlane> state (this->extrapolateToLine(TVector3(0, 0, 0),
-				TVector3(1, 0, 0)));
+		genfit::FitStatus* fs = _track->getFitStatus(rep);
+		if(fs)
+			chi2 = fs->getChi2();
+	}
+	return chi2;
+}
+
+double Track::get_ndf() const {
+	double ndf = std::numeric_limits<double>::quiet_NaN();
+
+	genfit::AbsTrackRep* rep = _track->getCardinalRep();
+	if(rep) {
+		genfit::FitStatus* fs = _track->getFitStatus(rep);
+		if(fs)
+			ndf = fs->getNdf();
+	}
+	return ndf;
+}
+
+double Track::get_charge() const {
+	double charge =  std::numeric_limits<double>::quiet_NaN();
+
+	if(!_track) return charge;
+
+	genfit::TrackPoint *tp_base = nullptr;
+
+	if(_track->getNumPointsWithMeasurement() > 0) {
+		tp_base = _track->getPointWithMeasurement(0);
+	}
+
+	if(!tp_base) return charge;
+
+	genfit::AbsTrackRep* rep = _track->getCardinalRep();
+	if(rep) {
+
+		genfit::KalmanFitterInfo* kfi = static_cast<genfit::KalmanFitterInfo*>(tp_base->getFitterInfo(rep));
+
+		if(!kfi) return charge;
+
+		const genfit::MeasuredStateOnPlane* state = &(kfi->getFittedState(true));
+
+		//std::unique_ptr<genfit::StateOnPlane> state (this->extrapolateToLine(TVector3(0, 0, 0), TVector3(1, 0, 0)));
+
 		if (state)
 			charge = rep->getCharge(*state);
-		//delete state;
 	}
 
 	return charge;

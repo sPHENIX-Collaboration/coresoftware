@@ -1,15 +1,16 @@
 /*!
- *  \file		PHG4TrackKalmanFitter.h
+ *  \file		PHG4CombinatorialTrackFinder.h
  *  \brief		Refit SvtxTracks with PHGenFit.
  *  \details	Refit SvtxTracks with PHGenFit.
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __PHG4TrackKalmanFitter_H__
-#define __PHG4TrackKalmanFitter_H__
+#ifndef __PHG4CombinatorialTrackFinder_H__
+#define __PHG4CombinatorialTrackFinder_H__
 
 #include <fun4all/SubsysReco.h>
 #include <GenFit/GFRaveVertex.h>
+#include <GenFit/KalmanFitterInfo.h>
 #include <GenFit/Track.h>
 #include <string>
 #include <vector>
@@ -40,8 +41,16 @@ class TTree;
 //! \brief Helper class for using RAVE vertex finder.
 class PHRaveVertexFactory;
 
+struct ltint
+{
+  bool operator()(const int i1, const int i2) const
+  {
+    return i1 < i2;
+  }
+};
+
 //! \brief		Refit SvtxTracks with PHGenFit.
-class PHG4TrackKalmanFitter: public SubsysReco {
+class PHG4CombinatorialTrackFinder: public SubsysReco {
 public:
 
 	/*!
@@ -54,10 +63,10 @@ public:
 	enum DetectorType {MIE, MAPS_TPC, MAPS_IT_TPC, LADDER_MAPS_TPC, LADDER_MAPS_IT_TPC, LADDER_MAPS_LADDER_IT_TPC, MAPS_LADDER_IT_TPC};
 
 	//! Default constructor
-	PHG4TrackKalmanFitter(const std::string &name = "PHG4TrackKalmanFitter");
+	PHG4CombinatorialTrackFinder(const std::string &name = "PHG4CombinatorialTrackFinder");
 
 	//! dtor
-	~PHG4TrackKalmanFitter();
+	~PHG4CombinatorialTrackFinder();
 
 	//!Initialization, called for initialization
 	int Init(PHCompositeNode *);
@@ -71,6 +80,11 @@ public:
 	//!End, write and close files
 	int End(PHCompositeNode *);
 
+	/// set verbosity
+	void Verbosity(int verb) {
+		verbosity = verb; // SubsysReco verbosity
+	}
+
 	//Flags of different kinds of outputs
 	enum Flag {
 		//all disabled
@@ -78,7 +92,7 @@ public:
 	};
 
 	//Set the flag
-	//Flags should be set like set_flag(PHG4TrackKalmanFitter::TRUTH, true) from macro
+	//Flags should be set like set_flag(PHG4CombinatorialTrackFinder::TRUTH, true) from macro
 	void set_flag(const Flag& flag, const bool& value) {
 		if (value)
 			_flags |= flag;
@@ -187,36 +201,20 @@ public:
 		_primary_pid_guess = primaryPidGuess;
 	}
 
+	DetectorType get_detector_type() const {
+		return _detector_type;
+	}
+
+	void set_detector_type(DetectorType detectorType) {
+		_detector_type = detectorType;
+	}
+
 	double get_cut_min_p_T() const {
 		return _cut_min_pT;
 	}
 
 	void set_cut_min_p_T(double cutMinPT) {
 		_cut_min_pT = cutMinPT;
-	}
-
-	bool is_over_write_svtxtrackmap() const {
-		return _over_write_svtxtrackmap;
-	}
-
-	void set_over_write_svtxtrackmap(bool overWriteSvtxtrackmap) {
-		_over_write_svtxtrackmap = overWriteSvtxtrackmap;
-	}
-
-	bool is_over_write_svtxvertexmap() const {
-		return _over_write_svtxvertexmap;
-	}
-
-	void set_over_write_svtxvertexmap(bool overWriteSvtxvertexmap) {
-		_over_write_svtxvertexmap = overWriteSvtxvertexmap;
-	}
-
-	bool is_use_truth_vertex() const {
-		return _use_truth_vertex;
-	}
-
-	void set_use_truth_vertex(bool useTruthVertex) {
-		_use_truth_vertex = useTruthVertex;
 	}
 
 private:
@@ -230,12 +228,18 @@ private:
 	//!Create New nodes
 	int CreateNodes(PHCompositeNode *);
 
+	/// scan tracker geometry objects
+	int InitializeGeometry(PHCompositeNode *topNode);
+
 	/*
 	 * fit track with SvtxTrack as input seed.
 	 * \param intrack Input SvtxTrack
 	 * \param invertex Input Vertex, if fit track as a primary vertex
 	 */
+	//int InitiatizeHitsPerLayer(PHCompositeNode *topNode);
+
 	std::shared_ptr<PHGenFit::Track> ReFitTrack(PHCompositeNode *, const SvtxTrack* intrack, const SvtxVertex* invertex = NULL);
+	std::shared_ptr<PHGenFit::Track> ExtendTrack(PHCompositeNode *, std::shared_ptr<PHGenFit::Track>& seed_track, SvtxTrack* intrack );
 
 	//! Make SvtxTrack from PHGenFit::Track and SvtxTrack
 	std::shared_ptr<SvtxTrack> MakeSvtxTrack(const SvtxTrack* svtxtrack, const std::shared_ptr<PHGenFit::Track>& genfit_track, const SvtxVertex * vertex = NULL);
@@ -279,11 +283,11 @@ private:
 	//!flags
 	unsigned int _flags;
 
+	//!Detector Type
+	DetectorType _detector_type;
+
 	//bool _make_separate_nodes;
 	OutPutMode _output_mode;
-
-	bool _over_write_svtxtrackmap;
-	bool _over_write_svtxvertexmap;
 
 	bool _fit_primary_tracks;
 
@@ -295,9 +299,6 @@ private:
 
 	//! Switch to reverse Magnetic field
 	bool _reverse_mag_field;
-
-	//!
-	bool _use_truth_vertex;
 
 
 	PHGenFit::Fitter* _fitter;
@@ -351,7 +352,18 @@ private:
 	float _cluster_eval_tree_gz;
 
 	bool _do_evt_display;
+	int _nlayers;
+	std::vector<float> _radii;          // radial distance of each layer (cm) 
+	std::vector<float> _smear_xy_layer; // detector hit resolution in phi (cm)
+	std::vector<float> _smear_z_layer;  // detector hit resolution in z (cm)                 
+	std::vector<float> _material;       // material at each layer in rad. lengths
+	std::map<int, float> _user_material;
+
+	std::multimap<int, unsigned int, ltint> _hits_per_layer; // hits sorted and accessible by layer
+	
+	// recorded layer indexes to internal sequential indexes
+	std::map<int,unsigned int> _layer_ilayer_map;
 
 };
 
-#endif //* __PHG4TrackKalmanFitter_H__ *//
+#endif //* __PHG4CombinatorialTrackFinder_H__ *//

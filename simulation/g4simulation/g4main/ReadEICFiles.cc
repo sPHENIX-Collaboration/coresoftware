@@ -232,13 +232,6 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
 	}
     }
 
-  /* Check that both beam particles have an end vertex */
-  if ( ! hepmc_particles.at(0)->end_vertex() ||  ! hepmc_particles.at(1)->end_vertex() )
-    {
-      cout << "ReadEICFiles::process_event - Missing end vertex for one or more beam particles!" << endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-
   /* Check that all particles (except beam particles) have a production vertex */
   for ( unsigned p = 2; p < hepmc_particles.size(); p++ )
     {

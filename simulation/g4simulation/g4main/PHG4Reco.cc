@@ -1202,8 +1202,8 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
 
   G4MaterialPropertiesTable* mRICH_Air_myMPT = new G4MaterialPropertiesTable();
   mRICH_Air_myMPT->AddProperty("RINDEX", mRICH_PhotonEnergy, mRICH_AirRefractiveIndex , mRICH_nEntries1);
-  
-  mRICH_Air= nist->FindOrBuildMaterial("G4_AIR");
+  const G4Material *G4_AIR = G4Material::GetMaterial("G4_AIR");
+  G4Material *mRICH_Air=  new G4Material("mRICH_Air",G4_AIR->GetDensity(),G4_AIR);
   mRICH_Air->SetName("mRICH_Air");
   mRICH_Air->SetMaterialPropertiesTable(mRICH_Air_myMPT);
 }
