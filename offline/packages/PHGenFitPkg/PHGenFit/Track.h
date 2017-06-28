@@ -79,17 +79,9 @@ public:
 
 	genfit::Track* getGenFitTrack() const {return _track;}
 
-	double get_chi2() const {
-		genfit::AbsTrackRep* rep = _track->getCardinalRep();
-		double chi2 = _track->getFitStatus(rep)->getChi2();
-		return chi2;
-	}
+	double get_chi2() const;
 
-	double get_ndf() const {
-		genfit::AbsTrackRep* rep = _track->getCardinalRep();
-		double ndf = _track->getFitStatus(rep)->getNdf();
-		return ndf;
-	}
+	double get_ndf() const;
 
 	double get_charge() const;
 

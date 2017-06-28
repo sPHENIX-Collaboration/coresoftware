@@ -1,0 +1,14 @@
+to get started
+
+add to .cshrc
+ setenv SARTRE_DIR /opt/sphenix/core/stow/sartre-1.20
+
+login in a new window
+cp the sartre.cfg to working area
+
+you will need to add the HepMC node reader after the PHSartre
+to feed the hepmc node into GEANT4
+
+for documentation on configuring Sartre, see 
+
+http://sartre.hepforge.org/
