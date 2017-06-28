@@ -182,7 +182,7 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
 //===================
 int PHG4TPCClusterizer::InitRun(PHCompositeNode* topNode) {
   if(verbosity>1) {
-    fHClusterEnergy = new TH1F("CLUSTER_Energy","CLUSTER_Energy",1000,0,1000000);
+    fHClusterEnergy = new TH1F("CLUSTER_Energy","CLUSTER_Energy",1000,0,1000);
     fHClusterDensity = new TProfile2D("CLUSTER_Density","CLUSTER_Density;LayerNo;ZZ;<E>",50,-0.5,49.5,220,-110,+110);
     fHClusterSizePP = new TProfile2D("CLUSTER_SizePP","CLUSTER_SizePP;LayerNo;ZZ;<rphisize>",50,-0.5,49.5,220,-110,+110);
     fHClusterSizeZZ = new TProfile2D("CLUSTER_SizeZZ","CLUSTER_SizeZZ;LayerNo;ZZ;<zsize>",50,-0.5,49.5,220,-110,+110);
@@ -338,10 +338,10 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
           if(!is_local_maximum(phibin, zbin)) continue;
 	  if(verbosity>2000) std::cout << " maxima found in window rphi z " << fFitRangeP << " " << fFitRangeZ << std::endl;
           fit(phibin,zbin,nhits_tot);
-          if(fFitW < fEnergyCut) continue; // ignore this cluster
+          if(fFitW/1000 < fEnergyCut) continue; // ignore this cluster
           SvtxCluster_v1 clus;
           clus.set_layer(layer);
-          clus.set_e( fFitW );
+          clus.set_e( fFitW/1000 );
 	  float phi = fit_p_mean();
 	  float pp = radius*phi;
 	  float zz = fit_z_mean();
@@ -362,13 +362,13 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  //float xx_size = TMath::Sqrt(pp_size*sinphi*pp_size*sinphi + fGeoLayer->get_thickness()*cosphi*fGeoLayer->get_thickness()*cosphi); // linearization
 	  //float yy_size = TMath::Sqrt(pp_size*cosphi*pp_size*cosphi + fGeoLayer->get_thickness()*sinphi*fGeoLayer->get_thickness()*sinphi); // linearization
 	  if(verbosity>1) {
-	    fHClusterEnergy->Fill(fFitW);
-	    fHClusterDensity->Fill(layer,zz,fFitW);
+	    fHClusterEnergy->Fill(fFitW/1000);
+	    fHClusterDensity->Fill(layer,zz,fFitW/1000);
 	    fHClusterSizePP->Fill(layer,zz,pp_size);
 	    fHClusterSizeZZ->Fill(layer,zz,zz_size);
 	    fHClusterErrorPP->Fill(layer,zz,pp_err);
 	    fHClusterErrorZZ->Fill(layer,zz,zz_err);
-	    fHClusterDensity2->Fill(phi,zz,fFitW);
+	    fHClusterDensity2->Fill(phi,zz,fFitW/1000);
 	    fHClusterSizePP2->Fill(phi,zz,pp_size);
 	    fHClusterSizeZZ2->Fill(phi,zz,zz_size);
 	    fHClusterErrorPP2->Fill(phi,zz,pp_err);
@@ -382,7 +382,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	    std::cout << " | rad " << radius;
 	    std::cout << " | size rp z " << pp_size << " " << zz_size;
 	    std::cout << " | error_rphi error_z " << pp_err << " " << zz_err << std::endl;
-	    std::cout << " | sgn " << fFitW;
+	    std::cout << " | sgn " << fFitW/1000;
 	    std::cout << " | rphi z " << pp << " " << zz;
 	    std::cout << " | phi_sig z_sig phiz_cov " << TMath::Sqrt(fit_p_cov()) << " " << TMath::Sqrt(fit_z_cov()) << " " << fit_pz_cov();
 	    std::cout << std::endl;
