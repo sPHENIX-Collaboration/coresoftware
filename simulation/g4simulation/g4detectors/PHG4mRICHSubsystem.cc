@@ -126,5 +126,9 @@ void PHG4mRICHSubsystem::SetDefaultParameters()
   set_default_int_param("single_mRICH", 1);    //1 for single mRICH
                                                //0 for mRICH wall
 
+  set_default_double_param("r_inner", 3);      //inner radius of mRICH wall, default=3m;
+  set_default_double_param("eta_min", 1.1);    //limits of rapidity
+  set_default_double_param("eta_max", 1.9);
+
   set_default_int_param("use_g4steps",0);        //for stepping function
 }
