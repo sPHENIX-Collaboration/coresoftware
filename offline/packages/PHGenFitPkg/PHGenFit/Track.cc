@@ -48,7 +48,7 @@ Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMa
 
 	genfit::MeasuredStateOnPlane seedMSoP(rep);
 	seedMSoP.setPosMomCov(seed_pos, seed_mom, seed_cov);
-	const genfit::StateOnPlane seedSoP(seedMSoP);
+	//const genfit::StateOnPlane seedSoP(seedMSoP);
 
 	TVectorD seedState(6);
 	TMatrixDSym seedCov(6);
