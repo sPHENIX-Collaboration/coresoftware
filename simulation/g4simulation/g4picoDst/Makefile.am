@@ -66,5 +66,5 @@ G4Analysis_Dict.C: \
   G4SnglCluster.h \
   G4SnglHTCContainer.h \
   mFillG4SnglHTCContainer.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
