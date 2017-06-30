@@ -347,8 +347,8 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  float zz = fit_z_mean();
 	  float pp_err = radius * fGeoLayer->get_phistep() * _inv_sqrt12;
 	  float zz_err = fGeoLayer->get_zstep() * _inv_sqrt12;
-	  if(fFitSizeP>1) pp_err = radius * TMath::Sqrt( fit_p_cov()/(fFitW/2000) );
-	  if(fFitSizeZ>1) zz_err = TMath::Sqrt( fit_z_cov()/(fFitW/2000) );
+	  if(fFitSizeP>1) pp_err = radius * TMath::Sqrt( fit_p_cov()/(fFitW) );
+	  if(fFitSizeZ>1) zz_err = TMath::Sqrt( fit_z_cov()/(fFitW) );
 	  //float rr_err = fGeoLayer->get_thickness() * _inv_sqrt12;
 	  //float sinphi = TMath::Sin(phi);
 	  //float cosphi = TMath::Cos(phi);
