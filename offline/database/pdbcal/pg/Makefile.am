@@ -97,7 +97,7 @@ PgPost%Bank.h PgPost%Bank.cc:
 
 # this generates the standard dictionaries
 %_dict.C : %.h %_LinkDef.h
-	 rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	 rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -rf *_dict*
