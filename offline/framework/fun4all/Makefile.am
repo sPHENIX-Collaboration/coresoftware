@@ -115,15 +115,14 @@ Fun4All_Dict.cc: \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllServer.h \
   Fun4AllLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 SubsysReco_Dict.cc: \
   Fun4AllBase.h \
   SubsysReco.h \
   SubsysRecoStack.h \
   SubsysRecoLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict*

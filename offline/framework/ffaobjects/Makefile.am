@@ -70,7 +70,7 @@ libffaobjects_Dict.cc: \
   EventHeader.h \
   EventHeaderv1.h \
   libffaobjects_LinkDef.h
-	rootcint -f $@ -c  $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c  $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict.*
