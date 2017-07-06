@@ -137,6 +137,7 @@ pkginclude_HEADERS = \
   PHG4Particle.h \
   PHG4Particlev1.h \
   PHG4Particlev2.h \
+  PHG4ParticleGenerator.h \
   PHG4ParticleGeneratorBase.h \
   PHG4PhenixDetector.h \
   PHG4Reco.h \
