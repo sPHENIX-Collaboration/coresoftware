@@ -125,7 +125,17 @@ bool PHG4RICHSteppingAction::MakeHit(const G4Step* aStep){
   const G4Track* aTrack = aStep->GetTrack();
   G4StepPoint* postPoint = aStep->GetPostStepPoint();
 
-  int layer_id = 0;
+  // set sector number
+  int sector_id = -999;
+
+  for (unsigned int k=0; k<10; k++)
+    {
+      if (aTrack->GetTouchable()->GetVolume(k)->GetName() == "World")
+	break;
+
+      if (aTrack->GetTouchable()->GetVolume(k)->GetName() == "RICHSecPhysical")
+	sector_id = aTrack->GetTouchable()->GetCopyNumber(k);
+    }
 
   hit = new PHG4Hitv1();
 
@@ -163,7 +173,7 @@ bool PHG4RICHSteppingAction::MakeHit(const G4Step* aStep){
   hit->set_edep(edep);
 
   // Now add the hit
-  hits_->AddHit(layer_id, hit);
+  hits_->AddHit(sector_id, hit);
 
   {
     if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
