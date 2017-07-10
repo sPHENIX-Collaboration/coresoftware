@@ -66,7 +66,9 @@ SvtxEvaluator::SvtxEvaluator(const string &name, const string &filename, const s
   _ntp_track(nullptr),
   _filename(filename),
   _trackmapname(trackmapname),
-  _tfile(nullptr) {
+  _tfile(nullptr),
+  _timer(nullptr)
+{
   verbosity = 0;
 }
 
