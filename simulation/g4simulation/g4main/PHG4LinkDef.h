@@ -2,10 +2,7 @@
 
 #pragma link C++ class HepMCNodeReader-!;
 #pragma link C++ class PHG4ConsistencyCheck-!;
-#pragma link C++ class PHG4EventHeader+;
-#pragma link C++ class PHG4EventHeaderv1+;
 #pragma link C++ class PHG4HeadReco-!;
-#pragma link C++ class PHG4InEvent+;
 #pragma link C++ class PHG4InEventCompress-!;
 #pragma link C++ class PHG4InEventReadBack-!;
 #pragma link C++ class PHG4InputFilter-!;

@@ -14,13 +14,20 @@ pkginclude_HEADERS = \
   Fun4AllDstInputManager.h \
   Fun4AllDstOutputManager.h \
   Fun4AllDummyInputManager.h \
+  Fun4AllEventOutStream.h \
+  Fun4AllEventOutputManager.h \
+  Fun4AllFileOutStream.h \
+  Fun4AllHistoBinDefs.h \
   Fun4AllHistoManager.h \
-  Fun4AllSyncManager.h \
   Fun4AllInputManager.h \
   Fun4AllNoSyncDstInputManager.h \
   Fun4AllOutputManager.h \
+  Fun4AllPrdfInputManager.h \
+  Fun4AllPrdfOutputManager.h \
   Fun4AllReturnCodes.h \
+  Fun4AllRolloverFileOutStream.h \
   Fun4AllServer.h \
+  Fun4AllSyncManager.h \
   Fun4AllUtils.h \
   PHTFileServer.h \
   SubsysReco.h \
@@ -28,13 +35,6 @@ pkginclude_HEADERS = \
   TDirectoryHelper.h
 
 noinst_HEADERS = \
-  Fun4AllHistoBinDefs.h \
-  Fun4AllEventOutStream.h \
-  Fun4AllEventOutputManager.h \
-  Fun4AllRolloverFileOutStream.h \
-  Fun4AllFileOutStream.h \
-  Fun4AllPrdfInputManager.h \
-  Fun4AllPrdfOutputManager.h \
   Fun4AllLinkDef.h \
   SubsysRecoLinkDef.h
 
