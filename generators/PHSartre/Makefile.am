@@ -63,7 +63,7 @@ PHSartre_Dict.C: \
   PHSartreGenTrigger.h \
   PHSartreParticleTrigger.h \
   PHSartreLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict*

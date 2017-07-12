@@ -13,6 +13,12 @@ CXXFLAGS="-Werror -Wall ${CXXFLAGS}"
 PKG_CHECK_MODULES([Seamstress], [seamstress])
 PKG_CHECK_MODULES([Eigen3], [eigen3])
 
+dnl test for root 6
+if test `root-config --version | gawk '{print $1>=6.?"1":"0"}'` = 1; then
+CINTDEFS=" -noIncludePaths  -inlineInputHeader "
+AC_SUBST(CINTDEFS)
+fi
+
 AC_CONFIG_FILES([Makefile fitnewton.pc])
 
 AC_OUTPUT

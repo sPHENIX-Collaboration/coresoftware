@@ -58,7 +58,7 @@ testexternals.C:
 sHEPGen_Dict.C: \
   sHEPGen.h \
   sHEPGenLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict*

@@ -26,6 +26,7 @@ SvtxTrackEval::SvtxTrackEval(PHCompositeNode* topNode)
     _verbosity(1),
     _errors(0), 
     _do_cache(true),
+    _cache_track_from_cluster_exists(false),
     _cache_all_truth_hits(),
     _cache_all_truth_particles(),
     _cache_max_truth_particle_by_nclusters(),
@@ -321,23 +322,63 @@ SvtxTrack* SvtxTrackEval::best_track_from(PHG4Particle* truthparticle) {
 }
 
 
+void SvtxTrackEval::create_cache_track_from_cluster() {
+
+  if (!has_node_pointers()) {++_errors; return;}
+   
+  // loop over all SvtxTracks
+  for (SvtxTrackMap::Iter iter = _trackmap->begin();
+       iter != _trackmap->end();
+       ++iter) {
+    SvtxTrack* track = iter->second;
+    
+    // loop over all clusters
+    for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
+	 iter != track->end_clusters();
+	 ++iter) {
+      unsigned int candidate_id = *iter;
+      SvtxCluster* candidate = _clustermap->get(candidate_id);
+
+      if (_strict) {assert(candidate);}
+      else if (!candidate) {++_errors; continue;}
+
+      //check if cluster has an entry in cache
+      std::map<SvtxCluster*,std::set<SvtxTrack*> >::iterator cliter =
+      _cache_all_tracks_from_cluster.find(candidate);
+      if (cliter != _cache_all_tracks_from_cluster.end()) {//got entry
+	cliter->second.insert(track);//add track to list;
+      }else{
+	std::set<SvtxTrack*> tracks;
+	tracks.insert(track);
+	_cache_all_tracks_from_cluster.insert(make_pair(candidate,tracks));
+      }
+    }
+  }
+  _cache_track_from_cluster_exists = true;
+
+  return;
+}
+
 std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(SvtxCluster* cluster) {
 
   if (!has_node_pointers()) {++_errors; return std::set<SvtxTrack*>();}
   
   if (_strict) {assert(cluster);}
   else if (!cluster) {++_errors; return std::set<SvtxTrack*>();}
-  
+
+  std::set<SvtxTrack*> tracks;
+ 
   if (_do_cache) {
+    if(_cache_track_from_cluster_exists == false) create_cache_track_from_cluster();
     std::map<SvtxCluster*,std::set<SvtxTrack*> >::iterator iter =
       _cache_all_tracks_from_cluster.find(cluster);
     if (iter != _cache_all_tracks_from_cluster.end()) {
       return iter->second;
+    }else{
+      return tracks;
     }
   }
-  
-  std::set<SvtxTrack*> tracks;
-  
+   
   // loop over all SvtxTracks
   for (SvtxTrackMap::Iter iter = _trackmap->begin();
        iter != _trackmap->end();

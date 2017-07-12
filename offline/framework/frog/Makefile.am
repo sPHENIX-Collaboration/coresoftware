@@ -47,8 +47,7 @@ FROG_Dict.cc:   \
   pgsearch.h   \
   FROG.h       \
   FROGLinkDef.h
-	rootcint -f $@ -c  $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
+	rootcint -f $@ @CINTDEFS@ -c  $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
-	rm -f *Dict*
+	rm -f *Dict* *.pcm

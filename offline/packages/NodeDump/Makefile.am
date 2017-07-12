@@ -77,7 +77,7 @@ PHNodeDumpDict.cc : \
   PHNodeDump.h \
   Dumper.h \
   PHNodeDumpLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict*

@@ -18,6 +18,8 @@
 #include <float.h>
 #include <map>
 #include <set>
+#include <TVector3.h>
+#include <TMath.h>
 
 using namespace std;
 
@@ -62,6 +64,8 @@ void SvtxClusterEval::next_event(PHCompositeNode* topNode) {
   _cache_get_energy_contribution_g4particle.clear();
   _cache_get_energy_contribution_g4hit.clear();
 
+  _clusters_per_layer.clear();
+  _g4hits_per_layer.clear();
   _hiteval.next_event(topNode);
   
   get_node_pointers(topNode);
@@ -269,18 +273,32 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit) {
       return iter->second;
     }
   }
-  
+  if(_clusters_per_layer.size()==0){
+    fill_cluster_layer_map();
+  }
   std::set<SvtxCluster*> clusters;
 
   unsigned int hit_layer = truthhit->get_layer();
-  
   // loop over all the clusters
-  for (SvtxClusterMap::Iter iter = _clustermap->begin();
-       iter != _clustermap->end();
-       ++iter) {
 
-    SvtxCluster* cluster = iter->second;
-
+  int count = 0;
+  multimap<unsigned int, innerMap>::iterator miter = _clusters_per_layer.find(hit_layer);
+  for(multimap<float, SvtxCluster*>::iterator liter = 
+	//miter->second.begin();
+      miter->second.lower_bound(truthhit->get_z(1)-5.0);
+      // liter != miter->second.end();
+      liter != miter->second.upper_bound(truthhit->get_z(1)+5.0);
+      liter++){
+    count++;
+    /*
+      for (SvtxClusterMap::Iter iter = _clustermap->begin();
+      iter != _clustermap->end();
+      ++iter) {
+      
+      //
+      SvtxCluster* cluster = iter->second;
+    */
+    SvtxCluster* cluster = liter->second;
     if (cluster->get_layer() != hit_layer) continue;
 
     // loop over all truth hits connected to this cluster
@@ -294,7 +312,7 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit) {
       }    
     }
   }
-
+  //  cout << "count " << count << endl;
   if (_do_cache) _cache_all_clusters_from_g4hit.insert(make_pair(truthhit,clusters));
   
   return clusters;
@@ -416,6 +434,24 @@ void SvtxClusterEval::get_node_pointers(PHCompositeNode *topNode) {
 
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
   
+  return;
+}
+
+void SvtxClusterEval::fill_cluster_layer_map(){
+  // loop over all the clusters
+
+  for(unsigned int i = 0;i<47;i++){
+    _clusters_per_layer.insert(make_pair(i,innerMap()));
+  }
+
+  for (SvtxClusterMap::Iter iter = _clustermap->begin();iter != _clustermap->end();++iter) {
+    SvtxCluster* cluster = iter->second;
+    unsigned int ilayer = cluster->get_layer();
+    float clus_z = cluster->get_z();
+    multimap<unsigned int, innerMap >::iterator it;
+    it = _clusters_per_layer.find(ilayer);
+    it->second.insert(make_pair(clus_z,cluster));
+  }
   return;
 }
 

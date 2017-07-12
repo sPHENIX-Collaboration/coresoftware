@@ -9,7 +9,8 @@
 
 
 #include <fun4all/SubsysReco.h>
-
+#include <phool/PHTimeServer.h>
+#include <phool/PHTimer.h>
 #include <string>
 
 class PHCompositeNode;
@@ -54,6 +55,7 @@ public:
   void do_track_eval(bool b) {_do_track_eval = b;}
 
   void do_track_match(bool b) {_do_track_match = b;}
+  void do_eval_light(bool b) {_do_eval_light = b;}
   void scan_for_embedded(bool b) {_scan_for_embedded = b;}
   
  private:
@@ -78,6 +80,7 @@ public:
   bool _do_track_eval;
 
   bool _do_track_match;
+  bool _do_eval_light;
   bool _scan_for_embedded;
 
   unsigned int _nlayers_maps = 3;
@@ -97,6 +100,8 @@ public:
   //Track map name
   std::string _trackmapname;
   TFile *_tfile;
+
+  PHTimer *_timer;
 
   // output subroutines
   void fillOutputNtuples(PHCompositeNode* topNode); ///< dump the evaluator information into ntuple for external analysis

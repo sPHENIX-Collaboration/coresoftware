@@ -232,8 +232,8 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 	  //_half_max_phi(252), //80cm * Pi
 	  _half_max_phi(3.1416),
 	  //_layer_thetaID_phiID_cluserID_phiSize(0.1200),
-	  _layer_thetaID_phiID_cluserID_phiSize(0.1200/80), //rad
-	  _layer_thetaID_phiID_cluserID_zSize(0.1700/80),
+	  _layer_thetaID_phiID_cluserID_phiSize(0.1200/30), //rad
+	  _layer_thetaID_phiID_cluserID_zSize(0.1700/30),
 	  _PHGenFitTracks(),
 	  _init_direction(-1),
 	  _blowup_factor(1.),
@@ -2532,11 +2532,9 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 			<< endl;
 #endif
 
-			std::shared_ptr<PHGenFit::Track> track = iter->second;
-			std::vector<unsigned int> clusterIDs = track->get_cluster_IDs();
+			std::vector<unsigned int> clusterIDs = iter->second->get_cluster_IDs();
 
 			unsigned int init_layer = UINT_MAX;
-//			unsigned int end_layer = UINT_MAX;
 
 			if(!is_splitting_track) {
 				if(_init_direction == 1) {
@@ -2603,9 +2601,7 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 
 		auto iter = _PHGenFitTracks.begin();
 
-		std::shared_ptr<PHGenFit::Track> track = iter->second;
-
-		if (track->get_cluster_IDs().size() >= _min_good_track_hits) {
+		if (iter->second->get_cluster_IDs().size() >= _min_good_track_hits) {
 			OutputPHGenFitTrack(topNode, iter);
 #ifdef _DEBUG_
 			cout << __LINE__ << endl;
@@ -2616,6 +2612,7 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 			}
 		}
 
+		_PHGenFitTracks.clear();
 	}
 
 #ifdef _DEBUG_
@@ -2631,7 +2628,6 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 		evt_disp_copy.clear();
 	}
 
-	_PHGenFitTracks.clear();
 	_tracks.clear();
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -2936,6 +2932,7 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	}
 	track->addMeasurements(measurements);
 
+
 #ifdef _DEBUG_
 	{
 		std::vector<unsigned int> clusterIDs = track->get_cluster_IDs();
@@ -3214,7 +3211,8 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 			if(meas)
 				measurements.push_back(meas);
 		}
-		std::map<double, PHGenFit::Track*> incr_chi2s_new_tracks;
+		//std::map<double, PHGenFit::Track*> incr_chi2s_new_tracks;
+		std::map<double, shared_ptr<PHGenFit::Track> > incr_chi2s_new_tracks;
 
 #ifdef _DEBUG_
 		cout<<__LINE__<<": measurements.size(): "<<measurements.size()<<endl;
@@ -3333,7 +3331,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 #endif
 		if(_analyzing_mode){
 		  int ncand = 0;
-		  for (std::map<double, PHGenFit::Track*>::iterator iter =
+		  for (auto iter =
 			 incr_chi2s_new_tracks.begin();
 		       iter != incr_chi2s_new_tracks.end(); iter++) {
 		    if(iter->first<_max_incr_chi2s[layer] and iter->first > 0) ncand++;
@@ -3650,8 +3648,18 @@ unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
 unsigned int PHG4KalmanPatRec::encode_cluster_index(const unsigned int layer,
 		const unsigned int iz, const unsigned int irphi) {
 
-	if(layer >= 128 || iz >= 2048 || irphi >= 16384) {
-		LogError("layer >= 128 || iz >= 2048 || irphi >= 16384\n");
+	if(layer >= 128) {
+		LogError("layer >= 128: ") << layer <<endl;;
+		return UINT_MAX;
+	}
+
+	if(iz >= 2048) {
+		LogError("iz >= 2048: ") << iz << endl;
+		return UINT_MAX;
+	}
+
+	if(irphi >= 16384) {
+		LogError("irphi >= 16384: ") << irphi <<endl;
 		return UINT_MAX;
 	}
 
