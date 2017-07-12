@@ -66,11 +66,14 @@ public:
   std::set<SvtxTrack*> all_tracks_from(PHG4Hit* truthhit);
   std::set<SvtxTrack*> all_tracks_from(SvtxCluster* cluster);
   SvtxTrack*           best_track_from(SvtxCluster* cluster);
+  void                 create_cache_track_from_cluster();
   
   // overlap calculations
+  void         calc_cluster_contribution(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);  
   unsigned int get_nclusters_contribution(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);  
+  unsigned int get_layer_range_contribution(SvtxTrack* track, PHG4Particle* particle, unsigned int start_layer, unsigned int end_layer);
   unsigned int get_nclusters_contribution_by_layer(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);  
-  
+  unsigned int get_nwrongclusters_contribution(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);  
   unsigned int get_errors() {return _errors + _clustereval.get_errors();}
 
 private:
@@ -87,6 +90,7 @@ private:
   unsigned int _errors;
   
   bool                                                        _do_cache;
+  bool                                                        _cache_track_from_cluster_exists;
   std::map<SvtxTrack*,std::set<PHG4Hit*> >                    _cache_all_truth_hits;
   std::map<SvtxTrack*,std::set<PHG4Particle*> >               _cache_all_truth_particles;
   std::map<SvtxTrack*,PHG4Particle*>                          _cache_max_truth_particle_by_nclusters;
@@ -97,6 +101,7 @@ private:
   std::map<SvtxCluster*,SvtxTrack*>                           _cache_best_track_from_cluster;
   std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int> _cache_get_nclusters_contribution;
   std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int> _cache_get_nclusters_contribution_by_layer;
+  std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int> _cache_get_nwrongclusters_contribution;
 };
 
 #endif // SVTXTRACKEVAL_H__

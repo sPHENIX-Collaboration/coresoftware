@@ -60,7 +60,7 @@ PHPythia6_Dict.C: \
   PHPy6ForwardElectronTrig.h \
   PHPy6ParticleTrigger.h \
   PHPythia6LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict*

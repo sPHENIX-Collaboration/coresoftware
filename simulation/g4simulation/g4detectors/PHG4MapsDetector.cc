@@ -51,7 +51,7 @@ PHG4MapsDetector::PHG4MapsDetector( PHCompositeNode *Node,  PHG4Parameters *para
   blackhole(parameters->get_int_param("blackhole")),
   stave_type(parameters->get_int_param("stave_type")),
   layer_nominal_radius(parameters->get_double_param("layer_nominal_radius")),
-  N_staves(-1),
+  N_staves(parameters->get_int_param("N_staves")),
   phistep(NAN),
   phitilt(parameters->get_double_param("phitilt")),
   pixel_x(parameters->get_double_param("pixel_x")),
@@ -157,47 +157,57 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
   // Step through all phi values
 
   // The phistep is determined by the arc length spacing needed bewtween staves, which depends on the stave type
-  // The numbers below are inferred from the arc length spacing in ITS.gdml
+  // The numbers below are inferred from the arc length spacing in ITS.gdml, and reduced a small amount (< 1%) to make sure the default radius cases work
   // These arcstep numbers matter, that is why they are hardcoded here - leave them alone!
   double arcstep;
   if(stave_type == 0)
     {
-      arcstep = 12.37;  // inner barrel, mm
+      arcstep = 12.25;  // inner barrel, mm
     }
   else if(stave_type == 1)
     {
-      arcstep = 56.98;  // middle barrel, mm
+      arcstep = 56.8;  // middle barrel, mm
     }
   else
     {
       // stave_type is 2
-      arcstep = 54.33;  // outer barrel, mm
+      arcstep = 54.2;  // outer barrel, mm
     }
 
-  // The objective is to choose a phistep that fits N_staves into this radius, but with an arclength separation of AT LEAST arcstep
-  // ideally, the radius would be chosen so that numstaves = N_staves exactly, to get the closest spacing of staves possible without overlaps
-  double numstaves = 2.0 * M_PI * layer_nominal_radius / arcstep;  // tghis is just to print out
-  N_staves = int(2.0 * M_PI * layer_nominal_radius / arcstep);  // this is the number of staves used  
-  phistep = 2.0 * M_PI / (double) N_staves;
-  double z_location = 0.0;
-  // suggest the ideal radius for this layer
-  if (Verbosity())
-  cout << "A radius for this layer of " << (double) N_staves * arcstep / (2.0 * M_PI)  + 0.01 << " or " <<  (double) (N_staves+1) * arcstep / (2.0 * M_PI) + 0.01 << " would produce  perfect stave spacing" << endl;
+  if(N_staves < 0)
+    {
+      // The user did not specify how many staves to use for this layer, so we calculate the best value
+      // We choose a phistep that fits N_staves into this radius, but with an arclength separation of AT LEAST arcstep
+      // ideally, the radius would be chosen so that numstaves = N_staves exactly, to get the closest spacing of staves possible without overlaps
+      double numstaves = 2.0 * M_PI * layer_nominal_radius / arcstep;  // this is just to print out
+      N_staves = int(2.0 * M_PI * layer_nominal_radius / arcstep);  // this is the number of staves used  
 
-  // this is the tilt for stave type 0 (usually layers 0-2)
-//  phitilt = 0.304;   // radians, equivalent to 17.4 degrees, now input from parameters
+      // Also suggest the ideal radius for this layer
+      if (verbosity > 0)
+	{
+	  cout << " Calculated N_staves for layer " << layer 
+	       << " layer_nominal_radius " << layer_nominal_radius
+	       << " ITS arcstep " << arcstep
+	       << " circumference divided by arcstep  " << numstaves 
+	       << " N_staves " << N_staves
+	       << endl;
+	  cout << "A radius for this layer of " << (double) N_staves * arcstep / (2.0 * M_PI)  + 0.01 << " or " 
+	       <<  (double) (N_staves+1) * arcstep / (2.0 * M_PI) + 0.01 << " would produce  perfect stave spacing" << endl;
+	}
+    }
+  phistep = 2.0 * M_PI / (double) N_staves;  // this produces even stave spacing
+  double z_location = 0.0;
+
+  // The tilt for stave type 0 (usually layers 0-2) is phitilt = 0.304;   // radians, equivalent to 17.4 degrees, now input from parameters
   if(stave_type != 0)
     phitilt = 0.0;
 
-  if(verbosity > 0)
+  if (Verbosity())
     {
       cout << " layer " << layer 
 	   << " layer_nominal_radius " << layer_nominal_radius
-	   << " ITS arcstep " << arcstep
-	   << " circumference divided by arcstep  " << numstaves 
 	   << " N_staves " << N_staves
 	   << " phistep " << phistep
-	   << " arcstep used " << phistep * layer_nominal_radius
 	   << " phtilt " << phitilt
 	   << endl;
     }

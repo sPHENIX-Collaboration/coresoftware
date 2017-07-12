@@ -131,6 +131,11 @@ bool PHG4SvtxClusterizer::maps_ladder_are_adjacent(const PHG4Cell* lhs,
   int rhs_layer = rhs->get_layer();
   if (lhs_layer != rhs_layer) return false;
 
+  // want to cluster only within a chip
+  if(lhs->get_stave_index() != rhs->get_stave_index()) return false;
+  if(lhs->get_half_stave_index() != rhs->get_half_stave_index()) return false;
+  if(lhs->get_module_index() != rhs->get_module_index()) return false;
+  if(lhs->get_chip_index() != rhs->get_chip_index()) return false;
   
   if (get_z_clustering(lhs_layer)) {
     if( fabs(lhs->get_zbin() - rhs->get_zbin()) <= 1 ) {
@@ -1044,7 +1049,8 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
     SvtxHit* hit = iter->second;
     layer_hits_mmap.insert(make_pair(hit->get_layer(),hit));
   }
-  
+
+
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
       layeriter != layerrange.second;
@@ -1054,7 +1060,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 
     if ((unsigned int)layer < _min_layer) continue;
     if ((unsigned int)layer > _max_layer) continue;
-    
+
     std::map<PHG4Cell*,SvtxHit*> cell_hit_map;
     vector<PHG4Cell*> cell_list;
     for (std::multimap<int,SvtxHit*>::iterator hiter = layer_hits_mmap.lower_bound(layer);
@@ -1067,6 +1073,22 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
     }
     
     if (cell_list.size() == 0) continue; // if no cells, go to the next layer
+
+    double hitx=0, hity=0, hitz =0;
+
+    if(verbosity >4)
+      {
+	cout << "get g4_hit hit positions for layer  " << layer << endl;
+	PHG4HitContainer::ConstIterator hiter;
+	PHG4HitContainer::ConstRange hit_begin_end = g4hits->getHits(layer);
+	for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
+	  {    
+	    hitx = hiter->second->get_x(0);
+	    hity = hiter->second->get_y(0);
+	    hitz = hiter->second->get_z(0);
+	    cout << "  hit " << hiter->second->get_hit_id() << "  hitx " << hitx << " hity " << hity << " hitz " << hitz << endl;
+	  }
+      }
     
     // i'm not sure this sorting is ever really used
     sort(cell_list.begin(), cell_list.end(), PHG4SvtxClusterizer::maps_ladder_lessthan);
@@ -1164,8 +1186,8 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
       for(mapiter = clusrange.first; mapiter != clusrange.second; mapiter++ ) {
         PHG4Cell* cell = mapiter->second;
 
-	if(verbosity > 2)	
-	  cell->identify();
+	//if(verbosity > 2)	
+	  //cell->identify();
 	
 	SvtxHit* hit = cell_hit_map[cell];
 	
@@ -1194,13 +1216,15 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 	  ysum += hit_location[1];
 	  zsum += hit_location[2];
 	}
-
+	
 	if(verbosity > 2)
-	  cout << " hit x " << hit_location[0] << " hit y " << hit_location[1] << " hit z " << hit_location[2] << " hit e " << hit->get_e() << " hit adc " << hit->get_adc() << " e weight " << _make_e_weights[layer] << endl;
+	  {
+	    cout << "  From  geometry object: hit x " << hit_location[0] << " hit y " << hit_location[1] << " hit z " << hit_location[2] << " from hit object: e " << hit->get_e() << " hit adc " << hit->get_adc() << " e weight " << _make_e_weights[layer] << endl;
+	  }
 	
 	++nhits;
       }
-
+      
       double clusx = NAN;
       double clusy = NAN;
       double clusz = NAN;
@@ -1318,7 +1342,41 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 	    first = false;
 	  }
 	}
-	
+	if(verbosity > 1)
+	  {
+	    // fairly complete sanity check:
+	    // Get the list of g4hit positions for this cluster and compare positions	    
+	    cout << " For cluster " << ptr->get_id() << endl;
+	    cout << " cluster position: x " << ptr->get_x() << " y " << ptr->get_y() << " z " << ptr->get_z() << endl;
+	    cout << " list of hit id's: " << endl;
+	    for (SvtxCluster::HitIter iter = ptr->begin_hits(); iter != ptr->end_hits(); ++iter) {
+	      cout << "  " << *iter << " ";
+	      SvtxHit *hit = _hits->get(*iter);
+	      cout << " cell id from hit = " << hit->get_cellid() << " : " << endl; 
+	      PHG4Cell *cell = cells->findCell(hit->get_cellid());
+	      cout  << " cell data: stave " << cell->get_property_int(PHG4Cell::prop_stave_index)
+		    << " half stave " << cell->get_property_int(PHG4Cell::prop_half_stave_index)
+		    << " module " << cell->get_property_int(PHG4Cell::prop_module_index)
+		    << " chip " << cell->get_property_int(PHG4Cell::prop_chip_index)
+		    << " pixel_index " << cell->get_pixel_index()
+		    << " phibin " << cell->get_phibin()
+		    << " zbin " << cell->get_zbin()
+		    << endl;
+	      
+	      for (PHG4Cell::EdepConstIterator g4iter = cell->get_g4hits().first;
+		   g4iter != cell->get_g4hits().second;
+		   ++g4iter) {		
+		PHG4Hit *g4hit = g4hits->findHit(g4iter->first);
+		cout << "    g4hit position: x " << g4hit->get_x(0) << " y " << g4hit->get_y(0) << " z " << g4hit->get_z(0) << endl;		
+
+		// test that there is not a large difference between the cluster position and the position(s) of the g4 hits that contributed to it
+		if( fabs(ptr->get_z() - g4hit->get_z(0)) > 0.1)
+		  cout << "       ALERT! g4hit entry point and cluster Z do not agree by " << endl;
+	      }
+	    }
+	    cout << endl;
+	  }
+
 	if (verbosity>1) {
 	  double radius = sqrt(clusx*clusx+clusy*clusy);
 	  double clusphi = atan2(clusy,clusx);

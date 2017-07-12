@@ -67,7 +67,7 @@ testexternals.C:
 # please add new classes in alphabetical order
 # Rule for generating CINT dictionaries from class headers.
 %Dict.C: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict*
