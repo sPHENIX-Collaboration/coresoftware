@@ -901,7 +901,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	SvtxHit* hit             = iter->second;
 	PHG4Hit* g4hit           = hiteval->max_truth_hit_by_energy(hit);
-	PHG4Cell* g4cell = hiteval->get_cell(hit);
+	PHG4Cell* g4cell         = hiteval->get_cell(hit);
 	PHG4Particle* g4particle = trutheval->get_particle(g4hit);
 
 	float event  = _ievent;
@@ -936,7 +936,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float gprimary = NAN;
       
 	float efromtruth = NAN;
-      
+
 	if (g4hit) {
 	  g4hitID  = g4hit->get_hit_id();
 	  gedep    = g4hit->get_edep();
@@ -964,8 +964,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	      gvy      = vtx->get_y();
 	      gvz      = vtx->get_z();
 	    }
+	    PHG4Hit* outerhit = nullptr;
 
-	    PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
+	    if(_do_eval_light == false)
+	      outerhit = trutheval->get_outermost_truth_hit(g4particle);	
 	    if (outerhit) {
 	      gfpx     = outerhit->get_px(1);
 	      gfpy     = outerhit->get_py(1);
@@ -976,6 +978,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	    }
 	    gembed   = trutheval->get_embed(g4particle);
 	    gprimary = trutheval->is_primary(g4particle);
+	    
 	  } //   if (g4particle){
 	}      
 
