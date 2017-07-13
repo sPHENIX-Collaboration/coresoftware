@@ -468,7 +468,7 @@ void RICH_Geometry::SetDefault()
   n_GEM_layers = 5;
 
   RICH_gas_mat = "CF4";
-  RICH_Mirror_mat = "G4_KAPTON"; // G4_Pyrex_Glass previously
+  RICH_Mirror_mat = "G4_Pyrex_Glass";
   RICH_Gas_Window_mat = "G4_KAPTON";
 
 }
