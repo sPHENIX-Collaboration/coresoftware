@@ -23,6 +23,7 @@
 #include <TH1F.h>
 #include <TProfile2D.h>
 #include <TROOT.h>
+#include <TSystem.h>
 
 #include <CLHEP/Units/PhysicalConstants.h>
 #include <CLHEP/Units/SystemOfUnits.h>
@@ -204,7 +205,16 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
     layerseggeo->set_zstep(size_z);
     layerseggeo->set_phibins(nbins[0]);
     layerseggeo->set_phistep(phistepsize);
-    
+// Chris Pinkenburg: greater causes huge memory growth which causes problems
+// on our farm. If you need to increase this - TALK TO ME first
+    if (nbins[1]*nbins[0]> 5100000)
+    {
+      cout << "increase TPC cellsize, number of cells "
+	   << nbins[1]*nbins[0] << " for layer " << layer
+	   << " exceed 5.1M limit" << endl;
+      cout << "minimum working values for cells are  0.12/0.17" << endl;
+      gSystem->Exit(1);
+    }
     seggeo->AddLayerCellGeom(layerseggeo);
   }
 
