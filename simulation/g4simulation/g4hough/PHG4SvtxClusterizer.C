@@ -896,15 +896,16 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 	  {
 	    cout << "  From  geometry object: hit x " << hit_location[0] << " hit y " << hit_location[1] << " hit z " << hit_location[2]  << endl;
 	    cout << "     nhits " << nhits << " clusx  = " << xsum/nhits << " clusy " << ysum/nhits << " clusz " << zsum/nhits  << endl;
-	  }
+	    
 	    if( fabs(xsum/nhits - hit_location[0]) > 0.1 ||  fabs(ysum/nhits - hit_location[1]) > 0.1 ||  fabs(zsum/nhits - hit_location[2]) > 0.1)
 	      {
 		cout << "ALERT! in layer " << layer   << " cluster (x,y,z) and hit (x,y,z) are different!" << endl;
 		cout << "     From  geometry object: hit x " << hit_location[0] << " hit y " << hit_location[1] << " hit z " << hit_location[2]  << endl;
-		cout << "        nhits " << nhits << " clusx  = " << xsum/nhits << " clusy " << ysum/nhits << " clusz "  <<  zsum/nhits << endl;		
+		cout << "     From cluster:  nhits " << nhits << " clusx  = " << xsum/nhits << " clusy " << ysum/nhits << " clusz "  <<  zsum/nhits << endl;		
 	      }
+	  }
       }
-
+      
       double clusx = NAN;
       double clusy = NAN;
       double clusz = NAN;
