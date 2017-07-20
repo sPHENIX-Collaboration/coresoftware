@@ -158,7 +158,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 
     if(verbosity > 2) 
       {
-	cout << "  g4 hit:  layer " <<  hiter->second->get_layer() << " edep " <<  hiter->second->get_edep() << endl;
+	cout << endl << "  g4 hit:  layer " <<  hiter->second->get_layer() << " edep " <<  hiter->second->get_edep() << endl;
 	cout << "   Hit entry point x,y,z = " << hiter->second->get_x(0) << "  " << hiter->second->get_y(0) << "  " << hiter->second->get_z(0) << endl;
 	cout << "   Hit exit point x,y,z = " << hiter->second->get_x(1) << "  " << hiter->second->get_y(1) << "  " << hiter->second->get_z(1) << endl;
 	cout << "  ladder z index " <<  hiter->second->get_ladder_z_index() << " ladder phi index " <<  hiter->second->get_ladder_phi_index() 
@@ -167,25 +167,23 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 	cout << endl;
       }
 
-    // this string is not unique - it needs the layer too, or it will add g4 hits with the same key together if they are in different layers
-    std::string key = boost::str(boost::format("%d-%d_%d_%d") % ladder_z_index % ladder_phi_index % strip_z_index % strip_y_index).c_str();
+    // this string must be unique - it needs the layer too, or in high multiplicity events it will add g4 hits in different layers with the same key together
+    std::string key = boost::str(boost::format("%d-%d-%d-%d-%d") % sphxlayer % ladder_z_index % ladder_phi_index % strip_z_index % strip_y_index).c_str();
     PHG4Cell *cell = nullptr;
     map<string, PHG4Cell *>::iterator it;
-    it = celllist.find(key);
 
+    it = celllist.find(key);
     // If there is an existing cell to add this hit to, find it    
     if (it != celllist.end())
       {
-	// The key does not include the layer number, so it is not unique. We check that the hit is in the same layer as well as having the same key 
-	if( (int) it->second->get_layer() == (int) hiter->second->get_layer() )
-	  {
-	    cell = it->second;
-	  }
+	cell = it->second;
+	if(verbosity > 2)  cout << " found existing cell with key " << key << endl;
       }
-
+    
     // There is not an existing cell to add this hit to, start a new cell    
     if(!cell)
       {
+	if(verbosity > 2) cout << " did not find existing cell with key " << key << " start a new one" << endl;
 	unsigned int index = celllist.size();
 	index++;
 	PHG4CellDefs::keytype cellkey = PHG4CellDefs::MapsBinning::genkey(sphxlayer, index);
@@ -202,7 +200,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 	cell->set_phibin(strip_y_index);
       }
 
-    // add this hit to the cell
+    // One way or another we have a cell pointer - add this hit to the cell
     cell->add_edep(hiter->first, hiter->second->get_edep());
     cell->add_edep(hiter->second->get_edep());
   }  // end loop over g4hits
