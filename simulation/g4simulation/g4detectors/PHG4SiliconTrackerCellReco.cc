@@ -132,6 +132,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 
   // loop over all of the layers in the hit container
   // we need the geometry object for this layer
+  if(verbosity > 2) cout << " PHG4SiliconTrackerCellReco: Loop over hits" << endl;
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   for (PHG4HitContainer::ConstIterator hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
@@ -155,36 +156,57 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
     double location[3] = {-1, -1, -1};
     layergeom->find_strip_center(ladder_z_index, ladder_phi_index, strip_z_index, strip_y_index, location);
 
+    if(verbosity > 2) 
+      {
+	cout << "  g4 hit:  layer " <<  hiter->second->get_layer() << " edep " <<  hiter->second->get_edep() << endl;
+	cout << "   Hit entry point x,y,z = " << hiter->second->get_x(0) << "  " << hiter->second->get_y(0) << "  " << hiter->second->get_z(0) << endl;
+	cout << "   Hit exit point x,y,z = " << hiter->second->get_x(1) << "  " << hiter->second->get_y(1) << "  " << hiter->second->get_z(1) << endl;
+	cout << "  ladder z index " <<  hiter->second->get_ladder_z_index() << " ladder phi index " <<  hiter->second->get_ladder_phi_index() 
+	     << " strip z index " <<  hiter->second->get_strip_z_index() << " strip y index " <<   hiter->second->get_strip_y_index() << endl;
+	cout << "   strip x,y,z from geometry object = " << location[0] << "  " << location[1] << "  " << location[2] << endl;
+	cout << endl;
+      }
+
+    // this string is not unique - it needs the layer too, or it will add g4 hits with the same key together if they are in different layers
     std::string key = boost::str(boost::format("%d-%d_%d_%d") % ladder_z_index % ladder_phi_index % strip_z_index % strip_y_index).c_str();
     PHG4Cell *cell = nullptr;
     map<string, PHG4Cell *>::iterator it;
     it = celllist.find(key);
 
+    // If there is an existing cell to add this hit to, find it    
     if (it != celllist.end())
-    {
-      cell = it->second;
-    }
-    else
-    {
-      unsigned int index = celllist.size();
-      index++;
-      PHG4CellDefs::keytype cellkey = PHG4CellDefs::MapsBinning::genkey(sphxlayer, index);
-      cell = new PHG4Cellv1(cellkey);
-      celllist[key] = cell;
-      // This encodes the z and phi position of the sensor
-      //          celllist[key]->set_sensor_index(boost::str(boost::format("%d_%d") %ladder_z_index %ladder_phi_index).c_str());
+      {
+	// The key does not include the layer number, so it is not unique. We check that the hit is in the same layer as well as having the same key 
+	if( (int) it->second->get_layer() == (int) hiter->second->get_layer() )
+	  {
+	    cell = it->second;
+	  }
+      }
 
-      cell->set_ladder_z_index(ladder_z_index);
-      cell->set_ladder_phi_index(ladder_phi_index);
+    // There is not an existing cell to add this hit to, start a new cell    
+    if(!cell)
+      {
+	unsigned int index = celllist.size();
+	index++;
+	PHG4CellDefs::keytype cellkey = PHG4CellDefs::MapsBinning::genkey(sphxlayer, index);
+	cell = new PHG4Cellv1(cellkey);
+	celllist[key] = cell;
+	// This encodes the z and phi position of the sensor
+	//          celllist[key]->set_sensor_index(boost::str(boost::format("%d_%d") %ladder_z_index %ladder_phi_index).c_str());
+	
+	cell->set_ladder_z_index(ladder_z_index);
+	cell->set_ladder_phi_index(ladder_phi_index);
+	
+	// The z and phi position of the hit strip within the sensor
+	cell->set_zbin(strip_z_index);
+	cell->set_phibin(strip_y_index);
+      }
 
-      // The z and phi position of the hit strip within the sensor
-      cell->set_zbin(strip_z_index);
-      cell->set_phibin(strip_y_index);
-    }
+    // add this hit to the cell
     cell->add_edep(hiter->first, hiter->second->get_edep());
     cell->add_edep(hiter->second->get_edep());
   }  // end loop over g4hits
-
+  
   int numcells = 0;
   for (std::map<std::string, PHG4Cell *>::const_iterator mapiter = celllist.begin(); mapiter != celllist.end(); ++mapiter)
   {
@@ -194,6 +216,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
     if (verbosity > 0)
     {
       std::cout << "Adding cell for "
+		<< " layer " << mapiter->second->get_layer()
                 << " ladder z index: " << mapiter->second->get_ladder_z_index()
                 << ", ladder phi index: " << mapiter->second->get_ladder_phi_index()
                 << ", srip z index: " << mapiter->second->get_zbin()
