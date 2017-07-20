@@ -156,6 +156,23 @@ bool PHG4SvtxClusterizer::maps_ladder_are_adjacent(const PHG4Cell* lhs,
 
 bool PHG4SvtxClusterizer::ladder_are_adjacent(const PHG4Cell* lhs, const PHG4Cell* rhs) {
 
+  if(verbosity > 2)
+    {
+      cout << " lhs layer " <<  lhs->get_layer() 
+	   << " lhs ladder z index " <<  lhs->get_ladder_z_index() 
+	   << " lhs ladder phi index " <<  lhs->get_ladder_phi_index()
+	   << " lhs z bin " <<  lhs->get_zbin()
+	   << " lhs phi bin " <<  lhs->get_phibin()
+	   << endl;
+      
+      cout << " rhs layer " <<  rhs->get_layer() 
+	   << " rhs ladder z index " <<  rhs->get_ladder_z_index() 
+	   << " rhs ladder phi index " <<  rhs->get_ladder_phi_index()
+	   << " rhs z bin " <<  rhs->get_zbin()
+	   << " rhs phi bin " <<  rhs->get_phibin()
+	   << endl;
+    }
+
   int lhs_layer = lhs->get_layer();
   int rhs_layer = rhs->get_layer();
   if (lhs_layer != rhs_layer) return false;
@@ -172,6 +189,7 @@ bool PHG4SvtxClusterizer::ladder_are_adjacent(const PHG4Cell* lhs, const PHG4Cel
   } else {
     if( fabs(lhs->get_zbin() - rhs->get_zbin()) == 0 ) {
       if( fabs(lhs->get_phibin() - rhs->get_phibin()) <= 1 ){
+	if(verbosity > 2) cout << "    accepted " << endl;
 	return true;
       } 
     }
@@ -874,6 +892,17 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 	}
 	++nhits;
 	if(verbosity > 2) cout << "     nhits = " << nhits << endl;
+	if(verbosity > 2)
+	  {
+	    cout << "  From  geometry object: hit x " << hit_location[0] << " hit y " << hit_location[1] << " hit z " << hit_location[2]  << endl;
+	    cout << "     nhits " << nhits << " clusx  = " << xsum/nhits << " clusy " << ysum/nhits << " clusz " << zsum/nhits  << endl;
+	  }
+	    if( fabs(xsum/nhits - hit_location[0]) > 0.1 ||  fabs(ysum/nhits - hit_location[1]) > 0.1 ||  fabs(zsum/nhits - hit_location[2]) > 0.1)
+	      {
+		cout << "ALERT! in layer " << layer   << " cluster (x,y,z) and hit (x,y,z) are different!" << endl;
+		cout << "     From  geometry object: hit x " << hit_location[0] << " hit y " << hit_location[1] << " hit z " << hit_location[2]  << endl;
+		cout << "        nhits " << nhits << " clusx  = " << xsum/nhits << " clusy " << ysum/nhits << " clusz "  <<  zsum/nhits << endl;		
+	      }
       }
 
       double clusx = NAN;
@@ -995,6 +1024,49 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 	    first = false;
 	  }
 	}
+
+	if(verbosity > 1)
+	  {
+	    // fairly complete sanity check:
+	    // Get the list of g4hit positions for this cluster and compare positions	    
+	    cout << " For cluster " << ptr->get_id() << " in layer " << ptr->get_layer() << " using e_weighting " << _make_e_weights[layer] << endl;
+	    cout << " cluster position: x " << ptr->get_x() << " y " << ptr->get_y() << " z " << ptr->get_z() << endl;
+	    cout << " list of SvtxHit id's: " << endl;
+	    for (SvtxCluster::HitIter iter = ptr->begin_hits(); iter != ptr->end_hits(); ++iter) {
+	      cout << "  " << *iter << " ";
+	      SvtxHit *hit = _hits->get(*iter);
+	      cout << " cell id from hit = " << hit->get_cellid() << " : " << endl; 
+	      PHG4Cell *cell = cells->findCell(hit->get_cellid());
+	      double hit_location[3] = {0.0,0.0,0.0};
+	      geom->find_strip_center(cell->get_ladder_z_index(),
+				      cell->get_ladder_phi_index(),
+				      cell->get_zbin(),
+				      cell->get_phibin(),
+				      hit_location);
+	      cout  << "      cell data: "
+		    << " layer " << cell->get_layer()
+		    << " ladder z index " << cell->get_ladder_z_index()
+		    << " ladder phi index " << cell->get_ladder_phi_index()
+		    << " ladder z bin " << cell->get_zbin()
+		    << " ladder phi bin " << cell->get_phibin()
+		    << " strip x,y,z " << hit_location[0] << "  " << hit_location[1] << "  " << hit_location[2] 
+		    << " cell edep " << cell->get_edep()
+		    << endl;
+	      
+	      for (PHG4Cell::EdepConstIterator g4iter = cell->get_g4hits().first;
+		   g4iter != cell->get_g4hits().second;
+		   ++g4iter) {		
+		PHG4Hit *g4hit = g4hits->findHit(g4iter->first);
+		cout << "      g4hit entry position: x " << g4hit->get_x(0) << " y " << g4hit->get_y(0) << " z " << g4hit->get_z(0) << " edep " << g4hit->get_edep() << " layer " << g4hit->get_layer() << endl;		
+		cout << "      g4hit exit position: x " << g4hit->get_x(1) << " y " << g4hit->get_y(1) << " z " << g4hit->get_z(1) << " edep " << g4hit->get_edep() << " layer " << g4hit->get_layer() << endl;		
+
+		// test that there is not a large difference between the cluster position and the entry position(s) of the g4 hits that contributed to it
+		if( fabs(ptr->get_x() - g4hit->get_x(0)) > 0.1 ||  fabs(ptr->get_y() - g4hit->get_y(0)) > 0.1 ||  fabs(ptr->get_z() - g4hit->get_z(0)) > 2.0)
+		  cout << "        ClusterLadderCells: ALERT! g4hit entry point and cluster (x,y,z) do not agree " << endl;
+	      }
+	    }
+	    cout << endl;
+	  }
 	
 	if (verbosity>1) {
 	  double radius = sqrt(clusx*clusx+clusy*clusy);
