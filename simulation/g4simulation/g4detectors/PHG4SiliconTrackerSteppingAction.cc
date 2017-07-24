@@ -120,6 +120,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     {
       cout << endl
            << "PHG4SilicoTrackerSteppingAction::UserSteppingAction for volume name (pre) " << touch->GetVolume()->GetName()
+	   << " volume name (2) " << touch->GetVolume(2)->GetName()
            << " volume->GetTranslation " << touch->GetVolume()->GetTranslation()
            << " volume->GetCopyNo() " << volume->GetCopyNo()
            << endl;
@@ -166,11 +167,23 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     G4ThreeVector strip_pos = volume->GetTranslation();
     G4ThreeVector prepos = prePoint->GetPosition();
     G4ThreeVector postpos = postPoint->GetPosition();
-    if (prePoint->GetStepStatus() == fGeomBoundary && postPoint->GetStepStatus() == fGeomBoundary)
+
+    if(verbosity > 1)
+      cout << " sphxlayer " << sphxlayer << " ladderz " << ladderz << " ladderphi " << ladderphi 
+	   << " copy no. " <<  volume->GetCopyNo() << " nstrips_z_sensor " <<  nstrips_z_sensor[inttlayer][laddertype] 
+	   << " strip_y_index " << strip_y_index << " strip_z_index " << strip_z_index << endl;
+    
+    // There are two failure modes observed for this stupid parameterised volume:
+    //  1) If the prePoint step status is "fUndefined" then the copy number is sometimes kept from the last hit, which is often an unrelated volume
+    //  2) If the  pre and post step are in the same volume but they both have status fGeomBoundary, the volume is assigned the copy number of the next volume, which is usually off by one in strip_y_index
+    // in both cases we need to find the correct strip_y_index and strip_z_index values the hard way - that is what is done here
+    int fixit = 0;
+    if ( prePoint->GetStepStatus() == fGeomBoundary && postPoint->GetStepStatus() == fGeomBoundary)
     {
       G4VPhysicalVolume* volume_post = postPoint->GetTouchableHandle()->GetVolume();
       G4LogicalVolume* logvolpre = volume->GetLogicalVolume();
       G4LogicalVolume* logvolpost = volume_post->GetLogicalVolume();
+
       // this is just failsafe - we still have those impossible hits where pre and poststep
       // are in the same volume with status fGeomBoundary
       // but the extraction of the strip index above works for those
@@ -178,97 +191,122 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       // the physics step size is taken rather the geometric step size
       if (logvolpre == logvolpost)
       {
-        if (volume->GetCopyNo() == volume_post->GetCopyNo())
+        if (volume->GetCopyNo() == volume_post->GetCopyNo() ||  prePoint->GetStepStatus() == fUndefined)
         {
-          int strip_y_index_old = strip_y_index;
-          int strip_z_index_old = strip_z_index;
+	  fixit = 1;
+	}
+      }
+    }
 
-          // we need a hack to compare the values above with the correct strip index values
-          // the transform of the world coordinates into the sensor frame will work correctly,
-          // so we determine the strip indices from the hit position
-          G4ThreeVector preworldPos = prePoint->GetPosition();
-          G4ThreeVector strip_pos = touch->GetHistory()->GetTransform(touch->GetHistory()->GetDepth() - 1).TransformPoint(preworldPos);
-          G4ThreeVector postworldPos = postPoint->GetPosition();
-          G4ThreeVector poststrip_pos = touch->GetHistory()->GetTransform(touch->GetHistory()->GetDepth() - 1).TransformPoint(postworldPos);
+    if ( prePoint->GetStepStatus() == fUndefined)
+      fixit = 2;
 
-          strip_z_index = 0;
-          for (int i = 0; i < nstrips_z_sensor[inttlayer][laddertype]; ++i)
+    if( fixit )
+      {
+	int strip_y_index_old = strip_y_index;
+	int strip_z_index_old = strip_z_index;
+
+	// we need a hack to compare the values above with the correct strip index values
+	// the transform of the world coordinates into the sensor frame will work correctly,
+	// so we determine the strip indices from the hit position
+	G4ThreeVector preworldPos = prePoint->GetPosition();
+	G4ThreeVector strip_pos = touch->GetHistory()->GetTransform(touch->GetHistory()->GetDepth() - 1).TransformPoint(preworldPos);
+	G4ThreeVector postworldPos = postPoint->GetPosition();
+	G4ThreeVector poststrip_pos = touch->GetHistory()->GetTransform(touch->GetHistory()->GetDepth() - 1).TransformPoint(postworldPos);
+	
+	strip_z_index = 0;
+	for (int i = 0; i < nstrips_z_sensor[inttlayer][laddertype]; ++i)
           {
             const double zmin = strip_z[inttlayer][laddertype] * (double) (i) -strip_z[inttlayer][laddertype] / 2. * (double) nstrips_z_sensor[inttlayer][laddertype];
             const double zmax = strip_z[inttlayer][laddertype] * (double) (i + 1) - strip_z[inttlayer][laddertype] / 2. * (double) nstrips_z_sensor[inttlayer][laddertype];
             if (strip_pos.z() / mm > zmin && strip_pos.z() / mm <= zmax)
-            {
-              strip_z_index = i;
-              break;
-            }
+	      {
+		strip_z_index = i;
+		if (verbosity > 1) std::cout << "                            revised strip z position = " << strip_z_index << std::endl;
+		break;
+	      }
           }
-
-          strip_y_index = 0;
-          for (int i = 0; i < 2 * nstrips_phi_cell[inttlayer]; ++i)
+	
+	strip_y_index = 0;
+	for (int i = 0; i < 2 * nstrips_phi_cell[inttlayer]; ++i)
           {
             const double ymin = strip_y[inttlayer] * (double) (i) -strip_y[inttlayer] * (double) nstrips_phi_cell[inttlayer];
             const double ymax = strip_y[inttlayer] * (double) (i + 1) - strip_y[inttlayer] * (double) nstrips_phi_cell[inttlayer];
             if (strip_pos.y() / mm > ymin && strip_pos.y() / mm <= ymax)
-            {
-              strip_y_index = i;
-              if (verbosity > 1) std::cout << "                            revised strip y position = " << strip_y_index << std::endl;
-              break;
-            }
+	      {
+		strip_y_index = i;
+		if (verbosity > 1) std::cout << "                            revised strip y position = " << strip_y_index << std::endl;
+		break;
+	      }
           }
-          if (strip_y_index_old != strip_y_index || strip_z_index_old != strip_z_index)
-          {
-            cout << "Overlap detected in volume " << volume->GetName() << " where post volume "
-                 << volume_post->GetName() << " has same copy no." << volume->GetCopyNo()
-                 << " pre and post step point of same volume for step status fGeomBoundary" << endl;
-            cout << "logvol name " << logvolpre->GetName() << ", post: " << logvolpost->GetName() << endl;
-            cout << "strip y bef: " << strip_y_index_old << ", strip z: " << strip_z_index_old << endl;
-            cout << " strip y aft: " << strip_y_index << ", strip z: " << strip_z_index << endl;
-            cout << "pre hitpos x: " << strip_pos.x() << ", y: " << strip_pos.y() << ", z: "
-                 << strip_pos.z() << endl;
-            cout << "posthitpos x: " << poststrip_pos.x() << ", y: " << poststrip_pos.y() << ", z: "
-                 << poststrip_pos.z() << endl;
-            cout << "eloss: " << aStep->GetTotalEnergyDeposit() / GeV << " GeV" << endl;
-            cout << "safety prestep: " << prePoint->GetSafety()
-                 << ", poststep: " << postPoint->GetSafety() << endl;
-          }
-        }
-      }
-    }
-  }
-  else  // silicon inactive area, FPHX, stabe etc. as absorbers
-  {
-    try
-    {
-      boost::char_separator<char> sep("_");
-      boost::tokenizer<boost::char_separator<char> > tok(touch->GetVolume(0)->GetName(), sep);
-      boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
-      tokeniter = tok.begin();
-      map<string, int>::const_iterator iter = AbsorberIndex.find(*tokeniter);
-      if (iter == AbsorberIndex.end())
-      {
-        cout << "Absorber " << *tokeniter << " not in list" << endl;
-        missingabsorbers.insert(*tokeniter);
-        ladderz = -AbsorberIndex.size();
-        AbsorberIndex[*tokeniter] = ladderz;
-      }
-      else
-      {
-        ladderz = iter->second;
-      }
-      sphxlayer = boost::lexical_cast<int>(*(++tokeniter));
-      inttlayer = boost::lexical_cast<int>(*(++tokeniter));
-    }
-    catch (...)
-    {
-      cout << " that did not work for " << touch->GetVolume(0)->GetName() << endl;
-      missingabsorbers.insert(touch->GetVolume(0)->GetName());
-    }
-  }
 
+	if(fixit == 1)
+	  {
+	    if (strip_y_index_old != strip_y_index || strip_z_index_old != strip_z_index)
+	      {
+		G4VPhysicalVolume* volume_post = postPoint->GetTouchableHandle()->GetVolume();
+		G4LogicalVolume* logvolpre = volume->GetLogicalVolume();
+		G4LogicalVolume* logvolpost = volume_post->GetLogicalVolume();
+		G4ThreeVector preworldPos = prePoint->GetPosition();
+		G4ThreeVector strip_pos = touch->GetHistory()->GetTransform(touch->GetHistory()->GetDepth() - 1).TransformPoint(preworldPos);
+		G4ThreeVector postworldPos = postPoint->GetPosition();
+		G4ThreeVector poststrip_pos = touch->GetHistory()->GetTransform(touch->GetHistory()->GetDepth() - 1).TransformPoint(postworldPos);
+		
+		cout << "Overlap detected in volume " << volume->GetName() << " where post volume "
+		     << volume_post->GetName() << " has same copy no." << volume->GetCopyNo()
+		     << " pre and post step point of same volume for step status fGeomBoundary" << endl;
+		cout << "logvol name " << logvolpre->GetName() << ", post: " << logvolpost->GetName() << endl;
+		cout << "strip y bef: " << strip_y_index_old << ", strip z: " << strip_z_index_old << endl;
+		cout << " strip y aft: " << strip_y_index << ", strip z: " << strip_z_index << endl;
+		cout << "pre hitpos x: " << strip_pos.x() << ", y: " << strip_pos.y() << ", z: "
+		     << strip_pos.z() << endl;
+		cout << "posthitpos x: " << poststrip_pos.x() << ", y: " << poststrip_pos.y() << ", z: "
+		     << poststrip_pos.z() << endl;
+		cout << "eloss: " << aStep->GetTotalEnergyDeposit() / GeV << " GeV" << endl;
+		cout << "safety prestep: " << prePoint->GetSafety()
+		     << ", poststep: " << postPoint->GetSafety() << endl;
+	      }
+	  }
+	else 
+	  {
+	    if(verbosity > 1) cout << "Detected fUndefined for prePoint step status, re-calculated strip_z_index and strip_y_index independently above" << endl;
+	  }
+      } 
+  } // end of whichactive > 0 block
+  else  // silicon inactive area, FPHX, stabe etc. as absorbers
+    {
+     try
+       {
+	  boost::char_separator<char> sep("_");
+	  boost::tokenizer<boost::char_separator<char> > tok(touch->GetVolume(0)->GetName(), sep);
+	  boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
+	  tokeniter = tok.begin();
+	  map<string, int>::const_iterator iter = AbsorberIndex.find(*tokeniter);
+	  if (iter == AbsorberIndex.end())
+	    {
+	      cout << "Absorber " << *tokeniter << " not in list" << endl;
+	      missingabsorbers.insert(*tokeniter);
+	      ladderz = -AbsorberIndex.size();
+	      AbsorberIndex[*tokeniter] = ladderz;
+	    }
+	  else
+	    {
+	      ladderz = iter->second;
+	    }
+	  sphxlayer = boost::lexical_cast<int>(*(++tokeniter));
+	  inttlayer = boost::lexical_cast<int>(*(++tokeniter));
+       }
+     catch (...)
+       {
+	 cout << " that did not work for " << touch->GetVolume(0)->GetName() << endl;
+	 missingabsorbers.insert(touch->GetVolume(0)->GetName());
+       }
+    } // end of si inactive area block
+  
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
-
+  
   // if this block stops everything, just put all kinetic energy into edep
   if ((IsBlackHole.find(inttlayer))->second == 1)
   {
@@ -292,6 +330,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   case fGeomBoundary:
   case fUndefined:
 
+    if(verbosity > 1) cout << " found prePoint step status of fGeomBoundary or fUndefined, start a new hit " << endl;
+ 
     // if previous hit was saved, hit pointer was set to nullptr
     // and we have to make a new one
     if (!hit)
@@ -397,8 +437,20 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       aTrack->GetTrackStatus() == fStopAndKill)
   {
     if (verbosity > 1)
-      cout << " postPoint step status changed, save hit and delete it" << endl;
+      {
+	cout << " postPoint step status changed to " << postPoint->GetStepStatus() << " save hit and delete it" << endl;
+	cout  << " fWorldBoundary " << fWorldBoundary
+	      << " fGeomBoundary = " << fGeomBoundary
+	     << " fAtRestDoItProc " << fAtRestDoItProc
+	     << " fAlongStepDoItProc " << fAlongStepDoItProc
+	      << " fPostStepDoItProc " << fPostStepDoItProc
+	      << " fUserDefinedLimit " << fUserDefinedLimit
+	      << " fExclusivelyForcedProc " << fExclusivelyForcedProc
+	      << " fUndefined " << fUndefined
+	     << " fStopAndKill " << fStopAndKill
+	     << endl;
 
+      }
     // save only hits with energy deposit (or -1 for geantino)
     if (hit->get_edep())
     {
