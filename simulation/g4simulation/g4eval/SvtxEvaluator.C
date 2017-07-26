@@ -109,11 +109,11 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 					   "gembed:gprimary:efromtruth");
 
   if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster","svtxcluster => max truth",
-						   "event:hitID:x:y:z:ex:ey:ez:ephi:"
+						   "event:hitID:x:y:z:r:phi:eta:ex:ey:ez:ephi:"
 						   "e:adc:layer:size:phisize:"
 						   "zsize:trackID:g4hitID:gx:"
-						   "gy:gz:gt:gtrackID:gflavor:"
-						   "gpx:gpy:gpz:gvx:gvy:gvz:"
+						   "gy:gz:gr:gphi:geta:gt:gtrackID:gflavor:"
+						   "gpx:gpy:gpz::gvx:gvy:gvz:"
 						   "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
 						   "gembed:gprimary:efromtruth:nparticles");
 
@@ -1053,6 +1053,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float x        = cluster->get_x();
 	float y        = cluster->get_y();
 	float z        = cluster->get_z();
+	TVector3 pos(x,y,z);
+	float r = pos.Perp();
+	float phi = pos.Phi();
+	float eta = pos.Eta();
 
 	float ex       = sqrt(cluster->get_error(0,0));
 	float ey       = sqrt(cluster->get_error(1,1));
@@ -1074,6 +1078,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float gx       = NAN;
 	float gy       = NAN;
 	float gz       = NAN;
+	float gr       = NAN;
+	float gphi     = NAN;
+	float geta     = NAN;
 	float gt       = NAN;
 	float gtrackID = NAN;
 	float gflavor  = NAN;
@@ -1099,6 +1106,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  gx       = g4hit->get_avg_x();
 	  gy       = g4hit->get_avg_y();
 	  gz       = g4hit->get_avg_z();
+	  TVector3 gpos(gx,gy,gz);
+	  gr = gpos.Perp();
+	  gphi = gpos.Phi();
+	  geta = gpos.Eta();
 	  gt       = g4hit->get_avg_t();
 
 	  if (g4particle) {
@@ -1140,11 +1151,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	float nparticles = clustereval->all_truth_particles(cluster).size();
 
-	float cluster_data[39] = {(float) _ievent,
+	float cluster_data[45] = {(float) _ievent,
 				  hitID,
 				  x,
 				  y,
 				  z,
+				  r,
+				  phi,
+				  eta,
 				  ex,
 				  ey,
 				  ez,
@@ -1160,6 +1174,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				  gx,
 				  gy,
 				  gz,
+				  gr,
+				  gphi,
+				  geta,
 				  gt,
 				  gtrackID,
 				  gflavor,
