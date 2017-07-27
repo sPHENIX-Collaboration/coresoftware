@@ -6,7 +6,7 @@
 class PHG4PSTOFDetector;
 class PHG4Hit;
 class PHG4HitContainer;
-class PHG4Parameters;
+class PHG4ParametersContainer;
 
 class PHG4PSTOFSteppingAction : public PHG4SteppingAction
 {
@@ -14,7 +14,7 @@ class PHG4PSTOFSteppingAction : public PHG4SteppingAction
   public:
 
   //! constructor
-  PHG4PSTOFSteppingAction( PHG4PSTOFDetector*, const PHG4Parameters * );
+  PHG4PSTOFSteppingAction( PHG4PSTOFDetector*, const PHG4ParametersContainer * );
 
   //! destroctor
   virtual ~PHG4PSTOFSteppingAction()
@@ -30,7 +30,7 @@ class PHG4PSTOFSteppingAction : public PHG4SteppingAction
 
   //! pointer to the detector
   PHG4PSTOFDetector* detector_;
-  const PHG4Parameters *params;
+  const PHG4ParametersContainer *params;
   //! pointer to hit container
   PHG4HitContainer * hits_;
   PHG4Hit *hit;

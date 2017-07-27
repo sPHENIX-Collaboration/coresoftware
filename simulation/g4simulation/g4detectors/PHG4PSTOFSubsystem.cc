@@ -10,7 +10,7 @@
 
 #include "PHG4PSTOFSubsystem.h"
 #include "PHG4PSTOFDetector.h"
-#include "PHG4Parameters.h"
+#include "PHG4ParametersContainer.h"
 #include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4PSTOFSteppingAction.h"
 
@@ -30,7 +30,7 @@ using namespace std;
 
 //_______________________________________________________________________
 PHG4PSTOFSubsystem::PHG4PSTOFSubsystem( const std::string &name, const int lyr ):
-  PHG4DetectorSubsystem( name, lyr ),
+  PHG4DetectorGroupSubsystem( name, lyr ),
   detector_( NULL ),
   steppingAction_( NULL ),
   eventAction_(NULL)
@@ -41,18 +41,19 @@ PHG4PSTOFSubsystem::PHG4PSTOFSubsystem( const std::string &name, const int lyr )
 //_______________________________________________________________________
 int PHG4PSTOFSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 {
-  cout << "In PHG4PSTOFSubsystem::InitRunSubsystem " << Name() << "\t" << GetParams()->get_int_param("active") << endl;
+  //cout << "In PHG4PSTOFSubsystem::InitRunSubsystem " << Name() << "\t" << GetParams()->get_int_param("active") << endl;
+  cout << "In PHG4PSTOFSubsystem::InitRunSubsystem " << Name() << endl;
   PHNodeIterator iter( topNode );
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
   // create detector
-  detector_ = new PHG4PSTOFDetector(topNode, GetParams(), Name());
-  //detector_->SetActive(GetParams()->get_int_param("active"));
+  detector_ = new PHG4PSTOFDetector(topNode, GetParamsContainer(), Name());
+  //detector_->SetActive(GetParamsContainer()->get_int_param("active"));
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
 
   set<string> nodes;
-  //if (GetParams()->get_int_param("active"))
+  //if (GetParamsContainer()->get_int_param("active"))
   if ( 1 )  // need to figure out where the parameters are set
   {
     PHNodeIterator dstIter( dstNode );
@@ -71,7 +72,7 @@ int PHG4PSTOFSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
     else
     {
       nodename <<  "G4HIT_" << Name();
-      std::cout <<  "TOFYYYY G4HIT_" << Name() << endl;
+      //std::cout <<  "TOFYYYY G4HIT_" << Name() << endl;
     }
     nodes.insert(nodename.str());
     BOOST_FOREACH(string node, nodes)
@@ -93,7 +94,7 @@ int PHG4PSTOFSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
       }
     }
     // create stepping action
-    steppingAction_ = new PHG4PSTOFSteppingAction(detector_, GetParams());
+    steppingAction_ = new PHG4PSTOFSteppingAction(detector_, GetParamsContainer());
     steppingAction_->Init();
   }
 
@@ -114,8 +115,10 @@ int PHG4PSTOFSubsystem::process_event( PHCompositeNode * topNode )
 
 void PHG4PSTOFSubsystem::Print(const string &what) const
 {
-  cout << "PSTOF Parameters: " << endl;
-  GetParams()->Print();
+  //cout << "PSTOF Parameters: " << endl;
+  PrintDefaultParams();
+  PrintMacroParams();
+  GetParamsContainer()->Print();
   if (detector_)
     {
       detector_->Print(what);
@@ -138,6 +141,17 @@ PHG4SteppingAction* PHG4PSTOFSubsystem::GetSteppingAction( void ) const
 
 void PHG4PSTOFSubsystem::SetDefaultParameters()
 {
-  set_default_double_param("radius", 85.);
-  set_default_int_param("use_g4steps", 0);
+
+  //set_default_double_param("radius", 85.);
+  //set_default_int_param("use_g4steps", 0);
+ 
+  // whether to track through subsystem
+  set_default_int_param(0,"active",1);
+
+  // geometry version number
+  // we use negative numbers until the "official" version
+  // when we build the detector
+  set_default_int_param(0,"geometry_version",-1);
+
 }
+

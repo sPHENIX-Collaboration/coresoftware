@@ -1,6 +1,6 @@
 #include "PHG4PSTOFSteppingAction.h"
 #include "PHG4PSTOFDetector.h"
-#include "PHG4Parameters.h"
+#include "PHG4ParametersContainer.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
@@ -17,11 +17,11 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4PSTOFSteppingAction::PHG4PSTOFSteppingAction( PHG4PSTOFDetector* detector, const PHG4Parameters *parameters ):
+PHG4PSTOFSteppingAction::PHG4PSTOFSteppingAction( PHG4PSTOFDetector* detector, const PHG4ParametersContainer *parameters ):
   detector_( detector ),
   params(parameters), hits_(NULL), hit(NULL),
-  active(params->get_int_param("active")),
-  use_g4_steps(params->get_int_param("use_g4steps"))
+  active(1),
+  use_g4_steps(0)
 {}
 
 //____________________________________________________________________________..
@@ -63,6 +63,14 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction( const G4Step* aStep, bool was_
     //       cout << "track id " << aTrack->GetTrackID() << endl;
     //       cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
     //       cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
+
+    G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
+    G4int copyNo = theTouchable->GetCopyNumber();
+    G4int motherCopyNo = theTouchable->GetCopyNumber(1);
+cout << "XXX " << copyNo << "\t" << motherCopyNo
+  << "\t" << prePoint->GetGlobalTime() / nanosecond 
+  << endl;
+
     if (use_g4_steps)
     {
       hit = new PHG4Hitv1();
@@ -104,6 +112,7 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction( const G4Step* aStep, bool was_
     }
     else // aggregate G4 steps inside volumes
     {
+cout << "AGGREGATING HITS" << endl;
       switch (prePoint->GetStepStatus())
       {
         case fGeomBoundary:
@@ -126,6 +135,8 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction( const G4Step* aStep, bool was_
               }
             }
           }
+
+          hit->set_scint_id(copyNo);
 
           //set the initial energy deposit
           hit->set_edep(0);

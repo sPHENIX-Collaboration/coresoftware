@@ -1,5 +1,5 @@
 #include "PHG4PSTOFDetector.h"
-#include "PHG4Parameters.h"
+#include "PHG4ParametersContainer.h"
 
 #include <g4main/PHG4Utils.h>
 
@@ -38,7 +38,7 @@
 
 using namespace std;
 
-PHG4PSTOFDetector::PHG4PSTOFDetector( PHCompositeNode *Node, PHG4Parameters *parames, const std::string &dnam):
+PHG4PSTOFDetector::PHG4PSTOFDetector( PHCompositeNode *Node, PHG4ParametersContainer *params, const std::string &dnam):
   PHG4Detector(Node, dnam),
   active(1)
 {
@@ -83,10 +83,9 @@ void PHG4PSTOFDetector::Construct( G4LogicalVolume* logicWorld )
 
   const int NMOD = 21;   // number of modules in one row
   const int NROWS = 56;  // number of rows (in azimuth)
-  //const int NROWS = 4;  // number of rows (in azimuth)
   // each module is 8 ch, 1x10cm strips, with strips aligned in phi direction
 
-  // Locations of modules
+  // Locations of modules (geometry version -1)
   //Double_t tof_radius = 85.0*cm; // cm
   Double_t z_mod[2][NMOD] = { { -109.3, -96.66, -84.42, -72.55, -61.07, -49.97, -39.25, -28.72, -18.76, -9.191, 
     0, 9.191, 18.76, 28.72, 39.25, 49.97, 61.07, 72.55, 84.42, 96.66, 109.3 },
@@ -183,7 +182,7 @@ int PHG4PSTOFDetector::DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol,
 }
 */
 
-void PHG4PSTOFDetector::Print(const string &what) const
+void PHG4PSTOFDetector::Print(const std::string &what) const
 {
   cout << "PSTOF Detector:" << endl;
   if (what == "ALL" || what == "VOLUME")

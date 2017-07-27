@@ -11,7 +11,7 @@
 #ifndef PHG4PSTOFSubsystem_h
 #define PHG4PSTOFSubsystem_h
 
-#include "PHG4DetectorSubsystem.h"
+#include "PHG4DetectorGroupSubsystem.h"
 
 #include <map>
 #include <string>
@@ -32,7 +32,7 @@ class PHG4EventAction;
    * \see PHG4PSTOFSubsystem
    *
    */
-class PHG4PSTOFSubsystem: public PHG4DetectorSubsystem
+class PHG4PSTOFSubsystem: public PHG4DetectorGroupSubsystem
 {
 
   public:

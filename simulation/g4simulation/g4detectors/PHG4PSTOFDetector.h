@@ -17,7 +17,7 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
-class PHG4Parameters;
+class PHG4ParametersContainer;
 
 class PHG4PSTOFDetector: public PHG4Detector
 {
@@ -27,7 +27,7 @@ class PHG4PSTOFDetector: public PHG4Detector
   public:
 
   //! constructor
-  PHG4PSTOFDetector( PHCompositeNode *Node, PHG4Parameters *params, const std::string &dnam="PSTOF");
+  PHG4PSTOFDetector( PHCompositeNode *Node, PHG4ParametersContainer *params_array, const std::string &dnam="PSTOF");
 
   //! destructor
   virtual ~PHG4PSTOFDetector();
@@ -51,10 +51,9 @@ class PHG4PSTOFDetector: public PHG4Detector
 
   int active;
   G4LogicalVolume *active_volume;
-
   //int layer;
-  //std::vector<G4VSolid *> scinti_tiles_vec; 
-  //std::set<G4VPhysicalVolume *>steel_absorber_vec;
+
+  PHG4ParametersContainer *paramscontainer;
 
   std::string superdetector;
 };
