@@ -148,6 +148,7 @@ void PHFlag::Print() const
 {
   PrintIntFlags();
   PrintFloatFlags();
+  PrintDoubleFlags();
   PrintCharFlags();
   return ;
 }

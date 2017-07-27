@@ -81,7 +81,7 @@ testexternals.cc:
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 PHHepMC_io_Dict.C: \
   PHGenEvent.h \
@@ -91,7 +91,7 @@ PHHepMC_io_Dict.C: \
   PHHepMCGenEvent.h \
   $(OFFLINE_MAIN)/include/HepMC/*.h \
   PHHepMCLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict* $(BUILT_SOURCES)

@@ -49,6 +49,8 @@ libcemc_la_SOURCES = \
   RawClusterBuilderv1_Dict.cc \
   RawClusterBuilderFwd.cc \
   RawClusterBuilderFwd_Dict.cc \
+  RawClusterPositionCorrection.cc \
+  RawClusterPositionCorrection_Dict.cc \
   RawTowerBuilder.cc \
   RawTowerBuilder_Dict.cc \
   RawTowerCombiner.cc \
@@ -83,13 +85,14 @@ libcemc_la_LIBADD = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ##############################################
 # please add new classes in alphabetical order
 
 pkginclude_HEADERS = \
   RawCluster.h \
+  RawClusterv1.h \
   RawClusterDefs.h \
   RawClusterContainer.h \
   RawTower.h \
@@ -103,7 +106,6 @@ pkginclude_HEADERS = \
   RawTowerGeomContainer.h \
   RawTowerGeomContainerv1.h \
   RawTowerGeomContainer_Cylinderv1.h
-
 ################################################
 # linking tests
 
@@ -130,4 +132,4 @@ testexternals.C:
 # please add new classes in alphabetical order
 
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES)
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm

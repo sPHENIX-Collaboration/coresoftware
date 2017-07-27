@@ -5,6 +5,7 @@
  */
 
 //STL
+#include <limits>
 
 //BOOST
 //#include <boost/foreach.hpp>
@@ -39,15 +40,15 @@ ofstream fout_matrix("matrix.txt");
 
 namespace PHGenFit {
 
-Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMatrixDSym seed_cov)
+Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMatrixDSym seed_cov, const int v)
 {
 	//TODO Add input param check
 
-	verbosity = 2;
+	verbosity = v;
 
 	genfit::MeasuredStateOnPlane seedMSoP(rep);
 	seedMSoP.setPosMomCov(seed_pos, seed_mom, seed_cov);
-	const genfit::StateOnPlane seedSoP(seedMSoP);
+	//const genfit::StateOnPlane seedSoP(seedMSoP);
 
 	TVectorD seedState(6);
 	TMatrixDSym seedCov(6);
@@ -60,6 +61,7 @@ Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMa
 
 Track::Track(const PHGenFit::Track &t) {
 	_track = new genfit::Track(*(t.getGenFitTrack()));
+	verbosity = t.verbosity;
 	_clusterIDs = t.get_cluster_IDs();
 }
 
@@ -70,6 +72,8 @@ int Track::addMeasurement(PHGenFit::Measurement*measurement) {
 	_track->insertPoint(new genfit::TrackPoint(msmts, _track));
 
 	_clusterIDs.push_back(measurement->get_cluster_ID());
+
+	delete measurement;
 
 	return 0;
 }
@@ -85,6 +89,8 @@ int Track::addMeasurements(std::vector<PHGenFit::Measurement*> &measurements)
 
 		//_measurements.push_back(measurement);
 		_clusterIDs.push_back(measurement->get_cluster_ID());
+
+		delete measurement;
 	}
 
 	//measurements.clear();
@@ -103,6 +109,7 @@ int Track::deleteLastMeasurement() {
 
 Track::~Track()
 {
+//	std::cout << "DTOR: " << __LINE__ <<std::endl;
 	delete _track;
 
 //	for(PHGenFit::Measurement* measurement : _measurements)
@@ -202,6 +209,14 @@ genfit::MeasuredStateOnPlane* Track::extrapolateToLine(TVector3 line_point, TVec
 
 double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id, const int direction) const
 {
+#ifdef _DEBUG_
+		std::cout<<__LINE__ <<std::endl;
+		std::cout
+		<<__LINE__
+		<<": tr_point_id: "<<tr_point_id
+		<<": direction: "<<direction
+		<<std::endl;
+#endif
 	assert(direction == 1 or direction == -1);
 
 	double pathlenth = WILD_DOUBLE;
@@ -296,7 +311,7 @@ genfit::MeasuredStateOnPlane*  Track::extrapolateToCylinder(double radius, TVect
 
 int Track::updateOneMeasurementKalman(
 		const std::vector<PHGenFit::Measurement*>& measurements,
-		std::map<double, PHGenFit::Track*>& incr_chi2s_new_tracks,
+		std::map<double, std::shared_ptr<PHGenFit::Track> >& incr_chi2s_new_tracks,
 		const int base_tp_idx,
 		const int direction,
 		const float blowup_factor,
@@ -316,9 +331,9 @@ int Track::updateOneMeasurementKalman(
 
 	for (PHGenFit::Measurement* measurement : measurements) {
 
-		PHGenFit::Track* new_track = NULL;
+		std::shared_ptr<PHGenFit::Track> new_track = NULL;
 
-		new_track = new PHGenFit::Track(*this);
+		new_track = std::shared_ptr<PHGenFit::Track> (new PHGenFit::Track(*this));
 
 //		if(incr_chi2s_new_tracks.size() == 0)
 //			new_track = const_cast<PHGenFit::Track*>(this);
@@ -666,16 +681,56 @@ genfit::MeasuredStateOnPlane*  Track::extrapolateToPoint(TVector3 P, const int t
 		return state;
 }
 
-double Track::get_charge() const {
-	double charge =  WILD_DOUBLE;
+double Track::get_chi2() const {
+	double chi2 = std::numeric_limits<double>::quiet_NaN();
 
 	genfit::AbsTrackRep* rep = _track->getCardinalRep();
 	if(rep) {
-		std::unique_ptr<genfit::StateOnPlane> state (this->extrapolateToLine(TVector3(0, 0, 0),
-				TVector3(1, 0, 0)));
+		genfit::FitStatus* fs = _track->getFitStatus(rep);
+		if(fs)
+			chi2 = fs->getChi2();
+	}
+	return chi2;
+}
+
+double Track::get_ndf() const {
+	double ndf = std::numeric_limits<double>::quiet_NaN();
+
+	genfit::AbsTrackRep* rep = _track->getCardinalRep();
+	if(rep) {
+		genfit::FitStatus* fs = _track->getFitStatus(rep);
+		if(fs)
+			ndf = fs->getNdf();
+	}
+	return ndf;
+}
+
+double Track::get_charge() const {
+	double charge =  std::numeric_limits<double>::quiet_NaN();
+
+	if(!_track) return charge;
+
+	genfit::TrackPoint *tp_base = nullptr;
+
+	if(_track->getNumPointsWithMeasurement() > 0) {
+		tp_base = _track->getPointWithMeasurement(0);
+	}
+
+	if(!tp_base) return charge;
+
+	genfit::AbsTrackRep* rep = _track->getCardinalRep();
+	if(rep) {
+
+		genfit::KalmanFitterInfo* kfi = static_cast<genfit::KalmanFitterInfo*>(tp_base->getFitterInfo(rep));
+
+		if(!kfi) return charge;
+
+		const genfit::MeasuredStateOnPlane* state = &(kfi->getFittedState(true));
+
+		//std::unique_ptr<genfit::StateOnPlane> state (this->extrapolateToLine(TVector3(0, 0, 0), TVector3(1, 0, 0)));
+
 		if (state)
 			charge = rep->getCharge(*state);
-		//delete state;
 	}
 
 	return charge;

@@ -97,7 +97,7 @@ G4Analysis_Dict.C: \
   G4SnglTree.h \
   G4TowerNtuple.h \
   G4AnalysisLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict* $(BUILT_SOURCES)

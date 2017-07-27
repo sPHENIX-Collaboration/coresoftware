@@ -1,12 +1,15 @@
 #ifndef FUN4ALLSERVER_H
 #define FUN4ALLSERVER_H
 
+#include "Fun4AllBase.h"
+#include "Fun4AllHistoManager.h"
+
+#include <phool/PHTimer.h>
+
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
-#include "Fun4AllBase.h"
-#include "Fun4AllHistoManager.h"
 
 class Fun4AllInputManager;
 class Fun4AllSyncManager;
@@ -99,6 +102,8 @@ class Fun4AllServer : public Fun4AllBase
   void EventNumber(const int evtno) { eventnumber = evtno; }
   void NodeIdentify(const std::string &name);
   void KeepDBConnection(const int i = 1) { keep_db_connected = i; }
+  void PrintTimer(const std::string &name = "");
+
  protected:
   Fun4AllServer(const std::string &name = "Fun4AllServer");
   int InitNodeTree(PHCompositeNode *topNode);
@@ -129,6 +134,7 @@ class Fun4AllServer : public Fun4AllBase
   Fun4AllSyncManager *defaultSyncManager;
   std::vector<Fun4AllSyncManager *> SyncManagers;
   std::map<int, int> retcodesmap;
+  std::map<const std::string, PHTimer> timer_map;
   TH1 *FrameWorkVars;
   int keep_db_connected;
 };

@@ -27,6 +27,7 @@ CaloUnpackPRDF::CaloUnpackPRDF() :
     /*Event**/_event(NULL),
     /*Packet_hbd_fpgashort**/_packet(NULL),
     /*int*/_nevents(0),
+    _use_high_eta_EMCal (-1),
     /*PHCompositeNode **/dst_node(NULL),
     /*PHCompositeNode **/data_node(NULL),
     /*RawTowerContainer**/hcalin_towers_lg(NULL),
@@ -75,10 +76,14 @@ CaloUnpackPRDF::process_event(PHCompositeNode *topNode)
       return -1;
     }
 
-  PHG4Parameters run_info_copy("RunInfo");
-  run_info_copy.FillFrom(info);
-  const int emcal_is_higheta = run_info_copy.get_int_param("EMCAL_Is_HighEta");
+  int emcal_is_higheta = _use_high_eta_EMCal;
 
+  if (_use_high_eta_EMCal < 0)
+  {
+    PHG4Parameters run_info_copy("RunInfo");
+    run_info_copy.FillFrom(info);
+    emcal_is_higheta = run_info_copy.get_int_param("EMCAL_Is_HighEta");
+  }
   if (verbosity)
     {
       cout << PHWHERE << "Process event entered" << std::endl;

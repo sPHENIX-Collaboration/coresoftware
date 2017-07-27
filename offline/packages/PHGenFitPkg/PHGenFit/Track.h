@@ -37,7 +37,7 @@ class Track
 public:
 
 	//! Default ctor
-	Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMatrixDSym seed_cov);
+	Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMatrixDSym seed_cov, const int v = 0);
 
 	//! Copy constructor
 	Track(const PHGenFit::Track &t);
@@ -52,8 +52,13 @@ public:
 	int deleteLastMeasurement();
 
 	//!
-	int updateOneMeasurementKalman(const std::vector<PHGenFit::Measurement*>& measurements,
-			std::map<double, PHGenFit::Track*>& incr_chi2s_new_tracks, const int base_tp_idx = -1, const int direction = 1, const float blowup_factor = 1., const bool use_fitted_state = false) const;
+	int updateOneMeasurementKalman(
+			const std::vector<PHGenFit::Measurement*>& measurements,
+			std::map<double, std::shared_ptr<PHGenFit::Track> >& incr_chi2s_new_tracks,
+			const int base_tp_idx = -1,
+			const int direction = 1,
+			const float blowup_factor = 1.,
+			const bool use_fitted_state = false) const;
 
 	/*!
 	 * track_point 0 is the first one, and -1 is the last one
@@ -79,17 +84,9 @@ public:
 
 	genfit::Track* getGenFitTrack() const {return _track;}
 
-	double get_chi2() const {
-		genfit::AbsTrackRep* rep = _track->getCardinalRep();
-		double chi2 = _track->getFitStatus(rep)->getChi2();
-		return chi2;
-	}
+	double get_chi2() const;
 
-	double get_ndf() const {
-		genfit::AbsTrackRep* rep = _track->getCardinalRep();
-		double ndf = _track->getFitStatus(rep)->getNdf();
-		return ndf;
-	}
+	double get_ndf() const;
 
 	double get_charge() const;
 
