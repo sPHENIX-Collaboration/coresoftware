@@ -1,0 +1,375 @@
+#include "PHG4GenFitTrackProjection.h"
+#include "SvtxTrackMap.h"
+#include "SvtxTrack.h"
+#include "PHG4HoughTransform.h"
+
+#include <phgenfit/Fitter.h>
+#include <phgenfit/PlanarMeasurement.h>
+#include <phgenfit/Track.h>
+#include <phgenfit/SpacepointMeasurement.h>
+
+// PHENIX includes
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <phgeom/PHGeomUtility.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/getClass.h>
+
+#include <GenFit/RKTrackRep.h>
+
+// PHENIX Geant4 includes
+#include <g4cemc/RawTowerGeomContainer.h>
+#include <g4cemc/RawTowerContainer.h>
+#include <g4cemc/RawTower.h>
+#include <g4cemc/RawClusterContainer.h>
+#include <g4cemc/RawCluster.h>
+
+// standard includes
+#include <iostream>
+#include <vector>
+#include <memory>
+
+using namespace std;
+
+PHG4GenFitTrackProjection::PHG4GenFitTrackProjection(const string &name, const int pid_guess) :
+		SubsysReco(name),
+
+		_fitter(nullptr),
+		_mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
+		_mag_field_re_scaling_factor(1.4/1.5),
+
+		_pid_guess(pid_guess),
+
+		_num_cal_layers(4),
+		_magfield(1.5),
+		_mag_extent(156.5) // middle of Babar magent
+{
+	_cal_radii.assign(_num_cal_layers, NAN);
+	_cal_names.push_back("PRES"); // PRES not yet in G4
+	_cal_names.push_back("CEMC");
+	_cal_names.push_back("HCALIN");
+	_cal_names.push_back("HCALOUT");
+	_cal_types.push_back(SvtxTrack::PRES); // PRES not yet in G4
+	_cal_types.push_back(SvtxTrack::CEMC);
+	_cal_types.push_back(SvtxTrack::HCALIN);
+	_cal_types.push_back(SvtxTrack::HCALOUT);
+}
+
+int PHG4GenFitTrackProjection::Init(PHCompositeNode *topNode) {
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4GenFitTrackProjection::InitRun(PHCompositeNode *topNode) {
+	for (int i = 0; i < _num_cal_layers; ++i) {
+		string nodename = "TOWERGEOM_" + _cal_names[i];
+		RawTowerGeomContainer *geo = findNode::getClass<RawTowerGeomContainer>(
+				topNode, nodename.c_str());
+		if (geo)
+			_cal_radii[i] = geo->get_radius();
+	}
+
+	TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
+
+	_fitter = PHGenFit::Fitter::getInstance(tgeo_manager,
+			_mag_field_file_name.data(),
+			_mag_field_re_scaling_factor,
+			"DafRef",
+			"RKTrackRep", false);
+
+	_fitter->set_verbosity(verbosity);
+
+	if (!_fitter) {
+		cerr << PHWHERE << endl;
+		return Fun4AllReturnCodes::ABORTRUN;
+	}
+
+	return Fun4AllReturnCodes::EVENT_OK;
+
+	if (verbosity > 0) {
+		cout
+				<< "================== PHG4GenFitTrackProjection::InitRun() ====================="
+				<< endl;
+		for (int i = 0; i < _num_cal_layers; ++i) {
+			if (!std::isnan(_cal_radii[i])) {
+				cout << " " << _cal_names[i] << " projection radius: "
+						<< _cal_radii[i] << " cm" << endl;
+			}
+		}
+		cout << " projections still curl after the mag field" << endl;
+		cout
+				<< " projections start from the vertex momentum vector (M.S. effects could be large)"
+				<< endl;
+		cout << " projections don't correct for the slat HCAL geometry" << endl;
+		cout
+				<< "==========================================================================="
+				<< endl;
+	}
+
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
+	if (verbosity > 1)
+		cout << "PHG4GenFitTrackProjection::process_event -- entered" << endl;
+
+	//---------------------------------
+	// Get Objects off of the Node Tree
+	//---------------------------------
+
+	// Pull the reconstructed track information off the node tree...
+	SvtxTrackMap* _g4tracks = findNode::getClass<SvtxTrackMap>(topNode,
+			"SvtxTrackMap");
+	if (!_g4tracks) {
+		cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap." << endl;
+		return Fun4AllReturnCodes::ABORTRUN;
+	}
+
+	for (int i = 0; i < _num_cal_layers; ++i) {
+
+		if (std::isnan(_cal_radii[i]))
+			continue;
+
+		if (verbosity > 1)
+			cout << "Projecting tracks into: " << _cal_names[i] << endl;
+
+		// pull the tower geometry
+		string towergeonodename = "TOWERGEOM_" + _cal_names[i];
+		RawTowerGeomContainer *towergeo = findNode::getClass<
+				RawTowerGeomContainer>(topNode, towergeonodename.c_str());
+		if (!towergeo) {
+			cerr << PHWHERE << " ERROR: Can't find node " << towergeonodename
+					<< endl;
+			return Fun4AllReturnCodes::ABORTRUN;
+		}
+
+		// pull the towers
+		string towernodename = "TOWER_CALIB_" + _cal_names[i];
+		RawTowerContainer *towerList = findNode::getClass<RawTowerContainer>(
+				topNode, towernodename.c_str());
+		if (!towerList) {
+			cerr << PHWHERE << " ERROR: Can't find node " << towernodename
+					<< endl;
+			return Fun4AllReturnCodes::ABORTRUN;
+		}
+
+		// pull the clusters
+		string clusternodename = "CLUSTER_" + _cal_names[i];
+		RawClusterContainer *clusterList = findNode::getClass<
+				RawClusterContainer>(topNode, clusternodename.c_str());
+		if (!clusterList) {
+			cerr << PHWHERE << " ERROR: Can't find node " << clusternodename
+					<< endl;
+			return Fun4AllReturnCodes::ABORTRUN;
+		}
+
+		// loop over all tracks
+		for (SvtxTrackMap::Iter iter = _g4tracks->begin();
+				iter != _g4tracks->end(); ++iter) {
+			SvtxTrack *track = iter->second;
+
+			if (verbosity > 1)
+				cout << "projecting track id " << track->get_id() << endl;
+
+			if (verbosity > 1) {
+				cout << " track pt = " << track->get_pt() << endl;
+			}
+
+			// curved tracks inside mag field
+			// straight projections thereafter
+			std::vector<double> point;
+			point.assign(3, -9999.);
+			//if (_cal_radii[i] < _mag_extent) {
+			// curved projections inside field
+
+//			_hough.projectToRadius(track,_magfield,_cal_radii[i],point);
+
+//			cout
+//			<<__LINE__
+//			<<": Helix: {"
+//			<< point[0] <<", "
+//			<< point[1] <<", "
+//			<< point[2] <<" }"
+//			<<endl;
+
+			auto last_state_iter = --track->end_states();
+
+			SvtxTrackState * trackstate = last_state_iter->second;
+
+			if(!trackstate) continue;
+			auto rep = shared_ptr<genfit::AbsTrackRep> (new genfit::RKTrackRep(_pid_guess));
+
+			TDatabasePDG *pdg = TDatabasePDG::Instance();
+			int reco_charge = track->get_charge();
+			int gues_charge = pdg->GetParticle(_pid_guess)->Charge();
+			if(reco_charge*gues_charge<0) _pid_guess *= -1;
+
+			shared_ptr<genfit::MeasuredStateOnPlane> msop80 = nullptr;
+
+			{
+				TVector3 pos(trackstate->get_x(), trackstate->get_y(),
+						trackstate->get_z());
+
+				TVector3 mom(trackstate->get_px(), trackstate->get_py(),
+						trackstate->get_pz());
+				TMatrixDSym cov(6);
+				for (int i = 0; i < 6; ++i) {
+					for (int j = 0; j < 6; ++j) {
+						cov[i][j] = trackstate->get_error(i, j);
+					}
+				}
+
+				TVector3 n(trackstate->get_x(), trackstate->get_y(), 0);
+				genfit::SharedPlanePtr plane(new genfit::DetPlane(pos, n));
+				msop80 = shared_ptr<genfit::MeasuredStateOnPlane> (new genfit::MeasuredStateOnPlane(rep.get()));
+				msop80->setPosMomCov(pos, mom, cov);
+				msop80->setPlane(plane);
+			}
+
+			rep->extrapolateToCylinder(*msop80, _cal_radii[i], TVector3(0,0,0),  TVector3(0,0,1));
+
+			point[0] = msop80->getPos().X();
+			point[1] = msop80->getPos().Y();
+			point[2] = msop80->getPos().Z();
+
+//			cout
+//			<<__LINE__
+//			<<": GenFit: {"
+//			<< point[0] <<", "
+//			<< point[1] <<", "
+//			<< point[2] <<" }"
+//			<<endl;
+
+			if (std::isnan(point[0]))
+				continue;
+			if (std::isnan(point[1]))
+				continue;
+			if (std::isnan(point[2]))
+				continue;
+			// } else {
+			// 	// straight line projections after mag field exit
+			// 	_hough.projectToRadius(track,_mag_extent-0.05,point);
+			// 	if (std::isnan(point[0])) continue;
+			// 	if (std::isnan(point[1])) continue;
+			// 	if (std::isnan(point[2])) continue;
+
+			// 	std::vector<double> point2;
+			// 	point2.assign(3,-9999.);
+			// 	_hough.projectToRadius(track,_mag_extent+0.05,point2);
+			// 	if (std::isnan(point2[0])) continue;
+			// 	if (std::isnan(point2[1])) continue;
+			// 	if (std::isnan(point2[2])) continue;
+
+			// 	// find intersection of r and z
+
+			// find x,y of intersection
+			//}
+			double x = point[0];
+			double y = point[1];
+			double z = point[2];
+
+			double phi = atan2(y, x);
+			double eta = asinh(z / sqrt(x * x + y * y));
+
+			if (verbosity > 1) {
+				cout << " initial track phi = " << track->get_phi();
+				cout << ", eta = " << track->get_eta() << endl;
+				cout << " calorimeter phi = " << phi << ", eta = " << eta
+						<< endl;
+			}
+
+			// projection is outside the detector extent
+			// \todo towergeo doesn't make this easy to extract, but this should be
+			// fetched from the node tree instead of hardcoded
+			if (fabs(eta) >= 1.0)
+				continue;
+
+			// calculate 3x3 tower energy
+			int binphi = towergeo->get_phibin(phi);
+			int bineta = towergeo->get_etabin(eta);
+
+			double energy_3x3 = 0.0;
+			double energy_5x5 = 0.0;
+			for (int iphi = binphi - 2; iphi <= binphi + 2; ++iphi) {
+				for (int ieta = bineta - 2; ieta <= bineta + 2; ++ieta) {
+
+					// wrap around
+					int wrapphi = iphi;
+					if (wrapphi < 0) {
+						wrapphi = towergeo->get_phibins() + wrapphi;
+					}
+					if (wrapphi >= towergeo->get_phibins()) {
+						wrapphi = wrapphi - towergeo->get_phibins();
+					}
+
+					// edges
+					if (ieta < 0)
+						continue;
+					if (ieta >= towergeo->get_etabins())
+						continue;
+
+					RawTower* tower = towerList->getTower(ieta, wrapphi);
+					if (tower) {
+
+						energy_5x5 += tower->get_energy();
+						if (abs(iphi - binphi) <= 1 and abs(ieta - bineta) <= 1)
+							energy_3x3 += tower->get_energy();
+
+						if (verbosity > 1)
+							cout << " tower " << ieta << " " << wrapphi
+									<< " energy = " << tower->get_energy()
+									<< endl;
+					}
+				}
+			}
+
+			track->set_cal_energy_3x3(_cal_types[i], energy_3x3);
+			track->set_cal_energy_5x5(_cal_types[i], energy_5x5);
+
+			// loop over all clusters and find nearest
+			double min_r = DBL_MAX;
+			double min_index = -9999;
+			double min_dphi = NAN;
+			double min_deta = NAN;
+			double min_e = NAN;
+			for (unsigned int k = 0; k < clusterList->size(); ++k) {
+
+				RawCluster *cluster = clusterList->getCluster(k);
+
+				double dphi = atan2(sin(phi - cluster->get_phi()),
+						cos(phi - cluster->get_phi()));
+				double deta = eta - cluster->get_eta();
+				double r = sqrt(pow(dphi, 2) + pow(deta, 2));
+
+				if (r < min_r) {
+					min_index = k;
+					min_r = r;
+					min_dphi = dphi;
+					min_deta = deta;
+					min_e = cluster->get_energy();
+				}
+			}
+
+			if (min_index != -9999) {
+				track->set_cal_dphi(_cal_types[i], min_dphi);
+				track->set_cal_deta(_cal_types[i], min_deta);
+				track->set_cal_cluster_id(_cal_types[i], min_index);
+				track->set_cal_cluster_e(_cal_types[i], min_e);
+
+				if (verbosity > 1) {
+					cout << " nearest cluster dphi = " << min_dphi << " deta = "
+							<< min_deta << " e = " << min_e << endl;
+				}
+			}
+
+		} // end track loop
+	} // end calorimeter layer loop
+
+	if (verbosity > 1)
+		cout << "PHG4GenFitTrackProjection::process_event -- exited" << endl;
+
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4GenFitTrackProjection::End(PHCompositeNode *topNode) {
+	return Fun4AllReturnCodes::EVENT_OK;
+}
