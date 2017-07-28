@@ -1,3 +1,9 @@
+/*!
+ *  \file		PHG4GenFitTrackProjection.C
+ *  \brief		Projects into calorimeters and fills track cal fields using GenFit
+ *  \author		Haiwang Yu <yuhw@nmsu.edu>
+ */
+
 #include "PHG4GenFitTrackProjection.h"
 #include "SvtxTrackMap.h"
 #include "SvtxTrack.h"

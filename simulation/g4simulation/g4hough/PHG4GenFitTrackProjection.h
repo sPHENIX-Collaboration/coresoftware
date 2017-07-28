@@ -1,11 +1,11 @@
+/*!
+ *  \file		PHG4GenFitTrackProjection.h
+ *  \brief		Projects into calorimeters and fills track cal fields using GenFit
+ *  \author		Haiwang Yu <yuhw@nmsu.edu>
+ */
+
 #ifndef __PHG4GENFITTRACKPROJECTION_H__
 #define __PHG4GENFITTRACKPROJECTION_H__
-
-//===========================================================
-/// \file PHG4GenFitTrackProjection.h
-/// \brief Projects into calorimeters and fills track cal fields
-/// \author Mike McCumber
-//===========================================================
 
 #include "PHG4HoughTransform.h"
 
