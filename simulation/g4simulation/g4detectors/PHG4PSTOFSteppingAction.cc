@@ -27,10 +27,11 @@ PHG4PSTOFSteppingAction::PHG4PSTOFSteppingAction( PHG4PSTOFDetector* detector, c
 //____________________________________________________________________________..
 bool PHG4PSTOFSteppingAction::UserSteppingAction( const G4Step* aStep, bool was_used )
 {
-
+  G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   // get volume of the current step
   //G4VPhysicalVolume* volume = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
-  G4LogicalVolume* volume = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetLogicalVolume();
+   G4VPhysicalVolume* volume = touch->GetVolume();
+   //G4LogicalVolume* volume = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetLogicalVolume();
 
   if ( !detector_->IsInPSTOF(volume) )
   {
