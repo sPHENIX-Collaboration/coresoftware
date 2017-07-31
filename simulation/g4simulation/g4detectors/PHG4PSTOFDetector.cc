@@ -1,4 +1,5 @@
 #include "PHG4PSTOFDetector.h"
+#include "PHG4Parameters.h"
 #include "PHG4ParametersContainer.h"
 
 #include <g4main/PHG4Utils.h>
@@ -8,30 +9,16 @@
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 
-#include <Geant4/G4AssemblyVolume.hh>
-#include <Geant4/G4IntersectionSolid.hh>
-#include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4TwoVector.hh>
-#include <Geant4/G4Trap.hh>
-#include <Geant4/G4Tubs.hh>
 #include <Geant4/G4UserLimits.hh>
 
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Colour.hh>
-
-#include <CGAL/Exact_circular_kernel_2.h>
-#include <CGAL/point_generators_2.h>
-#include <CGAL/Object.h>
-#include <CGAL/Circular_kernel_intersections.h>
-#include <CGAL/Boolean_set_operations_2.h>
-
-#include <boost/math/special_functions/sign.hpp>
 
 #include <cmath>
 #include <sstream>
@@ -39,9 +26,12 @@
 using namespace std;
 
 PHG4PSTOFDetector::PHG4PSTOFDetector( PHCompositeNode *Node, PHG4ParametersContainer *params, const std::string &dnam):
-  PHG4Detector(Node, dnam),
-  active(1)
+  PHG4Detector(Node, dnam)
+  ,paramscontainer(params)
 {
+  const PHG4Parameters *par = paramscontainer->GetParameters(-1);
+IsActive =  par->get_int_param("active");
+IsAbsorberActive = par->get_int_param("absorberactive");
 }
 
 PHG4PSTOFDetector::~PHG4PSTOFDetector()
@@ -50,17 +40,13 @@ PHG4PSTOFDetector::~PHG4PSTOFDetector()
 
 //_______________________________________________________________
 //_______________________________________________________________
-//int PHG4PSTOFDetector::IsInPSTOF(G4VPhysicalVolume * volume) const
-int PHG4PSTOFDetector::IsInPSTOF(G4LogicalVolume * volume) const
+int PHG4PSTOFDetector::IsInPSTOF(G4VPhysicalVolume * volume) const
 {
   // G4AssemblyVolumes naming convention:
-  if (active)
-  {
-    if ( volume == active_volume )
+  if ( active_phys_vols.find(volume) !=  active_phys_vols.end())
     {
       return 1;
     }
-  }
 
   return 0;
 }
@@ -133,54 +119,17 @@ void PHG4PSTOFDetector::Construct( G4LogicalVolume* logicWorld )
       */
 
       int modnum = NMOD*irow + imod;
-      new G4PVPlacement(rotm,G4ThreeVector(x,y,z), pstof_log_vol, "PSTOF", logicWorld, false, modnum, overlapcheck);
+      G4VPhysicalVolume *vol = new G4PVPlacement(rotm,G4ThreeVector(x,y,z), pstof_log_vol, "PSTOF", logicWorld, false, modnum, overlapcheck);
+      if (IsActive)
+      {
+        active_phys_vols.insert(vol);
+      }
     }
   }
 
   return;
 }
 
-/*
-int PHG4PSTOFDetector::DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol,G4RotationMatrix *rotm )
-{
-  static int i = 0;
-  G4LogicalVolume* checksolid = new G4LogicalVolume(volume,G4Material::GetMaterial("G4_POLYSTYRENE"),"DISPLAYLOGICAL", 0, 0, 0);
-  G4VisAttributes* visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(false);
-  switch(i)
-    {
-    case 0:
-      visattchk->SetColour(G4Colour::Red());
-      i++;
-      break;
-    case 1:
-      visattchk->SetColour(G4Colour::Magenta());
-      i++;
-      break;
-    case 2:
-      visattchk->SetColour(G4Colour::Yellow());
-      i++;
-      break;
-    case 3:
-      visattchk->SetColour(G4Colour::Blue());
-      i++;
-      break;
-    case 4:
-      visattchk->SetColour(G4Colour::Cyan());
-      i++;
-      break;
-    default:
-      visattchk->SetColour(G4Colour::Green());
-      i=0;
-      break;
-    }
-
-  checksolid->SetVisAttributes(visattchk);
-  new G4PVPlacement(rotm,G4ThreeVector(0,0,0),checksolid,"DISPLAYVOL",logvol, 0, false, overlapcheck);
-  return 0;
-}
-*/
 
 void PHG4PSTOFDetector::Print(const std::string &what) const
 {

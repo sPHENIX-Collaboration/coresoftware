@@ -13,12 +13,9 @@
 
 #include "PHG4DetectorGroupSubsystem.h"
 
-#include <map>
 #include <string>
 
 class PHG4PSTOFDetector;
-class PHG4Parameters;
-class PHG4PSTOFSteppingAction;
 class PHG4EventAction;
 
   /**
@@ -38,7 +35,7 @@ class PHG4PSTOFSubsystem: public PHG4DetectorGroupSubsystem
   public:
 
   //! constructor
-  PHG4PSTOFSubsystem( const std::string &name = "PSTOF", const int layer = 0 );
+  PHG4PSTOFSubsystem( const std::string &name = "PSTOF");
 
   //! destructor
   virtual ~PHG4PSTOFSubsystem( void )
@@ -70,6 +67,7 @@ class PHG4PSTOFSubsystem: public PHG4DetectorGroupSubsystem
 
   void SetDefaultParameters();
 
+  static const int NMOD = 21;
   //! detector geometry
   /*! defives from PHG4Detector */
   PHG4PSTOFDetector* detector_;
