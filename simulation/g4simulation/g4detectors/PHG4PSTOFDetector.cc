@@ -85,18 +85,32 @@ void PHG4PSTOFDetector::Construct( G4LogicalVolume* logicWorld )
   for (int irow=0; irow<NROWS; irow++)
   {
     int rowtype = irow%2; // odd or even row
-    Double_t phi = irow*(2.0*M_PI/NROWS);
+    double phi = irow*(2.0*M_PI/NROWS);
 
     for (int imod=0; imod<NMOD; imod++)
     {
+      const PHG4Parameters *par = paramscontainer->GetParameters(imod);
+      double z = NAN;
+      double r = NAN;
+      if (rowtype == 0)
+      {
+	z = par->get_double_param("z_mod_0")*cm;
+        r = par->get_double_param("r_mod_0")*cm;
+      }
+      else
+      {
+	z = par->get_double_param("z_mod_1")*cm;
+        r = par->get_double_param("r_mod_1")*cm;
+      }
+
       //int itof = abs(imod-NMOD/2);
       //Double_t z = itof*(9.0+2.1*itof/(NMOD/2))*cm;  // center of mrpc module
-      Double_t z = z_mod[rowtype][imod]*cm;
-      Double_t r = r_mod[rowtype][imod]*cm;
+      // Double_t z = z_mod[rowtype][imod]*cm;
+      // Double_t r = r_mod[rowtype][imod]*cm;
 
       // amount to rotate
       //Double_t theta = atan2(z+z_offset[rowtype][itof],tof_radius+y_offset[rowtype][itof]);
-      Double_t theta = atan2(z,r);
+      double theta = atan2(z,r);
 
       /*
       if (imod<NMOD/2)
