@@ -239,13 +239,15 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 			point[1] = msop80->getPos().Y();
 			point[2] = msop80->getPos().Z();
 
-			cout
-			<<__LINE__
-			<<": GenFit: {"
-			<< point[0] <<", "
-			<< point[1] <<", "
-			<< point[2] <<" }"
-			<<endl;
+			if (verbosity >= 2) {
+				cout
+				<<__LINE__
+				<<": GenFit: {"
+				<< point[0] <<", "
+				<< point[1] <<", "
+				<< point[2] <<" }"
+				<<endl;
+			}
 
 			if (std::isnan(point[0]))
 				continue;
