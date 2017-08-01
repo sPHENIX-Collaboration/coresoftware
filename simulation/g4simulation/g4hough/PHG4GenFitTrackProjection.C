@@ -35,6 +35,10 @@
 #include <vector>
 #include <memory>
 
+#define LogDebug(exp)		std::cout<<"DEBUG: "	<<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
+#define LogError(exp)		std::cout<<"ERROR: "	<<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
+#define LogWarning(exp)	std::cout<<"WARNING: "	<<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
+
 using namespace std;
 
 PHG4GenFitTrackProjection::PHG4GenFitTrackProjection(const string &name, const int pid_guess) :
@@ -46,9 +50,7 @@ PHG4GenFitTrackProjection::PHG4GenFitTrackProjection(const string &name, const i
 
 		_pid_guess(pid_guess),
 
-		_num_cal_layers(4),
-		_magfield(1.5),
-		_mag_extent(156.5) // middle of Babar magent
+		_num_cal_layers(4)
 {
 	_cal_radii.assign(_num_cal_layers, NAN);
 	_cal_names.push_back("PRES"); // PRES not yet in G4
@@ -173,6 +175,11 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 				iter != _g4tracks->end(); ++iter) {
 			SvtxTrack *track = iter->second;
 
+			if(!track) {
+				if(verbosity >= 2) LogWarning("!track");
+				continue;
+			}
+
 			if (verbosity > 1)
 				cout << "projecting track id " << track->get_id() << endl;
 
@@ -180,31 +187,21 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 				cout << " track pt = " << track->get_pt() << endl;
 			}
 
-			// curved tracks inside mag field
-			// straight projections thereafter
 			std::vector<double> point;
 			point.assign(3, -9999.);
-			//if (_cal_radii[i] < _mag_extent) {
-			// curved projections inside field
-
-//			_hough.projectToRadius(track,_magfield,_cal_radii[i],point);
-
-//			cout
-//			<<__LINE__
-//			<<": Helix: {"
-//			<< point[0] <<", "
-//			<< point[1] <<", "
-//			<< point[2] <<" }"
-//			<<endl;
 
 			auto last_state_iter = --track->end_states();
 
 			SvtxTrackState * trackstate = last_state_iter->second;
 
-			if(!trackstate) continue;
-			auto rep = shared_ptr<genfit::AbsTrackRep> (new genfit::RKTrackRep(_pid_guess));
+			if(!trackstate) {
+				if(verbosity >= 2) LogWarning("!trackstate");
+				continue;
+			}
 
-			TDatabasePDG *pdg = TDatabasePDG::Instance();
+			auto rep = unique_ptr<genfit::AbsTrackRep> (new genfit::RKTrackRep(_pid_guess));
+
+			auto pdg = unique_ptr<TDatabasePDG> (TDatabasePDG::Instance());
 			int reco_charge = track->get_charge();
 			int gues_charge = pdg->GetParticle(_pid_guess)->Charge();
 			if(reco_charge*gues_charge<0) _pid_guess *= -1;
@@ -231,19 +228,24 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 				msop80->setPlane(plane);
 			}
 
-			rep->extrapolateToCylinder(*msop80, _cal_radii[i], TVector3(0,0,0),  TVector3(0,0,1));
+			try {
+				rep->extrapolateToCylinder(*msop80, _cal_radii[i], TVector3(0,0,0),  TVector3(0,0,1));
+			} catch (...) {
+				if(verbosity >= 2) LogWarning("extrapolateToCylinder failed");
+				continue;
+			}
 
 			point[0] = msop80->getPos().X();
 			point[1] = msop80->getPos().Y();
 			point[2] = msop80->getPos().Z();
 
-//			cout
-//			<<__LINE__
-//			<<": GenFit: {"
-//			<< point[0] <<", "
-//			<< point[1] <<", "
-//			<< point[2] <<" }"
-//			<<endl;
+			cout
+			<<__LINE__
+			<<": GenFit: {"
+			<< point[0] <<", "
+			<< point[1] <<", "
+			<< point[2] <<" }"
+			<<endl;
 
 			if (std::isnan(point[0]))
 				continue;
@@ -251,24 +253,7 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 				continue;
 			if (std::isnan(point[2]))
 				continue;
-			// } else {
-			// 	// straight line projections after mag field exit
-			// 	_hough.projectToRadius(track,_mag_extent-0.05,point);
-			// 	if (std::isnan(point[0])) continue;
-			// 	if (std::isnan(point[1])) continue;
-			// 	if (std::isnan(point[2])) continue;
 
-			// 	std::vector<double> point2;
-			// 	point2.assign(3,-9999.);
-			// 	_hough.projectToRadius(track,_mag_extent+0.05,point2);
-			// 	if (std::isnan(point2[0])) continue;
-			// 	if (std::isnan(point2[1])) continue;
-			// 	if (std::isnan(point2[2])) continue;
-
-			// 	// find intersection of r and z
-
-			// find x,y of intersection
-			//}
 			double x = point[0];
 			double y = point[1];
 			double z = point[2];
@@ -284,7 +269,7 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 			}
 
 			// projection is outside the detector extent
-			// \todo towergeo doesn't make this easy to extract, but this should be
+			// TODO towergeo doesn't make this easy to extract, but this should be
 			// fetched from the node tree instead of hardcoded
 			if (fabs(eta) >= 1.0)
 				continue;

@@ -41,9 +41,6 @@ class PHG4GenFitTrackProjection : public SubsysReco
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
-  
-  float get_mag_field() const          {return _magfield;}
-  void  set_mag_field(float magfield) {_magfield = magfield;}
 
 	const std::string& get_mag_field_file_name() const {
 		return _mag_field_file_name;
@@ -77,13 +74,10 @@ class PHG4GenFitTrackProjection : public SubsysReco
 
   int _pid_guess;
 
-  PHG4HoughTransform _hough;
   int _num_cal_layers;
   std::vector<SvtxTrack::CAL_LAYER> _cal_types;
   std::vector<std::string> _cal_names;
   std::vector<float> _cal_radii;
-  double _magfield;
-  double _mag_extent;
 };
 
 #endif // __PHG4GENFITTRACKPROJECTION_H__
