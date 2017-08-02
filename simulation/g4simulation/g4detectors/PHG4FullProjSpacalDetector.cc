@@ -184,6 +184,8 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
               false, val.first, overlapcheck);
 
           calo_vol[wall_phys] = val.first;
+          assert(gdml_config);
+          gdml_config->exclude_physical_vol(wall_phys);
         }
     }
 
@@ -248,6 +250,9 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
               false, val.first, overlapcheck);
 
           calo_vol[wall_phys] = val.first;
+
+          assert(gdml_config);
+          gdml_config->exclude_physical_vol(wall_phys);
         }
     }
 
@@ -271,6 +276,8 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
           g_tower.id, overlapcheck_block);
       block_vol[block_phys] = g_tower.id;
 
+      assert(gdml_config);
+      gdml_config->exclude_physical_vol(block_phys);
     }
 
   cout << "PHG4FullProjSpacalDetector::Construct_AzimuthalSeg::" << GetName()
@@ -426,6 +433,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
           G4String(name.str().c_str()), LV_tower, false, fiber_ID,
           overlapcheck_fiber);
       fiber_vol[fiber_physi] = fiber_ID;
+
       assert(gdml_config);
       gdml_config->exclude_physical_vol(fiber_physi);
 
@@ -550,6 +558,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
               fiber_logic, G4String(name.str().c_str()), LV_tower, false,
               fiber_ID, overlapcheck_fiber);
           fiber_vol[fiber_physi] = fiber_ID;
+
           assert(gdml_config);
           gdml_config->exclude_physical_vol(fiber_physi);
 
