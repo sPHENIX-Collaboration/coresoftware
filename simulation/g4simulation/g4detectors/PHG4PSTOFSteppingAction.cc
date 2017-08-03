@@ -32,6 +32,8 @@ PHG4PSTOFSteppingAction::PHG4PSTOFSteppingAction(PHG4PSTOFDetector* detector, co
   , savetrackid(-1)
   , saveprestepstatus(-1)
   , savepoststepstatus(-1)
+  , edepsum(0)
+  , eionsum(0)
 {
   const PHG4Parameters *par = paramscontainer->GetParameters(-1);
 }
@@ -137,9 +139,10 @@ cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetS
       }
     }
     //set the initial energy deposit
-    hit->set_edep(0);
+    edepsum = 0;
     if (whichactive > 0) 
     {
+      eionsum = 0;
       hit->set_eion(0);
       savehitcontainer = hits_;
     }
@@ -199,36 +202,12 @@ cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetS
   // here we just update the exit values, it will be overwritten
   // for every step until we leave the volume or the particle
   // ceases to exist
-  hit->set_x(1, postPoint->GetPosition().x() / cm);
-  hit->set_y(1, postPoint->GetPosition().y() / cm);
-  hit->set_z(1, postPoint->GetPosition().z() / cm);
-
-  hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
   //sum up the energy to get total deposited
-  hit->set_edep(hit->get_edep() + edep);
+    edepsum += edep;
   if (whichactive > 0)
   {
-    hit->set_eion(hit->get_eion() + eion);
+    eionsum += eion;
   }
-  if (geantino)
-  {
-    hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-    if (whichactive > 0)
-    {
-      hit->set_eion(-1);
-    }
-  }
-  if (edep > 0)
-  {
-    if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
-    {
-      if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
-      {
-	pp->SetKeep(1);  // we want to keep the track
-      }
-    }
-  }
-
   // if any of these conditions is true this is the last step in
   // this volume and we need to save the hit
   // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
@@ -242,9 +221,39 @@ cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetS
       postPoint->GetStepStatus() == fAtRestDoItProc ||
       aTrack->GetTrackStatus() == fStopAndKill)
   {
-    // save only hits with energy deposit (or -1 for geantino)
-    if (hit->get_edep())
+    // save only hits with energy deposit (or geantino)
+    if (edepsum > 0 || geantino)
     {
+// update values at exit coordinates and set keep flag
+// of track to keep
+      hit->set_x(1, postPoint->GetPosition().x() / cm);
+      hit->set_y(1, postPoint->GetPosition().y() / cm);
+      hit->set_z(1, postPoint->GetPosition().z() / cm);
+
+      hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
+      if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
+      {
+	if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
+	{
+	  pp->SetKeep(1);  // we want to keep the track
+	}
+      }
+      if (geantino)
+      {
+	hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
+	if (whichactive > 0)
+	{
+	  hit->set_eion(-1);
+	}
+      }
+      else
+      {
+	hit->set_edep(edepsum);
+      }
+      if (whichactive > 0)
+      {
+	hit->set_eion(eionsum);
+      }
       savehitcontainer->AddHit(layer_id, hit);
       // ownership has been transferred to container, set to null
       // so we will create a new hit for the next track

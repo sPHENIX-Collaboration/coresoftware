@@ -38,6 +38,8 @@ class PHG4PSTOFSteppingAction : public PHG4SteppingAction
   int savetrackid;
   int saveprestepstatus;
   int savepoststepstatus;
+  double edepsum;
+  double eionsum;
 };
 
 #endif  // PHG4PSTOFSteppingAction_h__
