@@ -1,8 +1,9 @@
-#ifndef __PHG4PSTOFSTEPPINGACTION_H__
-#define __PHG4PSTOFSTEPPINGACTION_H__
+#ifndef PHG4PSTOFSteppingAction_h__
+#define PHG4PSTOFSteppingAction_h__
 
-#include "g4main/PHG4SteppingAction.h"
+#include <g4main/PHG4SteppingAction.h>
 
+class G4VPhysicalVolume;
 class PHG4PSTOFDetector;
 class PHG4Hit;
 class PHG4HitContainer;
@@ -10,34 +11,35 @@ class PHG4ParametersContainer;
 
 class PHG4PSTOFSteppingAction : public PHG4SteppingAction
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4PSTOFSteppingAction( PHG4PSTOFDetector*, const PHG4ParametersContainer * );
+  PHG4PSTOFSteppingAction(PHG4PSTOFDetector*, const PHG4ParametersContainer*);
 
-  //! destroctor
-  virtual ~PHG4PSTOFSteppingAction()
-  {}
+  //! destructor
+  virtual ~PHG4PSTOFSteppingAction();
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers( PHCompositeNode* );
+  virtual void SetInterfacePointers(PHCompositeNode*);
 
-  private:
-
+ private:
   //! pointer to the detector
   PHG4PSTOFDetector* detector_;
-  const PHG4ParametersContainer *params;
   //! pointer to hit container
-  PHG4HitContainer * hits_;
-  PHG4Hit *hit;
+  PHG4HitContainer* hits_;
+  PHG4Hit* hit;
+  PHG4HitContainer *savehitcontainer;
 
-  int active;
-  int use_g4_steps;
+  const PHG4ParametersContainer* paramscontainer;
+  G4VPhysicalVolume *savevolpre;
+  G4VPhysicalVolume *savevolpost;
+  int savetrackid;
+  int saveprestepstatus;
+  int savepoststepstatus;
+  double edepsum;
+  double eionsum;
 };
 
-
-#endif // __PHG4PSTOFSTEPPINGACTION_H__
+#endif  // PHG4PSTOFSteppingAction_h__

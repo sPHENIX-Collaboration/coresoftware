@@ -13,15 +13,11 @@
 
 #include "PHG4DetectorGroupSubsystem.h"
 
-#include <map>
 #include <string>
 
 class PHG4PSTOFDetector;
-class PHG4Parameters;
-class PHG4PSTOFSteppingAction;
-class PHG4EventAction;
 
-  /**
+/**
    * \brief Fun4All module to simulate the Barrel PSTOF detector.
    *
    * The detector is constructed and registered via PHG4PSTOFDetector
@@ -32,42 +28,38 @@ class PHG4EventAction;
    * \see PHG4PSTOFSubsystem
    *
    */
-class PHG4PSTOFSubsystem: public PHG4DetectorGroupSubsystem
+class PHG4PSTOFSubsystem : public PHG4DetectorGroupSubsystem
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4PSTOFSubsystem( const std::string &name = "PSTOF", const int layer = 0 );
+  PHG4PSTOFSubsystem(const std::string& name = "PSTOF");
 
   //! destructor
-  virtual ~PHG4PSTOFSubsystem( void )
-  {}
+  virtual ~PHG4PSTOFSubsystem(void)
+  {
+  }
 
   /*!
   creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
   reates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  virtual int InitRunSubsystem(PHCompositeNode *);
+  virtual int InitRunSubsystem(PHCompositeNode*);
 
   //! event processing
   /*!
   get all relevant nodes from top nodes (namely hit list)
   and pass that to the stepping action
   */
-  virtual int process_event(PHCompositeNode *);
+  virtual int process_event(PHCompositeNode*);
 
   //! accessors (reimplemented)
-  virtual PHG4Detector* GetDetector( void ) const;
-  virtual PHG4SteppingAction* GetSteppingAction( void ) const;
-  virtual PHG4EventAction* GetEventAction() const {return eventAction_;}
-
+  virtual PHG4Detector* GetDetector(void) const;
+  virtual PHG4SteppingAction* GetSteppingAction(void) const;
   //! Print info (from SubsysReco)
-  virtual void Print(const std::string &what = "ALL") const;
+  virtual void Print(const std::string& what = "ALL") const;
 
-  private:
-
+ private:
   void SetDefaultParameters();
 
   //! detector geometry
@@ -77,10 +69,6 @@ class PHG4PSTOFSubsystem: public PHG4DetectorGroupSubsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* steppingAction_;
-
-  //! begin/end of event action
-  /*! derives from PHG4EventAction */
-  PHG4EventAction *eventAction_;
 
 };
 
