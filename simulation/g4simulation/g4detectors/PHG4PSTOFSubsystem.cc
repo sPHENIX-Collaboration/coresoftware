@@ -9,7 +9,6 @@
  */
 
 #include "PHG4PSTOFSubsystem.h"
-#include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4PSTOFDetector.h"
 #include "PHG4PSTOFSteppingAction.h"
 #include "PHG4Parameters.h"
@@ -34,7 +33,6 @@ PHG4PSTOFSubsystem::PHG4PSTOFSubsystem(const std::string &name)
   : PHG4DetectorGroupSubsystem(name)
   , detector_(nullptr)
   , steppingAction_(nullptr)
-  , eventAction_(nullptr)
 {
   InitializeParameters();
   Name(name);
@@ -79,15 +77,6 @@ int PHG4PSTOFSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       {
         g4_hits = new PHG4HitContainer(node);
         DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, node.c_str(), "PHObject"));
-      }
-      if (!eventAction_)
-      {
-        eventAction_ = new PHG4EventActionClearZeroEdep(topNode, node);
-      }
-      else
-      {
-        PHG4EventActionClearZeroEdep *evtact = dynamic_cast<PHG4EventActionClearZeroEdep *>(eventAction_);
-        evtact->AddNode(node);
       }
     }
     // create stepping action

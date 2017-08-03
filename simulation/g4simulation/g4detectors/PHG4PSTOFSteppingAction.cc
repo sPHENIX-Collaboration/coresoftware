@@ -11,6 +11,8 @@
 
 #include <phool/getClass.h>
 
+#include <TSystem.h>
+
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 
@@ -23,9 +25,19 @@ PHG4PSTOFSteppingAction::PHG4PSTOFSteppingAction(PHG4PSTOFDetector* detector, co
   , paramscontainer(parameters)
   , hits_(nullptr)
   , hit(nullptr)
+  , savehitcontainer(nullptr)
 {
   const PHG4Parameters *par = paramscontainer->GetParameters(-1);
   active  = par->get_int_param("active");
+}
+
+PHG4PSTOFSteppingAction::~PHG4PSTOFSteppingAction()
+{
+  // if the last hit was a zero energie deposit hit, it is just reset
+  // and the memory is still allocated, so we need to delete it here
+  // if the last hit was saved, hit is a nullptr pointer which are
+  // legal to delete (it results in a no operation)
+  delete hit;
 }
 
 //____________________________________________________________________________..
@@ -34,8 +46,8 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_u
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   // get volume of the current step
   G4VPhysicalVolume* volume = touch->GetVolume();
-
-  if (!detector_->IsInPSTOF(volume))
+  int whichactive = detector_->IsInPSTOF(volume);
+  if (!whichactive)
   {
     return false;
   }
@@ -78,7 +90,10 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_u
     {
     case fGeomBoundary:
     case fUndefined:
+      if (!hit)
+      {
       hit = new PHG4Hitv1();
+      }
       //here we set the entrance values in cm
       hit->set_x(0, prePoint->GetPosition().x() / cm);
       hit->set_y(0, prePoint->GetPosition().y() / cm);
@@ -101,13 +116,20 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_u
 
       //set the initial energy deposit
       hit->set_edep(0);
-      if (active)
+      if (whichactive > 0)
       {
 	hit->set_eion(0);
       }
       // Now add the hit
-      hits_->AddHit(layer_id, hit);
+      if (whichactive > 0) 
       {
+        savehitcontainer = hits_;
+      }
+      else
+      {
+	cout << "implement stuff for whichactive < 0" << endl;
+	gSystem->Exit(1);
+      }
 	if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
 	{
 	  if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
@@ -115,7 +137,6 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_u
 	    pp->GetShower()->add_g4hit_id(hits_->GetID(), hit->get_hit_id());
 	  }
 	}
-      }
 
       break;
 
@@ -154,16 +175,39 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_u
       }
     }
 
-    //      hit->print();
+    // if any of these conditions is true this is the last step in
+    // this volume and we need to save the hit
+    // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
+    // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
+    // (happens when your detector goes outside world volume)
+    // postPoint->GetStepStatus() == fAtRestDoItProc: track stops (typically
+    // aTrack->GetTrackStatus() == fStopAndKill is also set)
+    // aTrack->GetTrackStatus() == fStopAndKill: track ends
+    if (postPoint->GetStepStatus() == fGeomBoundary ||
+        postPoint->GetStepStatus() == fWorldBoundary ||
+        postPoint->GetStepStatus() == fAtRestDoItProc ||
+        aTrack->GetTrackStatus() == fStopAndKill)
+    {
+      // save only hits with energy deposit (or -1 for geantino)
+      if (hit->get_edep())
+      {
+        savehitcontainer->AddHit(layer_id, hit);
+        // ownership has been transferred to container, set to null
+        // so we will create a new hit for the next track
+        hit = nullptr;
+      }
+      else
+      {
+        // if this hit has no energy deposit, just reset it for reuse
+        // this means we have to delete it in the dtor. If this was
+        // the last hit we processed the memory is still allocated
+        hit->Reset();
+      }
+    }
     // return true to indicate the hit was used
     return true;
   }
-  else
-  {
     return false;
-  }
-
-  return false;
 }
 
 //____________________________________________________________________________..

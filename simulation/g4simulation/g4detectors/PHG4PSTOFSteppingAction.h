@@ -14,10 +14,8 @@ class PHG4PSTOFSteppingAction : public PHG4SteppingAction
   //! constructor
   PHG4PSTOFSteppingAction(PHG4PSTOFDetector*, const PHG4ParametersContainer*);
 
-  //! destroctor
-  virtual ~PHG4PSTOFSteppingAction()
-  {
-  }
+  //! destructor
+  virtual ~PHG4PSTOFSteppingAction();
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
@@ -28,10 +26,12 @@ class PHG4PSTOFSteppingAction : public PHG4SteppingAction
  private:
   //! pointer to the detector
   PHG4PSTOFDetector* detector_;
-  const PHG4ParametersContainer* paramscontainer;
   //! pointer to hit container
   PHG4HitContainer* hits_;
   PHG4Hit* hit;
+  PHG4HitContainer *savehitcontainer;
+
+  const PHG4ParametersContainer* paramscontainer;
 
   int active;
 };

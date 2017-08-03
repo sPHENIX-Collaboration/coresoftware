@@ -16,7 +16,6 @@
 #include <string>
 
 class PHG4PSTOFDetector;
-class PHG4EventAction;
 
 /**
    * \brief Fun4All module to simulate the Barrel PSTOF detector.
@@ -57,7 +56,6 @@ class PHG4PSTOFSubsystem : public PHG4DetectorGroupSubsystem
   //! accessors (reimplemented)
   virtual PHG4Detector* GetDetector(void) const;
   virtual PHG4SteppingAction* GetSteppingAction(void) const;
-  virtual PHG4EventAction* GetEventAction() const { return eventAction_; }
   //! Print info (from SubsysReco)
   virtual void Print(const std::string& what = "ALL") const;
 
@@ -72,9 +70,6 @@ class PHG4PSTOFSubsystem : public PHG4DetectorGroupSubsystem
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* steppingAction_;
 
-  //! begin/end of event action
-  /*! derives from PHG4EventAction */
-  PHG4EventAction* eventAction_;
 };
 
 #endif
