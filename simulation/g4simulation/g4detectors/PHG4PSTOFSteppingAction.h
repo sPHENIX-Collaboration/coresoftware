@@ -32,8 +32,6 @@ class PHG4PSTOFSteppingAction : public PHG4SteppingAction
   PHG4HitContainer *savehitcontainer;
 
   const PHG4ParametersContainer* paramscontainer;
-
-  int active;
 };
 
 #endif  // PHG4PSTOFSteppingAction_h__
