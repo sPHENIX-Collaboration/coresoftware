@@ -2,6 +2,7 @@
 #include "PHG4PSTOFDetector.h"
 #include "PHG4Parameters.h"
 #include "PHG4ParametersContainer.h"
+#include "PHG4StepStatusDecode.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -26,6 +27,11 @@ PHG4PSTOFSteppingAction::PHG4PSTOFSteppingAction(PHG4PSTOFDetector* detector, co
   , hits_(nullptr)
   , hit(nullptr)
   , savehitcontainer(nullptr)
+  , savevolpre(nullptr)
+  , savevolpost(nullptr)
+  , savetrackid(-1)
+  , saveprestepstatus(-1)
+  , savepoststepstatus(-1)
 {
   const PHG4Parameters *par = paramscontainer->GetParameters(-1);
 }
@@ -43,8 +49,13 @@ PHG4PSTOFSteppingAction::~PHG4PSTOFSteppingAction()
 bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_used)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
+  G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
   // get volume of the current step
   G4VPhysicalVolume* volume = touch->GetVolume();
+// IsInPSTOF(volume) returns
+//  == 0 outside of pstof
+//   > 0 for hits in active volume
+//  < 0 for hits in passive material
   int whichactive = detector_->IsInPSTOF(volume);
   if (!whichactive)
   {
@@ -83,6 +94,25 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_u
 
   switch (prePoint->GetStepStatus())
   {
+    case fPostStepDoItProc:
+      if (savepoststepstatus != fGeomBoundary)
+      {
+        break;
+      }
+      else
+      {
+	cout << GetName() << ": New Hit for  " << endl;
+cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+<< ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+           << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
+           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << endl;
+      cout << "last track: " << savetrackid
+           << ", current trackid: " << aTrack->GetTrackID() << endl;
+      cout << "phys pre vol: " << volume->GetName()
+           << " post vol : " << touchpost->GetVolume()->GetName() << endl;
+      cout << " previous phys pre vol: " << savevolpre->GetName()
+           << " previous phys post vol: " << savevolpost->GetName() << endl;
+      }
   case fGeomBoundary:
   case fUndefined:
     if (!hit)
@@ -97,28 +127,20 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_u
     // time in ns
     hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
     //set the track ID
+    hit->set_trkid(aTrack->GetTrackID());
+    savetrackid = aTrack->GetTrackID();
+    if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
     {
-      hit->set_trkid(aTrack->GetTrackID());
-      if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
+      if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
       {
-	if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
-	{
-	  hit->set_trkid(pp->GetUserTrackId());
-	}
+	hit->set_trkid(pp->GetUserTrackId());
       }
     }
-
-    hit->set_scint_id(layer_id);
-
     //set the initial energy deposit
     hit->set_edep(0);
-    if (whichactive > 0)
-    {
-      hit->set_eion(0);
-    }
-    // Now add the hit
     if (whichactive > 0) 
     {
+      hit->set_eion(0);
       savehitcontainer = hits_;
     }
     else
@@ -130,17 +152,50 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_u
     {
       if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
       {
+        hit->set_trkid(pp->GetUserTrackId());
 	pp->GetShower()->add_g4hit_id(hits_->GetID(), hit->get_hit_id());
       }
     }
 
     break;
-
   default:
     break;
   }
     
+    // some sanity checks for inconsistencies
+    // check if this hit was created, if not print out last post step status
+    if (!hit || !isfinite(hit->get_x(0)))
+    {
+      cout << GetName() << ": hit was not created" << endl;
+      cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+           << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+           << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
+           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << endl;
+      cout << "last track: " << savetrackid
+           << ", current trackid: " << aTrack->GetTrackID() << endl;
+      cout << "phys pre vol: " << volume->GetName()
+           << " post vol : " << touchpost->GetVolume()->GetName() << endl;
+      cout << " previous phys pre vol: " << savevolpre->GetName()
+           << " previous phys post vol: " << savevolpost->GetName() << endl;
+      exit(1);
+    }
+    // check if track id matches the initial one when the hit was created
+    if (aTrack->GetTrackID() != savetrackid)
+    {
+      cout << GetName() << ": hits do not belong to the same track" << endl;
+      cout << "saved track: " << savetrackid
+           << ", current trackid: " << aTrack->GetTrackID()
+           << ", prestep status: " << prePoint->GetStepStatus()
+           << ", previous post step status: " << savepoststepstatus
+           << endl;
 
+      exit(1);
+    }
+    saveprestepstatus = prePoint->GetStepStatus();
+    savepoststepstatus = postPoint->GetStepStatus();
+    savevolpre = volume;
+    savevolpost = touchpost->GetVolume();
+ 
   // here we just update the exit values, it will be overwritten
   // for every step until we leave the volume or the particle
   // ceases to exist
@@ -158,7 +213,10 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_u
   if (geantino)
   {
     hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-    hit->set_eion(-1);
+    if (whichactive > 0)
+    {
+      hit->set_eion(-1);
+    }
   }
   if (edep > 0)
   {

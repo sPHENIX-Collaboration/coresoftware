@@ -3,6 +3,7 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
+class G4VPhysicalVolume;
 class PHG4PSTOFDetector;
 class PHG4Hit;
 class PHG4HitContainer;
@@ -32,6 +33,11 @@ class PHG4PSTOFSteppingAction : public PHG4SteppingAction
   PHG4HitContainer *savehitcontainer;
 
   const PHG4ParametersContainer* paramscontainer;
+  G4VPhysicalVolume *savevolpre;
+  G4VPhysicalVolume *savevolpost;
+  int savetrackid;
+  int saveprestepstatus;
+  int savepoststepstatus;
 };
 
 #endif  // PHG4PSTOFSteppingAction_h__
