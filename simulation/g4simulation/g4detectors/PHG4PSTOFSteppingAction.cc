@@ -56,7 +56,6 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_u
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
   const G4Track* aTrack = aStep->GetTrack();
 
-  //int layer_id = detector_->get_Layer();
   int layer_id = 0;  // what the heck is this?
   bool geantino = false;
   // the check for the pdg code speeds things up, I do not want to make
@@ -73,15 +72,15 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_u
   //       cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
   //       cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
 
-  G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
-  G4int copyNo = theTouchable->GetCopyNumber();
-  G4int motherCopyNo = theTouchable->GetCopyNumber(1);
-  cout << "XXX " << copyNo << "\t" << motherCopyNo
-       << "\t" << prePoint->GetGlobalTime() / nanosecond
-       << endl;
+  layer_id = touch->GetCopyNumber();
+  if (layer_id != whichactive)
+  {
+    cout << PHWHERE << " inconsistency between G4 copy number: " 
+	 << layer_id << " and module id from detector: "
+	 << whichactive << endl;
+    gSystem->Exit(1);
+  }
 
-
-  cout << "AGGREGATING HITS" << endl;
   switch (prePoint->GetStepStatus())
   {
   case fGeomBoundary:
@@ -90,6 +89,7 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_u
     {
       hit = new PHG4Hitv1();
     }
+    hit->set_layer(layer_id);
     //here we set the entrance values in cm
     hit->set_x(0, prePoint->GetPosition().x() / cm);
     hit->set_y(0, prePoint->GetPosition().y() / cm);
@@ -108,7 +108,7 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_u
       }
     }
 
-    hit->set_scint_id(copyNo);
+    hit->set_scint_id(layer_id);
 
     //set the initial energy deposit
     hit->set_edep(0);

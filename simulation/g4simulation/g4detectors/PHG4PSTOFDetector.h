@@ -39,7 +39,7 @@ protected:
   int nmod;
   int nrows;
   PHG4ParametersContainer *paramscontainer;
-  std::set<G4VPhysicalVolume *> active_phys_vols;
+  std::map<G4VPhysicalVolume *, int> active_phys_vols;
 
   std::string superdetector;
 };

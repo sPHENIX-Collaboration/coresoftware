@@ -37,9 +37,11 @@ PHG4PSTOFDetector::PHG4PSTOFDetector(PHCompositeNode *Node, PHG4ParametersContai
 int PHG4PSTOFDetector::IsInPSTOF(G4VPhysicalVolume *volume) const
 {
   // G4AssemblyVolumes naming convention:
-  if (active_phys_vols.find(volume) != active_phys_vols.end())
+  std::map<G4VPhysicalVolume *, int>::const_iterator iter = active_phys_vols.find(volume);
+
+  if (iter != active_phys_vols.end())
   {
-    return 1;
+    return iter->second;
   }
 
   return 0;
@@ -93,7 +95,8 @@ void PHG4PSTOFDetector::Construct(G4LogicalVolume *logicWorld)
       G4VPhysicalVolume *vol = new G4PVPlacement(rotm, G4ThreeVector(x, y, z), pstof_log_vol, "PSTOF", logicWorld, false, modnum, overlapcheck);
       if (IsActive)
       {
-        active_phys_vols.insert(vol);
+	active_phys_vols[vol] = modnum;
+//        active_phys_vols.insert(vol);
       }
     }
   }
