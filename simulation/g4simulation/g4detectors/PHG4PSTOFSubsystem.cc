@@ -10,6 +10,7 @@
 
 #include "PHG4PSTOFSubsystem.h"
 #include "PHG4PSTOFDetector.h"
+#include "PHG4Parameters.h"
 #include "PHG4ParametersContainer.h"
 #include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4PSTOFSteppingAction.h"
@@ -45,21 +46,16 @@ PHG4PSTOFSubsystem::PHG4PSTOFSubsystem( const std::string &name):
 //_______________________________________________________________________
 int PHG4PSTOFSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 {
-  //cout << "In PHG4PSTOFSubsystem::InitRunSubsystem " << Name() << "\t" << GetParams()->get_int_param("active") << endl;
-  cout << "In PHG4PSTOFSubsystem::InitRunSubsystem " << Name() << endl;
   PHNodeIterator iter( topNode );
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
-  Print();
 
   // create detector
   detector_ = new PHG4PSTOFDetector(topNode, GetParamsContainer(), Name());
-  //detector_->SetActive(GetParamsContainer()->get_int_param("active"));
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
 
   set<string> nodes;
-  //if (GetParamsContainer()->get_int_param("active"))
-  if ( 1 )  // need to figure out where the parameters are set
+  if (GetParamsContainer()->GetParameters(-1)->get_int_param("active"))
   {
     PHNodeIterator dstIter( dstNode );
     PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode",SuperDetector()));
@@ -72,12 +68,10 @@ int PHG4PSTOFSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
     if (SuperDetector() != "NONE")
     {
       nodename <<  "G4HIT_" << SuperDetector();
-      std::cout <<  "TOFXXXX G4HIT_" << Name() << endl;
     }
     else
     {
       nodename <<  "G4HIT_" << Name();
-      //std::cout <<  "TOFYYYY G4HIT_" << Name() << endl;
     }
     nodes.insert(nodename.str());
     BOOST_FOREACH(string node, nodes)
