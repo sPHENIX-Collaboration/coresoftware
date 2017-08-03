@@ -1,7 +1,7 @@
-#ifndef __PHG4PSTOFSTEPPINGACTION_H__
-#define __PHG4PSTOFSTEPPINGACTION_H__
+#ifndef PHG4PSTOFSteppingAction_h__
+#define PHG4PSTOFSteppingAction_h__
 
-#include "g4main/PHG4SteppingAction.h"
+#include <g4main/PHG4SteppingAction.h>
 
 class PHG4PSTOFDetector;
 class PHG4Hit;
@@ -28,13 +28,12 @@ class PHG4PSTOFSteppingAction : public PHG4SteppingAction
  private:
   //! pointer to the detector
   PHG4PSTOFDetector* detector_;
-  const PHG4ParametersContainer* params;
+  const PHG4ParametersContainer* paramscontainer;
   //! pointer to hit container
   PHG4HitContainer* hits_;
   PHG4Hit* hit;
 
   int active;
-  int use_g4_steps;
 };
 
-#endif  // __PHG4PSTOFSTEPPINGACTION_H__
+#endif  // PHG4PSTOFSteppingAction_h__

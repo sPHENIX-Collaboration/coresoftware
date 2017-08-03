@@ -18,7 +18,7 @@ class PHG4PSTOFDetector : public PHG4Detector
   PHG4PSTOFDetector(PHCompositeNode *Node, PHG4ParametersContainer *params_array, const std::string &dnam = "PSTOF");
 
   //! destructor
-  virtual ~PHG4PSTOFDetector();
+  virtual ~PHG4PSTOFDetector(){}
 
   //! construct
   virtual void Construct(G4LogicalVolume *world);
@@ -32,12 +32,14 @@ class PHG4PSTOFDetector : public PHG4Detector
 
   void SuperDetector(const std::string &name) { superdetector = name; }
   const std::string SuperDetector() const { return superdetector; }
- protected:
+ 
+protected:
   int IsActive;
   int IsAbsorberActive;
-  std::set<G4VPhysicalVolume *> active_phys_vols;
-  G4LogicalVolume *active_volume;
+  int nmod;
+  int nrows;
   PHG4ParametersContainer *paramscontainer;
+  std::set<G4VPhysicalVolume *> active_phys_vols;
 
   std::string superdetector;
 };

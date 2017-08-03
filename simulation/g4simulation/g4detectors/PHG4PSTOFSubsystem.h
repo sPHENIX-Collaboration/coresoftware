@@ -64,7 +64,6 @@ class PHG4PSTOFSubsystem : public PHG4DetectorGroupSubsystem
  private:
   void SetDefaultParameters();
 
-  static const int NMOD = 21;
   //! detector geometry
   /*! defives from PHG4Detector */
   PHG4PSTOFDetector* detector_;

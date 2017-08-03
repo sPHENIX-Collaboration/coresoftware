@@ -29,8 +29,6 @@
 
 using namespace std;
 
-//int PHG4PSTOFSubsystem::NMOD = 21;
-
 //_______________________________________________________________________
 PHG4PSTOFSubsystem::PHG4PSTOFSubsystem(const std::string &name)
   : PHG4DetectorGroupSubsystem(name)
@@ -231,7 +229,8 @@ void PHG4PSTOFSubsystem::SetDefaultParameters()
   // we use negative numbers until the "official" version
   // when we build the detector
   // set_default_int_param(-1,"geometry_version",-1);
-  set_default_int_param(-1, "NMOD", NMOD);
+  set_default_int_param(-1, "modules", 21);
+  set_default_int_param(-1, "rows", 56);
   set_default_double_param(-1, "xsize", 0.8);
   set_default_double_param(-1, "ysize", 6.);
   set_default_double_param(-1, "zsize", 5.);

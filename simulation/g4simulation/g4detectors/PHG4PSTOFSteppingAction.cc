@@ -1,5 +1,6 @@
 #include "PHG4PSTOFSteppingAction.h"
 #include "PHG4PSTOFDetector.h"
+#include "PHG4Parameters.h"
 #include "PHG4ParametersContainer.h"
 
 #include <g4main/PHG4Hit.h>
@@ -19,12 +20,12 @@ using namespace std;
 //____________________________________________________________________________..
 PHG4PSTOFSteppingAction::PHG4PSTOFSteppingAction(PHG4PSTOFDetector* detector, const PHG4ParametersContainer* parameters)
   : detector_(detector)
-  , params(parameters)
-  , hits_(NULL)
-  , hit(NULL)
-  , active(1)
-  , use_g4_steps(0)
+  , paramscontainer(parameters)
+  , hits_(nullptr)
+  , hit(nullptr)
 {
+const PHG4Parameters *par = paramscontainer->GetParameters(-1);
+active  = par->get_int_param("active");
 }
 
 //____________________________________________________________________________..
@@ -32,22 +33,19 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_u
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   // get volume of the current step
-  //G4VPhysicalVolume* volume = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
   G4VPhysicalVolume* volume = touch->GetVolume();
-  //G4LogicalVolume* volume = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetLogicalVolume();
 
   if (!detector_->IsInPSTOF(volume))
   {
     return false;
   }
-  //cout << "In PHG4PSTOFSteppingAction::UserSteppingAction,\tFound Hit" << endl;
 
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
   const G4Track* aTrack = aStep->GetTrack();
 
-  // make sure we are in a volume
+  // make sure we are in an active volume
   if (active)
   {
     //int layer_id = detector_->get_Layer();
@@ -74,45 +72,6 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_u
          << "\t" << prePoint->GetGlobalTime() / nanosecond
          << endl;
 
-    if (use_g4_steps)
-    {
-      hit = new PHG4Hitv1();
-      //here we set the entrance values in cm
-      hit->set_x(0, prePoint->GetPosition().x() / cm);
-      hit->set_y(0, prePoint->GetPosition().y() / cm);
-      hit->set_z(0, prePoint->GetPosition().z() / cm);
-      // time in ns
-      hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
-      //set the track ID
-      {
-        hit->set_trkid(aTrack->GetTrackID());
-        if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
-        {
-          if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
-          {
-            hit->set_trkid(pp->GetUserTrackId());
-            hit->set_shower_id(pp->GetShower()->get_id());
-          }
-        }
-      }
-
-      //set the initial energy deposit
-      hit->set_edep(0);
-      hit->set_eion(0);
-
-      // Now add the hit
-      hits_->AddHit(layer_id, hit);
-      {
-        if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
-        {
-          if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
-          {
-            pp->GetShower()->add_g4hit_id(hits_->GetID(), hit->get_hit_id());
-          }
-        }
-      }
-    }
-    else  // aggregate G4 steps inside volumes
     {
       cout << "AGGREGATING HITS" << endl;
       switch (prePoint->GetStepStatus())
