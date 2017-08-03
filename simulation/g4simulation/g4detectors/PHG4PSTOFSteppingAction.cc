@@ -24,8 +24,8 @@ PHG4PSTOFSteppingAction::PHG4PSTOFSteppingAction(PHG4PSTOFDetector* detector, co
   , hits_(nullptr)
   , hit(nullptr)
 {
-const PHG4Parameters *par = paramscontainer->GetParameters(-1);
-active  = par->get_int_param("active");
+  const PHG4Parameters *par = paramscontainer->GetParameters(-1);
+  active  = par->get_int_param("active");
 }
 
 //____________________________________________________________________________..
@@ -72,57 +72,57 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_u
          << "\t" << prePoint->GetGlobalTime() / nanosecond
          << endl;
 
+
+    cout << "AGGREGATING HITS" << endl;
+    switch (prePoint->GetStepStatus())
     {
-      cout << "AGGREGATING HITS" << endl;
-      switch (prePoint->GetStepStatus())
+    case fGeomBoundary:
+    case fUndefined:
+      hit = new PHG4Hitv1();
+      //here we set the entrance values in cm
+      hit->set_x(0, prePoint->GetPosition().x() / cm);
+      hit->set_y(0, prePoint->GetPosition().y() / cm);
+      hit->set_z(0, prePoint->GetPosition().z() / cm);
+      // time in ns
+      hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
+      //set the track ID
       {
-      case fGeomBoundary:
-      case fUndefined:
-        hit = new PHG4Hitv1();
-        //here we set the entrance values in cm
-        hit->set_x(0, prePoint->GetPosition().x() / cm);
-        hit->set_y(0, prePoint->GetPosition().y() / cm);
-        hit->set_z(0, prePoint->GetPosition().z() / cm);
-        // time in ns
-        hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
-        //set the track ID
-        {
-          hit->set_trkid(aTrack->GetTrackID());
-          if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
-          {
-            if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
-            {
-              hit->set_trkid(pp->GetUserTrackId());
-            }
-          }
-        }
-
-        hit->set_scint_id(copyNo);
-
-        //set the initial energy deposit
-        hit->set_edep(0);
-        if (active)
-        {
-          hit->set_eion(0);
-        }
-        // Now add the hit
-        hits_->AddHit(layer_id, hit);
-        {
-          if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
-          {
-            if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
-            {
-              pp->GetShower()->add_g4hit_id(hits_->GetID(), hit->get_hit_id());
-            }
-          }
-        }
-
-        break;
-
-      default:
-        break;
+	hit->set_trkid(aTrack->GetTrackID());
+	if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
+	{
+	  if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
+	  {
+	    hit->set_trkid(pp->GetUserTrackId());
+	  }
+	}
       }
+
+      hit->set_scint_id(copyNo);
+
+      //set the initial energy deposit
+      hit->set_edep(0);
+      if (active)
+      {
+	hit->set_eion(0);
+      }
+      // Now add the hit
+      hits_->AddHit(layer_id, hit);
+      {
+	if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
+	{
+	  if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
+	  {
+	    pp->GetShower()->add_g4hit_id(hits_->GetID(), hit->get_hit_id());
+	  }
+	}
+      }
+
+      break;
+
+    default:
+      break;
     }
+    
 
     // here we just update the exit values, it will be overwritten
     // for every step until we leave the volume or the particle
