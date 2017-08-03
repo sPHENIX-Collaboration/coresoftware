@@ -34,9 +34,7 @@ PHG4PSTOFSteppingAction::PHG4PSTOFSteppingAction(PHG4PSTOFDetector* detector, co
   , savepoststepstatus(-1)
   , edepsum(0)
   , eionsum(0)
-{
-  const PHG4Parameters *par = paramscontainer->GetParameters(-1);
-}
+{}
 
 PHG4PSTOFSteppingAction::~PHG4PSTOFSteppingAction()
 {
