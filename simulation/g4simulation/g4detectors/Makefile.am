@@ -273,6 +273,10 @@ libg4detectors_la_SOURCES = \
   PHG4MapsSteppingAction.cc \
   PHG4MapsSubsystem.cc \
   PHG4MapsSubsystem_Dict.cc \
+  PHG4PSTOFDetector.cc \
+  PHG4PSTOFSteppingAction.cc \
+  PHG4PSTOFSubsystem.cc \
+  PHG4PSTOFSubsystem_Dict.cc \
   PHG4SpacalDetector.cc \
   PHG4FullProjSpacalDetector.cc \
   PHG4FullProjTiltedSpacalDetector.cc \
