@@ -27,12 +27,12 @@ class PHG4PSTOFSteppingAction : public PHG4SteppingAction
  private:
   //! pointer to the detector
   PHG4PSTOFDetector* detector_;
+  const PHG4ParametersContainer* paramscontainer;
   //! pointer to hit container
   PHG4HitContainer* hits_;
   PHG4Hit* hit;
   PHG4HitContainer *savehitcontainer;
 
-  const PHG4ParametersContainer* paramscontainer;
   G4VPhysicalVolume *savevolpre;
   G4VPhysicalVolume *savevolpost;
   int savetrackid;
