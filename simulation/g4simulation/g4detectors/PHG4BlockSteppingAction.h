@@ -3,6 +3,7 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
+class G4VPhysicalVolume;
 class PHG4BlockDetector;
 class PHG4Hit;
 class PHG4HitContainer;
@@ -32,7 +33,10 @@ class PHG4BlockSteppingAction : public PHG4SteppingAction
   PHG4HitContainer *hits_;
   PHG4Hit *hit;
   PHG4Shower *saveshower;
+  G4VPhysicalVolume *savevolpre;
+  G4VPhysicalVolume *savevolpost;
   int savetrackid;
+  int saveprestepstatus;
   int savepoststepstatus;
   int active;
   int IsBlackHole;
