@@ -22,6 +22,7 @@
 #include <phool/getClass.h>
 
 #include <GenFit/RKTrackRep.h>
+#include <GenFit/FieldManager.h>
 
 // PHENIX Geant4 includes
 #include <g4cemc/RawTowerGeomContainer.h>
@@ -30,10 +31,15 @@
 #include <g4cemc/RawClusterContainer.h>
 #include <g4cemc/RawCluster.h>
 
+//ROOT
+#include <TGeoManager.h>
+
 // standard includes
 #include <iostream>
 #include <vector>
 #include <memory>
+
+//#define DEBUG
 
 #define LogDebug(exp)		std::cout<<"DEBUG: "	<<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
 #define LogError(exp)		std::cout<<"ERROR: "	<<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
@@ -47,6 +53,7 @@ PHG4GenFitTrackProjection::PHG4GenFitTrackProjection(const string &name, const i
 		_fitter(nullptr),
 		_mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
 		_mag_field_re_scaling_factor(1.4/1.5),
+		_reverse_mag_field(true),
 
 		_pid_guess(pid_guess),
 
@@ -73,14 +80,18 @@ int PHG4GenFitTrackProjection::InitRun(PHCompositeNode *topNode) {
 		RawTowerGeomContainer *geo = findNode::getClass<RawTowerGeomContainer>(
 				topNode, nodename.c_str());
 		if (geo)
-			_cal_radii[i] = geo->get_radius();
+			_cal_radii[i] = geo->get_radius();//+0.5*geo->get_thickness();
 	}
 
 	TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
 
+#ifdef DEBUG
+	tgeo_manager->Export("Geo_extract.root");
+#endif
+
 	_fitter = PHGenFit::Fitter::getInstance(tgeo_manager,
 			_mag_field_file_name.data(),
-			_mag_field_re_scaling_factor,
+			(_reverse_mag_field) ? -1. * _mag_field_re_scaling_factor : _mag_field_re_scaling_factor,
 			"DafRef",
 			"RKTrackRep", false);
 
@@ -174,7 +185,12 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 		for (SvtxTrackMap::Iter iter = _g4tracks->begin();
 				iter != _g4tracks->end(); ++iter) {
 			SvtxTrack *track = iter->second;
-
+#ifdef DEBUG
+			cout
+			<<__LINE__
+			<<": track->get_charge(): "<<track->get_charge()
+			<<endl;
+#endif
 			if(!track) {
 				if(verbosity >= 2) LogWarning("!track");
 				continue;
@@ -199,21 +215,32 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 				continue;
 			}
 
-			auto rep = unique_ptr<genfit::AbsTrackRep> (new genfit::RKTrackRep(_pid_guess));
-
 			auto pdg = unique_ptr<TDatabasePDG> (TDatabasePDG::Instance());
 			int reco_charge = track->get_charge();
 			int gues_charge = pdg->GetParticle(_pid_guess)->Charge();
 			if(reco_charge*gues_charge<0) _pid_guess *= -1;
+			if(_reverse_mag_field) _pid_guess *= -1;
+#ifdef DEBUG
+			cout
+			<<__LINE__
+			<<": guess charge: " << gues_charge
+			<<": reco charge: " << reco_charge
+			<<": pid: " << _pid_guess
+			<<": pT: " << sqrt(trackstate->get_px()*trackstate->get_px() + trackstate->get_py()*trackstate->get_py())
+			<<endl;
+#endif
 
-			shared_ptr<genfit::MeasuredStateOnPlane> msop80 = nullptr;
+			auto rep = unique_ptr<genfit::AbsTrackRep> (new genfit::RKTrackRep(_pid_guess));
+
+			unique_ptr<genfit::MeasuredStateOnPlane> msop80 = nullptr;
 
 			{
-				TVector3 pos(trackstate->get_x(), trackstate->get_y(),
-						trackstate->get_z());
+				TVector3 pos(trackstate->get_x(), trackstate->get_y(), trackstate->get_z());
+				//pos.SetXYZ(0.01,0,0);
 
-				TVector3 mom(trackstate->get_px(), trackstate->get_py(),
-						trackstate->get_pz());
+				TVector3 mom(trackstate->get_px(), trackstate->get_py(), trackstate->get_pz());
+				//mom.SetXYZ(1,0,0);
+
 				TMatrixDSym cov(6);
 				for (int i = 0; i < 6; ++i) {
 					for (int j = 0; j < 6; ++j) {
@@ -221,33 +248,77 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 					}
 				}
 
-				TVector3 n(trackstate->get_x(), trackstate->get_y(), 0);
+				TVector3 n(trackstate->get_px(), trackstate->get_py(), 0);
 				genfit::SharedPlanePtr plane(new genfit::DetPlane(pos, n));
-				msop80 = shared_ptr<genfit::MeasuredStateOnPlane> (new genfit::MeasuredStateOnPlane(rep.get()));
+				msop80 = unique_ptr<genfit::MeasuredStateOnPlane> (new genfit::MeasuredStateOnPlane(rep.get()));
+
 				msop80->setPosMomCov(pos, mom, cov);
 				msop80->setPlane(plane);
 			}
 
+#ifdef DEBUG
+			{
+				double x = msop80->getPos().X();
+				double y = msop80->getPos().Y();
+				double z = msop80->getPos().Z();
+//				double px = msop80->getMom().X();
+//				double py = msop80->getMom().Y();
+				double pz = msop80->getMom().Z();
+				genfit::FieldManager *field_mgr = genfit::FieldManager::getInstance();
+				double Bx=0, By=0, Bz=0;
+				field_mgr->getFieldVal(x,y,z,Bx,By,Bz);
+				cout
+				<< __LINE__
+				<< ": { " << msop80->getPos().Perp() << ", " << msop80->getPos().Phi() << ", " << z << "} @ "
+				//<< "{ " << Bx << ", " << By << ", " << Bz << "}"
+				<< "{ " << msop80->getMom().Perp() << ", " << msop80->getMom().Phi() << ", " << pz << "} "
+				<<endl;
+				//msop80->Print();
+			}
+#endif
 			try {
 				rep->extrapolateToCylinder(*msop80, _cal_radii[i], TVector3(0,0,0),  TVector3(0,0,1));
+				//rep->extrapolateToCylinder(*msop80, 5., TVector3(0,0,0),  TVector3(0,0,1));
 			} catch (...) {
 				if(verbosity >= 2) LogWarning("extrapolateToCylinder failed");
 				continue;
 			}
 
+#ifdef DEBUG
+			{
+				cout<<__LINE__<<endl;
+				//msop80->Print();
+				double x = msop80->getPos().X();
+				double y = msop80->getPos().Y();
+				double z = msop80->getPos().Z();
+//				double px = msop80->getMom().X();
+//				double py = msop80->getMom().Y();
+				double pz = msop80->getMom().Z();
+				genfit::FieldManager *field_mgr = genfit::FieldManager::getInstance();
+				double Bx=0, By=0, Bz=0;
+				field_mgr->getFieldVal(x,y,z,Bx,By,Bz);
+				cout
+				<< __LINE__
+				<< ": { " << msop80->getPos().Perp() << ", " << msop80->getPos().Phi() << ", " << z << "} @ "
+				//<< "{ " << Bx << ", " << By << ", " << Bz << "}"
+				<< "{ " << msop80->getMom().Perp() << ", " << msop80->getMom().Phi() << ", " << pz << "} "
+				<<endl;
+			}
+#endif
+
 			point[0] = msop80->getPos().X();
 			point[1] = msop80->getPos().Y();
 			point[2] = msop80->getPos().Z();
 
-			if (verbosity >= 2) {
-				cout
-				<<__LINE__
-				<<": GenFit: {"
-				<< point[0] <<", "
-				<< point[1] <<", "
-				<< point[2] <<" }"
-				<<endl;
-			}
+#ifdef DEBUG
+			cout
+			<<__LINE__
+			<<": GenFit: {"
+			<< point[0] <<", "
+			<< point[1] <<", "
+			<< point[2] <<" }"
+			<<endl;
+#endif
 
 			if (std::isnan(point[0]))
 				continue;
@@ -324,6 +395,9 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 			double min_dphi = NAN;
 			double min_deta = NAN;
 			double min_e = NAN;
+#ifdef DEBUG
+			double min_cluster_phi = NAN;
+#endif
 			for (unsigned int k = 0; k < clusterList->size(); ++k) {
 
 				RawCluster *cluster = clusterList->getCluster(k);
@@ -339,6 +413,9 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 					min_dphi = dphi;
 					min_deta = deta;
 					min_e = cluster->get_energy();
+#ifdef DEBUG
+					min_cluster_phi = cluster->get_phi();
+#endif
 				}
 			}
 
@@ -347,6 +424,13 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 				track->set_cal_deta(_cal_types[i], min_deta);
 				track->set_cal_cluster_id(_cal_types[i], min_index);
 				track->set_cal_cluster_e(_cal_types[i], min_e);
+
+#ifdef DEBUG
+			cout
+			<<__LINE__
+			<<": min_cluster_phi: "<<min_cluster_phi
+			<<endl;
+#endif
 
 				if (verbosity > 1) {
 					cout << " nearest cluster dphi = " << min_dphi << " deta = "

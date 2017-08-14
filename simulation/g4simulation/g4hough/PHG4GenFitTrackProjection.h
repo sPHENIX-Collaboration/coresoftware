@@ -66,11 +66,20 @@ class PHG4GenFitTrackProjection : public SubsysReco
 		_pid_guess = pidGuess;
 	}
 
+	bool is_reverse_mag_field() const {
+		return _reverse_mag_field;
+	}
+
+	void set_reverse_mag_field(bool reverseMagField) {
+		_reverse_mag_field = reverseMagField;
+	}
+
  private:
 
   PHGenFit::Fitter * _fitter;
   std::string _mag_field_file_name;
   float _mag_field_re_scaling_factor;
+  bool _reverse_mag_field;
 
   int _pid_guess;
 
