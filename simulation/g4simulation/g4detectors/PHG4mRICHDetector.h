@@ -54,7 +54,7 @@ class PHG4mRICHDetector: public PHG4Detector
   G4VPhysicalVolume* build_box(BoxPar* par, G4LogicalVolume* motherLV);
   G4VPhysicalVolume* build_polyhedra(PolyPar* par, G4LogicalVolume* motherLV);
 
-  G4LogicalVolume* Construct_a_mRICH(G4LogicalVolume* logicWorld);    //single mRICH
+  G4LogicalVolume* Construct_a_mRICH(G4LogicalVolume* logicWorld, int detectorSetup);    //single mRICH
   G4VPhysicalVolume* build_holderBox(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
   void build_foamHolder(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
   void build_aerogel(mRichParameter* detectorParameter,G4VPhysicalVolume* motherPV);

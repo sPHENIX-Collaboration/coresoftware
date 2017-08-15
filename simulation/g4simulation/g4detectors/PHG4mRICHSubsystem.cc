@@ -123,8 +123,14 @@ PHG4mRICHSubsystem::GetDetector( void ) const
 //_______________________________________________________________________
 void PHG4mRICHSubsystem::SetDefaultParameters()
 {
+  set_default_int_param("detectorSetup", 1);   //1 for full setup
+                                               //0 for skeleton setup: detector box, aerogel, and sensor for quick check
+
   set_default_int_param("single_mRICH", 1);    //1 for single mRICH
                                                //0 for mRICH wall
+
+  set_default_int_param("subsystemSetup", 0);  //0: build hemi-spherical wall
+                                               //>0: mRICH wall as sector. "subsystemSetup" becomes num. of sector (max is 8)
 
   set_default_double_param("r_inner", 3);      //inner radius of mRICH wall, default=3m;
   set_default_double_param("eta_min", 1.1);    //limits of rapidity

@@ -77,29 +77,39 @@ bool PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume * volume) const
 //______________________________________________________________
 void PHG4mRICHDetector::Construct( G4LogicalVolume* logicWorld)
 {
-  int single_mRICH =params->get_int_param("single_mRICH");
+  int detectorSetup  =params->get_int_param("detectorSetup");
+  int single_mRICH   =params->get_int_param("single_mRICH");
+  int subsystemSetup =params->get_int_param("subsystemSetup");
 
-  if (single_mRICH==1) Construct_a_mRICH(logicWorld);
+  if (single_mRICH==1) Construct_a_mRICH(logicWorld,detectorSetup);
   else {
-    G4LogicalVolume* a_mRICH=Construct_a_mRICH(0);
-    build_mRICH_wall(logicWorld,a_mRICH);
+    G4LogicalVolume* a_mRICH=Construct_a_mRICH(0,detectorSetup);
+    if (!subsystemSetup) build_mRICH_wall(logicWorld,a_mRICH);
+    else {
+      cout<<"!!!! PHG4mRICHDetector::Construct !!!! nothing will be done right now."<<endl;
+      //build_mRICH_sector(logicWorld,subsystemSetup);
+    }
   }
+
 }
 //_______________________________________________________________
-G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWorld )
+G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWorld, int detectorSetup )
 {
   mRichParameter* parameters=new mRichParameter();
 
+  //--------------------------- skeleton setup ---------------------------//
   /*holder box and hollow volume*/ G4VPhysicalVolume* hollowVol=build_holderBox(parameters,logicWorld);
-  /*foam holder for aerogel     */ //build_foamHolder(parameters,hollowVol->GetLogicalVolume());
   /*aerogel                     */ build_aerogel(parameters,hollowVol);
-  /*lens                        */ build_lens(parameters->GetLensPar("fresnelLens"), hollowVol->GetLogicalVolume());
-  /*mirror                      */ //build_mirror(parameters,hollowVol);
   /*sensor plane                */ build_sensor(parameters,hollowVol->GetLogicalVolume());
-  /*readout electronics         */ //build_polyhedra(parameters->GetPolyPar("readout"),hollowVol->GetLogicalVolume());
-
-  printf("============== detector built ================\n");
-
+ 
+  //-------------------------- for full set up ---------------------------//
+  if (detectorSetup) {               //for full setup
+    /*foam holder for aerogel     */ build_foamHolder(parameters,hollowVol->GetLogicalVolume());
+    /*lens                        */ build_lens(parameters->GetLensPar("fresnelLens"), hollowVol->GetLogicalVolume());
+    /*mirror                      */ build_mirror(parameters,hollowVol);
+    /*readout electronics         */ build_polyhedra(parameters->GetPolyPar("readout"),hollowVol->GetLogicalVolume());
+  }
+  
   return hollowVol->GetMotherLogical();  //return detector holder box.
                                          //you have more than 1 daugthers,
                                          //but you can only have one mother.
@@ -829,4 +839,4 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume* logicWorld, G4LogicalV
   printf("-----------------------------------------------------------------------------\n");
 
 }
-
+//________________________________________________________________________//
