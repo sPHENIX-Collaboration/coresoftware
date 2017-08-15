@@ -93,9 +93,9 @@ G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWor
   /*holder box and hollow volume*/ G4VPhysicalVolume* hollowVol=build_holderBox(parameters,logicWorld);
   /*foam holder for aerogel     */ //build_foamHolder(parameters,hollowVol->GetLogicalVolume());
   /*aerogel                     */ build_aerogel(parameters,hollowVol);
-  /*lens                        */ //build_lens(parameters->GetLensPar("fresnelLens"), hollowVol->GetLogicalVolume());
+  /*lens                        */ build_lens(parameters->GetLensPar("fresnelLens"), hollowVol->GetLogicalVolume());
   /*mirror                      */ //build_mirror(parameters,hollowVol);
-  /*sensor plane                */ //build_sensor(parameters,hollowVol->GetLogicalVolume());
+  /*sensor plane                */ build_sensor(parameters,hollowVol->GetLogicalVolume());
   /*readout electronics         */ //build_polyhedra(parameters->GetPolyPar("readout"),hollowVol->GetLogicalVolume());
 
   printf("============== detector built ================\n");
@@ -756,6 +756,10 @@ void PHG4mRICHDetector::build_lens(LensPar* par, G4LogicalVolume* motherLV)
 //________________________________________________________________________//
 void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume* logicWorld, G4LogicalVolume*a_mRICH)
 {
+  FILE* outputMapFile;
+  outputMapFile=fopen("mRICH_wall_map.txt","w");
+  fprintf(outputMapFile,"pv number \t x (mm) \t y (mm) \t z (mm) \t phi (rad) \t theta (rad)\n");
+
   int i,j;
 
   // mRICH half width, height, and length + air gap
@@ -794,10 +798,8 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume* logicWorld, G4LogicalV
       z=sqrt(pow(rinner+halfLength,2)-pow(x,2)-pow(y,2));
 
       phi=acos(z/sqrt(pow(x,2)+pow(y,2)+pow(z,2)));      //in radian
-      if (phi<=(phi_min+deltaPhi) || phi>=phi_max-deltaPhi) {
-        //printf("phi_min=%.4lf / phi_max=%.4lf /phi=%.4lf\n",phi_min, phi_max, phi);
-        continue;
-      }
+      if (phi<=(phi_min+deltaPhi) || phi>=phi_max-deltaPhi) continue;
+
       theta=atan2(y,x);                                  //in radian
 
       G4ThreeVector pos(x,y,z);
@@ -809,13 +811,19 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume* logicWorld, G4LogicalV
 
       mRICHwall->AddPlacedVolume( a_mRICH,pos,rot);
       j++;
+    
+      //fprintf(outputMapFile,"%d %d %d ", (int) mRICHwall->GetAssemblyID(), (int) mRICHwall->GetImprintsCount(), count);
+      fprintf(outputMapFile,"%d \t",count);
+      fprintf(outputMapFile,"%.3f \t %.3f \t %.3f \t %.3f \t %.3f\n",x, y, z, phi, theta);
       count++;
-    }
+    }//end of for(phi_x)
     i++;
-  }
+  }//end of for(phi_y)
+  fclose(outputMapFile);
 
   G4ThreeVector pos(0, 0, 0);
   mRICHwall->MakeImprint(logicWorld,pos, NULL);
+
   printf("-----------------------------------------------------------------------------\n");
   printf("%d detectors are built\n",count);
   printf("-----------------------------------------------------------------------------\n");
