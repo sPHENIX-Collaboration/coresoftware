@@ -25,6 +25,7 @@
 
 // standard includes
 #include <vector>
+#include <list>
 #include <map>
 #include <memory>
 #include <float.h>
@@ -49,6 +50,9 @@ class PHG4CellContainer;
 class PHG4CylinderGeomContainer;
 
 class PHG4HitContainer;
+
+class TNtuple;
+class TFile;
 
 namespace PHGenFit {
 class Fitter;
@@ -78,10 +82,48 @@ public:
 			unsigned int nlayers_intt = 4,
 			unsigned int nlayers_tpc = 60,
 			unsigned int seeding_nlayer = 7,
-			unsigned int min_seeding_nlayer = 5);
+			unsigned int min_seeding_nlayer = 4);
 
 	virtual ~PHG4KalmanPatRec() {
 	}
+
+	struct TrackQuality {
+		int nhits;
+		float chi2;
+		int ndf;
+
+		int ntpc;
+		int nintt;
+		int nmaps;
+
+		TrackQuality(int nhits_, float chi2_, int ndf_) :
+			nhits(nhits_), chi2(chi2_), ndf(ndf_), ntpc(0), nintt(0), nmaps(0) {}
+
+		TrackQuality(int nhits_, float chi2_, int ndf_, int ntpc_, int nintt_, int nmaps_) :
+			nhits(nhits_), chi2(chi2_), ndf(ndf_), ntpc(ntpc_), nintt(nintt_), nmaps(nmaps_) {}
+
+		bool operator < (const TrackQuality& b) const {
+			if(nhits != b.nhits) return nhits > b.nhits;
+			else return chi2/ndf < b.chi2/b.ndf;
+		}
+
+		friend std::ostream& operator<<(std::ostream& os, const PHG4KalmanPatRec::TrackQuality& tq) {
+			os
+			<< tq.nhits <<", "
+			<< tq.chi2 <<", "<<tq.ndf <<", "
+			<<tq.ntpc <<", "<<tq.nintt<<", " <<tq.nmaps
+			<<std::endl;
+
+			return os;
+		}
+	};
+
+#ifndef __CINT__
+	//typedef std::map<float, std::shared_ptr<PHGenFit::Track> > MapPHGenFitTrack;
+	//typedef std::vector< std::pair<float, std::shared_ptr<PHGenFit::Track> > > MapPHGenFitTrack;
+	//typedef std::vector< std::pair<TrackQuality, std::shared_ptr<PHGenFit::Track> > > MapPHGenFitTrack;
+	typedef std::list< std::pair<TrackQuality, std::shared_ptr<PHGenFit::Track> > > MapPHGenFitTrack;
+#endif
 
 	int Init(PHCompositeNode *topNode);
 	int InitRun(PHCompositeNode *topNode);
@@ -286,6 +328,10 @@ public:
 
 	void set_seeding_only_mode(bool seedingOnlyMode) {
 		_seeding_only_mode = seedingOnlyMode;
+	}
+
+	void set_analyzing_mode(bool analyzingMode) {
+		_analyzing_mode = analyzingMode;
 	}
 
 	float get_max_merging_deta() const {
@@ -514,6 +560,15 @@ public:
 //		_nlayers_all = nlayersAll;
 //	}
 
+	unsigned int get_min_nlayers_seeding() const {
+		return _min_nlayers_seeding;
+	}
+
+	void set_min_nlayers_seeding(unsigned int minNlayersSeeding) {
+		_min_nlayers_seeding = minNlayersSeeding;
+		_min_combo_hits = minNlayersSeeding;
+	}
+
 #ifndef __CINT__
 
 private:
@@ -598,7 +653,8 @@ private:
 	//! FullTrackFitting Call.
 	int SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, unsigned int itrack);
 	int TrackPropPatRec(PHCompositeNode* topNode,
-			const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> &track,
+			//const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> &track,
+			MapPHGenFitTrack::iterator &track_iter,
 			const unsigned int init_layer = 0, const unsigned int end_layer = 66,
 			const bool use_fitted_state_once = false);
 
@@ -611,7 +667,7 @@ private:
 
 	//! ExportOutput Call. Make SvtxTrack from PHGenFit::Track and set of clusters
 	//std::shared_ptr<SvtxTrack> MakeSvtxTrack(const int genfit_track_ID, const SvtxVertex * vertex = NULL);
-	int OutputPHGenFitTrack(PHCompositeNode* topNode, std::map<int, std::shared_ptr<PHGenFit::Track>>::iterator);
+	int OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitTrack::iterator);
 
 	//------------------
 	// Subfunction Calls
@@ -729,6 +785,9 @@ private:
 
 
 	bool _seeding_only_mode;
+	bool _analyzing_mode;
+	TFile* _analyzing_file;
+	TNtuple* _analyzing_ntuple;
 
 	//! Cleanup Seeds
 	float _max_merging_dphi;
@@ -789,7 +848,7 @@ private:
 
 	float _search_win_phi;
 	float _search_win_theta;
-	std::map<int, float> _search_wins_rphi;
+	std::map<int, float> _search_wins_phi;
 	std::map<int, float> _search_wins_theta;
 
 	//std::map<unsigned int, std::map<int, std::multimap<int, unsigned int>>> _layer_thetaID_phiID_cluserID;
@@ -801,7 +860,7 @@ private:
 	float _layer_thetaID_phiID_cluserID_zSize;
 
 
-	std::map<int, std::shared_ptr<PHGenFit::Track>> _trackID_PHGenFitTrack;
+	MapPHGenFitTrack _PHGenFitTracks;
 	//! +1: inside out; -1: outside in
 	int _init_direction;
 	float _blowup_factor;

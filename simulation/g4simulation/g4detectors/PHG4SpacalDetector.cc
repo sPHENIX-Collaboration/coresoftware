@@ -189,6 +189,9 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
                                                  G4String(name.str().c_str()), cylinder_logic, false, sec,
                                                  overlapcheck);
     calo_vol[calo_phys] = sec;
+
+    assert(gdml_config);
+    gdml_config->exclude_physical_vol(calo_phys);
   }
   _geom->set_nscint(_geom->get_nscint() * _geom->get_sector_map().size());
 

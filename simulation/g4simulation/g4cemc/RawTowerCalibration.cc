@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <map>
 #include <cassert>
+#include <string>
 
 using namespace std;
 
@@ -32,7 +33,8 @@ RawTowerCalibration::RawTowerCalibration(const std::string& name) :
     //! calibration constant in unit of GeV per ADC
     _calib_const_GeV_ADC(NAN), //
     _zero_suppression_GeV(0), //
-    _tower_type(-1), _timer(PHTimeServer::get()->insert_new(name))
+    _tower_type(-1), _timer(PHTimeServer::get()->insert_new(name)),
+    _tower_calib_params(name)
 {
 }
 
@@ -106,6 +108,26 @@ RawTowerCalibration::process_event(PHCompositeNode *topNode)
           const double raw_energy = raw_tower->get_energy();
           const double calib_energy = (raw_energy - _pedstal_ADC)
               * _calib_const_GeV_ADC;
+
+          if (calib_energy > _zero_suppression_GeV)
+            {
+              RawTower *calib_tower = new RawTowerv1(*raw_tower);
+              calib_tower->set_energy(calib_energy);
+              _calib_towers->AddTower(key, calib_tower);
+            }
+        }
+      else if (_calib_algorithm == kTower_by_tower_calibration)
+        {
+          const int eta = raw_tower->get_bineta();
+          const int phi = raw_tower->get_binphi();
+          const string calib_const_name("calib_const_eta"+to_string(eta)+"_phi"+to_string(phi));
+
+          const double tower_by_tower_calib =
+              _tower_calib_params.get_double_param(calib_const_name);
+
+          const double raw_energy = raw_tower->get_energy();
+          const double calib_energy = (raw_energy - _pedstal_ADC)
+              * _calib_const_GeV_ADC * tower_by_tower_calib;
 
           if (calib_energy > _zero_suppression_GeV)
             {

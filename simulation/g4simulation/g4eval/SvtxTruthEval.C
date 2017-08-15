@@ -206,6 +206,14 @@ PHG4Hit* SvtxTruthEval::get_outermost_truth_hit(PHG4Particle* particle) {
   PHG4Hit* outermost_hit = nullptr;
   float outermost_radius = FLT_MAX*-1.0;
   
+  if (_do_cache) {
+    std::map<PHG4Particle*,PHG4Hit*>::iterator iter =
+      _cache_get_outermost_truth_hit.find(particle);
+    if (iter != _cache_get_outermost_truth_hit.end()) {
+      return iter->second;
+    }
+  }
+
   std::set<PHG4Hit*> truth_hits = all_truth_hits(particle);
   for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
        iter != truth_hits.end();
@@ -219,6 +227,7 @@ PHG4Hit* SvtxTruthEval::get_outermost_truth_hit(PHG4Particle* particle) {
       outermost_hit = candidate;      
     }
   }
+  if (_do_cache) _cache_get_outermost_truth_hit.insert(make_pair(particle,outermost_hit));
 
   return outermost_hit;
 }

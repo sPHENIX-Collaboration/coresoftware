@@ -255,7 +255,13 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const string &topnod
     cout << "Registering Subsystem " << subsystem->Name() << endl;
   }
   Subsystems.push_back(newsubsyspair);
-
+  ostringstream timer_name;
+  timer_name << subsystem->Name() << "_" << topnodename;
+  PHTimer timer(timer_name.str());
+  if (timer_map.find(timer_name.str()) == timer_map.end())
+  {
+    timer_map[timer_name.str()] = timer;
+  }
   RetCodes.push_back(iret);  // vector with return codes
   return 0;
 }
@@ -546,7 +552,25 @@ int Fun4AllServer::process_event()
 
     try
     {
+      ostringstream timer_name;
+      timer_name << (*iter).first->Name() << "_" << (*iter).second->getName();
+      std::map<const std::string, PHTimer>::iterator titer = timer_map.find(timer_name.str());
+      bool timer_found = false;
+      if (titer != timer_map.end())
+      {
+        timer_found = true;
+	titer->second.restart();
+      }
+      else
+      {
+	cout << "could not find timer for " << timer_name << endl;
+      }
       RetCodes[icnt] = (*iter).first->process_event((*iter).second);
+      if (timer_found)
+      {
+	titer->second.stop();
+      }
+
     }
     catch (const exception &e)
     {
@@ -1611,6 +1635,36 @@ void Fun4AllServer::NodeIdentify(const std::string &name)
   {
     cout << "Could not locate node " << name
          << " or no PHObject Node" << endl;
+  }
+  return;
+}
+
+void Fun4AllServer::PrintTimer(const string &name)
+{
+  map<const string, PHTimer>::const_iterator iter;
+  if (name.empty())
+  {
+    for (iter = timer_map.begin(); iter != timer_map.end(); ++iter)
+    {
+      iter->second.print_stat();
+    }
+  }
+  else
+  {
+    iter = timer_map.find(name);
+    if (iter != timer_map.end())
+    {
+      iter->second.print_stat();
+    }
+    else
+    {
+      cout << "No timer with name " << name << " found" << endl;
+      cout << "Existing timers:" << endl;
+      for (iter = timer_map.begin(); iter != timer_map.end(); ++iter)
+      {
+	cout << iter->first << endl;
+      }
+    }
   }
   return;
 }

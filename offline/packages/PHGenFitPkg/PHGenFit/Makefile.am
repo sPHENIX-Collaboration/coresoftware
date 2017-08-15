@@ -21,14 +21,16 @@ pkginclude_HEADERS = \
   Measurement.h \
   PlanarMeasurement.h \
   SpacepointMeasurement.h \
-  Track.h
+  Track.h \
+  Tools.h
 
 libPHGenFit_la_SOURCES = \
   Fitter.cc \
   Measurement.cc \
   PlanarMeasurement.cc \
   SpacepointMeasurement.cc \
-  Track.cc
+  Track.cc \
+  Tools.cc
 
 libPHGenFit_la_LIBADD = \
   -lgenfit2 \

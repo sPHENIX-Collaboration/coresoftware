@@ -49,6 +49,11 @@ AC_ARG_ENABLE(
 
 CXXFLAGS="-Werror -O2 -DNDEBUG  ${CXXFLAGS} ${AVX_FLAG}"
 
+dnl test for root 6
+if test `root-config --version | gawk '{print $1>=6.?"1":"0"}'` = 1; then
+CINTDEFS=" -noIncludePaths  -inlineInputHeader "
+AC_SUBST(CINTDEFS)
+fi
 
 AC_CONFIG_FILES([Makefile helix_hough.pc])
 

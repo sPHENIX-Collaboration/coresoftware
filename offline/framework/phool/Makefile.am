@@ -90,8 +90,7 @@ PHBase_dict.cc : \
   PHTimeStamp.h \
   recoConsts.h \
   PHBase_LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
-	rm -f *_dict*
-	rm -f testexternals.cc
+	rm -f *_dict* testexternals.cc *.pcm

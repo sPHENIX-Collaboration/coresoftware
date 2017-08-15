@@ -54,6 +54,10 @@ pkginclude_HEADERS = \
   PHG4CylinderCellv3.h \
   PHG4CylinderCellContainer.h \
   PHG4CylinderGeom.h \
+  PHG4CylinderGeomv1.h \
+  PHG4CylinderGeomv2.h \
+  PHG4CylinderGeomv3.h \
+  PHG4CylinderGeomv4.h \
   PHG4CylinderGeom_Spacalv1.h \
   PHG4CylinderGeom_MAPS.h \
   PHG4CylinderGeom_Siladders.h \
@@ -64,6 +68,9 @@ pkginclude_HEADERS = \
   PHG4CylinderCellGeom.h \
   PHG4CylinderCellGeom_Spacalv1.h \
   PHG4CylinderCellGeomContainer.h \
+  PHG4CylinderSubsystem.h \
+  PHG4DetectorSubsystem.h \
+  PHG4DetectorGroupSubsystem.h \
   PHG4HcalDefs.h \
   PHG4ParameterContainerInterface.h \
   PHG4ParameterInterface.h \
@@ -266,6 +273,10 @@ libg4detectors_la_SOURCES = \
   PHG4MapsSteppingAction.cc \
   PHG4MapsSubsystem.cc \
   PHG4MapsSubsystem_Dict.cc \
+  PHG4PSTOFDetector.cc \
+  PHG4PSTOFSteppingAction.cc \
+  PHG4PSTOFSubsystem.cc \
+  PHG4PSTOFSubsystem_Dict.cc \
   PHG4SpacalDetector.cc \
   PHG4FullProjSpacalDetector.cc \
   PHG4FullProjTiltedSpacalDetector.cc \
@@ -292,7 +303,7 @@ libg4detectors_la_SOURCES = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
 # linking tests

@@ -62,7 +62,7 @@ PHPythia8_Dict.C: \
   PHPy8ParticleTrigger.h \
   PHPy8JetTrigger.h \
   PHPythia8LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict*

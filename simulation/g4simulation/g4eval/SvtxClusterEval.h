@@ -17,6 +17,9 @@ class SvtxClusterMap;
 class SvtxHitMap;
 class SvtxTruthEval;
 
+using namespace std;
+typedef multimap<float, SvtxCluster*> innerMap;
+
 class SvtxClusterEval {
 
 public:
@@ -64,6 +67,8 @@ public:
 private:
 
   void get_node_pointers(PHCompositeNode* topNode);
+  void fill_cluster_layer_map();
+  //  void fill_g4hit_layer_map();
   bool has_node_pointers();
   
   SvtxHitEval _hiteval;
@@ -85,6 +90,9 @@ private:
   std::map<PHG4Hit*,SvtxCluster* >                      _cache_best_cluster_from_g4hit;
   std::map<std::pair<SvtxCluster*,PHG4Particle*>,float> _cache_get_energy_contribution_g4particle;
   std::map<std::pair<SvtxCluster*,PHG4Hit*>,float>      _cache_get_energy_contribution_g4hit;
+
+  std::multimap<unsigned int, innerMap> _clusters_per_layer;
+  std::multimap<unsigned int, PHG4Hit*> _g4hits_per_layer;
 };
 
 #endif // SVTXCLUSTEREVAL_H__
