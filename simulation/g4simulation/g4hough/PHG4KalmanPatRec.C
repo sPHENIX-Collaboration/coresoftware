@@ -3323,7 +3323,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 //				<<", #totoal tracks: "<<_trackID_PHGenFitTrack.size()
 //				<<std::endl;
 
-		for (std::map<double, PHGenFit::Track*>::iterator iter =
+		for (auto iter =
 				incr_chi2s_new_tracks.begin();
 				iter != incr_chi2s_new_tracks.end(); iter++) {
 			std::cout << __LINE__ << ": IncrChi2: "<< iter->first << std::endl;
