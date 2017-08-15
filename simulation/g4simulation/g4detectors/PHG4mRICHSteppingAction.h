@@ -8,6 +8,7 @@ class PHG4mRICHDetector;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Parameters;
+class G4VPhysicalVolume;
 
 class PHG4mRICHSteppingAction : public PHG4SteppingAction
 {
@@ -39,9 +40,11 @@ class PHG4mRICHSteppingAction : public PHG4SteppingAction
   std::string superdetector;
 
   //! pointer to hit container
-  PHG4HitContainer * hits_;
-  PHG4HitContainer * absorberhits_;
-  PHG4Hit *hit;
+  PHG4HitContainer* hits_;
+  PHG4HitContainer* absorberhits_;
+  PHG4Hit* hit;
+
+  int GetModuleID(G4VPhysicalVolume* volume);
 };
 
 

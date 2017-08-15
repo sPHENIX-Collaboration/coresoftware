@@ -1,27 +1,25 @@
 /*===============================================================*
  *                       March 19th 2017                         *
     mRICH Stepping Action created by Cheuk-Ping Wong @GSU        *
- *===============================================================*
- *                       March 19th 2017                         * 
- *---------------------------------------------------------------*
- * Modified from PHG4ForwardEcalSteppingAction.cc This code still*
- * need polishing                                                *
  *===============================================================*/
 #include "PHG4mRICHSteppingAction.h"
 #include "PHG4mRICHDetector.h"
 #include "PHG4Parameters.h"
+#include "PHG4StepStatusDecode.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
-
 #include <g4main/PHG4TrackUserInfoV1.h>
+
+#include <TSystem.h>
 
 #include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4MaterialCutsCouple.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
@@ -54,7 +52,8 @@ PHG4mRICHSteppingAction::PHG4mRICHSteppingAction( PHG4mRICHDetector* detector,PH
   hits_(NULL),
   absorberhits_(NULL),
   hit(NULL)
-{}
+{
+}
 //____________________________________________________________________________..
 PHG4mRICHSteppingAction::~PHG4mRICHSteppingAction()
 {
@@ -63,20 +62,32 @@ PHG4mRICHSteppingAction::~PHG4mRICHSteppingAction()
 //____________________________________________________________________________..
 bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 {
+  ////int savetrackid;
+  PHG4HitContainer *savehitcontainer=nullptr;
+  PHG4Shower *saveshower=nullptr;
+
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4VPhysicalVolume* volume = touch->GetVolume();
 
   bool whichactive = detector_->IsInmRICH(volume);
   if ( !whichactive  ) return false;
-  //if ( whichactive  ) return false;
 
+  int module_id=GetModuleID(volume);
+  if (!module_id) { 
+    cout<<"ERROR: module_id<0"<<endl; 
+    return false;
+  }
+
+  //-----------------------------------------------------------------------------------//
   /* Get energy deposited by this step */
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
 
   /* Get pointer to associated Geant4 track */
   const G4Track* aTrack = aStep->GetTrack();
-
+  //int PID=aTrack->GetDefinition()->GetPDGEncoding();
+  //if (PID==0) cout<<":::::::::::::::::: PID="<<PID<<" ::::::::::::::::::"<<endl;
+  //-----------------------------------------------------------------------------------//
   // if this block stops everything, just put all kinetic energy into edep
   if (IsBlackHole) {
     edep = aTrack->GetKineticEnergy() / GeV;
@@ -84,6 +95,7 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
     killtrack->SetTrackStatus(fStopAndKill);
   }
 
+  //-----------------------------------------------------------------------------------//
   /* Make sure we are in a volume */
   if ( active ) {
     /* Check if particle is 'geantino' */
@@ -97,14 +109,12 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
     G4StepPoint * prePoint = aStep->GetPreStepPoint();
     G4StepPoint * postPoint = aStep->GetPostStepPoint();
 
-    switch (prePoint->GetStepStatus())
-      {
+    switch (prePoint->GetStepStatus()) {
       //-----------------
       case fGeomBoundary:
       //-----------------
       case fUndefined:
 	if (! hit) hit = new PHG4Hitv1();
-
 	/* Set hit location (space point) */
 	hit->set_x( 0, prePoint->GetPosition().x() / cm);
 	hit->set_y( 0, prePoint->GetPosition().y() / cm );
@@ -115,23 +125,32 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	
 	//set the track ID
 	hit->set_trkid(aTrack->GetTrackID());
+	//savetrackid = aTrack->GetTrackID();
+
 	/* set intial energy deposit */
 	hit->set_edep( 0 );
-	hit->set_eion( 0 );
+	if (whichactive) {
+	  hit->set_eion( 0 );
+	  //hit->set_light_yield(0);
+	  savehitcontainer = hits_;
+	}
+	else savehitcontainer = absorberhits_;
 	
 	// here we set what is common for scintillator and absorber hits
 	if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() ) {
 	  if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) ) {
 	    hit->set_trkid(pp->GetUserTrackId());
 	    hit->set_shower_id(pp->GetShower()->get_id());
+	    saveshower = pp->GetShower();
 	  }
 	}
 	break;
-      //-----------------
-      default:
+	//-----------------
+    default:
 	break;
-      }
-    
+    }
+
+    //-----------------------------------------------------------------------------------//
     /* Update exit values- will be overwritten with every step until
      * we leave the volume or the particle ceases to exist */
     hit->set_x( 1, postPoint->GetPosition().x() / cm );
@@ -148,6 +167,7 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
       hit->set_eion(-1);
     }
+    //if (edep!=0 || PID==0) {
     if (edep > 0 /*&& (whichactive > 0 || absorbertruth > 0)*/) {
       if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() ) {
 	if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) ) {
@@ -155,11 +175,36 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	}
       }
     }
+
+    //-----------------------------------------------------------------------------------//
+    // if any of these conditions is true this is the last step in
+    // this volume and we need to save the hit
+    if (postPoint->GetStepStatus() == fGeomBoundary ||
+        postPoint->GetStepStatus() == fWorldBoundary ||
+        postPoint->GetStepStatus() == fAtRestDoItProc ||
+        aTrack->GetTrackStatus() == fStopAndKill) {
+      // save only hits with energy deposit (or -1 for geantino)
+      if (hit->get_edep()){
+	savehitcontainer->AddHit(module_id, hit);
+	if (saveshower) saveshower->add_g4hit_id(hits_->GetID(), hit->get_hit_id());
+	// ownership has been transferred to container, set to null
+	// so we will create a new hit for the next track
+	hit = nullptr;
+      }
+      else {
+	// if this hit has no energy deposit, just reset it for reuse
+	// this means we have to delete it in the dtor. If this was
+	// the last hit we processed the memory is still allocated
+	hit->Reset();
+      }
+    }
+
     return true;
     
   }
-  else return false;
+  //else return false;    //this is not safe. It should always return something.
 
+  return false;
 }
 
 
@@ -194,43 +239,41 @@ void PHG4mRICHSteppingAction::SetInterfacePointers( PHCompositeNode* topNode )
   }
 }
 //____________________________________________________________________________..
-/*
-int
-PHG4ForwardEcalSteppingAction::FindTowerIndex(G4TouchableHandle touch, int& j, int& k)
+int PHG4mRICHSteppingAction::GetModuleID(G4VPhysicalVolume* volume)
 {
-        int j_0, k_0;           //The j and k indices for the scintillator / tower
+  // G4AssemblyVolumes naming convention:
+  //     av_WWW_impr_XXX_YYY_ZZZ
+  // where:
+  //     WWW - assembly volume instance number
+  //     XXX - assembly volume imprint number 
+  //     YYY - the name of the placed logical volume
+  //     ZZZ - the logical volume index inside the assembly volume
+  // e.g. av_1_impr_82_HcalInnerScinti_11_pv_11 
+  // 82 the number of the scintillator mother volume
+  // HcalInnerScinti_11: name of scintillator slat  
+  // 11: number of scintillator slat logical volume 
+  // use boost tokenizer to separate the _, then take value
+  // after "impr" for mother volume and after "pv" for scintillator slat
+  // use boost lexical cast for string -> int conversion 
+  int module_id = -1;
 
-        G4VPhysicalVolume* tower = touch->GetVolume(0);		//Get the tower solid
-	ParseG4VolumeName(tower, j_0, k_0);
+  boost::char_separator<char> sep("_");
+  boost::tokenizer<boost::char_separator<char>> tok(volume->GetName(), sep);
+  boost::tokenizer<boost::char_separator<char>>::const_iterator tokeniter;
 
-        j = (j_0*1);
-        k = (k_0*1);
-
-        return 0;
+  for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter) {
+    if (*tokeniter == "pv") {
+      ++tokeniter;
+      if (tokeniter != tok.end()) {
+	module_id = boost::lexical_cast<int>(*tokeniter);
+	//if (module_id<0) cout<<"ERROR: module_id<0"<<endl;
+      }
+      else {
+	cout << PHWHERE << " Error parsing " << volume->GetName()
+	     << " for mother scinti slat id " << endl;
+	gSystem->Exit(1);
+      }
+    }
+  }
+  return module_id;
 }
-
-int
-PHG4ForwardEcalSteppingAction::ParseG4VolumeName( G4VPhysicalVolume* volume, int& j, int& k ) 
-{
-	boost::char_separator<char> sep("_");
-	boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
-	boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
-	for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
-	{
-		if (*tokeniter == "j")
-		{
-			++tokeniter;
-			if ( tokeniter == tok.end()) break;
-			j = boost::lexical_cast<int>(*tokeniter);
-		}
-		else if (*tokeniter == "k")
-		{
-			++tokeniter;
-      if ( tokeniter == tok.end()) break;
-			k = boost::lexical_cast<int>(*tokeniter);
-		}
-	}
-
-	return 0;
-}
-*/
