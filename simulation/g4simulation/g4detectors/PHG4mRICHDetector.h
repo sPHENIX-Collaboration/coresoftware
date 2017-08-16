@@ -54,7 +54,7 @@ class PHG4mRICHDetector: public PHG4Detector
   G4VPhysicalVolume* build_box(BoxPar* par, G4LogicalVolume* motherLV);
   G4VPhysicalVolume* build_polyhedra(PolyPar* par, G4LogicalVolume* motherLV);
 
-  G4LogicalVolume* Construct_a_mRICH(G4LogicalVolume* logicWorld, int detectorSetup);    //single mRICH
+  G4LogicalVolume* Construct_a_mRICH(G4LogicalVolume* logicWorld);//, int detectorSetup);    //single mRICH
   G4VPhysicalVolume* build_holderBox(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
   void build_foamHolder(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
   void build_aerogel(mRichParameter* detectorParameter,G4VPhysicalVolume* motherPV);
@@ -62,8 +62,9 @@ class PHG4mRICHDetector: public PHG4Detector
   void build_mirror(mRichParameter* detectorParameter,G4VPhysicalVolume* motherPV);
   void build_sensor(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
 
-  void build_mRICH_wall(G4LogicalVolume* space, G4LogicalVolume* a_mRICH);
-
+  void build_mRICH_wall(G4LogicalVolume* space);
+  void build_mRICH_sector(G4LogicalVolume* logicWorld, int numSector);
+  
   int layer;
   //int blackhole;
   std::string superdetector;

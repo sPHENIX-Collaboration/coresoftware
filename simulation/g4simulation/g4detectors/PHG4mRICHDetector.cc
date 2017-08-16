@@ -77,24 +77,20 @@ bool PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume * volume) const
 //______________________________________________________________
 void PHG4mRICHDetector::Construct( G4LogicalVolume* logicWorld)
 {
-  int detectorSetup  =params->get_int_param("detectorSetup");
-  int single_mRICH   =params->get_int_param("single_mRICH");
   int subsystemSetup =params->get_int_param("subsystemSetup");
+  //-1 : single module
+  //0  : hemispheric wall
+  //>0 : number of sectors
 
-  if (single_mRICH==1) Construct_a_mRICH(logicWorld,detectorSetup);
-  else {
-    G4LogicalVolume* a_mRICH=Construct_a_mRICH(0,detectorSetup);
-    if (!subsystemSetup) build_mRICH_wall(logicWorld,a_mRICH);
-    else {
-      cout<<"!!!! PHG4mRICHDetector::Construct !!!! nothing will be done right now."<<endl;
-      //build_mRICH_sector(logicWorld,subsystemSetup);
-    }
-  }
-
+  if (subsystemSetup==-1) Construct_a_mRICH(logicWorld);
+  else if (subsystemSetup) build_mRICH_sector(logicWorld,subsystemSetup);//cout<<"!!!! PHG4mRICHDetector::Construct !!!! nothing will be done right now."<<endl;
+  else build_mRICH_wall(logicWorld);
 }
 //_______________________________________________________________
-G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWorld, int detectorSetup )
+G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWorld)//, int detectorSetup )
 {
+  int detectorSetup=params->get_int_param("detectorSetup");
+
   mRichParameter* parameters=new mRichParameter();
 
   //--------------------------- skeleton setup ---------------------------//
@@ -415,7 +411,7 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
   aerogel->color=G4Colour(1.0,0.65,0.0);
   aerogel->visibility=true;
   aerogel->wireframe=true;
-  aerogel->surface=false;
+  aerogel->surface=true;
 
   //----------
   // set Fresnel lens
@@ -764,7 +760,7 @@ void PHG4mRICHDetector::build_lens(LensPar* par, G4LogicalVolume* motherLV)
   
 }
 //________________________________________________________________________//
-void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume* logicWorld, G4LogicalVolume*a_mRICH)
+void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume* logicWorld)
 {
   FILE* outputMapFile;
   outputMapFile=fopen("mRICH_wall_map.txt","w");
@@ -772,8 +768,9 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume* logicWorld, G4LogicalV
 
   int i,j;
 
-  // mRICH half width, height, and length + air gap
+  // build a single mRICH, then get half width, height, and length + air gap
   G4double gap=3*cm;         //large gap to avoid overlap. temporary solution
+  G4LogicalVolume* a_mRICH=Construct_a_mRICH(0);
   G4Box* mRICH_box=dynamic_cast<G4Box*>(a_mRICH->GetSolid());
   G4double halfWidth=mRICH_box->GetXHalfLength();// + gap;
   G4double halfLength=mRICH_box->GetZHalfLength()+gap;
@@ -839,4 +836,50 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume* logicWorld, G4LogicalV
   printf("-----------------------------------------------------------------------------\n");
 
 }
+//________________________________________________________________________//
+void PHG4mRICHDetector::build_mRICH_sector(G4LogicalVolume* logicWorld, int numSector)
+{
+  //build a single mRICH, and get halfWidth (x/y direction) 
+  G4LogicalVolume* a_mRICH=Construct_a_mRICH(0);
+  G4Box* mRICH_box=dynamic_cast<G4Box*>(a_mRICH->GetSolid());
+  G4double halfWidth=mRICH_box->GetXHalfLength();
+
+  //parameters for a sector
+  G4double y_min=1.5*m, y_max=3*m, m=tan((45*1.5)*pi/180);     //m=1=tan(45deg)
+  G4double x, y;       //center of the detector
+  G4double x_max;      //half length of a row in x direction
+  int n;
+  G4ThreeVector pos;
+  
+  //--------------- a single sector ---------------//
+  G4AssemblyVolume* sector = new G4AssemblyVolume();   //"mother volume"
+  //int i=1;
+  for (y=y_min+halfWidth; y<=y_max-halfWidth; y=y+2*halfWidth) {
+    x_max=(y-halfWidth)/m;             //half length of a row
+    n=floor(x_max/halfWidth);
+    x_max=(n-1)*halfWidth;           //max x-coordinate of the center of a module in a row
+                                     //adjusting value of x_max to make the sector symmetric
+
+    //cout<<"row "<<i<<" y-halfWidth="<<y<<" / x_max="<<x_max<<" / n="<<n<<" / x= ";
+    for (x=-x_max; x<=x_max+1*mm; x=x+2*halfWidth) {
+      //cout<<x<<" ";
+      pos=G4ThreeVector(x,y,0);
+      sector->AddPlacedVolume( a_mRICH,pos,0);
+    } //end of for(x)
+    //cout<<" ."<<endl;
+    //i++;
+  } //end of for (y)                                                                                                                                                                                 
+  //--------------- compose all sectors ---------------//
+  G4ThreeVector pos2=G4ThreeVector(0.0*m, 0.0*m, 3.0*m);    //w.r.t. the logicWorld
+                                                            //not working properly, need to be fixed
+  for (int i=0;i<numSector;i++) {
+    G4RotationMatrix* rot=new G4RotationMatrix();
+      //rot->rotateX(phi*(-1)*sin(theta)*180*deg/pi);
+      //rot->rotateY(phi*cos(theta)*180*deg/pi);
+      rot->rotateZ(i*45*deg);
+      sector->MakeImprint(logicWorld, pos2, rot);
+  }
+
+}
+
 //________________________________________________________________________//
