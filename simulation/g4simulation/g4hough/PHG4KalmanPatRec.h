@@ -116,6 +116,7 @@ public:
 
 			return os;
 		}
+
 	};
 
 #ifndef __CINT__
@@ -567,6 +568,14 @@ public:
 	void set_min_nlayers_seeding(unsigned int minNlayersSeeding) {
 		_min_nlayers_seeding = minNlayersSeeding;
 		_min_combo_hits = minNlayersSeeding;
+	}
+
+	int get_primary_pid_guess() const {
+		return _primary_pid_guess;
+	}
+
+	void set_primary_pid_guess(int primaryPidGuess) {
+		_primary_pid_guess = primaryPidGuess;
 	}
 
 #ifndef __CINT__

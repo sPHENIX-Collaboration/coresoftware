@@ -70,6 +70,7 @@ pkginclude_HEADERS = \
   PHG4TruthPatRec.h \
   PHG4TrackFastSim.h \
   PHG4SvtxMomentumRecal.h \
+  PHG4GenFitTrackProjection.h \
   PHG4SvtxTrackProjection.h \
   PHG4SvtxBeamSpotReco.h \
   PHG4TPCClusterizer.h \
@@ -146,6 +147,8 @@ libg4hough_la_SOURCES = \
   PHG4TrackFastSim_Dict.C \
   PHG4SvtxMomentumRecal.C \
   PHG4SvtxMomentumRecal_Dict.C \
+  PHG4GenFitTrackProjection.C \
+  PHG4GenFitTrackProjection_Dict.C \
   PHG4SvtxTrackProjection.C \
   PHG4SvtxTrackProjection_Dict.C \
   PHG4SvtxBeamSpotReco.C \
