@@ -61,7 +61,9 @@ PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
       fHErrorRPhi(NULL),
       fHErrorZ(NULL),
       fFractRPsm(0.0),
-      fFractZZsm(0.0)
+      fFractZZsm(0.0),
+      fShapingLead(0.19),
+      fShapingTail(0.285)
 {
   memset(nbins,0,sizeof(nbins));
   unsigned int seed = PHRandomSeed(); // fixed seed is handled in this funtcion
@@ -284,7 +286,13 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       double r = sqrt( xinout*xinout + yinout*yinout );
       phi = atan2(hiter->second->get_avg_y(), hiter->second->get_avg_x());
       z =  hiter->second->get_avg_z();
-      
+      if(verbosity>2000)
+	cout << "loop over hits, hit avge z = " <<   hiter->second->get_avg_z()
+	     << " hit avge x = " <<  hiter->second->get_avg_x() 
+	     << " hit avge y = " <<  hiter->second->get_avg_y()
+	     << " phi = " << phi
+	     << endl;
+
       // apply primary charge distortion
       if( (*layer) >= (unsigned int)num_pixel_layers )
         { // in TPC	    
@@ -325,6 +333,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       if(verbosity>1) {
 	fHMeanEDepPerCell->Fill( float(*layer), z, edep );
       }
+      if(verbosity > 2000) cout << "Find or start a cell for this hit" << endl;
+
       if( (*layer) < (unsigned int)num_pixel_layers ) { // MAPS + ITT
 	unsigned long long longphibins = nphibins;
         unsigned long long key = zbin*longphibins + phibin;
@@ -356,17 +366,29 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	if(verbosity>1) {
 	  fHElectrons->Fill( nelec );
 	}
-	double sigmaT = 0.010; //100um
-	double sigmaL = 0.010; //100um
+	//cout << "nelec = " << nelec << endl;
+
+	// The resolution due to pad readout is dominated by the charge spread during GEM multiplication, which we hard code because it is not a matter of opinion!
+	double sigmaT = 0.04; // 400 microns, charge dispersion at pad due to GEM stage, from Tom (see 8/11 email)
+	// We use a double gaussian to represent the smearing due to the SAMPA chip shaping time - default values of fShapingLead and fShapingTail are 0.19 and 0.285 cm
+	// 1.9 mm = sigma derived from front half of measured pulse shape, assuming it is gaussian - FWHM = 75 ns, sigma = 32 ns
+	// 2.85 mm = sigma derived from back half of measured pulse shape, assuming it is gaussian - FWHM = 75*1.5 ns, sigma = 32*1.5 ns = 48 ns
+	double sigmaL[2];
+	sigmaL[0] = fShapingLead; 
+	sigmaL[1] = fShapingTail; 
         double cloud_sig_rp = sqrt( fDiffusionT*fDiffusionT*(fHalfLength - fabs(hiter->second->get_avg_z())) + sigmaT*sigmaT );
-        double cloud_sig_zz = sqrt( fDiffusionL*fDiffusionL*(fHalfLength - fabs(hiter->second->get_avg_z())) + sigmaL*sigmaL );
+	double cloud_sig_zz[2];
+	cloud_sig_zz[0] = sqrt( fDiffusionL*fDiffusionL*(fHalfLength - fabs(hiter->second->get_avg_z())) + sigmaL[0]*sigmaL[0] );
+	cloud_sig_zz[1] = sqrt( fDiffusionL*fDiffusionL*(fHalfLength - fabs(hiter->second->get_avg_z())) + sigmaL[1]*sigmaL[1] );
 
 	//===============
-	// adding a random displacement to effectively deal with cellularisation
+	// adding a random displacement, parameter is set in the macro
+	// This just randomly offsets the cluster position to simulate the cluster resolution expected from a back of the enevelope calculation
 	phi += fFractRPsm*gsl_ran_gaussian(RandomGenerator, cloud_sig_rp)/r;
 	if(phi>+M_PI) phi -= 2*M_PI;
 	if(phi<-M_PI) phi += 2*M_PI;
-	z += fFractZZsm*gsl_ran_gaussian(RandomGenerator, cloud_sig_zz);
+	z += fFractZZsm*gsl_ran_gaussian(RandomGenerator, cloud_sig_zz[0]);
+
 	// moving center
 	phibin = geo->get_phibin( phi );
 	zbin = geo->get_zbin( z );
@@ -378,22 +400,40 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	zdisp = z - geo->get_zcenter(zbin);
 	// increase cloud sigma too
 	cloud_sig_rp *= (1+fFractRPsm);
-	cloud_sig_zz *= (1+fFractZZsm);
+	cloud_sig_zz[0] *= (1+fFractZZsm);
+	cloud_sig_zz[1] *= (1+fFractZZsm);
+
+	if(verbosity > 2000)	
+	  cout << "After adding random displacement: phi = " << phi << " z = " << z << " phibin = " << phibin << " zbin = " << zbin << endl
+	       << " phidisp = " << phidisp << " zdisp = " << zdisp << " new cloud_sig_rp " << cloud_sig_rp << " cloud_sig_zz[0] " << cloud_sig_zz[0] 
+	       << " cloud_sig_zz[1] " << cloud_sig_zz[1] << endl;
+	
 	//=====
 
+	// Now:
+	//    spread the charge in Z using the sigma due to the SAMPA chip shaping time
+	//    spread the charge in r-phi using the sigma due to the drift-diffusion and GEM stack broadening
+
 	int n_rp = int(3*cloud_sig_rp/(r*phistepsize)+1);
-        int n_zz = int(3*cloud_sig_zz/zstepsize+1);
+        int n_zz = int(3*(cloud_sig_zz[0]+cloud_sig_zz[1])/(2.0*zstepsize)+1);
 	if(verbosity>1) {
 	  fHErrorRPhi->Fill( float(*layer), z, cloud_sig_rp );
-	  fHErrorZ->Fill( float(*layer), z, cloud_sig_zz );
+	  fHErrorZ->Fill( float(*layer), z, cloud_sig_zz[0] );
 	  fHWindowP->Fill( float(*layer), z, n_rp );
 	  fHWindowZ->Fill( float(*layer), z, n_zz );
 	}
 	double cloud_sig_rp_inv = 1./cloud_sig_rp;
-        double cloud_sig_zz_inv = 1./cloud_sig_zz;
-	if(verbosity>1000) {
-	  std::cout << " Z PHI " << z << " " << phi << " || edep " << edep*1e6 << " | nelec " << nelec << " | cloud_sig_rp zz " << cloud_sig_rp << " " << cloud_sig_zz;
-	  std::cout << " nrp nzz " << n_rp << " " << n_zz << std::endl;
+        double  cloud_sig_zz_inv[2]; 
+	cloud_sig_zz_inv[0] = 1./cloud_sig_zz[0];
+	cloud_sig_zz_inv[1] = 1./cloud_sig_zz[1];
+	if(verbosity>1000) 
+	{
+	  std::cout << " Summary: Z PHI " << z << " " << phi << " edep " << edep*1e6 << " nelec " << nelec 
+		    << " cloud_sig_rp " << cloud_sig_rp  << endl
+		    << " TPC shaping RMS leading " << fShapingLead
+		    << " TPC shaping RMS tail " << fShapingTail << endl
+		    << " cloud_sig_zz[0] " << cloud_sig_zz[0] << " cloud_sig_zz[1] " << cloud_sig_zz[1] <<  std::endl;
+	  std::cout << " bin search window: nrp " << n_rp << " nzz " << n_zz << std::endl;
 	}
         for( int iphi = -n_rp; iphi != n_rp+1; ++iphi ) {
           int cur_phi_bin = phibin + iphi;
@@ -404,17 +444,33 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	    std::cout << "PHG4CylinderCellTPCReco => error in phi continuity. Skipping" << std::endl;
 	    continue;
 	  }
+	  // Get the integral of the charge probability distribution in phi inside the current phi step
 	  double phiLim1 = 0.5*M_SQRT2*( (iphi+0.5)*phistepsize*r - phidisp*r )*cloud_sig_rp_inv;
 	  double phiLim2 = 0.5*M_SQRT2*( (iphi-0.5)*phistepsize*r - phidisp*r )*cloud_sig_rp_inv;
           double phi_integral = 0.5*( erf(phiLim1) - erf(phiLim2) );
+	  if(verbosity > 2000) cout << " current phi bin " << cur_phi_bin << " phiLim1 " << phiLim1 << " phiLim2 " << phiLim2 << " phi_integral " << phi_integral << endl;
           for( int iz = -n_zz; iz != n_zz+1; ++iz ) {
             int cur_z_bin = zbin + iz;
 	    if( (cur_z_bin < 0) || (cur_z_bin >= nzbins) ) continue;
-	    double zLim1 = 0.5*M_SQRT2*( (iz+0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
-	    double zLim2 = 0.5*M_SQRT2*( (iz-0.5)*zstepsize - zdisp )*cloud_sig_zz_inv;
-            double z_integral = 0.5*( erf(zLim1) - erf(zLim2) );
+	    // Get the integral of the charge probability distribution in Z inside the current Z step. We only need to get the relative signs correct here, I think
+	    // this is correct for z further from the membrane - charge arrives early
+	    double zLim1 = 0.5*M_SQRT2*( (iz+0.5)*zstepsize - zdisp )*cloud_sig_zz_inv[0];
+	    double zLim2 = 0.5*M_SQRT2*( (iz-0.5)*zstepsize - zdisp )*cloud_sig_zz_inv[0];
+	    // if we are in thwe tail of the distribution we use the second gaussian width
+	    // this is correct for z  closer to the membrane - charge arrives late
+	    if(zLim1 > 0)
+	      zLim1 =  0.5*M_SQRT2*( (iz+0.5)*zstepsize - zdisp )*cloud_sig_zz_inv[1];
+	    if(zLim2 > 0)
+	      zLim2 = 0.5*M_SQRT2*( (iz-0.5)*zstepsize - zdisp )*cloud_sig_zz_inv[1];
+	    // 1/2 * the erf is the integral probability from the argument Z value to zero, so this is the integral probability between the Z limits
+	    double z_integral = 0.5*( erf(zLim1) - erf(zLim2) );
             float neffelectrons = 2000*nelec*( phi_integral * z_integral ); // adding constant electron avalanche (value chosen so that digitizer will not trip)
-	    if(verbosity>1000) {
+
+	    if(verbosity > 2000)
+	      cout << "    cur_z_bin " << cur_z_bin << "  center z " <<   geo->get_zcenter(cur_z_bin) << " center r-phi " << geo->get_radius() * geo->get_phicenter(cur_phi_bin) << endl 
+		   << "            zLim1 " << zLim1 << " zLim2 " << zLim2 << " z_integral " << z_integral << " neffelectrons " << neffelectrons << endl;
+	    
+	    if(verbosity>5000) {
 	      std::cout << Form("%.3f",neffelectrons) << " ";
 	      if( iz == n_zz ) std::cout << std::endl;
 	    }
@@ -429,6 +485,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	      cell = new PHG4Cellv1(akey);
 	      cellptmap[key] = cell;
 	    }
+	     if(verbosity > 2000) cout << "    adding edep = neffelectrons = " << neffelectrons << " to cell with key = " << key << endl;
 	    cell->add_edep(hiter->first, neffelectrons );
 	    cell->add_edep(neffelectrons);
 	    cell->add_shower_edep(hiter->second->get_shower_id(), neffelectrons );
@@ -446,10 +503,12 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	float zthis = geo->get_zcenter( zbin );
 	fHMeanElectronsPerCell->Fill( float(*layer), zthis,  it->second->get_edep() );
       }
-      if(verbosity>2000) std::cout << " Adding phibin" << phibin << " zbin " << zbin << std::endl;
+      if(verbosity>2000) 
+	std::cout << " Adding phibin" << phibin << " zbin " << zbin << std::endl;
       count += 1;
     }
-    if(verbosity>1000) std::cout << " || Number of cells hit " << count<< std::endl;
+    if(verbosity>1000) 
+      std::cout << " || Number of cells hit " << count<< std::endl;
   }
   if(verbosity>1000) std::cout<<"PHG4CylinderCellTPCReco end" << std::endl;
   _timer.get()->stop();
