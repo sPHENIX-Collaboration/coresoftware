@@ -31,7 +31,6 @@ pkginclude_HEADERS = \
   Fun4AllUtils.h \
   PHTFileServer.h \
   SubsysReco.h \
-  SubsysRecoStack.h \
   TDirectoryHelper.h
 
 noinst_HEADERS = \
@@ -80,8 +79,7 @@ libfun4all_la_LIBADD = \
 
 libSubsysReco_la_SOURCES = \
   Fun4AllBase.cc \
-  SubsysReco.cc \
-  SubsysRecoStack.cc
+  SubsysReco.cc
 
 nodist_libSubsysReco_la_SOURCES = SubsysReco_Dict.cc
 
@@ -120,7 +118,6 @@ Fun4All_Dict.cc: \
 SubsysReco_Dict.cc: \
   Fun4AllBase.h \
   SubsysReco.h \
-  SubsysRecoStack.h \
   SubsysRecoLinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
