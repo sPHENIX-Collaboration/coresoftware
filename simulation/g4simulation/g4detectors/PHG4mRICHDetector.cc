@@ -843,43 +843,59 @@ void PHG4mRICHDetector::build_mRICH_sector(G4LogicalVolume* logicWorld, int numS
   G4LogicalVolume* a_mRICH=Construct_a_mRICH(0);
   G4Box* mRICH_box=dynamic_cast<G4Box*>(a_mRICH->GetSolid());
   G4double halfWidth=mRICH_box->GetXHalfLength();
+  G4double halfLength=mRICH_box->GetZHalfLength();
 
-  //parameters for a sector
-  G4double y_min=1.5*m, y_max=3*m, m=tan((45*1.5)*pi/180);     //m=1=tan(45deg)
-  G4double x, y;       //center of the detector
-  G4double x_max;      //half length of a row in x direction
+  //input parameter for the sector
+  G4double phi_min=2*atan(exp(-1*params->get_double_param("eta_max")));
+  G4double phi_max=2*atan(exp(-1*params->get_double_param("eta_min")));
+  G4double z=3*m;
+  G4double d=0.5*m;
+
+  //parameters for the sector
+  G4double y_min,y_max;
+  G4double h, w, theta, m;
+  G4double x, y;                    //center of the detector
+  G4double x_max;                   //half length of a row in x direction
   int n;
   G4ThreeVector pos;
-  
+
+  y_min=z*tan(phi_min);
+  h=(z-d)*tan(phi_max)-y_min;
+  w=(h+y_min)*tan((45/2)*pi/180);
+  theta=atan(d/h);                 //in radian
+  y_max=sqrt(h*h+d*d)+y_min;
+  m=y_max/w;                       //slope of the edge of each sector
+
   //--------------- a single sector ---------------//
   G4AssemblyVolume* sector = new G4AssemblyVolume();   //"mother volume"
   //int i=1;
   for (y=y_min+halfWidth; y<=y_max-halfWidth; y=y+2*halfWidth) {
-    x_max=(y-halfWidth)/m;             //half length of a row
+    x_max=(y-halfWidth)/m;                //half length of a row
     n=floor(x_max/halfWidth);
-    x_max=(n-1)*halfWidth;           //max x-coordinate of the center of a module in a row
-                                     //adjusting value of x_max to make the sector symmetric
+    x_max=(n-1)*halfWidth-0.5*cm;         //max x-coordinate of the center of a module in a row
+                                          //adjusting value of x_max to make the sector symmetric
+                                          //add 1cm gap as a temporary solution to due with
+                                          //overlapping on the edge
 
     //cout<<"row "<<i<<" y-halfWidth="<<y<<" / x_max="<<x_max<<" / n="<<n<<" / x= ";
     for (x=-x_max; x<=x_max+1*mm; x=x+2*halfWidth) {
       //cout<<x<<" ";
-      pos=G4ThreeVector(x,y,0);
+      pos=G4ThreeVector(x,y,halfLength);           //align at the front of mRICH
       sector->AddPlacedVolume( a_mRICH,pos,0);
     } //end of for(x)
     //cout<<" ."<<endl;
     //i++;
   } //end of for (y)                                                                                                                                                                                 
   //--------------- compose all sectors ---------------//
-  G4ThreeVector pos2=G4ThreeVector(0.0*m, 0.0*m, 3.0*m);    //w.r.t. the logicWorld
+  G4ThreeVector pos2(0.0*m, 0.0*m, 3.0*m);    //w.r.t. the logicWorld
                                                             //not working properly, need to be fixed
   for (int i=0;i<numSector;i++) {
     G4RotationMatrix* rot=new G4RotationMatrix();
-      //rot->rotateX(phi*(-1)*sin(theta)*180*deg/pi);
-      //rot->rotateY(phi*cos(theta)*180*deg/pi);
-      rot->rotateZ(i*45*deg);
-      sector->MakeImprint(logicWorld, pos2, rot);
+    rot->rotateX(-theta*180*deg/pi);
+    rot->rotateZ(i*45*deg);
+    sector->MakeImprint(logicWorld, pos2, rot);
   }
-
+  
 }
 
 //________________________________________________________________________//
