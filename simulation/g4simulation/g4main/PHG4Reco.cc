@@ -1187,9 +1187,8 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   mRICH_glass_myMPT->AddProperty("RINDEX", mRICH_PhotonEnergy, mRICH_glassRefractiveIndex, mRICH_nEntries1);
   mRICH_glass_myMPT->AddProperty("ABSLENGTH", mRICH_PhotonEnergy, mRICH_glassAbsorption, mRICH_nEntries1);
 
-  //G4NistManager * nist = G4NistManager::Instance();
-  G4Material* mRICH_Borosilicate = nist->FindOrBuildMaterial("G4_Pyrex_Glass");
-  mRICH_Borosilicate->SetName("mRICH_Borosilicate");
+  const G4Material *G4_Pyrex_Glass = nist->FindOrBuildMaterial("G4_Pyrex_Glass");
+  G4Material *mRICH_Borosilicate=  new G4Material("mRICH_Borosilicate",G4_Pyrex_Glass->GetDensity(),G4_Pyrex_Glass,G4_Pyrex_Glass->GetState(),G4_Pyrex_Glass->GetTemperature(),G4_Pyrex_Glass->GetPressure());
   mRICH_Borosilicate->SetMaterialPropertiesTable(mRICH_glass_myMPT);
 
   // mRICH_Air ------------------
@@ -1205,8 +1204,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   G4MaterialPropertiesTable* mRICH_Air_myMPT = new G4MaterialPropertiesTable();
   mRICH_Air_myMPT->AddProperty("RINDEX", mRICH_PhotonEnergy, mRICH_AirRefractiveIndex , mRICH_nEntries1);
   const G4Material *G4_AIR = G4Material::GetMaterial("G4_AIR");
-  G4Material *mRICH_Air=  new G4Material("mRICH_Air",G4_AIR->GetDensity(),G4_AIR);
-  mRICH_Air->SetName("mRICH_Air");
+  G4Material *mRICH_Air=  new G4Material("mRICH_Air",G4_AIR->GetDensity(),G4_AIR,G4_AIR->GetState(),G4_AIR->GetTemperature(),G4_AIR->GetPressure());
   mRICH_Air->SetMaterialPropertiesTable(mRICH_Air_myMPT);
 }
 

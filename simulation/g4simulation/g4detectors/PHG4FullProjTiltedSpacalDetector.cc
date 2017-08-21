@@ -302,6 +302,8 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
                                                    false, val.first, overlapcheck);
 
       calo_vol[wall_phys] = val.first;
+      assert(gdml_config);
+      gdml_config->exclude_physical_vol(wall_phys);
     }
   }
   //
@@ -364,6 +366,8 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
                                                    false, val.first, overlapcheck);
 
       calo_vol[wall_phys] = val.first;
+      assert(gdml_config);
+      gdml_config->exclude_physical_vol(wall_phys);
     }
   }
 
@@ -397,6 +401,8 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
                                                   G4String(GetName().c_str()) + G4String("_Tower_") + to_string(g_tower.id), sec_logic, false,
                                                   g_tower.id, overlapcheck_block);
     block_vol[block_phys] = g_tower.id;
+    assert(gdml_config);
+    gdml_config->exclude_physical_vol(block_phys);
 
     if (g_tower.LightguideHeight > 0)
     {
@@ -415,6 +421,9 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
                                                      sec_logic, false, g_tower.id, overlapcheck_block);
 
           block_vol[lg_phys] = g_tower.id * 100 + ix * 10 + iy;
+
+          assert(gdml_config);
+          gdml_config->exclude_physical_vol(lg_phys);
         }
       }
     }
