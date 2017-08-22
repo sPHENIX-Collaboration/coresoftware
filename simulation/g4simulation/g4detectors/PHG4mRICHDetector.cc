@@ -848,40 +848,44 @@ void PHG4mRICHDetector::build_mRICH_sector(G4LogicalVolume* logicWorld, int numS
   //input parameter for the sector
   G4double phi_min=2*atan(exp(-1*params->get_double_param("eta_max")));
   G4double phi_max=2*atan(exp(-1*params->get_double_param("eta_min")));
-  G4double z=3*m;
-  G4double d=0.5*m;
-
+  G4double z=3*m;   //params->get_double_param("sector_posz")*m;
+  G4double d=0.5*m; //params->get_double_param("sector_d")*m;
+ 
   //parameters for the sector
   G4double y_min,y_max;
-  G4double h, w, theta, m;
+  G4double h, w, theta, slope;//m;
   G4double x, y;                    //center of the detector
   G4double x_max;                   //half length of a row in x direction
   int n;
   G4ThreeVector pos;
 
-  y_min=z*tan(phi_min);
+  y_min=z*tan(phi_min);            //this is correct
+  //y_min=phi_min*0;               //testing
   h=(z-d)*tan(phi_max)-y_min;
   w=(h+y_min)*tan((45/2)*pi/180);
   theta=atan(d/h);                 //in radian
   y_max=sqrt(h*h+d*d)+y_min;
-  m=y_max/w;                       //slope of the edge of each sector
+  slope=y_max/w;                       //slope of the edge of each sector
 
   //--------------- a single sector ---------------//
   G4AssemblyVolume* sector = new G4AssemblyVolume();   //"mother volume"
   //int i=1;
   for (y=y_min+halfWidth; y<=y_max-halfWidth; y=y+2*halfWidth) {
-    x_max=(y-halfWidth)/m;                //half length of a row
+    x_max=(G4double)(y-halfWidth)/slope;            //half length of a row
     n=floor(x_max/halfWidth);
-    x_max=(n-1)*halfWidth-0.5*cm;         //max x-coordinate of the center of a module in a row
+    x_max=(G4double)(n-1)*halfWidth;      //max x-coordinate of the center of a module in a row
                                           //adjusting value of x_max to make the sector symmetric
                                           //add 1cm gap as a temporary solution to due with
                                           //overlapping on the edge
 
+    
     //cout<<"row "<<i<<" y-halfWidth="<<y<<" / x_max="<<x_max<<" / n="<<n<<" / x= ";
-    for (x=-x_max; x<=x_max+1*mm; x=x+2*halfWidth) {
+    for (x=-x_max; x<=x_max+1*mm; x=x+2*halfWidth) {  //+1mm because somehow the statement "x<=x_max"
+                                                      //doesn't work properly. floating number?
       //cout<<x<<" ";
-      pos=G4ThreeVector(x,y,halfLength);           //align at the front of mRICH
-      sector->AddPlacedVolume( a_mRICH,pos,0);
+      pos=G4ThreeVector(x,y,halfLength);              //align at the front of mRICH
+      //pos=G4ThreeVector(x,y,halfLength+z);      
+      sector->AddPlacedVolume( a_mRICH, pos, 0);
     } //end of for(x)
     //cout<<" ."<<endl;
     //i++;
