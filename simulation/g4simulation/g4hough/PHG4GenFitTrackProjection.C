@@ -248,12 +248,9 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 					}
 				}
 
-				TVector3 n(trackstate->get_px(), trackstate->get_py(), 0);
-				genfit::SharedPlanePtr plane(new genfit::DetPlane(pos, n));
 				msop80 = unique_ptr<genfit::MeasuredStateOnPlane> (new genfit::MeasuredStateOnPlane(rep.get()));
 
 				msop80->setPosMomCov(pos, mom, cov);
-				msop80->setPlane(plane);
 			}
 
 #ifdef DEBUG
@@ -269,7 +266,7 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 				field_mgr->getFieldVal(x,y,z,Bx,By,Bz);
 				cout
 				<< __LINE__
-				<< ": { " << msop80->getPos().Perp() << ", " << msop80->getPos().Phi() << ", " << z << "} @ "
+				<< ": { " << msop80->getPos().Perp() << ", " << msop80->getPos().Phi() << ", " << msop80->getPos().Eta() << "} @ "
 				//<< "{ " << Bx << ", " << By << ", " << Bz << "}"
 				<< "{ " << msop80->getMom().Perp() << ", " << msop80->getMom().Phi() << ", " << pz << "} "
 				<<endl;
@@ -299,7 +296,7 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 				field_mgr->getFieldVal(x,y,z,Bx,By,Bz);
 				cout
 				<< __LINE__
-				<< ": { " << msop80->getPos().Perp() << ", " << msop80->getPos().Phi() << ", " << z << "} @ "
+				<< ": { " << msop80->getPos().Perp() << ", " << msop80->getPos().Phi() << ", " << msop80->getPos().Eta() << "} @ "
 				//<< "{ " << Bx << ", " << By << ", " << Bz << "}"
 				<< "{ " << msop80->getMom().Perp() << ", " << msop80->getMom().Phi() << ", " << pz << "} "
 				<<endl;
