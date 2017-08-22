@@ -102,8 +102,6 @@ int PHG4GenFitTrackProjection::InitRun(PHCompositeNode *topNode) {
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
 
-	return Fun4AllReturnCodes::EVENT_OK;
-
 	if (verbosity > 0) {
 		cout
 				<< "================== PHG4GenFitTrackProjection::InitRun() ====================="
