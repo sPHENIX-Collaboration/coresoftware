@@ -61,8 +61,8 @@ PHG4TPCClusterizer::PHG4TPCClusterizer(const char *name) :
   fFitEnergyThreshold(0.05),
   fFitSizeP(0.0),
   fFitSizeZ(0),
-  fShapingLead(0.0),
-  fShapingTail(0.0),
+  fShapingLead(32.0*6.0/1000.0),
+  fShapingTail(48.0*6.0/1000.0),
   fMinLayer(0),
   fMaxLayer(0),
   fEnergyCut(0.1),
@@ -327,9 +327,9 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
       for(int zbin = 0; zbin!=fNZBins; ++zbin) {
         if(fNHitsPerZ[zbin]<=0) continue;
 	float abszbincenter = TMath::Abs(fGeoLayer->get_zcenter( zbin ));
-	float sigmaZ = TMath::Sqrt(pow((fShapingTail), 2) + fDCL*fDCL*(105.5-abszbincenter));  // shaping time + drift diffusion
+	float sigmaZ = TMath::Sqrt(pow((fShapingTail), 2) + fDCL*fDCL*(105.5-abszbincenter));  // shaping time + drift diffusion, used only to calculate FitRangZ
 	float TPC_padgeo_sigma = 0.04;  // 0.4 mm (from Tom)
-	float sigmaP = TMath::Sqrt(pow(TPC_padgeo_sigma, 2) + fDCT*fDCT*(105.5-abszbincenter)); // readout geometry + drift diffusion
+	float sigmaP = TMath::Sqrt(pow(TPC_padgeo_sigma, 2) + fDCT*fDCT*(105.5-abszbincenter)); // readout geometry + drift diffusion, used only to calculate FitRangeP
 	fFitRangeZ = int( 3.0*sigmaZ/stepz + 1);
 	if(verbosity > 2000) cout << " sigmaZ " << sigmaZ << " fFitRangeZ " << fFitRangeZ << " sigmaP " << sigmaP << endl;
 	if(fFitRangeZ<1) fFitRangeZ = 1;
