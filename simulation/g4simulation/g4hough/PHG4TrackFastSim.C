@@ -120,7 +120,7 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode *topNode) {
 
 	for (int i = 0; i < _N_STATES; i++) {
 
-	  if( (_state_names[i]=="FHCAL") || (_state_names[i]=="FEMC") ){
+	  if( (_state_names[i]=="FHCAL") || (_state_names[i]=="FEMC") || (_state_names[i]=="EEMC") ){
 	    
 	    // Get the z-location of the detector plane
 
