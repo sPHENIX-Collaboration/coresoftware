@@ -141,8 +141,52 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
   fFitSumPZ = 0;
   fFitSizeP = 0;
   fFitSizeZ = 0;
+
+  // Here we have to allow for highly angled tracks, where the Z range can be much larger than the Z diffusion
+  // Check that we do not have to increase this range
+  // Start at the peak and go out in both directions until the yield falls below threshold
+
+  int izmost = 30; // don't look more than izmost Z bins in each direction
+
+  int izup = fFitRangeZ;  
+  for(int iz=0; iz< izmost; iz++)
+    {
+      int cz = zbin + iz;
+      if(cz < 0) continue; // truncate edge
+      if(cz >= fNZBins) continue; // truncate edge
+      
+      // consider only the peak bin in phi when searching for Z limit     
+      int cp = wrap_phibin(pbin);
+      int bin = cz * fNPhiBins + cp;
+      if(fAmps[bin] < fFitEnergyThreshold*peak) 
+	{
+	  izup = iz;
+	  if(verbosity > 1000) cout << " failed threshold cut, set izup to " << izup << endl;
+	  break;
+	}
+    }
+
+  int izdown = fFitRangeZ;
+  for(int iz=0; iz< izmost; iz++)
+    {
+      int cz = zbin - iz;
+      if(cz < 0) continue; // truncate edge
+      if(cz >= fNZBins) continue; // truncate edge
+      
+      int cp = wrap_phibin(pbin);
+      int bin = cz * fNPhiBins + cp;
+      if(fAmps[bin] < fFitEnergyThreshold*peak) 
+	{
+	  izdown = iz;
+	  if(verbosity > 1000) cout << " failed threshold cut, set izdown to " << izdown << endl;
+	  break;
+	}
+    }
+  
   if(verbosity>1000) std::cout << "max " << fAmps[zbin*fNPhiBins+pbin] << std::endl;
-  for(int iz=-fFitRangeZ; iz!=fFitRangeZ+1; ++iz) {
+  if(verbosity>1000) std::cout << "izdown " << izdown << " izup " << izup << std::endl;
+
+  for(int iz=-izdown; iz!=izup; ++iz) {
     int cz = zbin + iz;
     if(cz < 0) continue; // truncate edge
     if(cz >= fNZBins) continue; // truncate edge
@@ -331,9 +375,9 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	float TPC_padgeo_sigma = 0.04;  // 0.4 mm (from Tom)
 	float sigmaP = TMath::Sqrt(pow(TPC_padgeo_sigma, 2) + fDCT*fDCT*(105.5-abszbincenter)); // readout geometry + drift diffusion, used only to calculate FitRangeP
 	fFitRangeZ = int( 3.0*sigmaZ/stepz + 1);
+	if(fFitRangeZ<1) fFitRangeZ = 1; // should never happen
 	if(verbosity > 2000) cout << " sigmaZ " << sigmaZ << " fFitRangeZ " << fFitRangeZ << " sigmaP " << sigmaP << endl;
-	if(fFitRangeZ<1) fFitRangeZ = 1;
-	if(fFitRangeZ>fFitRangeMZ) fFitRangeZ = fFitRangeMZ;
+	//if(fFitRangeZ>fFitRangeMZ) fFitRangeZ = fFitRangeMZ;  // does not allow for high angle tracks, see mod to fit() method
         for(int phibin = 0; phibin!=fNPhiBins; ++phibin) {
           float radius = fGeoLayer->get_radius() + 0.5*fGeoLayer->get_thickness();
 	  fFitRangeP = int( 3.0*sigmaP/(radius*stepp) + 1);

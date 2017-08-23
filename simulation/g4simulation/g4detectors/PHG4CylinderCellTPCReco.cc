@@ -411,7 +411,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	//=====
 
 	// We should account for the fact that angled tracks deposit charge in a range of Z values, increasing the cluster Z length
-	// The new software will deal with this by using a single volume with a step size of ~0.3 cm, so 4 steps per layer. Let's use 5.
+	// The new software will deal with this by using a single volume with a step size of ~0.3 cm, so 4 steps per layer. Let's use 7.
 	// Start with the entry and exit Z values for the track in this layer. These have to come from the hit. 
 	// Make nseg  segment centers - keep nseg odd - process each segment through the shaper and ADC binning
 
