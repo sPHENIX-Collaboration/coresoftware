@@ -177,22 +177,6 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
 
   DefineMaterials();
 
-  //setup the constant field
-  if (verbosity > 1) cout << "PHG4Reco::Init - create magnetic field setup" << endl;
-  if (fieldmapfile != "NONE")
-  {
-    field_ = new G4TBMagneticFieldSetup(fieldmapfile, mapdim, magfield_rescale);
-    magfield = field_->get_magfield_at_000(2);  // get the z coordinate at 0/0/0
-    if (verbosity > 1)
-    {
-      cout << "magfield in PHG4Reco: " << magfield << endl;
-    }
-  }
-  else
-  {
-    field_ = new G4TBMagneticFieldSetup(magfield * magfield_rescale);
-  }
-
   // create physics processes
   G4VModularPhysicsList *myphysicslist = nullptr;
   if (physicslist == "FTFP_BERT")
@@ -282,6 +266,22 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   }
 
   recoConsts *rc = recoConsts::instance();
+
+  //setup the constant field
+  if (verbosity > 1) cout << "PHG4Reco::Init - create magnetic field setup" << endl;
+  if (fieldmapfile != "NONE")
+  {
+    field_ = new G4TBMagneticFieldSetup(fieldmapfile, mapdim, magfield_rescale);
+    magfield = field_->get_magfield_at_000(2);  // get the z coordinate at 0/0/0
+    if (verbosity > 1)
+    {
+      cout << "magfield in PHG4Reco: " << magfield << endl;
+    }
+  }
+  else
+  {
+    field_ = new G4TBMagneticFieldSetup(magfield * magfield_rescale);
+  }
 
   // initialize registered subsystems
   BOOST_FOREACH (SubsysReco *reco, subsystems_)
