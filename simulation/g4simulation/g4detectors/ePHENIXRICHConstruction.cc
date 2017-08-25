@@ -169,9 +169,10 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume* WorldLog)
   for (G4int sec = 0; sec < geom.get_N_RICH_Sector(); sec++)
     {
       G4RotateZ3D sec_rot(2 * pi / geom.get_N_RICH_Sector() * sec);
-
-      RegisterPhysicalVolume(new G4PVPlacement(sec_rot, RICHSecLog, "RICHSecPhysical", WorldLog,
-                                               false, sec, overlapcheck_rich));
+      
+      // Insert sector volumes into sector set
+      sector_vec.insert( RegisterPhysicalVolume(new G4PVPlacement(sec_rot, RICHSecLog, "RICHSecPhysical", WorldLog,
+								   false, sec, overlapcheck_rich)) );
     }
   //      CLHEP::HepRotationZ sec_rot(0);
   //      G4RotationMatrix g4_sec_rot(sec_rot);
@@ -563,4 +564,12 @@ double RICH_Geometry::get_Z_Tip_HBD() const
 double RICH_Geometry::get_Rotation_HBD() const
 {
   return atan(R_shift / z_shift);
+}
+
+int ePHENIXRICHConstruction::is_in_sector(G4VPhysicalVolume* volume) const
+{
+  if (sector_vec.find(volume) != sector_vec.end())
+    return volume->GetCopyNo();
+  else
+    return -1;  
 }
