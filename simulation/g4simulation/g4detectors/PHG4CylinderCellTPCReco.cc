@@ -366,14 +366,12 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	if(verbosity>1) {
 	  fHElectrons->Fill( nelec );
 	}
-	//cout << "nelec = " << nelec << endl;
 
 	// The resolution due to pad readout is dominated by the charge spread during GEM multiplication, which we hard code because it is not a matter of opinion!
 	double sigmaT = 0.04; // 400 microns, charge dispersion at pad due to GEM stage, from Tom (see 8/11 email)
 	// We use a double gaussian to represent the smearing due to the SAMPA chip shaping time - default values of fShapingLead and fShapingTail are 0.19 and 0.285 cm
-	// 1.9 mm = sigma derived from front half of measured pulse shape, assuming it is gaussian - FWHM = 75 ns, sigma = 32 ns
-	// 2.85 mm = sigma derived from back half of measured pulse shape, assuming it is gaussian - FWHM = 75*1.5 ns, sigma = 32*1.5 ns = 48 ns
 	double sigmaL[2];
+	// These are calculated (in cm) in the macro from the shaping RMS times and the gas drift velocity
 	sigmaL[0] = fShapingLead; 
 	sigmaL[1] = fShapingTail; 
         double cloud_sig_rp = sqrt( fDiffusionT*fDiffusionT*(fHalfLength - fabs(hiter->second->get_avg_z())) + sigmaT*sigmaT );
@@ -411,8 +409,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	//=====
 
 	// We should account for the fact that angled tracks deposit charge in a range of Z values, increasing the cluster Z length
-	// The new software will deal with this by using a single volume with a step size of ~0.3 cm, so 4 steps per layer. Let's use 7.
-	// Start with the entry and exit Z values for the track in this layer. These have to come from the hit. 
+	// The new software is proposed to deal with this by using a single volume with a step size of ~0.3 cm, so 4 steps per layer. Let's use 7.
+	// Start with the entry and exit Z values for the track in this layer. These have to come from the G4 hit. 
 	// Make nseg  segment centers - keep nseg odd - process each segment through the shaper and ADC binning
 
 	// Note that we ignore the difference in drift-diffusion between segments here, for convenience - it will be tiny
@@ -426,7 +424,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	  {
 	    double zsegoffset = (izr - nseg/2) * zrange/nseg;
 
-	    // offsetting z may change the zbin, fix that
+	    // offsetting z from the average for the layer may change the zbin, fix that
 	    int zbinseg = zbin = geo->get_zbin( z + zsegoffset);
 	    if(zbinseg < 0 || zbinseg >= nzbins){continue;}
 	    double zdispseg = z + zsegoffset - geo->get_zcenter(zbinseg);	    
@@ -479,7 +477,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 		// this is correct for z further from the membrane - charge arrives early
 		double zLim1 = 0.5*M_SQRT2*( (iz+0.5)*zstepsize - zdispseg )*cloud_sig_zz_inv[0];
 		double zLim2 = 0.5*M_SQRT2*( (iz-0.5)*zstepsize - zdispseg )*cloud_sig_zz_inv[0];
-		// if we are in the tail of the distribution we use the second gaussian width
+		// The above is correct if we are in the leading part of the time distribution. In the tail of the distribution we use the second gaussian width 
 		// this is correct for z  closer to the membrane - charge arrives late
 		if(zLim1 > 0)
 		  zLim1 =  0.5*M_SQRT2*( (iz+0.5)*zstepsize - zdispseg )*cloud_sig_zz_inv[1];
