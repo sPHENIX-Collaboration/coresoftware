@@ -138,19 +138,17 @@ bool PHG4RICHSteppingAction::MakeHit(const G4Step* aStep){
 	  sector_id = aTouch->GetCopyNumber(1);
 	  sector_found = true;
 	}
-      else
+    }
+  // check that volume() exists
+  else if ( aTouch->GetVolume() )
+    {
+      if ( detector_->ePHENIXRICHConstruction::is_in_sector( aTouch->GetVolume() ) > -1 )
 	{
-	  // check that volume() exists
-	  if ( aTouch->GetVolume() )
-	    {
-	      if ( detector_->ePHENIXRICHConstruction::is_in_sector( aTouch->GetVolume() ) > -1 )
-		{
-		  sector_id = aTouch->GetCopyNumber();
-		  sector_found = true;
-		}
-	    }
+	  sector_id = aTouch->GetCopyNumber();
+	  sector_found = true;
 	}
     }
+
 
   if ( !sector_found )
     cout << "WARNING: Photon hit volume is not the RICH readout plane volume!" << " Sector ID: " << sector_id << endl;
