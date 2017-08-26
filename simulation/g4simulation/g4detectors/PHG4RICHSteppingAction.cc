@@ -145,7 +145,7 @@ bool PHG4RICHSteppingAction::MakeHit(const G4Step* aStep){
 	    {
 	      if ( detector_->ePHENIXRICHConstruction::is_in_sector( aTouch->GetVolume() ) > -1 )
 		{
-		  sector_id = aTouch->GetCopyNumber(1);
+		  sector_id = aTouch->GetCopyNumber();
 		  sector_found = true;
 		}
 	    }
