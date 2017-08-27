@@ -1,34 +1,26 @@
-// $Id: $                                                                                             
+// $Id: $
 
 /*!
- * \file PHGeomIOTGeo.h
+ * \file PHFieldConfig.h
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
  */
 
-#ifndef PHGeomIOTGeo_H_
-#define PHGeomIOTGeo_H_
+#ifndef PHFieldConfig_H_
+#define PHFieldConfig_H_
 
 #include <phool/PHObject.h>
-#include <vector>
-
-class TGeoVolume;
-class TGeoManager;
+#include <limits>
+#include <string>
 
 /*!
- * \brief PHGeomIOTGeo store geometry information to DST files in the format of binary streamed TGeoVolume. It completely owns the geometry object
- * For run-time use of TGeoManager, please use PHGeomTGeo
- * For operation of this class with DST node, please use PHGeomUtility
- */
-class PHGeomIOTGeo : public PHObject
+ * \brief PHFieldConfig store field configuration information */
+class PHFieldConfig : public PHObject
 {
-public:
-  PHGeomIOTGeo();
-  PHGeomIOTGeo(const PHGeomIOTGeo& geom);
-  virtual
-  ~PHGeomIOTGeo();
+ public:
+  virtual ~PHFieldConfig();
 
   /// Virtual copy constructor.
   virtual PHObject*
@@ -48,38 +40,53 @@ public:
   virtual int
   isValid() const;
 
-  //! PHGeomIOTGeo do NOT own this TGeoVolume * g. Internally, it will use g to make a copy which PHGeomIOTGeo fully owns
-  void
-  SetGeometry(const TGeoVolume * g);
-
-  //! Construct TGeoManager. The result TGeoManager is not yet closed and open for further editing
-  TGeoManager *
-  ConstructTGeoManager();
-
-  //! Make a copy of TGeoVolume.
-  //! The caller is responsible for deleting the returned TGeoVolume
-  //! The caller is also responsible for constructing a valid TGeoManager before calling this function
-  TGeoVolume *
-  GetGeometryCopy();
-
-  std::vector<char> &
-  GetData()
+  enum FieldConfigTypes
   {
-    return Data;
+    //! consttant field
+    kFieldConstant = 0,
+    //! 2D field map expressed in cylindrical coordinates
+    kField2D = 2,
+    //! 3D field map expressed in cylindrical coordinates
+    kField3DCylindrical = 3,
+    //! 3D field map expressed in Cartesian coordinates
+    Field3DCartesian = 1,
+
+    //! invalid value
+    kFieldInvalid = std::numeric_limits<int>::max()
+  };
+
+  virtual FieldConfigTypes get_field_config() const
+  {
+    return kFieldInvalid;
   }
 
-  const std::vector<char> &
-  GetData() const
+  virtual void set_field_config(FieldConfigTypes fieldConfig)
   {
-    return Data;
   }
 
-protected:
+  virtual const std::string& get_filename() const
+  {
+    return "INVALID FILE";
+  }
 
-  //! store the streamed geometry and its streamer via a binary stream
-  std::vector<char> Data;
+  virtual void set_filename(const std::string& filename)
+  {
+  }
 
-ClassDef(PHGeomIOTGeo,3)
+  virtual double get_magfield_rescale() const
+  {
+    return 1.0;
+  }
+
+  virtual void set_magfield_rescale(double magfieldRescale)
+  {
+  }
+
+ protected:
+  //! pure virtual interface class. not for direct use
+  PHFieldConfig();
+
+  ClassDef(PHFieldConfig, 1)
 };
 
-#endif /* PHGeomIOTGeo_H_ */
+#endif /* PHFieldConfig_H_ */

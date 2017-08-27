@@ -1,38 +1,32 @@
-// $Id: $                                                                                             
+// $Id: $
 
 /*!
- * \file PHGeomIOTGeo.h
+ * \file PHFieldConfig_v1.h
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
  */
 
-#ifndef PHGeomIOTGeo_H_
-#define PHGeomIOTGeo_H_
+#ifndef PHFieldConfig_v1_H_
+#define PHFieldConfig_v1_H_
 
-#include <phool/PHObject.h>
 #include <vector>
+#include "PHFieldConfig.h"
 
 class TGeoVolume;
 class TGeoManager;
 
 /*!
- * \brief PHGeomIOTGeo store geometry information to DST files in the format of binary streamed TGeoVolume. It completely owns the geometry object
- * For run-time use of TGeoManager, please use PHGeomTGeo
- * For operation of this class with DST node, please use PHGeomUtility
- */
-class PHGeomIOTGeo : public PHObject
+ * \brief PHFieldConfig_v1 impliments field configuration information */
+class PHFieldConfig_v1 : public PHFieldConfig
 {
-public:
-  PHGeomIOTGeo();
-  PHGeomIOTGeo(const PHGeomIOTGeo& geom);
-  virtual
-  ~PHGeomIOTGeo();
-
-  /// Virtual copy constructor.
-  virtual PHObject*
-  clone() const;
+ public:
+  PHFieldConfig_v1(
+      FieldConfigTypes field_config,
+      std::string& filename,
+      double magfield_rescale = 1.);
+  virtual ~PHFieldConfig_v1();
 
   /** identify Function from PHObject
    @param os Output Stream
@@ -48,38 +42,41 @@ public:
   virtual int
   isValid() const;
 
-  //! PHGeomIOTGeo do NOT own this TGeoVolume * g. Internally, it will use g to make a copy which PHGeomIOTGeo fully owns
-  void
-  SetGeometry(const TGeoVolume * g);
-
-  //! Construct TGeoManager. The result TGeoManager is not yet closed and open for further editing
-  TGeoManager *
-  ConstructTGeoManager();
-
-  //! Make a copy of TGeoVolume.
-  //! The caller is responsible for deleting the returned TGeoVolume
-  //! The caller is also responsible for constructing a valid TGeoManager before calling this function
-  TGeoVolume *
-  GetGeometryCopy();
-
-  std::vector<char> &
-  GetData()
+  FieldConfigTypes get_field_config() const
   {
-    return Data;
+    return field_config_;
+  }
+  void set_field_config(FieldConfigTypes fieldConfig)
+  {
+    field_config_ = fieldConfig;
   }
 
-  const std::vector<char> &
-  GetData() const
+  const std::string& get_filename() const
   {
-    return Data;
+    return filename_;
   }
 
-protected:
+  void set_filename(const std::string& filename)
+  {
+    filename_ = filename;
+  }
 
-  //! store the streamed geometry and its streamer via a binary stream
-  std::vector<char> Data;
+  double get_magfield_rescale() const
+  {
+    return magfield_rescale_;
+  }
 
-ClassDef(PHGeomIOTGeo,3)
+  void set_magfield_rescale(double magfieldRescale)
+  {
+    magfield_rescale_ = magfieldRescale;
+  }
+
+ protected:
+  FieldConfigTypes field_config_;
+  std::string filename_;
+  double magfield_rescale_;
+
+  ClassDef(PHFieldConfig_v1, 3)
 };
 
-#endif /* PHGeomIOTGeo_H_ */
+#endif /* PHFieldConfig_v1_H_ */
