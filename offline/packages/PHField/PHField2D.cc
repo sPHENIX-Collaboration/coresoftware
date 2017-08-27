@@ -1,25 +1,18 @@
-//
-//    *************************************
-//    *                                   *
-//    *            PHG4Field2D.C          *
-//    *                                   *
-//    *************************************
-//
-// ********************************************************************************
-// GEANT Field Map, for use in converting ROOT maps of PHENIX magnetic field
-// writting by Michael Stone, July 2011
 
-#include "PHG4Field2D.h"
+#include "PHField2D.h"
 
-#include <Geant4/G4SystemOfUnits.hh>
+//root framework
+#include <TFile.h>
+#include <TNtuple.h>
 
 #include <set>
 #include <iostream>
 
 using namespace std;
+using namespace CLHEP;// units
 
-PHG4Field2D::PHG4Field2D( const string &filename, const int verb, const float magfield_rescale) :
-  verb_(verb)  
+PHField2D::PHField2D( const string &filename, const int verb, const float magfield_rescale) :
+    PHField(verb)
 {
   r_index0_cache = 0;
   r_index1_cache = 0;
@@ -27,7 +20,7 @@ PHG4Field2D::PHG4Field2D( const string &filename, const int verb, const float ma
   z_index1_cache = 0;
 
   if (verb_ > 0)
-    cout << " ------------- PHG4Field2D::PHG4Field2D() ------------------" << endl;
+    cout << " ------------- PHField2D::PHField2D() ------------------" << endl;
 
   // open file
   TFile *rootinput = TFile::Open(filename.c_str());
@@ -52,7 +45,7 @@ PHG4Field2D::PHG4Field2D( const string &filename, const int verb, const float ma
       field_map = (TNtuple*)gDirectory->Get("map");
       if (! field_map)
         {
-          cout << "PHG4Field2D: could not locate ntuple of name map or fieldmap, exiting now" << endl;
+          cout << "PHField2D: could not locate ntuple of name map or fieldmap, exiting now" << endl;
           exit(1);
         }
       magfield_unit = gauss;
@@ -208,10 +201,10 @@ PHG4Field2D::PHG4Field2D( const string &filename, const int verb, const float ma
     cout << " -----------------------------------------------------------" << endl;
 }
 
-void PHG4Field2D::GetFieldValue(const double point[4], double *Bfield ) const
+void PHField2D::GetFieldValue(const double point[4], double *Bfield ) const
 {
   if (verb_ > 2)
-    G4cout << "\nPHG4Field2D::GetFieldValue" << endl;
+    G4cout << "\nPHField2D::GetFieldValue" << endl;
   double x = point[0];
   double y = point[1];
   double z = point[2];
@@ -252,7 +245,7 @@ void PHG4Field2D::GetFieldValue(const double point[4], double *Bfield ) const
 
   if (verb_ > 2)
     {
-      G4cout << "END PHG4Field2D::GetFieldValue\n"
+      G4cout << "END PHField2D::GetFieldValue\n"
 	     << "  --->  {Bx, By, Bz} : "
 	     << "< " << Bfield[0] << ", " << Bfield[1] << ", " << Bfield[2] << " >" << endl;
     }
@@ -260,7 +253,7 @@ void PHG4Field2D::GetFieldValue(const double point[4], double *Bfield ) const
   return;
 }
 
-void PHG4Field2D::GetFieldCyl( const double CylPoint[4], double *BfieldCyl ) const
+void PHField2D::GetFieldCyl( const double CylPoint[4], double *BfieldCyl ) const
 {
   float z = CylPoint[0];
   float r = CylPoint[1];
@@ -375,7 +368,7 @@ void PHG4Field2D::GetFieldCyl( const double CylPoint[4], double *BfieldCyl ) con
 }
 
 // debug function to print key/value pairs in map
-void PHG4Field2D::print_map( map<trio, trio>::iterator& it ) const
+void PHField2D::print_map( map<trio, trio>::iterator& it ) const
 {
 
   cout << "    Key: <"
@@ -388,65 +381,3 @@ void PHG4Field2D::print_map( map<trio, trio>::iterator& it ) const
 
 }
 
-//==============================================================
-// Wrapper Functions, for debugging
-//==============================================================
-
-PHG4Field2DWrapper::PHG4Field2DWrapper(const string &filename, const int verb) :
-  field(filename, verb)
-{}
-
-double PHG4Field2DWrapper::GetBx(double x, double y, double z)
-{
-  double pos[4] = {x*cm, y*cm, z*cm, 0};
-  double Bfield[6] = {0};
-  field.GetFieldValue(pos, Bfield);
-  return Bfield[0] / tesla;
-}
-
-double PHG4Field2DWrapper::GetBy(double x, double y, double z)
-{
-  double pos[4] = {x*cm, y*cm, z*cm, 0};
-  double Bfield[6] = {0};
-  field.GetFieldValue(pos, Bfield);
-  return Bfield[1] / tesla;
-}
-
-double PHG4Field2DWrapper::GetBz(double x, double y, double z)
-{
-  double pos[4] = {x*cm, y*cm, z*cm, 0};
-  double Bfield[6] = {0};
-  field.GetFieldValue(pos, Bfield);
-  return Bfield[2] / tesla;
-}
-
-double PHG4Field2DWrapper::GetBCylZ(double z, double r, double phi)
-{
-  double pos[4] = {z*cm, r*cm, phi*rad, 0};
-  double Bfield[6] = {0};
-  field.GetFieldCyl(pos, Bfield);
-  return Bfield[0] / tesla;
-}
-
-double PHG4Field2DWrapper::GetBCylR(double z, double r, double phi)
-{
-  double pos[4] = {z*cm, r*cm, phi*rad, 0};
-  double Bfield[6] = {0};
-  field.GetFieldCyl(pos, Bfield);
-  return Bfield[1] / tesla;
-}
-
-double PHG4Field2DWrapper::GetBCylPHI(double z, double r, double phi)
-{
-  double pos[4] = {z*cm, r*cm, phi*rad, 0};
-  double Bfield[6] = {0};
-  field.GetFieldCyl(pos, Bfield);
-  return Bfield[2] / tesla;
-}
-
-void
-PHG4Field2DWrapper::Verbosity(const int i)
-{
-  field.Verbosity(i);
-  return;
-}
