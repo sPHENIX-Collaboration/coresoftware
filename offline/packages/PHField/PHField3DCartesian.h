@@ -1,24 +1,25 @@
-#ifndef __PHG4FIELDSPHENIX_H__
-#define __PHG4FIELDSPHENIX_H__
+#ifndef __PHField3DCartesian_H__
+#define __PHField3DCartesian_H__
 
-#include <Geant4/G4MagneticField.hh>
+#include "PHField.h"
 
-
-#include <map> 
+#include <map>
 #include <set>
 
-class PHG4FieldsPHENIX : public G4MagneticField
+class PHField3DCartesian : public PHField
 {
-  
  public:
-  
-  PHG4FieldsPHENIX(const std::string  &fname, const float magfield_rescale = 1.0);
-  virtual ~PHG4FieldsPHENIX();
-  
-  void GetFieldValue( const double Point[4], double *Bfield ) const;
-  
+  PHField3DCartesian(const std::string &fname, const float magfield_rescale = 1.0);
+  virtual ~PHField3DCartesian();
+
+  //! access field value
+  //! Follow the convention of G4ElectroMagneticField
+  //! @param[in]  Point   space time coordinate. x, y, z, t in Geant4/CLHEP units
+  //! @param[out] Bfield  field value. In the case of magnetic field, the order is Bx, By, Bz in in Geant4/CLHEP units
+  void GetFieldValue(const double Point[4], double *Bfield) const;
+
  protected:
-  std::string filename; 
+  std::string filename;
   double xmin;
   double xmax;
   double ymin;
@@ -39,5 +40,4 @@ class PHG4FieldsPHENIX : public G4MagneticField
   mutable int cache_misses;
 };
 
-
-#endif // __PHFIELD3D_H
+#endif  // __PHFIELD3D_H

@@ -1,11 +1,8 @@
-#include "PHG4FieldsPHENIX.h"
+#include "PHField3DCartesian.h"
 
 #include <TFile.h>
 #include <TNtuple.h>
 
-#include <Geant4/G4ios.hh>
-#include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/globals.hh>
 
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
@@ -13,6 +10,7 @@
 #include <iostream>
 
 using namespace std;
+using namespace CLHEP;// units
 
 typedef boost::tuple<double, double, double> trio;
 std::map<boost::tuple<double, double, double>, boost::tuple<double, double, double> > fieldmap;
@@ -22,7 +20,7 @@ std::set<double> zvals;
 
 
 
-PHG4FieldsPHENIX::PHG4FieldsPHENIX( const string &fname , const float magfield_rescale) :
+PHField3DCartesian::PHField3DCartesian( const string &fname , const float magfield_rescale) :
   filename(fname),
   xmin(1000000),
   xmax(-1000000),
@@ -98,14 +96,14 @@ PHG4FieldsPHENIX::PHG4FieldsPHENIX( const string &fname , const float magfield_r
   ymax = *(yvals.rbegin());
   if (ymin != xmin || ymax != xmax)
     {
-      cout << "PHG4FieldsPHENIX: Compiler bug!!!!!!!! Do not use inlining!!!!!!" << endl;
+      cout << "PHField3DCartesian: Compiler bug!!!!!!!! Do not use inlining!!!!!!" << endl;
       cout << "exiting now - recompile with -fno-inline" << endl;
       exit(1);
     }
 
   if (magfield_rescale != 1.0)
     {
-      cout << "PHG4FieldsPHENIX: Rescale not implemented" << endl;
+      cout << "PHField3DCartesian: Rescale not implemented" << endl;
       exit(1);
     }
 
@@ -119,15 +117,15 @@ PHG4FieldsPHENIX::PHG4FieldsPHENIX( const string &fname , const float magfield_r
   cout << "\n================= End Construct Mag Field ======================\n" << endl;
 }
 
-PHG4FieldsPHENIX::~PHG4FieldsPHENIX()
+PHField3DCartesian::~PHField3DCartesian()
 {
-//   cout << "PHG4FieldsPHENIX: cache hits: " << cache_hits
+//   cout << "PHField3DCartesian: cache hits: " << cache_hits
 //        << " cache misses: " << cache_misses
 //        << endl;
 }
 
 
-void PHG4FieldsPHENIX::GetFieldValue(const double point[4], double *Bfield ) const
+void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield ) const
 {
   cout << "untested code - I don't know if this is being used, drop me a line (with the field) and I test this"
        << endl << "   Chris" << endl;
@@ -148,7 +146,7 @@ void PHG4FieldsPHENIX::GetFieldValue(const double point[4], double *Bfield ) con
       static int ifirst = 0;
       if (ifirst < 10)
 	{
-	  cout << "PHG4FieldsPHENIX::GetFieldValue: "
+	  cout << "PHField3DCartesian::GetFieldValue: "
 	       << "Invalid coordinates: "
 	       << "x: " << x
 	       << ", y: " << y

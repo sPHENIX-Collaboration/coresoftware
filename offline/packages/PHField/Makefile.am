@@ -38,7 +38,7 @@ libphfield_la_SOURCES = \
 	PHField.cc \
 	PHField2D.cc \
 	PHField3DCylindrical.cc \
-	PHFields3DCartesian.cc \
+	PHField3DCartesian.cc \
   PHFieldUtility_Dict.C \
 	PHFieldUtility.cc 
 

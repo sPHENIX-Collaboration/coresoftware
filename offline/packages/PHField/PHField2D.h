@@ -20,8 +20,8 @@ class PHField2D : public PHField
   virtual ~PHField2D() {}
   //! access field value
   //! Follow the convention of G4ElectroMagneticField
-  //! @param[in]  Point   space time coordinate. x, y, z, t in units of cm, s
-  //! @param[out] Bfield  field value. In the case of magnetic field, the order is Bx, By, Bz in units of Tesla
+  //! @param[in]  Point   space time coordinate. x, y, z, t in Geant4/CLHEP units
+  //! @param[out] Bfield  field value. In the case of magnetic field, the order is Bx, By, Bz in in Geant4/CLHEP units
   void GetFieldValue(const double Point[4], double *Bfield) const;
 
   void GetFieldCyl(const double CylPoint[4], double *Bfield) const;
