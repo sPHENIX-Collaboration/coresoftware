@@ -1,70 +1,65 @@
 AUTOMAKE_OPTIONS = foreign
 
-# List of shared libraries to produce
-lib_LTLIBRARIES = \
-    libg4field.la
-
-# there seems to be a bug in our SL5.3 gcc 4.3, when running without -fno-inline
-# an stl set in PHG4FieldsPHENIX gets scrambled. There is a warning in the code when
-# this is detected, if this goes away after the next compiler upgrade, this flag can be
-# removed
-AM_CXXFLAGS = \
-  `geant4-config --cflags`
-#AM_CXXFLAGS = \
-#  `geant4-config --cflags` -fno-inline
-
 AM_CPPFLAGS = \
-    -I$(includedir) \
-    -I$(OFFLINE_MAIN)/include \
-    -I`root-config --incdir` \
-    -I${G4_MAIN}/include
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include  \
+  -I`root-config --incdir`
 
-G4LIBLIST = \
-    -lG4vis_management \
-    -lG4intercoms \
-    -lG4materials \
-    -lG4particles \
-    -lG4graphics_reps \
-    -lG4run \
-    -lG4event \
-    -lG4physicslists \
-    -lG4modeling \
-    -lG4digits_hits \
-    -lG4interfaces \
-    -lG4processes \
-    -lG4tracking \
-    -lG4track \
-    -lG4geometry \
-    -lG4global
+lib_LTLIBRARIES = \
+   libphfield_io.la \
+   libphfield.la
 
-libg4field_la_LDFLAGS = \
-    -L$(libdir) \
-    `root-config --libs` \
-    `geant4-config --libs`
+AM_CXXFLAGS = \
+ -Werror -msse2
 
-# Source files:
+AM_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib
 
-libg4field_la_SOURCES = \
-    PHG4Field_Dict.C \
-    PHG4Field2D.C \
-    PHG4Field3D.C \
-    PHG4FieldsPHENIX.cc
+libphfield_io_la_LIBADD = \
+  -lphool
+
+libphfield_la_LIBADD = \
+  -lfun4all \
+  libphfield_io.la
 
 pkginclude_HEADERS = \
-  PHG4Field2D.h \
-  PHG4Field3D.h \
-  PHG4FieldsPHENIX.h
+  PHFieldConfig.h \
+  PHField.h
+
+libphfield_io_la_SOURCES = \
+  PHFieldConfig_Dict.C \
+  PHFieldConfig.cc \
+  PHFieldConfig_v1_Dict.C \
+  PHFieldConfig_v1.cc \
+  PHField_Dict.C \
+	PHField.cc
+
+libphfield_la_SOURCES = \
+	PHField2D.cc \
+	PHField3DCylindrical.cc \
+	PHFields3DCartesian.cc \
+  PHFieldUtility_Dict.C \
+	PHFieldUtility.cc 
+
+# Rule for generating table CINT dictionaries.
+%_Dict.C: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
 # linking tests
-
-noinst_PROGRAMS = \
-  testexternals
-
 BUILT_SOURCES = testexternals.C
 
-testexternals_SOURCES = testexternals.C
-testexternals_LDADD = libg4field.la
+noinst_PROGRAMS = \
+  testexternals_phfield_io \
+  testexternals_phfield
+
+
+testexternals_phfield_io_SOURCES = testexternals.C
+testexternals_phfield_io_LDADD = libphfield_io.la
+
+testexternals_phfield_SOURCES = testexternals.C
+testexternals_phfield_LDADD = libphfield.la
 
 testexternals.C:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
@@ -73,16 +68,5 @@ testexternals.C:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-##############################################
-# please add new classes in alphabetical order
-
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES) *.pcm
-
-# rules to make root dictionaries
-PHG4Field_Dict.C: \
-  PHG4Field2D.h \
-  PHG4Field3D.h \
-  PHG4FieldLinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
+	rm -f *Dict* $(BUILT_SOURCES)
