@@ -4,6 +4,10 @@
 
 #include "PHField.h"
 
+//root framework
+#include <TFile.h>
+#include <TNtuple.h>
+
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
 
