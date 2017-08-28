@@ -828,7 +828,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 	}
 
 	// get node containing the digitized hits
-	SvtxHitMap* hitsmap =  = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+	SvtxHitMap* hitsmap =  findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
 	if (!hitsmap) {
 		cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
 		return NULL;
