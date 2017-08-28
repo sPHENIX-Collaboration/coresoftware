@@ -126,8 +126,9 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
 {
   cout << "untested code - I don't know if this is being used, drop me a line (with the field) and I test this"
        << endl
-       << "   Chris" << endl;
-  exit(1);
+       << "   Chris P." << endl;
+  assert(0);
+
   static double xsav = -1000000.;
   static double ysav = -1000000.;
   static double zsav = -1000000.;
@@ -178,7 +179,7 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
   }
   double xkey[2];
   xkey[0] = *it;
-  it--;
+  --it;
   xkey[1] = *it;
 
   it = yvals.lower_bound(y);
@@ -189,7 +190,7 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
   }
   double ykey[2];
   ykey[0] = *it;
-  it--;
+  --it;
   ykey[1] = *it;
 
   it = zvals.lower_bound(z);
@@ -200,7 +201,7 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
   }
   double zkey[2];
   zkey[0] = *it;
-  it--;
+  --it;
   zkey[1] = *it;
 
   if (xkey_save != xkey[0] ||

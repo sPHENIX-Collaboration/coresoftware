@@ -16,6 +16,8 @@
 
 using namespace std;
 
+const std::string PHFieldConfig::kInvalid_FileName("INVALID FILE");
+
 PHFieldConfig::PHFieldConfig()
   : Data(0)
 {
@@ -25,10 +27,9 @@ PHFieldConfig::~PHFieldConfig()
 {
 }
 
-
-const string & PHFieldConfig::get_field_config_description() const
+string PHFieldConfig::get_field_config_description() const
 {
-  switch(get_field_config())
+  switch (get_field_config())
   {
   case kFieldUniform:
     return "Uniform field";
@@ -52,7 +53,7 @@ const string & PHFieldConfig::get_field_config_description() const
  */
 void PHFieldConfig::identify(std::ostream& os) const
 {
-  os << "PHFieldConfig::identify - isValid() = "<<isValid()<<endl;
+  os << "PHFieldConfig::identify - isValid() = " << isValid() << endl;
 }
 
 /// Clear Event

@@ -127,7 +127,7 @@ PHFieldUtility::GetFieldMapNode(PHFieldConfig *default_config, PHCompositeNode *
   }
 
   PHField *field = findNode::getClass<PHField>(parNode, GetDSTFieldMapNodeName());
-  if (!field and default_config)
+  if (!field)
   {
     PHFieldConfig *field_config =
         GetFieldConfigNode(default_config, topNode);

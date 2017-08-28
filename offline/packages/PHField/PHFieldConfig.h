@@ -56,15 +56,15 @@ class PHFieldConfig : public PHObject
     return kFieldInvalid;
   }
 
-  const std::string& get_field_config_description() const;
+  std::string get_field_config_description() const;
 
   virtual void set_field_config(FieldConfigTypes fieldConfig)
   {
   }
 
-  virtual const std::string& get_filename() const
+  virtual const std::string & get_filename() const
   {
-    return "INVALID FILE";
+    return kInvalid_FileName;
   }
 
   virtual void set_filename(const std::string& filename)
@@ -116,6 +116,8 @@ class PHFieldConfig : public PHObject
  protected:
   //! pure virtual interface class. not for direct use
   PHFieldConfig();
+
+  static const std::string kInvalid_FileName;
 
   ClassDef(PHFieldConfig, 1)
 };
