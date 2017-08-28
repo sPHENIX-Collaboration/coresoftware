@@ -26,6 +26,7 @@ libphfield_la_LIBADD = \
 pkginclude_HEADERS = \
   PHFieldConfig.h \
   PHFieldConfig_v1.h \
+  PHFieldUtility.h \
   PHField.h
 
 libphfield_io_la_SOURCES = \
@@ -36,6 +37,7 @@ libphfield_io_la_SOURCES = \
 
 libphfield_la_SOURCES = \
 	PHField.cc \
+	PHFieldConst.cc \
 	PHField2D.cc \
 	PHField3DCylindrical.cc \
 	PHField3DCartesian.cc \
