@@ -26,10 +26,10 @@ PHField2D::PHField2D( const string &filename, const int verb, const float magfie
   TFile *rootinput = TFile::Open(filename.c_str());
   if (!rootinput)
     {
-      G4cout << " could not open " << filename << " exiting now" << endl;
+      cout << " could not open " << filename << " exiting now" << endl;
       exit(1);
     }
-  if (verb_ > 0) G4cout << "  Field grid file: " << filename << endl;
+  if (verb_ > 0) cout << "  Field grid file: " << filename << endl;
   rootinput->cd();
 
   Float_t ROOT_Z,  ROOT_R;
@@ -62,17 +62,17 @@ PHField2D::PHField2D( const string &filename, const int verb, const float magfie
   static const int NENTRIES = field_map->GetEntries();
 
   // run checks on entries
-  if (verb_ > 0) G4cout << "  The field grid contained " << NENTRIES << " entries" << endl;
+  if (verb_ > 0) cout << "  The field grid contained " << NENTRIES << " entries" << endl;
   if ( verb_ > 1 )
     {
-      G4cout << "\n  NENTRIES should be the same as the following values:"
+      cout << "\n  NENTRIES should be the same as the following values:"
 	     << "\n  [ Number of values r,z: "
 	     << nr << " " << nz << " ]! " << endl;
     }
 
   if (nz != nr)
     {
-      G4cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+      cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	     << "\n The file you entered is not a \"table\" of values"
 	     << "\n Something very likely went oh so wrong"
 	     << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
@@ -88,7 +88,7 @@ PHField2D::PHField2D( const string &filename, const int verb, const float magfie
   // phi.
   if ( verb_ > 1 )
     {
-      G4cout << "  --> Sorting Entries..." << endl;
+      cout << "  --> Sorting Entries..." << endl;
     }
   std::map<trio, trio> sorted_map;
   for ( int i = 0; i < field_map->GetEntries(); i++)
@@ -120,7 +120,7 @@ PHField2D::PHField2D( const string &filename, const int verb, const float magfie
 
   if (verb_ > 1)
     {
-      G4cout << "  --> Putting entries into containers... " <<  endl;
+      cout << "  --> Putting entries into containers... " <<  endl;
     }
 
   // grab the minimum and maximum z values
@@ -172,7 +172,7 @@ PHField2D::PHField2D( const string &filename, const int verb, const float magfie
       // shouldn't happen
       if ( iz > 0 && z < z_map_[iz-1] )
         {
-          G4cout << "!!!!!!!!! Your map isn't ordered.... z: " << z << " zprev: " << z_map_[iz-1] << endl;
+          cout << "!!!!!!!!! Your map isn't ordered.... z: " << z << " zprev: " << z_map_[iz-1] << endl;
         }
 
       BFieldR_[iz][ir] = Br * magfield_rescale;
@@ -185,7 +185,7 @@ PHField2D::PHField2D( const string &filename, const int verb, const float magfie
         {
           print_map(iter);
 
-          G4cout << " B("
+          cout << " B("
 		 << r_map_[ir] << ", "
 		 << z_map_[iz] << "):  ("
 		 << BFieldR_[iz][ir] << ", "
@@ -194,8 +194,8 @@ PHField2D::PHField2D( const string &filename, const int verb, const float magfie
 
     } // end loop over root field map file
 
-  if (verb_ > 0) G4cout << "  Mag field z boundaries (min,max): (" << minz_ / cm << ", " << maxz_ / cm << ") cm" << endl;
-  if (verb_ > 0) G4cout << "  Mag field r max boundary: " << r_map_.back()/ cm << " cm" << endl;
+  if (verb_ > 0) cout << "  Mag field z boundaries (min,max): (" << minz_ / cm << ", " << maxz_ / cm << ") cm" << endl;
+  if (verb_ > 0) cout << "  Mag field r max boundary: " << r_map_.back()/ cm << " cm" << endl;
 
   if (verb_ > 0)
     cout << " -----------------------------------------------------------" << endl;
@@ -204,7 +204,7 @@ PHField2D::PHField2D( const string &filename, const int verb, const float magfie
 void PHField2D::GetFieldValue(const double point[4], double *Bfield ) const
 {
   if (verb_ > 2)
-    G4cout << "\nPHField2D::GetFieldValue" << endl;
+    cout << "\nPHField2D::GetFieldValue" << endl;
   double x = point[0];
   double y = point[1];
   double z = point[2];
@@ -240,12 +240,12 @@ void PHField2D::GetFieldValue(const double point[4], double *Bfield ) const
       Bfield[1] = 0.0;
       Bfield[2] = 0.0;
       if ( verb_ > 2 )
-        G4cout << "!!!!!!!!!! Field point not in defined region (outside of z bounds)" << endl;
+        cout << "!!!!!!!!!! Field point not in defined region (outside of z bounds)" << endl;
     }
 
   if (verb_ > 2)
     {
-      G4cout << "END PHField2D::GetFieldValue\n"
+      cout << "END PHField2D::GetFieldValue\n"
 	     << "  --->  {Bx, By, Bz} : "
 	     << "< " << Bfield[0] << ", " << Bfield[1] << ", " << Bfield[2] << " >" << endl;
     }
@@ -263,12 +263,12 @@ void PHField2D::GetFieldCyl( const double CylPoint[4], double *BfieldCyl ) const
   BfieldCyl[2] = 0.0;
 
   if ( verb_ > 2 )
-    G4cout << "GetFieldCyl@ <z,r>: {" << z << "," << r << "}" << endl;
+    cout << "GetFieldCyl@ <z,r>: {" << z << "," << r << "}" << endl;
 
   if (z < z_map_[0] || z > z_map_[z_map_.size()-1])
     {
       if ( verb_ > 2 )
-        G4cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
+        cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
       return;
     }
 
@@ -286,14 +286,14 @@ void PHField2D::GetFieldCyl( const double CylPoint[4], double *BfieldCyl ) const
     r_index0 = distance(r_map_.begin(), riter) - 1;
     if (r_index0 >= r_map_.size()) {
       if ( verb_ > 2 )
-	G4cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
+	cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
       return;
     }
     
     r_index1 = r_index0 + 1;
     if (r_index1 >= r_map_.size()) {
       if ( verb_ > 2 )
-	G4cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
+	cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
       return;
     }
 
@@ -313,7 +313,7 @@ void PHField2D::GetFieldCyl( const double CylPoint[4], double *BfieldCyl ) const
     z_index1 = z_index0 + 1;
     if (z_index1 >= z_map_.size()) {
       if ( verb_ > 2 )
-	G4cout << "!!!! Point not in defined region (z too large in specific r-plane)" << endl;
+	cout << "!!!! Point not in defined region (z too large in specific r-plane)" << endl;
       return;
     }
 
@@ -359,7 +359,7 @@ void PHField2D::GetFieldCyl( const double CylPoint[4], double *BfieldCyl ) const
 
   if ( verb_ > 2 )
     {
-      G4cout << "End GFCyl Call: <bz,br,bphi> : {"
+      cout << "End GFCyl Call: <bz,br,bphi> : {"
 	     << BfieldCyl[0] / gauss << "," << BfieldCyl[1] / gauss << "," << BfieldCyl[2] / gauss << "}"
 	     << endl;
     }

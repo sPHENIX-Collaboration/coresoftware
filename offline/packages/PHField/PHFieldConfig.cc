@@ -12,6 +12,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <limits>
 #include <sstream>
 
 using namespace std;
@@ -19,7 +20,6 @@ using namespace std;
 const std::string PHFieldConfig::kInvalid_FileName("INVALID FILE");
 
 PHFieldConfig::PHFieldConfig()
-  : Data(0)
 {
 }
 
@@ -65,4 +65,64 @@ void PHFieldConfig::Reset()
 int PHFieldConfig::isValid() const
 {
   return 0;
+}
+
+PHFieldConfig::FieldConfigTypes PHFieldConfig::get_field_config() const
+{
+  return kFieldInvalid;
+}
+
+void PHFieldConfig::set_field_config(PHFieldConfig::FieldConfigTypes fieldConfig)
+{
+}
+
+const std::string& PHFieldConfig::get_filename() const
+{
+  return kInvalid_FileName;
+}
+
+void PHFieldConfig::set_filename(const std::string& filename)
+{
+}
+
+double PHFieldConfig::get_magfield_rescale() const
+{
+  return std::numeric_limits<double>::signaling_NaN();
+}
+
+void PHFieldConfig::set_magfield_rescale(double magfieldRescale)
+{
+}
+
+//! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
+double PHFieldConfig::get_field_mag_x() const
+{
+  return std::numeric_limits<double>::signaling_NaN();
+}
+
+//! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
+void PHFieldConfig::set_field_mag_x(double fieldMagX)
+{
+}
+
+//! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
+double PHFieldConfig::get_field_mag_y() const
+{
+  return std::numeric_limits<double>::signaling_NaN();
+}
+
+//! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
+void PHFieldConfig::set_field_mag_y(double fieldMagY)
+{
+}
+
+//! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
+double PHFieldConfig::get_field_mag_z() const
+{
+  return std::numeric_limits<double>::signaling_NaN();
+}
+
+//! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
+void PHFieldConfig::set_field_mag_z(double fieldMagZ)
+{
 }

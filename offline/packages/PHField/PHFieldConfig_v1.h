@@ -21,7 +21,7 @@ class PHFieldConfig_v1 : public PHFieldConfig
  public:
   PHFieldConfig_v1(
       FieldConfigTypes field_config,
-      std::string& filename,
+      const std::string& filename,
       double magfield_rescale = 1.);
   virtual ~PHFieldConfig_v1();
 

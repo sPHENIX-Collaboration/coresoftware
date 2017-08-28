@@ -29,7 +29,7 @@
 #include <string>
 #include <vector>
 
-class PHField3DCylindrical : public G4MagneticField
+class PHField3DCylindrical : public PHField
 {
   typedef boost::tuple<float, float, float> trio;
 
@@ -51,7 +51,6 @@ class PHField3DCylindrical : public G4MagneticField
   std::vector<float> phi_map_;  // < k >
 
   float maxz_, minz_;  // boundaries of magnetic field map cyl
-  unsigned verb_;
 
  private:
   bool bin_search(const std::vector<float>& vec, unsigned start, unsigned end, const float& key, unsigned& index) const;

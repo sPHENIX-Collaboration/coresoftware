@@ -35,7 +35,7 @@ PHFieldConfig_v2::~PHFieldConfig_v2()
 }
 
 /// Virtual copy constructor.
-virtual PHObject*
+PHObject*
 PHFieldConfig_v2::clone() const
 {
   return new PHFieldConfig_v2(*this);
@@ -49,7 +49,7 @@ void PHFieldConfig_v2::identify(std::ostream& os) const
   os << "PHFieldConfig_v2::identify -";
   if (isValid())
   {
-    os << " Field type of [" << get_field_config_description() << enld;
+    os << " Field type of [" << get_field_config_description();
     os << "] with field vector of ";
     os <<"["<<get_field_mag_x();
     os <<", "<<get_field_mag_y();
@@ -68,5 +68,5 @@ void PHFieldConfig_v2::Reset()
 /// isValid returns non zero if object contains vailid data
 int PHFieldConfig_v2::isValid() const
 {
-  return filename_.length();
+  return 3;
 }

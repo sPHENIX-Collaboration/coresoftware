@@ -21,7 +21,7 @@
 using namespace std;
 
 PHFieldConfig_v1::PHFieldConfig_v1(FieldConfigTypes field_config,
-                                   std::string& filename,
+                                   const std::string& filename,
                                    double magfield_rescale)
   : field_config_(field_config)
   , filename_(filename)
@@ -34,8 +34,8 @@ PHFieldConfig_v1::~PHFieldConfig_v1()
 }
 
 /// Virtual copy constructor.
-virtual PHObject*
-PHFieldConfig_v1::    clone() const
+PHObject*
+PHFieldConfig_v1::clone() const
 {
   return new PHFieldConfig_v1(*this);
 }
@@ -48,9 +48,9 @@ void PHFieldConfig_v1::identify(std::ostream& os) const
   os << "PHFieldConfig_v1::identify -";
   if (isValid())
   {
-    os << " Field type of [" << get_field_config_description() ;
-    os << "] from file [" << get_filename() ;
-    os << "] with a scale factor of " << get_magfield_rescale() ;
+    os << " Field type of [" << get_field_config_description();
+    os << "] from file [" << get_filename();
+    os << "] with a scale factor of " << get_magfield_rescale();
   }
   else
     os << "Empty";

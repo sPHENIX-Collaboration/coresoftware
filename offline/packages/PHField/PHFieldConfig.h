@@ -12,7 +12,6 @@
 #define PHFieldConfig_H_
 
 #include <phool/PHObject.h>
-#include <limits>
 #include <string>
 
 /*!
@@ -48,70 +47,39 @@ class PHFieldConfig : public PHObject
     Field3DCartesian = 1,
 
     //! invalid value
-    kFieldInvalid = std::numeric_limits<int>::max()
+    kFieldInvalid = 9999
   };
 
-  virtual FieldConfigTypes get_field_config() const
-  {
-    return kFieldInvalid;
-  }
+  virtual FieldConfigTypes get_field_config() const;
 
   std::string get_field_config_description() const;
 
-  virtual void set_field_config(FieldConfigTypes fieldConfig)
-  {
-  }
+  virtual void set_field_config(FieldConfigTypes fieldConfig);
 
-  virtual const std::string & get_filename() const
-  {
-    return kInvalid_FileName;
-  }
+  virtual const std::string & get_filename() const;
 
-  virtual void set_filename(const std::string& filename)
-  {
-  }
+  virtual void set_filename(const std::string& filename);
 
-  virtual double get_magfield_rescale() const
-  {
-    return std::numeric_limits<double>::signaling_NaN();
-  }
+  virtual double get_magfield_rescale() const;
 
-  virtual void set_magfield_rescale(double magfieldRescale)
-  {
-  }
+  virtual void set_magfield_rescale(double magfieldRescale);
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
-  virtual double get_field_mag_x() const
-  {
-    return std::numeric_limits<double>::signaling_NaN();
-  }
+  virtual double get_field_mag_x() const;
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
-  virtual void set_field_mag_x(double fieldMagX)
-  {
-  }
+  virtual void set_field_mag_x(double fieldMagX);
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
-  virtual double get_field_mag_y() const
-  {
-    return std::numeric_limits<double>::signaling_NaN();
-  }
+  virtual double get_field_mag_y() const;
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
-  virtual void set_field_mag_y(double fieldMagY)
-  {
-  }
+  virtual void set_field_mag_y(double fieldMagY);
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
-  virtual double get_field_mag_z() const
-  {
-    return std::numeric_limits<double>::signaling_NaN();
-  }
-
+  virtual double get_field_mag_z() const;
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
-  virtual void set_field_mag_z(double fieldMagZ)
-  {
-  }
+  virtual void set_field_mag_z(double fieldMagZ);
 
  protected:
   //! pure virtual interface class. not for direct use

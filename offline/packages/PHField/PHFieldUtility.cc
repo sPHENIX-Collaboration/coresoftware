@@ -8,6 +8,7 @@
 #include "PHFieldUniform.h"
 
 // PHENIX includes
+#include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -50,7 +51,7 @@ PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, const int verbo
 
   switch (field_config->get_field_config())
   {
-  case kFieldUniform:
+  case PHFieldConfig::kFieldUniform:
     //    return "Constant field";
 
     field = new PHFieldUniform(
@@ -59,7 +60,7 @@ PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, const int verbo
         field_config->get_field_mag_z());
 
     break;
-  case kField2D:
+  case PHFieldConfig::kField2D:
     //    return "2D field map expressed in cylindrical coordinates";
     field = new PHField2D(
         field_config->get_filename(),
@@ -67,7 +68,7 @@ PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, const int verbo
         field_config->get_magfield_rescale());
 
     break;
-  case kField3DCylindrical:
+  case PHFieldConfig::kField3DCylindrical:
     //    return "3D field map expressed in cylindrical coordinates";
     field = new PHField3DCylindrical(
         field_config->get_filename(),
@@ -75,7 +76,7 @@ PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, const int verbo
         field_config->get_magfield_rescale());
 
     break;
-  case Field3DCartesian:
+  case PHFieldConfig::Field3DCartesian:
     //    return "3D field map expressed in Cartesian coordinates";
     field = new PHField3DCartesian(
         field_config->get_filename(),
@@ -105,7 +106,7 @@ PHFieldUtility::
 }
 
 //! Get transient PHField from DST nodes. If not found, make a new one based on default_config
-static PHField *
+PHField *
 PHFieldUtility::GetFieldMapNode(PHFieldConfig *default_config, PHCompositeNode *topNode)
 {
   if (topNode == nullptr) topNode = Fun4AllServer::instance()->topNode();
@@ -165,7 +166,7 @@ PHFieldUtility::GetFieldConfigNode(PHFieldConfig *default_config, PHCompositeNod
     return NULL;
   }
 
-  PHField *field = findNode::getClass<PHField>(parNode,
+  PHFieldConfig *field = findNode::getClass<PHFieldConfig>(runNode,
                                                GetDSTConfigNodeName());
   if (!field)
   {

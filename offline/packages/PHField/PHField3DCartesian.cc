@@ -7,6 +7,7 @@
 #include <boost/tuple/tuple_comparison.hpp>
 
 #include <iostream>
+#include <cassert>
 
 using namespace std;
 using namespace CLHEP;  // units
@@ -49,7 +50,7 @@ PHField3DCartesian::PHField3DCartesian(const string &fname, const float magfield
     }
   }
   cout << "\n================ Begin Construct Mag Field =====================" << endl;
-  G4cout << "\n-----------------------------------------------------------"
+  cout << "\n-----------------------------------------------------------"
          << "\n      Magnetic field Module - Verbosity:"
          << "\n-----------------------------------------------------------";
 
@@ -57,10 +58,10 @@ PHField3DCartesian::PHField3DCartesian(const string &fname, const float magfield
   TFile *rootinput = TFile::Open(filename.c_str());
   if (!rootinput)
   {
-    G4cout << "\n could not open " << filename << " exiting now" << endl;
+    cout << "\n could not open " << filename << " exiting now" << endl;
     exit(1);
   }
-  G4cout << "\n ---> "
+  cout << "\n ---> "
             "Reading the field grid from "
          << filename << " ... " << endl;
   rootinput->cd();
