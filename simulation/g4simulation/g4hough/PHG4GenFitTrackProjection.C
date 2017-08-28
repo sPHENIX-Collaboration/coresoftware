@@ -53,7 +53,7 @@ PHG4GenFitTrackProjection::PHG4GenFitTrackProjection(const string &name, const i
 		_fitter(nullptr),
 		_mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
 		_mag_field_re_scaling_factor(1.4/1.5),
-		_reverse_mag_field(true),
+		_reverse_mag_field(false),
 
 		_pid_guess(pid_guess),
 
