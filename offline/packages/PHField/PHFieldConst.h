@@ -11,6 +11,7 @@
 class PHFieldConst : public PHField
 {
  public:
+  //! construct field map in constant in units of Tesla
   PHFieldConst(
       double field_mag_x,
       double field_mag_y,

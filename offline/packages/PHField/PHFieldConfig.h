@@ -22,10 +22,6 @@ class PHFieldConfig : public PHObject
  public:
   virtual ~PHFieldConfig();
 
-  /// Virtual copy constructor.
-  virtual PHObject*
-  clone() const;
-
   /** identify Function from PHObject
    @param os Output Stream
    */
@@ -42,7 +38,7 @@ class PHFieldConfig : public PHObject
 
   enum FieldConfigTypes
   {
-    //! consttant field
+    //! Constant field
     kFieldConstant = 0,
     //! 2D field map expressed in cylindrical coordinates
     kField2D = 2,
@@ -60,6 +56,8 @@ class PHFieldConfig : public PHObject
     return kFieldInvalid;
   }
 
+  const std::string& get_field_config_description() const;
+
   virtual void set_field_config(FieldConfigTypes fieldConfig)
   {
   }
@@ -75,10 +73,43 @@ class PHFieldConfig : public PHObject
 
   virtual double get_magfield_rescale() const
   {
-    return 1.0;
+    return std::numeric_limits<double>::signaling_NaN();
   }
 
   virtual void set_magfield_rescale(double magfieldRescale)
+  {
+  }
+
+  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  virtual double get_field_mag_x() const
+  {
+    return std::numeric_limits<double>::signaling_NaN();
+  }
+
+  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  virtual void set_field_mag_x(double fieldMagX)
+  {
+  }
+
+  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  virtual double get_field_mag_y() const
+  {
+    return std::numeric_limits<double>::signaling_NaN();
+  }
+
+  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  virtual void set_field_mag_y(double fieldMagY)
+  {
+  }
+
+  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  virtual double get_field_mag_z() const
+  {
+    return std::numeric_limits<double>::signaling_NaN();
+  }
+
+  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  virtual void set_field_mag_z(double fieldMagZ)
   {
   }
 

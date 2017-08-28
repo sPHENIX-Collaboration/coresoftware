@@ -11,14 +11,11 @@
 #ifndef PHFieldConfig_v1_H_
 #define PHFieldConfig_v1_H_
 
-#include <vector>
 #include "PHFieldConfig.h"
 
-class TGeoVolume;
-class TGeoManager;
 
 /*!
- * \brief PHFieldConfig_v1 impliments field configuration information */
+ * \brief PHFieldConfig_v1 implements field configuration information for input a field map file */
 class PHFieldConfig_v1 : public PHFieldConfig
 {
  public:
@@ -27,6 +24,10 @@ class PHFieldConfig_v1 : public PHFieldConfig
       std::string& filename,
       double magfield_rescale = 1.);
   virtual ~PHFieldConfig_v1();
+
+  /// Virtual copy constructor.
+  virtual PHObject*
+  clone() const;
 
   /** identify Function from PHObject
    @param os Output Stream

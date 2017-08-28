@@ -33,17 +33,24 @@ PHFieldConfig_v1::~PHFieldConfig_v1()
 {
 }
 
+/// Virtual copy constructor.
+virtual PHObject*
+PHFieldConfig_v1::    clone() const
+{
+  return new PHFieldConfig_v1(*this);
+}
+
 /** identify Function from PHObject
  @param os Output Stream
  */
 void PHFieldConfig_v1::identify(std::ostream& os) const
 {
-  os << "PHFieldConfig_v1::identify - ";
+  os << "PHFieldConfig_v1::identify -";
   if (isValid())
   {
-    os << "\tget_field_config() \t= " << get_field_config() << enld;
-    os << "\tget_filename() \t= " << get_filename() << enld;
-    os << "\tget_magfield_rescale() \t= " << get_magfield_rescale() << enld;
+    os << " Field type of [" << get_field_config_description() ;
+    os << "] from file [" << get_filename() ;
+    os << "] with a scale factor of " << get_magfield_rescale() ;
   }
   else
     os << "Empty";

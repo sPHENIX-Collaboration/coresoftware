@@ -22,9 +22,11 @@ class PHFieldUtility
   virtual ~PHFieldUtility();
 
  public:
-
-  //! Make a default PHFieldConfig
-  static PHFieldConfig * MakeDefaultFieldConfig();
+  //! Make a default PHFieldConfig as in default macro of pro.3 release
+  //! Field map = /phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root
+  //! Field Scale to 1.4/1.5
+  //! \output default field configuration object. Caller assumes ownership
+  static PHFieldConfig *DefaultFieldConfig();
 
   //! Get transient PHField from DST nodes. If not found, make a new one based on default_config
   static PHField *
@@ -32,12 +34,11 @@ class PHFieldUtility
 
   //! Get persistent PHFieldConfig from DST nodes. If not found, make a new one based on default_config
   static PHFieldConfig *
-  GetGeomIOTGeoNode(PHFieldConfig *default_config = nullptr, PHCompositeNode *topNode = nullptr);
+  GetFieldConfigNode(PHFieldConfig *default_config = nullptr, PHCompositeNode *topNode = nullptr);
 
-  //! Build or update PHField node RUN/GEOMETRY based on the persistent PHGeomIOTGeo node RUN/GEOMETRY_IO
-  //! \return the updated PHGeomTGeo from DST tree
+  //! Build or build field map with a configuration object
   static PHField *
-  LoadFromIONode(PHCompositeNode *topNode);
+  BuildFieldMap(const PHFieldConfig *field_config);
 
   //! DST node name for RunTime field map object
   static std::string
@@ -54,7 +55,6 @@ class PHFieldUtility
   }
 
  protected:
-
 };
 
 #endif /* PHFieldUtility_HH__ */

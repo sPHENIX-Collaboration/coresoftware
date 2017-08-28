@@ -25,21 +25,34 @@ PHFieldConfig::~PHFieldConfig()
 {
 }
 
+
+const string & PHFieldConfig::get_field_config_description() const
+{
+  switch(get_field_config())
+  {
+  case kFieldConstant:
+    return "Constant field";
+    break;
+  case kField2D:
+    return "2D field map expressed in cylindrical coordinates";
+    break;
+  case kField3DCylindrical:
+    return "3D field map expressed in cylindrical coordinates";
+    break;
+  case Field3DCartesian:
+    return "3D field map expressed in Cartesian coordinates";
+    break;
+  default:
+    return "Invalid Field";
+  }
+}
+
 /** identify Function from PHObject
  @param os Output Stream
  */
 void PHFieldConfig::identify(std::ostream& os) const
 {
-  os << "PHFieldConfig - ";
-  if (isValid())
-  {
-    os << "\tget_field_config() \t= " << get_field_config() << enld;
-    os << "\tget_filename() \t= " << get_filename() << enld;
-    os << "\tget_magfield_rescale() \t= " << get_magfield_rescale() << enld;
-  }
-  else
-    os << "Empty";
-  os << endl;
+  os << "PHFieldConfig::identify - isValid() = "<<isValid()<<endl;
 }
 
 /// Clear Event
