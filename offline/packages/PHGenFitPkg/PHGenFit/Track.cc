@@ -736,4 +736,34 @@ double Track::get_charge() const {
 	return charge;
 }
 
+TVector3 Track::get_mom() const {
+
+	TVector3 mom(0, 0, 0);
+
+	if(!_track) return mom;
+
+	genfit::TrackPoint *tp_base = nullptr;
+
+	if(_track->getNumPointsWithMeasurement() > 0) {
+		tp_base = _track->getPointWithMeasurement(0);
+	}
+
+	if(!tp_base) return mom;
+
+	genfit::AbsTrackRep* rep = _track->getCardinalRep();
+	if(rep) {
+
+		genfit::KalmanFitterInfo* kfi = static_cast<genfit::KalmanFitterInfo*>(tp_base->getFitterInfo(rep));
+
+		if(!kfi) return mom;
+
+		const genfit::MeasuredStateOnPlane* state = &(kfi->getFittedState(true));
+
+		if (state)
+			return state->getMom();
+	}
+
+	return mom;
+}
+
 } //End of PHGenFit namespace
