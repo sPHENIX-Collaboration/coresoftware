@@ -5,7 +5,7 @@
 #include "PHField2D.h"
 #include "PHField3DCartesian.h"
 #include "PHField3DCylindrical.h"
-#include "PHFieldConst.h"
+#include "PHFieldUniform.h"
 
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -36,37 +36,58 @@ PHFieldUtility::~PHFieldUtility()
 }
 
 PHField *
-PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config)
+PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, const int verbosity)
 {
   assert(field_config);
 
+  if (verbosity)
+  {
+    cout << "PHFieldUtility::BuildFieldMap - construction field with configuration: ";
+    field_config->identify();
+  }
+
   PHField *field(nullptr);
 
-  switch (get_field_config())
+  switch (field_config->get_field_config())
   {
-  case kFieldConstant:
+  case kFieldUniform:
     //    return "Constant field";
 
-    field = new
+    field = new PHFieldUniform(
+        field_config->get_field_mag_x(),
+        field_config->get_field_mag_y(),
+        field_config->get_field_mag_z());
 
     break;
   case kField2D:
     //    return "2D field map expressed in cylindrical coordinates";
+    field = new PHField2D(
+        field_config->get_filename(),
+        verbosity,
+        field_config->get_magfield_rescale());
+
     break;
   case kField3DCylindrical:
     //    return "3D field map expressed in cylindrical coordinates";
+    field = new PHField3DCylindrical(
+        field_config->get_filename(),
+        verbosity,
+        field_config->get_magfield_rescale());
+
     break;
   case Field3DCartesian:
     //    return "3D field map expressed in Cartesian coordinates";
+    field = new PHField3DCartesian(
+        field_config->get_filename(),
+        field_config->get_magfield_rescale());
 
     break;
   default:
     cout << "PHFieldUtility::BuildFieldMap - Invalid Field Configuration" << endl;
-    assert(0);  // Invalid Field
-                //    return nullptr;
-                //    return "Invalid Field";
+    //    return nullptr;
+    //    return "Invalid Field";
   }
-
+  assert(field);  // Check for Invalid Field
   return field;
 }
 
@@ -146,7 +167,7 @@ PHFieldUtility::GetFieldConfigNode(PHFieldConfig *default_config, PHCompositeNod
 
   PHField *field = findNode::getClass<PHField>(parNode,
                                                GetDSTConfigNodeName());
-  if (!field )
+  if (!field)
   {
     if (!default_config)
       field = DefaultFieldConfig();
@@ -160,7 +181,3 @@ PHFieldUtility::GetFieldConfigNode(PHFieldConfig *default_config, PHCompositeNod
 
   return field;
 }
-
-
-
-

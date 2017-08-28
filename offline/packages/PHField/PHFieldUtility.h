@@ -38,7 +38,7 @@ class PHFieldUtility
 
   //! Build or build field map with a configuration object
   static PHField *
-  BuildFieldMap(const PHFieldConfig *field_config);
+  BuildFieldMap(const PHFieldConfig *field_config, const int verbosity = 0);
 
   //! DST node name for RunTime field map object
   static std::string
