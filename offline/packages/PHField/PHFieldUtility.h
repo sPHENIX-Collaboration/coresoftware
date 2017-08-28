@@ -30,11 +30,11 @@ class PHFieldUtility
 
   //! Get transient PHField from DST nodes. If not found, make a new one based on default_config
   static PHField *
-  GetFieldMapNode(PHFieldConfig *default_config = nullptr, PHCompositeNode *topNode = nullptr, const int verbosity = 0);
+  GetFieldMapNode(const PHFieldConfig *default_config = nullptr, PHCompositeNode *topNode = nullptr, const int verbosity = 0);
 
   //! Get persistent PHFieldConfig from DST nodes. If not found, make a new one based on default_config
   static PHFieldConfig *
-  GetFieldConfigNode(PHFieldConfig *default_config = nullptr, PHCompositeNode *topNode = nullptr, const int verbosity = 0);
+  GetFieldConfigNode(const PHFieldConfig *default_config = nullptr, PHCompositeNode *topNode = nullptr, const int verbosity = 0);
 
   //! Build or build field map with a configuration object
   static PHField *

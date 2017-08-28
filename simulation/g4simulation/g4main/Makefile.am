@@ -69,7 +69,7 @@ libphg4hit_la_SOURCES = \
 libg4testbench_la_SOURCES = \
     G4TBMagneticFieldSetup.cc \
     G4TBFieldMessenger.cc \
-    PHG4MagneticField \
+    PHG4MagneticField.cc \
     HepMCNodeReader.cc \
     PHG4ConsistencyCheck.cc \
     PHG4EtaParameterization.cc \

@@ -10,9 +10,11 @@
 
 #include "PHG4MagneticField.h"
 
+#include <phfield/PHField.h>
+
 #include <cassert>
 
-PHG4MagneticField::PHG4MagneticField(PHField* field)
+PHG4MagneticField::PHG4MagneticField(const PHField* field)
   : field_(field)
 {
   assert(field_);

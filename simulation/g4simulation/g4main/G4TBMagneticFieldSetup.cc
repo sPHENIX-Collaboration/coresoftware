@@ -33,11 +33,7 @@
 
 #include "G4TBMagneticFieldSetup.hh"
 #include "G4TBFieldMessenger.hh"
-#include "PHG4MagneticField.hh"
-
-#include <g4field/PHG4Field2D.h>
-#include <g4field/PHG4Field3D.h>
-#include <g4field/PHG4FieldsPHENIX.h>
+#include "PHG4MagneticField.h"
 
 #include <fun4all/Fun4AllServer.h>
 #include <phool/getClass.h>

@@ -107,7 +107,7 @@ void g4guithread(void *ptr);
 //_________________________________________________________________
 PHG4Reco::PHG4Reco(const string &name)
   : SubsysReco(name)
-  , magfield(2)
+  , magfield(1.4)
   , magfield_rescale(1.0)
   , field_(nullptr)
   , runManager_(nullptr)
@@ -119,7 +119,7 @@ PHG4Reco::PHG4Reco(const string &name)
   , generatorAction_(nullptr)
   , visManager(nullptr)
   , _eta_coverage(1.0)
-  , mapdim(0)
+  , mapdim(PHFieldConfig::kFieldUniform)
   , fieldmapfile("NONE")
   , worldshape("G4Tubs")
   , worldmaterial("G4_AIR")
@@ -265,10 +265,12 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
 
   if (verbosity > 1) cout << "PHG4Reco::InitField - create magnetic field setup" << endl;
 
-  PHField * phfield = PHFieldUtility::GetFieldMapNode(default_field_cfg, topNode);
+  PHField * phfield = PHFieldUtility::GetFieldMapNode(default_field_cfg.get(), topNode, Verbosity()+1);
   assert(phfield);
 
   field_ = new G4TBMagneticFieldSetup(phfield);
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4Reco::InitRun(PHCompositeNode *topNode)

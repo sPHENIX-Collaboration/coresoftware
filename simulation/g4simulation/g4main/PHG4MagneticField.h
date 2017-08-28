@@ -21,15 +21,15 @@ class PHField;
 class PHG4MagneticField : public G4MagneticField
 {
  public:
-  PHG4MagneticField(PHField* field);
+  PHG4MagneticField(const PHField* field);
   virtual ~PHG4MagneticField();
 
-  const PHField*& get_field() const
+  const PHField* get_field() const
   {
     return field_;
   }
 
-  void set_field(const PHField*& field)
+  void set_field(const PHField* field)
   {
     field_ = field;
   }
@@ -37,7 +37,7 @@ class PHG4MagneticField : public G4MagneticField
   void GetFieldValue( const double Point[4],    double *Bfield ) const;
 
  protected:
-  PHField* field_;
+  const PHField* field_;
 };
 
 #endif /* SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4MAIN_PHG4MAGNETICFIELD_H_ */

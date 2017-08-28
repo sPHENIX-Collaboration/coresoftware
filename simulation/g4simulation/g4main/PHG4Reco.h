@@ -5,6 +5,8 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <phfield/PHFieldConfig.h>
+
 #include <phool/PHTimeServer.h>
 
 #include <list>
@@ -78,7 +80,7 @@ class PHG4Reco : public SubsysReco
     magfield = tesla;
   }
 
-  void set_field_map(const std::string &fmap, const int dim)
+  void set_field_map(const std::string &fmap, const PHFieldConfig::FieldConfigTypes dim)
   {
     fieldmapfile = fmap;
     mapdim = dim;
@@ -161,7 +163,7 @@ class PHG4Reco : public SubsysReco
   G4VisManager *visManager;
 
   double _eta_coverage;
-  int mapdim;
+  PHFieldConfig::FieldConfigTypes mapdim;
   std::string fieldmapfile;
   std::string worldshape;
   std::string worldmaterial;

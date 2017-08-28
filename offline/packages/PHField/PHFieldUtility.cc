@@ -107,7 +107,7 @@ PHFieldUtility::
 
 //! Get transient PHField from DST nodes. If not found, make a new one based on default_config
 PHField *
-PHFieldUtility::GetFieldMapNode(PHFieldConfig *default_config, PHCompositeNode *topNode, const int verbosity)
+PHFieldUtility::GetFieldMapNode(const PHFieldConfig *default_config, PHCompositeNode *topNode, const int verbosity)
 {
   if (topNode == nullptr) topNode = Fun4AllServer::instance()->topNode();
   assert(topNode);
@@ -134,7 +134,7 @@ PHFieldUtility::GetFieldMapNode(PHFieldConfig *default_config, PHCompositeNode *
         GetFieldConfigNode(default_config, topNode, verbosity);
     assert(field_config);
 
-    field = BuildFieldMap(field_config, verbosity);
+    field = BuildFieldMap(field_config, verbosity>0?verbosity-1:verbosity);
     assert(field);
 
     parNode->addNode(new PHDataNode<PHObject>(field, GetDSTFieldMapNodeName(), "PHObject"));
@@ -145,7 +145,7 @@ PHFieldUtility::GetFieldMapNode(PHFieldConfig *default_config, PHCompositeNode *
 
 //! Get persistent PHGeomIOTGeo from DST nodes. If not found, make a new one
 PHFieldConfig *
-PHFieldUtility::GetFieldConfigNode(PHFieldConfig *default_config, PHCompositeNode *topNode, const int verbosity)
+PHFieldUtility::GetFieldConfigNode(const PHFieldConfig *default_config, PHCompositeNode *topNode, const int verbosity)
 {
   if (topNode == nullptr) topNode = Fun4AllServer::instance()->topNode();
   assert(topNode);
@@ -171,9 +171,23 @@ PHFieldUtility::GetFieldConfigNode(PHFieldConfig *default_config, PHCompositeNod
   if (!field)
   {
     if (!default_config)
+    {
       field = DefaultFieldConfig();
+      if (verbosity)
+          {
+          cout <<"PHFieldUtility::GetFieldConfigNode - field map with configuration from build-in default: ";
+          field->identify();
+        }
+    }
     else
+    {
       field = static_cast<PHFieldConfig *>(default_config->clone());
+      if (verbosity)
+          {
+          cout <<"PHFieldUtility::GetFieldConfigNode - field map with configuration from input default: ";
+          field->identify();
+        }
+    }
 
     assert(field);
     runNode->addNode(new PHDataNode<PHObject>(field,
@@ -181,9 +195,11 @@ PHFieldUtility::GetFieldConfigNode(PHFieldConfig *default_config, PHCompositeNod
   }
   else
   {
-    cout <<"PHFieldUtility::GetFieldMapNode - Build field map with configuration: ";
-    field_config->Print();
-  }
+    if (verbosity)
+    {
+    cout <<"PHFieldUtility::GetFieldConfigNode - field map with configuration from DST/RUN: ";
+    field->identify();
+  }}
 
   return field;
 }
