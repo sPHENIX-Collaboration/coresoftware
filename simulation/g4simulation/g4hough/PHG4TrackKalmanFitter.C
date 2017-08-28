@@ -46,6 +46,7 @@
 #include <phool/PHNodeIterator.h>
 
 #include <phgeom/PHGeomUtility.h>
+#include <phfield/PHFieldUtility.h>
 
 #include <GenFit/FieldManager.h>
 #include <GenFit/GFRaveVertex.h>
@@ -55,6 +56,15 @@
 #include <GenFit/StateOnPlane.h>
 #include <GenFit/Track.h>
 #include <GenFit/KalmanFitterInfo.h>
+
+//Rave
+#include <rave/Version.h>
+#include <rave/Track.h>
+#include <rave/VertexFactory.h>
+#include <rave/ConstantMagneticField.h>
+
+//GenFit
+#include <GenFit/GFRaveConverters.h>
 
 #include <TClonesArray.h>
 #include <TMatrixDSym.h>
@@ -84,14 +94,6 @@
 
 using namespace std;
 
-//Rave
-#include <rave/Version.h>
-#include <rave/Track.h>
-#include <rave/VertexFactory.h>
-#include <rave/ConstantMagneticField.h>
-
-//GenFit
-#include <GenFit/GFRaveConverters.h>
 
 class PHRaveVertexFactory {
 
@@ -233,6 +235,7 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
 	CreateNodes(topNode);
 
 	TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
+	PHField * field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
 	//_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
 	_fitter = PHGenFit::Fitter::getInstance(tgeo_manager,
