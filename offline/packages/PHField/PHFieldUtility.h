@@ -29,10 +29,14 @@ class PHFieldUtility
   static PHFieldConfig *DefaultFieldConfig();
 
   //! Get transient PHField from DST nodes. If not found, make a new one based on default_config
+  //! \param[in]  default_config  default configuraiton if not on DST. If nullptr, use DefaultFieldConfig() as the default
+  //! \param[in]  topNode         you know who....
   static PHField *
   GetFieldMapNode(const PHFieldConfig *default_config = nullptr, PHCompositeNode *topNode = nullptr, const int verbosity = 0);
 
   //! Get persistent PHFieldConfig from DST nodes. If not found, make a new one based on default_config
+  //! \param[in]  default_config  default configuraiton if not on DST. If nullptr, use DefaultFieldConfig() as the default
+  //! \param[in]  topNode         you know who....
   static PHFieldConfig *
   GetFieldConfigNode(const PHFieldConfig *default_config = nullptr, PHCompositeNode *topNode = nullptr, const int verbosity = 0);
 
