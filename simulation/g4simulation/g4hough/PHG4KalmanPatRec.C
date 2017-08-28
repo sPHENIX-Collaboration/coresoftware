@@ -196,7 +196,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 	  _max_share_hits(3),
 	  _mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
 	  _mag_field_re_scaling_factor(1.4/1.5),
-	  _reverse_mag_field(true),
+	  _reverse_mag_field(false),
 	  _fitter(NULL),
 	  _track_fitting_alg_name("DafRef"),
 	  _primary_pid_guess(211),
