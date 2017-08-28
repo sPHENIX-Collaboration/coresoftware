@@ -24,6 +24,9 @@
 
 #include <phgeom/PHGeomUtility.h>
 #include <g4gdml/PHG4GDMLUtility.hh>
+#include <phfield/PHFieldUtility.h>
+#include <phfield/PHFieldConfig_v1.h>
+#include <phfield/PHFieldConfig_v2.h>
 
 #include <TThread.h>
 
@@ -86,6 +89,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
+#include <memory>
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
@@ -244,6 +248,29 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   return 0;
 }
 
+int PHG4Reco::InitField(PHCompositeNode *topNode)
+{
+  if (verbosity > 1) cout << "PHG4Reco::InitField - create magnetic field setup" << endl;
+
+  unique_ptr<PHFieldConfig> default_field_cfg(nullptr);
+
+  if (fieldmapfile != "NONE")
+  {
+    default_field_cfg.reset(new PHFieldConfig_v1(mapdim, fieldmapfile, magfield_rescale));
+  }
+  else
+  {
+    default_field_cfg.reset(new PHFieldConfig_v2(0, 0, magfield * magfield_rescale));
+  }
+
+  if (verbosity > 1) cout << "PHG4Reco::InitField - create magnetic field setup" << endl;
+
+  PHField * phfield = PHFieldUtility::GetFieldMapNode(default_field_cfg, topNode);
+  assert(phfield);
+
+  field_ = new G4TBMagneticFieldSetup(phfield);
+}
+
 int PHG4Reco::InitRun(PHCompositeNode *topNode)
 {
   // this is a dumb protection against executing this twice.
@@ -268,19 +295,11 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   recoConsts *rc = recoConsts::instance();
 
   //setup the constant field
-  if (verbosity > 1) cout << "PHG4Reco::Init - create magnetic field setup" << endl;
-  if (fieldmapfile != "NONE")
+  const int field_ret = InitField(topNode);
+  if (field_ret!=Fun4AllReturnCodes::EVENT_OK)
   {
-    field_ = new G4TBMagneticFieldSetup(fieldmapfile, mapdim, magfield_rescale);
-    magfield = field_->get_magfield_at_000(2);  // get the z coordinate at 0/0/0
-    if (verbosity > 1)
-    {
-      cout << "magfield in PHG4Reco: " << magfield << endl;
-    }
-  }
-  else
-  {
-    field_ = new G4TBMagneticFieldSetup(magfield * magfield_rescale);
+    cout <<"PHG4Reco::InitRun- Error - Failed field init with status = "<<field_ret<<endl;
+    return field_ret;
   }
 
   // initialize registered subsystems

@@ -107,7 +107,7 @@ PHFieldUtility::
 
 //! Get transient PHField from DST nodes. If not found, make a new one based on default_config
 PHField *
-PHFieldUtility::GetFieldMapNode(PHFieldConfig *default_config, PHCompositeNode *topNode)
+PHFieldUtility::GetFieldMapNode(PHFieldConfig *default_config, PHCompositeNode *topNode, const int verbosity)
 {
   if (topNode == nullptr) topNode = Fun4AllServer::instance()->topNode();
   assert(topNode);
@@ -131,10 +131,10 @@ PHFieldUtility::GetFieldMapNode(PHFieldConfig *default_config, PHCompositeNode *
   if (!field)
   {
     PHFieldConfig *field_config =
-        GetFieldConfigNode(default_config, topNode);
+        GetFieldConfigNode(default_config, topNode, verbosity);
     assert(field_config);
 
-    field = BuildFieldMap(field_config);
+    field = BuildFieldMap(field_config, verbosity);
     assert(field);
 
     parNode->addNode(new PHDataNode<PHObject>(field, GetDSTFieldMapNodeName(), "PHObject"));
@@ -145,7 +145,7 @@ PHFieldUtility::GetFieldMapNode(PHFieldConfig *default_config, PHCompositeNode *
 
 //! Get persistent PHGeomIOTGeo from DST nodes. If not found, make a new one
 PHFieldConfig *
-PHFieldUtility::GetFieldConfigNode(PHFieldConfig *default_config, PHCompositeNode *topNode)
+PHFieldUtility::GetFieldConfigNode(PHFieldConfig *default_config, PHCompositeNode *topNode, const int verbosity)
 {
   if (topNode == nullptr) topNode = Fun4AllServer::instance()->topNode();
   assert(topNode);
@@ -178,6 +178,11 @@ PHFieldUtility::GetFieldConfigNode(PHFieldConfig *default_config, PHCompositeNod
     assert(field);
     runNode->addNode(new PHDataNode<PHObject>(field,
                                               GetDSTConfigNodeName(), "PHObject"));
+  }
+  else
+  {
+    cout <<"PHFieldUtility::GetFieldMapNode - Build field map with configuration: ";
+    field_config->Print();
   }
 
   return field;

@@ -69,6 +69,7 @@ libphg4hit_la_SOURCES = \
 libg4testbench_la_SOURCES = \
     G4TBMagneticFieldSetup.cc \
     G4TBFieldMessenger.cc \
+    PHG4MagneticField \
     HepMCNodeReader.cc \
     PHG4ConsistencyCheck.cc \
     PHG4EtaParameterization.cc \
@@ -107,7 +108,8 @@ libg4testbench_la_LDFLAGS = \
     -L$(libdir) \
     -L$(OFFLINE_MAIN)/lib \
     -lboost_filesystem \
-    -lg4field -lg4decayer \
+    -lphfield \
+    -lg4decayer \
     -lgsl -lgslcblas \
     -lvararray \
     -lHepMC \

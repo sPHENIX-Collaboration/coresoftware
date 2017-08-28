@@ -70,6 +70,8 @@ class PHG4Reco : public SubsysReco
   //! start the gui
   int StartGui();
 
+  int InitField(PHCompositeNode *topNode);
+
   //! set magnetic field
   void set_field(const float tesla)
   {
