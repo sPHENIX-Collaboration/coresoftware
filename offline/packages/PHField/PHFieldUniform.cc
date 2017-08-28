@@ -1,5 +1,5 @@
 
-#include "PHFieldConst.h"
+#include "PHFieldUniform.h"
 
 //root framework
 #include <TFile.h>
@@ -11,7 +11,7 @@
 using namespace std;
 using namespace CLHEP;  // units
 
-PHFieldConst::PHFieldConst(
+PHFieldUniform::PHFieldUniform(
     double field_mag_x,
     double field_mag_y,
     double field_mag_z)
@@ -21,7 +21,7 @@ PHFieldConst::PHFieldConst(
 {
 }
 
-void PHFieldConst::GetFieldValue(const double point[4], double *Bfield) const
+void PHFieldUniform::GetFieldValue(const double point[4], double *Bfield) const
 {
   Bfield[0] = field_mag_x_;
   Bfield[1] = field_mag_y_;

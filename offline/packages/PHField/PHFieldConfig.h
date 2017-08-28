@@ -39,7 +39,7 @@ class PHFieldConfig : public PHObject
   enum FieldConfigTypes
   {
     //! Constant field
-    kFieldConstant = 0,
+    kFieldUniform = 0,
     //! 2D field map expressed in cylindrical coordinates
     kField2D = 2,
     //! 3D field map expressed in cylindrical coordinates
@@ -80,35 +80,35 @@ class PHFieldConfig : public PHObject
   {
   }
 
-  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   virtual double get_field_mag_x() const
   {
     return std::numeric_limits<double>::signaling_NaN();
   }
 
-  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   virtual void set_field_mag_x(double fieldMagX)
   {
   }
 
-  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   virtual double get_field_mag_y() const
   {
     return std::numeric_limits<double>::signaling_NaN();
   }
 
-  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   virtual void set_field_mag_y(double fieldMagY)
   {
   }
 
-  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   virtual double get_field_mag_z() const
   {
     return std::numeric_limits<double>::signaling_NaN();
   }
 
-  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   virtual void set_field_mag_z(double fieldMagZ)
   {
   }

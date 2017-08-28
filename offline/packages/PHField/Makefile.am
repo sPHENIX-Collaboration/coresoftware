@@ -40,7 +40,7 @@ libphfield_io_la_SOURCES = \
 
 libphfield_la_SOURCES = \
 	PHField.cc \
-	PHFieldConst.cc \
+	PHFieldUniform.cc \
 	PHField2D.cc \
 	PHField3DCylindrical.cc \
 	PHField3DCartesian.cc \

@@ -15,7 +15,7 @@
 
 
 /*!
- * \brief PHFieldConfig_v2 implements field configuration information for constant field model*/
+ * \brief PHFieldConfig_v2 implements field configuration information for uniform field model*/
 class PHFieldConfig_v2 : public PHFieldConfig
 {
  public:
@@ -47,40 +47,40 @@ class PHFieldConfig_v2 : public PHFieldConfig
 
   FieldConfigTypes get_field_config() const
   {
-    return kFieldConstant;
+    return kFieldUniform;
   }
 
-  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   double get_field_mag_x() const
   {
     return field_mag_x_;
   }
 
-  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   void set_field_mag_x(double fieldMagX)
   {
     field_mag_x_ = fieldMagX;
   }
 
-  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   double get_field_mag_y() const
   {
     return field_mag_y_;
   }
 
-  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   void set_field_mag_y(double fieldMagY)
   {
     field_mag_y_ = fieldMagY;
   }
 
-  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   double get_field_mag_z() const
   {
     return field_mag_z_;
   }
 
-  //! field value in Tesla for constant field model ONLY for PHFieldConfig_v2
+  //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   void set_field_mag_z(double fieldMagZ)
   {
     field_mag_z_ = fieldMagZ;

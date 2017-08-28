@@ -1,6 +1,6 @@
 
-#ifndef __PHFieldConst_H__
-#define __PHFieldConst_H__
+#ifndef __PHFieldUniform_H__
+#define __PHFieldUniform_H__
 
 #include "PHField.h"
 
@@ -8,15 +8,15 @@
 #include <string>
 #include <vector>
 
-class PHFieldConst : public PHField
+class PHFieldUniform : public PHField
 {
  public:
   //! construct field map in constant in units of Tesla
-  PHFieldConst(
+  PHFieldUniform(
       double field_mag_x,
       double field_mag_y,
       double field_mag_z);
-  virtual ~PHFieldConst() {}
+  virtual ~PHFieldUniform() {}
   //! access field value
   //! Follow the convention of G4ElectroMagneticField
   //! @param[in]  Point   space time coordinate. x, y, z, t in Geant4/CLHEP units
@@ -61,4 +61,4 @@ class PHFieldConst : public PHField
  private:
 };
 
-#endif  // __PHFieldConst_H
+#endif  // __PHFieldUniform_H

@@ -30,8 +30,8 @@ const string & PHFieldConfig::get_field_config_description() const
 {
   switch(get_field_config())
   {
-  case kFieldConstant:
-    return "Constant field";
+  case kFieldUniform:
+    return "Uniform field";
     break;
   case kField2D:
     return "2D field map expressed in cylindrical coordinates";

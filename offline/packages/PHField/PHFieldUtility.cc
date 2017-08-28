@@ -46,6 +46,9 @@ PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config)
   {
   case kFieldConstant:
     //    return "Constant field";
+
+    field = new
+
     break;
   case kField2D:
     //    return "2D field map expressed in cylindrical coordinates";
@@ -63,6 +66,8 @@ PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config)
                 //    return nullptr;
                 //    return "Invalid Field";
   }
+
+  return field;
 }
 
 //! Make a default PHFieldConfig
