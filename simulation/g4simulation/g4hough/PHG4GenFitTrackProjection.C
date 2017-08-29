@@ -88,8 +88,6 @@ int PHG4GenFitTrackProjection::InitRun(PHCompositeNode *topNode) {
 	tgeo_manager->Export("Geo_extract.root");
 #endif
 
-  PHField * field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
-
 	_fitter = PHGenFit::Fitter::getInstance(tgeo_manager,field,
 			"DafRef",
 			"RKTrackRep", false);

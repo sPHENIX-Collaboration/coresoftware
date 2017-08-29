@@ -98,9 +98,6 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode *topNode) {
 
 	CreateNodes(topNode);
 
-	TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
-
-
   TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
   PHField * field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 	//_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);

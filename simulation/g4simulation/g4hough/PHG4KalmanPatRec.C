@@ -1081,8 +1081,6 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 
 int PHG4KalmanPatRec::InitializePHGenFit(PHCompositeNode* topNode) {
 
-	TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
-
   TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
   PHField * field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
