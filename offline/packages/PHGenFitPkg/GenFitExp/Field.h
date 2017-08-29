@@ -27,8 +27,7 @@ namespace genfit {
  */
 class Field : public AbsBField {
  public:
-  Field(const PHField* field) : field_(field)
-  { }
+  Field(const PHField* field);
 
   virtual ~Field() {}
 

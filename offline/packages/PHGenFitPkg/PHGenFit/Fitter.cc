@@ -43,9 +43,9 @@
 namespace PHGenFit {
 
 Fitter::Fitter(
+    const std::string &tgeo_file_name,
     const PHField * field,
-		const double field_scaling_factor,
-		const std::string &fitter_choice,
+ 		const std::string &fitter_choice,
 		const std::string &track_rep_choice,
 		const bool doEventDisplay
 ) : verbosity(0), _doEventDisplay(doEventDisplay)
