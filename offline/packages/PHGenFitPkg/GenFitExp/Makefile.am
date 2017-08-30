@@ -10,19 +10,20 @@ libgenfit2exp_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   `root-config --libs` \
-  -L$(GENFIT)/lib
+  -L$(GENFIT)/lib 
 
 lib_LTLIBRARIES = \
   libgenfit2exp.la
 
 pkginclude_HEADERS = \
-  fields/Field2D.h
+  Field.h
 
 libgenfit2exp_la_SOURCES = \
-  fields/Field2D.cc
+  Field.cc
 
 libgenfit2exp_la_LIBADD = \
-  -lgenfit2
+  -lgenfit2 \
+  -lphfield
 
 BUILT_SOURCES = \
   testexternals.C
