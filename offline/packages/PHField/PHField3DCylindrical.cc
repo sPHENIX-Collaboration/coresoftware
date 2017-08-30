@@ -194,6 +194,8 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
 
   }  // end loop over root field map file
 
+  if (rootinput) rootinput->Close();
+
   cout << "\n ---> ... read file successfully "
          << "\n ---> Z Boundaries ~ zlow, zhigh: "
          << minz_ / cm << "," << maxz_ / cm << " cm " << endl;
