@@ -190,7 +190,7 @@ PHFieldUtility::GetFieldConfigNode(const PHFieldConfig *default_config, PHCompos
     }
 
     assert(field);
-    runNode->addNode(new PHDataNode<PHObject>(field,
+    runNode->addNode(new PHIODataNode<PHObject>(field,
                                               GetDSTConfigNodeName(), "PHObject"));
   }
   else
