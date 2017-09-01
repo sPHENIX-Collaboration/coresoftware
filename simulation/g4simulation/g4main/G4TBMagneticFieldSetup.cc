@@ -33,10 +33,7 @@
 
 #include "G4TBMagneticFieldSetup.hh"
 #include "G4TBFieldMessenger.hh"
-
-#include <g4field/PHG4Field2D.h>
-#include <g4field/PHG4Field3D.h>
-#include <g4field/PHG4FieldsPHENIX.h>
+#include "PHG4MagneticField.h"
 
 #include <fun4all/Fun4AllServer.h>
 #include <phool/getClass.h>
@@ -70,6 +67,7 @@
 
 
 #include <sstream>
+#include <cassert>
 
 using namespace std;
 
@@ -77,51 +75,15 @@ using namespace std;
 //
 //  Constructors:
 
-G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const float magfield)
-  : verbosity(0), fChordFinder(0), fStepper(0), fIntgrDriver(0)
-{
-  //solenoidal field along the axis of the cyclinders?
-  fEMfield = new G4UniformMagField(G4ThreeVector(0.0, 0.0, magfield*tesla));
-  fFieldMessenger = new G4TBFieldMessenger(this) ;
-  fEquation = new  G4Mag_UsualEqRhs(fEMfield);
-  fMinStep     = 0.005 * mm ; // minimal step of 10 microns
-  fStepperType = 4 ;        // ClassicalRK4 -- the default stepper
-
-  fFieldManager = GetGlobalFieldManager();
-  UpdateField();
-
-  double point[4] = {0,0,0,0};
-  fEMfield->GetFieldValue(&point[0],&magfield_at_000[0]);
-  for (size_t i=0; i<sizeof(magfield_at_000)/sizeof(double);i++)
-    {
-      magfield_at_000[i] = magfield_at_000[i]/tesla;
-    }
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-
-G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const string &fieldmapname, const int dim, const float magfield_rescale)
+G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(PHField * phfield)
   : verbosity(0),
     fChordFinder(0), 
     fStepper(0),
     fIntgrDriver(0)
 {    
+  assert(phfield);
 
-  switch(dim)
-    {
-    case 1: 
-      fEMfield = new PHG4FieldsPHENIX(fieldmapname,magfield_rescale);
-      break;
-    case 2: 
-      fEMfield = new PHG4Field2D(fieldmapname,0,magfield_rescale);
-      break;
-    case 3:
-      fEMfield = new PHG4Field3D(fieldmapname,0,magfield_rescale);
-      break;
-    default:
-      cout << "Invalid dimension, valid is 2 for 2D, 3 for 3D" << endl;
-      exit(1);
-    }
+  fEMfield = new PHG4MagneticField(phfield);
   fFieldMessenger = new G4TBFieldMessenger(this) ;  
   fEquation = new  G4Mag_UsualEqRhs(fEMfield); 
   fMinStep     = 0.005*mm ; // minimal step of 10 microns
@@ -138,11 +100,78 @@ G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const string &fieldmapname, const
   if (verbosity > 0)
     {
       cout << "field: x" << magfield_at_000[0]
-	   << ", y: " << magfield_at_000[1]
-	   << ", z: " << magfield_at_000[2]
-	   << endl;
+     << ", y: " << magfield_at_000[1]
+     << ", z: " << magfield_at_000[2]
+     << endl;
     }
 }
+
+//G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const float magfield)
+//  : verbosity(0), fChordFinder(0), fStepper(0), fIntgrDriver(0)
+//{
+//  //solenoidal field along the axis of the cyclinders?
+//  fEMfield = new G4UniformMagField(G4ThreeVector(0.0, 0.0, magfield*tesla));
+//  fFieldMessenger = new G4TBFieldMessenger(this) ;
+//  fEquation = new  G4Mag_UsualEqRhs(fEMfield);
+//  fMinStep     = 0.005 * mm ; // minimal step of 10 microns
+//  fStepperType = 4 ;        // ClassicalRK4 -- the default stepper
+//
+//  fFieldManager = GetGlobalFieldManager();
+//  UpdateField();
+//
+//  double point[4] = {0,0,0,0};
+//  fEMfield->GetFieldValue(&point[0],&magfield_at_000[0]);
+//  for (size_t i=0; i<sizeof(magfield_at_000)/sizeof(double);i++)
+//    {
+//      magfield_at_000[i] = magfield_at_000[i]/tesla;
+//    }
+//}
+//
+///////////////////////////////////////////////////////////////////////////////////
+//
+//G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const string &fieldmapname, const int dim, const float magfield_rescale)
+//  : verbosity(0),
+//    fChordFinder(0),
+//    fStepper(0),
+//    fIntgrDriver(0)
+//{
+//
+//  switch(dim)
+//    {
+//    case 1:
+//      fEMfield = new PHG4FieldsPHENIX(fieldmapname,magfield_rescale);
+//      break;
+//    case 2:
+//      fEMfield = new PHG4Field2D(fieldmapname,0,magfield_rescale);
+//      break;
+//    case 3:
+//      fEMfield = new PHG4Field3D(fieldmapname,0,magfield_rescale);
+//      break;
+//    default:
+//      cout << "Invalid dimension, valid is 2 for 2D, 3 for 3D" << endl;
+//      exit(1);
+//    }
+//  fFieldMessenger = new G4TBFieldMessenger(this) ;
+//  fEquation = new  G4Mag_UsualEqRhs(fEMfield);
+//  fMinStep     = 0.005*mm ; // minimal step of 10 microns
+//  fStepperType = 4 ;        // ClassicalRK4 -- the default stepper
+//
+//  fFieldManager = GetGlobalFieldManager();
+//  UpdateField();
+//  double point[4] = {0,0,0,0};
+//  fEMfield->GetFieldValue(&point[0],&magfield_at_000[0]);
+//  for (size_t i=0; i<sizeof(magfield_at_000)/sizeof(double);i++)
+//    {
+//      magfield_at_000[i] = magfield_at_000[i]/tesla;
+//    }
+//  if (verbosity > 0)
+//    {
+//      cout << "field: x" << magfield_at_000[0]
+//	   << ", y: " << magfield_at_000[1]
+//	   << ", z: " << magfield_at_000[2]
+//	   << endl;
+//    }
+//}
 
 
 ////////////////////////////////////////////////////////////////////////////////

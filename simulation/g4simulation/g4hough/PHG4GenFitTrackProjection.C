@@ -17,6 +17,8 @@
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phgeom/PHGeomUtility.h>
+#include <phfield/PHFieldUtility.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
@@ -51,9 +53,6 @@ PHG4GenFitTrackProjection::PHG4GenFitTrackProjection(const string &name, const i
 		SubsysReco(name),
 
 		_fitter(nullptr),
-		_mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
-		_mag_field_re_scaling_factor(1.4/1.5),
-		_reverse_mag_field(true),
 
 		_pid_guess(pid_guess),
 
@@ -89,9 +88,8 @@ int PHG4GenFitTrackProjection::InitRun(PHCompositeNode *topNode) {
 	tgeo_manager->Export("Geo_extract.root");
 #endif
 
-	_fitter = PHGenFit::Fitter::getInstance(tgeo_manager,
-			_mag_field_file_name.data(),
-			(_reverse_mag_field) ? -1. * _mag_field_re_scaling_factor : _mag_field_re_scaling_factor,
+  PHField * field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
+	_fitter = PHGenFit::Fitter::getInstance(tgeo_manager,field,
 			"DafRef",
 			"RKTrackRep", false);
 
@@ -101,8 +99,6 @@ int PHG4GenFitTrackProjection::InitRun(PHCompositeNode *topNode) {
 		cerr << PHWHERE << endl;
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
-
-	return Fun4AllReturnCodes::EVENT_OK;
 
 	if (verbosity > 0) {
 		cout
@@ -219,7 +215,6 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 			int reco_charge = track->get_charge();
 			int gues_charge = pdg->GetParticle(_pid_guess)->Charge();
 			if(reco_charge*gues_charge<0) _pid_guess *= -1;
-			if(_reverse_mag_field) _pid_guess *= -1;
 #ifdef DEBUG
 			cout
 			<<__LINE__
@@ -248,12 +243,9 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 					}
 				}
 
-				TVector3 n(trackstate->get_px(), trackstate->get_py(), 0);
-				genfit::SharedPlanePtr plane(new genfit::DetPlane(pos, n));
 				msop80 = unique_ptr<genfit::MeasuredStateOnPlane> (new genfit::MeasuredStateOnPlane(rep.get()));
 
 				msop80->setPosMomCov(pos, mom, cov);
-				msop80->setPlane(plane);
 			}
 
 #ifdef DEBUG
@@ -269,7 +261,7 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 				field_mgr->getFieldVal(x,y,z,Bx,By,Bz);
 				cout
 				<< __LINE__
-				<< ": { " << msop80->getPos().Perp() << ", " << msop80->getPos().Phi() << ", " << z << "} @ "
+				<< ": { " << msop80->getPos().Perp() << ", " << msop80->getPos().Phi() << ", " << msop80->getPos().Eta() << "} @ "
 				//<< "{ " << Bx << ", " << By << ", " << Bz << "}"
 				<< "{ " << msop80->getMom().Perp() << ", " << msop80->getMom().Phi() << ", " << pz << "} "
 				<<endl;
@@ -299,7 +291,7 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 				field_mgr->getFieldVal(x,y,z,Bx,By,Bz);
 				cout
 				<< __LINE__
-				<< ": { " << msop80->getPos().Perp() << ", " << msop80->getPos().Phi() << ", " << z << "} @ "
+				<< ": { " << msop80->getPos().Perp() << ", " << msop80->getPos().Phi() << ", " << msop80->getPos().Eta() << "} @ "
 				//<< "{ " << Bx << ", " << By << ", " << Bz << "}"
 				<< "{ " << msop80->getMom().Perp() << ", " << msop80->getMom().Phi() << ", " << pz << "} "
 				<<endl;

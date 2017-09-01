@@ -45,6 +45,9 @@ public:
 
   void setSmearRPhi(const double v) {fFractRPsm=v;}
   void setSmearZ(const double v) {fFractZZsm=v;}
+
+  void setShapingRMSLead(const double v) {fShapingLead=v;}
+  void setShapingRMSTail(const double v) {fShapingTail=v;}
   
   double get_timing_window_min(const int i) {return tmin_max[i].first;}
   double get_timing_window_max(const int i) {return tmin_max[i].second;}
@@ -96,6 +99,8 @@ protected:
   TProfile2D *fHErrorZ;
   double fFractRPsm;
   double fFractZZsm;
+  double fShapingLead;
+  double fShapingTail;
 #ifndef __CINT__
   //! random generator that conform with sPHENIX standard
   gsl_rng *RandomGenerator;
