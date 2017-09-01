@@ -23,6 +23,8 @@
 #include <phgenfit/PlanarMeasurement.h>
 #include <phgenfit/SpacepointMeasurement.h>
 
+#include <phfield/PHFieldUtility.h>
+
 #define LogDEBUG    std::cout<<"DEBUG: "<<__LINE__<<"\n"
 
 void get_seed(TVector3& seed_pos, TVector3& seed_mom, TMatrixDSym& seed_cov)
@@ -43,8 +45,11 @@ std::vector<TVector3> get_raw_measurements()
 }
 
 int main(int argc, char**argv) {
+
 	//! Initiallize Geometry, Field, Fitter
-	PHGenFit::Fitter* fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5,"KalmanFitter","RKTrackRep",false);
+	PHGenFit::Fitter* fitter = new PHGenFit::Fitter("sPHENIX_Geo.root",
+	    PHFieldUtility::BuildFieldMap(PHFieldUtility::DefaultFieldConfig(), 1),
+	    "KalmanFitter","RKTrackRep",false);
 
 	//! Build TrackRep from particle assumption
 	int pid = -13; //mu+

@@ -23,10 +23,14 @@ PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &dete
   , layerconfig_(layerconfig)
   , detector_type(detectorname)
 {
+  nlayers = 0;
   for (vector<pair<int, int>>::const_iterator piter = layerconfig.begin(); piter != layerconfig.end(); ++piter)
   {
+    if(verbosity > 1) cout << PHWHERE << " adding INTT layer " << (*piter).second << endl;
+    nlayers++;
     AddDetId((*piter).second);
   }
+
   InitializeParameters();
   // put the layer into the name so we get unique names
   // for multiple layers
@@ -127,8 +131,19 @@ PHG4Detector *PHG4SiliconTrackerSubsystem::GetDetector(void) const
 
 void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
 {
+  int nladder[4] = {20, 26, 32, 38};
+  int nstrips_z_sensor_0[4] = {5, 8, 8, 8};
+  int nstrips_z_sensor_1[4] = {5, 5, 5, 5};
+  double halfladder_z[4] = {22.0, 26.8, 26.8, 26.8};
+  double hdi_y[4] = {3.8, 4.3, 4.3, 4.3};
+  double offsetrot[4] = {14.0, 14.0, 12.0, 11.5};
+  double radius[4] = {6.0, 8.0, 10.0, 12.0};
+  double strip_y[4] = {0.0078, 0.0086, 0.0086, 0.0086};
+  double strip_z_0[4] = {1.8, 1.6, 1.6, 1.6};
+  double strip_z_1[4] = {1.8, 2.0, 2.0, 2.0};
+
   // all values in cm!
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < nlayers; i++)
   {
     set_default_int_param(i, "nstrips_phi_cell", 128);
     set_default_double_param(i, "fphx_x", 0.032);
@@ -143,9 +158,21 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
     set_default_double_param(i, "sensor_edge_z", 0.098);
     set_default_double_param(i, "stave_x", 0.023);
     set_default_double_param(i, "strip_x", 0.02);
+
+    set_default_int_param(i, "nladder", nladder[i]);
+    set_default_int_param(i, "nstrips_z_sensor_0", nstrips_z_sensor_0[i]);
+    set_default_int_param(i, "nstrips_z_sensor_1", nstrips_z_sensor_1[i]);
+    set_default_double_param(i, "halfladder_z", halfladder_z[i]);
+    set_default_double_param(i, "hdi_y", hdi_y[i]);
+    set_default_double_param(i, "offsetrot", offsetrot[i]);
+    set_default_double_param(i, "radius", radius[i]);
+    set_default_double_param(i, "strip_y", strip_y[i]);
+    set_default_double_param(i, "strip_z_0", strip_z_0[i]);
+    set_default_double_param(i, "strip_z_1", strip_z_1[i]);
   }
 
-  set_default_int_param(0, "nladder", 20);
+  /*
+  set_default_int_param(0, "nladder", 22);
   set_default_int_param(1, "nladder", 26);
   set_default_int_param(2, "nladder", 32);
   set_default_int_param(3, "nladder", 38);
@@ -194,6 +221,7 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
   set_default_double_param(1, "strip_z_1", 2.0);
   set_default_double_param(2, "strip_z_1", 2.0);
   set_default_double_param(3, "strip_z_1", 2.0);
+  */
 
   std::pair<std::set<int>::const_iterator, std::set<int>::const_iterator> begin_end = GetDetIds();
   for (set<int>::const_iterator it = begin_end.first; it != begin_end.second; ++it)
@@ -208,6 +236,5 @@ void PHG4SiliconTrackerSubsystem::Print(const string &what) const
 {
   PrintDefaultParams();
   PrintMacroParams();
-  cout << "Print Resulting Parameters:" << endl;
   GetParamsContainer()->Print();
 }

@@ -50,12 +50,16 @@ class G4Mag_UsualEqRhs;
 class G4MagIntegratorStepper;
 class G4MagInt_Driver; 
 class G4TBFieldMessenger;
+class PHField;
+
 class G4TBMagneticFieldSetup 
 {
 public:
 
-  G4TBMagneticFieldSetup(const float magfield) ;
-  G4TBMagneticFieldSetup(const std::string &fieldmapfile, const int mapdim, const float magfield_rescale = 1.0) ;
+
+  G4TBMagneticFieldSetup(PHField * phfield) ;
+//  G4TBMagneticFieldSetup(const float magfield) ;
+//  G4TBMagneticFieldSetup(const std::string &fieldmapfile, const int mapdim, const float magfield_rescale = 1.0) ;
 
   virtual ~G4TBMagneticFieldSetup() ;  
 
