@@ -106,30 +106,6 @@ public:
 		_fit_alg_name = fitAlgName;
 	}
 
-	const std::string& get_mag_field_file_name() const {
-		return _mag_field_file_name;
-	}
-
-	void set_mag_field_file_name(const std::string& magFieldFileName) {
-		_mag_field_file_name = magFieldFileName;
-	}
-
-	float get_mag_field_re_scaling_factor() const {
-		return _mag_field_re_scaling_factor;
-	}
-
-	void set_mag_field_re_scaling_factor(float magFieldReScalingFactor) {
-		_mag_field_re_scaling_factor = magFieldReScalingFactor;
-	}
-
-	bool is_reverse_mag_field() const {
-		return _reverse_mag_field;
-	}
-
-	void set_reverse_mag_field(bool reverseMagField) {
-		_reverse_mag_field = reverseMagField;
-	}
-
 	double get_pat_rec_hit_finding_eff() const {
 		return _pat_rec_hit_finding_eff;
 	}
@@ -306,14 +282,6 @@ private:
 	 */
 	PHGenFit::Fitter* _fitter;
 
-	//!
-	std::string _mag_field_file_name;
-
-	//! rescale mag field, modify the original mag field read in
-	float _mag_field_re_scaling_factor;
-
-	//! Switch to reverse Magnetic field
-	bool _reverse_mag_field;
 
 	/*!
 	 * Available choices:
