@@ -57,8 +57,9 @@ class PHG4SiliconTrackerSubsystem : public PHG4DetectorGroupSubsystem
   PHG4SteppingAction *steppingAction_;
 
   std::vector<std::pair<int, int>> layerconfig_;
-
   std::string detector_type;
+
+  int nlayers;
 };
 
 #endif

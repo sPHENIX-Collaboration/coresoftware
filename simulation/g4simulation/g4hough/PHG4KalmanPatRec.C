@@ -45,6 +45,7 @@
 #include <phool/getClass.h>
 #include <phool/PHRandomSeed.h>
 #include <phgeom/PHGeomUtility.h>
+#include <phfield/PHFieldUtility.h>
  //FIXME remove includes below after having real vertxing
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
@@ -194,9 +195,6 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 	  _max_merging_dr(0.1),
 	  _max_merging_dz(0.1),
 	  _max_share_hits(3),
-	  _mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
-	  _mag_field_re_scaling_factor(1.4/1.5),
-	  _reverse_mag_field(true),
 	  _fitter(NULL),
 	  _track_fitting_alg_name("DafRef"),
 	  _primary_pid_guess(211),
@@ -1083,14 +1081,11 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 
 int PHG4KalmanPatRec::InitializePHGenFit(PHCompositeNode* topNode) {
 
-	TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
+  TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
+  PHField * field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
 	//_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
-	_fitter = PHGenFit::Fitter::getInstance(tgeo_manager,
-			_mag_field_file_name.data(),
-			(_reverse_mag_field) ?
-					-1. * _mag_field_re_scaling_factor :
-					_mag_field_re_scaling_factor, _track_fitting_alg_name,
+	_fitter = PHGenFit::Fitter::getInstance(tgeo_manager, field, _track_fitting_alg_name,
 					"RKTrackRep", _do_evt_display);
 
 	if (!_fitter) {
@@ -3323,7 +3318,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 //				<<", #totoal tracks: "<<_trackID_PHGenFitTrack.size()
 //				<<std::endl;
 
-		for (std::map<double, PHGenFit::Track*>::iterator iter =
+		for (auto iter =
 				incr_chi2s_new_tracks.begin();
 				iter != incr_chi2s_new_tracks.end(); iter++) {
 			std::cout << __LINE__ << ": IncrChi2: "<< iter->first << std::endl;

@@ -29,10 +29,12 @@ LDFLAGS      += $(ROOTLDFLAGS) $(ROOTGLIBS) ${ROOTLIBS}
 #LDFLAGS      += $(GENFITLDFLAGS)
 
 CXXFLAGS	+=	-I$(MY_INSTALL)/include
-LDFLAGS		+=	-L$(MY_INSTALL)/lib -lgenfit2exp -lPHGenFit
+LDFLAGS		+=	-L$(MY_INSTALL)/lib -lgenfit2exp -lPHGenFit  \
+  -lphfield
 
 CXXFLAGS	+=	-I$(OFFLINE_MAIN)/include
-LDFLAGS		+=	-L$(OFFLINE_MAIN)/lib -lgenfit2exp -lPHGenFit
+LDFLAGS		+=	-L$(OFFLINE_MAIN)/lib -lgenfit2exp -lPHGenFit \
+  -lphfield
 
 TESTO         = testPHGenFit.o
 TEST	        = testPHGenFit
