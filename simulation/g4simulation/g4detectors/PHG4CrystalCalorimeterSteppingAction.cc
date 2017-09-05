@@ -187,30 +187,34 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
       if (whichactive > 0)
 	{
 
+	  /* Use 'light yield = depoisted energy (ionization)' for now. Better determination of
+	   * light yield requires to set and cofirm Birk constant for calorimeter material via
+	   * mat->GetIonisation()->SetBirksConstant() */
 	  light_yield = eion;
-	  if (light_scint_model)
-	    {
-	      light_yield = GetVisibleEnergyDeposition(aStep); // for scintillator only, calculate light yields
-	      static bool once = true;
-	      if (once && edep > 0)
-		{
-		  once = false;
 
-		  if (verbosity > 0)
-		    {
-		      cout << "PHG4ForwardEcalSteppingAction::UserSteppingAction::"
-			//
-			   << detector_->GetName() << " - "
-			   << " use scintillating light model at each Geant4 steps. "
-			   << "First step: " << "Material = "
-			   << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
-			   << ", " << "Birk Constant = "
-			   << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
-			   << "," << "edep = " << edep << ", " << "eion = " << eion
-			   << ", " << "light_yield = " << light_yield << endl;
-		    }
-		}
-	    }
+	  //if (light_scint_model)
+	  //  {
+	  //    light_yield = GetVisibleEnergyDeposition(aStep); // for scintillator only, calculate light yields
+	  //    static bool once = true;
+	  //    if (once && edep > 0)
+	  //	{
+	  //	  once = false;
+	  //
+	  //	  if (verbosity > 0)
+	  //	    {
+	  //	      cout << "PHG4CrystalCalorimeterSteppingAction::UserSteppingAction::"
+	  //		//
+	  //		   << detector_->GetName() << " - "
+	  //		   << " use scintillating light model at each Geant4 steps. "
+	  //		   << "First step: " << "Material = "
+	  //		   << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
+	  //		   << ", " << "Birk Constant = "
+	  //		   << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
+	  //		   << "," << "edep = " << edep << ", " << "eion = " << eion
+	  //		   << ", " << "light_yield = " << light_yield << endl;
+	  //	    }
+	  //	}
+	  //  } // END finding light yield (if (light_scint_model))
 	}
 
       /* Update exit values- will be overwritten with every step until
