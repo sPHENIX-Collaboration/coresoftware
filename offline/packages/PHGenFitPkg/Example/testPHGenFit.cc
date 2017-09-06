@@ -13,6 +13,8 @@
 #define SMART(expr) boost::shared_ptr<expr>
 #define NEW(expr) boost::make_shared<expr>
 
+#include <phfield/PHFieldUtility.h>
+
 //ROOT
 #include <TVector3.h>
 #include <TMatrixDSym.h>
@@ -62,7 +64,7 @@ int main(int argc, char**argv) {
 	}
 
 	//! Initiallize Geometry, Field, Fitter
-	PHGenFit::Fitter* fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
+	PHGenFit::Fitter* fitter = new PHGenFit::Fitter("sPHENIX_Geo.root",PHFieldUtility::BuildFieldMap(PHFieldUtility::DefaultFieldConfig(), 1));
 
 
 	double resolution_detector_xy = 0.005/3.; //50/3. micron

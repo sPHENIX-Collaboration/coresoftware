@@ -34,7 +34,8 @@ libPHGenFit_la_SOURCES = \
 
 libPHGenFit_la_LIBADD = \
   -lgenfit2 \
-  -lgenfit2exp
+  -lgenfit2exp \
+  -lphfield
 
 BUILT_SOURCES = \
   testexternals.C

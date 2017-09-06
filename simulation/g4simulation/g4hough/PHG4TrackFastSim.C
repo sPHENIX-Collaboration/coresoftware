@@ -34,6 +34,7 @@
 #include <phgenfit/PlanarMeasurement.h>
 #include <phgenfit/Track.h>
 #include <phgeom/PHGeomUtility.h>
+#include <phfield/PHFieldUtility.h>
 #include <phgenfit/SpacepointMeasurement.h>
 #include <g4cemc/RawTowerGeom.h>
 #include <g4cemc/RawTowerGeomContainer.h>
@@ -61,9 +62,7 @@ PHG4TrackFastSim::PHG4TrackFastSim(const std::string &name) :
 		SubsysReco(name), _detector_type(Vertical_Plane), _truth_container(
 				NULL), _sub_top_node_name("SVTX"), /*_clustermap_out_name("SvtxClusterMap"),*/_trackmap_out_name(
 				"SvtxTrackMap"),
-		/*_clustermap_out(NULL),*/_trackmap_out(NULL), _fitter(NULL), _mag_field_file_name(
-				"/phenix/upgrades/decadal/fieldmaps/fsPHENIX.2d.root"), _mag_field_re_scaling_factor(
-				1.), _reverse_mag_field(false), _fit_alg_name(
+		/*_clustermap_out(NULL),*/_trackmap_out(NULL), _fitter(NULL), _fit_alg_name(
 				"KalmanFitterRefTrack"), _primary_assumption_pid(211), _do_evt_display(
 				false), _use_vertex_in_fitting(true), _vertex_xy_resolution(
 				50E-4), _vertex_z_resolution(50E-4), _phi_resolution(50E-4), _r_resolution(
@@ -99,14 +98,11 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode *topNode) {
 
 	CreateNodes(topNode);
 
-	TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
-
+  TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
+  PHField * field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 	//_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
 	_fitter = PHGenFit::Fitter::getInstance(tgeo_manager,
-			_mag_field_file_name.data(),
-			(_reverse_mag_field) ?
-					-1. * _mag_field_re_scaling_factor :
-					_mag_field_re_scaling_factor, _fit_alg_name, "RKTrackRep",
+	    field, _fit_alg_name, "RKTrackRep",
 			_do_evt_display);
 
 	if (!_fitter) {
@@ -120,7 +116,7 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode *topNode) {
 
 	for (int i = 0; i < _N_STATES; i++) {
 
-	  if( (_state_names[i]=="FHCAL") || (_state_names[i]=="FEMC") ){
+	  if( (_state_names[i]=="FHCAL") || (_state_names[i]=="FEMC") || (_state_names[i]=="EEMC") ){
 	    
 	    // Get the z-location of the detector plane
 
@@ -556,9 +552,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 
 	out_track->set_chisq(chi2);
 	out_track->set_ndf(ndf);
-	out_track->set_charge(
-			(_reverse_mag_field) ?
-					-1. * phgf_track->get_charge() : phgf_track->get_charge());
+	out_track->set_charge(phgf_track->get_charge());
 
 	out_track->set_num_measurements(nmeas); 
 

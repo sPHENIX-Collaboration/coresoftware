@@ -5,6 +5,8 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <phfield/PHFieldConfig.h>
+
 #include <phool/PHTimeServer.h>
 
 #include <list>
@@ -70,19 +72,26 @@ class PHG4Reco : public SubsysReco
   //! start the gui
   int StartGui();
 
-  //! set magnetic field
+  int InitField(PHCompositeNode *topNode);
+
+  //! set default magnetic field strength with a constant magnetic field. Only valid if set_field_map() is not used. If available, Field map setting on DST take higher priority.
   void set_field(const float tesla)
   {
     magfield = tesla;
   }
 
-  void set_field_map(const std::string &fmap, const int dim)
+  //! Set default field map. If available, Field map setting on DST take higher priority.
+  //! \param[in] fmap  Field map ROOT file
+  //! \param[in] dim   Field map format. See PHFieldConfig::FieldConfigTypes for available formats.
+  void set_field_map(const std::string &fmap, const PHFieldConfig::FieldConfigTypes dim)
   {
     fieldmapfile = fmap;
     mapdim = dim;
   }
 
+  //! set default scaling factor for input magnetic field map. If available, Field map setting on DST take higher priority.
   void set_field_rescale(const float rescale) { magfield_rescale = rescale; }
+
   void set_decayer_active(bool b) { active_decayer_ = b; }
   void set_force_decay(EDecayType force_decay_type)
   {
@@ -159,7 +168,7 @@ class PHG4Reco : public SubsysReco
   G4VisManager *visManager;
 
   double _eta_coverage;
-  int mapdim;
+  PHFieldConfig::FieldConfigTypes mapdim;
   std::string fieldmapfile;
   std::string worldshape;
   std::string worldmaterial;
