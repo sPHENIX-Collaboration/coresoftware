@@ -9,6 +9,13 @@
 //#include <boost/shared_ptr.hpp>
 //#include <boost/make_shared.hpp>
 
+//PHGenFit
+#include "Fitter.h"
+#include "Track.h"
+
+#include <phfield/PHField.h>
+
+
 //ROOT
 #include <TGeoManager.h>
 
@@ -24,11 +31,10 @@
 #include <GenFit/RKTrackRep.h>
 
 //GenFitExp
-#include <genfitexp/Field2D.h>
+#include <genfitexp/Field.h>
 
-//PHGenFit
-#include "Fitter.h"
-#include "Track.h"
+
+#include <cassert>
 
 #define LogDEBUG(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp << std::endl
 #define LogERROR(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp << std::endl
@@ -37,10 +43,9 @@
 namespace PHGenFit {
 
 Fitter::Fitter(
-		const std::string &tgeo_file_name,
-		const std::string &field_file_name,
-		const double field_scaling_factor,
-		const std::string &fitter_choice,
+    const std::string &tgeo_file_name,
+    const PHField * field,
+ 		const std::string &fitter_choice,
 		const std::string &track_rep_choice,
 		const bool doEventDisplay
 ) : verbosity(0), _doEventDisplay(doEventDisplay)
@@ -48,8 +53,8 @@ Fitter::Fitter(
 	_tgeo_manager = new TGeoManager("Default", "Geane geometry");
 	TGeoManager::Import(tgeo_file_name.data());
 
-	genfit::Field2D *fieldMap = new genfit::Field2D(field_file_name.data());
-	fieldMap->re_scale(field_scaling_factor);// Re-scale to 1.4 T
+	assert(field);
+	genfit::Field *fieldMap = new genfit::Field(field);
 
 	genfit::FieldManager::getInstance()->init(
 			fieldMap);
@@ -124,7 +129,7 @@ int Fitter::processTrack(PHGenFit::Track* track, const bool save_to_evt_disp) {
 }
 
 Fitter* Fitter::getInstance(const std::string &tgeo_file_name,
-		const std::string &field_file_name, const double field_scaling_factor,
+    const PHField * field,
 		const std::string &fitter_choice, const std::string &track_rep_choice,
 		const bool doEventDisplay) {
 
@@ -135,15 +140,8 @@ Fitter* Fitter::getInstance(const std::string &tgeo_file_name,
 		return NULL;
 	}
 
-	genfit::Field2D *fieldMap = new genfit::Field2D();
-	if(!fieldMap->initialize(field_file_name.data()))
-	{
-		LogERROR("Field map initialization failed!");
-		delete fieldMap;
-		return NULL;
-	}
-	fieldMap->re_scale(field_scaling_factor);// Re-scale to 1.4 T
-
+  assert(field);
+  genfit::Field *fieldMap = new genfit::Field(field);
 	return new Fitter(tgeo_manager, fieldMap, fitter_choice, track_rep_choice, doEventDisplay);
 }
 
@@ -180,7 +178,7 @@ Fitter::Fitter(TGeoManager* tgeo_manager, genfit::AbsBField* fieldMap,
 }
 
 Fitter* Fitter::getInstance(TGeoManager* tgeo_manager,
-		const std::string &field_file_name, const double field_scaling_factor,
+    const PHField * field,
 		const std::string &fitter_choice, const std::string &track_rep_choice,
 		const bool doEventDisplay) {
 
@@ -190,15 +188,9 @@ Fitter* Fitter::getInstance(TGeoManager* tgeo_manager,
 		return NULL;
 	}
 
-	genfit::Field2D *fieldMap = new genfit::Field2D();
-	if(!fieldMap->initialize(field_file_name.data()))
-	{
-		LogERROR("Field map initialization failed!");
-		delete fieldMap;
-		return NULL;
-	}
-	fieldMap->re_scale(field_scaling_factor);// Re-scale to 1.4 T
 
+  assert(field);
+  genfit::Field *fieldMap = new genfit::Field(field);
 	return new Fitter(tgeo_manager, fieldMap, fitter_choice, track_rep_choice, doEventDisplay);
 }
 
@@ -244,7 +236,7 @@ int Fitter::displayEvent()
 }
 
 Fitter* Fitter::getInstance(TGeoManager* tgeo_manager,
-		const std::string& field_file_name, const double field_scaling_factor,
+    const PHField * field,
 		const PHGenFit::Fitter::FitterType& fitter_choice,
 		const PHGenFit::Fitter::TrackRepType& track_rep_choice,
 		const bool doEventDisplay) {
@@ -255,14 +247,9 @@ Fitter* Fitter::getInstance(TGeoManager* tgeo_manager,
 		return NULL;
 	}
 
-	genfit::Field2D *fieldMap = new genfit::Field2D();
-	if(!fieldMap->initialize(field_file_name.data()))
-	{
-		LogERROR("Field map initialization failed!");
-		delete fieldMap;
-		return NULL;
-	}
-	fieldMap->re_scale(field_scaling_factor);// Re-scale to 1.4 T
+
+  assert(field);
+  genfit::Field *fieldMap = new genfit::Field(field);
 
 	return new Fitter(tgeo_manager, fieldMap, fitter_choice, track_rep_choice, doEventDisplay);
 }
