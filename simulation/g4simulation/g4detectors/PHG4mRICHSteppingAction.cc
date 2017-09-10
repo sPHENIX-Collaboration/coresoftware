@@ -36,6 +36,7 @@
 #include <boost/lexical_cast.hpp>
 #endif
 
+#include <fstream>
 #include <iostream>
 
 using namespace std;
@@ -68,13 +69,17 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4VPhysicalVolume* volume = touch->GetVolume();
-
+  
   bool whichactive = detector_->IsInmRICH(volume);
-  if ( !whichactive  ) return false;
-
+  if ( !whichactive  ) {
+    //cout<<"!!!!!!!!!!!! not active !!!!!!!!!!!!!!!"<<endl;
+    return false;
+  }
+  //cout<<"::::::: volume= "<<volume->GetName()<<" :::::::::::"<<endl;
+  
   int module_id=GetModuleID(volume);
   if (!module_id) { 
-    cout<<"ERROR: module_id<0"<<endl; 
+    cout<<"!!!!!!!!!!!!!! ERROR: module_id<0 !!!!!!!!!!!!!!!!!"<<endl; 
     return false;
   }
 
@@ -85,8 +90,16 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 
   /* Get pointer to associated Geant4 track */
   const G4Track* aTrack = aStep->GetTrack();
-  //int PID=aTrack->GetDefinition()->GetPDGEncoding();
-  //if (PID==0) cout<<":::::::::::::::::: PID="<<PID<<" ::::::::::::::::::"<<endl;
+
+  //-----------------------------------------------------------------------------------//
+  FILE* outfile;
+  outfile=fopen("outParticle.txt","a");
+  //outfile.open("outParticle.txt", std::ios_base::app);
+
+  int PID=aTrack->GetDefinition()->GetPDGEncoding();
+  fprintf(outfile,"PID= %d ",PID);
+  //fclose(outfile);
+  
   //-----------------------------------------------------------------------------------//
   // if this block stops everything, just put all kinetic energy into edep
   if (IsBlackHole) {
@@ -167,8 +180,8 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
       hit->set_eion(-1);
     }
-    //if (edep!=0 || PID==0) {
-    if (edep > 0 /*&& (whichactive > 0 || absorbertruth > 0)*/) {
+    if (edep!=0 || PID==0) {
+    //if (edep > 0 /*&& (whichactive > 0 || absorbertruth > 0)*/) {
       if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() ) {
 	if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) ) {
 	  pp->SetKeep(1); // we want to keep the track
@@ -184,9 +197,12 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
         postPoint->GetStepStatus() == fAtRestDoItProc ||
         aTrack->GetTrackStatus() == fStopAndKill) {
       // save only hits with energy deposit (or -1 for geantino)
-      if (hit->get_edep()){
+      if (hit->get_edep() || PID==0){
 	savehitcontainer->AddHit(module_id, hit);
-	if (saveshower) saveshower->add_g4hit_id(hits_->GetID(), hit->get_hit_id());
+	if (saveshower) { 
+	  saveshower->add_g4hit_id(hits_->GetID(), hit->get_hit_id());
+	  //if (PID==0) fprintf(outfile, "saved.\n");
+	}
 	// ownership has been transferred to container, set to null
 	// so we will create a new hit for the next track
 	hit = nullptr;
@@ -198,12 +214,12 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	hit->Reset();
       }
     }
-
+    fclose(outfile);
     return true;
     
   }
   //else return false;    //this is not safe. It should always return something.
-
+  fclose(outfile);
   return false;
 }
 

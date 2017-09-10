@@ -90,8 +90,8 @@ class PHG4mRICHDetector::mRichParameter
   mRichParameter();
   ~mRichParameter();
 
-  void SetPar_glassWindow(G4double x, G4double y);
-  void SetPar_sensor(G4double x, G4double y);
+  void SetPar_glassWindow(int i, G4double x, G4double y);
+  void SetPar_sensor(int i, G4double x, G4double y);
   BoxPar* GetBoxPar(std::string componentName);
   LensPar* GetLensPar(std::string componentName);
   PolyPar* GetPolyPar(std::string componentName);

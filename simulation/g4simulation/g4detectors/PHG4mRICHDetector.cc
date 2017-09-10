@@ -49,6 +49,7 @@
 #include <sstream>
 #include <string>
 #include <array>
+#include <stdio.h>
 
 using namespace std;
 using namespace CLHEP;
@@ -67,9 +68,10 @@ bool PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume * volume) const
 {
   int i=0;
   for (i=0;i<4;i++) {
+    //cout<<"::::::::::: sensor_PV["<<i<<"]= "<<sensor_PV[i]->GetName()<<" ::::::::::::"<<endl;
     if (volume==sensor_PV[i]) return true;
   }
-  //if (volume==mRICH_PV) return true;
+
   //else if (volume->GetLogicalVolume()->IsAncestor(mRICH_PV)) return true; 
   //else if (mRICH_PV->GetLogicalVolume()->IsAncestor(volume)) return true;
   return false;
@@ -411,7 +413,7 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
   aerogel->color=G4Colour(1.0,0.65,0.0);
   aerogel->visibility=true;
   aerogel->wireframe=true;
-  aerogel->surface=true;
+  aerogel->surface=false;
 
   //----------
   // set Fresnel lens
@@ -512,14 +514,18 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
 //________________________________________________________________________//
 PHG4mRICHDetector::mRichParameter::~mRichParameter(){;}
 //________________________________________________________________________//
-void PHG4mRICHDetector::mRichParameter::SetPar_glassWindow(G4double x, G4double y)
+void PHG4mRICHDetector::mRichParameter::SetPar_glassWindow(int i, G4double x, G4double y)
 {
+  glassWindow->name="glassWindow"+std::to_string(i);
+  //sprintf(glassWindow->name,"glassWindow%d",i);
   glassWindow->pos.setX(x);
   glassWindow->pos.setY(y);
 }
 //________________________________________________________________________//
-void PHG4mRICHDetector::mRichParameter::SetPar_sensor(G4double x, G4double y)
+void PHG4mRICHDetector::mRichParameter::SetPar_sensor(int i, G4double x, G4double y)
 {
+  sensor->name="sensor"+std::to_string(i);
+  //sprintf(sensor->name,"sensor%d",i);
   sensor->pos.setX(x);
   sensor->pos.setY(y);
 }
@@ -670,11 +676,11 @@ void PHG4mRICHDetector::build_sensor(mRichParameter* detectorParameter,G4Logical
       y=last_x;
     }
 
-    detectorParameter->SetPar_glassWindow(x,y);
-    build_box(detectorParameter->GetBoxPar("glassWindow"),motherLV);
+    detectorParameter->SetPar_glassWindow(i+1,x,y);
+    //build_box(detectorParameter->GetBoxPar("glassWindow"),motherLV);
 
-    detectorParameter->SetPar_sensor(x,y);
-    build_box(detectorParameter->GetBoxPar("sensor"),motherLV);
+    detectorParameter->SetPar_sensor(i+1,x,y);
+    sensor_PV[i]=build_box(detectorParameter->GetBoxPar("sensor"),motherLV);
 
     last_x=x;
     last_y=y;
