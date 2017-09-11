@@ -123,9 +123,33 @@ bool PHG4RICHSteppingAction::MakeHit(const G4Step* aStep){
   // collect energy and track
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   const G4Track* aTrack = aStep->GetTrack();
+  const G4VTouchable* aTouch = aTrack->GetTouchable();
   G4StepPoint* postPoint = aStep->GetPostStepPoint();
 
-  int layer_id = 0;
+  // set sector number
+  int sector_id = -999;
+  bool sector_found = false;
+
+  // Check if volume(1) is in sector volume, if not check volume(0)
+  if ( detector_->ePHENIXRICHConstruction::is_in_sector( aTouch->GetVolume(1) ) > -1 )
+    {
+      sector_id = aTouch->GetCopyNumber(1);
+      sector_found = true;
+    }
+  else if ( detector_->ePHENIXRICHConstruction::is_in_sector( aTouch->GetVolume() ) > -1 )
+    {
+      sector_id = aTouch->GetCopyNumber();
+      sector_found = true;
+    }
+  
+  if ( !sector_found )
+    {
+      if ( !aTouch->GetVolume(1) || !aTouch->GetVolume() )
+	cout << "WARNING: Missing volumes for hit!" << endl;
+      else
+	cout << "WARNING: Photon hit volume is not the RICH readout plane volume!" << endl;
+    }
+
 
   hit = new PHG4Hitv1();
 
@@ -163,7 +187,7 @@ bool PHG4RICHSteppingAction::MakeHit(const G4Step* aStep){
   hit->set_edep(edep);
 
   // Now add the hit
-  hits_->AddHit(layer_id, hit);
+  hits_->AddHit(sector_id, hit);
 
   {
     if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )

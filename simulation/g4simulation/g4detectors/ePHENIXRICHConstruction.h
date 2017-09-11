@@ -23,6 +23,7 @@
 #include <cmath>
 #include <map>
 #include <utility>
+#include <set>
 
 
 class G4VPhysicalVolume;
@@ -337,7 +338,7 @@ namespace ePHENIXRICH
       HBD_thickness = hbdThickness;
     }
     ///@}
-    
+
   private:
 
     int N_RICH_Sector;
@@ -365,7 +366,7 @@ namespace ePHENIXRICH
 
     G4OpticalSurface* RICH_Mirror_OpticalSurface;
     G4OpticalSurface* RICH_Photocathode_OpticalSurface;
-
+    
   };
 
 #ifndef __CINT__
@@ -406,6 +407,12 @@ namespace ePHENIXRICH
 
     RICH_Geometry geom;
 
+    /**
+     * Checks if volume is sector volume
+     */
+    int
+    is_in_sector(G4VPhysicalVolume*) const;
+
   protected:
 
     G4LogicalVolume *
@@ -422,6 +429,12 @@ namespace ePHENIXRICH
     map_phy_vol_t map_phy_vol;
 
     bool overlapcheck_rich;
+
+    /**
+     * Set of volumes
+     */
+    std::set<G4VPhysicalVolume *> sector_vec;
+
   };
 
 #endif
