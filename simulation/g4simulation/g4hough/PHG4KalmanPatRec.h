@@ -116,6 +116,7 @@ public:
 
 			return os;
 		}
+
 	};
 
 #ifndef __CINT__
@@ -569,6 +570,14 @@ public:
 		_min_combo_hits = minNlayersSeeding;
 	}
 
+	int get_primary_pid_guess() const {
+		return _primary_pid_guess;
+	}
+
+	void set_primary_pid_guess(int primaryPidGuess) {
+		_primary_pid_guess = primaryPidGuess;
+	}
+
 #ifndef __CINT__
 
 private:
@@ -797,16 +806,6 @@ private:
 
 	//! if two seeds have common hits more than this number, merge them
 	unsigned int _max_share_hits;
-
-	//GenFit Related Part
-	//!
-	std::string _mag_field_file_name;
-
-	//! rescale mag field, modify the original mag field read in
-	float _mag_field_re_scaling_factor;
-
-	//! Switch to reverse Magnetic field
-	bool _reverse_mag_field;
 
 	PHGenFit::Fitter* _fitter;
 

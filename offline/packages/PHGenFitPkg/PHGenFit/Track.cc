@@ -48,7 +48,7 @@ Track::Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMa
 
 	genfit::MeasuredStateOnPlane seedMSoP(rep);
 	seedMSoP.setPosMomCov(seed_pos, seed_mom, seed_cov);
-	const genfit::StateOnPlane seedSoP(seedMSoP);
+	//const genfit::StateOnPlane seedSoP(seedMSoP);
 
 	TVectorD seedState(6);
 	TMatrixDSym seedCov(6);
@@ -73,6 +73,8 @@ int Track::addMeasurement(PHGenFit::Measurement*measurement) {
 
 	_clusterIDs.push_back(measurement->get_cluster_ID());
 
+	delete measurement;
+
 	return 0;
 }
 
@@ -87,6 +89,8 @@ int Track::addMeasurements(std::vector<PHGenFit::Measurement*> &measurements)
 
 		//_measurements.push_back(measurement);
 		_clusterIDs.push_back(measurement->get_cluster_ID());
+
+		delete measurement;
 	}
 
 	//measurements.clear();
@@ -105,6 +109,7 @@ int Track::deleteLastMeasurement() {
 
 Track::~Track()
 {
+//	std::cout << "DTOR: " << __LINE__ <<std::endl;
 	delete _track;
 
 //	for(PHGenFit::Measurement* measurement : _measurements)
@@ -306,7 +311,7 @@ genfit::MeasuredStateOnPlane*  Track::extrapolateToCylinder(double radius, TVect
 
 int Track::updateOneMeasurementKalman(
 		const std::vector<PHGenFit::Measurement*>& measurements,
-		std::map<double, PHGenFit::Track*>& incr_chi2s_new_tracks,
+		std::map<double, std::shared_ptr<PHGenFit::Track> >& incr_chi2s_new_tracks,
 		const int base_tp_idx,
 		const int direction,
 		const float blowup_factor,
@@ -326,9 +331,9 @@ int Track::updateOneMeasurementKalman(
 
 	for (PHGenFit::Measurement* measurement : measurements) {
 
-		PHGenFit::Track* new_track = NULL;
+		std::shared_ptr<PHGenFit::Track> new_track = NULL;
 
-		new_track = new PHGenFit::Track(*this);
+		new_track = std::shared_ptr<PHGenFit::Track> (new PHGenFit::Track(*this));
 
 //		if(incr_chi2s_new_tracks.size() == 0)
 //			new_track = const_cast<PHGenFit::Track*>(this);

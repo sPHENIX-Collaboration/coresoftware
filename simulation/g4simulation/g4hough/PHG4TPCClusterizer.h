@@ -25,6 +25,8 @@ class PHG4TPCClusterizer : public SubsysReco {
   void setFitWindowMax(int rp, int rz) { fFitRangeMP = rp; fFitRangeMZ = rz; }
   void setRangeLayers(unsigned int minLayer, unsigned int maxLayer) {fMinLayer=minLayer; fMaxLayer=maxLayer;}
   void setFitEnergyThreshold(float val) { fFitEnergyThreshold = val; }
+  void setShapingRMSLead(float val) {fShapingLead = val;}
+  void setShapingRMSTail(float val) {fShapingTail = val;}
 
  private:
   void reset();
@@ -60,7 +62,8 @@ class PHG4TPCClusterizer : public SubsysReco {
   float fFitEnergyThreshold;
   float fFitSizeP;
   int fFitSizeZ;
-
+  float fShapingLead;
+  float fShapingTail;
   unsigned int fMinLayer;
   unsigned int fMaxLayer;
   float fEnergyCut;

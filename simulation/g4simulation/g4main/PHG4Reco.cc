@@ -24,6 +24,9 @@
 
 #include <phgeom/PHGeomUtility.h>
 #include <g4gdml/PHG4GDMLUtility.hh>
+#include <phfield/PHFieldUtility.h>
+#include <phfield/PHFieldConfig_v1.h>
+#include <phfield/PHFieldConfig_v2.h>
 
 #include <TThread.h>
 
@@ -86,6 +89,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
+#include <memory>
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
@@ -103,7 +107,7 @@ void g4guithread(void *ptr);
 //_________________________________________________________________
 PHG4Reco::PHG4Reco(const string &name)
   : SubsysReco(name)
-  , magfield(2)
+  , magfield(1.4)
   , magfield_rescale(1.0)
   , field_(nullptr)
   , runManager_(nullptr)
@@ -115,7 +119,7 @@ PHG4Reco::PHG4Reco(const string &name)
   , generatorAction_(nullptr)
   , visManager(nullptr)
   , _eta_coverage(1.0)
-  , mapdim(0)
+  , mapdim(PHFieldConfig::kFieldUniform)
   , fieldmapfile("NONE")
   , worldshape("G4Tubs")
   , worldmaterial("G4_AIR")
@@ -176,22 +180,6 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   runManager_ = new G4RunManager();
 
   DefineMaterials();
-
-  //setup the constant field
-  if (verbosity > 1) cout << "PHG4Reco::Init - create magnetic field setup" << endl;
-  if (fieldmapfile != "NONE")
-  {
-    field_ = new G4TBMagneticFieldSetup(fieldmapfile, mapdim, magfield_rescale);
-    magfield = field_->get_magfield_at_000(2);  // get the z coordinate at 0/0/0
-    if (verbosity > 1)
-    {
-      cout << "magfield in PHG4Reco: " << magfield << endl;
-    }
-  }
-  else
-  {
-    field_ = new G4TBMagneticFieldSetup(magfield * magfield_rescale);
-  }
 
   // create physics processes
   G4VModularPhysicsList *myphysicslist = nullptr;
@@ -260,6 +248,31 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   return 0;
 }
 
+int PHG4Reco::InitField(PHCompositeNode *topNode)
+{
+  if (verbosity > 1) cout << "PHG4Reco::InitField - create magnetic field setup" << endl;
+
+  unique_ptr<PHFieldConfig> default_field_cfg(nullptr);
+
+  if (fieldmapfile != "NONE")
+  {
+    default_field_cfg.reset(new PHFieldConfig_v1(mapdim, fieldmapfile, magfield_rescale));
+  }
+  else
+  {
+    default_field_cfg.reset(new PHFieldConfig_v2(0, 0, magfield * magfield_rescale));
+  }
+
+  if (verbosity > 1) cout << "PHG4Reco::InitField - create magnetic field setup" << endl;
+
+  PHField * phfield = PHFieldUtility::GetFieldMapNode(default_field_cfg.get(), topNode, Verbosity()+1);
+  assert(phfield);
+
+  field_ = new G4TBMagneticFieldSetup(phfield);
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
 int PHG4Reco::InitRun(PHCompositeNode *topNode)
 {
   // this is a dumb protection against executing this twice.
@@ -282,6 +295,14 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   }
 
   recoConsts *rc = recoConsts::instance();
+
+  //setup the constant field
+  const int field_ret = InitField(topNode);
+  if (field_ret!=Fun4AllReturnCodes::EVENT_OK)
+  {
+    cout <<"PHG4Reco::InitRun- Error - Failed field init with status = "<<field_ret<<endl;
+    return field_ret;
+  }
 
   // initialize registered subsystems
   BOOST_FOREACH (SubsysReco *reco, subsystems_)
@@ -1187,9 +1208,8 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   mRICH_glass_myMPT->AddProperty("RINDEX", mRICH_PhotonEnergy, mRICH_glassRefractiveIndex, mRICH_nEntries1);
   mRICH_glass_myMPT->AddProperty("ABSLENGTH", mRICH_PhotonEnergy, mRICH_glassAbsorption, mRICH_nEntries1);
 
-  //G4NistManager * nist = G4NistManager::Instance();
-  G4Material* mRICH_Borosilicate = nist->FindOrBuildMaterial("G4_Pyrex_Glass");
-  mRICH_Borosilicate->SetName("mRICH_Borosilicate");
+  const G4Material *G4_Pyrex_Glass = nist->FindOrBuildMaterial("G4_Pyrex_Glass");
+  G4Material *mRICH_Borosilicate=  new G4Material("mRICH_Borosilicate",G4_Pyrex_Glass->GetDensity(),G4_Pyrex_Glass,G4_Pyrex_Glass->GetState(),G4_Pyrex_Glass->GetTemperature(),G4_Pyrex_Glass->GetPressure());
   mRICH_Borosilicate->SetMaterialPropertiesTable(mRICH_glass_myMPT);
 
   // mRICH_Air ------------------
@@ -1205,8 +1225,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   G4MaterialPropertiesTable* mRICH_Air_myMPT = new G4MaterialPropertiesTable();
   mRICH_Air_myMPT->AddProperty("RINDEX", mRICH_PhotonEnergy, mRICH_AirRefractiveIndex , mRICH_nEntries1);
   const G4Material *G4_AIR = G4Material::GetMaterial("G4_AIR");
-  G4Material *mRICH_Air=  new G4Material("mRICH_Air",G4_AIR->GetDensity(),G4_AIR);
-  mRICH_Air->SetName("mRICH_Air");
+  G4Material *mRICH_Air=  new G4Material("mRICH_Air",G4_AIR->GetDensity(),G4_AIR,G4_AIR->GetState(),G4_AIR->GetTemperature(),G4_AIR->GetPressure());
   mRICH_Air->SetMaterialPropertiesTable(mRICH_Air_myMPT);
 }
 

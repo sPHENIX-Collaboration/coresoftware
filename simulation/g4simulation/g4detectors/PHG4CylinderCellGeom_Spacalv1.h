@@ -11,7 +11,7 @@
 #ifndef PHG4CYLINDERCELLGEOMSPACALV1_H_
 #define PHG4CYLINDERCELLGEOMSPACALV1_H_
 
-#include <PHG4CylinderCellGeom.h>
+#include "PHG4CylinderCellGeom.h"
 #include <map>
 
 /*!

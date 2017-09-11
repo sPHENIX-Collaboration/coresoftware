@@ -61,6 +61,8 @@ PHG4TPCClusterizer::PHG4TPCClusterizer(const char *name) :
   fFitEnergyThreshold(0.05),
   fFitSizeP(0.0),
   fFitSizeZ(0),
+  fShapingLead(32.0*6.0/1000.0),
+  fShapingTail(48.0*6.0/1000.0),
   fMinLayer(0),
   fMaxLayer(0),
   fEnergyCut(0.1),
@@ -139,8 +141,52 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
   fFitSumPZ = 0;
   fFitSizeP = 0;
   fFitSizeZ = 0;
+
+  // Here we have to allow for highly angled tracks, where the Z range can be much larger than the Z diffusion
+  // Check that we do not have to increase this range
+  // Start at the peak and go out in both directions until the yield falls below threshold
+
+  int izmost = 30; // don't look more than izmost Z bins in each direction
+
+  int izup = fFitRangeZ;  
+  for(int iz=0; iz< izmost; iz++)
+    {
+      int cz = zbin + iz;
+      if(cz < 0) continue; // truncate edge
+      if(cz >= fNZBins) continue; // truncate edge
+      
+      // consider only the peak bin in phi when searching for Z limit     
+      int cp = wrap_phibin(pbin);
+      int bin = cz * fNPhiBins + cp;
+      if(fAmps[bin] < fFitEnergyThreshold*peak) 
+	{
+	  izup = iz;
+	  if(verbosity > 1000) cout << " failed threshold cut, set izup to " << izup << endl;
+	  break;
+	}
+    }
+
+  int izdown = fFitRangeZ;
+  for(int iz=0; iz< izmost; iz++)
+    {
+      int cz = zbin - iz;
+      if(cz < 0) continue; // truncate edge
+      if(cz >= fNZBins) continue; // truncate edge
+      
+      int cp = wrap_phibin(pbin);
+      int bin = cz * fNPhiBins + cp;
+      if(fAmps[bin] < fFitEnergyThreshold*peak) 
+	{
+	  izdown = iz;
+	  if(verbosity > 1000) cout << " failed threshold cut, set izdown to " << izdown << endl;
+	  break;
+	}
+    }
+  
   if(verbosity>1000) std::cout << "max " << fAmps[zbin*fNPhiBins+pbin] << std::endl;
-  for(int iz=-fFitRangeZ; iz!=fFitRangeZ+1; ++iz) {
+  if(verbosity>1000) std::cout << "izdown " << izdown << " izup " << izup << std::endl;
+
+  for(int iz=-izdown; iz!=izup; ++iz) {
     int cz = zbin + iz;
     if(cz < 0) continue; // truncate edge
     if(cz >= fNZBins) continue; // truncate edge
@@ -307,7 +353,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
       PHG4Cell* cell = cells->findCell(hit->get_cellid()); //not needed once geofixed
       int phibin = PHG4CellDefs::SizeBinning::get_phibin(cell->get_cellid());//cell->get_binphi();
       int zbin = PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid());//cell->get_binz();
-      if(verbosity>2000) std::cout << " phibin " << phibin << " zbin " << zbin << std::endl;
+      if(verbosity>2000) std::cout << " phibin " << phibin << " zbin " << zbin << " energy " << hit->get_e() << std::endl;
       fNHitsPerZ[zbin] += 1;
       fAmps[zbin * fNPhiBins + phibin] += hit->get_e();
       fCellIDs[zbin * fNPhiBins + phibin] = hit->get_id();
@@ -319,17 +365,19 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     // <==
     float stepz = fGeoLayer->get_zstep();
     float stepp = fGeoLayer->get_phistep();
-    //std::cout << "STEPP " << stepp << std::endl;
+    //std::cout << "STEPP " << stepp << " STEPZ " << stepz << std::endl;
     while(nhits_tot > 0) {
       if(verbosity>2000) std::cout << " => nhits_tot " << nhits_tot << std::endl;
       for(int zbin = 0; zbin!=fNZBins; ++zbin) {
         if(fNHitsPerZ[zbin]<=0) continue;
 	float abszbincenter = TMath::Abs(fGeoLayer->get_zcenter( zbin ));
-	float sigmaZ = TMath::Sqrt(0.01*0.01 + fDCL*fDCL*(105.5-abszbincenter));
-	float sigmaP = TMath::Sqrt(0.01*0.01 + fDCT*fDCT*(105.5-abszbincenter));
+	float sigmaZ = TMath::Sqrt(pow((fShapingTail), 2) + fDCL*fDCL*(105.5-abszbincenter));  // shaping time + drift diffusion, used only to calculate FitRangZ
+	float TPC_padgeo_sigma = 0.04;  // 0.4 mm (from Tom)
+	float sigmaP = TMath::Sqrt(pow(TPC_padgeo_sigma, 2) + fDCT*fDCT*(105.5-abszbincenter)); // readout geometry + drift diffusion, used only to calculate FitRangeP
 	fFitRangeZ = int( 3.0*sigmaZ/stepz + 1);
-	if(fFitRangeZ<1) fFitRangeZ = 1;
-	if(fFitRangeZ>fFitRangeMZ) fFitRangeZ = fFitRangeMZ;
+	if(fFitRangeZ<1) fFitRangeZ = 1; // should never happen
+	if(verbosity > 2000) cout << " sigmaZ " << sigmaZ << " fFitRangeZ " << fFitRangeZ << " sigmaP " << sigmaP << endl;
+	//if(fFitRangeZ>fFitRangeMZ) fFitRangeZ = fFitRangeMZ;  // does not allow for high angle tracks, see mod to fit() method
         for(int phibin = 0; phibin!=fNPhiBins; ++phibin) {
           float radius = fGeoLayer->get_radius() + 0.5*fGeoLayer->get_thickness();
 	  fFitRangeP = int( 3.0*sigmaP/(radius*stepp) + 1);
@@ -359,6 +407,12 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  //float yy_err = TMath::Sqrt(pp_err*cosphi*pp_err*cosphi + rr_err*sinphi*rr_err*sinphi); // linearization
 	  float pp_size = radius*fFitSizeP*fGeoLayer->get_phistep();
 	  float zz_size = fFitSizeZ*fGeoLayer->get_zstep();
+
+	  /*	  
+	  cout << "layer " << layer 
+	       << " get_zstep() returns "  << fGeoLayer->get_zstep() << " fFitSizeZ = " << fFitSizeZ << " fFitSizeZ*zstep = " << zz_size << endl
+	       << " get_phistep() returns " << fGeoLayer->get_phistep() << " fFitSizeP = " << fFitSizeP << " radius*fFitSizeP*phistep = " << pp_size <<  endl;
+	  */
 	  //float xx_size = TMath::Sqrt(pp_size*sinphi*pp_size*sinphi + fGeoLayer->get_thickness()*cosphi*fGeoLayer->get_thickness()*cosphi); // linearization
 	  //float yy_size = TMath::Sqrt(pp_size*cosphi*pp_size*cosphi + fGeoLayer->get_thickness()*sinphi*fGeoLayer->get_thickness()*sinphi); // linearization
 	  if(verbosity>1) {
@@ -441,6 +495,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  clus.set_size( 2 , 0 , COVAR_DIM[2][0] );
 	  clus.set_size( 2 , 1 , COVAR_DIM[2][1] );
 	  clus.set_size( 2 , 2 , COVAR_DIM[2][2] );
+	  //cout << " covar_dim[2][2] = " <<  COVAR_DIM[2][2] << endl;
 
 	  TMatrixF COVAR_ERR(3,3);
 	  COVAR_ERR = ROT * ERR * ROT_T;
@@ -454,6 +509,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  clus.set_error( 2 , 0 , COVAR_ERR[2][0] );
 	  clus.set_error( 2 , 1 , COVAR_ERR[2][1] );
 	  clus.set_error( 2 , 2 , COVAR_ERR[2][2] );
+	  //cout << " covar_err[2][2] = " <<  COVAR_ERR[2][2] << endl;
 
 	  /*
 	  not do this yet, first clear cluster class

@@ -5,6 +5,7 @@
 
 #include <string>
 
+class G4VPhysicalVolume;
 class PHG4CylinderDetector;
 class PHG4Hit;
 class PHG4HitContainer;
@@ -37,8 +38,11 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
   PHG4HitContainer *hits_;
   PHG4Hit *hit;
   PHG4Shower *saveshower;
+  G4VPhysicalVolume *savevolpre;
+  G4VPhysicalVolume *savevolpost;
   int save_light_yield;
   int savetrackid;
+  int saveprestepstatus;
   int savepoststepstatus;
   int active;
   int IsBlackHole;

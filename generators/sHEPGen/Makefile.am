@@ -4,22 +4,19 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir` \
-  -I/gpfs/mnt/gpfs04/sphenix/user/nfeege/eicsw/HEPGen/install/include
+  -I$(OPT_SPHENIX)/HEPGenPlusPlus/include
 
-AM_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  -L/gpfs/mnt/gpfs04/sphenix/user/nfeege/eicsw/HEPGen/install/lib
+AM_CXXFLAGS = -Werror
 
-AM_CXXFLAGS = -Wall -Werror
-
-lib_LTLIBRARIES = libsHEPGen.la 
+lib_LTLIBRARIES = libsHEPGen.la
 
 pkginclude_HEADERS = \
   sHEPGen.h
 
 libsHEPGen_la_LDFLAGS = \
-  ${AM_LDFLAGS} \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OPT_SPHENIX)/HEPGenPlusPlus/lib \
   `root-config --libs`
 
 libsHEPGen_la_LIBADD = \
@@ -58,7 +55,7 @@ testexternals.C:
 sHEPGen_Dict.C: \
   sHEPGen.h \
   sHEPGenLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict*

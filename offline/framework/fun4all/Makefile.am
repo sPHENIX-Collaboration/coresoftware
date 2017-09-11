@@ -14,27 +14,26 @@ pkginclude_HEADERS = \
   Fun4AllDstInputManager.h \
   Fun4AllDstOutputManager.h \
   Fun4AllDummyInputManager.h \
+  Fun4AllEventOutStream.h \
+  Fun4AllEventOutputManager.h \
+  Fun4AllFileOutStream.h \
+  Fun4AllHistoBinDefs.h \
   Fun4AllHistoManager.h \
-  Fun4AllSyncManager.h \
   Fun4AllInputManager.h \
   Fun4AllNoSyncDstInputManager.h \
   Fun4AllOutputManager.h \
+  Fun4AllPrdfInputManager.h \
+  Fun4AllPrdfOutputManager.h \
   Fun4AllReturnCodes.h \
+  Fun4AllRolloverFileOutStream.h \
   Fun4AllServer.h \
+  Fun4AllSyncManager.h \
   Fun4AllUtils.h \
   PHTFileServer.h \
   SubsysReco.h \
-  SubsysRecoStack.h \
   TDirectoryHelper.h
 
 noinst_HEADERS = \
-  Fun4AllHistoBinDefs.h \
-  Fun4AllEventOutStream.h \
-  Fun4AllEventOutputManager.h \
-  Fun4AllRolloverFileOutStream.h \
-  Fun4AllFileOutStream.h \
-  Fun4AllPrdfInputManager.h \
-  Fun4AllPrdfOutputManager.h \
   Fun4AllLinkDef.h \
   SubsysRecoLinkDef.h
 
@@ -80,8 +79,7 @@ libfun4all_la_LIBADD = \
 
 libSubsysReco_la_SOURCES = \
   Fun4AllBase.cc \
-  SubsysReco.cc \
-  SubsysRecoStack.cc
+  SubsysReco.cc
 
 nodist_libSubsysReco_la_SOURCES = SubsysReco_Dict.cc
 
@@ -115,15 +113,13 @@ Fun4All_Dict.cc: \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllServer.h \
   Fun4AllLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 SubsysReco_Dict.cc: \
   Fun4AllBase.h \
   SubsysReco.h \
-  SubsysRecoStack.h \
   SubsysRecoLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict*

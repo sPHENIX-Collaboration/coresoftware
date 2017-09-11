@@ -5,6 +5,7 @@
 #include <string>
 
 #include <phool/PHTimeServer.h>
+#include <g4detectors/PHG4Parameters.h>
 
 class PHCompositeNode;
 class RawTowerContainer;
@@ -33,6 +34,7 @@ public:
   Detector(const std::string &d)
   {
     detector = d;
+    _tower_calib_params.set_name(d);
   }
   void
   TowerType(const int type)
@@ -46,7 +48,10 @@ public:
     kNo_calibration = 0,
 
     //! simple calibration with pedstal subtraction and a global energy scale (sampling fraction) correction
-    kSimple_linear_calibration = 1
+    kSimple_linear_calibration = 1,
+
+    //! input calibration file for tower by tower calibration. Use GetCalibrationParameters() to set the calibration parameters
+    kTower_by_tower_calibration = 2
   };
 
   enu_calib_algorithm
@@ -121,6 +126,12 @@ public:
     _zero_suppression_GeV = zeroSuppressionGeV;
   }
 
+  //! Get the parameters for update. Useful fields are listed in SetDefaultParameters();
+  PHG4Parameters &
+  GetCalibrationParameters()
+  {
+    return _tower_calib_params;
+  }
 protected:
   void
   CreateNodes(PHCompositeNode *topNode);
@@ -152,6 +163,9 @@ protected:
   int _tower_type; 
 
   PHTimeServer::timer _timer;
+
+  //! Tower by tower calibration parameters
+  PHG4Parameters _tower_calib_params;
 
 };
 

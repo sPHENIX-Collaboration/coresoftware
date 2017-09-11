@@ -33,6 +33,7 @@ libg4hough_la_LIBADD = \
   -lg4bbc_io \
   -lcemc_io \
   -lgenfit2 \
+  -lphfield \
   -lgenfit2exp \
   -lPHGenFit \
   libg4hough_io.la
@@ -67,10 +68,10 @@ pkginclude_HEADERS = \
   PHG4KalmanPatRec.h \
   PHG4TrackGhostRejection.h \
   PHG4TrackKalmanFitter.h \
-  PHG4CombinatorialTrackFinder.h \
   PHG4TruthPatRec.h \
   PHG4TrackFastSim.h \
   PHG4SvtxMomentumRecal.h \
+  PHG4GenFitTrackProjection.h \
   PHG4SvtxTrackProjection.h \
   PHG4SvtxBeamSpotReco.h \
   PHG4TPCClusterizer.h \
@@ -140,8 +141,6 @@ libg4hough_la_SOURCES = \
   PHG4TrackGhostRejection.C \
   PHG4TrackGhostRejection_Dict.C \
   PHG4TrackKalmanFitter.C \
-  PHG4CombinatorialTrackFinder.C \
-  PHG4CombinatorialTrackFinder_Dict.C \
   PHG4TruthPatRec.C \
   PHG4TrackFastSim.C \
   PHG4TrackKalmanFitter_Dict.C \
@@ -149,6 +148,8 @@ libg4hough_la_SOURCES = \
   PHG4TrackFastSim_Dict.C \
   PHG4SvtxMomentumRecal.C \
   PHG4SvtxMomentumRecal_Dict.C \
+  PHG4GenFitTrackProjection.C \
+  PHG4GenFitTrackProjection_Dict.C \
   PHG4SvtxTrackProjection.C \
   PHG4SvtxTrackProjection_Dict.C \
   PHG4SvtxBeamSpotReco.C \
@@ -157,7 +158,7 @@ libg4hough_la_SOURCES = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
 # linking tests
@@ -180,4 +181,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict*
+	rm -f *Dict* *.pcm
