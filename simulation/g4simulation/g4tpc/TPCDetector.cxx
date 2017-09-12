@@ -72,10 +72,30 @@ void TPCDetector::BuildFiducial(G4LogicalVolume* tpcWorld)
 //=====
 void TPCDetector::BuildCage(G4LogicalVolume* tpcWorld)
 {
-  G4NistManager* nist = G4NistManager::Instance();
+  G4NistManager *nist = G4NistManager::Instance();
+  G4Material* G10 = new G4Material("G4_G10", 1.700*g/cm3, 4);
+  G10->AddElement(nist->FindOrBuildElement(14), 1); //Si
+  G10->AddElement(nist->FindOrBuildElement(8) , 2); //O
+  G10->AddElement(nist->FindOrBuildElement(6) , 3); //C
+  G10->AddElement(nist->FindOrBuildElement(1) , 3); //H
+
+  G4double nomexDensity = 0.98*g/cm3;
+  G4double airDensity = 1.290*mg/cm3;
+  G4Material *matAir = nist->FindOrBuildMaterial("G4_Air");
+  G4Material *nomex = new G4Material("G4_NOMEX",nomexDensity,5);
+  nomex->AddElement(nist->FindOrBuildElement(1),0.04); //H
+  nomex->AddElement(nist->FindOrBuildElement(6),0.54); //C
+  nomex->AddElement(nist->FindOrBuildElement(7),0.09); //N
+  nomex->AddElement(nist->FindOrBuildElement(8),0.10); //O
+  nomex->AddElement(nist->FindOrBuildElement(17),0.23); //Cl
+  G4double d = 0.45*(nomexDensity)+ 0.55*(airDensity);
+  G4Material *nomexAir = new G4Material("G4_NOMEXAIR",d,2);
+  nomexAir -> AddMaterial(nomex,0.45);
+  nomexAir -> AddMaterial(matAir,0.55);
+
   G4Material *mat_cu = nist->FindOrBuildMaterial("G4_Cu");
   G4Material *mat_kap = nist->FindOrBuildMaterial("G4_KAPTON");
-  G4Material *mat_fr4 = nist->FindOrBuildMaterial("G4_MYLAR");
+  G4Material *mat_fr4 = nist->FindOrBuildMaterial("G4_G10");
   G4Material *mat_hco = nist->FindOrBuildMaterial("G4_MYLAR");
 
   G4double rads[7];
@@ -84,14 +104,13 @@ void TPCDetector::BuildCage(G4LogicalVolume* tpcWorld)
   G4LogicalVolume *lv[6];
 
   //-- INNER
-
   rads[0] = (kGasInnerRadius-1.17)*cm;
   rads[1] = rads[0] +  0.05*mm; // 50 um Cu
   rads[2] = rads[1] +  0.05*mm; // 50 um FR4
   rads[3] = rads[2] + 10.00*mm; // 1 cm HONEYCOMB
   rads[4] = rads[3] +  0.05*mm; // 50 um FR4
   rads[5] = rads[4] +  1.50*mm; // 1.5 mm KAPTON
-  rads[6] = rads[5] +  0.05*mm; // 50 um PCB
+  rads[6] = rads[5] +  0.05*mm; // 50 um FR4
 
   shp[0] = new G4Tubs( "TPC_IC_SL0", rads[0], rads[1], hz, 0*deg, 360*deg );
   shp[1] = new G4Tubs( "TPC_IC_SL1", rads[1], rads[2], hz, 0*deg, 360*deg );
@@ -156,7 +175,7 @@ void TPCDetector::Construct(G4LogicalVolume* world)
   G4double hz = 110*cm;
   G4Tubs *tpc = new G4Tubs( "TPC_SV", minR, maxR, hz, 0*deg, 360*deg );
   G4LogicalVolume *tpc_world = new G4LogicalVolume( tpc, mat_air, "TPC_LV" );
-  BuildCage( tpc_world );
+  //BuildCage( tpc_world );
   BuildFiducial( tpc_world );
   new G4PVPlacement(0, G4ThreeVector(0,0,0), tpc_world, "TPC_PV", world, 0, false, overlapcheck );
 }
