@@ -231,7 +231,7 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       if (tower_ID_phi == layergeom->get_max_phi_bin_in_sec() / 2)
 	{
 	  // half z-range
-	  const double dz = fabs(0.5 * (tower.pDy1 + tower.pDy2) * sin(tower.pRotationAngleX));
+	  const double dz = fabs(0.5 * (tower.pDy1 + tower.pDy2) / sin(tower.pRotationAngleX));
 	  const double tower_radial = layergeom->get_tower_radial_position(tower);
 
 	  const double eta_central = -log(tan(0.5 * atan2(tower_radial, tower.centralZ)));
