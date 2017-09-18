@@ -154,7 +154,7 @@ cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetS
       if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
       {
         hit->set_trkid(pp->GetUserTrackId());
-	pp->GetShower()->add_g4hit_id(hits_->GetID(), hit->get_hit_id());
+	pp->GetShower()->add_g4hit_id(savehitcontainer->GetID(), hit->get_hit_id());
       }
     }
 
