@@ -577,9 +577,12 @@ QAG4SimulationJet::process_Spectrum(PHCompositeNode *topNode,
               }
             }
 
-          cout << "cemc_e sum = " << cemc_e << endl;
-          cout << "hcalin_e sum = " <<hcalin_e<< endl;
-          cout << "leading_jet->get_e() = " << leading_jet->get_e() << endl;
+          if (Verbosity() >= VERBOSITY_A_LOT)
+          {
+            cout << "cemc_e sum = " << cemc_e << endl;
+            cout << "hcalin_e sum = " <<hcalin_e<< endl;
+            cout << "leading_jet->get_e() = " << leading_jet->get_e() << endl;
+          }
 
           lcemcr->Fill(cemc_e / leading_jet->get_e());
           lemchcalr->Fill((cemc_e + hcalin_e) / leading_jet->get_e());
