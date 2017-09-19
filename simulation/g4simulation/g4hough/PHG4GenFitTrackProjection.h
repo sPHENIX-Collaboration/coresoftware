@@ -42,22 +42,6 @@ class PHG4GenFitTrackProjection : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-	const std::string& get_mag_field_file_name() const {
-		return _mag_field_file_name;
-	}
-
-	void set_mag_field_file_name(const std::string& magFieldFileName) {
-		_mag_field_file_name = magFieldFileName;
-	}
-
-	float get_mag_field_re_scaling_factor() const {
-		return _mag_field_re_scaling_factor;
-	}
-
-	void set_mag_field_re_scaling_factor(float magFieldReScalingFactor) {
-		_mag_field_re_scaling_factor = magFieldReScalingFactor;
-	}
-
 	int get_pid_guess() const {
 		return _pid_guess;
 	}
@@ -66,21 +50,10 @@ class PHG4GenFitTrackProjection : public SubsysReco
 		_pid_guess = pidGuess;
 	}
 
-	bool is_reverse_mag_field() const {
-		return _reverse_mag_field;
-	}
-
-	void set_reverse_mag_field(bool reverseMagField) {
-		_reverse_mag_field = reverseMagField;
-	}
 
  private:
 
   PHGenFit::Fitter * _fitter;
-  std::string _mag_field_file_name;
-  float _mag_field_re_scaling_factor;
-  bool _reverse_mag_field;
-
   int _pid_guess;
 
   int _num_cal_layers;

@@ -11,10 +11,6 @@
 #include "PHG4OuterHcalFieldSetup.h"
 #include "PHG4OuterHcalField.h"
 
-#include <g4field/PHG4Field2D.h>
-#include <g4field/PHG4Field3D.h>
-#include <g4field/PHG4FieldsPHENIX.h>
-
 #include <fun4all/Fun4AllServer.h>
 #include <phool/getClass.h>
 

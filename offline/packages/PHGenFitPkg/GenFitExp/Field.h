@@ -5,8 +5,8 @@
  * @{
  */
 
-#ifndef genfit_Field2D_h
-#define genfit_Field2D_h
+#ifndef genfit_Field_h
+#define genfit_Field_h
 
 #include "GenFit/AbsBField.h"
 
@@ -16,28 +16,21 @@
 
 #include <TH2D.h>
 
+class PHField;
 
 namespace genfit {
 
-/** @brief 2D Field
+/** @brief Field Wrapper
  *
  *  @author Haiwang Yu (New Mexico State University)
  * 
  */
-class Field2D : public AbsBField {
+class Field : public AbsBField {
  public:
-  //! define the constant field in this ctor
-  Field2D() : field_map_r_(NULL), field_map_z_(NULL)
-  { ; }
+  Field(const PHField* field);
 
-  Field2D(std::string inname)
-  { initialize(inname); }
+  virtual ~Field() {}
 
-  ~Field2D();
-
-  bool initialize(std::string inname = "");
-
-  bool re_scale(double r);
 
 //  void plot(std::string option = "");
 
@@ -45,12 +38,21 @@ class Field2D : public AbsBField {
   TVector3 get(const TVector3& pos) const;
   void get(const double& posX, const double& posY, const double& posZ, double& Bx, double& By, double& Bz) const;
 
+  const PHField* get_field() const
+  {
+    return field_;
+  }
+
+  void set_field(const PHField* field)
+  {
+    field_ = field;
+  }
+
  private:
-  TH2D *field_map_r_;
-  TH2D *field_map_z_;
+  const PHField* field_;
 };
 
 } /* End of namespace genfit */
 /** @} */
 
-#endif // genfit_Field2D_h
+#endif // genfit_Field_h

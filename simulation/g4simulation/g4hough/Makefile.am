@@ -33,6 +33,7 @@ libg4hough_la_LIBADD = \
   -lg4bbc_io \
   -lcemc_io \
   -lgenfit2 \
+  -lphfield \
   -lgenfit2exp \
   -lPHGenFit \
   libg4hough_io.la
