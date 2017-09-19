@@ -191,12 +191,12 @@ public:
 		_use_truth_vertex = useTruthVertex;
 	}
 
-	double get_vertex_min_pT() const {
-		return _vertex_min_pT;
+	double get_vertex_min_ndf() const {
+		return _vertex_min_ndf;
 	}
 
-	void set_vertex_min_pT(double vertexMinPT) {
-		_vertex_min_pT = vertexMinPT;
+	void set_vertex_min_ndf(double vertexMinPT) {
+		_vertex_min_ndf = vertexMinPT;
 	}
 
 private:
@@ -278,7 +278,7 @@ private:
 
 	int _primary_pid_guess;
 	double _fit_min_pT;
-	double _vertex_min_pT;
+	double _vertex_min_ndf;
 
 	genfit::GFRaveVertexFactory* _vertex_finder;
 

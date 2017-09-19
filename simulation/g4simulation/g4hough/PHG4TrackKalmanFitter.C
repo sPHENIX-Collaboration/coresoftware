@@ -179,7 +179,7 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 		_track_fitting_alg_name("DafRef"),
 		_primary_pid_guess(211),
 		_fit_min_pT(0.1),
-		_vertex_min_pT(0.2),
+		_vertex_min_ndf(20),
 		_vertex_finder(NULL),
 		_vertexing_method("avf-smoothing:1"),
 		_truth_container(NULL),
@@ -312,7 +312,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 			svtxtrack_genfittrack_map[svtx_track->get_id()] =
 					rf_phgf_tracks.size();
 			rf_phgf_tracks.push_back(rf_phgf_track);
-			if(rf_phgf_track->get_mom().Pt() > _vertex_min_pT)
+			if(rf_phgf_track->get_ndf() > _vertex_min_ndf)
 				rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
 		}
 	}
