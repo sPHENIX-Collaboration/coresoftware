@@ -79,7 +79,8 @@ pkginclude_HEADERS = \
   PHG4ParametersContainer.h \
   PHG4ScintillatorSlat.h \
   PHG4ScintillatorSlatContainer.h \
-  PHG4ScintillatorSlatDefs.h
+  PHG4ScintillatorSlatDefs.h \
+  PHG4StepStatusDecode.h
 
 libg4detectors_io_la_SOURCES = \
   PHG4Parameters.cc \
