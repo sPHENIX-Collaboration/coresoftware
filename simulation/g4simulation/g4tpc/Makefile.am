@@ -1,48 +1,28 @@
 AUTOMAKE_OPTIONS = foreign
 
-AM_LDFLAGS = \
-    -L$(libdir) \
-    -L$(OFFLINE_MAIN)/lib
+lib_LTLIBRARIES = \
+    libTPCbase.la \
+    libg4tpc.la
 
-INCLUDES = \
+AM_CPPFLAGS = \
     -I$(includedir) \
     -I$(OFFLINE_MAIN)/include \
     -I$(G4_MAIN)/include \
-    -I$(G4_MAIN)/include/Geant4 \
     -I$(ROOTSYS)/include
-
-lib_LTLIBRARIES = \
-    libTPCbase.la \
-    libTPCsimu.la
-
-AM_CPPFLAGS = -DCGAL_DISABLE_ROUNDING_MATH_CHECK
 
 AM_LDFLAGS = \
     -L$(libdir) \
     -L$(OFFLINE_MAIN)/lib
 
 libTPCbase_la_LIBADD = \
-  -L$(ROOTSYS)/lib \
-  -lphool  \
-  -lboost_filesystem \
-  -lboost_system \
-  -lXMLIO \
-  -lCGAL \
-  -lphg4hit
+  -lphool 
 
-libTPCsimu_la_LIBADD = \
-  -L$(ROOTSYS)/lib \
-  -lphool  \
-  -lboost_filesystem \
-  -lboost_system \
-  -lpdbcalBase \
-  -lXMLIO \
-  -lCGAL \
-  -lSubsysReco \
+libg4tpc_la_LIBADD = \
+  -lphool \
   -lg4testbench \
   -lphg4hit \
   -lg4detectors \
-  -lTPCbase
+  libTPCbase.la
 
 pkginclude_HEADERS = \
   TPCDataTypes.h \
@@ -68,7 +48,11 @@ libTPCbase_la_SOURCES = \
   TPCDigitsContainer.cxx \
   TPCbase_Dict.cc
 
-libTPCsimu_la_SOURCES = \
+libg4tpc_la_SOURCES = \
+  PHG4TPCDetector.cc \
+  PHG4TPCSteppingAction.cc \
+  PHG4TPCSubsystem.cc \
+  PHG4TPCSubsystem_Dict.cc \
   TPCElectronPDF.cxx \
   TPCDetector.cxx \
   TPCSteppingAction.cxx \
@@ -79,10 +63,14 @@ libTPCsimu_la_SOURCES = \
   TPCsimu_Dict.cc
 
 # Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
 TPCbase_Dict.cc: TPCPadMap.h TPCHit.h TPCDigit.h TPCHitsContainer.h TPCDigitsContainer.h TPCbaseLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
 TPCsimu_Dict.cc: TPCDetectorSubsystem.h TPCSimulationSubsystem.h TPCsimuLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
 # linking tests
@@ -91,11 +79,13 @@ noinst_PROGRAMS = \
   testexternals_TPCbase \
   testexternals_TPCsimu
 
+BUILT_SOURCES = testexternals.cc
+
 testexternals_TPCbase_SOURCES = testexternals.cc
 testexternals_TPCbase_LDADD = libTPCbase.la
 
 testexternals_TPCsimu_SOURCES = testexternals.cc
-testexternals_TPCsimu_LDADD = libTPCsimu.la
+testexternals_TPCsimu_LDADD = libg4tpc.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
