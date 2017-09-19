@@ -90,6 +90,8 @@ public:
 
 	double get_charge() const;
 
+	TVector3 get_mom() const;
+
 	const std::vector<unsigned int>& get_cluster_IDs() const {
 		return _clusterIDs;
 	}
