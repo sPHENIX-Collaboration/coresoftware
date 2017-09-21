@@ -32,17 +32,25 @@ PHG4TPCDetector::PHG4TPCDetector(PHCompositeNode *Node, PHG4Parameters *paramete
   , active(params->get_int_param("active"))
   , absorberactive(params->get_int_param("absorberactive"))
   , inner_cage_radius(params->get_double_param("gas_inner_radius")*cm
-		      -params->get_double_param("thickness_cu")*cm
-		      -2* params->get_double_param("thickness_fr4")*cm
-		      -params->get_double_param("thickness_honeycomb")*cm
-		      -params->get_double_param("thickness_pcb")*cm
-		      -params->get_double_param("thickness_kapton")*cm)
+		      -params->get_double_param("cage_layer_9_thickness")*cm
+		      -params->get_double_param("cage_layer_8_thickness")*cm
+		      -params->get_double_param("cage_layer_7_thickness")*cm
+		      -params->get_double_param("cage_layer_6_thickness")*cm
+		      -params->get_double_param("cage_layer_5_thickness")*cm
+		      -params->get_double_param("cage_layer_4_thickness")*cm
+		      -params->get_double_param("cage_layer_3_thickness")*cm
+		      -params->get_double_param("cage_layer_2_thickness")*cm
+		      -params->get_double_param("cage_layer_1_thickness")*cm)
   ,outer_cage_radius(params->get_double_param("gas_outer_radius")*cm
-		     +params->get_double_param("thickness_cu")*cm
-		     +2* params->get_double_param("thickness_fr4")*cm
-		     +params->get_double_param("thickness_honeycomb")*cm
-		     +params->get_double_param("thickness_pcb")*cm
-		     +params->get_double_param("thickness_kapton")*cm)
+		      +params->get_double_param("cage_layer_9_thickness")*cm
+		      +params->get_double_param("cage_layer_8_thickness")*cm
+		      +params->get_double_param("cage_layer_7_thickness")*cm
+		      +params->get_double_param("cage_layer_6_thickness")*cm
+		      +params->get_double_param("cage_layer_5_thickness")*cm
+		      +params->get_double_param("cage_layer_4_thickness")*cm
+		      +params->get_double_param("cage_layer_3_thickness")*cm
+		      +params->get_double_param("cage_layer_2_thickness")*cm
+		      +params->get_double_param("cage_layer_1_thickness")*cm)
 
 {
 }
@@ -72,20 +80,16 @@ int PHG4TPCDetector::IsInTPC(G4VPhysicalVolume *volume) const
 void PHG4TPCDetector::Construct(G4LogicalVolume *logicWorld)
 {
 // create TPC envelope
-// tpc consists of
+// tpc consists of (from inside to gas volume, outside is reversed up to now)
 // 1st layer cu
 // 2nd layer FR4
 // 3rd layer HoneyComb
-// 4th layer FR4
-// 5th layer Kapton
-// 6th layer FR4
-// 7th layer gas
-// 8th layer cu
-// 9th layer FR4
-// 10th layer HoneyComb
-// 11th layer FR4
-// 12th layer Kapton
-// 13th layer FR4
+// 4th layer cu
+// 5th layer FR4
+// 6th layer Kapton
+// 7th layer cu
+// 8th layer Kapton
+// 9th layer cu
 
   double steplimits = params->get_double_param("steplimits") * cm;
   if (isfinite(steplimits))
@@ -99,6 +103,10 @@ void PHG4TPCDetector::Construct(G4LogicalVolume *logicWorld)
   G4LogicalVolume *tpc_envelope_logic = new G4LogicalVolume(tpc_envelope,
 							    G4Material::GetMaterial("G4_AIR"),
 							    "tpc_envelope");
+  G4VisAttributes* visatt = new G4VisAttributes();
+  visatt->SetVisibility(false);
+  tpc_envelope_logic->SetVisAttributes(visatt);
+
   ConstructTPCCageVolume(tpc_envelope_logic);
   ConstructTPCGasVolume(tpc_envelope_logic);
 
@@ -140,22 +148,39 @@ PHG4TPCDetector::ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope)
 // 11th layer FR4
 // 12th layer Kapton
 // 13th layer FR4
-  static const double thickness[6] = {params->get_double_param("thickness_pcb")*cm, 
-				      params->get_double_param("thickness_kapton")*cm,
-				      params->get_double_param("thickness_fr4")*cm,
-				      params->get_double_param("thickness_honeycomb")*cm,
-				      params->get_double_param("thickness_fr4")*cm,
-				      params->get_double_param("thickness_cu")*cm};
-  static const string material[6] = {"FR4","G4_KAPTON","FR4","G4_KAPTON","FR4","G4_Cu"};
-  static const G4Colour color[6] = {PHG4TPCColorDefs::tpc_pcb_color,
-				    PHG4TPCColorDefs::tpc_kapton_color,
-				    PHG4TPCColorDefs::tpc_fr4_color,
-				    PHG4TPCColorDefs::tpc_honeycomb_color,
-				    PHG4TPCColorDefs::tpc_fr4_color,
-				    PHG4TPCColorDefs::tpc_cu_color};
+  static const int nlayers = 9;
+  static const double thickness[nlayers] =  {params->get_double_param("cage_layer_1_thickness")*cm,
+					     params->get_double_param("cage_layer_2_thickness")*cm,
+					     params->get_double_param("cage_layer_3_thickness")*cm,
+					     params->get_double_param("cage_layer_4_thickness")*cm,
+					     params->get_double_param("cage_layer_5_thickness")*cm,
+					     params->get_double_param("cage_layer_6_thickness")*cm,
+					     params->get_double_param("cage_layer_7_thickness")*cm,
+					     params->get_double_param("cage_layer_8_thickness")*cm,
+					     params->get_double_param("cage_layer_9_thickness")*cm};
+
+  static const string material[nlayers] = {params->get_string_param("cage_layer_1_material"),
+					   params->get_string_param("cage_layer_2_material"),
+					   params->get_string_param("cage_layer_3_material"),
+					   params->get_string_param("cage_layer_4_material"),
+					   params->get_string_param("cage_layer_5_material"),
+					   params->get_string_param("cage_layer_6_material"),
+					   params->get_string_param("cage_layer_7_material"),
+					   params->get_string_param("cage_layer_8_material"),
+					   params->get_string_param("cage_layer_9_material")};
+
+  static const G4Colour color[nlayers] = {PHG4TPCColorDefs::tpc_cu_color,
+                                          PHG4TPCColorDefs::tpc_pcb_color,
+					  PHG4TPCColorDefs::tpc_honeycomb_color,
+					  PHG4TPCColorDefs::tpc_cu_color,
+                                          PHG4TPCColorDefs::tpc_pcb_color,
+					  PHG4TPCColorDefs::tpc_kapton_color,
+					  PHG4TPCColorDefs::tpc_cu_color,
+					  PHG4TPCColorDefs::tpc_kapton_color,
+					  PHG4TPCColorDefs::tpc_cu_color};
   double tpc_cage_radius = inner_cage_radius;
   ostringstream name;
-  for (int i=0; i<6; i++)
+  for (int i=0; i<nlayers; i++)
   {
     name.str("");
     int layerno = i+1;
@@ -177,7 +202,7 @@ PHG4TPCDetector::ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope)
   }
 // outer cage
   tpc_cage_radius = outer_cage_radius;
-  for (int i=0; i<6; i++)
+  for (int i=0; i<nlayers; i++)
   {
     tpc_cage_radius -= thickness[i];
     name.str("");

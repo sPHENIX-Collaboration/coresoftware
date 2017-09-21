@@ -146,16 +146,43 @@ PHG4TPCSubsystem::SetDefaultParameters()
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
-  set_default_double_param("thickness_cu",0.005);
-  set_default_double_param("thickness_fr4",0.005);
-  set_default_double_param("thickness_honeycomb",1.);
-  set_default_double_param("thickness_kapton",0.15);
-  set_default_double_param("thickness_pcb",0.005);
   set_default_double_param("tpc_length",211.);
 
   set_default_double_param("steplimits", NAN);
 
   set_default_string_param("tpc_gas", "sPHENIX_TPC_Gas");
+
+// material budget:
+// Cu (all layers): 0.5 oz cu per square foot, 1oz == 0.0347mm --> 0.5 oz ==  0.00347cm/2. 
+// Kapton insulation 18 layers of * 5mil = 18*0.0127=0.2286
+// 250 um FR4 (Substrate for Cu layers)
+// HoneyComb (nomex) 1/2 inch=0.5*2.54 cm
+  set_default_string_param("cage_layer_1_material","G4_Cu");
+  set_default_double_param("cage_layer_1_thickness",0.00347/2.);
+
+  set_default_string_param("cage_layer_2_material","FR4");
+  set_default_double_param("cage_layer_2_thickness",0.025);
+
+  set_default_string_param("cage_layer_3_material","NOMEX");
+  set_default_double_param("cage_layer_3_thickness",0.5*2.54);
+
+  set_default_string_param("cage_layer_4_material","G4_Cu");
+  set_default_double_param("cage_layer_4_thickness",0.00347/2.);
+
+  set_default_string_param("cage_layer_5_material","FR4");
+  set_default_double_param("cage_layer_5_thickness",0.025);
+
+  set_default_string_param("cage_layer_6_material","G4_KAPTON");
+  set_default_double_param("cage_layer_6_thickness",0.2286);
+
+  set_default_string_param("cage_layer_7_material","G4_Cu");
+  set_default_double_param("cage_layer_7_thickness",0.00347/2.);
+
+  set_default_string_param("cage_layer_8_material","G4_KAPTON");
+  set_default_double_param("cage_layer_8_thickness",0.05); // 50 um
+
+  set_default_string_param("cage_layer_9_material","G4_Cu");
+  set_default_double_param("cage_layer_9_thickness",0.00347/2.);
 }
 
 
