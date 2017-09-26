@@ -478,8 +478,6 @@ int PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume *hcalenvelope)
     // the center of the scintillator is not the center of the inner hcal
     // but depends on the tilt angle. Therefore we need to shift
     // the center from the mid point
-    // ypos += sin((-tilt_angle)/rad - phi)*(-2*shiftslat+(outer_radius-scinti_outer_radius));
-    // xpos -= cos((-tilt_angle)/rad - phi)*(-2*shiftslat+(outer_radius-scinti_outer_radius));
     ypos += sin((-tilt_angle) / rad - phi) * shiftslat;
     xpos -= cos((-tilt_angle) / rad - phi) * shiftslat;
     Rot->rotateZ(phi * rad + tilt_angle);
@@ -738,7 +736,6 @@ int PHG4InnerHcalDetector::ConsistencyCheck() const
          << " cm" << endl;
     gSystem->Exit(1);
   }
-
   return 0;
 }
 
