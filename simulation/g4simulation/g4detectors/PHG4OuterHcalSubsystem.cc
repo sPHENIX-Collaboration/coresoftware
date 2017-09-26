@@ -22,9 +22,9 @@ using namespace std;
 //_______________________________________________________________________
 PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const int lyr ):
   PHG4DetectorSubsystem( name, lyr ),
-  detector_( NULL ),
-  steppingAction_( NULL ),
-  eventAction_(NULL),
+  detector_( nullptr ),
+  steppingAction_( nullptr ),
+  eventAction_(nullptr),
   enable_field_checker(0)
 {
   InitializeParameters();
@@ -178,6 +178,8 @@ PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_double_param("scinti_gap", 0.85);
   set_default_double_param("scinti_gap_neighbor", 0.1);
   set_default_double_param("scinti_tile_thickness", 0.7);
+  set_default_double_param("scinti_inner_radius",183.89);
+  set_default_double_param("scinti_outer_radius",263.27);
   set_default_double_param("size_z", 304.91 * 2);
   set_default_double_param("steplimits", NAN);
   set_default_double_param("tilt_angle", NAN); // default is 4 crossinge

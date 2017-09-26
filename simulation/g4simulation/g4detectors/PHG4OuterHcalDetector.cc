@@ -9,11 +9,14 @@
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 
+#include <TSystem.h>
+
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4Box.hh>
+#include <Geant4/G4Colour.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4PVPlacement.hh>
@@ -22,17 +25,13 @@
 #include <Geant4/G4Trap.hh>
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4UserLimits.hh>
-
 #include <Geant4/G4VisAttributes.hh>
-#include <Geant4/G4Colour.hh>
 
 #include <CGAL/Exact_circular_kernel_2.h>
 #include <CGAL/point_generators_2.h>
 #include <CGAL/Object.h>
 #include <CGAL/Circular_kernel_intersections.h>
 #include <CGAL/Boolean_set_operations_2.h>
-
-#include <boost/math/special_functions/sign.hpp>
 
 #include <cmath>
 #include <sstream>
@@ -52,10 +51,10 @@ static double subtract_from_scinti_x = 0.1*mm;
 
 PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4Parameters *parames, const std::string &dnam):
   PHG4Detector(Node, dnam),
-  field_setup(NULL),
+  field_setup(nullptr),
   params(parames),
-  scinti_mother_assembly(NULL),
-  steel_cutout_for_magnet(NULL),
+  scinti_mother_assembly(nullptr),
+  steel_cutout_for_magnet(nullptr),
   inner_radius(params->get_double_param("inner_radius")*cm),
   outer_radius(params->get_double_param("outer_radius")*cm),
   size_z(params->get_double_param("size_z")*cm),
@@ -65,6 +64,8 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4Paramet
   scinti_tile_z(size_z),
   scinti_tile_thickness(params->get_double_param("scinti_tile_thickness")*cm),
   scinti_gap(params->get_double_param("scinti_gap")*cm),
+  scinti_inner_radius(params->get_double_param("scinti_inner_radius") * cm),
+  scinti_outer_radius(params->get_double_param("scinti_outer_radius") * cm),
   tilt_angle(params->get_double_param("tilt_angle")*deg),
   envelope_inner_radius(inner_radius),
   envelope_outer_radius(outer_radius),
@@ -79,7 +80,7 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector( PHCompositeNode *Node, PHG4Paramet
   layer(0),
   scintilogicnameprefix("HcalOuterScinti")
 {
-  scinti_tiles_vec.assign(2*n_scinti_tiles,static_cast<G4VSolid *>(NULL));
+  scinti_tiles_vec.assign(2*n_scinti_tiles,static_cast<G4VSolid *>(nullptr));
 
 }
 
@@ -194,7 +195,7 @@ PHG4OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
 	    }
 	}
     }
-  scinti_tile_x  = scinti_tile_x_upper + scinti_tile_x_lower;
+  scinti_tile_x  = scinti_tile_x_upper + scinti_tile_x_lower - ((outer_radius - scinti_outer_radius) / cos(tilt_angle / rad));
   scinti_tile_x  -= subtract_from_scinti_x;
   G4VSolid* scintibox =  new G4Box("ScintiTile", scinti_tile_x / 2., scinti_tile_thickness / 2., scinti_tile_z / 2.);
   volume_scintillator = scintibox->GetCubicVolume() *n_scinti_plates;
@@ -458,7 +459,8 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
   double deltaphi = 2 * M_PI / n_scinti_plates;
   ostringstream name;
   double middlerad = outer_radius - (outer_radius - inner_radius) / 2.;
-  double shiftslat = fabs(scinti_tile_x_lower - scinti_tile_x_upper)/2.;
+  double scinti_tile_orig_length = scinti_tile_x_upper + scinti_tile_x_lower - subtract_from_scinti_x;
+  double shiftslat = fabs(scinti_tile_x_lower - scinti_tile_x_upper)/2.+ (scinti_tile_orig_length - scinti_tile_x) / 2.;
   // calculate phi offset (copied from code inside following loop): 
   // first get the center point (phi=0) so it's middlerad/0
   // then shift the scintillator center as documented in loop
@@ -737,18 +739,18 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalen
     {
       name.str("");
       name << scintilogicnameprefix << i;
-      G4UserLimits *g4userlimits = NULL;
+      G4UserLimits *g4userlimits = nullptr;
       if (isfinite(steplimits))
 	{
 	  g4userlimits = new G4UserLimits(steplimits);
 	}
-      G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i],G4Material::GetMaterial("G4_POLYSTYRENE"),name.str().c_str(), NULL, NULL, g4userlimits);
+      G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i],G4Material::GetMaterial("G4_POLYSTYRENE"),name.str().c_str(), nullptr, nullptr, g4userlimits);
       G4VisAttributes *visattchk = new G4VisAttributes();
       visattchk->SetVisibility(true);
       visattchk->SetForceSolid(true);
       visattchk->SetColour(G4Colour::Green());
       scinti_tile_logic->SetVisAttributes(visattchk);
-      assmeblyvol->AddPlacedVolume(scinti_tile_logic,g4vec, NULL);
+      assmeblyvol->AddPlacedVolume(scinti_tile_logic,g4vec, nullptr);
 
       //field after burner
       scinti_tile_logic->SetFieldManager(
@@ -768,15 +770,37 @@ PHG4OuterHcalDetector::ConsistencyCheck() const
       cout << PHWHERE << ": Inner Radius " << inner_radius/cm
 	   << " cm larger than Outer Radius " << outer_radius/cm
 	   << " cm" << endl;
-      exit(1);
+      gSystem->Exit(1);
     }
   if (scinti_tile_thickness > scinti_gap)
     {
       cout << PHWHERE << "Scintillator thickness " << scinti_tile_thickness/cm
 	   << " cm larger than scintillator gap " << scinti_gap/cm
 	   << " cm" << endl;
-      exit(1);
+      gSystem->Exit(1);
     }
+  if (scinti_outer_radius <= scinti_inner_radius)
+  {
+    cout << PHWHERE << "Scintillator outer radius " << scinti_outer_radius / cm
+         << " cm smaller than scintillator inner radius " << scinti_inner_radius / cm
+         << " cm" << endl;
+    gSystem->Exit(1);
+  }
+  if (scinti_outer_radius <= inner_radius)
+  {
+    cout << PHWHERE << "Scintillator outer radius " << scinti_outer_radius / cm
+         << " cm smaller than inner radius " << inner_radius / cm
+         << " cm" << endl;
+    gSystem->Exit(1);
+  }
+  if (scinti_inner_radius >= outer_radius)
+  {
+    cout << PHWHERE << "Scintillator inner radius " << scinti_inner_radius / cm
+         << " cm larger than inner radius " << inner_radius / cm
+         << " cm" << endl;
+    gSystem->Exit(1);
+  }
+
   return 0;
 }
 
