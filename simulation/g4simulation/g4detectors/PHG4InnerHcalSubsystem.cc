@@ -150,12 +150,12 @@ PHG4Detector* PHG4InnerHcalSubsystem::GetDetector( void ) const
 void
 PHG4InnerHcalSubsystem::SetDefaultParameters()
 {
-  set_default_double_param(PHG4HcalDefs::innerrad,116.);
+  set_default_double_param(PHG4HcalDefs::innerrad,117.27);
   set_default_double_param("light_balance_inner_corr", NAN);
   set_default_double_param("light_balance_inner_radius", NAN);
   set_default_double_param("light_balance_outer_corr", NAN);
   set_default_double_param("light_balance_outer_radius", NAN);
-  set_default_double_param(PHG4HcalDefs::outerrad, 136.);
+  set_default_double_param(PHG4HcalDefs::outerrad, 134.42);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
@@ -164,7 +164,7 @@ PHG4InnerHcalSubsystem::SetDefaultParameters()
   set_default_double_param("rot_z", 0.);
   set_default_double_param("scinti_eta_coverage", 1.1);
   set_default_double_param("scinti_inner_gap", 0.85);
-  set_default_double_param("scinti_outer_gap", 1.22);
+  set_default_double_param("scinti_outer_gap", 1.22*(5.0/4.0));
   set_default_double_param("scinti_outer_radius", 133.3);
   set_default_double_param("scinti_gap_neighbor", 0.1);
   set_default_double_param("scinti_tile_thickness", 0.7);
