@@ -9,6 +9,8 @@
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 
+#include <TSystem.h>
+
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4SubtractionSolid.hh>
@@ -55,7 +57,7 @@ static double subtract_from_scinti_x = 0.1*mm;
 PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam  ):
   PHG4Detector(Node, dnam),
   params(parameters),
-  scinti_mother_assembly(NULL),
+  scinti_mother_assembly(nullptr),
   inner_radius(params->get_double_param("inner_radius")*cm),
   outer_radius(params->get_double_param("outer_radius")*cm),
   size_z(params->get_double_param("size_z")*cm),
@@ -66,6 +68,7 @@ PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, PHG4Paramet
   scinti_tile_thickness(params->get_double_param("scinti_tile_thickness")*cm),
   scinti_inner_gap(params->get_double_param("scinti_inner_gap")*cm),
   scinti_outer_gap(params->get_double_param("scinti_outer_gap")*cm),
+  scinti_outer_radius(params->get_double_param("scinti_outer_radius")*cm),
   tilt_angle(params->get_double_param("tilt_angle")*deg),
   envelope_inner_radius(inner_radius),
   envelope_outer_radius(outer_radius),
@@ -82,7 +85,7 @@ PHG4InnerHcalDetector::PHG4InnerHcalDetector( PHCompositeNode *Node, PHG4Paramet
 {
 
   // allocate memory for scintillator plates
-  scinti_tiles_vec.assign(2 * n_scinti_tiles, static_cast<G4VSolid *>(NULL));
+  scinti_tiles_vec.assign(2 * n_scinti_tiles, static_cast<G4VSolid *>(nullptr));
 }
 
 PHG4InnerHcalDetector::~PHG4InnerHcalDetector()
@@ -195,11 +198,10 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
 	    }
 	}
     }
-  scinti_tile_x  = scinti_tile_x_upper + scinti_tile_x_lower;
+  scinti_tile_x  = scinti_tile_x_upper + scinti_tile_x_lower -((outer_radius-scinti_outer_radius)/cos(tilt_angle/rad));
   scinti_tile_x  -= subtract_from_scinti_x;
   G4VSolid* scintibox =  new G4Box("ScintiTile", scinti_tile_x / 2., scinti_tile_thickness / 2., scinti_tile_z / 2.);
   volume_scintillator = scintibox->GetCubicVolume() *n_scinti_plates;
-
   return scintibox;
 }
 
@@ -419,7 +421,7 @@ PHG4InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
   volume_envelope = hcal_envelope_cylinder->GetCubicVolume();
   G4LogicalVolume* hcal_envelope_log =  new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("Hcal_envelope"), 0, 0, 0);
   G4VisAttributes* hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(true);
+  hcalVisAtt->SetVisibility(false);
   hcalVisAtt->SetForceSolid(false);
   hcalVisAtt->SetColour(G4Colour::White());
   hcal_envelope_log->SetVisAttributes(hcalVisAtt);
@@ -450,7 +452,9 @@ PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
   double deltaphi = 2 * M_PI / n_scinti_plates;
   ostringstream name;
   double middlerad = outer_radius - (outer_radius - inner_radius) / 2.;
-  double shiftslat = fabs(scinti_tile_x_lower - scinti_tile_x_upper)/2.;
+// for shorter scintillators we have to shift by 1/2 the "missing length"
+  double scinti_tile_orig_length = scinti_tile_x_upper + scinti_tile_x_lower - subtract_from_scinti_x;
+  double shiftslat = fabs(scinti_tile_x_lower - scinti_tile_x_upper)/2. + (scinti_tile_orig_length-scinti_tile_x)/2.;
   // calculate phi offset (copied from code inside following loop): 
   // first get the center point (phi=0) so it's middlerad/0
   // then shift the scintillator center as documented in loop
@@ -486,6 +490,8 @@ PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelope)
       // the center of the scintillator is not the center of the inner hcal
       // but depends on the tilt angle. Therefore we need to shift
       // the center from the mid point
+      // ypos += sin((-tilt_angle)/rad - phi)*(-2*shiftslat+(outer_radius-scinti_outer_radius));
+      // xpos -= cos((-tilt_angle)/rad - phi)*(-2*shiftslat+(outer_radius-scinti_outer_radius));
       ypos += sin((-tilt_angle)/rad - phi)*shiftslat;
       xpos -= cos((-tilt_angle)/rad - phi)*shiftslat;
       Rot->rotateZ(phi * rad + tilt_angle);
@@ -584,13 +590,14 @@ PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
       scinti_tile =  new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(inner_radius + outer_radius) / 2., 0, 0));
       scinti_tiles_vec[n_scinti_tiles - i - 1] =  scinti_tile;
     }
-  // for (unsigned int i=0; i<scinti_tiles_vec.size(); i++)
-  //   {
-  //     if (scinti_tiles_vec[i])
-  // 	 {
-  // 	   DisplayVolume(scinti_tiles_vec[i],hcalenvelope );
-  // 	 }
-  //   }
+
+ // for (unsigned int i=0; i<scinti_tiles_vec.size(); i++)
+ //    {
+ //      if (scinti_tiles_vec[i])
+ //  	 {
+ //   	   DisplayVolume(scinti_tiles_vec[i],hcalenvelope );
+ //   	 }
+ //     }
 
   return;
 }
@@ -638,18 +645,18 @@ PHG4InnerHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalen
     {
       name.str("");
       name << scintilogicnameprefix << i;
-      G4UserLimits *g4userlimits = NULL;
+      G4UserLimits *g4userlimits = nullptr;
       if (isfinite(steplimits))
 	{
 	  g4userlimits = new G4UserLimits(steplimits);
 	}
-      G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i], G4Material::GetMaterial("G4_POLYSTYRENE"), name.str().c_str(), NULL, NULL, g4userlimits);
+      G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i], G4Material::GetMaterial("G4_POLYSTYRENE"), name.str().c_str(), nullptr, nullptr, g4userlimits);
       G4VisAttributes *visattchk = new G4VisAttributes();
       visattchk->SetVisibility(true);
       visattchk->SetForceSolid(true);
       visattchk->SetColour(G4Colour::Green());
       scinti_tile_logic->SetVisAttributes(visattchk);
-      assmeblyvol->AddPlacedVolume(scinti_tile_logic, g4vec, NULL);
+      assmeblyvol->AddPlacedVolume(scinti_tile_logic, g4vec, nullptr);
     }
   return assmeblyvol;
 }
@@ -735,15 +742,23 @@ PHG4InnerHcalDetector::ConsistencyCheck() const
       cout << PHWHERE << ": Inner Radius " << inner_radius/cm
 	   << " cm larger than Outer Radius " << outer_radius/cm
 	   << " cm" << endl;
-      exit(1);
+      gSystem->Exit(1);
     }
   if (scinti_tile_thickness > scinti_inner_gap)
     {
       cout << PHWHERE << "Scintillator thickness " << scinti_tile_thickness/cm
 	   << " cm larger than scintillator inner gap " << scinti_inner_gap/cm
 	   << " cm" << endl;
-      exit(1);
+      gSystem->Exit(1);
     }
+  if (scinti_outer_radius <= inner_radius)
+  {
+    cout <<  PHWHERE << "Scintillator outer radius " << scinti_outer_radius/cm
+	 << " cm smaller than inner radius " << inner_radius/cm 
+	 << " cm" << endl;
+      gSystem->Exit(1);
+    }
+
   return 0;
 }
 

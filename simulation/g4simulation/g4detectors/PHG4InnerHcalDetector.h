@@ -72,6 +72,7 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   double scinti_tile_thickness;
   double scinti_inner_gap;
   double scinti_outer_gap;
+  double scinti_outer_radius;
   double tilt_angle;
   double envelope_inner_radius;
   double envelope_outer_radius;

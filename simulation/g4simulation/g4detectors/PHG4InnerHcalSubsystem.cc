@@ -165,6 +165,7 @@ PHG4InnerHcalSubsystem::SetDefaultParameters()
   set_default_double_param("scinti_eta_coverage", 1.1);
   set_default_double_param("scinti_inner_gap", 0.85);
   set_default_double_param("scinti_outer_gap", 1.22);
+  set_default_double_param("scinti_outer_radius", 133.3);
   set_default_double_param("scinti_gap_neighbor", 0.1);
   set_default_double_param("scinti_tile_thickness", 0.7);
   set_default_double_param("size_z", 175.94 * 2);
