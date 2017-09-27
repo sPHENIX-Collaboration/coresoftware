@@ -72,16 +72,6 @@ void PHG4BeamlineMagnetDetector::Construct( G4LogicalVolume* logicWorld )
       siliconVis->SetForceSolid(true);
     }
 
-  /* Define origin vector (center of magnet) and magnet rotation matrix */
-  G4ThreeVector origin(params->get_double_param("place_x")*cm,
-		       params->get_double_param("place_y")*cm,
-		       params->get_double_param("place_z")*cm);
-
-  G4RotationMatrix rotm;
-  rotm.rotateX(params->get_double_param("rot_x")*deg);
-  rotm.rotateY(params->get_double_param("rot_y")*deg);
-  rotm.rotateZ(params->get_double_param("rot_z")*deg);
-
   /* Creating a magnetic field */
   G4MagneticField* magField = NULL;
 
@@ -90,19 +80,15 @@ void PHG4BeamlineMagnetDetector::Construct( G4LogicalVolume* logicWorld )
     {
       G4double fieldValue = params->get_double_param("field_y")*tesla;
       magField = new G4UniformMagField(G4ThreeVector(0.,fieldValue,0.));
-
+      //  magField = new G4UniformMagField (G4double vField, G4double vTheta, G4double vPhi);
       if ( verbosity > 0 )
 	cout << "Creating DIPOLE with field " << fieldValue << " and name " << GetName() << endl;
     }
   else if ( magnettype == "quadrupole" )
     {
       G4double fieldGradient = params->get_double_param("fieldgradient")*tesla/meter;
-
-      /* G4MagneticField::GetFieldValue( pos*, B* ) uses GLOBAL coordinates, not local.
-       * Therefore, place magnetic field center at the correct location and angle for the
-       * magnet AND do the same transformations for the logical volume (see below). */
-      magField = new G4QuadrupoleMagField ( fieldGradient, origin, &rotm );
-
+      magField = new G4QuadrupoleMagField (fieldGradient);
+      //  magField = new G4QuadrupoleMagField (G4double pGradient, G4ThreeVector pOrigin, G4RotationMatrix *pMatrix);
       if ( verbosity > 0 )
 	cout << "Creating QUADRUPOLE with gradient " << fieldGradient << " and name " << GetName() << endl;
     }
@@ -133,11 +119,14 @@ void PHG4BeamlineMagnetDetector::Construct( G4LogicalVolume* logicWorld )
                                                       0,0,0);
   magnet_logic->SetVisAttributes(fieldVis);
 
-  /* Set field manager for logical volume */
-  G4bool allLocal = true;
+  G4bool allLocal = false;
   magnet_logic->SetFieldManager(fieldMgr,allLocal);
 
-  /* create magnet physical volume */
+  G4RotationMatrix rotm;
+  rotm.rotateX(params->get_double_param("rot_x")*deg);
+  rotm.rotateY(params->get_double_param("rot_y")*deg);
+  rotm.rotateZ(params->get_double_param("rot_z")*deg);
+
   magnet_physi = new G4PVPlacement(G4Transform3D(rotm,
 						 G4ThreeVector(params->get_double_param("place_x")*cm,
 							       params->get_double_param("place_y")*cm,
