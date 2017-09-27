@@ -29,22 +29,8 @@ TPCDetector::TPCDetector(PHCompositeNode *node) :
 //=====
 void TPCDetector::BuildFiducial(G4LogicalVolume* tpcWorld)
 {
-  G4NistManager* nist = G4NistManager::Instance();
-  //G4Element *Ne = nist->FindOrBuildElement("Ne");
-  //G4Element *C = nist->FindOrBuildElement("C");
-  //G4Element *F = nist->FindOrBuildElement("F");
-  //G4Material *CF4 = new G4Material("G4_CF4",3.72*mg/cm3,2);
-  //CF4->AddElement(C, 1);
-  //CF4->AddElement(F, 4);
-  std::vector<G4String> scomp;
-  std::vector<G4double> dcomp;
-  scomp.push_back("Ne");
-  scomp.push_back("C");
-  scomp.push_back("F");
-  dcomp.push_back(0.90);
-  dcomp.push_back(0.02);
-  dcomp.push_back(0.08);
-  G4Material *mat_gas = nist->ConstructNewMaterial("TPC_GAS",scomp,dcomp,1.126655*mg/cm3,true,kStateGas);
+ 
+  G4Material *mat_gas = G4Material::GetMaterial("sPHENIX_tpc_gas");
 
   G4double minR = kGasInnerRadius*cm;
   G4double maxR = kGasOuterRadius*cm;
@@ -72,31 +58,11 @@ void TPCDetector::BuildFiducial(G4LogicalVolume* tpcWorld)
 //=====
 void TPCDetector::BuildCage(G4LogicalVolume* tpcWorld)
 {
-  G4NistManager *nist = G4NistManager::Instance();
-  G4Material* G10 = new G4Material("G4_G10", 1.700*g/cm3, 4);
-  G10->AddElement(nist->FindOrBuildElement(14), 1); //Si
-  G10->AddElement(nist->FindOrBuildElement(8) , 2); //O
-  G10->AddElement(nist->FindOrBuildElement(6) , 3); //C
-  G10->AddElement(nist->FindOrBuildElement(1) , 3); //H
-
-  G4double nomexDensity = 0.98*g/cm3;
-  G4double airDensity = 1.290*mg/cm3;
-  G4Material *matAir = nist->FindOrBuildMaterial("G4_Air");
-  G4Material *nomex = new G4Material("G4_NOMEX",nomexDensity,5);
-  nomex->AddElement(nist->FindOrBuildElement(1),0.04); //H
-  nomex->AddElement(nist->FindOrBuildElement(6),0.54); //C
-  nomex->AddElement(nist->FindOrBuildElement(7),0.09); //N
-  nomex->AddElement(nist->FindOrBuildElement(8),0.10); //O
-  nomex->AddElement(nist->FindOrBuildElement(17),0.23); //Cl
-  G4double d = 0.45*(nomexDensity)+ 0.55*(airDensity);
-  G4Material *nomexAir = new G4Material("G4_NOMEXAIR",d,2);
-  nomexAir -> AddMaterial(nomex,0.45);
-  nomexAir -> AddMaterial(matAir,0.55);
-
-  G4Material *mat_cu = nist->FindOrBuildMaterial("G4_Cu");
-  G4Material *mat_kap = nist->FindOrBuildMaterial("G4_KAPTON");
-  G4Material *mat_fr4 = nist->FindOrBuildMaterial("G4_G10");
-  G4Material *mat_hco = nist->FindOrBuildMaterial("G4_MYLAR");
+   
+  G4Material *mat_cu = G4Material::GetMaterial("G4_Cu");
+  G4Material *mat_kap = G4Material::GetMaterial("G4_KAPTON");
+  G4Material *mat_fr4 = G4Material::GetMaterial("G4_G10");
+  G4Material *mat_hco = G4Material::GetMaterial("G4_MYLAR");
 
   G4double rads[7];
   G4double hz = kGasHalfOfLength*cm;
@@ -168,8 +134,8 @@ void TPCDetector::BuildCage(G4LogicalVolume* tpcWorld)
 void TPCDetector::Construct(G4LogicalVolume* world)
 {
   if(fVerbosity>0) std::cout << "TPCDetector::Construct" << std::endl;
-  G4NistManager* nistManager = G4NistManager::Instance();
-  G4Material *mat_air = nistManager->FindOrBuildMaterial("G4_AIR");
+
+  G4Material *mat_air = G4Material::GetMaterial("G4_AIR") ;
   G4double minR = 19.5*cm;
   G4double maxR = 78.5*cm;
   G4double hz = 110*cm;

@@ -892,6 +892,30 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
 
   CF4->SetMaterialPropertiesTable(MPT_CF4);
 
+
+  //TPC field cage materials
+   G4Material* G4_G10 = new G4Material("G4_G10", 1.700*g/cm3, 4);
+   G4_G10->AddElement(G4Element::GetElement("Si"), 1);
+   G4_G10->AddElement(G4Element::GetElement("O"), 2);
+   G4_G10->AddElement(G4Element::GetElement("C"), 3);
+   G4_G10->AddElement(G4Element::GetElement("H"), 3);
+   
+
+   G4double nomexDensity = 0.98*g/cm3;
+   G4double airDensity = 1.290*mg/cm3;
+   G4Material *matAir = G4Material::GetMaterial("G4_AIR");
+   G4Material *G4_NOMEX = new G4Material("G4_NOMEX",nomexDensity,5);
+   G4_NOMEX->AddElement(G4Element::GetElement("H"), 0.04);
+   G4_NOMEX->AddElement(G4Element::GetElement("C"), 0.54);
+   G4_NOMEX->AddElement(G4Element::GetElement("Ni"), 0.09);
+   G4_NOMEX->AddElement(G4Element::GetElement("O"), 0.10);
+   G4_NOMEX->AddElement(G4Element::GetElement("Cl"), 0.23);
+   G4double d = 0.45*(nomexDensity)+ 0.55*(airDensity);
+   G4Material *G4_NOMEXAIR = new G4Material("G4_NOMEXAIR",d,2);
+   G4_NOMEXAIR -> AddMaterial(G4_NOMEX,0.45);
+   G4_NOMEXAIR -> AddMaterial(matAir,0.55);
+
+
   //
   // LiF
   //
