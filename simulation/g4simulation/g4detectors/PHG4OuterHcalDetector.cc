@@ -415,7 +415,7 @@ PHG4OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
   volume_envelope = hcal_envelope_cylinder->GetCubicVolume();
   G4LogicalVolume* hcal_envelope_log =  new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("OuterHcal_envelope"), 0, 0, 0);
   G4VisAttributes* hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(true);
+  hcalVisAtt->SetVisibility(false);
   hcalVisAtt->SetForceSolid(false);
   hcalVisAtt->SetColour(G4Colour::White());
   hcal_envelope_log->SetVisAttributes(hcalVisAtt);
