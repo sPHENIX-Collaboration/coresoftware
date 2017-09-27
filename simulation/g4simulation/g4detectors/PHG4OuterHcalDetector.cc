@@ -195,7 +195,7 @@ PHG4OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
 	    }
 	}
     }
-  scinti_tile_x  = scinti_tile_x_upper + scinti_tile_x_lower - ((outer_radius - scinti_outer_radius) / cos(tilt_angle / rad));
+  scinti_tile_x  = scinti_tile_x_upper + scinti_tile_x_lower - (outer_radius - scinti_outer_radius) / cos(tilt_angle / rad) - (scinti_inner_radius - inner_radius) / cos(tilt_angle / rad);
   scinti_tile_x  -= subtract_from_scinti_x;
   G4VSolid* scintibox =  new G4Box("ScintiTile", scinti_tile_x / 2., scinti_tile_thickness / 2., scinti_tile_z / 2.);
   volume_scintillator = scintibox->GetCubicVolume() *n_scinti_plates;
@@ -459,8 +459,16 @@ PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelope)
   double deltaphi = 2 * M_PI / n_scinti_plates;
   ostringstream name;
   double middlerad = outer_radius - (outer_radius - inner_radius) / 2.;
+// okay this is crude. Since the inner and outer radius of the scintillator is different from the inner/outer
+// radius of the steel so the scintillator needs some shifting to get the gaps right
+// basically the first shift (sumshift) puts it at the inner radius of the steel
+// then it needs to be shifted up by twice the difference between the inner steel and inner scintillator radius
+// since sumshift is div by 2 for G4 but we need to shift the full delta(inner radius)
   double scinti_tile_orig_length = scinti_tile_x_upper + scinti_tile_x_lower - subtract_from_scinti_x;
-  double shiftslat = fabs(scinti_tile_x_lower - scinti_tile_x_upper)/2.+ (scinti_tile_orig_length - scinti_tile_x) / 2.;
+  double shiftup = (scinti_inner_radius - inner_radius) / cos(tilt_angle / rad);
+  double sumshift = scinti_tile_orig_length - scinti_tile_x;
+  sumshift = sumshift - 2*shiftup;
+  double shiftslat = fabs(scinti_tile_x_lower - scinti_tile_x_upper) / 2. + sumshift/2.;
   // calculate phi offset (copied from code inside following loop): 
   // first get the center point (phi=0) so it's middlerad/0
   // then shift the scintillator center as documented in loop
