@@ -161,13 +161,13 @@ PHG4OuterHcalSubsystem::SetLightCorrection(const double inner_radius, const doub
 void
 PHG4OuterHcalSubsystem::SetDefaultParameters()
 {
-  set_default_double_param("inner_radius", 178.);
+  set_default_double_param("inner_radius", 183.3);
   set_default_double_param("light_balance_inner_corr", NAN);
   set_default_double_param("light_balance_inner_radius", NAN);
   set_default_double_param("light_balance_outer_corr", NAN);
   set_default_double_param("light_balance_outer_radius", NAN);
-  set_default_double_param("magnet_cutout", 12.);
-  set_default_double_param("outer_radius", 260.);
+  set_default_double_param("magnet_cutout_radius", 195.31);
+  set_default_double_param("outer_radius", 264.71);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);

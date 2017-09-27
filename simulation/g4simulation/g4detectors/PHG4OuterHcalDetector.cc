@@ -587,7 +587,7 @@ PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
   double offset = 1 * cm + overhang; // add 1cm to make sure the G4ExtrudedSolid
   // is larger than the tile so we do not have
   // funny edge effects when overlapping vols
-  double magnet_cutout_x = params->get_double_param("magnet_cutout")*cm/cos(tilt_angle/rad);
+  double magnet_cutout_x = (params->get_double_param("magnet_cutout_radius")*cm-inner_radius)/cos(tilt_angle/rad);
   double x_inner = inner_radius - overhang;
   double inner_offset = offset;
   // coordinates like the steel plates:
@@ -619,7 +619,7 @@ PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
       z[1] = tan(theta) * outer_radius;
       if (i >= params->get_int_param("magnet_cutout_first_scinti"))
 	{
-	  z[0] =  tan(theta) * (inner_radius +  params->get_double_param("magnet_cutout")*cm);
+	  z[0] =  tan(theta) * (inner_radius +  (params->get_double_param("magnet_cutout_radius")*cm-inner_radius));
 	}
       eta += delta_eta;
       theta = M_PI / 2 - PHG4Utils::get_theta(eta); // theta = 90 for eta=0
@@ -627,7 +627,7 @@ PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume* hcalenv
       z[2] =  tan(theta) * inner_radius;
       if (i >= params->get_int_param("magnet_cutout_first_scinti"))
 	{
-	  z[2] =  tan(theta) * (inner_radius + params->get_double_param("magnet_cutout")*cm);
+	  z[2] =  tan(theta) * (inner_radius + (params->get_double_param("magnet_cutout_radius")*cm-inner_radius));
 	}
       x[3] =  outer_radius + overhang; // since the tile is tilted, x is not at the outer radius but beyond
       z[3] = tan(theta) * outer_radius;
