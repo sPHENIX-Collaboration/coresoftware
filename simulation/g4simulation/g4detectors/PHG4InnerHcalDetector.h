@@ -56,7 +56,7 @@ class PHG4InnerHcalDetector : public PHG4Detector
 
  protected:
   int ConstructInnerHcal(G4LogicalVolume *sandwich);
-  int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm = NULL);
+  int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
   double x_at_y(Point_2 &p0, Point_2 &p1, double yin);
   PHG4Parameters *params;
   G4AssemblyVolume *scinti_mother_assembly;
