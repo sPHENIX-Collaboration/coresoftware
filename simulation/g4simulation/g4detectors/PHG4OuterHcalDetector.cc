@@ -609,9 +609,10 @@ double zsteelcut_1[4];
   xsteelcut_1[3] = xsteelcut_1[2];
   double steel_overhang =  (scinti_tile_x_upper + scinti_tile_x_lower - subtract_from_scinti_x - (outer_radius - inner_radius)) / 2.;
   double steel_offset = 1 * cm + steel_overhang;  // add 1cm to make sure the G4ExtrudedSolid
-  double steel_x_inner = inner_radius - overhang;
+  double steel_x_inner = inner_radius - steel_overhang;
   double steel_magnet_cutout_x = (params->get_double_param("magnet_cutout_radius") * cm - inner_radius) / cos(tilt_angle / rad);
- 
+  cout << "magnet_cutout_x: " << magnet_cutout_x << ", steel_magnet_cutout_x: " << steel_magnet_cutout_x << endl;
+  double steel_inner_offset = steel_offset;
   xsteelcut[0] = steel_x_inner + steel_magnet_cutout_x;
   xsteelcut[1] = xsteelcut[0];
   xsteelcut[2] = inner_radius - steel_offset;
@@ -667,14 +668,30 @@ double zsteelcut_1[4];
     // store corner points of extruded solid we need to subtract from steel
     if (i == params->get_int_param("magnet_cutout_first_scinti"))
     {
-      zsteelcut[0] = z[0];
+      double x0 = inner_radius - (steel_inner_offset - steel_magnet_cutout_x);
+      double z0 = x_at_y(leftsidelow, leftsidehigh, x0);
+      double xpos_1 = inner_radius - steel_offset;
+      zsteelcut[0] = z0;
+      zsteelcut[3] = x_at_y(leftsidelow, leftsidehigh, xpos_1);
+      zsteelcut_1[0] = z[0];
       // we have to use the inner reference, not the already
       // adjusted one for the scintillator from above
       double xpos = scinti_inner_radius - offset;
-      zsteelcut[3] = x_at_y(leftsidelow, leftsidehigh, xpos);
+      zsteelcut_1[3] = x_at_y(leftsidelow, leftsidehigh, xpos);
+      // cout << "inner_radius: " << inner_radius << ", scinti_inner_radius: " << scinti_inner_radius << endl;
+      // cout << "steel_inner_offset diff: " << steel_inner_offset - steel_magnet_cutout_x << ", inner_offset: " << inner_offset << endl;
+      // cout << "steel_inner_offset: " << steel_inner_offset << ", steel_magnet_cutout_x: " << steel_magnet_cutout_x << endl;
+      // cout << "x[0]: " << x[0] << ", x0: " << x0 << endl;
+      // cout << "xpos: " << xpos << ", xpos_1: " << xpos_1 << endl;
+      // cout << "zsteelcut[0]: " << zsteelcut[0] << ", zsteelcut_1[0]: " << zsteelcut_1[0] << endl;
+      // cout << "zsteelcut[3]: " << zsteelcut[3] << ", zsteelcut_1[3]: " << zsteelcut_1[3] << endl;
     }
-    zsteelcut[1] = z[2] + 1 * cm;
-    zsteelcut[2] = z[2] + 1 * cm;
+    double x2 = outer_radius + steel_offset;
+double z2 =  x_at_y(rightsidelow, rightsidehigh, x2);
+zsteelcut[1] = z2 + 1 * cm;
+zsteelcut[2] = z2 + 1 * cm;
+    zsteelcut_1[1] = z[2] + 1 * cm;
+    zsteelcut_1[2] = z[2] + 1 * cm;
     vector<G4TwoVector> vertexes;
     for (int j = 0; j < 4; j++)
     {
@@ -710,6 +727,10 @@ double zsteelcut_1[4];
    	 }
      }
 #endif
+  for (int i=0; i<4; i++)
+  {
+    cout << "zs[" << i << "]: " << zsteelcut[i] << ", zs_1: " << zsteelcut_1[i] << endl;
+  }
 
   vector<G4TwoVector> vertexes;
   for (int j = 0; j < 4; j++)
@@ -837,7 +858,21 @@ int PHG4OuterHcalDetector::ConsistencyCheck() const
          << " cm" << endl;
     gSystem->Exit(1);
   }
-
+  if (params->get_double_param("magnet_cutout_scinti_radius")*cm < scinti_inner_radius)
+  {
+    cout << PHWHERE << "Magnet scintillator cutout radius " << params->get_double_param("magnet_cutout_scinti_radius")
+         << " cm smaller than inner scintillator radius " << scinti_inner_radius / cm
+         << " cm" << endl;
+    gSystem->Exit(1);
+  }
+  if (params->get_double_param("magnet_cutout_radius")*cm < inner_radius)
+  {
+    cout << PHWHERE << "Magnet steel cutout radius " << params->get_double_param("magnet_cutout_radius")
+         << " cm smaller than inner radius " << inner_radius / cm
+         << " cm" << endl;
+    gSystem->Exit(1);
+  }
+ 
   return 0;
 }
 
