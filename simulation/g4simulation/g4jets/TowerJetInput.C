@@ -46,6 +46,10 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
 
   GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode,"GlobalVertexMap");
   if (!vertexmap) {
+
+    cout <<"TowerJetInput::get_input - Fatal Error - vertexmap is missing. Turn back on do_global flag in the main macro in order to reconstruct the global vertex."<<endl;
+    assert(vertexmap); // force quit
+
     return std::vector<Jet*>();
   }
 
