@@ -1,10 +1,15 @@
 #include "HepMCNodeReader.h"
 #include "PHG4InEvent.h"
 #include "PHG4Particlev1.h"
+#include "PHG4Particlev2.h"
+
+#include <Geant4/G4ParticleTable.hh>
+#include <Geant4/G4ParticleDefinition.hh>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenEventMap.h>
 
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
@@ -63,22 +68,20 @@ HepMCNodeReader::~HepMCNodeReader()
   gsl_rng_free(RandomGenerator);
 }
 
-int
-HepMCNodeReader::Init(PHCompositeNode *topNode)
+int HepMCNodeReader::Init(PHCompositeNode *topNode)
 {
 
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
-  if (!ineve)
-    {
-      PHNodeIterator iter(topNode);
-      PHCompositeNode *dstNode;
-      dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-
-      ineve = new PHG4InEvent();
-      PHDataNode<PHObject> *newNode =
-	new PHDataNode<PHObject>(ineve, "PHG4INEVENT", "PHObject");
-      dstNode->addNode(newNode);
-    }
+  if (!ineve) {
+    PHNodeIterator iter(topNode);
+    PHCompositeNode *dstNode;
+    dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+    
+    ineve = new PHG4InEvent();
+    PHDataNode<PHObject> *newNode =
+      new PHDataNode<PHObject>(ineve, "PHG4INEVENT", "PHObject");
+    dstNode->addNode(newNode);
+  }
   unsigned int phseed = PHRandomSeed();  // fixed seed is handled in this funtcion, need to call it to preserve random numbder order even if we override it
   if (use_seed)
     {
@@ -90,6 +93,14 @@ HepMCNodeReader::Init(PHCompositeNode *topNode)
 }
 
 int HepMCNodeReader::process_event(PHCompositeNode *topNode) {
+
+  // For pile-up simulation: define GenEventMap
+  PHHepMCGenEventMap *genevtmap=findNode::getClass<PHHepMCGenEventMap>(topNode,"PHHepMCGenEventMap");  
+  PHG4InEvent        *ineve    =findNode::getClass<PHG4InEvent>(topNode,"PHG4INEVENT");
+  if(!ineve){
+    cout << PHWHERE << "no PHG4INEVENT node" << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   recoConsts *rc = recoConsts::instance();
 
@@ -110,116 +121,128 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode) {
     exit(1);
   }
   
-  double xshift = vertex_pos_x;
-  double yshift = vertex_pos_y;
-  double zshift = vertex_pos_z;
-
-  if (width_vx > 0.0) xshift += smeargauss(width_vx);
-  else                xshift += smearflat(width_vx);
-
-  if (width_vy > 0.0) yshift += smeargauss(width_vy);
-  else                yshift += smearflat(width_vy);
-
-  if (width_vz > 0.0) zshift += smeargauss(width_vz);
-  else                zshift += smearflat(width_vz);
-
-  PHHepMCGenEvent *genevt =
-    findNode::getClass<PHHepMCGenEvent>(topNode, "PHHepMCGenEvent");
-
-  HepMC::GenEvent *evt = genevt->getEvent();
-  if (!evt) {
-    cout << PHWHERE << " no evt pointer under HEPMC Node found" << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  
-  PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
-  if (!ineve) {
-    cout << PHWHERE << "no PHG4INEVENT node" << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  
-  std::list<HepMC::GenParticle *> finalstateparticles;
-  std::list<HepMC::GenParticle *>::const_iterator fiter;
-
-  // units in G4 interface are GeV and CM
-  const double mom_factor = HepMC::Units::conversion_factor(evt->momentum_unit(),(HepMC::Units::MomentumUnit)(genevt->get_momentumunit()));  
-  const double length_factor = HepMC::Units::conversion_factor(evt->length_unit(), (HepMC::Units::LengthUnit)(genevt->get_lengthunit()));
-  
-  for (HepMC::GenEvent::vertex_iterator v = evt->vertices_begin();
-       v != evt->vertices_end();
-       ++v) {
-
-    finalstateparticles.clear();
-    for (HepMC::GenVertex::particle_iterator p =
-             (*v)->particles_begin(HepMC::children);
-         p != (*v)->particles_end(HepMC::children); ++p) {
-      if (isfinal(*p)) {
-        finalstateparticles.push_back(*p);
-      }
+  // For pile-up simulation: loop over PHHepMC event map
+  int vtxindex=-1;
+  for(PHHepMCGenEventMap::Iter iter=genevtmap->begin();iter!=genevtmap->end();++iter){    
+    PHHepMCGenEvent *genevt=iter->second;  
+    HepMC::GenEvent *evt   =genevt->getEvent();
+    if(!evt){
+      cout << PHWHERE << " no evt pointer under HEPMC Node found" << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
     }
+
+    double xshift = vertex_pos_x;
+    double yshift = vertex_pos_y;
+    double zshift = vertex_pos_z;
+
+    if (width_vx > 0.0) xshift += smeargauss(width_vx);
+    else                xshift += smearflat(width_vx);
     
-    if (!finalstateparticles.empty()) {
-      double xpos = (*v)->position().x() * length_factor + xshift;
-      double ypos = (*v)->position().y() * length_factor + yshift;
-      double zpos = (*v)->position().z() * length_factor + zshift;
-      double time = (*v)->position().t() * mm_over_c_to_nanosecond + vertex_t0;
+    if (width_vy > 0.0) yshift += smeargauss(width_vy);
+    else                yshift += smearflat(width_vy);
+    
+    if (width_vz > 0.0) zshift += smeargauss(width_vz);
+    else                zshift += smearflat(width_vz);
+  
+    std::list<HepMC::GenParticle *> finalstateparticles;
+    std::list<HepMC::GenParticle *>::const_iterator fiter;
 
-      if (verbosity > 1) {
-        cout << "Vertex : " << endl;
-        (*v)->print();
-        cout << "id: " << (*v)->barcode() << endl;
-        cout << "x: " << xpos << endl;
-        cout << "y: " << ypos << endl;
-        cout << "z: " << zpos << endl;
-        cout << "t: " << time << endl;
-        cout << "Particles" << endl;
+    // units in G4 interface are GeV and CM
+    const double mom_factor = HepMC::Units::conversion_factor(evt->momentum_unit(),(HepMC::Units::MomentumUnit)(genevt->get_momentumunit()));  
+    const double length_factor = HepMC::Units::conversion_factor(evt->length_unit(), (HepMC::Units::LengthUnit)(genevt->get_lengthunit()));
+  
+    for (HepMC::GenEvent::vertex_iterator v = evt->vertices_begin();
+	 v != evt->vertices_end();
+	 ++v) {
+      
+      finalstateparticles.clear();
+      for (HepMC::GenVertex::particle_iterator p =
+             (*v)->particles_begin(HepMC::children);
+	   p != (*v)->particles_end(HepMC::children); ++p) {
+	if (isfinal(*p)) {
+	  finalstateparticles.push_back(*p);
+	}
       }
+      
+      if (!finalstateparticles.empty()) {
+	double xpos = (*v)->position().x() * length_factor + xshift;
+	double ypos = (*v)->position().y() * length_factor + yshift;
+	double zpos = (*v)->position().z() * length_factor + zshift;
+	double time = (*v)->position().t() * mm_over_c_to_nanosecond + vertex_t0;
+	
+	if (verbosity > 1) {
+	  cout << "Vertex : " << endl;
+	  (*v)->print();
+	  cout << "id: " << (*v)->barcode() << endl;
+	  cout << "x: " << xpos << endl;
+	  cout << "y: " << ypos << endl;
+	  cout << "z: " << zpos << endl;
+	  cout << "t: " << time << endl;
+	  cout << "Particles" << endl;
+	}
+	
+	if (ishape == ShapeG4Tubs) {
+	  if (sqrt(xpos * xpos + ypos * ypos) > worldsizey / 2 ||
+	      fabs(zpos) > worldsizez / 2) {
+	    cout << "vertex x/y/z" << xpos << "/" << ypos << "/" << zpos
+		 << " outside world volume radius/z (+-) " << worldsizex / 2
+		 << "/" << worldsizez / 2 << ", dropping it and its particles"
+		 << endl;
+	    continue;
+	  }
+	} else if (ishape == ShapeG4Box) {
+	  if (fabs(xpos) > worldsizex / 2 || fabs(ypos) > worldsizey / 2 ||
+	      fabs(zpos) > worldsizez / 2) {
+	    cout << "Vertex x/y/z " << xpos << "/" << ypos << "/" << zpos
+		 << " outside world volume x/y/z (+-) " << worldsizex / 2 << "/"
+		 << worldsizey / 2 << "/" << worldsizez / 2
+		 << ", dropping it and its particles" << endl;
+	    continue;
+	  }
+	} else {
+	  cout << PHWHERE << " shape " << ishape << " not implemented. exiting"
+	       << endl;
+	  exit(1);
+	}
+	
+	// For pile-up simulation: vertex position
+	vtxindex=ineve->AddVtx(xpos,ypos,zpos,time);
+	int trackid=-1;
+	for (fiter = finalstateparticles.begin();
+	     fiter != finalstateparticles.end();
+	     ++fiter) {
+	  ++trackid;
+	  
+	  if (verbosity > 1) (*fiter)->print();
 
-      if (ishape == ShapeG4Tubs) {
-        if (sqrt(xpos * xpos + ypos * ypos) > worldsizey / 2 ||
-            fabs(zpos) > worldsizez / 2) {
-          cout << "vertex x/y/z" << xpos << "/" << ypos << "/" << zpos
-               << " outside world volume radius/z (+-) " << worldsizex / 2
-               << "/" << worldsizez / 2 << ", dropping it and its particles"
-               << endl;
-          continue;
-        }
-      } else if (ishape == ShapeG4Box) {
-        if (fabs(xpos) > worldsizex / 2 || fabs(ypos) > worldsizey / 2 ||
-            fabs(zpos) > worldsizez / 2) {
-          cout << "Vertex x/y/z " << xpos << "/" << ypos << "/" << zpos
-               << " outside world volume x/y/z (+-) " << worldsizex / 2 << "/"
-               << worldsizey / 2 << "/" << worldsizez / 2
-               << ", dropping it and its particles" << endl;
-          continue;
-        }
-      } else {
-        cout << PHWHERE << " shape " << ishape << " not implemented. exiting"
-             << endl;
-        exit(1);
-      }
+	  // For pile-up simulation: get particle info
+	  double px     =(*fiter)->momentum().px()*mom_factor;
+          double py     =(*fiter)->momentum().py()*mom_factor;
+          double pz     =(*fiter)->momentum().pz()*mom_factor;
+	  double m      =get_mass((*fiter)->pdg_id());
+          string pdgname=get_pdgname((*fiter)->pdg_id());
+          double e      =sqrt(px*px+py*py+pz*pz+m*m);
 
-      ineve->AddVtxHepMC((*v)->barcode(), xpos, ypos, zpos, time);
+	  // For pile-up simulation: set particle info
+	  PHG4Particle *particle=new PHG4Particlev2();
+          particle->set_track_id(trackid);
+          particle->set_vtx_id(vtxindex);
+          particle->set_parent_id(0);
+          particle->set_name(pdgname);
+          particle->set_pid((*fiter)->pdg_id());
+          particle->set_px(px);
+          particle->set_py(py);
+          particle->set_pz(pz);
+          particle->set_e(e);
+          
+          ineve->AddParticle(vtxindex, particle);
 
-      for (fiter = finalstateparticles.begin();
-           fiter != finalstateparticles.end();
-	   ++fiter) {
-
-        if (verbosity > 1) (*fiter)->print();
-        
-        PHG4Particle *particle = new PHG4Particlev1();
-        particle->set_pid((*fiter)->pdg_id());
-        particle->set_px((*fiter)->momentum().px() * mom_factor);
-        particle->set_py((*fiter)->momentum().py() * mom_factor);
-        particle->set_pz((*fiter)->momentum().pz() * mom_factor);
-	particle->set_barcode((*fiter)->barcode()); 
-        ineve->AddParticle((*v)->barcode(), particle);
-
-        if (_embed_flag != 0) ineve->AddEmbeddedParticle(particle, _embed_flag);
+	  if (_embed_flag != 0) ineve->AddEmbeddedParticle(particle, _embed_flag);
+	}
       }
     }
-  }
-  
+  } // For pile-up simulation: loop end for PHHepMC event map
+
   if (verbosity > 0) ineve->identify();
   
   return Fun4AllReturnCodes::EVENT_OK;
@@ -249,4 +272,34 @@ void HepMCNodeReader::SmearVertex(const double s_x, const double s_y,
   width_vy = s_y;
   width_vz = s_z;
   return;
+}
+
+// For pile-up simulation: additional functions
+int HepMCNodeReader::get_pdgcode(const std::string &name) const {
+  G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
+  G4String particleName = name;
+  G4ParticleDefinition *particledef = particleTable->FindParticle(particleName);
+  if (particledef) {
+    return particledef->GetPDGEncoding();
+  }
+  return 0;
+}
+
+string HepMCNodeReader::get_pdgname(const int pdgcode) const {
+  G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
+  G4ParticleDefinition *particledef = particleTable->FindParticle(pdgcode);
+  if (particledef) {
+    return particledef->GetParticleName();
+  }
+  return 0;
+}
+
+double HepMCNodeReader::get_mass(const int pdgcode) const {
+  G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
+  G4ParticleDefinition *particledef =
+    particleTable->FindParticle(get_pdgname(pdgcode));
+  if (particledef) {
+    return particledef->GetPDGMass();
+  }
+  return 0;
 }

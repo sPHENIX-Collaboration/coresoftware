@@ -44,6 +44,11 @@ private:
   double width_vy;
   double width_vz;
 
+  // For pile-up simulation: define addtional functions
+  int get_pdgcode(const std::string &name) const;
+  std::string get_pdgname(const int pdgcode) const;
+  double get_mass(const int pdgcode) const;
+
 #ifndef __CINT__
   gsl_rng *RandomGenerator;
 #endif
