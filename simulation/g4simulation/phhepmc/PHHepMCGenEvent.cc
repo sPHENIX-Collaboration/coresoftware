@@ -19,22 +19,59 @@ ClassImp(PHHepMCGenEvent)
 
 using namespace std;
 
-PHHepMCGenEvent::PHHepMCGenEvent(const int theMomentum,const int theDistance):
-  _theEvt(NULL),
-  _isVtxShiftApplied(false),
-  _theMomentumUnit(theMomentum),
-  _theDistanceUnit(theDistance)
-{}
+PHHepMCGenEvent::PHHepMCGenEvent(const int theMomentum,
+				 const int theDistance)
+    : _id(0xFFFFFFFF),
+      _isVtxShiftApplied(false),
+      _theMomentumUnit(theMomentum),
+      _theDistanceUnit(theDistance),
+      _theEvt(NULL) {}
 
-
-PHHepMCGenEvent::~PHHepMCGenEvent()
-{
-  if(_theEvt) delete _theEvt;
+PHHepMCGenEvent::PHHepMCGenEvent(const PHHepMCGenEvent& event)
+  : _id(event.get_id()),
+    _isVtxShiftApplied(event.is_shift_applied()),
+    _theMomentumUnit(event.get_momentumunit()),
+    _theDistanceUnit(event.get_lengthunit()),
+    _theEvt(NULL) {
+  _theEvt = new HepMC::GenEvent(*event.getEvent());
+  return;
 }
 
+PHHepMCGenEvent& PHHepMCGenEvent::operator=(const PHHepMCGenEvent& event) {
 
-HepMC::GenEvent* PHHepMCGenEvent::getEvent()
-{
+  Reset();
+  
+  _id = event.get_id();
+  _isVtxShiftApplied = event.is_shift_applied();
+  _theMomentumUnit = event.get_momentumunit();
+  _theDistanceUnit = event.get_lengthunit();
+
+  const HepMC::GenEvent *hepmc = event.getEvent();
+  _theEvt = new HepMC::GenEvent(*(hepmc));
+  
+  return *this;
+}
+
+PHHepMCGenEvent::~PHHepMCGenEvent() {
+  Reset();
+}
+
+void PHHepMCGenEvent::Reset() {
+  _id = 0xFFFFFFFF;
+  _isVtxShiftApplied = false;
+  _theMomentumUnit = HepMC::Units::GEV;
+  _theDistanceUnit = HepMC::Units::CM;
+  if (_theEvt) {
+    delete _theEvt;
+    _theEvt = NULL;
+  }
+}
+
+HepMC::GenEvent* PHHepMCGenEvent::getEvent() {
+  return _theEvt;
+}
+
+const HepMC::GenEvent* PHHepMCGenEvent::getEvent() const {
   return _theEvt;
 }
 
@@ -102,11 +139,6 @@ int PHHepMCGenEvent::size(void) const
 int PHHepMCGenEvent::vertexSize(void) const
 { 
   return _theEvt->vertices_size();
-}
-
-void PHHepMCGenEvent::Reset()
-{
-  _isVtxShiftApplied = false;
 }
 
 //_____________________________________________________________________________

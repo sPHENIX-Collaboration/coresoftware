@@ -22,7 +22,6 @@
 #include <HepMC/TempParticleMap.h>
 #include <HepMC/WeightContainer.h>
 
-
 using namespace HepMC;
 using namespace std;
 
@@ -76,5 +75,9 @@ typedef long size_type;
 #pragma link C++ class PHGenEventv1+;
 #pragma link C++ class PHGenEventList+;
 #pragma link C++ class PHGenEventListv1+;
+
+#pragma link C++ class std::pair<unsigned int,PHHepMCGenEvent*>+;
+#pragma link C++ class std::map<unsigned int,PHHepMCGenEvent*>+;
+#pragma link C++ class PHHepMCGenEventMap+;
 
 #endif
