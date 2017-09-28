@@ -42,7 +42,9 @@ typedef CGAL::Segment_2<PHG4OuterHcalDetector::Circular_k> Segment_2;
 
 using namespace std;
 
+// just for debugging if you want a single layer of scintillators at the center of the world
 //#define SCINTITEST
+
 // face touches the boundary instead of the corner, subtracting 1 permille from the total
 // scintilator length takes care of this
 static double subtract_from_scinti_x = 0.1 * mm;
@@ -336,10 +338,14 @@ PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume *hcalenvelope)
                                                     zero, 1.0,
                                                     zero, 1.0);
 
-  G4RotationMatrix *rotm = new G4RotationMatrix();
-  rotm->rotateX(-90 * deg);
   volume_steel = steel_plate_uncut->GetCubicVolume() * n_scinti_plates;
   // now cut out space for magnet at the ends
+  if (! steel_cutout_for_magnet)
+  {
+    return steel_plate_uncut;
+  }
+  G4RotationMatrix *rotm = new G4RotationMatrix();
+  rotm->rotateX(-90 * deg);
   G4VSolid *steel_firstcut_solid = new G4SubtractionSolid("SteelPlateFirstCut", steel_plate_uncut, steel_cutout_for_magnet, rotm, G4ThreeVector(0, 0, 0));
   //   DisplayVolume(steel_plate_uncut, hcalenvelope);
   //    DisplayVolume(steel_cutout_for_magnet, hcalenvelope);
@@ -493,8 +499,7 @@ int PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume *hcalenvelope)
     phi = -atan(yo / xo);
   }
   // else (for tilt_angle = 0) phi stays zero
-//  for (int i = 0; i < n_scinti_plates; i++)
-  for (int i = 0; i < 1; i++)
+  for (int i = 0; i < n_scinti_plates; i++)
   {
     G4RotationMatrix *Rot = new G4RotationMatrix();
     double ypos = sin(phi) * middlerad;
@@ -519,13 +524,9 @@ int PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume *hcalenvelope)
     steel_absorber_vec.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str().c_str(), hcalenvelope, 0, i, overlapcheck));
     phi += deltaphi;
   }
-  hcalenvelope->SetFieldManager(
-      field_setup->get_Field_Manager_Gap(),
-      false);
+  hcalenvelope->SetFieldManager(field_setup->get_Field_Manager_Gap(),false);
 
-  steel_logical->SetFieldManager(
-      field_setup->get_Field_Manager_Iron(),
-      true);
+  steel_logical->SetFieldManager(field_setup->get_Field_Manager_Iron(),true);
   return 0;
 }
 
@@ -599,28 +600,16 @@ void PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
   // here, this is why the indices are seemingly mixed up
   double xsteelcut[4];
   double zsteelcut[4];
-double xsteelcut_1[4];
-double zsteelcut_1[4];
   fill_n(zsteelcut, 4, NAN);
-  fill_n(zsteelcut_1, 4, NAN);
-  xsteelcut_1[0] = x_inner + magnet_cutout_x;
-  xsteelcut_1[1] = xsteelcut_1[0];
-  xsteelcut_1[2] = scinti_inner_radius - offset;
-  xsteelcut_1[3] = xsteelcut_1[2];
   double steel_overhang =  (scinti_tile_x_upper + scinti_tile_x_lower - subtract_from_scinti_x - (outer_radius - inner_radius)) / 2.;
   double steel_offset = 1 * cm + steel_overhang;  // add 1cm to make sure the G4ExtrudedSolid
   double steel_x_inner = inner_radius - steel_overhang;
   double steel_magnet_cutout_x = (params->get_double_param("magnet_cutout_radius") * cm - inner_radius) / cos(tilt_angle / rad);
-  cout << "magnet_cutout_x: " << magnet_cutout_x << ", steel_magnet_cutout_x: " << steel_magnet_cutout_x << endl;
   double steel_inner_offset = steel_offset;
   xsteelcut[0] = steel_x_inner + steel_magnet_cutout_x;
   xsteelcut[1] = xsteelcut[0];
   xsteelcut[2] = inner_radius - steel_offset;
   xsteelcut[3] = xsteelcut[2];
-  for (int i=0; i<4; i++)
-  {
-    cout << "xs[" << i << "]: " << xsteelcut[i] << ", xs_1: " << xsteelcut_1[i] << endl;
-  }
   double scinti_gap_neighbor = params->get_double_param("scinti_gap_neighbor") * cm;
   for (int i = 0; i < n_scinti_tiles; i++)
   {
@@ -670,28 +659,14 @@ double zsteelcut_1[4];
     {
       double x0 = inner_radius - (steel_inner_offset - steel_magnet_cutout_x);
       double z0 = x_at_y(leftsidelow, leftsidehigh, x0);
-      double xpos_1 = inner_radius - steel_offset;
+      double xpos = inner_radius - steel_offset;
       zsteelcut[0] = z0;
-      zsteelcut[3] = x_at_y(leftsidelow, leftsidehigh, xpos_1);
-      zsteelcut_1[0] = z[0];
-      // we have to use the inner reference, not the already
-      // adjusted one for the scintillator from above
-      double xpos = scinti_inner_radius - offset;
-      zsteelcut_1[3] = x_at_y(leftsidelow, leftsidehigh, xpos);
-      // cout << "inner_radius: " << inner_radius << ", scinti_inner_radius: " << scinti_inner_radius << endl;
-      // cout << "steel_inner_offset diff: " << steel_inner_offset - steel_magnet_cutout_x << ", inner_offset: " << inner_offset << endl;
-      // cout << "steel_inner_offset: " << steel_inner_offset << ", steel_magnet_cutout_x: " << steel_magnet_cutout_x << endl;
-      // cout << "x[0]: " << x[0] << ", x0: " << x0 << endl;
-      // cout << "xpos: " << xpos << ", xpos_1: " << xpos_1 << endl;
-      // cout << "zsteelcut[0]: " << zsteelcut[0] << ", zsteelcut_1[0]: " << zsteelcut_1[0] << endl;
-      // cout << "zsteelcut[3]: " << zsteelcut[3] << ", zsteelcut_1[3]: " << zsteelcut_1[3] << endl;
+      zsteelcut[3] = x_at_y(leftsidelow, leftsidehigh, xpos);
     }
     double x2 = outer_radius + steel_offset;
-double z2 =  x_at_y(rightsidelow, rightsidehigh, x2);
-zsteelcut[1] = z2 + 1 * cm;
-zsteelcut[2] = z2 + 1 * cm;
-    zsteelcut_1[1] = z[2] + 1 * cm;
-    zsteelcut_1[2] = z[2] + 1 * cm;
+    double z2 =  x_at_y(rightsidelow, rightsidehigh, x2);
+    zsteelcut[1] = z2 + 1 * cm;
+    zsteelcut[2] = z2 + 1 * cm;
     vector<G4TwoVector> vertexes;
     for (int j = 0; j < 4; j++)
     {
@@ -727,14 +702,14 @@ zsteelcut[2] = z2 + 1 * cm;
    	 }
      }
 #endif
-  for (int i=0; i<4; i++)
-  {
-    cout << "zs[" << i << "]: " << zsteelcut[i] << ", zs_1: " << zsteelcut_1[i] << endl;
-  }
 
   vector<G4TwoVector> vertexes;
   for (int j = 0; j < 4; j++)
   {
+    if (! isfinite(zsteelcut[j]))
+      {
+	return;
+      }
     G4TwoVector v(xsteelcut[j], zsteelcut[j]);
     vertexes.push_back(v);
   }
