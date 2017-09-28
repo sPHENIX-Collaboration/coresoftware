@@ -340,7 +340,7 @@ PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume *hcalenvelope)
 
   volume_steel = steel_plate_uncut->GetCubicVolume() * n_scinti_plates;
   // now cut out space for magnet at the ends
-  if (! steel_cutout_for_magnet)
+  if (!steel_cutout_for_magnet)
   {
     return steel_plate_uncut;
   }
@@ -524,9 +524,9 @@ int PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume *hcalenvelope)
     steel_absorber_vec.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str().c_str(), hcalenvelope, 0, i, overlapcheck));
     phi += deltaphi;
   }
-  hcalenvelope->SetFieldManager(field_setup->get_Field_Manager_Gap(),false);
+  hcalenvelope->SetFieldManager(field_setup->get_Field_Manager_Gap(), false);
 
-  steel_logical->SetFieldManager(field_setup->get_Field_Manager_Iron(),true);
+  steel_logical->SetFieldManager(field_setup->get_Field_Manager_Iron(), true);
   return 0;
 }
 
@@ -569,7 +569,7 @@ int PHG4OuterHcalDetector::DisplayVolume(G4VSolid *volume, G4LogicalVolume *logv
   G4PVPlacement *placement = new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, checksolid->GetName(), logvol, 0, false);
   if (overlapcheck)
   {
-    placement->CheckOverlaps(1000,0.,true,1);
+    placement->CheckOverlaps(1000, 0., true, 1);
   }
   return 0;
 }
@@ -601,7 +601,7 @@ void PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
   double xsteelcut[4];
   double zsteelcut[4];
   fill_n(zsteelcut, 4, NAN);
-  double steel_overhang =  (scinti_tile_x_upper + scinti_tile_x_lower - subtract_from_scinti_x - (outer_radius - inner_radius)) / 2.;
+  double steel_overhang = (scinti_tile_x_upper + scinti_tile_x_lower - subtract_from_scinti_x - (outer_radius - inner_radius)) / 2.;
   double steel_offset = 1 * cm + steel_overhang;  // add 1cm to make sure the G4ExtrudedSolid
   double steel_x_inner = inner_radius - steel_overhang;
   double steel_magnet_cutout_x = (params->get_double_param("magnet_cutout_radius") * cm - inner_radius) / cos(tilt_angle / rad);
@@ -664,7 +664,7 @@ void PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
       zsteelcut[3] = x_at_y(leftsidelow, leftsidehigh, xpos);
     }
     double x2 = outer_radius + steel_offset;
-    double z2 =  x_at_y(rightsidelow, rightsidehigh, x2);
+    double z2 = x_at_y(rightsidelow, rightsidehigh, x2);
     zsteelcut[1] = z2 + 1 * cm;
     zsteelcut[2] = z2 + 1 * cm;
     vector<G4TwoVector> vertexes;
@@ -694,22 +694,22 @@ void PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
     scinti_tiles_vec[n_scinti_tiles - i - 1] = scinti_tile;
   }
 #ifdef SCINTITEST
-   for (unsigned int i=0; i<scinti_tiles_vec.size(); i++)
-     {
-       if (scinti_tiles_vec[i])
-   	 {
-   	   DisplayVolume(scinti_tiles_vec[i],hcalenvelope );
-   	 }
-     }
+  for (unsigned int i = 0; i < scinti_tiles_vec.size(); i++)
+  {
+    if (scinti_tiles_vec[i])
+    {
+      DisplayVolume(scinti_tiles_vec[i], hcalenvelope);
+    }
+  }
 #endif
 
   vector<G4TwoVector> vertexes;
   for (int j = 0; j < 4; j++)
   {
-    if (! isfinite(zsteelcut[j]))
-      {
-	return;
-      }
+    if (!isfinite(zsteelcut[j]))
+    {
+      return;
+    }
     G4TwoVector v(xsteelcut[j], zsteelcut[j]);
     vertexes.push_back(v);
   }
@@ -762,7 +762,7 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalen
   G4ThreeVector g4vec;
   double steplimits = params->get_double_param("steplimits") * cm;
   G4Colour colors[6] = {G4Colour::Red(), G4Colour::Magenta(), G4Colour::Yellow(),
-			G4Colour::Blue(), G4Colour::Cyan(), G4Colour::Green()};
+                        G4Colour::Blue(), G4Colour::Cyan(), G4Colour::Green()};
   int j = 0;
   for (unsigned int i = 0; i < scinti_tiles_vec.size(); i++)
   {
@@ -777,10 +777,10 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalen
     G4VisAttributes *visattchk = new G4VisAttributes();
     visattchk->SetVisibility(true);
     visattchk->SetForceSolid(false);
-//    visattchk->SetColour(G4Colour::Green());
+    //    visattchk->SetColour(G4Colour::Green());
     visattchk->SetColour(colors[j]);
     j++;
-    if (j>=6)
+    if (j >= 6)
     {
       j = 0;
     }
@@ -833,21 +833,21 @@ int PHG4OuterHcalDetector::ConsistencyCheck() const
          << " cm" << endl;
     gSystem->Exit(1);
   }
-  if (params->get_double_param("magnet_cutout_scinti_radius")*cm < scinti_inner_radius)
+  if (params->get_double_param("magnet_cutout_scinti_radius") * cm < scinti_inner_radius)
   {
     cout << PHWHERE << "Magnet scintillator cutout radius " << params->get_double_param("magnet_cutout_scinti_radius")
          << " cm smaller than inner scintillator radius " << scinti_inner_radius / cm
          << " cm" << endl;
     gSystem->Exit(1);
   }
-  if (params->get_double_param("magnet_cutout_radius")*cm < inner_radius)
+  if (params->get_double_param("magnet_cutout_radius") * cm < inner_radius)
   {
     cout << PHWHERE << "Magnet steel cutout radius " << params->get_double_param("magnet_cutout_radius")
          << " cm smaller than inner radius " << inner_radius / cm
          << " cm" << endl;
     gSystem->Exit(1);
   }
- 
+
   return 0;
 }
 
