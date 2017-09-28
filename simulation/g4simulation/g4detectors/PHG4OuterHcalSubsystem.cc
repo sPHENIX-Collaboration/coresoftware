@@ -167,9 +167,9 @@ PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_double_param("scinti_eta_coverage", 1.1);
   set_default_double_param("scinti_gap", 0.85);
   set_default_double_param("scinti_gap_neighbor", 0.1);
-  set_default_double_param("scinti_tile_thickness", 0.7);
   set_default_double_param("scinti_inner_radius",183.89);
   set_default_double_param("scinti_outer_radius",263.27);
+  set_default_double_param("scinti_tile_thickness", 0.7);
   set_default_double_param("size_z", 304.91 * 2);
   set_default_double_param("steplimits", NAN);
   set_default_double_param("tilt_angle", NAN); // default is 5 crossings
