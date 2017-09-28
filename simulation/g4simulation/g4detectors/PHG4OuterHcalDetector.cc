@@ -599,11 +599,27 @@ void PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
   // here, this is why the indices are seemingly mixed up
   double xsteelcut[4];
   double zsteelcut[4];
+double xsteelcut_1[4];
+double zsteelcut_1[4];
   fill_n(zsteelcut, 4, NAN);
-  xsteelcut[0] = x_inner + magnet_cutout_x;
+  fill_n(zsteelcut_1, 4, NAN);
+  xsteelcut_1[0] = x_inner + magnet_cutout_x;
+  xsteelcut_1[1] = xsteelcut_1[0];
+  xsteelcut_1[2] = scinti_inner_radius - offset;
+  xsteelcut_1[3] = xsteelcut_1[2];
+  double steel_overhang =  (scinti_tile_x_upper + scinti_tile_x_lower - subtract_from_scinti_x - (outer_radius - inner_radius)) / 2.;
+  double steel_offset = 1 * cm + steel_overhang;  // add 1cm to make sure the G4ExtrudedSolid
+  double steel_x_inner = inner_radius - overhang;
+  double steel_magnet_cutout_x = (params->get_double_param("magnet_cutout_radius") * cm - inner_radius) / cos(tilt_angle / rad);
+ 
+  xsteelcut[0] = steel_x_inner + steel_magnet_cutout_x;
   xsteelcut[1] = xsteelcut[0];
-  xsteelcut[2] = scinti_inner_radius - offset;
+  xsteelcut[2] = inner_radius - steel_offset;
   xsteelcut[3] = xsteelcut[2];
+  for (int i=0; i<4; i++)
+  {
+    cout << "xs[" << i << "]: " << xsteelcut[i] << ", xs_1: " << xsteelcut_1[i] << endl;
+  }
   double scinti_gap_neighbor = params->get_double_param("scinti_gap_neighbor") * cm;
   for (int i = 0; i < n_scinti_tiles; i++)
   {

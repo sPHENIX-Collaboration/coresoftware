@@ -155,7 +155,7 @@ PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_double_param("light_balance_inner_radius", NAN);
   set_default_double_param("light_balance_outer_corr", NAN);
   set_default_double_param("light_balance_outer_radius", NAN);
-//  set_default_double_param("magnet_cutout_radius", 195.31);
+  set_default_double_param("magnet_cutout_radius", 195.31);
   set_default_double_param("magnet_cutout_scinti_radius", 195.96);
   set_default_double_param("outer_radius", 264.71);
   set_default_double_param("place_x", 0.);
