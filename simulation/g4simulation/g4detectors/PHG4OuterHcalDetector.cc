@@ -761,9 +761,6 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalen
   ostringstream name;
   G4ThreeVector g4vec;
   double steplimits = params->get_double_param("steplimits") * cm;
-  G4Colour colors[6] = {G4Colour::Red(), G4Colour::Magenta(), G4Colour::Yellow(),
-                        G4Colour::Blue(), G4Colour::Cyan(), G4Colour::Green()};
-  int j = 0;
   for (unsigned int i = 0; i < scinti_tiles_vec.size(); i++)
   {
     name.str("");
@@ -776,21 +773,13 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalen
     G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i], G4Material::GetMaterial("G4_POLYSTYRENE"), name.str().c_str(), nullptr, nullptr, g4userlimits);
     G4VisAttributes *visattchk = new G4VisAttributes();
     visattchk->SetVisibility(true);
-    visattchk->SetForceSolid(false);
-    //    visattchk->SetColour(G4Colour::Green());
-    visattchk->SetColour(colors[j]);
-    j++;
-    if (j >= 6)
-    {
-      j = 0;
-    }
+    visattchk->SetForceSolid(true);
+    visattchk->SetColour(G4Colour::Green());
     scinti_tile_logic->SetVisAttributes(visattchk);
     assmeblyvol->AddPlacedVolume(scinti_tile_logic, g4vec, nullptr);
 
     //field after burner
-    scinti_tile_logic->SetFieldManager(
-        field_setup->get_Field_Manager_Gap(),
-        true);
+    scinti_tile_logic->SetFieldManager(field_setup->get_Field_Manager_Gap(), true);
   }
   return assmeblyvol;
 }
