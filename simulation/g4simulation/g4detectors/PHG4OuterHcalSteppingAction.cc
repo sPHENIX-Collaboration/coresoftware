@@ -251,7 +251,6 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         hit = new PHG4Hitv1();
       }
-      hit->set_scint_id(tower_id);  // the slat id (or steel plate id)
       //here we set the entrance values in cm
       hit->set_x(0, prePoint->GetPosition().x() / cm);
       hit->set_y(0, prePoint->GetPosition().y() / cm);
@@ -265,6 +264,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       hit->set_edep(0);
       if (whichactive > 0)  // return of IsInOuterHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
+        hit->set_scint_id(tower_id);  // the slat id
         hit->set_eion(0);
         hit->set_light_yield(0);  //  for scintillator only, initialize light yields
         // Now save the container we want to add this hit to
