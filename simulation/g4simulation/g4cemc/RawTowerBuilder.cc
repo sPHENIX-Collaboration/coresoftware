@@ -232,6 +232,14 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
       throw std::runtime_error("Failed to find Run node in RawTowerBuilder::CreateNodes");
     }
 
+  PHNodeIterator runIter(runNode);
+  PHCompositeNode *RunDetNode =  dynamic_cast<PHCompositeNode*>(runIter.findFirst("PHCompositeNode",detector));
+  if (! RunDetNode)
+    {
+      RunDetNode = new PHCompositeNode(detector);
+      runNode->addNode(RunDetNode);
+    }
+
   const RawTowerDefs::CalorimeterId caloid = RawTowerDefs::convert_name_to_caloid(detector);
 
   // get the cell geometry and build up the tower geometry object
@@ -251,7 +259,7 @@ RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
     {
       rawtowergeom = new RawTowerGeomContainer_Cylinderv1(caloid);
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(rawtowergeom, TowerGeomNodeName.c_str(), "PHObject");
-      runNode->addNode(newNode);
+      RunDetNode->addNode(newNode);
     }
   // fill the number of layers in the calorimeter
   _nlayers = cellgeos->get_NLayers();

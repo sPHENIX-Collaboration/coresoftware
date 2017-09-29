@@ -310,6 +310,8 @@ libg4detectors_la_SOURCES = \
 ################################################
 # linking tests
 
+BUILT_SOURCES = testexternals.cc
+
 noinst_PROGRAMS = \
   testexternals_g4detectors \
   testexternals_g4detectors_io

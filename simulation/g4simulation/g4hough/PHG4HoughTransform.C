@@ -242,6 +242,9 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrack* track,
     }
   }
 
+  // check if any state was found
+  if (closest == nullptr) return;
+
   // if we just got back the previous case, bail
   if (closest->get_pathlength() == 0.0) return;
 
