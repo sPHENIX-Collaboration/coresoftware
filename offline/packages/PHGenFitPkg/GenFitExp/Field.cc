@@ -139,8 +139,8 @@ void Field::get(const double& x, const double& y, const double& z, double& Bx, d
 {
   assert(field_);
 
-  const double Point[4] = {x, y, z, 0};
-  double Bfield[6] = {std::numeric_limits<double>::signaling_NaN(),
+  const double Point[] = {x*CLHEP::cm, y*CLHEP::cm, z*CLHEP::cm, 0};
+  double Bfield[] = {std::numeric_limits<double>::signaling_NaN(),
                       std::numeric_limits<double>::signaling_NaN(),
                       std::numeric_limits<double>::signaling_NaN(),
                       std::numeric_limits<double>::signaling_NaN(),

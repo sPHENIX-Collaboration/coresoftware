@@ -457,7 +457,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       savehitcontainer->AddHit(sphxlayer, hit);
       if (saveshower)
       {
-        saveshower->add_g4hit_id(hits_->GetID(), hit->get_hit_id());
+        saveshower->add_g4hit_id(savehitcontainer->GetID(), hit->get_hit_id());
       }
       if (verbosity > 1)
         hit->print();

@@ -474,6 +474,17 @@ QAG4SimulationJet::process_Spectrum(PHCompositeNode *topNode,
           JetRecoEval* recoeval = eval_stack->get_reco_eval();
           assert(recoeval);
 
+          if (Verbosity()>=VERBOSITY_A_LOT)
+          {
+            cout << __PRETTY_FUNCTION__ << "Leading Jet " << jet_name << ": ";
+            //            leading_jet->identify();
+            cout << "CEMC_TOWER sum = " << recoeval->get_energy_contribution(leading_jet, Jet::CEMC_TOWER) << endl;
+            cout << "CEMC_CLUSTER sum = " << recoeval->get_energy_contribution(leading_jet, Jet::CEMC_CLUSTER) << endl;
+            cout << "HCALIN_TOWER sum = " << recoeval->get_energy_contribution(leading_jet, Jet::HCALIN_TOWER) << endl;
+            cout << "HCALIN_CLUSTER sum = " << recoeval->get_energy_contribution(leading_jet, Jet::HCALIN_CLUSTER) << endl;
+            cout << "leading_jet->get_e() = " << leading_jet->get_e() << endl;
+          }
+
           lcemcr->Fill( //
               (recoeval->get_energy_contribution(leading_jet, Jet::CEMC_TOWER) //
               +//
@@ -506,9 +517,17 @@ QAG4SimulationJet::process_Spectrum(PHCompositeNode *topNode,
           set<PHG4Shower*> showers = _jettrutheval->all_truth_showers(
               leading_jet);
 
+
           for (set<PHG4Shower*>::const_iterator it = showers.begin();
               it != showers.end(); ++it)
             {
+
+              if (Verbosity()>=VERBOSITY_A_LOT)
+              {
+                cout << __PRETTY_FUNCTION__ << "Leading Truth Jet shower : ";
+                (*it)->identify();
+              }
+
               cemc_e += (*it)->get_edep(
                   PHG4HitDefs::get_volume_id("G4HIT_CEMC"));
               cemc_e += (*it)->get_edep(
@@ -526,7 +545,44 @@ QAG4SimulationJet::process_Spectrum(PHCompositeNode *topNode,
                   PHG4HitDefs::get_volume_id("G4HIT_BH_FORWARD_PLUS"));
               bh_e += (*it)->get_edep(
                   PHG4HitDefs::get_volume_id("G4HIT_BH_FORWARD_NEG"));
+
+              if (Verbosity() >= VERBOSITY_A_LOT)
+              {
+                //            leading_jet->identify();
+                cout << "Shower cemc_e sum = "
+                     << (*it)->get_edep(PHG4HitDefs::get_volume_id("G4HIT_CEMC"))
+                     << " + "
+                     << (*it)->get_edep(
+                            PHG4HitDefs::get_volume_id("G4HIT_CEMC_ELECTRONICS"))
+                     << " + "
+                     << (*it)->get_edep(
+                            PHG4HitDefs::get_volume_id("G4HIT_ABSORBER_CEMC"))
+                     << endl;
+                cout << "Shower hcalin_e sum = "
+                     << (*it)->get_edep(
+                            PHG4HitDefs::get_volume_id("G4HIT_HCALIN"))
+                     << " + "
+                     << (*it)->get_edep(
+                            PHG4HitDefs::get_volume_id("G4HIT_ABSORBER_HCALIN"))
+                     << endl;
+                cout << "Shower bh_e sum = "
+                     << (*it)->get_edep(PHG4HitDefs::get_volume_id("G4HIT_BH_1"))
+                     << " + "
+                     << (*it)->get_edep(
+                            PHG4HitDefs::get_volume_id("G4HIT_BH_FORWARD_PLUS"))
+                     << " + "
+                     << (*it)->get_edep(
+                            PHG4HitDefs::get_volume_id("G4HIT_BH_FORWARD_NEG"))
+                     << endl;
+              }
             }
+
+          if (Verbosity() >= VERBOSITY_A_LOT)
+          {
+            cout << "cemc_e sum = " << cemc_e << endl;
+            cout << "hcalin_e sum = " <<hcalin_e<< endl;
+            cout << "leading_jet->get_e() = " << leading_jet->get_e() << endl;
+          }
 
           lcemcr->Fill(cemc_e / leading_jet->get_e());
           lemchcalr->Fill((cemc_e + hcalin_e) / leading_jet->get_e());
