@@ -172,11 +172,15 @@ PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_double_param("scinti_tile_thickness", 0.7);
   set_default_double_param("size_z", 304.91 * 2);
   set_default_double_param("steplimits", NAN);
-  set_default_double_param("tilt_angle", NAN); // default is 5 crossings
+  set_default_double_param("tilt_angle", -11.23); // engineering drawing
+// corresponds very closely to 4 crossinge (-11.7826 deg)
 
   set_default_int_param("light_scint_model", 1);
   set_default_int_param("magnet_cutout_first_scinti", 8); // tile start at 0, drawing tile starts at 1
-  set_default_int_param("ncross", -5);
+
+// if ncross is set (and tilt_angle is NAN) tilt_angle is calculated 
+// from number of crossings
+  set_default_int_param("ncross", 0);
   set_default_int_param("n_towers", 64);
   set_default_int_param(PHG4HcalDefs::scipertwr, 5);
   set_default_int_param("n_scinti_tiles", 12);
