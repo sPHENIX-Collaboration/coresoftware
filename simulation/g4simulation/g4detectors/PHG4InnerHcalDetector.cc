@@ -747,6 +747,8 @@ void PHG4InnerHcalDetector::SetTiltViaNcross()
   int ncross = params->get_int_param("ncross");
   if (!ncross || isfinite(tilt_angle))
   {
+    // flag ncrossing as not used
+    params->set_int_param("ncross",0);
     return;
   }
   if ((isfinite(tilt_angle)) && (verbosity > 0))
