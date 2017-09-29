@@ -47,7 +47,7 @@ private:
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
 
-  int light_scint_model;
+//  int light_scint_model;
 };
 
 
