@@ -24,6 +24,10 @@ class PHG4Cell: public PHObject
   typedef std::pair<ShowerEdepIterator, ShowerEdepIterator> ShowerEdepRange;
   typedef std::pair<ShowerEdepConstIterator, ShowerEdepConstIterator> ShowerEdepConstRange;
 
+  typedef std::pair<unsigned short,std::map<int,int>> tpccompress;
+  typedef std::map<unsigned short,tpccompress> tpctod;
+
+
   virtual ~PHG4Cell() {}
 
   virtual void identify(std::ostream& os = std::cout) const;
@@ -90,6 +94,8 @@ class PHG4Cell: public PHObject
 
   virtual void set_stave_index(const int i) {return;}
   virtual int get_stave_index() const {return ~0x0;}
+
+  virtual tpctod* get_train_of_digits() {return 0;}
 
   virtual void set_zbin(const int i) {return;}
   virtual int get_zbin() const {return ~0x0;}
