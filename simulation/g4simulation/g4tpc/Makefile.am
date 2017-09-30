@@ -1,7 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-    libTPCbase.la \
     libg4tpc.la
 
 AM_CPPFLAGS = \
@@ -14,78 +13,35 @@ AM_LDFLAGS = \
     -L$(libdir) \
     -L$(OFFLINE_MAIN)/lib
 
-libTPCbase_la_LIBADD = \
-  -lphool 
-
 libg4tpc_la_LIBADD = \
   -lphool \
   -lg4testbench \
   -lphg4hit \
-  -lg4detectors \
-  libTPCbase.la
+  -lg4detectors
 
-pkginclude_HEADERS = \
-  TPCDataTypes.h \
-  TPCConstants.h \
-  TPCPadMap.h \
-  TPCHit.h \
-  TPCDigit.h \
-  TPCHitsContainer.h \
-  TPCDigitsContainer.h \
-  TPCElectronPDF.h \
-  TPCDetector.h \
-  TPCSteppingAction.h \
-  TPCEventAction.h \
-  TPCDetectorSubsystem.h \
-  TPCSimulation.h \
-  TPCSimulationSubsystem.h 
-
-libTPCbase_la_SOURCES = \
-  TPCPadMap.cxx \
-  TPCHit.cxx \
-  TPCDigit.cxx \
-  TPCHitsContainer.cxx \
-  TPCDigitsContainer.cxx \
-  TPCbase_Dict.cc
+#pkginclude_HEADERS =
 
 libg4tpc_la_SOURCES = \
   PHG4TPCDetector.cc \
   PHG4TPCSteppingAction.cc \
   PHG4TPCSubsystem.cc \
-  PHG4TPCSubsystem_Dict.cc \
-  TPCElectronPDF.cxx \
-  TPCDetector.cxx \
-  TPCSteppingAction.cxx \
-  TPCEventAction.cxx \
-  TPCDetectorSubsystem.cxx \
-  TPCSimulation.cxx \
-  TPCSimulationSubsystem.cxx \
-  TPCsimu_Dict.cc
+  PHG4TPCSubsystem_Dict.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
-TPCbase_Dict.cc: TPCPadMap.h TPCHit.h TPCDigit.h TPCHitsContainer.h TPCDigitsContainer.h TPCbaseLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-TPCsimu_Dict.cc: TPCDetectorSubsystem.h TPCSimulationSubsystem.h TPCsimuLinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals_TPCbase \
-  testexternals_TPCsimu
+  testexternals
 
 BUILT_SOURCES = testexternals.cc
 
-testexternals_TPCbase_SOURCES = testexternals.cc
-testexternals_TPCbase_LDADD = libTPCbase.la
-
-testexternals_TPCsimu_SOURCES = testexternals.cc
-testexternals_TPCsimu_LDADD = libg4tpc.la
+testexternals_SOURCES = testexternals.cc
+testexternals_LDADD = libg4tpc.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
