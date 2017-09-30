@@ -128,6 +128,7 @@ libg4testbench_la_LIBADD = \
 pkginclude_HEADERS = \
   HepMCNodeReader.h \
   PHBBox.h \
+  PHG4ColorDefs.h \
   PHG4Detector.h \
   PHG4EventAction.h \
   PHG4EventHeader.h \

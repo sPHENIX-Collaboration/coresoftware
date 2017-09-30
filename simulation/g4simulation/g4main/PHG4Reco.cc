@@ -773,6 +773,17 @@ void PHG4Reco::DefineMaterials()
   G4Material *FR4 = new G4Material("FR4", density, ncomponents = 2);
   FR4->AddMaterial(quartz, fractionmass = 0.528);
   FR4->AddMaterial(Epoxy, fractionmass = 0.472);
+// NOMEX (HoneyComb)
+// density from http://www.fibreglast.com/product/Nomex_Honeycomb_1562/Vacuum_Bagging_Sandwich_Core
+// 1562: 29 kg/m^3 <-- I guess it is this one
+// 2562: 48 kg/m^3
+// chemical composition http://ww2.unime.it/cdlchimind/adm/inviofile/uploads/HP_Pols2.b.pdf
+  density = 29*kg/m3;
+  G4Material *NOMEX = new G4Material("NOMEX", density, ncomponents = 4);
+  NOMEX->AddElement(G4Element::GetElement("C"), natoms = 14);
+  NOMEX->AddElement(G4Element::GetElement("H"), natoms = 10);
+  NOMEX->AddElement(G4Element::GetElement("N"), natoms = 2);
+  NOMEX->AddElement(G4Element::GetElement("O"), natoms = 2);
   // spacal material. Source : EICROOT/A. Kiselev
   /*
   WEpoxyMix          3  12.011 1.008 183.85  6.  1.  74.  12.18  0.029 0.002 0.969
