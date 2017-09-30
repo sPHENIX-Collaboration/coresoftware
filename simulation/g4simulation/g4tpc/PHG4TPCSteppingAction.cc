@@ -92,7 +92,7 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   int layer_id = 0;
   if (whichactive < 0)  // support structures
   {
-    layer_id = fabs(whichactive); // we want a positive layer id
+    layer_id = fabs(whichactive);  // we want a positive layer id
   }
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -123,25 +123,25 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   //       cout << "track id " << aTrack->GetTrackID() << endl;
   //       cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
   //       cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
-  if ((use_g4_steps > 0 && whichactive>0) || 
-      prepointstatus == fGeomBoundary || 
+  if ((use_g4_steps > 0 && whichactive > 0) ||
+      prepointstatus == fGeomBoundary ||
       prepointstatus == fUndefined ||
       (prepointstatus == fPostStepDoItProc && savepoststepstatus == fGeomBoundary))
   {
-// this is for debugging weird occurances we have occasionally
+    // this is for debugging weird occurances we have occasionally
     if (prepointstatus == fPostStepDoItProc && savepoststepstatus == fGeomBoundary)
     {
       cout << GetName() << ": New Hit for  " << endl;
       cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-	   << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-	   << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
-	   << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << endl;
+           << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+           << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
+           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << endl;
       cout << "last track: " << savetrackid
-	   << ", current trackid: " << aTrack->GetTrackID() << endl;
+           << ", current trackid: " << aTrack->GetTrackID() << endl;
       cout << "phys pre vol: " << volume->GetName()
-	   << " post vol : " << touchpost->GetVolume()->GetName() << endl;
+           << " post vol : " << touchpost->GetVolume()->GetName() << endl;
       cout << " previous phys pre vol: " << savevolpre->GetName()
-	   << " previous phys post vol: " << savevolpost->GetName() << endl;
+           << " previous phys post vol: " << savevolpost->GetName() << endl;
     }
     // if previous hit was saved, hit pointer was set to nullptr
     // and we have to make a new one
@@ -163,7 +163,7 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     hit->set_edep(0);
     if (whichactive > 0)  // return of IsInTPCDetector, > 0 hit in tpc gas volume, < 0 hit in support structures
     {
-      hit->set_eion(0);  
+      hit->set_eion(0);
       // Now save the container we want to add this hit to
       savehitcontainer = hits_;
     }
@@ -175,9 +175,9 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
       {
-	hit->set_trkid(pp->GetUserTrackId());
-	hit->set_shower_id(pp->GetShower()->get_id());
-	saveshower = pp->GetShower();
+        hit->set_trkid(pp->GetUserTrackId());
+        hit->set_shower_id(pp->GetShower()->get_id());
+        saveshower = pp->GetShower();
       }
     }
     // some sanity checks for inconsistencies
@@ -186,15 +186,15 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       cout << GetName() << ": hit was not created" << endl;
       cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-	   << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-	   << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
-	   << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << endl;
+           << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+           << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
+           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << endl;
       cout << "last track: " << savetrackid
-	   << ", current trackid: " << aTrack->GetTrackID() << endl;
+           << ", current trackid: " << aTrack->GetTrackID() << endl;
       cout << "phys pre vol: " << volume->GetName()
-	   << " post vol : " << touchpost->GetVolume()->GetName() << endl;
+           << " post vol : " << touchpost->GetVolume()->GetName() << endl;
       cout << " previous phys pre vol: " << savevolpre->GetName()
-	   << " previous phys post vol: " << savevolpost->GetName() << endl;
+           << " previous phys post vol: " << savevolpost->GetName() << endl;
       exit(1);
     }
     // check if track id matches the initial one when the hit was created
@@ -202,10 +202,10 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       cout << GetName() << ": hits do not belong to the same track" << endl;
       cout << "saved track: " << savetrackid
-	   << ", current trackid: " << aTrack->GetTrackID()
-	   << ", prestep status: " << prePoint->GetStepStatus()
-	   << ", previous post step status: " << savepoststepstatus
-	   << endl;
+           << ", current trackid: " << aTrack->GetTrackID()
+           << ", prestep status: " << prePoint->GetStepStatus()
+           << ", previous post step status: " << savepoststepstatus
+           << endl;
 
       exit(1);
     }
@@ -233,17 +233,17 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
       if (whichactive > 0)
       {
-	hit->set_eion(-1);
-      } 
-   }
+        hit->set_eion(-1);
+      }
+    }
     if (edep > 0)
     {
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
-	if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
-	{
-	  pp->SetKeep(1);  // we want to keep the track
-	}
+        if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
+        {
+          pp->SetKeep(1);  // we want to keep the track
+        }
       }
     }
 
@@ -256,29 +256,29 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     // aTrack->GetTrackStatus() == fStopAndKill is also set)
     // aTrack->GetTrackStatus() == fStopAndKill: track ends
     if ((use_g4_steps > 0 && whichactive > 0) ||
-	postPoint->GetStepStatus() == fGeomBoundary ||
-	postPoint->GetStepStatus() == fWorldBoundary ||
-	postPoint->GetStepStatus() == fAtRestDoItProc ||
-	aTrack->GetTrackStatus() == fStopAndKill)
+        postPoint->GetStepStatus() == fGeomBoundary ||
+        postPoint->GetStepStatus() == fWorldBoundary ||
+        postPoint->GetStepStatus() == fAtRestDoItProc ||
+        aTrack->GetTrackStatus() == fStopAndKill)
     {
       // save only hits with energy deposit (or -1 for geantino)
       if (hit->get_edep())
       {
-	savehitcontainer->AddHit(layer_id, hit);
-	if (saveshower)
-	{
-	  saveshower->add_g4hit_id(savehitcontainer->GetID(), hit->get_hit_id());
-	}
-	// ownership has been transferred to container, set to null
-	// so we will create a new hit for the next track
-	hit = nullptr;
+        savehitcontainer->AddHit(layer_id, hit);
+        if (saveshower)
+        {
+          saveshower->add_g4hit_id(savehitcontainer->GetID(), hit->get_hit_id());
+        }
+        // ownership has been transferred to container, set to null
+        // so we will create a new hit for the next track
+        hit = nullptr;
       }
       else
       {
-	// if this hit has no energy deposit, just reset it for reuse
-	// this means we have to delete it in the dtor. If this was
-	// the last hit we processed the memory is still allocated
-	hit->Reset();
+        // if this hit has no energy deposit, just reset it for reuse
+        // this means we have to delete it in the dtor. If this was
+        // the last hit we processed the memory is still allocated
+        hit->Reset();
       }
     }
     // return true to indicate the hit was used

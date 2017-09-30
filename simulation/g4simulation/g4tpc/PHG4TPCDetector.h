@@ -33,9 +33,8 @@ class PHG4TPCDetector : public PHG4Detector
   int IsInTPC(G4VPhysicalVolume *) const;
   void SuperDetector(const std::string &name) { superdetector = name; }
   const std::string SuperDetector() const { return superdetector; }
-
  private:
-  int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix *rotm );
+  int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm);
   int ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope);
   int ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope);
   PHG4Parameters *params;
