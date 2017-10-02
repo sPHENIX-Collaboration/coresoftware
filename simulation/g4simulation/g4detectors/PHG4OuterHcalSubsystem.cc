@@ -168,7 +168,10 @@ PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_double_param("scinti_gap", 0.85);
   set_default_double_param("scinti_gap_neighbor", 0.1);
   set_default_double_param("scinti_inner_radius",183.89);
-  set_default_double_param("scinti_outer_radius",263.27);
+// some math issue in the code subtracts 0.1mm+ so the scintillator
+// does not end at 263.27 as per drawing but at 263.26
+// adding 0.125mm compensates for this (so 263.2825 gives the desired 263.27
+  set_default_double_param("scinti_outer_radius",263.2825);
   set_default_double_param("scinti_tile_thickness", 0.7);
   set_default_double_param("size_z", 304.91 * 2);
   set_default_double_param("steplimits", NAN);
