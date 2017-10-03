@@ -55,7 +55,7 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   
   unsigned int seed;
 #ifndef __CINT__
-  gsl_rng *RandomGenerator;
+//  gsl_rng *RandomGenerator;
 #endif
 };
 
