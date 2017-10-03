@@ -58,15 +58,16 @@ Fun4AllHepMCPileupInputManager::Fun4AllHepMCPileupInputManager(
     _min_crossing(0),            // recalculated
     _max_crossing(0) {           // recalculated
 
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
-  seed = PHRandomSeed(); // fixed seed is handled in this funtcion
-  gsl_rng_set(RandomGenerator,seed);
+  // use Fun4AllHepMCInputManager::RandomGenerator instead - Jin
+//  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+//  seed = PHRandomSeed(); // fixed seed is handled in this funtcion
+//  gsl_rng_set(RandomGenerator,seed);
   
   return;
 }
 
 Fun4AllHepMCPileupInputManager::~Fun4AllHepMCPileupInputManager() {
-  gsl_rng_free (RandomGenerator);
+//  gsl_rng_free (RandomGenerator);
 }
 
 int Fun4AllHepMCPileupInputManager::run(const int nevents) {
