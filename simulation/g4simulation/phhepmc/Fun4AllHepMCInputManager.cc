@@ -56,7 +56,16 @@ Fun4AllHepMCInputManager::Fun4AllHepMCInputManager(const string &name, const str
   evt(NULL),
   save_evt(NULL),
   filestream(NULL),
-  unzipstream(NULL)
+  unzipstream(NULL),
+  _vertex_func_x(Gaus),
+  _vertex_func_y(Gaus),
+  _vertex_func_z(Gaus),
+  _vertex_x(0),
+  _vertex_y(0),
+  _vertex_z(0),
+  _vertex_width_x(0),
+  _vertex_width_y(0),
+  _vertex_width_z(0)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
   topNode = se->topNode(topNodeName.c_str());
