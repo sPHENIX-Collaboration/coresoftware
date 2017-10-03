@@ -39,6 +39,8 @@ PHHepMCGenEvent::PHHepMCGenEvent(const PHHepMCGenEvent& event)
 
 PHHepMCGenEvent& PHHepMCGenEvent::operator=(const PHHepMCGenEvent& event) {
 
+  if (&event == this) return *this;
+
   Reset();
   
   _id = event.get_id();
