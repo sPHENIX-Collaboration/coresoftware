@@ -11,6 +11,7 @@
 #include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4MaterialCutsCouple.hh>
 
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
@@ -37,9 +38,20 @@ PHG4CrystalCalorimeterSteppingAction::PHG4CrystalCalorimeterSteppingAction( PHG4
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),
-  hit(NULL)
+  hit(NULL),
+  savehitcontainer(NULL),
+  saveshower(NULL)
 {
 
+}
+
+PHG4CrystalCalorimeterSteppingAction::~PHG4CrystalCalorimeterSteppingAction()
+{
+  // if the last hit was a zero energie deposit hit, it is just reset
+  // and the memory is still allocated, so we need to delete it here
+  // if the last hit was saved, hit is a NULL pointer which are
+  // legal to delete (it results in a no operation)
+  delete hit;
 }
 
 
@@ -78,11 +90,6 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 
       tower_id = touch->GetCopyNumber();
     }
-  else if (whichactive < 0)
-    {
-      //no tower ID for absorber
-      tower_id = touch->GetCopyNumber();
-    }
   else
     {
       tower_id = touch->GetCopyNumber();
@@ -91,6 +98,7 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
   /* Get energy deposited by this step */
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
+  G4double light_yield = 0;
 
   /* Get pointer to associated Geant4 track */
   const G4Track* aTrack = aStep->GetTrack();
@@ -122,19 +130,18 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 	{
 	case fGeomBoundary:
 	case fUndefined:
-	  hit = new PHG4Hitv1();
-//	  hit->set_layer(0);
+	  if (! hit)
+	    {
+	      hit = new PHG4Hitv1();
+	    }
 	  hit->set_scint_id(tower_id);
 
-	  /* Set hit location (tower index) only for crystals*/
-	  if (whichactive > 0)
-	    {
-	      hit->set_index_j(idx_j);
-	      hit->set_index_k(idx_k);
-	      hit->set_index_l(idx_l);
-	    }
+	  /* Set hit location (tower index) */
+	  hit->set_index_j(idx_j);
+	  hit->set_index_k(idx_k);
+	  hit->set_index_l(idx_l);
 
-	  /* Set hit location (space point) only for crystals*/
+	  /* Set hit location (space point)*/
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm);
 	  hit->set_y( 0, prePoint->GetPosition().y() / cm );
 	  hit->set_z( 0, prePoint->GetPosition().z() / cm );
@@ -142,58 +149,48 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 	  /* Set hit time */
 	  hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
 
-	  /* set the track ID */
-	  {
-            hit->set_trkid(aTrack->GetTrackID());
-            if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	      {
-		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		  {
-		    hit->set_trkid(pp->GetUserTrackId());
-		    hit->set_shower_id(pp->GetShower()->get_id());
-		  }
-	      }
-	  }
+	  /* Set the track ID */
+	  hit->set_trkid(aTrack->GetTrackID());
 
-	  /* set intial energy deposit */
+	  /* Set intial energy deposit */
 	  hit->set_edep( 0 );
 	  hit->set_eion( 0 );
 
 	  /* Now add the hit to the hit collection */
-	  if (whichactive == 1) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
+	  // here we do things which are different between scintillator and absorber hits
+	  if (whichactive > 0)
 	    {
-	      // Now add the hit
-	      hits_->AddHit(layer_id, hit);
-
-	      {
-		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		  {
-		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		      {
-			pp->GetShower()->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
-		      }
-		  }
-	      }
-	      
+              savehitcontainer = hits_;
+	      hit->set_light_yield( 0 ); // for scintillator only, initialize light yields
 	    }
 	  else
 	    {
-	      absorberhits_->AddHit(layer_id, hit);
+	      savehitcontainer = absorberhits_;
+	    }
 
-	      {
-		if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-		  {
-		    if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		      {
-			pp->GetShower()->add_g4hit_id(absorberhits_->GetID(),hit->get_hit_id());
-		      }
-		  }
-	      }
-	      
+	  // here we set what is common for scintillator and absorber hits
+	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	    {
+	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		{
+		  hit->set_trkid(pp->GetUserTrackId());
+		  hit->set_shower_id(pp->GetShower()->get_id());
+		  saveshower = pp->GetShower();
+		}
 	    }
 	  break;
 	default:
 	  break;
+	}
+
+      if (whichactive > 0)
+	{
+	  /* Use 'light yield = depoisted energy (ionization)' for this calorimeter.
+	   * At this point, the calorimeters using orgqanic scintillators apply Birk's law correction via
+	   * light_yield = GetVisibleEnergyDeposition(aStep);
+	   * to account for its effect.
+	   */
+	  light_yield = eion;
 	}
 
       /* Update exit values- will be overwritten with every step until
@@ -207,11 +204,19 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
       /* sum up the energy to get total deposited */
       hit->set_edep(hit->get_edep() + edep);
       hit->set_eion(hit->get_eion() + eion);
+      if (whichactive > 0)
+	{
+	  hit->set_light_yield(hit->get_light_yield() + light_yield);
+	}
 
       if (geantino)
 	{
 	  hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
           hit->set_eion(-1);
+	  if (whichactive > 0)
+	    {
+	      hit->set_light_yield(-1);
+	    }
 	}
       if (edep > 0)
 	{
@@ -223,7 +228,34 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
 		}
 	    }
 	}
-
+      // if any of these conditions is true this is the last step in
+      // this volume and we need to save the hit
+      // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
+      // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
+      // (not sure if this will ever be the case)
+      // aTrack->GetTrackStatus() == fStopAndKill: track ends
+      if (postPoint->GetStepStatus() == fGeomBoundary || postPoint->GetStepStatus() == fWorldBoundary|| aTrack->GetTrackStatus() == fStopAndKill)
+	{
+          // save only hits with energy deposit (or -1 for geantino)
+	  if (hit->get_edep())
+	    {
+	      savehitcontainer->AddHit(layer_id, hit);
+	      if (saveshower)
+		{
+		  saveshower->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		}
+	      // ownership has been transferred to container, set to null
+	      // so we will create a new hit for the next track
+	      hit = NULL;
+	    }
+	  else
+	    {
+	      // if this hit has no energy deposit, just reset it for reuse
+	      // this means we have to delete it in the dtor. If this was
+	      // the last hit we processed the memory is still allocated
+	      hit->Reset();
+	    }
+	}
       return true;
 
     }
