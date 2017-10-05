@@ -433,7 +433,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     assert(divider_mat);
 
     G4VisAttributes* divider_VisAtt = new G4VisAttributes();
-    divider_VisAtt->SetColor(.7, .7, .7, .3);
+    divider_VisAtt->SetColor(.7, 1, .7, .1);
     divider_VisAtt->SetVisibility(get_geom_v3()->is_azimuthal_seg_visible());
     divider_VisAtt->SetForceSolid(true);
 
@@ -448,7 +448,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
       G4LogicalVolume* wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
                                                         G4String(G4String(GetName() + G4String("_Divider_") + to_string(ID))), 0, 0,
                                                         nullptr);
-      wall_logic->SetVisAttributes(wall_VisAtt);
+      wall_logic->SetVisAttributes(divider_VisAtt);
 
       for (int sign_z = -1; sign_z <= 1; sign_z += 2)
       {
