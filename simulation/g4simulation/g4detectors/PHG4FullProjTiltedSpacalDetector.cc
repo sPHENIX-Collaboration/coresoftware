@@ -202,17 +202,21 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
                                                                numeric_limits<double>::signaling_NaN(),
                                                                numeric_limits<double>::signaling_NaN(),
                                                                numeric_limits<double>::signaling_NaN()});
-  for (int s = 0; s < phi_bin_in_sec - 1; ++s)
+
+  if (get_geom_v3()->get_sidewall_thickness() > 0)
   {
-    block_divider_azimuth_geom& geom = divider_azimuth_geoms[s];
+    for (int s = 0; s < phi_bin_in_sec - 1; ++s)
+    {
+      block_divider_azimuth_geom& geom = divider_azimuth_geoms[s];
 
-    geom.angle = 0.5 * (block_azimuth_geoms[s].angle + block_azimuth_geoms[s + 1].angle);
-    geom.projection_center_y = 0.5 * (block_azimuth_geoms[s].projection_center_y + block_azimuth_geoms[s + 1].projection_center_y);
-    geom.projection_center_x = 0.5 * (block_azimuth_geoms[s].projection_center_x + block_azimuth_geoms[s + 1].projection_center_x);
-    geom.radial_displacement = 0.5 * (block_azimuth_geoms[s].projection_length + block_azimuth_geoms[s + 1].projection_length);
+      geom.angle = 0.5 * (block_azimuth_geoms[s].angle + block_azimuth_geoms[s + 1].angle);
+      geom.projection_center_y = 0.5 * (block_azimuth_geoms[s].projection_center_y + block_azimuth_geoms[s + 1].projection_center_y);
+      geom.projection_center_x = 0.5 * (block_azimuth_geoms[s].projection_center_x + block_azimuth_geoms[s + 1].projection_center_x);
+      geom.radial_displacement = 0.5 * (block_azimuth_geoms[s].projection_length + block_azimuth_geoms[s + 1].projection_length);
 
-    geom.thickness = 2.0 * get_geom_v3()->get_assembly_spacing() * cm * cos(block_azimuth_angle / 2.) - 2 * um;
-    geom.width = get_geom_v3()->get_divider_width() * cm;
+      geom.thickness = 2.0 * get_geom_v3()->get_assembly_spacing() * cm * cos(block_azimuth_angle / 2.) - 2 * um;
+      geom.width = get_geom_v3()->get_divider_width() * cm;
+    }
   }
 
   if (fabs(block_x_edge1 - (-block_edge2_half_width)) > get_geom_v3()->get_assembly_spacing() * cm)
@@ -427,6 +431,11 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
 
     G4Material* divider_mat = G4Material::GetMaterial(get_geom_v3()->get_divider_mat());
     assert(divider_mat);
+
+    G4VisAttributes* divider_VisAtt = new G4VisAttributes();
+    divider_VisAtt->SetColor(.7, .7, .7, .3);
+    divider_VisAtt->SetVisibility(get_geom_v3()->is_azimuthal_seg_visible());
+    divider_VisAtt->SetForceSolid(true);
 
     int ID = 0;
     for (const auto& geom : divider_azimuth_geoms)
