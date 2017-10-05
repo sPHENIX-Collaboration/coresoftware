@@ -155,8 +155,15 @@ PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_double_param("light_balance_inner_radius", NAN);
   set_default_double_param("light_balance_outer_corr", NAN);
   set_default_double_param("light_balance_outer_radius", NAN);
-  set_default_double_param("magnet_cutout_radius", 195.31);
-  set_default_double_param("magnet_cutout_scinti_radius", 195.96);
+// some math issue in the code does not subtract the magnet cutout correctly
+// (maybe some factor of 2 in a G4 volume creation)
+// The engineering drawing values are:
+//  set_default_double_param("magnet_cutout_radius", 195.31);
+//  set_default_double_param("magnet_cutout_scinti_radius", 195.96);
+// seting this to these values results in the correct edges
+// (verified by looking at the G4 hit coordinates of the inner edges)
+  set_default_double_param("magnet_cutout_radius", 195.72);
+  set_default_double_param("magnet_cutout_scinti_radius",  197.04);
   set_default_double_param("outer_radius", 264.71);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
