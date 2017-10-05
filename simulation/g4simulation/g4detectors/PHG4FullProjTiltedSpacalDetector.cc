@@ -433,7 +433,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     assert(divider_mat);
 
     G4VisAttributes* divider_VisAtt = new G4VisAttributes();
-    divider_VisAtt->SetColor(.7, 1, .7, .1);
+    divider_VisAtt->SetColor(.8, 1, .8, .3);
     divider_VisAtt->SetVisibility(get_geom_v3()->is_azimuthal_seg_visible());
     divider_VisAtt->SetForceSolid(true);
 
