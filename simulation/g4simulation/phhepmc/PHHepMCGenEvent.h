@@ -86,7 +86,6 @@ class PHHepMCGenEvent : public PHObject
 
   HepMC::GenEvent* _theEvt;
 
- private:
   ClassDef(PHHepMCGenEvent, 4)
 };
 
