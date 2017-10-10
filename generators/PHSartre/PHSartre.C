@@ -2,6 +2,7 @@
 #include "PHSartreGenTrigger.h"
 
 #include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenEventMap.h>
 #include "CLHEP/Vector/LorentzVector.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -453,6 +454,9 @@ int PHSartre::process_event(PHCompositeNode *topNode) {
     _phhepmcevt->moveVertex(mvVtxX,mvVtxY,mvVtxZ,0.0);
   }
 
+  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode,"PHHepMCGenEventMap");
+  geneventmap->insert(_phhepmcevt);
+
   // print outs
   
   if (verbosity > 2) cout << "PHSartre::process_event - FINISHED WHOLE EVENT" << endl;
@@ -475,6 +479,13 @@ int PHSartre::create_node_tree(PHCompositeNode *topNode) {
   _phhepmcevt = new PHHepMCGenEvent();
   PHObjectNode_t *newNode = new PHObjectNode_t(_phhepmcevt,_node_name.c_str(),"PHObject");
   dstNode->addNode(newNode);
+
+  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode,"PHHepMCGenEventMap");
+  if (!geneventmap) {
+    geneventmap = new PHHepMCGenEventMap();
+    PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(geneventmap,"PHHepMCGenEventMap","PHObject");
+    dstNode->addNode(newmapnode);
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
