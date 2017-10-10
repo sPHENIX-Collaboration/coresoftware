@@ -236,7 +236,6 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode) {
 //          particle->set_pz(pz);
 //          particle->set_e(e);
 //
-//          ineve->AddParticle(vtxindex, particle);
 
     PHG4Particle *particle = new PHG4Particlev1();
     particle->set_pid((*fiter)->pdg_id());
@@ -244,7 +243,8 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode) {
     particle->set_py((*fiter)->momentum().py() * mom_factor);
     particle->set_pz((*fiter)->momentum().pz() * mom_factor);
     particle->set_barcode((*fiter)->barcode());
-    ineve->AddParticle((*v)->barcode(), particle);
+
+    ineve->AddParticle(vtxindex, particle);
 
 	  if (_embed_flag != 0) ineve->AddEmbeddedParticle(particle, _embed_flag);
 	}
