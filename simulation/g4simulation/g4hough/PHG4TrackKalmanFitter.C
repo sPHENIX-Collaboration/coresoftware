@@ -1310,7 +1310,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 
 
 	/*
-	// Rotate from u,v,n to n X Z, nX(nXZ), n using 5D state/cov
+	// Rotate from u,v,n to r: n X Z, Z': n X r, n using 5D state/cov
 	// commented on 2017-10-09
 
 	TMatrixF pos_in(3,1);
@@ -1411,6 +1411,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 		dca3d_xy_error = sqrt(cov_out[0][0]);
 		dca3d_z_error  = sqrt(cov_out[2][2]);
 
+#ifdef _DEBUG_
 		cout<<__LINE__<<": Vertex: ----------------"<<endl;
 		vertex_position.Print();
 		vertex_cov.Print();
@@ -1430,7 +1431,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 		cov_out.Print();
 
 		cout<<endl;
-
+#endif
 
 	} catch (...) {
 		if (verbosity > 0)
@@ -1752,8 +1753,8 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 //	return true;
 //}
 
-bool PHG4TrackKalmanFitter::pos_cov_uvn_to_rz(const TVector3 u, const TVector3 v,
-		const TVector3 n, const TMatrixF pos_in, const TMatrixF cov_in,
+bool PHG4TrackKalmanFitter::pos_cov_uvn_to_rz(const TVector3& u, const TVector3& v,
+		const TVector3& n, const TMatrixF& pos_in, const TMatrixF& cov_in,
 		TMatrixF& pos_out, TMatrixF& cov_out) const {
 
 	if(pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3) {
@@ -1809,8 +1810,8 @@ bool PHG4TrackKalmanFitter::pos_cov_uvn_to_rz(const TVector3 u, const TVector3 v
 	return true;
 }
 
-bool PHG4TrackKalmanFitter::get_vertex_error_uvn(const TVector3 u,
-		const TVector3 v, const TVector3 n, const TMatrixF cov_in,
+bool PHG4TrackKalmanFitter::get_vertex_error_uvn(const TVector3& u,
+		const TVector3& v, const TVector3& n, const TMatrixF& cov_in,
 		TMatrixF& cov_out) const {
 
 	/*!
@@ -1855,7 +1856,7 @@ bool PHG4TrackKalmanFitter::get_vertex_error_uvn(const TVector3 u,
 
 
 bool PHG4TrackKalmanFitter::pos_cov_XYZ_to_RZ(
-		const TVector3 n, const TMatrixF pos_in, const TMatrixF cov_in,
+		const TVector3& n, const TMatrixF& pos_in, const TMatrixF& cov_in,
 		TMatrixF& pos_out, TMatrixF& cov_out) const {
 
 	if(pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3) {

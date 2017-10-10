@@ -226,27 +226,27 @@ private:
 			const std::vector<genfit::Track*> & gf_tracks);
 
 	bool pos_cov_uvn_to_rz(
-			const TVector3 u,
-			const TVector3 v,
-			const TVector3 n,
-			const TMatrixF pos_in,
-			const TMatrixF cov_in,
+			const TVector3& u,
+			const TVector3& v,
+			const TVector3& n,
+			const TMatrixF& pos_in,
+			const TMatrixF& cov_in,
 			TMatrixF & pos_out,
 			TMatrixF & cov_out
 			) const;
 
 	bool get_vertex_error_uvn(
-			const TVector3 u,
-			const TVector3 v,
-			const TVector3 n,
-			const TMatrixF cov_in,
+			const TVector3& u,
+			const TVector3& v,
+			const TVector3& n,
+			const TMatrixF& cov_in,
 			TMatrixF & cov_out
 			) const;
 
 	bool pos_cov_XYZ_to_RZ(
-			const TVector3 n,
-			const TMatrixF pos_in,
-			const TMatrixF cov_in,
+			const TVector3& n,
+			const TMatrixF& pos_in,
+			const TMatrixF& cov_in,
 			TMatrixF & pos_out,
 			TMatrixF & cov_out
 			) const;
