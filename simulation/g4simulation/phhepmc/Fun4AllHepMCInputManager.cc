@@ -25,7 +25,6 @@
 #include <iostream>
 #include <sstream>
 
-#include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 
@@ -40,7 +39,6 @@
 
 using namespace std;
 
-static boost::iostreams::filtering_streambuf<boost::iostreams::input> zinbuffer;
 static const double toMM = 1.e-12;
 
 Fun4AllHepMCInputManager::Fun4AllHepMCInputManager(const string &name, const string &nodename, const string &topnodename) :
@@ -84,7 +82,7 @@ Fun4AllHepMCInputManager::Fun4AllHepMCInputManager(const string &name, const str
     PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(geneventmap,"PHHepMCGenEventMap","PHObject");
     dstNode->addNode(newmapnode);
   }
-  
+
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   gsl_rng_set(RandomGenerator, seed);

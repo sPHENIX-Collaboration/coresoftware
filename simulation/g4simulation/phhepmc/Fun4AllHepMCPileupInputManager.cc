@@ -62,7 +62,6 @@ Fun4AllHepMCPileupInputManager::Fun4AllHepMCPileupInputManager(
 //  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
 //  seed = PHRandomSeed(); // fixed seed is handled in this funtcion
 //  gsl_rng_set(RandomGenerator,seed);
-  
   return;
 }
 

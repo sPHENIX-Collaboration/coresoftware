@@ -4,6 +4,10 @@
 #include <fun4all/Fun4AllInputManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#ifndef __CINT__
+#include <boost/iostreams/filtering_streambuf.hpp>
+#endif
+
 #include <string>
 #include <map>
 #include <fstream>
@@ -82,6 +86,10 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   std::ifstream *filestream; // holds compressed filestream
   std::istream *unzipstream; // feed into HepMc
   std::ifstream theOscarFile;
+
+#ifndef __CINT__
+  boost::iostreams::filtering_streambuf<boost::iostreams::input> zinbuffer;
+#endif
 
   VTXFUNC _vertex_func_x;
   VTXFUNC _vertex_func_y;
