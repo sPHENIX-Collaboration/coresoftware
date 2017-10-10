@@ -7,6 +7,7 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHIODataNode.h>
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>

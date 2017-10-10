@@ -10,6 +10,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
+#include <phool/getClass.h>
 
 
 #include <Pythia8/Pythia.h>
