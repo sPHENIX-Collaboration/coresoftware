@@ -1,74 +1,93 @@
 #ifndef __PHHEPMCGENEVENT__
 #define __PHHEPMCGENEVENT__
 
-#include <phool/phool.h>
 #include <phool/PHObject.h>
+#include <phool/phool.h>
 
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenVertex.h>
 #include <HepMC/GenParticle.h>
-
+#include <HepMC/GenVertex.h>
+#include <HepMC/SimpleVector.h>
 
 namespace HepMC
 {
-  class GenEvent;
+class GenEvent;
 };
-
 
 class PHHepMCGenEvent : public PHObject
 {
  public:
-  
-  PHHepMCGenEvent(const int theMomentum = HepMC::Units::GEV,
-		  const int theDistance = HepMC::Units::CM);
+  PHHepMCGenEvent();
+
   PHHepMCGenEvent(const PHHepMCGenEvent& event);
   PHHepMCGenEvent& operator=(const PHHepMCGenEvent& event);
   virtual ~PHHepMCGenEvent();
 
-  virtual void identify(std::ostream& os=std::cout) const;
+  virtual void identify(std::ostream& os = std::cout) const;
   virtual void Reset();
-  virtual int isValid() const { PHOOL_VIRTUAL_WARNING; return 0; }
-  PHHepMCGenEvent* Clone() const {return new PHHepMCGenEvent(*this);}
-  
+  virtual int isValid() const
+  {
+    PHOOL_VIRTUAL_WARNING;
+    return 0;
+  }
+  PHHepMCGenEvent* Clone() const { return new PHHepMCGenEvent(*this); }
   virtual HepMC::GenEvent* getEvent();
   virtual const HepMC::GenEvent* getEvent() const;
 
-  unsigned int get_id() const {return _id;}
-  void set_id(unsigned int id) {_id = id;}
-  
-  bool addEvent(HepMC::GenEvent *evt);
-  bool addEvent(HepMC::GenEvent &evt);
-  bool swapEvent(HepMC::GenEvent *evt);
+  //! embedding ID for the event
+  //! positive ID is the embedded event of interest.
+  //! negative IDs are backgrounds.
+  //! Usually, ID = 0 means the primary collision
+  int get_embedding_id() const { return _embedding_id; }
+
+  //! embedding ID for the event
+  //! positive ID is the embedded event of interest.
+  //! negative IDs are backgrounds.
+  //! Usually, ID = 0 means the primary collision
+  void set_embedding_id(int id) { _embedding_id = id; }
+
+  //! whether this event has been processed in Geant4 simulation
+  bool is_simulated() const { return _isSimulated; }
+  //! whether this event has been processed in Geant4 simulation
+  void is_simulated(bool v) { _isSimulated = v; }
+
+  //! collision vertex position in the Hall coordinate system, use PHENIX units of cm, ns
+  const HepMC::FourVector& get_collision_vertex() const { return _collisionVertex; }
+  //! collision vertex position in the Hall coordinate system, use PHENIX units of cm, ns
+  void set_collision_vertex(const HepMC::FourVector& v) { _collisionVertex = v; }
+  bool addEvent(HepMC::GenEvent* evt);
+  bool addEvent(HepMC::GenEvent& evt);
+  bool swapEvent(HepMC::GenEvent* evt);
   void clearEvent();
 
   virtual void moveVertex(double x, double y, double z, double t = 0);
 
   // the number of entries in the array of particles
-  virtual int size(void) const ;
-  virtual int vertexSize(void) const ;
+  virtual int size(void) const;
+  virtual int vertexSize(void) const;
 
-  virtual void print(std::ostream& os=std::cout) const;
-
-  int get_momentumunit() const {return _theMomentumUnit;}
-  int get_lengthunit() const {return _theDistanceUnit;}
+  virtual void print(std::ostream& os = std::cout) const;
 
   void PrintEvent();
 
-  bool is_shift_applied() const {return _isVtxShiftApplied;}
+ protected:
 
-protected:
+  //! embedding ID for the event
+  //! positive ID is the embedded event of interest.
+  //! negative IDs are backgrounds.
+  //! Usually, ID = 0 means the primary collision
+  int _embedding_id;
 
-  unsigned int _id;
-  bool _isVtxShiftApplied;
-  int _theMomentumUnit;
-  int _theDistanceUnit;
-  HepMC::GenEvent *_theEvt;
-  
-private:
-  
+  //! whether this event has been processed in Geant4 simulation
+  bool _isSimulated;
 
-  ClassDef(PHHepMCGenEvent,2)
-    
+  //! collision vertex position in the Hall coordinate system, use PHENIX units of cm, ns
+  HepMC::FourVector _collisionVertex;
+
+  HepMC::GenEvent* _theEvt;
+
+ private:
+  ClassDef(PHHepMCGenEvent, 4)
 };
 
-#endif	// __PHHEPMCEVENT__
+#endif  // __PHHEPMCEVENT__

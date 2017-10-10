@@ -21,15 +21,17 @@ using namespace std;
 
 PHHepMCGenEvent::PHHepMCGenEvent(const int theMomentum,
 				 const int theDistance)
-    : _id(0xFFFFFFFF),
-      _isVtxShiftApplied(false),
+    : _embedding_id(0),
+      _isSimulated(false),
+      _collisionVertex(0,0,0,0),
       _theMomentumUnit(theMomentum),
       _theDistanceUnit(theDistance),
       _theEvt(NULL) {}
 
 PHHepMCGenEvent::PHHepMCGenEvent(const PHHepMCGenEvent& event)
-  : _id(event.get_id()),
-    _isVtxShiftApplied(event.is_shift_applied()),
+  : _embedding_id(event.get_embedding_id()),
+    _isSimulated(event.is_simulated()),
+    _collisionVertex(event.get_collision_vertex),
     _theMomentumUnit(event.get_momentumunit()),
     _theDistanceUnit(event.get_lengthunit()),
     _theEvt(NULL) {
@@ -59,8 +61,9 @@ PHHepMCGenEvent::~PHHepMCGenEvent() {
 }
 
 void PHHepMCGenEvent::Reset() {
-  _id = 0xFFFFFFFF;
-  _isVtxShiftApplied = false;
+  _embedding_id = 0;
+  _isSimulated = false;
+  _collisionVertex.set(0,0,0,0);
   _theMomentumUnit = HepMC::Units::GEV;
   _theDistanceUnit = HepMC::Units::CM;
   if (_theEvt) {

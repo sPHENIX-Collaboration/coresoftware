@@ -6,13 +6,22 @@
 #include <phool/PHObject.h>
 #include <map>
 
+//! \brief PHHepMCGenEventMap is collection of HEPMC events input into this simulation
+//! map of embedding ID -> PHHepMCGenEvent
+//! positive ID is the embedded event of interest.
+//! negative IDs are backgrounds.
+//! Usually, ID = 0 means the primary collision
 class PHHepMCGenEventMap : public PHObject {
   
 public:
 
-  typedef std::map<unsigned int, PHHepMCGenEvent*> HepMCGenEventMap;
-  typedef std::map<unsigned int, PHHepMCGenEvent*>::const_iterator ConstIter;
-  typedef std::map<unsigned int, PHHepMCGenEvent*>::iterator            Iter;  
+  //! map of embedding ID -> PHHepMCGenEvent
+  //! positive ID is the embedded event of interest.
+  //! negative IDs are backgrounds.
+  //! Usually, ID = 0 means the primary collision
+  typedef std::map<int, PHHepMCGenEvent*> HepMCGenEventMap;
+  typedef std::map<int, PHHepMCGenEvent*>::const_iterator ConstIter;
+  typedef std::map<int, PHHepMCGenEvent*>::iterator            Iter;
   
   PHHepMCGenEventMap();
   PHHepMCGenEventMap(const PHHepMCGenEventMap& eventmap);
@@ -47,7 +56,7 @@ public:
 private:
   HepMCGenEventMap _map;
     
-  ClassDef(PHHepMCGenEventMap, 1);
+  ClassDef(PHHepMCGenEventMap, 2);
 };
 
 #endif
