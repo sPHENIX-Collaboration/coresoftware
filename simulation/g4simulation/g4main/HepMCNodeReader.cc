@@ -215,27 +215,36 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode) {
 	  
 	  if (verbosity > 1) (*fiter)->print();
 
-	  // For pile-up simulation: get particle info
-	  double px     =(*fiter)->momentum().px()*mom_factor;
-          double py     =(*fiter)->momentum().py()*mom_factor;
-          double pz     =(*fiter)->momentum().pz()*mom_factor;
-	  double m      =get_mass((*fiter)->pdg_id());
-          string pdgname=get_pdgname((*fiter)->pdg_id());
-          double e      =sqrt(px*px+py*py+pz*pz+m*m);
+//	  // Porposed for pile-up simulation: get particle info.
+	  //   Suspend as of now as it misses the barcode tagging and I do not see the case for using PHG4Particlev2 instead of PHG4Particlev1
+//	  double px     =(*fiter)->momentum().px()*mom_factor;
+//          double py     =(*fiter)->momentum().py()*mom_factor;
+//          double pz     =(*fiter)->momentum().pz()*mom_factor;
+//	  double m      =get_mass((*fiter)->pdg_id());
+//          string pdgname=get_pdgname((*fiter)->pdg_id());
+//          double e      =sqrt(px*px+py*py+pz*pz+m*m);
+//
+//	  // For pile-up simulation: set particle info
+//	  PHG4Particle *particle=new PHG4Particlev2();
+//          particle->set_track_id(trackid);
+//          particle->set_vtx_id(vtxindex);
+//          particle->set_parent_id(0);
+//          particle->set_name(pdgname);
+//          particle->set_pid((*fiter)->pdg_id());
+//          particle->set_px(px);
+//          particle->set_py(py);
+//          particle->set_pz(pz);
+//          particle->set_e(e);
+//
+//          ineve->AddParticle(vtxindex, particle);
 
-	  // For pile-up simulation: set particle info
-	  PHG4Particle *particle=new PHG4Particlev2();
-          particle->set_track_id(trackid);
-          particle->set_vtx_id(vtxindex);
-          particle->set_parent_id(0);
-          particle->set_name(pdgname);
-          particle->set_pid((*fiter)->pdg_id());
-          particle->set_px(px);
-          particle->set_py(py);
-          particle->set_pz(pz);
-          particle->set_e(e);
-          
-          ineve->AddParticle(vtxindex, particle);
+    PHG4Particle *particle = new PHG4Particlev1();
+    particle->set_pid((*fiter)->pdg_id());
+    particle->set_px((*fiter)->momentum().px() * mom_factor);
+    particle->set_py((*fiter)->momentum().py() * mom_factor);
+    particle->set_pz((*fiter)->momentum().pz() * mom_factor);
+    particle->set_barcode((*fiter)->barcode());
+    ineve->AddParticle((*v)->barcode(), particle);
 
 	  if (_embed_flag != 0) ineve->AddEmbeddedParticle(particle, _embed_flag);
 	}
