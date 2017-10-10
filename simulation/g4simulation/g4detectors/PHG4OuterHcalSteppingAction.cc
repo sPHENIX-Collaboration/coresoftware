@@ -233,17 +233,17 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       }
       else
       {
-	cout << GetName() << ": New Hit for  " << endl;
-	cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-	     << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-	     << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
-	     << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << endl;
-	cout << "last track: " << savetrackid
-	     << ", current trackid: " << aTrack->GetTrackID() << endl;
-	cout << "phys pre vol: " << volume->GetName()
-	     << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-	cout << " previous phys pre vol: " << savevolpre->GetName()
-	     << " previous phys post vol: " << savevolpost->GetName() << endl;
+        cout << GetName() << ": New Hit for  " << endl;
+        cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+             << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+             << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
+             << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << endl;
+        cout << "last track: " << savetrackid
+             << ", current trackid: " << aTrack->GetTrackID() << endl;
+        cout << "phys pre vol: " << volume->GetName()
+             << " post vol : " << touchpost->GetVolume()->GetName() << endl;
+        cout << " previous phys pre vol: " << savevolpre->GetName()
+             << " previous phys post vol: " << savevolpost->GetName() << endl;
       }
     case fGeomBoundary:
     case fUndefined:
@@ -251,7 +251,6 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         hit = new PHG4Hitv1();
       }
-      hit->set_scint_id(tower_id);  // the slat id (or steel plate id)
       //here we set the entrance values in cm
       hit->set_x(0, prePoint->GetPosition().x() / cm);
       hit->set_y(0, prePoint->GetPosition().y() / cm);
@@ -265,6 +264,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       hit->set_edep(0);
       if (whichactive > 0)  // return of IsInOuterHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
+        hit->set_scint_id(tower_id);  // the slat id
         hit->set_eion(0);
         hit->set_light_yield(0);  //  for scintillator only, initialize light yields
         // Now save the container we want to add this hit to
