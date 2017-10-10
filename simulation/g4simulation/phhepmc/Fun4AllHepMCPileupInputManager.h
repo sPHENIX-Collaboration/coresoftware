@@ -53,10 +53,10 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   int      _min_crossing;
   int      _max_crossing;
   
-  unsigned int seed;
-#ifndef __CINT__
+//  unsigned int seed;
+//#ifndef __CINT__
 //  gsl_rng *RandomGenerator;
-#endif
+//#endif
 };
 
 #endif /* __FUN4ALLHEPMCINPUTMANAGER_H__ */
