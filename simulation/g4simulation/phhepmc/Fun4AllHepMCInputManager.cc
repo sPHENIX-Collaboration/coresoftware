@@ -72,9 +72,11 @@ Fun4AllHepMCInputManager::Fun4AllHepMCInputManager(const string &name, const str
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = se->getNode(InputNode.c_str(), topNodeName.c_str());
 
-  PHHepMCGenEvent *genevent = new PHHepMCGenEvent(momentumunit,lengthunit);
-  PHIODataNode<PHObject> *newnode = new  PHIODataNode<PHObject>(genevent,"PHHepMCGenEvent","PHObject");
-  dstNode->addNode(newnode);
+  PHHepMCGenEvent *genevent = findNode::getClass<PHHepMCGenEvent>(topNode,"PHHepMCGenEvent");
+  if (!genevent) {
+    genevent =  new PHHepMCGenEvent(momentumunit,lengthunit);
+    dstNode->addNode(new PHIODataNode<PHObject>(genevent,"PHHepMCGenEvent","PHObject"));
+  }
 
   PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode,"PHHepMCGenEventMap");
   if (!geneventmap) {
