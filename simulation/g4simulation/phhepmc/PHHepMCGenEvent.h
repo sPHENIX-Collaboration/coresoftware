@@ -67,7 +67,7 @@ protected:
 private:
   
 
-  ClassDef(PHHepMCGenEvent,1)
+  ClassDef(PHHepMCGenEvent,2)
     
 };
 
