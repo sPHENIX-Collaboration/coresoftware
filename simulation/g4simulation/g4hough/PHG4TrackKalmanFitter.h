@@ -235,6 +235,14 @@ private:
 			TMatrixF & cov_out
 			) const;
 
+	bool pos_cov_XYZ_to_RZ(
+			const TVector3 n,
+			const TMatrixF pos_in,
+			const TMatrixF cov_in,
+			TMatrixF & pos_out,
+			TMatrixF & cov_out
+			) const;
+
 	/*!
 	 * Get 3D Rotation Matrix that rotates frame (x,y,z) to (x',y',z')
 	 * Default rotate local to global, or rotate vector in global to local representation
