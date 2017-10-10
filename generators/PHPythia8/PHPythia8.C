@@ -3,12 +3,14 @@
 #include "PHPy8GenTrigger.h"
 
 #include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenEventMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
+#include <phool/getClass.h>
 
 
 #include <Pythia8/Pythia.h>
@@ -218,6 +220,9 @@ int PHPythia8::process_event(PHCompositeNode *topNode) {
     _phhepmcevt->moveVertex(mvVtxX,mvVtxY,mvVtxZ,0.0);
   }
 
+  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode,"PHHepMCGenEventMap");
+  geneventmap->insert(_phhepmcevt);
+
   // print outs
   
   if (verbosity > 2) cout << "PHPythia8::process_event - FINISHED WHOLE EVENT" << endl;
@@ -242,6 +247,13 @@ int PHPythia8::create_node_tree(PHCompositeNode *topNode) {
   _phhepmcevt = new PHHepMCGenEvent();
   PHObjectNode_t *newNode = new PHObjectNode_t(_phhepmcevt,_node_name.c_str(),"PHObject");
   dstNode->addNode(newNode);
+
+  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode,"PHHepMCGenEventMap");
+  if (!geneventmap) {
+    geneventmap = new PHHepMCGenEventMap();
+    PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(geneventmap,"PHHepMCGenEventMap","PHObject");
+    dstNode->addNode(newmapnode);
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

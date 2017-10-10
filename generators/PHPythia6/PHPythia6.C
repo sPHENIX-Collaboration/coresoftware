@@ -2,6 +2,7 @@
 #include "PHPy6GenTrigger.h"
 
 #include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenEventMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -445,6 +446,9 @@ int PHPythia6::process_event(PHCompositeNode *topNode) {
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode,"PHHepMCGenEventMap");
+  geneventmap->insert(_phhepmcevt);
+
   /* print outs*/
   if (verbosity > 2) cout << "PHPythia6::process_event - FINISHED WHOLE EVENT" << endl;
 
@@ -466,6 +470,13 @@ int PHPythia6::CreateNodeTree(PHCompositeNode *topNode) {
   _phhepmcevt = new PHHepMCGenEvent();
   PHObjectNode_t *newNode = new PHObjectNode_t(_phhepmcevt,_node_name.c_str(),"PHObject");
   dstNode->addNode(newNode);
+
+  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode,"PHHepMCGenEventMap");
+  if (!geneventmap) {
+    geneventmap = new PHHepMCGenEventMap();
+    PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(geneventmap,"PHHepMCGenEventMap","PHObject");
+    dstNode->addNode(newmapnode);
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
