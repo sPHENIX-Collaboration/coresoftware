@@ -99,7 +99,7 @@ PHHepMCGenEvent* PHHepMCGenEventMap::insert_active_event(const PHHepMCGenEvent* 
 
 PHHepMCGenEvent* PHHepMCGenEventMap::insert_background_event(const PHHepMCGenEvent* event)
 {
-  unsigned int index = 0;
+  unsigned int index = -1;
   if (!_map.empty()) index = _map.begin()->first - 1;
 
   if (event)
