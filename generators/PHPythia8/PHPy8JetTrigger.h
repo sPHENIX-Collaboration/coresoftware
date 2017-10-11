@@ -22,15 +22,17 @@ class PHPy8JetTrigger : public PHPy8GenTrigger {
   void SetEtaHighLow(double etaHigh, double etaLow);
   void SetMinJetPt(double minPt);
   void SetJetR(double R);
-
+  void SetMinJetEnergy(double minenergy);
+  void SetMinJetConstituents(int numconstituents);
   void PrintConfig();
 
  private:
-
+  double _minenergy;
   double _theEtaHigh;
   double _theEtaLow;
   double _minPt; 
   double _R; 
+  double _nconstituents;
 
 };
 

@@ -18,7 +18,10 @@ PHPy8JetTrigger::PHPy8JetTrigger(const std::string &name):
   _theEtaLow(1.0),
   _minPt(10.0),
   _R(1.0)
- {}
+ {
+   _minenergy=10;
+   _nconstituents=2;
+}
 
 PHPy8JetTrigger::~PHPy8JetTrigger() {
   if (_verbosity > 0) PrintConfig();
@@ -74,13 +77,19 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia) {
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet) {
 
       const double pt =  sqrt(pow(fastjets[ijet].px(),2) + pow(fastjets[ijet].py(),2));
+      const double energy = fastjets[ijet].E();
+
+      std::vector<fastjet::PseudoJet> constituents 
+	= fastjets[ijet].constituents();
+      int nconsts = constituents.size();
 
       if (pt > max_pt) max_pt = pt;
 
-    if(pt > _minPt){
-      jetFound = true; 
-      break; 
-    }
+      if(pt > _minPt && energy > _minenergy && nconsts >= _nconstituents){
+	jetFound = true; 
+	//cout<<"FOUND A JET with "<<energy<<"   "<<fastjets[ijet].phi()<<"  "<<fastjets[ijet].eta()<<endl;
+	break; 
+      }
   }
 
   if (_verbosity > 2) {
@@ -101,7 +110,12 @@ void PHPy8JetTrigger::SetEtaHighLow(double etaHigh, double etaLow) {
     }
 
 }
-
+void PHPy8JetTrigger::SetMinJetConstituents(int numconstituents){
+  _nconstituents=numconstituents;
+}
+void PHPy8JetTrigger::SetMinJetEnergy(double minenergy){
+  _minenergy = minenergy;
+}
 void PHPy8JetTrigger::SetMinJetPt(double minPt) {
   _minPt = minPt; 
 }
