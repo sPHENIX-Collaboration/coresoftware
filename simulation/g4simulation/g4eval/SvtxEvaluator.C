@@ -23,6 +23,8 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 
 #include <g4detectors/PHG4Cell.h>
+#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
 #include <TFile.h>
 #include <TNtuple.h>
@@ -90,7 +92,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 						 "nfromtruth");
   
   if (_do_g4hit_eval) _ntp_g4hit = new TNtuple("ntp_g4hit","g4hit => best svtxcluster",
-					       "event:g4hitID:gx:gy:gz:gt:gedep:"
+					       "event:g4hitID:gx:gy:gz:gt:gedep:gphi"
 					       "glayer:gtrackID:gflavor:"
 					       "gpx:gpy:gpz:"
 					       "gvx:gvy:gvz:"
@@ -101,7 +103,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 
   if (_do_hit_eval) _ntp_hit = new TNtuple("ntp_hit","svtxhit => max truth",
 					   "event:hitID:e:adc:layer:"
-					   "cellID:ecell:"
+					   "cellID:ecell:phibin:zbin:phi:z:"
 					   "g4hitID:gedep:gx:gy:gz:gt:"
 					   "gtrackID:gflavor:"
 					   "gpx:gpy:gpz:gvx:gvy:gvz:"
@@ -109,10 +111,10 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 					   "gembed:gprimary:efromtruth");
 
   if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster","svtxcluster => max truth",
-						   "event:hitID:x:y:z:ex:ey:ez:ephi:"
+						   "event:hitID:x:y:z:r:phi:eta:ex:ey:ez:ephi:"
 						   "e:adc:layer:size:phisize:"
 						   "zsize:trackID:g4hitID:gx:"
-						   "gy:gz:gt:gtrackID:gflavor:"
+						   "gy:gz::gr:gphi:geta:gt:gtrackID:gflavor:"
 						   "gpx:gpy:gpz:gvx:gvy:gvz:"
 						   "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
 						   "gembed:gprimary:efromtruth:nparticles");
@@ -754,7 +756,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float gpx       = NAN;
       float gpy       = NAN;
       float gpz       = NAN;
-
+      TVector3 vec(g4hit->get_avg_x(),g4hit->get_avg_y(),g4hit->get_avg_z());
+      float gphi      = vec.Phi();
       float gvx       = NAN;
       float gvy       = NAN;
       float gvz       = NAN;
@@ -839,13 +842,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	}
       }
 
-      float g4hit_data[36] = {(float) _ievent,
+      float g4hit_data[37] = {(float) _ievent,
 			      g4hitID,
 			      gx,
 			      gy,
 			      gz,
 			      gt,
 			      gedep,
+			      gphi,
 			      glayer,
 			      gtrackID,
 			      gflavor,
@@ -893,6 +897,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     if (verbosity > 0){ cout << "Filling ntp_hit " << endl;_timer->restart();}
     // need things off of the DST...
     SvtxHitMap* hitmap = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
+    PHG4CylinderCellGeomContainer* geom_container =
+      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
+    if (!geom_container) {
+      std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+      return;
+    }
+    
     if (hitmap) {
 
       for (SvtxHitMap::Iter iter = hitmap->begin();
@@ -911,6 +922,20 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float layer  = hit->get_layer();
 	float cellID = hit->get_cellid();
 	float ecell  = g4cell->get_edep();
+	
+	int phibin   = NAN;
+ 	int zbin     = NAN;
+ 	float phi    = NAN;
+ 	float z      = NAN;
+	PHG4CylinderCellGeom *GeoLayer = geom_container->GetLayerCellGeom(layer);
+
+	if(layer>=_nlayers_maps+_nlayers_intt){
+	  //"cellID:ecell:phibin:zbin:phi:z"
+	  phibin = PHG4CellDefs::SizeBinning::get_phibin(g4cell->get_cellid());//cell->get_binphi();
+	  zbin = PHG4CellDefs::SizeBinning::get_zbin(g4cell->get_cellid());//cell->get_binz();
+	  phi = GeoLayer->get_phicenter( phibin );
+	  z = GeoLayer->get_zcenter( zbin );
+	}
 
 	float g4hitID  = NAN;
 	float gedep    = NAN;
@@ -965,7 +990,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	      gvz      = vtx->get_z();
 	    }
 
-	    PHG4Hit* outerhit = trutheval->get_outermost_truth_hit(g4particle);	
+	    PHG4Hit* outerhit = NULL;
+	    if(_do_eval_light == false)
+ 	      outerhit = trutheval->get_outermost_truth_hit(g4particle);
 	    if (outerhit) {
 	      gfpx     = outerhit->get_px(1);
 	      gfpy     = outerhit->get_py(1);
@@ -983,7 +1010,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  efromtruth = hiteval->get_energy_contribution(hit,g4particle);
 	}
 
-	float hit_data[33] = {
+	float hit_data[35] = {
 	  event,
 	  hitID,
 	  e,
@@ -991,6 +1018,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  layer,
 	  cellID,
 	  ecell,
+	  (float) phibin,
+	  (float) zbin,
+	  phi,
+	  z,
 	  g4hitID,
 	  gedep,
 	  gx,
@@ -1050,6 +1081,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float x        = cluster->get_x();
 	float y        = cluster->get_y();
 	float z        = cluster->get_z();
+	TVector3 pos(x,y,z);
+	float r = pos.Perp();
+	float phi = pos.Phi();
+	float eta = pos.Eta();
 
 	float ex       = sqrt(cluster->get_error(0,0));
 	float ey       = sqrt(cluster->get_error(1,1));
@@ -1071,6 +1106,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float gx       = NAN;
 	float gy       = NAN;
 	float gz       = NAN;
+	float gr       = NAN;
+	float gphi     = NAN;
+	float geta     = NAN;
 	float gt       = NAN;
 	float gtrackID = NAN;
 	float gflavor  = NAN;
@@ -1096,6 +1134,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  gx       = g4hit->get_avg_x();
 	  gy       = g4hit->get_avg_y();
 	  gz       = g4hit->get_avg_z();
+	  TVector3 gpos(gx,gy,gz);
+	  gr = gpos.Perp();
+	  gphi = gpos.Phi();
+	  geta = gpos.Eta();
 	  gt       = g4hit->get_avg_t();
 
 	  if (g4particle) {
@@ -1137,11 +1179,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	float nparticles = clustereval->all_truth_particles(cluster).size();
 
-	float cluster_data[39] = {(float) _ievent,
+	float cluster_data[45] = {(float) _ievent,
 				  hitID,
 				  x,
 				  y,
 				  z,
+				  r,
+				  phi,
+				  eta,
 				  ex,
 				  ey,
 				  ez,
@@ -1157,6 +1202,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				  gx,
 				  gy,
 				  gz,
+				  gr,
+				  gphi,
+				  geta,
 				  gt,
 				  gtrackID,
 				  gflavor,
