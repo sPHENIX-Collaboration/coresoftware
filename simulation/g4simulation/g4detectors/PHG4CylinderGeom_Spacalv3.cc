@@ -95,6 +95,8 @@ PHG4CylinderGeom_Spacalv3::SetDefault()
   sidewall_outer_torr = 0.030000;
   sidewall_mat = "SS310";
   max_phi_bin_in_sec = 8;
+  divider_mat = "G4_AIR";
+  divider_width = 14.5;
 }
 
 void
@@ -110,6 +112,10 @@ PHG4CylinderGeom_Spacalv3::ImportParameters(const PHG4Parameters & param)
     sidewall_mat = param.get_string_param("sidewall_mat");
   if (param.exist_int_param("max_phi_bin_in_sec"))
     max_phi_bin_in_sec = param.get_int_param("max_phi_bin_in_sec");
+  if (param.exist_string_param("divider_mat"))
+    divider_mat = param.get_string_param("divider_mat");
+  if (param.exist_double_param("divider_width"))
+    divider_width = param.get_double_param("divider_width");
 
   // load sector_tower_map
   if (param.exist_int_param("sector_tower_map_size"))

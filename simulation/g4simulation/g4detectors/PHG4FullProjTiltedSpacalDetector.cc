@@ -155,30 +155,70 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     G4double angle;
     G4double projection_center_y;
     G4double projection_center_x;
+    G4double projection_length;
   };
   vector<block_azimuth_geom> block_azimuth_geoms(phi_bin_in_sec,
-                                                 block_azimuth_geom{numeric_limits<double>::signaling_NaN(), numeric_limits<double>::signaling_NaN(), numeric_limits<double>::signaling_NaN()});  // [phi-bin in sector] -> azimuth geometry
+                                                 block_azimuth_geom{
+                                                     numeric_limits<double>::signaling_NaN(),
+                                                     numeric_limits<double>::signaling_NaN(),
+                                                     numeric_limits<double>::signaling_NaN(),
+                                                     numeric_limits<double>::signaling_NaN()});  // [phi-bin in sector] -> azimuth geometry
   G4double block_x_edge1 = block_edge1_half_width;
   for (int s = 0; s < phi_bin_in_sec; ++s)
   {
-    const G4double angle = block_azimuth_angle * (0.5 + s) + edge1_tilt_angle;
-    const G4double block_x_size = block_half_height_width / cos(angle);
+    block_azimuth_geom& geom = block_azimuth_geoms[s];
+
+    geom.angle = block_azimuth_angle * (0.5 + s) + edge1_tilt_angle;
+    const G4double block_x_size = block_half_height_width / cos(geom.angle);
     assert(block_x_size > 0);
     const G4double x_center = block_x_edge1 - 0.5 * block_x_size;
 
     // projection center per block
-    const G4double projection_length = block_half_height_width / 2. / tan(block_azimuth_angle / 2.);
-    assert(projection_length > 0);
-    const G4double projection_center_y = enclosure_center - projection_length * cos(angle);
-    const G4double projection_center_x = x_center + projection_length * sin(angle);
-
-    //save
-    block_azimuth_geom geom{angle, projection_center_y, projection_center_x};
-    block_azimuth_geoms.at(s) = geom;
+    geom.projection_length = block_half_height_width / 2. / tan(block_azimuth_angle / 2.);
+    assert(geom.projection_length > 0);
+    geom.projection_center_y = enclosure_center - geom.projection_length * cos(geom.angle);
+    geom.projection_center_x = x_center + geom.projection_length * sin(geom.angle);
 
     // next step
     block_x_edge1 -= block_x_size;
   }
+
+  //write out the azimuthal block divider's geometry
+  struct block_divider_azimuth_geom
+  {
+    G4double angle;  //! rotation angle
+    G4double projection_center_y;
+    G4double projection_center_x;
+    G4double thickness;            // thickness in the approximate azimuth direction
+    G4double radial_displacement;  //! displacement along the width direction, which is the radial direction if tilt = 0
+    G4double width;                //! wdith along the approximate radial direction
+  };
+  assert(phi_bin_in_sec >= 1);
+  vector<block_divider_azimuth_geom> divider_azimuth_geoms(phi_bin_in_sec - 1,
+                                                           block_divider_azimuth_geom{
+                                                               numeric_limits<double>::signaling_NaN(),
+                                                               numeric_limits<double>::signaling_NaN(),
+                                                               numeric_limits<double>::signaling_NaN(),
+                                                               numeric_limits<double>::signaling_NaN(),
+                                                               numeric_limits<double>::signaling_NaN(),
+                                                               numeric_limits<double>::signaling_NaN()});
+
+  if (get_geom_v3()->get_sidewall_thickness() > 0)
+  {
+    for (int s = 0; s < phi_bin_in_sec - 1; ++s)
+    {
+      block_divider_azimuth_geom& geom = divider_azimuth_geoms[s];
+
+      geom.angle = 0.5 * (block_azimuth_geoms[s].angle + block_azimuth_geoms[s + 1].angle);
+      geom.projection_center_y = 0.5 * (block_azimuth_geoms[s].projection_center_y + block_azimuth_geoms[s + 1].projection_center_y);
+      geom.projection_center_x = 0.5 * (block_azimuth_geoms[s].projection_center_x + block_azimuth_geoms[s + 1].projection_center_x);
+      geom.radial_displacement = 0.5 * (block_azimuth_geoms[s].projection_length + block_azimuth_geoms[s + 1].projection_length);
+
+      geom.thickness = 2.0 * get_geom_v3()->get_assembly_spacing() * cm * cos(block_azimuth_angle / 2.) - 2 * um;
+      geom.width = get_geom_v3()->get_divider_width() * cm;
+    }
+  }
+
   if (fabs(block_x_edge1 - (-block_edge2_half_width)) > get_geom_v3()->get_assembly_spacing() * cm)
   {
     cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg - ERROR - " << endl
@@ -207,6 +247,15 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
       cout << "\t block[" << s << "].angle = " << block_azimuth_geoms[s].angle << endl;
       cout << "\t block[" << s << "].projection_center_y = " << block_azimuth_geoms[s].projection_center_y << endl;
       cout << "\t block[" << s << "].projection_center_x = " << block_azimuth_geoms[s].projection_center_x << endl;
+    }
+    for (int s = 0; s < phi_bin_in_sec - 1; ++s)
+    {
+      cout << "\t divider[" << s << "].angle = " << divider_azimuth_geoms[s].angle << endl;
+      cout << "\t divider[" << s << "].projection_center_x = " << divider_azimuth_geoms[s].projection_center_x << endl;
+      cout << "\t divider[" << s << "].projection_center_y = " << divider_azimuth_geoms[s].projection_center_y << endl;
+      cout << "\t divider[" << s << "].radial_displacement = " << divider_azimuth_geoms[s].radial_displacement << endl;
+      cout << "\t divider[" << s << "].thickness = " << divider_azimuth_geoms[s].thickness << endl;
+      cout << "\t divider[" << s << "].width = " << divider_azimuth_geoms[s].width << endl;
     }
   }
 
@@ -369,6 +418,58 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
       assert(gdml_config);
       gdml_config->exclude_physical_vol(wall_phys);
     }
+  }
+
+  // construct dividers
+  if (get_geom_v3()->get_divider_width() > 0)
+  {
+    if (get_geom_v3()->get_construction_verbose() >= 1)
+    {
+      cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg::" << GetName()
+           << " - construct dividers" << endl;
+    }
+
+    G4Material* divider_mat = G4Material::GetMaterial(get_geom_v3()->get_divider_mat());
+    assert(divider_mat);
+
+    G4VisAttributes* divider_VisAtt = new G4VisAttributes();
+    divider_VisAtt->SetColor(.8, 1, .8, .3);
+    divider_VisAtt->SetVisibility(get_geom_v3()->is_azimuthal_seg_visible());
+    divider_VisAtt->SetForceSolid(true);
+
+    int ID = 0;
+    for (const auto& geom : divider_azimuth_geoms)
+    {
+      G4Box* wall_solid = new G4Box(G4String(GetName() + G4String("_Divider_") + to_string(ID)),
+                                    geom.thickness / 2.0,
+                                    geom.width / 2.,
+                                    (get_geom_v3()->get_length() / 2. - 2 * (get_geom_v3()->get_sidewall_thickness() + 2. * get_geom_v3()->get_assembly_spacing())) * cm * .5);
+
+      G4LogicalVolume* wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
+                                                        G4String(G4String(GetName() + G4String("_Divider_") + to_string(ID))), 0, 0,
+                                                        nullptr);
+      wall_logic->SetVisAttributes(divider_VisAtt);
+
+      for (int sign_z = -1; sign_z <= 1; sign_z += 2)
+      {
+        G4Transform3D wall_trans =
+            G4TranslateX3D(geom.projection_center_x) *
+            G4TranslateY3D(geom.projection_center_y) *
+            G4RotateZ3D(geom.angle) *
+            G4TranslateY3D(geom.radial_displacement) *
+            G4TranslateZ3D(sign_z * (get_geom_v3()->get_length() * cm / 4));
+
+        G4PVPlacement* wall_phys = new G4PVPlacement(wall_trans, wall_logic,
+                                                     G4String(GetName().c_str()) + G4String("_Divider_") + to_string(ID), sec_logic,
+                                                     false, ID, overlapcheck);
+
+        calo_vol[wall_phys] = ID;
+        assert(gdml_config);
+        gdml_config->exclude_physical_vol(wall_phys);
+
+        ++ID;
+      }
+    }  //    for (const auto & geom : divider_azimuth_geoms)
   }
 
   //  // construct towers

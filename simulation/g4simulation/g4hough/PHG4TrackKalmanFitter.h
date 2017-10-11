@@ -159,12 +159,12 @@ public:
 		_primary_pid_guess = primaryPidGuess;
 	}
 
-	double get_cut_min_p_T() const {
-		return _cut_min_pT;
+	double get_fit_min_pT() const {
+		return _fit_min_pT;
 	}
 
-	void set_cut_min_p_T(double cutMinPT) {
-		_cut_min_pT = cutMinPT;
+	void set_fit_min_pT(double cutMinPT) {
+		_fit_min_pT = cutMinPT;
 	}
 
 	bool is_over_write_svtxtrackmap() const {
@@ -189,6 +189,14 @@ public:
 
 	void set_use_truth_vertex(bool useTruthVertex) {
 		_use_truth_vertex = useTruthVertex;
+	}
+
+	double get_vertex_min_ndf() const {
+		return _vertex_min_ndf;
+	}
+
+	void set_vertex_min_ndf(double vertexMinPT) {
+		_vertex_min_ndf = vertexMinPT;
 	}
 
 private:
@@ -218,20 +226,28 @@ private:
 			const std::vector<genfit::Track*> & gf_tracks);
 
 	bool pos_cov_uvn_to_rz(
-			const TVector3 u,
-			const TVector3 v,
-			const TVector3 n,
-			const TMatrixF pos_in,
-			const TMatrixF cov_in,
+			const TVector3& u,
+			const TVector3& v,
+			const TVector3& n,
+			const TMatrixF& pos_in,
+			const TMatrixF& cov_in,
 			TMatrixF & pos_out,
 			TMatrixF & cov_out
 			) const;
 
 	bool get_vertex_error_uvn(
-			const TVector3 u,
-			const TVector3 v,
-			const TVector3 n,
-			const TMatrixF cov_in,
+			const TVector3& u,
+			const TVector3& v,
+			const TVector3& n,
+			const TMatrixF& cov_in,
+			TMatrixF & cov_out
+			) const;
+
+	bool pos_cov_XYZ_to_RZ(
+			const TVector3& n,
+			const TMatrixF& pos_in,
+			const TMatrixF& cov_in,
+			TMatrixF & pos_out,
 			TMatrixF & cov_out
 			) const;
 
@@ -269,7 +285,8 @@ private:
 	std::string _track_fitting_alg_name;
 
 	int _primary_pid_guess;
-	double _cut_min_pT;
+	double _fit_min_pT;
+	double _vertex_min_ndf;
 
 	genfit::GFRaveVertexFactory* _vertex_finder;
 

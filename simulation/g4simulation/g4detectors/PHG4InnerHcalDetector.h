@@ -10,8 +10,8 @@
 #include <CGAL/point_generators_2.h>
 
 #include <map>
-#include <vector>
 #include <set>
+#include <vector>
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
@@ -19,46 +19,44 @@ class G4VPhysicalVolume;
 class G4VSolid;
 class PHG4Parameters;
 
-class PHG4InnerHcalDetector: public PHG4Detector
+class PHG4InnerHcalDetector : public PHG4Detector
 {
-typedef CGAL::Exact_circular_kernel_2             Circular_k;
-typedef CGAL::Point_2<Circular_k>                 Point_2;
-
-  public:
+ public:
+  typedef CGAL::Exact_circular_kernel_2 Circular_k;
+  typedef CGAL::Point_2<Circular_k> Point_2;
 
   //! constructor
- PHG4InnerHcalDetector( PHCompositeNode *Node,  PHG4Parameters *parameters, const std::string &dnam);
+  PHG4InnerHcalDetector(PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam);
 
   //! destructor
- virtual ~PHG4InnerHcalDetector();
+  virtual ~PHG4InnerHcalDetector();
 
   //! construct
-  virtual void Construct( G4LogicalVolume* world );
+  virtual void Construct(G4LogicalVolume *world);
 
   virtual void Print(const std::string &what = "ALL") const;
 
   //!@name volume accessors
   //@{
-  int IsInInnerHcal(G4VPhysicalVolume*) const;
+  int IsInInnerHcal(G4VPhysicalVolume *) const;
   //@}
 
-  void SuperDetector(const std::string &name) {superdetector = name;}
-  const std::string SuperDetector() const {return superdetector;}
-  int get_Layer() const {return layer;}
-
-  G4VSolid* ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
-  G4VSolid* ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
+  void SuperDetector(const std::string &name) { superdetector = name; }
+  const std::string SuperDetector() const { return superdetector; }
+  int get_Layer() const { return layer; }
+  G4VSolid *ConstructSteelPlate(G4LogicalVolume *hcalenvelope);
+  G4VSolid *ConstructScintillatorBox(G4LogicalVolume *hcalenvelope);
   void ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright);
 
-  G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
-  void ConstructHcalSingleScintillators(G4LogicalVolume* hcalenvelope);
+  G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalenvelope);
+  void ConstructHcalSingleScintillators(G4LogicalVolume *hcalenvelope);
   int CheckTiltAngle() const;
   int ConsistencyCheck() const;
   void SetTiltViaNcross();
 
-  protected:
-  int ConstructInnerHcal(G4LogicalVolume* sandwich);
-  int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
+ protected:
+  int ConstructInnerHcal(G4LogicalVolume *sandwich);
+  int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
   double x_at_y(Point_2 &p0, Point_2 &p1, double yin);
   PHG4Parameters *params;
   G4AssemblyVolume *scinti_mother_assembly;
@@ -72,6 +70,7 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   double scinti_tile_thickness;
   double scinti_inner_gap;
   double scinti_outer_gap;
+  double scinti_outer_radius;
   double tilt_angle;
   double envelope_inner_radius;
   double envelope_outer_radius;
@@ -89,8 +88,8 @@ typedef CGAL::Point_2<Circular_k>                 Point_2;
   int layer;
   std::string detector_type;
   std::string superdetector;
-  std::set<G4VPhysicalVolume *>steel_absorber_vec;
-  std::vector<G4VSolid *> scinti_tiles_vec; 
+  std::set<G4VPhysicalVolume *> steel_absorber_vec;
+  std::vector<G4VSolid *> scinti_tiles_vec;
   std::string scintilogicnameprefix;
 };
 
