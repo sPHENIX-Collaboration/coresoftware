@@ -44,9 +44,11 @@ class PHHepMCGenEventMap : public PHObject
   //! insert a event of interest, e.g. jetty event from pythia
   PHHepMCGenEvent* insert(const PHHepMCGenEvent* event) { return insert_active_event(event); }
   //! insert a event of interest, e.g. jetty event from pythia
-  PHHepMCGenEvent* insert_active_event(const PHHepMCGenEvent* event);
+  PHHepMCGenEvent* insert_active_event(const PHHepMCGenEvent* event = nullptr);
   //! insert a event of background, e.g. Au+Au collision background. First event has embedding ID = 0, which is usually the primary Au+Au collision in the case of HI embedding
-  PHHepMCGenEvent* insert_background_event(const PHHepMCGenEvent* event);
+  PHHepMCGenEvent* insert_background_event(const PHHepMCGenEvent* event = nullptr);
+  //! insert a event with specific embedding ID
+  PHHepMCGenEvent* insert_event(const int embedding_id, const PHHepMCGenEvent* event = nullptr);
 
   size_t erase(int idkey)
   {

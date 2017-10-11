@@ -130,9 +130,9 @@ int PHHepMCGenEvent::vertexSize(void) const
 //_____________________________________________________________________________
 void PHHepMCGenEvent::identify(std::ostream& os) const
 {
-  os << "identify yourself: PHHepMCGenEvent Object" << endl;
-  os << "No of Particles: " << size() << endl;
-  os << "No of Vertices:  " << vertexSize() << endl;
+  os << "identify yourself: PHHepMCGenEvent Object, " ;
+  os << ", No of Particles: " << size() ;
+  os << ", No of Vertices:  " << vertexSize() << endl;
   return;
 }
 
