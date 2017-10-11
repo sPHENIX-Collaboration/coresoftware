@@ -24,6 +24,9 @@ namespace HepMC
 
 class PHCompositeNode;
 
+//! Generate pile up collisions based on beam parameter
+//! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.
+//! If set_embedding_id(i) with a positive number, the pile up event will be inserted with increasing positive embedding_id. This would be a strange way to use pile up.
 class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
 {
  public:
@@ -53,6 +56,8 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   int      _min_crossing;
   int      _max_crossing;
   
+  bool _first_run;
+
 //  unsigned int seed;
 //#ifndef __CINT__
 //  gsl_rng *RandomGenerator;
