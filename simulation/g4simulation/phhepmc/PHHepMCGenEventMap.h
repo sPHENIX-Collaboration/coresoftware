@@ -37,6 +37,7 @@ class PHHepMCGenEventMap : public PHObject
   size_t size() const { return _map.size(); }
   size_t count(int idkey) const { return _map.count(idkey); }
   void clear() { Reset(); }
+
   //! fetch event
   const PHHepMCGenEvent* get(int idkey) const;
   PHHepMCGenEvent* get(int idkey);
