@@ -195,7 +195,7 @@ int PHPythia8::process_event(PHCompositeNode *topNode) {
 
   
   /* pass HepMC to PHNode*/
-  PHHepMCGenEvent * success = hepmc_helper . insert_event(evt);
+  PHHepMCGenEvent * success = hepmc_helper . insert_event(genevent);
   if (!success) {
     cout << "PHPythia8::process_event - Failed to add event to HepMC record!" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
