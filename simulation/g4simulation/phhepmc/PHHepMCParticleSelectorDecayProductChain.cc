@@ -58,7 +58,7 @@ int PHHepMCParticleSelectorDecayProductChain::process_event(PHCompositeNode *top
       return Fun4AllReturnCodes::EVENT_OK;
     }
 
-  PHHepMCGenEventMap *   geneventmap = findNode::getClass<PHHepMCGenEventMap>(dstNode, "PHHepMCGenEventMap");
+  PHHepMCGenEventMap *   geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
   if(!geneventmap)
     {
       cerr << "ERROR: PHHepMCGenEventMap node not found!" << endl;
