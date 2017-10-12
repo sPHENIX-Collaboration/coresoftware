@@ -30,14 +30,6 @@ typedef PHIODataNode<PHObject> PHObjectNode_t;
 PHPythia8::PHPythia8(const std::string &name): 
   SubsysReco(name),
   _eventcount(0),
-  _node_name("PHHepMCGenEvent"),
-  _useBeamVtx(false),
-  _beamX(0),
-  _beamXsigma(0),
-  _beamY(0),
-  _beamYsigma(0),
-  _beamZ(0),
-  _beamZsigma(0),
   _registeredTriggers(),
   _triggersOR(true),
   _triggersAND(false),
@@ -47,8 +39,6 @@ PHPythia8::PHPythia8(const std::string &name):
   _pythiaToHepMC(NULL),
   _phhepmcevt(NULL) {
 
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
-  
   char *charPath = getenv("PYTHIA8");
   if (!charPath) {
     cout << "PHPythia8::Could not find $PYTHIA8 path!" << endl;
@@ -66,7 +56,6 @@ PHPythia8::PHPythia8(const std::string &name):
 }
 
 PHPythia8::~PHPythia8() {
-  gsl_rng_free (RandomGenerator);
   delete _pythia;  
 }
 
@@ -204,24 +193,13 @@ int PHPythia8::process_event(PHCompositeNode *topNode) {
   HepMC::GenEvent *genevent = new HepMC::GenEvent(HepMC::Units::GEV, HepMC::Units::MM);
   _pythiaToHepMC->fill_next_event(*_pythia, genevent, _eventcount);
 
-  // pass HepMC to PHNode
   
-  bool success = _phhepmcevt->addEvent(genevent);
+  /* pass HepMC to PHNode*/
+  PHHepMCGenEvent * success = hepmc_helper . insert_event(evt);
   if (!success) {
     cout << "PHPythia8::process_event - Failed to add event to HepMC record!" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-  // shift node if needed  
-  if (_useBeamVtx) {
-    double mvVtxX = gsl_ran_gaussian(RandomGenerator,_beamXsigma) + _beamX;
-    double mvVtxY = gsl_ran_gaussian(RandomGenerator,_beamYsigma) + _beamY;
-    double mvVtxZ = gsl_ran_gaussian(RandomGenerator,_beamZsigma) + _beamZ;
-    _phhepmcevt->moveVertex(mvVtxX,mvVtxY,mvVtxZ,0.0);
-  }
-
-  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode,"PHHepMCGenEventMap");
-  geneventmap->insert(_phhepmcevt);
 
   // print outs
   
@@ -235,25 +213,7 @@ int PHPythia8::process_event(PHCompositeNode *topNode) {
 
 int PHPythia8::create_node_tree(PHCompositeNode *topNode) {
 
-  PHCompositeNode *dstNode;
-  PHNodeIterator iter(topNode);
-
-  dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode) {
-    cout << PHWHERE << "DST Node missing doing nothing" << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  _phhepmcevt = new PHHepMCGenEvent();
-  PHObjectNode_t *newNode = new PHObjectNode_t(_phhepmcevt,_node_name.c_str(),"PHObject");
-  dstNode->addNode(newNode);
-
-  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode,"PHHepMCGenEventMap");
-  if (!geneventmap) {
-    geneventmap = new PHHepMCGenEventMap();
-    PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(geneventmap,"PHHepMCGenEventMap","PHObject");
-    dstNode->addNode(newmapnode);
-  }
+  hepmc_helper.create_node_tree(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
