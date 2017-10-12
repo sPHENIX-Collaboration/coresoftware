@@ -14,6 +14,8 @@
 #include <sstream>
 #include <stdexcept>
 #include <vector>
+#include <algorithm>
+
 
 //ClassImp(PHHepMCGenEvent)
 
@@ -23,7 +25,7 @@ PHHepMCGenEvent::PHHepMCGenEvent()
   : _embedding_id(0)
   , _isSimulated(false)
   , _collisionVertex(0, 0, 0, 0)
-  , _theEvt(NULL)
+  , _theEvt(nullptr)
 {
 }
 
@@ -81,15 +83,16 @@ const HepMC::GenEvent* PHHepMCGenEvent::getEvent() const
 
 bool PHHepMCGenEvent::addEvent(HepMC::GenEvent* evt)
 {
+  if (_theEvt) delete _theEvt;
+
   _theEvt = evt;
   if (!_theEvt) return false;
   return true;
 }
 
-bool PHHepMCGenEvent::swapEvent(HepMC::GenEvent* evt)
+bool PHHepMCGenEvent::swapEvent(HepMC::GenEvent* & evt)
 {
-  //if(_theEvt) _theEvt = NULL;
-  _theEvt = evt;
+  swap(_theEvt, evt);
 
   if (!_theEvt) return false;
   return true;
@@ -97,11 +100,7 @@ bool PHHepMCGenEvent::swapEvent(HepMC::GenEvent* evt)
 
 bool PHHepMCGenEvent::addEvent(HepMC::GenEvent& evt)
 {
-  _theEvt->clear();
-  HepMC::GenEvent tmp(evt);
-  _theEvt->swap(tmp);
-  if (!_theEvt) return false;
-  return true;
+  return addEvent(new HepMC::GenEvent(evt));
 }
 
 void PHHepMCGenEvent::clearEvent()
