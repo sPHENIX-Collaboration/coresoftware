@@ -10,6 +10,7 @@
 
 #include <string>
 
+class PHHepMCGenEvent;
 class PHCompositeNode;
 
 //! HepMCNodeReader take input from all subevents from PHHepMCGenEventMap and send them to simulation in Geant4

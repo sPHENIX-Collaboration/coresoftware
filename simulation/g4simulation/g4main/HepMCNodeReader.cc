@@ -154,9 +154,12 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
     HepMC::GenEvent *evt = genevt->getEvent();
     if (!evt)
     {
-      cout << PHWHERE << " no evt pointer under HEPMC Node found" << endl;
+      cout << PHWHERE << " no evt pointer under HEPMC Node found:";
+      genevt->identify();
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+
+    genevt->is_simulated(true);
 
     const int embed_flag = genevt->get_embedding_id();
 

@@ -8,14 +8,13 @@
 
 #include <boost/foreach.hpp>
 
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
-#include <algorithm>
-
 
 //ClassImp(PHHepMCGenEvent)
 
@@ -90,7 +89,7 @@ bool PHHepMCGenEvent::addEvent(HepMC::GenEvent* evt)
   return true;
 }
 
-bool PHHepMCGenEvent::swapEvent(HepMC::GenEvent* & evt)
+bool PHHepMCGenEvent::swapEvent(HepMC::GenEvent*& evt)
 {
   swap(_theEvt, evt);
 
@@ -118,20 +117,30 @@ void PHHepMCGenEvent::moveVertex(double x, double y, double z, double t)
 
 int PHHepMCGenEvent::size(void) const
 {
-  return _theEvt->particles_size();
+  if (_theEvt)
+    return _theEvt->particles_size();
+  else
+    return 0;
 }
 
 int PHHepMCGenEvent::vertexSize(void) const
 {
-  return _theEvt->vertices_size();
+  if (_theEvt)
+    return _theEvt->vertices_size();
+  else
+    return 0;
 }
 
 //_____________________________________________________________________________
 void PHHepMCGenEvent::identify(std::ostream& os) const
 {
-  os << "identify yourself: PHHepMCGenEvent Object, " ;
-  os << ", No of Particles: " << size() ;
-  os << ", No of Vertices:  " << vertexSize() << endl;
+  os << "identify yourself: PHHepMCGenEvent Object, ";
+  os << " embedding_id = " << _embedding_id;
+  os << " isSimulated = " << _isSimulated;
+  os << " collisionVertex = (" << _collisionVertex.x()<<","<< _collisionVertex.y()<<","<< _collisionVertex.z()<<") cm, "<< _collisionVertex.t()<<" ns";
+  os << ", No of Particles: " << size();
+  os << ", No of Vertices:  " << vertexSize();
+  os << endl;
   return;
 }
 
