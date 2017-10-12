@@ -55,17 +55,11 @@ Fun4AllOscarInputManager::Fun4AllOscarInputManager(const string &name, const str
   Fun4AllServer *se = Fun4AllServer::instance();
   topNode = se->topNode(topNodeName.c_str());
   PHNodeIterator iter(topNode);
-  PHCompositeNode *dstNode = se->getNode(InputNode.c_str(), topNodeName.c_str());
 
-  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
-  if (!geneventmap)
-  {
-    geneventmap = new PHHepMCGenEventMap();
-    PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(geneventmap, "PHHepMCGenEventMap", "PHObject");
-    dstNode->addNode(newmapnode);
-  }
-
-  hepmc_helper.set_geneventmap(geneventmap);
+  phhepmcgenevt = new PHHepMCGenEvent();
+  PHObjectNode_t *newNode = new PHObjectNode_t(phhepmcgenevt,"PHHepMCGenEvent","PHObject");
+  topNode->addNode(newNode);
+  
 }
 
 Fun4AllOscarInputManager::~Fun4AllOscarInputManager()
