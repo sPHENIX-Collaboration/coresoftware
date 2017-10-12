@@ -154,6 +154,8 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
   if ( hepmc_particles.size() != origin_index.size() )
     {
       cout << "ReadEICFiles::process_event - Lengths of HepMC particles and Origin index vectors do not match!" << endl;
+
+      delete evt;
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
