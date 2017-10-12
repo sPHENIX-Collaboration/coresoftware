@@ -39,14 +39,6 @@
 
 using namespace std;
 
-// pythia vtx time seems to be in mm/c
-const double mm_over_c_to_sec = 0.1 / GSL_CONST_CGS_SPEED_OF_LIGHT;
-// pythia vtx time seems to be in mm/c
-const double mm_over_c_to_nanosecond = mm_over_c_to_sec * 1e9;
-
-static boost::iostreams::filtering_streambuf<boost::iostreams::input> zinbuffer;
-static const double toMM = 1.e-12;
-
 Fun4AllHepMCPileupInputManager::Fun4AllHepMCPileupInputManager(
     const string &name, const string &nodename, const string &topnodename)
   : Fun4AllHepMCInputManager(name, nodename, topnodename)
@@ -63,18 +55,23 @@ Fun4AllHepMCPileupInputManager::Fun4AllHepMCPileupInputManager(
   _first_run(true)
 {
   //! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.
-  set_embedding_id(-1);
+  hepmc_helper.set_embedding_id(-1);
 
   //! setup default beam diamond to ~Run14 level
-  set_vertex_distribution_function(Gaus, Gaus, Gaus, Gaus);
-  set_vertex_distribution_mean(0, 0, 0, 0);
-  set_vertex_distribution_width(100e-4, 100e-4, 30, 5);  //100um beam lumi width, 30-cm vertex, 5 ns time spread (~Run14 level)
+  hepmc_helper.set_vertex_distribution_function(PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus);
+  hepmc_helper.set_vertex_distribution_mean(0, 0, 0, 0);
+  hepmc_helper.set_vertex_distribution_width(100e-4, 100e-4, 30, 5);  //100um beam lumi width, 30-cm vertex, 5 ns time spread (~Run14 level)
+
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
+  gsl_rng_set(RandomGenerator, seed);
 
   return;
 }
 
 Fun4AllHepMCPileupInputManager::~Fun4AllHepMCPileupInputManager()
 {
+  gsl_rng_free(RandomGenerator);
 }
 
 int Fun4AllHepMCPileupInputManager::run(const int nevents)
@@ -95,10 +92,6 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
       cout << " _max_crossing = " << _max_crossing;
     }
   }
-
-  PHNodeIterator iter(topNode);
-  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
-  assert(geneventmap);
 
   // toss multiple crossings all the way back
   for (int icrossing = _min_crossing; icrossing <= _max_crossing; ++icrossing)
@@ -185,8 +178,9 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
         }
       }  // loop until retrieve a valid event
 
+      PHHepMCGenEventMap *geneventmap = hepmc_helper.get_geneventmap();
       PHHepMCGenEvent *genevent = nullptr;
-      if (_embedding_id > 0)
+      if (hepmc_helper.get_embedding_id() > 0)
       {
         //! If set_embedding_id(i) with a positive number, the pile up event will be inserted with increasing positive embedding_id. This would be a strange way to use pile up.
 
@@ -200,12 +194,9 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
       }
       assert(genevent);
       genevent->addEvent(evt);
-
+      hepmc_helper.move_vertex(genevent);
       // place to the crossing center in time
       genevent->moveVertex(0, 0, 0, t0);
-
-      // smear in beam diamond
-      shift_vertex(genevent);
 
     }  //    for (int icollision = 0; icollision < ncollisions; ++icollision)
 

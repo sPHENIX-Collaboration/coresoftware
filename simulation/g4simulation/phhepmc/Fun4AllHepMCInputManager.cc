@@ -35,8 +35,6 @@
 #include <phool/PHRandomSeed.h>
 
 #include <gsl/gsl_const.h>
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_rng.h>
 
 using namespace std;
 
@@ -54,31 +52,11 @@ Fun4AllHepMCInputManager::Fun4AllHepMCInputManager(const string &name, const str
   , save_evt(NULL)
   , filestream(NULL)
   , unzipstream(NULL)
-  , _vertex_func_x(Gaus)
-  , _vertex_func_y(Gaus)
-  , _vertex_func_z(Gaus)
-  , _vertex_func_t(Gaus)
-  , _vertex_x(0)
-  , _vertex_y(0)
-  , _vertex_z(0)
-  , _vertex_t(0)
-  , _vertex_width_x(0)
-  , _vertex_width_y(0)
-  , _vertex_width_z(0)
-  , _vertex_width_t(0)
-  , _embedding_id(0)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
   topNode = se->topNode(topNodeName.c_str());
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = se->getNode(InputNode.c_str(), topNodeName.c_str());
-
-  // PHHepMCGenEvent is now obsolete
-  //  PHHepMCGenEvent *genevent = findNode::getClass<PHHepMCGenEvent>(topNode,"PHHepMCGenEvent");
-  //  if (!genevent) {
-  //    genevent =  new PHHepMCGenEvent();
-  //    dstNode->addNode(new PHIODataNode<PHObject>(genevent,"PHHepMCGenEvent","PHObject"));
-  //  }
 
   PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
   if (!geneventmap)
@@ -88,9 +66,7 @@ Fun4AllHepMCInputManager::Fun4AllHepMCInputManager(const string &name, const str
     dstNode->addNode(newmapnode);
   }
 
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
-  unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
-  gsl_rng_set(RandomGenerator, seed);
+  hepmc_helper.set_geneventmap(geneventmap);
 
   return;
 }
@@ -102,8 +78,6 @@ Fun4AllHepMCInputManager::~Fun4AllHepMCInputManager()
   delete ascii_in;
   delete filestream;
   delete unzipstream;
-
-  gsl_rng_free(RandomGenerator);
 }
 
 int Fun4AllHepMCInputManager::fileopen(const string &filenam)
@@ -180,11 +154,6 @@ int Fun4AllHepMCInputManager::fileopen(const string &filenam)
 
 int Fun4AllHepMCInputManager::run(const int nevents)
 {
-  PHNodeIterator iter(topNode);
-  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
-  assert(geneventmap);
-  PHHepMCGenEvent *genevent = geneventmap->insert_event(_embedding_id);
-
   // attempt to retrieve a valid event from inputs
   while (true)
   {
@@ -244,11 +213,20 @@ int Fun4AllHepMCInputManager::run(const int nevents)
         cout << "Fun4AllHepMCInputManager::run::" << Name()
              << ": hepmc evt no: " << evt->event_number() << endl;
       }
-      genevent->addEvent(evt);
-      shift_vertex(genevent);
+
+      PHHepMCGenEventMap::Iter ievt =
+          hepmc_helper.get_geneventmap()->find(hepmc_helper.get_embedding_id());
+      if (ievt != hepmc_helper.get_geneventmap()->end())
+      {
+        // override existing event
+        ievt->second->addEvent(evt);
+      }
+      else
+        hepmc_helper.insert_event(evt);
 
       events_total++;
       events_thisfile++;
+
       // check if the local SubsysReco discards this event
       if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
       {
@@ -455,60 +433,4 @@ Fun4AllHepMCInputManager::ConvertFromOscar()
     evt->print();
   }
   return evt;
-}
-
-void Fun4AllHepMCInputManager::set_vertex_distribution_function(VTXFUNC x, VTXFUNC y, VTXFUNC z, VTXFUNC t)
-{
-  _vertex_func_x = x;
-  _vertex_func_y = y;
-  _vertex_func_z = z;
-  _vertex_func_t = t;
-  return;
-}
-
-void Fun4AllHepMCInputManager::set_vertex_distribution_mean(const double x, const double y, const double z, const double t)
-{
-  _vertex_x = x;
-  _vertex_y = y;
-  _vertex_z = z;
-  _vertex_t = t;
-  return;
-}
-
-void Fun4AllHepMCInputManager::set_vertex_distribution_width(const double x, const double y, const double z, const double t)
-{
-  _vertex_width_x = x;
-  _vertex_width_y = y;
-  _vertex_width_z = z;
-  _vertex_width_t = t;
-  return;
-}
-
-bool Fun4AllHepMCInputManager::shift_vertex(PHHepMCGenEvent *genevent) const
-{
-  if (!genevent) return false;
-
-  genevent->moveVertex(
-      (smear(_vertex_x, _vertex_width_x, _vertex_func_x)),
-      (smear(_vertex_y, _vertex_width_y, _vertex_func_y)),
-      (smear(_vertex_z, _vertex_width_z, _vertex_func_z)),
-      (smear(_vertex_t, _vertex_width_t, _vertex_func_t)));
-
-  return true;
-}
-
-double Fun4AllHepMCInputManager::smear(const double position,
-                                       const double width,
-                                       VTXFUNC dist) const
-{
-  double res = position;
-  if (dist == Uniform)
-  {
-    res = (position - width) + 2 * gsl_rng_uniform_pos(RandomGenerator) * width;
-  }
-  else if (dist == Gaus)
-  {
-    res = position + gsl_ran_gaussian(RandomGenerator, width);
-  }
-  return res;
 }

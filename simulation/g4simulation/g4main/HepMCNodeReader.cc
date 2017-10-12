@@ -160,9 +160,10 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 
     const int embed_flag = genevt->get_embedding_id();
 
-    double xshift = vertex_pos_x;
-    double yshift = vertex_pos_y;
-    double zshift = vertex_pos_z;
+    double xshift = vertex_pos_x + genevt->get_collision_vertex().x();
+    double yshift = vertex_pos_y + genevt->get_collision_vertex().y();
+    double zshift = vertex_pos_z + genevt->get_collision_vertex().z();
+    double tshift = vertex_t0 + genevt->get_collision_vertex().t();
 
     if (width_vx > 0.0)
       xshift += smeargauss(width_vx);
@@ -207,7 +208,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
         double xpos = (*v)->position().x() * length_factor + xshift;
         double ypos = (*v)->position().y() * length_factor + yshift;
         double zpos = (*v)->position().z() * length_factor + zshift;
-        double time = (*v)->position().t() * time_factor + vertex_t0;
+        double time = (*v)->position().t() * time_factor + tshift;
 
         if (Verbosity() > 1)
         {

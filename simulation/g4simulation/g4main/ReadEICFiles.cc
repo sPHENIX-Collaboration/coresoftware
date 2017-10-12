@@ -31,8 +31,7 @@ ReadEICFiles::ReadEICFiles(const string &name):
   nEntries(0),
   entry(0),
   GenEvent(nullptr),
-  _node_name("PHHepMCGenEvent"),
-  _phhepmcevt(nullptr)
+  _node_name("PHHepMCGenEvent")
 {
   return;
 }
@@ -250,15 +249,11 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
     evt->add_vertex( hepmc_vertices.at(v) );
 
   /* pass HepMC to PHNode*/
-  bool success = _phhepmcevt->addEvent(evt);
+  PHHepMCGenEvent * success = hepmc_helper . insert_event(evt);
   if (!success) {
     cout << "ReadEICFiles::process_event - Failed to add event to HepMC record!" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode,"PHHepMCGenEventMap");
-  geneventmap->insert(_phhepmcevt);
-
   /* Count up number of 'used' events from input file */
   entry++;
 
@@ -268,26 +263,7 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
 
 int ReadEICFiles::CreateNodeTree(PHCompositeNode *topNode) {
 
-  /* HepMC node */
-  PHCompositeNode *dstNode;
-  PHNodeIterator iter(topNode);
-
-  dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode) {
-    cout << PHWHERE << "DST Node missing doing nothing" << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  _phhepmcevt = new PHHepMCGenEvent();
-  PHObjectNode_t *newNode = new PHObjectNode_t(_phhepmcevt,_node_name.c_str(),"PHObject");
-  dstNode->addNode(newNode);
-
-  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode,"PHHepMCGenEventMap");
-  if (!geneventmap) {
-    geneventmap = new PHHepMCGenEventMap();
-    PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(geneventmap,"PHHepMCGenEventMap","PHObject");
-    dstNode->addNode(newmapnode);
-  }
+  hepmc_helper.create_node_tree(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

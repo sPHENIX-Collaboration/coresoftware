@@ -10,7 +10,6 @@
 #include <fstream>
 #include <iostream>
 
-// rootcint barfs with this header so we need to hide it
 #ifndef __CINT__
 #include <gsl/gsl_rng.h>
 #endif
@@ -57,6 +56,10 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   int      _max_crossing;
   
   bool _first_run;
+
+#ifndef __CINT__
+  gsl_rng *RandomGenerator;
+#endif
 
 //  unsigned int seed;
 //#ifndef __CINT__
