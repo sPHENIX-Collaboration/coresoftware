@@ -190,14 +190,15 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
       {
         //! If set_embedding_id(i) with a positive number, the pile up event will be inserted with increasing positive embedding_id. This would be a strange way to use pile up.
 
-        geneventmap->insert_active_event();
+        genevent = geneventmap->insert_active_event();
       }
       else
       {
         //! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.
 
-        geneventmap->insert_background_event();
+        genevent = geneventmap->insert_background_event();
       }
+      assert(genevent);
       genevent->addEvent(evt);
 
       // place to the crossing center in time
