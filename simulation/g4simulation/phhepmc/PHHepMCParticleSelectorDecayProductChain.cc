@@ -1,6 +1,7 @@
 #include "PHHepMCParticleSelectorDecayProductChain.h"
 
 #include "PHHepMCGenEvent.h"
+#include "PHHepMCGenEventMap.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -12,7 +13,8 @@
 
 using namespace std;
 
-PHHepMCParticleSelectorDecayProductChain::PHHepMCParticleSelectorDecayProductChain(const string &name): SubsysReco(name)
+PHHepMCParticleSelectorDecayProductChain::PHHepMCParticleSelectorDecayProductChain(const string &name):
+    SubsysReco(name), _embedding_id(0)
 {
   _theParticle = 11;
   return;
@@ -56,11 +58,17 @@ int PHHepMCParticleSelectorDecayProductChain::process_event(PHCompositeNode *top
       return Fun4AllReturnCodes::EVENT_OK;
     }
 
-  PHHepMCGenEvent *inEvent = findNode::getClass<PHHepMCGenEvent>(topNode, "PHHepMCGenEvent");
+  PHHepMCGenEventMap *   geneventmap = findNode::getClass<PHHepMCGenEventMap>(dstNode, "PHHepMCGenEventMap");
+  if(!geneventmap)
+    {
+      cerr << "ERROR: PHHepMCGenEventMap node not found!" << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  PHHepMCGenEvent *inEvent = geneventmap->get(_embedding_id);
   if(!inEvent)
     {
-      cerr << "ERROR: PHHepMCGenEvent node not found!" << endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
+      cerr << "PHHepMCParticleSelectorDecayProductChain::process_event - WARNING: PHHepMCGenEvent with embedding ID "<< _embedding_id <<" is not found! Move on." << endl;
+      return Fun4AllReturnCodes::DISCARDEVENT;
     }
 
   HepMC::GenEvent* event = inEvent->getEvent();
