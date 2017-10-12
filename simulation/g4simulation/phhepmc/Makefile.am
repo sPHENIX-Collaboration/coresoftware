@@ -24,7 +24,8 @@ pkginclude_HEADERS = \
   PHGenEventList.h \
   PHGenEventListv1.h \
   PHHepMCGenEvent.h \
-  PHHepMCGenEventMap.h
+  PHHepMCGenEventMap.h \
+  PHHepMCGenHelper.h
 
 libphhepmc_la_LDFLAGS = \
   ${AM_LDFLAGS} \
@@ -48,6 +49,8 @@ libphhepmc_la_SOURCES = \
   Fun4AllHepMCOutputManager_Dict.C \
   Fun4AllOscarInputManager.cc \
   Fun4AllOscarInputManager_Dict.C \
+  PHHepMCGenHelper.cc \
+  PHHepMCGenHelper_Dict.C \
   PHHepMCParticleSelectorDecayProductChain.cc \
   PHHepMCParticleSelectorDecayProductChain_Dict.C
 
