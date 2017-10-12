@@ -489,10 +489,10 @@ bool Fun4AllHepMCInputManager::shift_vertex(PHHepMCGenEvent *genevent) const
   if (!genevent) return false;
 
   genevent->moveVertex(
-      (smear(_vertex_x, _vertex_width_x * 10.0, _vertex_func_x)),
-      (smear(_vertex_y, _vertex_width_y * 10.0, _vertex_func_y)),
-      (smear(_vertex_z, _vertex_width_z * 10.0, _vertex_func_z)),
-      (smear(_vertex_t, _vertex_width_t * 10.0, _vertex_func_t)));
+      (smear(_vertex_x, _vertex_width_x, _vertex_func_x)),
+      (smear(_vertex_y, _vertex_width_y, _vertex_func_y)),
+      (smear(_vertex_z, _vertex_width_z, _vertex_func_z)),
+      (smear(_vertex_t, _vertex_width_t, _vertex_func_t)));
 
   return true;
 }
