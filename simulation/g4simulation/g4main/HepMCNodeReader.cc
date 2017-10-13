@@ -134,10 +134,11 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
   }
 
   // For pile-up simulation: loop over PHHepMC event map
+  // insert highest embedding ID event first, whose vertex maybe resued in  PHG4ParticleGeneratorBase::ReuseExistingVertex()
   int vtxindex = -1;
-  for (PHHepMCGenEventMap::Iter iter = genevtmap->begin(); iter != genevtmap->end(); ++iter)
+  for (PHHepMCGenEventMap::HepMCGenEventMap::reverse_iterator  iter = genevtmap->get_map().rbegin(); iter != genevtmap->get_map().rend(); ++iter)
   {
-    PHHepMCGenEvent *genevt = iter->second;
+    PHHepMCGenEvent * genevt = iter->second;
     assert(genevt);
 
     if (genevt->is_simulated())
