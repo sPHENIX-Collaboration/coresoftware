@@ -53,7 +53,8 @@ PHSartre::PHSartre(const std::string &name):
   //  the settings w/o re-initialing sartre.
   //
   _sartre = new Sartre();
-  
+
+  hepmc_helper.set_embedding_id(1); // default embedding ID to 1
 }
 
 PHSartre::~PHSartre() {

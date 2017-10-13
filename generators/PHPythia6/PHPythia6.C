@@ -54,7 +54,7 @@ PHPythia6::PHPythia6(const std::string &name):
   _triggersOR(true),
   _triggersAND(false){
 
-  //RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  hepmc_helper.set_embedding_id(1); // default embedding ID to 1
 }
 
 PHPythia6::~PHPythia6() {

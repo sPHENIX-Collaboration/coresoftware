@@ -52,6 +52,8 @@ PHPythia8::PHPythia8(const std::string &name):
   _pythiaToHepMC->set_store_proc(true);
   _pythiaToHepMC->set_store_pdf(true);
   _pythiaToHepMC->set_store_xsec(true); 
+
+  hepmc_helper.set_embedding_id(1); // default embedding ID to 1
 }
 
 PHPythia8::~PHPythia8() {

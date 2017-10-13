@@ -33,6 +33,7 @@ ReadEICFiles::ReadEICFiles(const string &name):
   GenEvent(nullptr),
   _node_name("PHHepMCGenEvent")
 {
+  hepmc_helper.set_embedding_id(1); // default embedding ID to 1
   return;
 }
 

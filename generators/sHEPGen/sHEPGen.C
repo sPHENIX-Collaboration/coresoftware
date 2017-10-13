@@ -32,6 +32,7 @@ sHEPGen::sHEPGen(const std::string &name):
   _hgenManager(NULL),
   _datacardFile("hepgen_dvcs.data")
 {
+  hepmc_helper.set_embedding_id(1); // default embedding ID to 1
 
 }
 
