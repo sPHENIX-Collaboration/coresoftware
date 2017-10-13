@@ -16,8 +16,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
-#include <phool/getClass.h>
 #include <phool/PHRandomSeed.h>
+#include <phool/getClass.h>
 
 #include <HepMC/GenEvent.h>
 #include <HepMC/IO_GenEvent.h>
@@ -27,6 +27,7 @@
 #include <gsl/gsl_rng.h>
 
 #include <cassert>
+#include <climits>
 #include <iostream>
 
 using namespace std;
@@ -45,6 +46,8 @@ PHHepMCGenHelper::PHHepMCGenHelper()
   , _vertex_width_z(0)
   , _vertex_width_t(0)
   , _embedding_id(0)
+  , _reuse_vertex(false)
+  , _reuse_vertex_embedding_id(numeric_limits<int>::min())
   , _geneventmap(nullptr)
 {
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
@@ -101,6 +104,28 @@ void PHHepMCGenHelper::move_vertex(PHHepMCGenEvent *genevent)
 
   assert(_vertex_width_x >= 0);
 
+  if (_reuse_vertex)
+  {
+    assert(_geneventmap);
+
+    PHHepMCGenEvent *vtx_evt =
+        _geneventmap->get(_reuse_vertex_embedding_id);
+
+    if (!vtx_evt)
+    {
+      cout << "PHHepMCGenHelper::move_vertex - Fatal Error - the requested source subevent with embedding ID "
+           << _reuse_vertex_embedding_id << " does not exist. Current HepMCEventMap:";
+      _geneventmap->identify();
+      exit(11);
+    }
+
+    genevent->moveVertex(
+        vtx_evt->get_collision_vertex().x(),
+        vtx_evt->get_collision_vertex().y(),
+        vtx_evt->get_collision_vertex().z(),
+        vtx_evt->get_collision_vertex().t());
+  }
+
   genevent->moveVertex(
       (smear(_vertex_x, _vertex_width_x, _vertex_func_x)),
       (smear(_vertex_y, _vertex_width_y, _vertex_func_y)),
@@ -139,7 +164,13 @@ double PHHepMCGenHelper::smear(const double position,
                                const double width,
                                VTXFUNC dist) const
 {
+  assert(width >= 0);
+
   double res = position;
+
+  if (width == 0)
+    return res;
+
   if (dist == Uniform)
   {
     res = (position - width) + 2 * gsl_rng_uniform_pos(RandomGenerator) * width;
