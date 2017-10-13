@@ -46,6 +46,7 @@
 #include <phool/PHNodeIterator.h>
 
 #include <phgeom/PHGeomUtility.h>
+#include <phfield/PHFieldUtility.h>
 
 #include <GenFit/FieldManager.h>
 #include <GenFit/GFRaveVertex.h>
@@ -55,6 +56,15 @@
 #include <GenFit/StateOnPlane.h>
 #include <GenFit/Track.h>
 #include <GenFit/KalmanFitterInfo.h>
+
+//Rave
+#include <rave/Version.h>
+#include <rave/Track.h>
+#include <rave/VertexFactory.h>
+#include <rave/ConstantMagneticField.h>
+
+//GenFit
+#include <GenFit/GFRaveConverters.h>
 
 #include <TClonesArray.h>
 #include <TMatrixDSym.h>
@@ -84,14 +94,6 @@
 
 using namespace std;
 
-//Rave
-#include <rave/Version.h>
-#include <rave/Track.h>
-#include <rave/VertexFactory.h>
-#include <rave/ConstantMagneticField.h>
-
-//GenFit
-#include <GenFit/GFRaveConverters.h>
 
 class PHRaveVertexFactory {
 
@@ -172,14 +174,12 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 		_over_write_svtxtrackmap(true),
 		_over_write_svtxvertexmap(true),
 		_fit_primary_tracks(false),
-		_mag_field_file_name("/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root"),
-		_mag_field_re_scaling_factor(1.4 / 1.5),
-		_reverse_mag_field(true),
-		_use_truth_vertex(true),
+		_use_truth_vertex(false),
 		_fitter( NULL),
 		_track_fitting_alg_name("DafRef"),
 		_primary_pid_guess(211),
-		_cut_min_pT(0.1),
+		_fit_min_pT(0.1),
+		_vertex_min_ndf(20),
 		_vertex_finder(NULL),
 		_vertexing_method("avf-smoothing:1"),
 		_truth_container(NULL),
@@ -233,13 +233,11 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
 	CreateNodes(topNode);
 
 	TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
+	PHField * field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
 	//_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
 	_fitter = PHGenFit::Fitter::getInstance(tgeo_manager,
-			_mag_field_file_name.data(),
-			(_reverse_mag_field) ?
-					-1. * _mag_field_re_scaling_factor :
-					_mag_field_re_scaling_factor, _track_fitting_alg_name,
+	    field, _track_fitting_alg_name,
 			"RKTrackRep", _do_evt_display);
 	_fitter->set_verbosity(verbosity);
 
@@ -304,7 +302,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		SvtxTrack* svtx_track = iter->second;
 		if (!svtx_track)
 			continue;
-		if (!(svtx_track->get_pt() > _cut_min_pT))
+		if (!(svtx_track->get_pt() > _fit_min_pT))
 			continue;
 
 		//! stands for Refit_PHGenFit_Track
@@ -314,7 +312,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 			svtxtrack_genfittrack_map[svtx_track->get_id()] =
 					rf_phgf_tracks.size();
 			rf_phgf_tracks.push_back(rf_phgf_track);
-			rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
+			if(rf_phgf_track->get_ndf() > _vertex_min_ndf)
+				rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
 		}
 	}
 
@@ -470,7 +469,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 				SvtxTrack* svtx_track = iter->second;
 				if (!svtx_track)
 					continue;
-				if (!(svtx_track->get_pt() > _cut_min_pT))
+				if (!(svtx_track->get_pt() > _fit_min_pT))
 					continue;
 				/*!
 				 * rf_phgf_track stands for Refit_PHGenFit_Track
@@ -830,9 +829,8 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		return NULL;
 	}
 
-	SvtxHitMap* hitsmap = NULL;
 	// get node containing the digitized hits
-	hitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+	SvtxHitMap* hitsmap =  findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
 	if (!hitsmap) {
 		cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
 		return NULL;
@@ -1310,9 +1308,13 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 	 * dca3d_xy, dca3d_z
 	 */
 
+
+	/*
+	// Rotate from u,v,n to r: n X Z, Z': n X r, n using 5D state/cov
+	// commented on 2017-10-09
+
 	TMatrixF pos_in(3,1);
 	TMatrixF cov_in(3,3);
-
 	pos_in[0][0] = gf_state_vertex_ca->getState()[3];
 	pos_in[1][0] = gf_state_vertex_ca->getState()[4];
 	pos_in[2][0] = 0.;
@@ -1346,7 +1348,8 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 
 	float dca3d_xy_error = sqrt(cov_out[0][0] + vertex_cov_out[0][0]);
 	float dca3d_z_error  = sqrt(cov_out[1][1] + vertex_cov_out[1][1]);
-	//Begin DEBUG
+
+		//Begin DEBUG
 //	LogDebug("rotation debug---------- ");
 //	gf_state_vertex_ca->Print();
 //	LogDebug("dca rotation---------- ");
@@ -1366,6 +1369,74 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 //	vertex_cov.Print();
 //	vertex_cov_out.Print();
 	//End DEBUG
+	*/
+
+	//
+	// in: X, Y, Z; out; r: n X Z, Z X r, Z
+
+	float dca3d_xy = NAN;
+	float dca3d_z  = NAN;
+	float dca3d_xy_error = NAN;
+	float dca3d_z_error  = NAN;
+
+	try{
+		TMatrixF pos_in(3,1);
+		TMatrixF cov_in(3,3);
+		TMatrixF pos_out(3,1);
+		TMatrixF cov_out(3,3);
+
+		TVectorD state6(6); // pos(3), mom(3)
+		TMatrixDSym cov6(6,6); //
+
+		gf_state_vertex_ca->get6DStateCov(state6, cov6);
+
+		TVector3 vn(state6[3], state6[4], state6[5]);
+
+		// mean of two multivariate gaussians Pos - Vertex
+		pos_in[0][0] = state6[0] - vertex_position.X();
+		pos_in[1][0] = state6[1] - vertex_position.Y();
+		pos_in[2][0] = state6[2] - vertex_position.Z();
+
+
+		for(int i=0;i<3;++i){
+			for(int j=0;j<3;++j){
+				cov_in[i][j] = cov6[i][j] + vertex_cov[i][j];
+			}
+		}
+
+		pos_cov_XYZ_to_RZ(vn, pos_in, cov_in, pos_out, cov_out);
+
+		dca3d_xy = pos_out[0][0];
+		dca3d_z  = pos_out[2][0];
+		dca3d_xy_error = sqrt(cov_out[0][0]);
+		dca3d_z_error  = sqrt(cov_out[2][2]);
+
+#ifdef _DEBUG_
+		cout<<__LINE__<<": Vertex: ----------------"<<endl;
+		vertex_position.Print();
+		vertex_cov.Print();
+
+		cout<<__LINE__<<": State: ----------------"<<endl;
+		state6.Print();
+		cov6.Print();
+
+		cout<<__LINE__<<": Mean: ----------------"<<endl;
+		pos_in.Print();
+		cout<<"===>"<<endl;
+		pos_out.Print();
+
+		cout<<__LINE__<<": Cov: ----------------"<<endl;
+		cov_in.Print();
+		cout<<"===>"<<endl;
+		cov_out.Print();
+
+		cout<<endl;
+#endif
+
+	} catch (...) {
+		if (verbosity > 0)
+			LogWarning("DCA calculationfailed!");
+	}
 
 	out_track->set_dca3d_xy(dca3d_xy);
 	out_track->set_dca3d_z(dca3d_z);
@@ -1376,9 +1447,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 
 	out_track->set_chisq(chi2);
 	out_track->set_ndf(ndf);
-	out_track->set_charge(
-			(_reverse_mag_field) ?
-					-1. * phgf_track->get_charge() : phgf_track->get_charge());
+	out_track->set_charge(phgf_track->get_charge());
 
 	out_track->set_px(mom.Px());
 	out_track->set_py(mom.Py());
@@ -1684,8 +1753,8 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 //	return true;
 //}
 
-bool PHG4TrackKalmanFitter::pos_cov_uvn_to_rz(const TVector3 u, const TVector3 v,
-		const TVector3 n, const TMatrixF pos_in, const TMatrixF cov_in,
+bool PHG4TrackKalmanFitter::pos_cov_uvn_to_rz(const TVector3& u, const TVector3& v,
+		const TVector3& n, const TMatrixF& pos_in, const TMatrixF& cov_in,
 		TMatrixF& pos_out, TMatrixF& cov_out) const {
 
 	if(pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3) {
@@ -1741,8 +1810,8 @@ bool PHG4TrackKalmanFitter::pos_cov_uvn_to_rz(const TVector3 u, const TVector3 v
 	return true;
 }
 
-bool PHG4TrackKalmanFitter::get_vertex_error_uvn(const TVector3 u,
-		const TVector3 v, const TVector3 n, const TMatrixF cov_in,
+bool PHG4TrackKalmanFitter::get_vertex_error_uvn(const TVector3& u,
+		const TVector3& v, const TVector3& n, const TMatrixF& cov_in,
 		TMatrixF& cov_out) const {
 
 	/*!
@@ -1780,6 +1849,63 @@ bool PHG4TrackKalmanFitter::get_vertex_error_uvn(const TVector3 u,
 
 	cov_out.ResizeTo(3, 3);
 
+	cov_out = R * cov_in * R_T;
+
+	return true;
+}
+
+
+bool PHG4TrackKalmanFitter::pos_cov_XYZ_to_RZ(
+		const TVector3& n, const TMatrixF& pos_in, const TMatrixF& cov_in,
+		TMatrixF& pos_out, TMatrixF& cov_out) const {
+
+	if(pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3) {
+		if(verbosity > 0) LogWarning("pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3");
+		return false;
+	}
+
+	if(cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3) {
+		if(verbosity > 0) LogWarning("cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3");
+		return false;
+	}
+
+	TVector3 r = n.Cross(TVector3(0.,0.,1.));
+
+	if(r.Mag() < 0.00001){
+		if(verbosity > 0) LogWarning("n is parallel to z");
+		return false;
+	}
+
+
+	// R: rotation from u,v,n to n X Z, nX(nXZ), n
+	TMatrixF R(3, 3);
+	TMatrixF R_T(3,3);
+
+	try {
+		// rotate u along z to up
+		float phi = -TMath::ATan2(r.Y(), r.X());
+		R[0][0] = cos(phi);
+		R[0][1] = -sin(phi);
+		R[0][2] = 0;
+		R[1][0] = sin(phi);
+		R[1][1] = cos(phi);
+		R[1][2] = 0;
+		R[2][0] = 0;
+		R[2][1] = 0;
+		R[2][2] = 1;
+
+		R_T.Transpose(R);
+	} catch (...) {
+		if (verbosity > 0)
+			LogWarning("Can't get rotation matrix");
+
+		return false;
+	}
+
+	pos_out.ResizeTo(3, 1);
+	cov_out.ResizeTo(3, 3);
+
+	pos_out = R * pos_in;
 	cov_out = R * cov_in * R_T;
 
 	return true;

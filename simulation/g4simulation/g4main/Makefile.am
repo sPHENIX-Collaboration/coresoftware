@@ -47,6 +47,8 @@ libphg4hit_la_LIBADD = \
   -leicsmear
 
 libphg4hit_la_SOURCES = \
+    PHG4EventHeader.cc \
+    PHG4EventHeaderv1.cc \
     PHG4Hit_Dict.cc \
     PHG4HitReadBack.cc \
     PHG4HitDefs.cc \
@@ -54,6 +56,7 @@ libphg4hit_la_SOURCES = \
     PHG4Hitv1.cc \
     PHG4HitEval.cc \
     PHG4HitContainer.cc \
+    PHG4InEvent.cc \
     PHG4Particle.cc \
     PHG4Particlev1.cc \
     PHG4Particlev2.cc \
@@ -66,15 +69,12 @@ libphg4hit_la_SOURCES = \
 libg4testbench_la_SOURCES = \
     G4TBMagneticFieldSetup.cc \
     G4TBFieldMessenger.cc \
+    PHG4MagneticField.cc \
     HepMCNodeReader.cc \
-    PHG4_Dict.cc \
     PHG4ConsistencyCheck.cc \
     PHG4EtaParameterization.cc \
     PHG4EtaPhiParameterization.cc \
-    PHG4EventHeader.cc \
-    PHG4EventHeaderv1.cc \
     PHG4HeadReco.cc \
-    PHG4InEvent.cc \
     PHG4InEventCompress.cc \
     PHG4InEventReadBack.cc \
     PHG4InputFilter.cc \
@@ -90,6 +90,7 @@ libg4testbench_la_SOURCES = \
     PHG4PhenixEventAction.cc \
     PHG4PhenixSteppingAction.cc \
     PHG4PhenixTrackingAction.cc \
+    PHG4_Dict.cc \
     PHG4PrimaryGeneratorAction.cc \
     PHG4Reco.cc \
     PHG4RegionInformation.cc \
@@ -107,7 +108,8 @@ libg4testbench_la_LDFLAGS = \
     -L$(libdir) \
     -L$(OFFLINE_MAIN)/lib \
     -lboost_filesystem \
-    -lg4field -lg4decayer \
+    -lphfield \
+    -lg4decayer \
     -lgsl -lgslcblas \
     -lvararray \
     -lHepMC \
@@ -124,7 +126,9 @@ libg4testbench_la_LIBADD = \
 # please add new classes in alphabetical order
 
 pkginclude_HEADERS = \
+  HepMCNodeReader.h \
   PHBBox.h \
+  PHG4ColorDefs.h \
   PHG4Detector.h \
   PHG4EventAction.h \
   PHG4EventHeader.h \
@@ -137,10 +141,14 @@ pkginclude_HEADERS = \
   PHG4Particle.h \
   PHG4Particlev1.h \
   PHG4Particlev2.h \
+  PHG4ParticleGenerator.h \
   PHG4ParticleGeneratorBase.h \
+  PHG4ParticleGeneratorVectorMeson.h \
   PHG4PhenixDetector.h \
+  PHG4PileupGenerator.h \
   PHG4Reco.h \
   PHG4RegionInformation.h \
+  PHG4SimpleEventGenerator.h \
   PHG4Shower.h \
   PHG4Showerv1.h \
   PHG4SteppingAction.h \
@@ -148,6 +156,7 @@ pkginclude_HEADERS = \
   PHG4TrackingAction.h \
   PHG4TrackUserInfoV1.h \
   PHG4TruthInfoContainer.h \
+  PHG4TruthSubsystem.h \
   PHG4Utils.h \
   PHG4VtxPoint.h \
   PHG4VtxPointv1.h
@@ -180,10 +189,7 @@ testexternals.cc:
 PHG4_Dict.cc: \
   HepMCNodeReader.h \
   PHG4ConsistencyCheck.h \
-  PHG4EventHeader.h \
-  PHG4EventHeaderv1.h \
   PHG4HeadReco.h \
-  PHG4InEvent.h \
   PHG4InEventCompress.h \
   PHG4InEventReadBack.h \
   PHG4InputFilter.h \
@@ -202,12 +208,15 @@ PHG4_Dict.cc: \
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
 
 PHG4Hit_Dict.cc: \
+  PHG4EventHeader.h \
+  PHG4EventHeaderv1.h \
   PHG4HitReadBack.h \
   PHG4Hit.h \
   PHG4HitDefs.h \
   PHG4Hitv1.h \
   PHG4HitEval.h \
   PHG4HitContainer.h \
+  PHG4InEvent.h \
   PHG4Shower.h \
   PHG4Showerv1.h \
   PHG4Particle.h \

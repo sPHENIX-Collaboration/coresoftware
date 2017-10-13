@@ -202,6 +202,20 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         break;
       }
+      else
+      {
+        cout << GetName() << ": New Hit for  " << endl;
+        cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+             << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+             << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
+             << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << endl;
+        cout << "last track: " << savetrackid
+             << ", current trackid: " << aTrack->GetTrackID() << endl;
+        cout << "phys pre vol: " << volume->GetName()
+             << " post vol : " << touchpost->GetVolume()->GetName() << endl;
+        cout << " previous phys pre vol: " << savevolpre->GetName()
+             << " previous phys post vol: " << savevolpost->GetName() << endl;
+      }
     case fGeomBoundary:
     case fUndefined:
       // if previous hit was saved, hit pointer was set to nullptr
@@ -210,7 +224,6 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         hit = new PHG4Hitv1();
       }
-      hit->set_scint_id(tower_id);  // the slat id (or steel plate id)
       //here we set the entrance values in cm
       hit->set_x(0, prePoint->GetPosition().x() / cm);
       hit->set_y(0, prePoint->GetPosition().y() / cm);
@@ -224,8 +237,9 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       hit->set_edep(0);
       if (whichactive > 0)  // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
-        hit->set_eion(0);         // only implemented for v5 otherwise empty
-        hit->set_light_yield(0);  // for scintillator only, initialize light yields
+        hit->set_scint_id(tower_id);  // the slat id
+        hit->set_eion(0);             // only implemented for v5 otherwise empty
+        hit->set_light_yield(0);      // for scintillator only, initialize light yields
         // Now save the container we want to add this hit to
         savehitcontainer = hits_;
       }
@@ -351,7 +365,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         savehitcontainer->AddHit(layer_id, hit);
         if (saveshower)
         {
-          saveshower->add_g4hit_id(hits_->GetID(), hit->get_hit_id());
+          saveshower->add_g4hit_id(savehitcontainer->GetID(), hit->get_hit_id());
         }
         // ownership has been transferred to container, set to null
         // so we will create a new hit for the next track

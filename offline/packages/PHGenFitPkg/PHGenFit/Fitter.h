@@ -20,6 +20,7 @@
 //#define NEW(expr) boost::make_shared<expr>
 
 class TGeoManager;
+class PHField;
 
 namespace genfit{
 	class FieldManager;
@@ -27,7 +28,7 @@ namespace genfit{
 	class EventDisplay;
 	class AbsKalmanFitter;
 	class AbsBField;
-	class Field2D;
+	class Field;
 }
 
 namespace PHGenFit {
@@ -43,8 +44,7 @@ public:
 
 	//! Default constructor
 	Fitter(const std::string &tgeo_file_name,
-			const std::string &field_file_name,
-			const double field_scaling_factor = 1.4/1.5,
+      const PHField * field,
 			const std::string &fitter_choice = "KalmanFitterRefTrack",
 			const std::string &track_rep_choice = "RKTrackRep",
 			const bool doEventDisplay = false);
@@ -65,22 +65,19 @@ public:
 	~Fitter();
 
 	static Fitter* getInstance(const std::string &tgeo_file_name,
-			const std::string &field_file_name,
-			const double field_scaling_factor = 1.4/1.5,
+      const PHField * field,
 			const std::string &fitter_choice = "KalmanFitterRefTrack",
 			const std::string &track_rep_choice = "RKTrackRep",
 			const bool doEventDisplay = false);
 
 	static Fitter* getInstance(TGeoManager* tgeo_manager,
-			const std::string &field_file_name,
-			const double field_scaling_factor = 1.4/1.5,
+      const PHField * field,
 			const std::string &fitter_choice = "KalmanFitterRefTrack",
 			const std::string &track_rep_choice = "RKTrackRep",
 			const bool doEventDisplay = false);
 
 	static Fitter* getInstance(TGeoManager* tgeo_manager,
-			const std::string &field_file_name,
-			const double field_scaling_factor = 1.4/1.5,
+			const PHField * field,
 			const PHGenFit::Fitter::FitterType &fitter_choice = PHGenFit::Fitter::KalmanFitter,
 			const PHGenFit::Fitter::TrackRepType &track_rep_choice = PHGenFit::Fitter::RKTrackRep,
 			const bool doEventDisplay = false);

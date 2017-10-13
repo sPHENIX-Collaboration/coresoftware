@@ -9,7 +9,6 @@
 class PHG4OuterHcalDetector;
 class PHG4Parameters;
 class PHG4OuterHcalSteppingAction;
-class PHG4EventAction;
 
 class PHG4OuterHcalSubsystem: public PHG4DetectorSubsystem
 {
@@ -44,8 +43,6 @@ class PHG4OuterHcalSubsystem: public PHG4DetectorSubsystem
   PHG4Detector* GetDetector( void ) const;
   PHG4SteppingAction* GetSteppingAction( void ) const;
 
-  PHG4EventAction* GetEventAction() const {return eventAction_;}
-
   void SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr);
 
   void EnableFieldChecker(const int i=1) {enable_field_checker = i;}
@@ -61,10 +58,6 @@ class PHG4OuterHcalSubsystem: public PHG4DetectorSubsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* steppingAction_;
-
-  //! begin/end of event action
-  /*! derives from PHG4EventAction */
-  PHG4EventAction *eventAction_;
 
   int enable_field_checker;
 };

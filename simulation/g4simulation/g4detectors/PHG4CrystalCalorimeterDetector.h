@@ -89,7 +89,7 @@ public:
   // ----- additional accessors used by derived classes: ------------
 
   //! Select mapping file for supermodule
-  virtual void SetSupermoduleGeometry( std::string filename2 )
+  virtual void SetSupermoduleGeometry(const std::string & filename2 )
   {
     return;
   }
