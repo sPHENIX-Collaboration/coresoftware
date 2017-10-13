@@ -47,9 +47,7 @@ PHPythia6::PHPythia6(const std::string &name):
   SubsysReco(name),
   _eventcount(0),
   _geneventcount(0),
-  _node_name("PHHepMCGenEvent"),
   _configFile("phpythia6.cfg"),
-  _phhepmcevt(NULL),
   _save_ascii( false ),
   _filename_ascii("pythia_hepmc.dat"),
   _registeredTriggers(),
@@ -458,25 +456,7 @@ int PHPythia6::process_event(PHCompositeNode *topNode) {
 
 int PHPythia6::CreateNodeTree(PHCompositeNode *topNode) {
 
-  PHCompositeNode *dstNode;
-  PHNodeIterator iter(topNode);
-
-  dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode) {
-    cout << PHWHERE << "DST Node missing doing nothing" << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  _phhepmcevt = new PHHepMCGenEvent();
-  PHObjectNode_t *newNode = new PHObjectNode_t(_phhepmcevt,_node_name.c_str(),"PHObject");
-  dstNode->addNode(newNode);
-
-  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode,"PHHepMCGenEventMap");
-  if (!geneventmap) {
-    geneventmap = new PHHepMCGenEventMap();
-    PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(geneventmap,"PHHepMCGenEventMap","PHObject");
-    dstNode->addNode(newmapnode);
-  }
+  hepmc_helper.create_node_tree(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
