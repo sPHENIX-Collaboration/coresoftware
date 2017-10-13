@@ -84,6 +84,12 @@ public:
   {
     hepmc_helper.set_vertex_distribution_width(x, y, z, t);
   }
+  //
+  //! reuse vertex from another PHHepMCGenEvent with embedding_id = src_embedding_id Additional smearing and shift possible with set_vertex_distribution_*()
+  void set_reuse_vertex(int src_embedding_id)
+  {
+    hepmc_helper.set_reuse_vertex(src_embedding_id);
+  }
 
   //! embedding ID for the event
   //! positive ID is the embedded event of interest, e.g. jetty event from pythia
