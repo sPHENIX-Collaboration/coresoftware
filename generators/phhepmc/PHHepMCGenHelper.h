@@ -27,7 +27,7 @@ class GenEvent;
 #endif
 
 /*!
- * \brief PHHepMCGenHelper
+ * \brief PHHepMCGenHelper provides service of DST upload of HepMC subevent, vertex assignment and random generator
  */
 class PHHepMCGenHelper
 {
@@ -91,6 +91,8 @@ class PHHepMCGenHelper
   {
     return _geneventmap;
   }
+
+  gsl_rng * get_random_generator() {return RandomGenerator;}
 
   void set_geneventmap(PHHepMCGenEventMap *geneventmap)
   {
