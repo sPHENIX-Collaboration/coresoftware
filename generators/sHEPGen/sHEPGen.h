@@ -2,7 +2,7 @@
 #define __SHEPGEN_H__
 
 #include <fun4all/SubsysReco.h>
-#include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenHelper.h>
 
 #ifndef __CINT__
 #include <gsl/gsl_rng.h>
@@ -45,8 +45,52 @@ public:
     _p_hadron_lab = hmom;
   }
 
-  void set_node_name(std::string s) {_node_name = s;}
+  void beam_vertex_parameters(double beamX,
+            double beamY,
+            double beamZ,
+            double beamXsigma,
+            double beamYsigma,
+            double beamZsigma) {
 
+    set_vertex_distribution_mean(beamX, beamY, beamZ, 0);
+    set_vertex_distribution_width(beamXsigma, beamYsigma, beamZsigma, 0);
+  }
+
+  //! toss a new vertex according to a Uniform or Gaus distribution
+  void set_vertex_distribution_function(PHHepMCGenHelper::VTXFUNC x, PHHepMCGenHelper::VTXFUNC y, PHHepMCGenHelper::VTXFUNC z, PHHepMCGenHelper::VTXFUNC t)
+  {
+    hepmc_helper.set_vertex_distribution_function(x, y, z, t);
+  }
+
+  //! set the mean value of the vertex distribution, use PHENIX units of cm, ns
+  void set_vertex_distribution_mean(const double x, const double y, const double z, const double t)
+  {
+    hepmc_helper.set_vertex_distribution_mean(x, y, z, t);
+  }
+
+  //! set the width of the vertex distribution function about the mean, use PHENIX units of cm, ns
+  void set_vertex_distribution_width(const double x, const double y, const double z, const double t)
+  {
+    hepmc_helper.set_vertex_distribution_width(x, y, z, t);
+  }
+  //
+  //! reuse vertex from another PHHepMCGenEvent with embedding_id = src_embedding_id Additional smearing and shift possible with set_vertex_distribution_*()
+  void set_reuse_vertex(int src_embedding_id)
+  {
+    hepmc_helper.set_reuse_vertex(src_embedding_id);
+  }
+
+  //! embedding ID for the event
+  //! positive ID is the embedded event of interest, e.g. jetty event from pythia
+  //! negative IDs are backgrounds, .e.g out of time pile up collisions
+  //! Usually, ID = 0 means the primary Au+Au collision background
+  int get_embedding_id() const { return hepmc_helper.get_embedding_id(); }
+  //
+  //! embedding ID for the event
+  //! positive ID is the embedded event of interest, e.g. jetty event from pythia
+  //! negative IDs are backgrounds, .e.g out of time pile up collisions
+  //! Usually, ID = 0 means the primary Au+Au collision background
+  void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
 private:
 
   /** Print HEPGen++ logo to screen
@@ -68,17 +112,13 @@ private:
   HLorentzVector *_p4_electron_prest;
   HLorentzVector *_p4_hadron_prest;
 
-  // output
-  std::string _node_name;
-
   // HEPGen++
   HGenManager* _hgenManager;
 
   std::string _datacardFile;
 
-  // HepMC
-  PHHepMCGenEvent *_phhepmcevt;
-
+  //! helper for insert HepMC event to DST node and add vertex smearing
+  PHHepMCGenHelper hepmc_helper;
 };
 
 #endif  /* __SHEPGEN_H__ */
