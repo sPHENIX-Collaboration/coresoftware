@@ -149,6 +149,10 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode *topNode) {
 	      return Fun4AllReturnCodes::ABORTEVENT;
 	    }
 
+	  } else if( (_state_names[i]=="RICH") ){
+
+	    // approximate position of RICH center at z = 220 cm
+	    _state_location.push_back( 220. );
 	  }
 	  else{
 	    cerr << PHWHERE << " ERROR: Unrecognized detector name for state projection:  " << _state_names[i] << endl;
@@ -582,6 +586,11 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	    // Project to a cylinder at fixed r	  
 		  pathlenth_from_first_meas = phgf_track->extrapolateToCylinder(*gf_state, _state_location[i], TVector3(0., 0., 0.),
 						      TVector3(0., 0., 1.), 0);
+	  } else if( (_state_names[i]=="RICH") ){
+
+	    // Project to a plane at fixed z
+	    pathlenth_from_first_meas = phgf_track->extrapolateToPlane(*gf_state, TVector3(0., 0., _state_location[i]),
+								       TVector3(1., 0., _state_location[i]), 0);
 	  }
 	  else{
 	    LogError("Unrecognized detector name for state projection"); 
