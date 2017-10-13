@@ -29,11 +29,10 @@ sHEPGen::sHEPGen(const std::string &name):
   _p4_hadron_lab_invert(nullptr),
   _p4_electron_prest(nullptr),
   _p4_hadron_prest(nullptr),
-  _node_name("PHHepMCGenEvent"),
   _hgenManager(NULL),
-  _datacardFile("hepgen_dvcs.data"),
-  _phhepmcevt(NULL)
+  _datacardFile("hepgen_dvcs.data")
 {
+  hepmc_helper.set_embedding_id(1); // default embedding ID to 1
 
 }
 
@@ -228,7 +227,7 @@ int sHEPGen::process_event(PHCompositeNode *topNode) {
   evt->add_vertex( hepmcvtx );
 
   /* pass HepMC to PHNode */
-  bool success = _phhepmcevt->addEvent(evt);
+  PHHepMCGenEvent * success = hepmc_helper . insert_event(evt);
   if (!success) {
     cout << "sHEPGen::process_event - Failed to add event to HepMC record!" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
@@ -245,18 +244,7 @@ int sHEPGen::process_event(PHCompositeNode *topNode) {
 
 int sHEPGen::create_node_tree(PHCompositeNode *topNode) {
 
-  PHCompositeNode *dstNode;
-  PHNodeIterator iter(topNode);
-
-  dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode) {
-    cout << PHWHERE << "DST Node missing doing nothing" << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  _phhepmcevt = new PHHepMCGenEvent();
-  PHObjectNode_t *newNode = new PHObjectNode_t(_phhepmcevt,_node_name.c_str(),"PHObject");
-  dstNode->addNode(newNode);
+  hepmc_helper.create_node_tree(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

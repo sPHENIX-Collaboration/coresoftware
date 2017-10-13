@@ -124,12 +124,12 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 						  "gembed:gprimary:"
 						  "trackID:px:py:pz:pt:eta:phi:"
 						  "charge:quality:chisq:ndf:nhits:layers:nmaps:nintt:ntpc:nlmaps:nlintt:nltpc:"
-						  "dca2d:dca2dsigma:pcax:pcay:pcaz:nfromtruth:nwrong:ntrumaps:ntruintt:ntrutpc:layersfromtruth");
+						  "dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:nfromtruth:nwrong:ntrumaps:ntruintt:ntrutpc:layersfromtruth");
   
   if (_do_track_eval) _ntp_track = new TNtuple("ntp_track","svtxtrack => max truth",
 					       "event:trackID:px:py:pz:pt:eta:phi:charge:"
 					       "quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nlmaps:nlintt:nltpc:layers:"
-					       "dca2d:dca2dsigma:pcax:pcay:pcaz:"
+					       "dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:"
 					       "presdphi:presdeta:prese3x3:prese:"   
 					       "cemcdphi:cemcdeta:cemce3x3:cemce:"
 					       "hcalindphi:hcalindeta:hcaline3x3:hcaline:"
@@ -1457,6 +1457,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	unsigned int layers = 0x0;
 	float dca2d         = NAN;
 	float dca2dsigma    = NAN;
+	float dca3dxy		 = NAN;
+	float dca3dxysigma	 = NAN;
+	float dca3dz		 = NAN;
+	float dca3dzsigma	 = NAN;
 	float px            = NAN;
 	float py            = NAN;
 	float pz            = NAN;
@@ -1520,6 +1524,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	    
 	    dca2d     = track->get_dca2d();
 	    dca2dsigma = track->get_dca2d_error();
+	    dca3dxy     = track->get_dca3d_xy();
+	    dca3dxysigma = track->get_dca3d_xy_error();
+	    dca3dz     = track->get_dca3d_z();
+	    dca3dzsigma = track->get_dca3d_z_error();
 	    px        = track->get_px();
 	    py        = track->get_py();
 	    pz        = track->get_pz();
@@ -1549,7 +1557,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	    layersfromtruth = trackeval->get_nclusters_contribution_by_layer(track,g4particle);
 	  }
 	}
-	float gtrack_data[58] = {(float) _ievent,
+	float gtrack_data[62] = {(float) _ievent,
 				 gtrackID,
 				 gflavor,
 				 ng4hits,
@@ -1597,7 +1605,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				 nlintt,
 				 nltpc,
 				 dca2d,      
-				 dca2dsigma, 			       
+				 dca2dsigma,
+				 dca3dxy,
+				 dca3dxysigma,
+				 dca3dz,
+				 dca3dzsigma,
 				 pcax,       
 				 pcay,       
 				 pcaz,
@@ -1695,6 +1707,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	layers = nlmaps+nlintt+nltpc;
 	float dca2d     = track->get_dca2d();
 	float dca2dsigma = track->get_dca2d_error();
+    float dca3dxy     = track->get_dca3d_xy();
+    float dca3dxysigma = track->get_dca3d_xy_error();
+    float dca3dz     = track->get_dca3d_z();
+    float dca3dzsigma = track->get_dca3d_z_error();
 	float px        = track->get_px();
 	float py        = track->get_py();
 	float pz        = track->get_pz();
@@ -1850,7 +1866,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  }
 	}
       
-	float track_data[74] = {(float) _ievent,
+	float track_data[78] = {(float) _ievent,
 				trackID, 
 				px,        
 				py,        
@@ -1865,7 +1881,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				nhits,nmaps,nintt,ntpc,nlmaps,nlintt,nltpc,   
 				(float) layers,
 				dca2d,     
-				dca2dsigma,      
+				dca2dsigma,
+				dca3dxy,
+				dca3dxysigma,
+				dca3dz,
+				dca3dzsigma,
 				pcax,      
 				pcay,      
 				pcaz,      

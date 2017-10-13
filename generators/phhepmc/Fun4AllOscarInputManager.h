@@ -1,35 +1,47 @@
-#ifndef READEICFILES_H__
-#define READEICFILES_H__
+#ifndef FUN4ALLOSCARINPUTMANAGER_H__
+#define FUN4ALLOSCARINPUTMANAGER_H__
+#include "PHHepMCGenHelper.h"
 
-#include <fun4all/SubsysReco.h>
-#include <phhepmc/PHHepMCGenHelper.h>
+#include <fun4all/Fun4AllInputManager.h>
 
 #include <string>
+#include <map>
+#include <fstream>
+#include <iostream>
 
-class PHHepMCGenEvent;
-class TChain;
-
-namespace erhic
+// forward declaration of classes in namespace
+namespace HepMC
 {
-class EventMC;
-}
+    class IO_GenEvent;
+    class GenEvent;
+};
 
-class ReadEICFiles : public SubsysReco
+class PHCompositeNode;
+class PHHepMCGenEvent;
+
+
+class Fun4AllOscarInputManager : public Fun4AllInputManager
 {
  public:
-  ReadEICFiles(const std::string &name = "EICReader");
-  virtual ~ReadEICFiles();
+  Fun4AllOscarInputManager(const std::string &name = "DUMMY", const std::string &topnodename = "TOP");
+  virtual ~Fun4AllOscarInputManager();
+  int fileopen(const std::string &filenam);
+  int fileclose();
+  int run(const int nevents = 0);
+  int isOpen() {return isopen;}
+  void Print(const std::string &what = "ALL") const;
+  int ResetEvent();
+  int PushBackEvents(const int i);
+  int skip(const int i){ return PushBackEvents(i);}
 
-  int Init(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  // Effectivly turn off the synchronization checking
+  //
+  int SyncIt(const SyncObject* /*mastersync*/) {return Fun4AllReturnCodes::SYNC_OK;}
+  int GetSyncObject(SyncObject** /*mastersync*/) {return Fun4AllReturnCodes::SYNC_NOOBJECT;}
+  int NoSyncPushBackEvents(const int nevt) {return PushBackEvents(nevt);}
+  int ConvertFromOscar();
 
-  /** Specify name of input file to open */
-  bool OpenInputFile(const std::string &name);
 
-  /** Set first entry from input tree to be used */
-  void SetFirstEntry(int e) { entry = e; }
-  /** Set name of output node */
-  void SetNodeName(std::string s) { _node_name = s; }
   //! toss a new vertex according to a Uniform or Gaus distribution
   void set_vertex_distribution_function(PHHepMCGenHelper::VTXFUNC x, PHHepMCGenHelper::VTXFUNC y, PHHepMCGenHelper::VTXFUNC z, PHHepMCGenHelper::VTXFUNC t)
   {
@@ -66,34 +78,25 @@ class ReadEICFiles : public SubsysReco
   //! Usually, ID = 0 means the primary Au+Au collision background
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
  protected:
-  /** Get tree from input file */
-  void GetTree();
-
-  /** Creade node on node tree */
-  int CreateNodeTree(PHCompositeNode *topNode);
-
-  /** Name of file containing input tree */
+  int OpenNextFile();
+  int isopen;
+  int events_total;
+  int events_thisfile;
   std::string filename;
+  std::string topNodeName;
+  PHCompositeNode *topNode;
+  HepMC::GenEvent *evt;
+  //HepMC::GenEvent *tmpEvt;
+  int skipEvents, skippedEvents;
 
-  /** Input tree created with eic-smear tree builder */
-  TChain *Tin;
-
-  /** Number of events in input tree */
-  int nEntries;
-
-  /** Number of current event being used from input tree */
-  int entry;
-
-  /** Pinter to event record in tree (= branch).
-      Use 'abstract' EventMC class pointer from which all
-      event types (erhic::EventMilou etc) inherit from. */
-  erhic::EventMC *GenEvent;
-
-  // output
-  std::string _node_name;
+  // some pointers for use in decompression handling
+  std::ifstream *filestream; // holds compressed filestream
+  std::istream *unzipstream; // feed into HepMc
+  std::ifstream theOscarFile;
 
   //! helper for insert HepMC event to DST node and add vertex smearing
   PHHepMCGenHelper hepmc_helper;
+  bool isCompressed;
 };
 
-#endif /* READEICFILES_H__ */
+#endif /* __FUN4ALLOSCARINPUTMANAGER_H__ */
