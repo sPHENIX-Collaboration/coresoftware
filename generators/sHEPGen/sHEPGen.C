@@ -226,7 +226,7 @@ int sHEPGen::process_event(PHCompositeNode *topNode) {
   evt->add_vertex( hepmcvtx );
 
   /* pass HepMC to PHNode */
-  PHHepMCGenEvent * success = hepmc_helper . insert_event(genevent);
+  PHHepMCGenEvent * success = hepmc_helper . insert_event(evt);
   if (!success) {
     cout << "sHEPGen::process_event - Failed to add event to HepMC record!" << endl;
     return Fun4AllReturnCodes::ABORTRUN;

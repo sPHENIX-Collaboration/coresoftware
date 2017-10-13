@@ -36,8 +36,7 @@ PHPythia8::PHPythia8(const std::string &name):
   _pythia(NULL),
   _configFile("phpythia8.cfg"),
   _commands(),
-  _pythiaToHepMC(NULL),
-  _phhepmcevt(NULL) {
+  _pythiaToHepMC(NULL) {
 
   char *charPath = getenv("PYTHIA8");
   if (!charPath) {

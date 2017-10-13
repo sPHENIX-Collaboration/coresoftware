@@ -29,27 +29,17 @@ PHSartre::PHSartre(const std::string &name):
   SubsysReco(name),
   _eventcount(0),
   _gencount(0),
-  _node_name("PHHepMCGenEvent"),
-  _useBeamVtx(false),
-  _beamX(0),
-  _beamXsigma(0),
-  _beamY(0),
-  _beamYsigma(0),
-  _beamZ(0),
-  _beamZsigma(0),
   _registeredTriggers(),
   _triggersOR(true),
   _triggersAND(false),
   _configFile(""),
   _commands(),
-  _phhepmcevt(NULL),
   _sartre(NULL),
   decay(NULL),
   daughterID(-1),
   daughterMasses{0.,0.},
   doPerformDecay(false) {
 
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   
   char *charPath = getenv("SARTRE_DIR");
   if (!charPath) {
@@ -67,7 +57,6 @@ PHSartre::PHSartre(const std::string &name):
 }
 
 PHSartre::~PHSartre() {
-  gsl_rng_free (RandomGenerator);
   delete _sartre;  
 }
 

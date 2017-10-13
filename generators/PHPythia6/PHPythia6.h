@@ -4,11 +4,8 @@
 #include <fun4all/SubsysReco.h>
 #include <phhepmc/PHHepMCGenHelper.h>
 
-#ifndef __CINT__
-#include <gsl/gsl_rng.h>
-#endif
-
 #include <string>
+#include <vector>
 
 class PHCompositeNode;
 class PHHepMCGenEvent;

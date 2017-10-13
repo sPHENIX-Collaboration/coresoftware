@@ -438,15 +438,11 @@ int PHPythia6::process_event(PHCompositeNode *topNode) {
 
   /* pass HepMC to PHNode*/
 
-  bool success = _phhepmcevt->addEvent(evt);
+  PHHepMCGenEvent * success = hepmc_helper . insert_event(evt);
   if (!success) {
     cout << "PHPythia6::process_event - Failed to add event to HepMC record!" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode,"PHHepMCGenEventMap");
-  geneventmap->insert(_phhepmcevt);
-
   /* print outs*/
   if (verbosity > 2) cout << "PHPythia6::process_event - FINISHED WHOLE EVENT" << endl;
 

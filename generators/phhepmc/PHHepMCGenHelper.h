@@ -92,7 +92,9 @@ class PHHepMCGenHelper
     return _geneventmap;
   }
 
+#ifndef __CINT__
   gsl_rng * get_random_generator() {return RandomGenerator;}
+#endif
 
   void set_geneventmap(PHHepMCGenEventMap *geneventmap)
   {
