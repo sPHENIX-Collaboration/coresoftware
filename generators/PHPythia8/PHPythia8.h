@@ -125,7 +125,6 @@ private:
   
   // HepMC
   HepMC::Pythia8ToHepMC *_pythiaToHepMC;
-  PHHepMCGenEvent *_phhepmcevt;
 
   //! helper for insert HepMC event to DST node and add vertex smearing
   PHHepMCGenHelper hepmc_helper;
