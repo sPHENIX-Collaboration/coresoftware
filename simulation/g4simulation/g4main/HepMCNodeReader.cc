@@ -98,6 +98,21 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 {
   // For pile-up simulation: define GenEventMap
   PHHepMCGenEventMap *genevtmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
+
+  if (!genevtmap)
+  {
+    static bool once = true;
+
+    if (once)
+    {
+      once = false;
+
+      cout <<"HepMCNodeReader::process_event - No PHHepMCGenEventMap node. Do not perform HepMC->Geant4 input"<<endl;
+    }
+
+    return Fun4AllReturnCodes::DISCARDEVENT;
+  }
+
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   if (!ineve)
   {
