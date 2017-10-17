@@ -75,6 +75,7 @@ public:
   //! positive ID is the embedded event of interest, e.g. jetty event from pythia
   //! negative IDs are backgrounds, .e.g out of time pile up collisions
   //! Usually, ID = 0 means the primary Au+Au collision background
+  //! \return: pairs of begin/end iterators of <trackID -> embedding ID>
   std::pair< std::map<int,int>::const_iterator,
 	     std::map<int,int>::const_iterator > GetEmbeddedTrkIds() const {
     return std::make_pair(particle_embed_flags.begin(), particle_embed_flags.end());
@@ -131,6 +132,7 @@ public:
   //! positive ID is the embedded event of interest, e.g. jetty event from pythia
   //! negative IDs are backgrounds, .e.g out of time pile up collisions
   //! Usually, ID = 0 means the primary Au+Au collision background
+  //! \return: pairs of begin/end iterators of <VertexID -> embedding ID>
   std::pair< std::map<int,int>::const_iterator,
 	     std::map<int,int>::const_iterator > GetEmbeddedVtxIds() const {
     return std::make_pair(vertex_embed_flags.begin(), vertex_embed_flags.end());
