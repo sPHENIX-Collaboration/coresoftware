@@ -107,7 +107,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
     {
       once = false;
 
-      cout <<"HepMCNodeReader::process_event - No PHHepMCGenEventMap node. Do not perform HepMC->Geant4 input"<<endl;
+      cout << "HepMCNodeReader::process_event - No PHHepMCGenEventMap node. Do not perform HepMC->Geant4 input" << endl;
     }
 
     return Fun4AllReturnCodes::DISCARDEVENT;
@@ -151,9 +151,9 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
   // For pile-up simulation: loop over PHHepMC event map
   // insert highest embedding ID event first, whose vertex maybe resued in  PHG4ParticleGeneratorBase::ReuseExistingVertex()
   int vtxindex = -1;
-  for (PHHepMCGenEventMap::HepMCGenEventMap::reverse_iterator  iter = genevtmap->get_map().rbegin(); iter != genevtmap->get_map().rend(); ++iter)
+  for (PHHepMCGenEventMap::ReverseIter iter = genevtmap->rbegin(); iter != genevtmap->rend(); ++iter)
   {
-    PHHepMCGenEvent * genevt = iter->second;
+    PHHepMCGenEvent *genevt = iter->second;
     assert(genevt);
 
     if (genevt->is_simulated())
@@ -322,7 +322,8 @@ void HepMCNodeReader::VertexPosition(const double v_x, const double v_y,
 {
   cout << "HepMCNodeReader::VertexPosition - WARNING - this function is depreciated. "
        << "HepMCNodeReader::VertexPosition() move all HEPMC subevents to a new vertex location. "
-       << "And the vertex shifts are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
+       << "This also leads to a different vertex is used for HepMC subevent in Geant4 than that recorded in the HepMCEvent Node."
+       << "Recommendation: the vertex shifts are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
        << endl;
 
   vertex_pos_x = v_x;
@@ -336,7 +337,8 @@ void HepMCNodeReader::SmearVertex(const double s_x, const double s_y,
 {
   cout << "HepMCNodeReader::SmearVertex - WARNING - this function is depreciated. "
        << "HepMCNodeReader::SmearVertex() smear each HEPMC subevents to a new vertex location. "
-       << "And the vertex smears are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
+       << "This also leads to a different vertex is used for HepMC subevent in Geant4 than that recorded in the HepMCEvent Node."
+       << "Recommendation: the vertex smears are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
        << endl;
 
   width_vx = s_x;
