@@ -42,9 +42,9 @@ using namespace std;
 Fun4AllHepMCPileupInputManager::Fun4AllHepMCPileupInputManager(
     const string &name, const string &nodename, const string &topnodename)
   : Fun4AllHepMCInputManager(name, nodename, topnodename)
-  , _min_integration_time(-1000.0)
-  , _max_integration_time(+1000.0)
-  , _collision_rate(100.0)
+  , _min_integration_time(-17500.0)
+  , _max_integration_time(+17500.0)
+  , _collision_rate(100.0e3)
   , _time_between_crossings(106.0)
   , _ave_coll_per_crossing(1.0)
   ,  // recalculated
@@ -80,7 +80,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
   {
     _first_run = false;
 
-    _ave_coll_per_crossing = _collision_rate * _time_between_crossings * 1000.0 * 1e-9;
+    _ave_coll_per_crossing = _collision_rate * _time_between_crossings * 1e-9;
     _min_crossing = _min_integration_time / _time_between_crossings;
     _max_crossing = _max_integration_time / _time_between_crossings;
 
