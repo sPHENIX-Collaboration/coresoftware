@@ -94,6 +94,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
       cout << " _ave_coll_per_crossing = " << _ave_coll_per_crossing;
       cout << " _min_crossing = " << _min_crossing;
       cout << " _max_crossing = " << _max_crossing;
+      cout << ". Start first event."<<endl;
     }
   }
 
