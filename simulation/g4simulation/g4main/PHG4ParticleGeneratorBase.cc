@@ -220,7 +220,7 @@ int PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)
 
     if (iter != genevtmap->rend())
     {
-      const PHHepMCGenEvent *&hepmc_evt = iter->second;
+      const PHHepMCGenEvent * hepmc_evt = iter->second;
 
       assert(hepmc_evt);
 
