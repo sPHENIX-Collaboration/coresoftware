@@ -54,6 +54,10 @@ Fun4AllHepMCPileupInputManager::Fun4AllHepMCPileupInputManager(
   ,  // recalculated
   _first_run(true)
 {
+
+  //! repeatedly read the input file
+  Repeat(1);
+
   //! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.
   hepmc_helper.set_embedding_id(-1);
 
