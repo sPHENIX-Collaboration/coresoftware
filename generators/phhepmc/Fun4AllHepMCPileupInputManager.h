@@ -41,16 +41,23 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
     _min_integration_time = past_nsec;
     _max_integration_time = future_nsec;    
   }
-  void set_collision_rate(double kHz) {_collision_rate = kHz;}
+
+  /// collision rate in Hz
+  void set_collision_rate(double Hz) {_collision_rate = Hz;}
+  /// time between bunch crossing in ns
   void set_time_between_crossings(double nsec) {_time_between_crossings = nsec;}
   
  private:
 
+  /// past times are negative, future times are positive
   double _min_integration_time;
   double _max_integration_time;
+  /// collision rate in Hz
   double _collision_rate;
+  /// time between bunch crossing in ns
   double _time_between_crossings;
 
+  //derived parameters
   double   _ave_coll_per_crossing;
   int      _min_crossing;
   int      _max_crossing;

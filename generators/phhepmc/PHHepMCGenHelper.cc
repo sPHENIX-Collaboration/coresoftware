@@ -32,6 +32,8 @@
 
 using namespace std;
 
+unsigned int PHHepMCGenHelper::_instant_id = 0;
+
 PHHepMCGenHelper::PHHepMCGenHelper()
   : _vertex_func_x(Gaus)
   , _vertex_func_y(Gaus)
@@ -50,9 +52,11 @@ PHHepMCGenHelper::PHHepMCGenHelper()
   , _reuse_vertex_embedding_id(numeric_limits<int>::min())
   , _geneventmap(nullptr)
 {
+  ++_instant_id;
+
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
-  unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
-  gsl_rng_set(RandomGenerator, seed);
+  unsigned int seed = PHRandomSeed();  // fixed seed is handled in this function
+  gsl_rng_set(RandomGenerator, seed + _instant_id); // avoid duplicated seed in the case of fixed initial seed
 }
 
 PHHepMCGenHelper::~PHHepMCGenHelper()

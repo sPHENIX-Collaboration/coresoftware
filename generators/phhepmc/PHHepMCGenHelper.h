@@ -137,6 +137,8 @@ class PHHepMCGenHelper
 
   //! pointer to the output container
   PHHepMCGenEventMap *_geneventmap;
+
+  static unsigned int _instant_id;
 };
 
 #endif /* SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_PHHEPMC_PHHEPMCGENHELPER_H_ */
