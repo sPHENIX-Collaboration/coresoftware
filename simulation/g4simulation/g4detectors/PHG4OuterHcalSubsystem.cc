@@ -155,8 +155,15 @@ PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_double_param("light_balance_inner_radius", NAN);
   set_default_double_param("light_balance_outer_corr", NAN);
   set_default_double_param("light_balance_outer_radius", NAN);
-  set_default_double_param("magnet_cutout_radius", 195.31);
-  set_default_double_param("magnet_cutout_scinti_radius", 195.96);
+// some math issue in the code does not subtract the magnet cutout correctly
+// (maybe some factor of 2 in a G4 volume creation)
+// The engineering drawing values are:
+//  set_default_double_param("magnet_cutout_radius", 195.31);
+//  set_default_double_param("magnet_cutout_scinti_radius", 195.96);
+// seting this to these values results in the correct edges
+// (verified by looking at the G4 hit coordinates of the inner edges)
+  set_default_double_param("magnet_cutout_radius", 195.72);
+  set_default_double_param("magnet_cutout_scinti_radius",  197.04);
   set_default_double_param("outer_radius", 264.71);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
@@ -168,7 +175,10 @@ PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_double_param("scinti_gap", 0.85);
   set_default_double_param("scinti_gap_neighbor", 0.1);
   set_default_double_param("scinti_inner_radius",183.89);
-  set_default_double_param("scinti_outer_radius",263.27);
+// some math issue in the code subtracts 0.1mm+ so the scintillator
+// does not end at 263.27 as per drawing but at 263.26
+// adding 0.125mm compensates for this (so 263.2825 gives the desired 263.27
+  set_default_double_param("scinti_outer_radius",263.2825);
   set_default_double_param("scinti_tile_thickness", 0.7);
   set_default_double_param("size_z", 304.91 * 2);
   set_default_double_param("steplimits", NAN);
