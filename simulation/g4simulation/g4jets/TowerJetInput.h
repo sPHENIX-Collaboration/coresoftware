@@ -12,7 +12,7 @@ class TowerJetInput : public JetInput {
   
 public:
 
-  TowerJetInput(Jet::SRC input);
+  TowerJetInput(Jet::SRC input, double ecut, double towerscale);
   virtual ~TowerJetInput() {}
 
   void identify(std::ostream& os = std::cout);
@@ -24,6 +24,8 @@ public:
 private:
   int _verbosity;
   Jet::SRC _input;
+  double _ecut;
+  double _towerscale;
 };
 
 #endif

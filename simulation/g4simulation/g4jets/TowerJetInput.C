@@ -25,9 +25,11 @@
 
 using namespace std;
 
-TowerJetInput::TowerJetInput(Jet::SRC input)
+TowerJetInput::TowerJetInput(Jet::SRC input, double ecut, double towerscale)
   : _verbosity(0),
-    _input(input) {
+    _input(input),
+    _ecut(ecut),
+    _towerscale(towerscale) {
 }
 
 void TowerJetInput::identify(std::ostream& os) {
@@ -136,6 +138,7 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
     geom->get_tower_geometry(tower -> get_key());
     assert(tower_geom);
 
+    if (tower->get_energy()<_ecut) continue;
     double r = tower_geom->get_center_radius();
     double phi = atan2(tower_geom->get_center_y(), tower_geom->get_center_x());
     double z0 = tower_geom->get_center_z();
@@ -144,7 +147,8 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
     
     double eta = asinh(z/r); // eta after shift from vertex
 
-    double pt = tower->get_energy() / cosh(eta);
+    double energy = tower->get_energy()*_towerscale;
+    double pt = energy / cosh(eta);
     double px = pt * cos(phi);
     double py = pt * sin(phi);
     double pz = pt * sinh(eta);
@@ -153,7 +157,7 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
     jet->set_px(px);
     jet->set_py(py);
     jet->set_pz(pz);
-    jet->set_e(tower->get_energy());
+    jet->set_e(energy);
     jet->insert_comp(_input,tower->get_id());
 
     pseudojets.push_back(jet);
