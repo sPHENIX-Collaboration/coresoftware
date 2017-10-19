@@ -85,7 +85,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 						 "nfromtruth");
 
   if (_do_gpoint_eval) _ntp_gpoint = new TNtuple("ntp_gpoint","g4point => best vertex",
-						 "event:gvx:gvy:gvz:gvt:gntracks:gembed"
+						 "event:gvx:gvy:gvz:gvt:gntracks:gembed:"
 						 "vx:vy:vz:ntracks:"
 						 "nfromtruth");
   
