@@ -656,13 +656,19 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       cout << "Filling ntp_gpoint " << endl;
       _timer->restart();
     }
-    SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
-    if (vertexmap && truthinfo)
+    if (truthinfo)
     {
       auto vrange = truthinfo->GetPrimaryVtxRange();
       const auto prange = truthinfo->GetPrimaryParticleRange();
+
+      map<int,unsigned int> vertex_particle_count;
+      for (auto iter = prange.first; iter != prange.second; ++iter) // process all primary paricle
+      {
+        ++vertex_particle_count[iter->second->get_vtx_id()];
+      }
+
       for (auto iter = vrange.first; iter != vrange.second; ++iter) // process all primary vertexes
       {
         const int point_id = iter->first;
@@ -678,7 +684,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
           float gvy = point->get_y();
           float gvz = point->get_z();
           float gvt = point->get_t();
-          float gntracks = count_if(prange.first, prange.second, [&point_id](const std::pair<const int, PHG4Particle*> & p){return p.second->get_vtx_id() == point_id;});
+          float gntracks = vertex_particle_count[point_id];
 
           float gembed = truthinfo->isEmbededVtx(point_id);
           float vx = NAN;
