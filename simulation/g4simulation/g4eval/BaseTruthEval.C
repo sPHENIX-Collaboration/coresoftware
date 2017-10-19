@@ -41,7 +41,8 @@ int BaseTruthEval::get_embed(PHG4Particle* particle) {
   if (_strict) {assert(particle);}
   else if (!particle) {++_errors; return 0;}
 
-  if (!is_primary(particle)) return 0;
+//  if (!is_primary(particle)) return 0;
+  // allow the secondary particles to be tagged with its embedding ID of tis primary particle
 
   PHG4Particle* primary = get_primary_particle(particle);
   if (_strict) {assert(primary);}
