@@ -71,14 +71,27 @@ public:
   int maxtrkindex() const;
   int mintrkindex() const;
 
+  //! Retrieve the embedding ID for the HepMC subevent or track to be analyzed.
+  //! positive ID is the embedded event of interest, e.g. jetty event from pythia
+  //! negative IDs are backgrounds, .e.g out of time pile up collisions
+  //! Usually, ID = 0 means the primary Au+Au collision background
   std::pair< std::map<int,int>::const_iterator,
 	     std::map<int,int>::const_iterator > GetEmbeddedTrkIds() const {
     return std::make_pair(particle_embed_flags.begin(), particle_embed_flags.end());
   }
+
+  //! Set the embedding ID for the HepMC subevent or track to be analyzed.
+  //! positive ID is the embedded event of interest, e.g. jetty event from pythia
+  //! negative IDs are backgrounds, .e.g out of time pile up collisions
+  //! Usually, ID = 0 means the primary Au+Au collision background
   void AddEmbededTrkId(const int id, const int flag) {
     particle_embed_flags.insert(std::make_pair(id,flag));
   }
 
+  //! Retrieve the embedding ID for the HepMC subevent or track to be analyzed.
+  //! positive ID is the embedded event of interest, e.g. jetty event from pythia
+  //! negative IDs are backgrounds, .e.g out of time pile up collisions
+  //! Usually, ID = 0 means the primary Au+Au collision background
   int isEmbeded(const int trackid) const;
    
   // --- vertex storage --------------------------------------------------------
@@ -114,14 +127,27 @@ public:
   // returns the first primary vertex that was processed by Geant4
   int GetPrimaryVertexIndex() {return (vtxmap.lower_bound(1))->first;}
 
+  //! Retrieve the embedding ID for the HepMC subevent or track to be analyzed.
+  //! positive ID is the embedded event of interest, e.g. jetty event from pythia
+  //! negative IDs are backgrounds, .e.g out of time pile up collisions
+  //! Usually, ID = 0 means the primary Au+Au collision background
   std::pair< std::map<int,int>::const_iterator,
 	     std::map<int,int>::const_iterator > GetEmbeddedVtxIds() const {
     return std::make_pair(vertex_embed_flags.begin(), vertex_embed_flags.end());
   }
+
+  //! Set the embedding ID for the HepMC subevent or track to be analyzed.
+  //! positive ID is the embedded event of interest, e.g. jetty event from pythia
+  //! negative IDs are backgrounds, .e.g out of time pile up collisions
+  //! Usually, ID = 0 means the primary Au+Au collision background
   void AddEmbededVtxId(const int id, const int flag) {
     vertex_embed_flags.insert(std::make_pair(id,flag));
   }
 
+  //! Retrieve the embedding ID for the HepMC subevent or track to be analyzed.
+  //! positive ID is the embedded event of interest, e.g. jetty event from pythia
+  //! negative IDs are backgrounds, .e.g out of time pile up collisions
+  //! Usually, ID = 0 means the primary Au+Au collision background
   int isEmbededVtx(const int vtxid) const;
 
   // --- shower storage ------------------------------------------------------

@@ -1160,6 +1160,6 @@ PHG4CylinderCellReco::SetDefaultParameters()
   set_default_double_param("size_long",NAN);
   set_default_double_param("size_perp",NAN);
   set_default_double_param("tmax",60.0);
-  set_default_double_param("tmin",0.0);
+  set_default_double_param("tmin",-20.0); // collision has a timing spread around the triggered event. Accepting negative time too.
   return;
 }

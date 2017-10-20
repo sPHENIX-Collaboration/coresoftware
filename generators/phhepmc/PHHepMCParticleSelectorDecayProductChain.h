@@ -30,6 +30,17 @@ class PHHepMCParticleSelectorDecayProductChain: public SubsysReco
 /// Add decay products of the particle you want in your output.
   virtual void AddDaughter(const int pid);
 
+  //! embedding ID for the event to be processed
+  //! positive ID is the embedded event of interest, e.g. jetty event from pythia
+  //! negative IDs are backgrounds, .e.g out of time pile up collisions
+  //! Usually, ID = 0 means the primary Au+Au collision background
+  int get_embedding_id() const { return _embedding_id; }
+  //
+  //! embedding ID for the event to be processed
+  //! positive ID is the embedded event of interest, e.g. jetty event from pythia
+  //! negative IDs are backgrounds, .e.g out of time pile up collisions
+  //! Usually, ID = 0 means the primary Au+Au collision background
+  void set_embedding_id(int id) { _embedding_id = id; }
  protected:
 
 /// find out if a particle comes from one of _theAncestors
@@ -44,6 +55,10 @@ HepMC::GenParticle*  GetParent(HepMC::GenParticle* p, HepMC::GenEvent* event);
 /// Ignored if empty
   std::vector<int> _theAncestors;
 
+  //! positive ID is the embedded event of interest, e.g. jetty event from pythia
+  //! negative IDs are backgrounds, .e.g out of time pile up collisions
+  //! Usually, ID = 0 means the primary Au+Au collision background
+  int _embedding_id;
 };
 
 #endif

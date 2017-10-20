@@ -1,5 +1,5 @@
 #include "Fun4AllOscarInputManager.h"
-#include "PHHepMCGenEvent.h"
+#include "PHHepMCGenEventMap.h"
 
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllSyncManager.h>
@@ -55,11 +55,18 @@ Fun4AllOscarInputManager::Fun4AllOscarInputManager(const string &name, const str
   Fun4AllServer *se = Fun4AllServer::instance();
   topNode = se->topNode(topNodeName.c_str());
   PHNodeIterator iter(topNode);
+  PHCompositeNode *dstNode = se->getNode(InputNode.c_str(), topNodeName.c_str());
 
-  phhepmcgenevt = new PHHepMCGenEvent();
-  PHObjectNode_t *newNode = new PHObjectNode_t(phhepmcgenevt,"PHHepMCGenEvent","PHObject");
-  topNode->addNode(newNode);
-  
+  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
+  if (!geneventmap)
+  {
+    geneventmap = new PHHepMCGenEventMap();
+    PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(geneventmap, "PHHepMCGenEventMap", "PHObject");
+    dstNode->addNode(newmapnode);
+  }
+
+  hepmc_helper.set_geneventmap(geneventmap);
+
 }
 
 Fun4AllOscarInputManager::~Fun4AllOscarInputManager()
@@ -173,7 +180,7 @@ int Fun4AllOscarInputManager::run(const int nevents)
       goto readagain;
     }
 
-  if(verbosity > 4) cout << "SIZE: " << phhepmcgenevt->size() << endl;
+//  if(verbosity > 4) cout << "SIZE: " << phhepmcgenevt->size() << endl;
   //mySyncManager->CurrentEvent(evt->event_number());
   events_total++;
   events_thisfile++;
@@ -457,12 +464,15 @@ Fun4AllOscarInputManager::ConvertFromOscar()
   if(verbosity > 5) evt->print();
   if(verbosity > 3) cout << "Adding Event to phhepmcgenevt" << endl;
 
-  if(!phhepmcgenevt->addEvent(evt))
-    {
-      cout << "Fun4AllOscarInputManager::ConvertOscar - Failed to add event to HepMC record!" << endl;
-      return 3;
-    }
-
+  PHHepMCGenEventMap::Iter ievt =
+      hepmc_helper.get_geneventmap()->find(hepmc_helper.get_embedding_id());
+  if (ievt != hepmc_helper.get_geneventmap()->end())
+  {
+    // override existing event
+    ievt->second->addEvent(evt);
+  }
+  else
+    hepmc_helper.insert_event(evt);
   return 0;
 
 }
