@@ -8,6 +8,7 @@
 class PHG4CrystalCalorimeterDetector;
 class PHG4Hit;
 class PHG4HitContainer;
+class PHG4Shower;
 
 class PHG4CrystalCalorimeterSteppingAction : public PHG4SteppingAction
 {
@@ -18,14 +19,15 @@ public:
   PHG4CrystalCalorimeterSteppingAction( PHG4CrystalCalorimeterDetector* );
 
   //! destroctor
-  virtual ~PHG4CrystalCalorimeterSteppingAction()
-  {}
+  virtual ~PHG4CrystalCalorimeterSteppingAction();
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
 
   //! reimplemented from base class
   virtual void SetInterfacePointers( PHCompositeNode* );
+
+private:
 
   //! Find tower index of mother volume
   int FindTowerIndex(G4TouchableHandle touch, int& j, int& k);
@@ -35,8 +37,6 @@ public:
 
   int ParseG4VolumeName(G4VPhysicalVolume* volume, int& j, int& k);
 
-private:
-
   //! pointer to the detector
   PHG4CrystalCalorimeterDetector* detector_;
 
@@ -44,7 +44,10 @@ private:
   PHG4HitContainer * hits_;
   PHG4HitContainer * absorberhits_;
   PHG4Hit *hit;
+  PHG4HitContainer *savehitcontainer;
+  PHG4Shower *saveshower;
 
+//  int light_scint_model;
 };
 
 
