@@ -37,7 +37,8 @@ void PHRandomSeed::InitSeed()
     fInitialized = true;
 
     cout << "PHRandomSeed::InitSeed - initialized with fixed random seed " << seed << " from recoConsts.RANDOMSEED. "<<endl
-         << "              To reproduce this random number sequences, please add this line to Fun4All macro: 'recoConsts::instance()->set_IntFlag(\"RANDOMSEED\", " << seed << ");'";
+        <<  "                         To reproduce this random number sequences, please add this line to Fun4All macro: "<<endl
+        <<  "                         recoConsts::instance()->set_IntFlag(\"RANDOMSEED\", " << seed << ");";
   }
   else
   {
@@ -68,6 +69,7 @@ void PHRandomSeed::InitSeed()
     fInitialized = true;
 
     cout << "PHRandomSeed::InitSeed - initialized with random seed " << random_seed << " from /dev/urandom. "<<endl
-         << "              To reproduce this random number sequences, please add this line to Fun4All macro: 'recoConsts::instance()->set_IntFlag(\"RANDOMSEED\", " << random_seed << ");'";
+         << "                         To reproduce this random number sequences, please add this line to Fun4All macro"<<endl
+         << "                         recoConsts::instance()->set_IntFlag(\"RANDOMSEED\", " << random_seed << ");";
   }
 }
