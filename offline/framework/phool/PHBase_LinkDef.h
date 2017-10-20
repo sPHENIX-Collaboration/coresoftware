@@ -5,7 +5,7 @@
 #pragma link C++ enum PHAccessType;
 #pragma link C++ enum  PHTreeType;
 #pragma link C++ function PHMessage(const std::string&, int, const std::string&);
-#pragma link C++ function PHRandomSeed();
+#pragma link C++ class PHRandomSeed-!;
 #pragma link C++ class PHFlag-! ;
 #pragma link C++ class PHObject+ ;
 #pragma link C++ class PHTimeServer-!;

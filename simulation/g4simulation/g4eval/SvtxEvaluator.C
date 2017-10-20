@@ -32,6 +32,7 @@
 #include <set>
 #include <cmath>
 #include <cassert>
+#include <algorithm>
 
 using namespace std;
 
@@ -84,7 +85,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 						 "nfromtruth");
 
   if (_do_gpoint_eval) _ntp_gpoint = new TNtuple("ntp_gpoint","g4point => best vertex",
-						 "event:gvx:gvy:gvz:gvt:gntracks:"
+						 "event:gvx:gvy:gvz:gvt:gntracks:gembed:"
 						 "vx:vy:vz:ntracks:"
 						 "nfromtruth");
   
@@ -613,7 +614,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
 	}
 	  
-	float vertex_data[11] = {(float) _ievent,
+	float vertex_data[12] = {(float) _ievent,
 				 vx,
 				 vy,
 				 vz,
@@ -647,58 +648,81 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //-----------------------
   // fill the gpoint NTuple
   //-----------------------
-  
-  if (_ntp_gpoint) {
-    if (verbosity > 0){ cout << "Filling ntp_gpoint " << endl; _timer->restart();}
-    SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
-    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
 
-    if (vertexmap && truthinfo) {
+  if (_ntp_gpoint)
+  {
+    if (verbosity > 0)
+    {
+      cout << "Filling ntp_gpoint " << endl;
+      _timer->restart();
+    }
+    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
-      PHG4VtxPoint* point =  truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
+    if (truthinfo)
+    {
+      auto vrange = truthinfo->GetPrimaryVtxRange();
+      const auto prange = truthinfo->GetPrimaryParticleRange();
 
-      if (point) {
-      
-	SvtxVertex* vertex = vertexeval->best_vertex_from(point);
-    
-	float gvx        = point->get_x();
-	float gvy        = point->get_y();
-	float gvz        = point->get_z();
-	float gvt        = point->get_t();
-	float gntracks   = truthinfo->GetNumPrimaryVertexParticles();
-	float vx         = NAN;
-	float vy         = NAN;
-	float vz         = NAN;
-	float ntracks    = NAN;
-	float nfromtruth = NAN;
+      map<int,unsigned int> vertex_particle_count;
+      for (auto iter = prange.first; iter != prange.second; ++iter) // process all primary paricle
+      {
+        ++vertex_particle_count[iter->second->get_vtx_id()];
+      }
 
-	if (vertex) {
-	  vx         = vertex->get_x();
-	  vy         = vertex->get_y();
-	  vz         = vertex->get_z();
-	  ntracks    = vertex->size_tracks();
-	  nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
-	}
-	
-	float gpoint_data[11] = {(float) _ievent,
-				 gvx,
-				 gvy,
-				 gvz,
-				 gvt,
-				 gntracks,
-				 vx,
-				 vy,
-				 vz,
-				 ntracks,
-				 nfromtruth
-	};
+      for (auto iter = vrange.first; iter != vrange.second; ++iter) // process all primary vertexes
+      {
+        const int point_id = iter->first;
+        PHG4VtxPoint* point = iter->second;
 
-	_ntp_gpoint->Fill(gpoint_data);      
+        //      PHG4VtxPoint* point =  truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
+
+        if (point)
+        {
+          SvtxVertex* vertex = vertexeval->best_vertex_from(point);
+
+          float gvx = point->get_x();
+          float gvy = point->get_y();
+          float gvz = point->get_z();
+          float gvt = point->get_t();
+          float gntracks = vertex_particle_count[point_id];
+
+          float gembed = truthinfo->isEmbededVtx(point_id);
+          float vx = NAN;
+          float vy = NAN;
+          float vz = NAN;
+          float ntracks = NAN;
+          float nfromtruth = NAN;
+
+          if (vertex)
+          {
+            vx = vertex->get_x();
+            vy = vertex->get_y();
+            vz = vertex->get_z();
+            ntracks = vertex->size_tracks();
+            nfromtruth = vertexeval->get_ntracks_contribution(vertex, point);
+          }
+
+          float gpoint_data[] = {(float) _ievent,
+                                   gvx,
+                                   gvy,
+                                   gvz,
+                                   gvt,
+                                   gntracks,
+                                   gembed,
+                                   vx,
+                                   vy,
+                                   vz,
+                                   ntracks,
+                                   nfromtruth};
+
+          _ntp_gpoint->Fill(gpoint_data);
+        }
       }
     }
-    if(verbosity >= 1){
+    if (verbosity >= 1)
+    {
       _timer->stop();
-      cout << "gpoint time:                "<<_timer->get_accumulated_time()/1000. << " sec" <<endl;
+      cout << "gpoint time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
     }
   }
   
