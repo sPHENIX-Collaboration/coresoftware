@@ -29,6 +29,7 @@ class PHRandomSeed
 #ifndef __CINT__
   static bool fInitialized;
   static std::mt19937 fRandomGenerator;
+  static std::uniform_int_distribution<unsigned int> fDistribution;
 #endif
 };
 
