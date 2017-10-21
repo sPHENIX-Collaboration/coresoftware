@@ -39,6 +39,12 @@
 #include <Geant4/G4Decay.hh>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+// hack for Geant 10.03.p03
+// Geant 10.02.p02 has this defined
+#ifndef aParticleIterator
+#define aParticleIterator ((subInstanceManager.offset[g4vpcInstanceID])._aParticleIterator)
+#endif
+
 
 P6DExtDecayerPhysics::P6DExtDecayerPhysics(const G4String& name)
   : G4VPhysicsConstructor(name),
