@@ -44,7 +44,7 @@ libphhepmc_la_SOURCES = \
   Fun4AllHepMCInputManager.cc \
   Fun4AllHepMCInputManager_Dict.C \
   Fun4AllHepMCPileupInputManager.cc \
-  Fun4AllHepMCPileupInputManager_Dict.cc \
+  Fun4AllHepMCPileupInputManager_Dict.C \
   Fun4AllHepMCOutputManager.cc \
   Fun4AllHepMCOutputManager_Dict.C \
   Fun4AllOscarInputManager.cc \
