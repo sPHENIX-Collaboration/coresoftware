@@ -203,6 +203,7 @@ PHG4_Dict.cc: \
   PHG4Reco.h \
   PHG4Subsystem.h \
   PHG4TruthSubsystem.h \
+  PHG4Utils.h \
   ReadEICFiles.h \
   PHG4LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
