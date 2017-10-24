@@ -87,108 +87,9 @@
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
 
-#define WILD_FLOAT -9999
-
 //#define _DEBUG_
 
 using namespace std;
-
-//namespace genfit {
-//
-//	class PHRaveVertexFactory : public GFRaveVertexFactory {
-//		 void findVertices ( std::vector <  genfit::GFRaveVertex* > *, const std::vector < SvtxTrack* > &, bool use_beamspot=false ) {
-//
-//			  clearMap();
-//
-//			  try{
-//			    RaveToGFVertices(GFvertices,
-//			                     factory_->create(GFTracksToTracks(GFTracks, &GFStates, IdGFTrackStateMap_, 0),
-//			                                      use_beamspot),
-//			                     IdGFTrackStateMap_);
-//			  }
-//			  catch(Exception & e){
-//			    clearMap();
-//			    std::cerr << e.what();
-//			  }
-//
-//			  clearMap();
-//		 }
-//	};
-//
-//}
-
-
-//
-//
-//class PHRaveVertexFactory {
-//
-//public:
-//	//! ctor
-//	PHRaveVertexFactory(const int verbosity) {
-//		rave::ConstantMagneticField mfield(0., 0., 0.); // RAVE use Tesla
-//		_factory = new rave::VertexFactory(mfield, rave::VacuumPropagator(),
-//				"default", verbosity);
-//
-//		IdGFTrackStateMap_.clear();
-//	}
-//
-//	//! dotr
-//	~PHRaveVertexFactory() {
-//		clearMap();
-//
-//		delete _factory;
-//	}
-//
-//	void findVertices(std::vector<genfit::GFRaveVertex*>* vertices,
-//			const std::vector<genfit::Track*>& tracks, const bool use_beamspot =
-//					false) {
-//
-//		clearMap();
-//
-//		try {
-//			genfit::RaveToGFVertices(vertices,
-//					_factory->create(
-//							genfit::GFTracksToTracks(tracks, NULL,
-//									IdGFTrackStateMap_, 0), use_beamspot),
-//					IdGFTrackStateMap_);
-//		} catch (genfit::Exception & e) {
-//			std::cerr << e.what();
-//		}
-//	}
-//
-//	void findVertices(std::vector<genfit::GFRaveVertex*>* vertices,
-//			const std::vector<genfit::Track*>& tracks,
-//			std::vector<genfit::MeasuredStateOnPlane*> & GFStates,
-//			const bool use_beamspot = false) {
-//
-//		clearMap();
-//
-//		try {
-//			genfit::RaveToGFVertices(vertices,
-//					_factory->create(
-//							genfit::GFTracksToTracks(tracks, &GFStates,
-//									IdGFTrackStateMap_, 0), use_beamspot),
-//					IdGFTrackStateMap_);
-//		} catch (genfit::Exception & e) {
-//			std::cerr << e.what();
-//		}
-//	}
-//
-//private:
-//	void clearMap() {
-//
-//		for (unsigned int i = 0; i < IdGFTrackStateMap_.size(); ++i)
-//			delete IdGFTrackStateMap_[i].state_;
-//
-//		IdGFTrackStateMap_.clear();
-//	}
-//
-//	std::map<int, genfit::trackAndState> IdGFTrackStateMap_;
-//
-//	rave::VertexFactory* _factory;
-//
-//};
-//
 
 /*
  * Constructor
@@ -243,13 +144,9 @@ int PHRaveVertexing::InitRun(PHCompositeNode *topNode) {
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
 
-	//LogDebug(genfit::FieldManager::getInstance()->getFieldVal(TVector3(0, 0, 0)).Z());
-
 	_vertex_finder = new genfit::GFRaveVertexFactory(verbosity);
 	_vertex_finder->setMethod(_vertexing_method.data());
 	//_vertex_finder->setBeamspot();
-
-	//_vertex_finder = new PHRaveVertexFactory(verbosity);
 
 	if (!_vertex_finder) {
 		cerr << PHWHERE << endl;
@@ -274,6 +171,7 @@ int PHRaveVertexing::process_event(PHCompositeNode *topNode) {
 
 	//! stands for Refit_GenFit_Tracks
 	GenFitTrackMap gf_track_map;
+	vector<genfit::Track*> gf_tracks;
 
 	for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
 			++iter) {
@@ -284,22 +182,14 @@ int PHRaveVertexing::process_event(PHCompositeNode *topNode) {
 		if (!(svtx_track->get_ndf() >= _vertex_min_ndf))
 			continue;
 
-		genfit::Track * genfit_track = TranslateSvtxToGenFitTrack(svtx_track);
+		//auto genfit_track = shared_ptr<genfit::Track> (TranslateSvtxToGenFitTrack(svtx_track));
+		auto genfit_track = TranslateSvtxToGenFitTrack(svtx_track);
 		if (!genfit_track)
 			continue;
-
-		gf_track_map.insert(pair<unsigned int, genfit::Track*> (iter->first, genfit_track));
+		gf_track_map.insert({genfit_track, iter->first});
+		gf_tracks.push_back(const_cast<genfit::Track*> (genfit_track));
 	}
-
-	//! find vertex using tracks
-	std::vector<genfit::GFRaveVertex*> rave_vertices;
-
-	vector<genfit::Track*> gf_tracks;
-
-	for(auto iter : gf_track_map) {
-		gf_tracks.push_back(iter.second);
-	}
-
+	vector<genfit::GFRaveVertex*> rave_vertices;
 	if (gf_tracks.size() >= 2) {
 		try {
 			_vertex_finder->findVertices(&rave_vertices, gf_tracks);
@@ -308,8 +198,9 @@ int PHRaveVertexing::process_event(PHCompositeNode *topNode) {
 				std::cout << PHWHERE << "GFRaveVertexFactory::findVertices failed!";
 		}
 	}
-
 	FillSvtxVertexMap(rave_vertices, gf_track_map);
+
+	for(auto iter : gf_track_map) delete iter.first;
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -502,10 +393,13 @@ bool PHRaveVertexing::FillSvtxVertexMap(
 			//TODO improve speed
 			const genfit::Track* rave_track =
 					rave_vtx->getParameters(i)->getTrack();
-			for(auto iter : gf_track_map) {
-				if (iter.second == rave_track)
-					svtx_vtx->insert_track(iter.first);
-			}
+//			for(auto iter : gf_track_map) {
+//				if (iter.second == rave_track)
+//					svtx_vtx->insert_track(iter.first);
+//			}
+			auto iter = gf_track_map.find(rave_track);
+			if(iter != gf_track_map.end())
+				svtx_vtx->insert_track(iter->second);
 		}
 
 		if (_over_write_svtxvertexmap) {

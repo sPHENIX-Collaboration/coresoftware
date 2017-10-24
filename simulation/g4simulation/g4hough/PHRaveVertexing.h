@@ -37,14 +37,11 @@ class SvtxEvalStack;
 class TFile;
 class TTree;
 
-//! \brief Helper class for using RAVE vertex finder.
-class PHRaveVertexFactory;
-
 //! \brief		Refit SvtxTracks with PHGenFit.
 class PHRaveVertexing: public SubsysReco {
 public:
 
-	typedef std::map<unsigned int, genfit::Track*> GenFitTrackMap;
+	typedef std::map<const genfit::Track*, unsigned int> GenFitTrackMap;
 
 	//! Default constructor
 	PHRaveVertexing(const std::string &name = "PHRaveVertexing");
