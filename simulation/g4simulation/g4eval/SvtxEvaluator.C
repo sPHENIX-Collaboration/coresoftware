@@ -114,7 +114,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 						   "event:hitID:x:y:z:r:phi:eta:ex:ey:ez:ephi:"
 						   "e:adc:layer:size:phisize:"
 						   "zsize:trackID:g4hitID:gx:"
-						   "gy:gz::gr:gphi:geta:gt:gtrackID:gflavor:"
+						   "gy:gz:gr:gphi:geta:gt:gtrackID:gflavor:"
 						   "gpx:gpy:gpz:gvx:gvy:gvz:"
 						   "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
 						   "gembed:gprimary:efromtruth:nparticles");
