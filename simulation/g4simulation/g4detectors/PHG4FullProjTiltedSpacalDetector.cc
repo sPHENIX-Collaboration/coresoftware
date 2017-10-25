@@ -332,10 +332,10 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
 
     typedef map<int, double> z_locations_t;
     z_locations_t z_locations;
-    z_locations[0000] = get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_assembly_spacing() * cm;
-    z_locations[0001] = get_geom_v3()->get_length() * cm / 2.0 - (get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_assembly_spacing() * cm);
-    z_locations[0100] = -(get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_assembly_spacing() * cm);
-    z_locations[0101] = -(get_geom_v3()->get_length() * cm / 2.0 - (get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_assembly_spacing() * cm));
+    z_locations[000] = get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_assembly_spacing() * cm;
+    z_locations[001] = get_geom_v3()->get_length() * cm / 2.0 - (get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_assembly_spacing() * cm);
+    z_locations[100] = -(get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_assembly_spacing() * cm);
+    z_locations[101] = -(get_geom_v3()->get_length() * cm / 2.0 - (get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_assembly_spacing() * cm));
 
     BOOST_FOREACH (z_locations_t::value_type& val, z_locations)
     {
@@ -367,10 +367,10 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
 
     typedef map<int, pair<int, int> > sign_t;
     sign_t signs;
-    signs[0100] = make_pair(+1, +1);
-    signs[0101] = make_pair(+1, -1);
-    signs[0200] = make_pair(-1, +1);
-    signs[0201] = make_pair(-1, -1);
+    signs[100] = make_pair(+1, +1);
+    signs[101] = make_pair(+1, -1);
+    signs[200] = make_pair(-1, +1);
+    signs[201] = make_pair(-1, -1);
 
     BOOST_FOREACH (sign_t::value_type& val, signs)
     {
@@ -437,7 +437,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     divider_VisAtt->SetVisibility(get_geom_v3()->is_azimuthal_seg_visible());
     divider_VisAtt->SetForceSolid(true);
 
-    int ID = 0300;
+    int ID = 300;
     for (const auto& geom : divider_azimuth_geoms)
     {
       G4Box* wall_solid = new G4Box(G4String(GetName() + G4String("_Divider_") + to_string(ID)),
@@ -466,6 +466,11 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
         calo_vol[wall_phys] = ID;
         assert(gdml_config);
         gdml_config->exclude_physical_vol(wall_phys);
+
+        if (Verbosity())
+        {
+          cout <<"PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg - placing divider "<<wall_phys->GetName() <<" copy ID "<<ID<<endl;
+        }
 
         ++ID;
       }
