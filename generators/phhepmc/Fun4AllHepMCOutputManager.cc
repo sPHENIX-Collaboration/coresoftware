@@ -1,8 +1,10 @@
 #include "Fun4AllHepMCOutputManager.h"
 
 #include "PHHepMCGenEvent.h"
+#include "PHHepMCGenEventMap.h"
 
 #include <fun4all/Fun4AllServer.h>
+#include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
 
 #include <HepMC/IO_GenEvent.h>
@@ -16,6 +18,7 @@
 #include <TPRegexp.h>
 
 #include <ostream>
+#include <cassert>
 #include <fstream>
 
 #include <boost/iostreams/filtering_streambuf.hpp>
@@ -32,7 +35,8 @@ Fun4AllHepMCOutputManager::Fun4AllHepMCOutputManager(const string &myname,
   outfilename(filename),
   comment_written(0),
   filestream(NULL),
-  zipstream(NULL)
+  zipstream(NULL),
+  _embedding_id(0)
 {
   TString tstr(filename);
   TPRegexp bzip_ext(".bz2$");
@@ -106,27 +110,45 @@ Fun4AllHepMCOutputManager::Print(const string &what) const
   return ;
 }
 
-int
-Fun4AllHepMCOutputManager::Write(PHCompositeNode* topNode)
+int Fun4AllHepMCOutputManager::Write(PHCompositeNode *topNode)
 {
   if (!comment_written)
+  {
+    if (comment.size())
     {
-      if (comment.size())
-	{
       ascii_out->write_comment(comment);
-	}
-      comment_written = 1;
     }
-PHHepMCGenEvent *genevt = findNode::getClass<PHHepMCGenEvent>(topNode,"PHHepMCGenEvent");
-HepMC::GenEvent *evt = genevt->getEvent();
+    comment_written = 1;
+  }
+
+  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
+
+  if (!geneventmap)
+  {
+    cout << "Fun4AllHepMCOutputManager::Write - Fatal Error - missing source node PHHepMCGenEventMap" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  assert(geneventmap);
+
+  PHHepMCGenEvent *genevt = geneventmap->get(_embedding_id);
+  if (!genevt)
+  {
+    cout << "Fun4AllHepMCOutputManager::Write - Warning - missing sub-event with embedding ID" << _embedding_id<<" on node PHHepMCGenEventMap" << endl;
+    return Fun4AllReturnCodes::DISCARDEVENT;
+  }
+  assert(genevt);
+
+  HepMC::GenEvent *evt = genevt->getEvent();
   if (!evt)
-    {
-      cout << PHWHERE << "0 HepMC Pointer" << endl;
-      return -1;
-    }
+  {
+    cout << PHWHERE << "0 HepMC Pointer" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  assert(evt);
+
   nEvents++;
   ascii_out->write_event(evt);
-  return 0;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int
