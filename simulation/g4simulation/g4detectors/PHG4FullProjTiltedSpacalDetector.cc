@@ -367,10 +367,10 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
 
     typedef map<int, pair<int, int> > sign_t;
     sign_t signs;
-    signs[2000] = make_pair(+1, +1);
-    signs[2001] = make_pair(+1, -1);
-    signs[2100] = make_pair(-1, +1);
-    signs[2101] = make_pair(-1, -1);
+    signs[0100] = make_pair(+1, +1);
+    signs[0101] = make_pair(+1, -1);
+    signs[0200] = make_pair(-1, +1);
+    signs[0201] = make_pair(-1, -1);
 
     BOOST_FOREACH (sign_t::value_type& val, signs)
     {
@@ -437,7 +437,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     divider_VisAtt->SetVisibility(get_geom_v3()->is_azimuthal_seg_visible());
     divider_VisAtt->SetForceSolid(true);
 
-    int ID = 0;
+    int ID = 0300;
     for (const auto& geom : divider_azimuth_geoms)
     {
       G4Box* wall_solid = new G4Box(G4String(GetName() + G4String("_Divider_") + to_string(ID)),
