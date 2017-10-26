@@ -318,6 +318,22 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
       if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
 
+      // the matching z-bin window in the corresponding cells
+      int min_cell_zbin = 0;
+      int max_cell_zbin = nzbins-1;
+      if (hiter->second->get_avg_z()>0)
+      {
+        //positive drifting volume
+
+        min_cell_zbin = nzbins/2;
+      }
+      else
+      {
+        //negative drifting volume
+
+        max_cell_zbin = nzbins/2 - 1;
+      }
+
       double xinout;
       double yinout;
       double phi;
@@ -542,7 +558,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
             for (int iz = -n_zz; iz != n_zz + 1; ++iz)
             {
               int cur_z_bin = zbinseg + iz;
-              if ((cur_z_bin < 0) || (cur_z_bin >= nzbins)) continue;
+              if ((cur_z_bin < min_cell_zbin) || (cur_z_bin > max_cell_zbin)) continue;
               // Get the integral of the charge probability distribution in Z inside the current Z step. We only need to get the relative signs correct here, I think
               // this is correct for z further from the membrane - charge arrives early
               double zLim1 = 0.5 * M_SQRT2 * ((iz + 0.5) * zstepsize - zdispseg) * cloud_sig_zz_inv[0];
