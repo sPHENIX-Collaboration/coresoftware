@@ -286,20 +286,10 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit) {
   int count = 0;
   multimap<unsigned int, innerMap>::iterator miter = _clusters_per_layer.find(hit_layer);
 
-  auto iter_lower_bound = miter->second.begin();
-  auto iter_upper_bound = miter->second.end();
+  const float hit_phi= fast_approx_atan2( truthhit->get_avg_y(),truthhit->get_avg_x() );
 
-  // search for the same halfs of detectors to allow TPC drifts
-  if (truthhit->get_avg_z()>=0)
-  {
-    // if in TPC, it is in the positive drift range
-    iter_lower_bound = miter->second.lower_bound(0);
-  }
-  else
-  {
-    // if in TPC, it is in the negative drift range
-    iter_upper_bound = miter->second.upper_bound(0);
-  }
+  auto iter_lower_bound = miter->second.lower_bound(hit_phi - _clusters_searching_window);
+  auto iter_upper_bound = miter->second.upper_bound(hit_phi + _clusters_searching_window);
 
   for(multimap<float, SvtxCluster*>::iterator liter = iter_lower_bound;
       liter != iter_upper_bound;
