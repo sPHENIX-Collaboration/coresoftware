@@ -14,12 +14,14 @@
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 
+#include <TMath.h>
+
 #include <cassert>
 #include <float.h>
 #include <map>
+#include <cmath>
 #include <set>
 #include <TVector3.h>
-#include <TMath.h>
 
 using namespace std;
 
@@ -65,7 +67,7 @@ void SvtxClusterEval::next_event(PHCompositeNode* topNode) {
   _cache_get_energy_contribution_g4hit.clear();
 
   _clusters_per_layer.clear();
-  _g4hits_per_layer.clear();
+//  _g4hits_per_layer.clear();
   _hiteval.next_event(topNode);
   
   get_node_pointers(topNode);
@@ -453,17 +455,26 @@ void SvtxClusterEval::get_node_pointers(PHCompositeNode *topNode) {
 void SvtxClusterEval::fill_cluster_layer_map(){
   // loop over all the clusters
 
-  for(unsigned int i = 0;i<47;i++){
-    _clusters_per_layer.insert(make_pair(i,innerMap()));
-  }
+//  for(unsigned int i = 0;i<47;i++){
+//    _clusters_per_layer.insert(make_pair(i,innerMap()));
+//  }
 
   for (SvtxClusterMap::Iter iter = _clustermap->begin();iter != _clustermap->end();++iter) {
     SvtxCluster* cluster = iter->second;
     unsigned int ilayer = cluster->get_layer();
-    float clus_z = cluster->get_z();
-    multimap<unsigned int, innerMap >::iterator it;
-    it = _clusters_per_layer.find(ilayer);
-    it->second.insert(make_pair(clus_z,cluster));
+    float clus_phi = fast_approx_atan2(cluster->get_y(), cluster->get_x());
+
+    multimap<unsigned int, innerMap >::iterator it = _clusters_per_layer.find(ilayer);
+    if (it == _clusters_per_layer.end())
+    {
+      it = _clusters_per_layer.insert(make_pair(ilayer,innerMap()));
+    }
+    it->second.insert(make_pair(clus_phi,cluster));
+
+    //address wrapping along +/-PI by filling larger area of the map
+    if (clus_phi - (-M_PI)<_clusters_searching_window) it->second.insert(make_pair(clus_phi + 2* M_PI,cluster));
+    if (M_PI - clus_phi <_clusters_searching_window) it->second.insert(make_pair(clus_phi - 2* M_PI,cluster));
+
   }
   return;
 }
@@ -480,4 +491,66 @@ bool SvtxClusterEval::has_node_pointers() {
   else if (!_truthinfo) return false;
   
   return true;
+}
+
+
+float SvtxClusterEval::fast_approx_atan2(float y, float x)
+{
+    if (x != 0.0f)
+    {
+        if (fabsf(x) > fabsf(y))
+        {
+            const float z = y / x;
+            if (x > 0.0)
+            {
+                // atan2(y,x) = atan(y/x) if x > 0
+                return fast_approx_atan2(z);
+            }
+            else if (y >= 0.0)
+            {
+                // atan2(y,x) = atan(y/x) + PI if x < 0, y >= 0
+                return fast_approx_atan2(z) + M_PI;
+            }
+            else
+            {
+                // atan2(y,x) = atan(y/x) - PI if x < 0, y < 0
+                return fast_approx_atan2(z) - M_PI;
+            }
+        }
+        else // Use property atan(y/x) = PI/2 - atan(x/y) if |y/x| > 1.
+        {
+            const float z = x / y;
+            if (y > 0.0)
+            {
+                // atan2(y,x) = PI/2 - atan(x/y) if |y/x| > 1, y > 0
+                return -fast_approx_atan2(z) + M_PI_2;
+            }
+            else
+            {
+                // atan2(y,x) = -PI/2 - atan(x/y) if |y/x| > 1, y < 0
+                return -fast_approx_atan2(z) - M_PI_2;
+            }
+        }
+    }
+    else
+    {
+        if (y > 0.0f) // x = 0, y > 0
+        {
+            return M_PI_2;
+        }
+        else if (y < 0.0f) // x = 0, y < 0
+        {
+            return -M_PI_2;
+        }
+    }
+    return 0.0f; // x,y = 0. Could return NaN instead.
+}
+
+float SvtxClusterEval::fast_approx_atan2(float z)
+{
+  // Polynomial approximating arctangenet on the range -1,1.
+  // Max error < 0.005 (or 0.29 degrees)
+    const float n1 = 0.97239411f;
+    const float n2 = -0.19194795f;
+    return (n1 + n2 * z * z) * z;
 }
