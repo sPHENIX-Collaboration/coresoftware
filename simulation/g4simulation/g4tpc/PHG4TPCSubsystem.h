@@ -11,17 +11,16 @@ class PHG4TPCDetector;
 class PHG4Parameters;
 class PHG4TPCSteppingAction;
 
-class PHG4TPCSubsystem: public PHG4DetectorSubsystem
+class PHG4TPCSubsystem : public PHG4DetectorSubsystem
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4TPCSubsystem( const std::string &name = "TPC", const int layer = 0 );
+  PHG4TPCSubsystem(const std::string &name = "TPC", const int layer = 0);
 
   //! destructor
-  virtual ~PHG4TPCSubsystem( void )
-  {}
+  virtual ~PHG4TPCSubsystem(void)
+  {
+  }
 
   /*!
   creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
@@ -41,20 +40,18 @@ class PHG4TPCSubsystem: public PHG4DetectorSubsystem
   void Print(const std::string &what = "ALL") const;
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector( void ) const;
-  PHG4SteppingAction* GetSteppingAction( void ) const {return steppingAction_;}
-
-  private:
-
+  PHG4Detector *GetDetector(void) const;
+  PHG4SteppingAction *GetSteppingAction(void) const { return steppingAction_; }
+ private:
   void SetDefaultParameters();
 
   //! detector geometry
   /*! derives from PHG4Detector */
-  PHG4TPCDetector* detector_;
+  PHG4TPCDetector *detector_;
 
   //! detector "stepping" action, executes after every G4 step
   /*! derives from PHG4SteppingAction */
-  PHG4SteppingAction* steppingAction_;
+  PHG4SteppingAction *steppingAction_;
 
   //! detector event action executes before/after every event
   /*! derives from PHG4EventAction */

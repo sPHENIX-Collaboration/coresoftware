@@ -2,6 +2,7 @@
 #include "PHPy6GenTrigger.h"
 
 #include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenEventMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -46,16 +47,14 @@ PHPythia6::PHPythia6(const std::string &name):
   SubsysReco(name),
   _eventcount(0),
   _geneventcount(0),
-  _node_name("PHHepMCGenEvent"),
   _configFile("phpythia6.cfg"),
-  _phhepmcevt(NULL),
   _save_ascii( false ),
   _filename_ascii("pythia_hepmc.dat"),
   _registeredTriggers(),
   _triggersOR(true),
   _triggersAND(false){
 
-  //RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  hepmc_helper.set_embedding_id(1); // default embedding ID to 1
 }
 
 PHPythia6::~PHPythia6() {
@@ -439,12 +438,11 @@ int PHPythia6::process_event(PHCompositeNode *topNode) {
 
   /* pass HepMC to PHNode*/
 
-  bool success = _phhepmcevt->addEvent(evt);
+  PHHepMCGenEvent * success = hepmc_helper . insert_event(evt);
   if (!success) {
     cout << "PHPythia6::process_event - Failed to add event to HepMC record!" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
   /* print outs*/
   if (verbosity > 2) cout << "PHPythia6::process_event - FINISHED WHOLE EVENT" << endl;
 
@@ -454,18 +452,7 @@ int PHPythia6::process_event(PHCompositeNode *topNode) {
 
 int PHPythia6::CreateNodeTree(PHCompositeNode *topNode) {
 
-  PHCompositeNode *dstNode;
-  PHNodeIterator iter(topNode);
-
-  dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode) {
-    cout << PHWHERE << "DST Node missing doing nothing" << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  _phhepmcevt = new PHHepMCGenEvent();
-  PHObjectNode_t *newNode = new PHObjectNode_t(_phhepmcevt,_node_name.c_str(),"PHObject");
-  dstNode->addNode(newNode);
+  hepmc_helper.create_node_tree(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

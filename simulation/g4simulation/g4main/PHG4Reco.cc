@@ -41,7 +41,6 @@
 #include <Geant4/G4UIExecutive.hh>
 #include <Geant4/G4UImanager.hh>
 #include <Geant4/G4VisExecutive.hh>
-
 #include <Geant4/G4Cerenkov.hh>
 #include <Geant4/G4EmProcessOptions.hh>
 #include <Geant4/G4EmSaturation.hh>
@@ -63,7 +62,7 @@
 #include <Geant4/G4ParticleTypes.hh>
 #include <Geant4/G4ProcessManager.hh>
 #include <Geant4/G4Scintillation.hh>
-
+#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Version.hh>
 #include <Geant4/globals.hh>
 

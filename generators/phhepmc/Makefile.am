@@ -16,13 +16,16 @@ lib_LTLIBRARIES = \
 
 pkginclude_HEADERS = \
   Fun4AllHepMCInputManager.h \
+  Fun4AllHepMCPileupInputManager.h \
   Fun4AllHepMCOutputManager.h \
   Fun4AllOscarInputManager.h \
   PHGenEvent.h \
   PHGenEventv1.h \
   PHGenEventList.h \
   PHGenEventListv1.h \
-  PHHepMCGenEvent.h
+  PHHepMCGenEvent.h \
+  PHHepMCGenEventMap.h \
+  PHHepMCGenHelper.h
 
 libphhepmc_la_LDFLAGS = \
   ${AM_LDFLAGS} \
@@ -33,15 +36,21 @@ libphhepmc_la_LIBADD = \
   -lphool \
   -lSubsysReco \
   -lboost_iostreams \
-  -lfun4all
+  -lfun4all \
+  -lgsl \
+  -lgslcblas
 
 libphhepmc_la_SOURCES = \
   Fun4AllHepMCInputManager.cc \
   Fun4AllHepMCInputManager_Dict.C \
+  Fun4AllHepMCPileupInputManager.cc \
+  Fun4AllHepMCPileupInputManager_Dict.C \
   Fun4AllHepMCOutputManager.cc \
   Fun4AllHepMCOutputManager_Dict.C \
   Fun4AllOscarInputManager.cc \
   Fun4AllOscarInputManager_Dict.C \
+  PHHepMCGenHelper.cc \
+  PHHepMCGenHelper_Dict.C \
   PHHepMCParticleSelectorDecayProductChain.cc \
   PHHepMCParticleSelectorDecayProductChain_Dict.C
 
@@ -49,7 +58,9 @@ libphhepmc_io_la_SOURCES = \
   PHGenEventv1.cc \
   PHGenEventListv1.cc \
   PHHepMCGenEvent.cc \
+  PHHepMCGenEventMap.cc \
   PHHepMC_io_Dict.C
+
 
 libphhepmc_io_la_LDFLAGS = \
   ${AM_LDFLAGS} \
@@ -89,6 +100,7 @@ PHHepMC_io_Dict.C: \
   PHGenEventList.h \
   PHGenEventListv1.h \
   PHHepMCGenEvent.h \
+  PHHepMCGenEventMap.h \
   $(OFFLINE_MAIN)/include/HepMC/*.h \
   PHHepMCLinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^

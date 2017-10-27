@@ -5,6 +5,8 @@
 
 #include<string>
 
+
+//! this class does not seem to be used anymore. One need some work to revive it.
 class HepMCFlowAfterBurner : public SubsysReco
 {
  public:

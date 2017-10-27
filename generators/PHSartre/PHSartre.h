@@ -2,7 +2,7 @@
 #define __PHSARTRE_H__
 
 #include <fun4all/SubsysReco.h>
-#include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenHelper.h>
 
 #ifndef __CINT__
 #include <Pythia8/Pythia.h>
@@ -55,23 +55,52 @@ public:
   /// pass commands directly to PYTHIA8
   void process_string(std::string s) {_commands.push_back(s);}
   
-  void set_node_name(std::string s) {_node_name = s;}
-
   void beam_vertex_parameters(double beamX,
 			      double beamY,
 			      double beamZ,
 			      double beamXsigma,
 			      double beamYsigma,
 			      double beamZsigma) {
-    _useBeamVtx = true;
-    _beamX = beamX;
-    _beamY = beamY;
-    _beamZ = beamZ;    
-    _beamXsigma = beamXsigma;
-    _beamYsigma = beamYsigma;
-    _beamZsigma = beamZsigma;
+
+    set_vertex_distribution_mean(beamX, beamY, beamZ, 0);
+    set_vertex_distribution_width(beamXsigma, beamYsigma, beamZsigma, 0);
   }
 
+  //! toss a new vertex according to a Uniform or Gaus distribution
+  void set_vertex_distribution_function(PHHepMCGenHelper::VTXFUNC x, PHHepMCGenHelper::VTXFUNC y, PHHepMCGenHelper::VTXFUNC z, PHHepMCGenHelper::VTXFUNC t)
+  {
+    hepmc_helper.set_vertex_distribution_function(x, y, z, t);
+  }
+
+  //! set the mean value of the vertex distribution, use PHENIX units of cm, ns
+  void set_vertex_distribution_mean(const double x, const double y, const double z, const double t)
+  {
+    hepmc_helper.set_vertex_distribution_mean(x, y, z, t);
+  }
+
+  //! set the width of the vertex distribution function about the mean, use PHENIX units of cm, ns
+  void set_vertex_distribution_width(const double x, const double y, const double z, const double t)
+  {
+    hepmc_helper.set_vertex_distribution_width(x, y, z, t);
+  }
+  //
+  //! reuse vertex from another PHHepMCGenEvent with embedding_id = src_embedding_id Additional smearing and shift possible with set_vertex_distribution_*()
+  void set_reuse_vertex(int src_embedding_id)
+  {
+    hepmc_helper.set_reuse_vertex(src_embedding_id);
+  }
+
+  //! embedding ID for the event
+  //! positive ID is the embedded event of interest, e.g. jetty event from pythia
+  //! negative IDs are backgrounds, .e.g out of time pile up collisions
+  //! Usually, ID = 0 means the primary Au+Au collision background
+  int get_embedding_id() const { return hepmc_helper.get_embedding_id(); }
+  //
+  //! embedding ID for the event
+  //! positive ID is the embedded event of interest, e.g. jetty event from pythia
+  //! negative IDs are backgrounds, .e.g out of time pile up collisions
+  //! Usually, ID = 0 means the primary Au+Au collision background
+  void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
 private:
 
   int create_node_tree(PHCompositeNode *topNode);
@@ -82,15 +111,6 @@ private:
   int _eventcount;
   int _gencount; 
 
-  // output
-  std::string _node_name;
-
-  // vertex placement
-  bool _useBeamVtx;
-  double _beamX, _beamXsigma;
-  double _beamY, _beamYsigma;
-  double _beamZ, _beamZsigma;
-
   // event selection
   std::vector<PHSartreGenTrigger*> _registeredTriggers;
   bool _triggersOR;
@@ -98,9 +118,6 @@ private:
   
   std::string _configFile;
   std::vector<std::string> _commands;
-  
-  // HepMC
-  PHHepMCGenEvent *_phhepmcevt;
 
   // Sartre
   Sartre *_sartre;
@@ -111,9 +128,8 @@ private:
   bool doPerformDecay;
   
 
-#ifndef __CINT__
-  gsl_rng *RandomGenerator;
-#endif
+  //! helper for insert HepMC event to DST node and add vertex smearing
+  PHHepMCGenHelper hepmc_helper;
 };
 
 #endif	/* __PHSARTRE_H__ */

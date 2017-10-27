@@ -3,27 +3,15 @@
 #include "PHPy8GenTrigger.h"
 
 #include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenEventMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/getClass.h>
-#include <phool/recoConsts.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHDataNode.h>
-#include <phool/PHObject.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
-#include <phool/PHNodeReset.h>
-#include <phool/PHTimeStamp.h>
 #include <phool/PHRandomSeed.h>
+#include <phool/getClass.h>
 
-#include <TMCParticle.h>
-#include <TClonesArray.h>
-#include <TFile.h>
-#include <TTree.h>
-#include <TDirectory.h>
-#include <TObjArray.h>
-#include <TParticle.h>
-#include <TRandom.h>
 
 #include <Pythia8/Pythia.h>
 #include <Pythia8Plugins/HepMC2.h>
@@ -31,16 +19,7 @@
 
 #include <gsl/gsl_randist.h>
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <sstream>
-#include <cstdlib>
-#include <stdlib.h>
-#include <ctime>
-#include <sys/time.h>
-#include <algorithm>
-#include <cctype>
+#include <TString.h> // needed for Form()
 
 using namespace std;
 
@@ -51,26 +30,14 @@ typedef PHIODataNode<PHObject> PHObjectNode_t;
 PHPythia8::PHPythia8(const std::string &name): 
   SubsysReco(name),
   _eventcount(0),
-  _node_name("PHHepMCGenEvent"),
-  _useBeamVtx(false),
-  _beamX(0),
-  _beamXsigma(0),
-  _beamY(0),
-  _beamYsigma(0),
-  _beamZ(0),
-  _beamZsigma(0),
   _registeredTriggers(),
-  _triggersOR(false),
-  _triggersAND(true),
+  _triggersOR(true),
+  _triggersAND(false),
   _pythia(NULL),
   _configFile("phpythia8.cfg"),
   _commands(),
-  _pythiaToHepMC(NULL),
-  _phhepmcevt(NULL) 
-{
- 
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
-  
+  _pythiaToHepMC(NULL) {
+
   char *charPath = getenv("PYTHIA8");
   if (!charPath) {
     cout << "PHPythia8::Could not find $PYTHIA8 path!" << endl;
@@ -85,11 +52,12 @@ PHPythia8::PHPythia8(const std::string &name):
   _pythiaToHepMC->set_store_proc(true);
   _pythiaToHepMC->set_store_pdf(true);
   _pythiaToHepMC->set_store_xsec(true); 
+
+  hepmc_helper.set_embedding_id(1); // default embedding ID to 1
 }
 
 PHPythia8::~PHPythia8() {
-  gsl_rng_free (RandomGenerator);
-  if (_pythia) delete _pythia;  
+  delete _pythia;  
 }
 
 int PHPythia8::Init(PHCompositeNode *topNode) {
@@ -98,7 +66,7 @@ int PHPythia8::Init(PHCompositeNode *topNode) {
   for (unsigned int j = 0; j < _commands.size(); j++) {
     _pythia->readString(_commands[j]);
   }
- 
+  
   create_node_tree(topNode);
 
   // event numbering will start from 1
@@ -108,13 +76,7 @@ int PHPythia8::Init(PHCompositeNode *topNode) {
   // I map the designated unique seed from recoconst into something
   // acceptable for PYTHIA8
 
-  recoConsts *rc = recoConsts::instance();
-  unsigned int seed = 0;
-  if (rc->FlagExist("RANDOMSEED")) {
-    seed = std::abs(rc->get_IntFlag("RANDOMSEED"));
-  } else {
-    seed = PHRandomSeed();
-  }
+  unsigned int seed = PHRandomSeed();
 
   if (seed > 900000000) {
     seed = seed % 900000000;
@@ -164,8 +126,7 @@ int PHPythia8::read_config(const char *cfg_file) {
     cout << "PHPythia8::read_config - Failed to open file " << _configFile << endl;    
     exit(2);
   }
-  else
-    cout << "read config file no problem, run pythia"<<endl;
+
   _pythia->readFile(_configFile.c_str());
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -179,20 +140,17 @@ void PHPythia8::print_config() const {
 int PHPythia8::process_event(PHCompositeNode *topNode) {
 
   if (verbosity > 1) cout << "PHPythia8::process_event - event: " << _eventcount << endl;
-  if(_eventcount%10000==0)  
-    cout<<"processed "<<_eventcount<< "events"<<endl;
+  
   bool passedGen = false;
   bool passedTrigger = false;
-  std::vector<bool> theTriggerResults;
   int genCounter = 0;
 
   while (!passedTrigger) {
     ++genCounter;
-   
+
     // generate another pythia event
     while (!passedGen) {
       passedGen = _pythia->next();
-    
     }
 
     // test trigger logic
@@ -236,20 +194,12 @@ int PHPythia8::process_event(PHCompositeNode *topNode) {
   HepMC::GenEvent *genevent = new HepMC::GenEvent(HepMC::Units::GEV, HepMC::Units::MM);
   _pythiaToHepMC->fill_next_event(*_pythia, genevent, _eventcount);
 
-  // pass HepMC to PHNode
   
-  bool success = _phhepmcevt->addEvent(genevent);
+  /* pass HepMC to PHNode*/
+  PHHepMCGenEvent * success = hepmc_helper . insert_event(genevent);
   if (!success) {
     cout << "PHPythia8::process_event - Failed to add event to HepMC record!" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  // shift node if needed  
-  if (_useBeamVtx) {
-    double mvVtxX = gsl_ran_gaussian(RandomGenerator,_beamXsigma) + _beamX;
-    double mvVtxY = gsl_ran_gaussian(RandomGenerator,_beamYsigma) + _beamY;
-    double mvVtxZ = gsl_ran_gaussian(RandomGenerator,_beamZsigma) + _beamZ;
-    _phhepmcevt->moveVertex(mvVtxX,mvVtxY,mvVtxZ,0.0);
   }
 
   // print outs
@@ -264,18 +214,7 @@ int PHPythia8::process_event(PHCompositeNode *topNode) {
 
 int PHPythia8::create_node_tree(PHCompositeNode *topNode) {
 
-  PHCompositeNode *dstNode;
-  PHNodeIterator iter(topNode);
-
-  dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode) {
-    cout << PHWHERE << "DST Node missing doing nothing" << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  _phhepmcevt = new PHHepMCGenEvent();
-  PHObjectNode_t *newNode = new PHObjectNode_t(_phhepmcevt,_node_name.c_str(),"PHObject");
-  dstNode->addNode(newNode);
+  hepmc_helper.create_node_tree(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -66,7 +66,7 @@ PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
           else
             {
               int primary_id = part->get_primary_id();
-              if (truthcont->isEmbeded(primary_id))
+              if (truthcont->isEmbeded(primary_id)>0)
                 {
                   if (printpart.find(primary_id) == printpart.end())
                     {
