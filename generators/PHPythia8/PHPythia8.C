@@ -5,11 +5,25 @@
 #include <phhepmc/PHHepMCGenEvent.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <phool/getClass.h>
+#include <phool/recoConsts.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHDataNode.h>
+#include <phool/PHObject.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/PHNodeReset.h>
+#include <phool/PHTimeStamp.h>
 #include <phool/PHRandomSeed.h>
 
+#include <TMCParticle.h>
+#include <TClonesArray.h>
+#include <TFile.h>
+#include <TTree.h>
+#include <TDirectory.h>
+#include <TObjArray.h>
+#include <TParticle.h>
+#include <TRandom.h>
 
 #include <Pythia8/Pythia.h>
 #include <Pythia8Plugins/HepMC2.h>
@@ -17,7 +31,16 @@
 
 #include <gsl/gsl_randist.h>
 
-#include <TString.h> // needed for Form()
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <sstream>
+#include <cstdlib>
+#include <stdlib.h>
+#include <ctime>
+#include <sys/time.h>
+#include <algorithm>
+#include <cctype>
 
 using namespace std;
 
@@ -37,14 +60,15 @@ PHPythia8::PHPythia8(const std::string &name):
   _beamZ(0),
   _beamZsigma(0),
   _registeredTriggers(),
-  _triggersOR(true),
-  _triggersAND(false),
+  _triggersOR(false),
+  _triggersAND(true),
   _pythia(NULL),
   _configFile("phpythia8.cfg"),
   _commands(),
   _pythiaToHepMC(NULL),
-  _phhepmcevt(NULL) {
-
+  _phhepmcevt(NULL) 
+{
+ 
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   
   char *charPath = getenv("PYTHIA8");
@@ -65,7 +89,7 @@ PHPythia8::PHPythia8(const std::string &name):
 
 PHPythia8::~PHPythia8() {
   gsl_rng_free (RandomGenerator);
-  delete _pythia;  
+  if (_pythia) delete _pythia;  
 }
 
 int PHPythia8::Init(PHCompositeNode *topNode) {
@@ -74,7 +98,7 @@ int PHPythia8::Init(PHCompositeNode *topNode) {
   for (unsigned int j = 0; j < _commands.size(); j++) {
     _pythia->readString(_commands[j]);
   }
-  
+ 
   create_node_tree(topNode);
 
   // event numbering will start from 1
@@ -84,7 +108,13 @@ int PHPythia8::Init(PHCompositeNode *topNode) {
   // I map the designated unique seed from recoconst into something
   // acceptable for PYTHIA8
 
-  unsigned int seed = PHRandomSeed();
+  recoConsts *rc = recoConsts::instance();
+  unsigned int seed = 0;
+  if (rc->FlagExist("RANDOMSEED")) {
+    seed = std::abs(rc->get_IntFlag("RANDOMSEED"));
+  } else {
+    seed = PHRandomSeed();
+  }
 
   if (seed > 900000000) {
     seed = seed % 900000000;
@@ -134,7 +164,8 @@ int PHPythia8::read_config(const char *cfg_file) {
     cout << "PHPythia8::read_config - Failed to open file " << _configFile << endl;    
     exit(2);
   }
-
+  else
+    cout << "read config file no problem, run pythia"<<endl;
   _pythia->readFile(_configFile.c_str());
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -148,17 +179,20 @@ void PHPythia8::print_config() const {
 int PHPythia8::process_event(PHCompositeNode *topNode) {
 
   if (verbosity > 1) cout << "PHPythia8::process_event - event: " << _eventcount << endl;
-  
+  if(_eventcount%10000==0)  
+    cout<<"processed "<<_eventcount<< "events"<<endl;
   bool passedGen = false;
   bool passedTrigger = false;
+  std::vector<bool> theTriggerResults;
   int genCounter = 0;
 
   while (!passedTrigger) {
     ++genCounter;
-
+   
     // generate another pythia event
     while (!passedGen) {
       passedGen = _pythia->next();
+    
     }
 
     // test trigger logic
