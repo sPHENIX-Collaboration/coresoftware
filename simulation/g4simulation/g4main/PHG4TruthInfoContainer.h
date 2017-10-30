@@ -124,8 +124,9 @@ public:
   int maxvtxindex() const;
   int minvtxindex() const;
 
-  // returns the first primary vertex that was processed by Geant4
-  int GetPrimaryVertexIndex() {return (vtxmap.lower_bound(1))->first;}
+  //! Return ID of the truth primary vertex with highest embedding ID.
+  //! For vertex with identical embedding ID, return first one simulated in Geant4.
+  int GetPrimaryVertexIndex() const;
 
   //! Retrieve the embedding ID for the HepMC subevent or track to be analyzed.
   //! positive ID is the embedded event of interest, e.g. jetty event from pythia
