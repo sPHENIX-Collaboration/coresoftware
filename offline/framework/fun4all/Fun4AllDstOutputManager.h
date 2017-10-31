@@ -24,7 +24,7 @@ class Fun4AllDstOutputManager: public Fun4AllOutputManager
   void Print(const std::string &what = "ALL") const;
 
   int Write(PHCompositeNode *startNode);
-  int WriteNode(PHCompositeNode *thisNode);
+  int WriteNode(PHCompositeNode *thisNode, const PHTreeType);
 
  protected:
   std::vector <std::string> savenodes;
