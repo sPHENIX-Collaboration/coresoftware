@@ -13,8 +13,16 @@ static const int True = 1;
 typedef int PHBoolean;
 enum PHMessageType {PHError, PHWarning, PHHullo};
 enum PHAccessType {PHReadOnly, PHWrite, PHUpdate};
-enum PHTreeType {PHEventTree, PHRunTree};
+enum PHTreeType {
+  //! DST node, which store event-wise information
+  PHEventTree = 0,
 
+  //! RUN node, which store run-wise information
+  PHRunTree = 1,
+
+  //! INT node,  which store integrals, e.g. integrated luminosity
+  PHIntegralTree = 2
+};
 
 // General purpose functions
 void PHMessage(const std::string&, int, const std::string&);
