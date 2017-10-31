@@ -38,7 +38,7 @@ void PHRandomSeed::InitSeed()
 
     cout << "PHRandomSeed::InitSeed - initialized with fixed random seed " << seed << " from recoConsts.RANDOMSEED. "<<endl
         <<  "                         To reproduce this random number sequences, please add this line to Fun4All macro: "<<endl
-        <<  "                         recoConsts::instance()->set_IntFlag(\"RANDOMSEED\", " << seed << ");";
+        <<  "                         recoConsts::instance()->set_IntFlag(\"RANDOMSEED\", " << seed << ");"<<endl;
   }
   else
   {
