@@ -390,17 +390,28 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit)
   int count = 0;
   multimap<unsigned int, innerMap>::iterator miter = _clusters_per_layer.find(hit_layer);
 
-  const float hit_phi = fast_approx_atan2(truthhit->get_avg_y(), truthhit->get_avg_x());
-
-  auto iter_lower_bound = miter->second.lower_bound(hit_phi - _clusters_searching_window);
-  auto iter_upper_bound = miter->second.upper_bound(hit_phi + _clusters_searching_window);
-
-  for (multimap<float, SvtxCluster*>::iterator liter = iter_lower_bound;
-       liter != iter_upper_bound;
-       liter++)
+  if (miter != _clusters_per_layer.end())
   {
-    count++;
-    /*
+    const float hit_phi = fast_approx_atan2(truthhit->get_avg_y(), truthhit->get_avg_x());
+
+    if (_verbosity >= 2)
+    {
+      cout << "SvtxClusterEval::all_clusters_from - hit_phi = " << hit_phi
+           << ", miter->first = " << miter->first
+           << ", clusters_searching_window = " << _clusters_searching_window
+           << ", miter->second.size() = " << miter->second.size()
+           << endl;
+    }
+
+    auto iter_lower_bound = miter->second.lower_bound(hit_phi - _clusters_searching_window);
+    auto iter_upper_bound = miter->second.upper_bound(hit_phi + _clusters_searching_window);
+
+    for (multimap<float, SvtxCluster*>::iterator liter = iter_lower_bound;
+         liter != iter_upper_bound;
+         liter++)
+    {
+      count++;
+      /*
       for (SvtxClusterMap::Iter iter = _clustermap->begin();
       iter != _clustermap->end();
       ++iter) {
@@ -408,22 +419,26 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit)
       //
       SvtxCluster* cluster = iter->second;
     */
-    SvtxCluster* cluster = liter->second;
-    if (cluster->get_layer() != hit_layer) continue;
+      SvtxCluster* cluster = liter->second;
+      if (cluster->get_layer() != hit_layer) continue;
 
-    // loop over all truth hits connected to this cluster
-    std::set<PHG4Hit*> hits = all_truth_hits(cluster);
-    for (std::set<PHG4Hit*>::iterator jter = hits.begin();
-         jter != hits.end();
-         ++jter)
-    {
-      PHG4Hit* candidate = *jter;
-      if (candidate->get_hit_id() == truthhit->get_hit_id())
+      // loop over all truth hits connected to this cluster
+      std::set<PHG4Hit*> hits = all_truth_hits(cluster);
+      for (std::set<PHG4Hit*>::iterator jter = hits.begin();
+           jter != hits.end();
+           ++jter)
       {
-        clusters.insert(cluster);
-      }
-    }
-  }
+        PHG4Hit* candidate = *jter;
+        if (candidate->get_hit_id() == truthhit->get_hit_id())
+        {
+          clusters.insert(cluster);
+        }
+      }  //      for (std::set<PHG4Hit*>::iterator jter = hits.begin();
+
+    }  //    for (multimap<float, SvtxCluster*>::iterator liter = iter_lower_bound;
+
+  }  //  if (miter != _clusters_per_layer.end())
+
   //  cout << "count " << count << endl;
   if (_do_cache) _cache_all_clusters_from_g4hit.insert(make_pair(truthhit, clusters));
 
