@@ -1012,7 +1012,7 @@ int Fun4AllServer::End()
     {
       if (verbosity >= VERBOSITY_EVEN_MORE)
       {
-        cout << "End: cded to " << newdirname.str().c_str() << endl;
+        cout << "Fun4AllServer::End: : cded to " << newdirname.str().c_str() << endl;
       }
     }
     try
@@ -1038,7 +1038,7 @@ int Fun4AllServer::End()
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
-    cout << "No Run Node, not writing Runwise info" << endl;
+    cout << "Fun4AllServer::End: No "<<TopNode->getName()<<" Node, not writing Run-wise info" << endl;
   }
   else
   {
@@ -1047,7 +1047,23 @@ int Fun4AllServer::End()
       vector<Fun4AllOutputManager *>::iterator IOiter;
       for (IOiter = OutputManager.begin(); IOiter != OutputManager.end(); ++IOiter)
       {
-        (*IOiter)->WriteNode(runNode);
+        (*IOiter)->WriteNode(runNode, PHRunTree);
+      }
+    }
+  }
+  PHCompositeNode *intNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "INT"));
+  if (!intNode)
+  {
+    cout << "Fun4AllServer::End: No Integral Node ("<<TopNode->getName()<<"/INT), not writing integral info" << endl;
+  }
+  else
+  {
+    if (!OutputManager.empty())  // there are registered IO managers
+    {
+      vector<Fun4AllOutputManager *>::iterator IOiter;
+      for (IOiter = OutputManager.begin(); IOiter != OutputManager.end(); ++IOiter)
+      {
+        (*IOiter)->WriteNode(intNode, PHIntegralTree);
       }
     }
   }
@@ -1193,13 +1209,18 @@ int Fun4AllServer::outfileclose()
 
 int Fun4AllServer::InitNodeTree(PHCompositeNode *topNode)
 {
-  PHCompositeNode *dstNode, *runNode, *parNode;
-  dstNode = new PHCompositeNode("DST");
+  PHCompositeNode *dstNode = new PHCompositeNode("DST");
   topNode->addNode(dstNode);
-  runNode = new PHCompositeNode("RUN");
+
+  PHCompositeNode *runNode = new PHCompositeNode("RUN");
   topNode->addNode(runNode);
-  parNode = new PHCompositeNode("PAR");
+
+  PHCompositeNode *intNode = new PHCompositeNode("INT"); // integral nodes, e.g. integrated luminosity
+  topNode->addNode(intNode);
+
+  PHCompositeNode *parNode = new PHCompositeNode("PAR");
   topNode->addNode(parNode);
+
   return 0;
 }
 
