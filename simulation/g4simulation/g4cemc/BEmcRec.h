@@ -39,9 +39,9 @@ class BEmcRec
   ~BEmcRec();
 
   void SetVertex(float *vv){  fVx = vv[0]; fVy = vv[1]; fVz = vv[2]; }
-  void SetConf(int nx, int ny);
   void SetGeometry(int nx, int ny, float txsz, float tysz);
   //  void SetGeometry(SecGeom const &geom, PHMatrix * rm, PHVector * tr );
+  void SetConf(int nx, int ny) { SetGeometry(nx, ny, 1., 1.); }
 
   int GetNx() const { return fNx; }
   int GetNy() const { return fNy; }
@@ -86,6 +86,8 @@ class BEmcRec
   void SetTowerThreshold(float Thresh);
   void SetProfileParameters(int, float, float, float);
   void SetChi2Limit(int lim);
+  int GetTowerID( int iy, int iz, int nn, int* iyy, int* izz, float* ee );
+  float GetProb(std::vector<EmcModule> HitList, float &chi2, int &ndf);
   float ClusterChisq(int, EmcModule*, float, float, float,
 			     int &ndf); // ndf added MV 28.01.00
   float Chi2Correct(float chi2,int ndf);
