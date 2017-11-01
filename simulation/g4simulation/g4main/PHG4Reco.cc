@@ -240,15 +240,13 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     myphysicslist->RegisterPhysics(decayer);
   }
   myphysicslist->RegisterPhysics(new G4StepLimiterPhysics());
-
+// initialize cuts so we can ask the world region for it's default
+// cuts to propagate them to other regions in DefineRegions()
+  myphysicslist->SetCutsWithDefault();
   runManager_->SetUserInitialization(myphysicslist);
-  // const G4RegionStore* theRegionStore = G4RegionStore::GetInstance();
-  // G4ProductionCuts *gcuts = new G4ProductionCuts(*(theRegionStore->GetRegion("DefaultRegionForTheWorld")->GetProductionCuts()));
-  G4Region *tpcregion = new G4Region("TPCGAS");
-  G4EmParameters *g4emparams = G4EmParameters::Instance();
-  g4emparams->AddPAIModel("all", "TPCGAS", "PAI");
 
-// tpcregion->SetProductionCuts(gcuts);
+  DefineRegions();
+
   // initialize registered subsystems
   BOOST_FOREACH (SubsysReco *reco, subsystems_)
   {
@@ -396,7 +394,6 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   // initialize
   runManager_->Initialize();
 
-  DefineRegions();
   // add cerenkov and optical photon processes
   // cout << endl << "Ignore the next message - we implemented this correctly" << endl;
   G4Cerenkov *theCerenkovProcess = new G4Cerenkov("Cerenkov");
@@ -1260,15 +1257,13 @@ PHG4Reco::DefineRegions()
 {
   const G4RegionStore* theRegionStore = G4RegionStore::GetInstance();
   G4ProductionCuts *gcuts = new G4ProductionCuts(*(theRegionStore->GetRegion("DefaultRegionForTheWorld")->GetProductionCuts()));
-  G4ParticleTable *theParticleTable = G4ParticleTable::GetParticleTable();
-  G4Region *tpcregion =  theRegionStore->GetRegion("TPCGAS");
- tpcregion->SetProductionCuts(gcuts);
+  G4Region *tpcregion = new G4Region("TPCGAS");
+  tpcregion->SetProductionCuts(gcuts);
 // add the PAI model to the TPCGAS region
 // undocumented, painfully digged out with debugger by tracing what
-// is done for command /process/em/AddPAIRegion all TPCGAS PAI
-  // G4EmParameters *g4emparams = G4EmParameters::Instance();
-  // g4emparams->AddPAIModel("all", "TPCGAS", "PAI");
-  // ApplyCommand("/run/physicsModified");
+// is done for command "/process/em/AddPAIRegion all TPCGAS PAI"
+  G4EmParameters *g4emparams = G4EmParameters::Instance();
+  g4emparams->AddPAIModel("all", "TPCGAS", "PAI");
   return;
 }
 
