@@ -19,6 +19,7 @@
 #include <TH1.h>
 
 #include <cstdlib>
+#include <cassert>
 #include <memory>
 
 using namespace std;
@@ -107,9 +108,9 @@ Fun4AllDstInputManager::fileopen(const string &filenam)
     if (IManager->isFunctional())
     {
       intNode = se->getNode(IntegralNode.c_str(), topNodeName.c_str());
+      assert(intNode);
       IManager->read(intNode);
     }
-    // DLW: move the delete outside the if block to cover the case where isFunctional() fails
     delete IManager;
   }
   // now open the dst node
