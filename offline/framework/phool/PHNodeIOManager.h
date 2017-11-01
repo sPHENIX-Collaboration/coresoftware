@@ -7,6 +7,7 @@
 
 #include "PHIOManager.h"
 #include <string>
+#include <vector>
 #include <map>
 
 
@@ -14,7 +15,6 @@ class TObject;
 class TFile;
 class TTree;
 class TBranch;
-class PHObject;
 
 class PHNodeIOManager : public PHIOManager { 
 public: 
@@ -61,7 +61,7 @@ private:
   int isFunctionalFlag;  // flag to tell if that object initialized properly
 
   //! buffer input objects prior to integrate to the current nodes. This is only used in accessMode = PHReadAndIntegrate
-  std::map< std::vector<std::string> , PHObject *> readObjectBuffer;
+  std::map< std::vector<std::string> , TObject *> readObjectBuffer;
 
 }; 
 

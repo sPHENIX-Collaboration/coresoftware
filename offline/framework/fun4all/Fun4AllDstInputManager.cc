@@ -104,7 +104,7 @@ Fun4AllDstInputManager::fileopen(const string &filenam)
   // then read the integral node if not disabled
   if (readintegralttree)
   {
-    IManager = new PHNodeIOManager(frog.location(filename.c_str()), PHReadOnly, PHIntegralTree);
+    IManager = new PHNodeIOManager(frog.location(filename.c_str()), PHReadAndIntegrate, PHIntegralTree);
     if (IManager->isFunctional())
     {
       intNode = se->getNode(IntegralNode.c_str(), topNodeName.c_str());

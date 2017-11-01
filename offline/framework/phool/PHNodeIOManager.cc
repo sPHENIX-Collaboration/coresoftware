@@ -89,6 +89,13 @@ PHNodeIOManager::~PHNodeIOManager()
   //       tree->Delete();
   //     }
   delete file;
+
+  //clean up readObjectBuffer
+  for (auto obj_pair: readObjectBuffer)
+  {
+    delete obj_pair.second;
+  }
+
 }
 
 void PHNodeIOManager::closeFile()
@@ -137,6 +144,7 @@ PHNodeIOManager::setFile(const string& f, const string& title,
     return True;
     break;
   case PHReadOnly:
+  case PHReadAndIntegrate:
     file = TFile::Open(filename.c_str());
     tree = 0;
     if (!file)
@@ -264,9 +272,14 @@ void PHNodeIOManager::print() const
       cout << "PHNodeIOManager reading  " << filename << endl;
     }
     else
-    {
-      cout << "PHNodeIOManager writing  " << filename << endl;
-    }
+      if (accessMode == PHReadAndIntegrate)
+      {
+        cout << "PHNodeIOManager reading and integrating " << filename << endl;
+      }
+      else
+      {
+        cout << "PHNodeIOManager writing  " << filename << endl;
+      }
   }
   if (file && tree)
   {
@@ -413,6 +426,16 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
     return NULL;
   }
 
+  if (accessMode == PHReadAndIntegrate)
+  {
+    //clean up readObjectBuffer
+    for (auto obj_pair: readObjectBuffer)
+    {
+      delete obj_pair.second;
+    }
+    readObjectBuffer.clear();
+  }
+
   // ROOT sucks, we need a unique name for the tree so we can open multiple
   // files. So we take the memory location of the file pointer which
   // should be unique within this process to create it
@@ -531,7 +554,36 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
            << " setting type to PHObject" << endl;
       newIODataNode->setObjectType("PHObject");
     }
-    thisBranch->SetAddress(&(newIODataNode->data));
+
+    if (accessMode == PHReadOnly)
+    {
+      // directly read to the nodes
+      thisBranch->SetAddress(&(newIODataNode->data));
+    }
+    else if (accessMode == PHReadAndIntegrate)
+    {
+      if (not thisClass->InheritsFrom("PHObject"))
+      {
+        cout <<"PHNodeIOManager::reconstructNodeTree - Fatal Error - "
+            <<"object with class " <<thisClass->ClassName()<<" on banch "<<branchname
+            <<" is not a PHObject. Operation of integration can not be performed with non-PHObject"
+            <<endl;
+        exit(EXIT_FAILURE);
+      }
+
+      // buffer and ready for integration
+      TObject *  &object_buffer = readObjectBuffer[splitvec];
+      object_buffer = static_cast<TObject*>(thisClass->New());
+      thisBranch->SetAddress(&object_buffer);
+    }
+    else
+    {
+      cout << "PHNodeIOManager::reconstructNodeTree - Fatal error - "
+          <<"unexpected accessMode of "<<accessMode<<" for reading files"
+          <<endl;
+      exit(EXIT_FAILURE);
+    }
+
     for (j = 1; j < splitvec.size() - 1; j++)
     {
       nodeIter.cd("..");
