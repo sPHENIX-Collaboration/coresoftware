@@ -21,6 +21,7 @@ class PHG4PhenixSteppingAction;
 class PHG4PhenixTrackingAction;
 class PHG4Subsystem;
 class PHG4EventGenerator;
+class G4VModularPhysicsList;
 class G4TBMagneticFieldSetup;
 class G4VUserPrimaryGeneratorAction;
 class PHG4UIsession;
@@ -132,6 +133,7 @@ class PHG4Reco : public SubsysReco
  protected:
   int InitUImanager();
   void DefineMaterials();
+  void DefineRegions();
   float magfield;
   float magfield_rescale;
   double WorldSize[3];
