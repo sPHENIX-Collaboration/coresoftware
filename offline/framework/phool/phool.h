@@ -33,7 +33,7 @@ enum PHTreeType {
   //! RUN node, which store run-wise information
   PHRunTree = 1,
 
-  //! INT node,  which store integrals, e.g. integrated luminosity
+  //! SUM node,  which store integrals, e.g. integrated luminosity
   PHIntegralTree = 2
 };
 

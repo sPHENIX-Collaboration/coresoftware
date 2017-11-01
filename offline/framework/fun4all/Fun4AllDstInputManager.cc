@@ -34,7 +34,7 @@ Fun4AllDstInputManager::Fun4AllDstInputManager(const string &name, const string 
   events_skipped_during_sync(0),
   fname(NULL),
   RunNode("RUN"),
-  IntegralNode("INT"),
+  IntegralNode("SUM"),
   dstNode(NULL),
   runNode(NULL),
   intNode(NULL),

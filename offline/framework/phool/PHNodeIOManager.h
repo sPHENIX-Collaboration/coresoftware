@@ -67,7 +67,7 @@ private:
   int isFunctionalFlag;  // flag to tell if that object initialized properly
 
   //! buffer input objects prior to integrate to the current nodes. This is only used in accessMode = PHReadAndIntegrate
-  //! it link TObject * object_on_nodes_to_be_updated -> TObject * object_just_read_from_DST_file
+  //! it link TObject * object_on_nodes_to_be_updated -> TObject * object_read_from_DST_file
   std::map<PHObject * , PHObject *> readObjectBuffer;
 
 }; 

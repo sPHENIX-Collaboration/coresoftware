@@ -1051,10 +1051,10 @@ int Fun4AllServer::End()
       }
     }
   }
-  PHCompositeNode *intNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "INT"));
+  PHCompositeNode *intNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "SUM"));
   if (!intNode)
   {
-    cout << "Fun4AllServer::End: No Integral Node ("<<TopNode->getName()<<"/INT), not writing integral info" << endl;
+    cout << "Fun4AllServer::End: No Integral Node ("<<TopNode->getName()<<"/SUM), not writing integral info" << endl;
   }
   else
   {
@@ -1215,7 +1215,7 @@ int Fun4AllServer::InitNodeTree(PHCompositeNode *topNode)
   PHCompositeNode *runNode = new PHCompositeNode("RUN");
   topNode->addNode(runNode);
 
-  PHCompositeNode *intNode = new PHCompositeNode("INT"); // integral nodes, e.g. integrated luminosity
+  PHCompositeNode *intNode = new PHCompositeNode("SUM"); // integral nodes, e.g. integrated luminosity
   topNode->addNode(intNode);
 
   PHCompositeNode *parNode = new PHCompositeNode("PAR");
