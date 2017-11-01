@@ -91,11 +91,10 @@ PHNodeIOManager::~PHNodeIOManager()
   delete file;
 
   //clean up readObjectBuffer
-  for (auto obj_pair: readObjectBuffer)
+  for (auto obj_pair : readObjectBuffer)
   {
     delete obj_pair.second;
   }
-
 }
 
 void PHNodeIOManager::closeFile()
@@ -255,6 +254,11 @@ PHNodeIOManager::read(PHCompositeNode* topNode, size_t requestedEvent)
   // If everything worked, there should be a tree now.
   if (tree && readEventFromFile(requestedEvent))
   {
+    if (accessMode == PHReadAndIntegrate)
+    {
+      integrateNodes(topNode);
+    }
+
     return topNode;
   }
   else
@@ -262,6 +266,18 @@ PHNodeIOManager::read(PHCompositeNode* topNode, size_t requestedEvent)
     return 0;
   }
 }
+
+void PHNodeIOManager::integrateNodes(PHCompositeNode *)
+{
+  for (auto obj_pair : readObjectBuffer)
+  {
+    assert(obj_pair.first);
+    assert(obj_pair.second);
+
+    obj_pair.first->Integrate(obj_pair.second);
+  }
+}
+
 
 void PHNodeIOManager::print() const
 {
@@ -271,15 +287,14 @@ void PHNodeIOManager::print() const
     {
       cout << "PHNodeIOManager reading  " << filename << endl;
     }
+    else if (accessMode == PHReadAndIntegrate)
+    {
+      cout << "PHNodeIOManager reading and integrating " << filename << endl;
+    }
     else
-      if (accessMode == PHReadAndIntegrate)
-      {
-        cout << "PHNodeIOManager reading and integrating " << filename << endl;
-      }
-      else
-      {
-        cout << "PHNodeIOManager writing  " << filename << endl;
-      }
+    {
+      cout << "PHNodeIOManager writing  " << filename << endl;
+    }
   }
   if (file && tree)
   {
@@ -429,7 +444,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
   if (accessMode == PHReadAndIntegrate)
   {
     //clean up readObjectBuffer
-    for (auto obj_pair: readObjectBuffer)
+    for (auto obj_pair : readObjectBuffer)
     {
       delete obj_pair.second;
     }
@@ -564,23 +579,25 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
     {
       if (not thisClass->InheritsFrom("PHObject"))
       {
-        cout <<"PHNodeIOManager::reconstructNodeTree - Fatal Error - "
-            <<"object with class " <<thisClass->ClassName()<<" on banch "<<branchname
-            <<" is not a PHObject. Operation of integration can not be performed with non-PHObject"
-            <<endl;
+        cout << "PHNodeIOManager::reconstructNodeTree - Fatal Error - "
+             << "object with class " << thisClass->ClassName() << " on banch " << branchname
+             << " is not a PHObject. Operation of integration can not be performed with non-PHObject"
+             << endl;
         exit(EXIT_FAILURE);
       }
 
       // buffer and ready for integration
-      TObject *  &object_buffer = readObjectBuffer[splitvec];
-      object_buffer = static_cast<TObject*>(thisClass->New());
-      thisBranch->SetAddress(&object_buffer);
+      PHObject * object_on_nodes_to_be_updated = static_cast<PHObject *>(newIODataNode->getData());
+
+      PHObject* & object_read_from_DST_file = readObjectBuffer[object_on_nodes_to_be_updated];
+      object_read_from_DST_file = static_cast<TObject*>(thisClass->New());
+      thisBranch->SetAddress(&object_read_from_DST_file);
     }
     else
     {
       cout << "PHNodeIOManager::reconstructNodeTree - Fatal error - "
-          <<"unexpected accessMode of "<<accessMode<<" for reading files"
-          <<endl;
+           << "unexpected accessMode of " << accessMode << " for reading files"
+           << endl;
       exit(EXIT_FAILURE);
     }
 

@@ -15,6 +15,7 @@ class TObject;
 class TFile;
 class TTree;
 class TBranch;
+class PHObject;
 
 class PHNodeIOManager : public PHIOManager { 
 public: 
@@ -45,7 +46,12 @@ public:
 private:
    int FillBranchMap();
    PHCompositeNode * reconstructNodeTree(PHCompositeNode *);
+
    PHBoolean readEventFromFile(size_t requestedEvent);
+
+   //! node = node + readObjectBuffer
+   void integrateNodes(PHCompositeNode * node);
+
    std::string getBranchClassName(TBranch*) ;
 
   TFile *file;
@@ -61,7 +67,8 @@ private:
   int isFunctionalFlag;  // flag to tell if that object initialized properly
 
   //! buffer input objects prior to integrate to the current nodes. This is only used in accessMode = PHReadAndIntegrate
-  std::map< std::vector<std::string> , TObject *> readObjectBuffer;
+  //! it link TObject * object_on_nodes_to_be_updated -> TObject * object_just_read_from_DST_file
+  std::map<PHObject * , PHObject *> readObjectBuffer;
 
 }; 
 
