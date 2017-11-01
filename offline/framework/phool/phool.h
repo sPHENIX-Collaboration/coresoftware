@@ -12,7 +12,20 @@ static const int True = 1;
 //  Global type definitions
 typedef int PHBoolean;
 enum PHMessageType {PHError, PHWarning, PHHullo};
-enum PHAccessType {PHReadOnly, PHWrite, PHUpdate};
+enum PHAccessType {
+
+  //! Read from DST file
+  PHReadOnly,
+
+  //! Write to DST file
+  PHWrite,
+
+  //! Update DST file
+  PHUpdate,
+
+  //! Read from DST file and integrate its content with the current nodes
+  PHReadAndIntegrate
+};
 enum PHTreeType {
   //! DST node, which store event-wise information
   PHEventTree = 0,
