@@ -150,6 +150,7 @@ public:
 		float* pde, float* pdx, float* pdy, float* pdz );
   /// Splits the EmcCluster onto peakarea's; also returns peak tower array corresponding to peakarea array
   int GetPeaks(EmcPeakarea*, EmcModule*);
+  float GetProb(float &chi2, int &ndf);
 
 protected:
 
