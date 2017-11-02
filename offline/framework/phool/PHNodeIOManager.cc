@@ -78,7 +78,16 @@ PHNodeIOManager::PHNodeIOManager(const string& f, const PHAccessType a,
     temp << TreeName << treeindex;  // create e.g. T1
     TreeName = temp.str();
   }
-  isFunctionalFlag = setFile(f, "titled by PHOOL", a) ? 1 : 0;
+
+  string tree_title("titled by PHOOL");
+  if (treeindex == PHEventTree)
+    tree_title = "TTree for storing the TOP/DST nodes, which contain one event per entry";
+  else if (treeindex == PHRunTree)
+    tree_title = "TTree for storing the TOP/RUN nodes, which contain one run per entry";
+  else if (treeindex == PHIntegralTree)
+    tree_title = "TTree for storing the TOP/SUM nodes, which contain integrated information";
+
+  isFunctionalFlag = setFile(f, tree_title, a) ? 1 : 0;
 }
 
 PHNodeIOManager::~PHNodeIOManager()
@@ -113,6 +122,8 @@ PHBoolean
 PHNodeIOManager::setFile(const string& f, const string& title,
                          const PHAccessType a)
 {
+  static const string default_file_title("DST file - a structured ROOT file for Fun4All data I/O");
+
   filename = f;
   bufSize = 32000;
   split = 0;
@@ -131,7 +142,7 @@ PHNodeIOManager::setFile(const string& f, const string& title,
   switch (accessMode)
   {
   case PHWrite:
-    file = TFile::Open(filename.c_str(), "RECREATE", title.c_str());
+    file = TFile::Open(filename.c_str(), "RECREATE", default_file_title.c_str());
     if (!file)
     {
       return False;
@@ -155,7 +166,7 @@ PHNodeIOManager::setFile(const string& f, const string& title,
     return True;
     break;
   case PHUpdate:
-    file = TFile::Open(filename.c_str(), "UPDATE", title.c_str());
+    file = TFile::Open(filename.c_str(), "UPDATE", default_file_title.c_str());
     if (!file)
     {
       return False;
