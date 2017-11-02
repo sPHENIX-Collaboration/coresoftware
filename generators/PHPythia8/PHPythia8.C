@@ -4,11 +4,11 @@
 
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
+#include <phhepmc/PHGenIntegralv1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 
@@ -17,9 +17,12 @@
 #include <Pythia8Plugins/HepMC2.h>
 #include <HepMC/GenEvent.h>
 
+#include <TString.h> // needed for Form()
+
 #include <gsl/gsl_randist.h>
 
-#include <TString.h> // needed for Form()
+#include <cstdlib>
+#include <cassert>
 
 using namespace std;
 
@@ -36,7 +39,10 @@ PHPythia8::PHPythia8(const std::string &name):
   _pythia(NULL),
   _configFile("phpythia8.cfg"),
   _commands(),
-  _pythiaToHepMC(NULL) {
+  _pythiaToHepMC(NULL),
+  _save_integrated_luminosity(true),
+  _integral_node(nullptr)
+{
 
   char *charPath = getenv("PYTHIA8");
   if (!charPath) {
@@ -110,6 +116,10 @@ int PHPythia8::End(PHCompositeNode *topNode) {
        << "/" << _pythia->info.nAccepted()
        << " = " << _eventcount/float(_pythia->info.nAccepted()) << endl;
   cout << " *-------  End PYTHIA Trigger Statistics  ------------------------"
+       << "-------------------------------------------------* " << endl;
+  cout << "Integral information on stored on node SUM/PHGenIntegral:"<<endl;
+  _integral_node->identify();
+  cout << " *-------  End PYTHIA Integral Node Print  ------------------------"
        << "-------------------------------------------------* " << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -202,6 +212,7 @@ int PHPythia8::process_event(PHCompositeNode *topNode) {
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+
   // print outs
   
   if (verbosity > 2) cout << "PHPythia8::process_event - FINISHED WHOLE EVENT" << endl;
@@ -209,12 +220,54 @@ int PHPythia8::process_event(PHCompositeNode *topNode) {
   if (_eventcount >= 2 && verbosity > 5) _pythia->event.list();
 
   ++_eventcount;
+
+
+  // save statistics
+  if (_integral_node)
+  {
+    _integral_node->set_N_Generator_Accepted_Event(_pythia->info.nAccepted());
+    _integral_node->set_N_Processed_Event(_eventcount);
+    _integral_node->set_Sum_Of_Weight(_pythia->info.weightSum());
+    _integral_node->set_Integrated_Lumi(_pythia->info.nAccepted() / (_pythia->info.sigmaGen() * 1e9));
+  }
+
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHPythia8::create_node_tree(PHCompositeNode *topNode) {
 
+  // HepMC IO
   hepmc_helper.create_node_tree(topNode);
+
+
+  PHNodeIterator iter(topNode);
+  PHCompositeNode *sumNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SUM"));
+  if (!sumNode)
+  {
+    cout << PHWHERE << "SUM Node missing doing nothing" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  _integral_node = findNode::getClass<PHGenIntegral>(sumNode, "PHGenIntegral");
+  if (!_integral_node)
+  {
+    _integral_node = new PHGenIntegralv1("PHPythia8 with embedding ID of "+std::to_string(hepmc_helper.get_embedding_id()));
+    PHIODataNode<PHGenIntegral> *newmapnode = new PHIODataNode<PHObject>(_integral_node, "PHHepMCGenEventMap", "PHObject");
+    sumNode->addNode(newmapnode);
+  }
+  else
+  {
+    cout <<"PHPythia8::create_node_tree - Fatal Error - "
+        <<"SUM/PHGenIntegral node already exist. "
+        <<"It is messy to overwrite integrated luminosities. Please turn off this function in the macro with "<<endl;
+    cout <<"                              PHPythia8::save_integrated_luminosity(false);"<<endl;
+    cout <<"The current SUM/PHGenIntegral node is ";
+    _integral_node->identify(cout);
+
+    exit(EXIT_FAILURE);
+  }
+  assert(_integral_node);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

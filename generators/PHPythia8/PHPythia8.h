@@ -18,7 +18,7 @@
 class PHCompositeNode;
 class PHHepMCGenEvent;
 class PHHepMCFilter;
-
+class PHGenIntegral;
 class PHPy8GenTrigger;
 
 namespace HepMC {
@@ -102,6 +102,11 @@ public:
   //! negative IDs are backgrounds, .e.g out of time pile up collisions
   //! Usually, ID = 0 means the primary Au+Au collision background
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
+
+  //! whether to store the integrated luminosity and other event statistics to the TOP/SUM/PHGenIntegral node
+  void save_integrated_luminosity(const bool b) {_save_integrated_luminosity = b;}
+
+
 private:
 
   int read_config(const char *cfg_file = 0);
@@ -129,6 +134,11 @@ private:
   //! helper for insert HepMC event to DST node and add vertex smearing
   PHHepMCGenHelper hepmc_helper;
 
+  //! whether to store the integrated luminosity and other event statistics to the TOP/SUM/PHGenIntegral node
+  bool _save_integrated_luminosity;
+
+  //! pointer to data node saving the integrated luminosity
+  PHGenIntegral * _integral_node;
 };
 
 #endif	/* __PHPYTHIA8_H__ */
