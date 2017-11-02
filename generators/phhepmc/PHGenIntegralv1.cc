@@ -19,12 +19,11 @@ PHGenIntegralv1::PHGenIntegralv1()
   Reset();
 }
 
-PHGenIntegralv1::PHGenIntegralv1(const std::string & description)
+PHGenIntegralv1::PHGenIntegralv1(const std::string& description)
 {
   Reset();
   fDescription = description;
 }
-
 
 PHGenIntegralv1::~PHGenIntegralv1()
 {
@@ -38,12 +37,11 @@ PHObject* PHGenIntegralv1::clone() const
 
 void PHGenIntegralv1::identify(ostream& os) const
 {
-  os << "PHGenIntegralv1::identify: "<< get_Description() <<endl
-     << " N_Generator_Accepted_Event = " << get_N_Generator_Accepted_Event() << " @ " << get_CrossSection_Generator_Accepted_Event() << " pb"<<endl
-     << "          N_Processed_Event = " << get_N_Processed_Event() << " @ " << get_CrossSection_Processed_Event() << " pb"
-     << "              Sum_Of_Weight = " << get_Sum_Of_Weight()
-     << "            Integrated_Lumi = " << get_Integrated_Lumi() << " pb^-1"
-     << endl;
+  os << "PHGenIntegralv1::identify: " << get_Description() << endl
+     << " N_Generator_Accepted_Event = " << get_N_Generator_Accepted_Event() << " @ " << get_CrossSection_Generator_Accepted_Event() << " pb" << endl
+     << "          N_Processed_Event = " << get_N_Processed_Event() << " @ " << get_CrossSection_Processed_Event() << " pb" << endl
+     << "              Sum_Of_Weight = " << get_Sum_Of_Weight() << endl
+     << "            Integrated_Lumi = " << get_Integrated_Lumi() << " pb^-1" << endl;
 }
 
 void PHGenIntegralv1::Reset()
