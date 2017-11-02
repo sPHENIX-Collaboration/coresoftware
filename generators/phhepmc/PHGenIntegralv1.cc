@@ -38,12 +38,11 @@ PHObject* PHGenIntegralv1::clone() const
 
 void PHGenIntegralv1::identify(ostream& os) const
 {
-  os << "PHGenIntegralv1::identify: "
-     << "N_Generator_Accepted_Event = " << get_N_Generator_Accepted_Event() << " @ " << get_CrossSection_Generator_Accepted_Event() << " pb"
-     << ", N_Processed_Event = " << get_N_Processed_Event() << " @ " << get_CrossSection_Processed_Event() << " pb"
-     << ", Sum_Of_Weight = " << get_Sum_Of_Weight()
-     << ", Integrated_Lumi = " << get_Integrated_Lumi() << " pb^-1"
-     << ", The description for source: " << get_Description()
+  os << "PHGenIntegralv1::identify: "<< get_Description() <<endl
+     << " N_Generator_Accepted_Event = " << get_N_Generator_Accepted_Event() << " @ " << get_CrossSection_Generator_Accepted_Event() << " pb"<<endl
+     << "          N_Processed_Event = " << get_N_Processed_Event() << " @ " << get_CrossSection_Processed_Event() << " pb"
+     << "              Sum_Of_Weight = " << get_Sum_Of_Weight()
+     << "            Integrated_Lumi = " << get_Integrated_Lumi() << " pb^-1"
      << endl;
 }
 
@@ -53,7 +52,7 @@ void PHGenIntegralv1::Reset()
   fNGeneratorAcceptedEvent = 0;
   fIntegratedLumi = 0;
   fSumOfWeight = 0;
-  fDescription = "Not set";
+  fDescription = "Source Not Provided";
 }
 
 void PHGenIntegralv1::Integrate(PHObject* incoming_object)
