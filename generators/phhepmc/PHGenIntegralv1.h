@@ -13,7 +13,6 @@
 
 #include "PHGenIntegral.h"
 
-
 /*!
  * \brief PHGenIntegralv1
  */
@@ -44,25 +43,25 @@ class PHGenIntegralv1 : public PHGenIntegral
   }
 
   //! Number of accepted events in the event generator. This can be higher than fNProcessedEvent depending on trigger on the event generator
-  ULong64_t  get_N_Generator_Accepted_Event() const
+  ULong64_t get_N_Generator_Accepted_Event() const
   {
     return fNGeneratorAcceptedEvent;
   }
 
   //! Number of accepted events in the event generator. This can be higher than fNProcessedEvent depending on trigger on the event generator
-  void set_N_Generator_Accepted_Event(ULong64_t  nGeneratorAcceptedEvent)
+  void set_N_Generator_Accepted_Event(ULong64_t nGeneratorAcceptedEvent)
   {
     fNGeneratorAcceptedEvent = nGeneratorAcceptedEvent;
   }
 
   //! Number of processed events in the Fun4All cycles
-  ULong64_t  get_N_Processed_Event() const
+  ULong64_t get_N_Processed_Event() const
   {
     return fNProcessedEvent;
   }
 
   //! Number of processed events in the Fun4All cycles
-  void set_N_Processed_Event(ULong64_t  nProcessedEvent)
+  void set_N_Processed_Event(ULong64_t nProcessedEvent)
   {
     fNProcessedEvent = nProcessedEvent;
   }
@@ -83,12 +82,24 @@ class PHGenIntegralv1 : public PHGenIntegral
     fSumOfWeight = sumOfWeight;
   }
 
+  //! description on the source
+  const std::string& get_Description() const
+  {
+    return fDescription;
+  }
+
+  //! description on the source
+  void set_Description(const std::string& description)
+  {
+    fDescription = description;
+  }
+
  private:
   //! Number of processed events in the Fun4All cycles
-  ULong64_t  fNProcessedEvent;
+  ULong64_t fNProcessedEvent;
 
   //! Number of accepted events in the event generator. This can be higher than fNProcessedEvent depending on trigger on the event generator
-  ULong64_t  fNGeneratorAcceptedEvent;
+  ULong64_t fNGeneratorAcceptedEvent;
 
   //! Integrated luminosity in pb^-1
   Double_t fIntegratedLumi;
@@ -97,6 +108,9 @@ class PHGenIntegralv1 : public PHGenIntegral
   //! Event weight is normally 1 and thus equal to number of the generated event and is uninteresting.
   //! However, there are several cases where one may have nontrivial event weights, e.g. using user hooks in Pythia8 generators to reweight the phase space
   Double_t fSumOfWeight;
+
+  //! description on the source
+  std::string fDescription;
 
   ClassDef(PHGenIntegralv1, 1)
 };

@@ -12,6 +12,7 @@
 #define SIMULATION_CORESOFTWARE_GENERATORS_PHHEPMC_PHGENINTEGRAL_H_
 
 #include <phool/PHObject.h>
+#include <string>
 
 /*!
  * \brief PHGenIntegral
@@ -34,24 +35,24 @@ class PHGenIntegral : public PHObject
   }
 
   //! Number of accepted events in the event generator. This can be higher than fNProcessedEvent depending on trigger on the event generator
-  virtual ULong64_t  get_N_Generator_Accepted_Event() const
+  virtual ULong64_t get_N_Generator_Accepted_Event() const
   {
     return 0;
   }
 
   //! Number of accepted events in the event generator. This can be higher than fNProcessedEvent depending on trigger on the event generator
-  virtual void set_N_Generator_Accepted_Event(ULong64_t  nGeneratorAcceptedEvent)
+  virtual void set_N_Generator_Accepted_Event(ULong64_t nGeneratorAcceptedEvent)
   {
   }
 
   //! Number of processed events in the Fun4All cycles
-  virtual ULong64_t  get_N_Processed_Event() const
+  virtual ULong64_t get_N_Processed_Event() const
   {
     return 0;
   }
 
   //! Number of processed events in the Fun4All cycles
-  virtual void set_N_Processed_Event(ULong64_t  nProcessedEvent)
+  virtual void set_N_Processed_Event(ULong64_t nProcessedEvent)
   {
   }
 
@@ -75,6 +76,17 @@ class PHGenIntegral : public PHObject
 
   //! cross sections for the events accepted by the event generator in pb
   virtual Double_t get_CrossSection_Generator_Accepted_Event() const;
+
+  //! description on the source
+  const std::string& get_Description() const
+  {
+    return "Invalid";
+  }
+
+  //! description on the source
+  void set_Description(const std::string& description)
+  {
+  }
 
   ClassDef(PHGenIntegral, 1)
 };
