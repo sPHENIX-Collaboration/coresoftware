@@ -117,10 +117,14 @@ int PHPythia8::End(PHCompositeNode *topNode) {
        << " = " << _eventcount/float(_pythia->info.nAccepted()) << endl;
   cout << " *-------  End PYTHIA Trigger Statistics  ------------------------"
        << "-------------------------------------------------* " << endl;
-  cout << "Integral information on stored on node SUM/PHGenIntegral:"<<endl;
-  _integral_node->identify();
-  cout << " *-------  End PYTHIA Integral Node Print  ------------------------"
-       << "-------------------------------------------------* " << endl;
+
+  if (_integral_node)
+  {
+    cout << "Integral information on stored on node SUM/PHGenIntegral:"<<endl;
+    _integral_node->identify();
+    cout << " *-------  End PYTHIA Integral Node Print  ------------------------"
+         << "-------------------------------------------------* " << endl;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
