@@ -66,13 +66,17 @@ void PHGenIntegralv1::Integrate(PHObject* incoming_object)
     exit(EXIT_FAILURE);
   }
 
+  if (fIntegratedLumi == 0 and fNProcessedEvent == 0)
+  {
+    fDescription = in_gen->get_Description();
+  }
+  else if (fDescription != in_gen->get_Description())
+  {
+    fDescription = fDescription + ", and " + in_gen->get_Description();
+  }
+
   fNProcessedEvent += in_gen->get_N_Processed_Event();
   fNGeneratorAcceptedEvent += in_gen->get_N_Generator_Accepted_Event();
   fIntegratedLumi += in_gen->get_Integrated_Lumi();
   fSumOfWeight += in_gen->get_Sum_Of_Weight();
-
-  if (fDescription != in_gen->get_Description())
-  {
-    fDescription = fDescription + ", and " + in_gen->get_Description();
-  }
 }

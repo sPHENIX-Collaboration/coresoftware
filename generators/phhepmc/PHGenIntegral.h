@@ -78,10 +78,10 @@ class PHGenIntegral : public PHObject
   virtual Double_t get_CrossSection_Generator_Accepted_Event() const;
 
   //! description on the source
-  const std::string& get_Description() const;
+  virtual const std::string& get_Description() const;
 
   //! description on the source
-  void set_Description(const std::string& description)
+  virtual void set_Description(const std::string& description)
   {
   }
 
