@@ -122,7 +122,7 @@ PHBoolean
 PHNodeIOManager::setFile(const string& f, const string& title,
                          const PHAccessType a)
 {
-  static const string default_file_title("DST file - a structured ROOT file for Fun4All data I/O");
+  static const string default_file_title("DST file - a structured ROOT file for Fun4All data storage");
 
   filename = f;
   bufSize = 32000;
