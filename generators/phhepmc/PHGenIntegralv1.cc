@@ -19,6 +19,13 @@ PHGenIntegralv1::PHGenIntegralv1()
   Reset();
 }
 
+PHGenIntegralv1::PHGenIntegralv1(const std::string & description)
+{
+  Reset();
+  fDescription = description;
+}
+
+
 PHGenIntegralv1::~PHGenIntegralv1()
 {
 }
