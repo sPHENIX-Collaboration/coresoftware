@@ -52,7 +52,7 @@ PHNodeIOManager::PHNodeIOManager(const string& f,
   , TreeName("T")
   , CompressionLevel(3)
 {
-  isFunctionalFlag = setFile(f, "titled by PHOOL", a) ? 1 : 0;
+  isFunctionalFlag = setFile(f, "TTree for storing the TOP/DST nodes, which contain one event per entry", a) ? 1 : 0;
 }
 
 PHNodeIOManager::PHNodeIOManager(const string& f, const string& title,
