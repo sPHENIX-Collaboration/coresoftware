@@ -590,7 +590,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
       PHObject * object_on_nodes_to_be_updated = static_cast<PHObject *>(newIODataNode->getData());
 
       PHObject* & object_read_from_DST_file = readObjectBuffer[object_on_nodes_to_be_updated];
-      object_read_from_DST_file = static_cast<TObject*>(thisClass->New());
+      object_read_from_DST_file = static_cast<PHObject*>(thisClass->New());
       thisBranch->SetAddress(&object_read_from_DST_file);
     }
     else
