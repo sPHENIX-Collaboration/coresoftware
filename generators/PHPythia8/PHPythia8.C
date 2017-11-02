@@ -253,7 +253,7 @@ int PHPythia8::create_node_tree(PHCompositeNode *topNode) {
   if (!_integral_node)
   {
     _integral_node = new PHGenIntegralv1("PHPythia8 with embedding ID of "+std::to_string(hepmc_helper.get_embedding_id()));
-    PHIODataNode<PHGenIntegral> *newmapnode = new PHIODataNode<PHObject>(_integral_node, "PHHepMCGenEventMap", "PHObject");
+    PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(_integral_node, "PHHepMCGenEventMap", "PHObject");
     sumNode->addNode(newmapnode);
   }
   else
