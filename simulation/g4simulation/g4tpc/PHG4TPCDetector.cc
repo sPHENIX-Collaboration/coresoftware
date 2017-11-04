@@ -14,6 +14,8 @@
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>
+#include <Geant4/G4Region.hh>
+#include <Geant4/G4RegionStore.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4UserLimits.hh>
@@ -116,6 +118,10 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
                                                       tpc_envelope, 0, false, overlapcheck);
 
   activevols.insert(tpc_gas_phys);
+  const G4RegionStore* theRegionStore = G4RegionStore::GetInstance();
+  G4Region *tpcregion = theRegionStore->GetRegion("REGION_TPCGAS");
+  tpc_gas_logic->SetRegion(tpcregion);
+  tpcregion->AddRootLogicalVolume(tpc_gas_logic);
   return 0;
 }
 
