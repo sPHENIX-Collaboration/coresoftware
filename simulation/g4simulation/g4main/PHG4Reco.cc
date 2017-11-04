@@ -1257,13 +1257,13 @@ PHG4Reco::DefineRegions()
 {
   const G4RegionStore* theRegionStore = G4RegionStore::GetInstance();
   G4ProductionCuts *gcuts = new G4ProductionCuts(*(theRegionStore->GetRegion("DefaultRegionForTheWorld")->GetProductionCuts()));
-  G4Region *tpcregion = new G4Region("TPCGAS");
+  G4Region *tpcregion = new G4Region("REGION_TPCGAS");
   tpcregion->SetProductionCuts(gcuts);
 // add the PAI model to the TPCGAS region
 // undocumented, painfully digged out with debugger by tracing what
 // is done for command "/process/em/AddPAIRegion all TPCGAS PAI"
   G4EmParameters *g4emparams = G4EmParameters::Instance();
-  g4emparams->AddPAIModel("all", "TPCGAS", "PAI");
+  g4emparams->AddPAIModel("all", "REGION_TPCGAS", "PAI");
   return;
 }
 
