@@ -418,7 +418,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
         cell->add_edep(hiter->first, edep);
         cell->add_edep(edep);
         cell->add_shower_edep(hiter->second->get_shower_id(), edep);
-        if (hiter->second->has_property(PHG4Hit::prop_eion)) cell->add_eion(hiter->second->get_eion());
+//        if (hiter->second->has_property(PHG4Hit::prop_eion)) cell->add_eion(hiter->second->get_eion());
       }
       else
       {  // TPC
@@ -600,7 +600,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
               cell->add_edep(hiter->first, neffelectrons);
               cell->add_edep(neffelectrons);
               cell->add_shower_edep(hiter->second->get_shower_id(), neffelectrons);
-              if (hiter->second->has_property(PHG4Hit::prop_eion)) cell->add_eion(hiter->second->get_eion());
+//              if (hiter->second->has_property(PHG4Hit::prop_eion)) cell->add_eion(hiter->second->get_eion());
             }  //iz
           }    //iphi
         }      // izr
