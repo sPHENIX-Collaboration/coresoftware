@@ -18,7 +18,8 @@ class PHG4Cellv1: public PHG4Cell
   PHG4Cellv1(const PHG4CellDefs::keytype g4cellid);
   virtual ~PHG4Cellv1();
 
-  void Reset();
+  virtual void identify(std::ostream& os = std::cout) const;
+  virtual void Reset();
 
   void set_cellid(const PHG4CellDefs::keytype i) {cellid = i;}
 
@@ -122,7 +123,7 @@ class PHG4Cellv1: public PHG4Cell
   prop_map_t prop_map;
 
 
-  ClassDef(PHG4Cellv1,1)
+  ClassDef(PHG4Cellv1,2)
 };
 
 #endif

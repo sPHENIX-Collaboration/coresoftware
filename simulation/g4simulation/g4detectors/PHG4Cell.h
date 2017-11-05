@@ -3,13 +3,13 @@
 
 #include "PHG4CellDefs.h"
 #include <g4main/PHG4Hit.h>
-#include <phool/PHObject.h>
+#include <TObject.h>
 
 #include <cmath>
 #include <climits>
 #include <map>
 
-class PHG4Cell: public PHObject
+class PHG4Cell: public TObject
 {
  public:
   typedef std::map<PHG4HitDefs::keytype, float> EdepMap;
@@ -155,7 +155,7 @@ class PHG4Cell: public PHObject
   PHG4Cell() {}
   virtual unsigned int get_property_nocheck(const PROPERTY prop_id) const {return UINT_MAX;}
   virtual void set_property_nocheck(const PROPERTY prop_id,const unsigned int) {return;}
-  ClassDef(PHG4Cell,1)
+  ClassDef(PHG4Cell,2)
 };
 
 
