@@ -129,7 +129,11 @@ PHG4Reco::PHG4Reco(const string &name)
   , fieldmapfile("NONE")
   , worldshape("G4Tubs")
   , worldmaterial("G4_AIR")
+#if  G4VERSION_NUMBER >= 1033
+  , physicslist("FTFP_BERT")
+#else
   , physicslist("QGSP_BERT")
+#endif
   , active_decayer_(true)
   , active_force_decay_(false)
   , force_decay_type_(kAll)
@@ -187,7 +191,6 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   runManager_ = new G4RunManager();
 
   DefineMaterials();
-
   // create physics processes
   G4VModularPhysicsList *myphysicslist = nullptr;
   if (physicslist == "FTFP_BERT")
@@ -1259,7 +1262,7 @@ PHG4Reco::DefineRegions()
   G4ProductionCuts *gcuts = new G4ProductionCuts(*(theRegionStore->GetRegion("DefaultRegionForTheWorld")->GetProductionCuts()));
   G4Region *tpcregion = new G4Region("REGION_TPCGAS");
   tpcregion->SetProductionCuts(gcuts);
-#if G4VERSION_NUMBER >= 1003
+#if G4VERSION_NUMBER >= 1033
 // Use this from the new G4 version 10.03 on
 // add the PAI model to the TPCGAS region
 // undocumented, painfully digged out with debugger by tracing what
