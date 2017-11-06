@@ -72,7 +72,7 @@ class PHG4Cellv1: public PHG4Cell
   void set_stave_index(const int i) {set_property(prop_stave_index,i);}
   int get_stave_index() const {return get_property_int(prop_stave_index);}
 
-  tpctod* get_train_of_digits() {return &trainOfDigits;}
+//  tpctod* get_train_of_digits() {return &trainOfDigits;}
 
   void set_zbin(const int i) {set_property(prop_zbin,i);}
   int get_zbin() const {return get_property_int(prop_zbin);}
@@ -98,7 +98,7 @@ class PHG4Cellv1: public PHG4Cell
   PHG4CellDefs::keytype cellid;
   EdepMap hitedeps;
   ShowerEdepMap showeredeps;
-  tpctod trainOfDigits;
+//  tpctod trainOfDigits;
 
   //! storage types for additional property
   typedef uint8_t prop_id_t;
@@ -123,7 +123,7 @@ class PHG4Cellv1: public PHG4Cell
   prop_map_t prop_map;
 
 
-  ClassDef(PHG4Cellv1,2)
+  ClassDef(PHG4Cellv1,3)
 };
 
 #endif

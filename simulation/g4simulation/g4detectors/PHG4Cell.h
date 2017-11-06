@@ -95,7 +95,7 @@ class PHG4Cell: public TObject
   virtual void set_stave_index(const int i) {return;}
   virtual int get_stave_index() const {return ~0x0;}
 
-  virtual tpctod* get_train_of_digits() {return 0;}
+//  virtual tpctod* get_train_of_digits() {return 0;}
 
   virtual void set_zbin(const int i) {return;}
   virtual int get_zbin() const {return ~0x0;}

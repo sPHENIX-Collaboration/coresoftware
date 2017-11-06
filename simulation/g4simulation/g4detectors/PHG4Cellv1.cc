@@ -250,7 +250,7 @@ void PHG4Cellv1::identify(std::ostream& os) const
     os <<"\t Shower "<<pair.first<<" -> "<<pair.second<<" GeV"<<endl;
   }
 
-  os <<"Contains to "<<trainOfDigits.size()<<" TPC digitization chain"<<endl;
+//  os <<"Contains to "<<trainOfDigits.size()<<" TPC digitization chain"<<endl;
 
   for (prop_map_t::const_iterator i = prop_map.begin(); i != prop_map.end(); ++i)
   {
