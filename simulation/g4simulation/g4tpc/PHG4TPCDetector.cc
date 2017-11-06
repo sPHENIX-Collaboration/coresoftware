@@ -118,10 +118,13 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
                                                       tpc_envelope, 0, false, overlapcheck);
 
   activevols.insert(tpc_gas_phys);
+
+#if G4VERSION_NUMBER >= 1003
   const G4RegionStore* theRegionStore = G4RegionStore::GetInstance();
   G4Region *tpcregion = theRegionStore->GetRegion("REGION_TPCGAS");
   tpc_gas_logic->SetRegion(tpcregion);
   tpcregion->AddRootLogicalVolume(tpc_gas_logic);
+#endif
   return 0;
 }
 
