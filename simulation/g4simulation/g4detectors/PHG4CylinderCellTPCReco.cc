@@ -2,6 +2,7 @@
 #include "PHG4CellContainer.h"
 #include "PHG4CellDefs.h"
 #include "PHG4Cellv1.h"
+#include "PHG4Cellv2.h"
 #include "PHG4CylinderCellGeom.h"
 #include "PHG4CylinderCellGeomContainer.h"
 #include "PHG4CylinderGeom.h"
@@ -593,7 +594,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
               else
               {
                 PHG4CellDefs::keytype akey = PHG4CellDefs::SizeBinning::genkey(*layer, cur_z_bin, cur_phi_bin);
-                cell = new PHG4Cellv1(akey);
+                cell = new PHG4Cellv2(akey);
                 cellptmap[key] = cell;
               }
               if (verbosity > 2000) cout << "    adding edep = neffelectrons = " << neffelectrons << " to cell with key = " << key << endl;
