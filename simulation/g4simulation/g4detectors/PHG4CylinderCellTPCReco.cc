@@ -496,7 +496,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
         double zrange = fabs(hiter->second->get_z(1) - hiter->second->get_z(0));
         if (verbosity > 2000) cout << " *********** zrange " << zrange << " zout " << hiter->second->get_z(1) << " zin " << hiter->second->get_z(0) << endl;
 
-        int nseg = 7;  // must be odd number
+	int nseg = (int)zrange/cloud_sig_zz[0];  // must be odd number
+	if(nseg%2==0)nseg+=1;
         // loop over the segment centers and distribute charge to the cells from each one
         for (int izr = 0; izr < nseg; izr++)
         {
