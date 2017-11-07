@@ -15,6 +15,14 @@
 #include <g4decayer/EDecayType.hh>
 #include <g4decayer/P6DExtDecayerPhysics.hh>
 
+#include <phgeom/PHGeomUtility.h>
+
+#include <g4gdml/PHG4GDMLUtility.hh>
+
+#include <phfield/PHFieldUtility.h>
+#include <phfield/PHFieldConfig_v1.h>
+#include <phfield/PHFieldConfig_v2.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
@@ -22,11 +30,6 @@
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
 
-#include <phgeom/PHGeomUtility.h>
-#include <g4gdml/PHG4GDMLUtility.hh>
-#include <phfield/PHFieldUtility.h>
-#include <phfield/PHFieldConfig_v1.h>
-#include <phfield/PHFieldConfig_v2.h>
 
 #include <TThread.h>
 
@@ -37,6 +40,8 @@
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4NistManager.hh>
 #include <Geant4/G4OpenGLImmediateX.hh>
+#include <Geant4/G4Region.hh>
+#include <Geant4/G4RegionStore.hh>
 #include <Geant4/G4StepLimiterPhysics.hh>
 #include <Geant4/G4UIExecutive.hh>
 #include <Geant4/G4UImanager.hh>
@@ -44,6 +49,7 @@
 #include <Geant4/G4Cerenkov.hh>
 #include <Geant4/G4EmProcessOptions.hh>
 #include <Geant4/G4EmSaturation.hh>
+#include <Geant4/G4FastSimulationManager.hh>
 #include <Geant4/G4HadronicProcessStore.hh>
 #include <Geant4/G4LossTableManager.hh>
 #include <Geant4/G4OpAbsorption.hh>
@@ -53,6 +59,7 @@
 #include <Geant4/G4OpWLS.hh>
 #include <Geant4/G4OpticalPhoton.hh>
 #include <Geant4/G4OpticalPhysics.hh>
+#include <Geant4/G4PAIModel.hh>
 #include <Geant4/G4PEEffectFluoModel.hh>
 #include <Geant4/G4EmProcessOptions.hh>
 #include <Geant4/G4HadronicProcessStore.hh>
@@ -122,7 +129,11 @@ PHG4Reco::PHG4Reco(const string &name)
   , fieldmapfile("NONE")
   , worldshape("G4Tubs")
   , worldmaterial("G4_AIR")
+#if  G4VERSION_NUMBER >= 1033
+  , physicslist("FTFP_BERT")
+#else
   , physicslist("QGSP_BERT")
+#endif
   , active_decayer_(true)
   , active_force_decay_(false)
   , force_decay_type_(kAll)
@@ -168,7 +179,8 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   if (verbosity > 1) cout << "PHG4Reco::Init - create run manager" << endl;
 
   // redirect GEANT verbosity to nowhere
-  if (verbosity < 1)
+//  if (verbosity < 1)
+  if (0)
   {
     G4UImanager *uimanager = G4UImanager::GetUIpointer();
     uisession_ = new PHG4UIsession();
@@ -179,7 +191,6 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   runManager_ = new G4RunManager();
 
   DefineMaterials();
-
   // create physics processes
   G4VModularPhysicsList *myphysicslist = nullptr;
   if (physicslist == "FTFP_BERT")
@@ -232,7 +243,12 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     myphysicslist->RegisterPhysics(decayer);
   }
   myphysicslist->RegisterPhysics(new G4StepLimiterPhysics());
+// initialize cuts so we can ask the world region for it's default
+// cuts to propagate them to other regions in DefineRegions()
+  myphysicslist->SetCutsWithDefault();
   runManager_->SetUserInitialization(myphysicslist);
+
+  DefineRegions();
 
   // initialize registered subsystems
   BOOST_FOREACH (SubsysReco *reco, subsystems_)
@@ -445,7 +461,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 
   // quiet some G4 print-outs (EM and Hadronic settings during first event)
   G4HadronicProcessStore::Instance()->SetVerbose(0);
-  G4LossTableManager::Instance()->SetVerbose(0);
+  G4LossTableManager::Instance()->SetVerbose(1);
 
   if ((verbosity < 1) && (uisession_))
   {
@@ -647,7 +663,7 @@ void PHG4Reco::G4Seed(const unsigned int i)
 void g4guithread(void *ptr)
 {
   TThread::Lock();
-  G4UIExecutive *ui = new G4UIExecutive(0, nullptr);
+  G4UIExecutive *ui = new G4UIExecutive(0, nullptr, "Xm");
   if (ui->IsGUI() && boost::filesystem::exists("gui.mac"))
   {
     UImanager->ApplyCommand("/control/execute gui.mac");
@@ -1237,6 +1253,24 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   const G4Material *G4_AIR = G4Material::GetMaterial("G4_AIR");
   G4Material *mRICH_Air=  new G4Material("mRICH_Air",G4_AIR->GetDensity(),G4_AIR,G4_AIR->GetState(),G4_AIR->GetTemperature(),G4_AIR->GetPressure());
   mRICH_Air->SetMaterialPropertiesTable(mRICH_Air_myMPT);
+}
+
+void
+PHG4Reco::DefineRegions()
+{
+  const G4RegionStore* theRegionStore = G4RegionStore::GetInstance();
+  G4ProductionCuts *gcuts = new G4ProductionCuts(*(theRegionStore->GetRegion("DefaultRegionForTheWorld")->GetProductionCuts()));
+  G4Region *tpcregion = new G4Region("REGION_TPCGAS");
+  tpcregion->SetProductionCuts(gcuts);
+#if G4VERSION_NUMBER >= 1033
+// Use this from the new G4 version 10.03 on
+// add the PAI model to the TPCGAS region
+// undocumented, painfully digged out with debugger by tracing what
+// is done for command "/process/em/AddPAIRegion all TPCGAS PAI"
+  G4EmParameters *g4emparams = G4EmParameters::Instance();
+  g4emparams->AddPAIModel("all", "REGION_TPCGAS", "PAI");
+#endif
+  return;
 }
 
 PHG4Subsystem *
