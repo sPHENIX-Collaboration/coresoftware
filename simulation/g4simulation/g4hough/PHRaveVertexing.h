@@ -27,6 +27,7 @@ namespace PHGenFit {
 class Fitter;
 } /* namespace PHGenFit */
 
+class PHTimer;
 class SvtxTrackMap;
 class SvtxVertexMap;
 class SvtxVertex;
@@ -122,6 +123,8 @@ private:
 	bool _over_write_svtxtrackmap;
 	bool _over_write_svtxvertexmap;
 
+	std::string _svtxvertexmaprefit_node_name;
+
 	bool _fit_primary_tracks;
 
 	PHGenFit::Fitter* _fitter;
@@ -144,6 +147,9 @@ private:
 	SvtxTrackMap* _trackmap_refit;
 	SvtxTrackMap* _primary_trackmap;
 	SvtxVertexMap* _vertexmap_refit;
+
+	PHTimer *_t_translate;
+	PHTimer *_t_rave;
 };
 
 #endif //* __PHRaveVertexing_H__ *//
