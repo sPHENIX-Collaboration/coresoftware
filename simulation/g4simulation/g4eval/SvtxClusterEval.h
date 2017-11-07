@@ -71,6 +71,12 @@ private:
   //  void fill_g4hit_layer_map();
   bool has_node_pointers();
   
+  //! Fast approximation of atan2() for cluster searching
+  //! From https://www.dsprelated.com/showarticle/1052.php
+  float fast_approx_atan2(float y, float x);
+  float fast_approx_atan2(float y2x);
+
+
   SvtxHitEval _hiteval;
   SvtxClusterMap* _clustermap;
   SvtxHitMap* _hitmap;
@@ -91,8 +97,13 @@ private:
   std::map<std::pair<SvtxCluster*,PHG4Particle*>,float> _cache_get_energy_contribution_g4particle;
   std::map<std::pair<SvtxCluster*,PHG4Hit*>,float>      _cache_get_energy_contribution_g4hit;
 
+#ifndef __CINT__
+  //! cluster azimuthal searching window in _clusters_per_layer. Unit: rad
+  static constexpr float  _clusters_searching_window = 0.1f;
   std::multimap<unsigned int, innerMap> _clusters_per_layer;
-  std::multimap<unsigned int, PHG4Hit*> _g4hits_per_layer;
+//  std::multimap<unsigned int, PHG4Hit*> _g4hits_per_layer;
+#endif
+
 };
 
 #endif // SVTXCLUSTEREVAL_H__

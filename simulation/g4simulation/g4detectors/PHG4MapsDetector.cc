@@ -138,7 +138,7 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
   // import the staves from the gemetry file
   std::unique_ptr<G4GDMLReadStructure>  reader (new G4GDMLReadStructure());
   G4GDMLParser gdmlParser(reader.get());
-  gdmlParser.Read(stave_geometry_file);
+  gdmlParser.Read(stave_geometry_file, false);
   
   // figure out which assembly we want
   char assemblyname[500];
