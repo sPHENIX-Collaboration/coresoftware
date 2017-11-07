@@ -1164,7 +1164,7 @@ float BEmcRec::GetProb(vector<EmcModule> HitList, float &chi2, int &ndf)
 	break;
       }
     } // if( ee[nn]
-    ph++;
+    ++ph;
   } // while( ph 
 
   if( nn<=0 ) return -1;

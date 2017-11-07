@@ -7,7 +7,9 @@ RawClusterv1::RawClusterv1():
   clusterid(0),
   _eta(0.0),
   _phi(0.0),
-  _energy(0.0)
+  _energy(0.0),
+  _chi2(0),
+  _prob(0)
 {}
 
 void
