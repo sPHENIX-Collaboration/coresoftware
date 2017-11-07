@@ -7,19 +7,19 @@
 using namespace std;
 
 PHG4Cellv2::PHG4Cellv2()
-  : cellid(~0x0)
-  , _edep(0)
+  : PHG4Cellv2(~0x0)
 {
 }
 
 PHG4Cellv2::PHG4Cellv2(const PHG4CellDefs::keytype g4cellid)
   : cellid(g4cellid)
+  , _edep(0)
 {
 }
 
 PHG4Cellv2::~PHG4Cellv2()
 {
-//  hitedeps.clear();
+  //  hitedeps.clear();
   return;
 }
 

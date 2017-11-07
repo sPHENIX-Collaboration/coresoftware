@@ -16,7 +16,7 @@ class PHG4Cellv2 : public PHG4Cell
 {
  public:
   PHG4Cellv2();
-  PHG4Cellv2(const PHG4CellDefs::keytype g4cellid);
+  explicit PHG4Cellv2(const PHG4CellDefs::keytype g4cellid);
   virtual ~PHG4Cellv2();
 
   virtual void identify(std::ostream& os = std::cout) const;
