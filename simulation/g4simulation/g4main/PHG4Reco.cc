@@ -249,7 +249,13 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   runManager_->SetUserInitialization(myphysicslist);
 
   DefineRegions();
-
+#if G4VERSION_NUMBER >= 1033
+  G4EmSaturation* emSaturation = G4LossTableManager::Instance()->EmSaturation();
+  if (! emSaturation)
+  {
+    cout << PHWHERE << "Could not initialize EmSaturation, Birks constants will fail" << endl;
+  }
+#endif
   // initialize registered subsystems
   BOOST_FOREACH (SubsysReco *reco, subsystems_)
   {
