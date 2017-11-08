@@ -39,6 +39,9 @@ class PHObject : public TObject
   virtual int isImplemented(const double f) const;
   virtual int isImplemented(const int i) const;
   virtual int isImplemented(const unsigned int i) const;
+
+  virtual int Integrate(PHObject *obj) {return -1;}
+
   void SplitLevel(const int i) { split = i; }
   int SplitLevel() const { return split; }
   void BufferSize(const int i) { bufSize = i; }
