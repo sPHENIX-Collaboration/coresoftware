@@ -19,6 +19,7 @@
 #include <TH1.h>
 
 #include <cstdlib>
+#include <cassert>
 #include <memory>
 
 using namespace std;
@@ -26,14 +27,17 @@ using namespace std;
 Fun4AllDstInputManager::Fun4AllDstInputManager(const string &name, const string &nodename, const string &topnodename) : 
   Fun4AllInputManager(name, nodename, topnodename),
   readrunttree(1),
+  readintegralttree(1),
   isopen(0),
   events_total(0),
   events_thisfile(0),
   events_skipped_during_sync(0),
   fname(NULL),
   RunNode("RUN"),
+  IntegralNode("SUM"),
   dstNode(NULL),
   runNode(NULL),
+  intNode(NULL),
   IManager(NULL),
   syncobject(NULL)
 {
@@ -95,6 +99,18 @@ Fun4AllDstInputManager::fileopen(const string &filenam)
 	    }
 	}
       // DLW: move the delete outside the if block to cover the case where isFunctional() fails
+    delete IManager;
+  }
+  // then read the integral node if not disabled
+  if (readintegralttree)
+  {
+    IManager = new PHNodeIOManager(frog.location(filename.c_str()), PHReadAndIntegrate, PHIntegralTree);
+    if (IManager->isFunctional())
+    {
+      intNode = se->getNode(IntegralNode.c_str(), topNodeName.c_str());
+      assert(intNode);
+      IManager->read(intNode);
+    }
     delete IManager;
   }
   // now open the dst node

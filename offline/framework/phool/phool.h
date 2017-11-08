@@ -12,9 +12,30 @@ static const int True = 1;
 //  Global type definitions
 typedef int PHBoolean;
 enum PHMessageType {PHError, PHWarning, PHHullo};
-enum PHAccessType {PHReadOnly, PHWrite, PHUpdate};
-enum PHTreeType {PHEventTree, PHRunTree};
+enum PHAccessType {
 
+  //! Read from DST file
+  PHReadOnly,
+
+  //! Write to DST file
+  PHWrite,
+
+  //! Update DST file
+  PHUpdate,
+
+  //! Read from DST file and integrate its content with the current nodes
+  PHReadAndIntegrate
+};
+enum PHTreeType {
+  //! DST node, which store event-wise information
+  PHEventTree = 0,
+
+  //! RUN node, which store run-wise information
+  PHRunTree = 1,
+
+  //! SUM node,  which store integrals, e.g. integrated luminosity
+  PHIntegralTree = 2
+};
 
 // General purpose functions
 void PHMessage(const std::string&, int, const std::string&);

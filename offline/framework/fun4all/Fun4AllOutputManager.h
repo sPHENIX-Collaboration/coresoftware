@@ -3,6 +3,8 @@
 
 #include "Fun4AllBase.h"
 
+#include <phool/phool.h>
+
 #include <vector>
 #include <string>
 
@@ -50,7 +52,7 @@ class Fun4AllOutputManager: public Fun4AllBase
   { return 0; }
 
   //! write specified node
-  virtual int WriteNode(PHCompositeNode* /*thisNode*/)
+  virtual int WriteNode(PHCompositeNode* /*thisNode*/, const PHTreeType )
   { return 0; }
   
   //! retrieves pointer to vector of event selector module names

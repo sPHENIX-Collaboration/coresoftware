@@ -121,3 +121,13 @@ int PHObject::isImplemented(const unsigned int) const
             << std::endl;
   return 0;
 }
+
+/// For integration objects, e.g. integrated luminosity, sum with another PHObject
+void PHObject::Integrate(PHObject *)
+{
+  // give warning if this method is not implemented
+  std::cout << PHWHERE
+            << " Integrate() not implemented by daughter class"
+            << std::endl;
+  exit(1);
+}

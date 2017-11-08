@@ -218,14 +218,14 @@ Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
 }
 
 int
-Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
+Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode, const PHTreeType type)
 {
   delete dstOut;
 
-  dstOut = new PHNodeIOManager(outfilename.c_str(), PHUpdate, PHRunTree);
+  dstOut = new PHNodeIOManager(outfilename.c_str(), PHUpdate, type);
   dstOut->write(thisNode);
   delete dstOut;
-  dstOut = 0;
+  dstOut = nullptr;
   return 0;
 }
 

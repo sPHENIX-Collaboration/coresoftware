@@ -28,6 +28,9 @@ class PHObject : public TObject
   /// Clear Event
   virtual void Reset();
 
+  /// For integral objects, e.g. integrated luminosity counter, integrate with another object from another run
+  virtual void Integrate(PHObject *);
+
   /// isValid returns non zero if object contains vailid data
   virtual int isValid() const;
   virtual int isValid(const float) const;
