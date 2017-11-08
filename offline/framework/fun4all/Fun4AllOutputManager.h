@@ -27,6 +27,10 @@ class Fun4AllOutputManager: public Fun4AllBase
   virtual int StripNode(const std::string& /*nodename*/)
   { return 0; }
 
+  //! not write a runwise node in outputmanager
+  virtual int StripRunNode(const std::string& /*nodename*/)
+  { return 0; }
+
   /*! \brief
     add an event selector to the outputmanager.
     event will get written only if all event selectors process_event method

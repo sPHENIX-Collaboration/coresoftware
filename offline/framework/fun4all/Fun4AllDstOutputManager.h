@@ -3,6 +3,8 @@
 
 
 #include "Fun4AllOutputManager.h"
+
+#include <set>
 #include <string>
 #include <vector>
 
@@ -18,6 +20,7 @@ class Fun4AllDstOutputManager: public Fun4AllOutputManager
 
   int AddNode(const std::string  &nodename);
   int StripNode(const std::string  &nodename);
+  int StripRunNode(const std::string  &nodename);
   int outfileopen(const std::string &fname);
   int RemoveNode(const std::string &nodename);
 
@@ -29,6 +32,7 @@ class Fun4AllDstOutputManager: public Fun4AllOutputManager
  protected:
   std::vector <std::string> savenodes;
   std::vector <std::string> stripnodes;
+  std::set <std::string> striprunnodes;
   PHNodeIOManager *dstOut;
 };
 

@@ -5,6 +5,8 @@
 #include <phool/PHNodeIOManager.h>
 #include <phool/PHNodeIterator.h>
 
+#include <boost/foreach.hpp>
+
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -65,6 +67,13 @@ Fun4AllDstOutputManager::StripNode(const string &nodename)
         }
     }
   stripnodes.push_back(newnode);
+  return 0;
+}
+
+int
+Fun4AllDstOutputManager::StripRunNode(const string &nodename)
+{
+  striprunnodes.insert(nodename);
   return 0;
 }
 
@@ -221,11 +230,26 @@ int
 Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
 {
   delete dstOut;
-
   dstOut = new PHNodeIOManager(outfilename.c_str(), PHUpdate, PHRunTree);
   dstOut->write(thisNode);
+  Fun4AllServer *se = Fun4AllServer::instance();
+  se->MakeNodesPersistent(thisNode);
+  if (! striprunnodes.empty())
+    {
+      PHNodeIterator nodeiter(thisNode);
+      BOOST_FOREACH(string nodename, striprunnodes)
+	{
+	  PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename.c_str());
+	  if (ChosenNode)
+	    {
+              ChosenNode->makeTransient();
+	    }
+	}
+    }
+  dstOut->write(thisNode);
+  se->MakeNodesPersistent(thisNode);
   delete dstOut;
-  dstOut = 0;
+  dstOut = nullptr;
   return 0;
 }
 
