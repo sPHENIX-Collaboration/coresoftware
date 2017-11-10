@@ -440,12 +440,12 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     int ID = 300;
     for (const auto& geom : divider_azimuth_geoms)
     {
-      G4Box* wall_solid = new G4Box(G4String(GetName() + G4String("_Divider_") + to_string(ID)),
+      G4Box* divider_solid = new G4Box(G4String(GetName() + G4String("_Divider_") + to_string(ID)),
                                     geom.thickness / 2.0,
                                     geom.width / 2.,
                                     (get_geom_v3()->get_length() / 2. - 2 * (get_geom_v3()->get_sidewall_thickness() + 2. * get_geom_v3()->get_assembly_spacing())) * cm * .5);
 
-      G4LogicalVolume* wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
+      G4LogicalVolume* wall_logic = new G4LogicalVolume(divider_solid, divider_mat,
                                                         G4String(G4String(GetName() + G4String("_Divider_") + to_string(ID))), 0, 0,
                                                         nullptr);
       wall_logic->SetVisAttributes(divider_VisAtt);

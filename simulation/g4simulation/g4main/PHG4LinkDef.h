@@ -16,6 +16,7 @@
 #pragma link C++ class PHG4PileupGenerator-!;
 #pragma link C++ class PHG4Subsystem-!;
 #pragma link C++ class PHG4TruthSubsystem-!;
+#pragma link C++ class PHG4Utils-!;
 //#pragma link C++ class PHG4UIsession-!;
 #pragma link C++ class ReadEICFiles-!;
 

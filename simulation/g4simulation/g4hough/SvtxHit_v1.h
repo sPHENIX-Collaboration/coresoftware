@@ -45,7 +45,7 @@ private:
   float        _e;                 //< digitized energy value
   PHG4CellDefs::keytype _cellid;            //< geant4 cell object
   
-  ClassDef(SvtxHit_v1, 1);
+  ClassDef(SvtxHit_v1, 2);
 };
 
 #endif

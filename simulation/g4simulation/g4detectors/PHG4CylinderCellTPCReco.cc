@@ -2,6 +2,7 @@
 #include "PHG4CellContainer.h"
 #include "PHG4CellDefs.h"
 #include "PHG4Cellv1.h"
+#include "PHG4Cellv2.h"
 #include "PHG4CylinderCellGeom.h"
 #include "PHG4CylinderCellGeomContainer.h"
 #include "PHG4CylinderGeom.h"
@@ -418,7 +419,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
         cell->add_edep(hiter->first, edep);
         cell->add_edep(edep);
         cell->add_shower_edep(hiter->second->get_shower_id(), edep);
-        if (hiter->second->has_property(PHG4Hit::prop_eion)) cell->add_eion(hiter->second->get_eion());
+//        if (hiter->second->has_property(PHG4Hit::prop_eion)) cell->add_eion(hiter->second->get_eion());
       }
       else
       {  // TPC
@@ -495,7 +496,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
         double zrange = fabs(hiter->second->get_z(1) - hiter->second->get_z(0));
         if (verbosity > 2000) cout << " *********** zrange " << zrange << " zout " << hiter->second->get_z(1) << " zin " << hiter->second->get_z(0) << endl;
 
-        int nseg = 7;  // must be odd number
+	int nseg = (int)zrange/cloud_sig_zz[0];  // must be odd number
+	if(nseg%2==0)nseg+=1;
         // loop over the segment centers and distribute charge to the cells from each one
         for (int izr = 0; izr < nseg; izr++)
         {
@@ -593,14 +595,14 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
               else
               {
                 PHG4CellDefs::keytype akey = PHG4CellDefs::SizeBinning::genkey(*layer, cur_z_bin, cur_phi_bin);
-                cell = new PHG4Cellv1(akey);
+                cell = new PHG4Cellv2(akey);
                 cellptmap[key] = cell;
               }
               if (verbosity > 2000) cout << "    adding edep = neffelectrons = " << neffelectrons << " to cell with key = " << key << endl;
               cell->add_edep(hiter->first, neffelectrons);
               cell->add_edep(neffelectrons);
               cell->add_shower_edep(hiter->second->get_shower_id(), neffelectrons);
-              if (hiter->second->has_property(PHG4Hit::prop_eion)) cell->add_eion(hiter->second->get_eion());
+//              if (hiter->second->has_property(PHG4Hit::prop_eion)) cell->add_eion(hiter->second->get_eion());
             }  //iz
           }    //iphi
         }      // izr
