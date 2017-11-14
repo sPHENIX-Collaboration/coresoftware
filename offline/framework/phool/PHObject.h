@@ -40,10 +40,9 @@ class PHObject : public TObject
   virtual int isImplemented(const int i) const;
   virtual int isImplemented(const unsigned int i) const;
 
-  virtual int Integrate() const {return 0;}
-  virtual int Integrate(PHObject *obj) {return -1;}
-
-  virtual void CopyContent(PHObject *obj);
+  virtual int Integrate() const { return 0; }
+  virtual int Integrate(PHObject* obj) { return -1; }
+  virtual void CopyContent(PHObject* obj);
 
   void SplitLevel(const int i) { split = i; }
   int SplitLevel() const { return split; }

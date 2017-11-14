@@ -122,9 +122,9 @@ int PHObject::isImplemented(const unsigned int) const
   return 0;
 }
 
-void  PHObject::CopyContent(PHObject *obj)
+void PHObject::CopyContent(PHObject* obj)
 {
-std::cout << PHWHERE
-	  << " CopyContent(PHObject *obj) is not implemented" << std::endl;
-exit(1);
+  std::cout << PHWHERE
+            << " CopyContent(PHObject *obj) is not implemented" << std::endl;
+  exit(1);
 }
