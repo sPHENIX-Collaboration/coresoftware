@@ -1394,8 +1394,11 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
     if (verbosity >= VERBOSITY_SOME)
     {
       // print event cycle counter in log scale if VERBOSITY_SOME
-
-      const double significand = icnt / pow(10, (int) (log10(icnt)));
+      double significand = 0;
+      if (icnt > 0)
+      {
+        significand = icnt / pow(10, (int) (log10(icnt)));
+      }
 
       if ((fmod(significand, 1.0) == 0 && significand <= 10) or icnt == 0)
       {

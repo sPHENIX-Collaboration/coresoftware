@@ -500,7 +500,7 @@ void EmcCluster::GetHits(EmcModule* phit, int n)
 // ///////////////////////////////////////////////////////////////////////////
 
 void EmcCluster::GetMoments( float* px, float* py, float* pxx, float* pxy, float* pyy )
-//  Returns cluster 1-st (px,py) and 2-d momenta (pxx,pxy,pyy)
+//  Returns cluster 1-st (px,py) and 2-d momenta (pxx,pxy,pyy) in cell unit
 {
      vector<EmcModule>::iterator ph;
      float e, x, y, xx, yy, xy;
@@ -522,11 +522,19 @@ void EmcCluster::GetMoments( float* px, float* py, float* pxx, float* pxy, float
 	p++;
      }
      fOwner->Momenta( nhit, phit, &e, &x, &y, &xx, &yy, &xy );
+     /*
      *px = x*fOwner->GetModSizex();
      *py = y*fOwner->GetModSizey();
      *pxx = xx*fOwner->GetModSizex()*fOwner->GetModSizex();
      *pxy = xy*fOwner->GetModSizex()*fOwner->GetModSizey();
      *pyy = yy*fOwner->GetModSizey()*fOwner->GetModSizey();
+     */
+     *px = x;
+     *py = y;
+     *pxx = xx;
+     *pxy = xy;
+     *pyy = yy;
+
      delete [] phit;
 }
 
@@ -542,6 +550,11 @@ void EmcCluster::GetErrors( float* pde, float* pdx, float* pdy, float* pdz)
     GetCorrPos( &x, &y );
     fOwner->CalculateErrors( e, x, y, pde, pdx, pdy, pdz);
 
+}
+
+float EmcCluster::GetProb(float &chi2, int &ndf)
+{
+  return fOwner->GetProb(fHitList, chi2, ndf);
 }
 
 // ///////////////////////////////////////////////////////////////////////////

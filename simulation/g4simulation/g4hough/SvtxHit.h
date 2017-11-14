@@ -1,12 +1,12 @@
 #ifndef __SVTXHIT_H__
 #define __SVTXHIT_H__
 
-#include <phool/PHObject.h>
+#include <TObject.h>
 #include <g4detectors/PHG4CellDefs.h>
 #include <iostream>
 #include <limits.h>
 
-class SvtxHit : public PHObject {
+class SvtxHit : public TObject {
 
 public:
   
@@ -43,7 +43,7 @@ protected:
   
 private:
   
-  ClassDef(SvtxHit, 1);
+  ClassDef(SvtxHit, 2);
 };
 
 #endif

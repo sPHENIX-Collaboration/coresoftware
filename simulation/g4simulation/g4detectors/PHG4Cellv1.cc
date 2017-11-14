@@ -220,29 +220,9 @@ PHG4Cellv1::get_property_nocheck(const PROPERTY prop_id) const
 }
 
 void
-PHG4Cellv1::print() const {
-  std::cout<<"New Hitv1  0x"<< hex << cellid << dec << endl;
-  for (prop_map_t::const_iterator i = prop_map.begin(); i!= prop_map.end(); ++i)
-    {
-      PROPERTY prop_id = static_cast<PROPERTY>(i->first);
-      pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
-      cout << "\t" << prop_id << ":\t" << property_info.first << " = \t";
-      switch(property_info.second)
-	{
-	case type_int:
-	  cout << get_property_int(prop_id);
-	  break;
-	case type_uint:
-	  cout << get_property_uint(prop_id);
-	  break;
-	case type_float:
-	  cout << get_property_float(prop_id);
-	  break;
-	default:
-	  cout << " unknown type ";
-	}
-      cout <<endl;
-    }
+PHG4Cellv1::print() const
+{
+  identify(cout);
 }
 
 void
@@ -252,4 +232,45 @@ PHG4Cellv1::Reset()
   showeredeps.clear();
   prop_map.clear();
   return;
+}
+
+void PHG4Cellv1::identify(std::ostream& os) const
+{
+  os << "New PHG4Cellv1  0x" << hex << cellid << dec << endl;
+
+  os <<"Associated to "<<hitedeps.size()<<" hits"<<endl;
+  for (const auto pair :hitedeps)
+  {
+    os <<"\t PHG4hit "<<pair.first<<" -> "<<pair.second<<" GeV"<<endl;
+  }
+
+  os <<"Associated to "<<showeredeps.size()<<" showers"<<endl;
+  for (const auto pair :showeredeps)
+  {
+    os <<"\t Shower "<<pair.first<<" -> "<<pair.second<<" GeV"<<endl;
+  }
+
+//  os <<"Contains to "<<trainOfDigits.size()<<" TPC digitization chain"<<endl;
+
+  for (prop_map_t::const_iterator i = prop_map.begin(); i != prop_map.end(); ++i)
+  {
+    PROPERTY prop_id = static_cast<PROPERTY>(i->first);
+    pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+    os << "\t" << prop_id << ":\t" << property_info.first << " = \t";
+    switch (property_info.second)
+    {
+    case type_int:
+      os << get_property_int(prop_id);
+      break;
+    case type_uint:
+      os << get_property_uint(prop_id);
+      break;
+    case type_float:
+      os << get_property_float(prop_id);
+      break;
+    default:
+      os << " unknown type ";
+    }
+    os << endl;
+  }
 }

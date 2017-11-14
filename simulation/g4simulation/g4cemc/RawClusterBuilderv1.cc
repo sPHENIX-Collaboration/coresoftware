@@ -64,9 +64,53 @@ int RawClusterBuilderv1::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+bool RawClusterBuilderv1::Cell2Abs(RawTowerGeomContainer *towergeom, float phiC, float etaC, float& phi, float& eta)
+{
+  int NPHI = towergeom->get_phibins();
+  int NETA = towergeom->get_etabins();
+
+  int i1, i2;
+  float dd;
+
+  int iphi = phiC+0.5; // tower #
+  if( iphi<0 || iphi >= NPHI ) {
+    printf("RawClusterBuilderv1::Cell2Abs: wrong input phi: %d\n",iphi);
+    return false;
+  }
+
+  i1 = iphi-1;
+  i2 = iphi+1;
+  if     ( i1 < 0 )
+    dd = fabs(towergeom->get_phicenter(i2) - towergeom->get_phicenter(iphi));
+  else if( i2 >= NPHI )
+    dd = fabs(towergeom->get_phicenter(iphi) - towergeom->get_phicenter(i1));
+  else 
+    dd = fabs(towergeom->get_phicenter(i2) - towergeom->get_phicenter(i1))/2.;
+
+  phi = towergeom->get_phicenter(iphi) + (phiC-iphi)*dd;
+
+  int ieta = etaC+0.5; // tower #
+  if( ieta<0 || ieta >= NETA ) {
+    printf("RawClusterBuilderv1::Cell2Abs: wrong input eta: %d\n",ieta);
+    return false;
+  }
+
+  i1 = ieta-1;
+  i2 = ieta+1;
+  if     ( i1 < 0 )
+    dd = fabs(towergeom->get_etacenter(i2) - towergeom->get_etacenter(ieta));
+  else if( i2 >= NETA )
+    dd = fabs(towergeom->get_etacenter(ieta) - towergeom->get_etacenter(i1));
+  else 
+    dd = fabs(towergeom->get_etacenter(i2) - towergeom->get_etacenter(i1))/2.;
+
+  eta = towergeom->get_etacenter(ieta) + (etaC-ieta)*dd;
+
+  return true;
+}
+
 int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 {
-
   string towernodename = "TOWER_CALIB_" + detector;
   // Grab the towers
   RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, towernodename.c_str());
@@ -82,11 +126,22 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
      cout << PHWHERE << ": Could not find node " << towergeomnodename.c_str() << endl;
      return Fun4AllReturnCodes::ABORTEVENT;
    }
-
+ 
  int NPHI = towergeom->get_phibins();
  int NETA = towergeom->get_etabins();
- bemc->SetConf( NPHI, NETA );
- _clusters->Reset(); // !!! Not sure if it is necessarry to do it - ask Chris
+ /* 
+ printf("Nphi= %d Neta= %d\n",NPHI,NETA);
+ for( int i=0; i<NPHI; i++ ) printf("iphi= %3d %f\n",i,towergeom->get_phicenter(i));
+ for( int i=0; i<NETA; i++ ) {
+   //   std::pair<double, double> beta0 = towergeom->get_etabounds(i);
+   printf("ieta= %3d %f\n",i,towergeom->get_etacenter(i));
+   //   printf("ieta= %3d %f %f %f\n",i,towergeom->get_etacenter(i),beta0.first,beta0.second);
+ }
+ */
+ 
+ bemc->SetGeometry( NPHI, NETA, 2.*M_PI/NPHI, 0.024 ); // !!!!! The last parameter not used for now
+
+ // _clusters->Reset(); // !!! Not sure if it is necessarry to do it - ask Chris
 
   // make the list of towers above threshold
   RawTowerContainer::ConstRange begin_end  = towers->getTowers();
@@ -101,6 +156,7 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
   for (; itr != begin_end.second; ++itr)
     {
       RawTower* tower = itr->second;
+      //      printf("  Tower e=%f (%f)\n",tower->get_energy(), _min_tower_e);
       if (tower->get_energy() > _min_tower_e)
         {
 	  ix = tower->get_binphi();
@@ -115,11 +171,15 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 
   bemc->SetModules(&HitList);
 
+  // Find clusters (as a set of towers with common edge)
+  bemc->FindClusters();
+
   // Get pointer to clusters
   std::vector<EmcCluster> *ClusterList = bemc->GetClusters();
   std::vector<EmcCluster>::iterator pc;
 
   float ecl, xcg, ycg, xx, xy, yy;
+  float xcorr, ycorr;
   EmcPeakarea pPList[MaxNofPeaks];
   EmcPeakarea *pp;
   EmcModule peaks[MaxNofPeaks];
@@ -128,7 +188,8 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 
   int iphi, ieta;
   float phi, eta;
-  float dphi, phistep, deta, etastep;
+  float prob, chi2;
+  int ndf;
 
   vector<EmcModule>::iterator ph;
   vector<EmcModule> hlist;
@@ -138,11 +199,11 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 
     //    ecl = pc->GetTotalEnergy();
     //    pc->GetMoments( &xcg, &ycg, &xx, &xy, &yy );
-    //    printf("Cl: %f %f\n",xcg,ycg);
+
     int npk = pc->GetPeaks(pPList, peaks);
     pp = pPList;
 
-    //    printf("  iCl=%d  NPeaks=%d: E=%f  x=%f  y=%f\n",iCl,npk,ecl,xcg,ycg);
+    //    printf("  iCl=%d (%d): E=%f  x=%f  y=%f\n",ncl,npk,ecl,xcg,ycg);
 
     for(int ipk=0; ipk<npk; ipk++){
 
@@ -160,25 +221,23 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
       //      phi = (xcg-float(NPHI)/2.+0.5)/float(NPHI)*2.*M_PI;
       //      eta = (ycg-float(NETA)/2.+0.5)/float(NETA)*2.2; // -1.1<eta<1.1;
 
-      iphi = xcg+0.5;
-      dphi = xcg - float(iphi); // this is from -0.5 to +0.5
-      phi = towergeom->get_phicenter(iphi);
-      std::pair<double, double> phibounds = towergeom->get_phibounds(iphi);
-      phistep = phibounds.second - phibounds.first;
-      phi += dphi*phistep;
+      //      Cell2Abs(towergeom,xcg,ycg,phi,eta);
 
-      ieta = ycg+0.5;
-      deta = ycg - float(ieta); // this is from -0.5 to +0.5
-      eta = towergeom->get_etacenter(ieta);
-      //      etastep = towergeom->get_etastep();
-      std::pair<double, double> beta = towergeom->get_etabounds(ieta);
-      etastep = fabs(beta.second-beta.first);
-      eta += deta*etastep;
+      pp->GetCorrPos(&xcorr,&ycorr);
+      Cell2Abs(towergeom,xcorr,ycorr,phi,eta);
+
+      if(phi > M_PI)  phi -= 2.*M_PI; // convert to [-pi,pi]]
+
+      prob = pp->GetProb(chi2,ndf);
+      //      printf("Prob/Chi2/NDF= %f %f %d Ecl=%f\n",prob,chi2,ndf,ecl);
 
       cluster = new RawClusterv1();
       cluster->set_energy(ecl);
       cluster->set_phi(phi);
       cluster->set_eta(eta);
+      cluster->set_prob(prob);
+      if( ndf>0 ) cluster->set_chi2(chi2/ndf);
+      else        cluster->set_chi2(0);
 
       hlist = pp->GetHitList();
       ph = hlist.begin();
@@ -189,7 +248,9 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 	// that code needs a closer look - here are the towers 
 	// with their energy added to the cluster object where 
 	// the id is the tower id
-	RawTowerDefs::keytype twrkey = RawTowerDefs::encode_towerid( RawTowerDefs::NONE , ieta , iphi );
+	// !!!!! Make sure twrkey is correctly extracted 
+	RawTowerDefs::keytype twrkey = RawTowerDefs::encode_towerid( towers->getCalorimeterID(), ieta , iphi );
+	//	printf("%d %d: %d e=%f\n",iphi,ieta,twrkey,(*ph).amp);
 	cluster->addTower(twrkey,(*ph).amp/fEnergyNorm);
 	++ph;
       }
