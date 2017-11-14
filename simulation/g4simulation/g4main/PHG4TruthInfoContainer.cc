@@ -83,6 +83,9 @@ void PHG4TruthInfoContainer::identify(ostream& os) const {
     cout << "embeded vertex id: " << eter->first
 	 << " flag: " << eter->second << endl;
   }
+
+  cout << "---primary vertex-------------------" << endl;
+  cout <<"Vertex "<<GetPrimaryVertexIndex()<<" is identified as the primary vertex"<<endl;
    
   return;
 }
@@ -320,7 +323,7 @@ int PHG4TruthInfoContainer::GetPrimaryVertexIndex() const
     //         ; iter->second->identify();
     const int embedding_ID = isEmbededVtx(iter->first);
 
-    if (embedding_ID > highest_embedding_ID)
+    if (embedding_ID >= highest_embedding_ID)
     {
       highest_embedding_ID = embedding_ID;
       vtx_id_for_highest_embedding_ID = iter->first;
