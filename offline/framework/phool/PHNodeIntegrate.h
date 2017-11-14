@@ -2,8 +2,8 @@
 #define PHNodeIntegrate_h
 
 //  Declaration of class PHNodeIntegrate
-//  Purpose: strategy which calls integrate() on a PHNode
-//  Author: Matthias Messer
+//  Purpose: strategy which calls Integrate() on a PHNode if it is
+//  a PHObject
 
 #include "PHNodeOperation.h"
 
@@ -16,13 +16,18 @@ class PHNodeIntegrate : public PHNodeOperation
   PHNodeIntegrate() {}
   virtual ~PHNodeIntegrate() {}
   void RunNode(PHCompositeNode *node)
-  {runnode = node;}
+  {
+    runnode = node;
+  }
   void RunSumNode(PHCompositeNode *node)
-  {runsumnode = node;}
+  {
+    runsumnode = node;
+  }
 
  protected:
-  virtual void perform(PHNode*);
-private:
+  virtual void perform(PHNode *);
+
+ private:
   PHCompositeNode *runnode;
   PHCompositeNode *runsumnode;
 };
