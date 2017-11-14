@@ -88,7 +88,7 @@
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
 
-#define _DEBUG_
+//#define _DEBUG_
 
 using namespace std;
 
@@ -97,7 +97,6 @@ using namespace std;
  */
 PHRaveVertexing::PHRaveVertexing(const string &name) :
 		SubsysReco(name),
-		_over_write_svtxtrackmap(true),
 		_over_write_svtxvertexmap(false),
 		_svtxvertexmaprefit_node_name("SvtxVertexMapRefit"),
 		_fitter( NULL),
@@ -106,12 +105,8 @@ PHRaveVertexing::PHRaveVertexing(const string &name) :
 		_vertex_finder(NULL),
 		_vertexing_method("avf-smoothing:1"),
 		_truth_container(NULL),
-		_clustermap(NULL),
 		_trackmap(NULL),
 		_vertexmap(NULL),
-		_trackmap_refit(NULL),
-		_primary_trackmap(NULL),
-		_vertexmap_refit(NULL),
 		_t_translate(nullptr),
 		_t_rave(nullptr)
 		{
@@ -265,25 +260,6 @@ int PHRaveVertexing::CreateNodes(PHCompositeNode *topNode) {
 			cout << "SVTX node added" << endl;
 	}
 
-	if (!(_over_write_svtxtrackmap)) {
-		_trackmap_refit = new SvtxTrackMap_v1;
-		PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
-				_trackmap_refit, "SvtxTrackMapRefit", "PHObject");
-		tb_node->addNode(tracks_node);
-		if (verbosity > 0)
-			cout << "Svtx/SvtxTrackMapRefit node added" << endl;
-	}
-
-	if (_fit_primary_tracks) {
-		_primary_trackmap = new SvtxTrackMap_v1;
-		PHIODataNode<PHObject>* primary_tracks_node =
-				new PHIODataNode<PHObject>(_primary_trackmap, "PrimaryTrackMap",
-						"PHObject");
-		tb_node->addNode(primary_tracks_node);
-		if (verbosity > 0)
-			cout << "Svtx/PrimaryTrackMap node added" << endl;
-	}
-
 	if (!(_over_write_svtxvertexmap)) {
 		_vertexmap_refit = new SvtxVertexMap_v1;
 		PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
@@ -318,14 +294,6 @@ int PHRaveVertexing::GetNodes(PHCompositeNode * topNode) {
 		return Fun4AllReturnCodes::ABORTEVENT;
 	}
 
-	// Input Svtx Clusters
-	_clustermap = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
-	if (!_clustermap && _event < 2) {
-		cout << PHWHERE << " SvtxClusterMap node not found on node tree"
-				<< endl;
-		return Fun4AllReturnCodes::ABORTEVENT;
-	}
-
 	// Input Svtx Tracks
 	_trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 	if (!_trackmap && _event < 2) {
@@ -340,28 +308,6 @@ int PHRaveVertexing::GetNodes(PHCompositeNode * topNode) {
 		cout << PHWHERE << " SvtxVertexrMap node not found on node tree"
 				<< endl;
 		return Fun4AllReturnCodes::ABORTEVENT;
-	}
-
-	// Output Svtx Tracks
-	if (!(_over_write_svtxtrackmap)) {
-		_trackmap_refit = findNode::getClass<SvtxTrackMap>(topNode,
-				"SvtxTrackMapRefit");
-		if (!_trackmap_refit && _event < 2) {
-			cout << PHWHERE << " SvtxTrackMapRefit node not found on node tree"
-					<< endl;
-			return Fun4AllReturnCodes::ABORTEVENT;
-		}
-	}
-
-	// Output Primary Svtx Tracks
-	if (_fit_primary_tracks) {
-		_primary_trackmap = findNode::getClass<SvtxTrackMap>(topNode,
-				"PrimaryTrackMap");
-		if (!_primary_trackmap && _event < 2) {
-			cout << PHWHERE << " PrimaryTrackMap node not found on node tree"
-					<< endl;
-			return Fun4AllReturnCodes::ABORTEVENT;
-		}
 	}
 
 	// Output Svtx Vertices
@@ -453,15 +399,10 @@ genfit::Track* PHRaveVertexing::TranslateSvtxToGenFitTrack(SvtxTrack* svtx_track
 
 	try {
 		// The first state is extracted to PCA, second one is the one with measurement
-		//SvtxTrackState* svtx_state = (++(svtx_track->begin_states()))->second;
-		SvtxTrackState* svtx_state = (svtx_track->begin_states())->second;
+		SvtxTrackState* svtx_state = (++(svtx_track->begin_states()))->second;
+		//SvtxTrackState* svtx_state = (svtx_track->begin_states())->second;
 
 		TVector3 pos(svtx_state->get_x(), svtx_state->get_y(), svtx_state->get_z());
-#ifdef _DEBUG_
-		cout << "DEBUG" << __LINE__ << endl;
-		cout << "path length:      " << svtx_state->get_pathlength() << endl;
-		cout << "radius:           " << pos.Perp() << endl;
-#endif
 		TVector3 mom(svtx_state->get_px(), svtx_state->get_py(), svtx_state->get_pz());
 		TMatrixDSym cov(6);
 		for(int i=0;i<6;++i) {
@@ -469,6 +410,24 @@ genfit::Track* PHRaveVertexing::TranslateSvtxToGenFitTrack(SvtxTrack* svtx_track
 				cov[i][j] = svtx_state->get_error(i, j);
 			}
 		}
+
+#ifdef _DEBUG_
+		{
+			cout << "DEBUG" << __LINE__ << endl;
+			cout << "path length:      " << svtx_state->get_pathlength() << endl;
+			cout << "radius:           " << pos.Perp() << endl;
+			cout << "DEBUG: " << __LINE__ << endl;
+			for(int i=0; i<6; ++i){
+				for(int j=0; j<6; ++j){
+					cout << svtx_state->get_error(i, j) << "\t";
+				}
+				cout << endl;
+			}
+
+			cov.Print();
+		}
+
+#endif
 
 		genfit::AbsTrackRep * rep = new genfit::RKTrackRep(_primary_pid_guess);
 		genfit::Track* genfit_track = new genfit::Track(rep, TVector3(0,0,0), TVector3(0,0,0));
@@ -489,12 +448,34 @@ genfit::Track* PHRaveVertexing::TranslateSvtxToGenFitTrack(SvtxTrack* svtx_track
 
 		genfit::MeasuredStateOnPlane * ms = new genfit::MeasuredStateOnPlane(rep);
 		ms->setPosMomCov(pos, mom, cov);
+#ifdef _DEBUG_
+		{
+			cout << "DEBUG: " << __LINE__ << endl;
+			ms->Print();
+			cout << "Orig: " << __LINE__ << endl;
+			cov.Print();
+			cout << "Translate: " << __LINE__ << endl;
+			ms->get6DCov().Print();
+		}
+#endif
 		genfit::KalmanFittedStateOnPlane * kfs = new genfit::KalmanFittedStateOnPlane(*ms, 1., 1.);
 
-		//TODO need to test
+		//< Acording to the special order of using the stored states
 		fi->setForwardUpdate(kfs);
 
 		genfit_track->insertPoint(tp);
+
+#ifdef _DEBUG_
+//		{
+//			cout << "DEBUG" << __LINE__ << endl;
+//			TVector3 pos, mom;
+//			TMatrixDSym cov;
+//			genfit_track->getFittedState().getPosMomCov(pos, mom, cov);
+//			pos.Print();
+//			mom.Print();
+//			cov.Print();
+//		}
+#endif
 
 		return genfit_track;
 	} catch (...) {

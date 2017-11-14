@@ -33,10 +33,6 @@ class SvtxVertexMap;
 class SvtxVertex;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
-class SvtxClusterMap;
-class SvtxEvalStack;
-class TFile;
-class TTree;
 
 //! \brief		Refit SvtxTracks with PHGenFit.
 class PHRaveVertexing: public SubsysReco {
@@ -68,14 +64,6 @@ public:
 
 	void set_vertexing_method(const std::string& vertexingMethod) {
 		_vertexing_method = vertexingMethod;
-	}
-
-	bool is_fit_primary_tracks() const {
-		return _fit_primary_tracks;
-	}
-
-	void set_fit_primary_tracks(bool fitPrimaryTracks) {
-		_fit_primary_tracks = fitPrimaryTracks;
 	}
 
 	int get_primary_pid_guess() const {
@@ -120,12 +108,8 @@ private:
 			const std::vector<genfit::GFRaveVertex*> & rave_vertices,
 			const GenFitTrackMap & gf_track_map);
 
-	bool _over_write_svtxtrackmap;
 	bool _over_write_svtxvertexmap;
-
 	std::string _svtxvertexmaprefit_node_name;
-
-	bool _fit_primary_tracks;
 
 	PHGenFit::Fitter* _fitter;
 
@@ -139,13 +123,10 @@ private:
 
 	//! Input Node pointers
 	PHG4TruthInfoContainer* _truth_container;
-	SvtxClusterMap* _clustermap;
 	SvtxTrackMap* _trackmap;
 	SvtxVertexMap* _vertexmap;
 
 	//! Output Node pointers
-	SvtxTrackMap* _trackmap_refit;
-	SvtxTrackMap* _primary_trackmap;
 	SvtxVertexMap* _vertexmap_refit;
 
 	PHTimer *_t_translate;
