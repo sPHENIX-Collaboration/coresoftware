@@ -6,7 +6,6 @@
 
 #include <set>
 #include <string>
-#include <vector>
 
 class PHNodeIOManager;
 class PHCompositeNode;
@@ -22,7 +21,6 @@ class Fun4AllDstOutputManager: public Fun4AllOutputManager
   int StripNode(const std::string  &nodename);
   int StripRunNode(const std::string  &nodename);
   int outfileopen(const std::string &fname);
-  int RemoveNode(const std::string &nodename);
 
   void Print(const std::string &what = "ALL") const;
 
@@ -30,8 +28,8 @@ class Fun4AllDstOutputManager: public Fun4AllOutputManager
   int WriteNode(PHCompositeNode *thisNode);
 
  protected:
-  std::vector <std::string> savenodes;
-  std::vector <std::string> stripnodes;
+  std::set <std::string> savenodes;
+  std::set <std::string> stripnodes;
   std::set <std::string> striprunnodes;
   PHNodeIOManager *dstOut;
 };

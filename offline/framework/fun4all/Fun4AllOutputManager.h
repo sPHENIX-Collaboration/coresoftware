@@ -42,10 +42,6 @@ class Fun4AllOutputManager: public Fun4AllBase
   virtual int outfileopen(const std::string& /*nodename*/)
   { return 0; }
 
-  //! removes a node from outputmanager
-  virtual int RemoveNode(const std::string& /*nodename*/)
-  { return 0; }
-
   //! Common method, called before calling virtual Write
   int WriteGeneric(PHCompositeNode *startNode);
 
