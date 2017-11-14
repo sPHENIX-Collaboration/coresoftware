@@ -231,7 +231,6 @@ Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
 {
   delete dstOut;
   dstOut = new PHNodeIOManager(outfilename.c_str(), PHUpdate, PHRunTree);
-  dstOut->write(thisNode);
   Fun4AllServer *se = Fun4AllServer::instance();
   se->MakeNodesPersistent(thisNode);
   if (! striprunnodes.empty())
