@@ -13,10 +13,11 @@
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNodeIntegrate.h>
 #include <phool/PHNodeIOManager.h>
 #include <phool/recoConsts.h>
 
-#include <TH1.h>
+#include <TSystem.h>
 
 #include <cstdlib>
 #include <memory>
@@ -30,12 +31,14 @@ Fun4AllDstInputManager::Fun4AllDstInputManager(const string &name, const string 
   events_total(0),
   events_thisfile(0),
   events_skipped_during_sync(0),
-  fname(NULL),
+  fname(nullptr),
   RunNode("RUN"),
-  dstNode(NULL),
-  runNode(NULL),
-  IManager(NULL),
-  syncobject(NULL)
+  dstNode(nullptr),
+  runNode(nullptr),
+  runNodeCopy(nullptr),
+  runNodeSum(nullptr),
+  IManager(nullptr),
+  syncobject(nullptr)
 {
   return ;
 }
@@ -43,6 +46,9 @@ Fun4AllDstInputManager::Fun4AllDstInputManager(const string &name, const string 
 Fun4AllDstInputManager::~Fun4AllDstInputManager()
 {
   delete IManager;
+  cout << "runNodeSum:" << endl;
+  runNodeSum->print();
+  delete runNodeSum;
   return;
 }
 
@@ -64,11 +70,11 @@ Fun4AllDstInputManager::fileopen(const string &filenam)
     {
       cout << ThisName << ": opening file " << filename.c_str() << endl;
     }
-  // sanity check - the IManager must be NULL when this method is executed
+  // sanity check - the IManager must be nullptr when this method is executed
   // if not something is very very wrong and we must not continue
   if (IManager)
     {
-      cout << PHWHERE << " IManager pointer is not NULL but " << IManager
+      cout << PHWHERE << " IManager pointer is not nullptr but " << IManager
            << endl;
       cout << "Send mail to off-l with this printout and the macro you used"
            << endl;
@@ -85,6 +91,7 @@ Fun4AllDstInputManager::fileopen(const string &filenam)
       IManager = new PHNodeIOManager(frog.location(filename.c_str()), PHReadOnly, PHRunTree);
       if (IManager->isFunctional())
 	{
+
 	  runNode = se->getNode(RunNode.c_str(), topNodeName.c_str());
 	  IManager->read(runNode);
 	  // get the current run number
@@ -93,6 +100,37 @@ Fun4AllDstInputManager::fileopen(const string &filenam)
 	    {
 	      SetRunNumber(runheader->get_RunNumber());
 	    }
+// delete our internal copy of the runnode when opening subsequent files
+	  if (runNodeCopy)
+	  {
+	    cout << PHWHERE 
+<< " The impossible happened, we have a valid copy of the run node " 
+		 << runNodeCopy->getName() << " which should be a nullptr"
+		 << endl;
+	    gSystem->Exit(1);
+	  }
+	    runNodeCopy = new PHCompositeNode("RUNNODECOPY");
+	  if (!runNodeSum)
+	  {
+	    runNodeSum = new PHCompositeNode("RUNNODESUM");
+	  }
+            PHNodeIOManager *tmpIman = new PHNodeIOManager(frog.location(filename.c_str()), PHReadOnly, PHRunTree);
+	    tmpIman->read(runNodeCopy);
+	    delete tmpIman;
+	  
+	    cout << "integrating" << endl;
+	    PHNodeIntegrate integrate;
+	    integrate.RunNode(runNodeCopy);
+	    integrate.RunSumNode(runNodeSum);
+// run recursively over internal run node copy and integrate objects
+    PHNodeIterator mainIter(runNodeCopy);
+    mainIter.forEach(integrate);
+// we do not need to keep the internal copy, keeping it would crate
+// problems in case a subsequent file does not contain all the
+// runwise objects from the previous file. Keeping this copy would then
+// integrate the missing object again with the old copy
+    delete runNodeCopy;
+    runNodeCopy = nullptr;
 	}
       // DLW: move the delete outside the if block to cover the case where isFunctional() fails
     delete IManager;
@@ -413,7 +451,7 @@ Fun4AllDstInputManager::ReadNextEventSyncObject()
   int itest = 0;
   if (!readfull)
     {
-      // if all files are exhausted, the IManager is deleted and set to NULL
+      // if all files are exhausted, the IManager is deleted and set to nullptr
       // so check if IManager is valid before getting a new event
       if (IManager)
 	{

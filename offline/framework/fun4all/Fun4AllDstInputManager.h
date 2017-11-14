@@ -40,6 +40,8 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
   std::string syncbranchname;
   PHCompositeNode *dstNode;
   PHCompositeNode *runNode;
+  PHCompositeNode *runNodeCopy;
+  PHCompositeNode *runNodeSum;
   PHNodeIOManager *IManager;
   SyncObject *syncobject;
 };
