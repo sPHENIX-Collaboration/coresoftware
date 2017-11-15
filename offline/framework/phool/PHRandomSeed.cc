@@ -17,23 +17,30 @@ bool PHRandomSeed::fFixed(false);
 
 unsigned int PHRandomSeed::GetSeed()
 {
+  unsigned int iseed;
   if (!seedqueue.empty())
   {
-    unsigned int iseed = seedqueue.front();
+    iseed = seedqueue.front();
     seedqueue.pop();
-    return iseed;
   }
-  if (!fInitialized)
+  else
   {
-    InitSeed();
+    if (!fInitialized)
+    {
+      InitSeed();
+    }
+    if (fFixed)
+    {
+      iseed = fDistribution(fRandomGenerator);
+    }
+    else
+    {
+      std::random_device rdev;
+      iseed = rdev();
+    }
   }
-  if (fFixed)
-  {
-    return fDistribution(fRandomGenerator);
-  }
-  std::random_device rdev;
-  uint32_t random_seed = rdev();
-  return random_seed;
+  cout << "PHRandomSeed::GetSeed() seed: " << iseed << endl;
+  return iseed;
 }
 
 void PHRandomSeed::InitSeed()
@@ -42,7 +49,7 @@ void PHRandomSeed::InitSeed()
   if (rc->FlagExist("RANDOMSEED"))
   {
     // fixed init seed
-    const int seed = rc->get_IntFlag("RANDOMSEED");
+    const unsigned int seed = rc->get_IntFlag("RANDOMSEED");
     cout << "PHRandomSeed: using fixed seed " << seed << endl;
     fRandomGenerator.seed(seed);
     fFixed = true;
