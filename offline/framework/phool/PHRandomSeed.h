@@ -1,14 +1,11 @@
 #ifndef PHRANDOMSEED_H
 #define PHRANDOMSEED_H
 
-#ifndef __CINT__
-#include <random>
-#endif
-
 //! standard way to get a random seed:
 //! `unsigned int seed = PHRandomSeed();`
 //! It return fix seed sequence if recoConsts RANDOMSEED is set.
-//! otherwise it return a random seed from /dev/urandom
+//! If values are preloaded via PHRandomSeed::LoadSeed, they are returned in loaded order
+//! otherwise it return a random seed from std::random_device rdev
 class PHRandomSeed
 {
  public:
@@ -22,15 +19,12 @@ class PHRandomSeed
 
   //! get a seed
   static unsigned int GetSeed();
+  static void LoadSeed(unsigned int iseed);
 
  protected:
   static void InitSeed();
-
-#ifndef __CINT__
+  static bool fFixed;
   static bool fInitialized;
-  static std::mt19937 fRandomGenerator;
-  static std::uniform_int_distribution<unsigned int> fDistribution;
-#endif
 };
 
 #endif
