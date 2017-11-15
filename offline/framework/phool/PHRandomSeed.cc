@@ -1,10 +1,10 @@
 #include "PHRandomSeed.h"
 #include "recoConsts.h"
 
-#include <random>
 #include <cstdlib>
 #include <iostream>
 #include <queue>
+#include <random>
 
 using namespace std;
 
@@ -17,7 +17,7 @@ bool PHRandomSeed::fFixed(false);
 
 unsigned int PHRandomSeed::GetSeed()
 {
-  if (! seedqueue.empty())
+  if (!seedqueue.empty())
   {
     unsigned int iseed = seedqueue.front();
     seedqueue.pop();
@@ -29,11 +29,11 @@ unsigned int PHRandomSeed::GetSeed()
   }
   if (fFixed)
   {
-  return fDistribution(fRandomGenerator);
+    return fDistribution(fRandomGenerator);
   }
-     std::random_device rdev;
-      uint32_t random_seed = rdev();
-      return random_seed;
+  std::random_device rdev;
+  uint32_t random_seed = rdev();
+  return random_seed;
 }
 
 void PHRandomSeed::InitSeed()
