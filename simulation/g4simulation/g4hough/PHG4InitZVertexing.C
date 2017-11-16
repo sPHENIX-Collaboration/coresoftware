@@ -63,11 +63,8 @@
 
 //#define _DEBUG_
 //#define _HOUGHTRANSF_
-//#define _THIRDITER_
-//#define _SEC_ITER_
 #define _MULTIVTX_
 #define _TRIPLETS_
-#define _HOUGHTRIPLETS_
 
 using namespace std;
 using namespace Eigen;
@@ -175,15 +172,15 @@ int PHG4InitZVertexing::Init(PHCompositeNode* topNode) {
     _ofile = new TFile("z0_dzdl_kappa_phi_d.root","recreate");
 #endif
 
-    if (!_use_max_kappa)
+    if (!_use_max_kappa){
     _max_kappa = pt_to_kappa(_min_pt);
     cout<<"kappa max "<<_max_kappa<<endl;
+    }
 
     set_nzooms();
     _hough_space = new HelixHoughSpace_v1();
     for (unsigned int izoom =0; izoom<nzooms ; ++izoom)
     _hough_space->add_one_zoom(zooms_vec[izoom]);
-
 
     _hough_space->set_kappa_min(0);
     _hough_space->set_kappa_max(_max_kappa);
@@ -196,14 +193,12 @@ int PHG4InitZVertexing::Init(PHCompositeNode* topNode) {
     _hough_space->set_z0_min(_min_z0);// -14 for non-zero vertex 
     _hough_space->set_z0_max(_max_z0);
 
-//    _hough_space->print_zoom_profile();
-//    _hough_space->print_para_range();
-
     _hough_funcs = new HelixHoughFuncs_v1();
     _hough_funcs->set_hough_space(_hough_space);
 
-
 #ifdef _DEBUG_
+//    _hough_space->print_zoom_profile();
+//    _hough_space->print_para_range();
     unsigned int n_z0_bins= _hough_space->get_n_z0_bins(0);
     unsigned int n_dzdl_bins= _hough_space->get_n_dzdl_bins(0);
     unsigned int n_kappa_bins = _hough_space->get_n_kappa_bins(0);
@@ -220,7 +215,6 @@ int PHG4InitZVertexing::Init(PHCompositeNode* topNode) {
 
     _kappa_d_phi = new TH3D("kappa_d_phi","kappa_d_phi",n_kappa_bins,_hough_space->get_kappa_min(),_hough_space->get_kappa_max(),n_d_bins,_hough_space->get_d_min(),_hough_space->get_d_max(),n_phi_bins,_hough_space->get_phi_min(),_hough_space->get_phi_max());
 #endif
-
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -236,13 +230,11 @@ int PHG4InitZVertexing::InitRun(PHCompositeNode* topNode) {
 	if(code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 
-
 #ifdef _MULTIVTX_
     _ofile2 = new TFile(_fname.c_str(),"recreate");
     _ntp_zvtx_by_event = new TNtuple("ntp_zvtx_by_event","all vertices found event-by-event","event:zvtx");
     _ntp_zvtx_by_track = new TNtuple("ntp_zvtx_by_track","track-by-track (zvtx + z0) distribution", "event:zvtx");
 #endif
-
 
 	_t_output_io = new PHTimer("_t_output_io");
 	_t_output_io->stop();
@@ -279,8 +271,6 @@ int PHG4InitZVertexing::InitRun(PHCompositeNode* topNode) {
 int PHG4InitZVertexing::process_event(PHCompositeNode *topNode) 
 {
 
- 
-
 	if (verbosity > 0)
 		cout << "PHG4InitZVertexing::process_event -- entered" << endl;
 
@@ -297,7 +287,6 @@ int PHG4InitZVertexing::process_event(PHCompositeNode *topNode)
 	hits_map.clear();
 	hits_used.clear();
 
-        separate_helicity = true;
 	//-----------------------------------
 	// Get Objects off of the Node Tree
 	//-----------------------------------
@@ -310,15 +299,19 @@ int PHG4InitZVertexing::process_event(PHCompositeNode *topNode)
 
 	// First iteration
 
+#ifdef _HOUGHTRANSF_
         reset_zooms();
         add_zoom(1,18,1,16,16);// zoom 0
         add_zoom(1,3,1,3,2);// zoom 1
         add_zoom(1,3,1,3,2);// zoom 2
-        set_min_pT(0.2);//2.
+        separate_helicity = true;
+#endif
 
         Init(topNode);
 
 	bool zvtx_found = false;
+        _ca_nlayers = 3; // 3(vertexing)/4(track seeding) for p+p
+
 	// p+p 
 //	unsigned int nseq =4;		//		 65(0.5)       103(0.5)
 //      unsigned int nattempt =4;
@@ -326,12 +319,6 @@ int PHG4InitZVertexing::process_event(PHCompositeNode *topNode)
 	unsigned int nseq =  1;
 	unsigned int nattempt = 1;  //		         59(1.5) 63(1.5)   
 
-	_ca_nlayers = 4; // 4 for p+p
-	//_ca_nlayers = 6; 
-
-//	_ca_chi2 = 1.5;
-//	_ca_chi2 = 5.;//2.5
-//	for (unsigned int iseq = 0; iseq<nseq; ++iseq)
 	unsigned int iseq=0;
 	while(1)
 	{// iseq 
@@ -355,15 +342,18 @@ int PHG4InitZVertexing::process_event(PHCompositeNode *topNode)
 
 #ifdef _TRIPLETS_ 
 			_temp_tracks.clear();
+
 			build_triplets_to_Track3D(_temp_tracks, true); // false : backward
-#else // if not triplets
+#endif
+
+#ifdef _HOUGHTRANSF_
 
 			unsigned int zoomlevel = 0;			
 			zoomlevel = 0;
 			set_nbins(zoomlevel);
 
 #ifdef _DEBUG_
-//        cout<<"PatternReco:: nkappa " <<nkappa<<" nphi "<<nphi<<" nd "<<nd<<" ndzdl "<<ndzdl<<" nz0 " <<nz0<<endl;
+//        cout<<"InitZVertexing:: nkappa " <<nkappa<<" nphi "<<nphi<<" nd "<<nd<<" ndzdl "<<ndzdl<<" nz0 " <<nz0<<endl;
 #endif
 
 			for(unsigned int i=0; i<_temp_tracks.size(); ++i) _temp_tracks[i].reset();
@@ -871,12 +861,6 @@ int PHG4InitZVertexing::export_output(){
                 float phi = _tracks.at(itrack).phi;
                 float dzdl = _tracks.at(itrack).dzdl;
                 float z0 = _tracks.at(itrack).z0;
-//		cout<<"helix parameters read "<<endl;
-                //    track.set_helix_phi(phi);
-                //    track.set_helix_kappa(kappa);
-                //    track.set_helix_d(d);
-                //    track.set_helix_z0(z0);
-                //    track.set_helix_dzdl(dzdl);
 
                 float pT = kappa_to_pt(kappa);
 
@@ -993,16 +977,16 @@ void PHG4InitZVertexing::initialize_houghbin(){
                 for (iz=0; iz<nz0; ++iz) {
 
                 unsigned int bins[5]={ik,ip,id,il,iz};
-//              cout<<"PatternReco:: izoom "<<izoom<<" il " <<il<<" iz "<<iz<<endl;
-                                bin = _hough_space->get_bin(0,bins);
-//              cout<<"PatternReco:: bin " << bin<<endl;
-                                HelixHoughBin* _bin = new HelixHoughBin_v1(bin);
+//              cout<<"InitZVertexing:: izoom "<<izoom<<" il " <<il<<" iz "<<iz<<endl;
+                bin = _hough_space->get_bin(0,bins);
+//              cout<<"InitZVertexing:: bin " << bin<<endl;
+                HelixHoughBin* _bin = new HelixHoughBin_v1(bin);
                 _bin->set_zoomlevel(0);
                 _bin->set_hough_space(_hough_space);
                 _bin->init();
                 if (bin == 0) _bin->identify();
                 bins_map.insert(std::pair<unsigned int, HelixHoughBin*>(bin,_bin));
-//              cout<<"PatternReco:: lbin "<<_bin->get_dzdl_bin(0)<<" zbin "<<_bin->get_z0_bin(0)<<endl;
+//              cout<<"InitZVertexing:: lbin "<<_bin->get_dzdl_bin(0)<<" zbin "<<_bin->get_z0_bin(0)<<endl;
                                 }
               }
             }
@@ -1973,7 +1957,8 @@ int PHG4InitZVertexing::cellular_automaton_zvtx_init(std::vector<Track3D>& candi
 	ca->set_propagate_forward(true);
 
 //	ca->set_mode(0);
-        ca->set_mode(1); // triplet
+        ca->set_triplet_mode(true); // triplet
+	ca->set_seeding_mode(false);
         ca->set_hits_map(hits_map);
 
 	ca->set_remove_inner_hits(true);
@@ -1995,6 +1980,7 @@ int PHG4InitZVertexing::cellular_automaton_zvtx_init(std::vector<Track3D>& candi
 
 }
 
+/*
 int PHG4InitZVertexing::cellular_automaton_zvtx_second(std::vector<Track3D>& candidate_tracks){
 
 
@@ -2023,14 +2009,13 @@ int PHG4InitZVertexing::cellular_automaton_zvtx_second(std::vector<Track3D>& can
 
 int PHG4InitZVertexing::cellular_automaton_zvtx_third(std::vector<Track3D>& candidate_tracks){
 
-
         cout<<"Entering cellular autumaton zvtx_third : processing "<< candidate_tracks.size()<<" tracks. "<<endl;
         ca =    new CellularAutomaton_v1(candidate_tracks,_radii,_material);
         ca->set_hough_space(_hough_space);
         ca->set_mag_field(_mag_field);
         ca->set_pt_rescale(_pt_rescale);
-      ca->set_n_layers(_ca_nlayers);
-      ca->set_required_layers(_ca_min_nlayers);
+        ca->set_n_layers(_ca_nlayers);
+        ca->set_required_layers(_ca_min_nlayers);
         ca->set_ca_chi2(_ca_chi2);
         ca->set_ca_chi2_layer(2.);
         ca->set_propagate_forward(true);
@@ -2045,7 +2030,7 @@ int PHG4InitZVertexing::cellular_automaton_zvtx_third(std::vector<Track3D>& cand
 
 }
 
-
+*/
 
 int PHG4InitZVertexing::fit_vertex(){
 	cout<<"tracks size " << _tracks.size()<<endl;
@@ -2055,12 +2040,7 @@ int PHG4InitZVertexing::fit_vertex(){
 	vtx_tracks.clear();
 	_tracks.swap(vtx_tracks);
 
-//    	double zsum = 0.0;
-//	double zmean = 0.0;
-//	double zsigma  = 0.0;
-
 	unsigned int nzvtx = vtx_tracks.size();
-//	unsigned int nzvtx_new = 0;
 
         // range (-32, 32)
         unsigned int nzbins= 2*1280;
@@ -2114,18 +2094,14 @@ int PHG4InitZVertexing::fit_vertex(){
 		cout<<"vertex "<< zvertex<<endl;	
 		}
 	}
-//	float zvtx_p =-999.;
-//	if (zvertices.size()>0) zvtx_p = vertices[0];
 
 	cout<<"number of candidate z-vertices : "<< zvertices.size()<<endl;
 	for (unsigned int j = 0; j <zvertices.size(); ++j)
 	cout<<"primary vertex position : "<<zvertices[j]<<endl;
 
-	// primary peak vtxz_p: range for tracks compatible with primary vertex [vtxz_p - 500um, vtxz_p + 500um] 
 	unsigned int izvtx= 999;
     	for (unsigned int i = 0; i < nzvtx; ++i) {
 	double zvtx = vtx_tracks[i].z0;
-//	cout<<"zvtx " <<zvtx<<endl;
 	if (zvtx != zvtx) continue;
 		bool pass_dcaz= false;
 		for (unsigned int k = 0; k<zvertices.size(); ++k) {
@@ -2176,7 +2152,6 @@ int PHG4InitZVertexing::fit_vertex(){
 
 		if (!pass_dcaz || izvtx>99) continue;
 		zsums[izvtx] += pow(fabs(zmeans[izvtx] - vtx_tracks[j].z0),2);
-//        if (fabs(zvtx-zvtx_p)>_dcaz_cut) continue;
 	}
 
 	std::vector<float> _multi_vtx;
@@ -2215,23 +2190,12 @@ int PHG4InitZVertexing::fit_vertex(){
 //		if (fabs(vtx_tracks[k].z0-zmeans[k])> _dcaz_cut/*10*zsigmz*/)continue;
 		++nzvtx_final;
 
-//		_tracks.push_back(vtx_track);
-//		_track_covars.push_back(_track_states[k].C);
-//		_track_errors.push_back(_track_states[k].chi2 );
 		_multi_vtx_tracks[izvtx].push_back(vtx_tracks[k]);
-//		cout<<"tracks "<<endl;
 		_multi_vtx_track_covars[izvtx].push_back(_track_states[k].C);
-//		cout<<"track covars "<<endl;
 		_multi_vtx_track_errors[izvtx].push_back(_track_states[k].chi2);
-//		cout<<"tracks errors"<<endl;
 
     	}
 
-/*	if (nzvtx_final<5){
-	cout<< "Cannat fit, need more tracks"<<endl;
-	return -2;
-	}
-*/    	
 	cout<<"start fitting vertex.. "<<endl;
 	for (unsigned int i = 0; i<_multi_vtx.size(); ++i)
 	{
@@ -2259,15 +2223,7 @@ int PHG4InitZVertexing::fit_vertex(){
 		// add vertex_id to Track3D
 //		std::vector<float> pre_vtx(3,0.0);
 
-//		if (i>0){
-//		cout<<"i>0"<<endl;
-//		pre_vtx = _vertex_list.back();
-//		if (fabs(pre_vtx[2]-_vertex[2])>0.05) 
-//		_vertex_list.push_back(_vertex);
-//		} else {
-//		cout<<"else "<<endl;
 		_vertex_list.push_back(_vertex);
-//		}
 
 	}// loop over vertices
 
@@ -2287,10 +2243,11 @@ int PHG4InitZVertexing::fit_vertex(){
                 pass_dcaz = pass_dcaz || new_vtx;
                 }
 
-                if (!pass_dcaz || izvtx >= _vertex_list.size()) continue;
 
-//              if (fabs(vtx_tracks[k].z0-zmeans[k])> _dcaz_cut/*10*zsigmz*/)continue;
+		if (!pass_dcaz || izvtx >= _vertex_list.size()) continue;
+//              if (pass_dcaz && izvtx <9999) 
                 ++nzvtx_final;
+
                 Track3D vtx_track = vtx_tracks[k];
 		vtx_track.set_vertex_id(izvtx);
 //		cout<<"vertex_id "<< izvtx<<endl;
@@ -2298,6 +2255,7 @@ int PHG4InitZVertexing::fit_vertex(){
                 _track_covars.push_back(_track_states[k].C);
                 _track_errors.push_back(_track_states[k].chi2 );
 		
+		izvtx=0;
         }
 
 	for(unsigned int i=0; i<vtx_tracks.size(); ++i) vtx_tracks[i].reset();
