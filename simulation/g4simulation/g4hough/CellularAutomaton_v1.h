@@ -57,7 +57,8 @@ class CellularAutomaton_v1 : public CellularAutomaton {
 	void set_remove_hits(bool remove){remove_hits = remove;}
 	void set_remove_inner_hits(bool remove_inner){remove_inner_hits = remove_inner;}
 	void set_require_inner_hits(bool require_inner){require_inner_hits = require_inner;}
-	void set_mode(bool mod) {mode = mod;}
+	void set_triplet_mode(bool mod) {triplet_mode = mod;}
+	void set_seeding_mode(bool mod) {seeding_mode = mod;}
 	void set_hits_map(std::map<unsigned int, Cluster3D>& hits_map){_hits_map = hits_map;}
 
 	int run(std::vector<Track3D>& output_tracks, std::vector<HelixTrackState>& output_track_states, std::map<unsigned int, bool>& hits_used);	
@@ -142,7 +143,8 @@ class CellularAutomaton_v1 : public CellularAutomaton {
 	bool remove_hits;
 	bool remove_inner_hits;
 	bool require_inner_hits;
-	bool mode;
+	bool triplet_mode;
+	bool seeding_mode;
 
 	ClassDef(CellularAutomaton_v1,1)
 };

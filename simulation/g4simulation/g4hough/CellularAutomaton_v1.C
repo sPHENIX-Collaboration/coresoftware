@@ -56,7 +56,8 @@ CellularAutomaton_v1::CellularAutomaton_v1(std::vector<Track3D>& input_tracks, s
 	forward(false),
 	remove_hits(false),
 	remove_inner_hits(false),
-	mode(1)
+	triplet_mode(true),
+	seeding_mode(false)
 {
 	set_input_tracks(input_tracks);
 	set_detector_radii(detector_radii);
@@ -254,7 +255,7 @@ int CellularAutomaton_v1::process_tracks()
 	{ // loop over input tracks
 		cout<<"track candidate "<<i<<endl;
 
-		switch(mode){
+		switch(triplet_mode){
 
 		case 0: // Tracks from Hough  Transform
 		process_single_track(in_tracks[i]);
@@ -649,8 +650,11 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 				float phi_diff = phi_cur-phi_prev;
 				if (phi_cur< M_PI/2. && phi_prev > 3*M_PI/2.) phi_diff += 2.*M_PI;
 				else if (phi_cur>3*M_PI/2 && phi_prev<M_PI/2.) phi_diff -= 2.*M_PI;
-                                if ((fabs(phi_diff)> ca_phi_cut || abs(z3-z2)> ca_z_cut) &&cur_seg_size!=1) continue;
-
+				if (!seeding_mode){
+                                if ((fabs(phi_diff)> ca_phi_cut || abs(z3-z2)> ca_z_cut)) continue;
+				} else {
+				if ((fabs(phi_diff)> ca_phi_cut || abs(z3-z2)> ca_z_cut) && cur_seg_size!=1) continue;
+				}
 
 //                		auto search = _hits_used.find(hit1);
 //                		if(search != _hits_used.end() && search->second ) continue;
@@ -659,7 +663,6 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 	
 				case false :
 
-  
 	//        		x3 = layer_sorted[l][j].get_x();
 	//        		y3 = layer_sorted[l][j].get_y();
 	//        		z3 = layer_sorted[l][j].get_z();
@@ -708,7 +711,12 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
               				temp_segment.ux = ux_end;
               				temp_segment.uy = uy_end;
               				temp_segment.kappa = kappa;
-              				if (temp_segment.kappa > _hough_space->get_kappa_max() && cur_seg_size!=1) continue;
+					if (seeding_mode){
+              					if (temp_segment.kappa > _hough_space->get_kappa_max() &&cur_seg_size!=1) continue;
+					} else {
+						if (temp_segment.kappa > _hough_space->get_kappa_max()) continue;
+					} 
+					
                         		temp_segment.dkappa = dkappa;
               				for (unsigned int ll = 0; ll < l; ++ll) {
                 			temp_segment.hits[ll] = (*cur_seg)[which_seg].hits[ll];
@@ -908,12 +916,14 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
           	cout	<<" kappa " <<temp_track.kappa <<" phi "<<temp_track.phi<<" d "<<temp_track.d
           		<<" z0 "<<temp_track.z0<<" dzdl "<<temp_track.dzdl<< endl;
 #endif
-
-		if (temp_track.kappa != temp_track.kappa && cur_seg_size!=1 )  continue;
-//		if (temp_track.kappa != temp_track.kappa) temp_track.kappa = seg_kappa;
-		if (temp_track.z0 != temp_track.z0 && cur_seg_size != 1) continue;
-//		if (temp_track.z0 != temp_track.z0) temp_track.z0 = 0.;
-
+		
+		if (seeding_mode){
+			if (temp_track.kappa != temp_track.kappa && cur_seg_size!=1) continue;
+			if (temp_track.z0 != temp_track.z0 && cur_seg_size != 1) continue;
+		} else {
+		        if (temp_track.kappa != temp_track.kappa) continue;
+                        if (temp_track.z0 != temp_track.z0) continue;
+		}
 
     		HelixTrackState state;
     		state.phi = temp_track.phi;
@@ -951,30 +961,30 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
    		// fudge factor for non-gaussian hit sizes
            	state.C *= 3.;
     		state.chi2 *= 6.;
-		// kappa cut here drives both efficiency and ghost track rates down at the same time
-    		if (!(temp_track.kappa == temp_track.kappa) && (cur_seg_size !=1) /*|| (temp_segment.kappa > 8*_hough_space->get_kappa_max())*/ ) {
-      		continue;
-    		}
-    		if (!(state.chi2 == state.chi2) && (cur_seg_size !=1)) {
-      		continue;
-    		}
-/*
-      		if (fabs(temp_track.d) > ca_dcaxy_cut) {
-        	continue;
-      		}
+		// kappa cut *here* drives both efficiency and ghost track rates down at the same time
+		if (seeding_mode){
+    		if (!(temp_track.kappa == temp_track.kappa) && (cur_seg_size !=1)) continue;
+    		if (!(state.chi2 == state.chi2) && (cur_seg_size !=1)) continue;
+		} else {
+                if (!(temp_track.kappa == temp_track.kappa)) continue;
+                if (!(state.chi2 == state.chi2)) continue;
+		}
 
-      		if (fabs(temp_track.z0) > dca_cut) {
-        	continue;
-      		}
+/*
+      		if (fabs(temp_track.d) > ca_dcaxy_cut) continue;
+      		if (fabs(temp_track.z0) > dca_cut) continue;
 */
+
 	// no chi2 cut for tests on triplets
 
 		cout<<"state.chi2 from kalman "<<state.chi2<<endl;
-    		if (state.chi2 / (2. * ((float)(temp_track.hits.size())) - 5.) > ca_chi2_cut && cur_seg_size !=1) {
-      		continue;
-    		}
+		if (seeding_mode){
+    			if (state.chi2 / (2. * ((float)(temp_track.hits.size())) - 5.) > ca_chi2_cut && cur_seg_size !=1) continue;
+		} else {
+			if (state.chi2 / (2. * ((float)(temp_track.hits.size())) - 5.) > ca_chi2_cut) continue;
+		}
 
-    		if (best_chi2 > state.chi2 || cur_seg_size==1){
+    		if (best_chi2 > state.chi2 || (seeding_mode && cur_seg_size==1)){
       			if (!best_track.empty()){
       			best_track.pop_back();
       			best_track_state.pop_back();
