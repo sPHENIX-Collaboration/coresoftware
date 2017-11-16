@@ -437,16 +437,6 @@ int PHG4InitZVertexing::process_event(PHCompositeNode *topNode)
 		}
 	}//iseq
 
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map.begin(); it!=bins_map.end(); ++it){ delete it->second; bins_map.erase(it);}
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_prev.begin(); it!=bins_map_prev.end(); ++it){ delete it->second; bins_map_prev.erase(it);}
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_cur.begin(); it!=bins_map_cur.end(); ++it){ delete it->second; bins_map_cur.erase(it);}
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_sel.begin(); it!=bins_map_sel.end(); ++it){ delete it->second; bins_map_sel.erase(it);}
-
-        bins_map.clear();
-        bins_map_prev.clear();
-        bins_map_cur.clear();
-        bins_map_sel.clear();
-
 
         code = export_output();
         if (code != Fun4AllReturnCodes::EVENT_OK)
