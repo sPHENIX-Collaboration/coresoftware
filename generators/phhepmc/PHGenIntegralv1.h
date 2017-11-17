@@ -28,6 +28,7 @@ class PHGenIntegralv1 : public PHGenIntegral
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Reset();
 
+  virtual int Integrate() const { return 1; }
   /// For integral objects, e.g. integrated luminosity counter, integrate with another object from another run
   virtual void Integrate(PHObject*);
 
