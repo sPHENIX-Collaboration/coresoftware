@@ -53,7 +53,7 @@ void PHGenIntegralv1::Reset()
   fDescription = "Source Not Provided";
 }
 
-void PHGenIntegralv1::Integrate(PHObject* incoming_object)
+int PHGenIntegralv1::Integrate(PHObject* incoming_object)
 {
   PHGenIntegral* in_gen = dynamic_cast<PHGenIntegral*>(incoming_object);
 
@@ -79,4 +79,6 @@ void PHGenIntegralv1::Integrate(PHObject* incoming_object)
   fNGeneratorAcceptedEvent += in_gen->get_N_Generator_Accepted_Event();
   fIntegratedLumi += in_gen->get_Integrated_Lumi();
   fSumOfWeight += in_gen->get_Sum_Of_Weight();
+
+  return fNProcessedEvent;
 }

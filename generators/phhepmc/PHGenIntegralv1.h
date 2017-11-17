@@ -30,7 +30,7 @@ class PHGenIntegralv1 : public PHGenIntegral
 
   virtual int Integrate() const { return 1; }
   /// For integral objects, e.g. integrated luminosity counter, integrate with another object from another run
-  virtual void Integrate(PHObject*);
+  virtual int Integrate(PHObject*);
 
   //! Integrated luminosity in pb^-1
   Double_t get_Integrated_Lumi() const
