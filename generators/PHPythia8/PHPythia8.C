@@ -246,7 +246,7 @@ int PHPythia8::create_node_tree(PHCompositeNode *topNode) {
 
 
   PHNodeIterator iter(topNode);
-  PHCompositeNode *sumNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SUM"));
+  PHCompositeNode *sumNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!sumNode)
   {
     cout << PHWHERE << "SUM Node missing doing nothing" << endl;
@@ -257,7 +257,7 @@ int PHPythia8::create_node_tree(PHCompositeNode *topNode) {
   if (!_integral_node)
   {
     _integral_node = new PHGenIntegralv1("PHPythia8 with embedding ID of "+std::to_string(hepmc_helper.get_embedding_id()));
-    PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(_integral_node, "PHHepMCGenEventMap", "PHObject");
+    PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(_integral_node, "PHGenIntegral", "PHObject");
     sumNode->addNode(newmapnode);
   }
   else
