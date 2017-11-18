@@ -63,11 +63,8 @@
 
 //#define _DEBUG_
 //#define _HOUGHTRANSF_
-//#define _THIRDITER_
-//#define _SEC_ITER_
 #define _MULTIVTX_
 #define _TRIPLETS_
-#define _HOUGHTRIPLETS_
 
 using namespace std;
 using namespace Eigen;
@@ -145,6 +142,7 @@ PHG4PatternReco::PHG4PatternReco(unsigned int nlayers,
 	_kappa_d_phi(NULL),
 	_ofile(NULL),
 	_ofile2(NULL),
+	_fname("test.root"),
 	  _nlayers_all(67),
 	  _layer_ilayer_map_all(),
 	  _radii_all(),
@@ -175,15 +173,15 @@ int PHG4PatternReco::Init(PHCompositeNode* topNode) {
     _ofile = new TFile("z0_dzdl_kappa_phi_d.root","recreate");
 #endif
 
-    if (!_use_max_kappa)
+    if (!_use_max_kappa){
     _max_kappa = pt_to_kappa(_min_pt);
     cout<<"kappa max "<<_max_kappa<<endl;
+    }
 
     set_nzooms();
     _hough_space = new HelixHoughSpace_v1();
     for (unsigned int izoom =0; izoom<nzooms ; ++izoom)
     _hough_space->add_one_zoom(zooms_vec[izoom]);
-
 
     _hough_space->set_kappa_min(0);
     _hough_space->set_kappa_max(_max_kappa);
@@ -196,14 +194,12 @@ int PHG4PatternReco::Init(PHCompositeNode* topNode) {
     _hough_space->set_z0_min(_min_z0);// -14 for non-zero vertex 
     _hough_space->set_z0_max(_max_z0);
 
-//    _hough_space->print_zoom_profile();
-//    _hough_space->print_para_range();
-
     _hough_funcs = new HelixHoughFuncs_v1();
     _hough_funcs->set_hough_space(_hough_space);
 
-
 #ifdef _DEBUG_
+//    _hough_space->print_zoom_profile();
+//    _hough_space->print_para_range();
     unsigned int n_z0_bins= _hough_space->get_n_z0_bins(0);
     unsigned int n_dzdl_bins= _hough_space->get_n_dzdl_bins(0);
     unsigned int n_kappa_bins = _hough_space->get_n_kappa_bins(0);
@@ -220,7 +216,6 @@ int PHG4PatternReco::Init(PHCompositeNode* topNode) {
 
     _kappa_d_phi = new TH3D("kappa_d_phi","kappa_d_phi",n_kappa_bins,_hough_space->get_kappa_min(),_hough_space->get_kappa_max(),n_d_bins,_hough_space->get_d_min(),_hough_space->get_d_max(),n_phi_bins,_hough_space->get_phi_min(),_hough_space->get_phi_max());
 #endif
-
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -236,13 +231,11 @@ int PHG4PatternReco::InitRun(PHCompositeNode* topNode) {
 	if(code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 
-
 #ifdef _MULTIVTX_
     _ofile2 = new TFile(_fname.c_str(),"recreate");
     _ntp_zvtx_by_event = new TNtuple("ntp_zvtx_by_event","all vertices found event-by-event","event:zvtx");
     _ntp_zvtx_by_track = new TNtuple("ntp_zvtx_by_track","track-by-track (zvtx + z0) distribution", "event:zvtx");
 #endif
-
 
 	_t_output_io = new PHTimer("_t_output_io");
 	_t_output_io->stop();
@@ -279,8 +272,6 @@ int PHG4PatternReco::InitRun(PHCompositeNode* topNode) {
 int PHG4PatternReco::process_event(PHCompositeNode *topNode) 
 {
 
- 
-
 	if (verbosity > 0)
 		cout << "PHG4PatternReco::process_event -- entered" << endl;
 
@@ -297,7 +288,6 @@ int PHG4PatternReco::process_event(PHCompositeNode *topNode)
 	hits_map.clear();
 	hits_used.clear();
 
-        separate_helicity = true;
 	//-----------------------------------
 	// Get Objects off of the Node Tree
 	//-----------------------------------
@@ -310,15 +300,21 @@ int PHG4PatternReco::process_event(PHCompositeNode *topNode)
 
 	// First iteration
 
+#ifdef _HOUGHTRANSF_
         reset_zooms();
         add_zoom(1,18,1,16,16);// zoom 0
         add_zoom(1,3,1,3,2);// zoom 1
         add_zoom(1,3,1,3,2);// zoom 2
-        set_min_pT(0.2);//2.
+        separate_helicity = true;
+#endif
 
         Init(topNode);
 
-	bool zvtx_found = false;
+	turnoff_hits_used_in_triplets();
+
+//	bool zvtx_found = false;
+        _ca_nlayers = 4; // 3(vertexing)/4(track seeding) for p+p
+
 	// p+p 
 //	unsigned int nseq =4;		//		 65(0.5)       103(0.5)
 //      unsigned int nattempt =4;
@@ -326,12 +322,6 @@ int PHG4PatternReco::process_event(PHCompositeNode *topNode)
 	unsigned int nseq =  1;
 	unsigned int nattempt = 1;  //		         59(1.5) 63(1.5)   
 
-	_ca_nlayers = 4; // 4 for p+p
-	//_ca_nlayers = 6; 
-
-//	_ca_chi2 = 1.5;
-//	_ca_chi2 = 5.;//2.5
-//	for (unsigned int iseq = 0; iseq<nseq; ++iseq)
 	unsigned int iseq=0;
 	while(1)
 	{// iseq 
@@ -342,7 +332,7 @@ int PHG4PatternReco::process_event(PHCompositeNode *topNode)
                 _track_states.clear();
                 _track_errors.clear();
                 _track_covars.clear();
-                reset_hits_used();
+//                reset_hits_used();
 
         	float shift_dx = -_vertex[0];
         	float shift_dy = -_vertex[1];
@@ -355,17 +345,18 @@ int PHG4PatternReco::process_event(PHCompositeNode *topNode)
 
 #ifdef _TRIPLETS_ 
 			_temp_tracks.clear();
-			build_triplets_to_Track3D(_temp_tracks, true); // false : backward
-			
 
-#else // if not triplets
+			build_triplets_to_Track3D(_temp_tracks, true); // false : backward
+#endif
+
+#ifdef _HOUGHTRANSF_
 
 			unsigned int zoomlevel = 0;			
 			zoomlevel = 0;
 			set_nbins(zoomlevel);
 
 #ifdef _DEBUG_
-//        cout<<"PatternReco:: nkappa " <<nkappa<<" nphi "<<nphi<<" nd "<<nd<<" ndzdl "<<ndzdl<<" nz0 " <<nz0<<endl;
+//        cout<<"InitZVertexing:: nkappa " <<nkappa<<" nphi "<<nphi<<" nd "<<nd<<" ndzdl "<<ndzdl<<" nz0 " <<nz0<<endl;
 #endif
 
 			for(unsigned int i=0; i<_temp_tracks.size(); ++i) _temp_tracks[i].reset();
@@ -416,6 +407,10 @@ int PHG4PatternReco::process_event(PHCompositeNode *topNode)
 
 		}// iattempt
 
+		shift_coordinate_system(-shift_dx,-shift_dy,-shift_dz);
+		++iseq;
+// do not fit vertex 
+/*
 		code = 0;
 		code = fit_vertex();
 		cout<<"seq "<<iseq<<" : vertex_z = "<< _vertex[2] <<", shift_z = "<<shift_dz<<endl;
@@ -447,366 +442,18 @@ int PHG4PatternReco::process_event(PHCompositeNode *topNode)
 		shift_coordinate_system(-shift_dx,-shift_dy,-shift_dz);
 		break;
 		}
-	}//iseq
-
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map.begin(); it!=bins_map.end(); ++it){ delete it->second; bins_map.erase(it);}
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_prev.begin(); it!=bins_map_prev.end(); ++it){ delete it->second; bins_map_prev.erase(it);}
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_cur.begin(); it!=bins_map_cur.end(); ++it){ delete it->second; bins_map_cur.erase(it);}
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_sel.begin(); it!=bins_map_sel.end(); ++it){ delete it->second; bins_map_sel.erase(it);}
-
-        bins_map.clear();
-        bins_map_prev.clear();
-        bins_map_cur.clear();
-        bins_map_sel.clear();
-
-
-	// Second iteration
-
-#ifdef _SEC_ITER_
-//	if (n_vtx_tracks <50){
-	reset_zooms();
-        add_zoom(3,18,1,16,16);// zoom 0
-        add_zoom(3,3,1,3,2);// zoom 1
-        add_zoom(3,3,1,3,2);// zoom 2
-        set_min_pT(.2);//2.
-
-	Init(topNode);
-
-	nseq =9;
-	nattempt = 5;
-
-        float ca_chi2_nattempt[5] =             { 2.0,2.0,1.5,1.5,1.0};
-        unsigned int ca_nlayers_nattempt[5] =    { 10, 9,  8,  7,  6};
-        unsigned int ca_min_nlayers_nattempt[5]=  { 8, 7,  6,  5, 4};
-
-        unsigned int ncode_m1 = 0;
-        unsigned int ncode_m2 = 0;
-        iseq = 0;
-        while(1){
-
-                if (iseq==nseq) break;
-		for(unsigned int i=0; i<_tracks.size(); ++i) _tracks[i].reset();
-                _tracks.clear();
-                _track_states.clear();
-                _track_errors.clear();
-                _track_covars.clear();
-                reset_hits_used();
-
-                float shift_dx = -_vertex[0];
-                float shift_dy = -_vertex[1];
-                float shift_dz = -_vertex[2];
-                shift_coordinate_system(shift_dx,shift_dy,shift_dz);
-                unsigned int zoomlevel = 0;
-
-                for (unsigned int iattempt =0; iattempt<nattempt; ++iattempt ){
-                        cout<<iattempt << " th attempt "<<endl;
-                        helicity = 1;
-                        zoomlevel = 0;
-                        set_nbins(zoomlevel);
-			for(unsigned int i=0; i<_temp_tracks.size(); ++i) _temp_tracks[i].reset();
-                        _temp_tracks.clear();
-
-                        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map.begin(); it!=bins_map.end(); ++it){ delete it->second; bins_map.erase(it);}
-                        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_prev.begin(); it!=bins_map_prev.end(); ++it){ delete it->second; bins_map_prev.erase(it);}
-                        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_cur.begin(); it!=bins_map_cur.end(); ++it){ delete it->second; bins_map_cur.erase(it);}
-                        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_sel.begin(); it!=bins_map_sel.end(); ++it){ delete it->second; bins_map_sel.erase(it);}
-
-                        bins_map.clear();
-                        bins_map_prev.clear();
-                        bins_map_cur.clear();
-                        bins_map_sel.clear();
-
-
-                        initialize_houghbin();
-                        vote_z_init(zoomlevel);
-                        find_track_candidates_z_init(zoomlevel);
-
-                        vote_xy(zoomlevel);
-                        find_track_candidates_xy(zoomlevel);
-                        prune_xy(zoomlevel);// on prev
-
-                        bins_map_prev.swap(bins_map_sel);
-                        prune_z(zoomlevel); // on sel
-                        bins_map_sel.swap(bins_map_prev);
-
-                        for (zoomlevel =1; zoomlevel<3; ++zoomlevel){ // depends on the total number of tracks thrown in
-                        vote_z(zoomlevel); // on prev
-                        find_track_candidates_z(zoomlevel);
-                        prune_z(zoomlevel);
-                        vote_xy(zoomlevel);
-                        find_track_candidates_xy(zoomlevel);
-                        prune_xy(zoomlevel);
-                        } //zoomlevel
-
-
-                        // high pt, primary vertex originating tracks
-                        bins_to_Track3D(_temp_tracks,1,zoomlevel);// 0(z) 1(xy) : create Track3D objects, save cluster_id
-                        _ca_nlayers= ca_nlayers_nattempt[iattempt];
-                        _ca_min_nlayers = ca_min_nlayers_nattempt[iattempt];
-                        _ca_chi2 = ca_chi2_nattempt[iattempt];
-
-			code = 0;
-                        code = cellular_automaton_zvtx_second(_temp_tracks);
-                        if (code != Fun4AllReturnCodes::EVENT_OK)
-                        {
-                        cout<<"CellularAutomaton failed. "<<endl;
-                        exit(1);
-                        }
-
-                }// iattempt
-
-                code = 0;
-                code = fit_vertex();
-                cout<<"seq "<<iseq<<" : vertex_z = "<< _vertex[2] <<", shift_z = "<<shift_dz<<endl;
-                cout<<"code "<<code<<endl;
-                if (code <0 && iseq <nseq)
-                {
-                        if (code == -1 && (ncode_m1%3 )==2){
-                        for (unsigned int j=0;j<nattempt; ++j)
-                        --ca_min_nlayers_nattempt[j];
-                        ++ncode_m1;
-                        }else if (code== -1 && (ncode_m1%3)==1 ){
-                        for (unsigned int j=0;j<nattempt; ++j)
-                        ++ca_nlayers_nattempt[j];
-                        ++ncode_m1;
-                        }else if ((code== -1 && (ncode_m1%3)==0)){
-                        for (unsigned int j=0;j<nattempt; ++j)
-                        ca_chi2_nattempt[j]+= 1.0;
-                        ++ncode_m1;
-                        }else if ((code == -2 && (ncode_m2%2)==1)){
-                        for (unsigned int j=0;j<nattempt; ++j)
-                        ++ca_nlayers_nattempt[j];
-                        ++ncode_m2;
-                        } else if (code == -2 && (ncode_m2%2)==0){
-                        for (unsigned int j=0;j<nattempt; ++j)
-                        ca_chi2_nattempt[j]+= 1.0;
-                        ++ncode_m2;
-                        }
-                        shift_coordinate_system(-shift_dx,-shift_dy,-shift_dz);
-                        ++iseq;
-                        cout<< "z-vertex not found. "<<endl;
-                        continue;
-                }else{
-                if (iseq <nseq) cout<< "z-vertex found. "<<endl;
-                shift_coordinate_system(-shift_dx,-shift_dy,-shift_dz);
-                break;
-                }
-	}//iseq
-
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map.begin(); it!=bins_map.end(); ++it){ delete it->second; bins_map.erase(it);}
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_prev.begin(); it!=bins_map_prev.end(); ++it){ delete it->second; bins_map_prev.erase(it);}
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_cur.begin(); it!=bins_map_cur.end(); ++it){ delete it->second; bins_map_cur.erase(it);}
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_sel.begin(); it!=bins_map_sel.end(); ++it){ delete it->second; bins_map_sel.erase(it);}
-
-        bins_map.clear();
-        bins_map_prev.clear();
-        bins_map_cur.clear();
-        bins_map_sel.clear();
-//	} (if nzvtx < 50)
-
-#endif 
-
-	// Third iteration
-#ifdef _THIRDITER_
-        reset_zooms();
-        add_zoom(6,18,1,16,16);// zoom 0
-        add_zoom(6,3,1,6,2);// zoom 1
-        add_zoom(3,3,1,3,2);// zoom 2
-        set_min_pT(2.);//2.
-
-        Init(topNode);
-
-        nseq =1;
-        nattempt = 5;
-
-
-#ifdef _HOUGHTRANSF_
-        nseq = 1;
-#endif
-
-
-//        float ca_chi2_nattempt_3[5] =             { 2.0,2.0,1.5,1.5,1.0};
-//        unsigned int ca_nlayers_nattempt_3[5] =    { 10, 9,  8,  7,  6};
-//        unsigned int ca_min_nlayers_nattempt_3[5]=  { 8, 7,  6,  5, 4};
-
-//	float ca_chi2_nattempt_3[5] =             { 1.0,1.0,1.0,1.0,1.0};
-//        unsigned int ca_nlayers_nattempt_3[5] =    { 10, 9,  8,  7,  6};
-//        unsigned int ca_min_nlayers_nattempt_3[5]=  {8,7, 6,  5, 4};
-
-/*
-	float ca_chi2_nattempt_3[5]= {0.5,1.0,1.5,2.0,2.5};
-	unsigned int ca_nlayers_nattempt_3[5]= {3,3,3,3,3};
-	unsigned int ca_min_nlayers_nattempt_3[5] = {3,3,3,3,3};
 */
-        float ca_chi2_nattempt_3[9]=           {0.5, 1.0,1.5,0.5,  1.0,   1.0,   1.0,  1.0,1.0};
-        unsigned int ca_nlayers_nattempt_3[9]=    {4, 4,  4,  5,    5,     6,     7,    4,  5};
-        unsigned int ca_min_nlayers_nattempt_3[9]={4, 4,  4,  4,    4,     4,     4,    3,  3};
+	}//iseq
 
-
-        ncode_m1 = 0;
-        ncode_m2 = 0;
-        iseq = 0;
-        while(1){
-
-                if (iseq==nseq) break;
-		for(unsigned int i=0; i<_tracks.size(); ++i) _tracks[i].reset();
-                _tracks.clear();
-                _track_states.clear();
-                _track_errors.clear();
-                _track_covars.clear();
-                reset_hits_used();
-
-                float shift_dx = -_vertex[0];
-                float shift_dy = -_vertex[1];
-                float shift_dz = -_vertex[2];
-                shift_coordinate_system(shift_dx,shift_dy,shift_dz);
-                unsigned int zoomlevel = 0;
-
-                for (unsigned int iattempt =0; iattempt<nattempt; ++iattempt ){
-                        cout<<iattempt << " th attempt "<<endl;
-                        helicity = 1;
-                        zoomlevel = 0;
-                        set_nbins(zoomlevel);
-			for(unsigned int i=0; i<_temp_tracks.size(); ++i) _temp_tracks[i].reset();
-                        _temp_tracks.clear();
-for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map.begin(); it!=bins_map.end(); ++it){ delete it->second; bins_map.erase(it);}
-                        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_prev.begin(); it!=bins_map_prev.end(); ++it){ delete it->second; bins_map_prev.erase(it);}
-                        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_cur.begin(); it!=bins_map_cur.end(); ++it){ delete it->second; bins_map_cur.erase(it);}
-                        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_sel.begin(); it!=bins_map_sel.end(); ++it){ delete it->second; bins_map_sel.erase(it);}
-
-                        bins_map.clear();
-                        bins_map_prev.clear();
-                        bins_map_cur.clear();
-                        bins_map_sel.clear();
-
-
-                        initialize_houghbin();
-                        vote_z_init(zoomlevel);
-                        find_track_candidates_z_init(zoomlevel);
-
-                        vote_xy(zoomlevel);
-                        find_track_candidates_xy(zoomlevel);
-                        prune_xy(zoomlevel);// on prev
-
-                        bins_map_prev.swap(bins_map_sel);
-                        prune_z(zoomlevel); // on sel
-                        bins_map_sel.swap(bins_map_prev);
-
-                        for (zoomlevel =1; zoomlevel<2; ++zoomlevel){ // depends on the total number of tracks thrown in
-                        vote_z(zoomlevel); // on prev
-                        find_track_candidates_z(zoomlevel);
-                        prune_z(zoomlevel);
-                        vote_xy(zoomlevel);
-                        find_track_candidates_xy(zoomlevel);
-                        prune_xy(zoomlevel);
-                        } //zoomlevel
-
-                        // high pt, primary vertex originating tracks
-                        bins_to_Track3D(_temp_tracks,1,zoomlevel);// 0(z) 1(xy) : create Track3D objects, save cluster_id
-
-#ifdef _HOUGHTRANSF_
-        if (iseq ==(nseq-1)){
-        cout<<"last try "<<endl;
-                for (unsigned int i = 0; i<_temp_tracks.size(); ++i){
-                        _tracks.push_back(_temp_tracks[i]);
-                        Track3D _temp_track = _temp_tracks[i];
-                        for (unsigned int j = 0; j<_temp_track.hits.size(); ++j){
-                                auto search = hits_used.find(_temp_track.hits[j].get_id());
-                                if(search != hits_used.end())
-                                {
-                                hits_used.find(_temp_track.hits[j].get_id())->second = true;
-                                }
-                }
-                }
-
-
-                continue;
-        }
-#endif
-
-
-                        _ca_nlayers= ca_nlayers_nattempt_3[iattempt];
-                        _ca_min_nlayers = ca_min_nlayers_nattempt_3[iattempt];
-                        _ca_chi2 = ca_chi2_nattempt_3[iattempt];
-
-                        code = 0;
-                        code = cellular_automaton_zvtx_third(_temp_tracks);
-                        if (code != Fun4AllReturnCodes::EVENT_OK)
-                        {
-                        cout<<"CellularAutomaton failed. "<<endl;
-                        exit(1);
-                        }
-
-                }// iattempt
-
-#ifdef _HOUGHTRANSF_
-        // do not fit at the last time
-                           if (iseq==(nseq-1)){
-                shift_coordinate_system(-shift_dx, -shift_dy, -shift_dz);
-                ++iseq;
-                continue;
-                }
-#endif
-
-                code = 0;
-                code = fit_vertex();
-                cout<<"seq "<<iseq<<" : vertex_z = "<< _vertex[2] <<", shift_z = "<<shift_dz<<endl;
-                cout<<"code "<<code<<endl;
-                if (code <0 && iseq <nseq)
-                {
-                        if (code == -1 && (ncode_m1%3 )==2){
-                        for (unsigned int j=0;j<nattempt; ++j)
-                        --ca_min_nlayers_nattempt[j];
-                        ++ncode_m1;
-                        }else if (code== -1 && (ncode_m1%3)==1 ){
-                        for (unsigned int j=0;j<nattempt; ++j)
-                        ++ca_nlayers_nattempt[j];
-                        ++ncode_m1;
-                        }else if ((code== -1 && (ncode_m1%3)==0)){
-                        for (unsigned int j=0;j<nattempt; ++j)
-                        ca_chi2_nattempt[j]+= 1.0;
-                        ++ncode_m1;
-                        }else if ((code == -2 && (ncode_m2%2)==1)){
-                        for (unsigned int j=0;j<nattempt; ++j)
-                        ++ca_nlayers_nattempt[j];
-                        ++ncode_m2;
-                        } else if (code == -2 && (ncode_m2%2)==0){
-                        for (unsigned int j=0;j<nattempt; ++j)
-                        ca_chi2_nattempt[j]+= 1.0;
-                        ++ncode_m2;
-                        }
-                        shift_coordinate_system(-shift_dx,-shift_dy,-shift_dz);
-                        ++iseq;
-                        cout<< "z-vertex not found. "<<endl;
-                        continue;
-                }else{
-
-               if (iseq <nseq) cout<< "z-vertex found. "<<endl;
-                shift_coordinate_system(-shift_dx,-shift_dy,-shift_dz);
-                break;
-                }
-        }//iseq
-
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map.begin(); it!=bins_map.end(); ++it){ delete it->second; bins_map.erase(it);}
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_prev.begin(); it!=bins_map_prev.end(); ++it){ delete it->second; bins_map_prev.erase(it);}
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_cur.begin(); it!=bins_map_cur.end(); ++it){ delete it->second; bins_map_cur.erase(it);}
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_sel.begin(); it!=bins_map_sel.end(); ++it){ delete it->second; bins_map_sel.erase(it);}
-
-        bins_map.clear();
-        bins_map_prev.clear();
-        bins_map_cur.clear();
-        bins_map_sel.clear();
-#endif
-
+	cout<<"export output"<<endl;
         code = export_output();
         if (code != Fun4AllReturnCodes::EVENT_OK)
         return code;
 
 	++_event;
 
-
-        BbcVertex* vertex = _bbc_vertexes->begin()->second;
-	cout<< "true z-vertex  " << vertex->get_z()<<endl;
+//        BbcVertex* vertex = _bbc_vertexes->begin()->second;
+//	cout<< "true z-vertex  " << vertex->get_z()<<endl;
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1142,11 +789,13 @@ int PHG4PatternReco::translate_input(PHCompositeNode* topNode) {
 }
 
 int PHG4PatternReco::export_output(){
-	
-	_trackmap->clear();
-        if (_tracks.empty())
-                return Fun4AllReturnCodes::EVENT_OK;
 
+	// clear maps at the begining of an event
+//	_vertexmap->clear();
+//	_trackmap->clear();
+//        if (_tracks.empty())
+//                return Fun4AllReturnCodes::EVENT_OK;
+/*
 	std::vector<SvtxVertex_v1> svtx_vertex_list;
 	unsigned int nvertex = _vertex_list.size();
 	for (unsigned int vid = 0; vid < nvertex; ++vid ){
@@ -1173,13 +822,46 @@ int PHG4PatternReco::export_output(){
 	cout<<"vertex list "<<endl;
         // at this point we should already have an initial pt and pz guess...
         // need to translate this into the PHG4Track object...
+*/
+	// read vertices from SvtxVertexMap 
+	// store vertex object in a map (so that it can have an vertex_id = -1)	
+	// and assign a vertex_id to each track
+	std::map<int, SvtxVertex*> svtx_vertex_list;
+   
+	// loop over all vertexes on node
+        for (SvtxVertexMap::Iter iter = _vertexmap->begin();
+	iter != _vertexmap->end();
+	++iter) {
+		SvtxVertex* vertex = iter->second;
+		int vertex_id = (int) vertex->get_id();
+//		cout<<"vertex id "<< vertex->get_id()<<", z " <<vertex->get_position(2)<<endl;
+		svtx_vertex_list[vertex_id] = vertex; 	
+	}
+	// add a vertex with a vertex_id = 9999 for triplets not tied to a reco vertex
+	SvtxVertex_v1 fake_vertex;
+        fake_vertex.set_t0(0.0);
+        for (int i = 0; i < 3; ++i)
+        fake_vertex.set_position(i, 0.0);
+        fake_vertex.set_chisq(0.0);
+        fake_vertex.set_ndof(0);
+        fake_vertex.set_error(0, 0, 0.0);
+        fake_vertex.set_error(0, 1, 0.0);
+        fake_vertex.set_error(0, 2, 0.0);
+        fake_vertex.set_error(1, 0, 0.0);
+        fake_vertex.set_error(1, 1, 0.0);
+        fake_vertex.set_error(1, 2, 0.0);
+        fake_vertex.set_error(2, 0, 0.0);
+        fake_vertex.set_error(2, 1, 0.0);
+        fake_vertex.set_error(2, 2, 0.0);
+//	svtx_vertex_list[9999] = fake_vertex;
 
         std::vector<Cluster3D> track_hits;
 	track_hits.clear();
         int clusterID;
-	cout<<"PHG4InitVertexing::export_output() number of tracks reconstructed: " << _tracks.size()<<endl;
+
         for (unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
-		if (_tracks.at(itrack).vertex_id >= nvertex) continue;
+//		if (_tracks.at(itrack).vertex_id >= nvertex) continue;
+//		a triplet is allowed to have no reco vertex tied to it, assign -1
                 SvtxTrack_v1 track;
                 track.set_id(itrack);
                 track_hits.clear();
@@ -1190,10 +872,10 @@ int PHG4PatternReco::export_output(){
                                 continue;
                         }
                         SvtxCluster* cluster = _clustermap->get(
-                                        track_hits.at(ihit).get_id());
+                        track_hits.at(ihit).get_id());
                         clusterID = cluster->get_id();
 
-//#ifdef _DEBUG_
+#ifdef _DEBUG_
                         cout
                         <<__LINE__
                         <<": itrack: " << itrack
@@ -1201,23 +883,17 @@ int PHG4PatternReco::export_output(){
                         <<": clusterID: " << clusterID
                         <<": layer: " << cluster->get_layer()
                         <<endl;
-//#endif
-
+#endif
                         track.insert_cluster(clusterID);
                 }
+
+
 //		cout<<"hits added to a track "<<endl;
                 float kappa = _tracks.at(itrack).kappa;
                 float d = _tracks.at(itrack).d;
                 float phi = _tracks.at(itrack).phi;
                 float dzdl = _tracks.at(itrack).dzdl;
                 float z0 = _tracks.at(itrack).z0;
-//		cout<<"helix parameters read "<<endl;
-                //    track.set_helix_phi(phi);
-                //    track.set_helix_kappa(kappa);
-                //    track.set_helix_d(d);
-                //    track.set_helix_z0(z0);
-                //    track.set_helix_dzdl(dzdl);
-		cout<<"z0 "<<z0<<" kappa " <<kappa<<endl; 
 
                 float pT = kappa_to_pt(kappa);
 
@@ -1267,16 +943,36 @@ int PHG4PatternReco::export_output(){
                         }
                 }
 //		cout<<"set track "<<endl;
-		unsigned int vid = _tracks.at(itrack).vertex_id;
-//		cout<<"vertex_id "<<vid<<endl;
-                track.set_x(svtx_vertex_list[vid].get_x() + d * cos(phi));
-                track.set_y(svtx_vertex_list[vid].get_y() + d * sin(phi));
-                track.set_z(svtx_vertex_list[vid].get_z() + z0);
+		unsigned int vid =9999;// _tracks.at(itrack).vertex_id
+		float distance = 9999;
+		for (std::map<int,SvtxVertex*>::iterator it=svtx_vertex_list.begin();
+                        it!=svtx_vertex_list.end();
+                        ++it){
+			unsigned int iv = it->second->get_id();
+			float zvtx = it->second->get_position(2);
+			if (fabs(z0-zvtx) <distance){ 
+			vid = iv;
+			distance = fabs(z0-zvtx);
+			}
+		}
 
-        cout<<"PHG4PatternReco::export_output number of tracks in trackmap "<<_trackmap->size()<<" at itrack "<< itrack<<endl;
-//		cout<<"set vertex "<<endl;
+		//if a triplet doesn't have a reco vertex tied to it, assign 9999
+		if (fabs(z0 - distance)>0.05) vid = 9999;		
+		cout<<"vertex_id "<<vid<<endl;
+		// pca 
+		if (vid==9999){
+		track.set_x(0.);
+		track.set_y(0.);
+		track.set_z(0.);
+		}else {
+                track.set_x(svtx_vertex_list[vid]->get_x() + d * cos(phi));
+                track.set_y(svtx_vertex_list[vid]->get_y() + d * sin(phi));
+                track.set_z(svtx_vertex_list[vid]->get_z() + z0);
+		}
+
                 _trackmap->insert(&track);
-                svtx_vertex_list[vid].insert_track(track.get_id());
+		if (vid==9999) fake_vertex.insert_track(track.get_id());
+                else svtx_vertex_list[vid]->insert_track(track.get_id());
 
                 if (verbosity > 5) {
                         cout << "track " << itrack << " quality = " << track.get_quality()
@@ -1286,14 +982,16 @@ int PHG4PatternReco::export_output(){
                 }
         }  // track loop
 
-	cout<<"PHG4PatternReco::export_output total number of tracks in trackmap "<<_trackmap->size()<<endl;
-//	cout<<"track loop"<<endl;
- 	cout<<"PHG4PatternReco::export_output total number of vertex "<<_vertex_list.size()<<endl;
+//	do not repeat saving vertices this time, add only fake vertex
+ 	SvtxVertex *vtxptr = _vertexmap->insert(&fake_vertex);
+	if (verbosity > 5) vtxptr->identify();
+
+/*	
 	for (unsigned int vid = 0; vid < _vertex_list.size(); ++vid ){
         SvtxVertex *vtxptr = _vertexmap->insert(&svtx_vertex_list[vid]);
         if (verbosity > 5) vtxptr->identify();
 	}
-
+*/
         hits_map.clear();
 
 	for(unsigned int i=0; i<_tracks.size(); ++i) _tracks[i].reset();
@@ -1337,16 +1035,16 @@ void PHG4PatternReco::initialize_houghbin(){
                 for (iz=0; iz<nz0; ++iz) {
 
                 unsigned int bins[5]={ik,ip,id,il,iz};
-//              cout<<"PatternReco:: izoom "<<izoom<<" il " <<il<<" iz "<<iz<<endl;
-                                bin = _hough_space->get_bin(0,bins);
-//              cout<<"PatternReco:: bin " << bin<<endl;
-                                HelixHoughBin* _bin = new HelixHoughBin_v1(bin);
+//              cout<<"InitZVertexing:: izoom "<<izoom<<" il " <<il<<" iz "<<iz<<endl;
+                bin = _hough_space->get_bin(0,bins);
+//              cout<<"InitZVertexing:: bin " << bin<<endl;
+                HelixHoughBin* _bin = new HelixHoughBin_v1(bin);
                 _bin->set_zoomlevel(0);
                 _bin->set_hough_space(_hough_space);
                 _bin->init();
                 if (bin == 0) _bin->identify();
                 bins_map.insert(std::pair<unsigned int, HelixHoughBin*>(bin,_bin));
-//              cout<<"PatternReco:: lbin "<<_bin->get_dzdl_bin(0)<<" zbin "<<_bin->get_z0_bin(0)<<endl;
+//              cout<<"InitZVertexing:: lbin "<<_bin->get_dzdl_bin(0)<<" zbin "<<_bin->get_z0_bin(0)<<endl;
                                 }
               }
             }
@@ -2304,6 +2002,27 @@ int PHG4PatternReco::build_triplets_to_Track3D(std::vector<Track3D>& new_tracks,
 	return 1;	
 }
 
+int PHG4PatternReco::turnoff_hits_used_in_triplets(){
+
+        // loop over all triplets
+        for (SvtxTrackMap::Iter iter = _trackmap->begin();
+        iter != _trackmap->end();
+        ++iter) {
+                SvtxTrack* track = iter->second;
+                for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
+                iter != track->end_clusters();
+                ++iter) {
+                unsigned int cluster_id = *iter;
+                // SvtxCluster* cluster = _clustermap->get(cluster_id);
+                // Turn off hits used in triplets ; hits_used
+                auto hitused = hits_used.find(cluster_id);
+                if (hitused != hits_used.end())
+                hits_used.find(cluster_id)->second = true;
+                }
+        }
+	return 1;
+
+}
 
 int PHG4PatternReco::cellular_automaton_zvtx_init(std::vector<Track3D>& candidate_tracks){
 
@@ -2317,7 +2036,8 @@ int PHG4PatternReco::cellular_automaton_zvtx_init(std::vector<Track3D>& candidat
 	ca->set_propagate_forward(true);
 
 //	ca->set_mode(0);
-        ca->set_mode(1); // triplet
+        ca->set_triplet_mode(true); // triplet
+	ca->set_seeding_mode(true);
         ca->set_hits_map(hits_map);
 
 	ca->set_remove_inner_hits(true);
@@ -2339,6 +2059,7 @@ int PHG4PatternReco::cellular_automaton_zvtx_init(std::vector<Track3D>& candidat
 
 }
 
+/*
 int PHG4PatternReco::cellular_automaton_zvtx_second(std::vector<Track3D>& candidate_tracks){
 
 
@@ -2367,14 +2088,13 @@ int PHG4PatternReco::cellular_automaton_zvtx_second(std::vector<Track3D>& candid
 
 int PHG4PatternReco::cellular_automaton_zvtx_third(std::vector<Track3D>& candidate_tracks){
 
-
         cout<<"Entering cellular autumaton zvtx_third : processing "<< candidate_tracks.size()<<" tracks. "<<endl;
         ca =    new CellularAutomaton_v1(candidate_tracks,_radii,_material);
         ca->set_hough_space(_hough_space);
         ca->set_mag_field(_mag_field);
         ca->set_pt_rescale(_pt_rescale);
-      ca->set_n_layers(_ca_nlayers);
-      ca->set_required_layers(_ca_min_nlayers);
+        ca->set_n_layers(_ca_nlayers);
+        ca->set_required_layers(_ca_min_nlayers);
         ca->set_ca_chi2(_ca_chi2);
         ca->set_ca_chi2_layer(2.);
         ca->set_propagate_forward(true);
@@ -2389,7 +2109,7 @@ int PHG4PatternReco::cellular_automaton_zvtx_third(std::vector<Track3D>& candida
 
 }
 
-
+*/
 
 int PHG4PatternReco::fit_vertex(){
 	cout<<"tracks size " << _tracks.size()<<endl;
@@ -2399,12 +2119,7 @@ int PHG4PatternReco::fit_vertex(){
 	vtx_tracks.clear();
 	_tracks.swap(vtx_tracks);
 
-//    	double zsum = 0.0;
-//	double zmean = 0.0;
-//	double zsigma  = 0.0;
-
 	unsigned int nzvtx = vtx_tracks.size();
-//	unsigned int nzvtx_new = 0;
 
         // range (-32, 32)
         unsigned int nzbins= 2*1280;
@@ -2458,18 +2173,14 @@ int PHG4PatternReco::fit_vertex(){
 		cout<<"vertex "<< zvertex<<endl;	
 		}
 	}
-//	float zvtx_p =-999.;
-//	if (zvertices.size()>0) zvtx_p = vertices[0];
 
 	cout<<"number of candidate z-vertices : "<< zvertices.size()<<endl;
 	for (unsigned int j = 0; j <zvertices.size(); ++j)
 	cout<<"primary vertex position : "<<zvertices[j]<<endl;
 
-	// primary peak vtxz_p: range for tracks compatible with primary vertex [vtxz_p - 500um, vtxz_p + 500um] 
 	unsigned int izvtx= 999;
     	for (unsigned int i = 0; i < nzvtx; ++i) {
 	double zvtx = vtx_tracks[i].z0;
-//	cout<<"zvtx " <<zvtx<<endl;
 	if (zvtx != zvtx) continue;
 		bool pass_dcaz= false;
 		for (unsigned int k = 0; k<zvertices.size(); ++k) {
@@ -2520,7 +2231,6 @@ int PHG4PatternReco::fit_vertex(){
 
 		if (!pass_dcaz || izvtx>99) continue;
 		zsums[izvtx] += pow(fabs(zmeans[izvtx] - vtx_tracks[j].z0),2);
-//        if (fabs(zvtx-zvtx_p)>_dcaz_cut) continue;
 	}
 
 	std::vector<float> _multi_vtx;
@@ -2559,23 +2269,12 @@ int PHG4PatternReco::fit_vertex(){
 //		if (fabs(vtx_tracks[k].z0-zmeans[k])> _dcaz_cut/*10*zsigmz*/)continue;
 		++nzvtx_final;
 
-//		_tracks.push_back(vtx_track);
-//		_track_covars.push_back(_track_states[k].C);
-//		_track_errors.push_back(_track_states[k].chi2 );
 		_multi_vtx_tracks[izvtx].push_back(vtx_tracks[k]);
-//		cout<<"tracks "<<endl;
 		_multi_vtx_track_covars[izvtx].push_back(_track_states[k].C);
-//		cout<<"track covars "<<endl;
 		_multi_vtx_track_errors[izvtx].push_back(_track_states[k].chi2);
-//		cout<<"tracks errors"<<endl;
 
     	}
 
-/*	if (nzvtx_final<5){
-	cout<< "Cannat fit, need more tracks"<<endl;
-	return -2;
-	}
-*/    	
 	cout<<"start fitting vertex.. "<<endl;
 	for (unsigned int i = 0; i<_multi_vtx.size(); ++i)
 	{
@@ -2603,15 +2302,7 @@ int PHG4PatternReco::fit_vertex(){
 		// add vertex_id to Track3D
 //		std::vector<float> pre_vtx(3,0.0);
 
-//		if (i>0){
-//		cout<<"i>0"<<endl;
-//		pre_vtx = _vertex_list.back();
-//		if (fabs(pre_vtx[2]-_vertex[2])>0.05) 
-//		_vertex_list.push_back(_vertex);
-//		} else {
-//		cout<<"else "<<endl;
 		_vertex_list.push_back(_vertex);
-//		}
 
 	}// loop over vertices
 
@@ -2631,10 +2322,11 @@ int PHG4PatternReco::fit_vertex(){
                 pass_dcaz = pass_dcaz || new_vtx;
                 }
 
-                if (!pass_dcaz || izvtx >= _vertex_list.size()) continue;
 
-//              if (fabs(vtx_tracks[k].z0-zmeans[k])> _dcaz_cut/*10*zsigmz*/)continue;
+		if (!pass_dcaz || izvtx >= _vertex_list.size()) continue;
+//              if (pass_dcaz && izvtx <9999) 
                 ++nzvtx_final;
+
                 Track3D vtx_track = vtx_tracks[k];
 		vtx_track.set_vertex_id(izvtx);
 //		cout<<"vertex_id "<< izvtx<<endl;
@@ -2642,6 +2334,7 @@ int PHG4PatternReco::fit_vertex(){
                 _track_covars.push_back(_track_states[k].C);
                 _track_errors.push_back(_track_states[k].chi2 );
 		
+		izvtx=0;
         }
 
 	for(unsigned int i=0; i<vtx_tracks.size(); ++i) vtx_tracks[i].reset();

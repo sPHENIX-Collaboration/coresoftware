@@ -203,9 +203,8 @@ private:
 
 	void bins_to_Track3D(std::vector<Track3D>& temp_tracks, int imap, unsigned int zoomlevel);
 	int build_triplets_to_Track3D(std::vector<Track3D>& new_tracks, bool forward);
+	int turnoff_hits_used_in_triplets();
 	int cellular_automaton_zvtx_init(std::vector<Track3D>& temp_tracks);
-	int cellular_automaton_zvtx_second(std::vector<Track3D>& temp_tracks);
-	int cellular_automaton_zvtx_third(std::vector<Track3D>& temp_tracks);
 	int fit_vertex();	
 
 	/// convert the covariance from HelixHough coords to x,y,z,px,py,pz

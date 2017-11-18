@@ -792,6 +792,7 @@ int PHG4InitZVertexing::export_output(){
 	for (unsigned int vid = 0; vid < nvertex; ++vid ){
 
         SvtxVertex_v1 vertex;
+//	vertex.set_id(vid);
         vertex.set_t0(0.0);
         for (int i = 0; i < 3; ++i)
         vertex.set_position(i, _vertex_list[vid][i]);
