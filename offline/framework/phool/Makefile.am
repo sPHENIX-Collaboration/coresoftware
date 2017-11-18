@@ -24,6 +24,7 @@ libphool_la_SOURCES = \
   PHMessage.cc \
   PHNode.cc \
   PHNodeIOManager.cc \
+  PHNodeIntegrate.cc \
   PHNodeIterator.cc \
   PHNodeReset.cc \
   PHObject.cc \
@@ -45,6 +46,7 @@ pkginclude_HEADERS =  \
   PHIOManager.h \
   PHNode.h \
   PHNodeIOManager.h \
+  PHNodeIntegrate.h \
   PHNodeOperation.h \
   PHNodeReset.h \
   PHNodeIterator.h \
