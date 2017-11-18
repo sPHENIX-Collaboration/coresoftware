@@ -12,6 +12,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <cassert>
 using namespace std;
 
 PHGenIntegralv1::PHGenIntegralv1()
@@ -53,9 +54,9 @@ void PHGenIntegralv1::Reset()
   fDescription = "Source Not Provided";
 }
 
-int PHGenIntegralv1::Integrate(PHObject* incoming_object)
+int PHGenIntegralv1::Integrate( PHObject* incoming_object)
 {
-  PHGenIntegral* in_gen = dynamic_cast<PHGenIntegral*>(incoming_object);
+  const PHGenIntegral* in_gen = dynamic_cast<const PHGenIntegral*>(incoming_object);
 
   if (!in_gen)
   {
@@ -81,4 +82,25 @@ int PHGenIntegralv1::Integrate(PHObject* incoming_object)
   fSumOfWeight += in_gen->get_Sum_Of_Weight();
 
   return fNProcessedEvent;
+}
+
+void PHGenIntegralv1::CopyContent( PHObject* incoming_object)
+{
+  const PHGenIntegral * in_gen = dynamic_cast<const PHGenIntegral *>(incoming_object);
+
+  if (!in_gen)
+  {
+    cout << "PHGenIntegralv1::CopyContent - Fatal Error - "
+         << "input object is not a PHGenIntegral: ";
+    incoming_object->identify();
+
+    exit(EXIT_FAILURE);
+  }
+
+  fNProcessedEvent = in_gen->get_N_Processed_Event();
+  fNGeneratorAcceptedEvent = in_gen->get_N_Generator_Accepted_Event();
+  fIntegratedLumi = in_gen->get_Integrated_Lumi();
+  fSumOfWeight = in_gen->get_Sum_Of_Weight();
+  fDescription = in_gen->get_Description();
+
 }
