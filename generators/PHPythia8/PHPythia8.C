@@ -17,7 +17,7 @@
 #include <Pythia8Plugins/HepMC2.h>
 #include <HepMC/GenEvent.h>
 
-#include <TString.h> // needed for Form()
+#include <boost/format.hpp>
 
 #include <gsl/gsl_randist.h>
 
@@ -90,7 +90,7 @@ int PHPythia8::Init(PHCompositeNode *topNode) {
 
   if ( (seed>0) && (seed<=900000000) ) {
     _pythia->readString("Random:setSeed = on");
-    _pythia->readString(Form("Random:seed = %u",seed));
+    _pythia->readString( str(boost::format("Random:seed = %1%") % seed) );
   } else {
     cout << PHWHERE << " ERROR: seed " << seed << " is not valid" << endl;
     exit(1); 
@@ -120,7 +120,7 @@ int PHPythia8::End(PHCompositeNode *topNode) {
 
   if (_integral_node)
   {
-    cout << "Integral information on stored on node SUM/PHGenIntegral:"<<endl;
+    cout << "Integral information on stored on node RUN/PHGenIntegral:"<<endl;
     _integral_node->identify();
     cout << " *-------  End PYTHIA Integral Node Print  ------------------------"
          << "-------------------------------------------------* " << endl;
@@ -249,7 +249,7 @@ int PHPythia8::create_node_tree(PHCompositeNode *topNode) {
   PHCompositeNode *sumNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!sumNode)
   {
-    cout << PHWHERE << "SUM Node missing doing nothing" << endl;
+    cout << PHWHERE << "RUN Node missing doing nothing" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -263,10 +263,10 @@ int PHPythia8::create_node_tree(PHCompositeNode *topNode) {
   else
   {
     cout <<"PHPythia8::create_node_tree - Fatal Error - "
-        <<"SUM/PHGenIntegral node already exist. "
+        <<"RUN/PHGenIntegral node already exist. "
         <<"It is messy to overwrite integrated luminosities. Please turn off this function in the macro with "<<endl;
     cout <<"                              PHPythia8::save_integrated_luminosity(false);"<<endl;
-    cout <<"The current SUM/PHGenIntegral node is ";
+    cout <<"The current RUN/PHGenIntegral node is ";
     _integral_node->identify(cout);
 
     exit(EXIT_FAILURE);
