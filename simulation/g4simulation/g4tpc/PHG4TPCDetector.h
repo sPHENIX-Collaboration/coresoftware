@@ -44,7 +44,7 @@ class PHG4TPCDetector : public PHG4Detector
   double inner_cage_radius;
   double outer_cage_radius;
   std::map<G4VPhysicalVolume *, int> absorbervols;
-  std::set<G4VPhysicalVolume *> activevols;
+  std::map<G4VPhysicalVolume *, int> activevols;
 
   std::string superdetector;
 };

@@ -44,9 +44,10 @@ int PHG4TPCDetector::IsInTPC(G4VPhysicalVolume *volume) const
 {
   if (active)
   {
-    if (activevols.find(volume) != activevols.end())
+    map<G4VPhysicalVolume *, int>::const_iterator iter = activevols.find(volume);
+    if (iter != activevols.end())
     {
-      return 1;
+      return iter->second;
     }
   }
   if (absorberactive)
@@ -102,22 +103,46 @@ void PHG4TPCDetector::Construct(G4LogicalVolume *logicWorld)
 
 int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
 {
-  G4VSolid *tpc_gas = new G4Tubs("tpc_gas", params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm, params->get_double_param("tpc_length") * cm / 2., 0., 2 * M_PI);
+  double tpc_window_thickness = 0.05*cm;
+  double tpc_half_length = (params->get_double_param("tpc_length")*cm-tpc_window_thickness)/2.;
+  G4VSolid *tpc_window = new G4Tubs("tpc_window",params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm, tpc_window_thickness/2., 0., 2 * M_PI);
+
+  G4VSolid *tpc_gas = new G4Tubs("tpc_gas", params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm,   tpc_half_length / 2., 0., 2 * M_PI);
+  G4LogicalVolume *tpc_window_logic = new G4LogicalVolume(tpc_window, G4Material::GetMaterial("G4_KAPTON"),"tpc_window");
+
+  G4VisAttributes *visatt = new G4VisAttributes();
+  visatt->SetVisibility(true);
+  visatt->SetForceSolid(true);
+  visatt->SetColor(PHG4TPCColorDefs::tpc_kapton_color);
+  tpc_window_logic->SetVisAttributes(visatt);
+  G4VPhysicalVolume *tpc_window_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
+                                                      tpc_window_logic, "tpc_window",
+                                                      tpc_envelope, false, 0, overlapcheck);
+
+  absorbervols[tpc_window_phys] = 100;
   G4LogicalVolume *tpc_gas_logic = new G4LogicalVolume(tpc_gas,
                                                        G4Material::GetMaterial(params->get_string_param("tpc_gas")),
                                                        "tpc_gas");
 
   tpc_gas_logic->SetUserLimits(g4userlimits);
-  G4VisAttributes *visatt = new G4VisAttributes();
+  visatt = new G4VisAttributes();
   visatt->SetVisibility(true);
   visatt->SetForceSolid(true);
   visatt->SetColor(PHG4TPCColorDefs::tpc_gas_color);
   tpc_gas_logic->SetVisAttributes(visatt);
-  G4VPhysicalVolume *tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
-                                                      tpc_gas_logic, "tpc_gas",
-                                                      tpc_envelope, 0, false, overlapcheck);
+  int tpcdetid = 0;
+  G4VPhysicalVolume *tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, (tpc_half_length+tpc_window_thickness)/2.),
+                                                      tpc_gas_logic, "tpc_gas_0",
+                                                      tpc_envelope, false, tpcdetid, overlapcheck);
 
-  activevols.insert(tpc_gas_phys);
+  activevols[tpc_gas_phys] = tpcdetid;
+  tpcdetid = 1;
+  tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, -(tpc_half_length+tpc_window_thickness)/2.),
+                                                      tpc_gas_logic, "tpc_gas_1",
+                                                      tpc_envelope, false, tpcdetid, overlapcheck);
+
+  activevols[tpc_gas_phys] = tpcdetid;
+
 
 #if G4VERSION_NUMBER >= 1033
   const G4RegionStore* theRegionStore = G4RegionStore::GetInstance();
