@@ -170,12 +170,14 @@ PHG4PatternReco::PHG4PatternReco(unsigned int nlayers,
 int PHG4PatternReco::Init(PHCompositeNode* topNode) {
 
 #ifdef _DEBUG_
-    _ofile = new TFile("z0_dzdl_kappa_phi_d.root","recreate");
+//    _ofile = new TFile("z0_dzdl_kappa_phi_d.root","recreate");
 #endif
 
     if (!_use_max_kappa){
     _max_kappa = pt_to_kappa(_min_pt);
+#ifdef _DEBUG_
     cout<<"kappa max "<<_max_kappa<<endl;
+#endif
     }
 
     set_nzooms();
@@ -198,6 +200,7 @@ int PHG4PatternReco::Init(PHCompositeNode* topNode) {
     _hough_funcs->set_hough_space(_hough_space);
 
 #ifdef _DEBUG_
+#ifdef _HOUGHTRANSF_
 //    _hough_space->print_zoom_profile();
 //    _hough_space->print_para_range();
     unsigned int n_z0_bins= _hough_space->get_n_z0_bins(0);
@@ -215,6 +218,7 @@ int PHG4PatternReco::Init(PHCompositeNode* topNode) {
 //    _d_phi = new TH2D("d_phi","d_phi",n_d_bins*_hough_space->get_n_d_bins(1),_hough_space->get_d_min(),_hough_space->get_d_max(),n_phi_bins*_hough_space->get_n_phi_bins(1),_hough_space->get_phi_min(),_hough_space->get_phi_max());
 
     _kappa_d_phi = new TH3D("kappa_d_phi","kappa_d_phi",n_kappa_bins,_hough_space->get_kappa_min(),_hough_space->get_kappa_max(),n_d_bins,_hough_space->get_d_min(),_hough_space->get_d_max(),n_phi_bins,_hough_space->get_phi_min(),_hough_space->get_phi_max());
+#endif
 #endif
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -340,7 +344,9 @@ int PHG4PatternReco::process_event(PHCompositeNode *topNode)
         	shift_coordinate_system(shift_dx,shift_dy,shift_dz);
 
 		for (unsigned int iattempt =0; iattempt<nattempt; ++iattempt ){
+#ifdef _DEBUG_
 			cout<<iattempt << " th attempt "<<endl;
+#endif
 			helicity = 1;
 
 #ifdef _TRIPLETS_ 
@@ -356,7 +362,7 @@ int PHG4PatternReco::process_event(PHCompositeNode *topNode)
 			set_nbins(zoomlevel);
 
 #ifdef _DEBUG_
-//        cout<<"InitZVertexing:: nkappa " <<nkappa<<" nphi "<<nphi<<" nd "<<nd<<" ndzdl "<<ndzdl<<" nz0 " <<nz0<<endl;
+//        cout<<"PHG4PatternReco:: nkappa " <<nkappa<<" nphi "<<nphi<<" nd "<<nd<<" ndzdl "<<ndzdl<<" nz0 " <<nz0<<endl;
 #endif
 
 			for(unsigned int i=0; i<_temp_tracks.size(); ++i) _temp_tracks[i].reset();
@@ -409,43 +415,12 @@ int PHG4PatternReco::process_event(PHCompositeNode *topNode)
 
 		shift_coordinate_system(-shift_dx,-shift_dy,-shift_dz);
 		++iseq;
-// do not fit vertex 
-/*
-		code = 0;
-		code = fit_vertex();
-		cout<<"seq "<<iseq<<" : vertex_z = "<< _vertex[2] <<", shift_z = "<<shift_dz<<endl;
-		if (iseq==0)
-		{
-			if (code==-1) zvtx_found = false;
-			else {
-			zvtx_found = true;
-			shift_coordinate_system(-shift_dx,-shift_dy,-shift_dz);
-			break;
-			}
-			++iseq;
-			continue;
-//		cout<<"Errors in fitting vertex. "<<endl;
-//		exit(1);	
-		}else if (iseq>0 && code<0 && !zvtx_found){
-			++_ca_nlayers;
-			_ca_chi2 +=0.5;
 
-                        shift_coordinate_system(-shift_dx,-shift_dy,-shift_dz);
-                        ++iseq;
-			if(zvtx_found)
-                        cout<< "z-vertex not fitted. "<<endl;
-			else
-			cout<< "z-vertex not found. "<<endl;
-                        continue;
-		}else {
-		if (iseq<nseq) cout<<"z-vertex fitted. "<<endl;
-		shift_coordinate_system(-shift_dx,-shift_dy,-shift_dz);
-		break;
-		}
-*/
 	}//iseq
 
+#ifdef _DEBUG_
 	cout<<"export output"<<endl;
+#endif
         code = export_output();
         if (code != Fun4AllReturnCodes::EVENT_OK)
         return code;
@@ -1219,14 +1194,14 @@ void PHG4PatternReco::vote_z(unsigned int zoomlevel){
                 HelixHoughBin* houghbin = it->second;
 
 #ifdef _DEBUG_
-                unsigned int izprev = houghbin->get_z0_bin(zoomlevel-1);
-                unsigned int ilprev = houghbin->get_dzdl_bin(zoomlevel-1);
-                unsigned int ipprev = houghbin->get_phi_bin(zoomlevel-1);
+//                unsigned int izprev = houghbin->get_z0_bin(zoomlevel-1);
+//                unsigned int ilprev = houghbin->get_dzdl_bin(zoomlevel-1);
+//                unsigned int ipprev = houghbin->get_phi_bin(zoomlevel-1);
 
 //                unsigned int ikprev = houghbin->get_kappa_bin(zoomlevel-1);
 //                unsigned int idprev = houghbin->get_d_bin(0);
 //                bool fillhisto = (izprev==5) && (ilprev==11)&& (ipprev==21);
-//                if (fillhisto) cout<<"bin "<<bin<<" ik " <<ikprev<<" ip "<<ipprev<<" id "<<idprev<<endl;
+//              cout<<"bin "<<bin<<" ik " <<ikprev<<" ip "<<ipprev<<" id "<<idprev<<endl;
 #endif
                 for(HelixHoughBin::ClusterIter iter = bins_map_prev.find(bin)->second->begin_clusters();
                         iter != bins_map_prev.find(bin)->second->end_clusters();
@@ -1238,7 +1213,7 @@ void PHG4PatternReco::vote_z(unsigned int zoomlevel){
                 hitpos3d[1] = hit.get_y();
                 hitpos3d[2] = hit.get_z();
 #ifdef _DEBUG_
-//                if (fillhisto) cout<<"cluster_id "<<cluster_id<<endl;
+//              cout<<"cluster_id "<<cluster_id<<endl;
 #endif
 
                 std::vector<float> kappa_phi_d_ranges;
@@ -1315,14 +1290,12 @@ void PHG4PatternReco::vote_z(unsigned int zoomlevel){
 #endif
                                 }
 #ifdef _DEBUG_
-        if (fillhisto){
 //        cout<<" il "<<il<<" iz "<<iz<<" il from bin"<< bins_map_cur.find(curgbin)->second->get_dzdl_bin(zoomlevel)<<" iz from bin "<< bins_map_cur.find(curgbin)->second->get_z0_bin(zoomlevel)<<endl;
 
         unsigned int count = bins_map_cur.find(curgbin)->second->get_count();
 //        cout<<"count "<<count<<endl;
 //        cout<<"z0 "<<bins_map_cur.find(curgbin)->second->get_z0_center(zoomlevel)<<" dzdl "<< bins_map_cur.find(curgbin)->second->get_dzdl_center(zoomlevel)<<endl;
         _z0_dzdl->Fill(bins_map_cur.find(curgbin)->second->get_z0_center(zoomlevel),bins_map_cur.find(curgbin)->second->get_dzdl_center(zoomlevel), count);
-        }
 #endif
                         } // il
                 } //iz
