@@ -115,7 +115,7 @@ int Fun4AllDstInputManager::fileopen(const string &filenam)
       delete tmpIman;
 
       PHNodeIntegrate integrate;
-      integrate.RunNode(runNodeCopy);
+      integrate.RunNode(runNode);
       integrate.RunSumNode(runNodeSum);
       // run recursively over internal run node copy and integrate objects
       PHNodeIterator mainIter(runNodeCopy);
