@@ -19,6 +19,8 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libg4hough_io_la_LIBADD = \
+  $(eigen3_LIBS) \
+  $(fitnewton_LIBS) \
   -lphool
 
 libg4hough_la_LDFLAGS = \
@@ -27,13 +29,9 @@ libg4hough_la_LDFLAGS = \
 libg4hough_la_LIBADD = \
   -lg4detectors \
   -lfun4all \
-  -lHelixHough \
-  -lFitNewton \
-  -lSeamstress \
   -lg4bbc_io \
   -lcemc_io \
   -lgenfit2 \
-  -lphfield \
   -lgenfit2exp \
   -lPHGenFit \
   libg4hough_io.la
@@ -63,16 +61,29 @@ pkginclude_HEADERS = \
   SvtxTrackMap.h \
   SvtxTrackMap_v1.h \
   SvtxBeamSpot.h \
-  PHG4HoughTransform.h \
-  PHG4HoughTransformTPC.h \
-  PHG4KalmanPatRec.h \
+  Cluster3D.h \
+  Track3D.h \
+  HelixTrackState.h \
+  HelixHoughSpace.h \
+  HelixHoughSpace_v1.h \
+  HelixHoughBin.h \
+  HelixHoughBin_v1.h \
+  HelixHoughFuncs.h \
+  HelixHoughFuncs_v1.h \
+  HelixKalmanFilter.h \
+  CellularAutomaton.h \
+  CellularAutomaton_v1.h \
+  FunctionGradHessian.h \
+  SquareGradient.h \
+  NewtonMinimizerGradHessian.h \
+  VertexFinder.h \
+  VertexFitFunc.h \
+  PHG4InitZVertexing.h \
+  PHG4PatternReco.h \
   PHG4TrackGhostRejection.h \
   PHG4TrackKalmanFitter.h \
   PHG4TruthPatRec.h \
   PHG4TrackFastSim.h \
-  PHG4SvtxMomentumRecal.h \
-  PHG4GenFitTrackProjection.h \
-  PHG4SvtxTrackProjection.h \
   PHG4SvtxBeamSpotReco.h \
   PHG4TPCClusterizer.h \
   SimpleTrack.h
@@ -117,7 +128,31 @@ libg4hough_io_la_SOURCES = \
   SvtxVertexMap.C \
   SvtxVertexMap_Dict.C \
   SvtxVertexMap_v1.C \
-  SvtxVertexMap_v1_Dict.C
+  SvtxVertexMap_v1_Dict.C \
+  Cluster3D.C \
+  Track3D.C \
+  HelixTrackState.C \
+  HelixHoughSpace.C \
+  HelixHoughSpace_Dict.C \
+  HelixHoughSpace_v1.C \
+  HelixHoughSpace_v1_Dict.C \
+  HelixHoughBin.C \
+  HelixHoughBin_Dict.C \
+  HelixHoughBin_v1.C \
+  HelixHoughBin_v1_Dict.C \
+  HelixHoughFuncs.C \
+  HelixHoughFuncs_Dict.C \
+  HelixHoughFuncs_v1.C \
+  HelixHoughFuncs_v1_Dict.C \
+  HelixKalmanFilter.C \
+  CellularAutomaton.C \
+  CellularAutomaton_Dict.C \
+  CellularAutomaton_v1.C \
+  CellularAutomaton_v1_Dict.C \
+  SquareGradient.C \
+  NewtonMinimizerGradHessian.C \
+  VertexFinder.C \
+  VertexFitFunc.C
 
 libg4hough_la_SOURCES = \
   PHG4SiliconTrackerDigitizer.C \
@@ -132,12 +167,10 @@ libg4hough_la_SOURCES = \
   PHG4SvtxClusterizer_Dict.C \
   PHG4TPCClusterizer.C \
   PHG4TPCClusterizer_Dict.C \
-  PHG4HoughTransform.C \
-  PHG4HoughTransform_Dict.C \
-  PHG4HoughTransformTPC.C \
-  PHG4HoughTransformTPC_Dict.C \
-  PHG4KalmanPatRec.C \
-  PHG4KalmanPatRec_Dict.C \
+  PHG4InitZVertexing.C \
+  PHG4InitZVertexing_Dict.C \
+  PHG4PatternReco.C \
+  PHG4PatternReco_Dict.C \
   PHG4TrackGhostRejection.C \
   PHG4TrackGhostRejection_Dict.C \
   PHG4TrackKalmanFitter.C \
@@ -146,12 +179,6 @@ libg4hough_la_SOURCES = \
   PHG4TrackKalmanFitter_Dict.C \
   PHG4TruthPatRec_Dict.C \
   PHG4TrackFastSim_Dict.C \
-  PHG4SvtxMomentumRecal.C \
-  PHG4SvtxMomentumRecal_Dict.C \
-  PHG4GenFitTrackProjection.C \
-  PHG4GenFitTrackProjection_Dict.C \
-  PHG4SvtxTrackProjection.C \
-  PHG4SvtxTrackProjection_Dict.C \
   PHG4SvtxBeamSpotReco.C \
   PHG4SvtxBeamSpotReco_Dict.C \
   SimpleTrack_Dict.C
