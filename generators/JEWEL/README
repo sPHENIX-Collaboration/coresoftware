@@ -1,0 +1,96 @@
+-------- JEWEL --------
+
+homepage: jewel.hepforge.org
+contact : jewel@projects.hepforge.org
+
+-----------------------
+
+CONTENTS:
+
+1. REFERENCES
+
+2. GETTING STARTED
+
+3. ACKNOWLEDGEMENTS
+
+4. DISCLAIMER
+
+------------------------
+
+1. REFERENCES
+-------------
+
+The manual with information on how to run JEWEL is distributed with the JEWEL 
+release and can be obtained from
+..................
+
+If you use this code for scientific work please cite the manual for the code and
+JHEP 1303 (2013) 080 [arXiv:1212.1599] and optionally EPJC C60 (2009) 617 
+[arXiv:0804.3568] for the physics.
+
+
+2. GETTING STARTED
+------------------
+
+JEWEL needs LHAPDF to provide the PDF's. Install LHAPDF following the instructions 
+on the LHAPDF web page (lhapdf.hepforge.org) and download the PDF sets you want to 
+use. In its default setup JEWEL needs the CTEPQ6LL (number 10042) and EPS09LOR_208 
+sets. The latter can be downloaded from the EPS09 web page (www.jyu.fi/fysiikka/en/
+research/highenergy/urhic/eps09).
+
+The provided Makefile assumes that JEWEL will be compiled with gfortran. People who 
+wish to use a different compiler have to modify the Makefile accordingly.
+
+Download and unpack the tarball. 
+$ tar xvzf jewel-2.0.0.tar.gz
+Edit the line 
+LHAPDF_PATH := /path/to/lhapdf 
+in the Makefile to point to your LHAPDF installation.
+Compile the code by typing 'make'. The result of this are two executables: 
+jewel-2.0.0-vac and jewel-2.0.0-simple. The former simulates jet evolution in vacuum 
+(i.e. in e-e+ or pp collisions) while the latter simulates jet evolution in the 
+presence of a medium. In this case the medium is modelled by an ideal gas of quarks and 
+gluons undergoing boost-invariant longitudinal expansion with a transverse profile derived 
+from a Glauber model.
+
+The following paths need to be set for JEWEL to run: 
+$ export LD_LIBRARY_PATH=/path/to/lhapdf/:$LD_LIBRARY_PATH
+$ export LHAPATH=/path/to/lhapdf/share/lhapdf/PDFsets
+To run JEWEL with the default setting no parameter file is needed: 
+$./jewel-2.0.0-simple 
+or 
+$./jewel-2.0.0-vac 
+Note, however, that also in the latter case nuclear PDF's will be used.
+
+A parameter file can to be passed to change the setting: 
+$./jewel-2.0.0-simple params.example.dat 
+The file params.example.dat is included in the tarball as an example for a parameter file. The 
+file can contain one parameter per line, the format is <name>␣<value>. Lines starting with a hash 
+are comment lines. For a list of parameters and their dafault values please refer to the manual.
+
+
+3. ACKNOWLEDGEMENTS
+-------------------
+
+JEWEL relies heavily on PYTHIA 6 (pythia6.hepforge.org) for the event generation. The modified 
+version of PYTHIA 6.4.25 that is distributed with JEWEL is, however, not an official PYTHIA 
+release and must not be used for anything else. Please refer to results as "JEWEL+PYTHIA".
+
+JEWEL contains code provided by S. Zhang and J. M. Jing  (Computation of Special Functions,
+John Wiley & Sons, New York, 1996 and http://jin.ece.illinois.edu) for computing the exponential 
+integral Ei(x).
+
+The medium model was partly implemented by Jochen Klein [Jochen.Klein@cern.ch].
+Raghav Kunnawalkam Elayavalli helped with the implementation of the V+jet processes [raghav.k.e@cern.ch].
+
+
+4. DISCLAIMER
+-------------
+
+The JEWEL code is provided without any warranty, users should be wary and use common
+sense when judging and interpreting their results. It is copyrighted but may be used for
+scientiﬁc work provided proper reference is given.
+
+
+
+Copyright Korinna C. Zapp (2017) [Korinna.Zapp@cern.ch] 
