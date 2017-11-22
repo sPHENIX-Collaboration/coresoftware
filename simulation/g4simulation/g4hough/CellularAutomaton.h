@@ -47,7 +47,8 @@ class CellularAutomaton : public PHObject {
   virtual void set_remove_hits(bool remove) {}
   virtual void set_remove_inner_hits(bool remove_inner) {}
   virtual void set_require_inner_hits(bool require_inner) {}
-  virtual void set_mode(bool mod) {}
+  virtual void set_triplet_mode(bool mod) {}
+  virtual void set_seeding_mode(bool mod) {}
   virtual void set_hits_map(std::map<unsigned int, Cluster3D>& hits_map) {}
 
   virtual int run(std::vector<Track3D>& output_tracks, std::vector<HelixTrackState>& output_track_states, std::map<unsigned int, bool>& hits_used) {return 0;}
