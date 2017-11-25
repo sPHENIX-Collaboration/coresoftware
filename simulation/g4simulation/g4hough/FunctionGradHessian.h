@@ -4,7 +4,7 @@
 #include <vector>
 #include <Eigen/Core>
 
-namespace FitNewton
+namespace NewtonMinimizer
 {
   class FunctionGradHessian
   {

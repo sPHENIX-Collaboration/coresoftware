@@ -7,7 +7,7 @@ using namespace std;
 using namespace Eigen;
 
 
-namespace FitNewton
+namespace NewtonMinimizer
 {
   SquareGradient::SquareGradient(FunctionGradHessian* func) : FunctionGradHessian(func->nPars(), func->nFixedPars()), verbose(true), function(func)
   {

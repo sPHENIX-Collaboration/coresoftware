@@ -816,7 +816,7 @@ int PHG4PatternReco::export_output(){
 	SvtxVertex_v1 fake_vertex;
         fake_vertex.set_t0(0.0);
         for (int i = 0; i < 3; ++i)
-        fake_vertex.set_position(i, 0.0);
+        fake_vertex.set_position(i,999.0);
         fake_vertex.set_chisq(0.0);
         fake_vertex.set_ndof(0);
         fake_vertex.set_error(0, 0, 0.0);
@@ -850,7 +850,7 @@ int PHG4PatternReco::export_output(){
                         track_hits.at(ihit).get_id());
                         clusterID = cluster->get_id();
 
-#ifdef _DEBUG_
+			if (verbosity > 5) {
                         cout
                         <<__LINE__
                         <<": itrack: " << itrack
@@ -858,7 +858,7 @@ int PHG4PatternReco::export_output(){
                         <<": clusterID: " << clusterID
                         <<": layer: " << cluster->get_layer()
                         <<endl;
-#endif
+			}
                         track.insert_cluster(clusterID);
                 }
 
@@ -933,7 +933,7 @@ int PHG4PatternReco::export_output(){
 
 		//if a triplet doesn't have a reco vertex tied to it, assign 9999
 		if (fabs(z0 - distance)>0.05) vid = 9999;		
-		cout<<"vertex_id "<<vid<<endl;
+		if (verbosity > 5) cout<<"vertex_id "<<vid<<endl;
 		// pca 
 		if (vid==9999){
 		track.set_x(0.);
@@ -1904,7 +1904,7 @@ int PHG4PatternReco::build_triplets_to_Track3D(std::vector<Track3D>& new_tracks,
 	for (std::vector<unsigned int>::iterator it0 = layer_sorted_0.begin() ; it0 != layer_sorted_0.end(); ++it0)
 	{
 #ifdef _DEBUG_
-		cout<<"icluster layer 0 "<<cluster_layer0<<endl;
+//		cout<<"icluster layer 0 "<<cluster_layer0<<endl;
 #endif
 		++cluster_layer0;
 		clusters.clear();

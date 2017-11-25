@@ -19,8 +19,6 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libg4hough_io_la_LIBADD = \
-  $(eigen3_LIBS) \
-  $(fitnewton_LIBS) \
   -lphool
 
 libg4hough_la_LDFLAGS = \
@@ -32,6 +30,7 @@ libg4hough_la_LIBADD = \
   -lg4bbc_io \
   -lcemc_io \
   -lgenfit2 \
+  -lphfield \
   -lgenfit2exp \
   -lPHGenFit \
   libg4hough_io.la
@@ -76,8 +75,8 @@ pkginclude_HEADERS = \
   FunctionGradHessian.h \
   SquareGradient.h \
   NewtonMinimizerGradHessian.h \
-  VertexFinder.h \
-  VertexFitFunc.h \
+  VertexFitter.h \
+  VertexFitFuncs.h \
   PHG4InitZVertexing.h \
   PHG4PatternReco.h \
   PHG4TrackGhostRejection.h \
@@ -151,8 +150,8 @@ libg4hough_io_la_SOURCES = \
   CellularAutomaton_v1_Dict.C \
   SquareGradient.C \
   NewtonMinimizerGradHessian.C \
-  VertexFinder.C \
-  VertexFitFunc.C
+  VertexFitter.C \
+  VertexFitFuncs.C
 
 libg4hough_la_SOURCES = \
   PHG4SiliconTrackerDigitizer.C \

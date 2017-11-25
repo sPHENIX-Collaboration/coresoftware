@@ -3,7 +3,7 @@
 
 #include "FunctionGradHessian.h"
 
-namespace FitNewton
+namespace NewtonMinimizer
 {
   class SquareGradient : public FunctionGradHessian
   {

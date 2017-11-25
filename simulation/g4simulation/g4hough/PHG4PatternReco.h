@@ -20,7 +20,7 @@
 
 // Helix Hough includes
 #ifndef __CINT__
-#include "VertexFinder.h"
+#include "VertexFitter.h"
 #include "HelixTrackState.h"
 #include "Track3D.h"
 #endif
@@ -293,7 +293,7 @@ private:
 	SvtxClusterMap* _clustermap;
 	SvtxTrackMap* _trackmap;
 	SvtxVertexMap* _vertexmap;
-	VertexFinder _vertex_finder;
+	VertexFitter _vertex_finder;
 
   	HelixHoughSpace* _hough_space;
 	HelixHoughFuncs* _hough_funcs;

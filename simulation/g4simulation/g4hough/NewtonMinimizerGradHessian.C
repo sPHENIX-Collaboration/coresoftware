@@ -8,7 +8,7 @@
 using namespace std;
 using namespace Eigen;
 
-namespace FitNewton
+namespace NewtonMinimizer
 {
   NewtonMinimizerGradHessian::NewtonMinimizerGradHessian()
   {
@@ -351,7 +351,7 @@ namespace FitNewton
     }
     
     unsigned int npars = function->nPars();
-    
+
     try
     {
       if(!(npars>0)){throw (char*)("function to be minimized has zero dimensions");}
@@ -378,7 +378,7 @@ namespace FitNewton
     VectorXd* try_point = &(working_points[1]);
     
     (*current_point) = start_point;
-    
+   
     double value=0.;
     double prev_value=0.;
     
@@ -403,7 +403,7 @@ namespace FitNewton
     
     VectorXd move = VectorXd::Zero(npars);
     VectorXd unit_move = VectorXd::Zero(npars);
-    
+ 
     //try a Newton iteration
     function->calcValGradHessian((*current_point), value, (*current_grad), hessian);
     for(unsigned int i=0;i<fixparameter.size();++i)
@@ -455,7 +455,7 @@ namespace FitNewton
     swap(current_point, try_point);
     swap(current_grad, try_grad);
     swap(value, prev_value);
-    
+
     unsigned long int count = 1;
     bool converged=false;
     while(converged==false)
