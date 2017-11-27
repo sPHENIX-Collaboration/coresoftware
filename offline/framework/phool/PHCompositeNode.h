@@ -4,7 +4,6 @@
 //  Declaration of class PHCompositeNode
 //  Purpose: a node which can hold other nodes
 
-#include "phool.h"
 #include "PHNode.h"
 #include "PHPointerList.h"
 
@@ -22,7 +21,7 @@ public:
    //
    // The user is only allowed to add new nodes, not to delete existing ones.
    //
-   PHBoolean addNode(PHNode*);
+   bool addNode(PHNode*);
 
    //
    // This recursively calls the prune function of all the subnodes.

@@ -97,10 +97,10 @@ PHNodeIterator::findFirst(const string& requiredName)
   return 0;
 }
 
-PHBoolean
+bool
 PHNodeIterator::cd(const string &pathString)
 {
-  PHBoolean success = True;
+  bool success = true;
   if (pathString.empty())
     {
       while (currentNode->getParent())
@@ -112,7 +112,7 @@ PHNodeIterator::cd(const string &pathString)
     {
       vector<string> splitpath;
       boost::split(splitpath, pathString, boost::is_any_of(phooldefs::nodetreepathdelim));
-      PHBoolean pathFound;
+      bool pathFound;
       PHNode    *subNode;
       int i=0;
       for (vector<string>::const_iterator iter = splitpath.begin(); iter != splitpath.end(); ++iter)
@@ -126,24 +126,24 @@ PHNodeIterator::cd(const string &pathString)
                 }
               else
                 {
-                  success = False;
+                  success = false;
                 }
             }
           else
             {
               PHPointerListIterator<PHNode> subNodeIter(currentNode->subNodes);
-              pathFound = False;
+              pathFound = false;
               while ((subNode = subNodeIter()))
                 {
                   if (subNode->getType() == "PHCompositeNode" && subNode->getName() == *iter)
                     {
                       currentNode = static_cast<PHCompositeNode*>(subNode);
-                      pathFound = True;
+                      pathFound = true;
                     }
                 }
               if (!pathFound)
                 {
-                  success = False;
+                  success = false;
                 }
             }
         }
@@ -151,7 +151,7 @@ PHNodeIterator::cd(const string &pathString)
   return success;
 }
 
-PHBoolean
+bool
 PHNodeIterator::addNode(PHNode* newNode)
 {
   return currentNode->addNode(newNode);

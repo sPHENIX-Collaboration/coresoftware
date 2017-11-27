@@ -10,6 +10,7 @@
 #include "PHRawOManager.h"
 #include "PHCompositeNode.h"
 #include "PHRawDataNode.h"
+#include "phool.h"
 
 #include <Event/ogzBuffer.h>
 #include <Event/EventTypes.h>
@@ -73,7 +74,7 @@ PHRawOManager::closeFile()
     }
 }
 
-PHBoolean
+bool
 PHRawOManager::setFile(const string &setFile, const int setRun, const int setBufl, const int setEvtl, const int complvl)
 {
   filename         = setFile;
@@ -104,7 +105,7 @@ PHRawOManager::setFile(const string &setFile, const int setRun, const int setBuf
     {
 
       PHMessage("PHRawOManager::setFile", PHError, "could not open file");
-      return False;
+      return false;
     }
   memBuffer  = new PHDWORD[bufferSize];
   if (compressionLevel == 0)
@@ -114,7 +115,7 @@ PHRawOManager::setFile(const string &setFile, const int setRun, const int setBuf
       if (status > 0)
         {
           PHMessage("PHRawOManager::setFile", PHError, "could not open file");
-          return False;
+          return false;
         }
     }
   else if (1 <= compressionLevel && compressionLevel <= 9)
@@ -124,7 +125,7 @@ PHRawOManager::setFile(const string &setFile, const int setRun, const int setBuf
       if (status > 0)
         {
           PHMessage("PHRawOManager::setFile", PHError, "could not open file");
-          return False;
+          return false;
         }
     }
   else
@@ -132,10 +133,10 @@ PHRawOManager::setFile(const string &setFile, const int setRun, const int setBuf
       PHMessage("PHRawOManager::setFile", PHWarning, "illegal compression level, no compression done");
     }
 
-  return True;
+  return true;
 }
 
-PHBoolean
+bool
 PHRawOManager::write(PHCompositeNode* topNode)
 {
   //
@@ -149,12 +150,12 @@ PHRawOManager::write(PHCompositeNode* topNode)
       fileBuffer->nextEvent(eventLength, DATAEVENT);
       topNode->write(this);
       eventNumber++;
-      return True;
+      return true;
     }
-  return False;
+  return false;
 }
 
-PHBoolean
+bool
 PHRawOManager::write(PHRawDataNode* node)
 {
   if (filedesc >= 0 && fileBuffer)
@@ -164,11 +165,11 @@ PHRawOManager::write(PHRawDataNode* node)
       if (bytesAddedToBuffer <= 0)
         {
           PHMessage("PHRawOManager::write", PHError, "Zero bytes added to buffer");
-          return False;
+          return false;
         }
-      return True;
+      return true;
     }
-  return False;
+  return false;
 }
 
 void

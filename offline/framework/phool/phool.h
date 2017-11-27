@@ -6,11 +6,8 @@
 
 #include <iostream>
 
-static const int False = 0;
-static const int True = 1;
 
 //  Global type definitions
-typedef int PHBoolean;
 enum PHMessageType {PHError, PHWarning, PHHullo};
 enum PHAccessType {PHReadOnly, PHWrite, PHUpdate};
 enum PHTreeType {PHEventTree, PHRunTree};

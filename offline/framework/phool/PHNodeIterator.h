@@ -5,7 +5,6 @@
 //  Purpose: iterator to navigate a node tree
 //  Author: Matthias Messer
 
-#include "phool.h"
 #include "PHCompositeNode.h"
 #include "PHPointerList.h"
 
@@ -23,8 +22,8 @@ public:
    PHPointerList<PHNode>& ls();
    PHNode*                findFirst(const std::string&, const std::string&);
    PHNode*                findFirst(const std::string&);
-   PHBoolean              cd(const std::string &pathString = "");
-   PHBoolean              addNode(PHNode*);
+   bool              cd(const std::string &pathString = "");
+   bool              addNode(PHNode*);
    void                   forEach(PHNodeOperation&);
    void                   for_each(PHNodeOperation&);
    PHCompositeNode *get_currentNode() const {return  currentNode;}

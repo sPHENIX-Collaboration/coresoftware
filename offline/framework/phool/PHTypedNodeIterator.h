@@ -51,9 +51,9 @@ public:
    * object, so remember to "cd" to the desired location in the tree!
    *
    */
-  PHBoolean AddIODataNode(T* data, const char* name);
+  bool AddIODataNode(T* data, const char* name);
 
-  PHBoolean insert(T* data, const char* name);
+  bool insert(T* data, const char* name);
   
 protected:
   PHIODataNode<T>* myIODataNode;  
@@ -96,20 +96,20 @@ PHTypedNodeIterator<T>::find(const char* name)
 }
 
 template <class T>
-PHBoolean
+bool
 PHTypedNodeIterator<T>::AddIODataNode(T* data, const char* name)
 {
   return insert(data, name);
 }
 
 template <class T>
-PHBoolean
+bool
 PHTypedNodeIterator<T>::insert(T* data, const char* name)
 {
   // TODO:  also check that "name" is not a null string!
   if (!name)
     {
-      return False;
+      return false;
     }
   
   // For IODataNode, ought to check (if possible) that T derives from
@@ -118,7 +118,7 @@ PHTypedNodeIterator<T>::insert(T* data, const char* name)
   if (!n) 
     {
       // problem creating node?
-      return False;
+      return false;
     }
 
   return addNode(n);

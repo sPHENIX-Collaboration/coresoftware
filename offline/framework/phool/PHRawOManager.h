@@ -44,10 +44,10 @@ public:
    PHRawOManager(const std::string &, const int run = 0, const int bufl = 100000, const int evtl = -1, const int complvl = 3); 
    virtual ~PHRawOManager(); 
 
-   PHBoolean setFile(const std::string &, const int setRun, const int setBufl, const int setEvtl, const int complvl);
+   bool setFile(const std::string &, const int setRun, const int setBufl, const int setEvtl, const int complvl);
    virtual void closeFile();
-   virtual PHBoolean write(PHCompositeNode *);
-   PHBoolean write(PHRawDataNode*);
+   virtual bool write(PHCompositeNode *);
+   bool write(PHRawDataNode*);
 
    virtual void print() const;
    

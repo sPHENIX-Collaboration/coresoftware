@@ -2,6 +2,8 @@
 
 #include "PHNode.h"
 
+#include "phool.h"
+
 #include <cstdlib>
 #include <iostream>
 
@@ -79,17 +81,11 @@ PHNode::operator=(const PHNode&)
   exit(1);
 }
 
-void
-PHNode::setResetFlag(const int val)
-{
-  reset_able = (val) ? true : false;
-}
-
-PHBoolean  
-PHNode::getResetFlag() const
-{
-  return reset_able;
-}
+// void
+// PHNode::setResetFlag(const int val)
+// {
+//   reset_able = (val) ? true : false;
+// }
 
 // Implementation of external functions.
 std::ostream & 

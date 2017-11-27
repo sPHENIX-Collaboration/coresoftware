@@ -4,8 +4,6 @@
 //  Declaration of class PHNode
 //  Purpose: abstract base class for all node classes
 
-#include "phool.h"
-
 #include <iosfwd>
 #include <string>
 
@@ -24,8 +22,8 @@ public:
 
   PHNode* getParent() const { return parent; }
   
-  PHBoolean isPersistent() const { return persistent; }
-  void makePersistent() { persistent = True;}
+  bool isPersistent() const { return persistent; }
+  void makePersistent() { persistent = true;}
   
   const std::string getObjectType() const { return objecttype; }
   const std::string getType() const { return type; }
@@ -40,9 +38,10 @@ public:
   virtual void forgetMe(PHNode*) = 0;
   virtual bool write(PHIOManager *, const std::string& = "") = 0;
 
-  virtual void setResetFlag(const int val);
-  virtual PHBoolean getResetFlag() const;
-  void makeTransient()  { persistent = False;}
+//  virtual void setResetFlag(const int val);
+  virtual void setResetFlag(const bool b) {reset_able = b;}
+  virtual bool getResetFlag() const {return reset_able;}
+  void makeTransient()  { persistent = false;}
   
 protected:
   

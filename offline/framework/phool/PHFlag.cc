@@ -1,7 +1,5 @@
 #include "PHFlag.h"
 
-#include "phool.h"
-
 #include <cstring>
 #include <fstream>
 #include <iostream>

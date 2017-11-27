@@ -9,6 +9,7 @@
 #include "PHCompositeNode.h" 
 #include "PHPointerListIterator.h"
 #include "phooldefs.h"
+#include "phool.h"
 
 #include <iostream>
 
@@ -36,7 +37,7 @@ PHCompositeNode::~PHCompositeNode()
   subNodes.clearAndDestroy();
 }
 
-PHBoolean
+bool
 PHCompositeNode::addNode(PHNode* newNode)
 {
   //
@@ -50,7 +51,7 @@ PHCompositeNode::addNode(PHNode* newNode)
 	{
 	  cout << PHWHERE << "Node " << newNode->getName() 
                << " already exists" << endl;
-	  return False;
+	  return false;
 	}
     }
   //

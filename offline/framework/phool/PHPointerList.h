@@ -24,7 +24,6 @@
 //
 //  Author: Matthias Messer
 
-#include "phool.h"
 #include "PHNode.h"
 
 #include <iostream>
@@ -46,11 +45,11 @@ public:
   size_t	length() const;
   T*		removeLast();
   T*		removeAt(size_t);
-  PHBoolean    append(T*);
-  PHBoolean    insertAt(T*, size_t);
+  bool    append(T*);
+  bool    insertAt(T*, size_t);
   
 private:
-  PHBoolean grow(size_t = 0);
+  bool grow(size_t = 0);
   
 private: 
   T**       items;
@@ -97,7 +96,7 @@ PHPointerList<T>::~PHPointerList()
 }
 
 template<class T> 
-PHBoolean 
+bool 
 PHPointerList<T>::grow(size_t newSize)
 {
   if (newSize == 0) 
@@ -118,10 +117,10 @@ PHPointerList<T>::grow(size_t newSize)
   else 
     {
       std::cout << "PHPointerList<T>::grow: Out of memory?" << std::endl;
-      return False;
+      return false;
     }
 
-  return True;
+  return true;
 }
 
 template<class T> inline T* PHPointerList<T>::operator[](size_t i) const
@@ -138,14 +137,14 @@ template<class T> inline T* PHPointerList<T>::operator[](size_t i) const
 }
 
 template<class T> 
-inline PHBoolean 
+inline bool 
 PHPointerList<T>::append(T* item)
 {
   if (nItems < maxNItems) 
     {
       items[nItems] = item;
       ++nItems;
-      return True;
+      return true;
     }
   else 
     {
@@ -153,25 +152,25 @@ PHPointerList<T>::append(T* item)
 	{
 	  items[nItems] = item;
 	  ++nItems;
-	  return True;
+	  return true;
 	}
       else 
 	{
 	  std::cout << "PHPointerList<T>::append: max nItems exceeded" << std::endl;
-	  return False;
+	  return false;
 	}
     }
 }
 
 template<class T> 
-inline PHBoolean 
+inline bool 
 PHPointerList<T>::insertAt(T* item, size_t pos)
 {
   // This function inserts item at pos in the internal list
   if (pos > nItems) 
     {
       std::cout << "PHPointerList<T>::insertAt: insert beyond nItems" << std::endl;
-      return False;
+      return false;
     }
   
   // Append is used here as a convenient way to let the list grow, if necessary.
@@ -185,7 +184,7 @@ PHPointerList<T>::insertAt(T* item, size_t pos)
   
   items[pos] = item;
   
-  return True;
+  return true;
 }
 
 template<class T> 

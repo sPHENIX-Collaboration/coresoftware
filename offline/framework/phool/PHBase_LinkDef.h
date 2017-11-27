@@ -1,6 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ typedef PHBoolean;
 #pragma link C++ enum PHMessageType;
 #pragma link C++ enum PHAccessType;
 #pragma link C++ enum  PHTreeType;
