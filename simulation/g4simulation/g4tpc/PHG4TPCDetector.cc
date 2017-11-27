@@ -1,4 +1,5 @@
 #include "PHG4TPCDetector.h"
+#include "PHG4TPCDefs.h"
 
 #include <g4detectors/PHG4Parameters.h>
 
@@ -47,6 +48,7 @@ int PHG4TPCDetector::IsInTPC(G4VPhysicalVolume *volume) const
     map<G4VPhysicalVolume *, int>::const_iterator iter = activevols.find(volume);
     if (iter != activevols.end())
     {
+      cout << "copyno: " << volume->GetCopyNo() << ", lay: " << iter->second << endl;
       return iter->second;
     }
   }
@@ -103,12 +105,14 @@ void PHG4TPCDetector::Construct(G4LogicalVolume *logicWorld)
 
 int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
 {
-  double tpc_window_thickness = 0.05*cm;
+  double tpc_window_thickness = params->get_double_param("window_thickness")*cm;
   double tpc_half_length = (params->get_double_param("tpc_length")*cm-tpc_window_thickness)/2.;
   G4VSolid *tpc_window = new G4Tubs("tpc_window",params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm, tpc_window_thickness/2., 0., 2 * M_PI);
 
   G4VSolid *tpc_gas = new G4Tubs("tpc_gas", params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm,   tpc_half_length / 2., 0., 2 * M_PI);
-  G4LogicalVolume *tpc_window_logic = new G4LogicalVolume(tpc_window, G4Material::GetMaterial("G4_KAPTON"),"tpc_window");
+  G4LogicalVolume *tpc_window_logic = new G4LogicalVolume(tpc_window, 
+                                                          G4Material::GetMaterial(params->get_string_param("window_material")),
+                                                          "tpc_window");
 
   G4VisAttributes *visatt = new G4VisAttributes();
   visatt->SetVisibility(true);
@@ -130,18 +134,18 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
   visatt->SetForceSolid(true);
   visatt->SetColor(PHG4TPCColorDefs::tpc_gas_color);
   tpc_gas_logic->SetVisAttributes(visatt);
-  int tpcdetid = 0;
   G4VPhysicalVolume *tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, (tpc_half_length+tpc_window_thickness)/2.),
-                                                      tpc_gas_logic, "tpc_gas_0",
-                                                      tpc_envelope, false, tpcdetid, overlapcheck);
+                                                      tpc_gas_logic, "tpc_gas_north",
+                                                      tpc_envelope, false, PHG4TPCDefs::North, overlapcheck);
+  cout << "north copy no: " << tpc_gas_phys->GetCopyNo() << endl;
 
-  activevols[tpc_gas_phys] = tpcdetid;
-  tpcdetid = 1;
+  activevols[tpc_gas_phys] = PHG4TPCDefs::North;
   tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, -(tpc_half_length+tpc_window_thickness)/2.),
-                                                      tpc_gas_logic, "tpc_gas_1",
-                                                      tpc_envelope, false, tpcdetid, overlapcheck);
+                                                      tpc_gas_logic, "tpc_gas_south",
+                                                      tpc_envelope, false, PHG4TPCDefs::South, overlapcheck);
 
-  activevols[tpc_gas_phys] = tpcdetid;
+  cout << "south copy no: " << tpc_gas_phys->GetCopyNo() << endl;
+  activevols[tpc_gas_phys] = PHG4TPCDefs::South;
 
 
 #if G4VERSION_NUMBER >= 1033

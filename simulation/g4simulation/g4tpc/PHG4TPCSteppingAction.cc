@@ -89,7 +89,7 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   {
     return false;
   }
-  int layer_id = 0;
+  int layer_id = whichactive; // north=0, south=1
   if (whichactive < 0)  // support structures
   {
     layer_id = fabs(whichactive);  // we want a positive layer id
