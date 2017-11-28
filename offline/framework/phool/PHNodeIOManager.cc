@@ -102,9 +102,8 @@ void PHNodeIOManager::closeFile()
   }
 }
 
-bool
-PHNodeIOManager::setFile(const string& f, const string& title,
-                         const PHAccessType a)
+bool PHNodeIOManager::setFile(const string& f, const string& title,
+                              const PHAccessType a)
 {
   filename = f;
   bufSize = 32000;
@@ -162,8 +161,7 @@ PHNodeIOManager::setFile(const string& f, const string& title,
   return false;
 }
 
-bool
-PHNodeIOManager::write(PHCompositeNode* topNode)
+bool PHNodeIOManager::write(PHCompositeNode* topNode)
 {
   // The write function of the PHCompositeNode topNode will
   // recursively call the write functions of its subnodes, thus
@@ -184,8 +182,7 @@ PHNodeIOManager::write(PHCompositeNode* topNode)
   return false;
 }
 
-bool
-PHNodeIOManager::write(TObject** data, const string& path)
+bool PHNodeIOManager::write(TObject** data, const string& path)
 {
   if (file && tree)
   {
@@ -220,8 +217,7 @@ PHNodeIOManager::write(TObject** data, const string& path)
   return false;
 }
 
-bool
-PHNodeIOManager::read(size_t requestedEvent)
+bool PHNodeIOManager::read(size_t requestedEvent)
 {
   if (readEventFromFile(requestedEvent))
   {
@@ -314,8 +310,7 @@ PHNodeIOManager::getBranchClassName(TBranch* branch)
   exit(1);
 }
 
-bool
-PHNodeIOManager::readEventFromFile(size_t requestedEvent)
+bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
 {
   // Se non c'e niente, non possiamo fare niente.  Logisch, n'est ce
   // pas?
@@ -557,8 +552,7 @@ void PHNodeIOManager::selectObjectToRead(const char* objectName, bool readit)
   return;
 }
 
-bool
-PHNodeIOManager::isSelected(const char* objectName)
+bool PHNodeIOManager::isSelected(const char* objectName)
 {
   string name = objectName;
   map<string, TBranch*>::const_iterator p = fBranches.find(name);
@@ -571,8 +565,7 @@ PHNodeIOManager::isSelected(const char* objectName)
   return false;
 }
 
-bool
-PHNodeIOManager::SetCompressionLevel(const int level)
+bool PHNodeIOManager::SetCompressionLevel(const int level)
 {
   if (level < 0)
   {
