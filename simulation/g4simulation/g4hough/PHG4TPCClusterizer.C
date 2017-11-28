@@ -66,6 +66,8 @@ PHG4TPCClusterizer::PHG4TPCClusterizer(const char *name) :
   fMinLayer(0),
   fMaxLayer(0),
   fEnergyCut(0.1),
+  fClusterWindow(3),
+  fClusterZSplit(false),
   fDCT(0.006),
   fDCL(0.012),
   _inv_sqrt12( 1.0/TMath::Sqrt(12) ),
@@ -149,6 +151,7 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
   int izmost = 30; // don't look more than izmost Z bins in each direction
 
   int izup = fFitRangeZ;  
+  
   for(int iz=0; iz< izmost; iz++)
     {
       int cz = zbin + iz;
@@ -158,6 +161,30 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
       // consider only the peak bin in phi when searching for Z limit     
       int cp = wrap_phibin(pbin);
       int bin = cz * fNPhiBins + cp;
+      int bin1 = (cz+1) * fNPhiBins + cp;
+      int bin2 = (cz+2) * fNPhiBins + cp;
+      int bin3 = (cz+3) * fNPhiBins + cp;
+
+      if(fClusterZSplit){
+	//check local minima and break at minimum.
+	if(iz<izmost-4){//make sure we stay clear from the edge
+	  /*	cout << "iz : " << iz << " bin: " << bin 
+	    << " amp1[" << bin << "] " << fAmps[bin]
+	    << " amp2[" << bin1 << "] " <<  fAmps[bin1]
+	    << " amp3[" << bin2 << "] " <<  fAmps[bin2]
+	    << " amp4[" << bin3 << "] " <<  fAmps[bin3]
+	    << endl;
+	  */
+	  if(fAmps[bin]+fAmps[bin1] < fAmps[bin2]+fAmps[bin3]){//rising again
+	    izup = iz+1;
+	    if(fAmps[bin1]< fFitEnergyThreshold*peak)
+	      izup = iz;
+	    //  cout << "rise!" << endl;
+	    break;
+	  }
+	}
+      }
+      
       if(fAmps[bin] < fFitEnergyThreshold*peak) 
 	{
 	  izup = iz;
@@ -175,6 +202,35 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
       
       int cp = wrap_phibin(pbin);
       int bin = cz * fNPhiBins + cp;
+      int bin1 = (cz-1) * fNPhiBins + cp;
+      int bin2 = (cz-2) * fNPhiBins + cp;
+      int bin3 = (cz-3) * fNPhiBins + cp;
+
+      if(fClusterZSplit){
+	if(iz<izmost-4){//make sure we stay clear from the edge
+	  /*cout << "iz : " << iz << " bin: " << bin 
+	    << " amp1 " << fAmps[bin]
+	    << " amp2 " << fAmps[bin1]
+	    << " amp3 " << fAmps[bin2]
+	    << " amp4 " << fAmps[bin3]
+	    << endl;
+	    
+	    cout << "iz : " << iz << " bin: " << bin 
+	    << " amp1[" << bin << "] " << fAmps[bin]
+	    << " amp2[" << bin1 << "] " <<  fAmps[bin1]
+	    << " amp3[" << bin2 << "] " <<  fAmps[bin2]
+	    << " amp4[" << bin3 << "] " <<  fAmps[bin3]
+	    << endl;
+	  */
+	  if(fAmps[bin]+fAmps[bin1] < fAmps[bin2]+fAmps[bin3]){//rising again
+	    izdown = iz+1;
+	    if(fAmps[bin1]< fFitEnergyThreshold*peak)
+	      izdown = iz;
+	    //cout << "rise!" << endl;
+	    break;
+	  }
+	}
+      }
       if(fAmps[bin] < fFitEnergyThreshold*peak) 
 	{
 	  izdown = iz;
@@ -183,16 +239,83 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
 	}
     }
   
-  if(verbosity>1000) std::cout << "max " << fAmps[zbin*fNPhiBins+pbin] << std::endl;
-  if(verbosity>1000) std::cout << "izdown " << izdown << " izup " << izup << std::endl;
+  if(verbosity>1000) 
+    std::cout << "max " << fAmps[zbin*fNPhiBins+pbin] << std::endl;
+  //  if(verbosity>1000) 
+  std::cout << "izdown " << izdown << " izup " << izup << std::endl;
 
   for(int iz=-izdown; iz!=izup; ++iz) {
+    cout << "iz: " << iz << endl;
     int cz = zbin + iz;
     if(cz < 0) continue; // truncate edge
     if(cz >= fNZBins) continue; // truncate edge
     bool used = false;
     int nphis = 0;
-    for(int ip=-fFitRangeP; ip!=fFitRangeP+1; ++ip) {
+    //Find maximum bin in phi first
+    int iphi_max = -99999999;
+    float amp_max = -1;
+
+    for(int ip=-fFitRangeP; ip<=fFitRangeP; ++ip) {
+      int cp = wrap_phibin(pbin + ip);
+      int bin = cz * fNPhiBins + cp;
+      cout << " ip: " << ip 
+	   << " amp: " << fAmps[bin]
+	   << " peak: " << peak
+	   << endl;
+      if(fAmps[bin] < fFitEnergyThreshold*peak) continue; // skip small (include empty)
+      if(fAmps[bin]>amp_max){
+	amp_max = fAmps[bin];
+	iphi_max = ip;
+      }
+    }
+    //Step left and right of the maximum an check if amp is falling
+    //stop if we hit a local maximum
+    int ip_min = -fFitRangeP;
+    int ip_max = fFitRangeP;
+    for(int ip=iphi_max; ip<=fFitRangeP; ++ip) {
+      int cp = wrap_phibin(pbin + ip);
+      int bin = cz * fNPhiBins + cp;
+      if(fAmps[bin] < fFitEnergyThreshold*peak){
+	ip_max = ip;
+	break; // skip small (include empty)
+      }
+      int bin1 = cz * fNPhiBins + wrap_phibin(pbin + ip + 1);
+      int bin2 = cz * fNPhiBins + wrap_phibin(pbin + ip + 2);
+      int bin3 = cz * fNPhiBins + wrap_phibin(pbin + ip + 3);
+
+      if(fAmps[bin]+fAmps[bin1] < fAmps[bin2]+fAmps[bin3]){//rising again
+	ip_max = ip+1;
+	//cout << "rise!" << endl;
+	break;
+      }
+    }
+    for(int ip=iphi_max; ip>=-fFitRangeP; --ip) {
+      int cp = wrap_phibin(pbin + ip);
+      int bin = cz * fNPhiBins + cp;
+      if(fAmps[bin] < fFitEnergyThreshold*peak){
+	ip_max = ip;
+	break; // skip small (include empty)
+      }
+      int bin1 = cz * fNPhiBins + wrap_phibin(pbin + ip - 1);
+      int bin2 = cz * fNPhiBins + wrap_phibin(pbin + ip - 2);
+      int bin3 = cz * fNPhiBins + wrap_phibin(pbin + ip - 3);
+
+      if(fAmps[bin]+fAmps[bin1] < fAmps[bin2]+fAmps[bin3]){//rising again
+	ip_min = ip-1;
+	//cout << "rise!" << endl;
+	break;
+      }
+    }
+    
+    cout << "fFitRangeP: " << fFitRangeP
+	 << " ip_min: " << ip_min
+	 << " pbin:  " << pbin
+	 << " iphi_max: " << iphi_max
+	 << " ip_max: " << ip_max
+	 << " window: " << fClusterWindow
+	 << endl;
+
+    for(int ip=ip_min; ip!=ip_max+1; ++ip) {
       int cp = wrap_phibin(pbin + ip);
       int bin = cz * fNPhiBins + cp;
       if(verbosity>1000) {
@@ -374,14 +497,22 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	float sigmaZ = TMath::Sqrt(pow((fShapingTail), 2) + fDCL*fDCL*(105.5-abszbincenter));  // shaping time + drift diffusion, used only to calculate FitRangZ
 	float TPC_padgeo_sigma = 0.04;  // 0.4 mm (from Tom)
 	float sigmaP = TMath::Sqrt(pow(TPC_padgeo_sigma, 2) + fDCT*fDCT*(105.5-abszbincenter)); // readout geometry + drift diffusion, used only to calculate FitRangeP
-	fFitRangeZ = int( 3.0*sigmaZ/stepz + 1);
+	fFitRangeZ = int( fClusterWindow*sigmaZ/stepz + 1);
 	if(fFitRangeZ<1) fFitRangeZ = 1; // should never happen
 	if(verbosity > 2000) cout << " sigmaZ " << sigmaZ << " fFitRangeZ " << fFitRangeZ << " sigmaP " << sigmaP << endl;
 	//if(fFitRangeZ>fFitRangeMZ) fFitRangeZ = fFitRangeMZ;  // does not allow for high angle tracks, see mod to fit() method
         for(int phibin = 0; phibin!=fNPhiBins; ++phibin) {
           float radius = fGeoLayer->get_radius() + 0.5*fGeoLayer->get_thickness();
-	  fFitRangeP = int( 3.0*sigmaP/(radius*stepp) + 1);
-	  if(fFitRangeP<1) fFitRangeP = 1;
+	  fFitRangeP = int( fClusterWindow*sigmaP/(radius*stepp) + 1);
+	  /*
+	    cout << " range: " << fFitRangeP
+	    << " window: " << fClusterWindow
+	    << " sigma: " << sigmaP/(radius*stepp)
+	    << " sigmaP: " << sigmaP
+	    << " step: " << (radius*stepp)
+	    <<  endl;
+	  */
+	  if(fFitRangeP<2) fFitRangeP = 2;
 	  if(fFitRangeP>fFitRangeMP) fFitRangeP = fFitRangeMP;
           if(!is_local_maximum(phibin, zbin)) continue;
 	  if(verbosity>2000) std::cout << " maxima found in window rphi z " << fFitRangeP << " " << fFitRangeZ << std::endl;
