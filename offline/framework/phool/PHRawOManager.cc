@@ -33,16 +33,16 @@ PHRawOManager::PHRawOManager(const string& newFile, const int run, const int buf
   {
     filename = "file open failed";
     filedesc = -1;
-    memBuffer = NULL;
-    fileBuffer = NULL;
+    memBuffer = nullptr;
+    fileBuffer = nullptr;
     compressionLevel = 0;
   }
 }
 
 PHRawOManager::PHRawOManager()
   : filedesc(-1)
-  , memBuffer(NULL)
-  , fileBuffer(NULL)
+  , memBuffer(nullptr)
+  , fileBuffer(nullptr)
   , runNumber(0)
   , bufferSize(0)
   , eventLength(0)

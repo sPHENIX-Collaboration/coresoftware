@@ -17,7 +17,7 @@ PHRawDataNode::~PHRawDataNode()
   // set the data poitner to 0 so
   // the dtor of the PHDataNode parent class doesn't try
   // to delete it
-  setData(NULL);
+  setData(nullptr);
 }
 
 PHRawDataNode::PHRawDataNode(PHDWORD* d, const string& n,

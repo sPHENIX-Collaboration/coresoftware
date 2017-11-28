@@ -25,7 +25,7 @@ PHNodeIterator::PHNodeIterator(PHCompositeNode* node)
 }
 
 PHNodeIterator::PHNodeIterator()
-  : currentNode(NULL)
+  : currentNode(nullptr)
 {
 }
 

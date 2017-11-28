@@ -10,7 +10,7 @@
 using namespace std;
 
 PHNode::PHNode()
-  : parent(NULL)
+  : parent(nullptr)
   , persistent(true)
   , type("PHNode")
   , reset_able(true)
@@ -19,7 +19,7 @@ PHNode::PHNode()
 }
 
 PHNode::PHNode(const string& n)
-  : parent(NULL)
+  : parent(nullptr)
   , persistent(true)
   , type("PHNode")
   , reset_able(true)
@@ -35,7 +35,7 @@ PHNode::PHNode(const string& n)
 }
 
 PHNode::PHNode(const string& n, const string& typ)
-  : parent(NULL)
+  : parent(nullptr)
   , persistent(true)
   , type("PHNode")
   , objecttype(typ)
@@ -60,7 +60,7 @@ PHNode::~PHNode()
 }
 
 PHNode::PHNode(const PHNode& phn)
-  : parent(NULL)
+  : parent(nullptr)
   , persistent(phn.persistent)
   , type(phn.type)
   , objecttype(phn.objecttype)
