@@ -33,7 +33,6 @@ class PHNode
   virtual void forgetMe(PHNode *) = 0;
   virtual bool write(PHIOManager *, const std::string & = "") = 0;
 
-  //  virtual void setResetFlag(const int val);
   virtual void setResetFlag(const bool b) { reset_able = b; }
   virtual bool getResetFlag() const { return reset_able; }
   void makeTransient() { persistent = false; }
