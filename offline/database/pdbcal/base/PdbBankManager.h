@@ -8,7 +8,6 @@
 #include "PdbBankID.h"
 
 #include <phool/PHTimeStamp.h>
-#include <phool/phool.h>
 
 #include <ctime>
 #include <map>
@@ -99,7 +98,7 @@ public:
   // 			     const std::string &,
   // 			     PHTimeStamp &) = 0;
 
-  virtual PdbApplication* getApplication(PHBoolean pJob = False) = 0;
+  virtual PdbApplication* getApplication() = 0;
 
   virtual void fillCalibObject(PdbCalBank*,
 			       const std::string &,

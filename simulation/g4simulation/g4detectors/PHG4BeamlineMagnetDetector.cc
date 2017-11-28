@@ -1,11 +1,11 @@
 #include "PHG4BeamlineMagnetDetector.h"
 #include "PHG4Parameters.h"
-//#include "PHG4QuadrupoleMagField.h"
 
 #include <g4main/PHG4PhenixDetector.h>
 #include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/phool.h>
 
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>

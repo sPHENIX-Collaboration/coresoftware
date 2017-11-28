@@ -14,6 +14,7 @@ static std::uniform_int_distribution<unsigned int> fDistribution;
 
 bool PHRandomSeed::fInitialized(false);
 bool PHRandomSeed::fFixed(false);
+int PHRandomSeed::verbose(0);
 
 unsigned int PHRandomSeed::GetSeed()
 {
@@ -39,7 +40,10 @@ unsigned int PHRandomSeed::GetSeed()
       iseed = rdev();
     }
   }
-  cout << "PHRandomSeed::GetSeed() seed: " << iseed << endl;
+  if (verbose)
+  {
+    cout << "PHRandomSeed::GetSeed() seed: " << iseed << endl;
+  }
   return iseed;
 }
 
@@ -57,7 +61,12 @@ void PHRandomSeed::InitSeed()
   }
 }
 
-void PHRandomSeed::LoadSeed(unsigned int iseed)
+void PHRandomSeed::LoadSeed(const unsigned int iseed)
 {
   seedqueue.push(iseed);
+}
+
+void PHRandomSeed::Verbosity(const int iverb)
+{
+  verbose = iverb;
 }
