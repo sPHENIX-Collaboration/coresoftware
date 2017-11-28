@@ -431,7 +431,7 @@ PgPostBankManager::fetchClosestBank(const string &className, PdbBankID bankID, c
 
 
 
-PdbApplication* PgPostBankManager::getApplication(PHBoolean pJob)
+PdbApplication* PgPostBankManager::getApplication()
 {
   return PgPostApplication::instance();
 }
