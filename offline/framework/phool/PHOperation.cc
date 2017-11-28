@@ -8,13 +8,14 @@
 //
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
-#include "PHOperation.h" 
+#include "PHOperation.h"
 
-template <class T> PHOperation<T>::PHOperation() 
+template <class T>
+PHOperation<T>::PHOperation()
 {
 }
 
-template <class T> PHOperation<T>::~PHOperation() 
+template <class T>
+PHOperation<T>::~PHOperation()
 {
 }
-

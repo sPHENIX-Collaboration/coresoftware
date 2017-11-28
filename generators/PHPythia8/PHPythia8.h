@@ -18,53 +18,62 @@
 class PHCompositeNode;
 class PHHepMCGenEvent;
 class PHHepMCFilter;
-
+class PHGenIntegral;
 class PHPy8GenTrigger;
 
-namespace HepMC {
-  class GenEvent;
-  class Pythia8ToHepMC;
+namespace HepMC
+{
+class GenEvent;
+class Pythia8ToHepMC;
 };
 
-namespace Pythia8 {
-  class Pythia;
+namespace Pythia8
+{
+class Pythia;
 };
 
-class PHPythia8: public SubsysReco {
-  
-public:
-  
+class PHPythia8 : public SubsysReco
+{
+ public:
   PHPythia8(const std::string &name = "PHPythia8");
   virtual ~PHPythia8();
 
   int Init(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode); 
-  int ResetEvent(PHCompositeNode *topNode); 
+  int process_event(PHCompositeNode *topNode);
+  int ResetEvent(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
-  
-  void set_config_file( const char* cfg_file ) {
-    if ( cfg_file ) _configFile = cfg_file;
+
+  void set_config_file(const char *cfg_file)
+  {
+    if (cfg_file) _configFile = cfg_file;
   }
 
   void print_config() const;
 
   /// set event selection criteria
   void register_trigger(PHPy8GenTrigger *theTrigger);
-  void set_trigger_OR() { _triggersOR = true; _triggersAND = false; } // default true
-  void set_trigger_AND() { _triggersAND = true; _triggersOR = false; }
+  void set_trigger_OR()
+  {
+    _triggersOR = true;
+    _triggersAND = false;
+  }  // default true
+  void set_trigger_AND()
+  {
+    _triggersAND = true;
+    _triggersOR = false;
+  }
 
   /// pass commands directly to PYTHIA8
-  void process_string(std::string s) {_commands.push_back(s);}
-  
+  void process_string(std::string s) { _commands.push_back(s); }
   void beam_vertex_parameters(double beamX,
-			      double beamY,
-			      double beamZ,
-			      double beamXsigma,
-			      double beamYsigma,
-			      double beamZsigma) {
+                              double beamY,
+                              double beamZ,
+                              double beamXsigma,
+                              double beamYsigma,
+                              double beamZsigma)
+  {
     set_vertex_distribution_mean(beamX, beamY, beamZ, 0);
     set_vertex_distribution_width(beamXsigma, beamYsigma, beamZsigma, 0);
-
   }
 
   //! toss a new vertex according to a Uniform or Gaus distribution
@@ -102,34 +111,38 @@ public:
   //! negative IDs are backgrounds, .e.g out of time pile up collisions
   //! Usually, ID = 0 means the primary Au+Au collision background
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
-private:
-
+  //! whether to store the integrated luminosity and other event statistics to the TOP/RUN/PHGenIntegral node
+  void save_integrated_luminosity(const bool b) { _save_integrated_luminosity = b; }
+ private:
   int read_config(const char *cfg_file = 0);
   int create_node_tree(PHCompositeNode *topNode);
-  double percent_diff(const double a, const double b){return abs((a-b)/a);}
-  
+  double percent_diff(const double a, const double b) { return abs((a - b) / a); }
   int _eventcount;
 
   // event selection
-  std::vector<PHPy8GenTrigger*> _registeredTriggers;
+  std::vector<PHPy8GenTrigger *> _registeredTriggers;
   bool _triggersOR;
   bool _triggersAND;
-  
-  // PYTHIA  
-  #ifndef __CINT__
+
+// PYTHIA
+#ifndef __CINT__
   Pythia8::Pythia *_pythia;
-  #endif
+#endif
 
   std::string _configFile;
   std::vector<std::string> _commands;
-  
+
   // HepMC
   HepMC::Pythia8ToHepMC *_pythiaToHepMC;
 
   //! helper for insert HepMC event to DST node and add vertex smearing
   PHHepMCGenHelper hepmc_helper;
 
+  //! whether to store the integrated luminosity and other event statistics to the TOP/RUN/PHGenIntegral node
+  bool _save_integrated_luminosity;
+
+  //! pointer to data node saving the integrated luminosity
+  PHGenIntegral *_integral_node;
 };
 
-#endif	/* __PHPYTHIA8_H__ */
-
+#endif /* __PHPYTHIA8_H__ */

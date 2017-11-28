@@ -1,7 +1,8 @@
 #include "PHObject.h"
+#include "phool.h"
+
 #include <cstdlib>
 #include <iostream>
-#include "phool.h"
 
 PHObject::PHObject()
   : split(99)

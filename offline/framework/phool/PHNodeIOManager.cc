@@ -6,7 +6,6 @@
 #include "PHIODataNode.h"
 #include "PHNodeIterator.h"
 #include "PHObject.h"
-#include "phool.h"
 #include "phooldefs.h"
 
 #include <RVersion.h>
@@ -103,9 +102,8 @@ void PHNodeIOManager::closeFile()
   }
 }
 
-PHBoolean
-PHNodeIOManager::setFile(const string& f, const string& title,
-                         const PHAccessType a)
+bool PHNodeIOManager::setFile(const string& f, const string& title,
+                              const PHAccessType a)
 {
   filename = f;
   bufSize = 32000;
@@ -128,43 +126,42 @@ PHNodeIOManager::setFile(const string& f, const string& title,
     file = TFile::Open(filename.c_str(), "RECREATE", title.c_str());
     if (!file)
     {
-      return False;
+      return false;
     }
     file->SetCompressionLevel(CompressionLevel);
     tree = new TTree(TreeName.c_str(), title.c_str());
     tree->SetMaxTreeSize(900000000000LL);  // set max size to ~900 GB
     gROOT->cd(currdir.c_str());
-    return True;
+    return true;
     break;
   case PHReadOnly:
     file = TFile::Open(filename.c_str());
     tree = 0;
     if (!file)
     {
-      return False;
+      return false;
     }
     selectObjectToRead("*", true);
     gROOT->cd(currdir.c_str());
-    return True;
+    return true;
     break;
   case PHUpdate:
     file = TFile::Open(filename.c_str(), "UPDATE", title.c_str());
     if (!file)
     {
-      return False;
+      return false;
     }
     file->SetCompressionLevel(CompressionLevel);
     tree = new TTree(TreeName.c_str(), title.c_str());
     gROOT->cd(currdir.c_str());
-    return True;
+    return true;
     break;
   }
 
-  return False;
+  return false;
 }
 
-PHBoolean
-PHNodeIOManager::write(PHCompositeNode* topNode)
+bool PHNodeIOManager::write(PHCompositeNode* topNode)
 {
   // The write function of the PHCompositeNode topNode will
   // recursively call the write functions of its subnodes, thus
@@ -179,14 +176,13 @@ PHNodeIOManager::write(PHCompositeNode* topNode)
   {
     tree->Fill();
     eventNumber++;
-    return True;
+    return true;
   }
 
-  return False;
+  return false;
 }
 
-PHBoolean
-PHNodeIOManager::write(TObject** data, const string& path)
+bool PHNodeIOManager::write(TObject** data, const string& path)
 {
   if (file && tree)
   {
@@ -215,22 +211,21 @@ PHNodeIOManager::write(TObject** data, const string& path)
     {
       thisBranch->SetAddress(data);
     }
-    return True;
+    return true;
   }
 
-  return False;
+  return false;
 }
 
-PHBoolean
-PHNodeIOManager::read(size_t requestedEvent)
+bool PHNodeIOManager::read(size_t requestedEvent)
 {
   if (readEventFromFile(requestedEvent))
   {
-    return True;
+    return true;
   }
   else
   {
-    return False;
+    return false;
   }
 }
 
@@ -273,7 +268,7 @@ void PHNodeIOManager::print() const
     tree->Print();
   }
   cout << "\n\nList of selected objects to read:" << endl;
-  map<string, PHBoolean>::const_iterator classiter;
+  map<string, bool>::const_iterator classiter;
   for (classiter = objectToRead.begin(); classiter != objectToRead.end(); ++classiter)
   {
     cout << classiter->first << " is set to " << classiter->second << endl;
@@ -315,8 +310,7 @@ PHNodeIOManager::getBranchClassName(TBranch* branch)
   exit(1);
 }
 
-PHBoolean
-PHNodeIOManager::readEventFromFile(size_t requestedEvent)
+bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
 {
   // Se non c'e niente, non possiamo fare niente.  Logisch, n'est ce
   // pas?
@@ -324,7 +318,7 @@ PHNodeIOManager::readEventFromFile(size_t requestedEvent)
   {
     PHMessage("PHNodeIOManager::readEventFromFile", PHError,
               "Tree not initialized.");
-    return False;
+    return false;
   }
 
   int bytesRead;
@@ -354,14 +348,14 @@ PHNodeIOManager::readEventFromFile(size_t requestedEvent)
 
   if (!bytesRead)
   {
-    return False;
+    return false;
   }
   if (bytesRead == -1)
   {
     cout << PHWHERE << "Error: Input TTree corrupt, exiting now" << endl;
     exit(1);
   }
-  return True;
+  return true;
 }
 
 int PHNodeIOManager::readSpecific(size_t requestedEvent, const char* objectName)
@@ -422,7 +416,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
   tree->SetName(nname.str().c_str());
 
   // Select the branches according to objectToRead
-  map<string, PHBoolean>::const_iterator it;
+  map<string, bool>::const_iterator it;
 
   if (tree->GetNbranches() > 0)
   {
@@ -540,14 +534,14 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
   return topNode;
 }
 
-void PHNodeIOManager::selectObjectToRead(const char* objectName, PHBoolean readit)
+void PHNodeIOManager::selectObjectToRead(const char* objectName, bool readit)
 {
   objectToRead[objectName] = readit;
 
   // If tree is already open, loop over map and set branch status
   if (tree)
   {
-    map<string, PHBoolean>::const_iterator it;
+    map<string, bool>::const_iterator it;
 
     for (it = objectToRead.begin(); it != objectToRead.end(); ++it)
     {
@@ -558,26 +552,24 @@ void PHNodeIOManager::selectObjectToRead(const char* objectName, PHBoolean readi
   return;
 }
 
-PHBoolean
-PHNodeIOManager::isSelected(const char* objectName)
+bool PHNodeIOManager::isSelected(const char* objectName)
 {
   string name = objectName;
   map<string, TBranch*>::const_iterator p = fBranches.find(name);
 
   if (p != fBranches.end())
   {
-    return True;
+    return true;
   }
 
-  return False;
+  return false;
 }
 
-PHBoolean
-PHNodeIOManager::SetCompressionLevel(const int level)
+bool PHNodeIOManager::SetCompressionLevel(const int level)
 {
   if (level < 0)
   {
-    return False;
+    return false;
   }
   CompressionLevel = level;
   if (file)
@@ -585,7 +577,7 @@ PHNodeIOManager::SetCompressionLevel(const int level)
     file->SetCompressionLevel(CompressionLevel);
   }
 
-  return True;
+  return true;
 }
 
 double

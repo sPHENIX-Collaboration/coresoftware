@@ -23,6 +23,8 @@ pkginclude_HEADERS = \
   PHGenEventv1.h \
   PHGenEventList.h \
   PHGenEventListv1.h \
+  PHGenIntegral.h \
+  PHGenIntegralv1.h \
   PHHepMCGenEvent.h \
   PHHepMCGenEventMap.h \
   PHHepMCGenHelper.h
@@ -59,7 +61,11 @@ libphhepmc_io_la_SOURCES = \
   PHGenEventListv1.cc \
   PHHepMCGenEvent.cc \
   PHHepMCGenEventMap.cc \
-  PHHepMC_io_Dict.C
+  PHHepMC_io_Dict.C \
+  PHGenIntegral.cc \
+  PHGenIntegral_Dict.C \
+  PHGenIntegralv1.cc \
+  PHGenIntegralv1_Dict.C
 
 
 libphhepmc_io_la_LDFLAGS = \
