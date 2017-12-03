@@ -35,9 +35,14 @@ class CaloTriggerSim : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  void set_truncation( int emulate_truncation );
+  float truncate_8bit( float raw_E );
+
  private:
   int CreateNode(PHCompositeNode *topNode);
   void FillNode(PHCompositeNode *topNode);
+
+  int _emulate_truncation;
 
   int _EMCAL_1x1_NETA;
   int _EMCAL_1x1_NPHI;
@@ -58,6 +63,10 @@ class CaloTriggerSim : public SubsysReco
   float _EMCAL_4x4_BEST_E;
   float _EMCAL_4x4_BEST_PHI;
   float _EMCAL_4x4_BEST_ETA;
+
+  float _EMCAL_4x4_BEST2_E;
+  float _EMCAL_4x4_BEST2_PHI;
+  float _EMCAL_4x4_BEST2_ETA;
 
   // needed since phi ranges are potentially different in EMCal vs. HCal
   float _FULLCALO_PHI_START;
