@@ -7,6 +7,8 @@
 
 #include "PHIOManager.h"
 
+#include "phool.h"
+
 #include <map>
 #include <string>
 
@@ -26,27 +28,27 @@ class PHNodeIOManager : public PHIOManager
 
  public:
   virtual void closeFile();
-  virtual PHBoolean write(PHCompositeNode *);
+  virtual bool write(PHCompositeNode *);
   virtual void print() const;
 
-  PHBoolean setFile(const std::string &, const std::string &, const PHAccessType = PHReadOnly);
+  bool setFile(const std::string &, const std::string &, const PHAccessType = PHReadOnly);
   PHCompositeNode *read(PHCompositeNode * = nullptr, size_t = 0);
-  PHBoolean read(size_t requestedEvent);
+  bool read(size_t requestedEvent);
   int readSpecific(size_t requestedEvent, const char *objectName);
-  void selectObjectToRead(const char *objectName, PHBoolean readit);
-  PHBoolean isSelected(const char *objectName);
+  void selectObjectToRead(const char *objectName, bool readit);
+  bool isSelected(const char *objectName);
   int isFunctional() const { return isFunctionalFlag; }
-  PHBoolean SetCompressionLevel(const int level);
+  bool SetCompressionLevel(const int level);
   double GetBytesWritten();
   std::map<std::string, TBranch *> *GetBranchMap();
 
  public:
-  PHBoolean write(TObject **, const std::string &);
+  bool write(TObject **, const std::string &);
 
  private:
   int FillBranchMap();
   PHCompositeNode *reconstructNodeTree(PHCompositeNode *);
-  PHBoolean readEventFromFile(size_t requestedEvent);
+  bool readEventFromFile(size_t requestedEvent);
   std::string getBranchClassName(TBranch *);
 
   TFile *file;
@@ -57,7 +59,7 @@ class PHNodeIOManager : public PHIOManager
   int accessMode;
   int CompressionLevel;
   std::map<std::string, TBranch *> fBranches;
-  std::map<std::string, PHBoolean> objectToRead;
+  std::map<std::string, bool> objectToRead;
 
   int isFunctionalFlag;  // flag to tell if that object initialized properly
 };

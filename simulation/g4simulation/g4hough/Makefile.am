@@ -63,9 +63,28 @@ pkginclude_HEADERS = \
   SvtxTrackMap.h \
   SvtxTrackMap_v1.h \
   SvtxBeamSpot.h \
+  Cluster3D.h \
+  Track3D.h \
+  HelixTrackState.h \
+  HelixHoughSpace.h \
+  HelixHoughSpace_v1.h \
+  HelixHoughBin.h \
+  HelixHoughBin_v1.h \
+  HelixHoughFuncs.h \
+  HelixHoughFuncs_v1.h \
+  HelixKalmanFilter.h \
+  CellularAutomaton.h \
+  CellularAutomaton_v1.h \
+  FunctionGradHessian.h \
+  SquareGradient.h \
+  NewtonMinimizerGradHessian.h \
+  VertexFitter.h \
+  VertexFitFuncs.h \
   PHG4HoughTransform.h \
   PHG4HoughTransformTPC.h \
   PHG4KalmanPatRec.h \
+  PHG4InitZVertexing.h \
+  PHG4PatternReco.h \
   PHG4TrackGhostRejection.h \
   PHG4TrackKalmanFitter.h \
   PHG4TruthPatRec.h \
@@ -117,7 +136,31 @@ libg4hough_io_la_SOURCES = \
   SvtxVertexMap.C \
   SvtxVertexMap_Dict.C \
   SvtxVertexMap_v1.C \
-  SvtxVertexMap_v1_Dict.C
+  SvtxVertexMap_v1_Dict.C \
+  Cluster3D.C \
+  Track3D.C \
+  HelixTrackState.C \
+  HelixHoughSpace.C \
+  HelixHoughSpace_Dict.C \
+  HelixHoughSpace_v1.C \
+  HelixHoughSpace_v1_Dict.C \
+  HelixHoughBin.C \
+  HelixHoughBin_Dict.C \
+  HelixHoughBin_v1.C \
+  HelixHoughBin_v1_Dict.C \
+  HelixHoughFuncs.C \
+  HelixHoughFuncs_Dict.C \
+  HelixHoughFuncs_v1.C \
+  HelixHoughFuncs_v1_Dict.C \
+  HelixKalmanFilter.C \
+  CellularAutomaton.C \
+  CellularAutomaton_Dict.C \
+  CellularAutomaton_v1.C \
+  CellularAutomaton_v1_Dict.C \
+  SquareGradient.C \
+  NewtonMinimizerGradHessian.C \
+  VertexFitter.C \
+  VertexFitFuncs.C
 
 libg4hough_la_SOURCES = \
   PHG4SiliconTrackerDigitizer.C \
@@ -138,6 +181,10 @@ libg4hough_la_SOURCES = \
   PHG4HoughTransformTPC_Dict.C \
   PHG4KalmanPatRec.C \
   PHG4KalmanPatRec_Dict.C \
+  PHG4InitZVertexing.C \
+  PHG4InitZVertexing_Dict.C \
+  PHG4PatternReco.C \
+  PHG4PatternReco_Dict.C \
   PHG4TrackGhostRejection.C \
   PHG4TrackGhostRejection_Dict.C \
   PHG4TrackKalmanFitter.C \

@@ -13,7 +13,11 @@ class PHCompositeNode;
 class PHNodeIntegrate : public PHNodeOperation
 {
  public:
-  PHNodeIntegrate():runnode(nullptr),runsumnode(nullptr) {}
+  PHNodeIntegrate()
+    : runnode(nullptr)
+    , runsumnode(nullptr)
+  {
+  }
   virtual ~PHNodeIntegrate() {}
   void RunNode(PHCompositeNode *node)
   {

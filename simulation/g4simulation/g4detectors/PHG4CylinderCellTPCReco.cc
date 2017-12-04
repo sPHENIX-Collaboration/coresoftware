@@ -46,6 +46,7 @@ PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
   , fHalfLength(100)
   , fDiffusionT(0.0057)
   , fDiffusionL(0.0057)
+  , sigmaT(0.04)
   , elec_per_gev(38. * 1e6)
   , driftv(3.0 / 1000.0)
   ,  // cm per ns
@@ -439,8 +440,9 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
           fHElectrons->Fill(nelec);
         }
 
-        // The resolution due to pad readout is dominated by the charge spread during GEM multiplication, which we hard code because it is not a matter of opinion!
-        double sigmaT = 0.04;  // 400 microns, charge dispersion at pad due to GEM stage, from Tom (see 8/11 email)
+        // The resolution due to pad readout includes the charge spread during GEM multiplication.
+        // this now defaults to 400 microns during construction from Tom (see 8/11 email).
+	// Use the setSigmaT(const double) method to update...
         // We use a double gaussian to represent the smearing due to the SAMPA chip shaping time - default values of fShapingLead and fShapingTail are 0.19 and 0.285 cm
         double sigmaL[2];
         // These are calculated (in cm) in the macro from the shaping RMS times and the gas drift velocity
