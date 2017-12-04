@@ -33,6 +33,7 @@ pkginclude_HEADERS = \
   DetermineTowerBackground.h \
   SubtractTowers.h \
   RetowerCEMC.h \
+  CopyAndSubtractJets.h \
   FastJetAlgoSub.h \
   TowerBackground.h \
   TowerBackground_v1.h
@@ -50,7 +51,9 @@ libjetbackground_la_SOURCES = \
   SubtractTowers.C \
   SubtractTowers_Dict.C \
   RetowerCEMC.C \
-  RetowerCEMC_Dict.C
+  RetowerCEMC_Dict.C \
+  CopyAndSubtractJets.C \
+  CopyAndSubtractJets_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
