@@ -82,7 +82,7 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
     std::cout << "SubtractTowers::process_event: starting with " << ohcal_towers->size() << " TOWER_CALIB_HCALOUT_SUB1 towers" << std::endl;
   }
 
-  TowerBackground* towerbackground = findNode::getClass<TowerBackground>(topNode,"TowerBackground_Sub1");
+  TowerBackground* towerbackground = findNode::getClass<TowerBackground>(topNode,"TowerBackground_Sub2");
 
   // EMCal
   
