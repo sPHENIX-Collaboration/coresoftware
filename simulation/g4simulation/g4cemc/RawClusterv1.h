@@ -53,7 +53,7 @@ class RawClusterv1 : public RawCluster {
 
   TowerMap towermap;
 
-  ClassDef(RawClusterv1,1)
+  ClassDef(RawClusterv1,2)
 
 };
 
