@@ -162,7 +162,7 @@ int BEmcRec::FindClusters()
   vector<EmcModule>::iterator ph;
   vector<EmcModule> hl;
   
-  (*fClusters).erase(  (*fClusters).begin(),  (*fClusters).end() );
+  (*fClusters).clear();
   nhit = (*fModules).size();
   
   if( nhit <= 0 ) return 0;
@@ -250,7 +250,7 @@ int BEmcRec::FindClusters()
     ib=0;
     for( int iCl=0; iCl<nCl; iCl++ ) { 
       leng=LenCl[iCl];
-      hl.erase( hl.begin(), hl.end() );
+      hl.clear();
       for( ich=0; ich<leng; ich++ ) hl.push_back(vhit[ib+ich]);
       Clt.ReInitialize(hl);
       ib += LenCl[iCl];
@@ -533,7 +533,11 @@ int BEmcRec::ShiftX(int ishift, int nh, EmcModule* phit0, EmcModule* phit1)
     phit1[i].ich = ich;
   }
 
-  if( ishift==0 && ixmax-ixmin > fNx/2 ) printf("!!! Warning: Too long cluster (%d towers): reconstruction may be wrong !!!\n",ixmax-ixmin+1);
+  if( ishift==0 && ixmax-ixmin > fNx/2 ) {
+    printf("!!! Error BEmcRec::ShiftX(): Too long cluster (>%d towers in phi): reconstruction may be wrong. May need tower energy threshold increase for clustering.\n",fNx/2);
+    return -999;
+  }
+
   return ish;
 }
 
@@ -558,8 +562,10 @@ void BEmcRec::Momenta(int nh, EmcModule* phit, float* pe, float* px,
   //  p=phit;
   EmcModule* phit1 = new EmcModule[nh];
   int ish = ShiftX(0, nh, phit, phit1);
-  p = phit1;
 
+  if( ish<-fNx ) return;
+
+  p = phit1;
   x=0;
   y=0;
   e=0;
@@ -931,11 +937,16 @@ void BEmcRec::SetProfileParameters(int sec, float Energy, float x,
   
   if( Energy <= 1.e-10 ) lgE=0;
   else lgE=log(Energy);
-  
+  /*  
   fPpar1=0.59-(1.45+0.13*lgE)*sin2a;
   fPpar2=0.265+(0.80+0.32*lgE)*sin2a;
   fPpar3=0.25+(0.45-0.036*lgE)*sin2a;
   fPpar4=0.42;
+  */
+  fPpar1=0.549;
+  fPpar2=0.304;
+  fPpar3=0.389;
+  fPpar4=0.326;
   
   if( fSinTx > 0 ) sign = 1;
   else sign = -1;
