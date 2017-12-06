@@ -51,7 +51,7 @@ public:
 
   // void fetchAllBanks(PdbBankList &, const std::string &, const std::string &, PHTimeStamp &);
   
-  PdbApplication* getApplication(PHBoolean pJob = False);
+  PdbApplication* getApplication();
   
   void fillCalibObject(PdbCalBank*, const std::string &,  PHTimeStamp &) {}
 

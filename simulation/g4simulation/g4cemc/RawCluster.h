@@ -33,6 +33,7 @@ class RawCluster : public PHObject {
   virtual float get_eta() const { PHOOL_VIRTUAL_WARN("get_eta()"); return NAN; }
   virtual float get_phi() const { PHOOL_VIRTUAL_WARN("get_phi()"); return NAN; }
   virtual float get_energy() const { PHOOL_VIRTUAL_WARN("get_energy()"); return NAN; }
+  virtual float get_ecore() const { PHOOL_VIRTUAL_WARN("get_ecore()"); return NAN; }
   virtual float get_prob() const { PHOOL_VIRTUAL_WARN("get_prob()"); return NAN; }
   virtual float get_chi2() const { PHOOL_VIRTUAL_WARN("get_chi2()"); return NAN; }
 
@@ -40,6 +41,7 @@ class RawCluster : public PHObject {
   virtual void set_eta(const float eta) { PHOOL_VIRTUAL_WARN("set_eta(const float eta)");}
   virtual void set_phi(const float phi) { PHOOL_VIRTUAL_WARN("set_phi(const float phi)");}
   virtual void set_energy(const float energy) { PHOOL_VIRTUAL_WARN("set_energy(const float energy)");}
+  virtual void set_ecore(const float ecore) { PHOOL_VIRTUAL_WARN("set_ecore(const float ecore)");}
   virtual void set_prob(const float prob) { PHOOL_VIRTUAL_WARN("set_prob(const float prob)");}
   virtual void set_chi2(const float chi2) { PHOOL_VIRTUAL_WARN("set_chi2(const float chi2)");}
 

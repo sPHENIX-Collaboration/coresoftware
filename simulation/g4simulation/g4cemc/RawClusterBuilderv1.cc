@@ -10,8 +10,6 @@
 #include "BEmcRec.h"
 #include "BEmcCluster.h"
 
-#define MaxNofPeaks 100
-
 #include <phool/PHCompositeNode.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
@@ -31,7 +29,7 @@ RawClusterBuilderv1::~RawClusterBuilderv1()
 RawClusterBuilderv1::RawClusterBuilderv1(const std::string& name):
   SubsysReco( name ),
   _clusters(NULL),
-  _min_tower_e(0.0),
+  _min_tower_e(0.020),
   chkenergyconservation(0),
   detector("NONE")
 {
@@ -172,19 +170,26 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
   bemc->SetModules(&HitList);
 
   // Find clusters (as a set of towers with common edge)
-  bemc->FindClusters();
+  int ncl = bemc->FindClusters();
+  if( ncl<0 ) {
+    printf("!!! Error in BEmcRec::FindClusters(): Too many clusters, fgMaxLen parameter needs to be increased\n");
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   // Get pointer to clusters
   std::vector<EmcCluster> *ClusterList = bemc->GetClusters();
   std::vector<EmcCluster>::iterator pc;
 
-  float ecl, xcg, ycg, xx, xy, yy;
+  std::vector<EmcPeakarea>::iterator pp;
+  float ecl, ecore, xcg, ycg, xx, xy, yy;
   float xcorr, ycorr;
-  EmcPeakarea pPList[MaxNofPeaks];
-  EmcPeakarea *pp;
-  EmcModule peaks[MaxNofPeaks];
   EmcModule hmax;
   RawCluster *cluster;
+
+  std::vector<EmcPeakarea> PList;
+  std::vector<EmcModule> Peaks;
+  std::vector<EmcPeakarea> *pPList = &PList;
+  std::vector<EmcModule> *pPeaks = &Peaks;
 
   int iphi, ieta;
   float phi, eta;
@@ -194,21 +199,22 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
   vector<EmcModule>::iterator ph;
   vector<EmcModule> hlist;
 
-  int ncl = 0;
+  ncl = 0;
   for( pc=ClusterList->begin(); pc!=ClusterList->end(); ++pc){
 
     //    ecl = pc->GetTotalEnergy();
     //    pc->GetMoments( &xcg, &ycg, &xx, &xy, &yy );
 
-    int npk = pc->GetPeaks(pPList, peaks);
-    pp = pPList;
+    int npk = pc->GetPeaks(pPList, pPeaks);
+    if( npk<0 ) return Fun4AllReturnCodes::ABORTEVENT;
 
     //    printf("  iCl=%d (%d): E=%f  x=%f  y=%f\n",ncl,npk,ecl,xcg,ycg);
 
-    for(int ipk=0; ipk<npk; ipk++){
+    for( pp=pPList->begin(); pp!=pPList->end(); pp++){
 
       // Cluster energy
       ecl = pp->GetTotalEnergy();
+      ecore = pp->GetECoreCorrected();
       // 3x3 energy around center of gravity
       //e9 = pp->GetE9();
       // Ecore (basically near 2x2 energy around center of gravity)
@@ -233,6 +239,7 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 
       cluster = new RawClusterv1();
       cluster->set_energy(ecl);
+      cluster->set_ecore(ecore);
       cluster->set_phi(phi);
       cluster->set_eta(eta);
       cluster->set_prob(prob);
@@ -259,7 +266,6 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
       ncl++;
 
       //      printf("    ipk=%d: E=%f  E9=%f  x=%f  y=%f  MaxTower: (%d,%d) e=%f\n",ipk,ecl,e9,xcg,ycg,hmax.ich%NPHI,hmax.ich/NPHI,hmax.amp);
-      pp++;
 
     }
   }

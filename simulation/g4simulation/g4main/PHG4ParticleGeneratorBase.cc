@@ -226,6 +226,14 @@ int PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)
       const HepMC::FourVector &vtx = hepmc_evt->get_collision_vertex();
 
       set_vtx(vtx.x(), vtx.y(), vtx.z());
+
+      if (verbosity > 0) {
+        cout <<"PHG4ParticleGeneratorBase::ReuseExistingVertex - reuse PHHepMCGenEventMap vertex "
+            << vtx.x()<<", "<< vtx.y()<<", "<< vtx.z()<<" cm. Source event:"
+            <<endl;
+        hepmc_evt->identify();
+      }
+
       return 1;
     }
   }
