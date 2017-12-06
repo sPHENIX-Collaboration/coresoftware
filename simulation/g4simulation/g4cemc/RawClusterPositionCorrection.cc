@@ -208,7 +208,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     recalibcluster->set_energy(clus_energy / recalib_val);
     recalibcluster->set_eta(cluster->get_eta());
     recalibcluster->set_phi(cluster->get_phi());
-    recalibcluster->set_ecore(cluster->get_ecore());
+    recalibcluster->set_ecore(cluster->get_ecore() / recalib_val);
     recalibcluster->set_prob(cluster->get_prob());
     recalibcluster->set_chi2(cluster->get_chi2());
     
