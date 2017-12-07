@@ -6,7 +6,6 @@
 // cannot fwd declare G4RotationMatrix, it is a typedef pointing to clhep
 #include <Geant4/G4RotationMatrix.hh>
 
-#include <map>
 #include <set>
 #include <string>
 
@@ -43,8 +42,8 @@ class PHG4TPCDetector : public PHG4Detector
   int absorberactive;
   double inner_cage_radius;
   double outer_cage_radius;
-  std::map<G4VPhysicalVolume *, int> absorbervols;
-  std::map<G4VPhysicalVolume *, int> activevols;
+  std::set<G4VPhysicalVolume *> absorbervols;
+  std::set<G4VPhysicalVolume *> activevols;
 
   std::string superdetector;
 };
