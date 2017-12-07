@@ -30,6 +30,9 @@ private:
   std::string detector;
   std::string hitnodename;
   unsigned int seed;
+  double diffusion_trans;
+  double diffusion_long;
+  double drift_velocity;
   double electrons_per_gev;
 #ifndef __CINT__
   gsl_rng *RandomGenerator;
