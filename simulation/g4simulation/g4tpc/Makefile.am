@@ -22,8 +22,6 @@ libg4tpc_la_LIBADD = \
 #pkginclude_HEADERS =
 
 libg4tpc_la_SOURCES = \
-  PHG4TPCElectronDrift.cc \
-  PHG4TPCElectronDrift_Dict.cc \
   PHG4TPCDetector.cc \
   PHG4TPCSteppingAction.cc \
   PHG4TPCSubsystem.cc \
